@@ -22,8 +22,8 @@ impl App for FocusApp {
             .width(Size::fill())
             .height(Size::fill())
             .direction(Direction::Vertical)
-            .child(Input::new(self.value_a.clone()).auto_focus(true))
-            .child(Input::new(self.value_b.clone()))
+            .child(Input::new(self.value_a).auto_focus(true))
+            .child(Input::new(self.value_b))
     }
 }
 
@@ -32,10 +32,7 @@ fn auto_focused_input_receives_keys_and_tab_moves_focus() {
     let value_a = State::create_global(String::new());
     let value_b = State::create_global(String::new());
 
-    let app = AppComponent::new(FocusApp {
-        value_a: value_a.clone(),
-        value_b: value_b.clone(),
-    });
+    let app = AppComponent::new(FocusApp { value_a, value_b });
     let (mut test, _) = TestingRunner::new(app, Size2D::new(300.0, 200.0), |_| {}, 1.0);
 
     // Initial render: the first Input requested focus via auto_focus.
