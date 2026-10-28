@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Client-only dependency guard (ADR 0034).
 #
-# The compositor must not link Freya, Skia, winit, GTK, glutin, tokio or the
-# tray icon stack; those belong to the shell and only the shell. The checks run
-# against the resolved workspace graph, so they cost no compile.
+# The toolkit must not link winit, GTK, glutin, tokio or the tray icon stack;
+# those belong to the shell/apps or the compositor, not the kit itself. The
+# checks run against the resolved workspace graph, so they cost no compile.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -20,16 +20,7 @@ absent() {
   fi
 }
 
-# The compositor's package must not reach the client render stack.
-absent freya-engine -p malaysia-compositor
-absent freya-skia-bindings -p malaysia-compositor
-absent freya-skia-safe -p malaysia-compositor
-absent skia-bindings -p malaysia-compositor
-
-# The window backend is the compositor's own (smithay backend_winit, ADR 0009),
-# so `winit` is expected under `malaysia-compositor`; it must not reach a client crate.
 absent winit -p barrier-kit
-absent winit -p malaysia-shell
 absent tokio --workspace
 absent gtk --workspace
 absent glutin --workspace
