@@ -51,7 +51,7 @@
           cargoLock = ./Cargo.lock;
 
           env = {
-            MALAYSIA_DEV_SHELL = "1";
+            BARRIERKIT_DEV_SHELL = "1";
           }
           // lib.optionalAttrs hasFreyaSkia {
             SKIA_BINARIES_URL = "file://${skia}/skia-binaries.tar.gz";
@@ -167,7 +167,7 @@
 
           RUSTFLAGS = "-C link-arg=-fuse-ld=mold -C link-arg=-Wl,-rpath,${pkgs.lib.makeLibraryPath deps}";
           FONTCONFIG_FILE = fontsConf;
-          MALAYSIA_DEV_SHELL = "1";
+          BARRIERKIT_DEV_SHELL = "1";
 
           shellHook = ''
             ${pkgs.lib.optionalString hasFreyaSkia ''
