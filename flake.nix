@@ -35,7 +35,6 @@
           root = ./.;
           fileset = lib.fileset.unions [
             ./crates
-            ./protocols
             ./Cargo.toml
             ./Cargo.lock
           ];

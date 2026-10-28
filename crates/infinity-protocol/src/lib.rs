@@ -16,7 +16,7 @@ pub mod client {
     pub mod __interfaces {
         use wayland_client::protocol::__interfaces::*;
         use wayland_protocols_wlr::foreign_toplevel::v1::client::__interfaces::*;
-        wayland_scanner::generate_interfaces!("../../protocols/infinity-window-manager-v1.xml");
+        wayland_scanner::generate_interfaces!("protocols/infinity-window-manager-v1.xml");
     }
 
     pub mod infinity_window_manager_v1 {
@@ -25,7 +25,7 @@ pub mod client {
         use wayland_client;
         use wayland_client::protocol::*;
         use wayland_protocols_wlr::foreign_toplevel::v1::client::*;
-        wayland_scanner::generate_client_code!("../../protocols/infinity-window-manager-v1.xml");
+        wayland_scanner::generate_client_code!("protocols/infinity-window-manager-v1.xml");
     }
 
     pub use infinity_window_manager_v1::infinity_window_manager_v1::{
@@ -38,7 +38,7 @@ pub mod server {
     pub mod __interfaces {
         use wayland_protocols_wlr::foreign_toplevel::v1::server::__interfaces::*;
         use wayland_server::protocol::__interfaces::*;
-        wayland_scanner::generate_interfaces!("../../protocols/infinity-window-manager-v1.xml");
+        wayland_scanner::generate_interfaces!("protocols/infinity-window-manager-v1.xml");
     }
 
     pub mod infinity_window_manager_v1 {
@@ -47,7 +47,7 @@ pub mod server {
         use wayland_protocols_wlr::foreign_toplevel::v1::server::*;
         use wayland_server;
         use wayland_server::protocol::*;
-        wayland_scanner::generate_server_code!("../../protocols/infinity-window-manager-v1.xml");
+        wayland_scanner::generate_server_code!("protocols/infinity-window-manager-v1.xml");
     }
 }
 
