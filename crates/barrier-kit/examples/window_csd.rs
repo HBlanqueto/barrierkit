@@ -56,6 +56,7 @@ impl App for Demo {
 }
 
 fn main() {
+    tracing_subscriber::fmt::init();
     let app = AppComponent::new(Demo {
         started: Instant::now(),
     });

@@ -850,7 +850,7 @@ fn main() {
     } else {
         BAR_HEIGHT as i32
     };
-    run_layer(
+    if let Err(e) = run_layer(
         app,
         SurfaceSpec::Layer {
             namespace: "malaysia-menu-example".to_string(),
@@ -860,6 +860,8 @@ fn main() {
             keyboard: KeyboardInteractivity::None,
             size: Some((0, BAR_HEIGHT as u32)),
         },
-    )
-    .expect("menu_popup");
+    ) {
+        eprintln!("menu_popup: este ejemplo necesita un compositor con zwlr_layer_shell_v1 ({e})");
+        std::process::exit(0);
+    }
 }

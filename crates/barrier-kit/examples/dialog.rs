@@ -116,6 +116,7 @@ impl App for Dialog {
 }
 
 fn main() {
+    tracing_subscriber::fmt::init();
     run_window(
         AppComponent::new(Parent {
             started: Instant::now(),
