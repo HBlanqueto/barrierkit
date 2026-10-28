@@ -1,0 +1,123 @@
+# BarrierKit: the application toolkit for MalaysiaDreams.
+#
+# This workspace contains the toolkit crates (barrier-kit, vow-design,
+# vow-appearance) and the private Infinity window-management protocol shared
+# with the MalaysiaDreams compositor.
+[workspace]
+resolver = "3"
+members = [
+    "crates/barrier-kit",
+    "crates/vow-design",
+    "crates/vow-appearance",
+    "crates/infinity-protocol",
+]
+default-members = [
+    "crates/barrier-kit",
+    "crates/vow-design",
+    "crates/vow-appearance",
+    "crates/infinity-protocol",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.98"
+license = "MIT"
+repository = "https://github.com/HBlanqueto/barrierkit"
+
+[workspace.dependencies]
+# Error handling.
+anyhow = "1"
+thiserror = "2"
+
+# Logging and diagnostics.
+tracing = "0.1"
+tracing-subscriber = "0.3"
+
+# Process lifetime.
+calloop = { version = "0.14", features = ["signals"] }
+# inotify watcher for appearance.domain; socket reads SO_PEERCRED when a client
+# is accepted (Infinity trust).
+nix = { version = "0.31", features = ["signal", "socket", "inotify", "poll"] }
+
+# Zeroing secrets (the lock password) when they leave scope.
+zeroize = "1"
+
+# Runtime configuration.
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.8"
+toml_edit = "0.22"
+
+# System keymap and D-Bus.
+zbus = { version = "5", features = ["p2p"] }
+
+# Shell clock.
+chrono = "0.4"
+
+# BarrierKit's own crates.
+barrier-kit = { path = "crates/barrier-kit" }
+vow-design = { path = "crates/vow-design" }
+vow-appearance = { path = "crates/vow-appearance" }
+infinity-protocol = { path = "crates/infinity-protocol" }
+
+# Freya's core crates for BarrierKit (ADR 0034), pinned exact.
+freya-core = "=0.4.3"
+freya-components = { version = "=0.4.3", default-features = false }
+freya-animation = "=0.4.3"
+freya-engine = "=0.4.3"
+freya-testing = "=0.4.3"
+freya-skia-safe = "=0.98.0"
+freya-clipboard = "=0.4.3"
+async-io = "2"
+async-channel = "2"
+futures-lite = "2"
+torin = "=0.4.3"
+ragnarok = "=0.4.3"
+futures-util = "0.3"
+futures-channel = "0.3"
+keyboard-types = "0.8"
+accesskit = "0.24"
+
+# Wayland client stack for the BarrierKit runner.
+wayland-client = { version = "0.31", features = ["system"] }
+wayland-server = "0.31"
+wayland-backend = "0.3"
+wayland-egl = "0.32"
+wayland-scanner = "0.31"
+wayland-protocols-wlr = { version = "0.3.12", default-features = false }
+wayland-protocols-plasma = { version = "0.3.12", default-features = false }
+
+# EGL presentation.
+khronos-egl = { version = "6", features = ["dynamic"] }
+
+# Image decoding.
+png = "0.17"
+zune-jpeg = "0.5"
+
+# Smithay client toolkit.
+smithay-client-toolkit = "0.19.2"
+sctk = { package = "smithay-client-toolkit", version = "0.19.2" }
+
+[profile.dev]
+opt-level = 0
+debug = "line-tables-only"
+
+[profile.dev.package."*"]
+opt-level = 2
+
+[profile.dev-fast]
+inherits = "dev"
+debug = false
+incremental = true
+
+[profile.release]
+lto = "thin"
+codegen-units = 16
+panic = "abort"
+strip = true
+
+[profile.dist]
+inherits = "release"
+lto = "fat"
+codegen-units = 1
