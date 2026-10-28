@@ -1876,10 +1876,12 @@ fn cursor_shape_from_icon(icon: CursorIcon) -> CursorShape {
 pub fn run_layer(app: AppComponent, spec: SurfaceSpec) -> Result<(), RunError> {
     let (conn, event_queue, qh, mut shell) = Shell::connect(app, spec)?;
     shell.qh = qh.clone();
-    let layer_shell = shell
-        .layer_shell
-        .as_ref()
-        .ok_or(RunError::MissingGlobal("zwlr_layer_shell_v1"))?;
+    let layer_shell = shell.layer_shell.as_ref().ok_or_else(|| {
+        tracing::info!(
+            "zwlr_layer_shell_v1 no disponible; las superficies Layer no funcionan aquí"
+        );
+        RunError::MissingGlobal("zwlr_layer_shell_v1")
+    })?;
 
     let (namespace, layer, anchors, exclusive_zone, keyboard, size) = match &shell.spec {
         SurfaceSpec::Layer {
@@ -2286,17 +2288,29 @@ impl Shell {
         let foreign_list = globals
             .bind::<ExtForeignToplevelListV1, _, _>(&qh, 1..=1, ())
             .ok();
+        if foreign_list.is_none() {
+            tracing::info!("ext_foreign_toplevel_list_v1 no disponible; sigo sin él");
+        }
         let foreign_mgmt = globals
             .bind::<ZwlrForeignToplevelManagerV1, _, _>(&qh, 3..=3, ())
             .ok();
+        if foreign_mgmt.is_none() {
+            tracing::info!("zwlr_foreign_toplevel_manager_v1 no disponible; sigo sin él");
+        }
         let infinity_manager_bound = globals
             .bind::<InfinityWindowManagerV1, _, _>(&qh, 1..=3, ())
             .ok();
+        if infinity_manager_bound.is_none() {
+            tracing::info!("infinity_window_manager_v1 no disponible; sigo sin él");
+        }
         *infinity_manager.borrow_mut() = infinity_manager_bound;
         let activation_global = globals.bind::<XdgActivationV1, _, _>(&qh, 1..=1, ()).ok();
         let appmenu_manager = globals
             .bind::<OrgKdeKwinAppmenuManager, _, _>(&qh, 1..=1, ())
             .ok();
+        if appmenu_manager.is_none() {
+            tracing::info!("org_kde_kwin_appmenu_manager no disponible; sigo sin él");
+        }
         // `SeatState::new` binds the seats that already exist without calling
         // `SeatHandler::new_seat`, so remember one here for activation and
         // popup grabs. Hotplugged seats still arrive through `new_seat`.
@@ -2329,7 +2343,15 @@ impl Shell {
             },
             seat,
             pointer: None,
-            cursor_shape: CursorShapeManager::bind(&globals, &qh).ok(),
+            cursor_shape: {
+                let manager = CursorShapeManager::bind(&globals, &qh).ok();
+                if manager.is_none() {
+                    tracing::info!(
+                        "wp_cursor_shape_manager_v1 no disponible; uso cursor por defecto"
+                    );
+                }
+                manager
+            },
             cursor_shape_device: None,
             keyboard: None,
             touch: None,
@@ -2471,13 +2493,23 @@ impl Shell {
         let queue: Rc<RefCell<Vec<WindowCommand>>> = Rc::new(RefCell::new(Vec::new()));
         let pointer_serial = Rc::new(std::cell::Cell::new(0));
         let fixed = options.min_size.is_some() && options.min_size == options.max_size;
+        let decoration = match options.decorations {
+            Decorations::Client => DecorationResponse::Client,
+            Decorations::Server if self.decoration_manager => DecorationResponse::Server,
+            Decorations::Server => {
+                if !self.decoration_warned {
+                    self.decoration_warned = true;
+                    tracing::info!(
+                        "zxdg_decoration_manager_v1 no disponible; uso decoración Client (CSD)"
+                    );
+                }
+                DecorationResponse::Client
+            }
+        };
         let status = State::create_global(WindowStatus {
             activated: true,
             maximized: false,
-            decoration: match options.decorations {
-                Decorations::Client => DecorationResponse::Client,
-                Decorations::Server => DecorationResponse::Server,
-            },
+            decoration,
             fixed,
         });
         let surface_id = surface.id();
