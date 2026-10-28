@@ -24,13 +24,12 @@ tracing.workspace = true
 vow-design.workspace = true
 vow-appearance.workspace = true
 zeroize.workspace = true
+infinity-protocol = { workspace = true, features = ["client"] }
 sctk.workspace = true
 calloop.workspace = true
 wayland-client.workspace = true
 wayland-egl.workspace = true
 wayland-scanner.workspace = true
-# Lo exige el código generado por wayland-scanner en platform/infinity.rs.
-wayland-backend = "0.3"
 wayland-protocols-plasma = { workspace = true, features = ["client"] }
 zbus.workspace = true
 khronos-egl = { workspace = true, features = ["dynamic"] }

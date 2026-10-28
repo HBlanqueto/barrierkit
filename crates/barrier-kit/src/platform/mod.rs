@@ -4097,6 +4097,9 @@ impl Dispatch<InfinityWindowManagerV1, ()> for Shell {
                     InfoEvent::GtkMenus(address),
                 );
             }
+            // shortcut: future Infinity events are ignored; add handlers when
+            // the compositor starts sending them.
+            _ => {}
         }
         state.sync_toplevels();
     }
