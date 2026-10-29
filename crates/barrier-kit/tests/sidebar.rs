@@ -234,9 +234,14 @@ fn titlebar_without_sidebar_keeps_the_classic_three_slot_layout() {
         "expected at least the bar root and three slots, found {bars:?}"
     );
     let widths: Vec<f32> = bars.iter().map(|(_, _, w, _)| *w).collect();
+    let group_w = vow_appearance::traffic::group_rect().2 as f32;
     assert!(
-        widths.contains(&80.0),
-        "left/right slots must keep their 80 px default width: {widths:?}"
+        !widths.contains(&80.0),
+        "left/right slots must not use a fixed 80 px width: {widths:?}"
+    );
+    assert!(
+        widths.iter().any(|width| (*width - group_w).abs() < 0.5),
+        "slots must keep at least the traffic-light width ({group_w}): {widths:?}"
     );
 }
 
@@ -247,6 +252,42 @@ fn titlebar_with_sidebar_uses_elastic_side_slots() {
         !bars.iter().any(|(_, _, w, _)| *w == 80.0),
         "with_sidebar(true) must not use fixed 80 px slots: {bars:?}"
     );
+}
+
+struct WideSlotsCase;
+
+impl App for WideSlotsCase {
+    fn render(&self) -> impl IntoElement {
+        use_init_theme(|| theme::for_scheme(false));
+        Titlebar::preview(
+            WindowStatus {
+                activated: true,
+                maximized: false,
+                decoration: DecorationResponse::Client,
+                fixed: false,
+            },
+            "Ventana",
+            false,
+        )
+        .left(rect().width(Size::px(120.0)).height(Size::px(10.0)))
+        .right(rect().width(Size::px(100.0)).height(Size::px(10.0)))
+    }
+}
+
+#[test]
+fn titlebar_slots_grow_with_their_content() {
+    let app = AppComponent::new(WideSlotsCase);
+    let (test, _) = TestingRunner::new(app, Size2D::new(400.0, 120.0), |_| {}, 1.0);
+    let slot_width = |label: &str| {
+        test.find(|node, el| {
+            (el.accessibility().builder.label() == Some(label))
+                .then(|| node.layout().area.size.width)
+        })
+        .unwrap_or_else(|| panic!("{label} exists"))
+    };
+    assert!(slot_width("titlebar-left-slot") >= 120.0);
+    assert!(slot_width("titlebar-right-slot") >= 100.0);
+    assert!(slot_width("titlebar-title") > 0.0);
 }
 
 #[test]
@@ -445,6 +486,156 @@ fn sidebar_item_uses_design_padding_and_gap() {
     test.sync_and_update();
     let png = test.render();
     assert!(!png.as_ref().is_empty());
+}
+
+const ICON_RECT: &str = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 16 16\"><rect x=\"3\" y=\"3\" width=\"10\" height=\"10\" fill=\"currentColor\"/></svg>";
+const ICON_CIRCLE: &str = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 16 16\"><circle cx=\"8\" cy=\"8\" r=\"5\" fill=\"currentColor\"/>             </svg>";
+
+struct SameLengthIconsCase;
+
+impl App for SameLengthIconsCase {
+    fn render(&self) -> impl IntoElement {
+        use_init_theme(|| theme::for_scheme(false));
+        Sidebar::new()
+            .child(SidebarItem::new("Uno").icon(ICON_RECT))
+            .child(SidebarItem::new("Dos").icon(ICON_CIRCLE))
+    }
+}
+
+fn icon_areas(test: &TestingRunner) -> Vec<(usize, usize)> {
+    test.find_many(|node, _el| {
+        let size = node.layout().area.size;
+        ((size.width - SIDEBAR.item_icon as f32).abs() < 0.5
+            && (size.height - SIDEBAR.item_icon as f32).abs() < 0.5)
+            .then(|| {
+                let origin = node.layout().area.origin;
+                (origin.x as usize, origin.y as usize)
+            })
+    })
+}
+
+fn crop(image: &[u8], width: usize, x: usize, y: usize, size: usize) -> Vec<[u8; 4]> {
+    let mut out = Vec::with_capacity(size * size);
+    for row in 0..size {
+        for col in 0..size {
+            out.push(pixel(image, width, x + col, y + row));
+        }
+    }
+    out
+}
+
+#[test]
+fn sidebar_items_with_same_length_icons_render_different_images() {
+    assert_eq!(ICON_RECT.len(), ICON_CIRCLE.len());
+    let app = AppComponent::new(SameLengthIconsCase);
+    let (mut test, _) = TestingRunner::new(app, Size2D::new(300.0, 300.0), |_| {}, 1.0);
+    test.sync_and_update();
+    let (width, _, image) = decode_png(test.render().as_bytes());
+    let icons = icon_areas(&test);
+    assert_eq!(icons.len(), 2, "expected two item icons, found {icons:?}");
+    let size = SIDEBAR.item_icon as usize;
+    let first = crop(&image, width, icons[0].0, icons[0].1, size);
+    let second = crop(&image, width, icons[1].0, icons[1].1, size);
+    assert_ne!(
+        first, second,
+        "two icons with the same byte length must not share the cached image"
+    );
+}
+
+struct ChevronCase;
+
+impl App for ChevronCase {
+    fn render(&self) -> impl IntoElement {
+        use_init_theme(|| theme::for_scheme(false));
+        Sidebar::new().child(
+            SidebarSection::new("Favoritos")
+                .expanded(true)
+                .child(SidebarItem::new("Uno")),
+        )
+    }
+}
+
+fn chevron_area(test: &TestingRunner) -> (usize, usize) {
+    test.find(|node, _el| {
+        let size = node.layout().area.size;
+        ((size.width - SIDEBAR.chevron as f32).abs() < 0.5
+            && (size.height - SIDEBAR.chevron as f32).abs() < 0.5)
+            .then(|| {
+                let origin = node.layout().area.origin;
+                (origin.x as usize, origin.y as usize)
+            })
+    })
+    .expect("the chevron is visible while the section is focused")
+}
+
+#[test]
+fn sidebar_section_chevron_changes_shape_when_toggled() {
+    let app = AppComponent::new(ChevronCase);
+    let (mut test, _) = TestingRunner::new(app, Size2D::new(300.0, 300.0), |_| {}, 1.0);
+    let size = SIDEBAR.chevron as usize;
+
+    test.move_cursor((20.0, 50.0));
+    test.click_cursor((20.0, 50.0));
+    test.sync_and_update();
+    let (width, _, collapsed_image) = decode_png(test.render().as_bytes());
+    let (x, y) = chevron_area(&test);
+    let collapsed = crop(&collapsed_image, width, x, y, size);
+
+    test.click_cursor((20.0, 50.0));
+    test.sync_and_update();
+    let (width, _, expanded_image) = decode_png(test.render().as_bytes());
+    let (x, y) = chevron_area(&test);
+    let expanded = crop(&expanded_image, width, x, y, size);
+
+    assert_ne!(
+        collapsed, expanded,
+        "the chevron must change direction when the section collapses or expands"
+    );
+}
+
+struct TallSectionCase;
+
+impl App for TallSectionCase {
+    fn render(&self) -> impl IntoElement {
+        Sidebar::new().child(
+            SidebarSection::new("Grande")
+                .expanded(true)
+                .child(rect().width(Size::px(50.0)).height(Size::px(80.0))),
+        )
+    }
+}
+
+#[test]
+fn sidebar_section_opens_to_the_real_child_height() {
+    let resolved = resolve(
+        &AppearanceConfig {
+            reduced_motion: true,
+            ..Default::default()
+        },
+        None,
+    );
+    let app = AppComponent::new(TallSectionCase);
+    let (mut test, _) = TestingRunner::new(
+        app,
+        Size2D::new(300.0, 400.0),
+        move |runner| runner.provide_root_context(move || State::create(resolved)),
+        1.0,
+    );
+    for _ in 0..5 {
+        test.sync_and_update();
+    }
+    let content = test
+        .find(|node, el| {
+            el.effect()
+                .is_some_and(|effect| effect.overflow == Overflow::Clip)
+                .then(|| node.layout().area)
+        })
+        .expect("the section content container exists");
+    assert!(
+        (content.size.height - 80.0).abs() < 0.5,
+        "the section must open to the child's 80 px, got {}",
+        content.size.height
+    );
 }
 
 struct ExpandedSectionCase;
