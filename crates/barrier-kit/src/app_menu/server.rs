@@ -145,6 +145,7 @@ async fn run(commands: Receiver<Command>) {
                 let _ = registered
                     .last_layout
                     .lock()
+                    // Only fails if a panic already poisoned the mutex; no external data here.
                     .expect("layout lock poisoned")
                     .replace(snapshot);
                 id_maps.insert(path.clone(), id_map);
@@ -288,6 +289,7 @@ impl DbusMenuObject {
                             OwnedValue::try_from(Value::Structure(zbus::zvariant::Structure::from(
                                 child,
                             )))
+                            // A well-formed dbusmenu Structure always converts; invariant.
                             .unwrap()
                         })
                     })
@@ -671,6 +673,7 @@ mod tests {
     }
 
     #[test]
+    // shortcut: no simula un bus que retiene la respuesta — mejora: mock de zbus con canal retenido.
     fn register_returns_without_blocking() {
         let handle = MenuHandle::new(AppMenu::new(vec![Menu::new("M", vec![])]), None);
         let start = Instant::now();

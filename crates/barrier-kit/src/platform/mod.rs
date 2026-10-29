@@ -2485,6 +2485,7 @@ impl Shell {
                 let pending_addresses = self.pending_menu_addresses.clone();
                 let wake = self.wake.ping.clone();
                 handle.set_address_callback(move |address| {
+                    // Only fails if a panic already poisoned the mutex; no external data here.
                     pending_addresses
                         .lock()
                         .expect("pending menu addresses poisoned")
@@ -2601,6 +2602,7 @@ impl Shell {
     /// org_kde_kwin_appmenu object if the surface still exists.
     fn process_pending_menu_addresses(&mut self) {
         let pending = {
+            // Only fails if a panic already poisoned the mutex; no external data here.
             let mut guard = self
                 .pending_menu_addresses
                 .lock()

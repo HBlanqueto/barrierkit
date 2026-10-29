@@ -110,6 +110,7 @@ impl MenuHandle {
     pub(crate) fn push_action(&self, action_id: String) -> bool {
         if self.wake.lock().map(|g| g.is_some()).unwrap_or(false) {
             {
+                // Only fails if a panic already poisoned the mutex; no external data here.
                 let mut guard = self.action_queue.lock().expect("action queue poisoned");
                 guard.push(action_id);
             }
@@ -126,6 +127,7 @@ impl MenuHandle {
 
     /// Drains all queued action ids on the UI thread.
     pub(crate) fn drain_actions(&self) -> Vec<String> {
+        // Only fails if a panic already poisoned the mutex; no external data here.
         let mut guard = self.action_queue.lock().expect("action queue poisoned");
         std::mem::take(&mut *guard)
     }
@@ -139,6 +141,7 @@ impl MenuHandle {
 
     /// Registers the callback that delivers the D-Bus address to the UI thread.
     pub(crate) fn set_address_callback(&self, f: impl Fn(AppMenuAddress) + Send + Sync + 'static) {
+        // Only fails if a panic already poisoned the mutex; no external data here.
         *self
             .address_callback
             .lock()
