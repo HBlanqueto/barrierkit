@@ -4707,7 +4707,8 @@ mod tests {
 #[cfg(test)]
 mod drag_band_tests {
     use super::*;
-    use crate::sidebar::{Sidebar, SidebarLayout};
+    use crate::ProbeExt;
+    use crate::sidebar::{Sidebar, SidebarItem, SidebarLayout};
     use freya_core::integration::AppComponent;
     use freya_core::prelude::{App, IntoElement, rect};
     use freya_testing::TestingRunner;
@@ -4719,7 +4720,9 @@ mod drag_band_tests {
     impl App for DragCase {
         fn render(&self) -> impl IntoElement {
             SidebarLayout::new(
-                Sidebar::new().traffic_lights(true),
+                Sidebar::new()
+                    .traffic_lights(true)
+                    .child(SidebarItem::new("Uno").probe("island-first-item")),
                 rect().width(Size::fill()).height(Size::fill()),
             )
         }
@@ -4781,6 +4784,27 @@ mod drag_band_tests {
                 .iter()
                 .any(|command| matches!(command, WindowCommand::Move(_))),
             "a press on a traffic light must not move the window"
+        );
+
+        queue.borrow_mut().clear();
+        let (x, y) = test
+            .find(|node, el| {
+                (el.accessibility().builder.author_id() == Some("island-first-item")).then(|| {
+                    let area = node.layout().area;
+                    (
+                        area.origin.x + area.size.width / 2.0,
+                        area.origin.y + area.size.height / 2.0,
+                    )
+                })
+            })
+            .expect("the first island row exists");
+        test.press_cursor((f64::from(x), f64::from(y)));
+        assert!(
+            !queue
+                .borrow()
+                .iter()
+                .any(|command| matches!(command, WindowCommand::Move(_))),
+            "a press on the first island row must not move the window"
         );
     }
 }

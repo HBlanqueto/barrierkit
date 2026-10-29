@@ -4,6 +4,7 @@ use std::env;
 use std::fs;
 use std::io::Cursor;
 use std::sync::{Arc, Mutex};
+use std::time::Duration;
 
 use accesskit::Role;
 use barrier_kit::ProbeExt;
@@ -398,6 +399,212 @@ fn sidebar_section_toggles_with_enter_and_space() {
     test.click_cursor((5.0, 15.0));
     test.press_key(Key::Character(" ".into()));
     assert!(*expanded.peek(), "Space should expand the section");
+}
+
+struct AnimatedSectionCase;
+
+impl App for AnimatedSectionCase {
+    fn render(&self) -> impl IntoElement {
+        Sidebar::new().child(
+            SidebarSection::new("Grande")
+                .expanded(true)
+                .child(rect().width(Size::px(50.0)).height(Size::px(120.0))),
+        )
+    }
+}
+
+fn animated_section_test() -> (TestingRunner, State<vow_appearance::Resolved>) {
+    let resolved = resolve(
+        &AppearanceConfig {
+            reduced_motion: false,
+            ..Default::default()
+        },
+        None,
+    );
+    let app = AppComponent::new(AnimatedSectionCase);
+    TestingRunner::new(
+        app,
+        Size2D::new(300.0, 400.0),
+        move |runner| runner.provide_root_context(move || State::create(resolved)),
+        1.0,
+    )
+}
+
+fn section_content_area(test: &TestingRunner) -> (f32, f32, f32, f32) {
+    test.find(|node, el| {
+        el.effect()
+            .is_some_and(|effect| effect.overflow == Overflow::Clip)
+            .then(|| {
+                let area = node.layout().area;
+                (
+                    area.origin.x,
+                    area.origin.y,
+                    area.size.width,
+                    area.size.height,
+                )
+            })
+    })
+    .expect("the section content container exists")
+}
+
+fn section_content_height(test: &TestingRunner) -> f32 {
+    section_content_area(test).3
+}
+
+fn labeled_area(test: &TestingRunner, label: &str) -> (f32, f32, f32, f32) {
+    test.find(|node, el| {
+        (el.accessibility().builder.label() == Some(label)).then(|| {
+            let area = node.layout().area;
+            (
+                area.origin.x,
+                area.origin.y,
+                area.size.width,
+                area.size.height,
+            )
+        })
+    })
+    .unwrap_or_else(|| panic!("{label} exists"))
+}
+
+#[test]
+fn expanded_section_opens_at_full_height_without_animating() {
+    let (mut test, _) = animated_section_test();
+    test.sync_and_update();
+    let height = section_content_height(&test);
+    assert!(
+        (height - 120.0).abs() < 0.5,
+        "an expanded section must open at its child's 120 px on the first sync, got {height}"
+    );
+}
+
+#[test]
+fn collapsing_section_animates_from_full_height() {
+    let (mut test, _) = animated_section_test();
+    test.sync_and_update();
+    assert!((section_content_height(&test) - 120.0).abs() < 0.5);
+
+    test.animation_clock().set_speed(0.05);
+    test.press_cursor((12.0, 50.0));
+    test.poll_n(Duration::from_millis(100), 4);
+
+    let height = section_content_height(&test);
+    assert!(
+        height > 0.0 && height < 120.0,
+        "the collapsing section must animate below 120 px, got {height}"
+    );
+}
+
+#[test]
+fn live_reduced_motion_collapses_without_animating() {
+    let (mut test, mut resolved) = animated_section_test();
+    test.sync_and_update();
+    assert!((section_content_height(&test) - 120.0).abs() < 0.5);
+
+    resolved.set(resolve(
+        &AppearanceConfig {
+            reduced_motion: true,
+            ..Default::default()
+        },
+        None,
+    ));
+    test.sync_and_update();
+
+    test.press_cursor((12.0, 50.0));
+    let height = section_content_height(&test);
+    assert!(
+        height == 0.0,
+        "reduced motion must collapse on the first frame, got {height}"
+    );
+}
+
+struct DrawerCase;
+
+impl App for DrawerCase {
+    fn render(&self) -> impl IntoElement {
+        Sidebar::new().child(
+            SidebarSection::new("Cajón")
+                .expanded(false)
+                .child(
+                    rect()
+                        .width(Size::fill())
+                        .height(Size::px(40.0))
+                        .a11y_alt("drawer-first"),
+                )
+                .child(
+                    rect()
+                        .width(Size::fill())
+                        .height(Size::px(80.0))
+                        .a11y_alt("drawer-last"),
+                ),
+        )
+    }
+}
+
+#[test]
+fn opening_section_slides_as_a_drawer() {
+    let resolved = resolve(
+        &AppearanceConfig {
+            reduced_motion: false,
+            ..Default::default()
+        },
+        None,
+    );
+    let app = AppComponent::new(DrawerCase);
+    let (mut test, _) = TestingRunner::new(
+        app,
+        Size2D::new(300.0, 400.0),
+        move |runner| runner.provide_root_context(move || State::create(resolved)),
+        1.0,
+    );
+    test.sync_and_update();
+    test.animation_clock().set_speed(0.05);
+    test.press_cursor((12.0, 50.0));
+
+    let mut clip = section_content_area(&test);
+    for _ in 0..60 {
+        if clip.3 >= 48.0 {
+            break;
+        }
+        test.poll_n(Duration::from_millis(100), 1);
+        clip = section_content_area(&test);
+    }
+    assert!(
+        clip.3 >= 48.0 && clip.3 < 108.0,
+        "expected the drawer around half open, got {}",
+        clip.3
+    );
+
+    let first = labeled_area(&test, "drawer-first");
+    let last = labeled_area(&test, "drawer-last");
+    let clip_top = clip.1;
+    let clip_bottom = clip.1 + clip.3;
+    assert!(
+        first.1 + first.3 <= clip_top + 0.5,
+        "the first row must stay above the clip top ({clip_top}), got {first:?}"
+    );
+    assert!(
+        last.1 < clip_bottom && last.1 + last.3 > clip_top,
+        "the last row must be inside the visible area ({clip_top}..{clip_bottom}), got {last:?}"
+    );
+}
+
+#[test]
+fn sidebar_section_toggles_on_touch() {
+    let app = AppComponent::new(ToggleApp);
+    let (mut test, expanded) = TestingRunner::new(
+        app,
+        Size2D::new(300.0, 300.0),
+        |runner| runner.provide_root_context(|| State::create(true)),
+        1.0,
+    );
+    test.sync_and_update();
+    test.press_touch((5.0, 15.0));
+    assert!(!(*expanded.peek()), "touch start must collapse the section");
+    test.release_touch((5.0, 15.0));
+    assert!(
+        !(*expanded.peek()),
+        "touch end must not toggle the section again"
+    );
 }
 
 struct ToolGroupCase;

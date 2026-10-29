@@ -1,10 +1,13 @@
 //! Pixel checks for the client-side traffic lights (ADR 0035).
 
+use barrier_kit::ProbeExt;
 use barrier_kit::traffic::{TrafficLights, traffic_lights_view};
+use freya_core::element::ElementExt;
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 use freya_testing::TestingRunner;
 use std::io::Cursor;
+use std::rc::Rc;
 use torin::prelude::Size2D;
 use vow_appearance::TrafficLightStyle;
 use vow_appearance::traffic::{TrafficInput, visual};
@@ -292,6 +295,44 @@ fn leaving_the_group_hides_the_glyphs() {
         pixel(&image, width, 6, 6),
         pixel(&image, width, 6, 1),
         "the glyph must hide when the pointer leaves the group"
+    );
+}
+
+struct ProbedCase;
+
+impl App for ProbedCase {
+    fn render(&self) -> impl IntoElement {
+        TrafficLights::new().focused(true).probe("traffic-group")
+    }
+}
+
+#[test]
+fn moving_within_the_group_renders_it_at_most_once() {
+    let app = AppComponent::new(ProbedCase);
+    let (mut test, _) = TestingRunner::new(app, Size2D::new(80.0, 40.0), |_| {}, 1.0);
+    test.sync_and_update();
+    let group = |test: &TestingRunner| {
+        test.find(|node, el| {
+            (el.accessibility().builder.author_id() == Some("traffic-group"))
+                .then(|| node.element())
+        })
+        .expect("the traffic-light group exists")
+    };
+    let address = |element: &Rc<dyn ElementExt>| Rc::as_ptr(element) as *const ();
+    let mut last = address(&group(&test));
+    let mut renders = 0;
+    for x in [2.0, 6.0, 10.0, 14.0, 18.0, 22.0, 26.0, 30.0, 34.0, 38.0] {
+        test.move_cursor((x, 6.0));
+        test.sync_and_update();
+        let current = address(&group(&test));
+        if current != last {
+            renders += 1;
+            last = current;
+        }
+    }
+    assert!(
+        renders <= 1,
+        "moving inside the group must render it at most once, got {renders}"
     );
 }
 
