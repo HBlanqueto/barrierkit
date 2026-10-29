@@ -4703,3 +4703,84 @@ mod tests {
         );
     }
 }
+
+#[cfg(test)]
+mod drag_band_tests {
+    use super::*;
+    use crate::sidebar::{Sidebar, SidebarLayout};
+    use freya_core::integration::AppComponent;
+    use freya_core::prelude::{App, IntoElement, rect};
+    use freya_testing::TestingRunner;
+    use torin::prelude::{Size, Size2D};
+    use vow_appearance::{AppearanceConfig, SidebarStyle, resolve};
+
+    struct DragCase;
+
+    impl App for DragCase {
+        fn render(&self) -> impl IntoElement {
+            SidebarLayout::new(
+                Sidebar::new().traffic_lights(true),
+                rect().width(Size::fill()).height(Size::fill()),
+            )
+        }
+    }
+
+    #[test]
+    fn a_mouse_down_on_the_island_top_band_moves_the_window() {
+        let queue: Rc<RefCell<Vec<WindowCommand>>> = Rc::new(RefCell::new(Vec::new()));
+        let controls_queue = queue.clone();
+        let resolved = resolve(
+            &AppearanceConfig {
+                sidebar_style: SidebarStyle::Island,
+                ..Default::default()
+            },
+            None,
+        );
+        let app = AppComponent::new(DragCase);
+        let (mut test, _) = TestingRunner::new(
+            app,
+            Size2D::new(400.0, 400.0),
+            move |runner| {
+                runner.provide_root_context(move || {
+                    let (ping, _source) = calloop::ping::make_ping().unwrap();
+                    WindowControls {
+                        queue: controls_queue.clone(),
+                        ping,
+                        pointer_serial: Rc::new(Cell::new(0)),
+                        status: State::create(WindowStatus {
+                            activated: true,
+                            maximized: false,
+                            decoration: DecorationResponse::Client,
+                            fixed: false,
+                        }),
+                        title: "Ventana".to_string(),
+                        fixed: false,
+                        surface_id: ObjectId::null(),
+                        menu_handle: None,
+                    }
+                });
+                runner.provide_root_context(move || State::create(resolved));
+            },
+            1.0,
+        );
+        test.sync_and_update();
+        test.press_cursor((100.0, 4.0));
+        assert!(
+            queue
+                .borrow()
+                .iter()
+                .any(|command| matches!(command, WindowCommand::Move(_))),
+            "a press on the island top band must request a window move"
+        );
+
+        queue.borrow_mut().clear();
+        test.press_cursor((30.0, 30.0));
+        assert!(
+            !queue
+                .borrow()
+                .iter()
+                .any(|command| matches!(command, WindowCommand::Move(_))),
+            "a press on a traffic light must not move the window"
+        );
+    }
+}

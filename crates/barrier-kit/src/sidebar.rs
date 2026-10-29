@@ -11,7 +11,7 @@ use freya_core::prelude::*;
 use keyboard_types::{Key, NamedKey};
 use torin::prelude::{Alignment, Direction, Gaps, Position, Size};
 use vow_appearance::SidebarStyle;
-use vow_design::{DURATION_BASE, Rgba, SIDEBAR, SidebarPalette, TITLEBAR};
+use vow_design::{DURATION_BASE, Rgba, SETTINGS, SIDEBAR, SidebarPalette, TITLEBAR};
 
 use crate::ProbeExt;
 use crate::platform::{DecorationResponse, WindowControls, WindowStatus};
@@ -130,6 +130,27 @@ impl Component for Sidebar {
         let padding_x = SIDEBAR.padding_x as f32;
         let radius = SIDEBAR.radius as f32;
 
+        let (status, fixed) = try_consume_root_context::<WindowControls>()
+            .map(|controls| (*controls.status.read(), controls.fixed))
+            .unwrap_or((
+                WindowStatus {
+                    activated: true,
+                    maximized: false,
+                    decoration: DecorationResponse::Client,
+                    fixed: false,
+                },
+                false,
+            ));
+        let drag = window_drag_handler(fixed);
+        let band_top = -(top_height as f32) - if island { SIDEBAR.inset as f32 } else { 0.0 };
+        let band_left = -(padding_x);
+        let band_width = SIDEBAR.width as f32;
+        let band_height = if island {
+            SETTINGS.toolbar_height as f32
+        } else {
+            top_height as f32
+        };
+
         // The scrollable/content area starts below the traffic-light strip.
         let mut sidebar_body = rect()
             .width(Size::fill())
@@ -143,6 +164,14 @@ impl Component for Sidebar {
                 if island { padding_x } else { 0.0 },
                 padding_x,
             ))
+            .child(
+                rect()
+                    .position(Position::new_absolute().top(band_top).left(band_left))
+                    .width(Size::px(band_width))
+                    .height(Size::px(band_height))
+                    .a11y_alt("sidebar-drag-strip")
+                    .on_mouse_down(drag),
+            )
             .children(self.children.iter().cloned());
 
         if island {
@@ -193,45 +222,24 @@ impl Component for Sidebar {
             .child(sidebar_body);
 
         if self.traffic_lights {
-            let (status, fixed) = try_consume_root_context::<WindowControls>()
-                .map(|controls| (*controls.status.read(), controls.fixed))
-                .unwrap_or((
-                    WindowStatus {
-                        activated: true,
-                        maximized: false,
-                        decoration: DecorationResponse::Client,
-                        fixed: false,
-                    },
-                    false,
-                ));
             let (_, _, group_w, _) = vow_appearance::traffic::group_rect();
-            let lights_right = SIDEBAR.traffic_x as f32 + group_w as f32;
 
-            root = root
-                .child(
-                    rect()
-                        .position(
-                            Position::new_absolute()
-                                .top(SIDEBAR.traffic_y as f32)
-                                .left(SIDEBAR.traffic_x as f32),
-                        )
-                        .width(Size::px(group_w as f32))
-                        .height(Size::px(TITLEBAR.buttons.diameter as f32))
-                        .a11y_alt("sidebar-traffic-lights")
-                        .child(window_traffic_lights(
-                            self.on_close.clone(),
-                            status.activated,
-                            fixed,
-                        )),
-                )
-                .child(
-                    rect()
-                        .position(Position::new_absolute().top(0.0).left(lights_right))
-                        .width(Size::fill())
-                        .height(Size::px(top_height as f32))
-                        .a11y_alt("sidebar-drag-strip")
-                        .on_mouse_down(window_drag_handler(fixed)),
-                );
+            root = root.child(
+                rect()
+                    .position(
+                        Position::new_absolute()
+                            .top(SIDEBAR.traffic_y as f32)
+                            .left(SIDEBAR.traffic_x as f32),
+                    )
+                    .width(Size::px(group_w as f32))
+                    .height(Size::px(TITLEBAR.buttons.diameter as f32))
+                    .a11y_alt("sidebar-traffic-lights")
+                    .child(window_traffic_lights(
+                        self.on_close.clone(),
+                        status.activated,
+                        fixed,
+                    )),
+            );
         }
 
         if let Some(id) = self.probe {
