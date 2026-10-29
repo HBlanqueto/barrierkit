@@ -244,3 +244,77 @@ fn fixed_width_green_uses_plus_glyph() {
         "fixed-width green light must render the plus glyph"
     );
 }
+
+fn render_png(test: &mut TestingRunner) -> (Vec<u8>, usize) {
+    let png = test.render();
+    let mut decoder = png::Decoder::new(Cursor::new(png.as_bytes()));
+    decoder.set_transformations(png::Transformations::normalize_to_color8());
+    let mut reader = decoder.read_info().unwrap();
+    let mut buffer = vec![0; reader.output_buffer_size()];
+    let info = reader.next_frame(&mut buffer).unwrap();
+    let rgba = match info.color_type {
+        png::ColorType::Rgba => buffer[..info.buffer_size()].to_vec(),
+        png::ColorType::Rgb => buffer[..info.buffer_size()]
+            .chunks(3)
+            .flat_map(|px| [px[0], px[1], px[2], 255])
+            .collect(),
+        other => panic!("unexpected PNG colour type {other:?}"),
+    };
+    (rgba, info.width as usize)
+}
+
+struct InteractiveCase;
+
+impl App for InteractiveCase {
+    fn render(&self) -> impl IntoElement {
+        TrafficLights::new().focused(true)
+    }
+}
+
+#[test]
+fn leaving_the_group_hides_the_glyphs() {
+    let app = AppComponent::new(InteractiveCase);
+    let (mut test, _) = TestingRunner::new(app, Size2D::new(80.0, 40.0), |_| {}, 1.0);
+    test.sync_and_update();
+    test.move_cursor((6.0, 6.0));
+    test.sync_and_update();
+    let (image, width) = render_png(&mut test);
+    assert_ne!(
+        pixel(&image, width, 6, 6),
+        pixel(&image, width, 6, 1),
+        "the close glyph must be visible while the pointer is over the light"
+    );
+
+    test.move_cursor((-1.0, -1.0));
+    test.sync_and_update();
+    let (image, width) = render_png(&mut test);
+    assert_eq!(
+        pixel(&image, width, 6, 6),
+        pixel(&image, width, 6, 1),
+        "the glyph must hide when the pointer leaves the group"
+    );
+}
+
+#[test]
+fn moving_the_pointer_away_after_a_press_clears_hover_and_press() {
+    let app = AppComponent::new(InteractiveCase);
+    let (mut test, _) = TestingRunner::new(app, Size2D::new(80.0, 40.0), |_| {}, 1.0);
+    test.sync_and_update();
+    test.move_cursor((6.0, 6.0));
+    test.press_cursor((6.0, 6.0));
+    test.sync_and_update();
+    test.send_event(freya_core::events::platform::PlatformEvent::Mouse {
+        name: freya_core::events::platform::MouseEventName::MouseMove,
+        cursor: (-1.0, -1.0).into(),
+        button: None,
+    });
+    test.sync_and_update();
+    let (image, width) = render_png(&mut test);
+    let fill = pixel(&image, width, 6, 1);
+    compare(fill, LIGHTS[0]);
+    assert_eq!(
+        pixel(&image, width, 6, 6),
+        fill,
+        "a lost pointer must not leave the glyph or the pressed fill"
+    );
+}

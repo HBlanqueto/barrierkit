@@ -141,6 +141,31 @@ impl TrafficPointer {
         before != (self.hovered, self.over_armed)
     }
 
+    /// Marks the group as hovered when the pointer enters it.
+    pub fn on_group_enter(&mut self) -> bool {
+        let changed = !self.hovered;
+        self.hovered = true;
+        changed
+    }
+
+    /// Tracks whether the pointer is over the armed button without touching
+    /// the group's hover state.
+    pub fn on_button_enter(&mut self, hit: ButtonKind) -> bool {
+        let over_armed = self.armed == Some(hit);
+        let changed = self.over_armed != over_armed;
+        self.over_armed = over_armed;
+        changed
+    }
+
+    /// Clears the armed button when the pointer leaves a light; the group's
+    /// hover is owned by the group enter/leave.
+    pub fn on_leave_button(&mut self) -> bool {
+        let changed = self.armed.is_some() || self.over_armed;
+        self.armed = None;
+        self.over_armed = false;
+        changed
+    }
+
     /// Arms a button; returns whether the drawn state changed.
     pub fn on_press(&mut self, hit: Option<ButtonKind>, over_group: bool) -> bool {
         let before = (self.hovered, self.armed, self.over_armed);
@@ -324,6 +349,26 @@ mod tests {
         pointer.on_press(Some(ButtonKind::Close), true);
         assert!(pointer.on_leave());
         assert_eq!(pointer.on_release(None, false), None);
+    }
+
+    #[test]
+    fn a_group_leave_followed_by_a_light_leave_keeps_the_glyphs_hidden() {
+        let mut pointer = TrafficPointer::default();
+        pointer.on_group_enter();
+        pointer.on_leave();
+        pointer.on_leave_button();
+        assert!(!pointer.hovered());
+        assert_eq!(pointer.pressed_visual(), None);
+    }
+
+    #[test]
+    fn a_light_leave_clears_the_press_but_not_the_group_hover() {
+        let mut pointer = TrafficPointer::default();
+        pointer.on_group_enter();
+        pointer.on_press(Some(ButtonKind::Close), true);
+        pointer.on_leave_button();
+        assert!(pointer.hovered());
+        assert_eq!(pointer.pressed_visual(), None);
     }
 
     #[test]

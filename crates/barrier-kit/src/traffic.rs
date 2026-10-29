@@ -152,12 +152,12 @@ impl Component for TrafficLights {
                     light
                         .on_pointer_enter(move |_| {
                             let mut p = *hover.read();
-                            p.on_motion(Some(kind), true);
+                            p.on_button_enter(kind);
                             hover.set(p);
                         })
                         .on_pointer_leave(move |_| {
                             let mut p = *leave.read();
-                            p.on_motion(None, true);
+                            p.on_leave_button();
                             leave.set(p);
                         })
                         .on_mouse_down(move |event: Event<MouseEventData>| {
@@ -192,11 +192,17 @@ impl Component for TrafficLights {
             .direction(Direction::Horizontal)
             .spacing(gap as f32)
             .maybe(interactive, |group| {
-                group.on_pointer_leave(move |_| {
-                    let mut p = *pointer.read();
-                    p.on_leave();
-                    pointer.set(p);
-                })
+                group
+                    .on_pointer_over(move |_| {
+                        let mut p = *pointer.read();
+                        p.on_group_enter();
+                        pointer.set(p);
+                    })
+                    .on_pointer_leave(move |_| {
+                        let mut p = *pointer.read();
+                        p.on_leave();
+                        pointer.set(p);
+                    })
             })
             .children(lights);
         if let Some(id) = self.probe {
