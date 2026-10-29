@@ -241,6 +241,7 @@ impl Component for Titlebar {
                 .child(title_label);
 
             let island = resolved.sidebar.style == SidebarStyle::Island;
+            // shortcut: tokens de Ajustes en la Titlebar genérica; fase 4 los mueve a un token window.toolbar cuando nazca Toolbar.
             let (height, padding_top, default_padding_x) = if island {
                 (
                     SETTINGS.toolbar_height as f32,
@@ -277,6 +278,7 @@ impl Component for Titlebar {
         }
 
         // Classic three-slot titlebar for windows without a sidebar.
+        // shortcut: con slots de ancho distinto el título no queda centrado en la ventana; fase 4 (Toolbar) centra el título sobre el ancho total.
         let min_slot = vow_appearance::traffic::group_rect().2 as f32;
         let left_slot = rect()
             .width(Size::auto())

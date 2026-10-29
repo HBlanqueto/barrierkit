@@ -5,13 +5,13 @@
 
 use std::time::Duration;
 
-use freya_animation::prelude::{AnimNum, use_animation_transition};
+use freya_animation::prelude::{AnimNum, Ease, Function, use_animation_transition};
 use freya_components::svg_viewer::SvgViewer;
 use freya_core::prelude::*;
 use keyboard_types::{Key, NamedKey};
 use torin::prelude::{Alignment, Direction, Gaps, Position, Size};
 use vow_appearance::SidebarStyle;
-use vow_design::{DURATION_BASE, Rgba, SETTINGS, SIDEBAR, SidebarPalette, TITLEBAR};
+use vow_design::{DURATION_BASE, Rgba, SIDEBAR, SidebarPalette, TITLEBAR};
 
 use crate::ProbeExt;
 use crate::platform::{DecorationResponse, WindowControls, WindowStatus};
@@ -146,7 +146,7 @@ impl Component for Sidebar {
         let band_left = -(padding_x);
         let band_width = SIDEBAR.width as f32;
         let band_height = if island {
-            SETTINGS.toolbar_height as f32
+            top_height as f32 + SIDEBAR.inset as f32
         } else {
             top_height as f32
         };
@@ -502,8 +502,8 @@ impl Component for SidebarSection {
         let on_toggle = self.on_toggle.clone();
         let toggle = {
             let mut expanded = expanded;
-            move |event: Event<MouseEventData>| {
-                if event.button != Some(MouseButton::Left) {
+            move |event: Event<PointerEventData>| {
+                if !event.is_primary() {
                     return;
                 }
                 let new = !*expanded.read();
@@ -531,27 +531,26 @@ impl Component for SidebarSection {
         };
 
         let mut content_height = use_state(|| 0.0f32);
-        let reduced_motion = resolved.reduced_motion;
-        let target = use_memo(move || {
-            if *expanded.read() {
-                *content_height.read()
-            } else {
-                0.0
-            }
-        });
-        let animation = use_animation_transition(target, move |from, to| {
-            let duration = if reduced_motion {
+        let reduced_motion = use_reactive(&resolved.reduced_motion);
+        let animation = use_animation_transition(expanded, move |from, to| {
+            let duration = if *reduced_motion.peek() {
                 0
             } else {
                 Duration::from_millis(DURATION_BASE).as_millis() as u64
             };
-            AnimNum::new(from, to).time(duration)
+            AnimNum::new(if from { 1.0 } else { 0.0 }, if to { 1.0 } else { 0.0 })
+                .time(duration)
+                .ease(Ease::Out)
+                .function(Function::Cubic)
         });
-        let height = if reduced_motion {
-            *target.read()
+        let measured_height = *content_height.read();
+        let progress = if *reduced_motion.read() {
+            if *expanded.read() { 1.0 } else { 0.0 }
         } else {
             animation.get().value()
         };
+        let height = progress * measured_height;
+        let drawer_offset = -(1.0 - progress) * measured_height;
 
         rect()
             .width(Size::fill())
@@ -577,7 +576,7 @@ impl Component for SidebarSection {
                     .a11y_builder(move |node| {
                         node.set_expanded(*expanded.read());
                     })
-                    .on_mouse_down(toggle)
+                    .on_pointer_down(toggle)
                     .on_key_down(on_key)
                     .child(
                         label()
@@ -602,6 +601,7 @@ impl Component for SidebarSection {
                 rect()
                     .width(Size::fill())
                     .height(Size::px(height))
+                    .offset_y(drawer_offset)
                     .overflow(Overflow::Clip)
                     .direction(Direction::Vertical)
                     .child(

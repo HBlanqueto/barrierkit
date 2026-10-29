@@ -152,13 +152,15 @@ impl Component for TrafficLights {
                     light
                         .on_pointer_enter(move |_| {
                             let mut p = *hover.read();
-                            p.on_button_enter(kind);
-                            hover.set(p);
+                            if p.on_button_enter(kind) {
+                                hover.set(p);
+                            }
                         })
                         .on_pointer_leave(move |_| {
                             let mut p = *leave.read();
-                            p.on_leave_button();
-                            leave.set(p);
+                            if p.on_leave_button() {
+                                leave.set(p);
+                            }
                         })
                         .on_mouse_down(move |event: Event<MouseEventData>| {
                             if event.button == Some(MouseButton::Left) && clickable {
@@ -195,13 +197,15 @@ impl Component for TrafficLights {
                 group
                     .on_pointer_over(move |_| {
                         let mut p = *pointer.read();
-                        p.on_group_enter();
-                        pointer.set(p);
+                        if p.on_group_enter() {
+                            pointer.set(p);
+                        }
                     })
                     .on_pointer_leave(move |_| {
                         let mut p = *pointer.read();
-                        p.on_leave();
-                        pointer.set(p);
+                        if p.on_leave() {
+                            pointer.set(p);
+                        }
                     })
             })
             .children(lights);
