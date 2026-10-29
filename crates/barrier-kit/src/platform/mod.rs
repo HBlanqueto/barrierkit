@@ -22,7 +22,7 @@ use std::{
     os::fd::AsFd,
     pin::pin,
     rc::Rc,
-    sync::Arc,
+    sync::{Arc, Mutex},
     task::Context,
     time::Duration,
 };
@@ -1731,6 +1731,9 @@ struct Shell {
     decoration_warned: bool,
     appearance_watch: Option<AppearanceWatch>,
     resolved: State<Resolved>,
+    /// Addresses delivered asynchronously by the D-Bus thread, waiting for the
+    /// UI loop to call `org_kde_kwin_appmenu.set_address`.
+    pending_menu_addresses: Arc<Mutex<Vec<(ObjectId, AppMenuAddress)>>>,
 }
 
 #[derive(Clone)]
@@ -2140,6 +2143,8 @@ fn insert_ping(event_loop: &mut EventLoop<Shell>, shell: &mut Shell) -> Result<(
             for callback in callbacks {
                 callback();
             }
+            shell.process_pending_menu_addresses();
+            shell.process_menu_actions();
             shell.poll_all();
             shell.redraw_all();
         })
@@ -2404,6 +2409,7 @@ impl Shell {
             decoration_warned: false,
             appearance_watch: None,
             resolved,
+            pending_menu_addresses: Arc::new(Mutex::new(Vec::new())),
         };
         Ok((conn, event_queue, qh, shell))
     }
@@ -2468,27 +2474,31 @@ impl Shell {
         let menu = options.menu.clone();
         let on_menu_action = options.on_menu_action.clone();
         let mut menu_handle: Option<crate::app_menu::MenuHandle> = None;
-        let mut appmenu_address: Option<AppMenuAddress> = None;
         if let Some(menu) = menu {
             let handle = crate::app_menu::MenuHandle::new(
                 menu.clone(),
                 Some(WakeHandle::from_ping(self.wake.ping.clone())),
             );
             let on_action = on_menu_action.clone().unwrap_or_else(|| Arc::new(|_| {}));
-            if let Some(address) =
-                crate::app_menu::server::register(menu, handle.clone(), on_action)
-            {
-                appmenu_address = Some(address);
+            if self.appmenu_manager.is_some() {
+                let surface_id = surface.id();
+                let pending_addresses = self.pending_menu_addresses.clone();
+                let wake = self.wake.ping.clone();
+                handle.set_address_callback(move |address| {
+                    pending_addresses
+                        .lock()
+                        .expect("pending menu addresses poisoned")
+                        .push((surface_id.clone(), address));
+                    wake.ping();
+                });
+                crate::app_menu::server::register(handle.clone(), on_action);
             }
             menu_handle = Some(handle);
         }
 
-        let mut appmenu_object: Option<OrgKdeKwinAppmenu> = None;
-        if let (Some(manager), Some(address)) = (&self.appmenu_manager, &appmenu_address) {
-            let appmenu = manager.create(&surface, qh, surface.id());
-            appmenu.set_address(address.service.clone(), address.path.clone());
-            appmenu_object = Some(appmenu);
-        }
+        // The org_kde_kwin_appmenu object is created lazily when the
+        // asynchronous D-Bus registration delivers the address.
+        let appmenu_object: Option<OrgKdeKwinAppmenu> = None;
 
         let queue: Rc<RefCell<Vec<WindowCommand>>> = Rc::new(RefCell::new(Vec::new()));
         let pointer_serial = Rc::new(std::cell::Cell::new(0));
@@ -2580,11 +2590,61 @@ impl Shell {
             configure_count: 0,
             pending_configure: None,
             appmenu: appmenu_object,
-            appmenu_address: appmenu_address.clone(),
+            appmenu_address: None,
             menu_handle,
         });
         self.surface_count.set(self.surfaces.len());
         Some(controls)
+    }
+
+    /// Applies addresses delivered by the D-Bus thread, creating the
+    /// org_kde_kwin_appmenu object if the surface still exists.
+    fn process_pending_menu_addresses(&mut self) {
+        let pending = {
+            let mut guard = self
+                .pending_menu_addresses
+                .lock()
+                .expect("pending menu addresses poisoned");
+            std::mem::take(&mut *guard)
+        };
+        for (surface_id, address) in pending {
+            let Some(index) = self
+                .surfaces
+                .iter()
+                .position(|s| s.surface.id() == surface_id)
+            else {
+                continue;
+            };
+            if self.surfaces[index].appmenu.is_none()
+                && let Some(manager) = &self.appmenu_manager
+            {
+                self.surfaces[index].appmenu = Some(manager.create(
+                    &self.surfaces[index].surface,
+                    &self.qh,
+                    self.surfaces[index].surface.id(),
+                ));
+            }
+            if let Some(appmenu) = &self.surfaces[index].appmenu {
+                appmenu.set_address(address.service.clone(), address.path.clone());
+            }
+            self.surfaces[index].appmenu_address = Some(address);
+        }
+    }
+
+    /// Drains actions queued by the D-Bus thread and runs them on the UI thread.
+    fn process_menu_actions(&mut self) {
+        for surface in &mut self.surfaces {
+            let action_ids = surface
+                .menu_handle
+                .as_ref()
+                .map(|handle| handle.drain_actions())
+                .unwrap_or_default();
+            if let Some(on_action) = surface.app.on_menu_action.as_ref() {
+                for id in action_ids {
+                    on_action(&id);
+                }
+            }
+        }
     }
 
     fn create_lock_surface(

@@ -11,7 +11,7 @@ use std::sync::{Arc, Mutex};
 use zbus::zvariant::{OwnedValue, Value};
 
 use crate::menu::{CheckState, MenuItem};
-use crate::platform::WakeHandle;
+use crate::platform::{AppMenuAddress, WakeHandle};
 
 pub mod layout;
 pub mod server;
@@ -45,11 +45,30 @@ impl Menu {
 }
 
 /// Handle to mutate a menu after the window has been created.
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct MenuHandle {
     state: Arc<Mutex<MenuState>>,
     wake: Arc<Mutex<Option<WakeHandle>>>,
     path: Arc<Mutex<Option<String>>>,
+    /// Actions queued by the D-Bus thread and drained on the UI thread.
+    action_queue: Arc<Mutex<Vec<String>>>,
+    /// Callback that delivers the registered D-Bus address to the UI thread.
+    address_callback: AddressCallbackCell,
+}
+
+type AddressCallback = Box<dyn Fn(AppMenuAddress) + Send>;
+type AddressCallbackCell = Arc<Mutex<Option<AddressCallback>>>;
+
+impl std::fmt::Debug for MenuHandle {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("MenuHandle")
+            .field("state", &self.state)
+            .field("wake", &self.wake)
+            .field("path", &self.path)
+            .field("action_queue", &self.action_queue)
+            .field("address_callback", &"...")
+            .finish()
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -64,6 +83,8 @@ impl MenuHandle {
             state: Arc::new(Mutex::new(MenuState { menu, revision: 1 })),
             wake: Arc::new(Mutex::new(wake)),
             path: Arc::new(Mutex::new(None)),
+            action_queue: Arc::new(Mutex::new(Vec::new())),
+            address_callback: Arc::new(Mutex::new(None)),
         }
     }
 
@@ -76,6 +97,60 @@ impl MenuHandle {
     pub(crate) fn set_path(&self, path: impl Into<String>) {
         if let Ok(mut slot) = self.path.lock() {
             *slot = Some(path.into());
+        }
+    }
+
+    #[allow(dead_code)]
+    pub(crate) fn path(&self) -> Option<String> {
+        self.path.lock().ok().and_then(|g| g.clone())
+    }
+
+    /// Queues an action id from the D-Bus thread and wakes the UI loop.
+    /// Returns false if there is no wake handle to reach the UI thread.
+    pub(crate) fn push_action(&self, action_id: String) -> bool {
+        if self.wake.lock().map(|g| g.is_some()).unwrap_or(false) {
+            {
+                let mut guard = self.action_queue.lock().expect("action queue poisoned");
+                guard.push(action_id);
+            }
+            if let Ok(guard) = self.wake.lock()
+                && let Some(wake) = guard.as_ref()
+            {
+                wake.wake();
+            }
+            true
+        } else {
+            false
+        }
+    }
+
+    /// Drains all queued action ids on the UI thread.
+    pub(crate) fn drain_actions(&self) -> Vec<String> {
+        let mut guard = self.action_queue.lock().expect("action queue poisoned");
+        std::mem::take(&mut *guard)
+    }
+
+    #[cfg(test)]
+    pub(crate) fn replace_menu(&self, menu: AppMenu) {
+        let mut guard = self.state.lock().expect("menu state poisoned");
+        guard.menu = menu;
+        guard.revision = guard.revision.wrapping_add(1);
+    }
+
+    /// Registers the callback that delivers the D-Bus address to the UI thread.
+    pub(crate) fn set_address_callback(&self, f: impl Fn(AppMenuAddress) + Send + Sync + 'static) {
+        *self
+            .address_callback
+            .lock()
+            .expect("address callback poisoned") = Some(Box::new(f));
+    }
+
+    /// Delivers the registered D-Bus address to the UI thread callback.
+    pub(crate) fn deliver_address(&self, address: AppMenuAddress) {
+        if let Ok(guard) = self.address_callback.lock()
+            && let Some(cb) = guard.as_ref()
+        {
+            cb(address);
         }
     }
 
@@ -321,20 +396,23 @@ pub fn to_dbusmenu(menu: &AppMenu) -> RawItem {
         children: Vec::new(),
     };
     for m in &menu.menus {
-        let menu_id = id_map.get(format!("__menu__:{}", m.title));
-        root.children.push(menu_to_raw(menu_id, m, &mut id_map));
+        let menu_key = format!("__menu__:{}", m.title);
+        let menu_id = id_map.get(&menu_key);
+        root.children
+            .push(menu_to_raw(menu_id, menu_key, m, &mut id_map));
     }
     root
 }
 
-fn menu_to_raw(id: i32, menu: &Menu, id_map: &mut IdMap) -> RawItem {
+fn menu_to_raw(id: i32, parent_key: String, menu: &Menu, id_map: &mut IdMap) -> RawItem {
     let mut props = HashMap::new();
     props.insert("label".to_string(), owned(dbusmenu_label(&menu.title)));
     props.insert("children-display".to_string(), owned("submenu"));
     let children = menu
         .items
         .iter()
-        .map(|item| item_to_raw(item, id_map))
+        .enumerate()
+        .map(|(index, item)| item_to_raw(item, &parent_key, index, id_map))
         .collect();
     RawItem {
         id,
@@ -343,10 +421,10 @@ fn menu_to_raw(id: i32, menu: &Menu, id_map: &mut IdMap) -> RawItem {
     }
 }
 
-fn item_to_raw(item: &MenuItem, id_map: &mut IdMap) -> RawItem {
+fn item_to_raw(item: &MenuItem, parent_key: &str, index: usize, id_map: &mut IdMap) -> RawItem {
     match item {
         MenuItem::Separator => {
-            let id = id_map.get("__separator__");
+            let id = id_map.get(format!("__separator__:{parent_key}:{index}"));
             let mut props = HashMap::new();
             props.insert("type".to_string(), owned("separator"));
             RawItem {
@@ -399,12 +477,16 @@ fn item_to_raw(item: &MenuItem, id_map: &mut IdMap) -> RawItem {
                 .as_deref()
                 .map(|s| s.to_string())
                 .unwrap_or_else(|| format!("__submenu__:{label}"));
-            let id = id_map.get(key);
+            let id = id_map.get(&key);
             let mut props = HashMap::new();
             props.insert("label".to_string(), owned(dbusmenu_label(label)));
             props.insert("enabled".to_string(), owned(*enabled));
             props.insert("children-display".to_string(), owned("submenu"));
-            let children = items.iter().map(|item| item_to_raw(item, id_map)).collect();
+            let children = items
+                .iter()
+                .enumerate()
+                .map(|(i, item)| item_to_raw(item, &key, i, id_map))
+                .collect();
             RawItem {
                 id,
                 properties: props,

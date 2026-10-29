@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::{Arc, Mutex, OnceLock, Weak};
 
 use async_channel::{Receiver, Sender};
@@ -14,12 +15,14 @@ const VERSION: u32 = 3;
 /// The path prefix for per-window menus: `/MenuBar/<n>`.
 const PATH_PREFIX: &str = "/MenuBar/";
 
+/// Monotonic counter for menu paths so unregistering one never reuses it.
+static NEXT_PATH_INDEX: AtomicU32 = AtomicU32::new(0);
+
 /// Commands sent from the render thread to the D-Bus thread.
 enum Command {
     Register {
         path: String,
         registered: Arc<RegisteredMenu>,
-        reply: Sender<Option<crate::platform::AppMenuAddress>>,
     },
     Unregister {
         path: String,
@@ -55,16 +58,9 @@ impl Server {
         })
     }
 
-    fn register(
-        _menu: AppMenu,
-        handle: MenuHandle,
-        on_action: Arc<dyn Fn(&str) + Send + Sync>,
-    ) -> Option<crate::platform::AppMenuAddress> {
+    fn register(handle: MenuHandle, on_action: Arc<dyn Fn(&str) + Send + Sync>) {
         let server = Self::get();
-        let index = {
-            let menus = server.menus.lock().expect("menu registry poisoned");
-            menus.len() as u32
-        };
+        let index = NEXT_PATH_INDEX.fetch_add(1, Ordering::Relaxed);
         let path = format!("{PATH_PREFIX}{index}");
         handle.set_path(&path);
         let registered = RegisteredMenu::new(handle, on_action);
@@ -73,13 +69,10 @@ impl Server {
             .lock()
             .expect("menu registry poisoned")
             .insert(path.clone(), Arc::downgrade(&registered));
-        let (reply_tx, reply_rx) = async_channel::bounded(1);
         let _ = server.commands.send_blocking(Command::Register {
             path: path.clone(),
             registered,
-            reply: reply_tx,
         });
-        async_io::block_on(reply_rx.recv()).ok().flatten()
     }
 
     fn unregister(path: &str) {
@@ -102,13 +95,10 @@ impl Server {
     }
 }
 
-/// Registers a menu and returns the D-Bus address to announce.
-pub fn register(
-    menu: AppMenu,
-    handle: MenuHandle,
-    on_action: Arc<dyn Fn(&str) + Send + Sync>,
-) -> Option<crate::platform::AppMenuAddress> {
-    Server::register(menu, handle, on_action)
+/// Registers a menu on the session bus. The D-Bus address is delivered
+/// asynchronously to the UI thread through [`MenuHandle::deliver_address`].
+pub fn register(handle: MenuHandle, on_action: Arc<dyn Fn(&str) + Send + Sync>) {
+    Server::register(handle, on_action)
 }
 
 pub fn unregister(path: &str) {
@@ -124,11 +114,6 @@ async fn run(commands: Receiver<Command>) {
         Ok(c) => c,
         Err(error) => {
             tracing::warn!(%error, "barrier-dbusmenu: no session bus; menus are local only");
-            while let Ok(command) = commands.recv().await {
-                if let Command::Register { reply, .. } = command {
-                    let _ = reply.send(None).await;
-                }
-            }
             return;
         }
     };
@@ -138,56 +123,47 @@ async fn run(commands: Receiver<Command>) {
 
     while let Ok(command) = commands.recv().await {
         match command {
-            Command::Register {
-                path,
-                registered,
-                reply,
-            } => {
+            Command::Register { path, registered } => {
                 let iface = DbusMenuObject {
                     registered: registered.clone(),
                 };
-                let address = if connection.unique_name().is_some() {
-                    let unique = connection
-                        .unique_name()
-                        .map(|s| s.to_string())
-                        .unwrap_or_default();
-                    if let Err(error) = connection.object_server().at(path.clone(), iface).await {
-                        tracing::warn!(%error, path, "barrier-dbusmenu: could not register object");
-                        None
-                    } else {
-                        menus.insert(path.clone(), registered.clone());
-                        let mut id_map = IdMap::default();
-                        let (snapshot, _layout) =
-                            build_layout_from_handle(&registered, &mut id_map);
-                        let revision = snapshot.revision;
-                        let _ = registered
-                            .last_layout
-                            .lock()
-                            .expect("layout lock poisoned")
-                            .replace(snapshot);
-                        id_maps.insert(path.clone(), id_map);
-                        if let Ok(iface_ref) = connection
-                            .object_server()
-                            .interface::<_, DbusMenuObject>(path.as_str())
+                if connection.unique_name().is_none() {
+                    continue;
+                }
+                let unique = connection
+                    .unique_name()
+                    .map(|s| s.to_string())
+                    .unwrap_or_default();
+                if let Err(error) = connection.object_server().at(path.clone(), iface).await {
+                    tracing::warn!(%error, path, "barrier-dbusmenu: could not register object");
+                    continue;
+                }
+                menus.insert(path.clone(), registered.clone());
+                let mut id_map = IdMap::default();
+                let (snapshot, _layout) = build_layout_from_handle(&registered, &mut id_map);
+                let revision = snapshot.revision;
+                let _ = registered
+                    .last_layout
+                    .lock()
+                    .expect("layout lock poisoned")
+                    .replace(snapshot);
+                id_maps.insert(path.clone(), id_map);
+                if let Ok(iface_ref) = connection
+                    .object_server()
+                    .interface::<_, DbusMenuObject>(path.as_str())
+                    .await
+                    && let Err(error) =
+                        DbusMenuObject::layout_updated(iface_ref.signal_emitter(), revision, 0)
                             .await
-                            && let Err(error) = DbusMenuObject::layout_updated(
-                                iface_ref.signal_emitter(),
-                                revision,
-                                0,
-                            )
-                            .await
-                        {
-                            tracing::warn!(%error, "barrier-dbusmenu: could not emit initial LayoutUpdated");
-                        }
-                        Some(crate::platform::AppMenuAddress {
-                            service: unique,
-                            path,
-                        })
-                    }
-                } else {
-                    None
-                };
-                let _ = reply.send(address).await;
+                {
+                    tracing::warn!(%error, "barrier-dbusmenu: could not emit initial LayoutUpdated");
+                }
+                registered
+                    .handle
+                    .deliver_address(crate::platform::AppMenuAddress {
+                        service: unique,
+                        path,
+                    });
             }
             Command::Unregister { path } => {
                 if menus.remove(&path).is_some() {
@@ -295,11 +271,29 @@ impl DbusMenuObject {
         };
         let revision = snapshot.revision;
         if parent_id == 0 {
-            drop(guard);
-            let (menu, _) = self.registered.handle.snapshot();
-            let mut id_map = IdMap::default();
-            let (_snapshot, layout) = build_layout(&menu, &mut id_map, revision);
-            return (revision, layout);
+            let children: Vec<OwnedValue> = if recursion_depth == 0 {
+                Vec::new()
+            } else {
+                snapshot
+                    .root_children
+                    .iter()
+                    .filter_map(|child_id| {
+                        snapshot.nodes.get(child_id).map(|child_node| {
+                            let child = layout_node(
+                                snapshot,
+                                *child_id,
+                                child_node,
+                                recursion_depth.saturating_sub(1),
+                            );
+                            OwnedValue::try_from(Value::Structure(zbus::zvariant::Structure::from(
+                                child,
+                            )))
+                            .unwrap()
+                        })
+                    })
+                    .collect()
+            };
+            return (revision, (0, HashMap::new(), children));
         }
         if let Some(node) = snapshot.nodes.get(&parent_id) {
             #[allow(clippy::needless_borrow)]
@@ -348,9 +342,13 @@ impl DbusMenuObject {
         if event_id != "clicked" {
             return;
         }
-        if let Some(action_id) = action_id_for_numeric(&self.registered, id) {
-            let on_action = self.registered.on_action.clone();
-            (on_action)(&action_id);
+        if let Some(action_id) = action_id_for_numeric(&self.registered, id)
+            && !self.registered.handle.push_action(action_id.clone())
+        {
+            tracing::warn!(
+                %action_id,
+                "barrier-dbusmenu: no UI wake handle; dropped menu action"
+            );
         }
     }
 
@@ -445,13 +443,19 @@ impl TestMenuServer {
         menu: AppMenu,
         path: impl Into<String>,
         on_action: Arc<dyn Fn(&str) + Send + Sync>,
+        wake: Option<crate::platform::WakeHandle>,
     ) -> Self {
-        let handle = crate::app_menu::MenuHandle::for_test(menu);
+        let handle = crate::app_menu::MenuHandle::new(menu, wake);
         let registered = RegisteredMenu::new(handle, on_action);
         Self {
             registered,
             path: path.into(),
         }
+    }
+
+    /// The handle shared with the D-Bus object.
+    pub fn handle(&self) -> MenuHandle {
+        self.registered.handle.clone()
     }
 
     /// Registers the dbusmenu object on `connection` and emits the initial
@@ -511,5 +515,171 @@ impl TestMenuServer {
             .await?;
         DbusMenuObject::items_properties_updated(iface_ref.signal_emitter(), updated, Vec::new())
             .await
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::collections::HashSet;
+    use std::sync::{Arc, Mutex};
+    use std::time::{Duration, Instant};
+
+    use zbus::zvariant::{OwnedValue, Value};
+
+    use crate::app_menu::server::DbusMenuObject;
+    use crate::app_menu::{AppMenu, IdMap, Menu, MenuHandle, MenuItem, layout::build_layout};
+    use crate::menu::CheckState;
+    use crate::platform::WakeHandle;
+
+    fn action(id: &str) -> MenuItem {
+        MenuItem::Action {
+            id: id.to_string(),
+            label: id.to_string(),
+            shortcut: None,
+            enabled: true,
+            check: CheckState::None,
+            icon: None,
+        }
+    }
+
+    fn separator() -> MenuItem {
+        MenuItem::Separator
+    }
+
+    fn test_wake() -> WakeHandle {
+        let (ping, _) = sctk::reexports::calloop::ping::make_ping().expect("test ping");
+        WakeHandle::from_ping(ping)
+    }
+
+    #[test]
+    fn path_counter_never_reuses_index() {
+        let make = || {
+            let handle = MenuHandle::new(AppMenu::new(vec![Menu::new("M", vec![])]), None);
+            super::register(handle.clone(), Arc::new(|_| {}));
+            handle.path().unwrap()
+        };
+        let path_a = make();
+        let path_b = make();
+        super::unregister(&path_a);
+        let path_c = make();
+        assert_ne!(path_c, path_b, "path reused after unregister");
+    }
+
+    #[test]
+    fn separators_get_distinct_stable_ids() {
+        let menu = AppMenu::new(vec![Menu::new(
+            "File",
+            vec![
+                action("a1"),
+                separator(),
+                action("a2"),
+                separator(),
+                action("a3"),
+            ],
+        )]);
+        let mut id_map = IdMap::default();
+        let (snapshot, _root) = build_layout(&menu, &mut id_map, 1);
+        let menu_id = snapshot.root_children[0];
+        let children = &snapshot.nodes[&menu_id].children;
+        assert_eq!(children.len(), 5, "layout must have five children");
+        let unique: HashSet<_> = children.iter().collect();
+        assert_eq!(unique.len(), 5, "each child must have a unique id");
+    }
+
+    #[test]
+    fn event_resolves_against_published_snapshot() {
+        let menu = AppMenu::new(vec![Menu::new("File", vec![action("a1"), action("a2")])]);
+        let server = super::TestMenuServer::new(
+            menu.clone(),
+            "/MenuBar/0",
+            Arc::new(|_: &str| {}),
+            Some(test_wake()),
+        );
+        let handle = server.handle();
+
+        // Publish the original layout snapshot.
+        let mut id_map = IdMap::default();
+        let (snapshot, _) = build_layout(&menu, &mut id_map, 1);
+        let id_a2 = snapshot
+            .nodes
+            .iter()
+            .find(|(_, node)| node.action_id.as_deref() == Some("a2"))
+            .map(|(id, _)| *id)
+            .expect("a2 in snapshot");
+        *server.registered.last_layout.lock().unwrap() = Some(snapshot);
+
+        // Mutate the live menu: insert a new item at the front.
+        let mut new_menu = menu.clone();
+        new_menu.menus[0].items.insert(0, action("a0"));
+        handle.replace_menu(new_menu);
+
+        // Click the old numeric id of a2.
+        let obj = DbusMenuObject {
+            registered: server.registered.clone(),
+        };
+        obj.event(
+            id_a2,
+            "clicked".to_string(),
+            OwnedValue::try_from(Value::I32(0)).unwrap(),
+            0,
+        );
+
+        assert_eq!(handle.drain_actions(), vec!["a2".to_string()]);
+    }
+
+    #[test]
+    fn event_does_not_run_on_dbus_thread() {
+        let menu = AppMenu::new(vec![Menu::new("File", vec![action("a1")])]);
+        let fired: Arc<Mutex<Option<(String, std::thread::ThreadId)>>> = Arc::new(Mutex::new(None));
+        let fired2 = fired.clone();
+        let on_action = Arc::new(move |id: &str| {
+            *fired2.lock().unwrap() = Some((id.to_string(), std::thread::current().id()));
+        });
+        let server =
+            super::TestMenuServer::new(menu.clone(), "/MenuBar/0", on_action, Some(test_wake()));
+        let handle = server.handle();
+
+        let mut id_map = IdMap::default();
+        let (snapshot, _) = build_layout(&menu, &mut id_map, 1);
+        let id_a1 = snapshot
+            .nodes
+            .iter()
+            .find(|(_, node)| node.action_id.as_deref() == Some("a1"))
+            .map(|(id, _)| *id)
+            .expect("a1 in snapshot");
+        *server.registered.last_layout.lock().unwrap() = Some(snapshot);
+
+        std::thread::spawn(move || {
+            let obj = DbusMenuObject {
+                registered: server.registered.clone(),
+            };
+            obj.event(
+                id_a1,
+                "clicked".to_string(),
+                OwnedValue::try_from(Value::I32(0)).unwrap(),
+                0,
+            );
+        })
+        .join()
+        .unwrap();
+
+        assert!(
+            fired.lock().unwrap().is_none(),
+            "on_action must not run on the D-Bus thread"
+        );
+        assert_eq!(handle.drain_actions(), vec!["a1".to_string()]);
+    }
+
+    #[test]
+    fn register_returns_without_blocking() {
+        let handle = MenuHandle::new(AppMenu::new(vec![Menu::new("M", vec![])]), None);
+        let start = Instant::now();
+        super::register(handle.clone(), Arc::new(|_| {}));
+        assert!(
+            start.elapsed() < Duration::from_millis(50),
+            "register blocked for {} ms",
+            start.elapsed().as_millis()
+        );
+        assert!(handle.path().is_some());
     }
 }
