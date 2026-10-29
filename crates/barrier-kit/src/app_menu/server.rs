@@ -437,12 +437,10 @@ pub struct TestMenuServer {
 
 impl TestMenuServer {
     /// Creates a server for `menu` that queues "clicked" events on its handle.
-    pub fn new(
-        menu: AppMenu,
-        path: impl Into<String>,
-        wake: Option<crate::platform::WakeHandle>,
-    ) -> Self {
-        let handle = crate::app_menu::MenuHandle::new(menu, wake);
+    pub fn new(menu: AppMenu, path: impl Into<String>) -> Self {
+        let (ping, _) = sctk::reexports::calloop::ping::make_ping().expect("test ping");
+        let wake = crate::platform::WakeHandle::from_ping(ping);
+        let handle = crate::app_menu::MenuHandle::new(menu, Some(wake));
         let registered = RegisteredMenu::new(handle);
         Self {
             registered,
@@ -518,7 +516,6 @@ impl TestMenuServer {
 #[cfg(test)]
 mod tests {
     use std::collections::HashSet;
-    use std::sync::Mutex;
     use std::time::{Duration, Instant};
 
     use zbus::zvariant::{OwnedValue, Value};
@@ -526,7 +523,6 @@ mod tests {
     use crate::app_menu::server::DbusMenuObject;
     use crate::app_menu::{AppMenu, IdMap, Menu, MenuHandle, MenuItem, layout::build_layout};
     use crate::menu::CheckState;
-    use crate::platform::WakeHandle;
 
     fn action(id: &str) -> MenuItem {
         MenuItem::Action {
@@ -541,11 +537,6 @@ mod tests {
 
     fn separator() -> MenuItem {
         MenuItem::Separator
-    }
-
-    fn test_wake() -> WakeHandle {
-        let (ping, _) = sctk::reexports::calloop::ping::make_ping().expect("test ping");
-        WakeHandle::from_ping(ping)
     }
 
     #[test]
@@ -586,7 +577,7 @@ mod tests {
     #[test]
     fn event_resolves_against_published_snapshot() {
         let menu = AppMenu::new(vec![Menu::new("File", vec![action("a1"), action("a2")])]);
-        let server = super::TestMenuServer::new(menu.clone(), "/MenuBar/0", Some(test_wake()));
+        let server = super::TestMenuServer::new(menu.clone(), "/MenuBar/0");
         let handle = server.handle();
 
         // Publish the original layout snapshot.
@@ -622,7 +613,7 @@ mod tests {
     #[test]
     fn event_does_not_run_on_dbus_thread() {
         let menu = AppMenu::new(vec![Menu::new("File", vec![action("a1")])]);
-        let server = super::TestMenuServer::new(menu.clone(), "/MenuBar/0", Some(test_wake()));
+        let server = super::TestMenuServer::new(menu.clone(), "/MenuBar/0");
         let handle = server.handle();
 
         let mut id_map = IdMap::default();
