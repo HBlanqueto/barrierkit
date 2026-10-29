@@ -26,51 +26,6 @@ fn secure_field_accepts_text(key: &Key, modifiers: Modifiers) -> bool {
     matches!(key, Key::Character(_)) && inserts_text(modifiers)
 }
 
-/// A vertical list. The caller owns the children; `List` only fixes the
-/// direction and the spacing from the text token.
-#[derive(Clone, Default, PartialEq)]
-pub struct List {
-    children: Vec<Element>,
-    key: DiffKey,
-}
-
-impl List {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    pub fn child(mut self, child: impl IntoElement) -> Self {
-        self.children.push(child.into_element());
-        self
-    }
-
-    pub fn children(mut self, children: impl IntoIterator<Item = impl IntoElement>) -> Self {
-        self.children
-            .extend(children.into_iter().map(IntoElement::into_element));
-        self
-    }
-
-    pub fn key(mut self, key: impl Into<DiffKey>) -> Self {
-        self.key = key.into();
-        self
-    }
-}
-
-impl KeyExt for List {
-    fn write_key(&mut self) -> &mut DiffKey {
-        &mut self.key
-    }
-}
-
-impl Component for List {
-    fn render(&self) -> impl IntoElement {
-        rect()
-            .direction(Direction::Vertical)
-            .spacing(TEXT_LINE_HEIGHT)
-            .children(self.children.iter().cloned())
-    }
-}
-
 /// A masked password field that keeps the same zeroizing buffer as the lock
 /// screen (`password::PasswordField`). The masked text is the only value the
 /// accessibility tree and the canvas see; the secret is never logged.

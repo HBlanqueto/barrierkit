@@ -15,7 +15,6 @@ use freya_core::prelude::*;
 use torin::prelude::{Alignment, Direction, Gaps, Position, Size};
 use vow_appearance::SidebarStyle;
 use vow_appearance::palette;
-use vow_appearance::traffic::TrafficInput;
 use vow_design::NATIVE_APP_ID_PREFIX;
 use vow_design::{ButtonKind, Rgba, TITLEBAR, TITLEBAR_CLIENT_HEIGHT, TITLEBAR_DOUBLE_CLICK};
 
@@ -291,7 +290,7 @@ impl Component for Titlebar {
             .on_mouse_down(window_drag_handler(fixed))
             .child(title_label);
 
-        let mut root = rect()
+        let root = rect()
             .width(Size::fill())
             .height(Size::px(TITLEBAR_CLIENT_HEIGHT as f32))
             .background(rgba(background))
@@ -301,16 +300,6 @@ impl Component for Titlebar {
             .child(left_slot)
             .child(title)
             .child(right_slot);
-
-        if self.sidebar && resolved.sidebar.style == SidebarStyle::Flat {
-            root = root.child(
-                rect()
-                    .position(Position::new_absolute().bottom(0.0).left(0.0))
-                    .width(Size::fill())
-                    .height(Size::px(1.0))
-                    .background(rgba(resolved.sidebar.palette.line)),
-            );
-        }
 
         root.into_element()
     }
@@ -501,16 +490,6 @@ fn rgba(color: Rgba) -> Color {
 /// The app-id for a BarrierKit window with the given suffix.
 pub fn app_id(app_name: &str) -> String {
     format!("{NATIVE_APP_ID_PREFIX}{app_name}")
-}
-
-#[allow(dead_code)]
-fn _traffic_input(status: WindowStatus, fixed: bool) -> TrafficInput {
-    TrafficInput {
-        focused: status.activated,
-        group_hovered: false,
-        pressed: None,
-        zoom_supported: !fixed,
-    }
 }
 
 /// CSD resize edges and corners. Put it as the last child of the window root

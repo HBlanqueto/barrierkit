@@ -10,7 +10,7 @@ use std::{
 };
 
 use barrier_kit::controls::{
-    Button, List, Popover, ScrollView, SecureField, SegmentedControl, Slider, Switch, TextField,
+    Button, Popover, ScrollView, SecureField, SegmentedControl, Slider, Switch, TextField,
 };
 use barrier_kit::theme;
 use freya_components::menu::{Menu, MenuItem};
@@ -54,7 +54,6 @@ fn cases() -> Vec<Control> {
         ("segmented-control", segmented_control),
         ("text-field", text_field),
         ("secure-field", secure_field),
-        ("list", list),
         ("scroll-view", scroll_view),
         ("menu", menu),
         ("popover", popover),
@@ -92,14 +91,6 @@ fn text_field() -> Element {
 
 fn secure_field() -> Element {
     SecureField::new().into_element()
-}
-
-fn list() -> Element {
-    List::new()
-        .child(label().text("Uno"))
-        .child(label().text("Dos"))
-        .child(label().text("Tres"))
-        .into_element()
 }
 
 fn scroll_view() -> Element {
