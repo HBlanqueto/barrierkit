@@ -100,7 +100,7 @@ impl MenuHandle {
         }
     }
 
-    #[allow(dead_code)]
+    #[cfg(test)]
     pub(crate) fn path(&self) -> Option<String> {
         self.path.lock().ok().and_then(|g| g.clone())
     }

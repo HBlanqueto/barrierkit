@@ -58,12 +58,12 @@ impl Server {
         })
     }
 
-    fn register(handle: MenuHandle, on_action: Arc<dyn Fn(&str) + Send + Sync>) {
+    fn register(handle: MenuHandle) {
         let server = Self::get();
         let index = NEXT_PATH_INDEX.fetch_add(1, Ordering::Relaxed);
         let path = format!("{PATH_PREFIX}{index}");
         handle.set_path(&path);
-        let registered = RegisteredMenu::new(handle, on_action);
+        let registered = RegisteredMenu::new(handle);
         server
             .menus
             .lock()
@@ -97,8 +97,8 @@ impl Server {
 
 /// Registers a menu on the session bus. The D-Bus address is delivered
 /// asynchronously to the UI thread through [`MenuHandle::deliver_address`].
-pub fn register(handle: MenuHandle, on_action: Arc<dyn Fn(&str) + Send + Sync>) {
-    Server::register(handle, on_action)
+pub fn register(handle: MenuHandle) {
+    Server::register(handle)
 }
 
 pub fn unregister(path: &str) {
@@ -127,13 +127,9 @@ async fn run(commands: Receiver<Command>) {
                 let iface = DbusMenuObject {
                     registered: registered.clone(),
                 };
-                if connection.unique_name().is_none() {
+                let Some(unique) = connection.unique_name().map(|s| s.to_string()) else {
                     continue;
-                }
-                let unique = connection
-                    .unique_name()
-                    .map(|s| s.to_string())
-                    .unwrap_or_default();
+                };
                 if let Err(error) = connection.object_server().at(path.clone(), iface).await {
                     tracing::warn!(%error, path, "barrier-dbusmenu: could not register object");
                     continue;
@@ -290,7 +286,7 @@ impl DbusMenuObject {
                                 child,
                             )))
                             // A well-formed dbusmenu Structure always converts; invariant.
-                            .unwrap()
+                            .expect("a well-formed dbusmenu Structure always converts")
                         })
                     })
                     .collect()
@@ -440,15 +436,14 @@ pub struct TestMenuServer {
 }
 
 impl TestMenuServer {
-    /// Creates a server for `menu` that calls `on_action` for "clicked" events.
+    /// Creates a server for `menu` that queues "clicked" events on its handle.
     pub fn new(
         menu: AppMenu,
         path: impl Into<String>,
-        on_action: Arc<dyn Fn(&str) + Send + Sync>,
         wake: Option<crate::platform::WakeHandle>,
     ) -> Self {
         let handle = crate::app_menu::MenuHandle::new(menu, wake);
-        let registered = RegisteredMenu::new(handle, on_action);
+        let registered = RegisteredMenu::new(handle);
         Self {
             registered,
             path: path.into(),
@@ -523,7 +518,7 @@ impl TestMenuServer {
 #[cfg(test)]
 mod tests {
     use std::collections::HashSet;
-    use std::sync::{Arc, Mutex};
+    use std::sync::Mutex;
     use std::time::{Duration, Instant};
 
     use zbus::zvariant::{OwnedValue, Value};
@@ -557,7 +552,7 @@ mod tests {
     fn path_counter_never_reuses_index() {
         let make = || {
             let handle = MenuHandle::new(AppMenu::new(vec![Menu::new("M", vec![])]), None);
-            super::register(handle.clone(), Arc::new(|_| {}));
+            super::register(handle.clone());
             handle.path().unwrap()
         };
         let path_a = make();
@@ -591,12 +586,7 @@ mod tests {
     #[test]
     fn event_resolves_against_published_snapshot() {
         let menu = AppMenu::new(vec![Menu::new("File", vec![action("a1"), action("a2")])]);
-        let server = super::TestMenuServer::new(
-            menu.clone(),
-            "/MenuBar/0",
-            Arc::new(|_: &str| {}),
-            Some(test_wake()),
-        );
+        let server = super::TestMenuServer::new(menu.clone(), "/MenuBar/0", Some(test_wake()));
         let handle = server.handle();
 
         // Publish the original layout snapshot.
@@ -632,13 +622,7 @@ mod tests {
     #[test]
     fn event_does_not_run_on_dbus_thread() {
         let menu = AppMenu::new(vec![Menu::new("File", vec![action("a1")])]);
-        let fired: Arc<Mutex<Option<(String, std::thread::ThreadId)>>> = Arc::new(Mutex::new(None));
-        let fired2 = fired.clone();
-        let on_action = Arc::new(move |id: &str| {
-            *fired2.lock().unwrap() = Some((id.to_string(), std::thread::current().id()));
-        });
-        let server =
-            super::TestMenuServer::new(menu.clone(), "/MenuBar/0", on_action, Some(test_wake()));
+        let server = super::TestMenuServer::new(menu.clone(), "/MenuBar/0", Some(test_wake()));
         let handle = server.handle();
 
         let mut id_map = IdMap::default();
@@ -665,10 +649,7 @@ mod tests {
         .join()
         .unwrap();
 
-        assert!(
-            fired.lock().unwrap().is_none(),
-            "on_action must not run on the D-Bus thread"
-        );
+        // The action is queued for the UI thread instead of running on the D-Bus thread.
         assert_eq!(handle.drain_actions(), vec!["a1".to_string()]);
     }
 
@@ -677,7 +658,7 @@ mod tests {
     fn register_returns_without_blocking() {
         let handle = MenuHandle::new(AppMenu::new(vec![Menu::new("M", vec![])]), None);
         let start = Instant::now();
-        super::register(handle.clone(), Arc::new(|_| {}));
+        super::register(handle.clone());
         assert!(
             start.elapsed() < Duration::from_millis(50),
             "register blocked for {} ms",

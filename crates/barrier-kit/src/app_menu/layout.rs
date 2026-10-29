@@ -23,18 +23,13 @@ pub struct PropertiesUpdate {
 
 /// State shared between the render thread and the D-Bus thread.
 pub struct RegisteredMenu {
-    pub on_action: Arc<dyn Fn(&str) + Send + Sync>,
     pub handle: crate::app_menu::MenuHandle,
     pub(crate) last_layout: Mutex<Option<LayoutSnapshot>>,
 }
 
 impl RegisteredMenu {
-    pub fn new(
-        handle: crate::app_menu::MenuHandle,
-        on_action: Arc<dyn Fn(&str) + Send + Sync>,
-    ) -> Arc<Self> {
+    pub fn new(handle: crate::app_menu::MenuHandle) -> Arc<Self> {
         Arc::new(Self {
-            on_action,
             handle,
             last_layout: Mutex::new(None),
         })

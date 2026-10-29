@@ -2472,14 +2472,12 @@ impl Shell {
         window.commit();
 
         let menu = options.menu.clone();
-        let on_menu_action = options.on_menu_action.clone();
         let mut menu_handle: Option<crate::app_menu::MenuHandle> = None;
         if let Some(menu) = menu {
             let handle = crate::app_menu::MenuHandle::new(
                 menu.clone(),
                 Some(WakeHandle::from_ping(self.wake.ping.clone())),
             );
-            let on_action = on_menu_action.clone().unwrap_or_else(|| Arc::new(|_| {}));
             if self.appmenu_manager.is_some() {
                 let surface_id = surface.id();
                 let pending_addresses = self.pending_menu_addresses.clone();
@@ -2492,7 +2490,7 @@ impl Shell {
                         .push((surface_id.clone(), address));
                     wake.ping();
                 });
-                crate::app_menu::server::register(handle.clone(), on_action);
+                crate::app_menu::server::register(handle.clone());
             }
             menu_handle = Some(handle);
         }
