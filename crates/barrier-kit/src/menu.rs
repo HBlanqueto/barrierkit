@@ -221,6 +221,58 @@ const SEARCH_ICON: &str = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\
 /// the text and plain entries line up with the ones that carry one.
 const MARK_TEXT_GAP: f32 = 6.0;
 
+/// Returns whether a menu uses a mark column and/or an icon column.
+///
+/// A mark column is reserved as soon as any entry (including a false checkbox
+/// or radio) has a [`CheckState`] other than `None`, so toggling it on does
+/// not make the text jump. An icon column is reserved only when at least one
+/// entry actually carries an icon.
+fn columns_used(items: &[MenuItem]) -> (bool, bool) {
+    let mut has_mark = false;
+    let mut has_icon = false;
+    for item in items {
+        match item {
+            MenuItem::Action { check, icon, .. } => {
+                if !matches!(check, CheckState::None) {
+                    has_mark = true;
+                }
+                if icon.is_some() {
+                    has_icon = true;
+                }
+            }
+            MenuItem::Submenu { icon, .. } => {
+                if icon.is_some() {
+                    has_icon = true;
+                }
+            }
+            MenuItem::SearchResult { item, .. } => {
+                let (m, i) = columns_used(std::slice::from_ref(item));
+                has_mark |= m;
+                has_icon |= i;
+            }
+            _ => {}
+        }
+        if has_mark && has_icon {
+            break;
+        }
+    }
+    (has_mark, has_icon)
+}
+
+/// Horizontal offset from the panel's inner left edge to the start of a row's
+/// label, based on the columns this menu actually uses.
+fn row_text_inset(items: &[MenuItem], m: MenuPalette) -> f32 {
+    let (has_mark, has_icon) = columns_used(items);
+    let columns =
+        if has_mark { m.mark_width } else { 0.0 } + if has_icon { m.icon_width } else { 0.0 };
+    let gap = if has_mark || has_icon {
+        MARK_TEXT_GAP
+    } else {
+        0.0
+    };
+    m.item_padding_x + columns + gap
+}
+
 /// State of a check/radio mark in a menu item.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum CheckState {
@@ -687,8 +739,8 @@ impl MenuView {
             } else {
                 0.0
             };
-            let fixed =
-                m.item_padding_x * 2.0 + m.mark_width + m.icon_width + MARK_TEXT_GAP + trailing;
+            let text_inset = row_text_inset(items, m);
+            let fixed = text_inset + m.item_padding_x + trailing;
             let max_label_w = (max_content_width - fixed).max(0.0);
             let label = truncate_middle(label, max_label_w, m.font_size);
             let label_w = measure_text(&label, m.font_size);
@@ -1939,7 +1991,7 @@ fn render_item(
     _opens_left: bool,
     on_activate: Rc<dyn Fn(String)>,
     on_dismiss_all: Rc<dyn Fn()>,
-    _items: Rc<Vec<MenuItem>>,
+    items: Rc<Vec<MenuItem>>,
     _focused: UseState<Option<usize>>,
     _open_child_id: Rc<Cell<Option<PopupId>>>,
     _open_child_index: Rc<Cell<Option<usize>>>,
@@ -1987,13 +2039,12 @@ fn render_item(
                 .as_ref()
                 .map(|s| measure_text(s, m.font_size))
                 .unwrap_or(0.0);
-            let inset = 2.0 * m.border_width + m.padding;
+            let (has_mark, has_icon) = columns_used(&items);
+            let text_inset = row_text_inset(&items, m);
             let max_label_w = (m.max_width
-                - inset * 2.0
-                - m.item_padding_x * 2.0
-                - m.mark_width
-                - m.icon_width
-                - MARK_TEXT_GAP
+                - 2.0 * (2.0 * m.border_width + m.padding)
+                - text_inset
+                - m.item_padding_x
                 - if shortcut_w > 0.0 {
                     m.shortcut_gap + shortcut_w
                 } else {
@@ -2039,24 +2090,27 @@ fn render_item(
             if let Some(bg) = bg {
                 row = row.background(rgba(bg));
             }
-            let left = rect()
+            let mut left = rect()
                 .direction(Direction::Horizontal)
-                .cross_align(Alignment::Center)
-                .spacing(MARK_TEXT_GAP)
-                .child(mark_slot(
+                .cross_align(Alignment::Center);
+            if has_mark || has_icon {
+                left = left.spacing(MARK_TEXT_GAP).child(mark_slot(
                     icon.clone(),
                     check,
+                    has_mark,
+                    has_icon,
                     fg,
                     shortcut_fg(enabled, is_focused, m),
                     m,
-                ))
-                .child(
-                    label()
-                        .text(label_text)
-                        .font_size(m.font_size)
-                        .color(rgba(fg))
-                        .max_lines(1),
-                );
+                ));
+            }
+            left = left.child(
+                label()
+                    .text(label_text)
+                    .font_size(m.font_size)
+                    .color(rgba(fg))
+                    .max_lines(1),
+            );
             row.child(left)
                 .child(
                     label()
@@ -2089,6 +2143,7 @@ fn render_item(
             } else {
                 None
             };
+            let (has_mark, has_icon) = columns_used(&items);
             let mut row = rect()
                 .width(Size::fill())
                 .height(Size::px(m.item_height))
@@ -2115,24 +2170,27 @@ fn render_item(
             if let Some(bg) = bg {
                 row = row.background(rgba(bg));
             }
-            let left = rect()
+            let mut left = rect()
                 .direction(Direction::Horizontal)
-                .cross_align(Alignment::Center)
-                .spacing(MARK_TEXT_GAP)
-                .child(mark_slot(
+                .cross_align(Alignment::Center);
+            if has_mark || has_icon {
+                left = left.spacing(MARK_TEXT_GAP).child(mark_slot(
                     icon.clone(),
                     CheckState::None,
+                    has_mark,
+                    has_icon,
                     fg,
                     shortcut_fg(enabled, is_focused, m),
                     m,
-                ))
-                .child(
-                    label()
-                        .text(label_text)
-                        .font_size(m.font_size)
-                        .color(rgba(fg))
-                        .max_lines(1),
-                );
+                ));
+            }
+            left = left.child(
+                label()
+                    .text(label_text)
+                    .font_size(m.font_size)
+                    .color(rgba(fg))
+                    .max_lines(1),
+            );
             row.child(left)
                 .child(chevron_element(chevron_fg(enabled, is_focused, m), m))
                 .into_element()
@@ -2431,49 +2489,54 @@ fn search_icon_element(
 fn mark_slot(
     icon: Option<MenuIcon>,
     check: CheckState,
+    has_mark: bool,
+    has_icon: bool,
     fg: Rgba,
     icon_fg: Rgba,
     m: MenuPalette,
 ) -> Element {
-    let check_elem = mark_element(check, fg, m);
-    let icon_elem = match icon {
-        Some(MenuIcon::Svg(svg)) => SvgViewer::new(Bytes::from(svg.as_bytes().to_vec()))
-            .width(Size::px(m.icon_size))
-            .height(Size::px(m.icon_size))
-            .color(rgba(icon_fg))
-            .show_loader(false)
-            .into_element(),
-        Some(MenuIcon::Image(bytes)) => icon_image(&bytes, m.icon_size).map_or_else(
-            || {
-                rect()
-                    .width(Size::px(m.icon_size))
-                    .height(Size::px(m.icon_size))
-                    .into_element()
-            },
-            |handle| {
-                image(handle)
-                    .width(Size::px(m.icon_size))
-                    .height(Size::px(m.icon_size))
-                    .into_element()
-            },
-        ),
-        None => rect()
-            .width(Size::px(m.icon_size))
-            .height(Size::px(m.icon_size))
-            .into_element(),
-    };
-    rect()
+    let mut slot = rect()
         .direction(Direction::Horizontal)
-        .cross_align(Alignment::Center)
-        .child(check_elem)
-        .child(
+        .cross_align(Alignment::Center);
+    if has_mark {
+        slot = slot.child(mark_element(check, fg, m));
+    }
+    if has_icon {
+        let icon_elem = match icon {
+            Some(MenuIcon::Svg(svg)) => SvgViewer::new(Bytes::from(svg.as_bytes().to_vec()))
+                .width(Size::px(m.icon_size))
+                .height(Size::px(m.icon_size))
+                .color(rgba(icon_fg))
+                .show_loader(false)
+                .into_element(),
+            Some(MenuIcon::Image(bytes)) => icon_image(&bytes, m.icon_size).map_or_else(
+                || {
+                    rect()
+                        .width(Size::px(m.icon_size))
+                        .height(Size::px(m.icon_size))
+                        .into_element()
+                },
+                |handle| {
+                    image(handle)
+                        .width(Size::px(m.icon_size))
+                        .height(Size::px(m.icon_size))
+                        .into_element()
+                },
+            ),
+            None => rect()
+                .width(Size::px(m.icon_size))
+                .height(Size::px(m.icon_size))
+                .into_element(),
+        };
+        slot = slot.child(
             rect()
                 .width(Size::px(m.icon_width))
                 .direction(Direction::Horizontal)
                 .main_align(Alignment::Center)
                 .child(icon_elem),
-        )
-        .into_element()
+        );
+    }
+    slot.into_element()
 }
 
 thread_local! {
@@ -2572,9 +2635,11 @@ fn chevron_element(color: Rgba, m: MenuPalette) -> Element {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::any::Any;
     use std::cell::RefCell;
     use std::rc::Rc;
 
+    use freya_core::elements::label::LabelElement;
     use freya_core::integration::AppComponent;
     use freya_testing::TestingRunner;
     use torin::prelude::Size2D;
@@ -2940,12 +3005,13 @@ mod tests {
     }
 
     #[test]
-    fn icons_do_not_widen_the_menu() {
+    fn icons_widen_the_menu_by_the_icon_column_and_gap() {
+        let label = "Configuración avanzada del sistema";
         let built = |icon: Option<MenuIcon>| {
             vec![
                 MenuItem::Action {
                     id: "a".to_string(),
-                    label: "Configuración…".to_string(),
+                    label: label.to_string(),
                     shortcut: Some("Super+,".to_string()),
                     enabled: true,
                     check: CheckState::None,
@@ -2962,7 +3028,11 @@ mod tests {
         };
         let plain = MenuView::preferred_size(&built(None), MENU_LIGHT);
         let with_icons = MenuView::preferred_size(&built(Some(MenuIcon::svg("x"))), MENU_LIGHT);
-        assert_eq!(plain, with_icons);
+        assert_eq!(
+            with_icons.0 - plain.0,
+            MENU_LIGHT.icon_width + MARK_TEXT_GAP,
+            "an icon column is only reserved when the menu actually uses one"
+        );
     }
 
     #[test]
