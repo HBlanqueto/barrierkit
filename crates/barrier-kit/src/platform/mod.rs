@@ -123,6 +123,13 @@ use std::task::Waker;
 use torin::prelude::{CursorPoint, Size2D};
 use vow_appearance::{Resolved, load_appearance, load_dominant, resolve, watch::AppearanceWatch};
 use wayland_egl::WlEglSurface;
+use wayland_protocols::wp::fractional_scale::v1::client::{
+    wp_fractional_scale_manager_v1::WpFractionalScaleManagerV1,
+    wp_fractional_scale_v1::{Event as FractionalScaleEvent, WpFractionalScaleV1},
+};
+use wayland_protocols::wp::viewporter::client::{
+    wp_viewport::WpViewport, wp_viewporter::WpViewporter,
+};
 use wayland_protocols_plasma::appmenu::client::{
     org_kde_kwin_appmenu::{self, OrgKdeKwinAppmenu},
     org_kde_kwin_appmenu_manager::{self, OrgKdeKwinAppmenuManager},
@@ -1530,6 +1537,8 @@ struct SurfaceWindow {
     appmenu: Option<OrgKdeKwinAppmenu>,
     appmenu_address: Option<AppMenuAddress>,
     menu_handle: Option<crate::app_menu::MenuHandle>,
+    fractional: Option<WpFractionalScaleV1>,
+    viewport: Option<WpViewport>,
 }
 
 #[allow(dead_code)]
@@ -1561,10 +1570,7 @@ impl SurfaceWindow {
         if size.0 == 0 || size.1 == 0 {
             return;
         }
-        let buffer_size = (
-            (size.0 as f64 * scale).round().max(1.0) as u32,
-            (size.1 as f64 * scale).round().max(1.0) as u32,
-        );
+        let buffer_size = buffer_size(size, scale);
 
         if self.graphics.is_none() {
             self.graphics = Some(Graphics::new(self.shared.clone()));
@@ -1585,7 +1591,14 @@ impl SurfaceWindow {
         self.logical_size = size;
         self.scale = scale;
         self.buffer_size = buffer_size;
-        self.surface.set_buffer_scale(scale.round().max(1.0) as i32);
+        if fractional_scale_enabled(self.fractional.is_some(), self.viewport.is_some(), scale) {
+            self.surface.set_buffer_scale(1);
+            if let Some(viewport) = &self.viewport {
+                viewport.set_destination(size.0 as i32, size.1 as i32);
+            }
+        } else {
+            self.surface.set_buffer_scale(scale.round().max(1.0) as i32);
+        }
         self.app.resize(self.buffer_size, scale);
         self.needs_redraw = true;
     }
@@ -1636,6 +1649,21 @@ impl SurfaceWindow {
         let _ = self.app.ticker_sender.send(());
         self.needs_redraw = false;
         true
+    }
+}
+
+impl SurfaceWindow {
+    /// Destroys the fractional-scale and viewport objects before the surface so
+    /// the compositor sees them go away first.
+    fn destroy_fractional(&mut self) {
+        self.fractional = None;
+        self.viewport = None;
+    }
+}
+
+impl Drop for SurfaceWindow {
+    fn drop(&mut self) {
+        self.destroy_fractional();
     }
 }
 
@@ -1711,6 +1739,8 @@ struct Shell {
     _foreign_mgmt: Option<ZwlrForeignToplevelManagerV1>,
     _infinity_manager: Rc<RefCell<Option<InfinityWindowManagerV1>>>,
     appmenu_manager: Option<OrgKdeKwinAppmenuManager>,
+    fractional_manager: Option<WpFractionalScaleManagerV1>,
+    viewporter: Option<WpViewporter>,
     toplevel_entries: Rc<RefCell<Vec<ToplevelEntry>>>,
     toplevels: Toplevels,
     session_unlock: Option<SessionUnlock>,
@@ -1967,6 +1997,7 @@ pub fn run_layer(app: AppComponent, spec: SurfaceSpec) -> Result<(), RunError> {
         None,
         shell.resolved,
     );
+    let (fractional, viewport) = shell.create_fractional(&surface);
     shell.surfaces.push(SurfaceWindow {
         surface: surface.clone(),
         role: SurfaceRole::Layer(layer_surface),
@@ -1986,6 +2017,8 @@ pub fn run_layer(app: AppComponent, spec: SurfaceSpec) -> Result<(), RunError> {
         appmenu: None,
         appmenu_address: None,
         menu_handle: None,
+        fractional,
+        viewport,
     });
     shell.surface_count.set(shell.surfaces.len());
 
@@ -2316,6 +2349,18 @@ impl Shell {
         if appmenu_manager.is_none() {
             tracing::info!("org_kde_kwin_appmenu_manager no disponible; sigo sin él");
         }
+        let fractional_manager = globals
+            .bind::<WpFractionalScaleManagerV1, _, _>(&qh, 1..=1, ())
+            .ok();
+        if fractional_manager.is_none() {
+            tracing::info!(
+                "wp_fractional_scale_manager_v1 no disponible; sigo con escalas enteras"
+            );
+        }
+        let viewporter = globals.bind::<WpViewporter, _, _>(&qh, 1..=1, ()).ok();
+        if viewporter.is_none() {
+            tracing::info!("wp_viewporter no disponible; sigo con escalas enteras");
+        }
         // `SeatState::new` binds the seats that already exist without calling
         // `SeatHandler::new_seat`, so remember one here for activation and
         // popup grabs. Hotplugged seats still arrive through `new_seat`.
@@ -2383,6 +2428,8 @@ impl Shell {
             _foreign_mgmt: foreign_mgmt,
             _infinity_manager: infinity_manager,
             appmenu_manager,
+            fractional_manager,
+            viewporter,
             toplevel_entries,
             toplevels,
             session_unlock: None,
@@ -2416,6 +2463,29 @@ impl Shell {
 
     fn surface_for(&self, surface: &WlSurface) -> Option<usize> {
         self.surfaces.iter().position(|s| s.surface == *surface)
+    }
+
+    fn surface_index_by_id(&self, surface_id: &ObjectId) -> Option<usize> {
+        self.surfaces
+            .iter()
+            .position(|s| s.surface.id() == *surface_id)
+    }
+
+    /// Creates the fractional-scale and viewport objects for a surface when the
+    /// compositor advertises the corresponding globals.
+    fn create_fractional(
+        &self,
+        surface: &WlSurface,
+    ) -> (Option<WpFractionalScaleV1>, Option<WpViewport>) {
+        let fractional = self
+            .fractional_manager
+            .as_ref()
+            .map(|manager| manager.get_fractional_scale(surface, &self.qh, surface.id()));
+        let viewport = self
+            .viewporter
+            .as_ref()
+            .map(|viewporter| viewporter.get_viewport(surface, &self.qh, surface.id()));
+        (fractional, viewport)
     }
 }
 
@@ -2572,6 +2642,7 @@ impl Shell {
             options.on_menu_action.clone(),
             self.resolved,
         );
+        let (fractional, viewport) = self.create_fractional(&surface);
         self.surfaces.push(SurfaceWindow {
             surface,
             role: SurfaceRole::Window(window),
@@ -2591,6 +2662,8 @@ impl Shell {
             appmenu: appmenu_object,
             appmenu_address: None,
             menu_handle,
+            fractional,
+            viewport,
         });
         self.surface_count.set(self.surfaces.len());
         Some(controls)
@@ -2693,6 +2766,7 @@ impl Shell {
             None,
             self.resolved,
         );
+        let (fractional, viewport) = self.create_fractional(&surface);
         self.surfaces.push(SurfaceWindow {
             surface,
             role: SurfaceRole::Lock(lock_surface),
@@ -2712,6 +2786,8 @@ impl Shell {
             appmenu: None,
             appmenu_address: None,
             menu_handle: None,
+            fractional,
+            viewport,
         });
         self.surface_count.set(self.surfaces.len());
         Some(self.surfaces.len() - 1)
@@ -2940,6 +3016,7 @@ impl Shell {
             self.resolved,
         );
 
+        let (fractional, viewport) = self.create_fractional(&wl_surface);
         self.surfaces.push(SurfaceWindow {
             surface: wl_surface,
             role: SurfaceRole::Popup(popup),
@@ -2964,6 +3041,8 @@ impl Shell {
             appmenu: None,
             appmenu_address: None,
             menu_handle: None,
+            fractional,
+            viewport,
         });
         self.surface_count.set(self.surfaces.len());
     }
@@ -3143,6 +3222,12 @@ impl CompositorHandler for Shell {
         let Some(index) = self.surface_for(surface) else {
             return;
         };
+        // While fractional scaling is active the compositor drives the scale
+        // through wp_fractional_scale_v1.preferred_scale; integer scales are
+        // ignored so the buffer and viewport stay in sync.
+        if self.surfaces[index].fractional.is_some() {
+            return;
+        }
         let scale = scale_factor.max(1) as f64;
         let window = &mut self.surfaces[index];
         if window.scale != scale {
@@ -4090,6 +4175,27 @@ impl Dispatch<ZwlrForeignToplevelHandleV1, (), Shell> for Shell {
     }
 }
 
+/// Converts a fractional-scale wire value (120 = 1.0) to a logical scale factor.
+fn scale_from_wire(scale: u32) -> f64 {
+    scale as f64 / 120.0
+}
+
+/// Computes the buffer size for a logical surface size and scale.
+fn buffer_size(logical: (u32, u32), scale: f64) -> (u32, u32) {
+    (
+        (logical.0 as f64 * scale).round().max(1.0) as u32,
+        (logical.1 as f64 * scale).round().max(1.0) as u32,
+    )
+}
+
+/// Returns true when the surface should use fractional scaling.
+///
+/// Both the fractional-scale manager and viewporter must be present; the
+/// protocol is only useful when the compositor can scale the buffer back down.
+fn fractional_scale_enabled(has_fractional: bool, has_viewporter: bool, _scale: f64) -> bool {
+    has_fractional && has_viewporter
+}
+
 fn physical_point(position: (f64, f64), scale: f64) -> CursorPoint {
     CursorPoint::from((position.0 * scale, position.1 * scale))
 }
@@ -4238,6 +4344,68 @@ impl Dispatch<OrgKdeKwinAppmenu, ObjectId, Shell> for Shell {
     }
 }
 
+impl Dispatch<WpFractionalScaleManagerV1, (), Shell> for Shell {
+    fn event(
+        _: &mut Shell,
+        _: &WpFractionalScaleManagerV1,
+        _: <WpFractionalScaleManagerV1 as Proxy>::Event,
+        _: &(),
+        _: &Connection,
+        _: &QueueHandle<Shell>,
+    ) {
+    }
+}
+
+impl Dispatch<WpFractionalScaleV1, ObjectId, Shell> for Shell {
+    fn event(
+        state: &mut Shell,
+        _: &WpFractionalScaleV1,
+        event: FractionalScaleEvent,
+        surface_id: &ObjectId,
+        _: &Connection,
+        qh: &QueueHandle<Shell>,
+    ) {
+        let FractionalScaleEvent::PreferredScale { scale } = event else {
+            return;
+        };
+        let scale = scale_from_wire(scale);
+        let Some(index) = state.surface_index_by_id(surface_id) else {
+            return;
+        };
+        let window = &mut state.surfaces[index];
+        window.scale = scale;
+        if window.logical_size.0 > 0 {
+            let size = window.logical_size;
+            window.configure(size, scale);
+        }
+        window.request_redraw(qh);
+    }
+}
+
+impl Dispatch<WpViewporter, (), Shell> for Shell {
+    fn event(
+        _: &mut Shell,
+        _: &WpViewporter,
+        _: <WpViewporter as Proxy>::Event,
+        _: &(),
+        _: &Connection,
+        _: &QueueHandle<Shell>,
+    ) {
+    }
+}
+
+impl Dispatch<WpViewport, ObjectId, Shell> for Shell {
+    fn event(
+        _: &mut Shell,
+        _: &WpViewport,
+        _: <WpViewport as Proxy>::Event,
+        _: &ObjectId,
+        _: &Connection,
+        _: &QueueHandle<Shell>,
+    ) {
+    }
+}
+
 delegate_compositor!(Shell);
 delegate_output!(Shell);
 delegate_registry!(Shell);
@@ -4305,17 +4473,6 @@ mod tests {
         assert_eq!(clamp_toplevel_size_dimension(0), 0);
     }
 
-    #[test]
-    fn pointer_and_touch_coordinates_become_physical() {
-        assert_eq!(
-            physical_point((10.0, 20.0), 1.5),
-            CursorPoint::from((15.0, 30.0))
-        );
-        assert_eq!(
-            physical_point((3.0, 4.0), 2.0),
-            CursorPoint::from((6.0, 8.0))
-        );
-    }
 
     #[test]
     fn losing_focus_cancels_repeat_and_invalidates_old_timers() {

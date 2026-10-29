@@ -30,6 +30,7 @@ calloop.workspace = true
 wayland-client.workspace = true
 wayland-egl.workspace = true
 wayland-scanner.workspace = true
+wayland-protocols = { workspace = true }
 wayland-protocols-plasma = { workspace = true, features = ["client"] }
 zbus.workspace = true
 khronos-egl = { workspace = true, features = ["dynamic"] }

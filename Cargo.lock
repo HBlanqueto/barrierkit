@@ -226,6 +226,7 @@ dependencies = [
  "vow-design",
  "wayland-client",
  "wayland-egl",
+ "wayland-protocols",
  "wayland-protocols-plasma",
  "wayland-scanner",
  "zbus",
