@@ -4473,6 +4473,54 @@ mod tests {
         assert_eq!(clamp_toplevel_size_dimension(0), 0);
     }
 
+    #[test]
+    fn scale_from_wire_converts_fractional_scale_values() {
+        assert!((scale_from_wire(120) - 1.0).abs() < f64::EPSILON);
+        assert!((scale_from_wire(150) - 1.25).abs() < f64::EPSILON);
+        assert!((scale_from_wire(180) - 1.5).abs() < f64::EPSILON);
+        assert!((scale_from_wire(240) - 2.0).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn buffer_size_rounds_logical_size_at_fractional_scale() {
+        assert_eq!(buffer_size((801, 601), 1.25), (1001, 751));
+    }
+
+    #[test]
+    fn fractional_scale_mode_needs_both_globals() {
+        assert!(fractional_scale_enabled(true, true, 1.25));
+        assert!(!fractional_scale_enabled(true, false, 1.25));
+        assert!(!fractional_scale_enabled(false, true, 1.25));
+        assert!(!fractional_scale_enabled(false, false, 1.25));
+    }
+
+    #[test]
+    fn pointer_and_touch_coordinates_become_physical() {
+        assert_eq!(
+            physical_point((10.0, 20.0), 1.5),
+            CursorPoint::from((15.0, 30.0))
+        );
+        assert_eq!(
+            physical_point((3.0, 4.0), 2.0),
+            CursorPoint::from((6.0, 8.0))
+        );
+        assert_eq!(
+            physical_point((10.0, 20.0), 1.25),
+            CursorPoint::from((12.5, 25.0))
+        );
+    }
+
+    #[test]
+    fn fractional_scale_hit_test_respects_one_pixel_border() {
+        let scale = 1.25;
+        let border_physical = 1.0 * scale;
+        let inside = physical_point((0.5, 0.5), scale);
+        let outside = physical_point((1.5, 1.5), scale);
+        assert!(inside.x < border_physical);
+        assert!(inside.y < border_physical);
+        assert!(outside.x >= border_physical);
+        assert!(outside.y >= border_physical);
+    }
 
     #[test]
     fn losing_focus_cancels_repeat_and_invalidates_old_timers() {
