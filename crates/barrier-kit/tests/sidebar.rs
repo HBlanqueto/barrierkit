@@ -6,6 +6,7 @@ use std::io::Cursor;
 use std::sync::{Arc, Mutex};
 
 use accesskit::Role;
+use barrier_kit::ProbeExt;
 use barrier_kit::controls::{ToolButton, ToolGroup};
 use barrier_kit::platform::{DecorationResponse, WindowStatus};
 use barrier_kit::sidebar::{Sidebar, SidebarItem, SidebarLayout, SidebarSection};
@@ -17,7 +18,7 @@ use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 use freya_testing::TestingRunner;
 use keyboard_types::{Key, NamedKey};
-use torin::prelude::{Alignment, Size, Size2D};
+use torin::prelude::{Alignment, Direction, Size, Size2D};
 use vow_appearance::{AppearanceConfig, ColorScheme, SidebarStyle, WindowColorMode, resolve};
 use vow_design::{SIDEBAR, TITLEBAR, TITLEBAR_CLIENT_HEIGHT, TOOLGROUP};
 
@@ -209,29 +210,33 @@ fn titlebar_layout(sidebar: bool) -> Vec<(f32, f32, f32, f32)> {
         },
     });
     let (test, _) = TestingRunner::new(app, Size2D::new(300.0, 120.0), |_| {}, 1.0);
-    test.find_many(|node, _element| {
-        let layout = node.layout();
-        let area = layout.area;
-        if area.size.height == TITLEBAR_CLIENT_HEIGHT as f32 {
-            Some((
+    test.find_many(|node, el| {
+        let accessibility = el.accessibility();
+        let label = accessibility.builder.label()?;
+        let is_slot = matches!(
+            label,
+            "titlebar-left-slot" | "titlebar-title" | "titlebar-right-slot"
+        );
+        is_slot.then(|| {
+            let area = node.layout().area;
+            (
                 area.origin.x,
                 area.origin.y,
                 area.size.width,
                 area.size.height,
-            ))
-        } else {
-            None
-        }
+            )
+        })
     })
 }
 
 #[test]
 fn titlebar_without_sidebar_keeps_the_classic_three_slot_layout() {
     let bars = titlebar_layout(false);
-    // The root bar plus its three direct children (left slot, title, right slot).
-    assert!(
-        bars.len() >= 3,
-        "expected at least the bar root and three slots, found {bars:?}"
+    // The left slot, the title and the right slot.
+    assert_eq!(
+        bars.len(),
+        3,
+        "expected the three classic slots, found {bars:?}"
     );
     let widths: Vec<f32> = bars.iter().map(|(_, _, w, _)| *w).collect();
     let group_w = vow_appearance::traffic::group_rect().2 as f32;
@@ -859,5 +864,73 @@ fn island_and_toolgroup_cast_no_shadow() {
         pixel(&image, w, 150, capsule_bottom as usize),
         expected,
         "pixel 3 px below the toolgroup capsule must be the window background"
+    );
+}
+
+struct AlignedToolbarCase;
+
+impl App for AlignedToolbarCase {
+    fn render(&self) -> impl IntoElement {
+        use_init_theme(|| theme::for_scheme(false));
+        let content = rect()
+            .width(Size::fill())
+            .height(Size::fill())
+            .direction(Direction::Vertical)
+            .child(
+                Titlebar::preview(
+                    WindowStatus {
+                        activated: true,
+                        maximized: false,
+                        decoration: DecorationResponse::Client,
+                        fixed: false,
+                    },
+                    "Ventana",
+                    false,
+                )
+                .with_sidebar(true)
+                .left(
+                    ToolGroup::new()
+                        .probe("toolbar")
+                        .child(Button::new().child("A")),
+                ),
+            )
+            .child(rect().width(Size::fill()).height(Size::flex(1.0)));
+        SidebarLayout::new(Sidebar::new().traffic_lights(true), content)
+    }
+}
+
+#[test]
+fn island_toolbar_is_centred_with_the_traffic_lights() {
+    let resolved = resolve(
+        &AppearanceConfig {
+            sidebar_style: SidebarStyle::Island,
+            ..Default::default()
+        },
+        None,
+    );
+    let app = AppComponent::new(AlignedToolbarCase);
+    let (mut test, _) = TestingRunner::new(
+        app,
+        Size2D::new(600.0, 400.0),
+        move |runner| runner.provide_root_context(move || State::create(resolved)),
+        1.0,
+    );
+    test.sync_and_update();
+    let traffic = test
+        .find(|node, el| {
+            (el.accessibility().builder.label() == Some("sidebar-traffic-lights"))
+                .then(|| node.layout().area)
+        })
+        .expect("the traffic lights exist");
+    let toolbar = test
+        .find(|node, el| {
+            (el.accessibility().builder.author_id() == Some("toolbar")).then(|| node.layout().area)
+        })
+        .expect("the toolbar exists");
+    let traffic_center = traffic.origin.y + traffic.size.height / 2.0;
+    let toolbar_center = toolbar.origin.y + toolbar.size.height / 2.0;
+    assert!(
+        (traffic_center - toolbar_center).abs() <= 1.0,
+        "the toolbar centre ({toolbar_center}) must match the traffic lights centre ({traffic_center})"
     );
 }

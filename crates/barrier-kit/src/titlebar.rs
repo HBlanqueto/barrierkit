@@ -16,7 +16,9 @@ use torin::prelude::{Alignment, Direction, Gaps, Position, Size};
 use vow_appearance::SidebarStyle;
 use vow_appearance::palette;
 use vow_design::NATIVE_APP_ID_PREFIX;
-use vow_design::{ButtonKind, Rgba, TITLEBAR, TITLEBAR_CLIENT_HEIGHT, TITLEBAR_DOUBLE_CLICK};
+use vow_design::{
+    ButtonKind, Rgba, SETTINGS, TITLEBAR, TITLEBAR_CLIENT_HEIGHT, TITLEBAR_DOUBLE_CLICK,
+};
 
 use crate::ProbeExt;
 use crate::platform::{DecorationResponse, WindowControls, WindowEdge, WindowStatus};
@@ -32,7 +34,7 @@ pub struct Titlebar {
     right: Option<Element>,
     probe: Option<&'static str>,
     spacing: f32,
-    padding_x: f32,
+    padding_x: Option<f32>,
     title_font: Option<vow_design::Font>,
     title_line_height: Option<f32>,
 }
@@ -62,7 +64,7 @@ impl Titlebar {
             right: None,
             probe: None,
             spacing: 0.0,
-            padding_x: 10.0,
+            padding_x: None,
             title_font: None,
             title_line_height: None,
         }
@@ -83,7 +85,7 @@ impl Titlebar {
             right: None,
             probe: None,
             spacing: 0.0,
-            padding_x: 10.0,
+            padding_x: None,
             title_font: None,
             title_line_height: None,
         }
@@ -104,6 +106,9 @@ impl Titlebar {
 
     /// Configure the titlebar to live above a sidebar; it will not draw its own
     /// traffic lights.
+    ///
+    /// In the island style the kit owns the toolbar height and margins; do not
+    /// wrap the titlebar with the app's own toolbar margins.
     pub fn with_sidebar(mut self, sidebar: bool) -> Self {
         self.sidebar = sidebar;
         self
@@ -127,9 +132,10 @@ impl Titlebar {
         self
     }
 
-    /// Horizontal padding of the sidebar titlebar.
+    /// Horizontal padding of the sidebar titlebar; defaults to the Tengen
+    /// toolbar token in the island style and 10 px otherwise.
     pub fn padding_x(mut self, padding_x: f32) -> Self {
-        self.padding_x = padding_x;
+        self.padding_x = Some(padding_x);
         self
     }
 
@@ -234,14 +240,26 @@ impl Component for Titlebar {
                 .on_mouse_down(drag.clone())
                 .child(title_label);
 
+            let island = resolved.sidebar.style == SidebarStyle::Island;
+            let (height, padding_top, default_padding_x) = if island {
+                (
+                    SETTINGS.toolbar_height as f32,
+                    SETTINGS.toolbar_padding_top as f32,
+                    SETTINGS.toolbar_padding_x as f32,
+                )
+            } else {
+                (TITLEBAR_CLIENT_HEIGHT as f32, 0.0, 10.0)
+            };
+            let padding_x = self.padding_x.unwrap_or(default_padding_x);
+
             let mut root = rect()
                 .width(Size::fill())
-                .height(Size::px(TITLEBAR_CLIENT_HEIGHT as f32))
+                .height(Size::px(height))
                 .background(rgba(background))
                 .direction(Direction::Horizontal)
                 .cross_align(Alignment::Center)
                 .spacing(self.spacing)
-                .padding(Gaps::new(0.0, self.padding_x, 0.0, self.padding_x))
+                .padding(Gaps::new(padding_top, padding_x, 0.0, padding_x))
                 .child(left_slot)
                 .child(title);
 
