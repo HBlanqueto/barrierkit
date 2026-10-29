@@ -18,6 +18,7 @@ pub use input::inserts_text;
 use std::{
     borrow::Cow,
     cell::{Cell, RefCell},
+    collections::VecDeque,
     ffi::c_void,
     os::fd::AsFd,
     pin::pin,
@@ -1533,7 +1534,7 @@ struct SurfaceWindow {
     configure_count: u64,
     /// The most recent window configure not yet applied; older configures are
     /// dropped so only the last one is drawn.
-    pending_configure: Option<(WindowConfigure, u32)>,
+    pending_configure: VecDeque<(WindowConfigure, u32)>,
     appmenu: Option<OrgKdeKwinAppmenu>,
     appmenu_address: Option<AppMenuAddress>,
     menu_handle: Option<crate::app_menu::MenuHandle>,
@@ -1600,6 +1601,11 @@ impl SurfaceWindow {
             self.surface.set_buffer_scale(scale.round().max(1.0) as i32);
         }
         self.app.resize(self.buffer_size, scale);
+        if let SurfaceRole::Window(window) = &self.role {
+            window
+                .xdg_surface()
+                .set_window_geometry(0, 0, size.0 as i32, size.1 as i32);
+        }
         self.needs_redraw = true;
     }
 
@@ -1612,10 +1618,11 @@ impl SurfaceWindow {
         }
         self.draw_count += 1;
         tracing::debug!(
+            target: "barrier_kit::resize",
             surface = ?self.surface.id(),
             draws = self.draw_count,
             role = ?self.role,
-            "BarrierKit: draw"
+            "draw start"
         );
         self.app.layout();
         let background = if matches!(&self.role, SurfaceRole::Window(_)) {
@@ -1643,9 +1650,18 @@ impl SurfaceWindow {
             .render();
         }
         graphics.shared.gr.borrow_mut().flush_and_submit();
+        let swap_start = std::time::Instant::now();
         if graphics.swap().is_err() {
             return false;
         }
+        let swap_us = swap_start.elapsed().as_micros() as u64;
+        tracing::debug!(
+            target: "barrier_kit::resize",
+            surface = ?self.surface.id(),
+            draws = self.draw_count,
+            swap_us,
+            "swap done (buffer committed)"
+        );
         let _ = self.app.ticker_sender.send(());
         self.needs_redraw = false;
         true
@@ -2013,7 +2029,7 @@ pub fn run_layer(app: AppComponent, spec: SurfaceSpec) -> Result<(), RunError> {
         frame_pending: false,
         draw_count: 0,
         configure_count: 0,
-        pending_configure: None,
+        pending_configure: VecDeque::new(),
         appmenu: None,
         appmenu_address: None,
         menu_handle: None,
@@ -2658,7 +2674,7 @@ impl Shell {
             frame_pending: false,
             draw_count: 0,
             configure_count: 0,
-            pending_configure: None,
+            pending_configure: VecDeque::new(),
             appmenu: appmenu_object,
             appmenu_address: None,
             menu_handle,
@@ -2782,7 +2798,7 @@ impl Shell {
             frame_pending: false,
             draw_count: 0,
             configure_count: 0,
-            pending_configure: None,
+            pending_configure: VecDeque::new(),
             appmenu: None,
             appmenu_address: None,
             menu_handle: None,
@@ -3037,7 +3053,7 @@ impl Shell {
             frame_pending: false,
             draw_count: 0,
             configure_count: 0,
-            pending_configure: None,
+            pending_configure: VecDeque::new(),
             appmenu: None,
             appmenu_address: None,
             menu_handle: None,
@@ -3338,12 +3354,54 @@ impl WindowHandler for Shell {
         let Some(index) = self.surface_for(window.wl_surface()) else {
             return;
         };
+        let size = (
+            configure.new_size.0.map_or(0, |v| v.get()),
+            configure.new_size.1.map_or(0, |v| v.get()),
+        );
+        tracing::debug!(
+            target: "barrier_kit::resize",
+            surface = ?self.surfaces[index].surface.id(),
+            serial,
+            width = size.0,
+            height = size.1,
+            resizing = configure.is_resizing(),
+            "configure received"
+        );
         // Drop any older pending configure: only the last one is drawn.  The
         // request_redraw ensures a frame callback will process it.
-        self.surfaces[index].pending_configure = Some((configure, serial));
+        self.surfaces[index]
+            .pending_configure
+            .push_back((configure, serial));
         self.surfaces[index].needs_redraw = true;
         self.surfaces[index].request_frame_callback(qh);
     }
+}
+
+/// Chooses which pending window configure to apply.
+///
+/// If several configures arrived between frames, prefer the most recent one
+/// that actually changes the size.  Compositors may send a fallback configure
+/// matching the current buffer (e.g. during an interactive resize) after a
+/// newer requested size; using the newest size keeps the window in sync with
+/// the pointer instead of snapping back.
+fn choose_window_configure(
+    pending: &mut VecDeque<(WindowConfigure, u32)>,
+    current: (u32, u32),
+) -> Option<(WindowConfigure, u32)> {
+    if pending.is_empty() {
+        return None;
+    }
+    let chosen = pending.iter().rev().find(|(configure, _)| {
+        let size = (
+            configure.new_size.0.map_or(0, |value| value.get()),
+            configure.new_size.1.map_or(0, |value| value.get()),
+        );
+        size.0 > 0 && size.1 > 0 && (size.0 as u32, size.1 as u32) != current
+    });
+    chosen.or_else(|| pending.back()).cloned().map(|chosen| {
+        pending.clear();
+        chosen
+    })
 }
 
 impl Shell {
@@ -3353,13 +3411,24 @@ impl Shell {
     /// frames collapse into a single resize/draw.
     fn apply_pending_window_configures(&mut self, qh: &QueueHandle<Self>) {
         for index in 0..self.surfaces.len() {
-            let Some((configure, _serial)) = self.surfaces[index].pending_configure.take() else {
+            let current = self.surfaces[index].logical_size;
+            let Some((configure, serial)) =
+                choose_window_configure(&mut self.surfaces[index].pending_configure, current)
+            else {
                 continue;
             };
             let scale = self.surfaces[index].scale;
             let size = (
                 configure.new_size.0.map_or(0, |value| value.get()),
                 configure.new_size.1.map_or(0, |value| value.get()),
+            );
+            tracing::debug!(
+                target: "barrier_kit::resize",
+                surface = ?self.surfaces[index].surface.id(),
+                serial,
+                width = size.0,
+                height = size.1,
+                "apply pending configure"
             );
             // A 0×0 configure leaves the size to the client: keep the size the app
             // asked for. Dropping the configure would leave the surface without a
