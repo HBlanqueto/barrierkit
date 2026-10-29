@@ -358,6 +358,26 @@ impl App for ToggleApp {
 }
 
 #[test]
+fn sidebar_section_toggles_on_mouse_down() {
+    let app = AppComponent::new(ToggleApp);
+    let (mut test, expanded) = TestingRunner::new(
+        app,
+        Size2D::new(300.0, 300.0),
+        |runner| runner.provide_root_context(|| State::create(true)),
+        1.0,
+    );
+    test.sync_and_update();
+    test.move_cursor((5.0, 15.0));
+    test.press_cursor((5.0, 15.0));
+    assert!(!(*expanded.peek()), "mouse down must collapse the section");
+    test.release_cursor((5.0, 15.0));
+    assert!(
+        !(*expanded.peek()),
+        "releasing the mouse must not toggle the section again"
+    );
+}
+
+#[test]
 fn sidebar_section_toggles_with_enter_and_space() {
     let app = AppComponent::new(ToggleApp);
     let (mut test, expanded) = TestingRunner::new(

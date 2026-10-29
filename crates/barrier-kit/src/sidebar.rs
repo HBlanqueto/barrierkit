@@ -502,7 +502,10 @@ impl Component for SidebarSection {
         let on_toggle = self.on_toggle.clone();
         let toggle = {
             let mut expanded = expanded;
-            move |_| {
+            move |event: Event<MouseEventData>| {
+                if event.button != Some(MouseButton::Left) {
+                    return;
+                }
                 let new = !*expanded.read();
                 expanded.set(new);
                 if let Some(cb) = &on_toggle {
@@ -574,7 +577,7 @@ impl Component for SidebarSection {
                     .a11y_builder(move |node| {
                         node.set_expanded(*expanded.read());
                     })
-                    .on_press(toggle)
+                    .on_mouse_down(toggle)
                     .on_key_down(on_key)
                     .child(
                         label()
