@@ -324,7 +324,7 @@ impl Component for ToolButton {
             .a11y_focusable(true)
             .on_pointer_enter(move |_| hovered.set(true))
             .on_pointer_leave(move |_| hovered.set(false))
-            .child(svg_viewer(self.icon, fg, TOOLGROUP.separator_h));
+            .child(svg_viewer(self.icon, fg, TOOLGROUP.icon));
 
         if !self.disabled
             && let Some(callback) = self.on_press.clone()
@@ -339,15 +339,12 @@ impl Component for ToolButton {
     }
 }
 
-fn svg_viewer(template: &str, color: Rgba, size: u32) -> SvgViewer {
-    let [r, g, b, _] = color.to_rgba8();
-    SvgViewer::new((
-        format!("toolbutton-icon-{}", template.len()),
-        Bytes::from(template.replace("currentColor", &format!("rgb({r},{g},{b})"))),
-    ))
-    .width(Size::px(size as f32))
-    .height(Size::px(size as f32))
-    .show_loader(false)
+fn svg_viewer(template: &'static str, color: Rgba, size: u32) -> SvgViewer {
+    SvgViewer::new(Bytes::from_static(template.as_bytes()))
+        .width(Size::px(size as f32))
+        .height(Size::px(size as f32))
+        .color(rgba(color))
+        .show_loader(false)
 }
 
 fn rgba(color: vow_design::Rgba) -> Color {

@@ -1414,6 +1414,7 @@ fn emit_sidebar(out: &mut String, tokens: &Value, components: &Value) {
         "components.window.toolgroup.flat-radius",
         COMPONENTS,
     ) as u32;
+    let icon = integer(components, "components.window.toolgroup.icon", COMPONENTS) as u32;
 
     const_doc(out, "TOOLGROUP", "The Tengen toolbar capsule metrics.");
     out.push_str(&format!(
@@ -1427,6 +1428,7 @@ fn emit_sidebar(out: &mut String, tokens: &Value, components: &Value) {
          \x20   flat_button_w: {flat_button_w},\n\
          \x20   flat_button_h: {flat_button_h},\n\
          \x20   flat_radius: {flat_radius},\n\
+         \x20   icon: {icon},\n\
          }};\n\n"
     ));
 }

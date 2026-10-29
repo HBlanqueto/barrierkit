@@ -23,11 +23,6 @@ fn rgba(color: Rgba) -> Color {
     Color::from_argb(a, r, g, b)
 }
 
-fn svg_with_color(template: &str, color: Rgba) -> String {
-    let [r, g, b, _] = color.to_rgba8();
-    template.replace("currentColor", &format!("rgb({r},{g},{b})"))
-}
-
 pub(crate) fn item_icon_color(selected: bool, palette: SidebarPalette) -> Rgba {
     if selected {
         palette.selected_ink
@@ -36,18 +31,15 @@ pub(crate) fn item_icon_color(selected: bool, palette: SidebarPalette) -> Rgba {
     }
 }
 
-fn svg_viewer(template: &str, color: Rgba, size: u32) -> SvgViewer {
-    SvgViewer::new((
-        format!("sidebar-icon-{}", template.len()),
-        Bytes::from(svg_with_color(template, color)),
-    ))
-    .width(Size::px(size as f32))
-    .height(Size::px(size as f32))
-    .show_loader(false)
+fn svg_viewer(template: Bytes, color: Rgba, size: u32) -> SvgViewer {
+    SvgViewer::new(template)
+        .width(Size::px(size as f32))
+        .height(Size::px(size as f32))
+        .color(rgba(color))
+        .show_loader(false)
 }
 
-fn chevron_svg(down: bool, stroke: f32, color: Rgba) -> String {
-    let [r, g, b, _] = color.to_rgba8();
+fn chevron_svg(down: bool, stroke: f32) -> String {
     let path = if down {
         "M2 4 L6 8 L10 4"
     } else {
@@ -55,7 +47,7 @@ fn chevron_svg(down: bool, stroke: f32, color: Rgba) -> String {
     };
     let size = SIDEBAR.chevron;
     format!(
-        "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{size}\" height=\"{size}\" viewBox=\"0 0 12 12\"><path d=\"{path}\" fill=\"none\" stroke=\"rgb({r},{g},{b})\" stroke-width=\"{stroke}\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>"
+        "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{size}\" height=\"{size}\" viewBox=\"0 0 12 12\"><path d=\"{path}\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"{stroke}\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>"
     )
 }
 
@@ -383,7 +375,7 @@ impl Component for SidebarItem {
                     .background(rgba(bg_color))
                     .center()
                     .child(svg_viewer(
-                        svg,
+                        Bytes::from_static(svg.as_bytes()),
                         Rgba {
                             r: 1.0,
                             g: 1.0,
@@ -395,7 +387,7 @@ impl Component for SidebarItem {
             );
         } else if let Some(svg) = self.icon {
             row = row.child(svg_viewer(
-                svg,
+                Bytes::from_static(svg.as_bytes()),
                 item_icon_color(self.selected, palette),
                 SIDEBAR.item_icon,
             ));
@@ -527,18 +519,28 @@ impl Component for SidebarSection {
             }
         };
 
-        let full_height = self.children.len() as f32 * SIDEBAR.item_height as f32;
+        let mut content_height = use_state(|| 0.0f32);
         let reduced_motion = resolved.reduced_motion;
-        let target = move |expanded: bool| if expanded { full_height } else { 0.0 };
-        let animation = use_animation_transition(expanded, move |from, to| {
+        let target = use_memo(move || {
+            if *expanded.read() {
+                *content_height.read()
+            } else {
+                0.0
+            }
+        });
+        let animation = use_animation_transition(target, move |from, to| {
             let duration = if reduced_motion {
                 0
             } else {
                 Duration::from_millis(DURATION_BASE).as_millis() as u64
             };
-            AnimNum::new(target(from), target(to)).time(duration)
+            AnimNum::new(from, to).time(duration)
         });
-        let height = animation.get().value();
+        let height = if reduced_motion {
+            *target.read()
+        } else {
+            animation.get().value()
+        };
 
         rect()
             .width(Size::fill())
@@ -575,12 +577,12 @@ impl Component for SidebarSection {
                             .max_lines(1),
                     )
                     .maybe(show_chevron, |el| {
-                        let svg = chevron_svg(
-                            *expanded.read(),
-                            SIDEBAR.chevron_stroke,
+                        let svg = chevron_svg(*expanded.read(), SIDEBAR.chevron_stroke);
+                        el.child(svg_viewer(
+                            Bytes::from(svg),
                             palette.section_ink,
-                        );
-                        el.child(svg_viewer(&svg, palette.section_ink, SIDEBAR.chevron))
+                            SIDEBAR.chevron,
+                        ))
                     })
                     .on_pointer_enter(move |_| hovered.set(true))
                     .on_pointer_leave(move |_| hovered.set(false)),
@@ -591,7 +593,15 @@ impl Component for SidebarSection {
                     .height(Size::px(height))
                     .overflow(Overflow::Clip)
                     .direction(Direction::Vertical)
-                    .children(self.children.iter().cloned()),
+                    .child(
+                        rect()
+                            .width(Size::fill())
+                            .direction(Direction::Vertical)
+                            .on_sized(move |event: Event<SizedEventData>| {
+                                content_height.set_if_modified(event.data().area.size.height);
+                            })
+                            .children(self.children.iter().cloned()),
+                    ),
             )
             .into_element()
     }

@@ -164,6 +164,7 @@ impl Component for Titlebar {
             let title = self.title.clone().unwrap_or_else(|| controls.title.clone());
             (status, title, controls.fixed)
         };
+        let drag = window_drag_handler(fixed);
         if status.decoration == DecorationResponse::Server {
             return rect()
                 .width(Size::fill())
@@ -197,12 +198,13 @@ impl Component for Titlebar {
         // asks for another one (the Settings toolbar uses title-2).
         let title_font = self.title_font.unwrap_or(TITLEBAR.font);
         let mut title_label = label()
-            .text(truncate(&title))
+            .text(title.clone())
             .font_family(title_font.family)
             .font_size(title_font.size as f32)
             .font_weight(FontWeight::from(title_font.weight as i32))
             .color(rgba(title_color))
-            .max_lines(1);
+            .max_lines(1)
+            .text_overflow(TextOverflow::Ellipsis);
         if let Some(line_height) = self.title_line_height {
             title_label = title_label.line_height(line_height);
         }
@@ -224,12 +226,12 @@ impl Component for Titlebar {
                 });
 
             let title = rect()
-                .width(Size::auto())
+                .width(Size::flex(1.0))
                 .height(Size::fill())
                 .cross_align(Alignment::Center)
                 .main_align(Alignment::Center)
                 .a11y_alt("titlebar-title")
-                .on_mouse_down(window_drag_handler(fixed))
+                .on_mouse_down(drag.clone())
                 .child(title_label);
 
             let mut root = rect()
@@ -257,8 +259,10 @@ impl Component for Titlebar {
         }
 
         // Classic three-slot titlebar for windows without a sidebar.
+        let min_slot = vow_appearance::traffic::group_rect().2 as f32;
         let left_slot = rect()
-            .width(Size::px(80.0))
+            .width(Size::auto())
+            .min_width(Size::px(min_slot))
             .height(Size::fill())
             .cross_align(Alignment::Center)
             .a11y_alt("titlebar-left-slot")
@@ -272,14 +276,15 @@ impl Component for Titlebar {
         };
 
         let right_slot = rect()
-            .width(Size::px(80.0))
+            .width(Size::auto())
+            .min_width(Size::px(min_slot))
             .height(Size::fill())
             .cross_align(Alignment::Center)
             .a11y_alt("titlebar-right-slot")
             .maybe(self.right.is_some(), |el| {
                 el.child(self.right.clone().unwrap())
             })
-            .on_mouse_down(window_drag_handler(fixed));
+            .on_mouse_down(drag.clone());
 
         let title = rect()
             .width(Size::flex(1.0))
@@ -287,7 +292,7 @@ impl Component for Titlebar {
             .cross_align(Alignment::Center)
             .main_align(Alignment::Center)
             .a11y_alt("titlebar-title")
-            .on_mouse_down(window_drag_handler(fixed))
+            .on_mouse_down(drag)
             .child(title_label);
 
         let root = rect()
@@ -338,7 +343,7 @@ pub fn window_traffic_lights(
 ///
 /// `fixed` is stored in a reactive cell so the handler keeps using the latest
 /// value when the window's fixed state or decoration changes between renders.
-pub fn window_drag_handler(fixed: bool) -> impl Fn(Event<MouseEventData>) {
+pub fn window_drag_handler(fixed: bool) -> impl Fn(Event<MouseEventData>) + Clone {
     let last_click = use_hook(|| Rc::new(Cell::new(None::<(Instant, (f64, f64))>)));
     let double_done = use_hook(|| Rc::new(Cell::new(false)));
     let fixed_cell = use_hook(|| Rc::new(Cell::new(fixed)));
@@ -471,15 +476,6 @@ fn run_action(controls: &WindowControls, action: TitlebarAction) {
         }
         TitlebarAction::None => {}
     }
-}
-
-fn truncate(title: &str) -> String {
-    if title.chars().count() <= 42 {
-        return title.to_string();
-    }
-    let mut out = title.chars().take(41).collect::<String>();
-    out.push('…');
-    out
 }
 
 fn rgba(color: Rgba) -> Color {

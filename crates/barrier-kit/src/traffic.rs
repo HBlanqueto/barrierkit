@@ -96,6 +96,7 @@ impl Component for TrafficLights {
                 zoom_supported: self.zoom_supported,
             }
         });
+        // Fixed-width windows keep the green light clickable for vertical maximise (the "+" glyph).
         let visual_input = if self.fixed_width {
             TrafficInput {
                 zoom_supported: true,

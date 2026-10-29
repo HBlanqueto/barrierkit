@@ -397,6 +397,7 @@
         "flat-button-w": 30,
         "flat-button-h": 28,
         "flat-radius": "radius.sm",
+        "icon": 16,
         "ink": "ink-strong",
         "disabled-ink": "ink-faint"
       }

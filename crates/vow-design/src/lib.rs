@@ -524,6 +524,8 @@ pub struct ToolgroupMetrics {
     pub flat_button_h: u32,
     /// Flat variant corner radius, in logical pixels.
     pub flat_radius: u32,
+    /// Tool button icon size, in logical pixels.
+    pub icon: u32,
 }
 
 /// The two-layer window shadow.
@@ -932,6 +934,7 @@ mod tests {
         assert_eq!(super::TOOLGROUP.flat_button_w, 30);
         assert_eq!(super::TOOLGROUP.flat_button_h, 28);
         assert_eq!(super::TOOLGROUP.flat_radius, 8);
+        assert_eq!(super::TOOLGROUP.icon, 16);
     }
 
     #[test]
