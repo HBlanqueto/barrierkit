@@ -284,6 +284,10 @@ fn main() {
             .menu(menu)
             .on_menu_action(move |id| {
                 tracing::info!(action = id, "contador: menu action");
+                eprintln!(
+                    "contador: action={id} thread={:?}",
+                    std::thread::current().id()
+                );
                 let _ = action_tx.send(id.to_string());
             }),
     )
