@@ -3213,10 +3213,8 @@ mod tests {
 
         let label_w = measure_text("Imágenes", m.font_size);
         let shortcut_w = measure_text(&format_shortcut("Ctrl+Shift+G"), m.font_size);
+        // No items carry marks or icons, so no extra column is reserved.
         let expected_min = m.item_padding_x * 2.0
-            + m.mark_width
-            + m.icon_width
-            + MARK_TEXT_GAP
             + label_w
             + m.shortcut_gap
             + shortcut_w
@@ -3231,6 +3229,127 @@ mod tests {
         assert!(
             h >= expected_height,
             "menu height {h} should fit two rows ({expected_height})"
+        );
+    }
+
+    fn label_x(runner: &TestingRunner, text: &str) -> f32 {
+        runner
+            .find(|node, element| {
+                (element as &dyn Any)
+                    .downcast_ref::<LabelElement>()
+                    .filter(|label| label.text == text)
+                    .map(|_| node.layout().area.origin.x)
+            })
+            .unwrap_or_else(|| panic!("label '{text}' not found"))
+    }
+
+    fn action_with(label: &str, check: CheckState, icon: Option<MenuIcon>) -> MenuItem {
+        MenuItem::Action {
+            id: format!("id-{label}"),
+            label: label.to_string(),
+            shortcut: None,
+            enabled: true,
+            check,
+            icon,
+        }
+    }
+
+    #[test]
+    fn plain_menu_text_starts_at_item_padding() {
+        let items = vec![action("Solo texto")];
+        let (runner, _) = make_runner(items);
+        let m = MENU_LIGHT;
+        let x = label_x(&runner, "Solo texto");
+        let expected = m.padding + m.item_padding_x;
+        assert!(
+            (x - expected).abs() <= 1.0,
+            "plain text starts at {x}, expected {expected}"
+        );
+    }
+
+    #[test]
+    fn checkbox_false_shifts_text_by_mark_column_and_gap() {
+        let plain = vec![action("Solo texto")];
+        let checked = vec![action_with("Solo texto", CheckState::Checkbox(false), None)];
+        let (plain_runner, _) = make_runner(plain);
+        let (checked_runner, _) = make_runner(checked);
+        let diff = label_x(&checked_runner, "Solo texto") - label_x(&plain_runner, "Solo texto");
+        let expected = MENU_LIGHT.mark_width + MARK_TEXT_GAP;
+        assert!(
+            (diff - expected).abs() <= 1.0,
+            "checkbox adds {diff}, expected {expected}"
+        );
+    }
+
+    #[test]
+    fn icon_shifts_text_by_icon_column_and_gap() {
+        let plain = vec![action("Solo texto")];
+        let with_icon = vec![action_with(
+            "Solo texto",
+            CheckState::None,
+            Some(MenuIcon::svg("x")),
+        )];
+        let (plain_runner, _) = make_runner(plain);
+        let (icon_runner, _) = make_runner(with_icon);
+        let diff = label_x(&icon_runner, "Solo texto") - label_x(&plain_runner, "Solo texto");
+        let expected = MENU_LIGHT.icon_width + MARK_TEXT_GAP;
+        assert!(
+            (diff - expected).abs() <= 1.0,
+            "icon adds {diff}, expected {expected}"
+        );
+    }
+
+    #[test]
+    fn submenu_keeps_its_own_inset() {
+        let child = vec![action_with("Hijo", CheckState::Checkbox(false), None)];
+        let parent = vec![MenuItem::Submenu {
+            id: None,
+            label: "Padre".to_string(),
+            enabled: true,
+            icon: None,
+            items: child.clone(),
+        }];
+        let m = MENU_LIGHT;
+        assert_eq!(row_text_inset(&parent, m), m.item_padding_x);
+        assert_eq!(
+            row_text_inset(&child, m),
+            m.item_padding_x + m.mark_width + MARK_TEXT_GAP
+        );
+    }
+
+    #[test]
+    fn menu_without_columns_is_narrower_by_both_columns_and_gap() {
+        let label = "Opción bastante larga del menú sin columnas";
+        let plain = vec![action(label)];
+        let with_columns = vec![action_with(
+            label,
+            CheckState::Checkbox(false),
+            Some(MenuIcon::svg("x")),
+        )];
+        let m = MENU_LIGHT;
+        let (plain_w, _) = MenuView::preferred_size(&plain, m);
+        let (columns_w, _) = MenuView::preferred_size(&with_columns, m);
+        assert_eq!(
+            columns_w - plain_w,
+            m.mark_width + m.icon_width + MARK_TEXT_GAP,
+            "plain menu should be narrower by the two unused columns plus gap"
+        );
+    }
+
+    #[test]
+    fn menu_with_mark_and_icon_keeps_full_inset() {
+        let items = vec![action_with(
+            "Mixto",
+            CheckState::Checkbox(true),
+            Some(MenuIcon::svg("x")),
+        )];
+        let (runner, _) = make_runner(items);
+        let m = MENU_LIGHT;
+        let x = label_x(&runner, "Mixto");
+        let expected = m.padding + m.item_padding_x + m.mark_width + m.icon_width + MARK_TEXT_GAP;
+        assert!(
+            (x - expected).abs() <= 1.0,
+            "full-inset text starts at {x}, expected {expected}"
         );
     }
 
