@@ -2505,7 +2505,9 @@ fn icon_image(bytes: &[u8], size: f32) -> Option<ImageHandle> {
 }
 
 fn decode_icon(bytes: &[u8], size: f32) -> Option<ImageHandle> {
-    let data = unsafe { SkData::new_bytes(bytes) };
+    // SkData::new_bytes requires the slice to outlive the Data; the caller's
+    // buffer may not, so copy once and let Skia own it.
+    let data = SkData::new_copy(bytes);
     let image = SkImage::from_encoded(data)?;
     let image = image.make_raster_image(None, None).unwrap_or(image);
     let target = size.max(1.0).round() as i32;
