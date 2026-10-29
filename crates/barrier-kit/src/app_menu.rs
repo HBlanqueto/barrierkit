@@ -125,8 +125,10 @@ impl MenuHandle {
         }
     }
 
-    /// Drains all queued action ids on the UI thread.
-    pub(crate) fn drain_actions(&self) -> Vec<String> {
+    /// Solo para tests: consume las acciones pendientes; una app no debe
+    /// llamarlo (se las quitaría a on_menu_action).
+    #[doc(hidden)]
+    pub fn drain_actions(&self) -> Vec<String> {
         // Only fails if a panic already poisoned the mutex; no external data here.
         let mut guard = self.action_queue.lock().expect("action queue poisoned");
         std::mem::take(&mut *guard)
