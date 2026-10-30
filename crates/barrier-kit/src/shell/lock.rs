@@ -45,9 +45,9 @@ pub fn run_lock(app: AppComponent) -> Result<(), RunError> {
         event_queue,
         mut runtime,
         globals,
-    } = Runtime::connect(app)?;
+    } = Runtime::connect()?;
     let qh = runtime.qh.clone();
-    ShellState::install(&mut runtime, &globals, &qh, true);
+    ShellState::install(&mut runtime, app, &globals, &qh, true);
     let lock = {
         let session_lock_state = runtime
             .extension::<ShellState>()
@@ -128,8 +128,14 @@ impl Runtime {
             surface_count: self.surface_count.clone(),
             opens_left: Rc::new(Cell::new(false)),
         };
+        let app = {
+            let shell = self
+                .extension::<ShellState>()
+                .expect("create_lock_surface called without ShellState");
+            shell.app.clone()
+        };
         let app = AppInstance::new(
-            self.app.clone(),
+            app,
             1.0,
             (1, 1),
             sender,

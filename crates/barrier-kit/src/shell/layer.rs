@@ -119,9 +119,9 @@ pub fn run_layer(app: AppComponent, spec: SurfaceSpec) -> Result<(), RunError> {
         event_queue,
         runtime: mut shell,
         globals,
-    } = Runtime::connect(app)?;
+    } = Runtime::connect()?;
     let qh = shell.qh.clone();
-    ShellState::install(&mut shell, &globals, &qh, false);
+    ShellState::install(&mut shell, app, &globals, &qh, false);
     let surface = shell.compositor.create_surface(&qh);
     let layer_surface = {
         let layer_shell = shell
@@ -172,8 +172,13 @@ pub fn run_layer(app: AppComponent, spec: SurfaceSpec) -> Result<(), RunError> {
         surface_count: shell.surface_count.clone(),
         opens_left: Rc::new(Cell::new(false)),
     };
+    let app = shell
+        .extension::<ShellState>()
+        .expect("ShellState not installed after install")
+        .app
+        .clone();
     let app_instance = AppInstance::new(
-        shell.app.clone(),
+        app,
         1.0,
         size.unwrap_or((1, 1)),
         sender,

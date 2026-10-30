@@ -276,7 +276,7 @@ pub fn run_window(app: AppComponent, options: WindowOptions) -> Result<(), RunEr
         event_queue,
         runtime: mut shell,
         globals: _,
-    } = Runtime::connect(app.clone())?;
+    } = Runtime::connect()?;
     shell
         .create_window(app, options)
         .ok_or(RunError::MissingGlobal("xdg_wm_base"))?;

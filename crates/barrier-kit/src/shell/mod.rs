@@ -15,6 +15,7 @@ pub use menus::GtkMenusAddress;
 pub use toplevels::{ToplevelInfo, Toplevels};
 
 use crate::platform::WindowOptions;
+use freya_core::integration::AppComponent;
 
 /// What kind of surface the runner owns.
 #[derive(Clone, Debug)]
@@ -57,6 +58,7 @@ use toplevels::ToplevelEntry;
 /// All state owned by the shell (dock, menubar, lock, launcher). It lives
 /// inside `Runtime` as the single installed [`Extension`].
 pub(crate) struct ShellState {
+    pub(crate) app: AppComponent,
     pub(crate) layer_shell: Option<LayerShell>,
     pub(crate) session_lock: Option<SessionLockState>,
     pub(crate) active_lock: Option<SessionLock>,
@@ -78,6 +80,7 @@ impl ShellState {
     /// installs the extension into `rt`.
     pub(crate) fn install(
         rt: &mut Runtime,
+        app: AppComponent,
         globals: &GlobalList,
         qh: &QueueHandle<Runtime>,
         lock_mode: bool,
@@ -210,6 +213,7 @@ impl ShellState {
         };
 
         let shell = Self {
+            app,
             layer_shell,
             session_lock,
             active_lock: None,

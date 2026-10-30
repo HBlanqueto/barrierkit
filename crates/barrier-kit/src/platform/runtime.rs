@@ -9,7 +9,7 @@ use super::{
     timer::{TimerQueue, Wake},
     window::{WindowCommand, WindowControls},
 };
-use freya_core::{integration::AppComponent, prelude::State};
+use freya_core::prelude::State;
 
 use std::{
     cell::{Cell, RefCell},
@@ -83,9 +83,6 @@ pub(crate) struct Runtime {
     pub(crate) repeat_generation: u64,
     pub(crate) modifiers: SctkModifiers,
     pub(crate) loop_signal: Option<LoopSignal>,
-    // Solo lo usa shell/ (feature `shell`); sin ella no se lee.
-    #[allow(dead_code)]
-    pub(crate) app: AppComponent,
     pub(crate) needs_exit: bool,
     pub(crate) request_redraw_all: bool,
     pub(crate) queue: Rc<RefCell<Vec<(ObjectId, UserEvent)>>>,
@@ -236,7 +233,7 @@ pub(crate) fn insert_ping(
 }
 
 impl Runtime {
-    pub(crate) fn connect(app: AppComponent) -> Result<Connected, RunError> {
+    pub(crate) fn connect() -> Result<Connected, RunError> {
         let conn = Connection::connect_to_env().map_err(|_| RunError::NoDisplay)?;
         let (globals, event_queue) = registry_queue_init::<Runtime>(&conn)?;
         let qh = event_queue.handle();
@@ -300,7 +297,6 @@ impl Runtime {
             repeat_generation: 0,
             modifiers: SctkModifiers::default(),
             loop_signal: None,
-            app,
             needs_exit: false,
             request_redraw_all: false,
             queue,
