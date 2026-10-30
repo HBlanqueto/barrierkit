@@ -23,7 +23,7 @@ use crate::platform::{
     surface::{ExtensionRole, SurfaceRole, SurfaceWindow},
     timer::{PingWake, Timers},
 };
-use crate::shell::{ShellState, SurfaceSpec};
+use crate::shell::ShellState;
 
 /// A layer of `zwlr_layer_shell_v1`, without exposing SCTK in the public API.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -91,28 +91,28 @@ pub(super) fn anchors_to_sctk(a: Anchors) -> SctkAnchor {
     out
 }
 
+/// Specification for a `zwlr_layer_surface_v1`.
+#[derive(Clone, Debug)]
+pub struct LayerSpec {
+    pub namespace: String,
+    pub layer: Layer,
+    pub anchors: Anchors,
+    pub exclusive_zone: i32,
+    pub keyboard: KeyboardInteractivity,
+    /// Logical size, or `None` to let the compositor decide.
+    pub size: Option<(u32, u32)>,
+}
+
 /// Runs a layer-shell surface with a Freya app until the compositor closes it.
-pub fn run_layer(app: AppComponent, spec: SurfaceSpec) -> Result<(), RunError> {
-    let (namespace, layer, anchors, exclusive_zone, keyboard, size) = match &spec {
-        SurfaceSpec::Layer {
-            namespace,
-            layer,
-            anchors,
-            exclusive_zone,
-            keyboard,
-            size,
-        } => (
-            namespace.clone(),
-            *layer,
-            *anchors,
-            *exclusive_zone,
-            *keyboard,
-            *size,
-        ),
-        SurfaceSpec::Lock | SurfaceSpec::Window(_) => {
-            return Err(RunError::MissingGlobal("layer surface"));
-        }
-    };
+pub fn run_layer(app: AppComponent, spec: LayerSpec) -> Result<(), RunError> {
+    let LayerSpec {
+        namespace,
+        layer,
+        anchors,
+        exclusive_zone,
+        keyboard,
+        size,
+    } = spec;
 
     let Connected {
         conn,

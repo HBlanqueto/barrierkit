@@ -10,7 +10,7 @@ use barrier_kit::platform::{
     PopupAnchor, PopupConstraintAdjustment, PopupGravity, PopupHandle, PopupId, PopupSpec, Popups,
     Timers,
 };
-use barrier_kit::shell::{Anchors, KeyboardInteractivity, Layer, SurfaceSpec, run_layer};
+use barrier_kit::shell::{Anchors, KeyboardInteractivity, Layer, LayerSpec, run_layer};
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Direction, Gaps, Size};
@@ -853,7 +853,7 @@ fn main() {
     };
     if let Err(e) = run_layer(
         app,
-        SurfaceSpec::Layer {
+        LayerSpec {
             namespace: "malaysia-menu-example".to_string(),
             layer: Layer::Top,
             anchors: Anchors::TOP,
