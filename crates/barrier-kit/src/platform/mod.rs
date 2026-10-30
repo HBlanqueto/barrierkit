@@ -10,10 +10,17 @@
 //! The event loop is calloop (the same one the shell already uses); Freya's
 //! futures are polled from its ping source, never from a runtime thread.
 
+mod app;
+mod egl;
 mod infinity;
 mod input;
+mod surface;
 
 pub use input::inserts_text;
+
+use app::AppInstance;
+use egl::{Graphics, GraphicsShared};
+use surface::{SurfaceRole, SurfaceWindow, physical_point};
 
 use std::{
     borrow::Cow,
@@ -35,13 +42,7 @@ use freya_core::{
     integration::*,
     prelude::{AccessibilityFocusStrategy, Color, CursorIcon, State},
 };
-use freya_engine::prelude::{
-    ColorType, DirectContext, FontCollection, FontMgr, Format, FramebufferInfo, Interface,
-    Surface as SkiaSurface, SurfaceOrigin, backend_render_targets, direct_contexts,
-    wrap_backend_render_target,
-};
 use futures_util::task::ArcWake;
-use khronos_egl::{self as egl, DynamicInstance};
 use ragnarok::{EventsExecutorRunner, EventsMeasurerRunner, NodesState};
 use sctk::reexports::client::event_created_child;
 use sctk::reexports::protocols::xdg::shell::client::xdg_positioner::{
@@ -122,7 +123,6 @@ use sctk::{
 use std::task::Waker;
 use torin::prelude::{CursorPoint, Size2D};
 use vow_appearance::{Resolved, load_appearance, load_dominant, resolve, watch::AppearanceWatch};
-use wayland_egl::WlEglSurface;
 use wayland_protocols::wp::fractional_scale::v1::client::{
     wp_fractional_scale_manager_v1::WpFractionalScaleManagerV1,
     wp_fractional_scale_v1::{Event as FractionalScaleEvent, WpFractionalScaleV1},
@@ -139,9 +139,6 @@ pub use infinity::{
     InfinityWindowManagerV1, Layout as InfinityLayout, PairLayout as InfinityPairLayout,
 };
 pub use sctk::reexports::client::backend::ObjectId;
-
-/// The Wayland EGL platform (`EGL_PLATFORM_WAYLAND_KHR`/`EXT`).
-const EGL_PLATFORM_WAYLAND: egl::Enum = 0x31D8;
 
 /// A layer of `zwlr_layer_shell_v1`, without exposing SCTK in the public API.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -668,520 +665,6 @@ pub enum RunError {
     Io(#[from] std::io::Error),
 }
 
-/// The EGL + Skia GL state shared by every surface in the process.
-struct GraphicsShared {
-    egl: DynamicInstance<egl::EGL1_5>,
-    display: egl::Display,
-    config: egl::Config,
-    context: egl::Context,
-    gr: RefCell<DirectContext>,
-    font_collection: FontCollection,
-    font_manager: FontMgr,
-    /// Counter of `wl_egl_window` creations, for resize tests.
-    egl_window_creations: Cell<usize>,
-}
-
-// Safety: EGL display/context handles are used only on the thread that created
-// them (the calloop loop); the raw pointers are not shared across threads.
-unsafe impl Send for GraphicsShared {}
-
-impl GraphicsShared {
-    fn new(display_ptr: *mut c_void) -> Result<Self, RunError> {
-        // SAFETY: called once on the calloop thread; libEGL is present because
-        // the compositor already initialized EGL. `load_required` validates the
-        // minimum version (EGL 1.5) before returning.
-        let egl = unsafe { DynamicInstance::<egl::EGL1_5>::load_required() }
-            .map_err(|_| RunError::Egl("libEGL could not be loaded"))?;
-        // Safety: the caller passes the live `wl_display*` of the connection.
-        let display = unsafe {
-            egl.get_platform_display(
-                EGL_PLATFORM_WAYLAND,
-                display_ptr,
-                &[egl::NONE as egl::Attrib],
-            )
-        }
-        .map_err(|_| RunError::Egl("eglGetPlatformDisplay failed"))?;
-        egl.initialize(display)
-            .map_err(|_| RunError::Egl("eglInitialize failed"))?;
-        let config = egl
-            .choose_first_config(
-                display,
-                &[
-                    egl::SURFACE_TYPE,
-                    egl::WINDOW_BIT,
-                    egl::RED_SIZE,
-                    8,
-                    egl::GREEN_SIZE,
-                    8,
-                    egl::BLUE_SIZE,
-                    8,
-                    egl::ALPHA_SIZE,
-                    8,
-                    egl::RENDERABLE_TYPE,
-                    egl::OPENGL_ES2_BIT,
-                    egl::NONE,
-                ],
-            )
-            .map_err(|_| RunError::Egl("eglChooseConfig failed"))?
-            .ok_or(RunError::Egl("no suitable EGL config"))?;
-        let context = egl
-            .create_context(
-                display,
-                config,
-                None,
-                &[egl::CONTEXT_CLIENT_VERSION, 3, egl::NONE],
-            )
-            .map_err(|_| RunError::Egl("eglCreateContext failed"))?;
-        // Skia's GL direct context needs a current EGL context to query the
-        // driver; the window surface is made current later in `configure`.
-        egl.make_current(display, None, None, Some(context))
-            .map_err(|_| RunError::Egl("eglMakeCurrent(surfaceless) failed"))?;
-
-        // The Skia GL interface loads every function through EGL.
-        let interface = Interface::new_load_with(|name| {
-            if name == "eglGetCurrentDisplay" {
-                return std::ptr::null();
-            }
-            egl.get_proc_address(name)
-                .map_or(std::ptr::null(), |f| f as *const c_void)
-        })
-        .ok_or(RunError::Skia)?;
-        let mut gr = direct_contexts::make_gl(interface, None).ok_or(RunError::Skia)?;
-        gr.set_resource_cache_limit(128 * 1024 * 1024);
-
-        Ok(Self {
-            egl,
-            display,
-            config,
-            context,
-            gr: RefCell::new(gr),
-            font_collection: crate::fonts::collection(),
-            font_manager: crate::fonts::manager(),
-            egl_window_creations: Cell::new(0),
-        })
-    }
-}
-
-impl Drop for GraphicsShared {
-    fn drop(&mut self) {
-        let _ = self.egl.make_current(self.display, None, None, None);
-        self.gr.borrow_mut().abandon();
-        let _ = self.egl.destroy_context(self.display, self.context);
-    }
-}
-
-/// The per-surface EGL window/surface and Skia render target. The expensive
-/// process-wide state (EGL context, `DirectContext`, fonts) lives in
-/// [`GraphicsShared`].
-struct Graphics {
-    shared: Rc<GraphicsShared>,
-    window: Option<WlEglSurface>,
-    surface: Option<egl::Surface>,
-    skia: Option<SkiaSurface>,
-    size: (u32, u32),
-    scale: f64,
-}
-
-// Safety: the EGLSurface is only used on the calloop thread.
-unsafe impl Send for Graphics {}
-
-impl Graphics {
-    fn new(shared: Rc<GraphicsShared>) -> Self {
-        Self {
-            shared,
-            window: None,
-            surface: None,
-            skia: None,
-            size: (0, 0),
-            scale: 1.0,
-        }
-    }
-
-    /// Builds the `wl_egl_window` and EGL surface on a real configure, then
-    /// recreates the Skia surface at the new size.
-    ///
-    /// Reuses the existing `wl_egl_window` via `resize` when only the size
-    /// changed; only recreates it when the scale changed or the resize failed.
-    fn configure(
-        &mut self,
-        surface: &WlSurface,
-        size: (u32, u32),
-        scale: f64,
-    ) -> Result<(), RunError> {
-        if size.0 == 0 || size.1 == 0 {
-            return Ok(());
-        }
-        let shared = self.shared.clone();
-        let size_changed = self.size != size;
-        let scale_changed = self.scale != scale;
-        let needs_window = self.window.is_none() || size_changed || scale_changed;
-        if needs_window {
-            if let Some(window) = self.window.as_ref() {
-                // Try to resize the existing wl_egl_window without destroying
-                // the EGL surface. dx/dy are zero because the Wayland surface
-                // origin does not move.
-                window.resize(size.0 as i32, size.1 as i32, 0, 0);
-                let (w, h) = window.get_size();
-                if w == size.0 as i32 && h == size.1 as i32 && !scale_changed {
-                    self.size = size;
-                } else {
-                    self.recreate_window(surface, size)?;
-                }
-            } else {
-                self.recreate_window(surface, size)?;
-            }
-        }
-
-        let egl_surface = *self.surface.as_ref().expect("surface created above");
-        shared
-            .egl
-            .make_current(
-                shared.display,
-                Some(egl_surface),
-                Some(egl_surface),
-                Some(shared.context),
-            )
-            .map_err(|_| RunError::Egl("eglMakeCurrent failed"))?;
-
-        let fb_info = FramebufferInfo {
-            fboid: 0,
-            format: Format::RGBA8.into(),
-            ..Default::default()
-        };
-        let render_target =
-            backend_render_targets::make_gl((size.0 as i32, size.1 as i32), 0, 0, fb_info);
-        self.skia = wrap_backend_render_target(
-            &mut shared.gr.borrow_mut(),
-            &render_target,
-            SurfaceOrigin::BottomLeft,
-            ColorType::RGBA8888,
-            None,
-            None,
-        );
-        self.scale = scale;
-        Ok(())
-    }
-
-    /// Recreates the `wl_egl_window` and its EGL surface.
-    fn recreate_window(&mut self, surface: &WlSurface, size: (u32, u32)) -> Result<(), RunError> {
-        let shared = self.shared.clone();
-        self.window = Some(
-            WlEglSurface::new(surface.id(), size.0 as i32, size.1 as i32)
-                .map_err(|_| RunError::Egl("wl_egl_window_create failed"))?,
-        );
-        shared
-            .egl_window_creations
-            .set(shared.egl_window_creations.get() + 1);
-        if let Some(old) = self.surface.take() {
-            let _ = shared.egl.destroy_surface(shared.display, old);
-        }
-        let window_ptr = self
-            .window
-            .as_ref()
-            .map(|w| w.ptr() as *mut c_void)
-            .expect("window created above");
-        // Safety: the wl_egl_window is owned here and lives as long as the
-        // EGL surface.
-        let egl_surface = unsafe {
-            shared
-                .egl
-                .create_window_surface(shared.display, shared.config, window_ptr, None)
-        }
-        .map_err(|_| RunError::Egl("eglCreateWindowSurface failed"))?;
-        self.surface = Some(egl_surface);
-        self.size = size;
-        Ok(())
-    }
-
-    fn make_current(&self) -> Result<(), RunError> {
-        let Some(surface) = self.surface else {
-            return Err(RunError::Egl("no window surface"));
-        };
-        self.shared
-            .egl
-            .make_current(
-                self.shared.display,
-                Some(surface),
-                Some(surface),
-                Some(self.shared.context),
-            )
-            .map_err(|_| RunError::Egl("eglMakeCurrent failed"))
-    }
-
-    fn swap(&self) -> Result<(), RunError> {
-        let Some(surface) = self.surface else {
-            return Err(RunError::Egl("no window surface"));
-        };
-        self.shared
-            .egl
-            .swap_buffers(self.shared.display, surface)
-            .map_err(|_| RunError::Egl("eglSwapBuffers failed"))
-    }
-}
-
-impl Drop for Graphics {
-    fn drop(&mut self) {
-        // shortcut: per-popup GPU cleanup is deferred to the shared context's
-        // abandon() at process exit. Flushing here requires borrowing the
-        // shared DirectContext, which panics if a frame is currently being
-        // rendered, and free_gpu_resources() would free textures that other
-        // surfaces still need. We only destroy the EGL surface so the
-        // compositor sees popup_destroyed before the wl_egl_window is gone.
-        if let Some(surface) = self.surface.take() {
-            let _ = self
-                .shared
-                .egl
-                .destroy_surface(self.shared.display, surface);
-        }
-        self.window = None;
-    }
-}
-
-/// One Freya app: its runner, tree and render contexts.
-struct AppInstance {
-    runner: Runner,
-    tree: Tree,
-    nodes_state: NodesState<NodeId>,
-    events_sender: futures_channel::mpsc::UnboundedSender<EventsChunk>,
-    events_receiver: futures_channel::mpsc::UnboundedReceiver<EventsChunk>,
-    platform: Platform,
-    _animation_clock: AnimationClock,
-    ticker_sender: RenderingTickerSender,
-    font_collection: FontCollection,
-    font_manager: FontMgr,
-    fallback_fonts: Vec<Cow<'static, str>>,
-    scale_factor: f64,
-    size: Size2D,
-    needs_layout: bool,
-    waker: Waker,
-    menu: Option<crate::app_menu::AppMenu>,
-    on_menu_action: Option<MenuActionHandler>,
-    resolved: State<Resolved>,
-    accessibility: AccessibilityTree,
-    accessibility_initialized: bool,
-    requested_focus: Option<AccessibilityFocusStrategy>,
-}
-
-impl AppInstance {
-    #[allow(clippy::too_many_arguments)]
-    fn new(
-        app: AppComponent,
-        scale_factor: f64,
-        size: (u32, u32),
-        sender: Rc<dyn Fn(UserEvent)>,
-        waker: Waker,
-        toplevels: Option<Toplevels>,
-        session_unlock: Option<SessionUnlock>,
-        activation: Activation,
-        window: Option<WindowControls>,
-        timers: Timers,
-        popups: Popups,
-        popup_handle: Option<PopupHandle>,
-        font_collection: FontCollection,
-        font_manager: FontMgr,
-        menu: Option<crate::app_menu::AppMenu>,
-        on_menu_action: Option<MenuActionHandler>,
-        resolved: State<Resolved>,
-    ) -> Self {
-        let (events_sender, events_receiver) = futures_channel::mpsc::unbounded();
-        let mut runner = Runner::new(move || integration(app.clone()).into_element());
-
-        runner.provide_root_context(ScreenReader::new);
-        runner.provide_root_context(move || resolved);
-        runner.provide_root_context(move || popups.clone());
-        let (ticker_sender, ticker) = RenderingTicker::new();
-        runner.provide_root_context(|| ticker);
-        let animation_clock = runner.provide_root_context(AnimationClock::new);
-        runner.provide_root_context(AssetCacher::create);
-
-        let mut tree = Tree::default();
-
-        let platform = runner.provide_root_context({
-            let size = Size2D::new(size.0 as f32, size.1 as f32);
-            move || Platform {
-                focused_accessibility_id: State::create(ACCESSIBILITY_ROOT_ID),
-                focused_accessibility_node: State::create(accesskit::Node::new(Role::Window)),
-                root_size: State::create(size),
-                scale_factor: State::create(scale_factor),
-                navigation_mode: State::create(NavigationMode::NotKeyboard),
-                preferred_theme: State::create(PreferredTheme::Light),
-                is_app_focused: State::create(true),
-                accent_color: State::create(AccentColor::default()),
-                sender,
-            }
-        });
-
-        if let Some(toplevels) = toplevels {
-            runner.provide_root_context(move || toplevels);
-        }
-        if let Some(unlock) = session_unlock {
-            runner.provide_root_context(move || unlock);
-        }
-        runner.provide_root_context(move || activation);
-        if let Some(window) = window {
-            runner.provide_root_context(move || window);
-        }
-        if let Some(handle) = popup_handle {
-            runner.provide_root_context(move || handle);
-        }
-        runner.provide_root_context(move || timers);
-        runner.provide_root_context(|| State::create(None::<Box<dyn ClipboardProvider>>));
-        runner.provide_root_context(|| tree.accessibility_generator.clone());
-        runner.provide_root_context(|| font_collection.clone());
-
-        // Build the root node before the first layout pass: measuring an empty
-        // tree panics inside Torin. Accessibility is initialized only after the
-        // first layout, when every node already has a layout entry.
-        let mutations = runner.sync_and_update();
-        let _ = runner.run_in(|| tree.apply_mutations(mutations));
-
-        let accessibility = AccessibilityTree::default();
-
-        Self {
-            runner,
-            tree,
-            nodes_state: NodesState::default(),
-            events_sender,
-            events_receiver,
-            platform,
-            _animation_clock: animation_clock,
-            ticker_sender,
-            font_collection,
-            font_manager,
-            fallback_fonts: default_fonts(),
-            scale_factor,
-            size: Size2D::new(size.0 as f32, size.1 as f32),
-            needs_layout: true,
-            waker,
-            menu,
-            on_menu_action,
-            resolved,
-            accessibility,
-            accessibility_initialized: false,
-            requested_focus: None,
-        }
-    }
-
-    /// Mirrors the compositor's keyboard focus into the Freya platform state.
-    fn set_focused(&mut self, focused: bool) {
-        self.platform.is_app_focused.set(focused);
-        self.waker.wake_by_ref();
-    }
-
-    fn resize(&mut self, size: (u32, u32), scale_factor: f64) {
-        self.size = Size2D::new(size.0 as f32, size.1 as f32);
-        self.scale_factor = scale_factor;
-        self.platform.root_size.set(self.size);
-        self.platform.scale_factor.set(scale_factor);
-        self.tree.layout.reset();
-        self.tree.text_cache.reset();
-        self.needs_layout = true;
-    }
-
-    /// Drains Freya's events and UI events; returns true when the tree is dirty.
-    /// Polls Freya once. `handle_events` returns ready while dirty scopes are
-    /// pending; looping on it without calling `sync_and_update` spins forever,
-    /// so the caller clears them in `update` and polls again on its next wake.
-    fn poll(&mut self) -> bool {
-        let mut cx = Context::from_waker(&self.waker);
-        let ready = {
-            let future = pin!(self.runner.handle_events());
-            future.poll(&mut cx).is_ready()
-        };
-
-        let mut dirty = ready;
-        while let Ok(chunk) = self.events_receiver.try_recv() {
-            match chunk {
-                EventsChunk::Processed(events) => {
-                    EventsExecutorAdapter {
-                        runner: &mut self.runner,
-                    }
-                    .run(&mut self.nodes_state, events);
-                    dirty = true;
-                }
-                EventsChunk::Batch(events) => {
-                    for event in events {
-                        self.runner.handle_event(
-                            event.node_id,
-                            event.name,
-                            event.data,
-                            event.bubbles,
-                        );
-                    }
-                    dirty = true;
-                }
-            }
-        }
-        dirty
-    }
-
-    fn update(&mut self) -> bool {
-        let requested_focus = self.requested_focus.take();
-        let mutations = self.runner.sync_and_update();
-        let result = self.runner.run_in(|| self.tree.apply_mutations(mutations));
-        if result.needs_render {
-            self.needs_layout = true;
-        }
-        self.layout();
-
-        // Initialize the accessibility tree once, after the first layout pass.
-        // `init()` needs every node to have a layout entry, so it must run
-        // strictly after `measure_layout`. Focus requests that arrived earlier
-        // are applied right after init so they take effect in the same frame.
-        if !self.accessibility_initialized {
-            let _ = self.accessibility.init(&mut self.tree);
-            self.accessibility_initialized = true;
-        }
-        if let Some(strategy) = requested_focus {
-            self.tree.accessibility_diff.request_focus(strategy);
-        }
-
-        let accessibility_update = self
-            .accessibility
-            .process_updates(&mut self.tree, &self.events_sender);
-        self.platform
-            .focused_accessibility_id
-            .set_if_modified(accessibility_update.focus);
-        if let Some(node_id) = self.accessibility.focused_node_id()
-            && let Some(layout_node) = self.tree.layout.get(&node_id)
-        {
-            self.platform.focused_accessibility_node.set_if_modified(
-                AccessibilityTree::create_node(node_id, layout_node, &self.tree),
-            );
-        }
-        result.needs_render
-    }
-
-    fn layout(&mut self) {
-        if !self.needs_layout {
-            return;
-        }
-        self.tree.measure_layout(
-            self.size,
-            &mut self.font_collection,
-            &self.font_manager,
-            &self.events_sender,
-            self.scale_factor,
-            &self.fallback_fonts,
-        );
-        self.needs_layout = false;
-    }
-
-    fn push(&mut self, event: PlatformEvent) {
-        let mut adapter = EventsMeasurerAdapter {
-            scale_factor: self.scale_factor,
-            tree: &mut self.tree,
-        };
-        let processed = adapter.run(&mut vec![event], &mut self.nodes_state, None);
-        let _ = self
-            .events_sender
-            .unbounded_send(EventsChunk::Processed(processed));
-        // The event must be dispatched on the next loop wake; without this the
-        // frame callback draws before Freya has processed the input.
-        self.waker.wake_by_ref();
-    }
-}
-
 /// Where a window's global menu lives on D-Bus (ADR 0040).
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct AppMenuAddress {
@@ -1490,7 +973,7 @@ impl Activation {
 }
 
 /// Popup bookkeeping attached to a `SurfaceWindow` whose role is `Popup`.
-struct PopupInfo {
+pub(super) struct PopupInfo {
     id: PopupId,
     parent: Option<PopupId>,
     on_dismissed: Option<Rc<dyn Fn()>>,
@@ -1513,183 +996,6 @@ pub(crate) enum PopupCommand {
     Close {
         id: PopupId,
     },
-}
-
-/// A surface plus its Freya app and GL context.
-struct SurfaceWindow {
-    surface: WlSurface,
-    role: SurfaceRole,
-    popup: Option<PopupInfo>,
-    shared: Rc<GraphicsShared>,
-    graphics: Option<Graphics>,
-    app: AppInstance,
-    logical_size: (u32, u32),
-    buffer_size: (u32, u32),
-    scale: f64,
-    output: Option<ObjectId>,
-    needs_redraw: bool,
-    frame_pending: bool,
-    draw_count: u64,
-    configure_count: u64,
-    /// The most recent window configure not yet applied.
-    pending_configure: Option<(WindowConfigure, u32)>,
-    appmenu: Option<OrgKdeKwinAppmenu>,
-    appmenu_address: Option<AppMenuAddress>,
-    menu_handle: Option<crate::app_menu::MenuHandle>,
-    fractional: Option<WpFractionalScaleV1>,
-    viewport: Option<WpViewport>,
-}
-
-#[allow(dead_code)]
-#[derive(Debug)]
-enum SurfaceRole {
-    Layer(LayerSurface),
-    Lock(SessionLockSurface),
-    Window(Window),
-    Popup(Popup),
-    None,
-}
-
-impl SurfaceWindow {
-    /// Schedules a compositor frame callback without marking the surface dirty.
-    fn request_frame_callback(&mut self, qh: &QueueHandle<Runtime>) {
-        if !self.frame_pending {
-            self.frame_pending = true;
-            let _callback: WlCallback = self.surface.frame(qh, self.surface.clone());
-            self.surface.commit();
-        }
-    }
-
-    fn request_redraw(&mut self, qh: &QueueHandle<Runtime>) {
-        self.needs_redraw = true;
-        self.request_frame_callback(qh);
-    }
-
-    fn configure(&mut self, size: (u32, u32), scale: f64) {
-        if size.0 == 0 || size.1 == 0 {
-            return;
-        }
-        let buffer_size = buffer_size(size, scale);
-
-        if self.graphics.is_none() {
-            self.graphics = Some(Graphics::new(self.shared.clone()));
-        }
-        let Some(graphics) = self.graphics.as_mut() else {
-            return;
-        };
-        if let Err(error) = graphics.configure(&self.surface, buffer_size, scale) {
-            tracing::error!("BarrierKit: {error}");
-            // Keep the previous size coherent, but do not push a 0×0 size into
-            // the app on the first configure; that panics inside Torin.
-            if self.buffer_size.0 > 0 && self.buffer_size.1 > 0 {
-                self.app.resize(self.buffer_size, self.scale);
-            }
-            self.needs_redraw = true;
-            return;
-        }
-        self.logical_size = size;
-        self.scale = scale;
-        self.buffer_size = buffer_size;
-        if fractional_scale_enabled(self.fractional.is_some(), self.viewport.is_some(), scale) {
-            self.surface.set_buffer_scale(1);
-            if let Some(viewport) = &self.viewport {
-                viewport.set_destination(size.0 as i32, size.1 as i32);
-            }
-        } else {
-            self.surface.set_buffer_scale(scale.round().max(1.0) as i32);
-        }
-        self.app.resize(self.buffer_size, scale);
-        if let SurfaceRole::Window(window) = &self.role {
-            window
-                .xdg_surface()
-                .set_window_geometry(0, 0, size.0 as i32, size.1 as i32);
-        }
-        self.needs_redraw = true;
-    }
-
-    fn draw(&mut self) -> bool {
-        let Some(graphics) = self.graphics.as_mut() else {
-            return false;
-        };
-        if graphics.make_current().is_err() {
-            return false;
-        }
-        self.draw_count += 1;
-        tracing::debug!(
-            target: "barrier_kit::resize",
-            surface = ?self.surface.id(),
-            draws = self.draw_count,
-            role = ?self.role,
-            "draw start"
-        );
-        self.app.layout();
-        let background = if matches!(&self.role, SurfaceRole::Window(_)) {
-            let resolved = *self.app.resolved.read();
-            crate::theme::color(crate::theme::surface_background(
-                &resolved,
-                crate::theme::SurfaceKind::Toplevel,
-            ))
-        } else {
-            Color::TRANSPARENT
-        };
-        {
-            let Some(skia) = graphics.skia.as_mut() else {
-                return false;
-            };
-            let canvas = skia.canvas();
-            RenderPipeline {
-                font_collection: &mut self.app.font_collection,
-                font_manager: &self.app.font_manager,
-                canvas,
-                tree: &self.app.tree,
-                scale_factor: self.scale,
-                background,
-            }
-            .render();
-        }
-        graphics.shared.gr.borrow_mut().flush_and_submit();
-        let swap_start = std::time::Instant::now();
-        if graphics.swap().is_err() {
-            return false;
-        }
-        let swap_us = swap_start.elapsed().as_micros() as u64;
-        tracing::debug!(
-            target: "barrier_kit::resize",
-            surface = ?self.surface.id(),
-            draws = self.draw_count,
-            swap_us,
-            "swap done (buffer committed)"
-        );
-        let _ = self.app.ticker_sender.send(());
-        self.needs_redraw = false;
-        true
-    }
-}
-
-impl SurfaceWindow {
-    /// Destroys the fractional-scale and viewport objects before the surface so
-    /// the compositor sees them go away first.
-    fn destroy_fractional(&mut self) {
-        destroy_fractional_objects(&mut self.fractional, &mut self.viewport);
-    }
-}
-
-impl Drop for SurfaceWindow {
-    fn drop(&mut self) {
-        self.destroy_fractional();
-    }
-}
-
-fn destroy_fractional_objects(
-    fractional: &mut Option<WpFractionalScaleV1>,
-    viewport: &mut Option<WpViewport>,
-) {
-    if let Some(fractional) = fractional.take() {
-        fractional.destroy();
-    }
-    if let Some(viewport) = viewport.take() {
-        viewport.destroy();
-    }
 }
 
 /// A calloop waker for Freya's futures and user events.
@@ -1728,7 +1034,7 @@ fn released_repeated_key(repeat: &Option<RepeatState>, event: &KeyEvent) -> bool
         .is_some_and(|state| state.event.keysym == event.keysym)
 }
 
-struct Runtime {
+pub(super) struct Runtime {
     registry: RegistryState,
     compositor: CompositorState,
     output: OutputState,
@@ -2495,23 +1801,6 @@ impl Runtime {
             .iter()
             .position(|s| s.surface.id() == *surface_id)
     }
-
-    /// Creates the fractional-scale and viewport objects for a surface when the
-    /// compositor advertises the corresponding globals.
-    fn create_fractional(
-        &self,
-        surface: &WlSurface,
-    ) -> (Option<WpFractionalScaleV1>, Option<WpViewport>) {
-        let fractional = self
-            .fractional_manager
-            .as_ref()
-            .map(|manager| manager.get_fractional_scale(surface, &self.qh, surface.id()));
-        let viewport = self
-            .viewporter
-            .as_ref()
-            .map(|viewporter| viewporter.get_viewport(surface, &self.qh, surface.id()));
-        (fractional, viewport)
-    }
 }
 
 /// Find the index of the item whose identifier matches `id`.
@@ -3234,77 +2523,6 @@ impl ProvidesRegistryState for Runtime {
     }
 
     fn runtime_remove_global(&mut self, _: &Connection, _: &QueueHandle<Self>, _: u32, _: &str) {}
-}
-
-impl CompositorHandler for Runtime {
-    fn scale_factor_changed(
-        &mut self,
-        _: &Connection,
-        _: &QueueHandle<Self>,
-        surface: &WlSurface,
-        scale_factor: i32,
-    ) {
-        let Some(index) = self.surface_for(surface) else {
-            return;
-        };
-        // While fractional scaling is active the compositor drives the scale
-        // through wp_fractional_scale_v1.preferred_scale; integer scales are
-        // ignored so the buffer and viewport stay in sync.
-        if self.surfaces[index].fractional.is_some() {
-            return;
-        }
-        let scale = scale_factor.max(1) as f64;
-        let window = &mut self.surfaces[index];
-        if window.scale != scale {
-            window.scale = scale;
-            if window.logical_size.0 > 0 {
-                let size = window.logical_size;
-                window.configure(size, scale);
-            }
-        }
-    }
-
-    fn transform_changed(
-        &mut self,
-        _: &Connection,
-        _: &QueueHandle<Self>,
-        _: &WlSurface,
-        _: wl_output::Transform,
-    ) {
-    }
-
-    fn frame(&mut self, _: &Connection, qh: &QueueHandle<Self>, surface: &WlSurface, _: u32) {
-        let Some(index) = self.surface_for(surface) else {
-            return;
-        };
-        self.surfaces[index].frame_pending = false;
-        // Collapse any window configures that arrived since the last frame.
-        self.apply_pending_window_configures(qh);
-        if self.surfaces[index].needs_redraw {
-            let _ = self.surfaces[index].draw();
-        }
-        if self.surfaces[index].needs_redraw {
-            self.surfaces[index].request_redraw(qh);
-        }
-    }
-
-    fn surface_enter(
-        &mut self,
-        _: &Connection,
-        _: &QueueHandle<Self>,
-        _: &WlSurface,
-        _: &wl_output::WlOutput,
-    ) {
-    }
-
-    fn surface_leave(
-        &mut self,
-        _: &Connection,
-        _: &QueueHandle<Self>,
-        _: &WlSurface,
-        _: &wl_output::WlOutput,
-    ) {
-    }
 }
 
 impl WindowHandler for Runtime {
@@ -4221,31 +3439,6 @@ impl Dispatch<ZwlrForeignToplevelHandleV1, (), Runtime> for Runtime {
     }
 }
 
-/// Converts a fractional-scale wire value (120 = 1.0) to a logical scale factor.
-fn scale_from_wire(scale: u32) -> f64 {
-    scale as f64 / 120.0
-}
-
-/// Computes the buffer size for a logical surface size and scale.
-fn buffer_size(logical: (u32, u32), scale: f64) -> (u32, u32) {
-    (
-        (logical.0 as f64 * scale).round().max(1.0) as u32,
-        (logical.1 as f64 * scale).round().max(1.0) as u32,
-    )
-}
-
-/// Returns true when the surface should use fractional scaling.
-///
-/// Both the fractional-scale manager and viewporter must be present; the
-/// protocol is only useful when the compositor can scale the buffer back down.
-fn fractional_scale_enabled(has_fractional: bool, has_viewporter: bool, _scale: f64) -> bool {
-    has_fractional && has_viewporter
-}
-
-fn physical_point(position: (f64, f64), scale: f64) -> CursorPoint {
-    CursorPoint::from((position.0 * scale, position.1 * scale))
-}
-
 impl Dispatch<XdgActivationV1, ()> for Runtime {
     fn event(
         _: &mut Self,
@@ -4390,68 +3583,6 @@ impl Dispatch<OrgKdeKwinAppmenu, ObjectId, Runtime> for Runtime {
     }
 }
 
-impl Dispatch<WpFractionalScaleManagerV1, (), Runtime> for Runtime {
-    fn event(
-        _: &mut Runtime,
-        _: &WpFractionalScaleManagerV1,
-        _: <WpFractionalScaleManagerV1 as Proxy>::Event,
-        _: &(),
-        _: &Connection,
-        _: &QueueHandle<Runtime>,
-    ) {
-    }
-}
-
-impl Dispatch<WpFractionalScaleV1, ObjectId, Runtime> for Runtime {
-    fn event(
-        state: &mut Runtime,
-        _: &WpFractionalScaleV1,
-        event: FractionalScaleEvent,
-        surface_id: &ObjectId,
-        _: &Connection,
-        qh: &QueueHandle<Runtime>,
-    ) {
-        let FractionalScaleEvent::PreferredScale { scale } = event else {
-            return;
-        };
-        let scale = scale_from_wire(scale);
-        let Some(index) = state.surface_index_by_id(surface_id) else {
-            return;
-        };
-        let window = &mut state.surfaces[index];
-        window.scale = scale;
-        if window.logical_size.0 > 0 {
-            let size = window.logical_size;
-            window.configure(size, scale);
-        }
-        window.request_redraw(qh);
-    }
-}
-
-impl Dispatch<WpViewporter, (), Runtime> for Runtime {
-    fn event(
-        _: &mut Runtime,
-        _: &WpViewporter,
-        _: <WpViewporter as Proxy>::Event,
-        _: &(),
-        _: &Connection,
-        _: &QueueHandle<Runtime>,
-    ) {
-    }
-}
-
-impl Dispatch<WpViewport, ObjectId, Runtime> for Runtime {
-    fn event(
-        _: &mut Runtime,
-        _: &WpViewport,
-        _: <WpViewport as Proxy>::Event,
-        _: &ObjectId,
-        _: &Connection,
-        _: &QueueHandle<Runtime>,
-    ) {
-    }
-}
-
 delegate_compositor!(Runtime);
 delegate_output!(Runtime);
 delegate_registry!(Runtime);
@@ -4470,6 +3601,10 @@ delegate_dispatch!(Runtime: [zwlr_layer_surface_v1::ZwlrLayerSurfaceV1: LayerSur
 mod tests {
     use super::*;
     use std::sync::atomic::{AtomicUsize, Ordering};
+    use surface::{
+        buffer_size, destroy_fractional_objects, fractional_scale_enabled, physical_point,
+        scale_from_wire,
+    };
 
     #[test]
     fn wakeup_runs_its_callback_on_the_loop_thread() {
@@ -4954,12 +4089,6 @@ mod tests {
         );
     }
 
-    // Manual test for the configure overwrite behaviour:
-    // Run with WAYLAND_DEBUG=1 while resizing. Two configures arriving in the
-    // same batch (same size, different state) must result in the second state
-    // being applied; the code now stores only the latest configure in
-    // `pending_configure: Option<_>`.
-
     #[test]
     fn destroy_fractional_objects_is_safe_when_missing() {
         let mut fractional: Option<WpFractionalScaleV1> = None;
@@ -4973,6 +4102,12 @@ mod tests {
     // Run with WAYLAND_DEBUG=1 and close a window. Verify that
     // wp_fractional_scale_v1@...destroy and wp_viewport@...destroy lines appear
     // before the wl_surface@...destroy line for the same surface.
+
+    // Manual test for the configure overwrite behaviour:
+    // Run with WAYLAND_DEBUG=1 while resizing. Two configures arriving in the
+    // same batch (same size, different state) must result in the second state
+    // being applied; the code now stores only the latest configure in
+    // `pending_configure: Option<_>`.
 }
 
 #[cfg(test)]
