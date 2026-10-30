@@ -1,3 +1,4 @@
+use super::popup::PopupInfo;
 use super::*;
 
 /// A surface plus its Freya app and GL context.
