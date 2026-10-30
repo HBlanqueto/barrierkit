@@ -221,56 +221,45 @@ const SEARCH_ICON: &str = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\
 /// the text and plain entries line up with the ones that carry one.
 const MARK_TEXT_GAP: f32 = 6.0;
 
-/// Returns whether a menu uses a mark column and/or an icon column.
+/// Returns whether a menu uses a single leading column for marks or icons.
 ///
-/// A mark column is reserved as soon as any entry (including a false checkbox
-/// or radio) has a [`CheckState`] other than `None`, so toggling it on does
-/// not make the text jump. An icon column is reserved only when at least one
-/// entry actually carries an icon.
-fn columns_used(items: &[MenuItem]) -> (bool, bool) {
-    let mut has_mark = false;
-    let mut has_icon = false;
+/// The column is reserved as soon as any entry has a [`CheckState`] other than
+/// `None` or carries an icon, so toggling a mark on or swapping an icon does
+/// not make the text jump.
+fn has_leading_column(items: &[MenuItem]) -> bool {
+    let mut has = false;
     for item in items {
         match item {
             MenuItem::Action { check, icon, .. } => {
-                if !matches!(check, CheckState::None) {
-                    has_mark = true;
-                }
-                if icon.is_some() {
-                    has_icon = true;
+                if !matches!(check, CheckState::None) || icon.is_some() {
+                    has = true;
                 }
             }
             MenuItem::Submenu { icon, .. } => {
                 if icon.is_some() {
-                    has_icon = true;
+                    has = true;
                 }
             }
             MenuItem::SearchResult { item, .. } => {
-                let (m, i) = columns_used(std::slice::from_ref(item));
-                has_mark |= m;
-                has_icon |= i;
+                has |= has_leading_column(std::slice::from_ref(item));
             }
             _ => {}
         }
-        if has_mark && has_icon {
+        if has {
             break;
         }
     }
-    (has_mark, has_icon)
+    has
 }
 
 /// Horizontal offset from the panel's inner left edge to the start of a row's
-/// label, based on the columns this menu actually uses.
+/// label, based on whether this menu uses a leading column.
 fn row_text_inset(items: &[MenuItem], m: MenuPalette) -> f32 {
-    let (has_mark, has_icon) = columns_used(items);
-    let columns =
-        if has_mark { m.mark_width } else { 0.0 } + if has_icon { m.icon_width } else { 0.0 };
-    let gap = if has_mark || has_icon {
-        MARK_TEXT_GAP
+    if has_leading_column(items) {
+        m.item_padding_x + m.leading_width + MARK_TEXT_GAP
     } else {
-        0.0
-    };
-    m.item_padding_x + columns + gap
+        m.item_padding_x
+    }
 }
 
 /// State of a check/radio mark in a menu item.
@@ -2039,7 +2028,7 @@ fn render_item(
                 .as_ref()
                 .map(|s| measure_text(s, m.font_size))
                 .unwrap_or(0.0);
-            let (has_mark, has_icon) = columns_used(&items);
+            let has_leading = has_leading_column(&items);
             let text_inset = row_text_inset(&items, m);
             let max_label_w = (m.max_width
                 - 2.0 * (2.0 * m.border_width + m.padding)
@@ -2093,12 +2082,10 @@ fn render_item(
             let mut left = rect()
                 .direction(Direction::Horizontal)
                 .cross_align(Alignment::Center);
-            if has_mark || has_icon {
-                left = left.spacing(MARK_TEXT_GAP).child(mark_slot(
+            if has_leading {
+                left = left.spacing(MARK_TEXT_GAP).child(leading_slot(
                     icon.clone(),
                     check,
-                    has_mark,
-                    has_icon,
                     fg,
                     shortcut_fg(enabled, is_focused, m),
                     m,
@@ -2143,7 +2130,7 @@ fn render_item(
             } else {
                 None
             };
-            let (has_mark, has_icon) = columns_used(&items);
+            let has_leading = has_leading_column(&items);
             let mut row = rect()
                 .width(Size::fill())
                 .height(Size::px(m.item_height))
@@ -2173,12 +2160,10 @@ fn render_item(
             let mut left = rect()
                 .direction(Direction::Horizontal)
                 .cross_align(Alignment::Center);
-            if has_mark || has_icon {
-                left = left.spacing(MARK_TEXT_GAP).child(mark_slot(
+            if has_leading {
+                left = left.spacing(MARK_TEXT_GAP).child(leading_slot(
                     icon.clone(),
                     CheckState::None,
-                    has_mark,
-                    has_icon,
                     fg,
                     shortcut_fg(enabled, is_focused, m),
                     m,
@@ -2486,57 +2471,48 @@ fn search_icon_element(
     }
 }
 
-fn mark_slot(
+fn leading_slot(
     icon: Option<MenuIcon>,
     check: CheckState,
-    has_mark: bool,
-    has_icon: bool,
     fg: Rgba,
     icon_fg: Rgba,
     m: MenuPalette,
 ) -> Element {
-    let mut slot = rect()
+    if !matches!(check, CheckState::None) {
+        return mark_element(check, fg, m);
+    }
+    let icon_elem = match icon {
+        Some(MenuIcon::Svg(svg)) => SvgViewer::new(Bytes::from(svg.as_bytes().to_vec()))
+            .width(Size::px(m.icon_size))
+            .height(Size::px(m.icon_size))
+            .color(rgba(icon_fg))
+            .show_loader(false)
+            .into_element(),
+        Some(MenuIcon::Image(bytes)) => icon_image(&bytes, m.icon_size).map_or_else(
+            || {
+                rect()
+                    .width(Size::px(m.icon_size))
+                    .height(Size::px(m.icon_size))
+                    .into_element()
+            },
+            |handle| {
+                image(handle)
+                    .width(Size::px(m.icon_size))
+                    .height(Size::px(m.icon_size))
+                    .into_element()
+            },
+        ),
+        None => rect()
+            .width(Size::px(m.icon_size))
+            .height(Size::px(m.icon_size))
+            .into_element(),
+    };
+    rect()
+        .width(Size::px(m.leading_width))
         .direction(Direction::Horizontal)
-        .cross_align(Alignment::Center);
-    if has_mark {
-        slot = slot.child(mark_element(check, fg, m));
-    }
-    if has_icon {
-        let icon_elem = match icon {
-            Some(MenuIcon::Svg(svg)) => SvgViewer::new(Bytes::from(svg.as_bytes().to_vec()))
-                .width(Size::px(m.icon_size))
-                .height(Size::px(m.icon_size))
-                .color(rgba(icon_fg))
-                .show_loader(false)
-                .into_element(),
-            Some(MenuIcon::Image(bytes)) => icon_image(&bytes, m.icon_size).map_or_else(
-                || {
-                    rect()
-                        .width(Size::px(m.icon_size))
-                        .height(Size::px(m.icon_size))
-                        .into_element()
-                },
-                |handle| {
-                    image(handle)
-                        .width(Size::px(m.icon_size))
-                        .height(Size::px(m.icon_size))
-                        .into_element()
-                },
-            ),
-            None => rect()
-                .width(Size::px(m.icon_size))
-                .height(Size::px(m.icon_size))
-                .into_element(),
-        };
-        slot = slot.child(
-            rect()
-                .width(Size::px(m.icon_width))
-                .direction(Direction::Horizontal)
-                .main_align(Alignment::Center)
-                .child(icon_elem),
-        );
-    }
-    slot.into_element()
+        .main_align(Alignment::Center)
+        .child(icon_elem)
+        .into_element()
 }
 
 thread_local! {
@@ -2597,18 +2573,18 @@ fn decode_icon(bytes: &[u8], size: f32) -> Option<ImageHandle> {
 fn mark_element(check: CheckState, color: Rgba, m: MenuPalette) -> Element {
     match check {
         CheckState::None | CheckState::Checkbox(false) | CheckState::Radio(false) => {
-            rect().width(Size::px(m.mark_width)).into_element()
+            rect().width(Size::px(m.leading_width)).into_element()
         }
         CheckState::Checkbox(true) => label()
             .text("✓")
             .font_size(m.mark_check)
             .color(rgba(color))
-            .width(Size::px(m.mark_width))
+            .width(Size::px(m.leading_width))
             .text_align(TextAlign::Center)
             .max_lines(1)
             .into_element(),
         CheckState::Radio(true) => rect()
-            .width(Size::px(m.mark_width))
+            .width(Size::px(m.leading_width))
             .direction(Direction::Horizontal)
             .main_align(Alignment::Center)
             .child(
@@ -3005,7 +2981,7 @@ mod tests {
     }
 
     #[test]
-    fn icons_widen_the_menu_by_the_icon_column_and_gap() {
+    fn icons_widen_the_menu_by_the_leading_column_and_gap() {
         let label = "Configuración avanzada del sistema";
         let built = |icon: Option<MenuIcon>| {
             vec![
@@ -3030,7 +3006,7 @@ mod tests {
         let with_icons = MenuView::preferred_size(&built(Some(MenuIcon::svg("x"))), MENU_LIGHT);
         assert_eq!(
             with_icons.0 - plain.0,
-            MENU_LIGHT.icon_width + MARK_TEXT_GAP,
+            MENU_LIGHT.leading_width + MARK_TEXT_GAP,
             "an icon column is only reserved when the menu actually uses one"
         );
     }
@@ -3153,7 +3129,7 @@ mod tests {
     }
 
     #[test]
-    fn mark_sizes_fit_the_mark_column() {
+    fn mark_sizes_fit_the_leading_column() {
         for (name, m) in [("light", MENU_LIGHT), ("dark", MENU_DARK)] {
             assert!(
                 (6.0..=8.0).contains(&m.mark_dot),
@@ -3161,11 +3137,11 @@ mod tests {
                 m.mark_dot
             );
             assert!(
-                m.mark_dot <= m.mark_width,
+                m.mark_dot <= m.leading_width,
                 "{name}: radio dot is wider than its column"
             );
             assert!(
-                m.mark_check > 0.0 && m.mark_check <= m.mark_width,
+                m.mark_check > 0.0 && m.mark_check <= m.leading_width,
                 "{name}: check glyph does not fit its column"
             );
         }
@@ -3268,13 +3244,13 @@ mod tests {
     }
 
     #[test]
-    fn checkbox_false_shifts_text_by_mark_column_and_gap() {
+    fn checkbox_false_shifts_text_by_leading_column_and_gap() {
         let plain = vec![action("Solo texto")];
         let checked = vec![action_with("Solo texto", CheckState::Checkbox(false), None)];
         let (plain_runner, _) = make_runner(plain);
         let (checked_runner, _) = make_runner(checked);
         let diff = label_x(&checked_runner, "Solo texto") - label_x(&plain_runner, "Solo texto");
-        let expected = MENU_LIGHT.mark_width + MARK_TEXT_GAP;
+        let expected = MENU_LIGHT.leading_width + MARK_TEXT_GAP;
         assert!(
             (diff - expected).abs() <= 1.0,
             "checkbox adds {diff}, expected {expected}"
@@ -3282,7 +3258,7 @@ mod tests {
     }
 
     #[test]
-    fn icon_shifts_text_by_icon_column_and_gap() {
+    fn icon_shifts_text_by_leading_column_and_gap() {
         let plain = vec![action("Solo texto")];
         let with_icon = vec![action_with(
             "Solo texto",
@@ -3292,7 +3268,7 @@ mod tests {
         let (plain_runner, _) = make_runner(plain);
         let (icon_runner, _) = make_runner(with_icon);
         let diff = label_x(&icon_runner, "Solo texto") - label_x(&plain_runner, "Solo texto");
-        let expected = MENU_LIGHT.icon_width + MARK_TEXT_GAP;
+        let expected = MENU_LIGHT.leading_width + MARK_TEXT_GAP;
         assert!(
             (diff - expected).abs() <= 1.0,
             "icon adds {diff}, expected {expected}"
@@ -3313,12 +3289,12 @@ mod tests {
         assert_eq!(row_text_inset(&parent, m), m.item_padding_x);
         assert_eq!(
             row_text_inset(&child, m),
-            m.item_padding_x + m.mark_width + MARK_TEXT_GAP
+            m.item_padding_x + m.leading_width + MARK_TEXT_GAP
         );
     }
 
     #[test]
-    fn menu_without_columns_is_narrower_by_both_columns_and_gap() {
+    fn menu_without_columns_is_narrower_by_leading_column_and_gap() {
         let label = "Opción bastante larga del menú sin columnas";
         let plain = vec![action(label)];
         let with_columns = vec![action_with(
@@ -3331,13 +3307,13 @@ mod tests {
         let (columns_w, _) = MenuView::preferred_size(&with_columns, m);
         assert_eq!(
             columns_w - plain_w,
-            m.mark_width + m.icon_width + MARK_TEXT_GAP,
-            "plain menu should be narrower by the two unused columns plus gap"
+            m.leading_width + MARK_TEXT_GAP,
+            "plain menu should be narrower by the single unused leading column plus gap"
         );
     }
 
     #[test]
-    fn menu_with_mark_and_icon_keeps_full_inset() {
+    fn menu_with_mark_or_icon_keeps_full_inset() {
         let items = vec![action_with(
             "Mixto",
             CheckState::Checkbox(true),
@@ -3346,10 +3322,27 @@ mod tests {
         let (runner, _) = make_runner(items);
         let m = MENU_LIGHT;
         let x = label_x(&runner, "Mixto");
-        let expected = m.padding + m.item_padding_x + m.mark_width + m.icon_width + MARK_TEXT_GAP;
+        let expected = m.padding + m.item_padding_x + m.leading_width + MARK_TEXT_GAP;
         assert!(
             (x - expected).abs() <= 1.0,
             "full-inset text starts at {x}, expected {expected}"
+        );
+    }
+
+    #[test]
+    fn mark_takes_precedence_over_icon_in_leading_column() {
+        let plain = vec![action_with("X", CheckState::Checkbox(true), None)];
+        let with_icon = vec![action_with(
+            "X",
+            CheckState::Checkbox(true),
+            Some(MenuIcon::svg("x")),
+        )];
+        let (plain_runner, _) = make_runner(plain);
+        let (icon_runner, _) = make_runner(with_icon);
+        assert_eq!(
+            label_x(&plain_runner, "X"),
+            label_x(&icon_runner, "X"),
+            "a checked row with an icon must align exactly like a checked row without one"
         );
     }
 

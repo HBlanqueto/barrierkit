@@ -1488,8 +1488,7 @@ fn menu_palette_value(tokens: &Value, components: &Value, theme: &str, opaque: b
          \x20   separator_height: {},\n\
          \x20   separator_margin_x: {},\n\
          \x20   separator_margin_y: {},\n\
-         \x20   mark_width: {},\n\
-         \x20   icon_width: {},\n\
+         \x20   leading_width: {},\n\
          \x20   mark_dot: {},\n\
          \x20   mark_check: {},\n\
          \x20   chevron_size: {},\n\
@@ -1585,11 +1584,6 @@ fn menu_palette_value(tokens: &Value, components: &Value, theme: &str, opaque: b
         float(number(
             components,
             "components.shell.menu.mark.width",
-            COMPONENTS
-        )),
-        float(number(
-            components,
-            "components.shell.menu.icon.size",
             COMPONENTS
         )),
         float(number(
@@ -1714,8 +1708,7 @@ fn emit_menu_popover(out: &mut String, tokens: &Value, components: &Value) {
          \x20   item_padding_x: {},\n\
          \x20   item_gap: {},\n\
          \x20   check: {},\n\
-         \x20   check_column: {},\n\
-         \x20   icon_column: {},\n\
+         \x20   leading_column: {},\n\
          \x20   swatch_grid_size: {},\n\
          \x20   swatch_grid_dot: {},\n\
          \x20   swatch_grid_gap: {},\n\
@@ -1740,8 +1733,7 @@ fn emit_menu_popover(out: &mut String, tokens: &Value, components: &Value) {
         float(number_at("components.menu-popover.item-padding-x")),
         float(number_at("components.menu-popover.item-gap")),
         float(number_at("components.menu-popover.check")),
-        float(number_at("components.menu-popover.check-column")),
-        float(number_at("components.menu-popover.icon-column")),
+        float(number_at("components.menu-popover.leading-column")),
         float(number_at("components.menu-popover.swatch-grid-size")),
         float(number_at("components.menu-popover.swatch-grid-dot")),
         float(number_at("components.menu-popover.swatch-grid-gap")),

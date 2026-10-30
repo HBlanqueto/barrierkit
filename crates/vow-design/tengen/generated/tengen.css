@@ -322,13 +322,12 @@
   --list-group-separator-color: var(--line);
   --list-group-separator-inset-left: 14px;
   --menu-popover-check: 12px;
-  --menu-popover-check-column: 12px;
-  --menu-popover-icon-column: 16px;
   --menu-popover-item-gap: 6px;
   --menu-popover-item-height: 26px;
   --menu-popover-item-padding-start: 6px;
   --menu-popover-item-padding-x: 8px;
   --menu-popover-item-radius: var(--radius-sm);
+  --menu-popover-leading-column: 16px;
   --menu-popover-min-width: 180px;
   --menu-popover-padding: 5px;
   --menu-popover-radius: var(--radius-md);
@@ -647,6 +646,7 @@
   --window-toolgroup-flat-button-w: 30px;
   --window-toolgroup-flat-radius: var(--radius-sm);
   --window-toolgroup-height: var(--toolgroup-h);
+  --window-toolgroup-icon: 16px;
   --window-toolgroup-ink: var(--ink-strong);
   --window-toolgroup-padding-x: 3px;
   --window-toolgroup-separator: var(--line);

@@ -1,7 +1,7 @@
 {
   "name": "tengen-components",
   "description": "Medidas y estados de los componentes aprobados. Cada implementación (Slint, GTK, QML, web) debe respetar estos números; los colores son nombres de tokens de tokens.json.",
-  "updated": "2026-10-24",
+  "updated": "2026-10-29",
   "components": {
     "button": {
       "height": 30,
@@ -552,8 +552,7 @@
       "item-padding-x": 8,
       "item-gap": 6,
       "check": 12,
-      "check-column": 12,
-      "icon-column": 16,
+      "leading-column": 16,
       "swatch-grid-size": 16,
       "swatch-grid-dot": 4,
       "swatch-grid-gap": 2,

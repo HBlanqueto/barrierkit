@@ -186,8 +186,7 @@ pub fn apply_popover_metrics(mut palette: MenuPalette) -> MenuPalette {
     palette.item_height = vow_design::MENU_POPOVER.item_height;
     palette.item_radius = vow_design::MENU_POPOVER.item_radius;
     palette.item_padding_x = vow_design::MENU_POPOVER.item_padding_start;
-    palette.mark_width = vow_design::MENU_POPOVER.check_column;
-    palette.icon_width = vow_design::MENU_POPOVER.icon_column;
+    palette.leading_width = vow_design::MENU_POPOVER.leading_column;
     palette.mark_check = vow_design::MENU_POPOVER.check;
     palette.separator_margin_y = vow_design::MENU_POPOVER.separator_margin;
     palette
