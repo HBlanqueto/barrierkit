@@ -172,14 +172,16 @@ barrier-kit/src/
 
   ```
   shell/
-    mod.rs             punto de entrada, solo existe con la feature
-    layer.rs           superficies layer-shell (run_layer, Anchors, Layer…)
+    mod.rs             punto de entrada, solo existe con la feature; fachada pública
+    layer.rs           superficies layer-shell (run_layer, Anchors, Layer, LayerSpec…)
     lock.rs            ext-session-lock (run_lock, SessionUnlock)
     toplevels.rs       foreign-toplevel: lista y control de ventanas para el Dock
     infinity.rs        protocolo privado de colocación de ventanas
     menus.rs           direcciones de los menús globales de otras apps (GTK y dbusmenu) para la barra de menús
     activation.rs      tokens xdg-activation para lanzar apps desde el Dock
   ```
+
+- Los submódulos de `shell/` son privados (`mod activation;`, `mod infinity;`…); la API pública sale únicamente de `mod.rs` mediante `pub use`. Las vistas de la shell importan `barrier_kit::shell::{LayerSpec, run_layer, …}`, no los archivos internos.
 
 - La carpeta solo se compila con la feature `shell` (`#[cfg(feature = "shell")] pub mod shell;`). `malaysia-shell` la activa en su `Cargo.toml`; Ajustes, Master Tengen App Show y cualquier app nueva no. Para ellas `barrier_kit::shell` no existe: ni lo compilan ni pueden llamarlo por error.
 - **Dirección de las dependencias:** `shell/` usa `platform/`, pero `platform/` no sabe nada de `shell/`. El runner expone puntos de extensión (ver «Puntos de extensión» más abajo), y `shell/` se engancha a ellos. Ningún `#[cfg(feature = "shell")]` suelto dentro de `platform/`, salvo la línea que registra el módulo.
@@ -194,7 +196,7 @@ Publicar el menú propio de una app (`app_menu_export.rs`, `AppMenuAddress`) es 
 - `SurfaceRole::Extension(Box<dyn ExtensionRole>)` sustituye a `Layer` y `Lock`; `ExtensionRole::parent_popup` permite que una superficie layer sea padre de un `xdg_popup`.
 - `seat_handle` es de la plataforma (mover, redimensionar, grab de popups).
 - `run_window` no instala extensión; `run_layer` y `run_lock` instalan `ShellState`.
-- En el lote 1B-2, `SurfaceSpec` se sustituye por `shell::LayerSpec` y los archivos de la shell pasan a `src/shell/` con la feature `shell`.
+- En el lote 1B-2 se completó: los archivos de la shell se movieron a `src/shell/` bajo la feature `shell`, los submódulos pasaron a ser privados detrás de una fachada de re-exports, `SurfaceSpec` se eliminó y `run_layer` recibe ahora `shell::LayerSpec` (las variantes `Lock` y `Window` desaparecieron porque `run_lock` y `run_window` tienen sus propias firmas), y la app del componente se instala en `ShellState::install` en lugar de `Runtime::app`.
 
 Los únicos consumidores son `malaysia-shell` y `malaysia-settings`, así que la API puede romperse entre fases sin capa de compatibilidad.
 
