@@ -26,7 +26,7 @@ use sctk::{
         touch::TouchHandler,
     },
 };
-use std::{rc::Rc, time::Duration};
+use std::time::Duration;
 use torin::prelude::CursorPoint;
 
 use super::super::{runtime::Runtime, surface::physical_point};
@@ -121,15 +121,9 @@ impl SeatHandler for Runtime {
 
     fn new_seat(&mut self, _: &Connection, _: &QueueHandle<Self>, seat: wl_seat::WlSeat) {
         self.seat_handle = Some(seat.clone());
-        let entries = self.toplevel_entries.clone();
-        let seat = seat.clone();
-        *self.toplevels.activate.borrow_mut() = Some(Rc::new(move |index| {
-            if let Some(entry) = entries.borrow().get(index)
-                && let Some(mgmt) = &entry.mgmt
-            {
-                mgmt.activate(&seat);
-            }
-        }));
+        if let Some(hooks) = self.extension_hooks() {
+            (hooks.new_seat)(self, &seat);
+        }
     }
 
     fn new_capability(

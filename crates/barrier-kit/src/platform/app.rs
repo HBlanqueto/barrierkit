@@ -24,11 +24,8 @@ use torin::prelude::Size2D;
 use vow_appearance::Resolved;
 
 use super::{
-    activation::Activation,
-    lock::SessionUnlock,
     popup::{PopupHandle, Popups},
     timer::Timers,
-    toplevels::Toplevels,
     window::{MenuActionHandler, WindowControls},
 };
 
@@ -65,9 +62,6 @@ impl AppInstance {
         size: (u32, u32),
         sender: Rc<dyn Fn(UserEvent)>,
         waker: Waker,
-        toplevels: Option<Toplevels>,
-        session_unlock: Option<SessionUnlock>,
-        activation: Activation,
         window: Option<WindowControls>,
         timers: Timers,
         popups: Popups,
@@ -77,6 +71,7 @@ impl AppInstance {
         menu: Option<crate::app_menu::AppMenu>,
         on_menu_action: Option<MenuActionHandler>,
         resolved: State<Resolved>,
+        extra_contexts: impl FnOnce(&mut Runner),
     ) -> Self {
         let (events_sender, events_receiver) = futures_channel::mpsc::unbounded();
         let mut runner = Runner::new(move || integration(app.clone()).into_element());
@@ -106,13 +101,7 @@ impl AppInstance {
             }
         });
 
-        if let Some(toplevels) = toplevels {
-            runner.provide_root_context(move || toplevels);
-        }
-        if let Some(unlock) = session_unlock {
-            runner.provide_root_context(move || unlock);
-        }
-        runner.provide_root_context(move || activation);
+        extra_contexts(&mut runner);
         if let Some(window) = window {
             runner.provide_root_context(move || window);
         }

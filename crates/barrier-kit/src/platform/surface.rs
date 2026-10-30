@@ -1,3 +1,5 @@
+use std::{any::Any, fmt::Debug, rc::Rc};
+
 use freya_core::{integration::RenderPipeline, prelude::Color};
 use sctk::{
     compositor::CompositorHandler,
@@ -12,18 +14,14 @@ use sctk::{
             wp_fractional_scale_v1::{Event as FractionalScaleEvent, WpFractionalScaleV1},
         },
         protocols::wp::viewporter::client::{wp_viewport::WpViewport, wp_viewporter::WpViewporter},
+        protocols::xdg::shell::client::xdg_popup::XdgPopup,
     },
-    session_lock::SessionLockSurface,
-    shell::{
-        wlr_layer::LayerSurface,
-        xdg::{
-            XdgSurface,
-            popup::Popup,
-            window::{Window, WindowConfigure},
-        },
+    shell::xdg::{
+        XdgSurface,
+        popup::Popup,
+        window::{Window, WindowConfigure},
     },
 };
-use std::rc::Rc;
 use torin::prelude::CursorPoint;
 use wayland_protocols_plasma::appmenu::client::org_kde_kwin_appmenu::OrgKdeKwinAppmenu;
 
@@ -60,14 +58,41 @@ pub(super) struct SurfaceWindow {
     pub(super) viewport: Option<WpViewport>,
 }
 
-#[allow(dead_code)]
+/// A surface role provided by an extension (layer-shell, session-lock, etc.).
+pub(crate) trait ExtensionRole: Debug {
+    fn as_any(&self) -> &dyn Any;
+
+    /// Tries to set this role as the implicit parent of an xdg_popup.
+    /// Returns `true` when it knows how to do it.
+    fn parent_popup(&self, _popup: &XdgPopup) -> bool {
+        false
+    }
+}
+
 #[derive(Debug)]
 pub(super) enum SurfaceRole {
-    Layer(LayerSurface),
-    Lock(SessionLockSurface),
+    Extension(Box<dyn ExtensionRole>),
     Window(Window),
     Popup(Popup),
     None,
+}
+
+impl SurfaceRole {
+    /// Tries to set this role as the implicit parent of an xdg_popup.
+    pub(super) fn parent_popup(&self, popup: &XdgPopup) -> bool {
+        match self {
+            SurfaceRole::Extension(role) => role.parent_popup(popup),
+            _ => false,
+        }
+    }
+
+    /// Downcasts the extension role to a concrete type.
+    pub(super) fn as_extension_role<T: 'static>(&self) -> Option<&T> {
+        match self {
+            SurfaceRole::Extension(role) => role.as_any().downcast_ref::<T>(),
+            _ => None,
+        }
+    }
 }
 
 impl SurfaceWindow {

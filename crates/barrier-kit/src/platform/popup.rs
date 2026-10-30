@@ -414,14 +414,14 @@ impl Runtime {
             }
         };
 
-        // If the parent is a layer surface, use get_popup to set it as the
-        // implicit parent (an xdg_popup cannot have a layer surface as its
-        // direct xdg parent).
+        // If the parent role knows how to adopt an xdg_popup, let it do so.
+        // This is how layer-shell surfaces become implicit parents.
         if parent.is_none()
-            && let SurfaceRole::Layer(layer_surface) = &self.surfaces[owner_index].role
+            && self.surfaces[owner_index]
+                .role
+                .parent_popup(popup.xdg_popup())
         {
-            layer_surface.get_popup(popup.xdg_popup());
-            // `get_popup` takes effect when the parent layer surface commits.
+            // `parent_popup` takes effect when the parent surface commits.
             self.surfaces[owner_index].surface.commit();
         }
 
@@ -455,9 +455,6 @@ impl Runtime {
             spec.size,
             sender,
             waker,
-            Some(self.toplevels.clone()),
-            None,
-            self.activation.clone(),
             None,
             Timers {
                 queue: self.timers.clone(),
@@ -471,6 +468,11 @@ impl Runtime {
             None,
             None,
             self.resolved,
+            |r| {
+                if let Some(hooks) = self.extension_hooks() {
+                    (hooks.provide_contexts)(self, r);
+                }
+            },
         );
 
         let (fractional, viewport) = self.create_fractional(&wl_surface);

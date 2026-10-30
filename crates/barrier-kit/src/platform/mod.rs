@@ -14,6 +14,7 @@ mod activation;
 mod app;
 mod app_menu_export;
 mod egl;
+mod extension;
 mod foreign_menus;
 mod infinity;
 mod input;
@@ -21,6 +22,7 @@ mod layer;
 mod lock;
 mod popup;
 mod runtime;
+mod shell_state;
 mod surface;
 #[cfg(test)]
 mod tests;

@@ -13,11 +13,12 @@ use sctk::{
 use std::{cell::Cell, rc::Rc, sync::Arc};
 
 use super::{
-    RunError, SurfaceSpec,
+    RunError,
     app::AppInstance,
     popup::Popups,
-    runtime::{Runtime, insert_ping, make_sender},
-    surface::{SurfaceRole, SurfaceWindow},
+    runtime::{Connected, Runtime, insert_ping, make_sender},
+    shell_state::ShellState,
+    surface::{ExtensionRole, SurfaceRole, SurfaceWindow},
     timer::{PingWake, Timers},
 };
 
@@ -39,39 +40,58 @@ impl SessionUnlock {
 
 /// Runs the session lock: one Freya surface per output.
 pub fn run_lock(app: AppComponent) -> Result<(), RunError> {
-    let (conn, event_queue, qh, mut shell) = Runtime::connect(app, SurfaceSpec::Lock)?;
-    shell.qh = qh.clone();
-    let session_lock_state = shell
-        .session_lock
-        .as_ref()
-        .ok_or(RunError::MissingGlobal("ext_session_lock_manager_v1"))?;
-    let lock = session_lock_state
-        .lock(&qh)
-        .map_err(|_| RunError::MissingGlobal("ext_session_lock_manager_v1 (lock refused)"))?;
-    shell.active_lock = Some(lock);
+    let Connected {
+        conn,
+        event_queue,
+        mut runtime,
+        globals,
+    } = Runtime::connect(app)?;
+    let qh = runtime.qh.clone();
+    ShellState::install(&mut runtime, &globals, &qh, true);
+    let lock = {
+        let session_lock_state = runtime
+            .extension::<ShellState>()
+            .expect("ShellState not installed after install")
+            .session_lock
+            .as_ref()
+            .ok_or(RunError::MissingGlobal("ext_session_lock_manager_v1"))?;
+        session_lock_state
+            .lock(&qh)
+            .map_err(|_| RunError::MissingGlobal("ext_session_lock_manager_v1 (lock refused)"))?
+    };
+    let unlock_lock = lock.clone();
+    {
+        let shell = runtime
+            .extension_mut::<ShellState>()
+            .expect("ShellState not installed after install");
+        shell.active_lock = Some(lock);
+    }
 
     let mut event_loop: EventLoop<Runtime> = EventLoop::try_new()
         .map_err(|_| RunError::EventLoop("calloop EventLoop::try_new failed"))?;
-    insert_ping(&mut event_loop, &mut shell)?;
+    insert_ping(&mut event_loop, &mut runtime)?;
     let flush_conn = conn.clone();
     WaylandSource::new(conn, event_queue)
         .insert(event_loop.handle())
         .map_err(|_| RunError::EventLoop("inserting the Wayland source"))?;
     let signal = event_loop.get_signal();
-    shell.loop_signal = Some(signal.clone());
-    if let Some(lock) = shell.active_lock.clone() {
+    runtime.loop_signal = Some(signal.clone());
+    {
+        let shell = runtime
+            .extension_mut::<ShellState>()
+            .expect("ShellState not installed");
         shell.session_unlock = Some(SessionUnlock {
             unlock: Rc::new(move || {
-                lock.unlock();
+                unlock_lock.unlock();
                 let _ = flush_conn.flush();
                 signal.stop();
             }),
         });
     }
     event_loop
-        .run(None, &mut shell, |shell| {
-            if shell.needs_exit
-                && let Some(signal) = &shell.loop_signal
+        .run(None, &mut runtime, |runtime| {
+            if runtime.needs_exit
+                && let Some(signal) = &runtime.loop_signal
             {
                 signal.stop();
             }
@@ -89,7 +109,11 @@ impl Runtime {
         if self.surfaces.iter().any(|s| s.output == Some(output.id())) {
             return None;
         }
-        let lock = self.active_lock.as_ref()?;
+        let lock = self
+            .extension::<ShellState>()
+            .expect("create_lock_surface called without ShellState")
+            .active_lock
+            .clone()?;
         let surface = self.compositor.create_surface(qh);
         let lock_surface = lock.create_lock_surface(surface.clone(), output, qh);
         let waker = futures_util::task::waker(Arc::new(PingWake(self.ping.clone())));
@@ -110,9 +134,6 @@ impl Runtime {
             (1, 1),
             sender,
             waker,
-            Some(self.toplevels.clone()),
-            self.session_unlock.clone(),
-            self.activation.clone(),
             None,
             Timers {
                 queue: self.timers.clone(),
@@ -126,11 +147,16 @@ impl Runtime {
             None,
             None,
             self.resolved,
+            |r| {
+                if let Some(hooks) = self.extension_hooks() {
+                    (hooks.provide_contexts)(self, r);
+                }
+            },
         );
         let (fractional, viewport) = self.create_fractional(&surface);
         self.surfaces.push(SurfaceWindow {
             surface,
-            role: SurfaceRole::Lock(lock_surface),
+            role: SurfaceRole::Extension(Box::new(lock_surface)),
             popup: None,
             shared: self.graphics.clone(),
             graphics: None,
@@ -157,8 +183,13 @@ impl Runtime {
 
 impl SessionLockHandler for Runtime {
     fn locked(&mut self, _: &Connection, qh: &QueueHandle<Self>, session_lock: SessionLock) {
-        self.active_lock = Some(session_lock);
-        self.session_locked = true;
+        {
+            let shell = self
+                .extension_mut::<ShellState>()
+                .expect("session_lock locked event without ShellState");
+            shell.active_lock = Some(session_lock);
+            shell.session_locked = true;
+        }
         let outputs: Vec<wl_output::WlOutput> = self.output.outputs().collect();
         for output in outputs {
             self.create_lock_surface(qh, &output);
@@ -166,7 +197,10 @@ impl SessionLockHandler for Runtime {
     }
 
     fn finished(&mut self, _: &Connection, _: &QueueHandle<Self>, _: SessionLock) {
-        self.session_locked = false;
+        let shell = self
+            .extension_mut::<ShellState>()
+            .expect("session_lock finished event without ShellState");
+        shell.session_locked = false;
         eprintln!("malaysia-shell lock: the compositor refused the session lock");
         std::process::exit(1);
     }
@@ -186,6 +220,12 @@ impl SessionLockHandler for Runtime {
         let scale = self.surfaces[index].scale;
         self.surfaces[index].configure(configure.new_size, scale);
         self.surfaces[index].request_redraw(qh);
+    }
+}
+
+impl ExtensionRole for SessionLockSurface {
+    fn as_any(&self) -> &dyn std::any::Any {
+        self
     }
 }
 

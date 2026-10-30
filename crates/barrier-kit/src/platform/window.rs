@@ -22,10 +22,10 @@ use std::{
 use wayland_protocols_plasma::appmenu::client::org_kde_kwin_appmenu::OrgKdeKwinAppmenu;
 
 use super::{
-    RunError, SurfaceSpec,
+    RunError,
     app::AppInstance,
     popup::Popups,
-    runtime::{Runtime, WindowContext, insert_ping, make_sender},
+    runtime::{Connected, Runtime, WindowContext, insert_ping, make_sender},
     surface::{SurfaceRole, SurfaceWindow},
     timer::{PingWake, Timers, WakeHandle},
 };
@@ -271,9 +271,12 @@ pub(super) fn clamp_toplevel_size_dimension(value: u32) -> u32 {
 }
 /// Runs a normal BarrierKit window (`xdg_toplevel`, ADR 0035).
 pub fn run_window(app: AppComponent, options: WindowOptions) -> Result<(), RunError> {
-    let (conn, event_queue, qh, mut shell) =
-        Runtime::connect(app.clone(), SurfaceSpec::Window(options.clone()))?;
-    shell.qh = qh.clone();
+    let Connected {
+        conn,
+        event_queue,
+        runtime: mut shell,
+        globals: _,
+    } = Runtime::connect(app.clone())?;
     shell
         .create_window(app, options)
         .ok_or(RunError::MissingGlobal("xdg_wm_base"))?;
@@ -427,9 +430,6 @@ impl Runtime {
             options.size,
             sender,
             waker,
-            Some(self.toplevels.clone()),
-            None,
-            self.activation.clone(),
             Some(controls.clone()),
             Timers {
                 queue: self.timers.clone(),
@@ -443,6 +443,11 @@ impl Runtime {
             options.menu.clone(),
             options.on_menu_action.clone(),
             self.resolved,
+            |r| {
+                if let Some(hooks) = self.extension_hooks() {
+                    (hooks.provide_contexts)(self, r);
+                }
+            },
         );
         let (fractional, viewport) = self.create_fractional(&surface);
         self.surfaces.push(SurfaceWindow {

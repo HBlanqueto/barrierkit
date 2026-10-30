@@ -18,7 +18,10 @@ use sctk::reexports::{
 };
 use std::{cell::RefCell, rc::Rc};
 
-use super::{app_menu_export::AppMenuAddress, foreign_menus::GtkMenusAddress, runtime::Runtime};
+use super::{
+    app_menu_export::AppMenuAddress, foreign_menus::GtkMenusAddress, runtime::Runtime,
+    shell_state::ShellState,
+};
 
 /// One running toplevel, as the dock lists it.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
@@ -185,8 +188,9 @@ impl Toplevels {
     }
 }
 
-impl Runtime {
-    pub(super) fn sync_toplevels(&mut self) {
+impl ShellState {
+    /// Publishes the current toplevel list and returns whether it changed.
+    pub(crate) fn sync_toplevels(&mut self) -> bool {
         let infos: Vec<ToplevelInfo> = self
             .toplevel_entries
             .borrow()
@@ -197,9 +201,24 @@ impl Runtime {
                 info
             })
             .collect();
-        let mut list = self.toplevels.list;
-        if *list.peek() != infos {
-            list.set(infos);
+        if *self.toplevels.list.peek() != infos {
+            self.toplevels.list.set(infos);
+            true
+        } else {
+            false
+        }
+    }
+}
+
+impl Runtime {
+    /// Recomputes the published toplevel list and requests a redraw when it
+    /// changed.
+    pub(super) fn sync_toplevels(&mut self) {
+        let changed = self
+            .extension_mut::<ShellState>()
+            .expect("sync_toplevels called without ShellState")
+            .sync_toplevels();
+        if changed {
             self.request_redraw_all = true;
             self.ping.ping();
         }
@@ -215,17 +234,22 @@ impl Dispatch<ExtForeignToplevelListV1, (), Runtime> for Runtime {
         _: &Connection,
         _: &QueueHandle<Self>,
     ) {
-        if let FtlListEvent::Toplevel { toplevel } = event
-            && state._foreign_mgmt.is_none()
         {
-            state.toplevel_entries.borrow_mut().push(ToplevelEntry {
-                list: Some(toplevel),
-                mgmt: None,
-                restorable: false,
-                info: ToplevelInfo::default(),
-            });
-            state.sync_toplevels();
+            let shell = state
+                .extension_mut::<ShellState>()
+                .expect("ext_foreign_toplevel_list event without ShellState");
+            if let FtlListEvent::Toplevel { toplevel } = event
+                && shell.foreign_mgmt.is_none()
+            {
+                shell.toplevel_entries.borrow_mut().push(ToplevelEntry {
+                    list: Some(toplevel),
+                    mgmt: None,
+                    restorable: false,
+                    info: ToplevelInfo::default(),
+                });
+            }
         }
+        state.sync_toplevels();
     }
 
     event_created_child!(Runtime, ExtForeignToplevelListV1, [
@@ -242,36 +266,40 @@ impl Dispatch<ExtForeignToplevelHandleV1, (), Runtime> for Runtime {
         _: &Connection,
         _: &QueueHandle<Self>,
     ) {
-        if state._foreign_mgmt.is_some() {
-            return;
-        }
-        if matches!(event, FtlHandleEvent::Closed) {
-            state.toplevel_entries.borrow_mut().retain(|entry| {
-                entry
-                    .list
-                    .as_ref()
-                    .is_none_or(|list| list.id() != handle.id())
-            });
-            state.sync_toplevels();
-            return;
-        }
-        let mut entries = state.toplevel_entries.borrow_mut();
-        let index = entries
-            .iter()
-            .position(|e| e.list.as_ref().is_some_and(|list| list.id() == handle.id()));
-        if let Some(index) = index {
-            let mut infos: Vec<ToplevelInfo> = entries.iter().map(|e| e.info.clone()).collect();
-            let info_event = match event {
-                FtlHandleEvent::Title { title } => Some(InfoEvent::Title(title)),
-                FtlHandleEvent::AppId { app_id } => Some(InfoEvent::AppId(app_id)),
-                _ => None,
-            };
-            if let Some(info_event) = info_event {
-                apply_info_event(&mut infos, index, info_event);
-                entries[index].info = infos[index].clone();
+        {
+            let shell = state
+                .extension_mut::<ShellState>()
+                .expect("ext_foreign_toplevel_handle event without ShellState");
+            if shell.foreign_mgmt.is_some() {
+                return;
+            }
+            if matches!(event, FtlHandleEvent::Closed) {
+                shell.toplevel_entries.borrow_mut().retain(|entry| {
+                    entry
+                        .list
+                        .as_ref()
+                        .is_none_or(|list| list.id() != handle.id())
+                });
+            } else {
+                let mut entries = shell.toplevel_entries.borrow_mut();
+                let index = entries
+                    .iter()
+                    .position(|e| e.list.as_ref().is_some_and(|list| list.id() == handle.id()));
+                if let Some(index) = index {
+                    let mut infos: Vec<ToplevelInfo> =
+                        entries.iter().map(|e| e.info.clone()).collect();
+                    let info_event = match event {
+                        FtlHandleEvent::Title { title } => Some(InfoEvent::Title(title)),
+                        FtlHandleEvent::AppId { app_id } => Some(InfoEvent::AppId(app_id)),
+                        _ => None,
+                    };
+                    if let Some(info_event) = info_event {
+                        apply_info_event(&mut infos, index, info_event);
+                        entries[index].info = infos[index].clone();
+                    }
+                }
             }
         }
-        drop(entries);
         state.sync_toplevels();
     }
 }
@@ -285,15 +313,20 @@ impl Dispatch<ZwlrForeignToplevelManagerV1, (), Runtime> for Runtime {
         _: &Connection,
         _: &QueueHandle<Self>,
     ) {
-        if let MgmtListEvent::Toplevel { toplevel } = event {
-            state.toplevel_entries.borrow_mut().push(ToplevelEntry {
-                list: None,
-                mgmt: Some(toplevel),
-                restorable: false,
-                info: ToplevelInfo::default(),
-            });
-            state.sync_toplevels();
+        {
+            let shell = state
+                .extension_mut::<ShellState>()
+                .expect("zwlr_foreign_toplevel_manager event without ShellState");
+            if let MgmtListEvent::Toplevel { toplevel } = event {
+                shell.toplevel_entries.borrow_mut().push(ToplevelEntry {
+                    list: None,
+                    mgmt: Some(toplevel),
+                    restorable: false,
+                    info: ToplevelInfo::default(),
+                });
+            }
         }
+        state.sync_toplevels();
     }
 
     event_created_child!(Runtime, ZwlrForeignToplevelManagerV1, [
@@ -310,37 +343,49 @@ impl Dispatch<ZwlrForeignToplevelHandleV1, (), Runtime> for Runtime {
         _: &Connection,
         _: &QueueHandle<Self>,
     ) {
-        let mut entries = state.toplevel_entries.borrow_mut();
-        let index = entries
-            .iter()
-            .position(|e| e.mgmt.as_ref().is_some_and(|mgmt| mgmt.id() == handle.id()));
-        let Some(index) = index else {
-            return;
-        };
-        if matches!(event, ZwlrForeignToplevelHandleV1Event::Closed) {
-            let mut infos: Vec<ToplevelInfo> = entries.iter().map(|e| e.info.clone()).collect();
-            apply_info_event(&mut infos, index, InfoEvent::Closed);
-            entries.remove(index);
-            drop(entries);
-            state.sync_toplevels();
-            return;
+        {
+            let shell = state
+                .extension_mut::<ShellState>()
+                .expect("zwlr_foreign_toplevel_handle event without ShellState");
+            let mut entries = shell.toplevel_entries.borrow_mut();
+            let index = entries
+                .iter()
+                .position(|e| e.mgmt.as_ref().is_some_and(|mgmt| mgmt.id() == handle.id()));
+            if let Some(index) = index {
+                if matches!(event, ZwlrForeignToplevelHandleV1Event::Closed) {
+                    let mut infos: Vec<ToplevelInfo> =
+                        entries.iter().map(|e| e.info.clone()).collect();
+                    apply_info_event(&mut infos, index, InfoEvent::Closed);
+                    entries.remove(index);
+                } else {
+                    let info_event = match event {
+                        ZwlrForeignToplevelHandleV1Event::Title { title } => {
+                            Some(InfoEvent::Title(title))
+                        }
+                        ZwlrForeignToplevelHandleV1Event::AppId { app_id } => {
+                            Some(InfoEvent::AppId(app_id))
+                        }
+                        ZwlrForeignToplevelHandleV1Event::State { state } => {
+                            Some(InfoEvent::State {
+                                active: state
+                                    .contains(&(ZwlrForeignToplevelHandleV1State::Activated as u8)),
+                                maximized: state
+                                    .contains(&(ZwlrForeignToplevelHandleV1State::Maximized as u8)),
+                                minimized: state
+                                    .contains(&(ZwlrForeignToplevelHandleV1State::Minimized as u8)),
+                            })
+                        }
+                        _ => None,
+                    };
+                    if let Some(info_event) = info_event {
+                        let mut infos: Vec<ToplevelInfo> =
+                            entries.iter().map(|e| e.info.clone()).collect();
+                        apply_info_event(&mut infos, index, info_event);
+                        entries[index].info = infos[index].clone();
+                    }
+                }
+            }
         }
-        let info_event = match event {
-            ZwlrForeignToplevelHandleV1Event::Title { title } => Some(InfoEvent::Title(title)),
-            ZwlrForeignToplevelHandleV1Event::AppId { app_id } => Some(InfoEvent::AppId(app_id)),
-            ZwlrForeignToplevelHandleV1Event::State { state } => Some(InfoEvent::State {
-                active: state.contains(&(ZwlrForeignToplevelHandleV1State::Activated as u8)),
-                maximized: state.contains(&(ZwlrForeignToplevelHandleV1State::Maximized as u8)),
-                minimized: state.contains(&(ZwlrForeignToplevelHandleV1State::Minimized as u8)),
-            }),
-            _ => None,
-        };
-        if let Some(info_event) = info_event {
-            let mut infos: Vec<ToplevelInfo> = entries.iter().map(|e| e.info.clone()).collect();
-            apply_info_event(&mut infos, index, info_event);
-            entries[index].info = infos[index].clone();
-        }
-        drop(entries);
         state.sync_toplevels();
     }
 }

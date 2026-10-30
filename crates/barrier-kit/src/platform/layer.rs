@@ -4,6 +4,7 @@ use sctk::{
         calloop::EventLoop,
         calloop_wayland_source::WaylandSource,
         client::{Connection, Proxy, QueueHandle, delegate_dispatch},
+        protocols::xdg::shell::client::xdg_popup::XdgPopup,
         protocols_wlr::layer_shell::v1::client::{zwlr_layer_shell_v1, zwlr_layer_surface_v1},
     },
     shell::wlr_layer::{
@@ -18,8 +19,9 @@ use super::{
     RunError, SurfaceSpec,
     app::AppInstance,
     popup::Popups,
-    runtime::{Runtime, insert_ping, make_sender},
-    surface::{SurfaceRole, SurfaceWindow},
+    runtime::{Connected, Runtime, insert_ping, make_sender},
+    shell_state::ShellState,
+    surface::{ExtensionRole, SurfaceRole, SurfaceWindow},
     timer::{PingWake, Timers},
 };
 
@@ -91,16 +93,7 @@ pub(super) fn anchors_to_sctk(a: Anchors) -> SctkAnchor {
 
 /// Runs a layer-shell surface with a Freya app until the compositor closes it.
 pub fn run_layer(app: AppComponent, spec: SurfaceSpec) -> Result<(), RunError> {
-    let (conn, event_queue, qh, mut shell) = Runtime::connect(app, spec)?;
-    shell.qh = qh.clone();
-    let layer_shell = shell.layer_shell.as_ref().ok_or_else(|| {
-        tracing::info!(
-            "zwlr_layer_shell_v1 no disponible; las superficies Layer no funcionan aquí"
-        );
-        RunError::MissingGlobal("zwlr_layer_shell_v1")
-    })?;
-
-    let (namespace, layer, anchors, exclusive_zone, keyboard, size) = match &shell.spec {
+    let (namespace, layer, anchors, exclusive_zone, keyboard, size) = match &spec {
         SurfaceSpec::Layer {
             namespace,
             layer,
@@ -121,19 +114,40 @@ pub fn run_layer(app: AppComponent, spec: SurfaceSpec) -> Result<(), RunError> {
         }
     };
 
+    let Connected {
+        conn,
+        event_queue,
+        runtime: mut shell,
+        globals,
+    } = Runtime::connect(app)?;
+    let qh = shell.qh.clone();
+    ShellState::install(&mut shell, &globals, &qh, false);
     let surface = shell.compositor.create_surface(&qh);
-    let layer_surface = layer_shell.create_layer_surface(
-        &qh,
-        surface.clone(),
-        match layer {
-            Layer::Background => SctkLayer::Background,
-            Layer::Bottom => SctkLayer::Bottom,
-            Layer::Top => SctkLayer::Top,
-            Layer::Overlay => SctkLayer::Overlay,
-        },
-        Some(&namespace),
-        None,
-    );
+    let layer_surface = {
+        let layer_shell = shell
+            .extension::<ShellState>()
+            .expect("ShellState not installed after install")
+            .layer_shell
+            .as_ref()
+            .ok_or_else(|| {
+                tracing::info!(
+                    "zwlr_layer_shell_v1 no disponible; las superficies Layer no funcionan aquí"
+                );
+                RunError::MissingGlobal("zwlr_layer_shell_v1")
+            })?;
+        layer_shell.create_layer_surface(
+            &qh,
+            surface.clone(),
+            match layer {
+                Layer::Background => SctkLayer::Background,
+                Layer::Bottom => SctkLayer::Bottom,
+                Layer::Top => SctkLayer::Top,
+                Layer::Overlay => SctkLayer::Overlay,
+            },
+            Some(&namespace),
+            None,
+        )
+    };
     layer_surface.set_anchor(anchors_to_sctk(anchors));
     layer_surface.set_exclusive_zone(exclusive_zone);
     layer_surface.set_keyboard_interactivity(match keyboard {
@@ -164,9 +178,6 @@ pub fn run_layer(app: AppComponent, spec: SurfaceSpec) -> Result<(), RunError> {
         size.unwrap_or((1, 1)),
         sender,
         waker,
-        Some(shell.toplevels.clone()),
-        None,
-        shell.activation.clone(),
         None,
         Timers {
             queue: shell.timers.clone(),
@@ -180,11 +191,16 @@ pub fn run_layer(app: AppComponent, spec: SurfaceSpec) -> Result<(), RunError> {
         None,
         None,
         shell.resolved,
+        |r| {
+            if let Some(hooks) = shell.extension_hooks() {
+                (hooks.provide_contexts)(&shell, r);
+            }
+        },
     );
     let (fractional, viewport) = shell.create_fractional(&surface);
     shell.surfaces.push(SurfaceWindow {
         surface: surface.clone(),
-        role: SurfaceRole::Layer(layer_surface),
+        role: SurfaceRole::Extension(Box::new(layer_surface)),
         popup: None,
         shared: shell.graphics.clone(),
         graphics: None,
@@ -239,14 +255,27 @@ impl LayerShellHandler for Runtime {
         configure: LayerSurfaceConfigure,
         _serial: u32,
     ) {
-        let Some(index) = self.surfaces.iter().position(
-            |s| matches!(&s.role, SurfaceRole::Layer(existing) if existing == layer_surface),
-        ) else {
+        let Some(index) = self.surfaces.iter().position(|s| {
+            s.role
+                .as_extension_role::<LayerSurface>()
+                .is_some_and(|existing| existing == layer_surface)
+        }) else {
             return;
         };
         let scale = self.surfaces[index].scale;
         self.surfaces[index].configure(configure.new_size, scale);
         self.surfaces[index].request_redraw(qh);
+    }
+}
+
+impl ExtensionRole for LayerSurface {
+    fn as_any(&self) -> &dyn std::any::Any {
+        self
+    }
+
+    fn parent_popup(&self, popup: &XdgPopup) -> bool {
+        self.get_popup(popup);
+        true
     }
 }
 

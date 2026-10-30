@@ -9,6 +9,7 @@ use super::{
     app_menu_export::AppMenuAddress,
     foreign_menus::GtkMenusAddress,
     runtime::Runtime,
+    shell_state::ShellState,
     toplevels::{InfoEvent, update_toplevel_info},
 };
 
@@ -31,62 +32,67 @@ impl Dispatch<InfinityWindowManagerV1, ()> for Runtime {
         _: &QueueHandle<Self>,
     ) {
         use self::protocol::infinity_window_manager_v1::Event;
-        match event {
-            Event::Restorable { handle, restorable } => {
-                let restorable = restorable != 0;
-                for entry in state.toplevel_entries.borrow_mut().iter_mut() {
-                    if entry
-                        .mgmt
-                        .as_ref()
-                        .is_some_and(|mgmt| mgmt.id() == handle.id())
-                    {
-                        entry.restorable = restorable;
-                        break;
+        {
+            let shell = state
+                .extension_mut::<ShellState>()
+                .expect("infinity_window_manager event without ShellState");
+            match event {
+                Event::Restorable { handle, restorable } => {
+                    let restorable = restorable != 0;
+                    for entry in shell.toplevel_entries.borrow_mut().iter_mut() {
+                        if entry
+                            .mgmt
+                            .as_ref()
+                            .is_some_and(|mgmt| mgmt.id() == handle.id())
+                        {
+                            entry.restorable = restorable;
+                            break;
+                        }
                     }
                 }
-            }
-            Event::AppMenu {
-                toplevel,
-                service,
-                path,
-            } => {
-                let address = if service.is_empty() || path.is_empty() {
-                    None
-                } else {
-                    Some(AppMenuAddress { service, path })
-                };
-                update_toplevel_info(
-                    &mut state.toplevel_entries.borrow_mut(),
-                    &toplevel,
-                    InfoEvent::AppMenu(address),
-                );
-            }
-            Event::GtkMenus {
-                toplevel,
-                unique_bus_name,
-                application_id,
-                menubar_path,
-                app_menu_path,
-                application_object_path,
-                window_object_path,
-            } => {
-                let address = GtkMenusAddress::new(
+                Event::AppMenu {
+                    toplevel,
+                    service,
+                    path,
+                } => {
+                    let address = if service.is_empty() || path.is_empty() {
+                        None
+                    } else {
+                        Some(AppMenuAddress { service, path })
+                    };
+                    update_toplevel_info(
+                        &mut shell.toplevel_entries.borrow_mut(),
+                        &toplevel,
+                        InfoEvent::AppMenu(address),
+                    );
+                }
+                Event::GtkMenus {
+                    toplevel,
                     unique_bus_name,
                     application_id,
                     menubar_path,
                     app_menu_path,
                     application_object_path,
                     window_object_path,
-                );
-                update_toplevel_info(
-                    &mut state.toplevel_entries.borrow_mut(),
-                    &toplevel,
-                    InfoEvent::GtkMenus(address),
-                );
+                } => {
+                    let address = GtkMenusAddress::new(
+                        unique_bus_name,
+                        application_id,
+                        menubar_path,
+                        app_menu_path,
+                        application_object_path,
+                        window_object_path,
+                    );
+                    update_toplevel_info(
+                        &mut shell.toplevel_entries.borrow_mut(),
+                        &toplevel,
+                        InfoEvent::GtkMenus(address),
+                    );
+                }
+                // shortcut: future Infinity events are ignored; add handlers when
+                // the compositor starts sending them.
+                _ => {}
             }
-            // shortcut: future Infinity events are ignored; add handlers when
-            // the compositor starts sending them.
-            _ => {}
         }
         state.sync_toplevels();
     }

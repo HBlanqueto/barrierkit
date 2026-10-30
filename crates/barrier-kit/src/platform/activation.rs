@@ -1,6 +1,9 @@
 use sctk::reexports::{
     calloop::ping::Ping,
-    client::{Connection, Dispatch, Proxy, QueueHandle},
+    client::{
+        Connection, Dispatch, Proxy, QueueHandle,
+        protocol::{wl_seat, wl_surface},
+    },
     protocols::xdg::activation::v1::client::{
         xdg_activation_token_v1::{self, XdgActivationTokenV1},
         xdg_activation_v1::XdgActivationV1,
@@ -8,7 +11,7 @@ use sctk::reexports::{
 };
 use std::{cell::RefCell, rc::Rc};
 
-use super::runtime::Runtime;
+use super::{runtime::Runtime, shell_state::ShellState};
 
 pub(super) type ActivationCallback = Box<dyn Fn(Option<String>)>;
 pub(super) type ActivationQueue = Rc<RefCell<Vec<ActivationCallback>>>;
@@ -37,29 +40,33 @@ impl Activation {
         self.ping.ping();
     }
 }
-
-impl Runtime {
-    pub(super) fn poll_activation(&mut self) {
+impl ShellState {
+    /// Drains pending activation token requests and asks the compositor for a
+    /// token for the first surface.
+    pub(crate) fn poll_activation(
+        &mut self,
+        seat: Option<&wl_seat::WlSeat>,
+        window: Option<&wl_surface::WlSurface>,
+        serial: u32,
+        qh: &QueueHandle<Runtime>,
+    ) {
         let requests = std::mem::take(&mut *self.activation.queue.borrow_mut());
         for callback in requests {
-            let (Some(global), Some(seat), Some(window)) = (
-                self.activation_global.as_ref(),
-                self.seat_handle.as_ref(),
-                self.surfaces.first(),
-            ) else {
+            let (Some(global), Some(seat), Some(window)) =
+                (self.activation_global.as_ref(), seat, window)
+            else {
                 callback(None);
                 continue;
             };
-            let serial = self.last_input_serial.get();
             if serial == 0 {
                 callback(None);
                 continue;
             }
             let id = self.activation_callbacks.len();
             self.activation_callbacks.push(Some(callback));
-            let token = global.get_activation_token(&self.qh, id);
+            let token = global.get_activation_token(qh, id);
             token.set_serial(serial, seat);
-            token.set_surface(&window.surface);
+            token.set_surface(window);
             token.commit();
         }
     }
@@ -87,7 +94,8 @@ impl Dispatch<XdgActivationTokenV1, usize> for Runtime {
         _: &QueueHandle<Self>,
     ) {
         if let xdg_activation_token_v1::Event::Done { token } = event
-            && let Some(callback) = state
+            && let Some(shell) = state.extension_mut::<ShellState>()
+            && let Some(callback) = shell
                 .activation_callbacks
                 .get_mut(*id)
                 .and_then(Option::take)
