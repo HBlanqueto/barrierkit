@@ -499,12 +499,12 @@ impl Runtime {
                         }
                     }
                     WindowCommand::Move(serial) => {
-                        if let Some(seat) = &self.activation_seat {
+                        if let Some(seat) = &self.seat_handle {
                             window.move_(seat, serial);
                         }
                     }
                     WindowCommand::Resize(serial, edge) => {
-                        if let Some(seat) = &self.activation_seat {
+                        if let Some(seat) = &self.seat_handle {
                             window.resize(seat, serial, resize_edge(edge));
                         }
                     }

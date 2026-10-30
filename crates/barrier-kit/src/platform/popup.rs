@@ -426,7 +426,7 @@ impl Runtime {
         }
 
         if spec.grab
-            && let Some(seat) = self.activation_seat.as_ref()
+            && let Some(seat) = self.seat_handle.as_ref()
         {
             popup.xdg_popup().grab(seat, serial);
         }

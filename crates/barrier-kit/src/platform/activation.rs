@@ -44,7 +44,7 @@ impl Runtime {
         for callback in requests {
             let (Some(global), Some(seat), Some(window)) = (
                 self.activation_global.as_ref(),
-                self.activation_seat.as_ref(),
+                self.seat_handle.as_ref(),
                 self.surfaces.first(),
             ) else {
                 callback(None);

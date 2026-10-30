@@ -120,7 +120,7 @@ impl SeatHandler for Runtime {
     }
 
     fn new_seat(&mut self, _: &Connection, _: &QueueHandle<Self>, seat: wl_seat::WlSeat) {
-        self.activation_seat = Some(seat.clone());
+        self.seat_handle = Some(seat.clone());
         let entries = self.toplevel_entries.clone();
         let seat = seat.clone();
         *self.toplevels.activate.borrow_mut() = Some(Rc::new(move |index| {

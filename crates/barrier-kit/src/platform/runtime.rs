@@ -106,7 +106,7 @@ pub(super) struct Runtime {
     pub(super) activation: Activation,
     pub(super) activation_global: Option<XdgActivationV1>,
     pub(super) activation_callbacks: Vec<Option<ActivationCallback>>,
-    pub(super) activation_seat: Option<wl_seat::WlSeat>,
+    pub(super) seat_handle: Option<wl_seat::WlSeat>,
     pub(super) last_input_serial: Rc<Cell<u32>>,
     pub(super) last_pointer_serial: Cell<u32>,
     pub(super) touch_surfaces: std::collections::HashMap<i32, ObjectId>,
@@ -388,13 +388,13 @@ impl Runtime {
             tracing::info!("wp_viewporter no disponible; sigo con escalas enteras");
         }
         // `SeatState::new` binds the seats that already exist without calling
-        // `SeatHandler::new_seat`, so remember one here for activation and
-        // popup grabs. Hotplugged seats still arrive through `new_seat`.
+        // `SeatHandler::new_seat`, so remember one here for popup grabs,
+        // window moves and resizes. Hotplugged seats still arrive through `new_seat`.
         let seat = SeatState::new(&globals, &qh);
-        let activation_seat = seat.seats().next();
+        let seat_handle = seat.seats().next();
         // `SeatState::new` binds existing seats without calling `new_seat`, so
         // install the activation command for the seat already present.
-        if let Some(seat) = activation_seat.clone() {
+        if let Some(seat) = seat_handle.clone() {
             *toplevels.activate.borrow_mut() = Some(Rc::new(move |index| {
                 if let Some(entry) = activate_entries.borrow().get(index)
                     && let Some(mgmt) = &entry.mgmt
@@ -467,7 +467,7 @@ impl Runtime {
             },
             activation_global,
             activation_callbacks: Vec::new(),
-            activation_seat,
+            seat_handle,
             last_input_serial: Rc::new(Cell::new(0)),
             last_pointer_serial: Cell::new(0),
             touch_surfaces: std::collections::HashMap::new(),
