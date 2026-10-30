@@ -177,12 +177,24 @@ barrier-kit/src/
     lock.rs            ext-session-lock (run_lock, SessionUnlock)
     toplevels.rs       foreign-toplevel: lista y control de ventanas para el Dock
     infinity.rs        protocolo privado de colocación de ventanas
-    appmenu_client.rs  org_kde_kwin_appmenu del lado de quien muestra menús
+    menus.rs           direcciones de los menús globales de otras apps (GTK y dbusmenu) para la barra de menús
     activation.rs      tokens xdg-activation para lanzar apps desde el Dock
   ```
+
 - La carpeta solo se compila con la feature `shell` (`#[cfg(feature = "shell")] pub mod shell;`). `malaysia-shell` la activa en su `Cargo.toml`; Ajustes, Master Tengen App Show y cualquier app nueva no. Para ellas `barrier_kit::shell` no existe: ni lo compilan ni pueden llamarlo por error.
-- **Dirección de las dependencias:** `shell/` usa `platform/`, pero `platform/` no sabe nada de `shell/`. El runner expone puntos de extensión (registrar un rol de superficie, recibir eventos de registro Wayland), y `shell/` se engancha a ellos. Ningún `#[cfg(feature = "shell")]` suelto dentro de `platform/`, salvo la línea que registra el módulo.
+- **Dirección de las dependencias:** `shell/` usa `platform/`, pero `platform/` no sabe nada de `shell/`. El runner expone puntos de extensión (ver «Puntos de extensión» más abajo), y `shell/` se engancha a ellos. Ningún `#[cfg(feature = "shell")]` suelto dentro de `platform/`, salvo la línea que registra el módulo.
 - Las vistas de la shell (menubar, dock, lock, launcher) siguen en `malaysia-shell` y se construyen con las capas 1–3 como cualquier app. `src/shell/` solo aporta los protocolos y tipos de plataforma que esas vistas necesitan.
+
+Publicar el menú propio de una app (`app_menu_export.rs`, `AppMenuAddress`) es de la plataforma, porque lo usan todas las apps.
+
+#### Puntos de extensión
+
+- `Runtime` tiene una única ranura `extension: Option<Extension>`; la `Extension` guarda el estado de la shell como `Box<dyn Any>` y cuatro ganchos `fn`: `provide_contexts`, `new_seat`, `new_output` y `poll`.
+- Son `fn` (no closures ni traits) para que el núcleo los llame pasando `&mut Runtime`; la extensión nunca sale de `Runtime`: el código de la shell usa préstamos cortos (`extension` / `extension_mut`) y clona las asas que necesita.
+- `SurfaceRole::Extension(Box<dyn ExtensionRole>)` sustituye a `Layer` y `Lock`; `ExtensionRole::parent_popup` permite que una superficie layer sea padre de un `xdg_popup`.
+- `seat_handle` es de la plataforma (mover, redimensionar, grab de popups).
+- `run_window` no instala extensión; `run_layer` y `run_lock` instalan `ShellState`.
+- En el lote 1B-2, `SurfaceSpec` se sustituye por `shell::LayerSpec` y los archivos de la shell pasan a `src/shell/` con la feature `shell`.
 
 Los únicos consumidores son `malaysia-shell` y `malaysia-settings`, así que la API puede romperse entre fases sin capa de compatibilidad.
 
