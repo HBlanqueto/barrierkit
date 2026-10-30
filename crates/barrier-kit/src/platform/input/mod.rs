@@ -142,6 +142,8 @@ pub fn key(keysym: Keysym, utf8: Option<String>) -> (Key, Code) {
     (key, code(keysym))
 }
 
+pub(super) mod seat;
+
 pub fn mouse_button(button: u32) -> MouseButton {
     use sctk::seat::pointer::{BTN_BACK, BTN_FORWARD, BTN_LEFT, BTN_MIDDLE, BTN_RIGHT};
     match button {
