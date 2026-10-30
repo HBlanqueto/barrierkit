@@ -158,7 +158,10 @@ pub fn mouse_button(button: u32) -> MouseButton {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use sctk::seat::keyboard::Keysym;
+
+    use super::{inserts_text, map_key};
+
     use keyboard_types::{Key, Modifiers};
 
     #[test]

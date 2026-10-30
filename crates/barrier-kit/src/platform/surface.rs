@@ -1,5 +1,39 @@
-use super::popup::PopupInfo;
-use super::*;
+use freya_core::{integration::RenderPipeline, prelude::Color};
+use sctk::{
+    compositor::CompositorHandler,
+    reexports::{
+        client::{
+            Connection, Dispatch, Proxy, QueueHandle,
+            backend::ObjectId,
+            protocol::{wl_callback::WlCallback, wl_output, wl_surface::WlSurface},
+        },
+        protocols::wp::fractional_scale::v1::client::{
+            wp_fractional_scale_manager_v1::WpFractionalScaleManagerV1,
+            wp_fractional_scale_v1::{Event as FractionalScaleEvent, WpFractionalScaleV1},
+        },
+        protocols::wp::viewporter::client::{wp_viewport::WpViewport, wp_viewporter::WpViewporter},
+    },
+    session_lock::SessionLockSurface,
+    shell::{
+        wlr_layer::LayerSurface,
+        xdg::{
+            XdgSurface,
+            popup::Popup,
+            window::{Window, WindowConfigure},
+        },
+    },
+};
+use std::rc::Rc;
+use torin::prelude::CursorPoint;
+use wayland_protocols_plasma::appmenu::client::org_kde_kwin_appmenu::OrgKdeKwinAppmenu;
+
+use super::{
+    app::AppInstance,
+    app_menu_export::AppMenuAddress,
+    egl::{Graphics, GraphicsShared},
+    popup::PopupInfo,
+    runtime::Runtime,
+};
 
 /// A surface plus its Freya app and GL context.
 pub(super) struct SurfaceWindow {

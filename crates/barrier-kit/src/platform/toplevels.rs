@@ -1,4 +1,24 @@
-use super::*;
+use freya_core::prelude::{State, WritableUtils};
+use infinity_protocol::client::infinity_window_manager_v1::infinity_window_manager_v1::{
+    Layout as InfinityLayout, PairLayout as InfinityPairLayout,
+};
+use sctk::reexports::{
+    client::{Connection, Dispatch, Proxy, QueueHandle, event_created_child},
+    protocols::ext::foreign_toplevel_list::v1::client::{
+        ext_foreign_toplevel_handle_v1::{Event as FtlHandleEvent, ExtForeignToplevelHandleV1},
+        ext_foreign_toplevel_list_v1::{Event as FtlListEvent, ExtForeignToplevelListV1},
+    },
+    protocols_wlr::foreign_toplevel::v1::client::{
+        zwlr_foreign_toplevel_handle_v1::{
+            Event as ZwlrForeignToplevelHandleV1Event, State as ZwlrForeignToplevelHandleV1State,
+            ZwlrForeignToplevelHandleV1,
+        },
+        zwlr_foreign_toplevel_manager_v1::{Event as MgmtListEvent, ZwlrForeignToplevelManagerV1},
+    },
+};
+use std::{cell::RefCell, rc::Rc};
+
+use super::{app_menu_export::AppMenuAddress, foreign_menus::GtkMenusAddress, runtime::Runtime};
 
 /// One running toplevel, as the dock lists it.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]

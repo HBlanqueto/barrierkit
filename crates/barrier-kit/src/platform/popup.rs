@@ -1,4 +1,33 @@
-use super::*;
+use freya_core::integration::AppComponent;
+use sctk::{
+    delegate_xdg_popup,
+    reexports::{
+        calloop::ping::Ping,
+        client::{Connection, Proxy, QueueHandle, backend::ObjectId},
+        protocols::xdg::shell::client::xdg_positioner::{
+            Anchor as SctkAnchorPos, ConstraintAdjustment as SctkConstraint, Gravity as SctkGravity,
+        },
+    },
+    shell::xdg::{
+        XdgPositioner, XdgSurface,
+        popup::{Popup, PopupConfigure, PopupHandler},
+    },
+};
+use std::{
+    cell::{Cell, RefCell},
+    rc::Rc,
+    sync::Arc,
+};
+
+use super::{
+    app::AppInstance,
+    runtime::{Runtime, make_sender},
+    surface::{SurfaceRole, SurfaceWindow},
+    timer::{PingWake, Timers},
+};
+
+#[cfg(test)]
+use sctk::reexports::calloop;
 
 /// Identifier of an open popup within this process.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]

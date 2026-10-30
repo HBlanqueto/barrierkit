@@ -1,24 +1,41 @@
 #![allow(clippy::module_inception)]
 
-#[allow(unused_imports)]
-use super::*;
-
 #[cfg(test)]
 mod tests {
-    use super::input::seat::{
-        RepeatState, cursor_shape_from_icon, dispatch_touch_cancels, find_index_by_id,
-        released_repeated_key, should_repeat_key, stop_repeat,
+    use freya_core::{integration::UserEvent, prelude::CursorIcon};
+    use sctk::reexports::{
+        calloop::{self, EventLoop},
+        client::backend::ObjectId,
+        protocols::wp::cursor_shape::v1::client::wp_cursor_shape_device_v1::Shape as CursorShape,
     };
-    use super::surface::{
-        buffer_size, destroy_fractional_objects, fractional_scale_enabled, physical_point,
-        scale_from_wire,
+    use sctk::seat::keyboard::{KeyEvent, Keysym};
+    use std::{
+        cell::RefCell,
+        rc::Rc,
+        sync::Arc,
+        sync::atomic::{AtomicUsize, Ordering},
+        time::Duration,
     };
-    use super::timer::{Timers, Wake, WakeQueue};
-    use super::toplevels::{InfoEvent, apply_info_event};
-    use super::window::clamp_toplevel_size_dimension;
-    use super::*;
-    use sctk::seat::keyboard::Keysym;
-    use std::sync::atomic::{AtomicUsize, Ordering};
+    use torin::prelude::CursorPoint;
+    use wayland_protocols::wp::fractional_scale::v1::client::wp_fractional_scale_v1::WpFractionalScaleV1;
+    use wayland_protocols::wp::viewporter::client::wp_viewport::WpViewport;
+
+    use super::super::{
+        app_menu_export::AppMenuAddress,
+        foreign_menus::GtkMenusAddress,
+        input::seat::{
+            RepeatState, cursor_shape_from_icon, dispatch_touch_cancels, find_index_by_id,
+            released_repeated_key, should_repeat_key, stop_repeat,
+        },
+        runtime::{drain_user_events, make_sender},
+        surface::{
+            buffer_size, destroy_fractional_objects, fractional_scale_enabled, physical_point,
+            scale_from_wire,
+        },
+        timer::{Timers, Wake, WakeQueue},
+        toplevels::{InfoEvent, ToplevelInfo, apply_info_event},
+        window::clamp_toplevel_size_dimension,
+    };
 
     #[test]
     fn wakeup_runs_its_callback_on_the_loop_thread() {
@@ -526,15 +543,20 @@ mod tests {
 
 #[cfg(test)]
 mod drag_band_tests {
-    use super::*;
     use crate::ProbeExt;
     use crate::sidebar::{Sidebar, SidebarItem, SidebarLayout};
     use freya_core::integration::AppComponent;
-    use freya_core::prelude::{App, IntoElement, rect};
+    use freya_core::prelude::{App, ContainerSizeExt, IntoElement, State, rect};
     use freya_testing::TestingRunner;
+    use sctk::reexports::{calloop, client::backend::ObjectId};
+    use std::{
+        cell::{Cell, RefCell},
+        rc::Rc,
+    };
     use torin::prelude::{Size, Size2D};
     use vow_appearance::{AppearanceConfig, SidebarStyle, resolve};
-    use window::WindowCommand;
+
+    use super::super::window::{DecorationResponse, WindowCommand, WindowControls, WindowStatus};
 
     struct DragCase;
 

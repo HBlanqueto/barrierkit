@@ -1,5 +1,36 @@
-use super::*;
+use accesskit::Role;
+use freya_clipboard::copypasta::ClipboardProvider;
+use freya_components::{cache::AssetCacher, integration::integration};
+use freya_core::{
+    accessibility::tree::{ACCESSIBILITY_ROOT_ID, AccessibilityTree},
+    element::IntoElement,
+    integration::{
+        AccentColor, AnimationClock, AppComponent, EventsChunk, EventsExecutorAdapter,
+        EventsMeasurerAdapter, NavigationMode, NodeId, Platform, PlatformEvent, PreferredTheme,
+        RenderingTicker, RenderingTickerSender, Runner, ScreenReader, Tree, UserEvent,
+        WritableUtils, default_fonts,
+    },
+    prelude::{AccessibilityFocusStrategy, State},
+};
 use freya_engine::prelude::{FontCollection, FontMgr};
+use ragnarok::{EventsExecutorRunner, EventsMeasurerRunner, NodesState};
+use std::{
+    borrow::Cow,
+    pin::pin,
+    rc::Rc,
+    task::{Context, Waker},
+};
+use torin::prelude::Size2D;
+use vow_appearance::Resolved;
+
+use super::{
+    activation::Activation,
+    lock::SessionUnlock,
+    popup::{PopupHandle, Popups},
+    timer::Timers,
+    toplevels::Toplevels,
+    window::{MenuActionHandler, WindowControls},
+};
 
 /// One Freya app: its runner, tree and render contexts.
 pub(super) struct AppInstance {

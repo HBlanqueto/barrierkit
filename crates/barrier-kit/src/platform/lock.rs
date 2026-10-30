@@ -1,4 +1,25 @@
-use super::*;
+use freya_core::integration::AppComponent;
+use sctk::{
+    delegate_session_lock,
+    reexports::{
+        calloop::EventLoop,
+        calloop_wayland_source::WaylandSource,
+        client::{Connection, Proxy, QueueHandle, protocol::wl_output},
+    },
+    session_lock::{
+        SessionLock, SessionLockHandler, SessionLockSurface, SessionLockSurfaceConfigure,
+    },
+};
+use std::{cell::Cell, rc::Rc, sync::Arc};
+
+use super::{
+    RunError, SurfaceSpec,
+    app::AppInstance,
+    popup::Popups,
+    runtime::{Runtime, insert_ping, make_sender},
+    surface::{SurfaceRole, SurfaceWindow},
+    timer::{PingWake, Timers},
+};
 
 /// Unlocks the session from the lock app. Provided only to lock surfaces.
 #[derive(Clone)]

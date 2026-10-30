@@ -3,8 +3,14 @@
 //! The shell uses this private protocol to ask the compositor for window
 //! geometry: halves, quarters, pairs, fill, center, restore and fullscreen.
 
-use super::toplevels::{InfoEvent, update_toplevel_info};
-use super::*;
+use sctk::reexports::client::{Connection, Dispatch, Proxy, QueueHandle};
+
+use super::{
+    app_menu_export::AppMenuAddress,
+    foreign_menus::GtkMenusAddress,
+    runtime::Runtime,
+    toplevels::{InfoEvent, update_toplevel_info},
+};
 
 pub use infinity_protocol::client::infinity_window_manager_v1::infinity_window_manager_v1::{
     InfinityWindowManagerV1, Layout, PairLayout,
