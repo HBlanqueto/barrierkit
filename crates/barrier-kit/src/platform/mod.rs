@@ -18,7 +18,6 @@ pub use input::inserts_text;
 use std::{
     borrow::Cow,
     cell::{Cell, RefCell},
-    collections::VecDeque,
     ffi::c_void,
     os::fd::AsFd,
     pin::pin,
@@ -1532,9 +1531,8 @@ struct SurfaceWindow {
     frame_pending: bool,
     draw_count: u64,
     configure_count: u64,
-    /// The most recent window configure not yet applied; older configures are
-    /// dropped so only the last one is drawn.
-    pending_configure: VecDeque<(WindowConfigure, u32)>,
+    /// The most recent window configure not yet applied.
+    pending_configure: Option<(WindowConfigure, u32)>,
     appmenu: Option<OrgKdeKwinAppmenu>,
     appmenu_address: Option<AppMenuAddress>,
     menu_handle: Option<crate::app_menu::MenuHandle>,
@@ -1672,14 +1670,25 @@ impl SurfaceWindow {
     /// Destroys the fractional-scale and viewport objects before the surface so
     /// the compositor sees them go away first.
     fn destroy_fractional(&mut self) {
-        self.fractional = None;
-        self.viewport = None;
+        destroy_fractional_objects(&mut self.fractional, &mut self.viewport);
     }
 }
 
 impl Drop for SurfaceWindow {
     fn drop(&mut self) {
         self.destroy_fractional();
+    }
+}
+
+fn destroy_fractional_objects(
+    fractional: &mut Option<WpFractionalScaleV1>,
+    viewport: &mut Option<WpViewport>,
+) {
+    if let Some(fractional) = fractional.take() {
+        fractional.destroy();
+    }
+    if let Some(viewport) = viewport.take() {
+        viewport.destroy();
     }
 }
 
@@ -2029,7 +2038,7 @@ pub fn run_layer(app: AppComponent, spec: SurfaceSpec) -> Result<(), RunError> {
         frame_pending: false,
         draw_count: 0,
         configure_count: 0,
-        pending_configure: VecDeque::new(),
+        pending_configure: None,
         appmenu: None,
         appmenu_address: None,
         menu_handle: None,
@@ -2674,7 +2683,7 @@ impl Shell {
             frame_pending: false,
             draw_count: 0,
             configure_count: 0,
-            pending_configure: VecDeque::new(),
+            pending_configure: None,
             appmenu: appmenu_object,
             appmenu_address: None,
             menu_handle,
@@ -2798,7 +2807,7 @@ impl Shell {
             frame_pending: false,
             draw_count: 0,
             configure_count: 0,
-            pending_configure: VecDeque::new(),
+            pending_configure: None,
             appmenu: None,
             appmenu_address: None,
             menu_handle: None,
@@ -3053,7 +3062,7 @@ impl Shell {
             frame_pending: false,
             draw_count: 0,
             configure_count: 0,
-            pending_configure: VecDeque::new(),
+            pending_configure: None,
             appmenu: None,
             appmenu_address: None,
             menu_handle: None,
@@ -3367,41 +3376,12 @@ impl WindowHandler for Shell {
             resizing = configure.is_resizing(),
             "configure received"
         );
-        // Drop any older pending configure: only the last one is drawn.  The
+        // Always keep the latest configure; older ones are overwritten. The
         // request_redraw ensures a frame callback will process it.
-        self.surfaces[index]
-            .pending_configure
-            .push_back((configure, serial));
+        self.surfaces[index].pending_configure = Some((configure, serial));
         self.surfaces[index].needs_redraw = true;
         self.surfaces[index].request_frame_callback(qh);
     }
-}
-
-/// Chooses which pending window configure to apply.
-///
-/// If several configures arrived between frames, prefer the most recent one
-/// that actually changes the size.  Compositors may send a fallback configure
-/// matching the current buffer (e.g. during an interactive resize) after a
-/// newer requested size; using the newest size keeps the window in sync with
-/// the pointer instead of snapping back.
-fn choose_window_configure(
-    pending: &mut VecDeque<(WindowConfigure, u32)>,
-    current: (u32, u32),
-) -> Option<(WindowConfigure, u32)> {
-    if pending.is_empty() {
-        return None;
-    }
-    let chosen = pending.iter().rev().find(|(configure, _)| {
-        let size = (
-            configure.new_size.0.map_or(0, |value| value.get()),
-            configure.new_size.1.map_or(0, |value| value.get()),
-        );
-        size.0 > 0 && size.1 > 0 && (size.0 as u32, size.1 as u32) != current
-    });
-    chosen.or_else(|| pending.back()).cloned().map(|chosen| {
-        pending.clear();
-        chosen
-    })
 }
 
 impl Shell {
@@ -3411,10 +3391,7 @@ impl Shell {
     /// frames collapse into a single resize/draw.
     fn apply_pending_window_configures(&mut self, qh: &QueueHandle<Self>) {
         for index in 0..self.surfaces.len() {
-            let current = self.surfaces[index].logical_size;
-            let Some((configure, serial)) =
-                choose_window_configure(&mut self.surfaces[index].pending_configure, current)
-            else {
+            let Some((configure, serial)) = self.surfaces[index].pending_configure.take() else {
                 continue;
             };
             let scale = self.surfaces[index].scale;
@@ -4976,6 +4953,26 @@ mod tests {
             "motion/up for the same touch id must reach surface A"
         );
     }
+
+    // Manual test for the configure overwrite behaviour:
+    // Run with WAYLAND_DEBUG=1 while resizing. Two configures arriving in the
+    // same batch (same size, different state) must result in the second state
+    // being applied; the code now stores only the latest configure in
+    // `pending_configure: Option<_>`.
+
+    #[test]
+    fn destroy_fractional_objects_is_safe_when_missing() {
+        let mut fractional: Option<WpFractionalScaleV1> = None;
+        let mut viewport: Option<WpViewport> = None;
+        destroy_fractional_objects(&mut fractional, &mut viewport);
+        assert!(fractional.is_none());
+        assert!(viewport.is_none());
+    }
+
+    // Manual test for destroy order:
+    // Run with WAYLAND_DEBUG=1 and close a window. Verify that
+    // wp_fractional_scale_v1@...destroy and wp_viewport@...destroy lines appear
+    // before the wl_surface@...destroy line for the same surface.
 }
 
 #[cfg(test)]
