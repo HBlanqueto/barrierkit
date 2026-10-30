@@ -1552,7 +1552,7 @@ enum SurfaceRole {
 
 impl SurfaceWindow {
     /// Schedules a compositor frame callback without marking the surface dirty.
-    fn request_frame_callback(&mut self, qh: &QueueHandle<Shell>) {
+    fn request_frame_callback(&mut self, qh: &QueueHandle<Runtime>) {
         if !self.frame_pending {
             self.frame_pending = true;
             let _callback: WlCallback = self.surface.frame(qh, self.surface.clone());
@@ -1560,7 +1560,7 @@ impl SurfaceWindow {
         }
     }
 
-    fn request_redraw(&mut self, qh: &QueueHandle<Shell>) {
+    fn request_redraw(&mut self, qh: &QueueHandle<Runtime>) {
         self.needs_redraw = true;
         self.request_frame_callback(qh);
     }
@@ -1728,7 +1728,7 @@ fn released_repeated_key(repeat: &Option<RepeatState>, event: &KeyEvent) -> bool
         .is_some_and(|state| state.event.keysym == event.keysym)
 }
 
-struct Shell {
+struct Runtime {
     registry: RegistryState,
     compositor: CompositorState,
     output: OutputState,
@@ -1759,7 +1759,7 @@ struct Shell {
     ping_source: Option<PingSource>,
     wake: Wake,
     wake_source: Option<PingSource>,
-    qh: QueueHandle<Shell>,
+    qh: QueueHandle<Runtime>,
     _foreign_list: Option<ExtForeignToplevelListV1>,
     _foreign_mgmt: Option<ZwlrForeignToplevelManagerV1>,
     _infinity_manager: Rc<RefCell<Option<InfinityWindowManagerV1>>>,
@@ -1932,7 +1932,7 @@ fn cursor_shape_from_icon(icon: CursorIcon) -> CursorShape {
 
 /// Runs a layer-shell surface with a Freya app until the compositor closes it.
 pub fn run_layer(app: AppComponent, spec: SurfaceSpec) -> Result<(), RunError> {
-    let (conn, event_queue, qh, mut shell) = Shell::connect(app, spec)?;
+    let (conn, event_queue, qh, mut shell) = Runtime::connect(app, spec)?;
     shell.qh = qh.clone();
     let layer_shell = shell.layer_shell.as_ref().ok_or_else(|| {
         tracing::info!(
@@ -2047,7 +2047,7 @@ pub fn run_layer(app: AppComponent, spec: SurfaceSpec) -> Result<(), RunError> {
     });
     shell.surface_count.set(shell.surfaces.len());
 
-    let mut event_loop: EventLoop<Shell> =
+    let mut event_loop: EventLoop<Runtime> =
         EventLoop::try_new().map_err(|_| RunError::Egl("calloop EventLoop::try_new failed"))?;
     insert_ping(&mut event_loop, &mut shell)?;
     WaylandSource::new(conn, event_queue)
@@ -2077,13 +2077,13 @@ fn clamp_toplevel_size_dimension(value: u32) -> u32 {
 /// Runs a normal BarrierKit window (`xdg_toplevel`, ADR 0035).
 pub fn run_window(app: AppComponent, options: WindowOptions) -> Result<(), RunError> {
     let (conn, event_queue, qh, mut shell) =
-        Shell::connect(app.clone(), SurfaceSpec::Window(options.clone()))?;
+        Runtime::connect(app.clone(), SurfaceSpec::Window(options.clone()))?;
     shell.qh = qh.clone();
     shell
         .create_window(app, options)
         .ok_or(RunError::MissingGlobal("xdg_wm_base"))?;
 
-    let mut event_loop: EventLoop<Shell> =
+    let mut event_loop: EventLoop<Runtime> =
         EventLoop::try_new().map_err(|_| RunError::Egl("calloop EventLoop::try_new failed"))?;
     insert_ping(&mut event_loop, &mut shell)?;
     WaylandSource::new(conn, event_queue)
@@ -2105,7 +2105,7 @@ pub fn run_window(app: AppComponent, options: WindowOptions) -> Result<(), RunEr
 
 /// Runs the session lock: one Freya surface per output.
 pub fn run_lock(app: AppComponent) -> Result<(), RunError> {
-    let (conn, event_queue, qh, mut shell) = Shell::connect(app, SurfaceSpec::Lock)?;
+    let (conn, event_queue, qh, mut shell) = Runtime::connect(app, SurfaceSpec::Lock)?;
     shell.qh = qh.clone();
     let session_lock_state = shell
         .session_lock
@@ -2116,7 +2116,7 @@ pub fn run_lock(app: AppComponent) -> Result<(), RunError> {
         .map_err(|_| RunError::MissingGlobal("ext_session_lock_manager_v1 (lock refused)"))?;
     shell.active_lock = Some(lock);
 
-    let mut event_loop: EventLoop<Shell> =
+    let mut event_loop: EventLoop<Runtime> =
         EventLoop::try_new().map_err(|_| RunError::Egl("calloop EventLoop::try_new failed"))?;
     insert_ping(&mut event_loop, &mut shell)?;
     let flush_conn = conn.clone();
@@ -2146,7 +2146,7 @@ pub fn run_lock(app: AppComponent) -> Result<(), RunError> {
     Ok(())
 }
 
-fn insert_ping(event_loop: &mut EventLoop<Shell>, shell: &mut Shell) -> Result<(), RunError> {
+fn insert_ping(event_loop: &mut EventLoop<Runtime>, shell: &mut Runtime) -> Result<(), RunError> {
     let source = shell
         .ping_source
         .take()
@@ -2154,7 +2154,7 @@ fn insert_ping(event_loop: &mut EventLoop<Shell>, shell: &mut Shell) -> Result<(
     let handle = event_loop.handle();
     event_loop
         .handle()
-        .insert_source(source, move |_, _, shell: &mut Shell| {
+        .insert_source(source, move |_, _, shell: &mut Runtime| {
             for (surface_id, event) in drain_user_events(&shell.queue) {
                 match event {
                     UserEvent::RequestRedraw => {
@@ -2196,7 +2196,7 @@ fn insert_ping(event_loop: &mut EventLoop<Shell>, shell: &mut Shell) -> Result<(
     let callbacks = shell.wake.callbacks.clone();
     event_loop
         .handle()
-        .insert_source(wake_source, move |_, _, shell: &mut Shell| {
+        .insert_source(wake_source, move |_, _, shell: &mut Runtime| {
             let callbacks: Vec<Rc<dyn Fn()>> = callbacks.borrow().clone();
             for callback in callbacks {
                 callback();
@@ -2222,7 +2222,7 @@ fn insert_ping(event_loop: &mut EventLoop<Shell>, shell: &mut Shell) -> Result<(
         .handle()
         .insert_source(
             Generic::new(watch_fd, Interest::READ, Mode::Level),
-            |_, _, shell: &mut Shell| {
+            |_, _, shell: &mut Runtime| {
                 if let Some(watch) = shell.appearance_watch.as_ref()
                     && let Ok(events) = watch.drain()
                     && !events.is_empty()
@@ -2241,21 +2241,21 @@ fn insert_ping(event_loop: &mut EventLoop<Shell>, shell: &mut Shell) -> Result<(
     Ok(())
 }
 
-impl Shell {
+impl Runtime {
     fn connect(
         app: AppComponent,
         spec: SurfaceSpec,
     ) -> Result<
         (
             Connection,
-            sctk::reexports::client::EventQueue<Shell>,
-            QueueHandle<Shell>,
-            Shell,
+            sctk::reexports::client::EventQueue<Runtime>,
+            QueueHandle<Runtime>,
+            Runtime,
         ),
         RunError,
     > {
         let conn = Connection::connect_to_env().map_err(|_| RunError::NoDisplay)?;
-        let (globals, event_queue) = registry_queue_init::<Shell>(&conn)?;
+        let (globals, event_queue) = registry_queue_init::<Runtime>(&conn)?;
         let qh = event_queue.handle();
         let queue: Rc<RefCell<Vec<(ObjectId, UserEvent)>>> = Rc::new(RefCell::new(Vec::new()));
         let (ping, ping_source) =
@@ -2402,7 +2402,7 @@ impl Shell {
                 }
             }));
         }
-        let shell = Shell {
+        let shell = Runtime {
             registry: RegistryState::new(&globals),
             compositor: CompositorState::bind(&globals, &qh)
                 .map_err(|_| RunError::MissingGlobal("wl_compositor"))?,
@@ -2520,7 +2520,7 @@ fn find_index_by_id<T, Id: Eq>(items: &[T], id: Id, get_id: impl Fn(&T) -> Id) -
     items.iter().position(|item| get_id(item) == id)
 }
 
-impl Shell {
+impl Runtime {
     fn create_window(
         &mut self,
         app: AppComponent,
@@ -3189,12 +3189,12 @@ impl Shell {
         }
     }
 
-    fn install_timers(&mut self, handle: &LoopHandle<Shell>) {
+    fn install_timers(&mut self, handle: &LoopHandle<Runtime>) {
         let pending: Vec<(Duration, Rc<dyn Fn()>)> = std::mem::take(&mut *self.timers.borrow_mut());
         for (delay, callback) in pending {
             let _ = handle.insert_source(
                 Timer::from_duration(delay),
-                move |_, _, shell: &mut Shell| {
+                move |_, _, shell: &mut Runtime| {
                     callback();
                     shell.poll_all();
                     shell.redraw_all();
@@ -3218,7 +3218,7 @@ impl Shell {
     }
 }
 
-impl ProvidesRegistryState for Shell {
+impl ProvidesRegistryState for Runtime {
     fn registry(&mut self) -> &mut RegistryState {
         &mut self.registry
     }
@@ -3236,7 +3236,7 @@ impl ProvidesRegistryState for Shell {
     fn runtime_remove_global(&mut self, _: &Connection, _: &QueueHandle<Self>, _: u32, _: &str) {}
 }
 
-impl CompositorHandler for Shell {
+impl CompositorHandler for Runtime {
     fn scale_factor_changed(
         &mut self,
         _: &Connection,
@@ -3307,7 +3307,7 @@ impl CompositorHandler for Shell {
     }
 }
 
-impl WindowHandler for Shell {
+impl WindowHandler for Runtime {
     fn request_close(&mut self, _: &Connection, _: &QueueHandle<Self>, window: &Window) {
         let surface_id = window.wl_surface().id();
         let window_count = self
@@ -3384,7 +3384,7 @@ impl WindowHandler for Shell {
     }
 }
 
-impl Shell {
+impl Runtime {
     /// Applies the most recent pending window configure for each surface.
     ///
     /// Called from the frame callback so several configures that arrive between
@@ -3487,7 +3487,7 @@ impl Shell {
     }
 }
 
-impl LayerShellHandler for Shell {
+impl LayerShellHandler for Runtime {
     fn closed(&mut self, _: &Connection, _: &QueueHandle<Self>, _: &LayerSurface) {
         self.needs_exit = true;
     }
@@ -3511,7 +3511,7 @@ impl LayerShellHandler for Shell {
     }
 }
 
-impl SessionLockHandler for Shell {
+impl SessionLockHandler for Runtime {
     fn locked(&mut self, _: &Connection, qh: &QueueHandle<Self>, session_lock: SessionLock) {
         self.active_lock = Some(session_lock);
         self.session_locked = true;
@@ -3545,7 +3545,7 @@ impl SessionLockHandler for Shell {
     }
 }
 
-impl PopupHandler for Shell {
+impl PopupHandler for Runtime {
     fn configure(
         &mut self,
         _: &Connection,
@@ -3581,7 +3581,7 @@ impl PopupHandler for Shell {
     }
 }
 
-impl OutputHandler for Shell {
+impl OutputHandler for Runtime {
     fn output_state(&mut self) -> &mut OutputState {
         &mut self.output
     }
@@ -3600,7 +3600,7 @@ impl OutputHandler for Shell {
     fn output_destroyed(&mut self, _: &Connection, _: &QueueHandle<Self>, _: wl_output::WlOutput) {}
 }
 
-impl SeatHandler for Shell {
+impl SeatHandler for Runtime {
     fn seat_state(&mut self) -> &mut SeatState {
         &mut self.seat
     }
@@ -3669,7 +3669,7 @@ impl SeatHandler for Shell {
     fn remove_seat(&mut self, _: &Connection, _: &QueueHandle<Self>, _: wl_seat::WlSeat) {}
 }
 
-impl PointerHandler for Shell {
+impl PointerHandler for Runtime {
     fn pointer_frame(
         &mut self,
         _: &Connection,
@@ -3740,7 +3740,7 @@ impl PointerHandler for Shell {
     }
 }
 
-impl KeyboardHandler for Shell {
+impl KeyboardHandler for Runtime {
     fn enter(
         &mut self,
         _: &Connection,
@@ -3846,7 +3846,7 @@ impl KeyboardHandler for Shell {
     }
 }
 
-impl Shell {
+impl Runtime {
     fn key_event(&mut self, qh: &QueueHandle<Self>, event: KeyEvent, name: KeyboardEventName) {
         let (key, code) = input::key(event.keysym, event.utf8.clone());
         let modifiers = input::modifiers(self.modifiers);
@@ -3904,7 +3904,7 @@ impl Shell {
         }
     }
 
-    fn install_repeat(&mut self, handle: &LoopHandle<Shell>) {
+    fn install_repeat(&mut self, handle: &LoopHandle<Runtime>) {
         let Some(state) = &mut self.repeat else {
             return;
         };
@@ -3917,7 +3917,7 @@ impl Shell {
         let generation = state.generation;
         let _ = handle.insert_source(
             Timer::from_duration(delay),
-            move |_, _, shell: &mut Shell| {
+            move |_, _, shell: &mut Runtime| {
                 if shell
                     .repeat
                     .as_ref()
@@ -3951,7 +3951,7 @@ fn dispatch_touch_cancels(
     }
 }
 
-impl TouchHandler for Shell {
+impl TouchHandler for Runtime {
     fn down(
         &mut self,
         _: &Connection,
@@ -4053,7 +4053,7 @@ impl TouchHandler for Shell {
     }
 }
 
-impl Shell {
+impl Runtime {
     fn touch_event(
         &mut self,
         qh: &QueueHandle<Self>,
@@ -4082,7 +4082,7 @@ impl Shell {
     }
 }
 
-impl Dispatch<ExtForeignToplevelListV1, (), Shell> for Shell {
+impl Dispatch<ExtForeignToplevelListV1, (), Runtime> for Runtime {
     fn event(
         state: &mut Self,
         _: &ExtForeignToplevelListV1,
@@ -4104,12 +4104,12 @@ impl Dispatch<ExtForeignToplevelListV1, (), Shell> for Shell {
         }
     }
 
-    event_created_child!(Shell, ExtForeignToplevelListV1, [
+    event_created_child!(Runtime, ExtForeignToplevelListV1, [
         sctk::reexports::protocols::ext::foreign_toplevel_list::v1::client::ext_foreign_toplevel_list_v1::EVT_TOPLEVEL_OPCODE => (ExtForeignToplevelHandleV1, ())
     ]);
 }
 
-impl Dispatch<ExtForeignToplevelHandleV1, (), Shell> for Shell {
+impl Dispatch<ExtForeignToplevelHandleV1, (), Runtime> for Runtime {
     fn event(
         state: &mut Self,
         handle: &ExtForeignToplevelHandleV1,
@@ -4152,7 +4152,7 @@ impl Dispatch<ExtForeignToplevelHandleV1, (), Shell> for Shell {
     }
 }
 
-impl Dispatch<ZwlrForeignToplevelManagerV1, (), Shell> for Shell {
+impl Dispatch<ZwlrForeignToplevelManagerV1, (), Runtime> for Runtime {
     fn event(
         state: &mut Self,
         _: &ZwlrForeignToplevelManagerV1,
@@ -4172,12 +4172,12 @@ impl Dispatch<ZwlrForeignToplevelManagerV1, (), Shell> for Shell {
         }
     }
 
-    event_created_child!(Shell, ZwlrForeignToplevelManagerV1, [
+    event_created_child!(Runtime, ZwlrForeignToplevelManagerV1, [
         sctk::reexports::protocols_wlr::foreign_toplevel::v1::client::zwlr_foreign_toplevel_manager_v1::EVT_TOPLEVEL_OPCODE => (ZwlrForeignToplevelHandleV1, ())
     ]);
 }
 
-impl Dispatch<ZwlrForeignToplevelHandleV1, (), Shell> for Shell {
+impl Dispatch<ZwlrForeignToplevelHandleV1, (), Runtime> for Runtime {
     fn event(
         state: &mut Self,
         handle: &ZwlrForeignToplevelHandleV1,
@@ -4246,7 +4246,7 @@ fn physical_point(position: (f64, f64), scale: f64) -> CursorPoint {
     CursorPoint::from((position.0 * scale, position.1 * scale))
 }
 
-impl Dispatch<XdgActivationV1, ()> for Shell {
+impl Dispatch<XdgActivationV1, ()> for Runtime {
     fn event(
         _: &mut Self,
         _: &XdgActivationV1,
@@ -4258,7 +4258,7 @@ impl Dispatch<XdgActivationV1, ()> for Shell {
     }
 }
 
-impl Dispatch<XdgActivationTokenV1, usize> for Shell {
+impl Dispatch<XdgActivationTokenV1, usize> for Runtime {
     fn event(
         state: &mut Self,
         _: &XdgActivationTokenV1,
@@ -4278,7 +4278,7 @@ impl Dispatch<XdgActivationTokenV1, usize> for Shell {
     }
 }
 
-impl Dispatch<InfinityWindowManagerV1, ()> for Shell {
+impl Dispatch<InfinityWindowManagerV1, ()> for Runtime {
     fn event(
         state: &mut Self,
         _: &InfinityWindowManagerV1,
@@ -4366,50 +4366,50 @@ fn update_toplevel_info(
     }
 }
 
-impl Dispatch<OrgKdeKwinAppmenuManager, (), Shell> for Shell {
+impl Dispatch<OrgKdeKwinAppmenuManager, (), Runtime> for Runtime {
     fn event(
-        _: &mut Shell,
+        _: &mut Runtime,
         _: &OrgKdeKwinAppmenuManager,
         _: org_kde_kwin_appmenu_manager::Event,
         _: &(),
         _: &Connection,
-        _: &QueueHandle<Shell>,
+        _: &QueueHandle<Runtime>,
     ) {
     }
 }
 
-impl Dispatch<OrgKdeKwinAppmenu, ObjectId, Shell> for Shell {
+impl Dispatch<OrgKdeKwinAppmenu, ObjectId, Runtime> for Runtime {
     fn event(
-        _: &mut Shell,
+        _: &mut Runtime,
         _: &OrgKdeKwinAppmenu,
         _: org_kde_kwin_appmenu::Event,
         _: &ObjectId,
         _: &Connection,
-        _: &QueueHandle<Shell>,
+        _: &QueueHandle<Runtime>,
     ) {
     }
 }
 
-impl Dispatch<WpFractionalScaleManagerV1, (), Shell> for Shell {
+impl Dispatch<WpFractionalScaleManagerV1, (), Runtime> for Runtime {
     fn event(
-        _: &mut Shell,
+        _: &mut Runtime,
         _: &WpFractionalScaleManagerV1,
         _: <WpFractionalScaleManagerV1 as Proxy>::Event,
         _: &(),
         _: &Connection,
-        _: &QueueHandle<Shell>,
+        _: &QueueHandle<Runtime>,
     ) {
     }
 }
 
-impl Dispatch<WpFractionalScaleV1, ObjectId, Shell> for Shell {
+impl Dispatch<WpFractionalScaleV1, ObjectId, Runtime> for Runtime {
     fn event(
-        state: &mut Shell,
+        state: &mut Runtime,
         _: &WpFractionalScaleV1,
         event: FractionalScaleEvent,
         surface_id: &ObjectId,
         _: &Connection,
-        qh: &QueueHandle<Shell>,
+        qh: &QueueHandle<Runtime>,
     ) {
         let FractionalScaleEvent::PreferredScale { scale } = event else {
             return;
@@ -4428,43 +4428,43 @@ impl Dispatch<WpFractionalScaleV1, ObjectId, Shell> for Shell {
     }
 }
 
-impl Dispatch<WpViewporter, (), Shell> for Shell {
+impl Dispatch<WpViewporter, (), Runtime> for Runtime {
     fn event(
-        _: &mut Shell,
+        _: &mut Runtime,
         _: &WpViewporter,
         _: <WpViewporter as Proxy>::Event,
         _: &(),
         _: &Connection,
-        _: &QueueHandle<Shell>,
+        _: &QueueHandle<Runtime>,
     ) {
     }
 }
 
-impl Dispatch<WpViewport, ObjectId, Shell> for Shell {
+impl Dispatch<WpViewport, ObjectId, Runtime> for Runtime {
     fn event(
-        _: &mut Shell,
+        _: &mut Runtime,
         _: &WpViewport,
         _: <WpViewport as Proxy>::Event,
         _: &ObjectId,
         _: &Connection,
-        _: &QueueHandle<Shell>,
+        _: &QueueHandle<Runtime>,
     ) {
     }
 }
 
-delegate_compositor!(Shell);
-delegate_output!(Shell);
-delegate_registry!(Shell);
-delegate_seat!(Shell);
-delegate_pointer!(Shell);
-delegate_xdg_shell!(Shell);
-delegate_xdg_window!(Shell);
-delegate_keyboard!(Shell);
-delegate_touch!(Shell);
-delegate_session_lock!(Shell);
-delegate_xdg_popup!(Shell);
-delegate_dispatch!(Shell: [zwlr_layer_shell_v1::ZwlrLayerShellV1: sctk::globals::GlobalData] => LayerShell);
-delegate_dispatch!(Shell: [zwlr_layer_surface_v1::ZwlrLayerSurfaceV1: LayerSurfaceData] => LayerShell);
+delegate_compositor!(Runtime);
+delegate_output!(Runtime);
+delegate_registry!(Runtime);
+delegate_seat!(Runtime);
+delegate_pointer!(Runtime);
+delegate_xdg_shell!(Runtime);
+delegate_xdg_window!(Runtime);
+delegate_keyboard!(Runtime);
+delegate_touch!(Runtime);
+delegate_session_lock!(Runtime);
+delegate_xdg_popup!(Runtime);
+delegate_dispatch!(Runtime: [zwlr_layer_shell_v1::ZwlrLayerShellV1: sctk::globals::GlobalData] => LayerShell);
+delegate_dispatch!(Runtime: [zwlr_layer_surface_v1::ZwlrLayerSurfaceV1: LayerSurfaceData] => LayerShell);
 
 #[cfg(test)]
 mod tests {
