@@ -10,32 +10,44 @@
 //! The event loop is calloop (the same one the shell already uses); Freya's
 //! futures are polled from its ping source, never from a runtime thread.
 
+mod activation;
 mod app;
 mod app_menu_export;
 mod egl;
+mod foreign_menus;
 mod infinity;
 mod input;
+mod layer;
+mod lock;
 mod popup;
 mod surface;
 mod timer;
+mod toplevels;
 mod window;
 
+pub use activation::Activation;
 pub use app_menu_export::AppMenuAddress;
+pub use foreign_menus::GtkMenusAddress;
 pub use input::inserts_text;
+pub use layer::{Anchors, KeyboardInteractivity, Layer, run_layer};
+pub use lock::{SessionUnlock, run_lock};
 pub use popup::{
     PopupAnchor, PopupConstraintAdjustment, PopupGravity, PopupHandle, PopupId, PopupSpec, Popups,
 };
 pub use timer::{Timers, WakeHandle};
+pub use toplevels::{ToplevelInfo, Toplevels};
 pub use window::{
     DecorationResponse, Decorations, MenuActionHandler, WindowControls, WindowEdge, WindowOptions,
     WindowStatus, run_window,
 };
 
+use activation::ActivationCallback;
 use app::AppInstance;
 use egl::{Graphics, GraphicsShared};
 use input::seat::{RepeatState, cursor_shape_from_icon};
 use surface::{SurfaceRole, SurfaceWindow, physical_point};
 use timer::{PingWake, TimerQueue, Wake};
+use toplevels::ToplevelEntry;
 use window::WindowCommand;
 
 pub(crate) use popup::PopupCommand;
@@ -157,55 +169,6 @@ pub use infinity::{
 };
 pub use sctk::reexports::client::backend::ObjectId;
 
-/// A layer of `zwlr_layer_shell_v1`, without exposing SCTK in the public API.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub enum Layer {
-    Background,
-    Bottom,
-    #[default]
-    Top,
-    Overlay,
-}
-
-/// Which edges a layer surface is anchored to.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub struct Anchors {
-    pub top: bool,
-    pub bottom: bool,
-    pub left: bool,
-    pub right: bool,
-}
-
-impl Anchors {
-    pub const ALL: Self = Self {
-        top: true,
-        bottom: true,
-        left: true,
-        right: true,
-    };
-    pub const TOP: Self = Self {
-        top: true,
-        left: true,
-        right: true,
-        bottom: false,
-    };
-    pub const BOTTOM: Self = Self {
-        bottom: true,
-        left: true,
-        right: true,
-        top: false,
-    };
-}
-
-/// How a layer surface wants the keyboard.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub enum KeyboardInteractivity {
-    #[default]
-    None,
-    Exclusive,
-    OnDemand,
-}
-
 /// What kind of surface the runner owns.
 #[derive(Clone, Debug)]
 pub enum SurfaceSpec {
@@ -242,251 +205,6 @@ pub enum RunError {
     Registry(#[from] sctk::reexports::client::globals::GlobalError),
     #[error(transparent)]
     Io(#[from] std::io::Error),
-}
-
-/// One running toplevel, as the dock lists it.
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
-pub struct ToplevelInfo {
-    pub title: String,
-    pub app_id: String,
-    pub active: bool,
-    pub maximized: bool,
-    pub minimized: bool,
-    pub restorable: bool,
-    /// The app's dbusmenu address, when it announced one.
-    pub app_menu: Option<AppMenuAddress>,
-    /// The GTK 3/4 D-Bus menu address, when announced via `gtk_shell1`.
-    pub gtk_menus: Option<GtkMenusAddress>,
-}
-
-/// D-Bus address of a GTK global menu (ADR 0045).
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
-pub struct GtkMenusAddress {
-    pub unique_bus_name: String,
-    pub application_id: String,
-    pub menubar_path: String,
-    pub app_menu_path: String,
-    pub application_object_path: String,
-    pub window_object_path: String,
-}
-
-impl GtkMenusAddress {
-    /// Returns a `GtkMenusAddress` only when `unique_bus_name` is non-empty and
-    /// at least one of `menubar_path` / `app_menu_path` is non-empty.
-    pub(crate) fn new(
-        unique_bus_name: String,
-        application_id: String,
-        menubar_path: String,
-        app_menu_path: String,
-        application_object_path: String,
-        window_object_path: String,
-    ) -> Option<Self> {
-        if unique_bus_name.is_empty() || (menubar_path.is_empty() && app_menu_path.is_empty()) {
-            return None;
-        }
-        Some(Self {
-            unique_bus_name,
-            application_id,
-            menubar_path,
-            app_menu_path,
-            application_object_path,
-            window_object_path,
-        })
-    }
-}
-
-/// A change that only touches one toplevel's metadata. Kept pure so the
-/// interleaved-event ordering can be tested without Wayland.
-#[derive(Clone, Debug, PartialEq, Eq)]
-enum InfoEvent {
-    Title(String),
-    AppId(String),
-    State {
-        active: bool,
-        maximized: bool,
-        minimized: bool,
-    },
-    AppMenu(Option<AppMenuAddress>),
-    GtkMenus(Option<GtkMenusAddress>),
-    Closed,
-}
-
-fn apply_info_event(infos: &mut Vec<ToplevelInfo>, index: usize, event: InfoEvent) {
-    let Some(info) = infos.get_mut(index) else {
-        return;
-    };
-    match event {
-        InfoEvent::Title(title) => info.title = title,
-        InfoEvent::AppId(app_id) => info.app_id = app_id,
-        InfoEvent::State {
-            active,
-            maximized,
-            minimized,
-        } => {
-            info.active = active;
-            info.maximized = maximized;
-            info.minimized = minimized;
-        }
-        InfoEvent::AppMenu(app_menu) => info.app_menu = app_menu,
-        InfoEvent::GtkMenus(gtk_menus) => info.gtk_menus = gtk_menus,
-        InfoEvent::Closed => {
-            infos.remove(index);
-        }
-    }
-}
-
-#[derive(Clone)]
-struct ToplevelEntry {
-    list: Option<ExtForeignToplevelHandleV1>,
-    mgmt: Option<ZwlrForeignToplevelHandleV1>,
-    restorable: bool,
-    info: ToplevelInfo,
-}
-
-/// The running toplevels, provided as a root context. The dock reads
-/// [`Toplevels::list`] and calls [`Toplevels::activate`] on a click.
-type Activate = Rc<RefCell<Option<Rc<dyn Fn(usize)>>>>;
-type Maximize = Rc<RefCell<Option<Rc<dyn Fn(usize, bool)>>>>;
-type Arrange = Rc<RefCell<Option<Rc<dyn Fn(usize, InfinityLayout)>>>>;
-type ArrangePair = Rc<RefCell<Option<Rc<dyn Fn(InfinityPairLayout)>>>>;
-type ArrangeQuarters = Rc<RefCell<Option<Rc<dyn Fn()>>>>;
-
-#[derive(Clone)]
-pub struct Toplevels {
-    pub list: State<Vec<ToplevelInfo>>,
-    activate: Activate,
-    close: Activate,
-    minimize: Activate,
-    maximize: Maximize,
-    unminimize: Activate,
-    arrange: Arrange,
-    arrange_pair: ArrangePair,
-    arrange_quarters: ArrangeQuarters,
-    restore: Activate,
-    set_fullscreen: Maximize,
-}
-
-impl Toplevels {
-    pub fn get() -> Self {
-        freya_core::prelude::consume_root_context()
-    }
-
-    pub fn activate(&self, index: usize) {
-        if let Some(f) = self.activate.borrow().as_ref() {
-            f(index);
-        }
-    }
-
-    pub fn close(&self, index: usize) {
-        if let Some(f) = self.close.borrow().as_ref() {
-            f(index);
-        }
-    }
-
-    pub fn minimize(&self, index: usize) {
-        if let Some(f) = self.minimize.borrow().as_ref() {
-            f(index);
-        }
-    }
-
-    pub fn unset_minimized(&self, index: usize) {
-        if let Some(f) = self.unminimize.borrow().as_ref() {
-            f(index);
-        }
-    }
-
-    pub fn set_maximized(&self, index: usize, maximized: bool) {
-        if let Some(f) = self.maximize.borrow().as_ref() {
-            f(index, maximized);
-        }
-    }
-
-    /// Minimizes every toplevel in the list.
-    pub fn minimize_all(&self) {
-        let len = self.list.read().len();
-        for index in 0..len {
-            self.minimize(index);
-        }
-    }
-
-    /// Arranges the toplevel at `index` in the requested Infinity layout.
-    pub fn arrange(&self, index: usize, layout: InfinityLayout) {
-        if let Some(f) = self.arrange.borrow().as_ref() {
-            f(index, layout);
-        }
-    }
-
-    /// Tiles the active and previous toplevels as a pair.
-    pub fn arrange_pair(&self, layout: InfinityPairLayout) {
-        if let Some(f) = self.arrange_pair.borrow().as_ref() {
-            f(layout);
-        }
-    }
-
-    /// Tiles the four most recent toplevels in quarters.
-    pub fn arrange_quarters(&self) {
-        if let Some(f) = self.arrange_quarters.borrow().as_ref() {
-            f();
-        }
-    }
-
-    /// Restores the toplevel at `index` to its pre-arrange rectangle.
-    pub fn restore(&self, index: usize) {
-        if let Some(f) = self.restore.borrow().as_ref() {
-            f(index);
-        }
-    }
-
-    /// Sets or unsets fullscreen on the toplevel at `index`.
-    pub fn set_fullscreen(&self, index: usize, fullscreen: bool) {
-        if let Some(f) = self.set_fullscreen.borrow().as_ref() {
-            f(index, fullscreen);
-        }
-    }
-}
-
-/// Unlocks the session from the lock app. Provided only to lock surfaces.
-#[derive(Clone)]
-pub struct SessionUnlock {
-    unlock: Rc<dyn Fn()>,
-}
-
-impl SessionUnlock {
-    pub fn get() -> Self {
-        freya_core::prelude::consume_root_context()
-    }
-
-    pub fn unlock(&self) {
-        (self.unlock)();
-    }
-}
-
-type ActivationCallback = Box<dyn Fn(Option<String>)>;
-type ActivationQueue = Rc<RefCell<Vec<ActivationCallback>>>;
-
-/// Requests an `xdg-activation-v1` token for the next launched app.
-///
-/// The compositor only accepts a token created by the client that currently
-/// has keyboard focus and that carries the last key press serial. The runner
-/// owns both, so the app asks here and receives the token (or `None` when the
-/// protocol is unavailable) in a callback.
-#[derive(Clone)]
-pub struct Activation {
-    queue: ActivationQueue,
-    ping: Ping,
-}
-
-impl Activation {
-    pub fn get() -> Self {
-        freya_core::prelude::consume_root_context()
-    }
-
-    /// Queues one token request. The callback runs on the Wayland loop with the
-    /// token string, or with `None` if the compositor does not support it.
-    pub fn request(&self, callback: impl Fn(Option<String>) + 'static) {
-        self.queue.borrow_mut().push(Box::new(callback));
-        self.ping.ping();
-    }
 }
 
 pub(super) struct Runtime {
@@ -569,207 +287,10 @@ fn make_sender(
     })
 }
 
-fn anchors_to_sctk(a: Anchors) -> SctkAnchor {
-    let mut out = SctkAnchor::empty();
-    if a.top {
-        out |= SctkAnchor::TOP;
-    }
-    if a.bottom {
-        out |= SctkAnchor::BOTTOM;
-    }
-    if a.left {
-        out |= SctkAnchor::LEFT;
-    }
-    if a.right {
-        out |= SctkAnchor::RIGHT;
-    }
-    out
-}
-
 fn drain_user_events(
     events: &Rc<RefCell<Vec<(ObjectId, UserEvent)>>>,
 ) -> Vec<(ObjectId, UserEvent)> {
     std::mem::take(&mut *events.borrow_mut())
-}
-
-/// Runs a layer-shell surface with a Freya app until the compositor closes it.
-pub fn run_layer(app: AppComponent, spec: SurfaceSpec) -> Result<(), RunError> {
-    let (conn, event_queue, qh, mut shell) = Runtime::connect(app, spec)?;
-    shell.qh = qh.clone();
-    let layer_shell = shell.layer_shell.as_ref().ok_or_else(|| {
-        tracing::info!(
-            "zwlr_layer_shell_v1 no disponible; las superficies Layer no funcionan aquí"
-        );
-        RunError::MissingGlobal("zwlr_layer_shell_v1")
-    })?;
-
-    let (namespace, layer, anchors, exclusive_zone, keyboard, size) = match &shell.spec {
-        SurfaceSpec::Layer {
-            namespace,
-            layer,
-            anchors,
-            exclusive_zone,
-            keyboard,
-            size,
-        } => (
-            namespace.clone(),
-            *layer,
-            *anchors,
-            *exclusive_zone,
-            *keyboard,
-            *size,
-        ),
-        SurfaceSpec::Lock | SurfaceSpec::Window(_) => {
-            return Err(RunError::MissingGlobal("layer surface"));
-        }
-    };
-
-    let surface = shell.compositor.create_surface(&qh);
-    let layer_surface = layer_shell.create_layer_surface(
-        &qh,
-        surface.clone(),
-        match layer {
-            Layer::Background => SctkLayer::Background,
-            Layer::Bottom => SctkLayer::Bottom,
-            Layer::Top => SctkLayer::Top,
-            Layer::Overlay => SctkLayer::Overlay,
-        },
-        Some(&namespace),
-        None,
-    );
-    layer_surface.set_anchor(anchors_to_sctk(anchors));
-    layer_surface.set_exclusive_zone(exclusive_zone);
-    layer_surface.set_keyboard_interactivity(match keyboard {
-        KeyboardInteractivity::None => SctkKeyboardInteractivity::None,
-        KeyboardInteractivity::Exclusive => SctkKeyboardInteractivity::Exclusive,
-        KeyboardInteractivity::OnDemand => SctkKeyboardInteractivity::OnDemand,
-    });
-    if let Some((w, h)) = size {
-        layer_surface.set_size(w, h);
-    }
-    surface.commit();
-
-    let waker = futures_util::task::waker(Arc::new(PingWake(shell.ping.clone())));
-    let sender = make_sender(shell.queue.clone(), shell.ping.clone(), surface.id());
-    let popups = Popups {
-        queue: shell.popup_commands.clone(),
-        ping: shell.ping.clone(),
-        next_id: shell.popup_next_id.clone(),
-        last_serial: shell.last_input_serial.clone(),
-        owner: surface.id(),
-        current: None,
-        surface_count: shell.surface_count.clone(),
-        opens_left: Rc::new(Cell::new(false)),
-    };
-    let app_instance = AppInstance::new(
-        shell.app.clone(),
-        1.0,
-        size.unwrap_or((1, 1)),
-        sender,
-        waker,
-        Some(shell.toplevels.clone()),
-        None,
-        shell.activation.clone(),
-        None,
-        Timers {
-            queue: shell.timers.clone(),
-            ping: shell.ping.clone(),
-            wake: shell.wake.clone(),
-        },
-        popups,
-        None,
-        shell.graphics.font_collection.clone(),
-        shell.graphics.font_manager.clone(),
-        None,
-        None,
-        shell.resolved,
-    );
-    let (fractional, viewport) = shell.create_fractional(&surface);
-    shell.surfaces.push(SurfaceWindow {
-        surface: surface.clone(),
-        role: SurfaceRole::Layer(layer_surface),
-        popup: None,
-        shared: shell.graphics.clone(),
-        graphics: None,
-        app: app_instance,
-        logical_size: size.unwrap_or((0, 0)),
-        buffer_size: (0, 0),
-        scale: 1.0,
-        output: None,
-        needs_redraw: true,
-        frame_pending: false,
-        draw_count: 0,
-        configure_count: 0,
-        pending_configure: None,
-        appmenu: None,
-        appmenu_address: None,
-        menu_handle: None,
-        fractional,
-        viewport,
-    });
-    shell.surface_count.set(shell.surfaces.len());
-
-    let mut event_loop: EventLoop<Runtime> =
-        EventLoop::try_new().map_err(|_| RunError::Egl("calloop EventLoop::try_new failed"))?;
-    insert_ping(&mut event_loop, &mut shell)?;
-    WaylandSource::new(conn, event_queue)
-        .insert(event_loop.handle())
-        .map_err(|_| RunError::Egl("inserting the Wayland source"))?;
-    let signal = event_loop.get_signal();
-    shell.loop_signal = Some(signal.clone());
-    event_loop
-        .run(None, &mut shell, |shell| {
-            if shell.needs_exit
-                && let Some(signal) = &shell.loop_signal
-            {
-                signal.stop();
-            }
-        })
-        .map_err(|_| RunError::Egl("calloop event loop failed"))?;
-    Ok(())
-}
-
-/// Runs the session lock: one Freya surface per output.
-pub fn run_lock(app: AppComponent) -> Result<(), RunError> {
-    let (conn, event_queue, qh, mut shell) = Runtime::connect(app, SurfaceSpec::Lock)?;
-    shell.qh = qh.clone();
-    let session_lock_state = shell
-        .session_lock
-        .as_ref()
-        .ok_or(RunError::MissingGlobal("ext_session_lock_manager_v1"))?;
-    let lock = session_lock_state
-        .lock(&qh)
-        .map_err(|_| RunError::MissingGlobal("ext_session_lock_manager_v1 (lock refused)"))?;
-    shell.active_lock = Some(lock);
-
-    let mut event_loop: EventLoop<Runtime> =
-        EventLoop::try_new().map_err(|_| RunError::Egl("calloop EventLoop::try_new failed"))?;
-    insert_ping(&mut event_loop, &mut shell)?;
-    let flush_conn = conn.clone();
-    WaylandSource::new(conn, event_queue)
-        .insert(event_loop.handle())
-        .map_err(|_| RunError::Egl("inserting the Wayland source"))?;
-    let signal = event_loop.get_signal();
-    shell.loop_signal = Some(signal.clone());
-    if let Some(lock) = shell.active_lock.clone() {
-        shell.session_unlock = Some(SessionUnlock {
-            unlock: Rc::new(move || {
-                lock.unlock();
-                let _ = flush_conn.flush();
-                signal.stop();
-            }),
-        });
-    }
-    event_loop
-        .run(None, &mut shell, |shell| {
-            if shell.needs_exit
-                && let Some(signal) = &shell.loop_signal
-            {
-                signal.stop();
-            }
-        })
-        .map_err(|_| RunError::Egl("calloop event loop failed"))?;
-    Ok(())
 }
 
 fn insert_ping(event_loop: &mut EventLoop<Runtime>, shell: &mut Runtime) -> Result<(), RunError> {
@@ -1124,79 +645,6 @@ impl Runtime {
 }
 
 impl Runtime {
-    fn create_lock_surface(
-        &mut self,
-        qh: &QueueHandle<Self>,
-        output: &wl_output::WlOutput,
-    ) -> Option<usize> {
-        if self.surfaces.iter().any(|s| s.output == Some(output.id())) {
-            return None;
-        }
-        let lock = self.active_lock.as_ref()?;
-        let surface = self.compositor.create_surface(qh);
-        let lock_surface = lock.create_lock_surface(surface.clone(), output, qh);
-        let waker = futures_util::task::waker(Arc::new(PingWake(self.ping.clone())));
-        let sender = make_sender(self.queue.clone(), self.ping.clone(), surface.id());
-        let popups = Popups {
-            queue: self.popup_commands.clone(),
-            ping: self.ping.clone(),
-            next_id: self.popup_next_id.clone(),
-            last_serial: self.last_input_serial.clone(),
-            owner: surface.id(),
-            current: None,
-            surface_count: self.surface_count.clone(),
-            opens_left: Rc::new(Cell::new(false)),
-        };
-        let app = AppInstance::new(
-            self.app.clone(),
-            1.0,
-            (1, 1),
-            sender,
-            waker,
-            Some(self.toplevels.clone()),
-            self.session_unlock.clone(),
-            self.activation.clone(),
-            None,
-            Timers {
-                queue: self.timers.clone(),
-                ping: self.ping.clone(),
-                wake: self.wake.clone(),
-            },
-            popups,
-            None,
-            self.graphics.font_collection.clone(),
-            self.graphics.font_manager.clone(),
-            None,
-            None,
-            self.resolved,
-        );
-        let (fractional, viewport) = self.create_fractional(&surface);
-        self.surfaces.push(SurfaceWindow {
-            surface,
-            role: SurfaceRole::Lock(lock_surface),
-            popup: None,
-            shared: self.graphics.clone(),
-            graphics: None,
-            app,
-            logical_size: (0, 0),
-            buffer_size: (0, 0),
-            scale: 1.0,
-            output: Some(output.id()),
-            needs_redraw: true,
-            frame_pending: false,
-            draw_count: 0,
-            configure_count: 0,
-            pending_configure: None,
-            appmenu: None,
-            appmenu_address: None,
-            menu_handle: None,
-            fractional,
-            viewport,
-        });
-        self.surface_count.set(self.surfaces.len());
-        Some(self.surfaces.len() - 1)
-    }
-
     pub(super) fn poll_all(&mut self) {
         for window in &mut self.surfaces {
             let dirty = window.app.poll();
@@ -1211,50 +659,6 @@ impl Runtime {
         self.request_redraw_all = false;
         self.poll_activation();
         self.process_window_commands();
-    }
-
-    fn poll_activation(&mut self) {
-        let requests = std::mem::take(&mut *self.activation.queue.borrow_mut());
-        for callback in requests {
-            let (Some(global), Some(seat), Some(window)) = (
-                self.activation_global.as_ref(),
-                self.activation_seat.as_ref(),
-                self.surfaces.first(),
-            ) else {
-                callback(None);
-                continue;
-            };
-            let serial = self.last_input_serial.get();
-            if serial == 0 {
-                callback(None);
-                continue;
-            }
-            let id = self.activation_callbacks.len();
-            self.activation_callbacks.push(Some(callback));
-            let token = global.get_activation_token(&self.qh, id);
-            token.set_serial(serial, seat);
-            token.set_surface(&window.surface);
-            token.commit();
-        }
-    }
-
-    fn sync_toplevels(&mut self) {
-        let infos: Vec<ToplevelInfo> = self
-            .toplevel_entries
-            .borrow()
-            .iter()
-            .map(|entry| {
-                let mut info = entry.info.clone();
-                info.restorable = entry.restorable;
-                info
-            })
-            .collect();
-        let mut list = self.toplevels.list;
-        if *list.peek() != infos {
-            list.set(infos);
-            self.request_redraw_all = true;
-            self.ping.ping();
-        }
     }
 
     pub(super) fn redraw_all(&mut self) {
@@ -1289,64 +693,6 @@ impl ProvidesRegistryState for Runtime {
     fn runtime_remove_global(&mut self, _: &Connection, _: &QueueHandle<Self>, _: u32, _: &str) {}
 }
 
-impl LayerShellHandler for Runtime {
-    fn closed(&mut self, _: &Connection, _: &QueueHandle<Self>, _: &LayerSurface) {
-        self.needs_exit = true;
-    }
-
-    fn configure(
-        &mut self,
-        _: &Connection,
-        qh: &QueueHandle<Self>,
-        layer_surface: &LayerSurface,
-        configure: LayerSurfaceConfigure,
-        _serial: u32,
-    ) {
-        let Some(index) = self.surfaces.iter().position(
-            |s| matches!(&s.role, SurfaceRole::Layer(existing) if existing == layer_surface),
-        ) else {
-            return;
-        };
-        let scale = self.surfaces[index].scale;
-        self.surfaces[index].configure(configure.new_size, scale);
-        self.surfaces[index].request_redraw(qh);
-    }
-}
-
-impl SessionLockHandler for Runtime {
-    fn locked(&mut self, _: &Connection, qh: &QueueHandle<Self>, session_lock: SessionLock) {
-        self.active_lock = Some(session_lock);
-        self.session_locked = true;
-        let outputs: Vec<wl_output::WlOutput> = self.output.outputs().collect();
-        for output in outputs {
-            self.create_lock_surface(qh, &output);
-        }
-    }
-
-    fn finished(&mut self, _: &Connection, _: &QueueHandle<Self>, _: SessionLock) {
-        self.session_locked = false;
-        eprintln!("malaysia-shell lock: the compositor refused the session lock");
-        std::process::exit(1);
-    }
-
-    fn configure(
-        &mut self,
-        _: &Connection,
-        qh: &QueueHandle<Self>,
-        surface: SessionLockSurface,
-        configure: SessionLockSurfaceConfigure,
-        _serial: u32,
-    ) {
-        let wl_surface = surface.wl_surface().clone();
-        let Some(index) = self.surface_for(&wl_surface) else {
-            return;
-        };
-        let scale = self.surfaces[index].scale;
-        self.surfaces[index].configure(configure.new_size, scale);
-        self.surfaces[index].request_redraw(qh);
-    }
-}
-
 impl OutputHandler for Runtime {
     fn output_state(&mut self) -> &mut OutputState {
         &mut self.output
@@ -1366,276 +712,15 @@ impl OutputHandler for Runtime {
     fn output_destroyed(&mut self, _: &Connection, _: &QueueHandle<Self>, _: wl_output::WlOutput) {}
 }
 
-impl Dispatch<ExtForeignToplevelListV1, (), Runtime> for Runtime {
-    fn event(
-        state: &mut Self,
-        _: &ExtForeignToplevelListV1,
-        event: <ExtForeignToplevelListV1 as Proxy>::Event,
-        _: &(),
-        _: &Connection,
-        _: &QueueHandle<Self>,
-    ) {
-        if let FtlListEvent::Toplevel { toplevel } = event
-            && state._foreign_mgmt.is_none()
-        {
-            state.toplevel_entries.borrow_mut().push(ToplevelEntry {
-                list: Some(toplevel),
-                mgmt: None,
-                restorable: false,
-                info: ToplevelInfo::default(),
-            });
-            state.sync_toplevels();
-        }
-    }
-
-    event_created_child!(Runtime, ExtForeignToplevelListV1, [
-        sctk::reexports::protocols::ext::foreign_toplevel_list::v1::client::ext_foreign_toplevel_list_v1::EVT_TOPLEVEL_OPCODE => (ExtForeignToplevelHandleV1, ())
-    ]);
-}
-
-impl Dispatch<ExtForeignToplevelHandleV1, (), Runtime> for Runtime {
-    fn event(
-        state: &mut Self,
-        handle: &ExtForeignToplevelHandleV1,
-        event: <ExtForeignToplevelHandleV1 as Proxy>::Event,
-        _: &(),
-        _: &Connection,
-        _: &QueueHandle<Self>,
-    ) {
-        if state._foreign_mgmt.is_some() {
-            return;
-        }
-        if matches!(event, FtlHandleEvent::Closed) {
-            state.toplevel_entries.borrow_mut().retain(|entry| {
-                entry
-                    .list
-                    .as_ref()
-                    .is_none_or(|list| list.id() != handle.id())
-            });
-            state.sync_toplevels();
-            return;
-        }
-        let mut entries = state.toplevel_entries.borrow_mut();
-        let index = entries
-            .iter()
-            .position(|e| e.list.as_ref().is_some_and(|list| list.id() == handle.id()));
-        if let Some(index) = index {
-            let mut infos: Vec<ToplevelInfo> = entries.iter().map(|e| e.info.clone()).collect();
-            let info_event = match event {
-                FtlHandleEvent::Title { title } => Some(InfoEvent::Title(title)),
-                FtlHandleEvent::AppId { app_id } => Some(InfoEvent::AppId(app_id)),
-                _ => None,
-            };
-            if let Some(info_event) = info_event {
-                apply_info_event(&mut infos, index, info_event);
-                entries[index].info = infos[index].clone();
-            }
-        }
-        drop(entries);
-        state.sync_toplevels();
-    }
-}
-
-impl Dispatch<ZwlrForeignToplevelManagerV1, (), Runtime> for Runtime {
-    fn event(
-        state: &mut Self,
-        _: &ZwlrForeignToplevelManagerV1,
-        event: <ZwlrForeignToplevelManagerV1 as Proxy>::Event,
-        _: &(),
-        _: &Connection,
-        _: &QueueHandle<Self>,
-    ) {
-        if let MgmtListEvent::Toplevel { toplevel } = event {
-            state.toplevel_entries.borrow_mut().push(ToplevelEntry {
-                list: None,
-                mgmt: Some(toplevel),
-                restorable: false,
-                info: ToplevelInfo::default(),
-            });
-            state.sync_toplevels();
-        }
-    }
-
-    event_created_child!(Runtime, ZwlrForeignToplevelManagerV1, [
-        sctk::reexports::protocols_wlr::foreign_toplevel::v1::client::zwlr_foreign_toplevel_manager_v1::EVT_TOPLEVEL_OPCODE => (ZwlrForeignToplevelHandleV1, ())
-    ]);
-}
-
-impl Dispatch<ZwlrForeignToplevelHandleV1, (), Runtime> for Runtime {
-    fn event(
-        state: &mut Self,
-        handle: &ZwlrForeignToplevelHandleV1,
-        event: <ZwlrForeignToplevelHandleV1 as Proxy>::Event,
-        _: &(),
-        _: &Connection,
-        _: &QueueHandle<Self>,
-    ) {
-        let mut entries = state.toplevel_entries.borrow_mut();
-        let index = entries
-            .iter()
-            .position(|e| e.mgmt.as_ref().is_some_and(|mgmt| mgmt.id() == handle.id()));
-        let Some(index) = index else {
-            return;
-        };
-        if matches!(event, ZwlrForeignToplevelHandleV1Event::Closed) {
-            let mut infos: Vec<ToplevelInfo> = entries.iter().map(|e| e.info.clone()).collect();
-            apply_info_event(&mut infos, index, InfoEvent::Closed);
-            entries.remove(index);
-            drop(entries);
-            state.sync_toplevels();
-            return;
-        }
-        let info_event = match event {
-            ZwlrForeignToplevelHandleV1Event::Title { title } => Some(InfoEvent::Title(title)),
-            ZwlrForeignToplevelHandleV1Event::AppId { app_id } => Some(InfoEvent::AppId(app_id)),
-            ZwlrForeignToplevelHandleV1Event::State { state } => Some(InfoEvent::State {
-                active: state.contains(&(ZwlrForeignToplevelHandleV1State::Activated as u8)),
-                maximized: state.contains(&(ZwlrForeignToplevelHandleV1State::Maximized as u8)),
-                minimized: state.contains(&(ZwlrForeignToplevelHandleV1State::Minimized as u8)),
-            }),
-            _ => None,
-        };
-        if let Some(info_event) = info_event {
-            let mut infos: Vec<ToplevelInfo> = entries.iter().map(|e| e.info.clone()).collect();
-            apply_info_event(&mut infos, index, info_event);
-            entries[index].info = infos[index].clone();
-        }
-        drop(entries);
-        state.sync_toplevels();
-    }
-}
-
-impl Dispatch<XdgActivationV1, ()> for Runtime {
-    fn event(
-        _: &mut Self,
-        _: &XdgActivationV1,
-        _: <XdgActivationV1 as Proxy>::Event,
-        _: &(),
-        _: &Connection,
-        _: &QueueHandle<Self>,
-    ) {
-    }
-}
-
-impl Dispatch<XdgActivationTokenV1, usize> for Runtime {
-    fn event(
-        state: &mut Self,
-        _: &XdgActivationTokenV1,
-        event: xdg_activation_token_v1::Event,
-        id: &usize,
-        _: &Connection,
-        _: &QueueHandle<Self>,
-    ) {
-        if let xdg_activation_token_v1::Event::Done { token } = event
-            && let Some(callback) = state
-                .activation_callbacks
-                .get_mut(*id)
-                .and_then(Option::take)
-        {
-            callback(Some(token));
-        }
-    }
-}
-
-impl Dispatch<InfinityWindowManagerV1, ()> for Runtime {
-    fn event(
-        state: &mut Self,
-        _: &InfinityWindowManagerV1,
-        event: <InfinityWindowManagerV1 as Proxy>::Event,
-        _: &(),
-        _: &Connection,
-        _: &QueueHandle<Self>,
-    ) {
-        use infinity::protocol::infinity_window_manager_v1::Event;
-        match event {
-            Event::Restorable { handle, restorable } => {
-                let restorable = restorable != 0;
-                for entry in state.toplevel_entries.borrow_mut().iter_mut() {
-                    if entry
-                        .mgmt
-                        .as_ref()
-                        .is_some_and(|mgmt| mgmt.id() == handle.id())
-                    {
-                        entry.restorable = restorable;
-                        break;
-                    }
-                }
-            }
-            Event::AppMenu {
-                toplevel,
-                service,
-                path,
-            } => {
-                let address = if service.is_empty() || path.is_empty() {
-                    None
-                } else {
-                    Some(AppMenuAddress { service, path })
-                };
-                update_toplevel_info(
-                    &mut state.toplevel_entries.borrow_mut(),
-                    &toplevel,
-                    InfoEvent::AppMenu(address),
-                );
-            }
-            Event::GtkMenus {
-                toplevel,
-                unique_bus_name,
-                application_id,
-                menubar_path,
-                app_menu_path,
-                application_object_path,
-                window_object_path,
-            } => {
-                let address = GtkMenusAddress::new(
-                    unique_bus_name,
-                    application_id,
-                    menubar_path,
-                    app_menu_path,
-                    application_object_path,
-                    window_object_path,
-                );
-                update_toplevel_info(
-                    &mut state.toplevel_entries.borrow_mut(),
-                    &toplevel,
-                    InfoEvent::GtkMenus(address),
-                );
-            }
-            // shortcut: future Infinity events are ignored; add handlers when
-            // the compositor starts sending them.
-            _ => {}
-        }
-        state.sync_toplevels();
-    }
-}
-
-fn update_toplevel_info(
-    entries: &mut [ToplevelEntry],
-    toplevel: &ZwlrForeignToplevelHandleV1,
-    event: InfoEvent,
-) {
-    if let Some(index) = entries.iter().position(|entry| {
-        entry
-            .mgmt
-            .as_ref()
-            .is_some_and(|mgmt| mgmt.id() == toplevel.id())
-    }) {
-        let mut infos: Vec<ToplevelInfo> = entries.iter().map(|entry| entry.info.clone()).collect();
-        apply_info_event(&mut infos, index, event);
-        entries[index].info = infos[index].clone();
-    }
-}
-
 delegate_compositor!(Runtime);
 delegate_output!(Runtime);
 delegate_registry!(Runtime);
 delegate_xdg_shell!(Runtime);
 delegate_xdg_window!(Runtime);
-delegate_session_lock!(Runtime);
-delegate_dispatch!(Runtime: [zwlr_layer_shell_v1::ZwlrLayerShellV1: sctk::globals::GlobalData] => LayerShell);
-delegate_dispatch!(Runtime: [zwlr_layer_surface_v1::ZwlrLayerSurfaceV1: LayerSurfaceData] => LayerShell);
 
 #[cfg(test)]
 mod tests {
+    use super::toplevels::{InfoEvent, apply_info_event};
     use super::*;
     use input::seat::{
         RepeatState, cursor_shape_from_icon, dispatch_touch_cancels, find_index_by_id,
