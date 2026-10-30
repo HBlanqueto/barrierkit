@@ -31,34 +31,37 @@ use torin::prelude::CursorPoint;
 
 use super::super::{runtime::Runtime, surface::physical_point};
 
-pub(crate) struct RepeatState {
-    pub(crate) event: KeyEvent,
-    pub(crate) delay: Duration,
-    pub(crate) rate: Duration,
-    pub(crate) first: bool,
-    pub(crate) pending: bool,
-    pub(crate) generation: u64,
+pub(in crate::platform) struct RepeatState {
+    pub(in crate::platform) event: KeyEvent,
+    pub(in crate::platform) delay: Duration,
+    pub(in crate::platform) rate: Duration,
+    pub(in crate::platform) first: bool,
+    pub(in crate::platform) pending: bool,
+    pub(in crate::platform) generation: u64,
 }
 
 /// Cancels the current repeat and invalidates any timer already in flight.
-pub(crate) fn stop_repeat(repeat: &mut Option<RepeatState>, generation: &mut u64) {
+pub(in crate::platform) fn stop_repeat(repeat: &mut Option<RepeatState>, generation: &mut u64) {
     *repeat = None;
     *generation = generation.wrapping_add(1);
 }
 
 /// Returns true if the pressed key should start the auto-repeat timer.
-pub(crate) fn should_repeat_key(event: &KeyEvent) -> bool {
+pub(in crate::platform) fn should_repeat_key(event: &KeyEvent) -> bool {
     !event.keysym.is_modifier_key()
 }
 
 /// Returns true if the released key is the one currently being repeated.
-pub(crate) fn released_repeated_key(repeat: &Option<RepeatState>, event: &KeyEvent) -> bool {
+pub(in crate::platform) fn released_repeated_key(
+    repeat: &Option<RepeatState>,
+    event: &KeyEvent,
+) -> bool {
     repeat
         .as_ref()
         .is_some_and(|state| state.event.keysym == event.keysym)
 }
 
-pub(crate) fn cursor_shape_from_icon(icon: CursorIcon) -> CursorShape {
+pub(in crate::platform) fn cursor_shape_from_icon(icon: CursorIcon) -> CursorShape {
     match icon {
         CursorIcon::Text => CursorShape::Text,
         CursorIcon::Pointer => CursorShape::Pointer,
@@ -103,7 +106,7 @@ pub(crate) fn cursor_shape_from_icon(icon: CursorIcon) -> CursorShape {
 
 /// Find the index of the item whose identifier matches `id`.
 /// Extracted so touch routing can be unit-tested without real Wayland surfaces.
-pub(crate) fn find_index_by_id<T, Id: Eq>(
+pub(in crate::platform) fn find_index_by_id<T, Id: Eq>(
     items: &[T],
     id: Id,
     get_id: impl Fn(&T) -> Id,
@@ -420,7 +423,7 @@ impl Runtime {
         }
     }
 
-    pub(crate) fn install_repeat(&mut self, handle: &LoopHandle<Runtime>) {
+    pub(in crate::platform) fn install_repeat(&mut self, handle: &LoopHandle<Runtime>) {
         let Some(state) = &mut self.repeat else {
             return;
         };
@@ -458,7 +461,7 @@ impl Runtime {
 /// Drain every active touch contact so `TouchHandler::cancel` can dispatch a
 /// `TouchPhase::Cancelled` event to each surface. Kept as a pure helper so the
 /// routing can be unit-tested without a live Wayland connection.
-pub(crate) fn dispatch_touch_cancels(
+pub(in crate::platform) fn dispatch_touch_cancels(
     touch_surfaces: &mut std::collections::HashMap<i32, ObjectId>,
     mut dispatch: impl FnMut(i32, ObjectId),
 ) {

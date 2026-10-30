@@ -22,6 +22,7 @@ mod lock;
 mod popup;
 mod runtime;
 mod surface;
+#[cfg(test)]
 mod tests;
 mod timer;
 mod toplevels;
@@ -78,6 +79,8 @@ pub enum RunError {
     MissingGlobal(&'static str),
     #[error("EGL initialisation failed: {0}")]
     Egl(&'static str),
+    #[error("event loop failed: {0}")]
+    EventLoop(&'static str),
     #[error("Skia could not create its GL context")]
     Skia,
     #[error(transparent)]

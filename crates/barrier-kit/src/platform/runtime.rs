@@ -150,10 +150,9 @@ pub(super) fn insert_ping(
     event_loop: &mut EventLoop<Runtime>,
     shell: &mut Runtime,
 ) -> Result<(), RunError> {
-    let source = shell
-        .ping_source
-        .take()
-        .ok_or(RunError::Egl("the Freya ping source is already installed"))?;
+    let source = shell.ping_source.take().ok_or(RunError::EventLoop(
+        "the Freya ping source is already installed",
+    ))?;
     let handle = event_loop.handle();
     event_loop
         .handle()
@@ -190,12 +189,11 @@ pub(super) fn insert_ping(
             shell.install_repeat(&handle);
             shell.redraw_all();
         })
-        .map_err(|_| RunError::Egl("inserting the Freya ping source"))?;
+        .map_err(|_| RunError::EventLoop("inserting the Freya ping source"))?;
 
-    let wake_source = shell
-        .wake_source
-        .take()
-        .ok_or(RunError::Egl("the wake ping source is already installed"))?;
+    let wake_source = shell.wake_source.take().ok_or(RunError::EventLoop(
+        "the wake ping source is already installed",
+    ))?;
     let callbacks = shell.wake.callbacks.clone();
     event_loop
         .handle()
@@ -209,7 +207,7 @@ pub(super) fn insert_ping(
             shell.poll_all();
             shell.redraw_all();
         })
-        .map_err(|_| RunError::Egl("inserting the wake ping source"))?;
+        .map_err(|_| RunError::EventLoop("inserting the wake ping source"))?;
 
     // Watch appearance.domain and wallpaper.state; when they change, resolve
     // the theme again and update the process-wide reactive state so every
@@ -240,7 +238,7 @@ pub(super) fn insert_ping(
                 Ok(PostAction::Continue)
             },
         )
-        .map_err(|_| RunError::Egl("inserting the appearance watch source"))?;
+        .map_err(|_| RunError::EventLoop("inserting the appearance watch source"))?;
     Ok(())
 }
 
@@ -262,9 +260,9 @@ impl Runtime {
         let qh = event_queue.handle();
         let queue: Rc<RefCell<Vec<(ObjectId, UserEvent)>>> = Rc::new(RefCell::new(Vec::new()));
         let (ping, ping_source) =
-            calloop::ping::make_ping().map_err(|_| RunError::Egl("calloop ping failed"))?;
-        let (wake_ping, wake_source) =
-            calloop::ping::make_ping().map_err(|_| RunError::Egl("calloop wake ping failed"))?;
+            calloop::ping::make_ping().map_err(|_| RunError::EventLoop("calloop ping failed"))?;
+        let (wake_ping, wake_source) = calloop::ping::make_ping()
+            .map_err(|_| RunError::EventLoop("calloop wake ping failed"))?;
         let resolved = State::create_global(resolve(&load_appearance(), load_dominant()));
         let toplevel_entries: Rc<RefCell<Vec<ToplevelEntry>>> = Rc::new(RefCell::new(Vec::new()));
         let close_entries = toplevel_entries.clone();

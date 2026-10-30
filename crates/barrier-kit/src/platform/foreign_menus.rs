@@ -12,7 +12,7 @@ pub struct GtkMenusAddress {
 impl GtkMenusAddress {
     /// Returns a `GtkMenusAddress` only when `unique_bus_name` is non-empty and
     /// at least one of `menubar_path` / `app_menu_path` is non-empty.
-    pub(crate) fn new(
+    pub(super) fn new(
         unique_bus_name: String,
         application_id: String,
         menubar_path: String,

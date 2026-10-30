@@ -169,7 +169,7 @@ pub struct WindowStatus {
 pub struct WindowControls {
     pub(super) queue: Rc<RefCell<Vec<WindowCommand>>>,
     pub(super) ping: Ping,
-    pub(crate) pointer_serial: Rc<std::cell::Cell<u32>>,
+    pub(super) pointer_serial: Rc<std::cell::Cell<u32>>,
     pub status: State<WindowStatus>,
     pub title: String,
     pub fixed: bool,
@@ -278,12 +278,12 @@ pub fn run_window(app: AppComponent, options: WindowOptions) -> Result<(), RunEr
         .create_window(app, options)
         .ok_or(RunError::MissingGlobal("xdg_wm_base"))?;
 
-    let mut event_loop: EventLoop<Runtime> =
-        EventLoop::try_new().map_err(|_| RunError::Egl("calloop EventLoop::try_new failed"))?;
+    let mut event_loop: EventLoop<Runtime> = EventLoop::try_new()
+        .map_err(|_| RunError::EventLoop("calloop EventLoop::try_new failed"))?;
     insert_ping(&mut event_loop, &mut shell)?;
     WaylandSource::new(conn, event_queue)
         .insert(event_loop.handle())
-        .map_err(|_| RunError::Egl("inserting the Wayland source"))?;
+        .map_err(|_| RunError::EventLoop("inserting the Wayland source"))?;
     let signal = event_loop.get_signal();
     shell.loop_signal = Some(signal);
     event_loop
@@ -294,7 +294,7 @@ pub fn run_window(app: AppComponent, options: WindowOptions) -> Result<(), RunEr
                 signal.stop();
             }
         })
-        .map_err(|_| RunError::Egl("calloop event loop failed"))?;
+        .map_err(|_| RunError::EventLoop("calloop event loop failed"))?;
     Ok(())
 }
 impl Runtime {
