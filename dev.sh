@@ -61,7 +61,7 @@ example() {
         fail 1 "no such example: $_name"
     fi
     RUST_LOG=${RUST_LOG:-info} \
-        cargo run -p barrier-kit --example "$_name" -- "$@"
+        cargo run -p barrier-kit --example "$_name" --features shell -- "$@"
 }
 
 check() {
@@ -71,9 +71,11 @@ check() {
     require cargo-clippy
     cargo fmt --all -- --check
     cargo clippy --workspace --all-targets -- -D warnings
+    cargo clippy --workspace --all-targets --features barrier-kit/shell -- -D warnings
     "$script_dir/scripts/check-design-tokens.sh"
     "$script_dir/scripts/check-client-only-deps.sh"
     cargo test --workspace
+    cargo test --workspace --features barrier-kit/shell
 }
 
 case "${1:-}" in

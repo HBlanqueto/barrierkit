@@ -16,6 +16,9 @@ mod fonts;
 /// input.
 pub mod platform;
 
+#[cfg(feature = "shell")]
+pub mod shell;
+
 /// The lock screen's minimal password field and status UI.
 pub mod password;
 

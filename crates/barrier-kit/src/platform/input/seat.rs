@@ -31,7 +31,7 @@ use torin::prelude::CursorPoint;
 
 use super::super::{runtime::Runtime, surface::physical_point};
 
-pub(in crate::platform) struct RepeatState {
+pub(crate) struct RepeatState {
     pub(in crate::platform) event: KeyEvent,
     pub(in crate::platform) delay: Duration,
     pub(in crate::platform) rate: Duration,

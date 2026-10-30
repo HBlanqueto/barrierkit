@@ -17,16 +17,16 @@ use wayland_egl::WlEglSurface;
 const EGL_PLATFORM_WAYLAND: egl::Enum = 0x31D8;
 
 /// The EGL + Skia GL state shared by every surface in the process.
-pub(super) struct GraphicsShared {
+pub(crate) struct GraphicsShared {
     egl: DynamicInstance<egl::EGL1_5>,
     display: egl::Display,
     config: egl::Config,
     context: egl::Context,
-    pub(super) gr: RefCell<DirectContext>,
-    pub(super) font_collection: FontCollection,
-    pub(super) font_manager: FontMgr,
+    pub(crate) gr: RefCell<DirectContext>,
+    pub(crate) font_collection: FontCollection,
+    pub(crate) font_manager: FontMgr,
     /// Counter of `wl_egl_window` creations, for resize tests.
-    pub(super) egl_window_creations: Cell<usize>,
+    pub(crate) egl_window_creations: Cell<usize>,
 }
 
 // Safety: EGL display/context handles are used only on the thread that created
@@ -34,7 +34,7 @@ pub(super) struct GraphicsShared {
 unsafe impl Send for GraphicsShared {}
 
 impl GraphicsShared {
-    pub(super) fn new(display_ptr: *mut c_void) -> Result<Self, RunError> {
+    pub(crate) fn new(display_ptr: *mut c_void) -> Result<Self, RunError> {
         // SAFETY: called once on the calloop thread; libEGL is present because
         // the compositor already initialized EGL. `load_required` validates the
         // minimum version (EGL 1.5) before returning.
@@ -121,11 +121,11 @@ impl Drop for GraphicsShared {
 /// The per-surface EGL window/surface and Skia render target. The expensive
 /// process-wide state (EGL context, `DirectContext`, fonts) lives in
 /// [`GraphicsShared`].
-pub(super) struct Graphics {
-    pub(super) shared: Rc<GraphicsShared>,
+pub(crate) struct Graphics {
+    pub(crate) shared: Rc<GraphicsShared>,
     window: Option<WlEglSurface>,
     surface: Option<egl::Surface>,
-    pub(super) skia: Option<SkiaSurface>,
+    pub(crate) skia: Option<SkiaSurface>,
     size: (u32, u32),
     scale: f64,
 }
@@ -134,7 +134,7 @@ pub(super) struct Graphics {
 unsafe impl Send for Graphics {}
 
 impl Graphics {
-    pub(super) fn new(shared: Rc<GraphicsShared>) -> Self {
+    pub(crate) fn new(shared: Rc<GraphicsShared>) -> Self {
         Self {
             shared,
             window: None,
@@ -150,7 +150,7 @@ impl Graphics {
     ///
     /// Reuses the existing `wl_egl_window` via `resize` when only the size
     /// changed; only recreates it when the scale changed or the resize failed.
-    pub(super) fn configure(
+    pub(crate) fn configure(
         &mut self,
         surface: &WlSurface,
         size: (u32, u32),
@@ -241,7 +241,7 @@ impl Graphics {
         Ok(())
     }
 
-    pub(super) fn make_current(&self) -> Result<(), RunError> {
+    pub(crate) fn make_current(&self) -> Result<(), RunError> {
         let Some(surface) = self.surface else {
             return Err(RunError::Egl("no window surface"));
         };
@@ -256,7 +256,7 @@ impl Graphics {
             .map_err(|_| RunError::Egl("eglMakeCurrent failed"))
     }
 
-    pub(super) fn swap(&self) -> Result<(), RunError> {
+    pub(crate) fn swap(&self) -> Result<(), RunError> {
         let Some(surface) = self.surface else {
             return Err(RunError::Egl("no window surface"));
         };

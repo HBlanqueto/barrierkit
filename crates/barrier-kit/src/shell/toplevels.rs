@@ -18,10 +18,8 @@ use sctk::reexports::{
 };
 use std::{cell::RefCell, rc::Rc};
 
-use super::{
-    app_menu_export::AppMenuAddress, foreign_menus::GtkMenusAddress, runtime::Runtime,
-    shell_state::ShellState,
-};
+use crate::platform::{app_menu_export::AppMenuAddress, runtime::Runtime};
+use crate::shell::{GtkMenusAddress, ShellState};
 
 /// One running toplevel, as the dock lists it.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
@@ -79,11 +77,11 @@ pub(super) fn apply_info_event(infos: &mut Vec<ToplevelInfo>, index: usize, even
 }
 
 #[derive(Clone)]
-pub(super) struct ToplevelEntry {
-    pub(super) list: Option<ExtForeignToplevelHandleV1>,
-    pub(super) mgmt: Option<ZwlrForeignToplevelHandleV1>,
-    pub(super) restorable: bool,
-    pub(super) info: ToplevelInfo,
+pub(crate) struct ToplevelEntry {
+    pub(crate) list: Option<ExtForeignToplevelHandleV1>,
+    pub(crate) mgmt: Option<ZwlrForeignToplevelHandleV1>,
+    pub(crate) restorable: bool,
+    pub(crate) info: ToplevelInfo,
 }
 
 /// The running toplevels, provided as a root context. The dock reads

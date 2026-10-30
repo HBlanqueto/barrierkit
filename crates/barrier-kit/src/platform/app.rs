@@ -30,33 +30,33 @@ use super::{
 };
 
 /// One Freya app: its runner, tree and render contexts.
-pub(super) struct AppInstance {
+pub(crate) struct AppInstance {
     runner: Runner,
-    pub(super) tree: Tree,
+    pub(crate) tree: Tree,
     nodes_state: NodesState<NodeId>,
     events_sender: futures_channel::mpsc::UnboundedSender<EventsChunk>,
     events_receiver: futures_channel::mpsc::UnboundedReceiver<EventsChunk>,
     platform: Platform,
     _animation_clock: AnimationClock,
-    pub(super) ticker_sender: RenderingTickerSender,
-    pub(super) font_collection: FontCollection,
-    pub(super) font_manager: FontMgr,
+    pub(crate) ticker_sender: RenderingTickerSender,
+    pub(crate) font_collection: FontCollection,
+    pub(crate) font_manager: FontMgr,
     fallback_fonts: Vec<Cow<'static, str>>,
     scale_factor: f64,
     size: Size2D,
     needs_layout: bool,
     waker: Waker,
-    pub(super) menu: Option<crate::app_menu::AppMenu>,
-    pub(super) on_menu_action: Option<MenuActionHandler>,
-    pub(super) resolved: State<Resolved>,
+    pub(crate) menu: Option<crate::app_menu::AppMenu>,
+    pub(crate) on_menu_action: Option<MenuActionHandler>,
+    pub(crate) resolved: State<Resolved>,
     accessibility: AccessibilityTree,
     accessibility_initialized: bool,
-    pub(super) requested_focus: Option<AccessibilityFocusStrategy>,
+    pub(crate) requested_focus: Option<AccessibilityFocusStrategy>,
 }
 
 impl AppInstance {
     #[allow(clippy::too_many_arguments)]
-    pub(super) fn new(
+    pub(crate) fn new(
         app: AppComponent,
         scale_factor: f64,
         size: (u32, u32),
@@ -147,12 +147,12 @@ impl AppInstance {
     }
 
     /// Mirrors the compositor's keyboard focus into the Freya platform state.
-    pub(super) fn set_focused(&mut self, focused: bool) {
+    pub(crate) fn set_focused(&mut self, focused: bool) {
         self.platform.is_app_focused.set(focused);
         self.waker.wake_by_ref();
     }
 
-    pub(super) fn resize(&mut self, size: (u32, u32), scale_factor: f64) {
+    pub(crate) fn resize(&mut self, size: (u32, u32), scale_factor: f64) {
         self.size = Size2D::new(size.0 as f32, size.1 as f32);
         self.scale_factor = scale_factor;
         self.platform.root_size.set(self.size);
@@ -166,7 +166,7 @@ impl AppInstance {
     /// Polls Freya once. `handle_events` returns ready while dirty scopes are
     /// pending; looping on it without calling `sync_and_update` spins forever,
     /// so the caller clears them in `update` and polls again on its next wake.
-    pub(super) fn poll(&mut self) -> bool {
+    pub(crate) fn poll(&mut self) -> bool {
         let mut cx = Context::from_waker(&self.waker);
         let ready = {
             let future = pin!(self.runner.handle_events());
@@ -199,7 +199,7 @@ impl AppInstance {
         dirty
     }
 
-    pub(super) fn update(&mut self) -> bool {
+    pub(crate) fn update(&mut self) -> bool {
         let requested_focus = self.requested_focus.take();
         let mutations = self.runner.sync_and_update();
         let result = self.runner.run_in(|| self.tree.apply_mutations(mutations));
@@ -236,7 +236,7 @@ impl AppInstance {
         result.needs_render
     }
 
-    pub(super) fn layout(&mut self) {
+    pub(crate) fn layout(&mut self) {
         if !self.needs_layout {
             return;
         }
@@ -251,7 +251,7 @@ impl AppInstance {
         self.needs_layout = false;
     }
 
-    pub(super) fn push(&mut self, event: PlatformEvent) {
+    pub(crate) fn push(&mut self, event: PlatformEvent) {
         let mut adapter = EventsMeasurerAdapter {
             scale_factor: self.scale_factor,
             tree: &mut self.tree,

@@ -12,15 +12,15 @@ use sctk::{
 };
 use std::{cell::Cell, rc::Rc, sync::Arc};
 
-use super::{
+use crate::platform::{
     RunError,
     app::AppInstance,
     popup::Popups,
     runtime::{Connected, Runtime, insert_ping, make_sender},
-    shell_state::ShellState,
     surface::{ExtensionRole, SurfaceRole, SurfaceWindow},
     timer::{PingWake, Timers},
 };
+use crate::shell::ShellState;
 
 /// Unlocks the session from the lock app. Provided only to lock surfaces.
 #[derive(Clone)]

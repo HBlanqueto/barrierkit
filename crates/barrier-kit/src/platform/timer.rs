@@ -8,8 +8,8 @@ use std::{cell::RefCell, rc::Rc, sync::Arc, time::Duration};
 
 use super::runtime::Runtime;
 
-pub(super) type TimerQueue = Rc<RefCell<Vec<(Duration, Rc<dyn Fn()>)>>>;
-pub(super) type WakeQueue = Rc<RefCell<Vec<Rc<dyn Fn()>>>>;
+pub(crate) type TimerQueue = Rc<RefCell<Vec<(Duration, Rc<dyn Fn()>)>>>;
+pub(crate) type WakeQueue = Rc<RefCell<Vec<Rc<dyn Fn()>>>>;
 
 /// Wakes the render loop from another thread. `wake` only pings the loop; the
 /// callback registered by [`Timers::wakeup`] runs on the render thread.
@@ -29,18 +29,18 @@ impl WakeHandle {
 }
 
 #[derive(Clone)]
-pub(super) struct Wake {
-    pub(super) ping: Ping,
-    pub(super) callbacks: WakeQueue,
+pub(crate) struct Wake {
+    pub(crate) ping: Ping,
+    pub(crate) callbacks: WakeQueue,
 }
 
 /// Schedules one-shot callbacks on the runner's calloop loop. The app uses it
 /// for the menubar clock; there is no periodic polling.
 #[derive(Clone)]
 pub struct Timers {
-    pub(super) queue: TimerQueue,
-    pub(super) ping: Ping,
-    pub(super) wake: Wake,
+    pub(crate) queue: TimerQueue,
+    pub(crate) ping: Ping,
+    pub(crate) wake: Wake,
 }
 
 impl Timers {
@@ -64,7 +64,7 @@ impl Timers {
 }
 
 /// A calloop waker for Freya's futures and user events.
-pub(super) struct PingWake(pub(super) Ping);
+pub(crate) struct PingWake(pub(crate) Ping);
 
 impl ArcWake for PingWake {
     fn wake_by_ref(arc_self: &Arc<Self>) {
@@ -73,7 +73,7 @@ impl ArcWake for PingWake {
 }
 
 impl Runtime {
-    pub(super) fn install_timers(&mut self, handle: &LoopHandle<Runtime>) {
+    pub(crate) fn install_timers(&mut self, handle: &LoopHandle<Runtime>) {
         let pending: Vec<(Duration, Rc<dyn Fn()>)> = std::mem::take(&mut *self.timers.borrow_mut());
         for (delay, callback) in pending {
             let _ = handle.insert_source(

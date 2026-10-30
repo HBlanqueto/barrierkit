@@ -34,32 +34,34 @@ use super::{
 };
 
 /// A surface plus its Freya app and GL context.
-pub(super) struct SurfaceWindow {
-    pub(super) surface: WlSurface,
-    pub(super) role: SurfaceRole,
-    pub(super) popup: Option<PopupInfo>,
-    pub(super) shared: Rc<GraphicsShared>,
-    pub(super) graphics: Option<Graphics>,
-    pub(super) app: AppInstance,
-    pub(super) logical_size: (u32, u32),
-    pub(super) buffer_size: (u32, u32),
-    pub(super) scale: f64,
-    pub(super) output: Option<ObjectId>,
-    pub(super) needs_redraw: bool,
-    pub(super) frame_pending: bool,
-    pub(super) draw_count: u64,
-    pub(super) configure_count: u64,
+pub(crate) struct SurfaceWindow {
+    pub(crate) surface: WlSurface,
+    pub(crate) role: SurfaceRole,
+    pub(crate) popup: Option<PopupInfo>,
+    pub(crate) shared: Rc<GraphicsShared>,
+    pub(crate) graphics: Option<Graphics>,
+    pub(crate) app: AppInstance,
+    pub(crate) logical_size: (u32, u32),
+    pub(crate) buffer_size: (u32, u32),
+    pub(crate) scale: f64,
+    pub(crate) output: Option<ObjectId>,
+    pub(crate) needs_redraw: bool,
+    pub(crate) frame_pending: bool,
+    pub(crate) draw_count: u64,
+    pub(crate) configure_count: u64,
     /// The most recent window configure not yet applied.
-    pub(super) pending_configure: Option<(WindowConfigure, u32)>,
-    pub(super) appmenu: Option<OrgKdeKwinAppmenu>,
-    pub(super) appmenu_address: Option<AppMenuAddress>,
-    pub(super) menu_handle: Option<crate::app_menu::MenuHandle>,
-    pub(super) fractional: Option<WpFractionalScaleV1>,
-    pub(super) viewport: Option<WpViewport>,
+    pub(crate) pending_configure: Option<(WindowConfigure, u32)>,
+    pub(crate) appmenu: Option<OrgKdeKwinAppmenu>,
+    pub(crate) appmenu_address: Option<AppMenuAddress>,
+    pub(crate) menu_handle: Option<crate::app_menu::MenuHandle>,
+    pub(crate) fractional: Option<WpFractionalScaleV1>,
+    pub(crate) viewport: Option<WpViewport>,
 }
 
 /// A surface role provided by an extension (layer-shell, session-lock, etc.).
 pub(crate) trait ExtensionRole: Debug {
+    // Solo lo usa shell/ (feature `shell`); sin ella no se lee.
+    #[allow(dead_code)]
     fn as_any(&self) -> &dyn Any;
 
     /// Tries to set this role as the implicit parent of an xdg_popup.
@@ -70,7 +72,9 @@ pub(crate) trait ExtensionRole: Debug {
 }
 
 #[derive(Debug)]
-pub(super) enum SurfaceRole {
+pub(crate) enum SurfaceRole {
+    // Solo lo usa shell/ (feature `shell`); sin ella no se lee.
+    #[allow(dead_code)]
     Extension(Box<dyn ExtensionRole>),
     Window(Window),
     Popup(Popup),
@@ -79,7 +83,7 @@ pub(super) enum SurfaceRole {
 
 impl SurfaceRole {
     /// Tries to set this role as the implicit parent of an xdg_popup.
-    pub(super) fn parent_popup(&self, popup: &XdgPopup) -> bool {
+    pub(crate) fn parent_popup(&self, popup: &XdgPopup) -> bool {
         match self {
             SurfaceRole::Extension(role) => role.parent_popup(popup),
             _ => false,
@@ -87,7 +91,9 @@ impl SurfaceRole {
     }
 
     /// Downcasts the extension role to a concrete type.
-    pub(super) fn as_extension_role<T: 'static>(&self) -> Option<&T> {
+    // Solo lo usa shell/ (feature `shell`); sin ella no se lee.
+    #[allow(dead_code)]
+    pub(crate) fn as_extension_role<T: 'static>(&self) -> Option<&T> {
         match self {
             SurfaceRole::Extension(role) => role.as_any().downcast_ref::<T>(),
             _ => None,
@@ -97,7 +103,7 @@ impl SurfaceRole {
 
 impl SurfaceWindow {
     /// Schedules a compositor frame callback without marking the surface dirty.
-    pub(super) fn request_frame_callback(&mut self, qh: &QueueHandle<Runtime>) {
+    pub(crate) fn request_frame_callback(&mut self, qh: &QueueHandle<Runtime>) {
         if !self.frame_pending {
             self.frame_pending = true;
             let _callback: WlCallback = self.surface.frame(qh, self.surface.clone());
@@ -105,12 +111,12 @@ impl SurfaceWindow {
         }
     }
 
-    pub(super) fn request_redraw(&mut self, qh: &QueueHandle<Runtime>) {
+    pub(crate) fn request_redraw(&mut self, qh: &QueueHandle<Runtime>) {
         self.needs_redraw = true;
         self.request_frame_callback(qh);
     }
 
-    pub(super) fn configure(&mut self, size: (u32, u32), scale: f64) {
+    pub(crate) fn configure(&mut self, size: (u32, u32), scale: f64) {
         if size.0 == 0 || size.1 == 0 {
             return;
         }
@@ -152,7 +158,7 @@ impl SurfaceWindow {
         self.needs_redraw = true;
     }
 
-    pub(super) fn draw(&mut self) -> bool {
+    pub(crate) fn draw(&mut self) -> bool {
         let Some(graphics) = self.graphics.as_mut() else {
             return false;
         };
@@ -214,7 +220,7 @@ impl SurfaceWindow {
 impl SurfaceWindow {
     /// Destroys the fractional-scale and viewport objects before the surface so
     /// the compositor sees them go away first.
-    pub(super) fn destroy_fractional(&mut self) {
+    pub(crate) fn destroy_fractional(&mut self) {
         destroy_fractional_objects(&mut self.fractional, &mut self.viewport);
     }
 }
@@ -225,7 +231,7 @@ impl Drop for SurfaceWindow {
     }
 }
 
-pub(super) fn destroy_fractional_objects(
+pub(crate) fn destroy_fractional_objects(
     fractional: &mut Option<WpFractionalScaleV1>,
     viewport: &mut Option<WpViewport>,
 ) {
@@ -240,7 +246,7 @@ pub(super) fn destroy_fractional_objects(
 impl Runtime {
     /// Creates the fractional-scale and viewport objects for a surface when the
     /// compositor advertises the corresponding globals.
-    pub(super) fn create_fractional(
+    pub(crate) fn create_fractional(
         &self,
         surface: &WlSurface,
     ) -> (Option<WpFractionalScaleV1>, Option<WpViewport>) {
@@ -328,12 +334,12 @@ impl CompositorHandler for Runtime {
 }
 
 /// Converts a fractional-scale wire value (120 = 1.0) to a logical scale factor.
-pub(super) fn scale_from_wire(scale: u32) -> f64 {
+pub(crate) fn scale_from_wire(scale: u32) -> f64 {
     scale as f64 / 120.0
 }
 
 /// Computes the buffer size for a logical surface size and scale.
-pub(super) fn buffer_size(logical: (u32, u32), scale: f64) -> (u32, u32) {
+pub(crate) fn buffer_size(logical: (u32, u32), scale: f64) -> (u32, u32) {
     (
         (logical.0 as f64 * scale).round().max(1.0) as u32,
         (logical.1 as f64 * scale).round().max(1.0) as u32,
@@ -344,7 +350,7 @@ pub(super) fn buffer_size(logical: (u32, u32), scale: f64) -> (u32, u32) {
 ///
 /// Both the fractional-scale manager and viewporter must be present; the
 /// protocol is only useful when the compositor can scale the buffer back down.
-pub(super) fn fractional_scale_enabled(
+pub(crate) fn fractional_scale_enabled(
     has_fractional: bool,
     has_viewporter: bool,
     _scale: f64,
@@ -352,7 +358,7 @@ pub(super) fn fractional_scale_enabled(
     has_fractional && has_viewporter
 }
 
-pub(super) fn physical_point(position: (f64, f64), scale: f64) -> CursorPoint {
+pub(crate) fn physical_point(position: (f64, f64), scale: f64) -> CursorPoint {
     CursorPoint::from((position.0 * scale, position.1 * scale))
 }
 impl Dispatch<WpFractionalScaleManagerV1, (), Runtime> for Runtime {

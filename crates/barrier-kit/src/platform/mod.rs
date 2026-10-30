@@ -10,67 +10,33 @@
 //! The event loop is calloop (the same one the shell already uses); Freya's
 //! futures are polled from its ping source, never from a runtime thread.
 
-mod activation;
-mod app;
-mod app_menu_export;
+pub(crate) mod app;
+pub(crate) mod app_menu_export;
 mod egl;
-mod extension;
-mod foreign_menus;
-mod infinity;
-mod input;
-mod layer;
-mod lock;
-mod popup;
-mod runtime;
-mod shell_state;
-mod surface;
+pub(crate) mod extension;
+pub(crate) mod input;
+pub(crate) mod popup;
+pub(crate) mod runtime;
+pub(crate) mod surface;
 #[cfg(test)]
 mod tests;
-mod timer;
-mod toplevels;
-mod window;
+pub(crate) mod timer;
+pub(crate) mod window;
 
-pub use activation::Activation;
 pub use app_menu_export::AppMenuAddress;
-pub use foreign_menus::GtkMenusAddress;
 pub use input::inserts_text;
-pub use layer::{Anchors, KeyboardInteractivity, Layer, run_layer};
-pub use lock::{SessionUnlock, run_lock};
 pub use popup::{
     PopupAnchor, PopupConstraintAdjustment, PopupGravity, PopupHandle, PopupId, PopupSpec, Popups,
 };
 pub use timer::{Timers, WakeHandle};
-pub use toplevels::{ToplevelInfo, Toplevels};
 pub use window::{
     DecorationResponse, Decorations, MenuActionHandler, WindowControls, WindowEdge, WindowOptions,
     WindowStatus, run_window,
 };
 
-pub use infinity::{
-    InfinityWindowManagerV1, Layout as InfinityLayout, PairLayout as InfinityPairLayout,
-};
 #[cfg(test)]
 pub(crate) use popup::PopupCommand;
 pub use sctk::reexports::client::backend::ObjectId;
-
-/// What kind of surface the runner owns.
-#[derive(Clone, Debug)]
-pub enum SurfaceSpec {
-    /// A `zwlr_layer_surface_v1` on the given layer.
-    Layer {
-        namespace: String,
-        layer: Layer,
-        anchors: Anchors,
-        exclusive_zone: i32,
-        keyboard: KeyboardInteractivity,
-        /// Logical size, or `None` to let the compositor decide.
-        size: Option<(u32, u32)>,
-    },
-    /// One `ext-session-lock-v1` surface per output.
-    Lock,
-    /// A normal xdg_toplevel owned by a BarrierKit app.
-    Window(WindowOptions),
-}
 
 /// A failure while setting up or running the surface.
 #[derive(Debug, thiserror::Error)]

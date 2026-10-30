@@ -56,69 +56,73 @@ use wayland_protocols_plasma::appmenu::client::org_kde_kwin_appmenu_manager::Org
 /// The result of connecting to the Wayland server before any shell extension
 /// is installed.
 pub(crate) struct Connected {
-    pub(super) conn: Connection,
-    pub(super) event_queue: sctk::reexports::client::EventQueue<Runtime>,
-    pub(super) runtime: Runtime,
-    pub(super) globals: GlobalList,
+    pub(crate) conn: Connection,
+    pub(crate) event_queue: sctk::reexports::client::EventQueue<Runtime>,
+    pub(crate) runtime: Runtime,
+    // Solo lo usa shell/ (feature `shell`); sin ella no se lee.
+    #[allow(dead_code)]
+    pub(crate) globals: GlobalList,
 }
 
-pub(super) struct Runtime {
-    pub(super) registry: RegistryState,
-    pub(super) compositor: CompositorState,
-    pub(super) output: OutputState,
-    pub(super) xdg_shell: Option<XdgShell>,
-    pub(super) surfaces: Vec<SurfaceWindow>,
-    pub(super) graphics: Rc<GraphicsShared>,
-    pub(super) seat: SeatState,
-    pub(super) pointer: Option<wl_pointer::WlPointer>,
-    pub(super) cursor_shape: Option<CursorShapeManager>,
-    pub(super) cursor_shape_device: Option<WpCursorShapeDeviceV1>,
-    pub(super) keyboard: Option<wl_keyboard::WlKeyboard>,
-    pub(super) touch: Option<wl_touch::WlTouch>,
-    pub(super) keyboard_focus: Option<WlSurface>,
-    pub(super) repeat: Option<RepeatState>,
-    pub(super) repeat_info: Option<RepeatInfo>,
-    pub(super) repeat_generation: u64,
-    pub(super) modifiers: SctkModifiers,
-    pub(super) loop_signal: Option<LoopSignal>,
-    pub(super) app: AppComponent,
-    pub(super) needs_exit: bool,
-    pub(super) request_redraw_all: bool,
-    pub(super) queue: Rc<RefCell<Vec<(ObjectId, UserEvent)>>>,
-    pub(super) ping: Ping,
-    pub(super) ping_source: Option<PingSource>,
-    pub(super) wake: Wake,
-    pub(super) wake_source: Option<PingSource>,
-    pub(super) qh: QueueHandle<Runtime>,
-    pub(super) extension: Option<Extension>,
-    pub(super) appmenu_manager: Option<OrgKdeKwinAppmenuManager>,
-    pub(super) fractional_manager: Option<WpFractionalScaleManagerV1>,
-    pub(super) viewporter: Option<WpViewporter>,
-    pub(super) timers: TimerQueue,
-    pub(super) seat_handle: Option<wl_seat::WlSeat>,
-    pub(super) last_input_serial: Rc<Cell<u32>>,
-    pub(super) last_pointer_serial: Cell<u32>,
-    pub(super) touch_surfaces: std::collections::HashMap<i32, ObjectId>,
-    pub(super) popup_commands: Rc<RefCell<Vec<PopupCommand>>>,
-    pub(super) popup_next_id: Rc<Cell<u64>>,
-    pub(super) surface_count: Rc<Cell<usize>>,
-    pub(super) window_contexts: Vec<WindowContext>,
-    pub(super) decoration_manager: bool,
-    pub(super) decoration_warned: bool,
-    pub(super) appearance_watch: Option<AppearanceWatch>,
-    pub(super) resolved: State<Resolved>,
+pub(crate) struct Runtime {
+    pub(crate) registry: RegistryState,
+    pub(crate) compositor: CompositorState,
+    pub(crate) output: OutputState,
+    pub(crate) xdg_shell: Option<XdgShell>,
+    pub(crate) surfaces: Vec<SurfaceWindow>,
+    pub(crate) graphics: Rc<GraphicsShared>,
+    pub(crate) seat: SeatState,
+    pub(crate) pointer: Option<wl_pointer::WlPointer>,
+    pub(crate) cursor_shape: Option<CursorShapeManager>,
+    pub(crate) cursor_shape_device: Option<WpCursorShapeDeviceV1>,
+    pub(crate) keyboard: Option<wl_keyboard::WlKeyboard>,
+    pub(crate) touch: Option<wl_touch::WlTouch>,
+    pub(crate) keyboard_focus: Option<WlSurface>,
+    pub(crate) repeat: Option<RepeatState>,
+    pub(crate) repeat_info: Option<RepeatInfo>,
+    pub(crate) repeat_generation: u64,
+    pub(crate) modifiers: SctkModifiers,
+    pub(crate) loop_signal: Option<LoopSignal>,
+    // Solo lo usa shell/ (feature `shell`); sin ella no se lee.
+    #[allow(dead_code)]
+    pub(crate) app: AppComponent,
+    pub(crate) needs_exit: bool,
+    pub(crate) request_redraw_all: bool,
+    pub(crate) queue: Rc<RefCell<Vec<(ObjectId, UserEvent)>>>,
+    pub(crate) ping: Ping,
+    pub(crate) ping_source: Option<PingSource>,
+    pub(crate) wake: Wake,
+    pub(crate) wake_source: Option<PingSource>,
+    pub(crate) qh: QueueHandle<Runtime>,
+    pub(crate) extension: Option<Extension>,
+    pub(crate) appmenu_manager: Option<OrgKdeKwinAppmenuManager>,
+    pub(crate) fractional_manager: Option<WpFractionalScaleManagerV1>,
+    pub(crate) viewporter: Option<WpViewporter>,
+    pub(crate) timers: TimerQueue,
+    pub(crate) seat_handle: Option<wl_seat::WlSeat>,
+    pub(crate) last_input_serial: Rc<Cell<u32>>,
+    pub(crate) last_pointer_serial: Cell<u32>,
+    pub(crate) touch_surfaces: std::collections::HashMap<i32, ObjectId>,
+    pub(crate) popup_commands: Rc<RefCell<Vec<PopupCommand>>>,
+    pub(crate) popup_next_id: Rc<Cell<u64>>,
+    pub(crate) surface_count: Rc<Cell<usize>>,
+    pub(crate) window_contexts: Vec<WindowContext>,
+    pub(crate) decoration_manager: bool,
+    pub(crate) decoration_warned: bool,
+    pub(crate) appearance_watch: Option<AppearanceWatch>,
+    pub(crate) resolved: State<Resolved>,
     /// Addresses delivered asynchronously by the D-Bus thread, waiting for the
     /// UI loop to call `org_kde_kwin_appmenu.set_address`.
-    pub(super) pending_menu_addresses: Arc<Mutex<Vec<(ObjectId, AppMenuAddress)>>>,
+    pub(crate) pending_menu_addresses: Arc<Mutex<Vec<(ObjectId, AppMenuAddress)>>>,
 }
 
 #[derive(Clone)]
-pub(super) struct WindowContext {
-    pub(super) controls: WindowControls,
-    pub(super) queue: Rc<RefCell<Vec<WindowCommand>>>,
+pub(crate) struct WindowContext {
+    pub(crate) controls: WindowControls,
+    pub(crate) queue: Rc<RefCell<Vec<WindowCommand>>>,
 }
 
-pub(super) fn make_sender(
+pub(crate) fn make_sender(
     queue: Rc<RefCell<Vec<(ObjectId, UserEvent)>>>,
     ping: Ping,
     owner: ObjectId,
@@ -129,13 +133,13 @@ pub(super) fn make_sender(
     })
 }
 
-pub(super) fn drain_user_events(
+pub(crate) fn drain_user_events(
     events: &Rc<RefCell<Vec<(ObjectId, UserEvent)>>>,
 ) -> Vec<(ObjectId, UserEvent)> {
     std::mem::take(&mut *events.borrow_mut())
 }
 
-pub(super) fn insert_ping(
+pub(crate) fn insert_ping(
     event_loop: &mut EventLoop<Runtime>,
     shell: &mut Runtime,
 ) -> Result<(), RunError> {
@@ -232,7 +236,7 @@ pub(super) fn insert_ping(
 }
 
 impl Runtime {
-    pub(super) fn connect(app: AppComponent) -> Result<Connected, RunError> {
+    pub(crate) fn connect(app: AppComponent) -> Result<Connected, RunError> {
         let conn = Connection::connect_to_env().map_err(|_| RunError::NoDisplay)?;
         let (globals, event_queue) = registry_queue_init::<Runtime>(&conn)?;
         let qh = event_queue.handle();
@@ -338,11 +342,11 @@ impl Runtime {
         })
     }
 
-    pub(super) fn surface_for(&self, surface: &WlSurface) -> Option<usize> {
+    pub(crate) fn surface_for(&self, surface: &WlSurface) -> Option<usize> {
         self.surfaces.iter().position(|s| s.surface == *surface)
     }
 
-    pub(super) fn surface_index_by_id(&self, surface_id: &ObjectId) -> Option<usize> {
+    pub(crate) fn surface_index_by_id(&self, surface_id: &ObjectId) -> Option<usize> {
         self.surfaces
             .iter()
             .position(|s| s.surface.id() == *surface_id)
@@ -350,7 +354,7 @@ impl Runtime {
 }
 
 impl Runtime {
-    pub(super) fn poll_all(&mut self) {
+    pub(crate) fn poll_all(&mut self) {
         for window in &mut self.surfaces {
             let dirty = window.app.poll();
             if dirty {
@@ -368,7 +372,7 @@ impl Runtime {
         self.process_window_commands();
     }
 
-    pub(super) fn redraw_all(&mut self) {
+    pub(crate) fn redraw_all(&mut self) {
         let qh = self.qh.clone();
         for window in &mut self.surfaces {
             if window.needs_redraw {

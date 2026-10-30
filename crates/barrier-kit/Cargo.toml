@@ -7,6 +7,9 @@ rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
 
+[features]
+shell = []
+
 [dependencies]
 freya-core.workspace = true
 freya-components.workspace = true
@@ -39,6 +42,10 @@ futures-channel.workspace = true
 async-channel.workspace = true
 async-io.workspace = true
 keyboard-types.workspace = true
+
+[[example]]
+name = "menu_popup"
+required-features = ["shell"]
 
 [dev-dependencies]
 freya-testing.workspace = true

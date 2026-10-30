@@ -242,7 +242,7 @@ impl WindowControls {
     }
 }
 
-pub(super) enum WindowCommand {
+pub(crate) enum WindowCommand {
     Minimize,
     ToggleMaximize,
     ToggleVerticalMaximize,

@@ -124,14 +124,14 @@ impl Default for PopupSpec {
 /// Opens and closes popups from inside a BarrierKit surface.
 #[derive(Clone)]
 pub struct Popups {
-    pub(super) queue: Rc<RefCell<Vec<PopupCommand>>>,
-    pub(super) ping: Ping,
-    pub(super) next_id: Rc<Cell<u64>>,
-    pub(super) last_serial: Rc<Cell<u32>>,
-    pub(super) owner: ObjectId,
-    pub(super) current: Option<PopupId>,
-    pub(super) surface_count: Rc<Cell<usize>>,
-    pub(super) opens_left: Rc<Cell<bool>>,
+    pub(crate) queue: Rc<RefCell<Vec<PopupCommand>>>,
+    pub(crate) ping: Ping,
+    pub(crate) next_id: Rc<Cell<u64>>,
+    pub(crate) last_serial: Rc<Cell<u32>>,
+    pub(crate) owner: ObjectId,
+    pub(crate) current: Option<PopupId>,
+    pub(crate) surface_count: Rc<Cell<usize>>,
+    pub(crate) opens_left: Rc<Cell<bool>>,
 }
 
 impl Popups {
@@ -246,7 +246,7 @@ impl PopupHandle {
     }
 }
 /// Popup bookkeeping attached to a `SurfaceWindow` whose role is `Popup`.
-pub(super) struct PopupInfo {
+pub(crate) struct PopupInfo {
     id: PopupId,
     parent: Option<PopupId>,
     on_dismissed: Option<Rc<dyn Fn()>>,
@@ -311,7 +311,7 @@ fn constraint_to_sctk(c: PopupConstraintAdjustment) -> SctkConstraint {
     out
 }
 impl Runtime {
-    pub(super) fn process_popup_commands(&mut self) {
+    pub(crate) fn process_popup_commands(&mut self) {
         let commands = std::mem::take(&mut *self.popup_commands.borrow_mut());
         for command in commands {
             match command {
@@ -334,7 +334,7 @@ impl Runtime {
             }
         }
     }
-    pub(super) fn open_popup(
+    pub(crate) fn open_popup(
         &mut self,
         owner: ObjectId,
         parent: Option<PopupId>,
@@ -505,7 +505,7 @@ impl Runtime {
         });
         self.surface_count.set(self.surfaces.len());
     }
-    pub(super) fn reposition_popup(&mut self, id: PopupId, spec: PopupSpec) {
+    pub(crate) fn reposition_popup(&mut self, id: PopupId, spec: PopupSpec) {
         let Some(index) = self
             .surfaces
             .iter()
@@ -540,7 +540,7 @@ impl Runtime {
         popup.reposition(&positioner, 0);
         self.surfaces[index].surface.commit();
     }
-    pub(super) fn close_popup(&mut self, id: PopupId) {
+    pub(crate) fn close_popup(&mut self, id: PopupId) {
         // Close descendants first so Wayland objects are destroyed leaf-to-root.
         let children: Vec<PopupId> = self
             .surfaces

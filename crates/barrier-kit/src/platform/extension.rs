@@ -40,16 +40,22 @@ impl Extension {
 }
 
 impl Runtime {
+    // Solo lo usa shell/ (feature `shell`); sin ella no se lee.
+    #[allow(dead_code)]
     /// Borrows the extension state as `T` if the installed extension holds it.
     pub(crate) fn extension<T: 'static>(&self) -> Option<&T> {
         self.extension.as_ref()?.state::<T>()
     }
 
+    // Solo lo usa shell/ (feature `shell`); sin ella no se lee.
+    #[allow(dead_code)]
     /// Mutably borrows the extension state as `T` if the installed extension holds it.
     pub(crate) fn extension_mut<T: 'static>(&mut self) -> Option<&mut T> {
         self.extension.as_mut()?.state_mut::<T>()
     }
 
+    // Solo lo usa shell/ (feature `shell`); sin ella no se lee.
+    #[allow(dead_code)]
     /// Installs the unique extension slot.
     pub(crate) fn install_extension(&mut self, ext: Extension) {
         if self.extension.is_some() {

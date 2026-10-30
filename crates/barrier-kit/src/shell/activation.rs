@@ -11,10 +11,11 @@ use sctk::reexports::{
 };
 use std::{cell::RefCell, rc::Rc};
 
-use super::{runtime::Runtime, shell_state::ShellState};
+use crate::platform::runtime::Runtime;
+use crate::shell::ShellState;
 
-pub(super) type ActivationCallback = Box<dyn Fn(Option<String>)>;
-pub(super) type ActivationQueue = Rc<RefCell<Vec<ActivationCallback>>>;
+pub(crate) type ActivationCallback = Box<dyn Fn(Option<String>)>;
+pub(crate) type ActivationQueue = Rc<RefCell<Vec<ActivationCallback>>>;
 
 /// Requests an `xdg-activation-v1` token for the next launched app.
 ///
@@ -24,8 +25,8 @@ pub(super) type ActivationQueue = Rc<RefCell<Vec<ActivationCallback>>>;
 /// protocol is unavailable) in a callback.
 #[derive(Clone)]
 pub struct Activation {
-    pub(super) queue: ActivationQueue,
-    pub(super) ping: Ping,
+    pub(crate) queue: ActivationQueue,
+    pub(crate) ping: Ping,
 }
 
 impl Activation {

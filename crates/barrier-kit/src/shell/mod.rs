@@ -1,3 +1,40 @@
+pub mod activation;
+pub mod infinity;
+pub mod layer;
+pub mod lock;
+pub mod menus;
+pub mod toplevels;
+
+pub use activation::Activation;
+pub use infinity::{
+    InfinityWindowManagerV1, Layout as InfinityLayout, PairLayout as InfinityPairLayout,
+};
+pub use layer::{Anchors, KeyboardInteractivity, Layer, run_layer};
+pub use lock::{SessionUnlock, run_lock};
+pub use menus::GtkMenusAddress;
+pub use toplevels::{ToplevelInfo, Toplevels};
+
+use crate::platform::WindowOptions;
+
+/// What kind of surface the runner owns.
+#[derive(Clone, Debug)]
+pub enum SurfaceSpec {
+    /// A `zwlr_layer_surface_v1` on the given layer.
+    Layer {
+        namespace: String,
+        layer: Layer,
+        anchors: Anchors,
+        exclusive_zone: i32,
+        keyboard: KeyboardInteractivity,
+        /// Logical size, or `None` to let the compositor decide.
+        size: Option<(u32, u32)>,
+    },
+    /// One `ext-session-lock-v1` surface per output.
+    Lock,
+    /// A normal xdg_toplevel owned by a BarrierKit app.
+    Window(WindowOptions),
+}
+
 use sctk::{
     reexports::{
         client::{QueueHandle, globals::GlobalList},
@@ -10,14 +47,12 @@ use sctk::{
 };
 use std::{cell::RefCell, rc::Rc};
 
-use super::{
-    activation::{Activation, ActivationCallback},
+use crate::platform::{
     extension::{Extension, ExtensionHooks},
-    infinity::InfinityWindowManagerV1,
-    lock::SessionUnlock,
     runtime::Runtime,
-    toplevels::{ToplevelEntry, Toplevels},
 };
+use activation::ActivationCallback;
+use toplevels::ToplevelEntry;
 
 /// All state owned by the shell (dock, menubar, lock, launcher). It lives
 /// inside `Runtime` as the single installed [`Extension`].
@@ -261,3 +296,6 @@ impl ShellState {
         }
     }
 }
+
+#[cfg(test)]
+mod tests;

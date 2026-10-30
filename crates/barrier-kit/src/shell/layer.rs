@@ -15,15 +15,15 @@ use sctk::{
 };
 use std::{cell::Cell, rc::Rc, sync::Arc};
 
-use super::{
-    RunError, SurfaceSpec,
+use crate::platform::{
+    RunError,
     app::AppInstance,
     popup::Popups,
     runtime::{Connected, Runtime, insert_ping, make_sender},
-    shell_state::ShellState,
     surface::{ExtensionRole, SurfaceRole, SurfaceWindow},
     timer::{PingWake, Timers},
 };
+use crate::shell::{ShellState, SurfaceSpec};
 
 /// A layer of `zwlr_layer_shell_v1`, without exposing SCTK in the public API.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]

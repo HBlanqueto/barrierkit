@@ -7,9 +7,10 @@ use std::time::{Duration, Instant};
 
 use barrier_kit::menu::{CheckState, MenuItem, MenuView, measure_text};
 use barrier_kit::platform::{
-    Anchors, KeyboardInteractivity, Layer, PopupAnchor, PopupConstraintAdjustment, PopupGravity,
-    PopupHandle, PopupId, PopupSpec, Popups, SurfaceSpec, Timers, run_layer,
+    PopupAnchor, PopupConstraintAdjustment, PopupGravity, PopupHandle, PopupId, PopupSpec, Popups,
+    Timers,
 };
+use barrier_kit::shell::{Anchors, KeyboardInteractivity, Layer, SurfaceSpec, run_layer};
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Direction, Gaps, Size};
