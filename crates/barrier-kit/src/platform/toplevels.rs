@@ -93,7 +93,7 @@ type ArrangeQuarters = Rc<RefCell<Option<Rc<dyn Fn()>>>>;
 
 #[derive(Clone)]
 pub struct Toplevels {
-    pub(super) list: State<Vec<ToplevelInfo>>,
+    pub list: State<Vec<ToplevelInfo>>,
     pub(super) activate: Activate,
     pub(super) close: Activate,
     pub(super) minimize: Activate,
