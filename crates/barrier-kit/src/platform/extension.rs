@@ -27,15 +27,27 @@ pub(crate) struct ExtensionHooks {
     pub(crate) poll: fn(&mut Runtime),
 }
 
+impl Extension {
+    /// Borrows the extension state as `T` if the held state has that type.
+    pub(crate) fn state<T: 'static>(&self) -> Option<&T> {
+        self.state.downcast_ref::<T>()
+    }
+
+    /// Mutably borrows the extension state as `T` if the held state has that type.
+    pub(crate) fn state_mut<T: 'static>(&mut self) -> Option<&mut T> {
+        self.state.downcast_mut::<T>()
+    }
+}
+
 impl Runtime {
     /// Borrows the extension state as `T` if the installed extension holds it.
     pub(crate) fn extension<T: 'static>(&self) -> Option<&T> {
-        self.extension.as_ref()?.state.downcast_ref::<T>()
+        self.extension.as_ref()?.state::<T>()
     }
 
     /// Mutably borrows the extension state as `T` if the installed extension holds it.
     pub(crate) fn extension_mut<T: 'static>(&mut self) -> Option<&mut T> {
-        self.extension.as_mut()?.state.downcast_mut::<T>()
+        self.extension.as_mut()?.state_mut::<T>()
     }
 
     /// Installs the unique extension slot.

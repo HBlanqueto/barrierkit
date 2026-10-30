@@ -536,6 +536,69 @@ fn destroy_fractional_objects_is_safe_when_missing() {
 // being applied; the code now stores only the latest configure in
 // `pending_configure: Option<_>`.
 
+#[test]
+fn extension_slot_typed_access() {
+    use freya_core::integration::Runner;
+    use sctk::reexports::client::{
+        QueueHandle,
+        protocol::{wl_output::WlOutput, wl_seat::WlSeat},
+    };
+
+    use super::{
+        extension::{Extension, ExtensionHooks},
+        runtime::Runtime,
+    };
+
+    fn no_op_runner(_: &Runtime, _: &mut Runner) {}
+    fn no_op_seat(_: &mut Runtime, _: &WlSeat) {}
+    fn no_op_output(_: &mut Runtime, _: &QueueHandle<Runtime>, _: &WlOutput) {}
+    fn no_op_poll(_: &mut Runtime) {}
+
+    let mut ext = Extension {
+        state: Box::new(42i32),
+        hooks: ExtensionHooks {
+            provide_contexts: no_op_runner,
+            new_seat: no_op_seat,
+            new_output: no_op_output,
+            poll: no_op_poll,
+        },
+    };
+
+    assert_eq!(ext.state::<i32>(), Some(&42));
+    assert_eq!(ext.state::<String>(), None);
+    *ext.state_mut::<i32>().expect("i32 state") = 7;
+    assert_eq!(ext.state::<i32>(), Some(&7));
+    assert_eq!(ext.state_mut::<String>(), None);
+}
+
+#[test]
+fn extension_role_parent_popup_default_is_false() {
+    use std::{any::Any, os::unix::net::UnixStream};
+
+    use sctk::reexports::{
+        client::{Proxy, backend::Backend},
+        protocols::xdg::shell::client::xdg_popup::XdgPopup,
+    };
+
+    use super::surface::{ExtensionRole, SurfaceRole};
+
+    #[derive(Debug)]
+    struct DummyRole;
+
+    impl ExtensionRole for DummyRole {
+        fn as_any(&self) -> &dyn Any {
+            self
+        }
+    }
+
+    let (client_sock, _server_sock) = UnixStream::pair().unwrap();
+    let backend = Backend::connect(client_sock).unwrap();
+    let popup = XdgPopup::inert(backend.downgrade());
+
+    let role = SurfaceRole::Extension(Box::new(DummyRole));
+    assert!(!role.parent_popup(&popup));
+}
+
 #[cfg(test)]
 mod drag_band_tests {
     use crate::ProbeExt;
