@@ -348,6 +348,8 @@ pub struct Slider {
     disabled: bool,
     on_change: Option<Callback<usize, ()>>,
     probe: Option<&'static str>,
+    knob_id: Option<&'static str>,
+    step_ids: &'static [&'static str],
     key: DiffKey,
 }
 
@@ -361,6 +363,8 @@ impl Slider {
             disabled: false,
             on_change: None,
             probe: None,
+            knob_id: None,
+            step_ids: &[],
             key: DiffKey::None,
         }
     }
@@ -391,6 +395,13 @@ impl Slider {
 
     pub fn key(mut self, key: impl Into<DiffKey>) -> Self {
         self.key = key.into();
+        self
+    }
+
+    /// Set accessibility ids for the knob and each step label.
+    pub fn sub_ids(mut self, knob: &'static str, steps: &'static [&'static str]) -> Self {
+        self.knob_id = Some(knob);
+        self.step_ids = steps;
         self
     }
 }
@@ -533,13 +544,16 @@ impl Component for Slider {
             );
         }
 
-        let knob_rect = rect()
+        let mut knob_rect = rect()
             .position(Position::new_absolute().left(knob_x).top(0.0))
             .width(Size::px(knob))
             .height(Size::px(knob))
             .corner_radius((knob / 2.0).max(1.0))
             .background(knob_color)
             .shadow((0.0, 1.0, 3.0, 0.0, knob_shadow));
+        if let Some(id) = self.knob_id {
+            knob_rect = knob_rect.a11y_builder(move |node| node.set_author_id(id));
+        }
 
         let mut labels: Vec<Element> = Vec::new();
         for (i, text) in self.labels.iter().enumerate().take(self.steps) {
@@ -548,15 +562,16 @@ impl Component for Slider {
             } else {
                 base.ink_muted
             };
-            labels.push(
-                label()
-                    .text(*text)
-                    .font_family(TEXT.family)
-                    .font_size(CAPTION.size as f32)
-                    .font_weight(CAPTION.weight as i32)
-                    .color(rgba(color))
-                    .into_element(),
-            );
+            let mut label_node = label()
+                .text(*text)
+                .font_family(TEXT.family)
+                .font_size(CAPTION.size as f32)
+                .font_weight(CAPTION.weight as i32)
+                .color(rgba(color));
+            if let Some(id) = self.step_ids.get(i).copied() {
+                label_node = label_node.a11y_builder(move |node| node.set_author_id(id));
+            }
+            labels.push(label_node.into_element());
         }
         let labels_row = rect()
             .position(
