@@ -10,7 +10,7 @@ use std::{
 };
 
 use barrier_kit::controls::{
-    Button, Popover, ScrollView, SecureField, SegmentedControl, Slider, Switch, TextField,
+    Button, Checkbox, Popover, ScrollView, SecureField, SegmentedControl, Slider, Switch, TextField,
 };
 use barrier_kit::theme;
 use freya_components::menu::{Menu, MenuItem};
@@ -53,6 +53,7 @@ fn cases() -> Vec<Control> {
         ("slider", slider),
         ("segmented-control", segmented_control),
         ("text-field", text_field),
+        ("checkbox", checkbox),
         ("secure-field", secure_field),
         ("scroll-view", scroll_view),
         ("menu", menu),
@@ -69,7 +70,10 @@ fn switch() -> Element {
 }
 
 fn slider() -> Element {
-    Slider::new(|_| {}).value(40.0).into_element()
+    Slider::stepped(5)
+        .value(2)
+        .labels(&["A", "B", "C", "D", "E"])
+        .into_element()
 }
 
 fn segmented_control() -> Element {
@@ -82,6 +86,10 @@ fn segmented_control() -> Element {
                 .into_element(),
         ])
         .into_element()
+}
+
+fn checkbox() -> Element {
+    Checkbox::new("Recordarme").checked(true).into_element()
 }
 
 fn text_field() -> Element {
@@ -195,4 +203,138 @@ fn controls_match_their_golden_images() {
             }
         }
     }
+}
+
+#[test]
+fn slider_click_snaps_to_the_nearest_step() {
+    use std::cell::RefCell;
+    use std::rc::Rc;
+
+    let values: Rc<RefCell<Vec<usize>>> = Rc::new(RefCell::new(Vec::new()));
+    let values_clone = values.clone();
+
+    struct SliderCase {
+        values: Rc<RefCell<Vec<usize>>>,
+    }
+    impl App for SliderCase {
+        fn render(&self) -> impl IntoElement {
+            let values = self.values.clone();
+            Slider::stepped(4)
+                .value(1)
+                .labels(&["Sutil", "Normal", "Fuerte", "Intenso"])
+                .on_change(move |v| values.borrow_mut().push(v))
+        }
+    }
+
+    let app = AppComponent::new(SliderCase {
+        values: values_clone,
+    });
+    let (mut test, _) = TestingRunner::new(app, Size2D::new(240.0, 80.0), |_| {}, 1.0);
+    test.sync_and_update();
+
+    // Width 200, knob 20, run 180, four steps at x=10, 70, 130, 190.
+    // Click near the right end to select Intenso (3).
+    test.click_cursor((190.0, 20.0));
+    test.sync_and_update();
+    assert_eq!(values.borrow().as_slice(), &[3]);
+
+    // Click near the middle to select Fuerte (2).
+    test.click_cursor((130.0, 20.0));
+    test.sync_and_update();
+    assert_eq!(values.borrow().as_slice(), &[3, 2]);
+}
+
+#[test]
+fn disabled_slider_does_not_emit() {
+    use std::cell::RefCell;
+    use std::rc::Rc;
+
+    let values: Rc<RefCell<Vec<usize>>> = Rc::new(RefCell::new(Vec::new()));
+    let values_clone = values.clone();
+
+    struct SliderCase {
+        values: Rc<RefCell<Vec<usize>>>,
+    }
+    impl App for SliderCase {
+        fn render(&self) -> impl IntoElement {
+            let values = self.values.clone();
+            Slider::stepped(4)
+                .value(1)
+                .disabled(true)
+                .on_change(move |v| values.borrow_mut().push(v))
+        }
+    }
+
+    let app = AppComponent::new(SliderCase { values: values_clone });
+    let (mut test, _) = TestingRunner::new(app, Size2D::new(240.0, 80.0), |_| {}, 1.0);
+    test.sync_and_update();
+
+    test.click_cursor((190.0, 20.0));
+    test.sync_and_update();
+    assert!(values.borrow().is_empty());
+}
+
+#[test]
+fn checkbox_click_toggles_and_disabled_does_not_emit() {
+    use std::cell::RefCell;
+    use std::rc::Rc;
+
+    let values: Rc<RefCell<Vec<bool>>> = Rc::new(RefCell::new(Vec::new()));
+    let values_clone = values.clone();
+
+    struct CheckboxCase {
+        values: Rc<RefCell<Vec<bool>>>,
+    }
+    impl App for CheckboxCase {
+        fn render(&self) -> impl IntoElement {
+            let values = self.values.clone();
+            Checkbox::new("Recordarme")
+                .checked(false)
+                .on_toggle(move |v| values.borrow_mut().push(v))
+        }
+    }
+
+    let app = AppComponent::new(CheckboxCase {
+        values: values_clone,
+    });
+    let (mut test, _) = TestingRunner::new(app, Size2D::new(160.0, 60.0), |_| {}, 1.0);
+    test.sync_and_update();
+
+    test.click_cursor((8.0, 8.0));
+    test.sync_and_update();
+    assert_eq!(values.borrow().as_slice(), &[true]);
+
+    test.click_cursor((8.0, 8.0));
+    test.sync_and_update();
+    assert_eq!(values.borrow().as_slice(), &[true, false]);
+}
+
+#[test]
+fn disabled_checkbox_does_not_emit() {
+    use std::cell::RefCell;
+    use std::rc::Rc;
+
+    let values: Rc<RefCell<Vec<bool>>> = Rc::new(RefCell::new(Vec::new()));
+    let values_clone = values.clone();
+
+    struct CheckboxCase {
+        values: Rc<RefCell<Vec<bool>>>,
+    }
+    impl App for CheckboxCase {
+        fn render(&self) -> impl IntoElement {
+            let values = self.values.clone();
+            Checkbox::new("Recordarme")
+                .checked(false)
+                .disabled(true)
+                .on_toggle(move |v| values.borrow_mut().push(v))
+        }
+    }
+
+    let app = AppComponent::new(CheckboxCase { values: values_clone });
+    let (mut test, _) = TestingRunner::new(app, Size2D::new(160.0, 60.0), |_| {}, 1.0);
+    test.sync_and_update();
+
+    test.click_cursor((8.0, 8.0));
+    test.sync_and_update();
+    assert!(values.borrow().is_empty());
 }

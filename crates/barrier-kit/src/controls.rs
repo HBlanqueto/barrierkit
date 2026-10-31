@@ -8,14 +8,14 @@ pub use freya_components::menu::Menu;
 pub use freya_components::popup::Popup as Popover;
 pub use freya_components::scrollviews::ScrollView;
 pub use freya_components::segmented_button::SegmentedButton as SegmentedControl;
-pub use freya_components::slider::Slider;
+
 pub use freya_components::switch::Switch;
 
 use freya_components::svg_viewer::SvgViewer;
 
 use freya_core::prelude::*;
-use torin::prelude::{Alignment, Direction, Gaps, Size};
-use vow_design::{Rgba, TEXT, TEXT_LINE_HEIGHT, TOOLGROUP};
+use torin::prelude::{Alignment, Direction, Gaps, Position, Size};
+use vow_design::{CAPTION, CHECKBOX, Rgba, SETTINGS, SLIDER, TEXT, TEXT_LINE_HEIGHT, TOOLGROUP};
 
 use crate::ProbeExt;
 use crate::password::PasswordField;
@@ -331,6 +331,402 @@ impl Component for ToolButton {
         {
             root = root.on_press(move |_| callback.call(()));
         }
+        if let Some(id) = self.probe {
+            root = root.a11y_builder(move |node| node.set_author_id(id));
+        }
+
+        root
+    }
+}
+
+/// A stepped slider with a fixed number of positions.
+#[derive(PartialEq)]
+pub struct Slider {
+    steps: usize,
+    value: usize,
+    labels: &'static [&'static str],
+    disabled: bool,
+    on_change: Option<Callback<usize, ()>>,
+    probe: Option<&'static str>,
+    key: DiffKey,
+}
+
+impl Slider {
+    /// Create a slider with `steps` positions (0..steps-1).
+    pub fn stepped(steps: usize) -> Self {
+        Self {
+            steps: steps.max(2),
+            value: 0,
+            labels: &[],
+            disabled: false,
+            on_change: None,
+            probe: None,
+            key: DiffKey::None,
+        }
+    }
+
+    /// Set the current position.
+    pub fn value(mut self, value: usize) -> Self {
+        self.value = value.min(self.steps.saturating_sub(1));
+        self
+    }
+
+    /// Set the labels shown under each step.
+    pub fn labels(mut self, labels: &'static [&'static str]) -> Self {
+        self.labels = labels;
+        self
+    }
+
+    /// Disable interaction and fade the control.
+    pub fn disabled(mut self, disabled: bool) -> Self {
+        self.disabled = disabled;
+        self
+    }
+
+    /// Callback invoked when the value changes.
+    pub fn on_change(mut self, callback: impl Into<Callback<usize, ()>>) -> Self {
+        self.on_change = Some(callback.into());
+        self
+    }
+
+    pub fn key(mut self, key: impl Into<DiffKey>) -> Self {
+        self.key = key.into();
+        self
+    }
+}
+
+impl KeyExt for Slider {
+    fn write_key(&mut self) -> &mut DiffKey {
+        &mut self.key
+    }
+}
+
+impl ProbeExt for Slider {
+    fn probe(mut self, id: &'static str) -> Self {
+        self.probe = Some(id);
+        self
+    }
+}
+
+impl Component for Slider {
+    fn render(&self) -> impl IntoElement {
+        let resolved = crate::theme::resolved();
+        let base = vow_appearance::palette(resolved.scheme);
+        let value = use_state(|| self.value);
+        let dragging = use_state(|| false);
+        let on_change = self.on_change.clone();
+
+        let width = SETTINGS.strength.width as f32;
+        let knob = SLIDER.knob;
+        let track = SLIDER.track;
+        let tick = SETTINGS.strength.tick as f32;
+        let label_gap = SETTINGS.strength.label_gap as f32;
+        let steps = self.steps;
+        let segments = steps.saturating_sub(1).max(1) as f32;
+        let run = width - knob;
+        let fraction = *value.read() as f32 / segments;
+        let knob_x = run * fraction;
+
+        let set_from_x = move |x: f32| {
+            let x = (x - knob / 2.0).clamp(0.0, run);
+            let step = ((x / run) * segments).round() as usize;
+            step.min(steps - 1)
+        };
+
+        let update = {
+            let mut value = value;
+            let on_change = on_change.clone();
+            move |new_value: usize| {
+                if new_value != *value.read() {
+                    value.set(new_value);
+                    if let Some(cb) = &on_change {
+                        cb.call(new_value);
+                    }
+                }
+            }
+        };
+
+        let track_color = if self.disabled {
+            rgba(resolved.surfaces.control)
+        } else {
+            rgba(SLIDER.track_color)
+        };
+        let fill_color = rgba(resolved.accent);
+        let knob_color = Color::WHITE;
+        let knob_shadow = rgba(Rgba::rgba8(0x0d, 0x12, 0x19, 0.3));
+
+        let mut root = rect()
+            .width(Size::px(width))
+            .height(Size::px(knob + label_gap + CAPTION.size as f32 * TEXT_LINE_HEIGHT))
+            .a11y_role(AccessibilityRole::Slider);
+
+        if !self.disabled {
+            let mut update_mouse = update.clone();
+            let mut dragging_mouse = dragging;
+            root = root.on_mouse_down(move |event: Event<MouseEventData>| {
+                dragging_mouse.set(true);
+                let new_value = set_from_x(event.element_location.x as f32);
+                update_mouse(new_value);
+            });
+            let mut update_move = update.clone();
+            root = root.on_pointer_move(move |event: Event<PointerEventData>| {
+                if *dragging.read() {
+                    let new_value = set_from_x(event.element_location().x as f32);
+                    update_move(new_value);
+                }
+            });
+            let mut dragging_up = dragging;
+            root = root.on_mouse_up(move |_: Event<MouseEventData>| {
+                dragging_up.set(false);
+            });
+            root = root.on_pointer_leave(move |_: Event<PointerEventData>| {
+                dragging_up.set(false);
+            });
+        }
+
+        if self.disabled {
+            root = root.opacity(0.4);
+        }
+
+        let track_rect = rect()
+            .position(
+                Position::new_absolute()
+                    .left(knob / 2.0)
+                    .top((knob - track) / 2.0),
+            )
+            .width(Size::px(run))
+            .height(Size::px(track))
+            .corner_radius((track / 2.0).max(1.0))
+            .background(track_color);
+
+        let fill_rect = rect()
+            .position(
+                Position::new_absolute()
+                    .left(0.0)
+                    .top((knob - track) / 2.0),
+            )
+            .width(Size::px(knob_x + knob / 2.0))
+            .height(Size::px(track))
+            .corner_radius((track / 2.0).max(1.0))
+            .background(fill_color);
+
+        let mut ticks: Vec<Element> = Vec::with_capacity(self.steps);
+        for i in 0..self.steps {
+            let x = knob / 2.0 + run * (i as f32 / segments);
+            let color = if i <= *value.read() && !self.disabled {
+                base.on_accent
+            } else {
+                base.line_strong
+            };
+            ticks.push(
+                rect()
+                    .position(
+                        Position::new_absolute()
+                            .left(x - tick / 2.0)
+                            .top((knob - tick) / 2.0),
+                    )
+                    .width(Size::px(tick))
+                    .height(Size::px(tick))
+                    .corner_radius((tick / 2.0).max(1.0))
+                    .background(rgba(color))
+                    .into_element(),
+            );
+        }
+
+        let knob_rect = rect()
+            .position(Position::new_absolute().left(knob_x).top(0.0))
+            .width(Size::px(knob))
+            .height(Size::px(knob))
+            .corner_radius((knob / 2.0).max(1.0))
+            .background(knob_color)
+            .shadow((0.0, 1.0, 3.0, 0.0, knob_shadow));
+
+        let mut labels: Vec<Element> = Vec::new();
+        for (i, text) in self.labels.iter().enumerate().take(self.steps) {
+            let color = if i == *value.read() {
+                base.ink_strong
+            } else {
+                base.ink_muted
+            };
+            labels.push(
+                label()
+                    .text(*text)
+                    .font_family(TEXT.family)
+                    .font_size(CAPTION.size as f32)
+                    .font_weight(CAPTION.weight as i32)
+                    .color(rgba(color))
+                    .into_element(),
+            );
+        }
+        let labels_row = rect()
+            .position(
+                Position::new_absolute()
+                    .left(knob / 2.0)
+                    .top(knob + label_gap),
+            )
+            .width(Size::px(run))
+            .direction(Direction::Horizontal)
+            .main_align(Alignment::SpaceBetween)
+            .children(labels);
+
+        let mut children = vec![fill_rect.into_element(), track_rect.into_element()];
+        children.extend(ticks);
+        children.push(knob_rect.into_element());
+        children.push(labels_row.into_element());
+        root = root.children(children);
+
+        if let Some(id) = self.probe {
+            root = root.a11y_builder(move |node| node.set_author_id(id));
+        }
+
+        root
+    }
+}
+
+/// A Tengen checkbox with a text label.
+#[derive(PartialEq)]
+pub struct Checkbox {
+    label: &'static str,
+    checked: bool,
+    disabled: bool,
+    on_toggle: Option<Callback<bool, ()>>,
+    probe: Option<&'static str>,
+    key: DiffKey,
+}
+
+impl Checkbox {
+    /// Create a checkbox with the given label.
+    pub fn new(label: &'static str) -> Self {
+        Self {
+            label,
+            checked: false,
+            disabled: false,
+            on_toggle: None,
+            probe: None,
+            key: DiffKey::None,
+        }
+    }
+
+    pub fn checked(mut self, checked: bool) -> Self {
+        self.checked = checked;
+        self
+    }
+
+    pub fn disabled(mut self, disabled: bool) -> Self {
+        self.disabled = disabled;
+        self
+    }
+
+    pub fn on_toggle(mut self, callback: impl Into<Callback<bool, ()>>) -> Self {
+        self.on_toggle = Some(callback.into());
+        self
+    }
+
+    pub fn key(mut self, key: impl Into<DiffKey>) -> Self {
+        self.key = key.into();
+        self
+    }
+}
+
+impl KeyExt for Checkbox {
+    fn write_key(&mut self) -> &mut DiffKey {
+        &mut self.key
+    }
+}
+
+impl ProbeExt for Checkbox {
+    fn probe(mut self, id: &'static str) -> Self {
+        self.probe = Some(id);
+        self
+    }
+}
+
+impl Component for Checkbox {
+    fn render(&self) -> impl IntoElement {
+        let resolved = crate::theme::resolved();
+        let base = vow_appearance::palette(resolved.scheme);
+        let checked = use_state(|| self.checked);
+        let on_toggle = self.on_toggle.clone();
+        let disabled = self.disabled;
+        let label_text = self.label;
+
+        let size = CHECKBOX.size;
+        let check_svg = r#"<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m2.5 6.2 2.3 2.3 4.7-4.8"/></svg>"#;
+
+        let toggle = {
+            let mut checked = checked;
+            let on_toggle = on_toggle;
+            move |_| {
+                if !disabled {
+                    let new = !*checked.read();
+                    checked.set(new);
+                    if let Some(cb) = &on_toggle {
+                        cb.call(new);
+                    }
+                }
+            }
+        };
+
+        let box_bg = if *checked.read() {
+            rgba(CHECKBOX.on)
+        } else {
+            rgba(resolved.surfaces.surface)
+        };
+        let box_border = rgba(CHECKBOX.border);
+        let label_color = if self.disabled {
+            rgba(base.ink_faint)
+        } else {
+            rgba(base.ink_strong)
+        };
+
+        let mut checkbox = rect()
+            .width(Size::px(size))
+            .height(Size::px(size))
+            .corner_radius(CHECKBOX.radius)
+            .background(box_bg)
+            .border(
+                Border::new()
+                    .width(1.0)
+                    .alignment(BorderAlignment::Inner)
+                    .fill(if *checked.read() {
+                        Color::TRANSPARENT
+                    } else {
+                        box_border
+                    }),
+            )
+            .center();
+
+        if *checked.read() {
+            checkbox = checkbox.child(
+                svg_viewer(check_svg, base.on_accent, size as u32 - 4),
+            );
+        }
+
+        let mut root = rect()
+            .direction(Direction::Horizontal)
+            .cross_align(Alignment::Center)
+            .a11y_role(AccessibilityRole::CheckBox)
+            .on_press(toggle)
+            .child(checkbox)
+            .child(
+                rect()
+                    .width(Size::px(SETTINGS.check.gap as f32))
+                    .height(Size::px(1.0))
+                    .background(Color::TRANSPARENT),
+            )
+            .child(
+                label()
+                    .text(label_text)
+                    .font_family(TEXT.family)
+                    .font_size(TEXT.size as f32)
+                    .font_weight(TEXT.weight as i32)
+                    .color(label_color),
+            );
+
+        if self.disabled {
+            root = root.opacity(0.4);
+        }
+
         if let Some(id) = self.probe {
             root = root.a11y_builder(move |node| node.set_author_id(id));
         }

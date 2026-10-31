@@ -187,6 +187,34 @@ let
     leaf: "  --${leaf.name}: ${cssValue leaf.name leaf.value};"
   ) (builtins.filter (leaf: cssValue leaf.name leaf.value != null) leaves);
 
+  # Appearance values are all unitless ratios/factors; strings are colour refs.
+  appearanceCssValue =
+    name: v:
+    if isInt v || isFloat v then
+      num v
+    else if isString v then
+      let
+        ref = tokenRef v;
+        bare = unbrace v;
+        bareRef = tokenRef bare;
+      in
+      if ref != null then
+        "var(--${tokenVar ref.group ref.key})"
+      else if bareRef != null then
+        "var(--${tokenVar bareRef.group bareRef.key})"
+      else if builtins.elem bare colorNames then
+        "var(--${bare})"
+      else if match "#[0-9a-fA-F]{3,8}" v != null then
+        v
+      else
+        null
+    else
+      null;
+  appearanceLeaves = componentLeaves "appearance" components.appearance;
+  appearanceCss = lines (
+    leaf: "  --${leaf.name}: ${appearanceCssValue leaf.name leaf.value};"
+  ) (builtins.filter (leaf: appearanceCssValue leaf.name leaf.value != null) appearanceLeaves);
+
   typeCss = lines (
     s:
     let
@@ -298,6 +326,7 @@ let
       --font-mono: ${tokens.font.families.mono};
       --font-script: ${tokens.font.families.script};
     ${componentCss}
+    ${appearanceCss}
     ${typeCss}
     }
   '';

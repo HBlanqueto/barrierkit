@@ -335,9 +335,33 @@ pub struct ShadowLayer {
     pub color: Rgba,
 }
 
+/// Compile-time metrics for the tint-strength slider in System Settings.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct SettingsStrength {
+    /// Slider track width, in logical pixels.
+    pub width: u32,
+    /// Tick mark diameter, in logical pixels.
+    pub tick: u32,
+    /// Gap between the track and the labels, in logical pixels.
+    pub label_gap: u32,
+}
+
+/// Compile-time metrics for the tinted-parts checkboxes in System Settings.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct SettingsCheck {
+    /// Gap between a checkbox and its label, in logical pixels.
+    pub gap: u32,
+    /// Horizontal gap between checkbox columns, in logical pixels.
+    pub column_gap: u32,
+    /// Vertical gap between checkbox rows, in logical pixels.
+    pub row_gap: u32,
+}
+
 /// Compile-time metrics for the System Settings window.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct SettingsMetrics {
+    /// Fixed width of the label column (title + help) in a settings row.
+    pub label_column: u32,
     /// Default settings window width, in logical pixels.
     pub window_width: u32,
     /// Default settings window height, in logical pixels.
@@ -488,6 +512,10 @@ pub struct SettingsMetrics {
     pub sidebar_app_icon_glyph: u32,
     /// Gap between a row's label column and its control, in logical pixels.
     pub row_gap: u32,
+    /// Tint-strength slider metrics.
+    pub strength: SettingsStrength,
+    /// Tint-parts checkbox grid metrics.
+    pub check: SettingsCheck,
     /// Size of each traffic light in the traffic dropdown, in logical pixels.
     pub dropdown_preview_light: u32,
     /// Size of the chevron glyph in the traffic dropdown, in logical pixels.
@@ -524,6 +552,36 @@ pub struct SettingsMetrics {
     pub swatch_name_gap: u32,
     /// Outline colour of a settings preview card.
     pub card_outline: Rgba,
+}
+
+/// Compile-time metrics for the Tengen slider.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct SliderMetrics {
+    /// Total height reserved for the slider, in logical pixels.
+    pub height: f32,
+    /// Track thickness, in logical pixels.
+    pub track: f32,
+    /// Knob diameter, in logical pixels.
+    pub knob: f32,
+    /// Track background colour.
+    pub track_color: Rgba,
+    /// Filled portion colour.
+    pub fill_color: Rgba,
+}
+
+/// Compile-time metrics for the Tengen checkbox.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct CheckboxMetrics {
+    /// Checkbox outer size, in logical pixels.
+    pub size: f32,
+    /// Checkbox corner radius, in logical pixels.
+    pub radius: f32,
+    /// Unchecked border colour.
+    pub border: Rgba,
+    /// Checked background colour.
+    pub on: Rgba,
+    /// Check-mark stroke width, in logical pixels.
+    pub check_stroke: f32,
 }
 
 /// Compile-time metrics for the Tengen sidebar.
@@ -658,10 +716,14 @@ pub struct Palette {
     pub text: FocusPair,
     /// Strong text colour (`ink-strong`).
     pub ink_strong: Rgba,
+    /// Muted text colour (`ink-muted`).
+    pub ink_muted: Rgba,
     /// Disabled text colour (`ink-faint`).
     pub ink_faint: Rgba,
     /// Separator and outline colour (`line`).
     pub line: Rgba,
+    /// Strong separator and outline colour (`line-strong`).
+    pub line_strong: Rgba,
     /// The accent color.
     pub accent: Rgba,
     /// Text or glyphs drawn on top of the accent color.
@@ -1015,6 +1077,7 @@ mod tests {
 
     #[test]
     fn settings_metrics_and_swatches_match_components() {
+        assert_eq!(super::SETTINGS.label_column, 150);
         assert_eq!(super::SETTINGS.window_width, 760);
         assert_eq!(super::SETTINGS.window_height, 620);
         assert_eq!(super::SETTINGS.window_min_height, 480);
@@ -1094,6 +1157,12 @@ mod tests {
         assert_eq!(super::SETTINGS.account_padding_x, 6);
         assert_eq!(super::SETTINGS.search_gap, 6);
         assert_eq!(super::SETTINGS.row_gap, 12);
+        assert_eq!(super::SETTINGS.strength.width, 200);
+        assert_eq!(super::SETTINGS.strength.tick, 4);
+        assert_eq!(super::SETTINGS.strength.label_gap, 4);
+        assert_eq!(super::SETTINGS.check.gap, 7);
+        assert_eq!(super::SETTINGS.check.column_gap, 18);
+        assert_eq!(super::SETTINGS.check.row_gap, 8);
         assert_eq!(super::SETTINGS.dropdown_preview_light, 12);
         assert_eq!(super::SETTINGS.dropdown_chevron_glyph, 10);
         assert_eq!(super::SETTINGS.empty_padding_y, 48);
@@ -1119,6 +1188,11 @@ mod tests {
             super::ACCENT_SWATCHES[1].1,
             super::Rgba::rgb8(0x8e, 0x5b, 0xd8)
         );
+        assert_eq!(super::SLIDER.height, 20.0);
+        assert_eq!(super::SLIDER.track, 4.0);
+        assert_eq!(super::SLIDER.knob, 20.0);
+        assert_eq!(super::CHECKBOX.size, 16.0);
+        assert_eq!(super::CHECKBOX.check_stroke, 2.2);
         assert_eq!(super::HEADLINE.size, 13);
         assert_eq!(super::HEADLINE.weight, 600);
         assert_eq!(super::CALLOUT.size, 12);

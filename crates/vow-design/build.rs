@@ -30,6 +30,8 @@ fn main() {
     emit_window(&mut out, &tokens, &components);
     emit_dialog(&mut out, &tokens, &components);
     emit_tints(&mut out, &tokens, &components);
+    emit_slider(&mut out, &tokens, &components);
+    emit_checkbox(&mut out, &tokens, &components);
     emit_wallpaper(&mut out, &tokens, &components);
     emit_traffic(&mut out, &tokens, &components);
     emit_font_families(&mut out, &tokens);
@@ -442,6 +444,23 @@ fn emit_tints(out: &mut String, tokens: &Value, components: &Value) {
     );
     out.push_str(&format!(": f32 = {};\n\n", float(separator_ink_mix)));
 
+    let tint_subtle = number(components, "appearance.tint-strength.subtle", COMPONENTS);
+    let tint_normal = number(components, "appearance.tint-strength.normal", COMPONENTS);
+    let tint_strong = number(components, "appearance.tint-strength.strong", COMPONENTS);
+    let tint_intense = number(components, "appearance.tint-strength.intense", COMPONENTS);
+    const_doc(
+        out,
+        "TINT_STRENGTH",
+        "Tint strength multipliers for Subtle, Normal, Strong and Intense.",
+    );
+    out.push_str(&format!(
+        ": [f32; 4] = [{}, {}, {}, {}];\n\n",
+        float(tint_subtle),
+        float(tint_normal),
+        float(tint_strong),
+        float(tint_intense)
+    ));
+
     for (name, doc, key) in [
         (
             "LAYER_FACTOR_BG_SUNKEN",
@@ -470,6 +489,87 @@ fn emit_tints(out: &mut String, tokens: &Value, components: &Value) {
     }
 
     let _ = tokens;
+}
+
+fn emit_slider(out: &mut String, tokens: &Value, components: &Value) {
+    let _ = tokens;
+    let height = number(components, "components.slider.height", COMPONENTS);
+    let track = number(components, "components.slider.track", COMPONENTS);
+    let knob = number(components, "components.slider.knob", COMPONENTS);
+    let track_color = color_ref(
+        tokens,
+        default_theme(tokens),
+        string(components, "components.slider.track-color", COMPONENTS),
+        "components.slider.track-color",
+        COMPONENTS,
+    );
+    let fill_color = color_ref(
+        tokens,
+        default_theme(tokens),
+        string(components, "components.slider.fill-color", COMPONENTS),
+        "components.slider.fill-color",
+        COMPONENTS,
+    );
+    const_doc(out, "SLIDER", "The Tengen slider metrics and colours.");
+    out.push_str(&format!(
+        ": SliderMetrics = SliderMetrics {{
+\
+         \x20   height: {},
+\
+         \x20   track: {},
+\
+         \x20   knob: {},
+\
+         \x20   track_color: {},
+\
+         \x20   fill_color: {},
+}};\n\n",
+        float(height),
+        float(track),
+        float(knob),
+        rgba(track_color),
+        rgba(fill_color)
+    ));
+}
+
+fn emit_checkbox(out: &mut String, tokens: &Value, components: &Value) {
+    let size = number(components, "components.checkbox.size", COMPONENTS);
+    let radius = metric(tokens, components, "components.checkbox.radius", COMPONENTS);
+    let border = color_ref(
+        tokens,
+        default_theme(tokens),
+        string(components, "components.checkbox.border", COMPONENTS),
+        "components.checkbox.border",
+        COMPONENTS,
+    );
+    let on = color_ref(
+        tokens,
+        default_theme(tokens),
+        string(components, "components.checkbox.on", COMPONENTS),
+        "components.checkbox.on",
+        COMPONENTS,
+    );
+    let check_stroke = number(components, "components.checkbox.check-stroke", COMPONENTS);
+    const_doc(out, "CHECKBOX", "The Tengen checkbox metrics and colours.");
+    out.push_str(&format!(
+        ": CheckboxMetrics = CheckboxMetrics {{
+\
+         \x20   size: {},
+\
+         \x20   radius: {},
+\
+         \x20   border: {},
+\
+         \x20   on: {},
+\
+         \x20   check_stroke: {},
+}};\n\n",
+        float(size),
+        float(radius),
+        rgba(border),
+        rgba(on),
+        float(check_stroke)
+    ));
 }
 
 fn emit_wallpaper(out: &mut String, tokens: &Value, components: &Value) {
@@ -913,8 +1013,10 @@ fn palette(tokens: &Value, components: &Value, theme: &str) -> String {
          \x20   title: FocusPair {{ focused: {}, unfocused: {} }},\n\
          \x20   text: FocusPair {{ focused: {}, unfocused: {} }},\n\
          \x20   ink_strong: {},\n\
+         \x20   ink_muted: {},\n\
          \x20   ink_faint: {},\n\
          \x20   line: {},\n\
+         \x20   line_strong: {},\n\
          \x20   accent: {},\n\
          \x20   on_accent: {},\n\
          \x20   danger: {},\n\
@@ -929,8 +1031,10 @@ fn palette(tokens: &Value, components: &Value, theme: &str) -> String {
         rgba(theme_color(tokens, theme, "ink")),
         rgba(theme_color(tokens, theme, "ink-muted")),
         rgba(theme_color(tokens, theme, "ink-strong")),
+        rgba(theme_color(tokens, theme, "ink-muted")),
         rgba(theme_color(tokens, theme, "ink-faint")),
         rgba(theme_color(tokens, theme, "line")),
+        rgba(theme_color(tokens, theme, "line-strong")),
         rgba(theme_color(tokens, theme, "accent")),
         rgba(theme_color(tokens, theme, "on-accent")),
         rgba(theme_color(tokens, theme, "danger")),
@@ -2043,6 +2147,11 @@ fn emit_metrics(out: &mut String, tokens: &Value, components: &Value) {
 }
 
 fn emit_settings(out: &mut String, tokens: &Value, components: &Value) {
+    let label_column = integer(
+        components,
+        "components.settings.label-column",
+        COMPONENTS,
+    ) as u32;
     let window_width = integer(components, "components.settings.window.width", COMPONENTS) as u32;
     let window_height = integer(components, "components.settings.window.height", COMPONENTS) as u32;
     let window_min_height = integer(
@@ -2050,6 +2159,21 @@ fn emit_settings(out: &mut String, tokens: &Value, components: &Value) {
         "components.settings.window.min-height",
         COMPONENTS,
     ) as u32;
+
+    let strength_width = integer(components, "components.settings.strength.width", COMPONENTS) as u32;
+    let strength_tick = integer(components, "components.settings.strength.tick", COMPONENTS) as u32;
+    let strength_label_gap = integer(
+        components,
+        "components.settings.strength.label-gap",
+        COMPONENTS,
+    ) as u32;
+    let check_gap = integer(components, "components.settings.check.gap", COMPONENTS) as u32;
+    let check_column_gap = integer(
+        components,
+        "components.settings.check.column-gap",
+        COMPONENTS,
+    ) as u32;
+    let check_row_gap = integer(components, "components.settings.check.row-gap", COMPONENTS) as u32;
 
     let search_height = metric(
         tokens,
@@ -2362,6 +2486,7 @@ fn emit_settings(out: &mut String, tokens: &Value, components: &Value) {
     const_doc(out, "SETTINGS", "The System Settings window metrics.");
     out.push_str(&format!(
         ": SettingsMetrics = SettingsMetrics {{\n\
+         \x20   label_column: {label_column},\n\
          \x20   window_width: {window_width},\n\
          \x20   window_height: {window_height},\n\
          \x20   window_min_height: {window_min_height},\n\
@@ -2436,6 +2561,8 @@ fn emit_settings(out: &mut String, tokens: &Value, components: &Value) {
          \x20   sidebar_padding_bottom: {sidebar_padding_bottom},\n\
          \x20   sidebar_app_icon_glyph: {sidebar_app_icon_glyph},\n\
          \x20   row_gap: {row_gap},\n\
+         \x20   strength: SettingsStrength {{ width: {strength_width}, tick: {strength_tick}, label_gap: {strength_label_gap} }},\n\
+         \x20   check: SettingsCheck {{ gap: {check_gap}, column_gap: {check_column_gap}, row_gap: {check_row_gap} }},\n\
          \x20   dropdown_preview_light: {dropdown_preview_light},\n\
          \x20   dropdown_chevron_glyph: {dropdown_chevron_glyph},\n\
          \x20   empty_padding_y: {empty_padding_y},\n\
