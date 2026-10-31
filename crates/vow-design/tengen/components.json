@@ -403,6 +403,7 @@
       }
     },
     "settings": {
+      "label-column": 150,
       "window": {
         "width": 760,
         "height": 620,
@@ -521,6 +522,16 @@
         "dot": 6,
         "gap": 7,
         "spacing": 16
+      },
+      "strength": {
+        "width": 200,
+        "tick": 4,
+        "label-gap": 4
+      },
+      "check": {
+        "gap": 7,
+        "column-gap": 18,
+        "row-gap": 8
       },
       "selected-dark-mix": 0.5,
       "row-gap": 12,
@@ -706,6 +717,12 @@
   "appearance": {
     "status": "idea en estudio",
     "setting": "Ajustes › Apariencia › Color de las ventanas",
+    "tint-strength": {
+      "subtle": 0.5,
+      "normal": 1.0,
+      "strong": 1.5,
+      "intense": 2.0
+    },
     "modes": {
       "neutral": {
         "tint": null,

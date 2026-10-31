@@ -11,6 +11,7 @@ use serde::Deserialize;
 pub mod traffic;
 pub mod watch;
 
+use serde::Deserializer;
 use vow_design::{
     ACCENT_MIN_CONTRAST_ON_WINDOW, BG_CONTROL_DARK, BG_CONTROL_DARK_TINT, BG_CONTROL_LIGHT,
     BG_HOVER_DARK, BG_HOVER_DARK_TINT, BG_HOVER_LIGHT, BG_RAISED_DARK, BG_RAISED_DARK_TINT,
@@ -20,15 +21,15 @@ use vow_design::{
     LAYER_FACTOR_SURFACE, LIGHT, MENU_DARK, MENU_DARK_OPAQUE, MENU_DARK_TINT,
     MENU_DARK_TINT_OPAQUE, MENU_LIGHT, MENU_LIGHT_OPAQUE, MENU_SEPARATOR_INK_MIX,
     MUTED_BELOW_SATURATION, MUTED_MAX_SATURATION, MenuPalette, ON_ACCENT_MIN_CONTRAST,
-    PANEL_TINT_WALLPAPER, Palette, Rgba, SETTINGS, SHELL_DARK, SHELL_DARK_OPAQUE, SHELL_DARK_TINT,
+    PANEL_TINT_WALLPAPER, Palette, Rgba, SHELL_DARK, SHELL_DARK_OPAQUE, SHELL_DARK_TINT,
     SHELL_DARK_TINT_OPAQUE, SHELL_LIGHT, SHELL_LIGHT_OPAQUE, SIDEBAR_DARK, SIDEBAR_DARK_OPAQUE,
     SIDEBAR_DARK_TINT, SIDEBAR_DARK_TINT_OPAQUE, SIDEBAR_ISLAND_DARK, SIDEBAR_ISLAND_DARK_OPAQUE,
     SIDEBAR_ISLAND_DARK_TINT, SIDEBAR_ISLAND_DARK_TINT_OPAQUE, SIDEBAR_ISLAND_INNER_DARK,
     SIDEBAR_ISLAND_INNER_DARK_TINT, SIDEBAR_ISLAND_INNER_LIGHT, SIDEBAR_ISLAND_LIGHT,
     SIDEBAR_ISLAND_LIGHT_OPAQUE, SIDEBAR_ISLAND_RIM_DARK, SIDEBAR_ISLAND_RIM_DARK_TINT,
     SIDEBAR_ISLAND_RIM_LIGHT, SIDEBAR_LIGHT, SIDEBAR_LIGHT_OPAQUE, SIDEBAR_PALETTE_DARK,
-    SIDEBAR_PALETTE_DARK_TINT, SIDEBAR_PALETTE_LIGHT, ShellPalette, SidebarPalette, TITLEBAR,
-    TOOLGROUP_BG_DARK, TOOLGROUP_BG_DARK_OPAQUE, TOOLGROUP_BG_DARK_TINT,
+    SIDEBAR_PALETTE_DARK_TINT, SIDEBAR_PALETTE_LIGHT, ShellPalette, SidebarPalette, TINT_STRENGTH,
+    TITLEBAR, TOOLGROUP_BG_DARK, TOOLGROUP_BG_DARK_OPAQUE, TOOLGROUP_BG_DARK_TINT,
     TOOLGROUP_BG_DARK_TINT_OPAQUE, TOOLGROUP_BG_LIGHT, TOOLGROUP_BG_LIGHT_OPAQUE,
     TOOLGROUP_PALETTE_DARK, TOOLGROUP_PALETTE_DARK_TINT, TOOLGROUP_PALETTE_LIGHT,
     TRAFFIC_CLOSE_MINIMIZE_DARKEN, TRAFFIC_ZOOM_LIGHTEN, ToolgroupPalette,
@@ -88,6 +89,84 @@ pub enum WindowTintScope {
     Desktop,
 }
 
+/// Tint strength for the accent or wallpaper tint.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum TintStrength {
+    /// 0.5× the mode factor.
+    Subtle,
+    /// 1.0× the mode factor.
+    #[default]
+    Normal,
+    /// 1.5× the mode factor.
+    Strong,
+    /// 2.0× the mode factor.
+    Intense,
+}
+
+impl TintStrength {
+    /// The multiplier for this strength step.
+    pub fn factor(self) -> f32 {
+        TINT_STRENGTH[self as usize]
+    }
+}
+
+/// Which surfaces receive the window tint.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct TintParts {
+    /// Sidebar background.
+    pub sidebars: bool,
+    /// Window and sunken backgrounds.
+    pub window: bool,
+    /// Surface and line colours (groups and cards).
+    pub groups: bool,
+    /// Control, hover and toolgroup backgrounds.
+    pub controls: bool,
+    /// Raised surfaces and menu backgrounds.
+    pub menus: bool,
+}
+
+impl Default for TintParts {
+    fn default() -> Self {
+        Self {
+            sidebars: true,
+            window: true,
+            groups: true,
+            controls: true,
+            menus: true,
+        }
+    }
+}
+
+fn deserialize_tint_parts<'de, D>(deserializer: D) -> Result<TintParts, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let list: Vec<String> = Vec::deserialize(deserializer)?;
+    let mut parts = TintParts {
+        sidebars: false,
+        window: false,
+        groups: false,
+        controls: false,
+        menus: false,
+    };
+    for name in list {
+        match name.as_str() {
+            "sidebars" => parts.sidebars = true,
+            "window" => parts.window = true,
+            "groups" => parts.groups = true,
+            "controls" => parts.controls = true,
+            "menus" => parts.menus = true,
+            _ => {
+                return Err(serde::de::Error::custom(format!(
+                    "unknown tint part: {name}"
+                )));
+            }
+        }
+    }
+    Ok(parts)
+}
+
 /// The kit sidebar style.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -141,6 +220,15 @@ pub struct AppearanceConfig {
     pub traffic_lights: TrafficLightStyle,
     /// The kit sidebar style.
     pub sidebar_style: SidebarStyle,
+    /// Tint strength used in accent mode.
+    #[serde(default)]
+    pub tint_strength_accent: TintStrength,
+    /// Tint strength used in wallpaper mode.
+    #[serde(default)]
+    pub tint_strength_wallpaper: TintStrength,
+    /// Which surfaces receive the window tint.
+    #[serde(default, deserialize_with = "deserialize_tint_parts")]
+    pub tint_parts: TintParts,
 }
 
 fn default_reduce_transparency() -> bool {
@@ -222,6 +310,11 @@ pub struct Resolved {
     pub toolgroup: ToolgroupSurface,
     /// The tinted surface stack for window backgrounds, controls and lines.
     pub surfaces: Surfaces,
+    /// Which surfaces receive the window tint.
+    pub tint_parts: TintParts,
+    /// The window background tinted without the parts mask, used as the parent
+    /// for menu popups.
+    pub menu_parent: Rgba,
 }
 
 impl Resolved {
@@ -397,14 +490,23 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
 
     let window_tint = match appearance.window_color {
         WindowColorMode::Neutral => None,
-        WindowColorMode::Accent => Some((normal_accent, WINDOW_TINT_ACCENT[index])),
-        WindowColorMode::Wallpaper => Some((dominant, WINDOW_TINT_WALLPAPER[index])),
+        WindowColorMode::Accent => Some((
+            normal_accent,
+            WINDOW_TINT_ACCENT[index] * appearance.tint_strength_accent.factor(),
+        )),
+        WindowColorMode::Wallpaper => Some((
+            dominant,
+            WINDOW_TINT_WALLPAPER[index] * appearance.tint_strength_wallpaper.factor(),
+        )),
     };
 
     let panel_tint = if appearance.window_color == WindowColorMode::Wallpaper
         && appearance.window_tint_scope == WindowTintScope::Desktop
     {
-        Some((dominant, PANEL_TINT_WALLPAPER[index]))
+        Some((
+            dominant,
+            PANEL_TINT_WALLPAPER[index] * appearance.tint_strength_wallpaper.factor(),
+        ))
     } else {
         None
     };
@@ -432,17 +534,26 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
         appearance.sidebar_style,
         appearance.reduce_transparency,
     );
-    let surfaces = tinted_surfaces(scheme, window_tint, &base);
+    let menu_parent = match window_tint {
+        Some((tint, factor)) => {
+            let bg_window = match scheme {
+                ColorScheme::DarkTint => BG_WINDOW_DARK_TINT,
+                ColorScheme::Dark => BG_WINDOW_DARK,
+                _ => BG_WINDOW_LIGHT,
+            };
+            bg_window.mix(tint, factor)
+        }
+        None => match scheme {
+            ColorScheme::DarkTint => BG_WINDOW_DARK_TINT,
+            ColorScheme::Dark => BG_WINDOW_DARK,
+            _ => BG_WINDOW_LIGHT,
+        },
+    };
+    let surfaces = tinted_surfaces(scheme, window_tint, &base, appearance.tint_parts);
     menu.hover_bg = accent;
     menu.hover_fg = base.on_accent;
     menu.search_ring = accent;
-    if dark {
-        // In dark modes the selected row blends the accent into the sidebar
-        // background so it is readable on bg-sunken. The ink stays white.
-        sidebar.palette.selected_bg = accent.mix(sidebar.bg, SETTINGS.selected_dark_mix);
-    } else {
-        sidebar.palette.selected_bg = accent;
-    }
+    sidebar.palette.selected_bg = normal_accent;
     sidebar.palette.item_icon = accent;
     sidebar.palette.selected_ink = base.on_accent;
     if let Some((tint, factor)) = panel_tint {
@@ -450,8 +561,12 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
         shell.tile = shell.tile.mix(tint, factor);
     }
     if let Some((tint, factor)) = window_tint {
-        sidebar.bg = sidebar.bg.mix(tint, factor * LAYER_FACTOR_BG_SUNKEN);
-        toolgroup.bg = toolgroup.bg.mix(tint, factor * LAYER_FACTOR_CONTROL);
+        if appearance.tint_parts.sidebars {
+            sidebar.bg = sidebar.bg.mix(tint, factor * LAYER_FACTOR_BG_SUNKEN);
+        }
+        if appearance.tint_parts.controls {
+            toolgroup.bg = toolgroup.bg.mix(tint, factor * LAYER_FACTOR_CONTROL);
+        }
     }
     shell.tile_active = accent;
 
@@ -470,6 +585,8 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
         sidebar,
         toolgroup,
         surfaces,
+        tint_parts: appearance.tint_parts,
+        menu_parent,
     }
 }
 
@@ -478,6 +595,7 @@ fn tinted_surfaces(
     scheme: ColorScheme,
     window_tint: Option<(Rgba, f32)>,
     base: &Palette,
+    parts: TintParts,
 ) -> Surfaces {
     let (window, sunken, surface, raised, control, hover) = match scheme {
         ColorScheme::DarkTint => (
@@ -506,23 +624,28 @@ fn tinted_surfaces(
         ),
     };
     let line = base.line;
-    let mix = |color: Rgba, factor: f32| {
+    let mix = |color: Rgba, factor: f32, enabled: bool| {
+        if !enabled {
+            return color;
+        }
         window_tint
             .map(|(tint, tint_factor)| color.mix(tint, tint_factor * factor))
             .unwrap_or(color)
     };
-    let tinted_window = mix(window, 1.0);
+    // Groups follow the tinted window even when the window part is off, so
+    // "Grupos y tarjetas" alone still tints them.
+    let surface = match window_tint {
+        Some((tint, factor)) if parts.groups => elevate(window.mix(tint, factor), window, surface),
+        _ => surface,
+    };
     Surfaces {
-        window: tinted_window,
-        sunken: mix(sunken, LAYER_FACTOR_BG_SUNKEN),
-        surface: match window_tint {
-            Some(_) => elevate(tinted_window, window, surface),
-            None => surface,
-        },
-        raised: mix(raised, LAYER_FACTOR_SURFACE),
-        control: mix(control, LAYER_FACTOR_CONTROL),
-        hover: mix(hover, LAYER_FACTOR_CONTROL),
-        line: mix(line, LAYER_FACTOR_LINE),
+        window: mix(window, 1.0, parts.window),
+        sunken: mix(sunken, LAYER_FACTOR_BG_SUNKEN, parts.window),
+        surface,
+        raised: mix(raised, LAYER_FACTOR_SURFACE, parts.menus),
+        control: mix(control, LAYER_FACTOR_CONTROL, parts.controls),
+        hover: mix(hover, LAYER_FACTOR_CONTROL, parts.controls),
+        line: mix(line, LAYER_FACTOR_LINE, parts.groups),
     }
 }
 
@@ -710,6 +833,10 @@ pub fn write_appearance(path: &Path, config: &AppearanceConfig) -> std::io::Resu
     doc["window_tint_scope"] = toml_edit::value(window_tint_scope_str(config.window_tint_scope));
     doc["traffic_lights"] = toml_edit::value(traffic_lights_str(config.traffic_lights));
     doc["sidebar_style"] = toml_edit::value(sidebar_style_str(config.sidebar_style));
+    doc["tint_strength_accent"] = toml_edit::value(tint_strength_str(config.tint_strength_accent));
+    doc["tint_strength_wallpaper"] =
+        toml_edit::value(tint_strength_str(config.tint_strength_wallpaper));
+    doc["tint_parts"] = toml_edit::value(tint_parts_value(config.tint_parts));
 
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent)?;
@@ -763,6 +890,35 @@ fn sidebar_style_str(style: SidebarStyle) -> &'static str {
         SidebarStyle::Island => "island",
         SidebarStyle::Flat => "flat",
     }
+}
+
+fn tint_strength_str(strength: TintStrength) -> &'static str {
+    match strength {
+        TintStrength::Subtle => "subtle",
+        TintStrength::Normal => "normal",
+        TintStrength::Strong => "strong",
+        TintStrength::Intense => "intense",
+    }
+}
+
+fn tint_parts_value(parts: TintParts) -> toml_edit::Value {
+    let mut arr = toml_edit::Array::new();
+    if parts.sidebars {
+        arr.push("sidebars");
+    }
+    if parts.window {
+        arr.push("window");
+    }
+    if parts.groups {
+        arr.push("groups");
+    }
+    if parts.controls {
+        arr.push("controls");
+    }
+    if parts.menus {
+        arr.push("menus");
+    }
+    toml_edit::Value::Array(arr)
 }
 
 fn accent_array(accent: [f32; 3]) -> toml_edit::Array {
@@ -858,6 +1014,9 @@ mod tests {
             window_tint_scope: scope,
             traffic_lights: lights,
             sidebar_style: SidebarStyle::Island,
+            tint_strength_accent: TintStrength::default(),
+            tint_strength_wallpaper: TintStrength::default(),
+            tint_parts: TintParts::default(),
         }
     }
 
@@ -1581,27 +1740,13 @@ sidebar_style = "flat"
                 "{scheme:?} sidebar item icon"
             );
 
-            if matches!(scheme, ColorScheme::Dark | ColorScheme::DarkTint) {
-                // Dark modes blend the accent into the sidebar background for
-                // selected rows instead of using the light-mode accent-soft.
-                let accent = resolved.accent;
-                assert_eq!(
-                    resolved.sidebar.palette.selected_bg,
-                    accent.mix(resolved.sidebar.bg, SETTINGS.selected_dark_mix),
-                    "{scheme:?} selected_bg"
-                );
-                assert_eq!(
-                    resolved.sidebar.palette.selected_ink,
-                    palette(scheme).on_accent,
-                    "{scheme:?} selected_ink"
-                );
-            } else {
-                let expected_sidebar = SidebarPalette {
-                    item_icon: resolved.accent,
-                    ..expected_sidebar
-                };
-                assert_eq!(resolved.sidebar.palette, expected_sidebar);
-            }
+            let expected_sidebar = SidebarPalette {
+                item_icon: resolved.accent,
+                selected_bg: resolved.accent,
+                selected_ink: palette(scheme).on_accent,
+                ..expected_sidebar
+            };
+            assert_eq!(resolved.sidebar.palette, expected_sidebar);
         }
     }
 
@@ -1638,9 +1783,8 @@ sidebar_style = "flat"
                 a: 1.0,
             };
             assert_eq!(
-                resolved.sidebar.palette.selected_bg,
-                accent_rgba.mix(resolved.sidebar.bg, SETTINGS.selected_dark_mix),
-                "{scheme:?} selected_bg should mix the accent into the sidebar background"
+                resolved.sidebar.palette.selected_bg, accent_rgba,
+                "{scheme:?} selected_bg should be the accent"
             );
             assert_eq!(
                 resolved.sidebar.palette.selected_ink,
@@ -1663,6 +1807,9 @@ sidebar_style = "flat"
         assert_eq!(a.window_tint_scope, b.window_tint_scope);
         assert_eq!(a.traffic_lights, b.traffic_lights);
         assert_eq!(a.sidebar_style, b.sidebar_style);
+        assert_eq!(a.tint_strength_accent, b.tint_strength_accent);
+        assert_eq!(a.tint_strength_wallpaper, b.tint_strength_wallpaper);
+        assert_eq!(a.tint_parts, b.tint_parts);
     }
 
     #[test]
@@ -1680,6 +1827,15 @@ sidebar_style = "flat"
             window_tint_scope: WindowTintScope::Desktop,
             traffic_lights: TrafficLightStyle::Accent,
             sidebar_style: SidebarStyle::Flat,
+            tint_strength_accent: TintStrength::Strong,
+            tint_strength_wallpaper: TintStrength::Subtle,
+            tint_parts: TintParts {
+                sidebars: true,
+                window: false,
+                groups: true,
+                controls: false,
+                menus: true,
+            },
         };
         write_appearance(&path, &config).unwrap();
         let read = read_appearance_from(&path).unwrap().unwrap();
@@ -1942,6 +2098,7 @@ sidebar_style = "flat"
             window_tint_scope: WindowTintScope::Windows,
             traffic_lights: TrafficLightStyle::Auto,
             sidebar_style: SidebarStyle::Island,
+            ..AppearanceConfig::default()
         };
         let resolved = resolve(&config, Some(dominant()));
         let expected = Resolved {
@@ -1984,6 +2141,8 @@ sidebar_style = "flat"
                 hover: BG_HOVER_LIGHT,
                 line: LIGHT.line,
             },
+            tint_parts: TintParts::default(),
+            menu_parent: BG_WINDOW_LIGHT,
         };
         assert_eq!(resolved, expected);
     }
@@ -2006,6 +2165,7 @@ sidebar_style = "flat"
             window_tint_scope: WindowTintScope::Windows,
             traffic_lights: TrafficLightStyle::Accent,
             sidebar_style: SidebarStyle::Island,
+            ..AppearanceConfig::default()
         };
         let resolved = resolve(&config, Some(dominant()));
         let tint_factor = WINDOW_TINT_ACCENT[0];
@@ -2057,7 +2217,116 @@ sidebar_style = "flat"
                 hover: BG_HOVER_LIGHT.mix(accent, tint_factor * LAYER_FACTOR_CONTROL),
                 line: LIGHT.line.mix(accent, tint_factor * LAYER_FACTOR_LINE),
             },
+            tint_parts: TintParts::default(),
+            menu_parent: BG_WINDOW_LIGHT.mix(accent, tint_factor),
         };
         assert_eq!(resolved, expected);
+    }
+
+    #[test]
+    fn old_domain_without_new_fields_uses_defaults() {
+        let config: AppearanceConfig = toml::from_str(
+            r#"
+color_scheme = "light"
+accent_color = [0.2, 0.5, 0.8]
+contrast = false
+reduced_motion = false
+window_color = "accent"
+window_tint_scope = "windows"
+traffic_lights = "auto"
+sidebar_style = "island"
+"#,
+        )
+        .unwrap();
+        assert_eq!(config.tint_strength_accent, TintStrength::Normal);
+        assert_eq!(config.tint_strength_wallpaper, TintStrength::Normal);
+        assert_eq!(config.tint_parts, TintParts::default());
+    }
+
+    #[test]
+    fn tint_parts_roundtrip_through_write_appearance() {
+        let dir = std::env::temp_dir().join(format!(
+            "vow-appearance-parts-roundtrip-{}",
+            std::process::id()
+        ));
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("appearance.domain");
+        let config = AppearanceConfig {
+            tint_strength_accent: TintStrength::Intense,
+            tint_strength_wallpaper: TintStrength::Subtle,
+            tint_parts: TintParts {
+                sidebars: true,
+                window: false,
+                groups: true,
+                controls: false,
+                menus: true,
+            },
+            ..AppearanceConfig::default()
+        };
+        write_appearance(&path, &config).unwrap();
+        let read = read_appearance_from(&path).unwrap().unwrap();
+        assert_configs_equal(&config, &read);
+        std::fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn only_sidebars_tinted_leaves_other_surfaces_neutral() {
+        let mut config = appearance(
+            ColorScheme::Light,
+            WindowColorMode::Accent,
+            WindowTintScope::Windows,
+            TrafficLightStyle::Auto,
+            Some([0.9, 0.3, 0.1]),
+        );
+        config.tint_parts = TintParts {
+            sidebars: true,
+            window: false,
+            groups: false,
+            controls: false,
+            menus: false,
+        };
+        let resolved = resolve(&config, None);
+        let neutral = resolve(
+            &appearance(
+                ColorScheme::Light,
+                WindowColorMode::Neutral,
+                WindowTintScope::Windows,
+                TrafficLightStyle::Auto,
+                Some([0.9, 0.3, 0.1]),
+            ),
+            None,
+        );
+        assert_ne!(resolved.sidebar.bg, neutral.sidebar.bg);
+        assert_eq!(resolved.surfaces.window, BG_WINDOW_LIGHT);
+        assert_eq!(resolved.surfaces.surface, BG_SURFACE_LIGHT);
+        assert_eq!(resolved.surfaces.control, BG_CONTROL_LIGHT);
+        assert_eq!(resolved.surfaces.raised, BG_RAISED_LIGHT);
+    }
+
+    #[test]
+    fn intense_wallpaper_dark_doubles_the_tint_factors() {
+        let mut config = appearance(
+            ColorScheme::Dark,
+            WindowColorMode::Wallpaper,
+            WindowTintScope::Desktop,
+            TrafficLightStyle::Auto,
+            None,
+        );
+        config.tint_strength_wallpaper = TintStrength::Intense;
+        let dominant = Rgba {
+            r: 0.8,
+            g: 0.2,
+            b: 0.1,
+            a: 1.0,
+        };
+        let resolved = resolve(&config, Some(dominant));
+        assert_eq!(
+            resolved.window_tint,
+            Some((dominant, WINDOW_TINT_WALLPAPER[1] * 2.0))
+        );
+        assert_eq!(
+            resolved.panel_tint,
+            Some((dominant, PANEL_TINT_WALLPAPER[1] * 2.0))
+        );
     }
 }
