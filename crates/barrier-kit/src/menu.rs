@@ -3091,23 +3091,6 @@ mod tests {
         assert_eq!(child_first_row_top, row_top);
     }
 
-    fn relative_luminance(color: Rgba) -> f32 {
-        fn linear(channel: f32) -> f32 {
-            if channel <= 0.04045 {
-                channel / 12.92
-            } else {
-                ((channel + 0.055) / 1.055).powf(2.4)
-            }
-        }
-        0.2126 * linear(color.r) + 0.7152 * linear(color.g) + 0.0722 * linear(color.b)
-    }
-
-    fn contrast(a: Rgba, b: Rgba) -> f32 {
-        let a = relative_luminance(a);
-        let b = relative_luminance(b);
-        (a.max(b) + 0.05) / (a.min(b) + 0.05)
-    }
-
     #[test]
     fn shortcuts_use_macos_glyphs_in_order() {
         assert_eq!(format_shortcut("Ctrl+Shift+G"), "⌃⇧G");
@@ -3155,7 +3138,7 @@ mod tests {
                 chevron_fg(true, true, m),
                 m.hover_fg,
             ] {
-                let ratio = contrast(color, m.hover_bg);
+                let ratio = color.contrast_ratio(m.hover_bg);
                 assert!(
                     ratio >= 4.5,
                     "{name}: focused row color has {ratio:.2}:1 contrast on accent"

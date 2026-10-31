@@ -89,6 +89,86 @@ impl Rgba {
     pub fn premultiplied(self) -> [f32; 4] {
         [self.r * self.a, self.g * self.a, self.b * self.a, self.a]
     }
+
+    /// WCAG 2.x relative luminance of the color, assuming sRGB encoding.
+    pub fn relative_luminance(self) -> f32 {
+        fn linear(channel: f32) -> f32 {
+            if channel <= 0.04045 {
+                channel / 12.92
+            } else {
+                ((channel + 0.055) / 1.055).powf(2.4)
+            }
+        }
+        0.2126 * linear(self.r) + 0.7152 * linear(self.g) + 0.0722 * linear(self.b)
+    }
+
+    /// WCAG 2.x contrast ratio between this color and another.
+    pub fn contrast_ratio(self, other: Self) -> f32 {
+        let a = self.relative_luminance();
+        let b = other.relative_luminance();
+        (a.max(b) + 0.05) / (a.min(b) + 0.05)
+    }
+
+    /// Converts the color to HSL with hue in `0.0..=1.0`.
+    pub fn to_hsl(self) -> (f32, f32, f32) {
+        let max = self.r.max(self.g).max(self.b);
+        let min = self.r.min(self.g).min(self.b);
+        let lightness = (max + min) / 2.0;
+        let delta = max - min;
+        if delta == 0.0 {
+            return (0.0, 0.0, lightness);
+        }
+        let saturation = if lightness > 0.5 {
+            delta / (2.0 - max - min)
+        } else {
+            delta / (max + min)
+        };
+        let hue = if max == self.r {
+            ((self.g - self.b) / delta + if self.g < self.b { 6.0 } else { 0.0 }) / 6.0
+        } else if max == self.g {
+            ((self.b - self.r) / delta + 2.0) / 6.0
+        } else {
+            ((self.r - self.g) / delta + 4.0) / 6.0
+        };
+        (hue, saturation, lightness)
+    }
+
+    /// Builds a color from HSL with hue in `0.0..=1.0` and the given alpha.
+    pub fn from_hsl(hue: f32, saturation: f32, lightness: f32, alpha: f32) -> Self {
+        fn hue_to_rgb(p: f32, q: f32, mut t: f32) -> f32 {
+            if t < 0.0 {
+                t += 1.0;
+            }
+            if t > 1.0 {
+                t -= 1.0;
+            }
+            if t < 1.0 / 6.0 {
+                p + (q - p) * 6.0 * t
+            } else if t < 0.5 {
+                q
+            } else if t < 2.0 / 3.0 {
+                p + (q - p) * (2.0 / 3.0 - t) * 6.0
+            } else {
+                p
+            }
+        }
+        let (r, g, b) = if saturation == 0.0 {
+            (lightness, lightness, lightness)
+        } else {
+            let q = if lightness < 0.5 {
+                lightness * (1.0 + saturation)
+            } else {
+                lightness + saturation - lightness * saturation
+            };
+            let p = 2.0 * lightness - q;
+            (
+                hue_to_rgb(p, q, hue + 1.0 / 3.0),
+                hue_to_rgb(p, q, hue),
+                hue_to_rgb(p, q, hue - 1.0 / 3.0),
+            )
+        };
+        Self { r, g, b, a: alpha }
+    }
 }
 
 /// One color in its focused and unfocused variants.

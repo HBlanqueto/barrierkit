@@ -723,6 +723,23 @@
       "wallpaper": {
         "tint": "color dominante del fondo",
         "accent": "el dominante, 8 % más oscuro en claro / 12 % más claro en oscuro",
+        "accent-shift": {
+          "light": {
+            "darken": 0.08
+          },
+          "dark": {
+            "lighten": 0.12
+          }
+        },
+        "contrast": {
+          "accent-on-window": 3.0,
+          "on-accent": 4.5,
+          "on-accent-floor": 3.0
+        },
+        "muted": {
+          "below-saturation": 0.35,
+          "max-saturation": 0.45
+        },
         "traffic-lights": "wallpaper",
         "scope": {
           "windows": {
