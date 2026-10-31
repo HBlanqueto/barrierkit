@@ -11,17 +11,17 @@
 //! futures are polled from its ping source, never from a runtime thread.
 
 pub(crate) mod app;
-pub(crate) mod app_menu_export;
+mod app_menu_export;
 mod egl;
 pub(crate) mod extension;
-pub(crate) mod input;
-pub(crate) mod popup;
+mod input;
+mod popup;
 pub(crate) mod runtime;
 pub(crate) mod surface;
 #[cfg(test)]
 mod tests;
 pub(crate) mod timer;
-pub(crate) mod window;
+mod window;
 
 pub use app_menu_export::AppMenuAddress;
 pub use input::inserts_text;

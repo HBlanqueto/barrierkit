@@ -13,9 +13,8 @@ use sctk::{
 use std::{cell::Cell, rc::Rc, sync::Arc};
 
 use crate::platform::{
-    RunError,
+    Popups, RunError,
     app::AppInstance,
-    popup::Popups,
     runtime::{Connected, Runtime, insert_ping, make_sender},
     surface::{ExtensionRole, SurfaceRole, SurfaceWindow},
     timer::{PingWake, Timers},

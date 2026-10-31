@@ -5,7 +5,7 @@
 
 use sctk::reexports::client::{Connection, Dispatch, Proxy, QueueHandle};
 
-use crate::platform::{app_menu_export::AppMenuAddress, runtime::Runtime};
+use crate::platform::{AppMenuAddress, runtime::Runtime};
 use crate::shell::{
     GtkMenusAddress, ShellState,
     toplevels::{InfoEvent, update_toplevel_info},

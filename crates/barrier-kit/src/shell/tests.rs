@@ -1,4 +1,4 @@
-use crate::platform::app_menu_export::AppMenuAddress;
+use crate::platform::AppMenuAddress;
 use crate::shell::{
     GtkMenusAddress,
     toplevels::{InfoEvent, ToplevelInfo, apply_info_event},

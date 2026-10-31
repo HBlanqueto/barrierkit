@@ -18,7 +18,7 @@ use sctk::reexports::{
 };
 use std::{cell::RefCell, rc::Rc};
 
-use crate::platform::{app_menu_export::AppMenuAddress, runtime::Runtime};
+use crate::platform::{AppMenuAddress, runtime::Runtime};
 use crate::shell::{GtkMenusAddress, ShellState};
 
 /// One running toplevel, as the dock lists it.
