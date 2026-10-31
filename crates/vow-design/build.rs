@@ -30,6 +30,7 @@ fn main() {
     emit_window(&mut out, &tokens, &components);
     emit_dialog(&mut out, &tokens, &components);
     emit_tints(&mut out, &tokens, &components);
+    emit_wallpaper(&mut out, &tokens, &components);
     emit_traffic(&mut out, &tokens, &components);
     emit_font_families(&mut out, &tokens);
     emit_typography(&mut out, &tokens);
@@ -469,6 +470,88 @@ fn emit_tints(out: &mut String, tokens: &Value, components: &Value) {
     }
 
     let _ = tokens;
+}
+
+fn emit_wallpaper(out: &mut String, tokens: &Value, components: &Value) {
+    let _ = tokens;
+    let accent_darken_light = number(
+        components,
+        "appearance.modes.wallpaper.accent-shift.light.darken",
+        COMPONENTS,
+    );
+    let accent_lighten_dark = number(
+        components,
+        "appearance.modes.wallpaper.accent-shift.dark.lighten",
+        COMPONENTS,
+    );
+    let accent_on_window = number(
+        components,
+        "appearance.modes.wallpaper.contrast.accent-on-window",
+        COMPONENTS,
+    );
+    let on_accent = number(
+        components,
+        "appearance.modes.wallpaper.contrast.on-accent",
+        COMPONENTS,
+    );
+    let on_accent_floor = number(
+        components,
+        "appearance.modes.wallpaper.contrast.on-accent-floor",
+        COMPONENTS,
+    );
+    let muted_below = number(
+        components,
+        "appearance.modes.wallpaper.muted.below-saturation",
+        COMPONENTS,
+    );
+    let muted_max = number(
+        components,
+        "appearance.modes.wallpaper.muted.max-saturation",
+        COMPONENTS,
+    );
+
+    const_doc(
+        out,
+        "WALLPAPER_ACCENT_DARKEN_LIGHT",
+        "How much the wallpaper accent darkens in light mode.",
+    );
+    out.push_str(&format!(": f32 = {};\n\n", float(accent_darken_light)));
+    const_doc(
+        out,
+        "WALLPAPER_ACCENT_LIGHTEN_DARK",
+        "How much the wallpaper accent lightens in dark modes.",
+    );
+    out.push_str(&format!(": f32 = {};\n\n", float(accent_lighten_dark)));
+    const_doc(
+        out,
+        "ACCENT_MIN_CONTRAST_ON_WINDOW",
+        "Minimum contrast of the wallpaper accent against the window background.",
+    );
+    out.push_str(&format!(": f32 = {};\n\n", float(accent_on_window)));
+    const_doc(
+        out,
+        "ON_ACCENT_MIN_CONTRAST",
+        "Minimum contrast of text drawn on the wallpaper accent.",
+    );
+    out.push_str(&format!(": f32 = {};\n\n", float(on_accent)));
+    const_doc(
+        out,
+        "ON_ACCENT_MIN_CONTRAST_FLOOR",
+        "Floor for on-accent contrast when the ideal 4.5 ratio cannot be met.",
+    );
+    out.push_str(&format!(": f32 = {};\n\n", float(on_accent_floor)));
+    const_doc(
+        out,
+        "MUTED_BELOW_SATURATION",
+        "Saturation below which the wallpaper accent gets a saturation boost.",
+    );
+    out.push_str(&format!(": f32 = {};\n\n", float(muted_below)));
+    const_doc(
+        out,
+        "MUTED_MAX_SATURATION",
+        "Maximum saturation after boosting a muted wallpaper accent.",
+    );
+    out.push_str(&format!(": f32 = {};\n\n", float(muted_max)));
 }
 
 fn emit_traffic(out: &mut String, tokens: &Value, components: &Value) {

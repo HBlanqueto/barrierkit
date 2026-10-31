@@ -624,23 +624,6 @@ mod tests {
         use vow_appearance::WindowColorMode;
         use vow_design::ACCENT_SWATCHES;
 
-        fn linear(channel: f32) -> f32 {
-            if channel <= 0.03928 {
-                channel / 12.92
-            } else {
-                ((channel + 0.055) / 1.055).powf(2.4)
-            }
-        }
-
-        fn luminance(color: Rgba) -> f32 {
-            0.2126 * linear(color.r) + 0.7152 * linear(color.g) + 0.0722 * linear(color.b)
-        }
-
-        fn contrast(a: Rgba, b: Rgba) -> f32 {
-            let (a, b) = (luminance(a), luminance(b));
-            (a.max(b) + 0.05) / (a.min(b) + 0.05)
-        }
-
         let wallpapers = [
             ("dark", Rgba::rgb8(13, 13, 13)),
             ("mid", Rgba::rgb8(128, 115, 102)),
@@ -667,7 +650,7 @@ mod tests {
                 );
                 for kind in [SurfaceKind::Toplevel, SurfaceKind::LayerShell] {
                     let palette = menu_palette(&resolved, kind);
-                    let ratio = contrast(palette.separator_color, palette.bg);
+                    let ratio = palette.separator_color.contrast_ratio(palette.bg);
                     assert!(
                         ratio >= 1.25,
                         "{scheme:?}/acento {name}/{kind:?}: {ratio:.3}:1"
@@ -682,7 +665,7 @@ mod tests {
                 );
                 for kind in [SurfaceKind::Toplevel, SurfaceKind::LayerShell] {
                     let palette = menu_palette(&resolved, kind);
-                    let ratio = contrast(palette.separator_color, palette.bg);
+                    let ratio = palette.separator_color.contrast_ratio(palette.bg);
                     assert!(
                         ratio >= 1.25,
                         "{scheme:?}/fondo {name}/{kind:?}: {ratio:.3}:1"
