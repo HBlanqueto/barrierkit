@@ -17,10 +17,10 @@ use vow_design::{
     BG_RAISED_LIGHT, BG_SUNKEN_DARK, BG_SUNKEN_DARK_TINT, BG_SUNKEN_LIGHT, BG_SURFACE_DARK,
     BG_SURFACE_DARK_TINT, BG_SURFACE_LIGHT, BG_WINDOW_DARK, BG_WINDOW_DARK_TINT, BG_WINDOW_LIGHT,
     DARK, DARK_TINT, LAYER_FACTOR_BG_SUNKEN, LAYER_FACTOR_CONTROL, LAYER_FACTOR_LINE,
-    LAYER_FACTOR_SURFACE, LIGHT, MENU_DARK, MENU_DARK_OPAQUE, MENU_DARK_TINT, MENU_DARK_TINT_OPAQUE,
-    MENU_LIGHT, MENU_LIGHT_OPAQUE, MENU_SEPARATOR_INK_MIX, MUTED_BELOW_SATURATION,
-    MUTED_MAX_SATURATION, MenuPalette, ON_ACCENT_MIN_CONTRAST, PANEL_TINT_WALLPAPER, Palette,
-    Rgba, SETTINGS, SHELL_DARK, SHELL_DARK_OPAQUE, SHELL_DARK_TINT,
+    LAYER_FACTOR_SURFACE, LIGHT, MENU_DARK, MENU_DARK_OPAQUE, MENU_DARK_TINT,
+    MENU_DARK_TINT_OPAQUE, MENU_LIGHT, MENU_LIGHT_OPAQUE, MENU_SEPARATOR_INK_MIX,
+    MUTED_BELOW_SATURATION, MUTED_MAX_SATURATION, MenuPalette, ON_ACCENT_MIN_CONTRAST,
+    PANEL_TINT_WALLPAPER, Palette, Rgba, SETTINGS, SHELL_DARK, SHELL_DARK_OPAQUE, SHELL_DARK_TINT,
     SHELL_DARK_TINT_OPAQUE, SHELL_LIGHT, SHELL_LIGHT_OPAQUE, SIDEBAR_DARK, SIDEBAR_DARK_OPAQUE,
     SIDEBAR_DARK_TINT, SIDEBAR_DARK_TINT_OPAQUE, SIDEBAR_ISLAND_DARK, SIDEBAR_ISLAND_DARK_OPAQUE,
     SIDEBAR_ISLAND_DARK_TINT, SIDEBAR_ISLAND_DARK_TINT_OPAQUE, SIDEBAR_ISLAND_INNER_DARK,
@@ -511,14 +511,30 @@ fn tinted_surfaces(
             .map(|(tint, tint_factor)| color.mix(tint, tint_factor * factor))
             .unwrap_or(color)
     };
+    let tinted_window = mix(window, 1.0);
     Surfaces {
-        window: mix(window, 1.0),
+        window: tinted_window,
         sunken: mix(sunken, LAYER_FACTOR_BG_SUNKEN),
-        surface: mix(surface, LAYER_FACTOR_SURFACE),
+        surface: match window_tint {
+            Some(_) => elevate(tinted_window, window, surface),
+            None => surface,
+        },
         raised: mix(raised, LAYER_FACTOR_SURFACE),
         control: mix(control, LAYER_FACTOR_CONTROL),
         hover: mix(hover, LAYER_FACTOR_CONTROL),
         line: mix(line, LAYER_FACTOR_LINE),
+    }
+}
+
+/// Groups and cards sit on the window like a translucent layer, the way
+/// Adwaita draws its cards: the window colour, tint included, plus the same
+/// lightness step `surface` has over `window` in the untinted palette.
+fn elevate(tinted_window: Rgba, window: Rgba, surface: Rgba) -> Rgba {
+    Rgba {
+        r: (tinted_window.r + surface.r - window.r).clamp(0.0, 1.0),
+        g: (tinted_window.g + surface.g - window.g).clamp(0.0, 1.0),
+        b: (tinted_window.b + surface.b - window.b).clamp(0.0, 1.0),
+        a: surface.a,
     }
 }
 
@@ -816,9 +832,9 @@ mod tests {
     use super::*;
     use vow_design::{
         BG_CONTROL_LIGHT, BG_HOVER_LIGHT, BG_RAISED_LIGHT, BG_SUNKEN_LIGHT, BG_SURFACE_LIGHT,
-        BG_WINDOW_LIGHT, MENU_LIGHT_OPAQUE, PANEL_TINT_WALLPAPER, SIDEBAR_ISLAND_INNER_LIGHT,
-        SIDEBAR_ISLAND_LIGHT_OPAQUE, SIDEBAR_ISLAND_RIM_LIGHT, SIDEBAR_PALETTE_LIGHT,
-        SHELL_LIGHT_OPAQUE, TITLEBAR, TOOLGROUP_BG_LIGHT_OPAQUE, TOOLGROUP_PALETTE_LIGHT,
+        BG_WINDOW_LIGHT, MENU_LIGHT_OPAQUE, PANEL_TINT_WALLPAPER, SHELL_LIGHT_OPAQUE,
+        SIDEBAR_ISLAND_INNER_LIGHT, SIDEBAR_ISLAND_LIGHT_OPAQUE, SIDEBAR_ISLAND_RIM_LIGHT,
+        SIDEBAR_PALETTE_LIGHT, TITLEBAR, TOOLGROUP_BG_LIGHT_OPAQUE, TOOLGROUP_PALETTE_LIGHT,
         TRAFFIC_CLOSE_MINIMIZE_DARKEN, TRAFFIC_ZOOM_LIGHTEN, WINDOW_TINT_ACCENT,
         WINDOW_TINT_WALLPAPER,
     };
@@ -1019,11 +1035,11 @@ mod tests {
             resolved.accent.contrast_ratio(resolved.surfaces.window) >= 3.0,
             "fallback accent must contrast with the window background"
         );
+        assert_eq!(resolved.panel_tint, Some((normal, PANEL_TINT_WALLPAPER[0])));
         assert_eq!(
-            resolved.panel_tint,
-            Some((normal, PANEL_TINT_WALLPAPER[0]))
+            resolved.window_tint,
+            Some((normal, WINDOW_TINT_WALLPAPER[0]))
         );
-        assert_eq!(resolved.window_tint, Some((normal, WINDOW_TINT_WALLPAPER[0])));
     }
 
     #[test]
@@ -1498,10 +1514,15 @@ sidebar_style = "flat"
             resolved.surfaces.sunken,
             BG_SUNKEN_DARK.mix(purple, factor * LAYER_FACTOR_BG_SUNKEN)
         );
+        // Groups inherit the full window tint, one elevation step lighter.
+        let window = BG_WINDOW_DARK.mix(purple, factor);
         assert_eq!(
             resolved.surfaces.surface,
-            BG_SURFACE_DARK.mix(purple, factor * LAYER_FACTOR_SURFACE)
+            elevate(window, BG_WINDOW_DARK, BG_SURFACE_DARK)
         );
+        let step = BG_SURFACE_DARK.r - BG_WINDOW_DARK.r;
+        assert!((resolved.surfaces.surface.r - window.r - step).abs() < 1e-6);
+        assert!(resolved.surfaces.surface.b > resolved.surfaces.surface.g);
         assert_eq!(
             resolved.surfaces.raised,
             BG_RAISED_DARK.mix(purple, factor * LAYER_FACTOR_SURFACE)
@@ -2009,8 +2030,7 @@ sidebar_style = "flat"
             },
             sidebar: SidebarSurface {
                 style: SidebarStyle::Island,
-                bg: SIDEBAR_ISLAND_LIGHT_OPAQUE
-                    .mix(accent, tint_factor * LAYER_FACTOR_BG_SUNKEN),
+                bg: SIDEBAR_ISLAND_LIGHT_OPAQUE.mix(accent, tint_factor * LAYER_FACTOR_BG_SUNKEN),
                 rim: SIDEBAR_ISLAND_RIM_LIGHT,
                 inner: SIDEBAR_ISLAND_INNER_LIGHT,
                 palette: SidebarPalette {
@@ -2021,14 +2041,17 @@ sidebar_style = "flat"
                 },
             },
             toolgroup: ToolgroupSurface {
-                bg: TOOLGROUP_BG_LIGHT_OPAQUE
-                    .mix(accent, tint_factor * LAYER_FACTOR_CONTROL),
+                bg: TOOLGROUP_BG_LIGHT_OPAQUE.mix(accent, tint_factor * LAYER_FACTOR_CONTROL),
                 palette: TOOLGROUP_PALETTE_LIGHT,
             },
             surfaces: Surfaces {
                 window: BG_WINDOW_LIGHT.mix(accent, tint_factor),
                 sunken: BG_SUNKEN_LIGHT.mix(accent, tint_factor * LAYER_FACTOR_BG_SUNKEN),
-                surface: BG_SURFACE_LIGHT.mix(accent, tint_factor * LAYER_FACTOR_SURFACE),
+                surface: elevate(
+                    BG_WINDOW_LIGHT.mix(accent, tint_factor),
+                    BG_WINDOW_LIGHT,
+                    BG_SURFACE_LIGHT,
+                ),
                 raised: BG_RAISED_LIGHT.mix(accent, tint_factor * LAYER_FACTOR_SURFACE),
                 control: BG_CONTROL_LIGHT.mix(accent, tint_factor * LAYER_FACTOR_CONTROL),
                 hover: BG_HOVER_LIGHT.mix(accent, tint_factor * LAYER_FACTOR_CONTROL),
