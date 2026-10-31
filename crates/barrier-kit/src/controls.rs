@@ -555,6 +555,7 @@ impl Component for Slider {
             knob_rect = knob_rect.a11y_builder(move |node| node.set_author_id(id));
         }
 
+        const STEP_LABEL_WIDTHS: [f32; 4] = [24.5, 38.5, 34.5, 40.0];
         let mut labels: Vec<Element> = Vec::new();
         for (i, text) in self.labels.iter().enumerate().take(self.steps) {
             let color = if i == *value.read() {
@@ -562,16 +563,27 @@ impl Component for Slider {
             } else {
                 base.ink_muted
             };
-            let mut label_node = label()
+            let label_node = label()
                 .text(*text)
                 .font_family(TEXT.family)
                 .font_size(CAPTION.size as f32)
                 .font_weight(CAPTION.weight as i32)
+                .line_height(CAPTION.line_height as f32 / CAPTION.size as f32)
+                .width(Size::fill())
                 .color(rgba(color));
+            let width = if self.steps == 4 {
+                Size::px(STEP_LABEL_WIDTHS[i])
+            } else {
+                Size::auto()
+            };
+            let mut wrapper = rect()
+                .width(width)
+                .height(Size::auto())
+                .child(label_node);
             if let Some(id) = self.step_ids.get(i).copied() {
-                label_node = label_node.a11y_builder(move |node| node.set_author_id(id));
+                wrapper = wrapper.a11y_builder(move |node| node.set_author_id(id));
             }
-            labels.push(label_node.into_element());
+            labels.push(wrapper.into_element());
         }
         let labels_row = rect()
             .position(
@@ -606,6 +618,7 @@ pub struct Checkbox {
     disabled: bool,
     on_toggle: Option<Callback<bool, ()>>,
     probe: Option<&'static str>,
+    width: Size,
     key: DiffKey,
 }
 
@@ -618,6 +631,7 @@ impl Checkbox {
             disabled: false,
             on_toggle: None,
             probe: None,
+            width: Size::auto(),
             key: DiffKey::None,
         }
     }
@@ -634,6 +648,11 @@ impl Checkbox {
 
     pub fn on_toggle(mut self, callback: impl Into<Callback<bool, ()>>) -> Self {
         self.on_toggle = Some(callback.into());
+        self
+    }
+
+    pub fn width(mut self, width: Size) -> Self {
+        self.width = width;
         self
     }
 
@@ -718,6 +737,7 @@ impl Component for Checkbox {
         }
 
         let mut root = rect()
+            .width(self.width.clone())
             .direction(Direction::Horizontal)
             .cross_align(Alignment::Center)
             .a11y_role(AccessibilityRole::CheckBox)
@@ -735,12 +755,9 @@ impl Component for Checkbox {
                     .font_family(TEXT.family)
                     .font_size(TEXT.size as f32)
                     .font_weight(TEXT.weight as i32)
+                    .line_height(TEXT.line_height as f32 / TEXT.size as f32)
                     .color(label_color),
             );
-
-        if self.disabled {
-            root = root.opacity(0.4);
-        }
 
         if let Some(id) = self.probe {
             root = root.a11y_builder(move |node| node.set_author_id(id));

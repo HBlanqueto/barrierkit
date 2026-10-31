@@ -490,11 +490,7 @@ mod tests {
         let dark = resolve(&config(ColorScheme::Dark), None);
         assert_eq!(dark.menu.hover_bg, orange, "dark menu selection");
         assert_eq!(dark.menu.search_ring, orange, "dark focus ring");
-        assert_eq!(
-            dark.sidebar.palette.selected_bg,
-            orange.mix(dark.sidebar.bg, vow_design::SETTINGS.selected_dark_mix),
-            "dark sidebar selection"
-        );
+        assert_eq!(dark.sidebar.palette.selected_bg, orange, "dark sidebar selection");
         assert_eq!(dark.sidebar.palette.item_icon, orange, "dark sidebar icon");
         assert_eq!(
             dark.sidebar.palette.selected_ink,

@@ -21,7 +21,7 @@ use vow_design::{
     LAYER_FACTOR_SURFACE, LIGHT, MENU_DARK, MENU_DARK_OPAQUE, MENU_DARK_TINT, MENU_DARK_TINT_OPAQUE,
     MENU_LIGHT, MENU_LIGHT_OPAQUE, MENU_SEPARATOR_INK_MIX, MUTED_BELOW_SATURATION,
     MUTED_MAX_SATURATION, MenuPalette, ON_ACCENT_MIN_CONTRAST, PANEL_TINT_WALLPAPER, Palette,
-    Rgba, SETTINGS, SHELL_DARK, SHELL_DARK_OPAQUE, SHELL_DARK_TINT,
+    Rgba, SHELL_DARK, SHELL_DARK_OPAQUE, SHELL_DARK_TINT,
     SHELL_DARK_TINT_OPAQUE, SHELL_LIGHT, SHELL_LIGHT_OPAQUE, SIDEBAR_DARK, SIDEBAR_DARK_OPAQUE,
     SIDEBAR_DARK_TINT, SIDEBAR_DARK_TINT_OPAQUE, SIDEBAR_ISLAND_DARK, SIDEBAR_ISLAND_DARK_OPAQUE,
     SIDEBAR_ISLAND_DARK_TINT, SIDEBAR_ISLAND_DARK_TINT_OPAQUE, SIDEBAR_ISLAND_INNER_DARK,
@@ -549,13 +549,7 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
     menu.hover_bg = accent;
     menu.hover_fg = base.on_accent;
     menu.search_ring = accent;
-    if dark {
-        // In dark modes the selected row blends the accent into the sidebar
-        // background so it is readable on bg-sunken. The ink stays white.
-        sidebar.palette.selected_bg = accent.mix(sidebar.bg, SETTINGS.selected_dark_mix);
-    } else {
-        sidebar.palette.selected_bg = accent;
-    }
+    sidebar.palette.selected_bg = normal_accent;
     sidebar.palette.item_icon = accent;
     sidebar.palette.selected_ink = base.on_accent;
     if let Some((tint, factor)) = panel_tint {
@@ -1719,27 +1713,13 @@ sidebar_style = "flat"
                 "{scheme:?} sidebar item icon"
             );
 
-            if matches!(scheme, ColorScheme::Dark | ColorScheme::DarkTint) {
-                // Dark modes blend the accent into the sidebar background for
-                // selected rows instead of using the light-mode accent-soft.
-                let accent = resolved.accent;
-                assert_eq!(
-                    resolved.sidebar.palette.selected_bg,
-                    accent.mix(resolved.sidebar.bg, SETTINGS.selected_dark_mix),
-                    "{scheme:?} selected_bg"
-                );
-                assert_eq!(
-                    resolved.sidebar.palette.selected_ink,
-                    palette(scheme).on_accent,
-                    "{scheme:?} selected_ink"
-                );
-            } else {
-                let expected_sidebar = SidebarPalette {
-                    item_icon: resolved.accent,
-                    ..expected_sidebar
-                };
-                assert_eq!(resolved.sidebar.palette, expected_sidebar);
-            }
+            let expected_sidebar = SidebarPalette {
+                item_icon: resolved.accent,
+                selected_bg: resolved.accent,
+                selected_ink: palette(scheme).on_accent,
+                ..expected_sidebar
+            };
+            assert_eq!(resolved.sidebar.palette, expected_sidebar);
         }
     }
 
@@ -1776,9 +1756,8 @@ sidebar_style = "flat"
                 a: 1.0,
             };
             assert_eq!(
-                resolved.sidebar.palette.selected_bg,
-                accent_rgba.mix(resolved.sidebar.bg, SETTINGS.selected_dark_mix),
-                "{scheme:?} selected_bg should mix the accent into the sidebar background"
+                resolved.sidebar.palette.selected_bg, accent_rgba,
+                "{scheme:?} selected_bg should be the accent"
             );
             assert_eq!(
                 resolved.sidebar.palette.selected_ink,
