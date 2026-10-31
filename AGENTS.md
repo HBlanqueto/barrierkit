@@ -11,7 +11,5 @@
 - malaysia fija barrierkit por rev (`Cargo.toml`, `flake.nix`, `flake.lock`).
   Ese rev debe estar en `main`; un commit que solo vive en una rama puede
   desaparecer de GitHub y romper el build de malaysia.
-- Excepción temporal: `for-malaysia` existe hasta que malaysia-shell migre de
-  `SurfaceSpec` a `LayerSpec`. Al unificar se hace merge (no rebase) en `main`,
-  se crea el tag `archivo/for-malaysia` y se borra la rama. No le añadas commits
-  nuevos: el trabajo nuevo va a `main`.
+- `for-malaysia` se unió a `main` el 2026-10-31; su historia vive en el tag
+  `archivo/for-malaysia`.
