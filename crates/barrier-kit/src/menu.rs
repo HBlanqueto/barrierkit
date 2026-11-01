@@ -1009,7 +1009,9 @@ impl App for MenuView {
         let inset = 2.0 * m.border_width + m.padding;
         let content_height: f32 = visible.iter().map(|item| item.height(m)).sum();
         let available = (size.1 - inset * 2.0).max(0.0);
-        let overflow = query_text.is_empty() && content_height > available + 0.5;
+        // Half a row of tolerance: only a popup the compositor really
+        // shortened scrolls, not one a pixel or two short after rounding.
+        let overflow = query_text.is_empty() && content_height > available + m.item_height / 2.0;
         let arrow_height = m.header_height;
         let viewport = if overflow {
             (available - 2.0 * arrow_height).max(m.item_height)
