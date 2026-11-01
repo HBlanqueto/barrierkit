@@ -190,7 +190,9 @@ impl Component for Titlebar {
         } else {
             theme.title.unfocused
         };
-        let traffic = if self.sidebar {
+        let lights_shown = freya_core::prelude::try_consume_root_context::<WindowControls>()
+            .is_none_or(|controls| controls.traffic_lights_shown());
+        let traffic = if self.sidebar || !lights_shown {
             None
         } else {
             Some(window_traffic_lights(

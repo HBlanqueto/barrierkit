@@ -31,6 +31,22 @@ pub mod client {
     pub use infinity_window_manager_v1::infinity_window_manager_v1::{
         InfinityWindowManagerV1, Layout, PairLayout,
     };
+
+    /// Focus-mode notices for applications (`infinity_focus_v1`).
+    pub mod focus {
+        pub mod __interfaces {
+            use wayland_client::protocol::__interfaces::*;
+            wayland_scanner::generate_interfaces!("protocols/infinity-focus-v1.xml");
+        }
+
+        pub mod infinity_focus_v1 {
+            use super::__interfaces::*;
+            use wayland_backend;
+            use wayland_client;
+            use wayland_client::protocol::*;
+            wayland_scanner::generate_client_code!("protocols/infinity-focus-v1.xml");
+        }
+    }
 }
 
 #[cfg(feature = "server")]
@@ -48,6 +64,22 @@ pub mod server {
         use wayland_server;
         use wayland_server::protocol::*;
         wayland_scanner::generate_server_code!("protocols/infinity-window-manager-v1.xml");
+    }
+
+    /// Focus-mode notices for applications (`infinity_focus_v1`).
+    pub mod focus {
+        pub mod __interfaces {
+            use wayland_server::protocol::__interfaces::*;
+            wayland_scanner::generate_interfaces!("protocols/infinity-focus-v1.xml");
+        }
+
+        pub mod infinity_focus_v1 {
+            use super::__interfaces::*;
+            use wayland_backend;
+            use wayland_server;
+            use wayland_server::protocol::*;
+            wayland_scanner::generate_server_code!("protocols/infinity-focus-v1.xml");
+        }
     }
 }
 

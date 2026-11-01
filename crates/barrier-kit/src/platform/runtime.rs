@@ -93,6 +93,9 @@ pub(crate) struct Runtime {
     pub(crate) qh: QueueHandle<Runtime>,
     pub(crate) extension: Option<Extension>,
     pub(crate) appmenu_manager: Option<OrgKdeKwinAppmenuManager>,
+    /// MalaysiaDreams focus-mode notices (`infinity_focus_v1`); absent on
+    /// other compositors.
+    pub(crate) focus_manager: Option<super::focus::InfinityFocusManagerV1>,
     pub(crate) fractional_manager: Option<WpFractionalScaleManagerV1>,
     pub(crate) viewporter: Option<WpViewporter>,
     pub(crate) timers: TimerQueue,
@@ -249,6 +252,9 @@ impl Runtime {
         if appmenu_manager.is_none() {
             tracing::info!("org_kde_kwin_appmenu_manager no disponible; sigo sin él");
         }
+        let focus_manager = globals
+            .bind::<super::focus::InfinityFocusManagerV1, _, _>(&qh, 1..=1, ())
+            .ok();
         let fractional_manager = globals
             .bind::<WpFractionalScaleManagerV1, _, _>(&qh, 1..=1, ())
             .ok();
@@ -310,6 +316,7 @@ impl Runtime {
             qh: qh.clone(),
             extension: None,
             appmenu_manager,
+            focus_manager,
             fractional_manager,
             viewporter,
             timers: Rc::new(RefCell::new(Vec::new())),

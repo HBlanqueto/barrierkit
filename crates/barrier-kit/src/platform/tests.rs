@@ -513,6 +513,7 @@ mod drag_band_tests {
                         title: "Ventana".to_string(),
                         fixed: false,
                         surface_id: ObjectId::null(),
+                        focus_bar: State::create(false),
                         menu_handle: None,
                     }
                 });

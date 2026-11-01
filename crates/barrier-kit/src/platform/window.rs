@@ -178,9 +178,19 @@ pub struct WindowControls {
     pub fixed: bool,
     pub(super) surface_id: ObjectId,
     pub(super) menu_handle: Option<crate::app_menu::MenuHandle>,
+    /// Whether the bar is down over the window in MalaysiaDreams focus mode
+    /// (`infinity_focus_v1`). Stays `false` elsewhere.
+    pub focus_bar: State<bool>,
 }
 
 impl WindowControls {
+    /// Whether the window controls (traffic lights) are shown: always, except
+    /// in fullscreen (MalaysiaDreams focus mode), where they appear only with
+    /// the bar, as on macOS (ADR 0051).
+    pub fn traffic_lights_shown(&self) -> bool {
+        !self.status.read().fullscreen || *self.focus_bar.read()
+    }
+
     pub fn get() -> Self {
         freya_core::prelude::consume_root_context()
     }
@@ -420,7 +430,12 @@ impl Runtime {
             fixed,
             surface_id,
             menu_handle: menu_handle.clone(),
+            focus_bar: State::create_global(false),
         };
+        if let Some(manager) = &self.focus_manager {
+            // Kept alive by the connection; the notices name the surface.
+            let _ = manager.get_focus_surface(&surface, qh, surface.id());
+        }
         self.window_contexts.push(WindowContext {
             controls: controls.clone(),
             queue,

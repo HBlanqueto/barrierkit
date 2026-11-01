@@ -222,7 +222,9 @@ impl Component for Sidebar {
             .height(Size::fill())
             .child(sidebar_body);
 
-        if self.traffic_lights {
+        let lights_shown = try_consume_root_context::<WindowControls>()
+            .is_none_or(|controls| controls.traffic_lights_shown());
+        if self.traffic_lights && lights_shown {
             let (_, _, group_w, _) = vow_appearance::traffic::group_rect();
 
             root = root.child(

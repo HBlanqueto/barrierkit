@@ -14,6 +14,7 @@ pub(crate) mod app;
 mod app_menu_export;
 mod egl;
 pub(crate) mod extension;
+mod focus;
 mod input;
 mod popup;
 pub(crate) mod runtime;
