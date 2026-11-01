@@ -92,9 +92,44 @@ type Arrange = Rc<RefCell<Option<Rc<dyn Fn(usize, InfinityLayout)>>>>;
 type ArrangePair = Rc<RefCell<Option<Rc<dyn Fn(InfinityPairLayout)>>>>;
 type ArrangeQuarters = Rc<RefCell<Option<Rc<dyn Fn()>>>>;
 
+/// The bar over the shown space (Infinity `focus_bar`, MalaysiaDreams ADR
+/// 0051).
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub enum FocusBar {
+    /// A desktop is shown: the usual bar.
+    #[default]
+    None,
+    /// A focus space is shown and the bar is up.
+    Hidden,
+    /// A focus space is shown and the bar is down over it.
+    Revealed,
+}
+
+impl FocusBar {
+    /// Whether a focus space is shown, so the bar is black with white text.
+    pub fn over_focus(self) -> bool {
+        self != FocusBar::None
+    }
+}
+
+/// The shown space, as the compositor reports it (Infinity `space`).
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct SpaceInfo {
+    /// 0-based position of the shown space.
+    pub index: u32,
+    /// How many spaces the row has.
+    pub count: u32,
+    /// The shown desktop's 1-based number; `None` for a focus space.
+    pub desktop: Option<u32>,
+    /// The bar's state over a focus space.
+    pub focus_bar: FocusBar,
+}
+
 #[derive(Clone)]
 pub struct Toplevels {
     pub list: State<Vec<ToplevelInfo>>,
+    /// The shown space; stays at its default without Infinity v5.
+    pub space: State<SpaceInfo>,
     pub(super) activate: Activate,
     pub(super) close: Activate,
     pub(super) minimize: Activate,

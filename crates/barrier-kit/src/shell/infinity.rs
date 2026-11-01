@@ -3,11 +3,12 @@
 //! The shell uses this private protocol to ask the compositor for window
 //! geometry: halves, quarters, pairs, fill, center, restore and fullscreen.
 
+use freya_core::prelude::WritableUtils;
 use sctk::reexports::client::{Connection, Dispatch, Proxy, QueueHandle};
 
 use crate::platform::{AppMenuAddress, runtime::Runtime};
 use crate::shell::{
-    GtkMenusAddress, ShellState,
+    FocusBar, GtkMenusAddress, ShellState, SpaceInfo,
     toplevels::{InfoEvent, update_toplevel_info},
 };
 
@@ -30,6 +31,7 @@ impl Dispatch<InfinityWindowManagerV1, ()> for Runtime {
         _: &QueueHandle<Self>,
     ) {
         use self::protocol::infinity_window_manager_v1::Event;
+        let mut space_changed = false;
         {
             let shell = state
                 .extension_mut::<ShellState>()
@@ -87,10 +89,40 @@ impl Dispatch<InfinityWindowManagerV1, ()> for Runtime {
                         InfoEvent::GtkMenus(address),
                     );
                 }
+                Event::Space {
+                    index,
+                    count,
+                    desktop,
+                    focus_bar,
+                } => {
+                    let focus_bar = match focus_bar.into_result() {
+                        Ok(protocol::infinity_window_manager_v1::FocusBar::Hidden) => {
+                            FocusBar::Hidden
+                        }
+                        Ok(protocol::infinity_window_manager_v1::FocusBar::Revealed) => {
+                            FocusBar::Revealed
+                        }
+                        _ => FocusBar::None,
+                    };
+                    let info = SpaceInfo {
+                        index,
+                        count,
+                        desktop: (desktop > 0).then_some(desktop),
+                        focus_bar,
+                    };
+                    if *shell.toplevels.space.peek() != info {
+                        shell.toplevels.space.set(info);
+                        space_changed = true;
+                    }
+                }
                 // shortcut: future Infinity events are ignored; add handlers when
                 // the compositor starts sending them.
                 _ => {}
             }
+        }
+        if space_changed {
+            state.request_redraw_all = true;
+            state.ping.ping();
         }
         state.sync_toplevels();
     }

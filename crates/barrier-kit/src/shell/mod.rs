@@ -12,7 +12,7 @@ pub use infinity::{
 pub use layer::{Anchors, KeyboardInteractivity, Layer, LayerSpec, run_layer};
 pub use lock::{SessionUnlock, run_lock};
 pub use menus::GtkMenusAddress;
-pub use toplevels::{ToplevelInfo, Toplevels};
+pub use toplevels::{FocusBar, SpaceInfo, ToplevelInfo, Toplevels};
 
 use freya_core::integration::AppComponent;
 
@@ -88,6 +88,7 @@ impl ShellState {
 
         let toplevels = Toplevels {
             list: freya_core::prelude::State::create_global(Vec::new()),
+            space: freya_core::prelude::State::create_global(SpaceInfo::default()),
             activate: Rc::new(RefCell::new(None)),
             close: Rc::new(RefCell::new(Some(Rc::new(move |index| {
                 if let Some(entry) = close_entries.borrow().get(index)
@@ -179,7 +180,7 @@ impl ShellState {
             tracing::info!("zwlr_foreign_toplevel_manager_v1 no disponible; sigo sin él");
         }
         let infinity_manager_bound = globals
-            .bind::<InfinityWindowManagerV1, _, _>(qh, 1..=4, ())
+            .bind::<InfinityWindowManagerV1, _, _>(qh, 1..=5, ())
             .ok();
         if infinity_manager_bound.is_none() {
             tracing::info!("infinity_window_manager_v1 no disponible; sigo sin él");

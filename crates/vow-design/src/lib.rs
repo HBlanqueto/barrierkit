@@ -959,6 +959,12 @@ pub const SPACE_GAP_COLOR: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
 /// How long sliding from one space to the next takes, in milliseconds.
 pub const SPACE_SLIDE_MS: u64 = 480;
 
+/// The bar's background over a focus space: absolute black (ADR 0051).
+pub const FOCUS_BAR_BACKGROUND: Rgba = Rgba::rgb8(0, 0, 0);
+
+/// The bar's text over a focus space: white.
+pub const FOCUS_BAR_TEXT: Rgba = Rgba::rgb8(255, 255, 255);
+
 /// The slide's timing curve, as CSS `cubic-bezier(x1, y1, x2, y2)`: a fast
 /// start that settles softly, like the macOS Spaces swipe.
 pub const SPACE_SLIDE_EASE: [f32; 4] = [0.32, 0.72, 0.0, 1.0];
