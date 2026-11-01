@@ -554,7 +554,6 @@
       "inner-line": "window-inner"
     },
     "menu-popover": {
-      "radius": "radius.md",
       "item-height": 26,
       "item-radius": "radius.sm",
       "padding": 5,
@@ -657,14 +656,11 @@
       "menu": {
         "panel": {
           "padding": 5,
-          "border-width": 1,
           "min-width": 220,
           "max-width": 640,
           "radius": "radius.md",
           "bg": "bg-raised",
-          "shadow": "shadow-float",
-          "outer-border": "window-outer",
-          "inner-line": "window-inner"
+          "shadow": "shadow-float"
         },
         "item": {
           "height": 24,

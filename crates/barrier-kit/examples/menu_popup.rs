@@ -490,7 +490,7 @@ impl App for NestedMenu {
                     parent_size: child_size,
                     delay_ms: 250,
                 };
-                let inset = palette.padding + palette.border_width;
+                let inset = palette.padding;
                 let (anchor, gravity) = if handle.opens_left() {
                     (PopupAnchor::TopLeft, PopupGravity::BottomLeft)
                 } else {

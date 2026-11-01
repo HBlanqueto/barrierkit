@@ -330,7 +330,6 @@
   --menu-popover-leading-column: 16px;
   --menu-popover-min-width: 180px;
   --menu-popover-padding: 5px;
-  --menu-popover-radius: var(--radius-md);
   --menu-popover-separator-margin: 4px;
   --menu-popover-swatch-grid-dot: 4px;
   --menu-popover-swatch-grid-gap: 2px;
@@ -512,11 +511,8 @@
   --shell-menu-mark-dot: 7px;
   --shell-menu-mark-width: 16px;
   --shell-menu-panel-bg: var(--bg-raised);
-  --shell-menu-panel-border-width: 1px;
-  --shell-menu-panel-inner-line: var(--window-inner);
   --shell-menu-panel-max-width: 640px;
   --shell-menu-panel-min-width: 220px;
-  --shell-menu-panel-outer-border: var(--window-outer);
   --shell-menu-panel-padding: 5px;
   --shell-menu-panel-radius: var(--radius-md);
   --shell-menu-panel-shadow: var(--shadow-float);

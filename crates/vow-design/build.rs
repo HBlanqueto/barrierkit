@@ -25,6 +25,7 @@ fn main() {
     emit_titlebar(&mut out, &tokens, &components);
     emit_window(&mut out, &tokens, &components);
     emit_dialog(&mut out, &tokens, &components);
+    emit_popup(&mut out, &tokens, &components);
     emit_tints(&mut out, &tokens, &components);
     emit_slider(&mut out, &tokens, &components);
     emit_checkbox(&mut out, &tokens, &components);
@@ -368,6 +369,23 @@ fn emit_dialog(out: &mut String, tokens: &Value, components: &Value) {
         "Inner padding of a dialog, in logical px.",
     );
     out.push_str(&format!(": f32 = {};\n\n", float(padding)));
+}
+
+fn emit_popup(out: &mut String, tokens: &Value, components: &Value) {
+    let radius = metric(
+        tokens,
+        components,
+        "components.shell.menu.panel.radius",
+        COMPONENTS,
+    ) as u32;
+    const_doc(
+        out,
+        "POPUP",
+        "The popup shape the compositor gives menus and popovers.",
+    );
+    out.push_str(&format!(
+        ": WindowStyle = WindowStyle {{\n    corner_radius: {radius},\n    superellipse_exponent: 2.0,\n}};\n\n"
+    ));
 }
 
 fn emit_tints(out: &mut String, tokens: &Value, components: &Value) {
@@ -1647,12 +1665,6 @@ fn menu_palette_value(tokens: &Value, components: &Value, theme: &str, opaque: b
     } else {
         panel_bg
     };
-    let radius = metric(
-        tokens,
-        components,
-        "components.shell.menu.panel.radius",
-        COMPONENTS,
-    );
     let item_radius = metric(
         tokens,
         components,
@@ -1662,11 +1674,7 @@ fn menu_palette_value(tokens: &Value, components: &Value, theme: &str, opaque: b
     format!(
         "MenuPalette {{\n\
          \x20   bg: {},\n\
-         \x20   radius: {},\n\
          \x20   padding: {},\n\
-         \x20   border_width: {},\n\
-         \x20   outer_border: {},\n\
-         \x20   inner_line: {},\n\
          \x20   shadow: {},\n\
          \x20   min_width: {},\n\
          \x20   max_width: {},\n\
@@ -1707,19 +1715,11 @@ fn menu_palette_value(tokens: &Value, components: &Value, theme: &str, opaque: b
          \x20   search_ring: {},\n\
          }}",
         rgba(panel_bg),
-        float(radius),
         float(number(
             components,
             "components.shell.menu.panel.padding",
             COMPONENTS
         )),
-        float(number(
-            components,
-            "components.shell.menu.panel.border-width",
-            COMPONENTS
-        )),
-        rgba(color_at("components.shell.menu.panel.outer-border")),
-        rgba(color_at("components.shell.menu.panel.inner-line")),
         rgba(color_at("components.shell.menu.panel.shadow")),
         float(number(
             components,
@@ -1896,7 +1896,6 @@ fn emit_menu_popover(out: &mut String, tokens: &Value, components: &Value) {
     );
     out.push_str(&format!(
         ": MenuPopoverMetrics = MenuPopoverMetrics {{\n\
-         \x20   radius: {},\n\
          \x20   item_height: {},\n\
          \x20   item_radius: {},\n\
          \x20   padding: {},\n\
@@ -1911,12 +1910,6 @@ fn emit_menu_popover(out: &mut String, tokens: &Value, components: &Value) {
          \x20   swatch_grid_gap: {},\n\
          \x20   separator_margin: {},\n\
          }};\n\n",
-        float(metric(
-            tokens,
-            components,
-            "components.menu-popover.radius",
-            COMPONENTS
-        )),
         float(number_at("components.menu-popover.item-height")),
         float(metric(
             tokens,

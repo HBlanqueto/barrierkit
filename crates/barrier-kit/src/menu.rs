@@ -598,7 +598,7 @@ impl MenuView {
         } else {
             items
         };
-        let inset = 2.0 * m.border_width + m.padding;
+        let inset = m.padding;
         let content_height: f32 = items.iter().map(|item| item.height(m)).sum();
         let min_width = m.min_width.max(1.0);
         let max_width = m.max_width.max(min_width);
@@ -853,7 +853,7 @@ impl App for MenuView {
         let alt_held = use_state(|| false);
         let show_mnemonic = *alt_held.read();
 
-        let inset = 2.0 * m.border_width + m.padding;
+        let inset = m.padding;
         let content_height: f32 = visible.iter().map(|item| item.height(m)).sum();
         let available = (size.1 - inset * 2.0).max(0.0);
         let overflow = query_text.is_empty() && content_height > available + m.item_height / 2.0;
@@ -1093,24 +1093,11 @@ impl App for MenuView {
             rows
         };
 
-        let inner_padding = (m.padding - m.border_width).max(0.0);
         let content = rect()
             .width(Size::fill())
             .height(Size::fill())
-            .padding(Gaps::new(
-                inner_padding,
-                inner_padding,
-                inner_padding,
-                inner_padding,
-            ))
+            .padding(Gaps::new(m.padding, m.padding, m.padding, m.padding))
             .background(rgba(m.bg))
-            .corner_radius((m.radius - m.border_width).max(0.0))
-            .border(
-                Border::new()
-                    .width(m.border_width)
-                    .alignment(BorderAlignment::Inner)
-                    .fill(rgba(m.inner_line)),
-            )
             .direction(Direction::Vertical)
             .on_wheel(move |event: Event<WheelEventData>| {
                 if overflow {
@@ -1125,20 +1112,7 @@ impl App for MenuView {
             .width(Size::fill())
             .height(Size::fill())
             .background(rgba(m.bg))
-            .corner_radius(m.radius)
             .overflow(Overflow::Clip)
-            .border(
-                Border::new()
-                    .width(m.border_width)
-                    .alignment(BorderAlignment::Inner)
-                    .fill(rgba(m.outer_border)),
-            )
-            .padding(Gaps::new(
-                m.border_width,
-                m.border_width,
-                m.border_width,
-                m.border_width,
-            ))
             .child(content);
         for family in SANS_FAMILIES {
             root = root.font_family(family);
@@ -1887,7 +1861,7 @@ fn open_child_popup(
             }
         }
     };
-    let inset = m.padding + m.border_width;
+    let inset = m.padding;
     let (anchor, gravity, dx) = submenu_positioner(opens_left);
     let spec = PopupSpec {
         anchor_rect: submenu_anchor_rect(
@@ -2039,7 +2013,7 @@ fn render_item(
             let has_leading = has_leading_column(&items);
             let text_inset = row_text_inset(&items, m);
             let max_label_w = (m.max_width
-                - 2.0 * (2.0 * m.border_width + m.padding)
+                - 2.0 * m.padding
                 - text_inset
                 - m.item_padding_x
                 - if shortcut_w > 0.0 {
@@ -2698,8 +2672,6 @@ mod tests {
                 .with_popover_metrics();
             let actual = view.palette_source.with_resolved(&resolved);
             assert_eq!(actual.bg, expected.bg);
-            assert_eq!(actual.outer_border, expected.outer_border);
-            assert_eq!(actual.inner_line, expected.inner_line);
             assert_eq!(actual.separator_color, expected.separator_color);
         }
     }
@@ -2721,7 +2693,7 @@ mod tests {
             icon: None,
         }))
         .collect();
-        assert_eq!(MenuView::preferred_size(&items, MENU_LIGHT), (220.0, 120.0));
+        assert_eq!(MenuView::preferred_size(&items, MENU_LIGHT), (220.0, 116.0));
 
         let view = MenuView::new(items, |_| {}, || {}).with_fixed_palette(MENU_LIGHT);
         let app = AppComponent::new(view);
@@ -2731,9 +2703,7 @@ mod tests {
         let area = test
             .find(|node, element| {
                 let style = element.style();
-                (style.background == Fill::Color(rgba(MENU_LIGHT.bg))
-                    && (style.corner_radius.top_left - MENU_LIGHT.radius).abs() < 0.01)
-                    .then(|| node.layout().area)
+                (style.background == Fill::Color(rgba(MENU_LIGHT.bg))).then(|| node.layout().area)
             })
             .expect("menu root box");
         assert_eq!((area.size.width, area.size.height), (340.0, 300.0));
@@ -3071,7 +3041,7 @@ mod tests {
         assert_eq!(h as f32, m.item_height);
 
         let (_, _, dx) = submenu_positioner(false);
-        let inset = m.padding + m.border_width;
+        let inset = m.padding;
         assert_eq!(dx, 0);
         let child_top = row_top - inset;
         let child_first_row_top = child_top + inset;
@@ -3159,17 +3129,14 @@ mod tests {
 
         let label_w = measure_text("Imágenes", m.font_size);
         let shortcut_w = measure_text(&format_shortcut("Ctrl+Shift+G"), m.font_size);
-        let expected_min = m.item_padding_x * 2.0
-            + label_w
-            + m.shortcut_gap
-            + shortcut_w
-            + (2.0 * m.border_width + m.padding) * 2.0;
+        let expected_min =
+            m.item_padding_x * 2.0 + label_w + m.shortcut_gap + shortcut_w + m.padding * 2.0;
         assert!(
             w >= expected_min,
             "menu width {w} should fit the widest accented label + shortcut ({expected_min})"
         );
 
-        let expected_height = m.item_height * 2.0 + (2.0 * m.border_width + m.padding) * 2.0;
+        let expected_height = m.item_height * 2.0 + m.padding * 2.0;
         assert!(
             h >= expected_height,
             "menu height {h} should fit two rows ({expected_height})"

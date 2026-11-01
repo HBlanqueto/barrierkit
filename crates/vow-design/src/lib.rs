@@ -459,7 +459,6 @@ pub struct ShellPalette {
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct MenuPopoverMetrics {
-    pub radius: f32,
     pub item_height: f32,
     pub item_radius: f32,
     pub padding: f32,
@@ -478,11 +477,7 @@ pub struct MenuPopoverMetrics {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct MenuPalette {
     pub bg: Rgba,
-    pub radius: f32,
     pub padding: f32,
-    pub border_width: f32,
-    pub outer_border: Rgba,
-    pub inner_line: Rgba,
     pub shadow: Rgba,
     pub min_width: f32,
     pub max_width: f32,

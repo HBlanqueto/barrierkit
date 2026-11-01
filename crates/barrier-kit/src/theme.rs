@@ -154,7 +154,6 @@ pub fn menu_palette(resolved: &Resolved, kind: SurfaceKind) -> MenuPalette {
 }
 
 pub fn apply_popover_metrics(mut palette: MenuPalette) -> MenuPalette {
-    palette.radius = vow_design::MENU_POPOVER.radius;
     palette.padding = vow_design::MENU_POPOVER.padding;
     palette.min_width = vow_design::MENU_POPOVER.min_width;
     palette.item_height = vow_design::MENU_POPOVER.item_height;

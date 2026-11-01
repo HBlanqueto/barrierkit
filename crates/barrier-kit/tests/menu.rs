@@ -11,11 +11,9 @@ use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 use freya_testing::TestingRunner;
 use freya_testing::prelude::{Code, Key, KeyboardEventName, Modifiers, NamedKey};
-use torin::prelude::{Size, Size2D};
+use torin::prelude::Size2D;
 use vow_appearance::{AppearanceConfig, ColorScheme, Resolved, resolve};
 use vow_design::{MENU_DARK, MENU_LIGHT, MenuPalette};
-
-const WALLPAPER: (u8, u8, u8) = (65, 105, 170);
 
 const TOLERANCE: u8 = 3;
 
@@ -144,33 +142,6 @@ fn render_accents(dark: bool) -> Vec<u8> {
     test.render().as_ref().to_vec()
 }
 
-struct MenuOnWallpaper {
-    items: Vec<MenuItem>,
-    palette: MenuPalette,
-}
-
-impl App for MenuOnWallpaper {
-    fn render(&self) -> impl IntoElement {
-        rect()
-            .width(Size::fill())
-            .height(Size::fill())
-            .background(Color::from(WALLPAPER))
-            .child(AppComponent::new(
-                MenuView::new(self.items.clone(), |_| {}, || {}).with_fixed_palette(self.palette),
-            ))
-    }
-}
-
-fn render_on_wallpaper(dark: bool) -> Vec<u8> {
-    let palette = if dark { MENU_DARK } else { MENU_LIGHT };
-    let items = menu_items();
-    let size = MenuView::preferred_size(&items, palette);
-    let app = AppComponent::new(MenuOnWallpaper { items, palette });
-    let (mut test, _) = TestingRunner::new(app, Size2D::new(size.0, size.1), |_| {}, 1.0);
-    test.sync_and_update();
-    test.render().as_ref().to_vec()
-}
-
 fn golden_path(dark: bool) -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("tests/golden")
@@ -213,15 +184,12 @@ fn decode(path: &Path) -> (u32, u32, Vec<u8>) {
 
 fn assert_right_padding_is_background(png: &[u8], palette: MenuPalette, label: &str) {
     let (width, height, pixels) = decode_bytes(png);
-    let border = palette.border_width.ceil() as u32;
     let padding = palette.padding.ceil() as u32;
     let start = width.saturating_sub(padding);
-    let end = width.saturating_sub(border * 2);
-    let radius = palette.radius.ceil() as u32 + 1;
     let background = palette.bg.to_rgba8();
     let mut offenders = Vec::new();
-    for y in radius..height.saturating_sub(radius) {
-        for x in start..end {
+    for y in 0..height {
+        for x in start..width {
             let offset = ((y * width + x) * 4) as usize;
             let pixel = &pixels[offset..offset + 4];
             if pixel
@@ -244,49 +212,6 @@ fn assert_right_padding_is_background(png: &[u8], palette: MenuPalette, label: &
 fn pixel_at(pixels: &[u8], width: u32, x: u32, y: u32) -> [u8; 4] {
     let offset = ((y * width + x) * 4) as usize;
     pixels[offset..offset + 4].try_into().unwrap()
-}
-
-fn luminance(pixel: [u8; 4]) -> f32 {
-    fn linear(channel: u8) -> f32 {
-        let channel = channel as f32 / 255.0;
-        if channel <= 0.04045 {
-            channel / 12.92
-        } else {
-            ((channel + 0.055) / 1.055).powf(2.4)
-        }
-    }
-    0.2126 * linear(pixel[0]) + 0.7152 * linear(pixel[1]) + 0.0722 * linear(pixel[2])
-}
-
-fn assert_panel_has_double_border(dark: bool, png: &[u8], name: &str) {
-    let (width, _, pixels) = decode_bytes(png);
-    let x = width / 2;
-    let outer = pixel_at(&pixels, width, x, 0);
-    let inner = pixel_at(&pixels, width, x, 1);
-    let background = pixel_at(&pixels, width, x, 2);
-    if dark {
-        assert!(
-            outer[0] < 32 && outer[1] < 32 && outer[2] < 32,
-            "{name}: the outer border is not almost black: {outer:?}"
-        );
-        assert!(
-            luminance(inner) > luminance(background),
-            "{name}: the inner border is not lighter than the panel: {inner:?} vs {background:?}"
-        );
-    } else {
-        let gray = outer[..3].iter().max().unwrap() - outer[..3].iter().min().unwrap();
-        assert!(
-            gray <= 4 && luminance(outer) < luminance(inner),
-            "{name}: y=0 is not the gray outer border: {outer:?}"
-        );
-        assert!(
-            inner[..3]
-                .iter()
-                .zip(&background[..3])
-                .all(|(a, b)| a.abs_diff(*b) <= TOLERANCE),
-            "{name}: y=1 is not the panel background: {inner:?} vs {background:?}"
-        );
-    }
 }
 
 fn compare(golden: &Path, actual_png: &[u8], dark: bool, name: &str) {
@@ -337,30 +262,6 @@ fn menu_renders_accents_and_long_shortcuts_without_wrapping() {
             fs::write(&path, &actual).unwrap();
         } else {
             compare(&path, &actual, dark, "accents");
-        }
-    }
-}
-
-#[test]
-fn panels_paint_outer_and_inner_borders() {
-    for dark in [false, true] {
-        let theme = if dark { "dark" } else { "light" };
-        assert_panel_has_double_border(dark, &render(dark), &format!("{theme}/view"));
-        assert_panel_has_double_border(dark, &render_accents(dark), &format!("{theme}/accents"));
-    }
-}
-
-#[test]
-fn outer_border_never_shows_the_wallpaper() {
-    for dark in [false, true] {
-        let theme = if dark { "dark" } else { "light" };
-        let (width, height, pixels) = decode_bytes(&render_on_wallpaper(dark));
-        for (x, y, edge) in [(width / 2, 0, "top"), (0, height / 2, "left")] {
-            let pixel = pixel_at(&pixels, width, x, y);
-            assert!(
-                pixel[0].abs_diff(pixel[2]) < 8,
-                "{theme}: the {edge} border shows the wallpaper: {pixel:?}"
-            );
         }
     }
 }
@@ -504,7 +405,7 @@ fn an_open_menu_recolors_when_the_scheme_changes() {
     test.sync_and_update();
 
     let x = (size.0 / 2.0) as u32;
-    let y = (palette.border_width + (palette.padding - palette.border_width) / 2.0) as u32;
+    let y = (palette.padding / 2.0) as u32;
     let (width, _, pixels) = decode_bytes(&test.render());
     assert_eq!(
         pixel_at(&pixels, width, x, y),
