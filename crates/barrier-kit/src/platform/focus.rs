@@ -2,8 +2,11 @@
 //!
 //! In focus mode a window is fullscreen in a space of its own and hides its
 //! traffic lights. When the pointer reaches the top edge, the compositor
-//! brings the bar down, moves a client-decorated window down under it and
-//! sends `bar(1)`: the window shows its lights until `bar(0)`.
+//! brings the bar down and sends `bar(1)`: the window shows its lights until
+//! `bar(0)`. With version 2 the kit calls `set_overlay`: the window is not
+//! moved, the titlebar leaves the layout in fullscreen and is drawn over the
+//! content right below the bar (`bar_height`) while it is down (ADR 0054).
+//! With version 1 the compositor moves the window down under the bar.
 
 use freya_core::prelude::WritableUtils;
 use sctk::reexports::client::backend::ObjectId;
@@ -39,15 +42,24 @@ impl Dispatch<InfinityFocusSurfaceV1, ObjectId> for Runtime {
         _: &Connection,
         _: &QueueHandle<Self>,
     ) {
-        let infinity_focus_surface_v1::Event::Bar { revealed } = event else {
-            return;
-        };
         let Some(context) = state
             .window_contexts
             .iter()
             .find(|context| context.controls.surface_id == *surface_id)
         else {
             return;
+        };
+        let revealed = match event {
+            infinity_focus_surface_v1::Event::Bar { revealed } => revealed,
+            infinity_focus_surface_v1::Event::BarHeight { height } => {
+                // Comes right before bar(1), which redraws.
+                let mut bar_height = context.controls.focus_bar_height;
+                if *bar_height.peek() != height as f32 {
+                    bar_height.set(height as f32);
+                }
+                return;
+            }
+            _ => return,
         };
         let mut focus_bar = context.controls.focus_bar;
         if *focus_bar.peek() != (revealed != 0) {

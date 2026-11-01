@@ -253,7 +253,7 @@ impl Runtime {
             tracing::info!("org_kde_kwin_appmenu_manager no disponible; sigo sin él");
         }
         let focus_manager = globals
-            .bind::<super::focus::InfinityFocusManagerV1, _, _>(&qh, 1..=1, ())
+            .bind::<super::focus::InfinityFocusManagerV1, _, _>(&qh, 1..=2, ())
             .ok();
         let fractional_manager = globals
             .bind::<WpFractionalScaleManagerV1, _, _>(&qh, 1..=1, ())

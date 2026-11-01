@@ -514,6 +514,8 @@ mod drag_band_tests {
                         fixed: false,
                         surface_id: ObjectId::null(),
                         focus_bar: State::create(false),
+                        focus_overlay: false,
+                        focus_bar_height: State::create(0.0),
                         menu_handle: None,
                     }
                 });
@@ -561,5 +563,137 @@ mod drag_band_tests {
                 .any(|command| matches!(command, WindowCommand::Move(_))),
             "a press on the first island row must not move the window"
         );
+    }
+}
+
+#[cfg(test)]
+mod overlay_titlebar_tests {
+    //! Focus mode with an overlaid titlebar (`set_overlay`, MalaysiaDreams
+    //! ADR 0054): the titlebar leaves the layout and is drawn over the
+    //! content below the bar only while the bar is down.
+
+    use crate::ProbeExt;
+    use crate::titlebar::Titlebar;
+    use freya_core::integration::AppComponent;
+    use freya_core::prelude::*;
+    use freya_testing::TestingRunner;
+    use sctk::reexports::{calloop, client::backend::ObjectId};
+    use std::{
+        cell::{Cell, RefCell},
+        rc::Rc,
+    };
+    use torin::prelude::{Direction, Size, Size2D};
+    use vow_appearance::{AppearanceConfig, resolve};
+
+    use crate::platform::window::{DecorationResponse, WindowControls, WindowStatus};
+
+    struct OverlayCase;
+
+    impl App for OverlayCase {
+        fn render(&self) -> impl IntoElement {
+            rect()
+                .width(Size::fill())
+                .height(Size::fill())
+                .direction(Direction::Vertical)
+                .child(Titlebar::new().probe("overlay-title"))
+                .child(
+                    rect()
+                        .width(Size::fill())
+                        .height(Size::fill())
+                        .a11y_builder(|node| node.set_author_id("overlay-content")),
+                )
+        }
+    }
+
+    /// The top of a probed node, if it is in the tree.
+    fn top_of(test: &TestingRunner, id: &str) -> Option<f32> {
+        test.find(|node, el| {
+            (el.accessibility().builder.author_id() == Some(id))
+                .then(|| node.layout().area.origin.y)
+        })
+    }
+
+    fn runner(
+        fullscreen: bool,
+        overlay: bool,
+        bar: Rc<RefCell<Option<State<bool>>>>,
+    ) -> TestingRunner {
+        let resolved = resolve(&AppearanceConfig::default(), None);
+        let (test, _) = TestingRunner::new(
+            AppComponent::new(OverlayCase),
+            Size2D::new(400.0, 300.0),
+            move |runner| {
+                let bar = bar.clone();
+                runner.provide_root_context(move || {
+                    let (ping, _source) = calloop::ping::make_ping().unwrap();
+                    let focus_bar = State::create(false);
+                    *bar.borrow_mut() = Some(focus_bar);
+                    WindowControls {
+                        queue: Rc::new(RefCell::new(Vec::new())),
+                        ping,
+                        pointer_serial: Rc::new(Cell::new(0)),
+                        status: State::create(WindowStatus {
+                            activated: true,
+                            maximized: false,
+                            fullscreen,
+                            decoration: DecorationResponse::Client,
+                            fixed: false,
+                        }),
+                        title: "Ventana".to_string(),
+                        fixed: false,
+                        surface_id: ObjectId::null(),
+                        focus_bar,
+                        focus_overlay: overlay,
+                        focus_bar_height: State::create(28.0),
+                        menu_handle: None,
+                    }
+                });
+                runner.provide_root_context(move || State::create(resolved));
+            },
+            1.0,
+        );
+        test
+    }
+
+    #[test]
+    fn the_titlebar_goes_over_the_content_below_the_bar() {
+        let bar = Rc::new(RefCell::new(None));
+        let mut test = runner(true, true, bar.clone());
+        test.sync_and_update();
+        assert_eq!(top_of(&test, "overlay-content"), Some(0.0));
+        assert_eq!(top_of(&test, "overlay-title"), None, "hidden without the bar");
+
+        bar.borrow_mut().as_mut().unwrap().set(true);
+        test.sync_and_update();
+        assert_eq!(
+            top_of(&test, "overlay-content"),
+            Some(0.0),
+            "the content does not move"
+        );
+        let title = top_of(&test, "overlay-title").expect("shown with the bar");
+        assert!(title >= 28.0, "below the bar, got {title}");
+
+        bar.borrow_mut().as_mut().unwrap().set(false);
+        test.sync_and_update();
+        assert_eq!(top_of(&test, "overlay-title"), None);
+    }
+
+    #[test]
+    fn without_overlay_the_titlebar_stays_in_the_layout() {
+        let bar = Rc::new(RefCell::new(None));
+        let mut test = runner(true, false, bar);
+        test.sync_and_update();
+        let content = top_of(&test, "overlay-content").expect("content");
+        assert!(content > 0.0, "below the titlebar, got {content}");
+    }
+
+    #[test]
+    fn outside_fullscreen_the_overlay_changes_nothing() {
+        let bar = Rc::new(RefCell::new(None));
+        let mut test = runner(false, true, bar);
+        test.sync_and_update();
+        let content = top_of(&test, "overlay-content").expect("content");
+        assert!(content > 0.0, "below the titlebar, got {content}");
+        assert!(top_of(&test, "overlay-title").is_some());
     }
 }

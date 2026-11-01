@@ -222,8 +222,15 @@ impl Component for Sidebar {
             .height(Size::fill())
             .child(sidebar_body);
 
-        let lights_shown = try_consume_root_context::<WindowControls>()
+        let controls = try_consume_root_context::<WindowControls>();
+        let lights_shown = controls
+            .as_ref()
             .is_none_or(|controls| controls.traffic_lights_shown());
+        // With an overlaid titlebar (ADR 0054) the lights go below the bar,
+        // over the sidebar, like the titlebar they belong to.
+        let overlay_top = controls
+            .as_ref()
+            .and_then(|controls| controls.titlebar_overlay_top());
         if self.traffic_lights && lights_shown {
             let (_, _, group_w, _) = vow_appearance::traffic::group_rect();
 
@@ -231,9 +238,12 @@ impl Component for Sidebar {
                 rect()
                     .position(
                         Position::new_absolute()
-                            .top(SIDEBAR.traffic_y as f32)
+                            .top(SIDEBAR.traffic_y as f32 + overlay_top.unwrap_or_default())
                             .left(SIDEBAR.traffic_x as f32),
                     )
+                    .maybe(overlay_top.is_some(), |el| {
+                        el.layer(crate::titlebar::TITLEBAR_OVERLAY_LAYER + 1)
+                    })
                     .width(Size::px(group_w as f32))
                     .height(Size::px(TITLEBAR.buttons.diameter as f32))
                     .a11y_alt("sidebar-traffic-lights")

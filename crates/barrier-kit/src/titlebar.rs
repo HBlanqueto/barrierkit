@@ -178,6 +178,40 @@ impl Component for Titlebar {
                 .into_element();
         }
 
+        // Focus mode with an overlaid titlebar (ADR 0054): it leaves the
+        // layout and is drawn over the content, below the bar, only while
+        // the bar is down.
+        let controls = freya_core::prelude::try_consume_root_context::<WindowControls>();
+        let overlaid = controls
+            .as_ref()
+            .is_some_and(|controls| controls.titlebar_overlaid());
+        let overlay_top = controls
+            .as_ref()
+            .and_then(|controls| controls.titlebar_overlay_top());
+        let place = move |bar: Element| -> Element {
+            if !overlaid {
+                return bar;
+            }
+            rect()
+                .width(Size::fill())
+                .height(Size::px(0.0))
+                .maybe(overlay_top.is_some(), |el| {
+                    el.child(
+                        rect()
+                            .position(
+                                Position::new_absolute()
+                                    .top(overlay_top.unwrap_or_default())
+                                    .left(0.0)
+                                    .right(0.0),
+                            )
+                            .width(Size::fill())
+                            .layer(TITLEBAR_OVERLAY_LAYER)
+                            .child(bar),
+                    )
+                })
+                .into_element()
+        };
+
         let resolved = crate::theme::resolved();
         let theme = palette(resolved.scheme);
         let background = if self.sidebar || status.activated {
@@ -276,7 +310,7 @@ impl Component for Titlebar {
                 );
             }
 
-            return root.into_element();
+            return place(root.into_element());
         }
 
         // Classic three-slot titlebar for windows without a sidebar.
@@ -328,9 +362,13 @@ impl Component for Titlebar {
             .child(title)
             .child(right_slot);
 
-        root.into_element()
+        place(root.into_element())
     }
 }
+
+/// The layer of an overlaid titlebar: in front of the window's content,
+/// whatever its depth, and below popups and menus (`Layer::Overlay`).
+pub(crate) const TITLEBAR_OVERLAY_LAYER: i16 = i16::MAX / 32;
 
 /// Builds the window's traffic lights with the standard close/minimize/zoom
 /// actions, reading `window.domain` like the compositor does.

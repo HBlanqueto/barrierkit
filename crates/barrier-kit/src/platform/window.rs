@@ -181,6 +181,13 @@ pub struct WindowControls {
     /// Whether the bar is down over the window in MalaysiaDreams focus mode
     /// (`infinity_focus_v1`). Stays `false` elsewhere.
     pub focus_bar: State<bool>,
+    /// Whether the compositor leaves the window in place for the bar and the
+    /// titlebar is drawn over the content instead (`infinity_focus_v1`
+    /// version 2, `set_overlay`; MalaysiaDreams ADR 0054).
+    pub focus_overlay: bool,
+    /// The height the bar covers at the top of the window, from the
+    /// compositor's `bar_height`.
+    pub focus_bar_height: State<f32>,
 }
 
 impl WindowControls {
@@ -189,6 +196,19 @@ impl WindowControls {
     /// the bar, as on macOS (ADR 0051).
     pub fn traffic_lights_shown(&self) -> bool {
         !self.status.read().fullscreen || *self.focus_bar.read()
+    }
+
+    /// Whether the titlebar leaves the layout: in focus mode, with a
+    /// compositor that draws nothing over the window for it (ADR 0054). The
+    /// content then takes the whole window.
+    pub fn titlebar_overlaid(&self) -> bool {
+        self.focus_overlay && self.status.read().fullscreen
+    }
+
+    /// Where an overlaid titlebar is drawn, over the content: right below
+    /// the bar while it is down. `None` while it is hidden or not overlaid.
+    pub fn titlebar_overlay_top(&self) -> Option<f32> {
+        (self.titlebar_overlaid() && *self.focus_bar.read()).then(|| *self.focus_bar_height.read())
     }
 
     pub fn get() -> Self {
@@ -431,10 +451,19 @@ impl Runtime {
             surface_id,
             menu_handle: menu_handle.clone(),
             focus_bar: State::create_global(false),
+            focus_overlay: self
+                .focus_manager
+                .as_ref()
+                .is_some_and(|manager| manager.version() >= 2),
+            focus_bar_height: State::create_global(vow_design::MENUBAR_HEIGHT as f32),
         };
         if let Some(manager) = &self.focus_manager {
             // Kept alive by the connection; the notices name the surface.
-            let _ = manager.get_focus_surface(&surface, qh, surface.id());
+            let notice = manager.get_focus_surface(&surface, qh, surface.id());
+            if controls.focus_overlay {
+                // The window stays put; the titlebar goes over the content.
+                notice.set_overlay();
+            }
         }
         self.window_contexts.push(WindowContext {
             controls: controls.clone(),
