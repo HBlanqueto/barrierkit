@@ -20,6 +20,7 @@ pub struct TrafficLights {
     focused: bool,
     zoom_supported: bool,
     fixed_width: bool,
+    close_only: bool,
     on_action: Option<Callback<ButtonKind, ()>>,
     probe: Option<&'static str>,
 }
@@ -38,6 +39,7 @@ impl TrafficLights {
             focused: true,
             zoom_supported: true,
             fixed_width: false,
+            close_only: false,
             on_action: None,
             probe: None,
         }
@@ -65,6 +67,13 @@ impl TrafficLights {
     /// maximise indicator (a plus glyph) instead of the arrows.
     pub fn fixed_width(mut self, fixed: bool) -> Self {
         self.fixed_width = fixed;
+        self
+    }
+
+    /// Only the close light works, like macOS «Acerca de este Mac»: minimise
+    /// and zoom stay in the inactive grey, without glyph or click.
+    pub fn close_only(mut self, close_only: bool) -> Self {
+        self.close_only = close_only;
         self
     }
 
@@ -105,12 +114,21 @@ impl Component for TrafficLights {
         } else {
             input
         };
-        let visuals = traffic::visual(
+        let mut visuals = traffic::visual(
             resolved.lights,
             resolved.traffic_style,
             inactive,
             visual_input,
         );
+        if self.close_only {
+            for (index, visual) in visuals.iter_mut().enumerate() {
+                if TITLEBAR.buttons.order[index].kind != ButtonKind::Close {
+                    visual.fill = inactive;
+                    visual.glyph = None;
+                }
+            }
+        }
+        let close_only = self.close_only;
         let interactive = self.input.is_none();
         let action = self.on_action.clone();
         let zoom_supported = self.zoom_supported;
@@ -125,7 +143,11 @@ impl Component for TrafficLights {
             let mut release = pointer;
             let mut leave = pointer;
             let action = action.clone();
-            let clickable = zoom_supported || fixed_width || kind != ButtonKind::Maximize;
+            let clickable = if close_only {
+                kind == ButtonKind::Close
+            } else {
+                zoom_supported || fixed_width || kind != ButtonKind::Maximize
+            };
             let child_probe = self.probe.map(|base| match kind {
                 ButtonKind::Close => format!("{base}.close").into_boxed_str(),
                 ButtonKind::Minimize => format!("{base}.minimize").into_boxed_str(),

@@ -359,3 +359,55 @@ fn moving_the_pointer_away_after_a_press_clears_hover_and_press() {
         "a lost pointer must not leave the glyph or the pressed fill"
     );
 }
+
+struct CloseOnlyCase {
+    input: TrafficInput,
+}
+
+impl App for CloseOnlyCase {
+    fn render(&self) -> impl IntoElement {
+        TrafficLights::new().input(self.input).close_only(true)
+    }
+}
+
+#[test]
+fn close_only_keeps_minimise_and_zoom_inactive() {
+    let input = TrafficInput {
+        focused: true,
+        group_hovered: true,
+        pressed: None,
+        zoom_supported: true,
+    };
+    let app = AppComponent::new(CloseOnlyCase { input });
+    let (mut test, _) = TestingRunner::new(app, Size2D::new(80.0, 40.0), |_| {}, 1.0);
+    test.sync_and_update();
+    let png = test.render();
+    let mut decoder = png::Decoder::new(Cursor::new(png.as_bytes()));
+    decoder.set_transformations(png::Transformations::normalize_to_color8());
+    let mut reader = decoder.read_info().unwrap();
+    let mut buffer = vec![0; reader.output_buffer_size()];
+    let info = reader.next_frame(&mut buffer).unwrap();
+    let channels = buffer[..info.buffer_size()].len() / (info.width * info.height) as usize;
+    let at = |x: f64, y: f64| -> [u8; 3] {
+        let index = (y as usize * info.width as usize + x as usize) * channels;
+        [buffer[index], buffer[index + 1], buffer[index + 2]]
+    };
+    let resolved = vow_appearance::resolve(
+        &vow_appearance::load_appearance(),
+        vow_appearance::load_dominant(),
+    );
+    let inactive = vow_appearance::palette(resolved.scheme)
+        .traffic_lights_inactive
+        .to_rgba8();
+    let (origin, _, diameter) = vow_appearance::traffic::button_rect(0);
+    // Sample left of each centre, away from the glyph strokes.
+    for index in 1..3 {
+        let (x, _, _) = vow_appearance::traffic::button_rect(index);
+        let pixel = at(x - origin + diameter * 0.2, diameter / 2.0);
+        for (actual, expected) in pixel.iter().zip(inactive) {
+            assert!(actual.abs_diff(expected) <= 1, "light {index}: {pixel:?}");
+        }
+    }
+    let close = at(diameter * 0.2, diameter / 2.0);
+    assert_ne!(close, [inactive[0], inactive[1], inactive[2]]);
+}
