@@ -931,6 +931,10 @@ fn emit_font_families(out: &mut String, tokens: &Value) {
 fn emit_typography(out: &mut String, tokens: &Value) {
     const_doc(out, "TEXT", "The body text face.");
     out.push_str(&format!(": Font = {};\n\n", font(tokens, "body")));
+    const_doc(out, "DISPLAY", "The display face (28/700), the largest title.");
+    out.push_str(&format!(": Font = {};\n\n", font(tokens, "display")));
+    const_doc(out, "TITLE_1", "The primary title face (20/650).");
+    out.push_str(&format!(": Font = {};\n\n", font(tokens, "title-1")));
     const_doc(out, "TITLE_2", "The secondary title face (15/600).");
     out.push_str(&format!(": Font = {};\n\n", font(tokens, "title-2")));
     const_doc(out, "HEADLINE", "The headline face (13/600).");
