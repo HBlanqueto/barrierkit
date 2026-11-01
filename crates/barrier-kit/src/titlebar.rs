@@ -404,12 +404,13 @@ pub fn window_drag_handler(fixed: bool) -> impl Fn(Event<MouseEventData>) + Clon
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Deserialize)]
 #[serde(rename_all = "lowercase")]
 enum GreenButtonAction {
-    /// Enter focus mode (pending).
+    /// Enter focus mode: the window asks for fullscreen and MalaysiaDreams
+    /// gives it a space of its own (ADR 0051).
     #[default]
     Focus,
     /// Zoom the window to the workspace.
     Zoom,
-    /// Enter fullscreen (pending).
+    /// Enter fullscreen (the compositor treats it as focus mode).
     Fullscreen,
     /// Do nothing.
     None,
@@ -488,12 +489,8 @@ fn run_action(controls: &WindowControls, action: TitlebarAction) {
     match action {
         TitlebarAction::Maximize => controls.toggle_maximize(),
         TitlebarAction::Minimize => controls.minimize(),
-        TitlebarAction::Focus => {
-            eprintln!("focus mode requested window={:?}", controls.surface_id());
-        }
-        TitlebarAction::Fullscreen => {
-            eprintln!("fullscreen requested window={:?}", controls.surface_id());
-        }
+        // Both ask for fullscreen; MalaysiaDreams answers with focus mode.
+        TitlebarAction::Focus | TitlebarAction::Fullscreen => controls.toggle_fullscreen(),
         TitlebarAction::None => {}
     }
 }

@@ -506,6 +506,7 @@ mod drag_band_tests {
                         status: State::create(WindowStatus {
                             activated: true,
                             maximized: false,
+                            fullscreen: false,
                             decoration: DecorationResponse::Client,
                             fixed: false,
                         }),

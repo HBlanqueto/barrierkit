@@ -136,6 +136,7 @@ impl Component for Sidebar {
                 WindowStatus {
                     activated: true,
                     maximized: false,
+                    fullscreen: false,
                     decoration: DecorationResponse::Client,
                     fixed: false,
                 },

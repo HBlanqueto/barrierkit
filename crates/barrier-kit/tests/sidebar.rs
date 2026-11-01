@@ -135,6 +135,7 @@ fn render_titlebar(sidebar: bool, decoration: DecorationResponse) -> Vec<u8> {
         status: WindowStatus {
             activated: true,
             maximized: false,
+            fullscreen: false,
             decoration,
             fixed: false,
         },
@@ -153,6 +154,7 @@ fn render_titlebar_pixels(
         status: WindowStatus {
             activated,
             maximized: false,
+            fullscreen: false,
             decoration: DecorationResponse::Client,
             fixed: false,
         },
@@ -206,6 +208,7 @@ fn titlebar_layout(sidebar: bool) -> Vec<(f32, f32, f32, f32)> {
         status: WindowStatus {
             activated: true,
             maximized: false,
+            fullscreen: false,
             decoration: DecorationResponse::Client,
             fixed: false,
         },
@@ -269,6 +272,7 @@ impl App for WideSlotsCase {
             WindowStatus {
                 activated: true,
                 maximized: false,
+                fullscreen: false,
                 decoration: DecorationResponse::Client,
                 fixed: false,
             },
@@ -303,6 +307,7 @@ fn titlebar_title_uses_the_titlebar_font() {
         status: WindowStatus {
             activated: true,
             maximized: false,
+            fullscreen: false,
             decoration: DecorationResponse::Client,
             fixed: false,
         },
@@ -1108,6 +1113,7 @@ impl App for AlignedToolbarCase {
                     WindowStatus {
                         activated: true,
                         maximized: false,
+                        fullscreen: false,
                         decoration: DecorationResponse::Client,
                         fixed: false,
                     },

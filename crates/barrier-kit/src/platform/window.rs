@@ -160,6 +160,9 @@ impl WindowOptions {
 pub struct WindowStatus {
     pub activated: bool,
     pub maximized: bool,
+    /// Whether the compositor has the window fullscreen (MalaysiaDreams focus
+    /// mode, ADR 0051).
+    pub fullscreen: bool,
     pub decoration: DecorationResponse,
     pub fixed: bool,
 }
@@ -208,6 +211,15 @@ impl WindowControls {
         self.ping.ping();
     }
 
+    /// Enter or leave fullscreen. MalaysiaDreams turns it into focus mode: the
+    /// window gets a space of its own (ADR 0051).
+    pub fn toggle_fullscreen(&self) {
+        self.queue
+            .borrow_mut()
+            .push(WindowCommand::ToggleFullscreen);
+        self.ping.ping();
+    }
+
     pub fn move_window(&self) {
         self.queue
             .borrow_mut()
@@ -246,6 +258,7 @@ pub(crate) enum WindowCommand {
     Minimize,
     ToggleMaximize,
     ToggleVerticalMaximize,
+    ToggleFullscreen,
     Move(u32),
     Resize(u32, WindowEdge),
     Open(AppComponent, WindowOptions),
@@ -393,6 +406,7 @@ impl Runtime {
         let status = State::create_global(WindowStatus {
             activated: true,
             maximized: false,
+            fullscreen: false,
             decoration,
             fixed,
         });
@@ -502,6 +516,13 @@ impl Runtime {
                             window.unset_maximized();
                         } else {
                             window.set_maximized();
+                        }
+                    }
+                    WindowCommand::ToggleFullscreen => {
+                        if context.controls.status.read().fullscreen {
+                            window.unset_fullscreen();
+                        } else {
+                            window.set_fullscreen(None);
                         }
                     }
                     WindowCommand::Move(serial) => {
@@ -682,6 +703,7 @@ impl Runtime {
                 status.set(WindowStatus {
                     activated: configure.is_activated(),
                     maximized: configure.is_maximized(),
+                    fullscreen: configure.is_fullscreen(),
                     decoration,
                     fixed: context.controls.fixed,
                 });
