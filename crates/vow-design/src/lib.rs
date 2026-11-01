@@ -949,6 +949,20 @@ pub const SCREENSHOT_BORDER: [f32; 4] = [1.0, 1.0, 1.0, 0.9];
 /// The screenshot selection border width, in logical pixels.
 pub const SCREENSHOT_BORDER_WIDTH: i32 = 1;
 
+/// The black gap between two spaces while they slide, in logical pixels
+/// (MalaysiaDreams ADR 0051).
+pub const SPACE_GAP: i32 = 48;
+
+/// The colour of the gap between two sliding spaces: absolute black.
+pub const SPACE_GAP_COLOR: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
+
+/// How long sliding from one space to the next takes, in milliseconds.
+pub const SPACE_SLIDE_MS: u64 = 480;
+
+/// The slide's timing curve, as CSS `cubic-bezier(x1, y1, x2, y2)`: a fast
+/// start that settles softly, like the macOS Spaces swipe.
+pub const SPACE_SLIDE_EASE: [f32; 4] = [0.32, 0.72, 0.0, 1.0];
+
 /// Where the wallpapers MalaysiaDreams ships are installed, like GNOME's
 /// `/usr/share/backgrounds`. The flake installs `share/wallpapers/` under
 /// `/run/current-system/sw/share/wallpapers`.
