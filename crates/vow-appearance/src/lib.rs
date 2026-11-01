@@ -18,7 +18,7 @@ use vow_design::{
     BG_RAISED_LIGHT, BG_SUNKEN_DARK, BG_SUNKEN_DARK_TINT, BG_SUNKEN_LIGHT, BG_SURFACE_DARK,
     BG_SURFACE_DARK_TINT, BG_SURFACE_LIGHT, BG_WINDOW_DARK, BG_WINDOW_DARK_TINT, BG_WINDOW_LIGHT,
     DARK, DARK_TINT, LAYER_FACTOR_BG_SUNKEN, LAYER_FACTOR_CONTROL, LAYER_FACTOR_LINE,
-    LAYER_FACTOR_SURFACE, LIGHT, MENU_DARK, MENU_DARK_OPAQUE, MENU_DARK_TINT,
+    LAYER_FACTOR_RAISED, LAYER_FACTOR_SURFACE, LIGHT, MENU_DARK, MENU_DARK_OPAQUE, MENU_DARK_TINT,
     MENU_DARK_TINT_OPAQUE, MENU_LIGHT, MENU_LIGHT_OPAQUE, MENU_SEPARATOR_INK_MIX,
     MUTED_BELOW_SATURATION, MUTED_MAX_SATURATION, MenuPalette, ON_ACCENT_MIN_CONTRAST,
     PANEL_TINT_WALLPAPER, Palette, Rgba, SHELL_DARK, SHELL_DARK_OPAQUE, SHELL_DARK_TINT,
@@ -632,32 +632,14 @@ fn tinted_surfaces(
             .map(|(tint, tint_factor)| color.mix(tint, tint_factor * factor))
             .unwrap_or(color)
     };
-    // Groups follow the tinted window even when the window part is off, so
-    // "Grupos y tarjetas" alone still tints them.
-    let surface = match window_tint {
-        Some((tint, factor)) if parts.groups => elevate(window.mix(tint, factor), window, surface),
-        _ => surface,
-    };
     Surfaces {
         window: mix(window, 1.0, parts.window),
         sunken: mix(sunken, LAYER_FACTOR_BG_SUNKEN, parts.window),
-        surface,
-        raised: mix(raised, LAYER_FACTOR_SURFACE, parts.menus),
+        surface: mix(surface, LAYER_FACTOR_SURFACE, parts.groups),
+        raised: mix(raised, LAYER_FACTOR_RAISED, parts.menus),
         control: mix(control, LAYER_FACTOR_CONTROL, parts.controls),
         hover: mix(hover, LAYER_FACTOR_CONTROL, parts.controls),
         line: mix(line, LAYER_FACTOR_LINE, parts.groups),
-    }
-}
-
-/// Groups and cards sit on the window like a translucent layer, the way
-/// Adwaita draws its cards: the window colour, tint included, plus the same
-/// lightness step `surface` has over `window` in the untinted palette.
-fn elevate(tinted_window: Rgba, window: Rgba, surface: Rgba) -> Rgba {
-    Rgba {
-        r: (tinted_window.r + surface.r - window.r).clamp(0.0, 1.0),
-        g: (tinted_window.g + surface.g - window.g).clamp(0.0, 1.0),
-        b: (tinted_window.b + surface.b - window.b).clamp(0.0, 1.0),
-        a: surface.a,
     }
 }
 
@@ -1673,18 +1655,14 @@ sidebar_style = "flat"
             resolved.surfaces.sunken,
             BG_SUNKEN_DARK.mix(purple, factor * LAYER_FACTOR_BG_SUNKEN)
         );
-        // Groups inherit the full window tint, one elevation step lighter.
-        let window = BG_WINDOW_DARK.mix(purple, factor);
+        // Groups take the full window tint (bg-surface layer factor 1.0).
         assert_eq!(
             resolved.surfaces.surface,
-            elevate(window, BG_WINDOW_DARK, BG_SURFACE_DARK)
+            BG_SURFACE_DARK.mix(purple, factor * LAYER_FACTOR_SURFACE)
         );
-        let step = BG_SURFACE_DARK.r - BG_WINDOW_DARK.r;
-        assert!((resolved.surfaces.surface.r - window.r - step).abs() < 1e-6);
-        assert!(resolved.surfaces.surface.b > resolved.surfaces.surface.g);
         assert_eq!(
             resolved.surfaces.raised,
-            BG_RAISED_DARK.mix(purple, factor * LAYER_FACTOR_SURFACE)
+            BG_RAISED_DARK.mix(purple, factor * LAYER_FACTOR_RAISED)
         );
         assert_eq!(
             resolved.surfaces.control,
@@ -2207,12 +2185,8 @@ sidebar_style = "flat"
             surfaces: Surfaces {
                 window: BG_WINDOW_LIGHT.mix(accent, tint_factor),
                 sunken: BG_SUNKEN_LIGHT.mix(accent, tint_factor * LAYER_FACTOR_BG_SUNKEN),
-                surface: elevate(
-                    BG_WINDOW_LIGHT.mix(accent, tint_factor),
-                    BG_WINDOW_LIGHT,
-                    BG_SURFACE_LIGHT,
-                ),
-                raised: BG_RAISED_LIGHT.mix(accent, tint_factor * LAYER_FACTOR_SURFACE),
+                surface: BG_SURFACE_LIGHT.mix(accent, tint_factor * LAYER_FACTOR_SURFACE),
+                raised: BG_RAISED_LIGHT.mix(accent, tint_factor * LAYER_FACTOR_RAISED),
                 control: BG_CONTROL_LIGHT.mix(accent, tint_factor * LAYER_FACTOR_CONTROL),
                 hover: BG_HOVER_LIGHT.mix(accent, tint_factor * LAYER_FACTOR_CONTROL),
                 line: LIGHT.line.mix(accent, tint_factor * LAYER_FACTOR_LINE),

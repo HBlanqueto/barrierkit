@@ -785,7 +785,7 @@
       "bg-hover": 1.2,
       "line": 1.2,
       "bg-window": 1.0,
-      "bg-surface": 0.6,
+      "bg-surface": 1.0,
       "bg-raised": 0.6
     },
     "never-tinted": [

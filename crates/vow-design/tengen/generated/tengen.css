@@ -682,7 +682,7 @@
   --appearance-layer-factors-bg-hover: 1.200000;
   --appearance-layer-factors-bg-raised: 0.600000;
   --appearance-layer-factors-bg-sunken: 1.400000;
-  --appearance-layer-factors-bg-surface: 0.600000;
+  --appearance-layer-factors-bg-surface: 1.000000;
   --appearance-layer-factors-bg-window: 1.000000;
   --appearance-layer-factors-line: 1.200000;
   --appearance-modes-accent-tint: var(--accent);

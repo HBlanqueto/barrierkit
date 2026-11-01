@@ -482,8 +482,13 @@ fn emit_tints(out: &mut String, tokens: &Value, components: &Value) {
         ("LAYER_FACTOR_LINE", "Layer factor for lines.", "line"),
         (
             "LAYER_FACTOR_SURFACE",
-            "Layer factor for raised surfaces (bg-surface, bg-raised).",
+            "Layer factor for groups and cards (bg-surface).",
             "bg-surface",
+        ),
+        (
+            "LAYER_FACTOR_RAISED",
+            "Layer factor for menus and dialogs (bg-raised).",
+            "bg-raised",
         ),
     ] {
         let factor = number(
