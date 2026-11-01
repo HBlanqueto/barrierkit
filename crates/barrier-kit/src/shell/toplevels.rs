@@ -105,6 +105,7 @@ pub struct Toplevels {
     pub(super) arrange_quarters: ArrangeQuarters,
     pub(super) restore: Activate,
     pub(super) set_fullscreen: Maximize,
+    pub(super) force_quit: Activate,
 }
 
 impl Toplevels {
@@ -174,6 +175,14 @@ impl Toplevels {
     /// Restores the toplevel at `index` to its pre-arrange rectangle.
     pub fn restore(&self, index: usize) {
         if let Some(f) = self.restore.borrow().as_ref() {
+            f(index);
+        }
+    }
+
+    /// Asks the compositor to kill the process behind the toplevel at `index`
+    /// (Infinity v4). Ignored on older compositors.
+    pub fn force_quit(&self, index: usize) {
+        if let Some(f) = self.force_quit.borrow().as_ref() {
             f(index);
         }
     }

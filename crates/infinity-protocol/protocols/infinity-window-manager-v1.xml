@@ -23,7 +23,7 @@
     DEALINGS IN THE SOFTWARE.
   </copyright>
 
-  <interface name="infinity_window_manager_v1" version="3">
+  <interface name="infinity_window_manager_v1" version="4">
     <description summary="private window geometry channel for malaysia-shell">
       This protocol is private to malaysia-shell. It lets the shell ask the
       compositor to place windows in halves, quarters, pairs and fullscreen
@@ -92,6 +92,16 @@
       </description>
       <arg name="handle" type="object" interface="zwlr_foreign_toplevel_handle_v1"/>
       <arg name="fullscreen" type="uint"/>
+    </request>
+
+    <request name="force_quit" since="4">
+      <description summary="kill the process that owns a window">
+        The compositor sends SIGKILL to the client process behind the window,
+        as macOS Force Quit does: a hung app ignores a polite close, so the
+        shell asks for this only after the user confirms. Every window of
+        that process goes away. The compositor never kills itself.
+      </description>
+      <arg name="handle" type="object" interface="zwlr_foreign_toplevel_handle_v1"/>
     </request>
 
     <event name="restorable">

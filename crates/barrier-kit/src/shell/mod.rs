@@ -18,7 +18,7 @@ use freya_core::integration::AppComponent;
 
 use sctk::{
     reexports::{
-        client::{QueueHandle, globals::GlobalList},
+        client::{Proxy, QueueHandle, globals::GlobalList},
         protocols::ext::foreign_toplevel_list::v1::client::ext_foreign_toplevel_list_v1::ExtForeignToplevelListV1,
         protocols::xdg::activation::v1::client::xdg_activation_v1::XdgActivationV1,
         protocols_wlr::foreign_toplevel::v1::client::zwlr_foreign_toplevel_manager_v1::ZwlrForeignToplevelManagerV1,
@@ -76,6 +76,7 @@ impl ShellState {
         let arrange_entries = toplevel_entries.clone();
         let restore_entries = toplevel_entries.clone();
         let fullscreen_entries = toplevel_entries.clone();
+        let force_quit_entries = toplevel_entries.clone();
 
         let infinity_manager = Rc::new(RefCell::new(None::<InfinityWindowManagerV1>));
         let infinity_manager_arrange = infinity_manager.clone();
@@ -83,6 +84,7 @@ impl ShellState {
         let infinity_manager_quarters = infinity_manager.clone();
         let infinity_manager_restore = infinity_manager.clone();
         let infinity_manager_fullscreen = infinity_manager.clone();
+        let infinity_manager_force_quit = infinity_manager.clone();
 
         let toplevels = Toplevels {
             list: freya_core::prelude::State::create_global(Vec::new()),
@@ -153,6 +155,15 @@ impl ShellState {
                     manager.set_fullscreen(mgmt, fullscreen as u32);
                 }
             })))),
+            force_quit: Rc::new(RefCell::new(Some(Rc::new(move |index| {
+                if let Some(entry) = force_quit_entries.borrow().get(index)
+                    && let Some(mgmt) = &entry.mgmt
+                    && let Some(manager) = infinity_manager_force_quit.borrow().as_ref()
+                    && manager.version() >= 4
+                {
+                    manager.force_quit(mgmt);
+                }
+            })))),
         };
 
         let foreign_list = globals
@@ -168,7 +179,7 @@ impl ShellState {
             tracing::info!("zwlr_foreign_toplevel_manager_v1 no disponible; sigo sin él");
         }
         let infinity_manager_bound = globals
-            .bind::<InfinityWindowManagerV1, _, _>(qh, 1..=3, ())
+            .bind::<InfinityWindowManagerV1, _, _>(qh, 1..=4, ())
             .ok();
         if infinity_manager_bound.is_none() {
             tracing::info!("infinity_window_manager_v1 no disponible; sigo sin él");

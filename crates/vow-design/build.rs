@@ -371,6 +371,13 @@ fn emit_dialog(out: &mut String, tokens: &Value, components: &Value) {
     out.push_str(&format!(
         ": WindowStyle = WindowStyle {{\n    corner_radius: {radius},\n    superellipse_exponent: 2.0,\n}};\n\n"
     ));
+    let padding = number(components, "components.dialog.padding", COMPONENTS);
+    const_doc(
+        out,
+        "DIALOG_PADDING",
+        "Inner padding of a dialog, in logical px.",
+    );
+    out.push_str(&format!(": f32 = {};\n\n", float(padding)));
 }
 
 fn emit_tints(out: &mut String, tokens: &Value, components: &Value) {
