@@ -641,7 +641,7 @@ impl Runtime {
                 tracing::info!(
                     surface = ?self.surfaces[index].surface.id(),
                     configures = count,
-                    egl_windows = self.surfaces[index].shared.egl_window_creations.get(),
+                    swapchains = self.surfaces[index].shared.swapchain_creations.get(),
                     "BarrierKit: resize configuration count"
                 );
             }

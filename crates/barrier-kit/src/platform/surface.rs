@@ -28,9 +28,9 @@ use wayland_protocols_plasma::appmenu::client::org_kde_kwin_appmenu::OrgKdeKwinA
 use super::{
     app::AppInstance,
     app_menu_export::AppMenuAddress,
-    egl::{Graphics, GraphicsShared},
     popup::PopupInfo,
     runtime::Runtime,
+    vulkan::{Graphics, GraphicsShared},
 };
 
 pub(crate) struct SurfaceWindow {
@@ -117,7 +117,7 @@ impl SurfaceWindow {
         let Some(graphics) = self.graphics.as_mut() else {
             return;
         };
-        if let Err(error) = graphics.configure(&self.surface, buffer_size, scale) {
+        if let Err(error) = graphics.configure(&self.surface, buffer_size) {
             tracing::error!("BarrierKit: {error}");
             if self.buffer_size.0 > 0 && self.buffer_size.1 > 0 {
                 self.app.resize(self.buffer_size, self.scale);
@@ -149,7 +149,7 @@ impl SurfaceWindow {
         let Some(graphics) = self.graphics.as_mut() else {
             return false;
         };
-        if graphics.make_current().is_err() {
+        if graphics.acquire().is_err() {
             return false;
         }
         self.draw_count += 1;
@@ -185,9 +185,8 @@ impl SurfaceWindow {
             }
             .render();
         }
-        graphics.shared.gr.borrow_mut().flush_and_submit();
         let swap_start = std::time::Instant::now();
-        if graphics.swap().is_err() {
+        if graphics.present().is_err() {
             return false;
         }
         let swap_us = swap_start.elapsed().as_micros() as u64;

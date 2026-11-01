@@ -1,0 +1,474 @@
+use super::RunError;
+use ash::{
+    Device, Entry, Instance,
+    khr::{surface, swapchain, wayland_surface},
+    vk::{self as ash_vk, Handle},
+};
+use freya_engine::prelude::{
+    ColorType, DirectContext, FontCollection, FontMgr, Surface as SkiaSurface, SurfaceOrigin,
+    backend_render_targets, direct_contexts, vk, wrap_backend_render_target,
+};
+use sctk::reexports::client::{Proxy, protocol::wl_surface::WlSurface};
+use skia_safe::{gpu::FlushInfo, surfaces::BackendSurfaceAccess};
+use std::{
+    cell::{Cell, RefCell},
+    ffi::{CStr, c_void},
+    mem::ManuallyDrop,
+    rc::Rc,
+};
+
+const INSTANCE_EXTENSIONS: [&CStr; 2] = [surface::NAME, wayland_surface::NAME];
+const DEVICE_EXTENSIONS: [&CStr; 1] = [swapchain::NAME];
+const SWAPCHAIN_FORMAT: ash_vk::Format = ash_vk::Format::B8G8R8A8_UNORM;
+
+fn failed(call: &'static str) -> impl Fn(ash_vk::Result) -> RunError {
+    move |_| RunError::Vulkan(call)
+}
+
+pub(crate) struct GraphicsShared {
+    _entry: Entry,
+    instance: Instance,
+    display: *mut c_void,
+    physical_device: ash_vk::PhysicalDevice,
+    device: Device,
+    queue: ash_vk::Queue,
+    surface_fns: surface::Instance,
+    wayland_fns: wayland_surface::Instance,
+    swapchain_fns: swapchain::Device,
+    gr: RefCell<ManuallyDrop<DirectContext>>,
+    pub(crate) font_collection: FontCollection,
+    pub(crate) font_manager: FontMgr,
+    pub(crate) swapchain_creations: Cell<usize>,
+}
+
+impl GraphicsShared {
+    pub(crate) fn new(display: *mut c_void) -> Result<Self, RunError> {
+        // SAFETY: libvulkan is the system loader; its initialisers have no preconditions.
+        let entry = unsafe { Entry::load() }
+            .map_err(|_| RunError::Vulkan("libvulkan could not be loaded"))?;
+        // SAFETY: `entry` holds a loaded libvulkan.
+        let api_version = unsafe { entry.try_enumerate_instance_version() }
+            .ok()
+            .flatten()
+            .unwrap_or(ash_vk::API_VERSION_1_0);
+        let app_info = ash_vk::ApplicationInfo::default().api_version(api_version);
+        let extensions = INSTANCE_EXTENSIONS.map(CStr::as_ptr);
+        // SAFETY: the create info only borrows locals that outlive the call.
+        let instance = unsafe {
+            entry.create_instance(
+                &ash_vk::InstanceCreateInfo::default()
+                    .application_info(&app_info)
+                    .enabled_extension_names(&extensions),
+                None,
+            )
+        }
+        .map_err(failed("vkCreateInstance"))?;
+        let surface_fns = surface::Instance::new(&entry, &instance);
+        let wayland_fns = wayland_surface::Instance::new(&entry, &instance);
+        let (physical_device, queue_family_index) = pick_device(&instance, &wayland_fns, display)
+            .ok_or(RunError::Vulkan(
+            "no GPU can present to this Wayland display",
+        ))?;
+
+        let priorities = [1.0];
+        let queue_info = ash_vk::DeviceQueueCreateInfo::default()
+            .queue_family_index(queue_family_index)
+            .queue_priorities(&priorities);
+        let extensions = DEVICE_EXTENSIONS.map(CStr::as_ptr);
+        // SAFETY: `physical_device` comes from `instance`; the create info borrows locals.
+        let device = unsafe {
+            instance.create_device(
+                physical_device,
+                &ash_vk::DeviceCreateInfo::default()
+                    .queue_create_infos(std::slice::from_ref(&queue_info))
+                    .enabled_extension_names(&extensions),
+                None,
+            )
+        }
+        .map_err(failed("vkCreateDevice"))?;
+        // SAFETY: the device was created with one queue in `queue_family_index`.
+        let queue = unsafe { device.get_device_queue(queue_family_index, 0) };
+        let swapchain_fns = swapchain::Device::new(&instance, &device);
+
+        let get_proc = |of: vk::GetProcOf| {
+            // SAFETY: Skia asks only for handles it received from this instance and device.
+            unsafe {
+                match of {
+                    vk::GetProcOf::Instance(handle, name) => {
+                        entry.get_instance_proc_addr(ash_vk::Instance::from_raw(handle as _), name)
+                    }
+                    vk::GetProcOf::Device(handle, name) => {
+                        (instance.fp_v1_0().get_device_proc_addr)(
+                            ash_vk::Device::from_raw(handle as _),
+                            name,
+                        )
+                    }
+                }
+            }
+            .map_or(std::ptr::null(), |f| f as _)
+        };
+        let instance_extensions = INSTANCE_EXTENSIONS.map(|name| name.to_str().unwrap_or_default());
+        let device_extensions = DEVICE_EXTENSIONS.map(|name| name.to_str().unwrap_or_default());
+        // SAFETY: instance, device and queue live in `Self` and outlive the Skia context.
+        let mut backend = unsafe {
+            vk::BackendContext::new_with_extensions(
+                instance.handle().as_raw() as _,
+                physical_device.as_raw() as _,
+                device.handle().as_raw() as _,
+                (queue.as_raw() as _, queue_family_index as usize),
+                &get_proc,
+                &instance_extensions,
+                &device_extensions,
+            )
+        };
+        backend.set_max_api_version(vk::Version::new(
+            ash_vk::api_version_major(api_version) as usize,
+            ash_vk::api_version_minor(api_version) as usize,
+            ash_vk::api_version_patch(api_version) as usize,
+        ));
+        let mut gr = direct_contexts::make_vulkan(&backend, None).ok_or(RunError::Skia)?;
+        drop(backend);
+        gr.set_resource_cache_limit(128 * 1024 * 1024);
+
+        Ok(Self {
+            _entry: entry,
+            instance,
+            display,
+            physical_device,
+            device,
+            queue,
+            surface_fns,
+            wayland_fns,
+            swapchain_fns,
+            gr: RefCell::new(ManuallyDrop::new(gr)),
+            font_collection: crate::fonts::collection(),
+            font_manager: crate::fonts::manager(),
+            swapchain_creations: Cell::new(0),
+        })
+    }
+}
+
+// Mesa's device-select layer lists first the GPU the Wayland compositor uses:
+// https://gitlab.freedesktop.org/mesa/mesa/-/tree/main/src/vulkan/device-select-layer
+fn pick_device(
+    instance: &Instance,
+    wayland_fns: &wayland_surface::Instance,
+    display: *mut c_void,
+) -> Option<(ash_vk::PhysicalDevice, u32)> {
+    // SAFETY: `instance` is alive; `display` is the connection's live wl_display.
+    unsafe { instance.enumerate_physical_devices() }
+        .ok()?
+        .into_iter()
+        .find_map(|device| {
+            // SAFETY: `device` was enumerated from `instance`.
+            let families = unsafe { instance.get_physical_device_queue_family_properties(device) };
+            families
+                .iter()
+                .enumerate()
+                .find(|&(index, family)| {
+                    family.queue_flags.contains(ash_vk::QueueFlags::GRAPHICS)
+                        // SAFETY: `display` is the connection's live wl_display.
+                        && unsafe {
+                            wayland_fns.get_physical_device_wayland_presentation_support(
+                                device,
+                                index as u32,
+                                &mut *display.cast(),
+                            )
+                        }
+                })
+                .map(|(index, _)| (device, index as u32))
+        })
+}
+
+impl Drop for GraphicsShared {
+    fn drop(&mut self) {
+        // SAFETY: no swapchain outlives this struct (each `Graphics` holds an `Rc` to it);
+        // Skia is dropped before the device it uses.
+        unsafe {
+            let _ = self.device.device_wait_idle();
+            ManuallyDrop::drop(self.gr.get_mut());
+            self.device.destroy_device(None);
+            self.instance.destroy_instance(None);
+        }
+    }
+}
+
+pub(crate) struct Graphics {
+    shared: Rc<GraphicsShared>,
+    surface: ash_vk::SurfaceKHR,
+    swapchain: ash_vk::SwapchainKHR,
+    images: Vec<ash_vk::Image>,
+    rendered: Vec<ash_vk::Semaphore>,
+    acquired: ash_vk::Fence,
+    image_index: u32,
+    pub(crate) skia: Option<SkiaSurface>,
+    size: (u32, u32),
+}
+
+impl Graphics {
+    pub(crate) fn new(shared: Rc<GraphicsShared>) -> Self {
+        Self {
+            shared,
+            surface: ash_vk::SurfaceKHR::null(),
+            swapchain: ash_vk::SwapchainKHR::null(),
+            images: Vec::new(),
+            rendered: Vec::new(),
+            acquired: ash_vk::Fence::null(),
+            image_index: 0,
+            skia: None,
+            size: (0, 0),
+        }
+    }
+
+    pub(crate) fn configure(
+        &mut self,
+        surface: &WlSurface,
+        size: (u32, u32),
+    ) -> Result<(), RunError> {
+        if size.0 == 0 || size.1 == 0 {
+            return Ok(());
+        }
+        if self.surface.is_null() {
+            self.create_surface(surface)?;
+        }
+        if self.swapchain.is_null() || self.size != size {
+            self.recreate_swapchain(size)?;
+        }
+        Ok(())
+    }
+
+    fn create_surface(&mut self, surface: &WlSurface) -> Result<(), RunError> {
+        let shared = &self.shared;
+        let info = ash_vk::WaylandSurfaceCreateInfoKHR::default()
+            .display(shared.display.cast())
+            .surface(surface.id().as_ptr().cast());
+        // SAFETY: display and wl_surface are alive while this `Graphics` lives.
+        self.surface = unsafe { shared.wayland_fns.create_wayland_surface(&info, None) }
+            .map_err(failed("vkCreateWaylandSurfaceKHR"))?;
+        // SAFETY: `device` is alive; the create info has no pointers.
+        self.acquired = unsafe {
+            shared
+                .device
+                .create_fence(&ash_vk::FenceCreateInfo::default(), None)
+        }
+        .map_err(failed("vkCreateFence"))?;
+        Ok(())
+    }
+
+    fn recreate_swapchain(&mut self, size: (u32, u32)) -> Result<(), RunError> {
+        let shared = self.shared.clone();
+        // SAFETY: the surface belongs to `physical_device`'s instance.
+        let capabilities = unsafe {
+            shared
+                .surface_fns
+                .get_physical_device_surface_capabilities(shared.physical_device, self.surface)
+        }
+        .map_err(failed("vkGetPhysicalDeviceSurfaceCapabilitiesKHR"))?;
+        // SAFETY: as above.
+        let present_modes = unsafe {
+            shared
+                .surface_fns
+                .get_physical_device_surface_present_modes(shared.physical_device, self.surface)
+        }
+        .map_err(failed("vkGetPhysicalDeviceSurfacePresentModesKHR"))?;
+        // Frame callbacks already pace redraws; FIFO would throttle a second time (freya#2260).
+        let present_mode = if present_modes.contains(&ash_vk::PresentModeKHR::MAILBOX) {
+            ash_vk::PresentModeKHR::MAILBOX
+        } else {
+            ash_vk::PresentModeKHR::FIFO
+        };
+        let wanted_images = if present_mode == ash_vk::PresentModeKHR::MAILBOX {
+            3
+        } else {
+            2
+        };
+        let mut image_count = capabilities.min_image_count.max(wanted_images);
+        if capabilities.max_image_count > 0 {
+            image_count = image_count.min(capabilities.max_image_count);
+        }
+        let info = ash_vk::SwapchainCreateInfoKHR::default()
+            .surface(self.surface)
+            .min_image_count(image_count)
+            .image_format(SWAPCHAIN_FORMAT)
+            .image_color_space(ash_vk::ColorSpaceKHR::SRGB_NONLINEAR)
+            .image_extent(ash_vk::Extent2D {
+                width: size.0,
+                height: size.1,
+            })
+            .image_array_layers(1)
+            .image_usage(
+                ash_vk::ImageUsageFlags::COLOR_ATTACHMENT
+                    | ash_vk::ImageUsageFlags::SAMPLED
+                    | ash_vk::ImageUsageFlags::TRANSFER_SRC
+                    | ash_vk::ImageUsageFlags::TRANSFER_DST,
+            )
+            .image_sharing_mode(ash_vk::SharingMode::EXCLUSIVE)
+            .pre_transform(capabilities.current_transform)
+            .composite_alpha(ash_vk::CompositeAlphaFlagsKHR::PRE_MULTIPLIED)
+            .present_mode(present_mode)
+            .clipped(true)
+            .old_swapchain(self.swapchain);
+        // SAFETY: the device is idle before the old swapchain and its semaphores go away.
+        unsafe {
+            shared
+                .device
+                .device_wait_idle()
+                .map_err(failed("vkDeviceWaitIdle"))?;
+            let swapchain = shared
+                .swapchain_fns
+                .create_swapchain(&info, None)
+                .map_err(failed("vkCreateSwapchainKHR"))?;
+            self.destroy_swapchain();
+            self.swapchain = swapchain;
+            self.images = shared
+                .swapchain_fns
+                .get_swapchain_images(swapchain)
+                .map_err(failed("vkGetSwapchainImagesKHR"))?;
+            self.rendered = self
+                .images
+                .iter()
+                .map(|_| {
+                    shared
+                        .device
+                        .create_semaphore(&ash_vk::SemaphoreCreateInfo::default(), None)
+                })
+                .collect::<Result<_, _>>()
+                .map_err(failed("vkCreateSemaphore"))?;
+        }
+        shared
+            .swapchain_creations
+            .set(shared.swapchain_creations.get() + 1);
+        self.size = size;
+        Ok(())
+    }
+
+    // SAFETY: callers ensure the device is idle.
+    unsafe fn destroy_swapchain(&mut self) {
+        let shared = &self.shared;
+        for semaphore in self.rendered.drain(..) {
+            // SAFETY: the device is idle, so no queue operation waits on it.
+            unsafe { shared.device.destroy_semaphore(semaphore, None) };
+        }
+        // SAFETY: the device is idle and the images are no longer acquired.
+        unsafe { shared.swapchain_fns.destroy_swapchain(self.swapchain, None) };
+        self.swapchain = ash_vk::SwapchainKHR::null();
+        self.images.clear();
+    }
+
+    pub(crate) fn acquire(&mut self) -> Result<(), RunError> {
+        if self.swapchain.is_null() {
+            return Err(RunError::Vulkan("no swapchain"));
+        }
+        let shared = self.shared.clone();
+        // SAFETY: the swapchain and the unsignalled fence belong to `device`.
+        let acquired = unsafe {
+            shared.swapchain_fns.acquire_next_image(
+                self.swapchain,
+                u64::MAX,
+                ash_vk::Semaphore::null(),
+                self.acquired,
+            )
+        };
+        let index = match acquired {
+            Ok((index, _)) => index,
+            Err(ash_vk::Result::ERROR_OUT_OF_DATE_KHR) => {
+                self.recreate_swapchain(self.size)?;
+                return Err(RunError::Vulkan("swapchain out of date"));
+            }
+            Err(_) => return Err(RunError::Vulkan("vkAcquireNextImageKHR")),
+        };
+        // SAFETY: the fence was handed to the successful acquire above.
+        unsafe {
+            shared
+                .device
+                .wait_for_fences(&[self.acquired], true, u64::MAX)
+                .and_then(|()| shared.device.reset_fences(&[self.acquired]))
+        }
+        .map_err(failed("vkWaitForFences"))?;
+        self.image_index = index;
+        // SAFETY: the image belongs to the swapchain and stays alive until it is recreated.
+        let image_info = unsafe {
+            vk::ImageInfo::new(
+                self.images[index as usize].as_raw() as _,
+                vk::Alloc::default(),
+                vk::ImageTiling::OPTIMAL,
+                vk::ImageLayout::UNDEFINED,
+                vk::Format::B8G8R8A8_UNORM,
+                1,
+                None,
+                None,
+                None,
+                vk::SharingMode::EXCLUSIVE,
+            )
+        };
+        let render_target =
+            backend_render_targets::make_vk((self.size.0 as i32, self.size.1 as i32), &image_info);
+        self.skia = wrap_backend_render_target(
+            &mut shared.gr.borrow_mut(),
+            &render_target,
+            SurfaceOrigin::TopLeft,
+            ColorType::BGRA8888,
+            None,
+            None,
+        );
+        if self.skia.is_none() {
+            return Err(RunError::Vulkan("Skia could not wrap the swapchain image"));
+        }
+        Ok(())
+    }
+
+    pub(crate) fn present(&mut self) -> Result<(), RunError> {
+        let Some(mut skia) = self.skia.take() else {
+            return Err(RunError::Vulkan("no acquired image"));
+        };
+        let shared = self.shared.clone();
+        let mut gr = shared.gr.borrow_mut();
+        gr.flush_surface_with_access(
+            &mut skia,
+            BackendSurfaceAccess::Present,
+            &FlushInfo::default(),
+        );
+        gr.submit(None);
+        drop(gr);
+        let rendered = [self.rendered[self.image_index as usize]];
+        let signal = ash_vk::SubmitInfo::default().signal_semaphores(&rendered);
+        let swapchains = [self.swapchain];
+        let indices = [self.image_index];
+        // SAFETY: the empty submit orders after Skia's on the same queue; the semaphore of
+        // this image is free because its previous present finished before it was acquired.
+        let presented = unsafe {
+            shared
+                .device
+                .queue_submit(shared.queue, &[signal], ash_vk::Fence::null())
+                .map_err(failed("vkQueueSubmit"))?;
+            shared.swapchain_fns.queue_present(
+                shared.queue,
+                &ash_vk::PresentInfoKHR::default()
+                    .wait_semaphores(&rendered)
+                    .swapchains(&swapchains)
+                    .image_indices(&indices),
+            )
+        };
+        match presented {
+            Ok(false) => Ok(()),
+            Ok(true) | Err(ash_vk::Result::ERROR_OUT_OF_DATE_KHR) => {
+                self.recreate_swapchain(self.size)
+            }
+            Err(_) => Err(RunError::Vulkan("vkQueuePresentKHR")),
+        }
+    }
+}
+
+impl Drop for Graphics {
+    fn drop(&mut self) {
+        self.skia = None;
+        let shared = self.shared.clone();
+        // SAFETY: waiting for idle first lets every handle of this window go.
+        unsafe {
+            let _ = shared.device.device_wait_idle();
+            self.destroy_swapchain();
+            shared.device.destroy_fence(self.acquired, None);
+            shared.surface_fns.destroy_surface(self.surface, None);
+        }
+    }
+}

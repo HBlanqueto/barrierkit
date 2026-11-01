@@ -1,12 +1,12 @@
 use super::{
     ObjectId, RunError,
     app_menu_export::AppMenuAddress,
-    egl::GraphicsShared,
     extension::Extension,
     input::seat::{RepeatState, cursor_shape_from_icon},
     popup::PopupCommand,
     surface::SurfaceWindow,
     timer::{TimerQueue, Wake},
+    vulkan::GraphicsShared,
     window::{WindowCommand, WindowControls},
 };
 use freya_core::prelude::State;

@@ -2,7 +2,6 @@
 
 pub(crate) mod app;
 mod app_menu_export;
-mod egl;
 pub(crate) mod extension;
 mod focus;
 mod input;
@@ -12,6 +11,7 @@ pub(crate) mod surface;
 #[cfg(test)]
 mod tests;
 pub(crate) mod timer;
+mod vulkan;
 mod window;
 
 pub use app_menu_export::AppMenuAddress;
@@ -35,11 +35,11 @@ pub enum RunError {
     NoDisplay,
     #[error("the compositor does not advertise {0}")]
     MissingGlobal(&'static str),
-    #[error("EGL initialisation failed: {0}")]
-    Egl(&'static str),
+    #[error("Vulkan failed: {0}")]
+    Vulkan(&'static str),
     #[error("event loop failed: {0}")]
     EventLoop(&'static str),
-    #[error("Skia could not create its GL context")]
+    #[error("Skia could not create its Vulkan context")]
     Skia,
     #[error(transparent)]
     Wayland(#[from] sctk::reexports::client::ConnectError),

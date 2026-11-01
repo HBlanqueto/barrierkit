@@ -21,6 +21,7 @@
         libxkbcommon
         fontconfig
         freetype
+        vulkan-loader
       ];
     in
     {
@@ -173,9 +174,7 @@
               export SKIA_BINARIES_URL="file://${skia}/skia-binaries.tar.gz"
             ''}
             export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath deps}$LD_LIBRARY_PATH"
-            export __EGL_VENDOR_LIBRARY_DIRS="${pkgs.mesa}/share/glvnd/egl_vendor.d''${__EGL_VENDOR_LIBRARY_DIRS:+:$__EGL_VENDOR_LIBRARY_DIRS}"
-            export LIBGL_DRIVERS_PATH="${pkgs.mesa}/lib/dri''${LIBGL_DRIVERS_PATH:+:$LIBGL_DRIVERS_PATH}"
-            export GBM_BACKENDS_PATH="${pkgs.mesa}/lib/gbm''${GBM_BACKENDS_PATH:+:$GBM_BACKENDS_PATH}"
+            export VK_DRIVER_FILES="${pkgs.mesa}/share/vulkan/icd.d/radeon_icd.x86_64.json''${VK_DRIVER_FILES:+:$VK_DRIVER_FILES}"
           '';
         };
       });

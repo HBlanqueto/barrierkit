@@ -31,12 +31,11 @@ infinity-protocol = { workspace = true, features = ["client"] }
 sctk.workspace = true
 calloop.workspace = true
 wayland-client.workspace = true
-wayland-egl.workspace = true
 wayland-scanner.workspace = true
 wayland-protocols = { workspace = true }
 wayland-protocols-plasma = { workspace = true, features = ["client"] }
 zbus.workspace = true
-khronos-egl = { workspace = true, features = ["dynamic"] }
+ash.workspace = true
 futures-util.workspace = true
 futures-channel.workspace = true
 async-channel.workspace = true
