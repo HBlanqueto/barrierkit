@@ -1,8 +1,4 @@
-//! The Freya theme built from `vow-design` and `vow-appearance` (ADR 0034).
-//!
-//! No colour or measurement is written here: the sheet is a projection of the
-//! resolved Tengen palette, so the compositor, the shell and the apps keep
-//! sharing one source.
+//! Freya theme built from the design tokens and the current appearance.
 
 use freya_components::theming::component_themes::{ColorsSheet, Theme};
 use freya_components::theming::themes::{dark_theme, light_theme};
@@ -20,22 +16,17 @@ pub(crate) fn color(c: Rgba) -> Color {
     Color::from_argb(a, r, g, b)
 }
 
-/// What kind of surface the kit is painting.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SurfaceKind {
-    /// A normal xdg_toplevel owned by a kit app.
     Toplevel,
-    /// A shell layer surface (menubar, dock).
     LayerShell,
 }
 
-/// The default background for `kind`, from the appearance the kit already watches.
 pub fn surface_background(resolved: &Resolved, kind: SurfaceKind) -> Rgba {
     match kind {
         SurfaceKind::Toplevel => resolved.surfaces.window,
         SurfaceKind::LayerShell => {
             let mut bar = resolved.shell.bar;
-            // Wallpaper + desktop already mixed shell.bar with panel_tint in resolve().
             if resolved.window_tint_scope == WindowTintScope::Desktop
                 && resolved.panel_tint.is_none()
                 && let Some((tint, factor)) = resolved.window_tint
@@ -86,34 +77,18 @@ fn sheet(background: Rgba, surface: Rgba, text: Rgba, accent: Rgba, border: Rgba
     }
 }
 
-/// Resolves the current appearance and its shell palette.
-///
-/// Inside a Freya tree this reads the process-wide reactive state provided by
-/// the runner, so components that call it re-execute when the theme changes.
-/// Outside a runner (tests without context, previews) it loads from disk.
 pub fn resolved() -> Resolved {
     if let Some(state) = try_consume_root_context::<State<Resolved>>() {
         *state.read()
     } else {
-        // shortcut: previews and tests that do not provide the runner state
-        // resolve from disk each time. Replace with a root context if reactive
-        // updates become needed.
         resolve(&load_appearance(), load_dominant())
     }
 }
 
-/// The shell palette for the current appearance (respects the desktop tint).
-///
-/// `Resolved` already picked the opaque or translucent surfaces from
-/// `reduce_transparency`.
-// TODO(ADR 0024): with reduce_transparency = false the compositor should blur
-// the wallpaper behind these surfaces; until then the translucent token simply
-// blends with whatever is behind it.
 pub fn shell_palette(resolved: &Resolved) -> ShellPalette {
     resolved.shell
 }
 
-/// The shell theme for an explicit scheme (tests and previews).
 pub fn for_scheme(dark: bool) -> Theme {
     let appearance = vow_appearance::AppearanceConfig {
         color_scheme: if dark {
@@ -138,7 +113,6 @@ pub fn for_scheme(dark: bool) -> Theme {
     )
 }
 
-/// The neutral background a menu is raised above for `kind`.
 fn neutral_background(scheme: ColorScheme, kind: SurfaceKind) -> Rgba {
     match (scheme, kind) {
         (ColorScheme::Dark, SurfaceKind::Toplevel) => BG_WINDOW_DARK,
@@ -150,7 +124,6 @@ fn neutral_background(scheme: ColorScheme, kind: SurfaceKind) -> Rgba {
     }
 }
 
-/// The menu background over `kind`, keeping the menu's raised offset.
 fn menu_background(resolved: &Resolved, kind: SurfaceKind) -> Rgba {
     if kind == SurfaceKind::Toplevel && !resolved.tint_parts.menus {
         return resolved.menu.bg;
@@ -161,12 +134,9 @@ fn menu_background(resolved: &Resolved, kind: SurfaceKind) -> Rgba {
     };
     let neutral = neutral_background(resolved.scheme, kind);
     let menu = resolved.menu.bg;
-    // With no tint, keep MENU_* exactly.
     if parent.r == neutral.r && parent.g == neutral.g && parent.b == neutral.b {
         return menu;
     }
-    // MENU_* sits `menu - neutral` above its parent; shift by that same offset
-    // so the parent's tint survives and the menu stays raised.
     let lift = |parent: f32, menu: f32, neutral: f32| (parent + menu - neutral).clamp(0.0, 1.0);
     Rgba {
         r: lift(parent.r, menu.r, neutral.r),
@@ -176,7 +146,6 @@ fn menu_background(resolved: &Resolved, kind: SurfaceKind) -> Rgba {
     }
 }
 
-/// The menu palette for the current appearance and opening surface.
 pub fn menu_palette(resolved: &Resolved, kind: SurfaceKind) -> MenuPalette {
     let mut palette = resolved.menu;
     palette.bg = menu_background(resolved, kind);
@@ -184,7 +153,6 @@ pub fn menu_palette(resolved: &Resolved, kind: SurfaceKind) -> MenuPalette {
     palette
 }
 
-/// Applies the settings popover metrics over `palette`; colours are untouched.
 pub fn apply_popover_metrics(mut palette: MenuPalette) -> MenuPalette {
     palette.radius = vow_design::MENU_POPOVER.radius;
     palette.padding = vow_design::MENU_POPOVER.padding;
@@ -198,12 +166,10 @@ pub fn apply_popover_metrics(mut palette: MenuPalette) -> MenuPalette {
     palette
 }
 
-/// The palette of a settings dropdown menu: live colours plus popover metrics.
 pub fn popover_palette(resolved: &Resolved, kind: SurfaceKind) -> MenuPalette {
     apply_popover_metrics(menu_palette(resolved, kind))
 }
 
-/// The theme for menubar/dock-style surfaces.
 pub fn shell() -> Theme {
     let resolved = resolved();
     let palette = shell_palette(&resolved);
@@ -217,7 +183,6 @@ pub fn shell() -> Theme {
     )
 }
 
-/// The theme for the lock screen.
 pub fn lock() -> Theme {
     let resolved = resolved();
     let palette = lock_palette(&resolved);
@@ -290,8 +255,6 @@ mod tests {
         [data[idx], data[idx + 1], data[idx + 2], data[idx + 3]]
     }
 
-    /// The testing runner renders on a white background, so a translucent fill
-    /// is alpha-composited over white.
     fn over_white([r, g, b, a]: [u8; 4]) -> [u8; 4] {
         if a == 255 {
             return [r, g, b, a];
@@ -490,7 +453,10 @@ mod tests {
         let dark = resolve(&config(ColorScheme::Dark), None);
         assert_eq!(dark.menu.hover_bg, orange, "dark menu selection");
         assert_eq!(dark.menu.search_ring, orange, "dark focus ring");
-        assert_eq!(dark.sidebar.palette.selected_bg, orange, "dark sidebar selection");
+        assert_eq!(
+            dark.sidebar.palette.selected_bg, orange,
+            "dark sidebar selection"
+        );
         assert_eq!(dark.sidebar.palette.item_icon, orange, "dark sidebar icon");
         assert_eq!(
             dark.sidebar.palette.selected_ink,

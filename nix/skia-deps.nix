@@ -1,6 +1,5 @@
-# Native libraries Skia needs while building and linking. Kept separate from the
-# compositor's deps so nix/skia.nix can be reused without pulling GStreamer or
-# input libraries.
+# Native libraries needed to build and link Skia.
+
 { pkgs }:
 with pkgs;
 [

@@ -1,8 +1,4 @@
-//! Focus navigation tests for BarrierKit apps (F-01).
-//!
-//! These run headlessly through `freya-testing`, so they verify that the
-//! platform focus plumbing (auto-focus, key delivery, Tab navigation) works
-//! end-to-end without a live Wayland compositor.
+//! Headless focus-navigation tests.
 
 use freya_components::input::Input;
 use freya_core::integration::{App, AppComponent};
@@ -35,21 +31,15 @@ fn auto_focused_input_receives_keys_and_tab_moves_focus() {
     let app = AppComponent::new(FocusApp { value_a, value_b });
     let (mut test, _) = TestingRunner::new(app, Size2D::new(300.0, 200.0), |_| {}, 1.0);
 
-    // Initial render: the first Input requested focus via auto_focus.
     test.sync_and_update();
 
-    // Type into the focused input.
     test.write_text("a");
     assert_eq!(value_a.peek().as_str(), "a");
     assert!(value_b.peek().is_empty());
 
-    // Tab moves focus to the next focusable control.
     test.press_key(Key::Named(NamedKey::Tab));
-    // freya-testing applies the requested focus strategy at the START of the
-    // next sync_and_update, so run one more cycle before typing again.
     test.sync_and_update();
 
-    // The second input now receives keys.
     test.write_text("b");
     assert_eq!(value_a.peek().as_str(), "a");
     assert_eq!(value_b.peek().as_str(), "b");

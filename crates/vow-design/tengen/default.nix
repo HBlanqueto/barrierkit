@@ -1,15 +1,5 @@
-# Tengen: la única fuente de tema y diseño de Keel.
-#
-# tokens.json y components.json son los datos (neutros, sin framework). Este
-# archivo los traduce a Slint, CSS y QML. Usa únicamente builtins, así que se
-# evalúa sin nixpkgs:
-#
-#   nix eval --raw -f crates/vow-design/tengen slint > generated/tengen.slint
-#   nix eval --raw -f crates/vow-design/tengen css   > generated/tengen.css
-#   nix eval --raw -f crates/vow-design/tengen qml   > generated/Tengen.qml
-#
-# Desde un módulo: (import ./crates/vow-design/tengen).slint, o `files pkgs` para una
-# derivación con los archivos generados.
+# Tengen: turns the token and component JSON into theme outputs.
+
 let
   tokens = builtins.fromJSON (builtins.readFile ./tokens.json);
   components = builtins.fromJSON (builtins.readFile ./components.json);
@@ -40,7 +30,6 @@ let
   firstFamily = f: let parts = builtins.split "," f; in
     builtins.replaceStrings [ "\"" ] [ "" ] (builtins.head parts);
 
-  # Medidas numéricas de components.json, aplanadas: switch.small.width → switch-small-width
   flatten =
     prefix: set:
     builtins.concatLists (
@@ -61,7 +50,6 @@ let
               duration = false;
             }
           ]
-        # "radius.sm", "duration.fast"… se resuelven contra tokens.json
         else if ref != null then
           [
             {
@@ -97,7 +85,6 @@ let
     else
       num m.value;
 
-  # Hojas de components.json para el CSS: nombre aplanado y valor crudo.
   componentLeaves =
     prefix: set:
     builtins.concatLists (
@@ -187,7 +174,6 @@ let
     leaf: "  --${leaf.name}: ${cssValue leaf.name leaf.value};"
   ) (builtins.filter (leaf: cssValue leaf.name leaf.value != null) leaves);
 
-  # Appearance values are all unitless ratios/factors; strings are colour refs.
   appearanceCssValue =
     name: v:
     if isInt v || isFloat v then
@@ -363,8 +349,6 @@ rec {
     qml
     ;
 
-  # Derivación con los archivos generados, para home-manager o un paquete:
-  #   xdg.configFile."tengen".source = (import ./crates/vow-design/tengen).files pkgs;
   files =
     pkgs:
     pkgs.runCommand "tengen-design" { } ''

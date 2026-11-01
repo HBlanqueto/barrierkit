@@ -1,8 +1,4 @@
-//! Single inotify watcher shared by compositor, shell and portal.
-//!
-//! Watches the configuration and data directories (not the files themselves)
-//! so atomic renames are handled correctly. The raw fd is owned by this struct
-//! and can be registered with calloop or any other fd-poller.
+//! Single inotify watcher for the configuration and data directories.
 
 use std::io;
 use std::os::fd::{AsFd, AsRawFd, RawFd};
@@ -13,40 +9,25 @@ use nix::sys::inotify::{AddWatchFlags, InitFlags, Inotify, InotifyEvent};
 
 use crate::{config_dir, data_dir};
 
-/// Kind of appearance-related change detected by the watcher.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AppearanceEvent {
-    /// `appearance.domain` changed.
     Appearance,
-    /// `wallpaper.state` changed.
     Wallpaper,
-    /// `wallpaper.domain` changed (the selected picture or scale).
     WallpaperSelection,
-    /// Accent colour inside `appearance.domain` changed.
     Accent,
 }
 
-/// A single inotify instance watching `appearance.domain`, `wallpaper.domain`
-/// and `wallpaper.state`.
-///
-/// The raw fd stays valid for the lifetime of this struct. The type is
-/// `Send + Sync` so it can be moved into a calloop event source.
 #[derive(Debug)]
 pub struct AppearanceWatch {
     inotify: Inotify,
 }
 
 impl AppearanceWatch {
-    /// Creates a watcher for the default config and data directories.
     pub fn new() -> io::Result<Self> {
         Self::new_for(config_dir(), data_dir())
     }
 
-    /// Creates a watcher for explicit directories.
     pub fn new_for(config_dir: PathBuf, data_dir: PathBuf) -> io::Result<Self> {
-        // Watch the directories, not the files, so atomic renames trigger
-        // IN_MOVED_TO. Create them first so a fresh install or a wiped cache
-        // does not fail before the first write.
         std::fs::create_dir_all(&config_dir)?;
         std::fs::create_dir_all(&data_dir)?;
         let inotify = Inotify::init(InitFlags::IN_NONBLOCK).map_err(into_io_error)?;
@@ -61,17 +42,9 @@ impl AppearanceWatch {
     }
 
     fn flags() -> AddWatchFlags {
-        // IN_DELETE covers clearing `wallpaper.state` (no dominant colour);
-        // IN_DELETE_SELF would only fire for the watched directory itself.
         AddWatchFlags::IN_CLOSE_WRITE | AddWatchFlags::IN_MOVED_TO | AddWatchFlags::IN_DELETE
     }
 
-    /// Drains every pending inotify event and returns the distinct appearance
-    /// events that occurred.
-    ///
-    /// Call this from the calloop callback (or equivalent) when the fd becomes
-    /// readable. Empty events mean the fd was readable but held no matching
-    /// file changes.
     pub fn drain(&self) -> io::Result<Vec<AppearanceEvent>> {
         let mut events = Vec::with_capacity(2);
         loop {
@@ -264,7 +237,6 @@ mod tests {
         let path = data_dir.join("wallpaper.state");
 
         write(&path, "dominant = [0.8, 0.2, 0.1]\n");
-        // Drain the rename that created the state so only the delete is pending.
         let _ = watch.drain();
 
         std::fs::remove_file(&path).unwrap();
@@ -287,7 +259,6 @@ mod tests {
         let watch = AppearanceWatch::new_for(config_dir.clone(), data_dir.clone()).unwrap();
         let path = config_dir.join("appearance.domain");
 
-        // Warm up.
         write(&path, "color_scheme = \"light\"\n");
         let _ = watch.drain();
 

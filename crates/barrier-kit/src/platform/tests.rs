@@ -230,7 +230,6 @@ fn pressing_b_then_releasing_a_keeps_b_repeating() {
         utf8: Some("b".into()),
     };
 
-    // Press A: it starts repeating.
     let mut repeat: Option<RepeatState> = None;
     if should_repeat_key(&a) {
         repeat = Some(RepeatState {
@@ -243,7 +242,6 @@ fn pressing_b_then_releasing_a_keeps_b_repeating() {
         });
     }
 
-    // Press B while A is held: B becomes the repeated key.
     if should_repeat_key(&b) {
         repeat = Some(RepeatState {
             event: b.clone(),
@@ -255,7 +253,6 @@ fn pressing_b_then_releasing_a_keeps_b_repeating() {
         });
     }
 
-    // Release A: repeat must stay alive because B is the repeated key.
     assert!(!released_repeated_key(&repeat, &a));
     assert!(
         repeat
@@ -320,7 +317,6 @@ fn touch_cancel_dispatches_cancelled_for_every_active_contact() {
         std::collections::HashMap::new();
     let surface_a = ObjectId::null();
     let surface_b = ObjectId::null();
-    // Simulate two fingers down on surface A and one on surface B.
     touch_surfaces.insert(0, surface_a.clone());
     touch_surfaces.insert(1, surface_a.clone());
     touch_surfaces.insert(2, surface_b.clone());
@@ -342,19 +338,14 @@ fn touch_cancel_dispatches_cancelled_for_every_active_contact() {
 
 #[test]
 fn touch_routing_uses_the_stored_surface_id() {
-    // We cannot build real WlSurface objects in a unit test, so we model
-    // the surfaces as (label, id) tuples. Surface B was created first,
-    // surface A second; a touch started on A must route to A, not to B.
     let surfaces = vec![('B', 1usize), ('A', 2usize)];
     let touch_id = 7;
     let stored_surface_id = 2usize;
 
-    // Simulate down storing A's id for this touch.
     let mut touch_surfaces: std::collections::HashMap<i32, usize> =
         std::collections::HashMap::new();
     touch_surfaces.insert(touch_id, stored_surface_id);
 
-    // Simulate motion / up: the stored id is looked up in the surface list.
     let routed_id = touch_surfaces.get(&touch_id).copied();
     let index = find_index_by_id(&surfaces, routed_id.unwrap(), |item| item.1);
 
@@ -374,17 +365,6 @@ fn destroy_fractional_objects_is_safe_when_missing() {
     assert!(fractional.is_none());
     assert!(viewport.is_none());
 }
-
-// Manual test for destroy order:
-// Run with WAYLAND_DEBUG=1 and close a window. Verify that
-// wp_fractional_scale_v1@...destroy and wp_viewport@...destroy lines appear
-// before the wl_surface@...destroy line for the same surface.
-
-// Manual test for the configure overwrite behaviour:
-// Run with WAYLAND_DEBUG=1 while resizing. Two configures arriving in the
-// same batch (same size, different state) must result in the second state
-// being applied; the code now stores only the latest configure in
-// `pending_configure: Option<_>`.
 
 #[test]
 fn extension_slot_typed_access() {
@@ -568,10 +548,6 @@ mod drag_band_tests {
 
 #[cfg(test)]
 mod overlay_titlebar_tests {
-    //! Focus mode with an overlaid titlebar (`set_overlay`, MalaysiaDreams
-    //! ADR 0054): the titlebar leaves the layout and is drawn over the
-    //! content below the bar only while the bar is down.
-
     use crate::ProbeExt;
     use crate::titlebar::Titlebar;
     use freya_core::integration::AppComponent;
@@ -605,7 +581,6 @@ mod overlay_titlebar_tests {
         }
     }
 
-    /// The top of a probed node, if it is in the tree.
     fn top_of(test: &TestingRunner, id: &str) -> Option<f32> {
         test.find(|node, el| {
             (el.accessibility().builder.author_id() == Some(id))
@@ -661,7 +636,11 @@ mod overlay_titlebar_tests {
         let mut test = runner(true, true, bar.clone());
         test.sync_and_update();
         assert_eq!(top_of(&test, "overlay-content"), Some(0.0));
-        assert_eq!(top_of(&test, "overlay-title"), None, "hidden without the bar");
+        assert_eq!(
+            top_of(&test, "overlay-title"),
+            None,
+            "hidden without the bar"
+        );
 
         bar.borrow_mut().as_mut().unwrap().set(true);
         test.sync_and_update();

@@ -40,18 +40,15 @@ pub(crate) struct RepeatState {
     pub(in crate::platform) generation: u64,
 }
 
-/// Cancels the current repeat and invalidates any timer already in flight.
 pub(in crate::platform) fn stop_repeat(repeat: &mut Option<RepeatState>, generation: &mut u64) {
     *repeat = None;
     *generation = generation.wrapping_add(1);
 }
 
-/// Returns true if the pressed key should start the auto-repeat timer.
 pub(in crate::platform) fn should_repeat_key(event: &KeyEvent) -> bool {
     !event.keysym.is_modifier_key()
 }
 
-/// Returns true if the released key is the one currently being repeated.
 pub(in crate::platform) fn released_repeated_key(
     repeat: &Option<RepeatState>,
     event: &KeyEvent,
@@ -99,13 +96,10 @@ pub(in crate::platform) fn cursor_shape_from_icon(icon: CursorIcon) -> CursorSha
         CursorIcon::DndAsk => CursorShape::DndAsk,
         CursorIcon::AllResize => CursorShape::AllResize,
         CursorIcon::Default => CursorShape::Default,
-        // cursor-icon is non-exhaustive; unknown icons fall back to the arrow.
         _ => CursorShape::Default,
     }
 }
 
-/// Find the index of the item whose identifier matches `id`.
-/// Extracted so touch routing can be unit-tested without real Wayland surfaces.
 pub(in crate::platform) fn find_index_by_id<T, Id: Eq>(
     items: &[T],
     id: Id,
@@ -292,13 +286,6 @@ impl KeyboardHandler for Runtime {
     ) {
         self.last_input_serial.set(serial);
         self.key_event(qh, event.clone(), KeyboardEventName::KeyDown);
-        // Modifier keys and keys that xkb marks non-repeating should not
-        // produce repeated KeyDown events. SCTK 0.19.2 can repeat keys itself
-        // via SeatState::get_keyboard_with_repeat, but that requires a loop
-        // handle at keyboard creation time and a callback that knows the
-        // focused surface; keeping our own timer is the smaller change.
-        // shortcut: keys other than modifiers that xkb marks non-repeating
-        // are still repeated because KeyboardHandler does not expose that bit.
         if should_repeat_key(&event) {
             let (delay, rate) = self.repeat_timing();
             self.repeat_generation = self.repeat_generation.wrapping_add(1);
@@ -323,9 +310,6 @@ impl KeyboardHandler for Runtime {
         event: KeyEvent,
     ) {
         self.key_event(qh, event.clone(), KeyboardEventName::KeyUp);
-        // Only stop repeating if the released key is the one currently being
-        // repeated. This keeps B repeating after A is released when A and B
-        // were both pressed.
         if released_repeated_key(&self.repeat, &event) {
             stop_repeat(&mut self.repeat, &mut self.repeat_generation);
         }
@@ -452,9 +436,6 @@ impl Runtime {
     }
 }
 
-/// Drain every active touch contact so `TouchHandler::cancel` can dispatch a
-/// `TouchPhase::Cancelled` event to each surface. Kept as a pure helper so the
-/// routing can be unit-tested without a live Wayland connection.
 pub(in crate::platform) fn dispatch_touch_cancels(
     touch_surfaces: &mut std::collections::HashMap<i32, ObjectId>,
     mut dispatch: impl FnMut(i32, ObjectId),
@@ -551,8 +532,6 @@ impl TouchHandler for Runtime {
     }
 
     fn cancel(&mut self, _: &Connection, qh: &QueueHandle<Self>, _: &wl_touch::WlTouch) {
-        // Move the active contacts out so the dispatch closure can borrow `self`
-        // to push the event.
         let mut cancelled = std::mem::take(&mut self.touch_surfaces);
         dispatch_touch_cancels(&mut cancelled, |id, surface_id| {
             self.touch_event(

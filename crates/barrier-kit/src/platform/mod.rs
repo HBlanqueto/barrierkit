@@ -1,14 +1,4 @@
-//! The Wayland runner for Freya's core (ADR 0034).
-//!
-//! `freya-winit` cannot be used: it drags in winit, GTK, the tray stack and
-//! glutin, and winit has no layer-shell or session-lock support. This module
-//! owns the other half: it creates the surface (layer-shell or
-//! ext-session-lock), an EGL context on the Wayland display, a Skia GL
-//! context, and feeds input into a Freya [`Runner`]. Each surface gets its own
-//! runner, tree, font collection and Skia context.
-//!
-//! The event loop is calloop (the same one the shell already uses); Freya's
-//! futures are polled from its ping source, never from a runtime thread.
+//! Wayland runner that drives Freya's core.
 
 pub(crate) mod app;
 mod app_menu_export;
@@ -39,7 +29,6 @@ pub use window::{
 pub(crate) use popup::PopupCommand;
 pub use sctk::reexports::client::backend::ObjectId;
 
-/// A failure while setting up or running the surface.
 #[derive(Debug, thiserror::Error)]
 pub enum RunError {
     #[error("WAYLAND_DISPLAY is not set to a reachable socket")]

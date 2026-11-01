@@ -1,8 +1,4 @@
-//! Tengen menu control for BarrierKit popups.
-//!
-//! Distinct from [`freya_components::menu::Menu`]. This one is designed for the
-//! shell's global menus and context menus: it opens submenus as child popups,
-//! supports keyboard navigation and reports actions through `on_activate`.
+//! Menu control for popups, with submenus and keyboard navigation.
 
 use std::borrow::Cow;
 use std::cell::{Cell, RefCell};
@@ -23,27 +19,17 @@ use keyboard_types::{Key, NamedKey};
 use ragnarok::CursorPoint;
 use torin::prelude::{Alignment, Direction, Gaps, Size};
 
-// Freya re-exports `State` as the reactive handle returned by `use_state`.
 type UseState<T> = State<T>;
 
-/// Time the menu waits while the pointer travels diagonally toward an already
-/// open submenu before closing that submenu and highlighting the new row.
 const SUBMENU_INTENT_DELAY: Duration = Duration::from_millis(300);
-/// How often a hovered scroll arrow moves a long menu.
 const SCROLL_TICK: Duration = Duration::from_millis(30);
 
-/// Marks the mnemonic letter of a label: it goes right before the letter.
-/// U+2063 (INVISIBLE SEPARATOR) has no width and no glyph, so a label that
-/// keeps it by mistake still looks right. The menu underlines the marked
-/// letter while Alt is held, like dbusmenu and GTK do with `_`.
 pub const MNEMONIC_MARK: char = '\u{2063}';
 
-/// The label without its mnemonic mark, for comparing and searching.
 pub fn strip_mnemonic(label: &str) -> String {
     label.replace(MNEMONIC_MARK, "")
 }
 
-/// A row label; with `show_mnemonic` the marked letter is underlined.
 fn item_label(text: &str, show_mnemonic: bool, size: f32, color: Rgba) -> Element {
     let split = text.split_once(MNEMONIC_MARK).and_then(|(before, rest)| {
         let letter = rest.chars().next()?;
@@ -67,8 +53,6 @@ fn item_label(text: &str, show_mnemonic: bool, size: f32, color: Rgba) -> Elemen
     }
 }
 
-/// Pointer state shared across menu rows so diagonal moves toward an open
-/// submenu can delay closing it.
 #[derive(Default)]
 struct HoverState {
     last: Option<(Instant, CursorPoint)>,
@@ -85,7 +69,6 @@ struct HoverPending {
     to_bottom: CursorPoint,
 }
 
-/// True when `p` lies inside the triangle with vertices `a`, `b`, `c`.
 fn point_in_triangle(p: CursorPoint, a: CursorPoint, b: CursorPoint, c: CursorPoint) -> bool {
     let sign = |p1: CursorPoint, p2: CursorPoint, p3: CursorPoint| {
         (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y)
@@ -106,50 +89,32 @@ use crate::platform::{
 use crate::theme::{SurfaceKind, menu_palette};
 use vow_design::{MenuPalette, Rgba, SANS_FAMILIES};
 
-/// Which pool a search result comes from.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum SearchSource {
-    /// A real menu entry (App, Ventana or a nested submenu).
     Menu,
-    /// A local help topic.
     Help,
 }
 
-/// Where a searchable menu entry lives in the menubar, so the Help popup can
-/// reveal its real menu when the result is highlighted.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct SearchLocation {
-    /// Index of the top-level menu title in the menubar.
     pub title_index: usize,
-    /// Indices inside the menu tree down to the entry itself.
     pub indices: Vec<usize>,
 }
 
-/// One entry that the Help search field can match.
 #[derive(Clone, Debug, PartialEq)]
 pub struct SearchableEntry {
-    /// Human-readable path (e.g. "Ventana › Trasladar y redimensionar").
     pub path: String,
-    /// The menu item to activate when selected.
     pub item: MenuItem,
-    /// Where the entry lives in the menubar, if it belongs to a real menu.
     pub location: Option<SearchLocation>,
-    /// Whether it is a menu action or a help topic.
     pub source: SearchSource,
 }
 
-/// Persistent state for a search field so it survives closing and reopening
-/// the popup.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct SearchQuery {
-    /// Current query text.
     pub text: String,
-    /// Whether the text is selected and the next keystroke replaces it.
     pub selected: bool,
 }
 
-/// The process-wide text stack for measurement. Mirrors the renderer's
-/// `FontCollection` (system manager plus the shell's fallback families).
 fn font_families() -> Vec<Cow<'static, str>> {
     let mut families: Vec<Cow<'static, str>> = SANS_FAMILIES
         .iter()
@@ -159,12 +124,6 @@ fn font_families() -> Vec<Cow<'static, str>> {
     families
 }
 
-/// Measures `text` with the same paragraph stack Freya draws it with. The
-/// previous implementation used its own `FontMgr`, which missed the fallback
-/// faces that carry `⇧`, `⌃` or accented glyphs and returned a too-small width.
-/// Formats a shortcut written as text (`Ctrl+Shift+G`, `Alt+Inicio`) with the
-/// macOS key glyphs and order: `⌃` Ctrl, `⌥` Alt, `⇧` Shift, `❖` Super.
-/// There is no `+` between them and the Command glyph is never emitted.
 pub fn format_shortcut(text: &str) -> String {
     let text = text.trim();
     let (mut ctrl, mut alt, mut shift, mut sup) = (false, false, false, false);
@@ -202,7 +161,6 @@ pub fn format_shortcut(text: &str) -> String {
     out
 }
 
-/// Measures the width of `text` at `size` using the same font stack as menus.
 pub fn measure_text(text: &str, size: f32) -> f32 {
     if text.is_empty() {
         return 0.0;
@@ -220,9 +178,6 @@ pub fn measure_text(text: &str, size: f32) -> f32 {
     paragraph.max_intrinsic_width()
 }
 
-/// Truncates `text` in the middle with "…" so it fits `max_width`.
-/// The ellipsis is always included when truncating; if even that does not fit,
-/// the function falls back to the rightmost characters that do.
 fn truncate_middle(text: &str, max_width: f32, font_size: f32) -> String {
     if max_width <= 0.0 || text.is_empty() || measure_text(text, font_size) <= max_width {
         return text.to_string();
@@ -251,18 +206,10 @@ fn truncate_middle(text: &str, max_width: f32, font_size: f32) -> String {
     ellipsis.to_string()
 }
 
-/// The magnifier drawn at the start of a search field.
 const SEARCH_ICON: &str = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 16 16\"><circle cx=\"6.8\" cy=\"6.8\" r=\"4.2\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\"/><path d=\"M10 10l3.2 3.2\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\" stroke-linecap=\"round\"/></svg>";
 
-/// Gap between the mark/icon column and the label, so an icon never touches
-/// the text and plain entries line up with the ones that carry one.
 const MARK_TEXT_GAP: f32 = 6.0;
 
-/// Returns whether a menu uses a single leading column for marks or icons.
-///
-/// The column is reserved as soon as any entry has a [`CheckState`] other than
-/// `None` or carries an icon, so toggling a mark on or swapping an icon does
-/// not make the text jump.
 fn has_leading_column(items: &[MenuItem]) -> bool {
     let mut has = false;
     for item in items {
@@ -289,8 +236,6 @@ fn has_leading_column(items: &[MenuItem]) -> bool {
     has
 }
 
-/// Horizontal offset from the panel's inner left edge to the start of a row's
-/// label, based on whether this menu uses a leading column.
 fn row_text_inset(items: &[MenuItem], m: MenuPalette) -> f32 {
     if has_leading_column(items) {
         m.item_padding_x + m.leading_width + MARK_TEXT_GAP
@@ -299,59 +244,41 @@ fn row_text_inset(items: &[MenuItem], m: MenuPalette) -> f32 {
     }
 }
 
-/// State of a check/radio mark in a menu item.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum CheckState {
-    /// No mark.
     #[default]
     None,
-    /// Checked box with the given state.
     Checkbox(bool),
-    /// Radio dot with the given state.
     Radio(bool),
 }
 
-/// Resolves the live children of a remote submenu by id.
 pub type SubmenuSource = Rc<dyn Fn(&str) -> Option<Vec<MenuItem>>>;
 
-/// Re-reads menu items on every render.
 pub type ItemsSource = Rc<dyn Fn() -> Vec<MenuItem>>;
 
-/// Re-reads searchable entries on every render, so results that arrive while
-/// the menu stays open show up without losing the query or the scroll.
 pub type SearchableSource = Rc<dyn Fn() -> Vec<SearchableEntry>>;
 
-/// Re-reads the root menus shown when a Help result is revealed.
 pub type RevealRoots = Rc<dyn Fn() -> Vec<Vec<MenuItem>>>;
 
-/// Direction for root-menu keyboard navigation between menubar titles.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum MenuNavigation {
-    /// Move to the previous title on the menubar.
     Prev,
-    /// Move to the next title on the menubar.
     Next,
 }
 
-/// Leading icon of a menu row.
 #[derive(Clone, Debug, PartialEq)]
 pub enum MenuIcon {
-    /// SVG path data, tinted with the row colour.
     Svg(Arc<str>),
-    /// An encoded PNG (dbusmenu `icon-data`), drawn as-is.
     Image(Arc<[u8]>),
 }
 
 impl MenuIcon {
-    /// Largest PNG accepted from dbusmenu, in bytes.
     pub const MAX_IMAGE_BYTES: usize = 64 * 1024;
 
-    /// Wraps an SVG string.
     pub fn svg(s: impl Into<Arc<str>>) -> Self {
         Self::Svg(s.into())
     }
 
-    /// Wraps an encoded PNG, dropping anything above [`Self::MAX_IMAGE_BYTES`].
     pub fn image(bytes: impl Into<Arc<[u8]>>) -> Option<Self> {
         let bytes = bytes.into();
         if bytes.len() > Self::MAX_IMAGE_BYTES {
@@ -365,39 +292,31 @@ impl MenuIcon {
     }
 }
 
-/// One entry in a Tengen menu.
 #[derive(Clone, Debug, PartialEq)]
 pub enum MenuItem {
-    /// An action the user can trigger.
     Action {
         id: String,
         label: String,
         shortcut: Option<String>,
         enabled: bool,
         check: CheckState,
-        /// Leading icon, drawn in the mark column.
         icon: Option<MenuIcon>,
     },
-    /// A nested submenu.
     Submenu {
-        /// Stable id used to request remote children, when it came from
-        /// dbusmenu. Static menus leave it `None`.
         id: Option<String>,
         label: String,
         enabled: bool,
         items: Vec<MenuItem>,
-        /// Leading icon, drawn in the mark column.
         icon: Option<MenuIcon>,
     },
-    /// A non-selectable group header. `count` is shown on the right when the
-    /// header introduces a scrollable search-result section.
-    Header { label: String, count: Option<usize> },
-    /// A visual separator.
+    Header {
+        label: String,
+        count: Option<usize>,
+    },
     Separator,
-    /// A non-selectable search field. Visual only for now.
-    SearchField { placeholder: String },
-    /// A filtered search result carrying its menu path, source pool and, for
-    /// menu entries, its location in the menubar so it can be revealed.
+    SearchField {
+        placeholder: String,
+    },
     SearchResult {
         path: String,
         item: Box<MenuItem>,
@@ -454,8 +373,6 @@ impl MenuItem {
     }
 }
 
-/// Drops leading and trailing separators, collapses separator runs into one
-/// and applies the same rule inside every submenu.
 pub fn normalize_separators(items: &mut Vec<MenuItem>) {
     for item in items.iter_mut() {
         if let MenuItem::Submenu { items, .. } = item {
@@ -478,7 +395,6 @@ pub fn normalize_separators(items: &mut Vec<MenuItem>) {
     }
 }
 
-/// The single row an empty menu shows instead of an empty panel.
 fn empty_hint() -> MenuItem {
     MenuItem::Action {
         id: String::new(),
@@ -490,7 +406,6 @@ fn empty_hint() -> MenuItem {
     }
 }
 
-/// Adds the empty-menu hint when the list has no items.
 fn with_empty_hint(items: Vec<MenuItem>) -> Vec<MenuItem> {
     if items.is_empty() {
         vec![empty_hint()]
@@ -499,8 +414,6 @@ fn with_empty_hint(items: Vec<MenuItem>) -> Vec<MenuItem> {
     }
 }
 
-/// Where the menu colours come from: the live appearance of the surface that
-/// opened it, or a fixed palette for tests and previews.
 #[derive(Clone, Copy)]
 struct PaletteSource {
     surface: SurfaceKind,
@@ -509,7 +422,6 @@ struct PaletteSource {
 }
 
 impl PaletteSource {
-    /// Colours that follow the appearance of `surface`.
     fn live(surface: SurfaceKind) -> Self {
         Self {
             surface,
@@ -518,7 +430,6 @@ impl PaletteSource {
         }
     }
 
-    /// Colours pinned for tests and previews.
     fn fixed(palette: MenuPalette) -> Self {
         Self {
             surface: SurfaceKind::LayerShell,
@@ -527,8 +438,6 @@ impl PaletteSource {
         }
     }
 
-    /// Resolves the palette now, so a component that calls this re-executes
-    /// when the appearance changes.
     fn current(self) -> MenuPalette {
         self.with_resolved(&crate::theme::resolved())
     }
@@ -544,24 +453,18 @@ impl PaletteSource {
         }
     }
 
-    /// A child menu keeps the same source as its parent.
     fn inherit(self, mut view: MenuView) -> MenuView {
         view.palette_source = self;
         view
     }
 }
 
-/// A Tengen menu rendered inside a popup.
 pub struct MenuView {
     items: Rc<Vec<MenuItem>>,
-    /// Live item source, re-read on every render so remote menus can update
-    /// while the popup stays open.
     items_source: Option<ItemsSource>,
     on_activate: Rc<dyn Fn(String)>,
     on_dismiss_all: Rc<dyn Fn()>,
-    /// Called with a submenu id when a remote submenu is opened.
     on_open_submenu: Option<Rc<dyn Fn(String)>>,
-    /// Resolves the live children of a remote submenu by id.
     submenu_source: Option<SubmenuSource>,
     on_navigation: Option<Rc<dyn Fn(MenuNavigation)>>,
     palette_source: PaletteSource,
@@ -572,17 +475,12 @@ pub struct MenuView {
     help_search_icon: Option<&'static str>,
     popup_spec: Option<PopupSpec>,
     reveal_roots: Option<RevealRoots>,
-    /// Initial focused row, used when revealing a search result.
     focused_index: Option<usize>,
-    /// Path of submenu indices to open after mounting, used when revealing a
-    /// nested search result.
     open_path: Option<Rc<Vec<usize>>>,
     probe: Option<&'static str>,
 }
 
 impl MenuView {
-    /// Creates a menu view. `on_dismiss_all` must close the root popup (and
-    /// therefore the whole tree); every submenu reuses the same closure.
     pub fn new(
         items: Vec<MenuItem>,
         on_activate: impl Fn(String) + 'static,
@@ -610,88 +508,62 @@ impl MenuView {
         }
     }
 
-    /// Sets the kind of surface the menu opens over, so it inherits that
-    /// surface's tint. Defaults to a layer shell.
     pub fn with_surface(mut self, kind: SurfaceKind) -> Self {
         self.palette_source = PaletteSource::live(kind);
         self
     }
 
-    /// Pins the colours instead of following the appearance. Only for tests and
-    /// previews.
     pub fn with_fixed_palette(mut self, palette: MenuPalette) -> Self {
         self.palette_source = PaletteSource::fixed(palette);
         self
     }
 
-    /// Lays the menu out with the settings popover metrics while keeping the
-    /// live colours of its opening surface.
     pub fn with_popover_metrics(mut self) -> Self {
         self.palette_source.popover = true;
         self
     }
 
-    /// Stores the original popup geometry so the view can resize itself while
-    /// it is open.
     pub fn with_popup_spec(mut self, spec: PopupSpec) -> Self {
         self.popup_spec = Some(spec);
         self
     }
 
-    /// Attaches a list of searchable menu entries. When the menu contains a
-    /// [`MenuItem::SearchField`], typing filters these entries and shows them
-    /// under an "Ítems del menú" header. The source is re-read on every render.
     pub fn with_searchable(mut self, source: impl Fn() -> Vec<SearchableEntry> + 'static) -> Self {
         self.searchable = Some(Rc::new(source));
         self
     }
 
-    /// Attaches a list of searchable help topics shown under "Temas de ayuda".
-    /// The source is re-read on every render.
     pub fn with_help_topics(mut self, source: impl Fn() -> Vec<SearchableEntry> + 'static) -> Self {
         self.help_search = Some(Rc::new(source));
         self
     }
 
-    /// Sets the icons used for menu and help search results.
-    ///
-    /// `menu` may contain `{{text}}` and `{{accent}}` placeholders for a
-    /// two-colour icon; `help` must use `currentColor`.
     pub fn with_search_icons(mut self, menu: &'static str, help: &'static str) -> Self {
         self.menu_search_icon = Some(menu);
         self.help_search_icon = Some(help);
         self
     }
 
-    /// Sets the root menus that can be revealed when a menu search result is
-    /// highlighted. The source is re-read when a result is revealed, so late
-    /// remote children are already there. The vector index matches
-    /// [`SearchLocation::title_index`].
     pub fn with_reveal_roots(mut self, source: impl Fn() -> Vec<Vec<MenuItem>> + 'static) -> Self {
         self.reveal_roots = Some(Rc::new(source));
         self
     }
 
-    /// Sets the initial focused row, used when revealing a search result.
     pub fn with_focused_index(mut self, index: Option<usize>) -> Self {
         self.focused_index = index;
         self
     }
 
-    /// Re-reads the items on every render. The source can subscribe to a
-    /// `State` so a remote menu updates while its popup stays open.
     pub fn with_items_source(mut self, source: impl Fn() -> Vec<MenuItem> + 'static) -> Self {
         self.items_source = Some(Rc::new(source));
         self
     }
 
-    /// Called with the id when a remote submenu is opened.
     pub fn with_open_submenu(mut self, callback: impl Fn(String) + 'static) -> Self {
         self.on_open_submenu = Some(Rc::new(callback));
         self
     }
 
-    /// Resolves the live children of a remote submenu by id.
     pub fn with_submenu_source(
         mut self,
         source: impl Fn(&str) -> Option<Vec<MenuItem>> + 'static,
@@ -700,40 +572,24 @@ impl MenuView {
         self
     }
 
-    /// Sets a path of submenu indices to open after mounting, used when
-    /// revealing a nested search result.
     pub fn with_open_path(mut self, path: Vec<usize>) -> Self {
         self.open_path = Some(Rc::new(path));
         self
     }
 
-    /// Attaches an external query store so the search text survives closing and
-    /// reopening the popup.
     pub fn with_query_state(mut self, state: Rc<RefCell<SearchQuery>>) -> Self {
         self.query_state = Some(state);
         self
     }
 
-    /// Attaches a root-navigation callback.
-    ///
-    /// When the menu is the root of a menubar popup, `ArrowLeft` and
-    /// `ArrowRight` move to the neighbouring title instead of closing the popup
-    /// or doing nothing.
     pub fn with_navigation(mut self, on_navigation: impl Fn(MenuNavigation) + 'static) -> Self {
         self.on_navigation = Some(Rc::new(on_navigation));
         self
     }
 
-    /// Maximum number of visible menu search-result rows.
     pub const MAX_MENU_ROWS: usize = 9;
-    /// Maximum number of visible help search-result rows.
     pub const MAX_HELP_ROWS: usize = 5;
 
-    /// Returns the logical size needed to render `items` with `palette`.
-    ///
-    /// Labels are measured with Skia and truncated in the middle with "…" when
-    /// they would exceed `panel.max_width`. Shortcuts and chevrons always stay
-    /// visible and are never wrapped.
     pub fn preferred_size(items: &[MenuItem], m: MenuPalette) -> (f32, f32) {
         let hint;
         let items = if items.is_empty() {
@@ -832,8 +688,6 @@ impl App for MenuView {
         let on_navigation = self.on_navigation.clone();
         let palette_source = self.palette_source;
         let m = palette_source.current();
-        // The popup may have grown or shrunk after a reposition, so the tree
-        // follows the configured surface instead of the size at creation.
         let platform = Platform::get();
         let scale = (*platform.scale_factor.peek()).max(f64::EPSILON);
         let root_size = *platform.root_size.peek();
@@ -872,7 +726,6 @@ impl App for MenuView {
         let query_text = (*query.read()).clone();
         let is_selected = *selected.read();
 
-        // Sync the external query store so reopening keeps the text.
         if let Some(state) = &query_state {
             let current = SearchQuery {
                 text: query_text.clone(),
@@ -892,7 +745,6 @@ impl App for MenuView {
         let mut menu_scroll = use_state(|| 0usize);
         let mut help_scroll = use_state(|| 0usize);
 
-        // Reset scroll when the query changes so the user starts at the top.
         if prev_query.borrow().as_str() != query_text {
             *prev_query.borrow_mut() = query_text.clone();
             menu_scroll.set(0);
@@ -911,7 +763,6 @@ impl App for MenuView {
             )
         };
 
-        // Keep the popup size in sync when live items replace a loading row.
         let last_size = use_hook(|| {
             Rc::new(Cell::new(
                 popup_spec.as_ref().map(|spec| spec.size).unwrap_or((0, 0)),
@@ -999,18 +850,12 @@ impl App for MenuView {
 
         let visible_rc = Rc::new(visible.clone());
 
-        // Alt held: underline the mnemonic letters (dbusmenu/GTK `_`).
         let alt_held = use_state(|| false);
         let show_mnemonic = *alt_held.read();
 
-        // A menu taller than its popup (the compositor shortened it with
-        // resize_y) scrolls like macOS: arrow strips at both ends that scroll
-        // while hovered, the wheel, and the keyboard focus kept in view.
         let inset = 2.0 * m.border_width + m.padding;
         let content_height: f32 = visible.iter().map(|item| item.height(m)).sum();
         let available = (size.1 - inset * 2.0).max(0.0);
-        // Half a row of tolerance: only a popup the compositor really
-        // shortened scrolls, not one a pixel or two short after rounding.
         let overflow = query_text.is_empty() && content_height > available + m.item_height / 2.0;
         let arrow_height = m.header_height;
         let viewport = if overflow {
@@ -1046,8 +891,6 @@ impl App for MenuView {
                 }
             }
         }
-        // Rows sit `shift` px higher than in an unscrolled menu, so submenus
-        // anchor to the row the user sees.
         let shift = if overflow {
             scroll_now - arrow_height
         } else {
@@ -1171,7 +1014,6 @@ impl App for MenuView {
             let execute_target = execute_target.clone();
             Rc::new(move |index: usize, pos: CursorPoint| {
                 hover_state.borrow_mut().last = Some((Instant::now(), pos));
-                // Read and release the borrow before execute_target borrows mutably.
                 let pending = hover_state.borrow().pending;
                 if let Some(pending) = pending
                     && pending.target_index == index
@@ -1439,10 +1281,6 @@ impl App for MenuView {
                         );
                     }
                 }
-                // Plain Space activates. Ctrl/Alt+Space belong to the input
-                // method and the window menu, so they are filtered like text
-                // input (`inserts_text`); inside the Help search a space is
-                // part of the query.
                 Key::Character(ref ch)
                     if ch == " "
                         && inserts_text(event.modifiers)
@@ -1479,8 +1317,6 @@ impl App for MenuView {
                     }
                     text.push_str(ch);
                     query.set(text);
-                    // Typing filters the list but does not reveal a menu;
-                    // the user must move with the arrow keys or hover.
                 }
                 Key::Named(NamedKey::Backspace) if has_search => {
                     if is_selected {
@@ -1491,8 +1327,6 @@ impl App for MenuView {
                         text.pop();
                         query.set(text);
                     }
-                    // Keep the previous focus so a deletion does not pop up
-                    // the menu of a result the user has not chosen.
                 }
                 Key::Named(NamedKey::Escape) if has_search => {
                     if query_text.is_empty() {
@@ -1545,18 +1379,12 @@ impl App for MenuView {
                         popup.close();
                     }
                 }
-                // Esc is handled compositor-side: it dismisses the topmost
-                // popup and sends `popup_done`. The client must not close an
-                // extra level here. See `State::dismiss_topmost_popup`.
                 _ => {}
             }
         })
     }
 }
 
-/// One scroll strip of a long menu: a chevron while there is more to show in
-/// `direction` (-1 up, 1 down); hovering it scrolls until the end or until
-/// the pointer leaves.
 #[allow(clippy::too_many_arguments)]
 fn scroll_arrow(
     direction: i8,
@@ -1591,7 +1419,6 @@ fn scroll_arrow(
         .into_element()
 }
 
-/// Scrolls one step and schedules the next while the strip stays hovered.
 fn scroll_tick(
     timers: Timers,
     auto: Rc<Cell<i8>>,
@@ -1632,10 +1459,6 @@ fn svg_rgb(color: Rgba) -> String {
     format!("rgb({r},{g},{b})")
 }
 
-/// Fills a two-colour SVG template with the menu text and accent colours.
-///
-/// The placeholders become `rgb(r,g,b)` (never eight-digit hex) and opacity is
-/// left to the template's `fill-opacity` / `stroke-opacity` attributes.
 pub fn search_icon_svg(template: &str, text: Rgba, accent: Rgba) -> String {
     template
         .replace("{{text}}", &svg_rgb(text))
@@ -1738,8 +1561,6 @@ fn activate_or_open(
     }
 }
 
-/// Removes accents and lowercases a query so searches are case and accent
-/// insensitive.
 fn normalize_query(text: &str) -> String {
     strip_mnemonic(text)
         .to_lowercase()
@@ -1757,10 +1578,6 @@ fn normalize_query(text: &str) -> String {
         .replace('Ñ', "n")
 }
 
-/// Score for search-result ordering: lower is better.
-///
-/// Enabled entries come before disabled ones. Within each group, a prefix
-/// match beats a word-start match, which beats a substring match.
 fn word_start(name: &str, query: &str) -> bool {
     name.char_indices().any(|(index, _)| {
         if index == 0 {
@@ -1807,13 +1624,6 @@ fn filter_search_results(query: &str, searchable: &[SearchableEntry]) -> Vec<Sea
         .collect()
 }
 
-/// Builds the items actually rendered: the original list when there is no
-/// active query, or the search field + results + the original help items when
-/// there is.
-///
-/// `menu_scroll` and `help_scroll` are the indices of the first result shown
-/// in each scrollable section. The caller updates them when the highlighted
-/// row moves outside the viewport.
 fn search_result_lists(
     searchable: Option<&[SearchableEntry]>,
     help_search: Option<&[SearchableEntry]>,
@@ -1831,13 +1641,6 @@ fn search_result_lists(
     ))
 }
 
-/// Builds the items actually rendered: the original list when there is no
-/// active query, or the search field + results + the original help items when
-/// there is.
-///
-/// `menu_scroll` and `help_scroll` are the indices of the first result shown
-/// in each scrollable section. The caller updates them when the highlighted
-/// row moves outside the viewport.
 fn visible_items(
     items: &[MenuItem],
     menu_results: &[SearchableEntry],
@@ -1854,7 +1657,6 @@ fn visible_items(
         }
     }
     if !saw_search {
-        // Defensive: if the caller forgot the search field, add one.
         out.push(MenuItem::SearchField {
             placeholder: "Buscar".to_string(),
         });
@@ -1898,7 +1700,6 @@ fn visible_items(
         }
     }
 
-    // The "Show all help topics" footer is always present when searching.
     if !help_results.is_empty() || !menu_results.is_empty() {
         out.push(MenuItem::Separator);
         out.push(MenuItem::SearchResult {
@@ -1954,14 +1755,7 @@ fn item_top(index: usize, items: &[MenuItem], m: MenuPalette) -> f32 {
     0.0
 }
 
-/// Which side a submenu opens to. A popup configured left of its parent
-/// (`opens_left`) asks its children to open left too; `flip_x` lets the
-/// compositor return them to the right only when the left side does not fit.
 fn submenu_positioner(opens_left: bool) -> (PopupAnchor, PopupGravity, i32) {
-    // The compositor does not invert the offset when it flips the popup, so a
-    // non-zero horizontal offset would make one side overlap its ancestor.
-    // The anchor is the panel edge (see `submenu_anchor_rect`); zero leaves
-    // the child touching the parent on both sides.
     if opens_left {
         (PopupAnchor::TopLeft, PopupGravity::BottomLeft, 0)
     } else {
@@ -1969,11 +1763,6 @@ fn submenu_positioner(opens_left: bool) -> (PopupAnchor, PopupGravity, i32) {
     }
 }
 
-/// The anchor rectangle of a submenu: the panel's full width at the row's
-/// surface-local top. The horizontal anchor is the panel edge so a flipped
-/// child touches the parent edge instead of covering it; the vertical anchor
-/// is the top of the highlighted row, so the child's first row can align with
-/// it after offsetting for the child's own panel inset.
 fn submenu_anchor_rect(
     index: usize,
     items: &[MenuItem],
@@ -2002,8 +1791,6 @@ fn close_child(
     open_child_index.set(None);
 }
 
-/// Items shown inside a submenu popup: the first row is a disabled
-/// "Cargando…" while a remote submenu waits for its children.
 fn submenu_contents(id: Option<&str>, items: &[MenuItem]) -> Vec<MenuItem> {
     if id.is_some() && items.is_empty() {
         vec![MenuItem::Action {
@@ -2088,8 +1875,6 @@ fn open_child_popup(
     }
     let open_child_id_set = open_child_id.clone();
     let open_child_index_set = open_child_index.clone();
-    // The popup may be closed after a sibling submenu has already replaced it.
-    // Guard the clear so a stale `on_dismissed` does not orphan the new popup.
     let dismissed_id = Rc::new(Cell::new(None::<PopupId>));
     let on_dismissed = {
         let dismissed_id = dismissed_id.clone();
@@ -2151,8 +1936,6 @@ fn open_reveal_popup(
     let m = palette_source.current();
     let child_size = MenuView::preferred_size(items, m);
     let parent_width = parent_size.0;
-    // The parent popup's left edge depends on which side of the title it
-    // opened on; place the reveal popup to the left of it, with an 8 px gap.
     let parent_left = if opens_left {
         anchor_x + anchor_width - parent_width
     } else {
@@ -2160,8 +1943,6 @@ fn open_reveal_popup(
     };
     let reveal_x = parent_left - child_size.0 - 8.0;
     if reveal_x < 0.0 {
-        // Not enough room on the left: do not reveal so the Help popup stays
-        // on top and unobstructed.
         return None;
     }
     let on_dismiss_for_action = on_dismiss_all.clone();
@@ -2183,14 +1964,10 @@ fn open_reveal_popup(
     let spec = PopupSpec {
         anchor_rect: (0, 0, 1, 1),
         anchor: PopupAnchor::TopLeft,
-        // Grow left and keep the top edge aligned with the Help popup. The
-        // 8 px gap matches the compute above.
         gravity: PopupGravity::BottomLeft,
         offset: (-8, 0),
         size: (child_size.0 as u32, child_size.1 as u32),
         constraint_adjustment: PopupConstraintAdjustment::default(),
-        // The preview must not take keyboard focus: the search field keeps
-        // receiving the rest of the query while the subtree is shown.
         grab: false,
         on_dismissed: Some(Rc::new(on_dismissed)),
     };
@@ -2738,7 +2515,6 @@ thread_local! {
     static IMAGE_CACHE: RefCell<HashMap<u64, Option<ImageHandle>>> = RefCell::new(HashMap::new());
 }
 
-/// Decodes and scales a PNG icon once per hash and size.
 fn icon_image(bytes: &[u8], size: f32) -> Option<ImageHandle> {
     use std::hash::{Hash, Hasher};
 
@@ -2763,8 +2539,6 @@ fn icon_image(bytes: &[u8], size: f32) -> Option<ImageHandle> {
 }
 
 fn decode_icon(bytes: &[u8], size: f32) -> Option<ImageHandle> {
-    // SkData::new_bytes requires the slice to outlive the Data; the caller's
-    // buffer may not, so copy once and let Skia own it.
     let data = SkData::new_copy(bytes);
     let image = SkImage::from_encoded(data)?;
     let image = image.make_raster_image(None, None).unwrap_or(image);
@@ -2949,8 +2723,6 @@ mod tests {
         .collect();
         assert_eq!(MenuView::preferred_size(&items, MENU_LIGHT), (220.0, 120.0));
 
-        // The popup was created at its natural 220 x 120 and the configure
-        // after a reposition gave it 340 x 300.
         let view = MenuView::new(items, |_| {}, || {}).with_fixed_palette(MENU_LIGHT);
         let app = AppComponent::new(view);
         let (mut test, _) = TestingRunner::new(app, Size2D::new(340.0, 300.0), |_| {}, 1.0);
@@ -3237,8 +3009,6 @@ mod tests {
         assert_eq!(gravity, PopupGravity::BottomLeft);
         assert_eq!(dx, 0, "the panel-edge anchor needs no horizontal offset");
 
-        // Three levels: each child's right edge is at its parent's left edge,
-        // so no popup overlaps an ancestor.
         let mut parent_left = 1000.0;
         for _ in 0..3 {
             let child_right = parent_left + dx as f32;
@@ -3300,8 +3070,6 @@ mod tests {
         assert_eq!(w as f32, width);
         assert_eq!(h as f32, m.item_height);
 
-        // With a bottom gravity and a negative inset offset, the child's first
-        // row ends up at the same y as the parent's row.
         let (_, _, dx) = submenu_positioner(false);
         let inset = m.padding + m.border_width;
         assert_eq!(dx, 0);
@@ -3391,7 +3159,6 @@ mod tests {
 
         let label_w = measure_text("Imágenes", m.font_size);
         let shortcut_w = measure_text(&format_shortcut("Ctrl+Shift+G"), m.font_size);
-        // No items carry marks or icons, so no extra column is reserved.
         let expected_min = m.item_padding_x * 2.0
             + label_w
             + m.shortcut_gap
@@ -3402,7 +3169,6 @@ mod tests {
             "menu width {w} should fit the widest accented label + shortcut ({expected_min})"
         );
 
-        // Height must fit two rows plus panel insets.
         let expected_height = m.item_height * 2.0 + (2.0 * m.border_width + m.padding) * 2.0;
         assert!(
             h >= expected_height,
@@ -3574,7 +3340,6 @@ mod tests {
         ];
         let results = filter_search_results("foo", &entries);
         let labels: Vec<&str> = results.iter().map(|e| e.item.label().unwrap()).collect();
-        // Enabled first; within enabled, word-start (foo bar) before substring (bar foo, afoo).
         assert_eq!(labels, vec!["foo bar", "bar foo", "afoo", "zzz foo"]);
     }
 
@@ -3661,7 +3426,6 @@ mod tests {
         let searchable: Vec<SearchableEntry> = (0..24)
             .map(|i| searchable(&format!("result {i}"), true))
             .collect();
-        // Scroll so the 12th result (index 11) is at the top of the viewport.
         let scroll = 11;
         let visible = visible_items(&items, &searchable, &[], scroll, 0);
         let first_label = visible
@@ -3758,7 +3522,6 @@ mod tests {
         let row0_y = palette.padding + palette.item_height / 2.0;
         let row1_y = palette.padding + palette.item_height + palette.item_height / 2.0;
 
-        // Hover the first submenu: it opens child 0.
         runner.move_cursor([x as f64, row0_y as f64]);
         runner.sync_and_update();
         let mut commands = drain_commands(&queue);
@@ -3767,7 +3530,6 @@ mod tests {
         assert_eq!(opens.len(), 1, "first hover should open one child");
         let (id0, dismiss0) = opens.remove(0);
 
-        // Hover the second submenu: it closes child 0 and opens child 1.
         runner.move_cursor([x as f64, row1_y as f64]);
         runner.sync_and_update();
         commands = drain_commands(&queue);
@@ -3780,15 +3542,10 @@ mod tests {
         let (id1, _) = opens.into_iter().next().unwrap();
         assert_ne!(id0, id1, "new child must have a different id");
 
-        // Simulate the compositor firing popup_done for the old child after the
-        // new child has already been recorded. A stale clear would lose track of
-        // child 1 and leave it on screen.
         if let Some(dismiss) = dismiss0 {
             dismiss();
         }
 
-        // Hover back to the first submenu. If child 1 is still tracked it must
-        // be closed before opening child 2; if it was orphaned, no close appears.
         runner.move_cursor([x as f64, row0_y as f64]);
         runner.sync_and_update();
         let commands = drain_commands(&queue);

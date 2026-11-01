@@ -1,4 +1,3 @@
-/// D-Bus address of a GTK global menu (ADR 0045).
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct GtkMenusAddress {
     pub unique_bus_name: String,
@@ -10,8 +9,6 @@ pub struct GtkMenusAddress {
 }
 
 impl GtkMenusAddress {
-    /// Returns a `GtkMenusAddress` only when `unique_bus_name` is non-empty and
-    /// at least one of `menubar_path` / `app_menu_path` is non-empty.
     pub(super) fn new(
         unique_bus_name: String,
         application_id: String,

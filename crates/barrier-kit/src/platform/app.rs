@@ -29,7 +29,6 @@ use super::{
     window::{MenuActionHandler, WindowControls},
 };
 
-/// One Freya app: its runner, tree and render contexts.
 pub(crate) struct AppInstance {
     runner: Runner,
     pub(crate) tree: Tree,
@@ -113,9 +112,6 @@ impl AppInstance {
         runner.provide_root_context(|| tree.accessibility_generator.clone());
         runner.provide_root_context(|| font_collection.clone());
 
-        // Build the root node before the first layout pass: measuring an empty
-        // tree panics inside Torin. Accessibility is initialized only after the
-        // first layout, when every node already has a layout entry.
         let mutations = runner.sync_and_update();
         let _ = runner.run_in(|| tree.apply_mutations(mutations));
 
@@ -146,7 +142,6 @@ impl AppInstance {
         }
     }
 
-    /// Mirrors the compositor's keyboard focus into the Freya platform state.
     pub(crate) fn set_focused(&mut self, focused: bool) {
         self.platform.is_app_focused.set(focused);
         self.waker.wake_by_ref();
@@ -162,10 +157,6 @@ impl AppInstance {
         self.needs_layout = true;
     }
 
-    /// Drains Freya's events and UI events; returns true when the tree is dirty.
-    /// Polls Freya once. `handle_events` returns ready while dirty scopes are
-    /// pending; looping on it without calling `sync_and_update` spins forever,
-    /// so the caller clears them in `update` and polls again on its next wake.
     pub(crate) fn poll(&mut self) -> bool {
         let mut cx = Context::from_waker(&self.waker);
         let ready = {
@@ -208,10 +199,6 @@ impl AppInstance {
         }
         self.layout();
 
-        // Initialize the accessibility tree once, after the first layout pass.
-        // `init()` needs every node to have a layout entry, so it must run
-        // strictly after `measure_layout`. Focus requests that arrived earlier
-        // are applied right after init so they take effect in the same frame.
         if !self.accessibility_initialized {
             let _ = self.accessibility.init(&mut self.tree);
             self.accessibility_initialized = true;
@@ -260,8 +247,6 @@ impl AppInstance {
         let _ = self
             .events_sender
             .unbounded_send(EventsChunk::Processed(processed));
-        // The event must be dispatched on the next loop wake; without this the
-        // frame callback draws before Freya has processed the input.
         self.waker.wake_by_ref();
     }
 }

@@ -1,6 +1,4 @@
-//! Sidebar example: the seed of Master Tengen App Show.
-//!
-//! Run with `./dev.sh example sidebar`.
+//! Sidebar example app. Run with `./dev.sh example sidebar`.
 
 use barrier_kit::controls::{ToolButton, ToolGroup};
 use barrier_kit::platform::{Decorations, WindowOptions, run_window};

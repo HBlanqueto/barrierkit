@@ -24,7 +24,6 @@ use crate::platform::{
 };
 use crate::shell::ShellState;
 
-/// A layer of `zwlr_layer_shell_v1`, without exposing SCTK in the public API.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum Layer {
     Background,
@@ -34,7 +33,6 @@ pub enum Layer {
     Overlay,
 }
 
-/// Which edges a layer surface is anchored to.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Anchors {
     pub top: bool,
@@ -64,7 +62,6 @@ impl Anchors {
     };
 }
 
-/// How a layer surface wants the keyboard.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum KeyboardInteractivity {
     #[default]
@@ -90,7 +87,6 @@ pub(super) fn anchors_to_sctk(a: Anchors) -> SctkAnchor {
     out
 }
 
-/// Specification for a `zwlr_layer_surface_v1`.
 #[derive(Clone, Debug)]
 pub struct LayerSpec {
     pub namespace: String,
@@ -98,11 +94,9 @@ pub struct LayerSpec {
     pub anchors: Anchors,
     pub exclusive_zone: i32,
     pub keyboard: KeyboardInteractivity,
-    /// Logical size, or `None` to let the compositor decide.
     pub size: Option<(u32, u32)>,
 }
 
-/// Runs a layer-shell surface with a Freya app until the compositor closes it.
 pub fn run_layer(app: AppComponent, spec: LayerSpec) -> Result<(), RunError> {
     let LayerSpec {
         namespace,

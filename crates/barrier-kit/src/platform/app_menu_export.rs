@@ -6,7 +6,6 @@ use wayland_protocols_plasma::appmenu::client::{
 
 use super::runtime::Runtime;
 
-/// Where a window's global menu lives on D-Bus (ADR 0040).
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct AppMenuAddress {
     pub service: String,
@@ -14,11 +13,8 @@ pub struct AppMenuAddress {
 }
 
 impl Runtime {
-    /// Applies addresses delivered by the D-Bus thread, creating the
-    /// org_kde_kwin_appmenu object if the surface still exists.
     pub(super) fn process_pending_menu_addresses(&mut self) {
         let pending = {
-            // Only fails if a panic already poisoned the mutex; no external data here.
             let mut guard = self
                 .pending_menu_addresses
                 .lock()
@@ -49,7 +45,6 @@ impl Runtime {
         }
     }
 
-    /// Drains actions queued by the D-Bus thread and runs them on the UI thread.
     pub(super) fn process_menu_actions(&mut self) {
         for surface in &mut self.surfaces {
             let action_ids = surface

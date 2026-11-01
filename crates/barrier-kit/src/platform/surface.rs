@@ -33,7 +33,6 @@ use super::{
     runtime::Runtime,
 };
 
-/// A surface plus its Freya app and GL context.
 pub(crate) struct SurfaceWindow {
     pub(crate) surface: WlSurface,
     pub(crate) role: SurfaceRole,
@@ -49,7 +48,6 @@ pub(crate) struct SurfaceWindow {
     pub(crate) frame_pending: bool,
     pub(crate) draw_count: u64,
     pub(crate) configure_count: u64,
-    /// The most recent window configure not yet applied.
     pub(crate) pending_configure: Option<(WindowConfigure, u32)>,
     pub(crate) appmenu: Option<OrgKdeKwinAppmenu>,
     pub(crate) appmenu_address: Option<AppMenuAddress>,
@@ -58,14 +56,10 @@ pub(crate) struct SurfaceWindow {
     pub(crate) viewport: Option<WpViewport>,
 }
 
-/// A surface role provided by an extension (layer-shell, session-lock, etc.).
 pub(crate) trait ExtensionRole: Debug {
-    // Solo lo usa shell/ (feature `shell`); sin ella no se lee.
     #[allow(dead_code)]
     fn as_any(&self) -> &dyn Any;
 
-    /// Tries to set this role as the implicit parent of an xdg_popup.
-    /// Returns `true` when it knows how to do it.
     fn parent_popup(&self, _popup: &XdgPopup) -> bool {
         false
     }
@@ -73,7 +67,6 @@ pub(crate) trait ExtensionRole: Debug {
 
 #[derive(Debug)]
 pub(crate) enum SurfaceRole {
-    // Solo lo usa shell/ (feature `shell`); sin ella no se lee.
     #[allow(dead_code)]
     Extension(Box<dyn ExtensionRole>),
     Window(Window),
@@ -82,7 +75,6 @@ pub(crate) enum SurfaceRole {
 }
 
 impl SurfaceRole {
-    /// Tries to set this role as the implicit parent of an xdg_popup.
     pub(crate) fn parent_popup(&self, popup: &XdgPopup) -> bool {
         match self {
             SurfaceRole::Extension(role) => role.parent_popup(popup),
@@ -90,8 +82,6 @@ impl SurfaceRole {
         }
     }
 
-    /// Downcasts the extension role to a concrete type.
-    // Solo lo usa shell/ (feature `shell`); sin ella no se lee.
     #[allow(dead_code)]
     pub(crate) fn as_extension_role<T: 'static>(&self) -> Option<&T> {
         match self {
@@ -102,7 +92,6 @@ impl SurfaceRole {
 }
 
 impl SurfaceWindow {
-    /// Schedules a compositor frame callback without marking the surface dirty.
     pub(crate) fn request_frame_callback(&mut self, qh: &QueueHandle<Runtime>) {
         if !self.frame_pending {
             self.frame_pending = true;
@@ -130,8 +119,6 @@ impl SurfaceWindow {
         };
         if let Err(error) = graphics.configure(&self.surface, buffer_size, scale) {
             tracing::error!("BarrierKit: {error}");
-            // Keep the previous size coherent, but do not push a 0×0 size into
-            // the app on the first configure; that panics inside Torin.
             if self.buffer_size.0 > 0 && self.buffer_size.1 > 0 {
                 self.app.resize(self.buffer_size, self.scale);
             }
@@ -218,8 +205,6 @@ impl SurfaceWindow {
 }
 
 impl SurfaceWindow {
-    /// Destroys the fractional-scale and viewport objects before the surface so
-    /// the compositor sees them go away first.
     pub(crate) fn destroy_fractional(&mut self) {
         destroy_fractional_objects(&mut self.fractional, &mut self.viewport);
     }
@@ -244,8 +229,6 @@ pub(crate) fn destroy_fractional_objects(
 }
 
 impl Runtime {
-    /// Creates the fractional-scale and viewport objects for a surface when the
-    /// compositor advertises the corresponding globals.
     pub(crate) fn create_fractional(
         &self,
         surface: &WlSurface,
@@ -273,9 +256,6 @@ impl CompositorHandler for Runtime {
         let Some(index) = self.surface_for(surface) else {
             return;
         };
-        // While fractional scaling is active the compositor drives the scale
-        // through wp_fractional_scale_v1.preferred_scale; integer scales are
-        // ignored so the buffer and viewport stay in sync.
         if self.surfaces[index].fractional.is_some() {
             return;
         }
@@ -304,7 +284,6 @@ impl CompositorHandler for Runtime {
             return;
         };
         self.surfaces[index].frame_pending = false;
-        // Collapse any window configures that arrived since the last frame.
         self.apply_pending_window_configures(qh);
         if self.surfaces[index].needs_redraw {
             let _ = self.surfaces[index].draw();
@@ -333,12 +312,10 @@ impl CompositorHandler for Runtime {
     }
 }
 
-/// Converts a fractional-scale wire value (120 = 1.0) to a logical scale factor.
 pub(crate) fn scale_from_wire(scale: u32) -> f64 {
     scale as f64 / 120.0
 }
 
-/// Computes the buffer size for a logical surface size and scale.
 pub(crate) fn buffer_size(logical: (u32, u32), scale: f64) -> (u32, u32) {
     (
         (logical.0 as f64 * scale).round().max(1.0) as u32,
@@ -346,10 +323,6 @@ pub(crate) fn buffer_size(logical: (u32, u32), scale: f64) -> (u32, u32) {
     )
 }
 
-/// Returns true when the surface should use fractional scaling.
-///
-/// Both the fractional-scale manager and viewporter must be present; the
-/// protocol is only useful when the compositor can scale the buffer back down.
 pub(crate) fn fractional_scale_enabled(
     has_fractional: bool,
     has_viewporter: bool,

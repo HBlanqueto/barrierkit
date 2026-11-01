@@ -1,8 +1,4 @@
 //! Shared traffic-light geometry, appearance and pointer state.
-//!
-//! Pure geometry and colour logic used by the compositor's server-side chrome
-//! and, later, by BarrierKit. Coordinates are relative to the top-left of
-//! the titlebar: `x` grows right, `y` grows down, in logical pixels.
 
 use vow_design::{
     ButtonKind, Rgba, TITLEBAR, TRAFFIC_GLYPH_ON_DARK, TRAFFIC_GLYPH_ON_LIGHT,
@@ -11,7 +7,6 @@ use vow_design::{
 
 use crate::TrafficLightStyle;
 
-/// The top-left corner and side of one traffic light, relative to the bar.
 pub fn button_rect(index: usize) -> (f64, f64, f64) {
     let diameter = f64::from(TITLEBAR.buttons.diameter);
     let gap = f64::from(TITLEBAR.buttons.spacing);
@@ -20,7 +15,6 @@ pub fn button_rect(index: usize) -> (f64, f64, f64) {
     (x, y, diameter)
 }
 
-/// The bounding box of the three traffic lights, relative to the bar.
 pub fn group_rect() -> (f64, f64, f64, f64) {
     let (x, y, size) = button_rect(0);
     let count = TITLEBAR.buttons.order.len() as f64;
@@ -28,7 +22,6 @@ pub fn group_rect() -> (f64, f64, f64, f64) {
     (x, y, count * size + (count - 1.0) * gap, size)
 }
 
-/// The button under a bar-relative point, if any.
 pub fn hit(point: (f64, f64)) -> Option<ButtonKind> {
     if TITLEBAR.position != TitlebarPosition::Top {
         return None;
@@ -53,29 +46,20 @@ fn contains_rounded_square(px: f64, py: f64, x: f64, y: f64, size: f64) -> bool 
     (dx.max(0.0).powi(2) + dy.max(0.0).powi(2)).sqrt() - radius <= 0.0
 }
 
-/// Everything that affects how the lights look.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct TrafficInput {
-    /// The window has keyboard focus.
     pub focused: bool,
-    /// The pointer is over the group.
     pub group_hovered: bool,
-    /// The armed button whose pressed state should be visible.
     pub pressed: Option<ButtonKind>,
-    /// The window supports zoom.
     pub zoom_supported: bool,
 }
 
-/// One light's fill and optional glyph colour.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ButtonVisual {
-    /// The light's fill.
     pub fill: Rgba,
-    /// The glyph, only while the group is hovered and the light is admitted.
     pub glyph: Option<Rgba>,
 }
 
-/// Computes the three lights' appearance from one input snapshot.
 pub fn visual(
     lights: [Rgba; 3],
     style: TrafficLightStyle,
@@ -121,19 +105,14 @@ pub fn visual(
     out
 }
 
-/// Hover, press and armed state for the traffic-light group.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct TrafficPointer {
-    /// Whether the pointer is over the group (including the gaps).
     hovered: bool,
-    /// The button pressed on, if any.
     armed: Option<ButtonKind>,
-    /// Whether the pointer is still over the armed button.
     over_armed: bool,
 }
 
 impl TrafficPointer {
-    /// Updates hover and returns whether the drawn state changed.
     pub fn on_motion(&mut self, hit: Option<ButtonKind>, over_group: bool) -> bool {
         let before = (self.hovered, self.over_armed);
         self.hovered = over_group;
@@ -141,15 +120,12 @@ impl TrafficPointer {
         before != (self.hovered, self.over_armed)
     }
 
-    /// Marks the group as hovered when the pointer enters it.
     pub fn on_group_enter(&mut self) -> bool {
         let changed = !self.hovered;
         self.hovered = true;
         changed
     }
 
-    /// Tracks whether the pointer is over the armed button without touching
-    /// the group's hover state.
     pub fn on_button_enter(&mut self, hit: ButtonKind) -> bool {
         let over_armed = self.armed == Some(hit);
         let changed = self.over_armed != over_armed;
@@ -157,8 +133,6 @@ impl TrafficPointer {
         changed
     }
 
-    /// Clears the armed button when the pointer leaves a light; the group's
-    /// hover is owned by the group enter/leave.
     pub fn on_leave_button(&mut self) -> bool {
         let changed = self.armed.is_some() || self.over_armed;
         self.armed = None;
@@ -166,7 +140,6 @@ impl TrafficPointer {
         changed
     }
 
-    /// Arms a button; returns whether the drawn state changed.
     pub fn on_press(&mut self, hit: Option<ButtonKind>, over_group: bool) -> bool {
         let before = (self.hovered, self.armed, self.over_armed);
         self.hovered = over_group;
@@ -175,8 +148,6 @@ impl TrafficPointer {
         before != (self.hovered, self.armed, self.over_armed)
     }
 
-    /// Releases the arm and returns the button to activate, if the pointer is
-    /// still over the same button.
     pub fn on_release(&mut self, hit: Option<ButtonKind>, over_group: bool) -> Option<ButtonKind> {
         let result = (self.armed == hit).then_some(self.armed).flatten();
         self.hovered = over_group;
@@ -185,8 +156,6 @@ impl TrafficPointer {
         result
     }
 
-    /// Clears hover and arm when the pointer leaves the window or the chrome.
-    /// Returns whether the drawn state changed.
     pub fn on_leave(&mut self) -> bool {
         let changed = self.hovered || self.armed.is_some();
         self.hovered = false;
@@ -195,12 +164,10 @@ impl TrafficPointer {
         changed
     }
 
-    /// Whether the group is hovered.
     pub fn hovered(&self) -> bool {
         self.hovered
     }
 
-    /// The button whose pressed state is visible, if any.
     pub fn pressed_visual(&self) -> Option<ButtonKind> {
         if self.over_armed { self.armed } else { None }
     }

@@ -1,7 +1,4 @@
-//! Tengen sidebar, sidebar items, collapsible sections and sidebar layout.
-//!
-//! All colours and measurements come from `vow-design` and the resolved
-//! `appearance.domain`; there are no hardcoded design values.
+//! Sidebar, sidebar items, collapsible sections and sidebar layout.
 
 use std::time::Duration;
 
@@ -51,7 +48,6 @@ fn chevron_svg(down: bool, stroke: f32) -> String {
     )
 }
 
-/// A vertical Tengen sidebar.
 #[derive(PartialEq)]
 pub struct Sidebar {
     children: Vec<Element>,
@@ -96,13 +92,11 @@ impl Sidebar {
         self
     }
 
-    /// Draw the window traffic lights at `(SIDEBAR.traffic_x, SIDEBAR.traffic_y)`.
     pub fn traffic_lights(mut self, show: bool) -> Self {
         self.traffic_lights = show;
         self
     }
 
-    /// Called when the close light of the sidebar traffic lights is released.
     pub fn on_close(mut self, callback: impl Into<Callback<(), ()>>) -> Self {
         self.on_close = Some(callback.into());
         self
@@ -152,7 +146,6 @@ impl Component for Sidebar {
             top_height as f32
         };
 
-        // The scrollable/content area starts below the traffic-light strip.
         let mut sidebar_body = rect()
             .width(Size::fill())
             .height(Size::fill())
@@ -226,8 +219,6 @@ impl Component for Sidebar {
         let lights_shown = controls
             .as_ref()
             .is_none_or(|controls| controls.traffic_lights_shown());
-        // With an overlaid titlebar (ADR 0054) the lights go below the bar,
-        // over the sidebar, like the titlebar they belong to.
         let overlay_top = controls
             .as_ref()
             .and_then(|controls| controls.titlebar_overlay_top());
@@ -262,7 +253,6 @@ impl Component for Sidebar {
     }
 }
 
-/// One row inside a [`Sidebar`].
 #[derive(PartialEq)]
 pub struct SidebarItem {
     label: String,
@@ -447,7 +437,6 @@ impl Component for SidebarItem {
     }
 }
 
-/// A collapsible section inside a [`Sidebar`].
 #[derive(PartialEq)]
 pub struct SidebarSection {
     title: String,
@@ -631,8 +620,6 @@ impl Component for SidebarSection {
     }
 }
 
-/// Lays out a window with a sidebar on the left and a content column on the
-/// right.
 #[derive(PartialEq)]
 pub struct SidebarLayout {
     sidebar: Element,

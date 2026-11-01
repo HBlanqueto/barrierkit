@@ -29,7 +29,6 @@ use super::{
 #[cfg(test)]
 use sctk::reexports::calloop;
 
-/// Identifier of an open popup within this process.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 pub struct PopupId(u64);
 
@@ -50,7 +49,6 @@ impl PopupId {
     }
 }
 
-/// Which edge of the anchor rectangle a popup attaches to.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum PopupAnchor {
     #[default]
@@ -64,10 +62,8 @@ pub enum PopupAnchor {
     BottomRight,
 }
 
-/// In which direction a popup grows from its anchor.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum PopupGravity {
-    /// Up and left.
     #[default]
     TopLeft,
     Top,
@@ -79,33 +75,24 @@ pub enum PopupGravity {
     BottomRight,
 }
 
-/// How the compositor may adjust a popup that does not fit.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct PopupConstraintAdjustment {
     pub flip_x: bool,
     pub flip_y: bool,
     pub slide_x: bool,
     pub slide_y: bool,
-    /// Lets the compositor shorten a popup taller than the output; the menu
-    /// then scrolls. Applied after flip and slide.
     pub resize_y: bool,
 }
 
-/// Options for opening a popup from the shell (menubar, submenus).
 #[derive(Clone)]
 pub struct PopupSpec {
-    /// Rectangle on the parent surface, in logical pixels, that the popup anchors to.
     pub anchor_rect: (i32, i32, u32, u32),
     pub anchor: PopupAnchor,
     pub gravity: PopupGravity,
-    /// Offset in logical pixels applied after anchoring and gravity.
     pub offset: (i32, i32),
-    /// Preferred logical size of the popup.
     pub size: (u32, u32),
     pub constraint_adjustment: PopupConstraintAdjustment,
-    /// Request an implicit grab with the last input serial.
     pub grab: bool,
-    /// Called once when the popup is dismissed for any reason.
     pub on_dismissed: Option<Rc<dyn Fn()>>,
 }
 
@@ -124,7 +111,6 @@ impl Default for PopupSpec {
     }
 }
 
-/// Opens and closes popups from inside a BarrierKit surface.
 #[derive(Clone)]
 pub struct Popups {
     pub(crate) queue: Rc<RefCell<Vec<PopupCommand>>>,
@@ -135,8 +121,6 @@ pub struct Popups {
     pub(crate) current: Option<PopupId>,
     pub(crate) surface_count: Rc<Cell<usize>>,
     pub(crate) opens_left: Rc<Cell<bool>>,
-    /// Pixels the menu content is scrolled by, so submenus anchor to the
-    /// visible row.
     pub(crate) scroll_shift: Rc<Cell<f32>>,
 }
 
@@ -145,8 +129,6 @@ impl Popups {
         freya_core::prelude::consume_root_context()
     }
 
-    /// Opens a popup attached to the current surface (or to this popup, if the
-    /// context belongs to a popup).
     pub fn open(&self, spec: PopupSpec, content: AppComponent) -> PopupId {
         let id = PopupId::next(&self.next_id);
         self.queue.borrow_mut().push(PopupCommand::Open {
@@ -161,13 +143,11 @@ impl Popups {
         id
     }
 
-    /// Closes a popup and its descendants.
     pub fn close(&self, id: PopupId) {
         self.queue.borrow_mut().push(PopupCommand::Close { id });
         self.ping.ping();
     }
 
-    /// Repositions an already open popup with a new geometry.
     fn reposition(&self, id: PopupId, spec: PopupSpec) {
         self.queue
             .borrow_mut()
@@ -175,8 +155,6 @@ impl Popups {
         self.ping.ping();
     }
 
-    /// The number of popup surfaces currently tracked by the runner. Useful for
-    /// leak checks in tests and self-tests.
     pub fn surface_count(&self) -> usize {
         self.surface_count.get()
     }
@@ -212,7 +190,6 @@ impl PopupHandle {
     }
 }
 
-/// Handle available inside the content of a popup surface.
 #[derive(Clone)]
 pub struct PopupHandle {
     id: PopupId,
@@ -228,14 +205,10 @@ impl PopupHandle {
         self.id
     }
 
-    /// True when the compositor configured this popup to the left of its
-    /// parent (its configure `x` is negative). Descendant submenus use it to
-    /// keep opening on the same side.
     pub fn opens_left(&self) -> bool {
         self.popups.opens_left.get()
     }
 
-    /// How far this popup's menu is scrolled, in logical pixels.
     pub fn scroll_shift(&self) -> f32 {
         self.popups.scroll_shift.get()
     }
@@ -248,20 +221,14 @@ impl PopupHandle {
         self.popups.close(self.id);
     }
 
-    /// Repositions this popup with a new size and anchor rectangle.
-    ///
-    /// The caller is responsible for requesting a redraw so the surface is
-    /// resized before the compositor commits it.
     pub fn reposition(&self, spec: PopupSpec) {
         self.popups.reposition(self.id, spec);
     }
 
-    /// Opens a submenu attached to this popup.
     pub fn open_child(&self, spec: PopupSpec, content: AppComponent) -> PopupId {
         self.popups.open(spec, content)
     }
 }
-/// Popup bookkeeping attached to a `SurfaceWindow` whose role is `Popup`.
 pub(crate) struct PopupInfo {
     id: PopupId,
     parent: Option<PopupId>,
@@ -383,9 +350,6 @@ impl Runtime {
                 })
             })
             .or_else(|| {
-                // A toplevel parent must be passed as the xdg_surface parent,
-                // not left `None`: xdg_popup requires an xdg_surface parent.
-                // Layer-shell parents are set later with `get_popup`.
                 if parent.is_none()
                     && let SurfaceRole::Window(window) = &self.surfaces[owner_index].role
                 {
@@ -433,14 +397,11 @@ impl Runtime {
             }
         };
 
-        // If the parent role knows how to adopt an xdg_popup, let it do so.
-        // This is how layer-shell surfaces become implicit parents.
         if parent.is_none()
             && self.surfaces[owner_index]
                 .role
                 .parent_popup(popup.xdg_popup())
         {
-            // `parent_popup` takes effect when the parent surface commits.
             self.surfaces[owner_index].surface.commit();
         }
 
@@ -561,7 +522,6 @@ impl Runtime {
         self.surfaces[index].surface.commit();
     }
     pub(crate) fn close_popup(&mut self, id: PopupId) {
-        // Close descendants first so Wayland objects are destroyed leaf-to-root.
         let children: Vec<PopupId> = self
             .surfaces
             .iter()
@@ -588,9 +548,6 @@ impl Runtime {
         {
             callback();
         }
-        // Drop the xdg_popup before its wl_surface: the other order destroys
-        // the surface first, so the compositor never sees `popup_destroyed`
-        // and keeps the old popup in its scene.
         let mut window = self.surfaces.remove(index);
         drop(std::mem::replace(&mut window.role, SurfaceRole::None));
         drop(window);
@@ -616,8 +573,6 @@ impl PopupHandler for Runtime {
             info.opens_left.set(config.position.0 < 0);
         }
         self.surfaces[index].configure(size, scale);
-        // Like a toplevel, a popup must attach its first buffer before it can
-        // map; there is no frame callback to wait for yet.
         if self.surfaces[index].draw() && self.surfaces[index].needs_redraw {
             self.surfaces[index].request_redraw(qh);
         }

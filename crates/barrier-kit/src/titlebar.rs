@@ -1,7 +1,4 @@
-//! The BarrierKit client-side titlebar (ADR 0035).
-//!
-//! 44 px, traffic lights on the left, a centred title and a toolbar gap on the
-//! right. It draws only when the compositor's configure answered `ClientSide`.
+//! Client-side titlebar with traffic lights, title and toolbar area.
 
 use std::cell::Cell;
 use std::rc::Rc;
@@ -23,7 +20,6 @@ use vow_design::{
 use crate::ProbeExt;
 use crate::platform::{DecorationResponse, WindowControls, WindowEdge, WindowStatus};
 
-/// A client-side titlebar for a BarrierKit window.
 #[derive(PartialEq)]
 pub struct Titlebar {
     preview: Option<Preview>,
@@ -53,7 +49,6 @@ impl Default for Titlebar {
 }
 
 impl Titlebar {
-    /// A titlebar bound to the current window's runner context.
     pub fn new() -> Self {
         Self {
             preview: None,
@@ -70,7 +65,6 @@ impl Titlebar {
         }
     }
 
-    /// A titlebar with fixed state, for previews and tests.
     pub fn preview(status: WindowStatus, title: impl Into<String>, fixed: bool) -> Self {
         Self {
             preview: Some(Preview {
@@ -91,61 +85,46 @@ impl Titlebar {
         }
     }
 
-    /// Override the title shown in the titlebar; when absent the window's
-    /// configured title is used.
     pub fn title(mut self, title: impl Into<String>) -> Self {
         self.title = Some(title.into());
         self
     }
 
-    /// Called when the close light is released.
     pub fn on_close(mut self, callback: impl Into<Callback<(), ()>>) -> Self {
         self.on_close = Some(callback.into());
         self
     }
 
-    /// Configure the titlebar to live above a sidebar; it will not draw its own
-    /// traffic lights.
-    ///
-    /// In the island style the kit owns the toolbar height and margins; do not
-    /// wrap the titlebar with the app's own toolbar margins.
     pub fn with_sidebar(mut self, sidebar: bool) -> Self {
         self.sidebar = sidebar;
         self
     }
 
-    /// Content for the left slot (next to the centred title).
     pub fn left(mut self, child: impl IntoElement) -> Self {
         self.left = Some(child.into_element());
         self
     }
 
-    /// Content for the right slot (next to the centred title).
     pub fn right(mut self, child: impl IntoElement) -> Self {
         self.right = Some(child.into_element());
         self
     }
 
-    /// Gap between the left slot and the title.
     pub fn spacing(mut self, spacing: f32) -> Self {
         self.spacing = spacing;
         self
     }
 
-    /// Horizontal padding of the sidebar titlebar; defaults to the Tengen
-    /// toolbar token in the island style and 10 px otherwise.
     pub fn padding_x(mut self, padding_x: f32) -> Self {
         self.padding_x = Some(padding_x);
         self
     }
 
-    /// Font used for the title; defaults to the window-title token.
     pub fn title_font(mut self, font: vow_design::Font) -> Self {
         self.title_font = Some(font);
         self
     }
 
-    /// Line height used for the title.
     pub fn title_line_height(mut self, line_height: f32) -> Self {
         self.title_line_height = Some(line_height);
         self
@@ -178,9 +157,6 @@ impl Component for Titlebar {
                 .into_element();
         }
 
-        // Focus mode with an overlaid titlebar (ADR 0054): it leaves the
-        // layout and is drawn over the content, below the bar, only while
-        // the bar is down.
         let controls = freya_core::prelude::try_consume_root_context::<WindowControls>();
         let overlaid = controls
             .as_ref()
@@ -236,8 +212,6 @@ impl Component for Titlebar {
             ))
         };
 
-        // Use the same titlebar font token as the compositor unless the app
-        // asks for another one (the Settings toolbar uses title-2).
         let title_font = self.title_font.unwrap_or(TITLEBAR.font);
         let mut title_label = label()
             .text(title.clone())
@@ -255,8 +229,6 @@ impl Component for Titlebar {
         }
 
         if self.sidebar {
-            // Sidebar titlebars keep the toolbar on the left and place the
-            // title immediately after it; the right slot is intentionally empty.
             let left_slot = rect()
                 .width(Size::auto())
                 .height(Size::fill())
@@ -277,7 +249,6 @@ impl Component for Titlebar {
                 .child(title_label);
 
             let island = resolved.sidebar.style == SidebarStyle::Island;
-            // shortcut: tokens de Ajustes en la Titlebar genérica; fase 4 los mueve a un token window.toolbar cuando nazca Toolbar.
             let (height, padding_top, default_padding_x) = if island {
                 (
                     SETTINGS.toolbar_height as f32,
@@ -313,8 +284,6 @@ impl Component for Titlebar {
             return place(root.into_element());
         }
 
-        // Classic three-slot titlebar for windows without a sidebar.
-        // shortcut: con slots de ancho distinto el título no queda centrado en la ventana; fase 4 (Toolbar) centra el título sobre el ancho total.
         let min_slot = vow_appearance::traffic::group_rect().2 as f32;
         let left_slot = rect()
             .width(Size::auto())
@@ -366,12 +335,8 @@ impl Component for Titlebar {
     }
 }
 
-/// The layer of an overlaid titlebar: in front of the window's content,
-/// whatever its depth, and below popups and menus (`Layer::Overlay`).
 pub(crate) const TITLEBAR_OVERLAY_LAYER: i16 = i16::MAX / 32;
 
-/// Builds the window's traffic lights with the standard close/minimize/zoom
-/// actions, reading `window.domain` like the compositor does.
 pub fn window_traffic_lights(
     on_close: Option<Callback<(), ()>>,
     focused: bool,
@@ -398,11 +363,6 @@ pub fn window_traffic_lights(
         })
 }
 
-/// Returns a mouse-down handler that drags the window and honours the double-click
-/// action configured in `window.domain`.
-///
-/// `fixed` is stored in a reactive cell so the handler keeps using the latest
-/// value when the window's fixed state or decoration changes between renders.
 pub fn window_drag_handler(fixed: bool) -> impl Fn(Event<MouseEventData>) + Clone {
     let last_click = use_hook(|| Rc::new(Cell::new(None::<(Instant, (f64, f64))>)));
     let double_done = use_hook(|| Rc::new(Cell::new(false)));
@@ -440,38 +400,26 @@ pub fn window_drag_handler(fixed: bool) -> impl Fn(Event<MouseEventData>) + Clon
     }
 }
 
-/// What the green traffic light does (same values as the compositor).
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Deserialize)]
 #[serde(rename_all = "lowercase")]
 enum GreenButtonAction {
-    /// Enter focus mode: the window asks for fullscreen and MalaysiaDreams
-    /// gives it a space of its own (ADR 0051).
     #[default]
     Focus,
-    /// Zoom the window to the workspace.
     Zoom,
-    /// Enter fullscreen (the compositor treats it as focus mode).
     Fullscreen,
-    /// Do nothing.
     None,
 }
 
-/// What a double click on the title bar does (same values as the compositor).
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Deserialize)]
 #[serde(rename_all = "snake_case")]
 enum DoubleClickAction {
-    /// Expand to the workspace (treated as zoom today).
     Fill,
-    /// Minimize the window.
     Minimize,
-    /// Zoom the window.
     #[default]
     Zoom,
-    /// Do nothing.
     None,
 }
 
-/// The `window.domain` keys this titlebar consumes.
 #[derive(Debug, Clone, Copy, Default, Deserialize)]
 #[serde(default)]
 struct WindowBehavior {
@@ -479,8 +427,6 @@ struct WindowBehavior {
     green_button: GreenButtonAction,
 }
 
-/// The user's window behaviour, read once from `window.domain` like the
-/// compositor does. A missing or unparsable file keeps the defaults.
 fn window_behavior() -> &'static WindowBehavior {
     static BEHAVIOR: OnceLock<WindowBehavior> = OnceLock::new();
     BEHAVIOR.get_or_init(|| {
@@ -492,7 +438,6 @@ fn window_behavior() -> &'static WindowBehavior {
     })
 }
 
-/// The action a titlebar control requests.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum TitlebarAction {
     Focus,
@@ -529,7 +474,6 @@ fn run_action(controls: &WindowControls, action: TitlebarAction) {
     match action {
         TitlebarAction::Maximize => controls.toggle_maximize(),
         TitlebarAction::Minimize => controls.minimize(),
-        // Both ask for fullscreen; MalaysiaDreams answers with focus mode.
         TitlebarAction::Focus | TitlebarAction::Fullscreen => controls.toggle_fullscreen(),
         TitlebarAction::None => {}
     }
@@ -540,13 +484,10 @@ fn rgba(color: Rgba) -> Color {
     Color::from_argb(a, r, g, b)
 }
 
-/// The app-id for a BarrierKit window with the given suffix.
 pub fn app_id(app_name: &str) -> String {
     format!("{NATIVE_APP_ID_PREFIX}{app_name}")
 }
 
-/// CSD resize edges and corners. Put it as the last child of the window root
-/// so it receives pointer events before the content.
 pub fn resize_edges() -> Element {
     let controls = WindowControls::get();
     let make = |edge: WindowEdge, position: Position, width: Size, height: Size| {
@@ -565,8 +506,6 @@ pub fn resize_edges() -> Element {
     };
     let edge = Size::px(6.0);
     let corner = Size::px(12.0);
-    // Absolute positioned overlays do not resolve Size::fill() in this version
-    // of Freya; root percentage keeps the hit-area matching the window.
     rect()
         .position(Position::new_absolute().top(0.0).left(0.0))
         .width(Size::window_percent(100.0))

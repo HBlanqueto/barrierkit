@@ -1,4 +1,4 @@
-//! Contador — demo app for BarrierKit's global menu export (ADR 0040 §10).
+//! Counter demo app showing the global menu export.
 
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -150,9 +150,6 @@ impl App for Contador {
             });
         }
 
-        // Drain actions queued by the global menu or in-app shortcuts. The
-        // receiver is read on every render because the compositor dispatches a
-        // key event after handling a shortcut, which wakes the component.
         let mut pending = use_state(Vec::<String>::new);
         let rx = use_hook(|| {
             Rc::new(RefCell::new(

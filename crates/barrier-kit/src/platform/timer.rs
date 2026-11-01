@@ -11,8 +11,6 @@ use super::runtime::Runtime;
 pub(crate) type TimerQueue = Rc<RefCell<Vec<(Duration, Rc<dyn Fn()>)>>>;
 pub(crate) type WakeQueue = Rc<RefCell<Vec<Rc<dyn Fn()>>>>;
 
-/// Wakes the render loop from another thread. `wake` only pings the loop; the
-/// callback registered by [`Timers::wakeup`] runs on the render thread.
 #[derive(Clone, Debug)]
 pub struct WakeHandle {
     ping: Ping,
@@ -34,8 +32,6 @@ pub(crate) struct Wake {
     pub(crate) callbacks: WakeQueue,
 }
 
-/// Schedules one-shot callbacks on the runner's calloop loop. The app uses it
-/// for the menubar clock; there is no periodic polling.
 #[derive(Clone)]
 pub struct Timers {
     pub(crate) queue: TimerQueue,
@@ -53,8 +49,6 @@ impl Timers {
         self.ping.ping();
     }
 
-    /// Registers a callback that runs on the render thread whenever the
-    /// returned handle is woken from any thread.
     pub fn wakeup(&self, callback: impl Fn() + 'static) -> WakeHandle {
         self.wake.callbacks.borrow_mut().push(Rc::new(callback));
         WakeHandle {
@@ -63,7 +57,6 @@ impl Timers {
     }
 }
 
-/// A calloop waker for Freya's futures and user events.
 pub(crate) struct PingWake(pub(crate) Ping);
 
 impl ArcWake for PingWake {

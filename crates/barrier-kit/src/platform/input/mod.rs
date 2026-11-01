@@ -1,5 +1,4 @@
-//! Wayland input to Freya's `PlatformEvent`, following `freya-winit`'s
-//! `winit_mappings.rs` but with the keys SCTK gives us.
+//! Converts Wayland input events into Freya platform events.
 
 use freya_core::prelude::{Code, Key, MouseButton, NamedKey};
 use keyboard_types::Modifiers;
@@ -96,18 +95,10 @@ fn code(keysym: Keysym) -> Code {
     }
 }
 
-/// True when a `Key::Character` event should be treated as typed text.
-/// Shift, Caps Lock and Num Lock are allowed; Control, Alt and Meta are
-/// rejected so that accelerators do not write into the field.
-/// AltGr/LevelThree arrives without the ALT flag here, so AltGr layouts
-/// keep working.
 pub fn inserts_text(modifiers: Modifiers) -> bool {
     !modifiers.intersects(Modifiers::CONTROL | Modifiers::ALT | Modifiers::META)
 }
 
-/// Returns the key value produced by `keysym` and the composed `utf8` text.
-/// Modifiers travel separately in the platform event; this function only
-/// decides the character/text that a text input would receive.
 pub fn map_key(keysym: Keysym, utf8: Option<&str>) -> Key {
     if keysym == Keysym::space {
         return Key::Character(" ".into());
@@ -117,9 +108,6 @@ pub fn map_key(keysym: Keysym, utf8: Option<&str>) -> Key {
     }
     let raw = keysym.raw();
 
-    // Prefer xkb's composed text when it exists and is not a control character.
-    // Ctrl+q produces utf8 "\x11", so we fall back to the keysym's own 'q' to
-    // keep accelerator matching working.
     let character = if let Some(text) = utf8.filter(|t| !t.is_empty()) {
         if text.len() == 1 && text.chars().next().unwrap().is_control() {
             keysym.key_char().map(|c| c.to_string())

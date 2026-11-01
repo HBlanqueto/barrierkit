@@ -1,8 +1,4 @@
-//! Generates `$OUT_DIR/tengen.rs` from the vendored Tengen JSON.
-//!
-//! ADR 0011 still holds: the values are compile-time constants. The only
-//! change is that they now come from `tengen/tokens.json` and
-//! `tengen/components.json` instead of being copied into `lib.rs` by hand.
+//! Generates `tengen.rs` constants from the Tengen JSON files.
 
 use std::path::{Path, PathBuf};
 use std::{env, fs};
@@ -158,10 +154,6 @@ fn theme_color(tokens: &Value, theme: &str, key: &str) -> Color {
     color(tokens, &format!("themes.{theme}.{key}"), TOKENS)
 }
 
-/// Composites `color` over an opaque `bg`, returning an opaque colour.
-///
-/// A token that is already opaque is returned unchanged. Used for the solid
-/// variants that "Reduce transparency" selects.
 fn opaque_over(color: Color, bg: Color) -> Color {
     if color.a == 255 {
         return color;
@@ -181,8 +173,6 @@ fn default_theme(tokens: &Value) -> &str {
     string(tokens, "default-theme", TOKENS)
 }
 
-/// Resolves a component colour reference. `{token}` and plain token names are
-/// looked up in the theme; a literal `#rrggbb(aa)` is used as-is.
 fn color_ref(tokens: &Value, theme: &str, text: &str, path: &str, file: &str) -> Color {
     let name = text
         .strip_prefix('{')
@@ -931,7 +921,11 @@ fn emit_font_families(out: &mut String, tokens: &Value) {
 fn emit_typography(out: &mut String, tokens: &Value) {
     const_doc(out, "TEXT", "The body text face.");
     out.push_str(&format!(": Font = {};\n\n", font(tokens, "body")));
-    const_doc(out, "DISPLAY", "The display face (28/700), the largest title.");
+    const_doc(
+        out,
+        "DISPLAY",
+        "The display face (28/700), the largest title.",
+    );
     out.push_str(&format!(": Font = {};\n\n", font(tokens, "display")));
     const_doc(out, "TITLE_1", "The primary title face (20/650).");
     out.push_str(&format!(": Font = {};\n\n", font(tokens, "title-1")));

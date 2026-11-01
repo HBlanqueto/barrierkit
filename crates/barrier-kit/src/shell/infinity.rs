@@ -1,7 +1,4 @@
-//! Client-side Infinity protocol bindings (ADR 0039).
-//!
-//! The shell uses this private protocol to ask the compositor for window
-//! geometry: halves, quarters, pairs, fill, center, restore and fullscreen.
+//! Client-side bindings for the Infinity protocol, used by the shell.
 
 use freya_core::prelude::WritableUtils;
 use sctk::reexports::client::{Connection, Dispatch, Proxy, QueueHandle};
@@ -16,7 +13,6 @@ pub use infinity_protocol::client::infinity_window_manager_v1::infinity_window_m
     InfinityWindowManagerV1, Layout, PairLayout,
 };
 
-/// Re-export of the generated protocol module, matching the old layout.
 pub mod protocol {
     pub use infinity_protocol::client::infinity_window_manager_v1::infinity_window_manager_v1;
 }
@@ -115,8 +111,6 @@ impl Dispatch<InfinityWindowManagerV1, ()> for Runtime {
                         space_changed = true;
                     }
                 }
-                // shortcut: future Infinity events are ignored; add handlers when
-                // the compositor starts sending them.
                 _ => {}
             }
         }

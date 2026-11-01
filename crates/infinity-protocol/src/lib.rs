@@ -1,4 +1,5 @@
-//! Infinity window-management protocol bindings (ADR 0039).
+//! Bindings for the Infinity window-management protocol.
+
 #![allow(
     dead_code,
     non_camel_case_types,
@@ -32,7 +33,6 @@ pub mod client {
         InfinityWindowManagerV1, Layout, PairLayout,
     };
 
-    /// Focus-mode notices for applications (`infinity_focus_v1`).
     pub mod focus {
         pub mod __interfaces {
             use wayland_client::protocol::__interfaces::*;
@@ -66,7 +66,6 @@ pub mod server {
         wayland_scanner::generate_server_code!("protocols/infinity-window-manager-v1.xml");
     }
 
-    /// Focus-mode notices for applications (`infinity_focus_v1`).
     pub mod focus {
         pub mod __interfaces {
             use wayland_server::protocol::__interfaces::*;

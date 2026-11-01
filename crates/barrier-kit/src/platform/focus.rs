@@ -1,12 +1,4 @@
-//! MalaysiaDreams focus-mode notices (`infinity_focus_v1`, ADR 0051).
-//!
-//! In focus mode a window is fullscreen in a space of its own and hides its
-//! traffic lights. When the pointer reaches the top edge, the compositor
-//! brings the bar down and sends `bar(1)`: the window shows its lights until
-//! `bar(0)`. With version 2 the kit calls `set_overlay`: the window is not
-//! moved, the titlebar leaves the layout in fullscreen and is drawn over the
-//! content right below the bar (`bar_height`) while it is down (ADR 0054).
-//! With version 1 the compositor moves the window down under the bar.
+//! Focus-mode notices received from the compositor.
 
 use freya_core::prelude::WritableUtils;
 use sctk::reexports::client::backend::ObjectId;
@@ -28,11 +20,9 @@ impl Dispatch<InfinityFocusManagerV1, ()> for Runtime {
         _: &Connection,
         _: &QueueHandle<Self>,
     ) {
-        // The manager has no events.
     }
 }
 
-/// The user data is the id of the toplevel surface the notices are about.
 impl Dispatch<InfinityFocusSurfaceV1, ObjectId> for Runtime {
     fn event(
         state: &mut Self,
@@ -52,7 +42,6 @@ impl Dispatch<InfinityFocusSurfaceV1, ObjectId> for Runtime {
         let revealed = match event {
             infinity_focus_surface_v1::Event::Bar { revealed } => revealed,
             infinity_focus_surface_v1::Event::BarHeight { height } => {
-                // Comes right before bar(1), which redraws.
                 let mut bar_height = context.controls.focus_bar_height;
                 if *bar_height.peek() != height as f32 {
                     bar_height.set(height as f32);

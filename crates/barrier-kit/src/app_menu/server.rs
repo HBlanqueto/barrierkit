@@ -12,13 +12,10 @@ use crate::app_menu::{AppMenu, IdMap, MenuHandle};
 
 const VERSION: u32 = 3;
 
-/// The path prefix for per-window menus: `/MenuBar/<n>`.
 const PATH_PREFIX: &str = "/MenuBar/";
 
-/// Monotonic counter for menu paths so unregistering one never reuses it.
 static NEXT_PATH_INDEX: AtomicU32 = AtomicU32::new(0);
 
-/// Commands sent from the render thread to the D-Bus thread.
 enum Command {
     Register {
         path: String,
@@ -32,8 +29,6 @@ enum Command {
     },
 }
 
-/// Per-process D-Bus state. Only one thread and one session connection is
-/// created, shared by every window of the app.
 struct Server {
     commands: Sender<Command>,
     menus: Mutex<HashMap<String, Weak<RegisteredMenu>>>,
@@ -95,8 +90,6 @@ impl Server {
     }
 }
 
-/// Registers a menu on the session bus. The D-Bus address is delivered
-/// asynchronously to the UI thread through [`MenuHandle::deliver_address`].
 pub fn register(handle: MenuHandle) {
     Server::register(handle)
 }
@@ -141,7 +134,6 @@ async fn run(commands: Receiver<Command>) {
                 let _ = registered
                     .last_layout
                     .lock()
-                    // Only fails if a panic already poisoned the mutex; no external data here.
                     .expect("layout lock poisoned")
                     .replace(snapshot);
                 id_maps.insert(path.clone(), id_map);
@@ -285,7 +277,6 @@ impl DbusMenuObject {
                             OwnedValue::try_from(Value::Structure(zbus::zvariant::Structure::from(
                                 child,
                             )))
-                            // A well-formed dbusmenu Structure always converts; invariant.
                             .expect("a well-formed dbusmenu Structure always converts")
                         })
                     })
@@ -424,10 +415,6 @@ fn layout_node(
     (id, node.properties.clone(), children)
 }
 
-/// Test-only peer-to-peer server handle (Commit B, ADR 0040 §10).
-///
-/// Lets integration tests in other crates serve a kit menu over a private
-/// `UnixStream::pair` connection without needing a session bus.
 #[derive(Clone)]
 #[doc(hidden)]
 pub struct TestMenuServer {
@@ -436,7 +423,6 @@ pub struct TestMenuServer {
 }
 
 impl TestMenuServer {
-    /// Creates a server for `menu` that queues "clicked" events on its handle.
     pub fn new(menu: AppMenu, path: impl Into<String>) -> Self {
         let (ping, _) = sctk::reexports::calloop::ping::make_ping().expect("test ping");
         let wake = crate::platform::WakeHandle::from_ping(ping);
@@ -448,13 +434,10 @@ impl TestMenuServer {
         }
     }
 
-    /// The handle shared with the D-Bus object.
     pub fn handle(&self) -> MenuHandle {
         self.registered.handle.clone()
     }
 
-    /// Registers the dbusmenu object on `connection` and emits the initial
-    /// `LayoutUpdated`.
     pub async fn serve(&self, connection: &zbus::Connection) -> zbus::Result<()> {
         connection
             .object_server()
@@ -484,7 +467,6 @@ impl TestMenuServer {
         Ok(())
     }
 
-    /// Updates the cached properties and emits `ItemsPropertiesUpdated`.
     pub async fn update_properties(
         &self,
         connection: &zbus::Connection,
@@ -580,7 +562,6 @@ mod tests {
         let server = super::TestMenuServer::new(menu.clone(), "/MenuBar/0");
         let handle = server.handle();
 
-        // Publish the original layout snapshot.
         let mut id_map = IdMap::default();
         let (snapshot, _) = build_layout(&menu, &mut id_map, 1);
         let id_a2 = snapshot
@@ -591,12 +572,10 @@ mod tests {
             .expect("a2 in snapshot");
         *server.registered.last_layout.lock().unwrap() = Some(snapshot);
 
-        // Mutate the live menu: insert a new item at the front.
         let mut new_menu = menu.clone();
         new_menu.menus[0].items.insert(0, action("a0"));
         handle.replace_menu(new_menu);
 
-        // Click the old numeric id of a2.
         let obj = DbusMenuObject {
             registered: server.registered.clone(),
         };
@@ -640,12 +619,10 @@ mod tests {
         .join()
         .unwrap();
 
-        // The action is queued for the UI thread instead of running on the D-Bus thread.
         assert_eq!(handle.drain_actions(), vec!["a1".to_string()]);
     }
 
     #[test]
-    // shortcut: no simula un bus que retiene la respuesta — mejora: mock de zbus con canal retenido.
     fn register_returns_without_blocking() {
         let handle = MenuHandle::new(AppMenu::new(vec![Menu::new("M", vec![])]), None);
         let start = Instant::now();

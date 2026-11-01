@@ -1,8 +1,4 @@
-//! Golden images for every named control, in light and dark (ADR 0034).
-//!
-//! `UPDATE_GOLDEN=1 cargo test -p barrier-kit --test controls` refreshes the
-//! references; a normal run compares every pixel with a small tolerance so
-//! antialiasing differences are ignored but layout or colour drift is not.
+//! Golden-image tests for every control in light and dark.
 
 use std::{
     fs,
@@ -232,13 +228,10 @@ fn slider_click_snaps_to_the_nearest_step() {
     let (mut test, _) = TestingRunner::new(app, Size2D::new(240.0, 80.0), |_| {}, 1.0);
     test.sync_and_update();
 
-    // Width 200, knob 20, run 180, four steps at x=10, 70, 130, 190.
-    // Click near the right end to select Intenso (3).
     test.click_cursor((190.0, 20.0));
     test.sync_and_update();
     assert_eq!(values.borrow().as_slice(), &[3]);
 
-    // Click near the middle to select Fuerte (2).
     test.click_cursor((130.0, 20.0));
     test.sync_and_update();
     assert_eq!(values.borrow().as_slice(), &[3, 2]);
@@ -265,7 +258,9 @@ fn disabled_slider_does_not_emit() {
         }
     }
 
-    let app = AppComponent::new(SliderCase { values: values_clone });
+    let app = AppComponent::new(SliderCase {
+        values: values_clone,
+    });
     let (mut test, _) = TestingRunner::new(app, Size2D::new(240.0, 80.0), |_| {}, 1.0);
     test.sync_and_update();
 
@@ -330,7 +325,9 @@ fn disabled_checkbox_does_not_emit() {
         }
     }
 
-    let app = AppComponent::new(CheckboxCase { values: values_clone });
+    let app = AppComponent::new(CheckboxCase {
+        values: values_clone,
+    });
     let (mut test, _) = TestingRunner::new(app, Size2D::new(160.0, 60.0), |_| {}, 1.0);
     test.sync_and_update();
 

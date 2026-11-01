@@ -1,24 +1,17 @@
 #!/usr/bin/env sh
-# BarrierKit developer helper.
-#
-# All build commands must run inside `nix develop` so the Skia prebuild,
-# linker flags and library paths are consistent (see README).
 set -eu
 
 script_dir=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
 
-# require_devshell - refuse to run outside the Nix dev shell.
 require_devshell() {
     [ "${BARRIERKIT_DEV_SHELL:-}" = "1" ] ||
         fail 2 "not inside the dev shell; run 'nix develop' first"
 }
 
-# require - fail if a command is missing.
 require() {
     command -v "$1" >/dev/null 2>&1 || fail 2 "'$1' not found"
 }
 
-# fail - print a message and exit with a code.
 fail() {
     _code=$1
     shift

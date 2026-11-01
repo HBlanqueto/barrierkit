@@ -1,9 +1,4 @@
 #!/bin/sh
-# Fails when a crate outside vow-design hardcodes a design value.
-#
-# Colours are checked in barrier-kit. Test modules are skipped (the awk below
-# stops at #[cfg(test)]); buffer formats ([u8; 4]) are forbidden in the toolkit,
-# where the single conversion helper must be Rgba::to_rgba8.
 set -eu
 
 root=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)

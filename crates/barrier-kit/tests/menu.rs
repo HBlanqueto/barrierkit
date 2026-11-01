@@ -1,4 +1,4 @@
-//! Golden images for the BarrierKit menu control.
+//! Golden-image tests for the menu control.
 
 use std::{
     fs,
@@ -42,8 +42,6 @@ fn accent_items() -> Vec<MenuItem> {
 
 fn menu_items() -> Vec<MenuItem> {
     vec![
-        // The first selectable item is focused by default, so this renders the
-        // highlighted state.
         MenuItem::Action {
             id: "open".to_string(),
             label: "Open".to_string(),
@@ -53,7 +51,6 @@ fn menu_items() -> Vec<MenuItem> {
             icon: None,
         },
         MenuItem::Separator,
-        // Normal action with a shortcut.
         MenuItem::Action {
             id: "close".to_string(),
             label: "Close".to_string(),
@@ -63,7 +60,6 @@ fn menu_items() -> Vec<MenuItem> {
             icon: None,
         },
         MenuItem::Separator,
-        // Checkbox and radio marks.
         MenuItem::Action {
             id: "hidden".to_string(),
             label: "Hidden Files".to_string(),
@@ -97,7 +93,6 @@ fn menu_items() -> Vec<MenuItem> {
             icon: None,
         },
         MenuItem::Separator,
-        // Disabled item.
         MenuItem::Action {
             id: "delete".to_string(),
             label: "Delete".to_string(),
@@ -106,7 +101,6 @@ fn menu_items() -> Vec<MenuItem> {
             check: CheckState::None,
             icon: None,
         },
-        // Submenu with chevron.
         MenuItem::Submenu {
             id: None,
             label: "More".to_string(),
@@ -167,8 +161,6 @@ impl App for MenuOnWallpaper {
     }
 }
 
-/// Renders the menu over the Solid Aqua Blue wallpaper instead of a white
-/// surface, so a translucent border that lacks a panel underneath shows it.
 fn render_on_wallpaper(dark: bool) -> Vec<u8> {
     let palette = if dark { MENU_DARK } else { MENU_LIGHT };
     let items = menu_items();
@@ -219,15 +211,10 @@ fn decode(path: &Path) -> (u32, u32, Vec<u8>) {
     decode_bytes(&bytes)
 }
 
-/// The right `padding + border_width` columns are outside every row, so only
-/// the panel background may appear there. A shortcut or label that does not
-/// fit paints into that band; the previous measurer did exactly that.
 fn assert_right_padding_is_background(png: &[u8], palette: MenuPalette, label: &str) {
     let (width, height, pixels) = decode_bytes(png);
     let border = palette.border_width.ceil() as u32;
     let padding = palette.padding.ceil() as u32;
-    // The outer and inner frames occupy the last `2 * border` columns; the
-    // text-free padding band is between the rows and those frames.
     let start = width.saturating_sub(padding);
     let end = width.saturating_sub(border * 2);
     let radius = palette.radius.ceil() as u32 + 1;
@@ -477,7 +464,6 @@ fn an_open_menu_recolors_when_the_accent_changes() {
     );
     test.sync_and_update();
 
-    // The first row is highlighted; sample its left padding, away from the text.
     let x = (palette.padding + palette.item_padding_x / 2.0) as u32;
     let y = (palette.padding + palette.item_height / 2.0) as u32;
     let (width, _, pixels) = decode_bytes(&test.render());
@@ -517,7 +503,6 @@ fn an_open_menu_recolors_when_the_scheme_changes() {
     );
     test.sync_and_update();
 
-    // The panel background fills the padding band above the first row.
     let x = (size.0 / 2.0) as u32;
     let y = (palette.border_width + (palette.padding - palette.border_width) / 2.0) as u32;
     let (width, _, pixels) = decode_bytes(&test.render());
@@ -573,7 +558,6 @@ fn a_menu_taller_than_its_popup_scrolls_with_arrows_and_the_wheel() {
     test.scroll((width as f64 / 2.0, 150.0), (0.0, -120.0));
     assert!(find_label(&test, "▲"), "the wheel scrolled down");
 
-    // The keyboard keeps the focused row in view: End reaches the bottom.
     key(
         &mut test,
         Key::Named(NamedKey::End),

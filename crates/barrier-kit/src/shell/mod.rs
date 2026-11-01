@@ -35,8 +35,6 @@ use crate::platform::{
 use activation::ActivationCallback;
 use toplevels::ToplevelEntry;
 
-/// All state owned by the shell (dock, menubar, lock, launcher). It lives
-/// inside `Runtime` as the single installed [`Extension`].
 pub(crate) struct ShellState {
     pub(crate) app: AppComponent,
     pub(crate) layer_shell: Option<LayerShell>,
@@ -56,8 +54,6 @@ pub(crate) struct ShellState {
 }
 
 impl ShellState {
-    /// Binds the shell globals, builds `Toplevels` and `Activation`, and
-    /// installs the extension into `rt`.
     pub(crate) fn install(
         rt: &mut Runtime,
         app: AppComponent,

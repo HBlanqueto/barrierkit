@@ -1,13 +1,5 @@
-# Skia precompilado para freya-skia-bindings 0.98.0 (el que usa freya-engine
-# 0.4.3) en su propia derivación, para que el build de MalaysiaDreams lo reutilice en vez
-# de reconstruirlo en cada cambio.
-#
-# Compila el crate mínimo de nix/skia-prebuild (que depende de freya-engine
-# =0.4.3) y empaqueta lo que freya-skia-bindings deja en `$OUT_DIR/skia` como
-# un .tar.gz. Los consumidores lo usan con `SKIA_BINARIES_URL = file://…`; el
-# build.rs de skia-bindings solo entonces baja «binarios» en vez de compilar
-# Skia. La etiqueta de Skia y el conjunto de features salen del propio crate:
-# `[package.metadata] skia = "m148-0.97.0"` y las deps de freya-engine en Linux.
+# Prebuilt Skia derivation for freya-skia-bindings.
+
 {
   lib,
   pkgs,
@@ -27,8 +19,6 @@
 let
   deps = import ./skia-deps.nix { inherit pkgs; };
 
-  # Árbol de Skia que espera freya-skia-bindings 0.98.0
-  # (tag y externals: ver skia-bindings/Cargo.toml#package.metadata y skia/DEPS).
   skia-source =
     let
       repo = fetchFromGitHub {

@@ -1,4 +1,4 @@
-//! Popup menu example: a layer-shell top bar that opens the MalaysiaDreams menu.
+//! Popup menu example: a layer-shell top bar that opens a menu.
 
 use std::cell::{Cell, RefCell};
 use std::rc::Rc;
@@ -23,7 +23,6 @@ type OpenLabel = Rc<RefCell<UseState<Option<&'static str>>>>;
 type TimerFn = Rc<RefCell<Option<Box<dyn Fn()>>>>;
 
 struct Demo {
-    /// Set after the root popup is opened so the menu can close itself.
     root_id: Arc<Mutex<Option<PopupId>>>,
 }
 
@@ -79,7 +78,6 @@ impl App for Demo {
                                 if done == 10 || done >= 100 {
                                     let stage = if done >= 100 { "end" } else { "warm10" };
                                     let report = report.clone();
-                                    // Let `close_popup` remove the surface first.
                                     timers.after(Duration::ZERO, move || report(stage));
                                 }
                                 if done >= 100 {
@@ -115,10 +113,6 @@ impl App for Demo {
             });
         }
 
-        // Anchor each root popup at the left edge of its title highlight.
-        // The bar has 12 px horizontal padding; each title has 8 px horizontal
-        // padding around its text, so the highlight edge is the text left edge
-        // minus 8 px.
         let title_pad = 8.0;
         let bar_pad = 12.0;
         let malaysia_x = bar_pad;
@@ -131,8 +125,6 @@ impl App for Demo {
             let root_id = root_id.clone();
             let popups = Popups::get();
             let timers = Timers::get();
-            // The layer surface is configured after the first render, so read
-            // the output width when the timer fires, not now.
             let platform = Platform::get();
             let open_label = open_label.clone();
             use_hook(move || {
@@ -222,7 +214,6 @@ impl App for Demo {
     }
 }
 
-/// Opens the root menu popup from inside the layer surface.
 fn open_menu(
     root_id: &Arc<Mutex<Option<PopupId>>>,
     items: Vec<MenuItem>,
@@ -319,15 +310,12 @@ fn open_root_for_selftest(
     )
 }
 
-/// Closes the currently open root popup, if any.
 fn close_root(root_id: &Arc<Mutex<Option<PopupId>>>) {
     if let Some(id) = root_id.lock().unwrap().take() {
         Popups::get().close(id);
     }
 }
 
-/// Toggles a root menu: clicking the same title again closes it, and opening
-/// a different one first closes any existing root tree so only one survives.
 fn toggle_menu(
     root_id: &Arc<Mutex<Option<PopupId>>>,
     open_label: OpenLabel,
@@ -355,7 +343,6 @@ fn toggle_menu(
     open_label.borrow_mut().set(Some(label));
 }
 
-/// Opens the menu named by `MENU_POPUP_SHOW`, without grab or real input.
 #[allow(clippy::too_many_arguments)]
 fn open_show(
     root_id: &Arc<Mutex<Option<PopupId>>>,
@@ -455,8 +442,6 @@ fn item_top(index: usize, items: &[MenuItem], m: vow_design::MenuPalette) -> f32
     0.0
 }
 
-/// Renders a menu and opens its first submenu through the API, recursively,
-/// so `MENU_POPUP_SHOW=editar-sub` shows root, child and grandchild.
 struct NestedMenu {
     items: Vec<MenuItem>,
     palette: vow_design::MenuPalette,
@@ -567,7 +552,6 @@ fn menu_label(
     rect.child(label).into_element()
 }
 
-/// The "Ir" menu from docs/arquitectura/menubar.md, Spanish, with shortcuts.
 fn go_menu() -> Vec<MenuItem> {
     let folder = |id: &str, label: &str, shortcut: Option<&str>| MenuItem::Action {
         id: id.to_string(),
@@ -616,8 +600,6 @@ fn go_menu() -> Vec<MenuItem> {
     ]
 }
 
-/// A second menu kept for exercising the control: checkbox, radio, disabled,
-/// nested submenus. In Spanish to match the shell language.
 fn edit_menu() -> Vec<MenuItem> {
     vec![
         MenuItem::Action {
@@ -741,8 +723,6 @@ fn malaysia_menu(_palette: vow_design::MenuPalette) -> Vec<MenuItem> {
     ]
 }
 
-/// A wrapper that renders a `MenuView` and, from inside the root popup, opens a
-/// child popup through the API for the self-test.
 struct MenuWithAutoChild {
     items: Vec<MenuItem>,
     palette: vow_design::MenuPalette,
@@ -848,8 +828,6 @@ fn main() {
     let app = AppComponent::new(Demo {
         root_id: Arc::new(Mutex::new(None)),
     });
-    // In show mode the bar is only a popup parent: it must not reserve the
-    // menubar strip on top of the demo session.
     let exclusive_zone = if std::env::var_os("MENU_POPUP_SHOW").is_some() {
         0
     } else {

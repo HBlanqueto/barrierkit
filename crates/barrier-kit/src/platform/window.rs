@@ -30,17 +30,13 @@ use super::{
     timer::{PingWake, Timers, WakeHandle},
 };
 
-/// Who draws a MalaysiaDreams app's titlebar (ADR 0035).
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum Decorations {
-    /// BarrierKit draws its 44 px titlebar.
     #[default]
     Client,
-    /// MalaysiaDreams's compositor draws the 32 px titlebar.
     Server,
 }
 
-/// Which edge of a client-side window is being resized.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum WindowEdge {
     Top,
@@ -53,23 +49,18 @@ pub enum WindowEdge {
     BottomRight,
 }
 
-/// How the compositor answered the decoration request.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum DecorationResponse {
     Client,
     Server,
 }
 
-/// Handler called when a global menu or in-app shortcut fires an action.
 pub type MenuActionHandler = Arc<dyn Fn(&str) + Send + Sync>;
 
-/// Public options for a normal BarrierKit window, without SCTK types.
 #[derive(Clone)]
 pub struct WindowOptions {
     pub title: String,
     pub app_name: String,
-    /// Optional override for the Wayland `app_id`; defaults to
-    /// `NATIVE_APP_ID_PREFIX + app_name`.
     pub app_id: Option<String>,
     pub decorations: Decorations,
     pub size: (u32, u32),
@@ -98,7 +89,6 @@ impl std::fmt::Debug for WindowOptions {
 }
 
 impl WindowOptions {
-    /// A 640×420 window with client-side chrome and the given title/app name.
     pub fn new(title: impl Into<String>, app_name: impl Into<String>) -> Self {
         Self {
             title: title.into(),
@@ -155,19 +145,15 @@ impl WindowOptions {
     }
 }
 
-/// The state a BarrierKit window's titlebar reads.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct WindowStatus {
     pub activated: bool,
     pub maximized: bool,
-    /// Whether the compositor has the window fullscreen (MalaysiaDreams focus
-    /// mode, ADR 0051).
     pub fullscreen: bool,
     pub decoration: DecorationResponse,
     pub fixed: bool,
 }
 
-/// Actions a titlebar can request from the runner.
 #[derive(Clone)]
 pub struct WindowControls {
     pub(super) queue: Rc<RefCell<Vec<WindowCommand>>>,
@@ -178,35 +164,20 @@ pub struct WindowControls {
     pub fixed: bool,
     pub(super) surface_id: ObjectId,
     pub(super) menu_handle: Option<crate::app_menu::MenuHandle>,
-    /// Whether the bar is down over the window in MalaysiaDreams focus mode
-    /// (`infinity_focus_v1`). Stays `false` elsewhere.
     pub focus_bar: State<bool>,
-    /// Whether the compositor leaves the window in place for the bar and the
-    /// titlebar is drawn over the content instead (`infinity_focus_v1`
-    /// version 2, `set_overlay`; MalaysiaDreams ADR 0054).
     pub focus_overlay: bool,
-    /// The height the bar covers at the top of the window, from the
-    /// compositor's `bar_height`.
     pub focus_bar_height: State<f32>,
 }
 
 impl WindowControls {
-    /// Whether the window controls (traffic lights) are shown: always, except
-    /// in fullscreen (MalaysiaDreams focus mode), where they appear only with
-    /// the bar, as on macOS (ADR 0051).
     pub fn traffic_lights_shown(&self) -> bool {
         !self.status.read().fullscreen || *self.focus_bar.read()
     }
 
-    /// Whether the titlebar leaves the layout: in focus mode, with a
-    /// compositor that draws nothing over the window for it (ADR 0054). The
-    /// content then takes the whole window.
     pub fn titlebar_overlaid(&self) -> bool {
         self.focus_overlay && self.status.read().fullscreen
     }
 
-    /// Where an overlaid titlebar is drawn, over the content: right below
-    /// the bar while it is down. `None` while it is hidden or not overlaid.
     pub fn titlebar_overlay_top(&self) -> Option<f32> {
         (self.titlebar_overlaid() && *self.focus_bar.read()).then(|| *self.focus_bar_height.read())
     }
@@ -229,11 +200,6 @@ impl WindowControls {
         self.ping.ping();
     }
 
-    /// Toggle vertical maximise for fixed-width windows.
-    ///
-    /// The kit still sends the standard maximise/restore request; the compositor
-    /// recognizes fixed-width windows and performs the vertical fill itself.
-    /// The stored restore rectangle is the window's current size.
     pub fn toggle_vertical_maximize(&self) {
         self.queue
             .borrow_mut()
@@ -241,8 +207,6 @@ impl WindowControls {
         self.ping.ping();
     }
 
-    /// Enter or leave fullscreen. MalaysiaDreams turns it into focus mode: the
-    /// window gets a space of its own (ADR 0051).
     pub fn toggle_fullscreen(&self) {
         self.queue
             .borrow_mut()
@@ -264,18 +228,14 @@ impl WindowControls {
         self.ping.ping();
     }
 
-    /// The Wayland object id of the toplevel surface these controls belong to.
     pub fn surface_id(&self) -> ObjectId {
         self.surface_id.clone()
     }
 
-    /// The global menu handle for this window, if it was configured with one.
     pub fn menu_handle(&self) -> Option<crate::app_menu::MenuHandle> {
         self.menu_handle.clone()
     }
 
-    /// Opens another toplevel in the same process, attached to this window as
-    /// its parent when `options.parent` is `Some(surface_id())`.
     pub fn open_window(&self, app: AppComponent, options: WindowOptions) {
         self.queue
             .borrow_mut()
@@ -306,13 +266,9 @@ pub(super) fn resize_edge(edge: WindowEdge) -> xdg_toplevel::ResizeEdge {
         WindowEdge::BottomRight => xdg_toplevel::ResizeEdge::BottomRight,
     }
 }
-/// xdg_toplevel.set_min_size and set_max_size take signed 32-bit ints where
-/// 0 means "unbounded". Values that do not fit in i32 must be sent as 0 to
-/// avoid the `invalid_size` protocol error.
 pub(super) fn clamp_toplevel_size_dimension(value: u32) -> u32 {
     if value > i32::MAX as u32 { 0 } else { value }
 }
-/// Runs a normal BarrierKit window (`xdg_toplevel`, ADR 0035).
 pub fn run_window(app: AppComponent, options: WindowOptions) -> Result<(), RunError> {
     let Connected {
         conn,
@@ -401,7 +357,6 @@ impl Runtime {
                 let pending_addresses = self.pending_menu_addresses.clone();
                 let wake = self.wake.ping.clone();
                 handle.set_address_callback(move |address| {
-                    // Only fails if a panic already poisoned the mutex; no external data here.
                     pending_addresses
                         .lock()
                         .expect("pending menu addresses poisoned")
@@ -413,8 +368,6 @@ impl Runtime {
             menu_handle = Some(handle);
         }
 
-        // The org_kde_kwin_appmenu object is created lazily when the
-        // asynchronous D-Bus registration delivers the address.
         let appmenu_object: Option<OrgKdeKwinAppmenu> = None;
 
         let queue: Rc<RefCell<Vec<WindowCommand>>> = Rc::new(RefCell::new(Vec::new()));
@@ -458,10 +411,8 @@ impl Runtime {
             focus_bar_height: State::create_global(vow_design::MENUBAR_HEIGHT as f32),
         };
         if let Some(manager) = &self.focus_manager {
-            // Kept alive by the connection; the notices name the surface.
             let notice = manager.get_focus_surface(&surface, qh, surface.id());
             if controls.focus_overlay {
-                // The window stays put; the titlebar goes over the content.
                 notice.set_overlay();
             }
         }
@@ -609,26 +560,24 @@ impl WindowHandler for Runtime {
                 ..*status.read()
             });
         }
-        if !self.needs_exit {
-            // Drop the closed surface and its controls so later commands are
-            // ignored. The window_contexts entry is removed as well.
-            if let Some(index) = self.surfaces.iter().position(|s| {
+        if !self.needs_exit
+            && let Some(index) = self.surfaces.iter().position(|s| {
                 matches!(s.role, SurfaceRole::Window(_)) && s.surface.id() == surface_id
-            }) {
-                if let Some(address) = self.surfaces[index].appmenu_address.take() {
-                    crate::app_menu::server::unregister(&address.path);
-                }
-                if let Some(appmenu) = self.surfaces[index].appmenu.take() {
-                    appmenu.release();
-                }
-                let mut role = SurfaceRole::None;
-                std::mem::swap(&mut self.surfaces[index].role, &mut role);
-                drop(role);
-                self.surfaces.remove(index);
-                self.window_contexts
-                    .retain(|ctx| ctx.controls.surface_id != surface_id);
-                self.surface_count.set(self.surfaces.len());
+            })
+        {
+            if let Some(address) = self.surfaces[index].appmenu_address.take() {
+                crate::app_menu::server::unregister(&address.path);
             }
+            if let Some(appmenu) = self.surfaces[index].appmenu.take() {
+                appmenu.release();
+            }
+            let mut role = SurfaceRole::None;
+            std::mem::swap(&mut self.surfaces[index].role, &mut role);
+            drop(role);
+            self.surfaces.remove(index);
+            self.window_contexts
+                .retain(|ctx| ctx.controls.surface_id != surface_id);
+            self.surface_count.set(self.surfaces.len());
         }
     }
 
@@ -656,18 +605,12 @@ impl WindowHandler for Runtime {
             resizing = configure.is_resizing(),
             "configure received"
         );
-        // Always keep the latest configure; older ones are overwritten. The
-        // request_redraw ensures a frame callback will process it.
         self.surfaces[index].pending_configure = Some((configure, serial));
         self.surfaces[index].needs_redraw = true;
         self.surfaces[index].request_frame_callback(qh);
     }
 }
 impl Runtime {
-    /// Applies the most recent pending window configure for each surface.
-    ///
-    /// Called from the frame callback so several configures that arrive between
-    /// frames collapse into a single resize/draw.
     pub(super) fn apply_pending_window_configures(&mut self, qh: &QueueHandle<Self>) {
         for index in 0..self.surfaces.len() {
             let Some((configure, serial)) = self.surfaces[index].pending_configure.take() else {
@@ -686,18 +629,11 @@ impl Runtime {
                 height = size.1,
                 "apply pending configure"
             );
-            // A 0×0 configure leaves the size to the client: keep the size the app
-            // asked for. Dropping the configure would leave the surface without a
-            // buffer, so the window would never map.
             let size = if size.0 > 0 && size.1 > 0 {
                 size
             } else {
                 self.surfaces[index].logical_size
             };
-            // Only commit immediately when the size did not change. A size-changing
-            // configure will be followed by a redraw that commits a buffer at the
-            // new size; committing the old buffer here makes the compositor see a
-            // transient size mismatch and loop (B2).
             let size_changed = size != self.surfaces[index].logical_size;
             self.surfaces[index].configure_count += 1;
             let count = self.surfaces[index].configure_count;
@@ -717,10 +653,6 @@ impl Runtime {
                 .find(|ctx| ctx.controls.surface_id == surface_id)
                 .map(|ctx| ctx.controls.status.read().decoration == DecorationResponse::Server)
                 .unwrap_or(false);
-            // MalaysiaDreams always grants an explicit Server request. Some compositors do
-            // not send the decoration configure at all, so keep the requested mode
-            // when they advertise the protocol; without it, fall back to the
-            // client-side bar.
             let decoration = if requested_server && self.decoration_manager {
                 DecorationResponse::Server
             } else {
@@ -752,14 +684,9 @@ impl Runtime {
                     fixed: context.controls.fixed,
                 });
             }
-            // Acknowledge the configure and let SCTK apply the decoration mode
-            // before drawing the first frame. A size change is committed by the
-            // redraw below, not here, to avoid sending the old buffer size.
             if !size_changed && let SurfaceRole::Window(window) = &self.surfaces[index].role {
                 window.commit();
             }
-            // A toplevel must attach its first buffer before it can map; unlike a
-            // layer surface there is no frame callback to wait for yet.
             if self.surfaces[index].draw() && self.surfaces[index].needs_redraw {
                 self.surfaces[index].request_redraw(qh);
             }

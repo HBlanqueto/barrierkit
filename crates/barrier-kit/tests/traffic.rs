@@ -1,4 +1,4 @@
-//! Pixel checks for the client-side traffic lights (ADR 0035).
+//! Pixel tests for the traffic lights.
 
 use barrier_kit::ProbeExt;
 use barrier_kit::traffic::{TrafficLights, traffic_lights_view};
@@ -203,7 +203,6 @@ fn fixed_width_clicks_call_the_expected_actions() {
     let (mut test, _) = TestingRunner::new(app, Size2D::new(80.0, 40.0), |_| {}, 1.0);
     test.sync_and_update();
 
-    // The three 12 px lights are laid out at x=0, 20, 40 with centres at x=6, 26, 46.
     let centers = [(6.0, 6.0), (26.0, 6.0), (46.0, 6.0)];
     for (x, y) in centers {
         test.click_cursor((x, y));
@@ -236,8 +235,6 @@ fn fixed_width_green_uses_plus_glyph() {
     };
     let (normal, width) = render_fixed(input, false, 1.0);
     let (fixed, _) = render_fixed(input, true, 1.0);
-    // The three lights are laid out with 12 px diameter and 8 px gaps inside
-    // a 52 px-wide group. The third light starts at x=40; its centre is x=46.
     let center_x = 46;
     let center_y = 6;
     let normal_center = pixel(&normal, width, center_x, center_y);
@@ -400,7 +397,6 @@ fn close_only_keeps_minimise_and_zoom_inactive() {
         .traffic_lights_inactive
         .to_rgba8();
     let (origin, _, diameter) = vow_appearance::traffic::button_rect(0);
-    // Sample left of each centre, away from the glyph strokes.
     for index in 1..3 {
         let (x, _, _) = vow_appearance::traffic::button_rect(index);
         let pixel = at(x - origin + diameter * 0.2, diameter / 2.0);

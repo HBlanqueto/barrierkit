@@ -1,9 +1,4 @@
-//! The Skia font state shared by text measurement and rendering.
-//!
-//! Every popup used to build its own `FontCollection`. Measuring and drawing
-//! must use the same collection, and one per process is enough: Skia's handles
-//! are reference-counted, so callers clone the handle and keep sharing the
-//! underlying managers.
+//! Shared Skia font collection used for text measurement and drawing.
 
 use std::cell::RefCell;
 

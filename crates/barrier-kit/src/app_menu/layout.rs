@@ -8,20 +8,16 @@ use crate::app_menu::{
 };
 use crate::menu::MenuItem;
 
-/// One dbusmenu layout item: `(id, properties, children)`.
 pub type LayoutItem = (i32, HashMap<String, OwnedValue>, Vec<OwnedValue>);
 
-/// The value returned by `GetLayout`: `(revision, layout_item)`.
 pub type DbusMenuLayout = (u32, LayoutItem);
 
-/// Update record for `ItemsPropertiesUpdated`.
 #[derive(Debug, Clone)]
 pub struct PropertiesUpdate {
     pub id: i32,
     pub properties: HashMap<String, OwnedValue>,
 }
 
-/// State shared between the render thread and the D-Bus thread.
 pub struct RegisteredMenu {
     pub handle: crate::app_menu::MenuHandle,
     pub(crate) last_layout: Mutex<Option<LayoutSnapshot>>,
@@ -36,8 +32,6 @@ impl RegisteredMenu {
     }
 }
 
-/// Snapshot of a generated layout used to decide between
-/// `ItemsPropertiesUpdated` and `LayoutUpdated`.
 #[derive(Clone, Debug)]
 #[doc(hidden)]
 pub struct LayoutSnapshot {
@@ -51,11 +45,9 @@ pub struct LayoutSnapshot {
 pub struct LayoutNode {
     pub properties: HashMap<String, OwnedValue>,
     pub children: Vec<i32>,
-    /// Original textual action id, if this node represents an action.
     pub action_id: Option<String>,
 }
 
-/// Generates the dbusmenu layout for `menu` using stable ids from `id_map`.
 pub fn build_layout(
     menu: &AppMenu,
     id_map: &mut IdMap,
@@ -66,8 +58,6 @@ pub fn build_layout(
         nodes: HashMap::new(),
         root_children: Vec::new(),
     };
-    // Reserve id 0 for the root so top-level menus start at 1 and never
-    // collide with it.
     id_map.get("__root__");
     let root_id = 0;
     let mut root_children_values: Vec<OwnedValue> = Vec::new();
@@ -224,7 +214,6 @@ fn layout_item(
             );
             (item_value(id, &props, children), id)
         }
-        // Headers and search fields are not part of app menus.
         _ => {
             let id = id_map.get("__ignored__");
             let props = HashMap::new();
@@ -249,8 +238,6 @@ fn item_value(
     (id, props.clone(), children)
 }
 
-/// Compares the new layout with the previous one and returns either a
-/// `LayoutUpdated` signal or an `ItemsPropertiesUpdated` payload.
 pub fn diff_layout(registered: &Arc<RegisteredMenu>, new: LayoutSnapshot) -> Update {
     let mut guard = registered.last_layout.lock().expect("layout lock poisoned");
     let old = guard.take();
@@ -298,8 +285,6 @@ pub enum Update {
     Properties(Vec<PropertiesUpdate>),
 }
 
-/// Looks up the original textual id of an action from its numeric dbusmenu id
-/// using the last published layout snapshot.
 pub fn action_id_for_numeric(registered: &Arc<RegisteredMenu>, numeric_id: i32) -> Option<String> {
     let guard = registered.last_layout.lock().expect("layout lock poisoned");
     guard

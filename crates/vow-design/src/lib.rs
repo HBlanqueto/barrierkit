@@ -1,45 +1,16 @@
-//! MalaysiaDreams's system defaults: the one place every visual value lives.
-//!
-//! These are compile-time constants, not a theme system. There is exactly one
-//! look, in three modes ([`LIGHT`], [`DARK`] and [`DARK_TINT`]); the values are
-//! generated at build time from the vendored Tengen JSON. Every other crate
-//! reads design values through this module and must not define its own
-//! (ADR 0011).
-//!
-//! Colors are [`Rgba`] with `f32` components in `0.0..=1.0`, ready to hand to
-//! a shader without a per-frame conversion. The literals are written with
-//! [`Rgba::rgb8`] / [`Rgba::rgba8`] so they read like the hex and `rgba(...)`
-//! values they were taken from. Every numeric field states its unit in its
-//! documentation: lengths are logical pixels, font sizes are points, an
-//! exponent and opacities are unitless.
-//!
-//! # Where the values come from
-//!
-//! The desktop design is **Tengen** (`crates/vow-design/tengen`): `tokens.json` holds colors, radii, spaces, typography and
-//! shadows; `components.json` holds component metrics. Its window is a 44 px
-//! top titlebar with 12 px traffic lights and a 16 px corner radius; the
-//! server-side chrome uses its own 32 px bar. `build.rs` turns those JSON
-//! files into the constants included at the end of this module (ADR 0032).
+//! Design constants: the single place for radii, shadows, colours and margins.
 
 #![forbid(unsafe_code)]
-#![warn(missing_docs)]
 
-/// A color with `0.0..=1.0` components, ready for a shader.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Rgba {
-    /// Red, `0.0..=1.0`.
     pub r: f32,
-    /// Green, `0.0..=1.0`.
     pub g: f32,
-    /// Blue, `0.0..=1.0`.
     pub b: f32,
-    /// Alpha, `0.0` transparent to `1.0` opaque.
     pub a: f32,
 }
 
 impl Rgba {
-    /// Mixes toward `other` by `amount` (`0.0` keeps this color, `1.0` is the
-    /// other one); alpha stays this color's.
     pub fn mix(self, other: Self, amount: f32) -> Self {
         let amount = amount.clamp(0.0, 1.0);
         Self {
@@ -50,22 +21,18 @@ impl Rgba {
         }
     }
 
-    /// Mixes toward black by `amount`.
     pub fn darken(self, amount: f32) -> Self {
         self.mix(Self::rgb8(0, 0, 0), amount)
     }
 
-    /// Mixes toward white by `amount`.
     pub fn lighten(self, amount: f32) -> Self {
         self.mix(Self::rgb8(255, 255, 255), amount)
     }
 
-    /// Builds an opaque color from 8-bit channels.
     pub const fn rgb8(r: u8, g: u8, b: u8) -> Self {
         Self::rgba8(r, g, b, 1.0)
     }
 
-    /// Builds a color from 8-bit channels and a `0.0..=1.0` alpha.
     pub const fn rgba8(r: u8, g: u8, b: u8, a: f32) -> Self {
         Self {
             r: r as f32 / 255.0,
@@ -75,7 +42,6 @@ impl Rgba {
         }
     }
 
-    /// The 8-bit RGBA bytes the CPU rasterizers upload.
     pub fn to_rgba8(self) -> [u8; 4] {
         [
             (self.r * 255.0).round().clamp(0.0, 255.0) as u8,
@@ -85,12 +51,10 @@ impl Rgba {
         ]
     }
 
-    /// Returns premultiplied RGBA for OpenGL/Smithay blending.
     pub fn premultiplied(self) -> [f32; 4] {
         [self.r * self.a, self.g * self.a, self.b * self.a, self.a]
     }
 
-    /// WCAG 2.x relative luminance of the color, assuming sRGB encoding.
     pub fn relative_luminance(self) -> f32 {
         fn linear(channel: f32) -> f32 {
             if channel <= 0.04045 {
@@ -102,14 +66,12 @@ impl Rgba {
         0.2126 * linear(self.r) + 0.7152 * linear(self.g) + 0.0722 * linear(self.b)
     }
 
-    /// WCAG 2.x contrast ratio between this color and another.
     pub fn contrast_ratio(self, other: Self) -> f32 {
         let a = self.relative_luminance();
         let b = other.relative_luminance();
         (a.max(b) + 0.05) / (a.min(b) + 0.05)
     }
 
-    /// Converts the color to HSL with hue in `0.0..=1.0`.
     pub fn to_hsl(self) -> (f32, f32, f32) {
         let max = self.r.max(self.g).max(self.b);
         let min = self.r.min(self.g).min(self.b);
@@ -133,7 +95,6 @@ impl Rgba {
         (hue, saturation, lightness)
     }
 
-    /// Builds a color from HSL with hue in `0.0..=1.0` and the given alpha.
     pub fn from_hsl(hue: f32, saturation: f32, lightness: f32, alpha: f32) -> Self {
         fn hue_to_rgb(p: f32, q: f32, mut t: f32) -> f32 {
             if t < 0.0 {
@@ -171,518 +132,290 @@ impl Rgba {
     }
 }
 
-/// One color in its focused and unfocused variants.
-///
-/// A window has two states, and any color that differs between them lives here
-/// as a pair. The unfocused value is its own constant, never a multiplier
-/// applied later in render code.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct FocusPair {
-    /// The color when the window has focus.
     pub focused: Rgba,
-    /// The color when the window does not have focus.
     pub unfocused: Rgba,
 }
 
-/// Which edge a titlebar occupies.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TitlebarPosition {
-    /// Along the left edge; the title reads bottom to top.
     Left,
-    /// Along the right edge; the title reads bottom to top.
     Right,
-    /// Along the top edge, horizontal.
     Top,
-    /// Along the bottom edge, horizontal.
     Bottom,
-    /// No titlebar is drawn.
     None,
 }
 
-/// How a title is oriented when the titlebar is vertical.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TitleRotation {
-    /// Ordinary horizontal text.
     Horizontal,
-    /// Rotated to read bottom to top, the default for vertical titlebars.
     BottomToTop,
 }
 
-/// A font face and size.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Font {
-    /// Family name.
     pub family: &'static str,
-    /// Size in points.
     pub size: u32,
-    /// Line height in points.
     pub line_height: u32,
-    /// Numeric weight, as CSS/fontconfig: 400 regular, 500 medium, 600
-    /// semibold, 650, 700 bold.
     pub weight: u16,
 }
 
-/// What a titlebar button does.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ButtonKind {
-    /// Close the window.
     Close,
-    /// Minimize the window.
     Minimize,
-    /// Maximize the window.
     Maximize,
 }
 
-/// A titlebar button: its function and its color when the window is focused.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Button {
-    /// What the button does.
     pub kind: ButtonKind,
-    /// Color when the window has focus.
     pub color: Rgba,
 }
 
-/// One straight line of a traffic-light glyph, in the glyph's canvas units.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Segment {
-    /// Start point.
     pub a: (f32, f32),
-    /// End point.
     pub b: (f32, f32),
 }
 
-/// One filled triangle of a traffic-light glyph, in the glyph's canvas units.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Triangle(pub [(f32, f32); 3]);
 
-/// The geometry of the close, minimize, zoom and plus traffic-light glyphs.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct TrafficGlyphs {
-    /// Side of the square glyph canvas, centred in the traffic light.
     pub box_size: f32,
-    /// Stroke width in canvas units; ends are rounded.
     pub stroke: f32,
-    /// The two diagonal strokes of the close glyph.
     pub close: &'static [Segment],
-    /// The horizontal stroke of the minimize glyph.
     pub minimize: &'static [Segment],
-    /// The two triangles of the zoom glyph.
     pub zoom: &'static [Triangle],
-    /// The two crossed strokes of the plus glyph for fixed-width windows.
     pub plus: &'static [Segment],
 }
 
-/// The titlebar double-click gesture.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct DoubleClick {
-    /// Maximum time between clicks, in milliseconds.
     pub interval_ms: u32,
-    /// Maximum pointer movement between clicks, in logical pixels.
     pub slop: f64,
 }
 
-/// The titlebar buttons, their order along the bar and their shared metrics.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct TitlebarButtons {
-    /// Buttons in order from the start of the titlebar; top to bottom when the
-    /// titlebar is vertical.
     pub order: [Button; 3],
-    /// Button diameter, in logical pixels.
     pub diameter: u32,
-    /// Gap between adjacent buttons, in logical pixels.
     pub spacing: u32,
-    /// Corner radius of each button, in logical pixels.
     pub corner_radius: u32,
-    /// Gap before the first button, in logical pixels.
     pub margin_start: u32,
 }
 
-/// Titlebar placement, metrics and title typography.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Titlebar {
-    /// Which edge the titlebar occupies.
     pub position: TitlebarPosition,
-    /// Thickness of the bar, in logical pixels.
     pub thickness: u32,
-    /// The buttons and their metrics.
     pub buttons: TitlebarButtons,
-    /// The typeface used for the title.
     pub font: Font,
-    /// How the title is oriented.
     pub rotation: TitleRotation,
 }
 
-/// A window's shape.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct WindowStyle {
-    /// Corner radius, in logical pixels.
     pub corner_radius: u32,
-    /// Superellipse exponent, unitless. `2.0` is an ellipse; larger values are
-    /// squarer.
     pub superellipse_exponent: f32,
 }
 
-/// One layer of a window shadow.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ShadowLayer {
-    /// CSS blur radius, in logical pixels (`sigma = blur / 2`).
     pub blur: u32,
-    /// Vertical offset, in logical pixels; positive is downward.
     pub y_offset: i32,
-    /// Opacity when the window is focused, unitless `0.0..=1.0`.
     pub opacity: f32,
-    /// The shadow tint; its alpha is not used.
     pub color: Rgba,
 }
 
-/// Compile-time metrics for the tint-strength slider in System Settings.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct SettingsStrength {
-    /// Slider track width, in logical pixels.
     pub width: u32,
-    /// Tick mark diameter, in logical pixels.
     pub tick: u32,
-    /// Gap between the track and the labels, in logical pixels.
     pub label_gap: u32,
 }
 
-/// Compile-time metrics for the tinted-parts checkboxes in System Settings.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct SettingsCheck {
-    /// Gap between a checkbox and its label, in logical pixels.
     pub gap: u32,
-    /// Horizontal gap between checkbox columns, in logical pixels.
     pub column_gap: u32,
-    /// Vertical gap between checkbox rows, in logical pixels.
     pub row_gap: u32,
 }
 
-/// Compile-time metrics for the System Settings window.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct SettingsMetrics {
-    /// Fixed width of the label column (title + help) in a settings row.
     pub label_column: u32,
-    /// Default settings window width, in logical pixels.
     pub window_width: u32,
-    /// Default settings window height, in logical pixels.
     pub window_height: u32,
-    /// Minimum settings window height, in logical pixels.
     pub window_min_height: u32,
-    /// Search field height, in logical pixels.
     pub search_height: u32,
-    /// Horizontal padding inside the search field, in logical pixels.
     pub search_padding_x: u32,
-    /// Search icon size, in logical pixels.
     pub search_icon: u32,
-    /// Gap between the search icon and its text, in logical pixels.
     pub search_gap: u32,
-    /// Account avatar size, in logical pixels.
     pub account_avatar: u32,
-    /// Gap between the avatar and the account text, in logical pixels.
     pub account_gap: u32,
-    /// Account row height, in logical pixels.
     pub account_height: u32,
-    /// Horizontal padding of the account row, in logical pixels.
     pub account_padding_x: u32,
-    /// Font for the account name.
     pub account_name_font: Font,
-    /// Font for the account detail line.
     pub account_detail_font: Font,
-    /// Gap between the account row and the first section, in logical pixels.
     pub section_gap: u32,
-    /// Background colour of the Appearance section icon.
     pub section_icon_bg: Rgba,
-    /// Group container corner radius, in logical pixels.
     pub group_radius: u32,
-    /// Minimum height of a grouped row, in logical pixels.
     pub group_row_min_height: u32,
-    /// Horizontal padding of a grouped row, in logical pixels.
     pub group_row_padding_x: u32,
-    /// Vertical padding of a grouped row, in logical pixels.
     pub group_row_padding_y: u32,
-    /// Top margin of a group title, in logical pixels.
     pub group_title_margin_top: u32,
-    /// Horizontal padding inside a group container, in logical pixels.
     pub group_content_padding_x: u32,
-    /// Accent color swatch size, in logical pixels.
     pub swatch_size: u32,
-    /// Gap between accent color swatches, in logical pixels.
     pub swatch_gap: u32,
-    /// Font used for swatch labels.
     pub swatch_name_font: Font,
-    /// Accent preview card width, in logical pixels.
     pub card_width: u32,
-    /// Accent preview card height, in logical pixels.
     pub card_height: u32,
-    /// Accent preview card corner radius, in logical pixels.
     pub card_radius: u32,
-    /// Gap between accent preview cards, in logical pixels.
     pub card_gap: u32,
-    /// Selected accent card ring width, in logical pixels.
     pub card_ring: u32,
-    /// Gap between the ring and the card it surrounds, in logical pixels.
     pub card_ring_gap: u32,
-    /// Gap between a card preview and its caption, in logical pixels.
     pub card_caption_gap: u32,
-    /// Font used for card captions.
     pub card_caption_font: Font,
-    /// Corner radius of the theme preview window.
     pub preview_window_radius: u32,
-    /// Size of each traffic light in the theme preview.
     pub preview_light: u32,
-    /// X offset of the window-colour preview window.
     pub preview_tint_window_x: u32,
-    /// Y offset of the window-colour preview window.
     pub preview_tint_window_y: u32,
-    /// Width of the tinted side strip in the window-colour preview.
     pub preview_tint_side_w: u32,
-    /// Height of the panel strip in a theme preview.
     pub preview_panel_h: u32,
-    /// Width of each panel in the automatic theme preview.
     pub preview_panel_w: u32,
-    /// X offset of the menu in a theme preview.
     pub preview_menu_x: u32,
-    /// Y offset of the menu in a theme preview.
     pub preview_menu_y: u32,
-    /// Width of the menu in a theme preview.
     pub preview_menu_w: u32,
-    /// Height of the menu in a theme preview.
     pub preview_menu_h: u32,
-    /// Padding inside the menu in a theme preview.
     pub preview_menu_padding: u32,
-    /// Height of an unhighlighted menu line in a theme preview.
     pub preview_menu_line_h: u32,
-    /// Corner radius of a menu line in a theme preview.
     pub preview_menu_line_radius: u32,
-    /// Width of the mini app in a theme preview.
     pub preview_app_w: u32,
-    /// Height of the mini app in a theme preview.
     pub preview_app_h: u32,
-    /// Inset of the mini app from the preview corner.
     pub preview_app_inset: u32,
-    /// Width of the mini app's sidebar.
     pub preview_app_side_w: u32,
-    /// Inset of the mini app's traffic lights.
     pub preview_dots_inset: u32,
-    /// Gap between the mini app's traffic lights.
     pub preview_dot_gap: u32,
-    /// Corner radius of a mini app traffic light.
     pub preview_dot_radius: u32,
-    /// Corner radius inside a theme preview.
     pub preview_radius: u32,
-    /// Angle of the accent gradient behind a theme preview, in degrees.
     pub preview_wall_angle: u32,
-    /// How much the preview gradient lightens the accent, unitless.
     pub preview_wall_light: f32,
-    /// How much the preview gradient darkens the accent, unitless.
     pub preview_wall_dark: f32,
-    /// CSS shadow used by the menu and mini app in a theme preview.
     pub preview_shadow: &'static str,
-    /// Radio button outer size, in logical pixels.
     pub radio_size: u32,
-    /// Radio button inner dot size, in logical pixels.
     pub radio_dot: u32,
-    /// Gap between a radio button and its label, in logical pixels.
     pub radio_gap: u32,
-    /// Horizontal spacing between radio buttons, in logical pixels.
     pub radio_spacing: u32,
-    /// Popup button height, in logical pixels.
     pub popup_height: u32,
-    /// Popup chevron icon size, in logical pixels.
     pub popup_chevron: u32,
-    /// Gap between traffic-light squares in the popup button, in logical pixels.
     pub popup_light_gap: u32,
-    /// Gap between the popup button text and its chevron capsule, in logical pixels.
     pub popup_text_gap: u32,
-    /// How much the resolved accent is mixed with the dark sidebar background
-    /// for selected rows.
     pub selected_dark_mix: f32,
-    /// Gap below the traffic lights in the settings sidebar, in logical pixels.
     pub sidebar_lights_gap: u32,
-    /// Gap below the search field in the settings sidebar, in logical pixels.
     pub sidebar_search_gap: u32,
-    /// Gap between the label and the accessory in a settings sidebar item, in
-    /// logical pixels.
     pub sidebar_item_gap: u32,
-    /// Top padding of the settings sidebar, in logical pixels.
     pub sidebar_padding_top: u32,
-    /// Bottom padding of the settings sidebar, in logical pixels.
     pub sidebar_padding_bottom: u32,
-    /// Size of the glyph inside a sidebar app icon, in logical pixels.
     pub sidebar_app_icon_glyph: u32,
-    /// Gap between a row's label column and its control, in logical pixels.
     pub row_gap: u32,
-    /// Tint-strength slider metrics.
     pub strength: SettingsStrength,
-    /// Tint-parts checkbox grid metrics.
     pub check: SettingsCheck,
-    /// Size of each traffic light in the traffic dropdown, in logical pixels.
     pub dropdown_preview_light: u32,
-    /// Size of the chevron glyph in the traffic dropdown, in logical pixels.
     pub dropdown_chevron_glyph: u32,
-    /// Vertical padding of the no-results state, in logical pixels.
     pub empty_padding_y: u32,
-    /// Size of the no-results icon, in logical pixels.
     pub empty_icon: u32,
-    /// Gap between the no-results icon, title and text, in logical pixels.
     pub empty_gap: u32,
-    /// Gap between the toolbar capsule and the section title, in logical pixels.
     pub toolbar_gap: u32,
-    /// Height of the toolbar strip, in logical pixels.
     pub toolbar_height: u32,
-    /// Top padding of the toolbar strip, in logical pixels.
     pub toolbar_padding_top: u32,
-    /// Horizontal padding of the toolbar strip, in logical pixels.
     pub toolbar_padding_x: u32,
-    /// Top padding of the settings content scroll view, in logical pixels.
     pub content_padding_top: u32,
-    /// Bottom padding of the settings content scroll view, in logical pixels.
     pub content_padding_bottom: u32,
-    /// Gap between groups in the settings content, in logical pixels.
     pub content_gap: u32,
-    /// Bottom margin of a group title, in logical pixels.
     pub group_title_margin_bottom: u32,
-    /// Left indent of a group title, in logical pixels.
     pub group_title_indent: u32,
-    /// Gap between a row title and its description, in logical pixels.
     pub group_desc_gap: u32,
-    /// Width of an accent swatch column, in logical pixels.
     pub swatch_column: u32,
-    /// Gap between a swatch and its optional label, in logical pixels.
     pub swatch_name_gap: u32,
-    /// Outline colour of a settings preview card.
     pub card_outline: Rgba,
 }
 
-/// Compile-time metrics for the Tengen slider.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct SliderMetrics {
-    /// Total height reserved for the slider, in logical pixels.
     pub height: f32,
-    /// Track thickness, in logical pixels.
     pub track: f32,
-    /// Knob diameter, in logical pixels.
     pub knob: f32,
-    /// Track background colour.
     pub track_color: Rgba,
-    /// Filled portion colour.
     pub fill_color: Rgba,
 }
 
-/// Compile-time metrics for the Tengen checkbox.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct CheckboxMetrics {
-    /// Checkbox outer size, in logical pixels.
     pub size: f32,
-    /// Checkbox corner radius, in logical pixels.
     pub radius: f32,
-    /// Unchecked border colour.
     pub border: Rgba,
-    /// Checked background colour.
     pub on: Rgba,
-    /// Check-mark stroke width, in logical pixels.
     pub check_stroke: f32,
 }
 
-/// Compile-time metrics for the Tengen sidebar.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct SidebarMetrics {
-    /// `true` for the island default, `false` for the flat source list.
     pub default_island: bool,
-    /// Sidebar width, in logical pixels.
     pub width: u32,
-    /// Island inset from top/left/bottom, in logical pixels.
     pub inset: u32,
-    /// Horizontal padding inside the sidebar (island and flat), in logical pixels.
     pub padding_x: u32,
-    /// Corner radius of the island, in logical pixels.
     pub radius: u32,
-    /// Outer rim width, in logical pixels.
     pub rim_width: f32,
-    /// Inner line width, in logical pixels.
     pub inner_width: f32,
-    /// Backdrop blur radius for the island, in logical pixels.
     pub blur: u32,
-    /// Traffic-light inset from the island/edge left, in logical pixels.
     pub traffic_x: u32,
-    /// Traffic-light inset from the island/edge top, in logical pixels.
     pub traffic_y: u32,
-    /// Item row height, in logical pixels.
     pub item_height: u32,
-    /// Item row corner radius, in logical pixels.
     pub item_radius: u32,
-    /// Horizontal padding inside an item row, in logical pixels.
     pub item_padding_x: u32,
-    /// Gap between item icon and label, in logical pixels.
     pub item_gap: u32,
-    /// Item label text size, in points.
     pub item_text_size: u32,
-    /// Counter text size, in points.
     pub count_size: u32,
-    /// Font weight of a selected item.
     pub selected_weight: u16,
-    /// Size of a regular stroke icon, in logical pixels.
     pub item_icon: u32,
-    /// Size of an app icon, in logical pixels.
     pub app_icon: u32,
-    /// Section header height, in logical pixels.
     pub section_height: u32,
-    /// Margin before a section header, in logical pixels.
     pub section_margin_top: u32,
-    /// Section header horizontal padding, in logical pixels.
     pub section_padding_x: u32,
-    /// Section header text size, in points.
     pub section_size: u32,
-    /// Section header text weight.
     pub section_weight: u16,
-    /// Disclosable arrow size, in logical pixels.
     pub chevron: u32,
-    /// Disclosable arrow stroke width, in logical pixels.
     pub chevron_stroke: f32,
 }
 
-/// Compile-time metrics for a toolbar capsule group.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ToolgroupMetrics {
-    /// Capsule height, in logical pixels.
     pub height: u32,
-    /// Horizontal padding inside the capsule, in logical pixels.
     pub padding_x: u32,
-    /// Button width inside the capsule, in logical pixels.
     pub button_w: u32,
-    /// Button height inside the capsule, in logical pixels.
     pub button_h: u32,
-    /// Separator line width, in logical pixels.
     pub separator_w: u32,
-    /// Separator line height, in logical pixels.
     pub separator_h: u32,
-    /// Flat variant button width, in logical pixels.
     pub flat_button_w: u32,
-    /// Flat variant button height, in logical pixels.
     pub flat_button_h: u32,
-    /// Flat variant corner radius, in logical pixels.
     pub flat_radius: u32,
-    /// Tool button icon size, in logical pixels.
     pub icon: u32,
 }
 
-/// The two-layer window shadow.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ShadowStyle {
-    /// The wide, soft layer.
     pub ambient: ShadowLayer,
-    /// The tight, dark layer that anchors the window to its surface.
     pub contact: ShadowLayer,
-    /// Blur multiplier for an unfocused window, unitless.
     pub unfocused_blur_scale: f32,
-    /// Offset multiplier for an unfocused window, unitless.
     pub unfocused_offset_scale: f32,
-    /// Opacity multiplier for an unfocused window, unitless.
     pub unfocused_opacity_scale: f32,
 }
 
 impl ShadowStyle {
-    /// The two layers, scaled like macOS when the window is not focused.
     pub fn layers(self, focused: bool) -> [ShadowLayer; 2] {
         if focused {
             return [self.ambient, self.contact];
@@ -697,292 +430,159 @@ impl ShadowStyle {
     }
 }
 
-/// The colors of one mode.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Palette {
-    /// Titlebar background, focused and unfocused.
     pub titlebar_bg: FocusPair,
-    /// Hairline border along the titlebar.
     pub hairline: Rgba,
-    /// Inner line. Present in dark mode, absent in light mode: it is an
-    /// [`Option`] rather than a transparent color so the renderer can skip the
-    /// pass entirely.
     pub inner_line: Option<Rgba>,
-    /// Outer border drawn around the whole window.
     pub outer_border: Rgba,
-    /// Window title text, focused and unfocused.
     pub title: FocusPair,
-    /// Body text, focused and unfocused.
     pub text: FocusPair,
-    /// Strong text colour (`ink-strong`).
     pub ink_strong: Rgba,
-    /// Muted text colour (`ink-muted`).
     pub ink_muted: Rgba,
-    /// Disabled text colour (`ink-faint`).
     pub ink_faint: Rgba,
-    /// Separator and outline colour (`line`).
     pub line: Rgba,
-    /// Strong separator and outline colour (`line-strong`).
     pub line_strong: Rgba,
-    /// The accent color.
     pub accent: Rgba,
-    /// Text or glyphs drawn on top of the accent color.
     pub on_accent: Rgba,
-    /// Danger/error colour.
     pub danger: Rgba,
-    /// The traffic lights when the window does not have focus. Tengen uses a
-    /// different grey per theme, so it belongs to the palette, not the bar.
     pub traffic_lights_inactive: Rgba,
 }
-/// The menubar and dock colours for one appearance.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ShellPalette {
-    /// The bar surface, translucent like macOS vibrancy.
     pub bar: Rgba,
-    /// The bar text.
     pub text: Rgba,
-    /// A dock tile.
     pub tile: Rgba,
-    /// An active dock tile.
     pub tile_active: Rgba,
-    /// Text on an active dock tile.
     pub tile_text_active: Rgba,
 }
 
-/// Metrics for the settings dropdown popover.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct MenuPopoverMetrics {
-    /// Panel corner radius, in logical pixels.
     pub radius: f32,
-    /// Height of one item, in logical pixels.
     pub item_height: f32,
-    /// Item corner radius, in logical pixels.
     pub item_radius: f32,
-    /// Panel padding, in logical pixels.
     pub padding: f32,
-    /// Minimum panel width, in logical pixels.
     pub min_width: f32,
-    /// Start padding of an item's mark column, in logical pixels.
     pub item_padding_start: f32,
-    /// Horizontal padding of an item, in logical pixels.
     pub item_padding_x: f32,
-    /// Gap between an item's mark and its content, in logical pixels.
     pub item_gap: f32,
-    /// Size of the check mark, in logical pixels.
     pub check: f32,
-    /// Width reserved for the single leading column, in logical pixels.
     pub leading_column: f32,
-    /// Size of the swatch grid icon, in logical pixels.
     pub swatch_grid_size: f32,
-    /// Diameter of each dot in the swatch grid icon, in logical pixels.
     pub swatch_grid_dot: f32,
-    /// Gap between dots in the swatch grid icon, in logical pixels.
     pub swatch_grid_gap: f32,
-    /// Vertical margin of a separator, in logical pixels.
     pub separator_margin: f32,
 }
 
-/// The colours and metrics of a Tengen menu popup.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct MenuPalette {
-    /// Panel background (`bg-raised`).
     pub bg: Rgba,
-    /// Panel corner radius.
     pub radius: f32,
-    /// Panel padding.
     pub padding: f32,
-    /// Panel border width (outer + inner line).
     pub border_width: f32,
-    /// Panel outer border colour (`window-outer`).
     pub outer_border: Rgba,
-    /// Panel inner line colour (`window-inner`, transparent in light mode).
     pub inner_line: Rgba,
-    /// Panel shadow colour.
     pub shadow: Rgba,
-    /// Panel minimum logical width.
     pub min_width: f32,
-    /// Panel maximum logical width.
     pub max_width: f32,
-    /// Item height.
     pub item_height: f32,
-    /// Item corner radius.
     pub item_radius: f32,
-    /// Item horizontal padding.
     pub item_padding_x: f32,
-    /// Item font size.
     pub font_size: f32,
-    /// Gap between label and shortcut columns.
     pub shortcut_gap: f32,
-    /// Horizontal offset of a child submenu from the parent edge.
     pub submenu_offset: f32,
-    /// Item text colour (`ink`).
     pub fg: Rgba,
-    /// Shortcut text colour (`ink-muted`).
     pub shortcut_color: Rgba,
-    /// Item hover background (`accent`).
     pub hover_bg: Rgba,
-    /// Item hover foreground (`on-accent`).
     pub hover_fg: Rgba,
-    /// Open menubar-title background (`bg-hover`).
     pub bar_hover_bg: Rgba,
-    /// Open menubar-title foreground (`ink-strong`).
     pub bar_hover_fg: Rgba,
-    /// Open menubar-title pill background (`shell.menubar.title-open`).
     pub bar_title_open_bg: Rgba,
-    /// Open menubar-title pill corner radius (`radius.sm`).
     pub bar_title_open_radius: f32,
-    /// Open menubar-title pill height, centred on the bar.
     pub bar_title_open_height: f32,
-    /// Disabled item foreground (`ink-faint`).
     pub disabled_fg: Rgba,
-    /// Separator line colour (`line`).
     pub separator_color: Rgba,
-    /// Separator line height.
     pub separator_height: f32,
-    /// Separator horizontal margin.
     pub separator_margin_x: f32,
-    /// Separator vertical margin.
     pub separator_margin_y: f32,
-    /// Width reserved for the single leading column (check/radio mark or icon).
     pub leading_width: f32,
-    /// Radio dot diameter.
     pub mark_dot: f32,
-    /// Check glyph font size.
     pub mark_check: f32,
-    /// Submenu chevron size.
     pub chevron_size: f32,
-    /// Submenu chevron colour (`ink-muted`).
     pub chevron_color: Rgba,
-    /// Leading icon size in the mark column.
     pub icon_size: f32,
-    /// Group header font size.
     pub header_font_size: f32,
-    /// Group header font weight.
     pub header_weight: i32,
-    /// Group header row height.
     pub header_height: f32,
-    /// Search field height.
     pub search_height: f32,
-    /// Vertical margin around the search field.
     pub search_margin_y: f32,
-    /// Search field accent ring width.
     pub search_ring_width: f32,
-    /// Search field corner radius.
     pub search_radius: f32,
-    /// Search field background (`bg-control`).
     pub search_bg: Rgba,
-    /// Search field accent ring.
     pub search_ring: Rgba,
 }
 
-/// The lock screen colours: Tengen `bg-surface`, `ink`, `ink-muted`,
-/// `danger` and `accent` for the focused field.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct LockPalette {
-    /// The screen and field surface (`bg-surface`).
     pub bg_surface: Rgba,
-    /// Title and masked input (`ink`).
     pub ink: Rgba,
-    /// Labels and status (`ink-muted`).
     pub ink_muted: Rgba,
-    /// A refused attempt (`danger`).
     pub danger: Rgba,
-    /// The focused field line (`accent`).
     pub accent: Rgba,
 }
 
-/// The colours of a Tengen sidebar for one mode.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct SidebarPalette {
-    /// Item text colour (`ink`).
     pub item_ink: Rgba,
-    /// Item icon stroke colour (`accent-strong`).
     pub item_icon: Rgba,
-    /// Selected item background (`accent-soft`).
     pub selected_bg: Rgba,
-    /// Selected item text and icon colour (`accent-strong`).
     pub selected_ink: Rgba,
-    /// Hover background (`bg-hover`).
     pub hover_bg: Rgba,
-    /// Section header text colour (`ink-muted`).
     pub section_ink: Rgba,
-    /// Counter text colour (`ink-muted`).
     pub count_ink: Rgba,
-    /// Flat mode separator line (`line`).
     pub line: Rgba,
 }
 
-/// The colours of a Tengen toolbar capsule for one mode.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ToolgroupPalette {
-    /// Enabled button icon/text colour (`ink-strong`).
     pub ink: Rgba,
-    /// Disabled button icon/text colour (`ink-faint`).
     pub disabled_ink: Rgba,
-    /// Vertical separator line (`line`).
     pub separator: Rgba,
 }
 
-/// The pointer scale while the user shakes the mouse to locate it, like
-/// macOS Accessibility > Pointer Control. macOS grows the pointer to roughly
-/// three times its normal size; normal drawing uses `1.0`.
 pub const CURSOR_SHAKE_SCALE: f32 = 3.0;
 
-/// How long the shake enlargement takes to grow, in milliseconds.
 pub const CURSOR_SHAKE_GROW_MS: u64 = 180;
 
-/// How long the pointer takes to shrink back, in milliseconds.
 pub const CURSOR_SHAKE_SHRINK_MS: u64 = 220;
 
-/// The interval between animation frames, in milliseconds (roughly 60 Hz).
 pub const CURSOR_SHAKE_TICK_MS: u64 = 16;
 
-/// Dim over everything outside the screenshot selection.
 pub const SCREENSHOT_DIM: [f32; 4] = [0.0, 0.0, 0.0, 0.35];
 
-/// Lighter dim shown while the region can still be dragged.
 pub const SCREENSHOT_IDLE_DIM: [f32; 4] = [0.0, 0.0, 0.0, 0.15];
 
-/// The screenshot selection border.
 pub const SCREENSHOT_BORDER: [f32; 4] = [1.0, 1.0, 1.0, 0.9];
 
-/// The screenshot selection border width, in logical pixels.
 pub const SCREENSHOT_BORDER_WIDTH: i32 = 1;
 
-/// The black gap between two spaces while they slide, in logical pixels
-/// (MalaysiaDreams ADR 0051).
 pub const SPACE_GAP: i32 = 48;
 
-/// The colour of the gap between two sliding spaces: absolute black.
 pub const SPACE_GAP_COLOR: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
 
-/// How long sliding from one space to the next takes, in milliseconds.
 pub const SPACE_SLIDE_MS: u64 = 480;
 
-/// The bar's background over a focus space: absolute black (ADR 0051).
 pub const FOCUS_BAR_BACKGROUND: Rgba = Rgba::rgb8(0, 0, 0);
 
-/// The bar's text over a focus space: white.
 pub const FOCUS_BAR_TEXT: Rgba = Rgba::rgb8(255, 255, 255);
 
-/// The slide's timing curve, as CSS `cubic-bezier(x1, y1, x2, y2)`: a fast
-/// start that settles softly, like the macOS Spaces swipe.
 pub const SPACE_SLIDE_EASE: [f32; 4] = [0.32, 0.72, 0.0, 1.0];
 
-/// Where the wallpapers MalaysiaDreams ships are installed, like GNOME's
-/// `/usr/share/backgrounds`. The flake installs `share/wallpapers/` under
-/// `/run/current-system/sw/share/wallpapers`.
 pub const WALLPAPER_DIR: &str = "/run/current-system/sw/share/wallpapers/solid-colors";
 
-/// The app-id prefix of Malaysia's own BarrierKit applications (ADR 0035).
-///
-/// It only decides whether the compositor draws a titlebar; it is not a
-/// security boundary. Infinity will replace it when it exists.
 pub const NATIVE_APP_ID_PREFIX: &str = "io.github.hblanqueto.malaysia.";
 
-/// The wallpaper a session shows when the store selects none: a fresh
-/// account's desktop, like macOS ships one default picture. A file name inside
-/// [`WALLPAPER_DIR`] (or inside a custom `wallpaper.dir`).
 pub const WALLPAPER: &str = "Solid Aqua Blue.png";
 
 include!(concat!(env!("OUT_DIR"), "/tengen.rs"));
@@ -1223,8 +823,6 @@ mod tests {
 
     #[test]
     fn sidebar_island_opaque_matches_bg_sunken() {
-        // The opaque island background is now the same as the flat sidebar
-        // background (bg-sunken) so it reads darker than the window content.
         assert_eq!(super::SIDEBAR_ISLAND_LIGHT_OPAQUE, super::SIDEBAR_LIGHT);
         assert_eq!(super::SIDEBAR_ISLAND_DARK_OPAQUE, super::SIDEBAR_DARK);
         assert_eq!(
@@ -1237,16 +835,12 @@ mod tests {
 
     #[test]
     fn sidebar_island_light_has_no_rim_inner_or_shadow() {
-        // In light mode the island sits flush against the window; the rim and
-        // inner line are fully transparent and there is no drop shadow.
         assert_eq!(super::SIDEBAR_ISLAND_RIM_LIGHT.a, 0.0);
         assert_eq!(super::SIDEBAR_ISLAND_INNER_LIGHT.a, 0.0);
     }
 
     #[test]
     fn sidebar_island_dark_has_gray_rim() {
-        // In dark modes the island keeps a subtle gray rim (#ffffff21); the
-        // drop shadow was removed.
         assert_eq!(
             super::SIDEBAR_ISLAND_RIM_DARK.to_rgba8(),
             [0xff, 0xff, 0xff, 0x21]

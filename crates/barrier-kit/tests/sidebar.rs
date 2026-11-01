@@ -1,4 +1,4 @@
-//! Tests for the Tengen sidebar, sidebar layout and titlebar-with-sidebar.
+//! Tests for the sidebar, sidebar layout and titlebar with sidebar.
 
 use std::env;
 use std::fs;
@@ -236,7 +236,6 @@ fn titlebar_layout(sidebar: bool) -> Vec<(f32, f32, f32, f32)> {
 #[test]
 fn titlebar_without_sidebar_keeps_the_classic_three_slot_layout() {
     let bars = titlebar_layout(false);
-    // The left slot, the title and the right slot.
     assert_eq!(
         bars.len(),
         3,
@@ -395,12 +394,10 @@ fn sidebar_section_toggles_with_enter_and_space() {
     test.sync_and_update();
     assert!(*expanded.peek(), "section starts expanded");
 
-    // Focus the header by clicking it, then toggle with the keyboard.
     test.click_cursor((5.0, 15.0));
     test.press_key(Key::Named(NamedKey::Enter));
     assert!(!(*expanded.peek()), "Enter should collapse the section");
 
-    // Re-focus the header after the tree changed, then expand with Space.
     test.click_cursor((5.0, 15.0));
     test.press_key(Key::Character(" ".into()));
     assert!(*expanded.peek(), "Space should expand the section");
@@ -698,9 +695,6 @@ fn sidebar_traffic_lights_are_at_design_offset_and_first_child_sits_below() {
 
 #[test]
 fn sidebar_traffic_light_tokens_are_sane() {
-    // The traffic lights are placed at (SIDEBAR.traffic_x, SIDEBAR.traffic_y)
-    // inside the sidebar. Exact pixel testing would require the runner's
-    // WindowControls context, so we assert the token values instead.
     assert_eq!(SIDEBAR.traffic_x, 18);
     assert_eq!(SIDEBAR.traffic_y, 16);
     assert_eq!(TITLEBAR_CLIENT_HEIGHT, 44);
@@ -1071,7 +1065,6 @@ fn island_and_toolgroup_cast_no_shadow() {
     let _ = test.render();
     test.sync_and_update();
     let (w, _h, image) = decode_png(test.render().as_bytes());
-    // The island body ends at height - inset; 4 px below must be window bg.
     let island_bottom = 300.0 - SIDEBAR.inset as f32 + 4.0;
     assert_eq!(
         pixel(&image, w, 110, island_bottom as usize),
@@ -1090,7 +1083,6 @@ fn island_and_toolgroup_cast_no_shadow() {
     let _ = test.render();
     test.sync_and_update();
     let (w, _h, image) = decode_png(test.render().as_bytes());
-    // The capsule is centred vertically; 3 px below its bottom must be window bg.
     let capsule_bottom = 40.0 + TOOLGROUP.height as f32 / 2.0 + 3.0;
     assert_eq!(
         pixel(&image, w, 150, capsule_bottom as usize),

@@ -21,7 +21,6 @@ use crate::platform::{
 };
 use crate::shell::ShellState;
 
-/// Unlocks the session from the lock app. Provided only to lock surfaces.
 #[derive(Clone)]
 pub struct SessionUnlock {
     unlock: Rc<dyn Fn()>,
@@ -37,7 +36,6 @@ impl SessionUnlock {
     }
 }
 
-/// Runs the session lock: one Freya surface per output.
 pub fn run_lock(app: AppComponent) -> Result<(), RunError> {
     let Connected {
         conn,

@@ -53,13 +53,10 @@ use wayland_protocols::wp::fractional_scale::v1::client::wp_fractional_scale_man
 use wayland_protocols::wp::viewporter::client::wp_viewporter::WpViewporter;
 use wayland_protocols_plasma::appmenu::client::org_kde_kwin_appmenu_manager::OrgKdeKwinAppmenuManager;
 
-/// The result of connecting to the Wayland server before any shell extension
-/// is installed.
 pub(crate) struct Connected {
     pub(crate) conn: Connection,
     pub(crate) event_queue: sctk::reexports::client::EventQueue<Runtime>,
     pub(crate) runtime: Runtime,
-    // Solo lo usa shell/ (feature `shell`); sin ella no se lee.
     #[allow(dead_code)]
     pub(crate) globals: GlobalList,
 }
@@ -93,8 +90,6 @@ pub(crate) struct Runtime {
     pub(crate) qh: QueueHandle<Runtime>,
     pub(crate) extension: Option<Extension>,
     pub(crate) appmenu_manager: Option<OrgKdeKwinAppmenuManager>,
-    /// MalaysiaDreams focus-mode notices (`infinity_focus_v1`); absent on
-    /// other compositors.
     pub(crate) focus_manager: Option<super::focus::InfinityFocusManagerV1>,
     pub(crate) fractional_manager: Option<WpFractionalScaleManagerV1>,
     pub(crate) viewporter: Option<WpViewporter>,
@@ -111,8 +106,6 @@ pub(crate) struct Runtime {
     pub(crate) decoration_warned: bool,
     pub(crate) appearance_watch: Option<AppearanceWatch>,
     pub(crate) resolved: State<Resolved>,
-    /// Addresses delivered asynchronously by the D-Bus thread, waiting for the
-    /// UI loop to call `org_kde_kwin_appmenu.set_address`.
     pub(crate) pending_menu_addresses: Arc<Mutex<Vec<(ObjectId, AppMenuAddress)>>>,
 }
 
@@ -202,9 +195,6 @@ pub(crate) fn insert_ping(
         })
         .map_err(|_| RunError::EventLoop("inserting the wake ping source"))?;
 
-    // Watch appearance.domain and wallpaper.state; when they change, resolve
-    // the theme again and update the process-wide reactive state so every
-    // surface that reads theme::resolved() re-executes.
     let watch = AppearanceWatch::new().map_err(|error| {
         RunError::Io(std::io::Error::other(format!(
             "creating the appearance watcher: {error}"
@@ -267,9 +257,6 @@ impl Runtime {
         if viewporter.is_none() {
             tracing::info!("wp_viewporter no disponible; sigo con escalas enteras");
         }
-        // `SeatState::new` binds the seats that already exist without calling
-        // `SeatHandler::new_seat`, so remember one here for popup grabs,
-        // window moves and resizes. Hotplugged seats still arrive through `new_seat`.
         let seat = SeatState::new(&globals, &qh);
         let seat_handle = seat.seats().next();
         let shell = Runtime {
@@ -379,10 +366,6 @@ impl Runtime {
         let qh = self.qh.clone();
         for window in &mut self.surfaces {
             if window.needs_redraw {
-                // With the compositor now scheduling a repaint for any surface
-                // commit that carries damage or asks for a frame callback, we
-                // can go back to drawing on the frame callback instead of
-                // committing immediately on every user event.
                 window.request_redraw(&qh);
             }
         }

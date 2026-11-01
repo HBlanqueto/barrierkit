@@ -17,12 +17,6 @@ use crate::shell::ShellState;
 pub(crate) type ActivationCallback = Box<dyn Fn(Option<String>)>;
 pub(crate) type ActivationQueue = Rc<RefCell<Vec<ActivationCallback>>>;
 
-/// Requests an `xdg-activation-v1` token for the next launched app.
-///
-/// The compositor only accepts a token created by the client that currently
-/// has keyboard focus and that carries the last key press serial. The runner
-/// owns both, so the app asks here and receives the token (or `None` when the
-/// protocol is unavailable) in a callback.
 #[derive(Clone)]
 pub struct Activation {
     pub(crate) queue: ActivationQueue,
@@ -34,16 +28,12 @@ impl Activation {
         freya_core::prelude::consume_root_context()
     }
 
-    /// Queues one token request. The callback runs on the Wayland loop with the
-    /// token string, or with `None` if the compositor does not support it.
     pub fn request(&self, callback: impl Fn(Option<String>) + 'static) {
         self.queue.borrow_mut().push(Box::new(callback));
         self.ping.ping();
     }
 }
 impl ShellState {
-    /// Drains pending activation token requests and asks the compositor for a
-    /// token for the first surface.
     pub(crate) fn poll_activation(
         &mut self,
         seat: Option<&wl_seat::WlSeat>,

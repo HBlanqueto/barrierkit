@@ -1,9 +1,4 @@
-//! The appearance domain and its resolved colours.
-//!
-//! This crate is deliberately free of Smithay and of the compositor: the
-//! compositor, the shell and the portal all read `appearance.domain` and
-//! `wallpaper.state` through the same rules. It only depends on serde, toml
-//! and the design tokens.
+//! Appearance domain (dark/light, accent) and its resolved colours.
 
 use std::path::{Path, PathBuf};
 
@@ -37,26 +32,18 @@ use vow_design::{
     WINDOW_TINT_WALLPAPER,
 };
 
-/// The preferred appearance, published as `org.freedesktop.appearance`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum ColorScheme {
-    /// Follow the user's preference ("Auto").
     #[default]
     Auto,
-    /// Prefer the dark appearance ("Dark").
     Dark,
-    /// Prefer the dark-tinted appearance ("Dark tint").
     #[serde(rename = "dark_tint")]
     DarkTint,
-    /// Prefer the light appearance ("Light").
     Light,
 }
 
 impl ColorScheme {
-    /// Resolves `Auto` to the concrete appearance. There is no separate system
-    /// preference source yet, so it follows the light default; the portal
-    /// publishes this same value.
     pub fn resolved(self) -> Self {
         match self {
             Self::Auto => Self::Light,
@@ -65,64 +52,45 @@ impl ColorScheme {
     }
 }
 
-/// Tengen's "Color de las ventanas" (`neutral` / `accent` / `wallpaper`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum WindowColorMode {
-    /// No tint: the light/dark palette as-is.
     #[default]
     Neutral,
-    /// Tint the window chrome toward the accent colour.
     Accent,
-    /// Tint the window chrome toward the wallpaper's dominant colour.
     Wallpaper,
 }
 
-/// How far the wallpaper tint reaches.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum WindowTintScope {
-    /// Only the windows.
     #[default]
     Windows,
-    /// Windows plus the panels and dock.
     Desktop,
 }
 
-/// Tint strength for the accent or wallpaper tint.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum TintStrength {
-    /// 0.5× the mode factor.
     Subtle,
-    /// 1.0× the mode factor.
     #[default]
     Normal,
-    /// 1.5× the mode factor.
     Strong,
-    /// 2.0× the mode factor.
     Intense,
 }
 
 impl TintStrength {
-    /// The multiplier for this strength step.
     pub fn factor(self) -> f32 {
         TINT_STRENGTH[self as usize]
     }
 }
 
-/// Which surfaces receive the window tint.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct TintParts {
-    /// Sidebar background.
     pub sidebars: bool,
-    /// Window and sunken backgrounds.
     pub window: bool,
-    /// Surface and line colours (groups and cards).
     pub groups: bool,
-    /// Control, hover and toolgroup backgrounds.
     pub controls: bool,
-    /// Raised surfaces and menu backgrounds.
     pub menus: bool,
 }
 
@@ -167,66 +135,42 @@ where
     Ok(parts)
 }
 
-/// The kit sidebar style.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum SidebarStyle {
-    /// Floating island with vibrancy, rim and inner line.
     #[default]
     Island,
-    /// Flat source list that blends into the window background.
     Flat,
 }
 
-/// Tengen's traffic-light styles.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum TrafficLightStyle {
-    /// Same as the window colour mode: standard colours for neutral, accent
-    /// or wallpaper-derived colours otherwise.
     #[default]
     Auto,
-    /// The fixed standard red/amber/green.
     #[serde(alias = "macos")]
     Standard,
-    /// Derived from the accent colour.
     Accent,
-    /// Derived from the wallpaper's dominant colour.
     Wallpaper,
 }
 
-/// Appearance options (macOS System Settings → Appearance).
 #[derive(Debug, Clone, Deserialize, Default)]
 #[serde(default)]
 pub struct AppearanceConfig {
-    /// "Light", "Dark", "Dark tint" or "Auto".
     pub color_scheme: ColorScheme,
-    /// An sRGB accent color, `[r, g, b]` in `[0, 1]`. `None` → the default.
     pub accent_color: Option<[f32; 3]>,
-    /// "Increase contrast" (macOS Accessibility).
     pub contrast: bool,
-    /// "Reduce motion" (macOS Accessibility).
     pub reduced_motion: bool,
-    /// "Reduce transparency" (macOS Accessibility). Solid shell surfaces when
-    /// true; the default. The value is kept so blur can be enabled later.
     #[serde(default = "default_reduce_transparency")]
     pub reduce_transparency: bool,
-    /// What tints the window chrome: nothing, the accent or the wallpaper.
     pub window_color: WindowColorMode,
-    /// In wallpaper mode, whether only windows or the panels and dock too are
-    /// tinted.
     pub window_tint_scope: WindowTintScope,
-    /// The traffic-light palette.
     pub traffic_lights: TrafficLightStyle,
-    /// The kit sidebar style.
     pub sidebar_style: SidebarStyle,
-    /// Tint strength used in accent mode.
     #[serde(default)]
     pub tint_strength_accent: TintStrength,
-    /// Tint strength used in wallpaper mode.
     #[serde(default)]
     pub tint_strength_wallpaper: TintStrength,
-    /// Which surfaces receive the window tint.
     #[serde(default, deserialize_with = "deserialize_tint_parts")]
     pub tint_parts: TintParts,
 }
@@ -235,92 +179,53 @@ fn default_reduce_transparency() -> bool {
     true
 }
 
-/// The resolved kit sidebar surface.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct SidebarSurface {
-    /// The configured style (island or flat).
     pub style: SidebarStyle,
-    /// Background fill.
     pub bg: Rgba,
-    /// Outer rim colour (transparent in flat mode).
     pub rim: Rgba,
-    /// Inner highlight line (transparent in flat mode).
     pub inner: Rgba,
-    /// Item/section colours for this theme.
     pub palette: SidebarPalette,
 }
 
-/// The resolved toolbar glass capsule surface.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ToolgroupSurface {
-    /// Capsule background fill.
     pub bg: Rgba,
-    /// Button and separator colours for this theme.
     pub palette: ToolgroupPalette,
 }
 
-/// The resolved tinted surface stack shared by the compositor and the kit.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Surfaces {
-    /// Window background (`bg-window`).
     pub window: Rgba,
-    /// Sunken background (`bg-sunken`).
     pub sunken: Rgba,
-    /// Surface background (`bg-surface`).
     pub surface: Rgba,
-    /// Raised surface background (`bg-raised`).
     pub raised: Rgba,
-    /// Control background (`bg-control`).
     pub control: Rgba,
-    /// Hover background (`bg-hover`).
     pub hover: Rgba,
-    /// Separator and outline colour (`line`).
     pub line: Rgba,
 }
 
-/// The colours and tints resolved from one appearance + wallpaper state.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Resolved {
-    /// The concrete scheme (`Auto` already resolved).
     pub scheme: ColorScheme,
-    /// The accent after wallpaper mode: the dominant, or the normal accent
-    /// when there is no dominant.
     pub accent: Rgba,
-    /// The titlebar tint, if any, and its Tengen factor.
     pub window_tint: Option<(Rgba, f32)>,
-    /// How far the window tint reaches: only the windows or the desktop too.
     pub window_tint_scope: WindowTintScope,
-    /// The menubar/dock tint, only in wallpaper + desktop with a dominant.
     pub panel_tint: Option<(Rgba, f32)>,
-    /// The three traffic lights.
     pub lights: [Rgba; 3],
-    /// The resolved traffic-light style (`Auto` already expanded).
     pub traffic_style: TrafficLightStyle,
-    /// Whether the shell and kit must use opaque surfaces.
     pub reduce_transparency: bool,
-    /// Whether motion should be minimised.
     pub reduced_motion: bool,
-    /// The menubar/dock palette for this appearance.
     pub shell: ShellPalette,
-    /// The menu popup palette for this appearance.
     pub menu: MenuPalette,
-    /// The kit sidebar surface for this appearance.
     pub sidebar: SidebarSurface,
-    /// The kit toolbar capsule surface for this appearance.
     pub toolgroup: ToolgroupSurface,
-    /// The tinted surface stack for window backgrounds, controls and lines.
     pub surfaces: Surfaces,
-    /// Which surfaces receive the window tint.
     pub tint_parts: TintParts,
-    /// The window background tinted without the parts mask, used as the parent
-    /// for menu popups.
     pub menu_parent: Rgba,
 }
 
 impl Resolved {
-    /// The separator colour for a menu panel with the already-resolved
-    /// background. A tinted panel moves the separator with it; an untinted one
-    /// keeps the theme's `line` exactly.
     pub fn menu_separator(&self, panel_bg: Rgba) -> Rgba {
         if self.window_tint.is_none() || panel_bg == self.menu.bg {
             self.menu.separator_color
@@ -330,7 +235,6 @@ impl Resolved {
     }
 }
 
-/// The Tengen palette for a concrete scheme.
 pub fn palette(scheme: ColorScheme) -> Palette {
     match scheme.resolved() {
         ColorScheme::DarkTint => DARK_TINT,
@@ -339,8 +243,6 @@ pub fn palette(scheme: ColorScheme) -> Palette {
     }
 }
 
-/// The shell, menu and sidebar surfaces for a concrete theme, choosing the
-/// opaque variants when transparency is reduced.
 fn chrome_surfaces(
     scheme: ColorScheme,
     style: SidebarStyle,
@@ -378,7 +280,6 @@ fn chrome_surfaces(
     )
 }
 
-/// Resolves the kit sidebar surface for a concrete theme and style.
 fn sidebar_surface(
     scheme: ColorScheme,
     style: SidebarStyle,
@@ -446,7 +347,6 @@ fn sidebar_surface(
     }
 }
 
-/// Resolves the kit toolbar glass capsule surface for a concrete theme.
 fn toolgroup_surface(
     scheme: ColorScheme,
     opaque: bool,
@@ -463,7 +363,6 @@ fn toolgroup_surface(
     ToolgroupSurface { bg, palette }
 }
 
-/// Resolves an appearance configuration with the current wallpaper dominant.
 pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolved {
     let scheme = appearance.color_scheme.resolved();
     let base = palette(scheme);
@@ -590,7 +489,6 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
     }
 }
 
-/// Resolves the tinted surface stack for a concrete scheme.
 fn tinted_surfaces(
     scheme: ColorScheme,
     window_tint: Option<(Rgba, f32)>,
@@ -643,9 +541,6 @@ fn tinted_surfaces(
     }
 }
 
-/// Derives the wallpaper accent from the dominant colour: applies the Tengen
-/// shift, adjusts HSL lightness for contrast, and boosts saturation for muted
-/// colours.
 fn wallpaper_accent(dominant: Rgba, scheme: ColorScheme) -> Rgba {
     let dark = matches!(scheme, ColorScheme::Dark | ColorScheme::DarkTint);
     let shifted = if dark {
@@ -661,8 +556,6 @@ fn wallpaper_accent(dominant: Rgba, scheme: ColorScheme) -> Rgba {
     };
     let on_accent = palette(scheme).on_accent;
 
-    // Phase 1: move L until the accent reaches the minimum contrast against
-    // the untinted window background. Light schemes darken; dark schemes lighten.
     let window_dir = if dark { 1.0 } else { -1.0 };
     let mut lightness = original_lightness;
     for _ in 0..100 {
@@ -676,9 +569,6 @@ fn wallpaper_accent(dominant: Rgba, scheme: ColorScheme) -> Rgba {
         }
     }
 
-    // Phase 2: if on-accent contrast is still below the target, keep moving L
-    // in the direction that increases it without breaking window contrast or
-    // the on-accent floor.
     let mut accent = Rgba::from_hsl(hue, saturation, lightness, 1.0);
     let mut on_contrast = accent.contrast_ratio(on_accent);
     for _ in 0..100 {
@@ -705,7 +595,6 @@ fn wallpaper_accent(dominant: Rgba, scheme: ColorScheme) -> Rgba {
         on_contrast = next_on_contrast;
     }
 
-    // Phase 3: boost saturation for muted colours when L moved a lot.
     let delta_lightness = (lightness - original_lightness).abs();
     if saturation < MUTED_BELOW_SATURATION && delta_lightness > 0.10 {
         saturation = (saturation * (1.0 + delta_lightness)).min(MUTED_MAX_SATURATION);
@@ -722,7 +611,6 @@ pub fn derived_lights(source: Rgba) -> [Rgba; 3] {
     ]
 }
 
-/// The preferences directory: `MALAYSIA_CONFIG_DIR`, else `$XDG_CONFIG_HOME/malaysia`.
 pub fn config_dir() -> PathBuf {
     std::env::var_os("MALAYSIA_CONFIG_DIR").map_or_else(
         || {
@@ -740,7 +628,6 @@ pub fn config_dir() -> PathBuf {
     )
 }
 
-/// The state/data directory: `MALAYSIA_DATA_DIR`, else `$XDG_DATA_HOME/malaysia`.
 pub fn data_dir() -> PathBuf {
     std::env::var_os("MALAYSIA_DATA_DIR").map_or_else(
         || {
@@ -758,22 +645,18 @@ pub fn data_dir() -> PathBuf {
     )
 }
 
-/// `~/.config/malaysia/appearance.domain`.
 pub fn appearance_path() -> PathBuf {
     config_dir().join("appearance.domain")
 }
 
-/// `~/.local/share/malaysia/wallpaper.state`.
 pub fn wallpaper_state_path() -> PathBuf {
     data_dir().join("wallpaper.state")
 }
 
-/// Reads `appearance.domain`; `Ok(None)` when it does not exist.
 pub fn read_appearance() -> Result<Option<AppearanceConfig>, toml::de::Error> {
     read_appearance_from(&appearance_path())
 }
 
-/// Reads an appearance file at `path`.
 pub fn read_appearance_from(path: &Path) -> Result<Option<AppearanceConfig>, toml::de::Error> {
     match std::fs::read_to_string(path) {
         Ok(text) => {
@@ -784,10 +667,6 @@ pub fn read_appearance_from(path: &Path) -> Result<Option<AppearanceConfig>, tom
     }
 }
 
-/// Writes `config` to `path` atomically, preserving unknown keys and comments.
-///
-/// The file is written to a sibling `.tmp` file and then renamed so readers
-/// never see a partial domain. Parent directories are created as needed.
 pub fn write_appearance(path: &Path, config: &AppearanceConfig) -> std::io::Result<()> {
     let text = std::fs::read_to_string(path).unwrap_or_default();
     let parsed = text.parse::<toml_edit::DocumentMut>();
@@ -829,7 +708,6 @@ pub fn write_appearance(path: &Path, config: &AppearanceConfig) -> std::io::Resu
     Ok(())
 }
 
-/// Writes the default appearance config to [`appearance_path()`].
 pub fn write_appearance_default() -> std::io::Result<()> {
     write_appearance(&appearance_path(), &AppearanceConfig::default())
 }
@@ -912,7 +790,6 @@ fn accent_array(accent: [f32; 3]) -> toml_edit::Array {
     arr
 }
 
-/// Warns once when an existing `appearance.domain` still uses the legacy name.
 fn warn_legacy_traffic_light_name(text: &str) {
     static WARNED: std::sync::Once = std::sync::Once::new();
     let legacy = text.lines().any(|line| {
@@ -932,7 +809,6 @@ fn warn_legacy_traffic_light_name(text: &str) {
     }
 }
 
-/// Reads `appearance.domain`, falling back to the defaults.
 pub fn load_appearance() -> AppearanceConfig {
     read_appearance().ok().flatten().unwrap_or_default()
 }
@@ -942,17 +818,14 @@ struct WallpaperState {
     dominant: Option<[f32; 3]>,
 }
 
-/// Reads the dominant colour from `wallpaper.state`, if present.
 pub fn load_dominant() -> Option<Rgba> {
     read_dominant()
 }
 
-/// Reads the dominant colour from `wallpaper.state`, if present.
 pub fn read_dominant() -> Option<Rgba> {
     read_dominant_from(&wallpaper_state_path())
 }
 
-/// Reads a wallpaper state file at `path`.
 pub fn read_dominant_from(path: &Path) -> Option<Rgba> {
     let text = std::fs::read_to_string(path).ok()?;
     let state: WallpaperState = toml::from_str(&text).ok()?;
@@ -1655,7 +1528,6 @@ sidebar_style = "flat"
             resolved.surfaces.sunken,
             BG_SUNKEN_DARK.mix(purple, factor * LAYER_FACTOR_BG_SUNKEN)
         );
-        // Groups take the full window tint (bg-surface layer factor 1.0).
         assert_eq!(
             resolved.surfaces.surface,
             BG_SURFACE_DARK.mix(purple, factor * LAYER_FACTOR_SURFACE)
@@ -1770,9 +1642,9 @@ sidebar_style = "flat"
                 "{scheme:?} selected_ink should be on-accent"
             );
         };
-        check(ColorScheme::Dark, [0.184, 0.435, 0.894]); // default Azul
-        check(ColorScheme::DarkTint, [0.557, 0.357, 0.847]); // Morado
-        check(ColorScheme::Dark, [0.898, 0.271, 0.561]); // Rosa
+        check(ColorScheme::Dark, [0.184, 0.435, 0.894]);
+        check(ColorScheme::DarkTint, [0.557, 0.357, 0.847]);
+        check(ColorScheme::Dark, [0.898, 0.271, 0.561]);
     }
 
     fn assert_configs_equal(a: &AppearanceConfig, b: &AppearanceConfig) {
@@ -1979,9 +1851,6 @@ sidebar_style = "flat"
                     "{scheme:?}: on-accent must contrast with the accent"
                 );
             } else {
-                // Very light yellows cannot simultaneously contrast a dark window
-                // (needs L high) and white text (needs L low). The algorithm keeps
-                // the window ratio and reports the shortfall.
                 assert!(
                     on_accent_ratio >= 1.5,
                     "{scheme:?}: on-accent should at least remain readable-ish"

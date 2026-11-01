@@ -1,9 +1,4 @@
-//! App-side global menu export (ADR 0040 §10).
-//!
-//! BarrierKit apps declare a menu with [`AppMenu`] and receive activations
-//! through [`WindowOptions::on_menu_action`][crate::platform::WindowOptions].
-//! The kit exports the menu over D-Bus as `com.canonical.dbusmenu` and
-//! announces the address through `org_kde_kwin_appmenu`.
+//! App-side global menu: declare a menu and export it over D-Bus.
 
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
@@ -16,7 +11,6 @@ use crate::platform::{AppMenuAddress, WakeHandle};
 pub mod layout;
 pub mod server;
 
-/// A declarative application menu.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct AppMenu {
     pub menus: Vec<Menu>,
@@ -28,7 +22,6 @@ impl AppMenu {
     }
 }
 
-/// One top-level menu (e.g. File, Edit).
 #[derive(Clone, Debug, PartialEq)]
 pub struct Menu {
     pub title: String,
@@ -44,15 +37,12 @@ impl Menu {
     }
 }
 
-/// Handle to mutate a menu after the window has been created.
 #[derive(Clone)]
 pub struct MenuHandle {
     state: Arc<Mutex<MenuState>>,
     wake: Arc<Mutex<Option<WakeHandle>>>,
     path: Arc<Mutex<Option<String>>>,
-    /// Actions queued by the D-Bus thread and drained on the UI thread.
     action_queue: Arc<Mutex<Vec<String>>>,
-    /// Callback that delivers the registered D-Bus address to the UI thread.
     address_callback: AddressCallbackCell,
 }
 
@@ -88,7 +78,6 @@ impl MenuHandle {
         }
     }
 
-    /// Builds a handle for tests that do not need a render wake.
     #[doc(hidden)]
     pub fn for_test(menu: AppMenu) -> Self {
         Self::new(menu, None)
@@ -105,12 +94,9 @@ impl MenuHandle {
         self.path.lock().ok().and_then(|g| g.clone())
     }
 
-    /// Queues an action id from the D-Bus thread and wakes the UI loop.
-    /// Returns false if there is no wake handle to reach the UI thread.
     pub(crate) fn push_action(&self, action_id: String) -> bool {
         if self.wake.lock().map(|g| g.is_some()).unwrap_or(false) {
             {
-                // Only fails if a panic already poisoned the mutex; no external data here.
                 let mut guard = self.action_queue.lock().expect("action queue poisoned");
                 guard.push(action_id);
             }
@@ -125,11 +111,8 @@ impl MenuHandle {
         }
     }
 
-    /// Solo para tests: consume las acciones pendientes; una app no debe
-    /// llamarlo (se las quitaría a on_menu_action).
     #[doc(hidden)]
     pub fn drain_actions(&self) -> Vec<String> {
-        // Only fails if a panic already poisoned the mutex; no external data here.
         let mut guard = self.action_queue.lock().expect("action queue poisoned");
         std::mem::take(&mut *guard)
     }
@@ -141,16 +124,13 @@ impl MenuHandle {
         guard.revision = guard.revision.wrapping_add(1);
     }
 
-    /// Registers the callback that delivers the D-Bus address to the UI thread.
     pub(crate) fn set_address_callback(&self, f: impl Fn(AppMenuAddress) + Send + Sync + 'static) {
-        // Only fails if a panic already poisoned the mutex; no external data here.
         *self
             .address_callback
             .lock()
             .expect("address callback poisoned") = Some(Box::new(f));
     }
 
-    /// Delivers the registered D-Bus address to the UI thread callback.
     pub(crate) fn deliver_address(&self, address: AppMenuAddress) {
         if let Ok(guard) = self.address_callback.lock()
             && let Some(cb) = guard.as_ref()
@@ -159,8 +139,6 @@ impl MenuHandle {
         }
     }
 
-    /// Updates one item in place, identified by its [`MenuItem::Action`] or
-    /// [`MenuItem::Submenu`] id. The change is published to the global menu.
     pub fn update(&self, id: impl AsRef<str>, f: impl Fn(&mut MenuItem)) {
         let mut state = self.state.lock().expect("menu state poisoned");
         if update_item(&mut state.menu, id.as_ref(), &f) {
@@ -179,8 +157,6 @@ impl MenuHandle {
         }
     }
 
-    /// The live menu and the current dbusmenu revision.
-    /// Returns the current menu and its revision.
     #[doc(hidden)]
     pub fn snapshot(&self) -> (AppMenu, u32) {
         let state = self.state.lock().expect("menu state poisoned");
@@ -219,11 +195,6 @@ fn update_menu_items(items: &mut [MenuItem], id: &str, f: &dyn Fn(&mut MenuItem)
     false
 }
 
-/// Stable ids for dbusmenu nodes.
-///
-/// Actions keep their textual id; top-level menus and static submenus get
-/// synthetic ids based on their position and label so they stay stable across
-/// hot updates.
 #[derive(Clone, Debug, Default)]
 #[doc(hidden)]
 pub struct IdMap {
@@ -245,10 +216,6 @@ impl IdMap {
     }
 }
 
-/// Turns a kit shortcut string into a dbusmenu key list.
-///
-/// `Ctrl+Shift+S` becomes `["Control", "Shift", "S"]`; `Super` is kept as
-/// `"Super"` and never mapped to "Command".
 pub(crate) fn dbusmenu_shortcut(text: &str) -> Vec<String> {
     let text = text.trim();
     if text.is_empty() {
@@ -275,23 +242,18 @@ pub(crate) fn dbusmenu_shortcut(text: &str) -> Vec<String> {
     keys
 }
 
-/// Escapes a label for dbusmenu: a literal `_` becomes `__`; mnemonic
-/// underlines are not used.
 pub(crate) fn dbusmenu_label(label: &str) -> String {
     label.replace('_', "__")
 }
 
 use keyboard_types::{Key, Modifiers, NamedKey};
 
-/// Parsed shortcut for in-app matching.
 #[derive(Clone, Debug, PartialEq)]
 pub(crate) struct ParsedShortcut {
     pub modifiers: Modifiers,
     pub key: String,
 }
 
-/// Parses a shortcut written as text (`Ctrl+Shift+S`, `Alt+Up`) into modifiers
-/// and a normalised key name.
 pub(crate) fn parse_shortcut(text: &str) -> ParsedShortcut {
     let text = text.trim();
     let mut modifiers = Modifiers::empty();
@@ -337,13 +299,11 @@ fn normalised_key(key: &Key) -> String {
     }
 }
 
-/// True when `event` matches `shortcut` and the action is enabled.
 pub fn shortcut_matches(text: &str, modifiers: Modifiers, key: &Key) -> bool {
     let parsed = parse_shortcut(text);
     parsed.modifiers == modifiers && parsed.key == normalised_key(key) && !parsed.key.is_empty()
 }
 
-/// Finds the first enabled action whose shortcut matches the key event.
 pub fn find_menu_shortcut(menu: &AppMenu, modifiers: Modifiers, key: &Key) -> Option<String> {
     for m in &menu.menus {
         if let Some(id) = find_shortcut_in_items(&m.items, modifiers, key) {
@@ -384,15 +344,12 @@ fn owned<T: Into<Value<'static>>>(value: T) -> OwnedValue {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-/// A dbusmenu item for testing the round-trip between BarrierKit and the
-/// menubar decoder. Not used at runtime.
 pub struct RawItem {
     pub id: i32,
     pub properties: HashMap<String, OwnedValue>,
     pub children: Vec<RawItem>,
 }
 
-/// Exports a kit menu to dbusmenu `RawItem` form for tests in other crates.
 pub fn to_dbusmenu(menu: &AppMenu) -> RawItem {
     let mut id_map = IdMap::default();
     let mut root = RawItem {
@@ -550,7 +507,6 @@ mod tests {
 
     #[test]
     fn ctrl_shift_z_uppercase_still_matches() {
-        // With the kit fix Shift+Z arrives as Character("Z"), not lowercased.
         assert!(shortcut_matches(
             "Ctrl+Shift+Z",
             Modifiers::CONTROL | Modifiers::SHIFT,

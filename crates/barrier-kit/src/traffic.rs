@@ -1,8 +1,4 @@
-//! Traffic lights for Malaysia's own client-side windows (ADR 0035).
-//!
-//! Geometry, colours and pointer state come from [`vow_appearance::traffic`],
-//! the same pure module the compositor uses. Glyphs are drawn with Skia via
-//! Freya's SVG viewer.
+//! Traffic-light window buttons for client-side windows.
 
 use freya_components::svg_viewer::SvgViewer;
 use freya_core::prelude::*;
@@ -13,7 +9,6 @@ use vow_design::{ButtonKind, Rgba, TITLEBAR, TRAFFIC_GLYPHS, Triangle};
 
 use crate::ProbeExt;
 
-/// The three-client-side-traffic-lights component.
 #[derive(PartialEq)]
 pub struct TrafficLights {
     input: Option<TrafficInput>,
@@ -32,7 +27,6 @@ impl Default for TrafficLights {
 }
 
 impl TrafficLights {
-    /// Creates an interactive set of lights for the current appearance.
     pub fn new() -> Self {
         Self {
             input: None,
@@ -45,39 +39,31 @@ impl TrafficLights {
         }
     }
 
-    /// Overrides the state; used by previews and tests.
     pub fn input(mut self, input: TrafficInput) -> Self {
         self.input = Some(input);
         self
     }
 
-    /// Whether the window currently has focus.
     pub fn focused(mut self, focused: bool) -> Self {
         self.focused = focused;
         self
     }
 
-    /// Whether zoom is admitted; fixed-size windows pass `false`.
     pub fn zoom_supported(mut self, supported: bool) -> Self {
         self.zoom_supported = supported;
         self
     }
 
-    /// Whether the window has a fixed width; the zoom light becomes a vertical
-    /// maximise indicator (a plus glyph) instead of the arrows.
     pub fn fixed_width(mut self, fixed: bool) -> Self {
         self.fixed_width = fixed;
         self
     }
 
-    /// Only the close light works, like macOS «Acerca de este Mac»: minimise
-    /// and zoom stay in the inactive grey, without glyph or click.
     pub fn close_only(mut self, close_only: bool) -> Self {
         self.close_only = close_only;
         self
     }
 
-    /// Receives the button when a press and release land on it.
     pub fn on_action(mut self, callback: impl Into<Callback<ButtonKind, ()>>) -> Self {
         self.on_action = Some(callback.into());
         self
@@ -105,7 +91,6 @@ impl Component for TrafficLights {
                 zoom_supported: self.zoom_supported,
             }
         });
-        // Fixed-width windows keep the green light clickable for vertical maximise (the "+" glyph).
         let visual_input = if self.fixed_width {
             TrafficInput {
                 zoom_supported: true,
@@ -238,7 +223,6 @@ impl Component for TrafficLights {
     }
 }
 
-/// The pure visual used by previews and tests.
 pub fn traffic_lights_view(
     input: TrafficInput,
     lights: [Rgba; 3],
@@ -248,8 +232,6 @@ pub fn traffic_lights_view(
     traffic_lights_view_with_fixed(input, lights, style, inactive, false)
 }
 
-/// The pure visual used by previews and tests, optionally with a fixed-width
-/// plus glyph on the green light.
 pub fn traffic_lights_view_with_fixed(
     input: TrafficInput,
     lights: [Rgba; 3],
@@ -288,8 +270,6 @@ pub fn traffic_lights_view_with_fixed(
         .into_element()
 }
 
-/// The gap between two lights, from the Tengen token
-/// (`window-traffic-lights-gap`), shared with the compositor's chrome.
 fn light_gap() -> f64 {
     f64::from(TITLEBAR.buttons.spacing)
 }

@@ -1,6 +1,4 @@
-//! BarrierKit controls with macOS-style names, built on `freya-components`
-//! or on the core `rect`/`label` primitives (ADR 0034). Measurements and
-//! colours come from the theme and `vow-design`.
+//! Named UI controls (buttons, toggles, fields) built on Freya components.
 
 pub use freya_components::button::Button;
 pub use freya_components::input::Input as TextField;
@@ -21,14 +19,10 @@ use crate::ProbeExt;
 use crate::password::PasswordField;
 use crate::platform::inserts_text;
 
-/// True when a key event should be inserted into a [`SecureField`].
 fn secure_field_accepts_text(key: &Key, modifiers: Modifiers) -> bool {
     matches!(key, Key::Character(_)) && inserts_text(modifiers)
 }
 
-/// A masked password field that keeps the same zeroizing buffer as the lock
-/// screen (`password::PasswordField`). The masked text is the only value the
-/// accessibility tree and the canvas see; the secret is never logged.
 #[derive(Clone)]
 pub struct SecureField {
     field: State<PasswordField>,
@@ -100,17 +94,13 @@ impl Component for SecureField {
     }
 }
 
-/// Visual style for a [`ToolGroup`].
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum ToolGroupStyle {
-    /// Capsule with a tinted background and vertical separators.
     #[default]
     Island,
-    /// Transparent background with vertical separators only.
     Flat,
 }
 
-/// A macOS-style toolbar capsule group.
 #[derive(PartialEq)]
 pub struct ToolGroup {
     children: Vec<Element>,
@@ -139,13 +129,11 @@ impl ToolGroup {
         }
     }
 
-    /// Use the flat style (no background capsule).
     pub fn flat(mut self) -> Self {
         self.style = ToolGroupStyle::Flat;
         self
     }
 
-    /// Use the island style (background capsule without shadow).
     pub fn island(mut self) -> Self {
         self.style = ToolGroupStyle::Island;
         self
@@ -227,7 +215,6 @@ impl Component for ToolGroup {
     }
 }
 
-/// A Tengen toolbar icon button.
 #[derive(PartialEq)]
 pub struct ToolButton {
     label: String,
@@ -239,7 +226,6 @@ pub struct ToolButton {
 }
 
 impl ToolButton {
-    /// Create a tool button with a mandatory accessibility label and an SVG icon.
     pub fn new(label: impl Into<String>, icon: &'static str) -> Self {
         Self {
             label: label.into(),
@@ -339,7 +325,6 @@ impl Component for ToolButton {
     }
 }
 
-/// A stepped slider with a fixed number of positions.
 #[derive(PartialEq)]
 pub struct Slider {
     steps: usize,
@@ -354,7 +339,6 @@ pub struct Slider {
 }
 
 impl Slider {
-    /// Create a slider with `steps` positions (0..steps-1).
     pub fn stepped(steps: usize) -> Self {
         Self {
             steps: steps.max(2),
@@ -369,25 +353,21 @@ impl Slider {
         }
     }
 
-    /// Set the current position.
     pub fn value(mut self, value: usize) -> Self {
         self.value = value.min(self.steps.saturating_sub(1));
         self
     }
 
-    /// Set the labels shown under each step.
     pub fn labels(mut self, labels: &'static [&'static str]) -> Self {
         self.labels = labels;
         self
     }
 
-    /// Disable interaction and fade the control.
     pub fn disabled(mut self, disabled: bool) -> Self {
         self.disabled = disabled;
         self
     }
 
-    /// Callback invoked when the value changes.
     pub fn on_change(mut self, callback: impl Into<Callback<usize, ()>>) -> Self {
         self.on_change = Some(callback.into());
         self
@@ -398,7 +378,6 @@ impl Slider {
         self
     }
 
-    /// Set accessibility ids for the knob and each step label.
     pub fn sub_ids(mut self, knob: &'static str, steps: &'static [&'static str]) -> Self {
         self.knob_id = Some(knob);
         self.step_ids = steps;
@@ -468,7 +447,9 @@ impl Component for Slider {
 
         let mut root = rect()
             .width(Size::px(width))
-            .height(Size::px(knob + label_gap + CAPTION.size as f32 * TEXT_LINE_HEIGHT))
+            .height(Size::px(
+                knob + label_gap + CAPTION.size as f32 * TEXT_LINE_HEIGHT,
+            ))
             .a11y_role(AccessibilityRole::Slider);
 
         if !self.disabled {
@@ -511,11 +492,7 @@ impl Component for Slider {
             .background(track_color);
 
         let fill_rect = rect()
-            .position(
-                Position::new_absolute()
-                    .left(0.0)
-                    .top((knob - track) / 2.0),
-            )
+            .position(Position::new_absolute().left(0.0).top((knob - track) / 2.0))
             .width(Size::px(knob_x + knob / 2.0))
             .height(Size::px(track))
             .corner_radius((track / 2.0).max(1.0))
@@ -576,10 +553,7 @@ impl Component for Slider {
             } else {
                 Size::auto()
             };
-            let mut wrapper = rect()
-                .width(width)
-                .height(Size::auto())
-                .child(label_node);
+            let mut wrapper = rect().width(width).height(Size::auto()).child(label_node);
             if let Some(id) = self.step_ids.get(i).copied() {
                 wrapper = wrapper.a11y_builder(move |node| node.set_author_id(id));
             }
@@ -610,7 +584,6 @@ impl Component for Slider {
     }
 }
 
-/// A Tengen checkbox with a text label.
 #[derive(PartialEq)]
 pub struct Checkbox {
     label: &'static str,
@@ -623,7 +596,6 @@ pub struct Checkbox {
 }
 
 impl Checkbox {
-    /// Create a checkbox with the given label.
     pub fn new(label: &'static str) -> Self {
         Self {
             label,
@@ -731,9 +703,7 @@ impl Component for Checkbox {
             .center();
 
         if *checked.read() {
-            checkbox = checkbox.child(
-                svg_viewer(check_svg, base.on_accent, size as u32 - 4),
-            );
+            checkbox = checkbox.child(svg_viewer(check_svg, base.on_accent, size as u32 - 4));
         }
 
         let mut root = rect()

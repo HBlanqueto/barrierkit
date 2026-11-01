@@ -1,4 +1,4 @@
-//! The client-side titlebar honours the compositor's decoration answer.
+//! Tests that the titlebar follows the compositor's decoration answer.
 
 use std::io::Cursor;
 

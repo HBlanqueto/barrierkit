@@ -21,7 +21,6 @@ use std::{cell::RefCell, rc::Rc};
 use crate::platform::{AppMenuAddress, runtime::Runtime};
 use crate::shell::{GtkMenusAddress, ShellState};
 
-/// One running toplevel, as the dock lists it.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct ToplevelInfo {
     pub title: String,
@@ -30,14 +29,10 @@ pub struct ToplevelInfo {
     pub maximized: bool,
     pub minimized: bool,
     pub restorable: bool,
-    /// The app's dbusmenu address, when it announced one.
     pub app_menu: Option<AppMenuAddress>,
-    /// The GTK 3/4 D-Bus menu address, when announced via `gtk_shell1`.
     pub gtk_menus: Option<GtkMenusAddress>,
 }
 
-/// A change that only touches one toplevel's metadata. Kept pure so the
-/// interleaved-event ordering can be tested without Wayland.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub(super) enum InfoEvent {
     Title(String),
@@ -84,51 +79,37 @@ pub(crate) struct ToplevelEntry {
     pub(crate) info: ToplevelInfo,
 }
 
-/// The running toplevels, provided as a root context. The dock reads
-/// [`Toplevels::list`] and calls [`Toplevels::activate`] on a click.
 type Activate = Rc<RefCell<Option<Rc<dyn Fn(usize)>>>>;
 type Maximize = Rc<RefCell<Option<Rc<dyn Fn(usize, bool)>>>>;
 type Arrange = Rc<RefCell<Option<Rc<dyn Fn(usize, InfinityLayout)>>>>;
 type ArrangePair = Rc<RefCell<Option<Rc<dyn Fn(InfinityPairLayout)>>>>;
 type ArrangeQuarters = Rc<RefCell<Option<Rc<dyn Fn()>>>>;
 
-/// The bar over the shown space (Infinity `focus_bar`, MalaysiaDreams ADR
-/// 0051).
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub enum FocusBar {
-    /// A desktop is shown: the usual bar.
     #[default]
     None,
-    /// A focus space is shown and the bar is up.
     Hidden,
-    /// A focus space is shown and the bar is down over it.
     Revealed,
 }
 
 impl FocusBar {
-    /// Whether a focus space is shown, so the bar is black with white text.
     pub fn over_focus(self) -> bool {
         self != FocusBar::None
     }
 }
 
-/// The shown space, as the compositor reports it (Infinity `space`).
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct SpaceInfo {
-    /// 0-based position of the shown space.
     pub index: u32,
-    /// How many spaces the row has.
     pub count: u32,
-    /// The shown desktop's 1-based number; `None` for a focus space.
     pub desktop: Option<u32>,
-    /// The bar's state over a focus space.
     pub focus_bar: FocusBar,
 }
 
 #[derive(Clone)]
 pub struct Toplevels {
     pub list: State<Vec<ToplevelInfo>>,
-    /// The shown space; stays at its default without Infinity v5.
     pub space: State<SpaceInfo>,
     pub(super) activate: Activate,
     pub(super) close: Activate,
@@ -178,7 +159,6 @@ impl Toplevels {
         }
     }
 
-    /// Minimizes every toplevel in the list.
     pub fn minimize_all(&self) {
         let len = self.list.read().len();
         for index in 0..len {
@@ -186,43 +166,36 @@ impl Toplevels {
         }
     }
 
-    /// Arranges the toplevel at `index` in the requested Infinity layout.
     pub fn arrange(&self, index: usize, layout: InfinityLayout) {
         if let Some(f) = self.arrange.borrow().as_ref() {
             f(index, layout);
         }
     }
 
-    /// Tiles the active and previous toplevels as a pair.
     pub fn arrange_pair(&self, layout: InfinityPairLayout) {
         if let Some(f) = self.arrange_pair.borrow().as_ref() {
             f(layout);
         }
     }
 
-    /// Tiles the four most recent toplevels in quarters.
     pub fn arrange_quarters(&self) {
         if let Some(f) = self.arrange_quarters.borrow().as_ref() {
             f();
         }
     }
 
-    /// Restores the toplevel at `index` to its pre-arrange rectangle.
     pub fn restore(&self, index: usize) {
         if let Some(f) = self.restore.borrow().as_ref() {
             f(index);
         }
     }
 
-    /// Asks the compositor to kill the process behind the toplevel at `index`
-    /// (Infinity v4). Ignored on older compositors.
     pub fn force_quit(&self, index: usize) {
         if let Some(f) = self.force_quit.borrow().as_ref() {
             f(index);
         }
     }
 
-    /// Sets or unsets fullscreen on the toplevel at `index`.
     pub fn set_fullscreen(&self, index: usize, fullscreen: bool) {
         if let Some(f) = self.set_fullscreen.borrow().as_ref() {
             f(index, fullscreen);
@@ -231,7 +204,6 @@ impl Toplevels {
 }
 
 impl ShellState {
-    /// Publishes the current toplevel list and returns whether it changed.
     pub(crate) fn sync_toplevels(&mut self) -> bool {
         let infos: Vec<ToplevelInfo> = self
             .toplevel_entries
@@ -253,8 +225,6 @@ impl ShellState {
 }
 
 impl Runtime {
-    /// Recomputes the published toplevel list and requests a redraw when it
-    /// changed.
     pub(super) fn sync_toplevels(&mut self) {
         let changed = self
             .extension_mut::<ShellState>()

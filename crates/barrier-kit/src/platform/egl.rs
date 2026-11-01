@@ -13,10 +13,8 @@ use std::{
 };
 use wayland_egl::WlEglSurface;
 
-/// The Wayland EGL platform (`EGL_PLATFORM_WAYLAND_KHR`/`EXT`).
 const EGL_PLATFORM_WAYLAND: egl::Enum = 0x31D8;
 
-/// The EGL + Skia GL state shared by every surface in the process.
 pub(crate) struct GraphicsShared {
     egl: DynamicInstance<egl::EGL1_5>,
     display: egl::Display,
@@ -25,22 +23,16 @@ pub(crate) struct GraphicsShared {
     pub(crate) gr: RefCell<DirectContext>,
     pub(crate) font_collection: FontCollection,
     pub(crate) font_manager: FontMgr,
-    /// Counter of `wl_egl_window` creations, for resize tests.
     pub(crate) egl_window_creations: Cell<usize>,
 }
 
-// Safety: EGL display/context handles are used only on the thread that created
-// them (the calloop loop); the raw pointers are not shared across threads.
 unsafe impl Send for GraphicsShared {}
 
 impl GraphicsShared {
     pub(crate) fn new(display_ptr: *mut c_void) -> Result<Self, RunError> {
-        // SAFETY: called once on the calloop thread; libEGL is present because
-        // the compositor already initialized EGL. `load_required` validates the
-        // minimum version (EGL 1.5) before returning.
+        // SAFETY: libEGL is already loaded by the compositor; `load_required` checks EGL 1.5.
         let egl = unsafe { DynamicInstance::<egl::EGL1_5>::load_required() }
             .map_err(|_| RunError::Egl("libEGL could not be loaded"))?;
-        // Safety: the caller passes the live `wl_display*` of the connection.
         let display = unsafe {
             egl.get_platform_display(
                 EGL_PLATFORM_WAYLAND,
@@ -80,12 +72,9 @@ impl GraphicsShared {
                 &[egl::CONTEXT_CLIENT_VERSION, 3, egl::NONE],
             )
             .map_err(|_| RunError::Egl("eglCreateContext failed"))?;
-        // Skia's GL direct context needs a current EGL context to query the
-        // driver; the window surface is made current later in `configure`.
         egl.make_current(display, None, None, Some(context))
             .map_err(|_| RunError::Egl("eglMakeCurrent(surfaceless) failed"))?;
 
-        // The Skia GL interface loads every function through EGL.
         let interface = Interface::new_load_with(|name| {
             if name == "eglGetCurrentDisplay" {
                 return std::ptr::null();
@@ -118,9 +107,6 @@ impl Drop for GraphicsShared {
     }
 }
 
-/// The per-surface EGL window/surface and Skia render target. The expensive
-/// process-wide state (EGL context, `DirectContext`, fonts) lives in
-/// [`GraphicsShared`].
 pub(crate) struct Graphics {
     pub(crate) shared: Rc<GraphicsShared>,
     window: Option<WlEglSurface>,
@@ -130,7 +116,6 @@ pub(crate) struct Graphics {
     scale: f64,
 }
 
-// Safety: the EGLSurface is only used on the calloop thread.
 unsafe impl Send for Graphics {}
 
 impl Graphics {
@@ -145,11 +130,6 @@ impl Graphics {
         }
     }
 
-    /// Builds the `wl_egl_window` and EGL surface on a real configure, then
-    /// recreates the Skia surface at the new size.
-    ///
-    /// Reuses the existing `wl_egl_window` via `resize` when only the size
-    /// changed; only recreates it when the scale changed or the resize failed.
     pub(crate) fn configure(
         &mut self,
         surface: &WlSurface,
@@ -165,9 +145,6 @@ impl Graphics {
         let needs_window = self.window.is_none() || size_changed || scale_changed;
         if needs_window {
             if let Some(window) = self.window.as_ref() {
-                // Try to resize the existing wl_egl_window without destroying
-                // the EGL surface. dx/dy are zero because the Wayland surface
-                // origin does not move.
                 window.resize(size.0 as i32, size.1 as i32, 0, 0);
                 let (w, h) = window.get_size();
                 if w == size.0 as i32 && h == size.1 as i32 && !scale_changed {
@@ -210,7 +187,6 @@ impl Graphics {
         Ok(())
     }
 
-    /// Recreates the `wl_egl_window` and its EGL surface.
     fn recreate_window(&mut self, surface: &WlSurface, size: (u32, u32)) -> Result<(), RunError> {
         let shared = self.shared.clone();
         self.window = Some(
@@ -228,8 +204,6 @@ impl Graphics {
             .as_ref()
             .map(|w| w.ptr() as *mut c_void)
             .expect("window created above");
-        // Safety: the wl_egl_window is owned here and lives as long as the
-        // EGL surface.
         let egl_surface = unsafe {
             shared
                 .egl
@@ -269,12 +243,6 @@ impl Graphics {
 
 impl Drop for Graphics {
     fn drop(&mut self) {
-        // shortcut: per-popup GPU cleanup is deferred to the shared context's
-        // abandon() at process exit. Flushing here requires borrowing the
-        // shared DirectContext, which panics if a frame is currently being
-        // rendered, and free_gpu_resources() would free textures that other
-        // surfaces still need. We only destroy the EGL surface so the
-        // compositor sees popup_destroyed before the wl_egl_window is gone.
         if let Some(surface) = self.surface.take() {
             let _ = self
                 .shared
