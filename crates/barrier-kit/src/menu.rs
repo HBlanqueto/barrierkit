@@ -29,6 +29,43 @@ type UseState<T> = State<T>;
 /// Time the menu waits while the pointer travels diagonally toward an already
 /// open submenu before closing that submenu and highlighting the new row.
 const SUBMENU_INTENT_DELAY: Duration = Duration::from_millis(300);
+/// How often a hovered scroll arrow moves a long menu.
+const SCROLL_TICK: Duration = Duration::from_millis(30);
+
+/// Marks the mnemonic letter of a label: it goes right before the letter.
+/// U+2063 (INVISIBLE SEPARATOR) has no width and no glyph, so a label that
+/// keeps it by mistake still looks right. The menu underlines the marked
+/// letter while Alt is held, like dbusmenu and GTK do with `_`.
+pub const MNEMONIC_MARK: char = '\u{2063}';
+
+/// The label without its mnemonic mark, for comparing and searching.
+pub fn strip_mnemonic(label: &str) -> String {
+    label.replace(MNEMONIC_MARK, "")
+}
+
+/// A row label; with `show_mnemonic` the marked letter is underlined.
+fn item_label(text: &str, show_mnemonic: bool, size: f32, color: Rgba) -> Element {
+    let split = text.split_once(MNEMONIC_MARK).and_then(|(before, rest)| {
+        let letter = rest.chars().next()?;
+        Some((before, letter, &rest[letter.len_utf8()..]))
+    });
+    match split {
+        Some((before, letter, after)) if show_mnemonic => paragraph()
+            .font_size(size)
+            .color(rgba(color))
+            .max_lines(1)
+            .span(Span::new(before.to_string()))
+            .span(Span::new(letter.to_string()).text_decoration(TextDecoration::Underline))
+            .span(Span::new(strip_mnemonic(after)))
+            .into_element(),
+        _ => label()
+            .text(strip_mnemonic(text))
+            .font_size(size)
+            .color(rgba(color))
+            .max_lines(1)
+            .into_element(),
+    }
+}
 
 /// Pointer state shared across menu rows so diagonal moves toward an open
 /// submenu can delay closing it.
@@ -962,6 +999,63 @@ impl App for MenuView {
 
         let visible_rc = Rc::new(visible.clone());
 
+        // Alt held: underline the mnemonic letters (dbusmenu/GTK `_`).
+        let alt_held = use_state(|| false);
+        let show_mnemonic = *alt_held.read();
+
+        // A menu taller than its popup (the compositor shortened it with
+        // resize_y) scrolls like macOS: arrow strips at both ends that scroll
+        // while hovered, the wheel, and the keyboard focus kept in view.
+        let inset = 2.0 * m.border_width + m.padding;
+        let content_height: f32 = visible.iter().map(|item| item.height(m)).sum();
+        let available = (size.1 - inset * 2.0).max(0.0);
+        let overflow = query_text.is_empty() && content_height > available + 0.5;
+        let arrow_height = m.header_height;
+        let viewport = if overflow {
+            (available - 2.0 * arrow_height).max(m.item_height)
+        } else {
+            available
+        };
+        let max_scroll = (content_height - viewport).max(0.0);
+        let mut scroll = use_state(|| 0.0f32);
+        let mut scroll_now = if overflow {
+            scroll.read().clamp(0.0, max_scroll)
+        } else {
+            0.0
+        };
+        let last_focus = use_hook(|| Rc::new(Cell::new(None::<usize>)));
+        if overflow && last_focus.get() != focused_index {
+            last_focus.set(focused_index);
+            if let Some(index) = focused_index
+                && let Some(item) = visible.get(index)
+            {
+                let top = item_top(index, &visible, m);
+                let bottom = top + item.height(m);
+                let wanted = if top < scroll_now {
+                    top
+                } else if bottom > scroll_now + viewport {
+                    bottom - viewport
+                } else {
+                    scroll_now
+                };
+                if wanted != scroll_now {
+                    scroll_now = wanted;
+                    scroll.set(wanted);
+                }
+            }
+        }
+        // Rows sit `shift` px higher than in an unscrolled menu, so submenus
+        // anchor to the row the user sees.
+        let shift = if overflow {
+            scroll_now - arrow_height
+        } else {
+            0.0
+        };
+        if let Some(popup) = &popup {
+            popup.set_scroll_shift(shift);
+        }
+        let auto_scroll = use_hook(|| Rc::new(Cell::new(0i8)));
+
         let execute_target: Rc<dyn Fn(usize)> = {
             let focused = Cell::new(focused);
             let open_child_id = open_child_id.clone();
@@ -1056,7 +1150,7 @@ impl App for MenuView {
                     && child_index != index
                     && let Some(MenuItem::Submenu { .. }) = items.get(child_index)
                 {
-                    let row_top = m.padding + item_top(child_index, &items, m);
+                    let row_top = m.padding + item_top(child_index, &items, m) - shift;
                     let near_x = if opens_left { 0.0 } else { size.0 };
                     let to_top = CursorPoint::new(near_x as f64, row_top as f64);
                     let to_bottom =
@@ -1120,9 +1214,40 @@ impl App for MenuView {
                     enter_row.clone(),
                     move_row.clone(),
                     execute_target.clone(),
+                    show_mnemonic,
                 )
             })
             .collect();
+        let rows: Vec<Element> = if overflow {
+            let step = m.item_height;
+            let arrow = |direction: i8, active: bool| {
+                scroll_arrow(
+                    direction,
+                    active,
+                    arrow_height,
+                    m,
+                    timers.clone(),
+                    auto_scroll.clone(),
+                    scroll,
+                    step / 3.0,
+                    max_scroll,
+                )
+            };
+            vec![
+                arrow(-1, scroll_now > 0.0),
+                rect()
+                    .width(Size::fill())
+                    .height(Size::px(viewport))
+                    .overflow(Overflow::Clip)
+                    .offset_y(-scroll_now)
+                    .direction(Direction::Vertical)
+                    .children(rows)
+                    .into_element(),
+                arrow(1, scroll_now < max_scroll),
+            ]
+        } else {
+            rows
+        };
 
         let inner_padding = (m.padding - m.border_width).max(0.0);
         let content = rect()
@@ -1143,6 +1268,13 @@ impl App for MenuView {
                     .fill(rgba(m.inner_line)),
             )
             .direction(Direction::Vertical)
+            .on_wheel(move |event: Event<WheelEventData>| {
+                if overflow {
+                    let next = (*scroll.peek() - event.delta_y as f32).clamp(0.0, max_scroll);
+                    let mut scroll = scroll;
+                    scroll.set(next);
+                }
+            })
             .children(rows);
 
         let mut root = rect()
@@ -1178,7 +1310,18 @@ impl App for MenuView {
             root = root.a11y_builder(move |node| node.set_author_id(id));
         }
         let visible_for_keys = Rc::new(visible.clone());
+        let mut alt_up = alt_held;
+        root = root.on_global_key_up(move |event: Event<KeyboardEventData>| {
+            if event.key == Key::Named(NamedKey::Alt) {
+                alt_up.set(false);
+            }
+        });
+        let mut alt_down = alt_held;
         root.on_global_key_down(move |event: Event<KeyboardEventData>| {
+            if event.key == Key::Named(NamedKey::Alt) {
+                alt_down.set(true);
+                return;
+            }
             hover_state.borrow_mut().pending = None;
             let mut focused = focused;
             let mut query = query;
@@ -1294,7 +1437,15 @@ impl App for MenuView {
                         );
                     }
                 }
-                Key::Character(ref ch) if ch == " " => {
+                // Plain Space activates. Ctrl/Alt+Space belong to the input
+                // method and the window menu, so they are filtered like text
+                // input (`inserts_text`); inside the Help search a space is
+                // part of the query.
+                Key::Character(ref ch)
+                    if ch == " "
+                        && inserts_text(event.modifiers)
+                        && !(has_search && !query_text.is_empty()) =>
+                {
                     selected.set(false);
                     let (index, source): (Option<usize>, &[MenuItem]) = if searching {
                         (result_current, visible_for_keys.as_slice())
@@ -1399,6 +1550,74 @@ impl App for MenuView {
             }
         })
     }
+}
+
+/// One scroll strip of a long menu: a chevron while there is more to show in
+/// `direction` (-1 up, 1 down); hovering it scrolls until the end or until
+/// the pointer leaves.
+#[allow(clippy::too_many_arguments)]
+fn scroll_arrow(
+    direction: i8,
+    active: bool,
+    height: f32,
+    m: MenuPalette,
+    timers: Option<Timers>,
+    auto: Rc<Cell<i8>>,
+    scroll: UseState<f32>,
+    step: f32,
+    max_scroll: f32,
+) -> Element {
+    let strip = rect().width(Size::fill()).height(Size::px(height)).center();
+    if !active {
+        return strip.into_element();
+    }
+    let leave = auto.clone();
+    strip
+        .on_pointer_enter(move |_| {
+            auto.set(direction);
+            if let Some(timers) = timers.clone() {
+                scroll_tick(timers, auto.clone(), direction, scroll, step, max_scroll);
+            }
+        })
+        .on_pointer_leave(move |_| leave.set(0))
+        .child(
+            label()
+                .text(if direction < 0 { "▲" } else { "▼" })
+                .font_size(m.chevron_size)
+                .color(rgba(m.chevron_color)),
+        )
+        .into_element()
+}
+
+/// Scrolls one step and schedules the next while the strip stays hovered.
+fn scroll_tick(
+    timers: Timers,
+    auto: Rc<Cell<i8>>,
+    direction: i8,
+    mut scroll: UseState<f32>,
+    step: f32,
+    max_scroll: f32,
+) {
+    if auto.get() != direction {
+        return;
+    }
+    let next = (*scroll.peek() + f32::from(direction) * step).clamp(0.0, max_scroll);
+    if next == *scroll.peek() {
+        auto.set(0);
+        return;
+    }
+    scroll.set(next);
+    let again = timers.clone();
+    timers.after(SCROLL_TICK, move || {
+        scroll_tick(
+            again.clone(),
+            auto.clone(),
+            direction,
+            scroll,
+            step,
+            max_scroll,
+        );
+    });
 }
 
 fn rgba(color: Rgba) -> Color {
@@ -1520,7 +1739,8 @@ fn activate_or_open(
 /// Removes accents and lowercases a query so searches are case and accent
 /// insensitive.
 fn normalize_query(text: &str) -> String {
-    text.to_lowercase()
+    strip_mnemonic(text)
+        .to_lowercase()
         .replace('á', "a")
         .replace('é', "e")
         .replace('í', "i")
@@ -1757,10 +1977,11 @@ fn submenu_anchor_rect(
     items: &[MenuItem],
     m: MenuPalette,
     parent_width: f32,
+    shift: f32,
 ) -> (i32, i32, u32, u32) {
     (
         0,
-        (item_top(index, items, m) + m.padding) as i32,
+        (item_top(index, items, m) + m.padding - shift) as i32,
         parent_width.max(1.0) as u32,
         m.item_height as u32,
     )
@@ -1882,7 +2103,13 @@ fn open_child_popup(
     let inset = m.padding + m.border_width;
     let (anchor, gravity, dx) = submenu_positioner(opens_left);
     let spec = PopupSpec {
-        anchor_rect: submenu_anchor_rect(index, &parent_items, m, parent_size.0),
+        anchor_rect: submenu_anchor_rect(
+            index,
+            &parent_items,
+            m,
+            parent_size.0,
+            popup.scroll_shift(),
+        ),
         anchor,
         gravity,
         offset: (dx, -(inset as i32)),
@@ -1890,6 +2117,7 @@ fn open_child_popup(
         constraint_adjustment: PopupConstraintAdjustment {
             flip_x: true,
             slide_y: true,
+            resize_y: true,
             ..PopupConstraintAdjustment::default()
         },
         grab: true,
@@ -1995,6 +2223,7 @@ fn render_item(
     on_row_enter: Rc<dyn Fn(usize, CursorPoint)>,
     on_row_move: Rc<dyn Fn(usize, CursorPoint)>,
     on_row_click: Rc<dyn Fn(usize)>,
+    show_mnemonic: bool,
 ) -> Element {
     match item {
         MenuItem::Separator => rect()
@@ -2091,13 +2320,7 @@ fn render_item(
                     m,
                 ));
             }
-            left = left.child(
-                label()
-                    .text(label_text)
-                    .font_size(m.font_size)
-                    .color(rgba(fg))
-                    .max_lines(1),
-            );
+            left = left.child(item_label(&label_text, show_mnemonic, m.font_size, fg));
             row.child(left)
                 .child(
                     label()
@@ -2169,13 +2392,7 @@ fn render_item(
                     m,
                 ));
             }
-            left = left.child(
-                label()
-                    .text(label_text)
-                    .font_size(m.font_size)
-                    .color(rgba(fg))
-                    .max_lines(1),
-            );
+            left = left.child(item_label(&label_text, show_mnemonic, m.font_size, fg));
             row.child(left)
                 .child(chevron_element(chevron_fg(enabled, is_focused, m), m))
                 .into_element()
@@ -2397,7 +2614,7 @@ fn render_item(
                 .child(icon_element)
                 .child(
                     label()
-                        .text(label_text)
+                        .text(strip_mnemonic(&label_text))
                         .font_size(m.font_size)
                         .color(rgba(fg))
                         .max_lines(1),
@@ -3074,7 +3291,7 @@ mod tests {
         ];
         let m = MENU_LIGHT;
         let (width, _) = MenuView::preferred_size(&items, m);
-        let (x, y, w, h) = submenu_anchor_rect(4, &items, m, width);
+        let (x, y, w, h) = submenu_anchor_rect(4, &items, m, width, 0.0);
         let row_top = item_top(4, &items, m) + m.padding;
         assert_eq!(y as f32, row_top);
         assert_eq!(x, 0);

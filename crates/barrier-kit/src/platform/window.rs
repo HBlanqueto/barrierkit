@@ -423,6 +423,7 @@ impl Runtime {
             current: None,
             surface_count: self.surface_count.clone(),
             opens_left: Rc::new(Cell::new(false)),
+            scroll_shift: Rc::new(Cell::new(0.0)),
         };
         let app_instance = AppInstance::new(
             app,

@@ -10,6 +10,7 @@ use barrier_kit::theme::{SurfaceKind, menu_palette};
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 use freya_testing::TestingRunner;
+use freya_testing::prelude::{Code, Key, KeyboardEventName, Modifiers, NamedKey};
 use torin::prelude::{Size, Size2D};
 use vow_appearance::{AppearanceConfig, ColorScheme, Resolved, resolve};
 use vow_design::{MENU_DARK, MENU_LIGHT, MenuPalette};
@@ -536,4 +537,114 @@ fn an_open_menu_recolors_when_the_scheme_changes() {
         expected,
         "an open menu must follow the new scheme"
     );
+}
+
+fn find_label(test: &TestingRunner, text: &str) -> bool {
+    !test
+        .find_many(|node, el| {
+            Label::try_downcast(el)
+                .is_some_and(|label| label.text == text)
+                .then_some(node)
+        })
+        .is_empty()
+}
+
+fn key(test: &mut TestingRunner, key: Key, modifiers: Modifiers, name: KeyboardEventName) {
+    test.send_event(freya_testing::prelude::PlatformEvent::Keyboard {
+        name,
+        key,
+        code: Code::Unidentified,
+        modifiers,
+    });
+    test.sync_and_update();
+}
+
+#[test]
+fn a_menu_taller_than_its_popup_scrolls_with_arrows_and_the_wheel() {
+    let items: Vec<MenuItem> = (0..40).map(|i| action(&format!("Elemento {i}"))).collect();
+    let (width, height) = MenuView::preferred_size(&items, MENU_LIGHT);
+    assert!(height > 300.0);
+    let app = AppComponent::new(MenuView::new(items, |_| {}, || {}).with_fixed_palette(MENU_LIGHT));
+    let (mut test, _) = TestingRunner::new(app, Size2D::new(width, 300.0), |_| {}, 1.0);
+    test.sync_and_update();
+    assert!(find_label(&test, "▼"), "more items below");
+    assert!(!find_label(&test, "▲"), "nothing above at the top");
+
+    test.scroll((width as f64 / 2.0, 150.0), (0.0, -120.0));
+    assert!(find_label(&test, "▲"), "the wheel scrolled down");
+
+    // The keyboard keeps the focused row in view: End reaches the bottom.
+    key(
+        &mut test,
+        Key::Named(NamedKey::End),
+        Modifiers::default(),
+        KeyboardEventName::KeyDown,
+    );
+    assert!(!find_label(&test, "▼"), "the last row is visible");
+}
+
+#[test]
+fn alt_underlines_the_mnemonic_letter() {
+    let mark = barrier_kit::menu::MNEMONIC_MARK;
+    let items = vec![action(&format!("{mark}Archivo"))];
+    let size = MenuView::preferred_size(&items, MENU_LIGHT);
+    let app = AppComponent::new(MenuView::new(items, |_| {}, || {}).with_fixed_palette(MENU_LIGHT));
+    let (mut test, _) = TestingRunner::new(app, Size2D::new(size.0, size.1), |_| {}, 1.0);
+    test.sync_and_update();
+    assert!(find_label(&test, "Archivo"), "plain label without Alt");
+
+    let alt = Key::Named(NamedKey::Alt);
+    key(
+        &mut test,
+        alt.clone(),
+        Modifiers::ALT,
+        KeyboardEventName::KeyDown,
+    );
+    assert!(
+        !find_label(&test, "Archivo"),
+        "Alt switches to the underlined paragraph"
+    );
+    key(
+        &mut test,
+        alt,
+        Modifiers::default(),
+        KeyboardEventName::KeyUp,
+    );
+    assert!(
+        find_label(&test, "Archivo"),
+        "releasing Alt hides the underline"
+    );
+}
+
+#[test]
+fn only_plain_space_activates_an_item() {
+    use std::cell::RefCell;
+    use std::rc::Rc;
+    let activated = Rc::new(RefCell::new(Vec::<String>::new()));
+    let sink = activated.clone();
+    let items = vec![action("Abrir")];
+    let size = MenuView::preferred_size(&items, MENU_LIGHT);
+    let app = AppComponent::new(
+        MenuView::new(items, move |id| sink.borrow_mut().push(id), || {})
+            .with_fixed_palette(MENU_LIGHT),
+    );
+    let (mut test, _) = TestingRunner::new(app, Size2D::new(size.0, size.1), |_| {}, 1.0);
+    test.sync_and_update();
+    let space = Key::Character(" ".into());
+    for modifiers in [Modifiers::CONTROL, Modifiers::ALT] {
+        key(
+            &mut test,
+            space.clone(),
+            modifiers,
+            KeyboardEventName::KeyDown,
+        );
+    }
+    assert!(activated.borrow().is_empty(), "Ctrl/Alt+Space do nothing");
+    key(
+        &mut test,
+        space,
+        Modifiers::default(),
+        KeyboardEventName::KeyDown,
+    );
+    assert_eq!(*activated.borrow(), vec!["id:Abrir".to_string()]);
 }

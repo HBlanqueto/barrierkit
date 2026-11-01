@@ -86,6 +86,9 @@ pub struct PopupConstraintAdjustment {
     pub flip_y: bool,
     pub slide_x: bool,
     pub slide_y: bool,
+    /// Lets the compositor shorten a popup taller than the output; the menu
+    /// then scrolls. Applied after flip and slide.
+    pub resize_y: bool,
 }
 
 /// Options for opening a popup from the shell (menubar, submenus).
@@ -132,6 +135,9 @@ pub struct Popups {
     pub(crate) current: Option<PopupId>,
     pub(crate) surface_count: Rc<Cell<usize>>,
     pub(crate) opens_left: Rc<Cell<bool>>,
+    /// Pixels the menu content is scrolled by, so submenus anchor to the
+    /// visible row.
+    pub(crate) scroll_shift: Rc<Cell<f32>>,
 }
 
 impl Popups {
@@ -193,6 +199,7 @@ impl Popups {
             current,
             surface_count: Rc::new(Cell::new(0)),
             opens_left: Rc::new(Cell::new(false)),
+            scroll_shift: Rc::new(Cell::new(0.0)),
         };
         (popups, queue)
     }
@@ -226,6 +233,15 @@ impl PopupHandle {
     /// keep opening on the same side.
     pub fn opens_left(&self) -> bool {
         self.popups.opens_left.get()
+    }
+
+    /// How far this popup's menu is scrolled, in logical pixels.
+    pub fn scroll_shift(&self) -> f32 {
+        self.popups.scroll_shift.get()
+    }
+
+    pub fn set_scroll_shift(&self, shift: f32) {
+        self.popups.scroll_shift.set(shift);
     }
 
     pub fn close(&self) {
@@ -307,6 +323,9 @@ fn constraint_to_sctk(c: PopupConstraintAdjustment) -> SctkConstraint {
     }
     if c.slide_y {
         out |= SctkConstraint::SlideY;
+    }
+    if c.resize_y {
+        out |= SctkConstraint::ResizeY;
     }
     out
 }
@@ -444,6 +463,7 @@ impl Runtime {
             current: Some(id),
             surface_count: self.surface_count.clone(),
             opens_left: opens_left.clone(),
+            scroll_shift: Rc::new(Cell::new(0.0)),
         };
         let handle = PopupHandle {
             id,

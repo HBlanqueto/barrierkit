@@ -170,6 +170,7 @@ pub fn run_layer(app: AppComponent, spec: LayerSpec) -> Result<(), RunError> {
         current: None,
         surface_count: shell.surface_count.clone(),
         opens_left: Rc::new(Cell::new(false)),
+        scroll_shift: Rc::new(Cell::new(0.0)),
     };
     let app = shell
         .extension::<ShellState>()
