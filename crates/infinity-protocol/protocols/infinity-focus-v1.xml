@@ -63,16 +63,6 @@
       <description summary="stop the notices"/>
     </request>
 
-    <request name="set_overlay" since="2">
-      <description summary="the client draws its titlebar over its content">
-        Tells the compositor that, in focus mode, this client hides its
-        titlebar and, while the bar is down, draws it over its content right
-        below the bar. The compositor then never moves the window for the
-        bar. It applies from the next time the bar comes down and lasts for
-        the object's lifetime.
-      </description>
-    </request>
-
     <event name="bar">
       <description summary="the bar came down or went up over the window">
         Sent while the toplevel is in focus mode (it has the xdg fullscreen
@@ -87,6 +77,16 @@
       </description>
       <arg name="revealed" type="uint"/>
     </event>
+
+    <request name="set_overlay" since="2">
+      <description summary="the client draws its titlebar over its content">
+        Tells the compositor that, in focus mode, this client hides its
+        titlebar and, while the bar is down, draws it over its content right
+        below the bar. The compositor then never moves the window for the
+        bar. It applies from the next time the bar comes down and lasts for
+        the object's lifetime.
+      </description>
+    </request>
 
     <event name="bar_height" since="2">
       <description summary="how much of the window the bar covers">
