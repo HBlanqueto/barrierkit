@@ -375,6 +375,7 @@ impl App for Show {
 
         let window = PreferencesWindow::new()
             .restoration(APP_ID)
+            .suggestions(&["formularios", "campos", "interruptores"])
             .group(
                 PaneGroup::new(Some("Capa 1 · Primitivas"))
                     .pane(Pane::new(

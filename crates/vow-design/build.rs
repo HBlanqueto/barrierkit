@@ -2816,6 +2816,26 @@ fn emit_settings(out: &mut String, tokens: &Value, components: &Value) {
         COMPONENTS,
     ) as u32;
     let search_gap = integer(components, "components.settings.search.gap", COMPONENTS) as u32;
+    let search_popover_gap = integer(
+        components,
+        "components.settings.search.popover-gap",
+        COMPONENTS,
+    ) as u32;
+    let search_popover_max_height = integer(
+        components,
+        "components.settings.search.popover-max-height",
+        COMPONENTS,
+    ) as u32;
+    let search_result_height = integer(
+        components,
+        "components.settings.search.result-height",
+        COMPONENTS,
+    ) as u32;
+    let search_header_height = integer(
+        components,
+        "components.settings.search.header-height",
+        COMPONENTS,
+    ) as u32;
     let account_height =
         integer(components, "components.settings.account.height", COMPONENTS) as u32;
     let account_padding_x = integer(
@@ -2902,6 +2922,10 @@ fn emit_settings(out: &mut String, tokens: &Value, components: &Value) {
          \x20   search_padding_x: {search_padding_x},\n\
          \x20   search_icon: {search_icon},\n\
          \x20   search_gap: {search_gap},\n\
+         \x20   search_popover_gap: {search_popover_gap},\n\
+         \x20   search_popover_max_height: {search_popover_max_height},\n\
+         \x20   search_result_height: {search_result_height},\n\
+         \x20   search_header_height: {search_header_height},\n\
          \x20   account_avatar: {account_avatar},\n\
          \x20   account_gap: {account_gap},\n\
          \x20   account_height: {account_height},\n\

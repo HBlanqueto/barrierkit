@@ -16,6 +16,10 @@ use crate::views::navigation::{History, navigation_buttons};
 use crate::views::search::SearchIndex;
 use crate::views::split::SplitView;
 
+use super::search_popover::{Entry, search_popover};
+
+const RECENTS: usize = 3;
+
 #[derive(Clone, PartialEq)]
 pub struct Pane {
     pub id: &'static str,
@@ -68,6 +72,7 @@ pub struct PreferencesWindow {
     restoration: Option<&'static str>,
     account: Option<(String, String, String)>,
     groups: Vec<PaneGroup>,
+    suggestions: Option<&'static [&'static str]>,
 }
 
 impl PreferencesWindow {
@@ -76,7 +81,13 @@ impl PreferencesWindow {
             restoration: None,
             account: None,
             groups: Vec::new(),
+            suggestions: None,
         }
+    }
+
+    pub fn suggestions(mut self, pane_ids: &'static [&'static str]) -> Self {
+        self.suggestions = Some(pane_ids);
+        self
     }
 
     pub fn restoration(mut self, app_id: &'static str) -> Self {
@@ -154,6 +165,11 @@ impl Component for PreferencesWindow {
             }
         });
         let query = use_state(String::new);
+        let search_id = use_a11y();
+        let mut search_focused = use_state(|| false);
+        let popover_hovered = use_state(|| false);
+        let mut dismissed_at: State<Option<String>> = use_state(|| None);
+        let recents: State<Vec<&'static str>> = use_state(Vec::new);
         let mut highlighted: State<Option<&'static str>> = use_state(|| None);
         let current = *history.read().current();
         let panes: Vec<&Pane> = self.panes().collect();
@@ -161,18 +177,73 @@ impl Component for PreferencesWindow {
 
         let open = move |id: &'static str, row: Option<&'static str>| {
             let mut history = history;
+            let mut recents = recents;
             Callback::new(move |_| {
                 history.write().push(id);
                 highlighted.set(row);
+                dismissed_at.set(Some(query.peek().clone()));
+                search_id.request_unfocus();
+                let mut recents = recents.write();
+                recents.retain(|recent| *recent != id);
+                recents.insert(0, id);
+                recents.truncate(RECENTS);
             })
         };
+        let text = query.read().clone();
+        let dismissed = dismissed_at.read().as_ref() == Some(&text);
+        let searching = *search_focused.read() && !dismissed;
+        let emphasized = !searching;
         let item = |pane: &Pane| {
             SidebarItem::new(pane.title)
                 .symbol(pane.symbol, pane.tint)
                 .selected(pane.id == current)
+                .emphasized(emphasized)
                 .on_select(open(pane.id, None))
                 .into_element()
         };
+        let result = |pane: &Pane, title: &'static str, row: Option<&'static str>| Entry::Result {
+            symbol: pane.symbol,
+            tint: pane.tint,
+            title,
+            subtitle: row.map(|_| pane.title),
+            on_select: open(pane.id, row),
+        };
+        let by_id = |id: &&'static str| panes.iter().find(|pane| pane.id == *id).copied();
+
+        let mut entries = Vec::new();
+        if !text.trim().is_empty() {
+            let hits = index(&panes).search(&text);
+            if hits.is_empty() {
+                entries.push(Entry::Header("Sin resultados"));
+            }
+            for hit in hits {
+                let (id, row) = hit.key;
+                if let Some(pane) = by_id(&id) {
+                    entries.push(result(pane, hit.title, row));
+                }
+            }
+        } else if let Some(suggestions) = self.suggestions {
+            entries.push(Entry::Header("Sugerencias"));
+            entries.extend(
+                suggestions
+                    .iter()
+                    .filter_map(by_id)
+                    .map(|pane| result(pane, pane.title, None)),
+            );
+            let recent: Vec<Entry> = recents
+                .read()
+                .iter()
+                .filter_map(by_id)
+                .map(|pane| result(pane, pane.title, None))
+                .collect();
+            if !recent.is_empty() {
+                entries.push(Entry::Header("Recientes"));
+                entries.extend(recent);
+            }
+        }
+        let popover_open = (*search_focused.read() || *popover_hovered.read())
+            && !dismissed
+            && !entries.is_empty();
 
         let mut sidebar = Sidebar::new().traffic_lights(true).child(
             rect()
@@ -183,33 +254,34 @@ impl Component for PreferencesWindow {
                     SETTINGS.sidebar_search_gap as f32,
                     0.0,
                 ))
-                .child(SearchField::new(query, "Buscar")),
+                .child(
+                    SearchField::new(query, "Buscar")
+                        .a11y_id(search_id)
+                        .on_focus_change(move |focused| {
+                            search_focused.set(focused);
+                            if focused {
+                                dismissed_at.set(None);
+                            }
+                        }),
+                )
+                .maybe_child(
+                    popover_open
+                        .then(|| search_popover(entries, text.trim().is_empty(), popover_hovered)),
+                ),
         );
-        let text = query.read().clone();
-        if text.trim().is_empty() {
-            if let Some((initials, name, detail)) = &self.account {
-                sidebar = sidebar.child(SidebarAccount::new(
-                    initials.clone(),
-                    name.clone(),
-                    detail.clone(),
-                ));
-            }
-            for group in &self.groups {
-                let items = group.panes.iter().map(item);
-                sidebar = match group.title {
-                    Some(title) => sidebar.child(SidebarSection::new(title).children(items)),
-                    None => sidebar.children(items),
-                };
-            }
-        } else {
-            let hits = index(&panes).search(&text).into_iter().map(|hit| {
-                let (id, row) = hit.key;
-                SidebarItem::new(hit.title)
-                    .selected(id == current && row == *highlighted.read())
-                    .on_select(open(id, row))
-                    .into_element()
-            });
-            sidebar = sidebar.children(hits);
+        if let Some((initials, name, detail)) = &self.account {
+            sidebar = sidebar.child(SidebarAccount::new(
+                initials.clone(),
+                name.clone(),
+                detail.clone(),
+            ));
+        }
+        for group in &self.groups {
+            let items = group.panes.iter().map(item);
+            sidebar = match group.title {
+                Some(title) => sidebar.child(SidebarSection::new(title).children(items)),
+                None => sidebar.children(items),
+            };
         }
 
         let detail = rect()

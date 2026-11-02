@@ -442,7 +442,11 @@
         "height": "size.control-md",
         "padding-x": 10,
         "icon": 16,
-        "gap": 6
+        "gap": 6,
+        "popover-gap": 6,
+        "popover-max-height": 420,
+        "result-height": 40,
+        "header-height": 24
       },
       "account": {
         "avatar": 36,

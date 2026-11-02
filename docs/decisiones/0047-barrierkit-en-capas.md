@@ -232,7 +232,7 @@ Hecho en `main`:
 - **Capa 1**: `style` (paleta semántica y caras de texto), `symbol`, `interaction` (hover, pulsado, foco y anillo), `Button`, `IconButton`, `Switch`, `Checkbox`, `RadioGroup`, `ColorWell`, `ChoiceCards`, `SegmentedControl`, `ToggleGroup`, `Stepper`, `Slider` por pasos, `LevelSlider` (continuo y grueso), `TextField`, `SearchField`, `PopUpButton`, `ProgressBar`, `ProgressRing`, `badge`, `divider`, `avatar` y `Link`.
 - **App**: `Action` con `Shortcut` tipado, `load_defaults`/`save_defaults` con aviso de cambios, `launch` (instancia única; `Activate` trae la ventana al frente por xdg-activation), restauración del panel, `UndoStack` y portapapeles (`copy`/`paste`).
 - **Capa 2**: `Form`/`Section`/`Row`, `SplitView` (sustituye a `SidebarLayout`), `History` y `navigation_buttons`, `SearchIndex`, `empty_state`, `sheet`, `Alert`, `TabView`, `Table`, `CollectionView` y `SidebarAccount`.
-- **Capa 3**: `PreferencesWindow`, `about_window` y `BrowserWindow`.
+- **Capa 3**: `PreferencesWindow` (buscador con sugerencias y recientes opcionales y resultados con el icono de su panel), `about_window` y `BrowserWindow`.
 - **Master Tengen App Show** (`tengen-app-show`).
 - **Fase 6**: Ajustes del sistema es un `PreferencesWindow` con un `Form`; ya no tiene controles, barra lateral ni buscador propios.
 

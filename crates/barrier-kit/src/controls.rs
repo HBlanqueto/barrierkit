@@ -1027,6 +1027,8 @@ pub struct SearchField {
     value: State<String>,
     placeholder: &'static str,
     width: Size,
+    on_focus_change: Option<Callback<bool, ()>>,
+    a11y_id: Option<AccessibilityId>,
     key: DiffKey,
 }
 
@@ -1036,8 +1038,20 @@ impl SearchField {
             value,
             placeholder,
             width: Size::fill(),
+            on_focus_change: None,
+            a11y_id: None,
             key: DiffKey::None,
         }
+    }
+
+    pub fn a11y_id(mut self, a11y_id: AccessibilityId) -> Self {
+        self.a11y_id = Some(a11y_id);
+        self
+    }
+
+    pub fn on_focus_change(mut self, callback: impl Into<Callback<bool, ()>>) -> Self {
+        self.on_focus_change = Some(callback.into());
+        self
     }
 
     pub fn width(mut self, width: Size) -> Self {
@@ -1059,6 +1073,16 @@ impl Component for SearchField {
         let padding = SETTINGS.search_padding_x as f32;
         let icon = SETTINGS.search_icon as f32;
         let gap = SETTINGS.search_gap as f32;
+        let a11y_id = use_hook(|| self.a11y_id.unwrap_or_else(AccessibilityId::new_unique));
+        let focus = use_focus(a11y_id);
+        let focused = focus.read().is_focused();
+        let mut reported = use_state(|| false);
+        if *reported.peek() != focused {
+            reported.set(focused);
+            if let Some(callback) = &self.on_focus_change {
+                callback.call(focused);
+            }
+        }
         let mut input = themed_input(
             value,
             self.placeholder,
@@ -1069,7 +1093,8 @@ impl Component for SearchField {
             },
             TEXT_FIELD.height / 2.0,
             padding + icon + gap,
-        );
+        )
+        .a11y_id(a11y_id);
         if !value.read().is_empty() {
             input = input.trailing(
                 rect()

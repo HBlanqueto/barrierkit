@@ -3,3 +3,4 @@
 pub mod about;
 pub mod browser;
 pub mod preferences;
+mod search_popover;
