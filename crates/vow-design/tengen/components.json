@@ -196,6 +196,7 @@
       "row-min-height": 44,
       "highlight": 0.12,
       "row-padding-x": 14,
+      "label-min-share": 35,
       "separator": {
         "color": "line",
         "inset-left": 14

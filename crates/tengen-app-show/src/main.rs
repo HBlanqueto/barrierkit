@@ -2,6 +2,7 @@
 
 use barrier_kit::adornments::{Link, avatar, badge, divider};
 use barrier_kit::app::{Action, Instance, Launch, launch};
+use barrier_kit::backdrop::{Accent, Backdrop, BackdropSource, Tint};
 use barrier_kit::choices::{ChoiceCards, ColorWell, RadioGroup};
 use barrier_kit::compact::{Face, IconButton, Stepper, ToggleGroup};
 use barrier_kit::context_menu::context_menu;
@@ -354,6 +355,69 @@ fn tabs() -> Form {
     )
 }
 
+fn preview(colors: [Rgba; 3], accent: Accent, fill: Tint) -> Rect {
+    rect()
+        .width(Size::px(320.0))
+        .height(Size::px(150.0))
+        .corner_radius(12.0)
+        .overflow(Overflow::Clip)
+        .child(
+            Backdrop::new(
+                BackdropSource::Colors(colors),
+                rect()
+                    .width(Size::fill())
+                    .padding(16.0)
+                    .spacing(SPACE_2)
+                    .child(row_of([
+                        Switch::new("Encendido").on(true).tint(fill).into_element(),
+                        Checkbox::new("Marcada")
+                            .checked(true)
+                            .tint(fill)
+                            .into_element(),
+                    ]))
+                    .child(ProgressBar::determinate("Progreso", 0.6).tint(fill))
+                    .child(LevelSlider::new("Nivel").value(0.4).tint(fill)),
+            )
+            .accent(accent),
+        )
+}
+
+fn backdrops() -> Form {
+    let dusk = [
+        Rgba::rgb8(122, 59, 94),
+        Rgba::rgb8(45, 110, 106),
+        Rgba::rgb8(180, 112, 63),
+    ];
+    let night = [
+        Rgba::rgb8(20, 33, 61),
+        Rgba::rgb8(58, 79, 122),
+        Rgba::rgb8(150, 110, 40),
+    ];
+    let pale = [
+        Rgba::rgb8(236, 214, 196),
+        Rgba::rgb8(200, 222, 214),
+        Rgba::rgb8(240, 226, 170),
+    ];
+    Form::new().section(
+        Section::titled("Fondo tintado")
+            .row(
+                Row::new("Acento del fondo")
+                    .detail("Tinta blanca: el fondo es oscuro.")
+                    .control(preview(dusk, Accent::FromBackdrop, Tint::Accent)),
+            )
+            .row(
+                Row::new("Gradiente del fondo")
+                    .detail("Los controles se rellenan con el fondo.")
+                    .control(preview(night, Accent::System, Tint::Backdrop)),
+            )
+            .row(
+                Row::new("Paleta clara")
+                    .detail("Se lleva al rango legible; acento propio.")
+                    .control(preview(pale, Accent::Own(tint(4)), Tint::Accent)),
+            ),
+    )
+}
+
 fn feedback(mut alert: State<bool>) -> Form {
     Form::new().section(
         Section::titled("Estados y alertas")
@@ -478,6 +542,13 @@ impl App for Show {
                         Symbol::ChevronUp,
                         tint(3),
                         tabs(),
+                    ))
+                    .pane(Pane::new(
+                        "fondos",
+                        "Fondo tintado",
+                        Symbol::CircleHalf,
+                        tint(5),
+                        backdrops(),
                     ))
                     .pane(Pane::new(
                         "estados",

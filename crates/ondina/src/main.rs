@@ -1,0 +1,441 @@
+//! Ondina: a music player that shows what tinted backdrops, app accents and
+//! adaptive layouts look like in BarrierKit.
+
+mod albums;
+mod views;
+
+use std::rc::Rc;
+use std::sync::{Arc, Mutex};
+use std::time::Duration;
+
+use barrier_kit::adaptive::{Breakpoint, use_breakpoint};
+use barrier_kit::app::{Action, Instance, Launch, Shortcut, ShortcutKey, launch};
+use barrier_kit::app_menu::{AppMenu, Menu};
+use barrier_kit::backdrop::{Accent, Backdrop, BackdropSource, Tint};
+use barrier_kit::compact::IconButton;
+use barrier_kit::controls::ScrollView;
+use barrier_kit::platform::{Decorations, Timers, WakeHandle, WindowOptions, run_window};
+use barrier_kit::symbol::Symbol;
+use barrier_kit::titlebar::Titlebar;
+use freya_core::integration::AppComponent;
+use freya_core::prelude::*;
+use torin::prelude::{Content, Direction, Size};
+use vow_design::{ACCENT_SWATCHES, Rgba};
+
+use albums::{Album, library};
+
+const APP_ID: &str = "org.malaysia.ondina";
+const TICK: Duration = Duration::from_millis(500);
+
+const STUDIO: [Rgba; 3] = [
+    Rgba::rgb8(59, 47, 122),
+    Rgba::rgb8(29, 111, 126),
+    Rgba::rgb8(138, 63, 110),
+];
+
+pub const PRESETS: [(&str, [Rgba; 3]); 3] = [
+    (
+        "Atardecer",
+        [
+            Rgba::rgb8(122, 59, 94),
+            Rgba::rgb8(45, 110, 106),
+            Rgba::rgb8(180, 112, 63),
+        ],
+    ),
+    (
+        "Bosque",
+        [
+            Rgba::rgb8(30, 77, 43),
+            Rgba::rgb8(120, 160, 90),
+            Rgba::rgb8(70, 60, 110),
+        ],
+    ),
+    (
+        "Medianoche",
+        [
+            Rgba::rgb8(20, 33, 61),
+            Rgba::rgb8(58, 79, 122),
+            Rgba::rgb8(150, 110, 40),
+        ],
+    ),
+];
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum Tab {
+    Now,
+    Library,
+    Mix,
+    Look,
+}
+
+impl Tab {
+    pub const ALL: [Self; 4] = [Self::Now, Self::Library, Self::Mix, Self::Look];
+
+    pub fn title(self) -> &'static str {
+        match self {
+            Self::Now => "Escuchando",
+            Self::Library => "Biblioteca",
+            Self::Mix => "Mezcla",
+            Self::Look => "Apariencia",
+        }
+    }
+
+    pub fn symbol(self) -> Symbol {
+        match self {
+            Self::Now => Symbol::Play,
+            Self::Library => Symbol::SquareGrid,
+            Self::Mix => Symbol::SlidersVertical,
+            Self::Look => Symbol::CircleHalf,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum Background {
+    Cover,
+    Palette,
+    Plain,
+}
+
+impl Background {
+    pub fn index(self) -> usize {
+        self as usize
+    }
+
+    pub fn from_index(index: usize) -> Self {
+        [Self::Cover, Self::Palette, Self::Plain][index.min(2)]
+    }
+}
+
+#[derive(Clone, Copy, PartialEq)]
+pub struct Player {
+    pub album: State<usize>,
+    pub track: State<usize>,
+    pub playing: State<bool>,
+    pub position: State<f32>,
+    pub volume: State<f32>,
+    albums: State<Rc<Vec<Album>>>,
+}
+
+impl Player {
+    pub fn toggle(mut self) {
+        let playing = *self.playing.peek();
+        self.playing.set(!playing);
+    }
+
+    pub fn skip(mut self, step: isize) {
+        let tracks = self.albums.peek()[*self.album.peek()].tracks.len() as isize;
+        let next = (*self.track.peek() as isize + step).rem_euclid(tracks);
+        self.track.set(next as usize);
+        self.position.set(0.0);
+    }
+
+    fn advance(mut self) {
+        if !*self.playing.peek() {
+            return;
+        }
+        let albums = self.albums.peek().clone();
+        let seconds = albums[*self.album.peek()].seconds(*self.track.peek()) as f32;
+        let next = *self.position.peek() + TICK.as_secs_f32() / seconds;
+        if next < 1.0 {
+            self.position.set(next);
+        } else {
+            self.skip(1);
+        }
+    }
+}
+
+#[derive(Clone, Copy, PartialEq)]
+pub struct Mood {
+    pub background: State<Background>,
+    pub preset: State<usize>,
+    pub accent: State<usize>,
+    pub own_accent: State<usize>,
+    pub controls: State<usize>,
+    pub own_controls: State<usize>,
+    pub eq: State<[f32; 5]>,
+    pub switches: State<[bool; 3]>,
+    pub checks: State<[bool; 2]>,
+    pub quality: State<usize>,
+    pub export: State<f32>,
+}
+
+impl Mood {
+    pub fn tint(self) -> Tint {
+        match *self.controls.read() {
+            1 => Tint::Backdrop,
+            2 => Tint::Color(ACCENT_SWATCHES[*self.own_controls.read()].1),
+            _ => Tint::Accent,
+        }
+    }
+
+    fn accent(self) -> Accent {
+        match *self.accent.read() {
+            1 => Accent::FromBackdrop,
+            2 => Accent::Own(ACCENT_SWATCHES[*self.own_accent.read()].1),
+            _ => Accent::System,
+        }
+    }
+}
+
+const PLAY_PAUSE: Action = Action::new("play-pause", "Reproducir o pausar")
+    .shortcut(Shortcut::ctrl(ShortcutKey::Char('p')));
+const NEXT: Action = Action::new("next", "Siguiente").shortcut(Shortcut::ctrl(ShortcutKey::Right));
+const PREVIOUS: Action =
+    Action::new("previous", "Anterior").shortcut(Shortcut::ctrl(ShortcutKey::Left));
+const VIEWS: [Action; 4] = [
+    Action::new("tab-now", "Escuchando").shortcut(Shortcut::ctrl(ShortcutKey::Char('1'))),
+    Action::new("tab-library", "Biblioteca").shortcut(Shortcut::ctrl(ShortcutKey::Char('2'))),
+    Action::new("tab-mix", "Mezcla").shortcut(Shortcut::ctrl(ShortcutKey::Char('3'))),
+    Action::new("tab-look", "Apariencia").shortcut(Shortcut::ctrl(ShortcutKey::Char('4'))),
+];
+
+fn menu() -> AppMenu {
+    AppMenu::new(vec![
+        Menu::new(
+            "Controles",
+            vec![PLAY_PAUSE.item(true), NEXT.item(true), PREVIOUS.item(true)],
+        ),
+        Menu::new("Ver", VIEWS.iter().map(|view| view.item(true)).collect()),
+    ])
+}
+
+#[derive(Default)]
+struct Inbox {
+    actions: Vec<String>,
+    wake: Option<WakeHandle>,
+}
+
+struct Ondina {
+    instance: Option<Instance>,
+    inbox: Arc<Mutex<Inbox>>,
+}
+
+impl App for Ondina {
+    fn render(&self) -> impl IntoElement {
+        let albums = use_state(|| Rc::new(library()));
+        let player = Player {
+            album: use_state(|| 1),
+            track: use_state(|| 0),
+            playing: use_state(|| true),
+            position: use_state(|| 0.18),
+            volume: use_state(|| 0.72),
+            albums,
+        };
+        let mood = Mood {
+            background: use_state(|| Background::Cover),
+            preset: use_state(|| 0),
+            accent: use_state(|| 1),
+            own_accent: use_state(|| 5),
+            controls: use_state(|| 0),
+            own_controls: use_state(|| 4),
+            eq: use_state(|| [0.55, 0.62, 0.5, 0.44, 0.6]),
+            switches: use_state(|| [true, true, false]),
+            checks: use_state(|| [true, false]),
+            quality: use_state(|| 1),
+            export: use_state(|| 0.375),
+        };
+        let tab = use_state(|| Tab::Now);
+        let instance = self.instance.clone();
+        let inbox = self.inbox.clone();
+        use_hook(move || {
+            if let Some(instance) = &instance {
+                instance.listen();
+            }
+            let Some(timers) = try_consume_root_context::<Timers>() else {
+                return;
+            };
+            schedule(timers.clone(), player);
+            let wake = timers.wakeup({
+                let inbox = inbox.clone();
+                move || {
+                    let actions = std::mem::take(&mut inbox.lock().expect("menu inbox").actions);
+                    for id in actions {
+                        match id.as_str() {
+                            "play-pause" => player.toggle(),
+                            "next" => player.skip(1),
+                            "previous" => player.skip(-1),
+                            view => {
+                                if let Some(index) = VIEWS.iter().position(|v| v.id == view) {
+                                    let mut tab = tab;
+                                    tab.set(Tab::ALL[index]);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            inbox.lock().expect("menu inbox").wake = Some(wake);
+        });
+
+        let current = *tab.read();
+        let source = match (current, *mood.background.read()) {
+            (Tab::Mix, _) => BackdropSource::Colors(STUDIO),
+            (_, Background::Cover) => {
+                BackdropSource::Image(albums.read()[*player.album.read()].cover.clone())
+            }
+            (_, Background::Palette) => BackdropSource::Colors(PRESETS[*mood.preset.read()].1),
+            (_, Background::Plain) => BackdropSource::None,
+        };
+        Backdrop::new(source, Window { player, mood, tab }).accent(mood.accent())
+    }
+}
+
+#[derive(PartialEq)]
+struct Window {
+    player: Player,
+    mood: Mood,
+    tab: State<Tab>,
+}
+
+impl Component for Window {
+    fn render(&self) -> impl IntoElement {
+        let (player, mood, tab) = (self.player, self.mood, self.tab);
+        let mut queue_open = use_state(|| false);
+        let size = use_breakpoint();
+        let albums = player.albums.read().clone();
+        let current = *tab.read();
+        let album = &albums[*player.album.read()];
+        let pane = match current {
+            Tab::Now => views::now_playing(&albums, player, mood.tint()),
+            Tab::Library => views::library(&albums, player),
+            Tab::Mix => views::mixer(mood, album),
+            Tab::Look => views::appearance(mood),
+        };
+        let pane = ScrollView::new()
+            .width(Size::flex(1.0))
+            .height(Size::fill())
+            .child(pane);
+        let breakpoint = size.current();
+        let queue_shown = breakpoint == Breakpoint::Wide || *queue_open.read();
+
+        let body = rect()
+            .width(Size::fill())
+            .height(Size::flex(1.0))
+            .direction(Direction::Horizontal)
+            .content(Content::flex())
+            .maybe_child((breakpoint != Breakpoint::Compact).then(|| {
+                rect()
+                    .width(if breakpoint == Breakpoint::Wide {
+                        Size::px(200.0)
+                    } else {
+                        Size::px(64.0)
+                    })
+                    .child(views::navigation(
+                        current,
+                        tab,
+                        breakpoint == Breakpoint::Wide,
+                    ))
+            }))
+            .child(pane)
+            .maybe_child(queue_shown.then(|| {
+                rect()
+                    .width(Size::px(260.0))
+                    .height(Size::fill())
+                    .child(views::queue(&albums, player))
+            }));
+
+        let mut titlebar = Titlebar::new().title(current.title());
+        if breakpoint != Breakpoint::Wide {
+            titlebar = titlebar.right(
+                IconButton::new(Symbol::ListBullet, "Cola")
+                    .on_press(move |_| queue_open.set(!*queue_open.peek())),
+            );
+        }
+        size.attach(rect())
+            .width(Size::fill())
+            .height(Size::fill())
+            .content(Content::flex())
+            .child(titlebar)
+            .child(body)
+            .maybe_child((breakpoint == Breakpoint::Compact).then(|| views::tab_bar(current, tab)))
+    }
+}
+
+fn schedule(timers: Timers, player: Player) {
+    let again = timers.clone();
+    timers.after(TICK, move || {
+        player.advance();
+        schedule(again.clone(), player);
+    });
+}
+
+fn main() {
+    tracing_subscriber::fmt::init();
+    let instance = match launch(APP_ID) {
+        Ok(Launch::Forwarded) => return,
+        Ok(Launch::Primary(instance)) => Some(instance),
+        Err(error) => {
+            tracing::warn!(%error, "ondina: sin instancia única");
+            None
+        }
+    };
+    let inbox = Arc::new(Mutex::new(Inbox::default()));
+    let menu_inbox = inbox.clone();
+    run_window(
+        AppComponent::new(Ondina { instance, inbox }),
+        WindowOptions::new("Ondina", "Ondina")
+            .app_id(APP_ID)
+            .decorations(Decorations::Client)
+            .size((980, 640))
+            .menu(menu())
+            .on_menu_action(move |id| {
+                let mut inbox = menu_inbox.lock().expect("menu inbox");
+                inbox.actions.push(id.to_string());
+                if let Some(wake) = &inbox.wake {
+                    wake.wake();
+                }
+            }),
+    )
+    .expect("ondina");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use freya_testing::TestingRunner;
+    use torin::prelude::Size2D;
+
+    fn labels(width: f32) -> Vec<String> {
+        let app = AppComponent::new(Ondina {
+            instance: None,
+            inbox: Arc::default(),
+        });
+        let (mut test, _) = TestingRunner::new(app, Size2D::new(width, 640.0), |_| {}, 1.0);
+        test.sync_and_update();
+        test.poll(
+            std::time::Duration::from_millis(16),
+            std::time::Duration::from_millis(600),
+        );
+        if let Some(path) = std::env::var_os("ONDINA_SHOT") {
+            test.render_to_file(std::path::Path::new(&path).join(format!("ondina-{width}.png")));
+        }
+        test.find_many(|_, el| el.accessibility().builder.label().map(str::to_owned))
+    }
+
+    #[test]
+    fn the_layout_changes_shape_with_the_window_width() {
+        let wide = labels(1000.0);
+        let medium = labels(760.0);
+        let compact = labels(400.0);
+        assert!(
+            wide.iter().any(|l| l == "Bajamar" || l == "Cable pelado"),
+            "the wide window shows the queue"
+        );
+        assert!(
+            !medium.iter().any(|l| l == "Cable pelado"),
+            "the medium window hides the queue"
+        );
+        assert!(
+            medium.iter().any(|l| l == "Cola"),
+            "the medium window offers a queue button"
+        );
+        assert_eq!(
+            compact
+                .iter()
+                .filter(|l| Tab::ALL.iter().any(|t| t.title() == l.as_str()))
+                .count(),
+            4
+        );
+    }
+}

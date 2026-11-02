@@ -8,6 +8,7 @@ members = [
     "crates/vow-appearance",
     "crates/infinity-protocol",
     "crates/tengen-app-show",
+    "crates/ondina",
 ]
 default-members = [
     "crates/barrier-kit",

@@ -9,7 +9,7 @@ use serde::Deserialize;
 
 use crate::traffic::TrafficLights;
 use freya_core::prelude::*;
-use torin::prelude::{Alignment, Direction, Gaps, Position, Size};
+use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 use vow_appearance::SidebarStyle;
 use vow_appearance::palette;
 use vow_design::NATIVE_APP_ID_PREFIX;
@@ -195,15 +195,20 @@ impl Component for Titlebar {
 
         let resolved = crate::theme::resolved();
         let theme = palette(resolved.scheme);
-        let background = if self.sidebar || status.activated {
+        let tinted = crate::backdrop::tinted().is_some();
+        let background = if tinted {
+            vow_design::Rgba::rgba8(0, 0, 0, 0.0)
+        } else if self.sidebar || status.activated {
             crate::theme::surface_background(&resolved, crate::theme::SurfaceKind::Toplevel)
         } else {
             resolved.surfaces.titlebar_inactive
         };
-        let title_color = if status.activated {
-            theme.title.focused
-        } else {
-            theme.title.unfocused
+        let ink = crate::style::Palette::current();
+        let title_color = match (tinted, status.activated) {
+            (true, true) => ink.label,
+            (true, false) => ink.secondary_label,
+            (false, true) => theme.title.focused,
+            (false, false) => theme.title.unfocused,
         };
         let lights_shown = freya_core::prelude::try_consume_root_context::<WindowControls>()
             .is_none_or(|controls| controls.traffic_lights_shown());
@@ -330,6 +335,7 @@ impl Component for Titlebar {
             .height(Size::px(TITLEBAR_CLIENT_HEIGHT as f32))
             .background(rgba(background))
             .direction(Direction::Horizontal)
+            .content(Content::flex())
             .cross_align(Alignment::Center)
             .padding(Gaps::new(0.0, 10.0, 0.0, 10.0))
             .child(left_slot)

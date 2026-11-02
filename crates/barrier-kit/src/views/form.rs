@@ -224,6 +224,7 @@ impl Component for FormRow {
         };
         let mut labels = rect()
             .width(Size::flex(1.0))
+            .min_width(Size::percent(LIST_GROUP.label_min_share))
             .direction(Direction::Vertical)
             .maybe(aligned_to_first_line, |el| {
                 el.padding(Gaps::new(

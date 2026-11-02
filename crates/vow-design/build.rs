@@ -970,12 +970,15 @@ fn emit_list_group(out: &mut String, tokens: &Value, components: &Value) {
          \x20   header_padding: [{header}],
 \
          \x20   highlight: {},
+\
+         \x20   label_min_share: {},
 }};\n\n",
         field("radius"),
         field("row-min-height"),
         field("row-padding-x"),
         field("separator.inset-left"),
         field("highlight"),
+        field("label-min-share"),
     ));
 }
 

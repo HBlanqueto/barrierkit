@@ -44,11 +44,13 @@ pub enum Tint {
     Backdrop,
 }
 
+pub(crate) fn tinted() -> Option<tint::Backdrop> {
+    try_consume_context::<State<Option<tint::Backdrop>>>().and_then(|state| *state.read())
+}
+
 impl Tint {
     pub(crate) fn fill(self, palette: &Palette) -> Fill {
-        let backdrop =
-            try_consume_context::<State<Option<tint::Backdrop>>>().and_then(|state| *state.read());
-        match (self, backdrop) {
+        match (self, tinted()) {
             (Self::Color(c), _) => color(c).into(),
             (Self::Backdrop, Some(backdrop)) => backdrop
                 .highlights()

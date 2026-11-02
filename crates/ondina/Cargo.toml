@@ -1,0 +1,21 @@
+[package]
+name = "ondina"
+description = "Ondina: reproductor de ejemplo con fondos tintados y diseño adaptable."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+barrier-kit.workspace = true
+freya-components.workspace = true
+freya-core.workspace = true
+freya-engine.workspace = true
+torin.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+vow-design.workspace = true
+
+[dev-dependencies]
+freya-testing.workspace = true

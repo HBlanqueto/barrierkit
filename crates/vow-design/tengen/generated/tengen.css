@@ -348,6 +348,7 @@
   --list-group-bg: var(--bg-surface);
   --list-group-border: var(--line);
   --list-group-highlight: 0.120000px;
+  --list-group-label-min-share: 35px;
   --list-group-radius: var(--radius-lg);
   --list-group-row-icon-radius: var(--radius-sm);
   --list-group-row-icon-size: 22px;
