@@ -11,7 +11,7 @@ use vow_design::{
     SHELL_DARK_OPAQUE, SHELL_DARK_TINT_OPAQUE, SHELL_LIGHT_OPAQUE, ShellPalette,
 };
 
-pub(crate) fn color(c: Rgba) -> Color {
+pub fn color(c: Rgba) -> Color {
     let [r, g, b, a] = c.to_rgba8();
     Color::from_argb(a, r, g, b)
 }

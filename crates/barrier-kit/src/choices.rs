@@ -1,7 +1,7 @@
-//! One-of-many choices: radio groups and colour wells.
+//! One-of-many choices: radio groups, colour wells and preview cards.
 
 use freya_core::prelude::*;
-use torin::prelude::{Alignment, Direction, Size};
+use torin::prelude::{Alignment, Direction, Position, Size};
 use vow_design::{CAPTION, Rgba, SETTINGS, SWITCH, TEXT};
 
 use crate::interaction::{ring, use_interaction};
@@ -304,5 +304,160 @@ impl Component for Swatch {
                 CAPTION,
                 palette.secondary_label,
             ))
+    }
+}
+
+#[derive(PartialEq)]
+pub struct ChoiceCards {
+    label: &'static str,
+    options: Vec<(&'static str, Element)>,
+    selected: usize,
+    disabled: bool,
+    on_change: Option<Callback<usize, ()>>,
+    key: DiffKey,
+}
+
+impl ChoiceCards {
+    pub fn new(label: &'static str) -> Self {
+        Self {
+            label,
+            options: Vec::new(),
+            selected: 0,
+            disabled: false,
+            on_change: None,
+            key: DiffKey::None,
+        }
+    }
+
+    pub fn option(mut self, caption: &'static str, preview: impl IntoElement) -> Self {
+        self.options.push((caption, preview.into_element()));
+        self
+    }
+
+    pub fn selected(mut self, index: usize) -> Self {
+        self.selected = index;
+        self
+    }
+
+    pub fn disabled(mut self, disabled: bool) -> Self {
+        self.disabled = disabled;
+        self
+    }
+
+    pub fn on_change(mut self, callback: impl Into<Callback<usize, ()>>) -> Self {
+        self.on_change = Some(callback.into());
+        self
+    }
+
+    pub fn key(mut self, key: impl Into<DiffKey>) -> Self {
+        self.key = key.into();
+        self
+    }
+}
+
+impl KeyExt for ChoiceCards {
+    fn write_key(&mut self) -> &mut DiffKey {
+        &mut self.key
+    }
+}
+
+impl Component for ChoiceCards {
+    fn render(&self) -> impl IntoElement {
+        let choice = use_choice(Some(self.selected), self.on_change.clone());
+        let cards = self
+            .options
+            .iter()
+            .enumerate()
+            .map(|(index, (caption, preview))| {
+                Card {
+                    caption,
+                    preview: preview.clone(),
+                    selected: choice.is(index),
+                    disabled: self.disabled,
+                    on_select: choice.select(index),
+                }
+                .into_element()
+            });
+        rect()
+            .a11y_role(AccessibilityRole::RadioGroup)
+            .a11y_alt(self.label)
+            .direction(Direction::Horizontal)
+            .spacing(SETTINGS.card_gap as f32)
+            .children(cards)
+    }
+}
+
+#[derive(PartialEq)]
+struct Card {
+    caption: &'static str,
+    preview: Element,
+    selected: bool,
+    disabled: bool,
+    on_select: Callback<(), ()>,
+}
+
+impl Component for Card {
+    fn render(&self) -> impl IntoElement {
+        let palette = Palette::current();
+        let interaction = use_interaction();
+        let radius = SETTINGS.card_radius as f32;
+        let selected = self.selected;
+        let enabled = !self.disabled;
+        let on_select = self.on_select.clone();
+
+        let mut card = rect().corner_radius(radius).child(
+            rect()
+                .width(Size::px(SETTINGS.card_width as f32))
+                .height(Size::px(SETTINGS.card_height as f32))
+                .corner_radius(radius)
+                .overflow(Overflow::Clip)
+                .child(self.preview.clone())
+                .child(
+                    rect()
+                        .position(Position::new_absolute().left(0.0).top(0.0))
+                        .width(Size::fill())
+                        .height(Size::fill())
+                        .corner_radius(radius)
+                        .border(
+                            Border::new()
+                                .width(1.0)
+                                .alignment(BorderAlignment::Inner)
+                                .fill(color(SETTINGS.card_outline)),
+                        ),
+                ),
+        );
+        if selected {
+            card = ring(card, radius, palette.accent);
+        }
+        card = interaction.focus_ring(card, radius);
+
+        let caption = SETTINGS.card_caption_font;
+        interaction
+            .attach(rect(), enabled)
+            .a11y_role(AccessibilityRole::RadioButton)
+            .a11y_alt(self.caption)
+            .a11y_builder(move |node| node.set_toggled(selected.into()))
+            .direction(Direction::Vertical)
+            .cross_align(Alignment::Center)
+            .spacing(SETTINGS.card_caption_gap as f32)
+            .maybe(!enabled, |el| el.opacity(SWITCH.disabled_opacity))
+            .maybe(enabled, |el| el.on_press(move |_| on_select.call(())))
+            .child(card)
+            .child(
+                text(
+                    self.caption,
+                    caption,
+                    if selected {
+                        palette.label
+                    } else {
+                        palette.secondary_label
+                    },
+                )
+                .font_weight(if selected {
+                    FontWeight::SEMI_BOLD
+                } else {
+                    FontWeight::from(caption.weight as i32)
+                }),
+            )
     }
 }

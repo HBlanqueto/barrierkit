@@ -66,7 +66,7 @@ impl PaneGroup {
 #[derive(PartialEq)]
 pub struct PreferencesWindow {
     restoration: Option<&'static str>,
-    account: Option<(&'static str, &'static str, &'static str)>,
+    account: Option<(String, String, String)>,
     groups: Vec<PaneGroup>,
 }
 
@@ -86,11 +86,11 @@ impl PreferencesWindow {
 
     pub fn account(
         mut self,
-        initials: &'static str,
-        name: &'static str,
-        detail: &'static str,
+        initials: impl Into<String>,
+        name: impl Into<String>,
+        detail: impl Into<String>,
     ) -> Self {
-        self.account = Some((initials, name, detail));
+        self.account = Some((initials.into(), name.into(), detail.into()));
         self
     }
 
@@ -187,8 +187,12 @@ impl Component for PreferencesWindow {
         );
         let text = query.read().clone();
         if text.trim().is_empty() {
-            if let Some((initials, name, detail)) = self.account {
-                sidebar = sidebar.child(SidebarAccount::new(initials, name, detail));
+            if let Some((initials, name, detail)) = &self.account {
+                sidebar = sidebar.child(SidebarAccount::new(
+                    initials.clone(),
+                    name.clone(),
+                    detail.clone(),
+                ));
             }
             for group in &self.groups {
                 let items = group.panes.iter().map(item);

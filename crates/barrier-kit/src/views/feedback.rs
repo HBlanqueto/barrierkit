@@ -59,7 +59,7 @@ pub fn sheet(content: impl IntoElement) -> Rect {
 #[derive(PartialEq)]
 pub struct Alert {
     title: &'static str,
-    message: &'static str,
+    message: String,
     confirm: &'static str,
     cancel: &'static str,
     on_confirm: Option<Callback<(), ()>>,
@@ -67,10 +67,10 @@ pub struct Alert {
 }
 
 impl Alert {
-    pub fn new(title: &'static str, message: &'static str) -> Self {
+    pub fn new(title: &'static str, message: impl Into<String>) -> Self {
         Self {
             title,
-            message,
+            message: message.into(),
             confirm: "Aceptar",
             cancel: "Cancelar",
             on_confirm: None,
@@ -115,7 +115,7 @@ impl Component for Alert {
                     _ => {}
                 })
                 .child(text(self.title, HEADLINE, palette.label))
-                .child(text(self.message, TEXT, palette.secondary_label).max_lines(None))
+                .child(text(self.message.clone(), TEXT, palette.secondary_label).max_lines(None))
                 .child(
                     rect()
                         .width(Size::fill())

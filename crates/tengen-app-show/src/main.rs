@@ -2,7 +2,7 @@
 
 use barrier_kit::adornments::{Link, avatar, badge, divider};
 use barrier_kit::app::{Instance, Launch, launch};
-use barrier_kit::choices::{ColorWell, RadioGroup};
+use barrier_kit::choices::{ChoiceCards, ColorWell, RadioGroup};
 use barrier_kit::compact::{IconButton, Stepper, ToggleGroup};
 use barrier_kit::controls::{
     Button, ButtonStyle, Checkbox, SearchField, SegmentedControl, Slider, Switch, TextField,
@@ -105,6 +105,20 @@ fn choices() -> Form {
                 Row::new("Color de acento")
                     .control(ColorWell::new("Color de acento", &ACCENT_SWATCHES).selected(Some(0))),
             )
+            .row(Row::new("Tarjetas").control(
+                ["Claro", "Oscuro", "Acento"].into_iter().enumerate().fold(
+                    ChoiceCards::new("Tema"),
+                    |cards, (index, caption)| {
+                        cards.option(
+                            caption,
+                            rect()
+                                .width(Size::fill())
+                                .height(Size::fill())
+                                .background(barrier_kit::theme::color(tint(index))),
+                        )
+                    },
+                ),
+            ))
             .row(
                 Row::new("Grupo conmutable").control(
                     ToggleGroup::new("Formato")
