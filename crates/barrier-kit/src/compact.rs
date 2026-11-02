@@ -5,6 +5,7 @@ use torin::prelude::{Alignment, Direction, Gaps, Size};
 use vow_design::{BUTTON, ICON_BUTTON, SEGMENTED, TEXT};
 
 use crate::interaction::use_interaction;
+use crate::style::{Palette, text};
 use crate::symbol::{Symbol, symbol};
 use crate::theme::color;
 
@@ -39,15 +40,14 @@ impl IconButton {
 
 impl Component for IconButton {
     fn render(&self) -> impl IntoElement {
-        let resolved = crate::theme::resolved();
-        let base = vow_appearance::palette(resolved.scheme);
+        let palette = Palette::current();
         let interaction = use_interaction();
         let enabled = !self.disabled;
         let on_press = self.on_press.clone();
         let ink = if enabled {
-            base.ink_strong
+            palette.label
         } else {
-            base.ink_faint
+            palette.tertiary_label
         };
 
         let button = interaction
@@ -59,7 +59,7 @@ impl Component for IconButton {
             .corner_radius(ICON_BUTTON.radius)
             .center()
             .maybe(enabled && interaction.hovered(), |el| {
-                el.background(color(resolved.surfaces.hover))
+                el.background(color(palette.control_hover))
             })
             .maybe(enabled && interaction.pressed(), |el| {
                 el.scale(BUTTON.pressed_scale)
@@ -109,8 +109,7 @@ impl Stepper {
 
 impl Component for Stepper {
     fn render(&self) -> impl IntoElement {
-        let resolved = crate::theme::resolved();
-        let base = vow_appearance::palette(resolved.scheme);
+        let palette = Palette::current();
         let value = use_state(|| self.value);
         let current = *value.read();
         let (min, max) = (self.min, self.max);
@@ -135,21 +134,17 @@ impl Component for Stepper {
             .direction(Direction::Horizontal)
             .cross_align(Alignment::Center)
             .corner_radius(ICON_BUTTON.radius)
-            .background(color(resolved.surfaces.control))
+            .background(color(palette.control_background))
             .child(
                 IconButton::new(Symbol::Minus, "Menos")
                     .disabled(current <= min)
                     .on_press(step(-1)),
             )
             .child(
-                rect().min_width(Size::px(ICON_BUTTON.size)).center().child(
-                    label()
-                        .text(current.to_string())
-                        .font_family(TEXT.family)
-                        .font_size(TEXT.size as f32)
-                        .font_weight(TEXT.weight as i32)
-                        .color(color(base.ink_strong)),
-                ),
+                rect()
+                    .min_width(Size::px(ICON_BUTTON.size))
+                    .center()
+                    .child(text(current.to_string(), TEXT, palette.label)),
             )
             .child(
                 IconButton::new(Symbol::Plus, "Más")
@@ -188,7 +183,7 @@ impl ToggleGroup {
 
 impl Component for ToggleGroup {
     fn render(&self) -> impl IntoElement {
-        let resolved = crate::theme::resolved();
+        let palette = Palette::current();
         let states = use_state(|| self.items.iter().map(|item| item.2).collect::<Vec<_>>());
         let toggles = self
             .items
@@ -222,7 +217,7 @@ impl Component for ToggleGroup {
             .padding(Gaps::new_all(SEGMENTED.padding))
             .spacing(SEGMENTED.gap)
             .corner_radius(SEGMENTED.radius)
-            .background(color(resolved.surfaces.control))
+            .background(color(palette.control_background))
             .children(toggles)
     }
 }
@@ -237,12 +232,11 @@ struct Toggle {
 
 impl Component for Toggle {
     fn render(&self) -> impl IntoElement {
-        let resolved = crate::theme::resolved();
-        let base = vow_appearance::palette(resolved.scheme);
+        let palette = Palette::current();
         let interaction = use_interaction();
         let on = self.on;
         let on_press = self.on_press.clone();
-        let ink = if on { base.on_accent } else { base.ink_strong };
+        let ink = if on { palette.on_accent } else { palette.label };
 
         let toggle = interaction
             .attach(rect(), true)
@@ -253,7 +247,7 @@ impl Component for Toggle {
             .height(Size::px(SEGMENTED.segment_height))
             .corner_radius(SEGMENTED.segment_radius)
             .center()
-            .maybe(on, |el| el.background(color(resolved.accent)))
+            .maybe(on, |el| el.background(color(palette.accent)))
             .on_press(move |_| on_press.call(()))
             .child(
                 label()

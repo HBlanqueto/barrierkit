@@ -11,6 +11,7 @@ use crate::menu::{CheckState, MenuItem, MenuView};
 use crate::platform::{
     PopupAnchor, PopupConstraintAdjustment, PopupGravity, PopupHandle, PopupSpec, Popups,
 };
+use crate::style::{Palette, text};
 use crate::symbol::{Symbol, symbol};
 use crate::theme::{SurfaceKind, color, popover_palette};
 
@@ -50,8 +51,7 @@ impl PopUpButton {
 
 impl Component for PopUpButton {
     fn render(&self) -> impl IntoElement {
-        let resolved = crate::theme::resolved();
-        let base = vow_appearance::palette(resolved.scheme);
+        let palette = Palette::current();
         let interaction = use_interaction();
         let choice = use_choice(Some(self.selected), self.on_change.clone());
         let mut area = use_state(Area::default);
@@ -70,26 +70,22 @@ impl Component for PopUpButton {
             .spacing(SETTINGS.popup_text_gap as f32)
             .on_sized(move |event: Event<SizedEventData>| area.set_if_modified(event.area))
             .on_press(move |_| open_menu(&items, current, *area.read(), selects.clone()))
-            .child(
-                label()
-                    .text(self.items.get(current).copied().unwrap_or_default())
-                    .font_family(TEXT.family)
-                    .font_size(TEXT.size as f32)
-                    .font_weight(TEXT.weight as i32)
-                    .max_lines(1)
-                    .color(color(base.ink_strong)),
-            )
+            .child(text(
+                self.items.get(current).copied().unwrap_or_default(),
+                TEXT,
+                palette.label,
+            ))
             .child(
                 rect()
                     .width(Size::px(chevron))
                     .height(Size::px(chevron))
                     .corner_radius(chevron / 2.0)
                     .center()
-                    .background(color(resolved.surfaces.control))
+                    .background(color(palette.control_background))
                     .child(symbol(
                         Symbol::ChevronUpDown,
                         SETTINGS.dropdown_chevron_glyph as f32,
-                        base.ink_strong,
+                        palette.label,
                     )),
             );
         interaction.focus_ring(button, chevron / 2.0)

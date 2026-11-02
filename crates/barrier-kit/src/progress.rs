@@ -6,6 +6,7 @@ use freya_core::prelude::*;
 use torin::prelude::{Direction, Position, Size};
 use vow_design::PROGRESS;
 
+use crate::style::Palette;
 use crate::theme::color;
 
 #[derive(PartialEq)]
@@ -30,6 +31,7 @@ impl ProgressBar {
 impl Component for ProgressBar {
     fn render(&self) -> impl IntoElement {
         let resolved = crate::theme::resolved();
+        let palette = Palette::current();
         let reduced_motion = resolved.reduced_motion;
         let sweep = use_animation(move |conf| {
             if !reduced_motion {
@@ -59,7 +61,7 @@ impl Component for ProgressBar {
             .height(Size::px(PROGRESS.height))
             .corner_radius(PROGRESS.height / 2.0)
             .overflow(Overflow::Clip)
-            .background(color(resolved.surfaces.control))
+            .background(color(palette.control_background))
             .direction(Direction::Horizontal)
             .child(rect().width(Size::percent(start * 100.0)))
             .child(
@@ -67,7 +69,7 @@ impl Component for ProgressBar {
                     .width(Size::percent(length * 100.0))
                     .height(Size::fill())
                     .corner_radius(PROGRESS.height / 2.0)
-                    .background(color(resolved.accent)),
+                    .background(color(palette.accent)),
             )
     }
 }
@@ -89,7 +91,7 @@ impl ProgressRing {
 
 impl Component for ProgressRing {
     fn render(&self) -> impl IntoElement {
-        let resolved = crate::theme::resolved();
+        let palette = Palette::current();
         let size = PROGRESS.ring_size;
         let stroke = PROGRESS.ring_stroke;
         let radius = (size - stroke) / 2.0;
@@ -116,10 +118,10 @@ impl Component for ProgressRing {
             .a11y_builder(move |node| node.set_numeric_value(f64::from(value)))
             .width(Size::px(size))
             .height(Size::px(size))
-            .child(layer(circle(String::new()), resolved.surfaces.control))
+            .child(layer(circle(String::new()), palette.control_background))
             .child(rect().position(Position::new_absolute()).child(layer(
                 circle(format!(r#"stroke-dasharray="{filled} {circumference}""#)),
-                resolved.accent,
+                palette.accent,
             )))
     }
 }

@@ -34,6 +34,8 @@ pub mod adornments;
 
 pub mod popup_button;
 
+pub mod style;
+
 pub mod symbol;
 
 pub mod menu;

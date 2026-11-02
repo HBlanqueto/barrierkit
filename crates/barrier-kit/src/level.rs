@@ -6,6 +6,7 @@ use torin::prelude::{Position, Size};
 use vow_design::{KNOB_SHADOW, SLIDER, SLIDER_FAT, SLIDER_KEY_STEP, SWITCH, SYMBOL};
 
 use crate::interaction::use_interaction;
+use crate::style::Palette;
 use crate::symbol::{Symbol, symbol};
 use crate::theme::color;
 
@@ -72,8 +73,7 @@ impl KeyExt for LevelSlider {
 
 impl Component for LevelSlider {
     fn render(&self) -> impl IntoElement {
-        let resolved = crate::theme::resolved();
-        let base = vow_appearance::palette(resolved.scheme);
+        let palette = Palette::current();
         let interaction = use_interaction();
         let value = use_state(|| self.value);
         let mut width = use_state(|| 0.0f32);
@@ -146,14 +146,14 @@ impl Component for LevelSlider {
                     track_top,
                     run.max(0.0),
                     SLIDER.track,
-                    resolved.surfaces.control,
+                    palette.control_background,
                 ))
                 .child(bar(
                     0.0,
                     track_top,
                     knob_x + offset,
                     SLIDER.track,
-                    resolved.accent,
+                    palette.accent,
                 ))
                 .child(
                     rect()
@@ -178,8 +178,8 @@ impl Component for LevelSlider {
             LevelStyle::Fat(lead) => {
                 let fill = (measured * fraction).max(SLIDER_FAT.fill_min);
                 root.corner_radius(height / 2.0)
-                    .background(color(resolved.surfaces.control))
-                    .child(bar(0.0, 0.0, fill, height, resolved.accent))
+                    .background(color(palette.control_background))
+                    .child(bar(0.0, 0.0, fill, height, palette.accent))
                     .child(
                         rect()
                             .position(
@@ -187,7 +187,7 @@ impl Component for LevelSlider {
                                     .left(SLIDER_FAT.lead_icon_x)
                                     .top((height - SYMBOL.grid) / 2.0),
                             )
-                            .child(symbol(lead, SYMBOL.grid, base.on_accent)),
+                            .child(symbol(lead, SYMBOL.grid, palette.on_accent)),
                     )
             }
         };

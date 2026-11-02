@@ -21,7 +21,9 @@ use crate::choices::use_choice;
 use crate::interaction::use_interaction;
 use crate::password::PasswordField;
 use crate::platform::inserts_text;
+use crate::style::Palette;
 use crate::symbol::{Symbol, symbol};
+use crate::theme::color;
 
 fn secure_field_accepts_text(key: &Key, modifiers: Modifiers) -> bool {
     matches!(key, Key::Character(_)) && inserts_text(modifiers)
@@ -404,8 +406,7 @@ impl ProbeExt for Slider {
 
 impl Component for Slider {
     fn render(&self) -> impl IntoElement {
-        let resolved = crate::theme::resolved();
-        let base = vow_appearance::palette(resolved.scheme);
+        let palette = Palette::current();
         let value = use_state(|| self.value);
         let dragging = use_state(|| false);
         let on_change = self.on_change.clone();
@@ -441,13 +442,13 @@ impl Component for Slider {
         };
 
         let track_color = if self.disabled {
-            rgba(resolved.surfaces.control)
+            color(palette.control_background)
         } else {
-            rgba(SLIDER.track_color)
+            color(SLIDER.track_color)
         };
-        let fill_color = rgba(resolved.accent);
+        let fill_color = color(palette.accent);
         let knob_color = Color::WHITE;
-        let knob_shadow = rgba(KNOB_SHADOW.color);
+        let knob_shadow = color(KNOB_SHADOW.color);
 
         let mut root = rect()
             .width(Size::px(width))
@@ -506,9 +507,9 @@ impl Component for Slider {
         for i in 0..self.steps {
             let x = knob / 2.0 + run * (i as f32 / segments);
             let color = if i <= *value.read() && !self.disabled {
-                base.on_accent
+                palette.on_accent
             } else {
-                base.line_strong
+                palette.control_border
             };
             ticks.push(
                 rect()
@@ -546,9 +547,9 @@ impl Component for Slider {
         let mut labels: Vec<Element> = Vec::new();
         for (i, text) in self.labels.iter().enumerate().take(self.steps) {
             let color = if i == *value.read() {
-                base.ink_strong
+                palette.label
             } else {
-                base.ink_muted
+                palette.secondary_label
             };
             let label_node = label()
                 .text(*text)
@@ -657,17 +658,16 @@ impl KeyExt for Button {
 
 impl Component for Button {
     fn render(&self) -> impl IntoElement {
-        let resolved = crate::theme::resolved();
-        let base = vow_appearance::palette(resolved.scheme);
+        let palette = Palette::current();
         let interaction = use_interaction();
         let enabled = !self.disabled;
         let (background, ink) = match (self.style, enabled) {
-            (_, false) => (resolved.surfaces.control, base.ink_faint),
-            (ButtonStyle::Primary, true) => (resolved.accent, base.on_accent),
+            (_, false) => (palette.control_background, palette.tertiary_label),
+            (ButtonStyle::Primary, true) => (palette.accent, palette.on_accent),
             (ButtonStyle::Secondary, true) if interaction.hovered() => {
-                (resolved.surfaces.hover, base.ink_strong)
+                (palette.control_hover, palette.label)
             }
-            (ButtonStyle::Secondary, true) => (resolved.surfaces.control, base.ink_strong),
+            (ButtonStyle::Secondary, true) => (palette.control_background, palette.label),
         };
         let on_press = self.on_press.clone();
 
@@ -680,7 +680,7 @@ impl Component for Button {
             .padding(Gaps::new(0.0, BUTTON.padding_x, 0.0, BUTTON.padding_x))
             .corner_radius(BUTTON.radius)
             .center()
-            .background(rgba(background))
+            .background(color(background))
             .maybe(enabled && interaction.pressed(), |el| {
                 el.scale(BUTTON.pressed_scale)
             })
@@ -698,7 +698,7 @@ impl Component for Button {
                     .font_size(BUTTON.font_size)
                     .font_weight(BUTTON.font_weight)
                     .max_lines(1)
-                    .color(rgba(ink)),
+                    .color(color(ink)),
             );
         interaction.focus_ring(button, BUTTON.radius)
     }
@@ -763,7 +763,7 @@ impl ProbeExt for Switch {
 impl Component for Switch {
     fn render(&self) -> impl IntoElement {
         let resolved = crate::theme::resolved();
-        let base = vow_appearance::palette(resolved.scheme);
+        let palette = Palette::current();
         let on = use_state(|| self.on);
         let interaction = use_interaction();
         let reduced_motion = use_reactive(&resolved.reduced_motion);
@@ -802,9 +802,9 @@ impl Component for Switch {
         };
 
         let (track, border) = if is_on {
-            (rgba(resolved.accent), Color::TRANSPARENT)
+            (color(palette.accent), Color::TRANSPARENT)
         } else {
-            (rgba(resolved.surfaces.control), rgba(base.line))
+            (color(palette.control_background), color(palette.separator))
         };
 
         let mut root = interaction
@@ -834,13 +834,13 @@ impl Component for Switch {
                     .width(Size::px(SWITCH.knob))
                     .height(Size::px(SWITCH.knob))
                     .corner_radius(SWITCH.knob / 2.0)
-                    .background(rgba(SWITCH.knob_color))
+                    .background(color(SWITCH.knob_color))
                     .shadow((
                         0.0,
                         KNOB_SHADOW.y_offset as f32,
                         KNOB_SHADOW.blur as f32,
                         0.0,
-                        rgba(KNOB_SHADOW.color),
+                        color(KNOB_SHADOW.color),
                     )),
             );
         root = interaction.focus_ring(root, SWITCH.height / 2.0);
@@ -902,7 +902,7 @@ impl KeyExt for SegmentedControl {
 
 impl Component for SegmentedControl {
     fn render(&self) -> impl IntoElement {
-        let resolved = crate::theme::resolved();
+        let palette = Palette::current();
         let choice = use_choice(Some(self.selected), self.on_change.clone());
         let segments = self.segments.iter().enumerate().map(|(index, text)| {
             Segment {
@@ -922,7 +922,7 @@ impl Component for SegmentedControl {
             .padding(Gaps::new_all(SEGMENTED.padding))
             .spacing(SEGMENTED.gap)
             .corner_radius(SEGMENTED.radius)
-            .background(rgba(resolved.surfaces.control))
+            .background(color(palette.control_background))
             .children(segments)
     }
 }
@@ -936,8 +936,7 @@ struct Segment {
 
 impl Component for Segment {
     fn render(&self) -> impl IntoElement {
-        let resolved = crate::theme::resolved();
-        let base = vow_appearance::palette(resolved.scheme);
+        let palette = Palette::current();
         let interaction = use_interaction();
         let active = self.active;
         let on_select = self.on_select.clone();
@@ -966,21 +965,23 @@ impl Component for Segment {
                             .font_family(TEXT.family)
                             .font_size(SEGMENTED.font_size)
                             .font_weight(SEGMENTED.font_weight)
-                            .color(rgba(if active {
-                                base.ink_strong
+                            .color(color(if active {
+                                palette.label
                             } else {
-                                base.ink_muted
+                                palette.secondary_label
                             })),
                     ),
             );
         if active {
-            segment = segment.background(rgba(resolved.surfaces.surface)).shadow((
-                0.0,
-                KNOB_SHADOW.y_offset as f32,
-                KNOB_SHADOW.blur as f32,
-                0.0,
-                rgba(KNOB_SHADOW.color),
-            ));
+            segment = segment
+                .background(color(palette.content_background))
+                .shadow((
+                    0.0,
+                    KNOB_SHADOW.y_offset as f32,
+                    KNOB_SHADOW.blur as f32,
+                    0.0,
+                    color(KNOB_SHADOW.color),
+                ));
         }
         interaction.focus_ring(segment, SEGMENTED.segment_radius)
     }
@@ -1018,13 +1019,12 @@ impl KeyExt for TextField {
 
 impl Component for TextField {
     fn render(&self) -> impl IntoElement {
-        let resolved = crate::theme::resolved();
-        let base = vow_appearance::palette(resolved.scheme);
+        let palette = Palette::current();
         let input = themed_input(
             self.value,
             self.placeholder,
-            resolved.surfaces.surface,
-            base.line,
+            palette.content_background,
+            palette.separator,
             TEXT_FIELD.radius,
             TEXT_FIELD.padding_x,
         );
@@ -1064,8 +1064,7 @@ impl KeyExt for SearchField {
 
 impl Component for SearchField {
     fn render(&self) -> impl IntoElement {
-        let resolved = crate::theme::resolved();
-        let base = vow_appearance::palette(resolved.scheme);
+        let palette = Palette::current();
         let mut value = self.value;
         let padding = SETTINGS.search_padding_x as f32;
         let icon = SETTINGS.search_icon as f32;
@@ -1073,10 +1072,10 @@ impl Component for SearchField {
         let mut input = themed_input(
             value,
             self.placeholder,
-            resolved.surfaces.control,
+            palette.control_background,
             Rgba {
                 a: 0.0,
-                ..resolved.surfaces.control
+                ..palette.control_background
             },
             TEXT_FIELD.height / 2.0,
             padding + icon + gap,
@@ -1091,7 +1090,7 @@ impl Component for SearchField {
                             value.set(String::new());
                         }
                     })
-                    .child(symbol(Symbol::XMark, icon, base.ink_muted)),
+                    .child(symbol(Symbol::XMark, icon, palette.secondary_label)),
             );
         }
 
@@ -1104,7 +1103,11 @@ impl Component for SearchField {
                             .left(padding)
                             .top((TEXT_FIELD.height - icon) / 2.0),
                     )
-                    .child(symbol(Symbol::MagnifyingGlass, icon, base.ink_faint)),
+                    .child(symbol(
+                        Symbol::MagnifyingGlass,
+                        icon,
+                        palette.tertiary_label,
+                    )),
             )
     }
 }
@@ -1121,10 +1124,9 @@ fn themed_input(
     radius: f32,
     padding_x: f32,
 ) -> Input {
-    let resolved = crate::theme::resolved();
-    let base = vow_appearance::palette(resolved.scheme);
+    let palette = Palette::current();
     let margin_y = (TEXT_FIELD.height - TEXT.line_height as f32) / 2.0;
-    let color = |c: Rgba| Some(Preference::Specific(rgba(c)));
+    let color = |c: Rgba| Some(Preference::Specific(color(c)));
     Input::new(value)
         .placeholder(placeholder)
         .width(Size::fill())
@@ -1132,9 +1134,9 @@ fn themed_input(
             background: color(background),
             focus_background: color(background),
             border_fill: color(border),
-            focus_border_fill: color(resolved.accent),
-            color: color(base.ink_strong),
-            placeholder_color: color(base.ink_faint),
+            focus_border_fill: color(palette.accent),
+            color: color(palette.label),
+            placeholder_color: color(palette.tertiary_label),
         })
         .theme_layout(InputLayoutThemePartial {
             corner_radius: Some(Preference::Specific(CornerRadius::new_all(radius))),
@@ -1209,8 +1211,7 @@ impl ProbeExt for Checkbox {
 
 impl Component for Checkbox {
     fn render(&self) -> impl IntoElement {
-        let resolved = crate::theme::resolved();
-        let base = vow_appearance::palette(resolved.scheme);
+        let palette = Palette::current();
         let checked = use_state(|| self.checked);
         let on_toggle = self.on_toggle.clone();
         let disabled = self.disabled;
@@ -1235,15 +1236,15 @@ impl Component for Checkbox {
         };
 
         let box_bg = if *checked.read() {
-            rgba(CHECKBOX.on)
+            color(CHECKBOX.on)
         } else {
-            rgba(resolved.surfaces.surface)
+            color(palette.content_background)
         };
-        let box_border = rgba(CHECKBOX.border);
+        let box_border = color(CHECKBOX.border);
         let label_color = if self.disabled {
-            rgba(base.ink_faint)
+            color(palette.tertiary_label)
         } else {
-            rgba(base.ink_strong)
+            color(palette.label)
         };
 
         let mut checkbox = rect()
@@ -1264,7 +1265,7 @@ impl Component for Checkbox {
             .center();
 
         if *checked.read() {
-            checkbox = checkbox.child(svg_viewer(check_svg, base.on_accent, size as u32 - 4));
+            checkbox = checkbox.child(svg_viewer(check_svg, palette.on_accent, size as u32 - 4));
         }
         checkbox = interaction.focus_ring(checkbox, CHECKBOX.radius);
 

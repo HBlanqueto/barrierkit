@@ -5,6 +5,7 @@ use torin::prelude::{Alignment, Direction, Size};
 use vow_design::{CAPTION, Rgba, SETTINGS, SWITCH, TEXT};
 
 use crate::interaction::{ring, use_interaction};
+use crate::style::{Palette, text};
 use crate::theme::color;
 
 pub(crate) struct Choice {
@@ -124,8 +125,7 @@ struct RadioOption {
 
 impl Component for RadioOption {
     fn render(&self) -> impl IntoElement {
-        let resolved = crate::theme::resolved();
-        let base = vow_appearance::palette(resolved.scheme);
+        let palette = Palette::current();
         let interaction = use_interaction();
         let size = SETTINGS.radio_size as f32;
         let dot = SETTINGS.radio_dot as f32;
@@ -139,19 +139,19 @@ impl Component for RadioOption {
             .corner_radius(size / 2.0)
             .center();
         circle = if selected {
-            circle.background(color(resolved.accent)).child(
+            circle.background(color(palette.accent)).child(
                 rect()
                     .width(Size::px(dot))
                     .height(Size::px(dot))
                     .corner_radius(dot / 2.0)
-                    .background(color(base.on_accent)),
+                    .background(color(palette.on_accent)),
             )
         } else {
-            circle.background(color(resolved.surfaces.surface)).border(
+            circle.background(color(palette.content_background)).border(
                 Border::new()
                     .width(1.0)
                     .alignment(BorderAlignment::Inner)
-                    .fill(color(base.line_strong)),
+                    .fill(color(palette.control_border)),
             )
         };
         circle = interaction.focus_ring(circle, size / 2.0);
@@ -166,19 +166,15 @@ impl Component for RadioOption {
             .spacing(SETTINGS.radio_gap as f32)
             .maybe(enabled, |el| el.on_press(move |_| on_select.call(())))
             .child(circle)
-            .child(
-                label()
-                    .text(self.text)
-                    .font_family(TEXT.family)
-                    .font_size(TEXT.size as f32)
-                    .font_weight(TEXT.weight as i32)
-                    .max_lines(1)
-                    .color(color(if enabled {
-                        base.ink_strong
-                    } else {
-                        base.ink_faint
-                    })),
-            )
+            .child(text(
+                self.text,
+                TEXT,
+                if enabled {
+                    palette.label
+                } else {
+                    palette.tertiary_label
+                },
+            ))
     }
 }
 
@@ -268,8 +264,7 @@ struct Swatch {
 
 impl Component for Swatch {
     fn render(&self) -> impl IntoElement {
-        let resolved = crate::theme::resolved();
-        let base = vow_appearance::palette(resolved.scheme);
+        let palette = Palette::current();
         let interaction = use_interaction();
         let size = SETTINGS.swatch_size as f32;
         let selected = self.selected;
@@ -285,10 +280,10 @@ impl Component for Swatch {
                 Border::new()
                     .width(1.0)
                     .alignment(BorderAlignment::Inner)
-                    .fill(color(base.line)),
+                    .fill(color(palette.separator)),
             );
         if selected {
-            dot = ring(dot, size / 2.0, base.ink_strong);
+            dot = ring(dot, size / 2.0, palette.label);
         }
         dot = interaction.focus_ring(dot, size / 2.0);
 
@@ -304,14 +299,10 @@ impl Component for Swatch {
             .maybe(!enabled, |el| el.opacity(SWITCH.disabled_opacity))
             .maybe(enabled, |el| el.on_press(move |_| on_select.call(())))
             .child(dot)
-            .child(
-                label()
-                    .text(if selected { self.name } else { "" })
-                    .font_family(CAPTION.family)
-                    .font_size(CAPTION.size as f32)
-                    .font_weight(CAPTION.weight as i32)
-                    .max_lines(1)
-                    .color(color(base.ink_muted)),
-            )
+            .child(text(
+                if selected { self.name } else { "" },
+                CAPTION,
+                palette.secondary_label,
+            ))
     }
 }
