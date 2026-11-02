@@ -133,6 +133,8 @@ impl Form {
 impl Component for Form {
     fn render(&self) -> impl IntoElement {
         let palette = Palette::current();
+        let mut width = use_state(|| f32::MAX);
+        let stacked = *width.read() < LIST_GROUP.stack_below;
         let [top, right, bottom, left] = LIST_GROUP.header_padding;
         let sections = self.sections.iter().map(|section| {
             let rows = section.rows.iter().enumerate().map(|(index, row)| {
@@ -140,6 +142,7 @@ impl Component for Form {
                     row: row.clone(),
                     first: index == 0,
                     highlighted: self.highlighted == Some(row.title),
+                    stacked,
                 }
                 .into_element()
             });
@@ -177,6 +180,9 @@ impl Component for Form {
             .width(Size::fill())
             .direction(Direction::Vertical)
             .spacing(SPACE_4)
+            .on_sized(move |event: Event<SizedEventData>| {
+                width.set_if_modified(event.area.size.width);
+            })
             .children(sections)
     }
 }
@@ -186,6 +192,7 @@ struct FormRow {
     row: Row,
     first: bool,
     highlighted: bool,
+    stacked: bool,
 }
 
 impl Component for FormRow {
@@ -219,11 +226,16 @@ impl Component for FormRow {
 
         let first_line = LIST_GROUP.row_min_height - 2.0 * SPACE_2;
         let aligned_to_first_line = matches!(row.accessory, Accessory::Control(_));
+        let stacked = self.stacked && aligned_to_first_line;
         let wrapping = |content: &'static str, face, ink| {
             text(content, face, ink).width(Size::fill()).max_lines(None)
         };
         let mut labels = rect()
-            .width(Size::flex(1.0))
+            .width(if stacked {
+                Size::fill()
+            } else {
+                Size::flex(1.0)
+            })
             .min_width(Size::percent(LIST_GROUP.label_min_share))
             .direction(Direction::Vertical)
             .maybe(aligned_to_first_line, |el| {
@@ -241,7 +253,11 @@ impl Component for FormRow {
 
         let mut element = rect()
             .width(Size::fill())
-            .direction(Direction::Horizontal)
+            .direction(if stacked {
+                Direction::Vertical
+            } else {
+                Direction::Horizontal
+            })
             .content(Content::flex())
             .cross_align(if aligned_to_first_line {
                 Alignment::Start

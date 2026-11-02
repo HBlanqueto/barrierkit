@@ -17,7 +17,7 @@ use freya_core::prelude::*;
 use serde::{Deserialize, Serialize};
 use torin::prelude::{Content, Direction, Size};
 use vow_appearance::{Resolved, SidebarStyle, load_appearance, load_dominant, resolve};
-use vow_design::{ACCENT_SWATCHES, TITLEBAR_RAIL};
+use vow_design::{ACCENT_SWATCHES, TITLEBAR_RAIL, WINDOW_MIN_SIZE};
 
 const APP: &str = "rotulo";
 
@@ -305,7 +305,8 @@ fn main() {
         }),
         WindowOptions::new("Rótulo", APP)
             .decorations(Decorations::Client)
-            .size((880, 560)),
+            .size((880, 560))
+            .min_size(Some(WINDOW_MIN_SIZE)),
     )
     .expect("rotulo");
 }

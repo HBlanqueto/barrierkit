@@ -31,11 +31,21 @@ pub struct SidebarLayout {
 pub struct SidebarControl {
     visible: State<bool>,
     auto_hidden: State<bool>,
+    occupied: State<f32>,
+    settled: State<bool>,
 }
 
 impl SidebarControl {
     pub fn visible(&self) -> bool {
         *self.visible.read()
+    }
+
+    pub fn occupied(&self) -> f32 {
+        *self.occupied.read()
+    }
+
+    pub fn settled(&self) -> bool {
+        *self.settled.read()
     }
 
     pub fn toggle(self) {
@@ -138,9 +148,13 @@ impl Component for SplitView {
         let mut dragging = use_state(|| false);
         let mut visible = use_state(|| self.sidebar_visible);
         let mut auto_hidden = use_state(|| false);
+        let mut occupied = use_state(|| 0.0f32);
+        let mut settled = use_state(|| false);
         let control = SidebarControl {
             visible,
             auto_hidden,
+            occupied,
+            settled,
         };
         use_hook(|| provide_context(control));
 
@@ -181,6 +195,8 @@ impl Component for SplitView {
         }
 
         let container = width + 2.0 * inset;
+        occupied.set_if_modified(if narrow { 0.0 } else { container * shown });
+        settled.set_if_modified(*visible.read() && shown >= 1.0);
         let sidebar = || {
             rect()
                 .width(Size::px(container))

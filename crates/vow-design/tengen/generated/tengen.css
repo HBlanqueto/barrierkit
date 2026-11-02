@@ -358,6 +358,7 @@
   --list-group-section-header-padding: 10px 14px 4px 14px;
   --list-group-separator-color: var(--line);
   --list-group-separator-inset-left: 14px;
+  --list-group-stack-below: 360px;
   --menu-popover-check: 12px;
   --menu-popover-item-gap: 6px;
   --menu-popover-item-height: 26px;
@@ -659,6 +660,8 @@
   --tooltip-radius: var(--radius-xs);
   --window-bg: var(--bg-window);
   --window-inner-line: var(--window-inner);
+  --window-min-height: 360px;
+  --window-min-width: 480px;
   --window-outer-border: var(--window-outer);
   --window-radius: var(--radius-lg);
   --window-sidebar-flat-bg: var(--sidebar-flat-bg);

@@ -517,6 +517,7 @@ pub struct ListGroupMetrics {
     pub header_padding: [f32; 4],
     pub highlight: f32,
     pub label_min_share: f32,
+    pub stack_below: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

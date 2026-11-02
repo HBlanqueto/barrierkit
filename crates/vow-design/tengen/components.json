@@ -197,6 +197,7 @@
       "highlight": 0.12,
       "row-padding-x": 14,
       "label-min-share": 35,
+      "stack-below": 360,
       "separator": {
         "color": "line",
         "inset-left": 14
@@ -243,6 +244,8 @@
       "radius-rule": "paso de la escala más cercano a un tercio del lado: 22–28 → 8, 34–36 → 12, 52 → 16"
     },
     "window": {
+      "min-width": 480,
+      "min-height": 360,
       "radius": "radius.lg",
       "bg": "bg-window",
       "titlebar-height": "size.titlebar-h",

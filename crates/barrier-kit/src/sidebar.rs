@@ -278,7 +278,7 @@ impl Component for Sidebar {
             .as_ref()
             .and_then(|controls| controls.titlebar_overlay_top());
         let sidebar_shown =
-            crate::views::split::sidebar_control().is_none_or(|control| control.visible());
+            crate::views::split::sidebar_control().is_none_or(|control| control.settled());
         if lights_column && lights_shown {
             let diameter = TITLEBAR.buttons.diameter as f32;
             let offset = (chrome.rail_width - diameter) / 2.0;

@@ -332,6 +332,16 @@ fn emit_titlebar(out: &mut String, tokens: &Value, components: &Value) {
         "The height of a BarrierKit app's own titlebar, in logical pixels.",
     );
     out.push_str(&format!(": u32 = {client_thickness};\n\n"));
+    const_doc(
+        out,
+        "WINDOW_MIN_SIZE",
+        "The smallest size a BarrierKit app window can take, in logical pixels.",
+    );
+    out.push_str(&format!(
+        ": (u32, u32) = ({}, {});\n\n",
+        integer(components, "components.window.min-width", COMPONENTS),
+        integer(components, "components.window.min-height", COMPONENTS)
+    ));
 
     let interval = integer(
         components,
@@ -1001,6 +1011,8 @@ fn emit_list_group(out: &mut String, tokens: &Value, components: &Value) {
          \x20   highlight: {},
 \
          \x20   label_min_share: {},
+\
+         \x20   stack_below: {},
 }};\n\n",
         field("radius"),
         field("row-min-height"),
@@ -1008,6 +1020,7 @@ fn emit_list_group(out: &mut String, tokens: &Value, components: &Value) {
         field("separator.inset-left"),
         field("highlight"),
         field("label-min-share"),
+        field("stack-below"),
     ));
 }
 

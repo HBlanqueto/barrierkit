@@ -27,7 +27,9 @@ use barrier_kit::views::tabs::TabView;
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 use torin::prelude::{Direction, Size};
-use vow_design::{ACCENT_SWATCHES, COLLECTION, Rgba, SPACE_2, SPLIT_VIEW, TABLE, TEXT};
+use vow_design::{
+    ACCENT_SWATCHES, COLLECTION, Rgba, SPACE_2, SPLIT_VIEW, TABLE, TEXT, WINDOW_MIN_SIZE,
+};
 
 fn tint(index: usize) -> Rgba {
     ACCENT_SWATCHES[index % ACCENT_SWATCHES.len()].1
@@ -597,7 +599,8 @@ fn main() {
         AppComponent::new(Show { app_id, instance }),
         WindowOptions::new("Master Tengen App Show", "tengen-app-show")
             .decorations(Decorations::Client)
-            .size((980, 640)),
+            .size((980, 640))
+            .min_size(Some(WINDOW_MIN_SIZE)),
     )
     .expect("tengen-app-show");
 }

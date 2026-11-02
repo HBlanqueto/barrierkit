@@ -20,7 +20,7 @@ use barrier_kit::titlebar::Titlebar;
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 use torin::prelude::{Content, Direction, Size};
-use vow_design::{ACCENT_SWATCHES, Rgba};
+use vow_design::{ACCENT_SWATCHES, Rgba, WINDOW_MIN_SIZE};
 
 use albums::{Album, library};
 
@@ -376,6 +376,7 @@ fn main() {
         WindowOptions::new("Ondina", "ondina")
             .decorations(Decorations::Client)
             .size((980, 640))
+            .min_size(Some(WINDOW_MIN_SIZE))
             .menu(menu())
             .on_menu_action(move |id| {
                 let mut inbox = menu_inbox.lock().expect("menu inbox");

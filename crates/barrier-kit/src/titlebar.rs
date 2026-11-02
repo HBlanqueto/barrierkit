@@ -140,6 +140,7 @@ impl ProbeExt for Titlebar {
 
 impl Component for Titlebar {
     fn render(&self) -> impl IntoElement {
+        let mut content_widths = use_state(|| (0.0f32, 0.0f32));
         let (status, title, fixed) = if let Some(preview) = &self.preview {
             let title = self.title.clone().unwrap_or_else(|| preview.title.clone());
             (preview.status, title, preview.fixed)
@@ -195,8 +196,8 @@ impl Component for Titlebar {
 
         let resolved = crate::theme::resolved();
         let theme = palette(resolved.scheme);
-        let sidebar = self.sidebar
-            && crate::views::split::sidebar_control().is_none_or(|control| control.visible());
+        let control = crate::views::split::sidebar_control();
+        let sidebar = self.sidebar && control.is_none_or(|control| control.settled());
         let tinted = crate::backdrop::tinted().is_some();
         let ink = crate::style::Palette::current();
         let background = if tinted && overlaid {
@@ -255,11 +256,26 @@ impl Component for Titlebar {
                 (TITLEBAR_CLIENT_HEIGHT as f32, 0.0, 10.0)
             };
             let padding_x = self.padding_x.unwrap_or(default_padding_x);
+            let occupied = control.map_or(0.0, |control| control.occupied());
+            let inset = if island { SIDEBAR.inset as f32 } else { 0.0 };
+            let lights_x = inset + SIDEBAR.traffic_x as f32;
+            let lights_end = lights_x + vow_appearance::traffic::group_rect().2 as f32;
             let padding_left = if traffic.is_some() {
-                (if island { SIDEBAR.inset } else { 0 } + SIDEBAR.traffic_x) as f32
+                padding_x.max(lights_end + padding_x - occupied)
             } else {
                 padding_x
             };
+            // The lights stay at the sidebar's window position while it folds (fold in place).
+            let fixed_lights = traffic.map(|traffic| {
+                rect()
+                    .position(
+                        Position::new_absolute()
+                            .left(lights_x - occupied)
+                            .top(inset + SIDEBAR.traffic_y as f32),
+                    )
+                    .layer(TITLEBAR_OVERLAY_LAYER + 1)
+                    .child(traffic)
+            });
 
             let left_slot = rect()
                 .width(Size::auto())
@@ -269,7 +285,6 @@ impl Component for Titlebar {
                 .main_align(Alignment::Center)
                 .spacing(padding_x)
                 .a11y_alt("titlebar-left-slot")
-                .maybe_child(traffic)
                 .maybe(self.left.is_some(), |el| {
                     el.child(self.left.clone().unwrap())
                 });
@@ -292,7 +307,8 @@ impl Component for Titlebar {
                 .spacing(self.spacing)
                 .padding(Gaps::new(padding_top, padding_x, 0.0, padding_left))
                 .child(left_slot)
-                .child(title);
+                .child(title)
+                .maybe_child(fixed_lights);
 
             if resolved.sidebar.style == SidebarStyle::Flat {
                 root = root.child(
@@ -307,32 +323,51 @@ impl Component for Titlebar {
             return place(root.into_element());
         }
 
-        let min_slot = vow_appearance::traffic::group_rect().2 as f32;
-        let padding_left = if traffic.is_some() {
+        let padding_x = if traffic.is_some() {
             TITLEBAR.buttons.margin_start as f32
         } else {
             10.0
         };
+        let (left_width, right_width) = *content_widths.read();
+        let slot_width = (vow_appearance::traffic::group_rect().2 as f32)
+            .max(left_width)
+            .max(right_width);
         let left_slot = rect()
-            .width(Size::auto())
-            .min_width(Size::px(min_slot))
+            .width(Size::px(slot_width))
             .height(Size::fill())
             .direction(Direction::Horizontal)
             .cross_align(Alignment::Center)
-            .spacing(self.spacing)
             .a11y_alt("titlebar-left-slot")
-            .maybe_child(traffic)
-            .maybe_child(self.left.clone());
+            .child(
+                rect()
+                    .direction(Direction::Horizontal)
+                    .cross_align(Alignment::Center)
+                    .spacing(self.spacing)
+                    .on_sized(move |event: Event<SizedEventData>| {
+                        let width = event.area.size.width;
+                        let right = content_widths.peek().1;
+                        content_widths.set_if_modified((width, right));
+                    })
+                    .maybe_child(traffic)
+                    .maybe_child(self.left.clone()),
+            );
 
         let right_slot = rect()
-            .width(Size::auto())
-            .min_width(Size::px(min_slot))
+            .width(Size::px(slot_width))
             .height(Size::fill())
+            .direction(Direction::Horizontal)
+            .main_align(Alignment::End)
             .cross_align(Alignment::Center)
             .a11y_alt("titlebar-right-slot")
-            .maybe(self.right.is_some(), |el| {
-                el.child(self.right.clone().unwrap())
-            })
+            .child(
+                rect()
+                    .on_sized(move |event: Event<SizedEventData>| {
+                        let width = event.area.size.width;
+                        let left = content_widths.peek().0;
+                        content_widths.set_if_modified((left, width));
+                    })
+                    .maybe_child(self.right.clone()),
+            )
             .on_mouse_down(drag.clone());
 
         let title = rect()
@@ -351,7 +386,7 @@ impl Component for Titlebar {
             .direction(Direction::Horizontal)
             .content(Content::flex())
             .cross_align(Alignment::Center)
-            .padding(Gaps::new(0.0, 10.0, 0.0, padding_left))
+            .padding(Gaps::new(0.0, padding_x, 0.0, padding_x))
             .child(left_slot)
             .child(title)
             .child(right_slot);
