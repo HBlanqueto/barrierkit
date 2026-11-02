@@ -10,9 +10,10 @@ use accesskit::Role;
 use barrier_kit::ProbeExt;
 use barrier_kit::controls::{ToolButton, ToolGroup};
 use barrier_kit::platform::{DecorationResponse, WindowStatus};
-use barrier_kit::sidebar::{Sidebar, SidebarItem, SidebarLayout, SidebarSection};
+use barrier_kit::sidebar::{Sidebar, SidebarItem, SidebarSection};
 use barrier_kit::theme;
 use barrier_kit::titlebar::Titlebar;
+use barrier_kit::views::split::SplitView;
 use freya_components::button::Button;
 use freya_components::theming::hooks::use_init_theme;
 use freya_core::integration::AppComponent;
@@ -56,7 +57,7 @@ impl App for LayoutCase {
     fn render(&self) -> impl IntoElement {
         use_init_theme(|| theme::for_scheme(false));
         let capture = self.capture.clone();
-        SidebarLayout::new(
+        SplitView::new(
             Sidebar::new(),
             rect().width(Size::fill()).height(Size::fill()).on_sized(
                 move |event: Event<SizedEventData>| {
@@ -1025,7 +1026,7 @@ impl App for IslandShadowCase {
             .width(Size::fill())
             .height(Size::fill())
             .background(color(resolved.surfaces.window))
-            .child(SidebarLayout::new(Sidebar::new(), rect()))
+            .child(SplitView::new(Sidebar::new(), rect()))
     }
 }
 
@@ -1120,7 +1121,7 @@ impl App for AlignedToolbarCase {
                 ),
             )
             .child(rect().width(Size::fill()).height(Size::flex(1.0)));
-        SidebarLayout::new(Sidebar::new().traffic_lights(true), content)
+        SplitView::new(Sidebar::new().traffic_lights(true), content)
     }
 }
 

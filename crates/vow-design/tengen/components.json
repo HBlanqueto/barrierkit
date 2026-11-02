@@ -169,11 +169,32 @@
       "active-fg": "accent-strong",
       "rule": "Aprobado (propuesta E). Para las secciones de una ventana de preferencias. Sin subrayado."
     },
+    "table": {
+      "row-height": 24,
+      "header-height": 26,
+      "padding-x": 8,
+      "zebra": 0.04
+    },
+    "collection": {
+      "tile": 92,
+      "icon": 48,
+      "gap": 6,
+      "radius": 10,
+      "selection": 0.1
+    },
+    "split-view": {
+      "sidebar-min": 180,
+      "sidebar-max": 320,
+      "collapse-below": 760,
+      "inspector": 240,
+      "grip": 8
+    },
     "list-group": {
       "radius": "radius.lg",
       "bg": "bg-surface",
       "border": "line",
       "row-min-height": 44,
+      "highlight": 0.12,
       "row-padding-x": 14,
       "separator": {
         "color": "line",

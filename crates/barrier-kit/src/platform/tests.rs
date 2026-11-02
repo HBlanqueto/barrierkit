@@ -432,7 +432,8 @@ fn extension_role_parent_popup_default_is_false() {
 #[cfg(test)]
 mod drag_band_tests {
     use crate::ProbeExt;
-    use crate::sidebar::{Sidebar, SidebarItem, SidebarLayout};
+    use crate::sidebar::{Sidebar, SidebarItem};
+    use crate::views::split::SplitView;
     use freya_core::integration::AppComponent;
     use freya_core::prelude::{App, ContainerSizeExt, IntoElement, State, rect};
     use freya_testing::TestingRunner;
@@ -452,7 +453,7 @@ mod drag_band_tests {
 
     impl App for DragCase {
         fn render(&self) -> impl IntoElement {
-            SidebarLayout::new(
+            SplitView::new(
                 Sidebar::new()
                     .traffic_lights(true)
                     .child(SidebarItem::new("Uno").probe("island-first-item")),
@@ -475,7 +476,7 @@ mod drag_band_tests {
         let app = AppComponent::new(DragCase);
         let (mut test, _) = TestingRunner::new(
             app,
-            Size2D::new(400.0, 400.0),
+            Size2D::new(800.0, 400.0),
             move |runner| {
                 runner.provide_root_context(move || {
                     let (ping, _source) = calloop::ping::make_ping().unwrap();

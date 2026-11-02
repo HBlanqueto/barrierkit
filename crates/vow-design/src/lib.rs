@@ -445,6 +445,57 @@ pub struct BadgeMetrics {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct ListGroupMetrics {
+    pub radius: f32,
+    pub row_min_height: f32,
+    pub row_padding_x: f32,
+    pub separator_inset: f32,
+    pub header_padding: [f32; 4],
+    pub highlight: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct SplitViewMetrics {
+    pub sidebar_min: f32,
+    pub sidebar_max: f32,
+    pub collapse_below: f32,
+    pub inspector: f32,
+    pub grip: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct TableMetrics {
+    pub row_height: f32,
+    pub header_height: f32,
+    pub padding_x: f32,
+    pub zebra: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct CollectionMetrics {
+    pub tile: f32,
+    pub icon: f32,
+    pub gap: f32,
+    pub radius: f32,
+    pub selection: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct ToolbarTabsMetrics {
+    pub padding: f32,
+    pub gap: f32,
+    pub radius: f32,
+    pub tab_min_width: f32,
+    pub tab_padding_top: f32,
+    pub tab_padding_bottom: f32,
+    pub tab_radius: f32,
+    pub icon: f32,
+    pub icon_gap: f32,
+    pub font_size: f32,
+    pub font_weight: i32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct SidebarMetrics {
     pub default_island: bool,
     pub width: u32,
@@ -529,6 +580,7 @@ pub struct Palette {
     pub on_accent: Rgba,
     pub danger: Rgba,
     pub traffic_lights_inactive: Rgba,
+    pub scrim: Rgba,
 }
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ShellPalette {

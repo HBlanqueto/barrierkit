@@ -21,6 +21,9 @@ pub struct Palette {
     pub accent: Rgba,
     pub on_accent: Rgba,
     pub destructive: Rgba,
+    pub raised_background: Rgba,
+    pub sunken_background: Rgba,
+    pub scrim: Rgba,
 }
 
 impl Palette {
@@ -40,6 +43,9 @@ impl Palette {
             accent: resolved.accent,
             on_accent: base.on_accent,
             destructive: base.danger,
+            raised_background: resolved.surfaces.raised,
+            sunken_background: resolved.surfaces.sunken,
+            scrim: base.scrim,
         }
     }
 }

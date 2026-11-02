@@ -15,8 +15,14 @@ use barrier_kit::controls::{
 use barrier_kit::level::{LevelSlider, LevelStyle};
 use barrier_kit::popup_button::PopUpButton;
 use barrier_kit::progress::{ProgressBar, ProgressRing};
+use barrier_kit::sidebar::SidebarAccount;
 use barrier_kit::symbol::Symbol;
 use barrier_kit::theme;
+use barrier_kit::views::collection::CollectionView;
+use barrier_kit::views::feedback::{Alert, empty_state};
+use barrier_kit::views::form::{Form, Row, Section};
+use barrier_kit::views::table::{SortOrder, Table};
+use barrier_kit::views::tabs::TabView;
 use freya_components::menu::{Menu, MenuItem};
 use freya_components::theming::hooks::use_init_theme;
 use freya_core::integration::{AppComponent, NavigationMode, Platform};
@@ -66,6 +72,13 @@ fn cases() -> Vec<Control> {
         ("compact", compact),
         ("adornments", adornments),
         ("popup-button", popup_button),
+        ("form", form),
+        ("tab-view", tab_view),
+        ("table", table),
+        ("collection", collection),
+        ("empty-state", empty),
+        ("alert", alert),
+        ("sidebar-account", sidebar_account),
         ("secure-field", secure_field),
         ("scroll-view", scroll_view),
         ("menu", menu),
@@ -192,6 +205,76 @@ fn popup_button() -> Element {
         .item("Clásico")
         .item("Acento")
         .selected(1)
+        .into_element()
+}
+
+fn form() -> Element {
+    Form::new()
+        .section(
+            Section::titled("Ventanas")
+                .row(Row::new("Ampliación").control(Switch::new("Ampliación").on(true)))
+                .row(Row::value("Estado", "Normal · 87 %"))
+                .row(Row::navigation("Avanzado", |_| {})),
+        )
+        .highlighted(Some("Estado"))
+        .into_element()
+}
+
+fn tab_view() -> Element {
+    TabView::new("Preferencias")
+        .tab(Symbol::MagnifyingGlass, "Buscar", label().text("Buscar"))
+        .tab(Symbol::SpeakerWave, "Sonido", label().text("Sonido"))
+        .into_element()
+}
+
+fn table() -> Element {
+    let row = |name: &str, size: &str| vec![name.to_string(), size.to_string()];
+    Table::new("Archivos", vec!["Nombre", "Tamaño"])
+        .rows(vec![
+            row("adr-0047.pdf", "248 KB"),
+            row("notas.txt", "4 KB"),
+            row("portada.png", "2,3 MB"),
+        ])
+        .sort(Some(SortOrder {
+            column: 0,
+            ascending: true,
+        }))
+        .selected(Some(1))
+        .into_element()
+}
+
+fn collection() -> Element {
+    let icon = || {
+        rect()
+            .width(Size::px(40.0))
+            .height(Size::px(32.0))
+            .background((90, 163, 240))
+    };
+    CollectionView::new("Documentos")
+        .item(icon(), "Malaysia")
+        .item(icon(), "Facturas")
+        .item(icon(), "Fotos")
+        .selected(vec![1])
+        .into_element()
+}
+
+fn empty() -> Element {
+    empty_state(Symbol::MagnifyingGlass, "Sin resultados").into_element()
+}
+
+fn alert() -> Element {
+    Alert::new(
+        "¿Olvidar esta red?",
+        "Tendrás que volver a escribir la contraseña.",
+    )
+    .confirm("Olvidar", |_| {})
+    .into_element()
+}
+
+fn sidebar_account() -> Element {
+    rect()
+        .width(Size::px(220.0))
+        .child(SidebarAccount::new("HB", "Héctor Blanqueto", "Cuenta local").selected(true))
         .into_element()
 }
 

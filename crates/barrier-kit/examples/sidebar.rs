@@ -2,8 +2,9 @@
 
 use barrier_kit::controls::{ToolButton, ToolGroup};
 use barrier_kit::platform::{Decorations, WindowOptions, run_window};
-use barrier_kit::sidebar::{Sidebar, SidebarItem, SidebarLayout, SidebarSection};
+use barrier_kit::sidebar::{Sidebar, SidebarAccount, SidebarItem, SidebarSection};
 use barrier_kit::titlebar::{Titlebar, resize_edges};
+use barrier_kit::views::split::SplitView;
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 use torin::prelude::{Direction, Size};
@@ -31,6 +32,11 @@ impl App for Show {
 
         let sidebar = Sidebar::new()
             .traffic_lights(true)
+            .child(SidebarAccount::new(
+                "HB",
+                "Héctor Blanqueto",
+                "Cuenta local",
+            ))
             .child(
                 SidebarSection::new("Favoritos")
                     .expanded(true)
@@ -77,7 +83,7 @@ impl App for Show {
         rect()
             .width(Size::fill())
             .height(Size::fill())
-            .child(SidebarLayout::new(sidebar, content))
+            .child(SplitView::new(sidebar, content))
             .child(resize_edges())
     }
 }

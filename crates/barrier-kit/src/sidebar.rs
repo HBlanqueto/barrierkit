@@ -8,11 +8,13 @@ use freya_core::prelude::*;
 use keyboard_types::{Key, NamedKey};
 use torin::prelude::{Alignment, Direction, Gaps, Position, Size};
 use vow_appearance::SidebarStyle;
-use vow_design::{DURATION_BASE, Rgba, SIDEBAR, SidebarPalette, TITLEBAR};
+use vow_design::{DURATION_BASE, Rgba, SETTINGS, SIDEBAR, SidebarPalette, TITLEBAR};
 
 use crate::ProbeExt;
+use crate::adornments::avatar;
 use crate::interaction::use_interaction;
 use crate::platform::{DecorationResponse, WindowControls, WindowStatus};
+use crate::style::text;
 use crate::titlebar::{window_drag_handler, window_traffic_lights};
 use freya_core::prelude::try_consume_root_context;
 
@@ -616,63 +618,85 @@ impl Component for SidebarSection {
 }
 
 #[derive(PartialEq)]
-pub struct SidebarLayout {
-    sidebar: Element,
-    content: Element,
-    key: DiffKey,
+pub struct SidebarAccount {
+    initials: String,
+    name: String,
+    detail: String,
+    selected: bool,
+    on_select: Option<Callback<(), ()>>,
 }
 
-impl SidebarLayout {
-    pub fn new(sidebar: impl IntoElement, content: impl IntoElement) -> Self {
+impl SidebarAccount {
+    pub fn new(
+        initials: impl Into<String>,
+        name: impl Into<String>,
+        detail: impl Into<String>,
+    ) -> Self {
         Self {
-            sidebar: sidebar.into_element(),
-            content: content.into_element(),
-            key: DiffKey::None,
+            initials: initials.into(),
+            name: name.into(),
+            detail: detail.into(),
+            selected: false,
+            on_select: None,
         }
     }
 
-    pub fn key(mut self, key: impl Into<DiffKey>) -> Self {
-        self.key = key.into();
+    pub fn selected(mut self, selected: bool) -> Self {
+        self.selected = selected;
+        self
+    }
+
+    pub fn on_select(mut self, callback: impl Into<Callback<(), ()>>) -> Self {
+        self.on_select = Some(callback.into());
         self
     }
 }
 
-impl KeyExt for SidebarLayout {
-    fn write_key(&mut self) -> &mut DiffKey {
-        &mut self.key
-    }
-}
-
-impl Component for SidebarLayout {
+impl Component for SidebarAccount {
     fn render(&self) -> impl IntoElement {
-        let resolved = crate::theme::resolved();
-        let island = resolved.sidebar.style == SidebarStyle::Island;
-        let inset = if island { SIDEBAR.inset as f32 } else { 0.0 };
-        let sidebar_width = SIDEBAR.width as f32;
-
-        let sidebar_container_width = if island {
-            sidebar_width + 2.0 * inset
+        let palette = crate::theme::resolved().sidebar.palette;
+        let interaction = use_interaction();
+        let selected = self.selected;
+        let on_select = self.on_select.clone();
+        let (bg, ink) = if selected {
+            (Some(palette.selected_bg), palette.selected_ink)
+        } else if interaction.hovered() {
+            (Some(palette.hover_bg), palette.item_ink)
         } else {
-            sidebar_width
+            (None, palette.item_ink)
         };
-
-        rect()
+        let row = interaction
+            .attach(rect(), true)
+            .a11y_role(AccessibilityRole::Button)
+            .a11y_alt(self.name.clone())
+            .a11y_builder(move |node| node.set_selected(selected))
             .width(Size::fill())
-            .height(Size::fill())
+            .height(Size::px(SETTINGS.account_height as f32))
             .direction(Direction::Horizontal)
+            .cross_align(Alignment::Center)
+            .spacing(SETTINGS.account_gap as f32)
+            .padding(Gaps::new(
+                0.0,
+                SETTINGS.account_padding_x as f32,
+                0.0,
+                SETTINGS.account_padding_x as f32,
+            ))
+            .corner_radius(SIDEBAR.item_radius as f32)
+            .maybe(bg.is_some(), |el| {
+                el.background(rgba(bg.unwrap_or(palette.hover_bg)))
+            })
+            .on_press(move |_| {
+                if let Some(cb) = &on_select {
+                    cb.call(());
+                }
+            })
+            .child(avatar(&self.initials))
             .child(
                 rect()
-                    .width(Size::px(sidebar_container_width))
-                    .height(Size::fill())
-                    .padding(Gaps::new(inset, inset, inset, inset))
-                    .child(self.sidebar.clone()),
-            )
-            .child(
-                rect()
-                    .width(Size::fill())
-                    .height(Size::fill())
-                    .child(self.content.clone()),
-            )
-            .into_element()
+                    .direction(Direction::Vertical)
+                    .child(text(self.name.clone(), SETTINGS.account_name_font, ink))
+                    .child(text(self.detail.clone(), SETTINGS.account_detail_font, ink)),
+            );
+        interaction.focus_ring(row, SIDEBAR.item_radius as f32)
     }
 }

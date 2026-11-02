@@ -39,7 +39,7 @@ pub fn avatar(initials: &str) -> Rect {
         .height(Size::px(size))
         .corner_radius(size / 2.0)
         .center()
-        .background(color(palette.accent))
+        .background(color(palette.secondary_label))
         .child(text(initials.to_string(), HEADLINE, palette.on_accent))
 }
 

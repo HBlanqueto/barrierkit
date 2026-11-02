@@ -16,6 +16,10 @@ pub enum Symbol {
     Plus,
     Minus,
     ChevronUpDown,
+    ChevronRight,
+    ChevronLeft,
+    ChevronUp,
+    ChevronDown,
 }
 
 impl Symbol {
@@ -28,6 +32,10 @@ impl Symbol {
             Self::Plus => "M8 3.5v9M3.5 8h9",
             Self::Minus => "M3.5 8h9",
             Self::ChevronUpDown => "M4 6l4-4 4 4M4 10l4 4 4-4",
+            Self::ChevronRight => "M6 3l5 5-5 5",
+            Self::ChevronLeft => "M10 3L5 8l5 5",
+            Self::ChevronUp => "M3 10l5-5 5 5",
+            Self::ChevronDown => "M3 6l5 5 5-5",
             Self::SpeakerWave => {
                 "M3 6h2l3-3v10l-3-3H3zM10.5 5.5a3.5 3.5 0 0 1 0 5M12.5 3.5a6.5 6.5 0 0 1 0 9"
             }

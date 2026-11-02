@@ -38,6 +38,10 @@ fn main() {
     emit_symbol(&mut out, &components);
     emit_slider_fat(&mut out, &components);
     emit_compact(&mut out, &tokens, &components);
+    emit_list_group(&mut out, &tokens, &components);
+    emit_space(&mut out, &tokens);
+    emit_split_view(&mut out, &components);
+    emit_views(&mut out, &tokens, &components);
     emit_wallpaper(&mut out, &tokens, &components);
     emit_traffic(&mut out, &tokens, &components);
     emit_font_families(&mut out, &tokens);
@@ -851,6 +855,130 @@ fn emit_compact(out: &mut String, tokens: &Value, components: &Value) {
     ));
 }
 
+fn emit_list_group(out: &mut String, tokens: &Value, components: &Value) {
+    let field = |key: &str| {
+        float(metric(
+            tokens,
+            components,
+            &format!("components.list-group.{key}"),
+            COMPONENTS,
+        ))
+    };
+    let header = value(
+        components,
+        "components.list-group.section-header.padding",
+        COMPONENTS,
+    )
+    .as_array()
+    .expect("list-group header padding")
+    .iter()
+    .map(|v| float(v.as_f64().expect("padding number")))
+    .collect::<Vec<_>>()
+    .join(", ");
+    const_doc(out, "LIST_GROUP", "The Tengen grouped list (form) metrics.");
+    out.push_str(&format!(
+        ": ListGroupMetrics = ListGroupMetrics {{
+\
+         \x20   radius: {},
+\
+         \x20   row_min_height: {},
+\
+         \x20   row_padding_x: {},
+\
+         \x20   separator_inset: {},
+\
+         \x20   header_padding: [{header}],
+\
+         \x20   highlight: {},
+}};\n\n",
+        field("radius"),
+        field("row-min-height"),
+        field("row-padding-x"),
+        field("separator.inset-left"),
+        field("highlight"),
+    ));
+}
+
+fn emit_space(out: &mut String, tokens: &Value) {
+    for step in ["1", "2", "3", "4", "6", "8"] {
+        const_doc(
+            out,
+            &format!("SPACE_{step}"),
+            "A step of the Tengen spacing scale.",
+        );
+        out.push_str(&format!(
+            ": f32 = {};\n\n",
+            float(number(tokens, &format!("space.{step}"), TOKENS))
+        ));
+    }
+}
+
+fn emit_split_view(out: &mut String, components: &Value) {
+    let field = |key: &str| {
+        float(number(
+            components,
+            &format!("components.split-view.{key}"),
+            COMPONENTS,
+        ))
+    };
+    const_doc(
+        out,
+        "SPLIT_VIEW",
+        "The split view sidebar and inspector metrics.",
+    );
+    out.push_str(&format!(
+        ": SplitViewMetrics = SplitViewMetrics {{ sidebar_min: {}, sidebar_max: {}, collapse_below: {}, inspector: {}, grip: {} }};\n\n",
+        field("sidebar-min"),
+        field("sidebar-max"),
+        field("collapse-below"),
+        field("inspector"),
+        field("grip")
+    ));
+}
+
+fn emit_views(out: &mut String, tokens: &Value, components: &Value) {
+    let field = |key: &str| {
+        float(metric(
+            tokens,
+            components,
+            &format!("components.{key}"),
+            COMPONENTS,
+        ))
+    };
+    const_doc(out, "TABLE", "The Tengen table metrics.");
+    out.push_str(&format!(
+        ": TableMetrics = TableMetrics {{ row_height: {}, header_height: {}, padding_x: {}, zebra: {} }};\n\n",
+        field("table.row-height"),
+        field("table.header-height"),
+        field("table.padding-x"),
+        field("table.zebra")
+    ));
+    const_doc(out, "COLLECTION", "The Tengen icon grid metrics.");
+    out.push_str(&format!(
+        ": CollectionMetrics = CollectionMetrics {{ tile: {}, icon: {}, gap: {}, radius: {}, selection: {} }};\n\n",
+        field("collection.tile"),
+        field("collection.icon"),
+        field("collection.gap"),
+        field("collection.radius"),
+        field("collection.selection")
+    ));
+    const_doc(out, "TOOLBAR_TABS", "The preferences toolbar tab metrics.");
+    out.push_str(&format!(
+        ": ToolbarTabsMetrics = ToolbarTabsMetrics {{ padding: {}, gap: {}, radius: {}, tab_min_width: {}, tab_padding_top: {}, tab_padding_bottom: {}, tab_radius: {}, icon: {}, icon_gap: {}, font_size: {}, font_weight: {} }};\n\n",
+        field("toolbar-tabs.container.padding"),
+        field("toolbar-tabs.container.gap"),
+        field("toolbar-tabs.container.radius"),
+        field("toolbar-tabs.tab.min-width"),
+        field("toolbar-tabs.tab.padding-top"),
+        field("toolbar-tabs.tab.padding-bottom"),
+        field("toolbar-tabs.tab.radius"),
+        field("toolbar-tabs.tab.icon"),
+        field("toolbar-tabs.tab.gap"),
+        field("toolbar-tabs.tab.font.size"),
+        integer(components, "components.toolbar-tabs.tab.font.weight", COMPONENTS)
+    ));
+}
+
 fn emit_wallpaper(out: &mut String, tokens: &Value, components: &Value) {
     let _ = tokens;
     let accent_darken_light = number(
@@ -1319,6 +1447,7 @@ fn palette(tokens: &Value, components: &Value, theme: &str) -> String {
          \x20   on_accent: {},\n\
          \x20   danger: {},\n\
          \x20   traffic_lights_inactive: {},\n\
+         \x20   scrim: {},\n\
          }}",
         rgba(theme_color(tokens, theme, "titlebar-bg")),
         rgba(theme_color(tokens, theme, "titlebar-bg-inactive")),
@@ -1336,7 +1465,8 @@ fn palette(tokens: &Value, components: &Value, theme: &str) -> String {
         rgba(theme_color(tokens, theme, "accent")),
         rgba(theme_color(tokens, theme, "on-accent")),
         rgba(theme_color(tokens, theme, "danger")),
-        rgba(inactive)
+        rgba(inactive),
+        rgba(theme_color(tokens, theme, "scrim"))
     )
 }
 

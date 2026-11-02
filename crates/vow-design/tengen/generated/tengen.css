@@ -298,6 +298,11 @@
   --checkbox-on: var(--accent);
   --checkbox-radius: var(--radius-xs);
   --checkbox-size: 16px;
+  --collection-gap: 6px;
+  --collection-icon: 48px;
+  --collection-radius: 10px;
+  --collection-selection: 0.100000px;
+  --collection-tile: 92px;
   --dialog-bg: var(--bg-raised);
   --dialog-inner-line: var(--window-inner);
   --dialog-outer-border: var(--window-outer);
@@ -313,6 +318,7 @@
   --icon-button-size: 30px;
   --list-group-bg: var(--bg-surface);
   --list-group-border: var(--line);
+  --list-group-highlight: 0.120000px;
   --list-group-radius: var(--radius-lg);
   --list-group-row-icon-radius: var(--radius-sm);
   --list-group-row-icon-size: 22px;
@@ -550,6 +556,11 @@
   --slider-knob: 20px;
   --slider-track: 4px;
   --slider-track-color: var(--bg-control);
+  --split-view-collapse-below: 760px;
+  --split-view-grip: 8px;
+  --split-view-inspector: 240px;
+  --split-view-sidebar-max: 320px;
+  --split-view-sidebar-min: 180px;
   --switch-disabled-opacity: 0.400000;
   --switch-height: 18px;
   --switch-inset: 2px;
@@ -568,6 +579,10 @@
   --switch-width: 32px;
   --symbol-grid: 16px;
   --symbol-stroke: 1.400000px;
+  --table-header-height: 26px;
+  --table-padding-x: 8px;
+  --table-row-height: 24px;
+  --table-zebra: 0.040000px;
   --text-field-bg: var(--bg-surface);
   --text-field-border: var(--line);
   --text-field-error-border: var(--danger);
