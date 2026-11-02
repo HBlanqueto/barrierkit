@@ -5,7 +5,9 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use barrier_kit::adornments::{Link, avatar, badge, divider};
 use barrier_kit::choices::{ColorWell, RadioGroup};
+use barrier_kit::compact::{IconButton, Stepper, ToggleGroup};
 use barrier_kit::controls::{
     Button, ButtonStyle, Checkbox, Popover, ScrollView, SearchField, SecureField, SegmentedControl,
     Slider, Switch, TextField,
@@ -60,6 +62,8 @@ fn cases() -> Vec<Control> {
         ("color-well", color_well),
         ("progress", progress),
         ("level-slider", level_slider),
+        ("compact", compact),
+        ("adornments", adornments),
         ("secure-field", secure_field),
         ("scroll-view", scroll_view),
         ("menu", menu),
@@ -150,6 +154,33 @@ fn level_slider() -> Element {
                 .value(0.6)
                 .style(LevelStyle::Fat(Symbol::SpeakerWave)),
         )
+        .into_element()
+}
+
+fn compact() -> Element {
+    rect()
+        .direction(Direction::Vertical)
+        .spacing(12.0)
+        .child(IconButton::new(Symbol::Plus, "Añadir"))
+        .child(Stepper::new("Núcleos", 1, 16).value(4))
+        .child(
+            ToggleGroup::new("Formato")
+                .item("B", "Negrita", true)
+                .item("I", "Cursiva", false)
+                .item("U", "Subrayado", false),
+        )
+        .into_element()
+}
+
+fn adornments() -> Element {
+    rect()
+        .width(Size::px(200.0))
+        .direction(Direction::Vertical)
+        .spacing(12.0)
+        .child(badge("2"))
+        .child(divider())
+        .child(avatar("HB"))
+        .child(Link::new("Más información…"))
         .into_element()
 }
 
@@ -643,6 +674,61 @@ fn level_slider_follows_clicks_and_arrow_keys() {
 
     press(&mut test, Key::Named(NamedKey::ArrowRight));
     assert!((*level.peek() - 0.55).abs() < 0.01);
+}
+
+#[test]
+fn stepper_stops_at_its_bounds() {
+    let value = State::create_global(0i64);
+
+    struct StepperCase {
+        value: State<i64>,
+    }
+    impl App for StepperCase {
+        fn render(&self) -> impl IntoElement {
+            let mut value = self.value;
+            Stepper::new("Núcleos", 1, 2).on_change(move |v| value.set(v))
+        }
+    }
+
+    let app = AppComponent::new(StepperCase { value });
+    let (mut test, _) = TestingRunner::new(app, Size2D::new(120.0, 30.0), |_| {}, 1.0);
+    test.sync_and_update();
+    for _ in 0..3 {
+        test.click_cursor((75.0, 15.0));
+        test.sync_and_update();
+    }
+    assert_eq!(*value.peek(), 2);
+}
+
+#[test]
+fn toggle_group_flips_each_item_on_its_own() {
+    use std::cell::RefCell;
+    use std::rc::Rc;
+
+    struct ToggleCase {
+        events: Rc<RefCell<Vec<(usize, bool)>>>,
+    }
+    impl App for ToggleCase {
+        fn render(&self) -> impl IntoElement {
+            let events = self.events.clone();
+            ToggleGroup::new("Formato")
+                .item("B", "Negrita", true)
+                .item("I", "Cursiva", false)
+                .on_toggle(move |e| events.borrow_mut().push(e))
+        }
+    }
+
+    let events = Rc::new(RefCell::new(Vec::new()));
+    let app = AppComponent::new(ToggleCase {
+        events: events.clone(),
+    });
+    let (mut test, _) = TestingRunner::new(app, Size2D::new(120.0, 30.0), |_| {}, 1.0);
+    test.sync_and_update();
+    for x in [15.0, 47.0, 15.0] {
+        test.click_cursor((x, 15.0));
+        test.sync_and_update();
+    }
+    assert_eq!(*events.borrow(), [(0, false), (1, true), (0, true)]);
 }
 
 #[test]

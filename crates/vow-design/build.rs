@@ -37,6 +37,7 @@ fn main() {
     emit_progress(&mut out, &tokens, &components);
     emit_symbol(&mut out, &components);
     emit_slider_fat(&mut out, &components);
+    emit_compact(&mut out, &tokens, &components);
     emit_wallpaper(&mut out, &tokens, &components);
     emit_traffic(&mut out, &tokens, &components);
     emit_font_families(&mut out, &tokens);
@@ -824,6 +825,30 @@ fn emit_slider_fat(out: &mut String, components: &Value) {
         "The fraction an arrow key moves a continuous slider.",
     );
     out.push_str(&format!(": f32 = {};\n\n", field("keyboard-step")));
+}
+
+fn emit_compact(out: &mut String, tokens: &Value, components: &Value) {
+    let field = |key: &str| {
+        float(metric(
+            tokens,
+            components,
+            &format!("components.{key}"),
+            COMPONENTS,
+        ))
+    };
+    const_doc(out, "ICON_BUTTON", "The Tengen icon button metrics.");
+    out.push_str(&format!(
+        ": IconButtonMetrics = IconButtonMetrics {{ size: {}, radius: {}, icon: {} }};\n\n",
+        field("icon-button.size"),
+        field("icon-button.radius"),
+        field("icon-button.icon")
+    ));
+    const_doc(out, "BADGE", "The Tengen badge metrics.");
+    out.push_str(&format!(
+        ": BadgeMetrics = BadgeMetrics {{ height: {}, padding_x: {} }};\n\n",
+        field("badge.height"),
+        field("badge.padding-x")
+    ));
 }
 
 fn emit_wallpaper(out: &mut String, tokens: &Value, components: &Value) {

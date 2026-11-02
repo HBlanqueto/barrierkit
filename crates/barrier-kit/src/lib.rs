@@ -28,6 +28,10 @@ pub mod progress;
 
 pub mod level;
 
+pub mod compact;
+
+pub mod adornments;
+
 pub mod symbol;
 
 pub mod menu;

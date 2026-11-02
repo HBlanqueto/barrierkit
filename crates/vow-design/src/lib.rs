@@ -432,6 +432,19 @@ pub struct SliderFatMetrics {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct IconButtonMetrics {
+    pub size: f32,
+    pub radius: f32,
+    pub icon: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct BadgeMetrics {
+    pub height: f32,
+    pub padding_x: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct SidebarMetrics {
     pub default_island: bool,
     pub width: u32,
