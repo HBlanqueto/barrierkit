@@ -1,24 +1,30 @@
 //! Master Tengen App Show: every BarrierKit component on its own page (ADR 0047 §6).
 
+use barrier_kit::adaptive::{Breakpoint, use_breakpoint};
 use barrier_kit::adornments::{Link, avatar, badge, divider};
 use barrier_kit::app::{Action, Instance, Launch, launch};
+use barrier_kit::app::{Shortcut, ShortcutKey};
 use barrier_kit::backdrop::{Accent, Backdrop, BackdropSource, Tint};
 use barrier_kit::choices::{ChoiceCards, ColorWell, RadioGroup};
 use barrier_kit::compact::{Face, IconButton, Stepper, ToggleGroup};
 use barrier_kit::context_menu::context_menu;
 use barrier_kit::controls::{
-    Button, ButtonStyle, Checkbox, SearchField, SegmentedControl, Slider, Switch, TextField,
+    Button, ButtonStyle, Checkbox, ScrollView, SearchField, SecureField, SegmentedControl, Slider,
+    Switch, TextField, ToolButton, ToolGroup,
 };
 use barrier_kit::level::{LevelSlider, LevelStyle};
 use barrier_kit::menu::MenuItem;
 use barrier_kit::patterns::about::about_window;
 use barrier_kit::patterns::preferences::{Pane, PaneGroup, PreferencesWindow};
+use barrier_kit::platform::{DecorationResponse, WindowStatus};
 use barrier_kit::platform::{Decorations, WindowOptions, run_window};
 use barrier_kit::popup_button::PopUpButton;
 use barrier_kit::progress::{ProgressBar, ProgressRing, Spinner};
 use barrier_kit::style::{Palette, text};
 use barrier_kit::symbol::Symbol;
+use barrier_kit::titlebar::Titlebar;
 use barrier_kit::tooltip::use_tooltip;
+use barrier_kit::traffic::TrafficLights;
 use barrier_kit::views::collection::CollectionView;
 use barrier_kit::views::feedback::{Alert, empty_state};
 use barrier_kit::views::form::{Form, Row, Section};
@@ -67,8 +73,12 @@ fn buttons() -> Form {
                     Palette::current().secondary_label,
                 )),
                 vec![
-                    Action::new("copy", "Copiar").item(true),
-                    Action::new("paste", "Pegar").item(false),
+                    Action::new("copy", "Copiar")
+                        .shortcut(Shortcut::ctrl(ShortcutKey::Char('c')))
+                        .item(true),
+                    Action::new("paste", "Pegar")
+                        .shortcut(Shortcut::ctrl(ShortcutKey::Char('v')))
+                        .item(false),
                     MenuItem::Separator,
                     Action::new("info", "Obtener información").item(true),
                 ],
@@ -204,7 +214,84 @@ fn fields(name: State<String>, query: State<String>) -> Form {
                         .width(Size::px(SPLIT_VIEW.inspector))
                         .child(SearchField::new(query, "Buscar")),
                 ),
+            )
+            .row(Row::new("Contraseña").control(SecureField::new().width(SPLIT_VIEW.inspector))),
+    )
+}
+
+const ADD_ICON: &str = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 16 16\"><path d=\"M8 3v10M3 8h10\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\"/></svg>";
+const REMOVE_ICON: &str = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 16 16\"><path d=\"M3 8h10\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\"/></svg>";
+
+fn window_parts() -> Form {
+    let status = WindowStatus {
+        activated: true,
+        maximized: false,
+        fullscreen: false,
+        decoration: DecorationResponse::Client,
+        fixed: false,
+    };
+    Form::new()
+        .section(
+            Section::titled("Ventana")
+                .row(Row::new("Semáforos").control(TrafficLights::new().focused(true)))
+                .row(
+                    Row::new("Barra de título").control(
+                        rect()
+                            .width(Size::px(SPLIT_VIEW.inspector))
+                            .child(Titlebar::preview(status, "Documento", false)),
+                    ),
+                ),
+        )
+        .section(
+            Section::titled("Barra de herramientas").row(
+                Row::new("Grupo").control(
+                    ToolGroup::new()
+                        .child(ToolButton::new("Añadir", ADD_ICON))
+                        .child(ToolButton::new("Quitar", REMOVE_ICON).disabled(true)),
+                ),
             ),
+        )
+        .section(
+            Section::titled("Desplazamiento").row(
+                Row::new("Lista").control(
+                    ScrollView::new()
+                        .width(Size::px(SPLIT_VIEW.inspector))
+                        .height(Size::px(TABLE.row_height * 4.0))
+                        .child(rect().width(Size::fill()).children((1..=20).map(|n| {
+                            rect()
+                                .height(Size::px(TABLE.row_height))
+                                .child(text(
+                                    format!("Elemento {n}"),
+                                    TEXT,
+                                    Palette::current().label,
+                                ))
+                                .into_element()
+                        }))),
+                ),
+            ),
+        )
+}
+
+#[derive(PartialEq)]
+struct AdaptiveDemo;
+
+impl Component for AdaptiveDemo {
+    fn render(&self) -> impl IntoElement {
+        let size = use_breakpoint();
+        let name = match size.current() {
+            Breakpoint::Compact => "Compacto",
+            Breakpoint::Medium => "Medio",
+            Breakpoint::Wide => "Ancho",
+        };
+        size.attach(rect().width(Size::fill()))
+            .child(text(name, TEXT, Palette::current().label))
+    }
+}
+
+fn adaptive() -> Form {
+    Form::new().section(
+        Section::titled("Diseño adaptable")
+            .row(Row::new("Punto de corte del panel").control(AdaptiveDemo)),
     )
 }
 
@@ -556,6 +643,20 @@ impl App for Show {
                         Symbol::XMark,
                         tint(3),
                         feedback(alert),
+                    ))
+                    .pane(Pane::new(
+                        "ventana",
+                        "Ventana y herramientas",
+                        Symbol::SidebarLeft,
+                        tint(6),
+                        window_parts(),
+                    ))
+                    .pane(Pane::new(
+                        "adaptable",
+                        "Diseño adaptable",
+                        Symbol::SquareGrid,
+                        tint(4),
+                        adaptive(),
                     )),
             )
             .group(PaneGroup::new(Some("Capa 3 · Patrones")).pane(Pane::new(
