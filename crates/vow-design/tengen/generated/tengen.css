@@ -441,9 +441,13 @@
   --settings-radio-spacing: 16px;
   --settings-row-gap: 12px;
   --settings-search-gap: 6px;
+  --settings-search-header-height: 24px;
   --settings-search-height: var(--control-md);
   --settings-search-icon: 16px;
   --settings-search-padding-x: 10px;
+  --settings-search-popover-gap: 6px;
+  --settings-search-popover-max-height: 420px;
+  --settings-search-result-height: 40px;
   --settings-section-gap: 14px;
   --settings-section-icon-bg: #2b2b2b;
   --settings-selected-dark-mix: 0.500000;
