@@ -141,6 +141,7 @@ impl ProbeExt for Titlebar {
 impl Component for Titlebar {
     fn render(&self) -> impl IntoElement {
         let mut content_widths = use_state(|| (0.0f32, 0.0f32));
+        let mut span = use_state(|| (0.0f32, 0.0f32));
         let (status, title, fixed) = if let Some(preview) = &self.preview {
             let title = self.title.clone().unwrap_or_else(|| preview.title.clone());
             (preview.status, title, preview.fixed)
@@ -176,18 +177,14 @@ impl Component for Titlebar {
         let sidebar = self.sidebar && control.is_none_or(|control| control.settled());
         let tinted = crate::backdrop::tinted().is_some();
         let ink = crate::style::Palette::current();
-        let glass_tint = if tinted {
-            ink.raised_background
-        } else {
-            crate::theme::surface_background(&resolved, crate::theme::SurfaceKind::Toplevel)
-        };
         let background = if tinted || overlaid {
             vow_design::Rgba::rgba8(0, 0, 0, 0.0)
         } else if sidebar || status.activated {
-            glass_tint
+            crate::theme::surface_background(&resolved, crate::theme::SurfaceKind::Toplevel)
         } else {
             resolved.surfaces.titlebar_inactive
         };
+        let (inset_start, inset_end) = crate::chrome::rail_overlap(*span.read());
         let place = move |bar: Element| -> Element {
             if !overlaid {
                 return bar;
@@ -195,18 +192,25 @@ impl Component for Titlebar {
             rect()
                 .width(Size::fill())
                 .height(Size::px(0.0))
+                .on_sized(move |event: Event<SizedEventData>| {
+                    let area = event.area;
+                    span.set_if_modified((area.min_x(), area.max_x()));
+                })
                 .maybe(overlay_top.is_some(), |el| {
                     el.child(
                         rect()
                             .position(
                                 Position::new_absolute()
                                     .top(overlay_top.unwrap_or_default())
-                                    .left(0.0)
-                                    .right(0.0),
+                                    .left(inset_start),
                             )
-                            .width(Size::fill())
+                            .width(Size::func(move |context| {
+                                Some(context.parent - inset_start - inset_end)
+                            }))
                             .layer(TITLEBAR_OVERLAY_LAYER)
-                            .child(crate::glass::progressive_glass(glass_tint))
+                            .child(crate::glass::progressive_glass(
+                                crate::glass::GlassEdge::Top,
+                            ))
                             .child(bar),
                     )
                 })

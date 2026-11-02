@@ -1,5 +1,5 @@
 //! Progressive glass behind the full-screen titlebar: the window's own content
-//! blurred, strongest at the top and fading out downwards.
+//! blurred, strongest at the window edge and fading out inwards.
 
 use std::borrow::Cow;
 use std::rc::Rc;
@@ -15,30 +15,55 @@ use freya_engine::prelude::{
 use torin::prelude::{Position, Size};
 use vow_design::{FULLSCREEN_GLASS, Rgba};
 
+use crate::theme::{SurfaceKind, surface_background};
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub(crate) enum GlassEdge {
+    Top,
+    Left,
+    Right,
+}
+
 #[derive(PartialEq)]
 struct Glass {
+    edge: GlassEdge,
     tint: Rgba,
     layout: LayoutData,
 }
 
-pub(crate) fn progressive_glass(tint: Rgba) -> Element {
+pub(crate) fn glass_tint() -> Rgba {
+    if crate::backdrop::tinted().is_some() {
+        crate::style::Palette::current().raised_background
+    } else {
+        surface_background(&crate::theme::resolved(), SurfaceKind::Toplevel)
+    }
+}
+
+pub(crate) fn progressive_glass(edge: GlassEdge) -> Element {
+    let depth = Size::px(FULLSCREEN_GLASS.height);
+    let (width, height, position) = match edge {
+        GlassEdge::Top => (Size::fill(), depth, Position::new_absolute()),
+        GlassEdge::Left => (depth, Size::fill(), Position::new_absolute().left(0.0)),
+        GlassEdge::Right => (depth, Size::fill(), Position::new_absolute().right(0.0)),
+    };
     let layout = torin::node::Node {
-        width: Size::fill(),
-        height: Size::px(FULLSCREEN_GLASS.height),
-        position: Position::new_absolute(),
+        width,
+        height,
+        position,
         ..Default::default()
     };
     Element::Element {
         key: DiffKey::None,
         element: Rc::new(Glass {
-            tint,
+            edge,
+            tint: glass_tint(),
             layout: layout.into(),
         }),
         elements: Vec::new(),
     }
 }
 
-fn vertical(bounds: SkRect, color: Rgba, stops: &[(f32, f32)]) -> Paint {
+fn inwards(edge: GlassEdge, bounds: SkRect, color: Rgba, stops: &[(f32, f32)]) -> Paint {
     let (colors, offsets): (Vec<Color4f>, Vec<f32>) = stops
         .iter()
         .map(|&(offset, alpha)| {
@@ -54,11 +79,12 @@ fn vertical(bounds: SkRect, color: Rgba, stops: &[(f32, f32)]) -> Paint {
     );
     let mut paint = Paint::default();
     paint.set_dither(true);
-    paint.set_shader(shaders::linear_gradient(
-        ((bounds.left, bounds.top), (bounds.left, bounds.bottom)),
-        &gradient,
-        None,
-    ));
+    let line = match edge {
+        GlassEdge::Top => ((bounds.left, bounds.top), (bounds.left, bounds.bottom)),
+        GlassEdge::Left => ((bounds.left, bounds.top), (bounds.right, bounds.top)),
+        GlassEdge::Right => ((bounds.right, bounds.top), (bounds.left, bounds.top)),
+    };
+    paint.set_shader(shaders::linear_gradient(line, &gradient, None));
     paint
 }
 
@@ -90,8 +116,10 @@ impl ElementExt for Glass {
         };
         let canvas = context.canvas;
         canvas.save_layer(&SaveLayerRec::default().bounds(&bounds).backdrop(&filter));
-        canvas.draw_rect(bounds, &vertical(bounds, self.tint, FULLSCREEN_GLASS.tint));
-        let mut mask = vertical(bounds, Rgba::rgba8(0, 0, 0, 1.0), FULLSCREEN_GLASS.mask);
+        let tint = inwards(self.edge, bounds, self.tint, FULLSCREEN_GLASS.tint);
+        canvas.draw_rect(bounds, &tint);
+        let black = Rgba::rgba8(0, 0, 0, 1.0);
+        let mut mask = inwards(self.edge, bounds, black, FULLSCREEN_GLASS.mask);
         mask.set_blend_mode(BlendMode::DstIn);
         canvas.draw_rect(bounds, &mask);
         canvas.restore();

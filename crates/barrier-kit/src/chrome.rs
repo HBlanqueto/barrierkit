@@ -7,10 +7,11 @@ use serde::{Deserialize, Serialize};
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 use vow_appearance::{SidebarStyle, palette};
 use vow_design::{
-    DURATION_BASE, Rgba, SETTINGS, SHADOW, SHADOW_DARK, TITLEBAR, TITLEBAR_CLIENT_HEIGHT,
-    TITLEBAR_RAIL,
+    DURATION_BASE, FULLSCREEN_GLASS, Rgba, SETTINGS, SHADOW, SHADOW_DARK, TITLEBAR,
+    TITLEBAR_CLIENT_HEIGHT, TITLEBAR_RAIL,
 };
 
+use crate::glass::{GlassEdge, progressive_glass};
 use crate::platform::WindowControls;
 use crate::style::Palette;
 use crate::theme::{SurfaceKind, color, surface_background};
@@ -137,6 +138,7 @@ pub(crate) struct Chrome {
     style: State<ChromeStyle>,
     sidebar_shown: State<bool>,
     progress: State<f32>,
+    size: State<(f32, f32)>,
 }
 
 fn chrome() -> Option<Chrome> {
@@ -155,11 +157,46 @@ pub(crate) fn report_sidebar_shown(shown: bool) {
     }
 }
 
+fn fullscreen_overlay() -> (bool, Option<f32>) {
+    try_consume_root_context::<WindowControls>().map_or((false, None), |controls| {
+        (
+            controls.titlebar_overlaid(),
+            controls.titlebar_overlay_top(),
+        )
+    })
+}
+
+// ADR 0054: in full screen the chrome shows exactly while the compositor bar is down.
+fn shown_as(style: ChromeStyle, sidebar_shown: bool) -> (TitlebarLayout, Reveal) {
+    let (layout, reveal) = style.effective(sidebar_shown);
+    if fullscreen_overlay().0 {
+        (layout, Reveal::Always)
+    } else {
+        (layout, reveal)
+    }
+}
+
 fn reveal_state() -> (TitlebarLayout, Reveal, f32) {
     chrome().map_or((TitlebarLayout::Top, Reveal::Always, 1.0), |chrome| {
-        let (layout, reveal) = chrome.style.read().effective(*chrome.sidebar_shown.read());
+        let (layout, reveal) = shown_as(*chrome.style.read(), *chrome.sidebar_shown.read());
         (layout, reveal, *chrome.progress.read())
     })
+}
+
+pub(crate) fn rail_overlap((start, end): (f32, f32)) -> (f32, f32) {
+    let Some(chrome) = chrome() else {
+        return (0.0, 0.0);
+    };
+    let style = *chrome.style.read();
+    let (layout, _) = style.effective(*chrome.sidebar_shown.read());
+    if !matches!(layout, TitlebarLayout::Rail | TitlebarLayout::Actions) {
+        return (0.0, 0.0);
+    }
+    let extent = style.rail_extent();
+    match style.side {
+        Side::Left => ((extent - start).max(0.0), 0.0),
+        Side::Right => (0.0, (end - (chrome.size.read().0 - extent)).max(0.0)),
+    }
 }
 
 pub(crate) fn lights_opacity() -> f32 {
@@ -244,6 +281,7 @@ impl Component for WindowChrome {
                 style: State::create(self.style),
                 sidebar_shown: State::create(false),
                 progress: State::create(0.0),
+                size: State::create((0.0, 0.0)),
             };
             provide_context(chrome);
             chrome
@@ -253,7 +291,7 @@ impl Component for WindowChrome {
         let style = self.style;
         let sidebar_shown = *chrome.sidebar_shown.read();
         let mut revealed = use_state(|| false);
-        let mut size = use_state(|| (0.0f32, 0.0f32));
+        let mut size = chrome.size;
         let reduced_motion = crate::theme::resolved().reduced_motion;
         let animation = use_animation_transition(revealed, move |from: bool, to: bool| {
             AnimNum::new(f32::from(u8::from(from)), f32::from(u8::from(to)))
@@ -265,9 +303,10 @@ impl Component for WindowChrome {
         let mut progress_state = chrome.progress;
         progress_state.set_if_modified(progress);
 
-        let (layout, reveal) = style.effective(sidebar_shown);
+        let (layout, reveal) = shown_as(style, sidebar_shown);
+        let (overlaid, overlay_top) = fullscreen_overlay();
         let hidden = reveal != Reveal::Always && reveal != Reveal::Corner;
-        let gutter = if layout == TitlebarLayout::Pill && !sidebar_shown {
+        let gutter = if layout == TitlebarLayout::Pill && !sidebar_shown && !overlaid {
             TITLEBAR_RAIL.pill_clearance
         } else {
             0.0
@@ -290,7 +329,7 @@ impl Component for WindowChrome {
         } else {
             1.0
         };
-        let edge = match (vertical_rail, reveal) {
+        let edge = match (vertical_rail && !overlaid, reveal) {
             (false, _) => None,
             (true, Reveal::Always | Reveal::Corner) => {
                 Some(rail(style, footer.clone(), lights_opacity).into_element())
@@ -365,7 +404,23 @@ impl Component for WindowChrome {
                         ))),
                 );
         }
+        if let Some(top) = overlay_top.filter(|_| vertical_rail) {
+            let position = Position::new_absolute().top(top);
+            let (position, edge) = match style.side {
+                Side::Left => (position.left(0.0), GlassEdge::Left),
+                Side::Right => (position.right(0.0), GlassEdge::Right),
+            };
+            root = root.child(
+                rect()
+                    .position(position)
+                    .height(Size::func(move |context| Some(context.parent - top)))
+                    .layer(Layer::Overlay)
+                    .child(progressive_glass(edge))
+                    .child(rail(style, footer.clone(), 1.0)),
+            );
+        }
         let pill_progress = match (layout, reveal) {
+            (TitlebarLayout::Pill, _) if overlaid && overlay_top.is_none() => None,
             (TitlebarLayout::Pill, Reveal::Always) => Some(1.0),
             (TitlebarLayout::Pill, Reveal::Corner) => Some(progress),
             (_, Reveal::Popup) => Some(progress),
@@ -413,7 +468,8 @@ fn rail(style: ChromeStyle, footer: Option<Element>, lights_opacity: f32) -> Rec
     let (activated, fixed, title) = window_state();
     let width = style.rail_extent();
     let island = resolved.sidebar.style == SidebarStyle::Island;
-    let background = if island {
+    let overlaid = fullscreen_overlay().0;
+    let background = if island || overlaid {
         Rgba::rgba8(0, 0, 0, 0.0)
     } else if activated {
         surface_background(&resolved, SurfaceKind::Toplevel)
@@ -425,7 +481,7 @@ fn rail(style: ChromeStyle, footer: Option<Element>, lights_opacity: f32) -> Rec
     } else {
         palette(resolved.scheme).title.unfocused
     };
-    let line = (!island).then(|| {
+    let line = (!island && !overlaid).then(|| {
         at_side(
             match style.side {
                 Side::Left => Side::Right,
@@ -532,12 +588,22 @@ fn resting_edge(edge: RestingEdge, vertical: bool) -> Rect {
 fn pill(side: Side, vertical: bool, slide: f32, opacity: f32) -> Rect {
     let (activated, fixed, _) = window_state();
     let palette = Palette::current();
+    let (overlaid, overlay_top) = fullscreen_overlay();
+    let top = overlay_top.unwrap_or_default();
     let hidden_by = TITLEBAR_RAIL.reveal_corner * (1.0 - slide);
     let position = Position::new_absolute();
     let position = match (vertical, side) {
-        (false, _) => position.top(-hidden_by).left(0.0),
-        (true, Side::Left) => position.top(0.0).left(-hidden_by),
-        (true, Side::Right) => position.top(0.0).right(-hidden_by),
+        (false, _) => position.top(top - hidden_by).left(0.0),
+        (true, Side::Left) => position.top(top).left(-hidden_by),
+        (true, Side::Right) => position.top(top).right(-hidden_by),
+    };
+    let background = if overlaid {
+        Rgba {
+            a: FULLSCREEN_GLASS.tint[0].1,
+            ..crate::glass::glass_tint()
+        }
+    } else {
+        palette.raised_background
     };
     rect()
         .position(position)
@@ -549,7 +615,8 @@ fn pill(side: Side, vertical: bool, slide: f32, opacity: f32) -> Rect {
             TITLEBAR_RAIL.pill_padding_x,
         ))
         .corner_radius(TITLEBAR_RAIL.pill_radius)
-        .background(color(palette.raised_background))
+        .background(color(background))
+        .maybe(overlaid, |el| el.blur(FULLSCREEN_GLASS.blur))
         .border(
             Border::new()
                 .width(1.0)

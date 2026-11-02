@@ -282,7 +282,8 @@ impl Component for Sidebar {
         if lights_column && lights_shown {
             let diameter = TITLEBAR.buttons.diameter as f32;
             let offset = (chrome.rail_width - diameter) / 2.0;
-            let position = Position::new_absolute().top(SIDEBAR.traffic_y as f32);
+            let position = Position::new_absolute()
+                .top(SIDEBAR.traffic_y as f32 + overlay_top.unwrap_or_default());
             root = root.child(
                 rect()
                     .position(match chrome.side {

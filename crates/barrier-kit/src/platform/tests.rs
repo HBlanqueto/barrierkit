@@ -777,20 +777,20 @@ mod inactive_accent_tests {
 
     use crate::platform::window::WindowStatus;
 
-    struct Probe(Rc<Cell<Option<Rgba>>>);
+    struct Probe(Rc<Cell<Option<Rgba>>>, fn() -> Rgba);
 
     impl App for Probe {
         fn render(&self) -> impl IntoElement {
-            self.0.set(Some(Palette::current().accent));
+            self.0.set(Some((self.1)()));
             rect()
         }
     }
 
-    fn accent(activated: bool) -> Rgba {
+    fn painted(activated: bool, paint: fn() -> Rgba) -> Rgba {
         let seen = Rc::new(Cell::new(None));
         let resolved = resolve(&AppearanceConfig::default(), None);
         let (mut test, _) = TestingRunner::new(
-            AppComponent::new(Probe(seen.clone())),
+            AppComponent::new(Probe(seen.clone(), paint)),
             Size2D::new(200.0, 100.0),
             move |runner| {
                 runner.provide_root_context(move || {
@@ -810,7 +810,112 @@ mod inactive_accent_tests {
     #[test]
     fn an_unfocused_window_paints_the_accent_grey() {
         let palette = vow_appearance::palette(resolve(&AppearanceConfig::default(), None).scheme);
-        assert_eq!(accent(false), palette.accent_inactive);
-        assert_ne!(accent(true), palette.accent_inactive);
+        let accent = || Palette::current().accent;
+        assert_eq!(painted(false, accent), palette.accent_inactive);
+        assert_ne!(painted(true, accent), palette.accent_inactive);
+    }
+
+    #[test]
+    fn an_own_accent_turns_grey_with_the_kit_accent() {
+        let own = || crate::style::focus_tint(Rgba::rgb8(200, 30, 90));
+        let palette = vow_appearance::palette(resolve(&AppearanceConfig::default(), None).scheme);
+        assert_eq!(painted(true, own), Rgba::rgb8(200, 30, 90));
+        assert_eq!(painted(false, own), palette.accent_inactive);
+    }
+}
+
+#[cfg(test)]
+mod fullscreen_chrome_tests {
+    use crate::chrome::{ChromeStyle, Side, TitlebarLayout, WindowChrome};
+    use crate::sidebar::Sidebar;
+    use crate::titlebar::Titlebar;
+    use crate::views::split::SplitView;
+    use freya_core::integration::AppComponent;
+    use freya_core::prelude::*;
+    use freya_testing::TestingRunner;
+    use std::{cell::RefCell, rc::Rc};
+    use torin::prelude::{Size, Size2D};
+    use vow_appearance::{AppearanceConfig, resolve};
+    use vow_design::TITLEBAR;
+
+    use crate::platform::window::{WindowControls, WindowStatus};
+
+    struct Case(ChromeStyle);
+
+    impl App for Case {
+        fn render(&self) -> impl IntoElement {
+            let detail = rect()
+                .width(Size::fill())
+                .height(Size::fill())
+                .child(Titlebar::new().title("Ventana").with_sidebar(true));
+            WindowChrome::new(
+                self.0,
+                SplitView::new(Sidebar::new().traffic_lights(true), detail),
+            )
+        }
+    }
+
+    fn light_tops(test: &TestingRunner) -> Vec<(i32, i32)> {
+        let diameter = TITLEBAR.buttons.diameter as f32;
+        let length = 3.0 * diameter + 2.0 * TITLEBAR.buttons.spacing as f32;
+        let mut groups = test.find_many(|node, _| {
+            let area = node.layout().area;
+            let size = (area.width(), area.height());
+            (size == (length, diameter) || size == (diameter, length))
+                .then_some((area.min_x() as i32, area.min_y() as i32))
+        });
+        groups.sort_unstable();
+        groups.dedup();
+        groups
+    }
+
+    #[test]
+    fn in_full_screen_every_layout_shows_its_lights_once_below_the_bar_only_while_it_is_down() {
+        for layout in [
+            TitlebarLayout::Top,
+            TitlebarLayout::Rail,
+            TitlebarLayout::Unified,
+            TitlebarLayout::Pill,
+            TitlebarLayout::Actions,
+        ] {
+            for side in [Side::Left, Side::Right] {
+                let style = ChromeStyle {
+                    layout,
+                    side,
+                    ..ChromeStyle::default()
+                };
+                let bar = Rc::new(RefCell::new(None));
+                let shared = bar.clone();
+                let resolved = resolve(&AppearanceConfig::default(), None);
+                let (mut test, _) = TestingRunner::new(
+                    AppComponent::new(Case(style)),
+                    Size2D::new(900.0, 500.0),
+                    move |runner| {
+                        let shared = shared.clone();
+                        runner.provide_root_context(move || {
+                            let controls = WindowControls {
+                                focus_overlay: true,
+                                ..super::window_controls(WindowStatus {
+                                    fullscreen: true,
+                                    ..WindowStatus::default()
+                                })
+                            };
+                            *shared.borrow_mut() = Some(controls.focus_bar);
+                            controls
+                        });
+                        runner.provide_root_context(move || State::create(resolved));
+                    },
+                    1.0,
+                );
+                test.sync_and_update();
+                assert_eq!(light_tops(&test), vec![], "{style:?} at rest");
+                bar.borrow_mut().as_mut().unwrap().set(true);
+                test.sync_and_update();
+                test.sync_and_update();
+                let lights = light_tops(&test);
+                assert_eq!(lights.len(), 1, "{style:?} with the bar: {lights:?}");
+                assert!(lights[0].1 >= 28, "{style:?} under the bar: {lights:?}");
+            }
+        }
     }
 }
