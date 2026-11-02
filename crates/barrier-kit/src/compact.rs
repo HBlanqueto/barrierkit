@@ -2,7 +2,7 @@
 
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Direction, Gaps, Size};
-use vow_design::{BUTTON, ICON_BUTTON, SEGMENTED, TEXT};
+use vow_design::{BUTTON, DISPLAY, ICON_BUTTON, SEGMENTED, TEXT};
 
 use crate::interaction::use_interaction;
 use crate::style::{Palette, text};
@@ -154,10 +154,17 @@ impl Component for Stepper {
     }
 }
 
+#[derive(Clone, Copy, PartialEq)]
+pub enum Face {
+    Bold,
+    Italic,
+    Underline,
+}
+
 #[derive(PartialEq)]
 pub struct ToggleGroup {
     label: &'static str,
-    items: Vec<(&'static str, &'static str, bool)>,
+    items: Vec<(&'static str, Face, &'static str, bool)>,
     on_toggle: Option<Callback<(usize, bool), ()>>,
 }
 
@@ -170,8 +177,8 @@ impl ToggleGroup {
         }
     }
 
-    pub fn item(mut self, text: &'static str, label: &'static str, on: bool) -> Self {
-        self.items.push((text, label, on));
+    pub fn item(mut self, text: &'static str, face: Face, label: &'static str, on: bool) -> Self {
+        self.items.push((text, face, label, on));
         self
     }
 
@@ -184,17 +191,18 @@ impl ToggleGroup {
 impl Component for ToggleGroup {
     fn render(&self) -> impl IntoElement {
         let palette = Palette::current();
-        let states = use_state(|| self.items.iter().map(|item| item.2).collect::<Vec<_>>());
+        let states = use_state(|| self.items.iter().map(|item| item.3).collect::<Vec<_>>());
         let toggles = self
             .items
             .iter()
             .enumerate()
-            .map(|(index, (text, label, _))| {
+            .map(|(index, &(text, face, label, _))| {
                 let mut states = states;
                 let on_toggle = self.on_toggle.clone();
                 let on = states.read().get(index).copied().unwrap_or(false);
                 Toggle {
                     text,
+                    face,
                     label,
                     on,
                     on_press: Callback::new(move |_| {
@@ -225,6 +233,7 @@ impl Component for ToggleGroup {
 #[derive(PartialEq)]
 struct Toggle {
     text: &'static str,
+    face: Face,
     label: &'static str,
     on: bool,
     on_press: Callback<(), ()>,
@@ -237,6 +246,7 @@ impl Component for Toggle {
         let on = self.on;
         let on_press = self.on_press.clone();
         let ink = if on { palette.on_accent } else { palette.label };
+        let face = self.face;
 
         let toggle = interaction
             .attach(rect(), true)
@@ -250,12 +260,22 @@ impl Component for Toggle {
             .maybe(on, |el| el.background(color(palette.accent)))
             .on_press(move |_| on_press.call(()))
             .child(
-                label()
-                    .text(self.text)
+                paragraph()
                     .font_family(TEXT.family)
                     .font_size(TEXT.size as f32)
-                    .font_weight(SEGMENTED.font_weight)
-                    .color(color(ink)),
+                    .font_weight(match face {
+                        Face::Bold => DISPLAY.weight as i32,
+                        Face::Italic | Face::Underline => SEGMENTED.font_weight,
+                    })
+                    .font_slant(match face {
+                        Face::Italic => FontSlant::Italic,
+                        Face::Bold | Face::Underline => FontSlant::Upright,
+                    })
+                    .color(color(ink))
+                    .span(Span::new(self.text).text_decoration(match face {
+                        Face::Underline => TextDecoration::Underline,
+                        Face::Bold | Face::Italic => TextDecoration::None,
+                    })),
             );
         interaction.focus_ring(toggle, SEGMENTED.segment_radius)
     }

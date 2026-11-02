@@ -3,7 +3,7 @@
 use barrier_kit::adornments::{Link, avatar, badge, divider};
 use barrier_kit::app::{Instance, Launch, launch};
 use barrier_kit::choices::{ChoiceCards, ColorWell, RadioGroup};
-use barrier_kit::compact::{IconButton, Stepper, ToggleGroup};
+use barrier_kit::compact::{Face, IconButton, Stepper, ToggleGroup};
 use barrier_kit::controls::{
     Button, ButtonStyle, Checkbox, SearchField, SegmentedControl, Slider, Switch, TextField,
 };
@@ -122,9 +122,9 @@ fn choices() -> Form {
             .row(
                 Row::new("Grupo conmutable").control(
                     ToggleGroup::new("Formato")
-                        .item("B", "Negrita", true)
-                        .item("I", "Cursiva", false)
-                        .item("U", "Subrayado", false),
+                        .item("B", Face::Bold, "Negrita", true)
+                        .item("I", Face::Italic, "Cursiva", false)
+                        .item("U", Face::Underline, "Subrayado", false),
                 ),
             )
             .row(Row::new("Stepper").control(Stepper::new("Núcleos", 1, 16).value(4))),

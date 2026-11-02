@@ -7,7 +7,7 @@ use std::{
 
 use barrier_kit::adornments::{Link, avatar, badge, divider};
 use barrier_kit::choices::{ColorWell, RadioGroup};
-use barrier_kit::compact::{IconButton, Stepper, ToggleGroup};
+use barrier_kit::compact::{Face, IconButton, Stepper, ToggleGroup};
 use barrier_kit::controls::{
     Button, ButtonStyle, Checkbox, Popover, ScrollView, SearchField, SecureField, SegmentedControl,
     Slider, Switch, TextField,
@@ -185,9 +185,9 @@ fn compact() -> Element {
         .child(Stepper::new("Núcleos", 1, 16).value(4))
         .child(
             ToggleGroup::new("Formato")
-                .item("B", "Negrita", true)
-                .item("I", "Cursiva", false)
-                .item("U", "Subrayado", false),
+                .item("B", Face::Bold, "Negrita", true)
+                .item("I", Face::Italic, "Cursiva", false)
+                .item("U", Face::Underline, "Subrayado", false),
         )
         .into_element()
 }
@@ -877,8 +877,8 @@ fn toggle_group_flips_each_item_on_its_own() {
         fn render(&self) -> impl IntoElement {
             let events = self.events.clone();
             ToggleGroup::new("Formato")
-                .item("B", "Negrita", true)
-                .item("I", "Cursiva", false)
+                .item("B", Face::Bold, "Negrita", true)
+                .item("I", Face::Italic, "Cursiva", false)
                 .on_toggle(move |e| events.borrow_mut().push(e))
         }
     }
