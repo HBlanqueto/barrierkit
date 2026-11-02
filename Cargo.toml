@@ -75,7 +75,7 @@ ash = "0.38"
 
 png = "0.17"
 
-sctk = { package = "smithay-client-toolkit", version = "0.19.2" }
+sctk = { package = "smithay-client-toolkit", version = "0.20" }
 
 [profile.dev]
 opt-level = 0

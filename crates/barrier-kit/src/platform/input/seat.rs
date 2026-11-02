@@ -21,7 +21,9 @@ use sctk::{
     },
     seat::{
         Capability, SeatHandler, SeatState,
-        keyboard::{KeyEvent, KeyboardHandler, Keysym, Modifiers as SctkModifiers, RepeatInfo},
+        keyboard::{
+            KeyEvent, KeyboardHandler, Keysym, Modifiers as SctkModifiers, RawModifiers, RepeatInfo,
+        },
         pointer::{PointerEvent, PointerHandler},
         touch::TouchHandler,
     },
@@ -286,8 +288,9 @@ impl KeyboardHandler for Runtime {
     ) {
         self.last_input_serial.set(serial);
         self.key_event(event.clone(), KeyboardEventName::KeyDown);
-        if should_repeat_key(&event) {
-            let (delay, rate) = self.repeat_timing();
+        if should_repeat_key(&event)
+            && let Some((delay, rate)) = self.repeat_timing()
+        {
             self.repeat_generation = self.repeat_generation.wrapping_add(1);
             self.repeat = Some(RepeatState {
                 event,
@@ -299,6 +302,18 @@ impl KeyboardHandler for Runtime {
             });
         }
         self.ping.ping();
+    }
+
+    fn repeat_key(
+        &mut self,
+        _: &Connection,
+        _: &QueueHandle<Self>,
+        _: &wl_keyboard::WlKeyboard,
+        serial: u32,
+        event: KeyEvent,
+    ) {
+        self.last_input_serial.set(serial);
+        self.key_event(event, KeyboardEventName::KeyDown);
     }
 
     fn release_key(
@@ -322,6 +337,7 @@ impl KeyboardHandler for Runtime {
         _: &wl_keyboard::WlKeyboard,
         _: u32,
         modifiers: SctkModifiers,
+        _: RawModifiers,
         _: u32,
     ) {
         self.modifiers = modifiers;
@@ -385,13 +401,13 @@ impl Runtime {
         }
     }
 
-    fn repeat_timing(&self) -> (Duration, Duration) {
-        match self.repeat_info {
-            Some(RepeatInfo::Repeat { rate, delay }) => (
+    fn repeat_timing(&self) -> Option<(Duration, Duration)> {
+        match self.repeat_info? {
+            RepeatInfo::Repeat { rate, delay } => Some((
                 Duration::from_millis(u64::from(delay)),
                 Duration::from_micros(1_000_000 / u64::from(rate.get())),
-            ),
-            _ => (Duration::from_millis(200), Duration::from_millis(40)),
+            )),
+            RepeatInfo::Disable => None,
         }
     }
 
