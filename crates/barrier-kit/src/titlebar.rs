@@ -170,6 +170,24 @@ impl Component for Titlebar {
         let overlay_top = controls
             .as_ref()
             .and_then(|controls| controls.titlebar_overlay_top());
+        let resolved = crate::theme::resolved();
+        let theme = palette(resolved.scheme);
+        let control = crate::views::split::sidebar_control();
+        let sidebar = self.sidebar && control.is_none_or(|control| control.settled());
+        let tinted = crate::backdrop::tinted().is_some();
+        let ink = crate::style::Palette::current();
+        let glass_tint = if tinted {
+            ink.raised_background
+        } else {
+            crate::theme::surface_background(&resolved, crate::theme::SurfaceKind::Toplevel)
+        };
+        let background = if tinted || overlaid {
+            vow_design::Rgba::rgba8(0, 0, 0, 0.0)
+        } else if sidebar || status.activated {
+            glass_tint
+        } else {
+            resolved.surfaces.titlebar_inactive
+        };
         let place = move |bar: Element| -> Element {
             if !overlaid {
                 return bar;
@@ -188,27 +206,13 @@ impl Component for Titlebar {
                             )
                             .width(Size::fill())
                             .layer(TITLEBAR_OVERLAY_LAYER)
+                            .child(crate::glass::progressive_glass(glass_tint))
                             .child(bar),
                     )
                 })
                 .into_element()
         };
 
-        let resolved = crate::theme::resolved();
-        let theme = palette(resolved.scheme);
-        let control = crate::views::split::sidebar_control();
-        let sidebar = self.sidebar && control.is_none_or(|control| control.settled());
-        let tinted = crate::backdrop::tinted().is_some();
-        let ink = crate::style::Palette::current();
-        let background = if tinted && overlaid {
-            ink.raised_background
-        } else if tinted {
-            vow_design::Rgba::rgba8(0, 0, 0, 0.0)
-        } else if sidebar || status.activated {
-            crate::theme::surface_background(&resolved, crate::theme::SurfaceKind::Toplevel)
-        } else {
-            resolved.surfaces.titlebar_inactive
-        };
         let title_color = match (tinted, status.activated) {
             (true, true) => ink.label,
             (true, false) => ink.secondary_label,

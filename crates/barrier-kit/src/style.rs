@@ -19,6 +19,7 @@ pub struct Palette {
     pub control_background: Rgba,
     pub control_hover: Rgba,
     pub accent: Rgba,
+    pub accent_inactive: Rgba,
     pub on_accent: Rgba,
     pub destructive: Rgba,
     pub raised_background: Rgba,
@@ -30,7 +31,17 @@ pub struct Palette {
 
 impl Palette {
     pub fn current() -> Self {
-        try_consume_context::<State<Palette>>().map_or_else(Self::system, |state| *state.read())
+        let palette = try_consume_context::<State<Palette>>()
+            .map_or_else(Self::system, |state| *state.read());
+        if crate::platform::window_activated() {
+            palette
+        } else {
+            Self {
+                accent: palette.accent_inactive,
+                on_accent: vow_appearance::backdrop::ink_on(palette.accent_inactive),
+                ..palette
+            }
+        }
     }
 
     pub fn system() -> Self {
@@ -47,6 +58,7 @@ impl Palette {
             control_background: resolved.surfaces.control,
             control_hover: resolved.surfaces.hover,
             accent: resolved.accent,
+            accent_inactive: base.accent_inactive,
             on_accent: base.on_accent,
             destructive: base.danger,
             raised_background: resolved.surfaces.raised,

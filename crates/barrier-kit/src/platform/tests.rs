@@ -27,8 +27,25 @@ use super::{
         scale_from_wire,
     },
     timer::{Timers, Wake, WakeQueue},
-    window::clamp_toplevel_size_dimension,
+    window::{WindowControls, WindowStatus, clamp_toplevel_size_dimension},
 };
+
+fn window_controls(status: WindowStatus) -> WindowControls {
+    let (ping, _source) = calloop::ping::make_ping().unwrap();
+    WindowControls {
+        queue: Rc::new(RefCell::new(Vec::new())),
+        ping,
+        pointer_serial: Rc::new(std::cell::Cell::new(0)),
+        status: freya_core::prelude::State::create(status),
+        title: "Ventana".to_string(),
+        fixed: false,
+        surface_id: ObjectId::null(),
+        focus_bar: freya_core::prelude::State::create(false),
+        focus_overlay: false,
+        focus_bar_height: freya_core::prelude::State::create(28.0),
+        menu_handle: None,
+    }
+}
 
 #[test]
 fn wakeup_runs_its_callback_on_the_loop_thread() {
@@ -437,17 +454,11 @@ mod drag_band_tests {
     use freya_core::integration::AppComponent;
     use freya_core::prelude::{App, ContainerSizeExt, IntoElement, State, rect};
     use freya_testing::TestingRunner;
-    use sctk::reexports::{calloop, client::backend::ObjectId};
-    use std::{
-        cell::{Cell, RefCell},
-        rc::Rc,
-    };
+    use std::{cell::RefCell, rc::Rc};
     use torin::prelude::{Size, Size2D};
     use vow_appearance::{AppearanceConfig, SidebarStyle, resolve};
 
-    use crate::platform::window::{
-        DecorationResponse, WindowCommand, WindowControls, WindowStatus,
-    };
+    use crate::platform::window::{WindowCommand, WindowControls, WindowStatus};
 
     struct DragCase;
 
@@ -478,27 +489,9 @@ mod drag_band_tests {
             app,
             Size2D::new(800.0, 400.0),
             move |runner| {
-                runner.provide_root_context(move || {
-                    let (ping, _source) = calloop::ping::make_ping().unwrap();
-                    WindowControls {
-                        queue: controls_queue.clone(),
-                        ping,
-                        pointer_serial: Rc::new(Cell::new(0)),
-                        status: State::create(WindowStatus {
-                            activated: true,
-                            maximized: false,
-                            fullscreen: false,
-                            decoration: DecorationResponse::Client,
-                            fixed: false,
-                        }),
-                        title: "Ventana".to_string(),
-                        fixed: false,
-                        surface_id: ObjectId::null(),
-                        focus_bar: State::create(false),
-                        focus_overlay: false,
-                        focus_bar_height: State::create(0.0),
-                        menu_handle: None,
-                    }
+                runner.provide_root_context(move || WindowControls {
+                    queue: controls_queue.clone(),
+                    ..super::window_controls(WindowStatus::default())
                 });
                 runner.provide_root_context(move || State::create(resolved));
             },
@@ -554,15 +547,11 @@ mod overlay_titlebar_tests {
     use freya_core::integration::AppComponent;
     use freya_core::prelude::*;
     use freya_testing::TestingRunner;
-    use sctk::reexports::{calloop, client::backend::ObjectId};
-    use std::{
-        cell::{Cell, RefCell},
-        rc::Rc,
-    };
+    use std::{cell::RefCell, rc::Rc};
     use torin::prelude::{Direction, Size, Size2D};
     use vow_appearance::{AppearanceConfig, resolve};
 
-    use crate::platform::window::{DecorationResponse, WindowControls, WindowStatus};
+    use crate::platform::window::{WindowControls, WindowStatus};
 
     struct OverlayCase;
 
@@ -601,28 +590,15 @@ mod overlay_titlebar_tests {
             move |runner| {
                 let bar = bar.clone();
                 runner.provide_root_context(move || {
-                    let (ping, _source) = calloop::ping::make_ping().unwrap();
-                    let focus_bar = State::create(false);
-                    *bar.borrow_mut() = Some(focus_bar);
-                    WindowControls {
-                        queue: Rc::new(RefCell::new(Vec::new())),
-                        ping,
-                        pointer_serial: Rc::new(Cell::new(0)),
-                        status: State::create(WindowStatus {
-                            activated: true,
-                            maximized: false,
-                            fullscreen,
-                            decoration: DecorationResponse::Client,
-                            fixed: false,
-                        }),
-                        title: "Ventana".to_string(),
-                        fixed: false,
-                        surface_id: ObjectId::null(),
-                        focus_bar,
+                    let controls = WindowControls {
                         focus_overlay: overlay,
-                        focus_bar_height: State::create(28.0),
-                        menu_handle: None,
-                    }
+                        ..super::window_controls(WindowStatus {
+                            fullscreen,
+                            ..WindowStatus::default()
+                        })
+                    };
+                    *bar.borrow_mut() = Some(controls.focus_bar);
+                    controls
                 });
                 runner.provide_root_context(move || State::create(resolved));
             },
@@ -687,18 +663,12 @@ mod traffic_light_tests {
     use freya_core::integration::AppComponent;
     use freya_core::prelude::*;
     use freya_testing::TestingRunner;
-    use sctk::reexports::{calloop, client::backend::ObjectId};
-    use std::{
-        cell::{Cell, RefCell},
-        rc::Rc,
-    };
+    use std::{cell::RefCell, rc::Rc};
     use torin::prelude::{Size, Size2D};
     use vow_appearance::{AppearanceConfig, resolve};
     use vow_design::{Rgba, TITLEBAR};
 
-    use crate::platform::window::{
-        DecorationResponse, WindowCommand, WindowControls, WindowStatus,
-    };
+    use crate::platform::window::{WindowCommand, WindowControls, WindowStatus};
 
     #[derive(Clone, Copy, Debug, PartialEq)]
     enum Layout {
@@ -738,27 +708,9 @@ mod traffic_light_tests {
             Size2D::new(900.0, 300.0),
             move |runner| {
                 let queue = commands.clone();
-                runner.provide_root_context(move || {
-                    let (ping, _source) = calloop::ping::make_ping().unwrap();
-                    WindowControls {
-                        queue,
-                        ping,
-                        pointer_serial: Rc::new(Cell::new(0)),
-                        status: State::create(WindowStatus {
-                            activated: true,
-                            maximized: false,
-                            fullscreen: false,
-                            decoration: DecorationResponse::Client,
-                            fixed: false,
-                        }),
-                        title: "Ventana".to_string(),
-                        fixed: false,
-                        surface_id: ObjectId::null(),
-                        focus_bar: State::create(false),
-                        focus_overlay: false,
-                        focus_bar_height: State::create(28.0),
-                        menu_handle: None,
-                    }
+                runner.provide_root_context(move || WindowControls {
+                    queue,
+                    ..super::window_controls(WindowStatus::default())
                 });
                 runner.provide_root_context(move || State::create(resolved));
             },
@@ -809,5 +761,56 @@ mod traffic_light_tests {
                 "no close command in {layout:?}"
             );
         }
+    }
+}
+
+#[cfg(test)]
+mod inactive_accent_tests {
+    use crate::style::Palette;
+    use freya_core::integration::AppComponent;
+    use freya_core::prelude::*;
+    use freya_testing::TestingRunner;
+    use std::{cell::Cell, rc::Rc};
+    use torin::prelude::Size2D;
+    use vow_appearance::{AppearanceConfig, resolve};
+    use vow_design::Rgba;
+
+    use crate::platform::window::WindowStatus;
+
+    struct Probe(Rc<Cell<Option<Rgba>>>);
+
+    impl App for Probe {
+        fn render(&self) -> impl IntoElement {
+            self.0.set(Some(Palette::current().accent));
+            rect()
+        }
+    }
+
+    fn accent(activated: bool) -> Rgba {
+        let seen = Rc::new(Cell::new(None));
+        let resolved = resolve(&AppearanceConfig::default(), None);
+        let (mut test, _) = TestingRunner::new(
+            AppComponent::new(Probe(seen.clone())),
+            Size2D::new(200.0, 100.0),
+            move |runner| {
+                runner.provide_root_context(move || {
+                    super::window_controls(WindowStatus {
+                        activated,
+                        ..WindowStatus::default()
+                    })
+                });
+                runner.provide_root_context(move || State::create(resolved));
+            },
+            1.0,
+        );
+        test.sync_and_update();
+        seen.get().expect("rendered")
+    }
+
+    #[test]
+    fn an_unfocused_window_paints_the_accent_grey() {
+        let palette = vow_appearance::palette(resolve(&AppearanceConfig::default(), None).scheme);
+        assert_eq!(accent(false), palette.accent_inactive);
+        assert_ne!(accent(true), palette.accent_inactive);
     }
 }

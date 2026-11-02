@@ -181,6 +181,11 @@ pub struct WindowControls {
     pub focus_bar_height: State<f32>,
 }
 
+pub(crate) fn window_activated() -> bool {
+    freya_core::prelude::try_consume_root_context::<WindowControls>()
+        .is_none_or(|controls| controls.status.read().activated)
+}
+
 impl WindowControls {
     pub fn traffic_lights_shown(&self) -> bool {
         !self.status.read().fullscreen || *self.focus_bar.read()
@@ -188,6 +193,14 @@ impl WindowControls {
 
     pub fn titlebar_overlaid(&self) -> bool {
         self.focus_overlay && self.status.read().fullscreen
+    }
+
+    pub fn fullscreen_content_top(&self) -> f32 {
+        if self.titlebar_overlaid() {
+            *self.focus_bar_height.read() + vow_design::FULLSCREEN_GLASS.content_top
+        } else {
+            0.0
+        }
     }
 
     pub fn titlebar_overlay_top(&self) -> Option<f32> {

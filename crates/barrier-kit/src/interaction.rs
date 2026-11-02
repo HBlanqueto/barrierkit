@@ -57,7 +57,7 @@ impl Interaction {
     }
 
     pub fn focus_ring(&self, element: Rect, corner_radius: f32) -> Rect {
-        if !self.keyboard_focused() {
+        if !self.keyboard_focused() || !crate::platform::window_activated() {
             return element;
         }
         ring(element, corner_radius, crate::theme::resolved().accent)

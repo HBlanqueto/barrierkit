@@ -42,6 +42,8 @@ pub mod tooltip;
 
 pub mod backdrop;
 
+mod glass;
+
 pub mod adaptive;
 
 pub mod style;

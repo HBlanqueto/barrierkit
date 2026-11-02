@@ -50,6 +50,9 @@ pub(crate) fn tinted() -> Option<tint::Backdrop> {
 
 impl Tint {
     pub(crate) fn fill(self, palette: &Palette) -> Fill {
+        if !crate::platform::window_activated() {
+            return color(palette.accent).into();
+        }
         match (self, tinted()) {
             (Self::Color(c), _) => color(c).into(),
             (Self::Backdrop, Some(backdrop)) => backdrop
@@ -209,6 +212,7 @@ impl Palette {
             control_background: alpha(BACKDROP.glass),
             control_hover: alpha(BACKDROP.glass_strong),
             accent,
+            accent_inactive: backdrop.base.mix(ink, BACKDROP.ink_tertiary),
             on_accent: ink_on(accent),
             destructive: system.destructive,
             raised_background: backdrop.base,

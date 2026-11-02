@@ -22,6 +22,7 @@ pub use popup::{
     PopupAnchor, PopupConstraintAdjustment, PopupGravity, PopupHandle, PopupId, PopupSpec, Popups,
 };
 pub use timer::{Timers, WakeHandle};
+pub(crate) use window::window_activated;
 pub use window::{
     DecorationResponse, Decorations, MenuActionHandler, WindowControls, WindowEdge, WindowOptions,
     WindowStatus, run_window,

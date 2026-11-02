@@ -14,12 +14,14 @@ use barrier_kit::app_menu::{AppMenu, Menu};
 use barrier_kit::backdrop::{Accent, Backdrop, BackdropSource, Tint};
 use barrier_kit::compact::IconButton;
 use barrier_kit::controls::ScrollView;
-use barrier_kit::platform::{Decorations, Timers, WakeHandle, WindowOptions, run_window};
+use barrier_kit::platform::{
+    Decorations, Timers, WakeHandle, WindowControls, WindowOptions, run_window,
+};
 use barrier_kit::symbol::Symbol;
 use barrier_kit::titlebar::Titlebar;
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
-use torin::prelude::{Content, Direction, Size};
+use torin::prelude::{Content, Direction, Gaps, Size};
 use vow_design::{ACCENT_SWATCHES, Rgba, WINDOW_MIN_SIZE};
 
 use albums::{Album, library};
@@ -307,10 +309,13 @@ impl Component for Window {
             .child(pane);
         let breakpoint = size.current();
         let queue_shown = breakpoint == Breakpoint::Wide || *queue_open.read();
+        let content_top = try_consume_root_context::<WindowControls>()
+            .map_or(0.0, |controls| controls.fullscreen_content_top());
 
         let body = rect()
             .width(Size::fill())
             .height(Size::flex(1.0))
+            .padding(Gaps::new(content_top, 0.0, 0.0, 0.0))
             .direction(Direction::Horizontal)
             .content(Content::flex())
             .maybe_child((breakpoint != Breakpoint::Compact).then(|| {

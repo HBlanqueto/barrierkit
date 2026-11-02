@@ -484,6 +484,15 @@ pub struct TitlebarRailMetrics {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct FullscreenGlassMetrics {
+    pub height: f32,
+    pub blur: f32,
+    pub content_top: f32,
+    pub tint: &'static [(f32, f32)],
+    pub mask: &'static [(f32, f32)],
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct SymbolMetrics {
     pub stroke: f32,
     pub grid: f32,
@@ -644,6 +653,7 @@ pub struct Palette {
     pub line: Rgba,
     pub line_strong: Rgba,
     pub accent: Rgba,
+    pub accent_inactive: Rgba,
     pub on_accent: Rgba,
     pub danger: Rgba,
     pub traffic_lights_inactive: Rgba,

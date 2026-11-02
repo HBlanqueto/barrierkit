@@ -37,6 +37,7 @@ fn main() {
     emit_progress(&mut out, &tokens, &components);
     emit_tooltip(&mut out, &tokens, &components);
     emit_titlebar_rail(&mut out, &components);
+    emit_fullscreen_glass(&mut out, &components);
     emit_backdrop(&mut out, &components);
     emit_symbol(&mut out, &components);
     emit_slider_fat(&mut out, &components);
@@ -813,7 +814,11 @@ fn emit_progress(out: &mut String, tokens: &Value, components: &Value) {
         ),
         field("spinner.size"),
         integer(components, "components.progress.spinner.spokes", COMPONENTS),
-        integer(components, "components.progress.spinner.duration", COMPONENTS)
+        integer(
+            components,
+            "components.progress.spinner.duration",
+            COMPONENTS
+        )
     ));
 }
 
@@ -830,13 +835,27 @@ fn floats(components: &Value, path: &str) -> String {
 fn emit_backdrop(out: &mut String, components: &Value) {
     let field = |key: &str| {
         float(
-            value(components, &format!("components.backdrop.{key}"), COMPONENTS)
-                .as_f64()
-                .expect("number"),
+            value(
+                components,
+                &format!("components.backdrop.{key}"),
+                COMPONENTS,
+            )
+            .as_f64()
+            .expect("number"),
         )
     };
-    let count = |key: &str| integer(components, &format!("components.backdrop.{key}"), COMPONENTS);
-    const_doc(out, "BACKDROP", "Tinted window backgrounds drawn from an image or chosen colours.");
+    let count = |key: &str| {
+        integer(
+            components,
+            &format!("components.backdrop.{key}"),
+            COMPONENTS,
+        )
+    };
+    const_doc(
+        out,
+        "BACKDROP",
+        "Tinted window backgrounds drawn from an image or chosen colours.",
+    );
     out.push_str(&format!(
         ": BackdropMetrics = BackdropMetrics {{ angles: [{}], opacity: {}, stops: {}, lightness: [{}], chroma: {}, base_darken: {}, base_lightness: [{}], base_chroma: {}, samples: {}, clusters: {}, ink_secondary: {}, ink_tertiary: {}, glass: {}, glass_strong: {}, sunken: {}, accent_lightness_on_dark: {}, accent_lightness_on_light: {}, accent_min_chroma: {} }};\n\n",
         floats(components, "components.backdrop.angles"),
@@ -858,11 +877,23 @@ fn emit_backdrop(out: &mut String, components: &Value) {
         field("accent-lightness-on-light"),
         field("accent-min-chroma"),
     ));
-    const_doc(out, "BREAKPOINT", "Window widths where adaptive layouts change shape.");
+    const_doc(
+        out,
+        "BREAKPOINT",
+        "Window widths where adaptive layouts change shape.",
+    );
     out.push_str(&format!(
         ": BreakpointMetrics = BreakpointMetrics {{ medium: {}, wide: {} }};\n\n",
-        float(value(components, "components.breakpoint.medium", COMPONENTS).as_f64().expect("number")),
-        float(value(components, "components.breakpoint.wide", COMPONENTS).as_f64().expect("number")),
+        float(
+            value(components, "components.breakpoint.medium", COMPONENTS)
+                .as_f64()
+                .expect("number")
+        ),
+        float(
+            value(components, "components.breakpoint.wide", COMPONENTS)
+                .as_f64()
+                .expect("number")
+        ),
     ));
 }
 
@@ -912,6 +943,40 @@ fn emit_titlebar_rail(out: &mut String, components: &Value) {
         field("reveal-corner"),
         field("edge-line"),
         field("edge-accent")
+    ));
+}
+
+fn emit_fullscreen_glass(out: &mut String, components: &Value) {
+    let path = |key: &str| format!("components.window.titlebar.fullscreen-glass.{key}");
+    let field = |key: &str| float(number(components, &path(key), COMPONENTS));
+    let stops = |key: &str| {
+        value(components, &path(key), COMPONENTS)
+            .as_array()
+            .unwrap_or_else(|| panic!("vow-design: `{}` must be a list", path(key)))
+            .iter()
+            .map(|stop| {
+                let pair = stop.as_array().expect("[offset, alpha]");
+                format!(
+                    "({}, {})",
+                    float(pair[0].as_f64().expect("number")),
+                    float(pair[1].as_f64().expect("number"))
+                )
+            })
+            .collect::<Vec<_>>()
+            .join(", ")
+    };
+    const_doc(
+        out,
+        "FULLSCREEN_GLASS",
+        "The progressive glass behind the titlebar in full screen.",
+    );
+    out.push_str(&format!(
+        ": FullscreenGlassMetrics = FullscreenGlassMetrics {{ height: {}, blur: {}, content_top: {}, tint: &[{}], mask: &[{}] }};\n\n",
+        field("height"),
+        field("blur"),
+        field("content-top"),
+        stops("tint"),
+        stops("mask")
     ));
 }
 
@@ -1570,6 +1635,7 @@ fn palette(tokens: &Value, components: &Value, theme: &str) -> String {
          \x20   line: {},\n\
          \x20   line_strong: {},\n\
          \x20   accent: {},\n\
+         \x20   accent_inactive: {},\n\
          \x20   on_accent: {},\n\
          \x20   danger: {},\n\
          \x20   traffic_lights_inactive: {},\n\
@@ -1591,6 +1657,7 @@ fn palette(tokens: &Value, components: &Value, theme: &str) -> String {
         rgba(theme_color(tokens, theme, "line")),
         rgba(theme_color(tokens, theme, "line-strong")),
         rgba(theme_color(tokens, theme, "accent")),
+        rgba(theme_color(tokens, theme, "accent-inactive")),
         rgba(theme_color(tokens, theme, "on-accent")),
         rgba(theme_color(tokens, theme, "danger")),
         rgba(inactive),

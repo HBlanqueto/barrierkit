@@ -37,9 +37,7 @@ pub(crate) fn item_icon_color(selected: bool, palette: SidebarPalette) -> Rgba {
 
 fn item_palette(emphasized: bool) -> SidebarPalette {
     let palette = crate::theme::resolved().sidebar.palette;
-    let activated = try_consume_root_context::<WindowControls>()
-        .is_none_or(|controls| controls.status.read().activated);
-    if !activated {
+    if !crate::platform::window_activated() {
         SidebarPalette {
             selected_bg: palette.inactive_selected_bg,
             selected_ink: palette.inactive_ink,

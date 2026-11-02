@@ -379,6 +379,13 @@
           "reveal-corner": 96,
           "edge-line": 1,
           "edge-accent": 4
+        },
+        "fullscreen-glass": {
+          "height": 96,
+          "blur": 30,
+          "content-top": 74,
+          "tint": [[0, 0.6], [0.45, 0.25], [1, 0]],
+          "mask": [[0, 1], [0.3, 1], [0.55, 0.6], [1, 0]]
         }
       },
       "sidebar": {

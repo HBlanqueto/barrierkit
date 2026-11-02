@@ -14,6 +14,7 @@ export global Theme {
     // Colores (por tema)
     out property <color> accent: mode == TengenMode.dark ? #2f6fe4 : mode == TengenMode.dark-tint ? #2f6fe4 : #2f6fe4;
     out property <color> accent-hover: mode == TengenMode.dark ? #2560cf : mode == TengenMode.dark-tint ? #2560cf : #2560cf;
+    out property <color> accent-inactive: mode == TengenMode.dark ? #5c5c5e : mode == TengenMode.dark-tint ? #5c5d61 : #aeaeb2;
     out property <color> accent-soft: mode == TengenMode.dark ? #1f3358 : mode == TengenMode.dark-tint ? #1f3358 : #1f3358;
     out property <color> accent-strong: mode == TengenMode.dark ? #6aa2ff : mode == TengenMode.dark-tint ? #6aa2ff : #1f53bd;
     out property <color> bg-control: mode == TengenMode.dark ? #3a3a3a : mode == TengenMode.dark-tint ? #38393d : #dedede;
@@ -514,6 +515,9 @@ export global Metrics {
     out property <length> window-superellipse-exponent: 2.000000px;
     out property <length> window-titlebar-double-click-interval-ms: 400px;
     out property <length> window-titlebar-double-click-slop: 4px;
+    out property <length> window-titlebar-fullscreen-glass-blur: 30px;
+    out property <length> window-titlebar-fullscreen-glass-content-top: 74px;
+    out property <length> window-titlebar-fullscreen-glass-height: 96px;
     out property <length> window-titlebar-rail-actions-width: 34px;
     out property <length> window-titlebar-rail-edge-accent: 4px;
     out property <length> window-titlebar-rail-edge-line: 1px;
