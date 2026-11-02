@@ -482,22 +482,9 @@ fn render(size: (f32, f32), dark: bool, build: fn() -> Element) -> Vec<u8> {
     data.as_ref().to_vec()
 }
 
-fn decode(path: &Path) -> (u32, u32, Vec<u8>) {
+fn decode(path: &Path) -> (usize, usize, Vec<u8>) {
     let bytes = fs::read(path).unwrap_or_else(|e| panic!("read {path:?}: {e}"));
-    let mut decoder = png::Decoder::new(std::io::Cursor::new(bytes));
-    decoder.set_transformations(png::Transformations::normalize_to_color8());
-    let mut reader = decoder.read_info().unwrap();
-    let mut buffer = vec![0; reader.output_buffer_size()];
-    let info = reader.next_frame(&mut buffer).unwrap();
-    let rgba = match info.color_type {
-        png::ColorType::Rgba => buffer[..info.buffer_size()].to_vec(),
-        png::ColorType::Rgb => buffer[..info.buffer_size()]
-            .chunks(3)
-            .flat_map(|px| [px[0], px[1], px[2], 255])
-            .collect(),
-        other => panic!("unexpected PNG colour type {other:?}"),
-    };
-    (info.width, info.height, rgba)
+    crate::image::decode(&bytes)
 }
 
 fn compare(golden: &Path, actual_png: &[u8], name: &str, dark: bool) {

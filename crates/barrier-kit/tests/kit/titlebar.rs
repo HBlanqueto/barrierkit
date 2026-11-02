@@ -1,7 +1,5 @@
 //! Tests that the titlebar follows the compositor's decoration answer.
 
-use std::io::Cursor;
-
 use barrier_kit::platform::{DecorationResponse, WindowStatus};
 use barrier_kit::theme;
 use barrier_kit::titlebar::Titlebar;
@@ -25,13 +23,7 @@ fn render(status: WindowStatus) -> Vec<u8> {
     let app = AppComponent::new(Case { status });
     let (mut test, _) = TestingRunner::new(app, Size2D::new(300.0, 120.0), |_| {}, 1.0);
     test.sync_and_update();
-    let png = test.render();
-    let mut decoder = png::Decoder::new(Cursor::new(png.as_bytes()));
-    decoder.set_transformations(png::Transformations::normalize_to_color8());
-    let mut reader = decoder.read_info().unwrap();
-    let mut buffer = vec![0; reader.output_buffer_size()];
-    let info = reader.next_frame(&mut buffer).unwrap();
-    buffer[..info.buffer_size()].to_vec()
+    crate::image::decode(test.render().as_bytes()).2
 }
 
 fn status(decoration: DecorationResponse) -> WindowStatus {

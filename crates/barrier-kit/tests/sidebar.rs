@@ -2,7 +2,6 @@
 
 use std::env;
 use std::fs;
-use std::io::Cursor;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
@@ -23,6 +22,11 @@ use keyboard_types::{Key, NamedKey};
 use torin::prelude::{Alignment, Direction, Size, Size2D};
 use vow_appearance::{AppearanceConfig, ColorScheme, SidebarStyle, WindowColorMode, resolve};
 use vow_design::{SIDEBAR, TITLEBAR, TITLEBAR_CLIENT_HEIGHT, TOOLGROUP};
+
+#[path = "kit/image.rs"]
+mod image;
+
+use image::{decode, pixel};
 
 static ENV_LOCK: Mutex<()> = Mutex::new(());
 
@@ -167,7 +171,7 @@ fn render_titlebar_pixels(
         1.0,
     );
     test.sync_and_update();
-    decode_png(test.render().as_bytes())
+    decode(test.render().as_bytes())
 }
 
 #[test]
@@ -764,7 +768,7 @@ fn sidebar_items_with_same_length_icons_render_different_images() {
     let app = AppComponent::new(SameLengthIconsCase);
     let (mut test, _) = TestingRunner::new(app, Size2D::new(300.0, 300.0), |_| {}, 1.0);
     test.sync_and_update();
-    let (width, _, image) = decode_png(test.render().as_bytes());
+    let (width, _, image) = decode(test.render().as_bytes());
     let icons = icon_areas(&test);
     assert_eq!(icons.len(), 2, "expected two item icons, found {icons:?}");
     let size = SIDEBAR.item_icon as usize;
@@ -811,13 +815,13 @@ fn sidebar_section_chevron_changes_shape_when_toggled() {
     test.move_cursor((20.0, 68.0));
     test.click_cursor((20.0, 68.0));
     test.sync_and_update();
-    let (width, _, collapsed_image) = decode_png(test.render().as_bytes());
+    let (width, _, collapsed_image) = decode(test.render().as_bytes());
     let (x, y) = chevron_area(&test);
     let collapsed = crop(&collapsed_image, width, x, y, size);
 
     test.click_cursor((20.0, 68.0));
     test.sync_and_update();
-    let (width, _, expanded_image) = decode_png(test.render().as_bytes());
+    let (width, _, expanded_image) = decode(test.render().as_bytes());
     let (x, y) = chevron_area(&test);
     let expanded = crop(&expanded_image, width, x, y, size);
 
@@ -996,28 +1000,6 @@ fn dark_resolved() -> vow_appearance::Resolved {
     )
 }
 
-fn decode_png(png: &[u8]) -> (usize, usize, Vec<u8>) {
-    let mut decoder = png::Decoder::new(Cursor::new(png));
-    decoder.set_transformations(png::Transformations::normalize_to_color8());
-    let mut reader = decoder.read_info().unwrap();
-    let mut buffer = vec![0; reader.output_buffer_size()];
-    let info = reader.next_frame(&mut buffer).unwrap();
-    let rgba = match info.color_type {
-        png::ColorType::Rgba => buffer[..info.buffer_size()].to_vec(),
-        png::ColorType::Rgb => buffer[..info.buffer_size()]
-            .chunks(3)
-            .flat_map(|px| [px[0], px[1], px[2], 255])
-            .collect(),
-        other => panic!("unexpected PNG colour type {other:?}"),
-    };
-    (info.width as usize, info.height as usize, rgba)
-}
-
-fn pixel(image: &[u8], width: usize, x: usize, y: usize) -> [u8; 4] {
-    let index = (y * width + x) * 4;
-    image[index..index + 4].try_into().unwrap()
-}
-
 struct IslandShadowCase;
 
 impl App for IslandShadowCase {
@@ -1067,7 +1049,7 @@ fn island_and_toolgroup_cast_no_shadow() {
     test.sync_and_update();
     let _ = test.render();
     test.sync_and_update();
-    let (w, _h, image) = decode_png(test.render().as_bytes());
+    let (w, _h, image) = decode(test.render().as_bytes());
     let island_bottom = 300.0 - SIDEBAR.inset as f32 + 4.0;
     assert_eq!(
         pixel(&image, w, 110, island_bottom as usize),
@@ -1085,7 +1067,7 @@ fn island_and_toolgroup_cast_no_shadow() {
     test.sync_and_update();
     let _ = test.render();
     test.sync_and_update();
-    let (w, _h, image) = decode_png(test.render().as_bytes());
+    let (w, _h, image) = decode(test.render().as_bytes());
     let capsule_bottom = 40.0 + TOOLGROUP.height as f32 / 2.0 + 3.0;
     assert_eq!(
         pixel(&image, w, 150, capsule_bottom as usize),

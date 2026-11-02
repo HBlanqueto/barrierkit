@@ -1,12 +1,12 @@
 //! Pixel tests for the traffic lights.
 
+use crate::image::{decode, pixel};
 use barrier_kit::ProbeExt;
 use barrier_kit::traffic::{TrafficLights, traffic_lights_view};
 use freya_core::element::ElementExt;
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 use freya_testing::TestingRunner;
-use std::io::Cursor;
 use std::rc::Rc;
 use torin::prelude::Size2D;
 use vow_appearance::TrafficLightStyle;
@@ -37,25 +37,8 @@ fn render(input: TrafficInput, scale: f64) -> (Vec<u8>, usize) {
     let _ = test.render();
     test.sync_and_update();
     let png = test.render();
-    let mut decoder = png::Decoder::new(Cursor::new(png.as_bytes()));
-    decoder.set_transformations(png::Transformations::normalize_to_color8());
-    let mut reader = decoder.read_info().unwrap();
-    let mut buffer = vec![0; reader.output_buffer_size()];
-    let info = reader.next_frame(&mut buffer).unwrap();
-    let rgba = match info.color_type {
-        png::ColorType::Rgba => buffer[..info.buffer_size()].to_vec(),
-        png::ColorType::Rgb => buffer[..info.buffer_size()]
-            .chunks(3)
-            .flat_map(|px| [px[0], px[1], px[2], 255])
-            .collect(),
-        other => panic!("unexpected PNG colour type {other:?}"),
-    };
-    (rgba, info.width as usize)
-}
-
-fn pixel(image: &[u8], width: usize, x: usize, y: usize) -> [u8; 4] {
-    let index = (y * width + x) * 4;
-    image[index..index + 4].try_into().unwrap()
+    let (width, _, rgba) = decode(png.as_bytes());
+    (rgba, width)
 }
 
 fn sample(input: TrafficInput, scale: f64) -> [u8; 4] {
@@ -85,20 +68,8 @@ fn render_fixed(input: TrafficInput, fixed: bool, scale: f64) -> (Vec<u8>, usize
     let _ = test.render();
     test.sync_and_update();
     let png = test.render();
-    let mut decoder = png::Decoder::new(Cursor::new(png.as_bytes()));
-    decoder.set_transformations(png::Transformations::normalize_to_color8());
-    let mut reader = decoder.read_info().unwrap();
-    let mut buffer = vec![0; reader.output_buffer_size()];
-    let info = reader.next_frame(&mut buffer).unwrap();
-    let rgba = match info.color_type {
-        png::ColorType::Rgba => buffer[..info.buffer_size()].to_vec(),
-        png::ColorType::Rgb => buffer[..info.buffer_size()]
-            .chunks(3)
-            .flat_map(|px| [px[0], px[1], px[2], 255])
-            .collect(),
-        other => panic!("unexpected PNG colour type {other:?}"),
-    };
-    (rgba, info.width as usize)
+    let (width, _, rgba) = decode(png.as_bytes());
+    (rgba, width)
 }
 
 fn compare(actual: [u8; 4], expected: Rgba) {
@@ -247,20 +218,8 @@ fn fixed_width_green_uses_plus_glyph() {
 
 fn render_png(test: &mut TestingRunner) -> (Vec<u8>, usize) {
     let png = test.render();
-    let mut decoder = png::Decoder::new(Cursor::new(png.as_bytes()));
-    decoder.set_transformations(png::Transformations::normalize_to_color8());
-    let mut reader = decoder.read_info().unwrap();
-    let mut buffer = vec![0; reader.output_buffer_size()];
-    let info = reader.next_frame(&mut buffer).unwrap();
-    let rgba = match info.color_type {
-        png::ColorType::Rgba => buffer[..info.buffer_size()].to_vec(),
-        png::ColorType::Rgb => buffer[..info.buffer_size()]
-            .chunks(3)
-            .flat_map(|px| [px[0], px[1], px[2], 255])
-            .collect(),
-        other => panic!("unexpected PNG colour type {other:?}"),
-    };
-    (rgba, info.width as usize)
+    let (width, _, rgba) = decode(png.as_bytes());
+    (rgba, width)
 }
 
 struct InteractiveCase;
@@ -378,16 +337,10 @@ fn close_only_keeps_minimise_and_zoom_inactive() {
     let app = AppComponent::new(CloseOnlyCase { input });
     let (mut test, _) = TestingRunner::new(app, Size2D::new(80.0, 40.0), |_| {}, 1.0);
     test.sync_and_update();
-    let png = test.render();
-    let mut decoder = png::Decoder::new(Cursor::new(png.as_bytes()));
-    decoder.set_transformations(png::Transformations::normalize_to_color8());
-    let mut reader = decoder.read_info().unwrap();
-    let mut buffer = vec![0; reader.output_buffer_size()];
-    let info = reader.next_frame(&mut buffer).unwrap();
-    let channels = buffer[..info.buffer_size()].len() / (info.width * info.height) as usize;
+    let (width, _, image) = decode(test.render().as_bytes());
     let at = |x: f64, y: f64| -> [u8; 3] {
-        let index = (y as usize * info.width as usize + x as usize) * channels;
-        [buffer[index], buffer[index + 1], buffer[index + 2]]
+        let [r, g, b, _] = pixel(&image, width, x as usize, y as usize);
+        [r, g, b]
     };
     let resolved = vow_appearance::resolve(
         &vow_appearance::load_appearance(),

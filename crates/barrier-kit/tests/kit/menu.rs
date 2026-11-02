@@ -5,6 +5,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use crate::image::{decode, pixel};
 use barrier_kit::menu::{CheckState, MenuItem, MenuView};
 use barrier_kit::theme::{SurfaceKind, menu_palette};
 use freya_core::integration::AppComponent;
@@ -160,39 +161,20 @@ fn golden_path_accents(dark: bool) -> PathBuf {
         ))
 }
 
-fn decode_bytes(bytes: &[u8]) -> (u32, u32, Vec<u8>) {
-    let mut decoder = png::Decoder::new(std::io::Cursor::new(bytes));
-    decoder.set_transformations(png::Transformations::normalize_to_color8());
-    let mut reader = decoder.read_info().unwrap();
-    let mut buffer = vec![0; reader.output_buffer_size()];
-    let info = reader.next_frame(&mut buffer).unwrap();
-    let rgba = match info.color_type {
-        png::ColorType::Rgba => buffer[..info.buffer_size()].to_vec(),
-        png::ColorType::Rgb => buffer[..info.buffer_size()]
-            .chunks(3)
-            .flat_map(|px| [px[0], px[1], px[2], 255])
-            .collect(),
-        other => panic!("unexpected PNG colour type {other:?}"),
-    };
-    (info.width, info.height, rgba)
-}
-
-fn decode(path: &Path) -> (u32, u32, Vec<u8>) {
+fn decode_file(path: &Path) -> (usize, usize, Vec<u8>) {
     let bytes = fs::read(path).unwrap_or_else(|e| panic!("read {path:?}: {e}"));
-    decode_bytes(&bytes)
+    decode(&bytes)
 }
 
 fn assert_right_padding_is_background(png: &[u8], palette: MenuPalette, label: &str) {
-    let (width, height, pixels) = decode_bytes(png);
-    let padding = palette.padding.ceil() as u32;
+    let (width, height, pixels) = decode(png);
+    let padding = palette.padding.ceil() as usize;
     let start = width.saturating_sub(padding);
     let background = palette.bg.to_rgba8();
     let mut offenders = Vec::new();
     for y in 0..height {
         for x in start..width {
-            let offset = ((y * width + x) * 4) as usize;
-            let pixel = &pixels[offset..offset + 4];
-            if pixel
+            if pixel(&pixels, width, x, y)
                 .iter()
                 .zip(&background)
                 .any(|(actual, expected)| actual.abs_diff(*expected) > TOLERANCE)
@@ -209,19 +191,14 @@ fn assert_right_padding_is_background(png: &[u8], palette: MenuPalette, label: &
     );
 }
 
-fn pixel_at(pixels: &[u8], width: u32, x: u32, y: u32) -> [u8; 4] {
-    let offset = ((y * width + x) * 4) as usize;
-    pixels[offset..offset + 4].try_into().unwrap()
-}
-
 fn compare(golden: &Path, actual_png: &[u8], dark: bool, name: &str) {
     let actual_path = std::env::temp_dir().join(format!(
         "malaysia-menu-{name}-{}.png",
         if dark { "dark" } else { "light" }
     ));
     fs::write(&actual_path, actual_png).unwrap();
-    let (gw, gh, golden_px) = decode(golden);
-    let (aw, ah, actual_px) = decode(&actual_path);
+    let (gw, gh, golden_px) = decode_file(golden);
+    let (aw, ah, actual_px) = decode_file(&actual_path);
     assert_eq!((gw, gh), (aw, ah), "menu image size changed");
     let bad = golden_px
         .iter()
@@ -365,24 +342,24 @@ fn an_open_menu_recolors_when_the_accent_changes() {
     );
     test.sync_and_update();
 
-    let x = (palette.padding + palette.item_padding_x / 2.0) as u32;
-    let y = (palette.padding + palette.item_height / 2.0) as u32;
-    let (width, _, pixels) = decode_bytes(&test.render());
+    let x = (palette.padding + palette.item_padding_x / 2.0) as usize;
+    let y = (palette.padding + palette.item_height / 2.0) as usize;
+    let (width, _, pixels) = decode(&test.render());
     assert_eq!(
-        pixel_at(&pixels, width, x, y),
+        pixel(&pixels, width, x, y),
         palette.hover_bg.to_rgba8(),
         "the highlighted row must start with the purple accent"
     );
 
     state.set(blue);
     test.sync_and_update();
-    let (width, _, pixels) = decode_bytes(&test.render());
+    let (width, _, pixels) = decode(&test.render());
     let expected = menu_palette(&blue, SurfaceKind::LayerShell)
         .hover_bg
         .to_rgba8();
     assert_ne!(expected, palette.hover_bg.to_rgba8());
     assert_eq!(
-        pixel_at(&pixels, width, x, y),
+        pixel(&pixels, width, x, y),
         expected,
         "an open menu must follow the new accent"
     );
@@ -404,22 +381,22 @@ fn an_open_menu_recolors_when_the_scheme_changes() {
     );
     test.sync_and_update();
 
-    let x = (size.0 / 2.0) as u32;
-    let y = (palette.padding / 2.0) as u32;
-    let (width, _, pixels) = decode_bytes(&test.render());
+    let x = (size.0 / 2.0) as usize;
+    let y = (palette.padding / 2.0) as usize;
+    let (width, _, pixels) = decode(&test.render());
     assert_eq!(
-        pixel_at(&pixels, width, x, y),
+        pixel(&pixels, width, x, y),
         palette.bg.to_rgba8(),
         "the panel must start light"
     );
 
     state.set(dark);
     test.sync_and_update();
-    let (width, _, pixels) = decode_bytes(&test.render());
+    let (width, _, pixels) = decode(&test.render());
     let expected = menu_palette(&dark, SurfaceKind::LayerShell).bg.to_rgba8();
     assert_ne!(expected, palette.bg.to_rgba8());
     assert_eq!(
-        pixel_at(&pixels, width, x, y),
+        pixel(&pixels, width, x, y),
         expected,
         "an open menu must follow the new scheme"
     );

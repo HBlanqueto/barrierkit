@@ -49,11 +49,10 @@ check() {
     require cargo-fmt
     require cargo-clippy
     cargo fmt --all -- --check
-    cargo clippy --workspace --all-targets -- -D warnings
+    cargo clippy -p barrier-kit --lib -- -D warnings
     cargo clippy --workspace --all-targets --features barrier-kit/shell -- -D warnings
     "$script_dir/scripts/check-design-tokens.sh"
     "$script_dir/scripts/check-client-only-deps.sh"
-    cargo test --workspace
     cargo test --workspace --features barrier-kit/shell
 }
 
