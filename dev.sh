@@ -24,8 +24,7 @@ help() {
 Usage: ./dev.sh <command>
 
 Commands:
-  examples                list available examples in crates/barrier-kit/examples
-  example <name> [args]   build and run one example against the current WAYLAND_DISPLAY
+  app <name> [args]       run tengen-app-show or ondina against the current WAYLAND_DISPLAY
   check                   run fmt, clippy, tests and kit-specific checks
   help                    show this message
 
@@ -33,28 +32,15 @@ All commands require 'nix develop'.
 EOF
 }
 
-examples() {
-    require_devshell
-    printf 'Available examples:\n'
-    for _f in "$script_dir"/crates/barrier-kit/examples/*.rs; do
-        [ -f "$_f" ] || continue
-        basename "$_f" .rs
-    done
-}
-
-example() {
+app() {
     require_devshell
     require cargo
-    if [ "$#" -eq 0 ]; then
-        fail 1 "missing example name; run './dev.sh examples' to list them"
-    fi
-    _name=$1
-    shift
-    if [ ! -f "$script_dir/crates/barrier-kit/examples/$_name.rs" ]; then
-        fail 1 "no such example: $_name"
-    fi
-    RUST_LOG=${RUST_LOG:-info} \
-        cargo run -p barrier-kit --example "$_name" --features shell -- "$@"
+    _name=${1:-}
+    case "$_name" in
+        tengen-app-show | ondina) shift ;;
+        *) fail 1 "usage: ./dev.sh app tengen-app-show|ondina [args]" ;;
+    esac
+    RUST_LOG=${RUST_LOG:-info} cargo run -p "$_name" -- "$@"
 }
 
 check() {
@@ -72,12 +58,9 @@ check() {
 }
 
 case "${1:-}" in
-    examples)
-        examples
-        ;;
-    example)
+    app)
         shift
-        example "$@"
+        app "$@"
         ;;
     check)
         check
