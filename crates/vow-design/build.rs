@@ -36,6 +36,7 @@ fn main() {
     emit_text_field(&mut out, &tokens, &components);
     emit_progress(&mut out, &tokens, &components);
     emit_tooltip(&mut out, &tokens, &components);
+    emit_backdrop(&mut out, &components);
     emit_symbol(&mut out, &components);
     emit_slider_fat(&mut out, &components);
     emit_compact(&mut out, &tokens, &components);
@@ -802,6 +803,55 @@ fn emit_progress(out: &mut String, tokens: &Value, components: &Value) {
         field("spinner.size"),
         integer(components, "components.progress.spinner.spokes", COMPONENTS),
         integer(components, "components.progress.spinner.duration", COMPONENTS)
+    ));
+}
+
+fn floats(components: &Value, path: &str) -> String {
+    value(components, path, COMPONENTS)
+        .as_array()
+        .unwrap_or_else(|| panic!("vow-design: `{path}` must be a list"))
+        .iter()
+        .map(|v| float(v.as_f64().expect("number")))
+        .collect::<Vec<_>>()
+        .join(", ")
+}
+
+fn emit_backdrop(out: &mut String, components: &Value) {
+    let field = |key: &str| {
+        float(
+            value(components, &format!("components.backdrop.{key}"), COMPONENTS)
+                .as_f64()
+                .expect("number"),
+        )
+    };
+    let count = |key: &str| integer(components, &format!("components.backdrop.{key}"), COMPONENTS);
+    const_doc(out, "BACKDROP", "Tinted window backgrounds drawn from an image or chosen colours.");
+    out.push_str(&format!(
+        ": BackdropMetrics = BackdropMetrics {{ angles: [{}], opacity: {}, stops: {}, lightness: [{}], chroma: {}, base_darken: {}, base_lightness: [{}], base_chroma: {}, samples: {}, clusters: {}, ink_secondary: {}, ink_tertiary: {}, glass: {}, glass_strong: {}, sunken: {}, accent_lightness_on_dark: {}, accent_lightness_on_light: {}, accent_min_chroma: {} }};\n\n",
+        floats(components, "components.backdrop.angles"),
+        field("opacity"),
+        count("stops"),
+        floats(components, "components.backdrop.lightness"),
+        field("chroma"),
+        field("base-darken"),
+        floats(components, "components.backdrop.base-lightness"),
+        field("base-chroma"),
+        count("samples"),
+        count("clusters"),
+        field("ink-secondary"),
+        field("ink-tertiary"),
+        field("glass"),
+        field("glass-strong"),
+        field("sunken"),
+        field("accent-lightness-on-dark"),
+        field("accent-lightness-on-light"),
+        field("accent-min-chroma"),
+    ));
+    const_doc(out, "BREAKPOINT", "Window widths where adaptive layouts change shape.");
+    out.push_str(&format!(
+        ": BreakpointMetrics = BreakpointMetrics {{ medium: {}, wide: {} }};\n\n",
+        float(value(components, "components.breakpoint.medium", COMPONENTS).as_f64().expect("number")),
+        float(value(components, "components.breakpoint.wide", COMPONENTS).as_f64().expect("number")),
     ));
 }
 

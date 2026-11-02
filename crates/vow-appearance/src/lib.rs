@@ -3,6 +3,7 @@
 use std::path::{Path, PathBuf};
 
 use serde::Deserialize;
+pub mod backdrop;
 pub mod traffic;
 pub mod watch;
 

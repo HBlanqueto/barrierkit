@@ -428,6 +428,34 @@ pub struct ProgressMetrics {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct BackdropMetrics {
+    pub angles: [f32; 3],
+    pub opacity: f32,
+    pub stops: u32,
+    pub lightness: [f32; 2],
+    pub chroma: f32,
+    pub base_darken: f32,
+    pub base_lightness: [f32; 2],
+    pub base_chroma: f32,
+    pub samples: u32,
+    pub clusters: u32,
+    pub ink_secondary: f32,
+    pub ink_tertiary: f32,
+    pub glass: f32,
+    pub glass_strong: f32,
+    pub sunken: f32,
+    pub accent_lightness_on_dark: f32,
+    pub accent_lightness_on_light: f32,
+    pub accent_min_chroma: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct BreakpointMetrics {
+    pub medium: f32,
+    pub wide: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct TooltipMetrics {
     pub delay_ms: u64,
     pub padding_x: f32,

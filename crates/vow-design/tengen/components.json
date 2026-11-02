@@ -622,6 +622,30 @@
         "duration": 1000
       }
     },
+    "backdrop": {
+      "angles": [127, 217, 336],
+      "opacity": 0.8,
+      "stops": 8,
+      "lightness": [0.30, 0.58],
+      "chroma": 0.11,
+      "base-darken": 0.06,
+      "base-lightness": [0.22, 0.5],
+      "base-chroma": 0.09,
+      "samples": 64,
+      "clusters": 6,
+      "ink-secondary": 0.72,
+      "ink-tertiary": 0.36,
+      "glass": 0.12,
+      "glass-strong": 0.2,
+      "sunken": 0.18,
+      "accent-lightness-on-dark": 0.74,
+      "accent-lightness-on-light": 0.5,
+      "accent-min-chroma": 0.12
+    },
+    "breakpoint": {
+      "medium": 620,
+      "wide": 900
+    },
     "tooltip": {
       "delay": 1000,
       "padding-x": 6,
