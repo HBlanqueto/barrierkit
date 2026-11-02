@@ -154,6 +154,18 @@ pub struct WindowStatus {
     pub fixed: bool,
 }
 
+impl Default for WindowStatus {
+    fn default() -> Self {
+        Self {
+            activated: true,
+            maximized: false,
+            fullscreen: false,
+            decoration: DecorationResponse::Client,
+            fixed: false,
+        }
+    }
+}
+
 #[derive(Clone)]
 pub struct WindowControls {
     pub(super) queue: Rc<RefCell<Vec<WindowCommand>>>,

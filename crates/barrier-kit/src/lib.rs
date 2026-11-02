@@ -40,6 +40,8 @@ pub mod app;
 
 pub mod views;
 
+pub mod patterns;
+
 pub mod symbol;
 
 pub mod menu;

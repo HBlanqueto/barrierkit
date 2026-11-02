@@ -143,11 +143,16 @@ impl Component for Titlebar {
         let (status, title, fixed) = if let Some(preview) = &self.preview {
             let title = self.title.clone().unwrap_or_else(|| preview.title.clone());
             (preview.status, title, preview.fixed)
-        } else {
-            let controls = WindowControls::get();
+        } else if let Some(controls) = try_consume_root_context::<WindowControls>() {
             let status = *controls.status.read();
             let title = self.title.clone().unwrap_or_else(|| controls.title.clone());
             (status, title, controls.fixed)
+        } else {
+            (
+                WindowStatus::default(),
+                self.title.clone().unwrap_or_default(),
+                false,
+            )
         };
         let drag = window_drag_handler(fixed);
         if status.decoration == DecorationResponse::Server {

@@ -13,6 +13,8 @@ use barrier_kit::controls::{
     Slider, Switch, TextField,
 };
 use barrier_kit::level::{LevelSlider, LevelStyle};
+use barrier_kit::patterns::about::about_window;
+use barrier_kit::patterns::preferences::{Pane, PaneGroup, PreferencesWindow};
 use barrier_kit::popup_button::PopUpButton;
 use barrier_kit::progress::{ProgressBar, ProgressRing};
 use barrier_kit::sidebar::SidebarAccount;
@@ -33,6 +35,7 @@ use torin::prelude::{Alignment, Direction, Gaps, Size, Size2D};
 use vow_design::ACCENT_SWATCHES;
 
 const SIZE: (f32, f32) = (360.0, 240.0);
+const WINDOW_SIZE: (f32, f32) = (900.0, 560.0);
 const TOLERANCE: u8 = 3;
 
 struct Case {
@@ -278,6 +281,59 @@ fn sidebar_account() -> Element {
         .into_element()
 }
 
+fn window_cases() -> Vec<Control> {
+    vec![("preferences", preferences), ("about", about)]
+}
+
+fn preferences() -> Element {
+    let [blue, purple, ..] = ACCENT_SWATCHES.map(|swatch| swatch.1);
+    PreferencesWindow::new()
+        .account("HB", "Héctor Blanqueto", "Cuenta local")
+        .group(
+            PaneGroup::new(None)
+                .pane(Pane::new(
+                    "apariencia",
+                    "Apariencia",
+                    Symbol::MagnifyingGlass,
+                    blue,
+                    Form::new().section(
+                        Section::new()
+                            .row(
+                                Row::new("Color de acento").control(
+                                    ColorWell::new("Color de acento", &ACCENT_SWATCHES)
+                                        .selected(Some(0)),
+                                ),
+                            )
+                            .row(
+                                Row::new("Semáforos").control(
+                                    PopUpButton::new("Semáforos")
+                                        .item("Automático")
+                                        .item("Clásico"),
+                                ),
+                            ),
+                    ),
+                ))
+                .pane(Pane::new(
+                    "sonido",
+                    "Sonido",
+                    Symbol::SpeakerWave,
+                    purple,
+                    Form::new(),
+                )),
+        )
+        .into_element()
+}
+
+fn about() -> Element {
+    about_window(
+        avatar("C"),
+        "Contador",
+        "Versión 1.0",
+        "™ y © 2026 MalaysiaDreams",
+    )
+    .into_element()
+}
+
 fn checkbox() -> Element {
     Checkbox::new("Recordarme").checked(true).into_element()
 }
@@ -339,9 +395,10 @@ fn golden_path(name: &str, dark: bool) -> PathBuf {
         ))
 }
 
-fn render(_name: &str, dark: bool, build: fn() -> Element) -> Vec<u8> {
+fn render(size: (f32, f32), dark: bool, build: fn() -> Element) -> Vec<u8> {
     let app = AppComponent::new(Case { dark, build });
-    let (mut test, _) = TestingRunner::new(app, Size2D::new(SIZE.0, SIZE.1), |_| {}, 1.0);
+    let (mut test, _) = TestingRunner::new(app, Size2D::new(size.0, size.1), |_| {}, 1.0);
+    test.sync_and_update();
     test.sync_and_update();
     let data = test.render();
     data.as_ref().to_vec()
@@ -390,10 +447,14 @@ fn compare(golden: &Path, actual_png: &[u8], name: &str, dark: bool) {
 #[test]
 fn controls_match_their_golden_images() {
     let update = std::env::var_os("UPDATE_GOLDEN").is_some();
-    for (name, build) in cases() {
+    let controls = cases().into_iter().map(|(name, build)| (name, build, SIZE));
+    let windows = window_cases()
+        .into_iter()
+        .map(|(name, build)| (name, build, WINDOW_SIZE));
+    for (name, build, size) in controls.chain(windows) {
         for dark in [false, true] {
             let path = golden_path(name, dark);
-            let actual = render(name, dark, build);
+            let actual = render(size, dark, build);
             if update || !path.exists() {
                 fs::create_dir_all(path.parent().unwrap()).unwrap();
                 fs::write(&path, &actual).unwrap();

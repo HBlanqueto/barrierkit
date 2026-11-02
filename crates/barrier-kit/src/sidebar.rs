@@ -13,8 +13,9 @@ use vow_design::{DURATION_BASE, Rgba, SETTINGS, SIDEBAR, SidebarPalette, TITLEBA
 use crate::ProbeExt;
 use crate::adornments::avatar;
 use crate::interaction::use_interaction;
-use crate::platform::{DecorationResponse, WindowControls, WindowStatus};
-use crate::style::text;
+use crate::platform::WindowControls;
+use crate::style::{Palette, text};
+use crate::symbol::{Symbol, symbol};
 use crate::titlebar::{window_drag_handler, window_traffic_lights};
 use freya_core::prelude::try_consume_root_context;
 
@@ -129,16 +130,7 @@ impl Component for Sidebar {
 
         let (status, fixed) = try_consume_root_context::<WindowControls>()
             .map(|controls| (*controls.status.read(), controls.fixed))
-            .unwrap_or((
-                WindowStatus {
-                    activated: true,
-                    maximized: false,
-                    fullscreen: false,
-                    decoration: DecorationResponse::Client,
-                    fixed: false,
-                },
-                false,
-            ));
+            .unwrap_or_default();
         let drag = window_drag_handler(fixed);
         let band_top = -(top_height as f32) - if island { SIDEBAR.inset as f32 } else { 0.0 };
         let band_left = -(padding_x);
@@ -261,6 +253,7 @@ pub struct SidebarItem {
     label: String,
     icon: Option<&'static str>,
     app_icon: Option<(&'static str, Rgba)>,
+    symbol: Option<(Symbol, Rgba)>,
     badge: Option<u32>,
     selected: bool,
     on_select: Option<Callback<(), ()>>,
@@ -281,6 +274,7 @@ impl SidebarItem {
             label: label.into(),
             icon: None,
             app_icon: None,
+            symbol: None,
             badge: None,
             selected: false,
             on_select: None,
@@ -292,6 +286,11 @@ impl SidebarItem {
     pub fn icon(mut self, svg: &'static str) -> Self {
         self.icon = Some(svg);
         self.app_icon = None;
+        self
+    }
+
+    pub fn symbol(mut self, symbol: Symbol, tint: Rgba) -> Self {
+        self.symbol = Some((symbol, tint));
         self
     }
 
@@ -380,7 +379,22 @@ impl Component for SidebarItem {
                 el.on_press(move |_| callback.call(()))
             });
 
-        if let Some((svg, bg_color)) = self.app_icon {
+        if let Some((glyph, tint)) = self.symbol {
+            let tile = SIDEBAR.app_icon as f32;
+            row = row.child(
+                rect()
+                    .width(Size::px(tile))
+                    .height(Size::px(tile))
+                    .corner_radius(SIDEBAR.item_radius as f32)
+                    .background(rgba(tint))
+                    .center()
+                    .child(symbol(
+                        glyph,
+                        SIDEBAR.item_icon as f32,
+                        Palette::current().on_accent,
+                    )),
+            );
+        } else if let Some((svg, bg_color)) = self.app_icon {
             row = row.child(
                 rect()
                     .width(Size::px(SIDEBAR.app_icon as f32))
