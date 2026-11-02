@@ -1226,11 +1226,11 @@ impl Component for Checkbox {
         };
 
         let box_bg = if *checked.read() {
-            color(CHECKBOX.on)
+            color(palette.accent)
         } else {
             color(palette.content_background)
         };
-        let box_border = color(CHECKBOX.border);
+        let box_border = color(palette.control_border);
         let label_color = if self.disabled {
             color(palette.tertiary_label)
         } else {
