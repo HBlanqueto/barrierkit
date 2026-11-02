@@ -465,6 +465,7 @@ impl Runtime {
             options.menu.clone(),
             options.on_menu_action.clone(),
             self.resolved,
+            self.clipboard.provider(),
             |r| {
                 if let Some(hooks) = self.extension_hooks() {
                     (hooks.provide_contexts)(self, r);

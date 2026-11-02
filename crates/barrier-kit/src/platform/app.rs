@@ -70,6 +70,7 @@ impl AppInstance {
         menu: Option<crate::app_menu::AppMenu>,
         on_menu_action: Option<MenuActionHandler>,
         resolved: State<Resolved>,
+        clipboard: Box<dyn ClipboardProvider>,
         extra_contexts: impl FnOnce(&mut Runner),
     ) -> Self {
         let (events_sender, events_receiver) = futures_channel::mpsc::unbounded();
@@ -108,7 +109,7 @@ impl AppInstance {
             runner.provide_root_context(move || handle);
         }
         runner.provide_root_context(move || timers);
-        runner.provide_root_context(|| State::create(None::<Box<dyn ClipboardProvider>>));
+        runner.provide_root_context(move || State::create(Some(clipboard)));
         runner.provide_root_context(|| tree.accessibility_generator.clone());
         runner.provide_root_context(|| font_collection.clone());
 

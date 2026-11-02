@@ -190,6 +190,7 @@ pub fn run_layer(app: AppComponent, spec: LayerSpec) -> Result<(), RunError> {
         None,
         None,
         shell.resolved,
+        shell.clipboard.provider(),
         |r| {
             if let Some(hooks) = shell.extension_hooks() {
                 (hooks.provide_contexts)(&shell, r);

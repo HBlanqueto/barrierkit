@@ -151,6 +151,7 @@ impl Runtime {
             None,
             None,
             self.resolved,
+            self.clipboard.provider(),
             |r| {
                 if let Some(hooks) = self.extension_hooks() {
                     (hooks.provide_contexts)(self, r);

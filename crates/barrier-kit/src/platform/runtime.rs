@@ -1,6 +1,7 @@
 use super::{
     ObjectId, RunError,
     app_menu_export::AppMenuAddress,
+    clipboard::{Clipboard, ClipboardDevice},
     extension::Extension,
     input::seat::{RepeatState, cursor_shape_from_icon},
     popup::PopupCommand,
@@ -22,6 +23,7 @@ use std::{
 use freya_core::integration::{UserEvent, WritableUtils};
 use sctk::{
     compositor::CompositorState,
+    data_device_manager::DataDeviceManagerState,
     delegate_compositor, delegate_output, delegate_registry, delegate_xdg_shell,
     delegate_xdg_window,
     output::{OutputHandler, OutputState},
@@ -107,6 +109,8 @@ pub(crate) struct Runtime {
     pub(crate) appearance_watch: Option<AppearanceWatch>,
     pub(crate) resolved: State<Resolved>,
     pub(crate) pending_menu_addresses: Arc<Mutex<Vec<(ObjectId, AppMenuAddress)>>>,
+    pub(crate) clipboard: Clipboard,
+    pub(crate) clipboard_device: Option<ClipboardDevice>,
 }
 
 #[derive(Clone)]
@@ -169,6 +173,7 @@ pub(crate) fn insert_ping(
                     UserEvent::Erased(_) => {}
                 }
             }
+            shell.publish_clipboard();
             shell.poll_all();
             shell.process_popup_commands();
             shell.install_timers(&handle);
@@ -259,7 +264,7 @@ impl Runtime {
         }
         let seat = SeatState::new(&globals, &qh);
         let seat_handle = seat.seats().next();
-        let shell = Runtime {
+        let mut shell = Runtime {
             registry: RegistryState::new(&globals),
             compositor: CompositorState::bind(&globals, &qh)
                 .map_err(|_| RunError::MissingGlobal("wl_compositor"))?,
@@ -323,7 +328,14 @@ impl Runtime {
             appearance_watch: None,
             resolved,
             pending_menu_addresses: Arc::new(Mutex::new(Vec::new())),
+            clipboard: Clipboard::new(conn.clone(), ping.clone()),
+            clipboard_device: DataDeviceManagerState::bind(&globals, &qh)
+                .ok()
+                .map(ClipboardDevice::new),
         };
+        if let Some(seat) = shell.seat_handle.clone() {
+            shell.attach_clipboard(&seat);
+        }
         Ok(Connected {
             conn,
             event_queue,

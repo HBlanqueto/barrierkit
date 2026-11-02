@@ -2,6 +2,7 @@
 
 pub(crate) mod app;
 mod app_menu_export;
+mod clipboard;
 pub(crate) mod extension;
 mod focus;
 mod input;
