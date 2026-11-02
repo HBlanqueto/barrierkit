@@ -11,7 +11,7 @@ BarrierKit (ADR 0034) nació para dibujar la shell. Hoy tiene:
 - unos pocos controles propios;
 - re-exportaciones directas de `freya-components` (`Button`, `Switch`, `Slider`, `Input`…) que se ven con el estilo de Freya y no con el de Tengen.
 
-La auditoría P4 (`docs/auditorias/2026-10-28-ponytail-p4{a,b,c}-*.md`) lo confirma: Ajustes del sistema reimplementa la barra lateral, el buscador, los radios, el desplegable, las muestras de acento y las filas en tarjeta. Cada app nueva tendría que volver a hacerlo.
+La auditoría P4 lo confirmó: Ajustes del sistema reimplementa la barra lateral, el buscador, los radios, el desplegable, las muestras de acento y las filas en tarjeta. Cada app nueva tendría que volver a hacerlo.
 
 El objetivo es que BarrierKit sirva para construir **cualquier** app del escritorio, como AppKit o libadwaita, no una sola forma de app:
 
@@ -259,7 +259,6 @@ Pendiente:
 - [`0040`](0040-menu-global-real.md): menú global.
 - [`0041`](0041-barra-lateral-en-isla.md): barra lateral en isla.
 - [`0042`](0042-ajustes-del-sistema.md): Ajustes del sistema.
-- `docs/auditorias/2026-10-28-ponytail-p4a-runner.md`, `-p4b-menu.md`, `-p4c-controles.md`.
 
 ## Anexo A · Cómo se escribe una app (boceto de la API)
 

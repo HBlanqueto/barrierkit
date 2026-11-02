@@ -34,7 +34,7 @@ barrierkit/
   crates/infinity-protocol/   protocols/infinity-window-manager-v1.xml + código generado,
                               features `client` (kit) y `server` (compositor)
   apps/tengen-app-show/       Master Tengen App Show
-  docs/                       decisiones del kit, auditorías del kit, glosario del kit
+  docs/                       decisiones del kit, glosario del kit
   flake.nix, nix/skia*        Skia precompilado para freya-skia-bindings 0.98.0 + su guardia
   scripts/                    check-client-only-deps, check-design-tokens (parte kit),
                               check-tengen-generated, mockup-extract
