@@ -17,6 +17,7 @@ use vow_design::{
 };
 
 use crate::ProbeExt;
+use crate::choices::use_choice;
 use crate::interaction::use_interaction;
 use crate::password::PasswordField;
 use crate::platform::inserts_text;
@@ -901,29 +902,12 @@ impl KeyExt for SegmentedControl {
 impl Component for SegmentedControl {
     fn render(&self) -> impl IntoElement {
         let resolved = crate::theme::resolved();
-        let selected = use_state(|| self.selected);
-        let current = *selected.read();
-
-        let select = {
-            let mut selected = selected;
-            let on_change = self.on_change.clone();
-            move |index: usize| {
-                if index == *selected.read() {
-                    return;
-                }
-                selected.set(index);
-                if let Some(cb) = &on_change {
-                    cb.call(index);
-                }
-            }
-        };
-
+        let choice = use_choice(Some(self.selected), self.on_change.clone());
         let segments = self.segments.iter().enumerate().map(|(index, text)| {
-            let mut select = select.clone();
             Segment {
                 text,
-                active: index == current,
-                on_select: Callback::new(move |_| select(index)),
+                active: choice.is(index),
+                on_select: choice.select(index),
             }
             .into_element()
         });

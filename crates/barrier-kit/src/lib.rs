@@ -22,6 +22,8 @@ pub mod interaction;
 
 pub mod controls;
 
+pub mod choices;
+
 pub mod menu;
 
 pub mod app_menu;

@@ -54,21 +54,24 @@ impl Interaction {
         if !self.keyboard_focused() {
             return element;
         }
-        let spread = FOCUS_RING.offset + FOCUS_RING.width;
-        let around = move |context: SizeFnContext| Some(context.parent + 2.0 * spread);
-        let color = crate::theme::color(crate::theme::resolved().accent);
-        element.child(
-            rect()
-                .position(Position::new_absolute().left(-spread).top(-spread))
-                .width(Size::func(around))
-                .height(Size::func(around))
-                .corner_radius(corner_radius + spread)
-                .border(
-                    Border::new()
-                        .width(FOCUS_RING.width)
-                        .alignment(BorderAlignment::Inner)
-                        .fill(color),
-                ),
-        )
+        ring(element, corner_radius, crate::theme::resolved().accent)
     }
+}
+
+pub fn ring(element: Rect, corner_radius: f32, color: vow_design::Rgba) -> Rect {
+    let spread = FOCUS_RING.offset + FOCUS_RING.width;
+    let around = move |context: SizeFnContext| Some(context.parent + 2.0 * spread);
+    element.child(
+        rect()
+            .position(Position::new_absolute().left(-spread).top(-spread))
+            .width(Size::func(around))
+            .height(Size::func(around))
+            .corner_radius(corner_radius + spread)
+            .border(
+                Border::new()
+                    .width(FOCUS_RING.width)
+                    .alignment(BorderAlignment::Inner)
+                    .fill(crate::theme::color(color)),
+            ),
+    )
 }

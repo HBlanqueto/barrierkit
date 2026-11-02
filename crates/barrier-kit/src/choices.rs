@@ -1,0 +1,317 @@
+//! One-of-many choices: radio groups and colour wells.
+
+use freya_core::prelude::*;
+use torin::prelude::{Alignment, Direction, Size};
+use vow_design::{CAPTION, Rgba, SETTINGS, SWITCH, TEXT};
+
+use crate::interaction::{ring, use_interaction};
+use crate::theme::color;
+
+pub(crate) struct Choice {
+    selected: State<Option<usize>>,
+    on_change: Option<Callback<usize, ()>>,
+}
+
+pub(crate) fn use_choice(initial: Option<usize>, on_change: Option<Callback<usize, ()>>) -> Choice {
+    Choice {
+        selected: use_state(|| initial),
+        on_change,
+    }
+}
+
+impl Choice {
+    pub(crate) fn is(&self, index: usize) -> bool {
+        *self.selected.read() == Some(index)
+    }
+
+    pub(crate) fn select(&self, index: usize) -> Callback<(), ()> {
+        let mut selected = self.selected;
+        let on_change = self.on_change.clone();
+        Callback::new(move |_| {
+            if *selected.read() == Some(index) {
+                return;
+            }
+            selected.set(Some(index));
+            if let Some(cb) = &on_change {
+                cb.call(index);
+            }
+        })
+    }
+}
+
+#[derive(PartialEq)]
+pub struct RadioGroup {
+    label: &'static str,
+    options: Vec<&'static str>,
+    selected: usize,
+    disabled: bool,
+    on_change: Option<Callback<usize, ()>>,
+    key: DiffKey,
+}
+
+impl RadioGroup {
+    pub fn new(label: &'static str) -> Self {
+        Self {
+            label,
+            options: Vec::new(),
+            selected: 0,
+            disabled: false,
+            on_change: None,
+            key: DiffKey::None,
+        }
+    }
+
+    pub fn option(mut self, label: &'static str) -> Self {
+        self.options.push(label);
+        self
+    }
+
+    pub fn selected(mut self, index: usize) -> Self {
+        self.selected = index;
+        self
+    }
+
+    pub fn disabled(mut self, disabled: bool) -> Self {
+        self.disabled = disabled;
+        self
+    }
+
+    pub fn on_change(mut self, callback: impl Into<Callback<usize, ()>>) -> Self {
+        self.on_change = Some(callback.into());
+        self
+    }
+
+    pub fn key(mut self, key: impl Into<DiffKey>) -> Self {
+        self.key = key.into();
+        self
+    }
+}
+
+impl KeyExt for RadioGroup {
+    fn write_key(&mut self) -> &mut DiffKey {
+        &mut self.key
+    }
+}
+
+impl Component for RadioGroup {
+    fn render(&self) -> impl IntoElement {
+        let choice = use_choice(Some(self.selected), self.on_change.clone());
+        let options = self.options.iter().enumerate().map(|(index, text)| {
+            RadioOption {
+                text,
+                selected: choice.is(index),
+                disabled: self.disabled,
+                on_select: choice.select(index),
+            }
+            .into_element()
+        });
+        rect()
+            .a11y_role(AccessibilityRole::RadioGroup)
+            .a11y_alt(self.label)
+            .direction(Direction::Horizontal)
+            .spacing(SETTINGS.radio_spacing as f32)
+            .children(options)
+    }
+}
+
+#[derive(PartialEq)]
+struct RadioOption {
+    text: &'static str,
+    selected: bool,
+    disabled: bool,
+    on_select: Callback<(), ()>,
+}
+
+impl Component for RadioOption {
+    fn render(&self) -> impl IntoElement {
+        let resolved = crate::theme::resolved();
+        let base = vow_appearance::palette(resolved.scheme);
+        let interaction = use_interaction();
+        let size = SETTINGS.radio_size as f32;
+        let dot = SETTINGS.radio_dot as f32;
+        let selected = self.selected;
+        let enabled = !self.disabled;
+        let on_select = self.on_select.clone();
+
+        let mut circle = rect()
+            .width(Size::px(size))
+            .height(Size::px(size))
+            .corner_radius(size / 2.0)
+            .center();
+        circle = if selected {
+            circle.background(color(resolved.accent)).child(
+                rect()
+                    .width(Size::px(dot))
+                    .height(Size::px(dot))
+                    .corner_radius(dot / 2.0)
+                    .background(color(base.on_accent)),
+            )
+        } else {
+            circle.background(color(resolved.surfaces.surface)).border(
+                Border::new()
+                    .width(1.0)
+                    .alignment(BorderAlignment::Inner)
+                    .fill(color(base.line_strong)),
+            )
+        };
+        circle = interaction.focus_ring(circle, size / 2.0);
+
+        interaction
+            .attach(rect(), enabled)
+            .a11y_role(AccessibilityRole::RadioButton)
+            .a11y_alt(self.text)
+            .a11y_builder(move |node| node.set_toggled(selected.into()))
+            .direction(Direction::Horizontal)
+            .cross_align(Alignment::Center)
+            .spacing(SETTINGS.radio_gap as f32)
+            .maybe(enabled, |el| el.on_press(move |_| on_select.call(())))
+            .child(circle)
+            .child(
+                label()
+                    .text(self.text)
+                    .font_family(TEXT.family)
+                    .font_size(TEXT.size as f32)
+                    .font_weight(TEXT.weight as i32)
+                    .max_lines(1)
+                    .color(color(if enabled {
+                        base.ink_strong
+                    } else {
+                        base.ink_faint
+                    })),
+            )
+    }
+}
+
+#[derive(PartialEq)]
+pub struct ColorWell {
+    label: &'static str,
+    swatches: &'static [(&'static str, Rgba)],
+    selected: Option<usize>,
+    disabled: bool,
+    on_change: Option<Callback<usize, ()>>,
+    key: DiffKey,
+}
+
+impl ColorWell {
+    pub fn new(label: &'static str, swatches: &'static [(&'static str, Rgba)]) -> Self {
+        Self {
+            label,
+            swatches,
+            selected: None,
+            disabled: false,
+            on_change: None,
+            key: DiffKey::None,
+        }
+    }
+
+    pub fn selected(mut self, index: Option<usize>) -> Self {
+        self.selected = index;
+        self
+    }
+
+    pub fn disabled(mut self, disabled: bool) -> Self {
+        self.disabled = disabled;
+        self
+    }
+
+    pub fn on_change(mut self, callback: impl Into<Callback<usize, ()>>) -> Self {
+        self.on_change = Some(callback.into());
+        self
+    }
+
+    pub fn key(mut self, key: impl Into<DiffKey>) -> Self {
+        self.key = key.into();
+        self
+    }
+}
+
+impl KeyExt for ColorWell {
+    fn write_key(&mut self) -> &mut DiffKey {
+        &mut self.key
+    }
+}
+
+impl Component for ColorWell {
+    fn render(&self) -> impl IntoElement {
+        let choice = use_choice(self.selected, self.on_change.clone());
+        let swatches = self
+            .swatches
+            .iter()
+            .enumerate()
+            .map(|(index, (name, fill))| {
+                Swatch {
+                    name,
+                    fill: *fill,
+                    selected: choice.is(index),
+                    disabled: self.disabled,
+                    on_select: choice.select(index),
+                }
+                .into_element()
+            });
+        rect()
+            .a11y_role(AccessibilityRole::RadioGroup)
+            .a11y_alt(self.label)
+            .direction(Direction::Horizontal)
+            .spacing(SETTINGS.swatch_gap as f32)
+            .children(swatches)
+    }
+}
+
+#[derive(PartialEq)]
+struct Swatch {
+    name: &'static str,
+    fill: Rgba,
+    selected: bool,
+    disabled: bool,
+    on_select: Callback<(), ()>,
+}
+
+impl Component for Swatch {
+    fn render(&self) -> impl IntoElement {
+        let resolved = crate::theme::resolved();
+        let base = vow_appearance::palette(resolved.scheme);
+        let interaction = use_interaction();
+        let size = SETTINGS.swatch_size as f32;
+        let selected = self.selected;
+        let enabled = !self.disabled;
+        let on_select = self.on_select.clone();
+
+        let mut dot = rect()
+            .width(Size::px(size))
+            .height(Size::px(size))
+            .corner_radius(size / 2.0)
+            .background(color(self.fill))
+            .border(
+                Border::new()
+                    .width(1.0)
+                    .alignment(BorderAlignment::Inner)
+                    .fill(color(base.line)),
+            );
+        if selected {
+            dot = ring(dot, size / 2.0, base.ink_strong);
+        }
+        dot = interaction.focus_ring(dot, size / 2.0);
+
+        interaction
+            .attach(rect(), enabled)
+            .a11y_role(AccessibilityRole::RadioButton)
+            .a11y_alt(self.name)
+            .a11y_builder(move |node| node.set_toggled(selected.into()))
+            .width(Size::px(SETTINGS.swatch_column as f32))
+            .direction(Direction::Vertical)
+            .cross_align(Alignment::Center)
+            .spacing(SETTINGS.swatch_name_gap as f32)
+            .maybe(!enabled, |el| el.opacity(SWITCH.disabled_opacity))
+            .maybe(enabled, |el| el.on_press(move |_| on_select.call(())))
+            .child(dot)
+            .child(
+                label()
+                    .text(if selected { self.name } else { "" })
+                    .font_family(CAPTION.family)
+                    .font_size(CAPTION.size as f32)
+                    .font_weight(CAPTION.weight as i32)
+                    .max_lines(1)
+                    .color(color(base.ink_muted)),
+            )
+    }
+}

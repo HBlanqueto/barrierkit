@@ -5,6 +5,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use barrier_kit::choices::{ColorWell, RadioGroup};
 use barrier_kit::controls::{
     Button, ButtonStyle, Checkbox, Popover, ScrollView, SearchField, SecureField, SegmentedControl,
     Slider, Switch, TextField,
@@ -17,6 +18,7 @@ use freya_core::prelude::*;
 use freya_testing::TestingRunner;
 use keyboard_types::{Key, NamedKey};
 use torin::prelude::{Alignment, Direction, Gaps, Size, Size2D};
+use vow_design::ACCENT_SWATCHES;
 
 const SIZE: (f32, f32) = (360.0, 240.0);
 const TOLERANCE: u8 = 3;
@@ -51,6 +53,8 @@ fn cases() -> Vec<Control> {
         ("segmented-control", segmented_control),
         ("text-field", text_field),
         ("checkbox", checkbox),
+        ("radio-group", radio_group),
+        ("color-well", color_well),
         ("secure-field", secure_field),
         ("scroll-view", scroll_view),
         ("menu", menu),
@@ -91,6 +95,31 @@ fn segmented_control() -> Element {
         .segment("Semana")
         .segment("Mes")
         .selected(1)
+        .into_element()
+}
+
+fn radio_group() -> Element {
+    rect()
+        .direction(Direction::Vertical)
+        .spacing(12.0)
+        .child(
+            RadioGroup::new("Aplicar el tinte a")
+                .option("Solo las ventanas")
+                .option("Todo el escritorio"),
+        )
+        .child(
+            RadioGroup::new("Inactivo")
+                .option("Uno")
+                .option("Dos")
+                .selected(1)
+                .disabled(true),
+        )
+        .into_element()
+}
+
+fn color_well() -> Element {
+    ColorWell::new("Color de acento", &ACCENT_SWATCHES)
+        .selected(Some(0))
         .into_element()
 }
 
@@ -524,6 +553,40 @@ fn search_field_clear_button_empties_the_query() {
     test.click_cursor((180.0, 15.0));
     test.sync_and_update();
     assert!(query.peek().is_empty());
+}
+
+#[test]
+fn radio_group_click_selects_and_disabled_does_not_emit() {
+    use std::cell::RefCell;
+    use std::rc::Rc;
+
+    struct RadioCase {
+        disabled: bool,
+        values: Rc<RefCell<Vec<usize>>>,
+    }
+    impl App for RadioCase {
+        fn render(&self) -> impl IntoElement {
+            let values = self.values.clone();
+            RadioGroup::new("Alcance")
+                .option("Ventanas")
+                .option("Escritorio")
+                .disabled(self.disabled)
+                .on_change(move |i| values.borrow_mut().push(i))
+        }
+    }
+
+    for (disabled, expected) in [(false, vec![1]), (true, vec![])] {
+        let values = Rc::new(RefCell::new(Vec::new()));
+        let app = AppComponent::new(RadioCase {
+            disabled,
+            values: values.clone(),
+        });
+        let (mut test, _) = TestingRunner::new(app, Size2D::new(300.0, 30.0), |_| {}, 1.0);
+        test.sync_and_update();
+        test.click_cursor((110.0, 9.0));
+        test.sync_and_update();
+        assert_eq!(*values.borrow(), expected);
+    }
 }
 
 #[test]
