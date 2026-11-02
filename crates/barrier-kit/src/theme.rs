@@ -2,7 +2,7 @@
 
 use freya_components::theming::component_themes::{ColorsSheet, Theme};
 use freya_components::theming::themes::{dark_theme, light_theme};
-use freya_core::prelude::{Color, State, try_consume_root_context};
+use freya_core::prelude::{Color, State, try_consume_context};
 use vow_appearance::{
     ColorScheme, Resolved, WindowTintScope, load_appearance, load_dominant, resolve,
 };
@@ -78,7 +78,7 @@ fn sheet(background: Rgba, surface: Rgba, text: Rgba, accent: Rgba, border: Rgba
 }
 
 pub fn resolved() -> Resolved {
-    if let Some(state) = try_consume_root_context::<State<Resolved>>() {
+    if let Some(state) = try_consume_context::<State<Resolved>>() {
         *state.read()
     } else {
         resolve(&load_appearance(), load_dominant())

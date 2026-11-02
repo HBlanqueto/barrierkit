@@ -9,6 +9,7 @@ members = [
     "crates/infinity-protocol",
     "crates/tengen-app-show",
     "crates/ondina",
+    "crates/rotulo",
 ]
 default-members = [
     "crates/barrier-kit",

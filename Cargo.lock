@@ -1757,6 +1757,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "rotulo"
+version = "0.1.0"
+dependencies = [
+ "barrier-kit",
+ "freya-core",
+ "freya-testing",
+ "serde",
+ "torin",
+ "tracing",
+ "tracing-subscriber",
+ "vow-appearance",
+ "vow-design",
+]
+
+[[package]]
 name = "rustc-hash"
 version = "2.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"

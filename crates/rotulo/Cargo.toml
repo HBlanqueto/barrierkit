@@ -1,0 +1,21 @@
+[package]
+name = "rotulo"
+description = "Rótulo: prueba las titlebars verticales de BarrierKit en su propia ventana."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+barrier-kit.workspace = true
+freya-core.workspace = true
+serde.workspace = true
+torin.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+vow-appearance.workspace = true
+vow-design.workspace = true
+
+[dev-dependencies]
+freya-testing.workspace = true

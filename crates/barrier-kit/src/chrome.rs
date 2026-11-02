@@ -4,7 +4,7 @@
 use freya_animation::prelude::{AnimNum, Ease, Function, use_animation_transition};
 use freya_core::prelude::*;
 use serde::{Deserialize, Serialize};
-use torin::prelude::{Alignment, Direction, Gaps, Position, Size};
+use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 use vow_appearance::{SidebarStyle, palette};
 use vow_design::{DURATION_BASE, Rgba, TITLEBAR, TITLEBAR_RAIL};
 
@@ -155,7 +155,8 @@ impl Component for WindowChrome {
         let mut root = rect()
             .width(Size::fill())
             .height(Size::fill())
-            .direction(Direction::Horizontal);
+            .direction(Direction::Horizontal)
+            .content(Content::flex());
         root = match style.side {
             Side::Left => root.maybe_child(edge).child(content),
             Side::Right => root.child(content).maybe_child(edge),
@@ -250,6 +251,7 @@ fn rail(style: ChromeStyle, footer: Option<Element>) -> Rect {
         .height(Size::fill())
         .background(color(background))
         .direction(Direction::Vertical)
+        .content(Content::flex())
         .cross_align(Alignment::Center)
         .spacing(TITLEBAR.buttons.spacing as f32)
         .padding(Gaps::new(
