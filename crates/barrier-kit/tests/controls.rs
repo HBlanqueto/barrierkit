@@ -226,6 +226,32 @@ fn form() -> Element {
         .into_element()
 }
 
+fn form_long_text() -> Element {
+    rect().width(Size::px(420.0)).child(Form::new()
+        .section(
+            Section::titled("Ventanas")
+                .row(
+                    Row::new("Hacer clic en el fondo de pantalla para mostrar el escritorio")
+                        .detail("Haz clic en el fondo de pantalla para apartar las ventanas y mostrar los elementos del escritorio.")
+                        .control(PopUpButton::new("Mostrar el escritorio").item("Solo en el organizador")),
+                )
+                .row(
+                    Row::new("Cerrar ventanas al salir de una app")
+                        .detail("Si se activa, las ventanas abiertas no se restaurarán al volver a abrir la app.")
+                        .control(Switch::new("Cerrar ventanas")),
+                )
+                .row(
+                    Row::new("Arrastrar ventanas al borde de la pantalla para disponerlas en mosaico")
+                        .control(Switch::new("Mosaico").on(true)),
+                )
+                .row(
+                    Row::navigation("Tamaño del texto", |_| {})
+                        .detail("Establece el tamaño de letra para la lectura en las apps compatibles."),
+                ),
+        )
+        ).into_element()
+}
+
 fn tab_view() -> Element {
     TabView::new("Preferencias")
         .tab(Symbol::MagnifyingGlass, "Buscar", label().text("Buscar"))
@@ -285,7 +311,11 @@ fn sidebar_account() -> Element {
 }
 
 fn window_cases() -> Vec<Control> {
-    vec![("preferences", preferences), ("about", about)]
+    vec![
+        ("preferences", preferences),
+        ("about", about),
+        ("form-long-text", form_long_text),
+    ]
 }
 
 fn preferences() -> Element {

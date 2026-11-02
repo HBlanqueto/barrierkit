@@ -217,18 +217,36 @@ impl Component for FormRow {
             ),
         };
 
+        let first_line = LIST_GROUP.row_min_height - 2.0 * SPACE_2;
+        let aligned_to_first_line = matches!(row.accessory, Accessory::Control(_));
+        let wrapping = |content: &'static str, face, ink| {
+            text(content, face, ink).width(Size::fill()).max_lines(None)
+        };
         let mut labels = rect()
+            .width(Size::flex(1.0))
             .direction(Direction::Vertical)
-            .child(text(row.title, TEXT, title_ink));
+            .maybe(aligned_to_first_line, |el| {
+                el.padding(Gaps::new(
+                    (first_line - TEXT.line_height as f32) / 2.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                ))
+            })
+            .child(wrapping(row.title, TEXT, title_ink));
         if let Some(detail) = row.detail {
-            labels = labels.child(text(detail, CAPTION, palette.secondary_label));
+            labels = labels.child(wrapping(detail, CAPTION, palette.secondary_label));
         }
 
         let mut element = rect()
             .width(Size::fill())
             .direction(Direction::Horizontal)
             .content(Content::flex())
-            .cross_align(Alignment::Center)
+            .cross_align(if aligned_to_first_line {
+                Alignment::Start
+            } else {
+                Alignment::Center
+            })
             .padding(Gaps::new(
                 SPACE_2,
                 LIST_GROUP.row_padding_x,
@@ -239,15 +257,9 @@ impl Component for FormRow {
             .child(labels)
             .child(
                 rect()
-                    .width(Size::flex(1.0))
                     .direction(Direction::Horizontal)
-                    .main_align(Alignment::End)
                     .cross_align(Alignment::Center)
-                    .child(
-                        rect()
-                            .width(Size::px(0.0))
-                            .height(Size::px(LIST_GROUP.row_min_height - 2.0 * SPACE_2)),
-                    )
+                    .child(rect().width(Size::px(0.0)).height(Size::px(first_line)))
                     .maybe_child(accessory),
             );
         if let Some(on_press) = pressable {
