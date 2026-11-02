@@ -133,8 +133,6 @@ fn open_menu(
             icon: icon.clone(),
         })
         .collect();
-    let inset =
-        MENU_POPOVER.padding + MENU_POPOVER.item_padding_start + MENU_POPOVER.leading_column;
     open_popover_menu(
         entries,
         (
@@ -143,10 +141,7 @@ fn open_menu(
             area.size.width.round() as u32,
             area.size.height.round() as u32,
         ),
-        (
-            -(inset.round() as i32),
-            -(MENU_POPOVER.padding.round() as i32),
-        ),
+        Some(current),
         move |id| {
             if let Some(select) = id.parse::<usize>().ok().and_then(|i| selects.get(i)) {
                 select.call(());
@@ -158,11 +153,23 @@ fn open_menu(
 pub(crate) fn open_popover_menu(
     entries: Vec<MenuItem>,
     anchor_rect: (i32, i32, u32, u32),
-    offset: (i32, i32),
+    over: Option<usize>,
     on_activate: impl Fn(String) + 'static,
 ) {
     let palette = popover_palette(&crate::theme::resolved(), SurfaceKind::Toplevel);
     let size = MenuView::preferred_size(&entries, palette);
+    let offset = over.map_or((0, 0), |index| {
+        let above: f32 = entries[..index]
+            .iter()
+            .map(|item| item.height(palette))
+            .sum();
+        let inset =
+            MENU_POPOVER.padding + MENU_POPOVER.item_padding_start + MENU_POPOVER.leading_column;
+        (
+            -(inset.round() as i32),
+            -((MENU_POPOVER.padding + above).round() as i32),
+        )
+    });
     let view = MenuView::new(
         entries,
         move |id| {
@@ -181,7 +188,7 @@ pub(crate) fn open_popover_menu(
         size: (size.0.ceil() as u32, size.1.ceil() as u32),
         constraint_adjustment: PopupConstraintAdjustment {
             flip_x: true,
-            flip_y: true,
+            flip_y: over.is_none(),
             slide_x: true,
             slide_y: true,
             resize_y: false,

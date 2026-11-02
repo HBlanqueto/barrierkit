@@ -362,7 +362,7 @@ impl MenuItem {
         }
     }
 
-    fn height(&self, m: MenuPalette) -> f32 {
+    pub(crate) fn height(&self, m: MenuPalette) -> f32 {
         match self {
             MenuItem::Separator => m.separator_height + m.separator_margin_y * 2.0,
             MenuItem::SearchField { .. } => m.search_height + m.search_margin_y * 2.0,
