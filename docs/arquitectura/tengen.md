@@ -32,7 +32,9 @@ en CI; es una herramienta manual.
 
 ## Generación de constantes
 
-`crates/vow-design/build.rs`:
+`crates/vow-design/build.rs`, con un módulo por familia en `build/` (`json`,
+`color`, `controls`, `window`, `appearance`, `views`, `sidebar`, `menu`,
+`shell`, `settings`):
 
 1. Lee `tengen/tokens.json` y `tengen/components.json` con `serde_json`
    (solo `build-dependencies`).
