@@ -196,14 +196,16 @@ impl Component for Titlebar {
         let resolved = crate::theme::resolved();
         let theme = palette(resolved.scheme);
         let tinted = crate::backdrop::tinted().is_some();
-        let background = if tinted {
+        let ink = crate::style::Palette::current();
+        let background = if tinted && overlaid {
+            ink.raised_background
+        } else if tinted {
             vow_design::Rgba::rgba8(0, 0, 0, 0.0)
         } else if self.sidebar || status.activated {
             crate::theme::surface_background(&resolved, crate::theme::SurfaceKind::Toplevel)
         } else {
             resolved.surfaces.titlebar_inactive
         };
-        let ink = crate::style::Palette::current();
         let title_color = match (tinted, status.activated) {
             (true, true) => ink.label,
             (true, false) => ink.secondary_label,

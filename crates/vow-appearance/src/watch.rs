@@ -18,6 +18,12 @@ pub enum AppearanceEvent {
     Defaults,
 }
 
+impl AppearanceEvent {
+    pub fn restyles(self) -> bool {
+        matches!(self, Self::Appearance | Self::Accent | Self::Wallpaper)
+    }
+}
+
 #[derive(Debug)]
 pub struct AppearanceWatch {
     inotify: Inotify,
@@ -108,6 +114,15 @@ fn into_io_error(err: nix::Error) -> io::Error {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn only_appearance_accent_and_wallpaper_changes_restyle_the_desktop() {
+        assert!(AppearanceEvent::Appearance.restyles());
+        assert!(AppearanceEvent::Accent.restyles());
+        assert!(AppearanceEvent::Wallpaper.restyles());
+        assert!(!AppearanceEvent::Defaults.restyles());
+        assert!(!AppearanceEvent::WallpaperSelection.restyles());
+    }
     use std::path::Path;
     use std::sync::atomic::{AtomicU64, Ordering};
     use std::time::{Duration, Instant};
