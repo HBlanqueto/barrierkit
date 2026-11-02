@@ -1,4 +1,4 @@
-//! The four panes, the queue and the navigation, drawn with the palette the
+//! The four panes and the queue, drawn with the palette the
 //! backdrop provides.
 
 use barrier_kit::backdrop::Tint;
@@ -19,7 +19,7 @@ use vow_design::{
 };
 
 use crate::albums::Album;
-use crate::{Background, Mood, PRESETS, Player, Tab};
+use crate::{Background, Mood, PRESETS, Player};
 
 const WAVE_WIDTH: f32 = 380.0;
 const WAVE_BARS: usize = 64;
@@ -495,90 +495,5 @@ pub fn queue(albums: &[Album], player: Player) -> Element {
             barrier_kit::controls::ScrollView::new()
                 .child(rect().width(Size::fill()).children(rows)),
         )
-        .into_element()
-}
-
-pub fn navigation(current: Tab, mut tab: State<Tab>, labels: bool) -> Element {
-    let palette = Palette::current();
-    let items = Tab::ALL.iter().map(|&item| {
-        let selected = item == current;
-        rect()
-            .a11y_role(AccessibilityRole::Tab)
-            .a11y_alt(item.title())
-            .a11y_builder(move |node| node.set_selected(selected))
-            .width(if labels { Size::fill() } else { Size::px(44.0) })
-            .height(Size::px(34.0))
-            .direction(Direction::Horizontal)
-            .cross_align(Alignment::Center)
-            .main_align(if labels {
-                Alignment::Start
-            } else {
-                Alignment::Center
-            })
-            .spacing(SPACE_3)
-            .padding(Gaps::new(0.0, 10.0, 0.0, 10.0))
-            .corner_radius(8.0)
-            .maybe(selected, |el| el.background(color(palette.control_hover)))
-            .on_press(move |_| tab.set(item))
-            .child(symbol(
-                item.symbol(),
-                16.0,
-                if selected {
-                    palette.label
-                } else {
-                    palette.secondary_label
-                },
-            ))
-            .maybe_child(labels.then(|| {
-                text(
-                    item.title(),
-                    TEXT,
-                    if selected {
-                        palette.label
-                    } else {
-                        palette.secondary_label
-                    },
-                )
-            }))
-            .into_element()
-    });
-    rect()
-        .spacing(2.0)
-        .padding(Gaps::new(SPACE_2, SPACE_2, SPACE_2, SPACE_2))
-        .children(items)
-        .into_element()
-}
-
-pub fn tab_bar(current: Tab, mut tab: State<Tab>) -> Element {
-    let palette = Palette::current();
-    let items = Tab::ALL.iter().map(|&item| {
-        let ink = if item == current {
-            palette.label
-        } else {
-            palette.secondary_label
-        };
-        rect()
-            .a11y_role(AccessibilityRole::Tab)
-            .a11y_alt(item.title())
-            .width(Size::flex(1.0))
-            .cross_align(Alignment::Center)
-            .spacing(3.0)
-            .padding(Gaps::new(6.0, 0.0, 6.0, 0.0))
-            .corner_radius(8.0)
-            .maybe(item == current, |el| {
-                el.background(color(palette.control_background))
-            })
-            .on_press(move |_| tab.set(item))
-            .child(symbol(item.symbol(), 18.0, ink))
-            .child(text(item.title(), CAPTION, ink))
-            .into_element()
-    });
-    rect()
-        .width(Size::fill())
-        .direction(Direction::Horizontal)
-        .content(Content::flex())
-        .spacing(4.0)
-        .padding(Gaps::new(4.0, SPACE_2, SPACE_2, SPACE_2))
-        .children(items)
         .into_element()
 }

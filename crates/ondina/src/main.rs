@@ -17,11 +17,14 @@ use barrier_kit::controls::ScrollView;
 use barrier_kit::platform::{
     Decorations, Timers, WakeHandle, WindowControls, WindowOptions, run_window,
 };
+use barrier_kit::sidebar::{Sidebar, SidebarItem};
 use barrier_kit::symbol::Symbol;
 use barrier_kit::titlebar::Titlebar;
+use barrier_kit::views::split::{SidebarToggle, SplitView};
+use barrier_kit::views::tabs::TabView;
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
-use torin::prelude::{Content, Direction, Gaps, Size};
+use torin::prelude::{Content, Gaps, Size};
 use vow_design::{ACCENT_SWATCHES, Rgba, WINDOW_MIN_SIZE};
 
 use albums::{Album, library};
@@ -304,55 +307,86 @@ impl Component for Window {
             Tab::Look => views::appearance(mood),
         };
         let pane = ScrollView::new()
-            .width(Size::flex(1.0))
-            .height(Size::fill())
-            .child(pane);
-        let breakpoint = size.current();
-        let queue_shown = breakpoint == Breakpoint::Wide || *queue_open.read();
-        let content_top = try_consume_root_context::<WindowControls>()
-            .map_or(0.0, |controls| controls.fullscreen_content_top());
-
-        let body = rect()
             .width(Size::fill())
             .height(Size::flex(1.0))
-            .padding(Gaps::new(content_top, 0.0, 0.0, 0.0))
-            .direction(Direction::Horizontal)
-            .content(Content::flex())
-            .maybe_child((breakpoint != Breakpoint::Compact).then(|| {
-                rect()
-                    .width(if breakpoint == Breakpoint::Wide {
-                        Size::px(200.0)
-                    } else {
-                        Size::px(64.0)
-                    })
-                    .child(views::navigation(
-                        current,
-                        tab,
-                        breakpoint == Breakpoint::Wide,
-                    ))
-            }))
-            .child(pane)
-            .maybe_child(queue_shown.then(|| {
-                rect()
-                    .width(Size::px(260.0))
-                    .height(Size::fill())
-                    .child(views::queue(&albums, player))
-            }));
+            .child(pane);
+        let breakpoint = size.current();
+        let compact = breakpoint == Breakpoint::Compact;
+        let queue_shown = breakpoint == Breakpoint::Wide || *queue_open.read();
 
-        let mut titlebar = Titlebar::new().title(current.title());
+        let mut titlebar = Titlebar::new()
+            .title(current.title())
+            .with_sidebar(!compact);
+        if !compact {
+            titlebar = titlebar.left(SidebarToggle);
+        }
         if breakpoint != Breakpoint::Wide {
             titlebar = titlebar.right(
                 IconButton::new(Symbol::ListBullet, "Cola")
                     .on_press(move |_| queue_open.set(!*queue_open.peek())),
             );
         }
-        size.attach(rect())
+        let content = if compact {
+            Tab::ALL
+                .iter()
+                .fold(
+                    TabView::new("Secciones")
+                        .selected(Tab::ALL.iter().position(|t| *t == current).unwrap_or(0))
+                        .on_change(move |index| {
+                            let mut tab = tab;
+                            tab.set(Tab::ALL[index]);
+                        }),
+                    |view, &item| {
+                        let shown = if item != current {
+                            rect().into_element()
+                        } else if queue_shown {
+                            views::queue(&albums, player)
+                        } else {
+                            pane.clone().into_element()
+                        };
+                        view.tab(item.symbol(), item.title(), shown)
+                    },
+                )
+                .into_element()
+        } else {
+            pane.into_element()
+        };
+        let content_top = try_consume_root_context::<WindowControls>()
+            .map_or(0.0, |controls| controls.fullscreen_content_top());
+        let detail = rect()
             .width(Size::fill())
             .height(Size::fill())
             .content(Content::flex())
             .child(titlebar)
-            .child(body)
-            .maybe_child((breakpoint == Breakpoint::Compact).then(|| views::tab_bar(current, tab)))
+            .child(
+                rect()
+                    .width(Size::fill())
+                    .height(Size::flex(1.0))
+                    .padding(Gaps::new(content_top, 0.0, 0.0, 0.0))
+                    .child(content),
+            );
+        if compact {
+            return size.attach(detail);
+        }
+
+        let sidebar =
+            Sidebar::new()
+                .traffic_lights(true)
+                .children(Tab::ALL.iter().enumerate().map(|(index, &item)| {
+                    SidebarItem::new(item.title())
+                        .symbol(item.symbol(), ACCENT_SWATCHES[index].1)
+                        .selected(item == current)
+                        .on_select(move |_| {
+                            let mut tab = tab;
+                            tab.set(item);
+                        })
+                }));
+        size.attach(
+            rect().width(Size::fill()).height(Size::fill()).child(
+                SplitView::new(sidebar, detail)
+                    .inspector(queue_shown.then(|| views::queue(&albums, player))),
+            ),
+        )
     }
 }
 

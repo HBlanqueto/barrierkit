@@ -128,3 +128,26 @@ fn a_long_title_is_ellipsized_to_the_available_width() {
         "the title label must be constrained to the title slot"
     );
 }
+
+struct SidebarRightCase;
+
+impl App for SidebarRightCase {
+    fn render(&self) -> impl IntoElement {
+        use_init_theme(|| theme::for_scheme(false));
+        Titlebar::new()
+            .title("Biblioteca")
+            .with_sidebar(true)
+            .right(label().text("Cola"))
+    }
+}
+
+#[test]
+fn a_titlebar_beside_a_sidebar_keeps_its_right_slot() {
+    let app = AppComponent::new(SidebarRightCase);
+    let (mut test, _) = TestingRunner::new(app, Size2D::new(600.0, 60.0), |_| {}, 1.0);
+    test.sync_and_update();
+    let shown = test
+        .find(|_node, el| Label::try_downcast(el).filter(|label| label.text == "Cola"))
+        .is_some();
+    assert!(shown);
+}

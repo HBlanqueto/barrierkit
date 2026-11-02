@@ -284,6 +284,15 @@ impl Component for Titlebar {
                 .padding(Gaps::new(padding_top, padding_x, 0.0, padding_left))
                 .child(left_slot)
                 .child(title)
+                .maybe_child(self.right.clone().map(|right| {
+                    rect()
+                        .width(Size::auto())
+                        .height(Size::fill())
+                        .direction(Direction::Horizontal)
+                        .cross_align(Alignment::Center)
+                        .a11y_alt("titlebar-right-slot")
+                        .child(right)
+                }))
                 .maybe_child(fixed_lights);
 
             if resolved.sidebar.style == SidebarStyle::Flat {
