@@ -226,7 +226,6 @@ impl Component for FormRow {
 
         let mut element = rect()
             .width(Size::fill())
-            .min_height(Size::px(LIST_GROUP.row_min_height))
             .direction(Direction::Horizontal)
             .content(Content::flex())
             .cross_align(Alignment::Center)
@@ -244,6 +243,11 @@ impl Component for FormRow {
                     .direction(Direction::Horizontal)
                     .main_align(Alignment::End)
                     .cross_align(Alignment::Center)
+                    .child(
+                        rect()
+                            .width(Size::px(0.0))
+                            .height(Size::px(LIST_GROUP.row_min_height - 2.0 * SPACE_2)),
+                    )
                     .maybe_child(accessory),
             );
         if let Some(on_press) = pressable {

@@ -8,7 +8,7 @@ use freya_core::prelude::*;
 use keyboard_types::{Key, NamedKey};
 use torin::prelude::{Alignment, Direction, Gaps, Position, Size};
 use vow_appearance::SidebarStyle;
-use vow_design::{DURATION_BASE, Rgba, SETTINGS, SIDEBAR, SidebarPalette, TITLEBAR};
+use vow_design::{DURATION_BASE, Rgba, SETTINGS, SIDEBAR, SidebarPalette, TEXT, TITLEBAR};
 
 use crate::ProbeExt;
 use crate::adornments::avatar;
@@ -447,6 +447,7 @@ impl Component for SidebarItem {
         row = row.child(
             label()
                 .text(self.label.clone())
+                .font_family(TEXT.family)
                 .font_size(SIDEBAR.item_text_size as f32)
                 .font_weight(weight)
                 .color(fg)
@@ -695,12 +696,16 @@ impl Component for SidebarAccount {
         let interaction = use_interaction();
         let selected = self.selected;
         let on_select = self.on_select.clone();
-        let (bg, ink) = if selected {
-            (Some(palette.selected_bg), palette.selected_ink)
+        let (bg, ink, detail_ink) = if selected {
+            (
+                Some(palette.selected_bg),
+                palette.selected_ink,
+                palette.selected_ink,
+            )
         } else if interaction.hovered() {
-            (Some(palette.hover_bg), palette.item_ink)
+            (Some(palette.hover_bg), palette.item_ink, palette.count_ink)
         } else {
-            (None, palette.item_ink)
+            (None, palette.item_ink, palette.count_ink)
         };
         let row = interaction
             .attach(rect(), true)
@@ -732,7 +737,11 @@ impl Component for SidebarAccount {
                 rect()
                     .direction(Direction::Vertical)
                     .child(text(self.name.clone(), SETTINGS.account_name_font, ink))
-                    .child(text(self.detail.clone(), SETTINGS.account_detail_font, ink)),
+                    .child(text(
+                        self.detail.clone(),
+                        SETTINGS.account_detail_font,
+                        detail_ink,
+                    )),
             );
         interaction.focus_ring(row, SIDEBAR.item_radius as f32)
     }

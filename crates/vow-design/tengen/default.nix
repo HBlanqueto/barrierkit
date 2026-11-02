@@ -96,7 +96,7 @@ let
         in
         if isAttrs v then
           componentLeaves name v
-        else if isList v then
+        else if isList v && !(builtins.all (x: isInt x || isFloat x) v) then
           [ ]
         else
           [ { inherit name; value = v; } ]
@@ -149,6 +149,8 @@ let
         s
       else
         "${s}px"
+    else if isList v then
+      concatStringsSep " " (map (x: "${num x}px") v)
     else if isString v then
       let
         ref = tokenRef v;
@@ -196,6 +198,12 @@ let
         null
     else
       null;
+  swatchCss = lines (
+    s: "  --settings-accent-swatch-${lower s.name}: ${s.color};"
+  ) components.components.settings.accent-swatches;
+  lower = s: builtins.replaceStrings upper lowerChars s;
+  upper = [ "A" "B" "C" "D" "E" "F" "G" "H" "I" "J" "K" "L" "M" "N" "O" "P" "Q" "R" "S" "T" "U" "V" "W" "X" "Y" "Z" ];
+  lowerChars = [ "a" "b" "c" "d" "e" "f" "g" "h" "i" "j" "k" "l" "m" "n" "o" "p" "q" "r" "s" "t" "u" "v" "w" "x" "y" "z" ];
   appearanceLeaves = componentLeaves "appearance" components.appearance;
   appearanceCss = lines (
     leaf: "  --${leaf.name}: ${appearanceCssValue leaf.name leaf.value};"
@@ -312,6 +320,7 @@ let
       --font-mono: ${tokens.font.families.mono};
       --font-script: ${tokens.font.families.script};
     ${componentCss}
+    ${swatchCss}
     ${appearanceCss}
     ${typeCss}
     }

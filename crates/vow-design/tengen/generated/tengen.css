@@ -331,6 +331,7 @@
   --list-group-row-min-height: 44px;
   --list-group-row-padding-x: 14px;
   --list-group-section-header-color: var(--ink-muted);
+  --list-group-section-header-padding: 10px 14px 4px 14px;
   --list-group-separator-color: var(--line);
   --list-group-separator-inset-left: 14px;
   --menu-popover-check: 12px;
@@ -703,6 +704,14 @@
   --window-traffic-lights-styles-standard-glyph: #0000008c;
   --window-traffic-lights-styles-standard-minimize: var(--traffic-min);
   --window-traffic-lights-styles-standard-zoom: var(--traffic-zoom);
+  --settings-accent-swatch-azul: #2f6fe4;
+  --settings-accent-swatch-morado: #8e5bd8;
+  --settings-accent-swatch-rosa: #e5458f;
+  --settings-accent-swatch-rojo: #ec4646;
+  --settings-accent-swatch-naranja: #f07c26;
+  --settings-accent-swatch-amarillo: #f5c02c;
+  --settings-accent-swatch-verde: #4fb848;
+  --settings-accent-swatch-gris: #8e8e93;
   --appearance-layer-factors-bg-control: 1.200000;
   --appearance-layer-factors-bg-hover: 1.200000;
   --appearance-layer-factors-bg-raised: 0.600000;
