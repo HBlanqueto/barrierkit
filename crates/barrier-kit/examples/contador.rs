@@ -4,7 +4,8 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use barrier_kit::app::{
-    Action, Launch, Shortcut, ShortcutKey, UndoStack, copy, launch, load_defaults, save_defaults,
+    Action, Instance, Launch, Shortcut, ShortcutKey, UndoStack, copy, launch, load_defaults,
+    save_defaults,
 };
 use barrier_kit::app_menu::{AppMenu, Menu, MenuHandle};
 use barrier_kit::controls::Button;
@@ -150,6 +151,7 @@ fn sync_menu(
 }
 
 struct Contador {
+    instance: Option<Instance>,
     action_rx: Rc<RefCell<Option<std::sync::mpsc::Receiver<String>>>>,
 }
 
@@ -168,8 +170,12 @@ impl App for Contador {
         let mut menu_handle: State<Option<MenuHandle>> = use_state(|| None);
 
         {
+            let instance = self.instance.clone();
             use_hook(move || {
                 menu_handle.set(WindowControls::get().menu_handle());
+                if let Some(instance) = &instance {
+                    instance.listen();
+                }
             });
         }
 
@@ -301,9 +307,9 @@ impl App for Contador {
 
 fn main() {
     tracing_subscriber::fmt::init();
-    let _instance = match launch(APP_ID) {
+    let instance = match launch(APP_ID) {
         Ok(Launch::Forwarded) => return,
-        Ok(Launch::Primary(connection)) => Some(connection),
+        Ok(Launch::Primary(instance)) => Some(instance),
         Err(error) => {
             tracing::warn!(%error, "contador: sin instancia única");
             None
@@ -311,6 +317,7 @@ fn main() {
     };
     let (action_tx, action_rx) = std::sync::mpsc::channel::<String>();
     let app = AppComponent::new(Contador {
+        instance,
         action_rx: Rc::new(RefCell::new(Some(action_rx))),
     });
     let prefs: Prefs = load_defaults(APP_ID);

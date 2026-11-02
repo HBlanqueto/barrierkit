@@ -1,7 +1,7 @@
 //! Master Tengen App Show: every BarrierKit component on its own page (ADR 0047 §6).
 
 use barrier_kit::adornments::{Link, avatar, badge, divider};
-use barrier_kit::app::{Launch, launch};
+use barrier_kit::app::{Instance, Launch, launch};
 use barrier_kit::choices::{ColorWell, RadioGroup};
 use barrier_kit::compact::{IconButton, Stepper, ToggleGroup};
 use barrier_kit::controls::{
@@ -336,10 +336,18 @@ fn about() -> Form {
     )
 }
 
-struct Show;
+struct Show {
+    instance: Option<Instance>,
+}
 
 impl App for Show {
     fn render(&self) -> impl IntoElement {
+        let instance = self.instance.clone();
+        use_hook(move || {
+            if let Some(instance) = &instance {
+                instance.listen();
+            }
+        });
         let name = use_state(|| "hblanqueto".to_string());
         let query = use_state(String::new);
         let sort = use_state(|| None::<SortOrder>);
@@ -458,16 +466,16 @@ impl App for Show {
 
 fn main() {
     tracing_subscriber::fmt::init();
-    let _instance = match launch(APP_ID) {
+    let instance = match launch(APP_ID) {
         Ok(Launch::Forwarded) => return,
-        Ok(Launch::Primary(connection)) => Some(connection),
+        Ok(Launch::Primary(instance)) => Some(instance),
         Err(error) => {
             tracing::warn!(%error, "tengen-app-show: sin instancia única");
             None
         }
     };
     run_window(
-        AppComponent::new(Show),
+        AppComponent::new(Show { instance }),
         WindowOptions::new("Master Tengen App Show", "tengen-app-show")
             .app_id(APP_ID)
             .decorations(Decorations::Client)

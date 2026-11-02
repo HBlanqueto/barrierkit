@@ -1,19 +1,65 @@
 use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
 
 use zbus::blocking::Connection;
 use zbus::fdo::{RequestNameFlags, RequestNameReply};
 use zbus::zvariant::OwnedValue;
 
+use crate::platform::{Timers, WakeHandle, WindowControls};
+
 pub enum Launch {
-    Primary(Connection),
+    Primary(Instance),
     Forwarded,
 }
 
-struct Activation;
+#[derive(Default)]
+struct Requests {
+    tokens: Vec<String>,
+    wake: Option<WakeHandle>,
+}
+
+#[derive(Clone)]
+pub struct Instance {
+    _connection: Connection,
+    requests: Arc<Mutex<Requests>>,
+}
+
+impl Instance {
+    pub fn listen(&self) {
+        let requests = self.requests.clone();
+        let controls = WindowControls::get();
+        let wake = Timers::get().wakeup(move || {
+            let tokens = requests
+                .lock()
+                .map(|mut pending| std::mem::take(&mut pending.tokens))
+                .unwrap_or_default();
+            for token in tokens {
+                controls.present(token);
+            }
+        });
+        if let Ok(mut pending) = self.requests.lock() {
+            pending.wake = Some(wake);
+        }
+    }
+}
+
+struct Activation {
+    requests: Arc<Mutex<Requests>>,
+}
 
 #[zbus::interface(name = "org.freedesktop.Application")]
 impl Activation {
-    fn activate(&self, _platform_data: HashMap<String, OwnedValue>) {}
+    fn activate(&self, platform_data: HashMap<String, OwnedValue>) {
+        let token = platform_data
+            .get("activation-token")
+            .and_then(|value| String::try_from(value.clone()).ok());
+        if let (Some(token), Ok(mut pending)) = (token, self.requests.lock()) {
+            pending.tokens.push(token);
+            if let Some(wake) = &pending.wake {
+                wake.wake();
+            }
+        }
+    }
 
     fn open(&self, _uris: Vec<String>, _platform_data: HashMap<String, OwnedValue>) {}
 
@@ -32,9 +78,14 @@ fn object_path(app_id: &str) -> String {
 
 pub fn launch(app_id: &str) -> zbus::Result<Launch> {
     let connection = Connection::session()?;
-    let reply = connection.request_name_with_flags(app_id, RequestNameFlags::DoNotQueue.into())?;
+    let taken =
+        match connection.request_name_with_flags(app_id, RequestNameFlags::DoNotQueue.into()) {
+            Ok(RequestNameReply::Exists) | Err(zbus::Error::NameTaken) => true,
+            Ok(_) => false,
+            Err(error) => return Err(error),
+        };
     let path = object_path(app_id);
-    if reply == RequestNameReply::Exists {
+    if taken {
         let platform_data: HashMap<String, OwnedValue> = std::env::var("XDG_ACTIVATION_TOKEN")
             .ok()
             .and_then(|token| OwnedValue::try_from(zbus::zvariant::Value::from(token)).ok())
@@ -50,13 +101,39 @@ pub fn launch(app_id: &str) -> zbus::Result<Launch> {
         )?;
         return Ok(Launch::Forwarded);
     }
-    connection.object_server().at(path.as_str(), Activation)?;
-    Ok(Launch::Primary(connection))
+    let requests = Arc::new(Mutex::new(Requests::default()));
+    connection.object_server().at(
+        path.as_str(),
+        Activation {
+            requests: requests.clone(),
+        },
+    )?;
+    Ok(Launch::Primary(Instance {
+        _connection: connection,
+        requests,
+    }))
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_second_launch_forwards_its_activation_token_to_the_first() {
+        if std::env::var_os("DBUS_SESSION_BUS_ADDRESS").is_none() {
+            return;
+        }
+        let app_id = format!("org.malaysia.test{}", std::process::id());
+        let app_id: &'static str = Box::leak(app_id.into_boxed_str());
+        let Ok(Launch::Primary(first)) = launch(app_id) else {
+            panic!("the first launch must own the name");
+        };
+        // SAFETY: this test only reads the variable from its own thread right after.
+        unsafe { std::env::set_var("XDG_ACTIVATION_TOKEN", "token-1") };
+        assert!(matches!(launch(app_id), Ok(Launch::Forwarded)));
+        let tokens = std::mem::take(&mut first.requests.lock().unwrap().tokens);
+        assert_eq!(tokens, ["token-1"]);
+    }
 
     #[test]
     fn the_object_path_follows_the_app_id() {

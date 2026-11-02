@@ -202,6 +202,13 @@ impl WindowControls {
         self.pointer_serial.get()
     }
 
+    pub fn present(&self, activation_token: String) {
+        self.queue
+            .borrow_mut()
+            .push(WindowCommand::Present(activation_token));
+        self.ping.ping();
+    }
+
     pub fn minimize(&self) {
         self.queue.borrow_mut().push(WindowCommand::Minimize);
         self.ping.ping();
@@ -264,6 +271,7 @@ pub(crate) enum WindowCommand {
     Move(u32),
     Resize(u32, WindowEdge),
     Open(AppComponent, WindowOptions),
+    Present(String),
 }
 
 pub(super) fn resize_edge(edge: WindowEdge) -> xdg_toplevel::ResizeEdge {
@@ -542,6 +550,11 @@ impl Runtime {
                     WindowCommand::Resize(serial, edge) => {
                         if let Some(seat) = &self.seat_handle {
                             window.resize(seat, serial, resize_edge(edge));
+                        }
+                    }
+                    WindowCommand::Present(token) => {
+                        if let Some(activation) = &self.activation {
+                            activation.activate(token, window.wl_surface());
                         }
                     }
                     WindowCommand::Open(..) => unreachable!(),

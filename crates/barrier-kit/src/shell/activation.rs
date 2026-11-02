@@ -1,13 +1,10 @@
 use sctk::reexports::{
     calloop::ping::Ping,
     client::{
-        Connection, Dispatch, Proxy, QueueHandle,
+        Connection, Dispatch, QueueHandle,
         protocol::{wl_seat, wl_surface},
     },
-    protocols::xdg::activation::v1::client::{
-        xdg_activation_token_v1::{self, XdgActivationTokenV1},
-        xdg_activation_v1::XdgActivationV1,
-    },
+    protocols::xdg::activation::v1::client::xdg_activation_token_v1::{self, XdgActivationTokenV1},
 };
 use std::{cell::RefCell, rc::Rc};
 
@@ -60,18 +57,6 @@ impl ShellState {
             token.set_surface(window);
             token.commit();
         }
-    }
-}
-
-impl Dispatch<XdgActivationV1, ()> for Runtime {
-    fn event(
-        _: &mut Self,
-        _: &XdgActivationV1,
-        _: <XdgActivationV1 as Proxy>::Event,
-        _: &(),
-        _: &Connection,
-        _: &QueueHandle<Self>,
-    ) {
     }
 }
 

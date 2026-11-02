@@ -7,7 +7,7 @@ mod pasteboard;
 mod undo;
 
 pub use action::{Action, Shortcut, ShortcutKey};
-pub use application::{Launch, launch};
+pub use application::{Instance, Launch, launch};
 pub(crate) use defaults::DefaultsRevision;
 pub use defaults::{
     load_defaults, load_restoration, save_defaults, save_restoration, use_defaults,

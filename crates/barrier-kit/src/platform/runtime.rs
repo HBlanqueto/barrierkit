@@ -41,6 +41,7 @@ use sctk::{
             },
         },
         protocols::wp::cursor_shape::v1::client::wp_cursor_shape_device_v1::WpCursorShapeDeviceV1,
+        protocols::xdg::activation::v1::client::xdg_activation_v1::XdgActivationV1,
     },
     registry::{ProvidesRegistryState, RegistryState},
     seat::{
@@ -113,6 +114,7 @@ pub(crate) struct Runtime {
     pub(crate) resolved: State<Resolved>,
     pub(crate) pending_menu_addresses: Arc<Mutex<Vec<(ObjectId, AppMenuAddress)>>>,
     pub(crate) clipboard: Clipboard,
+    pub(crate) activation: Option<XdgActivationV1>,
     pub(crate) defaults_revision: State<u64>,
     pub(crate) clipboard_device: Option<ClipboardDevice>,
 }
@@ -337,6 +339,7 @@ impl Runtime {
             resolved,
             pending_menu_addresses: Arc::new(Mutex::new(Vec::new())),
             clipboard: Clipboard::new(conn.clone(), ping.clone()),
+            activation: globals.bind::<XdgActivationV1, _, _>(&qh, 1..=1, ()).ok(),
             defaults_revision: State::create_global(0),
             clipboard_device: DataDeviceManagerState::bind(&globals, &qh)
                 .ok()
