@@ -6,8 +6,8 @@ use std::{
 };
 
 use barrier_kit::controls::{
-    Button, ButtonStyle, Checkbox, Popover, ScrollView, SecureField, SegmentedControl, Slider,
-    Switch, TextField,
+    Button, ButtonStyle, Checkbox, Popover, ScrollView, SearchField, SecureField, SegmentedControl,
+    Slider, Switch, TextField,
 };
 use barrier_kit::theme;
 use freya_components::menu::{Menu, MenuItem};
@@ -99,8 +99,17 @@ fn checkbox() -> Element {
 }
 
 fn text_field() -> Element {
-    let value = use_state(|| "Hola".to_string());
-    TextField::new(value).into_element()
+    let name = use_state(|| "hblanqueto".to_string());
+    let empty = use_state(String::new);
+    let query = use_state(|| "wifi".to_string());
+    rect()
+        .width(Size::px(240.0))
+        .direction(Direction::Vertical)
+        .spacing(10.0)
+        .child(TextField::new(name, "Nombre de usuario"))
+        .child(TextField::new(empty, "Nombre de usuario"))
+        .child(SearchField::new(query, "Buscar"))
+        .into_element()
 }
 
 fn secure_field() -> Element {
@@ -495,6 +504,26 @@ fn button_press_emits_only_when_enabled() {
         test.sync_and_update();
         assert_eq!(*presses.borrow(), expected);
     }
+}
+
+#[test]
+fn search_field_clear_button_empties_the_query() {
+    struct SearchCase {
+        query: State<String>,
+    }
+    impl App for SearchCase {
+        fn render(&self) -> impl IntoElement {
+            SearchField::new(self.query, "Buscar")
+        }
+    }
+
+    let query = State::create_global("wifi".to_string());
+    let app = AppComponent::new(SearchCase { query });
+    let (mut test, _) = TestingRunner::new(app, Size2D::new(200.0, 30.0), |_| {}, 1.0);
+    test.sync_and_update();
+    test.click_cursor((180.0, 15.0));
+    test.sync_and_update();
+    assert!(query.peek().is_empty());
 }
 
 #[test]

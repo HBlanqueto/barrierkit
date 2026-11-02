@@ -403,6 +403,13 @@ pub struct ButtonMetrics {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct TextFieldMetrics {
+    pub height: f32,
+    pub padding_x: f32,
+    pub radius: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct SidebarMetrics {
     pub default_island: bool,
     pub width: u32,

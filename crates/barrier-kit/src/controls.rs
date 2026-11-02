@@ -1,18 +1,19 @@
 //! Named UI controls (buttons, toggles, fields) built on Freya components.
 
-pub use freya_components::input::Input as TextField;
 pub use freya_components::menu::Menu;
 pub use freya_components::popup::Popup as Popover;
 pub use freya_components::scrollviews::ScrollView;
 
+use freya_components::input::{Input, InputColorsThemePartial, InputLayoutThemePartial};
 use freya_components::svg_viewer::SvgViewer;
+use freya_components::theming::macros::Preference;
 
 use freya_animation::prelude::{AnimNum, Ease, Function, use_animation_transition};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 use vow_design::{
     BUTTON, CAPTION, CHECKBOX, KNOB_SHADOW, Rgba, SEGMENTED, SETTINGS, SLIDER, SWITCH, TEXT,
-    TEXT_LINE_HEIGHT, TOOLGROUP,
+    TEXT_FIELD, TEXT_LINE_HEIGHT, TOOLGROUP,
 };
 
 use crate::ProbeExt;
@@ -998,6 +999,167 @@ impl Component for Segment {
         }
         interaction.focus_ring(segment, SEGMENTED.segment_radius)
     }
+}
+
+const SEARCH_ICON: &str = r#"<svg viewBox="0 0 16 16"><circle cx="6.8" cy="6.8" r="4.2" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M10 10l3.2 3.2" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>"#;
+const CLEAR_ICON: &str = r#"<svg viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>"#;
+
+#[derive(PartialEq)]
+pub struct TextField {
+    value: State<String>,
+    placeholder: &'static str,
+    width: Size,
+    key: DiffKey,
+}
+
+impl TextField {
+    pub fn new(value: State<String>, placeholder: &'static str) -> Self {
+        Self {
+            value,
+            placeholder,
+            width: Size::fill(),
+            key: DiffKey::None,
+        }
+    }
+
+    pub fn width(mut self, width: Size) -> Self {
+        self.width = width;
+        self
+    }
+}
+
+impl KeyExt for TextField {
+    fn write_key(&mut self) -> &mut DiffKey {
+        &mut self.key
+    }
+}
+
+impl Component for TextField {
+    fn render(&self) -> impl IntoElement {
+        let resolved = crate::theme::resolved();
+        let base = vow_appearance::palette(resolved.scheme);
+        let input = themed_input(
+            self.value,
+            self.placeholder,
+            resolved.surfaces.surface,
+            base.line,
+            TEXT_FIELD.radius,
+            TEXT_FIELD.padding_x,
+        );
+        text_style(rect().width(self.width.clone())).child(input)
+    }
+}
+
+#[derive(PartialEq)]
+pub struct SearchField {
+    value: State<String>,
+    placeholder: &'static str,
+    width: Size,
+    key: DiffKey,
+}
+
+impl SearchField {
+    pub fn new(value: State<String>, placeholder: &'static str) -> Self {
+        Self {
+            value,
+            placeholder,
+            width: Size::fill(),
+            key: DiffKey::None,
+        }
+    }
+
+    pub fn width(mut self, width: Size) -> Self {
+        self.width = width;
+        self
+    }
+}
+
+impl KeyExt for SearchField {
+    fn write_key(&mut self) -> &mut DiffKey {
+        &mut self.key
+    }
+}
+
+impl Component for SearchField {
+    fn render(&self) -> impl IntoElement {
+        let resolved = crate::theme::resolved();
+        let base = vow_appearance::palette(resolved.scheme);
+        let mut value = self.value;
+        let padding = SETTINGS.search_padding_x as f32;
+        let icon = SETTINGS.search_icon as f32;
+        let gap = SETTINGS.search_gap as f32;
+        let mut input = themed_input(
+            value,
+            self.placeholder,
+            resolved.surfaces.control,
+            Rgba {
+                a: 0.0,
+                ..resolved.surfaces.control
+            },
+            TEXT_FIELD.height / 2.0,
+            padding + icon + gap,
+        );
+        if !value.read().is_empty() {
+            input = input.trailing(
+                rect()
+                    .a11y_role(AccessibilityRole::Button)
+                    .a11y_alt("Borrar búsqueda")
+                    .on_pointer_down(move |event: Event<PointerEventData>| {
+                        if event.is_primary() {
+                            value.set(String::new());
+                        }
+                    })
+                    .child(svg_viewer(CLEAR_ICON, base.ink_muted, icon as u32)),
+            );
+        }
+
+        text_style(rect().width(self.width.clone()))
+            .child(input)
+            .child(
+                rect()
+                    .position(
+                        Position::new_absolute()
+                            .left(padding)
+                            .top((TEXT_FIELD.height - icon) / 2.0),
+                    )
+                    .child(svg_viewer(SEARCH_ICON, base.ink_faint, icon as u32)),
+            )
+    }
+}
+
+fn text_style(element: Rect) -> Rect {
+    element.font_family(TEXT.family).font_size(TEXT.size as f32)
+}
+
+fn themed_input(
+    value: State<String>,
+    placeholder: &'static str,
+    background: Rgba,
+    border: Rgba,
+    radius: f32,
+    padding_x: f32,
+) -> Input {
+    let resolved = crate::theme::resolved();
+    let base = vow_appearance::palette(resolved.scheme);
+    let margin_y = (TEXT_FIELD.height - TEXT.line_height as f32) / 2.0;
+    let color = |c: Rgba| Some(Preference::Specific(rgba(c)));
+    Input::new(value)
+        .placeholder(placeholder)
+        .width(Size::fill())
+        .theme_colors(InputColorsThemePartial {
+            background: color(background),
+            focus_background: color(background),
+            border_fill: color(border),
+            focus_border_fill: color(resolved.accent),
+            color: color(base.ink_strong),
+            placeholder_color: color(base.ink_faint),
+        })
+        .theme_layout(InputLayoutThemePartial {
+            corner_radius: Some(Preference::Specific(CornerRadius::new_all(radius))),
+            inner_margin: Some(Preference::Specific(Gaps::new(
+                margin_y, padding_x, margin_y, padding_x,
+            ))),
+        })
 }
 
 #[derive(PartialEq)]

@@ -33,6 +33,7 @@ fn main() {
     emit_segmented(&mut out, &tokens, &components);
     emit_focus_ring(&mut out, &components);
     emit_button(&mut out, &tokens, &components);
+    emit_text_field(&mut out, &tokens, &components);
     emit_wallpaper(&mut out, &tokens, &components);
     emit_traffic(&mut out, &tokens, &components);
     emit_font_families(&mut out, &tokens);
@@ -730,6 +731,24 @@ fn emit_button(out: &mut String, tokens: &Value, components: &Value) {
         field("font.size"),
         integer(components, "components.button.font.weight", COMPONENTS),
         field("pressed-scale")
+    ));
+}
+
+fn emit_text_field(out: &mut String, tokens: &Value, components: &Value) {
+    let field = |key: &str| {
+        float(metric(
+            tokens,
+            components,
+            &format!("components.text-field.{key}"),
+            COMPONENTS,
+        ))
+    };
+    const_doc(out, "TEXT_FIELD", "The Tengen text field metrics.");
+    out.push_str(&format!(
+        ": TextFieldMetrics = TextFieldMetrics {{ height: {}, padding_x: {}, radius: {} }};\n\n",
+        field("height"),
+        field("padding-x"),
+        field("radius")
     ));
 }
 
