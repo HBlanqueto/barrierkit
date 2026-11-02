@@ -224,6 +224,23 @@ Cada fase se divide en lotes pequeños para opencode, con prueba visible en la s
 - el sitio de las pruebas visibles de cada lote;
 - la fuente de los tests de render (cada página se renderiza en claro, oscuro y tintado).
 
+## Estado (2026-11-02)
+
+Hecho en `main`:
+
+- **Capa 0**: escala fraccional, separación de la shell, foco y modo teclado (Tab activa la navegación por teclado; las teclas van al nodo enfocado) y portapapeles sobre `wl_data_device`.
+- **Capa 1**: `style` (paleta semántica y caras de texto), `symbol`, `interaction` (hover, pulsado, foco y anillo), `Button`, `IconButton`, `Switch`, `Checkbox`, `RadioGroup`, `ColorWell`, `SegmentedControl`, `ToggleGroup`, `Stepper`, `Slider` por pasos, `LevelSlider` (continuo y grueso), `TextField`, `SearchField`, `PopUpButton`, `ProgressBar`, `ProgressRing`, `badge`, `divider`, `avatar` y `Link`.
+- **App**: `Action` con `Shortcut` tipado, `load_defaults`/`save_defaults` y `launch` (instancia única).
+- **Capa 2**: `Form`/`Section`/`Row`, `SplitView` (sustituye a `SidebarLayout`), `History` y `navigation_buttons`, `SearchIndex`, `empty_state`, `sheet`, `Alert`, `TabView`, `Table`, `CollectionView` y `SidebarAccount`.
+- **Capa 3**: `PreferencesWindow`, `about_window` y `BrowserWindow`.
+- **Master Tengen App Show** (`tengen-app-show`).
+
+Pendiente:
+
+- Capa 0: selección primaria, arrastrar y soltar, damage y región opaca, AT-SPI.
+- App: que `Activate` traiga la ventana al frente (xdg-activation), aviso de cambios del dominio y `Restoration`, `UndoManager`, `Pasteboard`.
+- Fase 6: rehacer Ajustes del sistema con `PreferencesWindow` y borrar sus copias (`controls.rs`, `groups.rs`, buscador propio).
+
 ## Consecuencias
 
 - Ajustes del sistema deja de definir controles: `controls.rs`, `sidebar.rs`, `groups.rs` y sus `svg_viewer`/`rgba` locales desaparecen en la fase 6.
