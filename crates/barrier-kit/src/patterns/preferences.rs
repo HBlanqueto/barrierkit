@@ -289,12 +289,7 @@ impl Component for PreferencesWindow {
         let mut sidebar = Sidebar::new().traffic_lights(true).child(
             rect()
                 .width(Size::fill())
-                .margin(Gaps::new(
-                    SETTINGS.sidebar_lights_gap as f32,
-                    0.0,
-                    SETTINGS.sidebar_search_gap as f32,
-                    0.0,
-                ))
+                .margin(Gaps::new(0.0, 0.0, SETTINGS.sidebar_search_gap as f32, 0.0))
                 .child(
                     SearchField::new(query, "Buscar")
                         .a11y_id(search_id)

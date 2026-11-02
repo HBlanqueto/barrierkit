@@ -489,7 +489,7 @@ fn collapsing_section_animates_from_full_height() {
     assert!((section_content_height(&test) - 120.0).abs() < 0.5);
 
     test.animation_clock().set_speed(0.05);
-    test.press_cursor((12.0, 50.0));
+    test.press_cursor((12.0, 68.0));
     test.poll_n(Duration::from_millis(100), 4);
 
     let height = section_content_height(&test);
@@ -514,7 +514,7 @@ fn live_reduced_motion_collapses_without_animating() {
     ));
     test.sync_and_update();
 
-    test.press_cursor((12.0, 50.0));
+    test.press_cursor((12.0, 68.0));
     let height = section_content_height(&test);
     assert!(
         height == 0.0,
@@ -563,7 +563,7 @@ fn opening_section_slides_as_a_drawer() {
     );
     test.sync_and_update();
     test.animation_clock().set_speed(0.05);
-    test.press_cursor((12.0, 50.0));
+    test.press_cursor((12.0, 68.0));
 
     let mut clip = section_content_area(&test);
     for _ in 0..60 {
@@ -808,14 +808,14 @@ fn sidebar_section_chevron_changes_shape_when_toggled() {
     let (mut test, _) = TestingRunner::new(app, Size2D::new(300.0, 300.0), |_| {}, 1.0);
     let size = SIDEBAR.chevron as usize;
 
-    test.move_cursor((20.0, 50.0));
-    test.click_cursor((20.0, 50.0));
+    test.move_cursor((20.0, 68.0));
+    test.click_cursor((20.0, 68.0));
     test.sync_and_update();
     let (width, _, collapsed_image) = decode_png(test.render().as_bytes());
     let (x, y) = chevron_area(&test);
     let collapsed = crop(&collapsed_image, width, x, y, size);
 
-    test.click_cursor((20.0, 50.0));
+    test.click_cursor((20.0, 68.0));
     test.sync_and_update();
     let (width, _, expanded_image) = decode_png(test.render().as_bytes());
     let (x, y) = chevron_area(&test);

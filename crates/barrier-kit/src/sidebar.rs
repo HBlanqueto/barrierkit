@@ -170,7 +170,8 @@ impl Component for Sidebar {
         let surface = resolved.sidebar;
         let island = surface.style == SidebarStyle::Island;
 
-        let top_height = SIDEBAR.traffic_y + TITLEBAR.buttons.diameter;
+        let top_height =
+            SIDEBAR.traffic_y + TITLEBAR.buttons.diameter + SETTINGS.sidebar_lights_gap;
         let padding_x = SIDEBAR.padding_x as f32;
         let radius = SIDEBAR.radius as f32;
 
