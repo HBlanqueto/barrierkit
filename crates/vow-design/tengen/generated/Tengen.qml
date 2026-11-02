@@ -13,6 +13,7 @@ QtObject {
   readonly property color light_bg_control: #e3e8ef;
   readonly property color light_bg_hover: #dde3eb;
   readonly property color light_bg_raised: #ffffff;
+  readonly property color light_bg_selected_control: #ffffff;
   readonly property color light_bg_sunken: #e7ebf1;
   readonly property color light_bg_surface: #ffffff;
   readonly property color light_bg_window: #f2f4f7;
@@ -86,6 +87,7 @@ QtObject {
   readonly property color dark_bg_control: #3a3a3a;
   readonly property color dark_bg_hover: #444444;
   readonly property color dark_bg_raised: #2b2b2b;
+  readonly property color dark_bg_selected_control: #444444;
   readonly property color dark_bg_sunken: #161616;
   readonly property color dark_bg_surface: #262626;
   readonly property color dark_bg_window: #1e1e1e;
@@ -159,6 +161,7 @@ QtObject {
   readonly property color dark_tint_bg_control: #38393d;
   readonly property color dark_tint_bg_hover: #424448;
   readonly property color dark_tint_bg_raised: #2a2b2e;
+  readonly property color dark_tint_bg_selected_control: #424448;
   readonly property color dark_tint_bg_sunken: #151617;
   readonly property color dark_tint_bg_surface: #252628;
   readonly property color dark_tint_bg_window: #1d1e20;

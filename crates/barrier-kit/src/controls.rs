@@ -441,11 +441,7 @@ impl Component for Slider {
             }
         };
 
-        let track_color = if self.disabled {
-            color(palette.control_background)
-        } else {
-            color(SLIDER.track_color)
-        };
+        let track_color = color(palette.control_background);
         let fill_color = color(palette.accent);
         let knob_color = Color::WHITE;
         let knob_shadow = color(KNOB_SHADOW.color);
@@ -497,7 +493,7 @@ impl Component for Slider {
             .background(track_color);
 
         let fill_rect = rect()
-            .position(Position::new_absolute().left(0.0).top((knob - track) / 2.0))
+            .position(Position::new_absolute().left(-knob / 2.0).top(0.0))
             .width(Size::px(knob_x + knob / 2.0))
             .height(Size::px(track))
             .corner_radius((track / 2.0).max(1.0))
@@ -516,7 +512,7 @@ impl Component for Slider {
                     .position(
                         Position::new_absolute()
                             .left(x - tick / 2.0)
-                            .top((knob - tick) / 2.0),
+                            .top((track - tick) / 2.0),
                     )
                     .width(Size::px(tick))
                     .height(Size::px(tick))
@@ -527,7 +523,11 @@ impl Component for Slider {
         }
 
         let mut knob_rect = rect()
-            .position(Position::new_absolute().left(knob_x).top(0.0))
+            .position(
+                Position::new_absolute()
+                    .left(knob_x)
+                    .top((track - knob) / 2.0),
+            )
             .width(Size::px(knob))
             .height(Size::px(knob))
             .corner_radius((knob / 2.0).max(1.0))
@@ -543,7 +543,6 @@ impl Component for Slider {
             knob_rect = knob_rect.a11y_builder(move |node| node.set_author_id(id));
         }
 
-        const STEP_LABEL_WIDTHS: [f32; 4] = [24.5, 38.5, 34.5, 40.0];
         let mut labels: Vec<Element> = Vec::new();
         for (i, text) in self.labels.iter().enumerate().take(self.steps) {
             let color = if i == *value.read() {
@@ -557,14 +556,9 @@ impl Component for Slider {
                 .font_size(CAPTION.size as f32)
                 .font_weight(CAPTION.weight as i32)
                 .line_height(CAPTION.line_height as f32 / CAPTION.size as f32)
-                .width(Size::fill())
+                .max_lines(1)
                 .color(rgba(color));
-            let width = if self.steps == 4 {
-                Size::px(STEP_LABEL_WIDTHS[i])
-            } else {
-                Size::auto()
-            };
-            let mut wrapper = rect().width(width).height(Size::auto()).child(label_node);
+            let mut wrapper = rect().child(label_node);
             if let Some(id) = self.step_ids.get(i).copied() {
                 wrapper = wrapper.a11y_builder(move |node| node.set_author_id(id));
             }
@@ -581,11 +575,9 @@ impl Component for Slider {
             .main_align(Alignment::SpaceBetween)
             .children(labels);
 
-        let mut children = vec![fill_rect.into_element(), track_rect.into_element()];
-        children.extend(ticks);
-        children.push(knob_rect.into_element());
-        children.push(labels_row.into_element());
-        root = root.children(children);
+        root = root
+            .child(track_rect.child(fill_rect.children(ticks).child(knob_rect)))
+            .child(labels_row);
 
         if let Some(id) = self.probe {
             root = root.a11y_builder(move |node| node.set_author_id(id));
@@ -973,15 +965,13 @@ impl Component for Segment {
                     ),
             );
         if active {
-            segment = segment
-                .background(color(palette.content_background))
-                .shadow((
-                    0.0,
-                    KNOB_SHADOW.y_offset as f32,
-                    KNOB_SHADOW.blur as f32,
-                    0.0,
-                    color(KNOB_SHADOW.color),
-                ));
+            segment = segment.background(color(palette.selected_control)).shadow((
+                0.0,
+                KNOB_SHADOW.y_offset as f32,
+                KNOB_SHADOW.blur as f32,
+                0.0,
+                color(KNOB_SHADOW.color),
+            ));
         }
         interaction.focus_ring(segment, SEGMENTED.segment_radius)
     }

@@ -1448,6 +1448,7 @@ fn palette(tokens: &Value, components: &Value, theme: &str) -> String {
          \x20   danger: {},\n\
          \x20   traffic_lights_inactive: {},\n\
          \x20   scrim: {},\n\
+         \x20   selected_control: {},\n\
          }}",
         rgba(theme_color(tokens, theme, "titlebar-bg")),
         rgba(theme_color(tokens, theme, "titlebar-bg-inactive")),
@@ -1466,7 +1467,8 @@ fn palette(tokens: &Value, components: &Value, theme: &str) -> String {
         rgba(theme_color(tokens, theme, "on-accent")),
         rgba(theme_color(tokens, theme, "danger")),
         rgba(inactive),
-        rgba(theme_color(tokens, theme, "scrim"))
+        rgba(theme_color(tokens, theme, "scrim")),
+        rgba(theme_color(tokens, theme, "bg-selected-control"))
     )
 }
 

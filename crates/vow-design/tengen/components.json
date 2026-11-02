@@ -131,7 +131,7 @@
       "segment-height": 26,
       "segment-padding-x": 12,
       "track": "bg-control",
-      "active-bg": "bg-surface",
+      "active-bg": "bg-selected-control",
       "active-shadow": "shadow.knob",
       "fg": "ink-muted",
       "active-fg": "ink-strong",

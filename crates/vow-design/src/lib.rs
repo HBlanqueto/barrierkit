@@ -581,6 +581,7 @@ pub struct Palette {
     pub danger: Rgba,
     pub traffic_lights_inactive: Rgba,
     pub scrim: Rgba,
+    pub selected_control: Rgba,
 }
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ShellPalette {

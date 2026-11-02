@@ -218,7 +218,6 @@ impl Component for FormRow {
         };
 
         let mut labels = rect()
-            .width(Size::flex(1.0))
             .direction(Direction::Vertical)
             .child(text(row.title, TEXT, title_ink));
         if let Some(detail) = row.detail {
@@ -239,7 +238,14 @@ impl Component for FormRow {
             ))
             .spacing(SPACE_3)
             .child(labels)
-            .maybe_child(accessory);
+            .child(
+                rect()
+                    .width(Size::flex(1.0))
+                    .direction(Direction::Horizontal)
+                    .main_align(Alignment::End)
+                    .cross_align(Alignment::Center)
+                    .maybe_child(accessory),
+            );
         if let Some(on_press) = pressable {
             element = interaction
                 .attach(element, true)

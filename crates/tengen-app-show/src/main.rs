@@ -13,6 +13,7 @@ use barrier_kit::patterns::preferences::{Pane, PaneGroup, PreferencesWindow};
 use barrier_kit::platform::{Decorations, WindowOptions, run_window};
 use barrier_kit::popup_button::PopUpButton;
 use barrier_kit::progress::{ProgressBar, ProgressRing};
+use barrier_kit::style::{Palette, text};
 use barrier_kit::symbol::Symbol;
 use barrier_kit::views::collection::CollectionView;
 use barrier_kit::views::feedback::{Alert, empty_state};
@@ -22,7 +23,7 @@ use barrier_kit::views::tabs::TabView;
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 use torin::prelude::{Direction, Size};
-use vow_design::{ACCENT_SWATCHES, COLLECTION, Rgba, SPACE_2, SPLIT_VIEW, TABLE};
+use vow_design::{ACCENT_SWATCHES, COLLECTION, Rgba, SPACE_2, SPLIT_VIEW, TABLE, TEXT};
 
 const APP_ID: &str = "org.malaysia.tengen-app-show";
 
@@ -216,7 +217,7 @@ fn forms() -> Form {
         )
         .section(
             Section::new()
-                .row(Row::value("Sección sin título", ""))
+                .row(Row::new("Sección sin título"))
                 .footer("Pie de sección."),
         )
 }
@@ -298,9 +299,13 @@ fn tabs() -> Form {
                             .tab(
                                 Symbol::MagnifyingGlass,
                                 "Buscar",
-                                label().text("Página Buscar"),
+                                text("Página Buscar", TEXT, Palette::current().label),
                             )
-                            .tab(Symbol::SpeakerWave, "Sonido", label().text("Página Sonido")),
+                            .tab(
+                                Symbol::SpeakerWave,
+                                "Sonido",
+                                text("Página Sonido", TEXT, Palette::current().label),
+                            ),
                     ),
             ),
         ),

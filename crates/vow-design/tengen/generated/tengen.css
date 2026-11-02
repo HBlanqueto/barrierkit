@@ -7,6 +7,7 @@
   --bg-control: #e3e8ef;
   --bg-hover: #dde3eb;
   --bg-raised: #ffffff;
+  --bg-selected-control: #ffffff;
   --bg-sunken: #e7ebf1;
   --bg-surface: #ffffff;
   --bg-window: #f2f4f7;
@@ -84,6 +85,7 @@
   --bg-control: #3a3a3a;
   --bg-hover: #444444;
   --bg-raised: #2b2b2b;
+  --bg-selected-control: #444444;
   --bg-sunken: #161616;
   --bg-surface: #262626;
   --bg-window: #1e1e1e;
@@ -161,6 +163,7 @@
   --bg-control: #38393d;
   --bg-hover: #424448;
   --bg-raised: #2a2b2e;
+  --bg-selected-control: #424448;
   --bg-sunken: #151617;
   --bg-surface: #252628;
   --bg-window: #1d1e20;
@@ -352,7 +355,7 @@
   --radio-dot: 6px;
   --radio-on: var(--accent);
   --radio-size: 16px;
-  --segmented-active-bg: var(--bg-surface);
+  --segmented-active-bg: var(--bg-selected-control);
   --segmented-active-fg: var(--ink-strong);
   --segmented-active-shadow: shadow.knob;
   --segmented-fg: var(--ink-muted);

@@ -2,7 +2,7 @@
 
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Direction, Gaps, Size};
-use vow_design::{CAPTION, TOOLBAR_TABS};
+use vow_design::{CAPTION, SPACE_2, TOOLBAR_TABS};
 
 use crate::choices::use_choice;
 use crate::interaction::use_interaction;
@@ -67,6 +67,7 @@ impl Component for TabView {
             .width(Size::fill())
             .height(Size::fill())
             .direction(Direction::Vertical)
+            .spacing(SPACE_2)
             .child(
                 rect()
                     .a11y_role(AccessibilityRole::TabList)

@@ -386,12 +386,20 @@ impl Component for SidebarItem {
                     .width(Size::px(tile))
                     .height(Size::px(tile))
                     .corner_radius(SIDEBAR.item_radius as f32)
-                    .background(rgba(tint))
+                    .background(rgba(if self.selected {
+                        Palette::current().on_accent
+                    } else {
+                        tint
+                    }))
                     .center()
                     .child(symbol(
                         glyph,
                         SIDEBAR.item_icon as f32,
-                        Palette::current().on_accent,
+                        if self.selected {
+                            tint
+                        } else {
+                            Palette::current().on_accent
+                        },
                     )),
             );
         } else if let Some((svg, bg_color)) = self.app_icon {

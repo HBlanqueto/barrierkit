@@ -141,38 +141,35 @@ impl Component for LevelSlider {
             LevelStyle::Regular => {
                 let track_top = (height - SLIDER.track) / 2.0;
                 let knob_x = run.max(0.0) * fraction;
-                root.child(bar(
-                    offset,
-                    track_top,
-                    run.max(0.0),
-                    SLIDER.track,
-                    palette.control_background,
-                ))
-                .child(bar(
-                    0.0,
-                    track_top,
-                    knob_x + offset,
-                    SLIDER.track,
-                    palette.accent,
-                ))
-                .child(
-                    rect()
-                        .position(
-                            Position::new_absolute()
-                                .left(knob_x)
-                                .top((height - SLIDER.knob) / 2.0),
-                        )
-                        .width(Size::px(SLIDER.knob))
-                        .height(Size::px(SLIDER.knob))
-                        .corner_radius(SLIDER.knob / 2.0)
-                        .background(Color::WHITE)
-                        .shadow((
-                            0.0,
-                            KNOB_SHADOW.y_offset as f32,
-                            KNOB_SHADOW.blur as f32,
-                            0.0,
-                            color(KNOB_SHADOW.color),
-                        )),
+                root.child(
+                    bar(
+                        offset,
+                        track_top,
+                        run.max(0.0),
+                        SLIDER.track,
+                        palette.control_background,
+                    )
+                    .child(
+                        bar(-offset, 0.0, knob_x + offset, SLIDER.track, palette.accent).child(
+                            rect()
+                                .position(
+                                    Position::new_absolute()
+                                        .left(knob_x)
+                                        .top((SLIDER.track - SLIDER.knob) / 2.0),
+                                )
+                                .width(Size::px(SLIDER.knob))
+                                .height(Size::px(SLIDER.knob))
+                                .corner_radius(SLIDER.knob / 2.0)
+                                .background(Color::WHITE)
+                                .shadow((
+                                    0.0,
+                                    KNOB_SHADOW.y_offset as f32,
+                                    KNOB_SHADOW.blur as f32,
+                                    0.0,
+                                    color(KNOB_SHADOW.color),
+                                )),
+                        ),
+                    ),
                 )
             }
             LevelStyle::Fat(lead) => {

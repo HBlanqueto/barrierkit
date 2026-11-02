@@ -24,6 +24,7 @@ pub struct Palette {
     pub raised_background: Rgba,
     pub sunken_background: Rgba,
     pub scrim: Rgba,
+    pub selected_control: Rgba,
 }
 
 impl Palette {
@@ -46,6 +47,7 @@ impl Palette {
             raised_background: resolved.surfaces.raised,
             sunken_background: resolved.surfaces.sunken,
             scrim: base.scrim,
+            selected_control: base.selected_control,
         }
     }
 }
