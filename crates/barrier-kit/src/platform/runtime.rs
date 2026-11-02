@@ -370,9 +370,7 @@ impl Runtime {
 impl Runtime {
     pub(crate) fn poll_all(&mut self) {
         for window in &mut self.surfaces {
-            let dirty = window.app.poll();
-            if dirty {
-                window.app.update();
+            if window.app.poll() && window.app.update() {
                 window.needs_redraw = true;
             }
             if self.request_redraw_all {

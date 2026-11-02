@@ -176,7 +176,7 @@ impl PointerHandler for Runtime {
     fn pointer_frame(
         &mut self,
         _: &Connection,
-        qh: &QueueHandle<Self>,
+        _: &QueueHandle<Self>,
         _: &wl_pointer::WlPointer,
         events: &[PointerEvent],
     ) {
@@ -238,7 +238,6 @@ impl PointerHandler for Runtime {
                 },
             };
             self.surfaces[index].app.push(platform_event);
-            self.surfaces[index].request_redraw(qh);
         }
     }
 }
@@ -280,13 +279,13 @@ impl KeyboardHandler for Runtime {
     fn press_key(
         &mut self,
         _: &Connection,
-        qh: &QueueHandle<Self>,
+        _: &QueueHandle<Self>,
         _: &wl_keyboard::WlKeyboard,
         serial: u32,
         event: KeyEvent,
     ) {
         self.last_input_serial.set(serial);
-        self.key_event(qh, event.clone(), KeyboardEventName::KeyDown);
+        self.key_event(event.clone(), KeyboardEventName::KeyDown);
         if should_repeat_key(&event) {
             let (delay, rate) = self.repeat_timing();
             self.repeat_generation = self.repeat_generation.wrapping_add(1);
@@ -305,12 +304,12 @@ impl KeyboardHandler for Runtime {
     fn release_key(
         &mut self,
         _: &Connection,
-        qh: &QueueHandle<Self>,
+        _: &QueueHandle<Self>,
         _: &wl_keyboard::WlKeyboard,
         _: u32,
         event: KeyEvent,
     ) {
-        self.key_event(qh, event.clone(), KeyboardEventName::KeyUp);
+        self.key_event(event.clone(), KeyboardEventName::KeyUp);
         if released_repeated_key(&self.repeat, &event) {
             stop_repeat(&mut self.repeat, &mut self.repeat_generation);
         }
@@ -340,12 +339,7 @@ impl KeyboardHandler for Runtime {
 }
 
 impl Runtime {
-    pub(super) fn key_event(
-        &mut self,
-        qh: &QueueHandle<Self>,
-        event: KeyEvent,
-        name: KeyboardEventName,
-    ) {
+    pub(super) fn key_event(&mut self, event: KeyEvent, name: KeyboardEventName) {
         let (key, code) = super::key(event.keysym, event.utf8.clone());
         let modifiers = super::modifiers(self.modifiers);
 
@@ -384,7 +378,6 @@ impl Runtime {
         };
         if let Some(idx) = index {
             self.surfaces[idx].app.push(platform_event);
-            self.surfaces[idx].request_redraw(qh);
             if shortcut_action.is_some() {
                 self.poll_all();
                 self.redraw_all();
@@ -423,8 +416,7 @@ impl Runtime {
                 {
                     let event = shell.repeat.as_ref().map(|state| state.event.clone());
                     if let Some(event) = event {
-                        let qh = shell.qh.clone();
-                        shell.key_event(&qh, event, KeyboardEventName::KeyDown);
+                        shell.key_event(event, KeyboardEventName::KeyDown);
                     }
                     if let Some(state) = &mut shell.repeat {
                         state.pending = false;
@@ -450,7 +442,7 @@ impl TouchHandler for Runtime {
     fn down(
         &mut self,
         _: &Connection,
-        qh: &QueueHandle<Self>,
+        _: &QueueHandle<Self>,
         _: &wl_touch::WlTouch,
         _: u32,
         _: u32,
@@ -461,7 +453,6 @@ impl TouchHandler for Runtime {
         let surface_id = surface.id();
         self.touch_surfaces.insert(id, surface_id.clone());
         self.touch_event(
-            qh,
             surface_id,
             id,
             position,
@@ -472,7 +463,7 @@ impl TouchHandler for Runtime {
     fn up(
         &mut self,
         _: &Connection,
-        qh: &QueueHandle<Self>,
+        _: &QueueHandle<Self>,
         _: &wl_touch::WlTouch,
         _: u32,
         _: u32,
@@ -482,7 +473,6 @@ impl TouchHandler for Runtime {
             return;
         };
         self.touch_event(
-            qh,
             surface_id,
             id,
             (0.0, 0.0),
@@ -493,7 +483,7 @@ impl TouchHandler for Runtime {
     fn motion(
         &mut self,
         _: &Connection,
-        qh: &QueueHandle<Self>,
+        _: &QueueHandle<Self>,
         _: &wl_touch::WlTouch,
         _: u32,
         id: i32,
@@ -503,7 +493,6 @@ impl TouchHandler for Runtime {
             return;
         };
         self.touch_event(
-            qh,
             surface_id,
             id,
             position,
@@ -532,11 +521,10 @@ impl TouchHandler for Runtime {
     ) {
     }
 
-    fn cancel(&mut self, _: &Connection, qh: &QueueHandle<Self>, _: &wl_touch::WlTouch) {
+    fn cancel(&mut self, _: &Connection, _: &QueueHandle<Self>, _: &wl_touch::WlTouch) {
         let mut cancelled = std::mem::take(&mut self.touch_surfaces);
         dispatch_touch_cancels(&mut cancelled, |id, surface_id| {
             self.touch_event(
-                qh,
                 surface_id,
                 id,
                 (0.0, 0.0),
@@ -549,7 +537,6 @@ impl TouchHandler for Runtime {
 impl Runtime {
     fn touch_event(
         &mut self,
-        qh: &QueueHandle<Self>,
         surface_id: ObjectId,
         id: i32,
         position: (f64, f64),
@@ -571,7 +558,6 @@ impl Runtime {
             force: None,
         };
         self.surfaces[index].app.push(platform_event);
-        self.surfaces[index].request_redraw(qh);
     }
 }
 
