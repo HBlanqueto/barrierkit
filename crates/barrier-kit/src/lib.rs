@@ -32,6 +32,8 @@ pub mod compact;
 
 pub mod adornments;
 
+pub mod popup_button;
+
 pub mod symbol;
 
 pub mod menu;

@@ -15,6 +15,7 @@ pub enum Symbol {
     SpeakerWave,
     Plus,
     Minus,
+    ChevronUpDown,
 }
 
 impl Symbol {
@@ -26,6 +27,7 @@ impl Symbol {
             Self::XMark => "M4 4l8 8M12 4l-8 8",
             Self::Plus => "M8 3.5v9M3.5 8h9",
             Self::Minus => "M3.5 8h9",
+            Self::ChevronUpDown => "M4 6l4-4 4 4M4 10l4 4 4-4",
             Self::SpeakerWave => {
                 "M3 6h2l3-3v10l-3-3H3zM10.5 5.5a3.5 3.5 0 0 1 0 5M12.5 3.5a6.5 6.5 0 0 1 0 9"
             }

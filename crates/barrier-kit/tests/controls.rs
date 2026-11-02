@@ -13,6 +13,7 @@ use barrier_kit::controls::{
     Slider, Switch, TextField,
 };
 use barrier_kit::level::{LevelSlider, LevelStyle};
+use barrier_kit::popup_button::PopUpButton;
 use barrier_kit::progress::{ProgressBar, ProgressRing};
 use barrier_kit::symbol::Symbol;
 use barrier_kit::theme;
@@ -64,6 +65,7 @@ fn cases() -> Vec<Control> {
         ("level-slider", level_slider),
         ("compact", compact),
         ("adornments", adornments),
+        ("popup-button", popup_button),
         ("secure-field", secure_field),
         ("scroll-view", scroll_view),
         ("menu", menu),
@@ -181,6 +183,15 @@ fn adornments() -> Element {
         .child(divider())
         .child(avatar("HB"))
         .child(Link::new("Más información…"))
+        .into_element()
+}
+
+fn popup_button() -> Element {
+    PopUpButton::new("Semáforos")
+        .item("Automático")
+        .item("Clásico")
+        .item("Acento")
+        .selected(1)
         .into_element()
 }
 

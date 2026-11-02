@@ -2,6 +2,7 @@ use std::time::Instant;
 
 use barrier_kit::controls::Button;
 use barrier_kit::platform::{Decorations, WindowOptions, run_window};
+use barrier_kit::popup_button::PopUpButton;
 use barrier_kit::titlebar::{Titlebar, resize_edges};
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
@@ -45,7 +46,13 @@ impl App for Demo {
                             .font_size(16.0)
                             .color(text),
                     )
-                    .child(Button::new("Un botón").on_press(|_| {})),
+                    .child(Button::new("Un botón").on_press(|_| {}))
+                    .child(
+                        PopUpButton::new("Semáforos")
+                            .item("Automático")
+                            .item("Clásico")
+                            .item("Acento"),
+                    ),
             )
             .child(resize_edges())
     }
