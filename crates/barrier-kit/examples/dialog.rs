@@ -1,6 +1,6 @@
 use std::time::Instant;
 
-use barrier_kit::controls::Button;
+use barrier_kit::controls::{Button, ButtonStyle};
 use barrier_kit::platform::{Decorations, WindowControls, WindowOptions, run_window};
 use barrier_kit::titlebar::{Titlebar, resize_edges};
 use freya_core::integration::AppComponent;
@@ -43,22 +43,18 @@ impl App for Parent {
                     .padding(Gaps::new(24.0, 24.0, 24.0, 24.0))
                     .main_align(Alignment::Center)
                     .child(label().text("Ventana padre").font_size(18.0).color(text))
-                    .child(
-                        Button::new()
-                            .on_press(move |_| {
-                                let parent = controls.surface_id();
-                                controls.open_window(
-                                    AppComponent::new(Dialog {
-                                        started: Instant::now(),
-                                    }),
-                                    WindowOptions::new("Diálogo", "demo.dialog")
-                                        .decorations(Decorations::Server)
-                                        .size((360, 180))
-                                        .parent(Some(parent)),
-                                );
-                            })
-                            .child(label().text("Abrir diálogo").color(text)),
-                    ),
+                    .child(Button::new("Abrir diálogo").on_press(move |_| {
+                        let parent = controls.surface_id();
+                        controls.open_window(
+                            AppComponent::new(Dialog {
+                                started: Instant::now(),
+                            }),
+                            WindowOptions::new("Diálogo", "demo.dialog")
+                                .decorations(Decorations::Server)
+                                .size((360, 180))
+                                .parent(Some(parent)),
+                        );
+                    })),
             )
             .child(resize_edges())
     }
@@ -101,15 +97,11 @@ impl App for Dialog {
                             .direction(Direction::Horizontal)
                             .spacing(12.0)
                             .child(
-                                Button::new()
-                                    .on_press(|_| std::process::exit(0))
-                                    .child(label().text("Aceptar").color(text)),
+                                Button::new("Aceptar")
+                                    .style(ButtonStyle::Primary)
+                                    .on_press(|_| std::process::exit(0)),
                             )
-                            .child(
-                                Button::new()
-                                    .on_press(|_| std::process::exit(0))
-                                    .child(label().text("Cancelar").color(text)),
-                            ),
+                            .child(Button::new("Cancelar").on_press(|_| std::process::exit(0))),
                     ),
             )
     }

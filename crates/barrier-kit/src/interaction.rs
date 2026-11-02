@@ -1,4 +1,4 @@
-//! Hover and keyboard focus shared by every interactive control.
+//! Hover, press and keyboard focus shared by every interactive control.
 
 use freya_core::prelude::*;
 use torin::prelude::{Position, Size, SizeFnContext};
@@ -8,6 +8,7 @@ use vow_design::FOCUS_RING;
 pub struct Interaction {
     a11y_id: AccessibilityId,
     hovered: State<bool>,
+    pressed: State<bool>,
     focus: Memo<Focus>,
 }
 
@@ -16,6 +17,7 @@ pub fn use_interaction() -> Interaction {
     Interaction {
         a11y_id,
         hovered: use_state(|| false),
+        pressed: use_state(|| false),
         focus: use_focus(a11y_id),
     }
 }
@@ -25,17 +27,27 @@ impl Interaction {
         *self.hovered.read()
     }
 
+    pub fn pressed(&self) -> bool {
+        *self.pressed.read()
+    }
+
     pub fn keyboard_focused(&self) -> bool {
         matches!(*self.focus.read(), Focus::Keyboard)
     }
 
     pub fn attach(&self, element: Rect, enabled: bool) -> Rect {
         let mut hovered = self.hovered;
+        let mut pressed = self.pressed;
         element
             .a11y_id(self.a11y_id)
             .a11y_focusable(enabled)
             .on_pointer_enter(move |_| hovered.set(true))
-            .on_pointer_leave(move |_| hovered.set(false))
+            .on_pointer_leave(move |_| {
+                hovered.set(false);
+                pressed.set_if_modified(false);
+            })
+            .maybe(enabled, |el| el.on_pointer_down(move |_| pressed.set(true)))
+            .on_global_pointer_press(move |_| pressed.set_if_modified(false))
     }
 
     pub fn focus_ring(&self, element: Rect, corner_radius: f32) -> Rect {

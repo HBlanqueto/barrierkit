@@ -393,6 +393,16 @@ pub struct FocusRingMetrics {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct ButtonMetrics {
+    pub height: f32,
+    pub padding_x: f32,
+    pub radius: f32,
+    pub font_size: f32,
+    pub font_weight: i32,
+    pub pressed_scale: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct SidebarMetrics {
     pub default_island: bool,
     pub width: u32,

@@ -227,38 +227,30 @@ impl App for Contador {
                         rect()
                             .direction(Direction::Horizontal)
                             .spacing(16.0)
-                            .child(
-                                Button::new()
-                                    .on_press({
-                                        let mut count = count;
-                                        let step = step;
-                                        let allow_negative = allow_negative;
-                                        move |_| {
-                                            let s = *step.read();
-                                            let current = *count.read();
-                                            let next = current.saturating_sub(s);
-                                            count.set(if next < 0 && !*allow_negative.read() {
-                                                0
-                                            } else {
-                                                next
-                                            });
-                                        }
-                                    })
-                                    .child(label().text("−").font_size(24.0).color(text)),
-                            )
-                            .child(
-                                Button::new()
-                                    .on_press({
-                                        let mut count = count;
-                                        let step = step;
-                                        move |_| {
-                                            let s = *step.read();
-                                            let current = *count.read();
-                                            count.set(current.saturating_add(s));
-                                        }
-                                    })
-                                    .child(label().text("+").font_size(24.0).color(text)),
-                            ),
+                            .child(Button::new("−").on_press({
+                                let mut count = count;
+                                let step = step;
+                                let allow_negative = allow_negative;
+                                move |_| {
+                                    let s = *step.read();
+                                    let current = *count.read();
+                                    let next = current.saturating_sub(s);
+                                    count.set(if next < 0 && !*allow_negative.read() {
+                                        0
+                                    } else {
+                                        next
+                                    });
+                                }
+                            }))
+                            .child(Button::new("+").on_press({
+                                let mut count = count;
+                                let step = step;
+                                move |_| {
+                                    let s = *step.read();
+                                    let current = *count.read();
+                                    count.set(current.saturating_add(s));
+                                }
+                            })),
                     ),
             )
             .into_element()

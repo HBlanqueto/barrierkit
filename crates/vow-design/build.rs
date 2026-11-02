@@ -32,6 +32,7 @@ fn main() {
     emit_switch(&mut out, &tokens, &components);
     emit_segmented(&mut out, &tokens, &components);
     emit_focus_ring(&mut out, &components);
+    emit_button(&mut out, &tokens, &components);
     emit_wallpaper(&mut out, &tokens, &components);
     emit_traffic(&mut out, &tokens, &components);
     emit_font_families(&mut out, &tokens);
@@ -695,6 +696,40 @@ fn emit_focus_ring(out: &mut String, components: &Value) {
             "components.focus-ring.offset",
             COMPONENTS
         ))
+    ));
+}
+
+fn emit_button(out: &mut String, tokens: &Value, components: &Value) {
+    let field = |key: &str| {
+        float(metric(
+            tokens,
+            components,
+            &format!("components.button.{key}"),
+            COMPONENTS,
+        ))
+    };
+    const_doc(out, "BUTTON", "The Tengen text button metrics.");
+    out.push_str(&format!(
+        ": ButtonMetrics = ButtonMetrics {{
+\
+         \x20   height: {},
+\
+         \x20   padding_x: {},
+\
+         \x20   radius: {},
+\
+         \x20   font_size: {},
+\
+         \x20   font_weight: {},
+\
+         \x20   pressed_scale: {},
+}};\n\n",
+        field("height"),
+        field("padding-x"),
+        field("radius"),
+        field("font.size"),
+        integer(components, "components.button.font.weight", COMPONENTS),
+        field("pressed-scale")
     ));
 }
 

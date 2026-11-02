@@ -45,11 +45,7 @@ impl App for Demo {
                             .font_size(16.0)
                             .color(text),
                     )
-                    .child(
-                        Button::new()
-                            .on_press(|_| {})
-                            .child(label().text("Un botón").color(text)),
-                    ),
+                    .child(Button::new("Un botón").on_press(|_| {})),
             )
             .child(resize_edges())
     }

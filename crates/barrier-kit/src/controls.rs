@@ -1,6 +1,5 @@
 //! Named UI controls (buttons, toggles, fields) built on Freya components.
 
-pub use freya_components::button::Button;
 pub use freya_components::input::Input as TextField;
 pub use freya_components::menu::Menu;
 pub use freya_components::popup::Popup as Popover;
@@ -12,7 +11,7 @@ use freya_animation::prelude::{AnimNum, Ease, Function, use_animation_transition
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 use vow_design::{
-    CAPTION, CHECKBOX, KNOB_SHADOW, Rgba, SEGMENTED, SETTINGS, SLIDER, SWITCH, TEXT,
+    BUTTON, CAPTION, CHECKBOX, KNOB_SHADOW, Rgba, SEGMENTED, SETTINGS, SLIDER, SWITCH, TEXT,
     TEXT_LINE_HEIGHT, TOOLGROUP,
 };
 
@@ -589,6 +588,116 @@ impl Component for Slider {
         }
 
         root
+    }
+}
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum ButtonStyle {
+    Primary,
+    #[default]
+    Secondary,
+}
+
+#[derive(PartialEq)]
+pub struct Button {
+    label: String,
+    style: ButtonStyle,
+    disabled: bool,
+    width: Size,
+    on_press: Option<Callback<(), ()>>,
+    key: DiffKey,
+}
+
+impl Button {
+    pub fn new(label: impl Into<String>) -> Self {
+        Self {
+            label: label.into(),
+            style: ButtonStyle::default(),
+            disabled: false,
+            width: Size::auto(),
+            on_press: None,
+            key: DiffKey::None,
+        }
+    }
+
+    pub fn style(mut self, style: ButtonStyle) -> Self {
+        self.style = style;
+        self
+    }
+
+    pub fn disabled(mut self, disabled: bool) -> Self {
+        self.disabled = disabled;
+        self
+    }
+
+    pub fn width(mut self, width: Size) -> Self {
+        self.width = width;
+        self
+    }
+
+    pub fn on_press(mut self, callback: impl Into<Callback<(), ()>>) -> Self {
+        self.on_press = Some(callback.into());
+        self
+    }
+
+    pub fn key(mut self, key: impl Into<DiffKey>) -> Self {
+        self.key = key.into();
+        self
+    }
+}
+
+impl KeyExt for Button {
+    fn write_key(&mut self) -> &mut DiffKey {
+        &mut self.key
+    }
+}
+
+impl Component for Button {
+    fn render(&self) -> impl IntoElement {
+        let resolved = crate::theme::resolved();
+        let base = vow_appearance::palette(resolved.scheme);
+        let interaction = use_interaction();
+        let enabled = !self.disabled;
+        let (background, ink) = match (self.style, enabled) {
+            (_, false) => (resolved.surfaces.control, base.ink_faint),
+            (ButtonStyle::Primary, true) => (resolved.accent, base.on_accent),
+            (ButtonStyle::Secondary, true) if interaction.hovered() => {
+                (resolved.surfaces.hover, base.ink_strong)
+            }
+            (ButtonStyle::Secondary, true) => (resolved.surfaces.control, base.ink_strong),
+        };
+        let on_press = self.on_press.clone();
+
+        let button = interaction
+            .attach(rect(), enabled)
+            .a11y_role(AccessibilityRole::Button)
+            .a11y_alt(self.label.clone())
+            .width(self.width.clone())
+            .height(Size::px(BUTTON.height))
+            .padding(Gaps::new(0.0, BUTTON.padding_x, 0.0, BUTTON.padding_x))
+            .corner_radius(BUTTON.radius)
+            .center()
+            .background(rgba(background))
+            .maybe(enabled && interaction.pressed(), |el| {
+                el.scale(BUTTON.pressed_scale)
+            })
+            .maybe(enabled, |el| {
+                el.on_press(move |_| {
+                    if let Some(cb) = &on_press {
+                        cb.call(());
+                    }
+                })
+            })
+            .child(
+                label()
+                    .text(self.label.clone())
+                    .font_family(TEXT.family)
+                    .font_size(BUTTON.font_size)
+                    .font_weight(BUTTON.font_weight)
+                    .max_lines(1)
+                    .color(rgba(ink)),
+            );
+        interaction.focus_ring(button, BUTTON.radius)
     }
 }
 

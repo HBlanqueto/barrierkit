@@ -6,7 +6,8 @@ use std::{
 };
 
 use barrier_kit::controls::{
-    Button, Checkbox, Popover, ScrollView, SecureField, SegmentedControl, Slider, Switch, TextField,
+    Button, ButtonStyle, Checkbox, Popover, ScrollView, SecureField, SegmentedControl, Slider,
+    Switch, TextField,
 };
 use barrier_kit::theme;
 use freya_components::menu::{Menu, MenuItem};
@@ -58,7 +59,13 @@ fn cases() -> Vec<Control> {
 }
 
 fn button() -> Element {
-    Button::new().child("Guardar").into_element()
+    rect()
+        .direction(Direction::Horizontal)
+        .spacing(12.0)
+        .child(Button::new("Cancelar"))
+        .child(Button::new("Guardar").style(ButtonStyle::Primary))
+        .child(Button::new("Borrar").disabled(true))
+        .into_element()
 }
 
 fn switch() -> Element {
@@ -125,7 +132,7 @@ fn popover() -> Element {
     Popover::new()
         .children([
             label().text("Popover").into_element(),
-            Button::new().child("Aceptar").into_element(),
+            Button::new("Aceptar").into_element(),
         ])
         .into_element()
 }
@@ -455,6 +462,38 @@ fn keyboard_focus_ring_matches_its_golden_image() {
         fs::write(&path, &actual).unwrap();
     } else {
         compare(&path, &actual, "focus-ring", false);
+    }
+}
+
+#[test]
+fn button_press_emits_only_when_enabled() {
+    use std::cell::RefCell;
+    use std::rc::Rc;
+
+    struct ButtonCase {
+        disabled: bool,
+        presses: Rc<RefCell<u32>>,
+    }
+    impl App for ButtonCase {
+        fn render(&self) -> impl IntoElement {
+            let presses = self.presses.clone();
+            Button::new("Guardar")
+                .disabled(self.disabled)
+                .on_press(move |_| *presses.borrow_mut() += 1)
+        }
+    }
+
+    for (disabled, expected) in [(false, 1), (true, 0)] {
+        let presses = Rc::new(RefCell::new(0));
+        let app = AppComponent::new(ButtonCase {
+            disabled,
+            presses: presses.clone(),
+        });
+        let (mut test, _) = TestingRunner::new(app, Size2D::new(120.0, 40.0), |_| {}, 1.0);
+        test.sync_and_update();
+        test.click_cursor((20.0, 15.0));
+        test.sync_and_update();
+        assert_eq!(*presses.borrow(), expected);
     }
 }
 
