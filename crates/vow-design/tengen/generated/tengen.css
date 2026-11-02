@@ -357,6 +357,9 @@
   --progress-radius: var(--radius-pill);
   --progress-ring-size: 28px;
   --progress-ring-stroke: 3.500000px;
+  --progress-spinner-duration: 1000px;
+  --progress-spinner-size: 20px;
+  --progress-spinner-spokes: 12px;
   --progress-track: var(--bg-control);
   --radio-border: var(--line-strong);
   --radio-dot: 6px;
@@ -628,6 +631,11 @@
   --toolbar-tabs-tab-padding-bottom: 5px;
   --toolbar-tabs-tab-padding-top: 6px;
   --toolbar-tabs-tab-radius: var(--radius-sm);
+  --tooltip-delay: 1000px;
+  --tooltip-padding-x: 6px;
+  --tooltip-padding-y: 3px;
+  --tooltip-pointer-gap: 16px;
+  --tooltip-radius: var(--radius-xs);
   --window-bg: var(--bg-window);
   --window-inner-line: var(--window-inner);
   --window-outer-border: var(--window-outer);

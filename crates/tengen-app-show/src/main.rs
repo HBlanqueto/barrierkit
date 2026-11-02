@@ -1,20 +1,23 @@
 //! Master Tengen App Show: every BarrierKit component on its own page (ADR 0047 §6).
 
 use barrier_kit::adornments::{Link, avatar, badge, divider};
-use barrier_kit::app::{Instance, Launch, launch};
+use barrier_kit::app::{Action, Instance, Launch, launch};
 use barrier_kit::choices::{ChoiceCards, ColorWell, RadioGroup};
 use barrier_kit::compact::{Face, IconButton, Stepper, ToggleGroup};
+use barrier_kit::context_menu::context_menu;
 use barrier_kit::controls::{
     Button, ButtonStyle, Checkbox, SearchField, SegmentedControl, Slider, Switch, TextField,
 };
 use barrier_kit::level::{LevelSlider, LevelStyle};
+use barrier_kit::menu::MenuItem;
 use barrier_kit::patterns::about::about_window;
 use barrier_kit::patterns::preferences::{Pane, PaneGroup, PreferencesWindow};
 use barrier_kit::platform::{Decorations, WindowOptions, run_window};
 use barrier_kit::popup_button::PopUpButton;
-use barrier_kit::progress::{ProgressBar, ProgressRing};
+use barrier_kit::progress::{ProgressBar, ProgressRing, Spinner};
 use barrier_kit::style::{Palette, text};
 use barrier_kit::symbol::Symbol;
+use barrier_kit::tooltip::use_tooltip;
 use barrier_kit::views::collection::CollectionView;
 use barrier_kit::views::feedback::{Alert, empty_state};
 use barrier_kit::views::form::{Form, Row, Section};
@@ -54,8 +57,32 @@ fn buttons() -> Form {
                 IconButton::new(Symbol::Plus, "Añadir").into_element(),
                 IconButton::new(Symbol::Minus, "Quitar").into_element(),
             ])))
-            .row(Row::new("Enlace").control(Link::new("Más información…"))),
+            .row(Row::new("Enlace").control(Link::new("Más información…")))
+            .row(Row::new("Ayuda emergente").control(TooltipDemo))
+            .row(Row::new("Menú contextual").control(context_menu(
+                rect().child(text(
+                    "Clic secundario aquí",
+                    TEXT,
+                    Palette::current().secondary_label,
+                )),
+                vec![
+                    Action::new("copy", "Copiar").item(true),
+                    Action::new("paste", "Pegar").item(false),
+                    MenuItem::Separator,
+                    Action::new("info", "Obtener información").item(true),
+                ],
+                |id: String| tracing::info!(%id, "menú contextual"),
+            ))),
     )
+}
+
+#[derive(PartialEq)]
+struct TooltipDemo;
+
+impl Component for TooltipDemo {
+    fn render(&self) -> impl IntoElement {
+        use_tooltip("Añade una cuenta").attach(IconButton::new(Symbol::Plus, "Añadir"))
+    }
 }
 
 fn toggles() -> Form {
@@ -197,7 +224,8 @@ fn progress() -> Form {
                         .child(ProgressBar::indeterminate("Buscando")),
                 ),
             )
-            .row(Row::new("Anillo").control(ProgressRing::new("Descargando", 0.4))),
+            .row(Row::new("Anillo").control(ProgressRing::new("Descargando", 0.4)))
+            .row(Row::new("Indicador de actividad").control(Spinner::new("Cargando"))),
     )
 }
 

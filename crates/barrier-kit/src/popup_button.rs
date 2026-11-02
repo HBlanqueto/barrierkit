@@ -133,35 +133,51 @@ fn open_menu(
             icon: icon.clone(),
         })
         .collect();
+    let inset =
+        MENU_POPOVER.padding + MENU_POPOVER.item_padding_start + MENU_POPOVER.leading_column;
+    open_popover_menu(
+        entries,
+        (
+            area.origin.x.round() as i32,
+            area.origin.y.round() as i32,
+            area.size.width.round() as u32,
+            area.size.height.round() as u32,
+        ),
+        (
+            -(inset.round() as i32),
+            -(MENU_POPOVER.padding.round() as i32),
+        ),
+        move |id| {
+            if let Some(select) = id.parse::<usize>().ok().and_then(|i| selects.get(i)) {
+                select.call(());
+            }
+        },
+    );
+}
+
+pub(crate) fn open_popover_menu(
+    entries: Vec<MenuItem>,
+    anchor_rect: (i32, i32, u32, u32),
+    offset: (i32, i32),
+    on_activate: impl Fn(String) + 'static,
+) {
     let palette = popover_palette(&crate::theme::resolved(), SurfaceKind::Toplevel);
     let size = MenuView::preferred_size(&entries, palette);
     let view = MenuView::new(
         entries,
         move |id| {
-            if let Some(select) = id.parse::<usize>().ok().and_then(|i| selects.get(i)) {
-                select.call(());
-            }
+            on_activate(id);
             PopupHandle::get().close();
         },
         || PopupHandle::get().close(),
     )
     .with_surface(SurfaceKind::Toplevel)
     .with_popover_metrics();
-    let inset =
-        MENU_POPOVER.padding + MENU_POPOVER.item_padding_start + MENU_POPOVER.leading_column;
     let spec = PopupSpec {
-        anchor_rect: (
-            area.origin.x.round() as i32,
-            area.origin.y.round() as i32,
-            area.size.width.round() as u32,
-            area.size.height.round() as u32,
-        ),
+        anchor_rect,
         anchor: PopupAnchor::TopLeft,
         gravity: PopupGravity::BottomRight,
-        offset: (
-            -(inset.round() as i32),
-            -(MENU_POPOVER.padding.round() as i32),
-        ),
+        offset,
         size: (size.0.ceil() as u32, size.1.ceil() as u32),
         constraint_adjustment: PopupConstraintAdjustment {
             flip_x: true,

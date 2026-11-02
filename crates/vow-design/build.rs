@@ -35,6 +35,7 @@ fn main() {
     emit_button(&mut out, &tokens, &components);
     emit_text_field(&mut out, &tokens, &components);
     emit_progress(&mut out, &tokens, &components);
+    emit_tooltip(&mut out, &tokens, &components);
     emit_symbol(&mut out, &components);
     emit_slider_fat(&mut out, &components);
     emit_compact(&mut out, &tokens, &components);
@@ -782,6 +783,12 @@ fn emit_progress(out: &mut String, tokens: &Value, components: &Value) {
          \x20   indeterminate_segment: {},
 \
          \x20   indeterminate_ms: {},
+\
+         \x20   spinner_size: {},
+\
+         \x20   spinner_spokes: {},
+\
+         \x20   spinner_ms: {},
 }};\n\n",
         field("height"),
         field("ring.size"),
@@ -791,7 +798,30 @@ fn emit_progress(out: &mut String, tokens: &Value, components: &Value) {
             components,
             "components.progress.indeterminate.duration",
             COMPONENTS
-        )
+        ),
+        field("spinner.size"),
+        integer(components, "components.progress.spinner.spokes", COMPONENTS),
+        integer(components, "components.progress.spinner.duration", COMPONENTS)
+    ));
+}
+
+fn emit_tooltip(out: &mut String, tokens: &Value, components: &Value) {
+    let field = |key: &str| {
+        float(metric(
+            tokens,
+            components,
+            &format!("components.tooltip.{key}"),
+            COMPONENTS,
+        ))
+    };
+    const_doc(out, "TOOLTIP", "The Tengen tooltip metrics.");
+    out.push_str(&format!(
+        ": TooltipMetrics = TooltipMetrics {{ delay_ms: {}, padding_x: {}, padding_y: {}, radius: {}, pointer_gap: {} }};\n\n",
+        integer(components, "components.tooltip.delay", COMPONENTS),
+        field("padding-x"),
+        field("padding-y"),
+        field("radius"),
+        field("pointer-gap")
     ));
 }
 

@@ -34,6 +34,10 @@ pub mod adornments;
 
 pub mod popup_button;
 
+pub mod context_menu;
+
+pub mod tooltip;
+
 pub mod style;
 
 pub mod app;

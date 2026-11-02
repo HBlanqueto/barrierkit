@@ -229,10 +229,10 @@ Cada fase se divide en lotes pequeños para opencode, con prueba visible en la s
 Hecho en `main`:
 
 - **Capa 0**: escala fraccional, separación de la shell, foco y modo teclado (Tab activa la navegación por teclado; las teclas van al nodo enfocado) y portapapeles sobre `wl_data_device`.
-- **Capa 1**: `style` (paleta semántica y caras de texto), `symbol`, `interaction` (hover, pulsado, foco y anillo), `Button`, `IconButton`, `Switch`, `Checkbox`, `RadioGroup`, `ColorWell`, `ChoiceCards`, `SegmentedControl`, `ToggleGroup`, `Stepper`, `Slider` por pasos, `LevelSlider` (continuo y grueso), `TextField`, `SearchField`, `PopUpButton`, `ProgressBar`, `ProgressRing`, `badge`, `divider`, `avatar` y `Link`.
+- **Capa 1**: `style` (paleta semántica y caras de texto), `symbol`, `interaction` (hover, pulsado, foco y anillo), `Button`, `IconButton`, `Switch`, `Checkbox`, `RadioGroup`, `ColorWell`, `ChoiceCards`, `SegmentedControl`, `ToggleGroup`, `Stepper`, `Slider` por pasos, `LevelSlider` (continuo y grueso), `TextField`, `SearchField`, `PopUpButton`, `ProgressBar`, `ProgressRing`, `Spinner`, `badge`, `divider`, `avatar`, `Link` y `use_tooltip` (popup sin grab bajo el puntero).
 - **App**: `Action` con `Shortcut` tipado, `load_defaults`/`save_defaults` con aviso de cambios, `launch` (instancia única; `Activate` trae la ventana al frente por xdg-activation), restauración del panel, `UndoStack` y portapapeles (`copy`/`paste`).
-- **Capa 2**: `Form`/`Section`/`Row`, `SplitView` (sustituye a `SidebarLayout`), `History` y `navigation_buttons`, `SearchIndex`, `empty_state`, `sheet`, `Alert`, `TabView`, `Table`, `CollectionView` y `SidebarAccount`.
-- **Capa 3**: `PreferencesWindow` (buscador con sugerencias y recientes opcionales y resultados con el icono de su panel), `about_window` y `BrowserWindow`.
+- **Capa 2**: `Form`/`Section`/`Row`, `SplitView` (sustituye a `SidebarLayout`), `History` y `navigation_buttons`, `SearchIndex`, `empty_state`, `sheet`, `Alert`, `TabView`, `Table`, `CollectionView`, `SidebarAccount` y `context_menu` (`MenuView` en el puntero con el clic secundario).
+- **Capa 3**: `PreferencesWindow` (buscador con sugerencias y recientes que se restauran, resultados con el icono de su panel y recorrido con ↑, ↓ y Enter), `about_window` y `BrowserWindow`.
 - **Master Tengen App Show** (`tengen-app-show`).
 - **Fase 6**: Ajustes del sistema es un `PreferencesWindow` con un `Form`; ya no tiene controles, barra lateral ni buscador propios.
 

@@ -17,7 +17,7 @@ use barrier_kit::menu::MenuIcon;
 use barrier_kit::patterns::about::about_window;
 use barrier_kit::patterns::preferences::{Pane, PaneGroup, PreferencesWindow};
 use barrier_kit::popup_button::PopUpButton;
-use barrier_kit::progress::{ProgressBar, ProgressRing};
+use barrier_kit::progress::{ProgressBar, ProgressRing, Spinner};
 use barrier_kit::sidebar::SidebarAccount;
 use barrier_kit::symbol::Symbol;
 use barrier_kit::theme;
@@ -160,6 +160,7 @@ fn progress() -> Element {
         .child(ProgressBar::determinate("Copiando sistema", 0.62))
         .child(ProgressBar::indeterminate("Buscando redes"))
         .child(ProgressRing::new("Descargando", 0.4))
+        .child(Spinner::new("Cargando"))
         .into_element()
 }
 

@@ -422,6 +422,18 @@ pub struct ProgressMetrics {
     pub ring_stroke: f32,
     pub indeterminate_segment: f32,
     pub indeterminate_ms: u64,
+    pub spinner_size: f32,
+    pub spinner_spokes: u32,
+    pub spinner_ms: u64,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct TooltipMetrics {
+    pub delay_ms: u64,
+    pub padding_x: f32,
+    pub padding_y: f32,
+    pub radius: f32,
+    pub pointer_gap: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

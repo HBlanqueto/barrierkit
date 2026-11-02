@@ -615,7 +615,19 @@
       "indeterminate": {
         "segment": 0.3,
         "duration": 1200
+      },
+      "spinner": {
+        "size": 20,
+        "spokes": 12,
+        "duration": 1000
       }
+    },
+    "tooltip": {
+      "delay": 1000,
+      "padding-x": 6,
+      "padding-y": 3,
+      "radius": "radius.xs",
+      "pointer-gap": 16
     },
     "badge": {
       "height": 20,

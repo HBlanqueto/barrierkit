@@ -1,10 +1,10 @@
-//! Progress bar (determinate and indeterminate) and progress ring.
+//! Progress bar (determinate and indeterminate), progress ring and spinner.
 
 use freya_animation::prelude::{AnimNum, Ease, Function, OnCreation, OnFinish, use_animation};
 use freya_components::svg_viewer::SvgViewer;
 use freya_core::prelude::*;
 use torin::prelude::{Direction, Position, Size};
-use vow_design::PROGRESS;
+use vow_design::{PROGRESS, SYMBOL};
 
 use crate::style::Palette;
 use crate::theme::color;
@@ -124,4 +124,65 @@ impl Component for ProgressRing {
                 palette.accent,
             )))
     }
+}
+
+#[derive(PartialEq)]
+pub struct Spinner {
+    label: &'static str,
+}
+
+impl Spinner {
+    pub fn new(label: &'static str) -> Self {
+        Self { label }
+    }
+}
+
+impl Component for Spinner {
+    fn render(&self) -> impl IntoElement {
+        let palette = Palette::current();
+        let reduced_motion = crate::theme::resolved().reduced_motion;
+        let spokes = PROGRESS.spinner_spokes;
+        let turn = use_animation(move |conf| {
+            if !reduced_motion {
+                conf.on_creation(OnCreation::Run);
+                conf.on_finish(OnFinish::restart());
+            }
+            AnimNum::new(0.0, spokes as f32)
+                .time(PROGRESS.spinner_ms)
+                .function(Function::Linear)
+        });
+        let step = turn.get().value().floor() as u32 % spokes;
+        let degrees_per_spoke = 360.0 / spokes as f32;
+        let svg = use_hook(|| spinner_svg(spokes));
+
+        rect()
+            .a11y_role(AccessibilityRole::ProgressIndicator)
+            .a11y_alt(self.label)
+            .width(Size::px(PROGRESS.spinner_size))
+            .height(Size::px(PROGRESS.spinner_size))
+            .rotation(step as f32 * degrees_per_spoke)
+            .child(
+                SvgViewer::new(svg)
+                    .width(Size::px(PROGRESS.spinner_size))
+                    .height(Size::px(PROGRESS.spinner_size))
+                    .color(color(palette.secondary_label))
+                    .show_loader(false),
+            )
+    }
+}
+
+fn spinner_svg(spokes: u32) -> Bytes {
+    let lines: String = (0..spokes)
+        .map(|spoke| {
+            let angle = spoke as f32 * 360.0 / spokes as f32;
+            let opacity = 1.0 - spoke as f32 / spokes as f32;
+            format!(
+                r#"<line x1="8" y1="1.5" x2="8" y2="4.5" stroke-opacity="{opacity}" transform="rotate(-{angle} 8 8)"/>"#
+            )
+        })
+        .collect();
+    Bytes::from(format!(
+        r#"<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="{}" stroke-linecap="round">{lines}</svg>"#,
+        SYMBOL.stroke
+    ))
 }
