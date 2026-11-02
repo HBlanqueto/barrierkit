@@ -24,6 +24,8 @@ pub mod controls;
 
 pub mod choices;
 
+pub mod progress;
+
 pub mod menu;
 
 pub mod app_menu;

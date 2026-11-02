@@ -410,6 +410,15 @@ pub struct TextFieldMetrics {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct ProgressMetrics {
+    pub height: f32,
+    pub ring_size: f32,
+    pub ring_stroke: f32,
+    pub indeterminate_segment: f32,
+    pub indeterminate_ms: u64,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct SidebarMetrics {
     pub default_island: bool,
     pub width: u32,

@@ -10,6 +10,7 @@ use barrier_kit::controls::{
     Button, ButtonStyle, Checkbox, Popover, ScrollView, SearchField, SecureField, SegmentedControl,
     Slider, Switch, TextField,
 };
+use barrier_kit::progress::{ProgressBar, ProgressRing};
 use barrier_kit::theme;
 use freya_components::menu::{Menu, MenuItem};
 use freya_components::theming::hooks::use_init_theme;
@@ -55,6 +56,7 @@ fn cases() -> Vec<Control> {
         ("checkbox", checkbox),
         ("radio-group", radio_group),
         ("color-well", color_well),
+        ("progress", progress),
         ("secure-field", secure_field),
         ("scroll-view", scroll_view),
         ("menu", menu),
@@ -120,6 +122,17 @@ fn radio_group() -> Element {
 fn color_well() -> Element {
     ColorWell::new("Color de acento", &ACCENT_SWATCHES)
         .selected(Some(0))
+        .into_element()
+}
+
+fn progress() -> Element {
+    rect()
+        .width(Size::px(240.0))
+        .direction(Direction::Vertical)
+        .spacing(16.0)
+        .child(ProgressBar::determinate("Copiando sistema", 0.62))
+        .child(ProgressBar::indeterminate("Buscando redes"))
+        .child(ProgressRing::new("Descargando", 0.4))
         .into_element()
 }
 

@@ -34,6 +34,7 @@ fn main() {
     emit_focus_ring(&mut out, &components);
     emit_button(&mut out, &tokens, &components);
     emit_text_field(&mut out, &tokens, &components);
+    emit_progress(&mut out, &tokens, &components);
     emit_wallpaper(&mut out, &tokens, &components);
     emit_traffic(&mut out, &tokens, &components);
     emit_font_families(&mut out, &tokens);
@@ -749,6 +750,41 @@ fn emit_text_field(out: &mut String, tokens: &Value, components: &Value) {
         field("height"),
         field("padding-x"),
         field("radius")
+    ));
+}
+
+fn emit_progress(out: &mut String, tokens: &Value, components: &Value) {
+    let field = |key: &str| {
+        float(metric(
+            tokens,
+            components,
+            &format!("components.progress.{key}"),
+            COMPONENTS,
+        ))
+    };
+    const_doc(out, "PROGRESS", "The Tengen progress bar and ring metrics.");
+    out.push_str(&format!(
+        ": ProgressMetrics = ProgressMetrics {{
+\
+         \x20   height: {},
+\
+         \x20   ring_size: {},
+\
+         \x20   ring_stroke: {},
+\
+         \x20   indeterminate_segment: {},
+\
+         \x20   indeterminate_ms: {},
+}};\n\n",
+        field("height"),
+        field("ring.size"),
+        field("ring.stroke"),
+        field("indeterminate.segment"),
+        integer(
+            components,
+            "components.progress.indeterminate.duration",
+            COMPONENTS
+        )
     ));
 }
 

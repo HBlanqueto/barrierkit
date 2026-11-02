@@ -576,6 +576,10 @@
       "ring": {
         "size": 28,
         "stroke": 3.5
+      },
+      "indeterminate": {
+        "segment": 0.3,
+        "duration": 1200
       }
     },
     "badge": {

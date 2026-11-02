@@ -336,6 +336,8 @@
   --menu-popover-swatch-grid-size: 16px;
   --progress-fill: var(--accent);
   --progress-height: 6px;
+  --progress-indeterminate-duration: 1200px;
+  --progress-indeterminate-segment: 0.300000px;
   --progress-radius: var(--radius-pill);
   --progress-ring-size: 28px;
   --progress-ring-stroke: 3.500000px;
