@@ -123,9 +123,11 @@ impl Default for PreferencesWindow {
 
 type Hit = (&'static str, Option<&'static str>);
 
-#[derive(Default, Serialize, Deserialize)]
+#[derive(Clone, Default, Serialize, Deserialize)]
 struct Restored {
     pane: String,
+    #[serde(default)]
+    recents: Vec<String>,
 }
 
 pub fn index(panes: &[&Pane]) -> SearchIndex<Hit> {
@@ -148,20 +150,24 @@ impl Component for PreferencesWindow {
     fn render(&self) -> impl IntoElement {
         let first = self.panes().next().map(|pane| pane.id).unwrap_or_default();
         let restoration = self.restoration;
-        let restored = restoration
-            .map(load_restoration::<Restored>)
-            .and_then(|state| {
-                self.panes()
-                    .map(|pane| pane.id)
-                    .find(|id| *id == state.pane)
-            });
-        let history = use_state(|| History::new(restored.unwrap_or(first)));
+        let saved = use_hook(|| {
+            restoration
+                .map(load_restoration::<Restored>)
+                .unwrap_or_default()
+        });
+        let known = |id: &String| self.panes().map(|pane| pane.id).find(|known| known == id);
+        let history = use_state(|| History::new(known(&saved.pane).unwrap_or(first)));
+        let recents: State<Vec<&'static str>> =
+            use_state(|| saved.recents.iter().filter_map(known).collect());
         use_side_effect(move || {
-            let pane = history.read().current().to_string();
+            let state = Restored {
+                pane: history.read().current().to_string(),
+                recents: recents.read().iter().map(|id| id.to_string()).collect(),
+            };
             if let Some(app_id) = restoration
-                && let Err(error) = save_restoration(app_id, &Restored { pane })
+                && let Err(error) = save_restoration(app_id, &state)
             {
-                tracing::warn!(%error, "preferencias: no se guardó el panel");
+                tracing::warn!(%error, "preferencias: no se guardó el estado");
             }
         });
         let query = use_state(String::new);
@@ -169,7 +175,7 @@ impl Component for PreferencesWindow {
         let mut search_focused = use_state(|| false);
         let popover_hovered = use_state(|| false);
         let mut dismissed_at: State<Option<String>> = use_state(|| None);
-        let recents: State<Vec<&'static str>> = use_state(Vec::new);
+        let mut cursor: State<Option<(String, usize)>> = use_state(|| None);
         let mut highlighted: State<Option<&'static str>> = use_state(|| None);
         let current = *history.read().current();
         let panes: Vec<&Pane> = self.panes().collect();
@@ -244,6 +250,37 @@ impl Component for PreferencesWindow {
         let popover_open = (*search_focused.read() || *popover_hovered.read())
             && !dismissed
             && !entries.is_empty();
+        let choices: Vec<Callback<(), ()>> = entries
+            .iter()
+            .filter_map(|entry| match entry {
+                Entry::Result { on_select, .. } => Some(on_select.clone()),
+                Entry::Header(_) => None,
+            })
+            .collect();
+        let active = cursor
+            .read()
+            .as_ref()
+            .filter(|(at, _)| *at == text)
+            .map(|(_, index)| *index);
+        let typed = text.clone();
+        let on_navigate = move |key: NamedKey| {
+            if !popover_open {
+                return;
+            }
+            let last = choices.len().checked_sub(1);
+            let next = match key {
+                NamedKey::ArrowDown => last.map(|last| active.map_or(0, |i| (i + 1).min(last))),
+                NamedKey::ArrowUp => active.and_then(|i| i.checked_sub(1)),
+                NamedKey::Enter => {
+                    if let Some(choice) = active.and_then(|i| choices.get(i)) {
+                        choice.call(());
+                    }
+                    return;
+                }
+                _ => return,
+            };
+            cursor.set(next.map(|index| (typed.clone(), index)));
+        };
 
         let mut sidebar = Sidebar::new().traffic_lights(true).child(
             rect()
@@ -257,6 +294,7 @@ impl Component for PreferencesWindow {
                 .child(
                     SearchField::new(query, "Buscar")
                         .a11y_id(search_id)
+                        .on_navigate(on_navigate)
                         .on_focus_change(move |focused| {
                             search_focused.set(focused);
                             if focused {
@@ -264,10 +302,9 @@ impl Component for PreferencesWindow {
                             }
                         }),
                 )
-                .maybe_child(
-                    popover_open
-                        .then(|| search_popover(entries, text.trim().is_empty(), popover_hovered)),
-                ),
+                .maybe_child(popover_open.then(|| {
+                    search_popover(entries, text.trim().is_empty(), active, popover_hovered)
+                })),
         );
         if let Some((initials, name, detail)) = &self.account {
             sidebar = sidebar.child(SidebarAccount::new(

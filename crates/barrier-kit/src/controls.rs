@@ -1014,6 +1014,7 @@ pub struct SearchField {
     placeholder: &'static str,
     width: Size,
     on_focus_change: Option<Callback<bool, ()>>,
+    on_navigate: Option<Callback<NamedKey, ()>>,
     a11y_id: Option<AccessibilityId>,
     key: DiffKey,
 }
@@ -1025,6 +1026,7 @@ impl SearchField {
             placeholder,
             width: Size::fill(),
             on_focus_change: None,
+            on_navigate: None,
             a11y_id: None,
             key: DiffKey::None,
         }
@@ -1037,6 +1039,11 @@ impl SearchField {
 
     pub fn on_focus_change(mut self, callback: impl Into<Callback<bool, ()>>) -> Self {
         self.on_focus_change = Some(callback.into());
+        self
+    }
+
+    pub fn on_navigate(mut self, callback: impl Into<Callback<NamedKey, ()>>) -> Self {
+        self.on_navigate = Some(callback.into());
         self
     }
 
@@ -1081,6 +1088,26 @@ impl Component for SearchField {
             padding + icon + gap,
         )
         .a11y_id(a11y_id);
+        if let Some(on_navigate) = self.on_navigate.clone() {
+            input =
+                input.on_pre_key_down(move |event: Event<KeyboardEventData>| match &event.key {
+                    Key::Named(
+                        key @ (NamedKey::ArrowUp | NamedKey::ArrowDown | NamedKey::Enter),
+                    ) => {
+                        event.stop_propagation();
+                        on_navigate.call(*key);
+                        false
+                    }
+                    // The rest mirrors Input's default pre-handler (freya-components 0.4.3, input.rs).
+                    Key::Named(NamedKey::Escape | NamedKey::Shift) => true,
+                    Key::Named(NamedKey::Tab) => false,
+                    _ => {
+                        event.stop_propagation();
+                        event.prevent_default();
+                        true
+                    }
+                });
+        }
         if !value.read().is_empty() {
             input = input.trailing(
                 rect()

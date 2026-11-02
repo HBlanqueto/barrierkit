@@ -36,11 +36,13 @@ impl Entry {
 pub(crate) fn search_popover(
     entries: Vec<Entry>,
     accent_highlight: bool,
+    active: Option<usize>,
     mut hovered: State<bool>,
 ) -> Rect {
     let menu = popover_palette(&crate::theme::resolved(), SurfaceKind::Toplevel);
     let content: f32 = entries.iter().map(Entry::height).sum();
     let height = content.min(SETTINGS.search_popover_max_height as f32);
+    let mut results = 0..;
     let rows = entries.into_iter().map(|entry| match entry {
         Entry::Header(title) => rect()
             .height(Size::px(SETTINGS.search_header_height as f32))
@@ -56,6 +58,7 @@ pub(crate) fn search_popover(
         result => SearchResult {
             entry: result,
             accent_highlight,
+            active: results.next() == active,
         }
         .into_element(),
     });
@@ -90,6 +93,7 @@ pub(crate) fn search_popover(
 struct SearchResult {
     entry: Entry,
     accent_highlight: bool,
+    active: bool,
 }
 
 impl Component for SearchResult {
@@ -107,7 +111,7 @@ impl Component for SearchResult {
         let palette = Palette::current();
         let menu = popover_palette(&crate::theme::resolved(), SurfaceKind::Toplevel);
         let interaction = use_interaction();
-        let highlighted = interaction.hovered();
+        let highlighted = self.active || interaction.hovered();
         let (background, ink, secondary) = match (highlighted, self.accent_highlight) {
             (true, true) => (Some(palette.accent), palette.on_accent, palette.on_accent),
             (true, false) => (

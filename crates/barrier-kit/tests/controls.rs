@@ -927,3 +927,25 @@ fn disabled_checkbox_does_not_emit() {
     test.sync_and_update();
     assert!(values.borrow().is_empty());
 }
+
+#[test]
+fn preferences_search_opens_the_result_chosen_with_the_arrows() {
+    let app = AppComponent::new(Case {
+        dark: false,
+        build: preferences,
+    });
+    let (mut test, _) =
+        TestingRunner::new(app, Size2D::new(WINDOW_SIZE.0, WINDOW_SIZE.1), |_| {}, 1.0);
+    test.sync_and_update();
+    test.click_cursor((140.0, 92.0));
+    test.sync_and_update();
+    test.write_text("son");
+    test.sync_and_update();
+    press(&mut test, Key::Named(NamedKey::ArrowDown));
+    press(&mut test, Key::Named(NamedKey::Enter));
+    let selected = test.find_many(|_, el| {
+        let node = &el.accessibility().builder;
+        (node.is_selected() == Some(true)).then(|| node.label().map(str::to_owned))
+    });
+    assert_eq!(selected, [Some("Sonido".to_owned())]);
+}

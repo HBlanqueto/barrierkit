@@ -419,6 +419,7 @@ impl Component for SidebarItem {
             .corner_radius(SIDEBAR.item_radius as f32)
             .background(bg)
             .a11y_role(AccessibilityRole::ListItem)
+            .a11y_alt(self.label.clone())
             .a11y_focusable(true)
             .a11y_builder(move |node| {
                 node.set_selected(self.selected);
