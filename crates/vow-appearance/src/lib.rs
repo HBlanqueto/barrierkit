@@ -454,7 +454,7 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
     menu.hover_bg = accent;
     menu.hover_fg = base.on_accent;
     menu.search_ring = accent;
-    sidebar.palette.selected_bg = normal_accent;
+    sidebar.palette.selected_bg = accent;
     sidebar.palette.item_icon = accent;
     sidebar.palette.selected_ink = base.on_accent;
     if let Some((tint, factor)) = panel_tint {
@@ -1004,6 +1004,21 @@ mod tests {
             resolved.panel_tint,
             Some((dominant(), PANEL_TINT_WALLPAPER[0]))
         );
+    }
+
+    #[test]
+    fn the_selected_sidebar_row_follows_the_wallpaper_accent() {
+        let resolved = resolve(
+            &appearance(
+                ColorScheme::Dark,
+                WindowColorMode::Wallpaper,
+                WindowTintScope::Windows,
+                TrafficLightStyle::Auto,
+                Some([0.9, 0.3, 0.1]),
+            ),
+            Some(dominant()),
+        );
+        assert_eq!(resolved.sidebar.palette.selected_bg, resolved.accent);
     }
 
     #[test]
