@@ -896,7 +896,7 @@ fn emit_titlebar_rail(out: &mut String, components: &Value) {
     };
     const_doc(out, "TITLEBAR_RAIL", "The vertical titlebar metrics.");
     out.push_str(&format!(
-        ": TitlebarRailMetrics = TitlebarRailMetrics {{ width: {}, width_wide: {}, actions_width: {}, padding_top: {}, padding_bottom: {}, title_size: {}, pill_inset: {}, pill_padding_x: {}, pill_padding_y: {}, pill_radius: {}, pill_clearance: {}, reveal_zone: {}, edge_line: {}, edge_accent: {} }};\n\n",
+        ": TitlebarRailMetrics = TitlebarRailMetrics {{ width: {}, width_wide: {}, actions_width: {}, padding_top: {}, padding_bottom: {}, title_size: {}, pill_inset: {}, pill_padding_x: {}, pill_padding_y: {}, pill_radius: {}, pill_clearance: {}, reveal_zone: {}, reveal_corner: {}, edge_line: {}, edge_accent: {} }};\n\n",
         field("width"),
         field("width-wide"),
         field("actions-width"),
@@ -909,6 +909,7 @@ fn emit_titlebar_rail(out: &mut String, components: &Value) {
         field("pill-radius"),
         field("pill-clearance"),
         field("reveal-zone"),
+        field("reveal-corner"),
         field("edge-line"),
         field("edge-accent")
     ));

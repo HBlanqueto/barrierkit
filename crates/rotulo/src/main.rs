@@ -2,7 +2,7 @@
 //! the vertical ones, on either side, with a flat or island sidebar.
 
 use barrier_kit::app::{load_defaults, save_defaults};
-use barrier_kit::chrome::{ChromeStyle, RestingEdge, Side, TitlebarLayout, WindowChrome};
+use barrier_kit::chrome::{ChromeStyle, RestingEdge, Reveal, Side, TitlebarLayout, WindowChrome};
 use barrier_kit::compact::IconButton;
 use barrier_kit::controls::{ScrollView, SegmentedControl};
 use barrier_kit::platform::{Decorations, WindowOptions, run_window};
@@ -21,13 +21,20 @@ use vow_design::{ACCENT_SWATCHES, TITLEBAR_RAIL, WINDOW_MIN_SIZE};
 
 const APP: &str = "rotulo";
 
-const LAYOUTS: [(TitlebarLayout, &str); 6] = [
+const LAYOUTS: [(TitlebarLayout, &str); 5] = [
     (TitlebarLayout::Top, "Arriba"),
     (TitlebarLayout::Rail, "Rail"),
     (TitlebarLayout::Unified, "Unificado"),
     (TitlebarLayout::Pill, "Píldora"),
     (TitlebarLayout::Actions, "Acciones"),
-    (TitlebarLayout::Reactive, "Reactivo"),
+];
+
+const REVEALS: [(Reveal, &str); 5] = [
+    (Reveal::Always, "Siempre"),
+    (Reveal::Drawer, "Cajón"),
+    (Reveal::Push, "Empuja"),
+    (Reveal::Corner, "Esquina"),
+    (Reveal::Popup, "Píldora emergente"),
 ];
 
 const EDGES: [RestingEdge; 3] = [RestingEdge::None, RestingEdge::Line, RestingEdge::Accent];
@@ -39,6 +46,7 @@ struct Prefs {
     side: Side,
     wide_rail: bool,
     round_lights: bool,
+    reveal: Reveal,
     resting_edge: RestingEdge,
     flat_sidebar: bool,
 }
@@ -50,6 +58,7 @@ impl Default for Prefs {
             side: Side::Left,
             wide_rail: false,
             round_lights: false,
+            reveal: Reveal::Always,
             resting_edge: RestingEdge::None,
             flat_sidebar: false,
         }
@@ -67,6 +76,7 @@ impl Prefs {
                 TITLEBAR_RAIL.width
             },
             round_lights: self.round_lights,
+            reveal: self.reveal,
             resting_edge: self.resting_edge,
         }
     }
@@ -158,7 +168,26 @@ fn design(prefs: State<Prefs>) -> Form {
             usize::from(current.round_lights),
             move |i| update(prefs, |p| p.round_lights = i == 1),
         )));
-    if current.layout == TitlebarLayout::Reactive {
+    titlebar = titlebar.row(
+        Row::new("Aparición").control(
+            REVEALS
+                .iter()
+                .fold(PopUpButton::new("Aparición"), |button, (_, name)| {
+                    button.item(name)
+                })
+                .selected(
+                    REVEALS
+                        .iter()
+                        .position(|(reveal, _)| *reveal == current.reveal)
+                        .unwrap_or_default(),
+                )
+                .on_change(move |i: usize| update(prefs, |p| p.reveal = REVEALS[i].0)),
+        ),
+    );
+    if matches!(
+        current.reveal,
+        Reveal::Drawer | Reveal::Push | Reveal::Popup
+    ) {
         titlebar = titlebar.row(
             Row::new("Borde en reposo").control(segmented(
                 "Borde en reposo",
@@ -318,7 +347,21 @@ mod tests {
     use torin::prelude::Size2D;
     use vow_design::TITLEBAR;
 
-    fn light_groups(prefs: Prefs) -> usize {
+    fn light_groups(test: &TestingRunner) -> usize {
+        let diameter = TITLEBAR.buttons.diameter as f32;
+        let length = 3.0 * diameter + 2.0 * TITLEBAR.buttons.spacing as f32;
+        let mut groups = test.find_many(|node, _| {
+            let area = node.layout().area;
+            let size = (area.width(), area.height());
+            (size == (length, diameter) || size == (diameter, length))
+                .then_some((area.min_x() as i32, area.min_y() as i32))
+        });
+        groups.sort_unstable();
+        groups.dedup();
+        groups.len()
+    }
+
+    fn render(prefs: Prefs) -> TestingRunner {
         let (mut test, _) = TestingRunner::new(
             AppComponent::new(Rotulo { prefs }),
             Size2D::new(900.0, 560.0),
@@ -326,35 +369,44 @@ mod tests {
             1.0,
         );
         test.sync_and_update();
-        let diameter = TITLEBAR.buttons.diameter as f32;
-        let length = 3.0 * diameter + 2.0 * TITLEBAR.buttons.spacing as f32;
-        let groups = test.find_many(|node, _| {
-            let area = node.layout().area;
-            let size = (area.width(), area.height());
-            (size == (length, diameter) || size == (diameter, length))
-                .then_some((area.min_x() as i32, area.min_y() as i32))
-        });
-        let mut groups = groups;
-        groups.sort_unstable();
-        groups.dedup();
-        groups.len()
+        test
     }
 
     #[test]
-    fn every_layout_shows_the_traffic_lights_once_and_reactive_hides_them_at_rest() {
+    fn every_layout_shows_the_traffic_lights_once() {
         for (layout, name) in LAYOUTS {
             for side in [Side::Left, Side::Right] {
                 for flat_sidebar in [false, true] {
-                    let expected = usize::from(layout != TitlebarLayout::Reactive);
                     let prefs = Prefs {
                         layout,
                         side,
                         flat_sidebar,
                         ..Default::default()
                     };
-                    assert_eq!(light_groups(prefs), expected, "{name} {side:?} {prefs:?}");
+                    assert_eq!(light_groups(&render(prefs)), 1, "{name} {prefs:?}");
                 }
             }
+        }
+    }
+
+    #[test]
+    fn the_popup_hides_the_lights_until_the_pointer_reaches_the_edge() {
+        for (layout, edge) in [
+            (TitlebarLayout::Top, (450.0, 2.0)),
+            (TitlebarLayout::Rail, (2.0, 280.0)),
+        ] {
+            let mut test = render(Prefs {
+                layout,
+                reveal: Reveal::Popup,
+                ..Default::default()
+            });
+            assert_eq!(light_groups(&test), 0, "{layout:?} at rest");
+            test.move_cursor(edge);
+            test.poll(
+                std::time::Duration::from_millis(16),
+                std::time::Duration::from_millis(400),
+            );
+            assert_eq!(light_groups(&test), 1, "{layout:?} revealed");
         }
     }
 }

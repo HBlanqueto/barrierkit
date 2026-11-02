@@ -279,6 +279,8 @@ impl Component for Sidebar {
             .and_then(|controls| controls.titlebar_overlay_top());
         let sidebar_shown =
             crate::views::split::sidebar_control().is_none_or(|control| control.settled());
+        let lights_opacity = crate::chrome::lights_opacity();
+        let lights_shown = lights_shown && lights_opacity > 0.0;
         if lights_column && lights_shown {
             let diameter = TITLEBAR.buttons.diameter as f32;
             let offset = (chrome.rail_width - diameter) / 2.0;
@@ -290,6 +292,7 @@ impl Component for Sidebar {
                         Side::Right => position.right(offset),
                     })
                     .a11y_alt("sidebar-traffic-lights")
+                    .opacity(lights_opacity)
                     .child(
                         window_traffic_lights(self.on_close.clone(), status.activated, fixed)
                             .vertical(true),
@@ -315,6 +318,7 @@ impl Component for Sidebar {
                     .width(Size::px(group_w as f32))
                     .height(Size::px(TITLEBAR.buttons.diameter as f32))
                     .a11y_alt("sidebar-traffic-lights")
+                    .opacity(lights_opacity)
                     .child(window_traffic_lights(
                         self.on_close.clone(),
                         status.activated,

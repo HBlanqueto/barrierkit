@@ -376,6 +376,7 @@
           "pill-radius": 13,
           "pill-clearance": 40,
           "reveal-zone": 8,
+          "reveal-corner": 96,
           "edge-line": 1,
           "edge-accent": 4
         }

@@ -218,14 +218,20 @@ impl Component for Titlebar {
         let lights_shown = freya_core::prelude::try_consume_root_context::<WindowControls>()
             .is_none_or(|controls| controls.traffic_lights_shown());
         let vertical = crate::chrome::chrome_style().layout != crate::chrome::TitlebarLayout::Top;
-        let traffic = if sidebar || !lights_shown || vertical {
+        let lights_opacity = crate::chrome::lights_opacity();
+        let traffic = if sidebar || !lights_shown || vertical || lights_opacity == 0.0 {
             None
         } else {
-            Some(window_traffic_lights(
-                self.on_close.clone(),
-                status.activated,
-                fixed,
-            ))
+            Some(
+                rect()
+                    .opacity(lights_opacity)
+                    .child(window_traffic_lights(
+                        self.on_close.clone(),
+                        status.activated,
+                        fixed,
+                    ))
+                    .into_element(),
+            )
         };
 
         let title_font = self.title_font.unwrap_or(TITLEBAR.font);
@@ -270,8 +276,8 @@ impl Component for Titlebar {
                 rect()
                     .position(
                         Position::new_absolute()
-                            .left(lights_x - occupied)
-                            .top(inset + SIDEBAR.traffic_y as f32),
+                            .left(lights_x - occupied - padding_left)
+                            .top(inset + SIDEBAR.traffic_y as f32 - padding_top),
                     )
                     .layer(TITLEBAR_OVERLAY_LAYER + 1)
                     .child(traffic)
@@ -320,7 +326,7 @@ impl Component for Titlebar {
                 );
             }
 
-            return place(root.into_element());
+            return place(crate::chrome::revealable_bar(root.into_element(), height));
         }
 
         let padding_x = if traffic.is_some() {
@@ -391,7 +397,10 @@ impl Component for Titlebar {
             .child(title)
             .child(right_slot);
 
-        place(root.into_element())
+        place(crate::chrome::revealable_bar(
+            root.into_element(),
+            TITLEBAR_CLIENT_HEIGHT as f32,
+        ))
     }
 }
 

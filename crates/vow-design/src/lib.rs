@@ -478,6 +478,7 @@ pub struct TitlebarRailMetrics {
     pub pill_radius: f32,
     pub pill_clearance: f32,
     pub reveal_zone: f32,
+    pub reveal_corner: f32,
     pub edge_line: f32,
     pub edge_accent: f32,
 }
