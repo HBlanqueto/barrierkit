@@ -1,6 +1,6 @@
 # 0047 — BarrierKit en capas: un toolkit para construir apps completas
 
-Estado: **propuesto** (2026-10-28).
+Estado: **aceptado** (2026-10-28). Lo hecho y lo pendiente están en «Estado» (2026-11-02).
 
 ## Contexto
 
@@ -136,7 +136,7 @@ Estado: **existe** = ya está en el kit, aunque haya que arreglarlo · **parcial
 | Pieza | Estado | Nota |
 |---|---|---|
 | `PreferencesWindow` | **nuevo** | SplitView + SourceList (cuenta, grupos) + SearchField con `Searchable` del contenido + NavigationStack + Form. Opción de ancho fijo (solo cambia de alto) con el semáforo verde «+» |
-| `BrowserWindow` | nuevo | SplitView + Toolbar + NavigationStack + Table/CollectionView + inspector. Para un Finder |
+| `BrowserWindow` | descartado | Se borró sin usuarios (`0c93856`); un Finder compone la capa 2 directamente |
 | `AboutWindow` | nuevo | Ventana «Acerca de» estándar |
 
 **App (transversal, `app/`)**
@@ -152,19 +152,21 @@ Estado: **existe** = ya está en el kit, aunque haya que arreglarlo · **parcial
 
 ### 4. Estructura del crate
 
-Un solo crate `barrier-kit` con una carpeta por capa:
+Un solo crate `barrier-kit`. Las capas 0, 2, 3, la columna App y la shell tienen carpeta; la capa 1 son módulos sueltos en la raíz, uno por familia de controles:
 
 ```
 barrier-kit/src/
-  platform/   capa 0  (partido en egl, wayland, window, popup, input, timer, a11y)
-  style/      capa 1  (palette, text, symbol, interaction, tema de Freya)
-  controls/   capa 1  (button, switch, radio, field, popup_button, color_well…)
-  views/      capa 2  (split_view, source_list, toolbar, navigation, search, form, table…)
-  patterns/   capa 3  (preferences_window, browser_window, about)
-  app/        transversal (application, action, defaults, restoration, undo)
+  platform/   capa 0  (runtime, window, popup, surface, input, focus, clipboard, vulkan, timer…)
+  *.rs        capa 1  (style, theme, symbol, interaction, controls, compact, choices, level,
+                       progress, adornments, popup_button, tooltip, context_menu, backdrop,
+                       adaptive, titlebar, traffic, sidebar, menu/, app_menu/)
+  views/      capa 2  (split, navigation, search, form, table, collection, tabs, feedback)
+  patterns/   capa 3  (preferences, search_popover, about)
+  app/        transversal (action, application, defaults, pasteboard, undo)
   shell/      solo para la shell, detrás de la feature `shell` (ver abajo)
-  prelude.rs  lo que una app importa normalmente
 ```
+
+No hay `prelude.rs`: cada app importa de su módulo (`barrier_kit::views::form::Form`).
 
 **La parte de la shell va separada, como en macOS.** El Dock, la barra de menús y la pantalla de bloqueo de macOS no usan la API pública de AppKit para lo que hacen distinto: usan frameworks privados (SkyLight y compañía). Aquí se reproduce esa separación dentro del mismo crate:
 
@@ -230,7 +232,7 @@ Hecho en `main`:
 
 - **Capa 0**: escala fraccional, separación de la shell, foco y modo teclado (Tab activa la navegación por teclado; las teclas van al nodo enfocado), portapapeles sobre `wl_data_device` y región opaca de las ventanas con fondo opaco.
 - **Capa 1**: `style` (paleta semántica y caras de texto), `symbol`, `interaction` (hover, pulsado, foco y anillo), `Button`, `IconButton`, `Switch`, `Checkbox`, `RadioGroup`, `ColorWell`, `ChoiceCards`, `SegmentedControl`, `ToggleGroup`, `Stepper`, `Slider` por pasos, `LevelSlider` (continuo y grueso), `TextField`, `SearchField`, `PopUpButton`, `ProgressBar`, `ProgressRing`, `Spinner`, `badge`, `divider`, `avatar`, `Link` y `use_tooltip` (popup sin grab bajo el puntero).
-- **App**: `Action` con `Shortcut` tipado, `load_defaults`/`save_defaults` con aviso de cambios, `launch` (instancia única; `Activate` trae la ventana al frente por xdg-activation), restauración del panel, `UndoStack` y portapapeles (`copy`/`paste`).
+- **App**: `Action` con `Shortcut` tipado, `load_defaults`/`save_defaults` con aviso de cambios, `launch` (instancia única; `Activate` trae la ventana al frente por xdg-activation), restauración del panel, `use_undo` (`UndoManager` con las acciones estándar `UNDO`, Ctrl+Z, y `REDO`, Ctrl+Mayús+Z) y portapapeles de texto (`copy`/`paste`).
 - **Capa 2**: `Form`/`Section`/`Row`, `SplitView` (sustituye a `SidebarLayout`), `History` y `navigation_buttons`, `SearchIndex`, `empty_state`, `sheet`, `Alert`, `TabView`, `Table`, `CollectionView`, `SidebarAccount` y `context_menu` (`MenuView` en el puntero con el clic secundario).
 - **Capa 3**: `PreferencesWindow` (buscador con sugerencias y recientes que se restauran, resultados con el icono de su panel y recorrido con ↑, ↓ y Enter) y `about_window`.
 - **Fondos tintados**: `Backdrop` pinta tres capas en 127°, 217° y 336° con dithering, desde una imagen (k-medias en OKLab, `vow_appearance::backdrop`) o tres colores, y funde entre fondos. Dentro, `Palette::current()` da su tinta y su acento (`Accent::System`, `Own` o `FromBackdrop`), igual en claro que en oscuro; los controles con relleno aceptan `.tint(Tint::Accent | Color | Backdrop)`. El contenido tiene que ser un componente hijo del `Backdrop`: las funciones evaluadas en el padre leen la paleta del sistema.
@@ -240,7 +242,22 @@ Hecho en `main`:
 
 Pendiente:
 
-- Capa 0: selección primaria, arrastrar y soltar, AT-SPI y damage parcial. El damage espera al renderizado incremental de Freya: `RenderPipeline::render` repinta el árbol entero en 0.4.3 (`freya-core/src/render_pipeline.rs`, «TODO: Use incremental rendering»).
+- Capa 0: selección primaria, arrastrar y soltar entre apps, puente AT-SPI (los controles ya asignan rol y etiqueta de `accesskit`, pero nada los publica) y damage parcial. El damage espera al renderizado incremental de Freya: `RenderPipeline::render` repinta el árbol entero en 0.4.3 (`freya-core/src/render_pipeline.rs`, «TODO: Use incremental rendering»).
+- Capa 1:
+  - `Image` propio.
+  - `Popover` es el `Popup` de Freya re-exportado con su aspecto (`controls.rs`).
+  - Varios controles guardan una copia de su valor y no son del todo controlados (§2): `Switch`, `Checkbox`, `Slider`, `LevelSlider`, `Stepper`, `ToggleGroup` y los de `use_choice`. Si la app cambia el valor desde fuera, como al deshacer, el control solo lo refleja si la app cambia su `key`.
+- Capa 2:
+  - `Toolbar` con zonas, título, búsqueda y desbordamiento; hoy solo hay pestañas de barra (`views/tabs.rs`) y `ToolGroup`.
+  - `NavigationStack`: `History` y `navigation_buttons` existen, pero faltan el título hacia la barra y las acciones atrás/adelante con atajo.
+  - `OutlineView` y `ColumnBrowser`.
+- App:
+  - `Application` no abre archivos ni URLs: `Open` y `ActivateAction` llegan por D-Bus y se ignoran. Tampoco hay política para el cierre de la última ventana.
+  - `Restoration` guarda el panel y las búsquedas; faltan tamaño y posición, la pila de navegación y el desplazamiento.
+  - `Action`: el menú guarda el atajo como texto y `find_menu_shortcut` lo vuelve a parsear en cada tecla.
+  - El menú global es estático: Deshacer y Rehacer no se apagan cuando la pila está vacía.
+  - No hay cadena de respuesta: un atajo del menú llega a la app aunque un campo de texto tenga el foco.
+  - El portapapeles solo lleva texto.
 
 ## Consecuencias
 
@@ -260,101 +277,99 @@ Pendiente:
 - [`0041`](0041-barra-lateral-en-isla.md): barra lateral en isla.
 - [`0042`](0042-ajustes-del-sistema.md): Ajustes del sistema.
 
-## Anexo A · Cómo se escribe una app (boceto de la API)
+## Anexo A · Cómo se escribe una app
 
-Es orientativo: fija la forma de la API, no las firmas exactas. Cada fase la concreta.
+Es la API de `main` a 2026-11-02. Las apps del repositorio son la referencia completa: `tengen-app-show` usa la capa 3, `ondina` compone la capa 2 a mano (`SplitView`, `Titlebar`, `Backdrop`, `use_breakpoint`) y `rotulo` prueba las titlebars verticales.
 
-### Ajustes del sistema con la capa 3
+### Una app de preferencias con la capa 3
 
 ```rust
-use barrier_kit::prelude::*;
+use barrier_kit::app::{Action, Instance, Launch, Shortcut, ShortcutKey, launch};
+use barrier_kit::app::{REDO, UNDO, UndoManager, use_menu_action, use_undo};
+use barrier_kit::app_menu::{AppMenu, Menu};
+use barrier_kit::choices::ColorWell;
+use barrier_kit::patterns::preferences::{Pane, PaneGroup, PreferencesWindow};
+use barrier_kit::platform::{Decorations, WindowOptions, run_window};
+use barrier_kit::symbol::Symbol;
+use barrier_kit::views::form::{Form, Row, Section};
+use freya_core::integration::AppComponent;
+use freya_core::prelude::*;
+use vow_design::{ACCENT_SWATCHES, WINDOW_MIN_SIZE};
 
-fn main() -> Result<(), RunError> {
-    Application::new("org.malaysia.Settings")          // instancia única, Defaults, Restoration
-        .run(|| {
-            PreferencesWindow::new("Ajustes del sistema")
-                .fixed_width()                           // solo cambia de alto; verde = «+»
-                .account(Account::current_user())        // fila de cuenta arriba
-                .group(SidebarGroup::new()
-                    .pane(Pane::new("appearance", "Apariencia")
-                        .symbol("paintbrush.fill").tint(SymbolTint::Blue)
-                        .content(appearance))
-                    .pane(Pane::new("desktop", "Escritorio y Dock")
-                        .symbol("dock.rectangle").content(desktop)))
-                .group(SidebarGroup::titled("Red").collapsible()
-                    .pane(Pane::new("wifi", "Wi-Fi").symbol("wifi")
-                        .badge(Badge::count(2)).content(wifi)))
-        })
+const RESET: Action =
+    Action::new("reset", "Restablecer").shortcut(Shortcut::ctrl(ShortcutKey::Char('r')));
+
+struct Notas {
+    app_id: &'static str,
+    instance: Option<Instance>,
 }
 
-fn appearance() -> impl IntoElement {
-    let mut cfg = use_defaults::<AppearanceConfig>("appearance");   // dominio del sistema
+impl App for Notas {
+    fn render(&self) -> impl IntoElement {
+        let instance = self.instance.clone();
+        use_hook(move || {
+            if let Some(instance) = &instance {
+                instance.listen();
+            }
+        });
+        let color = use_state(|| 0);
+        let history = use_undo(color);
+        use_menu_action(move |id| {
+            if id == RESET.id {
+                history.set(0);
+            }
+        });
 
-    Form::new()
-        .section(Section::new()
-            .row(Row::new("Apariencia")
-                .keywords(["tema", "claro", "oscuro", "automático"])
-                .control(ChoiceCards::new(cfg.read().color_scheme)   // tarjetas con miniatura
-                    .option(ColorScheme::Auto,  "Automático", ThemePreview::auto())
-                    .option(ColorScheme::Light, "Claro",      ThemePreview::light())
-                    .option(ColorScheme::Dark,  "Oscuro",     ThemePreview::dark())
-                    .on_change(move |s| cfg.write().color_scheme = s)))
-            .row(Row::new("Color de acento")
-                .keywords(["color", "acento"])
-                .control(ColorWell::swatches(ACCENT_SWATCHES)
-                    .value(cfg.read().accent)
-                    .on_change(move |c| cfg.write().accent = c))))
-        .section(Section::titled("Ventanas")
-            .row(Row::new("Semáforos")
-                .control(PopUpButton::new(cfg.read().traffic_style)
-                    .item(TrafficLightStyle::Auto,     "Automático")
-                    .item(TrafficLightStyle::Standard, "Clásico")
-                    .item(TrafficLightStyle::Accent,   "Acento")
-                    .item(TrafficLightStyle::Wallpaper,"Fondo")
-                    .on_change(move |s| cfg.write().traffic_style = s)))
-            .row(Row::navigation("Opciones avanzadas")      // empuja una subpágina
-                .push(|| advanced())))
+        PreferencesWindow::new()
+            .restoration(self.app_id)
+            .group(PaneGroup::new(None).pane(Pane::new(
+                "general",
+                "General",
+                Symbol::CircleHalf,
+                ACCENT_SWATCHES[0].1,
+                general(history, *color.read()),
+            )))
+    }
+}
+
+fn general(history: UndoManager<usize>, selected: usize) -> Form {
+    Form::new().section(
+        Section::titled("Etiqueta").row(
+            Row::new("Color").keywords(&["color", "etiqueta"]).control(
+                ColorWell::new("Color", &ACCENT_SWATCHES)
+                    .selected(Some(selected))
+                    .key(&selected)
+                    .on_change(move |index| history.set(index)),
+            ),
+        ),
+    )
+}
+
+fn main() {
+    let app_id = barrier_kit::titlebar::app_id("notas").leak();
+    let instance = match launch(app_id) {
+        Ok(Launch::Forwarded) => return,
+        Ok(Launch::Primary(instance)) => Some(instance),
+        Err(_) => None,
+    };
+    run_window(
+        AppComponent::new(Notas { app_id, instance }),
+        WindowOptions::new("Notas", "notas")
+            .decorations(Decorations::Client)
+            .size((760, 520))
+            .min_size(Some(WINDOW_MIN_SIZE))
+            .menu(AppMenu::new(vec![Menu::new(
+                "Edición",
+                vec![UNDO.item(true), REDO.item(true), RESET.item(true)],
+            )])),
+    )
+    .expect("notas");
 }
 ```
 
-La búsqueda «como macOS» sale sola: `PreferencesWindow` construye el índice `Searchable` con los títulos de los paneles y los `Row` con sus `keywords`. Elegir un resultado navega al panel, desplaza hasta la fila y la resalta.
-
-### Un Finder mínimo con la capa 2
-
-```rust
-fn finder_window() -> impl IntoElement {
-    let mut location = use_state(|| Location::home());
-    let mut selection = use_state(Selection::default);
-    let mut show_info = use_state(|| false);
-
-    Window::new()
-        .toolbar(Toolbar::new()
-            .leading(NavigationButtons::new())                       // ‹ › con historial
-            .title_from_navigation()
-            .trailing(ToolGroup::new()
-                .action(ViewAs::Icons.action())
-                .action(ViewAs::List.action())
-                .action(ViewAs::Columns.action()))
-            .trailing(ToolButton::action(&SHOW_INFO))
-            .search(SearchField::new().on_submit(|q| /* buscar archivos */)))
-        .content(SplitView::new()
-            .sidebar(SourceList::new(location)
-                .group(SidebarGroup::titled("Favoritos")
-                    .items(favorites().map(|f| SidebarItem::new(f.name).symbol(f.symbol).value(f.location))))
-                .group(SidebarGroup::titled("Ubicaciones").collapsible()
-                    .items(volumes().map(|v| SidebarItem::new(v.name).symbol("externaldrive").value(v.location)))))
-            .detail(NavigationStack::new(location).view(move |loc| {
-                CollectionView::new(entries(loc))
-                    .item(|e| IconTile::new(&e.name).image(e.icon()))
-                    .selection(selection)
-                    .on_open(move |e| if e.is_dir() { location.set(e.location()) })
-            }))
-            .inspector(Inspector::new(move || info_panel(selection)).visible(show_info)))
-}
-
-static SHOW_INFO: Action = Action::new("finder.show-info", "Obtener información")
-    .shortcut(Shortcut::ctrl('i'))
-    .symbol("info.circle");
-```
-
-La misma `SHOW_INFO` aparece en el menú global, funciona con su atajo y se marca como activa en la barra de herramientas sin escribir nada más. El Finder no usa ningún patrón de la capa 3 y no reimplementa nada: solo compone piezas de la capa 2.
+- `launch` da la instancia única: una segunda ejecución reenvía su token de activación y sale.
+- Una `Action` se declara una vez y alimenta el menú global, su atajo y `use_menu_action`. Los atajos solo llegan si la acción está en el menú de la ventana.
+- `use_undo` envuelve un `State` de la app. Cada `set` guarda el valor anterior, y `UNDO` y `REDO` lo recorren desde el menú, el atajo o los métodos `undo` y `redo`.
+- `PreferencesWindow` construye la barra lateral, el buscador y la restauración del panel. Las `keywords` de cada `Row` entran en la búsqueda.
+- El `key` del `ColorWell` cambia con el valor para que el control muestre lo que deshace la app (ver «Pendiente», capa 1).
+- Los colores y medidas salen de `vow_design`. Una app no escribe literales de diseño.
