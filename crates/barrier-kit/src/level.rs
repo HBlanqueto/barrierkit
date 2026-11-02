@@ -165,25 +165,11 @@ impl Component for LevelSlider {
                             SLIDER.track,
                             self.tint.fill(&palette),
                         )
-                        .child(
-                            rect()
-                                .position(
-                                    Position::new_absolute()
-                                        .left(knob_x)
-                                        .top((SLIDER.track - SLIDER.knob) / 2.0),
-                                )
-                                .width(Size::px(SLIDER.knob))
-                                .height(Size::px(SLIDER.knob))
-                                .corner_radius(SLIDER.knob / 2.0)
-                                .background(Color::WHITE)
-                                .shadow((
-                                    0.0,
-                                    KNOB_SHADOW.y_offset as f32,
-                                    KNOB_SHADOW.blur as f32,
-                                    0.0,
-                                    color(KNOB_SHADOW.color),
-                                )),
-                        ),
+                        .child(knob(
+                            knob_x,
+                            (SLIDER.track - SLIDER.knob) / 2.0,
+                            SLIDER.knob,
+                        )),
                     ),
                 )
             }
@@ -207,7 +193,28 @@ impl Component for LevelSlider {
     }
 }
 
-fn bar(left: f32, top: f32, width: f32, height: f32, fill: impl Into<Fill>) -> Rect {
+pub(crate) fn knob_shadow() -> Shadow {
+    (
+        0.0,
+        KNOB_SHADOW.y_offset as f32,
+        KNOB_SHADOW.blur as f32,
+        0.0,
+        color(KNOB_SHADOW.color),
+    )
+        .into()
+}
+
+pub(crate) fn knob(left: f32, top: f32, size: f32) -> Rect {
+    rect()
+        .position(Position::new_absolute().left(left).top(top))
+        .width(Size::px(size))
+        .height(Size::px(size))
+        .corner_radius(size / 2.0)
+        .background(color(SWITCH.knob_color))
+        .shadow(knob_shadow())
+}
+
+pub(crate) fn bar(left: f32, top: f32, width: f32, height: f32, fill: impl Into<Fill>) -> Rect {
     rect()
         .position(Position::new_absolute().left(left).top(top))
         .width(Size::px(width))

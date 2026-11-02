@@ -14,11 +14,12 @@ use vow_appearance::SidebarStyle;
 use vow_appearance::palette;
 use vow_design::NATIVE_APP_ID_PREFIX;
 use vow_design::{
-    ButtonKind, Rgba, SETTINGS, SIDEBAR, TITLEBAR, TITLEBAR_CLIENT_HEIGHT, TITLEBAR_DOUBLE_CLICK,
+    ButtonKind, SETTINGS, SIDEBAR, TITLEBAR, TITLEBAR_CLIENT_HEIGHT, TITLEBAR_DOUBLE_CLICK,
 };
 
 use crate::ProbeExt;
 use crate::platform::{DecorationResponse, WindowControls, WindowStatus};
+use crate::theme;
 
 #[derive(PartialEq)]
 pub struct Titlebar {
@@ -212,7 +213,7 @@ impl Component for Titlebar {
             .font_family(title_font.family)
             .font_size(title_font.size as f32)
             .font_weight(FontWeight::from(title_font.weight as i32))
-            .color(rgba(title_color))
+            .color(theme::color(title_color))
             .max_lines(1)
             .text_overflow(TextOverflow::Ellipsis);
         if let Some(id) = self.probe {
@@ -276,7 +277,7 @@ impl Component for Titlebar {
             let mut root = rect()
                 .width(Size::fill())
                 .height(Size::px(height))
-                .background(rgba(background))
+                .background(theme::color(background))
                 .direction(Direction::Horizontal)
                 .cross_align(Alignment::Center)
                 .spacing(self.spacing)
@@ -291,7 +292,7 @@ impl Component for Titlebar {
                         .position(Position::new_absolute().bottom(0.0).left(0.0))
                         .width(Size::fill())
                         .height(Size::px(1.0))
-                        .background(rgba(resolved.sidebar.palette.line)),
+                        .background(theme::color(resolved.sidebar.palette.line)),
                 );
             }
 
@@ -357,7 +358,7 @@ impl Component for Titlebar {
         let root = rect()
             .width(Size::fill())
             .height(Size::px(TITLEBAR_CLIENT_HEIGHT as f32))
-            .background(rgba(background))
+            .background(theme::color(background))
             .direction(Direction::Horizontal)
             .content(Content::flex())
             .cross_align(Alignment::Center)
@@ -508,11 +509,6 @@ fn run_action(controls: &WindowControls, action: TitlebarAction) {
         TitlebarAction::Focus | TitlebarAction::Fullscreen => controls.toggle_fullscreen(),
         TitlebarAction::None => {}
     }
-}
-
-fn rgba(color: Rgba) -> Color {
-    let [r, g, b, a] = color.to_rgba8();
-    Color::from_argb(a, r, g, b)
 }
 
 pub fn app_id(app_name: &str) -> String {

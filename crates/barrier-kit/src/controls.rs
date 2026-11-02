@@ -12,18 +12,20 @@ use freya_animation::prelude::{AnimNum, Ease, Function, use_animation_transition
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 use vow_design::{
-    BUTTON, CAPTION, CHECKBOX, KNOB_SHADOW, Rgba, SEGMENTED, SETTINGS, SLIDER, SWITCH, TEXT,
-    TEXT_FIELD, TEXT_LINE_HEIGHT, TOOLGROUP,
+    BUTTON, CAPTION, CHECKBOX, Rgba, SEGMENTED, SETTINGS, SLIDER, SWITCH, TEXT, TEXT_FIELD,
+    TEXT_LINE_HEIGHT, TOOLGROUP,
 };
 
 use crate::ProbeExt;
 use crate::backdrop::Tint;
 use crate::choices::use_choice;
 use crate::interaction::use_interaction;
+use crate::level::{self, bar, knob_shadow};
 use crate::password::PasswordField;
 use crate::platform::inserts_text;
 use crate::style::Palette;
 use crate::symbol::{Symbol, symbol};
+use crate::theme;
 use crate::theme::color;
 
 fn secure_field_accepts_text(key: &Key, modifiers: Modifiers) -> bool {
@@ -185,7 +187,7 @@ impl Component for ToolGroup {
                     rect()
                         .width(Size::px(TOOLGROUP.separator_w as f32))
                         .height(Size::px(TOOLGROUP.separator_h as f32))
-                        .background(rgba(palette.separator))
+                        .background(theme::color(palette.separator))
                         .into_element(),
                 );
             }
@@ -208,7 +210,7 @@ impl Component for ToolGroup {
 
         if self.style == ToolGroupStyle::Island {
             return root
-                .background(rgba(resolved.toolgroup.bg))
+                .background(theme::color(resolved.toolgroup.bg))
                 .corner_radius((TOOLGROUP.height as f32 / 2.0).max(1.0))
                 .into_element();
         }
@@ -295,7 +297,7 @@ impl Component for ToolButton {
             palette.ink
         };
         let bg = if !self.disabled && *hovered.read() {
-            rgba(resolved.sidebar.palette.hover_bg)
+            theme::color(resolved.sidebar.palette.hover_bg)
         } else {
             Color::TRANSPARENT
         };
@@ -400,6 +402,7 @@ impl ProbeExt for Slider {
 impl Component for Slider {
     fn render(&self) -> impl IntoElement {
         let palette = Palette::current();
+        let interaction = use_interaction();
         let value = use_state(|| self.value);
         let dragging = use_state(|| false);
         let on_change = self.on_change.clone();
@@ -435,12 +438,9 @@ impl Component for Slider {
             }
         };
 
-        let track_color = color(palette.control_background);
-        let fill_color = self.tint.fill(&palette);
-        let knob_color = Color::WHITE;
-        let knob_shadow = color(KNOB_SHADOW.color);
-
-        let mut root = rect()
+        let current = *value.read();
+        let mut root = interaction
+            .attach(rect(), !self.disabled)
             .width(Size::px(width))
             .height(Size::px(
                 knob + label_gap + CAPTION.size as f32 * TEXT_LINE_HEIGHT,
@@ -469,29 +469,36 @@ impl Component for Slider {
             root = root.on_pointer_leave(move |_: Event<PointerEventData>| {
                 dragging_up.set(false);
             });
+            let mut update_key = update.clone();
+            root = root.on_key_down(move |event: Event<KeyboardEventData>| match event.key {
+                Key::Named(NamedKey::ArrowLeft | NamedKey::ArrowDown) => {
+                    update_key(current.saturating_sub(1))
+                }
+                Key::Named(NamedKey::ArrowRight | NamedKey::ArrowUp) => {
+                    update_key((current + 1).min(steps - 1))
+                }
+                _ => {}
+            });
         }
 
         if self.disabled {
-            root = root.opacity(0.4);
+            root = root.opacity(SWITCH.disabled_opacity);
         }
 
-        let track_rect = rect()
-            .position(
-                Position::new_absolute()
-                    .left(knob / 2.0)
-                    .top((knob - track) / 2.0),
-            )
-            .width(Size::px(run))
-            .height(Size::px(track))
-            .corner_radius((track / 2.0).max(1.0))
-            .background(track_color);
-
-        let fill_rect = rect()
-            .position(Position::new_absolute().left(-knob / 2.0).top(0.0))
-            .width(Size::px(knob_x + knob / 2.0))
-            .height(Size::px(track))
-            .corner_radius((track / 2.0).max(1.0))
-            .background(fill_color);
+        let track_rect = bar(
+            knob / 2.0,
+            (knob - track) / 2.0,
+            run,
+            track,
+            color(palette.control_background),
+        );
+        let fill_rect = bar(
+            -knob / 2.0,
+            0.0,
+            knob_x + knob / 2.0,
+            track,
+            self.tint.fill(&palette),
+        );
 
         let ticks = (0..self.steps).map(|i| {
             let x = knob / 2.0 + run * (i as f32 / segments);
@@ -503,23 +510,7 @@ impl Component for Slider {
                 .background(color(palette.control_border))
                 .into_element()
         });
-        let knob_rect = rect()
-            .position(
-                Position::new_absolute()
-                    .left(knob_x)
-                    .top((track - knob) / 2.0),
-            )
-            .width(Size::px(knob))
-            .height(Size::px(knob))
-            .corner_radius((knob / 2.0).max(1.0))
-            .background(knob_color)
-            .shadow((
-                0.0,
-                KNOB_SHADOW.y_offset as f32,
-                KNOB_SHADOW.blur as f32,
-                0.0,
-                knob_shadow,
-            ));
+        let knob_rect = level::knob(knob_x, (track - knob) / 2.0, knob);
 
         let last = self.steps.saturating_sub(1);
         let labels = self
@@ -536,7 +527,7 @@ impl Component for Slider {
                     .font_weight(CAPTION.weight as i32)
                     .line_height(CAPTION.line_height as f32 / CAPTION.size as f32)
                     .max_lines(1)
-                    .color(rgba(palette.label));
+                    .color(theme::color(palette.label));
                 rect().child(label_node).into_element()
             });
         let labels_row = rect()
@@ -550,6 +541,7 @@ impl Component for Slider {
             .children(ticks)
             .child(track_rect.child(fill_rect.child(knob_rect)))
             .child(labels_row);
+        root = interaction.focus_ring(root, knob / 2.0);
 
         if let Some(id) = self.probe {
             root = root.a11y_builder(move |node| node.set_author_id(id));
@@ -798,25 +790,11 @@ impl Component for Switch {
             )
             .maybe(disabled, |el| el.opacity(SWITCH.disabled_opacity))
             .on_press(move |_| flip())
-            .child(
-                rect()
-                    .position(
-                        Position::new_absolute()
-                            .left(SWITCH.inset + SWITCH.travel * progress)
-                            .top(SWITCH.inset),
-                    )
-                    .width(Size::px(SWITCH.knob))
-                    .height(Size::px(SWITCH.knob))
-                    .corner_radius(SWITCH.knob / 2.0)
-                    .background(color(SWITCH.knob_color))
-                    .shadow((
-                        0.0,
-                        KNOB_SHADOW.y_offset as f32,
-                        KNOB_SHADOW.blur as f32,
-                        0.0,
-                        color(KNOB_SHADOW.color),
-                    )),
-            );
+            .child(level::knob(
+                SWITCH.inset + SWITCH.travel * progress,
+                SWITCH.inset,
+                SWITCH.knob,
+            ));
         root = interaction.focus_ring(root, SWITCH.height / 2.0);
 
         if let Some(id) = self.probe {
@@ -947,13 +925,9 @@ impl Component for Segment {
                     ),
             );
         if active {
-            segment = segment.background(color(palette.selected_control)).shadow((
-                0.0,
-                KNOB_SHADOW.y_offset as f32,
-                KNOB_SHADOW.blur as f32,
-                0.0,
-                color(KNOB_SHADOW.color),
-            ));
+            segment = segment
+                .background(color(palette.selected_control))
+                .shadow(knob_shadow());
         }
         interaction.focus_ring(segment, SEGMENTED.segment_radius)
     }
@@ -1339,13 +1313,8 @@ fn svg_viewer(template: &'static str, color: Rgba, size: u32) -> SvgViewer {
     SvgViewer::new(Bytes::from_static(template.as_bytes()))
         .width(Size::px(size as f32))
         .height(Size::px(size as f32))
-        .color(rgba(color))
+        .color(theme::color(color))
         .show_loader(false)
-}
-
-fn rgba(color: vow_design::Rgba) -> Color {
-    let [r, g, b, a] = color.to_rgba8();
-    Color::from_argb(a, r, g, b)
 }
 
 #[cfg(test)]

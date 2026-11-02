@@ -19,13 +19,9 @@ use crate::interaction::use_interaction;
 use crate::platform::WindowControls;
 use crate::style::{Palette, text};
 use crate::symbol::{Symbol, symbol};
+use crate::theme;
 use crate::titlebar::{window_drag_handler, window_traffic_lights};
 use freya_core::prelude::try_consume_root_context;
-
-fn rgba(color: Rgba) -> Color {
-    let [r, g, b, a] = color.to_rgba8();
-    Color::from_argb(a, r, g, b)
-}
 
 pub(crate) fn item_icon_color(selected: bool, palette: SidebarPalette) -> Rgba {
     if selected {
@@ -61,13 +57,13 @@ pub(crate) fn symbol_tile(glyph: Symbol, tint: Rgba, rim: Option<Rgba>) -> Rect 
         .width(Size::px(tile))
         .height(Size::px(tile))
         .corner_radius(SIDEBAR.item_radius as f32)
-        .background(rgba(tint))
+        .background(theme::color(tint))
         .maybe(rim.is_some(), |el| {
             el.border(
                 Border::new()
                     .width(SIDEBAR.rim_width)
                     .alignment(BorderAlignment::Inner)
-                    .fill(rgba(rim.unwrap_or(tint))),
+                    .fill(theme::color(rim.unwrap_or(tint))),
             )
         })
         .center()
@@ -82,7 +78,7 @@ fn svg_viewer(template: Bytes, color: Rgba, size: u32) -> SvgViewer {
     SvgViewer::new(template)
         .width(Size::px(size as f32))
         .height(Size::px(size as f32))
-        .color(rgba(color))
+        .color(theme::color(color))
         .show_loader(false)
 }
 
@@ -197,7 +193,7 @@ impl Component for Sidebar {
             .width(Size::fill())
             .height(Size::fill())
             .direction(Direction::Vertical)
-            .background(rgba(surface.bg))
+            .background(theme::color(surface.bg))
             .a11y_role(AccessibilityRole::Navigation)
             .padding(Gaps::new(
                 top_height as f32,
@@ -223,7 +219,7 @@ impl Component for Sidebar {
                     Border::new()
                         .width(SIDEBAR.rim_width)
                         .alignment(BorderAlignment::Inner)
-                        .fill(rgba(surface.rim)),
+                        .fill(theme::color(surface.rim)),
                 );
             }
 
@@ -243,7 +239,7 @@ impl Component for Sidebar {
                             Border::new()
                                 .width(SIDEBAR.inner_width)
                                 .alignment(BorderAlignment::Inner)
-                                .fill(rgba(surface.inner)),
+                                .fill(theme::color(surface.inner)),
                         ),
                 );
             }
@@ -253,7 +249,7 @@ impl Component for Sidebar {
                     .position(Position::new_absolute().top(0.0).right(0.0))
                     .width(Size::px(SIDEBAR.inner_width))
                     .height(Size::fill())
-                    .background(rgba(surface.palette.line)),
+                    .background(theme::color(surface.palette.line)),
             );
         }
 
@@ -404,20 +400,20 @@ impl Component for SidebarItem {
 
         let (bg, fg, weight) = if self.selected {
             (
-                rgba(palette.selected_bg),
-                rgba(palette.selected_ink),
+                theme::color(palette.selected_bg),
+                theme::color(palette.selected_ink),
                 FontWeight::SEMI_BOLD,
             )
         } else if *hovered.read() {
             (
-                rgba(palette.hover_bg),
-                rgba(palette.item_ink),
+                theme::color(palette.hover_bg),
+                theme::color(palette.item_ink),
                 FontWeight::MEDIUM,
             )
         } else {
             (
                 Color::TRANSPARENT,
-                rgba(palette.item_ink),
+                theme::color(palette.item_ink),
                 FontWeight::MEDIUM,
             )
         };
@@ -484,7 +480,7 @@ impl Component for SidebarItem {
                         label()
                             .text(badge.to_string())
                             .font_size(SIDEBAR.count_size as f32)
-                            .color(rgba(palette.count_ink))
+                            .color(theme::color(palette.count_ink))
                             .max_lines(1),
                     ),
             );
@@ -641,7 +637,7 @@ impl Component for SidebarSection {
                             .text(self.title.clone())
                             .font_size(SIDEBAR.section_size as f32)
                             .font_weight(FontWeight::from(SIDEBAR.section_weight as i32))
-                            .color(rgba(palette.section_ink))
+                            .color(theme::color(palette.section_ink))
                             .max_lines(1),
                     )
                     .maybe(show_chevron, |el| {
@@ -744,7 +740,7 @@ impl Component for SidebarAccount {
             ))
             .corner_radius(SIDEBAR.item_radius as f32)
             .maybe(bg.is_some(), |el| {
-                el.background(rgba(bg.unwrap_or(palette.hover_bg)))
+                el.background(theme::color(bg.unwrap_or(palette.hover_bg)))
             })
             .on_press(move |_| {
                 if let Some(cb) = &on_select {

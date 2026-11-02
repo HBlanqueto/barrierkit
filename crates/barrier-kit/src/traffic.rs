@@ -8,6 +8,7 @@ use vow_appearance::{TrafficLightStyle, palette as base_palette};
 use vow_design::{ButtonKind, Rgba, TITLEBAR, TRAFFIC_GLYPHS, Triangle};
 
 use crate::ProbeExt;
+use crate::theme;
 
 #[derive(PartialEq)]
 pub struct TrafficLights {
@@ -161,7 +162,7 @@ impl Component for TrafficLights {
                 .width(Size::px(diameter as f32))
                 .height(Size::px(diameter as f32))
                 .corner_radius(corner_radius)
-                .background(rgba(visual.fill))
+                .background(theme::color(visual.fill))
                 .center()
                 .maybe_child(visual.glyph.map(|glyph| {
                     SvgViewer::new((
@@ -170,7 +171,7 @@ impl Component for TrafficLights {
                     ))
                     .width(Size::px(TRAFFIC_GLYPHS.box_size))
                     .height(Size::px(TRAFFIC_GLYPHS.box_size))
-                    .color(rgba(glyph))
+                    .color(theme::color(glyph))
                     .show_loader(false)
                     .into_element()
                 }))
@@ -267,7 +268,7 @@ pub fn traffic_lights_view(
                 .width(Size::px(diameter as f32))
                 .height(Size::px(diameter as f32))
                 .corner_radius(TITLEBAR.buttons.corner_radius as f32)
-                .background(rgba(visual.fill))
+                .background(theme::color(visual.fill))
                 .center()
                 .maybe_child(visual.glyph.map(|glyph| {
                     SvgViewer::new((
@@ -276,7 +277,7 @@ pub fn traffic_lights_view(
                     ))
                     .width(Size::px(TRAFFIC_GLYPHS.box_size))
                     .height(Size::px(TRAFFIC_GLYPHS.box_size))
-                    .color(rgba(glyph))
+                    .color(theme::color(glyph))
                     .show_loader(false)
                     .into_element()
                 }))
@@ -360,11 +361,6 @@ fn polygon(triangle: &Triangle) -> String {
         .collect::<Vec<_>>()
         .join(" ");
     format!("<polygon points=\"{points}\"/>")
-}
-
-fn rgba(color: Rgba) -> Color {
-    let [r, g, b, a] = color.to_rgba8();
-    Color::from_argb(a, r, g, b)
 }
 
 #[cfg(test)]

@@ -293,12 +293,11 @@ fn data(sort: State<Option<SortOrder>>, selected: State<Vec<usize>>) -> Form {
         .map(|(name, size)| vec![name.to_string(), size.to_string()])
         .collect();
     let folder = |index: usize| {
-        let [r, g, b, a] = tint(index).to_rgba8();
         rect()
             .width(Size::px(COLLECTION.icon))
             .height(Size::px(COLLECTION.icon))
             .corner_radius(COLLECTION.radius)
-            .background(Color::from_argb(a, r, g, b))
+            .background(barrier_kit::theme::color(tint(index)))
     };
     Form::new()
         .section(

@@ -897,6 +897,36 @@ fn level_slider_follows_clicks_and_arrow_keys() {
 }
 
 #[test]
+fn stepped_slider_moves_one_step_per_arrow_and_stops_at_the_ends() {
+    let steps = State::create_global(Vec::<usize>::new());
+
+    struct SteppedCase {
+        steps: State<Vec<usize>>,
+    }
+    impl App for SteppedCase {
+        fn render(&self) -> impl IntoElement {
+            let mut steps = self.steps;
+            Slider::stepped(3).on_change(move |v| steps.write().push(v))
+        }
+    }
+
+    let app = AppComponent::new(SteppedCase { steps });
+    let (mut test, _) = TestingRunner::new(app, Size2D::new(220.0, 40.0), |_| {}, 1.0);
+    test.sync_and_update();
+    test.click_cursor((2.0, 10.0));
+    test.sync_and_update();
+    for key in [
+        NamedKey::ArrowLeft,
+        NamedKey::ArrowRight,
+        NamedKey::ArrowRight,
+        NamedKey::ArrowRight,
+    ] {
+        press(&mut test, Key::Named(key));
+    }
+    assert_eq!(*steps.peek(), vec![1, 2]);
+}
+
+#[test]
 fn stepper_stops_at_its_bounds() {
     let value = State::create_global(0i64);
 

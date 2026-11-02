@@ -38,7 +38,7 @@ fn item_label(text: &str, show_mnemonic: bool, size: f32, color: Rgba) -> Elemen
     match split {
         Some((before, letter, after)) if show_mnemonic => paragraph()
             .font_size(size)
-            .color(rgba(color))
+            .color(theme::color(color))
             .max_lines(1)
             .span(Span::new(before.to_string()))
             .span(Span::new(letter.to_string()).text_decoration(TextDecoration::Underline))
@@ -47,7 +47,7 @@ fn item_label(text: &str, show_mnemonic: bool, size: f32, color: Rgba) -> Elemen
         _ => label()
             .text(strip_mnemonic(text))
             .font_size(size)
-            .color(rgba(color))
+            .color(theme::color(color))
             .max_lines(1)
             .into_element(),
     }
@@ -87,6 +87,7 @@ use crate::platform::{
     Timers, inserts_text,
 };
 use crate::symbol::{Symbol, symbol};
+use crate::theme;
 use crate::theme::{SurfaceKind, menu_palette};
 use vow_design::{MenuPalette, Rgba, SANS_FAMILIES};
 
@@ -1088,7 +1089,7 @@ impl App for MenuView {
             .width(Size::fill())
             .height(Size::fill())
             .padding(Gaps::new(m.padding, m.padding, m.padding, m.padding))
-            .background(rgba(m.bg))
+            .background(theme::color(m.bg))
             .direction(Direction::Vertical)
             .on_wheel(move |event: Event<WheelEventData>| {
                 if overflow {
@@ -1102,7 +1103,7 @@ impl App for MenuView {
         let mut root = rect()
             .width(Size::fill())
             .height(Size::fill())
-            .background(rgba(m.bg))
+            .background(theme::color(m.bg))
             .overflow(Overflow::Clip)
             .child(content);
         for family in SANS_FAMILIES {
@@ -1379,7 +1380,7 @@ fn scroll_arrow(
             label()
                 .text(if direction < 0 { "▲" } else { "▼" })
                 .font_size(m.chevron_size)
-                .color(rgba(m.chevron_color)),
+                .color(theme::color(m.chevron_color)),
         )
         .into_element()
 }
@@ -1412,11 +1413,6 @@ fn scroll_tick(
             max_scroll,
         );
     });
-}
-
-fn rgba(color: Rgba) -> Color {
-    let [r, g, b, a] = color.to_rgba8();
-    Color::from_argb(a, r, g, b)
 }
 
 fn svg_rgb(color: Rgba) -> String {
@@ -1527,20 +1523,7 @@ fn activate_or_open(
 }
 
 fn normalize_query(text: &str) -> String {
-    strip_mnemonic(text)
-        .to_lowercase()
-        .replace('á', "a")
-        .replace('é', "e")
-        .replace('í', "i")
-        .replace('ó', "o")
-        .replace(['ú', 'ü'], "u")
-        .replace('ñ', "n")
-        .replace('Á', "a")
-        .replace('É', "e")
-        .replace('Í', "i")
-        .replace('Ó', "o")
-        .replace(['Ú', 'Ü'], "u")
-        .replace('Ñ', "n")
+    crate::views::search::fold(&strip_mnemonic(text))
 }
 
 fn word_start(name: &str, query: &str) -> bool {
@@ -1979,7 +1962,7 @@ fn render_item(
                 m.separator_margin_y,
                 0.0,
             ))
-            .background(rgba(m.separator_color))
+            .background(theme::color(m.separator_color))
             .into_element(),
         MenuItem::Action {
             id,
@@ -2050,7 +2033,7 @@ fn render_item(
                     }
                 });
             if let Some(bg) = bg {
-                row = row.background(rgba(bg));
+                row = row.background(theme::color(bg));
             }
             let mut left = rect()
                 .direction(Direction::Horizontal)
@@ -2070,7 +2053,7 @@ fn render_item(
                     label()
                         .text(shortcut_text.unwrap_or_default())
                         .font_size(m.font_size)
-                        .color(rgba(shortcut_color))
+                        .color(theme::color(shortcut_color))
                         .width(Size::px(shortcut_w))
                         .max_lines(1),
                 )
@@ -2122,7 +2105,7 @@ fn render_item(
                     }
                 });
             if let Some(bg) = bg {
-                row = row.background(rgba(bg));
+                row = row.background(theme::color(bg));
             }
             let mut left = rect()
                 .direction(Direction::Horizontal)
@@ -2157,7 +2140,7 @@ fn render_item(
                         .text(header.clone())
                         .font_size(m.header_font_size)
                         .font_weight(m.header_weight)
-                        .color(rgba(m.disabled_fg))
+                        .color(theme::color(m.disabled_fg))
                         .max_lines(1),
                 );
             if let Some(count) = count {
@@ -2166,7 +2149,7 @@ fn render_item(
                         .text(format!("{count}"))
                         .font_size(m.header_font_size)
                         .font_weight(m.header_weight)
-                        .color(rgba(m.disabled_fg))
+                        .color(theme::color(m.disabled_fg))
                         .max_lines(1),
                 );
             }
@@ -2206,7 +2189,7 @@ fn render_item(
                     label()
                         .text(display_text)
                         .font_size(m.font_size)
-                        .color(rgba(text_color))
+                        .color(theme::color(text_color))
                         .max_lines(1),
                 );
 
@@ -2216,7 +2199,7 @@ fn render_item(
                         .width(Size::px(1.0))
                         .height(Size::px(m.font_size))
                         .margin(Gaps::new(0.0, 1.0, 0.0, 0.0))
-                        .background(rgba(m.fg))
+                        .background(theme::color(m.fg))
                         .into_element(),
                 );
             }
@@ -2225,13 +2208,13 @@ fn render_item(
                 .width(Size::fill())
                 .height(Size::px(m.search_height))
                 .padding(Gaps::new(0.0, clear_margin, 0.0, row_padding))
-                .background(rgba(m.search_bg))
+                .background(theme::color(m.search_bg))
                 .corner_radius(m.search_radius)
                 .border(
                     Border::new()
                         .width(m.search_ring_width)
                         .alignment(BorderAlignment::Inner)
-                        .fill(rgba(m.search_ring)),
+                        .fill(theme::color(m.search_ring)),
                 )
                 .direction(Direction::Horizontal)
                 .main_align(Alignment::SpaceBetween)
@@ -2255,12 +2238,12 @@ fn render_item(
                     .corner_radius(clear_size / 2.0)
                     .main_align(Alignment::Center)
                     .cross_align(Alignment::Center)
-                    .background(rgba(m.shortcut_color.mix(m.bg, 0.7)))
+                    .background(theme::color(m.shortcut_color.mix(m.bg, 0.7)))
                     .child(
                         label()
                             .text("×")
                             .font_size(12.0)
-                            .color(rgba(m.fg))
+                            .color(theme::color(m.fg))
                             .max_lines(1),
                     )
                     .on_mouse_down(move |_: Event<MouseEventData>| {
@@ -2335,7 +2318,7 @@ fn render_item(
                     }
                 });
             if let Some(bg) = bg {
-                row = row.background(rgba(bg));
+                row = row.background(theme::color(bg));
             }
             let icon_element = search_icon_element(
                 *source,
@@ -2356,7 +2339,7 @@ fn render_item(
                     label()
                         .text(strip_mnemonic(&label_text))
                         .font_size(m.font_size)
-                        .color(rgba(fg))
+                        .color(theme::color(fg))
                         .max_lines(1),
                 );
             row.child(left)
@@ -2364,7 +2347,7 @@ fn render_item(
                     label()
                         .text(shortcut_text.unwrap_or_default())
                         .font_size(m.font_size)
-                        .color(rgba(shortcut_color))
+                        .color(theme::color(shortcut_color))
                         .width(Size::px(shortcut_w))
                         .max_lines(1),
                 )
@@ -2419,7 +2402,7 @@ fn search_icon_element(
                     SvgViewer::new(freya_core::prelude::Bytes::from(svg.into_bytes()))
                         .width(Size::px(16.0))
                         .height(Size::px(16.0))
-                        .color(rgba(color))
+                        .color(theme::color(color))
                         .show_loader(false)
                         .into_element(),
                 )
@@ -2442,7 +2425,7 @@ fn leading_slot(
         Some(MenuIcon::Svg(svg)) => SvgViewer::new(Bytes::from(svg.as_bytes().to_vec()))
             .width(Size::px(m.icon_size))
             .height(Size::px(m.icon_size))
-            .color(rgba(icon_fg))
+            .color(theme::color(icon_fg))
             .show_loader(false)
             .into_element(),
         Some(MenuIcon::Image(bytes)) => icon_image(&bytes, m.icon_size).map_or_else(
@@ -2532,7 +2515,7 @@ fn mark_element(check: CheckState, color: Rgba, m: MenuPalette) -> Element {
         CheckState::Checkbox(true) => label()
             .text("✓")
             .font_size(m.mark_check)
-            .color(rgba(color))
+            .color(theme::color(color))
             .width(Size::px(m.leading_width))
             .text_align(TextAlign::Center)
             .max_lines(1)
@@ -2546,7 +2529,7 @@ fn mark_element(check: CheckState, color: Rgba, m: MenuPalette) -> Element {
                     .width(Size::px(m.mark_dot))
                     .height(Size::px(m.mark_dot))
                     .corner_radius(m.mark_dot / 2.0)
-                    .background(rgba(color)),
+                    .background(theme::color(color)),
             )
             .into_element(),
     }
@@ -2556,7 +2539,7 @@ fn chevron_element(color: Rgba, m: MenuPalette) -> Element {
     label()
         .text("›")
         .font_size(m.font_size)
-        .color(rgba(color))
+        .color(theme::color(color))
         .width(Size::px(m.chevron_size))
         .max_lines(1)
         .into_element()
@@ -2690,7 +2673,8 @@ mod tests {
         let area = test
             .find(|node, element| {
                 let style = element.style();
-                (style.background == Fill::Color(rgba(MENU_LIGHT.bg))).then(|| node.layout().area)
+                (style.background == Fill::Color(theme::color(MENU_LIGHT.bg)))
+                    .then(|| node.layout().area)
             })
             .expect("menu root box");
         assert_eq!((area.size.width, area.size.height), (340.0, 300.0));
