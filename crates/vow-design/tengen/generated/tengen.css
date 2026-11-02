@@ -565,6 +565,8 @@
   --switch-transition: var(--dur-fast);
   --switch-travel: 14px;
   --switch-width: 32px;
+  --symbol-grid: 16px;
+  --symbol-stroke: 1.400000px;
   --text-field-bg: var(--bg-surface);
   --text-field-border: var(--line);
   --text-field-error-border: var(--danger);

@@ -35,6 +35,7 @@ fn main() {
     emit_button(&mut out, &tokens, &components);
     emit_text_field(&mut out, &tokens, &components);
     emit_progress(&mut out, &tokens, &components);
+    emit_symbol(&mut out, &components);
     emit_wallpaper(&mut out, &tokens, &components);
     emit_traffic(&mut out, &tokens, &components);
     emit_font_families(&mut out, &tokens);
@@ -785,6 +786,15 @@ fn emit_progress(out: &mut String, tokens: &Value, components: &Value) {
             "components.progress.indeterminate.duration",
             COMPONENTS
         )
+    ));
+}
+
+fn emit_symbol(out: &mut String, components: &Value) {
+    const_doc(out, "SYMBOL", "The symbol grid and stroke width.");
+    out.push_str(&format!(
+        ": SymbolMetrics = SymbolMetrics {{ stroke: {}, grid: {} }};\n\n",
+        float(number(components, "components.symbol.stroke", COMPONENTS)),
+        float(number(components, "components.symbol.grid", COMPONENTS))
     ));
 }
 

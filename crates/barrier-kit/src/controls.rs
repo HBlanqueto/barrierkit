@@ -21,6 +21,7 @@ use crate::choices::use_choice;
 use crate::interaction::use_interaction;
 use crate::password::PasswordField;
 use crate::platform::inserts_text;
+use crate::symbol::{Symbol, symbol};
 
 fn secure_field_accepts_text(key: &Key, modifiers: Modifiers) -> bool {
     matches!(key, Key::Character(_)) && inserts_text(modifiers)
@@ -985,9 +986,6 @@ impl Component for Segment {
     }
 }
 
-const SEARCH_ICON: &str = r#"<svg viewBox="0 0 16 16"><circle cx="6.8" cy="6.8" r="4.2" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M10 10l3.2 3.2" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>"#;
-const CLEAR_ICON: &str = r#"<svg viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>"#;
-
 #[derive(PartialEq)]
 pub struct TextField {
     value: State<String>,
@@ -1093,7 +1091,7 @@ impl Component for SearchField {
                             value.set(String::new());
                         }
                     })
-                    .child(svg_viewer(CLEAR_ICON, base.ink_muted, icon as u32)),
+                    .child(symbol(Symbol::XMark, icon, base.ink_muted)),
             );
         }
 
@@ -1106,7 +1104,7 @@ impl Component for SearchField {
                             .left(padding)
                             .top((TEXT_FIELD.height - icon) / 2.0),
                     )
-                    .child(svg_viewer(SEARCH_ICON, base.ink_faint, icon as u32)),
+                    .child(symbol(Symbol::MagnifyingGlass, icon, base.ink_faint)),
             )
     }
 }

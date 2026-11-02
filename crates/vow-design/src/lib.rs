@@ -419,6 +419,12 @@ pub struct ProgressMetrics {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct SymbolMetrics {
+    pub stroke: f32,
+    pub grid: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct SidebarMetrics {
     pub default_island: bool,
     pub width: u32,

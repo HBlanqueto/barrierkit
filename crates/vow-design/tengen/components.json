@@ -91,6 +91,10 @@
       "on": "accent",
       "check-stroke": 2.2
     },
+    "symbol": {
+      "stroke": 1.4,
+      "grid": 16
+    },
     "radio": {
       "size": 16,
       "dot": 6,

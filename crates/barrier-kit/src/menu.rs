@@ -86,6 +86,7 @@ use crate::platform::{
     PopupAnchor, PopupConstraintAdjustment, PopupGravity, PopupHandle, PopupId, PopupSpec, Popups,
     Timers, inserts_text,
 };
+use crate::symbol::{Symbol, symbol};
 use crate::theme::{SurfaceKind, menu_palette};
 use vow_design::{MenuPalette, Rgba, SANS_FAMILIES};
 
@@ -205,8 +206,6 @@ fn truncate_middle(text: &str, max_width: f32, font_size: f32) -> String {
     }
     ellipsis.to_string()
 }
-
-const SEARCH_ICON: &str = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 16 16\"><circle cx=\"6.8\" cy=\"6.8\" r=\"4.2\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\"/><path d=\"M10 10l3.2 3.2\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\" stroke-linecap=\"round\"/></svg>";
 
 const MARK_TEXT_GAP: f32 = 6.0;
 
@@ -2251,11 +2250,7 @@ fn render_item(
                         .cross_align(Alignment::Center)
                         .spacing(8.0)
                         .child(
-                            SvgViewer::new(SEARCH_ICON.as_bytes())
-                                .width(Size::px(m.icon_size))
-                                .height(Size::px(m.icon_size))
-                                .color(rgba(m.shortcut_color))
-                                .show_loader(false)
+                            symbol(Symbol::MagnifyingGlass, m.icon_size, m.shortcut_color)
                                 .into_element(),
                         )
                         .child(text_box),
