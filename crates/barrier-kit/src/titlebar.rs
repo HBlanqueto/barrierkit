@@ -195,13 +195,15 @@ impl Component for Titlebar {
 
         let resolved = crate::theme::resolved();
         let theme = palette(resolved.scheme);
+        let sidebar = self.sidebar
+            && crate::views::split::sidebar_control().is_none_or(|control| control.visible());
         let tinted = crate::backdrop::tinted().is_some();
         let ink = crate::style::Palette::current();
         let background = if tinted && overlaid {
             ink.raised_background
         } else if tinted {
             vow_design::Rgba::rgba8(0, 0, 0, 0.0)
-        } else if self.sidebar || status.activated {
+        } else if sidebar || status.activated {
             crate::theme::surface_background(&resolved, crate::theme::SurfaceKind::Toplevel)
         } else {
             resolved.surfaces.titlebar_inactive
@@ -214,7 +216,7 @@ impl Component for Titlebar {
         };
         let lights_shown = freya_core::prelude::try_consume_root_context::<WindowControls>()
             .is_none_or(|controls| controls.traffic_lights_shown());
-        let traffic = if self.sidebar || !lights_shown {
+        let traffic = if sidebar || !lights_shown {
             None
         } else {
             Some(window_traffic_lights(
@@ -240,7 +242,7 @@ impl Component for Titlebar {
             title_label = title_label.a11y_builder(move |node| node.set_author_id(id));
         }
 
-        if self.sidebar {
+        if sidebar {
             let left_slot = rect()
                 .width(Size::auto())
                 .height(Size::fill())
@@ -301,16 +303,12 @@ impl Component for Titlebar {
             .width(Size::auto())
             .min_width(Size::px(min_slot))
             .height(Size::fill())
+            .direction(Direction::Horizontal)
             .cross_align(Alignment::Center)
+            .spacing(self.spacing)
             .a11y_alt("titlebar-left-slot")
-            .maybe(self.left.is_some(), |el| {
-                el.child(self.left.clone().unwrap())
-            });
-        let left_slot = if let Some(traffic) = traffic {
-            left_slot.center().child(traffic)
-        } else {
-            left_slot
-        };
+            .maybe_child(traffic)
+            .maybe_child(self.left.clone());
 
         let right_slot = rect()
             .width(Size::auto())

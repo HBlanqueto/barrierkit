@@ -13,7 +13,7 @@ use barrier_kit::platform::{DecorationResponse, WindowStatus};
 use barrier_kit::sidebar::{Sidebar, SidebarItem, SidebarSection};
 use barrier_kit::theme;
 use barrier_kit::titlebar::Titlebar;
-use barrier_kit::views::split::SplitView;
+use barrier_kit::views::split::{SidebarToggle, SplitView};
 use freya_components::button::Button;
 use freya_components::theming::hooks::use_init_theme;
 use freya_core::integration::AppComponent;
@@ -1159,4 +1159,54 @@ fn island_toolbar_is_centred_with_the_traffic_lights() {
         (traffic_center - toolbar_center).abs() <= 1.0,
         "the toolbar centre ({toolbar_center}) must match the traffic lights centre ({traffic_center})"
     );
+}
+
+struct HidingCase;
+
+impl App for HidingCase {
+    fn render(&self) -> impl IntoElement {
+        SplitView::new(
+            Sidebar::new().child(SidebarItem::new("Uno")),
+            rect()
+                .width(Size::fill())
+                .height(Size::fill())
+                .child(Titlebar::new().with_sidebar(true).left(SidebarToggle)),
+        )
+    }
+}
+
+#[test]
+fn the_sidebar_toggle_hides_and_shows_the_sidebar() {
+    let resolved = resolve(
+        &AppearanceConfig {
+            reduced_motion: true,
+            ..Default::default()
+        },
+        None,
+    );
+    let (mut test, _) = TestingRunner::new(
+        AppComponent::new(HidingCase),
+        Size2D::new(900.0, 400.0),
+        move |runner| runner.provide_root_context(move || State::create(resolved)),
+        1.0,
+    );
+    test.sync_and_update();
+    let labelled = |test: &TestingRunner, label: &str| {
+        test.find(|node, el| {
+            (el.accessibility().builder.label() == Some(label)).then(|| node.layout().area)
+        })
+    };
+    assert!(
+        labelled(&test, "Uno").is_some(),
+        "the sidebar starts visible"
+    );
+    let toggle = |test: &mut TestingRunner| {
+        let area = labelled(test, "Mostrar u ocultar la barra lateral").expect("toggle");
+        test.click_cursor((f64::from(area.center().x), f64::from(area.center().y)));
+        test.poll(Duration::from_millis(16), Duration::from_millis(100));
+    };
+    toggle(&mut test);
+    assert!(labelled(&test, "Uno").is_none(), "the sidebar hides");
+    toggle(&mut test);
+    assert!(labelled(&test, "Uno").is_some(), "the sidebar comes back");
 }

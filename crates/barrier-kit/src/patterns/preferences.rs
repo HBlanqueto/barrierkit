@@ -3,8 +3,8 @@
 use freya_components::scrollviews::ScrollView;
 use freya_core::prelude::*;
 use serde::{Deserialize, Serialize};
-use torin::prelude::{Direction, Gaps, Size};
-use vow_design::{LIST_GROUP, Rgba, SETTINGS, SPACE_2};
+use torin::prelude::{Alignment, Direction, Gaps, Size};
+use vow_design::{LIST_GROUP, Rgba, SETTINGS, SIDEBAR, SPACE_2};
 
 use crate::app::{load_restoration, save_restoration};
 use crate::controls::SearchField;
@@ -14,7 +14,7 @@ use crate::titlebar::Titlebar;
 use crate::views::form::Form;
 use crate::views::navigation::{History, navigation_buttons};
 use crate::views::search::SearchIndex;
-use crate::views::split::SplitView;
+use crate::views::split::{SidebarLayout, SidebarToggle, SplitView};
 
 use super::search_popover::{Entry, search_popover};
 
@@ -128,6 +128,8 @@ struct Restored {
     pane: String,
     #[serde(default)]
     recents: Vec<String>,
+    #[serde(default)]
+    sidebar: Option<SidebarLayout>,
 }
 
 pub fn index(panes: &[&Pane]) -> SearchIndex<Hit> {
@@ -159,10 +161,12 @@ impl Component for PreferencesWindow {
         let history = use_state(|| History::new(known(&saved.pane).unwrap_or(first)));
         let recents: State<Vec<&'static str>> =
             use_state(|| saved.recents.iter().filter_map(known).collect());
+        let mut layout = use_state(|| saved.sidebar);
         use_side_effect(move || {
             let state = Restored {
                 pane: history.read().current().to_string(),
                 recents: recents.read().iter().map(|id| id.to_string()).collect(),
+                sidebar: *layout.read(),
             };
             if let Some(app_id) = restoration
                 && let Err(error) = save_restoration(app_id, &state)
@@ -329,7 +333,14 @@ impl Component for PreferencesWindow {
                 Titlebar::new()
                     .with_sidebar(true)
                     .title(pane.map(|pane| pane.title).unwrap_or_default())
-                    .left(navigation_buttons(history)),
+                    .left(
+                        rect()
+                            .direction(Direction::Horizontal)
+                            .cross_align(Alignment::Center)
+                            .spacing(SPACE_2)
+                            .child(SidebarToggle)
+                            .child(navigation_buttons(history)),
+                    ),
             )
             .child(
                 ScrollView::new().child(
@@ -347,7 +358,14 @@ impl Component for PreferencesWindow {
                 ),
             );
 
+        let restored = saved.sidebar.unwrap_or(SidebarLayout {
+            width: SIDEBAR.width as f32,
+            visible: true,
+        });
         SplitView::new(sidebar, detail)
+            .sidebar_width(restored.width)
+            .sidebar_visible(restored.visible)
+            .on_layout(move |sidebar| layout.set(Some(sidebar)))
     }
 }
 

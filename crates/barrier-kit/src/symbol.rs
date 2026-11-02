@@ -30,6 +30,7 @@ pub enum Symbol {
     ListBullet,
     SquareGrid,
     SlidersVertical,
+    SidebarLeft,
 }
 
 impl Symbol {
@@ -64,6 +65,7 @@ impl Symbol {
                 "M2.5 2.5h4.5v4.5H2.5zM9 2.5h4.5v4.5H9zM2.5 9h4.5v4.5H2.5zM9 9h4.5v4.5H9z"
             }
             Self::SlidersVertical => "M4 2v12M8 2v12M12 2v12M2.5 10h3M6.5 5h3M10.5 9h3",
+            Self::SidebarLeft => "M2.5 3.5h11v9h-11zM6.5 3.5v9",
             Self::SpeakerWave => {
                 "M3 6h2l3-3v10l-3-3H3zM10.5 5.5a3.5 3.5 0 0 1 0 5M12.5 3.5a6.5 6.5 0 0 1 0 9"
             }
