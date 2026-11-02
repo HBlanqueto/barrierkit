@@ -10,7 +10,6 @@ use barrier_kit::controls::{
 };
 use barrier_kit::theme;
 use freya_components::menu::{Menu, MenuItem};
-use freya_components::segmented_button::ButtonSegment;
 use freya_components::theming::hooks::use_init_theme;
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
@@ -79,14 +78,11 @@ fn slider() -> Element {
 }
 
 fn segmented_control() -> Element {
-    SegmentedControl::new()
-        .children([
-            ButtonSegment::new().child("Uno").into_element(),
-            ButtonSegment::new()
-                .selected(true)
-                .child("Dos")
-                .into_element(),
-        ])
+    SegmentedControl::new("Periodo")
+        .segment("Día")
+        .segment("Semana")
+        .segment("Mes")
+        .selected(1)
         .into_element()
 }
 
@@ -342,6 +338,37 @@ fn switch_click_toggles_and_disabled_does_not_emit() {
         }
         assert_eq!(*values.borrow(), expected);
     }
+}
+
+#[test]
+fn segmented_control_click_selects_once_per_new_segment() {
+    use std::cell::RefCell;
+    use std::rc::Rc;
+
+    struct SegmentedCase {
+        values: Rc<RefCell<Vec<usize>>>,
+    }
+    impl App for SegmentedCase {
+        fn render(&self) -> impl IntoElement {
+            let values = self.values.clone();
+            SegmentedControl::new("Vista")
+                .segment("Cuadrícula")
+                .segment("Lista")
+                .on_change(move |i| values.borrow_mut().push(i))
+        }
+    }
+
+    let values = Rc::new(RefCell::new(Vec::new()));
+    let app = AppComponent::new(SegmentedCase {
+        values: values.clone(),
+    });
+    let (mut test, _) = TestingRunner::new(app, Size2D::new(200.0, 30.0), |_| {}, 1.0);
+    test.sync_and_update();
+    for x in [150.0, 150.0, 50.0] {
+        test.click_cursor((x, 15.0));
+        test.sync_and_update();
+    }
+    assert_eq!(*values.borrow(), [1, 0]);
 }
 
 #[test]

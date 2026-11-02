@@ -5,13 +5,12 @@ use std::time::Duration;
 use freya_animation::prelude::{AnimNum, Ease, Function, use_animation_transition};
 use freya_components::svg_viewer::SvgViewer;
 use freya_core::prelude::*;
-use keyboard_types::{Key, NamedKey};
 use torin::prelude::{Alignment, Direction, Gaps, Position, Size};
 use vow_appearance::SidebarStyle;
 use vow_design::{DURATION_BASE, Rgba, SIDEBAR, SidebarPalette, TITLEBAR};
 
 use crate::ProbeExt;
-use crate::platform::{DecorationResponse, WindowControls, WindowStatus};
+use crate::platform::{DecorationResponse, WindowControls, WindowStatus, activates};
 use crate::titlebar::{window_drag_handler, window_traffic_lights};
 use freya_core::prelude::try_consume_root_context;
 
@@ -520,9 +519,7 @@ impl Component for SidebarSection {
         let on_key = {
             let mut expanded = expanded;
             move |event: Event<KeyboardEventData>| {
-                let toggles = matches!(event.key, Key::Named(NamedKey::Enter))
-                    || matches!(event.key, Key::Character(ref s) if s == " ");
-                if toggles {
+                if activates(&event.key) {
                     let new = !*expanded.read();
                     expanded.set(new);
                     if let Some(cb) = &on_toggle {

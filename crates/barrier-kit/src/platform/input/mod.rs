@@ -99,6 +99,10 @@ pub fn inserts_text(modifiers: Modifiers) -> bool {
     !modifiers.intersects(Modifiers::CONTROL | Modifiers::ALT | Modifiers::META)
 }
 
+pub fn activates(key: &Key) -> bool {
+    matches!(key, Key::Named(NamedKey::Enter)) || matches!(key, Key::Character(s) if s == " ")
+}
+
 pub fn map_key(keysym: Keysym, utf8: Option<&str>) -> Key {
     if keysym == Keysym::space {
         return Key::Character(" ".into());

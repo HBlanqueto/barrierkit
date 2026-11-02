@@ -30,6 +30,7 @@ fn main() {
     emit_slider(&mut out, &tokens, &components);
     emit_checkbox(&mut out, &tokens, &components);
     emit_switch(&mut out, &tokens, &components);
+    emit_segmented(&mut out, &tokens, &components);
     emit_wallpaper(&mut out, &tokens, &components);
     emit_traffic(&mut out, &tokens, &components);
     emit_font_families(&mut out, &tokens);
@@ -636,6 +637,46 @@ fn emit_switch(out: &mut String, tokens: &Value, components: &Value) {
             COMPONENTS
         ) as u64,
         field("disabled-opacity")
+    ));
+}
+
+fn emit_segmented(out: &mut String, tokens: &Value, components: &Value) {
+    let field = |key: &str| {
+        float(metric(
+            tokens,
+            components,
+            &format!("components.segmented.{key}"),
+            COMPONENTS,
+        ))
+    };
+    const_doc(out, "SEGMENTED", "The Tengen segmented control metrics.");
+    out.push_str(&format!(
+        ": SegmentedMetrics = SegmentedMetrics {{
+\
+         \x20   padding: {},
+\
+         \x20   gap: {},
+\
+         \x20   radius: {},
+\
+         \x20   segment_radius: {},
+\
+         \x20   segment_height: {},
+\
+         \x20   segment_padding_x: {},
+\
+         \x20   font_size: {},
+\
+         \x20   font_weight: {},
+}};\n\n",
+        field("padding"),
+        field("gap"),
+        field("radius"),
+        field("segment-radius"),
+        field("segment-height"),
+        field("segment-padding-x"),
+        field("font.size"),
+        integer(components, "components.segmented.font.weight", COMPONENTS)
     ));
 }
 

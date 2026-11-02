@@ -5,22 +5,20 @@ pub use freya_components::input::Input as TextField;
 pub use freya_components::menu::Menu;
 pub use freya_components::popup::Popup as Popover;
 pub use freya_components::scrollviews::ScrollView;
-pub use freya_components::segmented_button::SegmentedButton as SegmentedControl;
 
 use freya_components::svg_viewer::SvgViewer;
 
 use freya_animation::prelude::{AnimNum, Ease, Function, use_animation_transition};
 use freya_core::prelude::*;
-use keyboard_types::NamedKey;
-use torin::prelude::{Alignment, Direction, Gaps, Position, Size};
+use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 use vow_design::{
-    CAPTION, CHECKBOX, KNOB_SHADOW, Rgba, SETTINGS, SLIDER, SWITCH, TEXT, TEXT_LINE_HEIGHT,
-    TOOLGROUP,
+    CAPTION, CHECKBOX, KNOB_SHADOW, Rgba, SEGMENTED, SETTINGS, SLIDER, SWITCH, TEXT,
+    TEXT_LINE_HEIGHT, TOOLGROUP,
 };
 
 use crate::ProbeExt;
 use crate::password::PasswordField;
-use crate::platform::inserts_text;
+use crate::platform::{activates, inserts_text};
 
 fn secure_field_accepts_text(key: &Key, modifiers: Modifiers) -> bool {
     matches!(key, Key::Character(_)) && inserts_text(modifiers)
@@ -692,9 +690,7 @@ impl Component for Switch {
         let on_key = {
             let mut flip = flip.clone();
             move |event: Event<KeyboardEventData>| {
-                let toggles = matches!(event.key, Key::Named(NamedKey::Enter))
-                    || matches!(event.key, Key::Character(ref s) if s == " ");
-                if toggles {
+                if activates(&event.key) {
                     flip();
                 }
             }
@@ -750,6 +746,137 @@ impl Component for Switch {
         }
 
         root
+    }
+}
+
+#[derive(PartialEq)]
+pub struct SegmentedControl {
+    label: &'static str,
+    segments: Vec<&'static str>,
+    selected: usize,
+    on_change: Option<Callback<usize, ()>>,
+    key: DiffKey,
+}
+
+impl SegmentedControl {
+    pub fn new(label: &'static str) -> Self {
+        Self {
+            label,
+            segments: Vec::new(),
+            selected: 0,
+            on_change: None,
+            key: DiffKey::None,
+        }
+    }
+
+    pub fn segment(mut self, label: &'static str) -> Self {
+        self.segments.push(label);
+        self
+    }
+
+    pub fn selected(mut self, index: usize) -> Self {
+        self.selected = index;
+        self
+    }
+
+    pub fn on_change(mut self, callback: impl Into<Callback<usize, ()>>) -> Self {
+        self.on_change = Some(callback.into());
+        self
+    }
+
+    pub fn key(mut self, key: impl Into<DiffKey>) -> Self {
+        self.key = key.into();
+        self
+    }
+}
+
+impl KeyExt for SegmentedControl {
+    fn write_key(&mut self) -> &mut DiffKey {
+        &mut self.key
+    }
+}
+
+impl Component for SegmentedControl {
+    fn render(&self) -> impl IntoElement {
+        let resolved = crate::theme::resolved();
+        let base = vow_appearance::palette(resolved.scheme);
+        let selected = use_state(|| self.selected);
+        let current = *selected.read();
+
+        let select = {
+            let mut selected = selected;
+            let on_change = self.on_change.clone();
+            move |index: usize| {
+                if index == *selected.read() {
+                    return;
+                }
+                selected.set(index);
+                if let Some(cb) = &on_change {
+                    cb.call(index);
+                }
+            }
+        };
+
+        let segments = self.segments.iter().enumerate().map(|(index, text)| {
+            let active = index == current;
+            let mut on_press = select.clone();
+            let mut on_key = select.clone();
+            let mut segment = rect()
+                .a11y_role(AccessibilityRole::Tab)
+                .a11y_focusable(true)
+                .a11y_alt(*text)
+                .a11y_builder(move |node| node.set_selected(active))
+                .width(Size::flex(1.0))
+                .height(Size::px(SEGMENTED.segment_height))
+                .padding(Gaps::new(
+                    0.0,
+                    SEGMENTED.segment_padding_x,
+                    0.0,
+                    SEGMENTED.segment_padding_x,
+                ))
+                .corner_radius(SEGMENTED.segment_radius)
+                .center()
+                .on_press(move |_| on_press(index))
+                .on_key_down(move |event: Event<KeyboardEventData>| {
+                    if activates(&event.key) {
+                        on_key(index);
+                    }
+                })
+                .child(
+                    label()
+                        .text(*text)
+                        .font_family(TEXT.family)
+                        .font_size(SEGMENTED.font_size)
+                        .font_weight(SEGMENTED.font_weight)
+                        .color(rgba(if active {
+                            base.ink_strong
+                        } else {
+                            base.ink_muted
+                        })),
+                );
+            if active {
+                segment = segment.background(rgba(resolved.surfaces.surface)).shadow((
+                    0.0,
+                    KNOB_SHADOW.y_offset as f32,
+                    KNOB_SHADOW.blur as f32,
+                    0.0,
+                    rgba(KNOB_SHADOW.color),
+                ));
+            }
+            segment.into_element()
+        });
+
+        rect()
+            .a11y_role(AccessibilityRole::TabList)
+            .a11y_alt(self.label)
+            .width(Size::fill())
+            .direction(Direction::Horizontal)
+            .content(Content::flex())
+            .padding(Gaps::new_all(SEGMENTED.padding))
+            .spacing(SEGMENTED.gap)
+            .corner_radius(SEGMENTED.radius)
+            .background(rgba(resolved.surfaces.control))
+            .children(segments)
     }
 }
 

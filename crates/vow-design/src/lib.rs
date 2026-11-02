@@ -375,6 +375,18 @@ pub struct SwitchMetrics {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct SegmentedMetrics {
+    pub padding: f32,
+    pub gap: f32,
+    pub radius: f32,
+    pub segment_radius: f32,
+    pub segment_height: f32,
+    pub segment_padding_x: f32,
+    pub font_size: f32,
+    pub font_weight: i32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct SidebarMetrics {
     pub default_island: bool,
     pub width: u32,
