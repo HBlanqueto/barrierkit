@@ -1,5 +1,7 @@
 use accesskit::Role;
 use freya_clipboard::copypasta::ClipboardProvider;
+
+use crate::app::DefaultsRevision;
 use freya_components::{cache::AssetCacher, integration::integration};
 use freya_core::{
     accessibility::tree::{ACCESSIBILITY_ROOT_ID, AccessibilityTree},
@@ -71,6 +73,7 @@ impl AppInstance {
         on_menu_action: Option<MenuActionHandler>,
         resolved: State<Resolved>,
         clipboard: Box<dyn ClipboardProvider>,
+        defaults_revision: State<u64>,
         extra_contexts: impl FnOnce(&mut Runner),
     ) -> Self {
         let (events_sender, events_receiver) = futures_channel::mpsc::unbounded();
@@ -110,6 +113,7 @@ impl AppInstance {
         }
         runner.provide_root_context(move || timers);
         runner.provide_root_context(move || State::create(Some(clipboard)));
+        runner.provide_root_context(move || DefaultsRevision(defaults_revision));
         runner.provide_root_context(|| tree.accessibility_generator.clone());
         runner.provide_root_context(|| font_collection.clone());
 

@@ -15,6 +15,7 @@ pub enum AppearanceEvent {
     Wallpaper,
     WallpaperSelection,
     Accent,
+    Defaults,
 }
 
 #[derive(Debug)]
@@ -76,6 +77,8 @@ impl AppearanceWatch {
             push_unique(out, AppearanceEvent::WallpaperSelection);
         } else if name_bytes == b"wallpaper.state" {
             push_unique(out, AppearanceEvent::Wallpaper);
+        } else if name_bytes.ends_with(b".domain") {
+            push_unique(out, AppearanceEvent::Defaults);
         }
     }
 }
@@ -186,6 +189,29 @@ mod tests {
             std::thread::sleep(Duration::from_millis(5));
         }
         assert!(found, "appearance.domain rename was not detected");
+    }
+
+    #[test]
+    fn an_app_domain_change_is_reported_as_defaults() {
+        let (config_dir, data_dir) = tmp_dirs();
+        let watch = AppearanceWatch::new_for(config_dir.clone(), data_dir.clone()).unwrap();
+        write(
+            &config_dir.join("org.malaysia.Contador.domain"),
+            "step = 5\n",
+        );
+
+        let deadline = Instant::now() + Duration::from_secs(2);
+        let mut found = false;
+        while Instant::now() < deadline {
+            if let Ok(events) = watch.drain()
+                && events.contains(&AppearanceEvent::Defaults)
+            {
+                found = true;
+                break;
+            }
+            std::thread::sleep(Duration::from_millis(5));
+        }
+        assert!(found, "an app domain change was not detected");
     }
 
     #[test]

@@ -6,4 +6,5 @@ mod defaults;
 
 pub use action::{Action, Shortcut, ShortcutKey};
 pub use application::{Launch, launch};
-pub use defaults::{load_defaults, save_defaults};
+pub(crate) use defaults::DefaultsRevision;
+pub use defaults::{load_defaults, save_defaults, use_defaults};

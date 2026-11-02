@@ -50,7 +50,10 @@ use sctk::{
     },
     shell::xdg::XdgShell,
 };
-use vow_appearance::{Resolved, load_appearance, load_dominant, resolve, watch::AppearanceWatch};
+use vow_appearance::{
+    Resolved, load_appearance, load_dominant, resolve,
+    watch::{AppearanceEvent, AppearanceWatch},
+};
 use wayland_protocols::wp::fractional_scale::v1::client::wp_fractional_scale_manager_v1::WpFractionalScaleManagerV1;
 use wayland_protocols::wp::viewporter::client::wp_viewporter::WpViewporter;
 use wayland_protocols_plasma::appmenu::client::org_kde_kwin_appmenu_manager::OrgKdeKwinAppmenuManager;
@@ -110,6 +113,7 @@ pub(crate) struct Runtime {
     pub(crate) resolved: State<Resolved>,
     pub(crate) pending_menu_addresses: Arc<Mutex<Vec<(ObjectId, AppMenuAddress)>>>,
     pub(crate) clipboard: Clipboard,
+    pub(crate) defaults_revision: State<u64>,
     pub(crate) clipboard_device: Option<ClipboardDevice>,
 }
 
@@ -216,6 +220,10 @@ pub(crate) fn insert_ping(
                     && let Ok(events) = watch.drain()
                     && !events.is_empty()
                 {
+                    if events.contains(&AppearanceEvent::Defaults) {
+                        *shell.defaults_revision.write() += 1;
+                        shell.ping.ping();
+                    }
                     let resolved = resolve(&load_appearance(), load_dominant());
                     if *shell.resolved.peek() != resolved {
                         shell.resolved.set(resolved);
@@ -329,6 +337,7 @@ impl Runtime {
             resolved,
             pending_menu_addresses: Arc::new(Mutex::new(Vec::new())),
             clipboard: Clipboard::new(conn.clone(), ping.clone()),
+            defaults_revision: State::create_global(0),
             clipboard_device: DataDeviceManagerState::bind(&globals, &qh)
                 .ok()
                 .map(ClipboardDevice::new),
