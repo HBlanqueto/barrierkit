@@ -14,8 +14,6 @@
 
       nativeDeps = pkgs: with pkgs; [
         libglvnd
-        libdrm
-        libgbm
         mesa
         wayland
         libxkbcommon

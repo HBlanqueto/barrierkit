@@ -30,8 +30,6 @@ zeroize.workspace = true
 infinity-protocol = { workspace = true, features = ["client"] }
 sctk.workspace = true
 calloop.workspace = true
-wayland-client.workspace = true
-wayland-scanner.workspace = true
 wayland-protocols = { workspace = true }
 wayland-protocols-plasma = { workspace = true, features = ["client"] }
 zbus.workspace = true
