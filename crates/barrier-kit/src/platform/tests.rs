@@ -474,6 +474,42 @@ mod drag_band_tests {
         }
     }
 
+    fn first_item_top(fullscreen: bool) -> f32 {
+        let resolved = resolve(&AppearanceConfig::default(), None);
+        let app = AppComponent::new(DragCase);
+        let (mut test, _) = TestingRunner::new(
+            app,
+            Size2D::new(800.0, 400.0),
+            move |runner| {
+                runner.provide_root_context(move || {
+                    super::window_controls(WindowStatus {
+                        fullscreen,
+                        ..WindowStatus::default()
+                    })
+                });
+                runner.provide_root_context(move || State::create(resolved));
+            },
+            1.0,
+        );
+        test.sync_and_update();
+        test.find(|node, el| {
+            (el.accessibility().builder.author_id() == Some("island-first-item"))
+                .then(|| node.layout().area.origin.y)
+        })
+        .expect("first sidebar item")
+    }
+
+    #[test]
+    fn without_traffic_lights_in_full_screen_the_sidebar_content_moves_up() {
+        let windowed = first_item_top(false);
+        let fullscreen = first_item_top(true);
+        let lights_band = (vow_design::SIDEBAR.traffic_y
+            + vow_design::TITLEBAR.buttons.diameter
+            + vow_design::SETTINGS.sidebar_lights_gap
+            - vow_design::SETTINGS.sidebar_padding_top) as f32;
+        assert_eq!(windowed - fullscreen, lights_band);
+    }
+
     #[test]
     fn a_mouse_down_on_the_island_top_band_moves_the_window() {
         let queue: Rc<RefCell<Vec<WindowCommand>>> = Rc::new(RefCell::new(Vec::new()));

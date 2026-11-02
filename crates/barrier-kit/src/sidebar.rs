@@ -159,8 +159,21 @@ impl Component for Sidebar {
         let surface = resolved.sidebar;
         let island = surface.style == SidebarStyle::Island;
 
-        let top_height =
-            SIDEBAR.traffic_y + TITLEBAR.buttons.diameter + SETTINGS.sidebar_lights_gap;
+        let controls = try_consume_root_context::<WindowControls>();
+        let lights_opacity = crate::chrome::lights_opacity();
+        let lights_shown = controls
+            .as_ref()
+            .is_none_or(|controls| controls.traffic_lights_shown())
+            && lights_opacity > 0.0;
+        let overlay_top = controls
+            .as_ref()
+            .and_then(|controls| controls.titlebar_overlay_top());
+        let top_height = if lights_shown {
+            (SIDEBAR.traffic_y + TITLEBAR.buttons.diameter + SETTINGS.sidebar_lights_gap) as f32
+                + overlay_top.unwrap_or_default()
+        } else {
+            SETTINGS.sidebar_padding_top as f32
+        };
         let padding_x = SIDEBAR.padding_x as f32;
         let radius = SIDEBAR.radius as f32;
 
@@ -168,13 +181,13 @@ impl Component for Sidebar {
             .map(|controls| (*controls.status.read(), controls.fixed))
             .unwrap_or_default();
         let drag = window_drag_handler(fixed);
-        let band_top = -(top_height as f32) - if island { SIDEBAR.inset as f32 } else { 0.0 };
+        let band_top = -top_height - if island { SIDEBAR.inset as f32 } else { 0.0 };
         let band_left = -(padding_x);
         let band_width = SIDEBAR.width as f32;
         let band_height = if island {
-            top_height as f32 + SIDEBAR.inset as f32
+            top_height + SIDEBAR.inset as f32
         } else {
-            top_height as f32
+            top_height
         };
 
         let chrome = crate::chrome::chrome_style();
@@ -196,7 +209,7 @@ impl Component for Sidebar {
             .background(theme::color(surface.bg))
             .a11y_role(AccessibilityRole::Navigation)
             .padding(Gaps::new(
-                top_height as f32,
+                top_height,
                 padding_x + reserved_right,
                 if island { padding_x } else { 0.0 },
                 padding_x + reserved_left,
@@ -258,17 +271,8 @@ impl Component for Sidebar {
             .height(Size::fill())
             .child(sidebar_body);
 
-        let controls = try_consume_root_context::<WindowControls>();
-        let lights_shown = controls
-            .as_ref()
-            .is_none_or(|controls| controls.traffic_lights_shown());
-        let overlay_top = controls
-            .as_ref()
-            .and_then(|controls| controls.titlebar_overlay_top());
         let sidebar_shown =
             crate::views::split::sidebar_control().is_none_or(|control| control.settled());
-        let lights_opacity = crate::chrome::lights_opacity();
-        let lights_shown = lights_shown && lights_opacity > 0.0;
         if lights_column && lights_shown {
             let diameter = TITLEBAR.buttons.diameter as f32;
             let offset = (chrome.rail_width - diameter) / 2.0;
