@@ -52,10 +52,8 @@ impl Runtime {
                 .as_ref()
                 .map(|handle| handle.drain_actions())
                 .unwrap_or_default();
-            if let Some(on_action) = surface.app.on_menu_action.as_ref() {
-                for id in action_ids {
-                    on_action(&id);
-                }
+            for id in action_ids {
+                surface.app.menu_actions.dispatch(&id);
             }
         }
     }

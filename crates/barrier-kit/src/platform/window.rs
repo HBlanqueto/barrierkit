@@ -55,9 +55,7 @@ pub enum DecorationResponse {
     Server,
 }
 
-pub type MenuActionHandler = Arc<dyn Fn(&str) + Send + Sync>;
-
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct WindowOptions {
     pub title: String,
     pub app_name: String,
@@ -68,24 +66,6 @@ pub struct WindowOptions {
     pub max_size: Option<(u32, u32)>,
     pub parent: Option<ObjectId>,
     pub menu: Option<crate::app_menu::AppMenu>,
-    pub on_menu_action: Option<MenuActionHandler>,
-}
-
-impl std::fmt::Debug for WindowOptions {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("WindowOptions")
-            .field("title", &self.title)
-            .field("app_name", &self.app_name)
-            .field("app_id", &self.app_id)
-            .field("decorations", &self.decorations)
-            .field("size", &self.size)
-            .field("min_size", &self.min_size)
-            .field("max_size", &self.max_size)
-            .field("parent", &self.parent)
-            .field("menu", &self.menu)
-            .field("on_menu_action", &self.on_menu_action.is_some())
-            .finish()
-    }
 }
 
 impl WindowOptions {
@@ -100,7 +80,6 @@ impl WindowOptions {
             max_size: None,
             parent: None,
             menu: None,
-            on_menu_action: None,
         }
     }
 
@@ -136,11 +115,6 @@ impl WindowOptions {
 
     pub fn menu(mut self, menu: crate::app_menu::AppMenu) -> Self {
         self.menu = Some(menu);
-        self
-    }
-
-    pub fn on_menu_action(mut self, callback: impl Fn(&str) + Send + Sync + 'static) -> Self {
-        self.on_menu_action = Some(Arc::new(callback));
         self
     }
 }
@@ -467,7 +441,6 @@ impl Runtime {
             self.graphics.font_collection.clone(),
             self.graphics.font_manager.clone(),
             options.menu.clone(),
-            options.on_menu_action.clone(),
             self.resolved,
             self.clipboard.provider(),
             self.defaults_revision,

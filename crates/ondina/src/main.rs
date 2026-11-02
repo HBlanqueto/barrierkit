@@ -5,18 +5,15 @@ mod albums;
 mod views;
 
 use std::rc::Rc;
-use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use barrier_kit::adaptive::{Breakpoint, use_breakpoint};
-use barrier_kit::app::{Action, Instance, Launch, Shortcut, ShortcutKey, launch};
+use barrier_kit::app::{Action, Instance, Launch, Shortcut, ShortcutKey, launch, use_menu_action};
 use barrier_kit::app_menu::{AppMenu, Menu};
 use barrier_kit::backdrop::{Accent, Backdrop, BackdropSource, Tint};
 use barrier_kit::compact::IconButton;
 use barrier_kit::controls::ScrollView;
-use barrier_kit::platform::{
-    Decorations, Timers, WakeHandle, WindowControls, WindowOptions, run_window,
-};
+use barrier_kit::platform::{Decorations, Timers, WindowControls, WindowOptions, run_window};
 use barrier_kit::sidebar::{Sidebar, SidebarItem};
 use barrier_kit::symbol::Symbol;
 use barrier_kit::titlebar::Titlebar;
@@ -204,15 +201,8 @@ fn menu() -> AppMenu {
     ])
 }
 
-#[derive(Default)]
-struct Inbox {
-    actions: Vec<String>,
-    wake: Option<WakeHandle>,
-}
-
 struct Ondina {
     instance: Option<Instance>,
-    inbox: Arc<Mutex<Inbox>>,
 }
 
 impl App for Ondina {
@@ -241,35 +231,24 @@ impl App for Ondina {
         };
         let tab = use_state(|| Tab::Now);
         let instance = self.instance.clone();
-        let inbox = self.inbox.clone();
         use_hook(move || {
             if let Some(instance) = &instance {
                 instance.listen();
             }
-            let Some(timers) = try_consume_root_context::<Timers>() else {
-                return;
-            };
-            schedule(timers.clone(), player);
-            let wake = timers.wakeup({
-                let inbox = inbox.clone();
-                move || {
-                    let actions = std::mem::take(&mut inbox.lock().expect("menu inbox").actions);
-                    for id in actions {
-                        match id.as_str() {
-                            "play-pause" => player.toggle(),
-                            "next" => player.skip(1),
-                            "previous" => player.skip(-1),
-                            view => {
-                                if let Some(index) = VIEWS.iter().position(|v| v.id == view) {
-                                    let mut tab = tab;
-                                    tab.set(Tab::ALL[index]);
-                                }
-                            }
-                        }
-                    }
+            if let Some(timers) = try_consume_root_context::<Timers>() {
+                schedule(timers, player);
+            }
+        });
+        use_menu_action(move |id| match id {
+            "play-pause" => player.toggle(),
+            "next" => player.skip(1),
+            "previous" => player.skip(-1),
+            view => {
+                if let Some(index) = VIEWS.iter().position(|v| v.id == view) {
+                    let mut tab = tab;
+                    tab.set(Tab::ALL[index]);
                 }
-            });
-            inbox.lock().expect("menu inbox").wake = Some(wake);
+            }
         });
 
         let current = *tab.read();
@@ -408,22 +387,13 @@ fn main() {
             None
         }
     };
-    let inbox = Arc::new(Mutex::new(Inbox::default()));
-    let menu_inbox = inbox.clone();
     run_window(
-        AppComponent::new(Ondina { instance, inbox }),
+        AppComponent::new(Ondina { instance }),
         WindowOptions::new("Ondina", "ondina")
             .decorations(Decorations::Client)
             .size((980, 640))
             .min_size(Some(WINDOW_MIN_SIZE))
-            .menu(menu())
-            .on_menu_action(move |id| {
-                let mut inbox = menu_inbox.lock().expect("menu inbox");
-                inbox.actions.push(id.to_string());
-                if let Some(wake) = &inbox.wake {
-                    wake.wake();
-                }
-            }),
+            .menu(menu()),
     )
     .expect("ondina");
 }
@@ -435,10 +405,7 @@ mod tests {
     use torin::prelude::Size2D;
 
     fn labels(width: f32) -> Vec<String> {
-        let app = AppComponent::new(Ondina {
-            instance: None,
-            inbox: Arc::default(),
-        });
+        let app = AppComponent::new(Ondina { instance: None });
         let (mut test, _) = TestingRunner::new(app, Size2D::new(width, 640.0), |_| {}, 1.0);
         test.sync_and_update();
         test.poll(

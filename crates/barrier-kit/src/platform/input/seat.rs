@@ -380,10 +380,8 @@ impl Runtime {
             None
         };
 
-        if let Some((idx, ref action_id)) = shortcut_action
-            && let Some(on_action) = self.surfaces[idx].app.on_menu_action.as_ref()
-        {
-            on_action(action_id);
+        if let Some((idx, ref action_id)) = shortcut_action {
+            self.surfaces[idx].app.menu_actions.dispatch(action_id);
         }
 
         let platform_event = PlatformEvent::Keyboard {

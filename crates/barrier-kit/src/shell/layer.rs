@@ -187,7 +187,6 @@ pub fn run_layer(app: AppComponent, spec: LayerSpec) -> Result<(), RunError> {
         shell.graphics.font_collection.clone(),
         shell.graphics.font_manager.clone(),
         None,
-        None,
         shell.resolved,
         shell.clipboard.provider(),
         shell.defaults_revision,

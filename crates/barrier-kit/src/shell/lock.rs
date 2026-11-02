@@ -148,7 +148,6 @@ impl Runtime {
             self.graphics.font_collection.clone(),
             self.graphics.font_manager.clone(),
             None,
-            None,
             self.resolved,
             self.clipboard.provider(),
             self.defaults_revision,

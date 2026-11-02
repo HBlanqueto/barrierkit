@@ -5,7 +5,8 @@ mod application;
 mod defaults;
 mod pasteboard;
 
-pub use action::{Action, Shortcut, ShortcutKey};
+pub(crate) use action::MenuActions;
+pub use action::{Action, Shortcut, ShortcutKey, use_menu_action};
 pub use application::{Instance, Launch, launch};
 pub(crate) use defaults::DefaultsRevision;
 pub use defaults::{

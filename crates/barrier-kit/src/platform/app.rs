@@ -28,7 +28,7 @@ use vow_appearance::Resolved;
 use super::{
     popup::{PopupHandle, Popups},
     timer::Timers,
-    window::{MenuActionHandler, WindowControls},
+    window::WindowControls,
 };
 
 pub(crate) struct AppInstance {
@@ -48,7 +48,7 @@ pub(crate) struct AppInstance {
     needs_layout: bool,
     waker: Waker,
     pub(crate) menu: Option<crate::app_menu::AppMenu>,
-    pub(crate) on_menu_action: Option<MenuActionHandler>,
+    pub(crate) menu_actions: crate::app::MenuActions,
     pub(crate) resolved: State<Resolved>,
     accessibility: AccessibilityTree,
     accessibility_initialized: bool,
@@ -70,7 +70,6 @@ impl AppInstance {
         font_collection: FontCollection,
         font_manager: FontMgr,
         menu: Option<crate::app_menu::AppMenu>,
-        on_menu_action: Option<MenuActionHandler>,
         resolved: State<Resolved>,
         clipboard: Box<dyn ClipboardProvider>,
         defaults_revision: State<u64>,
@@ -82,6 +81,7 @@ impl AppInstance {
         runner.provide_root_context(ScreenReader::new);
         runner.provide_root_context(move || resolved);
         runner.provide_root_context(move || popups.clone());
+        let menu_actions = runner.provide_root_context(crate::app::MenuActions::default);
         let (ticker_sender, ticker) = RenderingTicker::new();
         runner.provide_root_context(|| ticker);
         let animation_clock = runner.provide_root_context(AnimationClock::new);
@@ -139,7 +139,7 @@ impl AppInstance {
             needs_layout: true,
             waker,
             menu,
-            on_menu_action,
+            menu_actions,
             resolved,
             accessibility,
             accessibility_initialized: false,
