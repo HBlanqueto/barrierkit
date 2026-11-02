@@ -216,7 +216,8 @@ impl Component for Titlebar {
         };
         let lights_shown = freya_core::prelude::try_consume_root_context::<WindowControls>()
             .is_none_or(|controls| controls.traffic_lights_shown());
-        let traffic = if sidebar || !lights_shown {
+        let vertical = crate::chrome::chrome_style().layout != crate::chrome::TitlebarLayout::Top;
+        let traffic = if sidebar || !lights_shown || vertical {
             None
         } else {
             Some(window_traffic_lights(
@@ -307,16 +308,16 @@ impl Component for Titlebar {
         }
 
         let min_slot = vow_appearance::traffic::group_rect().2 as f32;
+        let padding_left = if traffic.is_some() {
+            TITLEBAR.buttons.margin_start as f32
+        } else {
+            10.0
+        };
         let left_slot = rect()
             .width(Size::auto())
             .min_width(Size::px(min_slot))
             .height(Size::fill())
             .direction(Direction::Horizontal)
-            .main_align(if self.left.is_none() {
-                Alignment::Center
-            } else {
-                Alignment::Start
-            })
             .cross_align(Alignment::Center)
             .spacing(self.spacing)
             .a11y_alt("titlebar-left-slot")
@@ -350,7 +351,7 @@ impl Component for Titlebar {
             .direction(Direction::Horizontal)
             .content(Content::flex())
             .cross_align(Alignment::Center)
-            .padding(Gaps::new(0.0, 10.0, 0.0, 10.0))
+            .padding(Gaps::new(0.0, 10.0, 0.0, padding_left))
             .child(left_slot)
             .child(title)
             .child(right_slot);
@@ -369,6 +370,7 @@ pub fn window_traffic_lights(
     let behavior = *window_behavior();
     let green = green_action(behavior.green_button, fixed);
     TrafficLights::new()
+        .round(crate::chrome::chrome_style().round_lights)
         .focused(focused)
         .zoom_supported(green_admitted(behavior.green_button, fixed))
         .fixed_width(fixed)

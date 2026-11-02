@@ -8,10 +8,13 @@ use freya_core::prelude::*;
 use keyboard_types::{Key, NamedKey};
 use torin::prelude::{Alignment, Direction, Gaps, Position, Size};
 use vow_appearance::SidebarStyle;
-use vow_design::{DURATION_BASE, Rgba, SETTINGS, SIDEBAR, SidebarPalette, TEXT, TITLEBAR};
+use vow_design::{
+    DURATION_BASE, Rgba, SETTINGS, SIDEBAR, SidebarPalette, TEXT, TITLEBAR, TITLEBAR_RAIL,
+};
 
 use crate::ProbeExt;
 use crate::adornments::avatar;
+use crate::chrome::{Side, TitlebarLayout};
 use crate::interaction::use_interaction;
 use crate::platform::WindowControls;
 use crate::style::{Palette, text};
@@ -186,6 +189,18 @@ impl Component for Sidebar {
             top_height as f32
         };
 
+        let chrome = crate::chrome::chrome_style();
+        let lights_column = chrome.layout == TitlebarLayout::Unified && self.traffic_lights;
+        let reserved = match chrome.layout {
+            TitlebarLayout::Unified if self.traffic_lights => chrome.rail_width,
+            TitlebarLayout::Pill => TITLEBAR_RAIL.pill_clearance - padding_x,
+            _ => 0.0,
+        };
+        let (reserved_left, reserved_right) = match chrome.side {
+            Side::Left => (reserved, 0.0),
+            Side::Right => (0.0, reserved),
+        };
+
         let mut sidebar_body = rect()
             .width(Size::fill())
             .height(Size::fill())
@@ -194,9 +209,9 @@ impl Component for Sidebar {
             .a11y_role(AccessibilityRole::Navigation)
             .padding(Gaps::new(
                 top_height as f32,
-                padding_x,
+                padding_x + reserved_right,
                 if island { padding_x } else { 0.0 },
-                padding_x,
+                padding_x + reserved_left,
             ))
             .child(
                 rect()
@@ -264,7 +279,27 @@ impl Component for Sidebar {
             .and_then(|controls| controls.titlebar_overlay_top());
         let sidebar_shown =
             crate::views::split::sidebar_control().is_none_or(|control| control.visible());
-        if self.traffic_lights && lights_shown && sidebar_shown {
+        if lights_column && lights_shown {
+            let diameter = TITLEBAR.buttons.diameter as f32;
+            let offset = (chrome.rail_width - diameter) / 2.0;
+            let position = Position::new_absolute().top(SIDEBAR.traffic_y as f32);
+            root = root.child(
+                rect()
+                    .position(match chrome.side {
+                        Side::Left => position.left(offset),
+                        Side::Right => position.right(offset),
+                    })
+                    .a11y_alt("sidebar-traffic-lights")
+                    .child(
+                        window_traffic_lights(self.on_close.clone(), status.activated, fixed)
+                            .vertical(true),
+                    ),
+            );
+        } else if self.traffic_lights
+            && lights_shown
+            && sidebar_shown
+            && chrome.layout == TitlebarLayout::Top
+        {
             let (_, _, group_w, _) = vow_appearance::traffic::group_rect();
 
             root = root.child(

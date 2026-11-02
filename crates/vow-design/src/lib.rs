@@ -465,6 +465,24 @@ pub struct TooltipMetrics {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct TitlebarRailMetrics {
+    pub width: f32,
+    pub width_wide: f32,
+    pub actions_width: f32,
+    pub padding_top: f32,
+    pub padding_bottom: f32,
+    pub title_size: f32,
+    pub pill_inset: f32,
+    pub pill_padding_x: f32,
+    pub pill_padding_y: f32,
+    pub pill_radius: f32,
+    pub pill_clearance: f32,
+    pub reveal_zone: f32,
+    pub edge_line: f32,
+    pub edge_accent: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct SymbolMetrics {
     pub stroke: f32,
     pub grid: f32,

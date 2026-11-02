@@ -165,6 +165,7 @@ impl Component for SplitView {
                 .function(Function::Cubic)
         });
         let shown = reveal.get().value();
+        crate::chrome::report_sidebar_shown(*visible.read());
 
         let width = *sidebar_width.read();
         let layout = SidebarLayout {

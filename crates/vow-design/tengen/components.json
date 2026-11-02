@@ -359,6 +359,22 @@
         "double-click": {
           "interval-ms": 400,
           "slop": 4
+        },
+        "rail": {
+          "width": 30,
+          "width-wide": 32,
+          "actions-width": 34,
+          "padding-top": 12,
+          "padding-bottom": 10,
+          "title-size": 12,
+          "pill-inset": 8,
+          "pill-padding-x": 6,
+          "pill-padding-y": 7,
+          "pill-radius": 13,
+          "pill-clearance": 40,
+          "reveal-zone": 8,
+          "edge-line": 1,
+          "edge-accent": 4
         }
       },
       "sidebar": {

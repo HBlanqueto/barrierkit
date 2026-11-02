@@ -36,6 +36,7 @@ fn main() {
     emit_text_field(&mut out, &tokens, &components);
     emit_progress(&mut out, &tokens, &components);
     emit_tooltip(&mut out, &tokens, &components);
+    emit_titlebar_rail(&mut out, &components);
     emit_backdrop(&mut out, &components);
     emit_symbol(&mut out, &components);
     emit_slider_fat(&mut out, &components);
@@ -872,6 +873,34 @@ fn emit_tooltip(out: &mut String, tokens: &Value, components: &Value) {
         field("padding-y"),
         field("radius"),
         field("pointer-gap")
+    ));
+}
+
+fn emit_titlebar_rail(out: &mut String, components: &Value) {
+    let field = |key: &str| {
+        float(number(
+            components,
+            &format!("components.window.titlebar.rail.{key}"),
+            COMPONENTS,
+        ))
+    };
+    const_doc(out, "TITLEBAR_RAIL", "The vertical titlebar metrics.");
+    out.push_str(&format!(
+        ": TitlebarRailMetrics = TitlebarRailMetrics {{ width: {}, width_wide: {}, actions_width: {}, padding_top: {}, padding_bottom: {}, title_size: {}, pill_inset: {}, pill_padding_x: {}, pill_padding_y: {}, pill_radius: {}, pill_clearance: {}, reveal_zone: {}, edge_line: {}, edge_accent: {} }};\n\n",
+        field("width"),
+        field("width-wide"),
+        field("actions-width"),
+        field("padding-top"),
+        field("padding-bottom"),
+        field("title-size"),
+        field("pill-inset"),
+        field("pill-padding-x"),
+        field("pill-padding-y"),
+        field("pill-radius"),
+        field("pill-clearance"),
+        field("reveal-zone"),
+        field("edge-line"),
+        field("edge-accent")
     ));
 }
 

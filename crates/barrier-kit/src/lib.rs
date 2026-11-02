@@ -14,6 +14,8 @@ pub mod theme;
 
 pub mod titlebar;
 
+pub mod chrome;
+
 pub mod traffic;
 
 pub mod animation;

@@ -765,18 +765,17 @@ mod traffic_light_tests {
             1.0,
         );
         test.sync_and_update();
-        let group = test
-            .find(|node, el| {
-                let label = el.accessibility().builder.label().map(str::to_owned);
-                (label.as_deref() == Some("sidebar-traffic-lights")
-                    || label.as_deref() == Some("titlebar-left-slot"))
-                .then(|| node.layout().area)
-            })
-            .expect("traffic lights");
         let diameter = TITLEBAR.buttons.diameter as f32;
         let gap = TITLEBAR.buttons.spacing as f32;
         let width = 3.0 * diameter + 2.0 * gap;
-        let left = group.min_x() + (group.width() - width) / 2.0;
+        let group = test
+            .find(|node, _| {
+                let area = node.layout().area;
+                ((area.width() - width).abs() < 0.5 && (area.height() - diameter).abs() < 0.5)
+                    .then_some(area)
+            })
+            .expect("traffic lights");
+        let left = group.min_x();
         let point = (
             f64::from(left + light as f32 * (diameter + gap) + diameter / 2.0),
             f64::from(group.center().y),

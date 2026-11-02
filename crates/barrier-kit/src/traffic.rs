@@ -16,6 +16,8 @@ pub struct TrafficLights {
     zoom_supported: bool,
     fixed_width: bool,
     close_only: bool,
+    vertical: bool,
+    round: bool,
     on_action: Option<Callback<ButtonKind, ()>>,
     probe: Option<&'static str>,
 }
@@ -34,6 +36,8 @@ impl TrafficLights {
             zoom_supported: true,
             fixed_width: false,
             close_only: false,
+            vertical: false,
+            round: false,
             on_action: None,
             probe: None,
         }
@@ -61,6 +65,16 @@ impl TrafficLights {
 
     pub fn close_only(mut self, close_only: bool) -> Self {
         self.close_only = close_only;
+        self
+    }
+
+    pub fn vertical(mut self, vertical: bool) -> Self {
+        self.vertical = vertical;
+        self
+    }
+
+    pub fn round(mut self, round: bool) -> Self {
+        self.round = round;
         self
     }
 
@@ -120,6 +134,11 @@ impl Component for TrafficLights {
         let fixed_width = self.fixed_width;
         let (_, _, diameter) = traffic::button_rect(0);
         let gap = light_gap();
+        let corner_radius = if self.round {
+            diameter as f32 / 2.0
+        } else {
+            TITLEBAR.buttons.corner_radius as f32
+        };
 
         let lights = visuals.iter().enumerate().map(|(index, visual)| {
             let kind = TITLEBAR.buttons.order[index].kind;
@@ -141,7 +160,7 @@ impl Component for TrafficLights {
             rect()
                 .width(Size::px(diameter as f32))
                 .height(Size::px(diameter as f32))
-                .corner_radius(TITLEBAR.buttons.corner_radius as f32)
+                .corner_radius(corner_radius)
                 .background(rgba(visual.fill))
                 .center()
                 .maybe_child(visual.glyph.map(|glyph| {
@@ -195,10 +214,16 @@ impl Component for TrafficLights {
                 .into_element()
         });
 
+        let (length, thickness) = (traffic::group_rect().2 as f32, diameter as f32);
+        let (width, height, direction) = if self.vertical {
+            (thickness, length, Direction::Vertical)
+        } else {
+            (length, thickness, Direction::Horizontal)
+        };
         let mut root = rect()
-            .width(Size::px((traffic::group_rect().2) as f32))
-            .height(Size::px(diameter as f32))
-            .direction(Direction::Horizontal)
+            .width(Size::px(width))
+            .height(Size::px(height))
+            .direction(direction)
             .spacing(gap as f32)
             .maybe(interactive, |group| {
                 group
