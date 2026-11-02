@@ -3,7 +3,9 @@
 use barrier_kit::adaptive::{Breakpoint, use_breakpoint};
 use barrier_kit::adornments::{Link, avatar, badge, divider};
 use barrier_kit::app::{Action, Instance, Launch, launch};
+use barrier_kit::app::{REDO, UNDO, UndoManager, use_undo};
 use barrier_kit::app::{Shortcut, ShortcutKey};
+use barrier_kit::app_menu::{AppMenu, Menu};
 use barrier_kit::backdrop::{Accent, Backdrop, BackdropSource, Tint};
 use barrier_kit::choices::{ChoiceCards, ColorWell, RadioGroup};
 use barrier_kit::compact::{Face, IconButton, Stepper, ToggleGroup};
@@ -547,6 +549,32 @@ fn feedback(mut alert: State<bool>) -> Form {
     )
 }
 
+fn undo(accent: UndoManager<usize>, selected: usize) -> Form {
+    Form::new().section(
+        Section::titled("Deshacer")
+            .row(
+                Row::new("Color").control(
+                    ColorWell::new("Color", &ACCENT_SWATCHES)
+                        .selected(Some(selected))
+                        .key(&selected)
+                        .on_change(move |index| accent.set(index)),
+                ),
+            )
+            .row(
+                Row::new("Historial").control(row_of([
+                    Button::new(UNDO.title)
+                        .disabled(!accent.can_undo())
+                        .on_press(move |_| accent.undo())
+                        .into_element(),
+                    Button::new(REDO.title)
+                        .disabled(!accent.can_redo())
+                        .on_press(move |_| accent.redo())
+                        .into_element(),
+                ])),
+            ),
+    )
+}
+
 fn about() -> Form {
     Form::new().section(
         Section::titled("Acerca de").row(
@@ -584,6 +612,8 @@ impl App for Show {
         let selected = use_state(Vec::new);
         let mut alert = use_state(|| false);
         let scheme = use_state(|| None::<ColorScheme>);
+        let accent = use_state(|| 0);
+        let accent_history = use_undo(accent);
         use_appearance(move |config| {
             if let Some(forced) = *scheme.read() {
                 config.color_scheme = forced;
@@ -713,7 +743,14 @@ impl App for Show {
                         tint(0),
                         appearance(scheme),
                     )),
-            );
+            )
+            .group(PaneGroup::new(Some("App")).pane(Pane::new(
+                "deshacer",
+                "Deshacer",
+                Symbol::Backward,
+                tint(2),
+                undo(accent_history, *accent.read()),
+            )));
 
         rect()
             .width(Size::fill())
@@ -748,7 +785,11 @@ fn main() {
         WindowOptions::new("Master Tengen App Show", "tengen-app-show")
             .decorations(Decorations::Client)
             .size((980, 640))
-            .min_size(Some(WINDOW_MIN_SIZE)),
+            .min_size(Some(WINDOW_MIN_SIZE))
+            .menu(AppMenu::new(vec![Menu::new(
+                "Edición",
+                vec![UNDO.item(true), REDO.item(true)],
+            )])),
     )
     .expect("tengen-app-show");
 }
