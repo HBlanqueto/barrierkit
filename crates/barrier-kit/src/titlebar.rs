@@ -198,7 +198,7 @@ impl Component for Titlebar {
         let background = if self.sidebar || status.activated {
             crate::theme::surface_background(&resolved, crate::theme::SurfaceKind::Toplevel)
         } else {
-            resolved.surfaces.sunken
+            resolved.surfaces.titlebar_inactive
         };
         let title_color = if status.activated {
             theme.title.focused

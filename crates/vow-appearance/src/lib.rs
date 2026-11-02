@@ -197,6 +197,7 @@ pub struct ToolgroupSurface {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Surfaces {
     pub window: Rgba,
+    pub titlebar_inactive: Rgba,
     pub sunken: Rgba,
     pub surface: Rgba,
     pub raised: Rgba,
@@ -532,6 +533,7 @@ fn tinted_surfaces(
     };
     Surfaces {
         window: mix(window, 1.0, parts.window),
+        titlebar_inactive: mix(base.titlebar_bg.unfocused, 1.0, parts.window),
         sunken: mix(sunken, LAYER_FACTOR_BG_SUNKEN, parts.window),
         surface: mix(surface, LAYER_FACTOR_SURFACE, parts.groups),
         raised: mix(raised, LAYER_FACTOR_RAISED, parts.menus),
@@ -1981,6 +1983,7 @@ sidebar_style = "flat"
             },
             surfaces: Surfaces {
                 window: BG_WINDOW_LIGHT,
+                titlebar_inactive: LIGHT.titlebar_bg.unfocused,
                 sunken: BG_SUNKEN_LIGHT,
                 surface: BG_SURFACE_LIGHT,
                 raised: BG_RAISED_LIGHT,
@@ -2053,6 +2056,7 @@ sidebar_style = "flat"
             },
             surfaces: Surfaces {
                 window: BG_WINDOW_LIGHT.mix(accent, tint_factor),
+                titlebar_inactive: LIGHT.titlebar_bg.unfocused.mix(accent, tint_factor),
                 sunken: BG_SUNKEN_LIGHT.mix(accent, tint_factor * LAYER_FACTOR_BG_SUNKEN),
                 surface: BG_SURFACE_LIGHT.mix(accent, tint_factor * LAYER_FACTOR_SURFACE),
                 raised: BG_RAISED_LIGHT.mix(accent, tint_factor * LAYER_FACTOR_RAISED),
