@@ -7,13 +7,16 @@ pub use freya_components::popup::Popup as Popover;
 pub use freya_components::scrollviews::ScrollView;
 pub use freya_components::segmented_button::SegmentedButton as SegmentedControl;
 
-pub use freya_components::switch::Switch;
-
 use freya_components::svg_viewer::SvgViewer;
 
+use freya_animation::prelude::{AnimNum, Ease, Function, use_animation_transition};
 use freya_core::prelude::*;
+use keyboard_types::NamedKey;
 use torin::prelude::{Alignment, Direction, Gaps, Position, Size};
-use vow_design::{CAPTION, CHECKBOX, Rgba, SETTINGS, SLIDER, TEXT, TEXT_LINE_HEIGHT, TOOLGROUP};
+use vow_design::{
+    CAPTION, CHECKBOX, KNOB_SHADOW, Rgba, SETTINGS, SLIDER, SWITCH, TEXT, TEXT_LINE_HEIGHT,
+    TOOLGROUP,
+};
 
 use crate::ProbeExt;
 use crate::password::PasswordField;
@@ -443,7 +446,7 @@ impl Component for Slider {
         };
         let fill_color = rgba(resolved.accent);
         let knob_color = Color::WHITE;
-        let knob_shadow = rgba(Rgba::rgba8(0x0d, 0x12, 0x19, 0.3));
+        let knob_shadow = rgba(KNOB_SHADOW.color);
 
         let mut root = rect()
             .width(Size::px(width))
@@ -527,7 +530,13 @@ impl Component for Slider {
             .height(Size::px(knob))
             .corner_radius((knob / 2.0).max(1.0))
             .background(knob_color)
-            .shadow((0.0, 1.0, 3.0, 0.0, knob_shadow));
+            .shadow((
+                0.0,
+                KNOB_SHADOW.y_offset as f32,
+                KNOB_SHADOW.blur as f32,
+                0.0,
+                knob_shadow,
+            ));
         if let Some(id) = self.knob_id {
             knob_rect = knob_rect.a11y_builder(move |node| node.set_author_id(id));
         }
@@ -575,6 +584,166 @@ impl Component for Slider {
         children.push(knob_rect.into_element());
         children.push(labels_row.into_element());
         root = root.children(children);
+
+        if let Some(id) = self.probe {
+            root = root.a11y_builder(move |node| node.set_author_id(id));
+        }
+
+        root
+    }
+}
+
+#[derive(PartialEq)]
+pub struct Switch {
+    label: &'static str,
+    on: bool,
+    disabled: bool,
+    on_toggle: Option<Callback<bool, ()>>,
+    probe: Option<&'static str>,
+    key: DiffKey,
+}
+
+impl Switch {
+    pub fn new(label: &'static str) -> Self {
+        Self {
+            label,
+            on: false,
+            disabled: false,
+            on_toggle: None,
+            probe: None,
+            key: DiffKey::None,
+        }
+    }
+
+    pub fn on(mut self, on: bool) -> Self {
+        self.on = on;
+        self
+    }
+
+    pub fn disabled(mut self, disabled: bool) -> Self {
+        self.disabled = disabled;
+        self
+    }
+
+    pub fn on_toggle(mut self, callback: impl Into<Callback<bool, ()>>) -> Self {
+        self.on_toggle = Some(callback.into());
+        self
+    }
+
+    pub fn key(mut self, key: impl Into<DiffKey>) -> Self {
+        self.key = key.into();
+        self
+    }
+}
+
+impl KeyExt for Switch {
+    fn write_key(&mut self) -> &mut DiffKey {
+        &mut self.key
+    }
+}
+
+impl ProbeExt for Switch {
+    fn probe(mut self, id: &'static str) -> Self {
+        self.probe = Some(id);
+        self
+    }
+}
+
+impl Component for Switch {
+    fn render(&self) -> impl IntoElement {
+        let resolved = crate::theme::resolved();
+        let base = vow_appearance::palette(resolved.scheme);
+        let on = use_state(|| self.on);
+        let a11y_id = use_a11y();
+        let reduced_motion = use_reactive(&resolved.reduced_motion);
+        let animation = use_animation_transition(on, move |from, to| {
+            let duration = if *reduced_motion.peek() {
+                0
+            } else {
+                SWITCH.transition_ms
+            };
+            AnimNum::new(if from { 1.0 } else { 0.0 }, if to { 1.0 } else { 0.0 })
+                .time(duration)
+                .ease(Ease::Out)
+                .function(Function::Cubic)
+        });
+        let is_on = *on.read();
+        let progress = if *reduced_motion.read() {
+            if is_on { 1.0 } else { 0.0 }
+        } else {
+            animation.get().value()
+        };
+
+        let disabled = self.disabled;
+        let mut flip = {
+            let mut on = on;
+            let on_toggle = self.on_toggle.clone();
+            move || {
+                if disabled {
+                    return;
+                }
+                let new = !*on.read();
+                on.set(new);
+                if let Some(cb) = &on_toggle {
+                    cb.call(new);
+                }
+            }
+        };
+        let on_key = {
+            let mut flip = flip.clone();
+            move |event: Event<KeyboardEventData>| {
+                let toggles = matches!(event.key, Key::Named(NamedKey::Enter))
+                    || matches!(event.key, Key::Character(ref s) if s == " ");
+                if toggles {
+                    flip();
+                }
+            }
+        };
+
+        let (track, border) = if is_on {
+            (rgba(resolved.accent), Color::TRANSPARENT)
+        } else {
+            (rgba(resolved.surfaces.control), rgba(base.line))
+        };
+
+        let mut root = rect()
+            .a11y_id(a11y_id)
+            .a11y_role(AccessibilityRole::Switch)
+            .a11y_focusable(!disabled)
+            .a11y_alt(self.label)
+            .a11y_builder(move |node| node.set_toggled(is_on.into()))
+            .width(Size::px(SWITCH.width))
+            .height(Size::px(SWITCH.height))
+            .corner_radius(SWITCH.height / 2.0)
+            .background(track)
+            .border(
+                Border::new()
+                    .width(1.0)
+                    .alignment(BorderAlignment::Inner)
+                    .fill(border),
+            )
+            .maybe(disabled, |el| el.opacity(SWITCH.disabled_opacity))
+            .on_press(move |_| flip())
+            .on_key_down(on_key)
+            .child(
+                rect()
+                    .position(
+                        Position::new_absolute()
+                            .left(SWITCH.inset + SWITCH.travel * progress)
+                            .top(SWITCH.inset),
+                    )
+                    .width(Size::px(SWITCH.knob))
+                    .height(Size::px(SWITCH.knob))
+                    .corner_radius(SWITCH.knob / 2.0)
+                    .background(rgba(SWITCH.knob_color))
+                    .shadow((
+                        0.0,
+                        KNOB_SHADOW.y_offset as f32,
+                        KNOB_SHADOW.blur as f32,
+                        0.0,
+                        rgba(KNOB_SHADOW.color),
+                    )),
+            );
 
         if let Some(id) = self.probe {
             root = root.a11y_builder(move |node| node.set_author_id(id));

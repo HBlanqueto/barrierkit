@@ -62,7 +62,13 @@ fn button() -> Element {
 }
 
 fn switch() -> Element {
-    Switch::new().into_element()
+    rect()
+        .direction(Direction::Horizontal)
+        .spacing(16.0)
+        .child(Switch::new("Apagado"))
+        .child(Switch::new("Encendido").on(true))
+        .child(Switch::new("Inactivo").on(true).disabled(true))
+        .into_element()
 }
 
 fn slider() -> Element {
@@ -302,6 +308,40 @@ fn checkbox_click_toggles_and_disabled_does_not_emit() {
     test.click_cursor((8.0, 8.0));
     test.sync_and_update();
     assert_eq!(values.borrow().as_slice(), &[true, false]);
+}
+
+#[test]
+fn switch_click_toggles_and_disabled_does_not_emit() {
+    use std::cell::RefCell;
+    use std::rc::Rc;
+
+    struct SwitchCase {
+        disabled: bool,
+        values: Rc<RefCell<Vec<bool>>>,
+    }
+    impl App for SwitchCase {
+        fn render(&self) -> impl IntoElement {
+            let values = self.values.clone();
+            Switch::new("Wi-Fi")
+                .disabled(self.disabled)
+                .on_toggle(move |v| values.borrow_mut().push(v))
+        }
+    }
+
+    for (disabled, expected) in [(false, vec![true, false]), (true, vec![])] {
+        let values = Rc::new(RefCell::new(Vec::new()));
+        let app = AppComponent::new(SwitchCase {
+            disabled,
+            values: values.clone(),
+        });
+        let (mut test, _) = TestingRunner::new(app, Size2D::new(60.0, 30.0), |_| {}, 1.0);
+        test.sync_and_update();
+        for _ in 0..2 {
+            test.click_cursor((10.0, 9.0));
+            test.sync_and_update();
+        }
+        assert_eq!(*values.borrow(), expected);
+    }
 }
 
 #[test]

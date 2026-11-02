@@ -29,6 +29,7 @@ fn main() {
     emit_tints(&mut out, &tokens, &components);
     emit_slider(&mut out, &tokens, &components);
     emit_checkbox(&mut out, &tokens, &components);
+    emit_switch(&mut out, &tokens, &components);
     emit_wallpaper(&mut out, &tokens, &components);
     emit_traffic(&mut out, &tokens, &components);
     emit_font_families(&mut out, &tokens);
@@ -592,6 +593,52 @@ fn emit_checkbox(out: &mut String, tokens: &Value, components: &Value) {
     ));
 }
 
+fn emit_switch(out: &mut String, tokens: &Value, components: &Value) {
+    let field = |key: &str| {
+        float(metric(
+            tokens,
+            components,
+            &format!("components.switch.{key}"),
+            COMPONENTS,
+        ))
+    };
+    let knob_color = color(components, "components.switch.knob-color", COMPONENTS);
+    const_doc(out, "SWITCH", "The Tengen switch metrics.");
+    out.push_str(&format!(
+        ": SwitchMetrics = SwitchMetrics {{
+\
+         \x20   width: {},
+\
+         \x20   height: {},
+\
+         \x20   knob: {},
+\
+         \x20   inset: {},
+\
+         \x20   travel: {},
+\
+         \x20   knob_color: {},
+\
+         \x20   transition_ms: {},
+\
+         \x20   disabled_opacity: {},
+}};\n\n",
+        field("width"),
+        field("height"),
+        field("knob"),
+        field("inset"),
+        field("travel"),
+        rgba(knob_color),
+        metric(
+            tokens,
+            components,
+            "components.switch.transition",
+            COMPONENTS
+        ) as u64,
+        field("disabled-opacity")
+    ));
+}
+
 fn emit_wallpaper(out: &mut String, tokens: &Value, components: &Value) {
     let _ = tokens;
     let accent_darken_light = number(
@@ -1002,6 +1049,17 @@ fn emit_shadows(out: &mut String, tokens: &Value) {
         "The window shadow in dark and dark-tint modes.",
     );
     out.push_str(&format!(": ShadowStyle = {};\n\n", shadow(tokens, "dark")));
+    const_doc(
+        out,
+        "KNOB_SHADOW",
+        "The shadow under switch and slider knobs.",
+    );
+    out.push_str(&format!(
+        ": ShadowLayer = ShadowLayer {{ blur: {}, y_offset: {}, opacity: 1.0, color: {} }};\n\n",
+        integer(tokens, "shadow.slint.knob.blur", TOKENS),
+        integer(tokens, "shadow.slint.knob.offset-y", TOKENS),
+        rgba(color(tokens, "shadow.slint.knob.color", TOKENS)),
+    ));
     const_doc(
         out,
         "WINDOW_OUTER",
