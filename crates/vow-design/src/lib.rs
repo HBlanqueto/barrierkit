@@ -234,7 +234,9 @@ pub struct ShadowLayer {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct SettingsStrength {
     pub width: u32,
+    pub track: u32,
     pub tick: u32,
+    pub tick_gap: u32,
     pub label_gap: u32,
 }
 
@@ -586,6 +588,7 @@ pub struct Palette {
     pub traffic_lights_inactive: Rgba,
     pub scrim: Rgba,
     pub selected_control: Rgba,
+    pub card_border: Rgba,
 }
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ShellPalette {
@@ -915,7 +918,7 @@ mod tests {
         assert_eq!(super::SETTINGS.search_gap, 6);
         assert_eq!(super::SETTINGS.row_gap, 12);
         assert_eq!(super::SETTINGS.strength.width, 200);
-        assert_eq!(super::SETTINGS.strength.tick, 4);
+        assert_eq!(super::SETTINGS.strength.tick, 2);
         assert_eq!(super::SETTINGS.strength.label_gap, 4);
         assert_eq!(super::SETTINGS.check.gap, 7);
         assert_eq!(super::SETTINGS.check.column_gap, 18);

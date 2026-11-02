@@ -1449,6 +1449,7 @@ fn palette(tokens: &Value, components: &Value, theme: &str) -> String {
          \x20   traffic_lights_inactive: {},\n\
          \x20   scrim: {},\n\
          \x20   selected_control: {},\n\
+         \x20   card_border: {},\n\
          }}",
         rgba(theme_color(tokens, theme, "titlebar-bg")),
         rgba(theme_color(tokens, theme, "titlebar-bg-inactive")),
@@ -1468,7 +1469,8 @@ fn palette(tokens: &Value, components: &Value, theme: &str) -> String {
         rgba(theme_color(tokens, theme, "danger")),
         rgba(inactive),
         rgba(theme_color(tokens, theme, "scrim")),
-        rgba(theme_color(tokens, theme, "bg-selected-control"))
+        rgba(theme_color(tokens, theme, "bg-selected-control")),
+        rgba(theme_color(tokens, theme, "card-border"))
     )
 }
 
@@ -2569,7 +2571,14 @@ fn emit_settings(out: &mut String, tokens: &Value, components: &Value) {
 
     let strength_width =
         integer(components, "components.settings.strength.width", COMPONENTS) as u32;
+    let strength_track =
+        integer(components, "components.settings.strength.track", COMPONENTS) as u32;
     let strength_tick = integer(components, "components.settings.strength.tick", COMPONENTS) as u32;
+    let strength_tick_gap = integer(
+        components,
+        "components.settings.strength.tick-gap",
+        COMPONENTS,
+    ) as u32;
     let strength_label_gap = integer(
         components,
         "components.settings.strength.label-gap",
@@ -2993,7 +3002,7 @@ fn emit_settings(out: &mut String, tokens: &Value, components: &Value) {
          \x20   sidebar_padding_bottom: {sidebar_padding_bottom},\n\
          \x20   sidebar_app_icon_glyph: {sidebar_app_icon_glyph},\n\
          \x20   row_gap: {row_gap},\n\
-         \x20   strength: SettingsStrength {{ width: {strength_width}, tick: {strength_tick}, label_gap: {strength_label_gap} }},\n\
+         \x20   strength: SettingsStrength {{ width: {strength_width}, track: {strength_track}, tick: {strength_tick}, tick_gap: {strength_tick_gap}, label_gap: {strength_label_gap} }},\n\
          \x20   check: SettingsCheck {{ gap: {check_gap}, column_gap: {check_column_gap}, row_gap: {check_row_gap} }},\n\
          \x20   dropdown_preview_light: {dropdown_preview_light},\n\
          \x20   dropdown_chevron_glyph: {dropdown_chevron_glyph},\n\

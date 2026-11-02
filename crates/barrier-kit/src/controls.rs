@@ -413,8 +413,9 @@ impl Component for Slider {
 
         let width = SETTINGS.strength.width as f32;
         let knob = SLIDER.knob;
-        let track = SLIDER.track;
+        let track = SETTINGS.strength.track as f32;
         let tick = SETTINGS.strength.tick as f32;
+        let tick_top = (knob + track) / 2.0 + SETTINGS.strength.tick_gap as f32;
         let label_gap = SETTINGS.strength.label_gap as f32;
         let steps = self.steps;
         let segments = steps.saturating_sub(1).max(1) as f32;
@@ -499,29 +500,16 @@ impl Component for Slider {
             .corner_radius((track / 2.0).max(1.0))
             .background(fill_color);
 
-        let mut ticks: Vec<Element> = Vec::with_capacity(self.steps);
-        for i in 0..self.steps {
+        let ticks = (0..self.steps).map(|i| {
             let x = knob / 2.0 + run * (i as f32 / segments);
-            let color = if i <= *value.read() && !self.disabled {
-                palette.on_accent
-            } else {
-                palette.control_border
-            };
-            ticks.push(
-                rect()
-                    .position(
-                        Position::new_absolute()
-                            .left(x - tick / 2.0)
-                            .top((track - tick) / 2.0),
-                    )
-                    .width(Size::px(tick))
-                    .height(Size::px(tick))
-                    .corner_radius((tick / 2.0).max(1.0))
-                    .background(rgba(color))
-                    .into_element(),
-            );
-        }
-
+            rect()
+                .position(Position::new_absolute().left(x - tick / 2.0).top(tick_top))
+                .width(Size::px(tick))
+                .height(Size::px(tick))
+                .corner_radius(tick / 2.0)
+                .background(color(palette.control_border))
+                .into_element()
+        });
         let mut knob_rect = rect()
             .position(
                 Position::new_absolute()
@@ -543,40 +531,38 @@ impl Component for Slider {
             knob_rect = knob_rect.a11y_builder(move |node| node.set_author_id(id));
         }
 
-        let mut labels: Vec<Element> = Vec::new();
-        for (i, text) in self.labels.iter().enumerate().take(self.steps) {
-            let color = if i == *value.read() {
-                palette.label
-            } else {
-                palette.secondary_label
-            };
-            let label_node = label()
-                .text(*text)
-                .font_family(TEXT.family)
-                .font_size(CAPTION.size as f32)
-                .font_weight(CAPTION.weight as i32)
-                .line_height(CAPTION.line_height as f32 / CAPTION.size as f32)
-                .max_lines(1)
-                .color(rgba(color));
-            let mut wrapper = rect().child(label_node);
-            if let Some(id) = self.step_ids.get(i).copied() {
-                wrapper = wrapper.a11y_builder(move |node| node.set_author_id(id));
-            }
-            labels.push(wrapper.into_element());
-        }
+        let last = self.steps.saturating_sub(1);
+        let labels = self
+            .labels
+            .iter()
+            .enumerate()
+            .take(self.steps)
+            .filter(|(i, _)| *i == 0 || *i == last)
+            .map(|(i, text)| {
+                let label_node = label()
+                    .text(*text)
+                    .font_family(TEXT.family)
+                    .font_size(CAPTION.size as f32)
+                    .font_weight(CAPTION.weight as i32)
+                    .line_height(CAPTION.line_height as f32 / CAPTION.size as f32)
+                    .max_lines(1)
+                    .color(rgba(palette.label));
+                let mut wrapper = rect().child(label_node);
+                if let Some(id) = self.step_ids.get(i).copied() {
+                    wrapper = wrapper.a11y_builder(move |node| node.set_author_id(id));
+                }
+                wrapper.into_element()
+            });
         let labels_row = rect()
-            .position(
-                Position::new_absolute()
-                    .left(knob / 2.0)
-                    .top(knob + label_gap),
-            )
-            .width(Size::px(run))
+            .position(Position::new_absolute().left(0.0).top(knob + label_gap))
+            .width(Size::px(width))
             .direction(Direction::Horizontal)
             .main_align(Alignment::SpaceBetween)
             .children(labels);
 
         root = root
-            .child(track_rect.child(fill_rect.children(ticks).child(knob_rect)))
+            .children(ticks)
+            .child(track_rect.child(fill_rect.child(knob_rect)))
             .child(labels_row);
 
         if let Some(id) = self.probe {

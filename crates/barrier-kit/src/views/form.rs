@@ -162,7 +162,7 @@ impl Component for Form {
                             Border::new()
                                 .width(1.0)
                                 .alignment(BorderAlignment::Inner)
-                                .fill(color(palette.separator)),
+                                .fill(color(palette.card_border)),
                         )
                         .children(rows),
                 )
