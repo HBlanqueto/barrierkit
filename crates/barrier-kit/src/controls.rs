@@ -17,8 +17,9 @@ use vow_design::{
 };
 
 use crate::ProbeExt;
+use crate::interaction::use_interaction;
 use crate::password::PasswordField;
-use crate::platform::{activates, inserts_text};
+use crate::platform::inserts_text;
 
 fn secure_field_accepts_text(key: &Key, modifiers: Modifiers) -> bool {
     matches!(key, Key::Character(_)) && inserts_text(modifiers)
@@ -652,7 +653,7 @@ impl Component for Switch {
         let resolved = crate::theme::resolved();
         let base = vow_appearance::palette(resolved.scheme);
         let on = use_state(|| self.on);
-        let a11y_id = use_a11y();
+        let interaction = use_interaction();
         let reduced_motion = use_reactive(&resolved.reduced_motion);
         let animation = use_animation_transition(on, move |from, to| {
             let duration = if *reduced_motion.peek() {
@@ -687,14 +688,6 @@ impl Component for Switch {
                 }
             }
         };
-        let on_key = {
-            let mut flip = flip.clone();
-            move |event: Event<KeyboardEventData>| {
-                if activates(&event.key) {
-                    flip();
-                }
-            }
-        };
 
         let (track, border) = if is_on {
             (rgba(resolved.accent), Color::TRANSPARENT)
@@ -702,10 +695,9 @@ impl Component for Switch {
             (rgba(resolved.surfaces.control), rgba(base.line))
         };
 
-        let mut root = rect()
-            .a11y_id(a11y_id)
+        let mut root = interaction
+            .attach(rect(), !disabled)
             .a11y_role(AccessibilityRole::Switch)
-            .a11y_focusable(!disabled)
             .a11y_alt(self.label)
             .a11y_builder(move |node| node.set_toggled(is_on.into()))
             .width(Size::px(SWITCH.width))
@@ -720,7 +712,6 @@ impl Component for Switch {
             )
             .maybe(disabled, |el| el.opacity(SWITCH.disabled_opacity))
             .on_press(move |_| flip())
-            .on_key_down(on_key)
             .child(
                 rect()
                     .position(
@@ -740,6 +731,7 @@ impl Component for Switch {
                         rgba(KNOB_SHADOW.color),
                     )),
             );
+        root = interaction.focus_ring(root, SWITCH.height / 2.0);
 
         if let Some(id) = self.probe {
             root = root.a11y_builder(move |node| node.set_author_id(id));
@@ -799,7 +791,6 @@ impl KeyExt for SegmentedControl {
 impl Component for SegmentedControl {
     fn render(&self) -> impl IntoElement {
         let resolved = crate::theme::resolved();
-        let base = vow_appearance::palette(resolved.scheme);
         let selected = use_state(|| self.selected);
         let current = *selected.read();
 
@@ -818,52 +809,13 @@ impl Component for SegmentedControl {
         };
 
         let segments = self.segments.iter().enumerate().map(|(index, text)| {
-            let active = index == current;
-            let mut on_press = select.clone();
-            let mut on_key = select.clone();
-            let mut segment = rect()
-                .a11y_role(AccessibilityRole::Tab)
-                .a11y_focusable(true)
-                .a11y_alt(*text)
-                .a11y_builder(move |node| node.set_selected(active))
-                .width(Size::flex(1.0))
-                .height(Size::px(SEGMENTED.segment_height))
-                .padding(Gaps::new(
-                    0.0,
-                    SEGMENTED.segment_padding_x,
-                    0.0,
-                    SEGMENTED.segment_padding_x,
-                ))
-                .corner_radius(SEGMENTED.segment_radius)
-                .center()
-                .on_press(move |_| on_press(index))
-                .on_key_down(move |event: Event<KeyboardEventData>| {
-                    if activates(&event.key) {
-                        on_key(index);
-                    }
-                })
-                .child(
-                    label()
-                        .text(*text)
-                        .font_family(TEXT.family)
-                        .font_size(SEGMENTED.font_size)
-                        .font_weight(SEGMENTED.font_weight)
-                        .color(rgba(if active {
-                            base.ink_strong
-                        } else {
-                            base.ink_muted
-                        })),
-                );
-            if active {
-                segment = segment.background(rgba(resolved.surfaces.surface)).shadow((
-                    0.0,
-                    KNOB_SHADOW.y_offset as f32,
-                    KNOB_SHADOW.blur as f32,
-                    0.0,
-                    rgba(KNOB_SHADOW.color),
-                ));
+            let mut select = select.clone();
+            Segment {
+                text,
+                active: index == current,
+                on_select: Callback::new(move |_| select(index)),
             }
-            segment.into_element()
+            .into_element()
         });
 
         rect()
@@ -877,6 +829,65 @@ impl Component for SegmentedControl {
             .corner_radius(SEGMENTED.radius)
             .background(rgba(resolved.surfaces.control))
             .children(segments)
+    }
+}
+
+#[derive(PartialEq)]
+struct Segment {
+    text: &'static str,
+    active: bool,
+    on_select: Callback<(), ()>,
+}
+
+impl Component for Segment {
+    fn render(&self) -> impl IntoElement {
+        let resolved = crate::theme::resolved();
+        let base = vow_appearance::palette(resolved.scheme);
+        let interaction = use_interaction();
+        let active = self.active;
+        let on_select = self.on_select.clone();
+
+        let mut segment = interaction
+            .attach(rect(), true)
+            .a11y_role(AccessibilityRole::Tab)
+            .a11y_alt(self.text)
+            .a11y_builder(move |node| node.set_selected(active))
+            .width(Size::flex(1.0))
+            .height(Size::px(SEGMENTED.segment_height))
+            .corner_radius(SEGMENTED.segment_radius)
+            .center()
+            .on_press(move |_| on_select.call(()))
+            .child(
+                rect()
+                    .padding(Gaps::new(
+                        0.0,
+                        SEGMENTED.segment_padding_x,
+                        0.0,
+                        SEGMENTED.segment_padding_x,
+                    ))
+                    .child(
+                        label()
+                            .text(self.text)
+                            .font_family(TEXT.family)
+                            .font_size(SEGMENTED.font_size)
+                            .font_weight(SEGMENTED.font_weight)
+                            .color(rgba(if active {
+                                base.ink_strong
+                            } else {
+                                base.ink_muted
+                            })),
+                    ),
+            );
+        if active {
+            segment = segment.background(rgba(resolved.surfaces.surface)).shadow((
+                0.0,
+                KNOB_SHADOW.y_offset as f32,
+                KNOB_SHADOW.blur as f32,
+                0.0,
+                rgba(KNOB_SHADOW.color),
+            ));
+        }
+        interaction.focus_ring(segment, SEGMENTED.segment_radius)
     }
 }
 
@@ -955,10 +966,11 @@ impl Component for Checkbox {
         let size = CHECKBOX.size;
         let check_svg = r#"<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m2.5 6.2 2.3 2.3 4.7-4.8"/></svg>"#;
 
-        let toggle = {
+        let interaction = use_interaction();
+        let mut toggle = {
             let mut checked = checked;
             let on_toggle = on_toggle;
-            move |_| {
+            move || {
                 if !disabled {
                     let new = !*checked.read();
                     checked.set(new);
@@ -1001,13 +1013,18 @@ impl Component for Checkbox {
         if *checked.read() {
             checkbox = checkbox.child(svg_viewer(check_svg, base.on_accent, size as u32 - 4));
         }
+        checkbox = interaction.focus_ring(checkbox, CHECKBOX.radius);
 
-        let mut root = rect()
+        let is_checked = *checked.read();
+        let mut root = interaction
+            .attach(rect(), !disabled)
             .width(self.width.clone())
             .direction(Direction::Horizontal)
             .cross_align(Alignment::Center)
             .a11y_role(AccessibilityRole::CheckBox)
-            .on_press(toggle)
+            .a11y_alt(label_text)
+            .a11y_builder(move |node| node.set_toggled(is_checked.into()))
+            .on_press(move |_| toggle())
             .child(checkbox)
             .child(
                 rect()

@@ -31,6 +31,7 @@ fn main() {
     emit_checkbox(&mut out, &tokens, &components);
     emit_switch(&mut out, &tokens, &components);
     emit_segmented(&mut out, &tokens, &components);
+    emit_focus_ring(&mut out, &components);
     emit_wallpaper(&mut out, &tokens, &components);
     emit_traffic(&mut out, &tokens, &components);
     emit_font_families(&mut out, &tokens);
@@ -677,6 +678,23 @@ fn emit_segmented(out: &mut String, tokens: &Value, components: &Value) {
         field("segment-padding-x"),
         field("font.size"),
         integer(components, "components.segmented.font.weight", COMPONENTS)
+    ));
+}
+
+fn emit_focus_ring(out: &mut String, components: &Value) {
+    const_doc(out, "FOCUS_RING", "The keyboard focus ring metrics.");
+    out.push_str(&format!(
+        ": FocusRingMetrics = FocusRingMetrics {{ width: {}, offset: {} }};\n\n",
+        float(number(
+            components,
+            "components.focus-ring.width",
+            COMPONENTS
+        )),
+        float(number(
+            components,
+            "components.focus-ring.offset",
+            COMPONENTS
+        ))
     ));
 }
 

@@ -6,9 +6,9 @@ use freya_core::{
     element::IntoElement,
     integration::{
         AccentColor, AnimationClock, AppComponent, EventsChunk, EventsExecutorAdapter,
-        EventsMeasurerAdapter, NavigationMode, NodeId, Platform, PlatformEvent, PreferredTheme,
-        RenderingTicker, RenderingTickerSender, Runner, ScreenReader, Tree, UserEvent,
-        WritableUtils, default_fonts,
+        EventsMeasurerAdapter, MouseEventName, NavigationMode, NodeId, Platform, PlatformEvent,
+        PreferredTheme, RenderingTicker, RenderingTickerSender, Runner, ScreenReader, Tree,
+        UserEvent, WritableUtils, default_fonts,
     },
     prelude::{AccessibilityFocusStrategy, State},
 };
@@ -204,6 +204,12 @@ impl AppInstance {
             self.accessibility_initialized = true;
         }
         if let Some(strategy) = requested_focus {
+            if matches!(
+                strategy,
+                AccessibilityFocusStrategy::Forward(_) | AccessibilityFocusStrategy::Backward(_)
+            ) {
+                self.platform.navigation_mode.set(NavigationMode::Keyboard);
+            }
             self.tree.accessibility_diff.request_focus(strategy);
         }
 
@@ -239,11 +245,23 @@ impl AppInstance {
     }
 
     pub(crate) fn push(&mut self, event: PlatformEvent) {
+        if matches!(
+            event,
+            PlatformEvent::Mouse {
+                name: MouseEventName::MouseDown,
+                ..
+            }
+        ) {
+            self.platform
+                .navigation_mode
+                .set_if_modified(NavigationMode::NotKeyboard);
+        }
         let mut adapter = EventsMeasurerAdapter {
             scale_factor: self.scale_factor,
             tree: &mut self.tree,
         };
-        let processed = adapter.run(&mut vec![event], &mut self.nodes_state, None);
+        let focused = self.accessibility.focused_node_id();
+        let processed = adapter.run(&mut vec![event], &mut self.nodes_state, focused);
         let _ = self
             .events_sender
             .unbounded_send(EventsChunk::Processed(processed));

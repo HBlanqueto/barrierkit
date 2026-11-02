@@ -15,7 +15,7 @@ mod vulkan;
 mod window;
 
 pub use app_menu_export::AppMenuAddress;
-pub use input::{activates, inserts_text};
+pub use input::inserts_text;
 pub use popup::{
     PopupAnchor, PopupConstraintAdjustment, PopupGravity, PopupHandle, PopupId, PopupSpec, Popups,
 };

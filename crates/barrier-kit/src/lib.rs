@@ -18,6 +18,8 @@ pub mod traffic;
 
 pub mod animation;
 
+pub mod interaction;
+
 pub mod controls;
 
 pub mod menu;

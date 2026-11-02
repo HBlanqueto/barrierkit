@@ -5,12 +5,14 @@ use std::time::Duration;
 use freya_animation::prelude::{AnimNum, Ease, Function, use_animation_transition};
 use freya_components::svg_viewer::SvgViewer;
 use freya_core::prelude::*;
+use keyboard_types::{Key, NamedKey};
 use torin::prelude::{Alignment, Direction, Gaps, Position, Size};
 use vow_appearance::SidebarStyle;
 use vow_design::{DURATION_BASE, Rgba, SIDEBAR, SidebarPalette, TITLEBAR};
 
 use crate::ProbeExt;
-use crate::platform::{DecorationResponse, WindowControls, WindowStatus, activates};
+use crate::interaction::use_interaction;
+use crate::platform::{DecorationResponse, WindowControls, WindowStatus};
 use crate::titlebar::{window_drag_handler, window_traffic_lights};
 use freya_core::prelude::try_consume_root_context;
 
@@ -494,11 +496,8 @@ impl Component for SidebarSection {
         let expanded = use_state(|| self.initial_expanded);
         let resolved = crate::theme::resolved();
         let palette = resolved.sidebar.palette;
-        let mut hovered = use_state(|| false);
-        let a11y_id = use_a11y();
-        let focus = use_focus(a11y_id);
-        let keyboard_focused = matches!(*focus.read(), Focus::Keyboard);
-        let show_chevron = *hovered.read() || keyboard_focused;
+        let interaction = use_interaction();
+        let show_chevron = interaction.hovered() || interaction.keyboard_focused();
 
         let on_toggle = self.on_toggle.clone();
         let toggle = {
@@ -519,7 +518,9 @@ impl Component for SidebarSection {
         let on_key = {
             let mut expanded = expanded;
             move |event: Event<KeyboardEventData>| {
-                if activates(&event.key) {
+                let toggles = matches!(event.key, Key::Named(NamedKey::Enter))
+                    || matches!(event.key, Key::Character(ref s) if s == " ");
+                if toggles {
                     let new = !*expanded.read();
                     expanded.set(new);
                     if let Some(cb) = &on_toggle {
@@ -555,7 +556,8 @@ impl Component for SidebarSection {
             .width(Size::fill())
             .direction(Direction::Vertical)
             .child(
-                rect()
+                interaction
+                    .attach(rect(), true)
                     .width(Size::fill())
                     .height(Size::px(SIDEBAR.section_height as f32))
                     .margin(Gaps::new(SIDEBAR.section_margin_top as f32, 0.0, 0.0, 0.0))
@@ -568,9 +570,7 @@ impl Component for SidebarSection {
                     .direction(Direction::Horizontal)
                     .cross_align(Alignment::Center)
                     .main_align(Alignment::SpaceBetween)
-                    .a11y_id(a11y_id)
                     .a11y_role(AccessibilityRole::Button)
-                    .a11y_focusable(true)
                     .a11y_alt(self.title.clone())
                     .a11y_builder(move |node| {
                         node.set_expanded(*expanded.read());
@@ -592,9 +592,7 @@ impl Component for SidebarSection {
                             palette.section_ink,
                             SIDEBAR.chevron,
                         ))
-                    })
-                    .on_pointer_enter(move |_| hovered.set(true))
-                    .on_pointer_leave(move |_| hovered.set(false)),
+                    }),
             )
             .child(
                 rect()

@@ -11,9 +11,10 @@ use barrier_kit::controls::{
 use barrier_kit::theme;
 use freya_components::menu::{Menu, MenuItem};
 use freya_components::theming::hooks::use_init_theme;
-use freya_core::integration::AppComponent;
+use freya_core::integration::{AppComponent, NavigationMode, Platform};
 use freya_core::prelude::*;
 use freya_testing::TestingRunner;
+use keyboard_types::{Key, NamedKey};
 use torin::prelude::{Alignment, Direction, Gaps, Size, Size2D};
 
 const SIZE: (f32, f32) = (360.0, 240.0);
@@ -369,6 +370,92 @@ fn segmented_control_click_selects_once_per_new_segment() {
         test.sync_and_update();
     }
     assert_eq!(*values.borrow(), [1, 0]);
+}
+
+struct FocusCase {
+    keyboard: bool,
+    switch: State<bool>,
+    checkbox: State<bool>,
+    segment: State<usize>,
+}
+
+impl App for FocusCase {
+    fn render(&self) -> impl IntoElement {
+        let (mut switch, mut checkbox, mut segment) = (self.switch, self.checkbox, self.segment);
+        if self.keyboard {
+            Platform::get()
+                .navigation_mode
+                .set_if_modified(NavigationMode::Keyboard);
+        }
+        rect()
+            .width(Size::fill())
+            .height(Size::fill())
+            .direction(Direction::Vertical)
+            .main_align(Alignment::Center)
+            .cross_align(Alignment::Center)
+            .padding(Gaps::new(24.0, 24.0, 24.0, 24.0))
+            .spacing(16.0)
+            .child(Switch::new("Wi-Fi").on_toggle(move |v| switch.set(v)))
+            .child(Checkbox::new("Recordarme").on_toggle(move |v| checkbox.set(v)))
+            .child(
+                SegmentedControl::new("Vista")
+                    .segment("Cuadrícula")
+                    .segment("Lista")
+                    .on_change(move |i| segment.set(i)),
+            )
+    }
+}
+
+fn focus_case(keyboard: bool) -> (TestingRunner, State<bool>, State<bool>, State<usize>) {
+    let switch = State::create_global(false);
+    let checkbox = State::create_global(false);
+    let segment = State::create_global(0);
+    let app = AppComponent::new(FocusCase {
+        keyboard,
+        switch,
+        checkbox,
+        segment,
+    });
+    let (mut test, _) = TestingRunner::new(app, Size2D::new(SIZE.0, SIZE.1), |_| {}, 1.0);
+    test.sync_and_update();
+    (test, switch, checkbox, segment)
+}
+
+fn press(test: &mut TestingRunner, key: Key) {
+    test.press_key(key);
+    test.sync_and_update();
+}
+
+#[test]
+fn tab_reaches_each_control_and_space_activates_it() {
+    let (mut test, switch, checkbox, segment) = focus_case(false);
+    let space = || Key::Character(" ".into());
+
+    press(&mut test, Key::Named(NamedKey::Tab));
+    press(&mut test, space());
+    press(&mut test, Key::Named(NamedKey::Tab));
+    press(&mut test, space());
+    press(&mut test, Key::Named(NamedKey::Tab));
+    press(&mut test, Key::Named(NamedKey::Tab));
+    press(&mut test, Key::Named(NamedKey::Enter));
+
+    assert!(*switch.peek());
+    assert!(*checkbox.peek());
+    assert_eq!(*segment.peek(), 1);
+}
+
+#[test]
+fn keyboard_focus_ring_matches_its_golden_image() {
+    let (mut test, ..) = focus_case(true);
+    press(&mut test, Key::Named(NamedKey::Tab));
+    test.poll_n(std::time::Duration::from_millis(16), 3);
+    let actual = test.render().as_ref().to_vec();
+    let path = golden_path("focus-ring", false);
+    if std::env::var_os("UPDATE_GOLDEN").is_some() || !path.exists() {
+        fs::write(&path, &actual).unwrap();
+    } else {
+        compare(&path, &actual, "focus-ring", false);
+    }
 }
 
 #[test]
