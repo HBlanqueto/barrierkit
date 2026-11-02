@@ -1,13 +1,14 @@
 //! Pop-up button: shows the current choice and opens a menu with the others.
 
+use freya_components::svg_viewer::SvgViewer;
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Area, Direction, Size};
-use vow_design::{MENU_POPOVER, SETTINGS, TEXT};
+use vow_design::{MENU_POPOVER, SETTINGS, SYMBOL, TEXT};
 
 use crate::choices::use_choice;
 use crate::interaction::use_interaction;
-use crate::menu::{CheckState, MenuItem, MenuView};
+use crate::menu::{CheckState, MenuIcon, MenuItem, MenuView};
 use crate::platform::{
     PopupAnchor, PopupConstraintAdjustment, PopupGravity, PopupHandle, PopupSpec, Popups,
 };
@@ -18,7 +19,7 @@ use crate::theme::{SurfaceKind, color, popover_palette};
 #[derive(PartialEq)]
 pub struct PopUpButton {
     label: &'static str,
-    items: Vec<&'static str>,
+    items: Vec<(&'static str, Option<MenuIcon>)>,
     selected: usize,
     on_change: Option<Callback<usize, ()>>,
 }
@@ -34,7 +35,12 @@ impl PopUpButton {
     }
 
     pub fn item(mut self, label: &'static str) -> Self {
-        self.items.push(label);
+        self.items.push((label, None));
+        self
+    }
+
+    pub fn icon_item(mut self, label: &'static str, icon: MenuIcon) -> Self {
+        self.items.push((label, Some(icon)));
         self
     }
 
@@ -70,8 +76,25 @@ impl Component for PopUpButton {
             .spacing(SETTINGS.popup_text_gap as f32)
             .on_sized(move |event: Event<SizedEventData>| area.set_if_modified(event.area))
             .on_press(move |_| open_menu(&items, current, *area.read(), selects.clone()))
+            .maybe_child(
+                self.items
+                    .get(current)
+                    .and_then(|item| match &item.1 {
+                        Some(MenuIcon::Svg(svg)) => Some(svg.clone()),
+                        _ => None,
+                    })
+                    .map(|svg| {
+                        SvgViewer::new(Bytes::from(svg.as_bytes().to_vec()))
+                            .width(Size::px(SYMBOL.grid))
+                            .height(Size::px(SYMBOL.grid))
+                            .show_loader(false)
+                    }),
+            )
             .child(text(
-                self.items.get(current).copied().unwrap_or_default(),
+                self.items
+                    .get(current)
+                    .map(|item| item.0)
+                    .unwrap_or_default(),
                 TEXT,
                 palette.label,
             ))
@@ -92,17 +115,22 @@ impl Component for PopUpButton {
     }
 }
 
-fn open_menu(items: &[&str], current: usize, area: Area, selects: Vec<Callback<(), ()>>) {
+fn open_menu(
+    items: &[(&str, Option<MenuIcon>)],
+    current: usize,
+    area: Area,
+    selects: Vec<Callback<(), ()>>,
+) {
     let entries: Vec<MenuItem> = items
         .iter()
         .enumerate()
-        .map(|(index, label)| MenuItem::Action {
+        .map(|(index, (label, icon))| MenuItem::Action {
             id: index.to_string(),
             label: label.to_string(),
             shortcut: None,
             enabled: true,
             check: CheckState::Radio(index == current),
-            icon: None,
+            icon: icon.clone(),
         })
         .collect();
     let palette = popover_palette(&crate::theme::resolved(), SurfaceKind::Toplevel);

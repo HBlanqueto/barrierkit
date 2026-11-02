@@ -13,6 +13,7 @@ use barrier_kit::controls::{
     Slider, Switch, TextField,
 };
 use barrier_kit::level::{LevelSlider, LevelStyle};
+use barrier_kit::menu::MenuIcon;
 use barrier_kit::patterns::about::about_window;
 use barrier_kit::patterns::preferences::{Pane, PaneGroup, PreferencesWindow};
 use barrier_kit::popup_button::PopUpButton;
@@ -75,6 +76,7 @@ fn cases() -> Vec<Control> {
         ("compact", compact),
         ("adornments", adornments),
         ("popup-button", popup_button),
+        ("popup-button-icon", popup_button_icon),
         ("form", form),
         ("tab-view", tab_view),
         ("table", table),
@@ -332,6 +334,14 @@ fn about() -> Element {
         "™ y © 2026 MalaysiaDreams",
     )
     .into_element()
+}
+
+fn popup_button_icon() -> Element {
+    let dots = r##"<svg viewBox="0 0 16 16"><circle cx="4" cy="8" r="3" fill="#ff5f57"/><circle cx="12" cy="8" r="3" fill="#28c840"/></svg>"##;
+    PopUpButton::new("Semáforos")
+        .icon_item("Clásico", MenuIcon::svg(dots))
+        .item("Acento")
+        .into_element()
 }
 
 fn checkbox() -> Element {
