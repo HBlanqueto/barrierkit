@@ -36,6 +36,7 @@ fn main() {
     emit_text_field(&mut out, &tokens, &components);
     emit_progress(&mut out, &tokens, &components);
     emit_symbol(&mut out, &components);
+    emit_slider_fat(&mut out, &components);
     emit_wallpaper(&mut out, &tokens, &components);
     emit_traffic(&mut out, &tokens, &components);
     emit_font_families(&mut out, &tokens);
@@ -796,6 +797,33 @@ fn emit_symbol(out: &mut String, components: &Value) {
         float(number(components, "components.symbol.stroke", COMPONENTS)),
         float(number(components, "components.symbol.grid", COMPONENTS))
     ));
+}
+
+fn emit_slider_fat(out: &mut String, components: &Value) {
+    let field = |key: &str| {
+        float(number(
+            components,
+            &format!("components.slider.{key}"),
+            COMPONENTS,
+        ))
+    };
+    const_doc(
+        out,
+        "SLIDER_FAT",
+        "The thick control-centre slider metrics.",
+    );
+    out.push_str(&format!(
+        ": SliderFatMetrics = SliderFatMetrics {{ height: {}, fill_min: {}, lead_icon_x: {} }};\n\n",
+        field("fat.height"),
+        field("fat.fill-min"),
+        field("fat.lead-icon-x")
+    ));
+    const_doc(
+        out,
+        "SLIDER_KEY_STEP",
+        "The fraction an arrow key moves a continuous slider.",
+    );
+    out.push_str(&format!(": f32 = {};\n\n", field("keyboard-step")));
 }
 
 fn emit_wallpaper(out: &mut String, tokens: &Value, components: &Value) {

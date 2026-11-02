@@ -82,7 +82,8 @@
         "fill-min": 22,
         "lead-icon-x": 8,
         "no-knob": true
-      }
+      },
+      "keyboard-step": 0.05
     },
     "checkbox": {
       "size": 16,

@@ -26,6 +26,8 @@ pub mod choices;
 
 pub mod progress;
 
+pub mod level;
+
 pub mod symbol;
 
 pub mod menu;

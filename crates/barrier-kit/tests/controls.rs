@@ -10,7 +10,9 @@ use barrier_kit::controls::{
     Button, ButtonStyle, Checkbox, Popover, ScrollView, SearchField, SecureField, SegmentedControl,
     Slider, Switch, TextField,
 };
+use barrier_kit::level::{LevelSlider, LevelStyle};
 use barrier_kit::progress::{ProgressBar, ProgressRing};
+use barrier_kit::symbol::Symbol;
 use barrier_kit::theme;
 use freya_components::menu::{Menu, MenuItem};
 use freya_components::theming::hooks::use_init_theme;
@@ -57,6 +59,7 @@ fn cases() -> Vec<Control> {
         ("radio-group", radio_group),
         ("color-well", color_well),
         ("progress", progress),
+        ("level-slider", level_slider),
         ("secure-field", secure_field),
         ("scroll-view", scroll_view),
         ("menu", menu),
@@ -133,6 +136,20 @@ fn progress() -> Element {
         .child(ProgressBar::determinate("Copiando sistema", 0.62))
         .child(ProgressBar::indeterminate("Buscando redes"))
         .child(ProgressRing::new("Descargando", 0.4))
+        .into_element()
+}
+
+fn level_slider() -> Element {
+    rect()
+        .width(Size::px(240.0))
+        .direction(Direction::Vertical)
+        .spacing(16.0)
+        .child(LevelSlider::new("Brillo").value(0.3))
+        .child(
+            LevelSlider::new("Volumen")
+                .value(0.6)
+                .style(LevelStyle::Fat(Symbol::SpeakerWave)),
+        )
         .into_element()
 }
 
@@ -600,6 +617,32 @@ fn radio_group_click_selects_and_disabled_does_not_emit() {
         test.sync_and_update();
         assert_eq!(*values.borrow(), expected);
     }
+}
+
+#[test]
+fn level_slider_follows_clicks_and_arrow_keys() {
+    let level = State::create_global(0.0f32);
+
+    struct LevelCase {
+        level: State<f32>,
+    }
+    impl App for LevelCase {
+        fn render(&self) -> impl IntoElement {
+            let mut level = self.level;
+            LevelSlider::new("Volumen").on_change(move |v| level.set(v))
+        }
+    }
+
+    let app = AppComponent::new(LevelCase { level });
+    let (mut test, _) = TestingRunner::new(app, Size2D::new(220.0, 20.0), |_| {}, 1.0);
+    test.sync_and_update();
+    test.sync_and_update();
+    test.click_cursor((110.0, 10.0));
+    test.sync_and_update();
+    assert!((*level.peek() - 0.5).abs() < 0.01);
+
+    press(&mut test, Key::Named(NamedKey::ArrowRight));
+    assert!((*level.peek() - 0.55).abs() < 0.01);
 }
 
 #[test]

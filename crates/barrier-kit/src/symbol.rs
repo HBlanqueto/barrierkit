@@ -12,6 +12,7 @@ use vow_design::{Rgba, SYMBOL};
 pub enum Symbol {
     MagnifyingGlass,
     XMark,
+    SpeakerWave,
 }
 
 impl Symbol {
@@ -21,6 +22,9 @@ impl Symbol {
                 "M11 6.8a4.2 4.2 0 1 1-8.4 0a4.2 4.2 0 1 1 8.4 0M10 10l3.2 3.2"
             }
             Self::XMark => "M4 4l8 8M12 4l-8 8",
+            Self::SpeakerWave => {
+                "M3 6h2l3-3v10l-3-3H3zM10.5 5.5a3.5 3.5 0 0 1 0 5M12.5 3.5a6.5 6.5 0 0 1 0 9"
+            }
         }
     }
 }

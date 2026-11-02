@@ -546,6 +546,7 @@
   --slider-fat-lead-icon-x: 8px;
   --slider-fill-color: var(--accent);
   --slider-height: 20px;
+  --slider-keyboard-step: 0.050000px;
   --slider-knob: 20px;
   --slider-track: 4px;
   --slider-track-color: var(--bg-control);

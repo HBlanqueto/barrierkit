@@ -38,6 +38,7 @@ impl Interaction {
     pub fn attach(&self, element: Rect, enabled: bool) -> Rect {
         let mut hovered = self.hovered;
         let mut pressed = self.pressed;
+        let a11y_id = self.a11y_id;
         element
             .a11y_id(self.a11y_id)
             .a11y_focusable(enabled)
@@ -46,7 +47,12 @@ impl Interaction {
                 hovered.set(false);
                 pressed.set_if_modified(false);
             })
-            .maybe(enabled, |el| el.on_pointer_down(move |_| pressed.set(true)))
+            .maybe(enabled, |el| {
+                el.on_pointer_down(move |_| {
+                    pressed.set(true);
+                    a11y_id.request_focus();
+                })
+            })
             .on_global_pointer_press(move |_| pressed.set_if_modified(false))
     }
 
