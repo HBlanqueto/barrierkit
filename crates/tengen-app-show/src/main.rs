@@ -29,8 +29,6 @@ use freya_core::prelude::*;
 use torin::prelude::{Direction, Size};
 use vow_design::{ACCENT_SWATCHES, COLLECTION, Rgba, SPACE_2, SPLIT_VIEW, TABLE, TEXT};
 
-const APP_ID: &str = "org.malaysia.tengen-app-show";
-
 fn tint(index: usize) -> Rgba {
     ACCENT_SWATCHES[index % ACCENT_SWATCHES.len()].1
 }
@@ -448,6 +446,7 @@ fn about() -> Form {
 }
 
 struct Show {
+    app_id: &'static str,
     instance: Option<Instance>,
 }
 
@@ -466,7 +465,7 @@ impl App for Show {
         let mut alert = use_state(|| false);
 
         let window = PreferencesWindow::new()
-            .restoration(APP_ID)
+            .restoration(self.app_id)
             .suggestions(&["formularios", "campos", "interruptores"])
             .group(
                 PaneGroup::new(Some("Capa 1 · Primitivas"))
@@ -585,7 +584,8 @@ impl App for Show {
 
 fn main() {
     tracing_subscriber::fmt::init();
-    let instance = match launch(APP_ID) {
+    let app_id = barrier_kit::titlebar::app_id("tengen-app-show").leak();
+    let instance = match launch(app_id) {
         Ok(Launch::Forwarded) => return,
         Ok(Launch::Primary(instance)) => Some(instance),
         Err(error) => {
@@ -594,9 +594,8 @@ fn main() {
         }
     };
     run_window(
-        AppComponent::new(Show { instance }),
+        AppComponent::new(Show { app_id, instance }),
         WindowOptions::new("Master Tengen App Show", "tengen-app-show")
-            .app_id(APP_ID)
             .decorations(Decorations::Client)
             .size((980, 640)),
     )

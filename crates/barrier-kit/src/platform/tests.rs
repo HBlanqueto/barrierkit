@@ -677,3 +677,135 @@ mod overlay_titlebar_tests {
         assert!(top_of(&test, "overlay-title").is_some());
     }
 }
+
+#[cfg(test)]
+mod traffic_light_tests {
+    use crate::backdrop::{Backdrop, BackdropSource};
+    use crate::sidebar::Sidebar;
+    use crate::titlebar::Titlebar;
+    use crate::views::split::SplitView;
+    use freya_core::integration::AppComponent;
+    use freya_core::prelude::*;
+    use freya_testing::TestingRunner;
+    use sctk::reexports::{calloop, client::backend::ObjectId};
+    use std::{
+        cell::{Cell, RefCell},
+        rc::Rc,
+    };
+    use torin::prelude::{Size, Size2D};
+    use vow_appearance::{AppearanceConfig, resolve};
+    use vow_design::{Rgba, TITLEBAR};
+
+    use crate::platform::window::{
+        DecorationResponse, WindowCommand, WindowControls, WindowStatus,
+    };
+
+    #[derive(Clone, Copy, PartialEq)]
+    enum Layout {
+        Titlebar,
+        TintedTitlebar,
+        Sidebar,
+    }
+
+    struct Case(Layout);
+
+    impl App for Case {
+        fn render(&self) -> impl IntoElement {
+            let content = rect().width(Size::fill()).height(Size::fill());
+            match self.0 {
+                Layout::Titlebar => rect()
+                    .width(Size::fill())
+                    .child(Titlebar::new())
+                    .into_element(),
+                Layout::TintedTitlebar => Backdrop::new(
+                    BackdropSource::Colors([Rgba::rgb8(90, 40, 80); 3]),
+                    rect().width(Size::fill()).child(Titlebar::new()),
+                )
+                .into_element(),
+                Layout::Sidebar => {
+                    SplitView::new(Sidebar::new().traffic_lights(true), content).into_element()
+                }
+            }
+        }
+    }
+
+    fn press(layout: Layout, light: usize) -> Vec<WindowCommand> {
+        let queue: Rc<RefCell<Vec<WindowCommand>>> = Rc::new(RefCell::new(Vec::new()));
+        let commands = queue.clone();
+        let resolved = resolve(&AppearanceConfig::default(), None);
+        let (mut test, _) = TestingRunner::new(
+            AppComponent::new(Case(layout)),
+            Size2D::new(600.0, 300.0),
+            move |runner| {
+                let queue = commands.clone();
+                runner.provide_root_context(move || {
+                    let (ping, _source) = calloop::ping::make_ping().unwrap();
+                    WindowControls {
+                        queue,
+                        ping,
+                        pointer_serial: Rc::new(Cell::new(0)),
+                        status: State::create(WindowStatus {
+                            activated: true,
+                            maximized: false,
+                            fullscreen: false,
+                            decoration: DecorationResponse::Client,
+                            fixed: false,
+                        }),
+                        title: "Ventana".to_string(),
+                        fixed: false,
+                        surface_id: ObjectId::null(),
+                        focus_bar: State::create(false),
+                        focus_overlay: false,
+                        focus_bar_height: State::create(28.0),
+                        menu_handle: None,
+                    }
+                });
+                runner.provide_root_context(move || State::create(resolved));
+            },
+            1.0,
+        );
+        test.sync_and_update();
+        let group = test
+            .find(|node, el| {
+                let label = el.accessibility().builder.label().map(str::to_owned);
+                (label.as_deref() == Some("sidebar-traffic-lights")
+                    || label.as_deref() == Some("titlebar-left-slot"))
+                .then(|| node.layout().area)
+            })
+            .expect("traffic lights");
+        let diameter = TITLEBAR.buttons.diameter as f32;
+        let gap = TITLEBAR.buttons.spacing as f32;
+        let width = 3.0 * diameter + 2.0 * gap;
+        let left = group.min_x() + (group.width() - width) / 2.0;
+        let point = (
+            f64::from(left + light as f32 * (diameter + gap) + diameter / 2.0),
+            f64::from(group.center().y),
+        );
+        test.move_cursor(point);
+        test.sync_and_update();
+        test.click_cursor(point);
+        test.sync_and_update();
+        queue.take()
+    }
+
+    #[test]
+    fn the_minimise_light_minimises_in_every_window_layout() {
+        for layout in [Layout::Titlebar, Layout::TintedTitlebar, Layout::Sidebar] {
+            let commands = press(layout, 1);
+            assert!(
+                commands
+                    .iter()
+                    .any(|c| matches!(c, WindowCommand::Minimize)),
+                "no minimise command"
+            );
+        }
+    }
+
+    #[test]
+    fn without_an_on_close_the_close_light_closes_the_window() {
+        for layout in [Layout::Titlebar, Layout::TintedTitlebar, Layout::Sidebar] {
+            let commands = press(layout, 0);
+            assert!(commands.iter().any(|c| matches!(c, WindowCommand::Close)));
+        }
+    }
+}

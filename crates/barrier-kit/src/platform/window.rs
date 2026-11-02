@@ -209,6 +209,11 @@ impl WindowControls {
         self.ping.ping();
     }
 
+    pub fn close(&self) {
+        self.queue.borrow_mut().push(WindowCommand::Close);
+        self.ping.ping();
+    }
+
     pub fn minimize(&self) {
         self.queue.borrow_mut().push(WindowCommand::Minimize);
         self.ping.ping();
@@ -264,6 +269,7 @@ impl WindowControls {
 }
 
 pub(crate) enum WindowCommand {
+    Close,
     Minimize,
     ToggleMaximize,
     ToggleVerticalMaximize,
@@ -514,9 +520,16 @@ impl Runtime {
         for context in contexts {
             let commands = std::mem::take(&mut *context.queue.borrow_mut());
             for command in commands {
-                if let WindowCommand::Open(app, options) = command {
-                    self.create_window(app, options);
-                    continue;
+                match command {
+                    WindowCommand::Open(app, options) => {
+                        self.create_window(app, options);
+                        continue;
+                    }
+                    WindowCommand::Close => {
+                        self.close_window(context.controls.surface_id.clone());
+                        continue;
+                    }
+                    _ => {}
                 }
                 let Some(index) = self.surfaces.iter().position(|surface| {
                     matches!(surface.role, SurfaceRole::Window(_))
@@ -558,7 +571,7 @@ impl Runtime {
                             activation.activate(token, window.wl_surface());
                         }
                     }
-                    WindowCommand::Open(..) => unreachable!(),
+                    WindowCommand::Open(..) | WindowCommand::Close => unreachable!(),
                 }
                 self.surfaces[index].needs_redraw = true;
             }
@@ -568,45 +581,7 @@ impl Runtime {
 
 impl WindowHandler for Runtime {
     fn request_close(&mut self, _: &Connection, _: &QueueHandle<Self>, window: &Window) {
-        let surface_id = window.wl_surface().id();
-        let window_count = self
-            .surfaces
-            .iter()
-            .filter(|s| matches!(s.role, SurfaceRole::Window(_)))
-            .count();
-        if window_count <= 1 {
-            self.needs_exit = true;
-        }
-        if let Some(context) = self
-            .window_contexts
-            .iter()
-            .find(|ctx| ctx.controls.surface_id == surface_id)
-        {
-            let mut status = context.controls.status;
-            status.set(WindowStatus {
-                activated: false,
-                ..*status.read()
-            });
-        }
-        if !self.needs_exit
-            && let Some(index) = self.surfaces.iter().position(|s| {
-                matches!(s.role, SurfaceRole::Window(_)) && s.surface.id() == surface_id
-            })
-        {
-            if let Some(address) = self.surfaces[index].appmenu_address.take() {
-                crate::app_menu::server::unregister(&address.path);
-            }
-            if let Some(appmenu) = self.surfaces[index].appmenu.take() {
-                appmenu.release();
-            }
-            let mut role = SurfaceRole::None;
-            std::mem::swap(&mut self.surfaces[index].role, &mut role);
-            drop(role);
-            self.surfaces.remove(index);
-            self.window_contexts
-                .retain(|ctx| ctx.controls.surface_id != surface_id);
-            self.surface_count.set(self.surfaces.len());
-        }
+        self.close_window(window.wl_surface().id());
     }
 
     fn configure(
@@ -718,6 +693,49 @@ impl Runtime {
             if self.surfaces[index].draw(&self.compositor) && self.surfaces[index].needs_redraw {
                 self.surfaces[index].request_redraw(qh);
             }
+        }
+    }
+}
+
+impl Runtime {
+    fn close_window(&mut self, surface_id: ObjectId) {
+        let window_count = self
+            .surfaces
+            .iter()
+            .filter(|s| matches!(s.role, SurfaceRole::Window(_)))
+            .count();
+        if window_count <= 1 {
+            self.needs_exit = true;
+        }
+        if let Some(context) = self
+            .window_contexts
+            .iter()
+            .find(|ctx| ctx.controls.surface_id == surface_id)
+        {
+            let mut status = context.controls.status;
+            status.set(WindowStatus {
+                activated: false,
+                ..*status.read()
+            });
+        }
+        if !self.needs_exit
+            && let Some(index) = self.surfaces.iter().position(|s| {
+                matches!(s.role, SurfaceRole::Window(_)) && s.surface.id() == surface_id
+            })
+        {
+            if let Some(address) = self.surfaces[index].appmenu_address.take() {
+                crate::app_menu::server::unregister(&address.path);
+            }
+            if let Some(appmenu) = self.surfaces[index].appmenu.take() {
+                appmenu.release();
+            }
+            let mut role = SurfaceRole::None;
+            std::mem::swap(&mut self.surfaces[index].role, &mut role);
+            drop(role);
+            self.surfaces.remove(index);
+            self.window_contexts
+                .retain(|ctx| ctx.controls.surface_id != surface_id);
+            self.surface_count.set(self.surfaces.len());
         }
     }
 }

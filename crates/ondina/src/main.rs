@@ -24,7 +24,6 @@ use vow_design::{ACCENT_SWATCHES, Rgba};
 
 use albums::{Album, library};
 
-const APP_ID: &str = "org.malaysia.ondina";
 const TICK: Duration = Duration::from_millis(500);
 
 const STUDIO: [Rgba; 3] = [
@@ -362,7 +361,7 @@ fn schedule(timers: Timers, player: Player) {
 
 fn main() {
     tracing_subscriber::fmt::init();
-    let instance = match launch(APP_ID) {
+    let instance = match launch(&barrier_kit::titlebar::app_id("ondina")) {
         Ok(Launch::Forwarded) => return,
         Ok(Launch::Primary(instance)) => Some(instance),
         Err(error) => {
@@ -374,8 +373,7 @@ fn main() {
     let menu_inbox = inbox.clone();
     run_window(
         AppComponent::new(Ondina { instance, inbox }),
-        WindowOptions::new("Ondina", "Ondina")
-            .app_id(APP_ID)
+        WindowOptions::new("Ondina", "ondina")
             .decorations(Decorations::Client)
             .size((980, 640))
             .menu(menu())

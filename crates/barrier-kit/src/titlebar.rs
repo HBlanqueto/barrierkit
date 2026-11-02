@@ -364,11 +364,10 @@ pub fn window_traffic_lights(
         .on_action(move |kind| {
             let controls = WindowControls::get();
             match kind {
-                ButtonKind::Close => {
-                    if let Some(on_close) = &on_close {
-                        on_close.call(());
-                    }
-                }
+                ButtonKind::Close => match &on_close {
+                    Some(on_close) => on_close.call(()),
+                    None => controls.close(),
+                },
                 ButtonKind::Minimize => controls.minimize(),
                 ButtonKind::Maximize if fixed => controls.toggle_vertical_maximize(),
                 ButtonKind::Maximize => run_action(&controls, green),
