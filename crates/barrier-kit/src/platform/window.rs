@@ -496,6 +496,7 @@ impl Runtime {
             needs_redraw: true,
             frame_pending: false,
             draw_count: 0,
+            opaque_size: None,
             configure_count: 0,
             pending_configure: None,
             appmenu: appmenu_object,
@@ -714,7 +715,7 @@ impl Runtime {
             if !size_changed && let SurfaceRole::Window(window) = &self.surfaces[index].role {
                 window.commit();
             }
-            if self.surfaces[index].draw() && self.surfaces[index].needs_redraw {
+            if self.surfaces[index].draw(&self.compositor) && self.surfaces[index].needs_redraw {
                 self.surfaces[index].request_redraw(qh);
             }
         }

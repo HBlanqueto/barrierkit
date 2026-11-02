@@ -2,7 +2,7 @@ use std::{any::Any, fmt::Debug, rc::Rc};
 
 use freya_core::{integration::RenderPipeline, prelude::Color};
 use sctk::{
-    compositor::CompositorHandler,
+    compositor::{CompositorHandler, CompositorState, Region},
     reexports::{
         client::{
             Connection, Dispatch, Proxy, QueueHandle,
@@ -47,6 +47,7 @@ pub(crate) struct SurfaceWindow {
     pub(crate) needs_redraw: bool,
     pub(crate) frame_pending: bool,
     pub(crate) draw_count: u64,
+    pub(crate) opaque_size: Option<(u32, u32)>,
     pub(crate) configure_count: u64,
     pub(crate) pending_configure: Option<(WindowConfigure, u32)>,
     pub(crate) appmenu: Option<OrgKdeKwinAppmenu>,
@@ -145,7 +146,17 @@ impl SurfaceWindow {
         self.needs_redraw = true;
     }
 
-    pub(crate) fn draw(&mut self) -> bool {
+    pub(crate) fn draw(&mut self, compositor: &CompositorState) -> bool {
+        let background = if matches!(&self.role, SurfaceRole::Window(_)) {
+            let resolved = *self.app.resolved.read();
+            crate::theme::color(crate::theme::surface_background(
+                &resolved,
+                crate::theme::SurfaceKind::Toplevel,
+            ))
+        } else {
+            Color::TRANSPARENT
+        };
+        self.declare_opaque(compositor, background);
         let Some(graphics) = self.graphics.as_mut() else {
             return false;
         };
@@ -161,15 +172,6 @@ impl SurfaceWindow {
             "draw start"
         );
         self.app.layout();
-        let background = if matches!(&self.role, SurfaceRole::Window(_)) {
-            let resolved = *self.app.resolved.read();
-            crate::theme::color(crate::theme::surface_background(
-                &resolved,
-                crate::theme::SurfaceKind::Toplevel,
-            ))
-        } else {
-            Color::TRANSPARENT
-        };
         {
             let Some(skia) = graphics.skia.as_mut() else {
                 return false;
@@ -204,6 +206,21 @@ impl SurfaceWindow {
 }
 
 impl SurfaceWindow {
+    fn declare_opaque(&mut self, compositor: &CompositorState, background: Color) {
+        let opaque = (background.a() == u8::MAX).then_some(self.logical_size);
+        if opaque == self.opaque_size {
+            return;
+        }
+        let region = opaque.and_then(|(width, height)| {
+            let region = Region::new(compositor).ok()?;
+            region.add(0, 0, width as i32, height as i32);
+            Some(region)
+        });
+        self.surface
+            .set_opaque_region(region.as_ref().map(Region::wl_region));
+        self.opaque_size = opaque;
+    }
+
     pub(crate) fn destroy_fractional(&mut self) {
         destroy_fractional_objects(&mut self.fractional, &mut self.viewport);
     }
@@ -285,7 +302,7 @@ impl CompositorHandler for Runtime {
         self.surfaces[index].frame_pending = false;
         self.apply_pending_window_configures(qh);
         if self.surfaces[index].needs_redraw {
-            let _ = self.surfaces[index].draw();
+            let _ = self.surfaces[index].draw(&self.compositor);
         }
         if self.surfaces[index].needs_redraw {
             self.surfaces[index].request_redraw(qh);

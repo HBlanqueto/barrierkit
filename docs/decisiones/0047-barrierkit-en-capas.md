@@ -228,7 +228,7 @@ Cada fase se divide en lotes pequeños para opencode, con prueba visible en la s
 
 Hecho en `main`:
 
-- **Capa 0**: escala fraccional, separación de la shell, foco y modo teclado (Tab activa la navegación por teclado; las teclas van al nodo enfocado) y portapapeles sobre `wl_data_device`.
+- **Capa 0**: escala fraccional, separación de la shell, foco y modo teclado (Tab activa la navegación por teclado; las teclas van al nodo enfocado), portapapeles sobre `wl_data_device` y región opaca de las ventanas con fondo opaco.
 - **Capa 1**: `style` (paleta semántica y caras de texto), `symbol`, `interaction` (hover, pulsado, foco y anillo), `Button`, `IconButton`, `Switch`, `Checkbox`, `RadioGroup`, `ColorWell`, `ChoiceCards`, `SegmentedControl`, `ToggleGroup`, `Stepper`, `Slider` por pasos, `LevelSlider` (continuo y grueso), `TextField`, `SearchField`, `PopUpButton`, `ProgressBar`, `ProgressRing`, `Spinner`, `badge`, `divider`, `avatar`, `Link` y `use_tooltip` (popup sin grab bajo el puntero).
 - **App**: `Action` con `Shortcut` tipado, `load_defaults`/`save_defaults` con aviso de cambios, `launch` (instancia única; `Activate` trae la ventana al frente por xdg-activation), restauración del panel, `UndoStack` y portapapeles (`copy`/`paste`).
 - **Capa 2**: `Form`/`Section`/`Row`, `SplitView` (sustituye a `SidebarLayout`), `History` y `navigation_buttons`, `SearchIndex`, `empty_state`, `sheet`, `Alert`, `TabView`, `Table`, `CollectionView`, `SidebarAccount` y `context_menu` (`MenuView` en el puntero con el clic secundario).
@@ -238,7 +238,7 @@ Hecho en `main`:
 
 Pendiente:
 
-- Capa 0: selección primaria, arrastrar y soltar, damage y región opaca, AT-SPI.
+- Capa 0: selección primaria, arrastrar y soltar, AT-SPI y damage parcial. El damage espera al renderizado incremental de Freya: `RenderPipeline::render` repinta el árbol entero en 0.4.3 (`freya-core/src/render_pipeline.rs`, «TODO: Use incremental rendering»).
 
 ## Consecuencias
 

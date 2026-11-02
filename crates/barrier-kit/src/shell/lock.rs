@@ -174,6 +174,7 @@ impl Runtime {
             needs_redraw: true,
             frame_pending: false,
             draw_count: 0,
+            opaque_size: None,
             configure_count: 0,
             pending_configure: None,
             appmenu: None,
