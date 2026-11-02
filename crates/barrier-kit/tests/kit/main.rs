@@ -1,3 +1,4 @@
+mod appearance;
 mod backdrop;
 mod chrome;
 mod controls;

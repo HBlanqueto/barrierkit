@@ -2,9 +2,13 @@
 
 use freya_components::theming::component_themes::{ColorsSheet, Theme};
 use freya_components::theming::themes::{dark_theme, light_theme};
-use freya_core::prelude::{Color, State, try_consume_context};
+use freya_core::prelude::{
+    Color, State, WritableUtils, provide_context, try_consume_context, try_consume_root_context,
+    use_hook, use_memo,
+};
 use vow_appearance::{
-    ColorScheme, Resolved, WindowTintScope, load_appearance, load_dominant, resolve,
+    AppearanceConfig, ColorScheme, Resolved, WindowTintScope, load_appearance, load_dominant,
+    resolve,
 };
 use vow_design::{
     BG_WINDOW_DARK, BG_WINDOW_DARK_TINT, BG_WINDOW_LIGHT, LockPalette, MenuPalette, Rgba,
@@ -83,6 +87,24 @@ pub fn resolved() -> Resolved {
     } else {
         resolve(&load_appearance(), load_dominant())
     }
+}
+
+pub fn use_appearance(adjust: impl Fn(&mut AppearanceConfig) + 'static) {
+    let root = try_consume_root_context::<State<Resolved>>();
+    let adjusted = use_memo(move || {
+        if let Some(root) = root {
+            root.read();
+        }
+        let mut config = load_appearance();
+        adjust(&mut config);
+        resolve(&config, load_dominant())
+    });
+    let mut scoped = use_hook(|| {
+        let scoped = State::create(*adjusted.read());
+        provide_context(scoped);
+        scoped
+    });
+    scoped.set_if_modified(*adjusted.read());
 }
 
 pub fn shell_palette(resolved: &Resolved) -> ShellPalette {

@@ -9,6 +9,7 @@ use barrier_kit::platform::{Decorations, WindowOptions, run_window};
 use barrier_kit::popup_button::PopUpButton;
 use barrier_kit::sidebar::{Sidebar, SidebarItem};
 use barrier_kit::symbol::Symbol;
+use barrier_kit::theme::use_appearance;
 use barrier_kit::titlebar::Titlebar;
 use barrier_kit::views::form::{Form, Row, Section};
 use barrier_kit::views::split::{SidebarToggle, SplitView};
@@ -16,7 +17,7 @@ use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 use serde::{Deserialize, Serialize};
 use torin::prelude::{Content, Direction, Size};
-use vow_appearance::{Resolved, SidebarStyle, load_appearance, load_dominant, resolve};
+use vow_appearance::SidebarStyle;
 use vow_design::{ACCENT_SWATCHES, TITLEBAR_RAIL, WINDOW_MIN_SIZE};
 
 const APP: &str = "rotulo";
@@ -255,25 +256,13 @@ impl App for Rotulo {
         let initial = self.prefs;
         let prefs = use_state(|| initial);
         let mut page = use_state(|| Page::Design);
-        let root = try_consume_root_context::<State<Resolved>>();
-        let resolved = use_memo(move || {
-            if let Some(root) = root {
-                root.read();
-            }
-            let mut config = load_appearance();
+        use_appearance(move |config| {
             config.sidebar_style = if prefs.read().flat_sidebar {
                 SidebarStyle::Flat
             } else {
                 SidebarStyle::Island
             };
-            resolve(&config, load_dominant())
         });
-        let mut scoped = use_hook(|| {
-            let scoped = State::create(*resolved.read());
-            provide_context(scoped);
-            scoped
-        });
-        scoped.set_if_modified(*resolved.read());
 
         let current = *page.read();
         let item = |target: Page, symbol: Symbol, tint| {

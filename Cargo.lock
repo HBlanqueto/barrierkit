@@ -2026,6 +2026,7 @@ dependencies = [
  "torin",
  "tracing",
  "tracing-subscriber",
+ "vow-appearance",
  "vow-design",
 ]
 

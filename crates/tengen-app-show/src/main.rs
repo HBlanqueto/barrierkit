@@ -22,6 +22,7 @@ use barrier_kit::popup_button::PopUpButton;
 use barrier_kit::progress::{ProgressBar, ProgressRing, Spinner};
 use barrier_kit::style::{Palette, text};
 use barrier_kit::symbol::Symbol;
+use barrier_kit::theme::use_appearance;
 use barrier_kit::titlebar::Titlebar;
 use barrier_kit::tooltip::use_tooltip;
 use barrier_kit::traffic::TrafficLights;
@@ -33,6 +34,7 @@ use barrier_kit::views::tabs::TabView;
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 use torin::prelude::{Direction, Size};
+use vow_appearance::ColorScheme;
 use vow_design::{
     ACCENT_SWATCHES, COLLECTION, Rgba, SPACE_2, SPLIT_VIEW, TABLE, TEXT, WINDOW_MIN_SIZE,
 };
@@ -286,6 +288,36 @@ impl Component for AdaptiveDemo {
         size.attach(rect().width(Size::fill()))
             .child(text(name, TEXT, Palette::current().label))
     }
+}
+
+const SCHEMES: [(Option<ColorScheme>, &str); 4] = [
+    (None, "Sistema"),
+    (Some(ColorScheme::Light), "Claro"),
+    (Some(ColorScheme::Dark), "Oscuro"),
+    (Some(ColorScheme::DarkTint), "Tintado"),
+];
+
+fn appearance(scheme: State<Option<ColorScheme>>) -> Form {
+    let selected = SCHEMES
+        .iter()
+        .position(|(value, _)| *value == *scheme.read())
+        .unwrap_or_default();
+    Form::new().section(
+        Section::titled("Apariencia del catálogo").row(
+            Row::new("Tema").control(
+                SCHEMES
+                    .iter()
+                    .fold(SegmentedControl::new("Tema"), |control, (_, name)| {
+                        control.segment(name)
+                    })
+                    .selected(selected)
+                    .on_change(move |index: usize| {
+                        let mut scheme = scheme;
+                        scheme.set(SCHEMES[index].0);
+                    }),
+            ),
+        ),
+    )
 }
 
 fn adaptive() -> Form {
@@ -551,6 +583,12 @@ impl App for Show {
         let sort = use_state(|| None::<SortOrder>);
         let selected = use_state(Vec::new);
         let mut alert = use_state(|| false);
+        let scheme = use_state(|| None::<ColorScheme>);
+        use_appearance(move |config| {
+            if let Some(forced) = *scheme.read() {
+                config.color_scheme = forced;
+            }
+        });
 
         let window = PreferencesWindow::new()
             .restoration(self.app_id)
@@ -659,13 +697,23 @@ impl App for Show {
                         adaptive(),
                     )),
             )
-            .group(PaneGroup::new(Some("Capa 3 · Patrones")).pane(Pane::new(
-                "acerca",
-                "Acerca de",
-                Symbol::ChevronLeft,
-                tint(7),
-                about(),
-            )));
+            .group(
+                PaneGroup::new(Some("Capa 3 · Patrones"))
+                    .pane(Pane::new(
+                        "acerca",
+                        "Acerca de",
+                        Symbol::ChevronLeft,
+                        tint(7),
+                        about(),
+                    ))
+                    .pane(Pane::new(
+                        "apariencia",
+                        "Apariencia",
+                        Symbol::CircleHalf,
+                        tint(0),
+                        appearance(scheme),
+                    )),
+            );
 
         rect()
             .width(Size::fill())
