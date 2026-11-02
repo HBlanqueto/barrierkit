@@ -1757,6 +1757,9 @@ fn emit_sidebar(out: &mut String, tokens: &Value, components: &Value) {
              \x20   item_icon: {},\n\
              \x20   selected_bg: {},\n\
              \x20   selected_ink: {},\n\
+             \x20   selected_icon_rim: {},\n\
+             \x20   inactive_selected_bg: {},\n\
+             \x20   inactive_ink: {},\n\
              \x20   hover_bg: {},\n\
              \x20   section_ink: {},\n\
              \x20   count_ink: {},\n\
@@ -1766,6 +1769,9 @@ fn emit_sidebar(out: &mut String, tokens: &Value, components: &Value) {
             color_at("components.window.sidebar.item.icon-ink"),
             color_at("components.window.sidebar.item.selected-bg"),
             color_at("components.window.sidebar.item.selected-ink"),
+            color_at("components.window.sidebar.item.selected-icon-rim"),
+            color_at("components.window.sidebar.item.inactive-selected-bg"),
+            color_at("components.window.sidebar.item.inactive-ink"),
             color_at("components.window.sidebar.item.hover-bg"),
             color_at("components.window.sidebar.section.ink"),
             color_at("components.window.sidebar.item.count-ink"),

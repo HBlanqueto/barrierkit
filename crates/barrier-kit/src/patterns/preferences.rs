@@ -4,7 +4,7 @@ use freya_components::scrollviews::ScrollView;
 use freya_core::prelude::*;
 use serde::{Deserialize, Serialize};
 use torin::prelude::{Direction, Gaps, Size};
-use vow_design::{LIST_GROUP, Rgba, SPACE_2};
+use vow_design::{LIST_GROUP, Rgba, SETTINGS, SPACE_2};
 
 use crate::app::{load_restoration, save_restoration};
 use crate::controls::SearchField;
@@ -174,9 +174,17 @@ impl Component for PreferencesWindow {
                 .into_element()
         };
 
-        let mut sidebar = Sidebar::new()
-            .traffic_lights(true)
-            .child(SearchField::new(query, "Buscar"));
+        let mut sidebar = Sidebar::new().traffic_lights(true).child(
+            rect()
+                .width(Size::fill())
+                .margin(Gaps::new(
+                    SETTINGS.sidebar_lights_gap as f32,
+                    0.0,
+                    SETTINGS.sidebar_search_gap as f32,
+                    0.0,
+                ))
+                .child(SearchField::new(query, "Buscar")),
+        );
         let text = query.read().clone();
         if text.trim().is_empty() {
             if let Some((initials, name, detail)) = self.account {

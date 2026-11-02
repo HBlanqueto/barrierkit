@@ -32,6 +32,22 @@ pub(crate) fn item_icon_color(selected: bool, palette: SidebarPalette) -> Rgba {
     }
 }
 
+fn item_palette() -> SidebarPalette {
+    let palette = crate::theme::resolved().sidebar.palette;
+    let activated = try_consume_root_context::<WindowControls>()
+        .is_none_or(|controls| controls.status.read().activated);
+    if activated {
+        palette
+    } else {
+        SidebarPalette {
+            selected_bg: palette.inactive_selected_bg,
+            selected_ink: palette.inactive_ink,
+            item_ink: palette.inactive_ink,
+            ..palette
+        }
+    }
+}
+
 fn svg_viewer(template: Bytes, color: Rgba, size: u32) -> SvgViewer {
     SvgViewer::new(template)
         .width(Size::px(size as f32))
@@ -329,8 +345,7 @@ impl KeyExt for SidebarItem {
 
 impl Component for SidebarItem {
     fn render(&self) -> impl IntoElement {
-        let resolved = crate::theme::resolved();
-        let palette = resolved.sidebar.palette;
+        let palette = item_palette();
         let mut hovered = use_state(|| false);
 
         let (bg, fg, weight) = if self.selected {
@@ -386,20 +401,20 @@ impl Component for SidebarItem {
                     .width(Size::px(tile))
                     .height(Size::px(tile))
                     .corner_radius(SIDEBAR.item_radius as f32)
-                    .background(rgba(if self.selected {
-                        Palette::current().on_accent
-                    } else {
-                        tint
-                    }))
+                    .background(rgba(tint))
+                    .maybe(self.selected, |el| {
+                        el.border(
+                            Border::new()
+                                .width(SIDEBAR.rim_width)
+                                .alignment(BorderAlignment::Inner)
+                                .fill(rgba(palette.selected_icon_rim)),
+                        )
+                    })
                     .center()
                     .child(symbol(
                         glyph,
                         SIDEBAR.item_icon as f32,
-                        if self.selected {
-                            tint
-                        } else {
-                            Palette::current().on_accent
-                        },
+                        Palette::current().on_accent,
                     )),
             );
         } else if let Some((svg, bg_color)) = self.app_icon {
@@ -676,7 +691,7 @@ impl SidebarAccount {
 
 impl Component for SidebarAccount {
     fn render(&self) -> impl IntoElement {
-        let palette = crate::theme::resolved().sidebar.palette;
+        let palette = item_palette();
         let interaction = use_interaction();
         let selected = self.selected;
         let on_select = self.on_select.clone();
