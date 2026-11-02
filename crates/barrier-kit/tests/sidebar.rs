@@ -1166,7 +1166,9 @@ struct HidingCase;
 impl App for HidingCase {
     fn render(&self) -> impl IntoElement {
         SplitView::new(
-            Sidebar::new().child(SidebarItem::new("Uno")),
+            Sidebar::new()
+                .traffic_lights(true)
+                .child(SidebarItem::new("Uno")),
             rect()
                 .width(Size::fill())
                 .height(Size::fill())
@@ -1209,4 +1211,55 @@ fn the_sidebar_toggle_hides_and_shows_the_sidebar() {
     assert!(labelled(&test, "Uno").is_none(), "the sidebar hides");
     toggle(&mut test);
     assert!(labelled(&test, "Uno").is_some(), "the sidebar comes back");
+}
+
+#[test]
+fn the_traffic_lights_stay_in_place_when_the_sidebar_hides() {
+    let resolved = resolve(
+        &AppearanceConfig {
+            reduced_motion: true,
+            ..Default::default()
+        },
+        None,
+    );
+    let (mut test, _) = TestingRunner::new(
+        AppComponent::new(HidingCase),
+        Size2D::new(900.0, 400.0),
+        move |runner| runner.provide_root_context(move || State::create(resolved)),
+        1.0,
+    );
+    test.sync_and_update();
+    let lights = |test: &TestingRunner| {
+        let (_, _, group_width, diameter) = vow_appearance::traffic::group_rect();
+        test.find_many(|node, _| {
+            let area = node.layout().area;
+            ((area.size.width - group_width as f32).abs() < 0.5
+                && (area.size.height - diameter as f32).abs() < 0.5
+                && area.origin.x < 100.0)
+                .then_some(area)
+        })
+    };
+    let open = lights(&test);
+    assert!(!open.is_empty(), "the sidebar shows the lights");
+    let toggle = test
+        .find(|node, el| {
+            (el.accessibility().builder.label() == Some("Mostrar u ocultar la barra lateral"))
+                .then(|| node.layout().area)
+        })
+        .expect("toggle");
+    test.click_cursor((f64::from(toggle.center().x), f64::from(toggle.center().y)));
+    test.poll(Duration::from_millis(16), Duration::from_millis(100));
+    let hidden = lights(&test);
+    assert_eq!(
+        hidden.len(),
+        1,
+        "the lights sit once with the sidebar hidden"
+    );
+    assert!(
+        (open[0].origin.x - hidden[0].origin.x).abs() < 0.5
+            && (open[0].origin.y - hidden[0].origin.y).abs() < 0.5,
+        "the lights moved from {:?} to {:?}",
+        open[0].origin,
+        hidden[0].origin
+    );
 }

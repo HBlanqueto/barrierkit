@@ -14,7 +14,7 @@ use vow_appearance::SidebarStyle;
 use vow_appearance::palette;
 use vow_design::NATIVE_APP_ID_PREFIX;
 use vow_design::{
-    ButtonKind, Rgba, SETTINGS, TITLEBAR, TITLEBAR_CLIENT_HEIGHT, TITLEBAR_DOUBLE_CLICK,
+    ButtonKind, Rgba, SETTINGS, SIDEBAR, TITLEBAR, TITLEBAR_CLIENT_HEIGHT, TITLEBAR_DOUBLE_CLICK,
 };
 
 use crate::ProbeExt;
@@ -242,13 +242,33 @@ impl Component for Titlebar {
             title_label = title_label.a11y_builder(move |node| node.set_author_id(id));
         }
 
-        if sidebar {
+        if self.sidebar {
+            let island = resolved.sidebar.style == SidebarStyle::Island;
+            let (height, padding_top, default_padding_x) = if island {
+                (
+                    SETTINGS.toolbar_height as f32,
+                    SETTINGS.toolbar_padding_top as f32,
+                    SETTINGS.toolbar_padding_x as f32,
+                )
+            } else {
+                (TITLEBAR_CLIENT_HEIGHT as f32, 0.0, 10.0)
+            };
+            let padding_x = self.padding_x.unwrap_or(default_padding_x);
+            let padding_left = if traffic.is_some() {
+                (if island { SIDEBAR.inset } else { 0 } + SIDEBAR.traffic_x) as f32
+            } else {
+                padding_x
+            };
+
             let left_slot = rect()
                 .width(Size::auto())
                 .height(Size::fill())
+                .direction(Direction::Horizontal)
                 .cross_align(Alignment::Center)
                 .main_align(Alignment::Center)
+                .spacing(padding_x)
                 .a11y_alt("titlebar-left-slot")
+                .maybe_child(traffic)
                 .maybe(self.left.is_some(), |el| {
                     el.child(self.left.clone().unwrap())
                 });
@@ -262,18 +282,6 @@ impl Component for Titlebar {
                 .on_mouse_down(drag.clone())
                 .child(title_label);
 
-            let island = resolved.sidebar.style == SidebarStyle::Island;
-            let (height, padding_top, default_padding_x) = if island {
-                (
-                    SETTINGS.toolbar_height as f32,
-                    SETTINGS.toolbar_padding_top as f32,
-                    SETTINGS.toolbar_padding_x as f32,
-                )
-            } else {
-                (TITLEBAR_CLIENT_HEIGHT as f32, 0.0, 10.0)
-            };
-            let padding_x = self.padding_x.unwrap_or(default_padding_x);
-
             let mut root = rect()
                 .width(Size::fill())
                 .height(Size::px(height))
@@ -281,7 +289,7 @@ impl Component for Titlebar {
                 .direction(Direction::Horizontal)
                 .cross_align(Alignment::Center)
                 .spacing(self.spacing)
-                .padding(Gaps::new(padding_top, padding_x, 0.0, padding_x))
+                .padding(Gaps::new(padding_top, padding_x, 0.0, padding_left))
                 .child(left_slot)
                 .child(title);
 

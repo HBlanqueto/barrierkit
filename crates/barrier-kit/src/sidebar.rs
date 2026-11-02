@@ -262,7 +262,9 @@ impl Component for Sidebar {
         let overlay_top = controls
             .as_ref()
             .and_then(|controls| controls.titlebar_overlay_top());
-        if self.traffic_lights && lights_shown {
+        let sidebar_shown =
+            crate::views::split::sidebar_control().is_none_or(|control| control.visible());
+        if self.traffic_lights && lights_shown && sidebar_shown {
             let (_, _, group_w, _) = vow_appearance::traffic::group_rect();
 
             root = root.child(
