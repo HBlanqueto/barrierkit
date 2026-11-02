@@ -3,6 +3,9 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use barrier_kit::app::{
+    Action, Launch, Shortcut, ShortcutKey, launch, load_defaults, save_defaults,
+};
 use barrier_kit::app_menu::{AppMenu, Menu, MenuHandle};
 use barrier_kit::controls::Button;
 use barrier_kit::menu::{CheckState, MenuItem};
@@ -10,6 +13,7 @@ use barrier_kit::platform::{Decorations, WindowControls, WindowOptions, run_wind
 use barrier_kit::titlebar::Titlebar;
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
+use serde::{Deserialize, Serialize};
 use torin::prelude::{Alignment, Direction, Size};
 
 const ID_NEW_WINDOW: &str = "new-window";
@@ -24,37 +28,29 @@ const ID_STEP_10: &str = "step-10";
 const ID_ALLOW_NEGATIVE: &str = "allow-negative";
 const ID_ABOUT: &str = "about";
 
-fn action(id: &'static str, label: &str, shortcut: Option<&str>, enabled: bool) -> MenuItem {
-    MenuItem::Action {
-        id: id.to_string(),
-        label: label.to_string(),
-        shortcut: shortcut.map(ToOwned::to_owned),
-        enabled,
-        check: CheckState::None,
-        icon: None,
-    }
-}
+const NEW_WINDOW: Action =
+    Action::new(ID_NEW_WINDOW, "Nueva ventana").shortcut(Shortcut::ctrl(ShortcutKey::Char('n')));
+const CLOSE_WINDOW: Action =
+    Action::new(ID_CLOSE_WINDOW, "Cerrar ventana").shortcut(Shortcut::ctrl(ShortcutKey::Char('w')));
+const COPY_VALUE: Action =
+    Action::new(ID_COPY_VALUE, "Copiar valor").shortcut(Shortcut::ctrl(ShortcutKey::Char('c')));
+const INCREMENT: Action =
+    Action::new(ID_INCREMENT, "Incrementar").shortcut(Shortcut::ctrl(ShortcutKey::Up));
+const DECREMENT: Action =
+    Action::new(ID_DECREMENT, "Decrementar").shortcut(Shortcut::ctrl(ShortcutKey::Down));
+const RESET: Action =
+    Action::new(ID_RESET, "Reiniciar").shortcut(Shortcut::ctrl(ShortcutKey::Char('r')));
+const STEP_1: Action = Action::new(ID_STEP_1, "1");
+const STEP_5: Action = Action::new(ID_STEP_5, "5").shortcut(Shortcut::ctrl(ShortcutKey::Char('5')));
+const STEP_10: Action = Action::new(ID_STEP_10, "10");
+const ALLOW_NEGATIVE: Action = Action::new(ID_ALLOW_NEGATIVE, "Permitir negativos");
+const ABOUT: Action = Action::new(ID_ABOUT, "Acerca de Contador");
+const APP_ID: &str = "org.malaysia.Contador";
 
-fn radio(id: &'static str, label: &str, shortcut: Option<&str>, active: bool) -> MenuItem {
-    MenuItem::Action {
-        id: id.to_string(),
-        label: label.to_string(),
-        shortcut: shortcut.map(ToOwned::to_owned),
-        enabled: true,
-        check: CheckState::Radio(active),
-        icon: None,
-    }
-}
-
-fn checkbox(id: &'static str, label: &str, active: bool) -> MenuItem {
-    MenuItem::Action {
-        id: id.to_string(),
-        label: label.to_string(),
-        shortcut: None,
-        enabled: true,
-        check: CheckState::Checkbox(active),
-        icon: None,
-    }
+#[derive(Default, Serialize, Deserialize)]
+struct Prefs {
+    step: i32,
+    allow_negative: bool,
 }
 
 fn separator() -> MenuItem {
@@ -65,23 +61,16 @@ fn build_menu(count: i32, step: i32, allow_negative: bool) -> AppMenu {
     AppMenu::new(vec![
         Menu::new(
             "Archivo",
-            vec![
-                action(ID_NEW_WINDOW, "Nueva ventana", Some("Ctrl+N"), false),
-                separator(),
-                action(ID_CLOSE_WINDOW, "Cerrar ventana", Some("Ctrl+W"), true),
-            ],
+            vec![NEW_WINDOW.item(false), separator(), CLOSE_WINDOW.item(true)],
         ),
-        Menu::new(
-            "Edición",
-            vec![action(ID_COPY_VALUE, "Copiar valor", Some("Ctrl+C"), false)],
-        ),
+        Menu::new("Edición", vec![COPY_VALUE.item(false)]),
         Menu::new(
             "Contador",
             vec![
-                action(ID_INCREMENT, "Incrementar", Some("Ctrl+Up"), true),
-                action(ID_DECREMENT, "Decrementar", Some("Ctrl+Down"), true),
+                INCREMENT.item(true),
+                DECREMENT.item(true),
                 separator(),
-                action(ID_RESET, "Reiniciar", Some("Ctrl+R"), count != 0),
+                RESET.item(count != 0),
                 separator(),
                 MenuItem::Submenu {
                     id: Some("step-submenu".to_string()),
@@ -89,19 +78,16 @@ fn build_menu(count: i32, step: i32, allow_negative: bool) -> AppMenu {
                     enabled: true,
                     icon: None,
                     items: vec![
-                        radio(ID_STEP_1, "1", None, step == 1),
-                        radio(ID_STEP_5, "5", Some("Ctrl+5"), step == 5),
-                        radio(ID_STEP_10, "10", None, step == 10),
+                        STEP_1.item_with(true, CheckState::Radio(step == 1)),
+                        STEP_5.item_with(true, CheckState::Radio(step == 5)),
+                        STEP_10.item_with(true, CheckState::Radio(step == 10)),
                     ],
                 },
                 separator(),
-                checkbox(ID_ALLOW_NEGATIVE, "Permitir negativos", allow_negative),
+                ALLOW_NEGATIVE.item_with(true, CheckState::Checkbox(allow_negative)),
             ],
         ),
-        Menu::new(
-            "Ayuda",
-            vec![action(ID_ABOUT, "Acerca de Contador", None, true)],
-        ),
+        Menu::new("Ayuda", vec![ABOUT.item(true)]),
     ])
 }
 
@@ -140,8 +126,15 @@ struct Contador {
 impl App for Contador {
     fn render(&self) -> impl IntoElement {
         let mut count = use_state(|| 0i32);
-        let mut step = use_state(|| 1i32);
-        let mut allow_negative = use_state(|| false);
+        let prefs = use_hook(|| {
+            let prefs: Prefs = load_defaults(APP_ID);
+            (
+                if prefs.step > 0 { prefs.step } else { 1 },
+                prefs.allow_negative,
+            )
+        });
+        let mut step = use_state(|| prefs.0);
+        let mut allow_negative = use_state(|| prefs.1);
         let mut menu_handle: State<Option<MenuHandle>> = use_state(|| None);
 
         {
@@ -194,6 +187,15 @@ impl App for Contador {
                 }
                 ID_CLOSE_WINDOW => std::process::exit(0),
                 _ => {}
+            }
+            if [ID_STEP_1, ID_STEP_5, ID_STEP_10, ID_ALLOW_NEGATIVE].contains(&id.as_str()) {
+                let prefs = Prefs {
+                    step: *step.read(),
+                    allow_negative: *allow_negative.read(),
+                };
+                if let Err(error) = save_defaults(APP_ID, &prefs) {
+                    tracing::warn!(%error, "contador: no se guardaron las preferencias");
+                }
             }
             tracing::info!(action = id, count = *count.read(), "contador: action");
         }
@@ -259,15 +261,24 @@ impl App for Contador {
 
 fn main() {
     tracing_subscriber::fmt::init();
+    let _instance = match launch(APP_ID) {
+        Ok(Launch::Forwarded) => return,
+        Ok(Launch::Primary(connection)) => Some(connection),
+        Err(error) => {
+            tracing::warn!(%error, "contador: sin instancia única");
+            None
+        }
+    };
     let (action_tx, action_rx) = std::sync::mpsc::channel::<String>();
     let app = AppComponent::new(Contador {
         action_rx: Rc::new(RefCell::new(Some(action_rx))),
     });
-    let menu = build_menu(0, 1, false);
+    let prefs: Prefs = load_defaults(APP_ID);
+    let menu = build_menu(0, prefs.step.max(1), prefs.allow_negative);
     run_window(
         app,
         WindowOptions::new("Contador", "Contador")
-            .app_id("org.malaysia.Contador")
+            .app_id(APP_ID)
             .decorations(Decorations::Client)
             .size((480, 320))
             .menu(menu)

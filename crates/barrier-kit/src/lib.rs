@@ -36,6 +36,8 @@ pub mod popup_button;
 
 pub mod style;
 
+pub mod app;
+
 pub mod symbol;
 
 pub mod menu;
