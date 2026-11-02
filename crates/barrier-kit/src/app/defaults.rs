@@ -25,22 +25,41 @@ fn domain(app_id: &str) -> PathBuf {
     vow_appearance::config_dir().join(format!("{app_id}.domain"))
 }
 
-pub fn load_defaults<T: DeserializeOwned + Default>(app_id: &str) -> T {
-    std::fs::read_to_string(domain(app_id))
+fn state(app_id: &str) -> PathBuf {
+    vow_appearance::data_dir().join(format!("{app_id}.state"))
+}
+
+fn read_toml<T: DeserializeOwned + Default>(path: PathBuf) -> T {
+    std::fs::read_to_string(path)
         .ok()
         .and_then(|text| toml::from_str(&text).ok())
         .unwrap_or_default()
 }
 
-pub fn save_defaults<T: Serialize>(app_id: &str, value: &T) -> io::Result<()> {
-    let path = domain(app_id);
+fn write_toml<T: Serialize>(path: PathBuf, value: &T) -> io::Result<()> {
     if let Some(dir) = path.parent() {
         std::fs::create_dir_all(dir)?;
     }
     let text = toml::to_string(value).map_err(io::Error::other)?;
-    let staged = path.with_extension("domain.tmp");
+    let staged = path.with_extension("tmp");
     std::fs::write(&staged, text)?;
     std::fs::rename(staged, path)
+}
+
+pub fn load_defaults<T: DeserializeOwned + Default>(app_id: &str) -> T {
+    read_toml(domain(app_id))
+}
+
+pub fn save_defaults<T: Serialize>(app_id: &str, value: &T) -> io::Result<()> {
+    write_toml(domain(app_id), value)
+}
+
+pub fn load_restoration<T: DeserializeOwned + Default>(app_id: &str) -> T {
+    read_toml(state(app_id))
+}
+
+pub fn save_restoration<T: Serialize>(app_id: &str, value: &T) -> io::Result<()> {
+    write_toml(state(app_id), value)
 }
 
 #[cfg(test)]

@@ -4,7 +4,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use barrier_kit::app::{
-    Action, Launch, Shortcut, ShortcutKey, launch, load_defaults, save_defaults,
+    Action, Launch, Shortcut, ShortcutKey, UndoStack, copy, launch, load_defaults, save_defaults,
 };
 use barrier_kit::app_menu::{AppMenu, Menu, MenuHandle};
 use barrier_kit::controls::Button;
@@ -13,12 +13,15 @@ use barrier_kit::platform::{Decorations, WindowControls, WindowOptions, run_wind
 use barrier_kit::titlebar::Titlebar;
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
+use keyboard_types::Modifiers;
 use serde::{Deserialize, Serialize};
 use torin::prelude::{Alignment, Direction, Size};
 
 const ID_NEW_WINDOW: &str = "new-window";
 const ID_CLOSE_WINDOW: &str = "close-window";
 const ID_COPY_VALUE: &str = "copy-value";
+const ID_UNDO: &str = "undo";
+const ID_REDO: &str = "redo";
 const ID_INCREMENT: &str = "increment";
 const ID_DECREMENT: &str = "decrement";
 const ID_RESET: &str = "reset";
@@ -34,6 +37,12 @@ const CLOSE_WINDOW: Action =
     Action::new(ID_CLOSE_WINDOW, "Cerrar ventana").shortcut(Shortcut::ctrl(ShortcutKey::Char('w')));
 const COPY_VALUE: Action =
     Action::new(ID_COPY_VALUE, "Copiar valor").shortcut(Shortcut::ctrl(ShortcutKey::Char('c')));
+const UNDO: Action =
+    Action::new(ID_UNDO, "Deshacer").shortcut(Shortcut::ctrl(ShortcutKey::Char('z')));
+const REDO: Action = Action::new(ID_REDO, "Rehacer").shortcut(Shortcut::new(
+    Modifiers::CONTROL.union(Modifiers::SHIFT),
+    ShortcutKey::Char('z'),
+));
 const INCREMENT: Action =
     Action::new(ID_INCREMENT, "Incrementar").shortcut(Shortcut::ctrl(ShortcutKey::Up));
 const DECREMENT: Action =
@@ -63,7 +72,15 @@ fn build_menu(count: i32, step: i32, allow_negative: bool) -> AppMenu {
             "Archivo",
             vec![NEW_WINDOW.item(false), separator(), CLOSE_WINDOW.item(true)],
         ),
-        Menu::new("Edición", vec![COPY_VALUE.item(false)]),
+        Menu::new(
+            "Edición",
+            vec![
+                UNDO.item(false),
+                REDO.item(false),
+                separator(),
+                COPY_VALUE.item(true),
+            ],
+        ),
         Menu::new(
             "Contador",
             vec![
@@ -91,7 +108,20 @@ fn build_menu(count: i32, step: i32, allow_negative: bool) -> AppMenu {
     ])
 }
 
-fn sync_menu(handle: &MenuHandle, count: i32, step: i32, allow_negative: bool) {
+fn sync_menu(
+    handle: &MenuHandle,
+    count: i32,
+    step: i32,
+    allow_negative: bool,
+    history: &UndoStack<i32>,
+) {
+    for (id, enabled_now) in [(ID_UNDO, history.can_undo()), (ID_REDO, history.can_redo())] {
+        handle.update(id, |item| {
+            if let MenuItem::Action { enabled, .. } = item {
+                *enabled = enabled_now;
+            }
+        });
+    }
     handle.update(ID_RESET, |item| {
         if let MenuItem::Action { enabled, .. } = item {
             *enabled = count != 0;
@@ -144,6 +174,7 @@ impl App for Contador {
         }
 
         let mut pending = use_state(Vec::<String>::new);
+        let mut history = use_state(UndoStack::<i32>::default);
         let rx = use_hook(|| {
             Rc::new(RefCell::new(
                 self.action_rx
@@ -161,7 +192,21 @@ impl App for Contador {
         };
         pending.write().clear();
         for id in ids {
+            let previous = *count.read();
             match id.as_str() {
+                ID_UNDO => {
+                    let undone = history.write().undo(previous);
+                    if let Some(value) = undone {
+                        count.set(value);
+                    }
+                }
+                ID_REDO => {
+                    let redone = history.write().redo(previous);
+                    if let Some(value) = redone {
+                        count.set(value);
+                    }
+                }
+                ID_COPY_VALUE => copy(previous.to_string()),
                 ID_INCREMENT => {
                     let s = *step.read();
                     let current = *count.read();
@@ -188,6 +233,9 @@ impl App for Contador {
                 ID_CLOSE_WINDOW => std::process::exit(0),
                 _ => {}
             }
+            if ![ID_UNDO, ID_REDO].contains(&id.as_str()) && *count.read() != previous {
+                history.write().record(previous);
+            }
             if [ID_STEP_1, ID_STEP_5, ID_STEP_10, ID_ALLOW_NEGATIVE].contains(&id.as_str()) {
                 let prefs = Prefs {
                     step: *step.read(),
@@ -201,7 +249,13 @@ impl App for Contador {
         }
 
         if let Some(handle) = menu_handle.read().as_ref() {
-            sync_menu(handle, *count.read(), *step.read(), *allow_negative.read());
+            sync_menu(
+                handle,
+                *count.read(),
+                *step.read(),
+                *allow_negative.read(),
+                &history.read(),
+            );
         }
 
         let palette = barrier_kit::theme::resolved();
@@ -229,30 +283,16 @@ impl App for Contador {
                         rect()
                             .direction(Direction::Horizontal)
                             .spacing(16.0)
-                            .child(Button::new("−").on_press({
-                                let mut count = count;
-                                let step = step;
-                                let allow_negative = allow_negative;
-                                move |_| {
-                                    let s = *step.read();
-                                    let current = *count.read();
-                                    let next = current.saturating_sub(s);
-                                    count.set(if next < 0 && !*allow_negative.read() {
-                                        0
-                                    } else {
-                                        next
-                                    });
-                                }
-                            }))
-                            .child(Button::new("+").on_press({
-                                let mut count = count;
-                                let step = step;
-                                move |_| {
-                                    let s = *step.read();
-                                    let current = *count.read();
-                                    count.set(current.saturating_add(s));
-                                }
-                            })),
+                            .child(
+                                Button::new("−").on_press(move |_| {
+                                    pending.write().push(ID_DECREMENT.to_string())
+                                }),
+                            )
+                            .child(
+                                Button::new("+").on_press(move |_| {
+                                    pending.write().push(ID_INCREMENT.to_string())
+                                }),
+                            ),
                     ),
             )
             .into_element()

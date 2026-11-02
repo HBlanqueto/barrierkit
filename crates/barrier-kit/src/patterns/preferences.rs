@@ -2,9 +2,11 @@
 
 use freya_components::scrollviews::ScrollView;
 use freya_core::prelude::*;
+use serde::{Deserialize, Serialize};
 use torin::prelude::{Direction, Gaps, Size};
 use vow_design::{LIST_GROUP, Rgba, SPACE_2};
 
+use crate::app::{load_restoration, save_restoration};
 use crate::controls::SearchField;
 use crate::sidebar::{Sidebar, SidebarAccount, SidebarItem, SidebarSection};
 use crate::symbol::Symbol;
@@ -63,6 +65,7 @@ impl PaneGroup {
 
 #[derive(PartialEq)]
 pub struct PreferencesWindow {
+    restoration: Option<&'static str>,
     account: Option<(&'static str, &'static str, &'static str)>,
     groups: Vec<PaneGroup>,
 }
@@ -70,9 +73,15 @@ pub struct PreferencesWindow {
 impl PreferencesWindow {
     pub fn new() -> Self {
         Self {
+            restoration: None,
             account: None,
             groups: Vec::new(),
         }
+    }
+
+    pub fn restoration(mut self, app_id: &'static str) -> Self {
+        self.restoration = Some(app_id);
+        self
     }
 
     pub fn account(
@@ -103,6 +112,11 @@ impl Default for PreferencesWindow {
 
 type Hit = (&'static str, Option<&'static str>);
 
+#[derive(Default, Serialize, Deserialize)]
+struct Restored {
+    pane: String,
+}
+
 pub fn index(panes: &[&Pane]) -> SearchIndex<Hit> {
     let mut index = SearchIndex::new();
     for pane in panes {
@@ -122,7 +136,23 @@ pub fn index(panes: &[&Pane]) -> SearchIndex<Hit> {
 impl Component for PreferencesWindow {
     fn render(&self) -> impl IntoElement {
         let first = self.panes().next().map(|pane| pane.id).unwrap_or_default();
-        let history = use_state(|| History::new(first));
+        let restoration = self.restoration;
+        let restored = restoration
+            .map(load_restoration::<Restored>)
+            .and_then(|state| {
+                self.panes()
+                    .map(|pane| pane.id)
+                    .find(|id| *id == state.pane)
+            });
+        let history = use_state(|| History::new(restored.unwrap_or(first)));
+        use_side_effect(move || {
+            let pane = history.read().current().to_string();
+            if let Some(app_id) = restoration
+                && let Err(error) = save_restoration(app_id, &Restored { pane })
+            {
+                tracing::warn!(%error, "preferencias: no se guardó el panel");
+            }
+        });
         let query = use_state(String::new);
         let mut highlighted: State<Option<&'static str>> = use_state(|| None);
         let current = *history.read().current();
