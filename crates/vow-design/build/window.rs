@@ -224,9 +224,10 @@ pub(super) fn emit_fullscreen_glass(out: &mut String, components: &Value) {
         "The progressive glass behind the titlebar in full screen.",
     );
     out.push_str(&format!(
-        ": FullscreenGlassMetrics = FullscreenGlassMetrics {{ height: {}, blur: {}, content_top: {}, tint: &[{}], mask: &[{}] }};\n\n",
+        ": FullscreenGlassMetrics = FullscreenGlassMetrics {{ height: {}, blur: {}, bands: {}, content_top: {}, tint: &[{}], mask: &[{}] }};\n\n",
         field("height"),
         field("blur"),
+        integer(components, &path("bands"), COMPONENTS),
         field("content-top"),
         stops("tint"),
         stops("mask")

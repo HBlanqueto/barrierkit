@@ -475,6 +475,7 @@ pub struct TitlebarRailMetrics {
 pub struct FullscreenGlassMetrics {
     pub height: f32,
     pub blur: f32,
+    pub bands: usize,
     pub content_top: f32,
     pub tint: &'static [(f32, f32)],
     pub mask: &'static [(f32, f32)],

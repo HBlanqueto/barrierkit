@@ -714,6 +714,7 @@
   --window-superellipse-exponent: 2.000000;
   --window-titlebar-double-click-interval-ms: 400ms;
   --window-titlebar-double-click-slop: 4px;
+  --window-titlebar-fullscreen-glass-bands: 12px;
   --window-titlebar-fullscreen-glass-blur: 30px;
   --window-titlebar-fullscreen-glass-content-top: 74px;
   --window-titlebar-fullscreen-glass-height: 96px;
