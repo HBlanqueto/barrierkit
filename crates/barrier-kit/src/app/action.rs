@@ -5,12 +5,8 @@ use crate::menu::{CheckState, MenuItem};
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ShortcutKey {
     Char(char),
-    Up,
-    Down,
     Left,
     Right,
-    Return,
-    Escape,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -33,12 +29,8 @@ impl Shortcut {
             (ShortcutKey::Char(c), Key::Character(s)) => {
                 s.chars().eq(c.to_lowercase()) || s.chars().eq(c.to_uppercase())
             }
-            (ShortcutKey::Up, Key::Named(NamedKey::ArrowUp))
-            | (ShortcutKey::Down, Key::Named(NamedKey::ArrowDown))
-            | (ShortcutKey::Left, Key::Named(NamedKey::ArrowLeft))
-            | (ShortcutKey::Right, Key::Named(NamedKey::ArrowRight))
-            | (ShortcutKey::Return, Key::Named(NamedKey::Enter))
-            | (ShortcutKey::Escape, Key::Named(NamedKey::Escape)) => true,
+            (ShortcutKey::Left, Key::Named(NamedKey::ArrowLeft))
+            | (ShortcutKey::Right, Key::Named(NamedKey::ArrowRight)) => true,
             _ => false,
         };
         same_key && modifiers == self.modifiers
@@ -58,12 +50,8 @@ impl Shortcut {
         }
         parts.push(match self.key {
             ShortcutKey::Char(c) => c.to_uppercase().to_string(),
-            ShortcutKey::Up => "Up".into(),
-            ShortcutKey::Down => "Down".into(),
             ShortcutKey::Left => "Left".into(),
             ShortcutKey::Right => "Right".into(),
-            ShortcutKey::Return => "Return".into(),
-            ShortcutKey::Escape => "Escape".into(),
         });
         parts.join("+")
     }
@@ -115,7 +103,7 @@ mod tests {
     fn a_typed_shortcut_and_its_menu_text_match_the_same_keys() {
         let shortcuts = [
             Shortcut::ctrl(ShortcutKey::Char('n')),
-            Shortcut::ctrl(ShortcutKey::Up),
+            Shortcut::ctrl(ShortcutKey::Left),
             Shortcut::new(
                 Modifiers::CONTROL | Modifiers::SHIFT,
                 ShortcutKey::Char('z'),
@@ -123,7 +111,7 @@ mod tests {
         ];
         let keys = [
             Key::Character("n".into()),
-            Key::Named(NamedKey::ArrowUp),
+            Key::Named(NamedKey::ArrowLeft),
             Key::Character("z".into()),
         ];
         for (shortcut, key) in shortcuts.iter().zip(&keys) {

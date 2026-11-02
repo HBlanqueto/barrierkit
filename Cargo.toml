@@ -31,17 +31,15 @@ thiserror = "2"
 tracing = "0.1"
 tracing-subscriber = "0.3"
 
-calloop = { version = "0.14", features = ["signals"] }
-nix = { version = "0.31", features = ["signal", "socket", "inotify", "poll"] }
+nix = { version = "0.31", features = ["inotify"] }
 
 zeroize = "1"
 
 serde = { version = "1", features = ["derive"] }
-serde_json = "1"
 toml = "0.8"
 toml_edit = "0.22"
 
-zbus = { version = "5", features = ["p2p"] }
+zbus = "5"
 
 
 vow-design = { path = "crates/vow-design" }

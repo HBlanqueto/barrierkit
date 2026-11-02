@@ -25,8 +25,6 @@ pub enum Symbol {
     Pause,
     Backward,
     Forward,
-    Shuffle,
-    Repeat,
     ListBullet,
     SquareGrid,
     SlidersVertical,
@@ -54,12 +52,6 @@ impl Symbol {
             Self::Pause => "M5.5 3.5v9M10.5 3.5v9",
             Self::Backward => "M4 3.5v9M12 3.5 6 8l6 4.5z",
             Self::Forward => "M12 3.5v9M4 3.5 10 8l-6 4.5z",
-            Self::Shuffle => {
-                "M2 5h2.5c3.5 0 4.5 6 8 6H14M2 11h2.5c1 0 1.8-.6 2.4-1.5M9.5 5H14M12 3l2 2-2 2M12 9l2 2-2 2"
-            }
-            Self::Repeat => {
-                "M3 7V6a2 2 0 0 1 2-2h8M11 2l2 2-2 2M13 9v1a2 2 0 0 1-2 2H3M5 14l-2-2 2-2"
-            }
             Self::ListBullet => "M6 4h8M6 8h8M6 12h8M2.5 4h.01M2.5 8h.01M2.5 12h.01",
             Self::SquareGrid => {
                 "M2.5 2.5h4.5v4.5H2.5zM9 2.5h4.5v4.5H9zM2.5 9h4.5v4.5H2.5zM9 9h4.5v4.5H9z"

@@ -35,7 +35,7 @@ use sctk::{
         },
         client::{
             Connection, Proxy, QueueHandle,
-            globals::{GlobalList, registry_queue_init},
+            globals::registry_queue_init,
             protocol::{
                 wl_keyboard, wl_output, wl_pointer, wl_seat, wl_surface::WlSurface, wl_touch,
             },
@@ -63,8 +63,8 @@ pub(crate) struct Connected {
     pub(crate) conn: Connection,
     pub(crate) event_queue: sctk::reexports::client::EventQueue<Runtime>,
     pub(crate) runtime: Runtime,
-    #[allow(dead_code)]
-    pub(crate) globals: GlobalList,
+    #[cfg(feature = "shell")]
+    pub(crate) globals: sctk::reexports::client::globals::GlobalList,
 }
 
 pub(crate) struct Runtime {
@@ -106,7 +106,6 @@ pub(crate) struct Runtime {
     pub(crate) touch_surfaces: std::collections::HashMap<i32, ObjectId>,
     pub(crate) popup_commands: Rc<RefCell<Vec<PopupCommand>>>,
     pub(crate) popup_next_id: Rc<Cell<u64>>,
-    pub(crate) surface_count: Rc<Cell<usize>>,
     pub(crate) window_contexts: Vec<WindowContext>,
     pub(crate) decoration_manager: bool,
     pub(crate) decoration_warned: bool,
@@ -328,7 +327,6 @@ impl Runtime {
             touch_surfaces: std::collections::HashMap::new(),
             popup_commands: Rc::new(RefCell::new(Vec::new())),
             popup_next_id: Rc::new(Cell::new(1)),
-            surface_count: Rc::new(Cell::new(0)),
             window_contexts: Vec::new(),
             decoration_manager: globals.contents().with_list(|list| {
                 list.iter()
@@ -352,6 +350,7 @@ impl Runtime {
             conn,
             event_queue,
             runtime: shell,
+            #[cfg(feature = "shell")]
             globals,
         })
     }

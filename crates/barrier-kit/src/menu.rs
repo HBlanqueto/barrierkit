@@ -475,7 +475,6 @@ pub struct MenuView {
     popup_spec: Option<PopupSpec>,
     reveal_roots: Option<RevealRoots>,
     focused_index: Option<usize>,
-    open_path: Option<Rc<Vec<usize>>>,
     probe: Option<&'static str>,
 }
 
@@ -502,7 +501,6 @@ impl MenuView {
             popup_spec: None,
             reveal_roots: None,
             focused_index: None,
-            open_path: None,
             probe: None,
         }
     }
@@ -568,11 +566,6 @@ impl MenuView {
         source: impl Fn(&str) -> Option<Vec<MenuItem>> + 'static,
     ) -> Self {
         self.submenu_source = Some(Rc::new(source));
-        self
-    }
-
-    pub fn with_open_path(mut self, path: Vec<usize>) -> Self {
-        self.open_path = Some(Rc::new(path));
         self
     }
 
@@ -655,7 +648,6 @@ impl Clone for MenuView {
             popup_spec: self.popup_spec.clone(),
             reveal_roots: self.reveal_roots.clone(),
             focused_index: self.focused_index,
-            open_path: self.open_path.clone(),
             probe: self.probe,
         }
     }

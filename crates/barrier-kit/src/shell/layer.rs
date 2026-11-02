@@ -162,7 +162,6 @@ pub fn run_layer(app: AppComponent, spec: LayerSpec) -> Result<(), RunError> {
         last_serial: shell.last_input_serial.clone(),
         owner: surface.id(),
         current: None,
-        surface_count: shell.surface_count.clone(),
         opens_left: Rc::new(Cell::new(false)),
         scroll_shift: Rc::new(Cell::new(0.0)),
     };
@@ -222,7 +221,6 @@ pub fn run_layer(app: AppComponent, spec: LayerSpec) -> Result<(), RunError> {
         fractional,
         viewport,
     });
-    shell.surface_count.set(shell.surfaces.len());
 
     let mut event_loop: EventLoop<Runtime> = EventLoop::try_new()
         .map_err(|_| RunError::EventLoop("calloop EventLoop::try_new failed"))?;

@@ -36,10 +36,6 @@ pub struct SidebarControl {
 }
 
 impl SidebarControl {
-    pub fn visible(&self) -> bool {
-        *self.visible.read()
-    }
-
     pub fn occupied(&self) -> f32 {
         *self.occupied.read()
     }

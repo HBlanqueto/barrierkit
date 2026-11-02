@@ -8,7 +8,6 @@ license.workspace = true
 repository.workspace = true
 
 [features]
-default = []
 client = ["dep:wayland-client", "dep:wayland-protocols-wlr", "wayland-protocols-wlr?/client"]
 server = ["dep:wayland-server", "dep:wayland-protocols-wlr", "wayland-protocols-wlr?/server"]
 

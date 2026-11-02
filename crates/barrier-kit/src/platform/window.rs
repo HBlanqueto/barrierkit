@@ -175,7 +175,6 @@ pub struct WindowControls {
     pub title: String,
     pub fixed: bool,
     pub(super) surface_id: ObjectId,
-    pub(super) menu_handle: Option<crate::app_menu::MenuHandle>,
     pub focus_bar: State<bool>,
     pub focus_overlay: bool,
     pub focus_bar_height: State<f32>,
@@ -209,10 +208,6 @@ impl WindowControls {
 
     pub fn get() -> Self {
         freya_core::prelude::consume_root_context()
-    }
-
-    pub fn pointer_serial(&self) -> u32 {
-        self.pointer_serial.get()
     }
 
     pub fn present(&self, activation_token: String) {
@@ -264,21 +259,6 @@ impl WindowControls {
             .push(WindowCommand::Resize(self.pointer_serial.get(), edge));
         self.ping.ping();
     }
-
-    pub fn surface_id(&self) -> ObjectId {
-        self.surface_id.clone()
-    }
-
-    pub fn menu_handle(&self) -> Option<crate::app_menu::MenuHandle> {
-        self.menu_handle.clone()
-    }
-
-    pub fn open_window(&self, app: AppComponent, options: WindowOptions) {
-        self.queue
-            .borrow_mut()
-            .push(WindowCommand::Open(app, options));
-        self.ping.ping();
-    }
 }
 
 pub(crate) enum WindowCommand {
@@ -289,7 +269,6 @@ pub(crate) enum WindowCommand {
     ToggleFullscreen,
     Move(u32),
     Resize(u32, WindowEdge),
-    Open(AppComponent, WindowOptions),
     Present(String),
 }
 
@@ -313,7 +292,7 @@ pub fn run_window(app: AppComponent, options: WindowOptions) -> Result<(), RunEr
         conn,
         event_queue,
         runtime: mut shell,
-        globals: _,
+        ..
     } = Runtime::connect()?;
     shell
         .create_window(app, options)
@@ -441,7 +420,6 @@ impl Runtime {
             title: options.title.clone(),
             fixed,
             surface_id,
-            menu_handle: menu_handle.clone(),
             focus_bar: State::create_global(false),
             focus_overlay: self
                 .focus_manager
@@ -469,7 +447,6 @@ impl Runtime {
             last_serial: self.last_input_serial.clone(),
             owner: surface.id(),
             current: None,
-            surface_count: self.surface_count.clone(),
             opens_left: Rc::new(Cell::new(false)),
             scroll_shift: Rc::new(Cell::new(0.0)),
         };
@@ -524,7 +501,6 @@ impl Runtime {
             fractional,
             viewport,
         });
-        self.surface_count.set(self.surfaces.len());
         Some(controls)
     }
 
@@ -533,16 +509,9 @@ impl Runtime {
         for context in contexts {
             let commands = std::mem::take(&mut *context.queue.borrow_mut());
             for command in commands {
-                match command {
-                    WindowCommand::Open(app, options) => {
-                        self.create_window(app, options);
-                        continue;
-                    }
-                    WindowCommand::Close => {
-                        self.close_window(context.controls.surface_id.clone());
-                        continue;
-                    }
-                    _ => {}
+                if let WindowCommand::Close = command {
+                    self.close_window(context.controls.surface_id.clone());
+                    continue;
                 }
                 let Some(index) = self.surfaces.iter().position(|surface| {
                     matches!(surface.role, SurfaceRole::Window(_))
@@ -584,7 +553,7 @@ impl Runtime {
                             activation.activate(token, window.wl_surface());
                         }
                     }
-                    WindowCommand::Open(..) | WindowCommand::Close => unreachable!(),
+                    WindowCommand::Close => unreachable!(),
                 }
                 self.surfaces[index].needs_redraw = true;
             }
@@ -748,7 +717,6 @@ impl Runtime {
             self.surfaces.remove(index);
             self.window_contexts
                 .retain(|ctx| ctx.controls.surface_id != surface_id);
-            self.surface_count.set(self.surfaces.len());
         }
     }
 }

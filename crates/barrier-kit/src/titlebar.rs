@@ -18,21 +18,17 @@ use vow_design::{
 };
 
 use crate::ProbeExt;
-use crate::platform::{DecorationResponse, WindowControls, WindowEdge, WindowStatus};
+use crate::platform::{DecorationResponse, WindowControls, WindowStatus};
 
 #[derive(PartialEq)]
 pub struct Titlebar {
     preview: Option<Preview>,
     title: Option<String>,
-    on_close: Option<Callback<(), ()>>,
     sidebar: bool,
     left: Option<Element>,
     right: Option<Element>,
     probe: Option<&'static str>,
     spacing: f32,
-    padding_x: Option<f32>,
-    title_font: Option<vow_design::Font>,
-    title_line_height: Option<f32>,
 }
 
 #[derive(Clone, PartialEq)]
@@ -53,15 +49,11 @@ impl Titlebar {
         Self {
             preview: None,
             title: None,
-            on_close: None,
             sidebar: false,
             left: None,
             right: None,
             probe: None,
             spacing: 0.0,
-            padding_x: None,
-            title_font: None,
-            title_line_height: None,
         }
     }
 
@@ -73,25 +65,16 @@ impl Titlebar {
                 fixed,
             }),
             title: None,
-            on_close: None,
             sidebar: false,
             left: None,
             right: None,
             probe: None,
             spacing: 0.0,
-            padding_x: None,
-            title_font: None,
-            title_line_height: None,
         }
     }
 
     pub fn title(mut self, title: impl Into<String>) -> Self {
         self.title = Some(title.into());
-        self
-    }
-
-    pub fn on_close(mut self, callback: impl Into<Callback<(), ()>>) -> Self {
-        self.on_close = Some(callback.into());
         self
     }
 
@@ -112,21 +95,6 @@ impl Titlebar {
 
     pub fn spacing(mut self, spacing: f32) -> Self {
         self.spacing = spacing;
-        self
-    }
-
-    pub fn padding_x(mut self, padding_x: f32) -> Self {
-        self.padding_x = Some(padding_x);
-        self
-    }
-
-    pub fn title_font(mut self, font: vow_design::Font) -> Self {
-        self.title_font = Some(font);
-        self
-    }
-
-    pub fn title_line_height(mut self, line_height: f32) -> Self {
-        self.title_line_height = Some(line_height);
         self
     }
 }
@@ -233,16 +201,12 @@ impl Component for Titlebar {
             Some(
                 rect()
                     .opacity(lights_opacity)
-                    .child(window_traffic_lights(
-                        self.on_close.clone(),
-                        status.activated,
-                        fixed,
-                    ))
+                    .child(window_traffic_lights(status.activated, fixed))
                     .into_element(),
             )
         };
 
-        let title_font = self.title_font.unwrap_or(TITLEBAR.font);
+        let title_font = TITLEBAR.font;
         let mut title_label = label()
             .text(title.clone())
             .font_family(title_font.family)
@@ -251,9 +215,6 @@ impl Component for Titlebar {
             .color(rgba(title_color))
             .max_lines(1)
             .text_overflow(TextOverflow::Ellipsis);
-        if let Some(line_height) = self.title_line_height {
-            title_label = title_label.line_height(line_height);
-        }
         if let Some(id) = self.probe {
             title_label = title_label.a11y_builder(move |node| node.set_author_id(id));
         }
@@ -269,7 +230,7 @@ impl Component for Titlebar {
             } else {
                 (TITLEBAR_CLIENT_HEIGHT as f32, 0.0, 10.0)
             };
-            let padding_x = self.padding_x.unwrap_or(default_padding_x);
+            let padding_x = default_padding_x;
             let occupied = control.map_or(0.0, |control| control.occupied());
             let inset = if island { SIDEBAR.inset as f32 } else { 0.0 };
             let lights_x = inset + SIDEBAR.traffic_x as f32;
@@ -414,11 +375,7 @@ impl Component for Titlebar {
 
 pub(crate) const TITLEBAR_OVERLAY_LAYER: i16 = i16::MAX / 32;
 
-pub fn window_traffic_lights(
-    on_close: Option<Callback<(), ()>>,
-    focused: bool,
-    fixed: bool,
-) -> TrafficLights {
+pub fn window_traffic_lights(focused: bool, fixed: bool) -> TrafficLights {
     let behavior = *window_behavior();
     let green = green_action(behavior.green_button, fixed);
     TrafficLights::new()
@@ -429,10 +386,7 @@ pub fn window_traffic_lights(
         .on_action(move |kind| {
             let controls = WindowControls::get();
             match kind {
-                ButtonKind::Close => match &on_close {
-                    Some(on_close) => on_close.call(()),
-                    None => controls.close(),
-                },
+                ButtonKind::Close => controls.close(),
                 ButtonKind::Minimize => controls.minimize(),
                 ButtonKind::Maximize if fixed => controls.toggle_vertical_maximize(),
                 ButtonKind::Maximize => run_action(&controls, green),
@@ -563,80 +517,6 @@ fn rgba(color: Rgba) -> Color {
 
 pub fn app_id(app_name: &str) -> String {
     format!("{NATIVE_APP_ID_PREFIX}{app_name}")
-}
-
-pub fn resize_edges() -> Element {
-    let controls = WindowControls::get();
-    let make = |edge: WindowEdge, position: Position, width: Size, height: Size| {
-        let controls = controls.clone();
-        rect()
-            .position(position)
-            .width(width)
-            .height(height)
-            .background(Color::TRANSPARENT)
-            .on_mouse_down(move |event: Event<MouseEventData>| {
-                if event.button == Some(MouseButton::Left) {
-                    controls.resize(edge);
-                }
-            })
-            .into_element()
-    };
-    let edge = Size::px(6.0);
-    let corner = Size::px(12.0);
-    rect()
-        .position(Position::new_absolute().top(0.0).left(0.0))
-        .width(Size::window_percent(100.0))
-        .height(Size::window_percent(100.0))
-        .background(Color::TRANSPARENT)
-        .child(make(
-            WindowEdge::Top,
-            Position::new_absolute().top(0.0).left(0.0),
-            Size::fill(),
-            edge.clone(),
-        ))
-        .child(make(
-            WindowEdge::Bottom,
-            Position::new_absolute().bottom(0.0).left(0.0),
-            Size::fill(),
-            edge.clone(),
-        ))
-        .child(make(
-            WindowEdge::Left,
-            Position::new_absolute().top(0.0).left(0.0),
-            edge.clone(),
-            Size::fill(),
-        ))
-        .child(make(
-            WindowEdge::Right,
-            Position::new_absolute().top(0.0).right(0.0),
-            edge.clone(),
-            Size::fill(),
-        ))
-        .child(make(
-            WindowEdge::TopLeft,
-            Position::new_absolute().top(0.0).left(0.0),
-            corner.clone(),
-            corner.clone(),
-        ))
-        .child(make(
-            WindowEdge::TopRight,
-            Position::new_absolute().top(0.0).right(0.0),
-            corner.clone(),
-            corner.clone(),
-        ))
-        .child(make(
-            WindowEdge::BottomLeft,
-            Position::new_absolute().bottom(0.0).left(0.0),
-            corner.clone(),
-            corner.clone(),
-        ))
-        .child(make(
-            WindowEdge::BottomRight,
-            Position::new_absolute().bottom(0.0).right(0.0),
-            corner.clone(),
-            corner,
-        ))
-        .into_element()
 }
 
 #[cfg(test)]

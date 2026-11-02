@@ -119,7 +119,6 @@ pub struct Popups {
     pub(crate) last_serial: Rc<Cell<u32>>,
     pub(crate) owner: ObjectId,
     pub(crate) current: Option<PopupId>,
-    pub(crate) surface_count: Rc<Cell<usize>>,
     pub(crate) opens_left: Rc<Cell<bool>>,
     pub(crate) scroll_shift: Rc<Cell<f32>>,
 }
@@ -154,10 +153,6 @@ impl Popups {
             .push(PopupCommand::Reposition { id, spec });
         self.ping.ping();
     }
-
-    pub fn surface_count(&self) -> usize {
-        self.surface_count.get()
-    }
 }
 
 #[cfg(test)]
@@ -175,7 +170,6 @@ impl Popups {
             last_serial: Rc::new(Cell::new(0)),
             owner,
             current,
-            surface_count: Rc::new(Cell::new(0)),
             opens_left: Rc::new(Cell::new(false)),
             scroll_shift: Rc::new(Cell::new(0.0)),
         };
@@ -397,6 +391,7 @@ impl Runtime {
             }
         };
 
+        #[cfg(feature = "shell")]
         if parent.is_none()
             && self.surfaces[owner_index]
                 .role
@@ -422,7 +417,6 @@ impl Runtime {
             last_serial: self.last_input_serial.clone(),
             owner: wl_surface.id(),
             current: Some(id),
-            surface_count: self.surface_count.clone(),
             opens_left: opens_left.clone(),
             scroll_shift: Rc::new(Cell::new(0.0)),
         };
@@ -487,7 +481,6 @@ impl Runtime {
             fractional,
             viewport,
         });
-        self.surface_count.set(self.surfaces.len());
     }
     pub(crate) fn reposition_popup(&mut self, id: PopupId, spec: PopupSpec) {
         let Some(index) = self
@@ -554,7 +547,6 @@ impl Runtime {
         let mut window = self.surfaces.remove(index);
         drop(std::mem::replace(&mut window.role, SurfaceRole::None));
         drop(window);
-        self.surface_count.set(self.surfaces.len());
     }
 }
 

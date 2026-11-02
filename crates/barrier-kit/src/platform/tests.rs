@@ -43,7 +43,6 @@ fn window_controls(status: WindowStatus) -> WindowControls {
         focus_bar: freya_core::prelude::State::create(false),
         focus_overlay: false,
         focus_bar_height: freya_core::prelude::State::create(28.0),
-        menu_handle: None,
     }
 }
 
@@ -383,6 +382,7 @@ fn destroy_fractional_objects_is_safe_when_missing() {
     assert!(viewport.is_none());
 }
 
+#[cfg(feature = "shell")]
 #[test]
 fn extension_slot_typed_access() {
     use freya_core::integration::Runner;
@@ -418,6 +418,7 @@ fn extension_slot_typed_access() {
     assert_eq!(ext.state_mut::<String>(), None);
 }
 
+#[cfg(feature = "shell")]
 #[test]
 fn extension_role_parent_popup_default_is_false() {
     use std::{any::Any, os::unix::net::UnixStream};

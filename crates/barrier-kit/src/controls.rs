@@ -141,11 +141,6 @@ impl ToolGroup {
         self
     }
 
-    pub fn island(mut self) -> Self {
-        self.style = ToolGroupStyle::Island;
-        self
-    }
-
     pub fn child(mut self, child: impl IntoElement) -> Self {
         self.children.push(child.into_element());
         self
@@ -340,8 +335,6 @@ pub struct Slider {
     disabled: bool,
     on_change: Option<Callback<usize, ()>>,
     probe: Option<&'static str>,
-    knob_id: Option<&'static str>,
-    step_ids: &'static [&'static str],
     tint: Tint,
     key: DiffKey,
 }
@@ -355,8 +348,6 @@ impl Slider {
             disabled: false,
             on_change: None,
             probe: None,
-            knob_id: None,
-            step_ids: &[],
             tint: Tint::Accent,
             key: DiffKey::None,
         }
@@ -389,12 +380,6 @@ impl Slider {
 
     pub fn key(mut self, key: impl Into<DiffKey>) -> Self {
         self.key = key.into();
-        self
-    }
-
-    pub fn sub_ids(mut self, knob: &'static str, steps: &'static [&'static str]) -> Self {
-        self.knob_id = Some(knob);
-        self.step_ids = steps;
         self
     }
 }
@@ -518,7 +503,7 @@ impl Component for Slider {
                 .background(color(palette.control_border))
                 .into_element()
         });
-        let mut knob_rect = rect()
+        let knob_rect = rect()
             .position(
                 Position::new_absolute()
                     .left(knob_x)
@@ -535,9 +520,6 @@ impl Component for Slider {
                 0.0,
                 knob_shadow,
             ));
-        if let Some(id) = self.knob_id {
-            knob_rect = knob_rect.a11y_builder(move |node| node.set_author_id(id));
-        }
 
         let last = self.steps.saturating_sub(1);
         let labels = self
@@ -546,7 +528,7 @@ impl Component for Slider {
             .enumerate()
             .take(self.steps)
             .filter(|(i, _)| *i == 0 || *i == last)
-            .map(|(i, text)| {
+            .map(|(_, text)| {
                 let label_node = label()
                     .text(*text)
                     .font_family(TEXT.family)
@@ -555,11 +537,7 @@ impl Component for Slider {
                     .line_height(CAPTION.line_height as f32 / CAPTION.size as f32)
                     .max_lines(1)
                     .color(rgba(palette.label));
-                let mut wrapper = rect().child(label_node);
-                if let Some(id) = self.step_ids.get(i).copied() {
-                    wrapper = wrapper.a11y_builder(move |node| node.set_author_id(id));
-                }
-                wrapper.into_element()
+                rect().child(label_node).into_element()
             });
         let labels_row = rect()
             .position(Position::new_absolute().left(0.0).top(knob + label_gap))

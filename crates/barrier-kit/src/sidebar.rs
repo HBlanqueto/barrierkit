@@ -102,7 +102,6 @@ fn chevron_svg(down: bool, stroke: f32) -> String {
 pub struct Sidebar {
     children: Vec<Element>,
     traffic_lights: bool,
-    on_close: Option<Callback<(), ()>>,
     probe: Option<&'static str>,
     key: DiffKey,
 }
@@ -125,7 +124,6 @@ impl Sidebar {
         Self {
             children: Vec::new(),
             traffic_lights: false,
-            on_close: None,
             probe: None,
             key: DiffKey::None,
         }
@@ -144,11 +142,6 @@ impl Sidebar {
 
     pub fn traffic_lights(mut self, show: bool) -> Self {
         self.traffic_lights = show;
-        self
-    }
-
-    pub fn on_close(mut self, callback: impl Into<Callback<(), ()>>) -> Self {
-        self.on_close = Some(callback.into());
         self
     }
 
@@ -293,10 +286,7 @@ impl Component for Sidebar {
                     })
                     .a11y_alt("sidebar-traffic-lights")
                     .opacity(lights_opacity)
-                    .child(
-                        window_traffic_lights(self.on_close.clone(), status.activated, fixed)
-                            .vertical(true),
-                    ),
+                    .child(window_traffic_lights(status.activated, fixed).vertical(true)),
             );
         } else if self.traffic_lights
             && lights_shown
@@ -319,11 +309,7 @@ impl Component for Sidebar {
                     .height(Size::px(TITLEBAR.buttons.diameter as f32))
                     .a11y_alt("sidebar-traffic-lights")
                     .opacity(lights_opacity)
-                    .child(window_traffic_lights(
-                        self.on_close.clone(),
-                        status.activated,
-                        fixed,
-                    )),
+                    .child(window_traffic_lights(status.activated, fixed)),
             );
         }
 
@@ -338,7 +324,6 @@ impl Component for Sidebar {
 pub struct SidebarItem {
     label: String,
     icon: Option<&'static str>,
-    app_icon: Option<(&'static str, Rgba)>,
     symbol: Option<(Symbol, Rgba)>,
     badge: Option<u32>,
     selected: bool,
@@ -360,7 +345,6 @@ impl SidebarItem {
         Self {
             label: label.into(),
             icon: None,
-            app_icon: None,
             symbol: None,
             badge: None,
             selected: false,
@@ -373,18 +357,11 @@ impl SidebarItem {
 
     pub fn icon(mut self, svg: &'static str) -> Self {
         self.icon = Some(svg);
-        self.app_icon = None;
         self
     }
 
     pub fn symbol(mut self, symbol: Symbol, tint: Rgba) -> Self {
         self.symbol = Some((symbol, tint));
-        self
-    }
-
-    pub fn app_icon(mut self, svg: &'static str, color: Rgba) -> Self {
-        self.app_icon = Some((svg, color));
-        self.icon = None;
         self
     }
 
@@ -478,25 +455,6 @@ impl Component for SidebarItem {
                 tint,
                 self.selected.then_some(palette.selected_icon_rim),
             ));
-        } else if let Some((svg, bg_color)) = self.app_icon {
-            row = row.child(
-                rect()
-                    .width(Size::px(SIDEBAR.app_icon as f32))
-                    .height(Size::px(SIDEBAR.app_icon as f32))
-                    .corner_radius(SIDEBAR.item_radius as f32)
-                    .background(rgba(bg_color))
-                    .center()
-                    .child(svg_viewer(
-                        Bytes::from_static(svg.as_bytes()),
-                        Rgba {
-                            r: 1.0,
-                            g: 1.0,
-                            b: 1.0,
-                            a: 1.0,
-                        },
-                        SIDEBAR.app_icon,
-                    )),
-            );
         } else if let Some(svg) = self.icon {
             row = row.child(svg_viewer(
                 Bytes::from_static(svg.as_bytes()),

@@ -254,16 +254,6 @@ pub fn traffic_lights_view(
     style: TrafficLightStyle,
     inactive: Rgba,
 ) -> Element {
-    traffic_lights_view_with_fixed(input, lights, style, inactive, false)
-}
-
-pub fn traffic_lights_view_with_fixed(
-    input: TrafficInput,
-    lights: [Rgba; 3],
-    style: TrafficLightStyle,
-    inactive: Rgba,
-    fixed_width: bool,
-) -> Element {
     let visuals = traffic::visual(lights, style, inactive, input);
     let (_, _, diameter) = traffic::button_rect(0);
     let gap = light_gap();
@@ -281,8 +271,8 @@ pub fn traffic_lights_view_with_fixed(
                 .center()
                 .maybe_child(visual.glyph.map(|glyph| {
                     SvgViewer::new((
-                        format!("traffic-view-{index}-{:?}-{fixed_width}", glyph.to_rgba8()),
-                        Bytes::from(glyph_svg(index, glyph, fixed_width)),
+                        format!("traffic-view-{index}-{:?}-false", glyph.to_rgba8()),
+                        Bytes::from(glyph_svg(index, glyph, false)),
                     ))
                     .width(Size::px(TRAFFIC_GLYPHS.box_size))
                     .height(Size::px(TRAFFIC_GLYPHS.box_size))

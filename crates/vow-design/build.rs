@@ -27,7 +27,7 @@ fn main() {
     emit_dialog(&mut out, &tokens, &components);
     emit_popup(&mut out, &tokens, &components);
     emit_tints(&mut out, &tokens, &components);
-    emit_slider(&mut out, &tokens, &components);
+    emit_slider(&mut out, &components);
     emit_checkbox(&mut out, &tokens, &components);
     emit_switch(&mut out, &tokens, &components);
     emit_segmented(&mut out, &tokens, &components);
@@ -320,7 +320,6 @@ fn emit_titlebar(out: &mut String, tokens: &Value, components: &Value) {
          \x20       margin_start: {margin},\n\
          \x20   }},\n\
          \x20   font: {},\n\
-         \x20   rotation: TitleRotation::Horizontal,\n\
          }};\n\n",
         rgba(close),
         rgba(minimize),
@@ -538,25 +537,10 @@ fn emit_tints(out: &mut String, tokens: &Value, components: &Value) {
     let _ = tokens;
 }
 
-fn emit_slider(out: &mut String, tokens: &Value, components: &Value) {
-    let _ = tokens;
+fn emit_slider(out: &mut String, components: &Value) {
     let height = number(components, "components.slider.height", COMPONENTS);
     let track = number(components, "components.slider.track", COMPONENTS);
     let knob = number(components, "components.slider.knob", COMPONENTS);
-    let track_color = color_ref(
-        tokens,
-        default_theme(tokens),
-        string(components, "components.slider.track-color", COMPONENTS),
-        "components.slider.track-color",
-        COMPONENTS,
-    );
-    let fill_color = color_ref(
-        tokens,
-        default_theme(tokens),
-        string(components, "components.slider.fill-color", COMPONENTS),
-        "components.slider.fill-color",
-        COMPONENTS,
-    );
     const_doc(out, "SLIDER", "The Tengen slider metrics and colours.");
     out.push_str(&format!(
         ": SliderMetrics = SliderMetrics {{
@@ -566,36 +550,16 @@ fn emit_slider(out: &mut String, tokens: &Value, components: &Value) {
          \x20   track: {},
 \
          \x20   knob: {},
-\
-         \x20   track_color: {},
-\
-         \x20   fill_color: {},
 }};\n\n",
         float(height),
         float(track),
-        float(knob),
-        rgba(track_color),
-        rgba(fill_color)
+        float(knob)
     ));
 }
 
 fn emit_checkbox(out: &mut String, tokens: &Value, components: &Value) {
     let size = number(components, "components.checkbox.size", COMPONENTS);
     let radius = metric(tokens, components, "components.checkbox.radius", COMPONENTS);
-    let border = color_ref(
-        tokens,
-        default_theme(tokens),
-        string(components, "components.checkbox.border", COMPONENTS),
-        "components.checkbox.border",
-        COMPONENTS,
-    );
-    let on = color_ref(
-        tokens,
-        default_theme(tokens),
-        string(components, "components.checkbox.on", COMPONENTS),
-        "components.checkbox.on",
-        COMPONENTS,
-    );
     let check_stroke = number(components, "components.checkbox.check-stroke", COMPONENTS);
     const_doc(out, "CHECKBOX", "The Tengen checkbox metrics and colours.");
     out.push_str(&format!(
@@ -605,16 +569,10 @@ fn emit_checkbox(out: &mut String, tokens: &Value, components: &Value) {
 \
          \x20   radius: {},
 \
-         \x20   border: {},
-\
-         \x20   on: {},
-\
          \x20   check_stroke: {},
 }};\n\n",
         float(size),
         float(radius),
-        rgba(border),
-        rgba(on),
         float(check_stroke)
     ));
 }
@@ -1091,7 +1049,7 @@ fn emit_list_group(out: &mut String, tokens: &Value, components: &Value) {
 }
 
 fn emit_space(out: &mut String, tokens: &Value) {
-    for step in ["1", "2", "3", "4", "6", "8"] {
+    for step in ["1", "2", "3", "4"] {
         const_doc(
             out,
             &format!("SPACE_{step}"),
@@ -1192,11 +1150,6 @@ fn emit_wallpaper(out: &mut String, tokens: &Value, components: &Value) {
         "appearance.modes.wallpaper.contrast.on-accent",
         COMPONENTS,
     );
-    let on_accent_floor = number(
-        components,
-        "appearance.modes.wallpaper.contrast.on-accent-floor",
-        COMPONENTS,
-    );
     let muted_below = number(
         components,
         "appearance.modes.wallpaper.muted.below-saturation",
@@ -1232,12 +1185,6 @@ fn emit_wallpaper(out: &mut String, tokens: &Value, components: &Value) {
         "Minimum contrast of text drawn on the wallpaper accent.",
     );
     out.push_str(&format!(": f32 = {};\n\n", float(on_accent)));
-    const_doc(
-        out,
-        "ON_ACCENT_MIN_CONTRAST_FLOOR",
-        "Floor for on-accent contrast when the ideal 4.5 ratio cannot be met.",
-    );
-    out.push_str(&format!(": f32 = {};\n\n", float(on_accent_floor)));
     const_doc(
         out,
         "MUTED_BELOW_SATURATION",
@@ -1590,16 +1537,6 @@ fn emit_shadows(out: &mut String, tokens: &Value) {
         integer(tokens, "shadow.slint.knob.blur", TOKENS),
         integer(tokens, "shadow.slint.knob.offset-y", TOKENS),
         rgba(color(tokens, "shadow.slint.knob.color", TOKENS)),
-    ));
-    const_doc(
-        out,
-        "WINDOW_OUTER",
-        "The window outer border: light first, dark second.",
-    );
-    out.push_str(&format!(
-        ": [Rgba; 2] = [{}, {}];\n\n",
-        rgba(theme_color(tokens, "light", "window-outer")),
-        rgba(theme_color(tokens, "dark", "window-outer"))
     ));
 }
 
@@ -2286,7 +2223,6 @@ fn menu_palette_value(tokens: &Value, components: &Value, theme: &str, opaque: b
          \x20   item_padding_x: {},\n\
          \x20   font_size: {},\n\
          \x20   shortcut_gap: {},\n\
-         \x20   submenu_offset: {},\n\
          \x20   fg: {},\n\
          \x20   shortcut_color: {},\n\
          \x20   hover_bg: {},\n\
@@ -2294,7 +2230,6 @@ fn menu_palette_value(tokens: &Value, components: &Value, theme: &str, opaque: b
          \x20   disabled_fg: {},\n\
          \x20   separator_color: {},\n\
          \x20   separator_height: {},\n\
-         \x20   separator_margin_x: {},\n\
          \x20   separator_margin_y: {},\n\
          \x20   leading_width: {},\n\
          \x20   mark_dot: {},\n\
@@ -2302,7 +2237,6 @@ fn menu_palette_value(tokens: &Value, components: &Value, theme: &str, opaque: b
          \x20   chevron_size: {},\n\
          \x20   chevron_color: {},\n\
          \x20   bar_hover_bg: {},\n\
-         \x20   bar_hover_fg: {},\n\
          \x20   bar_title_open_bg: {},\n\
          \x20   bar_title_open_radius: {},\n\
          \x20   bar_title_open_height: {},\n\
@@ -2355,11 +2289,6 @@ fn menu_palette_value(tokens: &Value, components: &Value, theme: &str, opaque: b
             "components.shell.menu.item.shortcut-gap",
             COMPONENTS
         )),
-        float(number(
-            components,
-            "components.shell.menu.item.submenu-offset",
-            COMPONENTS
-        )),
         rgba(color_at("components.shell.menu.item.fg")),
         rgba(color_at("components.shell.menu.item.shortcut-color")),
         rgba(color_at("components.shell.menu.item.hover-bg")),
@@ -2369,11 +2298,6 @@ fn menu_palette_value(tokens: &Value, components: &Value, theme: &str, opaque: b
         float(number(
             components,
             "components.shell.menu.separator.height",
-            COMPONENTS
-        )),
-        float(number(
-            components,
-            "components.shell.menu.separator.margin-x",
             COMPONENTS
         )),
         float(number(
@@ -2403,7 +2327,6 @@ fn menu_palette_value(tokens: &Value, components: &Value, theme: &str, opaque: b
         )),
         rgba(color_at("components.shell.menu.chevron.color")),
         rgba(color_at("components.shell.menubar.hover-bg")),
-        rgba(color_at("components.shell.menubar.hover-fg")),
         rgba(color_at("components.shell.menubar.title-open.bg")),
         float(metric(
             tokens,
@@ -2581,31 +2504,11 @@ fn emit_metrics(out: &mut String, tokens: &Value, components: &Value) {
         ("DOCK_GAP", "i32", "components.shell.dock.gap"),
         ("DOCK_PADDING", "i32", "components.shell.dock.padding"),
         ("DOCK_FONT_SIZE", "f32", "components.shell.dock.font-size"),
-        (
-            "DOCK_LABEL_OFFSET",
-            "i32",
-            "components.shell.dock.label-offset",
-        ),
-        (
-            "DOCK_TILE_TEXT_INSET",
-            "i32",
-            "components.shell.dock.text-inset",
-        ),
-        (
-            "DOCK_TILE_TEXT_PADDING",
-            "i32",
-            "components.shell.dock.text-padding",
-        ),
         ("LOCK_FONT_SIZE", "f32", "components.shell.lock.font-size"),
         (
             "LOCK_TITLE_SCALE",
             "f32",
             "components.shell.lock.title-scale",
-        ),
-        (
-            "LOCK_TITLE_Y_DIVISOR",
-            "i32",
-            "components.shell.lock.title-y-divisor",
         ),
         (
             "LOCK_FIELD_WIDTH",
@@ -2618,30 +2521,9 @@ fn emit_metrics(out: &mut String, tokens: &Value, components: &Value) {
             "components.shell.lock.field-height",
         ),
         (
-            "LOCK_FIELD_MIN_WIDTH",
-            "i32",
-            "components.shell.lock.field-min-width",
-        ),
-        (
-            "LOCK_FIELD_MARGIN",
-            "i32",
-            "components.shell.lock.field-margin",
-        ),
-        ("LOCK_FIELD_LINE", "i32", "components.shell.lock.field-line"),
-        (
             "LOCK_LABEL_OFFSET",
             "i32",
             "components.shell.lock.label-offset",
-        ),
-        (
-            "LOCK_MASK_OFFSET",
-            "i32",
-            "components.shell.lock.mask-offset",
-        ),
-        (
-            "LOCK_STATUS_OFFSET",
-            "i32",
-            "components.shell.lock.status-offset",
         ),
         (
             "LOCK_LABEL_FONT_SIZE",
@@ -2652,11 +2534,6 @@ fn emit_metrics(out: &mut String, tokens: &Value, components: &Value) {
             "LOCK_MASK_FONT_SIZE",
             "f32",
             "components.shell.lock.mask-font-size",
-        ),
-        (
-            "LOCK_STATUS_FONT_SIZE",
-            "f32",
-            "components.shell.lock.status-font-size",
         ),
     ];
     for (name, ty, path) in metrics {
@@ -2964,7 +2841,6 @@ fn emit_settings(out: &mut String, tokens: &Value, components: &Value) {
         "components.settings.preview.wall-dark",
         COMPONENTS,
     );
-    let preview_shadow = string(components, "components.settings.preview.shadow", COMPONENTS);
 
     let radio_size = integer(components, "components.settings.radio.size", COMPONENTS) as u32;
     let radio_dot = integer(components, "components.settings.radio.dot", COMPONENTS) as u32;
@@ -3178,7 +3054,6 @@ fn emit_settings(out: &mut String, tokens: &Value, components: &Value) {
          \x20   preview_wall_angle: {preview_wall_angle},\n\
          \x20   preview_wall_light: {},\n\
          \x20   preview_wall_dark: {},\n\
-         \x20   preview_shadow: {preview_shadow:?},\n\
          \x20   radio_size: {radio_size},\n\
          \x20   radio_dot: {radio_dot},\n\
          \x20   radio_gap: {radio_gap},\n\

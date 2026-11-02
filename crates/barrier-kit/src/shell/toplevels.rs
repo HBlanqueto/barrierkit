@@ -159,13 +159,6 @@ impl Toplevels {
         }
     }
 
-    pub fn minimize_all(&self) {
-        let len = self.list.read().len();
-        for index in 0..len {
-            self.minimize(index);
-        }
-    }
-
     pub fn arrange(&self, index: usize, layout: InfinityLayout) {
         if let Some(f) = self.arrange.borrow().as_ref() {
             f(index, layout);

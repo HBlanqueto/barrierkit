@@ -15,7 +15,6 @@ pub struct CollectionView {
     items: Vec<(Element, String)>,
     selected: Vec<usize>,
     on_select: Option<Callback<Vec<usize>, ()>>,
-    on_open: Option<Callback<usize, ()>>,
 }
 
 impl CollectionView {
@@ -25,7 +24,6 @@ impl CollectionView {
             items: Vec::new(),
             selected: Vec::new(),
             on_select: None,
-            on_open: None,
         }
     }
 
@@ -41,11 +39,6 @@ impl CollectionView {
 
     pub fn on_select(mut self, callback: impl Into<Callback<Vec<usize>, ()>>) -> Self {
         self.on_select = Some(callback.into());
-        self
-    }
-
-    pub fn on_open(mut self, callback: impl Into<Callback<usize, ()>>) -> Self {
-        self.on_open = Some(callback.into());
         self
     }
 }
@@ -67,18 +60,15 @@ impl Component for CollectionView {
         let tiles = self.items.iter().enumerate().map(|(index, (icon, name))| {
             let selected = self.selected.clone();
             let on_select = self.on_select.clone();
-            let on_open = self.on_open.clone();
             let is_selected = selected.contains(&index);
             Tile {
                 icon: icon.clone(),
                 name: name.clone(),
                 selected: is_selected,
                 on_press: Callback::new(move |_| {
-                    if is_selected && !*ctrl.read() {
-                        if let Some(cb) = &on_open {
-                            cb.call(index);
-                        }
-                    } else if let Some(cb) = &on_select {
+                    if (!is_selected || *ctrl.read())
+                        && let Some(cb) = &on_select
+                    {
                         cb.call(select(&selected, index, *ctrl.read()));
                     }
                 }),

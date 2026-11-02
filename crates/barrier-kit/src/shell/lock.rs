@@ -122,7 +122,6 @@ impl Runtime {
             last_serial: self.last_input_serial.clone(),
             owner: surface.id(),
             current: None,
-            surface_count: self.surface_count.clone(),
             opens_left: Rc::new(Cell::new(false)),
             scroll_shift: Rc::new(Cell::new(0.0)),
         };
@@ -183,7 +182,6 @@ impl Runtime {
             fractional,
             viewport,
         });
-        self.surface_count.set(self.surfaces.len());
         Some(self.surfaces.len() - 1)
     }
 }

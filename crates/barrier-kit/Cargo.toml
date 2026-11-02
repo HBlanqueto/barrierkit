@@ -29,7 +29,6 @@ vow-appearance.workspace = true
 zeroize.workspace = true
 infinity-protocol = { workspace = true, features = ["client"] }
 sctk.workspace = true
-calloop.workspace = true
 wayland-protocols = { workspace = true }
 wayland-protocols-plasma = { workspace = true, features = ["client"] }
 zbus.workspace = true
@@ -43,4 +42,3 @@ keyboard-types.workspace = true
 [dev-dependencies]
 freya-testing.workspace = true
 png.workspace = true
-tracing-subscriber.workspace = true

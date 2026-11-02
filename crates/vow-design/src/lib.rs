@@ -147,12 +147,6 @@ pub enum TitlebarPosition {
     None,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum TitleRotation {
-    Horizontal,
-    BottomToTop,
-}
-
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Font {
     pub family: &'static str,
@@ -214,7 +208,6 @@ pub struct Titlebar {
     pub thickness: u32,
     pub buttons: TitlebarButtons,
     pub font: Font,
-    pub rotation: TitleRotation,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -311,7 +304,6 @@ pub struct SettingsMetrics {
     pub preview_wall_angle: u32,
     pub preview_wall_light: f32,
     pub preview_wall_dark: f32,
-    pub preview_shadow: &'static str,
     pub radio_size: u32,
     pub radio_dot: u32,
     pub radio_gap: u32,
@@ -355,16 +347,12 @@ pub struct SliderMetrics {
     pub height: f32,
     pub track: f32,
     pub knob: f32,
-    pub track_color: Rgba,
-    pub fill_color: Rgba,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct CheckboxMetrics {
     pub size: f32,
     pub radius: f32,
-    pub border: Rgba,
-    pub on: Rgba,
     pub check_stroke: f32,
 }
 
@@ -699,20 +687,17 @@ pub struct MenuPalette {
     pub item_padding_x: f32,
     pub font_size: f32,
     pub shortcut_gap: f32,
-    pub submenu_offset: f32,
     pub fg: Rgba,
     pub shortcut_color: Rgba,
     pub hover_bg: Rgba,
     pub hover_fg: Rgba,
     pub bar_hover_bg: Rgba,
-    pub bar_hover_fg: Rgba,
     pub bar_title_open_bg: Rgba,
     pub bar_title_open_radius: f32,
     pub bar_title_open_height: f32,
     pub disabled_fg: Rgba,
     pub separator_color: Rgba,
     pub separator_height: f32,
-    pub separator_margin_x: f32,
     pub separator_margin_y: f32,
     pub leading_width: f32,
     pub mark_dot: f32,
@@ -793,8 +778,6 @@ pub const SPACE_SLIDE_EASE: [f32; 4] = [0.32, 0.72, 0.0, 1.0];
 pub const WALLPAPER_DIR: &str = "/run/current-system/sw/share/wallpapers/solid-colors";
 
 pub const NATIVE_APP_ID_PREFIX: &str = "io.github.hblanqueto.malaysia.";
-
-pub const WALLPAPER: &str = "Solid Aqua Blue.png";
 
 include!(concat!(env!("OUT_DIR"), "/tengen.rs"));
 

@@ -1,4 +1,7 @@
-use std::{any::Any, fmt::Debug, rc::Rc};
+use std::{fmt::Debug, rc::Rc};
+
+#[cfg(feature = "shell")]
+use sctk::reexports::protocols::xdg::shell::client::xdg_popup::XdgPopup;
 
 use freya_core::{integration::RenderPipeline, prelude::Color};
 use sctk::{
@@ -14,7 +17,6 @@ use sctk::{
             wp_fractional_scale_v1::{Event as FractionalScaleEvent, WpFractionalScaleV1},
         },
         protocols::wp::viewporter::client::{wp_viewport::WpViewport, wp_viewporter::WpViewporter},
-        protocols::xdg::shell::client::xdg_popup::XdgPopup,
     },
     shell::xdg::{
         XdgSurface,
@@ -57,9 +59,9 @@ pub(crate) struct SurfaceWindow {
     pub(crate) viewport: Option<WpViewport>,
 }
 
+#[cfg(feature = "shell")]
 pub(crate) trait ExtensionRole: Debug {
-    #[allow(dead_code)]
-    fn as_any(&self) -> &dyn Any;
+    fn as_any(&self) -> &dyn std::any::Any;
 
     fn parent_popup(&self, _popup: &XdgPopup) -> bool {
         false
@@ -68,13 +70,14 @@ pub(crate) trait ExtensionRole: Debug {
 
 #[derive(Debug)]
 pub(crate) enum SurfaceRole {
-    #[allow(dead_code)]
+    #[cfg(feature = "shell")]
     Extension(Box<dyn ExtensionRole>),
     Window(Window),
     Popup(Popup),
     None,
 }
 
+#[cfg(feature = "shell")]
 impl SurfaceRole {
     pub(crate) fn parent_popup(&self, popup: &XdgPopup) -> bool {
         match self {
@@ -83,7 +86,6 @@ impl SurfaceRole {
         }
     }
 
-    #[allow(dead_code)]
     pub(crate) fn as_extension_role<T: 'static>(&self) -> Option<&T> {
         match self {
             SurfaceRole::Extension(role) => role.as_any().downcast_ref::<T>(),

@@ -210,7 +210,6 @@ dependencies = [
  "ash",
  "async-channel",
  "async-io",
- "calloop 0.14.5",
  "freya-animation",
  "freya-clipboard",
  "freya-components",
@@ -230,7 +229,6 @@ dependencies = [
  "toml 0.8.23",
  "torin",
  "tracing",
- "tracing-subscriber",
  "vow-appearance",
  "vow-design",
  "wayland-protocols",
@@ -367,7 +365,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "43b32313e937c8721c9d17ee9bf60699a6402b4b7c2cb6ac1bee0ffcaa4b4e5e"
 dependencies = [
  "bitflags 2.13.2",
- "nix",
  "polling",
  "rustix 1.1.5",
  "tracing",
@@ -1239,7 +1236,6 @@ dependencies = [
  "cfg-if",
  "cfg_aliases",
  "libc",
- "memoffset",
 ]
 
 [[package]]
@@ -2352,7 +2348,6 @@ version = "1.28.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7cc1186384beb7dd8eedea376413fd654937285ea6c9cfbb928dc3043ea4b606"
 dependencies = [
- "getrandom",
  "js-sys",
  "serde_core",
  "wasm-bindgen",

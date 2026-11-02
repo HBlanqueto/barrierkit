@@ -509,7 +509,7 @@ fn rail(style: ChromeStyle, footer: Option<Element>, lights_opacity: f32) -> Rec
         .child(
             rect()
                 .opacity(lights_opacity)
-                .child(window_traffic_lights(None, activated, fixed).vertical(true)),
+                .child(window_traffic_lights(activated, fixed).vertical(true)),
         )
         .child(RotatedTitle {
             title,
@@ -626,5 +626,5 @@ fn pill(side: Side, vertical: bool, slide: f32, opacity: f32) -> Rect {
         .maybe(slide < 1.0 || vertical, |el| el.shadow(drop_shadow()))
         .opacity(opacity)
         .layer(Layer::Overlay)
-        .child(window_traffic_lights(None, activated, fixed).vertical(vertical))
+        .child(window_traffic_lights(activated, fixed).vertical(vertical))
 }
