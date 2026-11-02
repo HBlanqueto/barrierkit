@@ -147,7 +147,7 @@ impl Component for Titlebar {
         let tinted = crate::backdrop::tinted().is_some();
         let ink = crate::style::Palette::current();
         let background = if tinted || overlaid {
-            vow_design::Rgba::rgba8(0, 0, 0, 0.0)
+            vow_design::Rgba::TRANSPARENT
         } else if sidebar || status.activated {
             crate::theme::surface_background(&resolved, crate::theme::SurfaceKind::Toplevel)
         } else {

@@ -470,7 +470,7 @@ fn rail(style: ChromeStyle, footer: Option<Element>, lights_opacity: f32) -> Rec
     let island = resolved.sidebar.style == SidebarStyle::Island;
     let overlaid = fullscreen_overlay().0;
     let background = if island || overlaid {
-        Rgba::rgba8(0, 0, 0, 0.0)
+        Rgba::TRANSPARENT
     } else if activated {
         surface_background(&resolved, SurfaceKind::Toplevel)
     } else {
@@ -573,7 +573,7 @@ impl Component for RotatedTitle {
 fn resting_edge(edge: RestingEdge, vertical: bool) -> Rect {
     let resolved = crate::theme::resolved();
     let (thickness, fill) = match edge {
-        RestingEdge::None => (0.0, Rgba::rgba8(0, 0, 0, 0.0)),
+        RestingEdge::None => (0.0, Rgba::TRANSPARENT),
         RestingEdge::Line => (TITLEBAR_RAIL.edge_line, resolved.sidebar.palette.line),
         RestingEdge::Accent => (TITLEBAR_RAIL.edge_accent, Palette::current().accent),
     };

@@ -11,6 +11,8 @@ pub struct Rgba {
 }
 
 impl Rgba {
+    pub const TRANSPARENT: Self = Self::rgba8(0, 0, 0, 0.0);
+
     pub fn mix(self, other: Self, amount: f32) -> Self {
         let amount = amount.clamp(0.0, 1.0);
         Self {
