@@ -7,6 +7,7 @@ members = [
     "crates/vow-design",
     "crates/vow-appearance",
     "crates/infinity-protocol",
+    "crates/tengen-app-show",
 ]
 default-members = [
     "crates/barrier-kit",
@@ -42,6 +43,7 @@ zbus = { version = "5", features = ["p2p"] }
 
 
 vow-design = { path = "crates/vow-design" }
+barrier-kit = { path = "crates/barrier-kit" }
 vow-appearance = { path = "crates/vow-appearance" }
 infinity-protocol = { path = "crates/infinity-protocol" }
 

@@ -30,6 +30,7 @@ The Skia prebuild for `freya-skia-bindings` 0.98.0 lives in `nix/skia.nix`.
 nix develop
 ./dev.sh examples          # lista los ejemplos
 ./dev.sh example window_csd # abre una ventana contra el WAYLAND_DISPLAY actual
+cargo run -p tengen-app-show # catálogo de componentes (Master Tengen App Show)
 ```
 
 Qué se espera en GNOME (Mutter) y qué requiere Malaysia:

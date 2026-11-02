@@ -2071,6 +2071,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "tengen-app-show"
+version = "0.1.0"
+dependencies = [
+ "barrier-kit",
+ "freya-core",
+ "torin",
+ "tracing",
+ "tracing-subscriber",
+ "vow-design",
+]
+
+[[package]]
 name = "thiserror"
 version = "1.0.69"
 source = "registry+https://github.com/rust-lang/crates.io-index"
