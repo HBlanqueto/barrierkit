@@ -4,6 +4,7 @@ use freya_core::prelude::*;
 use torin::prelude::{Alignment, Direction, Position, Size};
 use vow_design::{CAPTION, Rgba, SETTINGS, SWITCH, TEXT};
 
+use crate::backdrop::Tint;
 use crate::interaction::{ring, use_interaction};
 use crate::style::{Palette, text};
 use crate::theme::color;
@@ -47,6 +48,7 @@ pub struct RadioGroup {
     selected: usize,
     disabled: bool,
     on_change: Option<Callback<usize, ()>>,
+    tint: Tint,
     key: DiffKey,
 }
 
@@ -58,8 +60,14 @@ impl RadioGroup {
             selected: 0,
             disabled: false,
             on_change: None,
+            tint: Tint::Accent,
             key: DiffKey::None,
         }
+    }
+
+    pub fn tint(mut self, tint: Tint) -> Self {
+        self.tint = tint;
+        self
     }
 
     pub fn option(mut self, label: &'static str) -> Self {
@@ -103,6 +111,7 @@ impl Component for RadioGroup {
                 selected: choice.is(index),
                 disabled: self.disabled,
                 on_select: choice.select(index),
+                tint: self.tint,
             }
             .into_element()
         });
@@ -121,6 +130,7 @@ struct RadioOption {
     selected: bool,
     disabled: bool,
     on_select: Callback<(), ()>,
+    tint: Tint,
 }
 
 impl Component for RadioOption {
@@ -139,7 +149,7 @@ impl Component for RadioOption {
             .corner_radius(size / 2.0)
             .center();
         circle = if selected {
-            circle.background(color(palette.accent)).child(
+            circle.background(self.tint.fill(&palette)).child(
                 rect()
                     .width(Size::px(dot))
                     .height(Size::px(dot))

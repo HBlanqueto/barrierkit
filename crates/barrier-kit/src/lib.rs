@@ -38,6 +38,10 @@ pub mod context_menu;
 
 pub mod tooltip;
 
+pub mod backdrop;
+
+pub mod adaptive;
+
 pub mod style;
 
 pub mod app;

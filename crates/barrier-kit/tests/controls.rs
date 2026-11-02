@@ -6,6 +6,7 @@ use std::{
 };
 
 use barrier_kit::adornments::{Link, avatar, badge, divider};
+use barrier_kit::backdrop::{Accent, Backdrop, BackdropSource, Tint};
 use barrier_kit::choices::{ColorWell, RadioGroup};
 use barrier_kit::compact::{Face, IconButton, Stepper, ToggleGroup};
 use barrier_kit::controls::{
@@ -33,7 +34,7 @@ use freya_core::prelude::*;
 use freya_testing::TestingRunner;
 use keyboard_types::{Key, NamedKey};
 use torin::prelude::{Alignment, Direction, Gaps, Size, Size2D};
-use vow_design::ACCENT_SWATCHES;
+use vow_design::{ACCENT_SWATCHES, Rgba};
 
 const SIZE: (f32, f32) = (360.0, 240.0);
 const WINDOW_SIZE: (f32, f32) = (900.0, 560.0);
@@ -226,6 +227,41 @@ fn form() -> Element {
         .into_element()
 }
 
+fn backdrop() -> Element {
+    let cover = [
+        Rgba::rgb8(122, 59, 94),
+        Rgba::rgb8(45, 110, 106),
+        Rgba::rgb8(180, 112, 63),
+    ];
+    Backdrop::new(
+        BackdropSource::Colors(cover),
+        rect()
+            .width(Size::px(420.0))
+            .padding(16.0)
+            .spacing(12.0)
+            .child(
+                Form::new().section(
+                    Section::titled("Mezcla")
+                        .row(
+                            Row::new("Fundido")
+                                .control(Switch::new("Fundido").on(true).tint(Tint::Backdrop)),
+                        )
+                        .row(Row::new("Letras").control(Checkbox::new("Letras").checked(true)))
+                        .row(
+                            Row::new("Graves")
+                                .control(Slider::stepped(5).value(3).tint(Tint::Backdrop)),
+                        ),
+                ),
+            )
+            .child(
+                ProgressBar::determinate("Exportando", 0.6)
+                    .tint(Tint::Color(Rgba::rgb8(240, 164, 58))),
+            ),
+    )
+    .accent(Accent::FromBackdrop)
+    .into_element()
+}
+
 fn form_long_text() -> Element {
     rect().width(Size::px(420.0)).child(Form::new()
         .section(
@@ -315,6 +351,7 @@ fn window_cases() -> Vec<Control> {
         ("preferences", preferences),
         ("about", about),
         ("form-long-text", form_long_text),
+        ("backdrop", backdrop),
     ]
 }
 

@@ -198,8 +198,8 @@ fn titlebar_background_follows_the_resolved_window_tint() {
     let (width, _height, unfocused) = render_titlebar_pixels(false, resolved);
     assert_eq!(
         pixel(&unfocused, width, 260, 20),
-        resolved.surfaces.sunken.to_rgba8(),
-        "an unfocused kit titlebar must use the tinted sunken surface"
+        resolved.surfaces.titlebar_inactive.to_rgba8(),
+        "an unfocused kit titlebar must use the tinted inactive titlebar surface"
     );
 }
 

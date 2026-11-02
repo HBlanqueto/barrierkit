@@ -5,6 +5,7 @@ use keyboard_types::{Key, NamedKey};
 use torin::prelude::{Position, Size};
 use vow_design::{KNOB_SHADOW, SLIDER, SLIDER_FAT, SLIDER_KEY_STEP, SWITCH, SYMBOL};
 
+use crate::backdrop::Tint;
 use crate::interaction::use_interaction;
 use crate::style::Palette;
 use crate::symbol::{Symbol, symbol};
@@ -24,6 +25,7 @@ pub struct LevelSlider {
     style: LevelStyle,
     disabled: bool,
     on_change: Option<Callback<f32, ()>>,
+    tint: Tint,
     key: DiffKey,
 }
 
@@ -35,8 +37,14 @@ impl LevelSlider {
             style: LevelStyle::default(),
             disabled: false,
             on_change: None,
+            tint: Tint::Accent,
             key: DiffKey::None,
         }
+    }
+
+    pub fn tint(mut self, tint: Tint) -> Self {
+        self.tint = tint;
+        self
     }
 
     pub fn value(mut self, value: f32) -> Self {
@@ -147,10 +155,17 @@ impl Component for LevelSlider {
                         track_top,
                         run.max(0.0),
                         SLIDER.track,
-                        palette.control_background,
+                        color(palette.control_background),
                     )
                     .child(
-                        bar(-offset, 0.0, knob_x + offset, SLIDER.track, palette.accent).child(
+                        bar(
+                            -offset,
+                            0.0,
+                            knob_x + offset,
+                            SLIDER.track,
+                            self.tint.fill(&palette),
+                        )
+                        .child(
                             rect()
                                 .position(
                                     Position::new_absolute()
@@ -176,7 +191,7 @@ impl Component for LevelSlider {
                 let fill = (measured * fraction).max(SLIDER_FAT.fill_min);
                 root.corner_radius(height / 2.0)
                     .background(color(palette.control_background))
-                    .child(bar(0.0, 0.0, fill, height, palette.accent))
+                    .child(bar(0.0, 0.0, fill, height, self.tint.fill(&palette)))
                     .child(
                         rect()
                             .position(
@@ -192,11 +207,11 @@ impl Component for LevelSlider {
     }
 }
 
-fn bar(left: f32, top: f32, width: f32, height: f32, fill: vow_design::Rgba) -> Rect {
+fn bar(left: f32, top: f32, width: f32, height: f32, fill: impl Into<Fill>) -> Rect {
     rect()
         .position(Position::new_absolute().left(left).top(top))
         .width(Size::px(width))
         .height(Size::px(height))
         .corner_radius(height / 2.0)
-        .background(color(fill))
+        .background(fill)
 }

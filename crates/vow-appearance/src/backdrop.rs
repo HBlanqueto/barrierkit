@@ -250,19 +250,21 @@ impl Backdrop {
     }
 
     pub fn ink(self) -> Rgba {
-        let average = self.average();
-        let (light, dark) = (LIGHT.on_accent, LIGHT.ink_strong);
-        if light.contrast_ratio(average) >= dark.contrast_ratio(average) {
-            light
-        } else {
-            dark
-        }
+        ink_on(self.average())
     }
 
     pub fn accent(self, vivid: Rgba) -> Rgba {
-        let vivid = Oklab::from_rgba(vivid);
-        let chroma = vivid.chroma().max(BACKDROP.accent_min_chroma);
-        let hue = vivid.b.atan2(vivid.a);
+        self.highlight(vivid)
+    }
+
+    pub fn highlights(self) -> [Rgba; 3] {
+        self.layers.map(|layer| self.highlight(layer))
+    }
+
+    fn highlight(self, color: Rgba) -> Rgba {
+        let color = Oklab::from_rgba(color);
+        let chroma = color.chroma().max(BACKDROP.accent_min_chroma);
+        let hue = color.b.atan2(color.a);
         let l = if self.ink() == LIGHT.on_accent {
             BACKDROP.accent_lightness_on_dark
         } else {
@@ -274,6 +276,15 @@ impl Backdrop {
             b: chroma * hue.sin(),
         }
         .to_rgba()
+    }
+}
+
+pub fn ink_on(background: Rgba) -> Rgba {
+    let (light, dark) = (LIGHT.on_accent, LIGHT.ink_strong);
+    if light.contrast_ratio(background) >= dark.contrast_ratio(background) {
+        light
+    } else {
+        dark
     }
 }
 

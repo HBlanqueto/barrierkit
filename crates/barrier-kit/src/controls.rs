@@ -17,6 +17,7 @@ use vow_design::{
 };
 
 use crate::ProbeExt;
+use crate::backdrop::Tint;
 use crate::choices::use_choice;
 use crate::interaction::use_interaction;
 use crate::password::PasswordField;
@@ -341,6 +342,7 @@ pub struct Slider {
     probe: Option<&'static str>,
     knob_id: Option<&'static str>,
     step_ids: &'static [&'static str],
+    tint: Tint,
     key: DiffKey,
 }
 
@@ -355,8 +357,14 @@ impl Slider {
             probe: None,
             knob_id: None,
             step_ids: &[],
+            tint: Tint::Accent,
             key: DiffKey::None,
         }
+    }
+
+    pub fn tint(mut self, tint: Tint) -> Self {
+        self.tint = tint;
+        self
     }
 
     pub fn value(mut self, value: usize) -> Self {
@@ -443,7 +451,7 @@ impl Component for Slider {
         };
 
         let track_color = color(palette.control_background);
-        let fill_color = color(palette.accent);
+        let fill_color = self.tint.fill(&palette);
         let knob_color = Color::WHITE;
         let knob_shadow = color(KNOB_SHADOW.color);
 
@@ -689,6 +697,7 @@ pub struct Switch {
     disabled: bool,
     on_toggle: Option<Callback<bool, ()>>,
     probe: Option<&'static str>,
+    tint: Tint,
     key: DiffKey,
 }
 
@@ -700,8 +709,14 @@ impl Switch {
             disabled: false,
             on_toggle: None,
             probe: None,
+            tint: Tint::Accent,
             key: DiffKey::None,
         }
+    }
+
+    pub fn tint(mut self, tint: Tint) -> Self {
+        self.tint = tint;
+        self
     }
 
     pub fn on(mut self, on: bool) -> Self {
@@ -780,9 +795,12 @@ impl Component for Switch {
         };
 
         let (track, border) = if is_on {
-            (color(palette.accent), Color::TRANSPARENT)
+            (self.tint.fill(&palette), Color::TRANSPARENT)
         } else {
-            (color(palette.control_background), color(palette.separator))
+            (
+                color(palette.control_background).into(),
+                color(palette.separator),
+            )
         };
 
         let mut root = interaction
@@ -1182,6 +1200,7 @@ pub struct Checkbox {
     on_toggle: Option<Callback<bool, ()>>,
     probe: Option<&'static str>,
     width: Size,
+    tint: Tint,
     key: DiffKey,
 }
 
@@ -1194,8 +1213,14 @@ impl Checkbox {
             on_toggle: None,
             probe: None,
             width: Size::auto(),
+            tint: Tint::Accent,
             key: DiffKey::None,
         }
+    }
+
+    pub fn tint(mut self, tint: Tint) -> Self {
+        self.tint = tint;
+        self
     }
 
     pub fn checked(mut self, checked: bool) -> Self {
@@ -1264,9 +1289,9 @@ impl Component for Checkbox {
         };
 
         let box_bg = if *checked.read() {
-            color(palette.accent)
+            self.tint.fill(&palette)
         } else {
-            color(palette.content_background)
+            color(palette.content_background).into()
         };
         let box_border = color(palette.control_border);
         let label_color = if self.disabled {

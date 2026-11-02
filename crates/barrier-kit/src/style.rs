@@ -30,6 +30,10 @@ pub struct Palette {
 
 impl Palette {
     pub fn current() -> Self {
+        try_consume_context::<State<Palette>>().map_or_else(Self::system, |state| *state.read())
+    }
+
+    pub fn system() -> Self {
         let resolved = crate::theme::resolved();
         let base = vow_appearance::palette(resolved.scheme);
         Self {

@@ -6,6 +6,7 @@ use freya_core::prelude::*;
 use torin::prelude::{Direction, Position, Size};
 use vow_design::{PROGRESS, SYMBOL};
 
+use crate::backdrop::Tint;
 use crate::style::Palette;
 use crate::theme::color;
 
@@ -13,6 +14,7 @@ use crate::theme::color;
 pub struct ProgressBar {
     label: &'static str,
     value: Option<f32>,
+    tint: Tint,
 }
 
 impl ProgressBar {
@@ -20,11 +22,21 @@ impl ProgressBar {
         Self {
             label,
             value: Some(value.clamp(0.0, 1.0)),
+            tint: Tint::Accent,
         }
     }
 
     pub fn indeterminate(label: &'static str) -> Self {
-        Self { label, value: None }
+        Self {
+            label,
+            value: None,
+            tint: Tint::Accent,
+        }
+    }
+
+    pub fn tint(mut self, tint: Tint) -> Self {
+        self.tint = tint;
+        self
     }
 }
 
@@ -69,7 +81,7 @@ impl Component for ProgressBar {
                     .width(Size::percent(length * 100.0))
                     .height(Size::fill())
                     .corner_radius(PROGRESS.height / 2.0)
-                    .background(color(palette.accent)),
+                    .background(self.tint.fill(&palette)),
             )
     }
 }
