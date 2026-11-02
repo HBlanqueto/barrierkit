@@ -1137,7 +1137,7 @@ fn island_toolbar_is_centred_with_the_traffic_lights() {
     let app = AppComponent::new(AlignedToolbarCase);
     let (mut test, _) = TestingRunner::new(
         app,
-        Size2D::new(600.0, 400.0),
+        Size2D::new(900.0, 400.0),
         move |runner| runner.provide_root_context(move || State::create(resolved)),
         1.0,
     );

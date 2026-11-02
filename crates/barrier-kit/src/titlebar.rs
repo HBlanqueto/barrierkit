@@ -304,6 +304,11 @@ impl Component for Titlebar {
             .min_width(Size::px(min_slot))
             .height(Size::fill())
             .direction(Direction::Horizontal)
+            .main_align(if self.left.is_none() {
+                Alignment::Center
+            } else {
+                Alignment::Start
+            })
             .cross_align(Alignment::Center)
             .spacing(self.spacing)
             .a11y_alt("titlebar-left-slot")

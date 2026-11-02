@@ -700,7 +700,7 @@ mod traffic_light_tests {
         DecorationResponse, WindowCommand, WindowControls, WindowStatus,
     };
 
-    #[derive(Clone, Copy, PartialEq)]
+    #[derive(Clone, Copy, Debug, PartialEq)]
     enum Layout {
         Titlebar,
         TintedTitlebar,
@@ -735,7 +735,7 @@ mod traffic_light_tests {
         let resolved = resolve(&AppearanceConfig::default(), None);
         let (mut test, _) = TestingRunner::new(
             AppComponent::new(Case(layout)),
-            Size2D::new(600.0, 300.0),
+            Size2D::new(900.0, 300.0),
             move |runner| {
                 let queue = commands.clone();
                 runner.provide_root_context(move || {
@@ -796,7 +796,7 @@ mod traffic_light_tests {
                 commands
                     .iter()
                     .any(|c| matches!(c, WindowCommand::Minimize)),
-                "no minimise command"
+                "no minimise command in {layout:?}"
             );
         }
     }
@@ -805,7 +805,10 @@ mod traffic_light_tests {
     fn without_an_on_close_the_close_light_closes_the_window() {
         for layout in [Layout::Titlebar, Layout::TintedTitlebar, Layout::Sidebar] {
             let commands = press(layout, 0);
-            assert!(commands.iter().any(|c| matches!(c, WindowCommand::Close)));
+            assert!(
+                commands.iter().any(|c| matches!(c, WindowCommand::Close)),
+                "no close command in {layout:?}"
+            );
         }
     }
 }
