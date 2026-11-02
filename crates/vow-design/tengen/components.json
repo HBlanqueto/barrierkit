@@ -395,7 +395,7 @@
           "text-size": 13,
           "selected-bg": "accent",
           "selected-ink": "on-accent",
-          "selected-icon-rim": "#ffffff59",
+          "selected-icon-rim": "#00000033",
           "inactive-selected-bg": "bg-hover",
           "inactive-ink": "ink-inactive",
           "hover-bg": "bg-hover",

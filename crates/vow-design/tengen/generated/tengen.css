@@ -653,7 +653,7 @@
   --window-sidebar-item-padding-x: 8px;
   --window-sidebar-item-radius: var(--radius-sm);
   --window-sidebar-item-selected-bg: var(--accent);
-  --window-sidebar-item-selected-icon-rim: #ffffff59;
+  --window-sidebar-item-selected-icon-rim: #00000033;
   --window-sidebar-item-selected-ink: var(--on-accent);
   --window-sidebar-item-selected-weight: 500;
   --window-sidebar-item-text-size: 13px;
