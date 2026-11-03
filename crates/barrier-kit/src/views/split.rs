@@ -171,7 +171,7 @@ impl Component for SplitView {
         let reveal = use_animation_transition(visible, move |from: bool, to: bool| {
             AnimNum::new(f32::from(u8::from(from)), f32::from(u8::from(to)))
                 .time(if reduced_motion { 0 } else { DURATION_BASE })
-                .ease(Ease::InOut)
+                .ease(Ease::Out)
                 .function(Function::Cubic)
         });
         let shown = reveal.get().value();
@@ -229,6 +229,7 @@ impl Component for SplitView {
                     .width(Size::px(container * shown))
                     .height(Size::fill())
                     .overflow(Overflow::Clip)
+                    .offset_x(container * (shown - 1.0))
                     .child(sidebar().maybe_child((shown >= 1.0).then(|| {
                         rect()
                             .a11y_role(AccessibilityRole::Splitter)
