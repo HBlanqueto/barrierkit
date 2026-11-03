@@ -83,7 +83,6 @@ semáforos, el título y los elementos del rail según un `ChromeStyle`:
 ```rust
 let estilo = ChromeStyle {
     layout: TitlebarLayout::Rail,
-    side: Side::Left,
     rail_width: TITLEBAR_RAIL.width,
     round_lights: false,
     rail_style: RailStyle::Normal,
@@ -98,13 +97,13 @@ WindowChrome::new(estilo, SplitView::new(barra, detalle))
 | `TitlebarLayout` | Qué es | Captura (Rótulo) |
 |---|---|---|
 | `Top` (por defecto) | Titlebar horizontal arriba, con elementos a la izquierda y a la derecha (`Titlebar::left` y `right`) | ![Diseño Top](assets/apps/rotulo-top.png) |
-| `Rail` | Titlebar vertical a un lado, con los semáforos en columna, el título girado 90° y elementos arriba y abajo (`rail_top` y `rail_bottom`) | ![Diseño Rail](assets/apps/rotulo-rail.png) |
+| `Rail` | Titlebar vertical a la izquierda, con los semáforos en columna, el título girado 90° y elementos arriba y abajo (`rail_top` y `rail_bottom`) | ![Diseño Rail](assets/apps/rotulo-rail.png) |
 
 El `Rail` tiene dos estilos:
 
 | `RailStyle` | Qué es | Captura (Rótulo) |
 |---|---|---|
-| `Normal` (por defecto) | Una franja propia a un lado de la ventana | ![Rail normal](assets/apps/rotulo-rail.png) |
+| `Normal` (por defecto) | Una franja propia a la izquierda de la ventana | ![Rail normal](assets/apps/rotulo-rail.png) |
 | `Unified` | Sin franja: la columna va dentro de la barra lateral. Sin barra lateral visible se dibuja como `Normal` | ![Rail unificado](assets/apps/rotulo-unified.png) |
 
 ### Elementos del rail
@@ -129,7 +128,6 @@ sitios.
 
 | Campo | Valores | Efecto |
 |---|---|---|
-| `side` | `Left`, `Right` | Lado del rail |
 | `rail_width` | `TITLEBAR_RAIL.width` o `.width_wide` | Ancho del rail sin elementos |
 | `round_lights` | `bool` | Semáforos redondos o cuadrados (por defecto) |
 | `rail_style` | `Normal`, `Unified` | Franja propia o columna dentro de la barra lateral |
@@ -139,10 +137,6 @@ sitios.
 Algunas combinaciones no tienen sentido y se corrigen solas
 (`ChromeStyle::effective`): el `Rail` unificado con `Drawer`, `Push` o `Popup`
 pasa a `Corner`; en pantalla completa, `reveal` es siempre `Always`.
-
-Rail a la derecha, semáforos redondos, barra lateral plana y modo oscuro:
-
-![Rail derecho con semáforos redondos](assets/apps/rotulo-rail-flat-round.png)
 
 La app Rótulo (capítulo [15](15-apps-de-prueba.md)) prueba todas las
 combinaciones en vivo.
@@ -181,7 +175,7 @@ WindowOptions::new("Ondina", "ondina").fullscreen_bar(FullscreenBar::Progressive
 ```
 
 **Por defecto, todas las apps usan `Solid` («A · Lisa»).** Solo Ondina pide
-`ProgressiveGlass`. Las cuatro salen de la propuesta «Ondina a pantalla
+`ProgressiveGlass`. Las tres salen de la propuesta «Ondina a pantalla
 completa»; «C · Degradado» se descartó. En las capturas, la franja negra de arriba
 es la barra del compositor, añadida a la imagen.
 
@@ -190,34 +184,49 @@ es la barra del compositor, añadida a la imagen.
 | `Solid` («A · Lisa», **por defecto**) | Una banda opaca del color de la ventana, del alto de la titlebar. Corta lo que pasa por debajo con un borde duro | Barra + `FULLSCREEN_BAR.content_top` (44) | ![A · Lisa](assets/estados/barra-lisa.png) |
 | `Glass` («B1 · Vidrio en banda») | Una banda del alto de la titlebar, de borde a borde de la ventana y sobre la barra lateral, que difumina lo de debajo (`FULLSCREEN_BAND`), con tinte y una línea abajo | Barra + `FULLSCREEN_BAND.content_top` (44) | ![B1 · Vidrio en banda](assets/estados/barra-vidrio-banda.png) |
 | `ProgressiveGlass` («B2 · Vidrio progresivo», Ondina) | Difuminado máximo arriba que se desvanece en 96 px, sin línea, de borde a borde de la ventana y sobre la barra lateral ([ADR 0057](../decisiones/0057-cristal-y-barra-lateral-sobre-fondo.md)) | Barra + `FULLSCREEN_GLASS.content_top` (74) | ![B2 · Vidrio progresivo](assets/estados/barra-vidrio-progresivo.png) |
-| `Push` («E · Empuja») | No tapa nada: la titlebar vuelve al diseño y empuja hacia abajo la columna de detalle lo que miden la barra y la titlebar. La barra lateral no se mueve | 0: el contenido baja solo | ![E · Empuja, barra bajada](assets/estados/barra-empuja.png) |
-
-Con `Push` y la barra arriba, el contenido llega al borde superior:
-
-![E · Empuja, barra arriba](assets/estados/barra-empuja-arriba.png)
 
 Solo `Glass` y `ProgressiveGlass` difuminan.
 
+#### Empujar el contenido: `fullscreen_push`
+
+«E · Empuja» no es una barra más, sino una opción que se combina con cualquiera
+de las tres. Por defecto está apagada:
+
+```rust
+WindowOptions::new("Ondina", "ondina")
+    .fullscreen_bar(FullscreenBar::ProgressiveGlass)
+    .fullscreen_push(true)
+```
+
+Con ella, la barra no tapa nada: todo el contenido de la ventana, barra lateral
+incluida, baja lo que miden la barra del compositor y la titlebar
+(`WindowControls::push_offset`). Los semáforos bajan con la titlebar y
+`fullscreen_content_top` es 0.
+
+| Combinación | Cómo se ve |
+|---|---|
+| `Solid` + `fullscreen_push(true)` | ![A · Lisa empujando el contenido](assets/estados/barra-empuja.png) |
+| `ProgressiveGlass` + `fullscreen_push(true)` | ![B2 · Vidrio progresivo empujando el contenido](assets/estados/barra-empuja-vidrio-progresivo.png) |
+| Barra arriba: el contenido llega al borde superior | ![Empuja con la barra arriba](assets/estados/barra-empuja-arriba.png) |
+
 #### Con el `Rail`
 
-El rail usa la misma barra, en vertical. Con la barra del compositor arriba no
-se ve; al bajar, entra desde su lado:
+Con el `Rail`, la titlebar superior no se retrae ni se superpone: se queda
+en su sitio, como en la ventana normal. Solo el rail se oculta con la barra del
+compositor arriba y, al bajar, entra desde la izquierda con la misma barra, en
+vertical:
 
 | `FullscreenBar` | El rail | Cómo se ve |
 |---|---|---|
 | `Solid` («A · Lisa», **por defecto**) | Franja opaca del ancho del rail, encima del contenido | ![Rail con A · Lisa](assets/estados/rail-barra-lisa.png) |
 | `Glass` («B1 · Vidrio en banda») | Franja del ancho del rail que difumina lo de debajo, con una línea en el borde interior | ![Rail con B1 · Vidrio en banda](assets/estados/rail-barra-vidrio-banda.png) |
 | `ProgressiveGlass` («B2 · Vidrio progresivo») | Difuminado máximo en el borde de la ventana que se desvanece hacia dentro en 96 px | ![Rail con B2 · Vidrio progresivo](assets/estados/rail-barra-vidrio-progresivo.png) |
-| `Push` («E · Empuja») | El rail vuelve al diseño y empuja el contenido de lado lo que mide | ![Rail con E · Empuja, barra bajada](assets/estados/rail-barra-empuja.png) |
-
-Con `Push` y la barra arriba, el contenido llega al borde:
-
-![Rail con E · Empuja, barra arriba](assets/estados/rail-barra-empuja-arriba.png)
+| Cualquiera + `fullscreen_push(true)` | El rail vuelve al diseño y empuja el contenido de lado lo que mide; todo baja lo que mide la barra del compositor | ![Rail empujando el contenido](assets/estados/rail-barra-empuja.png) |
 
 ### Modo foco con la barra bajada, por diseño
 
 **El diseño se mantiene al maximizar y en pantalla completa**, también con la
-barra lateral en isla: el `Rail` sigue a su lado.
+barra lateral en isla: el `Rail` sigue a la izquierda.
 
 | `Rail` con isla, maximizada | `Rail` con isla, modo foco |
 |---|---|
@@ -231,7 +240,7 @@ compositor, añadida a la imagen: la app no la dibuja.
 |---|---|---|
 | `Top` (por defecto) | La `Titlebar` sobre el contenido; los semáforos de la barra lateral bajan lo mismo | ![Top con la barra bajada](assets/estados/foco-top.png) |
 | `Rail` unificado | La columna de la barra lateral; los semáforos aparecen con la barra, debajo de ella | ![Rail unificado con la barra bajada](assets/estados/foco-unified.png) |
-| `Rail` | El rail entra desde su lado con la barra elegida (arriba, «Con el `Rail`»); sus semáforos quedan bajo la barra del compositor | ![Rail con la barra bajada](assets/estados/rail-barra-lisa.png) |
+| `Rail` | El rail entra desde la izquierda con la barra elegida (arriba, «Con el `Rail`»); sus semáforos quedan bajo la barra del compositor | ![Rail con la barra bajada](assets/estados/rail-barra-lisa.png) |
 | `Rail` con elementos | Igual, con sus elementos | ![Rail con elementos y la barra bajada](assets/estados/foco-rail-elementos.png) |
 
 ### Qué hace la app

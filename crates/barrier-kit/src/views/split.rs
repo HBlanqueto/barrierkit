@@ -287,7 +287,7 @@ impl Component for SplitView {
                 rect()
                     .width(Size::px(container * shown))
                     .height(Size::fill())
-                    .overflow(Overflow::Clip)
+                    .maybe(shown < 1.0, |el| el.overflow(Overflow::Clip))
                     .offset_x(container * (shown - 1.0))
                     .child(
                         sidebar().maybe_child((self.resizable && shown >= 1.0).then(|| {

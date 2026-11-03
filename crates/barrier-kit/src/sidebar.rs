@@ -14,7 +14,7 @@ use vow_design::{
 
 use crate::ProbeExt;
 use crate::adornments::avatar;
-use crate::chrome::{Side, TitlebarLayout};
+use crate::chrome::TitlebarLayout;
 use crate::interaction::use_interaction;
 use crate::platform::WindowControls;
 use crate::scroll::ScrollView;
@@ -227,9 +227,15 @@ impl Component for Sidebar {
             .as_ref()
             .is_none_or(|controls| controls.traffic_lights_shown())
             && lights_opacity > 0.0;
-        let overlay_top = controls
+        let pushed_titlebar = controls
             .as_ref()
-            .and_then(|controls| controls.titlebar_overlay_top());
+            .filter(|controls| controls.fullscreen_push)
+            .map(|controls| *controls.overlay_titlebar_height.read());
+        let overlay_top = controls.as_ref().and_then(|controls| {
+            controls
+                .titlebar_overlay_top()
+                .map(|top| top - controls.push_offset())
+        });
         let resting_top = SETTINGS.sidebar_padding_top as f32;
         let lights_top =
             (SIDEBAR.traffic_y + TITLEBAR.buttons.diameter + SETTINGS.sidebar_lights_gap) as f32;
@@ -241,7 +247,11 @@ impl Component for Sidebar {
             (true, None) => lights_top,
             (true, Some(controls)) => {
                 let progress = *controls.focus_bar_progress.read();
-                let revealed_top = lights_top + *controls.focus_bar_height.read();
+                let revealed_top = match pushed_titlebar {
+                    Some(height) if height > 0.0 => resting_top,
+                    Some(_) => lights_top,
+                    None => lights_top + *controls.focus_bar_height.read(),
+                };
                 resting_top + (revealed_top - resting_top) * progress
             }
         };
@@ -268,10 +278,6 @@ impl Component for Sidebar {
         } else {
             0.0
         };
-        let (reserved_left, reserved_right) = match chrome.side {
-            Side::Left => (reserved, 0.0),
-            Side::Right => (0.0, reserved),
-        };
 
         let mut sidebar_body = rect()
             .width(Size::fill())
@@ -281,9 +287,9 @@ impl Component for Sidebar {
             .a11y_role(AccessibilityRole::Navigation)
             .padding(Gaps::new(
                 top_height,
-                padding_x + reserved_right,
+                padding_x,
                 if island { padding_x } else { 0.0 },
-                padding_x + reserved_left,
+                padding_x + reserved,
             ))
             .child(
                 rect()
@@ -348,10 +354,7 @@ impl Component for Sidebar {
             let position = Position::new_absolute().top(0.0);
             root = root.child(
                 rect()
-                    .position(match chrome.side {
-                        Side::Left => position.left(0.0),
-                        Side::Right => position.right(0.0),
-                    })
+                    .position(position.left(0.0))
                     .width(Size::px(chrome.rail_width))
                     .height(Size::percent(100.0))
                     .direction(Direction::Vertical)

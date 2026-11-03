@@ -1,5 +1,5 @@
-//! Titlebar layouts for client-side windows (top, or a rail on the left or the
-//! right, as a strip or unified with the sidebar) and how each one hides and reveals.
+//! Titlebar layouts for client-side windows (top, or a rail on the left, as a
+//! strip or unified with the sidebar) and how each one hides and reveals.
 
 use freya_animation::prelude::{AnimNum, Ease, Function, use_animation_transition};
 use freya_core::prelude::*;
@@ -33,13 +33,6 @@ pub enum RailStyle {
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
-pub enum Side {
-    #[default]
-    Left,
-    Right,
-}
-
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Reveal {
     #[default]
     Always,
@@ -60,7 +53,6 @@ pub enum RestingEdge {
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct ChromeStyle {
     pub layout: TitlebarLayout,
-    pub side: Side,
     pub rail_width: f32,
     pub round_lights: bool,
     pub rail_style: RailStyle,
@@ -72,7 +64,6 @@ impl Default for ChromeStyle {
     fn default() -> Self {
         Self {
             layout: TitlebarLayout::Top,
-            side: Side::Left,
             rail_width: TITLEBAR_RAIL.width,
             round_lights: false,
             rail_style: RailStyle::Normal,
@@ -131,25 +122,20 @@ fn wants_reveal(
     style: ChromeStyle,
     revealed: bool,
     point: (f32, f32),
-    size: (f32, f32),
 ) -> bool {
     let (x, y) = point;
     let vertical = layout != TitlebarLayout::Top;
-    let from_side = match (vertical, style.side) {
-        (true, Side::Right) => size.0 - x,
-        _ => x,
-    };
     let corner = TITLEBAR_RAIL.reveal_corner;
-    let in_corner = from_side < corner && y < corner;
+    let in_corner = x < corner && y < corner;
     match reveal {
         Reveal::Always => false,
         Reveal::Corner => in_corner,
         Reveal::Popup if revealed => in_corner,
         Reveal::Drawer | Reveal::Push if revealed && vertical => {
-            from_side < style.rail_width + TITLEBAR_RAIL.reveal_zone
+            x < style.rail_width + TITLEBAR_RAIL.reveal_zone
         }
         Reveal::Drawer | Reveal::Push if revealed => y < bar_height() + TITLEBAR_RAIL.reveal_zone,
-        _ if vertical => from_side < TITLEBAR_RAIL.reveal_zone,
+        _ if vertical => x < TITLEBAR_RAIL.reveal_zone,
         _ => y < TITLEBAR_RAIL.reveal_zone,
     }
 }
@@ -160,7 +146,6 @@ pub(crate) struct Chrome {
     rail_items: State<RailItems>,
     sidebar_shown: State<bool>,
     progress: State<f32>,
-    size: State<(f32, f32)>,
 }
 
 fn chrome() -> Option<Chrome> {
@@ -183,6 +168,10 @@ pub(crate) fn report_sidebar_shown(shown: bool) {
     if let Some(mut chrome) = chrome() {
         chrome.sidebar_shown.set_if_modified(shown);
     }
+}
+
+pub(crate) fn fullscreen_push() -> bool {
+    try_consume_root_context::<WindowControls>().is_some_and(|controls| controls.fullscreen_push)
 }
 
 pub(crate) fn fullscreen_bar() -> FullscreenBar {
@@ -214,22 +203,6 @@ fn reveal_state() -> (TitlebarLayout, Reveal, f32) {
         let (layout, reveal) = shown_as(*chrome.style.read(), *chrome.sidebar_shown.read());
         (layout, reveal, *chrome.progress.read())
     })
-}
-
-pub(crate) fn rail_overlap((start, end): (f32, f32)) -> (f32, f32) {
-    let Some(chrome) = chrome() else {
-        return (0.0, 0.0);
-    };
-    let style = *chrome.style.read();
-    let (layout, _) = style.effective(*chrome.sidebar_shown.read());
-    if layout != TitlebarLayout::Rail || style.unified(*chrome.sidebar_shown.read()) {
-        return (0.0, 0.0);
-    }
-    let extent = style.rail_width;
-    match style.side {
-        Side::Left => ((extent - start).max(0.0), 0.0),
-        Side::Right => (0.0, (end - (chrome.size.read().0 - extent)).max(0.0)),
-    }
 }
 
 pub(crate) fn lights_opacity() -> f32 {
@@ -332,7 +305,6 @@ impl Component for WindowChrome {
                 rail_items: State::create(RailItems::default()),
                 sidebar_shown: State::create(false),
                 progress: State::create(0.0),
-                size: State::create((0.0, 0.0)),
             };
             provide_context(chrome);
             chrome
@@ -351,7 +323,6 @@ impl Component for WindowChrome {
         let mut items_state = chrome.rail_items;
         items_state.set_if_modified(self.rail_items.clone());
         let mut revealed = use_state(|| false);
-        let mut size = chrome.size;
         let reduced_motion = crate::theme::resolved().reduced_motion;
         let animation = use_animation_transition(revealed, move |from: bool, to: bool| {
             AnimNum::new(f32::from(u8::from(from)), f32::from(u8::from(to)))
@@ -376,8 +347,9 @@ impl Component for WindowChrome {
         let bar = fullscreen_bar();
         let focus_progress = try_consume_root_context::<WindowControls>()
             .map_or(0.0, |controls| *controls.focus_bar_progress.read());
-        let rail_over = overlaid && vertical_rail && bar != FullscreenBar::Push;
-        let rail_pushed = overlaid && vertical_rail && bar == FullscreenBar::Push;
+        let push = fullscreen_push();
+        let rail_over = overlaid && vertical_rail && !push;
+        let rail_pushed = overlaid && vertical_rail && push;
         let lights_opacity = if reveal == Reveal::Corner {
             progress
         } else {
@@ -417,10 +389,6 @@ impl Component for WindowChrome {
             .height(Size::fill())
             .direction(Direction::Horizontal)
             .content(Content::flex())
-            .on_sized(move |event: Event<SizedEventData>| {
-                let area = event.area.size;
-                size.set_if_modified((area.width, area.height));
-            })
             .on_global_pointer_move(move |event: Event<PointerEventData>| {
                 let point = event.global_location();
                 let open = *revealed.peek();
@@ -430,15 +398,11 @@ impl Component for WindowChrome {
                     style,
                     open,
                     (point.x as f32, point.y as f32),
-                    *size.peek(),
                 );
                 revealed.set_if_modified(wanted);
             })
             .on_pointer_leave(move |_| revealed.set_if_modified(false));
-        root = match style.side {
-            Side::Left => root.maybe_child(edge).child(content),
-            Side::Right => root.child(content).maybe_child(edge),
-        };
+        root = root.maybe_child(edge).child(content);
         if layout == TitlebarLayout::Top && hidden && reveal != Reveal::Popup {
             root = root.child(
                 rect()
@@ -453,10 +417,7 @@ impl Component for WindowChrome {
             let position = Position::new_absolute().top(0.0);
             root = root.child(
                 rect()
-                    .position(match style.side {
-                        Side::Left => position.left(-extent * (1.0 - progress)),
-                        Side::Right => position.right(-extent * (1.0 - progress)),
-                    })
+                    .position(position.left(-extent * (1.0 - progress)))
                     .height(Size::fill())
                     .layer(Layer::Overlay)
                     .shadow(drop_shadow())
@@ -469,47 +430,22 @@ impl Component for WindowChrome {
         if rail_over && focus_progress > 0.0 {
             let extent = style.rail_width;
             let position = Position::new_absolute().top(0.0);
-            let (position, glass_edge) = match style.side {
-                Side::Left => (
-                    position.left(-extent * (1.0 - focus_progress)),
-                    GlassEdge::Left,
-                ),
-                Side::Right => (
-                    position.right(-extent * (1.0 - focus_progress)),
-                    GlassEdge::Right,
-                ),
-            };
+            let position = position.left(-extent * (1.0 - focus_progress));
             root = root.child(
                 rect()
                     .position(position)
                     .width(Size::px(extent))
                     .height(Size::percent(100.0))
                     .layer(Layer::Overlay)
-                    .child(fullscreen_backdrop(bar, glass_edge, extent))
+                    .child(fullscreen_backdrop(bar, GlassEdge::Left, extent))
                     .child(rail(style, items, 1.0)),
             );
         }
         if reveal == Reveal::Popup && progress > 0.0 && !overlaid {
-            root = root.child(pill(
-                if layout == TitlebarLayout::Top {
-                    Side::Left
-                } else {
-                    style.side
-                },
-                layout == TitlebarLayout::Rail,
-                progress,
-            ));
+            root = root.child(pill(layout == TitlebarLayout::Rail, progress));
         }
         root
     }
-}
-
-fn at_side(side: Side, el: Rect) -> Rect {
-    let position = Position::new_absolute().top(0.0);
-    el.position(match side {
-        Side::Left => position.left(0.0),
-        Side::Right => position.right(0.0),
-    })
 }
 
 fn window_state() -> (bool, bool, String) {
@@ -536,11 +472,11 @@ fn rail(style: ChromeStyle, items: &RailItems, lights_opacity: f32) -> Rect {
         .is_none_or(|controls| controls.traffic_lights_shown());
     let below_bar = controls
         .as_ref()
-        .filter(|_| overlaid)
+        .filter(|_| overlaid && !fullscreen_push())
         .map_or(0.0, |controls| {
             *controls.focus_bar_height.read() * *controls.focus_bar_progress.read()
         });
-    let floating = overlaid && fullscreen_bar() != FullscreenBar::Push;
+    let floating = overlaid && !fullscreen_push();
     let background = if island || floating {
         Rgba::TRANSPARENT
     } else if activated {
@@ -554,15 +490,11 @@ fn rail(style: ChromeStyle, items: &RailItems, lights_opacity: f32) -> Rect {
         palette(resolved.scheme).title.unfocused
     };
     let line = (!island && !floating).then(|| {
-        at_side(
-            match style.side {
-                Side::Left => Side::Right,
-                Side::Right => Side::Left,
-            },
-            rect().width(Size::px(1.0)),
-        )
-        .height(Size::fill())
-        .background(color(resolved.sidebar.palette.line))
+        rect()
+            .position(Position::new_absolute().top(0.0).right(0.0))
+            .width(Size::px(1.0))
+            .height(Size::fill())
+            .background(color(resolved.sidebar.palette.line))
     });
     rect()
         .width(Size::px(width))
@@ -588,7 +520,6 @@ fn rail(style: ChromeStyle, items: &RailItems, lights_opacity: f32) -> Rect {
         .child(RotatedTitle {
             title,
             ink: title_ink,
-            side: style.side,
             fixed,
         })
         .maybe_child(items.bottom.clone())
@@ -599,7 +530,6 @@ fn rail(style: ChromeStyle, items: &RailItems, lights_opacity: f32) -> Rect {
 struct RotatedTitle {
     title: String,
     ink: Rgba,
-    side: Side,
     fixed: bool,
 }
 
@@ -607,10 +537,7 @@ impl Component for RotatedTitle {
     fn render(&self) -> impl IntoElement {
         let mut area = use_state(|| (0.0f32, 0.0f32));
         let (width, height) = *area.read();
-        let angle = match self.side {
-            Side::Left => -90.0,
-            Side::Right => 90.0,
-        };
+        let angle = -90.0;
         rect()
             .width(Size::fill())
             .height(Size::flex(1.0))
@@ -659,16 +586,14 @@ fn resting_edge(edge: RestingEdge, vertical: bool) -> Rect {
     rect().width(width).height(height).background(color(fill))
 }
 
-fn pill(side: Side, vertical: bool, slide: f32) -> Rect {
+fn pill(vertical: bool, slide: f32) -> Rect {
     let (activated, fixed, _) = window_state();
     let palette = Palette::current();
     let hidden_by = TITLEBAR_RAIL.reveal_corner * (1.0 - slide);
     let position = Position::new_absolute();
-    let position = match (vertical, side) {
-        (false, Side::Left) => position.top(-hidden_by).left(0.0),
-        (false, Side::Right) => position.top(-hidden_by).right(0.0),
-        (true, Side::Left) => position.top(0.0).left(-hidden_by),
-        (true, Side::Right) => position.top(0.0).right(-hidden_by),
+    let position = match vertical {
+        false => position.top(-hidden_by).left(0.0),
+        true => position.top(0.0).left(-hidden_by),
     };
     rect()
         .position(position)

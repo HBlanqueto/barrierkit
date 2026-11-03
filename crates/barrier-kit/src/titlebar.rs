@@ -18,7 +18,7 @@ use vow_design::{
 };
 
 use crate::ProbeExt;
-use crate::platform::{DecorationResponse, FullscreenBar, WindowControls, WindowStatus};
+use crate::platform::{DecorationResponse, WindowControls, WindowStatus};
 use crate::theme;
 
 #[derive(PartialEq)]
@@ -118,7 +118,6 @@ impl ProbeExt for Titlebar {
 impl Component for Titlebar {
     fn render(&self) -> impl IntoElement {
         let mut content_widths = use_state(|| (0.0f32, 0.0f32));
-        let mut span = use_state(|| (0.0f32, 0.0f32));
         let (status, title, fixed) = if let Some(preview) = &self.preview {
             let title = self.title.clone().unwrap_or_else(|| preview.title.clone());
             (preview.status, title, preview.fixed)
@@ -142,9 +141,11 @@ impl Component for Titlebar {
         }
 
         let controls = freya_core::prelude::try_consume_root_context::<WindowControls>();
-        let overlaid = controls
-            .as_ref()
-            .is_some_and(|controls| controls.titlebar_overlaid());
+        let rail = crate::chrome::chrome_style().layout == crate::chrome::TitlebarLayout::Rail;
+        let overlaid = !rail
+            && controls
+                .as_ref()
+                .is_some_and(|controls| controls.titlebar_overlaid());
         let overlay_top = controls
             .as_ref()
             .and_then(|controls| controls.titlebar_overlay_top());
@@ -164,37 +165,21 @@ impl Component for Titlebar {
         } else {
             resolved.surfaces.titlebar_inactive
         };
-        let (inset_start, inset_end) = crate::chrome::rail_overlap(*span.read());
         let fullscreen_bar = crate::chrome::fullscreen_bar();
-        let focus_bar_height = controls
+        let pushed = controls
             .as_ref()
-            .map_or(0.0, |controls| *controls.focus_bar_height.read());
+            .map_or(0.0, |controls| controls.push_offset());
         let place = move |bar: Element, height: f32| -> Element {
+            if let Some(controls) = controls.as_ref() {
+                let mut reported = controls.overlay_titlebar_height;
+                reported.set_if_modified(if overlaid { height } else { 0.0 });
+            }
             if !overlaid {
                 return bar;
-            }
-            if fullscreen_bar == FullscreenBar::Push {
-                let pushed = (focus_bar_height + height) * overlay_opacity;
-                return rect()
-                    .width(Size::fill())
-                    .height(Size::px(pushed))
-                    .overflow(Overflow::Clip)
-                    .child(
-                        rect()
-                            .position(Position::new_absolute().top(pushed - height))
-                            .width(Size::fill())
-                            .opacity(overlay_opacity)
-                            .child(bar),
-                    )
-                    .into_element();
             }
             rect()
                 .width(Size::fill())
                 .height(Size::px(0.0))
-                .on_sized(move |event: Event<SizedEventData>| {
-                    let area = event.area;
-                    span.set_if_modified((area.min_x(), area.max_x()));
-                })
                 .maybe(overlay_top.is_some(), |el| {
                     let top = overlay_top.unwrap_or_default();
                     // ADR 0057: the full-screen glass spans the whole window, whatever column holds the titlebar.
@@ -212,10 +197,8 @@ impl Component for Titlebar {
                     )
                     .child(
                         rect()
-                            .position(Position::new_absolute().top(top).left(inset_start))
-                            .width(Size::func(move |context| {
-                                Some(context.parent - inset_start - inset_end)
-                            }))
+                            .position(Position::new_absolute().top(top - pushed).left(0.0))
+                            .width(Size::fill())
                             .layer(TITLEBAR_OVERLAY_LAYER)
                             .opacity(overlay_opacity)
                             .child(bar),

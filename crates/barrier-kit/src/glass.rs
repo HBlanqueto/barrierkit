@@ -25,7 +25,6 @@ use crate::theme::{SurfaceKind, surface_background};
 pub(crate) enum GlassEdge {
     Top,
     Left,
-    Right,
 }
 
 #[derive(PartialEq)]
@@ -50,7 +49,6 @@ fn along(edge: GlassEdge, depth: f32) -> (Size, Size, Position) {
     match edge {
         GlassEdge::Top => (Size::fill(), depth, Position::new_absolute()),
         GlassEdge::Left => (depth, Size::fill(), Position::new_absolute().left(0.0)),
-        GlassEdge::Right => (depth, Size::fill(), Position::new_absolute().right(0.0)),
     }
 }
 
@@ -103,7 +101,6 @@ pub(crate) fn fullscreen_backdrop(bar: FullscreenBar, edge: GlassEdge, depth: f3
         FullscreenBar::ProgressiveGlass => {
             glass(edge, FULLSCREEN_GLASS, FULLSCREEN_GLASS.height, None)
         }
-        FullscreenBar::Push => rect().into_element(),
     }
 }
 
@@ -156,7 +153,6 @@ fn inwards(edge: GlassEdge, bounds: SkRect, color: Rgba, stops: &[(f32, f32)]) -
     let line = match edge {
         GlassEdge::Top => ((bounds.left, bounds.top), (bounds.left, bounds.bottom)),
         GlassEdge::Left => ((bounds.left, bounds.top), (bounds.right, bounds.top)),
-        GlassEdge::Right => ((bounds.right, bounds.top), (bounds.left, bounds.top)),
     };
     paint.set_shader(shaders::linear_gradient(line, &gradient, None));
     paint
@@ -227,9 +223,6 @@ impl ElementExt for Glass {
                     bounds.right,
                     bounds.bottom,
                 ),
-                GlassEdge::Right => {
-                    SkRect::new(bounds.left, bounds.top, bounds.left + width, bounds.bottom)
-                }
             };
             let mut paint = Paint::default();
             paint.set_color4f(rgba4f(line), None);

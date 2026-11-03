@@ -88,8 +88,7 @@ A music player that composes layer 2 by hand: `SplitView`, `Sidebar`,
 
 ## Rótulo (`rotulo`)
 
-It tests the two `TitlebarLayout` values, the normal or unified rail, its side,
-its width, its items at the top and the bottom, the round traffic lights, the five reveal modes, the three resting edges and
+It tests the two `TitlebarLayout` values, the normal or unified rail, its width, its items at the top and the bottom, the round traffic lights, the five reveal modes, the three resting edges and
 the island or flat sidebar. It saves the choice with `save_defaults("rotulo")`.
 Its screenshots are in chapter [7](07-titlebars.en.md).
 

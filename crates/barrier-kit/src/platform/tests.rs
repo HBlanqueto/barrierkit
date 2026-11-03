@@ -50,6 +50,8 @@ fn window_controls(status: WindowStatus) -> WindowControls {
         focus_overlay: false,
         focus_bar_height: freya_core::prelude::State::create(28.0),
         fullscreen_bar: super::FullscreenBar::Solid,
+        fullscreen_push: false,
+        overlay_titlebar_height: freya_core::prelude::State::create(0.0),
     }
 }
 
@@ -894,7 +896,7 @@ mod inactive_accent_tests {
 
 #[cfg(test)]
 mod fullscreen_chrome_tests {
-    use crate::chrome::{ChromeStyle, RailStyle, Side, TitlebarLayout, WindowChrome};
+    use crate::chrome::{ChromeStyle, RailStyle, TitlebarLayout, WindowChrome};
     use crate::sidebar::Sidebar;
     use crate::titlebar::Titlebar;
     use crate::views::split::SplitView;
@@ -945,10 +947,9 @@ mod fullscreen_chrome_tests {
             (TitlebarLayout::Rail, RailStyle::Normal),
             (TitlebarLayout::Rail, RailStyle::Unified),
         ] {
-            for side in [Side::Left, Side::Right] {
+            {
                 let style = ChromeStyle {
                     layout,
-                    side,
                     rail_style,
                     ..ChromeStyle::default()
                 };

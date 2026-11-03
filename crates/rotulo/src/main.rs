@@ -1,9 +1,9 @@
 //! Rótulo: a test app whose own window switches between the top titlebar and
-//! the rail, on either side, as a strip or unified with a flat or island sidebar.
+//! the rail on the left, as a strip or unified with a flat or island sidebar.
 
 use barrier_kit::app::{load_defaults, save_defaults};
 use barrier_kit::chrome::{
-    ChromeStyle, RailStyle, RestingEdge, Reveal, Side, TitlebarLayout, WindowChrome,
+    ChromeStyle, RailStyle, RestingEdge, Reveal, TitlebarLayout, WindowChrome,
 };
 use barrier_kit::compact::IconButton;
 use barrier_kit::controls::{ScrollView, SegmentedControl};
@@ -43,7 +43,6 @@ const EDGES: [RestingEdge; 3] = [RestingEdge::None, RestingEdge::Line, RestingEd
 #[serde(default)]
 struct Prefs {
     layout: TitlebarLayout,
-    side: Side,
     wide_rail: bool,
     round_lights: bool,
     rail_unified: bool,
@@ -58,7 +57,6 @@ impl Default for Prefs {
     fn default() -> Self {
         Self {
             layout: TitlebarLayout::Rail,
-            side: Side::Left,
             wide_rail: false,
             round_lights: false,
             rail_unified: false,
@@ -75,7 +73,6 @@ impl Prefs {
     fn chrome(self) -> ChromeStyle {
         ChromeStyle {
             layout: self.layout,
-            side: self.side,
             rail_width: if self.wide_rail {
                 TITLEBAR_RAIL.width_wide
             } else {
@@ -157,16 +154,6 @@ fn design(prefs: State<Prefs>) -> Form {
                     .on_change(move |i: usize| update(prefs, |p| p.layout = LAYOUTS[i].0)),
             ),
         )
-        .row(Row::new("Lado").control(segmented(
-            "Lado",
-            &["Izquierda", "Derecha"],
-            usize::from(current.side == Side::Right),
-            move |i| {
-                update(prefs, |p| {
-                    p.side = if i == 0 { Side::Left } else { Side::Right }
-                })
-            },
-        )))
         .row(Row::new("Ancho del rail").control(segmented(
             "Ancho del rail",
             &["Normal", "Ancho"],
@@ -256,13 +243,6 @@ fn measures(prefs: Prefs) -> Form {
     Form::new().section(
         Section::titled("Diseño elegido")
             .row(Row::value("Diseño", prefs.layout_name()))
-            .row(Row::value(
-                "Lado",
-                match prefs.side {
-                    Side::Left => "Izquierda",
-                    Side::Right => "Derecha",
-                },
-            ))
             .row(Row::value("Ancho del rail", width))
             .row(Row::value(
                 "Semáforos",
@@ -410,16 +390,13 @@ mod tests {
     #[test]
     fn every_layout_shows_the_traffic_lights_once() {
         for (layout, name) in LAYOUTS {
-            for side in [Side::Left, Side::Right] {
-                for flat_sidebar in [false, true] {
-                    let prefs = Prefs {
-                        layout,
-                        side,
-                        flat_sidebar,
-                        ..Default::default()
-                    };
-                    assert_eq!(light_groups(&render(prefs)), 1, "{name} {prefs:?}");
-                }
+            for flat_sidebar in [false, true] {
+                let prefs = Prefs {
+                    layout,
+                    flat_sidebar,
+                    ..Default::default()
+                };
+                assert_eq!(light_groups(&render(prefs)), 1, "{name} {prefs:?}");
             }
         }
     }

@@ -12,7 +12,10 @@ use freya_core::{
         PlatformEvent, PreferredTheme, RenderingTicker, RenderingTickerSender, Runner,
         ScreenReader, Tree, UserEvent, WritableUtils, default_fonts,
     },
-    prelude::{AccessibilityFocusStrategy, State},
+    prelude::{
+        AccessibilityFocusStrategy, ChildrenExt, ContainerExt, ContainerSizeExt, State, rect,
+        try_consume_root_context,
+    },
 };
 use freya_engine::prelude::{FontCollection, FontMgr};
 use keyboard_types::{Code, Key, Modifiers, NamedKey};
@@ -23,7 +26,7 @@ use std::{
     rc::Rc,
     task::{Context, Waker},
 };
-use torin::prelude::Size2D;
+use torin::prelude::{Gaps, Size, Size2D};
 use vow_appearance::Resolved;
 
 use super::{
@@ -82,7 +85,14 @@ impl AppInstance {
         let (events_sender, events_receiver) = futures_channel::mpsc::unbounded();
         let mut runner = Runner::new(move || {
             crate::chrome::use_focus_bar_reveal();
-            integration(app.clone()).into_element()
+            let pushed = try_consume_root_context::<WindowControls>()
+                .map_or(0.0, |controls| controls.push_offset());
+            rect()
+                .width(Size::fill())
+                .height(Size::fill())
+                .padding(Gaps::new(pushed, 0.0, 0.0, 0.0))
+                .child(integration(app.clone()))
+                .into_element()
         });
 
         runner.provide_root_context(ScreenReader::new);

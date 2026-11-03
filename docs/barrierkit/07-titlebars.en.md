@@ -82,7 +82,6 @@ traffic lights, the title and the rail items according to a `ChromeStyle`:
 ```rust
 let estilo = ChromeStyle {
     layout: TitlebarLayout::Rail,
-    side: Side::Left,
     rail_width: TITLEBAR_RAIL.width,
     round_lights: false,
     rail_style: RailStyle::Normal,
@@ -97,13 +96,13 @@ WindowChrome::new(estilo, SplitView::new(barra, detalle))
 | `TitlebarLayout` | What it is | Screenshot (Rótulo) |
 |---|---|---|
 | `Top` (default) | Horizontal titlebar at the top, with items on the left and the right (`Titlebar::left` and `right`) | ![Top layout](assets/apps/rotulo-top.png) |
-| `Rail` | Vertical titlebar on one side, with the traffic lights in a column, the title rotated 90° and items at the top and the bottom (`rail_top` and `rail_bottom`) | ![Rail layout](assets/apps/rotulo-rail.png) |
+| `Rail` | Vertical titlebar on the left, with the traffic lights in a column, the title rotated 90° and items at the top and the bottom (`rail_top` and `rail_bottom`) | ![Rail layout](assets/apps/rotulo-rail.png) |
 
 The `Rail` has two styles:
 
 | `RailStyle` | What it is | Screenshot (Rótulo) |
 |---|---|---|
-| `Normal` (default) | Its own strip on one side of the window | ![Normal rail](assets/apps/rotulo-rail.png) |
+| `Normal` (default) | Its own strip on the left of the window | ![Normal rail](assets/apps/rotulo-rail.png) |
 | `Unified` | No strip: the column goes inside the sidebar. Without a visible sidebar it is drawn as `Normal` | ![Unified rail](assets/apps/rotulo-unified.png) |
 
 ### Rail items
@@ -127,7 +126,6 @@ With any item, the rail widens to `TITLEBAR_RAIL.actions_width` (34). In
 
 | Field | Values | Effect |
 |---|---|---|
-| `side` | `Left`, `Right` | Side of the rail |
 | `rail_width` | `TITLEBAR_RAIL.width` or `.width_wide` | Width of the rail without items |
 | `round_lights` | `bool` | Round or square (default) traffic lights |
 | `rail_style` | `Normal`, `Unified` | Its own strip or a column inside the sidebar |
@@ -137,10 +135,6 @@ With any item, the rail widens to `TITLEBAR_RAIL.actions_width` (34). In
 Some combinations make no sense and correct themselves
 (`ChromeStyle::effective`): a unified `Rail` with `Drawer`, `Push` or `Popup`
 becomes `Corner`; in full screen, `reveal` is always `Always`.
-
-Rail on the right, round traffic lights, flat sidebar and dark mode:
-
-![Right rail with round traffic lights](assets/apps/rotulo-rail-flat-round.png)
 
 The Rótulo app (chapter [15](15-apps-de-prueba.en.md)) tests every combination
 live.
@@ -179,7 +173,7 @@ WindowOptions::new("Ondina", "ondina").fullscreen_bar(FullscreenBar::Progressive
 ```
 
 **By default, every app uses `Solid` ("A · Lisa").** Only Ondina requests
-`ProgressiveGlass`. The four come from the "Ondina a pantalla completa"
+`ProgressiveGlass`. The three come from the "Ondina a pantalla completa"
 proposal; "C · Degradado" was dropped. In the screenshots, the black strip at the
 top is the compositor bar, added to the image.
 
@@ -188,34 +182,49 @@ top is the compositor bar, added to the image.
 | `Solid` ("A · Lisa", **default**) | An opaque band in the window color, as tall as the titlebar. It cuts what passes below with a hard edge | Bar + `FULLSCREEN_BAR.content_top` (44) | ![A · Lisa](assets/estados/barra-lisa.png) |
 | `Glass` ("B1 · Vidrio en banda") | A band as tall as the titlebar, from edge to edge of the window and over the sidebar, that blurs what is below (`FULLSCREEN_BAND`), with a tint and a line at the bottom | Bar + `FULLSCREEN_BAND.content_top` (44) | ![B1 · Glass band](assets/estados/barra-vidrio-banda.png) |
 | `ProgressiveGlass` ("B2 · Vidrio progresivo", Ondina) | Maximum blur at the top that fades out over 96 px, without a line, from edge to edge of the window and over the sidebar ([ADR 0057](../decisiones/0057-cristal-y-barra-lateral-sobre-fondo.md)) | Bar + `FULLSCREEN_GLASS.content_top` (74) | ![B2 · Progressive glass](assets/estados/barra-vidrio-progresivo.png) |
-| `Push` ("E · Empuja") | It covers nothing: the titlebar returns to the layout and pushes the detail column down by the height of the bar and the titlebar. The sidebar does not move | 0: the content moves down by itself | ![E · Push, bar down](assets/estados/barra-empuja.png) |
-
-With `Push` and the bar up, the content reaches the top edge:
-
-![E · Push, bar up](assets/estados/barra-empuja-arriba.png)
 
 Only `Glass` and `ProgressiveGlass` blur.
 
+#### Pushing the content: `fullscreen_push`
+
+"E · Empuja" is not another bar but an option that combines with any of the
+three. It is off by default:
+
+```rust
+WindowOptions::new("Ondina", "ondina")
+    .fullscreen_bar(FullscreenBar::ProgressiveGlass)
+    .fullscreen_push(true)
+```
+
+With it, the bar covers nothing: all the window content, sidebar included,
+moves down by the height of the compositor bar and the titlebar
+(`WindowControls::push_offset`). The traffic lights move down with the titlebar
+and `fullscreen_content_top` is 0.
+
+| Combination | How it looks |
+|---|---|
+| `Solid` + `fullscreen_push(true)` | ![A · Lisa pushing the content](assets/estados/barra-empuja.png) |
+| `ProgressiveGlass` + `fullscreen_push(true)` | ![B2 · Progressive glass pushing the content](assets/estados/barra-empuja-vidrio-progresivo.png) |
+| Bar up: the content reaches the top edge | ![Push with the bar up](assets/estados/barra-empuja-arriba.png) |
+
 #### With the `Rail`
 
-The rail uses the same bar, vertically. With the compositor bar up it is
-hidden; when the bar comes down, it slides in from its side:
+With the `Rail`, the top titlebar neither retracts nor overlays: it stays in
+place, as in the normal window. Only the rail hides while the compositor bar is
+up and, when the bar comes down, slides in from the left with the same bar,
+vertically:
 
 | `FullscreenBar` | The rail | How it looks |
 |---|---|---|
 | `Solid` ("A · Lisa", **default**) | An opaque strip as wide as the rail, over the content | ![Rail with A · Lisa](assets/estados/rail-barra-lisa.png) |
 | `Glass` ("B1 · Vidrio en banda") | A strip as wide as the rail that blurs what is below, with a line on the inner edge | ![Rail with B1 · Glass band](assets/estados/rail-barra-vidrio-banda.png) |
 | `ProgressiveGlass` ("B2 · Vidrio progresivo") | Maximum blur at the window edge that fades inward over 96 px | ![Rail with B2 · Progressive glass](assets/estados/rail-barra-vidrio-progresivo.png) |
-| `Push` ("E · Empuja") | The rail returns to the layout and pushes the content sideways by its width | ![Rail with E · Push, bar down](assets/estados/rail-barra-empuja.png) |
-
-With `Push` and the bar up, the content reaches the edge:
-
-![Rail with E · Push, bar up](assets/estados/rail-barra-empuja-arriba.png)
+| Any + `fullscreen_push(true)` | The rail returns to the layout and pushes the content sideways by its width; everything moves down by the height of the compositor bar | ![Rail pushing the content](assets/estados/rail-barra-empuja.png) |
 
 ### Focus mode with the bar down, by layout
 
 **The layout is kept when the window is maximized and in full screen**, also
-with an island sidebar: the `Rail` stays on its side.
+with an island sidebar: the `Rail` stays on the left.
 
 | `Rail` with an island, maximized | `Rail` with an island, focus mode |
 |---|---|
@@ -229,7 +238,7 @@ app does not draw it.
 |---|---|---|
 | `Top` (default) | The `Titlebar` over the content; the sidebar traffic lights move down by the same amount | ![Top with the bar down](assets/estados/foco-top.png) |
 | Unified `Rail` | The sidebar column; the traffic lights appear with the bar, below it | ![Unified rail with the bar down](assets/estados/foco-unified.png) |
-| `Rail` | The rail slides in from its side with the chosen bar (above, "With the `Rail`"); its traffic lights sit below the compositor bar | ![Rail with the bar down](assets/estados/rail-barra-lisa.png) |
+| `Rail` | The rail slides in from the left with the chosen bar (above, "With the `Rail`"); its traffic lights sit below the compositor bar | ![Rail with the bar down](assets/estados/rail-barra-lisa.png) |
 | `Rail` with items | The same, with its items | ![Rail with items and the bar down](assets/estados/foco-rail-elementos.png) |
 
 ### What the app does

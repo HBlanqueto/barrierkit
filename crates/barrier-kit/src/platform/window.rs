@@ -43,7 +43,6 @@ pub enum FullscreenBar {
     Solid,
     Glass,
     ProgressiveGlass,
-    Push,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -76,6 +75,7 @@ pub struct WindowOptions {
     pub parent: Option<ObjectId>,
     pub menu: Option<crate::app_menu::AppMenu>,
     pub fullscreen_bar: FullscreenBar,
+    pub fullscreen_push: bool,
 }
 
 impl WindowOptions {
@@ -91,6 +91,7 @@ impl WindowOptions {
             parent: None,
             menu: None,
             fullscreen_bar: FullscreenBar::Solid,
+            fullscreen_push: false,
         }
     }
 
@@ -133,6 +134,11 @@ impl WindowOptions {
         self.fullscreen_bar = bar;
         self
     }
+
+    pub fn fullscreen_push(mut self, push: bool) -> Self {
+        self.fullscreen_push = push;
+        self
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -170,6 +176,8 @@ pub struct WindowControls {
     pub focus_overlay: bool,
     pub focus_bar_height: State<f32>,
     pub fullscreen_bar: FullscreenBar,
+    pub fullscreen_push: bool,
+    pub(crate) overlay_titlebar_height: State<f32>,
 }
 
 pub(crate) fn window_activated() -> bool {
@@ -191,10 +199,18 @@ impl WindowControls {
             FullscreenBar::ProgressiveGlass => vow_design::FULLSCREEN_GLASS.content_top,
             FullscreenBar::Glass => vow_design::FULLSCREEN_BAND.content_top,
             FullscreenBar::Solid => vow_design::FULLSCREEN_BAR.content_top,
-            FullscreenBar::Push => return 0.0,
         };
-        if self.titlebar_overlaid() {
+        if self.titlebar_overlaid() && !self.fullscreen_push {
             *self.focus_bar_height.read() + below_bar
+        } else {
+            0.0
+        }
+    }
+
+    pub(crate) fn push_offset(&self) -> f32 {
+        if self.fullscreen_push && self.titlebar_overlaid() {
+            (*self.focus_bar_height.read() + *self.overlay_titlebar_height.read())
+                * *self.focus_bar_progress.read()
         } else {
             0.0
         }
@@ -504,6 +520,8 @@ impl Runtime {
                 .is_some_and(|manager| manager.version() >= 2),
             focus_bar_height: State::create_global(vow_design::MENUBAR_HEIGHT as f32),
             fullscreen_bar: options.fullscreen_bar,
+            fullscreen_push: options.fullscreen_push,
+            overlay_titlebar_height: State::create_global(0.0),
         };
         if let Some(manager) = &self.focus_manager {
             let notice = manager.get_focus_surface(&surface, qh, surface.id());
