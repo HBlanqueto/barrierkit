@@ -148,8 +148,12 @@ impl ElementExt for Glass {
                 &layer_mask(level / 2.0, level),
             );
             mask.set_blend_mode(BlendMode::DstIn);
+            // SaveLayerRec bounds are only a hint; without the clip the blurred layer covers the whole canvas.
+            canvas.save();
+            canvas.clip_rect(bounds, None, Some(true));
             canvas.save_layer(&SaveLayerRec::default().bounds(&bounds).backdrop(&filter));
             canvas.draw_rect(bounds, &mask);
+            canvas.restore();
             canvas.restore();
         }
         canvas.draw_rect(
