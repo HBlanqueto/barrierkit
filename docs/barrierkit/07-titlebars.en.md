@@ -196,6 +196,22 @@ With `Push` and the bar up, the content reaches the top edge:
 
 Only `Glass` and `ProgressiveGlass` blur.
 
+#### With the `Rail`
+
+The rail uses the same bar, vertically. With the compositor bar up it is
+hidden; when the bar comes down, it slides in from its side:
+
+| `FullscreenBar` | The rail | How it looks |
+|---|---|---|
+| `Solid` ("A · Lisa", **default**) | An opaque strip as wide as the rail, over the content | ![Rail with A · Lisa](assets/estados/rail-barra-lisa.png) |
+| `Glass` ("B1 · Vidrio en banda") | A strip as wide as the rail that blurs what is below, with a line on the inner edge | ![Rail with B1 · Glass band](assets/estados/rail-barra-vidrio-banda.png) |
+| `ProgressiveGlass` ("B2 · Vidrio progresivo") | Maximum blur at the window edge that fades inward over 96 px | ![Rail with B2 · Progressive glass](assets/estados/rail-barra-vidrio-progresivo.png) |
+| `Push` ("E · Empuja") | The rail returns to the layout and pushes the content sideways by its width | ![Rail with E · Push, bar down](assets/estados/rail-barra-empuja.png) |
+
+With `Push` and the bar up, the content reaches the edge:
+
+![Rail with E · Push, bar up](assets/estados/rail-barra-empuja-arriba.png)
+
 ### Focus mode with the bar down, by layout
 
 **With an island sidebar and the window maximized or in full screen, the
@@ -214,8 +230,8 @@ app does not draw it.
 |---|---|---|
 | `Top` (default) | The `Titlebar` over the content; the sidebar traffic lights move down by the same amount | ![Top with the bar down](assets/estados/foco-top.png) |
 | Unified `Rail` | The sidebar column; the traffic lights appear with the bar, below it | ![Unified rail with the bar down](assets/estados/foco-unified.png) |
-| `Rail` | Nothing: the rail stays in place, without covering the sidebar. Its traffic lights appear with the bar, below it | ![Rail with the bar down](assets/estados/foco-rail.png) |
-| `Rail` with items | The same; the items stay in place | ![Rail with items and the bar down](assets/estados/foco-rail-elementos.png) |
+| `Rail` | The rail slides in from its side with the chosen bar (above, "With the `Rail`"); its traffic lights sit below the compositor bar | ![Rail with the bar down](assets/estados/rail-barra-lisa.png) |
+| `Rail` with items | The same, with its items | ![Rail with items and the bar down](assets/estados/foco-rail-elementos.png) |
 
 ### What the app does
 

@@ -21,8 +21,16 @@ use crate::platform::FullscreenBar;
 
 use crate::theme::{SurfaceKind, surface_background};
 
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub(crate) enum GlassEdge {
+    Top,
+    Left,
+    Right,
+}
+
 #[derive(PartialEq)]
 struct Glass {
+    edge: GlassEdge,
     metrics: FullscreenGlassMetrics,
     tint: Rgba,
     line: Option<Rgba>,
@@ -37,16 +45,32 @@ pub(crate) fn glass_tint() -> Rgba {
     }
 }
 
-fn glass(metrics: FullscreenGlassMetrics, depth: f32, line: Option<Rgba>) -> Element {
+fn along(edge: GlassEdge, depth: f32) -> (Size, Size, Position) {
+    let depth = Size::px(depth);
+    match edge {
+        GlassEdge::Top => (Size::fill(), depth, Position::new_absolute()),
+        GlassEdge::Left => (depth, Size::fill(), Position::new_absolute().left(0.0)),
+        GlassEdge::Right => (depth, Size::fill(), Position::new_absolute().right(0.0)),
+    }
+}
+
+fn glass(
+    edge: GlassEdge,
+    metrics: FullscreenGlassMetrics,
+    depth: f32,
+    line: Option<Rgba>,
+) -> Element {
+    let (width, height, position) = along(edge, depth);
     let layout = torin::node::Node {
-        width: Size::fill(),
-        height: Size::px(depth),
-        position: Position::new_absolute(),
+        width,
+        height,
+        position,
         ..Default::default()
     };
     Element::Element {
         key: DiffKey::None,
         element: Rc::new(Glass {
+            edge,
             metrics,
             tint: glass_tint(),
             line,
@@ -56,29 +80,39 @@ fn glass(metrics: FullscreenGlassMetrics, depth: f32, line: Option<Rgba>) -> Ele
     }
 }
 
-pub(crate) fn fullscreen_backdrop(bar: FullscreenBar, depth: f32) -> Element {
+pub(crate) fn fullscreen_backdrop(bar: FullscreenBar, edge: GlassEdge, depth: f32) -> Element {
     match bar {
-        FullscreenBar::Solid => rect()
-            .position(Position::new_absolute())
-            .width(Size::fill())
-            .height(Size::px(depth))
-            .background(crate::theme::color(Rgba {
-                a: 1.0,
-                ..glass_tint()
-            }))
-            .into_element(),
+        FullscreenBar::Solid => {
+            let (width, height, position) = along(edge, depth);
+            rect()
+                .position(position)
+                .width(width)
+                .height(height)
+                .background(crate::theme::color(Rgba {
+                    a: 1.0,
+                    ..glass_tint()
+                }))
+                .into_element()
+        }
         FullscreenBar::Glass => glass(
+            edge,
             FULLSCREEN_BAND,
             depth,
             Some(crate::style::Palette::current().separator),
         ),
-        FullscreenBar::ProgressiveGlass => glass(FULLSCREEN_GLASS, FULLSCREEN_GLASS.height, None),
+        FullscreenBar::ProgressiveGlass => {
+            glass(edge, FULLSCREEN_GLASS, FULLSCREEN_GLASS.height, None)
+        }
         FullscreenBar::Push => rect().into_element(),
     }
 }
 
-pub(crate) fn progressive_glass() -> Element {
-    fullscreen_backdrop(FullscreenBar::ProgressiveGlass, FULLSCREEN_GLASS.height)
+pub(crate) fn progressive_glass(edge: GlassEdge) -> Element {
+    fullscreen_backdrop(
+        FullscreenBar::ProgressiveGlass,
+        edge,
+        FULLSCREEN_GLASS.height,
+    )
 }
 
 fn strength_at(stops: &[(f32, f32)], t: f32) -> f32 {
@@ -103,7 +137,7 @@ fn layer_mask(mask: &[(f32, f32)], floor: f32, level: f32) -> Vec<(f32, f32)> {
         .collect()
 }
 
-fn downwards(bounds: SkRect, color: Rgba, stops: &[(f32, f32)]) -> Paint {
+fn inwards(edge: GlassEdge, bounds: SkRect, color: Rgba, stops: &[(f32, f32)]) -> Paint {
     let (colors, offsets): (Vec<Color4f>, Vec<f32>) = stops
         .iter()
         .map(|&(offset, alpha)| {
@@ -119,7 +153,11 @@ fn downwards(bounds: SkRect, color: Rgba, stops: &[(f32, f32)]) -> Paint {
     );
     let mut paint = Paint::default();
     paint.set_dither(true);
-    let line = ((bounds.left, bounds.top), (bounds.left, bounds.bottom));
+    let line = match edge {
+        GlassEdge::Top => ((bounds.left, bounds.top), (bounds.left, bounds.bottom)),
+        GlassEdge::Left => ((bounds.left, bounds.top), (bounds.right, bounds.top)),
+        GlassEdge::Right => ((bounds.right, bounds.top), (bounds.left, bounds.top)),
+    };
     paint.set_shader(shaders::linear_gradient(line, &gradient, None));
     paint
 }
@@ -155,7 +193,8 @@ impl ElementExt for Glass {
             let Some(filter) = blur((sigma, sigma), TileMode::Clamp, None, None) else {
                 continue;
             };
-            let mut mask = downwards(
+            let mut mask = inwards(
+                self.edge,
                 bounds,
                 Rgba::rgb8(255, 255, 255),
                 &layer_mask(self.metrics.mask, level / 2.0, level),
@@ -169,15 +208,29 @@ impl ElementExt for Glass {
             canvas.restore();
             canvas.restore();
         }
-        canvas.draw_rect(bounds, &downwards(bounds, self.tint, self.metrics.tint));
+        canvas.draw_rect(
+            bounds,
+            &inwards(self.edge, bounds, self.tint, self.metrics.tint),
+        );
         if let Some(line) = self.line {
             let width = FULLSCREEN_BAR.band_line * context.scale_factor as f32;
-            let edge_line = SkRect::new(
-                bounds.left,
-                bounds.bottom - width,
-                bounds.right,
-                bounds.bottom,
-            );
+            let edge_line = match self.edge {
+                GlassEdge::Top => SkRect::new(
+                    bounds.left,
+                    bounds.bottom - width,
+                    bounds.right,
+                    bounds.bottom,
+                ),
+                GlassEdge::Left => SkRect::new(
+                    bounds.right - width,
+                    bounds.top,
+                    bounds.right,
+                    bounds.bottom,
+                ),
+                GlassEdge::Right => {
+                    SkRect::new(bounds.left, bounds.top, bounds.left + width, bounds.bottom)
+                }
+            };
             let mut paint = Paint::default();
             paint.set_color4f(rgba4f(line), None);
             canvas.draw_rect(edge_line, &paint);

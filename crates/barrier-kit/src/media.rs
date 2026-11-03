@@ -45,7 +45,7 @@ pub fn material(corner_radius: f32) -> Element {
 }
 
 pub fn top_glass() -> Element {
-    crate::glass::progressive_glass()
+    crate::glass::progressive_glass(crate::glass::GlassEdge::Top)
 }
 
 #[derive(PartialEq)]

@@ -11,6 +11,7 @@ use vow_design::{
     TITLEBAR_RAIL,
 };
 
+use crate::glass::{GlassEdge, fullscreen_backdrop};
 use crate::platform::FullscreenBar;
 use crate::platform::WindowControls;
 use crate::style::Palette;
@@ -386,13 +387,26 @@ impl Component for WindowChrome {
 
         let items = &self.rail_items;
         let vertical_rail = layout == TitlebarLayout::Rail && !style.unified(sidebar_shown);
+        let bar = fullscreen_bar();
+        let focus_progress = try_consume_root_context::<WindowControls>()
+            .map_or(0.0, |controls| *controls.focus_bar_progress.read());
+        let rail_over = overlaid && vertical_rail && bar != FullscreenBar::Push;
+        let rail_pushed = overlaid && vertical_rail && bar == FullscreenBar::Push;
         let lights_opacity = if reveal == Reveal::Corner {
             progress
         } else {
             1.0
         };
-        let edge = match (vertical_rail, reveal) {
+        let edge = match (vertical_rail && !rail_over, reveal) {
             (false, _) => None,
+            (true, _) if rail_pushed => Some(
+                rect()
+                    .width(Size::px(style.rail_width * focus_progress))
+                    .height(Size::fill())
+                    .overflow(Overflow::Clip)
+                    .child(rail(style, items, 1.0))
+                    .into_element(),
+            ),
             (true, Reveal::Always | Reveal::Corner) => {
                 Some(rail(style, items, lights_opacity).into_element())
             }
@@ -466,6 +480,29 @@ impl Component for WindowChrome {
                     )))),
             );
         }
+        if rail_over && focus_progress > 0.0 {
+            let extent = style.rail_width;
+            let position = Position::new_absolute().top(0.0);
+            let (position, glass_edge) = match style.side {
+                Side::Left => (
+                    position.left(-extent * (1.0 - focus_progress)),
+                    GlassEdge::Left,
+                ),
+                Side::Right => (
+                    position.right(-extent * (1.0 - focus_progress)),
+                    GlassEdge::Right,
+                ),
+            };
+            root = root.child(
+                rect()
+                    .position(position)
+                    .width(Size::px(extent))
+                    .height(Size::percent(100.0))
+                    .layer(Layer::Overlay)
+                    .child(fullscreen_backdrop(bar, glass_edge, extent))
+                    .child(rail(style, items, 1.0)),
+            );
+        }
         if reveal == Reveal::Popup && progress > 0.0 && !overlaid {
             root = root.child(pill(
                 if layout == TitlebarLayout::Top {
@@ -517,7 +554,8 @@ fn rail(style: ChromeStyle, items: &RailItems, lights_opacity: f32) -> Rect {
         .map_or(0.0, |controls| {
             *controls.focus_bar_height.read() * *controls.focus_bar_progress.read()
         });
-    let background = if island {
+    let floating = overlaid && fullscreen_bar() != FullscreenBar::Push;
+    let background = if island || floating {
         Rgba::TRANSPARENT
     } else if activated {
         surface_background(&resolved, SurfaceKind::Toplevel)
@@ -529,7 +567,7 @@ fn rail(style: ChromeStyle, items: &RailItems, lights_opacity: f32) -> Rect {
     } else {
         palette(resolved.scheme).title.unfocused
     };
-    let line = (!island).then(|| {
+    let line = (!island && !floating).then(|| {
         at_side(
             match style.side {
                 Side::Left => Side::Right,

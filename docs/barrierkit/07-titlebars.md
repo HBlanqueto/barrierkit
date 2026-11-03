@@ -198,6 +198,22 @@ Con `Push` y la barra arriba, el contenido llega al borde superior:
 
 Solo `Glass` y `ProgressiveGlass` difuminan.
 
+#### Con el `Rail`
+
+El rail usa la misma barra, en vertical. Con la barra del compositor arriba no
+se ve; al bajar, entra desde su lado:
+
+| `FullscreenBar` | El rail | Cómo se ve |
+|---|---|---|
+| `Solid` («A · Lisa», **por defecto**) | Franja opaca del ancho del rail, encima del contenido | ![Rail con A · Lisa](assets/estados/rail-barra-lisa.png) |
+| `Glass` («B1 · Vidrio en banda») | Franja del ancho del rail que difumina lo de debajo, con una línea en el borde interior | ![Rail con B1 · Vidrio en banda](assets/estados/rail-barra-vidrio-banda.png) |
+| `ProgressiveGlass` («B2 · Vidrio progresivo») | Difuminado máximo en el borde de la ventana que se desvanece hacia dentro en 96 px | ![Rail con B2 · Vidrio progresivo](assets/estados/rail-barra-vidrio-progresivo.png) |
+| `Push` («E · Empuja») | El rail vuelve al diseño y empuja el contenido de lado lo que mide | ![Rail con E · Empuja, barra bajada](assets/estados/rail-barra-empuja.png) |
+
+Con `Push` y la barra arriba, el contenido llega al borde:
+
+![Rail con E · Empuja, barra arriba](assets/estados/rail-barra-empuja-arriba.png)
+
 ### Modo foco con la barra bajada, por diseño
 
 **Con la barra lateral en isla y la ventana maximizada o en pantalla
@@ -216,8 +232,8 @@ compositor, añadida a la imagen: la app no la dibuja.
 |---|---|---|
 | `Top` (por defecto) | La `Titlebar` sobre el contenido; los semáforos de la barra lateral bajan lo mismo | ![Top con la barra bajada](assets/estados/foco-top.png) |
 | `Rail` unificado | La columna de la barra lateral; los semáforos aparecen con la barra, debajo de ella | ![Rail unificado con la barra bajada](assets/estados/foco-unified.png) |
-| `Rail` | Nada: el rail sigue en su sitio, sin tapar la barra lateral. Sus semáforos aparecen con la barra, debajo de ella | ![Rail con la barra bajada](assets/estados/foco-rail.png) |
-| `Rail` con elementos | Igual; los elementos siguen en su sitio | ![Rail con elementos y la barra bajada](assets/estados/foco-rail-elementos.png) |
+| `Rail` | El rail entra desde su lado con la barra elegida (arriba, «Con el `Rail`»); sus semáforos quedan bajo la barra del compositor | ![Rail con la barra bajada](assets/estados/rail-barra-lisa.png) |
+| `Rail` con elementos | Igual, con sus elementos | ![Rail con elementos y la barra bajada](assets/estados/foco-rail-elementos.png) |
 
 ### Qué hace la app
 
