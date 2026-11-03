@@ -382,7 +382,7 @@ fn schedule(timers: Timers, player: Player) {
 }
 
 fn main() {
-    tracing_subscriber::fmt::init();
+    barrier_kit::init_tracing();
     let instance = match launch(&barrier_kit::titlebar::app_id("ondina")) {
         Ok(Launch::Forwarded) => return,
         Ok(Launch::Primary(instance)) => Some(instance),

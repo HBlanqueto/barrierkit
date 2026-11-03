@@ -3,7 +3,7 @@ use freya_core::integration::AppComponent;
 use vow_design::WINDOW_MIN_SIZE;
 
 fn main() {
-    tracing_subscriber::fmt::init();
+    barrier_kit::init_tracing();
     marea::assets::register_fonts();
     marea::assets::resolve_remote();
     run_window(

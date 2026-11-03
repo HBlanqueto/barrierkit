@@ -165,6 +165,7 @@
             pkg-config
             mold
             shellcheck
+            tracy
             ffmpeg
             yt-dlp
           ];

@@ -32,6 +32,7 @@ Cada capítulo se apoya en los anteriores.
 | 14 | [Plataforma](14-plataforma.md) | Runner, Vulkan, protocolos Wayland, la parte de la shell |
 | 15 | [Apps de prueba](15-apps-de-prueba.md) | Tengen App Show, Ondina y Marea |
 | 16 | [Preguntas frecuentes](16-preguntas.md) | ¿Qué tenemos y qué falta? |
+| 17 | [Perfilar con Tracy](17-perfilado.md) | ¿Dónde se va el tiempo de cada frame? |
 
 ## Fuentes únicas
 

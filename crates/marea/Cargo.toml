@@ -13,7 +13,6 @@ freya-animation.workspace = true
 freya-core.workspace = true
 torin.workspace = true
 tracing.workspace = true
-tracing-subscriber.workspace = true
 vow-appearance.workspace = true
 vow-design.workspace = true
 

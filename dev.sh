@@ -26,21 +26,36 @@ Usage: ./dev.sh <command>
 Commands:
   app <name> [args]       run tengen-app-show, marea or ondina against the current WAYLAND_DISPLAY
   check                   run fmt, clippy, tests and kit-specific checks
+  tracy <name> [args]     run an app in release with the Tracy layer; connect with 'tracy'
   help                    show this message
 
 All commands require 'nix develop'.
 EOF
 }
 
+require_app() {
+    case "$2" in
+        tengen-app-show | marea | ondina) ;;
+        *) fail 1 "usage: ./dev.sh $1 tengen-app-show|marea|ondina [args]" ;;
+    esac
+}
+
 app() {
     require_devshell
     require cargo
     _name=${1:-}
-    case "$_name" in
-        tengen-app-show | marea | ondina) shift ;;
-        *) fail 1 "usage: ./dev.sh app tengen-app-show|marea|ondina [args]" ;;
-    esac
+    require_app app "$_name"
+    shift
     RUST_LOG=${RUST_LOG:-info} cargo run -p "$_name" -- "$@"
+}
+
+tracy() {
+    require_devshell
+    require cargo
+    _name=${1:-}
+    require_app tracy "$_name"
+    shift
+    RUST_LOG=${RUST_LOG:-info} cargo run --release --features barrier-kit/tracy -p "$_name" -- "$@"
 }
 
 check() {
@@ -50,10 +65,10 @@ check() {
     require cargo-clippy
     cargo fmt --all -- --check
     cargo clippy -p barrier-kit --lib -- -D warnings
-    cargo clippy --workspace --all-targets --features barrier-kit/shell -- -D warnings
+    cargo clippy --workspace --all-targets --features barrier-kit/shell,barrier-kit/tracy -- -D warnings
     "$script_dir/scripts/check-design-tokens.sh"
     "$script_dir/scripts/check-client-only-deps.sh"
-    cargo test --workspace --features barrier-kit/shell
+    cargo test --workspace --features barrier-kit/shell,barrier-kit/tracy
 }
 
 case "${1:-}" in
@@ -63,6 +78,10 @@ case "${1:-}" in
         ;;
     check)
         check
+        ;;
+    tracy)
+        shift
+        tracy "$@"
         ;;
     help|--help|-h|'')
         help

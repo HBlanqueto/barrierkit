@@ -9,6 +9,7 @@ repository.workspace = true
 
 [features]
 shell = []
+tracy = ["dep:tracing-tracy"]
 video = ["dep:gstreamer", "dep:gstreamer-app", "dep:gstreamer-video", "dep:gstreamer-allocators"]
 
 [dependencies]
@@ -26,6 +27,8 @@ thiserror.workspace = true
 serde.workspace = true
 toml.workspace = true
 tracing.workspace = true
+tracing-subscriber.workspace = true
+tracing-tracy = { workspace = true, optional = true }
 vow-design.workspace = true
 vow-appearance.workspace = true
 zeroize.workspace = true

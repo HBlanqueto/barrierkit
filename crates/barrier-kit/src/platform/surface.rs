@@ -149,6 +149,7 @@ impl SurfaceWindow {
     }
 
     pub(crate) fn draw(&mut self, compositor: &CompositorState) -> bool {
+        let _draw = tracing::trace_span!("draw").entered();
         let background = if matches!(&self.role, SurfaceRole::Window(_)) {
             let resolved = *self.app.resolved.read();
             crate::theme::color(crate::theme::surface_background(
@@ -162,7 +163,10 @@ impl SurfaceWindow {
         let Some(graphics) = self.graphics.as_mut() else {
             return false;
         };
-        if graphics.acquire().is_err() {
+        if tracing::trace_span!("acquire")
+            .in_scope(|| graphics.acquire())
+            .is_err()
+        {
             return false;
         }
         self.draw_count += 1;
@@ -173,9 +177,13 @@ impl SurfaceWindow {
             role = ?self.role,
             "draw start"
         );
-        self.app.layout();
-        self.app.settle_sized_reactions();
         {
+            let _layout = tracing::trace_span!("layout").entered();
+            self.app.layout();
+            self.app.settle_sized_reactions();
+        }
+        {
+            let _render = tracing::trace_span!("render").entered();
             let Some(skia) = graphics.skia.as_mut() else {
                 return false;
             };
@@ -191,9 +199,14 @@ impl SurfaceWindow {
             .render();
         }
         let swap_start = std::time::Instant::now();
-        if graphics.present().is_err() {
+        if tracing::trace_span!("present")
+            .in_scope(|| graphics.present())
+            .is_err()
+        {
             return false;
         }
+        #[cfg(feature = "tracy")]
+        crate::logging::frame_mark();
         let swap_us = swap_start.elapsed().as_micros() as u64;
         tracing::debug!(
             target: "barrier_kit::resize",

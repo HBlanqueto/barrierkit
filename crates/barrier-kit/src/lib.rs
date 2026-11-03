@@ -2,8 +2,10 @@
 //! Provides windows, titlebars, traffic lights, widgets and text.
 
 mod fonts;
+mod logging;
 
 pub use fonts::register_font;
+pub use logging::init_tracing;
 
 pub mod platform;
 

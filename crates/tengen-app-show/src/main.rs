@@ -838,7 +838,7 @@ impl App for Show {
 }
 
 fn main() {
-    tracing_subscriber::fmt::init();
+    barrier_kit::init_tracing();
     let app_id = barrier_kit::titlebar::app_id(APP).leak();
     let instance = match launch(app_id) {
         Ok(Launch::Forwarded) => return,

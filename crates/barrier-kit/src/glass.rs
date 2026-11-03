@@ -193,6 +193,7 @@ impl ElementExt for Glass {
     }
 
     fn render(&self, context: RenderContext) {
+        let _glass = tracing::trace_span!("glass").entered();
         let area = context.layout_node.visible_area();
         let bounds = SkRect::new(area.min_x(), area.min_y(), area.max_x(), area.max_y());
         let canvas = context.canvas;
@@ -306,6 +307,7 @@ impl ElementExt for Material {
     }
 
     fn render(&self, context: RenderContext) {
+        let _material = tracing::trace_span!("material").entered();
         let area = context.layout_node.visible_area();
         let bounds = SkRect::new(area.min_x(), area.min_y(), area.max_x(), area.max_y());
         let radius = self.corner_radius * context.scale_factor as f32;
