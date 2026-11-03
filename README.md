@@ -1,6 +1,8 @@
 # BarrierKit
 
-BarrierKit es el toolkit de aplicaciones de [MalaysiaDreams](https://github.com/HBlanqueto/malaysia): lo que GTK + libadwaita son para GNOME, o AppKit para macOS. Da las capas, los controles, los contenedores y los patrones con los que se construyen las apps propias de Malaysia y su shell.
+![BarrierKit, el toolkit de aplicaciones de Malaysia Compositor](docs/barrierkit/assets/marca/barrierkit-banner.png)
+
+BarrierKit es el toolkit de aplicaciones de [Malaysia](https://github.com/HBlanqueto/malaysia): lo que GTK + libadwaita son para GNOME, o AppKit para macOS. Da las capas, los controles, los contenedores y los patrones con los que se construyen las apps propias de Malaysia y su shell.
 
 English: [`README.en.md`](README.en.md).
 
@@ -9,7 +11,7 @@ English: [`README.en.md`](README.en.md).
 - `barrier-kit` — el toolkit: runner de la plataforma, primitivas de estilo, controles, vistas y patrones de ventana.
 - `vow-design` — Tengen, el sistema de tokens de diseño. `tokens.json` y `components.json` pasan a constantes Rust tipadas con `build.rs`.
 - `vow-appearance` — resuelve `appearance.domain` y el fondo del escritorio en una paleta concreta, y vigila el fichero.
-- `infinity-protocol` — protocolo Wayland privado compartido con el compositor de MalaysiaDreams. Features `client` (kit) y `server` (compositor).
+- `infinity-protocol` — protocolo Wayland privado compartido con el compositor de Malaysia. Features `client` (kit) y `server` (compositor).
 
 ## Compilar
 
@@ -26,7 +28,7 @@ El binario precompilado de Skia para `freya-skia-bindings` 0.98.0 está en `nix/
 
 ## Probar en cualquier escritorio
 
-`barrier-kit` puede correr como cliente Wayland en cualquier compositor, no solo en MalaysiaDreams. Las apps del repositorio arrancan con el protocolo básico (`wl_compositor`, `xdg_shell`, `wl_seat`) y siguen adelante si faltan los globals opcionales.
+`barrier-kit` puede correr como cliente Wayland en cualquier compositor, no solo en Malaysia. Las apps del repositorio arrancan con el protocolo básico (`wl_compositor`, `xdg_shell`, `wl_seat`) y siguen adelante si faltan los globals opcionales.
 
 ```sh
 nix develop
@@ -35,7 +37,7 @@ nix develop
 ./dev.sh app ondina          # reproductor con fondo tintado, acento propio y diseño adaptable
 ```
 
-| App | GNOME / Mutter | MalaysiaDreams |
+| App | GNOME / Mutter | Malaysia |
 |---|---|---|
 | `tengen-app-show` | Ventana CSD con su titlebar; sin menú global ni bordes del compositor. | Titlebar Tengen, bordes, sombra y blur del compositor. |
 | `marea` | Igual; decodifica con VA-API si hay GPU, si no por CPU. | Igual, con el vídeo importado como dmabuf en Vulkan. |
