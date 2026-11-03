@@ -1,6 +1,7 @@
 //! Video for the kit's own apps. GStreamer decodes on the GPU through VA-API and hands
 //! each frame over as a dmabuf that Skia samples in place; without dmabuf import the
-//! frame is downloaded once, and without VA-API the CPU decodes.
+//! frame is downloaded once, and without VA-API the CPU decodes. Sources are local files
+//! or `http(s)` URIs streamed by `souphttpsrc`.
 
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -33,6 +34,7 @@ use crate::platform::{Timers, WakeHandle};
 
 const GPU_CAPS: &str = "video/x-raw(memory:DMABuf),format=DMA_DRM,drm-format=AB24";
 const PREROLL_TIMEOUT: Duration = Duration::from_secs(3);
+const REMOTE_PREROLL_TIMEOUT: Duration = Duration::from_secs(15);
 const IMPORT_CACHE: usize = 16;
 
 #[derive(Debug, Error)]
@@ -95,8 +97,7 @@ fn gpu_decoders_present() -> bool {
         .all(|name| gst::ElementFactory::find(name).is_some())
 }
 
-fn description(location: &str, decoding: Decoding) -> String {
-    let source = format!("filesrc location=\"{location}\"");
+fn description(source: &str, decoding: Decoding) -> String {
     match decoding {
         Decoding::GpuZeroCopy => format!(
             "{source} ! qtdemux ! h264parse ! vah264dec ! vapostproc ! {GPU_CAPS} ! appsink name=sink"
@@ -120,32 +121,90 @@ fn candidates() -> Vec<Decoding> {
     }
 }
 
+fn quoted(location: &str) -> String {
+    format!("\"{}\"", location.replace('"', "\\\""))
+}
+
+pub fn fetch(uri: &str) -> Result<Vec<u8>, VideoError> {
+    gst::init().map_err(|error| VideoError::Init(error.to_string()))?;
+    let failed = || VideoError::Open(uri.to_owned());
+    let pipeline = gst::parse::launch(&format!(
+        "souphttpsrc location={} ! appsink name=sink sync=false",
+        quoted(uri)
+    ))
+    .map_err(|_| failed())?
+    .downcast::<gst::Pipeline>()
+    .map_err(|_| failed())?;
+    let sink = pipeline
+        .by_name("sink")
+        .and_then(|sink| sink.downcast::<gst_app::AppSink>().ok())
+        .ok_or_else(failed)?;
+    pipeline
+        .set_state(gst::State::Playing)
+        .map_err(|_| failed())?;
+    let mut bytes = Vec::new();
+    while let Ok(sample) = sink.pull_sample() {
+        if let Some(map) = sample
+            .buffer()
+            .and_then(|buffer| buffer.map_readable().ok())
+        {
+            bytes.extend_from_slice(&map);
+        }
+    }
+    let _ = pipeline.set_state(gst::State::Null);
+    if bytes.is_empty() {
+        Err(failed())
+    } else {
+        Ok(bytes)
+    }
+}
+
 impl VideoStream {
     pub fn open(path: impl AsRef<Path>, looping: bool) -> Result<Self, VideoError> {
+        let location = quoted(&path.as_ref().to_string_lossy());
+        Self::open_source(
+            &format!("filesrc location={location}"),
+            looping,
+            PREROLL_TIMEOUT,
+        )
+    }
+
+    pub fn open_uri(uri: &str, looping: bool) -> Result<Self, VideoError> {
+        let location = quoted(uri);
+        Self::open_source(
+            &format!("souphttpsrc location={location}"),
+            looping,
+            REMOTE_PREROLL_TIMEOUT,
+        )
+    }
+
+    fn open_source(
+        source: &str,
+        looping: bool,
+        preroll_timeout: Duration,
+    ) -> Result<Self, VideoError> {
         gst::init().map_err(|error| VideoError::Init(error.to_string()))?;
-        let location = path.as_ref().to_string_lossy().replace('"', "\\\"");
         let wake = redraw_handle();
         for decoding in candidates() {
-            match Self::start(&location, decoding, looping, wake.clone()) {
+            match Self::start(source, decoding, looping, preroll_timeout, wake.clone()) {
                 Some(stream) => {
-                    tracing::info!(?decoding, path = %location, "vídeo abierto");
+                    tracing::info!(?decoding, source, "vídeo abierto");
                     return Ok(stream);
                 }
-                None => {
-                    tracing::info!(?decoding, path = %location, "vídeo: decodificador descartado")
-                }
+                None => tracing::info!(?decoding, source, "vídeo: decodificador descartado"),
             }
         }
-        Err(VideoError::Open(location))
+        Err(VideoError::Open(source.to_owned()))
     }
 
     fn start(
-        location: &str,
+        source: &str,
         decoding: Decoding,
         looping: bool,
+        preroll_timeout: Duration,
         wake: Option<WakeHandle>,
     ) -> Option<Self> {
-        let pipeline = gst::parse::launch(&description(location, decoding))
+        let pipeline = gst::parse::launch(&description(source, decoding))
             .ok()?
             .downcast::<gst::Pipeline>()
             .ok()?;
@@ -211,7 +270,7 @@ impl VideoStream {
         });
         pipeline.set_state(gst::State::Paused).ok()?;
         let (result, _, _) = pipeline.state(gst::ClockTime::from_nseconds(
-            PREROLL_TIMEOUT.as_nanos() as u64,
+            preroll_timeout.as_nanos() as u64,
         ));
         if result.is_err() || shared.latest.lock().ok()?.is_none() {
             let _ = pipeline.set_state(gst::State::Null);

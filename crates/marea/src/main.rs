@@ -5,6 +5,7 @@ use vow_design::WINDOW_MIN_SIZE;
 fn main() {
     tracing_subscriber::fmt::init();
     marea::assets::register_fonts();
+    marea::assets::resolve_remote();
     run_window(
         AppComponent::new(marea::Marea),
         WindowOptions::new("Marea", "marea")

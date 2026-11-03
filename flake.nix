@@ -166,6 +166,7 @@
             mold
             shellcheck
             ffmpeg
+            yt-dlp
           ];
 
           buildInputs = deps ++ [
@@ -184,6 +185,8 @@
             export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath deps}$LD_LIBRARY_PATH"
             export VK_DRIVER_FILES="${pkgs.mesa}/share/vulkan/icd.d/radeon_icd.x86_64.json''${VK_DRIVER_FILES:+:$VK_DRIVER_FILES}"
             export GST_PLUGIN_SYSTEM_PATH_1_0="${pkgs.lib.makeSearchPathOutput "lib" "lib/gstreamer-1.0" (videoDeps pkgs)}"
+            # souphttpsrc needs a GIO TLS backend to open https:// sources.
+            export GIO_EXTRA_MODULES="${pkgs.glib-networking}/lib/gio/modules"
             export LIBVA_DRIVERS_PATH="${pkgs.mesa}/lib/dri"
           '';
         };

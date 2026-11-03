@@ -43,7 +43,7 @@ const fn logo(family: &'static str, weight: u16, size: f32, ink: Rgba) -> Logo {
     }
 }
 
-pub const CATALOG: [Title; 20] = [
+pub const CATALOG: [Title; 21] = [
     Title {
         id: "orilla",
         name: "La Última Orilla",
@@ -350,6 +350,21 @@ pub const CATALOG: [Title; 20] = [
         lede: "Tres murallas protegen la ciudad de unos tíos gigantes que solo quieren saludar y quedarse a comer.",
         series: true,
     },
+    Title {
+        id: "jjk-netflix",
+        name: "Jujutsu Kaisen × Netflix",
+        logo: logo("Bangers", 400, 52.0, Rgba::rgb8(0xff, 0xff, 0xff)),
+        art: (
+            160.0,
+            Rgba::rgb8(0xe5, 0x09, 0x14),
+            Rgba::rgb8(0x14, 0x06, 0x24),
+        ),
+        genre: Genre::Animation,
+        kind: "Collab especial",
+        meta: ["Animación", "2026", "+16", "Tráiler"],
+        lede: "Prueba de vídeo remoto: el tráiler llega desde YouTube y se reproduce sin copia local.",
+        series: true,
+    },
 ];
 
 pub fn title(id: &str) -> &'static Title {
@@ -399,7 +414,7 @@ pub struct Shelf {
     pub entries: &'static [Entry],
 }
 
-pub const SHELVES: [Shelf; 5] = [
+pub const SHELVES: [Shelf; 6] = [
     Shelf {
         name: "Seguir viendo",
         style: ShelfStyle::Wide,
@@ -461,5 +476,10 @@ pub const SHELVES: [Shelf; 5] = [
             entry("titos", Some("Temporada final, otra vez"), None),
             entry("pixel", Some("Animación"), None),
         ],
+    },
+    Shelf {
+        name: "Collab especial con Netflix JJK",
+        style: ShelfStyle::Wide,
+        entries: &[entry("jjk-netflix", Some("Tráiler · YouTube"), None)],
     },
 ];

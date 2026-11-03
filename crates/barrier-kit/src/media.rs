@@ -188,11 +188,17 @@ impl Component for RoundButton {
 }
 
 pub fn use_artwork(path: PathBuf) -> State<Option<ImageHandle>> {
+    use_artwork_from(move || std::fs::read(&path).ok())
+}
+
+pub fn use_artwork_from(
+    load: impl FnOnce() -> Option<Vec<u8>> + Send + 'static,
+) -> State<Option<ImageHandle>> {
     let mut artwork = use_state(|| None);
     use_hook(move || {
         let (sender, receiver) = futures_channel::oneshot::channel();
         std::thread::spawn(move || {
-            let decoded = std::fs::read(&path).ok().and_then(|bytes| {
+            let decoded = load().and_then(|bytes| {
                 let data = freya_engine::prelude::Data::new_copy(&bytes);
                 let image = freya_engine::prelude::Image::from_encoded(data)?;
                 Some(ImageHandle::new(

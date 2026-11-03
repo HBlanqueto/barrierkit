@@ -4,7 +4,7 @@ use std::time::Duration;
 use barrier_kit::animation::Spring;
 use barrier_kit::controls::{ScrollView, use_scroll_controller};
 use barrier_kit::interaction::use_interaction;
-use barrier_kit::media::{RoundButton, material, use_artwork};
+use barrier_kit::media::{RoundButton, material, use_artwork_from};
 use barrier_kit::platform::Timers;
 use barrier_kit::style::{Palette, text};
 use barrier_kit::symbol::{Symbol, symbol};
@@ -71,7 +71,7 @@ impl Component for Card {
             timers.after(Duration::from_millis(MEDIA.preview_delay_ms), move || {
                 if *generation.peek() == next {
                     let mut preview = preview;
-                    let stream = VideoStream::open(assets::video(id), true).ok();
+                    let stream = assets::open_video(id, true);
                     if let Some(stream) = &stream {
                         stream.play();
                     }
@@ -86,7 +86,7 @@ impl Component for Card {
                 .ease(Ease::Out)
                 .function(Function::Cubic)
         });
-        let still = use_artwork(assets::still(self.entry.id));
+        let still = use_artwork_from(assets::still(self.entry.id));
         let mut area = use_state(Area::default);
 
         let (width, height) = match self.style {
@@ -109,13 +109,18 @@ impl Component for Card {
             .overflow(Overflow::Clip)
             .background(art_fill(title))
             .on_sized(move |event: Event<SizedEventData>| area.set_if_modified(event.area))
-            .maybe_child(self.entry.watched.and(still.read().clone()).map(|handle| {
-                image(handle)
-                    .width(Size::fill())
-                    .height(Size::fill())
-                    .aspect_ratio(AspectRatio::Max)
-                    .image_cover(ImageCover::Center)
-            }))
+            .maybe_child(
+                (self.entry.watched.is_some() || assets::remote(id))
+                    .then(|| still.read().clone())
+                    .flatten()
+                    .map(|handle| {
+                        image(handle)
+                            .width(Size::fill())
+                            .height(Size::fill())
+                            .aspect_ratio(AspectRatio::Max)
+                            .image_cover(ImageCover::Center)
+                    }),
+            )
             .maybe_child(preview.read().clone().map(|stream| {
                 rect()
                     .layer(ABOVE_ART)

@@ -4,7 +4,7 @@ use barrier_kit::media::{MediaButton, RoundButton, ScrimEdge, ground, scrim};
 use barrier_kit::style::{Palette, text};
 use barrier_kit::symbol::{Symbol, symbol};
 use barrier_kit::theme::color;
-use barrier_kit::video::{VideoStream, VideoView};
+use barrier_kit::video::VideoView;
 use freya_animation::prelude::{
     AnimNum, Ease, Function, OnChange, OnCreation, use_animation, use_animation_transition,
     use_animation_with_dependencies,
@@ -40,7 +40,7 @@ impl Component for HeroBackground {
         let stream = use_hook({
             let id = self.id;
             move || {
-                let stream = VideoStream::open(assets::video(id), true).ok();
+                let stream = assets::open_video(id, true);
                 if let Some(stream) = &stream {
                     stream.play();
                 }

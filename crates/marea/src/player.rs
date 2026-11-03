@@ -10,7 +10,7 @@ use barrier_kit::progress::ProgressRing;
 use barrier_kit::style::text;
 use barrier_kit::symbol::Symbol;
 use barrier_kit::theme::color;
-use barrier_kit::video::{VideoStream, VideoView};
+use barrier_kit::video::VideoView;
 use freya_animation::prelude::{AnimDirection, OnCreation, use_animation};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Area, Content, Direction, Gaps, Position, Size};
@@ -73,13 +73,13 @@ impl Component for Player {
     fn render(&self) -> impl IntoElement {
         let id = self.id;
         let stream = use_hook(move || {
-            let stream = VideoStream::open(assets::video(id), false).ok();
+            let stream = assets::open_video(id, false);
             if let Some(stream) = &stream {
                 stream.play();
             }
             stream
         });
-        let thumb = use_hook(move || VideoStream::open(assets::video(id), false).ok());
+        let thumb = use_hook(move || assets::open_video(id, false));
         let tick = use_ticker();
         let _ = *tick.read();
         let mut closing = use_state(|| false);
