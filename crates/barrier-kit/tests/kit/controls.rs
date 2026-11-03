@@ -33,6 +33,7 @@ use freya_core::prelude::*;
 use freya_testing::TestingRunner;
 use keyboard_types::{Key, NamedKey};
 use torin::prelude::{Alignment, Direction, Gaps, Size, Size2D};
+use vow_appearance::{AppearanceConfig, ColorScheme, resolve};
 use vow_design::{ACCENT_SWATCHES, Rgba};
 
 const SIZE: (f32, f32) = (360.0, 240.0);
@@ -454,7 +455,26 @@ fn golden_path(name: &str, dark: bool) -> PathBuf {
 
 fn render(size: (f32, f32), dark: bool, build: fn() -> Element) -> Vec<u8> {
     let app = AppComponent::new(Case { dark, build });
-    let (mut test, _) = TestingRunner::new(app, Size2D::new(size.0, size.1), |_| {}, 1.0);
+    // The goldens must not depend on the host's appearance.domain or wallpaper accent.
+    let resolved = resolve(
+        &AppearanceConfig {
+            color_scheme: if dark {
+                ColorScheme::Dark
+            } else {
+                ColorScheme::Light
+            },
+            ..Default::default()
+        },
+        None,
+    );
+    let (mut test, _) = TestingRunner::new(
+        app,
+        Size2D::new(size.0, size.1),
+        move |runner| {
+            runner.provide_root_context(move || State::create(resolved));
+        },
+        1.0,
+    );
     test.sync_and_update();
     test.sync_and_update();
     let data = test.render();
@@ -721,7 +741,21 @@ fn focus_case(keyboard: bool) -> (TestingRunner, State<bool>, State<bool>, State
         checkbox,
         segment,
     });
-    let (mut test, _) = TestingRunner::new(app, Size2D::new(SIZE.0, SIZE.1), |_| {}, 1.0);
+    let resolved = resolve(
+        &AppearanceConfig {
+            color_scheme: ColorScheme::Light,
+            ..Default::default()
+        },
+        None,
+    );
+    let (mut test, _) = TestingRunner::new(
+        app,
+        Size2D::new(SIZE.0, SIZE.1),
+        move |runner| {
+            runner.provide_root_context(move || State::create(resolved));
+        },
+        1.0,
+    );
     test.sync_and_update();
     (test, switch, checkbox, segment)
 }
