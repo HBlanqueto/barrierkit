@@ -111,7 +111,13 @@ impl Component for ScrollView {
         let mut content = use_state(|| 0.0f32);
         let (scrolled_x, scrolled_y): (i32, i32) = controller.into();
         let scrolled = if horizontal { scrolled_x } else { scrolled_y };
-        let along = move |area: Area| if horizontal { area.width() } else { area.height() };
+        let along = move |area: Area| {
+            if horizontal {
+                area.width()
+            } else {
+                area.height()
+            }
+        };
         let mut shown_at = use_state(|| scrolled);
         let mut scrolls = use_state(|| 0u32);
         let mut scrolling = use_state(|| false);
@@ -171,9 +177,7 @@ impl Component for ScrollView {
                     )
                 } else {
                     (
-                        Position::new_absolute()
-                            .top(offset)
-                            .right(SCROLL_BAR.inset),
+                        Position::new_absolute().top(offset).right(SCROLL_BAR.inset),
                         SCROLL_BAR.thumb,
                         length,
                     )
