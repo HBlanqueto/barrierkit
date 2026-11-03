@@ -288,11 +288,11 @@ impl Component for SplitView {
                                 .a11y_role(AccessibilityRole::Splitter)
                                 .position(
                                     Position::new_absolute()
-                                        .left(container - SPLIT_VIEW.grip / 2.0)
+                                        .left(container - inset - SPLIT_VIEW.grip)
                                         .top(0.0),
                                 )
                                 .width(Size::px(SPLIT_VIEW.grip))
-                                .height(Size::fill())
+                                .height(Size::percent(100.0))
                                 .padding(Gaps::new(
                                     SPLIT_VIEW.grip_line_inset,
                                     0.0,

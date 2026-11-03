@@ -357,6 +357,26 @@ fn titlebar_with_sidebar_hides_traffic_lights() {
     );
 }
 
+#[test]
+fn dragging_the_sidebar_edge_widens_the_sidebar() {
+    let capture: Capture = Arc::new(Mutex::new(None));
+    let app = AppComponent::new(LayoutCase {
+        capture: capture.clone(),
+    });
+    let (mut test, _) = TestingRunner::new(app, Size2D::new(800.0, 600.0), |_| {}, 1.0);
+    test.sync_and_update();
+    test.poll(Duration::from_millis(16), Duration::from_millis(400));
+    let detail_x = |capture: &Capture| capture.lock().unwrap().expect("content was sized").0;
+    let before = detail_x(&capture);
+    let edge = f64::from(before) - 1.0;
+    test.move_cursor((edge, 300.0));
+    test.press_cursor((edge, 300.0));
+    test.move_cursor((edge + 40.0, 300.0));
+    test.release_cursor((edge + 40.0, 300.0));
+    test.poll(Duration::from_millis(16), Duration::from_millis(400));
+    assert!(detail_x(&capture) > before + 30.0);
+}
+
 struct ToggleApp;
 
 impl App for ToggleApp {
@@ -440,7 +460,7 @@ fn animated_section_test() -> (TestingRunner, State<vow_appearance::Resolved>) {
 }
 
 fn section_content_area(test: &TestingRunner) -> (f32, f32, f32, f32) {
-    test.find(|node, el| {
+    test.find_many(|node, el| {
         el.effect()
             .is_some_and(|effect| effect.overflow == Overflow::Clip)
             .then(|| {
@@ -453,6 +473,7 @@ fn section_content_area(test: &TestingRunner) -> (f32, f32, f32, f32) {
                 )
             })
     })
+    .pop()
     .expect("the section content container exists")
 }
 
@@ -863,11 +884,12 @@ fn sidebar_section_opens_to_the_real_child_height() {
         test.sync_and_update();
     }
     let content = test
-        .find(|node, el| {
+        .find_many(|node, el| {
             el.effect()
                 .is_some_and(|effect| effect.overflow == Overflow::Clip)
                 .then(|| node.layout().area)
         })
+        .pop()
         .expect("the section content container exists");
     assert!(
         (content.size.height - 80.0).abs() < 0.5,
