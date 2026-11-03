@@ -9,7 +9,8 @@ use keyboard_types::{Key, NamedKey};
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 use vow_appearance::{SidebarStyle, SidebarSurface};
 use vow_design::{
-    BACKDROP, DURATION_BASE, Rgba, SETTINGS, SIDEBAR, SidebarPalette, TEXT, TITLEBAR, TITLEBAR_RAIL,
+    BACKDROP, DURATION_BASE, Rgba, SETTINGS, SIDEBAR, SidebarPalette, TEXT, TEXT_FIELD, TITLEBAR,
+    TITLEBAR_RAIL,
 };
 
 use crate::ProbeExt;
@@ -255,6 +256,16 @@ impl Component for Sidebar {
                 resting_top + (revealed_top - resting_top) * progress
             }
         };
+        let chrome = crate::chrome::chrome_style();
+        let rail_layout = chrome.layout == TitlebarLayout::Rail;
+        let mut in_rail = use_state(|| rail_layout);
+        in_rail.set_if_modified(rail_layout);
+        let rail_progress = crate::chrome::use_switch_progress(in_rail);
+        let inset = if island { SIDEBAR.inset as f32 } else { 0.0 };
+        let (bar_height, bar_padding_top) = crate::titlebar::sidebar_bar_metrics();
+        // With the Rail the traffic lights leave the sidebar, so its first row rises to the titlebar row.
+        let row_top = ((bar_padding_top + bar_height - TEXT_FIELD.height) / 2.0 - inset).max(0.0);
+        let top_height = top_height + (row_top - top_height) * rail_progress;
         let padding_x = SIDEBAR.padding_x as f32;
         let radius = SIDEBAR.radius as f32;
 
@@ -262,16 +273,11 @@ impl Component for Sidebar {
             .map(|controls| (*controls.status.read(), controls.fixed))
             .unwrap_or_default();
         let drag = window_drag_handler(fixed);
-        let band_top = -top_height - if island { SIDEBAR.inset as f32 } else { 0.0 };
+        let band_top = -top_height - inset;
         let band_left = -(padding_x);
         let band_width = SIDEBAR.width as f32;
-        let band_height = if island {
-            top_height + SIDEBAR.inset as f32
-        } else {
-            top_height
-        };
+        let band_height = top_height + inset;
 
-        let chrome = crate::chrome::chrome_style();
         let lights_column = chrome.unified(true) && self.traffic_lights;
         let reserved = if lights_column {
             chrome.rail_width

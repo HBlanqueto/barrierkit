@@ -124,6 +124,23 @@ sitios.
 |---|---|
 | ![Rail normal con elementos arriba y abajo](assets/estados/rail-elementos.png) | ![Rail unificado con elementos arriba y abajo](assets/estados/rail-unificado-elementos.png) |
 
+### La barra lateral con el `Rail`
+
+Con el `Rail`, los semáforos salen de la barra lateral y dejan libre su parte de
+arriba. La `Sidebar` sube entonces su primera fila (en `PreferencesWindow`, el
+buscador) hasta la fila de la titlebar, centrada con sus botones. La medida sale
+de `sidebar_bar_metrics()` y de `TEXT_FIELD.height`, así que vale en isla y en
+plana.
+
+Al cambiar de `Top` a `Rail`, o al revés, la fila se desliza con
+`DURATION_BASE` y una curva cúbica de salida. Con movimiento reducido, salta.
+En pantalla completa no baja con la barra del compositor, como el resto de la
+ventana con el `Rail`.
+
+| `Top`: el buscador, bajo los semáforos | `Rail`: el buscador, en la fila de la titlebar |
+|---|---|
+| ![Barra lateral con Top](assets/estados/barra-lateral-top.png) | ![Barra lateral con Rail](assets/estados/barra-lateral-rail.png) |
+
 ### Campos de `ChromeStyle`
 
 | Campo | Valores | Efecto |

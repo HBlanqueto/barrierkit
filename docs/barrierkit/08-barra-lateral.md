@@ -35,7 +35,7 @@ Sidebar::new()
 | `SidebarItem::new(texto)` | `.symbol(Symbol, tinte)` o `.icon(svg)`, `.badge(n)`, `.selected(bool)`, `.emphasized(bool)`, `.on_select(..)` |
 | `SidebarSection::new(título)` | `.expanded(bool)`, `.on_toggle(..)`: se pliega con una animación de `DURATION_BASE` |
 | `SidebarAccount::new(iniciales, nombre, detalle)` | `.selected(bool)`, `.on_select(..)` |
-| `Sidebar` | `.traffic_lights(true)` pone los semáforos dentro; `.backdrop(SidebarBackdrop::Tinted)` la tiñe sobre un fondo tintado |
+| `Sidebar` | `.traffic_lights(true)` pone los semáforos dentro; `.backdrop(SidebarBackdrop::Tinted)` la tiñe sobre un fondo tintado. Con el `Rail`, su primera fila sube a la fila de la titlebar (capítulo [7](07-titlebars.md#la-barra-lateral-con-el-rail)) |
 
 ![Fila de cuenta seleccionada](assets/componentes/sidebar-account-light.png)
 

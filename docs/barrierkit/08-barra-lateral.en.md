@@ -35,7 +35,7 @@ Sidebar::new()
 | `SidebarItem::new(texto)` | `.symbol(Symbol, tinte)` or `.icon(svg)`, `.badge(n)`, `.selected(bool)`, `.emphasized(bool)`, `.on_select(..)` |
 | `SidebarSection::new(título)` | `.expanded(bool)`, `.on_toggle(..)`: it collapses with a `DURATION_BASE` animation |
 | `SidebarAccount::new(iniciales, nombre, detalle)` | `.selected(bool)`, `.on_select(..)` |
-| `Sidebar` | `.traffic_lights(true)` puts the traffic lights inside; `.backdrop(SidebarBackdrop::Tinted)` tints it over a tinted backdrop |
+| `Sidebar` | `.traffic_lights(true)` puts the traffic lights inside; `.backdrop(SidebarBackdrop::Tinted)` tints it over a tinted backdrop. With the `Rail`, its first row rises to the titlebar row (chapter [7](07-titlebars.en.md#the-sidebar-with-the-rail)) |
 
 ![Selected account row](assets/componentes/sidebar-account-light.png)
 

@@ -122,6 +122,22 @@ With any item, the rail widens to `TITLEBAR_RAIL.actions_width` (34). In
 |---|---|
 | ![Normal rail with items at the top and the bottom](assets/estados/rail-elementos.png) | ![Unified rail with items at the top and the bottom](assets/estados/rail-unificado-elementos.png) |
 
+### The sidebar with the `Rail`
+
+With the `Rail`, the traffic lights leave the sidebar and free its top. The
+`Sidebar` then raises its first row (the search field in `PreferencesWindow`) to
+the titlebar row, centered with its buttons. The measure comes from
+`sidebar_bar_metrics()` and `TEXT_FIELD.height`, so it holds for island and flat.
+
+When the layout switches from `Top` to `Rail`, or back, the row slides with
+`DURATION_BASE` and a cubic ease-out curve. With reduced motion, it jumps. In
+full screen it does not move down with the compositor bar, like the rest of the
+window with the `Rail`.
+
+| `Top`: the search field, below the traffic lights | `Rail`: the search field, in the titlebar row |
+|---|---|
+| ![Sidebar with Top](assets/estados/barra-lateral-top.png) | ![Sidebar with Rail](assets/estados/barra-lateral-rail.png) |
+
 ### `ChromeStyle` fields
 
 | Field | Values | Effect |
