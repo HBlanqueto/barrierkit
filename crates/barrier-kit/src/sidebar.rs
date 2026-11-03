@@ -327,20 +327,19 @@ impl Component for Sidebar {
                         ),
                 );
             }
-        } else {
-            sidebar_body = sidebar_body.child(
-                rect()
-                    .position(Position::new_absolute().top(0.0).right(0.0))
-                    .width(Size::px(SIDEBAR.inner_width))
-                    .height(Size::fill())
-                    .background(theme::color(surface.palette.line)),
-            );
         }
 
         let mut root = rect()
             .width(Size::fill())
             .height(Size::fill())
-            .child(sidebar_body);
+            .child(sidebar_body)
+            .maybe_child((!island).then(|| {
+                rect()
+                    .position(Position::new_absolute().top(0.0).right(0.0))
+                    .width(Size::px(SIDEBAR.inner_width))
+                    .height(Size::percent(100.0))
+                    .background(theme::color(surface.palette.line))
+            }));
 
         let sidebar_shown =
             crate::views::split::sidebar_control().is_none_or(|control| control.settled());

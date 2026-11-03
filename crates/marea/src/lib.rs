@@ -17,6 +17,7 @@ use barrier_kit::sidebar::{Sidebar, SidebarAccount, SidebarBackdrop, SidebarItem
 use barrier_kit::style::{Palette, text};
 use barrier_kit::symbol::Symbol;
 use barrier_kit::theme::{color, use_appearance};
+use barrier_kit::titlebar::window_drag_handler;
 use freya_core::prelude::*;
 use torin::prelude::{Area, Gaps, Position, Size};
 use vow_appearance::ColorScheme;
@@ -83,6 +84,7 @@ impl Component for Island {
                     .layer(1)
                     .child(
                         Sidebar::new()
+                            .traffic_lights(true)
                             .backdrop(SidebarBackdrop::Clear)
                             .child(
                                 rect()
@@ -118,12 +120,13 @@ impl Component for Toolbar {
             .width(Size::fill())
             .height(Size::px(TOOLBAR))
             .layer(TOOLBAR_LAYER)
+            .on_mouse_down(window_drag_handler(false))
             .maybe_child((self.shown > 0.0).then(top_glass))
             .child(
                 rect()
                     .position(Position::new_absolute().top(0.0).left(0.0))
                     .width(Size::fill())
-                    .height(Size::fill())
+                    .height(Size::percent(100.0))
                     .background(
                         LinearGradient::new()
                             .stop((

@@ -72,7 +72,7 @@ impl Component for HeroBackground {
                     .layer(OVER_VIDEO)
                     .position(Position::new_absolute().top(0.0).left(0.0))
                     .width(Size::px(self.width * SIDE_SCRIM))
-                    .height(Size::fill()),
+                    .height(Size::percent(100.0)),
             )
             .child(
                 scrim(ScrimEdge::Bottom)
@@ -86,7 +86,7 @@ impl Component for HeroBackground {
                     .layer(OVER_VIDEO + 1)
                     .position(Position::new_absolute().top(0.0).left(0.0))
                     .width(Size::fill())
-                    .height(Size::fill())
+                    .height(Size::percent(100.0))
                     .background(color(Rgba {
                         a: (veil * 0.8 + dim).min(1.0),
                         ..window

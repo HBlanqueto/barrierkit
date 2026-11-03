@@ -121,7 +121,7 @@ impl Component for Card {
                     .layer(ABOVE_ART)
                     .position(Position::new_absolute().top(0.0).left(0.0))
                     .width(Size::fill())
-                    .height(Size::fill())
+                    .height(Size::percent(100.0))
                     .opacity(shown)
                     .child(VideoView::new(stream))
                     .child(

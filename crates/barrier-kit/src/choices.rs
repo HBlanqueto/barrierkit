@@ -426,7 +426,7 @@ impl Component for Card {
                     rect()
                         .position(Position::new_absolute().left(0.0).top(0.0))
                         .width(Size::fill())
-                        .height(Size::fill())
+                        .height(Size::percent(100.0))
                         .corner_radius(radius)
                         .border(
                             Border::new()

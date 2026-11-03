@@ -36,7 +36,7 @@ pub fn sheet(content: impl IntoElement) -> Rect {
     rect()
         .position(Position::new_absolute().left(0.0).top(0.0))
         .width(Size::fill())
-        .height(Size::fill())
+        .height(Size::percent(100.0))
         .layer(Layer::Overlay)
         .background(color(palette.scrim))
         .cross_align(Alignment::Center)
