@@ -240,25 +240,25 @@ Hecho en `main`:
 - **Master Tengen App Show** (`tengen-app-show`) **Ondina** (`ondina`), el reproductor que usa los fondos, el acento propio, los tres tamaños y la navegación del kit, y **Rótulo** (`rotulo`), que prueba las titlebars verticales; son las tres apps de prueba del repositorio.
 - **Fase 6**: Ajustes del sistema es un `PreferencesWindow` con un `Form`; ya no tiene controles, barra lateral ni buscador propios.
 
-Pendiente:
+Pendiente. Nada de esto se construye hasta que su motivo desaparezca (regla 2 de AGENTS.md: nada «por si acaso»):
 
-- Capa 0: selección primaria, arrastrar y soltar entre apps y damage parcial. El damage espera al renderizado incremental de Freya: `RenderPipeline::render` repinta el árbol entero en 0.4.3 (`freya-core/src/render_pipeline.rs`, «TODO: Use incremental rendering»).
-- Capa 1:
-  - `Image` propio.
-- Capa 2:
-  - `Toolbar` con zonas, título, búsqueda y desbordamiento; hoy solo hay pestañas de barra (`views/tabs.rs`) y `ToolGroup`.
-  - `OutlineView` y `ColumnBrowser`.
-- App:
-  - `Application` no abre archivos ni URLs (`Open` llega por D-Bus y se ignora) ni tiene política para el cierre de la última ventana: ninguna app abre documentos ni tiene varias ventanas todavía.
-  - `Restoration` guarda el panel, las búsquedas y el tamaño de la ventana. La posición depende de `xdg-session-management` en el compositor; la pila de navegación y el desplazamiento, de una app que los necesite.
-  - `Action`: el menú guarda el atajo como texto y `find_menu_shortcut` lo vuelve a parsear en cada tecla.
-  - El portapapeles solo lleva texto.
+- **Bloqueado por Freya 0.4.3:**
+  - Damage parcial: `RenderPipeline::render` repinta el árbol entero (`freya-core/src/render_pipeline.rs`, «TODO: Use incremental rendering»).
+  - Selección primaria: el `Input` de `freya-components` no expone la selección ni el clic central, así que no hay nada que publicar ni dónde pegar.
+- **Espera a la primera app que lo use:**
+  - Capa 0: arrastrar y soltar entre apps (un Finder o un gestor de archivos).
+  - Capa 1: `Image` propio; hoy basta `ImageViewer` de Freya dentro de los controles.
+  - Capa 2: hueco de búsqueda y desbordamiento en la `Titlebar`, que ya tiene zonas `left`, `right` y título; `OutlineView` y `ColumnBrowser`.
+  - App: `Open` de archivos y URLs, política al cerrar la última ventana, restauración de la pila de navegación y del desplazamiento, portapapeles con tipos además de texto.
+- **Depende del compositor:** la posición de la ventana, con `xdg-session-management`.
+
+Decidido: los atajos del menú siguen guardándose como texto (`MenuItem::Action::shortcut`). La barra de menús de la shell recibe así los aceleradores de GTK y dbusmenu de otras apps, y `find_menu_shortcut` solo recorre el menú de la ventana con el foco, que es pequeño. Las acciones propias del kit usan `Shortcut` tipado.
 
 ## Consecuencias
 
 - Ajustes del sistema deja de definir controles: `controls.rs`, `sidebar.rs`, `groups.rs` y sus `svg_viewer`/`rgba` locales desaparecen en la fase 6.
 - `barrier_kit::controls` deja de re-exportar componentes de Freya con su aspecto por defecto.
-- El menú global, los atajos y la barra de herramientas comparten un único modelo de acciones. Las cadenas de atajo dejan de parsearse en cada tecla.
+- El menú global, los atajos y la barra de herramientas comparten un único modelo de acciones.
 - Se añaden muchos tokens a `tengen/components.json` (controles, split view, toolbar, tabla…) y el generador de `vow-design` crece.
 - El trabajo es largo. Rehacer Ajustes queda al final de la fase 6.
 
