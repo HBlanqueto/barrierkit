@@ -101,8 +101,9 @@ fn description(location: &str, decoding: Decoding) -> String {
         Decoding::GpuZeroCopy => format!(
             "{source} ! qtdemux ! h264parse ! vah264dec ! vapostproc ! {GPU_CAPS} ! appsink name=sink"
         ),
+        // VA drivers disagree on the byte order of RGB32 (gstvavideoformat.c, gstreamer#3354): convert on the CPU.
         Decoding::GpuDownload => format!(
-            "{source} ! qtdemux ! h264parse ! vah264dec ! vapostproc ! video/x-raw,format=RGBA ! appsink name=sink"
+            "{source} ! qtdemux ! h264parse ! vah264dec ! videoconvert ! video/x-raw,format=RGBA ! appsink name=sink"
         ),
         Decoding::Cpu => format!(
             "{source} ! decodebin3 ! videoconvert ! video/x-raw,format=RGBA ! appsink name=sink"
