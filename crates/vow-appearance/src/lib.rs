@@ -155,6 +155,14 @@ pub enum TrafficLightStyle {
     Wallpaper,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ScrollBars {
+    #[default]
+    WhenScrolling,
+    Always,
+}
+
 #[derive(Debug, Clone, Deserialize, Default)]
 #[serde(default)]
 pub struct AppearanceConfig {
@@ -162,6 +170,7 @@ pub struct AppearanceConfig {
     pub accent_color: Option<[f32; 3]>,
     pub contrast: bool,
     pub reduced_motion: bool,
+    pub scroll_bars: ScrollBars,
     #[serde(default = "default_reduce_transparency")]
     pub reduce_transparency: bool,
     pub window_color: WindowColorMode,
@@ -218,6 +227,7 @@ pub struct Resolved {
     pub traffic_style: TrafficLightStyle,
     pub reduce_transparency: bool,
     pub reduced_motion: bool,
+    pub scroll_bars: ScrollBars,
     pub shell: ShellPalette,
     pub menu: MenuPalette,
     pub sidebar: SidebarSurface,
@@ -481,6 +491,7 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
         traffic_style: style,
         reduce_transparency: appearance.reduce_transparency,
         reduced_motion: appearance.reduced_motion,
+        scroll_bars: appearance.scroll_bars,
         shell,
         menu,
         sidebar,
@@ -693,6 +704,7 @@ pub fn write_appearance(path: &Path, config: &AppearanceConfig) -> std::io::Resu
     doc["contrast"] = toml_edit::value(config.contrast);
     doc["reduced_motion"] = toml_edit::value(config.reduced_motion);
     doc["reduce_transparency"] = toml_edit::value(config.reduce_transparency);
+    doc["scroll_bars"] = toml_edit::value(scroll_bars_str(config.scroll_bars));
     doc["window_color"] = toml_edit::value(window_color_str(config.window_color));
     doc["window_tint_scope"] = toml_edit::value(window_tint_scope_str(config.window_tint_scope));
     doc["traffic_lights"] = toml_edit::value(traffic_lights_str(config.traffic_lights));
@@ -736,6 +748,13 @@ fn window_tint_scope_str(scope: WindowTintScope) -> &'static str {
     match scope {
         WindowTintScope::Windows => "windows",
         WindowTintScope::Desktop => "desktop",
+    }
+}
+
+fn scroll_bars_str(scroll_bars: ScrollBars) -> &'static str {
+    match scroll_bars {
+        ScrollBars::WhenScrolling => "when_scrolling",
+        ScrollBars::Always => "always",
     }
 }
 
@@ -867,6 +886,7 @@ mod tests {
             accent_color: accent,
             contrast: false,
             reduced_motion: false,
+            scroll_bars: ScrollBars::WhenScrolling,
             reduce_transparency: true,
             window_color: mode,
             window_tint_scope: scope,
@@ -1690,6 +1710,7 @@ sidebar_style = "flat"
             accent_color: Some([0.184, 0.435, 0.894]),
             contrast: false,
             reduced_motion: false,
+            scroll_bars: ScrollBars::WhenScrolling,
             reduce_transparency: true,
             window_color: WindowColorMode::Accent,
             window_tint_scope: WindowTintScope::Desktop,
@@ -1958,6 +1979,7 @@ sidebar_style = "flat"
             accent_color: None,
             contrast: false,
             reduced_motion: false,
+            scroll_bars: ScrollBars::WhenScrolling,
             reduce_transparency: true,
             window_color: WindowColorMode::Neutral,
             window_tint_scope: WindowTintScope::Windows,
@@ -1980,6 +2002,7 @@ sidebar_style = "flat"
             traffic_style: TrafficLightStyle::Standard,
             reduce_transparency: true,
             reduced_motion: false,
+            scroll_bars: ScrollBars::WhenScrolling,
             shell: SHELL_LIGHT_OPAQUE,
             menu: MENU_LIGHT_OPAQUE,
             sidebar: SidebarSurface {
@@ -2026,6 +2049,7 @@ sidebar_style = "flat"
             accent_color: Some([accent.r, accent.g, accent.b]),
             contrast: false,
             reduced_motion: false,
+            scroll_bars: ScrollBars::WhenScrolling,
             reduce_transparency: true,
             window_color: WindowColorMode::Accent,
             window_tint_scope: WindowTintScope::Windows,
@@ -2047,6 +2071,7 @@ sidebar_style = "flat"
             traffic_style: TrafficLightStyle::Accent,
             reduce_transparency: true,
             reduced_motion: false,
+            scroll_bars: ScrollBars::WhenScrolling,
             shell: expected_shell,
             menu: MenuPalette {
                 hover_bg: accent,

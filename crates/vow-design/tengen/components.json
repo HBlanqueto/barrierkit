@@ -683,6 +683,12 @@
       "radius": "radius.xs",
       "pointer-gap": 16
     },
+    "scroll-bar": {
+      "thumb": 6,
+      "inset": 3,
+      "min-length": 50,
+      "opacity": 0.45
+    },
     "badge": {
       "height": 20,
       "padding-x": 8,

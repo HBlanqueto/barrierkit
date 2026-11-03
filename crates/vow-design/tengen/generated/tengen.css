@@ -391,6 +391,10 @@
   --radio-dot: 6px;
   --radio-on: var(--accent);
   --radio-size: 16px;
+  --scroll-bar-inset: 3px;
+  --scroll-bar-min-length: 50px;
+  --scroll-bar-opacity: 0.450000;
+  --scroll-bar-thumb: 6px;
   --segmented-active-bg: var(--bg-selected-control);
   --segmented-active-fg: var(--ink-strong);
   --segmented-active-shadow: shadow.knob;

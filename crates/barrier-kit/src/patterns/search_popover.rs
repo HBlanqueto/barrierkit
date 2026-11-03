@@ -1,6 +1,6 @@
 //! Drop-down under a sidebar search field: suggestions, recents and results.
 
-use freya_components::scrollviews::ScrollView;
+use crate::scroll::ScrollView;
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 use vow_design::{CAPTION, LIST_GROUP, Rgba, SETTINGS, SIDEBAR, TEXT, TEXT_FIELD};

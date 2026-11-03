@@ -1,6 +1,6 @@
 //! Named UI controls (buttons, toggles, fields) built on Freya components.
 
-pub use freya_components::scrollviews::ScrollView;
+pub use crate::scroll::ScrollView;
 
 use freya_components::input::{Input, InputColorsThemePartial, InputLayoutThemePartial};
 use freya_components::svg_viewer::SvgViewer;

@@ -28,6 +28,8 @@ pub mod choices;
 
 pub mod progress;
 
+mod scroll;
+
 pub mod level;
 
 pub mod compact;

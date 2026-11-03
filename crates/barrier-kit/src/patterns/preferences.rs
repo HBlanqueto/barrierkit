@@ -1,6 +1,6 @@
 //! Preferences window: searchable sidebar of panes, history and a form per pane.
 
-use freya_components::scrollviews::ScrollView;
+use crate::scroll::ScrollView;
 use freya_core::prelude::*;
 use serde::{Deserialize, Serialize};
 use torin::prelude::{Alignment, Direction, Gaps, Size};

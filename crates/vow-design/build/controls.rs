@@ -321,6 +321,14 @@ pub(super) fn emit_compact(out: &mut String, tokens: &Value, components: &Value)
         field("badge.height"),
         field("badge.padding-x")
     ));
+    const_doc(out, "SCROLL_BAR", "The Tengen scroll bar metrics.");
+    out.push_str(&format!(
+        ": ScrollBarMetrics = ScrollBarMetrics {{ thumb: {}, inset: {}, min_length: {}, opacity: {} }};\n\n",
+        field("scroll-bar.thumb"),
+        field("scroll-bar.inset"),
+        field("scroll-bar.min-length"),
+        field("scroll-bar.opacity")
+    ));
 }
 
 pub(super) fn emit_list_group(out: &mut String, tokens: &Value, components: &Value) {

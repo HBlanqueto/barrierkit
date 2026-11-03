@@ -511,6 +511,14 @@ pub struct BadgeMetrics {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct ScrollBarMetrics {
+    pub thumb: f32,
+    pub inset: f32,
+    pub min_length: f32,
+    pub opacity: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ListGroupMetrics {
     pub radius: f32,
     pub row_min_height: f32,
