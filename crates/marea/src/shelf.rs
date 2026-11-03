@@ -4,7 +4,7 @@ use std::time::Duration;
 use barrier_kit::animation::Spring;
 use barrier_kit::controls::{ScrollView, use_scroll_controller};
 use barrier_kit::interaction::use_interaction;
-use barrier_kit::media::use_artwork;
+use barrier_kit::media::{RoundButton, material, use_artwork};
 use barrier_kit::platform::Timers;
 use barrier_kit::style::{Palette, text};
 use barrier_kit::symbol::{Symbol, symbol};
@@ -266,12 +266,48 @@ impl Component for ShelfRow {
         } + LIFT_ROOM.top()
             + LIFT_ROOM.bottom();
         let hovered = interaction.hovered();
-        let page = Rc::new(move || {
+        let (card_width, card_height) = match style {
+            ShelfStyle::Wide => WIDE,
+            ShelfStyle::Ranked => TALL,
+        };
+        let count = visible.len() as f32;
+        let content = count * card_width
+            + (count - 1.0).max(0.0) * GAP
+            + LIFT_ROOM.left()
+            + LIFT_ROOM.right();
+        let scrolled = -(Into::<(i32, i32)>::into(controller).0 as f32);
+        let rest = content - *width.read() - scrolled;
+        let page = Rc::new(move |direction: f32| {
             let mut target = target;
             let (x, _): (i32, i32) = controller.into();
             let from = x as f32;
-            target.set((from, from - *width.peek() * 0.8));
+            let to = (from - direction * *width.peek() * 0.8)
+                .clamp(-(content - *width.peek()).max(0.0), 0.0);
+            target.set((from, to));
         });
+        let arrow = |direction: f32| {
+            let page = page.clone();
+            let (symbol_kind, label, side) = if direction < 0.0 {
+                (
+                    Symbol::ChevronLeft,
+                    "Anterior",
+                    Position::new_absolute().left(INSET - MEDIA.round / 2.0),
+                )
+            } else {
+                (
+                    Symbol::ChevronRight,
+                    "Siguiente",
+                    Position::new_absolute().right(INSET - MEDIA.round / 2.0),
+                )
+            };
+            rect()
+                .layer(ABOVE_CARDS)
+                .position(side.top(38.0 + LIFT_ROOM.top() + (card_height - MEDIA.round) / 2.0))
+                .width(Size::px(MEDIA.round))
+                .height(Size::px(MEDIA.round))
+                .child(material(MEDIA.round / 2.0))
+                .child(RoundButton::new(symbol_kind, label).on_press(move |_| page(direction)))
+        };
 
         interaction
             .attach(rect(), true)
@@ -316,28 +352,7 @@ impl Component for ShelfRow {
                         ),
                 ),
             )
-            .maybe_child(hovered.then(|| {
-                let page = page.clone();
-                rect()
-                    .layer(ABOVE_CARDS)
-                    .position(Position::new_absolute().right(0.0).top(38.0))
-                    .width(Size::px(44.0))
-                    .height(Size::px(height - LIFT_ROOM.top()))
-                    .center()
-                    .background(
-                        LinearGradient::new()
-                            .angle(270.0)
-                            .stop((color(Rgba::rgba8(0x11, 0x12, 0x14, 0.0)), 0.0))
-                            .stop((color(Rgba::rgba8(0x11, 0x12, 0x14, 0.94)), 60.0)),
-                    )
-                    .a11y_role(AccessibilityRole::Button)
-                    .a11y_alt("Más")
-                    .on_press(move |_| page())
-                    .child(symbol(
-                        Symbol::ChevronRight,
-                        20.0,
-                        Rgba::rgb8(255, 255, 255),
-                    ))
-            }))
+            .maybe_child((hovered && scrolled > 1.0).then(|| arrow(-1.0)))
+            .maybe_child((hovered && rest > 1.0).then(|| arrow(1.0)))
     }
 }

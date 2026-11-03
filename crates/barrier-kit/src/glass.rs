@@ -1,5 +1,5 @@
 //! Progressive glass behind the full-screen titlebar: the window's own content
-//! blurred in thin bands whose radius shrinks from the window edge inwards.
+//! blurred in stacked layers whose radius halves from the window edge inwards.
 
 use std::borrow::Cow;
 use std::rc::Rc;
@@ -9,7 +9,7 @@ use freya_core::element::{ElementExt, RenderContext};
 use freya_core::prelude::*;
 use freya_core::tree::DiffModifies;
 use freya_engine::prelude::{
-    Color4f, Colors, Gradient, Interpolation, Paint, PaintStyle, RRect, Rect as SkRect,
+    BlendMode, Color4f, Colors, Gradient, Interpolation, Paint, PaintStyle, RRect, Rect as SkRect,
     SaveLayerRec, TileMode, blur, shaders,
 };
 use torin::prelude::{Position, Size};
@@ -73,28 +73,16 @@ fn strength_at(stops: &[(f32, f32)], t: f32) -> f32 {
         })
 }
 
-fn band_rect(edge: GlassEdge, bounds: SkRect, from: f32, to: f32) -> SkRect {
-    let (w, h) = (bounds.width(), bounds.height());
-    match edge {
-        GlassEdge::Top => SkRect::new(
-            bounds.left,
-            bounds.top + h * from,
-            bounds.right,
-            bounds.top + h * to,
-        ),
-        GlassEdge::Left => SkRect::new(
-            bounds.left + w * from,
-            bounds.top,
-            bounds.left + w * to,
-            bounds.bottom,
-        ),
-        GlassEdge::Right => SkRect::new(
-            bounds.right - w * to,
-            bounds.top,
-            bounds.right - w * from,
-            bounds.bottom,
-        ),
-    }
+// Each layer fades in between the previous radius and its own, so stacked radii blend without seams.
+fn layer_mask(floor: f32, level: f32) -> Vec<(f32, f32)> {
+    const SAMPLES: usize = 16;
+    (0..=SAMPLES)
+        .map(|sample| {
+            let t = sample as f32 / SAMPLES as f32;
+            let strength = strength_at(FULLSCREEN_GLASS.mask, t);
+            (t, ((strength - floor) / (level - floor)).clamp(0.0, 1.0))
+        })
+        .collect()
 }
 
 fn inwards(edge: GlassEdge, bounds: SkRect, color: Rgba, stops: &[(f32, f32)]) -> Paint {
@@ -145,20 +133,23 @@ impl ElementExt for Glass {
         let area = context.layout_node.visible_area();
         let bounds = SkRect::new(area.min_x(), area.min_y(), area.max_x(), area.max_y());
         let canvas = context.canvas;
-        let bands = FULLSCREEN_GLASS.bands;
-        for band in 0..bands {
-            let (from, to) = (band as f32 / bands as f32, (band + 1) as f32 / bands as f32);
-            let strength = strength_at(FULLSCREEN_GLASS.mask, (from + to) / 2.0);
-            let sigma = FULLSCREEN_GLASS.blur * strength * context.scale_factor as f32;
+        let layers = FULLSCREEN_GLASS.layers;
+        for layer in 0..layers {
+            let level = 0.5f32.powi((layers - 1 - layer) as i32);
+            let sigma = FULLSCREEN_GLASS.blur * level * context.scale_factor as f32;
             // Uncropped, so the blur samples the content past the glass instead of smearing its last row.
             let Some(filter) = blur((sigma, sigma), TileMode::Clamp, None, None) else {
                 continue;
             };
-            let slice = band_rect(self.edge, bounds, from, to);
-            canvas.save();
-            canvas.clip_rect(slice, None, Some(true));
-            canvas.save_layer(&SaveLayerRec::default().bounds(&slice).backdrop(&filter));
-            canvas.restore();
+            let mut mask = inwards(
+                self.edge,
+                bounds,
+                Rgba::rgb8(255, 255, 255),
+                &layer_mask(level / 2.0, level),
+            );
+            mask.set_blend_mode(BlendMode::DstIn);
+            canvas.save_layer(&SaveLayerRec::default().bounds(&bounds).backdrop(&filter));
+            canvas.draw_rect(bounds, &mask);
             canvas.restore();
         }
         canvas.draw_rect(
