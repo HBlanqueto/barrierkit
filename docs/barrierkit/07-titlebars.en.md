@@ -85,6 +85,7 @@ let estilo = ChromeStyle {
     side: Side::Left,
     rail_width: TITLEBAR_RAIL.width,
     round_lights: false,
+    pill_vertical: true,
     reveal: Reveal::Always,
     resting_edge: RestingEdge::None,
 };
@@ -96,7 +97,7 @@ WindowChrome::new(estilo, SplitView::new(barra, detalle)).footer(pie)
 | `Top` (default) | Horizontal titlebar at the top | ![Top layout](assets/apps/rotulo-top.png) |
 | `Rail` | Vertical strip on one side with the traffic lights in a column and the title rotated 90° | ![Rail layout](assets/apps/rotulo-rail.png) |
 | `Unified` | The traffic lights in a column inside the sidebar, with no strip of their own. Without a visible sidebar it becomes `Rail` | ![Unified layout](assets/apps/rotulo-unified.png) |
-| `Pill` | A floating pill with the traffic lights. In full screen it is glass | ![Pill layout](assets/apps/rotulo-pill.png) |
+| `Pill` | A floating pill with the traffic lights, vertical (default) or horizontal depending on `pill_vertical`. In full screen it is opaque or glass depending on `FullscreenBar` | ![Pill layout](assets/apps/rotulo-pill.png) |
 | `Actions` | A wider `Rail` with an actions footer (`.footer(..)`) | ![Actions layout](assets/apps/rotulo-actions.png) |
 
 | Field | Values | Effect |
@@ -104,6 +105,7 @@ WindowChrome::new(estilo, SplitView::new(barra, detalle)).footer(pie)
 | `side` | `Left`, `Right` | Side of the rail |
 | `rail_width` | `TITLEBAR_RAIL.width` or `.width_wide` | Width of the rail |
 | `round_lights` | `bool` | Round or square (default) traffic lights |
+| `pill_vertical` | `bool` | With `Pill`: traffic lights in a column (`true`, default) or in a row (`false`). The vertical one reserves a margin on the side; the horizontal one sits at the top and reserves none |
 | `reveal` | `Always`, `Drawer`, `Push`, `Corner`, `Popup` | Always visible, or it appears when the pointer comes close: as a drawer on top, pushing the content, only in the corner or as a pop-up pill |
 | `resting_edge` | `None`, `Line`, `Accent` | What stays visible while it is hidden: nothing, a line or an accent line |
 
@@ -115,6 +117,12 @@ Some combinations make no sense and correct themselves
 Rail on the right, round traffic lights, flat sidebar and dark mode:
 
 ![Right rail with round traffic lights](assets/apps/rotulo-rail-flat-round.png)
+
+The pill in both orientations, in a normal window:
+
+| `pill_vertical: true` (default) | `pill_vertical: false` |
+|---|---|
+| ![Vertical pill](assets/estados/pill-vertical.png) | ![Horizontal pill](assets/estados/pill-horizontal.png) |
 
 The Rótulo app (chapter [15](15-apps-de-prueba.en.md)) tests every combination
 live.
@@ -184,7 +192,8 @@ it.
 | `Unified` | Same as `Top` | ![Unified with the bar down](assets/estados/foco-unified.png) |
 | `Rail` | The rail, with the traffic lights in a column | ![Rail with the bar down](assets/estados/foco-rail.png) |
 | `Actions` | The wide rail with its footer of actions | ![Actions with the bar down](assets/estados/foco-actions.png) |
-| `Pill` | The traffic-light pill; before that it is hidden | ![Pill with the bar down](assets/estados/foco-pill.png) |
+| Vertical `Pill` | The traffic-light pill; before that it is hidden | ![Vertical Pill with the bar down](assets/estados/foco-pill.png) |
+| Horizontal `Pill` | The same, in a row | ![Horizontal Pill with the bar down](assets/estados/foco-pill-horizontal.png) |
 
 ### What the app does
 

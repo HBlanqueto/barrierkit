@@ -47,6 +47,7 @@ struct Prefs {
     side: Side,
     wide_rail: bool,
     round_lights: bool,
+    pill_vertical: bool,
     reveal: Reveal,
     resting_edge: RestingEdge,
     flat_sidebar: bool,
@@ -59,6 +60,7 @@ impl Default for Prefs {
             side: Side::Left,
             wide_rail: false,
             round_lights: false,
+            pill_vertical: true,
             reveal: Reveal::Always,
             resting_edge: RestingEdge::None,
             flat_sidebar: false,
@@ -77,6 +79,7 @@ impl Prefs {
                 TITLEBAR_RAIL.width
             },
             round_lights: self.round_lights,
+            pill_vertical: self.pill_vertical,
             reveal: self.reveal,
             resting_edge: self.resting_edge,
         }
@@ -169,6 +172,14 @@ fn design(prefs: State<Prefs>) -> Form {
             usize::from(current.round_lights),
             move |i| update(prefs, |p| p.round_lights = i == 1),
         )));
+    if current.layout == TitlebarLayout::Pill {
+        titlebar = titlebar.row(Row::new("Píldora").control(segmented(
+            "Píldora",
+            &["Vertical", "Horizontal"],
+            usize::from(!current.pill_vertical),
+            move |i| update(prefs, |p| p.pill_vertical = i == 0),
+        )));
+    }
     titlebar = titlebar.row(
         Row::new("Aparición").control(
             REVEALS

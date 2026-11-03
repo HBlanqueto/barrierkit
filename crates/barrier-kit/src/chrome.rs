@@ -59,6 +59,7 @@ pub struct ChromeStyle {
     pub side: Side,
     pub rail_width: f32,
     pub round_lights: bool,
+    pub pill_vertical: bool,
     pub reveal: Reveal,
     pub resting_edge: RestingEdge,
 }
@@ -70,6 +71,7 @@ impl Default for ChromeStyle {
             side: Side::Left,
             rail_width: TITLEBAR_RAIL.width,
             round_lights: false,
+            pill_vertical: true,
             reveal: Reveal::Always,
             resting_edge: RestingEdge::None,
         }
@@ -333,11 +335,13 @@ impl Component for WindowChrome {
         let (layout, reveal) = shown_as(style, sidebar_shown);
         let (overlaid, overlay_top) = fullscreen_overlay();
         let hidden = reveal != Reveal::Always && reveal != Reveal::Corner;
-        let gutter = if layout == TitlebarLayout::Pill && !sidebar_shown && !overlaid {
-            TITLEBAR_RAIL.pill_clearance
-        } else {
-            0.0
-        };
+        let gutter =
+            if layout == TitlebarLayout::Pill && style.pill_vertical && !sidebar_shown && !overlaid
+            {
+                TITLEBAR_RAIL.pill_clearance
+            } else {
+                0.0
+            };
         let content = rect()
             .width(Size::flex(1.0))
             .height(Size::fill())
@@ -465,7 +469,7 @@ impl Component for WindowChrome {
                 } else {
                     style.side
                 },
-                layout != TitlebarLayout::Top,
+                layout != TitlebarLayout::Top && style.pill_vertical,
                 if slides { shown } else { 1.0 },
                 if slides { 1.0 } else { shown },
             ));
@@ -624,7 +628,8 @@ fn pill(side: Side, vertical: bool, slide: f32, opacity: f32) -> Rect {
     let hidden_by = TITLEBAR_RAIL.reveal_corner * (1.0 - slide);
     let position = Position::new_absolute();
     let position = match (vertical, side) {
-        (false, _) => position.top(top - hidden_by).left(0.0),
+        (false, Side::Left) => position.top(top - hidden_by).left(0.0),
+        (false, Side::Right) => position.top(top - hidden_by).right(0.0),
         (true, Side::Left) => position.top(top).left(-hidden_by),
         (true, Side::Right) => position.top(top).right(-hidden_by),
     };

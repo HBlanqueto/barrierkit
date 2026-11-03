@@ -265,7 +265,9 @@ impl Component for Sidebar {
         let lights_column = chrome.layout == TitlebarLayout::Unified && self.traffic_lights;
         let reserved = match chrome.layout {
             TitlebarLayout::Unified if self.traffic_lights => chrome.rail_width,
-            TitlebarLayout::Pill => TITLEBAR_RAIL.pill_clearance - padding_x,
+            TitlebarLayout::Pill if chrome.pill_vertical => {
+                TITLEBAR_RAIL.pill_clearance - padding_x
+            }
             _ => 0.0,
         };
         let (reserved_left, reserved_right) = match chrome.side {
@@ -353,6 +355,9 @@ impl Component for Sidebar {
                     .position(match chrome.side {
                         Side::Left => position.left(offset),
                         Side::Right => position.right(offset),
+                    })
+                    .maybe(overlay_top.is_some(), |el| {
+                        el.layer(crate::titlebar::TITLEBAR_OVERLAY_LAYER + 1)
                     })
                     .a11y_alt("sidebar-traffic-lights")
                     .opacity(lights_opacity)

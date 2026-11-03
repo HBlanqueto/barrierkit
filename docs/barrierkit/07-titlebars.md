@@ -86,6 +86,7 @@ let estilo = ChromeStyle {
     side: Side::Left,
     rail_width: TITLEBAR_RAIL.width,
     round_lights: false,
+    pill_vertical: true,
     reveal: Reveal::Always,
     resting_edge: RestingEdge::None,
 };
@@ -97,7 +98,7 @@ WindowChrome::new(estilo, SplitView::new(barra, detalle)).footer(pie)
 | `Top` (por defecto) | Titlebar horizontal arriba | ![Diseño Top](assets/apps/rotulo-top.png) |
 | `Rail` | Franja vertical a un lado con los semáforos en columna y el título girado 90° | ![Diseño Rail](assets/apps/rotulo-rail.png) |
 | `Unified` | Los semáforos en columna dentro de la barra lateral, sin franja propia. Sin barra lateral visible pasa a `Rail` | ![Diseño Unified](assets/apps/rotulo-unified.png) |
-| `Pill` | Una píldora flotante con los semáforos. En pantalla completa es cristal | ![Diseño Pill](assets/apps/rotulo-pill.png) |
+| `Pill` | Una píldora flotante con los semáforos, vertical (por defecto) u horizontal según `pill_vertical`. En pantalla completa es opaca o cristal según `FullscreenBar` | ![Diseño Pill](assets/apps/rotulo-pill.png) |
 | `Actions` | Un `Rail` más ancho con un pie de acciones (`.footer(..)`) | ![Diseño Actions](assets/apps/rotulo-actions.png) |
 
 | Campo | Valores | Efecto |
@@ -105,6 +106,7 @@ WindowChrome::new(estilo, SplitView::new(barra, detalle)).footer(pie)
 | `side` | `Left`, `Right` | Lado del rail |
 | `rail_width` | `TITLEBAR_RAIL.width` o `.width_wide` | Ancho del rail |
 | `round_lights` | `bool` | Semáforos redondos o cuadrados (por defecto) |
+| `pill_vertical` | `bool` | Con `Pill`: semáforos en columna (`true`, por defecto) o en fila (`false`). La vertical reserva un margen en el lado; la horizontal va arriba y no lo reserva |
 | `reveal` | `Always`, `Drawer`, `Push`, `Corner`, `Popup` | Siempre visible, o aparece al acercar el puntero: como cajón encima, empujando el contenido, solo en la esquina o como píldora emergente |
 | `resting_edge` | `None`, `Line`, `Accent` | Qué queda visible cuando está oculta: nada, una línea o una línea de acento |
 
@@ -116,6 +118,12 @@ Algunas combinaciones no tienen sentido y se corrigen solas
 Rail a la derecha, semáforos redondos, barra lateral plana y modo oscuro:
 
 ![Rail derecho con semáforos redondos](assets/apps/rotulo-rail-flat-round.png)
+
+La píldora en sus dos orientaciones, en una ventana normal:
+
+| `pill_vertical: true` (por defecto) | `pill_vertical: false` |
+|---|---|
+| ![Píldora vertical](assets/estados/pill-vertical.png) | ![Píldora horizontal](assets/estados/pill-horizontal.png) |
 
 La app Rótulo (capítulo [15](15-apps-de-prueba.md)) prueba todas las
 combinaciones en vivo.
@@ -185,7 +193,8 @@ dibuja.
 | `Unified` | Igual que `Top` | ![Unified con la barra bajada](assets/estados/foco-unified.png) |
 | `Rail` | El rail, con los semáforos en columna | ![Rail con la barra bajada](assets/estados/foco-rail.png) |
 | `Actions` | El rail ancho con su pie de acciones | ![Actions con la barra bajada](assets/estados/foco-actions.png) |
-| `Pill` | La píldora de semáforos; antes no se ve | ![Pill con la barra bajada](assets/estados/foco-pill.png) |
+| `Pill` vertical | La píldora de semáforos; antes no se ve | ![Pill vertical con la barra bajada](assets/estados/foco-pill.png) |
+| `Pill` horizontal | Igual, en fila | ![Pill horizontal con la barra bajada](assets/estados/foco-pill-horizontal.png) |
 
 ### Qué hace la app
 
