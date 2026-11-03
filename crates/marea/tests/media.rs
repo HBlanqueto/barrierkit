@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use barrier_kit::video::VideoStream;
 
-const IDS: [&str; 16] = [
+const IDS: [&str; 20] = [
     "orilla",
     "neon",
     "pan",
@@ -19,6 +19,10 @@ const IDS: [&str; 16] = [
     "lobos",
     "cometas",
     "altamar",
+    "jujutsu",
+    "komi",
+    "naruton",
+    "titos",
 ];
 
 fn media(kind: &str, id: &str, extension: &str) -> PathBuf {

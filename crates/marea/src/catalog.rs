@@ -43,7 +43,7 @@ const fn logo(family: &'static str, weight: u16, size: f32, ink: Rgba) -> Logo {
     }
 }
 
-pub const CATALOG: [Title; 16] = [
+pub const CATALOG: [Title; 20] = [
     Title {
         id: "orilla",
         name: "La Última Orilla",
@@ -290,6 +290,66 @@ pub const CATALOG: [Title; 16] = [
         lede: "Un año a bordo de un velero científico siguiendo a las ballenas jorobadas del Atlántico.",
         series: true,
     },
+    Title {
+        id: "jujutsu",
+        name: "Jujutsu Kansado",
+        logo: logo("Bangers", 400, 60.0, Rgba::rgb8(0xc9, 0xb6, 0xff)),
+        art: (
+            160.0,
+            Rgba::rgb8(0x3a, 0x1d, 0x6e),
+            Rgba::rgb8(0x07, 0x03, 0x12),
+        ),
+        genre: Genre::Animation,
+        kind: "Parodia · Anime",
+        meta: ["Animación", "2026", "+16", "3 temporadas"],
+        lede: "Un estudiante se traga un dedo maldito y ahora tiene que aprobar exorcismo y matemáticas el mismo día.",
+        series: true,
+    },
+    Title {
+        id: "komi",
+        name: "Komi-san no puede comentar",
+        logo: logo("Pacifico", 400, 36.0, Rgba::rgb8(0xff, 0xff, 0xff)),
+        art: (
+            170.0,
+            Rgba::rgb8(0xf6, 0xc6, 0xd6),
+            Rgba::rgb8(0xd9, 0x7a, 0x95),
+        ),
+        genre: Genre::Animation,
+        kind: "Parodia · Anime",
+        meta: ["Animación", "2025", "TP", "2 temporadas"],
+        lede: "La chica más popular del instituto quiere hacer cien amigos sin decir una palabra. Lleva una libreta y mucha paciencia.",
+        series: true,
+    },
+    Title {
+        id: "naruton",
+        name: "Narutón",
+        logo: logo("Bangers", 400, 68.0, Rgba::rgb8(0xff, 0xb0, 0x3b)),
+        art: (
+            170.0,
+            Rgba::rgb8(0xf2, 0x7a, 0x1a),
+            Rgba::rgb8(0x3b, 0x24, 0x14),
+        ),
+        genre: Genre::Animation,
+        kind: "Parodia · Anime",
+        meta: ["Animación", "2024", "+13", "500 episodios"],
+        lede: "Un ninja rubio grita a todas horas que será el jefe de la aldea. Antes tiene que pagar el ramen que debe.",
+        series: true,
+    },
+    Title {
+        id: "titos",
+        name: "Ataque a los Titos",
+        logo: logo("Cinzel", 900, 40.0, Rgba::rgb8(0xf1, 0xe4, 0xcc)),
+        art: (
+            170.0,
+            Rgba::rgb8(0x9a, 0x8a, 0x7a),
+            Rgba::rgb8(0x3a, 0x33, 0x2c),
+        ),
+        genre: Genre::Animation,
+        kind: "Parodia · Anime",
+        meta: ["Animación", "2023", "+16", "4 temporadas"],
+        lede: "Tres murallas protegen la ciudad de unos tíos gigantes que solo quieren saludar y quedarse a comer.",
+        series: true,
+    },
 ];
 
 pub fn title(id: &str) -> &'static Title {
@@ -339,7 +399,7 @@ pub struct Shelf {
     pub entries: &'static [Entry],
 }
 
-pub const SHELVES: [Shelf; 4] = [
+pub const SHELVES: [Shelf; 5] = [
     Shelf {
         name: "Seguir viendo",
         style: ShelfStyle::Wide,
@@ -389,6 +449,17 @@ pub const SHELVES: [Shelf; 4] = [
             entry("lazo", Some("Comedia"), None),
             entry("altamar", Some("Documental"), None),
             entry("tronos", Some("Fantasía"), None),
+        ],
+    },
+    Shelf {
+        name: "Anime que no pediste",
+        style: ShelfStyle::Wide,
+        entries: &[
+            entry("jujutsu", Some("T3 · Nuevo"), None),
+            entry("komi", Some("Comedia escolar"), None),
+            entry("naruton", Some("Relleno incluido"), None),
+            entry("titos", Some("Temporada final, otra vez"), None),
+            entry("pixel", Some("Animación"), None),
         ],
     },
 ];

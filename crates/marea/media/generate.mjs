@@ -1,5 +1,5 @@
 // Renders the mockup's scenes into the H.264 test videos and stills Marea plays.
-// Usage: node generate.mjs   (needs Node, Playwright with Chromium, and ffmpeg with libx264)
+// Usage: node generate.mjs [id…]   (renders every title, or only the given ids; needs Node, Playwright with Chromium, and ffmpeg with libx264)
 
 import { spawn } from "node:child_process";
 import { readFileSync, mkdirSync, writeFileSync } from "node:fs";
@@ -16,6 +16,7 @@ const CATALOG = {
   carton: ["rain", 355], tronos: ["snow", 210], oso: ["steam", 25], separ: ["grid", 175],
   oficina: ["city", 215], lazo: ["stadium", 120], espejo: ["glitch", 0], hipotecas: ["city", 40],
   pixel: ["pixel", 205], lobos: ["fog", 260], cometas: ["waves", 160], altamar: ["waves", 195],
+  jujutsu: ["curse", 265], komi: ["petals", 340], naruton: ["leaves", 28], titos: ["walls", 25],
 };
 
 const encode = (out) => {
@@ -33,7 +34,8 @@ const page = await browser.newPage();
 await page.setContent(`<canvas id="c" width="${WIDTH}" height="${HEIGHT}"></canvas>`);
 await page.addScriptTag({ content: readFileSync(join(here, "scenes.js"), "utf8") });
 
-for (const [id, [scene, hue]] of Object.entries(CATALOG)) {
+const only = process.argv.slice(2);
+for (const [id, [scene, hue]] of Object.entries(CATALOG).filter(([id]) => !only.length || only.includes(id))) {
   const video = encode(join(here, "videos", `${id}.mp4`));
   for (let frame = 0; frame < FPS * SECONDS; frame += BATCH) {
     const jpegs = await page.evaluate(({ scene, hue, frame, count, fps }) => {

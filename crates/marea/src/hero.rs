@@ -57,7 +57,7 @@ impl Component for HeroBackground {
         let veil = arrive.get().value();
         let dim = 0.6 * (self.scrolled / DIM_AFTER).min(1.0);
         let window = ground();
-        rect()
+        let hero = rect()
             .position(
                 Position::new_absolute()
                     .top(-self.scrolled * PARALLAX)
@@ -91,7 +91,14 @@ impl Component for HeroBackground {
                         a: (veil * 0.8 + dim).min(1.0),
                         ..window
                     })),
-            )
+            );
+        // The scrims sit on higher layers than the scroll view, so they would catch its wheel.
+        rect()
+            .width(Size::fill())
+            .height(Size::percent(100.0))
+            .background(color(window))
+            .interactive(Interactive::No)
+            .child(hero)
     }
 }
 

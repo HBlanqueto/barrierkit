@@ -1,7 +1,8 @@
 use std::path::PathBuf;
 
-const FONTS: [&[u8]; 13] = [
+const FONTS: [&[u8]; 14] = [
     include_bytes!("../fonts/AbrilFatface.ttf"),
+    include_bytes!("../fonts/Bangers.ttf"),
     include_bytes!("../fonts/BebasNeue.ttf"),
     include_bytes!("../fonts/BlackOpsOne.ttf"),
     include_bytes!("../fonts/Bungee.ttf"),

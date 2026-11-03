@@ -3,7 +3,7 @@ use barrier_kit::theme::color;
 use freya_animation::prelude::{AnimNum, Ease, Function, use_animation_transition};
 use freya_core::prelude::*;
 use torin::prelude::{Direction, Gaps, Position, Size};
-use vow_design::{DURATION_SLOW_MS, MEDIA, TEXT};
+use vow_design::{DURATION_SLOW_MS, MEDIA, Rgba, TEXT};
 
 use crate::catalog::GENRES;
 
@@ -39,7 +39,6 @@ impl Component for Chips {
         let width = lerp(spans_now[low].1, spans_now[high].1, t);
         let palette = Palette::current();
         let pick = self.on_select.clone();
-        let current = self.selected;
 
         rect()
             .direction(Direction::Horizontal)
@@ -58,10 +57,11 @@ impl Component for Chips {
             )
             .children(GENRES.iter().enumerate().map(|(index, (_, name))| {
                 let pick = pick.clone();
-                let ink = if index == current {
-                    MEDIA.button_ink
-                } else {
-                    palette.secondary_label
+                let covered = (1.0 - (at - index as f32).abs()).clamp(0.0, 1.0);
+                let (rest, picked) = (palette.secondary_label, MEDIA.button_ink);
+                let ink = Rgba {
+                    a: rest.a + (picked.a - rest.a) * covered,
+                    ..rest.mix(picked, covered)
                 };
                 rect()
                     .height(Size::px(HEIGHT))

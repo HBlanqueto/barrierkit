@@ -104,5 +104,49 @@ const SCENES = {
     for (let i = 0; i < 5; i++) { const x = W * (.1 + i * .2), gl = c.createRadialGradient(x, H * .85, 0, x, H * .85, H * .3); gl.addColorStop(0, `hsla(${h + i * 40} 100% 55% / ${.3 + .2 * Math.sin(t * 2 + i)})`); gl.addColorStop(1, "transparent"); c.fillStyle = gl; c.fillRect(0, 0, W, H); }
     c.globalCompositeOperation = "source-over";
   },
+  curse(c, W, H, t, h) {
+    const g = c.createRadialGradient(W * .68, H * .45, 0, W * .68, H * .45, W * .7); g.addColorStop(0, `hsl(${h} 60% 22%)`); g.addColorStop(1, "#06030d"); c.fillStyle = g; c.fillRect(0, 0, W, H);
+    c.globalCompositeOperation = "lighter";
+    for (let k = 0; k < 7; k++) { const r = H * (.12 + k * .06) * (1 + .04 * Math.sin(t * 3 + k)), a = t * (k % 2 ? 1.4 : -1) + k;
+      c.strokeStyle = `hsla(${h + k * 12} 100% ${60 + k * 3}% / ${.55 - k * .05})`; c.lineWidth = H * .012; c.beginPath(); c.arc(W * .68, H * .45, r, a, a + 2.4); c.stroke(); }
+    const core = c.createRadialGradient(W * .68, H * .45, 0, W * .68, H * .45, H * .16); core.addColorStop(0, `hsla(${h + 40} 100% 85% / ${.8 + .2 * Math.sin(t * 8)})`); core.addColorStop(1, "transparent"); c.fillStyle = core; c.fillRect(0, 0, W, H);
+    const r = seeded(9);
+    for (let i = 0; i < 60; i++) { const a = r() * 7 + t * (.5 + r()), d = H * (.1 + ((r() + t * .3) % 1) * .5); c.fillStyle = `hsla(${h + 30} 100% 75% / ${r()})`; c.fillRect(W * .68 + Math.cos(a) * d, H * .45 + Math.sin(a) * d, 3, 3); }
+    c.globalCompositeOperation = "source-over";
+  },
+  petals(c, W, H, t, h) {
+    const g = c.createLinearGradient(0, 0, 0, H); g.addColorStop(0, `hsl(${h} 70% 88%)`); g.addColorStop(1, `hsl(${h + 20} 60% 72%)`); c.fillStyle = g; c.fillRect(0, 0, W, H);
+    c.fillStyle = `hsl(${h - 120} 15% 92%)`; c.fillRect(W * .45, H * .48, W * .5, H * .52); c.fillStyle = `hsl(${h - 120} 20% 80%)`; c.fillRect(W * .62, H * .36, W * .12, H * .14);
+    c.fillStyle = `hsl(${h - 140} 35% 60%)`; for (let y = 0; y < 3; y++) for (let x = 0; x < 6; x++) c.fillRect(W * (.48 + x * .08), H * (.56 + y * .13), W * .05, H * .07);
+    c.fillStyle = "#fff"; c.beginPath(); c.ellipse(W * .3, H * .3, W * .1, H * .09, 0, 0, 7); c.fill(); c.beginPath(); c.moveTo(W * .3, H * .38); c.lineTo(W * .33, H * .45); c.lineTo(W * .34, H * .37); c.fill();
+    c.fillStyle = `hsl(${h} 40% 35%)`; for (let i = 0; i < 3; i++) { const on = (Math.floor(t * 2) % 4) > i; if (on) { c.beginPath(); c.arc(W * (.26 + i * .04), H * .3, H * .014, 0, 7); c.fill(); } }
+    const r = seeded(4);
+    for (let i = 0; i < 70; i++) { const x = (r() * W + t * 40 * (.5 + r()) + Math.sin(t + i) * 30) % W, y = (r() * H + t * 30 * (.5 + r())) % H;
+      c.save(); c.translate(x, y); c.rotate(t * 2 + i); c.fillStyle = `hsla(${h} 90% ${80 + r() * 10}% / .9)`; c.beginPath(); c.ellipse(0, 0, 7, 4, 0, 0, 7); c.fill(); c.restore(); }
+  },
+  leaves(c, W, H, t, h) {
+    const g = c.createLinearGradient(0, 0, 0, H); g.addColorStop(0, `hsl(${h + 10} 90% 62%)`); g.addColorStop(.6, `hsl(${h - 10} 85% 50%)`); g.addColorStop(1, `hsl(${h - 20} 70% 25%)`); c.fillStyle = g; c.fillRect(0, 0, W, H);
+    c.fillStyle = `hsla(${h + 25} 100% 85% / .9)`; c.beginPath(); c.arc(W * .7, H * .42, H * .14, 0, 7); c.fill();
+    c.fillStyle = "#3b2414"; c.beginPath(); c.moveTo(0, H); for (let x = 0; x <= W; x += W / 10) c.lineTo(x, H * (.7 + .06 * Math.sin(x * .01))); c.lineTo(W, H); c.fill();
+    c.fillStyle = "#24160c"; for (let i = 0; i < 6; i++) c.fillRect(W * (.08 + i * .17), H * .52, W * .012, H * .25);
+    const run = (t * .25) % 1; c.strokeStyle = "#fff8"; c.lineWidth = 2; for (let k = 0; k < 4; k++) { c.beginPath(); c.moveTo(W * run - 80 - k * 18, H * (.62 + k * .02)); c.lineTo(W * run - 20 - k * 18, H * (.62 + k * .02)); c.stroke(); }
+    c.fillStyle = "#1a1008"; c.fillRect(W * run - 14, H * .58, 14, 30);
+    const r = seeded(13);
+    for (let i = 0; i < 45; i++) { const a = t * (1 + r()) + i, d = H * (.08 + r() * .35), x = W * .5 + Math.cos(a) * d * 1.6, y = H * .45 + Math.sin(a) * d * .6;
+      c.save(); c.translate(x, y); c.rotate(a * 2); c.fillStyle = i % 3 ? "#5fb83a" : "#8fd14f"; c.beginPath(); c.ellipse(0, 0, 9, 4, 0, 0, 7); c.fill(); c.restore(); }
+  },
+  walls(c, W, H, t, h) {
+    const g = c.createLinearGradient(0, 0, 0, H); g.addColorStop(0, `hsl(${h} 25% 72%)`); g.addColorStop(1, `hsl(${h + 10} 20% 52%)`); c.fillStyle = g; c.fillRect(0, 0, W, H);
+    const rise = H * (.14 + .05 * Math.sin(t * .8)), fx = W * .62, fy = H * .5 - rise;
+    c.fillStyle = "#e7b89a"; c.beginPath(); c.arc(fx, fy, H * .2, 0, 7); c.fill();
+    c.fillStyle = "#4a2b1c"; c.beginPath(); c.arc(fx, fy - H * .07, H * .205, Math.PI, 0); c.fill();
+    const blink = Math.sin(t * 2.5) > .95 ? .2 : 1; c.fillStyle = "#1c1210"; c.beginPath(); c.ellipse(fx - H * .07, fy, H * .02, H * .025 * blink, 0, 0, 7); c.ellipse(fx + H * .07, fy, H * .02, H * .025 * blink, 0, 0, 7); c.fill();
+    c.strokeStyle = "#7a3b2a"; c.lineWidth = H * .012; c.beginPath(); c.arc(fx, fy + H * .06, H * .06, .2, Math.PI - .2); c.stroke();
+    const wave = Math.sin(t * 4) * .4; c.save(); c.translate(fx + H * .3, H * .5); c.rotate(-.4 + wave); c.fillStyle = "#e7b89a"; c.fillRect(-H * .04, -H * .22, H * .08, H * .22); c.beginPath(); c.arc(0, -H * .24, H * .06, 0, 7); c.fill(); c.restore();
+    c.fillStyle = `hsl(${h + 15} 15% 38%)`; c.fillRect(0, H * .5, W, H * .5);
+    c.strokeStyle = `hsl(${h + 15} 15% 28%)`; c.lineWidth = 2; for (let y = H * .5; y < H; y += H * .06) { c.beginPath(); c.moveTo(0, y); c.lineTo(W, y); c.stroke(); }
+    for (let row = 0; row * H * .06 < H * .5; row++) for (let x = (row % 2) * W * .04; x < W; x += W * .08) { c.beginPath(); c.moveTo(x, H * .5 + row * H * .06); c.lineTo(x, H * .5 + (row + 1) * H * .06); c.stroke(); }
+    c.strokeStyle = "#2228"; c.lineWidth = 2; for (let i = 0; i < 5; i++) { const bx = ((t * 40 + i * 230) % (W + 100)) - 50, by = H * (.12 + .05 * (i % 3)); c.beginPath(); c.moveTo(bx - 8, by - 4); c.lineTo(bx, by); c.lineTo(bx + 8, by - 4); c.stroke(); }
+  },
 };
 globalThis.SCENES = SCENES;

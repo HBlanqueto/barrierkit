@@ -110,17 +110,20 @@ impl Component for Island {
 #[derive(PartialEq)]
 struct Toolbar {
     shown: f32,
+    on_wheel: Callback<f32, ()>,
 }
 
 impl Component for Toolbar {
     fn render(&self) -> impl IntoElement {
         let window = ground();
+        let on_wheel = self.on_wheel.clone();
         rect()
             .position(Position::new_absolute().top(0.0).left(0.0))
             .width(Size::fill())
             .height(Size::px(TOOLBAR))
             .layer(TOOLBAR_LAYER)
             .on_mouse_down(window_drag_handler(false))
+            .on_wheel(move |event: Event<WheelEventData>| on_wheel.call(event.delta_y as f32))
             .maybe_child((self.shown > 0.0).then(top_glass))
             .child(
                 rect()
@@ -168,7 +171,8 @@ impl App for Marea {
         let mut listed = use_state(HashSet::<&'static str>::new);
         let mut playing = use_state(|| None::<Playing>);
         let mut window = use_state(Area::default);
-        let controller = use_scroll_controller();
+        let mut controller = use_scroll_controller();
+        let mut content_height = use_state(|| 0.0f32);
         let (_, offset): (i32, i32) = controller.into();
         let scrolled = (-offset).max(0) as f32;
         let toolbar = ease_out(((scrolled - TOOLBAR_FROM) / TOOLBAR_SPAN).clamp(0.0, 1.0));
@@ -188,6 +192,7 @@ impl App for Marea {
                     .key(current)
                     .position(Position::new_absolute().top(0.0).left(0.0))
                     .width(Size::fill())
+                    .height(Size::percent(100.0))
                     .child(HeroBackground {
                         id: current,
                         scrolled,
@@ -198,6 +203,9 @@ impl App for Marea {
                 ScrollView::new().controller(controller).child(
                     rect()
                         .width(Size::fill())
+                        .on_sized(move |event: Event<SizedEventData>| {
+                            content_height.set_if_modified(event.area.height())
+                        })
                         .padding(Gaps::new(
                             0.0,
                             0.0,
@@ -238,7 +246,14 @@ impl App for Marea {
                         })),
                 ),
             )
-            .child(Toolbar { shown: toolbar })
+            .child(Toolbar {
+                shown: toolbar,
+                on_wheel: Callback::new(move |delta: f32| {
+                    let (_, offset): (i32, i32) = controller.into();
+                    let limit = (*content_height.peek() - window.peek().height()).max(0.0);
+                    controller.scroll_to_y((offset as f32 + delta).clamp(-limit, 0.0) as i32);
+                }),
+            })
             .child(Island { height })
             .maybe_child(playing.read().as_ref().map(|now| Player {
                 id: now.id,

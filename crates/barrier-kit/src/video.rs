@@ -345,7 +345,8 @@ impl Presenter {
                 &mut context,
                 &imported.texture,
                 skia_safe::gpu::SurfaceOrigin::TopLeft,
-                ColorType::RGBA8888,
+                // VA drivers may leave alpha at zero; video is opaque whatever the buffer says.
+                ColorType::RGB888x,
                 AlphaType::Opaque,
                 None,
             );
@@ -361,7 +362,7 @@ fn upload(sample: &gst::Sample) -> Option<SkImage> {
     skia_safe::images::raster_from_data(
         &ImageInfo::new(
             (info.width() as i32, info.height() as i32),
-            ColorType::RGBA8888,
+            ColorType::RGB888x,
             AlphaType::Opaque,
             None,
         ),
