@@ -211,10 +211,19 @@ impl Component for SplitView {
         });
         let mut resize_to = move |target: f32| {
             let target = clamp_sidebar(target, range);
-            follow_from_to.set((follow.get().current(), target));
+            let from = if *dragging.peek() {
+                target
+            } else {
+                follow.get().current()
+            };
+            follow_from_to.set((from, target));
             sidebar_width.set(target);
         };
-        let width = clamp_sidebar(follow.get().current(), range);
+        let width = if *dragging.read() {
+            *sidebar_width.read()
+        } else {
+            clamp_sidebar(follow.get().current(), range)
+        };
         let layout = SidebarLayout {
             width: clamp_sidebar(*sidebar_width.read(), range),
             visible: *visible.read() || *auto_hidden.read(),
@@ -251,7 +260,9 @@ impl Component for SplitView {
             })
             .on_global_pointer_move(move |event: Event<PointerEventData>| {
                 if *dragging.read() {
-                    resize_to(event.global_location().x as f32 - inset);
+                    resize_to(
+                        event.global_location().x as f32 - 2.0 * inset + SPLIT_VIEW.grip / 2.0,
+                    );
                 }
             })
             .on_global_pointer_press(move |_| {

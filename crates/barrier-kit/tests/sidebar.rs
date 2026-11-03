@@ -358,7 +358,7 @@ fn titlebar_with_sidebar_hides_traffic_lights() {
 }
 
 #[test]
-fn dragging_the_sidebar_edge_widens_the_sidebar() {
+fn the_dragged_sidebar_edge_stays_under_the_pointer() {
     let capture: Capture = Arc::new(Mutex::new(None));
     let app = AppComponent::new(LayoutCase {
         capture: capture.clone(),
@@ -367,14 +367,17 @@ fn dragging_the_sidebar_edge_widens_the_sidebar() {
     test.sync_and_update();
     test.poll(Duration::from_millis(16), Duration::from_millis(400));
     let detail_x = |capture: &Capture| capture.lock().unwrap().expect("content was sized").0;
-    let before = detail_x(&capture);
-    let edge = f64::from(before) - 1.0;
+    let edge = f64::from(detail_x(&capture)) - 1.0;
     test.move_cursor((edge, 300.0));
     test.press_cursor((edge, 300.0));
-    test.move_cursor((edge + 40.0, 300.0));
-    test.release_cursor((edge + 40.0, 300.0));
-    test.poll(Duration::from_millis(16), Duration::from_millis(400));
-    assert!(detail_x(&capture) > before + 30.0);
+    test.sync_and_update();
+    let pointer = edge + 40.0;
+    test.move_cursor((pointer, 300.0));
+    test.sync_and_update();
+    test.sync_and_update();
+    let grip_centre = detail_x(&capture) - vow_design::SPLIT_VIEW.grip / 2.0;
+    assert!((grip_centre - pointer as f32).abs() < 1.0);
+    test.release_cursor((pointer, 300.0));
 }
 
 struct ToggleApp;
