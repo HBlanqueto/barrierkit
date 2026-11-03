@@ -1,10 +1,17 @@
 //! Back/forward navigation history and its toolbar buttons.
 
 use freya_core::prelude::*;
+use keyboard_types::Modifiers;
 use torin::prelude::{Direction, Size};
 
+use crate::app::{Action, Shortcut, ShortcutKey};
 use crate::compact::IconButton;
 use crate::symbol::Symbol;
+
+pub const GO_BACK: Action =
+    Action::new("go-back", "Atrás").shortcut(Shortcut::new(Modifiers::ALT, ShortcutKey::Left));
+pub const GO_FORWARD: Action = Action::new("go-forward", "Adelante")
+    .shortcut(Shortcut::new(Modifiers::ALT, ShortcutKey::Right));
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct History<T> {
@@ -57,16 +64,29 @@ impl<T: Clone + PartialEq> History<T> {
 pub fn navigation_buttons<T: Clone + PartialEq + 'static>(history: State<History<T>>) -> Rect {
     let mut back = history;
     let mut forward = history;
+    let mut keys = history;
     rect()
         .direction(Direction::Horizontal)
         .height(Size::auto())
+        .on_global_key_down(move |event: Event<KeyboardEventData>| {
+            let pressed = |action: Action| {
+                action
+                    .shortcut
+                    .is_some_and(|shortcut| shortcut.matches(event.modifiers, &event.key))
+            };
+            if pressed(GO_BACK) {
+                keys.write().back();
+            } else if pressed(GO_FORWARD) {
+                keys.write().forward();
+            }
+        })
         .child(
-            IconButton::new(Symbol::ChevronLeft, "Atrás")
+            IconButton::new(Symbol::ChevronLeft, GO_BACK.title)
                 .disabled(!history.read().can_go_back())
                 .on_press(move |_| back.write().back()),
         )
         .child(
-            IconButton::new(Symbol::ChevronRight, "Adelante")
+            IconButton::new(Symbol::ChevronRight, GO_FORWARD.title)
                 .disabled(!history.read().can_go_forward())
                 .on_press(move |_| forward.write().forward()),
         )
