@@ -35,7 +35,7 @@ four library crates and five test apps:
 | `vow-design` | **Tengen**, the design system. It turns `tengen/tokens.json` and `tengen/components.json` into Rust constants. |
 | `vow-appearance` | Reads `appearance.domain` and the wallpaper and resolves them into a concrete palette. It watches for changes. |
 | `infinity-protocol` | Private Wayland protocol between the apps and the MalaysiaDreams compositor. |
-| `tengen-app-show`, `tengen-motion-show`, `ondina`, `rotulo`, `marea` | Test apps (chapter [14](14-apps-de-prueba.en.md)). |
+| `tengen-app-show`, `tengen-motion-show`, `ondina`, `rotulo`, `marea` | Test apps (chapter [15](15-apps-de-prueba.en.md)). |
 
 The kit builds on [Freya](https://freyaui.dev) `=0.4.3`, but only on its core
 crates: `freya-core`, `freya-components` (no features), `freya-animation`,
@@ -63,7 +63,7 @@ yet ([ADR 0047](../decisiones/0047-barrierkit-en-capas.md), section Â«PendienteÂ
 ## What it needs
 
 - A Wayland compositor with `wl_compositor`, `xdg_wm_base` and `wl_seat`. The
-  other protocols are optional (chapter [13](13-plataforma.en.md)).
+  other protocols are optional (chapter [14](14-plataforma.en.md)).
 - `libvulkan` and a Vulkan driver (ICD).
 - Building inside `nix develop` (MalaysiaDreams ADR 0007): the dev shell ships
   Skia, the fonts (Geist) and the RADV driver.

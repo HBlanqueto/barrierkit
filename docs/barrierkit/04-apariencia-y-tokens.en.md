@@ -117,6 +117,6 @@ backdrop, a switch with `Tint::Backdrop` and a yellow slider.
 ![«Ambiente» window with a gradient backdrop and a tinted switch and slider](assets/ejemplos/ambiente.png)
 
 In an inactive window, all tints use the palette's inactive accent. Tinted
-backdrops are explained in chapter [12](12-fondos-y-medios.en.md).
+backdrops are explained in chapter [13](13-fondos-y-medios.en.md).
 
 Next: [5. Controls](05-controles.en.md).

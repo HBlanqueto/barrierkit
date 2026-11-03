@@ -1,4 +1,4 @@
-# 13. Platform
+# 14. Platform
 
 **Goal:** understand what the kit's runner does underneath the controls.
 **Reader:** anyone who works inside the kit or debugs an app on another
@@ -26,7 +26,7 @@ compositor's frame callbacks.
 | Swapchain | One per surface, `B8G8R8A8_UNORM`, premultiplied alpha; `MAILBOX` if available, otherwise `FIFO` |
 
 With the `video` feature the device also enables the dmabuf import extensions
-(chapter [12](12-fondos-y-medios.en.md)). The decision is in
+(chapter [13](13-fondos-y-medios.en.md)). The decision is in
 [ADR 0056](../decisiones/0056-barrierkit-sobre-vulkan.md).
 
 ## Wayland protocols
@@ -86,4 +86,4 @@ The [README](../../README.md) lists MalaysiaDreams and GNOME/Mutter as tested.
 The screenshots in this documentation were made on sway with the first frame
 drawn without waiting (see [`assets/README.en.md`](assets/README.en.md)).
 
-Next: [14. Test apps](14-apps-de-prueba.en.md).
+Next: [15. Test apps](15-apps-de-prueba.en.md).

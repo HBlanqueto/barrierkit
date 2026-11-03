@@ -1,4 +1,4 @@
-# 13. Plataforma
+# 14. Plataforma
 
 **Objetivo:** entender qué hace el runner del kit por debajo de los controles.
 **Lector:** quien trabaja dentro del kit o depura una app en otro escritorio.
@@ -25,7 +25,7 @@ callbacks del compositor.
 | Swapchain | Una por superficie, `B8G8R8A8_UNORM`, alfa premultiplicado; `MAILBOX` si existe, si no `FIFO` |
 
 Con la feature `video` el dispositivo activa además las extensiones de
-importación dmabuf (capítulo [12](12-fondos-y-medios.md)). La decisión está en
+importación dmabuf (capítulo [13](13-fondos-y-medios.md)). La decisión está en
 el [ADR 0056](../decisiones/0056-barrierkit-sobre-vulkan.md).
 
 ## Protocolos Wayland
@@ -83,4 +83,4 @@ contenido, así que en ellos la ventana nunca aparece (comprobado el
 GNOME/Mutter. Las capturas de esta documentación se hicieron en sway con
 el primer frame dibujado sin esperar (ver [`assets/README.md`](assets/README.md)).
 
-Siguiente: [14. Apps de prueba](14-apps-de-prueba.md).
+Siguiente: [15. Apps de prueba](15-apps-de-prueba.md).

@@ -1,4 +1,4 @@
-# 8. Views
+# 9. Views
 
 **Goal:** know the layer 2 containers that organize the content.
 **Reader:** anyone who assembles complete screens.
@@ -129,6 +129,6 @@ match adaptable.current() {
 
 The breakpoints are `BREAKPOINT.medium` (620) and `BREAKPOINT.wide` (900).
 `adaptable.attach(rect())` measures the element it is attached to. Ondina uses
-it to go from three columns to one (chapter [14](14-apps-de-prueba.en.md)).
+it to go from three columns to one (chapter [15](15-apps-de-prueba.en.md)).
 
-Next: [9. Patterns](09-patrones.en.md).
+Next: [10. Patterns](10-patrones.en.md).

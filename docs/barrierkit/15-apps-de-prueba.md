@@ -1,4 +1,4 @@
-# 14. Apps de prueba
+# 15. Apps de prueba
 
 **Objetivo:** saber qué app del repositorio prueba cada parte del kit y cómo
 lanzarla.
@@ -18,7 +18,7 @@ lanzarla.
    ```
 
 Corren en cualquier compositor que dibuje el primer frame (capítulo
-[13](13-plataforma.md)). En MalaysiaDreams reciben además bordes, sombra, blur
+[14](14-plataforma.md)). En MalaysiaDreams reciben además bordes, sombra, blur
 y menú global.
 
 ## Master Tengen App Show (`tengen-app-show`)
@@ -62,7 +62,7 @@ Cada componente nuevo del kit llega con su panel aquí.
 El catálogo de movimiento, también un `PreferencesWindow`: curvas de Freya,
 resortes de Grade, propiedades animables, controles en movimiento, aparición,
 transiciones entre diapositivas, respuesta a eventos y movimiento reducido. Sus
-capturas están en el capítulo [11](11-animaciones.md).
+capturas están en el capítulo [12](12-animaciones.md).
 
 ## Ondina (`ondina`)
 
@@ -90,7 +90,7 @@ Un reproductor de música que compone la capa 2 a mano: `SplitView`,
 Prueba los cinco `TitlebarLayout`, el lado del rail, su ancho, los semáforos
 redondos, las cinco formas de aparición, los tres bordes en reposo y la barra
 lateral en isla o plana. Guarda la elección con `save_defaults("rotulo")`.
-Sus capturas están en el capítulo [6](06-ventanas-y-titlebars.md).
+Sus capturas están en el capítulo [7](07-titlebars.md).
 
 ## Marea (`marea`)
 
@@ -109,4 +109,4 @@ Los vídeos y fotogramas de prueba se generan con
 `crates/marea/media/generate.mjs`. La captura se hizo sin GPU: el vídeo se
 decodificó por CPU (`Decoding::Cpu`).
 
-Siguiente: [15. Preguntas frecuentes](15-preguntas.md).
+Siguiente: [16. Preguntas frecuentes](16-preguntas.md).

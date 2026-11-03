@@ -1,36 +1,17 @@
-# 6. Windows and titlebars
+# 7. Titlebars
 
-**Goal:** open windows with the right options and choose the titlebar and
-traffic light type.
-**Reader:** anyone who defines the main window of an app.
+**Goal:** choose an app's titlebar and know how it looks in each state:
+normal, unfocused, maximized, full screen and MalaysiaDreams focus mode.
+**Reader:** anyone who designs an app's window.
 
-## Opening a window
+## What there is
 
-```rust
-run_window(
-    AppComponent::new(MiApp),
-    WindowOptions::new("Notas", "notas")
-        .decorations(Decorations::Client)
-        .size((760, 520))
-        .min_size(Some(WINDOW_MIN_SIZE))
-        .menu(menu),
-)
-```
-
-| Option | Effect |
-|---|---|
-| `new(título, nombre)` | Visible title and short name. The `app_id` is `io.github.hblanqueto.malaysia.<nombre>` unless you pass `.app_id(..)` |
-| `.decorations(..)` | `Client` (default): the kit draws the titlebar. `Server`: it asks the compositor for it; if there is no `zxdg_decoration_manager_v1`, it falls back to `Client` |
-| `.size((ancho, alto))` | Initial size (640 × 420 by default). If a saved one exists, it is restored |
-| `.min_size(..)`, `.max_size(..)` | Limits. If they are equal, the window has a fixed size and the green button maximizes it vertically only |
-| `.parent(..)` | Child window (dialog) |
-| `.menu(AppMenu)` | Global menu of the window (chapter [10](10-app.en.md)) |
-| `.fullscreen_bar(FullscreenBar)` | How the overlaid titlebar is drawn in full screen; `Solid` by default ([below](#the-bar-in-full-screen-fullscreenbar)) |
-
-Inside the app, `WindowControls::get()` gives the state (`activated`,
-`maximized`, `fullscreen`, `decoration`, `fixed`) and the commands: `close()`,
-`minimize()`, `toggle_maximize()`, `toggle_fullscreen()`, `move_window()`,
-`resize(WindowEdge)`.
+| Piece | For | Default |
+|---|---|---|
+| `Titlebar` | The horizontal CSD titlebar: traffic lights, left and right zones, title | With a sidebar when `.with_sidebar(true)` is passed |
+| `TrafficLights` | Close, minimize and maximize | Square, `traffic_lights` colors |
+| `WindowChrome` + `ChromeStyle` | Five layouts: `Top`, `Rail`, `Unified`, `Pill` and `Actions` | `Top` |
+| `FullscreenBar` | How the overlaid titlebar is drawn in full screen | `Solid` ("A · Lisa") |
 
 ## The horizontal titlebar: `Titlebar`
 
@@ -55,6 +36,20 @@ shows standalone traffic lights, a `Titlebar` with a title and another one with
 `.close_only(true)`:
 
 ![Traffic lights, title bar and "close only"](assets/apps/tengen-ventana-light.png)
+
+### Variants in a normal window
+
+The same `Titlebar` changes by itself with the sidebar, its style and focus.
+The app chooses none of these variants: they come from `with_sidebar`, from
+`sidebar_style` in `appearance.domain` and from whether the window is active.
+
+| Variant | How it looks |
+|---|---|
+| With an island sidebar (default): the traffic lights go in the sidebar; the bar has no line | ![Titlebar with an island sidebar](assets/estados/titlebar-isla.png) |
+| With an island sidebar, unfocused window: traffic lights and title in gray | ![Titlebar with an island sidebar, unfocused](assets/estados/titlebar-isla-inactiva.png) |
+| With a flat sidebar: a `TITLEBAR_CLIENT_HEIGHT` bar with a line at the bottom | ![Titlebar with a flat sidebar](assets/estados/titlebar-plana.png) |
+| Without a sidebar: traffic lights in the bar and the title centered between two symmetric zones | ![Titlebar without a sidebar](assets/estados/titlebar-sin-barra.png) |
+| Without a sidebar, unfocused window: `titlebar_inactive` background and gray traffic lights | ![Titlebar without a sidebar, unfocused](assets/estados/titlebar-sin-barra-inactiva.png) |
 
 ## The traffic lights: `TrafficLights`
 
@@ -121,13 +116,12 @@ Rail on the right, round traffic lights, flat sidebar and dark mode:
 
 ![Right rail with round traffic lights](assets/apps/rotulo-rail-flat-round.png)
 
-The Rótulo app (chapter [14](14-apps-de-prueba.en.md)) tests every combination
+The Rótulo app (chapter [15](15-apps-de-prueba.en.md)) tests every combination
 live.
 
 ## Maximized, full screen and focus mode
 
-The state arrives with each compositor configure and is read with
-`WindowControls::get().status.read()`: `maximized`, `fullscreen` and `activated`.
+The state is read as chapter [6](06-ventanas.en.md#window-state) explains.
 The screenshots in this section are the Rótulo window (island sidebar, `Top`
 layout unless stated) rendered by the kit in each state.
 
@@ -223,48 +217,6 @@ it.
    ```
 
 5. To offer it in a menu, it calls `toggle_maximize()` or
-   `toggle_fullscreen()` from an `Action` (chapter [10](10-app.en.md)).
+   `toggle_fullscreen()` from an `Action` (chapter [11](11-app.en.md)).
 
-### Resizing from the edges
-
-With `Client` decoration, the runner reserves a band inside the window of
-`WINDOW_RESIZE.edge` (5 px) on each side and `WINDOW_RESIZE.corner` (16 px)
-along each corner:
-
-1. Over the band, the cursor turns into the arrow for that edge or corner and
-   the app stops receiving the motion.
-2. A left-button press starts a compositor resize (`xdg_toplevel.resize`).
-3. There is no band when the window is maximized, in full screen, fixed-size or
-   server-decorated, nor while the app is dragging something.
-
-### The green button and double click
-
-The user decides them in `window.domain`. With a fixed-size window (minimum
-equal to maximum) they change:
-
-| `green_button` | Normal window | Fixed size |
-|---|---|---|
-| `focus` (default) | Full screen | Maximizes vertically |
-| `zoom` | Maximizes | Maximizes vertically |
-| `fullscreen` | Full screen | Maximizes vertically |
-| `none` | Nothing; the button is drawn gray and without a glyph | Nothing; the button is drawn gray and without a glyph |
-
-| `double_click_titlebar` | Normal window | Fixed size |
-|---|---|---|
-| `zoom` (default), `fill` | Maximizes | Nothing |
-| `minimize` | Minimizes | Minimizes |
-| `none` | Nothing | Nothing |
-
-## Popups
-
-Menus, pop-up buttons and tooltips use `xdg_popup`. For your own:
-
-```rust
-let id = Popups::get().open(spec, AppComponent::new(MiPopup));
-Popups::get().close(id);
-```
-
-`PopupSpec` sets the anchor rectangle, the anchor, the gravity, the size, the
-adjustment when it does not fit and whether it takes the pointer grab.
-
-Next: [7. Sidebar and SplitView](07-barra-lateral.en.md).
+Next: [8. Sidebar and SplitView](08-barra-lateral.en.md).

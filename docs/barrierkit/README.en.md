@@ -21,16 +21,17 @@ Each chapter builds on the previous ones.
 | 3 | [Layers](03-capas.en.md) | How is the kit organized and what can I use? |
 | 4 | [Appearance and tokens](04-apariencia-y-tokens.en.md) | Where do colors and sizes come from? How do I set my own? |
 | 5 | [Controls](05-controles.en.md) | Which interactive elements exist and how do they look? |
-| 6 | [Windows and titlebars](06-ventanas-y-titlebars.en.md) | Which titlebar and traffic light types exist? |
-| 7 | [Sidebar and SplitView](07-barra-lateral.en.md) | How is it configured, resized and collapsed? |
-| 8 | [Views](08-vistas.en.md) | Forms, tables, grids, tabs, alerts, navigation and search |
-| 9 | [Patterns](09-patrones.en.md) | Preferences window and "About" |
-| 10 | [App infrastructure](10-app.en.md) | Actions, shortcuts, global menu, single instance, preferences, undo |
-| 11 | [Animations](11-animaciones.en.md) | What animates, with which curve, and how is motion reduced? |
-| 12 | [Tinted backdrops and media](12-fondos-y-medios.en.md) | Backdrops from an image, custom accent, video |
-| 13 | [Platform](13-plataforma.en.md) | Runner, Vulkan, Wayland protocols, the shell part |
-| 14 | [Test apps](14-apps-de-prueba.en.md) | Tengen App Show, Motion Show, Ondina, Rótulo and Marea |
-| 15 | [Frequently asked questions](15-preguntas.en.md) | What do we have and what is missing? |
+| 6 | [Windows](06-ventanas.en.md) | How do I open a window, resize it and read its state? |
+| 7 | [Titlebars](07-titlebars.en.md) | Which titlebars and traffic lights exist and how do they look in each state? |
+| 8 | [Sidebar and SplitView](08-barra-lateral.en.md) | How is it configured, resized and collapsed? |
+| 9 | [Views](09-vistas.en.md) | Forms, tables, grids, tabs, alerts, navigation and search |
+| 10 | [Patterns](10-patrones.en.md) | Preferences window and "About" |
+| 11 | [App infrastructure](11-app.en.md) | Actions, shortcuts, global menu, single instance, preferences, undo |
+| 12 | [Animations](12-animaciones.en.md) | What animates, with which curve, and how is motion reduced? |
+| 13 | [Tinted backdrops and media](13-fondos-y-medios.en.md) | Backdrops from an image, custom accent, video |
+| 14 | [Platform](14-plataforma.en.md) | Runner, Vulkan, Wayland protocols, the shell part |
+| 15 | [Test apps](15-apps-de-prueba.en.md) | Tengen App Show, Motion Show, Ondina, Rótulo and Marea |
+| 16 | [Frequently asked questions](16-preguntas.en.md) | What do we have and what is missing? |
 
 ## Single sources
 

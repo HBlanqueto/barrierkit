@@ -1,4 +1,4 @@
-# 7. Barra lateral y SplitView
+# 8. Barra lateral y SplitView
 
 **Objetivo:** montar una barra lateral, decidir su estilo y controlar cómo se
 redimensiona, se oculta y se pliega.
@@ -48,7 +48,7 @@ Lo decide el usuario en `appearance.domain` con `sidebar_style`
 |---|---|
 | ![Barra lateral en isla](assets/apps/tengen-formularios-light.png) | ![Barra lateral plana](assets/apps/tengen-sidebar-flat-light.png) |
 
-Sobre un fondo tintado (capítulo [12](12-fondos-y-medios.md)), la barra plana
+Sobre un fondo tintado (capítulo [13](13-fondos-y-medios.md)), la barra plana
 deja ver el fondo y la isla lo deja ver o se tiñe con
 `SidebarBackdrop::Tinted` ([ADR 0057](../decisiones/0057-cristal-y-barra-lateral-sobre-fondo.md)).
 
@@ -112,4 +112,4 @@ Ancha 240–420):
 `PreferencesWindow` pasa lo mismo con `.sidebar_resizable(bool)` y
 `.sidebar_range(Option<(mín, máx)>)`.
 
-Siguiente: [8. Vistas](08-vistas.md).
+Siguiente: [9. Vistas](09-vistas.md).

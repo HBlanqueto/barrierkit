@@ -1,4 +1,4 @@
-# 15. Frequently asked questions
+# 16. Frequently asked questions
 
 **Goal:** answer the most common questions about the kit quickly.
 **Reader:** anyone. Each answer links to the chapter that expands on it.
@@ -29,12 +29,12 @@ The pending work is in [ADR 0047](../decisiones/0047-barrierkit-en-capas.md),
 Drawing goes through Vulkan, normally on the GPU; layout runs on the CPU. A
 software Vulkan driver (lavapipe) also works. Video uses VA-API if available
 and, if not, the CPU. See [1](01-que-es.en.md#does-it-use-the-gpu-or-the-cpu)
-and [12](12-fondos-y-medios.en.md#video-video-feature).
+and [13](13-fondos-y-medios.en.md#video-video-feature).
 
 ## Does it work outside MalaysiaDreams?
 
 Yes, as a normal Wayland client, if the compositor draws the first frame (see
-[13](13-plataforma.en.md#known-limitation-the-first-frame)). Outside
+[14](14-plataforma.en.md#known-limitation-the-first-frame)). Outside
 MalaysiaDreams there are no compositor borders, shadow or blur, and the global
 menu only exists on D-Bus.
 
@@ -53,13 +53,13 @@ into Tengen. See [4](04-apariencia-y-tokens.en.md#custom-colors-in-an-app).
 
 `SplitView::resizable(false)` and `SplitView::sidebar_range(mín, máx)`; in
 `PreferencesWindow`, `sidebar_resizable` and `sidebar_range`. See
-[7](07-barra-lateral.en.md).
+[8](08-barra-lateral.en.md).
 
 ## Where does an app store its data?
 
 Preferences in `~/.config/malaysia/<app_id>.domain`; window state in
 `~/.local/share/malaysia/<app_id>.state`. See
-[10](10-app.en.md#preferences-and-restoration).
+[11](11-app.en.md#preferences-and-restoration).
 
 ## How do I add a component to the kit?
 

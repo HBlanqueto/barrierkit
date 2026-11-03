@@ -1,4 +1,4 @@
-# 7. Sidebar and SplitView
+# 8. Sidebar and SplitView
 
 **Goal:** set up a sidebar, choose its style and control how it resizes, hides
 and collapses.
@@ -49,7 +49,7 @@ nothing:
 |---|---|
 | ![Island sidebar](assets/apps/tengen-formularios-light.png) | ![Flat sidebar](assets/apps/tengen-sidebar-flat-light.png) |
 
-Over a tinted backdrop (chapter [12](12-fondos-y-medios.en.md)), the flat
+Over a tinted backdrop (chapter [13](13-fondos-y-medios.en.md)), the flat
 sidebar shows the backdrop, and the island either shows it or is tinted with
 `SidebarBackdrop::Tinted` ([ADR 0057](../decisiones/0057-cristal-y-barra-lateral-sobre-fondo.md)).
 
@@ -113,4 +113,4 @@ resizing on or off and switches between three ranges (Tengen 180–320, Estrecha
 `PreferencesWindow` passes the same through `.sidebar_resizable(bool)` and
 `.sidebar_range(Option<(mín, máx)>)`.
 
-Next: [8. Views](08-vistas.en.md).
+Next: [9. Views](09-vistas.en.md).

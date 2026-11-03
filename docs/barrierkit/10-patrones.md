@@ -1,4 +1,4 @@
-# 9. Patrones
+# 10. Patrones
 
 **Objetivo:** montar una ventana completa con una sola pieza.
 **Lector:** quien hace una app de ajustes o necesita un «Acerca de».
@@ -39,7 +39,7 @@ PreferencesWindow::new()
 | `.account(..)` | Fila de cuenta arriba de la barra |
 | `.restoration(app_id)` | Guarda y restaura el panel abierto, las búsquedas recientes y el ancho y visibilidad de la barra |
 | `.suggestions(&[ids])` | Paneles sugeridos cuando el buscador está vacío |
-| `.sidebar_resizable(bool)`, `.sidebar_range(Option<(mín, máx)>)` | Pasan a `SplitView` (capítulo [7](07-barra-lateral.md)) |
+| `.sidebar_resizable(bool)`, `.sidebar_range(Option<(mín, máx)>)` | Pasan a `SplitView` (capítulo [8](08-barra-lateral.md)) |
 
 ### El buscador
 
@@ -58,4 +58,4 @@ about_window(avatar("C"), "Contador", "Versión 1.0", "™ y © 2026 MalaysiaDre
 
 ![Ventana Acerca de](assets/componentes/about-light.png)
 
-Siguiente: [10. Infraestructura de app](10-app.md).
+Siguiente: [11. Infraestructura de app](11-app.md).

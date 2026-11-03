@@ -52,4 +52,4 @@ con dos cambios locales que no están en `main`, en `platform/window.rs`:
 - dibujar el primer frame al recibir el configure;
 - tratar el configure como `DecorationMode::Client`.
 
-Ver [13, «Limitación conocida»](../13-plataforma.md#limitación-conocida-el-primer-frame).
+Ver [14, «Limitación conocida»](../14-plataforma.md#limitación-conocida-el-primer-frame).

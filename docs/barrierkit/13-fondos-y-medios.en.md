@@ -1,4 +1,4 @@
-# 12. Tinted backdrops and media
+# 13. Tinted backdrops and media
 
 **Goal:** paint color backdrops computed from an image, give an area its own
 accent and play video.
@@ -96,6 +96,6 @@ video.set_volume(0.7);
 video.play();
 ```
 
-Marea (chapter [14](14-apps-de-prueba.en.md)) uses all of this.
+Marea (chapter [15](15-apps-de-prueba.en.md)) uses all of this.
 
-Next: [13. Platform](13-plataforma.en.md).
+Next: [14. Platform](14-plataforma.en.md).

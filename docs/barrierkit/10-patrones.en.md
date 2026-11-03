@@ -1,4 +1,4 @@
-# 9. Patterns
+# 10. Patterns
 
 **Goal:** build a complete window with a single piece.
 **Reader:** anyone who makes a settings app or needs an "About" window.
@@ -39,7 +39,7 @@ PreferencesWindow::new()
 | `.account(..)` | Account row at the top of the sidebar |
 | `.restoration(app_id)` | Saves and restores the open pane, the recent searches and the width and visibility of the sidebar |
 | `.suggestions(&[ids])` | Suggested panes when the search field is empty |
-| `.sidebar_resizable(bool)`, `.sidebar_range(Option<(mín, máx)>)` | Passed on to `SplitView` (chapter [7](07-barra-lateral.en.md)) |
+| `.sidebar_resizable(bool)`, `.sidebar_range(Option<(mín, máx)>)` | Passed on to `SplitView` (chapter [8](08-barra-lateral.en.md)) |
 
 ### The search field
 
@@ -59,4 +59,4 @@ about_window(avatar("C"), "Contador", "Versión 1.0", "™ y © 2026 MalaysiaDre
 
 ![About window](assets/componentes/about-light.png)
 
-Next: [10. App infrastructure](10-app.en.md).
+Next: [11. App infrastructure](11-app.en.md).

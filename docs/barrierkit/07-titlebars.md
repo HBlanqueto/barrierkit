@@ -1,36 +1,18 @@
-# 6. Ventanas y titlebars
+# 7. Titlebars
 
-**Objetivo:** abrir ventanas con las opciones correctas y elegir el tipo de
-titlebar y de semáforos.
-**Lector:** quien define la ventana principal de una app.
+**Objetivo:** elegir la titlebar de una app y saber cómo se ve en cada estado:
+normal, sin foco, maximizada, en pantalla completa y en el modo foco de
+MalaysiaDreams.
+**Lector:** quien diseña la ventana de una app.
 
-## Abrir una ventana
+## Qué hay
 
-```rust
-run_window(
-    AppComponent::new(MiApp),
-    WindowOptions::new("Notas", "notas")
-        .decorations(Decorations::Client)
-        .size((760, 520))
-        .min_size(Some(WINDOW_MIN_SIZE))
-        .menu(menu),
-)
-```
-
-| Opción | Efecto |
-|---|---|
-| `new(título, nombre)` | Título visible y nombre corto. El `app_id` es `io.github.hblanqueto.malaysia.<nombre>` salvo que pases `.app_id(..)` |
-| `.decorations(..)` | `Client` (por defecto): el kit dibuja la titlebar. `Server`: la pide al compositor; si no hay `zxdg_decoration_manager_v1`, vuelve a `Client` |
-| `.size((ancho, alto))` | Tamaño inicial (640 × 420 por defecto). Si hay uno guardado, se restaura |
-| `.min_size(..)`, `.max_size(..)` | Límites. Si son iguales, la ventana es de tamaño fijo y el botón verde la maximiza solo en vertical |
-| `.parent(..)` | Ventana hija (diálogo) |
-| `.menu(AppMenu)` | Menú global de la ventana (capítulo [10](10-app.md)) |
-| `.fullscreen_bar(FullscreenBar)` | Cómo se dibuja la titlebar superpuesta en pantalla completa; `Solid` por defecto ([abajo](#la-barra-en-pantalla-completa-fullscreenbar)) |
-
-Dentro de la app, `WindowControls::get()` da el estado (`activated`,
-`maximized`, `fullscreen`, `decoration`, `fixed`) y las órdenes: `close()`,
-`minimize()`, `toggle_maximize()`, `toggle_fullscreen()`, `move_window()`,
-`resize(WindowEdge)`.
+| Pieza | Para | Por defecto |
+|---|---|---|
+| `Titlebar` | La titlebar horizontal CSD: semáforos, zonas izquierda y derecha, título | Con barra lateral si se pasa `.with_sidebar(true)` |
+| `TrafficLights` | Cerrar, minimizar y maximizar | Cuadrados, colores de `traffic_lights` |
+| `WindowChrome` + `ChromeStyle` | Cinco diseños: `Top`, `Rail`, `Unified`, `Pill` y `Actions` | `Top` |
+| `FullscreenBar` | Cómo se dibuja la titlebar superpuesta en pantalla completa | `Solid` («A · Lisa») |
 
 ## La titlebar horizontal: `Titlebar`
 
@@ -55,6 +37,20 @@ El panel «Ventana y herramientas» de Tengen App Show muestra los semáforos
 sueltos, una `Titlebar` con título y otra con `.close_only(true)`:
 
 ![Semáforos, barra de título y «solo cerrar»](assets/apps/tengen-ventana-light.png)
+
+### Variantes en una ventana normal
+
+La misma `Titlebar` cambia sola según la barra lateral, su estilo y el foco.
+Ninguna de estas variantes la elige la app: salen de `with_sidebar`, de
+`sidebar_style` en `appearance.domain` y de si la ventana está activa.
+
+| Variante | Cómo se ve |
+|---|---|
+| Con barra lateral en isla (por defecto): los semáforos van en la barra lateral; la barra no lleva línea | ![Titlebar con barra lateral en isla](assets/estados/titlebar-isla.png) |
+| Con barra lateral en isla, ventana sin foco: semáforos y título en gris | ![Titlebar con barra lateral en isla sin foco](assets/estados/titlebar-isla-inactiva.png) |
+| Con barra lateral plana: barra de `TITLEBAR_CLIENT_HEIGHT` con línea abajo | ![Titlebar con barra lateral plana](assets/estados/titlebar-plana.png) |
+| Sin barra lateral: semáforos en la barra y título centrado entre dos zonas simétricas | ![Titlebar sin barra lateral](assets/estados/titlebar-sin-barra.png) |
+| Sin barra lateral, ventana sin foco: fondo `titlebar_inactive` y semáforos grises | ![Titlebar sin barra lateral sin foco](assets/estados/titlebar-sin-barra-inactiva.png) |
 
 ## Los semáforos: `TrafficLights`
 
@@ -121,13 +117,12 @@ Rail a la derecha, semáforos redondos, barra lateral plana y modo oscuro:
 
 ![Rail derecho con semáforos redondos](assets/apps/rotulo-rail-flat-round.png)
 
-La app Rótulo (capítulo [14](14-apps-de-prueba.md)) prueba todas las
+La app Rótulo (capítulo [15](15-apps-de-prueba.md)) prueba todas las
 combinaciones en vivo.
 
 ## Maximizada, pantalla completa y modo foco
 
-El estado llega en cada configure del compositor y se lee con
-`WindowControls::get().status.read()`: `maximized`, `fullscreen` y `activated`.
+El estado se lee como explica el capítulo [6](06-ventanas.md#estado-de-la-ventana).
 Las capturas de esta sección son la ventana de Rótulo (barra lateral en isla,
 diseño `Top` salvo donde se indica) renderizada por el kit en cada estado.
 
@@ -223,50 +218,6 @@ dibuja.
    ```
 
 5. Para ofrecerlo en un menú, llama a `toggle_maximize()` o
-   `toggle_fullscreen()` desde una `Action` (capítulo [10](10-app.md)).
+   `toggle_fullscreen()` desde una `Action` (capítulo [11](11-app.md)).
 
-### Redimensionar por los bordes
-
-Con decoración `Client`, el runner reserva dentro de la ventana una banda de
-`WINDOW_RESIZE.edge` (5 px) en cada lado y de `WINDOW_RESIZE.corner` (16 px) a
-lo largo de cada esquina:
-
-1. Al pasar por la banda, el cursor cambia a la flecha del borde o la esquina y
-   la app deja de recibir el movimiento.
-2. Al pulsar con el botón izquierdo, el compositor empieza a redimensionar
-   (`xdg_toplevel.resize`).
-3. No hay banda si la ventana está maximizada, en pantalla completa, es de
-   tamaño fijo o usa decoración del servidor, ni mientras se arrastra algo de
-   la app.
-
-### El botón verde y el doble clic
-
-Los decide el usuario en `window.domain`. Con una ventana de tamaño fijo
-(mínimo igual a máximo) cambian:
-
-| `green_button` | Ventana normal | Tamaño fijo |
-|---|---|---|
-| `focus` (por defecto) | Pantalla completa | Maximiza en vertical |
-| `zoom` | Maximiza | Maximiza en vertical |
-| `fullscreen` | Pantalla completa | Maximiza en vertical |
-| `none` | Nada; el botón se dibuja gris y sin glifo | Nada; el botón se dibuja gris y sin glifo |
-
-| `double_click_titlebar` | Ventana normal | Tamaño fijo |
-|---|---|---|
-| `zoom` (por defecto), `fill` | Maximiza | Nada |
-| `minimize` | Minimiza | Minimiza |
-| `none` | Nada | Nada |
-
-## Popups
-
-Los menús, desplegables y ayudas usan `xdg_popup`. Para uno propio:
-
-```rust
-let id = Popups::get().open(spec, AppComponent::new(MiPopup));
-Popups::get().close(id);
-```
-
-`PopupSpec` fija el rectángulo de anclaje, el ancla, la gravedad, el tamaño, el
-ajuste si no cabe y si toma el grab del puntero.
-
-Siguiente: [7. Barra lateral y SplitView](07-barra-lateral.md).
+Siguiente: [8. Barra lateral y SplitView](08-barra-lateral.md).

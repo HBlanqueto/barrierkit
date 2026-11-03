@@ -1,4 +1,4 @@
-# 10. Infraestructura de app
+# 11. Infraestructura de app
 
 **Objetivo:** dar a una app lo que se espera de cualquier app del escritorio:
 acciones con atajos, menú global, una sola instancia, preferencias guardadas y
@@ -108,4 +108,4 @@ Solo texto, sobre `wl_data_device`.
 El [ADR 0047, anexo A](../decisiones/0047-barrierkit-en-capas.md#anexo-a--cómo-se-escribe-una-app)
 une todo esto en una app de 60 líneas.
 
-Siguiente: [11. Animaciones](11-animaciones.md).
+Siguiente: [12. Animaciones](12-animaciones.md).

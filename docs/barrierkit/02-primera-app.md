@@ -78,7 +78,7 @@ fn main() {
    u oscuro y con el acento (capítulo [4](04-apariencia-y-tokens.md)).
 5. **`run_window` es el único arranque.** Recibe la raíz (`AppComponent`) y las
    opciones de la ventana: título, nombre, tamaño, mínimo, decoración y menú
-   (capítulo [6](06-ventanas-y-titlebars.md)).
+   (capítulo [6](06-ventanas.md)).
 
 ## App y Component
 

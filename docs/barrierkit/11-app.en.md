@@ -1,4 +1,4 @@
-# 10. App infrastructure
+# 11. App infrastructure
 
 **Goal:** give an app what any desktop app is expected to have: actions with
 shortcuts, a global menu, a single instance, saved preferences and undo.
@@ -108,4 +108,4 @@ Text only, over `wl_data_device`.
 [ADR 0047, annex A](../decisiones/0047-barrierkit-en-capas.md#anexo-a--cómo-se-escribe-una-app)
 puts all of this together in a 60-line app.
 
-Next: [11. Animations](11-animaciones.en.md).
+Next: [12. Animations](12-animaciones.en.md).

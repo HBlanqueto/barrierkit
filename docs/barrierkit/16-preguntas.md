@@ -1,4 +1,4 @@
-# 15. Preguntas frecuentes
+# 16. Preguntas frecuentes
 
 **Objetivo:** responder rápido a lo que más se pregunta del kit.
 **Lector:** cualquiera. Cada respuesta enlaza al capítulo que la amplía.
@@ -28,12 +28,12 @@ Lo pendiente está en el [ADR 0047](../decisiones/0047-barrierkit-en-capas.md),
 
 El dibujo va por Vulkan, normalmente en la GPU; el diseño, en la CPU. Un driver
 Vulkan por software (lavapipe) también sirve. El vídeo usa VA-API si existe y,
-si no, la CPU. Ver [1](01-que-es.md#usa-gpu-o-cpu) y [12](12-fondos-y-medios.md#vídeo-feature-video).
+si no, la CPU. Ver [1](01-que-es.md#usa-gpu-o-cpu) y [13](13-fondos-y-medios.md#vídeo-feature-video).
 
 ## ¿Funciona fuera de MalaysiaDreams?
 
 Sí, como cliente Wayland normal, si el compositor dibuja el primer frame (ver
-[13](13-plataforma.md#limitación-conocida-el-primer-frame)). Fuera de
+[14](14-plataforma.md#limitación-conocida-el-primer-frame)). Fuera de
 MalaysiaDreams no hay bordes, sombra ni blur del compositor, y el menú global
 solo existe en D-Bus.
 
@@ -52,12 +52,12 @@ Tengen. Ver [4](04-apariencia-y-tokens.md#colores-propios-en-una-app).
 
 `SplitView::resizable(false)` y `SplitView::sidebar_range(mín, máx)`; en
 `PreferencesWindow`, `sidebar_resizable` y `sidebar_range`. Ver
-[7](07-barra-lateral.md).
+[8](08-barra-lateral.md).
 
 ## ¿Dónde guarda una app sus datos?
 
 Preferencias en `~/.config/malaysia/<app_id>.domain`; estado de ventana en
-`~/.local/share/malaysia/<app_id>.state`. Ver [10](10-app.md#preferencias-y-restauración).
+`~/.local/share/malaysia/<app_id>.state`. Ver [11](11-app.md#preferencias-y-restauración).
 
 ## ¿Cómo añado un componente al kit?
 

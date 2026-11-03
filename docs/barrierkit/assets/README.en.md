@@ -53,4 +53,4 @@ was built with two local changes that are not on `main`, in
 - drawing the first frame when the configure arrives;
 - treating the configure as `DecorationMode::Client`.
 
-See [13, "Known limitation"](../13-plataforma.en.md#known-limitation-the-first-frame).
+See [14, "Known limitation"](../14-plataforma.en.md#known-limitation-the-first-frame).

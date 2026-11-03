@@ -1,4 +1,4 @@
-# 8. Vistas
+# 9. Vistas
 
 **Objetivo:** conocer los contenedores de la capa 2 que organizan el contenido.
 **Lector:** quien arma pantallas completas.
@@ -129,6 +129,6 @@ match adaptable.current() {
 
 Los cortes son `BREAKPOINT.medium` (620) y `BREAKPOINT.wide` (900).
 `adaptable.attach(rect())` mide el elemento al que se engancha. Ondina lo usa
-para pasar de tres columnas a una (capítulo [14](14-apps-de-prueba.md)).
+para pasar de tres columnas a una (capítulo [15](15-apps-de-prueba.md)).
 
-Siguiente: [9. Patrones](09-patrones.md).
+Siguiente: [10. Patrones](10-patrones.md).

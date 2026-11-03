@@ -21,16 +21,17 @@ Cada capítulo se apoya en los anteriores.
 | 3 | [Capas](03-capas.md) | ¿Cómo está organizado el kit y qué puedo usar? |
 | 4 | [Apariencia y tokens](04-apariencia-y-tokens.md) | ¿De dónde salen colores y medidas? ¿Cómo pongo los míos? |
 | 5 | [Controles](05-controles.md) | ¿Qué elementos interactivos hay y cómo se ven? |
-| 6 | [Ventanas y titlebars](06-ventanas-y-titlebars.md) | ¿Qué tipos de titlebar y semáforos hay? |
-| 7 | [Barra lateral y SplitView](07-barra-lateral.md) | ¿Cómo se configura, se redimensiona y se pliega? |
-| 8 | [Vistas](08-vistas.md) | Formularios, tablas, rejillas, pestañas, alertas, navegación y búsqueda |
-| 9 | [Patrones](09-patrones.md) | Ventana de preferencias y «Acerca de» |
-| 10 | [Infraestructura de app](10-app.md) | Acciones, atajos, menú global, instancia única, preferencias, deshacer |
-| 11 | [Animaciones](11-animaciones.md) | ¿Qué se anima, con qué curva y cómo se reduce el movimiento? |
-| 12 | [Fondos tintados y medios](12-fondos-y-medios.md) | Fondos desde una imagen, acento propio, vídeo |
-| 13 | [Plataforma](13-plataforma.md) | Runner, Vulkan, protocolos Wayland, la parte de la shell |
-| 14 | [Apps de prueba](14-apps-de-prueba.md) | Tengen App Show, Motion Show, Ondina, Rótulo y Marea |
-| 15 | [Preguntas frecuentes](15-preguntas.md) | ¿Qué tenemos y qué falta? |
+| 6 | [Ventanas](06-ventanas.md) | ¿Cómo abro una ventana, la redimensiono y leo su estado? |
+| 7 | [Titlebars](07-titlebars.md) | ¿Qué titlebars y semáforos hay y cómo se ven en cada estado? |
+| 8 | [Barra lateral y SplitView](08-barra-lateral.md) | ¿Cómo se configura, se redimensiona y se pliega? |
+| 9 | [Vistas](09-vistas.md) | Formularios, tablas, rejillas, pestañas, alertas, navegación y búsqueda |
+| 10 | [Patrones](10-patrones.md) | Ventana de preferencias y «Acerca de» |
+| 11 | [Infraestructura de app](11-app.md) | Acciones, atajos, menú global, instancia única, preferencias, deshacer |
+| 12 | [Animaciones](12-animaciones.md) | ¿Qué se anima, con qué curva y cómo se reduce el movimiento? |
+| 13 | [Fondos tintados y medios](13-fondos-y-medios.md) | Fondos desde una imagen, acento propio, vídeo |
+| 14 | [Plataforma](14-plataforma.md) | Runner, Vulkan, protocolos Wayland, la parte de la shell |
+| 15 | [Apps de prueba](15-apps-de-prueba.md) | Tengen App Show, Motion Show, Ondina, Rótulo y Marea |
+| 16 | [Preguntas frecuentes](16-preguntas.md) | ¿Qué tenemos y qué falta? |
 
 ## Fuentes únicas
 

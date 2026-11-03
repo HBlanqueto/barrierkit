@@ -79,7 +79,7 @@ fn main() {
    mode and the accent on its own (chapter [4](04-apariencia-y-tokens.en.md)).
 5. **`run_window` is the only entry point.** It receives the root
    (`AppComponent`) and the window options: title, name, size, minimum size,
-   decoration and menu (chapter [6](06-ventanas-y-titlebars.en.md)).
+   decoration and menu (chapter [6](06-ventanas.en.md)).
 
 ## App and Component
 

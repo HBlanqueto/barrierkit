@@ -1,4 +1,4 @@
-# 12. Fondos tintados y medios
+# 13. Fondos tintados y medios
 
 **Objetivo:** pintar fondos de color calculados desde una imagen, dar a una
 zona su propio acento y reproducir vídeo.
@@ -94,6 +94,6 @@ video.set_volume(0.7);
 video.play();
 ```
 
-Marea (capítulo [14](14-apps-de-prueba.md)) usa todo esto.
+Marea (capítulo [15](15-apps-de-prueba.md)) usa todo esto.
 
-Siguiente: [13. Plataforma](13-plataforma.md).
+Siguiente: [14. Plataforma](14-plataforma.md).

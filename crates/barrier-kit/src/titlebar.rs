@@ -315,6 +315,7 @@ impl Component for Titlebar {
                 .height(Size::px(height))
                 .background(theme::color(background))
                 .direction(Direction::Horizontal)
+                .content(Content::flex())
                 .cross_align(Alignment::Center)
                 .spacing(self.spacing)
                 .padding(Gaps::new(padding_top, padding_x, 0.0, padding_left))

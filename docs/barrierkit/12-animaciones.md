@@ -1,4 +1,4 @@
-# 11. Animaciones
+# 12. Animaciones
 
 **Objetivo:** saber qué se anima ya, cómo animar algo propio y cómo se respeta
 el movimiento reducido.
@@ -77,4 +77,4 @@ let tiempo = if theme::resolved().reduced_motion { 0 } else { DURATION_BASE };
 
 Motion Show es un banco de pruebas: lo que funciona allí se lleva luego al kit.
 
-Siguiente: [12. Fondos tintados y medios](12-fondos-y-medios.md).
+Siguiente: [13. Fondos tintados y medios](13-fondos-y-medios.md).

@@ -7,7 +7,7 @@ aspecto.
 Cada imagen es la referencia de render del kit (`crates/barrier-kit/tests/golden/`),
 generada por el fragmento que la acompaña en `tests/kit/controls.rs`. Todas
 existen en claro y en oscuro; aquí se muestra el claro y el oscuro va al lado
-cuando aporta. En vivo, todos están en la app Tengen App Show (capítulo [14](14-apps-de-prueba.md)).
+cuando aporta. En vivo, todos están en la app Tengen App Show (capítulo [15](15-apps-de-prueba.md)).
 
 ## Reglas comunes
 
@@ -161,7 +161,7 @@ context_menu(fila, elementos, |id: String| { /* acción */ })
 - `use_tooltip` abre un popup sin grab bajo el puntero.
 - `context_menu` abre un `MenuView` en el puntero con el clic secundario.
   `elementos` es un `Vec<MenuItem>`; `Action::item(true)` crea uno desde una
-  acción (capítulo [10](10-app.md)).
+  acción (capítulo [11](11-app.md)).
 
 ## Desplazamiento
 
@@ -192,4 +192,4 @@ lo dibuja suelto; los controles reciben el `Symbol` directamente.
 4. Añade su caso a `tests/kit/controls.rs` (claro y oscuro) y su página en
    Tengen App Show ([ADR 0047](../decisiones/0047-barrierkit-en-capas.md) §2).
 
-Siguiente: [6. Ventanas y titlebars](06-ventanas-y-titlebars.md).
+Siguiente: [6. Ventanas](06-ventanas.md).

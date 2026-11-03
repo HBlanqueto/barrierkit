@@ -1,4 +1,4 @@
-# 14. Test apps
+# 15. Test apps
 
 **Goal:** know which app in the repository tests each part of the kit and how
 to launch it.
@@ -18,7 +18,7 @@ to launch it.
    ```
 
 They run on any compositor that draws the first frame (chapter
-[13](13-plataforma.en.md)). On MalaysiaDreams they also get borders, shadow,
+[14](14-plataforma.en.md)). On MalaysiaDreams they also get borders, shadow,
 blur and the global menu.
 
 ## Master Tengen App Show (`tengen-app-show`)
@@ -62,7 +62,7 @@ Each new kit component arrives with its pane here.
 The motion catalog, also a `PreferencesWindow`: Freya curves, Grade springs,
 animatable properties, controls in motion, appearance, transitions between
 slides, response to events and reduced motion. Its screenshots are in chapter
-[11](11-animaciones.en.md).
+[12](12-animaciones.en.md).
 
 ## Ondina (`ondina`)
 
@@ -91,7 +91,7 @@ A music player that composes layer 2 by hand: `SplitView`, `Sidebar`,
 It tests the five `TitlebarLayout` values, the side of the rail, its width,
 the round traffic lights, the five reveal modes, the three resting edges and
 the island or flat sidebar. It saves the choice with `save_defaults("rotulo")`.
-Its screenshots are in chapter [6](06-ventanas-y-titlebars.en.md).
+Its screenshots are in chapter [7](07-titlebars.en.md).
 
 ## Marea (`marea`)
 
@@ -110,4 +110,4 @@ The test videos and frames are generated with
 `crates/marea/media/generate.mjs`. The screenshot was made without a GPU: the
 video was decoded on the CPU (`Decoding::Cpu`).
 
-Next: [15. Frequently asked questions](15-preguntas.en.md).
+Next: [16. Frequently asked questions](16-preguntas.en.md).

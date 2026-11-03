@@ -116,6 +116,6 @@ interruptor con `Tint::Backdrop` y un deslizador amarillo.
 ![Ventana «Ambiente» con fondo degradado, interruptor y deslizador tintados](assets/ejemplos/ambiente.png)
 
 En una ventana inactiva, todos los tintes usan el acento inactivo de la paleta.
-Los fondos tintados se explican en el capítulo [12](12-fondos-y-medios.md).
+Los fondos tintados se explican en el capítulo [13](13-fondos-y-medios.md).
 
 Siguiente: [5. Controles](05-controles.md).

@@ -1,4 +1,4 @@
-# 11. Animations
+# 12. Animations
 
 **Goal:** know what already animates, how to animate something of your own and
 how reduced motion is respected.
@@ -77,4 +77,4 @@ let tiempo = if theme::resolved().reduced_motion { 0 } else { DURATION_BASE };
 
 Motion Show is a test bench: what works there is later moved into the kit.
 
-Next: [12. Tinted backdrops and media](12-fondos-y-medios.en.md).
+Next: [13. Tinted backdrops and media](13-fondos-y-medios.en.md).
