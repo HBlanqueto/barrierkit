@@ -5,6 +5,9 @@ use zbus::blocking::Connection;
 use zbus::fdo::{RequestNameFlags, RequestNameReply};
 use zbus::zvariant::OwnedValue;
 
+use freya_core::prelude::try_consume_root_context;
+
+use super::MenuActions;
 use crate::platform::{Timers, WakeHandle, WindowControls};
 
 pub enum Launch {
@@ -15,6 +18,7 @@ pub enum Launch {
 #[derive(Default)]
 struct Requests {
     tokens: Vec<String>,
+    actions: Vec<String>,
     wake: Option<WakeHandle>,
 }
 
@@ -28,13 +32,24 @@ impl Instance {
     pub fn listen(&self) {
         let requests = self.requests.clone();
         let controls = WindowControls::get();
+        let menu_actions = try_consume_root_context::<MenuActions>();
         let wake = Timers::get().wakeup(move || {
-            let tokens = requests
+            let (tokens, actions) = requests
                 .lock()
-                .map(|mut pending| std::mem::take(&mut pending.tokens))
+                .map(|mut pending| {
+                    (
+                        std::mem::take(&mut pending.tokens),
+                        std::mem::take(&mut pending.actions),
+                    )
+                })
                 .unwrap_or_default();
             for token in tokens {
                 controls.present(token);
+            }
+            if let Some(menu_actions) = &menu_actions {
+                for action in actions {
+                    menu_actions.dispatch(&action);
+                }
             }
         });
         if let Ok(mut pending) = self.requests.lock() {
@@ -65,10 +80,16 @@ impl Activation {
 
     fn activate_action(
         &self,
-        _name: String,
+        name: String,
         _parameter: Vec<OwnedValue>,
         _platform_data: HashMap<String, OwnedValue>,
     ) {
+        if let Ok(mut pending) = self.requests.lock() {
+            pending.actions.push(name);
+            if let Some(wake) = &pending.wake {
+                wake.wake();
+            }
+        }
     }
 }
 
