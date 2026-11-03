@@ -17,6 +17,7 @@ use crate::adornments::avatar;
 use crate::chrome::{Side, TitlebarLayout};
 use crate::interaction::use_interaction;
 use crate::platform::WindowControls;
+use crate::scroll::ScrollView;
 use crate::style::{Palette, text};
 use crate::symbol::{Symbol, symbol};
 use crate::theme;
@@ -283,7 +284,7 @@ impl Component for Sidebar {
                     .a11y_alt("sidebar-drag-strip")
                     .on_mouse_down(drag),
             )
-            .children(self.children.iter().cloned());
+            .child(ScrollView::new().children(self.children.iter().cloned()));
 
         if island {
             sidebar_body = sidebar_body.corner_radius(radius);
