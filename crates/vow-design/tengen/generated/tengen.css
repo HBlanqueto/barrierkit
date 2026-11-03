@@ -391,6 +391,7 @@
   --radio-dot: 6px;
   --radio-on: var(--accent);
   --radio-size: 16px;
+  --scroll-bar-hide-delay: 800px;
   --scroll-bar-inset: 3px;
   --scroll-bar-min-length: 50px;
   --scroll-bar-opacity: 0.450000;

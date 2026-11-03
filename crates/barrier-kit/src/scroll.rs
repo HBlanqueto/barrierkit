@@ -1,11 +1,15 @@
 //! Scroll view whose bar follows the appearance: only while scrolling, or always.
 
+use std::time::Duration;
+
+use freya_animation::prelude::{AnimNum, Ease, Function, use_animation_transition};
 use freya_components::scrollviews::{ScrollConfig, ScrollView as Scroller, use_scroll_controller};
 use freya_core::prelude::*;
 use torin::prelude::{Position, Size};
 use vow_appearance::ScrollBars;
-use vow_design::{Rgba, SCROLL_BAR};
+use vow_design::{DURATION_FAST_MS, Rgba, SCROLL_BAR};
 
+use crate::platform::Timers;
 use crate::style::Palette;
 use crate::theme::color;
 
@@ -72,16 +76,39 @@ fn thumb(viewport: f32, content: f32, scrolled: f32) -> Option<(f32, f32)> {
 
 impl Component for ScrollView {
     fn render(&self) -> impl IntoElement {
-        let always = crate::theme::resolved().scroll_bars == ScrollBars::Always;
+        let resolved = crate::theme::resolved();
+        let always = resolved.scroll_bars == ScrollBars::Always;
         let controller = use_scroll_controller(ScrollConfig::default);
         let mut viewport = use_state(|| 0.0f32);
         let mut content = use_state(|| 0.0f32);
         let (_, scrolled): (i32, i32) = controller.into();
-        let bar = if always {
-            thumb(*viewport.read(), *content.read(), scrolled as f32)
-        } else {
-            None
-        };
+        let mut shown_at = use_state(|| scrolled);
+        let mut scrolls = use_state(|| 0u32);
+        let mut scrolling = use_state(|| false);
+        if *shown_at.peek() != scrolled {
+            shown_at.set(scrolled);
+            let scroll = *scrolls.peek() + 1;
+            scrolls.set(scroll);
+            scrolling.set(true);
+            if let Some(timers) = try_consume_root_context::<Timers>() {
+                timers.after(Duration::from_millis(SCROLL_BAR.hide_delay_ms), move || {
+                    if *scrolls.peek() == scroll {
+                        let mut scrolling = scrolling;
+                        scrolling.set(false);
+                    }
+                });
+            }
+        }
+        let reduced_motion = resolved.reduced_motion;
+        let fade = use_animation_transition(scrolling, move |from: bool, to: bool| {
+            AnimNum::new(f32::from(u8::from(from)), f32::from(u8::from(to)))
+                .time(if reduced_motion { 0 } else { DURATION_FAST_MS })
+                .ease(Ease::Out)
+                .function(Function::Cubic)
+        });
+        let visibility = if always { 1.0 } else { fade.get().value() };
+        let bar =
+            thumb(*viewport.read(), *content.read(), scrolled as f32).filter(|_| visibility > 0.0);
         let ink = Palette::current().label;
         rect()
             .width(self.width.clone())
@@ -91,7 +118,7 @@ impl Component for ScrollView {
             })
             .child(
                 Scroller::new_controlled(controller)
-                    .show_scrollbar(!always)
+                    .show_scrollbar(false)
                     .child(
                         rect()
                             .width(Size::fill())
@@ -109,7 +136,7 @@ impl Component for ScrollView {
                     .height(Size::px(length))
                     .corner_radius(SCROLL_BAR.thumb / 2.0)
                     .background(color(Rgba {
-                        a: SCROLL_BAR.opacity,
+                        a: SCROLL_BAR.opacity * visibility,
                         ..ink
                     }))
             }))

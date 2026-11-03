@@ -516,6 +516,7 @@ pub struct ScrollBarMetrics {
     pub inset: f32,
     pub min_length: f32,
     pub opacity: f32,
+    pub hide_delay_ms: u64,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

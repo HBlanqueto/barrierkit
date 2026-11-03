@@ -687,6 +687,7 @@
       "pointer-gap": 16
     },
     "scroll-bar": {
+      "hide-delay": 800,
       "thumb": 6,
       "inset": 3,
       "min-length": 50,
