@@ -403,7 +403,6 @@
         },
         "fullscreen-bar": {
           "content-top": 44,
-          "scrim-height": 84,
           "band-line": 1
         }
       },

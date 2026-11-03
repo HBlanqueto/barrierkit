@@ -43,7 +43,6 @@ pub enum FullscreenBar {
     Solid,
     Glass,
     ProgressiveGlass,
-    Scrim,
     Push,
 }
 
@@ -191,7 +190,7 @@ impl WindowControls {
         let below_bar = match self.fullscreen_bar {
             FullscreenBar::ProgressiveGlass => vow_design::FULLSCREEN_GLASS.content_top,
             FullscreenBar::Glass => vow_design::FULLSCREEN_BAND.content_top,
-            FullscreenBar::Solid | FullscreenBar::Scrim => vow_design::FULLSCREEN_BAR.content_top,
+            FullscreenBar::Solid => vow_design::FULLSCREEN_BAR.content_top,
             FullscreenBar::Push => return 0.0,
         };
         if self.titlebar_overlaid() {

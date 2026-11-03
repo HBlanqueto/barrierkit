@@ -11,7 +11,7 @@ MalaysiaDreams.
 |---|---|---|
 | `Titlebar` | La titlebar horizontal CSD: semáforos, zonas izquierda y derecha, título | Con barra lateral si se pasa `.with_sidebar(true)` |
 | `TrafficLights` | Cerrar, minimizar y maximizar | Cuadrados, colores de `traffic_lights` |
-| `WindowChrome` + `ChromeStyle` | Cinco diseños: `Top`, `Rail`, `Unified`, `Pill` y `Actions` | `Top` |
+| `WindowChrome` + `ChromeStyle` | Cuatro diseños: `Top`, `Rail`, `Unified` y `Pill`; el `Rail` admite acciones propias | `Top` |
 | `FullscreenBar` | Cómo se dibuja la titlebar superpuesta en pantalla completa | `Solid` («A · Lisa») |
 
 ## La titlebar horizontal: `Titlebar`
@@ -75,7 +75,7 @@ TrafficLights::new()
 
 En una ventana inactiva los semáforos se vuelven grises.
 
-## Cinco tipos de titlebar: `WindowChrome`
+## Cuatro tipos de titlebar: `WindowChrome`
 
 `chrome::WindowChrome::new(estilo, contenido)` envuelve la ventana y coloca los
 semáforos y el título según un `ChromeStyle`:
@@ -96,10 +96,9 @@ WindowChrome::new(estilo, SplitView::new(barra, detalle)).footer(pie)
 | `TitlebarLayout` | Qué es | Captura (Rótulo) |
 |---|---|---|
 | `Top` (por defecto) | Titlebar horizontal arriba | ![Diseño Top](assets/apps/rotulo-top.png) |
-| `Rail` | Franja vertical a un lado con los semáforos en columna y el título girado 90° | ![Diseño Rail](assets/apps/rotulo-rail.png) |
+| `Rail` | Franja vertical a un lado con los semáforos en columna y el título girado 90°. Si la app pasa `.footer(..)` a `WindowChrome`, el rail añade abajo sus acciones y se ensancha a `TITLEBAR_RAIL.actions_width` (34) | ![Diseño Rail](assets/apps/rotulo-rail.png) |
 | `Unified` | Los semáforos en columna dentro de la barra lateral, sin franja propia. Sin barra lateral visible pasa a `Rail` | ![Diseño Unified](assets/apps/rotulo-unified.png) |
 | `Pill` | Una píldora flotante con los semáforos, vertical (por defecto) u horizontal según `pill_vertical`. En pantalla completa es opaca o cristal según `FullscreenBar` | ![Diseño Pill](assets/apps/rotulo-pill.png) |
-| `Actions` | Un `Rail` más ancho con un pie de acciones (`.footer(..)`) | ![Diseño Actions](assets/apps/rotulo-actions.png) |
 
 | Campo | Valores | Efecto |
 |---|---|---|
@@ -118,6 +117,10 @@ Algunas combinaciones no tienen sentido y se corrigen solas
 Rail a la derecha, semáforos redondos, barra lateral plana y modo oscuro:
 
 ![Rail derecho con semáforos redondos](assets/apps/rotulo-rail-flat-round.png)
+
+El `Rail` con acciones (`.footer(..)`), en una ventana normal:
+
+![Rail con acciones](assets/estados/rail-acciones.png)
 
 La píldora en sus dos orientaciones, en una ventana normal:
 
@@ -162,8 +165,8 @@ WindowOptions::new("Ondina", "ondina").fullscreen_bar(FullscreenBar::Progressive
 ```
 
 **Por defecto, todas las apps usan `Solid` («A · Lisa»).** Solo Ondina pide
-`ProgressiveGlass`. Las cinco salen de la propuesta «Ondina a pantalla
-completa» (A, B, C y E aceptadas). En las capturas, la franja negra de arriba
+`ProgressiveGlass`. Las cuatro salen de la propuesta «Ondina a pantalla
+completa»; «C · Degradado» se descartó. En las capturas, la franja negra de arriba
 es la barra del compositor, añadida a la imagen.
 
 | `FullscreenBar` | Qué dibuja | Dónde empieza el contenido (`fullscreen_content_top`) | Cómo se ve |
@@ -171,15 +174,14 @@ es la barra del compositor, añadida a la imagen.
 | `Solid` («A · Lisa», **por defecto**) | Una banda opaca del color de la ventana, del alto de la titlebar. Corta lo que pasa por debajo con un borde duro | Barra + `FULLSCREEN_BAR.content_top` (44) | ![A · Lisa](assets/estados/barra-lisa.png) |
 | `Glass` («B1 · Vidrio en banda») | Una banda del alto de la titlebar que difumina lo de debajo (`FULLSCREEN_BAND`), con tinte y una línea abajo | Barra + `FULLSCREEN_BAND.content_top` (44) | ![B1 · Vidrio en banda](assets/estados/barra-vidrio-banda.png) |
 | `ProgressiveGlass` («B2 · Vidrio progresivo», Ondina) | Difuminado máximo arriba que se desvanece en 96 px, sin línea, de borde a borde de la ventana ([ADR 0057](../decisiones/0057-cristal-y-barra-lateral-sobre-fondo.md)) | Barra + `FULLSCREEN_GLASS.content_top` (74) | ![B2 · Vidrio progresivo](assets/estados/barra-vidrio-progresivo.png) |
-| `Scrim` («C · Degradado») | Sin banda: un velo (`Palette::scrim`) que se desvanece hacia abajo en `FULLSCREEN_BAR.scrim_height` (84); los controles flotan encima | Barra + `FULLSCREEN_BAR.content_top` (44) | ![C · Degradado](assets/estados/barra-degradado.png) |
 | `Push` («E · Empuja») | No tapa nada: la titlebar vuelve al diseño y empuja hacia abajo la columna de detalle lo que miden la barra y la titlebar. La barra lateral no se mueve | 0: el contenido baja solo | ![E · Empuja, barra bajada](assets/estados/barra-empuja.png) |
 
 Con `Push` y la barra arriba, el contenido llega al borde superior:
 
 ![E · Empuja, barra arriba](assets/estados/barra-empuja-arriba.png)
 
-Solo `Glass` y `ProgressiveGlass` difuminan. Con las demás, el rail y la
-píldora son opacos.
+Solo `Glass` y `ProgressiveGlass` difuminan; con ellas, la píldora también es
+cristal. Con las demás es opaca.
 
 ### Modo foco con la barra bajada, por diseño
 
@@ -191,8 +193,8 @@ dibuja.
 |---|---|---|
 | `Top` (por defecto) | La `Titlebar` sobre el contenido; los semáforos de la barra lateral bajan lo mismo | ![Top con la barra bajada](assets/estados/foco-top.png) |
 | `Unified` | Igual que `Top` | ![Unified con la barra bajada](assets/estados/foco-unified.png) |
-| `Rail` | El rail, con los semáforos en columna | ![Rail con la barra bajada](assets/estados/foco-rail.png) |
-| `Actions` | El rail ancho con su pie de acciones | ![Actions con la barra bajada](assets/estados/foco-actions.png) |
+| `Rail` | Nada: el rail sigue en su sitio, sin tapar la barra lateral. Sus semáforos aparecen con la barra, debajo de ella | ![Rail con la barra bajada](assets/estados/foco-rail.png) |
+| `Rail` con acciones | Igual; las acciones siguen abajo | ![Rail con acciones y la barra bajada](assets/estados/foco-rail-acciones.png) |
 | `Pill` vertical | La píldora de semáforos; antes no se ve | ![Pill vertical con la barra bajada](assets/estados/foco-pill.png) |
 | `Pill` horizontal | Igual, en fila | ![Pill horizontal con la barra bajada](assets/estados/foco-pill-horizontal.png) |
 

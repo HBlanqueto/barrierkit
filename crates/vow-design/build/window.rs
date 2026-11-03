@@ -231,12 +231,11 @@ pub(super) fn emit_fullscreen_glass(out: &mut String, components: &Value) {
     const_doc(
         out,
         "FULLSCREEN_BAR",
-        "Where the content starts under a full-screen titlebar, and the scrim and band line.",
+        "Where the content starts under a full-screen titlebar, and the band line.",
     );
     out.push_str(&format!(
-        ": FullscreenBarMetrics = FullscreenBarMetrics {{ content_top: {}, scrim_height: {}, band_line: {} }};\n\n",
+        ": FullscreenBarMetrics = FullscreenBarMetrics {{ content_top: {}, band_line: {} }};\n\n",
         field("content-top"),
-        field("scrim-height"),
         field("band-line")
     ));
 }

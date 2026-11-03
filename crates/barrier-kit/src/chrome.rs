@@ -11,7 +11,6 @@ use vow_design::{
     TITLEBAR_CLIENT_HEIGHT, TITLEBAR_RAIL,
 };
 
-use crate::glass::{GlassEdge, fullscreen_backdrop};
 use crate::platform::FullscreenBar;
 use crate::platform::WindowControls;
 use crate::style::Palette;
@@ -25,7 +24,6 @@ pub enum TitlebarLayout {
     Rail,
     Unified,
     Pill,
-    Actions,
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -93,14 +91,6 @@ impl ChromeStyle {
         };
         (layout, reveal)
     }
-
-    fn rail_extent(self) -> f32 {
-        if self.layout == TitlebarLayout::Actions {
-            TITLEBAR_RAIL.actions_width
-        } else {
-            self.rail_width
-        }
-    }
 }
 
 // ADR 0054: the overlaid titlebar slides and fades in with the compositor bar instead of popping in.
@@ -149,7 +139,7 @@ fn wants_reveal(
         Reveal::Corner => in_corner,
         Reveal::Popup if revealed => in_corner,
         Reveal::Drawer | Reveal::Push if revealed && vertical => {
-            from_side < style.rail_extent() + TITLEBAR_RAIL.reveal_zone
+            from_side < style.rail_width + TITLEBAR_RAIL.reveal_zone
         }
         Reveal::Drawer | Reveal::Push if revealed => y < bar_height() + TITLEBAR_RAIL.reveal_zone,
         _ if vertical => from_side < TITLEBAR_RAIL.reveal_zone,
@@ -218,10 +208,10 @@ pub(crate) fn rail_overlap((start, end): (f32, f32)) -> (f32, f32) {
     };
     let style = *chrome.style.read();
     let (layout, _) = style.effective(*chrome.sidebar_shown.read());
-    if !matches!(layout, TitlebarLayout::Rail | TitlebarLayout::Actions) {
+    if layout != TitlebarLayout::Rail {
         return (0.0, 0.0);
     }
-    let extent = style.rail_extent();
+    let extent = style.rail_width;
     match style.side {
         Side::Left => ((extent - start).max(0.0), 0.0),
         Side::Right => (0.0, (end - (chrome.size.read().0 - extent)).max(0.0)),
@@ -315,9 +305,16 @@ impl Component for WindowChrome {
             provide_context(chrome);
             chrome
         });
+        let style = ChromeStyle {
+            rail_width: if self.footer.is_some() {
+                self.style.rail_width.max(TITLEBAR_RAIL.actions_width)
+            } else {
+                self.style.rail_width
+            },
+            ..self.style
+        };
         let mut style_state = chrome.style;
-        style_state.set_if_modified(self.style);
-        let style = self.style;
+        style_state.set_if_modified(style);
         let sidebar_shown = *chrome.sidebar_shown.read();
         let mut revealed = use_state(|| false);
         let mut size = chrome.size;
@@ -351,16 +348,16 @@ impl Component for WindowChrome {
             })
             .child(self.child.clone());
 
-        let footer = (layout == TitlebarLayout::Actions)
+        let footer = (layout == TitlebarLayout::Rail)
             .then(|| self.footer.clone())
             .flatten();
-        let vertical_rail = matches!(layout, TitlebarLayout::Rail | TitlebarLayout::Actions);
+        let vertical_rail = layout == TitlebarLayout::Rail;
         let lights_opacity = if reveal == Reveal::Corner {
             progress
         } else {
             1.0
         };
-        let edge = match (vertical_rail && !overlaid, reveal) {
+        let edge = match (vertical_rail, reveal) {
             (false, _) => None,
             (true, Reveal::Always | Reveal::Corner) => {
                 Some(rail(style, footer.clone(), lights_opacity).into_element())
@@ -372,7 +369,7 @@ impl Component for WindowChrome {
                     .child(resting_edge(style.resting_edge, true))
                     .child(
                         rect()
-                            .width(Size::px(style.rail_extent() * progress))
+                            .width(Size::px(style.rail_width * progress))
                             .height(Size::fill())
                             .overflow(Overflow::Clip)
                             .child(rail(style, footer.clone(), 1.0)),
@@ -418,7 +415,7 @@ impl Component for WindowChrome {
             );
         }
         if vertical_rail && reveal == Reveal::Drawer && progress > 0.0 {
-            let extent = style.rail_extent();
+            let extent = style.rail_width;
             let position = Position::new_absolute().top(0.0);
             root =
                 root.child(
@@ -434,25 +431,6 @@ impl Component for WindowChrome {
                             surface_background(&crate::theme::resolved(), SurfaceKind::Toplevel),
                         ))),
                 );
-        }
-        if let Some(top) = overlay_top.filter(|_| vertical_rail) {
-            let position = Position::new_absolute().top(top);
-            let (position, edge) = match style.side {
-                Side::Left => (position.left(0.0), GlassEdge::Left),
-                Side::Right => (position.right(0.0), GlassEdge::Right),
-            };
-            root = root.child(
-                rect()
-                    .position(position)
-                    .height(Size::func(move |context| Some(context.parent - top)))
-                    .layer(Layer::Overlay)
-                    .child(fullscreen_backdrop(
-                        fullscreen_bar(),
-                        edge,
-                        style.rail_extent(),
-                    ))
-                    .child(rail(style, footer.clone(), 1.0)),
-            );
         }
         let pill_progress = match (layout, reveal) {
             (TitlebarLayout::Pill, _) if overlaid && overlay_top.is_none() => None,
@@ -501,10 +479,20 @@ fn window_state() -> (bool, bool, String) {
 fn rail(style: ChromeStyle, footer: Option<Element>, lights_opacity: f32) -> Rect {
     let resolved = crate::theme::resolved();
     let (activated, fixed, title) = window_state();
-    let width = style.rail_extent();
+    let width = style.rail_width;
     let island = resolved.sidebar.style == SidebarStyle::Island;
+    let controls = try_consume_root_context::<WindowControls>();
     let overlaid = fullscreen_overlay().0;
-    let background = if island || overlaid {
+    let lights_shown = controls
+        .as_ref()
+        .is_none_or(|controls| controls.traffic_lights_shown());
+    let below_bar = controls
+        .as_ref()
+        .filter(|_| overlaid)
+        .map_or(0.0, |controls| {
+            *controls.focus_bar_height.read() * *controls.focus_bar_progress.read()
+        });
+    let background = if island {
         Rgba::TRANSPARENT
     } else if activated {
         surface_background(&resolved, SurfaceKind::Toplevel)
@@ -516,7 +504,7 @@ fn rail(style: ChromeStyle, footer: Option<Element>, lights_opacity: f32) -> Rec
     } else {
         palette(resolved.scheme).title.unfocused
     };
-    let line = (!island && !overlaid).then(|| {
+    let line = (!island).then(|| {
         at_side(
             match style.side {
                 Side::Left => Side::Right,
@@ -536,16 +524,17 @@ fn rail(style: ChromeStyle, footer: Option<Element>, lights_opacity: f32) -> Rec
         .cross_align(Alignment::Center)
         .spacing(TITLEBAR.buttons.spacing as f32)
         .padding(Gaps::new(
-            TITLEBAR_RAIL.padding_top,
+            TITLEBAR_RAIL.padding_top + below_bar,
             0.0,
             TITLEBAR_RAIL.padding_bottom,
             0.0,
         ))
-        .child(
+        .maybe_child(lights_shown.then(|| {
             rect()
+                .maybe(overlaid, |el| el.layer(Layer::Overlay))
                 .opacity(lights_opacity)
-                .child(window_traffic_lights(activated, fixed).vertical(true)),
-        )
+                .child(window_traffic_lights(activated, fixed).vertical(true))
+        }))
         .child(RotatedTitle {
             title,
             ink: title_ink,

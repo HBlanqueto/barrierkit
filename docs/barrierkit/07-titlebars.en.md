@@ -10,7 +10,7 @@ normal, unfocused, maximized, full screen and MalaysiaDreams focus mode.
 |---|---|---|
 | `Titlebar` | The horizontal CSD titlebar: traffic lights, left and right zones, title | With a sidebar when `.with_sidebar(true)` is passed |
 | `TrafficLights` | Close, minimize and maximize | Square, `traffic_lights` colors |
-| `WindowChrome` + `ChromeStyle` | Five layouts: `Top`, `Rail`, `Unified`, `Pill` and `Actions` | `Top` |
+| `WindowChrome` + `ChromeStyle` | Four layouts: `Top`, `Rail`, `Unified` and `Pill`; the `Rail` accepts the app's own actions | `Top` |
 | `FullscreenBar` | How the overlaid titlebar is drawn in full screen | `Solid` ("A · Lisa") |
 
 ## The horizontal titlebar: `Titlebar`
@@ -74,7 +74,7 @@ TrafficLights::new()
 
 In an inactive window the traffic lights turn gray.
 
-## Five titlebar types: `WindowChrome`
+## Four titlebar types: `WindowChrome`
 
 `chrome::WindowChrome::new(estilo, contenido)` wraps the window and places the
 traffic lights and the title according to a `ChromeStyle`:
@@ -95,10 +95,9 @@ WindowChrome::new(estilo, SplitView::new(barra, detalle)).footer(pie)
 | `TitlebarLayout` | What it is | Screenshot (Rótulo) |
 |---|---|---|
 | `Top` (default) | Horizontal titlebar at the top | ![Top layout](assets/apps/rotulo-top.png) |
-| `Rail` | Vertical strip on one side with the traffic lights in a column and the title rotated 90° | ![Rail layout](assets/apps/rotulo-rail.png) |
+| `Rail` | Vertical strip on one side with the traffic lights in a column and the title rotated 90°. If the app passes `.footer(..)` to `WindowChrome`, the rail adds its actions at the bottom and widens to `TITLEBAR_RAIL.actions_width` (34) | ![Rail layout](assets/apps/rotulo-rail.png) |
 | `Unified` | The traffic lights in a column inside the sidebar, with no strip of their own. Without a visible sidebar it becomes `Rail` | ![Unified layout](assets/apps/rotulo-unified.png) |
 | `Pill` | A floating pill with the traffic lights, vertical (default) or horizontal depending on `pill_vertical`. In full screen it is opaque or glass depending on `FullscreenBar` | ![Pill layout](assets/apps/rotulo-pill.png) |
-| `Actions` | A wider `Rail` with an actions footer (`.footer(..)`) | ![Actions layout](assets/apps/rotulo-actions.png) |
 
 | Field | Values | Effect |
 |---|---|---|
@@ -117,6 +116,10 @@ Some combinations make no sense and correct themselves
 Rail on the right, round traffic lights, flat sidebar and dark mode:
 
 ![Right rail with round traffic lights](assets/apps/rotulo-rail-flat-round.png)
+
+The `Rail` with actions (`.footer(..)`), in a normal window:
+
+![Rail with actions](assets/estados/rail-acciones.png)
 
 The pill in both orientations, in a normal window:
 
@@ -161,8 +164,8 @@ WindowOptions::new("Ondina", "ondina").fullscreen_bar(FullscreenBar::Progressive
 ```
 
 **By default, every app uses `Solid` ("A · Lisa").** Only Ondina requests
-`ProgressiveGlass`. The five come from the "Ondina a pantalla completa"
-proposal (A, B, C and E accepted). In the screenshots, the black strip at the
+`ProgressiveGlass`. The four come from the "Ondina a pantalla completa"
+proposal; "C · Degradado" was dropped. In the screenshots, the black strip at the
 top is the compositor bar, added to the image.
 
 | `FullscreenBar` | What it draws | Where the content starts (`fullscreen_content_top`) | How it looks |
@@ -170,15 +173,14 @@ top is the compositor bar, added to the image.
 | `Solid` ("A · Lisa", **default**) | An opaque band in the window color, as tall as the titlebar. It cuts what passes below with a hard edge | Bar + `FULLSCREEN_BAR.content_top` (44) | ![A · Lisa](assets/estados/barra-lisa.png) |
 | `Glass` ("B1 · Vidrio en banda") | A band as tall as the titlebar that blurs what is below (`FULLSCREEN_BAND`), with a tint and a line at the bottom | Bar + `FULLSCREEN_BAND.content_top` (44) | ![B1 · Glass band](assets/estados/barra-vidrio-banda.png) |
 | `ProgressiveGlass` ("B2 · Vidrio progresivo", Ondina) | Maximum blur at the top that fades out over 96 px, without a line, from edge to edge of the window ([ADR 0057](../decisiones/0057-cristal-y-barra-lateral-sobre-fondo.md)) | Bar + `FULLSCREEN_GLASS.content_top` (74) | ![B2 · Progressive glass](assets/estados/barra-vidrio-progresivo.png) |
-| `Scrim` ("C · Degradado") | No band: a veil (`Palette::scrim`) that fades downward over `FULLSCREEN_BAR.scrim_height` (84); the controls float on top | Bar + `FULLSCREEN_BAR.content_top` (44) | ![C · Scrim](assets/estados/barra-degradado.png) |
 | `Push` ("E · Empuja") | It covers nothing: the titlebar returns to the layout and pushes the detail column down by the height of the bar and the titlebar. The sidebar does not move | 0: the content moves down by itself | ![E · Push, bar down](assets/estados/barra-empuja.png) |
 
 With `Push` and the bar up, the content reaches the top edge:
 
 ![E · Push, bar up](assets/estados/barra-empuja-arriba.png)
 
-Only `Glass` and `ProgressiveGlass` blur. With the others, the rail and the
-pill are opaque.
+Only `Glass` and `ProgressiveGlass` blur; with them, the pill is glass too.
+With the others it is opaque.
 
 ### Focus mode with the bar down, by layout
 
@@ -190,8 +192,8 @@ it.
 |---|---|---|
 | `Top` (default) | The `Titlebar` over the content; the sidebar traffic lights move down by the same amount | ![Top with the bar down](assets/estados/foco-top.png) |
 | `Unified` | Same as `Top` | ![Unified with the bar down](assets/estados/foco-unified.png) |
-| `Rail` | The rail, with the traffic lights in a column | ![Rail with the bar down](assets/estados/foco-rail.png) |
-| `Actions` | The wide rail with its footer of actions | ![Actions with the bar down](assets/estados/foco-actions.png) |
+| `Rail` | Nothing: the rail stays in place, without covering the sidebar. Its traffic lights appear with the bar, below it | ![Rail with the bar down](assets/estados/foco-rail.png) |
+| `Rail` with actions | The same; the actions stay at the bottom | ![Rail with actions and the bar down](assets/estados/foco-rail-acciones.png) |
 | Vertical `Pill` | The traffic-light pill; before that it is hidden | ![Vertical Pill with the bar down](assets/estados/foco-pill.png) |
 | Horizontal `Pill` | The same, in a row | ![Horizontal Pill with the bar down](assets/estados/foco-pill-horizontal.png) |
 

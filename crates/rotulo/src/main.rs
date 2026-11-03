@@ -22,12 +22,11 @@ use vow_design::{ACCENT_SWATCHES, TITLEBAR_RAIL, WINDOW_MIN_SIZE};
 
 const APP: &str = "rotulo";
 
-const LAYOUTS: [(TitlebarLayout, &str); 5] = [
+const LAYOUTS: [(TitlebarLayout, &str); 4] = [
     (TitlebarLayout::Top, "Arriba"),
     (TitlebarLayout::Rail, "Rail"),
     (TitlebarLayout::Unified, "Unificado"),
     (TitlebarLayout::Pill, "Píldora"),
-    (TitlebarLayout::Actions, "Acciones"),
 ];
 
 const REVEALS: [(Reveal, &str); 5] = [
@@ -48,6 +47,7 @@ struct Prefs {
     wide_rail: bool,
     round_lights: bool,
     pill_vertical: bool,
+    rail_actions: bool,
     reveal: Reveal,
     resting_edge: RestingEdge,
     flat_sidebar: bool,
@@ -61,6 +61,7 @@ impl Default for Prefs {
             wide_rail: false,
             round_lights: false,
             pill_vertical: true,
+            rail_actions: false,
             reveal: Reveal::Always,
             resting_edge: RestingEdge::None,
             flat_sidebar: false,
@@ -172,6 +173,14 @@ fn design(prefs: State<Prefs>) -> Form {
             usize::from(current.round_lights),
             move |i| update(prefs, |p| p.round_lights = i == 1),
         )));
+    if current.layout == TitlebarLayout::Rail {
+        titlebar = titlebar.row(Row::new("Acciones en el rail").control(segmented(
+            "Acciones en el rail",
+            &["Sin acciones", "Con acciones"],
+            usize::from(current.rail_actions),
+            move |i| update(prefs, |p| p.rail_actions = i == 1),
+        )));
+    }
     if current.layout == TitlebarLayout::Pill {
         titlebar = titlebar.row(Row::new("Píldora").control(segmented(
             "Píldora",
@@ -228,7 +237,9 @@ fn measures(prefs: Prefs) -> Form {
     let chrome = prefs.chrome();
     let width = match prefs.layout {
         TitlebarLayout::Top => String::from("—"),
-        TitlebarLayout::Actions => format!("{} px", TITLEBAR_RAIL.actions_width),
+        TitlebarLayout::Rail if prefs.rail_actions => {
+            format!("{} px", chrome.rail_width.max(TITLEBAR_RAIL.actions_width))
+        }
         _ => format!("{} px", chrome.rail_width),
     };
     Form::new().section(
@@ -322,7 +333,12 @@ impl App for Rotulo {
                 IconButton::new(Symbol::SlidersVertical, Page::Measures.title())
                     .on_press(move |_| page.set(Page::Measures)),
             );
-        WindowChrome::new(prefs.read().chrome(), SplitView::new(sidebar, detail)).footer(footer)
+        let chrome = WindowChrome::new(prefs.read().chrome(), SplitView::new(sidebar, detail));
+        if prefs.read().rail_actions {
+            chrome.footer(footer)
+        } else {
+            chrome
+        }
     }
 }
 

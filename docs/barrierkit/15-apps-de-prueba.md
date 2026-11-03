@@ -87,7 +87,7 @@ Un reproductor de música que compone la capa 2 a mano: `SplitView`,
 
 ## Rótulo (`rotulo`)
 
-Prueba los cinco `TitlebarLayout`, el lado del rail, su ancho, los semáforos
+Prueba los cuatro `TitlebarLayout`, el lado del rail, su ancho, sus acciones, los semáforos
 redondos, la píldora vertical u horizontal, las cinco formas de aparición, los tres bordes en reposo y la barra
 lateral en isla o plana. Guarda la elección con `save_defaults("rotulo")`.
 Sus capturas están en el capítulo [7](07-titlebars.md).

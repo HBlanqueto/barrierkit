@@ -483,7 +483,6 @@ pub struct TitlebarRailMetrics {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct FullscreenBarMetrics {
     pub content_top: f32,
-    pub scrim_height: f32,
     pub band_line: f32,
 }
 

@@ -945,7 +945,6 @@ mod fullscreen_chrome_tests {
             TitlebarLayout::Rail,
             TitlebarLayout::Unified,
             TitlebarLayout::Pill,
-            TitlebarLayout::Actions,
         ] {
             for side in [Side::Left, Side::Right] {
                 let style = ChromeStyle {
