@@ -108,9 +108,13 @@ pub fn open_video(id: &str, looping: bool) -> Option<VideoStream> {
     opened.ok()
 }
 
+pub fn image(file: &str) -> PathBuf {
+    media().join("stills").join(file)
+}
+
 pub fn still(id: &str) -> impl FnOnce() -> Option<Vec<u8>> + Send + 'static {
     let youtube = youtube(id);
-    let path = media().join("stills").join(format!("{id}.jpg"));
+    let path = image(&format!("{id}.jpg"));
     move || match youtube {
         Some(video) => ["maxresdefault", "hqdefault"].iter().find_map(|size| {
             video::fetch(&format!("https://i.ytimg.com/vi/{video}/{size}.jpg")).ok()

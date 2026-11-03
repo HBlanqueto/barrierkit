@@ -167,6 +167,7 @@ impl App for Marea {
     fn render(&self) -> impl IntoElement {
         use_appearance(|config| config.color_scheme = ColorScheme::Dark);
         let mut featured = use_state(|| 0usize);
+        let mut previewing = use_state(|| false);
         let mut genre = use_state(|| 0usize);
         let mut listed = use_state(HashSet::<&'static str>::new);
         let mut playing = use_state(|| None::<Playing>);
@@ -196,6 +197,7 @@ impl App for Marea {
                         id: current,
                         scrolled,
                         width,
+                        previewing: *previewing.read(),
                     }),
             )
             .child(
@@ -212,7 +214,12 @@ impl App for Marea {
                             featured: *featured.read(),
                             scrolled,
                             listed: listed.read().contains(current),
-                            on_select: Callback::new(move |index| featured.set(index)),
+                            previewing: *previewing.read(),
+                            on_select: Callback::new(move |index| {
+                                previewing.set(false);
+                                featured.set(index);
+                            }),
+                            on_preview: Callback::new(move |on| previewing.set_if_modified(on)),
                             on_play: Callback::new(move |from| {
                                 playing.set(Some(Playing {
                                     id: FEATURED[*featured.peek()],

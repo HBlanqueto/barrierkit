@@ -352,7 +352,7 @@ pub const CATALOG: [Title; 21] = [
     },
     Title {
         id: "jjk-netflix",
-        name: "Jujutsu Kaisen × Netflix",
+        name: "JJK Showdown The Movie",
         logo: logo("Bangers", 400, 52.0, Rgba::rgb8(0xff, 0xff, 0xff)),
         art: (
             160.0,
@@ -360,10 +360,10 @@ pub const CATALOG: [Title; 21] = [
             Rgba::rgb8(0x14, 0x06, 0x24),
         ),
         genre: Genre::Animation,
-        kind: "Collab especial",
-        meta: ["Animación", "2026", "+16", "Tráiler"],
-        lede: "Prueba de vídeo remoto: el tráiler llega desde YouTube y se reproduce sin copia local.",
-        series: true,
+        kind: "Película · Collab especial con Netflix",
+        meta: ["Animación", "2026", "+16", "Película"],
+        lede: "Shinjuku, cuenta atrás. Prueba de destacado: póster, galería y vista previa desde YouTube.",
+        series: false,
     },
 ];
 
@@ -374,7 +374,32 @@ pub fn title(id: &str) -> &'static Title {
         .unwrap_or(&CATALOG[0])
 }
 
-pub const FEATURED: [&str; 5] = ["orilla", "pan", "neon", "raras", "tronos"];
+pub const FEATURED: [&str; 6] = ["jjk-netflix", "orilla", "pan", "neon", "raras", "tronos"];
+
+#[derive(PartialEq)]
+pub struct Gallery {
+    pub id: &'static str,
+    pub franchise: &'static str,
+    pub logo: &'static str,
+    pub poster: &'static str,
+    pub stills: [&'static str; 3],
+}
+
+const GALLERIES: [Gallery; 1] = [Gallery {
+    id: "jjk-netflix",
+    franchise: "Jujutsu Kaisen",
+    logo: "jjk-netflix-logo.png",
+    poster: "jjk-netflix-poster.jpg",
+    stills: [
+        "jjk-netflix-1.jpg",
+        "jjk-netflix-2.jpg",
+        "jjk-netflix-3.jpg",
+    ],
+}];
+
+pub fn gallery(id: &str) -> Option<&'static Gallery> {
+    GALLERIES.iter().find(|gallery| gallery.id == id)
+}
 
 pub const GENRES: [(Option<Genre>, &str); 8] = [
     (None, "Todo"),

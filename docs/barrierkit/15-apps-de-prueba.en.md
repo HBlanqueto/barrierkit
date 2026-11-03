@@ -117,9 +117,14 @@ A movie and TV app that tests the kit with media (`video` feature):
 - Horizontal shelves (horizontal `ScrollView`) with cover art and video
   previews.
 - Genre chips, media buttons and a player.
+- A test featured item, "JJK Showdown The Movie", that shows the poster and
+  three images with a crossfade. With the pointer still over it for 2 s, it
+  plays the start of the trailer from YouTube (resolved by `yt-dlp`). The
+  "Collab especial con Netflix JJK" shelf opens the same trailer.
 
 The test videos and frames are generated with
-`crates/marea/media/generate.mjs`. The screenshot was made without a GPU: the
+`crates/marea/media/generate.mjs`, except the `jjk-netflix-*` files in
+`media/stills/`, which are images supplied for that test. The screenshot was made without a GPU: the
 video was decoded on the CPU (`Decoding::Cpu`).
 
 Next: [16. Frequently asked questions](16-preguntas.en.md).
