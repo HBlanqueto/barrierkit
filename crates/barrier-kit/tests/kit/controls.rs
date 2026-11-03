@@ -10,8 +10,8 @@ use barrier_kit::backdrop::{Accent, Backdrop, BackdropSource, Tint};
 use barrier_kit::choices::{ColorWell, RadioGroup};
 use barrier_kit::compact::{Face, IconButton, Stepper, ToggleGroup};
 use barrier_kit::controls::{
-    Button, ButtonStyle, Checkbox, Popover, ScrollView, SearchField, SecureField, SegmentedControl,
-    Slider, Switch, TextField,
+    Button, ButtonStyle, Checkbox, ScrollView, SearchField, SecureField, SegmentedControl, Slider,
+    Switch, TextField,
 };
 use barrier_kit::level::{LevelSlider, LevelStyle};
 use barrier_kit::menu::MenuIcon;
@@ -27,7 +27,6 @@ use barrier_kit::views::feedback::{Alert, empty_state};
 use barrier_kit::views::form::{Form, Row, Section};
 use barrier_kit::views::table::{SortOrder, Table};
 use barrier_kit::views::tabs::TabView;
-use freya_components::menu::{Menu, MenuItem};
 use freya_components::theming::hooks::use_init_theme;
 use freya_core::integration::{AppComponent, NavigationMode, Platform};
 use freya_core::prelude::*;
@@ -87,8 +86,6 @@ fn cases() -> Vec<Control> {
         ("sidebar-account", sidebar_account),
         ("secure-field", secure_field),
         ("scroll-view", scroll_view),
-        ("menu", menu),
-        ("popover", popover),
     ]
 }
 
@@ -442,24 +439,6 @@ fn scroll_view() -> Element {
             label().text("Uno").into_element(),
             label().text("Dos").into_element(),
             label().text("Tres").into_element(),
-        ])
-        .into_element()
-}
-
-fn menu() -> Element {
-    Menu::new()
-        .children([
-            MenuItem::new().child("Abrir").into_element(),
-            MenuItem::new().child("Guardar").into_element(),
-        ])
-        .into_element()
-}
-
-fn popover() -> Element {
-    Popover::new()
-        .children([
-            label().text("Popover").into_element(),
-            Button::new("Aceptar").into_element(),
         ])
         .into_element()
 }

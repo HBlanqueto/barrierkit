@@ -1,7 +1,5 @@
 //! Named UI controls (buttons, toggles, fields) built on Freya components.
 
-pub use freya_components::menu::Menu;
-pub use freya_components::popup::Popup as Popover;
 pub use freya_components::scrollviews::ScrollView;
 
 use freya_components::input::{Input, InputColorsThemePartial, InputLayoutThemePartial};
