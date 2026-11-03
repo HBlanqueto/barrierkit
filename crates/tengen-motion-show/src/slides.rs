@@ -38,6 +38,7 @@ const BOUNCY: usize = 4;
 const WIDTH: f32 = SPLIT_VIEW.sidebar_max;
 const HEIGHT: f32 = SPLIT_VIEW.inspector * 0.75;
 const DOT: f32 = 6.0;
+const INCOMING_LAYER: i16 = 2;
 
 fn slide(index: usize) -> Rect {
     let (title, caption, icon) = SLIDES[index];
@@ -112,7 +113,8 @@ impl Component for Stage {
                 at(slide(to), direction * WIDTH * (1.0 - progress)),
             ),
         };
-        stage.child(outgoing).child(incoming)
+        // Freya 0.4.3 paints by tree depth: lift the incoming slide above the outgoing slide's children.
+        stage.child(outgoing).child(incoming.layer(INCOMING_LAYER))
     }
 }
 
