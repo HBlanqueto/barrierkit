@@ -330,6 +330,42 @@ fn appearance(scheme: State<Option<ColorScheme>>) -> Form {
     )
 }
 
+const SIDEBAR_LIMITS: [(&str, Option<(f32, f32)>); 3] = [
+    ("Tengen", None),
+    ("Estrecha", Some((160.0, 220.0))),
+    ("Ancha", Some((240.0, 420.0))),
+];
+
+fn sidebar_resize(resizable: State<bool>, limits: State<usize>) -> Form {
+    Form::new().section(
+        Section::titled("Barra lateral")
+            .row(
+                Row::new("Redimensionable").control(
+                    Switch::new("Redimensionable")
+                        .on(*resizable.read())
+                        .on_toggle(move |on: bool| {
+                            let mut resizable = resizable;
+                            resizable.set(on);
+                        }),
+                ),
+            )
+            .row(
+                Row::new("Límites").control(
+                    SIDEBAR_LIMITS
+                        .iter()
+                        .fold(SegmentedControl::new("Límites"), |control, (name, _)| {
+                            control.segment(name)
+                        })
+                        .selected(*limits.read())
+                        .on_change(move |index: usize| {
+                            let mut limits = limits;
+                            limits.set(index);
+                        }),
+                ),
+            ),
+    )
+}
+
 fn adaptive() -> Form {
     Form::new().section(
         Section::titled("Diseño adaptable")
@@ -655,6 +691,8 @@ impl App for Show {
         let scheme = use_state(|| None::<ColorScheme>);
         let accent = use_state(|| 0);
         let accent_history = use_undo(accent);
+        let sidebar_resizable = use_state(|| true);
+        let sidebar_limits = use_state(|| 0);
         use_appearance(move |config| {
             if let Some(forced) = *scheme.read() {
                 config.color_scheme = forced;
@@ -664,6 +702,8 @@ impl App for Show {
         let window = PreferencesWindow::new()
             .restoration(self.app_id)
             .suggestions(&["formularios", "campos", "interruptores"])
+            .sidebar_resizable(*sidebar_resizable.read())
+            .sidebar_range(SIDEBAR_LIMITS[*sidebar_limits.read()].1)
             .group(
                 PaneGroup::new(Some("Capa 1 · Primitivas"))
                     .pane(Pane::new(
@@ -785,13 +825,23 @@ impl App for Show {
                         appearance(scheme),
                     )),
             )
-            .group(PaneGroup::new(Some("App")).pane(Pane::new(
-                "deshacer",
-                "Deshacer",
-                Symbol::Backward,
-                tint(2),
-                undo(accent_history, *accent.read()),
-            )));
+            .group(
+                PaneGroup::new(Some("App"))
+                    .pane(Pane::new(
+                        "deshacer",
+                        "Deshacer",
+                        Symbol::Backward,
+                        tint(2),
+                        undo(accent_history, *accent.read()),
+                    ))
+                    .pane(Pane::new(
+                        "barra-lateral",
+                        "Barra lateral",
+                        Symbol::SidebarLeft,
+                        tint(3),
+                        sidebar_resize(sidebar_resizable, sidebar_limits),
+                    )),
+            );
 
         rect()
             .width(Size::fill())

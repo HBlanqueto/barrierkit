@@ -214,9 +214,9 @@ impl Component for SplitView {
             follow_from_to.set((follow.get().current(), target));
             sidebar_width.set(target);
         };
-        let width = follow.get().current();
+        let width = clamp_sidebar(follow.get().current(), range);
         let layout = SidebarLayout {
-            width: *sidebar_width.read(),
+            width: clamp_sidebar(*sidebar_width.read(), range),
             visible: *visible.read() || *auto_hidden.read(),
         };
         let mut reported = use_state(|| layout);

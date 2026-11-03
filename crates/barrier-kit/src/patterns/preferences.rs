@@ -73,6 +73,8 @@ pub struct PreferencesWindow {
     account: Option<(String, String, String)>,
     groups: Vec<PaneGroup>,
     suggestions: Option<&'static [&'static str]>,
+    sidebar_range: Option<(f32, f32)>,
+    sidebar_resizable: bool,
 }
 
 impl PreferencesWindow {
@@ -82,6 +84,8 @@ impl PreferencesWindow {
             account: None,
             groups: Vec::new(),
             suggestions: None,
+            sidebar_range: None,
+            sidebar_resizable: true,
         }
     }
 
@@ -102,6 +106,16 @@ impl PreferencesWindow {
         detail: impl Into<String>,
     ) -> Self {
         self.account = Some((initials.into(), name.into(), detail.into()));
+        self
+    }
+
+    pub fn sidebar_range(mut self, range: Option<(f32, f32)>) -> Self {
+        self.sidebar_range = range;
+        self
+    }
+
+    pub fn sidebar_resizable(mut self, resizable: bool) -> Self {
+        self.sidebar_resizable = resizable;
         self
     }
 
@@ -346,10 +360,15 @@ impl Component for PreferencesWindow {
             width: SIDEBAR.width as f32,
             visible: true,
         });
-        SplitView::new(sidebar, detail)
+        let split = SplitView::new(sidebar, detail)
             .sidebar_width(restored.width)
             .sidebar_visible(restored.visible)
-            .on_layout(move |sidebar| layout.set(Some(sidebar)))
+            .resizable(self.sidebar_resizable)
+            .on_layout(move |sidebar| layout.set(Some(sidebar)));
+        match self.sidebar_range {
+            Some((min, max)) => split.sidebar_range(min, max),
+            None => split,
+        }
     }
 }
 
