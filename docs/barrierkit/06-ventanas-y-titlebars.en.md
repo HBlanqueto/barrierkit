@@ -22,7 +22,7 @@ run_window(
 | `new(título, nombre)` | Visible title and short name. The `app_id` is `io.github.hblanqueto.malaysia.<nombre>` unless you pass `.app_id(..)` |
 | `.decorations(..)` | `Client` (default): the kit draws the titlebar. `Server`: it asks the compositor for it; if there is no `zxdg_decoration_manager_v1`, it falls back to `Client` |
 | `.size((ancho, alto))` | Initial size (640 × 420 by default). If a saved one exists, it is restored |
-| `.min_size(..)`, `.max_size(..)` | Limits. If they are equal, the window has a fixed size and the green button in `zoom` mode maximizes vertically only |
+| `.min_size(..)`, `.max_size(..)` | Limits. If they are equal, the window has a fixed size and the green button maximizes it vertically only |
 | `.parent(..)` | Child window (dialog) |
 | `.menu(AppMenu)` | Global menu of the window (chapter [10](10-app.en.md)) |
 
@@ -122,6 +122,77 @@ Rail on the right, round traffic lights, flat sidebar and dark mode:
 
 The Rótulo app (chapter [14](14-apps-de-prueba.en.md)) tests every combination
 live.
+
+## Maximized, full screen and focus mode
+
+The state arrives with each compositor configure and is read with
+`WindowControls::get().status.read()`: `maximized`, `fullscreen` and `activated`.
+
+| State | How it is entered | What the kit does |
+|---|---|---|
+| Normal | — | Titlebar in place; when the size changes, it is saved |
+| Maximized | Green button with `green_button = "zoom"`, double click with `zoom` or `fill`, or `toggle_maximize()` | Nothing visual: the titlebar stays the same. In MalaysiaDreams the compositor keeps the frame (corners and shadow). The size is not saved |
+| Full screen and focus mode | Green button with `focus` (default) or `fullscreen`, or `toggle_fullscreen()` | The titlebar leaves the layout and the content fills the whole window. The traffic lights hide. The size is not saved |
+
+In MalaysiaDreams, focus mode gives the window the `fullscreen` state and a
+black bar that slides down when the pointer nears the top
+([MalaysiaDreams ADRs 0051 and 0054](https://github.com/HBlanqueto/malaysia/tree/main/docs/decisiones)).
+The kit requests `set_overlay` through `infinity_focus_v1` v2. While the bar is
+down, `titlebar_overlaid()` is true and each titlebar is drawn over the
+content, at the height of the bar, with progressive glass, appearing with it:
+
+| Layout | In full screen, with the bar down |
+|---|---|
+| `Top` | The `Titlebar` slides down over the content. The sidebar traffic lights move down by the same amount |
+| `Rail`, `Actions` | The rail is drawn as glass and moves down with the bar |
+| `Unified` | Same as `Top` |
+| `Pill` | The pill is hidden until the bar comes down; then it appears as glass |
+
+In full screen, `reveal` is always `Always`. Without the protocol (another
+compositor), the titlebar stays in the layout and only the traffic lights hide.
+
+### What the app does
+
+1. If it uses `Titlebar`, `WindowChrome`, `Sidebar` or `PreferencesWindow`, it
+   does nothing: all three states already work.
+2. It leaves room for the bar in the content under the overlaid titlebar, as
+   Ondina does:
+
+   ```rust
+   let arriba = try_consume_root_context::<WindowControls>()
+       .map_or(0.0, |controls| controls.fullscreen_content_top());
+   rect().padding(Gaps::new(arriba, 0.0, 0.0, 0.0)).child(contenido)
+   ```
+
+3. For its own behavior (an immersive mode that hides panels), it reads the
+   state and decides:
+
+   ```rust
+   let controls = WindowControls::get();
+   let inmersivo = controls.status.read().fullscreen;
+   rect().maybe_child((!inmersivo).then(panel_de_herramientas))
+   ```
+
+4. To offer it in a menu, it calls `toggle_maximize()` or
+   `toggle_fullscreen()` from an `Action` (chapter [10](10-app.en.md)).
+
+### The green button and double click
+
+The user decides them in `window.domain`. With a fixed-size window (minimum
+equal to maximum) they change:
+
+| `green_button` | Normal window | Fixed size |
+|---|---|---|
+| `focus` (default) | Full screen | Maximizes vertically |
+| `zoom` | Maximizes | Maximizes vertically, even though the button is drawn gray and without a glyph |
+| `fullscreen` | Full screen | Maximizes vertically |
+| `none` | Nothing | Maximizes vertically |
+
+| `double_click_titlebar` | Normal window | Fixed size |
+|---|---|---|
+| `zoom` (default), `fill` | Maximizes | Nothing |
+| `minimize` | Minimizes | Minimizes |
+| `none` | Nothing | Nothing |
 
 ## Popups
 

@@ -22,7 +22,7 @@ run_window(
 | `new(título, nombre)` | Título visible y nombre corto. El `app_id` es `io.github.hblanqueto.malaysia.<nombre>` salvo que pases `.app_id(..)` |
 | `.decorations(..)` | `Client` (por defecto): el kit dibuja la titlebar. `Server`: la pide al compositor; si no hay `zxdg_decoration_manager_v1`, vuelve a `Client` |
 | `.size((ancho, alto))` | Tamaño inicial (640 × 420 por defecto). Si hay uno guardado, se restaura |
-| `.min_size(..)`, `.max_size(..)` | Límites. Si son iguales, la ventana es de tamaño fijo y el botón verde en modo `zoom` maximiza solo en vertical |
+| `.min_size(..)`, `.max_size(..)` | Límites. Si son iguales, la ventana es de tamaño fijo y el botón verde la maximiza solo en vertical |
 | `.parent(..)` | Ventana hija (diálogo) |
 | `.menu(AppMenu)` | Menú global de la ventana (capítulo [10](10-app.md)) |
 
@@ -122,6 +122,78 @@ Rail a la derecha, semáforos redondos, barra lateral plana y modo oscuro:
 
 La app Rótulo (capítulo [14](14-apps-de-prueba.md)) prueba todas las
 combinaciones en vivo.
+
+## Maximizada, pantalla completa y modo foco
+
+El estado llega en cada configure del compositor y se lee con
+`WindowControls::get().status.read()`: `maximized`, `fullscreen` y `activated`.
+
+| Estado | Cómo se entra | Qué hace el kit |
+|---|---|---|
+| Normal | — | Titlebar en su sitio; al cambiar de tamaño, el tamaño se guarda |
+| Maximizada | Botón verde con `green_button = "zoom"`, doble clic con `zoom` o `fill`, o `toggle_maximize()` | Nada visual: la titlebar sigue igual. En MalaysiaDreams el compositor conserva el marco (esquinas y sombra). El tamaño no se guarda |
+| Pantalla completa y modo foco | Botón verde con `focus` (por defecto) o `fullscreen`, o `toggle_fullscreen()` | La titlebar sale del diseño y el contenido ocupa toda la ventana. Los semáforos se ocultan. El tamaño no se guarda |
+
+En MalaysiaDreams, el modo foco da a la ventana el estado `fullscreen` y una
+barra negra que baja al acercar el puntero arriba
+([ADR 0051 y 0054 de MalaysiaDreams](https://github.com/HBlanqueto/malaysia/tree/main/docs/decisiones)).
+El kit pide `set_overlay` por `infinity_focus_v1` v2. Mientras la barra está
+bajada, `titlebar_overlaid()` es verdadero y cada titlebar se dibuja encima del
+contenido, a la altura de la barra, con cristal progresivo y apareciendo con
+ella:
+
+| Diseño | En pantalla completa, con la barra bajada |
+|---|---|
+| `Top` | La `Titlebar` baja sobre el contenido. Los semáforos de la barra lateral bajan lo mismo |
+| `Rail`, `Actions` | El rail se dibuja como cristal y baja con la barra |
+| `Unified` | Igual que `Top` |
+| `Pill` | La píldora no se ve hasta que baja la barra; entonces aparece como cristal |
+
+En pantalla completa, `reveal` es siempre `Always`. Sin el protocolo (otro
+compositor), la titlebar se queda en el diseño y solo se ocultan los semáforos.
+
+### Qué hace la app
+
+1. Si usa `Titlebar`, `WindowChrome`, `Sidebar` o `PreferencesWindow`, no tiene
+   que hacer nada: los tres estados ya funcionan.
+2. Deja hueco para la barra en el contenido que va bajo la titlebar
+   superpuesta, como Ondina:
+
+   ```rust
+   let arriba = try_consume_root_context::<WindowControls>()
+       .map_or(0.0, |controls| controls.fullscreen_content_top());
+   rect().padding(Gaps::new(arriba, 0.0, 0.0, 0.0)).child(contenido)
+   ```
+
+3. Para un comportamiento propio (un modo inmersivo que esconde paneles),
+   lee el estado y decide:
+
+   ```rust
+   let controls = WindowControls::get();
+   let inmersivo = controls.status.read().fullscreen;
+   rect().maybe_child((!inmersivo).then(panel_de_herramientas))
+   ```
+
+4. Para ofrecerlo en un menú, llama a `toggle_maximize()` o
+   `toggle_fullscreen()` desde una `Action` (capítulo [10](10-app.md)).
+
+### El botón verde y el doble clic
+
+Los decide el usuario en `window.domain`. Con una ventana de tamaño fijo
+(mínimo igual a máximo) cambian:
+
+| `green_button` | Ventana normal | Tamaño fijo |
+|---|---|---|
+| `focus` (por defecto) | Pantalla completa | Maximiza en vertical |
+| `zoom` | Maximiza | Maximiza en vertical, aunque el botón se dibuja gris y sin glifo |
+| `fullscreen` | Pantalla completa | Maximiza en vertical |
+| `none` | Nada | Maximiza en vertical |
+
+| `double_click_titlebar` | Ventana normal | Tamaño fijo |
+|---|---|---|
+| `zoom` (por defecto), `fill` | Maximiza | Nada |
+| `minimize` | Minimiza | Minimiza |
+| `none` | Nada | Nada |
 
 ## Popups
 
