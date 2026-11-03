@@ -1,5 +1,5 @@
-use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, Mutex};
 use std::task::Waker;
 
 use accesskit::{ActionHandler, ActionRequest, ActivationHandler, DeactivationHandler, TreeUpdate};
@@ -7,24 +7,40 @@ use accesskit::{ActionHandler, ActionRequest, ActivationHandler, DeactivationHan
 pub(crate) struct Atspi {
     pub(crate) adapter: accesskit_unix::Adapter,
     requested: Arc<AtomicBool>,
+    actions: Arc<Mutex<Vec<ActionRequest>>>,
 }
 
 impl Atspi {
     pub(crate) fn new(waker: Waker) -> Self {
         let requested = Arc::new(AtomicBool::new(false));
+        let actions = Arc::new(Mutex::new(Vec::new()));
         let adapter = accesskit_unix::Adapter::new(
             InitialTree {
                 requested: requested.clone(),
+                waker: waker.clone(),
+            },
+            Actions {
+                queue: actions.clone(),
                 waker,
             },
-            NoActions,
-            NoActions,
+            Inactive,
         );
-        Self { adapter, requested }
+        Self {
+            adapter,
+            requested,
+            actions,
+        }
     }
 
     pub(crate) fn tree_requested(&self) -> bool {
         self.requested.swap(false, Ordering::AcqRel)
+    }
+
+    pub(crate) fn take_actions(&self) -> Vec<ActionRequest> {
+        self.actions
+            .lock()
+            .map(|mut queue| std::mem::take(&mut *queue))
+            .unwrap_or_default()
     }
 }
 
@@ -42,12 +58,22 @@ impl ActivationHandler for InitialTree {
     }
 }
 
-struct NoActions;
-
-impl ActionHandler for NoActions {
-    fn do_action(&mut self, _: ActionRequest) {}
+struct Actions {
+    queue: Arc<Mutex<Vec<ActionRequest>>>,
+    waker: Waker,
 }
 
-impl DeactivationHandler for NoActions {
+impl ActionHandler for Actions {
+    fn do_action(&mut self, request: ActionRequest) {
+        if let Ok(mut queue) = self.queue.lock() {
+            queue.push(request);
+        }
+        self.waker.wake_by_ref();
+    }
+}
+
+struct Inactive;
+
+impl DeactivationHandler for Inactive {
     fn deactivate_accessibility(&mut self) {}
 }

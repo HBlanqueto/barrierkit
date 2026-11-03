@@ -8,13 +8,14 @@ use freya_core::{
     element::IntoElement,
     integration::{
         AccentColor, AnimationClock, AppComponent, EventsChunk, EventsExecutorAdapter,
-        EventsMeasurerAdapter, MouseEventName, NavigationMode, NodeId, Platform, PlatformEvent,
-        PreferredTheme, RenderingTicker, RenderingTickerSender, Runner, ScreenReader, Tree,
-        UserEvent, WritableUtils, default_fonts,
+        EventsMeasurerAdapter, KeyboardEventName, MouseEventName, NavigationMode, NodeId, Platform,
+        PlatformEvent, PreferredTheme, RenderingTicker, RenderingTickerSender, Runner,
+        ScreenReader, Tree, UserEvent, WritableUtils, default_fonts,
     },
     prelude::{AccessibilityFocusStrategy, State},
 };
 use freya_engine::prelude::{FontCollection, FontMgr};
+use keyboard_types::{Code, Key, Modifiers, NamedKey};
 use ragnarok::{EventsExecutorRunner, EventsMeasurerRunner, NodesState};
 use std::{
     borrow::Cow,
@@ -210,6 +211,7 @@ impl AppInstance {
     }
 
     pub(crate) fn update(&mut self) -> bool {
+        let pressed = self.take_atspi_actions();
         let requested_focus = self.requested_focus.take();
         let mutations = self.runner.sync_and_update();
         let result = self.runner.run_in(|| self.tree.apply_mutations(mutations));
@@ -259,7 +261,34 @@ impl AppInstance {
                 AccessibilityTree::create_node(node_id, layout_node, &self.tree),
             );
         }
+        if pressed {
+            for name in [KeyboardEventName::KeyDown, KeyboardEventName::KeyUp] {
+                self.push(PlatformEvent::Keyboard {
+                    name,
+                    key: Key::Named(NamedKey::Enter),
+                    code: Code::Enter,
+                    modifiers: Modifiers::empty(),
+                });
+            }
+        }
         result.needs_render
+    }
+
+    // A Click from a screen reader is Freya's press gesture (Enter) on the node it focuses first.
+    fn take_atspi_actions(&mut self) -> bool {
+        let Some(atspi) = &self.atspi else {
+            return false;
+        };
+        let mut pressed = false;
+        for request in atspi.take_actions() {
+            match request.action {
+                accesskit::Action::Focus => {}
+                accesskit::Action::Click => pressed = true,
+                _ => continue,
+            }
+            self.requested_focus = Some(AccessibilityFocusStrategy::Node(request.target_node));
+        }
+        pressed
     }
 
     pub(crate) fn layout(&mut self) {
