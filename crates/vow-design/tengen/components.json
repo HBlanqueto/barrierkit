@@ -187,7 +187,10 @@
       "sidebar-max": 320,
       "collapse-below": 760,
       "inspector": 240,
-      "grip": 8
+      "grip": 8,
+      "grip-line": 2,
+      "grip-line-inset": 18,
+      "key-step": 10
     },
     "list-group": {
       "radius": "radius.lg",

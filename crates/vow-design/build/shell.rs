@@ -105,6 +105,14 @@ pub(super) fn emit_metrics(out: &mut String, tokens: &Value, components: &Value)
     );
     out.push_str(&format!(": u64 = {duration_base};\n\n"));
 
+    let duration_fast = integer(tokens, "duration.fast", TOKENS);
+    const_doc(
+        out,
+        "DURATION_FAST_MS",
+        "The fast animation duration, in milliseconds (Tengen `duration.fast`).",
+    );
+    out.push_str(&format!(": u64 = {duration_fast};\n\n"));
+
     let duration_slow = integer(tokens, "duration.slow", TOKENS);
     const_doc(
         out,

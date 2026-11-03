@@ -14,12 +14,15 @@ pub(super) fn emit_split_view(out: &mut String, components: &Value) {
         "The split view sidebar and inspector metrics.",
     );
     out.push_str(&format!(
-        ": SplitViewMetrics = SplitViewMetrics {{ sidebar_min: {}, sidebar_max: {}, collapse_below: {}, inspector: {}, grip: {} }};\n\n",
+        ": SplitViewMetrics = SplitViewMetrics {{ sidebar_min: {}, sidebar_max: {}, collapse_below: {}, inspector: {}, grip: {}, grip_line: {}, grip_line_inset: {}, key_step: {} }};\n\n",
         field("sidebar-min"),
         field("sidebar-max"),
         field("collapse-below"),
         field("inspector"),
-        field("grip")
+        field("grip"),
+        field("grip-line"),
+        field("grip-line-inset"),
+        field("key-step")
     ));
 }
 

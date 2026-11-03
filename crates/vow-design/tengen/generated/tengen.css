@@ -607,7 +607,10 @@
   --slider-track-color: var(--bg-control);
   --split-view-collapse-below: 760px;
   --split-view-grip: 8px;
+  --split-view-grip-line: 2px;
+  --split-view-grip-line-inset: 18px;
   --split-view-inspector: 240px;
+  --split-view-key-step: 10px;
   --split-view-sidebar-max: 320px;
   --split-view-sidebar-min: 180px;
   --switch-disabled-opacity: 0.400000;

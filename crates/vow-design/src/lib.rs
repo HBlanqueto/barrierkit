@@ -537,6 +537,9 @@ pub struct SplitViewMetrics {
     pub collapse_below: f32,
     pub inspector: f32,
     pub grip: f32,
+    pub grip_line: f32,
+    pub grip_line_inset: f32,
+    pub key_step: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

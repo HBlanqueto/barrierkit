@@ -2,13 +2,16 @@
 //! detail and an optional inspector.
 
 use freya_animation::prelude::{AnimNum, Ease, Function, use_animation_transition};
+use std::time::Duration;
+
 use freya_core::prelude::*;
 use keyboard_types::Modifiers;
 use serde::{Deserialize, Serialize};
 use torin::prelude::{Content, Direction, Gaps, Position, Size};
 use vow_appearance::SidebarStyle;
-use vow_design::{DURATION_BASE, SIDEBAR, SPLIT_VIEW};
+use vow_design::{DURATION_BASE, DURATION_FAST_MS, SIDEBAR, SPLIT_VIEW};
 
+use crate::animation::Spring;
 use crate::app::{Action, Shortcut, ShortcutKey};
 use crate::compact::IconButton;
 use crate::style::Palette;
@@ -79,6 +82,8 @@ pub struct SplitView {
     inspector: Option<Element>,
     sidebar_visible: bool,
     sidebar_width: Option<f32>,
+    sidebar_range: (f32, f32),
+    resizable: bool,
     on_layout: Option<Callback<SidebarLayout, ()>>,
     key: DiffKey,
 }
@@ -91,6 +96,8 @@ impl SplitView {
             inspector: None,
             sidebar_visible: true,
             sidebar_width: None,
+            sidebar_range: (SPLIT_VIEW.sidebar_min, SPLIT_VIEW.sidebar_max),
+            resizable: true,
             on_layout: None,
             key: DiffKey::None,
         }
@@ -111,6 +118,16 @@ impl SplitView {
         self
     }
 
+    pub fn sidebar_range(mut self, min: f32, max: f32) -> Self {
+        self.sidebar_range = (min, max);
+        self
+    }
+
+    pub fn resizable(mut self, resizable: bool) -> Self {
+        self.resizable = resizable;
+        self
+    }
+
     pub fn on_layout(mut self, callback: impl Into<Callback<SidebarLayout, ()>>) -> Self {
         self.on_layout = Some(callback.into());
         self
@@ -128,8 +145,8 @@ impl KeyExt for SplitView {
     }
 }
 
-fn clamp_sidebar(width: f32) -> f32 {
-    width.clamp(SPLIT_VIEW.sidebar_min, SPLIT_VIEW.sidebar_max)
+fn clamp_sidebar(width: f32, (min, max): (f32, f32)) -> f32 {
+    width.clamp(min, max)
 }
 
 impl Component for SplitView {
@@ -139,9 +156,19 @@ impl Component for SplitView {
         let island = resolved.sidebar.style == SidebarStyle::Island;
         let inset = if island { SIDEBAR.inset as f32 } else { 0.0 };
         let mut window_width = use_state(|| f32::MAX);
-        let mut sidebar_width =
-            use_state(|| clamp_sidebar(self.sidebar_width.unwrap_or(SIDEBAR.width as f32)));
+        let range = self.sidebar_range;
+        let initial_width =
+            clamp_sidebar(self.sidebar_width.unwrap_or(SIDEBAR.width as f32), range);
+        let mut sidebar_width = use_state(|| initial_width);
         let mut dragging = use_state(|| false);
+        let mut grip_hovered = use_state(|| false);
+        let grip_id = use_a11y();
+        let grip_focus = use_focus(grip_id);
+        use_drop(move || {
+            if *grip_hovered.peek() || *dragging.peek() {
+                Cursor::set(CursorIcon::default());
+            }
+        });
         let mut visible = use_state(|| self.sidebar_visible);
         let mut auto_hidden = use_state(|| false);
         let mut occupied = use_state(|| 0.0f32);
@@ -177,9 +204,19 @@ impl Component for SplitView {
         let shown = reveal.get().value();
         crate::chrome::report_sidebar_shown(*visible.read());
 
-        let width = *sidebar_width.read();
+        let mut follow_from_to = use_state(|| (initial_width, initial_width));
+        let follow = use_animation_transition(follow_from_to, move |_, (from, to)| {
+            let time = if reduced_motion { 0 } else { DURATION_FAST_MS };
+            Spring::new(from, to, Duration::from_millis(time), 0.0)
+        });
+        let mut resize_to = move |target: f32| {
+            let target = clamp_sidebar(target, range);
+            follow_from_to.set((follow.get().current(), target));
+            sidebar_width.set(target);
+        };
+        let width = follow.get().current();
         let layout = SidebarLayout {
-            width,
+            width: *sidebar_width.read(),
             visible: *visible.read() || *auto_hidden.read(),
         };
         let mut reported = use_state(|| layout);
@@ -210,10 +247,15 @@ impl Component for SplitView {
             })
             .on_global_pointer_move(move |event: Event<PointerEventData>| {
                 if *dragging.read() {
-                    sidebar_width.set(clamp_sidebar(event.global_location().x as f32 - inset));
+                    resize_to(event.global_location().x as f32 - inset);
                 }
             })
-            .on_global_pointer_press(move |_| dragging.set_if_modified(false))
+            .on_global_pointer_press(move |_| {
+                if *dragging.peek() && !*grip_hovered.peek() {
+                    Cursor::set(CursorIcon::default());
+                }
+                dragging.set_if_modified(false);
+            })
             .on_global_key_down(move |event: Event<KeyboardEventData>| {
                 if TOGGLE_SIDEBAR
                     .shortcut
@@ -230,18 +272,60 @@ impl Component for SplitView {
                     .height(Size::fill())
                     .overflow(Overflow::Clip)
                     .offset_x(container * (shown - 1.0))
-                    .child(sidebar().maybe_child((shown >= 1.0).then(|| {
-                        rect()
-                            .a11y_role(AccessibilityRole::Splitter)
-                            .position(
-                                Position::new_absolute()
-                                    .left(container - SPLIT_VIEW.grip / 2.0)
-                                    .top(0.0),
-                            )
-                            .width(Size::px(SPLIT_VIEW.grip))
-                            .height(Size::fill())
-                            .on_mouse_down(move |_| dragging.set(true))
-                    }))),
+                    .child(
+                        sidebar().maybe_child((self.resizable && shown >= 1.0).then(|| {
+                            let highlighted = *grip_hovered.read()
+                                || *dragging.read()
+                                || matches!(*grip_focus.read(), Focus::Keyboard);
+                            let width = *sidebar_width.read();
+                            rect()
+                                .a11y_id(grip_id)
+                                .a11y_focusable(true)
+                                .a11y_role(AccessibilityRole::Splitter)
+                                .position(
+                                    Position::new_absolute()
+                                        .left(container - SPLIT_VIEW.grip / 2.0)
+                                        .top(0.0),
+                                )
+                                .width(Size::px(SPLIT_VIEW.grip))
+                                .height(Size::fill())
+                                .padding(Gaps::new(
+                                    SPLIT_VIEW.grip_line_inset,
+                                    0.0,
+                                    SPLIT_VIEW.grip_line_inset,
+                                    (SPLIT_VIEW.grip - SPLIT_VIEW.grip_line) / 2.0,
+                                ))
+                                .on_pointer_enter(move |_| {
+                                    grip_hovered.set(true);
+                                    Cursor::set(CursorIcon::ColResize);
+                                })
+                                .on_pointer_leave(move |_| {
+                                    grip_hovered.set(false);
+                                    if !*dragging.peek() {
+                                        Cursor::set(CursorIcon::default());
+                                    }
+                                })
+                                .on_mouse_down(move |_| dragging.set(true))
+                                .on_key_down(move |event: Event<KeyboardEventData>| {
+                                    match event.key {
+                                        Key::Named(NamedKey::ArrowLeft) => {
+                                            resize_to(width - SPLIT_VIEW.key_step)
+                                        }
+                                        Key::Named(NamedKey::ArrowRight) => {
+                                            resize_to(width + SPLIT_VIEW.key_step)
+                                        }
+                                        _ => {}
+                                    }
+                                })
+                                .maybe_child(highlighted.then(|| {
+                                    rect()
+                                        .width(Size::px(SPLIT_VIEW.grip_line))
+                                        .height(Size::fill())
+                                        .corner_radius(SPLIT_VIEW.grip_line / 2.0)
+                                        .background(color(resolved.accent))
+                                }))
+                        })),
+                    ),
             );
         }
         root = root.child(
@@ -286,8 +370,12 @@ mod tests {
 
     #[test]
     fn the_sidebar_width_stays_between_its_minimum_and_maximum() {
-        assert_eq!(clamp_sidebar(0.0), SPLIT_VIEW.sidebar_min);
-        assert_eq!(clamp_sidebar(10_000.0), SPLIT_VIEW.sidebar_max);
-        assert_eq!(clamp_sidebar(SIDEBAR.width as f32), SIDEBAR.width as f32);
+        let range = (SPLIT_VIEW.sidebar_min, SPLIT_VIEW.sidebar_max);
+        assert_eq!(clamp_sidebar(0.0, range), SPLIT_VIEW.sidebar_min);
+        assert_eq!(clamp_sidebar(10_000.0, range), SPLIT_VIEW.sidebar_max);
+        assert_eq!(
+            clamp_sidebar(SIDEBAR.width as f32, range),
+            SIDEBAR.width as f32
+        );
     }
 }
