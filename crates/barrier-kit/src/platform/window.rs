@@ -445,6 +445,9 @@ impl Runtime {
             self.clipboard.provider(),
             self.defaults_revision,
             |r| {
+                if let Some(handle) = menu_handle.clone() {
+                    r.provide_root_context(move || handle);
+                }
                 if let Some(hooks) = self.extension_hooks() {
                     (hooks.provide_contexts)(self, r);
                 }

@@ -2,6 +2,8 @@ use freya_core::prelude::*;
 use keyboard_types::Modifiers;
 
 use super::{Action, Shortcut, ShortcutKey, use_menu_action};
+use crate::app_menu::MenuHandle;
+use crate::menu::MenuItem;
 
 pub const UNDO: Action =
     Action::new("undo", "Deshacer").shortcut(Shortcut::ctrl(ShortcutKey::Char('z')));
@@ -100,7 +102,25 @@ pub fn use_undo<T: Clone + 'static>(value: State<T>) -> UndoManager<T> {
             manager.redo();
         }
     });
+    use_menu_enabled(UNDO, manager.can_undo());
+    use_menu_enabled(REDO, manager.can_redo());
     manager
+}
+
+fn use_menu_enabled(action: Action, enabled: bool) {
+    let handle = use_hook(try_consume_root_context::<MenuHandle>);
+    let mut published = use_state(|| None::<bool>);
+    if *published.peek() == Some(enabled) {
+        return;
+    }
+    published.set(Some(enabled));
+    if let Some(handle) = handle {
+        handle.update(action.id, |item| {
+            if let MenuItem::Action { enabled: shown, .. } = item {
+                *shown = enabled;
+            }
+        });
+    }
 }
 
 #[cfg(test)]
