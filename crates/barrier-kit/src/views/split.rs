@@ -251,10 +251,12 @@ impl Component for SplitView {
             .width(Size::fill())
             .height(Size::fill())
             .direction(Direction::Horizontal)
-            .background(color(surface_background(
-                &crate::theme::resolved(),
-                SurfaceKind::Toplevel,
-            )))
+            .maybe(crate::backdrop::tinted().is_none(), |el| {
+                el.background(color(surface_background(
+                    &crate::theme::resolved(),
+                    SurfaceKind::Toplevel,
+                )))
+            })
             .on_sized(move |event: Event<SizedEventData>| {
                 window_width.set_if_modified(event.area.size.width);
             })

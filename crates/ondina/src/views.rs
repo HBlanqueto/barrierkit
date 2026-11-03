@@ -11,6 +11,7 @@ use barrier_kit::sidebar::SidebarBackdrop;
 use barrier_kit::style::{Palette, text};
 use barrier_kit::symbol::{Symbol, symbol};
 use barrier_kit::theme::color;
+use barrier_kit::titlebar::sidebar_bar_metrics;
 use barrier_kit::views::form::{Form, Row, Section};
 use freya_components::image_viewer::ImageViewer;
 use freya_core::prelude::*;
@@ -440,7 +441,7 @@ fn swatch(colours: [Rgba; 3]) -> Element {
         .into_element()
 }
 
-pub fn queue(albums: &[Album], player: Player) -> Element {
+pub fn queue(albums: &[Album], player: Player, beside_titlebar: bool) -> Element {
     let palette = Palette::current();
     let (album, track) = (*player.album.read(), *player.track.read());
     let upcoming: Vec<(usize, usize)> = (0..12)
@@ -506,6 +507,12 @@ pub fn queue(albums: &[Album], player: Player) -> Element {
                 .width(Size::fill())
                 .direction(Direction::Horizontal)
                 .padding(Gaps::new(0.0, 8.0, SPACE_2, 8.0))
+                .cross_align(Alignment::Center)
+                .maybe(beside_titlebar, |el| {
+                    let (height, padding_top) = sidebar_bar_metrics();
+                    el.height(Size::px(height))
+                        .padding(Gaps::new(padding_top, 8.0, 0.0, 8.0))
+                })
                 .content(Content::flex())
                 .child(
                     rect()

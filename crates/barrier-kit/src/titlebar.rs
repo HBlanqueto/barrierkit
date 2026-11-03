@@ -241,16 +241,12 @@ impl Component for Titlebar {
 
         if self.sidebar {
             let island = resolved.sidebar.style == SidebarStyle::Island;
-            let (height, padding_top, default_padding_x) = if island {
-                (
-                    SETTINGS.toolbar_height as f32,
-                    SETTINGS.toolbar_padding_top as f32,
-                    SETTINGS.toolbar_padding_x as f32,
-                )
+            let (height, padding_top) = sidebar_bar_metrics();
+            let padding_x = if island {
+                SETTINGS.toolbar_padding_x as f32
             } else {
-                (TITLEBAR_CLIENT_HEIGHT as f32, 0.0, 10.0)
+                10.0
             };
-            let padding_x = default_padding_x;
             let occupied = control.map_or(0.0, |control| control.occupied());
             let inset = if island { SIDEBAR.inset as f32 } else { 0.0 };
             let lights_x = inset + SIDEBAR.traffic_x as f32;
@@ -403,6 +399,17 @@ impl Component for Titlebar {
 }
 
 pub(crate) const TITLEBAR_OVERLAY_LAYER: i16 = i16::MAX / 32;
+
+pub fn sidebar_bar_metrics() -> (f32, f32) {
+    if theme::resolved().sidebar.style == SidebarStyle::Island {
+        (
+            SETTINGS.toolbar_height as f32,
+            SETTINGS.toolbar_padding_top as f32,
+        )
+    } else {
+        (TITLEBAR_CLIENT_HEIGHT as f32, 0.0)
+    }
+}
 
 pub fn window_traffic_lights(focused: bool, fixed: bool) -> TrafficLights {
     let behavior = *window_behavior();

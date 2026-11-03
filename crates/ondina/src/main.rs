@@ -321,7 +321,7 @@ impl Component for Window {
                         let shown = if item != current {
                             rect().into_element()
                         } else if queue_shown {
-                            views::queue(&albums, player)
+                            views::queue(&albums, player, false)
                         } else {
                             pane.clone().into_element()
                         };
@@ -365,7 +365,7 @@ impl Component for Window {
         size.attach(
             rect().width(Size::fill()).height(Size::fill()).child(
                 SplitView::new(sidebar, detail)
-                    .inspector(queue_shown.then(|| views::queue(&albums, player))),
+                    .inspector(queue_shown.then(|| views::queue(&albums, player, true))),
             ),
         )
     }
