@@ -3,9 +3,10 @@
 use std::time::Duration;
 
 use freya_animation::prelude::{AnimNum, Ease, Function, use_animation_transition};
-use freya_components::scrollviews::{ScrollConfig, ScrollView as Scroller, use_scroll_controller};
+pub use freya_components::scrollviews::ScrollController;
+use freya_components::scrollviews::{ScrollConfig, ScrollView as Scroller};
 use freya_core::prelude::*;
-use torin::prelude::{Position, Size};
+use torin::prelude::{Area, Direction, Position, Size};
 use vow_appearance::ScrollBars;
 use vow_design::{DURATION_FAST_MS, Rgba, SCROLL_BAR};
 
@@ -21,7 +22,14 @@ pub struct ScrollView {
     children: Vec<Element>,
     width: Size,
     height: Size,
+    direction: Direction,
+    scroll_bar: bool,
+    controller: Option<ScrollController>,
     key: DiffKey,
+}
+
+pub fn use_scroll_controller() -> ScrollController {
+    freya_components::scrollviews::use_scroll_controller(ScrollConfig::default)
 }
 
 impl Default for ScrollView {
@@ -36,8 +44,26 @@ impl ScrollView {
             children: Vec::new(),
             width: Size::fill(),
             height: Size::fill(),
+            direction: Direction::Vertical,
+            scroll_bar: true,
+            controller: None,
             key: DiffKey::None,
         }
+    }
+
+    pub fn direction(mut self, direction: Direction) -> Self {
+        self.direction = direction;
+        self
+    }
+
+    pub fn scroll_bar(mut self, scroll_bar: bool) -> Self {
+        self.scroll_bar = scroll_bar;
+        self
+    }
+
+    pub fn controller(mut self, controller: ScrollController) -> Self {
+        self.controller = Some(controller);
+        self
     }
 
     pub fn width(mut self, width: Size) -> Self {
@@ -78,10 +104,14 @@ impl Component for ScrollView {
     fn render(&self) -> impl IntoElement {
         let resolved = crate::theme::resolved();
         let always = resolved.scroll_bars == ScrollBars::Always;
-        let controller = use_scroll_controller(ScrollConfig::default);
+        let own = use_scroll_controller();
+        let controller = self.controller.unwrap_or(own);
+        let horizontal = self.direction == Direction::Horizontal;
         let mut viewport = use_state(|| 0.0f32);
         let mut content = use_state(|| 0.0f32);
-        let (_, scrolled): (i32, i32) = controller.into();
+        let (scrolled_x, scrolled_y): (i32, i32) = controller.into();
+        let scrolled = if horizontal { scrolled_x } else { scrolled_y };
+        let along = move |area: Area| if horizontal { area.width() } else { area.height() };
         let mut shown_at = use_state(|| scrolled);
         let mut scrolls = use_state(|| 0u32);
         let mut scrolling = use_state(|| false);
@@ -107,33 +137,52 @@ impl Component for ScrollView {
                 .function(Function::Cubic)
         });
         let visibility = if always { 1.0 } else { fade.get().value() };
-        let bar =
-            thumb(*viewport.read(), *content.read(), scrolled as f32).filter(|_| visibility > 0.0);
+        let bar = thumb(*viewport.read(), *content.read(), scrolled as f32)
+            .filter(|_| self.scroll_bar && visibility > 0.0);
         let ink = Palette::current().label;
         rect()
             .width(self.width.clone())
             .height(self.height.clone())
             .on_sized(move |event: Event<SizedEventData>| {
-                viewport.set_if_modified(event.area.height())
+                viewport.set_if_modified(along(event.area))
             })
             .child(
                 Scroller::new_controlled(controller)
+                    .direction(self.direction)
                     .show_scrollbar(false)
                     .child(
                         rect()
-                            .width(Size::fill())
+                            .direction(self.direction)
+                            .maybe(!horizontal, |el| el.width(Size::fill()))
                             .on_sized(move |event: Event<SizedEventData>| {
-                                content.set_if_modified(event.area.height())
+                                content.set_if_modified(along(event.area))
                             })
                             .children(self.children.clone()),
                     ),
             )
-            .maybe_child(bar.map(|(top, length)| {
+            .maybe_child(bar.map(|(offset, length)| {
+                let (position, width, height) = if horizontal {
+                    (
+                        Position::new_absolute()
+                            .left(offset)
+                            .bottom(SCROLL_BAR.inset),
+                        length,
+                        SCROLL_BAR.thumb,
+                    )
+                } else {
+                    (
+                        Position::new_absolute()
+                            .top(offset)
+                            .right(SCROLL_BAR.inset),
+                        SCROLL_BAR.thumb,
+                        length,
+                    )
+                };
                 rect()
-                    .position(Position::new_absolute().top(top).right(SCROLL_BAR.inset))
+                    .position(position)
                     .layer(THUMB_LAYER)
-                    .width(Size::px(SCROLL_BAR.thumb))
-                    .height(Size::px(length))
+                    .width(Size::px(width))
+                    .height(Size::px(height))
                     .corner_radius(SCROLL_BAR.thumb / 2.0)
                     .background(color(Rgba {
                         a: SCROLL_BAR.opacity * visibility,
