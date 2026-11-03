@@ -105,7 +105,7 @@ impl Component for ShakeField {
         let progress = shake.get().value();
         let offset = (progress * std::f32::consts::PI * 6.0).sin() * (1.0 - progress) * SHAKE;
         let greeting = welcome.get().current();
-        let mut replay = shake.clone();
+        let mut replay = shake;
         let palette = Palette::current();
         rect()
             .spacing(SPACE_2)
@@ -346,7 +346,7 @@ impl Component for CopyToast {
             let steps = toast.get();
             steps[0].value() * steps[2].value()
         };
-        let mut replay = toast.clone();
+        let mut replay = toast;
         let palette = Palette::current();
         horizontal()
             .child(Button::new("Copiar enlace").on_press(move |_| replay.start()))

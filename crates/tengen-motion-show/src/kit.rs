@@ -87,7 +87,7 @@ impl Component for Download {
                 .function(Function::Sine)
         });
         let done = download.get().value();
-        let mut replay = download.clone();
+        let mut replay = download;
         rect()
             .direction(Direction::Horizontal)
             .cross_align(Alignment::Center)
