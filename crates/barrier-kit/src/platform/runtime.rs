@@ -122,6 +122,7 @@ pub(crate) struct Runtime {
 pub(crate) struct WindowContext {
     pub(crate) controls: WindowControls,
     pub(crate) queue: Rc<RefCell<Vec<WindowCommand>>>,
+    pub(crate) app_id: String,
 }
 
 pub(crate) fn make_sender(

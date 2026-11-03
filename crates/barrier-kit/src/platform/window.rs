@@ -261,6 +261,25 @@ pub(super) fn resize_edge(edge: WindowEdge) -> xdg_toplevel::ResizeEdge {
 pub(super) fn clamp_toplevel_size_dimension(value: u32) -> u32 {
     if value > i32::MAX as u32 { 0 } else { value }
 }
+#[derive(Default, serde::Deserialize, serde::Serialize)]
+struct SavedSize {
+    width: u32,
+    height: u32,
+}
+
+fn window_state(app_id: &str) -> String {
+    format!("{app_id}.window")
+}
+
+fn within(size: (u32, u32), min: Option<(u32, u32)>, max: Option<(u32, u32)>) -> (u32, u32) {
+    let (low_w, low_h) = min.unwrap_or((1, 1));
+    let (high_w, high_h) = max.unwrap_or((u32::MAX, u32::MAX));
+    (
+        size.0.clamp(low_w, high_w.max(low_w)),
+        size.1.clamp(low_h, high_h.max(low_h)),
+    )
+}
+
 pub fn run_window(app: AppComponent, options: WindowOptions) -> Result<(), RunError> {
     let Connected {
         conn,
@@ -295,7 +314,7 @@ impl Runtime {
     pub(super) fn create_window(
         &mut self,
         app: AppComponent,
-        options: WindowOptions,
+        mut options: WindowOptions,
     ) -> Option<WindowControls> {
         let xdg_shell = self.xdg_shell.as_ref()?;
         let qh = &self.qh;
@@ -309,7 +328,15 @@ impl Runtime {
             .app_id
             .clone()
             .unwrap_or_else(|| format!("{}{}", vow_design::NATIVE_APP_ID_PREFIX, options.app_name));
-        window.set_app_id(app_id);
+        let saved: SavedSize = crate::app::load_restoration(&window_state(&app_id));
+        if saved.width > 0 && saved.height > 0 {
+            options.size = within(
+                (saved.width, saved.height),
+                options.min_size,
+                options.max_size,
+            );
+        }
+        window.set_app_id(app_id.clone());
         window.set_title(options.title.clone());
         if let Some(min) = options.min_size {
             window.set_min_size(Some((
@@ -410,6 +437,7 @@ impl Runtime {
         self.window_contexts.push(WindowContext {
             controls: controls.clone(),
             queue,
+            app_id,
         });
 
         let waker = futures_util::task::waker(Arc::new(PingWake(self.ping.clone())));
@@ -671,6 +699,19 @@ impl Runtime {
             .find(|ctx| ctx.controls.surface_id == surface_id)
         {
             let mut status = context.controls.status;
+            let shown = *status.peek();
+            if !shown.maximized
+                && !shown.fullscreen
+                && let Some(surface) = self.surfaces.iter().find(|s| s.surface.id() == surface_id)
+            {
+                let (width, height) = surface.logical_size;
+                if let Err(error) = crate::app::save_restoration(
+                    &window_state(&context.app_id),
+                    &SavedSize { width, height },
+                ) {
+                    tracing::warn!(%error, "barrier-kit: window size not saved");
+                }
+            }
             status.set(WindowStatus {
                 activated: false,
                 ..*status.read()
@@ -694,5 +735,23 @@ impl Runtime {
             self.window_contexts
                 .retain(|ctx| ctx.controls.surface_id != surface_id);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::within;
+
+    #[test]
+    fn a_restored_size_stays_within_the_window_limits() {
+        assert_eq!(
+            within((300, 900), Some((480, 320)), Some((800, 600))),
+            (480, 600)
+        );
+        assert_eq!(within((1000, 700), None, None), (1000, 700));
+        assert_eq!(
+            within((500, 500), Some((640, 420)), Some((640, 420))),
+            (640, 420)
+        );
     }
 }

@@ -251,7 +251,7 @@ Pendiente:
   - `OutlineView` y `ColumnBrowser`.
 - App:
   - `Application` no abre archivos ni URLs (`Open` llega por D-Bus y se ignora) ni tiene política para el cierre de la última ventana: ninguna app abre documentos ni tiene varias ventanas todavía.
-  - `Restoration` guarda el panel y las búsquedas; faltan tamaño y posición, la pila de navegación y el desplazamiento.
+  - `Restoration` guarda el panel, las búsquedas y el tamaño de la ventana. La posición depende de `xdg-session-management` en el compositor; la pila de navegación y el desplazamiento, de una app que los necesite.
   - `Action`: el menú guarda el atajo como texto y `find_menu_shortcut` lo vuelve a parsear en cada tecla.
   - El portapapeles solo lleva texto.
 
