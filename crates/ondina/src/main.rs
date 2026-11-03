@@ -14,7 +14,7 @@ use barrier_kit::backdrop::{Accent, Backdrop, BackdropSource, Tint};
 use barrier_kit::compact::IconButton;
 use barrier_kit::controls::ScrollView;
 use barrier_kit::platform::{Decorations, Timers, WindowControls, WindowOptions, run_window};
-use barrier_kit::sidebar::{Sidebar, SidebarItem};
+use barrier_kit::sidebar::{Sidebar, SidebarBackdrop, SidebarItem};
 use barrier_kit::symbol::Symbol;
 use barrier_kit::titlebar::Titlebar;
 use barrier_kit::views::split::{SidebarToggle, SplitView};
@@ -159,6 +159,7 @@ pub struct Mood {
     pub checks: State<[bool; 2]>,
     pub quality: State<usize>,
     pub export: State<f32>,
+    pub sidebar: State<SidebarBackdrop>,
 }
 
 impl Mood {
@@ -228,6 +229,7 @@ impl App for Ondina {
             checks: use_state(|| [true, false]),
             quality: use_state(|| 1),
             export: use_state(|| 0.375),
+            sidebar: use_state(SidebarBackdrop::default),
         };
         let tab = use_state(|| Tab::Now);
         let instance = self.instance.clone();
@@ -348,18 +350,18 @@ impl Component for Window {
             return size.attach(detail);
         }
 
-        let sidebar =
-            Sidebar::new()
-                .traffic_lights(true)
-                .children(Tab::ALL.iter().enumerate().map(|(index, &item)| {
-                    SidebarItem::new(item.title())
-                        .symbol(item.symbol(), ACCENT_SWATCHES[index].1)
-                        .selected(item == current)
-                        .on_select(move |_| {
-                            let mut tab = tab;
-                            tab.set(item);
-                        })
-                }));
+        let sidebar = Sidebar::new()
+            .traffic_lights(true)
+            .backdrop(*mood.sidebar.read())
+            .children(Tab::ALL.iter().enumerate().map(|(index, &item)| {
+                SidebarItem::new(item.title())
+                    .symbol(item.symbol(), ACCENT_SWATCHES[index].1)
+                    .selected(item == current)
+                    .on_select(move |_| {
+                        let mut tab = tab;
+                        tab.set(item);
+                    })
+            }));
         size.attach(
             rect().width(Size::fill()).height(Size::fill()).child(
                 SplitView::new(sidebar, detail)

@@ -7,6 +7,7 @@ use barrier_kit::compact::IconButton;
 use barrier_kit::controls::{Button, Checkbox, SegmentedControl, Slider, Switch};
 use barrier_kit::level::LevelSlider;
 use barrier_kit::progress::ProgressBar;
+use barrier_kit::sidebar::SidebarBackdrop;
 use barrier_kit::style::{Palette, text};
 use barrier_kit::symbol::{Symbol, symbol};
 use barrier_kit::theme::color;
@@ -349,8 +350,13 @@ pub fn mixer(mood: Mood, album: &Album) -> Element {
 }
 
 pub fn appearance(mood: Mood) -> Element {
-    let (mut background, mut preset, mut accent, mut own) =
-        (mood.background, mood.preset, mood.accent, mood.own_accent);
+    let (mut background, mut preset, mut accent, mut own, mut sidebar) = (
+        mood.background,
+        mood.preset,
+        mood.accent,
+        mood.own_accent,
+        mood.sidebar,
+    );
     let mut fondo = Section::titled("Fondo").row(
         Row::new("Origen")
             .detail("Mezcla conserva siempre el suyo.")
@@ -393,7 +399,28 @@ pub fn appearance(mood: Mood) -> Element {
             ),
         );
     }
-    Form::new().section(fondo).section(acento).into_element()
+    let barra = Section::titled("Barra lateral").row(
+        Row::new("Isla")
+            .detail("La barra plana siempre deja ver el fondo.")
+            .control(
+                SegmentedControl::new("Isla de la barra lateral")
+                    .segment("Transparente")
+                    .segment("Tintada")
+                    .selected((*sidebar.read() == SidebarBackdrop::Tinted) as usize)
+                    .on_change(move |i| {
+                        sidebar.set(if i == 1 {
+                            SidebarBackdrop::Tinted
+                        } else {
+                            SidebarBackdrop::Clear
+                        })
+                    }),
+            ),
+    );
+    Form::new()
+        .section(fondo)
+        .section(acento)
+        .section(barra)
+        .into_element()
 }
 
 fn swatch(colours: [Rgba; 3]) -> Element {
