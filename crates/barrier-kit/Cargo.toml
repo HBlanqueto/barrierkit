@@ -9,6 +9,7 @@ repository.workspace = true
 
 [features]
 shell = []
+video = ["dep:gstreamer", "dep:gstreamer-app", "dep:gstreamer-video", "dep:gstreamer-allocators"]
 
 [dependencies]
 freya-core.workspace = true
@@ -33,6 +34,10 @@ sctk.workspace = true
 wayland-protocols = { workspace = true }
 wayland-protocols-plasma = { workspace = true, features = ["client"] }
 zbus.workspace = true
+gstreamer = { workspace = true, optional = true }
+gstreamer-app = { workspace = true, optional = true }
+gstreamer-video = { workspace = true, optional = true }
+gstreamer-allocators = { workspace = true, optional = true }
 ash.workspace = true
 futures-util.workspace = true
 futures-channel.workspace = true

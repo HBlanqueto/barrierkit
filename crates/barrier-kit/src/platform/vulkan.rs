@@ -19,6 +19,19 @@ use std::{
 
 const INSTANCE_EXTENSIONS: [&CStr; 2] = [surface::NAME, wayland_surface::NAME];
 const DEVICE_EXTENSIONS: [&CStr; 1] = [swapchain::NAME];
+#[cfg(feature = "video")]
+const DMABUF_EXTENSIONS: [&CStr; 4] = [
+    ash::khr::external_memory_fd::NAME,
+    ash::ext::external_memory_dma_buf::NAME,
+    ash::ext::image_drm_format_modifier::NAME,
+    ash::khr::image_format_list::NAME,
+];
+
+#[cfg(feature = "video")]
+pub(crate) struct DmabufDevice {
+    pub(crate) fd: ash::khr::external_memory_fd::Device,
+    pub(crate) foreign_queue: bool,
+}
 const SWAPCHAIN_FORMAT: ash_vk::Format = ash_vk::Format::B8G8R8A8_UNORM;
 
 fn failed(call: &'static str) -> impl Fn(ash_vk::Result) -> RunError {
@@ -30,7 +43,9 @@ pub(crate) struct GraphicsShared {
     instance: Instance,
     display: *mut c_void,
     physical_device: ash_vk::PhysicalDevice,
-    device: Device,
+    pub(crate) device: Device,
+    #[cfg(feature = "video")]
+    pub(crate) dmabuf: Option<DmabufDevice>,
     queue: ash_vk::Queue,
     surface_fns: surface::Instance,
     wayland_fns: wayland_surface::Instance,
@@ -74,7 +89,35 @@ impl GraphicsShared {
         let queue_info = ash_vk::DeviceQueueCreateInfo::default()
             .queue_family_index(queue_family_index)
             .queue_priorities(&priorities);
-        let extensions = DEVICE_EXTENSIONS.map(CStr::as_ptr);
+        #[cfg(feature = "video")]
+        let (dmabuf_supported, foreign_queue) = {
+            // SAFETY: `physical_device` comes from `instance`.
+            let available: Vec<_> =
+                unsafe { instance.enumerate_device_extension_properties(physical_device) }
+                    .unwrap_or_default()
+                    .iter()
+                    .filter_map(|ext| ext.extension_name_as_c_str().ok().map(CStr::to_owned))
+                    .collect();
+            let has = |name: &CStr| available.iter().any(|ext| ext.as_c_str() == name);
+            (
+                DMABUF_EXTENSIONS.iter().all(|name| has(name)),
+                has(ash::ext::queue_family_foreign::NAME),
+            )
+        };
+        #[cfg(not(feature = "video"))]
+        let enabled: Vec<&CStr> = DEVICE_EXTENSIONS.to_vec();
+        #[cfg(feature = "video")]
+        let enabled: Vec<&CStr> = {
+            let mut enabled = DEVICE_EXTENSIONS.to_vec();
+            if dmabuf_supported {
+                enabled.extend(DMABUF_EXTENSIONS);
+                if foreign_queue {
+                    enabled.push(ash::ext::queue_family_foreign::NAME);
+                }
+            }
+            enabled
+        };
+        let extensions: Vec<_> = enabled.iter().map(|name| name.as_ptr()).collect();
         // SAFETY: `physical_device` comes from `instance`; the create info borrows locals.
         let device = unsafe {
             instance.create_device(
@@ -108,7 +151,10 @@ impl GraphicsShared {
             .map_or(std::ptr::null(), |f| f as _)
         };
         let instance_extensions = INSTANCE_EXTENSIONS.map(|name| name.to_str().unwrap_or_default());
-        let device_extensions = DEVICE_EXTENSIONS.map(|name| name.to_str().unwrap_or_default());
+        let device_extensions: Vec<_> = enabled
+            .iter()
+            .map(|name| name.to_str().unwrap_or_default())
+            .collect();
         // SAFETY: instance, device and queue live in `Self` and outlive the Skia context.
         let mut backend = unsafe {
             vk::BackendContext::new_with_extensions(
@@ -129,6 +175,17 @@ impl GraphicsShared {
         let mut gr = direct_contexts::make_vulkan(&backend, None).ok_or(RunError::Skia)?;
         drop(backend);
         gr.set_resource_cache_limit(128 * 1024 * 1024);
+        #[cfg(feature = "video")]
+        let dmabuf = dmabuf_supported.then(|| DmabufDevice {
+            fd: ash::khr::external_memory_fd::Device::new(&instance, &device),
+            foreign_queue,
+        });
+        #[cfg(feature = "video")]
+        if dmabuf.is_none() {
+            tracing::info!(
+                "vídeo: el dispositivo Vulkan no importa dmabuf; los fotogramas se suben desde la CPU"
+            );
+        }
 
         Ok(Self {
             _entry: entry,
@@ -136,6 +193,8 @@ impl GraphicsShared {
             display,
             physical_device,
             device,
+            #[cfg(feature = "video")]
+            dmabuf,
             queue,
             surface_fns,
             wayland_fns,
@@ -145,6 +204,15 @@ impl GraphicsShared {
             font_manager: crate::fonts::manager(),
             swapchain_creations: Cell::new(0),
         })
+    }
+}
+
+impl GraphicsShared {
+    #[cfg(feature = "video")]
+    pub(crate) fn finish_gpu_work(&self) {
+        self.gr.borrow_mut().flush_and_submit();
+        // SAFETY: the device is alive for `self`.
+        let _ = unsafe { self.device.device_wait_idle() };
     }
 }
 

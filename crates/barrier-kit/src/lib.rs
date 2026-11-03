@@ -3,6 +3,8 @@
 
 mod fonts;
 
+pub use fonts::register_font;
+
 pub mod platform;
 
 #[cfg(feature = "shell")]
@@ -20,6 +22,9 @@ pub mod traffic;
 
 pub mod animation;
 
+#[cfg(feature = "video")]
+pub mod video;
+
 pub mod interaction;
 
 pub mod controls;
@@ -27,6 +32,8 @@ pub mod controls;
 pub mod choices;
 
 pub mod progress;
+
+pub mod media;
 
 mod scroll;
 

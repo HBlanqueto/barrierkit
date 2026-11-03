@@ -9,6 +9,7 @@ members = [
     "crates/infinity-protocol",
     "crates/tengen-app-show",
     "crates/tengen-motion-show",
+    "crates/marea",
     "crates/ondina",
     "crates/rotulo",
 ]
@@ -41,6 +42,11 @@ toml = "0.8"
 toml_edit = "0.22"
 
 zbus = "5"
+
+gstreamer = { version = "0.25", features = ["v1_24"] }
+gstreamer-app = { version = "0.25", features = ["v1_24"] }
+gstreamer-video = { version = "0.25", features = ["v1_24"] }
+gstreamer-allocators = { version = "0.25", features = ["v1_24"] }
 
 
 vow-design = { path = "crates/vow-design" }

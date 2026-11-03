@@ -21,6 +21,15 @@
         freetype
         vulkan-loader
       ];
+      videoDeps = pkgs: with pkgs.gst_all_1; [
+        gstreamer
+        gst-plugins-base
+        gst-plugins-good
+        gst-plugins-bad
+        gst-libav
+        pkgs.libva
+        pkgs.glib
+      ];
     in
     {
       packages = forAllSystems (system: let
@@ -134,7 +143,7 @@
 
       devShells = forAllSystems (system: let
         pkgs = import nixpkgs { inherit system; };
-        deps = nativeDeps pkgs;
+        deps = nativeDeps pkgs ++ videoDeps pkgs;
         skia = pkgs.callPackage ./nix/skia.nix { };
         hasFreyaSkia = pkgs.lib.hasInfix "freya-skia-bindings" (builtins.readFile ./Cargo.lock);
         fontsConf = pkgs.writeText "barrierkit-fonts.conf" ''
@@ -156,6 +165,7 @@
             pkg-config
             mold
             shellcheck
+            ffmpeg
           ];
 
           buildInputs = deps ++ [
@@ -173,6 +183,8 @@
             ''}
             export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath deps}$LD_LIBRARY_PATH"
             export VK_DRIVER_FILES="${pkgs.mesa}/share/vulkan/icd.d/radeon_icd.x86_64.json''${VK_DRIVER_FILES:+:$VK_DRIVER_FILES}"
+            export GST_PLUGIN_SYSTEM_PATH_1_0="${pkgs.lib.makeSearchPathOutput "lib" "lib/gstreamer-1.0" (videoDeps pkgs)}"
+            export LIBVA_DRIVERS_PATH="${pkgs.mesa}/lib/dri"
           '';
         };
       });

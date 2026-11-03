@@ -5,6 +5,8 @@ pub(crate) mod app;
 mod app_menu_export;
 mod atspi;
 mod clipboard;
+#[cfg(feature = "video")]
+pub(crate) mod dmabuf;
 pub(crate) mod extension;
 mod focus;
 mod input;

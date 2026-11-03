@@ -283,7 +283,10 @@ impl Runtime {
             surfaces: Vec::new(),
             graphics: {
                 let display_ptr = conn.display().id().as_ptr().cast::<c_void>();
-                Rc::new(GraphicsShared::new(display_ptr)?)
+                let graphics = Rc::new(GraphicsShared::new(display_ptr)?);
+                #[cfg(feature = "video")]
+                super::dmabuf::set_current(&graphics);
+                graphics
             },
             seat,
             pointer: None,
