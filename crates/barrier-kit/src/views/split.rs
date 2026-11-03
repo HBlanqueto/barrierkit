@@ -16,7 +16,7 @@ use crate::app::{Action, Shortcut, ShortcutKey};
 use crate::compact::IconButton;
 use crate::style::Palette;
 use crate::symbol::Symbol;
-use crate::theme::color;
+use crate::theme::{SurfaceKind, color, surface_background};
 
 pub const TOGGLE_SIDEBAR: Action =
     Action::new("toggle-sidebar", "Mostrar u ocultar la barra lateral").shortcut(Shortcut::new(
@@ -242,6 +242,10 @@ impl Component for SplitView {
             .width(Size::fill())
             .height(Size::fill())
             .direction(Direction::Horizontal)
+            .background(color(surface_background(
+                &crate::theme::resolved(),
+                SurfaceKind::Toplevel,
+            )))
             .on_sized(move |event: Event<SizedEventData>| {
                 window_width.set_if_modified(event.area.size.width);
             })
