@@ -150,7 +150,8 @@ impl ElementExt for Glass {
             let (from, to) = (band as f32 / bands as f32, (band + 1) as f32 / bands as f32);
             let strength = strength_at(FULLSCREEN_GLASS.mask, (from + to) / 2.0);
             let sigma = FULLSCREEN_GLASS.blur * strength * context.scale_factor as f32;
-            let Some(filter) = blur((sigma, sigma), TileMode::Clamp, None, bounds) else {
+            // Uncropped, so the blur samples the content past the glass instead of smearing its last row.
+            let Some(filter) = blur((sigma, sigma), TileMode::Clamp, None, None) else {
                 continue;
             };
             let slice = band_rect(self.edge, bounds, from, to);
