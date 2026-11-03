@@ -50,6 +50,7 @@ impl Dispatch<InfinityFocusSurfaceV1, ObjectId> for Runtime {
             }
             _ => return,
         };
+        tracing::debug!(target: "barrier_kit::focus", revealed, "focus bar");
         let mut focus_bar = context.controls.focus_bar;
         if *focus_bar.peek() != (revealed != 0) {
             focus_bar.set(revealed != 0);
