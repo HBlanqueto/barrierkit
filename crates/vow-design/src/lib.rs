@@ -433,6 +433,7 @@ pub struct BackdropMetrics {
     pub ink_tertiary: f32,
     pub glass: f32,
     pub glass_strong: f32,
+    pub island: f32,
     pub sunken: f32,
     pub accent_lightness_on_dark: f32,
     pub accent_lightness_on_light: f32,

@@ -148,7 +148,7 @@ pub(super) fn emit_backdrop(out: &mut String, components: &Value) {
         "Tinted window backgrounds drawn from an image or chosen colours.",
     );
     out.push_str(&format!(
-        ": BackdropMetrics = BackdropMetrics {{ angles: [{}], opacity: {}, stops: {}, lightness: [{}], chroma: {}, base_darken: {}, base_lightness: [{}], base_chroma: {}, samples: {}, clusters: {}, ink_secondary: {}, ink_tertiary: {}, glass: {}, glass_strong: {}, sunken: {}, accent_lightness_on_dark: {}, accent_lightness_on_light: {}, accent_min_chroma: {} }};\n\n",
+        ": BackdropMetrics = BackdropMetrics {{ angles: [{}], opacity: {}, stops: {}, lightness: [{}], chroma: {}, base_darken: {}, base_lightness: [{}], base_chroma: {}, samples: {}, clusters: {}, ink_secondary: {}, ink_tertiary: {}, glass: {}, glass_strong: {}, island: {}, sunken: {}, accent_lightness_on_dark: {}, accent_lightness_on_light: {}, accent_min_chroma: {} }};\n\n",
         floats(components, "components.backdrop.angles"),
         field("opacity"),
         count("stops"),
@@ -163,6 +163,7 @@ pub(super) fn emit_backdrop(out: &mut String, components: &Value) {
         field("ink-tertiary"),
         field("glass"),
         field("glass-strong"),
+        field("island"),
         field("sunken"),
         field("accent-lightness-on-dark"),
         field("accent-lightness-on-light"),

@@ -22,6 +22,7 @@ use barrier_kit::platform::{DecorationResponse, WindowStatus};
 use barrier_kit::platform::{Decorations, WindowOptions, run_window};
 use barrier_kit::popup_button::PopUpButton;
 use barrier_kit::progress::{ProgressBar, ProgressRing, Spinner};
+use barrier_kit::sidebar::{Sidebar, SidebarBackdrop, SidebarItem};
 use barrier_kit::style::{Palette, text};
 use barrier_kit::symbol::Symbol;
 use barrier_kit::theme::use_appearance;
@@ -502,6 +503,30 @@ fn preview(colors: [Rgba; 3], accent: Accent, fill: Tint) -> Rect {
         )
 }
 
+fn sidebar_preview(colors: [Rgba; 3], backdrop: SidebarBackdrop) -> Rect {
+    rect()
+        .width(Size::px(320.0))
+        .height(Size::px(150.0))
+        .corner_radius(12.0)
+        .overflow(Overflow::Clip)
+        .child(
+            Backdrop::new(
+                BackdropSource::Colors(colors),
+                rect().width(Size::px(160.0)).height(Size::fill()).child(
+                    Sidebar::new()
+                        .backdrop(backdrop)
+                        .child(
+                            SidebarItem::new("Escuchando")
+                                .symbol(Symbol::Play, tint(0))
+                                .selected(true),
+                        )
+                        .child(SidebarItem::new("Biblioteca").symbol(Symbol::SquareGrid, tint(1))),
+                ),
+            )
+            .accent(Accent::FromBackdrop),
+        )
+}
+
 fn backdrops() -> Form {
     let dusk = [
         Rgba::rgb8(122, 59, 94),
@@ -534,6 +559,16 @@ fn backdrops() -> Form {
                 Row::new("Paleta clara")
                     .detail("Se lleva al rango legible; acento propio.")
                     .control(preview(pale, Accent::Own(tint(4)), Tint::Accent)),
+            )
+            .row(
+                Row::new("Barra lateral")
+                    .detail("Deja ver el fondo, sea isla o plana.")
+                    .control(sidebar_preview(dusk, SidebarBackdrop::Clear)),
+            )
+            .row(
+                Row::new("Isla tintada")
+                    .detail("La app la tiñe con el fondo; la plana no cambia.")
+                    .control(sidebar_preview(dusk, SidebarBackdrop::Tinted)),
             ),
     )
 }

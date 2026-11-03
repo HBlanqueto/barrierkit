@@ -7,9 +7,9 @@ use freya_components::svg_viewer::SvgViewer;
 use freya_core::prelude::*;
 use keyboard_types::{Key, NamedKey};
 use torin::prelude::{Alignment, Direction, Gaps, Position, Size};
-use vow_appearance::SidebarStyle;
+use vow_appearance::{SidebarStyle, SidebarSurface};
 use vow_design::{
-    DURATION_BASE, Rgba, SETTINGS, SIDEBAR, SidebarPalette, TEXT, TITLEBAR, TITLEBAR_RAIL,
+    BACKDROP, DURATION_BASE, Rgba, SETTINGS, SIDEBAR, SidebarPalette, TEXT, TITLEBAR, TITLEBAR_RAIL,
 };
 
 use crate::ProbeExt;
@@ -31,8 +31,55 @@ pub(crate) fn item_icon_color(selected: bool, palette: SidebarPalette) -> Rgba {
     }
 }
 
-fn item_palette(emphasized: bool) -> SidebarPalette {
+pub(crate) fn sidebar_palette() -> SidebarPalette {
     let palette = crate::theme::resolved().sidebar.palette;
+    if crate::backdrop::tinted().is_none() {
+        return palette;
+    }
+    let ink = Palette::current();
+    SidebarPalette {
+        item_ink: ink.label,
+        item_icon: ink.secondary_label,
+        selected_bg: ink.accent,
+        selected_ink: ink.on_accent,
+        inactive_selected_bg: ink.selected_control,
+        inactive_ink: ink.secondary_label,
+        hover_bg: ink.control_hover,
+        section_ink: ink.secondary_label,
+        count_ink: ink.secondary_label,
+        line: ink.separator,
+        ..palette
+    }
+}
+
+fn over_backdrop(surface: SidebarSurface, backdrop: SidebarBackdrop) -> SidebarSurface {
+    let Some(tint) = crate::backdrop::tinted() else {
+        return surface;
+    };
+    let tinted_island =
+        surface.style == SidebarStyle::Island && backdrop == SidebarBackdrop::Tinted;
+    let (bg, rim) = if tinted_island {
+        (
+            Rgba {
+                a: BACKDROP.island,
+                ..tint.average()
+            },
+            Palette::current().separator,
+        )
+    } else {
+        (Rgba::TRANSPARENT, Rgba::TRANSPARENT)
+    };
+    SidebarSurface {
+        bg,
+        rim,
+        inner: Rgba::TRANSPARENT,
+        palette: sidebar_palette(),
+        ..surface
+    }
+}
+
+fn item_palette(emphasized: bool) -> SidebarPalette {
+    let palette = sidebar_palette();
     if !crate::platform::window_activated() {
         SidebarPalette {
             selected_bg: palette.inactive_selected_bg,
@@ -94,10 +141,18 @@ fn chevron_svg(down: bool, stroke: f32) -> String {
     )
 }
 
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum SidebarBackdrop {
+    #[default]
+    Clear,
+    Tinted,
+}
+
 #[derive(PartialEq)]
 pub struct Sidebar {
     children: Vec<Element>,
     traffic_lights: bool,
+    backdrop: SidebarBackdrop,
     probe: Option<&'static str>,
     key: DiffKey,
 }
@@ -120,6 +175,7 @@ impl Sidebar {
         Self {
             children: Vec::new(),
             traffic_lights: false,
+            backdrop: SidebarBackdrop::Clear,
             probe: None,
             key: DiffKey::None,
         }
@@ -141,6 +197,11 @@ impl Sidebar {
         self
     }
 
+    pub fn backdrop(mut self, backdrop: SidebarBackdrop) -> Self {
+        self.backdrop = backdrop;
+        self
+    }
+
     pub fn key(mut self, key: impl Into<DiffKey>) -> Self {
         self.key = key.into();
         self
@@ -156,7 +217,7 @@ impl KeyExt for Sidebar {
 impl Component for Sidebar {
     fn render(&self) -> impl IntoElement {
         let resolved = crate::theme::resolved();
-        let surface = resolved.sidebar;
+        let surface = over_backdrop(resolved.sidebar, self.backdrop);
         let island = surface.style == SidebarStyle::Island;
 
         let controls = try_consume_root_context::<WindowControls>();
@@ -554,7 +615,7 @@ impl Component for SidebarSection {
     fn render(&self) -> impl IntoElement {
         let expanded = use_state(|| self.initial_expanded);
         let resolved = crate::theme::resolved();
-        let palette = resolved.sidebar.palette;
+        let palette = sidebar_palette();
         let interaction = use_interaction();
         let show_chevron = interaction.hovered() || interaction.keyboard_focused();
 

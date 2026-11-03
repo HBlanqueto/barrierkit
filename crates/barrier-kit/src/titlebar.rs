@@ -166,20 +166,24 @@ impl Component for Titlebar {
                     span.set_if_modified((area.min_x(), area.max_x()));
                 })
                 .maybe(overlay_top.is_some(), |el| {
+                    let top = overlay_top.unwrap_or_default();
+                    // ADR 0057: the full-screen glass spans the whole window, whatever column holds the titlebar.
                     el.child(
                         rect()
-                            .position(
-                                Position::new_absolute()
-                                    .top(overlay_top.unwrap_or_default())
-                                    .left(inset_start),
-                            )
+                            .position(Position::new_global().top(top).left(0.0))
+                            .width(Size::window_percent(100.0))
+                            .layer(TITLEBAR_OVERLAY_LAYER)
+                            .child(crate::glass::progressive_glass(
+                                crate::glass::GlassEdge::Top,
+                            )),
+                    )
+                    .child(
+                        rect()
+                            .position(Position::new_absolute().top(top).left(inset_start))
                             .width(Size::func(move |context| {
                                 Some(context.parent - inset_start - inset_end)
                             }))
                             .layer(TITLEBAR_OVERLAY_LAYER)
-                            .child(crate::glass::progressive_glass(
-                                crate::glass::GlassEdge::Top,
-                            ))
                             .child(bar),
                     )
                 })
@@ -301,7 +305,7 @@ impl Component for Titlebar {
                         .position(Position::new_absolute().bottom(0.0).left(0.0))
                         .width(Size::fill())
                         .height(Size::px(1.0))
-                        .background(theme::color(resolved.sidebar.palette.line)),
+                        .background(theme::color(crate::sidebar::sidebar_palette().line)),
                 );
             }
 
