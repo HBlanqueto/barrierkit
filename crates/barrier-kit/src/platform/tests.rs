@@ -30,7 +30,9 @@ use super::{
         scale_from_wire,
     },
     timer::{Timers, Wake, WakeQueue},
-    window::{WindowControls, WindowStatus, clamp_toplevel_size_dimension},
+    window::{
+        WindowControls, WindowEdge, WindowStatus, clamp_toplevel_size_dimension, resize_edge_at,
+    },
 };
 
 fn window_controls(status: WindowStatus) -> WindowControls {
@@ -48,6 +50,23 @@ fn window_controls(status: WindowStatus) -> WindowControls {
         focus_overlay: false,
         focus_bar_height: freya_core::prelude::State::create(28.0),
     }
+}
+
+#[test]
+fn the_resize_band_picks_a_corner_before_an_edge() {
+    let size = (800, 600);
+    assert_eq!(resize_edge_at((1.0, 1.0), size), Some(WindowEdge::TopLeft));
+    assert_eq!(resize_edge_at((12.0, 2.0), size), Some(WindowEdge::TopLeft));
+    assert_eq!(resize_edge_at((400.0, 2.0), size), Some(WindowEdge::Top));
+    assert_eq!(
+        resize_edge_at((799.0, 599.0), size),
+        Some(WindowEdge::BottomRight)
+    );
+    assert_eq!(
+        resize_edge_at((799.0, 300.0), size),
+        Some(WindowEdge::Right)
+    );
+    assert_eq!(resize_edge_at((400.0, 300.0), size), None);
 }
 
 #[test]

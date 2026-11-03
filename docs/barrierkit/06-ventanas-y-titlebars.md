@@ -127,35 +127,44 @@ combinaciones en vivo.
 
 El estado llega en cada configure del compositor y se lee con
 `WindowControls::get().status.read()`: `maximized`, `fullscreen` y `activated`.
+Las capturas de esta sección son la ventana de Rótulo (barra lateral en isla,
+diseño `Top` salvo donde se indica) renderizada por el kit en cada estado.
 
-| Estado | Cómo se entra | Qué hace el kit |
+### Los cuatro estados con el diseño por defecto (`Top`)
+
+| Estado | Cómo se entra | Qué hace el kit | Cómo se ve |
+|---|---|---|---|
+| Normal | — | Titlebar en su sitio, semáforos en la barra lateral. Los bordes de la ventana la redimensionan. Al cerrar se guarda el tamaño | ![Ventana normal](assets/estados/estado-normal.png) |
+| Maximizada | Botón verde con `green_button = "zoom"`, doble clic con `zoom` o `fill`, o `toggle_maximize()` | Lo mismo que en normal, sin bordes de redimensionado. En MalaysiaDreams el compositor conserva el marco (esquinas y sombra). Al cerrar se guarda que estaba maximizada y vuelve a abrirse así | ![Ventana maximizada: igual que la normal](assets/estados/estado-maximizada.png) |
+| Pantalla completa sin el protocolo de foco (otro compositor) | Botón verde con `focus` (por defecto) o `fullscreen`, o `toggle_fullscreen()` | La titlebar se queda en su sitio y se ocultan los semáforos | ![Pantalla completa sin protocolo: sin semáforos](assets/estados/estado-completa-sin-protocolo.png) |
+| Modo foco de MalaysiaDreams, barra arriba | Igual; el compositor da el estado `fullscreen` | La titlebar sale del diseño y el contenido ocupa toda la ventana | ![Modo foco con la barra arriba: solo contenido](assets/estados/estado-foco-barra-arriba.png) |
+
+En MalaysiaDreams, el modo foco
+([ADR 0051 y 0054 de MalaysiaDreams](https://github.com/HBlanqueto/malaysia/tree/main/docs/decisiones))
+baja una barra negra al acercar el puntero arriba. El kit pide `set_overlay`
+por `infinity_focus_v1` v2, así que la ventana no se mueve: mientras la barra
+está bajada, `titlebar_overlaid()` es verdadero y la titlebar se dibuja encima
+del contenido, justo debajo de la barra, con cristal progresivo. Aparece y
+desaparece con la barra en `DURATION_BASE`. En pantalla completa, `reveal` es
+siempre `Always`.
+
+### Modo foco con la barra bajada, por diseño
+
+En estas capturas, la franja negra de arriba (28 px) es la barra del
+compositor, añadida a la imagen: la app no la dibuja.
+
+| Diseño | Qué baja | Cómo se ve |
 |---|---|---|
-| Normal | — | Titlebar en su sitio; al cambiar de tamaño, el tamaño se guarda |
-| Maximizada | Botón verde con `green_button = "zoom"`, doble clic con `zoom` o `fill`, o `toggle_maximize()` | Nada visual: la titlebar sigue igual. En MalaysiaDreams el compositor conserva el marco (esquinas y sombra). El tamaño no se guarda |
-| Pantalla completa y modo foco | Botón verde con `focus` (por defecto) o `fullscreen`, o `toggle_fullscreen()` | La titlebar sale del diseño y el contenido ocupa toda la ventana. Los semáforos se ocultan. El tamaño no se guarda |
-
-En MalaysiaDreams, el modo foco da a la ventana el estado `fullscreen` y una
-barra negra que baja al acercar el puntero arriba
-([ADR 0051 y 0054 de MalaysiaDreams](https://github.com/HBlanqueto/malaysia/tree/main/docs/decisiones)).
-El kit pide `set_overlay` por `infinity_focus_v1` v2. Mientras la barra está
-bajada, `titlebar_overlaid()` es verdadero y cada titlebar se dibuja encima del
-contenido, a la altura de la barra, con cristal progresivo y apareciendo con
-ella:
-
-| Diseño | En pantalla completa, con la barra bajada |
-|---|---|
-| `Top` | La `Titlebar` baja sobre el contenido. Los semáforos de la barra lateral bajan lo mismo |
-| `Rail`, `Actions` | El rail se dibuja como cristal y baja con la barra |
-| `Unified` | Igual que `Top` |
-| `Pill` | La píldora no se ve hasta que baja la barra; entonces aparece como cristal |
-
-En pantalla completa, `reveal` es siempre `Always`. Sin el protocolo (otro
-compositor), la titlebar se queda en el diseño y solo se ocultan los semáforos.
+| `Top` (por defecto) | La `Titlebar` sobre el contenido; los semáforos de la barra lateral bajan lo mismo | ![Top con la barra bajada](assets/estados/foco-top.png) |
+| `Unified` | Igual que `Top` | ![Unified con la barra bajada](assets/estados/foco-unified.png) |
+| `Rail` | El rail, como cristal, con los semáforos en columna | ![Rail con la barra bajada](assets/estados/foco-rail.png) |
+| `Actions` | El rail ancho con su pie de acciones | ![Actions con la barra bajada](assets/estados/foco-actions.png) |
+| `Pill` | La píldora de semáforos, como cristal; antes no se ve | ![Pill con la barra bajada](assets/estados/foco-pill.png) |
 
 ### Qué hace la app
 
 1. Si usa `Titlebar`, `WindowChrome`, `Sidebar` o `PreferencesWindow`, no tiene
-   que hacer nada: los tres estados ya funcionan.
+   que hacer nada: todos los estados de las tablas ya funcionan.
 2. Deja hueco para la barra en el contenido que va bajo la titlebar
    superpuesta, como Ondina:
 
@@ -165,7 +174,15 @@ compositor), la titlebar se queda en el diseño y solo se ocultan los semáforos
    rect().padding(Gaps::new(arriba, 0.0, 0.0, 0.0)).child(contenido)
    ```
 
-3. Para un comportamiento propio (un modo inmersivo que esconde paneles),
+3. Si una vista tapa la titlebar (un reproductor de vídeo a toda la ventana),
+   pone sus propios semáforos para que se pueda maximizar o salir de pantalla
+   completa sin ella, como el reproductor de Marea:
+
+   ```rust
+   window_traffic_lights(WindowControls::get().status.read().activated, false)
+   ```
+
+4. Para un comportamiento propio (un modo inmersivo que esconde paneles),
    lee el estado y decide:
 
    ```rust
@@ -174,8 +191,22 @@ compositor), la titlebar se queda en el diseño y solo se ocultan los semáforos
    rect().maybe_child((!inmersivo).then(panel_de_herramientas))
    ```
 
-4. Para ofrecerlo en un menú, llama a `toggle_maximize()` o
+5. Para ofrecerlo en un menú, llama a `toggle_maximize()` o
    `toggle_fullscreen()` desde una `Action` (capítulo [10](10-app.md)).
+
+### Redimensionar por los bordes
+
+Con decoración `Client`, el runner reserva dentro de la ventana una banda de
+`WINDOW_RESIZE.edge` (5 px) en cada lado y de `WINDOW_RESIZE.corner` (16 px) a
+lo largo de cada esquina:
+
+1. Al pasar por la banda, el cursor cambia a la flecha del borde o la esquina y
+   la app deja de recibir el movimiento.
+2. Al pulsar con el botón izquierdo, el compositor empieza a redimensionar
+   (`xdg_toplevel.resize`).
+3. No hay banda si la ventana está maximizada, en pantalla completa, es de
+   tamaño fijo o usa decoración del servidor, ni mientras se arrastra algo de
+   la app.
 
 ### El botón verde y el doble clic
 
@@ -185,9 +216,9 @@ Los decide el usuario en `window.domain`. Con una ventana de tamaño fijo
 | `green_button` | Ventana normal | Tamaño fijo |
 |---|---|---|
 | `focus` (por defecto) | Pantalla completa | Maximiza en vertical |
-| `zoom` | Maximiza | Maximiza en vertical, aunque el botón se dibuja gris y sin glifo |
+| `zoom` | Maximiza | Maximiza en vertical |
 | `fullscreen` | Pantalla completa | Maximiza en vertical |
-| `none` | Nada | Maximiza en vertical |
+| `none` | Nada; el botón se dibuja gris y sin glifo | Nada; el botón se dibuja gris y sin glifo |
 
 | `double_click_titlebar` | Ventana normal | Tamaño fijo |
 |---|---|---|

@@ -417,14 +417,13 @@ pub fn window_traffic_lights(focused: bool, fixed: bool) -> TrafficLights {
     TrafficLights::new()
         .round(crate::chrome::chrome_style().round_lights)
         .focused(focused)
-        .zoom_supported(green_admitted(behavior.green_button, fixed))
+        .zoom_supported(green != TitlebarAction::None)
         .fixed_width(fixed)
         .on_action(move |kind| {
             let controls = WindowControls::get();
             match kind {
                 ButtonKind::Close => controls.close(),
                 ButtonKind::Minimize => controls.minimize(),
-                ButtonKind::Maximize if fixed => controls.toggle_vertical_maximize(),
                 ButtonKind::Maximize => run_action(&controls, green),
             }
         })
@@ -509,6 +508,7 @@ fn window_behavior() -> &'static WindowBehavior {
 enum TitlebarAction {
     Focus,
     Maximize,
+    VerticalMaximize,
     Minimize,
     Fullscreen,
     None,
@@ -516,16 +516,12 @@ enum TitlebarAction {
 
 fn green_action(action: GreenButtonAction, fixed: bool) -> TitlebarAction {
     match action {
+        GreenButtonAction::None => TitlebarAction::None,
+        _ if fixed => TitlebarAction::VerticalMaximize,
         GreenButtonAction::Focus => TitlebarAction::Focus,
-        GreenButtonAction::Zoom if fixed => TitlebarAction::None,
         GreenButtonAction::Zoom => TitlebarAction::Maximize,
         GreenButtonAction::Fullscreen => TitlebarAction::Fullscreen,
-        GreenButtonAction::None => TitlebarAction::None,
     }
-}
-
-fn green_admitted(action: GreenButtonAction, fixed: bool) -> bool {
-    action != GreenButtonAction::Zoom || !fixed
 }
 
 fn double_click_action(action: DoubleClickAction, fixed: bool) -> TitlebarAction {
@@ -540,6 +536,7 @@ fn double_click_action(action: DoubleClickAction, fixed: bool) -> TitlebarAction
 fn run_action(controls: &WindowControls, action: TitlebarAction) {
     match action {
         TitlebarAction::Maximize => controls.toggle_maximize(),
+        TitlebarAction::VerticalMaximize => controls.toggle_vertical_maximize(),
         TitlebarAction::Minimize => controls.minimize(),
         TitlebarAction::Focus | TitlebarAction::Fullscreen => controls.toggle_fullscreen(),
         TitlebarAction::None => {}
@@ -566,6 +563,14 @@ mod tests {
         );
         assert_eq!(
             green_action(GreenButtonAction::Zoom, true),
+            TitlebarAction::VerticalMaximize
+        );
+        assert_eq!(
+            green_action(GreenButtonAction::Focus, true),
+            TitlebarAction::VerticalMaximize
+        );
+        assert_eq!(
+            green_action(GreenButtonAction::None, true),
             TitlebarAction::None
         );
         assert_eq!(
@@ -576,8 +581,6 @@ mod tests {
             green_action(GreenButtonAction::None, false),
             TitlebarAction::None
         );
-        assert!(green_admitted(GreenButtonAction::Focus, true));
-        assert!(!green_admitted(GreenButtonAction::Zoom, true));
     }
 
     #[test]

@@ -77,7 +77,7 @@ let instancia = match launch(app_id) {
 
 `T` is a struct with `Serialize` and `Deserialize`. Writing is atomic
 (temporary file and rename). `MALAYSIA_CONFIG_DIR` and `MALAYSIA_DATA_DIR`
-change the folders. The window size is restored automatically.
+change the folders. The window size, and whether it was maximized, are restored automatically.
 
 ## Undo: `use_undo`
 

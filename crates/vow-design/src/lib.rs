@@ -219,6 +219,12 @@ pub struct WindowStyle {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct WindowResize {
+    pub edge: f32,
+    pub corner: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ShadowLayer {
     pub blur: u32,
     pub y_offset: i32,

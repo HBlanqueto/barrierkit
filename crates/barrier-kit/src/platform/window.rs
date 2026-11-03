@@ -265,10 +265,55 @@ pub(super) fn resize_edge(edge: WindowEdge) -> xdg_toplevel::ResizeEdge {
 pub(super) fn clamp_toplevel_size_dimension(value: u32) -> u32 {
     if value > i32::MAX as u32 { 0 } else { value }
 }
-#[derive(Default, serde::Deserialize, serde::Serialize)]
+pub(super) fn resize_edge_at(
+    (x, y): (f64, f64),
+    (width, height): (u32, u32),
+) -> Option<WindowEdge> {
+    let (width, height) = (f64::from(width), f64::from(height));
+    let edge = f64::from(vow_design::WINDOW_RESIZE.edge);
+    let corner = f64::from(vow_design::WINDOW_RESIZE.corner);
+    let near = |value: f64, end: f64, band: f64| (value < band, value >= end - band);
+    let (left, right) = near(x, width, edge);
+    let (top, bottom) = near(y, height, edge);
+    let (left_corner, right_corner) = near(x, width, corner);
+    let (top_corner, bottom_corner) = near(y, height, corner);
+    match () {
+        _ if (top && left_corner) || (left && top_corner) => Some(WindowEdge::TopLeft),
+        _ if (top && right_corner) || (right && top_corner) => Some(WindowEdge::TopRight),
+        _ if (bottom && left_corner) || (left && bottom_corner) => Some(WindowEdge::BottomLeft),
+        _ if (bottom && right_corner) || (right && bottom_corner) => Some(WindowEdge::BottomRight),
+        _ if top => Some(WindowEdge::Top),
+        _ if bottom => Some(WindowEdge::Bottom),
+        _ if left => Some(WindowEdge::Left),
+        _ if right => Some(WindowEdge::Right),
+        _ => None,
+    }
+}
+
+impl Runtime {
+    pub(super) fn resize_edge(&self, index: usize, position: (f64, f64)) -> Option<WindowEdge> {
+        let surface = &self.surfaces[index];
+        let context = self
+            .window_contexts
+            .iter()
+            .find(|ctx| ctx.controls.surface_id == surface.surface.id())?;
+        let status = *context.controls.status.peek();
+        let resizable = status.decoration == DecorationResponse::Client
+            && !status.maximized
+            && !status.fullscreen
+            && !status.fixed;
+        resizable
+            .then(|| resize_edge_at(position, surface.logical_size))
+            .flatten()
+    }
+}
+
+#[derive(Clone, Copy, Default, serde::Deserialize, serde::Serialize)]
+#[serde(default)]
 struct SavedSize {
     width: u32,
     height: u32,
+    maximized: bool,
 }
 
 fn window_state(app_id: &str) -> String {
@@ -342,6 +387,9 @@ impl Runtime {
         }
         window.set_app_id(app_id.clone());
         window.set_title(options.title.clone());
+        if saved.maximized {
+            window.set_maximized();
+        }
         if let Some(min) = options.min_size {
             window.set_min_size(Some((
                 clamp_toplevel_size_dimension(min.0),
@@ -705,17 +753,28 @@ impl Runtime {
         {
             let mut status = context.controls.status;
             let shown = *status.peek();
-            if !shown.maximized
-                && !shown.fullscreen
-                && let Some(surface) = self.surfaces.iter().find(|s| s.surface.id() == surface_id)
+            let state = window_state(&context.app_id);
+            let previous: SavedSize = crate::app::load_restoration(&state);
+            let saved = match (shown.maximized, shown.fullscreen) {
+                (_, true) => None,
+                (true, false) => Some(SavedSize {
+                    maximized: true,
+                    ..previous
+                }),
+                (false, false) => self
+                    .surfaces
+                    .iter()
+                    .find(|s| s.surface.id() == surface_id)
+                    .map(|surface| SavedSize {
+                        width: surface.logical_size.0,
+                        height: surface.logical_size.1,
+                        maximized: false,
+                    }),
+            };
+            if let Some(saved) = saved
+                && let Err(error) = crate::app::save_restoration(&state, &saved)
             {
-                let (width, height) = surface.logical_size;
-                if let Err(error) = crate::app::save_restoration(
-                    &window_state(&context.app_id),
-                    &SavedSize { width, height },
-                ) {
-                    tracing::warn!(%error, "barrier-kit: window size not saved");
-                }
+                tracing::warn!(%error, "barrier-kit: window size not saved");
             }
             status.set(WindowStatus {
                 activated: false,

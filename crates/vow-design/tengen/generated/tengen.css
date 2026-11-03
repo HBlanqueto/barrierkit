@@ -691,6 +691,8 @@
   --window-min-width: 480px;
   --window-outer-border: var(--window-outer);
   --window-radius: var(--radius-lg);
+  --window-resize-corner: 16px;
+  --window-resize-edge: 5px;
   --window-sidebar-flat-bg: var(--sidebar-flat-bg);
   --window-sidebar-flat-line: var(--line);
   --window-sidebar-flat-line-width: 1px;
@@ -738,10 +740,10 @@
   --window-superellipse-exponent: 2.000000;
   --window-titlebar-double-click-interval-ms: 400ms;
   --window-titlebar-double-click-slop: 4px;
-  --window-titlebar-fullscreen-glass-bands: 24px;
   --window-titlebar-fullscreen-glass-blur: 30px;
   --window-titlebar-fullscreen-glass-content-top: 74px;
   --window-titlebar-fullscreen-glass-height: 96px;
+  --window-titlebar-fullscreen-glass-layers: 5px;
   --window-titlebar-rail-actions-width: 34px;
   --window-titlebar-rail-edge-accent: 4px;
   --window-titlebar-rail-edge-line: 1px;

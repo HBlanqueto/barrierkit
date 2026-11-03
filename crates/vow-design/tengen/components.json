@@ -249,6 +249,8 @@
     "window": {
       "min-width": 480,
       "min-height": 360,
+      "resize-edge": 5,
+      "resize-corner": 16,
       "radius": "radius.lg",
       "bg": "bg-window",
       "titlebar-height": "size.titlebar-h",

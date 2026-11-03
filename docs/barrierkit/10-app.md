@@ -77,7 +77,7 @@ let instancia = match launch(app_id) {
 
 `T` es un struct con `Serialize` y `Deserialize`. La escritura es atómica
 (fichero temporal y renombrado). `MALAYSIA_CONFIG_DIR` y `MALAYSIA_DATA_DIR`
-cambian las carpetas. El tamaño de la ventana se restaura solo.
+cambian las carpetas. El tamaño de la ventana y si estaba maximizada se restauran solos.
 
 ## Deshacer: `use_undo`
 

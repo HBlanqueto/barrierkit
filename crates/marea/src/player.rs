@@ -10,7 +10,7 @@ use barrier_kit::progress::ProgressRing;
 use barrier_kit::style::text;
 use barrier_kit::symbol::Symbol;
 use barrier_kit::theme::color;
-use barrier_kit::titlebar::window_drag_handler;
+use barrier_kit::titlebar::{window_drag_handler, window_traffic_lights};
 use barrier_kit::video::VideoView;
 use freya_animation::prelude::{AnimDirection, OnCreation, use_animation};
 use freya_core::prelude::*;
@@ -241,6 +241,10 @@ impl Component for Player {
                             .stop((color(Rgba::rgba8(0, 0, 0, 0.66)), 0.0))
                             .stop((color(Rgba::rgba8(0, 0, 0, 0.0)), 100.0)),
                     )
+                    .child(window_traffic_lights(
+                        WindowControls::get().status.read().activated,
+                        false,
+                    ))
                     .child(
                         RoundButton::new(Symbol::ChevronLeft, "Cerrar el reproductor")
                             .on_press(move |_| close()),

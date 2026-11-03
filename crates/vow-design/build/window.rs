@@ -132,6 +132,18 @@ pub(super) fn emit_window(out: &mut String, tokens: &Value, components: &Value) 
         ": WindowStyle = WindowStyle {{\n    corner_radius: {radius},\n    superellipse_exponent: {},\n}};\n\n",
         float(exponent)
     ));
+    let edge = number(components, "components.window.resize-edge", COMPONENTS);
+    let corner = number(components, "components.window.resize-corner", COMPONENTS);
+    const_doc(
+        out,
+        "WINDOW_RESIZE",
+        "The band inside a client-decorated window that resizes it, in logical px.",
+    );
+    out.push_str(&format!(
+        ": WindowResize = WindowResize {{ edge: {}, corner: {} }};\n\n",
+        float(edge),
+        float(corner)
+    ));
 }
 
 pub(super) fn emit_dialog(out: &mut String, tokens: &Value, components: &Value) {

@@ -127,34 +127,44 @@ live.
 
 The state arrives with each compositor configure and is read with
 `WindowControls::get().status.read()`: `maximized`, `fullscreen` and `activated`.
+The screenshots in this section are the Rótulo window (island sidebar, `Top`
+layout unless stated) rendered by the kit in each state.
 
-| State | How it is entered | What the kit does |
+### The four states with the default layout (`Top`)
+
+| State | How it is entered | What the kit does | How it looks |
+|---|---|---|---|
+| Normal | — | Titlebar in place, traffic lights in the sidebar. The window edges resize it. On close, the size is saved | ![Normal window](assets/estados/estado-normal.png) |
+| Maximized | Green button with `green_button = "zoom"`, double click with `zoom` or `fill`, or `toggle_maximize()` | Same as normal, without resize edges. In MalaysiaDreams the compositor keeps the frame (corners and shadow). On close, the kit saves that it was maximized and reopens it that way | ![Maximized window: same as normal](assets/estados/estado-maximizada.png) |
+| Full screen without the focus protocol (another compositor) | Green button with `focus` (default) or `fullscreen`, or `toggle_fullscreen()` | The titlebar stays in place and the traffic lights hide | ![Full screen without the protocol: no traffic lights](assets/estados/estado-completa-sin-protocolo.png) |
+| MalaysiaDreams focus mode, bar up | Same; the compositor gives the `fullscreen` state | The titlebar leaves the layout and the content fills the whole window | ![Focus mode with the bar up: content only](assets/estados/estado-foco-barra-arriba.png) |
+
+In MalaysiaDreams, focus mode
+([MalaysiaDreams ADRs 0051 and 0054](https://github.com/HBlanqueto/malaysia/tree/main/docs/decisiones))
+slides a black bar down when the pointer nears the top. The kit requests
+`set_overlay` through `infinity_focus_v1` v2, so the window does not move:
+while the bar is down, `titlebar_overlaid()` is true and the titlebar is drawn
+over the content, right below the bar, with progressive glass. It appears and
+disappears with the bar in `DURATION_BASE`. In full screen, `reveal` is always
+`Always`.
+
+### Focus mode with the bar down, by layout
+
+In these screenshots, the black strip at the top (28 px) is the compositor
+bar, added to the image: the app does not draw it.
+
+| Layout | What comes down | How it looks |
 |---|---|---|
-| Normal | — | Titlebar in place; when the size changes, it is saved |
-| Maximized | Green button with `green_button = "zoom"`, double click with `zoom` or `fill`, or `toggle_maximize()` | Nothing visual: the titlebar stays the same. In MalaysiaDreams the compositor keeps the frame (corners and shadow). The size is not saved |
-| Full screen and focus mode | Green button with `focus` (default) or `fullscreen`, or `toggle_fullscreen()` | The titlebar leaves the layout and the content fills the whole window. The traffic lights hide. The size is not saved |
-
-In MalaysiaDreams, focus mode gives the window the `fullscreen` state and a
-black bar that slides down when the pointer nears the top
-([MalaysiaDreams ADRs 0051 and 0054](https://github.com/HBlanqueto/malaysia/tree/main/docs/decisiones)).
-The kit requests `set_overlay` through `infinity_focus_v1` v2. While the bar is
-down, `titlebar_overlaid()` is true and each titlebar is drawn over the
-content, at the height of the bar, with progressive glass, appearing with it:
-
-| Layout | In full screen, with the bar down |
-|---|---|
-| `Top` | The `Titlebar` slides down over the content. The sidebar traffic lights move down by the same amount |
-| `Rail`, `Actions` | The rail is drawn as glass and moves down with the bar |
-| `Unified` | Same as `Top` |
-| `Pill` | The pill is hidden until the bar comes down; then it appears as glass |
-
-In full screen, `reveal` is always `Always`. Without the protocol (another
-compositor), the titlebar stays in the layout and only the traffic lights hide.
+| `Top` (default) | The `Titlebar` over the content; the sidebar traffic lights move down by the same amount | ![Top with the bar down](assets/estados/foco-top.png) |
+| `Unified` | Same as `Top` | ![Unified with the bar down](assets/estados/foco-unified.png) |
+| `Rail` | The rail, as glass, with the traffic lights in a column | ![Rail with the bar down](assets/estados/foco-rail.png) |
+| `Actions` | The wide rail with its footer of actions | ![Actions with the bar down](assets/estados/foco-actions.png) |
+| `Pill` | The traffic-light pill, as glass; before that it is hidden | ![Pill with the bar down](assets/estados/foco-pill.png) |
 
 ### What the app does
 
 1. If it uses `Titlebar`, `WindowChrome`, `Sidebar` or `PreferencesWindow`, it
-   does nothing: all three states already work.
+   does nothing: every state in the tables already works.
 2. It leaves room for the bar in the content under the overlaid titlebar, as
    Ondina does:
 
@@ -164,7 +174,15 @@ compositor), the titlebar stays in the layout and only the traffic lights hide.
    rect().padding(Gaps::new(arriba, 0.0, 0.0, 0.0)).child(contenido)
    ```
 
-3. For its own behavior (an immersive mode that hides panels), it reads the
+3. If a view covers the titlebar (a video player that fills the window), it
+   adds its own traffic lights so the window can be maximized or leave full
+   screen without it, as the Marea player does:
+
+   ```rust
+   window_traffic_lights(WindowControls::get().status.read().activated, false)
+   ```
+
+4. For its own behavior (an immersive mode that hides panels), it reads the
    state and decides:
 
    ```rust
@@ -173,8 +191,20 @@ compositor), the titlebar stays in the layout and only the traffic lights hide.
    rect().maybe_child((!inmersivo).then(panel_de_herramientas))
    ```
 
-4. To offer it in a menu, it calls `toggle_maximize()` or
+5. To offer it in a menu, it calls `toggle_maximize()` or
    `toggle_fullscreen()` from an `Action` (chapter [10](10-app.en.md)).
+
+### Resizing from the edges
+
+With `Client` decoration, the runner reserves a band inside the window of
+`WINDOW_RESIZE.edge` (5 px) on each side and `WINDOW_RESIZE.corner` (16 px)
+along each corner:
+
+1. Over the band, the cursor turns into the arrow for that edge or corner and
+   the app stops receiving the motion.
+2. A left-button press starts a compositor resize (`xdg_toplevel.resize`).
+3. There is no band when the window is maximized, in full screen, fixed-size or
+   server-decorated, nor while the app is dragging something.
 
 ### The green button and double click
 
@@ -184,9 +214,9 @@ equal to maximum) they change:
 | `green_button` | Normal window | Fixed size |
 |---|---|---|
 | `focus` (default) | Full screen | Maximizes vertically |
-| `zoom` | Maximizes | Maximizes vertically, even though the button is drawn gray and without a glyph |
+| `zoom` | Maximizes | Maximizes vertically |
 | `fullscreen` | Full screen | Maximizes vertically |
-| `none` | Nothing | Maximizes vertically |
+| `none` | Nothing; the button is drawn gray and without a glyph | Nothing; the button is drawn gray and without a glyph |
 
 | `double_click_titlebar` | Normal window | Fixed size |
 |---|---|---|

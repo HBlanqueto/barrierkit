@@ -31,7 +31,7 @@ use sctk::{
 use std::time::Duration;
 use torin::prelude::CursorPoint;
 
-use super::super::{runtime::Runtime, surface::physical_point};
+use super::super::{WindowEdge, runtime::Runtime, surface::physical_point};
 
 pub(crate) struct RepeatState {
     pub(in crate::platform) event: KeyEvent,
@@ -58,6 +58,20 @@ pub(in crate::platform) fn released_repeated_key(
     repeat
         .as_ref()
         .is_some_and(|state| state.event.keysym == event.keysym)
+}
+
+fn edge_shape(edge: Option<WindowEdge>) -> CursorShape {
+    match edge {
+        None => CursorShape::Default,
+        Some(WindowEdge::Top) => CursorShape::NResize,
+        Some(WindowEdge::Bottom) => CursorShape::SResize,
+        Some(WindowEdge::Left) => CursorShape::WResize,
+        Some(WindowEdge::Right) => CursorShape::EResize,
+        Some(WindowEdge::TopLeft) => CursorShape::NwResize,
+        Some(WindowEdge::TopRight) => CursorShape::NeResize,
+        Some(WindowEdge::BottomLeft) => CursorShape::SwResize,
+        Some(WindowEdge::BottomRight) => CursorShape::SeResize,
+    }
 }
 
 pub(in crate::platform) fn cursor_shape_from_icon(icon: CursorIcon) -> CursorShape {
@@ -174,6 +188,58 @@ impl SeatHandler for Runtime {
     fn remove_seat(&mut self, _: &Connection, _: &QueueHandle<Self>, _: wl_seat::WlSeat) {}
 }
 
+impl Runtime {
+    fn resize_from_edge(&mut self, index: usize, event: &PointerEvent) -> bool {
+        use sctk::seat::pointer::{BTN_LEFT, PointerEventKind};
+        let edge = if self.pointer_pressed {
+            None
+        } else {
+            self.resize_edge(index, event.position)
+        };
+        match event.kind {
+            PointerEventKind::Enter { .. } | PointerEventKind::Motion { .. } => {
+                if edge != self.resize_hover {
+                    self.resize_hover = edge;
+                    if let Some(device) = &self.cursor_shape_device {
+                        device.set_shape(self.last_pointer_serial.get(), edge_shape(edge));
+                    }
+                }
+                edge.is_some()
+            }
+            PointerEventKind::Leave { .. } => {
+                self.resize_hover = None;
+                false
+            }
+            PointerEventKind::Press {
+                button: BTN_LEFT,
+                serial,
+                ..
+            } if let Some(edge) = edge => {
+                self.last_input_serial.set(serial);
+                let surface_id = self.surfaces[index].surface.id();
+                if let Some(context) = self
+                    .window_contexts
+                    .iter()
+                    .find(|ctx| ctx.controls.surface_id == surface_id)
+                {
+                    context.controls.pointer_serial.set(serial);
+                    context.controls.resize(edge);
+                }
+                true
+            }
+            PointerEventKind::Press { .. } => {
+                self.pointer_pressed = true;
+                false
+            }
+            PointerEventKind::Release { .. } => {
+                self.pointer_pressed = false;
+                false
+            }
+            _ => false,
+        }
+    }
+}
+
 impl PointerHandler for Runtime {
     fn pointer_frame(
         &mut self,
@@ -192,8 +258,11 @@ impl PointerHandler for Runtime {
                     device.set_shape(serial, CursorShape::Default);
                 }
             }
-            let position = physical_point(event.position, self.surfaces[index].scale);
             use sctk::seat::pointer::PointerEventKind;
+            if self.resize_from_edge(index, event) {
+                continue;
+            }
+            let position = physical_point(event.position, self.surfaces[index].scale);
             let platform_event = match event.kind {
                 PointerEventKind::Enter { .. } | PointerEventKind::Motion { .. } => {
                     PlatformEvent::Mouse {
