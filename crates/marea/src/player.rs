@@ -10,6 +10,7 @@ use barrier_kit::progress::ProgressRing;
 use barrier_kit::style::text;
 use barrier_kit::symbol::Symbol;
 use barrier_kit::theme::color;
+use barrier_kit::titlebar::window_drag_handler;
 use barrier_kit::video::VideoView;
 use freya_animation::prelude::{AnimDirection, OnCreation, use_animation};
 use freya_core::prelude::*;
@@ -23,6 +24,7 @@ use crate::catalog::title;
 const CHROME_IDLE: Duration = Duration::from_millis(2500);
 const TICK: Duration = Duration::from_millis(250);
 const SEEK_STEP: f64 = 10.0;
+const TOP_BAR: f32 = 74.0;
 const NEXT_UP: f64 = 4.0;
 const THUMB: (f32, f32) = (168.0, 95.0);
 const SUBTITLES: [&str; 3] = [
@@ -104,6 +106,13 @@ impl Component for Player {
                 on_close.call(());
             }
         });
+        // The close button unmounts with the chrome; an animation run from its handler would die with it.
+        use_side_effect(move || {
+            if *closing.read() {
+                open.run(AnimDirection::Reverse);
+            }
+        });
+        let drag = window_drag_handler(false);
 
         let opened = open.get().current();
         let lerp = |a: f32, b: f32| a + (b - a) * opened;
@@ -131,7 +140,6 @@ impl Component for Player {
         let mut close = move || {
             if !*closing.peek() {
                 closing.set(true);
-                open.run(AnimDirection::Reverse);
             }
         };
         let toggle = {
@@ -191,6 +199,13 @@ impl Component for Player {
             .on_global_key_down(keys)
             .on_pointer_move(move |_| last_move.set(Instant::now()))
             .maybe_child(stream.clone().map(VideoView::new))
+            .child(
+                rect()
+                    .position(Position::new_absolute().top(0.0).left(0.0))
+                    .width(Size::fill())
+                    .height(Size::px(TOP_BAR))
+                    .on_mouse_down(drag.clone()),
+            )
             .maybe_child(line.map(|line| {
                 rect()
                     .position(Position::new_absolute().bottom(120.0).left(0.0))
@@ -215,7 +230,9 @@ impl Component for Player {
                 rect()
                     .position(Position::new_absolute().top(0.0).left(0.0))
                     .width(Size::fill())
-                    .padding(Gaps::new(18.0, 20.0, 60.0, 20.0))
+                    .height(Size::px(TOP_BAR + 42.0))
+                    .padding(Gaps::new(0.0, 20.0, 42.0, 20.0))
+                    .content(Content::Flex)
                     .direction(Direction::Horizontal)
                     .cross_align(Alignment::Center)
                     .spacing(12.0)
@@ -228,15 +245,23 @@ impl Component for Player {
                         RoundButton::new(Symbol::ChevronLeft, "Cerrar el reproductor")
                             .on_press(move |_| close()),
                     )
-                    .child(rect().child(text(title.name, HEADLINE, WHITE)).child(text(
-                        if title.series {
-                            "Temporada 1 · Episodio 1"
-                        } else {
-                            title.meta[0]
-                        },
-                        CALLOUT,
-                        Rgba::rgba8(255, 255, 255, 0.7),
-                    )))
+                    .child(
+                        rect()
+                            .width(Size::flex(1.0))
+                            .height(Size::fill())
+                            .main_align(Alignment::Center)
+                            .on_mouse_down(drag)
+                            .child(text(title.name, HEADLINE, WHITE))
+                            .child(text(
+                                if title.series {
+                                    "Temporada 1 · Episodio 1"
+                                } else {
+                                    title.meta[0]
+                                },
+                                CALLOUT,
+                                Rgba::rgba8(255, 255, 255, 0.7),
+                            )),
+                    )
             }))
             .maybe_child((chrome && next_up && title.series).then(|| {
                 rect()

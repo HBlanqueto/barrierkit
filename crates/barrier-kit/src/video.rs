@@ -36,6 +36,7 @@ use crate::platform::{Timers, WakeHandle};
 const GPU_CAPS: &str = "video/x-raw(memory:DMABuf),format=DMA_DRM,drm-format=AB24";
 const PREROLL_TIMEOUT: Duration = Duration::from_secs(3);
 const REMOTE_PREROLL_TIMEOUT: Duration = Duration::from_secs(15);
+const REMOTE_RING_BYTES: u32 = 32 << 20;
 const IMPORT_CACHE: usize = 16;
 const AUDIO: &str = "queue ! decodebin3 ! audioconvert ! audioresample ! volume name=volume volume=0 ! autoaudiosink";
 
@@ -142,6 +143,14 @@ fn attach_audio(pipeline: &gst::Pipeline, pad: &gst::Pad) {
     }
 }
 
+// qtdemux seeks fragmented MP4 (YouTube's DASH) only in pull mode; a queue2 ring buffer gives it pull over HTTP ranges.
+fn remote(uri: &str) -> String {
+    format!(
+        "souphttpsrc location={} ! queue2 ring-buffer-max-size={REMOTE_RING_BYTES}",
+        quoted(uri)
+    )
+}
+
 fn quoted(location: &str) -> String {
     format!("\"{}\"", location.replace('"', "\\\""))
 }
@@ -191,20 +200,12 @@ impl VideoStream {
     }
 
     pub fn open_uri(uri: &str, looping: bool) -> Result<Self, VideoError> {
-        Self::open_source(
-            &format!("souphttpsrc location={}", quoted(uri)),
-            looping,
-            REMOTE_PREROLL_TIMEOUT,
-        )
+        Self::open_source(&remote(uri), looping, REMOTE_PREROLL_TIMEOUT)
     }
 
     pub fn open_uris(video: &str, audio: &str, looping: bool) -> Result<Self, VideoError> {
         Self::open_source(
-            &format!(
-                "souphttpsrc location={} ! {AUDIO}  souphttpsrc location={}",
-                quoted(audio),
-                quoted(video)
-            ),
+            &format!("{} ! {AUDIO}  {}", remote(audio), remote(video)),
             looping,
             REMOTE_PREROLL_TIMEOUT,
         )
