@@ -1,5 +1,5 @@
 {
-  description = "BarrierKit: the application toolkit for MalaysiaDreams.";
+  description = "BarrierKit: the application toolkit for Malaysia.";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";

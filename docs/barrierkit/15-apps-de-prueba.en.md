@@ -16,7 +16,7 @@ to launch it.
    ```
 
 They run on any compositor that draws the first frame (chapter
-[14](14-plataforma.en.md)). On MalaysiaDreams they also get borders, shadow,
+[14](14-plataforma.en.md)). On Malaysia they also get borders, shadow,
 blur and the global menu.
 
 ## Master Tengen App Show (`tengen-app-show`)

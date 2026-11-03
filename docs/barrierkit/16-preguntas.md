@@ -30,11 +30,11 @@ El dibujo va por Vulkan, normalmente en la GPU; el diseño, en la CPU. Un driver
 Vulkan por software (lavapipe) también sirve. El vídeo usa VA-API si existe y,
 si no, la CPU. Ver [1](01-que-es.md#usa-gpu-o-cpu) y [13](13-fondos-y-medios.md#vídeo-feature-video).
 
-## ¿Funciona fuera de MalaysiaDreams?
+## ¿Funciona fuera de Malaysia?
 
 Sí, como cliente Wayland normal, si el compositor dibuja el primer frame (ver
 [14](14-plataforma.md#limitación-conocida-el-primer-frame)). Fuera de
-MalaysiaDreams no hay bordes, sombra ni blur del compositor, y el menú global
+Malaysia no hay bordes, sombra ni blur del compositor, y el menú global
 solo existe en D-Bus.
 
 ## ¿Puedo usar Freya directamente?

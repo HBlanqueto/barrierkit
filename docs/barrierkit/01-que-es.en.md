@@ -5,7 +5,7 @@
 
 ## In one sentence
 
-BarrierKit is to MalaysiaDreams what AppKit is to macOS or GTK + libadwaita is
+BarrierKit is to Malaysia what AppKit is to macOS or GTK + libadwaita is
 to GNOME: the set of pieces that builds the native apps and the shell. An app
 does not draw buttons or sidebars: it asks the kit for them, and they all look
 and behave the same.
@@ -34,7 +34,7 @@ four library crates and five test apps:
 | `barrier-kit` | The kit: Wayland runner, style, controls, views, patterns and app infrastructure. |
 | `vow-design` | **Tengen**, the design system. It turns `tengen/tokens.json` and `tengen/components.json` into Rust constants. |
 | `vow-appearance` | Reads `appearance.domain` and the wallpaper and resolves them into a concrete palette. It watches for changes. |
-| `infinity-protocol` | Private Wayland protocol between the apps and the MalaysiaDreams compositor. |
+| `infinity-protocol` | Private Wayland protocol between the apps and the Malaysia compositor. |
 | `tengen-app-show`, `ondina`, `marea` | Test apps (chapter [15](15-apps-de-prueba.en.md)). |
 
 The kit builds on [Freya](https://freyaui.dev) `=0.4.3`, but only on its core
@@ -65,7 +65,7 @@ yet ([ADR 0047](../decisiones/0047-barrierkit-en-capas.en.md), section «Pendien
 - A Wayland compositor with `wl_compositor`, `xdg_wm_base` and `wl_seat`. The
   other protocols are optional (chapter [14](14-plataforma.en.md)).
 - `libvulkan` and a Vulkan driver (ICD).
-- Building inside `nix develop` (MalaysiaDreams ADR 0007): the dev shell ships
+- Building inside `nix develop` (Malaysia ADR 0007): the dev shell ships
   Skia, the fonts (Geist) and the RADV driver.
 
 ```sh

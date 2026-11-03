@@ -39,7 +39,7 @@ el [ADR 0056](../decisiones/0056-barrierkit-sobre-vulkan.md).
 | `xdg_activation_v1` | No | Traer la ventana al frente al reactivar una instancia |
 | `wl_data_device_manager` | No | Portapapeles |
 | `org_kde_kwin_appmenu_manager` | No | Enseñar el menú global en la barra de menús |
-| `infinity_focus_manager_v1` | No | Avisos del compositor de MalaysiaDreams sobre la barra de foco |
+| `infinity_focus_manager_v1` | No | Avisos del compositor de Malaysia sobre la barra de foco |
 
 Si falta un protocolo opcional, el runner lo registra con `tracing::info!` y
 sigue. Si falta uno obligatorio, `run_window` devuelve
@@ -79,7 +79,7 @@ Los submódulos de `shell/` son privados y su API sale solo de `shell/mod.rs`.
 El kit pide un frame callback y espera a recibirlo antes de dibujar el primer
 frame. Weston y sway no envían frame callbacks a una superficie que aún no tiene
 contenido, así que en ellos la ventana nunca aparece (comprobado el
-2026-11-03). El [README](../../README.md) da por probados MalaysiaDreams y
+2026-11-03). El [README](../../README.md) da por probados Malaysia y
 GNOME/Mutter. Las capturas de esta documentación se hicieron en sway con
 el primer frame dibujado sin esperar (ver [`assets/README.md`](assets/README.md)).
 

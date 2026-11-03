@@ -53,7 +53,7 @@ Tengen App Show y Ajustes del sistema están hechos con este patrón.
 ## «Acerca de»: `about_window`
 
 ```rust
-about_window(avatar("C"), "Contador", "Versión 1.0", "™ y © 2026 MalaysiaDreams")
+about_window(avatar("C"), "Contador", "Versión 1.0", "™ y © 2026 Malaysia")
 ```
 
 ![Ventana Acerca de](assets/componentes/about-light.png)

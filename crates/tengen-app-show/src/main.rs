@@ -638,7 +638,7 @@ fn about() -> Form {
                         avatar("MT"),
                         "Master Tengen App Show",
                         "Versión 0.1",
-                        "™ y © 2026 MalaysiaDreams",
+                        "™ y © 2026 Malaysia",
                     )),
             ),
         ),

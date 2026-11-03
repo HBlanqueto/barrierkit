@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <protocol name="infinity_window_manager_v1">
   <copyright>
-    Copyright © 2026 MalaysiaDreams contributors
+    Copyright © 2026 Malaysia contributors
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -159,7 +159,7 @@
 
     <event name="space" since="5">
       <description summary="the shown space">
-        The row of spaces (MalaysiaDreams ADR 0051): which one is shown, how
+        The row of spaces (Malaysia ADR 0051): which one is shown, how
         many there are, the shown desktop's number as the user sees it
         («Escritorio 3»), 0 for a focus space, and the bar's state over a
         focus space. Over a focus space the bar is drawn in absolute black

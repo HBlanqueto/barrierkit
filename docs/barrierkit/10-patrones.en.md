@@ -54,7 +54,7 @@ Tengen App Show and System Settings are built with this pattern.
 ## "About": `about_window`
 
 ```rust
-about_window(avatar("C"), "Contador", "Versión 1.0", "™ y © 2026 MalaysiaDreams")
+about_window(avatar("C"), "Contador", "Versión 1.0", "™ y © 2026 Malaysia")
 ```
 
 ![About window](assets/componentes/about-light.png)

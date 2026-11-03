@@ -1,6 +1,6 @@
 [package]
 name = "infinity-protocol"
-description = "Private Infinity window-management protocol shared between MalaysiaDreams and BarrierKit."
+description = "Private Infinity window-management protocol shared between Malaysia and BarrierKit."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

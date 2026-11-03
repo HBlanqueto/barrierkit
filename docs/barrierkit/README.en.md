@@ -1,6 +1,6 @@
 # BarrierKit documentation
 
-BarrierKit is the kit for building the apps and the shell of MalaysiaDreams.
+BarrierKit is the kit for building the apps and the shell of Malaysia.
 This documentation covers it from the first window to the Wayland runner.
 
 - **Reader:** anyone who writes an app with the kit or works inside the kit.

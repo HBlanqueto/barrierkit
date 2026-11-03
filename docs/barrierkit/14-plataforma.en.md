@@ -40,7 +40,7 @@ With the `video` feature the device also enables the dmabuf import extensions
 | `xdg_activation_v1` | No | Bringing the window to the front when an instance is reactivated |
 | `wl_data_device_manager` | No | Clipboard |
 | `org_kde_kwin_appmenu_manager` | No | Showing the global menu in the menu bar |
-| `infinity_focus_manager_v1` | No | Notices from the MalaysiaDreams compositor about the focus bar |
+| `infinity_focus_manager_v1` | No | Notices from the Malaysia compositor about the focus bar |
 
 If an optional protocol is missing, the runner logs it with `tracing::info!`
 and continues. If a required one is missing, `run_window` returns
@@ -82,7 +82,7 @@ through a single runner `Extension`
 The kit requests a frame callback and waits to receive it before drawing the
 first frame. Weston and sway do not send frame callbacks to a surface that has
 no content yet, so on them the window never appears (checked on 2026-11-03).
-The [README](../../README.md) lists MalaysiaDreams and GNOME/Mutter as tested.
+The [README](../../README.md) lists Malaysia and GNOME/Mutter as tested.
 The screenshots in this documentation were made on sway with the first frame
 drawn without waiting (see [`assets/README.en.md`](assets/README.en.md)).
 

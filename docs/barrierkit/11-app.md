@@ -47,7 +47,7 @@ WindowOptions::new("Notas", "notas").menu(AppMenu::new(vec![Menu::new(
 ```
 
 El menú se publica por D-Bus (dbusmenu) y, si el compositor ofrece
-`org_kde_kwin_appmenu_manager`, aparece en la barra de menús de MalaysiaDreams.
+`org_kde_kwin_appmenu_manager`, aparece en la barra de menús de Malaysia.
 Sin ese protocolo sigue existiendo en D-Bus.
 
 ## Una sola instancia: `launch`

@@ -16,7 +16,7 @@ lanzarla.
    ```
 
 Corren en cualquier compositor que dibuje el primer frame (capítulo
-[14](14-plataforma.md)). En MalaysiaDreams reciben además bordes, sombra, blur
+[14](14-plataforma.md)). En Malaysia reciben además bordes, sombra, blur
 y menú global.
 
 ## Master Tengen App Show (`tengen-app-show`)

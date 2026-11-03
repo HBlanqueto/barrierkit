@@ -1,7 +1,7 @@
 # 7. Titlebars
 
 **Goal:** choose an app's titlebar and know how it looks in each state:
-normal, unfocused, maximized, full screen and MalaysiaDreams focus mode.
+normal, unfocused, maximized, full screen and Malaysia focus mode.
 **Reader:** anyone who designs an app's window.
 
 ## What there is
@@ -167,12 +167,12 @@ layout unless stated) rendered by the kit in each state.
 | State | How it is entered | What the kit does | How it looks |
 |---|---|---|---|
 | Normal | — | Titlebar in place, traffic lights in the sidebar. The window edges resize it. On close, the size is saved | ![Normal window](assets/estados/estado-normal.png) |
-| Maximized | Green button with `green_button = "zoom"`, double click with `zoom` or `fill`, or `toggle_maximize()` | Same as normal, without resize edges. In MalaysiaDreams the compositor keeps the frame (corners and shadow). On close, the kit saves that it was maximized and reopens it that way | ![Maximized window: same as normal](assets/estados/estado-maximizada.png) |
+| Maximized | Green button with `green_button = "zoom"`, double click with `zoom` or `fill`, or `toggle_maximize()` | Same as normal, without resize edges. In Malaysia the compositor keeps the frame (corners and shadow). On close, the kit saves that it was maximized and reopens it that way | ![Maximized window: same as normal](assets/estados/estado-maximizada.png) |
 | Full screen without the focus protocol (another compositor) | Green button with `focus` (default) or `fullscreen`, or `toggle_fullscreen()` | The titlebar stays in place and the traffic lights hide | ![Full screen without the protocol: no traffic lights](assets/estados/estado-completa-sin-protocolo.png) |
-| MalaysiaDreams focus mode, bar up | Same; the compositor gives the `fullscreen` state | The titlebar leaves the layout and the content fills the whole window | ![Focus mode with the bar up: content only](assets/estados/estado-foco-barra-arriba.png) |
+| Malaysia focus mode, bar up | Same; the compositor gives the `fullscreen` state | The titlebar leaves the layout and the content fills the whole window | ![Focus mode with the bar up: content only](assets/estados/estado-foco-barra-arriba.png) |
 
-In MalaysiaDreams, focus mode
-([MalaysiaDreams ADRs 0051 and 0054](https://github.com/HBlanqueto/malaysia/tree/main/docs/decisiones))
+In Malaysia, focus mode
+([Malaysia ADRs 0051 and 0054](https://github.com/HBlanqueto/malaysia/tree/main/docs/decisiones))
 slides a black bar down when the pointer nears the top. The kit requests
 `set_overlay` through `infinity_focus_v1` v2, so the window does not move:
 while the bar is down, `titlebar_overlaid()` is true and the titlebar is drawn

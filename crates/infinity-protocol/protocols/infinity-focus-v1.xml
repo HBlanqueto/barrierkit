@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <protocol name="infinity_focus_v1">
   <copyright>
-    Copyright © 2026 MalaysiaDreams contributors
+    Copyright © 2026 Malaysia contributors
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -25,7 +25,7 @@
 
   <interface name="infinity_focus_manager_v1" version="2">
     <description summary="focus mode notices for applications">
-      MalaysiaDreams focus mode (ADR 0051): a maximized window gets a space of
+      Malaysia focus mode (ADR 0051): a maximized window gets a space of
       its own and the xdg fullscreen state. In that space, the pointer at the
       top edge brings the bar down over the window.
 
@@ -37,7 +37,7 @@
       client-decorated window down by the bar's height while the bar is down,
       so its own titlebar stays visible under it. With set_overlay (version
       2) the window stays put and the client draws its titlebar over its
-      content, below the bar (MalaysiaDreams ADR 0054).
+      content, below the bar (Malaysia ADR 0054).
     </description>
 
     <request name="destroy" type="destructor">

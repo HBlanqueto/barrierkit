@@ -4,11 +4,11 @@ Estado: **aceptado** (2026-10-28).
 
 ## Contexto
 
-BarrierKit vive dentro del workspace de MalaysiaDreams (`crates/barrier-kit`), junto con el compositor y la shell. El ADR 0047 lo convierte en un toolkit completo para construir cualquier app, a la manera de AppKit o GTK + libadwaita. Un toolkit así tiene su propio ciclo de vida, su app de muestra y sus decisiones, y no debería compartir repositorio con el compositor.
+BarrierKit vive dentro del workspace de Malaysia (`crates/barrier-kit`), junto con el compositor y la shell. El ADR 0047 lo convierte en un toolkit completo para construir cualquier app, a la manera de AppKit o GTK + libadwaita. Un toolkit así tiene su propio ciclo de vida, su app de muestra y sus decisiones, y no debería compartir repositorio con el compositor.
 
 GNOME y macOS separan estas piezas del mismo modo:
 
-| GNOME | macOS | MalaysiaDreams |
+| GNOME | macOS | Malaysia |
 |---|---|---|
 | GTK + libadwaita (con Adwaita y `AdwStyleManager`) | AppKit (con Aqua y `NSAppearance`) | **barrierkit**: barrier-kit + Tengen + vow-appearance |
 | gtk4-widget-factory (en el repo de GTK) | — | Master Tengen App Show (en barrierkit) |

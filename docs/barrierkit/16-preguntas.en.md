@@ -31,11 +31,11 @@ software Vulkan driver (lavapipe) also works. Video uses VA-API if available
 and, if not, the CPU. See [1](01-que-es.en.md#does-it-use-the-gpu-or-the-cpu)
 and [13](13-fondos-y-medios.en.md#video-video-feature).
 
-## Does it work outside MalaysiaDreams?
+## Does it work outside Malaysia?
 
 Yes, as a normal Wayland client, if the compositor draws the first frame (see
 [14](14-plataforma.en.md#known-limitation-the-first-frame)). Outside
-MalaysiaDreams there are no compositor borders, shadow or blur, and the global
+Malaysia there are no compositor borders, shadow or blur, and the global
 menu only exists on D-Bus.
 
 ## Can I use Freya directly?

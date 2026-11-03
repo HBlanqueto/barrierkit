@@ -2,7 +2,7 @@
 
 **Objetivo:** elegir la titlebar de una app y saber cómo se ve en cada estado:
 normal, sin foco, maximizada, en pantalla completa y en el modo foco de
-MalaysiaDreams.
+Malaysia.
 **Lector:** quien diseña la ventana de una app.
 
 ## Qué hay
@@ -169,12 +169,12 @@ diseño `Top` salvo donde se indica) renderizada por el kit en cada estado.
 | Estado | Cómo se entra | Qué hace el kit | Cómo se ve |
 |---|---|---|---|
 | Normal | — | Titlebar en su sitio, semáforos en la barra lateral. Los bordes de la ventana la redimensionan. Al cerrar se guarda el tamaño | ![Ventana normal](assets/estados/estado-normal.png) |
-| Maximizada | Botón verde con `green_button = "zoom"`, doble clic con `zoom` o `fill`, o `toggle_maximize()` | Lo mismo que en normal, sin bordes de redimensionado. En MalaysiaDreams el compositor conserva el marco (esquinas y sombra). Al cerrar se guarda que estaba maximizada y vuelve a abrirse así | ![Ventana maximizada: igual que la normal](assets/estados/estado-maximizada.png) |
+| Maximizada | Botón verde con `green_button = "zoom"`, doble clic con `zoom` o `fill`, o `toggle_maximize()` | Lo mismo que en normal, sin bordes de redimensionado. En Malaysia el compositor conserva el marco (esquinas y sombra). Al cerrar se guarda que estaba maximizada y vuelve a abrirse así | ![Ventana maximizada: igual que la normal](assets/estados/estado-maximizada.png) |
 | Pantalla completa sin el protocolo de foco (otro compositor) | Botón verde con `focus` (por defecto) o `fullscreen`, o `toggle_fullscreen()` | La titlebar se queda en su sitio y se ocultan los semáforos | ![Pantalla completa sin protocolo: sin semáforos](assets/estados/estado-completa-sin-protocolo.png) |
-| Modo foco de MalaysiaDreams, barra arriba | Igual; el compositor da el estado `fullscreen` | La titlebar sale del diseño y el contenido ocupa toda la ventana | ![Modo foco con la barra arriba: solo contenido](assets/estados/estado-foco-barra-arriba.png) |
+| Modo foco de Malaysia, barra arriba | Igual; el compositor da el estado `fullscreen` | La titlebar sale del diseño y el contenido ocupa toda la ventana | ![Modo foco con la barra arriba: solo contenido](assets/estados/estado-foco-barra-arriba.png) |
 
-En MalaysiaDreams, el modo foco
-([ADR 0051 y 0054 de MalaysiaDreams](https://github.com/HBlanqueto/malaysia/tree/main/docs/decisiones))
+En Malaysia, el modo foco
+([ADR 0051 y 0054 de Malaysia](https://github.com/HBlanqueto/malaysia/tree/main/docs/decisiones))
 baja una barra negra al acercar el puntero arriba. El kit pide `set_overlay`
 por `infinity_focus_v1` v2, así que la ventana no se mueve: mientras la barra
 está bajada, `titlebar_overlaid()` es verdadero y la titlebar se dibuja encima
