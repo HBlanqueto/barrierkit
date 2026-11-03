@@ -216,15 +216,14 @@ Con `Push` y la barra arriba, el contenido llega al borde:
 
 ### Modo foco con la barra bajada, por diseño
 
-**Con la barra lateral en isla y la ventana maximizada o en pantalla
-completa, el `Rail` pasa a `Top`:** la franja o la columna unificada
-desaparecen y los semáforos vuelven a la isla. Así se ve `Rail` con
-isla en modo foco:
+**El diseño se mantiene al maximizar y en pantalla completa**, también con la
+barra lateral en isla: el `Rail` sigue a su lado.
 
-![Rail con isla en modo foco: los semáforos vuelven a la isla](assets/estados/foco-isla-rail.png)
+| `Rail` con isla, maximizada | `Rail` con isla, modo foco |
+|---|---|
+| ![Rail con isla y la ventana maximizada](assets/estados/isla-rail-maximizada.png) | ![Rail con isla en modo foco](assets/estados/isla-rail-foco.png) |
 
-Con la barra lateral plana o sin barra lateral, cada diseño se conserva. Las
-capturas de esta tabla usan la barra lateral plana (salvo `Top`) y la barra por
+Las capturas de esta tabla usan la barra lateral plana (salvo `Top`) y la barra por
 defecto (`Solid`). La franja negra de arriba (28 px) es la barra del
 compositor, añadida a la imagen: la app no la dibuja.
 

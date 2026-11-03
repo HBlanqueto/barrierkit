@@ -214,15 +214,14 @@ With `Push` and the bar up, the content reaches the edge:
 
 ### Focus mode with the bar down, by layout
 
-**With an island sidebar and the window maximized or in full screen, the
-`Rail` becomes `Top`:** the strip or the unified column goes away and
-the traffic lights return to the island. This is `Rail` with an island in focus
-mode:
+**The layout is kept when the window is maximized and in full screen**, also
+with an island sidebar: the `Rail` stays on its side.
 
-![Rail with an island in focus mode: the traffic lights return to the island](assets/estados/foco-isla-rail.png)
+| `Rail` with an island, maximized | `Rail` with an island, focus mode |
+|---|---|
+| ![Rail with an island and the window maximized](assets/estados/isla-rail-maximizada.png) | ![Rail with an island in focus mode](assets/estados/isla-rail-foco.png) |
 
-With a flat sidebar or no sidebar, each layout is kept. The screenshots in this
-table use the flat sidebar (except `Top`) and the default bar (`Solid`). The
+The screenshots in this table use the flat sidebar (except `Top`) and the default bar (`Solid`). The
 black strip at the top (28 px) is the compositor bar, added to the image: the
 app does not draw it.
 
