@@ -43,5 +43,6 @@ Si faltan `infinity_window_manager_v1`, `ext_foreign_toplevel_list_v1` / `zwlr_f
 
 - ADR 0047 — [BarrierKit en capas](docs/decisiones/0047-barrierkit-en-capas.md)
 - ADR 0048 — [BarrierKit en su propio repositorio](docs/decisiones/0048-barrierkit-repositorio-propio.md)
+- ADR 0057 — [El cristal de pantalla completa cubre toda la ventana; la barra lateral sobre un fondo tintado](docs/decisiones/0057-cristal-y-barra-lateral-sobre-fondo.md)
 
 License: MIT
