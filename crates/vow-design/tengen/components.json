@@ -392,6 +392,19 @@
           "content-top": 74,
           "tint": [[0, 0.72], [0.5, 0.45], [1, 0]],
           "mask": [[0, 1], [0.3, 1], [0.55, 0.6], [1, 0]]
+        },
+        "fullscreen-band": {
+          "height": 44,
+          "blur": 24,
+          "layers": 1,
+          "content-top": 44,
+          "tint": [[0, 0.55], [1, 0.55]],
+          "mask": [[0, 1], [1, 1]]
+        },
+        "fullscreen-bar": {
+          "content-top": 44,
+          "scrim-height": 84,
+          "band-line": 1
         }
       },
       "sidebar": {

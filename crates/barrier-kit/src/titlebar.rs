@@ -18,7 +18,7 @@ use vow_design::{
 };
 
 use crate::ProbeExt;
-use crate::platform::{DecorationResponse, WindowControls, WindowStatus};
+use crate::platform::{DecorationResponse, FullscreenBar, WindowControls, WindowStatus};
 use crate::theme;
 
 #[derive(PartialEq)]
@@ -165,9 +165,28 @@ impl Component for Titlebar {
             resolved.surfaces.titlebar_inactive
         };
         let (inset_start, inset_end) = crate::chrome::rail_overlap(*span.read());
-        let place = move |bar: Element| -> Element {
+        let fullscreen_bar = crate::chrome::fullscreen_bar();
+        let focus_bar_height = controls
+            .as_ref()
+            .map_or(0.0, |controls| *controls.focus_bar_height.read());
+        let place = move |bar: Element, height: f32| -> Element {
             if !overlaid {
                 return bar;
+            }
+            if fullscreen_bar == FullscreenBar::Push {
+                let pushed = (focus_bar_height + height) * overlay_opacity;
+                return rect()
+                    .width(Size::fill())
+                    .height(Size::px(pushed))
+                    .overflow(Overflow::Clip)
+                    .child(
+                        rect()
+                            .position(Position::new_absolute().top(pushed - height))
+                            .width(Size::fill())
+                            .opacity(overlay_opacity)
+                            .child(bar),
+                    )
+                    .into_element();
             }
             rect()
                 .width(Size::fill())
@@ -185,8 +204,10 @@ impl Component for Titlebar {
                             .width(Size::window_percent(100.0))
                             .layer(TITLEBAR_OVERLAY_LAYER)
                             .opacity(overlay_opacity)
-                            .child(crate::glass::progressive_glass(
+                            .child(crate::glass::fullscreen_backdrop(
+                                fullscreen_bar,
                                 crate::glass::GlassEdge::Top,
+                                height,
                             )),
                     )
                     .child(
@@ -320,7 +341,10 @@ impl Component for Titlebar {
                 );
             }
 
-            return place(crate::chrome::revealable_bar(root.into_element(), height));
+            return place(
+                crate::chrome::revealable_bar(root.into_element(), height),
+                height,
+            );
         }
 
         let padding_x = if traffic.is_some() {
@@ -391,10 +415,10 @@ impl Component for Titlebar {
             .child(title)
             .child(right_slot);
 
-        place(crate::chrome::revealable_bar(
-            root.into_element(),
+        place(
+            crate::chrome::revealable_bar(root.into_element(), TITLEBAR_CLIENT_HEIGHT as f32),
             TITLEBAR_CLIENT_HEIGHT as f32,
-        ))
+        )
     }
 }
 

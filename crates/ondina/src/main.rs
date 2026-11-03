@@ -13,7 +13,9 @@ use barrier_kit::app_menu::{AppMenu, Menu};
 use barrier_kit::backdrop::{Accent, Backdrop, BackdropSource, Tint};
 use barrier_kit::compact::IconButton;
 use barrier_kit::controls::ScrollView;
-use barrier_kit::platform::{Decorations, Timers, WindowControls, WindowOptions, run_window};
+use barrier_kit::platform::{
+    Decorations, FullscreenBar, Timers, WindowControls, WindowOptions, run_window,
+};
 use barrier_kit::sidebar::{Sidebar, SidebarBackdrop, SidebarItem};
 use barrier_kit::symbol::Symbol;
 use barrier_kit::titlebar::Titlebar;
@@ -395,7 +397,8 @@ fn main() {
             .decorations(Decorations::Client)
             .size((980, 640))
             .min_size(Some(WINDOW_MIN_SIZE))
-            .menu(menu()),
+            .menu(menu())
+            .fullscreen_bar(FullscreenBar::ProgressiveGlass),
     )
     .expect("ondina");
 }

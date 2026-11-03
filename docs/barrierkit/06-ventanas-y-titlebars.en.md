@@ -25,6 +25,7 @@ run_window(
 | `.min_size(..)`, `.max_size(..)` | Limits. If they are equal, the window has a fixed size and the green button maximizes it vertically only |
 | `.parent(..)` | Child window (dialog) |
 | `.menu(AppMenu)` | Global menu of the window (chapter [10](10-app.en.md)) |
+| `.fullscreen_bar(FullscreenBar)` | How the overlaid titlebar is drawn in full screen; `Solid` by default ([below](#the-bar-in-full-screen-fullscreenbar)) |
 
 Inside the app, `WindowControls::get()` gives the state (`activated`,
 `maximized`, `fullscreen`, `decoration`, `fixed`) and the commands: `close()`,
@@ -144,22 +145,52 @@ In MalaysiaDreams, focus mode
 slides a black bar down when the pointer nears the top. The kit requests
 `set_overlay` through `infinity_focus_v1` v2, so the window does not move:
 while the bar is down, `titlebar_overlaid()` is true and the titlebar is drawn
-over the content, right below the bar, with progressive glass. It appears and
-disappears with the bar in `DURATION_BASE`. In full screen, `reveal` is always
-`Always`.
+over the content, right below the bar, on the background the app chooses
+(`FullscreenBar`, below). It appears and disappears with the bar in
+`DURATION_BASE`. In full screen, `reveal` is always `Always`.
+
+### The bar in full screen: `FullscreenBar`
+
+Each window chooses how its overlaid titlebar is drawn. The option goes in
+`WindowOptions` and applies to the `Titlebar`, the rail and the pill:
+
+```rust
+WindowOptions::new("Ondina", "ondina").fullscreen_bar(FullscreenBar::ProgressiveGlass)
+```
+
+**By default, every app uses `Solid` ("A · Lisa").** Only Ondina requests
+`ProgressiveGlass`. The five come from the "Ondina a pantalla completa"
+proposal (A, B, C and E accepted). In the screenshots, the black strip at the
+top is the compositor bar, added to the image.
+
+| `FullscreenBar` | What it draws | Where the content starts (`fullscreen_content_top`) | How it looks |
+|---|---|---|---|
+| `Solid` ("A · Lisa", **default**) | An opaque band in the window color, as tall as the titlebar. It cuts what passes below with a hard edge | Bar + `FULLSCREEN_BAR.content_top` (44) | ![A · Lisa](assets/estados/barra-lisa.png) |
+| `Glass` ("B1 · Vidrio en banda") | A band as tall as the titlebar that blurs what is below (`FULLSCREEN_BAND`), with a tint and a line at the bottom | Bar + `FULLSCREEN_BAND.content_top` (44) | ![B1 · Glass band](assets/estados/barra-vidrio-banda.png) |
+| `ProgressiveGlass` ("B2 · Vidrio progresivo", Ondina) | Maximum blur at the top that fades out over 96 px, without a line, from edge to edge of the window ([ADR 0057](../decisiones/0057-cristal-y-barra-lateral-sobre-fondo.md)) | Bar + `FULLSCREEN_GLASS.content_top` (74) | ![B2 · Progressive glass](assets/estados/barra-vidrio-progresivo.png) |
+| `Scrim` ("C · Degradado") | No band: a veil (`Palette::scrim`) that fades downward over `FULLSCREEN_BAR.scrim_height` (84); the controls float on top | Bar + `FULLSCREEN_BAR.content_top` (44) | ![C · Scrim](assets/estados/barra-degradado.png) |
+| `Push` ("E · Empuja") | It covers nothing: the titlebar returns to the layout and pushes the detail column down by the height of the bar and the titlebar. The sidebar does not move | 0: the content moves down by itself | ![E · Push, bar down](assets/estados/barra-empuja.png) |
+
+With `Push` and the bar up, the content reaches the top edge:
+
+![E · Push, bar up](assets/estados/barra-empuja-arriba.png)
+
+Only `Glass` and `ProgressiveGlass` blur. With the others, the rail and the
+pill are opaque.
 
 ### Focus mode with the bar down, by layout
 
-In these screenshots, the black strip at the top (28 px) is the compositor
-bar, added to the image: the app does not draw it.
+With the default bar (`Solid`). In these screenshots, the black strip at the
+top (28 px) is the compositor bar, added to the image: the app does not draw
+it.
 
 | Layout | What comes down | How it looks |
 |---|---|---|
 | `Top` (default) | The `Titlebar` over the content; the sidebar traffic lights move down by the same amount | ![Top with the bar down](assets/estados/foco-top.png) |
 | `Unified` | Same as `Top` | ![Unified with the bar down](assets/estados/foco-unified.png) |
-| `Rail` | The rail, as glass, with the traffic lights in a column | ![Rail with the bar down](assets/estados/foco-rail.png) |
+| `Rail` | The rail, with the traffic lights in a column | ![Rail with the bar down](assets/estados/foco-rail.png) |
 | `Actions` | The wide rail with its footer of actions | ![Actions with the bar down](assets/estados/foco-actions.png) |
-| `Pill` | The traffic-light pill, as glass; before that it is hidden | ![Pill with the bar down](assets/estados/foco-pill.png) |
+| `Pill` | The traffic-light pill; before that it is hidden | ![Pill with the bar down](assets/estados/foco-pill.png) |
 
 ### What the app does
 

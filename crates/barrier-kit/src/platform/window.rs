@@ -37,6 +37,16 @@ pub enum Decorations {
     Server,
 }
 
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum FullscreenBar {
+    #[default]
+    Solid,
+    Glass,
+    ProgressiveGlass,
+    Scrim,
+    Push,
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum WindowEdge {
     Top,
@@ -66,6 +76,7 @@ pub struct WindowOptions {
     pub max_size: Option<(u32, u32)>,
     pub parent: Option<ObjectId>,
     pub menu: Option<crate::app_menu::AppMenu>,
+    pub fullscreen_bar: FullscreenBar,
 }
 
 impl WindowOptions {
@@ -80,6 +91,7 @@ impl WindowOptions {
             max_size: None,
             parent: None,
             menu: None,
+            fullscreen_bar: FullscreenBar::Solid,
         }
     }
 
@@ -115,6 +127,11 @@ impl WindowOptions {
 
     pub fn menu(mut self, menu: crate::app_menu::AppMenu) -> Self {
         self.menu = Some(menu);
+        self
+    }
+
+    pub fn fullscreen_bar(mut self, bar: FullscreenBar) -> Self {
+        self.fullscreen_bar = bar;
         self
     }
 }
@@ -153,6 +170,7 @@ pub struct WindowControls {
     pub focus_bar_progress: State<f32>,
     pub focus_overlay: bool,
     pub focus_bar_height: State<f32>,
+    pub fullscreen_bar: FullscreenBar,
 }
 
 pub(crate) fn window_activated() -> bool {
@@ -170,8 +188,14 @@ impl WindowControls {
     }
 
     pub fn fullscreen_content_top(&self) -> f32 {
+        let below_bar = match self.fullscreen_bar {
+            FullscreenBar::ProgressiveGlass => vow_design::FULLSCREEN_GLASS.content_top,
+            FullscreenBar::Glass => vow_design::FULLSCREEN_BAND.content_top,
+            FullscreenBar::Solid | FullscreenBar::Scrim => vow_design::FULLSCREEN_BAR.content_top,
+            FullscreenBar::Push => return 0.0,
+        };
         if self.titlebar_overlaid() {
-            *self.focus_bar_height.read() + vow_design::FULLSCREEN_GLASS.content_top
+            *self.focus_bar_height.read() + below_bar
         } else {
             0.0
         }
@@ -480,6 +504,7 @@ impl Runtime {
                 .as_ref()
                 .is_some_and(|manager| manager.version() >= 2),
             focus_bar_height: State::create_global(vow_design::MENUBAR_HEIGHT as f32),
+            fullscreen_bar: options.fullscreen_bar,
         };
         if let Some(manager) = &self.focus_manager {
             let notice = manager.get_focus_surface(&surface, qh, surface.id());

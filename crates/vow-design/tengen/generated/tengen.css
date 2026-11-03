@@ -740,6 +740,13 @@
   --window-superellipse-exponent: 2.000000;
   --window-titlebar-double-click-interval-ms: 400ms;
   --window-titlebar-double-click-slop: 4px;
+  --window-titlebar-fullscreen-band-blur: 24px;
+  --window-titlebar-fullscreen-band-content-top: 44px;
+  --window-titlebar-fullscreen-band-height: 44px;
+  --window-titlebar-fullscreen-band-layers: 1px;
+  --window-titlebar-fullscreen-bar-band-line: 1px;
+  --window-titlebar-fullscreen-bar-content-top: 44px;
+  --window-titlebar-fullscreen-bar-scrim-height: 84px;
   --window-titlebar-fullscreen-glass-blur: 30px;
   --window-titlebar-fullscreen-glass-content-top: 74px;
   --window-titlebar-fullscreen-glass-height: 96px;

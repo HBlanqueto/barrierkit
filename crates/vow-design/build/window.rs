@@ -212,7 +212,37 @@ pub(super) fn emit_titlebar_rail(out: &mut String, components: &Value) {
 }
 
 pub(super) fn emit_fullscreen_glass(out: &mut String, components: &Value) {
-    let path = |key: &str| format!("components.window.titlebar.fullscreen-glass.{key}");
+    emit_glass(
+        out,
+        components,
+        "fullscreen-glass",
+        "FULLSCREEN_GLASS",
+        "The progressive glass behind the titlebar in full screen.",
+    );
+    emit_glass(
+        out,
+        components,
+        "fullscreen-band",
+        "FULLSCREEN_BAND",
+        "The glass band behind the titlebar in full screen.",
+    );
+    let path = |key: &str| format!("components.window.titlebar.fullscreen-bar.{key}");
+    let field = |key: &str| float(number(components, &path(key), COMPONENTS));
+    const_doc(
+        out,
+        "FULLSCREEN_BAR",
+        "Where the content starts under a full-screen titlebar, and the scrim and band line.",
+    );
+    out.push_str(&format!(
+        ": FullscreenBarMetrics = FullscreenBarMetrics {{ content_top: {}, scrim_height: {}, band_line: {} }};\n\n",
+        field("content-top"),
+        field("scrim-height"),
+        field("band-line")
+    ));
+}
+
+fn emit_glass(out: &mut String, components: &Value, key: &str, name: &str, doc: &str) {
+    let path = |field: &str| format!("components.window.titlebar.{key}.{field}");
     let field = |key: &str| float(number(components, &path(key), COMPONENTS));
     let stops = |key: &str| {
         value(components, &path(key), COMPONENTS)
@@ -230,11 +260,7 @@ pub(super) fn emit_fullscreen_glass(out: &mut String, components: &Value) {
             .collect::<Vec<_>>()
             .join(", ")
     };
-    const_doc(
-        out,
-        "FULLSCREEN_GLASS",
-        "The progressive glass behind the titlebar in full screen.",
-    );
+    const_doc(out, name, doc);
     out.push_str(&format!(
         ": FullscreenGlassMetrics = FullscreenGlassMetrics {{ height: {}, blur: {}, layers: {}, content_top: {}, tint: &[{}], mask: &[{}] }};\n\n",
         field("height"),

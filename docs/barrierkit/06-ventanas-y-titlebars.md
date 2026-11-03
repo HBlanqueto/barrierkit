@@ -25,6 +25,7 @@ run_window(
 | `.min_size(..)`, `.max_size(..)` | Límites. Si son iguales, la ventana es de tamaño fijo y el botón verde la maximiza solo en vertical |
 | `.parent(..)` | Ventana hija (diálogo) |
 | `.menu(AppMenu)` | Menú global de la ventana (capítulo [10](10-app.md)) |
+| `.fullscreen_bar(FullscreenBar)` | Cómo se dibuja la titlebar superpuesta en pantalla completa; `Solid` por defecto ([abajo](#la-barra-en-pantalla-completa-fullscreenbar)) |
 
 Dentro de la app, `WindowControls::get()` da el estado (`activated`,
 `maximized`, `fullscreen`, `decoration`, `fixed`) y las órdenes: `close()`,
@@ -144,22 +145,52 @@ En MalaysiaDreams, el modo foco
 baja una barra negra al acercar el puntero arriba. El kit pide `set_overlay`
 por `infinity_focus_v1` v2, así que la ventana no se mueve: mientras la barra
 está bajada, `titlebar_overlaid()` es verdadero y la titlebar se dibuja encima
-del contenido, justo debajo de la barra, con cristal progresivo. Aparece y
-desaparece con la barra en `DURATION_BASE`. En pantalla completa, `reveal` es
-siempre `Always`.
+del contenido, justo debajo de la barra, sobre el fondo que elige la app
+(`FullscreenBar`, abajo). Aparece y desaparece con la barra en
+`DURATION_BASE`. En pantalla completa, `reveal` es siempre `Always`.
+
+### La barra en pantalla completa: `FullscreenBar`
+
+Cada ventana elige cómo se dibuja su titlebar superpuesta. La opción va en
+`WindowOptions` y vale para la `Titlebar`, el rail y la píldora:
+
+```rust
+WindowOptions::new("Ondina", "ondina").fullscreen_bar(FullscreenBar::ProgressiveGlass)
+```
+
+**Por defecto, todas las apps usan `Solid` («A · Lisa»).** Solo Ondina pide
+`ProgressiveGlass`. Las cinco salen de la propuesta «Ondina a pantalla
+completa» (A, B, C y E aceptadas). En las capturas, la franja negra de arriba
+es la barra del compositor, añadida a la imagen.
+
+| `FullscreenBar` | Qué dibuja | Dónde empieza el contenido (`fullscreen_content_top`) | Cómo se ve |
+|---|---|---|---|
+| `Solid` («A · Lisa», **por defecto**) | Una banda opaca del color de la ventana, del alto de la titlebar. Corta lo que pasa por debajo con un borde duro | Barra + `FULLSCREEN_BAR.content_top` (44) | ![A · Lisa](assets/estados/barra-lisa.png) |
+| `Glass` («B1 · Vidrio en banda») | Una banda del alto de la titlebar que difumina lo de debajo (`FULLSCREEN_BAND`), con tinte y una línea abajo | Barra + `FULLSCREEN_BAND.content_top` (44) | ![B1 · Vidrio en banda](assets/estados/barra-vidrio-banda.png) |
+| `ProgressiveGlass` («B2 · Vidrio progresivo», Ondina) | Difuminado máximo arriba que se desvanece en 96 px, sin línea, de borde a borde de la ventana ([ADR 0057](../decisiones/0057-cristal-y-barra-lateral-sobre-fondo.md)) | Barra + `FULLSCREEN_GLASS.content_top` (74) | ![B2 · Vidrio progresivo](assets/estados/barra-vidrio-progresivo.png) |
+| `Scrim` («C · Degradado») | Sin banda: un velo (`Palette::scrim`) que se desvanece hacia abajo en `FULLSCREEN_BAR.scrim_height` (84); los controles flotan encima | Barra + `FULLSCREEN_BAR.content_top` (44) | ![C · Degradado](assets/estados/barra-degradado.png) |
+| `Push` («E · Empuja») | No tapa nada: la titlebar vuelve al diseño y empuja hacia abajo la columna de detalle lo que miden la barra y la titlebar. La barra lateral no se mueve | 0: el contenido baja solo | ![E · Empuja, barra bajada](assets/estados/barra-empuja.png) |
+
+Con `Push` y la barra arriba, el contenido llega al borde superior:
+
+![E · Empuja, barra arriba](assets/estados/barra-empuja-arriba.png)
+
+Solo `Glass` y `ProgressiveGlass` difuminan. Con las demás, el rail y la
+píldora son opacos.
 
 ### Modo foco con la barra bajada, por diseño
 
-En estas capturas, la franja negra de arriba (28 px) es la barra del
-compositor, añadida a la imagen: la app no la dibuja.
+Con la barra por defecto (`Solid`). En estas capturas, la franja negra de
+arriba (28 px) es la barra del compositor, añadida a la imagen: la app no la
+dibuja.
 
 | Diseño | Qué baja | Cómo se ve |
 |---|---|---|
 | `Top` (por defecto) | La `Titlebar` sobre el contenido; los semáforos de la barra lateral bajan lo mismo | ![Top con la barra bajada](assets/estados/foco-top.png) |
 | `Unified` | Igual que `Top` | ![Unified con la barra bajada](assets/estados/foco-unified.png) |
-| `Rail` | El rail, como cristal, con los semáforos en columna | ![Rail con la barra bajada](assets/estados/foco-rail.png) |
+| `Rail` | El rail, con los semáforos en columna | ![Rail con la barra bajada](assets/estados/foco-rail.png) |
 | `Actions` | El rail ancho con su pie de acciones | ![Actions con la barra bajada](assets/estados/foco-actions.png) |
-| `Pill` | La píldora de semáforos, como cristal; antes no se ve | ![Pill con la barra bajada](assets/estados/foco-pill.png) |
+| `Pill` | La píldora de semáforos; antes no se ve | ![Pill con la barra bajada](assets/estados/foco-pill.png) |
 
 ### Qué hace la app
 

@@ -49,6 +49,7 @@ fn window_controls(status: WindowStatus) -> WindowControls {
         focus_bar_progress: freya_core::prelude::State::create(0.0),
         focus_overlay: false,
         focus_bar_height: freya_core::prelude::State::create(28.0),
+        fullscreen_bar: super::FullscreenBar::Solid,
     }
 }
 

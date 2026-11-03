@@ -13,7 +13,11 @@ use freya_engine::prelude::{
     SaveLayerRec, TileMode, blur, shaders,
 };
 use torin::prelude::{Position, Size};
-use vow_design::{FULLSCREEN_GLASS, MEDIA, Rgba};
+use vow_design::{
+    FULLSCREEN_BAND, FULLSCREEN_BAR, FULLSCREEN_GLASS, FullscreenGlassMetrics, MEDIA, Rgba,
+};
+
+use crate::platform::FullscreenBar;
 
 use crate::theme::{SurfaceKind, surface_background};
 
@@ -27,7 +31,9 @@ pub(crate) enum GlassEdge {
 #[derive(PartialEq)]
 struct Glass {
     edge: GlassEdge,
+    metrics: FullscreenGlassMetrics,
     tint: Rgba,
+    line: Option<Rgba>,
     layout: LayoutData,
 }
 
@@ -39,13 +45,22 @@ pub(crate) fn glass_tint() -> Rgba {
     }
 }
 
-pub(crate) fn progressive_glass(edge: GlassEdge) -> Element {
-    let depth = Size::px(FULLSCREEN_GLASS.height);
-    let (width, height, position) = match edge {
+fn along(edge: GlassEdge, depth: f32) -> (Size, Size, Position) {
+    let depth = Size::px(depth);
+    match edge {
         GlassEdge::Top => (Size::fill(), depth, Position::new_absolute()),
         GlassEdge::Left => (depth, Size::fill(), Position::new_absolute().left(0.0)),
         GlassEdge::Right => (depth, Size::fill(), Position::new_absolute().right(0.0)),
-    };
+    }
+}
+
+fn glass(
+    edge: GlassEdge,
+    metrics: FullscreenGlassMetrics,
+    depth: f32,
+    line: Option<Rgba>,
+) -> Element {
+    let (width, height, position) = along(edge, depth);
     let layout = torin::node::Node {
         width,
         height,
@@ -56,11 +71,61 @@ pub(crate) fn progressive_glass(edge: GlassEdge) -> Element {
         key: DiffKey::None,
         element: Rc::new(Glass {
             edge,
+            metrics,
             tint: glass_tint(),
+            line,
             layout: layout.into(),
         }),
         elements: Vec::new(),
     }
+}
+
+pub(crate) fn fullscreen_backdrop(bar: FullscreenBar, edge: GlassEdge, depth: f32) -> Element {
+    let palette = crate::style::Palette::current();
+    let veil = |fill: Rgba, depth: f32, fade: bool| {
+        let (width, height, position) = along(edge, depth);
+        let clear = Rgba { a: 0.0, ..fill };
+        let angle = match edge {
+            GlassEdge::Top => 180.0,
+            GlassEdge::Left => 90.0,
+            GlassEdge::Right => 270.0,
+        };
+        rect()
+            .position(position)
+            .width(width)
+            .height(height)
+            .background(
+                LinearGradient::new()
+                    .angle(angle)
+                    .stop((crate::theme::color(fill), 0.0))
+                    .stop((crate::theme::color(if fade { clear } else { fill }), 100.0)),
+            )
+            .into_element()
+    };
+    match bar {
+        FullscreenBar::Solid => veil(
+            Rgba {
+                a: 1.0,
+                ..glass_tint()
+            },
+            depth,
+            false,
+        ),
+        FullscreenBar::Glass => glass(edge, FULLSCREEN_BAND, depth, Some(palette.separator)),
+        FullscreenBar::ProgressiveGlass => {
+            glass(edge, FULLSCREEN_GLASS, FULLSCREEN_GLASS.height, None)
+        }
+        FullscreenBar::Scrim => veil(palette.scrim, FULLSCREEN_BAR.scrim_height, true),
+        FullscreenBar::Push => rect().into_element(),
+    }
+}
+
+pub(crate) fn progressive_glass(edge: GlassEdge) -> Element {
+    fullscreen_backdrop(
+        FullscreenBar::ProgressiveGlass,
+        edge,
+        FULLSCREEN_GLASS.height,
+    )
 }
 
 fn strength_at(stops: &[(f32, f32)], t: f32) -> f32 {
@@ -74,12 +139,12 @@ fn strength_at(stops: &[(f32, f32)], t: f32) -> f32 {
 }
 
 // Each layer fades in between the previous radius and its own, so stacked radii blend without seams.
-fn layer_mask(floor: f32, level: f32) -> Vec<(f32, f32)> {
+fn layer_mask(mask: &[(f32, f32)], floor: f32, level: f32) -> Vec<(f32, f32)> {
     const SAMPLES: usize = 16;
     (0..=SAMPLES)
         .map(|sample| {
             let t = sample as f32 / SAMPLES as f32;
-            let strength = strength_at(FULLSCREEN_GLASS.mask, t);
+            let strength = strength_at(mask, t);
             (t, ((strength - floor) / (level - floor)).clamp(0.0, 1.0))
         })
         .collect()
@@ -133,10 +198,10 @@ impl ElementExt for Glass {
         let area = context.layout_node.visible_area();
         let bounds = SkRect::new(area.min_x(), area.min_y(), area.max_x(), area.max_y());
         let canvas = context.canvas;
-        let layers = FULLSCREEN_GLASS.layers;
+        let layers = self.metrics.layers;
         for layer in 0..layers {
             let level = 0.5f32.powi((layers - 1 - layer) as i32);
-            let sigma = FULLSCREEN_GLASS.blur * level * context.scale_factor as f32;
+            let sigma = self.metrics.blur * level * context.scale_factor as f32;
             // Uncropped, so the blur samples the content past the glass instead of smearing its last row.
             let Some(filter) = blur((sigma, sigma), TileMode::Clamp, None, None) else {
                 continue;
@@ -145,7 +210,7 @@ impl ElementExt for Glass {
                 self.edge,
                 bounds,
                 Rgba::rgb8(255, 255, 255),
-                &layer_mask(level / 2.0, level),
+                &layer_mask(self.metrics.mask, level / 2.0, level),
             );
             mask.set_blend_mode(BlendMode::DstIn);
             // SaveLayerRec bounds are only a hint; without the clip the blurred layer covers the whole canvas.
@@ -158,8 +223,31 @@ impl ElementExt for Glass {
         }
         canvas.draw_rect(
             bounds,
-            &inwards(self.edge, bounds, self.tint, FULLSCREEN_GLASS.tint),
+            &inwards(self.edge, bounds, self.tint, self.metrics.tint),
         );
+        if let Some(line) = self.line {
+            let width = FULLSCREEN_BAR.band_line * context.scale_factor as f32;
+            let edge_line = match self.edge {
+                GlassEdge::Top => SkRect::new(
+                    bounds.left,
+                    bounds.bottom - width,
+                    bounds.right,
+                    bounds.bottom,
+                ),
+                GlassEdge::Left => SkRect::new(
+                    bounds.right - width,
+                    bounds.top,
+                    bounds.right,
+                    bounds.bottom,
+                ),
+                GlassEdge::Right => {
+                    SkRect::new(bounds.left, bounds.top, bounds.left + width, bounds.bottom)
+                }
+            };
+            let mut paint = Paint::default();
+            paint.set_color4f(rgba4f(line), None);
+            canvas.draw_rect(edge_line, &paint);
+        }
     }
 }
 

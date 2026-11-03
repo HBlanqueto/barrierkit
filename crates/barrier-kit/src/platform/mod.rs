@@ -27,8 +27,8 @@ pub use popup::{
 pub use timer::{Timers, WakeHandle};
 pub(crate) use window::window_activated;
 pub use window::{
-    DecorationResponse, Decorations, WindowControls, WindowEdge, WindowOptions, WindowStatus,
-    run_window,
+    DecorationResponse, Decorations, FullscreenBar, WindowControls, WindowEdge, WindowOptions,
+    WindowStatus, run_window,
 };
 
 #[cfg(test)]

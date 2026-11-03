@@ -1,6 +1,8 @@
 # 0057 — El cristal de pantalla completa cubre toda la ventana; la barra lateral sobre un fondo tintado
 
-Estado: **aceptado** (2026-11-03).
+Estado: **aceptado** (2026-11-03). La regla 1 aplica a las ventanas con
+`FullscreenBar::ProgressiveGlass` (Ondina); por defecto la barra es `Solid`
+(capítulo 6 de [`docs/barrierkit`](../barrierkit/06-ventanas-y-titlebars.md)).
 
 ## Contexto
 

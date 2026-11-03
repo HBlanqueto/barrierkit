@@ -11,7 +11,8 @@ use vow_design::{
     TITLEBAR_CLIENT_HEIGHT, TITLEBAR_RAIL,
 };
 
-use crate::glass::{GlassEdge, progressive_glass};
+use crate::glass::{GlassEdge, fullscreen_backdrop};
+use crate::platform::FullscreenBar;
 use crate::platform::WindowControls;
 use crate::style::Palette;
 use crate::theme::{SurfaceKind, color, surface_background};
@@ -176,6 +177,11 @@ pub(crate) fn report_sidebar_shown(shown: bool) {
     if let Some(mut chrome) = chrome() {
         chrome.sidebar_shown.set_if_modified(shown);
     }
+}
+
+pub(crate) fn fullscreen_bar() -> FullscreenBar {
+    try_consume_root_context::<WindowControls>()
+        .map_or(FullscreenBar::Solid, |controls| controls.fullscreen_bar)
 }
 
 fn fullscreen_overlay() -> (bool, Option<f32>) {
@@ -436,7 +442,11 @@ impl Component for WindowChrome {
                     .position(position)
                     .height(Size::func(move |context| Some(context.parent - top)))
                     .layer(Layer::Overlay)
-                    .child(progressive_glass(edge))
+                    .child(fullscreen_backdrop(
+                        fullscreen_bar(),
+                        edge,
+                        style.rail_extent(),
+                    ))
                     .child(rail(style, footer.clone(), 1.0)),
             );
         }
@@ -618,13 +628,20 @@ fn pill(side: Side, vertical: bool, slide: f32, opacity: f32) -> Rect {
         (true, Side::Left) => position.top(top).left(-hidden_by),
         (true, Side::Right) => position.top(top).right(-hidden_by),
     };
-    let background = if overlaid {
-        Rgba {
+    let glassy = matches!(
+        fullscreen_bar(),
+        FullscreenBar::Glass | FullscreenBar::ProgressiveGlass
+    );
+    let background = match (overlaid, glassy) {
+        (true, true) => Rgba {
             a: FULLSCREEN_GLASS.tint[0].1,
             ..crate::glass::glass_tint()
-        }
-    } else {
-        palette.raised_background
+        },
+        (true, false) => Rgba {
+            a: 1.0,
+            ..crate::glass::glass_tint()
+        },
+        (false, _) => palette.raised_background,
     };
     rect()
         .position(position)
@@ -637,7 +654,7 @@ fn pill(side: Side, vertical: bool, slide: f32, opacity: f32) -> Rect {
         ))
         .corner_radius(TITLEBAR_RAIL.pill_radius)
         .background(color(background))
-        .maybe(overlaid, |el| el.blur(FULLSCREEN_GLASS.blur))
+        .maybe(overlaid && glassy, |el| el.blur(FULLSCREEN_GLASS.blur))
         .border(
             Border::new()
                 .width(1.0)
