@@ -269,6 +269,7 @@ QtObject {
   readonly property real text_greeting_size: 150;
   readonly property real text_headline_size: 13;
   readonly property real text_mono_size: 12;
+  readonly property real text_poster_size: 56;
   readonly property real text_title_1_size: 20;
   readonly property real text_title_2_size: 15;
   readonly property int text_body_weight: 400;
@@ -278,6 +279,7 @@ QtObject {
   readonly property int text_greeting_weight: 600;
   readonly property int text_headline_weight: 600;
   readonly property int text_mono_weight: 400;
+  readonly property int text_poster_weight: 800;
   readonly property int text_title_1_weight: 650;
   readonly property int text_title_2_weight: 600;
   readonly property real shadow_window_light_blur: 48;

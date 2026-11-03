@@ -363,6 +363,21 @@
   --list-group-separator-color: var(--line);
   --list-group-separator-inset-left: 14px;
   --list-group-stack-below: 360px;
+  --media-button-fill: #f2f2f4;
+  --media-button-font-size: 14px;
+  --media-button-height: 38px;
+  --media-button-ink: #111214;
+  --media-button-padding-x: 22px;
+  --media-button-radius: 10px;
+  --media-hover-scale: 1.050000;
+  --media-material-blur: 28px;
+  --media-material-rim: #ffffff1f;
+  --media-material-tint: #16171acc;
+  --media-preview-delay: 550px;
+  --media-round: 38px;
+  --media-round-glass: #ffffff24;
+  --media-round-icon: 16px;
+  --media-round-rim: #ffffff26;
   --menu-popover-check: 12px;
   --menu-popover-item-gap: 6px;
   --menu-popover-item-height: 26px;
@@ -820,6 +835,7 @@
   --type-greeting-size: 150px; --type-greeting-line-height: 150px; --type-greeting-weight: 600; --type-greeting-tracking: 0em;
   --type-headline-size: 13px; --type-headline-line-height: 18px; --type-headline-weight: 600; --type-headline-tracking: 0em;
   --type-mono-size: 12px; --type-mono-line-height: 18px; --type-mono-weight: 400; --type-mono-tracking: 0em;
+  --type-poster-size: 56px; --type-poster-line-height: 58px; --type-poster-weight: 800; --type-poster-tracking: -0.030000em;
   --type-title-1-size: 20px; --type-title-1-line-height: 26px; --type-title-1-weight: 650; --type-title-1-tracking: -0.010000em;
   --type-title-2-size: 15px; --type-title-2-line-height: 20px; --type-title-2-weight: 600; --type-title-2-tracking: 0em;
 }

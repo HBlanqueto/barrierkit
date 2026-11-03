@@ -686,6 +686,25 @@
       "radius": "radius.xs",
       "pointer-gap": 16
     },
+    "media": {
+      "button-height": 38,
+      "button-padding-x": 22,
+      "button-radius": 10,
+      "button-font-size": 14,
+      "button-fill": "#f2f2f4",
+      "button-ink": "#111214",
+      "round": 38,
+      "round-icon": 16,
+      "round-glass": "#ffffff24",
+      "round-rim": "#ffffff26",
+      "material-blur": 28,
+      "material-tint": "#16171acc",
+      "material-rim": "#ffffff1f",
+      "scrim-side": [[0, 0.95], [0.38, 0.63], [1, 0]],
+      "scrim-bottom": [[0, 0], [0.45, 0.6], [1, 1]],
+      "hover-scale": 1.05,
+      "preview-delay": 550
+    },
     "scroll-bar": {
       "hide-delay": 800,
       "thumb": 6,

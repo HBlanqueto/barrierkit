@@ -2,10 +2,11 @@
 
 use std::cell::RefCell;
 
-use freya_engine::prelude::{FontCollection, FontMgr};
+use freya_engine::prelude::{FontCollection, FontMgr, TypefaceFontProvider};
 
 thread_local! {
     static FONTS: RefCell<Option<(FontCollection, FontMgr)>> = const { RefCell::new(None) };
+    static OWN: RefCell<Option<TypefaceFontProvider>> = const { RefCell::new(None) };
 }
 
 fn with_fonts<T>(f: impl FnOnce(&FontCollection, &FontMgr) -> T) -> T {
@@ -29,4 +30,20 @@ pub(crate) fn collection() -> FontCollection {
 
 pub(crate) fn manager() -> FontMgr {
     with_fonts(|_, manager| manager.clone())
+}
+
+pub fn register_font(bytes: &[u8]) -> bool {
+    let Some(typeface) = FontMgr::default().new_from_data(bytes, None) else {
+        return false;
+    };
+    OWN.with(|own| {
+        let mut own = own.borrow_mut();
+        let provider = own.get_or_insert_with(TypefaceFontProvider::new);
+        provider.register_typeface(typeface, None::<&str>);
+        let manager: FontMgr = provider.clone().into();
+        with_fonts(|collection, _| {
+            collection.clone().set_asset_font_manager(Some(manager));
+        });
+    });
+    true
 }

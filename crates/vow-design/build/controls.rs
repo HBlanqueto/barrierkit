@@ -321,6 +321,49 @@ pub(super) fn emit_compact(out: &mut String, tokens: &Value, components: &Value)
         field("badge.height"),
         field("badge.padding-x")
     ));
+    let media = |key: &str| format!("components.media.{key}");
+    let media_color = |key: &str| rgba(color(components, &media(key), COMPONENTS));
+    let stops = |key: &str| {
+        value(components, &media(key), COMPONENTS)
+            .as_array()
+            .unwrap_or_else(|| panic!("vow-design: `{}` must be a list", media(key)))
+            .iter()
+            .map(|stop| {
+                let pair = stop.as_array().expect("[offset, alpha]");
+                format!(
+                    "({}, {})",
+                    float(pair[0].as_f64().expect("number")),
+                    float(pair[1].as_f64().expect("number"))
+                )
+            })
+            .collect::<Vec<_>>()
+            .join(", ")
+    };
+    const_doc(
+        out,
+        "MEDIA",
+        "Controls, scrims and material over photos and video.",
+    );
+    out.push_str(&format!(
+        ": MediaMetrics = MediaMetrics {{ button_height: {}, button_padding_x: {}, button_radius: {}, button_font_size: {}, button_fill: {}, button_ink: {}, round: {}, round_icon: {}, round_glass: {}, round_rim: {}, material_blur: {}, material_tint: {}, material_rim: {}, scrim_side: &[{}], scrim_bottom: &[{}], hover_scale: {}, preview_delay_ms: {} }};\n\n",
+        field("media.button-height"),
+        field("media.button-padding-x"),
+        field("media.button-radius"),
+        field("media.button-font-size"),
+        media_color("button-fill"),
+        media_color("button-ink"),
+        field("media.round"),
+        field("media.round-icon"),
+        media_color("round-glass"),
+        media_color("round-rim"),
+        field("media.material-blur"),
+        media_color("material-tint"),
+        media_color("material-rim"),
+        stops("scrim-side"),
+        stops("scrim-bottom"),
+        field("media.hover-scale"),
+        integer(components, "components.media.preview-delay", COMPONENTS)
+    ));
     const_doc(out, "SCROLL_BAR", "The Tengen scroll bar metrics.");
     out.push_str(&format!(
         ": ScrollBarMetrics = ScrollBarMetrics {{ thumb: {}, inset: {}, min_length: {}, opacity: {}, hide_delay_ms: {} }};\n\n",

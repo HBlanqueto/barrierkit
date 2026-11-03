@@ -298,6 +298,12 @@ pub(super) fn emit_typography(out: &mut String, tokens: &Value) {
     out.push_str(&format!(": Font = {};\n\n", font(tokens, "body")));
     const_doc(
         out,
+        "POSTER",
+        "The poster face (56/800) for titles over media.",
+    );
+    out.push_str(&format!(": Font = {};\n\n", font(tokens, "poster")));
+    const_doc(
+        out,
         "DISPLAY",
         "The display face (28/700), the largest title.",
     );

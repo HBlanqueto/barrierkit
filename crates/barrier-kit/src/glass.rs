@@ -9,11 +9,11 @@ use freya_core::element::{ElementExt, RenderContext};
 use freya_core::prelude::*;
 use freya_core::tree::DiffModifies;
 use freya_engine::prelude::{
-    Color4f, Colors, Gradient, Interpolation, Paint, Rect as SkRect, SaveLayerRec, TileMode, blur,
-    shaders,
+    Color4f, Colors, Gradient, Interpolation, Paint, PaintStyle, RRect, Rect as SkRect,
+    SaveLayerRec, TileMode, blur, shaders,
 };
 use torin::prelude::{Position, Size};
-use vow_design::{FULLSCREEN_GLASS, Rgba};
+use vow_design::{FULLSCREEN_GLASS, MEDIA, Rgba};
 
 use crate::theme::{SurfaceKind, surface_background};
 
@@ -166,4 +166,80 @@ impl ElementExt for Glass {
             &inwards(self.edge, bounds, self.tint, FULLSCREEN_GLASS.tint),
         );
     }
+}
+
+#[derive(PartialEq)]
+struct Material {
+    corner_radius: f32,
+    layout: LayoutData,
+}
+
+pub(crate) fn material(corner_radius: f32) -> Element {
+    let layout = torin::node::Node {
+        width: Size::fill(),
+        height: Size::fill(),
+        position: Position::new_absolute(),
+        ..Default::default()
+    };
+    Element::Element {
+        key: DiffKey::None,
+        element: Rc::new(Material {
+            corner_radius,
+            layout: layout.into(),
+        }),
+        elements: Vec::new(),
+    }
+}
+
+impl ElementExt for Material {
+    fn changed(&self, other: &Rc<dyn ElementExt>) -> bool {
+        (other.as_ref() as &dyn std::any::Any)
+            .downcast_ref::<Self>()
+            .is_none_or(|other| other != self)
+    }
+
+    fn diff(&self, other: &Rc<dyn ElementExt>) -> DiffModifies {
+        match (other.as_ref() as &dyn std::any::Any).downcast_ref::<Self>() {
+            Some(other) if other == self => DiffModifies::empty(),
+            Some(_) => DiffModifies::STYLE,
+            None => DiffModifies::all(),
+        }
+    }
+
+    fn layout(&'_ self) -> Cow<'_, LayoutData> {
+        Cow::Borrowed(&self.layout)
+    }
+
+    fn render(&self, context: RenderContext) {
+        let area = context.layout_node.visible_area();
+        let bounds = SkRect::new(area.min_x(), area.min_y(), area.max_x(), area.max_y());
+        let radius = self.corner_radius * context.scale_factor as f32;
+        let shape = RRect::new_rect_xy(bounds, radius, radius);
+        let canvas = context.canvas;
+        let sigma = MEDIA.material_blur * context.scale_factor as f32;
+        canvas.save();
+        canvas.clip_rrect(shape, None, Some(true));
+        if let Some(filter) = blur((sigma, sigma), TileMode::Clamp, None, None) {
+            canvas.save_layer(&SaveLayerRec::default().bounds(&bounds).backdrop(&filter));
+            canvas.restore();
+        }
+        let mut tint = Paint::default();
+        tint.set_color4f(rgba4f(MEDIA.material_tint), None);
+        canvas.draw_rrect(shape, &tint);
+        canvas.restore();
+        let mut rim = Paint::default();
+        rim.set_style(PaintStyle::Stroke);
+        rim.set_stroke_width(context.scale_factor as f32);
+        rim.set_anti_alias(true);
+        rim.set_color4f(rgba4f(MEDIA.material_rim), None);
+        let inset = context.scale_factor as f32 / 2.0;
+        canvas.draw_rrect(
+            RRect::new_rect_xy(bounds.with_inset((inset, inset)), radius, radius),
+            &rim,
+        );
+    }
+}
+
+fn rgba4f(color: Rgba) -> Color4f {
+    Color4f::new(color.r, color.g, color.b, color.a)
 }

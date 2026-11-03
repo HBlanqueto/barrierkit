@@ -511,6 +511,27 @@ pub struct BadgeMetrics {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct MediaMetrics {
+    pub button_height: f32,
+    pub button_padding_x: f32,
+    pub button_radius: f32,
+    pub button_font_size: f32,
+    pub button_fill: Rgba,
+    pub button_ink: Rgba,
+    pub round: f32,
+    pub round_icon: f32,
+    pub round_glass: Rgba,
+    pub round_rim: Rgba,
+    pub material_blur: f32,
+    pub material_tint: Rgba,
+    pub material_rim: Rgba,
+    pub scrim_side: &'static [(f32, f32)],
+    pub scrim_bottom: &'static [(f32, f32)],
+    pub hover_scale: f32,
+    pub preview_delay_ms: u64,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ScrollBarMetrics {
     pub thumb: f32,
     pub inset: f32,
