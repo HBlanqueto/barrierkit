@@ -77,13 +77,11 @@ through a single runner `Extension`
 `RunError` has the variants `NoDisplay`, `MissingGlobal`, `Vulkan`,
 `EventLoop`, `Skia`, `Wayland`, `Registry` and `Io`.
 
-## Known limitation: the first frame
+## The first frame
 
-The kit requests a frame callback and waits to receive it before drawing the
-first frame. Weston and sway do not send frame callbacks to a surface that has
-no content yet, so on them the window never appears (checked on 2026-11-03).
-The [README](../../README.md) lists Malaysia and GNOME/Mutter as tested.
-The screenshots in this documentation were made on sway with the first frame
-drawn without waiting (see [`assets/README.en.md`](assets/README.en.md)).
+The kit draws a window's first frame when its first configure arrives, without
+waiting for a frame callback. `xdg_surface` asks for this, and a compositor may
+not send frame callbacks to a surface without content. Later frames wait for
+their frame callback. Checked on 2026-11-03 on headless Weston 16.
 
 Next: [15. Test apps](15-apps-de-prueba.en.md).

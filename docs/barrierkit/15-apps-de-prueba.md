@@ -15,8 +15,8 @@ lanzarla.
    ./dev.sh app marea
    ```
 
-Corren en cualquier compositor que dibuje el primer frame (capítulo
-[14](14-plataforma.md)). En Malaysia reciben además bordes, sombra, blur
+Corren en cualquier compositor Wayland (capítulo
+[14](14-plataforma.md#el-primer-frame)). En Malaysia reciben además bordes, sombra, blur
 y menú global.
 
 ## Master Tengen App Show (`tengen-app-show`)

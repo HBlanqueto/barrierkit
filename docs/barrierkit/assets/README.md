@@ -45,11 +45,8 @@ Vulkan y la fuente Geist instalada:
 4. Recorta la ventana con `grim -g "x,y ancho×alto"`, tomando la geometría de
    `swaymsg -t get_tree`.
 
-Sway no envía frame callbacks a una superficie sin contenido ni respeta la
-petición de CSD en el primer configure. Para capturar, el binario se compiló
-con dos cambios locales que no están en `main`, en `platform/window.rs`:
+Sway no respeta la petición de CSD en el primer configure. Para capturar, el
+binario se compiló con un cambio local que no está en `main`, en
+`platform/window.rs`: tratar el configure como `DecorationMode::Client`.
 
-- dibujar el primer frame al recibir el configure;
-- tratar el configure como `DecorationMode::Client`.
-
-Ver [14, «Limitación conocida»](../14-plataforma.md#limitación-conocida-el-primer-frame).
+Ver [14, «El primer frame»](../14-plataforma.md#el-primer-frame).

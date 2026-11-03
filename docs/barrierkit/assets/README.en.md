@@ -45,12 +45,8 @@ driver and the Geist font installed:
 4. Crop the window with `grim -g "x,y ancho×alto"`, taking the geometry from
    `swaymsg -t get_tree`.
 
-Sway does not send frame callbacks to a surface without content and does not
-honor the CSD request in the first configure. For the screenshots, the binary
-was built with two local changes that are not on `main`, in
-`platform/window.rs`:
+Sway does not honor the CSD request in the first configure. For the
+screenshots, the binary was built with one local change that is not on `main`,
+in `platform/window.rs`: treating the configure as `DecorationMode::Client`.
 
-- drawing the first frame when the configure arrives;
-- treating the configure as `DecorationMode::Client`.
-
-See [14, "Known limitation"](../14-plataforma.en.md#known-limitation-the-first-frame).
+See [14, "The first frame"](../14-plataforma.en.md#the-first-frame).

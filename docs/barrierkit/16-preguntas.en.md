@@ -33,8 +33,8 @@ and [13](13-fondos-y-medios.en.md#video-video-feature).
 
 ## Does it work outside Malaysia?
 
-Yes, as a normal Wayland client, if the compositor draws the first frame (see
-[14](14-plataforma.en.md#known-limitation-the-first-frame)). Outside
+Yes, as a normal Wayland client (see
+[14](14-plataforma.en.md#the-first-frame)). Outside
 Malaysia there are no compositor borders, shadow or blur, and the global
 menu only exists on D-Bus.
 

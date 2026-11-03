@@ -15,8 +15,8 @@ to launch it.
    ./dev.sh app marea
    ```
 
-They run on any compositor that draws the first frame (chapter
-[14](14-plataforma.en.md)). On Malaysia they also get borders, shadow,
+They run on any Wayland compositor (chapter
+[14](14-plataforma.en.md#the-first-frame)). On Malaysia they also get borders, shadow,
 blur and the global menu.
 
 ## Master Tengen App Show (`tengen-app-show`)

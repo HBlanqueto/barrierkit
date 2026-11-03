@@ -74,13 +74,11 @@ Los submódulos de `shell/` son privados y su API sale solo de `shell/mod.rs`.
 `RunError` tiene las variantes `NoDisplay`, `MissingGlobal`, `Vulkan`,
 `EventLoop`, `Skia`, `Wayland`, `Registry` e `Io`.
 
-## Limitación conocida: el primer frame
+## El primer frame
 
-El kit pide un frame callback y espera a recibirlo antes de dibujar el primer
-frame. Weston y sway no envían frame callbacks a una superficie que aún no tiene
-contenido, así que en ellos la ventana nunca aparece (comprobado el
-2026-11-03). El [README](../../README.md) da por probados Malaysia y
-GNOME/Mutter. Las capturas de esta documentación se hicieron en sway con
-el primer frame dibujado sin esperar (ver [`assets/README.md`](assets/README.md)).
+El kit dibuja el primer frame de una ventana al recibir su primer configure,
+sin esperar un frame callback. Así lo pide `xdg_surface`, y un compositor puede
+no enviar frame callbacks a una superficie sin contenido. Los frames siguientes
+esperan su frame callback. Comprobado el 2026-11-03 en Weston 16 sin pantalla.
 
 Siguiente: [15. Apps de prueba](15-apps-de-prueba.md).

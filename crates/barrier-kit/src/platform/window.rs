@@ -691,7 +691,14 @@ impl WindowHandler for Runtime {
         );
         self.surfaces[index].pending_configure = Some((configure, serial));
         self.surfaces[index].needs_redraw = true;
-        self.surfaces[index].request_frame_callback(qh);
+        // xdg_shell: the first buffer follows the first configure; an unmapped surface gets no frame callbacks.
+        if self.surfaces[index].draw_count == 0 {
+            self.apply_pending_window_configures(qh);
+            let _ = self.surfaces[index].draw(&self.compositor);
+        }
+        if self.surfaces[index].needs_redraw {
+            self.surfaces[index].request_frame_callback(qh);
+        }
     }
 }
 impl Runtime {

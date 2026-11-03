@@ -32,8 +32,8 @@ si no, la CPU. Ver [1](01-que-es.md#usa-gpu-o-cpu) y [13](13-fondos-y-medios.md#
 
 ## ¿Funciona fuera de Malaysia?
 
-Sí, como cliente Wayland normal, si el compositor dibuja el primer frame (ver
-[14](14-plataforma.md#limitación-conocida-el-primer-frame)). Fuera de
+Sí, como cliente Wayland normal (ver
+[14](14-plataforma.md#el-primer-frame)). Fuera de
 Malaysia no hay bordes, sombra ni blur del compositor, y el menú global
 solo existe en D-Bus.
 
