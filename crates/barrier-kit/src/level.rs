@@ -83,7 +83,7 @@ impl Component for LevelSlider {
     fn render(&self) -> impl IntoElement {
         let palette = Palette::current();
         let interaction = use_interaction();
-        let value = use_state(|| self.value);
+        let value = crate::controlled::use_controlled(&self.value);
         let mut width = use_state(|| 0.0f32);
         let mut dragging = use_state(|| false);
         let enabled = !self.disabled;

@@ -401,7 +401,7 @@ impl Component for Slider {
     fn render(&self) -> impl IntoElement {
         let palette = Palette::current();
         let interaction = use_interaction();
-        let value = use_state(|| self.value);
+        let value = crate::controlled::use_controlled(&self.value);
         let dragging = use_state(|| false);
         let on_change = self.on_change.clone();
 
@@ -725,7 +725,7 @@ impl Component for Switch {
     fn render(&self) -> impl IntoElement {
         let resolved = crate::theme::resolved();
         let palette = Palette::current();
-        let on = use_state(|| self.on);
+        let on = crate::controlled::use_controlled(&self.on);
         let interaction = use_interaction();
         let reduced_motion = use_reactive(&resolved.reduced_motion);
         let animation = use_animation_transition(on, move |from, to| {
@@ -1215,7 +1215,7 @@ impl ProbeExt for Checkbox {
 impl Component for Checkbox {
     fn render(&self) -> impl IntoElement {
         let palette = Palette::current();
-        let checked = use_state(|| self.checked);
+        let checked = crate::controlled::use_controlled(&self.checked);
         let on_toggle = self.on_toggle.clone();
         let disabled = self.disabled;
         let label_text = self.label;

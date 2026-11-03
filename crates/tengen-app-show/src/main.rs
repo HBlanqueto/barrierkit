@@ -591,7 +591,6 @@ fn undo(accent: UndoManager<usize>, selected: usize) -> Form {
                 Row::new("Color").control(
                     ColorWell::new("Color", &ACCENT_SWATCHES)
                         .selected(Some(selected))
-                        .key(&selected)
                         .on_change(move |index| accent.set(index)),
                 ),
             )

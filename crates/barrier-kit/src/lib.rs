@@ -44,6 +44,8 @@ pub mod backdrop;
 
 mod glass;
 
+mod controlled;
+
 pub mod adaptive;
 
 pub mod style;

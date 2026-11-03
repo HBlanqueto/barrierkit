@@ -110,7 +110,7 @@ impl Stepper {
 impl Component for Stepper {
     fn render(&self) -> impl IntoElement {
         let palette = Palette::current();
-        let value = use_state(|| self.value);
+        let value = crate::controlled::use_controlled(&self.value);
         let current = *value.read();
         let (min, max) = (self.min, self.max);
         let step = |delta: i64| {
@@ -191,7 +191,9 @@ impl ToggleGroup {
 impl Component for ToggleGroup {
     fn render(&self) -> impl IntoElement {
         let palette = Palette::current();
-        let states = use_state(|| self.items.iter().map(|item| item.3).collect::<Vec<_>>());
+        let states = crate::controlled::use_controlled(
+            &self.items.iter().map(|item| item.3).collect::<Vec<_>>(),
+        );
         let toggles = self
             .items
             .iter()

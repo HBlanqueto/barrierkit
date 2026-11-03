@@ -16,7 +16,7 @@ pub(crate) struct Choice {
 
 pub(crate) fn use_choice(initial: Option<usize>, on_change: Option<Callback<usize, ()>>) -> Choice {
     Choice {
-        selected: use_state(|| initial),
+        selected: crate::controlled::use_controlled(&initial),
         on_change,
     }
 }

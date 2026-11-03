@@ -245,8 +245,6 @@ Pendiente:
 - Capa 0: selección primaria, arrastrar y soltar entre apps, puente AT-SPI (los controles ya asignan rol y etiqueta de `accesskit`, pero nada los publica) y damage parcial. El damage espera al renderizado incremental de Freya: `RenderPipeline::render` repinta el árbol entero en 0.4.3 (`freya-core/src/render_pipeline.rs`, «TODO: Use incremental rendering»).
 - Capa 1:
   - `Image` propio.
-  - `Popover` es el `Popup` de Freya re-exportado con su aspecto (`controls.rs`).
-  - Varios controles guardan una copia de su valor y no son del todo controlados (§2): `Switch`, `Checkbox`, `Slider`, `LevelSlider`, `Stepper`, `ToggleGroup` y los de `use_choice`. Si la app cambia el valor desde fuera, como al deshacer, el control solo lo refleja si la app cambia su `key`.
 - Capa 2:
   - `Toolbar` con zonas, título, búsqueda y desbordamiento; hoy solo hay pestañas de barra (`views/tabs.rs`) y `ToolGroup`.
   - `NavigationStack`: `History` y `navigation_buttons` existen, pero faltan el título hacia la barra y las acciones atrás/adelante con atajo.
@@ -338,7 +336,6 @@ fn general(history: UndoManager<usize>, selected: usize) -> Form {
             Row::new("Color").keywords(&["color", "etiqueta"]).control(
                 ColorWell::new("Color", &ACCENT_SWATCHES)
                     .selected(Some(selected))
-                    .key(&selected)
                     .on_change(move |index| history.set(index)),
             ),
         ),
@@ -371,5 +368,5 @@ fn main() {
 - Una `Action` se declara una vez y alimenta el menú global, su atajo y `use_menu_action`. Los atajos solo llegan si la acción está en el menú de la ventana.
 - `use_undo` envuelve un `State` de la app. Cada `set` guarda el valor anterior, y `UNDO` y `REDO` lo recorren desde el menú, el atajo o los métodos `undo` y `redo`.
 - `PreferencesWindow` construye la barra lateral, el buscador y la restauración del panel. Las `keywords` de cada `Row` entran en la búsqueda.
-- El `key` del `ColorWell` cambia con el valor para que el control muestre lo que deshace la app (ver «Pendiente», capa 1).
+- Los controles son controlados: `selected`, `value`, `on` o `checked` mandan cuando la app los cambia, y el control conserva lo que cambia el usuario mientras tanto. Por eso el `ColorWell` muestra lo que deshace la app.
 - Los colores y medidas salen de `vow_design`. Una app no escribe literales de diseño.
