@@ -61,20 +61,21 @@ duración 0 y los bucles se detienen. Una animación propia debe hacer lo mismo:
 let tiempo = if theme::resolved().reduced_motion { 0 } else { DURATION_BASE };
 ```
 
-## Verlo en vivo: Tengen Motion Show
+## Verlo en vivo: Tengen App Show
 
 | Curvas de Freya y resortes de Grade | Propiedades animables |
 |---|---|
-| ![Panel Curvas de Motion Show](assets/apps/motion-curvas-light.png) | ![Panel Propiedades de Motion Show](assets/apps/motion-propiedades-light.png) |
+| ![Panel Curvas](assets/apps/tengen-curvas-light.png) | ![Panel Propiedades](assets/apps/tengen-propiedades-light.png) |
 
 | Controles del kit | Aparición |
 |---|---|
-| ![Panel Controles](assets/apps/motion-controles-light.png) | ![Panel Aparición](assets/apps/motion-aparicion-light.png) |
+| ![Panel Kit en movimiento](assets/apps/tengen-controles-light.png) | ![Panel Aparición](assets/apps/tengen-aparicion-light.png) |
 
 | Diapositivas | Puntero y respuesta | Movimiento reducido |
 |---|---|---|
-| ![Panel Diapositivas](assets/apps/motion-diapositivas-light.png) | ![Panel Eventos](assets/apps/motion-eventos-light.png) | ![Panel Movimiento](assets/apps/motion-movimiento-light.png) |
+| ![Panel Diapositivas](assets/apps/tengen-diapositivas-light.png) | ![Panel Puntero y respuesta](assets/apps/tengen-eventos-light.png) | ![Panel Movimiento](assets/apps/tengen-movimiento-light.png) |
 
-Motion Show es un banco de pruebas: lo que funciona allí se lleva luego al kit.
+Los paneles del grupo Animación de Tengen App Show son un banco de pruebas: lo que
+funciona allí se lleva luego al kit.
 
 Siguiente: [13. Fondos tintados y medios](13-fondos-y-medios.md).

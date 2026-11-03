@@ -35,7 +35,7 @@ cuatro crates de biblioteca y cinco apps de prueba:
 | `vow-design` | **Tengen**, el sistema de diseño. Convierte `tengen/tokens.json` y `tengen/components.json` en constantes Rust. |
 | `vow-appearance` | Lee `appearance.domain` y el fondo de pantalla y los resuelve en una paleta concreta. Vigila los cambios. |
 | `infinity-protocol` | Protocolo Wayland privado entre las apps y el compositor de MalaysiaDreams. |
-| `tengen-app-show`, `tengen-motion-show`, `ondina`, `rotulo`, `marea` | Apps de prueba (capítulo [15](15-apps-de-prueba.md)). |
+| `tengen-app-show`, `ondina`, `marea` | Apps de prueba (capítulo [15](15-apps-de-prueba.md)). |
 
 El kit se apoya en [Freya](https://freyaui.dev) `=0.4.3`, pero solo en sus
 crates de núcleo: `freya-core`, `freya-components` (sin features),

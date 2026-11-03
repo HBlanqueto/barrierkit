@@ -39,7 +39,7 @@ Vulkan y la fuente Geist instalada:
      `sidebar_style` para la barra plana);
    - `MALAYSIA_DATA_DIR/io.github.hblanqueto.malaysia.<app>.state` con
      `pane = "<id>"` para abrir un panel;
-   - `MALAYSIA_CONFIG_DIR/rotulo.domain` con `layout = "Top"`, `"Rail"`…
+   - `MALAYSIA_CONFIG_DIR/tengen-app-show.domain` con `layout = "Top"`, `"Rail"`…
 3. Lanza la app con `VK_ICD_FILENAMES` apuntando a lavapipe y espera unos
    segundos.
 4. Recorta la ventana con `grim -g "x,y ancho×alto"`, tomando la geometría de

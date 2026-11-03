@@ -104,9 +104,9 @@ window widens, it goes back to its place.
 
 ### Trying it
 
-In Tengen App Show, the «App › Barra lateral» ("App › Sidebar") pane turns
-resizing on or off and switches between three ranges (Tengen 180–320, Estrecha
-"narrow" 160–220, Ancha "wide" 240–420):
+In Tengen App Show, the «Ventana › Barra lateral» ("Window › Sidebar") pane
+picks island or flat, turns resizing on or off and switches between three
+ranges (Tengen 180–320, Estrecha "narrow" 160–220, Ancha "wide" 240–420):
 
 ![«Barra lateral» pane of Tengen App Show](assets/apps/tengen-barra-lateral-light.png)
 

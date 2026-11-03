@@ -11,10 +11,8 @@ lanzarla.
 
    ```sh
    ./dev.sh app tengen-app-show
-   ./dev.sh app tengen-motion-show
    ./dev.sh app ondina
    ./dev.sh app marea
-   cargo run -p rotulo
    ```
 
 Corren en cualquier compositor que dibuje el primer frame (capítulo
@@ -23,8 +21,9 @@ y menú global.
 
 ## Master Tengen App Show (`tengen-app-show`)
 
-El catálogo vivo del kit, como `gtk4-widget-factory`. Es un `PreferencesWindow`
-con un grupo por capa y un panel por componente.
+La única app de pruebas del kit, como `gtk4-widget-factory`. Es un
+`PreferencesWindow` dentro de un `WindowChrome`: un grupo por capa y un panel
+por componente, más los grupos Ventana y Animación.
 
 ![Panel Botones de Tengen App Show](assets/apps/tengen-botones-light.png)
 
@@ -33,7 +32,9 @@ con un grupo por capa y un panel por componente.
 | Capa 1 · Primitivas | Botones, Interruptores, Elección, Deslizadores, Campos, Progreso, Adornos |
 | Capa 2 · Vistas | Formularios, Tabla y rejilla, Pestañas, Fondo tintado, Estados y alertas, Ventana y herramientas, Diseño adaptable |
 | Capa 3 · Patrones | Acerca de, Apariencia (fuerza claro, oscuro o tintado) |
-| App | Deshacer, Barra lateral (redimensionado y rangos) |
+| Ventana | Titlebar, Pantalla completa, Barra lateral |
+| Animación | Curvas, Propiedades, Kit en movimiento, Aparición, Diapositivas, Puntero y respuesta, Movimiento |
+| App | Deshacer |
 
 | Interruptores | Elección | Deslizadores |
 |---|---|---|
@@ -57,12 +58,30 @@ Formularios en oscuro:
 
 Cada componente nuevo del kit llega con su panel aquí.
 
-## Master Tengen Motion Show (`tengen-motion-show`)
+### Ventana
 
-El catálogo de movimiento, también un `PreferencesWindow`: curvas de Freya,
-resortes de Grade, propiedades animables, controles en movimiento, aparición,
-transiciones entre diapositivas, respuesta a eventos y movimiento reducido. Sus
-capturas están en el capítulo [12](12-animaciones.md).
+Los paneles del grupo Ventana cambian la propia ventana de la app. Guardan la
+elección con `save_defaults("tengen-app-show")` en
+`~/.config/malaysia/tengen-app-show.domain`.
+
+| Panel | Qué prueba |
+|---|---|
+| Titlebar | Los dos `TitlebarLayout`, el ancho del rail, los semáforos redondos, el rail normal o unificado, sus elementos arriba y abajo, las cinco formas de aparición y los tres bordes en reposo |
+| Pantalla completa | La `FullscreenBar` y `fullscreen_push`. Son `WindowOptions`: se aplican al abrir de nuevo la app |
+| Barra lateral | Isla o plana, mostrar u ocultar, redimensionado y rangos |
+
+| Titlebar | Pantalla completa | Barra lateral |
+|---|---|---|
+| ![Panel Titlebar](assets/apps/tengen-titlebar-top.png) | ![Panel Pantalla completa](assets/apps/tengen-pantalla-completa-light.png) | ![Panel Barra lateral](assets/apps/tengen-barra-lateral-light.png) |
+
+Las capturas de cada diseño están en el capítulo [7](07-titlebars.md).
+
+### Animación
+
+Los paneles del grupo Animación enseñan las curvas de Freya, los resortes de
+Grade, las propiedades animables, los controles en movimiento, la aparición,
+las transiciones entre diapositivas, la respuesta a eventos y el movimiento
+reducido. Sus capturas están en el capítulo [12](12-animaciones.md).
 
 ## Ondina (`ondina`)
 
@@ -84,13 +103,6 @@ Un reproductor de música que compone la capa 2 a mano: `SplitView`,
 - **Acciones propias** con atajos: reproducir o pausar, siguiente (Ctrl+→),
   anterior (Ctrl+←) y secciones (Ctrl+1 a Ctrl+4), en su menú global
   «Controles» y «Ver».
-
-## Rótulo (`rotulo`)
-
-Prueba los dos `TitlebarLayout`, el rail normal o unificado, su ancho,
-sus elementos arriba y abajo, los semáforos redondos, las cinco formas de aparición, los tres bordes en reposo y la barra
-lateral en isla o plana. Guarda la elección con `save_defaults("rotulo")`.
-Sus capturas están en el capítulo [7](07-titlebars.md).
 
 ## Marea (`marea`)
 

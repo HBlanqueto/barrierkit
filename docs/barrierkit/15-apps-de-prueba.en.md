@@ -11,10 +11,8 @@ to launch it.
 
    ```sh
    ./dev.sh app tengen-app-show
-   ./dev.sh app tengen-motion-show
    ./dev.sh app ondina
    ./dev.sh app marea
-   cargo run -p rotulo
    ```
 
 They run on any compositor that draws the first frame (chapter
@@ -23,8 +21,9 @@ blur and the global menu.
 
 ## Master Tengen App Show (`tengen-app-show`)
 
-The kit's live catalog, like `gtk4-widget-factory`. It is a
-`PreferencesWindow` with one group per layer and one pane per component.
+The kit's only test app, like `gtk4-widget-factory`. It is a
+`PreferencesWindow` inside a `WindowChrome`: one group per layer and one pane
+per component, plus the Ventana ("Window") and Animación ("Animation") groups.
 
 ![«Botones» ("Buttons") pane of Tengen App Show](assets/apps/tengen-botones-light.png)
 
@@ -33,7 +32,9 @@ The kit's live catalog, like `gtk4-widget-factory`. It is a
 | Capa 1 · Primitivas (layer 1, primitives) | Botones, Interruptores, Elección, Deslizadores, Campos, Progreso, Adornos (buttons, switches, choice, sliders, fields, progress, adornments) |
 | Capa 2 · Vistas (layer 2, views) | Formularios, Tabla y rejilla, Pestañas, Fondo tintado, Estados y alertas, Ventana y herramientas, Diseño adaptable (forms, table and grid, tabs, tinted backdrop, states and alerts, window and tools, adaptive layout) |
 | Capa 3 · Patrones (layer 3, patterns) | Acerca de, Apariencia (about, appearance; it forces light, dark or tinted) |
-| App | Deshacer, Barra lateral (undo, sidebar: resizing and ranges) |
+| Ventana (window) | Titlebar, Pantalla completa, Barra lateral (titlebar, full screen, sidebar) |
+| Animación (animation) | Curvas, Propiedades, Kit en movimiento, Aparición, Diapositivas, Puntero y respuesta, Movimiento (curves, properties, kit in motion, appearance, slides, pointer and response, motion) |
+| App | Deshacer (undo) |
 
 | Interruptores | Elección | Deslizadores |
 |---|---|---|
@@ -57,11 +58,29 @@ Forms in dark:
 
 Each new kit component arrives with its pane here.
 
-## Master Tengen Motion Show (`tengen-motion-show`)
+### Window
 
-The motion catalog, also a `PreferencesWindow`: Freya curves, Grade springs,
-animatable properties, controls in motion, appearance, transitions between
-slides, response to events and reduced motion. Its screenshots are in chapter
+The panes of the Ventana group change the app's own window. They save the
+choice with `save_defaults("tengen-app-show")` in
+`~/.config/malaysia/tengen-app-show.domain`.
+
+| Pane | What it tests |
+|---|---|
+| Titlebar | The two `TitlebarLayout` values, the rail width, the round traffic lights, the normal or unified rail, its items at the top and the bottom, the five reveal modes and the three resting edges |
+| Pantalla completa (full screen) | The `FullscreenBar` and `fullscreen_push`. They are `WindowOptions`: they apply when the app opens again |
+| Barra lateral (sidebar) | Island or flat, show or hide, resizing and ranges |
+
+| Titlebar | Full screen | Sidebar |
+|---|---|---|
+| ![Titlebar pane](assets/apps/tengen-titlebar-top.png) | ![Full screen pane](assets/apps/tengen-pantalla-completa-light.png) | ![Sidebar pane](assets/apps/tengen-barra-lateral-light.png) |
+
+The screenshots of each layout are in chapter [7](07-titlebars.en.md).
+
+### Animation
+
+The panes of the Animación group show Freya curves, Grade springs, animatable
+properties, controls in motion, appearance, transitions between slides,
+response to events and reduced motion. Their screenshots are in chapter
 [12](12-animaciones.en.md).
 
 ## Ondina (`ondina`)
@@ -85,12 +104,6 @@ A music player that composes layer 2 by hand: `SplitView`, `Sidebar`,
 - **Custom actions** with shortcuts: play or pause, next (Ctrl+→), previous
   (Ctrl+←) and sections (Ctrl+1 to Ctrl+4), in its global menus «Controles»
   ("Controls") and «Ver» ("View").
-
-## Rótulo (`rotulo`)
-
-It tests the two `TitlebarLayout` values, the normal or unified rail, its width, its items at the top and the bottom, the round traffic lights, the five reveal modes, the three resting edges and
-the island or flat sidebar. It saves the choice with `save_defaults("rotulo")`.
-Its screenshots are in chapter [7](07-titlebars.en.md).
 
 ## Marea (`marea`)
 

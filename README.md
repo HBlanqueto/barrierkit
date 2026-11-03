@@ -24,20 +24,18 @@ The Skia prebuild for `freya-skia-bindings` 0.98.0 lives in `nix/skia.nix`.
 
 ## Probar en cualquier escritorio
 
-`barrier-kit` puede correr como cliente Wayland en cualquier compositor, no solo en MalaysiaDreams. Las dos apps del repositorio arrancan con el protocolo básico (`wl_compositor`, `xdg_shell`, `wl_seat`) y siguen adelante si faltan los globals opcionales.
+`barrier-kit` puede correr como cliente Wayland en cualquier compositor, no solo en MalaysiaDreams. Las apps del repositorio arrancan con el protocolo básico (`wl_compositor`, `xdg_shell`, `wl_seat`) y siguen adelante si faltan los globals opcionales.
 
 ```sh
 nix develop
-./dev.sh app tengen-app-show    # catálogo de componentes (Master Tengen App Show)
-./dev.sh app tengen-motion-show # catálogo de animaciones (Master Tengen Motion Show)
-./dev.sh app marea              # cine y series: vídeo bajo cristal, carátulas y reproductor
-./dev.sh app ondina             # reproductor con fondo tintado, acento propio y diseño adaptable
+./dev.sh app tengen-app-show # componentes, animaciones y titlebars (Master Tengen App Show)
+./dev.sh app marea           # cine y series: vídeo bajo cristal, carátulas y reproductor
+./dev.sh app ondina          # reproductor con fondo tintado, acento propio y diseño adaptable
 ```
 
 | App | GNOME / Mutter | MalaysiaDreams |
 |---|---|---|
 | `tengen-app-show` | Ventana CSD con su titlebar; sin menú global ni bordes del compositor. | Titlebar Tengen, bordes, sombra y blur del compositor. |
-| `tengen-motion-show` | Igual que `tengen-app-show`. | Igual que `tengen-app-show`. |
 | `marea` | Igual; decodifica con VA-API si hay GPU, si no por CPU. | Igual, con el vídeo importado como dmabuf en Vulkan. |
 | `ondina` | Igual; su menú (Controles, Ver) vive solo en D-Bus sin `org_kde_kwin_appmenu_manager`. | Menú global en la barra de menús; el fondo se tiñe con la portada. |
 

@@ -61,20 +61,21 @@ duration 0 and the loops stop. Your own animation must do the same:
 let tiempo = if theme::resolved().reduced_motion { 0 } else { DURATION_BASE };
 ```
 
-## See it live: Tengen Motion Show
+## See it live: Tengen App Show
 
 | Freya curves and Grade springs | Animatable properties |
 |---|---|
-| ![Motion Show «Curvas» pane](assets/apps/motion-curvas-light.png) | ![Motion Show «Propiedades» pane](assets/apps/motion-propiedades-light.png) |
+| ![«Curvas» pane](assets/apps/tengen-curvas-light.png) | ![«Propiedades» pane](assets/apps/tengen-propiedades-light.png) |
 
 | Kit controls | Appearance |
 |---|---|
-| ![«Controles» pane](assets/apps/motion-controles-light.png) | ![«Aparición» pane](assets/apps/motion-aparicion-light.png) |
+| ![«Kit en movimiento» pane](assets/apps/tengen-controles-light.png) | ![«Aparición» pane](assets/apps/tengen-aparicion-light.png) |
 
 | Slides | Pointer and response | Reduced motion |
 |---|---|---|
-| ![«Diapositivas» pane](assets/apps/motion-diapositivas-light.png) | ![«Eventos» pane](assets/apps/motion-eventos-light.png) | ![«Movimiento» pane](assets/apps/motion-movimiento-light.png) |
+| ![«Diapositivas» pane](assets/apps/tengen-diapositivas-light.png) | ![«Puntero y respuesta» pane](assets/apps/tengen-eventos-light.png) | ![«Movimiento» pane](assets/apps/tengen-movimiento-light.png) |
 
-Motion Show is a test bench: what works there is later moved into the kit.
+The panes of the Animación ("Animation") group of Tengen App Show are a test
+bench: what works there is later moved into the kit.
 
 Next: [13. Tinted backdrops and media](13-fondos-y-medios.en.md).

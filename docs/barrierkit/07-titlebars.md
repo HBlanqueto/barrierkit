@@ -94,17 +94,17 @@ WindowChrome::new(estilo, SplitView::new(barra, detalle))
     .rail_bottom(abajo)
 ```
 
-| `TitlebarLayout` | Qué es | Captura (Rótulo) |
+| `TitlebarLayout` | Qué es | Captura (Tengen App Show) |
 |---|---|---|
-| `Top` (por defecto) | Titlebar horizontal arriba, con elementos a la izquierda y a la derecha (`Titlebar::left` y `right`) | ![Diseño Top](assets/apps/rotulo-top.png) |
-| `Rail` | Titlebar vertical a la izquierda, con los semáforos en columna, el título girado 90° y elementos arriba y abajo (`rail_top` y `rail_bottom`) | ![Diseño Rail](assets/apps/rotulo-rail.png) |
+| `Top` (por defecto) | Titlebar horizontal arriba, con elementos a la izquierda y a la derecha (`Titlebar::left` y `right`) | ![Diseño Top](assets/apps/tengen-titlebar-top.png) |
+| `Rail` | Titlebar vertical a la izquierda, con los semáforos en columna, el título girado 90° y elementos arriba y abajo (`rail_top` y `rail_bottom`) | ![Diseño Rail](assets/apps/tengen-titlebar-rail.png) |
 
 El `Rail` tiene dos estilos:
 
-| `RailStyle` | Qué es | Captura (Rótulo) |
+| `RailStyle` | Qué es | Captura (Tengen App Show) |
 |---|---|---|
-| `Normal` (por defecto) | Una franja propia a la izquierda de la ventana | ![Rail normal](assets/apps/rotulo-rail.png) |
-| `Unified` | Sin franja: la columna va dentro de la barra lateral. Sin barra lateral visible se dibuja como `Normal` | ![Rail unificado](assets/apps/rotulo-unified.png) |
+| `Normal` (por defecto) | Una franja propia a la izquierda de la ventana | ![Rail normal](assets/apps/tengen-titlebar-rail.png) |
+| `Unified` | Sin franja: la columna va dentro de la barra lateral. Sin barra lateral visible se dibuja como `Normal` | ![Rail unificado](assets/apps/tengen-titlebar-unified.png) |
 
 ### Elementos del rail
 
@@ -138,13 +138,13 @@ Algunas combinaciones no tienen sentido y se corrigen solas
 (`ChromeStyle::effective`): el `Rail` unificado con `Drawer`, `Push` o `Popup`
 pasa a `Corner`; en pantalla completa, `reveal` es siempre `Always`.
 
-La app Rótulo (capítulo [15](15-apps-de-prueba.md)) prueba todas las
-combinaciones en vivo.
+Los paneles Titlebar, Pantalla completa y Barra lateral de Tengen App Show
+(capítulo [15](15-apps-de-prueba.md)) prueban todas las combinaciones en vivo.
 
 ## Maximizada, pantalla completa y modo foco
 
 El estado se lee como explica el capítulo [6](06-ventanas.md#estado-de-la-ventana).
-Las capturas de esta sección son la ventana de Rótulo (barra lateral en isla,
+Las capturas de esta sección son una ventana de prueba (barra lateral en isla,
 diseño `Top` salvo donde se indica) renderizada por el kit en cada estado.
 
 ### Los cuatro estados con el diseño por defecto (`Top`)

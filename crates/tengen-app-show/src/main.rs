@@ -1,8 +1,16 @@
-//! Master Tengen App Show: every BarrierKit component on its own page (ADR 0047 §6).
+//! Master Tengen App Show: every BarrierKit component, animation and window
+//! layout on its own page (ADR 0047 §6).
+
+mod animation;
+mod chrome;
+mod events;
+mod kit;
+mod motion;
+mod slides;
 
 use barrier_kit::adaptive::{Breakpoint, use_breakpoint};
 use barrier_kit::adornments::{Link, avatar, badge, divider};
-use barrier_kit::app::{Action, Instance, Launch, launch};
+use barrier_kit::app::{Action, Instance, Launch, launch, load_defaults};
 use barrier_kit::app::{REDO, UNDO, UndoManager, use_undo};
 use barrier_kit::app::{Shortcut, ShortcutKey};
 use barrier_kit::app_menu::{AppMenu, Menu};
@@ -34,6 +42,7 @@ use barrier_kit::views::feedback::{Alert, empty_state};
 use barrier_kit::views::form::{Form, Row, Section};
 use barrier_kit::views::table::{SortOrder, Table};
 use barrier_kit::views::tabs::TabView;
+use chrome::Prefs;
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 use torin::prelude::{Direction, Size};
@@ -41,6 +50,8 @@ use vow_appearance::ColorScheme;
 use vow_design::{
     ACCENT_SWATCHES, COLLECTION, Rgba, SPACE_2, SPLIT_VIEW, TABLE, TEXT, WINDOW_MIN_SIZE,
 };
+
+const APP: &str = "tengen-app-show";
 
 fn tint(index: usize) -> Rgba {
     ACCENT_SWATCHES[index % ACCENT_SWATCHES.len()].1
@@ -327,42 +338,6 @@ fn appearance(scheme: State<Option<ColorScheme>>) -> Form {
                     }),
             ),
         ),
-    )
-}
-
-const SIDEBAR_LIMITS: [(&str, Option<(f32, f32)>); 3] = [
-    ("Tengen", None),
-    ("Estrecha", Some((160.0, 220.0))),
-    ("Ancha", Some((240.0, 420.0))),
-];
-
-fn sidebar_resize(resizable: State<bool>, limits: State<usize>) -> Form {
-    Form::new().section(
-        Section::titled("Barra lateral")
-            .row(
-                Row::new("Redimensionable").control(
-                    Switch::new("Redimensionable")
-                        .on(*resizable.read())
-                        .on_toggle(move |on: bool| {
-                            let mut resizable = resizable;
-                            resizable.set(on);
-                        }),
-                ),
-            )
-            .row(
-                Row::new("Límites").control(
-                    SIDEBAR_LIMITS
-                        .iter()
-                        .fold(SegmentedControl::new("Límites"), |control, (name, _)| {
-                            control.segment(name)
-                        })
-                        .selected(*limits.read())
-                        .on_change(move |index: usize| {
-                            let mut limits = limits;
-                            limits.set(index);
-                        }),
-                ),
-            ),
     )
 }
 
@@ -673,6 +648,7 @@ fn about() -> Form {
 struct Show {
     app_id: &'static str,
     instance: Option<Instance>,
+    prefs: Prefs,
 }
 
 impl App for Show {
@@ -691,19 +667,23 @@ impl App for Show {
         let scheme = use_state(|| None::<ColorScheme>);
         let accent = use_state(|| 0);
         let accent_history = use_undo(accent);
-        let sidebar_resizable = use_state(|| true);
-        let sidebar_limits = use_state(|| 0);
+        let initial = self.prefs;
+        let prefs = use_state(|| initial);
+        let reduced = use_state(|| barrier_kit::theme::resolved().reduced_motion);
         use_appearance(move |config| {
             if let Some(forced) = *scheme.read() {
                 config.color_scheme = forced;
             }
+            config.sidebar_style = prefs.read().sidebar_style();
+            config.reduced_motion = *reduced.read();
         });
+        let current = *prefs.read();
 
         let window = PreferencesWindow::new()
             .restoration(self.app_id)
             .suggestions(&["formularios", "campos", "interruptores"])
-            .sidebar_resizable(*sidebar_resizable.read())
-            .sidebar_range(SIDEBAR_LIMITS[*sidebar_limits.read()].1)
+            .sidebar_resizable(current.sidebar_resizable())
+            .sidebar_range(current.sidebar_range())
             .group(
                 PaneGroup::new(Some("Capa 1 · Primitivas"))
                     .pane(Pane::new(
@@ -825,28 +805,20 @@ impl App for Show {
                         appearance(scheme),
                     )),
             )
-            .group(
-                PaneGroup::new(Some("App"))
-                    .pane(Pane::new(
-                        "deshacer",
-                        "Deshacer",
-                        Symbol::Backward,
-                        tint(2),
-                        undo(accent_history, *accent.read()),
-                    ))
-                    .pane(Pane::new(
-                        "barra-lateral",
-                        "Barra lateral",
-                        Symbol::SidebarLeft,
-                        tint(3),
-                        sidebar_resize(sidebar_resizable, sidebar_limits),
-                    )),
-            );
+            .group(chrome::group(prefs))
+            .group(animation::group(reduced))
+            .group(PaneGroup::new(Some("App")).pane(Pane::new(
+                "deshacer",
+                "Deshacer",
+                Symbol::Backward,
+                tint(2),
+                undo(accent_history, *accent.read()),
+            )));
 
         rect()
             .width(Size::fill())
             .height(Size::fill())
-            .child(window)
+            .child(chrome::window(current, window))
             .maybe(*alert.read(), |el| {
                 el.child(
                     Alert::new(
@@ -862,7 +834,7 @@ impl App for Show {
 
 fn main() {
     tracing_subscriber::fmt::init();
-    let app_id = barrier_kit::titlebar::app_id("tengen-app-show").leak();
+    let app_id = barrier_kit::titlebar::app_id(APP).leak();
     let instance = match launch(app_id) {
         Ok(Launch::Forwarded) => return,
         Ok(Launch::Primary(instance)) => Some(instance),
@@ -871,16 +843,96 @@ fn main() {
             None
         }
     };
+    let prefs: Prefs = load_defaults(APP);
     run_window(
-        AppComponent::new(Show { app_id, instance }),
-        WindowOptions::new("Master Tengen App Show", "tengen-app-show")
+        AppComponent::new(Show {
+            app_id,
+            instance,
+            prefs,
+        }),
+        WindowOptions::new("Master Tengen App Show", APP)
             .decorations(Decorations::Client)
             .size((980, 640))
             .min_size(Some(WINDOW_MIN_SIZE))
+            .fullscreen_bar(prefs.fullscreen_bar)
+            .fullscreen_push(prefs.fullscreen_push)
             .menu(AppMenu::new(vec![Menu::new(
                 "Edición",
                 vec![UNDO.item(true), REDO.item(true)],
             )])),
     )
-    .expect("tengen-app-show");
+    .expect(APP);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use barrier_kit::chrome::{Reveal, TitlebarLayout};
+    use freya_testing::TestingRunner;
+    use torin::prelude::Size2D;
+    use vow_design::TITLEBAR;
+
+    fn light_groups(test: &TestingRunner) -> usize {
+        let diameter = TITLEBAR.buttons.diameter as f32;
+        let length = 3.0 * diameter + 2.0 * TITLEBAR.buttons.spacing as f32;
+        let mut groups = test.find_many(|node, _| {
+            let area = node.layout().area;
+            let size = (area.width(), area.height());
+            (size == (length, diameter) || size == (diameter, length))
+                .then_some((area.min_x() as i32, area.min_y() as i32))
+        });
+        groups.sort_unstable();
+        groups.dedup();
+        groups.len()
+    }
+
+    fn render(prefs: Prefs) -> TestingRunner {
+        let (mut test, _) = TestingRunner::new(
+            AppComponent::new(Show {
+                app_id: APP,
+                instance: None,
+                prefs,
+            }),
+            Size2D::new(900.0, 560.0),
+            |_| {},
+            1.0,
+        );
+        test.sync_and_update();
+        test
+    }
+
+    #[test]
+    fn every_layout_shows_the_traffic_lights_once() {
+        for layout in [TitlebarLayout::Top, TitlebarLayout::Rail] {
+            for flat_sidebar in [false, true] {
+                let prefs = Prefs {
+                    layout,
+                    flat_sidebar,
+                    ..Default::default()
+                };
+                assert_eq!(light_groups(&render(prefs)), 1, "{prefs:?}");
+            }
+        }
+    }
+
+    #[test]
+    fn the_popup_hides_the_lights_until_the_pointer_reaches_the_edge() {
+        for (layout, edge) in [
+            (TitlebarLayout::Top, (450.0, 2.0)),
+            (TitlebarLayout::Rail, (2.0, 280.0)),
+        ] {
+            let mut test = render(Prefs {
+                layout,
+                reveal: Reveal::Popup,
+                ..Default::default()
+            });
+            assert_eq!(light_groups(&test), 0, "{layout:?} at rest");
+            test.move_cursor(edge);
+            test.poll(
+                std::time::Duration::from_millis(16),
+                std::time::Duration::from_millis(400),
+            );
+            assert_eq!(light_groups(&test), 1, "{layout:?} revealed");
+        }
+    }
 }

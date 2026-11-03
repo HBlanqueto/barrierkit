@@ -24,7 +24,7 @@ help() {
 Usage: ./dev.sh <command>
 
 Commands:
-  app <name> [args]       run tengen-app-show, tengen-motion-show, marea or ondina against the current WAYLAND_DISPLAY
+  app <name> [args]       run tengen-app-show, marea or ondina against the current WAYLAND_DISPLAY
   check                   run fmt, clippy, tests and kit-specific checks
   help                    show this message
 
@@ -37,8 +37,8 @@ app() {
     require cargo
     _name=${1:-}
     case "$_name" in
-        tengen-app-show | tengen-motion-show | marea | ondina) shift ;;
-        *) fail 1 "usage: ./dev.sh app tengen-app-show|tengen-motion-show|marea|ondina [args]" ;;
+        tengen-app-show | marea | ondina) shift ;;
+        *) fail 1 "usage: ./dev.sh app tengen-app-show|marea|ondina [args]" ;;
     esac
     RUST_LOG=${RUST_LOG:-info} cargo run -p "$_name" -- "$@"
 }

@@ -1,31 +1,20 @@
-//! Master Tengen Motion Show: every BarrierKit animation on its own page (ADR 0047 §6).
-
-mod events;
-mod kit;
-mod motion;
-mod slides;
-
-use barrier_kit::app::{Instance, Launch, launch};
 use barrier_kit::controls::{Button, ButtonStyle, SegmentedControl, Switch};
-use barrier_kit::patterns::preferences::{Pane, PaneGroup, PreferencesWindow};
-use barrier_kit::platform::{Decorations, WindowOptions, run_window};
+use barrier_kit::patterns::preferences::{Pane, PaneGroup};
 use barrier_kit::progress::{ProgressBar, Spinner};
 use barrier_kit::symbol::Symbol;
-use barrier_kit::theme::use_appearance;
 use barrier_kit::views::form::{Form, Row, Section};
 use freya_animation::prelude::Function;
-use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Size};
-use vow_design::{
-    ACCENT_SWATCHES, DURATION_BASE, DURATION_SLOW_MS, Rgba, SPACE_2, SPLIT_VIEW, SWITCH,
-    WINDOW_MIN_SIZE,
-};
+use vow_design::{DURATION_BASE, DURATION_SLOW_MS, SPACE_2, SPLIT_VIEW, SWITCH};
 
-use events::{Arrivals, CopyToast, HoverCard, Inbox, PlusToggle, Popover, PressCard, ShakeField};
-use kit::{Download, SCENES, scene, sidebar_section};
-use motion::{EasedTrack, Property, PropertyTile, SpringTrack};
-use slides::{Stage, TRANSITIONS, pager};
+use crate::events::{
+    Arrivals, CopyToast, HoverCard, Inbox, PlusToggle, Popover, PressCard, ShakeField,
+};
+use crate::kit::{Download, SCENES, scene, sidebar_section};
+use crate::motion::{EasedTrack, Property, PropertyTile, SpringTrack};
+use crate::slides::{Stage, TRANSITIONS, pager};
+use crate::tint;
 
 const CURVES: [(&str, Function); 7] = [
     ("Lineal", Function::Linear),
@@ -48,10 +37,6 @@ const PROPERTIES: [(&str, Property); 7] = [
     ("Radio", Property::Radius),
     ("Anchura", Property::Width),
 ];
-
-fn tint(index: usize) -> Rgba {
-    ACCENT_SWATCHES[index % ACCENT_SWATCHES.len()].1
-}
 
 fn curves(mut ahead: State<bool>) -> Form {
     let at_end = *ahead.read();
@@ -254,106 +239,61 @@ fn accessibility(mut reduced: State<bool>) -> Form {
     )
 }
 
-struct Show {
-    app_id: &'static str,
-    instance: Option<Instance>,
-}
-
-impl App for Show {
-    fn render(&self) -> impl IntoElement {
-        let instance = self.instance.clone();
-        use_hook(move || {
-            if let Some(instance) = &instance {
-                instance.listen();
-            }
-        });
-        let ahead = use_state(|| false);
-        let animated = use_state(|| false);
-        let backdrop = use_state(|| 0);
-        let page = use_state(|| 0);
-        let transition = use_state(|| 0);
-        let period = use_state(|| 0);
-        let reduced = use_state(|| barrier_kit::theme::resolved().reduced_motion);
-        use_appearance(move |config| config.reduced_motion = *reduced.read());
-
-        PreferencesWindow::new()
-            .restoration(self.app_id)
-            .suggestions(&["curvas", "diapositivas", "eventos"])
-            .group(
-                PaneGroup::new(Some("Fundamentos"))
-                    .pane(Pane::new(
-                        "curvas",
-                        "Curvas",
-                        Symbol::SlidersVertical,
-                        tint(0),
-                        curves(ahead),
-                    ))
-                    .pane(Pane::new(
-                        "propiedades",
-                        "Propiedades",
-                        Symbol::SquareGrid,
-                        tint(1),
-                        properties(animated),
-                    )),
-            )
-            .group(
-                PaneGroup::new(Some("Kit en movimiento"))
-                    .pane(Pane::new(
-                        "controles",
-                        "Controles",
-                        Symbol::ChevronRight,
-                        tint(6),
-                        kit_controls(backdrop),
-                    ))
-                    .pane(Pane::new(
-                        "aparicion",
-                        "Aparición",
-                        Symbol::Plus,
-                        tint(4),
-                        appearing(),
-                    )),
-            )
-            .group(PaneGroup::new(Some("Navegación")).pane(Pane::new(
-                "diapositivas",
-                "Diapositivas",
-                Symbol::Play,
-                tint(7),
-                navigation(page, transition, period),
-            )))
-            .group(PaneGroup::new(Some("Eventos")).pane(Pane::new(
-                "eventos",
-                "Puntero y respuesta",
-                Symbol::CircleHalf,
-                tint(5),
-                feedback(),
-            )))
-            .group(PaneGroup::new(Some("Accesibilidad")).pane(Pane::new(
-                "movimiento",
-                "Movimiento",
-                Symbol::Pause,
-                tint(2),
-                accessibility(reduced),
-            )))
-    }
-}
-
-fn main() {
-    tracing_subscriber::fmt::init();
-    let app_id = barrier_kit::titlebar::app_id("tengen-motion-show").leak();
-    let instance = match launch(app_id) {
-        Ok(Launch::Forwarded) => return,
-        Ok(Launch::Primary(instance)) => Some(instance),
-        Err(error) => {
-            tracing::warn!(%error, "tengen-motion-show: sin instancia única");
-            None
-        }
-    };
-    run_window(
-        AppComponent::new(Show { app_id, instance }),
-        WindowOptions::new("Master Tengen Motion Show", "tengen-motion-show")
-            .decorations(Decorations::Client)
-            .size((980, 640))
-            .min_size(Some(WINDOW_MIN_SIZE)),
-    )
-    .expect("tengen-motion-show");
+pub fn group(reduced: State<bool>) -> PaneGroup {
+    let ahead = use_state(|| false);
+    let animated = use_state(|| false);
+    let backdrop = use_state(|| 0);
+    let page = use_state(|| 0);
+    let transition = use_state(|| 0);
+    let period = use_state(|| 0);
+    PaneGroup::new(Some("Animación"))
+        .pane(Pane::new(
+            "curvas",
+            "Curvas",
+            Symbol::SlidersVertical,
+            tint(0),
+            curves(ahead),
+        ))
+        .pane(Pane::new(
+            "propiedades",
+            "Propiedades",
+            Symbol::SquareGrid,
+            tint(1),
+            properties(animated),
+        ))
+        .pane(Pane::new(
+            "controles",
+            "Kit en movimiento",
+            Symbol::ChevronRight,
+            tint(6),
+            kit_controls(backdrop),
+        ))
+        .pane(Pane::new(
+            "aparicion",
+            "Aparición",
+            Symbol::Plus,
+            tint(4),
+            appearing(),
+        ))
+        .pane(Pane::new(
+            "diapositivas",
+            "Diapositivas",
+            Symbol::Play,
+            tint(7),
+            navigation(page, transition, period),
+        ))
+        .pane(Pane::new(
+            "eventos",
+            "Puntero y respuesta",
+            Symbol::CircleHalf,
+            tint(5),
+            feedback(),
+        ))
+        .pane(Pane::new(
+            "movimiento",
+            "Movimiento",
+            Symbol::Pause,
+            tint(2),
+            accessibility(reduced),
+        ))
 }

@@ -39,7 +39,7 @@ driver and the Geist font installed:
      `sidebar_style` for the flat sidebar);
    - `MALAYSIA_DATA_DIR/io.github.hblanqueto.malaysia.<app>.state` with
      `pane = "<id>"` to open a pane;
-   - `MALAYSIA_CONFIG_DIR/rotulo.domain` with `layout = "Top"`, `"Rail"`…
+   - `MALAYSIA_CONFIG_DIR/tengen-app-show.domain` with `layout = "Top"`, `"Rail"`…
 3. Launch the app with `VK_ICD_FILENAMES` pointing to lavapipe and wait a few
    seconds.
 4. Crop the window with `grim -g "x,y ancho×alto"`, taking the geometry from

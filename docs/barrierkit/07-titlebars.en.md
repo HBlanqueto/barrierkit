@@ -93,17 +93,17 @@ WindowChrome::new(estilo, SplitView::new(barra, detalle))
     .rail_bottom(abajo)
 ```
 
-| `TitlebarLayout` | What it is | Screenshot (Rótulo) |
+| `TitlebarLayout` | What it is | Screenshot (Tengen App Show) |
 |---|---|---|
-| `Top` (default) | Horizontal titlebar at the top, with items on the left and the right (`Titlebar::left` and `right`) | ![Top layout](assets/apps/rotulo-top.png) |
-| `Rail` | Vertical titlebar on the left, with the traffic lights in a column, the title rotated 90° and items at the top and the bottom (`rail_top` and `rail_bottom`) | ![Rail layout](assets/apps/rotulo-rail.png) |
+| `Top` (default) | Horizontal titlebar at the top, with items on the left and the right (`Titlebar::left` and `right`) | ![Top layout](assets/apps/tengen-titlebar-top.png) |
+| `Rail` | Vertical titlebar on the left, with the traffic lights in a column, the title rotated 90° and items at the top and the bottom (`rail_top` and `rail_bottom`) | ![Rail layout](assets/apps/tengen-titlebar-rail.png) |
 
 The `Rail` has two styles:
 
-| `RailStyle` | What it is | Screenshot (Rótulo) |
+| `RailStyle` | What it is | Screenshot (Tengen App Show) |
 |---|---|---|
-| `Normal` (default) | Its own strip on the left of the window | ![Normal rail](assets/apps/rotulo-rail.png) |
-| `Unified` | No strip: the column goes inside the sidebar. Without a visible sidebar it is drawn as `Normal` | ![Unified rail](assets/apps/rotulo-unified.png) |
+| `Normal` (default) | Its own strip on the left of the window | ![Normal rail](assets/apps/tengen-titlebar-rail.png) |
+| `Unified` | No strip: the column goes inside the sidebar. Without a visible sidebar it is drawn as `Normal` | ![Unified rail](assets/apps/tengen-titlebar-unified.png) |
 
 ### Rail items
 
@@ -136,13 +136,14 @@ Some combinations make no sense and correct themselves
 (`ChromeStyle::effective`): a unified `Rail` with `Drawer`, `Push` or `Popup`
 becomes `Corner`; in full screen, `reveal` is always `Always`.
 
-The Rótulo app (chapter [15](15-apps-de-prueba.en.md)) tests every combination
-live.
+The Titlebar, Pantalla completa ("Full screen") and Barra lateral ("Sidebar")
+panes of Tengen App Show (chapter [15](15-apps-de-prueba.en.md)) test every
+combination live.
 
 ## Maximized, full screen and focus mode
 
 The state is read as chapter [6](06-ventanas.en.md#window-state) explains.
-The screenshots in this section are the Rótulo window (island sidebar, `Top`
+The screenshots in this section are a test window (island sidebar, `Top`
 layout unless stated) rendered by the kit in each state.
 
 ### The four states with the default layout (`Top`)

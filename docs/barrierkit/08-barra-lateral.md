@@ -103,9 +103,9 @@ ensanchar la ventana, vuelve a su sitio.
 
 ### Probarlo
 
-En Tengen App Show, el panel «App › Barra lateral» activa o quita el
-redimensionado y cambia entre tres rangos (Tengen 180–320, Estrecha 160–220,
-Ancha 240–420):
+En Tengen App Show, el panel «Ventana › Barra lateral» elige isla o plana,
+activa o quita el redimensionado y cambia entre tres rangos (Tengen 180–320,
+Estrecha 160–220, Ancha 240–420):
 
 ![Panel Barra lateral de Tengen App Show](assets/apps/tengen-barra-lateral-light.png)
 

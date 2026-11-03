@@ -226,7 +226,7 @@ Cada fase se divide en lotes pequeños para opencode, con prueba visible en la s
 - el sitio de las pruebas visibles de cada lote;
 - la fuente de los tests de render (cada página se renderiza en claro, oscuro y tintado).
 
-**Master Tengen Motion Show** (`tengen-motion-show`) es su hermana para el movimiento, con el mismo `PreferencesWindow`. Enseña las curvas de Freya, el resorte de Grade (`Spring` es un `AnimatedValue` y se usa con `use_animation`), las duraciones de Tengen, las propiedades animables (opacidad, escala, rotación, posición, color, radio y anchura), los controles del kit que ya se animan, la entrada y salida de elementos, las transiciones entre diapositivas y pestañas, la respuesta a eventos (hover, pulsar, error, notificación y aviso) y el movimiento reducido. Es un mockup: de aquí sale lo que luego se lleve al kit.
+Su grupo Animación enseña el movimiento: las curvas de Freya, el resorte de Grade (`Spring` es un `AnimatedValue` y se usa con `use_animation`), las duraciones de Tengen, las propiedades animables (opacidad, escala, rotación, posición, color, radio y anchura), los controles del kit que ya se animan, la entrada y salida de elementos, las transiciones entre diapositivas y pestañas, la respuesta a eventos (hover, pulsar, error, notificación y aviso) y el movimiento reducido. Es un mockup: de aquí sale lo que luego se lleve al kit. Su grupo Ventana cambia la titlebar (`TitlebarLayout`, rail, aparición), la barra de pantalla completa (`FullscreenBar`, `fullscreen_push`) y la barra lateral de su propia ventana.
 
 **Marea** (`marea`) prueba el kit con medios: un destacado con vídeo de fondo, degradados que lo funden con la ventana, una isla de cristal encima, estanterías horizontales con carátulas y vista previa en vídeo, chips de género y un reproductor. Para ella el kit gana `video` (feature `video`: GStreamer decodifica con VA-API y cada fotograma llega como dmabuf importado en el `VkDevice` del kit, sin copias; sin dmabuf se descarga una vez y sin VA-API decodifica la CPU), `media` (`scrim`, `material`, `MediaButton`, `RoundButton`, `use_artwork`), `register_font`, `ScrollView` con dirección, controlador y barra opcional, y los tokens `MEDIA`, `POSTER` y `SCROLL_BAR`. Los vídeos y fotogramas de prueba los genera `crates/marea/media/generate.mjs` a partir de las escenas del mockup.
 
@@ -241,7 +241,7 @@ Hecho en `main`:
 - **Capa 3**: `PreferencesWindow` (buscador con sugerencias y recientes que se restauran, resultados con el icono de su panel y recorrido con ↑, ↓ y Enter) y `about_window`.
 - **Fondos tintados**: `Backdrop` pinta tres capas en 127°, 217° y 336° con dithering, desde una imagen (k-medias en OKLab, `vow_appearance::backdrop`) o tres colores, y funde entre fondos. Dentro, `Palette::current()` da su tinta y su acento (`Accent::System`, `Own` o `FromBackdrop`), igual en claro que en oscuro; los controles con relleno aceptan `.tint(Tint::Accent | Color | Backdrop)`. El contenido tiene que ser un componente hijo del `Backdrop`: las funciones evaluadas en el padre leen la paleta del sistema. La `Sidebar` deja ver el fondo o, en isla, la tiñe la app con `SidebarBackdrop::Tinted` (ADR 0057).
 - **Diseño adaptable**: `use_breakpoint()` da `Compact`, `Medium` o `Wide` según `BREAKPOINT`.
-- **Master Tengen App Show** (`tengen-app-show`) **Ondina** (`ondina`), el reproductor que usa los fondos, el acento propio, los tres tamaños y la navegación del kit, y **Rótulo** (`rotulo`), que prueba las titlebars verticales; son las tres apps de prueba del repositorio.
+- **Master Tengen App Show** (`tengen-app-show`), que reúne componentes, animaciones y titlebars, **Ondina** (`ondina`), el reproductor que usa los fondos, el acento propio, los tres tamaños y la navegación del kit, y **Marea** (`marea`), con medios; son las apps de prueba del repositorio.
 - **Fase 6**: Ajustes del sistema es un `PreferencesWindow` con un `Form`; ya no tiene controles, barra lateral ni buscador propios.
 
 Pendiente. Nada de esto se construye hasta que su motivo desaparezca (regla 2 de AGENTS.md: nada «por si acaso»):
@@ -278,7 +278,7 @@ Decidido: los atajos del menú siguen guardándose como texto (`MenuItem::Action
 
 ## Anexo A · Cómo se escribe una app
 
-Es la API de `main` a 2026-11-02. Las apps del repositorio son la referencia completa: `tengen-app-show` usa la capa 3, `ondina` compone la capa 2 a mano (`SplitView`, `Titlebar`, `Backdrop`, `use_breakpoint`) y `rotulo` prueba las titlebars verticales.
+Es la API de `main` a 2026-11-02. Las apps del repositorio son la referencia completa: `tengen-app-show` usa la capa 3 y prueba los dos `TitlebarLayout` con `WindowChrome`, y `ondina` compone la capa 2 a mano (`SplitView`, `Titlebar`, `Backdrop`, `use_breakpoint`).
 
 ### Una app de preferencias con la capa 3
 
