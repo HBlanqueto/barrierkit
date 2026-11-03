@@ -105,7 +105,7 @@ Text only, over `wl_data_device`.
 
 ## Complete example
 
-[ADR 0047, annex A](../decisiones/0047-barrierkit-en-capas.en.en.md#annex-a--how-an-app-is-written)
+[ADR 0047, annex A](../decisiones/0047-barrierkit-en-capas.en.md#annex-a--how-an-app-is-written)
 puts all of this together in a 60-line app.
 
 Next: [12. Animations](12-animaciones.en.md).
