@@ -52,6 +52,7 @@ pub(crate) struct AppInstance {
     pub(crate) resolved: State<Resolved>,
     accessibility: AccessibilityTree,
     accessibility_initialized: bool,
+    atspi: Option<super::atspi::Atspi>,
     pub(crate) requested_focus: Option<AccessibilityFocusStrategy>,
 }
 
@@ -105,6 +106,7 @@ impl AppInstance {
         });
 
         extra_contexts(&mut runner);
+        let window_shown = window.is_some();
         if let Some(window) = window {
             runner.provide_root_context(move || window);
         }
@@ -121,6 +123,7 @@ impl AppInstance {
         let _ = runner.run_in(|| tree.apply_mutations(mutations));
 
         let accessibility = AccessibilityTree::default();
+        let atspi = window_shown.then(|| super::atspi::Atspi::new(waker.clone()));
 
         Self {
             runner,
@@ -143,6 +146,7 @@ impl AppInstance {
             resolved,
             accessibility,
             accessibility_initialized: false,
+            atspi,
             requested_focus: None,
         }
     }
@@ -156,6 +160,9 @@ impl AppInstance {
 
     pub(crate) fn set_focused(&mut self, focused: bool) {
         self.platform.is_app_focused.set(focused);
+        if let Some(atspi) = &mut self.atspi {
+            atspi.adapter.update_window_focus_state(focused);
+        }
         self.waker.wake_by_ref();
     }
 
@@ -211,10 +218,13 @@ impl AppInstance {
         }
         self.layout();
 
-        if !self.accessibility_initialized {
-            let _ = self.accessibility.init(&mut self.tree);
-            self.accessibility_initialized = true;
-        }
+        let tree_requested = self
+            .atspi
+            .as_ref()
+            .is_some_and(|atspi| atspi.tree_requested());
+        let full_tree = (!self.accessibility_initialized || tree_requested)
+            .then(|| self.accessibility.init(&mut self.tree));
+        self.accessibility_initialized = true;
         if let Some(strategy) = requested_focus {
             if matches!(
                 strategy,
@@ -228,9 +238,20 @@ impl AppInstance {
         let accessibility_update = self
             .accessibility
             .process_updates(&mut self.tree, &self.events_sender);
+        let focus_moved =
+            *self.platform.focused_accessibility_id.peek() != accessibility_update.focus;
         self.platform
             .focused_accessibility_id
             .set_if_modified(accessibility_update.focus);
+        if let Some(atspi) = &mut self.atspi {
+            match full_tree {
+                Some(tree) => atspi.adapter.update_if_active(|| tree),
+                None if focus_moved || !accessibility_update.nodes.is_empty() => {
+                    atspi.adapter.update_if_active(|| accessibility_update)
+                }
+                None => {}
+            }
+        }
         if let Some(node_id) = self.accessibility.focused_node_id()
             && let Some(layout_node) = self.tree.layout.get(&node_id)
         {
