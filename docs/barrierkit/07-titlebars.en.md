@@ -197,6 +197,9 @@ WindowOptions::new("Ondina", "ondina")
     .fullscreen_push(true)
 ```
 
+Both are the initial value. The app changes them live through
+`WindowControls::get().fullscreen_bar` and `.fullscreen_push`, two `State`s.
+
 With it, the bar covers nothing: all the window content, sidebar included,
 moves down by the height of the compositor bar and the titlebar
 (`WindowControls::push_offset`). The traffic lights move down with the titlebar
@@ -211,16 +214,17 @@ and `fullscreen_content_top` is 0.
 #### With the `Rail`
 
 With the `Rail`, the top titlebar neither retracts nor overlays: it stays in
-place, as in the normal window. Only the rail hides while the compositor bar is
-up and, when the bar comes down, slides in from the left with the same bar,
-vertically:
+place, as in the normal window. When the compositor bar comes down, the whole
+window moves down by the bar's height, so the titlebar stays whole below it.
+Only the rail hides while the bar is up and, when the bar comes down, slides in
+from the left with the same bar, vertically:
 
 | `FullscreenBar` | The rail | How it looks |
 |---|---|---|
 | `Solid` ("A · Lisa", **default**) | An opaque strip as wide as the rail, over the content | ![Rail with A · Lisa](assets/estados/rail-barra-lisa.png) |
 | `Glass` ("B1 · Vidrio en banda") | A strip as wide as the rail that blurs what is below, with a line on the inner edge | ![Rail with B1 · Glass band](assets/estados/rail-barra-vidrio-banda.png) |
 | `ProgressiveGlass` ("B2 · Vidrio progresivo") | Maximum blur at the window edge that fades inward over 96 px | ![Rail with B2 · Progressive glass](assets/estados/rail-barra-vidrio-progresivo.png) |
-| Any + `fullscreen_push(true)` | The rail returns to the layout and pushes the content sideways by its width; everything moves down by the height of the compositor bar | ![Rail pushing the content](assets/estados/rail-barra-empuja.png) |
+| Any + `fullscreen_push(true)` | The rail returns to the layout and pushes the content sideways by its width | ![Rail pushing the content](assets/estados/rail-barra-empuja.png) |
 
 ### Focus mode with the bar down, by layout
 

@@ -140,8 +140,13 @@ impl Component for Titlebar {
                 .into_element();
         }
 
-        let controls = freya_core::prelude::try_consume_root_context::<WindowControls>();
-        let rail = crate::chrome::chrome_style().layout == crate::chrome::TitlebarLayout::Rail;
+        let controls = freya_core::prelude::try_consume_root_context::<WindowControls>()
+            .filter(|_| self.preview.is_none());
+        let layout = match self.preview {
+            Some(_) => crate::chrome::TitlebarLayout::Top,
+            None => crate::chrome::chrome_style().layout,
+        };
+        let rail = layout == crate::chrome::TitlebarLayout::Rail;
         let overlaid = !rail
             && controls
                 .as_ref()
@@ -214,8 +219,9 @@ impl Component for Titlebar {
             (false, false) => theme.title.unfocused,
         };
         let lights_shown = freya_core::prelude::try_consume_root_context::<WindowControls>()
+            .filter(|_| self.preview.is_none())
             .is_none_or(|controls| controls.traffic_lights_shown());
-        let vertical = crate::chrome::chrome_style().layout != crate::chrome::TitlebarLayout::Top;
+        let vertical = layout != crate::chrome::TitlebarLayout::Top;
         let lights_opacity = crate::chrome::lights_opacity();
         let traffic = if sidebar || !lights_shown || vertical || lights_opacity == 0.0 {
             None

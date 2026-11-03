@@ -28,6 +28,7 @@ run_window(
 | `.parent(..)` | Child window (dialog) |
 | `.menu(AppMenu)` | Global menu of the window (chapter [11](11-app.en.md)) |
 | `.fullscreen_bar(FullscreenBar)` | How the overlaid titlebar is drawn in full screen; `Solid` by default (chapter [7](07-titlebars.en.md#the-bar-in-full-screen-fullscreenbar)) |
+| `.fullscreen_push(bool)` | In full screen, the bar pushes all the content instead of covering it; off by default (chapter [7](07-titlebars.en.md#pushing-the-content-fullscreen_push)) |
 
 Inside the app, `WindowControls::get()` gives the state (`activated`,
 `maximized`, `fullscreen`, `decoration`, `fixed`) and the commands: `close()`,

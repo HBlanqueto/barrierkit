@@ -112,6 +112,17 @@ pub(crate) fn use_focus_bar_reveal() {
     }
 }
 
+pub(crate) fn window_root(app: impl IntoElement) -> Rect {
+    use_focus_bar_reveal();
+    let pushed =
+        try_consume_root_context::<WindowControls>().map_or(0.0, |controls| controls.push_offset());
+    rect()
+        .width(Size::fill())
+        .height(Size::fill())
+        .padding(Gaps::new(pushed, 0.0, 0.0, 0.0))
+        .child(app)
+}
+
 fn bar_height() -> f32 {
     TITLEBAR_CLIENT_HEIGHT.max(SETTINGS.toolbar_height) as f32
 }
@@ -171,12 +182,14 @@ pub(crate) fn report_sidebar_shown(shown: bool) {
 }
 
 pub(crate) fn fullscreen_push() -> bool {
-    try_consume_root_context::<WindowControls>().is_some_and(|controls| controls.fullscreen_push)
+    try_consume_root_context::<WindowControls>()
+        .is_some_and(|controls| *controls.fullscreen_push.read())
 }
 
 pub(crate) fn fullscreen_bar() -> FullscreenBar {
-    try_consume_root_context::<WindowControls>()
-        .map_or(FullscreenBar::Solid, |controls| controls.fullscreen_bar)
+    try_consume_root_context::<WindowControls>().map_or(FullscreenBar::Solid, |controls| {
+        *controls.fullscreen_bar.read()
+    })
 }
 
 fn fullscreen_overlay() -> (bool, Option<f32>) {
@@ -322,6 +335,10 @@ impl Component for WindowChrome {
         style_state.set_if_modified(style);
         let mut items_state = chrome.rail_items;
         items_state.set_if_modified(self.rail_items.clone());
+        if let Some(controls) = try_consume_root_context::<WindowControls>() {
+            let mut rail_layout = controls.rail_layout;
+            rail_layout.set_if_modified(style.layout == TitlebarLayout::Rail);
+        }
         let mut revealed = use_state(|| false);
         let reduced_motion = crate::theme::resolved().reduced_motion;
         let animation = use_animation_transition(revealed, move |from: bool, to: bool| {
@@ -470,12 +487,6 @@ fn rail(style: ChromeStyle, items: &RailItems, lights_opacity: f32) -> Rect {
     let lights_shown = controls
         .as_ref()
         .is_none_or(|controls| controls.traffic_lights_shown());
-    let below_bar = controls
-        .as_ref()
-        .filter(|_| overlaid && !fullscreen_push())
-        .map_or(0.0, |controls| {
-            *controls.focus_bar_height.read() * *controls.focus_bar_progress.read()
-        });
     let floating = overlaid && !fullscreen_push();
     let background = if island || floating {
         Rgba::TRANSPARENT
@@ -505,7 +516,7 @@ fn rail(style: ChromeStyle, items: &RailItems, lights_opacity: f32) -> Rect {
         .cross_align(Alignment::Center)
         .spacing(TITLEBAR.buttons.spacing as f32)
         .padding(Gaps::new(
-            TITLEBAR_RAIL.padding_top + below_bar,
+            TITLEBAR_RAIL.padding_top,
             0.0,
             TITLEBAR_RAIL.padding_bottom,
             0.0,

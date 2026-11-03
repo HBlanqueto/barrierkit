@@ -67,7 +67,7 @@ choice with `save_defaults("tengen-app-show")` in
 | Pane | What it tests |
 |---|---|
 | Titlebar | The two `TitlebarLayout` values, the rail width, the round traffic lights, the normal or unified rail, its items at the top and the bottom, the five reveal modes and the three resting edges |
-| Pantalla completa (full screen) | The `FullscreenBar` and `fullscreen_push`. They are `WindowOptions`: they apply when the app opens again |
+| Pantalla completa (full screen) | The `FullscreenBar` and `fullscreen_push`, live |
 | Barra lateral (sidebar) | Island or flat, show or hide, resizing and ranges |
 
 | Titlebar | Full screen | Sidebar |

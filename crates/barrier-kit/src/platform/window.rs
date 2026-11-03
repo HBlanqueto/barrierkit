@@ -175,9 +175,10 @@ pub struct WindowControls {
     pub focus_bar_progress: State<f32>,
     pub focus_overlay: bool,
     pub focus_bar_height: State<f32>,
-    pub fullscreen_bar: FullscreenBar,
-    pub fullscreen_push: bool,
+    pub fullscreen_bar: State<FullscreenBar>,
+    pub fullscreen_push: State<bool>,
     pub(crate) overlay_titlebar_height: State<f32>,
+    pub(crate) rail_layout: State<bool>,
 }
 
 pub(crate) fn window_activated() -> bool {
@@ -195,20 +196,25 @@ impl WindowControls {
     }
 
     pub fn fullscreen_content_top(&self) -> f32 {
-        let below_bar = match self.fullscreen_bar {
+        let below_bar = match *self.fullscreen_bar.read() {
             FullscreenBar::ProgressiveGlass => vow_design::FULLSCREEN_GLASS.content_top,
             FullscreenBar::Glass => vow_design::FULLSCREEN_BAND.content_top,
             FullscreenBar::Solid => vow_design::FULLSCREEN_BAR.content_top,
         };
-        if self.titlebar_overlaid() && !self.fullscreen_push {
+        if self.titlebar_overlaid() && !self.pushes_content() {
             *self.focus_bar_height.read() + below_bar
         } else {
             0.0
         }
     }
 
+    // ADR 0054: with the Rail the top titlebar stays in the layout, so the bar pushes the window down.
+    pub(crate) fn pushes_content(&self) -> bool {
+        *self.fullscreen_push.read() || *self.rail_layout.read()
+    }
+
     pub(crate) fn push_offset(&self) -> f32 {
-        if self.fullscreen_push && self.titlebar_overlaid() {
+        if self.pushes_content() && self.titlebar_overlaid() {
             (*self.focus_bar_height.read() + *self.overlay_titlebar_height.read())
                 * *self.focus_bar_progress.read()
         } else {
@@ -519,9 +525,10 @@ impl Runtime {
                 .as_ref()
                 .is_some_and(|manager| manager.version() >= 2),
             focus_bar_height: State::create_global(vow_design::MENUBAR_HEIGHT as f32),
-            fullscreen_bar: options.fullscreen_bar,
-            fullscreen_push: options.fullscreen_push,
+            fullscreen_bar: State::create_global(options.fullscreen_bar),
+            fullscreen_push: State::create_global(options.fullscreen_push),
             overlay_titlebar_height: State::create_global(0.0),
+            rail_layout: State::create_global(false),
         };
         if let Some(manager) = &self.focus_manager {
             let notice = manager.get_focus_surface(&surface, qh, surface.id());

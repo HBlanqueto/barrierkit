@@ -49,9 +49,10 @@ fn window_controls(status: WindowStatus) -> WindowControls {
         focus_bar_progress: freya_core::prelude::State::create(0.0),
         focus_overlay: false,
         focus_bar_height: freya_core::prelude::State::create(28.0),
-        fullscreen_bar: super::FullscreenBar::Solid,
-        fullscreen_push: false,
+        fullscreen_bar: freya_core::prelude::State::create(super::FullscreenBar::Solid),
+        fullscreen_push: freya_core::prelude::State::create(false),
         overlay_titlebar_height: freya_core::prelude::State::create(0.0),
+        rail_layout: freya_core::prelude::State::create(false),
     }
 }
 
@@ -914,15 +915,14 @@ mod fullscreen_chrome_tests {
 
     impl App for Case {
         fn render(&self) -> impl IntoElement {
-            crate::chrome::use_focus_bar_reveal();
             let detail = rect()
                 .width(Size::fill())
                 .height(Size::fill())
                 .child(Titlebar::new().title("Ventana").with_sidebar(true));
-            WindowChrome::new(
+            crate::chrome::window_root(WindowChrome::new(
                 self.0,
                 SplitView::new(Sidebar::new().traffic_lights(true), detail),
-            )
+            ))
         }
     }
 

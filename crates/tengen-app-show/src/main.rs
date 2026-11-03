@@ -26,7 +26,7 @@ use barrier_kit::level::{LevelSlider, LevelStyle};
 use barrier_kit::menu::MenuItem;
 use barrier_kit::patterns::about::about_window;
 use barrier_kit::patterns::preferences::{Pane, PaneGroup, PreferencesWindow};
-use barrier_kit::platform::{DecorationResponse, WindowStatus};
+use barrier_kit::platform::{DecorationResponse, WindowControls, WindowStatus};
 use barrier_kit::platform::{Decorations, WindowOptions, run_window};
 use barrier_kit::popup_button::PopUpButton;
 use barrier_kit::progress::{ProgressBar, ProgressRing, Spinner};
@@ -678,6 +678,11 @@ impl App for Show {
             config.reduced_motion = *reduced.read();
         });
         let current = *prefs.read();
+        if let Some(controls) = try_consume_root_context::<WindowControls>() {
+            let (mut bar, mut push) = (controls.fullscreen_bar, controls.fullscreen_push);
+            bar.set_if_modified(current.fullscreen_bar);
+            push.set_if_modified(current.fullscreen_push);
+        }
 
         let window = PreferencesWindow::new()
             .restoration(self.app_id)

@@ -28,6 +28,7 @@ run_window(
 | `.parent(..)` | Ventana hija (diálogo) |
 | `.menu(AppMenu)` | Menú global de la ventana (capítulo [11](11-app.md)) |
 | `.fullscreen_bar(FullscreenBar)` | Cómo se dibuja la titlebar superpuesta en pantalla completa; `Solid` por defecto (capítulo [7](07-titlebars.md#la-barra-en-pantalla-completa-fullscreenbar)) |
+| `.fullscreen_push(bool)` | En pantalla completa, la barra empuja todo el contenido en vez de taparlo; apagado por defecto (capítulo [7](07-titlebars.md#empujar-el-contenido-fullscreen_push)) |
 
 Dentro de la app, `WindowControls::get()` da el estado (`activated`,
 `maximized`, `fullscreen`, `decoration`, `fixed`) y las órdenes: `close()`,

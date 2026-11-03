@@ -198,6 +198,9 @@ WindowOptions::new("Ondina", "ondina")
     .fullscreen_push(true)
 ```
 
+Las dos son el valor inicial. La app las cambia en vivo con
+`WindowControls::get().fullscreen_bar` y `.fullscreen_push`, dos `State`.
+
 Con ella, la barra no tapa nada: todo el contenido de la ventana, barra lateral
 incluida, baja lo que miden la barra del compositor y la titlebar
 (`WindowControls::push_offset`). Los semáforos bajan con la titlebar y
@@ -212,16 +215,17 @@ incluida, baja lo que miden la barra del compositor y la titlebar
 #### Con el `Rail`
 
 Con el `Rail`, la titlebar superior no se retrae ni se superpone: se queda
-en su sitio, como en la ventana normal. Solo el rail se oculta con la barra del
-compositor arriba y, al bajar, entra desde la izquierda con la misma barra, en
-vertical:
+en su sitio, como en la ventana normal. Al bajar la barra del compositor, toda
+la ventana baja lo que mide la barra, así que la titlebar queda entera debajo.
+Solo el rail se oculta con la barra arriba y, al bajar, entra desde la
+izquierda con la misma barra, en vertical:
 
 | `FullscreenBar` | El rail | Cómo se ve |
 |---|---|---|
 | `Solid` («A · Lisa», **por defecto**) | Franja opaca del ancho del rail, encima del contenido | ![Rail con A · Lisa](assets/estados/rail-barra-lisa.png) |
 | `Glass` («B1 · Vidrio en banda») | Franja del ancho del rail que difumina lo de debajo, con una línea en el borde interior | ![Rail con B1 · Vidrio en banda](assets/estados/rail-barra-vidrio-banda.png) |
 | `ProgressiveGlass` («B2 · Vidrio progresivo») | Difuminado máximo en el borde de la ventana que se desvanece hacia dentro en 96 px | ![Rail con B2 · Vidrio progresivo](assets/estados/rail-barra-vidrio-progresivo.png) |
-| Cualquiera + `fullscreen_push(true)` | El rail vuelve al diseño y empuja el contenido de lado lo que mide; todo baja lo que mide la barra del compositor | ![Rail empujando el contenido](assets/estados/rail-barra-empuja.png) |
+| Cualquiera + `fullscreen_push(true)` | El rail vuelve al diseño y empuja el contenido de lado lo que mide | ![Rail empujando el contenido](assets/estados/rail-barra-empuja.png) |
 
 ### Modo foco con la barra bajada, por diseño
 

@@ -67,7 +67,7 @@ elección con `save_defaults("tengen-app-show")` en
 | Panel | Qué prueba |
 |---|---|
 | Titlebar | Los dos `TitlebarLayout`, el ancho del rail, los semáforos redondos, el rail normal o unificado, sus elementos arriba y abajo, las cinco formas de aparición y los tres bordes en reposo |
-| Pantalla completa | La `FullscreenBar` y `fullscreen_push`. Son `WindowOptions`: se aplican al abrir de nuevo la app |
+| Pantalla completa | La `FullscreenBar` y `fullscreen_push`, en vivo |
 | Barra lateral | Isla o plana, mostrar u ocultar, redimensionado y rangos |
 
 | Titlebar | Pantalla completa | Barra lateral |

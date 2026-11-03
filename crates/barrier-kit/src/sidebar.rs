@@ -229,7 +229,7 @@ impl Component for Sidebar {
             && lights_opacity > 0.0;
         let pushed_titlebar = controls
             .as_ref()
-            .filter(|controls| controls.fullscreen_push)
+            .filter(|controls| controls.pushes_content())
             .map(|controls| *controls.overlay_titlebar_height.read());
         let overlay_top = controls.as_ref().and_then(|controls| {
             controls

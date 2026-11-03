@@ -218,21 +218,18 @@ fn fullscreen(prefs: State<Prefs>) -> Form {
     let current = *prefs.read();
     Form::new().section(
         Section::titled("Pantalla completa")
+            .row(Row::new("Barra").control(popup(
+                "Barra",
+                &BARS,
+                current.fullscreen_bar,
+                move |bar| update(prefs, |p| p.fullscreen_bar = bar),
+            )))
             .row(
-                Row::new("Barra")
-                    .detail("Se aplica al abrir de nuevo la app.")
-                    .control(popup("Barra", &BARS, current.fullscreen_bar, move |bar| {
-                        update(prefs, |p| p.fullscreen_bar = bar)
-                    })),
-            )
-            .row(
-                Row::new("Empujar el contenido")
-                    .detail("Se aplica al abrir de nuevo la app.")
-                    .control(
-                        Switch::new("Empujar el contenido")
-                            .on(current.fullscreen_push)
-                            .on_toggle(move |on: bool| update(prefs, |p| p.fullscreen_push = on)),
-                    ),
+                Row::new("Empujar el contenido").control(
+                    Switch::new("Empujar el contenido")
+                        .on(current.fullscreen_push)
+                        .on_toggle(move |on: bool| update(prefs, |p| p.fullscreen_push = on)),
+                ),
             ),
     )
 }
