@@ -147,6 +147,13 @@ impl AppInstance {
         }
     }
 
+    pub(crate) fn text_field_focused(&self) -> bool {
+        matches!(
+            self.platform.focused_accessibility_node.peek().role(),
+            Role::TextInput | Role::MultilineTextInput | Role::SearchInput | Role::PasswordInput
+        )
+    }
+
     pub(crate) fn set_focused(&mut self, focused: bool) {
         self.platform.is_app_focused.set(focused);
         self.waker.wake_by_ref();

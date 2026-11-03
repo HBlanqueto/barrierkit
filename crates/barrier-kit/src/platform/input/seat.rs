@@ -368,6 +368,10 @@ impl Runtime {
         let shortcut_action = if name == KeyboardEventName::KeyDown {
             index.and_then(|idx| {
                 let surface = &self.surfaces[idx];
+                if surface.app.text_field_focused() && crate::app_menu::edits_text(modifiers, &key)
+                {
+                    return None;
+                }
                 let menu = surface
                     .menu_handle
                     .as_ref()

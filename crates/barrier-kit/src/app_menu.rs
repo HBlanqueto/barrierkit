@@ -304,6 +304,19 @@ pub fn shortcut_matches(text: &str, modifiers: Modifiers, key: &Key) -> bool {
     parsed.modifiers == modifiers && parsed.key == normalised_key(key) && !parsed.key.is_empty()
 }
 
+pub(crate) fn edits_text(modifiers: Modifiers, key: &Key) -> bool {
+    let Key::Character(text) = key else {
+        return false;
+    };
+    let command = modifiers.contains(Modifiers::CONTROL)
+        && !modifiers.intersects(Modifiers::ALT | Modifiers::META);
+    command
+        && matches!(
+            text.to_lowercase().as_str(),
+            "a" | "c" | "v" | "x" | "y" | "z"
+        )
+}
+
 pub fn find_menu_shortcut(menu: &AppMenu, modifiers: Modifiers, key: &Key) -> Option<String> {
     for m in &menu.menus {
         if let Some(id) = find_shortcut_in_items(&m.items, modifiers, key) {
@@ -494,6 +507,25 @@ mod tests {
     fn labels_escape_underscores() {
         assert_eq!(dbusmenu_label("a_b"), "a__b");
         assert_eq!(dbusmenu_label("Archivo"), "Archivo");
+    }
+
+    #[test]
+    fn a_focused_text_field_keeps_select_all_copy_paste_cut_undo_and_redo() {
+        let ctrl = Modifiers::CONTROL;
+        for c in ["a", "c", "v", "x", "y", "z", "Z"] {
+            assert!(edits_text(ctrl, &Key::Character(c.into())), "{c}");
+        }
+        assert!(edits_text(
+            ctrl | Modifiers::SHIFT,
+            &Key::Character("z".into())
+        ));
+        assert!(!edits_text(ctrl, &Key::Character("p".into())));
+        assert!(!edits_text(Modifiers::empty(), &Key::Character("z".into())));
+        assert!(!edits_text(
+            ctrl | Modifiers::ALT,
+            &Key::Character("z".into())
+        ));
+        assert!(!edits_text(ctrl, &Key::Named(NamedKey::ArrowLeft)));
     }
 
     #[test]
