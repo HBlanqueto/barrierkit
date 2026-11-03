@@ -178,12 +178,22 @@ impl Component for Form {
         });
         rect()
             .width(Size::fill())
-            .direction(Direction::Vertical)
-            .spacing(SPACE_4)
-            .on_sized(move |event: Event<SizedEventData>| {
-                width.set_if_modified(event.area.size.width);
-            })
-            .children(sections)
+            .padding(Gaps::new(
+                SPACE_2,
+                LIST_GROUP.row_padding_x,
+                SPACE_2,
+                LIST_GROUP.row_padding_x,
+            ))
+            .child(
+                rect()
+                    .width(Size::fill())
+                    .direction(Direction::Vertical)
+                    .spacing(SPACE_4)
+                    .on_sized(move |event: Event<SizedEventData>| {
+                        width.set_if_modified(event.area.size.width);
+                    })
+                    .children(sections),
+            )
     }
 }
 

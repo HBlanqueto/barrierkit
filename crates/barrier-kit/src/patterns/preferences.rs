@@ -4,7 +4,7 @@ use freya_components::scrollviews::ScrollView;
 use freya_core::prelude::*;
 use serde::{Deserialize, Serialize};
 use torin::prelude::{Alignment, Direction, Gaps, Size};
-use vow_design::{LIST_GROUP, Rgba, SETTINGS, SIDEBAR, SPACE_2};
+use vow_design::{Rgba, SETTINGS, SIDEBAR, SPACE_2};
 
 use crate::app::{load_restoration, save_restoration};
 use crate::controls::SearchField;
@@ -320,38 +320,27 @@ impl Component for PreferencesWindow {
             };
         }
 
-        let detail = rect()
-            .width(Size::fill())
-            .height(Size::fill())
-            .direction(Direction::Vertical)
-            .child(
-                Titlebar::new()
-                    .with_sidebar(true)
-                    .title(pane.map(|pane| pane.title).unwrap_or_default())
-                    .left(
-                        rect()
-                            .direction(Direction::Horizontal)
-                            .cross_align(Alignment::Center)
-                            .spacing(SPACE_2)
-                            .child(SidebarToggle)
-                            .child(navigation_buttons(history)),
-                    ),
-            )
-            .child(
-                ScrollView::new().child(
-                    rect()
-                        .width(Size::fill())
-                        .padding(Gaps::new(
-                            SPACE_2,
-                            LIST_GROUP.row_padding_x,
-                            SPACE_2,
-                            LIST_GROUP.row_padding_x,
-                        ))
-                        .maybe_child(
-                            pane.map(|pane| pane.form.clone().highlighted(*highlighted.read())),
+        let detail =
+            rect()
+                .width(Size::fill())
+                .height(Size::fill())
+                .direction(Direction::Vertical)
+                .child(
+                    Titlebar::new()
+                        .with_sidebar(true)
+                        .title(pane.map(|pane| pane.title).unwrap_or_default())
+                        .left(
+                            rect()
+                                .direction(Direction::Horizontal)
+                                .cross_align(Alignment::Center)
+                                .spacing(SPACE_2)
+                                .child(SidebarToggle)
+                                .child(navigation_buttons(history)),
                         ),
-                ),
-            );
+                )
+                .child(ScrollView::new().maybe_child(
+                    pane.map(|pane| pane.form.clone().highlighted(*highlighted.read())),
+                ));
 
         let restored = saved.sidebar.unwrap_or(SidebarLayout {
             width: SIDEBAR.width as f32,
