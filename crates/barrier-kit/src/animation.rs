@@ -2,12 +2,15 @@
 
 use std::time::Duration;
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+use freya_animation::prelude::{AnimDirection, AnimatedValue};
+
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct Spring {
     from: f32,
     to: f32,
     duration: Duration,
     bounce: f32,
+    current: f32,
 }
 
 impl Spring {
@@ -17,6 +20,7 @@ impl Spring {
             to,
             duration,
             bounce: bounce.clamp(0.0, 1.0),
+            current: from,
         }
     }
 
@@ -36,12 +40,52 @@ impl Spring {
     }
 
     pub fn value(&self, elapsed: Duration) -> f32 {
+        if elapsed >= self.duration {
+            return self.to;
+        }
         let secs = self.duration.as_secs_f32().max(f32::EPSILON);
         self.value_at(elapsed.as_secs_f32() / secs)
     }
 
     pub fn duration(&self) -> Duration {
         self.duration
+    }
+
+    pub fn current(&self) -> f32 {
+        self.current
+    }
+}
+
+impl AnimatedValue for Spring {
+    fn prepare(&mut self, direction: AnimDirection) {
+        self.current = match direction {
+            AnimDirection::Forward => self.from,
+            AnimDirection::Reverse => self.to,
+        };
+    }
+
+    fn is_finished(&self, index: u128, _: AnimDirection) -> bool {
+        index >= self.duration.as_millis()
+    }
+
+    fn advance(&mut self, index: u128, direction: AnimDirection) {
+        let elapsed = Duration::from_millis(index.min(self.duration.as_millis()) as u64);
+        self.current = match direction {
+            AnimDirection::Forward => self.value(elapsed),
+            AnimDirection::Reverse => self.into_reversed().value(elapsed),
+        };
+    }
+
+    fn finish(&mut self, direction: AnimDirection) {
+        self.advance(self.duration.as_millis(), direction);
+    }
+
+    fn into_reversed(self) -> Self {
+        Self {
+            from: self.to,
+            to: self.from,
+            ..self
+        }
     }
 }
 
@@ -63,6 +107,15 @@ mod tests {
         let bouncy = Spring::new(0.0, 1.0, Duration::from_millis(200), 0.8);
         assert!(stiff.value_at(0.5) <= 1.0);
         assert!(bouncy.value_at(0.5) > 1.0 || bouncy.value_at(0.35) > 1.0);
+    }
+
+    #[test]
+    fn advancing_past_the_duration_lands_on_the_target_in_both_directions() {
+        let mut spring = Spring::new(0.0, 1.0, Duration::from_millis(100), 0.6);
+        spring.advance(500, AnimDirection::Forward);
+        assert_eq!(spring.current(), 1.0);
+        spring.advance(500, AnimDirection::Reverse);
+        assert_eq!(spring.current(), 0.0);
     }
 
     #[test]
