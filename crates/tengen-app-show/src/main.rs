@@ -245,6 +245,13 @@ fn window_parts() -> Form {
                             .width(Size::px(SPLIT_VIEW.inspector))
                             .child(Titlebar::preview(status, "Documento", false)),
                     ),
+                )
+                .row(
+                    Row::new("Solo cerrar").control(
+                        rect()
+                            .width(Size::px(SPLIT_VIEW.inspector))
+                            .child(Titlebar::preview(status, "Acerca de", true).close_only(true)),
+                    ),
                 ),
         )
         .section(

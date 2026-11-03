@@ -30,6 +30,7 @@ pub struct Titlebar {
     right: Option<Element>,
     probe: Option<&'static str>,
     spacing: f32,
+    close_only: bool,
 }
 
 #[derive(Clone, PartialEq)]
@@ -55,6 +56,7 @@ impl Titlebar {
             right: None,
             probe: None,
             spacing: 0.0,
+            close_only: false,
         }
     }
 
@@ -71,6 +73,7 @@ impl Titlebar {
             right: None,
             probe: None,
             spacing: 0.0,
+            close_only: false,
         }
     }
 
@@ -96,6 +99,11 @@ impl Titlebar {
 
     pub fn spacing(mut self, spacing: f32) -> Self {
         self.spacing = spacing;
+        self
+    }
+
+    pub fn close_only(mut self, close_only: bool) -> Self {
+        self.close_only = close_only;
         self
     }
 }
@@ -206,7 +214,9 @@ impl Component for Titlebar {
             Some(
                 rect()
                     .opacity(lights_opacity)
-                    .child(window_traffic_lights(status.activated, fixed))
+                    .child(
+                        window_traffic_lights(status.activated, fixed).close_only(self.close_only),
+                    )
                     .into_element(),
             )
         };
