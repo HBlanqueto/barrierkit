@@ -2,7 +2,7 @@
 
 **Goal:** know where each piece lives and what each one can use.
 **Reader:** anyone choosing which level of the kit to build their app with.
-The full decision is in [ADR 0047](../decisiones/0047-barrierkit-en-capas.md).
+The full decision is in [ADR 0047](../decisiones/0047-barrierkit-en-capas.en.md).
 
 ## The map
 

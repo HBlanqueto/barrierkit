@@ -27,7 +27,7 @@ compositor's frame callbacks.
 
 With the `video` feature the device also enables the dmabuf import extensions
 (chapter [13](13-fondos-y-medios.en.md)). The decision is in
-[ADR 0056](../decisiones/0056-barrierkit-sobre-vulkan.md).
+[ADR 0056](../decisiones/0056-barrierkit-sobre-vulkan.en.md).
 
 ## Wayland protocols
 
@@ -70,7 +70,7 @@ Only `malaysia-shell` enables `barrier-kit/shell`. It adds:
 The submodules of `shell/` are private and their API comes only from
 `shell/mod.rs`. `platform/` knows nothing about the shell: the shell hooks in
 through a single runner `Extension`
-([ADR 0047](../decisiones/0047-barrierkit-en-capas.md) §4).
+([ADR 0047](../decisiones/0047-barrierkit-en-capas.en.md) §4).
 
 ## Errors
 

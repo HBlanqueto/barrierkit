@@ -15,7 +15,7 @@
 
 ## What is missing?
 
-The pending work is in [ADR 0047](../decisiones/0047-barrierkit-en-capas.md),
+The pending work is in [ADR 0047](../decisiones/0047-barrierkit-en-capas.en.md),
 «Pendiente» ("Pending"). In short:
 
 - **Blocked by Freya 0.4.3:** partial damage and primary selection.

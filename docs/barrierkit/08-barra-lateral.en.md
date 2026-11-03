@@ -42,7 +42,7 @@ Sidebar::new()
 ## Island or flat
 
 The user decides in `appearance.domain` with `sidebar_style`
-([ADR 0041](../decisiones/0041-barra-lateral-en-isla.md)). The app does
+([ADR 0041](../decisiones/0041-barra-lateral-en-isla.en.md)). The app does
 nothing:
 
 | `island` (default) | `flat` |
@@ -51,7 +51,7 @@ nothing:
 
 Over a tinted backdrop (chapter [13](13-fondos-y-medios.en.md)), the flat
 sidebar shows the backdrop, and the island either shows it or is tinted with
-`SidebarBackdrop::Tinted` ([ADR 0057](../decisiones/0057-cristal-y-barra-lateral-sobre-fondo.md)).
+`SidebarBackdrop::Tinted` ([ADR 0057](../decisiones/0057-cristal-y-barra-lateral-sobre-fondo.en.md)).
 
 ## The container: `SplitView`
 

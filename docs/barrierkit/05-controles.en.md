@@ -191,6 +191,6 @@ draws it on its own; the controls take the `Symbol` directly.
    hover, pressed and focus; `interaction.focus_ring(..)` for the ring.
 3. Paint only with `Palette::current()` and `vow_design` tokens.
 4. Add its case to `tests/kit/controls.rs` (light and dark) and its page in
-   Tengen App Show ([ADR 0047](../decisiones/0047-barrierkit-en-capas.md) §2).
+   Tengen App Show ([ADR 0047](../decisiones/0047-barrierkit-en-capas.en.md) §2).
 
 Next: [6. Windows](06-ventanas.en.md).

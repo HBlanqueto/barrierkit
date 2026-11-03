@@ -1,17 +1,19 @@
 # BarrierKit
 
-BarrierKit is the application toolkit for [MalaysiaDreams](https://github.com/HBlanqueto/malaysia): the GTK + libadwaita to its GNOME, or the AppKit to its macOS. It provides the layers, controls, containers and patterns used to build Malaysia's own apps and its shell.
+BarrierKit es el toolkit de aplicaciones de [MalaysiaDreams](https://github.com/HBlanqueto/malaysia): lo que GTK + libadwaita son para GNOME, o AppKit para macOS. Da las capas, los controles, los contenedores y los patrones con los que se construyen las apps propias de Malaysia y su shell.
+
+English: [`README.en.md`](README.en.md).
 
 ## Crates
 
-- `barrier-kit` — the toolkit itself: platform runner, style primitives, controls, views and window patterns.
-- `vow-design` — Tengen, the design-token system. `tokens.json` and `components.json` become typed Rust constants through `build.rs`.
-- `vow-appearance` — resolves `appearance.domain` and the desktop wallpaper into a concrete palette, plus a file watcher.
-- `infinity-protocol` — private Wayland protocol shared with the MalaysiaDreams compositor. Features `client` (kit) and `server` (compositor).
+- `barrier-kit` — el toolkit: runner de la plataforma, primitivas de estilo, controles, vistas y patrones de ventana.
+- `vow-design` — Tengen, el sistema de tokens de diseño. `tokens.json` y `components.json` pasan a constantes Rust tipadas con `build.rs`.
+- `vow-appearance` — resuelve `appearance.domain` y el fondo del escritorio en una paleta concreta, y vigila el fichero.
+- `infinity-protocol` — protocolo Wayland privado compartido con el compositor de MalaysiaDreams. Features `client` (kit) y `server` (compositor).
 
-## Build
+## Compilar
 
-The repository must be built inside the Nix dev shell (ADR 0007):
+El repositorio se compila dentro del dev shell de Nix (ADR 0007):
 
 ```sh
 nix develop
@@ -20,7 +22,7 @@ cargo clippy --workspace -- -D warnings
 cargo fmt --check
 ```
 
-The Skia prebuild for `freya-skia-bindings` 0.98.0 lives in `nix/skia.nix`.
+El binario precompilado de Skia para `freya-skia-bindings` 0.98.0 está en `nix/skia.nix`.
 
 ## Probar en cualquier escritorio
 
@@ -41,14 +43,14 @@ nix develop
 
 Si faltan `infinity_window_manager_v1`, `ext_foreign_toplevel_list_v1` / `zwlr_foreign_toplevel_manager_v1`, `wp_cursor_shape_manager_v1` u `org_kde_kwin_appmenu_manager`, el runner lo registra con `tracing::info!` y continúa.
 
-## Documentation
+## Documentación
 
-[`docs/barrierkit/`](docs/barrierkit/README.en.md) explains the kit from the first window to the Wayland runner, with real screenshots. Español: [`docs/barrierkit/README.md`](docs/barrierkit/README.md).
+[`docs/barrierkit/`](docs/barrierkit/README.md) explica el kit desde la primera ventana hasta el runner Wayland, con capturas reales.
 
-## Decisions
+## Decisiones
 
 - ADR 0047 — [BarrierKit en capas](docs/decisiones/0047-barrierkit-en-capas.md)
 - ADR 0048 — [BarrierKit en su propio repositorio](docs/decisiones/0048-barrierkit-repositorio-propio.md)
 - ADR 0057 — [El cristal de pantalla completa cubre toda la ventana; la barra lateral sobre un fondo tintado](docs/decisiones/0057-cristal-y-barra-lateral-sobre-fondo.md)
 
-License: MIT
+Licencia: MIT
