@@ -43,6 +43,10 @@ nix develop
 
 Si faltan `infinity_window_manager_v1`, `ext_foreign_toplevel_list_v1` / `zwlr_foreign_toplevel_manager_v1`, `wp_cursor_shape_manager_v1` u `org_kde_kwin_appmenu_manager`, el runner lo registra con `tracing::info!` y continúa.
 
+## Documentation
+
+[`docs/barrierkit/`](docs/barrierkit/README.en.md) explains the kit from the first window to the Wayland runner, with real screenshots. Español: [`docs/barrierkit/README.md`](docs/barrierkit/README.md).
+
 ## Decisions
 
 - ADR 0047 — [BarrierKit en capas](docs/decisiones/0047-barrierkit-en-capas.md)

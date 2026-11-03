@@ -1,0 +1,86 @@
+# 13. Plataforma
+
+**Objetivo:** entender qué hace el runner del kit por debajo de los controles.
+**Lector:** quien trabaja dentro del kit o depura una app en otro escritorio.
+
+## El runner
+
+`platform::run_window` abre una conexión Wayland con smithay-client-toolkit,
+crea una superficie `xdg_toplevel` y corre un bucle `calloop`. En cada frame:
+
+1. Atiende los eventos de Wayland (entrada, configure, frame callbacks).
+2. Actualiza el árbol de Freya y calcula el diseño con `torin`.
+3. Dibuja con Skia sobre una imagen de la swapchain Vulkan y la presenta.
+
+El kit redibuja cuando cambia el estado o la apariencia, al ritmo de los frame
+callbacks del compositor.
+
+## Vulkan
+
+| Paso | Detalle |
+|---|---|
+| Instancia | `VK_KHR_surface` y `VK_KHR_wayland_surface` |
+| Dispositivo | El primero que puede presentar en el display; la capa device-select de Mesa pone primero la GPU del compositor |
+| Contexto | Un `DirectContext` de Skia compartido por todas las ventanas, con 128 MB de caché |
+| Swapchain | Una por superficie, `B8G8R8A8_UNORM`, alfa premultiplicado; `MAILBOX` si existe, si no `FIFO` |
+
+Con la feature `video` el dispositivo activa además las extensiones de
+importación dmabuf (capítulo [12](12-fondos-y-medios.md)). La decisión está en
+el [ADR 0056](../decisiones/0056-barrierkit-sobre-vulkan.md).
+
+## Protocolos Wayland
+
+| Protocolo | ¿Obligatorio? | Para qué |
+|---|---|---|
+| `wl_compositor`, `xdg_wm_base`, `wl_seat`, `wl_output` | Sí | Ventanas, entrada y pantallas |
+| `wp_fractional_scale_manager_v1` + `wp_viewporter` | No | Escala fraccional; sin ellos, escalas enteras |
+| `wp_cursor_shape_manager_v1` | No | Cursores por componente (`col-resize`, texto…); sin él, el cursor por defecto |
+| `zxdg_decoration_manager_v1` | No | Decoración del servidor si la app la pide |
+| `xdg_activation_v1` | No | Traer la ventana al frente al reactivar una instancia |
+| `wl_data_device_manager` | No | Portapapeles |
+| `org_kde_kwin_appmenu_manager` | No | Enseñar el menú global en la barra de menús |
+| `infinity_focus_manager_v1` | No | Avisos del compositor de MalaysiaDreams sobre la barra de foco |
+
+Si falta un protocolo opcional, el runner lo registra con `tracing::info!` y
+sigue. Si falta uno obligatorio, `run_window` devuelve
+`RunError::MissingGlobal`.
+
+## Entrada, foco y accesibilidad
+
+- El teclado va al nodo enfocado; Tab activa la navegación por teclado y el
+  anillo de foco.
+- El árbol de accesibilidad se publica por AT-SPI con `accesskit_unix`: un
+  lector de pantalla puede enfocar y pulsar.
+- `Cursor::set(CursorIcon::..)` cambia el cursor si hay `wp_cursor_shape_manager_v1`.
+
+## La parte de la shell (feature `shell`)
+
+Solo `malaysia-shell` activa `barrier-kit/shell`. Añade:
+
+| API | Protocolo | Para |
+|---|---|---|
+| `shell::run_layer(app, LayerSpec)` | `zwlr_layer_shell_v1` | Barra de menús, Dock, fondo |
+| `shell::run_lock(app)` | `ext_session_lock_v1` | Pantalla de bloqueo |
+| `shell::Toplevels` | `ext_foreign_toplevel_list_v1`, `zwlr_foreign_toplevel_manager_v1` | Lista y control de ventanas para el Dock |
+| `shell::InfinityLayout`, `Toplevels::arrange` | `infinity_window_manager_v1` | Colocar ventanas en mosaico |
+| `shell::Activation` | `xdg_activation_v1` | Lanzar apps desde el Dock |
+
+Los submódulos de `shell/` son privados y su API sale solo de `shell/mod.rs`.
+`platform/` no sabe nada de la shell: la shell se engancha por una única
+`Extension` del runner ([ADR 0047](../decisiones/0047-barrierkit-en-capas.md) §4).
+
+## Errores
+
+`RunError` tiene las variantes `NoDisplay`, `MissingGlobal`, `Vulkan`,
+`EventLoop`, `Skia`, `Wayland`, `Registry` e `Io`.
+
+## Limitación conocida: el primer frame
+
+El kit pide un frame callback y espera a recibirlo antes de dibujar el primer
+frame. Weston y sway no envían frame callbacks a una superficie que aún no tiene
+contenido, así que en ellos la ventana nunca aparece (comprobado el
+2026-11-03). El [README](../../README.md) da por probados MalaysiaDreams y
+GNOME/Mutter. Las capturas de esta documentación se hicieron en sway con
+el primer frame dibujado sin esperar (ver [`assets/README.md`](assets/README.md)).
+
+Siguiente: [14. Apps de prueba](14-apps-de-prueba.md).
