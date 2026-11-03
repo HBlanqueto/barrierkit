@@ -86,6 +86,12 @@ impl Component for Player {
         let mut last_move = use_state(Instant::now);
         let mut subtitles = use_state(|| false);
         let mut volume = use_state(|| 0.7f32);
+        let audible = stream.clone();
+        use_side_effect(move || {
+            if let Some(stream) = &audible {
+                stream.set_volume(f64::from(*volume.read()));
+            }
+        });
         let mut hover = use_state(|| None::<f32>);
         let mut track = use_state(Area::default);
         let open = use_animation(|conf| {

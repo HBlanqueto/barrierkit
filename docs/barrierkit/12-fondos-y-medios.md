@@ -53,6 +53,7 @@ leen todavía la paleta del sistema. El ejemplo
 | `MediaButton::new(texto).symbol(Symbol::Play)` | Botón grande de reproducir |
 | `RoundButton::new(símbolo, etiqueta).selected(bool)` | Botón redondo de cristal |
 | `use_artwork(ruta)` | Carga una carátula en segundo plano |
+| `use_artwork_from(cargador)` | Igual, con los bytes de cualquier origen (por ejemplo, `video::fetch(url)`) |
 | `register_font(bytes)` | Registra una fuente propia (por ejemplo, para títulos) |
 
 ## Vídeo (feature `video`)
@@ -72,6 +73,26 @@ GStreamer decodifica y el kit elige el camino más directo:
 
 `video.decoding()` dice cuál se usa. `play()`, `pause()`, `seek(segundos)`,
 `position()` y `duration()` controlan la reproducción.
+
+El origen puede ser remoto:
+
+| Constructor | Origen |
+|---|---|
+| `VideoStream::open(ruta, bucle)` | Fichero local |
+| `VideoStream::open_uri(url, bucle)` | `http(s)`, con vídeo y audio en el mismo flujo |
+| `VideoStream::open_uris(url_vídeo, url_audio, bucle)` | `http(s)`, con vídeo y audio separados (como sirve YouTube) |
+
+`video::fetch(url)` descarga los bytes de un fichero remoto, por ejemplo una
+carátula.
+
+El sonido suena en el mismo pipeline y sigue su reloj. Todo vídeo empieza en
+silencio; `set_volume(nivel)` lo sube, con `nivel` de 0 a 1 en escala cúbica.
+Así las vistas previas y los fondos no suenan, y el reproductor da volumen:
+
+```rust
+video.set_volume(0.7);
+video.play();
+```
 
 Marea (capítulo [14](14-apps-de-prueba.md)) usa todo esto.
 

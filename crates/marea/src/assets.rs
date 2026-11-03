@@ -38,10 +38,16 @@ fn media() -> PathBuf {
 
 const YOUTUBE: [(&str, &str); 1] = [("jjk-netflix", "Jgt6gGNtleE")];
 
-// The decoders only take H.264 in MP4, and the pipeline has no audio branch: a video-only stream is enough.
-const YOUTUBE_FORMAT: &str = "bv*[vcodec^=avc1][height<=1080][protocol=https]/b[vcodec^=avc1]";
+// The GPU decoders only take H.264 in MP4; YouTube serves it apart from the audio above 360p.
+const YOUTUBE_FORMAT: &str =
+    "bv*[vcodec^=avc1][height<=1080][protocol=https]+ba[ext=m4a][protocol=https]/b[vcodec^=avc1]";
 
-static STREAMS: OnceLock<Vec<(&str, Option<String>)>> = OnceLock::new();
+struct Remote {
+    video: String,
+    audio: Option<String>,
+}
+
+static STREAMS: OnceLock<Vec<(&str, Option<Remote>)>> = OnceLock::new();
 
 fn youtube(id: &str) -> Option<&'static str> {
     YOUTUBE
@@ -54,23 +60,23 @@ pub fn remote(id: &str) -> bool {
     youtube(id).is_some()
 }
 
-fn stream_url(video: &str) -> Option<String> {
+fn stream_urls(video: &str) -> Option<Remote> {
     let output = Command::new("yt-dlp")
         .args(["--no-warnings", "-g", "-f", YOUTUBE_FORMAT])
         .arg(format!("https://www.youtube.com/watch?v={video}"))
         .output()
         .inspect_err(|error| tracing::warn!(%error, "marea: yt-dlp no se pudo lanzar"))
         .ok()?;
-    let url = String::from_utf8(output.stdout)
-        .ok()?
-        .lines()
-        .next()?
-        .to_owned();
-    if url.is_empty() {
+    let stdout = String::from_utf8(output.stdout).ok()?;
+    let mut urls = stdout.lines().filter(|line| !line.is_empty());
+    let Some(video_url) = urls.next() else {
         tracing::warn!(video, "marea: yt-dlp no devolvió ningún flujo");
         return None;
-    }
-    Some(url)
+    };
+    Some(Remote {
+        video: video_url.to_owned(),
+        audio: urls.next().map(str::to_owned),
+    })
 }
 
 pub fn resolve_remote() {
@@ -78,7 +84,7 @@ pub fn resolve_remote() {
         STREAMS.get_or_init(|| {
             YOUTUBE
                 .iter()
-                .map(|&(id, video)| (id, stream_url(video)))
+                .map(|&(id, video)| (id, stream_urls(video)))
                 .collect()
         });
     });
@@ -87,12 +93,15 @@ pub fn resolve_remote() {
 pub fn open_video(id: &str, looping: bool) -> Option<VideoStream> {
     let opened = match youtube(id) {
         Some(_) => {
-            let url = STREAMS
+            let remote = STREAMS
                 .wait()
                 .iter()
                 .find(|(title, _)| *title == id)
-                .and_then(|(_, url)| url.as_deref())?;
-            VideoStream::open_uri(url, looping)
+                .and_then(|(_, remote)| remote.as_ref())?;
+            match &remote.audio {
+                Some(audio) => VideoStream::open_uris(&remote.video, audio, looping),
+                None => VideoStream::open_uri(&remote.video, looping),
+            }
         }
         None => VideoStream::open(media().join("videos").join(format!("{id}.mp4")), looping),
     };

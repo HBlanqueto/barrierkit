@@ -1,7 +1,8 @@
 //! Video for the kit's own apps. GStreamer decodes on the GPU through VA-API and hands
 //! each frame over as a dmabuf that Skia samples in place; without dmabuf import the
 //! frame is downloaded once, and without VA-API the CPU decodes. Sources are local files
-//! or `http(s)` URIs streamed by `souphttpsrc`.
+//! or `http(s)` URIs streamed by `souphttpsrc`. Sound plays in the same pipeline, on its
+//! clock, and every stream starts muted until `set_volume`.
 
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -36,6 +37,7 @@ const GPU_CAPS: &str = "video/x-raw(memory:DMABuf),format=DMA_DRM,drm-format=AB2
 const PREROLL_TIMEOUT: Duration = Duration::from_secs(3);
 const REMOTE_PREROLL_TIMEOUT: Duration = Duration::from_secs(15);
 const IMPORT_CACHE: usize = 16;
+const AUDIO: &str = "queue ! decodebin3 ! audioconvert ! audioresample ! volume name=volume volume=0 ! autoaudiosink";
 
 #[derive(Debug, Error)]
 pub enum VideoError {
@@ -100,14 +102,14 @@ fn gpu_decoders_present() -> bool {
 fn description(source: &str, decoding: Decoding) -> String {
     match decoding {
         Decoding::GpuZeroCopy => format!(
-            "{source} ! qtdemux ! h264parse ! vah264dec ! vapostproc ! {GPU_CAPS} ! appsink name=sink"
+            "{source} ! qtdemux name=demux ! h264parse ! vah264dec ! vapostproc ! {GPU_CAPS} ! appsink name=sink"
         ),
         // VA drivers disagree on the byte order of RGB32 (gstvavideoformat.c, gstreamer#3354): convert on the CPU.
         Decoding::GpuDownload => format!(
-            "{source} ! qtdemux ! h264parse ! vah264dec ! videoconvert ! video/x-raw,format=RGBA ! appsink name=sink"
+            "{source} ! qtdemux name=demux ! h264parse ! vah264dec ! videoconvert ! video/x-raw,format=RGBA ! appsink name=sink"
         ),
         Decoding::Cpu => format!(
-            "{source} ! decodebin3 ! videoconvert ! video/x-raw,format=RGBA ! appsink name=sink"
+            "{source} ! decodebin3 name=demux ! videoconvert ! video/x-raw,format=RGBA ! appsink name=sink"
         ),
     }
 }
@@ -118,6 +120,25 @@ fn candidates() -> Vec<Decoding> {
         (true, true) => vec![Decoding::GpuZeroCopy, Decoding::GpuDownload, Decoding::Cpu],
         (true, false) => vec![Decoding::GpuDownload, Decoding::Cpu],
         _ => vec![Decoding::Cpu],
+    }
+}
+
+fn attach_audio(pipeline: &gst::Pipeline, pad: &gst::Pad) {
+    // qtdemux and decodebin3 name their pads by kind; decodebin3 exposes them before their caps are set.
+    if !pad.name().starts_with("audio_") || pipeline.by_name("volume").is_some() {
+        return;
+    }
+    let Ok(branch) = gst::parse::bin_from_description(AUDIO, true) else {
+        tracing::warn!("vídeo: no se pudo crear la rama de audio");
+        return;
+    };
+    let linked = pipeline.add(&branch).is_ok()
+        && branch.sync_state_with_parent().is_ok()
+        && branch
+            .static_pad("sink")
+            .is_some_and(|sink| pad.link(&sink).is_ok());
+    if !linked {
+        tracing::warn!("vídeo: la pista de audio no se pudo enlazar");
     }
 }
 
@@ -170,9 +191,20 @@ impl VideoStream {
     }
 
     pub fn open_uri(uri: &str, looping: bool) -> Result<Self, VideoError> {
-        let location = quoted(uri);
         Self::open_source(
-            &format!("souphttpsrc location={location}"),
+            &format!("souphttpsrc location={}", quoted(uri)),
+            looping,
+            REMOTE_PREROLL_TIMEOUT,
+        )
+    }
+
+    pub fn open_uris(video: &str, audio: &str, looping: bool) -> Result<Self, VideoError> {
+        Self::open_source(
+            &format!(
+                "souphttpsrc location={} ! {AUDIO}  souphttpsrc location={}",
+                quoted(audio),
+                quoted(video)
+            ),
             looping,
             REMOTE_PREROLL_TIMEOUT,
         )
@@ -208,6 +240,14 @@ impl VideoStream {
             .ok()?
             .downcast::<gst::Pipeline>()
             .ok()?;
+        if let Some(demux) = pipeline.by_name("demux") {
+            let weak = pipeline.downgrade();
+            demux.connect_pad_added(move |_, pad| {
+                if let Some(pipeline) = weak.upgrade() {
+                    attach_audio(&pipeline, pad);
+                }
+            });
+        }
         let sink = pipeline
             .by_name("sink")?
             .downcast::<gst_app::AppSink>()
@@ -277,6 +317,13 @@ impl VideoStream {
             return None;
         }
         Some(Self(shared))
+    }
+
+    pub fn set_volume(&self, level: f64) {
+        if let Some(volume) = self.0.pipeline.by_name("volume") {
+            // Cubic, like GstStreamVolume's CUBIC format: a linear slider then sounds even.
+            volume.set_property("volume", level.clamp(0.0, 1.0).powi(3));
+        }
     }
 
     pub fn decoding(&self) -> Decoding {
