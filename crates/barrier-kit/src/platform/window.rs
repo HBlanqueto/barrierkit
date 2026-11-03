@@ -150,6 +150,7 @@ pub struct WindowControls {
     pub fixed: bool,
     pub(super) surface_id: ObjectId,
     pub focus_bar: State<bool>,
+    pub focus_bar_progress: State<f32>,
     pub focus_overlay: bool,
     pub focus_bar_height: State<f32>,
 }
@@ -161,7 +162,7 @@ pub(crate) fn window_activated() -> bool {
 
 impl WindowControls {
     pub fn traffic_lights_shown(&self) -> bool {
-        !self.status.read().fullscreen || *self.focus_bar.read()
+        !self.status.read().fullscreen || *self.focus_bar_progress.read() > 0.0
     }
 
     pub fn titlebar_overlaid(&self) -> bool {
@@ -177,7 +178,10 @@ impl WindowControls {
     }
 
     pub fn titlebar_overlay_top(&self) -> Option<f32> {
-        (self.titlebar_overlaid() && *self.focus_bar.read()).then(|| *self.focus_bar_height.read())
+        let progress = *self.focus_bar_progress.read();
+        let hidden_by = vow_design::TITLEBAR_CLIENT_HEIGHT as f32 * (1.0 - progress);
+        (self.titlebar_overlaid() && progress > 0.0)
+            .then(|| *self.focus_bar_height.read() * progress - hidden_by)
     }
 
     pub fn get() -> Self {
@@ -422,6 +426,7 @@ impl Runtime {
             fixed,
             surface_id,
             focus_bar: State::create_global(false),
+            focus_bar_progress: State::create_global(0.0),
             focus_overlay: self
                 .focus_manager
                 .as_ref()

@@ -100,6 +100,27 @@ impl ChromeStyle {
     }
 }
 
+// ADR 0054: the overlaid titlebar slides and fades in with the compositor bar instead of popping in.
+pub(crate) fn use_focus_bar_reveal() {
+    let controls = try_consume_root_context::<WindowControls>();
+    let fallback = use_state(|| false);
+    let shown = controls
+        .as_ref()
+        .map_or(fallback, |controls| controls.focus_bar);
+    let reduced_motion = crate::theme::resolved().reduced_motion;
+    let animation = use_animation_transition(shown, move |from: bool, to: bool| {
+        AnimNum::new(f32::from(u8::from(from)), f32::from(u8::from(to)))
+            .time(if reduced_motion { 0 } else { DURATION_BASE })
+            .ease(Ease::Out)
+            .function(Function::Cubic)
+    });
+    let progress = animation.get().value();
+    if let Some(controls) = controls {
+        let mut state = controls.focus_bar_progress;
+        state.set_if_modified(progress);
+    }
+}
+
 fn bar_height() -> f32 {
     TITLEBAR_CLIENT_HEIGHT.max(SETTINGS.toolbar_height) as f32
 }

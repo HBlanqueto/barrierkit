@@ -230,11 +230,20 @@ impl Component for Sidebar {
         let overlay_top = controls
             .as_ref()
             .and_then(|controls| controls.titlebar_overlay_top());
-        let top_height = if lights_shown {
-            (SIDEBAR.traffic_y + TITLEBAR.buttons.diameter + SETTINGS.sidebar_lights_gap) as f32
-                + overlay_top.unwrap_or_default()
-        } else {
-            SETTINGS.sidebar_padding_top as f32
+        let resting_top = SETTINGS.sidebar_padding_top as f32;
+        let lights_top =
+            (SIDEBAR.traffic_y + TITLEBAR.buttons.diameter + SETTINGS.sidebar_lights_gap) as f32;
+        let top_height = match (
+            lights_shown,
+            controls.as_ref().filter(|_| overlay_top.is_some()),
+        ) {
+            (false, _) => resting_top,
+            (true, None) => lights_top,
+            (true, Some(controls)) => {
+                let progress = *controls.focus_bar_progress.read();
+                let revealed_top = lights_top + *controls.focus_bar_height.read();
+                resting_top + (revealed_top - resting_top) * progress
+            }
         };
         let padding_x = SIDEBAR.padding_x as f32;
         let radius = SIDEBAR.radius as f32;

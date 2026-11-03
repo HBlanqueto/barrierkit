@@ -16,6 +16,9 @@ use torin::prelude::CursorPoint;
 use wayland_protocols::wp::fractional_scale::v1::client::wp_fractional_scale_v1::WpFractionalScaleV1;
 use wayland_protocols::wp::viewporter::client::wp_viewport::WpViewport;
 
+const REVEAL_STEP: Duration = Duration::from_millis(16);
+const REVEAL_TIME: Duration = Duration::from_millis(vow_design::DURATION_BASE + 100);
+
 use super::{
     input::seat::{
         RepeatState, cursor_shape_from_icon, dispatch_touch_cancels, find_index_by_id,
@@ -41,6 +44,7 @@ fn window_controls(status: WindowStatus) -> WindowControls {
         fixed: false,
         surface_id: ObjectId::null(),
         focus_bar: freya_core::prelude::State::create(false),
+        focus_bar_progress: freya_core::prelude::State::create(0.0),
         focus_overlay: false,
         focus_bar_height: freya_core::prelude::State::create(28.0),
     }
@@ -594,6 +598,7 @@ mod overlay_titlebar_tests {
 
     impl App for OverlayCase {
         fn render(&self) -> impl IntoElement {
+            crate::chrome::use_focus_bar_reveal();
             rect()
                 .width(Size::fill())
                 .height(Size::fill())
@@ -658,6 +663,7 @@ mod overlay_titlebar_tests {
 
         bar.borrow_mut().as_mut().unwrap().set(true);
         test.sync_and_update();
+        test.poll(super::REVEAL_STEP, super::REVEAL_TIME);
         assert_eq!(
             top_of(&test, "overlay-content"),
             Some(0.0),
@@ -668,6 +674,11 @@ mod overlay_titlebar_tests {
 
         bar.borrow_mut().as_mut().unwrap().set(false);
         test.sync_and_update();
+        assert!(
+            top_of(&test, "overlay-title").is_some(),
+            "slides up instead of vanishing"
+        );
+        test.poll(super::REVEAL_STEP, super::REVEAL_TIME);
         assert_eq!(top_of(&test, "overlay-title"), None);
     }
 
@@ -881,6 +892,7 @@ mod fullscreen_chrome_tests {
 
     impl App for Case {
         fn render(&self) -> impl IntoElement {
+            crate::chrome::use_focus_bar_reveal();
             let detail = rect()
                 .width(Size::fill())
                 .height(Size::fill())
@@ -948,7 +960,7 @@ mod fullscreen_chrome_tests {
                 assert_eq!(light_tops(&test), vec![], "{style:?} at rest");
                 bar.borrow_mut().as_mut().unwrap().set(true);
                 test.sync_and_update();
-                test.sync_and_update();
+                test.poll(super::REVEAL_STEP, super::REVEAL_TIME);
                 let lights = light_tops(&test);
                 assert_eq!(lights.len(), 1, "{style:?} with the bar: {lights:?}");
                 assert!(lights[0].1 >= 28, "{style:?} under the bar: {lights:?}");

@@ -80,7 +80,10 @@ impl AppInstance {
         extra_contexts: impl FnOnce(&mut Runner),
     ) -> Self {
         let (events_sender, events_receiver) = futures_channel::mpsc::unbounded();
-        let mut runner = Runner::new(move || integration(app.clone()).into_element());
+        let mut runner = Runner::new(move || {
+            crate::chrome::use_focus_bar_reveal();
+            integration(app.clone()).into_element()
+        });
 
         runner.provide_root_context(ScreenReader::new);
         runner.provide_root_context(move || resolved);

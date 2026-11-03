@@ -148,6 +148,9 @@ impl Component for Titlebar {
         let overlay_top = controls
             .as_ref()
             .and_then(|controls| controls.titlebar_overlay_top());
+        let overlay_opacity = controls
+            .as_ref()
+            .map_or(1.0, |controls| *controls.focus_bar_progress.read());
         let resolved = crate::theme::resolved();
         let theme = palette(resolved.scheme);
         let control = crate::views::split::sidebar_control();
@@ -181,6 +184,7 @@ impl Component for Titlebar {
                             .position(Position::new_global().top(top).left(0.0))
                             .width(Size::window_percent(100.0))
                             .layer(TITLEBAR_OVERLAY_LAYER)
+                            .opacity(overlay_opacity)
                             .child(crate::glass::progressive_glass(
                                 crate::glass::GlassEdge::Top,
                             )),
@@ -192,6 +196,7 @@ impl Component for Titlebar {
                                 Some(context.parent - inset_start - inset_end)
                             }))
                             .layer(TITLEBAR_OVERLAY_LAYER)
+                            .opacity(overlay_opacity)
                             .child(bar),
                     )
                 })
