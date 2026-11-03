@@ -92,7 +92,7 @@ impl Component for HeroBackground {
                         ..window
                     })),
             );
-        // The scrims sit on higher layers than the scroll view, so they would catch its wheel.
+        // The veil sits on a higher layer than the scroll view, so it would catch its wheel.
         rect()
             .width(Size::fill())
             .height(Size::percent(100.0))

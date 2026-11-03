@@ -3,8 +3,9 @@
 use std::time::Duration;
 
 use freya_animation::prelude::{AnimNum, Ease, Function, use_animation_transition};
-pub use freya_components::scrollviews::ScrollController;
-use freya_components::scrollviews::{ScrollConfig, ScrollView as Scroller};
+use freya_components::scrollviews::{
+    ScrollConfig, ScrollController as Inner, ScrollView as Scroller,
+};
 use freya_core::prelude::*;
 use torin::prelude::{Area, Direction, Position, Size};
 use vow_appearance::ScrollBars;
@@ -28,8 +29,53 @@ pub struct ScrollView {
     key: DiffKey,
 }
 
+#[derive(Clone, Copy, PartialEq)]
+pub struct ScrollController {
+    inner: Inner,
+    viewport: State<(f32, f32)>,
+    content: State<(f32, f32)>,
+}
+
 pub fn use_scroll_controller() -> ScrollController {
-    freya_components::scrollviews::use_scroll_controller(ScrollConfig::default)
+    let inner = freya_components::scrollviews::use_scroll_controller(ScrollConfig::default);
+    let viewport = use_state(|| (0.0, 0.0));
+    let content = use_state(|| (0.0, 0.0));
+    ScrollController {
+        inner,
+        viewport,
+        content,
+    }
+}
+
+impl From<ScrollController> for (i32, i32) {
+    fn from(controller: ScrollController) -> Self {
+        controller.inner.into()
+    }
+}
+
+fn clamped(offset: i32, delta: f64, viewport: f32, content: f32) -> i32 {
+    let limit = (content - viewport).max(0.0);
+    (offset as f32 + delta as f32).clamp(-limit, 0.0) as i32
+}
+
+impl ScrollController {
+    pub fn scroll_to_x(&mut self, to: i32) -> bool {
+        self.inner.scroll_to_x(to)
+    }
+
+    pub fn scroll_to_y(&mut self, to: i32) -> bool {
+        self.inner.scroll_to_y(to)
+    }
+
+    // Freya sends the wheel only to the hovered node and its ancestors; a layer over the view uses this.
+    pub fn scroll_by_wheel(mut self, event: &WheelEventData) {
+        let (x, y): (i32, i32) = self.into();
+        let (viewport, content) = (*self.viewport.peek(), *self.content.peek());
+        self.inner
+            .scroll_to_x(clamped(x, event.delta_x, viewport.0, content.0));
+        self.inner
+            .scroll_to_y(clamped(y, event.delta_y, viewport.1, content.1));
+    }
 }
 
 impl Default for ScrollView {
@@ -107,17 +153,11 @@ impl Component for ScrollView {
         let own = use_scroll_controller();
         let controller = self.controller.unwrap_or(own);
         let horizontal = self.direction == Direction::Horizontal;
-        let mut viewport = use_state(|| 0.0f32);
-        let mut content = use_state(|| 0.0f32);
+        let (mut viewport, mut content) = (controller.viewport, controller.content);
         let (scrolled_x, scrolled_y): (i32, i32) = controller.into();
         let scrolled = if horizontal { scrolled_x } else { scrolled_y };
-        let along = move |area: Area| {
-            if horizontal {
-                area.width()
-            } else {
-                area.height()
-            }
-        };
+        let along = move |(width, height): (f32, f32)| if horizontal { width } else { height };
+        let size = |area: Area| (area.width(), area.height());
         let mut shown_at = use_state(|| scrolled);
         let mut scrolls = use_state(|| 0u32);
         let mut scrolling = use_state(|| false);
@@ -143,17 +183,21 @@ impl Component for ScrollView {
                 .function(Function::Cubic)
         });
         let visibility = if always { 1.0 } else { fade.get().value() };
-        let bar = thumb(*viewport.read(), *content.read(), scrolled as f32)
-            .filter(|_| self.scroll_bar && visibility > 0.0);
+        let bar = thumb(
+            along(*viewport.read()),
+            along(*content.read()),
+            scrolled as f32,
+        )
+        .filter(|_| self.scroll_bar && visibility > 0.0);
         let ink = Palette::current().label;
         rect()
             .width(self.width.clone())
             .height(self.height.clone())
             .on_sized(move |event: Event<SizedEventData>| {
-                viewport.set_if_modified(along(event.area))
+                viewport.set_if_modified(size(event.area))
             })
             .child(
-                Scroller::new_controlled(controller)
+                Scroller::new_controlled(controller.inner)
                     .direction(self.direction)
                     .show_scrollbar(false)
                     .child(
@@ -161,7 +205,7 @@ impl Component for ScrollView {
                             .direction(self.direction)
                             .maybe(!horizontal, |el| el.width(Size::fill()))
                             .on_sized(move |event: Event<SizedEventData>| {
-                                content.set_if_modified(along(event.area))
+                                content.set_if_modified(size(event.area))
                             })
                             .children(self.children.clone()),
                     ),
@@ -203,6 +247,14 @@ impl Component for ScrollView {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_forwarded_wheel_stops_at_both_ends() {
+        assert_eq!(clamped(0, 30.0, 200.0, 800.0), 0);
+        assert_eq!(clamped(-590, -30.0, 200.0, 800.0), -600);
+        assert_eq!(clamped(0, -30.0, 200.0, 100.0), 0);
+        assert_eq!(clamped(-100, -30.0, 200.0, 800.0), -130);
+    }
 
     #[test]
     fn content_that_fits_has_no_thumb() {

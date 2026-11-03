@@ -37,7 +37,7 @@ pub fn scrim(edge: ScrimEdge) -> Rect {
         LinearGradient::new().angle(angle),
         |gradient, &(at, alpha)| gradient.stop((color(Rgba { a: alpha, ..window }), at * 100.0)),
     );
-    rect().background(gradient)
+    rect().background(gradient).interactive(Interactive::No)
 }
 
 pub fn material(corner_radius: f32) -> Element {

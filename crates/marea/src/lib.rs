@@ -11,7 +11,7 @@ mod shelf;
 use std::collections::HashSet;
 
 use barrier_kit::backdrop::{Accent, Backdrop, BackdropSource};
-use barrier_kit::controls::{ScrollView, SearchField, use_scroll_controller};
+use barrier_kit::controls::{ScrollController, ScrollView, SearchField, use_scroll_controller};
 use barrier_kit::media::{ground, material, top_glass};
 use barrier_kit::sidebar::{Sidebar, SidebarAccount, SidebarBackdrop, SidebarItem, SidebarSection};
 use barrier_kit::style::{Palette, text};
@@ -110,20 +110,20 @@ impl Component for Island {
 #[derive(PartialEq)]
 struct Toolbar {
     shown: f32,
-    on_wheel: Callback<f32, ()>,
+    scroll: ScrollController,
 }
 
 impl Component for Toolbar {
     fn render(&self) -> impl IntoElement {
         let window = ground();
-        let on_wheel = self.on_wheel.clone();
+        let scroll = self.scroll;
         rect()
             .position(Position::new_absolute().top(0.0).left(0.0))
             .width(Size::fill())
             .height(Size::px(TOOLBAR))
             .layer(TOOLBAR_LAYER)
             .on_mouse_down(window_drag_handler(false))
-            .on_wheel(move |event: Event<WheelEventData>| on_wheel.call(event.delta_y as f32))
+            .on_wheel(move |event: Event<WheelEventData>| scroll.scroll_by_wheel(&event))
             .maybe_child((self.shown > 0.0).then(top_glass))
             .child(
                 rect()
@@ -171,8 +171,7 @@ impl App for Marea {
         let mut listed = use_state(HashSet::<&'static str>::new);
         let mut playing = use_state(|| None::<Playing>);
         let mut window = use_state(Area::default);
-        let mut controller = use_scroll_controller();
-        let mut content_height = use_state(|| 0.0f32);
+        let controller = use_scroll_controller();
         let (_, offset): (i32, i32) = controller.into();
         let scrolled = (-offset).max(0) as f32;
         let toolbar = ease_out(((scrolled - TOOLBAR_FROM) / TOOLBAR_SPAN).clamp(0.0, 1.0));
@@ -203,9 +202,6 @@ impl App for Marea {
                 ScrollView::new().controller(controller).child(
                     rect()
                         .width(Size::fill())
-                        .on_sized(move |event: Event<SizedEventData>| {
-                            content_height.set_if_modified(event.area.height())
-                        })
                         .padding(Gaps::new(
                             0.0,
                             0.0,
@@ -248,11 +244,7 @@ impl App for Marea {
             )
             .child(Toolbar {
                 shown: toolbar,
-                on_wheel: Callback::new(move |delta: f32| {
-                    let (_, offset): (i32, i32) = controller.into();
-                    let limit = (*content_height.peek() - window.peek().height()).max(0.0);
-                    controller.scroll_to_y((offset as f32 + delta).clamp(-limit, 0.0) as i32);
-                }),
+                scroll: controller,
             })
             .child(Island { height })
             .maybe_child(playing.read().as_ref().map(|now| Player {
