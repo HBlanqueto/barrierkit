@@ -33,6 +33,7 @@ struct Glass {
     metrics: FullscreenGlassMetrics,
     tint: Rgba,
     line: Option<Rgba>,
+    opacity: f32,
     layout: LayoutData,
 }
 
@@ -57,6 +58,7 @@ fn glass(
     metrics: FullscreenGlassMetrics,
     depth: f32,
     line: Option<Rgba>,
+    opacity: f32,
 ) -> Element {
     let (width, height, position) = along(edge, depth);
     let layout = torin::node::Node {
@@ -72,13 +74,20 @@ fn glass(
             metrics,
             tint: glass_tint(),
             line,
+            opacity,
             layout: layout.into(),
         }),
         elements: Vec::new(),
     }
 }
 
-pub(crate) fn fullscreen_backdrop(bar: FullscreenBar, edge: GlassEdge, depth: f32) -> Element {
+// An opacity layer would hold the backdrop blur, which then samples that empty layer instead of the window.
+pub(crate) fn fullscreen_backdrop(
+    bar: FullscreenBar,
+    edge: GlassEdge,
+    depth: f32,
+    opacity: f32,
+) -> Element {
     match bar {
         FullscreenBar::Solid => {
             let (width, height, position) = along(edge, depth);
@@ -87,7 +96,7 @@ pub(crate) fn fullscreen_backdrop(bar: FullscreenBar, edge: GlassEdge, depth: f3
                 .width(width)
                 .height(height)
                 .background(crate::theme::color(Rgba {
-                    a: 1.0,
+                    a: opacity,
                     ..glass_tint()
                 }))
                 .into_element()
@@ -97,10 +106,15 @@ pub(crate) fn fullscreen_backdrop(bar: FullscreenBar, edge: GlassEdge, depth: f3
             FULLSCREEN_BAND,
             depth,
             Some(crate::style::Palette::current().separator),
+            opacity,
         ),
-        FullscreenBar::ProgressiveGlass => {
-            glass(edge, FULLSCREEN_GLASS, FULLSCREEN_GLASS.height, None)
-        }
+        FullscreenBar::ProgressiveGlass => glass(
+            edge,
+            FULLSCREEN_GLASS,
+            FULLSCREEN_GLASS.height,
+            None,
+            opacity,
+        ),
     }
 }
 
@@ -109,6 +123,7 @@ pub(crate) fn progressive_glass(edge: GlassEdge) -> Element {
         FullscreenBar::ProgressiveGlass,
         edge,
         FULLSCREEN_GLASS.height,
+        1.0,
     )
 }
 
@@ -192,7 +207,10 @@ impl ElementExt for Glass {
             let mut mask = inwards(
                 self.edge,
                 bounds,
-                Rgba::rgb8(255, 255, 255),
+                Rgba {
+                    a: self.opacity,
+                    ..Rgba::rgb8(255, 255, 255)
+                },
                 &layer_mask(self.metrics.mask, level / 2.0, level),
             );
             mask.set_blend_mode(BlendMode::DstIn);
@@ -206,7 +224,15 @@ impl ElementExt for Glass {
         }
         canvas.draw_rect(
             bounds,
-            &inwards(self.edge, bounds, self.tint, self.metrics.tint),
+            &inwards(
+                self.edge,
+                bounds,
+                Rgba {
+                    a: self.tint.a * self.opacity,
+                    ..self.tint
+                },
+                self.metrics.tint,
+            ),
         );
         if let Some(line) = self.line {
             let width = FULLSCREEN_BAR.band_line * context.scale_factor as f32;
@@ -225,7 +251,13 @@ impl ElementExt for Glass {
                 ),
             };
             let mut paint = Paint::default();
-            paint.set_color4f(rgba4f(line), None);
+            paint.set_color4f(
+                rgba4f(Rgba {
+                    a: line.a * self.opacity,
+                    ..line
+                }),
+                None,
+            );
             canvas.draw_rect(edge_line, &paint);
         }
     }

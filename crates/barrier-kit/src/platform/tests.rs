@@ -52,7 +52,6 @@ fn window_controls(status: WindowStatus) -> WindowControls {
         fullscreen_bar: freya_core::prelude::State::create(super::FullscreenBar::Solid),
         fullscreen_push: freya_core::prelude::State::create(false),
         overlay_titlebar_height: freya_core::prelude::State::create(0.0),
-        rail_layout: freya_core::prelude::State::create(false),
     }
 }
 

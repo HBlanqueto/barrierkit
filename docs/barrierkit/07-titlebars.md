@@ -215,10 +215,9 @@ incluida, baja lo que miden la barra del compositor y la titlebar
 #### Con el `Rail`
 
 Con el `Rail`, la titlebar superior no se retrae ni se superpone: se queda
-en su sitio, como en la ventana normal. Al bajar la barra del compositor, toda
-la ventana baja lo que mide la barra, así que la titlebar queda entera debajo.
-Solo el rail se oculta con la barra arriba y, al bajar, entra desde la
-izquierda con la misma barra, en vertical:
+en su sitio, como en la ventana normal, y nada baja con la barra del
+compositor. Solo el rail se oculta con la barra arriba y, al bajar, entra desde
+la izquierda con la misma barra, en vertical, con sus semáforos bajo la barra:
 
 | `FullscreenBar` | El rail | Cómo se ve |
 |---|---|---|

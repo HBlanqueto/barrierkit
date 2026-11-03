@@ -214,10 +214,10 @@ and `fullscreen_content_top` is 0.
 #### With the `Rail`
 
 With the `Rail`, the top titlebar neither retracts nor overlays: it stays in
-place, as in the normal window. When the compositor bar comes down, the whole
-window moves down by the bar's height, so the titlebar stays whole below it.
+place, as in the normal window, and nothing moves down with the compositor bar.
 Only the rail hides while the bar is up and, when the bar comes down, slides in
-from the left with the same bar, vertically:
+from the left with the same bar, vertically, with its traffic lights below the
+bar:
 
 | `FullscreenBar` | The rail | How it looks |
 |---|---|---|

@@ -193,11 +193,11 @@ impl Component for Titlebar {
                             .position(Position::new_global().top(top).left(0.0))
                             .width(Size::window_percent(100.0))
                             .layer(TITLEBAR_OVERLAY_LAYER)
-                            .opacity(overlay_opacity)
                             .child(crate::glass::fullscreen_backdrop(
                                 fullscreen_bar,
                                 crate::glass::GlassEdge::Top,
                                 height,
+                                overlay_opacity,
                             )),
                     )
                     .child(

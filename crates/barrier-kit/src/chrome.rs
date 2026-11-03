@@ -335,10 +335,6 @@ impl Component for WindowChrome {
         style_state.set_if_modified(style);
         let mut items_state = chrome.rail_items;
         items_state.set_if_modified(self.rail_items.clone());
-        if let Some(controls) = try_consume_root_context::<WindowControls>() {
-            let mut rail_layout = controls.rail_layout;
-            rail_layout.set_if_modified(style.layout == TitlebarLayout::Rail);
-        }
         let mut revealed = use_state(|| false);
         let reduced_motion = crate::theme::resolved().reduced_motion;
         let animation = use_animation_transition(revealed, move |from: bool, to: bool| {
@@ -454,7 +450,7 @@ impl Component for WindowChrome {
                     .width(Size::px(extent))
                     .height(Size::percent(100.0))
                     .layer(Layer::Overlay)
-                    .child(fullscreen_backdrop(bar, GlassEdge::Left, extent))
+                    .child(fullscreen_backdrop(bar, GlassEdge::Left, extent, 1.0))
                     .child(rail(style, items, 1.0)),
             );
         }
@@ -487,6 +483,12 @@ fn rail(style: ChromeStyle, items: &RailItems, lights_opacity: f32) -> Rect {
     let lights_shown = controls
         .as_ref()
         .is_none_or(|controls| controls.traffic_lights_shown());
+    let below_bar = controls
+        .as_ref()
+        .filter(|_| overlaid && !fullscreen_push())
+        .map_or(0.0, |controls| {
+            *controls.focus_bar_height.read() * *controls.focus_bar_progress.read()
+        });
     let floating = overlaid && !fullscreen_push();
     let background = if island || floating {
         Rgba::TRANSPARENT
@@ -516,7 +518,7 @@ fn rail(style: ChromeStyle, items: &RailItems, lights_opacity: f32) -> Rect {
         .cross_align(Alignment::Center)
         .spacing(TITLEBAR.buttons.spacing as f32)
         .padding(Gaps::new(
-            TITLEBAR_RAIL.padding_top,
+            TITLEBAR_RAIL.padding_top + below_bar,
             0.0,
             TITLEBAR_RAIL.padding_bottom,
             0.0,
