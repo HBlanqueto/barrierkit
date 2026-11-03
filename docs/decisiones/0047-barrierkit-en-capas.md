@@ -226,6 +226,8 @@ Cada fase se divide en lotes pequeños para opencode, con prueba visible en la s
 - el sitio de las pruebas visibles de cada lote;
 - la fuente de los tests de render (cada página se renderiza en claro, oscuro y tintado).
 
+**Master Tengen Motion Show** (`tengen-motion-show`) es su hermana para el movimiento, con el mismo `PreferencesWindow`. Enseña las curvas de Freya, el resorte de Grade (`Spring` es un `AnimatedValue` y se usa con `use_animation`), las duraciones de Tengen, las propiedades animables (opacidad, escala, rotación, posición, color, radio y anchura), los controles del kit que ya se animan, la entrada y salida de elementos, las transiciones entre diapositivas y pestañas, la respuesta a eventos (hover, pulsar, error, notificación y aviso) y el movimiento reducido. Es un mockup: de aquí sale lo que luego se lleve al kit.
+
 ## Estado (2026-11-02)
 
 Hecho en `main`:
