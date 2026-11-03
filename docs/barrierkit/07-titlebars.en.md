@@ -10,7 +10,7 @@ normal, unfocused, maximized, full screen and MalaysiaDreams focus mode.
 |---|---|---|
 | `Titlebar` | The horizontal CSD titlebar: traffic lights, left and right zones, title | With a sidebar when `.with_sidebar(true)` is passed |
 | `TrafficLights` | Close, minimize and maximize | Square, `traffic_lights` colors |
-| `WindowChrome` + `ChromeStyle` | Four layouts: `Top`, `Rail`, `Unified` and `Pill`; the `Rail` accepts the app's own actions | `Top` |
+| `WindowChrome` + `ChromeStyle` | Two layouts: `Top` and `Rail` (normal or unified); both accept the app's own items | `Top` |
 | `FullscreenBar` | How the overlaid titlebar is drawn in full screen | `Solid` ("A · Lisa") |
 
 ## The horizontal titlebar: `Titlebar`
@@ -74,10 +74,10 @@ TrafficLights::new()
 
 In an inactive window the traffic lights turn gray.
 
-## Four titlebar types: `WindowChrome`
+## Two titlebar types: `WindowChrome`
 
 `chrome::WindowChrome::new(estilo, contenido)` wraps the window and places the
-traffic lights and the title according to a `ChromeStyle`:
+traffic lights, the title and the rail items according to a `ChromeStyle`:
 
 ```rust
 let estilo = ChromeStyle {
@@ -85,47 +85,62 @@ let estilo = ChromeStyle {
     side: Side::Left,
     rail_width: TITLEBAR_RAIL.width,
     round_lights: false,
-    pill_vertical: true,
+    rail_style: RailStyle::Normal,
     reveal: Reveal::Always,
     resting_edge: RestingEdge::None,
 };
-WindowChrome::new(estilo, SplitView::new(barra, detalle)).footer(pie)
+WindowChrome::new(estilo, SplitView::new(barra, detalle))
+    .rail_top(arriba)
+    .rail_bottom(abajo)
 ```
 
 | `TitlebarLayout` | What it is | Screenshot (Rótulo) |
 |---|---|---|
-| `Top` (default) | Horizontal titlebar at the top | ![Top layout](assets/apps/rotulo-top.png) |
-| `Rail` | Vertical strip on one side with the traffic lights in a column and the title rotated 90°. If the app passes `.footer(..)` to `WindowChrome`, the rail adds its actions at the bottom and widens to `TITLEBAR_RAIL.actions_width` (34) | ![Rail layout](assets/apps/rotulo-rail.png) |
-| `Unified` | The traffic lights in a column inside the sidebar, with no strip of their own. Without a visible sidebar it becomes `Rail` | ![Unified layout](assets/apps/rotulo-unified.png) |
-| `Pill` | A floating pill with the traffic lights, vertical (default) or horizontal depending on `pill_vertical`. In full screen it is opaque or glass depending on `FullscreenBar` | ![Pill layout](assets/apps/rotulo-pill.png) |
+| `Top` (default) | Horizontal titlebar at the top, with items on the left and the right (`Titlebar::left` and `right`) | ![Top layout](assets/apps/rotulo-top.png) |
+| `Rail` | Vertical titlebar on one side, with the traffic lights in a column, the title rotated 90° and items at the top and the bottom (`rail_top` and `rail_bottom`) | ![Rail layout](assets/apps/rotulo-rail.png) |
+
+The `Rail` has two styles:
+
+| `RailStyle` | What it is | Screenshot (Rótulo) |
+|---|---|---|
+| `Normal` (default) | Its own strip on one side of the window | ![Normal rail](assets/apps/rotulo-rail.png) |
+| `Unified` | No strip: the column goes inside the sidebar. Without a visible sidebar it is drawn as `Normal` | ![Unified rail](assets/apps/rotulo-unified.png) |
+
+### Rail items
+
+Just as the `Top` `Titlebar` holds buttons or other items on the left and the
+right, the `Rail` holds them vertically:
+
+| Method | Where it goes |
+|---|---|
+| `WindowChrome::rail_top(items)` | Below the traffic lights |
+| `WindowChrome::rail_bottom(items)` | At the foot of the rail |
+
+With any item, the rail widens to `TITLEBAR_RAIL.actions_width` (34). In
+`Unified` the items go in the sidebar column, in the same places.
+
+| `Normal` with items | `Unified` with items |
+|---|---|
+| ![Normal rail with items at the top and the bottom](assets/estados/rail-elementos.png) | ![Unified rail with items at the top and the bottom](assets/estados/rail-unificado-elementos.png) |
+
+### `ChromeStyle` fields
 
 | Field | Values | Effect |
 |---|---|---|
 | `side` | `Left`, `Right` | Side of the rail |
-| `rail_width` | `TITLEBAR_RAIL.width` or `.width_wide` | Width of the rail |
+| `rail_width` | `TITLEBAR_RAIL.width` or `.width_wide` | Width of the rail without items |
 | `round_lights` | `bool` | Round or square (default) traffic lights |
-| `pill_vertical` | `bool` | With `Pill`: traffic lights in a column (`true`, default) or in a row (`false`). The vertical one reserves a margin on the side; the horizontal one sits at the top and reserves none |
-| `reveal` | `Always`, `Drawer`, `Push`, `Corner`, `Popup` | Always visible, or it appears when the pointer comes close: as a drawer on top, pushing the content, only in the corner or as a pop-up pill |
-| `resting_edge` | `None`, `Line`, `Accent` | What stays visible while it is hidden: nothing, a line or an accent line |
+| `rail_style` | `Normal`, `Unified` | Its own strip or a column inside the sidebar |
+| `reveal` | `Always`, `Drawer`, `Push`, `Corner`, `Popup` | Always visible, or appears when the pointer nears: as a drawer on top, pushing the content, only in the corner, or as a popup pill with the traffic lights |
+| `resting_edge` | `None`, `Line`, `Accent` | What stays visible while hidden: nothing, a line or an accent line |
 
 Some combinations make no sense and correct themselves
-(`ChromeStyle::effective`): `Unified` with `Drawer`, `Push` or `Popup` becomes
-`Corner`; `Pill` with `Drawer` or `Push` becomes `Popup`; in full screen,
-`reveal` is always `Always`.
+(`ChromeStyle::effective`): a unified `Rail` with `Drawer`, `Push` or `Popup`
+becomes `Corner`; in full screen, `reveal` is always `Always`.
 
 Rail on the right, round traffic lights, flat sidebar and dark mode:
 
 ![Right rail with round traffic lights](assets/apps/rotulo-rail-flat-round.png)
-
-The `Rail` with actions (`.footer(..)`), in a normal window:
-
-![Rail with actions](assets/estados/rail-acciones.png)
-
-The pill in both orientations, in a normal window:
-
-| `pill_vertical: true` (default) | `pill_vertical: false` |
-|---|---|
-| ![Vertical pill](assets/estados/pill-vertical.png) | ![Horizontal pill](assets/estados/pill-horizontal.png) |
 
 The Rótulo app (chapter [15](15-apps-de-prueba.en.md)) tests every combination
 live.
@@ -157,7 +172,7 @@ over the content, right below the bar, on the background the app chooses
 ### The bar in full screen: `FullscreenBar`
 
 Each window chooses how its overlaid titlebar is drawn. The option goes in
-`WindowOptions` and applies to the `Titlebar`, the rail and the pill:
+`WindowOptions` and applies to the whole overlaid titlebar:
 
 ```rust
 WindowOptions::new("Ondina", "ondina").fullscreen_bar(FullscreenBar::ProgressiveGlass)
@@ -179,13 +194,12 @@ With `Push` and the bar up, the content reaches the top edge:
 
 ![E · Push, bar up](assets/estados/barra-empuja-arriba.png)
 
-Only `Glass` and `ProgressiveGlass` blur; with them, the pill is glass too.
-With the others it is opaque.
+Only `Glass` and `ProgressiveGlass` blur.
 
 ### Focus mode with the bar down, by layout
 
-**With an island sidebar and the window maximized or in full screen, every
-layout becomes `Top`:** the rail, the `Unified` column and the pill go away and
+**With an island sidebar and the window maximized or in full screen, the
+`Rail` becomes `Top`:** the strip or the unified column goes away and
 the traffic lights return to the island. This is `Rail` with an island in focus
 mode:
 
@@ -199,11 +213,9 @@ app does not draw it.
 | Layout | What comes down | How it looks |
 |---|---|---|
 | `Top` (default) | The `Titlebar` over the content; the sidebar traffic lights move down by the same amount | ![Top with the bar down](assets/estados/foco-top.png) |
-| `Unified` | Same as `Top` | ![Unified with the bar down](assets/estados/foco-unified.png) |
+| Unified `Rail` | The sidebar column; the traffic lights appear with the bar, below it | ![Unified rail with the bar down](assets/estados/foco-unified.png) |
 | `Rail` | Nothing: the rail stays in place, without covering the sidebar. Its traffic lights appear with the bar, below it | ![Rail with the bar down](assets/estados/foco-rail.png) |
-| `Rail` with actions | The same; the actions stay at the bottom | ![Rail with actions and the bar down](assets/estados/foco-rail-acciones.png) |
-| Vertical `Pill` | The traffic-light pill; before that it is hidden | ![Vertical Pill with the bar down](assets/estados/foco-pill.png) |
-| Horizontal `Pill` | The same, in a row | ![Horizontal Pill with the bar down](assets/estados/foco-pill-horizontal.png) |
+| `Rail` with items | The same; the items stay in place | ![Rail with items and the bar down](assets/estados/foco-rail-elementos.png) |
 
 ### What the app does
 

@@ -894,7 +894,7 @@ mod inactive_accent_tests {
 
 #[cfg(test)]
 mod fullscreen_chrome_tests {
-    use crate::chrome::{ChromeStyle, Side, TitlebarLayout, WindowChrome};
+    use crate::chrome::{ChromeStyle, RailStyle, Side, TitlebarLayout, WindowChrome};
     use crate::sidebar::Sidebar;
     use crate::titlebar::Titlebar;
     use crate::views::split::SplitView;
@@ -940,16 +940,16 @@ mod fullscreen_chrome_tests {
 
     #[test]
     fn in_full_screen_every_layout_shows_its_lights_once_below_the_bar_only_while_it_is_down() {
-        for layout in [
-            TitlebarLayout::Top,
-            TitlebarLayout::Rail,
-            TitlebarLayout::Unified,
-            TitlebarLayout::Pill,
+        for (layout, rail_style) in [
+            (TitlebarLayout::Top, RailStyle::Normal),
+            (TitlebarLayout::Rail, RailStyle::Normal),
+            (TitlebarLayout::Rail, RailStyle::Unified),
         ] {
             for side in [Side::Left, Side::Right] {
                 let style = ChromeStyle {
                     layout,
                     side,
+                    rail_style,
                     ..ChromeStyle::default()
                 };
                 let bar = Rc::new(RefCell::new(None));

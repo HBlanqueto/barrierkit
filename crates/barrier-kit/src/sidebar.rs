@@ -6,7 +6,7 @@ use freya_animation::prelude::{AnimNum, Ease, Function, use_animation_transition
 use freya_components::svg_viewer::SvgViewer;
 use freya_core::prelude::*;
 use keyboard_types::{Key, NamedKey};
-use torin::prelude::{Alignment, Direction, Gaps, Position, Size};
+use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 use vow_appearance::{SidebarStyle, SidebarSurface};
 use vow_design::{
     BACKDROP, DURATION_BASE, Rgba, SETTINGS, SIDEBAR, SidebarPalette, TEXT, TITLEBAR, TITLEBAR_RAIL,
@@ -262,13 +262,11 @@ impl Component for Sidebar {
         };
 
         let chrome = crate::chrome::chrome_style();
-        let lights_column = chrome.layout == TitlebarLayout::Unified && self.traffic_lights;
-        let reserved = match chrome.layout {
-            TitlebarLayout::Unified if self.traffic_lights => chrome.rail_width,
-            TitlebarLayout::Pill if chrome.pill_vertical => {
-                TITLEBAR_RAIL.pill_clearance - padding_x
-            }
-            _ => 0.0,
+        let lights_column = chrome.unified(true) && self.traffic_lights;
+        let reserved = if lights_column {
+            chrome.rail_width
+        } else {
+            0.0
         };
         let (reserved_left, reserved_right) = match chrome.side {
             Side::Left => (reserved, 0.0),
@@ -345,23 +343,39 @@ impl Component for Sidebar {
 
         let sidebar_shown =
             crate::views::split::sidebar_control().is_none_or(|control| control.settled());
-        if lights_column && lights_shown {
-            let diameter = TITLEBAR.buttons.diameter as f32;
-            let offset = (chrome.rail_width - diameter) / 2.0;
-            let position = Position::new_absolute()
-                .top(SIDEBAR.traffic_y as f32 + overlay_top.unwrap_or_default());
+        if lights_column {
+            let items = crate::chrome::rail_items();
+            let position = Position::new_absolute().top(0.0);
             root = root.child(
                 rect()
                     .position(match chrome.side {
-                        Side::Left => position.left(offset),
-                        Side::Right => position.right(offset),
+                        Side::Left => position.left(0.0),
+                        Side::Right => position.right(0.0),
                     })
+                    .width(Size::px(chrome.rail_width))
+                    .height(Size::percent(100.0))
+                    .direction(Direction::Vertical)
+                    .content(Content::flex())
+                    .cross_align(Alignment::Center)
+                    .spacing(TITLEBAR.buttons.spacing as f32)
+                    .padding(Gaps::new(
+                        SIDEBAR.traffic_y as f32 + overlay_top.unwrap_or_default(),
+                        0.0,
+                        TITLEBAR_RAIL.padding_bottom,
+                        0.0,
+                    ))
                     .maybe(overlay_top.is_some(), |el| {
                         el.layer(crate::titlebar::TITLEBAR_OVERLAY_LAYER + 1)
                     })
-                    .a11y_alt("sidebar-traffic-lights")
-                    .opacity(lights_opacity)
-                    .child(window_traffic_lights(status.activated, fixed).vertical(true)),
+                    .maybe_child(lights_shown.then(|| {
+                        rect()
+                            .a11y_alt("sidebar-traffic-lights")
+                            .opacity(lights_opacity)
+                            .child(window_traffic_lights(status.activated, fixed).vertical(true))
+                    }))
+                    .maybe_child(items.top)
+                    .child(rect().height(Size::flex(1.0)))
+                    .maybe_child(items.bottom),
             );
         } else if self.traffic_lights
             && lights_shown

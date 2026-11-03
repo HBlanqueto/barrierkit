@@ -1,8 +1,10 @@
 //! Rótulo: a test app whose own window switches between the top titlebar and
-//! the vertical ones, on either side, with a flat or island sidebar.
+//! the rail, on either side, as a strip or unified with a flat or island sidebar.
 
 use barrier_kit::app::{load_defaults, save_defaults};
-use barrier_kit::chrome::{ChromeStyle, RestingEdge, Reveal, Side, TitlebarLayout, WindowChrome};
+use barrier_kit::chrome::{
+    ChromeStyle, RailStyle, RestingEdge, Reveal, Side, TitlebarLayout, WindowChrome,
+};
 use barrier_kit::compact::IconButton;
 use barrier_kit::controls::{ScrollView, SegmentedControl};
 use barrier_kit::platform::{Decorations, WindowOptions, run_window};
@@ -22,11 +24,9 @@ use vow_design::{ACCENT_SWATCHES, TITLEBAR_RAIL, WINDOW_MIN_SIZE};
 
 const APP: &str = "rotulo";
 
-const LAYOUTS: [(TitlebarLayout, &str); 4] = [
+const LAYOUTS: [(TitlebarLayout, &str); 2] = [
     (TitlebarLayout::Top, "Arriba"),
     (TitlebarLayout::Rail, "Rail"),
-    (TitlebarLayout::Unified, "Unificado"),
-    (TitlebarLayout::Pill, "Píldora"),
 ];
 
 const REVEALS: [(Reveal, &str); 5] = [
@@ -46,8 +46,9 @@ struct Prefs {
     side: Side,
     wide_rail: bool,
     round_lights: bool,
-    pill_vertical: bool,
-    rail_actions: bool,
+    rail_unified: bool,
+    rail_top_items: bool,
+    rail_bottom_items: bool,
     reveal: Reveal,
     resting_edge: RestingEdge,
     flat_sidebar: bool,
@@ -60,8 +61,9 @@ impl Default for Prefs {
             side: Side::Left,
             wide_rail: false,
             round_lights: false,
-            pill_vertical: true,
-            rail_actions: false,
+            rail_unified: false,
+            rail_top_items: false,
+            rail_bottom_items: false,
             reveal: Reveal::Always,
             resting_edge: RestingEdge::None,
             flat_sidebar: false,
@@ -80,7 +82,11 @@ impl Prefs {
                 TITLEBAR_RAIL.width
             },
             round_lights: self.round_lights,
-            pill_vertical: self.pill_vertical,
+            rail_style: if self.rail_unified {
+                RailStyle::Unified
+            } else {
+                RailStyle::Normal
+            },
             reveal: self.reveal,
             resting_edge: self.resting_edge,
         }
@@ -174,20 +180,25 @@ fn design(prefs: State<Prefs>) -> Form {
             move |i| update(prefs, |p| p.round_lights = i == 1),
         )));
     if current.layout == TitlebarLayout::Rail {
-        titlebar = titlebar.row(Row::new("Acciones en el rail").control(segmented(
-            "Acciones en el rail",
-            &["Sin acciones", "Con acciones"],
-            usize::from(current.rail_actions),
-            move |i| update(prefs, |p| p.rail_actions = i == 1),
-        )));
-    }
-    if current.layout == TitlebarLayout::Pill {
-        titlebar = titlebar.row(Row::new("Píldora").control(segmented(
-            "Píldora",
-            &["Vertical", "Horizontal"],
-            usize::from(!current.pill_vertical),
-            move |i| update(prefs, |p| p.pill_vertical = i == 0),
-        )));
+        titlebar = titlebar
+            .row(Row::new("Estilo del rail").control(segmented(
+                "Estilo del rail",
+                &["Normal", "Unificado"],
+                usize::from(current.rail_unified),
+                move |i| update(prefs, |p| p.rail_unified = i == 1),
+            )))
+            .row(Row::new("Elementos arriba").control(segmented(
+                "Elementos arriba",
+                &["No", "Sí"],
+                usize::from(current.rail_top_items),
+                move |i| update(prefs, |p| p.rail_top_items = i == 1),
+            )))
+            .row(Row::new("Elementos abajo").control(segmented(
+                "Elementos abajo",
+                &["No", "Sí"],
+                usize::from(current.rail_bottom_items),
+                move |i| update(prefs, |p| p.rail_bottom_items = i == 1),
+            )));
     }
     titlebar = titlebar.row(
         Row::new("Aparición").control(
@@ -237,7 +248,7 @@ fn measures(prefs: Prefs) -> Form {
     let chrome = prefs.chrome();
     let width = match prefs.layout {
         TitlebarLayout::Top => String::from("—"),
-        TitlebarLayout::Rail if prefs.rail_actions => {
+        TitlebarLayout::Rail if prefs.rail_top_items || prefs.rail_bottom_items => {
             format!("{} px", chrome.rail_width.max(TITLEBAR_RAIL.actions_width))
         }
         _ => format!("{} px", chrome.rail_width),
@@ -322,7 +333,12 @@ impl App for Rotulo {
                     .height(Size::flex(1.0))
                     .child(form),
             );
-        let footer = rect()
+        let top_items = rect()
+            .direction(Direction::Vertical)
+            .spacing(TITLEBAR_RAIL.padding_bottom)
+            .child(IconButton::new(Symbol::Plus, "Nuevo"))
+            .child(IconButton::new(Symbol::MagnifyingGlass, "Buscar"));
+        let bottom_items = rect()
             .direction(Direction::Vertical)
             .spacing(TITLEBAR_RAIL.padding_bottom)
             .child(
@@ -333,12 +349,15 @@ impl App for Rotulo {
                 IconButton::new(Symbol::SlidersVertical, Page::Measures.title())
                     .on_press(move |_| page.set(Page::Measures)),
             );
-        let chrome = WindowChrome::new(prefs.read().chrome(), SplitView::new(sidebar, detail));
-        if prefs.read().rail_actions {
-            chrome.footer(footer)
-        } else {
-            chrome
+        let current_prefs = *prefs.read();
+        let mut chrome = WindowChrome::new(current_prefs.chrome(), SplitView::new(sidebar, detail));
+        if current_prefs.rail_top_items {
+            chrome = chrome.rail_top(top_items);
         }
+        if current_prefs.rail_bottom_items {
+            chrome = chrome.rail_bottom(bottom_items);
+        }
+        chrome
     }
 }
 

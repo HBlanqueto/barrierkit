@@ -1,5 +1,5 @@
-//! Titlebar layouts for client-side windows (top, rail, unified, pill and rail
-//! with actions, on the left or the right) and how each one hides and reveals.
+//! Titlebar layouts for client-side windows (top, or a rail on the left or the
+//! right, as a strip or unified with the sidebar) and how each one hides and reveals.
 
 use freya_animation::prelude::{AnimNum, Ease, Function, use_animation_transition};
 use freya_core::prelude::*;
@@ -7,8 +7,8 @@ use serde::{Deserialize, Serialize};
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 use vow_appearance::{SidebarStyle, palette};
 use vow_design::{
-    DURATION_BASE, FULLSCREEN_GLASS, Rgba, SETTINGS, SHADOW, SHADOW_DARK, TITLEBAR,
-    TITLEBAR_CLIENT_HEIGHT, TITLEBAR_RAIL,
+    DURATION_BASE, Rgba, SETTINGS, SHADOW, SHADOW_DARK, TITLEBAR, TITLEBAR_CLIENT_HEIGHT,
+    TITLEBAR_RAIL,
 };
 
 use crate::platform::FullscreenBar;
@@ -22,8 +22,13 @@ pub enum TitlebarLayout {
     #[default]
     Top,
     Rail,
+}
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub enum RailStyle {
+    #[default]
+    Normal,
     Unified,
-    Pill,
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -57,7 +62,7 @@ pub struct ChromeStyle {
     pub side: Side,
     pub rail_width: f32,
     pub round_lights: bool,
-    pub pill_vertical: bool,
+    pub rail_style: RailStyle,
     pub reveal: Reveal,
     pub resting_edge: RestingEdge,
 }
@@ -69,7 +74,7 @@ impl Default for ChromeStyle {
             side: Side::Left,
             rail_width: TITLEBAR_RAIL.width,
             round_lights: false,
-            pill_vertical: true,
+            rail_style: RailStyle::Normal,
             reveal: Reveal::Always,
             resting_edge: RestingEdge::None,
         }
@@ -77,19 +82,20 @@ impl Default for ChromeStyle {
 }
 
 impl ChromeStyle {
+    pub(crate) fn unified(self, sidebar_shown: bool) -> bool {
+        self.layout == TitlebarLayout::Rail
+            && self.rail_style == RailStyle::Unified
+            && sidebar_shown
+    }
+
     fn effective(self, sidebar_shown: bool) -> (TitlebarLayout, Reveal) {
-        let layout = match self.layout {
-            TitlebarLayout::Unified if !sidebar_shown => TitlebarLayout::Rail,
-            layout => layout,
-        };
-        let reveal = match (layout, self.reveal) {
-            (TitlebarLayout::Unified, Reveal::Drawer | Reveal::Push | Reveal::Popup) => {
+        let reveal = match self.reveal {
+            Reveal::Drawer | Reveal::Push | Reveal::Popup if self.unified(sidebar_shown) => {
                 Reveal::Corner
             }
-            (TitlebarLayout::Pill, Reveal::Drawer | Reveal::Push) => Reveal::Popup,
-            (_, reveal) => reveal,
+            reveal => reveal,
         };
-        (layout, reveal)
+        (self.layout, reveal)
     }
 }
 
@@ -150,6 +156,7 @@ fn wants_reveal(
 #[derive(Clone, Copy, PartialEq)]
 pub(crate) struct Chrome {
     style: State<ChromeStyle>,
+    rail_items: State<RailItems>,
     sidebar_shown: State<bool>,
     progress: State<f32>,
     size: State<(f32, f32)>,
@@ -162,6 +169,12 @@ fn chrome() -> Option<Chrome> {
 pub(crate) fn chrome_style() -> ChromeStyle {
     chrome()
         .map(|chrome| *chrome.style.read())
+        .unwrap_or_default()
+}
+
+pub(crate) fn rail_items() -> RailItems {
+    chrome()
+        .map(|chrome| chrome.rail_items.read().clone())
         .unwrap_or_default()
 }
 
@@ -216,7 +229,7 @@ pub(crate) fn rail_overlap((start, end): (f32, f32)) -> (f32, f32) {
     };
     let style = *chrome.style.read();
     let (layout, _) = style.effective(*chrome.sidebar_shown.read());
-    if layout != TitlebarLayout::Rail {
+    if layout != TitlebarLayout::Rail || style.unified(*chrome.sidebar_shown.read()) {
         return (0.0, 0.0);
     }
     let extent = style.rail_width;
@@ -279,10 +292,22 @@ fn drop_shadow() -> Shadow {
         .color(Color::from_argb((layer.opacity * 255.0) as u8, r, g, b))
 }
 
+#[derive(Clone, Default, PartialEq)]
+pub(crate) struct RailItems {
+    pub(crate) top: Option<Element>,
+    pub(crate) bottom: Option<Element>,
+}
+
+impl RailItems {
+    fn any(&self) -> bool {
+        self.top.is_some() || self.bottom.is_some()
+    }
+}
+
 #[derive(PartialEq)]
 pub struct WindowChrome {
     style: ChromeStyle,
-    footer: Option<Element>,
+    rail_items: RailItems,
     child: Element,
 }
 
@@ -290,13 +315,18 @@ impl WindowChrome {
     pub fn new(style: ChromeStyle, child: impl IntoElement) -> Self {
         Self {
             style,
-            footer: None,
+            rail_items: RailItems::default(),
             child: child.into_element(),
         }
     }
 
-    pub fn footer(mut self, footer: impl IntoElement) -> Self {
-        self.footer = Some(footer.into_element());
+    pub fn rail_top(mut self, items: impl IntoElement) -> Self {
+        self.rail_items.top = Some(items.into_element());
+        self
+    }
+
+    pub fn rail_bottom(mut self, items: impl IntoElement) -> Self {
+        self.rail_items.bottom = Some(items.into_element());
         self
     }
 }
@@ -306,6 +336,7 @@ impl Component for WindowChrome {
         let chrome = use_hook(|| {
             let chrome = Chrome {
                 style: State::create(self.style),
+                rail_items: State::create(RailItems::default()),
                 sidebar_shown: State::create(false),
                 progress: State::create(0.0),
                 size: State::create((0.0, 0.0)),
@@ -321,7 +352,7 @@ impl Component for WindowChrome {
             } else {
                 self.style.layout
             },
-            rail_width: if self.footer.is_some() {
+            rail_width: if self.rail_items.any() {
                 self.style.rail_width.max(TITLEBAR_RAIL.actions_width)
             } else {
                 self.style.rail_width
@@ -330,6 +361,8 @@ impl Component for WindowChrome {
         };
         let mut style_state = chrome.style;
         style_state.set_if_modified(style);
+        let mut items_state = chrome.rail_items;
+        items_state.set_if_modified(self.rail_items.clone());
         let mut revealed = use_state(|| false);
         let mut size = chrome.size;
         let reduced_motion = crate::theme::resolved().reduced_motion;
@@ -344,28 +377,15 @@ impl Component for WindowChrome {
         progress_state.set_if_modified(progress);
 
         let (layout, reveal) = shown_as(style, sidebar_shown);
-        let (overlaid, overlay_top) = fullscreen_overlay();
+        let overlaid = fullscreen_overlay().0;
         let hidden = reveal != Reveal::Always && reveal != Reveal::Corner;
-        let gutter =
-            if layout == TitlebarLayout::Pill && style.pill_vertical && !sidebar_shown && !overlaid
-            {
-                TITLEBAR_RAIL.pill_clearance
-            } else {
-                0.0
-            };
         let content = rect()
             .width(Size::flex(1.0))
             .height(Size::fill())
-            .padding(match style.side {
-                Side::Left => Gaps::new(0.0, 0.0, 0.0, gutter),
-                Side::Right => Gaps::new(0.0, gutter, 0.0, 0.0),
-            })
             .child(self.child.clone());
 
-        let footer = (layout == TitlebarLayout::Rail)
-            .then(|| self.footer.clone())
-            .flatten();
-        let vertical_rail = layout == TitlebarLayout::Rail;
+        let items = &self.rail_items;
+        let vertical_rail = layout == TitlebarLayout::Rail && !style.unified(sidebar_shown);
         let lights_opacity = if reveal == Reveal::Corner {
             progress
         } else {
@@ -374,7 +394,7 @@ impl Component for WindowChrome {
         let edge = match (vertical_rail, reveal) {
             (false, _) => None,
             (true, Reveal::Always | Reveal::Corner) => {
-                Some(rail(style, footer.clone(), lights_opacity).into_element())
+                Some(rail(style, items, lights_opacity).into_element())
             }
             (true, Reveal::Push) => Some(
                 rect()
@@ -386,7 +406,7 @@ impl Component for WindowChrome {
                             .width(Size::px(style.rail_width * progress))
                             .height(Size::fill())
                             .overflow(Overflow::Clip)
-                            .child(rail(style, footer.clone(), 1.0)),
+                            .child(rail(style, items, 1.0)),
                     )
                     .into_element(),
             ),
@@ -431,39 +451,30 @@ impl Component for WindowChrome {
         if vertical_rail && reveal == Reveal::Drawer && progress > 0.0 {
             let extent = style.rail_width;
             let position = Position::new_absolute().top(0.0);
-            root =
-                root.child(
-                    rect()
-                        .position(match style.side {
-                            Side::Left => position.left(-extent * (1.0 - progress)),
-                            Side::Right => position.right(-extent * (1.0 - progress)),
-                        })
-                        .height(Size::fill())
-                        .layer(Layer::Overlay)
-                        .shadow(drop_shadow())
-                        .child(rail(style, footer.clone(), 1.0).background(color(
-                            surface_background(&crate::theme::resolved(), SurfaceKind::Toplevel),
-                        ))),
-                );
+            root = root.child(
+                rect()
+                    .position(match style.side {
+                        Side::Left => position.left(-extent * (1.0 - progress)),
+                        Side::Right => position.right(-extent * (1.0 - progress)),
+                    })
+                    .height(Size::fill())
+                    .layer(Layer::Overlay)
+                    .shadow(drop_shadow())
+                    .child(rail(style, items, 1.0).background(color(surface_background(
+                        &crate::theme::resolved(),
+                        SurfaceKind::Toplevel,
+                    )))),
+            );
         }
-        let pill_progress = match (layout, reveal) {
-            (TitlebarLayout::Pill, _) if overlaid && overlay_top.is_none() => None,
-            (TitlebarLayout::Pill, Reveal::Always) => Some(1.0),
-            (TitlebarLayout::Pill, Reveal::Corner) => Some(progress),
-            (_, Reveal::Popup) => Some(progress),
-            _ => None,
-        };
-        if let Some(shown) = pill_progress.filter(|shown| *shown > 0.0) {
-            let slides = reveal == Reveal::Popup;
+        if reveal == Reveal::Popup && progress > 0.0 && !overlaid {
             root = root.child(pill(
                 if layout == TitlebarLayout::Top {
                     Side::Left
                 } else {
                     style.side
                 },
-                layout != TitlebarLayout::Top && style.pill_vertical,
-                if slides { shown } else { 1.0 },
-                if slides { 1.0 } else { shown },
+                layout == TitlebarLayout::Rail,
+                progress,
             ));
         }
         root
@@ -490,7 +501,7 @@ fn window_state() -> (bool, bool, String) {
         .unwrap_or((true, false, String::new()))
 }
 
-fn rail(style: ChromeStyle, footer: Option<Element>, lights_opacity: f32) -> Rect {
+fn rail(style: ChromeStyle, items: &RailItems, lights_opacity: f32) -> Rect {
     let resolved = crate::theme::resolved();
     let (activated, fixed, title) = window_state();
     let width = style.rail_width;
@@ -549,13 +560,14 @@ fn rail(style: ChromeStyle, footer: Option<Element>, lights_opacity: f32) -> Rec
                 .opacity(lights_opacity)
                 .child(window_traffic_lights(activated, fixed).vertical(true))
         }))
+        .maybe_child(items.top.clone())
         .child(RotatedTitle {
             title,
             ink: title_ink,
             side: style.side,
             fixed,
         })
-        .maybe_child(footer)
+        .maybe_child(items.bottom.clone())
         .maybe_child(line)
 }
 
@@ -623,33 +635,16 @@ fn resting_edge(edge: RestingEdge, vertical: bool) -> Rect {
     rect().width(width).height(height).background(color(fill))
 }
 
-fn pill(side: Side, vertical: bool, slide: f32, opacity: f32) -> Rect {
+fn pill(side: Side, vertical: bool, slide: f32) -> Rect {
     let (activated, fixed, _) = window_state();
     let palette = Palette::current();
-    let (overlaid, overlay_top) = fullscreen_overlay();
-    let top = overlay_top.unwrap_or_default();
     let hidden_by = TITLEBAR_RAIL.reveal_corner * (1.0 - slide);
     let position = Position::new_absolute();
     let position = match (vertical, side) {
-        (false, Side::Left) => position.top(top - hidden_by).left(0.0),
-        (false, Side::Right) => position.top(top - hidden_by).right(0.0),
-        (true, Side::Left) => position.top(top).left(-hidden_by),
-        (true, Side::Right) => position.top(top).right(-hidden_by),
-    };
-    let glassy = matches!(
-        fullscreen_bar(),
-        FullscreenBar::Glass | FullscreenBar::ProgressiveGlass
-    );
-    let background = match (overlaid, glassy) {
-        (true, true) => Rgba {
-            a: FULLSCREEN_GLASS.tint[0].1,
-            ..crate::glass::glass_tint()
-        },
-        (true, false) => Rgba {
-            a: 1.0,
-            ..crate::glass::glass_tint()
-        },
-        (false, _) => palette.raised_background,
+        (false, Side::Left) => position.top(-hidden_by).left(0.0),
+        (false, Side::Right) => position.top(-hidden_by).right(0.0),
+        (true, Side::Left) => position.top(0.0).left(-hidden_by),
+        (true, Side::Right) => position.top(0.0).right(-hidden_by),
     };
     rect()
         .position(position)
@@ -661,8 +656,7 @@ fn pill(side: Side, vertical: bool, slide: f32, opacity: f32) -> Rect {
             TITLEBAR_RAIL.pill_padding_x,
         ))
         .corner_radius(TITLEBAR_RAIL.pill_radius)
-        .background(color(background))
-        .maybe(overlaid && glassy, |el| el.blur(FULLSCREEN_GLASS.blur))
+        .background(color(palette.raised_background))
         .border(
             Border::new()
                 .width(1.0)
@@ -670,7 +664,6 @@ fn pill(side: Side, vertical: bool, slide: f32, opacity: f32) -> Rect {
                 .fill(color(palette.separator)),
         )
         .maybe(slide < 1.0 || vertical, |el| el.shadow(drop_shadow()))
-        .opacity(opacity)
         .layer(Layer::Overlay)
         .child(window_traffic_lights(activated, fixed).vertical(vertical))
 }

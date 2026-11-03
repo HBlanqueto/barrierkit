@@ -1,6 +1,6 @@
 //! Tests for the vertical titlebars and the titlebar light position.
 
-use barrier_kit::chrome::{ChromeStyle, TitlebarLayout, WindowChrome};
+use barrier_kit::chrome::{ChromeStyle, RailStyle, TitlebarLayout, WindowChrome};
 use barrier_kit::compact::IconButton;
 use barrier_kit::symbol::Symbol;
 use barrier_kit::titlebar::Titlebar;
@@ -51,9 +51,10 @@ fn the_titlebar_lights_start_where_the_compositor_draws_them() {
 }
 
 #[test]
-fn unified_without_a_sidebar_falls_back_to_a_rail_with_one_set_of_vertical_lights() {
+fn a_unified_rail_without_a_sidebar_falls_back_to_a_strip_with_one_set_of_vertical_lights() {
     let groups = light_groups(ChromeStyle {
-        layout: TitlebarLayout::Unified,
+        layout: TitlebarLayout::Rail,
+        rail_style: RailStyle::Unified,
         ..Default::default()
     });
     assert_eq!(groups.len(), 1, "got {groups:?}");

@@ -11,7 +11,7 @@ MalaysiaDreams.
 |---|---|---|
 | `Titlebar` | La titlebar horizontal CSD: semáforos, zonas izquierda y derecha, título | Con barra lateral si se pasa `.with_sidebar(true)` |
 | `TrafficLights` | Cerrar, minimizar y maximizar | Cuadrados, colores de `traffic_lights` |
-| `WindowChrome` + `ChromeStyle` | Cuatro diseños: `Top`, `Rail`, `Unified` y `Pill`; el `Rail` admite acciones propias | `Top` |
+| `WindowChrome` + `ChromeStyle` | Dos diseños: `Top` y `Rail` (normal o unificado); los dos admiten elementos propios | `Top` |
 | `FullscreenBar` | Cómo se dibuja la titlebar superpuesta en pantalla completa | `Solid` («A · Lisa») |
 
 ## La titlebar horizontal: `Titlebar`
@@ -75,10 +75,10 @@ TrafficLights::new()
 
 En una ventana inactiva los semáforos se vuelven grises.
 
-## Cuatro tipos de titlebar: `WindowChrome`
+## Dos tipos de titlebar: `WindowChrome`
 
 `chrome::WindowChrome::new(estilo, contenido)` envuelve la ventana y coloca los
-semáforos y el título según un `ChromeStyle`:
+semáforos, el título y los elementos del rail según un `ChromeStyle`:
 
 ```rust
 let estilo = ChromeStyle {
@@ -86,47 +86,63 @@ let estilo = ChromeStyle {
     side: Side::Left,
     rail_width: TITLEBAR_RAIL.width,
     round_lights: false,
-    pill_vertical: true,
+    rail_style: RailStyle::Normal,
     reveal: Reveal::Always,
     resting_edge: RestingEdge::None,
 };
-WindowChrome::new(estilo, SplitView::new(barra, detalle)).footer(pie)
+WindowChrome::new(estilo, SplitView::new(barra, detalle))
+    .rail_top(arriba)
+    .rail_bottom(abajo)
 ```
 
 | `TitlebarLayout` | Qué es | Captura (Rótulo) |
 |---|---|---|
-| `Top` (por defecto) | Titlebar horizontal arriba | ![Diseño Top](assets/apps/rotulo-top.png) |
-| `Rail` | Franja vertical a un lado con los semáforos en columna y el título girado 90°. Si la app pasa `.footer(..)` a `WindowChrome`, el rail añade abajo sus acciones y se ensancha a `TITLEBAR_RAIL.actions_width` (34) | ![Diseño Rail](assets/apps/rotulo-rail.png) |
-| `Unified` | Los semáforos en columna dentro de la barra lateral, sin franja propia. Sin barra lateral visible pasa a `Rail` | ![Diseño Unified](assets/apps/rotulo-unified.png) |
-| `Pill` | Una píldora flotante con los semáforos, vertical (por defecto) u horizontal según `pill_vertical`. En pantalla completa es opaca o cristal según `FullscreenBar` | ![Diseño Pill](assets/apps/rotulo-pill.png) |
+| `Top` (por defecto) | Titlebar horizontal arriba, con elementos a la izquierda y a la derecha (`Titlebar::left` y `right`) | ![Diseño Top](assets/apps/rotulo-top.png) |
+| `Rail` | Titlebar vertical a un lado, con los semáforos en columna, el título girado 90° y elementos arriba y abajo (`rail_top` y `rail_bottom`) | ![Diseño Rail](assets/apps/rotulo-rail.png) |
+
+El `Rail` tiene dos estilos:
+
+| `RailStyle` | Qué es | Captura (Rótulo) |
+|---|---|---|
+| `Normal` (por defecto) | Una franja propia a un lado de la ventana | ![Rail normal](assets/apps/rotulo-rail.png) |
+| `Unified` | Sin franja: la columna va dentro de la barra lateral. Sin barra lateral visible se dibuja como `Normal` | ![Rail unificado](assets/apps/rotulo-unified.png) |
+
+### Elementos del rail
+
+Igual que la `Titlebar` de `Top` lleva botones u otros elementos a izquierda y
+derecha, el `Rail` los lleva en vertical:
+
+| Método | Dónde va |
+|---|---|
+| `WindowChrome::rail_top(elementos)` | Bajo los semáforos |
+| `WindowChrome::rail_bottom(elementos)` | Al pie del rail |
+
+Con algún elemento, el rail se ensancha a `TITLEBAR_RAIL.actions_width` (34).
+En `Unified` los elementos van en la columna de la barra lateral, en los mismos
+sitios.
+
+| `Normal` con elementos | `Unified` con elementos |
+|---|---|
+| ![Rail normal con elementos arriba y abajo](assets/estados/rail-elementos.png) | ![Rail unificado con elementos arriba y abajo](assets/estados/rail-unificado-elementos.png) |
+
+### Campos de `ChromeStyle`
 
 | Campo | Valores | Efecto |
 |---|---|---|
 | `side` | `Left`, `Right` | Lado del rail |
-| `rail_width` | `TITLEBAR_RAIL.width` o `.width_wide` | Ancho del rail |
+| `rail_width` | `TITLEBAR_RAIL.width` o `.width_wide` | Ancho del rail sin elementos |
 | `round_lights` | `bool` | Semáforos redondos o cuadrados (por defecto) |
-| `pill_vertical` | `bool` | Con `Pill`: semáforos en columna (`true`, por defecto) o en fila (`false`). La vertical reserva un margen en el lado; la horizontal va arriba y no lo reserva |
-| `reveal` | `Always`, `Drawer`, `Push`, `Corner`, `Popup` | Siempre visible, o aparece al acercar el puntero: como cajón encima, empujando el contenido, solo en la esquina o como píldora emergente |
+| `rail_style` | `Normal`, `Unified` | Franja propia o columna dentro de la barra lateral |
+| `reveal` | `Always`, `Drawer`, `Push`, `Corner`, `Popup` | Siempre visible, o aparece al acercar el puntero: como cajón encima, empujando el contenido, solo en la esquina o como píldora emergente con los semáforos |
 | `resting_edge` | `None`, `Line`, `Accent` | Qué queda visible cuando está oculta: nada, una línea o una línea de acento |
 
 Algunas combinaciones no tienen sentido y se corrigen solas
-(`ChromeStyle::effective`): `Unified` con `Drawer`, `Push` o `Popup` pasa a
-`Corner`; `Pill` con `Drawer` o `Push` pasa a `Popup`; en pantalla completa,
-`reveal` es siempre `Always`.
+(`ChromeStyle::effective`): el `Rail` unificado con `Drawer`, `Push` o `Popup`
+pasa a `Corner`; en pantalla completa, `reveal` es siempre `Always`.
 
 Rail a la derecha, semáforos redondos, barra lateral plana y modo oscuro:
 
 ![Rail derecho con semáforos redondos](assets/apps/rotulo-rail-flat-round.png)
-
-El `Rail` con acciones (`.footer(..)`), en una ventana normal:
-
-![Rail con acciones](assets/estados/rail-acciones.png)
-
-La píldora en sus dos orientaciones, en una ventana normal:
-
-| `pill_vertical: true` (por defecto) | `pill_vertical: false` |
-|---|---|
-| ![Píldora vertical](assets/estados/pill-vertical.png) | ![Píldora horizontal](assets/estados/pill-horizontal.png) |
 
 La app Rótulo (capítulo [15](15-apps-de-prueba.md)) prueba todas las
 combinaciones en vivo.
@@ -158,7 +174,7 @@ del contenido, justo debajo de la barra, sobre el fondo que elige la app
 ### La barra en pantalla completa: `FullscreenBar`
 
 Cada ventana elige cómo se dibuja su titlebar superpuesta. La opción va en
-`WindowOptions` y vale para la `Titlebar`, el rail y la píldora:
+`WindowOptions` y vale para toda la titlebar superpuesta:
 
 ```rust
 WindowOptions::new("Ondina", "ondina").fullscreen_bar(FullscreenBar::ProgressiveGlass)
@@ -180,14 +196,13 @@ Con `Push` y la barra arriba, el contenido llega al borde superior:
 
 ![E · Empuja, barra arriba](assets/estados/barra-empuja-arriba.png)
 
-Solo `Glass` y `ProgressiveGlass` difuminan; con ellas, la píldora también es
-cristal. Con las demás es opaca.
+Solo `Glass` y `ProgressiveGlass` difuminan.
 
 ### Modo foco con la barra bajada, por diseño
 
 **Con la barra lateral en isla y la ventana maximizada o en pantalla
-completa, todos los diseños pasan a `Top`:** el rail, la columna de `Unified` y
-la píldora desaparecen y los semáforos vuelven a la isla. Así se ve `Rail` con
+completa, el `Rail` pasa a `Top`:** la franja o la columna unificada
+desaparecen y los semáforos vuelven a la isla. Así se ve `Rail` con
 isla en modo foco:
 
 ![Rail con isla en modo foco: los semáforos vuelven a la isla](assets/estados/foco-isla-rail.png)
@@ -200,11 +215,9 @@ compositor, añadida a la imagen: la app no la dibuja.
 | Diseño | Qué baja | Cómo se ve |
 |---|---|---|
 | `Top` (por defecto) | La `Titlebar` sobre el contenido; los semáforos de la barra lateral bajan lo mismo | ![Top con la barra bajada](assets/estados/foco-top.png) |
-| `Unified` | Igual que `Top` | ![Unified con la barra bajada](assets/estados/foco-unified.png) |
+| `Rail` unificado | La columna de la barra lateral; los semáforos aparecen con la barra, debajo de ella | ![Rail unificado con la barra bajada](assets/estados/foco-unified.png) |
 | `Rail` | Nada: el rail sigue en su sitio, sin tapar la barra lateral. Sus semáforos aparecen con la barra, debajo de ella | ![Rail con la barra bajada](assets/estados/foco-rail.png) |
-| `Rail` con acciones | Igual; las acciones siguen abajo | ![Rail con acciones y la barra bajada](assets/estados/foco-rail-acciones.png) |
-| `Pill` vertical | La píldora de semáforos; antes no se ve | ![Pill vertical con la barra bajada](assets/estados/foco-pill.png) |
-| `Pill` horizontal | Igual, en fila | ![Pill horizontal con la barra bajada](assets/estados/foco-pill-horizontal.png) |
+| `Rail` con elementos | Igual; los elementos siguen en su sitio | ![Rail con elementos y la barra bajada](assets/estados/foco-rail-elementos.png) |
 
 ### Qué hace la app
 

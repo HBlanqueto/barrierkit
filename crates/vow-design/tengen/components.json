@@ -379,7 +379,6 @@
           "pill-padding-x": 6,
           "pill-padding-y": 7,
           "pill-radius": 13,
-          "pill-clearance": 40,
           "reveal-zone": 8,
           "reveal-corner": 96,
           "edge-line": 1,
