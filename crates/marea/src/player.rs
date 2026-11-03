@@ -15,7 +15,9 @@ use barrier_kit::video::VideoView;
 use freya_animation::prelude::{AnimDirection, OnCreation, use_animation};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Area, Content, Direction, Gaps, Position, Size};
-use vow_design::{CALLOUT, CAPTION, DURATION_SLOW_MS, HEADLINE, Rgba, SPACE_2, TEXT};
+use vow_design::{
+    CALLOUT, CAPTION, DURATION_SLOW_MS, HEADLINE, Rgba, SPACE_2, TEXT, TITLEBAR_CLIENT_HEIGHT,
+};
 
 use crate::art::art_fill;
 use crate::assets;
@@ -184,6 +186,28 @@ impl Component for Player {
             }
         };
 
+        let controls = try_consume_root_context::<WindowControls>();
+        let overlaid = controls
+            .as_ref()
+            .is_some_and(WindowControls::titlebar_overlaid);
+        let activated = controls
+            .as_ref()
+            .is_none_or(|controls| controls.status.read().activated);
+        let top_bar = match controls
+            .as_ref()
+            .and_then(WindowControls::titlebar_overlay_top)
+        {
+            // In full screen the bar comes down with the focus bar, over the video, in the titlebar's row.
+            Some(top) => chrome.then(|| {
+                (
+                    top + (TITLEBAR_CLIENT_HEIGHT as f32 - TOP_BAR) / 2.0,
+                    controls
+                        .as_ref()
+                        .map_or(1.0, |controls| *controls.focus_bar_progress.read()),
+                )
+            }),
+            None => (chrome && !overlaid).then_some((0.0, 1.0)),
+        };
         let scrub_stream = stream.clone();
         let thumb_seek = thumb.clone();
         let line = (*subtitles.read() && playing)
@@ -226,11 +250,12 @@ impl Component for Player {
                             ),
                     )
             }))
-            .maybe_child(chrome.then(|| {
+            .maybe_child(top_bar.map(|(top, opacity)| {
                 rect()
-                    .position(Position::new_absolute().top(0.0).left(0.0))
+                    .position(Position::new_absolute().top(top).left(0.0))
                     .width(Size::fill())
                     .height(Size::px(TOP_BAR + 42.0))
+                    .opacity(opacity)
                     .padding(Gaps::new(0.0, 20.0, 42.0, 20.0))
                     .content(Content::Flex)
                     .direction(Direction::Horizontal)
@@ -241,10 +266,7 @@ impl Component for Player {
                             .stop((color(Rgba::rgba8(0, 0, 0, 0.66)), 0.0))
                             .stop((color(Rgba::rgba8(0, 0, 0, 0.0)), 100.0)),
                     )
-                    .child(window_traffic_lights(
-                        WindowControls::get().status.read().activated,
-                        false,
-                    ))
+                    .child(window_traffic_lights(activated, false))
                     .child(
                         RoundButton::new(Symbol::ChevronLeft, "Cerrar el reproductor")
                             .on_press(move |_| close()),

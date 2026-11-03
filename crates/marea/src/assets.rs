@@ -79,22 +79,23 @@ fn stream_urls(video: &str) -> Option<Remote> {
     })
 }
 
+fn streams() -> &'static [(&'static str, Option<Remote>)] {
+    STREAMS.get_or_init(|| {
+        YOUTUBE
+            .iter()
+            .map(|&(id, video)| (id, stream_urls(video)))
+            .collect()
+    })
+}
+
 pub fn resolve_remote() {
-    std::thread::spawn(|| {
-        STREAMS.get_or_init(|| {
-            YOUTUBE
-                .iter()
-                .map(|&(id, video)| (id, stream_urls(video)))
-                .collect()
-        });
-    });
+    std::thread::spawn(streams);
 }
 
 pub fn open_video(id: &str, looping: bool) -> Option<VideoStream> {
     let opened = match youtube(id) {
         Some(_) => {
-            let remote = STREAMS
-                .wait()
+            let remote = streams()
                 .iter()
                 .find(|(title, _)| *title == id)
                 .and_then(|(_, remote)| remote.as_ref())?;
