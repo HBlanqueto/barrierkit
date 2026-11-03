@@ -171,6 +171,14 @@ pub(crate) fn report_sidebar_shown(shown: bool) {
     }
 }
 
+fn lights_in_island(sidebar_shown: bool, island: bool) -> bool {
+    let enlarged = try_consume_root_context::<WindowControls>().is_some_and(|controls| {
+        let status = *controls.status.read();
+        status.maximized || status.fullscreen
+    });
+    sidebar_shown && island && enlarged
+}
+
 pub(crate) fn fullscreen_bar() -> FullscreenBar {
     try_consume_root_context::<WindowControls>()
         .map_or(FullscreenBar::Solid, |controls| controls.fullscreen_bar)
@@ -305,7 +313,14 @@ impl Component for WindowChrome {
             provide_context(chrome);
             chrome
         });
+        let sidebar_shown = *chrome.sidebar_shown.read();
+        let island = crate::theme::resolved().sidebar.style == SidebarStyle::Island;
         let style = ChromeStyle {
+            layout: if lights_in_island(sidebar_shown, island) {
+                TitlebarLayout::Top
+            } else {
+                self.style.layout
+            },
             rail_width: if self.footer.is_some() {
                 self.style.rail_width.max(TITLEBAR_RAIL.actions_width)
             } else {
@@ -315,7 +330,6 @@ impl Component for WindowChrome {
         };
         let mut style_state = chrome.style;
         style_state.set_if_modified(style);
-        let sidebar_shown = *chrome.sidebar_shown.read();
         let mut revealed = use_state(|| false);
         let mut size = chrome.size;
         let reduced_motion = crate::theme::resolved().reduced_motion;

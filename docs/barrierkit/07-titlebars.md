@@ -172,8 +172,8 @@ es la barra del compositor, añadida a la imagen.
 | `FullscreenBar` | Qué dibuja | Dónde empieza el contenido (`fullscreen_content_top`) | Cómo se ve |
 |---|---|---|---|
 | `Solid` («A · Lisa», **por defecto**) | Una banda opaca del color de la ventana, del alto de la titlebar. Corta lo que pasa por debajo con un borde duro | Barra + `FULLSCREEN_BAR.content_top` (44) | ![A · Lisa](assets/estados/barra-lisa.png) |
-| `Glass` («B1 · Vidrio en banda») | Una banda del alto de la titlebar que difumina lo de debajo (`FULLSCREEN_BAND`), con tinte y una línea abajo | Barra + `FULLSCREEN_BAND.content_top` (44) | ![B1 · Vidrio en banda](assets/estados/barra-vidrio-banda.png) |
-| `ProgressiveGlass` («B2 · Vidrio progresivo», Ondina) | Difuminado máximo arriba que se desvanece en 96 px, sin línea, de borde a borde de la ventana ([ADR 0057](../decisiones/0057-cristal-y-barra-lateral-sobre-fondo.md)) | Barra + `FULLSCREEN_GLASS.content_top` (74) | ![B2 · Vidrio progresivo](assets/estados/barra-vidrio-progresivo.png) |
+| `Glass` («B1 · Vidrio en banda») | Una banda del alto de la titlebar, de borde a borde de la ventana y sobre la barra lateral, que difumina lo de debajo (`FULLSCREEN_BAND`), con tinte y una línea abajo | Barra + `FULLSCREEN_BAND.content_top` (44) | ![B1 · Vidrio en banda](assets/estados/barra-vidrio-banda.png) |
+| `ProgressiveGlass` («B2 · Vidrio progresivo», Ondina) | Difuminado máximo arriba que se desvanece en 96 px, sin línea, de borde a borde de la ventana y sobre la barra lateral ([ADR 0057](../decisiones/0057-cristal-y-barra-lateral-sobre-fondo.md)) | Barra + `FULLSCREEN_GLASS.content_top` (74) | ![B2 · Vidrio progresivo](assets/estados/barra-vidrio-progresivo.png) |
 | `Push` («E · Empuja») | No tapa nada: la titlebar vuelve al diseño y empuja hacia abajo la columna de detalle lo que miden la barra y la titlebar. La barra lateral no se mueve | 0: el contenido baja solo | ![E · Empuja, barra bajada](assets/estados/barra-empuja.png) |
 
 Con `Push` y la barra arriba, el contenido llega al borde superior:
@@ -185,9 +185,17 @@ cristal. Con las demás es opaca.
 
 ### Modo foco con la barra bajada, por diseño
 
-Con la barra por defecto (`Solid`). En estas capturas, la franja negra de
-arriba (28 px) es la barra del compositor, añadida a la imagen: la app no la
-dibuja.
+**Con la barra lateral en isla y la ventana maximizada o en pantalla
+completa, todos los diseños pasan a `Top`:** el rail, la columna de `Unified` y
+la píldora desaparecen y los semáforos vuelven a la isla. Así se ve `Rail` con
+isla en modo foco:
+
+![Rail con isla en modo foco: los semáforos vuelven a la isla](assets/estados/foco-isla-rail.png)
+
+Con la barra lateral plana o sin barra lateral, cada diseño se conserva. Las
+capturas de esta tabla usan la barra lateral plana (salvo `Top`) y la barra por
+defecto (`Solid`). La franja negra de arriba (28 px) es la barra del
+compositor, añadida a la imagen: la app no la dibuja.
 
 | Diseño | Qué baja | Cómo se ve |
 |---|---|---|

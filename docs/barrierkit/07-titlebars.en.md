@@ -171,8 +171,8 @@ top is the compositor bar, added to the image.
 | `FullscreenBar` | What it draws | Where the content starts (`fullscreen_content_top`) | How it looks |
 |---|---|---|---|
 | `Solid` ("A · Lisa", **default**) | An opaque band in the window color, as tall as the titlebar. It cuts what passes below with a hard edge | Bar + `FULLSCREEN_BAR.content_top` (44) | ![A · Lisa](assets/estados/barra-lisa.png) |
-| `Glass` ("B1 · Vidrio en banda") | A band as tall as the titlebar that blurs what is below (`FULLSCREEN_BAND`), with a tint and a line at the bottom | Bar + `FULLSCREEN_BAND.content_top` (44) | ![B1 · Glass band](assets/estados/barra-vidrio-banda.png) |
-| `ProgressiveGlass` ("B2 · Vidrio progresivo", Ondina) | Maximum blur at the top that fades out over 96 px, without a line, from edge to edge of the window ([ADR 0057](../decisiones/0057-cristal-y-barra-lateral-sobre-fondo.md)) | Bar + `FULLSCREEN_GLASS.content_top` (74) | ![B2 · Progressive glass](assets/estados/barra-vidrio-progresivo.png) |
+| `Glass` ("B1 · Vidrio en banda") | A band as tall as the titlebar, from edge to edge of the window and over the sidebar, that blurs what is below (`FULLSCREEN_BAND`), with a tint and a line at the bottom | Bar + `FULLSCREEN_BAND.content_top` (44) | ![B1 · Glass band](assets/estados/barra-vidrio-banda.png) |
+| `ProgressiveGlass` ("B2 · Vidrio progresivo", Ondina) | Maximum blur at the top that fades out over 96 px, without a line, from edge to edge of the window and over the sidebar ([ADR 0057](../decisiones/0057-cristal-y-barra-lateral-sobre-fondo.md)) | Bar + `FULLSCREEN_GLASS.content_top` (74) | ![B2 · Progressive glass](assets/estados/barra-vidrio-progresivo.png) |
 | `Push` ("E · Empuja") | It covers nothing: the titlebar returns to the layout and pushes the detail column down by the height of the bar and the titlebar. The sidebar does not move | 0: the content moves down by itself | ![E · Push, bar down](assets/estados/barra-empuja.png) |
 
 With `Push` and the bar up, the content reaches the top edge:
@@ -184,9 +184,17 @@ With the others it is opaque.
 
 ### Focus mode with the bar down, by layout
 
-With the default bar (`Solid`). In these screenshots, the black strip at the
-top (28 px) is the compositor bar, added to the image: the app does not draw
-it.
+**With an island sidebar and the window maximized or in full screen, every
+layout becomes `Top`:** the rail, the `Unified` column and the pill go away and
+the traffic lights return to the island. This is `Rail` with an island in focus
+mode:
+
+![Rail with an island in focus mode: the traffic lights return to the island](assets/estados/foco-isla-rail.png)
+
+With a flat sidebar or no sidebar, each layout is kept. The screenshots in this
+table use the flat sidebar (except `Top`) and the default bar (`Solid`). The
+black strip at the top (28 px) is the compositor bar, added to the image: the
+app does not draw it.
 
 | Layout | What comes down | How it looks |
 |---|---|---|
