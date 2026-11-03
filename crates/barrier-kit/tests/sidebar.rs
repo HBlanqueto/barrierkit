@@ -12,7 +12,7 @@ use barrier_kit::platform::{DecorationResponse, WindowStatus};
 use barrier_kit::sidebar::{Sidebar, SidebarItem, SidebarSection};
 use barrier_kit::theme;
 use barrier_kit::titlebar::Titlebar;
-use barrier_kit::views::split::{SidebarToggle, SplitView};
+use barrier_kit::views::split::{NarrowSidebar, SidebarToggle, SplitView};
 use freya_components::button::Button;
 use freya_components::theming::hooks::use_init_theme;
 use freya_core::integration::AppComponent;
@@ -1266,5 +1266,94 @@ fn the_traffic_lights_stay_in_place_when_the_sidebar_hides() {
                 && (area.origin.y - open[0].origin.y).abs() < 0.5),
         "the lights moved from {:?} to {hidden:?}",
         open[0].origin
+    );
+}
+
+struct NarrowCase(NarrowSidebar);
+
+impl App for NarrowCase {
+    fn render(&self) -> impl IntoElement {
+        SplitView::new(
+            Sidebar::new()
+                .traffic_lights(true)
+                .child(SidebarItem::new("Uno").on_select(|_| {})),
+            rect()
+                .probe("detail")
+                .width(Size::fill())
+                .height(Size::fill())
+                .child(Titlebar::new().with_sidebar(true).left(SidebarToggle)),
+        )
+        .narrow_sidebar(self.0)
+    }
+}
+
+fn narrow_runner(mode: NarrowSidebar) -> TestingRunner {
+    let resolved = resolve(
+        &AppearanceConfig {
+            reduced_motion: true,
+            ..Default::default()
+        },
+        None,
+    );
+    let (mut test, _) = TestingRunner::new(
+        AppComponent::new(NarrowCase(mode)),
+        Size2D::new(600.0, 400.0),
+        move |runner| runner.provide_root_context(move || State::create(resolved)),
+        1.0,
+    );
+    test.poll(Duration::from_millis(16), Duration::from_millis(100));
+    let area = labelled(&test, "Mostrar u ocultar la barra lateral").expect("toggle");
+    test.click_cursor((f64::from(area.center().x), f64::from(area.center().y)));
+    test.poll(Duration::from_millis(16), Duration::from_millis(100));
+    test
+}
+
+fn labelled(test: &TestingRunner, label: &str) -> Option<torin::prelude::Area> {
+    test.find(|node, el| {
+        (el.accessibility().builder.label() == Some(label)).then(|| node.layout().area)
+    })
+}
+
+fn detail_x(test: &TestingRunner) -> f32 {
+    test.find(|node, el| {
+        (el.accessibility().builder.author_id() == Some("detail"))
+            .then(|| node.layout().area.origin.x)
+    })
+    .expect("the detail exists")
+}
+
+#[test]
+fn an_overlaid_sidebar_covers_the_detail_and_closes_on_escape_or_on_select() {
+    let mut test = narrow_runner(NarrowSidebar::Overlay);
+    assert!(
+        labelled(&test, "Uno").is_some(),
+        "the toggle opens the sidebar"
+    );
+    assert_eq!(detail_x(&test), 0.0, "the detail does not move");
+    test.press_key(Key::Named(NamedKey::Escape));
+    test.poll(Duration::from_millis(16), Duration::from_millis(100));
+    assert!(labelled(&test, "Uno").is_none(), "Escape closes it");
+
+    let mut test = narrow_runner(NarrowSidebar::Overlay);
+    let item = labelled(&test, "Uno").expect("item");
+    test.click_cursor((f64::from(item.center().x), f64::from(item.center().y)));
+    test.poll(Duration::from_millis(16), Duration::from_millis(100));
+    assert!(
+        labelled(&test, "Uno").is_none(),
+        "choosing an item closes it"
+    );
+}
+
+#[test]
+fn a_pushed_sidebar_docks_and_narrows_the_detail() {
+    let test = narrow_runner(NarrowSidebar::Push);
+    assert!(
+        labelled(&test, "Uno").is_some(),
+        "the toggle opens the sidebar"
+    );
+    let docked = SIDEBAR.width as f32 + 2.0 * SIDEBAR.inset as f32;
+    assert!(
+        (detail_x(&test) - docked).abs() < 0.5,
+        "the detail starts after the sidebar"
     );
 }

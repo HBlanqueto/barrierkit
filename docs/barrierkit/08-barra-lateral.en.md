@@ -69,6 +69,7 @@ SplitView::new(barra, detalle)
 | `.sidebar_visible(bool)` | `true` | Visible on open |
 | `.resizable(bool)` | `true` | With `false` there is no grip: fixed width |
 | `.sidebar_range(mín, máx)` | `SPLIT_VIEW.sidebar_min`, `.sidebar_max` (180–320) | Width limits. If they change, the width is clamped to the new range |
+| `.narrow_sidebar(NarrowSidebar)` | `Overlay` | How it opens in a narrow window: see [Collapsing in narrow windows](#collapsing-in-narrow-windows) |
 | `.inspector(Option<Element>)` | `None` | Right pane of `SPLIT_VIEW.inspector` (240) with a separator |
 | `.on_layout(..)` | — | Reports `SidebarLayout { width, visible }` when the grip is released or the sidebar is hidden. Use it to save the layout |
 
@@ -94,9 +95,22 @@ The grip is a `SPLIT_VIEW.grip` (8 px) strip on the right edge of the sidebar:
 
 ### Collapsing in narrow windows
 
-Below a window width of `SPLIT_VIEW.collapse_below` (760 px), the sidebar hides
-on its own. If the user opens it, it appears on top of the content. When the
-window widens, it goes back to its place.
+Below a window width of `SPLIT_VIEW.collapse_below` (760 px):
+
+1. The sidebar hides on its own.
+2. If the user opens it, `NarrowSidebar` decides where it appears:
+   - `Overlay`: it floats on top of the content over the `scrim` veil, without
+     moving it. It closes on a click on the veil, on Escape or when a
+     `SidebarItem` is chosen.
+   - `Push`: it docks and narrows the detail. At a 480 px window, the detail
+     is left with 244 px.
+3. When the window widens past 760 px, the sidebar comes back docked and
+   visible, even if the user had closed it. This is the rule of
+   [`AdwOverlaySplitView`](https://gnome.pages.gitlab.gnome.org/libadwaita/doc/1.4/class.OverlaySplitView.html)
+   without `pin-sidebar`.
+
+From a child, `sidebar_control().map(|c| c.dismiss())` closes the sidebar only
+when it is overlaid.
 
 | Wide | Narrow (700 px) |
 |---|---|
@@ -106,11 +120,13 @@ window widens, it goes back to its place.
 
 In Tengen App Show, the «Ventana › Barra lateral» ("Window › Sidebar") pane
 picks island or flat, turns resizing on or off and switches between three
-ranges (Tengen 180–320, Estrecha "narrow" 160–220, Ancha "wide" 240–420):
+ranges (Tengen 180–320, Estrecha "narrow" 160–220, Ancha "wide" 240–420), and
+picks «En ventana estrecha» ("In a narrow window"): Superpuesta ("overlay") or
+Forzada ("push"):
 
 ![«Barra lateral» pane of Tengen App Show](assets/apps/tengen-barra-lateral-light.png)
 
 `PreferencesWindow` passes the same through `.sidebar_resizable(bool)` and
-`.sidebar_range(Option<(mín, máx)>)`.
+`.sidebar_range(Option<(mín, máx)>)` and `.narrow_sidebar(NarrowSidebar)`.
 
 Next: [9. Views](09-vistas.en.md).

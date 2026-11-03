@@ -544,7 +544,13 @@ impl Component for SidebarItem {
             .on_pointer_leave(move |_| hovered.set(false))
             .maybe(self.on_select.is_some(), |el| {
                 let callback = self.on_select.clone().unwrap();
-                el.on_press(move |_| callback.call(()))
+                let control = crate::views::split::sidebar_control();
+                el.on_press(move |_| {
+                    callback.call(());
+                    if let Some(control) = control {
+                        control.dismiss();
+                    }
+                })
             });
 
         if let Some((glyph, tint)) = self.symbol {

@@ -68,6 +68,7 @@ SplitView::new(barra, detalle)
 | `.sidebar_visible(bool)` | `true` | Visible al abrir |
 | `.resizable(bool)` | `true` | Con `false` no hay asa: ancho fijo |
 | `.sidebar_range(mín, máx)` | `SPLIT_VIEW.sidebar_min`, `.sidebar_max` (180–320) | Límites del ancho. Si cambian, el ancho se recorta al nuevo rango |
+| `.narrow_sidebar(NarrowSidebar)` | `Overlay` | Cómo se abre en ventana estrecha: ver [Plegar en ventanas estrechas](#plegar-en-ventanas-estrechas) |
 | `.inspector(Option<Element>)` | `None` | Panel derecho de `SPLIT_VIEW.inspector` (240) con un separador |
 | `.on_layout(..)` | — | Avisa de `SidebarLayout { width, visible }` al soltar el asa o al ocultar. Sirve para guardarlo |
 
@@ -93,9 +94,22 @@ El asa es una franja de `SPLIT_VIEW.grip` (8 px) en el borde derecho de la barra
 
 ### Plegar en ventanas estrechas
 
-Por debajo de `SPLIT_VIEW.collapse_below` (760 px) de ancho de ventana, la
-barra se oculta sola. Si el usuario la abre, aparece encima del contenido. Al
-ensanchar la ventana, vuelve a su sitio.
+Por debajo de `SPLIT_VIEW.collapse_below` (760 px) de ancho de ventana:
+
+1. La barra se oculta sola.
+2. Si el usuario la abre, `NarrowSidebar` decide dónde aparece:
+   - `Overlay`: flota encima del contenido sobre el velo `scrim`, sin moverlo.
+     Se cierra con un clic en el velo, con Escape o al elegir un
+     `SidebarItem`.
+   - `Push`: se acopla y estrecha el detalle. A 480 px de ventana, el detalle
+     se queda en 244 px.
+3. Al ensanchar por encima de 760 px, la barra vuelve acoplada y visible,
+   aunque el usuario la hubiera cerrado. Es la regla de
+   [`AdwOverlaySplitView`](https://gnome.pages.gitlab.gnome.org/libadwaita/doc/1.4/class.OverlaySplitView.html)
+   sin `pin-sidebar`.
+
+Desde un hijo, `sidebar_control().map(|c| c.dismiss())` cierra la barra solo
+si está superpuesta.
 
 | Ancha | Estrecha (700 px) |
 |---|---|
@@ -105,11 +119,12 @@ ensanchar la ventana, vuelve a su sitio.
 
 En Tengen App Show, el panel «Ventana › Barra lateral» elige isla o plana,
 activa o quita el redimensionado y cambia entre tres rangos (Tengen 180–320,
-Estrecha 160–220, Ancha 240–420):
+Estrecha 160–220, Ancha 240–420) y elige «En ventana estrecha»: Superpuesta
+o Forzada:
 
 ![Panel Barra lateral de Tengen App Show](assets/apps/tengen-barra-lateral-light.png)
 
 `PreferencesWindow` pasa lo mismo con `.sidebar_resizable(bool)` y
-`.sidebar_range(Option<(mín, máx)>)`.
+`.sidebar_range(Option<(mín, máx)>)` y `.narrow_sidebar(NarrowSidebar)`.
 
 Siguiente: [9. Vistas](09-vistas.md).

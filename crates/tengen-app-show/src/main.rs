@@ -689,6 +689,7 @@ impl App for Show {
             .suggestions(&["formularios", "campos", "interruptores"])
             .sidebar_resizable(current.sidebar_resizable())
             .sidebar_range(current.sidebar_range())
+            .narrow_sidebar(current.narrow_sidebar)
             .group(
                 PaneGroup::new(Some("Capa 1 · Primitivas"))
                     .pane(Pane::new(

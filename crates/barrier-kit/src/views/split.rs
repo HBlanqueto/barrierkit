@@ -30,12 +30,20 @@ pub struct SidebarLayout {
     pub visible: bool,
 }
 
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub enum NarrowSidebar {
+    #[default]
+    Overlay,
+    Push,
+}
+
 #[derive(Clone, Copy, PartialEq)]
 pub struct SidebarControl {
     visible: State<bool>,
     auto_hidden: State<bool>,
     occupied: State<f32>,
     settled: State<bool>,
+    overlaid: State<bool>,
 }
 
 impl SidebarControl {
@@ -52,6 +60,13 @@ impl SidebarControl {
         auto_hidden.set(false);
         let shown = *visible.peek();
         visible.set(!shown);
+    }
+
+    pub fn dismiss(self) {
+        let mut visible = self.visible;
+        if *self.overlaid.peek() {
+            visible.set(false);
+        }
     }
 }
 
@@ -84,6 +99,7 @@ pub struct SplitView {
     sidebar_width: Option<f32>,
     sidebar_range: (f32, f32),
     resizable: bool,
+    narrow_sidebar: NarrowSidebar,
     on_layout: Option<Callback<SidebarLayout, ()>>,
     key: DiffKey,
 }
@@ -98,6 +114,7 @@ impl SplitView {
             sidebar_width: None,
             sidebar_range: (SPLIT_VIEW.sidebar_min, SPLIT_VIEW.sidebar_max),
             resizable: true,
+            narrow_sidebar: NarrowSidebar::Overlay,
             on_layout: None,
             key: DiffKey::None,
         }
@@ -125,6 +142,11 @@ impl SplitView {
 
     pub fn resizable(mut self, resizable: bool) -> Self {
         self.resizable = resizable;
+        self
+    }
+
+    pub fn narrow_sidebar(mut self, narrow_sidebar: NarrowSidebar) -> Self {
+        self.narrow_sidebar = narrow_sidebar;
         self
     }
 
@@ -173,22 +195,25 @@ impl Component for SplitView {
         let mut auto_hidden = use_state(|| false);
         let mut occupied = use_state(|| 0.0f32);
         let mut settled = use_state(|| false);
+        let mut overlaid = use_state(|| false);
         let control = SidebarControl {
             visible,
             auto_hidden,
             occupied,
             settled,
+            overlaid,
         };
         use_hook(|| provide_context(control));
 
         let narrow = *window_width.read() < SPLIT_VIEW.collapse_below;
+        let overlay = narrow && self.narrow_sidebar == NarrowSidebar::Overlay;
         let mut was_narrow = use_state(|| false);
         if *was_narrow.peek() != narrow {
             was_narrow.set(narrow);
             if narrow && *visible.peek() {
                 visible.set(false);
                 auto_hidden.set(true);
-            } else if !narrow && *auto_hidden.peek() {
+            } else if !narrow {
                 visible.set(true);
                 auto_hidden.set(false);
             }
@@ -237,7 +262,8 @@ impl Component for SplitView {
         }
 
         let container = width + 2.0 * inset;
-        occupied.set_if_modified(if narrow { 0.0 } else { container * shown });
+        occupied.set_if_modified(if overlay { 0.0 } else { container * shown });
+        overlaid.set_if_modified(overlay && *visible.read());
         settled.set_if_modified(*visible.read() && shown >= 1.0);
         let sidebar = || {
             rect()
@@ -279,10 +305,12 @@ impl Component for SplitView {
                     .is_some_and(|shortcut| shortcut.matches(event.modifiers, &event.key))
                 {
                     control.toggle();
+                } else if event.key == Key::Named(NamedKey::Escape) {
+                    control.dismiss();
                 }
             });
 
-        if !narrow && shown > 0.0 {
+        if !overlay && shown > 0.0 {
             root = root.child(
                 rect()
                     .width(Size::px(container * shown))
@@ -366,16 +394,27 @@ impl Component for SplitView {
                         .child(inspector.clone()),
                 );
         }
-        if narrow && shown > 0.0 {
-            root = root.child(
-                sidebar()
-                    .position(
-                        Position::new_absolute()
-                            .left(-container * (1.0 - shown))
-                            .top(0.0),
-                    )
-                    .layer(Layer::Overlay),
-            );
+        if overlay && shown > 0.0 {
+            root = root
+                .child(
+                    rect()
+                        .position(Position::new_absolute().left(0.0).top(0.0))
+                        .width(Size::fill())
+                        .height(Size::percent(100.0))
+                        .layer(Layer::Overlay)
+                        .opacity(shown)
+                        .background(color(palette.scrim))
+                        .on_press(move |_| control.dismiss()),
+                )
+                .child(
+                    sidebar()
+                        .position(
+                            Position::new_absolute()
+                                .left(-container * (1.0 - shown))
+                                .top(0.0),
+                        )
+                        .layer(Layer::Overlay),
+                );
         }
         root.content(Content::flex())
     }

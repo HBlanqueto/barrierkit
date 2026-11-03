@@ -14,7 +14,7 @@ use crate::titlebar::Titlebar;
 use crate::views::form::Form;
 use crate::views::navigation::{History, navigation_buttons};
 use crate::views::search::SearchIndex;
-use crate::views::split::{SidebarLayout, SidebarToggle, SplitView};
+use crate::views::split::{NarrowSidebar, SidebarLayout, SidebarToggle, SplitView};
 
 use super::search_popover::{Entry, search_popover};
 
@@ -75,6 +75,7 @@ pub struct PreferencesWindow {
     suggestions: Option<&'static [&'static str]>,
     sidebar_range: Option<(f32, f32)>,
     sidebar_resizable: bool,
+    narrow_sidebar: NarrowSidebar,
 }
 
 impl PreferencesWindow {
@@ -86,6 +87,7 @@ impl PreferencesWindow {
             suggestions: None,
             sidebar_range: None,
             sidebar_resizable: true,
+            narrow_sidebar: NarrowSidebar::Overlay,
         }
     }
 
@@ -116,6 +118,11 @@ impl PreferencesWindow {
 
     pub fn sidebar_resizable(mut self, resizable: bool) -> Self {
         self.sidebar_resizable = resizable;
+        self
+    }
+
+    pub fn narrow_sidebar(mut self, narrow_sidebar: NarrowSidebar) -> Self {
+        self.narrow_sidebar = narrow_sidebar;
         self
     }
 
@@ -364,6 +371,7 @@ impl Component for PreferencesWindow {
             .sidebar_width(restored.width)
             .sidebar_visible(restored.visible)
             .resizable(self.sidebar_resizable)
+            .narrow_sidebar(self.narrow_sidebar)
             .on_layout(move |sidebar| layout.set(Some(sidebar)));
         match self.sidebar_range {
             Some((min, max)) => split.sidebar_range(min, max),

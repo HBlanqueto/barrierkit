@@ -9,7 +9,7 @@ use barrier_kit::platform::FullscreenBar;
 use barrier_kit::popup_button::PopUpButton;
 use barrier_kit::symbol::Symbol;
 use barrier_kit::views::form::{Form, Row, Section};
-use barrier_kit::views::split::SidebarToggle;
+use barrier_kit::views::split::{NarrowSidebar, SidebarToggle};
 use freya_core::prelude::*;
 use serde::{Deserialize, Serialize};
 use torin::prelude::Direction;
@@ -59,6 +59,7 @@ pub struct Prefs {
     pub flat_sidebar: bool,
     pub sidebar_fixed: bool,
     pub sidebar_limits: usize,
+    pub narrow_sidebar: NarrowSidebar,
     pub fullscreen_bar: FullscreenBar,
     pub fullscreen_push: bool,
 }
@@ -257,6 +258,20 @@ fn sidebar(prefs: State<Prefs>) -> Form {
                 &SIDEBAR_LIMITS.map(|(name, _)| name),
                 current.sidebar_limits,
                 move |i| update(prefs, |p| p.sidebar_limits = i),
+            )))
+            .row(Row::new("En ventana estrecha").control(segmented(
+                "Barra lateral en ventana estrecha",
+                &["Superpuesta", "Forzada"],
+                usize::from(current.narrow_sidebar == NarrowSidebar::Push),
+                move |i| {
+                    update(prefs, |p| {
+                        p.narrow_sidebar = if i == 1 {
+                            NarrowSidebar::Push
+                        } else {
+                            NarrowSidebar::Overlay
+                        }
+                    })
+                },
             ))),
     )
 }
