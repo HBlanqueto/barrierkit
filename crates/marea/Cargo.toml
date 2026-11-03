@@ -15,6 +15,3 @@ torin.workspace = true
 tracing.workspace = true
 vow-appearance.workspace = true
 vow-design.workspace = true
-
-[dev-dependencies]
-freya-testing.workspace = true

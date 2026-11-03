@@ -1506,7 +1506,6 @@ dependencies = [
  "barrier-kit",
  "freya-animation",
  "freya-core",
- "freya-testing",
  "torin",
  "tracing",
  "vow-appearance",
