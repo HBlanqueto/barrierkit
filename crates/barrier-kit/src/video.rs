@@ -38,7 +38,8 @@ const PREROLL_TIMEOUT: Duration = Duration::from_secs(3);
 const REMOTE_PREROLL_TIMEOUT: Duration = Duration::from_secs(15);
 const REMOTE_RING_BYTES: u32 = 32 << 20;
 const IMPORT_CACHE: usize = 16;
-const AUDIO: &str = "queue ! decodebin3 ! audioconvert ! audioresample ! volume name=volume volume=0 ! autoaudiosink";
+const AUDIO: &str =
+    "decodebin3 ! audioconvert ! audioresample ! volume name=volume volume=0 ! autoaudiosink";
 
 #[derive(Debug, Error)]
 pub enum VideoError {
@@ -81,6 +82,9 @@ struct Shared {
 
 impl Drop for Shared {
     fn drop(&mut self) {
+        // A flushing seek leaves the pipeline mid-transition; tearing souphttpsrc down then
+        // crashes libsoup's thread in g_input_stream_close (seen with libsoup 3.4.4).
+        let _ = self.pipeline.state(gst::ClockTime::from_seconds(1));
         let _ = self.pipeline.set_state(gst::State::Null);
     }
 }
@@ -129,7 +133,7 @@ fn attach_audio(pipeline: &gst::Pipeline, pad: &gst::Pad) {
     if !pad.name().starts_with("audio_") || pipeline.by_name("volume").is_some() {
         return;
     }
-    let Ok(branch) = gst::parse::bin_from_description(AUDIO, true) else {
+    let Ok(branch) = gst::parse::bin_from_description(&format!("queue ! {AUDIO}"), true) else {
         tracing::warn!("vídeo: no se pudo crear la rama de audio");
         return;
     };
@@ -205,6 +209,7 @@ impl VideoStream {
 
     pub fn open_uris(video: &str, audio: &str, looping: bool) -> Result<Self, VideoError> {
         Self::open_source(
+            // No queue after queue2: a plain queue only pushes, and the audio demuxer needs pull to seek.
             &format!("{} ! {AUDIO}  {}", remote(audio), remote(video)),
             looping,
             REMOTE_PREROLL_TIMEOUT,
