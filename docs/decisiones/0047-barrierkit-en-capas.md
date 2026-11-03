@@ -269,16 +269,16 @@ Decidido: los atajos del menú siguen guardándose como texto (`MenuItem::Action
 ## Referencias
 
 - [`0011`](0011-valores-de-diseno-como-constantes-rust.md), [`0032`](0032-neptunia-como-fuente-de-diseno.md), [`0046`](0046-tengen-lenguaje-visual.md): tokens y Tengen.
-- [`0021`](0021-superficie-de-configuracion-y-control.md): dominios `.domain` y D-Bus.
+- [`0021`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0021-superficie-de-configuracion-y-control.md): dominios `.domain` y D-Bus.
 - [`0034`](0034-celestialkit-sobre-freya.md): BarrierKit sobre Freya.
 - [`0035`](0035-identificacion-de-apps-propias-y-csd.md): CSD de las apps propias.
-- [`0040`](0040-menu-global-real.md): menú global.
+- [`0040`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0040-menu-global-real.md): menú global.
 - [`0041`](0041-barra-lateral-en-isla.md): barra lateral en isla.
-- [`0042`](0042-ajustes-del-sistema.md): Ajustes del sistema.
+- [`0042`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0042-ajustes-del-sistema.md): Ajustes del sistema.
 
 ## Anexo A · Cómo se escribe una app
 
-Es la API de `main` a 2026-11-02. Las apps del repositorio son la referencia completa: `tengen-app-show` usa la capa 3 y prueba los dos `TitlebarLayout` con `WindowChrome`, y `ondina` compone la capa 2 a mano (`SplitView`, `Titlebar`, `Backdrop`, `use_breakpoint`).
+Es la API de `main` a 2026-11-03. Las apps del repositorio son la referencia completa: `tengen-app-show` usa la capa 3 y prueba los dos `TitlebarLayout` con `WindowChrome`, y `ondina` compone la capa 2 a mano (`SplitView`, `Titlebar`, `Backdrop`, `use_breakpoint`).
 
 ### Una app de preferencias con la capa 3
 

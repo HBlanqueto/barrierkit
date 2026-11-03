@@ -1,7 +1,7 @@
 # 0034 — CelestialKit sobre Freya
 
 Estado: **aceptado** (2026-10-22). Reemplaza al [ADR 0033](0033-skia-en-clientes-y-celestialkit-desde-otto-kit.md)
-y modifica al [ADR 0024](0024-stack-de-render-del-toolkit.md) para los procesos
+y modifica al [ADR 0024](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0024-stack-de-render-del-toolkit.md) para los procesos
 cliente.
 
 ## Contexto
@@ -72,13 +72,13 @@ WindowServer), no una división por tipo de app:
 
 ## Referencias
 
-- [`0024`](0024-stack-de-render-del-toolkit.md) — stack de render, modificado
+- [`0024`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0024-stack-de-render-del-toolkit.md) — stack de render, modificado
   por esta ADR para los clientes.
-- [`0020`](0020-politica-de-diseno-y-unificacion.md) — chrome y efectos.
-- [`0011`](0011-los-valores-de-diseno-son-constantes-rust.md) — tokens en
+- [`0020`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0020-politica-de-diseno-y-unificacion.md) — chrome y efectos.
+- [`0011`](0011-valores-de-diseno-como-constantes-rust.md) — tokens en
   `yuki-design`.
-- [`0023`](0023-los-componentes-del-shell-corren-como-procesos-separados.md) —
+- [`0023`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0023-los-componentes-del-shell-corren-como-procesos-separados.md) —
   un proceso por componente.
-- [`0025`](0025-la-shell-es-nativa.md) — shell nativa `yuki-shell`.
+- [`0025`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0025-la-shell-es-nativa.md) — shell nativa `yuki-shell`.
 - [`0032`](0032-neptunia-como-fuente-de-diseno.md) — Neptunia como fuente.
 - Freya — MIT, <https://github.com/marc2332/freya>.

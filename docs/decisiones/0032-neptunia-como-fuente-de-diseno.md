@@ -57,9 +57,9 @@ mientras Yuki se construye.
 ## Referencias
 
 - `crates/yuki-design/neptunia/README.md`, `tokens.json`, `components.json`.
-- [`0011`](0011-los-valores-de-diseno-son-constantes-rust.md) — los valores
+- [`0011`](0011-valores-de-diseno-como-constantes-rust.md) — los valores
   viven en `yuki-design`.
-- [`0020`](0020-politica-de-diseno-y-unificacion.md) — chrome compositor-side.
-- [`0024`](0024-stack-de-render-del-toolkit.md) — GLES/cosmic-text, sin Skia.
-- [`../arquitectura/interfaz.md`](../arquitectura/interfaz.md) — el mapa completo.
-- [`../arquitectura/ventanas.md`](../arquitectura/ventanas.md) — la titlebar.
+- [`0020`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0020-politica-de-diseno-y-unificacion.md) — chrome compositor-side.
+- [`0024`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0024-stack-de-render-del-toolkit.md) — GLES/cosmic-text, sin Skia.
+- [`../arquitectura/interfaz.md`](https://github.com/HBlanqueto/malaysia/blob/main/docs/arquitectura/interfaz.md) — el mapa completo.
+- [`../arquitectura/ventanas.md`](https://github.com/HBlanqueto/malaysia/blob/main/docs/arquitectura/ventanas.md) — la titlebar.

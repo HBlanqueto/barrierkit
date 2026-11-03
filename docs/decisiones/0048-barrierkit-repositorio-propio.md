@@ -98,6 +98,6 @@ infinity-protocol = { git = "https://github.com/HBlanqueto/barrierkit", rev = "<
 
 ## Referencias
 
-- [`0028`](0028-smithay-por-revision.md): dependencia git con rev fijo.
+- [`0028`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0028-smithay-por-revision.md): dependencia git con rev fijo.
 - [`0034`](0034-celestialkit-sobre-freya.md): BarrierKit sobre Freya.
 - [`0047`](0047-barrierkit-en-capas.md): BarrierKit en capas.

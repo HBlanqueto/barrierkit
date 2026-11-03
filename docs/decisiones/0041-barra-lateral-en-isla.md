@@ -53,7 +53,7 @@ las apps.
 
 ## Referencias
 
-- [`0032`](0032-neptunia-es-la-fuente-de-diseno-del-escritorio.md) — Neptunia
+- [`0032`](0032-neptunia-como-fuente-de-diseno.md) — Neptunia
   como fuente de diseño.
 - [`0034`](0034-celestialkit-sobre-freya.md) — CelestialKit sobre Freya.
 - `crates/yuki-design/neptunia/components.json` — definición de `sidebar`.

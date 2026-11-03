@@ -10,7 +10,7 @@ rellenar, centrar, restaurar y pantalla completa. Hoy esas entradas salen en
 gris porque no existe un canal por el que la shell le pida al compositor esas
 operaciones de geometría.
 
-Infinity (ver [glosario](../../docs/glossary.md)) es el protocolo privado
+Infinity (ver [glosario](https://github.com/HBlanqueto/malaysia/blob/main/docs/glossary.md)) es el protocolo privado
 app↔compositor de Yuki. La primera pieza que se implementa es la gestión de
 ventanas para los componentes de la shell, empezando por la menubar.
 
@@ -86,8 +86,8 @@ ventanas para los componentes de la shell, empezando por la menubar.
 
 - [`0034`](0034-celestialkit-sobre-freya.md) — CelestialKit sobre Freya.
 - [`0035`](0035-identificacion-de-apps-propias-y-csd.md) — apps propias y CSD.
-- [`0036`](0036-menu-global.md) — menú global.
-- [`0037`](0037-marco-de-ventanas-dibujado-por-el-compositor.md) — marco de
+- [`0036`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0036-menu-global.md) — menú global.
+- [`0037`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0037-marco-compositor-dibuja-ventanas.md) — marco de
   ventanas dibujado por el compositor.
-- [`glossary.md`](../../docs/glossary.md) — definición de Infinity.
+- [`glossary.md`](https://github.com/HBlanqueto/malaysia/blob/main/docs/glossary.md) — definición de Infinity.
 - `protocols/infinity-window-manager-v1.xml`.

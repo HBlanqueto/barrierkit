@@ -128,9 +128,9 @@ En el flake:
 
 ## Relación
 
-- [`interfaz.md`](interfaz.md) — el mapa visual completo.
-- [`ventanas.md`](ventanas.md) — titlebar y semáforos.
-- [`wallpaper.md`](wallpaper.md) — el componente del fondo y su estado.
+- [`interfaz.md`](https://github.com/HBlanqueto/malaysia/blob/main/docs/arquitectura/interfaz.md) — el mapa visual completo.
+- [`ventanas.md`](https://github.com/HBlanqueto/malaysia/blob/main/docs/arquitectura/ventanas.md) — titlebar y semáforos.
+- [`wallpaper.md`](https://github.com/HBlanqueto/malaysia/blob/main/docs/arquitectura/wallpaper.md) — el componente del fondo y su estado.
 - ADR 0011 — los valores son constantes Rust.
 - ADR 0032 — Tengen como fuente de diseño.
 - `crates/vow-design/tengen/README.md` — catálogo y uso por proyecto.

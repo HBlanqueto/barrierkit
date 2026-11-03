@@ -1,7 +1,7 @@
 # 0057 — El cristal de pantalla completa cubre toda la ventana; la barra lateral sobre un fondo tintado
 
 Estado: **aceptado** (2026-11-03). La regla 1 aplica a las ventanas con
-`FullscreenBar::ProgressiveGlass` (Ondina); por defecto la barra es `Solid`
+`FullscreenBar::Glass` o `ProgressiveGlass` (Ondina); por defecto la barra es `Solid`
 (capítulo 7 de [`docs/barrierkit`](../barrierkit/07-titlebars.md#la-barra-en-pantalla-completa-fullscreenbar)).
 
 ## Contexto
@@ -21,7 +21,9 @@ Ondina pasó a usar `SplitView`, `Sidebar` y `Titlebar` del kit (`6689f78`). Con
 - por encima del cristal solo quedan la titlebar, los semáforos y las capas superpuestas (menús, popups, raíles verticales);
 - todo el contenido que pasa por debajo, en cualquier columna, se desenfoca igual.
 
-Implementación: la `Titlebar` coloca el cristal con `Position::new_global()` y `Size::window_percent(100.0)`, en `TITLEBAR_OVERLAY_LAYER` y antes de la barra. La barra conserva su ancho y sus márgenes (`rail_overlap`); el cristal no. Sigue dentro del árbol de la app para leer el tinte del `Backdrop` (`glass_tint`).
+Implementación: la `Titlebar` coloca el cristal con `Position::new_global()` y `Size::window_percent(100.0)`, en `TITLEBAR_OVERLAY_LAYER` y antes de la barra. La barra conserva el ancho de su columna; el cristal no. Sigue dentro del árbol de la app para leer el tinte del `Backdrop` (`glass_tint`).
+
+El cristal nunca va dentro de una capa de opacidad: el desenfoque de Skia (`backdrop`) lee la capa en la que se dibuja, y dentro de una capa de opacidad esa capa está vacía, así que no difumina nada. El fundido de entrada con la barra lo aplica el propio cristal a su máscara, su tinte y su línea (`fullscreen_backdrop(.., opacity)`).
 
 ### 2. La barra lateral sobre un fondo tintado
 
@@ -43,6 +45,7 @@ Dentro de un `Backdrop`, las filas toman la tinta y el acento de `Palette::curre
 
 - Una app nueva no tiene que hacer nada para que el cristal cubra toda la ventana; tampoco puede limitarlo a una columna.
 - Si una app mete la `Titlebar` dentro de un contenedor con `Overflow::Clip`, ese contenedor recorta el cristal: la `Titlebar` no debe ir dentro de uno.
+- Si una app envuelve la `Titlebar` en `.opacity(..)`, el cristal deja de difuminar por la misma razón que arriba.
 - Ondina ofrece *Transparente / Tintada* en Apariencia; Master Tengen App Show muestra las dos en «Fondo tintado».
 
 ## Referencias
