@@ -32,6 +32,8 @@ use super::{
     window::WindowControls,
 };
 
+const MAX_SETTLE_PASSES: usize = 4;
+
 pub(crate) struct AppInstance {
     runner: Runner,
     pub(crate) tree: Tree,
@@ -289,6 +291,15 @@ impl AppInstance {
             self.requested_focus = Some(AccessibilityFocusStrategy::Node(request.target_node));
         }
         pressed
+    }
+
+    // A size read through on_sized must reach this frame, or a live resize paints the previous layout.
+    pub(crate) fn settle_sized_reactions(&mut self) {
+        for _ in 0..MAX_SETTLE_PASSES {
+            if !(self.poll() && self.update()) {
+                return;
+            }
+        }
     }
 
     pub(crate) fn layout(&mut self) {

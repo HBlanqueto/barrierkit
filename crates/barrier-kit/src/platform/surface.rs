@@ -35,8 +35,6 @@ use super::{
     vulkan::{Graphics, GraphicsShared},
 };
 
-const MAX_SETTLE_PASSES: usize = 4;
-
 pub(crate) struct SurfaceWindow {
     pub(crate) surface: WlSurface,
     pub(crate) role: SurfaceRole,
@@ -150,15 +148,6 @@ impl SurfaceWindow {
         self.needs_redraw = true;
     }
 
-    // A size read through on_sized must reach this frame, or a live resize paints the previous layout.
-    fn settle_sized_reactions(&mut self) {
-        for _ in 0..MAX_SETTLE_PASSES {
-            if !(self.app.poll() && self.app.update()) {
-                return;
-            }
-        }
-    }
-
     pub(crate) fn draw(&mut self, compositor: &CompositorState) -> bool {
         let background = if matches!(&self.role, SurfaceRole::Window(_)) {
             let resolved = *self.app.resolved.read();
@@ -185,7 +174,7 @@ impl SurfaceWindow {
             "draw start"
         );
         self.app.layout();
-        self.settle_sized_reactions();
+        self.app.settle_sized_reactions();
         {
             let Some(skia) = graphics.skia.as_mut() else {
                 return false;
