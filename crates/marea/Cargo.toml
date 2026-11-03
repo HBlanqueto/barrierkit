@@ -1,0 +1,21 @@
+[package]
+name = "marea"
+description = "Marea: banco de pruebas de BarrierKit para medios (vídeo, cristal, carátulas y estanterías)."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+barrier-kit = { workspace = true, features = ["video"] }
+freya-animation.workspace = true
+freya-core.workspace = true
+torin.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+vow-appearance.workspace = true
+vow-design.workspace = true
+
+[dev-dependencies]
+freya-testing.workspace = true

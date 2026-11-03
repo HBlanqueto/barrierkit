@@ -228,6 +228,8 @@ Cada fase se divide en lotes pequeños para opencode, con prueba visible en la s
 
 **Master Tengen Motion Show** (`tengen-motion-show`) es su hermana para el movimiento, con el mismo `PreferencesWindow`. Enseña las curvas de Freya, el resorte de Grade (`Spring` es un `AnimatedValue` y se usa con `use_animation`), las duraciones de Tengen, las propiedades animables (opacidad, escala, rotación, posición, color, radio y anchura), los controles del kit que ya se animan, la entrada y salida de elementos, las transiciones entre diapositivas y pestañas, la respuesta a eventos (hover, pulsar, error, notificación y aviso) y el movimiento reducido. Es un mockup: de aquí sale lo que luego se lleve al kit.
 
+**Marea** (`marea`) prueba el kit con medios: un destacado con vídeo de fondo, degradados que lo funden con la ventana, una isla de cristal encima, estanterías horizontales con carátulas y vista previa en vídeo, chips de género y un reproductor. Para ella el kit gana `video` (feature `video`: GStreamer decodifica con VA-API y cada fotograma llega como dmabuf importado en el `VkDevice` del kit, sin copias; sin dmabuf se descarga una vez y sin VA-API decodifica la CPU), `media` (`scrim`, `material`, `MediaButton`, `RoundButton`, `use_artwork`), `register_font`, `ScrollView` con dirección, controlador y barra opcional, y los tokens `MEDIA`, `POSTER` y `SCROLL_BAR`. Los vídeos y fotogramas de prueba los genera `crates/marea/media/generate.mjs` a partir de las escenas del mockup.
+
 ## Estado (2026-11-02)
 
 Hecho en `main`:
