@@ -75,6 +75,7 @@ pub struct PreferencesWindow {
     suggestions: Option<&'static [&'static str]>,
     sidebar_range: Option<(f32, f32)>,
     sidebar_resizable: bool,
+    sidebar_toggle: bool,
     narrow_sidebar: NarrowSidebar,
 }
 
@@ -87,6 +88,7 @@ impl PreferencesWindow {
             suggestions: None,
             sidebar_range: None,
             sidebar_resizable: true,
+            sidebar_toggle: true,
             narrow_sidebar: NarrowSidebar::Overlay,
         }
     }
@@ -118,6 +120,11 @@ impl PreferencesWindow {
 
     pub fn sidebar_resizable(mut self, resizable: bool) -> Self {
         self.sidebar_resizable = resizable;
+        self
+    }
+
+    pub fn sidebar_toggle(mut self, toggle: bool) -> Self {
+        self.sidebar_toggle = toggle;
         self
     }
 
@@ -363,7 +370,7 @@ impl Component for PreferencesWindow {
                                 .direction(Direction::Horizontal)
                                 .cross_align(Alignment::Center)
                                 .spacing(SPACE_2)
-                                .child(SidebarToggle)
+                                .maybe_child(self.sidebar_toggle.then_some(SidebarToggle))
                                 .child(navigation_buttons(history)),
                         ),
                 )

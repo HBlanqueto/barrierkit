@@ -124,7 +124,8 @@ o Forzada:
 
 ![Panel Barra lateral de Tengen App Show](assets/apps/tengen-barra-lateral-light.png)
 
-`PreferencesWindow` pasa lo mismo con `.sidebar_resizable(bool)` y
-`.sidebar_range(Option<(mín, máx)>)` y `.narrow_sidebar(NarrowSidebar)`.
+`PreferencesWindow` pasa lo mismo con `.sidebar_resizable(bool)`,
+`.sidebar_range(Option<(mín, máx)>)` y `.narrow_sidebar(NarrowSidebar)`;
+`.sidebar_toggle(false)` quita el botón `SidebarToggle`.
 
 Siguiente: [9. Vistas](09-vistas.md).

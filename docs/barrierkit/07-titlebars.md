@@ -27,7 +27,8 @@ Titlebar::new()
 - Tiene tres zonas: `left`, título centrado y `right`.
 - Sin barra lateral, las zonas son simétricas para que el título quede
   centrado.
-- Con `.with_sidebar(true)` se alinea con la barra lateral. Los semáforos se
+- Con `.with_sidebar(true)` se alinea con la barra lateral y el título va al
+  inicio, junto a `left`, como en macOS. Los semáforos se
   quedan fijos en su sitio aunque la barra se pliegue.
 - Arrastrarla mueve la ventana; el doble clic hace lo que diga `window.domain`.
 - Con `Decorations::Server` concedida, mide 0 y no dibuja nada.
@@ -48,7 +49,7 @@ Ninguna de estas variantes la elige la app: salen de `with_sidebar`, de
 
 | Variante | Cómo se ve |
 |---|---|
-| Con barra lateral en isla (por defecto): los semáforos van en la barra lateral; la barra no lleva línea | ![Titlebar con barra lateral en isla](assets/estados/titlebar-isla.png) |
+| Con barra lateral en isla (por defecto): los semáforos van en la barra lateral; la barra lleva la línea translúcida abajo | ![Titlebar con barra lateral en isla](assets/estados/titlebar-isla.png) |
 | Con barra lateral en isla, ventana sin foco: semáforos y título en gris | ![Titlebar con barra lateral en isla sin foco](assets/estados/titlebar-isla-inactiva.png) |
 | Con barra lateral plana: barra de `TITLEBAR_CLIENT_HEIGHT` con línea abajo | ![Titlebar con barra lateral plana](assets/estados/titlebar-plana.png) |
 | Sin barra lateral: semáforos en la barra y título centrado entre dos zonas simétricas | ![Titlebar sin barra lateral](assets/estados/titlebar-sin-barra.png) |

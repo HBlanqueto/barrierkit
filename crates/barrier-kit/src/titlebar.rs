@@ -171,7 +171,7 @@ impl Component for Titlebar {
         let sidebar = self.sidebar && control.is_none_or(|control| control.settled());
         let tinted = crate::backdrop::tinted().is_some();
         let ink = crate::style::Palette::current();
-        let background = if tinted || overlaid {
+        let background = if tinted || overlaid || self.close_only {
             vow_design::Rgba::TRANSPARENT
         } else if sidebar || status.activated {
             crate::theme::surface_background(&resolved, crate::theme::SurfaceKind::Toplevel)
@@ -302,7 +302,7 @@ impl Component for Titlebar {
                 .width(Size::flex(1.0))
                 .height(Size::fill())
                 .cross_align(Alignment::Center)
-                .main_align(Alignment::Center)
+                .main_align(Alignment::Start)
                 .a11y_alt("titlebar-title")
                 .on_mouse_down(drag.clone())
                 .child(title_label);

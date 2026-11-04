@@ -126,7 +126,8 @@ Forzada ("push"):
 
 ![«Barra lateral» pane of Tengen App Show](assets/apps/tengen-barra-lateral-light.png)
 
-`PreferencesWindow` passes the same through `.sidebar_resizable(bool)` and
-`.sidebar_range(Option<(mín, máx)>)` and `.narrow_sidebar(NarrowSidebar)`.
+`PreferencesWindow` passes the same through `.sidebar_resizable(bool)`,
+`.sidebar_range(Option<(mín, máx)>)` and `.narrow_sidebar(NarrowSidebar)`;
+`.sidebar_toggle(false)` removes the `SidebarToggle` button.
 
 Next: [9. Views](09-vistas.en.md).

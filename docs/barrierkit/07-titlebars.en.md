@@ -25,7 +25,8 @@ Titlebar::new()
 
 - It has three areas: `left`, the centered title and `right`.
 - Without a sidebar, the areas are symmetric so the title stays centered.
-- With `.with_sidebar(true)` it aligns with the sidebar. The traffic lights
+- With `.with_sidebar(true)` it aligns with the sidebar and the title goes at
+  the start, next to `left`, as on macOS. The traffic lights
   stay fixed in place even when the sidebar collapses.
 - Dragging it moves the window; double-click does what `window.domain` says.
 - When `Decorations::Server` is granted, it measures 0 and draws nothing.
@@ -47,7 +48,7 @@ The app chooses none of these variants: they come from `with_sidebar`, from
 
 | Variant | How it looks |
 |---|---|
-| With an island sidebar (default): the traffic lights go in the sidebar; the bar has no line | ![Titlebar with an island sidebar](assets/estados/titlebar-isla.png) |
+| With an island sidebar (default): the traffic lights go in the sidebar; the bar has the translucent line at the bottom | ![Titlebar with an island sidebar](assets/estados/titlebar-isla.png) |
 | With an island sidebar, unfocused window: traffic lights and title in gray | ![Titlebar with an island sidebar, unfocused](assets/estados/titlebar-isla-inactiva.png) |
 | With a flat sidebar: a `TITLEBAR_CLIENT_HEIGHT` bar with a line at the bottom | ![Titlebar with a flat sidebar](assets/estados/titlebar-plana.png) |
 | Without a sidebar: traffic lights in the bar and the title centered between two symmetric zones | ![Titlebar without a sidebar](assets/estados/titlebar-sin-barra.png) |

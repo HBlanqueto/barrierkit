@@ -199,7 +199,11 @@ pub(super) fn emit_metrics(out: &mut String, tokens: &Value, components: &Value)
             "f32",
             "components.shell.about.value-width",
         ),
-        ("ABOUT_SPEC_ROW_GAP", "f32", "components.shell.about.row-gap"),
+        (
+            "ABOUT_SPEC_ROW_GAP",
+            "f32",
+            "components.shell.about.row-gap",
+        ),
         (
             "ABOUT_FOOTER_BOTTOM",
             "f32",
