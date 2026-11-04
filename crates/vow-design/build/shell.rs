@@ -242,6 +242,11 @@ pub(super) fn emit_metrics(out: &mut String, tokens: &Value, components: &Value)
             "f32",
             "components.shell.launcher.scale-from",
         ),
+        (
+            "LAUNCHER_RESULT_RADIUS",
+            "f32",
+            "components.shell.launcher.result-radius",
+        ),
     ] {
         const_doc(out, name, &format!("Tengen launcher metric `{path}`."));
         out.push_str(&format!(

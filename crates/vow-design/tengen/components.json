@@ -792,6 +792,7 @@
         "result-height": 44,
         "result-gap": 4,
         "corner-radius": 16,
+        "result-radius": 10,
         "icon-size": 32,
         "font-size": 14,
         "subtitle-font-size": 12,
