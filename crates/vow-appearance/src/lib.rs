@@ -189,6 +189,19 @@ fn default_reduce_transparency() -> bool {
     true
 }
 
+impl AppearanceConfig {
+    pub fn traffic_light_style(&self) -> TrafficLightStyle {
+        match self.traffic_lights {
+            TrafficLightStyle::Auto => match self.window_color {
+                WindowColorMode::Neutral => TrafficLightStyle::Standard,
+                WindowColorMode::Accent => TrafficLightStyle::Accent,
+                WindowColorMode::Wallpaper => TrafficLightStyle::Wallpaper,
+            },
+            style => style,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct SidebarSurface {
     pub style: SidebarStyle,
@@ -422,15 +435,7 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
         None
     };
 
-    let style = match appearance.traffic_lights {
-        TrafficLightStyle::Auto => match appearance.window_color {
-            WindowColorMode::Neutral => TrafficLightStyle::Standard,
-            WindowColorMode::Accent => TrafficLightStyle::Accent,
-            WindowColorMode::Wallpaper => TrafficLightStyle::Wallpaper,
-        },
-        style => style,
-    };
-    let lights = match style {
+    let lights = match appearance.traffic_light_style() {
         TrafficLightStyle::Auto | TrafficLightStyle::Standard => [
             TITLEBAR.buttons.order[0].color,
             TITLEBAR.buttons.order[1].color,
@@ -488,7 +493,7 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
         window_tint_scope: appearance.window_tint_scope,
         panel_tint,
         lights,
-        traffic_style: style,
+        traffic_style: appearance.traffic_light_style(),
         reduce_transparency: appearance.reduce_transparency,
         reduced_motion: appearance.reduced_motion,
         scroll_bars: appearance.scroll_bars,

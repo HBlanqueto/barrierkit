@@ -73,6 +73,7 @@ let instancia = match launch(app_id) {
 |---|---|---|
 | `load_defaults::<T>(app_id)`, `save_defaults(app_id, &valor)` | `~/.config/malaysia/<app_id>.domain` (TOML) | User preferences |
 | `use_defaults::<T>(app_id)` | the same | Reads them and updates if the file changes |
+| `use_watched(load)` | any `.domain` in both folders | Calls `load` again when a domain changes |
 | `load_restoration::<T>(app_id)`, `save_restoration(..)` | `~/.local/share/malaysia/<app_id>.state` | Window state: pane, searches, sidebar |
 
 `T` is a struct with `Serialize` and `Deserialize`. Writing is atomic

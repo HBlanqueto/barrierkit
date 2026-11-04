@@ -73,6 +73,7 @@ let instancia = match launch(app_id) {
 |---|---|---|
 | `load_defaults::<T>(app_id)`, `save_defaults(app_id, &valor)` | `~/.config/malaysia/<app_id>.domain` (TOML) | Preferencias del usuario |
 | `use_defaults::<T>(app_id)` | el mismo | Las lee y se actualiza si el fichero cambia |
+| `use_watched(load)` | cualquier `.domain` de las dos carpetas | Vuelve a llamar a `load` cuando cambia un dominio |
 | `load_restoration::<T>(app_id)`, `save_restoration(..)` | `~/.local/share/malaysia/<app_id>.state` | Estado de la ventana: panel, búsquedas, barra lateral |
 
 `T` es un struct con `Serialize` y `Deserialize`. La escritura es atómica

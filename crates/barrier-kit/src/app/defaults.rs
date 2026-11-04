@@ -12,12 +12,16 @@ pub fn use_defaults<T>(app_id: &'static str) -> Memo<T>
 where
     T: DeserializeOwned + Default + PartialEq + Clone + 'static,
 {
+    use_watched(move || load_defaults(app_id))
+}
+
+pub fn use_watched<T: PartialEq + Clone + 'static>(load: impl Fn() -> T + 'static) -> Memo<T> {
     let revision = try_consume_root_context::<DefaultsRevision>();
     use_memo(move || {
         if let Some(DefaultsRevision(revision)) = revision {
             revision.read();
         }
-        load_defaults(app_id)
+        load()
     })
 }
 
