@@ -263,7 +263,14 @@ impl LayerShellHandler for Runtime {
         };
         let scale = self.surfaces[index].scale;
         self.surfaces[index].configure(configure.new_size, scale);
-        self.surfaces[index].request_redraw(qh);
+        self.surfaces[index].needs_redraw = true;
+        // wlr-layer-shell: the first buffer follows the first configure; an unmapped surface gets no frame callbacks.
+        if self.surfaces[index].draw_count == 0 {
+            let _ = self.surfaces[index].draw(&self.compositor);
+        }
+        if self.surfaces[index].needs_redraw {
+            self.surfaces[index].request_frame_callback(qh);
+        }
     }
 }
 
