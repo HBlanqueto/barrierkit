@@ -32,6 +32,8 @@ Titlebar::new()
 - Arrastrarla mueve la ventana; el doble clic hace lo que diga `window.domain`.
 - Con `Decorations::Server` concedida, mide 0 y no dibuja nada.
 - `.close_only(true)` deja solo el botón de cerrar, para diálogos.
+- `.hairline(false)` quita el divisor de abajo; la ventana de ajustes lo pone en
+  su `ScrollView` (`.top_line(true)`).
 
 El panel «Ventana y herramientas» de Tengen App Show muestra los semáforos
 sueltos, una `Titlebar` con título y otra con `.close_only(true)`:

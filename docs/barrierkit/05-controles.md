@@ -175,7 +175,9 @@ ScrollView::new().height(Size::px(120.0)).child(lista)
 
 `ScrollView` admite `.direction(Direction::Horizontal)`, `.scroll_bar(false)`
 y un `use_scroll_controller()` para desplazar desde el código. La barra se
-desvanece en `DURATION_FAST_MS` salvo con `scroll_bars = "always"`.
+desvanece en `DURATION_FAST_MS` salvo con `scroll_bars = "always"`, que la
+muestra con carril de 11 px. `.top_line(true)` dibuja el divisor encima del
+contenido, que pasa por debajo al desplazarse.
 
 ## Símbolos
 

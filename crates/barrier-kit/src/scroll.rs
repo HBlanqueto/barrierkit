@@ -25,6 +25,7 @@ pub struct ScrollView {
     height: Size,
     direction: Direction,
     scroll_bar: bool,
+    top_line: bool,
     controller: Option<ScrollController>,
     key: DiffKey,
 }
@@ -92,6 +93,7 @@ impl ScrollView {
             height: Size::fill(),
             direction: Direction::Vertical,
             scroll_bar: true,
+            top_line: false,
             controller: None,
             key: DiffKey::None,
         }
@@ -104,6 +106,11 @@ impl ScrollView {
 
     pub fn scroll_bar(mut self, scroll_bar: bool) -> Self {
         self.scroll_bar = scroll_bar;
+        self
+    }
+
+    pub fn top_line(mut self, top_line: bool) -> Self {
+        self.top_line = top_line;
         self
     }
 
@@ -244,6 +251,14 @@ impl Component for ScrollView {
                             .children(self.children.clone()),
                     ),
             )
+            .maybe_child(self.top_line.then(|| {
+                rect()
+                    .position(Position::new_absolute().top(0.0).left(0.0))
+                    .layer(THUMB_LAYER)
+                    .width(Size::fill())
+                    .height(Size::px(1.0))
+                    .background(color(crate::sidebar::sidebar_palette().line))
+            }))
             .maybe_child(bar.filter(|_| always).map(|_| {
                 bar_rect(horizontal, edge, track_length, breadth).background(color(Rgba {
                     a: SCROLL_BAR.track_opacity,

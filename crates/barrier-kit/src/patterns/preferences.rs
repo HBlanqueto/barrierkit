@@ -356,6 +356,7 @@ impl Component for PreferencesWindow {
                 .child(
                     Titlebar::new()
                         .with_sidebar(true)
+                        .hairline(false)
                         .title(pane.map(|pane| pane.title).unwrap_or_default())
                         .left(
                             rect()
@@ -366,7 +367,7 @@ impl Component for PreferencesWindow {
                                 .child(navigation_buttons(history)),
                         ),
                 )
-                .child(ScrollView::new().maybe_child(
+                .child(ScrollView::new().top_line(true).maybe_child(
                     pane.map(|pane| pane.form.clone().highlighted(*highlighted.read())),
                 ));
 

@@ -30,6 +30,8 @@ Titlebar::new()
 - Dragging it moves the window; double-click does what `window.domain` says.
 - When `Decorations::Server` is granted, it measures 0 and draws nothing.
 - `.close_only(true)` leaves only the close button, for dialogs.
+- `.hairline(false)` removes the bottom divider; the settings window puts it on
+  its `ScrollView` (`.top_line(true)`).
 
 The «Ventana y herramientas» ("Window and tools") pane of Tengen App Show
 shows standalone traffic lights, a `Titlebar` with a title and another one with

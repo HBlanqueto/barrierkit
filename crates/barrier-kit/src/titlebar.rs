@@ -31,6 +31,7 @@ pub struct Titlebar {
     probe: Option<&'static str>,
     spacing: f32,
     close_only: bool,
+    hairline: bool,
 }
 
 #[derive(Clone, PartialEq)]
@@ -57,6 +58,7 @@ impl Titlebar {
             probe: None,
             spacing: 0.0,
             close_only: false,
+            hairline: true,
         }
     }
 
@@ -74,6 +76,7 @@ impl Titlebar {
             probe: None,
             spacing: 0.0,
             close_only: false,
+            hairline: true,
         }
     }
 
@@ -104,6 +107,11 @@ impl Titlebar {
 
     pub fn close_only(mut self, close_only: bool) -> Self {
         self.close_only = close_only;
+        self
+    }
+
+    pub fn hairline(mut self, hairline: bool) -> Self {
+        self.hairline = hairline;
         self
     }
 }
@@ -321,13 +329,13 @@ impl Component for Titlebar {
                 }))
                 .maybe_child(fixed_lights);
 
-            root = root.child(
+            root = root.maybe_child(self.hairline.then(|| {
                 rect()
                     .position(Position::new_absolute().bottom(0.0).left(0.0))
                     .width(Size::fill())
                     .height(Size::px(1.0))
-                    .background(theme::color(crate::sidebar::sidebar_palette().line)),
-            );
+                    .background(theme::color(crate::sidebar::sidebar_palette().line))
+            }));
 
             return place(
                 crate::chrome::revealable_bar(root.into_element(), height),

@@ -176,7 +176,9 @@ ScrollView::new().height(Size::px(120.0)).child(lista)
 
 `ScrollView` supports `.direction(Direction::Horizontal)`, `.scroll_bar(false)`
 and a `use_scroll_controller()` to scroll from code. The bar fades out over
-`DURATION_FAST_MS` unless `scroll_bars = "always"`.
+`DURATION_FAST_MS` unless `scroll_bars = "always"`, which shows it with an
+11 px track. `.top_line(true)` draws the divider over the content, which slides
+under it when scrolled.
 
 ## Symbols
 
