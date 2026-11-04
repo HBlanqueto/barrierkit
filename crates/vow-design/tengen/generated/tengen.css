@@ -529,6 +529,17 @@
   --settings-window-height: 864px;
   --settings-window-min-height: 480px;
   --settings-window-width: 865px;
+  --shell-about-column-gap: 12px;
+  --shell-about-drawing-height: 78px;
+  --shell-about-drawing-top: 89px;
+  --shell-about-drawing-width: 148px;
+  --shell-about-footer-bottom: 34px;
+  --shell-about-height: 505px;
+  --shell-about-label-width: 138px;
+  --shell-about-row-gap: 2px;
+  --shell-about-title-gap: 61px;
+  --shell-about-value-width: 160px;
+  --shell-about-width: 329px;
   --shell-dock-font-size: 11px;
   --shell-dock-gap: 6px;
   --shell-dock-label-offset: 8px;

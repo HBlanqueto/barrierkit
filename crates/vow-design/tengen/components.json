@@ -775,6 +775,19 @@
         "tile-active": "{accent}",
         "tile-text-active": "{on-accent}"
       },
+      "about": {
+        "width": 329,
+        "height": 505,
+        "drawing-top": 89,
+        "drawing-width": 148,
+        "drawing-height": 78,
+        "title-gap": 61,
+        "label-width": 138,
+        "column-gap": 12,
+        "value-width": 160,
+        "row-gap": 2,
+        "footer-bottom": 34
+      },
       "lock": {
         "font-size": 24,
         "title-scale": 1.5,

@@ -166,6 +166,45 @@ pub(super) fn emit_metrics(out: &mut String, tokens: &Value, components: &Value)
         ("DOCK_GAP", "i32", "components.shell.dock.gap"),
         ("DOCK_PADDING", "i32", "components.shell.dock.padding"),
         ("DOCK_FONT_SIZE", "f32", "components.shell.dock.font-size"),
+        ("ABOUT_WIDTH", "u32", "components.shell.about.width"),
+        ("ABOUT_HEIGHT", "u32", "components.shell.about.height"),
+        (
+            "ABOUT_DRAWING_TOP",
+            "f32",
+            "components.shell.about.drawing-top",
+        ),
+        (
+            "ABOUT_DRAWING_WIDTH",
+            "f32",
+            "components.shell.about.drawing-width",
+        ),
+        (
+            "ABOUT_DRAWING_HEIGHT",
+            "f32",
+            "components.shell.about.drawing-height",
+        ),
+        ("ABOUT_TITLE_GAP", "f32", "components.shell.about.title-gap"),
+        (
+            "ABOUT_LABEL_WIDTH",
+            "f32",
+            "components.shell.about.label-width",
+        ),
+        (
+            "ABOUT_COLUMN_GAP",
+            "f32",
+            "components.shell.about.column-gap",
+        ),
+        (
+            "ABOUT_VALUE_WIDTH",
+            "f32",
+            "components.shell.about.value-width",
+        ),
+        ("ABOUT_SPEC_ROW_GAP", "f32", "components.shell.about.row-gap"),
+        (
+            "ABOUT_FOOTER_BOTTOM",
+            "f32",
+            "components.shell.about.footer-bottom",
+        ),
         ("LOCK_FONT_SIZE", "f32", "components.shell.lock.font-size"),
         (
             "LOCK_TITLE_SCALE",
