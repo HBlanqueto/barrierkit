@@ -322,6 +322,13 @@ impl Component for PreferencesWindow {
                             }
                         }),
                 )
+                .child(
+                    rect()
+                        .width(Size::fill())
+                        .height(Size::px(1.0))
+                        .margin(Gaps::new(SETTINGS.sidebar_search_gap as f32, 0.0, 0.0, 0.0))
+                        .background(crate::theme::color(crate::sidebar::sidebar_palette().line)),
+                )
                 .maybe_child(popover_open.then(|| {
                     search_popover(entries, text.trim().is_empty(), active, popover_hovered)
                 })),
