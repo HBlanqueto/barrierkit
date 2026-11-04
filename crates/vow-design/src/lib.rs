@@ -823,7 +823,21 @@ pub const FOCUS_BAR_TEXT: Rgba = Rgba::rgb8(255, 255, 255);
 
 pub const SPACE_SLIDE_EASE: [f32; 4] = [0.32, 0.72, 0.0, 1.0];
 
-pub const WALLPAPER_DIR: &str = "/run/current-system/sw/share/wallpapers/solid-colors";
+pub const GLASS_MASK: Rgba = Rgba::rgb8(255, 255, 255);
+
+pub const MENU_SUBMENU_INTENT_MS: u64 = 300;
+
+pub const MENU_SCROLL_TICK_MS: u64 = 30;
+
+pub const MENU_SEARCH_CLEAR: f32 = 16.0;
+
+pub const MENU_SEARCH_CLEAR_GLYPH: f32 = 12.0;
+
+pub const MENU_SEARCH_CLEAR_MARGIN: f32 = 8.0;
+
+pub const MENU_SEARCH_ICON: [f32; 2] = [16.0, 14.0];
+
+pub const MENU_HELP_ICON: f32 = 16.0;
 
 pub const NATIVE_APP_ID_PREFIX: &str = "io.github.hblanqueto.malaysia.";
 

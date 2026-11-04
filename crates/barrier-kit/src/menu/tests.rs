@@ -793,7 +793,7 @@ fn png_16() -> Vec<u8> {
 
 #[test]
 fn a_16px_png_icon_is_decoded_scaled_and_cached() {
-    let bytes = png_16();
+    let bytes: std::sync::Arc<[u8]> = png_16().into();
     let handle = icon_image(&bytes, 16.0).expect("the PNG decodes");
     assert_eq!(handle.image.width(), 16);
     assert_eq!(handle.image.height(), 16);

@@ -210,7 +210,7 @@ impl ElementExt for Glass {
                 bounds,
                 Rgba {
                     a: self.opacity,
-                    ..Rgba::rgb8(255, 255, 255)
+                    ..vow_design::GLASS_MASK
                 },
                 &layer_mask(self.metrics.mask, level / 2.0, level),
             );

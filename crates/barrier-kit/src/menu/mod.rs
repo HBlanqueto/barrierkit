@@ -37,8 +37,8 @@ use torin::prelude::{Alignment, Direction, Gaps, Size};
 
 type UseState<T> = State<T>;
 
-const SUBMENU_INTENT_DELAY: Duration = Duration::from_millis(300);
-const SCROLL_TICK: Duration = Duration::from_millis(30);
+const SUBMENU_INTENT_DELAY: Duration = Duration::from_millis(vow_design::MENU_SUBMENU_INTENT_MS);
+const SCROLL_TICK: Duration = Duration::from_millis(vow_design::MENU_SCROLL_TICK_MS);
 
 use crate::ProbeExt;
 use crate::platform::{

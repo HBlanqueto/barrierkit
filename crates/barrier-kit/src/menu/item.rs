@@ -310,9 +310,13 @@ pub(super) fn render_item(
                 placeholder.clone()
             };
             let text_color = if has_text { m.fg } else { m.shortcut_color };
-            let clear_size = 16.0f32;
-            let clear_margin = 8.0f32;
-            let clear_gap = if has_text { clear_size + 8.0 } else { 0.0 };
+            let clear_size = vow_design::MENU_SEARCH_CLEAR;
+            let clear_margin = vow_design::MENU_SEARCH_CLEAR_MARGIN;
+            let clear_gap = if has_text {
+                clear_size + clear_margin
+            } else {
+                0.0
+            };
             let row_padding = m.item_padding_x;
             let available_w = (size.0
                 - 2.0 * m.padding
@@ -385,7 +389,7 @@ pub(super) fn render_item(
                     .child(
                         label()
                             .text("×")
-                            .font_size(12.0)
+                            .font_size(vow_design::MENU_SEARCH_CLEAR_GLYPH)
                             .color(theme::color(m.fg))
                             .max_lines(1),
                     )
@@ -521,14 +525,15 @@ pub(super) fn search_icon_element(
                 fg
             };
             let svg = search_icon_svg(menu_icon.unwrap_or(""), text_color, accent_color);
+            let [width, height] = vow_design::MENU_SEARCH_ICON;
             rect()
-                .width(Size::px(16.0))
+                .width(Size::px(width))
                 .direction(Direction::Horizontal)
                 .main_align(Alignment::Center)
                 .child(
                     SvgViewer::new(freya_core::prelude::Bytes::from(svg.into_bytes()))
-                        .width(Size::px(16.0))
-                        .height(Size::px(14.0))
+                        .width(Size::px(width))
+                        .height(Size::px(height))
                         .show_loader(false)
                         .into_element(),
                 )
@@ -537,14 +542,15 @@ pub(super) fn search_icon_element(
         SearchSource::Help => {
             let svg = help_icon.unwrap_or("").to_string();
             let color = if focused { m.hover_fg } else { fg };
+            let side = vow_design::MENU_HELP_ICON;
             rect()
-                .width(Size::px(16.0))
+                .width(Size::px(side))
                 .direction(Direction::Horizontal)
                 .main_align(Alignment::Center)
                 .child(
                     SvgViewer::new(freya_core::prelude::Bytes::from(svg.into_bytes()))
-                        .width(Size::px(16.0))
-                        .height(Size::px(16.0))
+                        .width(Size::px(side))
+                        .height(Size::px(side))
                         .color(theme::color(color))
                         .show_loader(false)
                         .into_element(),
@@ -598,17 +604,17 @@ pub(super) fn leading_slot(
         .into_element()
 }
 
+// The menubar lives for the whole session and receives icon-data from every app.
+const ICON_CACHE_CAPACITY: usize = 128;
+
+type IconCache = HashMap<(Arc<[u8]>, u32), Option<ImageHandle>>;
+
 thread_local! {
-    static IMAGE_CACHE: RefCell<HashMap<u64, Option<ImageHandle>>> = RefCell::new(HashMap::new());
+    static IMAGE_CACHE: RefCell<IconCache> = RefCell::new(HashMap::new());
 }
 
-pub(super) fn icon_image(bytes: &[u8], size: f32) -> Option<ImageHandle> {
-    use std::hash::{Hash, Hasher};
-
-    let mut hasher = std::collections::hash_map::DefaultHasher::new();
-    bytes.hash(&mut hasher);
-    size.to_bits().hash(&mut hasher);
-    let key = hasher.finish();
+pub(super) fn icon_image(bytes: &Arc<[u8]>, size: f32) -> Option<ImageHandle> {
+    let key = (bytes.clone(), size.to_bits());
     IMAGE_CACHE.with(|cache| {
         if let Some(cached) = cache.borrow().get(&key) {
             return cached.clone();
@@ -620,7 +626,11 @@ pub(super) fn icon_image(bytes: &[u8], size: f32) -> Option<ImageHandle> {
                 "menu: icon-data could not be decoded; dropping the icon"
             );
         }
-        cache.borrow_mut().insert(key, decoded.clone());
+        let mut cache = cache.borrow_mut();
+        if cache.len() >= ICON_CACHE_CAPACITY {
+            cache.clear();
+        }
+        cache.insert(key, decoded.clone());
         decoded
     })
 }
