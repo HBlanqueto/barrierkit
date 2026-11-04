@@ -81,14 +81,17 @@ pub fn navigation_buttons<T: Clone + PartialEq + 'static>(history: State<History
             }
         })
         .child(
-            IconButton::new(Symbol::ChevronLeft, GO_BACK.title)
-                .disabled(!history.read().can_go_back())
-                .on_press(move |_| back.write().back()),
-        )
-        .child(
-            IconButton::new(Symbol::ChevronRight, GO_FORWARD.title)
-                .disabled(!history.read().can_go_forward())
-                .on_press(move |_| forward.write().forward()),
+            crate::controls::ToolGroup::new()
+                .child(
+                    IconButton::new(Symbol::ChevronLeft, GO_BACK.title)
+                        .disabled(!history.read().can_go_back())
+                        .on_press(move |_| back.write().back()),
+                )
+                .child(
+                    IconButton::new(Symbol::ChevronRight, GO_FORWARD.title)
+                        .disabled(!history.read().can_go_forward())
+                        .on_press(move |_| forward.write().forward()),
+                ),
         )
 }
 

@@ -30,6 +30,8 @@
   --menubar-title-open: #0d12191f;
   --on-accent: #ffffff;
   --on-danger: #ffffff;
+  --panel-inner: #ffffff00;
+  --panel-inner-edge: #ffffff00;
   --preview-dark-control: #3a3a3a;
   --preview-dark-sunken: #111111;
   --preview-dark-window: #232323;
@@ -111,6 +113,8 @@
   --menubar-title-open: #ffffff2e;
   --on-accent: #ffffff;
   --on-danger: #ffffff;
+  --panel-inner: #ffffff17;
+  --panel-inner-edge: #ffffff38;
   --preview-dark-control: #3a3a3a;
   --preview-dark-sunken: #111111;
   --preview-dark-window: #232323;
@@ -192,6 +196,8 @@
   --menubar-title-open: #ffffff2e;
   --on-accent: #ffffff;
   --on-danger: #ffffff;
+  --panel-inner: #ffffff17;
+  --panel-inner-edge: #ffffff38;
   --preview-dark-control: #3a3a3a;
   --preview-dark-sunken: #111111;
   --preview-dark-window: #232323;

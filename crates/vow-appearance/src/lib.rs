@@ -145,6 +145,14 @@ pub enum SidebarStyle {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum TrafficLightShape {
+    #[default]
+    Square,
+    Round,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum TrafficLightStyle {
     #[default]
@@ -176,6 +184,7 @@ pub struct AppearanceConfig {
     pub window_color: WindowColorMode,
     pub window_tint_scope: WindowTintScope,
     pub traffic_lights: TrafficLightStyle,
+    pub traffic_light_shape: TrafficLightShape,
     pub sidebar_style: SidebarStyle,
     #[serde(default)]
     pub tint_strength_accent: TintStrength,
@@ -238,6 +247,7 @@ pub struct Resolved {
     pub panel_tint: Option<(Rgba, f32)>,
     pub lights: [Rgba; 3],
     pub traffic_style: TrafficLightStyle,
+    pub traffic_shape: TrafficLightShape,
     pub reduce_transparency: bool,
     pub reduced_motion: bool,
     pub scroll_bars: ScrollBars,
@@ -494,6 +504,7 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
         panel_tint,
         lights,
         traffic_style: appearance.traffic_light_style(),
+        traffic_shape: appearance.traffic_light_shape,
         reduce_transparency: appearance.reduce_transparency,
         reduced_motion: appearance.reduced_motion,
         scroll_bars: appearance.scroll_bars,
@@ -713,6 +724,10 @@ pub fn write_appearance(path: &Path, config: &AppearanceConfig) -> std::io::Resu
     doc["window_color"] = toml_edit::value(window_color_str(config.window_color));
     doc["window_tint_scope"] = toml_edit::value(window_tint_scope_str(config.window_tint_scope));
     doc["traffic_lights"] = toml_edit::value(traffic_lights_str(config.traffic_lights));
+    doc["traffic_light_shape"] = toml_edit::value(match config.traffic_light_shape {
+        TrafficLightShape::Square => "square",
+        TrafficLightShape::Round => "round",
+    });
     doc["sidebar_style"] = toml_edit::value(sidebar_style_str(config.sidebar_style));
     doc["tint_strength_accent"] = toml_edit::value(tint_strength_str(config.tint_strength_accent));
     doc["tint_strength_wallpaper"] =
@@ -896,6 +911,7 @@ mod tests {
             window_color: mode,
             window_tint_scope: scope,
             traffic_lights: lights,
+            traffic_light_shape: TrafficLightShape::Square,
             sidebar_style: SidebarStyle::Island,
             tint_strength_accent: TintStrength::default(),
             tint_strength_wallpaper: TintStrength::default(),
@@ -1699,6 +1715,7 @@ sidebar_style = "flat"
         assert_eq!(a.window_color, b.window_color);
         assert_eq!(a.window_tint_scope, b.window_tint_scope);
         assert_eq!(a.traffic_lights, b.traffic_lights);
+        assert_eq!(a.traffic_light_shape, b.traffic_light_shape);
         assert_eq!(a.sidebar_style, b.sidebar_style);
         assert_eq!(a.tint_strength_accent, b.tint_strength_accent);
         assert_eq!(a.tint_strength_wallpaper, b.tint_strength_wallpaper);
@@ -1720,6 +1737,7 @@ sidebar_style = "flat"
             window_color: WindowColorMode::Accent,
             window_tint_scope: WindowTintScope::Desktop,
             traffic_lights: TrafficLightStyle::Accent,
+            traffic_light_shape: TrafficLightShape::Round,
             sidebar_style: SidebarStyle::Flat,
             tint_strength_accent: TintStrength::Strong,
             tint_strength_wallpaper: TintStrength::Subtle,
@@ -2005,6 +2023,7 @@ sidebar_style = "flat"
                 TITLEBAR.buttons.order[2].color,
             ],
             traffic_style: TrafficLightStyle::Standard,
+            traffic_shape: TrafficLightShape::Square,
             reduce_transparency: true,
             reduced_motion: false,
             scroll_bars: ScrollBars::WhenScrolling,
@@ -2074,6 +2093,7 @@ sidebar_style = "flat"
             panel_tint: None,
             lights: derived_lights(accent),
             traffic_style: TrafficLightStyle::Accent,
+            traffic_shape: TrafficLightShape::Square,
             reduce_transparency: true,
             reduced_motion: false,
             scroll_bars: ScrollBars::WhenScrolling,

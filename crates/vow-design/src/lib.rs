@@ -680,10 +680,17 @@ impl ShadowStyle {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct PanelLine {
+    pub sides: Rgba,
+    pub edges: Rgba,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Palette {
     pub titlebar_bg: FocusPair,
     pub hairline: Rgba,
     pub inner_line: Option<Rgba>,
+    pub panel_inner_line: Option<PanelLine>,
     pub outer_border: Rgba,
     pub title: FocusPair,
     pub text: FocusPair,

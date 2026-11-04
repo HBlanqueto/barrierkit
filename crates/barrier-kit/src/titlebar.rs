@@ -435,7 +435,11 @@ pub fn window_traffic_lights(focused: bool, fixed: bool) -> TrafficLights {
     let behavior = *window_behavior();
     let green = green_action(behavior.green_button, fixed);
     TrafficLights::new()
-        .round(crate::chrome::chrome_style().round_lights)
+        .round(
+            crate::chrome::chrome_style().round_lights
+                || crate::theme::resolved().traffic_shape
+                    == vow_appearance::TrafficLightShape::Round,
+        )
         .focused(focused)
         .zoom_supported(green != TitlebarAction::None)
         .fixed_width(fixed)

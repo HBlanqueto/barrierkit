@@ -356,6 +356,17 @@ pub(super) fn palette(tokens: &Value, components: &Value, theme: &str) -> String
     } else {
         format!("Some({})", rgba(inner))
     };
+    let panel_sides = theme_color(tokens, theme, "panel-inner");
+    let panel_edges = theme_color(tokens, theme, "panel-inner-edge");
+    let panel_inner = if panel_sides.a == 0 && panel_edges.a == 0 {
+        "None".to_string()
+    } else {
+        format!(
+            "Some(PanelLine {{ sides: {}, edges: {} }})",
+            rgba(panel_sides),
+            rgba(panel_edges)
+        )
+    };
     let inactive = color_ref(
         tokens,
         theme,
@@ -372,6 +383,7 @@ pub(super) fn palette(tokens: &Value, components: &Value, theme: &str) -> String
          \x20   titlebar_bg: FocusPair {{ focused: {}, unfocused: {} }},\n\
          \x20   hairline: {},\n\
          \x20   inner_line: {inner},\n\
+         \x20   panel_inner_line: {panel_inner},\n\
          \x20   outer_border: {},\n\
          \x20   title: FocusPair {{ focused: {}, unfocused: {} }},\n\
          \x20   text: FocusPair {{ focused: {}, unfocused: {} }},\n\

@@ -65,6 +65,7 @@ color_scheme = "dark"            # auto | light | dark | dark_tint
 accent_color = [0.18, 0.44, 0.89]
 sidebar_style = "island"         # island | flat
 traffic_lights = "auto"          # auto | standard | accent | wallpaper
+traffic_light_shape = "square"  # square | round
 window_color = "neutral"         # neutral | accent | wallpaper
 tint_parts = ["sidebars", "window", "groups", "controls", "menus"]
 tint_strength_accent = "normal"  # subtle | normal | strong | intense
