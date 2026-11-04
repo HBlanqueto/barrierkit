@@ -5,9 +5,9 @@ use super::{
     extension::Extension,
     input::seat::{RepeatState, cursor_shape_from_icon},
     popup::PopupCommand,
-    surface::SurfaceWindow,
+    surface::{SurfaceRole, SurfaceWindow},
     timer::{TimerQueue, Wake},
-    vulkan::GraphicsShared,
+    vulkan::{GraphicsShared, IDLE_RESOURCE_RELEASE},
     window::{WindowCommand, WindowControls},
 };
 use freya_core::prelude::State;
@@ -32,6 +32,7 @@ use sctk::{
             self, EventLoop, Interest, LoopSignal, Mode, PostAction,
             generic::Generic,
             ping::{Ping, PingSource},
+            timer::{TimeoutAction, Timer},
         },
         client::{
             Connection, Proxy, QueueHandle,
@@ -207,6 +208,17 @@ pub(crate) fn insert_ping(
             shell.redraw_all();
         })
         .map_err(|_| RunError::EventLoop("inserting the wake ping source"))?;
+
+    event_loop
+        .handle()
+        .insert_source(
+            Timer::from_duration(IDLE_RESOURCE_RELEASE),
+            |_, _, shell: &mut Runtime| {
+                shell.graphics.release_idle_resources();
+                TimeoutAction::ToDuration(IDLE_RESOURCE_RELEASE)
+            },
+        )
+        .map_err(|_| RunError::EventLoop("inserting the idle resource timer"))?;
 
     let watch = AppearanceWatch::new().map_err(|error| {
         RunError::Io(std::io::Error::other(format!(
@@ -432,7 +444,26 @@ impl OutputHandler for Runtime {
 
     fn update_output(&mut self, _: &Connection, _: &QueueHandle<Self>, _: wl_output::WlOutput) {}
 
-    fn output_destroyed(&mut self, _: &Connection, _: &QueueHandle<Self>, _: wl_output::WlOutput) {}
+    fn output_destroyed(
+        &mut self,
+        _: &Connection,
+        _: &QueueHandle<Self>,
+        output: wl_output::WlOutput,
+    ) {
+        let gone = Some(output.id());
+        while let Some(index) = self
+            .surfaces
+            .iter()
+            .position(|surface| surface.output == gone)
+        {
+            // The role object goes before its wl_surface, as in window close.
+            drop(std::mem::replace(
+                &mut self.surfaces[index].role,
+                SurfaceRole::None,
+            ));
+            self.surfaces.remove(index);
+        }
+    }
 }
 
 delegate_compositor!(Runtime);

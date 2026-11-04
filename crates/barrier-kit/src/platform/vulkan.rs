@@ -15,6 +15,7 @@ use std::{
     ffi::{CStr, c_void},
     mem::ManuallyDrop,
     rc::Rc,
+    time::Duration,
 };
 
 const INSTANCE_EXTENSIONS: [&CStr; 2] = [surface::NAME, wayland_surface::NAME];
@@ -207,7 +208,16 @@ impl GraphicsShared {
     }
 }
 
+// Skia keeps up to its cache limit of GPU memory alive; anything idle this long is released.
+pub(crate) const IDLE_RESOURCE_RELEASE: Duration = Duration::from_secs(10);
+
 impl GraphicsShared {
+    pub(crate) fn release_idle_resources(&self) {
+        self.gr
+            .borrow_mut()
+            .perform_deferred_cleanup(IDLE_RESOURCE_RELEASE, None);
+    }
+
     #[cfg(feature = "video")]
     pub(crate) fn finish_gpu_work(&self) {
         self.gr.borrow_mut().flush_and_submit();
@@ -266,6 +276,7 @@ pub(crate) struct Graphics {
     surface: ash_vk::SurfaceKHR,
     swapchain: ash_vk::SwapchainKHR,
     images: Vec<ash_vk::Image>,
+    targets: Vec<SkiaSurface>,
     rendered: Vec<ash_vk::Semaphore>,
     acquired: ash_vk::Fence,
     image_index: u32,
@@ -280,6 +291,7 @@ impl Graphics {
             surface: ash_vk::SurfaceKHR::null(),
             swapchain: ash_vk::SwapchainKHR::null(),
             images: Vec::new(),
+            targets: Vec::new(),
             rendered: Vec::new(),
             acquired: ash_vk::Fence::null(),
             image_index: 0,
@@ -403,6 +415,12 @@ impl Graphics {
                 .collect::<Result<_, _>>()
                 .map_err(failed("vkCreateSemaphore"))?;
         }
+        self.targets = self
+            .images
+            .iter()
+            .map(|image| wrap_swapchain_image(&shared, *image, size))
+            .collect::<Option<_>>()
+            .ok_or(RunError::Vulkan("Skia could not wrap the swapchain image"))?;
         shared
             .swapchain_creations
             .set(shared.swapchain_creations.get() + 1);
@@ -412,6 +430,8 @@ impl Graphics {
 
     // SAFETY: callers ensure the device is idle.
     unsafe fn destroy_swapchain(&mut self) {
+        self.skia = None;
+        self.targets.clear();
         let shared = &self.shared;
         for semaphore in self.rendered.drain(..) {
             // SAFETY: the device is idle, so no queue operation waits on it.
@@ -454,34 +474,7 @@ impl Graphics {
         }
         .map_err(failed("vkWaitForFences"))?;
         self.image_index = index;
-        // SAFETY: the image belongs to the swapchain and stays alive until it is recreated.
-        let image_info = unsafe {
-            vk::ImageInfo::new(
-                self.images[index as usize].as_raw() as _,
-                vk::Alloc::default(),
-                vk::ImageTiling::OPTIMAL,
-                vk::ImageLayout::UNDEFINED,
-                vk::Format::B8G8R8A8_UNORM,
-                1,
-                None,
-                None,
-                None,
-                vk::SharingMode::EXCLUSIVE,
-            )
-        };
-        let render_target =
-            backend_render_targets::make_vk((self.size.0 as i32, self.size.1 as i32), &image_info);
-        self.skia = wrap_backend_render_target(
-            &mut shared.gr.borrow_mut(),
-            &render_target,
-            SurfaceOrigin::TopLeft,
-            ColorType::BGRA8888,
-            None,
-            None,
-        );
-        if self.skia.is_none() {
-            return Err(RunError::Vulkan("Skia could not wrap the swapchain image"));
-        }
+        self.skia = Some(self.targets[index as usize].clone());
         Ok(())
     }
 
@@ -517,14 +510,47 @@ impl Graphics {
                     .image_indices(&indices),
             )
         };
+        // VK_SUBOPTIMAL_KHR still presented; recreating on it loops when nothing can fix it.
         match presented {
-            Ok(false) => Ok(()),
-            Ok(true) | Err(ash_vk::Result::ERROR_OUT_OF_DATE_KHR) => {
-                self.recreate_swapchain(self.size)
-            }
+            Ok(_) => Ok(()),
+            Err(ash_vk::Result::ERROR_OUT_OF_DATE_KHR) => self.recreate_swapchain(self.size),
             Err(_) => Err(RunError::Vulkan("vkQueuePresentKHR")),
         }
     }
+}
+
+// Skia's VulkanWindowContext keeps one SkSurface per swapchain image as well.
+fn wrap_swapchain_image(
+    shared: &GraphicsShared,
+    image: ash_vk::Image,
+    size: (u32, u32),
+) -> Option<SkiaSurface> {
+    // SAFETY: the image belongs to the swapchain and outlives the surface, which
+    // destroy_swapchain drops first.
+    let image_info = unsafe {
+        vk::ImageInfo::new(
+            image.as_raw() as _,
+            vk::Alloc::default(),
+            vk::ImageTiling::OPTIMAL,
+            vk::ImageLayout::UNDEFINED,
+            vk::Format::B8G8R8A8_UNORM,
+            1,
+            None,
+            None,
+            None,
+            vk::SharingMode::EXCLUSIVE,
+        )
+    };
+    let render_target =
+        backend_render_targets::make_vk((size.0 as i32, size.1 as i32), &image_info);
+    wrap_backend_render_target(
+        &mut shared.gr.borrow_mut(),
+        &render_target,
+        SurfaceOrigin::TopLeft,
+        ColorType::BGRA8888,
+        None,
+        None,
+    )
 }
 
 impl Drop for Graphics {

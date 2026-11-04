@@ -21,8 +21,8 @@ callbacks del compositor.
 |---|---|
 | Instancia | `VK_KHR_surface` y `VK_KHR_wayland_surface` |
 | Dispositivo | El primero que puede presentar en el display; la capa device-select de Mesa pone primero la GPU del compositor |
-| Contexto | Un `DirectContext` de Skia compartido por todas las ventanas, con 128 MB de caché |
-| Swapchain | Una por superficie, `B8G8R8A8_UNORM`, alfa premultiplicado; `MAILBOX` si existe, si no `FIFO` |
+| Contexto | Un `DirectContext` de Skia compartido por todas las ventanas, con 128 MB de caché; cada 10 s libera lo que lleva 10 s sin usarse |
+| Swapchain | Una por superficie, `B8G8R8A8_UNORM`, alfa premultiplicado; `MAILBOX` si existe, si no `FIFO`; una `SkSurface` por imagen |
 
 Con la feature `video` el dispositivo activa además las extensiones de
 importación dmabuf (capítulo [13](13-fondos-y-medios.md)). La decisión está en
