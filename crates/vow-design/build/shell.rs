@@ -143,6 +143,21 @@ pub(super) fn emit_metrics(out: &mut String, tokens: &Value, components: &Value)
         ),
         ("MENUBAR_MARGIN", "i32", "components.shell.menubar.margin"),
         (
+            "MENUBAR_MARGIN_RIGHT",
+            "i32",
+            "components.shell.menubar.margin-right",
+        ),
+        (
+            "MENUBAR_TITLE_PADDING_X",
+            "f32",
+            "components.shell.menubar.title-padding-x",
+        ),
+        (
+            "MENUBAR_TEXT_LIFT",
+            "f32",
+            "components.shell.menubar.text-lift",
+        ),
+        (
             "MENUBAR_TITLE_MAX_WIDTH",
             "f32",
             "components.shell.menubar.title-max-width",

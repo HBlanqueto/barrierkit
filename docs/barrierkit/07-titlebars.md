@@ -253,7 +253,7 @@ barra lateral en isla: el `Rail` sigue a la izquierda.
 | ![Rail con isla y la ventana maximizada](assets/estados/isla-rail-maximizada.png) | ![Rail con isla en modo foco](assets/estados/isla-rail-foco.png) |
 
 Las capturas de esta tabla usan la barra lateral plana (salvo `Top`) y la barra por
-defecto (`Solid`). La franja negra de arriba (28 px) es la barra del
+defecto (`Solid`). La franja negra de arriba (30 px) es la barra del
 compositor, añadida a la imagen: la app no la dibuja.
 
 | Diseño | Qué baja | Cómo se ve |

@@ -252,7 +252,7 @@ with an island sidebar: the `Rail` stays on the left.
 | ![Rail with an island and the window maximized](assets/estados/isla-rail-maximizada.png) | ![Rail with an island in focus mode](assets/estados/isla-rail-foco.png) |
 
 The screenshots in this table use the flat sidebar (except `Top`) and the default bar (`Solid`). The
-black strip at the top (28 px) is the compositor bar, added to the image: the
+black strip at the top (30 px) is the compositor bar, added to the image: the
 app does not draw it.
 
 | Layout | What comes down | How it looks |

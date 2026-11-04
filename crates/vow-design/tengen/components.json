@@ -743,12 +743,15 @@
     },
     "shell": {
       "menubar": {
-        "height": 28,
+        "height": 30,
         "font-size": 13,
         "app-name": {
           "weight": 700
         },
         "margin": 10,
+        "margin-right": 8,
+        "title-padding-x": 10,
+        "text-lift": 1,
         "title-max-width": 240,
         "bg": "{shell-bar}",
         "text": "{ink-strong}",
