@@ -23,7 +23,7 @@ compositor's frame callbacks.
 | Instance | `VK_KHR_surface` and `VK_KHR_wayland_surface` |
 | Device | The first one that can present on the display; Mesa's device-select layer puts the compositor's GPU first |
 | Context | A Skia `DirectContext` shared by all windows, with a 128 MB cache; every 10 s it releases what went 10 s unused |
-| Swapchain | One per surface, `B8G8R8A8_UNORM`, premultiplied alpha; `MAILBOX` if available, otherwise `FIFO`; one `SkSurface` per image |
+| Swapchain | One per surface, `B8G8R8A8_UNORM`, premultiplied alpha; `MAILBOX` if available, otherwise `FIFO`; one `SkSurface` per image. With `VK_EXT_swapchain_maintenance1`, each present carries a fence and a resize retires the old swapchain without waiting for the GPU; it is destroyed once its last present signals |
 
 With the `video` feature the device also enables the dmabuf import extensions
 (chapter [13](13-fondos-y-medios.en.md)). The decision is in

@@ -12,6 +12,7 @@ use sctk::reexports::client::{Proxy, protocol::wl_surface::WlSurface};
 use skia_safe::{gpu::FlushInfo, surfaces::BackendSurfaceAccess};
 use std::{
     cell::{Cell, RefCell},
+    collections::VecDeque,
     ffi::{CStr, c_void},
     mem::ManuallyDrop,
     rc::Rc,
@@ -20,6 +21,10 @@ use std::{
 
 const INSTANCE_EXTENSIONS: [&CStr; 2] = [surface::NAME, wayland_surface::NAME];
 const DEVICE_EXTENSIONS: [&CStr; 1] = [swapchain::NAME];
+const SURFACE_MAINTENANCE_EXTENSIONS: [&CStr; 2] = [
+    ash::khr::get_surface_capabilities2::NAME,
+    ash::ext::surface_maintenance1::NAME,
+];
 #[cfg(feature = "video")]
 const DMABUF_EXTENSIONS: [&CStr; 4] = [
     ash::khr::external_memory_fd::NAME,
@@ -55,6 +60,7 @@ pub(crate) struct GraphicsShared {
     pub(crate) font_collection: FontCollection,
     pub(crate) font_manager: FontMgr,
     pub(crate) swapchain_creations: Cell<usize>,
+    present_fences: bool,
 }
 
 impl GraphicsShared {
@@ -68,7 +74,25 @@ impl GraphicsShared {
             .flatten()
             .unwrap_or(ash_vk::API_VERSION_1_0);
         let app_info = ash_vk::ApplicationInfo::default().api_version(api_version);
-        let extensions = INSTANCE_EXTENSIONS.map(CStr::as_ptr);
+        // SAFETY: `entry` holds a loaded libvulkan.
+        let instance_available: Vec<_> =
+            unsafe { entry.enumerate_instance_extension_properties(None) }
+                .unwrap_or_default()
+                .iter()
+                .filter_map(|ext| ext.extension_name_as_c_str().ok().map(CStr::to_owned))
+                .collect();
+        let surface_maintenance = api_version >= ash_vk::API_VERSION_1_1
+            && SURFACE_MAINTENANCE_EXTENSIONS
+                .iter()
+                .all(|name| instance_available.iter().any(|ext| ext.as_c_str() == *name));
+        let mut instance_extensions = INSTANCE_EXTENSIONS.to_vec();
+        if surface_maintenance {
+            instance_extensions.extend(SURFACE_MAINTENANCE_EXTENSIONS);
+        }
+        let extensions: Vec<_> = instance_extensions
+            .iter()
+            .map(|name| name.as_ptr())
+            .collect();
         // SAFETY: the create info only borrows locals that outlive the call.
         let instance = unsafe {
             entry.create_instance(
@@ -118,18 +142,24 @@ impl GraphicsShared {
             }
             enabled
         };
-        let extensions: Vec<_> = enabled.iter().map(|name| name.as_ptr()).collect();
-        // SAFETY: `physical_device` comes from `instance`; the create info borrows locals.
-        let device = unsafe {
-            instance.create_device(
-                physical_device,
-                &ash_vk::DeviceCreateInfo::default()
-                    .queue_create_infos(std::slice::from_ref(&queue_info))
-                    .enabled_extension_names(&extensions),
-                None,
-            )
+        let present_fences =
+            surface_maintenance && supports_present_fences(&instance, physical_device);
+        let mut enabled = enabled;
+        if present_fences {
+            enabled.push(ash::ext::swapchain_maintenance1::NAME);
         }
-        .map_err(failed("vkCreateDevice"))?;
+        let extensions: Vec<_> = enabled.iter().map(|name| name.as_ptr()).collect();
+        let mut maintenance = ash_vk::PhysicalDeviceSwapchainMaintenance1FeaturesEXT::default()
+            .swapchain_maintenance1(true);
+        let mut device_info = ash_vk::DeviceCreateInfo::default()
+            .queue_create_infos(std::slice::from_ref(&queue_info))
+            .enabled_extension_names(&extensions);
+        if present_fences {
+            device_info = device_info.push_next(&mut maintenance);
+        }
+        // SAFETY: `physical_device` comes from `instance`; the create info borrows locals.
+        let device = unsafe { instance.create_device(physical_device, &device_info, None) }
+            .map_err(failed("vkCreateDevice"))?;
         // SAFETY: the device was created with one queue in `queue_family_index`.
         let queue = unsafe { device.get_device_queue(queue_family_index, 0) };
         let swapchain_fns = swapchain::Device::new(&instance, &device);
@@ -204,6 +234,7 @@ impl GraphicsShared {
             font_collection: crate::fonts::collection(),
             font_manager: crate::fonts::manager(),
             swapchain_creations: Cell::new(0),
+            present_fences,
         })
     }
 }
@@ -224,6 +255,22 @@ impl GraphicsShared {
         // SAFETY: the device is alive for `self`.
         let _ = unsafe { self.device.device_wait_idle() };
     }
+}
+
+fn supports_present_fences(instance: &Instance, device: ash_vk::PhysicalDevice) -> bool {
+    // SAFETY: `device` comes from `instance`.
+    let has_extension = unsafe { instance.enumerate_device_extension_properties(device) }
+        .unwrap_or_default()
+        .iter()
+        .any(|ext| ext.extension_name_as_c_str() == Ok(ash::ext::swapchain_maintenance1::NAME));
+    if !has_extension {
+        return false;
+    }
+    let mut maintenance = ash_vk::PhysicalDeviceSwapchainMaintenance1FeaturesEXT::default();
+    let mut features = ash_vk::PhysicalDeviceFeatures2::default().push_next(&mut maintenance);
+    // SAFETY: the instance is Vulkan 1.1, so vkGetPhysicalDeviceFeatures2 exists.
+    unsafe { instance.get_physical_device_features2(device, &mut features) };
+    maintenance.swapchain_maintenance1 == ash_vk::TRUE
 }
 
 // Mesa's device-select layer lists first the GPU the Wayland compositor uses:
@@ -279,9 +326,19 @@ pub(crate) struct Graphics {
     targets: Vec<SkiaSurface>,
     rendered: Vec<ash_vk::Semaphore>,
     acquired: ash_vk::Fence,
+    presents: VecDeque<ash_vk::Fence>,
+    spare_fences: Vec<ash_vk::Fence>,
+    retired: Vec<Retired>,
     image_index: u32,
     pub(crate) skia: Option<SkiaSurface>,
     size: (u32, u32),
+}
+
+struct Retired {
+    swapchain: ash_vk::SwapchainKHR,
+    targets: Vec<SkiaSurface>,
+    rendered: Vec<ash_vk::Semaphore>,
+    presents: VecDeque<ash_vk::Fence>,
 }
 
 impl Graphics {
@@ -294,6 +351,9 @@ impl Graphics {
             targets: Vec::new(),
             rendered: Vec::new(),
             acquired: ash_vk::Fence::null(),
+            presents: VecDeque::new(),
+            spare_fences: Vec::new(),
+            retired: Vec::new(),
             image_index: 0,
             skia: None,
             size: (0, 0),
@@ -388,17 +448,24 @@ impl Graphics {
             .present_mode(present_mode)
             .clipped(true)
             .old_swapchain(self.swapchain);
-        // SAFETY: the device is idle before the old swapchain and its semaphores go away.
+        // SAFETY: without present fences the device is idle before the old swapchain and its
+        // semaphores go away; with them the old swapchain waits in `retired` for its last present.
         unsafe {
-            shared
-                .device
-                .device_wait_idle()
-                .map_err(failed("vkDeviceWaitIdle"))?;
+            if !shared.present_fences {
+                shared
+                    .device
+                    .device_wait_idle()
+                    .map_err(failed("vkDeviceWaitIdle"))?;
+            }
             let swapchain = shared
                 .swapchain_fns
                 .create_swapchain(&info, None)
                 .map_err(failed("vkCreateSwapchainKHR"))?;
-            self.destroy_swapchain();
+            if shared.present_fences {
+                self.retire_swapchain();
+            } else {
+                self.destroy_swapchain();
+            }
             self.swapchain = swapchain;
             self.images = shared
                 .swapchain_fns
@@ -426,6 +493,67 @@ impl Graphics {
             .set(shared.swapchain_creations.get() + 1);
         self.size = size;
         Ok(())
+    }
+
+    fn retire_swapchain(&mut self) {
+        self.skia = None;
+        self.images.clear();
+        if self.swapchain.is_null() {
+            return;
+        }
+        self.retired.push(Retired {
+            swapchain: std::mem::replace(&mut self.swapchain, ash_vk::SwapchainKHR::null()),
+            targets: std::mem::take(&mut self.targets),
+            rendered: std::mem::take(&mut self.rendered),
+            presents: std::mem::take(&mut self.presents),
+        });
+    }
+
+    // VK_EXT_swapchain_maintenance1: present fences signal in present order, and a swapchain
+    // may be destroyed once the fences of all its presents have signaled.
+    fn reclaim_presented(&mut self) {
+        let shared = self.shared.clone();
+        // SAFETY: every fence here belongs to `device`.
+        let signaled =
+            |fence: &ash_vk::Fence| unsafe { shared.device.get_fence_status(*fence) } == Ok(true);
+        while self.presents.front().is_some_and(signaled) {
+            if let Some(fence) = self.presents.pop_front() {
+                self.recycle_fence(fence);
+            }
+        }
+        let (done, pending): (Vec<_>, Vec<_>) = std::mem::take(&mut self.retired)
+            .into_iter()
+            .partition(|retired| retired.presents.back().is_none_or(signaled));
+        self.retired = pending;
+        for retired in done {
+            // SAFETY: the last present of this swapchain finished, so no queue operation
+            // still uses its images or semaphores.
+            for fence in unsafe { destroy_retired(&shared, retired) } {
+                self.recycle_fence(fence);
+            }
+        }
+    }
+
+    fn recycle_fence(&mut self, fence: ash_vk::Fence) {
+        // SAFETY: the fence is signaled, so no queue operation still uses it.
+        match unsafe { self.shared.device.reset_fences(&[fence]) } {
+            Ok(()) => self.spare_fences.push(fence),
+            // SAFETY: as above.
+            Err(_) => unsafe { self.shared.device.destroy_fence(fence, None) },
+        }
+    }
+
+    fn present_fence(&mut self) -> Result<ash_vk::Fence, RunError> {
+        if let Some(fence) = self.spare_fences.pop() {
+            return Ok(fence);
+        }
+        // SAFETY: `device` is alive; the create info has no pointers.
+        unsafe {
+            self.shared
+                .device
+                .create_fence(&ash_vk::FenceCreateInfo::default(), None)
+        }
+        .map_err(failed("vkCreateFence"))
     }
 
     // SAFETY: callers ensure the device is idle.
@@ -495,21 +623,44 @@ impl Graphics {
         let signal = ash_vk::SubmitInfo::default().signal_semaphores(&rendered);
         let swapchains = [self.swapchain];
         let indices = [self.image_index];
-        // SAFETY: the empty submit orders after Skia's on the same queue; the semaphore of
-        // this image is free because its previous present finished before it was acquired.
-        let presented = unsafe {
+        // SAFETY: the empty submit orders after Skia's on the same queue.
+        unsafe {
             shared
                 .device
                 .queue_submit(shared.queue, &[signal], ash_vk::Fence::null())
                 .map_err(failed("vkQueueSubmit"))?;
-            shared.swapchain_fns.queue_present(
-                shared.queue,
-                &ash_vk::PresentInfoKHR::default()
-                    .wait_semaphores(&rendered)
-                    .swapchains(&swapchains)
-                    .image_indices(&indices),
-            )
+        }
+        self.reclaim_presented();
+        let present_fence = if shared.present_fences {
+            Some(self.present_fence()?)
+        } else {
+            None
         };
+        let fences = [present_fence.unwrap_or_default()];
+        let mut fence_info = ash_vk::SwapchainPresentFenceInfoEXT::default().fences(&fences);
+        let mut present_info = ash_vk::PresentInfoKHR::default()
+            .wait_semaphores(&rendered)
+            .swapchains(&swapchains)
+            .image_indices(&indices);
+        if present_fence.is_some() {
+            present_info = present_info.push_next(&mut fence_info);
+        }
+        // SAFETY: the semaphore of this image is free because its previous present finished
+        // before it was acquired.
+        let presented = unsafe {
+            shared
+                .swapchain_fns
+                .queue_present(shared.queue, &present_info)
+        };
+        if let Some(fence) = present_fence {
+            // An out-of-date present is still enqueued, so its fence signals.
+            match presented {
+                Ok(_) | Err(ash_vk::Result::ERROR_OUT_OF_DATE_KHR) => {
+                    self.presents.push_back(fence)
+                }
+                Err(_) => self.spare_fences.push(fence),
+            }
+        }
         // VK_SUBOPTIMAL_KHR still presented; recreating on it loops when nothing can fix it.
         match presented {
             Ok(_) => Ok(()),
@@ -517,6 +668,24 @@ impl Graphics {
             Err(_) => Err(RunError::Vulkan("vkQueuePresentKHR")),
         }
     }
+}
+
+// SAFETY: callers ensure no queue operation still uses the swapchain or its semaphores.
+unsafe fn destroy_retired(shared: &GraphicsShared, retired: Retired) -> VecDeque<ash_vk::Fence> {
+    let Retired {
+        swapchain,
+        targets,
+        rendered,
+        presents,
+    } = retired;
+    drop(targets);
+    for semaphore in rendered {
+        // SAFETY: as the caller ensures.
+        unsafe { shared.device.destroy_semaphore(semaphore, None) };
+    }
+    // SAFETY: as the caller ensures.
+    unsafe { shared.swapchain_fns.destroy_swapchain(swapchain, None) };
+    presents
 }
 
 // Skia's VulkanWindowContext keeps one SkSurface per swapchain image as well.
@@ -561,6 +730,17 @@ impl Drop for Graphics {
         unsafe {
             let _ = shared.device.device_wait_idle();
             self.destroy_swapchain();
+            let retired_fences: Vec<_> = std::mem::take(&mut self.retired)
+                .into_iter()
+                .flat_map(|retired| destroy_retired(&shared, retired))
+                .collect();
+            for fence in retired_fences
+                .into_iter()
+                .chain(self.presents.drain(..))
+                .chain(self.spare_fences.drain(..))
+            {
+                shared.device.destroy_fence(fence, None);
+            }
             shared.device.destroy_fence(self.acquired, None);
             shared.surface_fns.destroy_surface(self.surface, None);
         }
