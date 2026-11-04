@@ -39,10 +39,12 @@ PreferencesWindow::new()
 | `.account(..)` | Fila de cuenta arriba de la barra |
 | `.restoration(app_id)` | Guarda y restaura el panel abierto, las búsquedas recientes y el ancho y visibilidad de la barra |
 | `.suggestions(&[ids])` | Paneles sugeridos cuando el buscador está vacío |
-| `.sidebar_resizable(bool)`, `.sidebar_range(Option<(mín, máx)>)` | Pasan a `SplitView` (capítulo [8](08-barra-lateral.md)) |
+| `.sidebar_resizable(bool)`, `.sidebar_range(Option<(mín, máx)>)`, `.narrow_sidebar(NarrowSidebar)` | Pasan a `SplitView` (capítulo [8](08-barra-lateral.md)) |
+| `.sidebar_toggle(false)` | Quita el botón `SidebarToggle` de la barra |
 
 ### El buscador
 
+- Una línea lo separa de la lista de paneles.
 - Busca en los títulos de los paneles y en los títulos y `keywords` de cada fila.
 - Muestra cada resultado con el icono de su panel. ↑, ↓ e Intro lo recorren.
 - Elegir un resultado abre el panel y resalta la fila.

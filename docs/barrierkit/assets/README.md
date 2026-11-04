@@ -8,6 +8,8 @@
 | `componentes/` | Un control o vista suelto, en claro y oscuro | Copia de `crates/barrier-kit/tests/golden/` |
 | `apps/` | Ventanas completas de las apps de prueba | Capturas de las apps en ejecución |
 | `ejemplos/` | Los ejemplos de `crates/barrier-kit/examples/` | Capturas de los ejemplos en ejecución |
+| `estados/` | Recortes de la titlebar y la barra lateral en cada estado (capítulo [7](../07-titlebars.md)) | Capturas de Tengen App Show en ejecución |
+| `marca/` | Icono y banner de BarrierKit | Logo en SVG y su versión PNG, en español e inglés |
 
 Todas son renders reales del código. Ninguna está retocada.
 

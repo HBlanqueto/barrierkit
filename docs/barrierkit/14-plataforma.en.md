@@ -79,9 +79,11 @@ through a single runner `Extension`
 
 ## The first frame
 
-The kit draws a window's first frame when its first configure arrives, without
-waiting for a frame callback. `xdg_surface` asks for this, and a compositor may
-not send frame callbacks to a surface without content. Later frames wait for
-their frame callback. Checked on 2026-11-03 on headless Weston 16.
+The kit draws the first frame of a window or a layer when its first configure
+arrives, without waiting for a frame callback. `xdg_surface` and
+`zwlr_layer_surface_v1` ask for this, and a compositor may not send frame
+callbacks to a surface without content. Later frames wait for their frame
+callback. Checked on 2026-11-03 on Weston 16 (window) and on 2026-11-04 on
+sway 1.12 (layer), both headless.
 
 Next: [15. Test apps](15-apps-de-prueba.en.md).

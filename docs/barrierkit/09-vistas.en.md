@@ -103,7 +103,7 @@ navigation_buttons(historial)
 ```
 
 `History<T>` keeps the back/forward stack. `navigation_buttons` draws ‹ and ›
-and responds to the `GO_BACK` (Alt+←) and `GO_FORWARD` (Alt+→) actions.
+in a `ToolGroup` capsule with a divider and responds to the `GO_BACK` (Alt+←) and `GO_FORWARD` (Alt+→) actions.
 
 ## Search: `SearchIndex`
 

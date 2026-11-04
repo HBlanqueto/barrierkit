@@ -39,10 +39,12 @@ PreferencesWindow::new()
 | `.account(..)` | Account row at the top of the sidebar |
 | `.restoration(app_id)` | Saves and restores the open pane, the recent searches and the width and visibility of the sidebar |
 | `.suggestions(&[ids])` | Suggested panes when the search field is empty |
-| `.sidebar_resizable(bool)`, `.sidebar_range(Option<(mín, máx)>)` | Passed on to `SplitView` (chapter [8](08-barra-lateral.en.md)) |
+| `.sidebar_resizable(bool)`, `.sidebar_range(Option<(mín, máx)>)`, `.narrow_sidebar(NarrowSidebar)` | Passed on to `SplitView` (chapter [8](08-barra-lateral.en.md)) |
+| `.sidebar_toggle(false)` | Removes the `SidebarToggle` button from the bar |
 
 ### The search field
 
+- A line separates it from the pane list.
 - It searches the pane titles and the titles and `keywords` of each row.
 - It shows each result with the icon of its pane. ↑, ↓ and Enter walk through
   them.

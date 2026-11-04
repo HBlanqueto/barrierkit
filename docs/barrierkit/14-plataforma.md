@@ -76,9 +76,11 @@ Los submódulos de `shell/` son privados y su API sale solo de `shell/mod.rs`.
 
 ## El primer frame
 
-El kit dibuja el primer frame de una ventana al recibir su primer configure,
-sin esperar un frame callback. Así lo pide `xdg_surface`, y un compositor puede
-no enviar frame callbacks a una superficie sin contenido. Los frames siguientes
-esperan su frame callback. Comprobado el 2026-11-03 en Weston 16 sin pantalla.
+El kit dibuja el primer frame de una ventana o una capa al recibir su primer
+configure, sin esperar un frame callback. Así lo piden `xdg_surface` y
+`zwlr_layer_surface_v1`, y un compositor puede no enviar frame callbacks a una
+superficie sin contenido. Los frames siguientes esperan su frame callback.
+Comprobado el 2026-11-03 en Weston 16 (ventana) y el 2026-11-04 en sway 1.12
+(capa), ambos sin pantalla.
 
 Siguiente: [15. Apps de prueba](15-apps-de-prueba.md).

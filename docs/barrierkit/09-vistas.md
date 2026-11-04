@@ -103,7 +103,7 @@ navigation_buttons(historial)
 ```
 
 `History<T>` guarda la pila atrás/adelante. `navigation_buttons` dibuja ‹ y ›
-y responde a las acciones `GO_BACK` (Alt+←) y `GO_FORWARD` (Alt+→).
+en una cápsula `ToolGroup` con divisor y responde a las acciones `GO_BACK` (Alt+←) y `GO_FORWARD` (Alt+→).
 
 ## Búsqueda: `SearchIndex`
 
