@@ -21,7 +21,7 @@ All of them are real renders of the code. None is retouched.
 
 ## Regenerating `apps/` and `ejemplos/`
 
-They were captured on 2026-11-03 on headless sway, with lavapipe as the Vulkan
+`apps/` was captured on 2026-11-04 and `ejemplos/` on 2026-11-03, on headless sway, with lavapipe as the Vulkan
 driver and the Geist font installed:
 
 1. Start headless sway with floating windows and CSD:
@@ -42,8 +42,9 @@ driver and the Geist font installed:
    - `MALAYSIA_DATA_DIR/io.github.hblanqueto.malaysia.<app>.state` with
      `pane = "<id>"` to open a pane;
    - `MALAYSIA_CONFIG_DIR/tengen-app-show.domain` with `layout = "Top"`, `"Rail"`…
-3. Launch the app with `VK_ICD_FILENAMES` pointing to lavapipe and wait a few
-   seconds.
+3. Launch the app with `VK_DRIVER_FILES` pointing to lavapipe's `lvp_icd` and
+   wait a few seconds. `nix develop` already sets `VK_DRIVER_FILES` to radeon,
+   and it wins over `VK_ICD_FILENAMES`.
 4. Crop the window with `grim -g "x,y ancho×alto"`, taking the geometry from
    `swaymsg -t get_tree`.
 

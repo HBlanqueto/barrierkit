@@ -21,7 +21,7 @@ Todas son renders reales del código. Ninguna está retocada.
 
 ## Regenerar `apps/` y `ejemplos/`
 
-Se capturaron el 2026-11-03 en sway sin pantalla, con lavapipe como driver
+`apps/` se capturó el 2026-11-04 y `ejemplos/` el 2026-11-03, en sway sin pantalla, con lavapipe como driver
 Vulkan y la fuente Geist instalada:
 
 1. Arranca sway sin pantalla con ventanas flotantes y CSD:
@@ -42,8 +42,9 @@ Vulkan y la fuente Geist instalada:
    - `MALAYSIA_DATA_DIR/io.github.hblanqueto.malaysia.<app>.state` con
      `pane = "<id>"` para abrir un panel;
    - `MALAYSIA_CONFIG_DIR/tengen-app-show.domain` con `layout = "Top"`, `"Rail"`…
-3. Lanza la app con `VK_ICD_FILENAMES` apuntando a lavapipe y espera unos
-   segundos.
+3. Lanza la app con `VK_DRIVER_FILES` apuntando al `lvp_icd` de lavapipe y
+   espera unos segundos. `nix develop` ya fija `VK_DRIVER_FILES` a radeon, y
+   gana a `VK_ICD_FILENAMES`.
 4. Recorta la ventana con `grim -g "x,y ancho×alto"`, tomando la geometría de
    `swaymsg -t get_tree`.
 
