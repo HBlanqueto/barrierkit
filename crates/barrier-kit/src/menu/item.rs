@@ -2,38 +2,48 @@ use super::*;
 
 pub(super) const MARK_TEXT_GAP: f32 = 6.0;
 
-pub(super) fn has_leading_column(items: &[MenuItem]) -> bool {
-    let mut has = false;
-    for item in items {
-        match item {
-            MenuItem::Action { check, icon, .. } => {
-                if !matches!(check, CheckState::None) || icon.is_some() {
-                    has = true;
+#[derive(Clone, Copy, Default, PartialEq)]
+pub(super) struct LeadingColumns {
+    pub(super) marks: bool,
+    pub(super) icons: bool,
+}
+
+impl LeadingColumns {
+    pub(super) fn of(items: &[MenuItem]) -> Self {
+        let mut columns = Self::default();
+        for item in items {
+            match item {
+                MenuItem::Action { check, icon, .. } => {
+                    columns.marks |= !matches!(check, CheckState::None);
+                    columns.icons |= icon.is_some();
                 }
-            }
-            MenuItem::Submenu { icon, .. } => {
-                if icon.is_some() {
-                    has = true;
+                MenuItem::Submenu { icon, .. } => columns.icons |= icon.is_some(),
+                MenuItem::SearchResult { item, .. } => {
+                    let inner = Self::of(std::slice::from_ref(item));
+                    columns.marks |= inner.marks;
+                    columns.icons |= inner.icons;
                 }
+                _ => {}
             }
-            MenuItem::SearchResult { item, .. } => {
-                has |= has_leading_column(std::slice::from_ref(item));
-            }
-            _ => {}
         }
-        if has {
-            break;
-        }
+        columns
     }
-    has
+
+    pub(super) fn any(self) -> bool {
+        self.marks || self.icons
+    }
+
+    fn count(self) -> f32 {
+        f32::from(u8::from(self.marks) + u8::from(self.icons))
+    }
 }
 
 pub(super) fn row_text_inset(items: &[MenuItem], m: MenuPalette) -> f32 {
-    if has_leading_column(items) {
-        m.item_padding_x + m.leading_width + MARK_TEXT_GAP
-    } else {
-        m.item_padding_x
-    }
+    m.item_padding_x + LeadingColumns::of(items).count() * (m.leading_width + MARK_TEXT_GAP)
+}
+
+pub(crate) fn last_leading_column_inset(items: &[MenuItem], m: MenuPalette) -> f32 {
+    row_text_inset(items, m) - m.leading_width - MARK_TEXT_GAP
 }
 
 pub(super) fn svg_rgb(color: Rgba) -> String {
@@ -127,7 +137,7 @@ pub(super) fn render_item(
                 .as_ref()
                 .map(|s| measure_text(s, m.font_size))
                 .unwrap_or(0.0);
-            let has_leading = has_leading_column(&items);
+            let columns = LeadingColumns::of(&items);
             let text_inset = row_text_inset(&items, m);
             let max_label_w = (m.max_width
                 - 2.0 * m.padding
@@ -181,10 +191,11 @@ pub(super) fn render_item(
             let mut left = rect()
                 .direction(Direction::Horizontal)
                 .cross_align(Alignment::Center);
-            if has_leading {
+            if columns.any() {
                 left = left.spacing(MARK_TEXT_GAP).child(leading_slot(
                     icon.clone(),
                     check,
+                    columns,
                     fg,
                     shortcut_fg(enabled, is_focused, m),
                     m,
@@ -223,7 +234,7 @@ pub(super) fn render_item(
             } else {
                 None
             };
-            let has_leading = has_leading_column(&items);
+            let columns = LeadingColumns::of(&items);
             let mut row = rect()
                 .width(Size::fill())
                 .height(Size::px(m.item_height))
@@ -253,10 +264,11 @@ pub(super) fn render_item(
             let mut left = rect()
                 .direction(Direction::Horizontal)
                 .cross_align(Alignment::Center);
-            if has_leading {
+            if columns.any() {
                 left = left.spacing(MARK_TEXT_GAP).child(leading_slot(
                     icon.clone(),
                     CheckState::None,
+                    columns,
                     fg,
                     shortcut_fg(enabled, is_focused, m),
                     m,
@@ -563,13 +575,21 @@ pub(super) fn search_icon_element(
 pub(super) fn leading_slot(
     icon: Option<MenuIcon>,
     check: CheckState,
+    columns: LeadingColumns,
     fg: Rgba,
     icon_fg: Rgba,
     m: MenuPalette,
 ) -> Element {
-    if !matches!(check, CheckState::None) {
-        return mark_element(check, fg, m);
-    }
+    rect()
+        .direction(Direction::Horizontal)
+        .cross_align(Alignment::Center)
+        .spacing(MARK_TEXT_GAP)
+        .maybe_child(columns.marks.then(|| mark_element(check, fg, m)))
+        .maybe_child(columns.icons.then(|| icon_slot(icon, icon_fg, m)))
+        .into_element()
+}
+
+fn icon_slot(icon: Option<MenuIcon>, icon_fg: Rgba, m: MenuPalette) -> Element {
     let icon_elem = match icon {
         Some(MenuIcon::Svg(svg)) => SvgViewer::new(Bytes::from(svg.as_bytes().to_vec()))
             .width(Size::px(m.icon_size))
@@ -591,6 +611,12 @@ pub(super) fn leading_slot(
                     .into_element()
             },
         ),
+        Some(MenuIcon::Swatch(fill)) => rect()
+            .width(Size::px(m.icon_size))
+            .height(Size::px(m.icon_size))
+            .corner_radius(m.icon_size / 2.0)
+            .background(theme::color(fill))
+            .into_element(),
         None => rect()
             .width(Size::px(m.icon_size))
             .height(Size::px(m.icon_size))

@@ -93,7 +93,9 @@ ColorWell::new("Color de acento", &ACCENT_SWATCHES).selected(Some(0))
 | ![PopUpButton](assets/componentes/popup-button-light.png) | ![PopUpButton con icono SVG](assets/componentes/popup-button-icon-light.png) | ![ColorWell con ocho acentos](assets/componentes/color-well-light.png) |
 
 - `PopUpButton` abre un `MenuView` como popup; `.icon_item(texto, MenuIcon::svg(..))`
-  añade un icono.
+  añade un icono, y `MenuIcon::Swatch(color)`, un círculo de color.
+- En un menú, la marca y el icono tienen columna propia: una fila marcada
+  conserva su icono.
 - `ChoiceCards::new(..).option(rótulo, vista_previa)` muestra tarjetas grandes
   (como «Claro, Oscuro, Acento» en Tengen App Show).
 

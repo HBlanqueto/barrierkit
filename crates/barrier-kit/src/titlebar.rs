@@ -321,15 +321,13 @@ impl Component for Titlebar {
                 }))
                 .maybe_child(fixed_lights);
 
-            if resolved.sidebar.style == SidebarStyle::Flat {
-                root = root.child(
-                    rect()
-                        .position(Position::new_absolute().bottom(0.0).left(0.0))
-                        .width(Size::fill())
-                        .height(Size::px(1.0))
-                        .background(theme::color(crate::sidebar::sidebar_palette().line)),
-                );
-            }
+            root = root.child(
+                rect()
+                    .position(Position::new_absolute().bottom(0.0).left(0.0))
+                    .width(Size::fill())
+                    .height(Size::px(1.0))
+                    .background(theme::color(crate::sidebar::sidebar_palette().line)),
+            );
 
             return place(
                 crate::chrome::revealable_bar(root.into_element(), height),

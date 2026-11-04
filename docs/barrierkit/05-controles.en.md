@@ -93,7 +93,9 @@ ColorWell::new("Color de acento", &ACCENT_SWATCHES).selected(Some(0))
 | ![PopUpButton](assets/componentes/popup-button-light.png) | ![PopUpButton with SVG icon](assets/componentes/popup-button-icon-light.png) | ![ColorWell with eight accents](assets/componentes/color-well-light.png) |
 
 - `PopUpButton` opens a `MenuView` as a popup; `.icon_item(texto, MenuIcon::svg(..))`
-  adds an icon.
+  adds an icon, and `MenuIcon::Swatch(color)` adds a colour circle.
+- In a menu, the mark and the icon each have their own column: a checked row
+  keeps its icon.
 - `ChoiceCards::new(..).option(rótulo, vista_previa)` shows large cards (like
   «Claro, Oscuro, Acento», "Light, Dark, Accent", in Tengen App Show).
 

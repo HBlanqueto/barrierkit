@@ -52,6 +52,7 @@ pub enum MenuNavigation {
 pub enum MenuIcon {
     Svg(Arc<str>),
     Image(Arc<[u8]>),
+    Swatch(Rgba),
 }
 
 impl MenuIcon {

@@ -321,6 +321,7 @@ pub struct SettingsMetrics {
     pub popup_light_gap: u32,
     pub popup_text_gap: u32,
     pub selected_dark_mix: f32,
+    pub sidebar_width: u32,
     pub sidebar_lights_gap: u32,
     pub sidebar_search_gap: u32,
     pub sidebar_item_gap: u32,
@@ -548,6 +549,9 @@ pub struct ScrollBarMetrics {
     pub inset: f32,
     pub min_length: f32,
     pub opacity: f32,
+    pub track: f32,
+    pub track_opacity: f32,
+    pub always_opacity: f32,
     pub hide_delay_ms: u64,
 }
 
@@ -954,8 +958,8 @@ mod tests {
     #[test]
     fn settings_metrics_and_swatches_match_components() {
         assert_eq!(super::SETTINGS.label_column, 150);
-        assert_eq!(super::SETTINGS.window_width, 760);
-        assert_eq!(super::SETTINGS.window_height, 620);
+        assert_eq!(super::SETTINGS.window_width, 865);
+        assert_eq!(super::SETTINGS.window_height, 864);
         assert_eq!(super::SETTINGS.window_min_height, 480);
         assert_eq!(super::SETTINGS.search_height, 30);
         assert_eq!(super::SETTINGS.search_padding_x, 10);
@@ -1090,8 +1094,7 @@ mod tests {
     }
 
     #[test]
-    fn sidebar_island_light_has_no_rim_inner_or_shadow() {
-        assert_eq!(super::SIDEBAR_ISLAND_RIM_LIGHT.a, 0.0);
+    fn sidebar_island_light_has_no_inner_or_shadow() {
         assert_eq!(super::SIDEBAR_ISLAND_INNER_LIGHT.a, 0.0);
     }
 

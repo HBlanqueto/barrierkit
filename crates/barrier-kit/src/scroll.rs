@@ -146,6 +146,30 @@ fn thumb(viewport: f32, content: f32, scrolled: f32) -> Option<(f32, f32)> {
     Some((travel * (viewport - length), length))
 }
 
+fn bar_rect(horizontal: bool, offset: f32, length: f32, breadth: f32) -> Rect {
+    let (position, width, height) = if horizontal {
+        (
+            Position::new_absolute()
+                .left(offset)
+                .bottom(SCROLL_BAR.inset),
+            length,
+            breadth,
+        )
+    } else {
+        (
+            Position::new_absolute().top(offset).right(SCROLL_BAR.inset),
+            breadth,
+            length,
+        )
+    };
+    rect()
+        .position(position)
+        .layer(THUMB_LAYER)
+        .width(Size::px(width))
+        .height(Size::px(height))
+        .corner_radius(breadth / 2.0)
+}
+
 impl Component for ScrollView {
     fn render(&self) -> impl IntoElement {
         let resolved = crate::theme::resolved();
@@ -183,9 +207,19 @@ impl Component for ScrollView {
                 .function(Function::Cubic)
         });
         let visibility = if always { 1.0 } else { fade.get().value() };
+        let (breadth, opacity, edge) = if always {
+            (
+                SCROLL_BAR.track,
+                SCROLL_BAR.always_opacity,
+                SCROLL_BAR.inset,
+            )
+        } else {
+            (SCROLL_BAR.thumb, SCROLL_BAR.opacity, 0.0)
+        };
+        let track_length = along(*viewport.read()) - 2.0 * edge;
         let bar = thumb(
-            along(*viewport.read()),
-            along(*content.read()),
+            track_length,
+            along(*content.read()) - 2.0 * edge,
             scrolled as f32,
         )
         .filter(|_| self.scroll_bar && visibility > 0.0);
@@ -210,32 +244,17 @@ impl Component for ScrollView {
                             .children(self.children.clone()),
                     ),
             )
+            .maybe_child(bar.filter(|_| always).map(|_| {
+                bar_rect(horizontal, edge, track_length, breadth).background(color(Rgba {
+                    a: SCROLL_BAR.track_opacity,
+                    ..ink
+                }))
+            }))
             .maybe_child(bar.map(|(offset, length)| {
-                let (position, width, height) = if horizontal {
-                    (
-                        Position::new_absolute()
-                            .left(offset)
-                            .bottom(SCROLL_BAR.inset),
-                        length,
-                        SCROLL_BAR.thumb,
-                    )
-                } else {
-                    (
-                        Position::new_absolute().top(offset).right(SCROLL_BAR.inset),
-                        SCROLL_BAR.thumb,
-                        length,
-                    )
-                };
-                rect()
-                    .position(position)
-                    .layer(THUMB_LAYER)
-                    .width(Size::px(width))
-                    .height(Size::px(height))
-                    .corner_radius(SCROLL_BAR.thumb / 2.0)
-                    .background(color(Rgba {
-                        a: SCROLL_BAR.opacity * visibility,
-                        ..ink
-                    }))
+                bar_rect(horizontal, edge + offset, length, breadth).background(color(Rgba {
+                    a: opacity * visibility,
+                    ..ink
+                }))
             }))
     }
 

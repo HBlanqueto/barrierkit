@@ -4,7 +4,7 @@ use crate::scroll::ScrollView;
 use freya_core::prelude::*;
 use serde::{Deserialize, Serialize};
 use torin::prelude::{Alignment, Direction, Gaps, Size};
-use vow_design::{Rgba, SETTINGS, SIDEBAR, SPACE_2};
+use vow_design::{Rgba, SETTINGS, SPACE_2};
 
 use crate::app::{load_restoration, save_restoration};
 use crate::controls::SearchField;
@@ -364,7 +364,7 @@ impl Component for PreferencesWindow {
                 ));
 
         let restored = saved.sidebar.unwrap_or(SidebarLayout {
-            width: SIDEBAR.width as f32,
+            width: SETTINGS.sidebar_width as f32,
             visible: true,
         });
         let split = SplitView::new(sidebar, detail)

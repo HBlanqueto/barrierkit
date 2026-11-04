@@ -366,11 +366,14 @@ pub(super) fn emit_compact(out: &mut String, tokens: &Value, components: &Value)
     ));
     const_doc(out, "SCROLL_BAR", "The Tengen scroll bar metrics.");
     out.push_str(&format!(
-        ": ScrollBarMetrics = ScrollBarMetrics {{ thumb: {}, inset: {}, min_length: {}, opacity: {}, hide_delay_ms: {} }};\n\n",
+        ": ScrollBarMetrics = ScrollBarMetrics {{ thumb: {}, inset: {}, min_length: {}, opacity: {}, track: {}, track_opacity: {}, always_opacity: {}, hide_delay_ms: {} }};\n\n",
         field("scroll-bar.thumb"),
         field("scroll-bar.inset"),
         field("scroll-bar.min-length"),
         field("scroll-bar.opacity"),
+        field("scroll-bar.track"),
+        field("scroll-bar.track-opacity"),
+        field("scroll-bar.always-opacity"),
         integer(components, "components.scroll-bar.hide-delay", COMPONENTS)
     ));
 }

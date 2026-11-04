@@ -239,6 +239,7 @@ pub(super) fn emit_settings(out: &mut String, tokens: &Value, components: &Value
         "components.settings.sidebar.lights-gap",
         COMPONENTS,
     ) as u32;
+    let sidebar_width = integer(components, "components.settings.sidebar.width", COMPONENTS) as u32;
     let sidebar_search_gap = integer(
         components,
         "components.settings.sidebar.search-gap",
@@ -434,6 +435,7 @@ pub(super) fn emit_settings(out: &mut String, tokens: &Value, components: &Value
          \x20   popup_light_gap: {popup_light_gap},\n\
          \x20   popup_text_gap: {popup_text_gap},\n\
          \x20   selected_dark_mix: {},\n\
+         \x20   sidebar_width: {sidebar_width},\n\
          \x20   sidebar_lights_gap: {sidebar_lights_gap},\n\
          \x20   sidebar_search_gap: {sidebar_search_gap},\n\
          \x20   sidebar_item_gap: {sidebar_item_gap},\n\

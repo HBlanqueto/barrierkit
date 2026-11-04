@@ -164,7 +164,7 @@ pub(crate) fn open_popover_menu(
             .map(|item| item.height(palette))
             .sum();
         let inset =
-            MENU_POPOVER.padding + MENU_POPOVER.item_padding_start + MENU_POPOVER.leading_column;
+            MENU_POPOVER.padding + crate::menu::last_leading_column_inset(&entries, palette);
         (
             -(inset.round() as i32),
             -((MENU_POPOVER.padding + above).round() as i32),

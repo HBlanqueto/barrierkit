@@ -479,8 +479,8 @@
     "settings": {
       "label-column": 150,
       "window": {
-        "width": 760,
-        "height": 620,
+        "width": 865,
+        "height": 864,
         "min-height": 480
       },
       "search": {
@@ -504,6 +504,7 @@
       "section-gap": 14,
       "section-icon-bg": "#2b2b2b",
       "sidebar": {
+        "width": 271,
         "lights-gap": 18,
         "search-gap": 12,
         "item-gap": 2,
@@ -634,7 +635,7 @@
       "inner-line": "window-inner"
     },
     "menu-popover": {
-      "item-height": 26,
+      "item-height": 24,
       "item-radius": "radius.sm",
       "padding": 5,
       "min-width": 180,
@@ -646,7 +647,7 @@
       "swatch-grid-size": 16,
       "swatch-grid-dot": 4,
       "swatch-grid-gap": 2,
-      "separator-margin": 4
+      "separator-margin": 5
     },
     "progress": {
       "height": 6,
@@ -723,7 +724,10 @@
       "thumb": 6,
       "inset": 3,
       "min-length": 50,
-      "opacity": 0.45
+      "opacity": 0.45,
+      "track": 11,
+      "track-opacity": 0.05,
+      "always-opacity": 0.55
     },
     "badge": {
       "height": 20,

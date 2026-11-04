@@ -651,7 +651,7 @@ fn submenu_keeps_its_own_inset() {
 }
 
 #[test]
-fn menu_without_columns_is_narrower_by_leading_column_and_gap() {
+fn menu_without_columns_is_narrower_by_both_leading_columns_and_gaps() {
     let label = "Opción bastante larga del menú sin columnas";
     let plain = vec![action(label)];
     let with_columns = vec![action_with(
@@ -664,13 +664,13 @@ fn menu_without_columns_is_narrower_by_leading_column_and_gap() {
     let (columns_w, _) = MenuView::preferred_size(&with_columns, m);
     assert_eq!(
         columns_w - plain_w,
-        m.leading_width + MARK_TEXT_GAP,
-        "plain menu should be narrower by the single unused leading column plus gap"
+        2.0 * (m.leading_width + MARK_TEXT_GAP),
+        "plain menu should be narrower by the mark and icon columns plus their gaps"
     );
 }
 
 #[test]
-fn menu_with_mark_or_icon_keeps_full_inset() {
+fn menu_with_mark_and_icon_insets_text_past_both_columns() {
     let items = vec![action_with(
         "Mixto",
         CheckState::Checkbox(true),
@@ -679,15 +679,15 @@ fn menu_with_mark_or_icon_keeps_full_inset() {
     let (runner, _) = make_runner(items);
     let m = MENU_LIGHT;
     let x = label_x(&runner, "Mixto");
-    let expected = m.padding + m.item_padding_x + m.leading_width + MARK_TEXT_GAP;
+    let expected = m.padding + m.item_padding_x + 2.0 * (m.leading_width + MARK_TEXT_GAP);
     assert!(
         (x - expected).abs() <= 1.0,
-        "full-inset text starts at {x}, expected {expected}"
+        "two-column text starts at {x}, expected {expected}"
     );
 }
 
 #[test]
-fn mark_takes_precedence_over_icon_in_leading_column() {
+fn a_checked_row_with_an_icon_keeps_the_mark_and_adds_the_icon_column() {
     let plain = vec![action_with("X", CheckState::Checkbox(true), None)];
     let with_icon = vec![action_with(
         "X",
@@ -696,10 +696,11 @@ fn mark_takes_precedence_over_icon_in_leading_column() {
     )];
     let (plain_runner, _) = make_runner(plain);
     let (icon_runner, _) = make_runner(with_icon);
-    assert_eq!(
-        label_x(&plain_runner, "X"),
-        label_x(&icon_runner, "X"),
-        "a checked row with an icon must align exactly like a checked row without one"
+    let m = MENU_LIGHT;
+    let shift = label_x(&icon_runner, "X") - label_x(&plain_runner, "X");
+    assert!(
+        (shift - (m.leading_width + MARK_TEXT_GAP)).abs() <= 1.0,
+        "the icon column shifts the text by {shift}"
     );
 }
 
