@@ -82,8 +82,8 @@ struct Shared {
 
 impl Drop for Shared {
     fn drop(&mut self) {
-        // A flushing seek leaves the pipeline mid-transition; tearing souphttpsrc down then
-        // crashes libsoup's thread in g_input_stream_close (seen with libsoup 3.4.4).
+        // Tearing souphttpsrc down mid-transition crashes libsoup 3 in g_input_stream_close:
+        // https://retrace.fedoraproject.org/faf/reports/1057654
         let _ = self.pipeline.state(gst::ClockTime::from_seconds(1));
         let _ = self.pipeline.set_state(gst::State::Null);
     }
@@ -384,7 +384,8 @@ struct Presenter {
     shown: Option<gst::Sample>,
     previous: Option<gst::Sample>,
     image: Option<SkImage>,
-    imported: HashMap<BufferKey, (Imported, Option<SkImage>)>,
+    // Tuple fields drop in order: the Skia image goes before the Vulkan image it borrows.
+    imported: HashMap<BufferKey, (Option<SkImage>, Imported)>,
 }
 
 fn buffer_key(fd: BorrowedFd<'_>) -> Option<BufferKey> {
@@ -449,9 +450,9 @@ impl Presenter {
                 info.modifier(),
                 &planes,
             )?;
-            self.imported.insert(key, (imported, None));
+            self.imported.insert(key, (None, imported));
         }
-        let (imported, image) = self.imported.get_mut(&key)?;
+        let (image, imported) = self.imported.get_mut(&key)?;
         if image.is_none() {
             let mut context = canvas.recording_context()?;
             *image = skia_safe::gpu::images::borrow_texture_from(

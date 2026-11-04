@@ -191,13 +191,32 @@ pub fn use_artwork(path: PathBuf) -> State<Option<ImageHandle>> {
     use_artwork_from(move || std::fs::read(&path).ok())
 }
 
+type DecodeJob = Box<dyn FnOnce() + Send>;
+
+// A grid of covers would otherwise start one thread per cover at once.
+fn decode_in_background(job: impl FnOnce() + Send + 'static) {
+    static WORKER: std::sync::OnceLock<Option<std::sync::mpsc::Sender<DecodeJob>>> =
+        std::sync::OnceLock::new();
+    let worker = WORKER.get_or_init(|| {
+        let (jobs, queue) = std::sync::mpsc::channel::<DecodeJob>();
+        std::thread::Builder::new()
+            .name("barrier-artwork".into())
+            .spawn(move || queue.into_iter().for_each(|job| job()))
+            .ok()
+            .map(|_| jobs)
+    });
+    if let Some(worker) = worker {
+        let _ = worker.send(Box::new(job));
+    }
+}
+
 pub fn use_artwork_from(
     load: impl FnOnce() -> Option<Vec<u8>> + Send + 'static,
 ) -> State<Option<ImageHandle>> {
     let mut artwork = use_state(|| None);
     use_hook(move || {
         let (sender, receiver) = futures_channel::oneshot::channel();
-        std::thread::spawn(move || {
+        decode_in_background(move || {
             let decoded = load().and_then(|bytes| {
                 let data = freya_engine::prelude::Data::new_copy(&bytes);
                 let image = freya_engine::prelude::Image::from_encoded(data)?;
