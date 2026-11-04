@@ -93,8 +93,8 @@ pub fn focused(mut self, focused: bool) -> Self { … }
 ```
 
 ```rust
-// ✓ comentario que se queda (platform/egl.rs)
-// SAFETY: called once on the calloop thread; libEGL is present because …
+// ✓ comentario que se queda (platform/vulkan.rs)
+// SAFETY: instance, device and queue live in `Self` and outlive the Skia context.
 ```
 
 - Los colores, radios, duraciones y métricas nuevos van a `vow-design`, nunca

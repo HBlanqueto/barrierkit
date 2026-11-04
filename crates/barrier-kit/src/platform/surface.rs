@@ -131,7 +131,7 @@ impl SurfaceWindow {
         self.logical_size = size;
         self.scale = scale;
         self.buffer_size = buffer_size;
-        if fractional_scale_enabled(self.fractional.is_some(), self.viewport.is_some(), scale) {
+        if self.fractional.is_some() && self.viewport.is_some() {
             self.surface.set_buffer_scale(1);
             if let Some(viewport) = &self.viewport {
                 viewport.set_destination(size.0 as i32, size.1 as i32);
@@ -353,14 +353,6 @@ pub(crate) fn buffer_size(logical: (u32, u32), scale: f64) -> (u32, u32) {
         (logical.0 as f64 * scale).round().max(1.0) as u32,
         (logical.1 as f64 * scale).round().max(1.0) as u32,
     )
-}
-
-pub(crate) fn fractional_scale_enabled(
-    has_fractional: bool,
-    has_viewporter: bool,
-    _scale: f64,
-) -> bool {
-    has_fractional && has_viewporter
 }
 
 pub(crate) fn physical_point(position: (f64, f64), scale: f64) -> CursorPoint {

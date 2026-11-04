@@ -25,10 +25,7 @@ use super::{
         released_repeated_key, should_repeat_key, stop_repeat,
     },
     runtime::{drain_user_events, make_sender},
-    surface::{
-        buffer_size, destroy_fractional_objects, fractional_scale_enabled, physical_point,
-        scale_from_wire,
-    },
+    surface::{buffer_size, destroy_fractional_objects, physical_point, scale_from_wire},
     timer::{Timers, Wake, WakeQueue},
     window::{
         WindowControls, WindowEdge, WindowStatus, clamp_toplevel_size_dimension, resize_edge_at,
@@ -131,14 +128,6 @@ fn scale_from_wire_converts_fractional_scale_values() {
 #[test]
 fn buffer_size_rounds_logical_size_at_fractional_scale() {
     assert_eq!(buffer_size((801, 601), 1.25), (1001, 751));
-}
-
-#[test]
-fn fractional_scale_mode_needs_both_globals() {
-    assert!(fractional_scale_enabled(true, true, 1.25));
-    assert!(!fractional_scale_enabled(true, false, 1.25));
-    assert!(!fractional_scale_enabled(false, true, 1.25));
-    assert!(!fractional_scale_enabled(false, false, 1.25));
 }
 
 #[test]
