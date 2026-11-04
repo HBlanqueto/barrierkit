@@ -399,9 +399,14 @@ impl Component for Titlebar {
             .on_mouse_down(drag)
             .child(title_label);
 
+        let height = if self.close_only {
+            TITLEBAR.thickness
+        } else {
+            TITLEBAR_CLIENT_HEIGHT
+        } as f32;
         let root = rect()
             .width(Size::fill())
-            .height(Size::px(TITLEBAR_CLIENT_HEIGHT as f32))
+            .height(Size::px(height))
             .background(theme::color(background))
             .direction(Direction::Horizontal)
             .content(Content::flex())
@@ -412,8 +417,8 @@ impl Component for Titlebar {
             .child(right_slot);
 
         place(
-            crate::chrome::revealable_bar(root.into_element(), TITLEBAR_CLIENT_HEIGHT as f32),
-            TITLEBAR_CLIENT_HEIGHT as f32,
+            crate::chrome::revealable_bar(root.into_element(), height),
+            height,
         )
     }
 }
