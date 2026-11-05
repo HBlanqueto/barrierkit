@@ -184,16 +184,15 @@ pub fn use_artwork(path: PathBuf) -> State<Option<ImageHandle>> {
     use_artwork_from(move || std::fs::read(&path).ok())
 }
 
-type DecodeJob = Box<dyn FnOnce() + Send>;
+type Job = Box<dyn FnOnce() + Send>;
+type Worker = std::sync::OnceLock<Option<std::sync::mpsc::Sender<Job>>>;
 
 // A grid of covers would otherwise start one thread per cover at once.
-fn decode_in_background(job: impl FnOnce() + Send + 'static) {
-    static WORKER: std::sync::OnceLock<Option<std::sync::mpsc::Sender<DecodeJob>>> =
-        std::sync::OnceLock::new();
-    let worker = WORKER.get_or_init(|| {
-        let (jobs, queue) = std::sync::mpsc::channel::<DecodeJob>();
+fn run_on(worker: &'static Worker, name: &str, job: impl FnOnce() + Send + 'static) {
+    let worker = worker.get_or_init(|| {
+        let (jobs, queue) = std::sync::mpsc::channel::<Job>();
         std::thread::Builder::new()
-            .name("barrier-artwork".into())
+            .name(name.into())
             .spawn(move || queue.into_iter().for_each(|job| job()))
             .ok()
             .map(|_| jobs)
@@ -203,22 +202,34 @@ fn decode_in_background(job: impl FnOnce() + Send + 'static) {
     }
 }
 
+fn fetch_in_background(job: impl FnOnce() + Send + 'static) {
+    static FETCH: Worker = Worker::new();
+    run_on(&FETCH, "barrier-fetch", job);
+}
+
+pub(crate) fn decode_in_background(job: impl FnOnce() + Send + 'static) {
+    static DECODE: Worker = Worker::new();
+    run_on(&DECODE, "barrier-artwork", job);
+}
+
 pub fn use_artwork_from(
     load: impl FnOnce() -> Option<Vec<u8>> + Send + 'static,
 ) -> State<Option<ImageHandle>> {
     let mut artwork = use_state(|| None);
     use_hook(move || {
         let (sender, receiver) = futures_channel::oneshot::channel();
-        decode_in_background(move || {
-            let decoded = load().and_then(|bytes| {
-                let data = freya_engine::prelude::Data::new_copy(&bytes);
-                let image = freya_engine::prelude::Image::from_encoded(data)?;
-                Some(ImageHandle::new(
-                    image.make_raster_image(None, None)?,
-                    bytes.into(),
-                ))
+        fetch_in_background(move || {
+            let Some(bytes) = load() else {
+                return;
+            };
+            decode_in_background(move || {
+                let decoded = freya_engine::prelude::Image::from_encoded(
+                    freya_engine::prelude::Data::new_copy(&bytes),
+                )
+                .and_then(|image| image.make_raster_image(None, None))
+                .map(|image| ImageHandle::new(image, Bytes::new()));
+                let _ = sender.send(decoded);
             });
-            let _ = sender.send(decoded);
         });
         spawn(async move {
             if let Ok(Some(handle)) = receiver.await {

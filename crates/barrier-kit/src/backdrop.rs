@@ -21,11 +21,22 @@ use vow_design::{BACKDROP, DURATION_SLOW_MS, Rgba};
 use crate::style::Palette;
 use crate::theme::color;
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug)]
 pub enum BackdropSource {
     None,
     Colors([Rgba; 3]),
     Image(Bytes),
+}
+
+impl PartialEq for BackdropSource {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::None, Self::None) => true,
+            (Self::Colors(a), Self::Colors(b)) => a == b,
+            (Self::Image(a), Self::Image(b)) => a.as_ptr() == b.as_ptr() && a.len() == b.len(),
+            _ => false,
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
@@ -97,20 +108,43 @@ struct Look {
 }
 
 impl Look {
-    fn of(source: &BackdropSource) -> Self {
-        let palette = match source {
-            BackdropSource::None => None,
-            BackdropSource::Colors(colors) => Some(ImagePalette {
-                colors: *colors,
-                vivid: colors[0],
-            }),
-            BackdropSource::Image(bytes) => image_palette(bytes),
-        };
+    fn of(palette: Option<ImagePalette>) -> Self {
         Self {
             tint: palette.map(|p| tint::Backdrop::from_colors(p.colors)),
             vivid: palette.map(|p| p.vivid),
         }
     }
+}
+
+fn use_look(source: &BackdropSource) -> Look {
+    let mut look = use_state(|| Look::of(None));
+    let mut seen = use_state(|| None::<BackdropSource>);
+    if seen.peek().as_ref() != Some(source) {
+        seen.set(Some(source.clone()));
+        match source {
+            BackdropSource::None => look.set_if_modified(Look::of(None)),
+            BackdropSource::Colors(colors) => look.set_if_modified(Look::of(Some(ImagePalette {
+                colors: *colors,
+                vivid: colors[0],
+            }))),
+            BackdropSource::Image(bytes) => {
+                let (sender, receiver) = futures_channel::oneshot::channel();
+                let bytes = bytes.clone();
+                crate::media::decode_in_background(move || {
+                    let _ = sender.send(Look::of(image_palette(&bytes)));
+                });
+                let source = source.clone();
+                spawn(async move {
+                    if let Ok(decoded) = receiver.await
+                        && seen.peek().as_ref() == Some(&source)
+                    {
+                        look.set_if_modified(decoded);
+                    }
+                });
+            }
+        }
+    }
+    *look.read()
 }
 
 fn image_palette(bytes: &Bytes) -> Option<ImagePalette> {
@@ -135,11 +169,7 @@ impl Component for Backdrop {
     fn render(&self) -> impl IntoElement {
         let resolved = crate::theme::resolved();
         let system = Palette::system();
-        let mut seen = use_state(|| (self.source.clone(), Look::of(&self.source)));
-        if seen.peek().0 != self.source {
-            seen.set((self.source.clone(), Look::of(&self.source)));
-        }
-        let look = seen.read().1;
+        let look = use_look(&self.source);
 
         let target = look
             .tint
@@ -173,13 +203,9 @@ impl Component for Backdrop {
             },
         };
         let mut shared = use_state(|| palette);
-        if *shared.peek() != palette {
-            shared.set(palette);
-        }
+        shared.set_if_modified(palette);
         let mut tinted = use_state(|| look.tint);
-        if *tinted.peek() != look.tint {
-            tinted.set(look.tint);
-        }
+        tinted.set_if_modified(look.tint);
         use_hook(|| {
             provide_context(shared);
             provide_context(tinted);
