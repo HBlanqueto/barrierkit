@@ -363,71 +363,29 @@ mod tests {
     }
 
     #[test]
-    fn toplevel_menu_stays_neutral_when_menus_part_is_disabled() {
+    fn a_toplevel_menu_is_tinted_only_by_the_menus_part() {
         use vow_appearance::{TintParts, WindowColorMode, WindowTintScope};
 
-        let accent = Rgba {
-            r: 0.9,
-            g: 0.1,
-            b: 0.1,
-            a: 1.0,
-        };
         let config = AppearanceConfig {
             color_scheme: ColorScheme::Light,
-            accent_color: Some([accent.r, accent.g, accent.b]),
+            accent_color: Some([0.9, 0.1, 0.1]),
             reduce_transparency: true,
             window_color: WindowColorMode::Accent,
             window_tint_scope: WindowTintScope::Windows,
             ..Default::default()
         };
-        let mut resolved = resolve(&config, None);
-        resolved.tint_parts = TintParts {
-            sidebars: true,
-            window: true,
-            groups: true,
-            controls: true,
-            menus: false,
-        };
-
-        assert_eq!(
-            menu_palette(&resolved, SurfaceKind::Toplevel).bg,
-            resolved.menu.bg,
-            "toplevel menu must stay neutral when menus part is disabled"
-        );
-    }
-
-    #[test]
-    fn toplevel_menu_is_tinted_when_menus_part_is_enabled_and_window_is_disabled() {
-        use vow_appearance::{TintParts, WindowColorMode, WindowTintScope};
-
-        let accent = Rgba {
-            r: 0.9,
-            g: 0.1,
-            b: 0.1,
-            a: 1.0,
-        };
-        let config = AppearanceConfig {
-            color_scheme: ColorScheme::Light,
-            accent_color: Some([accent.r, accent.g, accent.b]),
-            reduce_transparency: true,
-            window_color: WindowColorMode::Accent,
-            window_tint_scope: WindowTintScope::Windows,
-            ..Default::default()
-        };
-        let mut resolved = resolve(&config, None);
-        resolved.tint_parts = TintParts {
-            sidebars: false,
-            window: false,
-            groups: false,
-            controls: false,
-            menus: true,
-        };
-
-        assert_ne!(
-            menu_palette(&resolved, SurfaceKind::Toplevel).bg,
-            resolved.menu.bg,
-            "toplevel menu must be tinted when menus part is enabled"
-        );
+        for menus in [false, true] {
+            let mut resolved = resolve(&config, None);
+            resolved.tint_parts = TintParts {
+                sidebars: !menus,
+                window: !menus,
+                groups: !menus,
+                controls: !menus,
+                menus,
+            };
+            let tinted = menu_palette(&resolved, SurfaceKind::Toplevel).bg != resolved.menu.bg;
+            assert_eq!(tinted, menus);
+        }
     }
 
     #[test]

@@ -135,11 +135,8 @@ fn render_titlebar(sidebar: bool, decoration: DecorationResponse) -> Vec<u8> {
     let app = AppComponent::new(TitlebarCase {
         sidebar,
         status: WindowStatus {
-            activated: true,
-            maximized: false,
-            fullscreen: false,
             decoration,
-            fixed: false,
+            ..WindowStatus::default()
         },
     });
     let (mut test, _) = TestingRunner::new(app, Size2D::new(300.0, 120.0), |_| {}, 1.0);
@@ -155,10 +152,7 @@ fn render_titlebar_pixels(
         sidebar: false,
         status: WindowStatus {
             activated,
-            maximized: false,
-            fullscreen: false,
-            decoration: DecorationResponse::Client,
-            fixed: false,
+            ..WindowStatus::default()
         },
     });
     let (mut test, _) = TestingRunner::new(
@@ -207,13 +201,7 @@ fn titlebar_background_follows_the_resolved_window_tint() {
 fn titlebar_layout(sidebar: bool) -> Vec<(f32, f32, f32, f32)> {
     let app = AppComponent::new(TitlebarCase {
         sidebar,
-        status: WindowStatus {
-            activated: true,
-            maximized: false,
-            fullscreen: false,
-            decoration: DecorationResponse::Client,
-            fixed: false,
-        },
+        status: WindowStatus::default(),
     });
     let (test, _) = TestingRunner::new(app, Size2D::new(300.0, 120.0), |_| {}, 1.0);
     test.find_many(|node, el| {
@@ -269,19 +257,9 @@ struct WideSlotsCase;
 impl App for WideSlotsCase {
     fn render(&self) -> impl IntoElement {
         use_init_theme(|| theme::for_scheme(false));
-        Titlebar::preview(
-            WindowStatus {
-                activated: true,
-                maximized: false,
-                fullscreen: false,
-                decoration: DecorationResponse::Client,
-                fixed: false,
-            },
-            "Ventana",
-            false,
-        )
-        .left(rect().width(Size::px(120.0)).height(Size::px(10.0)))
-        .right(rect().width(Size::px(100.0)).height(Size::px(10.0)))
+        Titlebar::preview(WindowStatus::default(), "Ventana", false)
+            .left(rect().width(Size::px(120.0)).height(Size::px(10.0)))
+            .right(rect().width(Size::px(100.0)).height(Size::px(10.0)))
     }
 }
 
@@ -307,13 +285,7 @@ fn titlebar_slots_grow_with_their_content() {
 fn titlebar_title_uses_the_titlebar_font() {
     let app = AppComponent::new(TitlebarCase {
         sidebar: false,
-        status: WindowStatus {
-            activated: true,
-            maximized: false,
-            fullscreen: false,
-            decoration: DecorationResponse::Client,
-            fixed: false,
-        },
+        status: WindowStatus::default(),
     });
     let (test, _) = TestingRunner::new(app, Size2D::new(300.0, 120.0), |_| {}, 1.0);
     let style = test
@@ -387,13 +359,7 @@ impl App for ToggleApp {
 }
 
 fn toggle_test() -> TestingRunner {
-    let resolved = resolve(
-        &AppearanceConfig {
-            reduced_motion: true,
-            ..Default::default()
-        },
-        None,
-    );
+    let resolved = motion(true);
     let app = AppComponent::new(ToggleApp);
     let (mut test, _) = TestingRunner::new(
         app,
@@ -446,14 +412,18 @@ impl App for AnimatedSectionCase {
     }
 }
 
-fn animated_section_test() -> (TestingRunner, State<vow_appearance::Resolved>) {
-    let resolved = resolve(
+fn motion(reduced_motion: bool) -> vow_appearance::Resolved {
+    resolve(
         &AppearanceConfig {
-            reduced_motion: false,
+            reduced_motion,
             ..Default::default()
         },
         None,
-    );
+    )
+}
+
+fn animated_section_test() -> (TestingRunner, State<vow_appearance::Resolved>) {
+    let resolved = motion(false);
     let app = AppComponent::new(AnimatedSectionCase);
     TestingRunner::new(
         app,
@@ -534,13 +504,7 @@ fn live_reduced_motion_collapses_without_animating() {
     test.sync_and_update();
     assert!((section_content_height(&test) - 120.0).abs() < 0.5);
 
-    resolved.set(resolve(
-        &AppearanceConfig {
-            reduced_motion: true,
-            ..Default::default()
-        },
-        None,
-    ));
+    resolved.set(motion(true));
     test.sync_and_update();
 
     test.click_cursor((12.0, 68.0));
@@ -575,13 +539,7 @@ impl App for DrawerCase {
 
 #[test]
 fn closing_section_slides_as_a_drawer() {
-    let resolved = resolve(
-        &AppearanceConfig {
-            reduced_motion: false,
-            ..Default::default()
-        },
-        None,
-    );
+    let resolved = motion(false);
     let app = AppComponent::new(DrawerCase);
     let (mut test, _) = TestingRunner::new(
         app,
@@ -813,13 +771,7 @@ impl App for TallSectionCase {
 
 #[test]
 fn sidebar_section_opens_to_the_real_child_height() {
-    let resolved = resolve(
-        &AppearanceConfig {
-            reduced_motion: true,
-            ..Default::default()
-        },
-        None,
-    );
+    let resolved = motion(true);
     let app = AppComponent::new(TallSectionCase);
     let (mut test, _) = TestingRunner::new(
         app,
@@ -970,23 +922,13 @@ impl App for AlignedToolbarCase {
             .height(Size::fill())
             .direction(Direction::Vertical)
             .child(
-                Titlebar::preview(
-                    WindowStatus {
-                        activated: true,
-                        maximized: false,
-                        fullscreen: false,
-                        decoration: DecorationResponse::Client,
-                        fixed: false,
-                    },
-                    "Ventana",
-                    false,
-                )
-                .with_sidebar(true)
-                .left(
-                    ToolGroup::new()
-                        .probe("toolbar")
-                        .child(Button::new().child("A")),
-                ),
+                Titlebar::preview(WindowStatus::default(), "Ventana", false)
+                    .with_sidebar(true)
+                    .left(
+                        ToolGroup::new()
+                            .probe("toolbar")
+                            .child(Button::new().child("A")),
+                    ),
             )
             .child(rect().width(Size::fill()).height(Size::flex(1.0)));
         SplitView::new(Sidebar::new().traffic_lights(true), content)
@@ -1047,13 +989,7 @@ impl App for HidingCase {
 
 #[test]
 fn the_sidebar_toggle_hides_and_shows_the_sidebar() {
-    let resolved = resolve(
-        &AppearanceConfig {
-            reduced_motion: true,
-            ..Default::default()
-        },
-        None,
-    );
+    let resolved = motion(true);
     let (mut test, _) = TestingRunner::new(
         AppComponent::new(HidingCase),
         Size2D::new(900.0, 400.0),
@@ -1083,13 +1019,7 @@ fn the_sidebar_toggle_hides_and_shows_the_sidebar() {
 
 #[test]
 fn the_traffic_lights_stay_in_place_when_the_sidebar_hides() {
-    let resolved = resolve(
-        &AppearanceConfig {
-            reduced_motion: true,
-            ..Default::default()
-        },
-        None,
-    );
+    let resolved = motion(true);
     let (mut test, _) = TestingRunner::new(
         AppComponent::new(HidingCase),
         Size2D::new(900.0, 400.0),
@@ -1147,13 +1077,7 @@ impl App for NarrowCase {
 }
 
 fn narrow_runner(mode: NarrowSidebar) -> TestingRunner {
-    let resolved = resolve(
-        &AppearanceConfig {
-            reduced_motion: true,
-            ..Default::default()
-        },
-        None,
-    );
+    let resolved = motion(true);
     let (mut test, _) = TestingRunner::new(
         AppComponent::new(NarrowCase(mode)),
         Size2D::new(600.0, 400.0),

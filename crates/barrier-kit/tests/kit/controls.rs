@@ -532,14 +532,12 @@ fn controls_match_their_golden_images() {
 }
 
 #[test]
-fn slider_click_snaps_to_the_nearest_step() {
+fn slider_click_snaps_to_the_nearest_step_unless_disabled() {
     use std::cell::RefCell;
     use std::rc::Rc;
 
-    let values: Rc<RefCell<Vec<usize>>> = Rc::new(RefCell::new(Vec::new()));
-    let values_clone = values.clone();
-
     struct SliderCase {
+        disabled: bool,
         values: Rc<RefCell<Vec<usize>>>,
     }
     impl App for SliderCase {
@@ -548,55 +546,25 @@ fn slider_click_snaps_to_the_nearest_step() {
             Slider::stepped(4)
                 .value(1)
                 .labels(&["Sutil", "Normal", "Fuerte", "Intenso"])
+                .disabled(self.disabled)
                 .on_change(move |v| values.borrow_mut().push(v))
         }
     }
 
-    let app = AppComponent::new(SliderCase {
-        values: values_clone,
-    });
-    let (mut test, _) = TestingRunner::new(app, Size2D::new(240.0, 80.0), |_| {}, 1.0);
-    test.sync_and_update();
-
-    test.click_cursor((190.0, 20.0));
-    test.sync_and_update();
-    assert_eq!(values.borrow().as_slice(), &[3]);
-
-    test.click_cursor((130.0, 20.0));
-    test.sync_and_update();
-    assert_eq!(values.borrow().as_slice(), &[3, 2]);
-}
-
-#[test]
-fn disabled_slider_does_not_emit() {
-    use std::cell::RefCell;
-    use std::rc::Rc;
-
-    let values: Rc<RefCell<Vec<usize>>> = Rc::new(RefCell::new(Vec::new()));
-    let values_clone = values.clone();
-
-    struct SliderCase {
-        values: Rc<RefCell<Vec<usize>>>,
-    }
-    impl App for SliderCase {
-        fn render(&self) -> impl IntoElement {
-            let values = self.values.clone();
-            Slider::stepped(4)
-                .value(1)
-                .disabled(true)
-                .on_change(move |v| values.borrow_mut().push(v))
+    for (disabled, expected) in [(false, vec![3, 2]), (true, vec![])] {
+        let values = Rc::new(RefCell::new(Vec::new()));
+        let app = AppComponent::new(SliderCase {
+            disabled,
+            values: values.clone(),
+        });
+        let (mut test, _) = TestingRunner::new(app, Size2D::new(240.0, 80.0), |_| {}, 1.0);
+        test.sync_and_update();
+        for x in [190.0, 130.0] {
+            test.click_cursor((x, 20.0));
+            test.sync_and_update();
         }
+        assert_eq!(*values.borrow(), expected);
     }
-
-    let app = AppComponent::new(SliderCase {
-        values: values_clone,
-    });
-    let (mut test, _) = TestingRunner::new(app, Size2D::new(240.0, 80.0), |_| {}, 1.0);
-    test.sync_and_update();
-
-    test.click_cursor((190.0, 20.0));
-    test.sync_and_update();
-    assert!(values.borrow().is_empty());
 }
 
 #[test]
@@ -604,10 +572,8 @@ fn checkbox_click_toggles_and_disabled_does_not_emit() {
     use std::cell::RefCell;
     use std::rc::Rc;
 
-    let values: Rc<RefCell<Vec<bool>>> = Rc::new(RefCell::new(Vec::new()));
-    let values_clone = values.clone();
-
     struct CheckboxCase {
+        disabled: bool,
         values: Rc<RefCell<Vec<bool>>>,
     }
     impl App for CheckboxCase {
@@ -615,23 +581,25 @@ fn checkbox_click_toggles_and_disabled_does_not_emit() {
             let values = self.values.clone();
             Checkbox::new("Recordarme")
                 .checked(false)
+                .disabled(self.disabled)
                 .on_toggle(move |v| values.borrow_mut().push(v))
         }
     }
 
-    let app = AppComponent::new(CheckboxCase {
-        values: values_clone,
-    });
-    let (mut test, _) = TestingRunner::new(app, Size2D::new(160.0, 60.0), |_| {}, 1.0);
-    test.sync_and_update();
-
-    test.click_cursor((8.0, 8.0));
-    test.sync_and_update();
-    assert_eq!(values.borrow().as_slice(), &[true]);
-
-    test.click_cursor((8.0, 8.0));
-    test.sync_and_update();
-    assert_eq!(values.borrow().as_slice(), &[true, false]);
+    for (disabled, expected) in [(false, vec![true, false]), (true, vec![])] {
+        let values = Rc::new(RefCell::new(Vec::new()));
+        let app = AppComponent::new(CheckboxCase {
+            disabled,
+            values: values.clone(),
+        });
+        let (mut test, _) = TestingRunner::new(app, Size2D::new(160.0, 60.0), |_| {}, 1.0);
+        test.sync_and_update();
+        for _ in 0..2 {
+            test.click_cursor((8.0, 8.0));
+            test.sync_and_update();
+        }
+        assert_eq!(*values.borrow(), expected);
+    }
 }
 
 #[test]
@@ -994,38 +962,6 @@ fn toggle_group_flips_each_item_on_its_own() {
         test.sync_and_update();
     }
     assert_eq!(*events.borrow(), [(0, false), (1, true), (0, true)]);
-}
-
-#[test]
-fn disabled_checkbox_does_not_emit() {
-    use std::cell::RefCell;
-    use std::rc::Rc;
-
-    let values: Rc<RefCell<Vec<bool>>> = Rc::new(RefCell::new(Vec::new()));
-    let values_clone = values.clone();
-
-    struct CheckboxCase {
-        values: Rc<RefCell<Vec<bool>>>,
-    }
-    impl App for CheckboxCase {
-        fn render(&self) -> impl IntoElement {
-            let values = self.values.clone();
-            Checkbox::new("Recordarme")
-                .checked(false)
-                .disabled(true)
-                .on_toggle(move |v| values.borrow_mut().push(v))
-        }
-    }
-
-    let app = AppComponent::new(CheckboxCase {
-        values: values_clone,
-    });
-    let (mut test, _) = TestingRunner::new(app, Size2D::new(160.0, 60.0), |_| {}, 1.0);
-    test.sync_and_update();
-
-    test.click_cursor((8.0, 8.0));
-    test.sync_and_update();
-    assert!(values.borrow().is_empty());
 }
 
 #[test]

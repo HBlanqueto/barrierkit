@@ -26,11 +26,8 @@ fn render(status: WindowStatus) -> Vec<u8> {
 
 fn status(decoration: DecorationResponse) -> WindowStatus {
     WindowStatus {
-        activated: true,
-        maximized: false,
-        fullscreen: false,
         decoration,
-        fixed: false,
+        ..WindowStatus::default()
     }
 }
 
