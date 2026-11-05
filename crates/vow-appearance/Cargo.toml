@@ -12,5 +12,5 @@ nix.workspace = true
 serde.workspace = true
 tracing.workspace = true
 toml.workspace = true
-toml_edit.workspace = true
+toml_edit = { workspace = true, features = ["serde"] }
 vow-design.workspace = true

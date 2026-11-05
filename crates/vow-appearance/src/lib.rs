@@ -2,12 +2,12 @@
 
 use std::path::{Path, PathBuf};
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 pub mod backdrop;
 pub mod traffic;
 pub mod watch;
 
-use serde::Deserializer;
+use serde::{Deserializer, Serializer};
 use vow_design::{
     ACCENT_MIN_CONTRAST_ON_WINDOW, BG_CONTROL_DARK, BG_CONTROL_DARK_TINT, BG_CONTROL_LIGHT,
     BG_HOVER_DARK, BG_HOVER_DARK_TINT, BG_HOVER_LIGHT, BG_RAISED_DARK, BG_RAISED_DARK_TINT,
@@ -32,7 +32,7 @@ use vow_design::{
     WINDOW_TINT_WALLPAPER,
 };
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum ColorScheme {
     #[default]
@@ -64,7 +64,7 @@ impl ColorScheme {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum WindowColorMode {
     #[default]
@@ -73,7 +73,7 @@ pub enum WindowColorMode {
     Wallpaper,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum WindowTintScope {
     #[default]
@@ -81,7 +81,7 @@ pub enum WindowTintScope {
     Desktop,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum TintStrength {
     Subtle,
@@ -157,7 +157,7 @@ where
     Ok(parts)
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum SidebarStyle {
     #[default]
@@ -165,7 +165,7 @@ pub enum SidebarStyle {
     Flat,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum TrafficLightShape {
     #[default]
@@ -184,7 +184,7 @@ impl TrafficLightShape {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum TrafficLightStyle {
     #[default]
@@ -195,7 +195,7 @@ pub enum TrafficLightStyle {
     Wallpaper,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ScrollBars {
     #[default]
@@ -203,11 +203,12 @@ pub enum ScrollBars {
     Always,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(default)]
 pub struct AppearanceConfig {
     #[serde(deserialize_with = "lenient")]
     pub color_scheme: ColorScheme,
+    #[serde(skip_serializing)]
     pub accent_color: Option<[f32; 3]>,
     pub contrast: bool,
     pub reduced_motion: bool,
@@ -228,7 +229,10 @@ pub struct AppearanceConfig {
     pub tint_strength_accent: TintStrength,
     #[serde(deserialize_with = "lenient")]
     pub tint_strength_wallpaper: TintStrength,
-    #[serde(deserialize_with = "deserialize_tint_parts")]
+    #[serde(
+        deserialize_with = "deserialize_tint_parts",
+        serialize_with = "serialize_tint_parts"
+    )]
     pub tint_parts: TintParts,
 }
 
@@ -747,28 +751,15 @@ pub fn write_appearance(path: &Path, config: &AppearanceConfig) -> std::io::Resu
         }
     };
 
-    doc["color_scheme"] = toml_edit::value(color_scheme_str(config.color_scheme));
+    let fresh = toml_edit::ser::to_document(config).map_err(std::io::Error::other)?;
+    for (key, item) in fresh.iter() {
+        doc[key] = item.clone();
+    }
     if let Some(accent) = config.accent_color {
         doc["accent_color"] = toml_edit::value(accent_array(accent));
     } else {
         doc.remove("accent_color");
     }
-    doc["contrast"] = toml_edit::value(config.contrast);
-    doc["reduced_motion"] = toml_edit::value(config.reduced_motion);
-    doc["reduce_transparency"] = toml_edit::value(config.reduce_transparency);
-    doc["scroll_bars"] = toml_edit::value(scroll_bars_str(config.scroll_bars));
-    doc["window_color"] = toml_edit::value(window_color_str(config.window_color));
-    doc["window_tint_scope"] = toml_edit::value(window_tint_scope_str(config.window_tint_scope));
-    doc["traffic_lights"] = toml_edit::value(traffic_lights_str(config.traffic_lights));
-    doc["traffic_light_shape"] = toml_edit::value(match config.traffic_light_shape {
-        TrafficLightShape::Square => "square",
-        TrafficLightShape::Round => "round",
-    });
-    doc["sidebar_style"] = toml_edit::value(sidebar_style_str(config.sidebar_style));
-    doc["tint_strength_accent"] = toml_edit::value(tint_strength_str(config.tint_strength_accent));
-    doc["tint_strength_wallpaper"] =
-        toml_edit::value(tint_strength_str(config.tint_strength_wallpaper));
-    doc["tint_parts"] = toml_edit::value(tint_parts_value(config.tint_parts));
 
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent)?;
@@ -796,87 +787,29 @@ pub fn write_appearance_default() -> std::io::Result<()> {
     write_appearance(&appearance_path(), &AppearanceConfig::default())
 }
 
-fn color_scheme_str(scheme: ColorScheme) -> &'static str {
-    match scheme {
-        ColorScheme::Auto => "auto",
-        ColorScheme::Dark => "dark",
-        ColorScheme::DarkTint => "dark_tint",
-        ColorScheme::Light => "light",
-    }
-}
-
-fn window_color_str(mode: WindowColorMode) -> &'static str {
-    match mode {
-        WindowColorMode::Neutral => "neutral",
-        WindowColorMode::Accent => "accent",
-        WindowColorMode::Wallpaper => "wallpaper",
-    }
-}
-
-fn window_tint_scope_str(scope: WindowTintScope) -> &'static str {
-    match scope {
-        WindowTintScope::Windows => "windows",
-        WindowTintScope::Desktop => "desktop",
-    }
-}
-
-fn scroll_bars_str(scroll_bars: ScrollBars) -> &'static str {
-    match scroll_bars {
-        ScrollBars::WhenScrolling => "when_scrolling",
-        ScrollBars::Always => "always",
-    }
-}
-
-fn traffic_lights_str(style: TrafficLightStyle) -> &'static str {
-    match style {
-        TrafficLightStyle::Auto => "auto",
-        TrafficLightStyle::Standard => "standard",
-        TrafficLightStyle::Accent => "accent",
-        TrafficLightStyle::Wallpaper => "wallpaper",
-    }
-}
-
-fn sidebar_style_str(style: SidebarStyle) -> &'static str {
-    match style {
-        SidebarStyle::Island => "island",
-        SidebarStyle::Flat => "flat",
-    }
-}
-
-fn tint_strength_str(strength: TintStrength) -> &'static str {
-    match strength {
-        TintStrength::Subtle => "subtle",
-        TintStrength::Normal => "normal",
-        TintStrength::Strong => "strong",
-        TintStrength::Intense => "intense",
-    }
-}
-
-fn tint_parts_value(parts: TintParts) -> toml_edit::Value {
-    let mut arr = toml_edit::Array::new();
-    if parts.sidebars {
-        arr.push("sidebars");
-    }
-    if parts.window {
-        arr.push("window");
-    }
-    if parts.groups {
-        arr.push("groups");
-    }
-    if parts.controls {
-        arr.push("controls");
-    }
-    if parts.menus {
-        arr.push("menus");
-    }
-    toml_edit::Value::Array(arr)
+fn serialize_tint_parts<S: Serializer>(
+    parts: &TintParts,
+    serializer: S,
+) -> Result<S::Ok, S::Error> {
+    let named = [
+        ("sidebars", parts.sidebars),
+        ("window", parts.window),
+        ("groups", parts.groups),
+        ("controls", parts.controls),
+        ("menus", parts.menus),
+    ];
+    serializer.collect_seq(
+        named
+            .into_iter()
+            .filter(|(_, on)| *on)
+            .map(|(name, _)| name),
+    )
 }
 
 fn accent_array(accent: [f32; 3]) -> toml_edit::Array {
     let mut arr = toml_edit::Array::new();
     for channel in accent {
-        let rounded = (channel.clamp(0.0, 1.0) * 1000.0).round() / 1000.0;
-        arr.push(rounded as f64);
+        arr.push((f64::from(channel.clamp(0.0, 1.0)) * 1000.0).round() / 1000.0);
     }
     arr
 }
@@ -1819,10 +1752,12 @@ sidebar_style = "flat"
         .unwrap();
         let config = AppearanceConfig {
             color_scheme: ColorScheme::Dark,
+            accent_color: Some([0.184, 0.435, 0.894]),
             ..AppearanceConfig::default()
         };
         write_appearance(&path, &config).unwrap();
         let text = std::fs::read_to_string(&path).unwrap();
+        assert!(text.contains("accent_color = [0.184, 0.435, 0.894]"));
         assert!(text.contains("legacy comment preserved"));
         assert!(text.contains("legacy_key = true"));
         std::fs::remove_dir_all(&dir).ok();
