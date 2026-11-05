@@ -964,7 +964,7 @@ mod tests {
     fn sidebar_metrics_come_from_tokens() {
         assert_eq!(super::SIDEBAR.inset, 8);
         assert_eq!(super::SIDEBAR.padding_x, 10);
-        assert_eq!(super::SIDEBAR.radius, 12);
+        assert_eq!(super::SIDEBAR.radius, 18);
         assert_eq!(super::SIDEBAR.width, 220);
         assert!(super::SIDEBAR.default_island);
         assert_eq!(super::SIDEBAR.item_padding_x, 8);

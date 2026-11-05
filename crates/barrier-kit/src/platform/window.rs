@@ -239,6 +239,11 @@ impl WindowControls {
         self.ping.ping();
     }
 
+    pub(crate) fn mark_toolbar(&self) {
+        self.queue.borrow_mut().push(WindowCommand::Toolbar);
+        self.ping.ping();
+    }
+
     pub fn minimize(&self) {
         self.queue.borrow_mut().push(WindowCommand::Minimize);
         self.ping.ping();
@@ -287,6 +292,7 @@ pub(crate) enum WindowCommand {
     Move(u32),
     Resize(u32, WindowEdge),
     Present(String),
+    Toolbar,
 }
 
 pub(super) fn resize_edge(edge: WindowEdge) -> xdg_toplevel::ResizeEdge {
@@ -650,6 +656,11 @@ impl Runtime {
                     WindowCommand::Present(token) => {
                         if let Some(activation) = &self.activation {
                             activation.activate(token, window.wl_surface());
+                        }
+                    }
+                    WindowCommand::Toolbar => {
+                        if let Some(style) = &self.window_style {
+                            style.set_toolbar(window.wl_surface());
                         }
                     }
                     WindowCommand::Close => unreachable!(),

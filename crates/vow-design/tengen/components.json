@@ -258,6 +258,7 @@
       "resize-edge": 5,
       "resize-corner": 16,
       "radius": "radius.lg",
+      "toolbar-radius": 26,
       "bg": "bg-window",
       "titlebar-height": "size.titlebar-h",
       "sidebar-width": "size.sidebar-w",

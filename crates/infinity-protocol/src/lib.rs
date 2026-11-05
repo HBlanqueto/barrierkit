@@ -47,6 +47,21 @@ pub mod client {
             wayland_scanner::generate_client_code!("protocols/infinity-focus-v1.xml");
         }
     }
+
+    pub mod style {
+        pub mod __interfaces {
+            use wayland_client::protocol::__interfaces::*;
+            wayland_scanner::generate_interfaces!("protocols/infinity-window-style-v1.xml");
+        }
+
+        pub mod infinity_window_style_v1 {
+            use super::__interfaces::*;
+            use wayland_backend;
+            use wayland_client;
+            use wayland_client::protocol::*;
+            wayland_scanner::generate_client_code!("protocols/infinity-window-style-v1.xml");
+        }
+    }
 }
 
 #[cfg(feature = "server")]
@@ -78,6 +93,21 @@ pub mod server {
             use wayland_server;
             use wayland_server::protocol::*;
             wayland_scanner::generate_server_code!("protocols/infinity-focus-v1.xml");
+        }
+    }
+
+    pub mod style {
+        pub mod __interfaces {
+            use wayland_server::protocol::__interfaces::*;
+            wayland_scanner::generate_interfaces!("protocols/infinity-window-style-v1.xml");
+        }
+
+        pub mod infinity_window_style_v1 {
+            use super::__interfaces::*;
+            use wayland_backend;
+            use wayland_server;
+            use wayland_server::protocol::*;
+            wayland_scanner::generate_server_code!("protocols/infinity-window-style-v1.xml");
         }
     }
 }

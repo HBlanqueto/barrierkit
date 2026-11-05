@@ -126,6 +126,21 @@ pub(super) fn emit_window(out: &mut String, tokens: &Value, components: &Value) 
         ": WindowStyle = WindowStyle {{\n    corner_radius: {radius},\n    superellipse_exponent: {},\n}};\n\n",
         float(exponent)
     ));
+    let toolbar_radius = metric(
+        tokens,
+        components,
+        "components.window.toolbar-radius",
+        COMPONENTS,
+    ) as u32;
+    const_doc(
+        out,
+        "WINDOW_TOOLBAR",
+        "The shape of a window with a toolbar: a larger corner, as in macOS.",
+    );
+    out.push_str(&format!(
+        ": WindowStyle = WindowStyle {{\n    corner_radius: {toolbar_radius},\n    superellipse_exponent: {},\n}};\n\n",
+        float(exponent)
+    ));
     let edge = number(components, "components.window.resize-edge", COMPONENTS);
     let corner = number(components, "components.window.resize-corner", COMPONENTS);
     const_doc(

@@ -98,6 +98,7 @@ pub(crate) struct Runtime {
     pub(crate) extension: Option<Extension>,
     pub(crate) appmenu_manager: Option<OrgKdeKwinAppmenuManager>,
     pub(crate) focus_manager: Option<super::focus::InfinityFocusManagerV1>,
+    pub(crate) window_style: Option<super::window_style::InfinityWindowStyleV1>,
     pub(crate) fractional_manager: Option<WpFractionalScaleManagerV1>,
     pub(crate) viewporter: Option<WpViewporter>,
     pub(crate) timers: TimerQueue,
@@ -274,6 +275,9 @@ impl Runtime {
         let focus_manager = globals
             .bind::<super::focus::InfinityFocusManagerV1, _, _>(&qh, 1..=2, ())
             .ok();
+        let window_style = globals
+            .bind::<super::window_style::InfinityWindowStyleV1, _, _>(&qh, 1..=1, ())
+            .ok();
         let fractional_manager = globals
             .bind::<WpFractionalScaleManagerV1, _, _>(&qh, 1..=1, ())
             .ok();
@@ -336,6 +340,7 @@ impl Runtime {
             extension: None,
             appmenu_manager,
             focus_manager,
+            window_style,
             fractional_manager,
             viewporter,
             timers: Rc::new(RefCell::new(Vec::new())),

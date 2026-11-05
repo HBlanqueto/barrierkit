@@ -20,6 +20,7 @@ mod tests;
 pub(crate) mod timer;
 mod vulkan;
 mod window;
+mod window_style;
 
 pub use app_menu_export::AppMenuAddress;
 pub use input::inserts_text;

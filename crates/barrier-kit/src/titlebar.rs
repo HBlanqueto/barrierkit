@@ -125,6 +125,12 @@ impl ProbeExt for Titlebar {
 
 impl Component for Titlebar {
     fn render(&self) -> impl IntoElement {
+        let has_toolbar = !self.close_only && self.preview.is_none();
+        use_hook(|| {
+            if has_toolbar && let Some(controls) = try_consume_root_context::<WindowControls>() {
+                controls.mark_toolbar();
+            }
+        });
         let mut content_widths = use_state(|| (0.0f32, 0.0f32));
         let (status, title, fixed) = if let Some(preview) = &self.preview {
             let title = self.title.clone().unwrap_or_else(|| preview.title.clone());
