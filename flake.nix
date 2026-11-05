@@ -10,31 +10,31 @@
     { self, nixpkgs, crane }:
     let
       systems = [ "x86_64-linux" ];
-      forAllSystems = nixpkgs.lib.genAttrs systems;
-
-      nativeDeps = pkgs: with pkgs; [
-        libglvnd
-        mesa
-        wayland
-        libxkbcommon
-        fontconfig
-        freetype
-        vulkan-loader
-      ];
-      videoDeps = pkgs: with pkgs.gst_all_1; [
-        gstreamer
-        gst-plugins-base
-        gst-plugins-good
-        gst-plugins-bad
-        gst-libav
-        pkgs.libva
-        pkgs.glib
-      ];
-    in
-    {
-      packages = forAllSystems (system: let
+      perSystem = nixpkgs.lib.genAttrs systems (system: let
         pkgs = import nixpkgs { inherit system; };
         lib = pkgs.lib;
+        skia = pkgs.callPackage ./nix/skia.nix { };
+        nativeDeps = with pkgs; [
+          libglvnd
+          mesa
+          wayland
+          libxkbcommon
+          fontconfig
+          freetype
+          vulkan-loader
+        ];
+        videoDeps = with pkgs.gst_all_1; [
+          gstreamer
+          gst-plugins-base
+          gst-plugins-good
+          gst-plugins-bad
+          gst-libav
+          pkgs.libva
+          pkgs.glib
+        ];
+        deps = nativeDeps ++ videoDeps;
+        libraryPath = lib.makeLibraryPath deps;
+
         craneLib = (crane.mkLib pkgs).overrideToolchain (p: p.symlinkJoin {
           name = "rust-toolchain";
           paths = [ p.cargo p.rustc p.clippy p.rustfmt ];
@@ -47,8 +47,6 @@
             ./Cargo.lock
           ];
         };
-        skia = pkgs.callPackage ./nix/skia.nix { };
-        hasFreyaSkia = lib.hasInfix "freya-skia-bindings" (builtins.readFile ./Cargo.lock);
         commonArgs = {
           pname = "barrierkit";
           version = "0.1.0";
@@ -59,8 +57,6 @@
 
           env = {
             BARRIERKIT_DEV_SHELL = "1";
-          }
-          // lib.optionalAttrs hasFreyaSkia {
             SKIA_BINARIES_URL = "file://${skia}/skia-binaries.tar.gz";
           };
 
@@ -69,24 +65,20 @@
           CARGO_PROFILE = "dist";
 
           nativeBuildInputs = with pkgs; [ diffutils pkg-config ];
-          buildInputs = nativeDeps pkgs;
+          buildInputs = nativeDeps;
 
           preBuild = ''
-            if cargo tree --offline -i freya-skia-bindings --depth 0 --prefix none >/dev/null 2>&1; then
-              version="$(cargo tree --offline -i freya-skia-bindings --depth 0 --prefix none \
-                | sed -n 's/.*freya-skia-bindings v\([0-9.]*\).*/\1/p' | head -n1)"
-              if [ "$version" != "0.98.0" ]; then
-                echo "freya-skia-bindings $version no coincide con la derivación 0.98.0" >&2
-                exit 1
-              fi
-              cargo tree --offline -e features -i freya-skia-bindings --prefix none \
-                | sed -n 's/^freya-skia-bindings feature "\([^"]*\)".*/\1/p' | sort -u > skia-features.txt
-              if ! diff -u ${skia}/features.txt skia-features.txt; then
-                echo "las features de Skia cambiaron: actualiza nix/skia-prebuild" >&2
-                exit 1
-              fi
-            else
-              echo "freya-skia-bindings no está en el grafo todavía; Skia precompilado queda listo" >&2
+            version="$(cargo tree --offline -i freya-skia-bindings --depth 0 --prefix none \
+              | sed -n 's/.*freya-skia-bindings v\([0-9.]*\).*/\1/p' | head -n1)"
+            if [ "$version" != "0.98.0" ]; then
+              echo "freya-skia-bindings $version no coincide con la derivación 0.98.0" >&2
+              exit 1
+            fi
+            cargo tree --offline -e features -i freya-skia-bindings --prefix none \
+              | sed -n 's/^freya-skia-bindings feature "\([^"]*\)".*/\1/p' | sort -u > skia-features.txt
+            if ! diff -u ${skia}/features.txt skia-features.txt; then
+              echo "las features de Skia cambiaron: actualiza nix/skia-prebuild" >&2
+              exit 1
             fi
           '';
         };
@@ -95,42 +87,12 @@
         barrierkit = craneLib.buildPackage (commonArgs // {
           inherit cargoArtifacts;
         });
-      in {
-        default = barrierkit;
-        "barrierkit" = barrierkit;
-        skia-binaries = skia;
-      });
 
-      checks = forAllSystems (system: let
-        pkgs = import nixpkgs { inherit system; };
-        lib = pkgs.lib;
         checkSrc = lib.fileset.toSource {
           root = ./.;
-          fileset = lib.fileset.unions [ ./crates ./scripts ./nix ./protocols ./Cargo.toml ./Cargo.lock ];
+          fileset = lib.fileset.unions [ ./crates ./scripts ./nix ./Cargo.toml ./Cargo.lock ];
         };
-      in {
-        design-tokens = pkgs.runCommand "check-design-tokens" {
-          nativeBuildInputs = with pkgs; [ bash coreutils findutils gawk gnugrep ];
-        } ''
-          cd ${checkSrc}
-          bash scripts/check-design-tokens.sh
-          touch $out
-        '';
 
-        client-only-deps = pkgs.runCommand "check-client-only-deps" {
-          nativeBuildInputs = with pkgs; [ cargo rustc ];
-        } ''
-          cd ${checkSrc}
-          bash scripts/check-client-only-deps.sh
-          touch $out
-        '';
-      });
-
-      devShells = forAllSystems (system: let
-        pkgs = import nixpkgs { inherit system; };
-        deps = nativeDeps pkgs ++ videoDeps pkgs;
-        skia = pkgs.callPackage ./nix/skia.nix { };
-        hasFreyaSkia = pkgs.lib.hasInfix "freya-skia-bindings" (builtins.readFile ./Cargo.lock);
         fontsConf = pkgs.writeText "barrierkit-fonts.conf" ''
           <?xml version="1.0"?>
           <!DOCTYPE fontconfig SYSTEM "urn:fontconfig:fonts.dtd">
@@ -141,7 +103,31 @@
           </fontconfig>
         '';
       in {
-        default = pkgs.mkShell {
+        packages = {
+          default = barrierkit;
+          "barrierkit" = barrierkit;
+          skia-binaries = skia;
+        };
+
+        checks = {
+          design-tokens = pkgs.runCommand "check-design-tokens" {
+            nativeBuildInputs = with pkgs; [ bash coreutils findutils gawk gnugrep ];
+          } ''
+            cd ${checkSrc}
+            bash scripts/check-design-tokens.sh
+            touch $out
+          '';
+
+          client-only-deps = pkgs.runCommand "check-client-only-deps" {
+            nativeBuildInputs = with pkgs; [ cargo rustc ];
+          } ''
+            cd ${checkSrc}
+            bash scripts/check-client-only-deps.sh
+            touch $out
+          '';
+        };
+
+        devShells.default = pkgs.mkShell {
           packages = with pkgs; [
             cargo
             rustc
@@ -160,22 +146,27 @@
             pkgs.inter
           ];
 
-          RUSTFLAGS = "-C link-arg=-fuse-ld=mold -C link-arg=-Wl,-rpath,${pkgs.lib.makeLibraryPath deps}";
+          RUSTFLAGS = "-C link-arg=-fuse-ld=mold -C link-arg=-Wl,-rpath,${libraryPath}";
           FONTCONFIG_FILE = fontsConf;
           BARRIERKIT_DEV_SHELL = "1";
+          SKIA_BINARIES_URL = "file://${skia}/skia-binaries.tar.gz";
 
           shellHook = ''
-            ${pkgs.lib.optionalString hasFreyaSkia ''
-              export SKIA_BINARIES_URL="file://${skia}/skia-binaries.tar.gz"
-            ''}
-            export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath deps}$LD_LIBRARY_PATH"
-            export VK_DRIVER_FILES="${pkgs.mesa}/share/vulkan/icd.d/radeon_icd.x86_64.json''${VK_DRIVER_FILES:+:$VK_DRIVER_FILES}"
-            export GST_PLUGIN_SYSTEM_PATH_1_0="${pkgs.lib.makeSearchPathOutput "lib" "lib/gstreamer-1.0" (videoDeps pkgs)}"
+            export LD_LIBRARY_PATH="${libraryPath}''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+            mesa_icds=$(printf '%s:' ${pkgs.mesa}/share/vulkan/icd.d/*.json)
+            export VK_DRIVER_FILES="''${mesa_icds%:}''${VK_DRIVER_FILES:+:$VK_DRIVER_FILES}"
+            unset mesa_icds
+            export GST_PLUGIN_SYSTEM_PATH_1_0="${lib.makeSearchPathOutput "lib" "lib/gstreamer-1.0" videoDeps}"
             # souphttpsrc needs a GIO TLS backend to open https:// sources.
             export GIO_EXTRA_MODULES="${pkgs.glib-networking}/lib/gio/modules"
             export LIBVA_DRIVERS_PATH="${pkgs.mesa}/lib/dri"
           '';
         };
       });
+    in
+    {
+      packages = nixpkgs.lib.mapAttrs (_: s: s.packages) perSystem;
+      checks = nixpkgs.lib.mapAttrs (_: s: s.checks) perSystem;
+      devShells = nixpkgs.lib.mapAttrs (_: s: s.devShells) perSystem;
     };
 }
