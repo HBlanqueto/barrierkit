@@ -7,7 +7,7 @@ use std::time::Duration;
 
 use accesskit::Role;
 use barrier_kit::ProbeExt;
-use barrier_kit::controls::{ToolButton, ToolGroup};
+use barrier_kit::controls::ToolGroup;
 use barrier_kit::platform::{DecorationResponse, WindowStatus};
 use barrier_kit::sidebar::{Sidebar, SidebarItem, SidebarSection};
 use barrier_kit::theme;
@@ -930,87 +930,6 @@ fn sidebar_section_hides_chevron_without_hover_or_focus() {
         1,
         "expanded section header must contain only the label when not hovered or focused"
     );
-}
-
-struct ToolGroupFlatCase;
-
-impl App for ToolGroupFlatCase {
-    fn render(&self) -> impl IntoElement {
-        use_init_theme(|| theme::for_scheme(false));
-        ToolGroup::new()
-            .flat()
-            .child(Button::new().child("A"))
-            .child(Button::new().child("B"))
-    }
-}
-
-#[test]
-fn flat_toolgroup_has_no_separators() {
-    let app = AppComponent::new(ToolGroupFlatCase);
-    let (test, _) = TestingRunner::new(app, Size2D::new(300.0, 80.0), |_| {}, 1.0);
-    let separators = test.find_many(|node, _el| {
-        let size = node.layout().area.size;
-        let expected_w = TOOLGROUP.separator_w as f32;
-        let expected_h = TOOLGROUP.separator_h as f32;
-        if (size.width - expected_w).abs() < 0.5 && (size.height - expected_h).abs() < 0.5 {
-            Some(())
-        } else {
-            None
-        }
-    });
-    assert!(
-        separators.is_empty(),
-        "flat ToolGroup must not draw vertical separators"
-    );
-}
-
-const PLUS_ICON: &str = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 16 16\"><circle cx=\"8\" cy=\"8\" r=\"6\" fill=\"currentColor\"/></svg>";
-
-struct ToolButtonCase {
-    disabled: bool,
-}
-
-impl App for ToolButtonCase {
-    fn render(&self) -> impl IntoElement {
-        use_init_theme(|| theme::for_scheme(false));
-        let mut pressed = use_consume::<State<u32>>();
-        ToolButton::new("Añadir", PLUS_ICON)
-            .disabled(self.disabled)
-            .on_press(move |_| {
-                let current = *pressed.read();
-                pressed.set(current + 1);
-            })
-    }
-}
-
-#[test]
-fn disabled_toolbutton_does_not_fire_on_press() {
-    let app = AppComponent::new(ToolButtonCase { disabled: true });
-    let (mut test, pressed) = TestingRunner::new(
-        app,
-        Size2D::new(100.0, 80.0),
-        |runner| runner.provide_root_context(|| State::create(0u32)),
-        1.0,
-    );
-    test.click_cursor((15.0, 15.0));
-    assert_eq!(
-        *pressed.peek(),
-        0,
-        "disabled tool button must ignore presses"
-    );
-}
-
-#[test]
-fn enabled_toolbutton_fires_on_press() {
-    let app = AppComponent::new(ToolButtonCase { disabled: false });
-    let (mut test, pressed) = TestingRunner::new(
-        app,
-        Size2D::new(100.0, 80.0),
-        |runner| runner.provide_root_context(|| State::create(0u32)),
-        1.0,
-    );
-    test.click_cursor((15.0, 15.0));
-    assert_eq!(*pressed.peek(), 1, "enabled tool button must fire on_press");
 }
 
 fn dark_resolved() -> vow_appearance::Resolved {

@@ -99,17 +99,9 @@ impl Component for SecureField {
     }
 }
 
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub enum ToolGroupStyle {
-    #[default]
-    Island,
-    Flat,
-}
-
 #[derive(PartialEq)]
 pub struct ToolGroup {
     children: Vec<Element>,
-    style: ToolGroupStyle,
     probe: Option<&'static str>,
     key: DiffKey,
 }
@@ -122,21 +114,11 @@ impl Default for ToolGroup {
 
 impl ToolGroup {
     pub fn new() -> Self {
-        let style = match crate::theme::resolved().sidebar.style {
-            vow_appearance::SidebarStyle::Island => ToolGroupStyle::Island,
-            vow_appearance::SidebarStyle::Flat => ToolGroupStyle::Flat,
-        };
         Self {
             children: Vec::new(),
-            style,
             probe: None,
             key: DiffKey::None,
         }
-    }
-
-    pub fn flat(mut self) -> Self {
-        self.style = ToolGroupStyle::Flat;
-        self
     }
 
     pub fn child(mut self, child: impl IntoElement) -> Self {
@@ -173,12 +155,13 @@ impl Component for ToolGroup {
     fn render(&self) -> impl IntoElement {
         let resolved = crate::theme::resolved();
         let palette = resolved.toolgroup.palette;
+        let island = resolved.sidebar.style == vow_appearance::SidebarStyle::Island;
 
         let mut items: Vec<Element> = Vec::with_capacity(self.children.len());
         let last = self.children.len().saturating_sub(1);
         for (i, child) in self.children.iter().cloned().enumerate() {
             items.push(child);
-            if self.style == ToolGroupStyle::Island && i != last {
+            if island && i != last {
                 items.push(
                     rect()
                         .width(Size::px(TOOLGROUP.separator_w as f32))
@@ -204,7 +187,7 @@ impl Component for ToolGroup {
             root = root.a11y_builder(move |node| node.set_author_id(id));
         }
 
-        if self.style == ToolGroupStyle::Island {
+        if island {
             return root
                 .background(theme::color(resolved.toolgroup.bg))
                 .corner_radius((TOOLGROUP.height as f32 / 2.0).max(1.0))
@@ -212,116 +195,6 @@ impl Component for ToolGroup {
         }
 
         root.into_element()
-    }
-}
-
-#[derive(PartialEq)]
-pub struct ToolButton {
-    label: String,
-    icon: &'static str,
-    disabled: bool,
-    on_press: Option<Callback<(), ()>>,
-    probe: Option<&'static str>,
-    key: DiffKey,
-}
-
-impl ToolButton {
-    pub fn new(label: impl Into<String>, icon: &'static str) -> Self {
-        Self {
-            label: label.into(),
-            icon,
-            disabled: false,
-            on_press: None,
-            probe: None,
-            key: DiffKey::None,
-        }
-    }
-
-    pub fn disabled(mut self, disabled: bool) -> Self {
-        self.disabled = disabled;
-        self
-    }
-
-    pub fn on_press(mut self, callback: impl Into<Callback<(), ()>>) -> Self {
-        self.on_press = Some(callback.into());
-        self
-    }
-
-    pub fn key(mut self, key: impl Into<DiffKey>) -> Self {
-        self.key = key.into();
-        self
-    }
-}
-
-impl KeyExt for ToolButton {
-    fn write_key(&mut self) -> &mut DiffKey {
-        &mut self.key
-    }
-}
-
-impl ProbeExt for ToolButton {
-    fn probe(mut self, id: &'static str) -> Self {
-        self.probe = Some(id);
-        self
-    }
-}
-
-impl Component for ToolButton {
-    fn render(&self) -> impl IntoElement {
-        let resolved = crate::theme::resolved();
-        let palette = resolved.toolgroup.palette;
-        let mut hovered = use_state(|| false);
-
-        let island = resolved.sidebar.style == vow_appearance::SidebarStyle::Island;
-        let (width, height, radius) = if island {
-            (
-                TOOLGROUP.button_w as f32,
-                TOOLGROUP.button_h as f32,
-                (TOOLGROUP.button_h as f32 / 2.0).max(1.0),
-            )
-        } else {
-            (
-                TOOLGROUP.flat_button_w as f32,
-                TOOLGROUP.flat_button_h as f32,
-                TOOLGROUP.flat_radius as f32,
-            )
-        };
-
-        let fg = if self.disabled {
-            palette.disabled_ink
-        } else {
-            palette.ink
-        };
-        let bg = if !self.disabled && *hovered.read() {
-            theme::color(resolved.sidebar.palette.hover_bg)
-        } else {
-            Color::TRANSPARENT
-        };
-
-        let mut root = rect()
-            .width(Size::px(width))
-            .height(Size::px(height))
-            .corner_radius(radius)
-            .background(bg)
-            .cross_align(Alignment::Center)
-            .center()
-            .a11y_role(AccessibilityRole::Button)
-            .a11y_alt(self.label.clone())
-            .a11y_focusable(true)
-            .on_pointer_enter(move |_| hovered.set(true))
-            .on_pointer_leave(move |_| hovered.set(false))
-            .child(svg_viewer(self.icon, fg, TOOLGROUP.icon));
-
-        if !self.disabled
-            && let Some(callback) = self.on_press.clone()
-        {
-            root = root.on_press(move |_| callback.call(()));
-        }
-        if let Some(id) = self.probe {
-            root = root.a11y_builder(move |node| node.set_author_id(id));
-        }
-
-        root
     }
 }
 
