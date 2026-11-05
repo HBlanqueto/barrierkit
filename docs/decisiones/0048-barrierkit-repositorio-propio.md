@@ -31,13 +31,14 @@ barrierkit/
   crates/barrier-kit/         el toolkit (ADR 0034, 0047), con la feature `shell`
   crates/vow-design/          Tengen: tengen/tokens.json, components.json → constantes Rust
   crates/vow-appearance/      appearance.domain + fondo → paleta resuelta; watcher
-  crates/infinity-protocol/   protocols/infinity-window-manager-v1.xml + código generado,
+  crates/infinity-protocol/   protocols/infinity-*.xml + código generado,
                               features `client` (kit) y `server` (compositor)
-  apps/tengen-app-show/       Master Tengen App Show
-  docs/                       decisiones del kit, glosario del kit
+  crates/tengen-app-show/     Master Tengen App Show
+  crates/marea/, ondina/      apps de prueba: vídeo y carátulas; fondo tintado
+  docs/                       decisiones y documentación del kit
   flake.nix, nix/skia*        Skia precompilado para freya-skia-bindings 0.98.0 + su guardia
-  scripts/                    check-client-only-deps, check-design-tokens (parte kit),
-                              mockup-extract
+  scripts/                    check-client-only-deps, check-design-tokens
+  dev.sh                      app, check y tracy
 ```
 
 **`github.com/HBlanqueto/malaysia`** es el escritorio:

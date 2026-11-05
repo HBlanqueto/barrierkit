@@ -27,17 +27,18 @@ In both cases, **the toolkit takes its style and the reading of the system appea
 
 ```
 barrierkit/
-  Cargo.toml                  workspace propio, mismas versiones fijadas (freya-* =0.4.3, SCTK…)
-  crates/barrier-kit/         el toolkit (ADR 0034, 0047), con la feature `shell`
-  crates/vow-design/          Tengen: tengen/tokens.json, components.json → constantes Rust
-  crates/vow-appearance/      appearance.domain + fondo → paleta resuelta; watcher
-  crates/infinity-protocol/   protocols/infinity-window-manager-v1.xml + código generado,
-                              features `client` (kit) y `server` (compositor)
-  apps/tengen-app-show/       Master Tengen App Show
-  docs/                       decisiones del kit, glosario del kit
-  flake.nix, nix/skia*        Skia precompilado para freya-skia-bindings 0.98.0 + su guardia
-  scripts/                    check-client-only-deps, check-design-tokens (parte kit),
-                              mockup-extract
+  Cargo.toml                  own workspace, same pinned versions (freya-* =0.4.3, SCTK…)
+  crates/barrier-kit/         the toolkit (ADR 0034, 0047), with the `shell` feature
+  crates/vow-design/          Tengen: tengen/tokens.json, components.json → Rust constants
+  crates/vow-appearance/      appearance.domain + backdrop → resolved palette; watcher
+  crates/infinity-protocol/   protocols/infinity-*.xml + generated code,
+                              features `client` (kit) and `server` (compositor)
+  crates/tengen-app-show/     Master Tengen App Show
+  crates/marea/, ondina/      test apps: video and artwork; tinted backdrop
+  docs/                       kit decisions and documentation
+  flake.nix, nix/skia*        prebuilt Skia for freya-skia-bindings 0.98.0 + its guard
+  scripts/                    check-client-only-deps, check-design-tokens
+  dev.sh                      app, check and tracy
 ```
 
 **`github.com/HBlanqueto/malaysia`** is the desktop:
@@ -45,11 +46,11 @@ barrierkit/
 ```
 malaysia/
   crates/malaysia-compositor, malaysia-scene, grade-graphics
-  crates/malaysia-shell        (barrier-kit con features = ["shell"])
-  crates/malaysia-settings     (Ajustes del sistema, se queda aquí)
+  crates/malaysia-shell        (barrier-kit with features = ["shell"])
+  crates/malaysia-settings     (System Settings, stays here)
   crates/xdg-desktop-portal-malaysia
-  protocols/gtk-shell.xml      (solo lo usa el compositor)
-  flake.nix, nix/malaysia.nix, dev.sh, share/, docs/ del escritorio
+  protocols/gtk-shell.xml      (only the compositor uses it)
+  flake.nix, nix/malaysia.nix, dev.sh, share/, desktop docs/
 ```
 
 ### 2. How malaysia consumes the kit

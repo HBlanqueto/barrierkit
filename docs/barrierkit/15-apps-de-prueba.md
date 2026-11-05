@@ -126,7 +126,9 @@ Una app de cine y series que prueba el kit con medios (feature `video`):
   «Películas abiertas» abre el mismo vídeo.
 
 Los vídeos y fotogramas de prueba se generan con
-`crates/marea/media/generate.mjs`, salvo los `sprite-fright-*` de
+`node crates/marea/media/generate.mjs`. Necesita `ffmpeg` con libx264 y Node
+con Playwright y Chromium, que el dev shell no trae. Quedan fuera los
+`sprite-fright-*` de
 `media/stills/`: fotogramas de «Sprite Fright» (Blender Studio, CC BY 4.0) y
 un título dibujado con Creepster (ver `NOTICE`). La captura se hizo sin GPU: el vídeo se
 decodificó por CPU (`Decoding::Cpu`).

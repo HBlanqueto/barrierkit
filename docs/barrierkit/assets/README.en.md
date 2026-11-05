@@ -54,8 +54,8 @@ driver and the Geist font installed:
      `pane = "<id>"` to open a pane;
    - `MALAYSIA_CONFIG_DIR/tengen-app-show.domain` with `layout = "Top"`, `"Rail"`…
 3. Launch the app with `VK_DRIVER_FILES` pointing to lavapipe's `lvp_icd` and
-   wait a few seconds. `nix develop` already sets `VK_DRIVER_FILES` to radeon,
-   and it wins over `VK_ICD_FILENAMES`.
+   wait a few seconds. `nix develop` sets `VK_DRIVER_FILES` to every Mesa ICD,
+   and it wins over `VK_ICD_FILENAMES`: override it with `lvp_icd` alone.
 4. Crop the window with `grim -g "x,y ancho×alto"`, taking the geometry from
    `swaymsg -t get_tree`.
 

@@ -19,10 +19,10 @@ The repository is built inside the Nix dev shell (ADR 0007):
 
 ```sh
 nix develop
-cargo test --workspace
-cargo clippy --workspace -- -D warnings
-cargo fmt --check
+./dev.sh check
 ```
+
+`./dev.sh check` runs fmt, clippy, the kit checks and the tests; its list is in [`dev.sh`](dev.sh).
 
 The Skia prebuild for `freya-skia-bindings` 0.98.0 lives in `nix/skia.nix`.
 

@@ -4,6 +4,8 @@ Status: **accepted** (2026-10-22). Supersedes [ADR 0033](0033-skia-en-clientes-y
 and amends [ADR 0024](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0024-stack-de-render-del-toolkit.md) for the client
 processes.
 
+Renamed to BarrierKit, `vow-design` and `vow-appearance` in [ADR 0043](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0043-rebranding-a-malaysia.en.md).
+
 ## Context
 
 ADR 0033 put Skia in the clients and proposed basing CelestialKit on `otto-kit`

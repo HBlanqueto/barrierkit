@@ -2,6 +2,8 @@
 
 Estado: aceptado (bloque 0, supera a la ADR 0008)
 
+`yuki-design` se renombró a `vow-design` en la [ADR 0043](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0043-rebranding-a-malaysia.md).
+
 ## Contexto
 
 La ADR 0008 definió un contrato en el que `design/v1.nix` era la única fuente

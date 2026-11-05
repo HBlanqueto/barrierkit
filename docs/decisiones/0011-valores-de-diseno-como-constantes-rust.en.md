@@ -2,6 +2,8 @@
 
 Status: accepted (block 0, supersedes ADR 0008)
 
+`yuki-design` was renamed to `vow-design` in [ADR 0043](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0043-rebranding-a-malaysia.en.md).
+
 ## Context
 
 ADR 0008 defined a contract in which `design/v1.nix` was the only hand-authored

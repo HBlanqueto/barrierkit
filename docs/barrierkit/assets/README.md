@@ -54,8 +54,8 @@ Vulkan y la fuente Geist instalada:
      `pane = "<id>"` para abrir un panel;
    - `MALAYSIA_CONFIG_DIR/tengen-app-show.domain` con `layout = "Top"`, `"Rail"`…
 3. Lanza la app con `VK_DRIVER_FILES` apuntando al `lvp_icd` de lavapipe y
-   espera unos segundos. `nix develop` ya fija `VK_DRIVER_FILES` a radeon, y
-   gana a `VK_ICD_FILENAMES`.
+   espera unos segundos. `nix develop` fija `VK_DRIVER_FILES` con todos los
+   ICD de Mesa, y gana a `VK_ICD_FILENAMES`: sobrescríbela solo con `lvp_icd`.
 4. Recorta la ventana con `grim -g "x,y ancho×alto"`, tomando la geometría de
    `swaymsg -t get_tree`.
 

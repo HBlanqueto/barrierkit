@@ -127,7 +127,9 @@ A movie and TV app that tests the kit with media (`video` feature):
   "Películas abiertas" ("Open movies") shelf opens the same video.
 
 The test videos and frames are generated with
-`crates/marea/media/generate.mjs`, except the `sprite-fright-*` files in
+`node crates/marea/media/generate.mjs`. It needs `ffmpeg` with libx264 and Node
+with Playwright and Chromium, which the dev shell does not ship. Left out are
+the `sprite-fright-*` files in
 `media/stills/`: frames from "Sprite Fright" (Blender Studio, CC BY 4.0) and
 a title drawn with Creepster (see `NOTICE`). The screenshot was made without a GPU: the
 video was decoded on the CPU (`Decoding::Cpu`).

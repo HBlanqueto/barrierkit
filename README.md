@@ -19,10 +19,10 @@ El repositorio se compila dentro del dev shell de Nix (ADR 0007):
 
 ```sh
 nix develop
-cargo test --workspace
-cargo clippy --workspace -- -D warnings
-cargo fmt --check
+./dev.sh check
 ```
+
+`./dev.sh check` pasa fmt, clippy, los checks del kit y los tests; su lista está en [`dev.sh`](dev.sh).
 
 El binario precompilado de Skia para `freya-skia-bindings` 0.98.0 está en `nix/skia.nix`.
 
