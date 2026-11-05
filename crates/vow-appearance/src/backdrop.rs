@@ -1,6 +1,3 @@
-//! Tinted backgrounds: a palette taken from an image, the backdrop built from
-//! it and the ink that reads on top, whatever the system colour scheme.
-
 use vow_design::{BACKDROP, DOMINANT_LIGHTNESS, DOMINANT_MIN_CHROMA, LIGHT, Rgba};
 
 #[derive(Clone, Copy, Debug, PartialEq)]

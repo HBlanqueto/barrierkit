@@ -1,5 +1,3 @@
-//! Design constants: the single place for radii, shadows, colours and margins.
-
 #![forbid(unsafe_code)]
 
 #[derive(Debug, Clone, Copy, PartialEq)]

@@ -1,5 +1,3 @@
-//! Single inotify watcher for the configuration and data directories.
-
 use std::io;
 use std::os::fd::AsFd;
 use std::os::unix::ffi::OsStrExt;

@@ -1,5 +1,3 @@
-//! Shared traffic-light geometry, appearance and pointer state.
-
 use vow_design::{
     ButtonKind, Rgba, Segment, TITLEBAR, TRAFFIC_GLYPH_ON_DARK, TRAFFIC_GLYPH_ON_LIGHT,
     TRAFFIC_GLYPH_STANDARD, TRAFFIC_GLYPHS, TRAFFIC_PRESSED_DARKEN, TrafficRim, Triangle,

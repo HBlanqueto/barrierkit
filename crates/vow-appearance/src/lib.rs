@@ -1,5 +1,3 @@
-//! Appearance domain (dark/light, accent) and its resolved colours.
-
 pub mod backdrop;
 mod config;
 pub mod language;
