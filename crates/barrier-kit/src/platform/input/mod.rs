@@ -18,12 +18,6 @@ pub fn modifiers(m: SctkModifiers) -> keyboard_types::Modifiers {
     if m.logo {
         out |= keyboard_types::Modifiers::META;
     }
-    if m.caps_lock {
-        out |= keyboard_types::Modifiers::CAPS_LOCK;
-    }
-    if m.num_lock {
-        out |= keyboard_types::Modifiers::NUM_LOCK;
-    }
     out
 }
 
@@ -146,9 +140,9 @@ pub fn mouse_button(button: u32) -> MouseButton {
 
 #[cfg(test)]
 mod tests {
-    use sctk::seat::keyboard::Keysym;
+    use sctk::seat::keyboard::{Keysym, Modifiers as SctkModifiers};
 
-    use super::{inserts_text, map_key};
+    use super::{inserts_text, map_key, modifiers};
 
     use keyboard_types::{Key, Modifiers};
 
@@ -173,16 +167,21 @@ mod tests {
     }
 
     #[test]
-    fn inserts_text_allows_shift_caps_num_lock_but_rejects_ctrl_alt_meta() {
+    fn caps_and_num_lock_are_not_shortcut_modifiers() {
+        let locked_ctrl = SctkModifiers {
+            ctrl: true,
+            caps_lock: true,
+            num_lock: true,
+            ..Default::default()
+        };
+        assert_eq!(modifiers(locked_ctrl), Modifiers::CONTROL);
+    }
+
+    #[test]
+    fn inserts_text_allows_shift_but_rejects_ctrl_alt_meta() {
         let cases = [
             (Modifiers::empty(), true),
             (Modifiers::SHIFT, true),
-            (Modifiers::CAPS_LOCK, true),
-            (Modifiers::NUM_LOCK, true),
-            (
-                Modifiers::SHIFT | Modifiers::CAPS_LOCK | Modifiers::NUM_LOCK,
-                true,
-            ),
             (Modifiers::CONTROL, false),
             (Modifiers::ALT, false),
             (Modifiers::META, false),
