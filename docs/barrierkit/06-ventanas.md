@@ -12,7 +12,6 @@ capítulo [7](07-titlebars.md).
 run_window(
     AppComponent::new(MiApp),
     WindowOptions::new("Notas", "notas")
-        .decorations(Decorations::Client)
         .size((760, 520))
         .min_size(Some(WINDOW_MIN_SIZE))
         .menu(menu),
@@ -22,10 +21,8 @@ run_window(
 | Opción | Efecto |
 |---|---|
 | `new(título, nombre)` | Título visible y nombre corto. El `app_id` es `io.github.hblanqueto.malaysia.<nombre>` salvo que pases `.app_id(..)` |
-| `.decorations(..)` | `Client` (por defecto): el kit dibuja la titlebar. `Server`: la pide al compositor; si no hay `zxdg_decoration_manager_v1`, vuelve a `Client` |
 | `.size((ancho, alto))` | Tamaño inicial (640 × 420 por defecto). Si hay uno guardado, se restaura |
-| `.min_size(..)`, `.max_size(..)` | Límites. Si son iguales, la ventana es de tamaño fijo y el botón verde la maximiza solo en vertical |
-| `.parent(..)` | Ventana hija (diálogo) |
+| `.min_size(..)`, `.max_size(..)` | Límites. Si son iguales, la ventana es de tamaño fijo |
 | `.menu(AppMenu)` | Menú global de la ventana (capítulo [11](11-app.md)) |
 | `.fullscreen_bar(FullscreenBar)` | Cómo se dibuja la titlebar superpuesta en pantalla completa; `Solid` por defecto (capítulo [7](07-titlebars.md#la-barra-en-pantalla-completa-fullscreenbar)) |
 | `.fullscreen_push(bool)` | En pantalla completa, la barra empuja todo el contenido en vez de taparlo; apagado por defecto (capítulo [7](07-titlebars.md#empujar-el-contenido-fullscreen_push)) |
@@ -63,9 +60,9 @@ Los decide el usuario en `window.domain`. Con una ventana de tamaño fijo
 
 | `green_button` | Ventana normal | Tamaño fijo |
 |---|---|---|
-| `focus` (por defecto) | Pantalla completa | Maximiza en vertical |
-| `zoom` | Maximiza | Maximiza en vertical |
-| `fullscreen` | Pantalla completa | Maximiza en vertical |
+| `focus` (por defecto) | Pantalla completa | Maximiza |
+| `zoom` | Maximiza | Maximiza |
+| `fullscreen` | Pantalla completa | Maximiza |
 | `none` | Nada; el botón se dibuja gris y sin glifo | Nada; el botón se dibuja gris y sin glifo |
 
 | `double_click_titlebar` | Ventana normal | Tamaño fijo |
@@ -73,6 +70,10 @@ Los decide el usuario en `window.domain`. Con una ventana de tamaño fijo
 | `zoom` (por defecto), `fill` | Maximiza | Nada |
 | `minimize` | Minimiza | Minimiza |
 | `none` | Nada | Nada |
+
+Las dos tablas viven en `vow_appearance::window`: `read_window_behavior()` lee
+el dominio y `green_action` y `double_click_action` dan la acción. El chrome del
+compositor usa las mismas funciones.
 
 ## Popups
 

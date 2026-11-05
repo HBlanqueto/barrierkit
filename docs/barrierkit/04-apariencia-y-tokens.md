@@ -97,6 +97,8 @@ y la ventana activa o inactiva. Una app o un componente pinta solo con ella:
 
 `style::text(contenido, fuente, tinta)` crea un texto con una tipografía de
 Tengen. `theme::color(rgba)` convierte un color de Tengen al tipo de Freya.
+`theme::use_shell_theme()` da a los componentes de Freya un tema con la paleta
+resuelta y lo cambia con la apariencia.
 
 ## Colores propios en una app
 

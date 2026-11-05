@@ -119,8 +119,9 @@ LevelSlider::new("Volumen").value(0.6).style(LevelStyle::Fat(Symbol::SpeakerWave
 ```rust
 let nombre = use_state(|| "hblanqueto".to_string());
 TextField::new(nombre, "Nombre de usuario")
-SearchField::new(consulta, "Buscar")
-SecureField::new()
+SearchField::new(consulta, "Buscar").auto_focus(true)
+let clave = use_state(PasswordField::default);
+SecureField::new(clave).on_submit(move |valor| entrar(valor))
 ```
 
 | Texto y búsqueda | Contraseña |
@@ -129,6 +130,12 @@ SecureField::new()
 
 `TextField` y `SearchField` escriben directamente en un `State<String>`. Con
 el foco en un campo, Ctrl+A, C, V, X, Y y Z son del campo antes que del menú.
+`SearchField::auto_focus(true)` toma el foco al montarse.
+
+`SecureField` guarda la contraseña en un `State<PasswordField>`
+(`barrier_kit::password`) que crea la app. Enter llama a `on_submit` con el
+valor en un `Zeroizing<String>`. Quien dibuja su propio campo pasa cada tecla a
+`PasswordField::handle_key(&key, modifiers)`: devuelve el valor al pulsar Enter.
 
 ## Progreso
 
@@ -165,6 +172,12 @@ context_menu(fila, elementos, |id: String| { /* acción */ })
 - `context_menu` abre un `MenuView` en el puntero con el clic secundario.
   `elementos` es un `Vec<MenuItem>`; `Action::item(true)` crea uno desde una
   acción (capítulo [11](11-app.md)).
+- `MenuItem::action(id, texto)`, `::submenu(texto, elementos)`,
+  `::header(texto)` y `::placeholder(texto)` crean los demás; `.with_shortcut`,
+  `.with_enabled`, `.with_check` y `.with_icon` los ajustan.
+- `menu::normalize_query(texto)` prepara una búsqueda como lo hace el menú, y
+  `menu::submenu_contents(cargando, elementos)` muestra «Cargando…» en un
+  submenú que aún llega vacío.
 
 ## Desplazamiento
 

@@ -64,7 +64,7 @@ Only `malaysia-shell` enables `barrier-kit/shell`. It adds:
 |---|---|---|
 | `shell::run_layer(app, LayerSpec)` | `zwlr_layer_shell_v1` | Menu bar, Dock, background |
 | `shell::run_lock(app)` | `ext_session_lock_v1` | Lock screen |
-| `shell::Toplevels` | `ext_foreign_toplevel_list_v1`, `zwlr_foreign_toplevel_manager_v1` | Window list and control for the Dock |
+| `shell::Toplevels` | `ext_foreign_toplevel_list_v1`, `zwlr_foreign_toplevel_manager_v1` | Window list and control for the Dock. Each `ToplevelInfo` carries a stable `id`; `activate`, `close`, `minimize` and the rest act by that `id` |
 | `shell::InfinityLayout`, `Toplevels::arrange` | `infinity_window_manager_v1` | Tiling windows |
 | `shell::Activation` | `xdg_activation_v1` | Launching apps from the Dock |
 

@@ -45,7 +45,7 @@ User decisions already taken (2026-10-28):
 │ Capa 2 · Contenedores  SplitView, SourceList, Toolbar,      │  App (transversal)
 │          y vistas      NavigationStack, Form, Table,        │  Application, Action,
 │                        CollectionView, TabView, Sheet…      │  Defaults, Restoration,
-├─────────────────────────────────────────────────────────────┤  UndoManager, Pasteboard
+├─────────────────────────────────────────────────────────────┤  UndoManager
 │ Capa 1 · Primitivas    Estilo (paleta semántica, texto,     │
 │                        símbolos) + controles                │
 ├─────────────────────────────────────────────────────────────┤
@@ -111,7 +111,7 @@ Status: **exists** = already in the kit, even if it needs fixing · **partial** 
 | `ColorWell` | **new** | Named colour swatches; comes from Settings |
 | `ProgressBar`, `ProgressRing`, `Spinner` | new | Token `progress` |
 | `Badge`, `Label`, `Link`, `Divider`, `Avatar`, `Image` | new | |
-| `ToolGroup`, `ToolButton` | exists | They switch to `Action` (§4) |
+| `ToolGroup` | exists | Groups `IconButton`s; `ToolButton` is gone |
 | Traffic lights, titlebar | exists | Fixed in L1d |
 
 **Layer 2 · Containers and views**
@@ -148,7 +148,6 @@ Status: **exists** = already in the kit, even if it needs fixing · **partial** 
 | `Defaults` | **new** | Per-app preferences in `~/.config/malaysia/<app_id>.domain` (`.domain` format, ADR 0021), typed with serde, with change notification (the same watcher as `AppearanceWatch`) |
 | `Restoration` | **new** | Size and position, section, sidebar width, navigation stack and scroll per window. It will connect to `xdg-session-management` when the compositor has it |
 | `UndoManager` | new | Undo and redo wired to the standard Edición ("Edit") actions |
-| `Pasteboard` | new | API on top of the layer 0 clipboard |
 
 ### 4. Crate structure
 
@@ -162,7 +161,7 @@ barrier-kit/src/
                        adaptive, titlebar, traffic, sidebar, menu/, app_menu/)
   views/      capa 2  (split, navigation, search, form, table, collection, tabs, feedback)
   patterns/   capa 3  (preferences, search_popover, about)
-  app/        transversal (action, application, defaults, pasteboard, undo)
+  app/        transversal (action, application, defaults, undo)
   shell/      solo para la shell, detrás de la feature `shell` (ver abajo)
 ```
 
@@ -228,7 +227,7 @@ Each phase is split into small batches for opencode, with a visible test in the 
 
 Its Animación ("Animation") group shows motion: the Freya curves, the Grade spring (`Spring` is an `AnimatedValue` and is used with `use_animation`), the Tengen durations, the animatable properties (opacity, scale, rotation, position, colour, radius and width), the kit controls that already animate, the entry and exit of elements, the transitions between slides and tabs, the response to events (hover, press, error, notification and alert) and reduced motion. It is a mockup: what later goes into the kit comes from here. Its Ventana ("Window") group changes the titlebar (`TitlebarLayout`, rail, appearance), the fullscreen bar (`FullscreenBar`, `fullscreen_push`) and the sidebar of its own window.
 
-**Marea** (`marea`) tests the kit with media: a featured item with background video, gradients that blend it into the window, a glass island on top, horizontal shelves with posters and video preview, genre chips and a player. For it the kit gains `video` (feature `video`: GStreamer decodes with VA-API and each frame arrives as a dmabuf imported into the kit's `VkDevice`, with no copies; without dmabuf it is downloaded once and without VA-API the CPU decodes), `media` (`scrim`, `material`, `MediaButton`, `RoundButton`, `use_artwork`), `register_font`, `ScrollView` with direction, controller and optional bar, and the tokens `MEDIA`, `POSTER` and `SCROLL_BAR`. `crates/marea/media/generate.mjs` generates the test videos and frames from the mockup scenes.
+**Marea** (`marea`) tests the kit with media: a featured item with background video, gradients that blend it into the window, a glass island on top, horizontal shelves with posters and video preview, genre chips and a player. For it the kit gains `video` (feature `video`: GStreamer decodes with VA-API and each frame arrives as a dmabuf imported into the kit's `VkDevice`, with no copies; without dmabuf it is downloaded once and without VA-API the CPU decodes), `media` (`scrim`, `material`, `MediaButton`, `RoundButton`, `use_artwork`), `register_font`, `ScrollView` with direction, controller and optional bar, and the tokens `MEDIA` and `SCROLL_BAR`. `crates/marea/media/generate.mjs` generates the test videos and frames from the mockup scenes.
 
 ## Status (2026-11-02)
 
@@ -236,7 +235,7 @@ Done in `main`:
 
 - **Layer 0**: AT-SPI bridge with `accesskit_unix` (tree, focus and window focus in each window; the screen reader's Focus and Click focus and press), fractional scale, shell separation, focus and keyboard mode (Tab enables keyboard navigation; keys go to the focused node), clipboard on top of `wl_data_device` and opaque region of windows with an opaque background.
 - **Layer 1**: `style` (semantic palette and text faces), `symbol`, `interaction` (hover, pressed, focus and ring), `Button`, `IconButton`, `Switch`, `Checkbox`, `RadioGroup`, `ColorWell`, `ChoiceCards`, `SegmentedControl`, `ToggleGroup`, `Stepper`, stepped `Slider`, `LevelSlider` (continuous and thick), `TextField`, `SearchField`, `PopUpButton`, `ProgressBar`, `ProgressRing`, `Spinner`, `badge`, `divider`, `avatar`, `Link` and `use_tooltip` (popup without grab under the pointer).
-- **App**: `Action` with typed `Shortcut`, `load_defaults`/`save_defaults` with change notification, `launch` (single instance; `Activate` brings the window to the front through xdg-activation and `ActivateAction` fires the action with the same id as the menu), a focused text field keeps Ctrl+A, C, V, X, Y and Z before the menu, panel restoration, `use_undo` (`UndoManager` with the standard actions `UNDO`, Ctrl+Z, and `REDO`, Ctrl+Shift+Z), which disables and enables its global menu entries according to the stack, and text clipboard (`copy`/`paste`).
+- **App**: `Action` with typed `Shortcut`, `load_defaults`/`save_defaults` with change notification, `launch` (single instance; `Activate` brings the window to the front through xdg-activation and `ActivateAction` fires the action with the same id as the menu), a focused text field keeps Ctrl+A, C, V, X, Y and Z before the menu, panel restoration, `use_undo` (`UndoManager` with the standard actions `UNDO`, Ctrl+Z, and `REDO`, Ctrl+Shift+Z), which disables and enables its global menu entries according to the stack.
 - **Layer 2**: `Form`/`Section`/`Row`, `SplitView` (replaces `SidebarLayout`), `History` and `navigation_buttons` (actions `GO_BACK` and `GO_FORWARD` with Alt+← and Alt+→; `PreferencesWindow` puts the panel title in the bar), `SearchIndex`, `empty_state`, `sheet`, `Alert`, `TabView`, `Table`, `CollectionView`, `SidebarAccount` and `context_menu` (`MenuView` at the pointer on secondary click).
 - **Layer 3**: `PreferencesWindow` (search field with suggestions and recents that are restored, results with the icon of their panel and traversal with ↑, ↓ and Enter) and `about_window`.
 - **Tinted backdrops**: `Backdrop` paints three layers at 127°, 217° and 336° with dithering, from an image (k-means in OKLab, `vow_appearance::backdrop`) or three colours, and cross-fades between backdrops. Inside, `Palette::current()` gives its ink and its accent (`Accent::System`, `Own` or `FromBackdrop`), the same in light as in dark; filled controls accept `.tint(Tint::Accent | Color | Backdrop)`. The content has to be a child component of the `Backdrop`: functions evaluated in the parent read the system palette. The `Sidebar` lets the backdrop show through or, as an island, the app tints it with `SidebarBackdrop::Tinted` (ADR 0057).
@@ -288,7 +287,7 @@ use barrier_kit::app::{REDO, UNDO, UndoManager, use_menu_action, use_undo};
 use barrier_kit::app_menu::{AppMenu, Menu};
 use barrier_kit::choices::ColorWell;
 use barrier_kit::patterns::preferences::{Pane, PaneGroup, PreferencesWindow};
-use barrier_kit::platform::{Decorations, WindowOptions, run_window};
+use barrier_kit::platform::{WindowOptions, run_window};
 use barrier_kit::symbol::Symbol;
 use barrier_kit::views::form::{Form, Row, Section};
 use freya_core::integration::AppComponent;
@@ -353,7 +352,6 @@ fn main() {
     run_window(
         AppComponent::new(Notas { app_id, instance }),
         WindowOptions::new("Notas", "notas")
-            .decorations(Decorations::Client)
             .size((760, 520))
             .min_size(Some(WINDOW_MIN_SIZE))
             .menu(AppMenu::new(vec![Menu::new(

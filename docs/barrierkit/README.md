@@ -41,5 +41,5 @@ Esta documentación enlaza y no copia. Cuando un dato cambia, cambia allí:
 - Decisiones: [`docs/decisiones/`](../decisiones/), sobre todo el
   [ADR 0047](../decisiones/0047-barrierkit-en-capas.md) (capas y estado).
 - Tokens: `crates/vow-design/tengen/tokens.json` y `components.json`.
-- Opciones de apariencia: `crates/vow-appearance/src/lib.rs`
+- Opciones de apariencia: `crates/vow-appearance/src/config.rs`
   (`AppearanceConfig`).

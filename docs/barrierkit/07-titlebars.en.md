@@ -29,7 +29,6 @@ Titlebar::new()
   the start, next to `left`, as on macOS. The traffic lights
   stay fixed in place even when the sidebar collapses.
 - Dragging it moves the window; double-click does what `window.domain` says.
-- When `Decorations::Server` is granted, it measures 0 and draws nothing.
 - `.close_only(true)` leaves only the close button, for dialogs: the bar is
   transparent and as tall as the SSD one (`TITLEBAR.thickness`), with the traffic
   lights in the same place.

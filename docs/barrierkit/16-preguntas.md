@@ -11,7 +11,7 @@
 | 1 · Primitivas | `Palette`, `text`, `Symbol`, `use_interaction`, `Button`, `IconButton`, `Link`, `Switch`, `Checkbox`, `RadioGroup`, `SegmentedControl`, `PopUpButton`, `ColorWell`, `ChoiceCards`, `ToggleGroup`, `Stepper`, `Slider`, `LevelSlider`, `TextField`, `SearchField`, `SecureField`, `ProgressBar`, `ProgressRing`, `Spinner`, `badge`, `divider`, `avatar`, `use_tooltip`, `context_menu`, `ScrollView`, `MenuView`, `Titlebar`, `TrafficLights`, `WindowChrome`, `Sidebar`, `Backdrop`, `media`, `video`, `use_breakpoint`, `Spring` |
 | 2 · Vistas | `SplitView`, `Form`/`Section`/`Row`, `Table`, `CollectionView`, `TabView`, `History` + `navigation_buttons`, `SearchIndex`, `empty_state`, `sheet`, `Alert` |
 | 3 · Patrones | `PreferencesWindow`, `about_window` |
-| App | `Action` + `Shortcut`, `AppMenu`, `launch`, `load_defaults`/`save_defaults`/`use_defaults`, restauración, `use_undo`, `copy`/`paste` |
+| App | `Action` + `Shortcut`, `AppMenu`, `launch`, `load_defaults`/`save_defaults`/`use_defaults`, restauración, `use_undo` |
 
 ## ¿Qué falta?
 

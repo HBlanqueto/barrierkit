@@ -12,7 +12,6 @@ and popups.
 run_window(
     AppComponent::new(MiApp),
     WindowOptions::new("Notas", "notas")
-        .decorations(Decorations::Client)
         .size((760, 520))
         .min_size(Some(WINDOW_MIN_SIZE))
         .menu(menu),
@@ -22,10 +21,8 @@ run_window(
 | Option | Effect |
 |---|---|
 | `new(título, nombre)` | Visible title and short name. The `app_id` is `io.github.hblanqueto.malaysia.<nombre>` unless you pass `.app_id(..)` |
-| `.decorations(..)` | `Client` (default): the kit draws the titlebar. `Server`: it asks the compositor for it; if there is no `zxdg_decoration_manager_v1`, it falls back to `Client` |
 | `.size((ancho, alto))` | Initial size (640 × 420 by default). If a saved one exists, it is restored |
-| `.min_size(..)`, `.max_size(..)` | Limits. If they are equal, the window has a fixed size and the green button maximizes it vertically only |
-| `.parent(..)` | Child window (dialog) |
+| `.min_size(..)`, `.max_size(..)` | Limits. If they are equal, the window has a fixed size |
 | `.menu(AppMenu)` | Global menu of the window (chapter [11](11-app.en.md)) |
 | `.fullscreen_bar(FullscreenBar)` | How the overlaid titlebar is drawn in full screen; `Solid` by default (chapter [7](07-titlebars.en.md#the-bar-in-full-screen-fullscreenbar)) |
 | `.fullscreen_push(bool)` | In full screen, the bar pushes all the content instead of covering it; off by default (chapter [7](07-titlebars.en.md#pushing-the-content-fullscreen_push)) |
@@ -61,9 +58,9 @@ equal to maximum) they change:
 
 | `green_button` | Normal window | Fixed size |
 |---|---|---|
-| `focus` (default) | Full screen | Maximizes vertically |
-| `zoom` | Maximizes | Maximizes vertically |
-| `fullscreen` | Full screen | Maximizes vertically |
+| `focus` (default) | Full screen | Maximizes |
+| `zoom` | Maximizes | Maximizes |
+| `fullscreen` | Full screen | Maximizes |
 | `none` | Nothing; the button is drawn gray and without a glyph | Nothing; the button is drawn gray and without a glyph |
 
 | `double_click_titlebar` | Normal window | Fixed size |
@@ -71,6 +68,10 @@ equal to maximum) they change:
 | `zoom` (default), `fill` | Maximizes | Nothing |
 | `minimize` | Minimizes | Minimizes |
 | `none` | Nothing | Nothing |
+
+Both tables live in `vow_appearance::window`: `read_window_behavior()` reads the
+domain and `green_action` and `double_click_action` give the action. The
+compositor's chrome uses the same functions.
 
 ## Popups
 

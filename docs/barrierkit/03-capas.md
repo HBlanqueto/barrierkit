@@ -32,7 +32,7 @@ La decisión completa está en el [ADR 0047](../decisiones/0047-barrierkit-en-ca
 | 1 · Primitivas | `style`, `theme`, `symbol`, `interaction`, `controls`, `compact`, `choices`, `level`, `progress`, `adornments`, `popup_button`, `tooltip`, `context_menu`, `backdrop`, `media`, `adaptive`, `titlebar`, `traffic`, `chrome`, `sidebar`, `menu/`, `app_menu/`, `animation` |
 | 2 · Vistas | `views/` (`form`, `split`, `table`, `collection`, `tabs`, `feedback`, `navigation`, `search`) |
 | 3 · Patrones | `patterns/` (`preferences`, `about`) |
-| App | `app/` (`action`, `application`, `defaults`, `pasteboard`, `undo`) |
+| App | `app/` (`action`, `application`, `defaults`, `undo`) |
 | Shell | `shell/`, solo con la feature `shell` |
 
 No hay `prelude`: cada pieza se importa de su módulo, por ejemplo

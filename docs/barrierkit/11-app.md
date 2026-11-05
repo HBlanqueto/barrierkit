@@ -75,10 +75,13 @@ let instancia = match launch(app_id) {
 | `use_defaults::<T>(app_id)` | el mismo | Las lee y se actualiza si el fichero cambia |
 | `use_watched(load)` | cualquier `.domain` de las dos carpetas | Vuelve a llamar a `load` cuando cambia un dominio |
 | `load_restoration::<T>(app_id)`, `save_restoration(..)` | `~/.local/share/malaysia/<app_id>.state` | Estado de la ventana: panel, búsquedas, barra lateral |
+| `read_toml::<T>(ruta)`, `write_toml(ruta, &valor)` | cualquier ruta | La base de las anteriores, para ficheros propios |
 
-`T` es un struct con `Serialize` y `Deserialize`. La escritura es atómica
-(fichero temporal y renombrado). `MALAYSIA_CONFIG_DIR` y `MALAYSIA_DATA_DIR`
-cambian las carpetas. El tamaño de la ventana y si estaba maximizada se restauran solos.
+`T` es un struct con `Serialize` y `Deserialize`. Si el fichero falta, la
+lectura da `T::default()`; si no se entiende, avisa, lo copia a `.bak` y da
+`T::default()`. La escritura es atómica (fichero temporal y renombrado).
+`MALAYSIA_CONFIG_DIR` y `MALAYSIA_DATA_DIR` cambian las carpetas; sin ellas,
+salen de `vow_appearance::xdg` (`config_home`, `data_home`). El tamaño de la ventana y si estaba maximizada se restauran solos.
 
 ## Deshacer: `use_undo`
 
@@ -98,11 +101,13 @@ cuando la pila está vacía.
 ## Portapapeles
 
 ```rust
-copy("texto");
-let pegado: Option<String> = paste();
+use freya_clipboard::prelude::Clipboard;
+Clipboard::set("texto".to_string())?;
+let pegado: String = Clipboard::get()?;
 ```
 
-Solo texto, sobre `wl_data_device`.
+El kit da a Freya un portapapeles de texto sobre `wl_data_device`; la app usa
+el `Clipboard` de `freya-clipboard`.
 
 ## Ejemplo completo
 

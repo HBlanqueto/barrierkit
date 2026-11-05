@@ -75,10 +75,13 @@ let instancia = match launch(app_id) {
 | `use_defaults::<T>(app_id)` | the same | Reads them and updates if the file changes |
 | `use_watched(load)` | any `.domain` in both folders | Calls `load` again when a domain changes |
 | `load_restoration::<T>(app_id)`, `save_restoration(..)` | `~/.local/share/malaysia/<app_id>.state` | Window state: pane, searches, sidebar |
+| `read_toml::<T>(ruta)`, `write_toml(ruta, &valor)` | any path | The base of the ones above, for your own files |
 
-`T` is a struct with `Serialize` and `Deserialize`. Writing is atomic
-(temporary file and rename). `MALAYSIA_CONFIG_DIR` and `MALAYSIA_DATA_DIR`
-change the folders. The window size, and whether it was maximized, are restored automatically.
+`T` is a struct with `Serialize` and `Deserialize`. If the file is missing,
+reading gives `T::default()`; if it cannot be parsed, it warns, copies it to
+`.bak` and gives `T::default()`. Writing is atomic (temporary file and rename).
+`MALAYSIA_CONFIG_DIR` and `MALAYSIA_DATA_DIR` change the folders; without them,
+they come from `vow_appearance::xdg` (`config_home`, `data_home`). The window size, and whether it was maximized, are restored automatically.
 
 ## Undo: `use_undo`
 
@@ -98,11 +101,13 @@ are disabled when the stack is empty.
 ## Clipboard
 
 ```rust
-copy("texto");
-let pegado: Option<String> = paste();
+use freya_clipboard::prelude::Clipboard;
+Clipboard::set("texto".to_string())?;
+let pegado: String = Clipboard::get()?;
 ```
 
-Text only, over `wl_data_device`.
+The kit gives Freya a text clipboard over `wl_data_device`; the app uses the
+`Clipboard` from `freya-clipboard`.
 
 ## Complete example
 

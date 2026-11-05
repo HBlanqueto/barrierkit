@@ -32,7 +32,7 @@ The full decision is in [ADR 0047](../decisiones/0047-barrierkit-en-capas.en.md)
 | 1 · Primitives | `style`, `theme`, `symbol`, `interaction`, `controls`, `compact`, `choices`, `level`, `progress`, `adornments`, `popup_button`, `tooltip`, `context_menu`, `backdrop`, `media`, `adaptive`, `titlebar`, `traffic`, `chrome`, `sidebar`, `menu/`, `app_menu/`, `animation` |
 | 2 · Views | `views/` (`form`, `split`, `table`, `collection`, `tabs`, `feedback`, `navigation`, `search`) |
 | 3 · Patterns | `patterns/` (`preferences`, `about`) |
-| App | `app/` (`action`, `application`, `defaults`, `pasteboard`, `undo`) |
+| App | `app/` (`action`, `application`, `defaults`, `undo`) |
 | Shell | `shell/`, only with the `shell` feature |
 
 There is no `prelude`: each piece is imported from its module, for example

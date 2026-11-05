@@ -25,19 +25,18 @@ Sidebar::new()
     )
     .child(
         SidebarSection::new("Biblioteca")
-            .expanded(true)
-            .child(SidebarItem::new("Descargas").symbol(Symbol::ArrowDown, verde).badge(3)),
+            .child(SidebarItem::new("Descargas").symbol(Symbol::ArrowDown, verde)),
     )
 ```
 
 | Piece | Options |
 |---|---|
-| `SidebarItem::new(texto)` | `.symbol(Symbol, tinte)` or `.icon(svg)`, `.badge(n)`, `.selected(bool)`, `.emphasized(bool)`, `.on_select(..)` |
-| `SidebarSection::new(título)` | `.expanded(bool)`, `.on_toggle(..)`: it collapses with a `DURATION_BASE` animation |
-| `SidebarAccount::new(iniciales, nombre, detalle)` | `.selected(bool)`, `.on_select(..)` |
+| `SidebarItem::new(texto)` | `.symbol(Symbol, tinte)`, `.selected(bool)`, `.emphasized(bool)`, `.on_select(..)` |
+| `SidebarSection::new(título)` | Open when mounted; a click on the title collapses or opens it with a `DURATION_BASE` animation |
+| `SidebarAccount::new(iniciales, nombre, detalle)` | No options: it only shows the account |
 | `Sidebar` | `.traffic_lights(true)` puts the traffic lights inside; `.backdrop(SidebarBackdrop::Tinted)` tints it over a tinted backdrop. With the `Rail`, its first row rises to the titlebar row (chapter [7](07-titlebars.en.md#the-sidebar-with-the-rail)) |
 
-![Selected account row](assets/componentes/sidebar-account-light.png)
+![Account row](assets/componentes/sidebar-account-light.png)
 
 ## Island or flat
 

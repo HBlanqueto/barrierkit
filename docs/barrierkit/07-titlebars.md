@@ -31,7 +31,6 @@ Titlebar::new()
   inicio, junto a `left`, como en macOS. Los semáforos se
   quedan fijos en su sitio aunque la barra se pliegue.
 - Arrastrarla mueve la ventana; el doble clic hace lo que diga `window.domain`.
-- Con `Decorations::Server` concedida, mide 0 y no dibuja nada.
 - `.close_only(true)` deja solo el botón de cerrar, para diálogos: la barra es
   transparente y mide lo que la SSD (`TITLEBAR.thickness`), con los semáforos en
   el mismo sitio.

@@ -56,8 +56,10 @@ Tengen App Show and System Settings are built with this pattern.
 ## "About": `about_window`
 
 ```rust
-about_window(avatar("C"), "Contador", "Versión 1.0", "™ y © 2026 Malaysia")
+about_window(avatar("C"), "Contador", Some("Versión 1.0"), "™ y © 2026 Malaysia")
 ```
+
+With `None` as the version, the window omits that line.
 
 ![About window](assets/componentes/about-light.png)
 

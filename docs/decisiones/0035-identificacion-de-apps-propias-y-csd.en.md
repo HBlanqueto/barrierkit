@@ -52,10 +52,9 @@ an own app could forget to request it.
 
 Replaces the rule "native → Client always" of point 3.
 
-- Each CelestialKit window declares its decoration:
-  - `Decorations::Client`, by default: draws its unified 44 px bar
-    (`titlebar-h`), with `TrafficLights` and room for a toolbar.
-  - `Decorations::Server`: Yuki draws its 32 px bar (`titlebar-ssd-h`).
+- Each CelestialKit window requests `Client` and draws its unified 44 px bar
+  (`titlebar-h`), with `TrafficLights` and room for a toolbar. The kit does
+  not offer a `Server` request.
 - The kit **always** requests the mode explicitly with
   `xdg-decoration.set_mode` before the first commit, together with
   `set_app_id(NATIVE_APP_ID_PREFIX + nombre)`.
@@ -66,8 +65,5 @@ Replaces the rule "native → Client always" of point 3.
   decoration object or calling `unset_mode` do not count. An own app without a mode negotiates
   `Client` and the compositor warns once per window («app propia sin modo de
   decoración» ("own app without a decoration mode")).
-- If the compositor does not advertise `xdg-decoration` or answers `ClientSide` to a
-  `Server` request, the kit draws its 44 px bar. Under Yuki it receives what it
-  requested.
-- Client is for apps with a toolbar or sidebar (Ajustes ("Settings")); Server for simple
-  utilities without a toolbar.
+- If the compositor does not advertise `xdg-decoration`, the kit still draws
+  its 44 px bar.

@@ -25,19 +25,18 @@ Sidebar::new()
     )
     .child(
         SidebarSection::new("Biblioteca")
-            .expanded(true)
-            .child(SidebarItem::new("Descargas").symbol(Symbol::ArrowDown, verde).badge(3)),
+            .child(SidebarItem::new("Descargas").symbol(Symbol::ArrowDown, verde)),
     )
 ```
 
 | Pieza | Opciones |
 |---|---|
-| `SidebarItem::new(texto)` | `.symbol(Symbol, tinte)` o `.icon(svg)`, `.badge(n)`, `.selected(bool)`, `.emphasized(bool)`, `.on_select(..)` |
-| `SidebarSection::new(título)` | `.expanded(bool)`, `.on_toggle(..)`: se pliega con una animación de `DURATION_BASE` |
-| `SidebarAccount::new(iniciales, nombre, detalle)` | `.selected(bool)`, `.on_select(..)` |
+| `SidebarItem::new(texto)` | `.symbol(Symbol, tinte)`, `.selected(bool)`, `.emphasized(bool)`, `.on_select(..)` |
+| `SidebarSection::new(título)` | Abierta al montarse; un clic en el título la pliega o la abre con una animación de `DURATION_BASE` |
+| `SidebarAccount::new(iniciales, nombre, detalle)` | Sin opciones: solo muestra la cuenta |
 | `Sidebar` | `.traffic_lights(true)` pone los semáforos dentro; `.backdrop(SidebarBackdrop::Tinted)` la tiñe sobre un fondo tintado. Con el `Rail`, su primera fila sube a la fila de la titlebar (capítulo [7](07-titlebars.md#la-barra-lateral-con-el-rail)) |
 
-![Fila de cuenta seleccionada](assets/componentes/sidebar-account-light.png)
+![Fila de cuenta](assets/componentes/sidebar-account-light.png)
 
 ## Isla o plana
 

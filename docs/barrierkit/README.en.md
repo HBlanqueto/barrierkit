@@ -42,5 +42,5 @@ there:
 - Decisions: [`docs/decisiones/`](../decisiones/), especially
   [ADR 0047](../decisiones/0047-barrierkit-en-capas.en.md) (layers and status).
 - Tokens: `crates/vow-design/tengen/tokens.json` and `components.json`.
-- Appearance options: `crates/vow-appearance/src/lib.rs`
+- Appearance options: `crates/vow-appearance/src/config.rs`
   (`AppearanceConfig`).
