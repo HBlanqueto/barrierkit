@@ -1,3 +1,5 @@
+use std::cell::Cell;
+use std::rc::Rc;
 use std::time::Duration;
 
 use barrier_kit::adornments::badge;
@@ -242,6 +244,11 @@ impl Component for Arrivals {
         let mut items = use_state(|| vec![1u32, 2]);
         let mut next = use_state(|| 3u32);
         let leaving = use_state(Vec::<u32>::new);
+        let alive = use_hook(|| Rc::new(Cell::new(true)));
+        use_drop({
+            let alive = alive.clone();
+            move || alive.set(false)
+        });
         let leaving_now = leaving.read().clone();
         let removable = items
             .read()
@@ -275,11 +282,19 @@ impl Component for Arrivals {
                         Button::new("Quitar")
                             .disabled(removable.is_none())
                             .on_press(move |_| {
-                                let Some(id) = removable else { return };
+                                let (Some(id), Some(timers)) =
+                                    (removable, try_consume_root_context::<Timers>())
+                                else {
+                                    return;
+                                };
                                 let mut leaving = leaving;
                                 leaving.write().push(id);
                                 let delay = time(reduced_motion, DURATION_BASE);
-                                Timers::get().after(Duration::from_millis(delay), move || {
+                                let alive = alive.clone();
+                                timers.after(Duration::from_millis(delay), move || {
+                                    if !alive.get() {
+                                        return;
+                                    }
                                     let (mut items, mut leaving) = (items, leaving);
                                     items.write().retain(|item| *item != id);
                                     leaving.write().retain(|item| *item != id);
