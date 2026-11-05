@@ -171,7 +171,7 @@ pub enum ScrollBars {
     Always,
 }
 
-#[derive(Debug, Clone, Deserialize, Default)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(default)]
 pub struct AppearanceConfig {
     pub color_scheme: ColorScheme,
@@ -179,7 +179,6 @@ pub struct AppearanceConfig {
     pub contrast: bool,
     pub reduced_motion: bool,
     pub scroll_bars: ScrollBars,
-    #[serde(default = "default_reduce_transparency")]
     pub reduce_transparency: bool,
     pub window_color: WindowColorMode,
     pub window_tint_scope: WindowTintScope,
@@ -194,8 +193,25 @@ pub struct AppearanceConfig {
     pub tint_parts: TintParts,
 }
 
-fn default_reduce_transparency() -> bool {
-    true
+impl Default for AppearanceConfig {
+    fn default() -> Self {
+        Self {
+            color_scheme: ColorScheme::default(),
+            accent_color: None,
+            contrast: false,
+            reduced_motion: false,
+            scroll_bars: ScrollBars::default(),
+            reduce_transparency: true,
+            window_color: WindowColorMode::default(),
+            window_tint_scope: WindowTintScope::default(),
+            traffic_lights: TrafficLightStyle::default(),
+            traffic_light_shape: TrafficLightShape::default(),
+            sidebar_style: SidebarStyle::default(),
+            tint_strength_accent: TintStrength::default(),
+            tint_strength_wallpaper: TintStrength::default(),
+            tint_parts: TintParts::default(),
+        }
+    }
 }
 
 impl AppearanceConfig {
@@ -1213,6 +1229,8 @@ traffic_lights = "auto"
 
         let with_false: AppearanceConfig = toml::from_str("reduce_transparency = false\n").unwrap();
         assert!(!with_false.reduce_transparency);
+
+        assert!(AppearanceConfig::default().reduce_transparency);
     }
 
     #[test]
