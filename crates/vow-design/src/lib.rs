@@ -845,6 +845,14 @@ pub const FOCUS_BAR_TEXT: Rgba = Rgba::rgb8(255, 255, 255);
 
 pub const SPACE_SLIDE_EASE: [f32; 4] = [0.32, 0.72, 0.0, 1.0];
 
+pub const DESKTOP_CLEAR: [f32; 4] = [0.06, 0.06, 0.09, 1.0];
+
+pub const TILE_MARGIN: i32 = 8;
+
+pub const TILE_GAP: i32 = 8;
+
+pub const TITLEBAR_TITLE_GAP: f32 = 12.0;
+
 pub const GLASS_MASK: Rgba = Rgba::rgb8(255, 255, 255);
 
 pub const MENU_SUBMENU_INTENT_MS: u64 = 300;
