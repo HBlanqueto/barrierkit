@@ -227,16 +227,14 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
         )),
     };
 
-    let panel_tint = if appearance.window_color == WindowColorMode::Wallpaper
-        && appearance.window_tint_scope == WindowTintScope::Desktop
-    {
-        Some((
-            dominant,
-            PANEL_TINT_WALLPAPER[index] * appearance.tint_strength_wallpaper.factor(),
-        ))
-    } else {
-        None
-    };
+    let panel_tint = (appearance.window_color == WindowColorMode::Wallpaper
+        && appearance.window_tint_scope == WindowTintScope::Desktop)
+        .then(|| {
+            (
+                dominant,
+                PANEL_TINT_WALLPAPER[index] * appearance.tint_strength_wallpaper.factor(),
+            )
+        });
 
     let lights = lights_for(
         appearance.traffic_light_style(),
@@ -326,14 +324,12 @@ fn tinted_surfaces(
             BG_HOVER_DARK_TINT,
         ],
     ]);
-    let line = base.line;
     let mix = |color: Rgba, factor: f32, enabled: bool| {
-        if !enabled {
-            return color;
-        }
         window_tint
-            .map(|(tint, tint_factor)| color.mix(tint, tint_factor * factor))
-            .unwrap_or(color)
+            .filter(|_| enabled)
+            .map_or(color, |(tint, tint_factor)| {
+                color.mix(tint, tint_factor * factor)
+            })
     };
     Surfaces {
         window: mix(window, 1.0, parts.window),
@@ -343,7 +339,7 @@ fn tinted_surfaces(
         raised: mix(raised, LAYER_FACTOR_RAISED, parts.menus),
         control: mix(control, LAYER_FACTOR_CONTROL, parts.controls),
         hover: mix(hover, LAYER_FACTOR_CONTROL, parts.controls),
-        line: mix(line, LAYER_FACTOR_LINE, parts.groups),
+        line: mix(base.line, LAYER_FACTOR_LINE, parts.groups),
     }
 }
 
@@ -450,18 +446,10 @@ mod tests {
         AppearanceConfig {
             color_scheme: scheme,
             accent_color: accent,
-            contrast: false,
-            reduced_motion: false,
-            scroll_bars: ScrollBars::WhenScrolling,
-            reduce_transparency: true,
             window_color: mode,
             window_tint_scope: scope,
             traffic_lights: lights,
-            traffic_light_shape: TrafficLightShape::Square,
-            sidebar_style: SidebarStyle::Island,
-            tint_strength_accent: TintStrength::default(),
-            tint_strength_wallpaper: TintStrength::default(),
-            tint_parts: TintParts::default(),
+            ..AppearanceConfig::default()
         }
     }
 

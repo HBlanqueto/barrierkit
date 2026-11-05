@@ -176,7 +176,7 @@ pub enum ScrollBars {
     Always,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(default)]
 pub struct AppearanceConfig {
     #[serde(deserialize_with = "lenient")]
@@ -466,22 +466,6 @@ traffic_lights = "auto"
         assert!(AppearanceConfig::default().reduce_transparency);
     }
 
-    fn assert_configs_equal(a: &AppearanceConfig, b: &AppearanceConfig) {
-        assert_eq!(a.color_scheme, b.color_scheme);
-        assert_eq!(a.accent_color, b.accent_color);
-        assert_eq!(a.contrast, b.contrast);
-        assert_eq!(a.reduced_motion, b.reduced_motion);
-        assert_eq!(a.reduce_transparency, b.reduce_transparency);
-        assert_eq!(a.window_color, b.window_color);
-        assert_eq!(a.window_tint_scope, b.window_tint_scope);
-        assert_eq!(a.traffic_lights, b.traffic_lights);
-        assert_eq!(a.traffic_light_shape, b.traffic_light_shape);
-        assert_eq!(a.sidebar_style, b.sidebar_style);
-        assert_eq!(a.tint_strength_accent, b.tint_strength_accent);
-        assert_eq!(a.tint_strength_wallpaper, b.tint_strength_wallpaper);
-        assert_eq!(a.tint_parts, b.tint_parts);
-    }
-
     #[test]
     fn write_appearance_roundtrips() {
         let dir = std::env::temp_dir().join(format!("vow-appearance-write-{}", std::process::id()));
@@ -511,7 +495,7 @@ traffic_lights = "auto"
         };
         write_appearance(&path, &config).unwrap();
         let read = read_appearance_from(&path).unwrap().unwrap();
-        assert_configs_equal(&config, &read);
+        assert_eq!(config, read);
         std::fs::remove_dir_all(&dir).ok();
     }
 
@@ -669,7 +653,7 @@ tint_parts = ["window", "halo"]
         };
         write_appearance(&path, &config).unwrap();
         let read = read_appearance_from(&path).unwrap().unwrap();
-        assert_configs_equal(&config, &read);
+        assert_eq!(config, read);
         std::fs::remove_dir_all(&dir).ok();
     }
 }
