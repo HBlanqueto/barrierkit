@@ -37,38 +37,6 @@ pub struct ToplevelInfo {
     pub gtk_menus: Option<GtkMenusAddress>,
 }
 
-pub(super) enum InfoEvent {
-    Title(String),
-    AppId(String),
-    State {
-        active: bool,
-        maximized: bool,
-        minimized: bool,
-    },
-    AppMenu(Option<AppMenuAddress>),
-    GtkMenus(Option<GtkMenusAddress>),
-}
-
-impl ToplevelInfo {
-    fn apply(&mut self, event: InfoEvent) {
-        match event {
-            InfoEvent::Title(title) => self.title = title,
-            InfoEvent::AppId(app_id) => self.app_id = app_id,
-            InfoEvent::State {
-                active,
-                maximized,
-                minimized,
-            } => {
-                self.active = active;
-                self.maximized = maximized;
-                self.minimized = minimized;
-            }
-            InfoEvent::AppMenu(app_menu) => self.app_menu = app_menu,
-            InfoEvent::GtkMenus(gtk_menus) => self.gtk_menus = gtk_menus,
-        }
-    }
-}
-
 pub(crate) struct ToplevelEntry {
     pub(crate) list: Option<ExtForeignToplevelHandleV1>,
     pub(crate) mgmt: Option<ZwlrForeignToplevelHandleV1>,
@@ -195,43 +163,37 @@ impl Toplevels {
         });
     }
 
-    pub(super) fn update(&self, toplevel: &ZwlrForeignToplevelHandleV1, event: InfoEvent) {
+    pub(super) fn update(
+        &self,
+        toplevel: &ZwlrForeignToplevelHandleV1,
+        change: impl FnOnce(&mut ToplevelInfo),
+    ) {
         if let Some(entry) = self
             .entries
             .borrow_mut()
             .iter_mut()
             .find(|entry| entry.mgmt.as_ref() == Some(toplevel))
         {
-            entry.info.apply(event);
-        }
-    }
-}
-
-impl ShellState {
-    pub(crate) fn sync_toplevels(&mut self) -> bool {
-        let infos: Vec<ToplevelInfo> = self
-            .toplevels
-            .entries
-            .borrow()
-            .iter()
-            .map(|entry| entry.info.clone())
-            .collect();
-        if *self.toplevels.list.peek() != infos {
-            self.toplevels.list.set(infos);
-            true
-        } else {
-            false
+            change(&mut entry.info);
         }
     }
 }
 
 impl Runtime {
     pub(super) fn sync_toplevels(&mut self) {
-        let changed = self
-            .extension_mut::<ShellState>()
+        let toplevels = &self
+            .extension::<ShellState>()
             .expect("sync_toplevels called without ShellState")
-            .sync_toplevels();
-        if changed {
+            .toplevels;
+        let infos: Vec<ToplevelInfo> = toplevels
+            .entries
+            .borrow()
+            .iter()
+            .map(|entry| entry.info.clone())
+            .collect();
+        let mut list = toplevels.list;
+        if *list.peek() != infos {
+            list.set(infos);
             self.request_redraw_all = true;
             self.ping.ping();
         }
@@ -304,12 +266,8 @@ impl Dispatch<ExtForeignToplevelHandleV1, (), Runtime> for Runtime {
                     entries.remove(index);
                     handle.destroy();
                 }
-                FtlHandleEvent::Title { title } => {
-                    entries[index].info.apply(InfoEvent::Title(title))
-                }
-                FtlHandleEvent::AppId { app_id } => {
-                    entries[index].info.apply(InfoEvent::AppId(app_id))
-                }
+                FtlHandleEvent::Title { title } => entries[index].info.title = title,
+                FtlHandleEvent::AppId { app_id } => entries[index].info.app_id = app_id,
                 _ => {}
             }
         }
@@ -363,22 +321,19 @@ impl Dispatch<ZwlrForeignToplevelHandleV1, (), Runtime> for Runtime {
                     handle.destroy();
                 }
                 ZwlrForeignToplevelHandleV1Event::Title { title } => {
-                    toplevels.update(handle, InfoEvent::Title(title))
+                    toplevels.update(handle, |info| info.title = title)
                 }
                 ZwlrForeignToplevelHandleV1Event::AppId { app_id } => {
-                    toplevels.update(handle, InfoEvent::AppId(app_id))
+                    toplevels.update(handle, |info| info.app_id = app_id)
                 }
                 ZwlrForeignToplevelHandleV1Event::State { state } => {
                     let has =
                         |flag: ZwlrForeignToplevelHandleV1State| state.contains(&(flag as u8));
-                    toplevels.update(
-                        handle,
-                        InfoEvent::State {
-                            active: has(ZwlrForeignToplevelHandleV1State::Activated),
-                            maximized: has(ZwlrForeignToplevelHandleV1State::Maximized),
-                            minimized: has(ZwlrForeignToplevelHandleV1State::Minimized),
-                        },
-                    )
+                    toplevels.update(handle, |info| {
+                        info.active = has(ZwlrForeignToplevelHandleV1State::Activated);
+                        info.maximized = has(ZwlrForeignToplevelHandleV1State::Maximized);
+                        info.minimized = has(ZwlrForeignToplevelHandleV1State::Minimized);
+                    })
                 }
                 _ => {}
             }

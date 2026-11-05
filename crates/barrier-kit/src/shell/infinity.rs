@@ -2,7 +2,7 @@ use freya_core::prelude::WritableUtils;
 use sctk::reexports::client::{Connection, Dispatch, Proxy, QueueHandle};
 
 use crate::platform::{AppMenuAddress, runtime::Runtime};
-use crate::shell::{FocusBar, GtkMenusAddress, ShellState, SpaceInfo, toplevels::InfoEvent};
+use crate::shell::{FocusBar, GtkMenusAddress, ShellState, SpaceInfo};
 
 pub use infinity_protocol::client::infinity_window_manager_v1::infinity_window_manager_v1::{
     InfinityWindowManagerV1, Layout, PairLayout,
@@ -28,17 +28,9 @@ impl Dispatch<InfinityWindowManagerV1, ()> for Runtime {
                 .extension_mut::<ShellState>()
                 .expect("infinity_window_manager event without ShellState");
             match event {
-                Event::Restorable { handle, restorable } => {
-                    if let Some(entry) = shell
-                        .toplevels
-                        .entries
-                        .borrow_mut()
-                        .iter_mut()
-                        .find(|entry| entry.mgmt.as_ref() == Some(&handle))
-                    {
-                        entry.info.restorable = restorable != 0;
-                    }
-                }
+                Event::Restorable { handle, restorable } => shell
+                    .toplevels
+                    .update(&handle, |info| info.restorable = restorable != 0),
                 Event::AppMenu {
                     toplevel,
                     service,
@@ -51,7 +43,7 @@ impl Dispatch<InfinityWindowManagerV1, ()> for Runtime {
                     };
                     shell
                         .toplevels
-                        .update(&toplevel, InfoEvent::AppMenu(address));
+                        .update(&toplevel, |info| info.app_menu = address);
                 }
                 Event::GtkMenus {
                     toplevel,
@@ -72,7 +64,7 @@ impl Dispatch<InfinityWindowManagerV1, ()> for Runtime {
                     );
                     shell
                         .toplevels
-                        .update(&toplevel, InfoEvent::GtkMenus(address));
+                        .update(&toplevel, |info| info.gtk_menus = address);
                 }
                 Event::Space {
                     index,
