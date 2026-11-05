@@ -8,17 +8,9 @@ pub(super) fn emit_sidebar(out: &mut String, tokens: &Value, components: &Value)
     ] {
         let bg_window = theme_color(tokens, theme, "bg-window");
         let island = theme_color(tokens, theme, "sidebar-island-bg");
-        const_doc(
-            out,
-            name,
-            &format!("The {theme} island sidebar background."),
-        );
+        pub_const(out, name);
         out.push_str(&format!(": Rgba = {};\n\n", rgba(island)));
-        const_doc(
-            out,
-            &format!("{name}_OPAQUE"),
-            &format!("The {theme} island sidebar background over bg-window."),
-        );
+        pub_const(out, &format!("{name}_OPAQUE"));
         out.push_str(&format!(
             ": Rgba = {};\n\n",
             rgba(opaque_over(island, bg_window))
@@ -41,7 +33,7 @@ pub(super) fn emit_sidebar(out: &mut String, tokens: &Value, components: &Value)
             "components.window.sidebar.island.rim",
             COMPONENTS,
         );
-        const_doc(out, name, &format!("The {theme} island sidebar rim."));
+        pub_const(out, name);
         out.push_str(&format!(": Rgba = {};\n\n", rgba(rim)));
     }
 
@@ -61,11 +53,7 @@ pub(super) fn emit_sidebar(out: &mut String, tokens: &Value, components: &Value)
             "components.window.sidebar.island.inner",
             COMPONENTS,
         );
-        const_doc(
-            out,
-            name,
-            &format!("The {theme} island sidebar inner line."),
-        );
+        pub_const(out, name);
         out.push_str(&format!(": Rgba = {};\n\n", rgba(inner)));
     }
 
@@ -76,17 +64,9 @@ pub(super) fn emit_sidebar(out: &mut String, tokens: &Value, components: &Value)
     ] {
         let bg_window = theme_color(tokens, theme, "bg-window");
         let glass = theme_color(tokens, theme, "toolbar-glass-bg");
-        const_doc(
-            out,
-            name,
-            &format!("The {theme} toolbar glass capsule background."),
-        );
+        pub_const(out, name);
         out.push_str(&format!(": Rgba = {};\n\n", rgba(glass)));
-        const_doc(
-            out,
-            &format!("{name}_OPAQUE"),
-            &format!("The {theme} toolbar glass capsule background over bg-window."),
-        );
+        pub_const(out, &format!("{name}_OPAQUE"));
         out.push_str(&format!(
             ": Rgba = {};\n\n",
             rgba(opaque_over(glass, bg_window))
@@ -136,11 +116,7 @@ pub(super) fn emit_sidebar(out: &mut String, tokens: &Value, components: &Value)
         ("SIDEBAR_PALETTE_DARK", "dark"),
         ("SIDEBAR_PALETTE_DARK_TINT", "dark-tint"),
     ] {
-        const_doc(
-            out,
-            name,
-            &format!("The {theme} sidebar item/section palette."),
-        );
+        pub_const(out, name);
         out.push_str(&format!(
             ": SidebarPalette = {};\n\n",
             sidebar_palette_value(tokens, components, theme)
@@ -174,7 +150,7 @@ pub(super) fn emit_sidebar(out: &mut String, tokens: &Value, components: &Value)
         ("TOOLGROUP_PALETTE_DARK", "dark"),
         ("TOOLGROUP_PALETTE_DARK_TINT", "dark-tint"),
     ] {
-        const_doc(out, name, &format!("The {theme} toolbar capsule palette."));
+        pub_const(out, name);
         out.push_str(&format!(
             ": ToolgroupPalette = {};\n\n",
             toolgroup_palette_value(tokens, components, theme)
@@ -307,7 +283,7 @@ pub(super) fn emit_sidebar(out: &mut String, tokens: &Value, components: &Value)
         COMPONENTS,
     ) == "island";
 
-    const_doc(out, "SIDEBAR", "The Tengen sidebar metrics.");
+    pub_const(out, "SIDEBAR");
     out.push_str(&format!(
         ": SidebarMetrics = SidebarMetrics {{\n\
          \x20   default_island: {default_island},\n\
@@ -391,7 +367,7 @@ pub(super) fn emit_sidebar(out: &mut String, tokens: &Value, components: &Value)
     ) as u32;
     let icon = integer(components, "components.window.toolgroup.icon", COMPONENTS) as u32;
 
-    const_doc(out, "TOOLGROUP", "The Tengen toolbar capsule metrics.");
+    pub_const(out, "TOOLGROUP");
     out.push_str(&format!(
         ": ToolgroupMetrics = ToolgroupMetrics {{\n\
          \x20   height: {toolgroup_height},\n\

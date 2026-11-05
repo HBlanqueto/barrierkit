@@ -38,16 +38,12 @@ pub(super) fn emit_shell(out: &mut String, tokens: &Value, components: &Value) {
         ("SHELL_DARK", "dark"),
         ("SHELL_DARK_TINT", "dark-tint"),
     ] {
-        const_doc(out, name, &format!("The {theme} shell palette."));
+        pub_const(out, name);
         out.push_str(&format!(
             ": ShellPalette = {};\n\n",
             shell(tokens, components, theme, false)
         ));
-        const_doc(
-            out,
-            &format!("{name}_OPAQUE"),
-            &format!("The {theme} shell palette with opaque surfaces."),
-        );
+        pub_const(out, &format!("{name}_OPAQUE"));
         out.push_str(&format!(
             ": ShellPalette = {};\n\n",
             shell(tokens, components, theme, true)
@@ -61,17 +57,9 @@ pub(super) fn emit_shell(out: &mut String, tokens: &Value, components: &Value) {
     ] {
         let bg_window = theme_color(tokens, theme, "bg-window");
         let sunken = theme_color(tokens, theme, "bg-sunken");
-        const_doc(
-            out,
-            name,
-            &format!("The {theme} flat sidebar background (bg-sunken)."),
-        );
+        pub_const(out, name);
         out.push_str(&format!(": Rgba = {};\n\n", rgba(sunken)));
-        const_doc(
-            out,
-            &format!("{name}_OPAQUE"),
-            &format!("The {theme} flat sidebar background over bg-window."),
-        );
+        pub_const(out, &format!("{name}_OPAQUE"));
         out.push_str(&format!(
             ": Rgba = {};\n\n",
             rgba(opaque_over(sunken, bg_window))
@@ -92,41 +80,25 @@ pub(super) fn emit_shell(out: &mut String, tokens: &Value, components: &Value) {
         rgba(theme_color(tokens, "dark-tint", "danger")),
         rgba(theme_color(tokens, "dark-tint", "accent"))
     );
-    const_doc(out, "LOCK", "The lock screen palette.");
+    pub_const(out, "LOCK");
     out.push_str(&format!(": LockPalette = {lock};\n\n"));
 }
 
 pub(super) fn emit_metrics(out: &mut String, tokens: &Value, components: &Value) {
     let duration_base = integer(tokens, "duration.base", TOKENS);
-    const_doc(
-        out,
-        "DURATION_BASE",
-        "The base animation duration, in milliseconds.",
-    );
+    pub_const(out, "DURATION_BASE");
     out.push_str(&format!(": u64 = {duration_base};\n\n"));
 
     let duration_fast = integer(tokens, "duration.fast", TOKENS);
-    const_doc(
-        out,
-        "DURATION_FAST_MS",
-        "The fast animation duration, in milliseconds (Tengen `duration.fast`).",
-    );
+    pub_const(out, "DURATION_FAST_MS");
     out.push_str(&format!(": u64 = {duration_fast};\n\n"));
 
     let duration_slow = integer(tokens, "duration.slow", TOKENS);
-    const_doc(
-        out,
-        "DURATION_SLOW_MS",
-        "The slow animation duration, in milliseconds (Tengen `duration.slow`).",
-    );
+    pub_const(out, "DURATION_SLOW_MS");
     out.push_str(&format!(": u64 = {duration_slow};\n\n"));
 
     let theme_fade_wait = integer(tokens, "duration.wait-max", TOKENS);
-    const_doc(
-        out,
-        "THEME_FADE_WAIT_MS",
-        "Maximum time to wait for surface commits before starting an appearance fade, in milliseconds.",
-    );
+    pub_const(out, "THEME_FADE_WAIT_MS");
     out.push_str(&format!(": u64 = {theme_fade_wait};\n\n"));
 
     let metrics = [
@@ -249,7 +221,7 @@ pub(super) fn emit_metrics(out: &mut String, tokens: &Value, components: &Value)
     ];
     for (name, ty, path) in metrics {
         let value = number(components, path, COMPONENTS);
-        const_doc(out, name, &format!("Tengen shell metric `{path}`."));
+        pub_const(out, name);
         if ty == "f32" {
             out.push_str(&format!(": {ty} = {};\n\n", float(value)));
         } else {
@@ -279,7 +251,7 @@ pub(super) fn emit_metrics(out: &mut String, tokens: &Value, components: &Value)
             "components.shell.launcher.max-results",
         ),
     ] {
-        const_doc(out, name, &format!("Tengen launcher metric `{path}`."));
+        pub_const(out, name);
         out.push_str(&format!(
             ": i32 = {};\n\n",
             integer(components, path, COMPONENTS)
@@ -312,7 +284,7 @@ pub(super) fn emit_metrics(out: &mut String, tokens: &Value, components: &Value)
             "components.shell.launcher.result-radius",
         ),
     ] {
-        const_doc(out, name, &format!("Tengen launcher metric `{path}`."));
+        pub_const(out, name);
         out.push_str(&format!(
             ": {ty} = {};\n\n",
             float(number(components, path, COMPONENTS))
@@ -328,7 +300,7 @@ pub(super) fn emit_metrics(out: &mut String, tokens: &Value, components: &Value)
             "components.shell.launcher.close-duration",
         ),
     ] {
-        const_doc(out, name, &format!("Tengen launcher metric `{path}`."));
+        pub_const(out, name);
         out.push_str(&format!(
             ": u64 = {};\n\n",
             integer(components, path, COMPONENTS)
@@ -337,10 +309,6 @@ pub(super) fn emit_metrics(out: &mut String, tokens: &Value, components: &Value)
 
     let tilesize = number(components, "components.shell.dock.tilesize", COMPONENTS) as i64;
     let padding = number(components, "components.shell.dock.padding", COMPONENTS) as i64;
-    const_doc(
-        out,
-        "DOCK_BAR_HEIGHT",
-        "The dock bar height, in logical pixels.",
-    );
+    pub_const(out, "DOCK_BAR_HEIGHT");
     out.push_str(&format!(": i32 = {};\n\n", tilesize + padding * 2));
 }

@@ -8,11 +8,7 @@ pub(super) fn emit_split_view(out: &mut String, components: &Value) {
             COMPONENTS,
         ))
     };
-    const_doc(
-        out,
-        "SPLIT_VIEW",
-        "The split view sidebar and inspector metrics.",
-    );
+    pub_const(out, "SPLIT_VIEW");
     out.push_str(&format!(
         ": SplitViewMetrics = SplitViewMetrics {{ sidebar_min: {}, sidebar_max: {}, collapse_below: {}, inspector: {}, grip: {}, grip_line: {}, grip_line_inset: {}, key_step: {} }};\n\n",
         field("sidebar-min"),
@@ -35,7 +31,7 @@ pub(super) fn emit_views(out: &mut String, tokens: &Value, components: &Value) {
             COMPONENTS,
         ))
     };
-    const_doc(out, "TABLE", "The Tengen table metrics.");
+    pub_const(out, "TABLE");
     out.push_str(&format!(
         ": TableMetrics = TableMetrics {{ row_height: {}, header_height: {}, padding_x: {}, zebra: {} }};\n\n",
         field("table.row-height"),
@@ -43,7 +39,7 @@ pub(super) fn emit_views(out: &mut String, tokens: &Value, components: &Value) {
         field("table.padding-x"),
         field("table.zebra")
     ));
-    const_doc(out, "COLLECTION", "The Tengen icon grid metrics.");
+    pub_const(out, "COLLECTION");
     out.push_str(&format!(
         ": CollectionMetrics = CollectionMetrics {{ tile: {}, icon: {}, gap: {}, radius: {}, selection: {} }};\n\n",
         field("collection.tile"),
@@ -52,7 +48,7 @@ pub(super) fn emit_views(out: &mut String, tokens: &Value, components: &Value) {
         field("collection.radius"),
         field("collection.selection")
     ));
-    const_doc(out, "TOOLBAR_TABS", "The preferences toolbar tab metrics.");
+    pub_const(out, "TOOLBAR_TABS");
     out.push_str(&format!(
         ": ToolbarTabsMetrics = ToolbarTabsMetrics {{ padding: {}, gap: {}, radius: {}, tab_min_width: {}, tab_padding_top: {}, tab_padding_bottom: {}, tab_radius: {}, icon: {}, icon_gap: {}, font_size: {}, font_weight: {} }};\n\n",
         field("toolbar-tabs.container.padding"),

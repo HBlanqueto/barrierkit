@@ -208,20 +208,12 @@ pub(super) fn emit_menu(out: &mut String, tokens: &Value, components: &Value) {
         ("MENU_DARK", "dark"),
         ("MENU_DARK_TINT", "dark-tint"),
     ] {
-        const_doc(
-            out,
-            name,
-            &format!("The {theme} menu popup palette and metrics."),
-        );
+        pub_const(out, name);
         out.push_str(&format!(
             ": MenuPalette = {};\n\n",
             menu_palette_value(tokens, components, theme, false)
         ));
-        const_doc(
-            out,
-            &format!("{name}_OPAQUE"),
-            &format!("The {theme} menu popup palette with an opaque panel."),
-        );
+        pub_const(out, &format!("{name}_OPAQUE"));
         out.push_str(&format!(
             ": MenuPalette = {};\n\n",
             menu_palette_value(tokens, components, theme, true)
@@ -232,11 +224,7 @@ pub(super) fn emit_menu(out: &mut String, tokens: &Value, components: &Value) {
 pub(super) fn emit_menu_popover(out: &mut String, tokens: &Value, components: &Value) {
     let number_at = |path: &str| number(components, path, COMPONENTS);
 
-    const_doc(
-        out,
-        "MENU_POPOVER",
-        "The settings dropdown popover metrics.",
-    );
+    pub_const(out, "MENU_POPOVER");
     out.push_str(&format!(
         ": MenuPopoverMetrics = MenuPopoverMetrics {{\n\
          \x20   item_height: {},\n\

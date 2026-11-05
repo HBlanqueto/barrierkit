@@ -4,7 +4,7 @@ pub(super) fn emit_slider(out: &mut String, components: &Value) {
     let height = number(components, "components.slider.height", COMPONENTS);
     let track = number(components, "components.slider.track", COMPONENTS);
     let knob = number(components, "components.slider.knob", COMPONENTS);
-    const_doc(out, "SLIDER", "The Tengen slider metrics and colours.");
+    pub_const(out, "SLIDER");
     out.push_str(&format!(
         ": SliderMetrics = SliderMetrics {{
 \
@@ -24,7 +24,7 @@ pub(super) fn emit_checkbox(out: &mut String, tokens: &Value, components: &Value
     let size = number(components, "components.checkbox.size", COMPONENTS);
     let radius = metric(tokens, components, "components.checkbox.radius", COMPONENTS);
     let check_stroke = number(components, "components.checkbox.check-stroke", COMPONENTS);
-    const_doc(out, "CHECKBOX", "The Tengen checkbox metrics and colours.");
+    pub_const(out, "CHECKBOX");
     out.push_str(&format!(
         ": CheckboxMetrics = CheckboxMetrics {{
 \
@@ -50,7 +50,7 @@ pub(super) fn emit_switch(out: &mut String, tokens: &Value, components: &Value) 
         ))
     };
     let knob_color = color(components, "components.switch.knob-color", COMPONENTS);
-    const_doc(out, "SWITCH", "The Tengen switch metrics.");
+    pub_const(out, "SWITCH");
     out.push_str(&format!(
         ": SwitchMetrics = SwitchMetrics {{
 \
@@ -95,7 +95,7 @@ pub(super) fn emit_segmented(out: &mut String, tokens: &Value, components: &Valu
             COMPONENTS,
         ))
     };
-    const_doc(out, "SEGMENTED", "The Tengen segmented control metrics.");
+    pub_const(out, "SEGMENTED");
     out.push_str(&format!(
         ": SegmentedMetrics = SegmentedMetrics {{
 \
@@ -127,7 +127,7 @@ pub(super) fn emit_segmented(out: &mut String, tokens: &Value, components: &Valu
 }
 
 pub(super) fn emit_focus_ring(out: &mut String, components: &Value) {
-    const_doc(out, "FOCUS_RING", "The keyboard focus ring metrics.");
+    pub_const(out, "FOCUS_RING");
     out.push_str(&format!(
         ": FocusRingMetrics = FocusRingMetrics {{ width: {}, offset: {} }};\n\n",
         float(number(
@@ -152,7 +152,7 @@ pub(super) fn emit_button(out: &mut String, tokens: &Value, components: &Value) 
             COMPONENTS,
         ))
     };
-    const_doc(out, "BUTTON", "The Tengen text button metrics.");
+    pub_const(out, "BUTTON");
     out.push_str(&format!(
         ": ButtonMetrics = ButtonMetrics {{
 \
@@ -198,7 +198,7 @@ pub(super) fn emit_text_field(out: &mut String, tokens: &Value, components: &Val
             COMPONENTS,
         ))
     };
-    const_doc(out, "TEXT_FIELD", "The Tengen text field metrics.");
+    pub_const(out, "TEXT_FIELD");
     out.push_str(&format!(
         ": TextFieldMetrics = TextFieldMetrics {{ height: {}, padding_x: {}, radius: {} }};\n\n",
         field("height"),
@@ -216,7 +216,7 @@ pub(super) fn emit_progress(out: &mut String, tokens: &Value, components: &Value
             COMPONENTS,
         ))
     };
-    const_doc(out, "PROGRESS", "The Tengen progress bar and ring metrics.");
+    pub_const(out, "PROGRESS");
     out.push_str(&format!(
         ": ProgressMetrics = ProgressMetrics {{
 \
@@ -264,7 +264,7 @@ pub(super) fn emit_tooltip(out: &mut String, tokens: &Value, components: &Value)
             COMPONENTS,
         ))
     };
-    const_doc(out, "TOOLTIP", "The Tengen tooltip metrics.");
+    pub_const(out, "TOOLTIP");
     out.push_str(&format!(
         ": TooltipMetrics = TooltipMetrics {{ delay_ms: {}, padding_x: {}, padding_y: {}, radius: {}, pointer_gap: {} }};\n\n",
         integer(components, "components.tooltip.delay", COMPONENTS),
@@ -276,7 +276,7 @@ pub(super) fn emit_tooltip(out: &mut String, tokens: &Value, components: &Value)
 }
 
 pub(super) fn emit_symbol(out: &mut String, components: &Value) {
-    const_doc(out, "SYMBOL", "The symbol grid and stroke width.");
+    pub_const(out, "SYMBOL");
     out.push_str(&format!(
         ": SymbolMetrics = SymbolMetrics {{ stroke: {}, grid: {} }};\n\n",
         float(number(components, "components.symbol.stroke", COMPONENTS)),
@@ -292,22 +292,14 @@ pub(super) fn emit_slider_fat(out: &mut String, components: &Value) {
             COMPONENTS,
         ))
     };
-    const_doc(
-        out,
-        "SLIDER_FAT",
-        "The thick control-centre slider metrics.",
-    );
+    pub_const(out, "SLIDER_FAT");
     out.push_str(&format!(
         ": SliderFatMetrics = SliderFatMetrics {{ height: {}, fill_min: {}, lead_icon_x: {} }};\n\n",
         field("fat.height"),
         field("fat.fill-min"),
         field("fat.lead-icon-x")
     ));
-    const_doc(
-        out,
-        "SLIDER_KEY_STEP",
-        "The fraction an arrow key moves a continuous slider.",
-    );
+    pub_const(out, "SLIDER_KEY_STEP");
     out.push_str(&format!(": f32 = {};\n\n", field("keyboard-step")));
 }
 
@@ -320,14 +312,14 @@ pub(super) fn emit_compact(out: &mut String, tokens: &Value, components: &Value)
             COMPONENTS,
         ))
     };
-    const_doc(out, "ICON_BUTTON", "The Tengen icon button metrics.");
+    pub_const(out, "ICON_BUTTON");
     out.push_str(&format!(
         ": IconButtonMetrics = IconButtonMetrics {{ size: {}, radius: {}, icon: {} }};\n\n",
         field("icon-button.size"),
         field("icon-button.radius"),
         field("icon-button.icon")
     ));
-    const_doc(out, "BADGE", "The Tengen badge metrics.");
+    pub_const(out, "BADGE");
     out.push_str(&format!(
         ": BadgeMetrics = BadgeMetrics {{ height: {}, padding_x: {} }};\n\n",
         field("badge.height"),
@@ -351,11 +343,7 @@ pub(super) fn emit_compact(out: &mut String, tokens: &Value, components: &Value)
             .collect::<Vec<_>>()
             .join(", ")
     };
-    const_doc(
-        out,
-        "MEDIA",
-        "Controls, scrims and material over photos and video.",
-    );
+    pub_const(out, "MEDIA");
     out.push_str(&format!(
         ": MediaMetrics = MediaMetrics {{ button_height: {}, button_padding_x: {}, button_radius: {}, button_font_size: {}, button_fill: {}, button_ink: {}, round: {}, round_icon: {}, round_glass: {}, round_rim: {}, material_blur: {}, material_tint: {}, material_rim: {}, scrim_side: &[{}], scrim_bottom: &[{}], hover_scale: {}, preview_delay_ms: {} }};\n\n",
         field("media.button-height"),
@@ -376,7 +364,7 @@ pub(super) fn emit_compact(out: &mut String, tokens: &Value, components: &Value)
         field("media.hover-scale"),
         integer(components, "components.media.preview-delay", COMPONENTS)
     ));
-    const_doc(out, "SCROLL_BAR", "The Tengen scroll bar metrics.");
+    pub_const(out, "SCROLL_BAR");
     out.push_str(&format!(
         ": ScrollBarMetrics = ScrollBarMetrics {{ thumb: {}, inset: {}, min_length: {}, opacity: {}, track: {}, track_opacity: {}, always_opacity: {}, hide_delay_ms: {} }};\n\n",
         field("scroll-bar.thumb"),
@@ -410,7 +398,7 @@ pub(super) fn emit_list_group(out: &mut String, tokens: &Value, components: &Val
     .map(|v| float(v.as_f64().expect("padding number")))
     .collect::<Vec<_>>()
     .join(", ");
-    const_doc(out, "LIST_GROUP", "The Tengen grouped list (form) metrics.");
+    pub_const(out, "LIST_GROUP");
     out.push_str(&format!(
         ": ListGroupMetrics = ListGroupMetrics {{
 \

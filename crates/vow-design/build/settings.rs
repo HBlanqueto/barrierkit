@@ -361,7 +361,7 @@ pub(super) fn emit_settings(out: &mut String, tokens: &Value, components: &Value
 
     let card_outline = color(components, "components.settings.card.outline", COMPONENTS);
 
-    const_doc(out, "SETTINGS", "The System Settings window metrics.");
+    pub_const(out, "SETTINGS");
     out.push_str(&format!(
         ": SettingsMetrics = SettingsMetrics {{\n\
          \x20   label_column: {label_column},\n\
@@ -501,11 +501,7 @@ pub(super) fn emit_settings(out: &mut String, tokens: &Value, components: &Value
             ))
         ));
     }
-    const_doc(
-        out,
-        "ACCENT_SWATCHES",
-        "The accent colour swatches shown in System Settings.",
-    );
+    pub_const(out, "ACCENT_SWATCHES");
     out.push_str(&format!(
         ": [(&str, Rgba); {}] = [{}];\n\n",
         swatch_consts.len(),

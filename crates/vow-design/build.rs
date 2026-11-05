@@ -58,7 +58,7 @@ fn main() {
     emit_window(&mut out, &tokens, &components);
     emit_dialog(&mut out, &tokens, &components);
     emit_popup(&mut out, &tokens, &components);
-    emit_tints(&mut out, &tokens, &components);
+    emit_tints(&mut out, &components);
     emit_slider(&mut out, &components);
     emit_checkbox(&mut out, &tokens, &components);
     emit_switch(&mut out, &tokens, &components);
@@ -78,7 +78,7 @@ fn main() {
     emit_space(&mut out, &tokens);
     emit_split_view(&mut out, &components);
     emit_views(&mut out, &tokens, &components);
-    emit_wallpaper(&mut out, &tokens, &components);
+    emit_wallpaper(&mut out, &components);
     emit_traffic(&mut out, &tokens, &components);
     emit_font_families(&mut out, &tokens);
     emit_typography(&mut out, &tokens);

@@ -1,6 +1,6 @@
 use super::*;
 
-pub(super) fn emit_tints(out: &mut String, tokens: &Value, components: &Value) {
+pub(super) fn emit_tints(out: &mut String, components: &Value) {
     let accent_light = number(
         components,
         "appearance.modes.accent.windows.light",
@@ -31,27 +31,12 @@ pub(super) fn emit_tints(out: &mut String, tokens: &Value, components: &Value) {
         "appearance.modes.wallpaper.scope.desktop.panel-dock.dark",
         COMPONENTS,
     );
-    for (name, doc, light, dark) in [
-        (
-            "WINDOW_TINT_ACCENT",
-            "How much the accent tints the window chrome, light and dark.",
-            accent_light,
-            accent_dark,
-        ),
-        (
-            "WINDOW_TINT_WALLPAPER",
-            "How much the wallpaper tints the window chrome, light and dark.",
-            wallpaper_light,
-            wallpaper_dark,
-        ),
-        (
-            "PANEL_TINT_WALLPAPER",
-            "How much the wallpaper tints the panels and dock, light and dark.",
-            panel_light,
-            panel_dark,
-        ),
+    for (name, light, dark) in [
+        ("WINDOW_TINT_ACCENT", accent_light, accent_dark),
+        ("WINDOW_TINT_WALLPAPER", wallpaper_light, wallpaper_dark),
+        ("PANEL_TINT_WALLPAPER", panel_light, panel_dark),
     ] {
-        const_doc(out, name, doc);
+        pub_const(out, name);
         out.push_str(&format!(
             ": [f32; 2] = [{}, {}];\n\n",
             float(light),
@@ -64,22 +49,14 @@ pub(super) fn emit_tints(out: &mut String, tokens: &Value, components: &Value) {
         "components.shell.menu.separator.tint-ink-mix",
         COMPONENTS,
     );
-    const_doc(
-        out,
-        "MENU_SEPARATOR_INK_MIX",
-        "How far a tinted menu separator moves from its panel toward the ink.",
-    );
+    pub_const(out, "MENU_SEPARATOR_INK_MIX");
     out.push_str(&format!(": f32 = {};\n\n", float(separator_ink_mix)));
 
     let tint_subtle = number(components, "appearance.tint-strength.subtle", COMPONENTS);
     let tint_normal = number(components, "appearance.tint-strength.normal", COMPONENTS);
     let tint_strong = number(components, "appearance.tint-strength.strong", COMPONENTS);
     let tint_intense = number(components, "appearance.tint-strength.intense", COMPONENTS);
-    const_doc(
-        out,
-        "TINT_STRENGTH",
-        "Tint strength multipliers for Subtle, Normal, Strong and Intense.",
-    );
+    pub_const(out, "TINT_STRENGTH");
     out.push_str(&format!(
         ": [f32; 4] = [{}, {}, {}, {}];\n\n",
         float(tint_subtle),
@@ -88,39 +65,21 @@ pub(super) fn emit_tints(out: &mut String, tokens: &Value, components: &Value) {
         float(tint_intense)
     ));
 
-    for (name, doc, key) in [
-        (
-            "LAYER_FACTOR_BG_SUNKEN",
-            "Layer factor for bg-sunken.",
-            "bg-sunken",
-        ),
-        (
-            "LAYER_FACTOR_CONTROL",
-            "Layer factor for controls (bg-control, bg-hover).",
-            "bg-control",
-        ),
-        ("LAYER_FACTOR_LINE", "Layer factor for lines.", "line"),
-        (
-            "LAYER_FACTOR_SURFACE",
-            "Layer factor for groups and cards (bg-surface).",
-            "bg-surface",
-        ),
-        (
-            "LAYER_FACTOR_RAISED",
-            "Layer factor for menus and dialogs (bg-raised).",
-            "bg-raised",
-        ),
+    for (name, key) in [
+        ("LAYER_FACTOR_BG_SUNKEN", "bg-sunken"),
+        ("LAYER_FACTOR_CONTROL", "bg-control"),
+        ("LAYER_FACTOR_LINE", "line"),
+        ("LAYER_FACTOR_SURFACE", "bg-surface"),
+        ("LAYER_FACTOR_RAISED", "bg-raised"),
     ] {
         let factor = number(
             components,
             &format!("appearance.layer-factors.{key}"),
             COMPONENTS,
         );
-        const_doc(out, name, doc);
+        pub_const(out, name);
         out.push_str(&format!(": f32 = {};\n\n", float(factor)));
     }
-
-    let _ = tokens;
 }
 
 pub(super) fn emit_backdrop(out: &mut String, components: &Value) {
@@ -142,11 +101,7 @@ pub(super) fn emit_backdrop(out: &mut String, components: &Value) {
             COMPONENTS,
         )
     };
-    const_doc(
-        out,
-        "BACKDROP",
-        "Tinted window backgrounds drawn from an image or chosen colours.",
-    );
+    pub_const(out, "BACKDROP");
     out.push_str(&format!(
         ": BackdropMetrics = BackdropMetrics {{ angles: [{}], opacity: {}, stops: {}, lightness: [{}], chroma: {}, base_darken: {}, base_lightness: [{}], base_chroma: {}, samples: {}, clusters: {}, ink_secondary: {}, ink_tertiary: {}, glass: {}, glass_strong: {}, island: {}, sunken: {}, accent_lightness_on_dark: {}, accent_lightness_on_light: {}, accent_min_chroma: {} }};\n\n",
         floats(components, "components.backdrop.angles"),
@@ -169,11 +124,7 @@ pub(super) fn emit_backdrop(out: &mut String, components: &Value) {
         field("accent-lightness-on-light"),
         field("accent-min-chroma"),
     ));
-    const_doc(
-        out,
-        "BREAKPOINT",
-        "Window widths where adaptive layouts change shape.",
-    );
+    pub_const(out, "BREAKPOINT");
     out.push_str(&format!(
         ": BreakpointMetrics = BreakpointMetrics {{ medium: {}, wide: {} }};\n\n",
         float(
@@ -191,11 +142,7 @@ pub(super) fn emit_backdrop(out: &mut String, components: &Value) {
 
 pub(super) fn emit_space(out: &mut String, tokens: &Value) {
     for step in ["1", "2", "3", "4"] {
-        const_doc(
-            out,
-            &format!("SPACE_{step}"),
-            "A step of the Tengen spacing scale.",
-        );
+        pub_const(out, &format!("SPACE_{step}"));
         out.push_str(&format!(
             ": f32 = {};\n\n",
             float(number(tokens, &format!("space.{step}"), TOKENS))
@@ -203,8 +150,7 @@ pub(super) fn emit_space(out: &mut String, tokens: &Value) {
     }
 }
 
-pub(super) fn emit_wallpaper(out: &mut String, tokens: &Value, components: &Value) {
-    let _ = tokens;
+pub(super) fn emit_wallpaper(out: &mut String, components: &Value) {
     let accent_darken_light = number(
         components,
         "appearance.modes.wallpaper.accent-shift.light.darken",
@@ -236,41 +182,17 @@ pub(super) fn emit_wallpaper(out: &mut String, tokens: &Value, components: &Valu
         COMPONENTS,
     );
 
-    const_doc(
-        out,
-        "WALLPAPER_ACCENT_DARKEN_LIGHT",
-        "How much the wallpaper accent darkens in light mode.",
-    );
+    pub_const(out, "WALLPAPER_ACCENT_DARKEN_LIGHT");
     out.push_str(&format!(": f32 = {};\n\n", float(accent_darken_light)));
-    const_doc(
-        out,
-        "WALLPAPER_ACCENT_LIGHTEN_DARK",
-        "How much the wallpaper accent lightens in dark modes.",
-    );
+    pub_const(out, "WALLPAPER_ACCENT_LIGHTEN_DARK");
     out.push_str(&format!(": f32 = {};\n\n", float(accent_lighten_dark)));
-    const_doc(
-        out,
-        "ACCENT_MIN_CONTRAST_ON_WINDOW",
-        "Minimum contrast of the wallpaper accent against the window background.",
-    );
+    pub_const(out, "ACCENT_MIN_CONTRAST_ON_WINDOW");
     out.push_str(&format!(": f32 = {};\n\n", float(accent_on_window)));
-    const_doc(
-        out,
-        "ON_ACCENT_MIN_CONTRAST",
-        "Minimum contrast of text drawn on the wallpaper accent.",
-    );
+    pub_const(out, "ON_ACCENT_MIN_CONTRAST");
     out.push_str(&format!(": f32 = {};\n\n", float(on_accent)));
-    const_doc(
-        out,
-        "MUTED_BELOW_SATURATION",
-        "Saturation below which the wallpaper accent gets a saturation boost.",
-    );
+    pub_const(out, "MUTED_BELOW_SATURATION");
     out.push_str(&format!(": f32 = {};\n\n", float(muted_below)));
-    const_doc(
-        out,
-        "MUTED_MAX_SATURATION",
-        "Maximum saturation after boosting a muted wallpaper accent.",
-    );
+    pub_const(out, "MUTED_MAX_SATURATION");
     out.push_str(&format!(": f32 = {};\n\n", float(muted_max)));
 }
 
@@ -280,7 +202,7 @@ pub(super) fn emit_font_families(out: &mut String, tokens: &Value) {
         .split(',')
         .map(|family| family.trim().trim_matches('"').to_string())
         .collect();
-    const_doc(out, "SANS_FAMILIES", "The sans-serif family stack.");
+    pub_const(out, "SANS_FAMILIES");
     out.push_str(": [&str; ");
     out.push_str(&families.len().to_string());
     out.push_str("] = [");
@@ -294,53 +216,33 @@ pub(super) fn emit_font_families(out: &mut String, tokens: &Value) {
 }
 
 pub(super) fn emit_typography(out: &mut String, tokens: &Value) {
-    const_doc(out, "TEXT", "The body text face.");
+    pub_const(out, "TEXT");
     out.push_str(&format!(": Font = {};\n\n", font(tokens, "body")));
-    const_doc(
-        out,
-        "POSTER",
-        "The poster face (56/800) for titles over media.",
-    );
+    pub_const(out, "POSTER");
     out.push_str(&format!(": Font = {};\n\n", font(tokens, "poster")));
-    const_doc(
-        out,
-        "DISPLAY",
-        "The display face (28/700), the largest title.",
-    );
+    pub_const(out, "DISPLAY");
     out.push_str(&format!(": Font = {};\n\n", font(tokens, "display")));
-    const_doc(out, "TITLE_1", "The primary title face (20/650).");
+    pub_const(out, "TITLE_1");
     out.push_str(&format!(": Font = {};\n\n", font(tokens, "title-1")));
-    const_doc(out, "TITLE_2", "The secondary title face (15/600).");
+    pub_const(out, "TITLE_2");
     out.push_str(&format!(": Font = {};\n\n", font(tokens, "title-2")));
-    const_doc(out, "HEADLINE", "The headline face (13/600).");
+    pub_const(out, "HEADLINE");
     out.push_str(&format!(": Font = {};\n\n", font(tokens, "headline")));
-    const_doc(out, "CALLOUT", "The callout face (12/400).");
+    pub_const(out, "CALLOUT");
     out.push_str(&format!(": Font = {};\n\n", font(tokens, "callout")));
-    const_doc(out, "CAPTION", "The caption face (11/500).");
+    pub_const(out, "CAPTION");
     out.push_str(&format!(": Font = {};\n\n", font(tokens, "caption")));
     let line_height = number(tokens, "font.line-height-scale", TOKENS);
-    const_doc(
-        out,
-        "TEXT_LINE_HEIGHT",
-        "The line-height multiplier used by the text engines.",
-    );
+    pub_const(out, "TEXT_LINE_HEIGHT");
     out.push_str(&format!(": f32 = {};\n\n", float(line_height)));
 }
 
 pub(super) fn emit_shadows(out: &mut String, tokens: &Value) {
-    const_doc(out, "SHADOW", "The window shadow in light mode.");
+    pub_const(out, "SHADOW");
     out.push_str(&format!(": ShadowStyle = {};\n\n", shadow(tokens, "light")));
-    const_doc(
-        out,
-        "SHADOW_DARK",
-        "The window shadow in dark and dark-tint modes.",
-    );
+    pub_const(out, "SHADOW_DARK");
     out.push_str(&format!(": ShadowStyle = {};\n\n", shadow(tokens, "dark")));
-    const_doc(
-        out,
-        "KNOB_SHADOW",
-        "The shadow under switch and slider knobs.",
-    );
+    pub_const(out, "KNOB_SHADOW");
     out.push_str(&format!(
         ": ShadowLayer = ShadowLayer {{ blur: {}, y_offset: {}, opacity: 1.0, color: {} }};\n\n",
         integer(tokens, "shadow.slint.knob.blur", TOKENS),
@@ -435,7 +337,7 @@ pub(super) fn emit_palettes(out: &mut String, tokens: &Value, components: &Value
         ("DARK", "dark"),
         ("DARK_TINT", "dark-tint"),
     ] {
-        const_doc(out, name, &format!("The {theme} mode palette."));
+        pub_const(out, name);
         out.push_str(&format!(
             ": Palette = {};\n\n",
             palette(tokens, components, theme)
@@ -447,11 +349,7 @@ pub(super) fn emit_palettes(out: &mut String, tokens: &Value, components: &Value
         ("BG_WINDOW_DARK", "dark"),
         ("BG_WINDOW_DARK_TINT", "dark-tint"),
     ] {
-        const_doc(
-            out,
-            name,
-            &format!("The {theme} window background (`bg-window`)."),
-        );
+        pub_const(out, name);
         out.push_str(&format!(
             ": Rgba = {};\n\n",
             rgba(theme_color(tokens, theme, "bg-window"))
@@ -463,11 +361,7 @@ pub(super) fn emit_palettes(out: &mut String, tokens: &Value, components: &Value
         ("BG_CONTROL_DARK", "dark"),
         ("BG_CONTROL_DARK_TINT", "dark-tint"),
     ] {
-        const_doc(
-            out,
-            name,
-            &format!("The {theme} control background (`bg-control`)."),
-        );
+        pub_const(out, name);
         out.push_str(&format!(
             ": Rgba = {};\n\n",
             rgba(theme_color(tokens, theme, "bg-control"))
@@ -479,11 +373,7 @@ pub(super) fn emit_palettes(out: &mut String, tokens: &Value, components: &Value
         ("BG_SURFACE_DARK", "dark"),
         ("BG_SURFACE_DARK_TINT", "dark-tint"),
     ] {
-        const_doc(
-            out,
-            name,
-            &format!("The {theme} raised surface background (`bg-surface`)."),
-        );
+        pub_const(out, name);
         out.push_str(&format!(
             ": Rgba = {};\n\n",
             rgba(theme_color(tokens, theme, "bg-surface"))
@@ -501,7 +391,7 @@ pub(super) fn emit_palettes(out: &mut String, tokens: &Value, components: &Value
         ("BG_HOVER_DARK", "dark", "bg-hover"),
         ("BG_HOVER_DARK_TINT", "dark-tint", "bg-hover"),
     ] {
-        const_doc(out, name, &format!("The {theme} `{token}` background."));
+        pub_const(out, name);
         out.push_str(&format!(
             ": Rgba = {};\n\n",
             rgba(theme_color(tokens, theme, token))

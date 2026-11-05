@@ -81,10 +81,8 @@ pub(super) fn font(tokens: &Value, style: &str) -> String {
     )
 }
 
-pub(super) fn const_doc(out: &mut String, name: &str, doc: &str) {
-    out.push_str(&format!(
-        "#[allow(missing_docs)]\n/// {doc}\npub const {name}"
-    ));
+pub(super) fn pub_const(out: &mut String, name: &str) {
+    out.push_str(&format!("pub const {name}"));
 }
 
 pub(super) fn floats(components: &Value, path: &str) -> String {
