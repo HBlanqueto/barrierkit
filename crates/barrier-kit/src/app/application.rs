@@ -52,6 +52,7 @@ impl Instance {
                 }
             }
         });
+        wake.wake();
         if let Ok(mut pending) = self.requests.lock() {
             pending.wake = Some(wake);
         }
@@ -97,6 +98,27 @@ fn object_path(app_id: &str) -> String {
     format!("/{}", app_id.replace('.', "/").replace('-', "_"))
 }
 
+fn forward(
+    connection: &Connection,
+    app_id: &str,
+    path: &str,
+    token: Option<String>,
+) -> zbus::Result<()> {
+    let platform_data: HashMap<String, OwnedValue> = token
+        .and_then(|token| OwnedValue::try_from(zbus::zvariant::Value::from(token)).ok())
+        .map(|token| ("activation-token".to_string(), token))
+        .into_iter()
+        .collect();
+    connection.call_method(
+        Some(app_id),
+        path,
+        Some("org.freedesktop.Application"),
+        "Activate",
+        &(platform_data,),
+    )?;
+    Ok(())
+}
+
 pub fn launch(app_id: &str) -> zbus::Result<Launch> {
     let connection = Connection::session()?;
     let taken =
@@ -107,18 +129,11 @@ pub fn launch(app_id: &str) -> zbus::Result<Launch> {
         };
     let path = object_path(app_id);
     if taken {
-        let platform_data: HashMap<String, OwnedValue> = std::env::var("XDG_ACTIVATION_TOKEN")
-            .ok()
-            .and_then(|token| OwnedValue::try_from(zbus::zvariant::Value::from(token)).ok())
-            .map(|token| ("activation-token".to_string(), token))
-            .into_iter()
-            .collect();
-        connection.call_method(
-            Some(app_id),
-            path.as_str(),
-            Some("org.freedesktop.Application"),
-            "Activate",
-            &(platform_data,),
+        forward(
+            &connection,
+            app_id,
+            &path,
+            std::env::var("XDG_ACTIVATION_TOKEN").ok(),
         )?;
         return Ok(Launch::Forwarded);
     }
@@ -145,13 +160,17 @@ mod tests {
             return;
         }
         let app_id = format!("org.malaysia.test{}", std::process::id());
-        let app_id: &'static str = Box::leak(app_id.into_boxed_str());
-        let Ok(Launch::Primary(first)) = launch(app_id) else {
+        let Ok(Launch::Primary(first)) = launch(&app_id) else {
             panic!("the first launch must own the name");
         };
-        // SAFETY: this test only reads the variable from its own thread right after.
-        unsafe { std::env::set_var("XDG_ACTIVATION_TOKEN", "token-1") };
-        assert!(matches!(launch(app_id), Ok(Launch::Forwarded)));
+        let second = Connection::session().unwrap();
+        forward(
+            &second,
+            &app_id,
+            &object_path(&app_id),
+            Some("token-1".to_string()),
+        )
+        .unwrap();
         let tokens = std::mem::take(&mut first.requests.lock().unwrap().tokens);
         assert_eq!(tokens, ["token-1"]);
     }

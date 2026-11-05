@@ -1,9 +1,8 @@
-//! App-wide services: actions, preferences, restoration, pasteboard, undo and single instance.
+//! App-wide services: actions, preferences, restoration, undo and single instance.
 
 mod action;
 mod application;
 mod defaults;
-mod pasteboard;
 mod undo;
 
 pub(crate) use action::MenuActions;
@@ -14,5 +13,4 @@ pub use defaults::{
     load_defaults, load_restoration, read_toml, save_defaults, save_restoration, use_defaults,
     use_watched, write_toml,
 };
-pub use pasteboard::{copy, paste};
 pub use undo::{REDO, UNDO, UndoManager, use_undo};
