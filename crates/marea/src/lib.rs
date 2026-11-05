@@ -47,6 +47,11 @@ fn tones(id: &str) -> [Rgba; 3] {
     ]
 }
 
+fn scrolled(controller: ScrollController) -> f32 {
+    let (_, offset): (i32, i32) = controller.into();
+    (-offset).max(0) as f32
+}
+
 fn swatch(index: usize) -> Rgba {
     ACCENT_SWATCHES[index % ACCENT_SWATCHES.len()].1
 }
@@ -109,7 +114,6 @@ impl Component for Island {
 
 #[derive(PartialEq)]
 struct Toolbar {
-    shown: f32,
     scroll: ScrollController,
 }
 
@@ -117,6 +121,7 @@ impl Component for Toolbar {
     fn render(&self) -> impl IntoElement {
         let window = ground();
         let scroll = self.scroll;
+        let shown = ease_out(((scrolled(scroll) - TOOLBAR_FROM) / TOOLBAR_SPAN).clamp(0.0, 1.0));
         rect()
             .position(Position::new_absolute().top(0.0).left(0.0))
             .width(Size::fill())
@@ -124,7 +129,7 @@ impl Component for Toolbar {
             .layer(TOOLBAR_LAYER)
             .on_mouse_down(window_drag_handler(false))
             .on_wheel(move |event: Event<WheelEventData>| scroll.scroll_by_wheel(&event))
-            .maybe_child((self.shown > 0.0).then(top_glass))
+            .maybe_child((shown > 0.0).then(top_glass))
             .child(
                 rect()
                     .position(Position::new_absolute().top(0.0).left(0.0))
@@ -134,7 +139,7 @@ impl Component for Toolbar {
                         LinearGradient::new()
                             .stop((
                                 color(Rgba {
-                                    a: 0.9 * self.shown,
+                                    a: 0.9 * shown,
                                     ..window
                                 }),
                                 0.0,
@@ -146,10 +151,10 @@ impl Component for Toolbar {
                 rect()
                     .position(
                         Position::new_absolute()
-                            .top(20.0 + 6.0 * (1.0 - self.shown))
+                            .top(20.0 + 6.0 * (1.0 - shown))
                             .left(248.0),
                     )
-                    .opacity(self.shown)
+                    .opacity(shown)
                     .child(text("Inicio", TITLE_2, Palette::current().label)),
             )
     }
@@ -173,9 +178,6 @@ impl App for Marea {
         let mut playing = use_state(|| None::<Playing>);
         let mut window = use_state(Area::default);
         let controller = use_scroll_controller();
-        let (_, offset): (i32, i32) = controller.into();
-        let scrolled = (-offset).max(0) as f32;
-        let toolbar = ease_out(((scrolled - TOOLBAR_FROM) / TOOLBAR_SPAN).clamp(0.0, 1.0));
         let current = FEATURED[*featured.read()];
         let width = window.read().width();
         let height = window.read().height();
@@ -195,7 +197,7 @@ impl App for Marea {
                     .height(Size::percent(100.0))
                     .child(HeroBackground {
                         id: current,
-                        scrolled,
+                        scroll: controller,
                         width,
                         previewing: *previewing.read(),
                     }),
@@ -212,7 +214,7 @@ impl App for Marea {
                         ))
                         .child(HeroCopy {
                             featured: *featured.read(),
-                            scrolled,
+                            scroll: controller,
                             listed: listed.read().contains(current),
                             previewing: *previewing.read(),
                             on_select: Callback::new(move |index| {
@@ -249,10 +251,7 @@ impl App for Marea {
                         })),
                 ),
             )
-            .child(Toolbar {
-                shown: toolbar,
-                scroll: controller,
-            })
+            .child(Toolbar { scroll: controller })
             .child(Island { height })
             .maybe_child(playing.read().as_ref().map(|now| Player {
                 id: now.id,

@@ -1,5 +1,6 @@
 use std::time::Duration;
 
+use barrier_kit::controls::ScrollController;
 use barrier_kit::media::{MediaButton, RoundButton, ScrimEdge, ground, scrim, use_artwork};
 use barrier_kit::platform::Timers;
 use barrier_kit::style::{Palette, text};
@@ -145,7 +146,7 @@ impl Component for HeroLogo {
 #[derive(PartialEq)]
 pub struct HeroBackground {
     pub id: &'static str,
-    pub scrolled: f32,
+    pub scroll: ScrollController,
     pub width: f32,
     pub previewing: bool,
 }
@@ -182,14 +183,11 @@ impl Component for HeroBackground {
                 .function(Function::Cubic)
         });
         let veil = arrive.get().value();
-        let dim = 0.6 * (self.scrolled / DIM_AFTER).min(1.0);
+        let scrolled = crate::scrolled(self.scroll);
+        let dim = 0.6 * (scrolled / DIM_AFTER).min(1.0);
         let window = ground();
         let hero = rect()
-            .position(
-                Position::new_absolute()
-                    .top(-self.scrolled * PARALLAX)
-                    .left(0.0),
-            )
+            .position(Position::new_absolute().top(-scrolled * PARALLAX).left(0.0))
             .width(Size::fill())
             .height(Size::px(HERO_HEIGHT))
             .background(art_fill(title(self.id)))
@@ -284,7 +282,7 @@ fn edge(symbol_kind: Symbol, label: &'static str, on_press: Callback<(), ()>) ->
 #[derive(PartialEq)]
 pub struct HeroCopy {
     pub featured: usize,
-    pub scrolled: f32,
+    pub scroll: ScrollController,
     pub listed: bool,
     pub previewing: bool,
     pub on_select: Callback<usize, ()>,
@@ -324,7 +322,8 @@ impl Component for HeroCopy {
             }
         });
         let shown = reveal.get().value();
-        let fade = 1.0 - ease_out((self.scrolled / 260.0).min(1.0));
+        let scrolled = crate::scrolled(self.scroll);
+        let fade = 1.0 - ease_out((scrolled / 260.0).min(1.0));
         let title = title(FEATURED[self.featured]);
         let palette = Palette::current();
         let (on_select, on_play, on_list) = (
@@ -387,7 +386,7 @@ impl Component for HeroCopy {
                     .position(Position::new_absolute().left(40.0).bottom(104.0))
                     .width(Size::px(460.0))
                     .opacity(shown * fade)
-                    .offset_y(-10.0 * (1.0 - shown) - self.scrolled * 0.2)
+                    .offset_y(-10.0 * (1.0 - shown) - scrolled * 0.2)
                     .spacing(SPACE_2)
                     .child(text(
                         title.kind.to_uppercase(),
