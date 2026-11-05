@@ -1,5 +1,3 @@
-//! xdg_activation_v1 for apps: bring a window forward with a token.
-
 use sctk::reexports::client::{Connection, Dispatch, Proxy, QueueHandle};
 use sctk::reexports::protocols::xdg::activation::v1::client::xdg_activation_v1::XdgActivationV1;
 

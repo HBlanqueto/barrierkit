@@ -1,5 +1,3 @@
-//! App-side global menu: declare a menu and export it over D-Bus.
-
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 

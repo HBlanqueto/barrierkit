@@ -1,5 +1,3 @@
-//! Pop-up button: shows the current choice and opens a menu with the others.
-
 use std::cell::Cell;
 use std::rc::Rc;
 

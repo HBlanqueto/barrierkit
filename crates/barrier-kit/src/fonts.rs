@@ -1,5 +1,3 @@
-//! Shared Skia font collection used for text measurement and drawing.
-
 use std::cell::RefCell;
 
 use freya_engine::prelude::{FontCollection, FontMgr, TypefaceFontProvider};

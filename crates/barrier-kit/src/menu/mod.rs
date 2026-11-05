@@ -1,5 +1,3 @@
-//! Menu control for popups, with submenus and keyboard navigation.
-
 mod item;
 mod model;
 mod nav;

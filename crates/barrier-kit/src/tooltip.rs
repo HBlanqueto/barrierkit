@@ -1,5 +1,3 @@
-//! Help tag shown under the pointer after it rests on an element.
-
 use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 use std::time::Duration;

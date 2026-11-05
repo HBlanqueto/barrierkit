@@ -1,5 +1,3 @@
-//! Wayland runner that drives Freya's core.
-
 mod activation;
 pub(crate) mod app;
 mod app_menu_export;

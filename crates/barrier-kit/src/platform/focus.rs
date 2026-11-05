@@ -1,5 +1,3 @@
-//! Focus-mode notices received from the compositor.
-
 use freya_core::prelude::WritableUtils;
 use sctk::reexports::client::backend::ObjectId;
 use sctk::reexports::client::{Connection, Dispatch, Proxy, QueueHandle};

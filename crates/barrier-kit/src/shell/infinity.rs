@@ -1,5 +1,3 @@
-//! Client-side bindings for the Infinity protocol, used by the shell.
-
 use freya_core::prelude::WritableUtils;
 use sctk::reexports::client::{Connection, Dispatch, Proxy, QueueHandle};
 

@@ -1,5 +1,3 @@
-//! Menu opened with the secondary button at the pointer.
-
 use freya_core::prelude::*;
 
 use crate::menu::MenuItem;

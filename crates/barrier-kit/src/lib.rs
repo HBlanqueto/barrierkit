@@ -1,6 +1,3 @@
-//! BarrierKit: UI toolkit for the shell and the system's own apps.
-//! Provides windows, titlebars, traffic lights, widgets and text.
-
 mod fonts;
 mod logging;
 

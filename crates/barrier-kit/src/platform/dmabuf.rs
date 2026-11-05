@@ -1,6 +1,3 @@
-//! Decoded video frames as dmabufs, imported into the kit's Vulkan device so Skia
-//! samples them in place: the GPU decodes, the GPU composites, the CPU copies nothing.
-
 use std::cell::RefCell;
 use std::os::fd::{AsRawFd, BorrowedFd, IntoRawFd};
 use std::rc::{Rc, Weak};

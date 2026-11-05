@@ -1,5 +1,3 @@
-//! Golden-image tests for the menu control.
-
 use std::{
     fs,
     path::{Path, PathBuf},

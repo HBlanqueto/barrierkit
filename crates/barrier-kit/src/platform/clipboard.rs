@@ -1,5 +1,3 @@
-//! Clipboard on wl_data_device for Freya's ClipboardProvider.
-
 use std::io::{Read, Write};
 use std::sync::{Arc, Mutex, OnceLock};
 

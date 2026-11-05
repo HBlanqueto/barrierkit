@@ -1,5 +1,3 @@
-//! Converts Wayland input events into Freya platform events.
-
 use freya_core::prelude::{Code, Key, Modifiers, MouseButton, NamedKey};
 use sctk::seat::keyboard::{Keysym, Modifiers as SctkModifiers};
 
