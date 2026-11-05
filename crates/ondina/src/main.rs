@@ -1,6 +1,3 @@
-//! Ondina: a music player that shows what tinted backdrops, app accents and
-//! adaptive layouts look like in BarrierKit.
-
 mod albums;
 mod views;
 

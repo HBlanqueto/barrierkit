@@ -1,6 +1,3 @@
-//! The four panes and the queue, drawn with the palette the
-//! backdrop provides.
-
 use barrier_kit::backdrop::Tint;
 use barrier_kit::choices::{ChoiceCards, ColorWell, RadioGroup};
 use barrier_kit::compact::IconButton;
@@ -79,17 +76,20 @@ pub fn now_playing(albums: &[Album], player: Player, tint: Tint) -> Element {
         )
         .child(
             rect()
-                .a11y_role(AccessibilityRole::Slider)
-                .a11y_alt("Posición")
                 .width(Size::px(WAVE_WIDTH))
                 .height(Size::px(48.0))
                 .direction(Direction::Horizontal)
                 .cross_align(Alignment::Center)
                 .spacing(2.0)
-                .on_mouse_down(move |event: Event<MouseEventData>| {
-                    seek.set((event.element_location.x as f32 / WAVE_WIDTH).clamp(0.0, 1.0))
-                })
                 .children(bars),
+        )
+        .child(
+            rect().width(Size::px(WAVE_WIDTH)).child(
+                LevelSlider::new("Posición")
+                    .value(position)
+                    .tint(tint)
+                    .on_change(move |at| seek.set(at)),
+            ),
         )
         .child(
             rect()

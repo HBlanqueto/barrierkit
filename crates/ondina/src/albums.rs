@@ -1,6 +1,3 @@
-//! The library: albums with covers painted at start-up, so the backdrop has
-//! real images to read colours from.
-
 use freya_core::prelude::Bytes;
 use freya_engine::prelude::{
     Color4f, Colors, EncodedImageFormat, Gradient, Interpolation, Paint, Rect, TileMode,
