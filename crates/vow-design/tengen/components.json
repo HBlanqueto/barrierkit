@@ -365,14 +365,14 @@
         "padding-x": 14
       },
       "accent-swatches": [
-        {"name": "Azul", "color": "#2f6fe4"},
-        {"name": "Morado", "color": "#8e5bd8"},
-        {"name": "Rosa", "color": "#e5458f"},
-        {"name": "Rojo", "color": "#ec4646"},
-        {"name": "Naranja", "color": "#f07c26"},
-        {"name": "Amarillo", "color": "#f5c02c"},
-        {"name": "Verde", "color": "#4fb848"},
-        {"name": "Gris", "color": "#8e8e93"}
+        {"name": "blue", "color": "#2f6fe4"},
+        {"name": "purple", "color": "#8e5bd8"},
+        {"name": "pink", "color": "#e5458f"},
+        {"name": "red", "color": "#ec4646"},
+        {"name": "orange", "color": "#f07c26"},
+        {"name": "yellow", "color": "#f5c02c"},
+        {"name": "green", "color": "#4fb848"},
+        {"name": "graphite", "color": "#8e8e93"}
       ],
       "swatch-size": 20,
       "swatch-gap": 9,

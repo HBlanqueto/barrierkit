@@ -20,3 +20,12 @@ language = Idioma
 language-automatic = Automático
 language-applies-on-reopen = Se aplica al volver a abrir la app.
 language-applies-to-new-apps = Se aplica a las apps que abras después.
+
+accent-blue = Azul
+accent-purple = Morado
+accent-pink = Rosa
+accent-red = Rojo
+accent-orange = Naranja
+accent-yellow = Amarillo
+accent-green = Verde
+accent-graphite = Gris

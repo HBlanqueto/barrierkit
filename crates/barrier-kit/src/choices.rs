@@ -1,5 +1,7 @@
 //! One-of-many choices: radio groups, colour wells and preview cards.
 
+use crate::i18n::text;
+
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Direction, Position, Size};
 use vow_design::{CAPTION, Rgba, SETTINGS, SWITCH, TEXT};
@@ -192,6 +194,20 @@ impl Component for RadioOption {
     }
 }
 
+fn swatch_name(id: &'static str) -> &'static str {
+    match id {
+        "blue" => text!("accent-blue"),
+        "purple" => text!("accent-purple"),
+        "pink" => text!("accent-pink"),
+        "red" => text!("accent-red"),
+        "orange" => text!("accent-orange"),
+        "yellow" => text!("accent-yellow"),
+        "green" => text!("accent-green"),
+        "graphite" => text!("accent-graphite"),
+        _ => id,
+    }
+}
+
 #[derive(PartialEq)]
 pub struct ColorWell {
     label: &'static str,
@@ -250,7 +266,7 @@ impl Component for ColorWell {
             .enumerate()
             .map(|(index, (name, fill))| {
                 Swatch {
-                    name,
+                    name: swatch_name(name),
                     fill: *fill,
                     selected: choice.is(index),
                     disabled: self.disabled,
