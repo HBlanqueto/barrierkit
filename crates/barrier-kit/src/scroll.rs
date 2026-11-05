@@ -2,7 +2,6 @@
 
 use std::time::Duration;
 
-use freya_animation::prelude::{AnimNum, Ease, Function, use_animation_transition};
 use freya_components::scrollviews::{
     ScrollConfig, ScrollController as Inner, ScrollView as Scroller,
 };
@@ -206,14 +205,8 @@ impl Component for ScrollView {
                 });
             }
         }
-        let reduced_motion = resolved.reduced_motion;
-        let fade = use_animation_transition(scrolling, move |from: bool, to: bool| {
-            AnimNum::new(f32::from(u8::from(from)), f32::from(u8::from(to)))
-                .time(if reduced_motion { 0 } else { DURATION_FAST_MS })
-                .ease(Ease::Out)
-                .function(Function::Cubic)
-        });
-        let visibility = if always { 1.0 } else { fade.get().value() };
+        let fade = crate::animation::use_switch_progress(scrolling, DURATION_FAST_MS);
+        let visibility = if always { 1.0 } else { fade };
         let (breadth, opacity, edge) = if always {
             (
                 SCROLL_BAR.track,

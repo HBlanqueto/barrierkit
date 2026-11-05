@@ -2,7 +2,25 @@
 
 use std::time::Duration;
 
-use freya_animation::prelude::{AnimDirection, AnimatedValue};
+use freya_animation::prelude::{
+    AnimDirection, AnimNum, AnimatedValue, Ease, Function, use_animation_transition,
+};
+use freya_core::prelude::*;
+
+pub(crate) fn use_switch_progress(on: State<bool>, ms: u64) -> f32 {
+    let reduced_motion = use_reactive(&crate::theme::resolved().reduced_motion);
+    let animation = use_animation_transition(on, move |from: bool, to: bool| {
+        AnimNum::new(f32::from(u8::from(from)), f32::from(u8::from(to)))
+            .time(if *reduced_motion.peek() { 0 } else { ms })
+            .ease(Ease::Out)
+            .function(Function::Cubic)
+    });
+    if *reduced_motion.read() {
+        f32::from(u8::from(*on.read()))
+    } else {
+        animation.get().value()
+    }
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct Spring {

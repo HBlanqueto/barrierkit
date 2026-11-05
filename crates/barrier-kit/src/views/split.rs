@@ -1,7 +1,7 @@
 //! Split view: resizable sidebar that hides and shows with an animation, the
 //! detail and an optional inspector.
 
-use freya_animation::prelude::{AnimNum, Ease, Function, use_animation_transition};
+use freya_animation::prelude::use_animation_transition;
 use std::time::Duration;
 
 use freya_core::prelude::*;
@@ -219,19 +219,17 @@ impl Component for SplitView {
             }
         }
 
-        let reduced_motion = resolved.reduced_motion;
-        let reveal = use_animation_transition(visible, move |from: bool, to: bool| {
-            AnimNum::new(f32::from(u8::from(from)), f32::from(u8::from(to)))
-                .time(if reduced_motion { 0 } else { DURATION_BASE })
-                .ease(Ease::Out)
-                .function(Function::Cubic)
-        });
-        let shown = reveal.get().value();
+        let shown = crate::animation::use_switch_progress(visible, DURATION_BASE);
         crate::chrome::report_sidebar_shown(*visible.read());
 
+        let reduced_motion = use_reactive(&resolved.reduced_motion);
         let mut follow_from_to = use_state(|| (initial_width, initial_width));
         let follow = use_animation_transition(follow_from_to, move |_, (from, to)| {
-            let time = if reduced_motion { 0 } else { DURATION_FAST_MS };
+            let time = if *reduced_motion.peek() {
+                0
+            } else {
+                DURATION_FAST_MS
+            };
             Spring::new(from, to, Duration::from_millis(time), 0.0)
         });
         let mut resize_to = move |target: f32| {

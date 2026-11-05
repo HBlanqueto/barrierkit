@@ -6,7 +6,6 @@ use freya_components::input::{Input, InputColorsThemePartial, InputLayoutThemePa
 use freya_components::svg_viewer::SvgViewer;
 use freya_components::theming::macros::Preference;
 
-use freya_animation::prelude::{AnimNum, Ease, Function, use_animation_transition};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 use vow_design::{
@@ -748,28 +747,11 @@ impl ProbeExt for Switch {
 
 impl Component for Switch {
     fn render(&self) -> impl IntoElement {
-        let resolved = crate::theme::resolved();
         let palette = Palette::current();
         let on = crate::controlled::use_controlled(&self.on);
         let interaction = use_interaction();
-        let reduced_motion = use_reactive(&resolved.reduced_motion);
-        let animation = use_animation_transition(on, move |from, to| {
-            let duration = if *reduced_motion.peek() {
-                0
-            } else {
-                SWITCH.transition_ms
-            };
-            AnimNum::new(if from { 1.0 } else { 0.0 }, if to { 1.0 } else { 0.0 })
-                .time(duration)
-                .ease(Ease::Out)
-                .function(Function::Cubic)
-        });
+        let progress = crate::animation::use_switch_progress(on, SWITCH.transition_ms);
         let is_on = *on.read();
-        let progress = if *reduced_motion.read() {
-            if is_on { 1.0 } else { 0.0 }
-        } else {
-            animation.get().value()
-        };
 
         let disabled = self.disabled;
         let mut flip = {

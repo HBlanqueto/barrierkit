@@ -1,7 +1,6 @@
 //! Titlebar layouts for client-side windows (top, or a rail on the left, as a
 //! strip or unified with the sidebar) and how each one hides and reveals.
 
-use freya_animation::prelude::{AnimNum, Ease, Function, use_animation_transition};
 use freya_core::prelude::*;
 use serde::{Deserialize, Serialize};
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
@@ -91,17 +90,6 @@ impl ChromeStyle {
     }
 }
 
-pub(crate) fn use_switch_progress(on: State<bool>) -> f32 {
-    let reduced_motion = crate::theme::resolved().reduced_motion;
-    let animation = use_animation_transition(on, move |from: bool, to: bool| {
-        AnimNum::new(f32::from(u8::from(from)), f32::from(u8::from(to)))
-            .time(if reduced_motion { 0 } else { DURATION_BASE })
-            .ease(Ease::Out)
-            .function(Function::Cubic)
-    });
-    animation.get().value()
-}
-
 // ADR 0054: the overlaid titlebar slides and fades in with the compositor bar instead of popping in.
 pub(crate) fn use_focus_bar_reveal() {
     let controls = try_consume_root_context::<WindowControls>();
@@ -109,7 +97,7 @@ pub(crate) fn use_focus_bar_reveal() {
     let shown = controls
         .as_ref()
         .map_or(fallback, |controls| controls.focus_bar);
-    let progress = use_switch_progress(shown);
+    let progress = crate::animation::use_switch_progress(shown, DURATION_BASE);
     if let Some(controls) = controls {
         let mut state = controls.focus_bar_progress;
         state.set_if_modified(progress);
@@ -340,7 +328,7 @@ impl Component for WindowChrome {
         let mut items_state = chrome.rail_items;
         items_state.set_if_modified(self.rail_items.clone());
         let mut revealed = use_state(|| false);
-        let progress = use_switch_progress(revealed);
+        let progress = crate::animation::use_switch_progress(revealed, DURATION_BASE);
         let mut progress_state = chrome.progress;
         progress_state.set_if_modified(progress);
 

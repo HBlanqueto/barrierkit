@@ -1,6 +1,8 @@
 //! Progress bar (determinate and indeterminate), progress ring and spinner.
 
-use freya_animation::prelude::{AnimNum, Ease, Function, OnCreation, OnFinish, use_animation};
+use freya_animation::prelude::{
+    AnimNum, Ease, Function, OnChange, OnCreation, OnFinish, use_animation,
+};
 use freya_components::svg_viewer::SvgViewer;
 use freya_core::prelude::*;
 use torin::prelude::{Direction, Position, Size};
@@ -44,11 +46,12 @@ impl Component for ProgressBar {
     fn render(&self) -> impl IntoElement {
         let resolved = crate::theme::resolved();
         let palette = Palette::current();
-        let reduced_motion = resolved.reduced_motion;
+        let reduced_motion = use_reactive(&resolved.reduced_motion);
         let sweep = use_animation(move |conf| {
-            if !reduced_motion {
-                conf.on_creation(OnCreation::Run);
-                conf.on_finish(OnFinish::reverse());
+            if !*reduced_motion.read() {
+                conf.on_creation(OnCreation::Run)
+                    .on_change(OnChange::Rerun)
+                    .on_finish(OnFinish::reverse());
             }
             AnimNum::new(0.0, 1.0 - PROGRESS.indeterminate_segment)
                 .time(PROGRESS.indeterminate_ms)
@@ -152,12 +155,13 @@ impl Spinner {
 impl Component for Spinner {
     fn render(&self) -> impl IntoElement {
         let palette = Palette::current();
-        let reduced_motion = crate::theme::resolved().reduced_motion;
+        let reduced_motion = use_reactive(&crate::theme::resolved().reduced_motion);
         let spokes = PROGRESS.spinner_spokes;
         let turn = use_animation(move |conf| {
-            if !reduced_motion {
-                conf.on_creation(OnCreation::Run);
-                conf.on_finish(OnFinish::restart());
+            if !*reduced_motion.read() {
+                conf.on_creation(OnCreation::Run)
+                    .on_change(OnChange::Rerun)
+                    .on_finish(OnFinish::restart());
             }
             AnimNum::new(0.0, spokes as f32)
                 .time(PROGRESS.spinner_ms)

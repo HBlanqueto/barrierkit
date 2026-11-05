@@ -1,8 +1,5 @@
 //! Sidebar, sidebar items, collapsible sections and sidebar layout.
 
-use std::time::Duration;
-
-use freya_animation::prelude::{AnimNum, Ease, Function, use_animation_transition};
 use freya_components::svg_viewer::SvgViewer;
 use freya_core::prelude::*;
 use keyboard_types::{Key, NamedKey};
@@ -260,7 +257,7 @@ impl Component for Sidebar {
         let rail_layout = chrome.layout == TitlebarLayout::Rail;
         let mut in_rail = use_state(|| rail_layout);
         in_rail.set_if_modified(rail_layout);
-        let rail_progress = crate::chrome::use_switch_progress(in_rail);
+        let rail_progress = crate::animation::use_switch_progress(in_rail, DURATION_BASE);
         let inset = if island { SIDEBAR.inset as f32 } else { 0.0 };
         let (bar_height, bar_padding_top) = crate::titlebar::sidebar_bar_metrics();
         // With the Rail the traffic lights leave the sidebar, so its first row rises to the titlebar row.
@@ -657,7 +654,6 @@ impl KeyExt for SidebarSection {
 impl Component for SidebarSection {
     fn render(&self) -> impl IntoElement {
         let expanded = use_state(|| self.initial_expanded);
-        let resolved = crate::theme::resolved();
         let palette = sidebar_palette();
         let interaction = use_interaction();
         let show_chevron = interaction.hovered() || interaction.keyboard_focused();
@@ -694,24 +690,8 @@ impl Component for SidebarSection {
         };
 
         let mut content_height = use_state(|| 0.0f32);
-        let reduced_motion = use_reactive(&resolved.reduced_motion);
-        let animation = use_animation_transition(expanded, move |from, to| {
-            let duration = if *reduced_motion.peek() {
-                0
-            } else {
-                Duration::from_millis(DURATION_BASE).as_millis() as u64
-            };
-            AnimNum::new(if from { 1.0 } else { 0.0 }, if to { 1.0 } else { 0.0 })
-                .time(duration)
-                .ease(Ease::Out)
-                .function(Function::Cubic)
-        });
+        let progress = crate::animation::use_switch_progress(expanded, DURATION_BASE);
         let measured_height = *content_height.read();
-        let progress = if *reduced_motion.read() {
-            if *expanded.read() { 1.0 } else { 0.0 }
-        } else {
-            animation.get().value()
-        };
         let height = progress * measured_height;
         let drawer_offset = -(1.0 - progress) * measured_height;
 
