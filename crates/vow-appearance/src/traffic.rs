@@ -1,7 +1,7 @@
 //! Shared traffic-light geometry, appearance and pointer state.
 
 use vow_design::{
-    ButtonKind, Rgba, TITLEBAR, TRAFFIC_GLYPH_ON_DARK, TRAFFIC_GLYPH_ON_LIGHT,
+    ButtonKind, Rgba, Segment, TITLEBAR, TRAFFIC_GLYPH_ON_DARK, TRAFFIC_GLYPH_ON_LIGHT,
     TRAFFIC_GLYPH_STANDARD, TRAFFIC_GLYPHS, TRAFFIC_PRESSED_DARKEN, TrafficRim, Triangle,
 };
 
@@ -116,62 +116,35 @@ pub fn glyph_svg(index: usize, color: Rgba, fixed_width: bool, pixels: f32) -> S
     let color = format!("#{r:02x}{g:02x}{b:02x}");
     let opacity = f32::from(a) / 255.0;
     let box_size = TRAFFIC_GLYPHS.box_size;
-    match index {
-        0 | 1 => {
-            let segments = if index == 0 {
-                TRAFFIC_GLYPHS.close
-            } else {
-                TRAFFIC_GLYPHS.minimize
-            };
-            let path = segments
-                .iter()
-                .map(|segment| {
-                    format!(
-                        "M{} {} L{} {}",
-                        segment.a.0, segment.a.1, segment.b.0, segment.b.1
-                    )
-                })
-                .collect::<Vec<_>>()
-                .join(" ");
-            format!(
-                "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{pixels}\" height=\"{pixels}\" viewBox=\"0 0 {box_size} {box_size}\"><path d=\"{path}\" fill=\"none\" stroke=\"{color}\" stroke-opacity=\"{opacity}\" stroke-width=\"{}\" stroke-linecap=\"round\"/></svg>",
-                TRAFFIC_GLYPHS.stroke
-            )
-        }
+    let body = match (index, fixed_width) {
+        (0, _) => stroked(TRAFFIC_GLYPHS.close, &color, opacity),
+        (1, _) => stroked(TRAFFIC_GLYPHS.minimize, &color, opacity),
+        (_, true) => stroked(TRAFFIC_GLYPHS.plus, &color, opacity),
         _ => {
-            let segments = if fixed_width {
-                TRAFFIC_GLYPHS.plus
-            } else {
-                &[]
-            };
-            if !segments.is_empty() {
-                let path = segments
-                    .iter()
-                    .map(|segment| {
-                        format!(
-                            "M{} {} L{} {}",
-                            segment.a.0, segment.a.1, segment.b.0, segment.b.1
-                        )
-                    })
-                    .collect::<Vec<_>>()
-                    .join(" ");
-                format!(
-                    "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{pixels}\" height=\"{pixels}\" viewBox=\"0 0 {box_size} {box_size}\"><path d=\"{path}\" fill=\"none\" stroke=\"{color}\" stroke-opacity=\"{opacity}\" stroke-width=\"{}\" stroke-linecap=\"round\"/></svg>",
-                    TRAFFIC_GLYPHS.stroke
-                )
-            } else {
-                let polygons = TRAFFIC_GLYPHS
-                    .zoom
-                    .iter()
-                    .map(polygon)
-                    .collect::<Vec<_>>()
-                    .join("");
-                format!(
-                    "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{pixels}\" height=\"{pixels}\" viewBox=\"0 0 {box_size} {box_size}\"><g fill=\"{color}\" fill-opacity=\"{opacity}\">{polygons}</g></svg>"
-                )
-            }
+            let polygons = TRAFFIC_GLYPHS.zoom.iter().map(polygon).collect::<String>();
+            format!("<g fill=\"{color}\" fill-opacity=\"{opacity}\">{polygons}</g>")
         }
-    }
+    };
+    format!(
+        "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{pixels}\" height=\"{pixels}\" viewBox=\"0 0 {box_size} {box_size}\">{body}</svg>"
+    )
+}
+
+fn stroked(segments: &[Segment], color: &str, opacity: f32) -> String {
+    let path = segments
+        .iter()
+        .map(|segment| {
+            format!(
+                "M{} {} L{} {}",
+                segment.a.0, segment.a.1, segment.b.0, segment.b.1
+            )
+        })
+        .collect::<Vec<_>>()
+        .join(" ");
+    format!(
+        "<path d=\"{path}\" fill=\"none\" stroke=\"{color}\" stroke-opacity=\"{opacity}\" stroke-width=\"{}\" stroke-linecap=\"round\"/>",
+        TRAFFIC_GLYPHS.stroke
+    )
 }
 
 fn polygon(triangle: &Triangle) -> String {
