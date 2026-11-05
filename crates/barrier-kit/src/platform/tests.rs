@@ -16,8 +16,8 @@ use torin::prelude::CursorPoint;
 use wayland_protocols::wp::fractional_scale::v1::client::wp_fractional_scale_v1::WpFractionalScaleV1;
 use wayland_protocols::wp::viewporter::client::wp_viewport::WpViewport;
 
-const REVEAL_STEP: Duration = Duration::from_millis(16);
-const REVEAL_TIME: Duration = Duration::from_millis(vow_design::DURATION_BASE + 100);
+pub(super) const REVEAL_STEP: Duration = Duration::from_millis(16);
+pub(super) const REVEAL_TIME: Duration = Duration::from_millis(vow_design::DURATION_BASE + 100);
 
 use super::{
     input::seat::{
@@ -32,7 +32,7 @@ use super::{
     },
 };
 
-fn window_controls(status: WindowStatus) -> WindowControls {
+pub(super) fn window_controls(status: WindowStatus) -> WindowControls {
     let (ping, _source) = calloop::ping::make_ping().unwrap();
     WindowControls {
         queue: Rc::new(RefCell::new(Vec::new())),

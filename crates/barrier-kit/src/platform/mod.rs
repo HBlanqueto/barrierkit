@@ -7,6 +7,8 @@ mod atspi;
 mod clipboard;
 #[cfg(feature = "video")]
 pub(crate) mod dmabuf;
+#[cfg(test)]
+mod doc_shots;
 pub(crate) mod extension;
 mod focus;
 mod input;
