@@ -851,6 +851,7 @@ pub struct SearchField {
     value: State<String>,
     placeholder: &'static str,
     width: Size,
+    auto_focus: bool,
     on_focus_change: Option<Callback<bool, ()>>,
     on_navigate: Option<Callback<NamedKey, ()>>,
     a11y_id: Option<AccessibilityId>,
@@ -863,6 +864,7 @@ impl SearchField {
             value,
             placeholder,
             width: Size::fill(),
+            auto_focus: false,
             on_focus_change: None,
             on_navigate: None,
             a11y_id: None,
@@ -872,6 +874,11 @@ impl SearchField {
 
     pub fn a11y_id(mut self, a11y_id: AccessibilityId) -> Self {
         self.a11y_id = Some(a11y_id);
+        self
+    }
+
+    pub fn auto_focus(mut self, auto_focus: bool) -> Self {
+        self.auto_focus = auto_focus;
         self
     }
 
@@ -906,14 +913,17 @@ impl Component for SearchField {
         let gap = SETTINGS.search_gap as f32;
         let a11y_id = use_hook(|| self.a11y_id.unwrap_or_else(AccessibilityId::new_unique));
         let focus = use_focus(a11y_id);
-        let focused = focus.read().is_focused();
+        let on_focus_change = use_reactive(&self.on_focus_change);
         let mut reported = use_state(|| false);
-        if *reported.peek() != focused {
-            reported.set(focused);
-            if let Some(callback) = &self.on_focus_change {
-                callback.call(focused);
+        use_side_effect(move || {
+            let focused = focus.read().is_focused();
+            if *reported.peek() != focused {
+                reported.set(focused);
+                if let Some(callback) = &*on_focus_change.peek() {
+                    callback.call(focused);
+                }
             }
-        }
+        });
         let mut input = themed_input(
             value,
             self.placeholder,
@@ -925,7 +935,8 @@ impl Component for SearchField {
             TEXT_FIELD.height / 2.0,
             padding + icon + gap,
         )
-        .a11y_id(a11y_id);
+        .a11y_id(a11y_id)
+        .auto_focus(self.auto_focus);
         if let Some(on_navigate) = self.on_navigate.clone() {
             input =
                 input.on_pre_key_down(move |event: Event<KeyboardEventData>| match &event.key {
