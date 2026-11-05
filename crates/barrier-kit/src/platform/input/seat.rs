@@ -3,7 +3,7 @@ use freya_core::{
         KeyboardEventName, MouseEventName, PlatformEvent, TouchEventName, WheelEventName,
         WheelSource,
     },
-    prelude::CursorIcon,
+    prelude::{CursorIcon, TouchPhase},
 };
 use sctk::{
     delegate_keyboard, delegate_pointer, delegate_seat, delegate_touch,
@@ -111,7 +111,6 @@ pub(in crate::platform) fn cursor_shape_from_icon(icon: CursorIcon) -> CursorSha
         CursorIcon::ZoomOut => CursorShape::ZoomOut,
         CursorIcon::DndAsk => CursorShape::DndAsk,
         CursorIcon::AllResize => CursorShape::AllResize,
-        CursorIcon::Default => CursorShape::Default,
         _ => CursorShape::Default,
     }
 }
@@ -422,7 +421,8 @@ impl KeyboardHandler for Runtime {
 
 impl Runtime {
     pub(super) fn key_event(&mut self, event: KeyEvent, name: KeyboardEventName) {
-        let (key, code) = super::key(event.keysym, event.utf8.clone());
+        let key = super::map_key(event.keysym, event.utf8.as_deref());
+        let code = super::code(event.keysym);
         let modifiers = super::modifiers(self.modifiers);
 
         let index = self
@@ -527,12 +527,7 @@ impl TouchHandler for Runtime {
         }
         self.touch_surfaces
             .insert(id, (surface_id.clone(), position));
-        self.touch_event(
-            surface_id,
-            id,
-            position,
-            freya_core::prelude::TouchPhase::Started,
-        );
+        self.touch_event(surface_id, id, position, TouchPhase::Started);
     }
 
     fn up(
@@ -547,12 +542,7 @@ impl TouchHandler for Runtime {
         let Some((surface_id, position)) = self.touch_surfaces.remove(&id) else {
             return;
         };
-        self.touch_event(
-            surface_id,
-            id,
-            position,
-            freya_core::prelude::TouchPhase::Ended,
-        );
+        self.touch_event(surface_id, id, position, TouchPhase::Ended);
     }
 
     fn motion(
@@ -569,12 +559,7 @@ impl TouchHandler for Runtime {
         };
         *last_position = position;
         let surface_id = surface_id.clone();
-        self.touch_event(
-            surface_id,
-            id,
-            position,
-            freya_core::prelude::TouchPhase::Moved,
-        );
+        self.touch_event(surface_id, id, position, TouchPhase::Moved);
     }
 
     fn shape(
@@ -600,12 +585,7 @@ impl TouchHandler for Runtime {
 
     fn cancel(&mut self, _: &Connection, _: &QueueHandle<Self>, _: &wl_touch::WlTouch) {
         for (id, (surface_id, position)) in std::mem::take(&mut self.touch_surfaces) {
-            self.touch_event(
-                surface_id,
-                id,
-                position,
-                freya_core::prelude::TouchPhase::Cancelled,
-            );
+            self.touch_event(surface_id, id, position, TouchPhase::Cancelled);
         }
     }
 }
@@ -624,17 +604,17 @@ impl Runtime {
         surface_id: ObjectId,
         id: i32,
         position: (f64, f64),
-        phase: freya_core::prelude::TouchPhase,
+        phase: TouchPhase,
     ) {
         let Some(index) = self.surface_index_by_id(&surface_id) else {
             return;
         };
         let platform_event = PlatformEvent::Touch {
             name: match phase {
-                freya_core::prelude::TouchPhase::Started => TouchEventName::TouchStart,
-                freya_core::prelude::TouchPhase::Moved => TouchEventName::TouchMove,
-                freya_core::prelude::TouchPhase::Ended => TouchEventName::TouchEnd,
-                freya_core::prelude::TouchPhase::Cancelled => TouchEventName::TouchCancel,
+                TouchPhase::Started => TouchEventName::TouchStart,
+                TouchPhase::Moved => TouchEventName::TouchMove,
+                TouchPhase::Ended => TouchEventName::TouchEnd,
+                TouchPhase::Cancelled => TouchEventName::TouchCancel,
             },
             location: physical_point(position, self.surfaces[index].scale),
             finger_id: id as u64,

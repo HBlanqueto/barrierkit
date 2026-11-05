@@ -3,18 +3,10 @@ use sctk::seat::keyboard::{Keysym, Modifiers as SctkModifiers};
 
 pub fn modifiers(m: SctkModifiers) -> Modifiers {
     let mut out = Modifiers::empty();
-    if m.ctrl {
-        out |= Modifiers::CONTROL;
-    }
-    if m.alt {
-        out |= Modifiers::ALT;
-    }
-    if m.shift {
-        out |= Modifiers::SHIFT;
-    }
-    if m.logo {
-        out |= Modifiers::META;
-    }
+    out.set(Modifiers::CONTROL, m.ctrl);
+    out.set(Modifiers::ALT, m.alt);
+    out.set(Modifiers::SHIFT, m.shift);
+    out.set(Modifiers::META, m.logo);
     out
 }
 
@@ -99,26 +91,16 @@ pub fn map_key(keysym: Keysym, utf8: Option<&str>) -> Key {
     }
     let raw = keysym.raw();
 
-    let character = if let Some(text) = utf8.filter(|t| !t.is_empty()) {
-        if text.len() == 1 && text.chars().next().unwrap().is_control() {
-            keysym.key_char().map(|c| c.to_string())
-        } else {
-            Some(text.to_string())
-        }
-    } else {
-        keysym.key_char().map(|c| c.to_string())
-    };
+    let character = utf8
+        .filter(|text| !text.is_empty() && !(text.len() == 1 && text.starts_with(char::is_control)))
+        .map(str::to_string)
+        .or_else(|| keysym.key_char().map(|c| c.to_string()));
 
     match character {
         Some(text) => Key::Character(text),
         None if (0x20..=0x7e).contains(&raw) => Key::Character((raw as u8 as char).to_string()),
         None => Key::Named(NamedKey::Unidentified),
     }
-}
-
-pub fn key(keysym: Keysym, utf8: Option<String>) -> (Key, Code) {
-    let key = map_key(keysym, utf8.as_deref());
-    (key, code(keysym))
 }
 
 pub(super) mod seat;
@@ -145,11 +127,6 @@ mod tests {
 
     #[test]
     fn shift_h_is_uppercase() {
-        assert_eq!(map_key(Keysym::H, Some("H")), Key::Character("H".into()));
-    }
-
-    #[test]
-    fn caps_h_is_uppercase() {
         assert_eq!(map_key(Keysym::H, Some("H")), Key::Character("H".into()));
     }
 
