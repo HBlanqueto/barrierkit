@@ -397,7 +397,7 @@ fn about() -> Element {
     about_window(
         avatar("C"),
         "Contador",
-        "Versión 1.0",
+        Some("Versión 1.0"),
         "™ y © 2026 MalaysiaDreams",
     )
     .into_element()

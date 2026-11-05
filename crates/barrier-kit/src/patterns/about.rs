@@ -1,5 +1,7 @@
 //! Standard «About» window content.
 
+use std::borrow::Cow;
+
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Direction, Gaps, Size};
 use vow_design::{CAPTION, DIALOG_PADDING, SPACE_1, SPACE_3, TEXT, TITLE_1};
@@ -8,9 +10,9 @@ use crate::style::{Palette, text};
 
 pub fn about_window(
     icon: impl IntoElement,
-    name: &'static str,
-    version: &'static str,
-    copyright: &'static str,
+    name: impl Into<Cow<'static, str>>,
+    version: Option<impl Into<Cow<'static, str>>>,
+    copyright: impl Into<Cow<'static, str>>,
 ) -> Rect {
     let palette = Palette::current();
     rect()
@@ -28,7 +30,7 @@ pub fn about_window(
                 .cross_align(Alignment::Center)
                 .spacing(SPACE_1)
                 .child(text(name, TITLE_1, palette.label))
-                .child(text(version, TEXT, palette.secondary_label)),
+                .maybe_child(version.map(|version| text(version, TEXT, palette.secondary_label))),
         )
         .child(text(copyright, CAPTION, palette.tertiary_label))
 }
