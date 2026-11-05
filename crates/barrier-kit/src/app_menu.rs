@@ -209,10 +209,9 @@ impl IdMap {
         if let Some(id) = self.ids.get(&key) {
             return *id;
         }
-        let id = self.next;
         self.next += 1;
-        self.ids.insert(key, id);
-        id
+        self.ids.insert(key, self.next);
+        self.next
     }
 }
 

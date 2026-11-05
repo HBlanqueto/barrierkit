@@ -6,7 +6,8 @@ use async_channel::{Receiver, Sender};
 use zbus::zvariant::{OwnedValue, Value};
 
 use crate::app_menu::layout::{
-    DbusMenuLayout, RegisteredMenu, Update, action_id_for_numeric, build_layout, diff_layout,
+    DbusMenuLayout, LayoutItem, LayoutNode, LayoutSnapshot, RegisteredMenu, Update,
+    action_id_for_numeric, build_layout, diff_layout,
 };
 use crate::app_menu::{AppMenu, IdMap, MenuHandle};
 
@@ -129,7 +130,7 @@ async fn run(commands: Receiver<Command>) {
                 }
                 menus.insert(path.clone(), registered.clone());
                 let mut id_map = IdMap::default();
-                let (snapshot, _layout) = build_layout_from_handle(&registered, &mut id_map);
+                let snapshot = build_layout_from_handle(&registered, &mut id_map);
                 let revision = snapshot.revision;
                 let _ = registered
                     .last_layout
@@ -168,7 +169,7 @@ async fn run(commands: Receiver<Command>) {
                     continue;
                 };
                 let id_map = id_maps.entry(path.clone()).or_default();
-                let (snapshot, _layout) = build_layout_from_handle(&registered, id_map);
+                let snapshot = build_layout_from_handle(&registered, id_map);
                 let revision = snapshot.revision;
                 match diff_layout(&registered, snapshot) {
                     Update::None => {}
@@ -187,23 +188,19 @@ async fn run(commands: Receiver<Command>) {
                             tracing::warn!(%error, "barrier-dbusmenu: could not emit LayoutUpdated");
                         }
                     }
-                    Update::Properties(updated) => {
+                    Update::Properties(updated, removed) => {
                         if let Ok(iface_ref) = connection
                             .object_server()
                             .interface::<_, DbusMenuObject>(path.as_str())
                             .await
-                        {
-                            let payload: Vec<(i32, HashMap<String, OwnedValue>)> =
-                                updated.into_iter().map(|u| (u.id, u.properties)).collect();
-                            if let Err(error) = DbusMenuObject::items_properties_updated(
+                            && let Err(error) = DbusMenuObject::items_properties_updated(
                                 iface_ref.signal_emitter(),
-                                payload,
-                                Vec::new(),
+                                updated,
+                                removed,
                             )
                             .await
-                            {
-                                tracing::warn!(%error, "barrier-dbusmenu: could not emit ItemsPropertiesUpdated");
-                            }
+                        {
+                            tracing::warn!(%error, "barrier-dbusmenu: could not emit ItemsPropertiesUpdated");
                         }
                     }
                 }
@@ -212,19 +209,24 @@ async fn run(commands: Receiver<Command>) {
     }
 }
 
-fn build_layout_from_handle(
-    registered: &Arc<RegisteredMenu>,
-    id_map: &mut IdMap,
-) -> (
-    crate::app_menu::layout::LayoutSnapshot,
-    crate::app_menu::layout::LayoutItem,
-) {
+fn build_layout_from_handle(registered: &RegisteredMenu, id_map: &mut IdMap) -> LayoutSnapshot {
     let (menu, revision) = registered.handle.snapshot();
     build_layout(&menu, id_map, revision)
 }
 
 struct DbusMenuObject {
     registered: Arc<RegisteredMenu>,
+}
+
+impl DbusMenuObject {
+    fn known(&self, id: i32) -> bool {
+        self.registered
+            .last_layout
+            .lock()
+            .expect("layout lock poisoned")
+            .as_ref()
+            .is_some_and(|snapshot| snapshot.nodes.contains_key(&id))
+    }
 }
 
 #[zbus::interface(name = "com.canonical.dbusmenu")]
@@ -248,7 +250,7 @@ impl DbusMenuObject {
         &self,
         parent_id: i32,
         recursion_depth: i32,
-        _property_names: Vec<String>,
+        property_names: Vec<String>,
     ) -> DbusMenuLayout {
         let guard = self
             .registered
@@ -256,60 +258,37 @@ impl DbusMenuObject {
             .lock()
             .expect("layout lock poisoned");
         let Some(snapshot) = guard.as_ref() else {
-            return (1, empty_root());
+            return (0, (parent_id, HashMap::new(), Vec::new()));
         };
-        let revision = snapshot.revision;
-        if parent_id == 0 {
-            let children: Vec<OwnedValue> = if recursion_depth == 0 {
-                Vec::new()
-            } else {
-                snapshot
-                    .root_children
-                    .iter()
-                    .filter_map(|child_id| {
-                        snapshot.nodes.get(child_id).map(|child_node| {
-                            let child = layout_node(
-                                snapshot,
-                                *child_id,
-                                child_node,
-                                recursion_depth.saturating_sub(1),
-                            );
-                            OwnedValue::try_from(Value::Structure(zbus::zvariant::Structure::from(
-                                child,
-                            )))
-                            .expect("a well-formed dbusmenu Structure always converts")
-                        })
-                    })
-                    .collect()
-            };
-            return (revision, (0, HashMap::new(), children));
-        }
-        if let Some(node) = snapshot.nodes.get(&parent_id) {
-            #[allow(clippy::needless_borrow)]
-            return (
-                revision,
-                layout_node(&snapshot, parent_id, node, recursion_depth),
-            );
-        }
-        (revision, empty_subtree(parent_id))
+        let layout = match snapshot.nodes.get(&parent_id) {
+            Some(node) => layout_node(snapshot, parent_id, node, recursion_depth, &property_names),
+            None => (parent_id, HashMap::new(), Vec::new()),
+        };
+        (snapshot.revision, layout)
     }
 
     fn get_group_properties(
         &self,
         ids: Vec<i32>,
-        _property_names: Vec<String>,
+        property_names: Vec<String>,
     ) -> Vec<(i32, HashMap<String, OwnedValue>)> {
         let guard = self
             .registered
             .last_layout
             .lock()
             .expect("layout lock poisoned");
+        let Some(snapshot) = guard.as_ref() else {
+            return Vec::new();
+        };
+        let ids = if ids.is_empty() {
+            snapshot.nodes.keys().copied().collect()
+        } else {
+            ids
+        };
         ids.into_iter()
             .filter_map(|id| {
-                guard
-                    .as_ref()
-                    .and_then(|s| s.nodes.get(&id))
-                    .map(|node| (id, node.properties.clone()))
+                let node = snapshot.nodes.get(&id)?;
+                Some((id, filtered(&node.properties, &property_names)))
             })
             .collect()
     }
@@ -341,19 +320,26 @@ impl DbusMenuObject {
         }
     }
 
-    fn event_group(&self, events: Vec<(i32, String, OwnedValue, u32)>) -> Vec<(i32, Vec<String>)> {
-        for (id, event_id, data, timestamp) in events {
-            self.event(id, event_id, data, timestamp);
-        }
-        Vec::new()
+    fn event_group(&self, events: Vec<(i32, String, OwnedValue, u32)>) -> Vec<i32> {
+        events
+            .into_iter()
+            .filter_map(|(id, event_id, data, timestamp)| {
+                if !self.known(id) {
+                    return Some(id);
+                }
+                self.event(id, event_id, data, timestamp);
+                None
+            })
+            .collect()
     }
 
     fn about_to_show(&self, _id: i32) -> bool {
-        true
+        false
     }
 
-    fn about_to_show_group(&self, ids: Vec<i32>) -> Vec<(i32, bool)> {
-        ids.into_iter().map(|id| (id, true)).collect()
+    fn about_to_show_group(&self, ids: Vec<i32>) -> (Vec<i32>, Vec<i32>) {
+        let errors = ids.into_iter().filter(|id| !self.known(*id)).collect();
+        (Vec::new(), errors)
     }
 
     #[zbus(signal)]
@@ -371,28 +357,24 @@ impl DbusMenuObject {
     ) -> zbus::Result<()>;
 }
 
-fn empty_root() -> crate::app_menu::layout::LayoutItem {
-    (
-        0i32,
-        HashMap::<String, OwnedValue>::new(),
-        Vec::<OwnedValue>::new(),
-    )
-}
-
-fn empty_subtree(id: i32) -> crate::app_menu::layout::LayoutItem {
-    (
-        id,
-        HashMap::<String, OwnedValue>::new(),
-        Vec::<OwnedValue>::new(),
-    )
+fn filtered(
+    properties: &HashMap<String, OwnedValue>,
+    names: &[String],
+) -> HashMap<String, OwnedValue> {
+    properties
+        .iter()
+        .filter(|(name, _)| names.is_empty() || names.contains(name))
+        .map(|(name, value)| (name.clone(), value.clone()))
+        .collect()
 }
 
 fn layout_node(
-    snapshot: &crate::app_menu::layout::LayoutSnapshot,
+    snapshot: &LayoutSnapshot,
     id: i32,
-    node: &crate::app_menu::layout::LayoutNode,
+    node: &LayoutNode,
     recursion_depth: i32,
-) -> crate::app_menu::layout::LayoutItem {
+    property_names: &[String],
+) -> LayoutItem {
     let children: Vec<OwnedValue> = if recursion_depth == 0 {
         Vec::new()
     } else {
@@ -405,14 +387,15 @@ fn layout_node(
                         *child_id,
                         child_node,
                         recursion_depth.saturating_sub(1),
+                        property_names,
                     );
                     OwnedValue::try_from(Value::Structure(zbus::zvariant::Structure::from(child)))
-                        .unwrap()
+                        .expect("a well-formed dbusmenu Structure always converts")
                 })
             })
             .collect()
     };
-    (id, node.properties.clone(), children)
+    (id, filtered(&node.properties, property_names), children)
 }
 
 #[derive(Clone)]
@@ -450,7 +433,7 @@ impl TestMenuServer {
             .await?;
         let mut id_map = IdMap::default();
         let (menu, _) = self.registered.handle.snapshot();
-        let (snapshot, _) = build_layout(&menu, &mut id_map, 1);
+        let snapshot = build_layout(&menu, &mut id_map, 1);
         let revision = snapshot.revision;
         *self
             .registered
@@ -502,8 +485,9 @@ mod tests {
 
     use zbus::zvariant::{OwnedValue, Value};
 
+    use crate::app_menu::layout::{RegisteredMenu, Update, build_layout, diff_layout};
     use crate::app_menu::server::DbusMenuObject;
-    use crate::app_menu::{AppMenu, IdMap, Menu, MenuHandle, MenuItem, layout::build_layout};
+    use crate::app_menu::{AppMenu, IdMap, Menu, MenuHandle, MenuItem};
     use crate::menu::CheckState;
 
     fn action(id: &str) -> MenuItem {
@@ -548,12 +532,59 @@ mod tests {
             ],
         )]);
         let mut id_map = IdMap::default();
-        let (snapshot, _root) = build_layout(&menu, &mut id_map, 1);
-        let menu_id = snapshot.root_children[0];
+        let snapshot = build_layout(&menu, &mut id_map, 1);
+        let menu_id = snapshot.nodes[&0].children[0];
         let children = &snapshot.nodes[&menu_id].children;
         assert_eq!(children.len(), 5, "layout must have five children");
         let unique: HashSet<_> = children.iter().collect();
         assert_eq!(unique.len(), 5, "each child must have a unique id");
+    }
+
+    #[test]
+    fn equal_submenu_labels_in_different_menus_get_distinct_ids() {
+        let recent = || MenuItem::Submenu {
+            id: None,
+            label: "Recent".to_string(),
+            enabled: true,
+            items: vec![],
+            icon: None,
+        };
+        let menu = AppMenu::new(vec![
+            Menu::new("File", vec![recent()]),
+            Menu::new("Edit", vec![recent()]),
+        ]);
+        let snapshot = build_layout(&menu, &mut IdMap::default(), 1);
+        let submenus: HashSet<_> = snapshot.nodes[&0]
+            .children
+            .iter()
+            .map(|menu| snapshot.nodes[menu].children[0])
+            .collect();
+        assert_eq!(submenus.len(), 2);
+    }
+
+    #[test]
+    fn a_dropped_shortcut_is_sent_as_a_removed_property() {
+        let mut with_shortcut = action("save");
+        if let MenuItem::Action { shortcut, .. } = &mut with_shortcut {
+            *shortcut = Some("Ctrl+S".to_string());
+        }
+        let mut id_map = IdMap::default();
+        let registered = RegisteredMenu::new(MenuHandle::new(AppMenu::default(), None));
+        let layout = |item: MenuItem, id_map: &mut IdMap| {
+            build_layout(
+                &AppMenu::new(vec![Menu::new("File", vec![item])]),
+                id_map,
+                1,
+            )
+        };
+        diff_layout(&registered, layout(with_shortcut, &mut id_map));
+        let Update::Properties(_, removed) =
+            diff_layout(&registered, layout(action("save"), &mut id_map))
+        else {
+            panic!("only properties changed");
+        };
+        assert_eq!(removed.len(), 1);
+        assert_eq!(removed[0].1, vec!["shortcut".to_string()]);
     }
 
     #[test]
@@ -563,7 +594,7 @@ mod tests {
         let handle = server.handle();
 
         let mut id_map = IdMap::default();
-        let (snapshot, _) = build_layout(&menu, &mut id_map, 1);
+        let snapshot = build_layout(&menu, &mut id_map, 1);
         let id_a2 = snapshot
             .nodes
             .iter()
@@ -596,7 +627,7 @@ mod tests {
         let handle = server.handle();
 
         let mut id_map = IdMap::default();
-        let (snapshot, _) = build_layout(&menu, &mut id_map, 1);
+        let snapshot = build_layout(&menu, &mut id_map, 1);
         let id_a1 = snapshot
             .nodes
             .iter()
