@@ -236,6 +236,10 @@ impl WindowControls {
         self.send(WindowCommand::SetTitle(title.into()));
     }
 
+    pub fn set_background_alpha(&self, alpha: f32) {
+        self.send(WindowCommand::BackgroundAlpha(alpha.clamp(0.0, 1.0)));
+    }
+
     pub fn minimize(&self) {
         self.send(WindowCommand::Minimize);
     }
@@ -267,6 +271,7 @@ pub(crate) enum WindowCommand {
     Present(String),
     Bar(Bar),
     SetTitle(String),
+    BackgroundAlpha(f32),
 }
 
 pub(super) fn resize_edge(edge: WindowEdge) -> xdg_toplevel::ResizeEdge {
@@ -545,6 +550,11 @@ impl Runtime {
                 let Some(index) = self.surface_index_by_id(&controls.surface_id) else {
                     continue;
                 };
+                if let WindowCommand::BackgroundAlpha(alpha) = command {
+                    self.surfaces[index].background_alpha = alpha;
+                    self.surfaces[index].needs_redraw = true;
+                    continue;
+                }
                 let SurfaceRole::Window(window) = &self.surfaces[index].role else {
                     continue;
                 };
@@ -585,7 +595,7 @@ impl Runtime {
                             style.set_bar(window.wl_surface(), bar);
                         }
                     }
-                    WindowCommand::Close => unreachable!(),
+                    WindowCommand::Close | WindowCommand::BackgroundAlpha(_) => unreachable!(),
                 }
                 self.surfaces[index].needs_redraw = true;
             }

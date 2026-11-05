@@ -30,7 +30,8 @@ run_window(
 Inside the app, `WindowControls::get()` gives the state (`activated`,
 `maximized`, `fullscreen`, `decoration`, `fixed`) and the commands: `close()`,
 `minimize()`, `toggle_maximize()`, `toggle_fullscreen()`, `move_window()`,
-`resize(WindowEdge)` and `set_title(title)`, which changes the title the compositor and the menu bar see.
+`resize(WindowEdge)`, `set_title(title)`, which changes the title the compositor and the menu bar see, and
+`set_background_alpha(alpha)`, which multiplies the alpha of the background the runner clears the window with (1 is opaque).
 
 ## Utility windows
 

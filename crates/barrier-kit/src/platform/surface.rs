@@ -50,6 +50,7 @@ pub(crate) struct SurfaceWindow {
     pub(crate) frame_pending: bool,
     pub(crate) draw_count: u64,
     pub(crate) opaque_size: Option<(u32, u32)>,
+    pub(crate) background_alpha: f32,
     pub(crate) pending_configure: Option<(WindowConfigure, u32)>,
     pub(crate) appmenu: Option<OrgKdeKwinAppmenu>,
     pub(crate) appmenu_address: Option<AppMenuAddress>,
@@ -173,10 +174,12 @@ impl SurfaceWindow {
             crate::theme::color(vow_design::HUD_BACKGROUND)
         } else if matches!(&self.role, SurfaceRole::Window(_)) {
             let resolved = *self.app.resolved.read();
-            crate::theme::color(crate::theme::surface_background(
-                &resolved,
-                crate::theme::SurfaceKind::Toplevel,
-            ))
+            let base =
+                crate::theme::surface_background(&resolved, crate::theme::SurfaceKind::Toplevel);
+            crate::theme::color(vow_design::Rgba {
+                a: base.a * self.background_alpha,
+                ..base
+            })
         } else {
             Color::TRANSPARENT
         };
@@ -305,6 +308,7 @@ impl Runtime {
             frame_pending: false,
             draw_count: 0,
             opaque_size: None,
+            background_alpha: 1.0,
             pending_configure: None,
             appmenu: None,
             appmenu_address: None,
