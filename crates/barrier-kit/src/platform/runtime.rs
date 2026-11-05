@@ -256,11 +256,13 @@ fn insert_ping(event_loop: &mut EventLoop<Runtime>, shell: &mut Runtime) -> Resu
                         *shell.defaults_revision.write() += 1;
                         shell.ping.ping();
                     }
-                    let resolved = resolve(&load_appearance(), load_dominant());
-                    if *shell.resolved.peek() != resolved {
-                        shell.resolved.set(resolved);
-                        shell.request_redraw_all = true;
-                        shell.ping.ping();
+                    if events.iter().any(|event| event.restyles()) {
+                        let resolved = resolve(&load_appearance(), load_dominant());
+                        if *shell.resolved.peek() != resolved {
+                            shell.resolved.set(resolved);
+                            shell.request_redraw_all = true;
+                            shell.ping.ping();
+                        }
                     }
                 }
                 Ok(PostAction::Continue)
