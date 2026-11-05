@@ -125,6 +125,7 @@ impl Component for RadioGroup {
             .into_element()
         });
         choice_group(self.label, SETTINGS.radio_spacing as f32, options)
+            .direction(Direction::Vertical)
     }
 }
 

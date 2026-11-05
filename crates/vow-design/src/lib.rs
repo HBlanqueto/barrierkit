@@ -559,6 +559,7 @@ pub struct ListGroupMetrics {
     pub row_min_height: f32,
     pub row_padding_x: f32,
     pub separator_inset: f32,
+    pub padding: [f32; 4],
     pub header_padding: [f32; 4],
     pub highlight: f32,
     pub label_min_share: f32,

@@ -4,7 +4,6 @@ use serde::{Deserialize, Serialize};
 use torin::prelude::{Alignment, Direction, Gaps, Size};
 use vow_design::{Rgba, SETTINGS, SPACE_2};
 
-use crate::adornments::divider;
 use crate::app::{load_restoration, save_restoration};
 use crate::controls::SearchField;
 use crate::sidebar::{Sidebar, SidebarAccount, SidebarItem, SidebarSection};
@@ -327,11 +326,6 @@ impl Component for PreferencesWindow {
                                 dismissed_at.set(None);
                             }
                         }),
-                )
-                .child(
-                    divider()
-                        .margin(Gaps::new(SETTINGS.sidebar_search_gap as f32, 0.0, 0.0, 0.0))
-                        .background(crate::theme::color(crate::sidebar::sidebar_palette().line)),
                 )
                 .maybe_child(popover_open.then(|| {
                     search_popover(entries, text.trim().is_empty(), active, popover_hovered)

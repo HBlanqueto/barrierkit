@@ -1,6 +1,6 @@
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
-use vow_design::{CAPTION, LIST_GROUP, Rgba, SPACE_2, SPACE_3, SPACE_4, TEXT};
+use vow_design::{CAPTION, HEADLINE, LIST_GROUP, Rgba, SPACE_2, SPACE_3, SPACE_4, TEXT};
 
 use crate::adornments::divider;
 use crate::interaction::use_interaction;
@@ -151,7 +151,7 @@ impl Component for Form {
                 .maybe_child(section.title.map(|title| {
                     rect()
                         .padding(Gaps::new(top, right, bottom, left))
-                        .child(text(title.to_uppercase(), CAPTION, palette.secondary_label))
+                        .child(text(title, HEADLINE, palette.label))
                 }))
                 .child(
                     rect()
@@ -175,14 +175,10 @@ impl Component for Form {
                 }))
                 .into_element()
         });
+        let [form_top, form_right, form_bottom, form_left] = LIST_GROUP.padding;
         rect()
             .width(Size::fill())
-            .padding(Gaps::new(
-                SPACE_2,
-                LIST_GROUP.row_padding_x,
-                SPACE_2,
-                LIST_GROUP.row_padding_x,
-            ))
+            .padding(Gaps::new(form_top, form_right, form_bottom, form_left))
             .child(
                 rect()
                     .width(Size::fill())
@@ -308,7 +304,12 @@ impl Component for FormRow {
         let separator = (!self.first).then(|| {
             rect()
                 .width(Size::fill())
-                .padding(Gaps::new(0.0, 0.0, 0.0, LIST_GROUP.separator_inset))
+                .padding(Gaps::new(
+                    0.0,
+                    LIST_GROUP.row_padding_x,
+                    0.0,
+                    LIST_GROUP.separator_inset,
+                ))
                 .child(divider())
         });
         rect()
