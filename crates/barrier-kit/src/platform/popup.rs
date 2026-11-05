@@ -39,10 +39,6 @@ impl PopupId {
         Self(id)
     }
 
-    pub fn get(&self) -> u64 {
-        self.0
-    }
-
     #[cfg(test)]
     pub(crate) fn test(id: u64) -> Self {
         Self(id)
@@ -472,7 +468,6 @@ impl Runtime {
             frame_pending: false,
             draw_count: 0,
             opaque_size: None,
-            configure_count: 0,
             pending_configure: None,
             appmenu: None,
             appmenu_address: None,

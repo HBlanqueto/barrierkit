@@ -19,7 +19,6 @@ use std::{
     rc::Rc,
     sync::Arc,
 };
-use wayland_protocols_plasma::appmenu::client::org_kde_kwin_appmenu::OrgKdeKwinAppmenu;
 
 use super::{
     RunError,
@@ -34,7 +33,6 @@ use super::{
 pub enum Decorations {
     #[default]
     Client,
-    Server,
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, serde::Deserialize, serde::Serialize)]
@@ -72,7 +70,6 @@ pub struct WindowOptions {
     pub size: (u32, u32),
     pub min_size: Option<(u32, u32)>,
     pub max_size: Option<(u32, u32)>,
-    pub parent: Option<ObjectId>,
     pub menu: Option<crate::app_menu::AppMenu>,
     pub fullscreen_bar: FullscreenBar,
     pub fullscreen_push: bool,
@@ -88,7 +85,6 @@ impl WindowOptions {
             size: (640, 420),
             min_size: None,
             max_size: None,
-            parent: None,
             menu: None,
             fullscreen_bar: FullscreenBar::Solid,
             fullscreen_push: false,
@@ -117,11 +113,6 @@ impl WindowOptions {
 
     pub fn max_size(mut self, size: Option<(u32, u32)>) -> Self {
         self.max_size = size;
-        self
-    }
-
-    pub fn parent(mut self, parent: Option<ObjectId>) -> Self {
-        self.parent = parent;
         self
     }
 
@@ -413,11 +404,7 @@ impl Runtime {
         let xdg_shell = self.xdg_shell.as_ref()?;
         let qh = &self.qh;
         let surface = self.compositor.create_surface(qh);
-        let decorations = match options.decorations {
-            Decorations::Client => WindowDecorations::RequestClient,
-            Decorations::Server => WindowDecorations::RequestServer,
-        };
-        let window = xdg_shell.create_window(surface.clone(), decorations, qh);
+        let window = xdg_shell.create_window(surface.clone(), WindowDecorations::RequestClient, qh);
         let app_id = options
             .app_id
             .clone()
@@ -447,18 +434,6 @@ impl Runtime {
                 clamp_toplevel_size_dimension(max.1),
             )));
         }
-        if let Some(parent_id) = options.parent.clone()
-            && let Some(parent_window) = self.surfaces.iter().find_map(|s| {
-                if s.surface.id() == parent_id
-                    && let SurfaceRole::Window(parent) = &s.role
-                {
-                    return Some(parent);
-                }
-                None
-            })
-        {
-            window.set_parent(Some(parent_window));
-        }
         window.commit();
 
         let menu = options.menu.clone();
@@ -484,29 +459,14 @@ impl Runtime {
             menu_handle = Some(handle);
         }
 
-        let appmenu_object: Option<OrgKdeKwinAppmenu> = None;
-
         let queue: Rc<RefCell<Vec<WindowCommand>>> = Rc::new(RefCell::new(Vec::new()));
         let pointer_serial = Rc::new(std::cell::Cell::new(0));
         let fixed = options.min_size.is_some() && options.min_size == options.max_size;
-        let decoration = match options.decorations {
-            Decorations::Client => DecorationResponse::Client,
-            Decorations::Server if self.decoration_manager => DecorationResponse::Server,
-            Decorations::Server => {
-                if !self.decoration_warned {
-                    self.decoration_warned = true;
-                    tracing::info!(
-                        "zxdg_decoration_manager_v1 no disponible; uso decoración Client (CSD)"
-                    );
-                }
-                DecorationResponse::Client
-            }
-        };
         let status = State::create_global(WindowStatus {
             activated: true,
             maximized: false,
             fullscreen: false,
-            decoration,
+            decoration: DecorationResponse::Client,
             fixed,
         });
         let surface_id = surface.id();
@@ -600,9 +560,8 @@ impl Runtime {
             frame_pending: false,
             draw_count: 0,
             opaque_size: None,
-            configure_count: 0,
             pending_configure: None,
-            appmenu: appmenu_object,
+            appmenu: None,
             appmenu_address: None,
             menu_handle,
             fractional,
@@ -735,46 +694,17 @@ impl Runtime {
                 self.surfaces[index].logical_size
             };
             let size_changed = size != self.surfaces[index].logical_size;
-            self.surfaces[index].configure_count += 1;
-            let count = self.surfaces[index].configure_count;
-            if count.is_multiple_of(30) {
-                tracing::info!(
-                    surface = ?self.surfaces[index].surface.id(),
-                    configures = count,
-                    swapchains = self.surfaces[index].shared.swapchain_creations.get(),
-                    "BarrierKit: resize configuration count"
-                );
-            }
             self.surfaces[index].configure(size, scale);
             let surface_id = self.surfaces[index].surface.id();
-            let requested_server = self
-                .window_contexts
-                .iter()
-                .find(|ctx| ctx.controls.surface_id == surface_id)
-                .map(|ctx| ctx.controls.status.read().decoration == DecorationResponse::Server)
-                .unwrap_or(false);
-            let decoration = if requested_server && self.decoration_manager {
-                DecorationResponse::Server
-            } else {
-                match configure.decoration_mode {
-                    DecorationMode::Server => DecorationResponse::Server,
-                    DecorationMode::Client => DecorationResponse::Client,
-                }
+            let decoration = match configure.decoration_mode {
+                DecorationMode::Server => DecorationResponse::Server,
+                DecorationMode::Client => DecorationResponse::Client,
             };
             if let Some(context) = self
                 .window_contexts
                 .iter()
                 .find(|ctx| ctx.controls.surface_id == surface_id)
             {
-                if requested_server
-                    && decoration == DecorationResponse::Client
-                    && !self.decoration_warned
-                {
-                    self.decoration_warned = true;
-                    tracing::info!(
-                        "the compositor did not grant server-side decorations; drawing the kit titlebar"
-                    );
-                }
                 let mut status = context.controls.status;
                 status.set(WindowStatus {
                     activated: configure.is_activated(),

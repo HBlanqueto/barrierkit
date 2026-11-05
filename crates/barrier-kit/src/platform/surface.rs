@@ -50,7 +50,6 @@ pub(crate) struct SurfaceWindow {
     pub(crate) frame_pending: bool,
     pub(crate) draw_count: u64,
     pub(crate) opaque_size: Option<(u32, u32)>,
-    pub(crate) configure_count: u64,
     pub(crate) pending_configure: Option<(WindowConfigure, u32)>,
     pub(crate) appmenu: Option<OrgKdeKwinAppmenu>,
     pub(crate) appmenu_address: Option<AppMenuAddress>,

@@ -42,12 +42,6 @@ pub struct Anchors {
 }
 
 impl Anchors {
-    pub const ALL: Self = Self {
-        top: true,
-        bottom: true,
-        left: true,
-        right: true,
-    };
     pub const TOP: Self = Self {
         top: true,
         left: true,
@@ -212,7 +206,6 @@ pub fn run_layer(app: AppComponent, spec: LayerSpec) -> Result<(), RunError> {
         frame_pending: false,
         draw_count: 0,
         opaque_size: None,
-        configure_count: 0,
         pending_configure: None,
         appmenu: None,
         appmenu_address: None,

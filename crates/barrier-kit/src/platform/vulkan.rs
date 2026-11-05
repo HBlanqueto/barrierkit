@@ -11,7 +11,7 @@ use freya_engine::prelude::{
 use sctk::reexports::client::{Proxy, protocol::wl_surface::WlSurface};
 use skia_safe::{gpu::FlushInfo, surfaces::BackendSurfaceAccess};
 use std::{
-    cell::{Cell, RefCell},
+    cell::RefCell,
     collections::VecDeque,
     ffi::{CStr, c_void},
     mem::ManuallyDrop,
@@ -59,7 +59,6 @@ pub(crate) struct GraphicsShared {
     gr: RefCell<ManuallyDrop<DirectContext>>,
     pub(crate) font_collection: FontCollection,
     pub(crate) font_manager: FontMgr,
-    pub(crate) swapchain_creations: Cell<usize>,
     present_fences: bool,
 }
 
@@ -233,7 +232,6 @@ impl GraphicsShared {
             gr: RefCell::new(ManuallyDrop::new(gr)),
             font_collection: crate::fonts::collection(),
             font_manager: crate::fonts::manager(),
-            swapchain_creations: Cell::new(0),
             present_fences,
         })
     }
@@ -488,9 +486,6 @@ impl Graphics {
             .map(|image| wrap_swapchain_image(&shared, *image, size))
             .collect::<Option<_>>()
             .ok_or(RunError::Vulkan("Skia could not wrap the swapchain image"))?;
-        shared
-            .swapchain_creations
-            .set(shared.swapchain_creations.get() + 1);
         self.size = size;
         Ok(())
     }
