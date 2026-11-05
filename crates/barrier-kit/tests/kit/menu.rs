@@ -18,106 +18,32 @@ const TOLERANCE: u8 = 3;
 
 fn accent_items() -> Vec<MenuItem> {
     vec![
-        MenuItem::Action {
-            id: "images".to_string(),
-            label: "Imágenes".to_string(),
-            shortcut: Some("Ctrl+Shift+G".to_string()),
-            enabled: true,
-            check: CheckState::None,
-            icon: None,
-        },
-        MenuItem::Action {
-            id: "videos".to_string(),
-            label: "Vídeos".to_string(),
-            shortcut: Some("Ctrl+Shift+Z".to_string()),
-            enabled: false,
-            check: CheckState::None,
-            icon: None,
-        },
+        MenuItem::action("images", "Imágenes").with_shortcut("Ctrl+Shift+G"),
+        MenuItem::action("videos", "Vídeos")
+            .with_shortcut("Ctrl+Shift+Z")
+            .with_enabled(false),
     ]
 }
 
 fn menu_items() -> Vec<MenuItem> {
     vec![
-        MenuItem::Action {
-            id: "open".to_string(),
-            label: "Open".to_string(),
-            shortcut: None,
-            enabled: true,
-            check: CheckState::None,
-            icon: None,
-        },
+        MenuItem::action("open", "Open"),
         MenuItem::Separator,
-        MenuItem::Action {
-            id: "close".to_string(),
-            label: "Close".to_string(),
-            shortcut: Some("Ctrl+W".to_string()),
-            enabled: true,
-            check: CheckState::None,
-            icon: None,
-        },
+        MenuItem::action("close", "Close").with_shortcut("Ctrl+W"),
         MenuItem::Separator,
-        MenuItem::Action {
-            id: "hidden".to_string(),
-            label: "Hidden Files".to_string(),
-            shortcut: None,
-            enabled: true,
-            check: CheckState::Checkbox(true),
-            icon: None,
-        },
-        MenuItem::Action {
-            id: "preview".to_string(),
-            label: "Preview".to_string(),
-            shortcut: None,
-            enabled: true,
-            check: CheckState::Checkbox(false),
-            icon: None,
-        },
-        MenuItem::Action {
-            id: "list".to_string(),
-            label: "List".to_string(),
-            shortcut: None,
-            enabled: true,
-            check: CheckState::Radio(true),
-            icon: None,
-        },
-        MenuItem::Action {
-            id: "icons".to_string(),
-            label: "Icons".to_string(),
-            shortcut: None,
-            enabled: true,
-            check: CheckState::Radio(false),
-            icon: None,
-        },
+        MenuItem::action("hidden", "Hidden Files").with_check(CheckState::Checkbox(true)),
+        MenuItem::action("preview", "Preview").with_check(CheckState::Checkbox(false)),
+        MenuItem::action("list", "List").with_check(CheckState::Radio(true)),
+        MenuItem::action("icons", "Icons").with_check(CheckState::Radio(false)),
         MenuItem::Separator,
-        MenuItem::Action {
-            id: "delete".to_string(),
-            label: "Delete".to_string(),
-            shortcut: None,
-            enabled: false,
-            check: CheckState::None,
-            icon: None,
-        },
-        MenuItem::Submenu {
-            id: None,
-            label: "More".to_string(),
-            enabled: true,
-            icon: None,
-            items: vec![MenuItem::Submenu {
-                id: None,
-                label: "Level 2".to_string(),
-                enabled: true,
-                icon: None,
-                items: vec![MenuItem::Action {
-                    id: "deep".to_string(),
-                    label: "Deep item".to_string(),
-                    shortcut: None,
-                    enabled: true,
-                    check: CheckState::None,
-                    icon: None,
-                }],
-            }],
-        },
+        MenuItem::action("delete", "Delete").with_enabled(false),
+        MenuItem::submenu(
+            "More",
+            vec![MenuItem::submenu(
+                "Level 2",
+                vec![MenuItem::action("deep", "Deep item")],
+            )],
+        ),
     ]
 }
 

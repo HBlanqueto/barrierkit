@@ -13,37 +13,12 @@ use crate::platform::{ObjectId, PopupCommand, PopupHandle, PopupId, Popups};
 
 fn sample() -> Vec<MenuItem> {
     vec![
-        MenuItem::Action {
-            id: "new".to_string(),
-            label: "New Window".to_string(),
-            shortcut: Some("Ctrl+N".to_string()),
-            enabled: true,
-            check: CheckState::None,
-            icon: None,
-        },
+        MenuItem::action("new", "New Window").with_shortcut("Ctrl+N"),
         MenuItem::Separator,
-        MenuItem::Action {
-            id: "open".to_string(),
-            label: "Open".to_string(),
-            shortcut: None,
-            enabled: false,
-            check: CheckState::Checkbox(true),
-            icon: None,
-        },
-        MenuItem::Submenu {
-            id: None,
-            label: "Recent".to_string(),
-            enabled: true,
-            icon: None,
-            items: vec![MenuItem::Action {
-                id: "r1".to_string(),
-                label: "a.txt".to_string(),
-                shortcut: None,
-                enabled: true,
-                check: CheckState::None,
-                icon: None,
-            }],
-        },
+        MenuItem::action("open", "Open")
+            .with_enabled(false)
+            .with_check(CheckState::Checkbox(true)),
+        MenuItem::submenu("Recent", vec![MenuItem::action("r1", "a.txt")]),
     ]
 }
 
@@ -313,14 +288,7 @@ fn navigation_skips_headers_and_search_fields() {
             label: "Mitades".to_string(),
             count: None,
         },
-        MenuItem::Action {
-            id: "a".to_string(),
-            label: "A".to_string(),
-            shortcut: None,
-            enabled: true,
-            check: CheckState::None,
-            icon: None,
-        },
+        MenuItem::action("a", "A"),
         MenuItem::Header {
             label: "Cuartos".to_string(),
             count: None,
@@ -328,13 +296,7 @@ fn navigation_skips_headers_and_search_fields() {
         MenuItem::SearchField {
             placeholder: "Filtrar".to_string(),
         },
-        MenuItem::Submenu {
-            id: None,
-            label: "B".to_string(),
-            enabled: true,
-            items: Vec::new(),
-            icon: None,
-        },
+        MenuItem::submenu("B", Vec::new()),
     ];
     assert_eq!(first_selectable(&items), Some(2));
     assert_eq!(next_selectable(&items, Some(2), 1), Some(5));
@@ -388,38 +350,11 @@ fn left_handed_submenus_keep_their_descendants_on_the_left() {
 #[test]
 fn submenu_anchor_rect_matches_the_row_top() {
     let items = vec![
-        MenuItem::Action {
-            id: "one".to_string(),
-            label: "One".to_string(),
-            shortcut: None,
-            enabled: true,
-            check: CheckState::None,
-            icon: None,
-        },
+        MenuItem::action("one", "One"),
         MenuItem::Separator,
-        MenuItem::Action {
-            id: "two".to_string(),
-            label: "Two".to_string(),
-            shortcut: None,
-            enabled: true,
-            check: CheckState::None,
-            icon: None,
-        },
+        MenuItem::action("two", "Two"),
         MenuItem::Separator,
-        MenuItem::Submenu {
-            id: None,
-            label: "More".to_string(),
-            enabled: true,
-            icon: None,
-            items: vec![MenuItem::Action {
-                id: "deep".to_string(),
-                label: "Deep".to_string(),
-                shortcut: None,
-                enabled: true,
-                check: CheckState::None,
-                icon: None,
-            }],
-        },
+        MenuItem::submenu("More", vec![MenuItem::action("deep", "Deep")]),
     ];
     let m = MENU_LIGHT;
     let (width, _) = MenuView::preferred_size(&items, m);
@@ -497,22 +432,8 @@ fn focused_shortcut_and_chevron_keep_4_5_contrast() {
 #[test]
 fn preferred_size_handles_accents_and_long_shortcuts() {
     let items = vec![
-        MenuItem::Action {
-            id: "images".to_string(),
-            label: "Imágenes".to_string(),
-            shortcut: Some("Ctrl+Shift+G".to_string()),
-            enabled: true,
-            check: CheckState::None,
-            icon: None,
-        },
-        MenuItem::Action {
-            id: "videos".to_string(),
-            label: "Vídeos".to_string(),
-            shortcut: Some("Ctrl+Shift+Z".to_string()),
-            enabled: true,
-            check: CheckState::None,
-            icon: None,
-        },
+        MenuItem::action("images", "Imágenes").with_shortcut("Ctrl+Shift+G"),
+        MenuItem::action("videos", "Vídeos").with_shortcut("Ctrl+Shift+Z"),
     ];
     let m = MENU_LIGHT;
     let (w, h) = MenuView::preferred_size(&items, m);
@@ -707,14 +628,7 @@ fn visible_items_limits_menu_results_to_nine_rows() {
         MenuItem::SearchField {
             placeholder: "Buscar".to_string(),
         },
-        MenuItem::Action {
-            id: "report".to_string(),
-            label: "Informar".to_string(),
-            shortcut: None,
-            enabled: true,
-            check: CheckState::None,
-            icon: None,
-        },
+        MenuItem::action("report", "Informar"),
     ];
     let searchable: Vec<SearchableEntry> = (0..24)
         .map(|i| searchable(&format!("result {i}"), true))
