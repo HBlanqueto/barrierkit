@@ -23,7 +23,6 @@ pub(super) fn emit_slider(out: &mut String, components: &Value) {
 pub(super) fn emit_checkbox(out: &mut String, tokens: &Value, components: &Value) {
     let size = number(components, "components.checkbox.size", COMPONENTS);
     let radius = metric(tokens, components, "components.checkbox.radius", COMPONENTS);
-    let check_stroke = number(components, "components.checkbox.check-stroke", COMPONENTS);
     pub_const(out, "CHECKBOX");
     out.push_str(&format!(
         ": CheckboxMetrics = CheckboxMetrics {{
@@ -31,12 +30,9 @@ pub(super) fn emit_checkbox(out: &mut String, tokens: &Value, components: &Value
          \x20   size: {},
 \
          \x20   radius: {},
-\
-         \x20   check_stroke: {},
 }};\n\n",
         float(size),
-        float(radius),
-        float(check_stroke)
+        float(radius)
     ));
 }
 

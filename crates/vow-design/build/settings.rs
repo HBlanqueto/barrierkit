@@ -1,7 +1,6 @@
 use super::*;
 
 pub(super) fn emit_settings(out: &mut String, tokens: &Value, components: &Value) {
-    let label_column = integer(components, "components.settings.label-column", COMPONENTS) as u32;
     let window_width = integer(components, "components.settings.window.width", COMPONENTS) as u32;
     let window_height = integer(components, "components.settings.window.height", COMPONENTS) as u32;
     let window_min_height = integer(
@@ -26,11 +25,6 @@ pub(super) fn emit_settings(out: &mut String, tokens: &Value, components: &Value
         COMPONENTS,
     ) as u32;
     let check_gap = integer(components, "components.settings.check.gap", COMPONENTS) as u32;
-    let check_column_gap = integer(
-        components,
-        "components.settings.check.column-gap",
-        COMPONENTS,
-    ) as u32;
     let check_row_gap = integer(components, "components.settings.check.row-gap", COMPONENTS) as u32;
 
     let search_height = metric(
@@ -52,48 +46,14 @@ pub(super) fn emit_settings(out: &mut String, tokens: &Value, components: &Value
     let account_name_font = string(components, "components.settings.account.name", COMPONENTS);
     let account_detail_font = string(components, "components.settings.account.detail", COMPONENTS);
 
-    let section_gap = integer(components, "components.settings.section-gap", COMPONENTS) as u32;
     let section_icon_bg = color(
         components,
         "components.settings.section-icon-bg",
         COMPONENTS,
     );
 
-    let group_radius = metric(
-        tokens,
-        components,
-        "components.settings.group.radius",
-        COMPONENTS,
-    ) as u32;
-    let group_row_min_height = integer(
-        components,
-        "components.settings.group.row-min-height",
-        COMPONENTS,
-    ) as u32;
-    let group_row_padding_x = integer(
-        components,
-        "components.settings.group.row-padding-x",
-        COMPONENTS,
-    ) as u32;
-    let group_row_padding_y = integer(
-        components,
-        "components.settings.group.row-padding-y",
-        COMPONENTS,
-    ) as u32;
-    let group_title_margin_top = integer(
-        components,
-        "components.settings.group.title-margin-top",
-        COMPONENTS,
-    ) as u32;
-    let group_content_padding_x = integer(
-        components,
-        "components.settings.group.content-padding-x",
-        COMPONENTS,
-    ) as u32;
-
     let swatch_size = integer(components, "components.settings.swatch-size", COMPONENTS) as u32;
     let swatch_gap = integer(components, "components.settings.swatch-gap", COMPONENTS) as u32;
-    let swatch_name_font = string(components, "components.settings.swatch.name", COMPONENTS);
 
     let card_width = integer(components, "components.settings.card.width", COMPONENTS) as u32;
     let card_height = integer(components, "components.settings.card.height", COMPONENTS) as u32;
@@ -104,8 +64,6 @@ pub(super) fn emit_settings(out: &mut String, tokens: &Value, components: &Value
         COMPONENTS,
     ) as u32;
     let card_gap = integer(components, "components.settings.card.gap", COMPONENTS) as u32;
-    let card_ring = integer(components, "components.settings.card.ring", COMPONENTS) as u32;
-    let card_ring_gap = integer(components, "components.settings.card.ring-gap", COMPONENTS) as u32;
     let card_caption_gap = integer(
         components,
         "components.settings.card.caption-gap",
@@ -220,19 +178,8 @@ pub(super) fn emit_settings(out: &mut String, tokens: &Value, components: &Value
 
     let popup_height = integer(components, "components.settings.popup.height", COMPONENTS) as u32;
     let popup_chevron = integer(components, "components.settings.popup.chevron", COMPONENTS) as u32;
-    let popup_light_gap = integer(
-        components,
-        "components.settings.popup.light-gap",
-        COMPONENTS,
-    ) as u32;
     let popup_text_gap =
         integer(components, "components.settings.popup.text-gap", COMPONENTS) as u32;
-
-    let selected_dark_mix = number(
-        components,
-        "components.settings.selected-dark-mix",
-        COMPONENTS,
-    );
 
     let sidebar_lights_gap = integer(
         components,
@@ -245,24 +192,9 @@ pub(super) fn emit_settings(out: &mut String, tokens: &Value, components: &Value
         "components.settings.sidebar.search-gap",
         COMPONENTS,
     ) as u32;
-    let sidebar_item_gap = integer(
-        components,
-        "components.settings.sidebar.item-gap",
-        COMPONENTS,
-    ) as u32;
     let sidebar_padding_top = integer(
         components,
         "components.settings.sidebar.padding-top",
-        COMPONENTS,
-    ) as u32;
-    let sidebar_padding_bottom = integer(
-        components,
-        "components.settings.sidebar.padding-bottom",
-        COMPONENTS,
-    ) as u32;
-    let sidebar_app_icon_glyph = integer(
-        components,
-        "components.settings.sidebar.app-icon-glyph",
         COMPONENTS,
     ) as u32;
     let search_gap = integer(components, "components.settings.search.gap", COMPONENTS) as u32;
@@ -294,11 +226,6 @@ pub(super) fn emit_settings(out: &mut String, tokens: &Value, components: &Value
         COMPONENTS,
     ) as u32;
     let row_gap = integer(components, "components.settings.row-gap", COMPONENTS) as u32;
-    let dropdown_preview_light = integer(
-        components,
-        "components.settings.dropdown.preview-light",
-        COMPONENTS,
-    ) as u32;
     let dropdown_chevron_glyph = integer(
         components,
         "components.settings.dropdown.chevron-glyph",
@@ -327,31 +254,6 @@ pub(super) fn emit_settings(out: &mut String, tokens: &Value, components: &Value
         COMPONENTS,
     ) as u32;
 
-    let content_padding_top = integer(
-        components,
-        "components.settings.content.padding-top",
-        COMPONENTS,
-    ) as u32;
-    let content_padding_bottom = integer(
-        components,
-        "components.settings.content.padding-bottom",
-        COMPONENTS,
-    ) as u32;
-    let content_gap = integer(components, "components.settings.content.gap", COMPONENTS) as u32;
-
-    let group_title_margin_bottom = integer(
-        components,
-        "components.settings.group.title-margin-bottom",
-        COMPONENTS,
-    ) as u32;
-    let group_title_indent = integer(
-        components,
-        "components.settings.group.title-indent",
-        COMPONENTS,
-    ) as u32;
-    let group_desc_gap =
-        integer(components, "components.settings.group.desc-gap", COMPONENTS) as u32;
-
     let swatch_column = integer(components, "components.settings.swatch.column", COMPONENTS) as u32;
     let swatch_name_gap = integer(
         components,
@@ -364,7 +266,6 @@ pub(super) fn emit_settings(out: &mut String, tokens: &Value, components: &Value
     pub_const(out, "SETTINGS");
     out.push_str(&format!(
         ": SettingsMetrics = SettingsMetrics {{\n\
-         \x20   label_column: {label_column},\n\
          \x20   window_width: {window_width},\n\
          \x20   window_height: {window_height},\n\
          \x20   window_min_height: {window_min_height},\n\
@@ -382,23 +283,13 @@ pub(super) fn emit_settings(out: &mut String, tokens: &Value, components: &Value
          \x20   account_padding_x: {account_padding_x},\n\
          \x20   account_name_font: {},\n\
          \x20   account_detail_font: {},\n\
-         \x20   section_gap: {section_gap},\n\
          \x20   section_icon_bg: {},\n\
-         \x20   group_radius: {group_radius},\n\
-         \x20   group_row_min_height: {group_row_min_height},\n\
-         \x20   group_row_padding_x: {group_row_padding_x},\n\
-         \x20   group_row_padding_y: {group_row_padding_y},\n\
-         \x20   group_title_margin_top: {group_title_margin_top},\n\
-         \x20   group_content_padding_x: {group_content_padding_x},\n\
          \x20   swatch_size: {swatch_size},\n\
          \x20   swatch_gap: {swatch_gap},\n\
-         \x20   swatch_name_font: {},\n\
          \x20   card_width: {card_width},\n\
          \x20   card_height: {card_height},\n\
          \x20   card_radius: {card_radius},\n\
          \x20   card_gap: {card_gap},\n\
-         \x20   card_ring: {card_ring},\n\
-         \x20   card_ring_gap: {card_ring_gap},\n\
          \x20   card_caption_gap: {card_caption_gap},\n\
          \x20   card_caption_font: {},\n\
          \x20   preview_window_radius: {preview_window_radius},\n\
@@ -432,20 +323,14 @@ pub(super) fn emit_settings(out: &mut String, tokens: &Value, components: &Value
          \x20   radio_spacing: {radio_spacing},\n\
          \x20   popup_height: {popup_height},\n\
          \x20   popup_chevron: {popup_chevron},\n\
-         \x20   popup_light_gap: {popup_light_gap},\n\
          \x20   popup_text_gap: {popup_text_gap},\n\
-         \x20   selected_dark_mix: {},\n\
          \x20   sidebar_width: {sidebar_width},\n\
          \x20   sidebar_lights_gap: {sidebar_lights_gap},\n\
          \x20   sidebar_search_gap: {sidebar_search_gap},\n\
-         \x20   sidebar_item_gap: {sidebar_item_gap},\n\
          \x20   sidebar_padding_top: {sidebar_padding_top},\n\
-         \x20   sidebar_padding_bottom: {sidebar_padding_bottom},\n\
-         \x20   sidebar_app_icon_glyph: {sidebar_app_icon_glyph},\n\
          \x20   row_gap: {row_gap},\n\
          \x20   strength: SettingsStrength {{ width: {strength_width}, track: {strength_track}, tick: {strength_tick}, tick_gap: {strength_tick_gap}, label_gap: {strength_label_gap} }},\n\
-         \x20   check: SettingsCheck {{ gap: {check_gap}, column_gap: {check_column_gap}, row_gap: {check_row_gap} }},\n\
-         \x20   dropdown_preview_light: {dropdown_preview_light},\n\
+         \x20   check: SettingsCheck {{ gap: {check_gap}, row_gap: {check_row_gap} }},\n\
          \x20   dropdown_chevron_glyph: {dropdown_chevron_glyph},\n\
          \x20   empty_padding_y: {empty_padding_y},\n\
          \x20   empty_icon: {empty_icon},\n\
@@ -454,12 +339,6 @@ pub(super) fn emit_settings(out: &mut String, tokens: &Value, components: &Value
          \x20   toolbar_height: {toolbar_height},\n\
          \x20   toolbar_padding_top: {toolbar_padding_top},\n\
          \x20   toolbar_padding_x: {toolbar_padding_x},\n\
-         \x20   content_padding_top: {content_padding_top},\n\
-         \x20   content_padding_bottom: {content_padding_bottom},\n\
-         \x20   content_gap: {content_gap},\n\
-         \x20   group_title_margin_bottom: {group_title_margin_bottom},\n\
-         \x20   group_title_indent: {group_title_indent},\n\
-         \x20   group_desc_gap: {group_desc_gap},\n\
          \x20   swatch_column: {swatch_column},\n\
          \x20   swatch_name_gap: {swatch_name_gap},\n\
          \x20   card_outline: {},\n\
@@ -467,11 +346,9 @@ pub(super) fn emit_settings(out: &mut String, tokens: &Value, components: &Value
         font(tokens, account_name_font),
         font(tokens, account_detail_font),
         rgba(section_icon_bg),
-        font(tokens, swatch_name_font),
         font(tokens, card_caption_font),
         float(preview_wall_light),
         float(preview_wall_dark),
-        float(selected_dark_mix),
         rgba(card_outline)
     ));
 

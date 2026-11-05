@@ -218,8 +218,6 @@ pub(super) fn emit_font_families(out: &mut String, tokens: &Value) {
 pub(super) fn emit_typography(out: &mut String, tokens: &Value) {
     pub_const(out, "TEXT");
     out.push_str(&format!(": Font = {};\n\n", font(tokens, "body")));
-    pub_const(out, "POSTER");
-    out.push_str(&format!(": Font = {};\n\n", font(tokens, "poster")));
     pub_const(out, "DISPLAY");
     out.push_str(&format!(": Font = {};\n\n", font(tokens, "display")));
     pub_const(out, "TITLE_1");

@@ -2,8 +2,7 @@
 
 use vow_design::{
     ButtonKind, Rgba, TITLEBAR, TRAFFIC_GLYPH_ON_DARK, TRAFFIC_GLYPH_ON_LIGHT,
-    TRAFFIC_GLYPH_STANDARD, TRAFFIC_GLYPHS, TRAFFIC_PRESSED_DARKEN, TitlebarPosition, TrafficRim,
-    Triangle,
+    TRAFFIC_GLYPH_STANDARD, TRAFFIC_GLYPHS, TRAFFIC_PRESSED_DARKEN, TrafficRim, Triangle,
 };
 
 use crate::TrafficLightStyle;
@@ -28,9 +27,6 @@ pub fn group_rect() -> (f64, f64, f64, f64) {
 }
 
 pub fn hit(point: (f64, f64)) -> Option<ButtonKind> {
-    if TITLEBAR.position != TitlebarPosition::Top {
-        return None;
-    }
     let (px, py) = point;
     for (index, button) in TITLEBAR.buttons.order.iter().enumerate() {
         let (x, y, size) = button_rect(index);

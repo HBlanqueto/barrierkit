@@ -227,11 +227,6 @@ pub(super) fn emit_sidebar(out: &mut String, tokens: &Value, components: &Value)
         "components.window.sidebar.item.count-size",
         COMPONENTS,
     ) as u32;
-    let selected_weight = integer(
-        components,
-        "components.window.sidebar.item.selected-weight",
-        COMPONENTS,
-    ) as u16;
     let item_icon = integer(
         components,
         "components.window.sidebar.item.icon",
@@ -277,16 +272,10 @@ pub(super) fn emit_sidebar(out: &mut String, tokens: &Value, components: &Value)
         "components.window.sidebar.section.chevron-stroke",
         COMPONENTS,
     );
-    let default_island = string(
-        components,
-        "components.window.sidebar.default-style",
-        COMPONENTS,
-    ) == "island";
 
     pub_const(out, "SIDEBAR");
     out.push_str(&format!(
         ": SidebarMetrics = SidebarMetrics {{\n\
-         \x20   default_island: {default_island},\n\
          \x20   width: {width},\n\
          \x20   inset: {inset},\n\
          \x20   padding_x: {padding_x},\n\
@@ -301,7 +290,6 @@ pub(super) fn emit_sidebar(out: &mut String, tokens: &Value, components: &Value)
          \x20   item_padding_x: {item_padding_x},\n\
          \x20   item_gap: {item_gap},\n\
          \x20   item_text_size: {item_text_size},\n\
-         \x20   selected_weight: {selected_weight},\n\
          \x20   count_size: {count_size},\n\
          \x20   item_icon: {item_icon},\n\
          \x20   app_icon: {app_icon},\n\

@@ -55,7 +55,6 @@ pub(super) fn emit_titlebar(out: &mut String, tokens: &Value, components: &Value
     );
     out.push_str(&format!(
         "pub const TITLEBAR: Titlebar = Titlebar {{\n\
-         \x20   position: TitlebarPosition::Top,\n\
          \x20   thickness: {thickness},\n\
          \x20   buttons: TitlebarButtons {{\n\
          \x20       order: [\n\

@@ -146,15 +146,6 @@ pub struct FocusPair {
     pub unfocused: Rgba,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum TitlebarPosition {
-    Left,
-    Right,
-    Top,
-    Bottom,
-    None,
-}
-
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Font {
     pub family: &'static str,
@@ -211,7 +202,6 @@ pub struct TitlebarButtons {
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Titlebar {
-    pub position: TitlebarPosition,
     pub thickness: u32,
     pub buttons: TitlebarButtons,
     pub font: Font,
@@ -249,13 +239,11 @@ pub struct SettingsStrength {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct SettingsCheck {
     pub gap: u32,
-    pub column_gap: u32,
     pub row_gap: u32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct SettingsMetrics {
-    pub label_column: u32,
     pub window_width: u32,
     pub window_height: u32,
     pub window_min_height: u32,
@@ -273,23 +261,13 @@ pub struct SettingsMetrics {
     pub account_padding_x: u32,
     pub account_name_font: Font,
     pub account_detail_font: Font,
-    pub section_gap: u32,
     pub section_icon_bg: Rgba,
-    pub group_radius: u32,
-    pub group_row_min_height: u32,
-    pub group_row_padding_x: u32,
-    pub group_row_padding_y: u32,
-    pub group_title_margin_top: u32,
-    pub group_content_padding_x: u32,
     pub swatch_size: u32,
     pub swatch_gap: u32,
-    pub swatch_name_font: Font,
     pub card_width: u32,
     pub card_height: u32,
     pub card_radius: u32,
     pub card_gap: u32,
-    pub card_ring: u32,
-    pub card_ring_gap: u32,
     pub card_caption_gap: u32,
     pub card_caption_font: Font,
     pub preview_window_radius: u32,
@@ -323,20 +301,14 @@ pub struct SettingsMetrics {
     pub radio_spacing: u32,
     pub popup_height: u32,
     pub popup_chevron: u32,
-    pub popup_light_gap: u32,
     pub popup_text_gap: u32,
-    pub selected_dark_mix: f32,
     pub sidebar_width: u32,
     pub sidebar_lights_gap: u32,
     pub sidebar_search_gap: u32,
-    pub sidebar_item_gap: u32,
     pub sidebar_padding_top: u32,
-    pub sidebar_padding_bottom: u32,
-    pub sidebar_app_icon_glyph: u32,
     pub row_gap: u32,
     pub strength: SettingsStrength,
     pub check: SettingsCheck,
-    pub dropdown_preview_light: u32,
     pub dropdown_chevron_glyph: u32,
     pub empty_padding_y: u32,
     pub empty_icon: u32,
@@ -345,12 +317,6 @@ pub struct SettingsMetrics {
     pub toolbar_height: u32,
     pub toolbar_padding_top: u32,
     pub toolbar_padding_x: u32,
-    pub content_padding_top: u32,
-    pub content_padding_bottom: u32,
-    pub content_gap: u32,
-    pub group_title_margin_bottom: u32,
-    pub group_title_indent: u32,
-    pub group_desc_gap: u32,
     pub swatch_column: u32,
     pub swatch_name_gap: u32,
     pub card_outline: Rgba,
@@ -367,7 +333,6 @@ pub struct SliderMetrics {
 pub struct CheckboxMetrics {
     pub size: f32,
     pub radius: f32,
-    pub check_stroke: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -622,7 +587,6 @@ pub struct ToolbarTabsMetrics {
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct SidebarMetrics {
-    pub default_island: bool,
     pub width: u32,
     pub inset: u32,
     pub padding_x: u32,
@@ -638,7 +602,6 @@ pub struct SidebarMetrics {
     pub item_gap: u32,
     pub item_text_size: u32,
     pub count_size: u32,
-    pub selected_weight: u16,
     pub item_icon: u32,
     pub app_icon: u32,
     pub section_height: u32,
