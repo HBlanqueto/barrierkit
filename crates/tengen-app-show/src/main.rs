@@ -20,10 +20,11 @@ use barrier_kit::compact::{Face, IconButton, Stepper, ToggleGroup};
 use barrier_kit::context_menu::context_menu;
 use barrier_kit::controls::{
     Button, ButtonStyle, Checkbox, ScrollView, SearchField, SecureField, SegmentedControl, Slider,
-    Switch, TextField, ToolButton, ToolGroup,
+    Switch, TextField, ToolGroup,
 };
 use barrier_kit::level::{LevelSlider, LevelStyle};
 use barrier_kit::menu::MenuItem;
+use barrier_kit::password::PasswordField;
 use barrier_kit::patterns::about::about_window;
 use barrier_kit::patterns::preferences::{Pane, PaneGroup, PreferencesWindow};
 use barrier_kit::platform::{DecorationResponse, WindowControls, WindowStatus};
@@ -214,7 +215,7 @@ fn sliders() -> Form {
     )
 }
 
-fn fields(name: State<String>, query: State<String>) -> Form {
+fn fields(name: State<String>, query: State<String>, password: State<PasswordField>) -> Form {
     Form::new().section(
         Section::titled("Campos")
             .row(
@@ -231,12 +232,12 @@ fn fields(name: State<String>, query: State<String>) -> Form {
                         .child(SearchField::new(query, "Buscar")),
                 ),
             )
-            .row(Row::new("Contraseña").control(SecureField::new().width(SPLIT_VIEW.inspector))),
+            .row(
+                Row::new("Contraseña")
+                    .control(SecureField::new(password).width(SPLIT_VIEW.inspector)),
+            ),
     )
 }
-
-const ADD_ICON: &str = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 16 16\"><path d=\"M8 3v10M3 8h10\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\"/></svg>";
-const REMOVE_ICON: &str = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 16 16\"><path d=\"M3 8h10\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\"/></svg>";
 
 fn window_parts() -> Form {
     let status = WindowStatus {
@@ -269,8 +270,8 @@ fn window_parts() -> Form {
             Section::titled("Barra de herramientas").row(
                 Row::new("Grupo").control(
                     ToolGroup::new()
-                        .child(ToolButton::new("Añadir", ADD_ICON))
-                        .child(ToolButton::new("Quitar", REMOVE_ICON).disabled(true)),
+                        .child(IconButton::new(Symbol::Plus, "Añadir"))
+                        .child(IconButton::new(Symbol::Minus, "Quitar").disabled(true)),
                 ),
             ),
         )
@@ -620,7 +621,7 @@ fn about() -> Form {
                     .child(about_window(
                         avatar("MT"),
                         "Master Tengen App Show",
-                        "Versión 0.1",
+                        Some("Versión 0.1"),
                         "™ y © 2026 Malaysia",
                     )),
             ),
@@ -644,6 +645,7 @@ impl App for Show {
         });
         let name = use_state(|| "hblanqueto".to_string());
         let query = use_state(String::new);
+        let password = use_state(PasswordField::default);
         let sort = use_state(|| None::<SortOrder>);
         let selected = use_state(Vec::new);
         let mut alert = use_state(|| false);
@@ -708,7 +710,7 @@ impl App for Show {
                         "Campos",
                         Symbol::MagnifyingGlass,
                         tint(7),
-                        fields(name, query),
+                        fields(name, query, password),
                     ))
                     .pane(Pane::new(
                         "progreso",
