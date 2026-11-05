@@ -543,21 +543,7 @@ fn sidebar_preview(colors: [Rgba; 3], backdrop: SidebarBackdrop) -> Rect {
 }
 
 fn backdrops() -> Form {
-    let dusk = [
-        Rgba::rgb8(122, 59, 94),
-        Rgba::rgb8(45, 110, 106),
-        Rgba::rgb8(180, 112, 63),
-    ];
-    let night = [
-        Rgba::rgb8(20, 33, 61),
-        Rgba::rgb8(58, 79, 122),
-        Rgba::rgb8(150, 110, 40),
-    ];
-    let pale = [
-        Rgba::rgb8(236, 214, 196),
-        Rgba::rgb8(200, 222, 214),
-        Rgba::rgb8(240, 226, 170),
-    ];
+    let [(_, dusk), (_, night), (_, pale)] = kit::SCENES;
     Form::new().section(
         Section::titled("Fondo tintado")
             .row(

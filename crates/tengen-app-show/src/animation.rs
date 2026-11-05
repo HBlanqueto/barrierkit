@@ -1,3 +1,4 @@
+use barrier_kit::backdrop::{Accent, Tint};
 use barrier_kit::controls::{Button, ButtonStyle, SegmentedControl, Switch};
 use barrier_kit::patterns::preferences::{Pane, PaneGroup};
 use barrier_kit::progress::{ProgressBar, Spinner};
@@ -12,10 +13,10 @@ use crate::chrome::segmented;
 use crate::events::{
     Arrivals, CopyToast, HoverCard, Inbox, PlusToggle, Popover, PressCard, ShakeField,
 };
-use crate::kit::{Download, SCENES, scene, sidebar_section};
+use crate::kit::{Download, SCENES, sidebar_section};
 use crate::motion::{EasedTrack, Property, PropertyTile, SpringTrack};
 use crate::slides::{Stage, TRANSITIONS, pager};
-use crate::tint;
+use crate::{preview, tint};
 
 const CURVES: [(&str, Function); 7] = [
     ("Lineal", Function::Linear),
@@ -129,7 +130,11 @@ fn kit_controls(mut backdrop: State<usize>) -> Form {
                 .row(
                     Row::new("Fundido")
                         .detail("El fondo y su acento funden entre escenas.")
-                        .control(scene(selected)),
+                        .control(preview(
+                            SCENES[selected].1,
+                            Accent::FromBackdrop,
+                            Tint::Accent,
+                        )),
                 ),
         )
 }

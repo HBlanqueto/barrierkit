@@ -1,6 +1,4 @@
-use barrier_kit::backdrop::{Accent, Backdrop, BackdropSource, Tint};
-use barrier_kit::controls::{Button, Switch};
-use barrier_kit::level::LevelSlider;
+use barrier_kit::controls::Button;
 use barrier_kit::progress::{ProgressBar, ProgressRing};
 use barrier_kit::sidebar::{Sidebar, SidebarItem, SidebarSection};
 use barrier_kit::symbol::Symbol;
@@ -51,26 +49,6 @@ pub fn sidebar_section() -> Rect {
                     .child(SidebarItem::new("Escritorio").symbol(Symbol::SquareGrid, tint(0)))
                     .child(SidebarItem::new("Música").symbol(Symbol::Play, tint(1))),
             ),
-        )
-}
-
-pub fn scene(index: usize) -> Rect {
-    rect()
-        .width(Size::px(SPLIT_VIEW.sidebar_max))
-        .height(Size::px(SPLIT_VIEW.inspector / 2.0))
-        .corner_radius(12.0)
-        .overflow(Overflow::Clip)
-        .child(
-            Backdrop::new(
-                BackdropSource::Colors(SCENES[index].1),
-                rect()
-                    .width(Size::fill())
-                    .padding(16.0)
-                    .spacing(SPACE_2)
-                    .child(Switch::new("Encendido").on(true).tint(Tint::Accent))
-                    .child(LevelSlider::new("Nivel").value(0.4).tint(Tint::Accent)),
-            )
-            .accent(Accent::FromBackdrop),
         )
 }
 
