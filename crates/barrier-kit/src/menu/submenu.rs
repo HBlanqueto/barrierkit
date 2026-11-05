@@ -1,4 +1,5 @@
 use super::*;
+use crate::i18n::text;
 
 pub(super) fn item_top(index: usize, items: &[MenuItem], m: MenuPalette) -> f32 {
     let mut y = 0.0;
@@ -49,7 +50,7 @@ pub(super) fn close_child(
 
 pub fn submenu_contents(loading: bool, items: &[MenuItem]) -> Vec<MenuItem> {
     if loading && items.is_empty() {
-        vec![MenuItem::placeholder("Cargando…")]
+        vec![MenuItem::placeholder(text!("loading"))]
     } else {
         items.to_vec()
     }

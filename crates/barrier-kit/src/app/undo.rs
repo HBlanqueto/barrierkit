@@ -2,11 +2,12 @@ use freya_core::prelude::*;
 
 use super::{Action, Shortcut, ShortcutKey, use_menu_action};
 use crate::app_menu::MenuHandle;
+use crate::i18n::text;
 use crate::menu::MenuItem;
 
 pub const UNDO: Action =
-    Action::new("undo", "Deshacer").shortcut(Shortcut::ctrl(ShortcutKey::Char('z')));
-pub const REDO: Action = Action::new("redo", "Rehacer").shortcut(Shortcut::new(
+    Action::new("undo", || text!("undo")).shortcut(Shortcut::ctrl(ShortcutKey::Char('z')));
+pub const REDO: Action = Action::new("redo", || text!("redo")).shortcut(Shortcut::new(
     Modifiers::CONTROL.union(Modifiers::SHIFT),
     ShortcutKey::Char('z'),
 ));

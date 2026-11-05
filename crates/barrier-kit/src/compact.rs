@@ -5,6 +5,7 @@ use keyboard_types::{Key, NamedKey};
 use torin::prelude::{Alignment, Direction, Gaps, Size};
 use vow_design::{BUTTON, DISPLAY, ICON_BUTTON, SEGMENTED, TEXT};
 
+use crate::i18n::text;
 use crate::interaction::use_interaction;
 use crate::style::{Palette, text};
 use crate::symbol::{Symbol, symbol};
@@ -146,7 +147,7 @@ impl Component for Stepper {
                 _ => {}
             })
             .child(
-                IconButton::new(Symbol::Minus, "Menos")
+                IconButton::new(Symbol::Minus, text!("decrease"))
                     .disabled(current <= min)
                     .on_press(move |_| step_down(-1)),
             )
@@ -157,7 +158,7 @@ impl Component for Stepper {
                     .child(text(current.to_string(), TEXT, palette.label)),
             )
             .child(
-                IconButton::new(Symbol::Plus, "Más")
+                IconButton::new(Symbol::Plus, text!("increase"))
                     .disabled(current >= max)
                     .on_press(move |_| step_up(1)),
             );

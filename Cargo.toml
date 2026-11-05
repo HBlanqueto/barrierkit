@@ -43,6 +43,10 @@ toml_edit = "0.22"
 
 zbus = "5"
 
+i18n-embed = { version = "0.16", features = ["fluent-system"] }
+i18n-embed-fl = "0.10"
+rust-embed = "8"
+
 gstreamer = { version = "0.25", features = ["v1_24"] }
 gstreamer-app = { version = "0.25", features = ["v1_24"] }
 gstreamer-video = { version = "0.25", features = ["v1_24"] }

@@ -18,6 +18,7 @@ use crate::views::search::SearchIndex;
 use crate::views::split::{NarrowSidebar, SidebarLayout, SidebarToggle, SplitView};
 
 use super::search_popover::{Entry, search_popover};
+use crate::i18n::text;
 
 const RECENTS: usize = 3;
 
@@ -253,7 +254,7 @@ impl Component for PreferencesWindow {
         if !text.trim().is_empty() {
             let hits = index(&panes).search(&text);
             if hits.is_empty() {
-                entries.push(Entry::Header("Sin resultados"));
+                entries.push(Entry::Header(text!("no-results")));
             }
             for hit in hits {
                 let (id, row) = hit.key;
@@ -262,7 +263,7 @@ impl Component for PreferencesWindow {
                 }
             }
         } else if let Some(suggestions) = self.suggestions {
-            entries.push(Entry::Header("Sugerencias"));
+            entries.push(Entry::Header(text!("suggestions")));
             entries.extend(
                 suggestions
                     .iter()
@@ -276,7 +277,7 @@ impl Component for PreferencesWindow {
                 .map(|pane| result(pane, pane.title, None))
                 .collect();
             if !recent.is_empty() {
-                entries.push(Entry::Header("Recientes"));
+                entries.push(Entry::Header(text!("recents")));
                 entries.extend(recent);
             }
         }
@@ -320,7 +321,7 @@ impl Component for PreferencesWindow {
                 .width(Size::fill())
                 .margin(Gaps::new(0.0, 0.0, SETTINGS.sidebar_search_gap as f32, 0.0))
                 .child(
-                    SearchField::new(query, "Buscar")
+                    SearchField::new(query, text!("search"))
                         .a11y_id(search_id)
                         .on_navigate(on_navigate)
                         .on_focus_change(move |focused| {

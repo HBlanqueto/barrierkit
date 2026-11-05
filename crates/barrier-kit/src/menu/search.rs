@@ -1,4 +1,5 @@
 use super::*;
+use crate::i18n::text;
 use crate::views::search::{fold, word_start};
 
 pub fn normalize_query(text: &str) -> String {
@@ -73,13 +74,13 @@ pub(super) fn visible_items(
     }
     if !saw_search {
         out.push(MenuItem::SearchField {
-            placeholder: "Buscar".to_string(),
+            placeholder: text!("search").to_string(),
         });
     }
 
     if !menu_results.is_empty() {
         out.push(MenuItem::Header {
-            label: "Ítems del menú".to_string(),
+            label: text!("menu-items").to_string(),
             count: Some(menu_results.len()),
         });
         for entry in menu_results
@@ -98,7 +99,7 @@ pub(super) fn visible_items(
 
     if !help_results.is_empty() {
         out.push(MenuItem::Header {
-            label: "Temas de ayuda".to_string(),
+            label: text!("help-topics").to_string(),
             count: Some(help_results.len()),
         });
         for entry in help_results

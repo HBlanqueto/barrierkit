@@ -6,6 +6,7 @@ use torin::prelude::{Alignment, Direction, Gaps, Position, Size};
 use vow_design::{DIALOG, DIALOG_PADDING, HEADLINE, SETTINGS, SPACE_2, SPACE_4, TEXT};
 
 use crate::controls::{Button, ButtonStyle};
+use crate::i18n::text;
 use crate::style::{Palette, text};
 use crate::symbol::{Symbol, symbol};
 use crate::theme::color;
@@ -71,8 +72,8 @@ impl Alert {
         Self {
             title,
             message: message.into(),
-            confirm: "Aceptar",
-            cancel: "Cancelar",
+            confirm: text!("ok"),
+            cancel: text!("cancel"),
             on_confirm: None,
             on_cancel: None,
         }

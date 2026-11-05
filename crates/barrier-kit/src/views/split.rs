@@ -14,12 +14,13 @@ use vow_design::{DURATION_BASE, DURATION_FAST_MS, SIDEBAR, SPLIT_VIEW};
 use crate::animation::Spring;
 use crate::app::{Action, Shortcut, ShortcutKey};
 use crate::compact::IconButton;
+use crate::i18n::text;
 use crate::style::Palette;
 use crate::symbol::Symbol;
 use crate::theme::{SurfaceKind, color, surface_background};
 
-pub const TOGGLE_SIDEBAR: Action =
-    Action::new("toggle-sidebar", "Mostrar u ocultar la barra lateral").shortcut(Shortcut::new(
+pub const TOGGLE_SIDEBAR: Action = Action::new("toggle-sidebar", || text!("toggle-sidebar"))
+    .shortcut(Shortcut::new(
         Modifiers::CONTROL.union(Modifiers::ALT),
         ShortcutKey::Char('s'),
     ));
@@ -80,7 +81,7 @@ pub struct SidebarToggle;
 impl Component for SidebarToggle {
     fn render(&self) -> impl IntoElement {
         let control = sidebar_control();
-        IconButton::new(Symbol::SidebarLeft, TOGGLE_SIDEBAR.title)
+        IconButton::new(Symbol::SidebarLeft, TOGGLE_SIDEBAR.title())
             .disabled(control.is_none())
             .on_press(move |_| {
                 if let Some(control) = control {

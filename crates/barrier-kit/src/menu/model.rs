@@ -1,4 +1,5 @@
 use super::*;
+use crate::i18n::text;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum SearchSource {
@@ -239,7 +240,7 @@ pub fn normalize_separators(items: &mut Vec<MenuItem>) {
 }
 
 pub(super) fn empty_hint() -> MenuItem {
-    MenuItem::placeholder("Sin elementos")
+    MenuItem::placeholder(text!("no-items"))
 }
 
 pub(super) fn with_empty_hint(items: Vec<MenuItem>) -> Vec<MenuItem> {

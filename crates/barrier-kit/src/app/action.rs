@@ -60,20 +60,32 @@ impl Shortcut {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug)]
 pub struct Action {
     pub id: &'static str,
-    pub title: &'static str,
+    title: fn() -> &'static str,
     pub shortcut: Option<Shortcut>,
 }
 
+impl PartialEq for Action {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id && self.shortcut == other.shortcut
+    }
+}
+
+impl Eq for Action {}
+
 impl Action {
-    pub const fn new(id: &'static str, title: &'static str) -> Self {
+    pub const fn new(id: &'static str, title: fn() -> &'static str) -> Self {
         Self {
             id,
             title,
             shortcut: None,
         }
+    }
+
+    pub fn title(&self) -> &'static str {
+        (self.title)()
     }
 
     pub const fn shortcut(mut self, shortcut: Shortcut) -> Self {
@@ -88,7 +100,7 @@ impl Action {
     pub fn item_with(&self, enabled: bool, check: CheckState) -> MenuItem {
         MenuItem::Action {
             id: self.id.to_string(),
-            label: self.title.to_string(),
+            label: self.title().to_string(),
             shortcut: self.shortcut.map(|s| s.text()),
             enabled,
             check,

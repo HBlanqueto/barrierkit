@@ -179,16 +179,17 @@ impl Mood {
     }
 }
 
-const PLAY_PAUSE: Action = Action::new("play-pause", "Reproducir o pausar")
+const PLAY_PAUSE: Action = Action::new("play-pause", || "Reproducir o pausar")
     .shortcut(Shortcut::ctrl(ShortcutKey::Char('p')));
-const NEXT: Action = Action::new("next", "Siguiente").shortcut(Shortcut::ctrl(ShortcutKey::Right));
+const NEXT: Action =
+    Action::new("next", || "Siguiente").shortcut(Shortcut::ctrl(ShortcutKey::Right));
 const PREVIOUS: Action =
-    Action::new("previous", "Anterior").shortcut(Shortcut::ctrl(ShortcutKey::Left));
+    Action::new("previous", || "Anterior").shortcut(Shortcut::ctrl(ShortcutKey::Left));
 const VIEWS: [Action; 4] = [
-    Action::new("tab-now", "Escuchando").shortcut(Shortcut::ctrl(ShortcutKey::Char('1'))),
-    Action::new("tab-library", "Biblioteca").shortcut(Shortcut::ctrl(ShortcutKey::Char('2'))),
-    Action::new("tab-mix", "Mezcla").shortcut(Shortcut::ctrl(ShortcutKey::Char('3'))),
-    Action::new("tab-look", "Apariencia").shortcut(Shortcut::ctrl(ShortcutKey::Char('4'))),
+    Action::new("tab-now", || "Escuchando").shortcut(Shortcut::ctrl(ShortcutKey::Char('1'))),
+    Action::new("tab-library", || "Biblioteca").shortcut(Shortcut::ctrl(ShortcutKey::Char('2'))),
+    Action::new("tab-mix", || "Mezcla").shortcut(Shortcut::ctrl(ShortcutKey::Char('3'))),
+    Action::new("tab-look", || "Apariencia").shortcut(Shortcut::ctrl(ShortcutKey::Char('4'))),
 ];
 
 fn menu() -> AppMenu {

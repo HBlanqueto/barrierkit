@@ -90,14 +90,14 @@ fn buttons() -> Form {
                     Palette::current().secondary_label,
                 )),
                 vec![
-                    Action::new("copy", "Copiar")
+                    Action::new("copy", || "Copiar")
                         .shortcut(Shortcut::ctrl(ShortcutKey::Char('c')))
                         .item(true),
-                    Action::new("paste", "Pegar")
+                    Action::new("paste", || "Pegar")
                         .shortcut(Shortcut::ctrl(ShortcutKey::Char('v')))
                         .item(false),
                     MenuItem::Separator,
-                    Action::new("info", "Obtener información").item(true),
+                    Action::new("info", || "Obtener información").item(true),
                 ],
                 |id: String| tracing::info!(%id, "menú contextual"),
             ))),
@@ -598,11 +598,11 @@ fn undo(accent: UndoManager<usize>, selected: usize) -> Form {
             )
             .row(
                 Row::new("Historial").control(row_of([
-                    Button::new(UNDO.title)
+                    Button::new(UNDO.title())
                         .disabled(!accent.can_undo())
                         .on_press(move |_| accent.undo())
                         .into_element(),
-                    Button::new(REDO.title)
+                    Button::new(REDO.title())
                         .disabled(!accent.can_redo())
                         .on_press(move |_| accent.redo())
                         .into_element(),

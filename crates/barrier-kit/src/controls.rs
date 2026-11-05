@@ -15,6 +15,7 @@ use vow_design::{
 use crate::ProbeExt;
 use crate::backdrop::Tint;
 use crate::choices::use_choice;
+use crate::i18n::text;
 use crate::interaction::use_interaction;
 use crate::level::{self, bar, knob_shadow};
 use crate::password::PasswordField;
@@ -960,7 +961,7 @@ impl Component for SearchField {
             input = input.trailing(
                 rect()
                     .a11y_role(AccessibilityRole::Button)
-                    .a11y_alt("Borrar búsqueda")
+                    .a11y_alt(text!("clear-search"))
                     .on_pointer_down(move |event: Event<PointerEventData>| {
                         if event.is_primary() {
                             value.set(String::new());

@@ -37,6 +37,9 @@ sctk.workspace = true
 wayland-protocols = { workspace = true }
 wayland-protocols-plasma = { workspace = true, features = ["client"] }
 zbus.workspace = true
+i18n-embed.workspace = true
+i18n-embed-fl.workspace = true
+rust-embed.workspace = true
 gstreamer = { workspace = true, optional = true }
 gstreamer-app = { workspace = true, optional = true }
 gstreamer-video = { workspace = true, optional = true }
