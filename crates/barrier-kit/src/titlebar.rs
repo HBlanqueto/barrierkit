@@ -2,22 +2,23 @@
 
 use std::cell::Cell;
 use std::rc::Rc;
-use std::sync::OnceLock;
 use std::time::{Duration, Instant};
-
-use serde::Deserialize;
 
 use crate::traffic::TrafficLights;
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 use vow_appearance::SidebarStyle;
 use vow_appearance::palette;
+use vow_appearance::window::{
+    TitlebarAction, WindowBehavior, double_click_action, green_action, read_window_behavior,
+};
 use vow_design::NATIVE_APP_ID_PREFIX;
 use vow_design::{
     ButtonKind, SETTINGS, SIDEBAR, TITLEBAR, TITLEBAR_CLIENT_HEIGHT, TITLEBAR_DOUBLE_CLICK,
 };
 
 use crate::ProbeExt;
+use crate::app::DefaultsRevision;
 use crate::platform::{DecorationResponse, WindowControls, WindowStatus};
 use crate::theme;
 
@@ -69,14 +70,7 @@ impl Titlebar {
                 title: title.into(),
                 fixed,
             }),
-            title: None,
-            sidebar: false,
-            left: None,
-            right: None,
-            probe: None,
-            spacing: 0.0,
-            close_only: false,
-            hairline: true,
+            ..Self::new()
         }
     }
 
@@ -125,27 +119,26 @@ impl ProbeExt for Titlebar {
 
 impl Component for Titlebar {
     fn render(&self) -> impl IntoElement {
-        let has_toolbar = !self.close_only && self.preview.is_none();
+        let controls =
+            try_consume_root_context::<WindowControls>().filter(|_| self.preview.is_none());
         use_hook(|| {
-            if has_toolbar && let Some(controls) = try_consume_root_context::<WindowControls>() {
+            if !self.close_only
+                && let Some(controls) = &controls
+            {
                 controls.mark_toolbar();
             }
         });
-        let mut content_widths = use_state(|| (0.0f32, 0.0f32));
-        let (status, title, fixed) = if let Some(preview) = &self.preview {
-            let title = self.title.clone().unwrap_or_else(|| preview.title.clone());
-            (preview.status, title, preview.fixed)
-        } else if let Some(controls) = try_consume_root_context::<WindowControls>() {
-            let status = *controls.status.read();
-            let title = self.title.clone().unwrap_or_else(|| controls.title.clone());
-            (status, title, controls.fixed)
-        } else {
-            (
-                WindowStatus::default(),
-                self.title.clone().unwrap_or_default(),
-                false,
-            )
+        let content_widths = use_state(|| (0.0f32, 0.0f32));
+        let (status, title, fixed) = match (&self.preview, &controls) {
+            (Some(preview), _) => (preview.status, preview.title.clone(), preview.fixed),
+            (None, Some(controls)) => (
+                *controls.status.read(),
+                controls.title.clone(),
+                controls.fixed,
+            ),
+            (None, None) => (WindowStatus::default(), String::new(), false),
         };
+        let title = self.title.clone().unwrap_or(title);
         let drag = window_drag_handler(fixed);
         if status.decoration == DecorationResponse::Server {
             return rect()
@@ -154,23 +147,14 @@ impl Component for Titlebar {
                 .into_element();
         }
 
-        let controls = freya_core::prelude::try_consume_root_context::<WindowControls>()
-            .filter(|_| self.preview.is_none());
         let layout = match self.preview {
             Some(_) => crate::chrome::TitlebarLayout::Top,
             None => crate::chrome::chrome_style().layout,
         };
-        let rail = layout == crate::chrome::TitlebarLayout::Rail;
-        let overlaid = !rail
+        let overlaid = layout != crate::chrome::TitlebarLayout::Rail
             && controls
                 .as_ref()
-                .is_some_and(|controls| controls.titlebar_overlaid());
-        let overlay_top = controls
-            .as_ref()
-            .and_then(|controls| controls.titlebar_overlay_top());
-        let overlay_opacity = controls
-            .as_ref()
-            .map_or(1.0, |controls| *controls.focus_bar_progress.read());
+                .is_some_and(WindowControls::titlebar_overlaid);
         let resolved = crate::theme::resolved();
         let theme = palette(resolved.scheme);
         let control = crate::views::split::sidebar_control();
@@ -184,47 +168,6 @@ impl Component for Titlebar {
         } else {
             resolved.surfaces.titlebar_inactive
         };
-        let fullscreen_bar = crate::chrome::fullscreen_bar();
-        let pushed = controls
-            .as_ref()
-            .map_or(0.0, |controls| controls.push_offset());
-        let place = move |bar: Element, height: f32| -> Element {
-            if let Some(controls) = controls.as_ref() {
-                let mut reported = controls.overlay_titlebar_height;
-                reported.set_if_modified(if overlaid { height } else { 0.0 });
-            }
-            if !overlaid {
-                return bar;
-            }
-            rect()
-                .width(Size::fill())
-                .height(Size::px(0.0))
-                .maybe(overlay_top.is_some(), |el| {
-                    let top = overlay_top.unwrap_or_default();
-                    // ADR 0057: the full-screen glass spans the whole window, whatever column holds the titlebar.
-                    el.child(
-                        rect()
-                            .position(Position::new_global().top(top).left(0.0))
-                            .width(Size::window_percent(100.0))
-                            .layer(TITLEBAR_OVERLAY_LAYER)
-                            .child(crate::glass::fullscreen_backdrop(
-                                fullscreen_bar,
-                                crate::glass::GlassEdge::Top,
-                                height,
-                                overlay_opacity,
-                            )),
-                    )
-                    .child(
-                        rect()
-                            .position(Position::new_absolute().top(top - pushed).left(0.0))
-                            .width(Size::fill())
-                            .layer(TITLEBAR_OVERLAY_LAYER)
-                            .opacity(overlay_opacity)
-                            .child(bar),
-                    )
-                })
-                .into_element()
-        };
 
         let title_color = match (tinted, status.activated) {
             (true, true) => ink.label,
@@ -232,9 +175,9 @@ impl Component for Titlebar {
             (false, true) => theme.title.focused,
             (false, false) => theme.title.unfocused,
         };
-        let lights_shown = freya_core::prelude::try_consume_root_context::<WindowControls>()
-            .filter(|_| self.preview.is_none())
-            .is_none_or(|controls| controls.traffic_lights_shown());
+        let lights_shown = controls
+            .as_ref()
+            .is_none_or(WindowControls::traffic_lights_shown);
         let vertical = layout != crate::chrome::TitlebarLayout::Top;
         let lights_opacity = crate::chrome::lights_opacity();
         let traffic = if sidebar || !lights_shown || vertical || lights_opacity == 0.0 {
@@ -252,7 +195,7 @@ impl Component for Titlebar {
 
         let title_font = TITLEBAR.font;
         let mut title_label = label()
-            .text(title.clone())
+            .text(title)
             .font_family(title_font.family)
             .font_size(title_font.size as f32)
             .font_weight(FontWeight::from(title_font.weight as i32))
@@ -263,93 +206,116 @@ impl Component for Titlebar {
             title_label = title_label.a11y_builder(move |node| node.set_author_id(id));
         }
 
-        if self.sidebar {
-            let island = resolved.sidebar.style == SidebarStyle::Island;
-            let (height, padding_top) = sidebar_bar_metrics();
-            let padding_x = if island {
-                SETTINGS.toolbar_padding_x as f32
-            } else {
-                10.0
-            };
+        let (bar, height) = if self.sidebar {
             let occupied = control.map_or(0.0, |control| control.occupied());
-            let inset = if island { SIDEBAR.inset as f32 } else { 0.0 };
-            let lights_x = inset + SIDEBAR.traffic_x as f32;
-            let lights_end = lights_x + vow_appearance::traffic::group_rect().2 as f32;
-            let padding_left = if traffic.is_some() {
-                padding_x.max(lights_end + padding_x - occupied)
-            } else {
-                padding_x
-            };
-            // The lights stay at the sidebar's window position while it folds (fold in place).
-            let fixed_lights = traffic.map(|traffic| {
+            self.sidebar_bar(traffic, title_label, drag, background, occupied)
+        } else {
+            self.centered_bar(traffic, title_label, drag, background, content_widths)
+        };
+        place_overlaid(
+            crate::chrome::revealable_bar(bar, height),
+            height,
+            controls.as_ref(),
+            overlaid,
+        )
+    }
+}
+
+impl Titlebar {
+    fn sidebar_bar(
+        &self,
+        traffic: Option<Element>,
+        title_label: Label,
+        drag: impl Fn(Event<MouseEventData>) + 'static,
+        background: vow_design::Rgba,
+        occupied: f32,
+    ) -> (Element, f32) {
+        let island = theme::resolved().sidebar.style == SidebarStyle::Island;
+        let (height, padding_top) = sidebar_bar_metrics();
+        let padding_x = if island {
+            SETTINGS.toolbar_padding_x as f32
+        } else {
+            10.0
+        };
+        let inset = if island { SIDEBAR.inset as f32 } else { 0.0 };
+        let lights_x = inset + SIDEBAR.traffic_x as f32;
+        let lights_end = lights_x + vow_appearance::traffic::group_rect().2 as f32;
+        let padding_left = if traffic.is_some() {
+            padding_x.max(lights_end + padding_x - occupied)
+        } else {
+            padding_x
+        };
+        // The lights stay at the sidebar's window position while it folds (fold in place).
+        let fixed_lights = traffic.map(|traffic| {
+            rect()
+                .position(
+                    Position::new_absolute()
+                        .left(lights_x - occupied - padding_left)
+                        .top(inset + SIDEBAR.traffic_y as f32 - padding_top),
+                )
+                .layer(TITLEBAR_OVERLAY_LAYER + 1)
+                .child(traffic)
+        });
+
+        let left_slot = rect()
+            .width(Size::auto())
+            .height(Size::fill())
+            .direction(Direction::Horizontal)
+            .cross_align(Alignment::Center)
+            .main_align(Alignment::Center)
+            .spacing(padding_x)
+            .a11y_alt("titlebar-left-slot")
+            .maybe_child(self.left.clone());
+
+        let title = rect()
+            .width(Size::flex(1.0))
+            .height(Size::fill())
+            .direction(Direction::Horizontal)
+            .cross_align(Alignment::Center)
+            .main_align(Alignment::Start)
+            .a11y_alt("titlebar-title")
+            .on_mouse_down(drag)
+            .child(title_label);
+
+        let root = rect()
+            .width(Size::fill())
+            .height(Size::px(height))
+            .background(theme::color(background))
+            .direction(Direction::Horizontal)
+            .content(Content::flex())
+            .cross_align(Alignment::Center)
+            .spacing(self.spacing)
+            .padding(Gaps::new(padding_top, padding_x, 0.0, padding_left))
+            .child(left_slot)
+            .child(title)
+            .maybe_child(self.right.clone().map(|right| {
                 rect()
-                    .position(
-                        Position::new_absolute()
-                            .left(lights_x - occupied - padding_left)
-                            .top(inset + SIDEBAR.traffic_y as f32 - padding_top),
-                    )
-                    .layer(TITLEBAR_OVERLAY_LAYER + 1)
-                    .child(traffic)
-            });
-
-            let left_slot = rect()
-                .width(Size::auto())
-                .height(Size::fill())
-                .direction(Direction::Horizontal)
-                .cross_align(Alignment::Center)
-                .main_align(Alignment::Center)
-                .spacing(padding_x)
-                .a11y_alt("titlebar-left-slot")
-                .maybe(self.left.is_some(), |el| {
-                    el.child(self.left.clone().unwrap())
-                });
-
-            let title = rect()
-                .width(Size::flex(1.0))
-                .height(Size::fill())
-                .direction(Direction::Horizontal)
-                .cross_align(Alignment::Center)
-                .main_align(Alignment::Start)
-                .a11y_alt("titlebar-title")
-                .on_mouse_down(drag.clone())
-                .child(title_label);
-
-            let mut root = rect()
-                .width(Size::fill())
-                .height(Size::px(height))
-                .background(theme::color(background))
-                .direction(Direction::Horizontal)
-                .content(Content::flex())
-                .cross_align(Alignment::Center)
-                .spacing(self.spacing)
-                .padding(Gaps::new(padding_top, padding_x, 0.0, padding_left))
-                .child(left_slot)
-                .child(title)
-                .maybe_child(self.right.clone().map(|right| {
-                    rect()
-                        .width(Size::auto())
-                        .height(Size::fill())
-                        .direction(Direction::Horizontal)
-                        .cross_align(Alignment::Center)
-                        .a11y_alt("titlebar-right-slot")
-                        .child(right)
-                }))
-                .maybe_child(fixed_lights);
-
-            root = root.maybe_child(self.hairline.then(|| {
+                    .width(Size::auto())
+                    .height(Size::fill())
+                    .direction(Direction::Horizontal)
+                    .cross_align(Alignment::Center)
+                    .a11y_alt("titlebar-right-slot")
+                    .child(right)
+            }))
+            .maybe_child(fixed_lights)
+            .maybe_child(self.hairline.then(|| {
                 rect()
                     .position(Position::new_absolute().bottom(0.0).left(0.0))
                     .width(Size::percent(100.0))
                     .height(Size::px(1.0))
                     .background(theme::color(crate::sidebar::sidebar_palette().line))
             }));
+        (root.into_element(), height)
+    }
 
-            return place(
-                crate::chrome::revealable_bar(root.into_element(), height),
-                height,
-            );
-        }
-
+    fn centered_bar(
+        &self,
+        traffic: Option<Element>,
+        title_label: Label,
+        drag: impl Fn(Event<MouseEventData>) + Clone + 'static,
+        background: vow_design::Rgba,
+        mut content_widths: State<(f32, f32)>,
+    ) -> (Element, f32) {
         let height = if self.close_only {
             TITLEBAR.thickness
         } else {
@@ -423,12 +389,59 @@ impl Component for Titlebar {
             .child(left_slot)
             .child(title)
             .child(right_slot);
-
-        place(
-            crate::chrome::revealable_bar(root.into_element(), height),
-            height,
-        )
+        (root.into_element(), height)
     }
+}
+
+fn place_overlaid(
+    bar: Element,
+    height: f32,
+    controls: Option<&WindowControls>,
+    overlaid: bool,
+) -> Element {
+    if let Some(controls) = controls {
+        let mut reported = controls.overlay_titlebar_height;
+        reported.set_if_modified(if overlaid { height } else { 0.0 });
+    }
+    let Some(controls) = controls.filter(|_| overlaid) else {
+        return bar;
+    };
+    let Some(top) = controls.titlebar_overlay_top() else {
+        return rect()
+            .width(Size::fill())
+            .height(Size::px(0.0))
+            .into_element();
+    };
+    let opacity = *controls.focus_bar_progress.read();
+    rect()
+        .width(Size::fill())
+        .height(Size::px(0.0))
+        // ADR 0057: the full-screen glass spans the whole window, whatever column holds the titlebar.
+        .child(
+            rect()
+                .position(Position::new_global().top(top).left(0.0))
+                .width(Size::window_percent(100.0))
+                .layer(TITLEBAR_OVERLAY_LAYER)
+                .child(crate::glass::fullscreen_backdrop(
+                    *controls.fullscreen_bar.read(),
+                    crate::glass::GlassEdge::Top,
+                    height,
+                    opacity,
+                )),
+        )
+        .child(
+            rect()
+                .position(
+                    Position::new_absolute()
+                        .top(top - controls.push_offset())
+                        .left(0.0),
+                )
+                .width(Size::fill())
+                .layer(TITLEBAR_OVERLAY_LAYER)
+                .opacity(opacity)
+                .child(bar),
+        )
+        .into_element()
 }
 
 pub(crate) const TITLEBAR_OVERLAY_LAYER: i16 = i16::MAX / 32;
@@ -445,8 +458,7 @@ pub fn sidebar_bar_metrics() -> (f32, f32) {
 }
 
 pub fn window_traffic_lights(focused: bool, fixed: bool) -> TrafficLights {
-    let behavior = *window_behavior();
-    let green = green_action(behavior.green_button, fixed);
+    let green = green_action(window_behavior().green_button, fixed);
     TrafficLights::new()
         .round(
             crate::chrome::chrome_style().round_lights
@@ -468,16 +480,13 @@ pub fn window_traffic_lights(focused: bool, fixed: bool) -> TrafficLights {
 
 pub fn window_drag_handler(fixed: bool) -> impl Fn(Event<MouseEventData>) + Clone {
     let last_click = use_hook(|| Rc::new(Cell::new(None::<(Instant, (f64, f64))>)));
-    let double_done = use_hook(|| Rc::new(Cell::new(false)));
     let fixed_cell = use_hook(|| Rc::new(Cell::new(fixed)));
     fixed_cell.set(fixed);
     move |event: Event<MouseEventData>| {
         if event.button != Some(MouseButton::Left) {
             return;
         }
-        let fixed = fixed_cell.get();
         let controls = WindowControls::get();
-        let behavior = *window_behavior();
         let now = Instant::now();
         let point = (event.element_location.x, event.element_location.y);
         let double = last_click.get().is_some_and(|(then, before)| {
@@ -488,172 +497,42 @@ pub fn window_drag_handler(fixed: bool) -> impl Fn(Event<MouseEventData>) + Clon
         });
         if double {
             last_click.set(None);
-            if !double_done.get() {
-                double_done.set(true);
-                run_action(
-                    &controls,
-                    double_click_action(behavior.double_click_titlebar, fixed),
-                );
-            }
+            run_action(
+                &controls,
+                double_click_action(window_behavior().double_click_titlebar, !fixed_cell.get()),
+            );
         } else {
             last_click.set(Some((now, point)));
-            double_done.set(false);
             controls.move_window();
         }
     }
 }
 
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Deserialize)]
-#[serde(rename_all = "lowercase")]
-enum GreenButtonAction {
-    #[default]
-    Focus,
-    Zoom,
-    Fullscreen,
-    None,
-}
-
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Deserialize)]
-#[serde(rename_all = "snake_case")]
-enum DoubleClickAction {
-    Fill,
-    Minimize,
-    #[default]
-    Zoom,
-    None,
-}
-
-#[derive(Debug, Clone, Copy, Default, Deserialize)]
-#[serde(default)]
-struct WindowBehavior {
-    double_click_titlebar: DoubleClickAction,
-    green_button: GreenButtonAction,
-}
-
-fn window_behavior() -> &'static WindowBehavior {
-    static BEHAVIOR: OnceLock<WindowBehavior> = OnceLock::new();
-    BEHAVIOR.get_or_init(|| {
-        let path = vow_appearance::config_dir().join("window.domain");
-        std::fs::read_to_string(path)
-            .ok()
-            .and_then(|text| toml::from_str(&text).ok())
-            .unwrap_or_default()
+fn window_behavior() -> WindowBehavior {
+    thread_local! {
+        static LOADED: Cell<Option<(u64, WindowBehavior)>> = const { Cell::new(None) };
+    }
+    let revision = try_consume_root_context::<DefaultsRevision>()
+        .map_or(0, |DefaultsRevision(revision)| *revision.read());
+    LOADED.with(|loaded| match loaded.get() {
+        Some((seen, behavior)) if seen == revision => behavior,
+        _ => {
+            let behavior = read_window_behavior();
+            loaded.set(Some((revision, behavior)));
+            behavior
+        }
     })
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum TitlebarAction {
-    Focus,
-    Maximize,
-    VerticalMaximize,
-    Minimize,
-    Fullscreen,
-    None,
-}
-
-fn green_action(action: GreenButtonAction, fixed: bool) -> TitlebarAction {
-    match action {
-        GreenButtonAction::None => TitlebarAction::None,
-        _ if fixed => TitlebarAction::VerticalMaximize,
-        GreenButtonAction::Focus => TitlebarAction::Focus,
-        GreenButtonAction::Zoom => TitlebarAction::Maximize,
-        GreenButtonAction::Fullscreen => TitlebarAction::Fullscreen,
-    }
-}
-
-fn double_click_action(action: DoubleClickAction, fixed: bool) -> TitlebarAction {
-    match action {
-        DoubleClickAction::Fill | DoubleClickAction::Zoom if fixed => TitlebarAction::None,
-        DoubleClickAction::Fill | DoubleClickAction::Zoom => TitlebarAction::Maximize,
-        DoubleClickAction::Minimize => TitlebarAction::Minimize,
-        DoubleClickAction::None => TitlebarAction::None,
-    }
 }
 
 fn run_action(controls: &WindowControls, action: TitlebarAction) {
     match action {
         TitlebarAction::Maximize => controls.toggle_maximize(),
-        TitlebarAction::VerticalMaximize => controls.toggle_vertical_maximize(),
         TitlebarAction::Minimize => controls.minimize(),
-        TitlebarAction::Focus | TitlebarAction::Fullscreen => controls.toggle_fullscreen(),
+        TitlebarAction::Focus => controls.toggle_fullscreen(),
         TitlebarAction::None => {}
     }
 }
 
 pub fn app_id(app_name: &str) -> String {
     format!("{NATIVE_APP_ID_PREFIX}{app_name}")
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn the_green_light_uses_the_configured_action() {
-        assert_eq!(
-            green_action(GreenButtonAction::Focus, false),
-            TitlebarAction::Focus
-        );
-        assert_eq!(
-            green_action(GreenButtonAction::Zoom, false),
-            TitlebarAction::Maximize
-        );
-        assert_eq!(
-            green_action(GreenButtonAction::Zoom, true),
-            TitlebarAction::VerticalMaximize
-        );
-        assert_eq!(
-            green_action(GreenButtonAction::Focus, true),
-            TitlebarAction::VerticalMaximize
-        );
-        assert_eq!(
-            green_action(GreenButtonAction::None, true),
-            TitlebarAction::None
-        );
-        assert_eq!(
-            green_action(GreenButtonAction::Fullscreen, false),
-            TitlebarAction::Fullscreen
-        );
-        assert_eq!(
-            green_action(GreenButtonAction::None, false),
-            TitlebarAction::None
-        );
-    }
-
-    #[test]
-    fn the_double_click_uses_the_configured_action() {
-        assert_eq!(
-            double_click_action(DoubleClickAction::Zoom, false),
-            TitlebarAction::Maximize
-        );
-        assert_eq!(
-            double_click_action(DoubleClickAction::Fill, false),
-            TitlebarAction::Maximize
-        );
-        assert_eq!(
-            double_click_action(DoubleClickAction::Minimize, false),
-            TitlebarAction::Minimize
-        );
-        assert_eq!(
-            double_click_action(DoubleClickAction::None, false),
-            TitlebarAction::None
-        );
-        assert_eq!(
-            double_click_action(DoubleClickAction::Zoom, true),
-            TitlebarAction::None
-        );
-    }
-
-    #[test]
-    fn window_domain_defaults_match_the_compositor() {
-        let behavior: WindowBehavior = toml::from_str("").expect("empty domain");
-        assert_eq!(behavior.green_button, GreenButtonAction::Focus);
-        assert_eq!(behavior.double_click_titlebar, DoubleClickAction::Zoom);
-
-        let behavior: WindowBehavior =
-            toml::from_str("green_button = \"zoom\"\ndouble_click_titlebar = \"minimize\"\n")
-                .expect("window.domain");
-        assert_eq!(behavior.green_button, GreenButtonAction::Zoom);
-        assert_eq!(behavior.double_click_titlebar, DoubleClickAction::Minimize);
-    }
 }
