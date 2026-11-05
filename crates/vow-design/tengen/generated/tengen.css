@@ -63,7 +63,6 @@
   --traffic-close: #ff5f57;
   --traffic-inactive: #d3d3d5;
   --traffic-min: #febc2e;
-  --traffic-rim: #00000033;
   --traffic-zoom: #28c840;
   --wallpaper-fallback: #2b3038;
   --wallpaper-glass: #ffffff3d;
@@ -146,7 +145,6 @@
   --traffic-close: #ff5f57;
   --traffic-inactive: #4e4e50;
   --traffic-min: #febc2e;
-  --traffic-rim: #00000033;
   --traffic-zoom: #28c840;
   --wallpaper-fallback: #2b3038;
   --wallpaper-glass: #ffffff3d;
@@ -229,7 +227,6 @@
   --traffic-close: #ff5f57;
   --traffic-inactive: #4e4e50;
   --traffic-min: #febc2e;
-  --traffic-rim: #00000033;
   --traffic-zoom: #28c840;
   --wallpaper-fallback: #2b3038;
   --wallpaper-glass: #ffffff3d;
@@ -817,8 +814,9 @@
   --window-traffic-lights-margin-start: 15px;
   --window-traffic-lights-pressed-darken: 0.200000;
   --window-traffic-lights-radius: 5px;
-  --window-traffic-lights-rim-color: var(--traffic-rim);
-  --window-traffic-lights-rim-width: 0.500000px;
+  --window-traffic-lights-rim-darken: 0.750000;
+  --window-traffic-lights-rim-inactive-lighten: 0.050000;
+  --window-traffic-lights-rim-width: 1px;
   --window-traffic-lights-size: 14px;
   --window-traffic-lights-styles-accent-close-minimize-darken: 0.280000;
   --window-traffic-lights-styles-accent-glyph-on-dark: #ffffffd1;

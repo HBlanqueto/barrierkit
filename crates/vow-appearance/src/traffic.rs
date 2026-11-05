@@ -2,7 +2,8 @@
 
 use vow_design::{
     ButtonKind, Rgba, TITLEBAR, TRAFFIC_GLYPH_ON_DARK, TRAFFIC_GLYPH_ON_LIGHT,
-    TRAFFIC_GLYPH_STANDARD, TRAFFIC_GLYPHS, TRAFFIC_PRESSED_DARKEN, TitlebarPosition, Triangle,
+    TRAFFIC_GLYPH_STANDARD, TRAFFIC_GLYPHS, TRAFFIC_PRESSED_DARKEN, TRAFFIC_RIM_DARKEN,
+    TRAFFIC_RIM_INACTIVE_LIGHTEN, TitlebarPosition, Triangle,
 };
 
 use crate::TrafficLightStyle;
@@ -57,7 +58,18 @@ pub struct TrafficInput {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ButtonVisual {
     pub fill: Rgba,
+    pub rim: Rgba,
     pub glyph: Option<Rgba>,
+}
+
+impl ButtonVisual {
+    pub fn idle(fill: Rgba) -> Self {
+        Self {
+            fill,
+            rim: fill.lighten(TRAFFIC_RIM_INACTIVE_LIGHTEN),
+            glyph: None,
+        }
+    }
 }
 
 pub fn visual(
@@ -66,25 +78,14 @@ pub fn visual(
     inactive: Rgba,
     input: TrafficInput,
 ) -> [ButtonVisual; 3] {
-    let mut out = [ButtonVisual {
-        fill: inactive,
-        glyph: None,
-    }; 3];
+    let mut out = [ButtonVisual::idle(inactive); 3];
     for (index, slot) in out.iter_mut().enumerate() {
         let kind = TITLEBAR.buttons.order[index].kind;
         let admitted = kind != ButtonKind::Maximize || input.zoom_supported;
-        if !admitted {
-            *slot = ButtonVisual {
-                fill: inactive,
-                glyph: None,
-            };
+        if !admitted || !(input.focused || input.group_hovered) {
             continue;
         }
-        let base = if input.focused || input.group_hovered {
-            lights[index]
-        } else {
-            inactive
-        };
+        let base = lights[index];
         let fill = if input.pressed == Some(kind) {
             base.darken(TRAFFIC_PRESSED_DARKEN)
         } else {
@@ -100,7 +101,11 @@ pub fn visual(
             }
             TrafficLightStyle::Auto | TrafficLightStyle::Standard => TRAFFIC_GLYPH_STANDARD,
         });
-        *slot = ButtonVisual { fill, glyph };
+        *slot = ButtonVisual {
+            fill,
+            rim: fill.darken(TRAFFIC_RIM_DARKEN),
+            glyph,
+        };
     }
     out
 }
@@ -312,6 +317,28 @@ mod tests {
         );
         assert_eq!(visual[0].fill, lights()[0].darken(TRAFFIC_PRESSED_DARKEN));
         assert_eq!(visual[1].fill, lights()[1]);
+    }
+
+    #[test]
+    fn a_lit_light_has_a_darker_rim_and_a_grey_one_a_lighter_rim() {
+        let lit = |focused| {
+            visual(
+                lights(),
+                TrafficLightStyle::Standard,
+                inactive(),
+                TrafficInput {
+                    focused,
+                    group_hovered: false,
+                    pressed: None,
+                    zoom_supported: true,
+                },
+            )
+        };
+        assert_eq!(lit(true)[0].rim, lights()[0].darken(TRAFFIC_RIM_DARKEN));
+        assert_eq!(
+            lit(false)[0].rim,
+            inactive().lighten(TRAFFIC_RIM_INACTIVE_LIGHTEN)
+        );
     }
 
     #[test]

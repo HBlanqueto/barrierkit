@@ -271,15 +271,14 @@ fn emit_glass(out: &mut String, components: &Value, key: &str, name: &str, doc: 
 }
 
 pub(super) fn emit_traffic(out: &mut String, tokens: &Value, components: &Value) {
-    let rim = color_ref(
-        tokens,
-        default_theme(tokens),
-        string(
-            components,
-            "components.window.traffic-lights.rim.color",
-            COMPONENTS,
-        ),
-        "components.window.traffic-lights.rim.color",
+    let rim_darken = number(
+        components,
+        "components.window.traffic-lights.rim.darken",
+        COMPONENTS,
+    );
+    let rim_lighten = number(
+        components,
+        "components.window.traffic-lights.rim.inactive-lighten",
         COMPONENTS,
     );
     let width = number(
@@ -299,10 +298,16 @@ pub(super) fn emit_traffic(out: &mut String, tokens: &Value, components: &Value)
     );
     const_doc(
         out,
-        "TRAFFIC_RIM",
-        "The hairline rim around each traffic light.",
+        "TRAFFIC_RIM_DARKEN",
+        "How much a lit traffic light's rim darkens its fill.",
     );
-    out.push_str(&format!(": Rgba = {};\n\n", rgba(rim)));
+    out.push_str(&format!(": f32 = {};\n\n", float(rim_darken)));
+    const_doc(
+        out,
+        "TRAFFIC_RIM_INACTIVE_LIGHTEN",
+        "How much a grey traffic light's rim lightens its fill.",
+    );
+    out.push_str(&format!(": f32 = {};\n\n", float(rim_lighten)));
     const_doc(
         out,
         "TRAFFIC_RIM_WIDTH",

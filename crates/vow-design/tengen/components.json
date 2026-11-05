@@ -298,8 +298,10 @@
         "inactive": "{traffic-inactive}",
         "margin-start": 15,
         "rim": {
-          "color": "{traffic-rim}",
-          "width": 0.5
+          "darken": 0.75,
+          "inactive-lighten": 0.05,
+          "width": 1,
+          "rule": "Borde interior del mismo tono: oscurecido si el semáforo tiene color, aclarado si está gris (Tahoe)."
         },
         "glyphs": {
           "box": 8,

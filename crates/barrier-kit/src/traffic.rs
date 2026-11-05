@@ -5,7 +5,7 @@ use freya_core::prelude::*;
 use torin::prelude::{Direction, Size};
 use vow_appearance::traffic::{self, TrafficInput, TrafficPointer};
 use vow_appearance::{TrafficLightStyle, palette as base_palette};
-use vow_design::{ButtonKind, Rgba, TITLEBAR, TRAFFIC_GLYPHS};
+use vow_design::{ButtonKind, Rgba, TITLEBAR, TRAFFIC_GLYPHS, TRAFFIC_RIM_WIDTH};
 
 use crate::ProbeExt;
 use crate::theme;
@@ -123,8 +123,7 @@ impl Component for TrafficLights {
         if self.close_only {
             for (index, visual) in visuals.iter_mut().enumerate() {
                 if TITLEBAR.buttons.order[index].kind != ButtonKind::Close {
-                    visual.fill = inactive;
-                    visual.glyph = None;
+                    *visual = traffic::ButtonVisual::idle(inactive);
                 }
             }
         }
@@ -163,6 +162,7 @@ impl Component for TrafficLights {
                 .height(Size::px(diameter as f32))
                 .corner_radius(corner_radius)
                 .background(theme::color(visual.fill))
+                .border(rim(visual.rim))
                 .center()
                 .maybe_child(visual.glyph.map(|glyph| {
                     SvgViewer::new((
@@ -254,6 +254,13 @@ impl Component for TrafficLights {
     }
 }
 
+fn rim(color: Rgba) -> Border {
+    Border::new()
+        .width(TRAFFIC_RIM_WIDTH)
+        .alignment(BorderAlignment::Inner)
+        .fill(theme::color(color))
+}
+
 pub fn traffic_lights_view(
     input: TrafficInput,
     lights: [Rgba; 3],
@@ -274,6 +281,7 @@ pub fn traffic_lights_view(
                 .height(Size::px(diameter as f32))
                 .corner_radius(TITLEBAR.buttons.corner_radius as f32)
                 .background(theme::color(visual.fill))
+                .border(rim(visual.rim))
                 .center()
                 .maybe_child(visual.glyph.map(|glyph| {
                     SvgViewer::new((
