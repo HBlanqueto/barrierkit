@@ -244,13 +244,6 @@ impl WindowControls {
         self.ping.ping();
     }
 
-    pub fn toggle_vertical_maximize(&self) {
-        self.queue
-            .borrow_mut()
-            .push(WindowCommand::ToggleVerticalMaximize);
-        self.ping.ping();
-    }
-
     pub fn toggle_fullscreen(&self) {
         self.queue
             .borrow_mut()
@@ -277,7 +270,6 @@ pub(crate) enum WindowCommand {
     Close,
     Minimize,
     ToggleMaximize,
-    ToggleVerticalMaximize,
     ToggleFullscreen,
     Move(u32),
     Resize(u32, WindowEdge),
@@ -553,7 +545,7 @@ impl Runtime {
                 };
                 match command {
                     WindowCommand::Minimize => window.set_minimized(),
-                    WindowCommand::ToggleMaximize | WindowCommand::ToggleVerticalMaximize => {
+                    WindowCommand::ToggleMaximize => {
                         if context.controls.status.read().maximized {
                             window.unset_maximized();
                         } else {
