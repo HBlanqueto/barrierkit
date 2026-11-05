@@ -116,14 +116,6 @@ pub(in crate::platform) fn cursor_shape_from_icon(icon: CursorIcon) -> CursorSha
     }
 }
 
-pub(in crate::platform) fn find_index_by_id<T, Id: Eq>(
-    items: &[T],
-    id: Id,
-    get_id: impl Fn(&T) -> Id,
-) -> Option<usize> {
-    items.iter().position(|item| get_id(item) == id)
-}
-
 impl SeatHandler for Runtime {
     fn seat_state(&mut self) -> &mut SeatState {
         &mut self.seat
@@ -643,7 +635,7 @@ impl Runtime {
         position: (f64, f64),
         phase: freya_core::prelude::TouchPhase,
     ) {
-        let Some(index) = find_index_by_id(&self.surfaces, surface_id, |s| s.surface.id()) else {
+        let Some(index) = self.surface_index_by_id(&surface_id) else {
             return;
         };
         let platform_event = PlatformEvent::Touch {

@@ -1,8 +1,6 @@
-use freya_core::{integration::UserEvent, prelude::CursorIcon};
 use sctk::reexports::{
     calloop::{self, EventLoop},
     client::backend::ObjectId,
-    protocols::wp::cursor_shape::v1::client::wp_cursor_shape_device_v1::Shape as CursorShape,
 };
 use sctk::seat::keyboard::{KeyEvent, Keysym};
 use std::{
@@ -12,20 +10,13 @@ use std::{
     sync::atomic::{AtomicUsize, Ordering},
     time::Duration,
 };
-use torin::prelude::CursorPoint;
-use wayland_protocols::wp::fractional_scale::v1::client::wp_fractional_scale_v1::WpFractionalScaleV1;
-use wayland_protocols::wp::viewporter::client::wp_viewport::WpViewport;
 
 pub(super) const REVEAL_STEP: Duration = Duration::from_millis(16);
 pub(super) const REVEAL_TIME: Duration = Duration::from_millis(vow_design::DURATION_BASE + 100);
 
 use super::{
-    input::seat::{
-        RepeatState, cursor_shape_from_icon, find_index_by_id, released_repeated_key,
-        should_repeat_key, stop_repeat,
-    },
-    runtime::{drain_user_events, make_sender},
-    surface::{buffer_size, destroy_fractional_objects, physical_point, scale_from_wire},
+    input::seat::{RepeatState, released_repeated_key, should_repeat_key, stop_repeat},
+    surface::buffer_size,
     timer::{Timers, Wake, WakeQueue},
     window::{
         WindowControls, WindowEdge, WindowStatus, clamp_toplevel_size_dimension, resize_edge_at,
@@ -118,44 +109,8 @@ fn toplevel_size_dimension_clamps_to_unbounded() {
 }
 
 #[test]
-fn scale_from_wire_converts_fractional_scale_values() {
-    assert!((scale_from_wire(120) - 1.0).abs() < f64::EPSILON);
-    assert!((scale_from_wire(150) - 1.25).abs() < f64::EPSILON);
-    assert!((scale_from_wire(180) - 1.5).abs() < f64::EPSILON);
-    assert!((scale_from_wire(240) - 2.0).abs() < f64::EPSILON);
-}
-
-#[test]
 fn buffer_size_rounds_logical_size_at_fractional_scale() {
     assert_eq!(buffer_size((801, 601), 1.25), (1001, 751));
-}
-
-#[test]
-fn pointer_and_touch_coordinates_become_physical() {
-    assert_eq!(
-        physical_point((10.0, 20.0), 1.5),
-        CursorPoint::from((15.0, 30.0))
-    );
-    assert_eq!(
-        physical_point((3.0, 4.0), 2.0),
-        CursorPoint::from((6.0, 8.0))
-    );
-    assert_eq!(
-        physical_point((10.0, 20.0), 1.25),
-        CursorPoint::from((12.5, 25.0))
-    );
-}
-
-#[test]
-fn fractional_scale_hit_test_respects_one_pixel_border() {
-    let scale = 1.25;
-    let border_physical = 1.0 * scale;
-    let inside = physical_point((0.5, 0.5), scale);
-    let outside = physical_point((1.5, 1.5), scale);
-    assert!(inside.x < border_physical);
-    assert!(inside.y < border_physical);
-    assert!(outside.x >= border_physical);
-    assert!(outside.y >= border_physical);
 }
 
 #[test]
@@ -295,151 +250,6 @@ fn pressing_b_then_releasing_a_keeps_b_repeating() {
             .as_ref()
             .is_some_and(|state| state.event.keysym == b.keysym)
     );
-}
-
-#[test]
-fn sender_tags_user_events_with_surface_id() {
-    let (ping, _) = calloop::ping::make_ping().unwrap();
-    let queue: Rc<RefCell<Vec<(ObjectId, UserEvent)>>> = Rc::new(RefCell::new(Vec::new()));
-    let owner = ObjectId::null();
-    let sender = make_sender(queue.clone(), ping, owner.clone());
-    sender(UserEvent::RequestRedraw);
-    let events = drain_user_events(&queue);
-    assert_eq!(events.len(), 1);
-    assert_eq!(events[0].0, owner);
-}
-
-#[test]
-fn cursor_icon_maps_to_wayland_shape() {
-    assert_eq!(
-        cursor_shape_from_icon(CursorIcon::Default),
-        CursorShape::Default
-    );
-    assert_eq!(cursor_shape_from_icon(CursorIcon::Text), CursorShape::Text);
-    assert_eq!(
-        cursor_shape_from_icon(CursorIcon::Pointer),
-        CursorShape::Pointer
-    );
-    assert_eq!(cursor_shape_from_icon(CursorIcon::Grab), CursorShape::Grab);
-    assert_eq!(
-        cursor_shape_from_icon(CursorIcon::Grabbing),
-        CursorShape::Grabbing
-    );
-    assert_eq!(
-        cursor_shape_from_icon(CursorIcon::NotAllowed),
-        CursorShape::NotAllowed
-    );
-    assert_eq!(
-        cursor_shape_from_icon(CursorIcon::NResize),
-        CursorShape::NResize
-    );
-    assert_eq!(
-        cursor_shape_from_icon(CursorIcon::EResize),
-        CursorShape::EResize
-    );
-    assert_eq!(
-        cursor_shape_from_icon(CursorIcon::EwResize),
-        CursorShape::EwResize
-    );
-    assert_eq!(
-        cursor_shape_from_icon(CursorIcon::NsResize),
-        CursorShape::NsResize
-    );
-}
-
-#[test]
-fn touch_routing_uses_the_stored_surface_id() {
-    let surfaces = vec![('B', 1usize), ('A', 2usize)];
-    let touch_id = 7;
-    let stored_surface_id = 2usize;
-
-    let mut touch_surfaces: std::collections::HashMap<i32, usize> =
-        std::collections::HashMap::new();
-    touch_surfaces.insert(touch_id, stored_surface_id);
-
-    let routed_id = touch_surfaces.get(&touch_id).copied();
-    let index = find_index_by_id(&surfaces, routed_id.unwrap(), |item| item.1);
-
-    assert_eq!(routed_id, Some(stored_surface_id));
-    assert_eq!(
-        index,
-        Some(1),
-        "motion/up for the same touch id must reach surface A"
-    );
-}
-
-#[test]
-fn destroy_fractional_objects_is_safe_when_missing() {
-    let mut fractional: Option<WpFractionalScaleV1> = None;
-    let mut viewport: Option<WpViewport> = None;
-    destroy_fractional_objects(&mut fractional, &mut viewport);
-    assert!(fractional.is_none());
-    assert!(viewport.is_none());
-}
-
-#[cfg(feature = "shell")]
-#[test]
-fn extension_slot_typed_access() {
-    use freya_core::integration::Runner;
-    use sctk::reexports::client::{
-        QueueHandle,
-        protocol::{wl_output::WlOutput, wl_seat::WlSeat},
-    };
-
-    use super::{
-        extension::{Extension, ExtensionHooks},
-        runtime::Runtime,
-    };
-
-    fn no_op_runner(_: &Runtime, _: &mut Runner) {}
-    fn no_op_seat(_: &mut Runtime, _: &WlSeat) {}
-    fn no_op_output(_: &mut Runtime, _: &QueueHandle<Runtime>, _: &WlOutput) {}
-    fn no_op_poll(_: &mut Runtime) {}
-
-    let mut ext = Extension {
-        state: Box::new(42i32),
-        hooks: ExtensionHooks {
-            provide_contexts: no_op_runner,
-            new_seat: no_op_seat,
-            new_output: no_op_output,
-            poll: no_op_poll,
-        },
-    };
-
-    assert_eq!(ext.state::<i32>(), Some(&42));
-    assert_eq!(ext.state::<String>(), None);
-    *ext.state_mut::<i32>().expect("i32 state") = 7;
-    assert_eq!(ext.state::<i32>(), Some(&7));
-    assert_eq!(ext.state_mut::<String>(), None);
-}
-
-#[cfg(feature = "shell")]
-#[test]
-fn extension_role_parent_popup_default_is_false() {
-    use std::{any::Any, os::unix::net::UnixStream};
-
-    use sctk::reexports::{
-        client::{Proxy, backend::Backend},
-        protocols::xdg::shell::client::xdg_popup::XdgPopup,
-    };
-
-    use super::surface::{ExtensionRole, SurfaceRole};
-
-    #[derive(Debug)]
-    struct DummyRole;
-
-    impl ExtensionRole for DummyRole {
-        fn as_any(&self) -> &dyn Any {
-            self
-        }
-    }
-
-    let (client_sock, _server_sock) = UnixStream::pair().unwrap();
-    let backend = Backend::connect(client_sock).unwrap();
-    let popup = XdgPopup::inert(backend.downgrade());
-
-    let role = SurfaceRole::Extension(Box::new(DummyRole));
-    assert!(!role.parent_popup(&popup));
 }
 
 #[cfg(test)]

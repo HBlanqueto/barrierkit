@@ -140,12 +140,6 @@ pub(crate) fn make_sender(
     })
 }
 
-pub(crate) fn drain_user_events(
-    events: &Rc<RefCell<Vec<(ObjectId, UserEvent)>>>,
-) -> Vec<(ObjectId, UserEvent)> {
-    std::mem::take(&mut *events.borrow_mut())
-}
-
 pub(crate) fn insert_ping(
     event_loop: &mut EventLoop<Runtime>,
     shell: &mut Runtime,
@@ -157,7 +151,8 @@ pub(crate) fn insert_ping(
     event_loop
         .handle()
         .insert_source(source, move |_, _, shell: &mut Runtime| {
-            for (surface_id, event) in drain_user_events(&shell.queue) {
+            let events = std::mem::take(&mut *shell.queue.borrow_mut());
+            for (surface_id, event) in events {
                 match event {
                     UserEvent::RequestRedraw => {
                         if let Some(index) = shell.surface_index_by_id(&surface_id) {

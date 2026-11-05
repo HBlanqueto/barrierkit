@@ -249,29 +249,18 @@ impl SurfaceWindow {
             .set_opaque_region(region.as_ref().map(Region::wl_region));
         self.opaque_size = opaque;
     }
-
-    pub(crate) fn destroy_fractional(&mut self) {
-        destroy_fractional_objects(&mut self.fractional, &mut self.viewport);
-    }
 }
 
 impl Drop for SurfaceWindow {
     fn drop(&mut self) {
         // The swapchain must go before the role destroys the wl_surface (vkCreateWaylandSurfaceKHR).
         self.graphics = None;
-        self.destroy_fractional();
-    }
-}
-
-pub(crate) fn destroy_fractional_objects(
-    fractional: &mut Option<WpFractionalScaleV1>,
-    viewport: &mut Option<WpViewport>,
-) {
-    if let Some(fractional) = fractional.take() {
-        fractional.destroy();
-    }
-    if let Some(viewport) = viewport.take() {
-        viewport.destroy();
+        if let Some(fractional) = self.fractional.take() {
+            fractional.destroy();
+        }
+        if let Some(viewport) = self.viewport.take() {
+            viewport.destroy();
+        }
     }
 }
 
