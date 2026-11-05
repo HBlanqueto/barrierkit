@@ -344,6 +344,7 @@ impl Component for HeroCopy {
         let featured_gallery = gallery(FEATURED[self.featured]);
         let timers = try_consume_root_context::<Timers>();
         let mut moved = use_state(|| 0u64);
+        let previews = use_state(|| 0u64);
         let previewing = self.previewing;
         let on_preview = self.on_preview.clone();
         let dwell = move |_| {
@@ -357,8 +358,15 @@ impl Component for HeroCopy {
             timers.after(DWELL, move || {
                 if *moved.peek() == next && *hovered.peek() {
                     on_preview.call(true);
+                    let mut previews = previews;
+                    let started = *previews.peek() + 1;
+                    previews.set(started);
                     let on_preview = on_preview.clone();
-                    ending.after(PREVIEW, move || on_preview.call(false));
+                    ending.after(PREVIEW, move || {
+                        if *previews.peek() == started {
+                            on_preview.call(false);
+                        }
+                    });
                 }
             });
         };
