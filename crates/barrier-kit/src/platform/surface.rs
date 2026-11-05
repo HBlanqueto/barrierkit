@@ -96,7 +96,8 @@ impl SurfaceRole {
 
 impl SurfaceWindow {
     pub(crate) fn request_frame_callback(&mut self, qh: &QueueHandle<Runtime>) {
-        if !self.frame_pending {
+        // ext-session-lock-v1: a commit without a buffer is a protocol error (null_buffer).
+        if !self.frame_pending && self.draw_count > 0 {
             self.frame_pending = true;
             let _callback: WlCallback = self.surface.frame(qh, self.surface.clone());
             self.surface.commit();
@@ -106,6 +107,20 @@ impl SurfaceWindow {
     pub(crate) fn request_redraw(&mut self, qh: &QueueHandle<Runtime>) {
         self.needs_redraw = true;
         self.request_frame_callback(qh);
+    }
+
+    pub(crate) fn draw_after_configure(
+        &mut self,
+        compositor: &CompositorState,
+        qh: &QueueHandle<Runtime>,
+    ) {
+        // The first buffer follows the first configure; an unmapped surface gets no frame callbacks.
+        if self.draw_count == 0 {
+            let _ = self.draw(compositor);
+        }
+        if self.needs_redraw {
+            self.request_frame_callback(qh);
+        }
     }
 
     pub(crate) fn configure(&mut self, size: (u32, u32), scale: f64) {

@@ -44,7 +44,7 @@ pub fn run_lock(app: AppComponent) -> Result<(), RunError> {
         globals,
     } = Runtime::connect()?;
     let qh = runtime.qh.clone();
-    ShellState::install(&mut runtime, app, &globals, &qh, true);
+    ShellState::install(&mut runtime, app, &globals, &qh);
     let lock = {
         let session_lock_state = runtime
             .extension::<ShellState>()
@@ -57,17 +57,19 @@ pub fn run_lock(app: AppComponent) -> Result<(), RunError> {
             .map_err(|_| RunError::MissingGlobal("ext_session_lock_manager_v1 (lock refused)"))?
     };
     let unlock_lock = lock.clone();
-    {
-        let shell = runtime
-            .extension_mut::<ShellState>()
-            .expect("ShellState not installed after install");
-        shell.active_lock = Some(lock);
+    runtime
+        .extension_mut::<ShellState>()
+        .expect("ShellState not installed after install")
+        .active_lock = Some(lock);
+    let outputs: Vec<wl_output::WlOutput> = runtime.output.outputs().collect();
+    for output in outputs {
+        runtime.create_lock_surface(&qh, &output);
     }
 
     let mut event_loop: EventLoop<Runtime> = EventLoop::try_new()
         .map_err(|_| RunError::EventLoop("calloop EventLoop::try_new failed"))?;
     insert_ping(&mut event_loop, &mut runtime)?;
-    let flush_conn = conn.clone();
+    let unlock_conn = conn.clone();
     WaylandSource::new(conn, event_queue)
         .insert(event_loop.handle())
         .map_err(|_| RunError::EventLoop("inserting the Wayland source"))?;
@@ -80,7 +82,8 @@ pub fn run_lock(app: AppComponent) -> Result<(), RunError> {
         shell.session_unlock = Some(SessionUnlock {
             unlock: Rc::new(move || {
                 unlock_lock.unlock();
-                let _ = flush_conn.flush();
+                // ext-session-lock-v1: wait for unlock_and_destroy to be processed before exiting.
+                let _ = unlock_conn.roundtrip();
                 signal.stop();
             }),
         });
@@ -186,25 +189,9 @@ impl Runtime {
 }
 
 impl SessionLockHandler for Runtime {
-    fn locked(&mut self, _: &Connection, qh: &QueueHandle<Self>, session_lock: SessionLock) {
-        {
-            let shell = self
-                .extension_mut::<ShellState>()
-                .expect("session_lock locked event without ShellState");
-            shell.active_lock = Some(session_lock);
-            shell.session_locked = true;
-        }
-        let outputs: Vec<wl_output::WlOutput> = self.output.outputs().collect();
-        for output in outputs {
-            self.create_lock_surface(qh, &output);
-        }
-    }
+    fn locked(&mut self, _: &Connection, _: &QueueHandle<Self>, _: SessionLock) {}
 
     fn finished(&mut self, _: &Connection, _: &QueueHandle<Self>, _: SessionLock) {
-        let shell = self
-            .extension_mut::<ShellState>()
-            .expect("session_lock finished event without ShellState");
-        shell.session_locked = false;
         eprintln!("malaysia-shell lock: the compositor refused the session lock");
         std::process::exit(1);
     }
@@ -223,7 +210,7 @@ impl SessionLockHandler for Runtime {
         };
         let scale = self.surfaces[index].scale;
         self.surfaces[index].configure(configure.new_size, scale);
-        self.surfaces[index].request_redraw(qh);
+        self.surfaces[index].draw_after_configure(&self.compositor, qh);
     }
 }
 

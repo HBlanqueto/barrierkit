@@ -41,7 +41,6 @@ pub(crate) struct ShellState {
     pub(crate) session_lock: Option<SessionLockState>,
     pub(crate) active_lock: Option<SessionLock>,
     pub(crate) session_unlock: Option<SessionUnlock>,
-    pub(crate) session_locked: bool,
     pub(crate) _foreign_list: Option<ExtForeignToplevelListV1>,
     pub(crate) foreign_mgmt: Option<ZwlrForeignToplevelManagerV1>,
     pub(crate) _infinity_manager: Rc<RefCell<Option<InfinityWindowManagerV1>>>,
@@ -50,7 +49,6 @@ pub(crate) struct ShellState {
     pub(crate) activation: Activation,
     pub(crate) activation_global: Option<XdgActivationV1>,
     pub(crate) activation_callbacks: Vec<Option<ActivationCallback>>,
-    pub(crate) lock_mode: bool,
 }
 
 impl ShellState {
@@ -59,7 +57,6 @@ impl ShellState {
         app: AppComponent,
         globals: &GlobalList,
         qh: &QueueHandle<Runtime>,
-        lock_mode: bool,
     ) {
         let layer_shell = LayerShell::bind(globals, qh).ok();
         let session_lock = Some(SessionLockState::new(globals, qh));
@@ -206,7 +203,6 @@ impl ShellState {
             session_lock,
             active_lock: None,
             session_unlock: None,
-            session_locked: false,
             _foreign_list: foreign_list,
             foreign_mgmt,
             _infinity_manager: infinity_manager,
@@ -215,7 +211,6 @@ impl ShellState {
             activation,
             activation_global,
             activation_callbacks: Vec::new(),
-            lock_mode,
         };
 
         rt.install_extension(Extension {
@@ -267,15 +262,7 @@ impl ShellState {
         qh: &QueueHandle<Runtime>,
         output: &sctk::reexports::client::protocol::wl_output::WlOutput,
     ) {
-        let (session_locked, lock_mode) = {
-            let shell = rt
-                .extension::<ShellState>()
-                .expect("new_output called without ShellState");
-            (shell.session_locked, shell.lock_mode)
-        };
-        if session_locked && lock_mode {
-            rt.create_lock_surface(qh, output);
-        }
+        rt.create_lock_surface(qh, output);
     }
 
     fn poll(rt: &mut Runtime) {
