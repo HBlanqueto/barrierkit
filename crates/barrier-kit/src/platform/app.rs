@@ -1,5 +1,4 @@
 use accesskit::Role;
-use freya_clipboard::copypasta::ClipboardProvider;
 
 use crate::app::DefaultsRevision;
 use freya_components::{cache::AssetCacher, integration::integration};
@@ -17,18 +16,22 @@ use freya_core::{
 };
 use freya_engine::prelude::{FontCollection, FontMgr};
 use ragnarok::{EventsExecutorRunner, EventsMeasurerRunner, NodesState};
+use sctk::reexports::client::backend::ObjectId;
 use std::{
     borrow::Cow,
+    cell::Cell,
     pin::pin,
     rc::Rc,
+    sync::Arc,
     task::{Context, Waker},
 };
 use torin::prelude::Size2D;
 use vow_appearance::Resolved;
 
 use super::{
-    popup::{PopupHandle, Popups},
-    timer::Timers,
+    popup::{PopupHandle, PopupId, Popups},
+    runtime::Runtime,
+    timer::{PingWake, Timers},
     window::WindowControls,
 };
 
@@ -50,7 +53,6 @@ pub(crate) struct AppInstance {
     size: Size2D,
     needs_layout: bool,
     waker: Waker,
-    pub(crate) menu: Option<crate::app_menu::AppMenu>,
     pub(crate) menu_actions: crate::app::MenuActions,
     pub(crate) resolved: State<Resolved>,
     accessibility: AccessibilityTree,
@@ -62,23 +64,49 @@ pub(crate) struct AppInstance {
 impl AppInstance {
     #[allow(clippy::too_many_arguments)]
     pub(crate) fn new(
+        rt: &Runtime,
+        owner: ObjectId,
         app: AppComponent,
         scale_factor: f64,
         size: (u32, u32),
-        sender: Rc<dyn Fn(UserEvent)>,
-        waker: Waker,
         window: Option<WindowControls>,
-        timers: Timers,
-        popups: Popups,
-        popup_handle: Option<PopupHandle>,
-        font_collection: FontCollection,
-        font_manager: FontMgr,
-        menu: Option<crate::app_menu::AppMenu>,
-        resolved: State<Resolved>,
-        clipboard: Box<dyn ClipboardProvider>,
-        defaults_revision: State<u64>,
-        extra_contexts: impl FnOnce(&mut Runner),
+        popup: Option<(PopupId, Rc<Cell<bool>>)>,
+        menu_handle: Option<crate::app_menu::MenuHandle>,
     ) -> Self {
+        let waker = futures_util::task::waker(Arc::new(PingWake(rt.ping.clone())));
+        let sender: Rc<dyn Fn(UserEvent)> = {
+            let (queue, ping, owner) = (rt.queue.clone(), rt.ping.clone(), owner.clone());
+            Rc::new(move |event| {
+                queue.borrow_mut().push((owner.clone(), event));
+                ping.ping();
+            })
+        };
+        let popups = Popups {
+            queue: rt.popup_commands.clone(),
+            ping: rt.ping.clone(),
+            next_id: rt.popup_next_id.clone(),
+            last_serial: rt.last_input_serial.clone(),
+            owner,
+            current: popup.as_ref().map(|(id, _)| *id),
+            opens_left: popup
+                .as_ref()
+                .map_or_else(Rc::default, |(_, left)| left.clone()),
+            scroll_shift: Rc::default(),
+        };
+        let popup_handle = popup.map(|(id, _)| PopupHandle {
+            id,
+            popups: popups.clone(),
+        });
+        let timers = Timers {
+            queue: rt.timers.clone(),
+            ping: rt.ping.clone(),
+            wake: rt.wake.clone(),
+        };
+        let font_collection = rt.graphics.font_collection.clone();
+        let font_manager = rt.graphics.font_manager.clone();
+        let resolved = rt.resolved;
+        let clipboard = rt.clipboard.provider();
+        let defaults_revision = rt.defaults_revision;
         let (events_sender, events_receiver) = futures_channel::mpsc::unbounded();
         let mut runner = Runner::new(move || {
             crate::chrome::window_root(integration(app.clone())).into_element()
@@ -110,7 +138,12 @@ impl AppInstance {
             }
         });
 
-        extra_contexts(&mut runner);
+        if let Some(handle) = menu_handle {
+            runner.provide_root_context(move || handle);
+        }
+        if let Some(hooks) = rt.extension_hooks() {
+            (hooks.provide_contexts)(rt, &mut runner);
+        }
         let window_shown = window.is_some();
         if let Some(window) = window {
             runner.provide_root_context(move || window);
@@ -146,7 +179,6 @@ impl AppInstance {
             size: Size2D::new(size.0 as f32, size.1 as f32),
             needs_layout: true,
             waker,
-            menu,
             menu_actions,
             resolved,
             accessibility,

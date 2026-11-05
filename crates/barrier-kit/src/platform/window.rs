@@ -13,19 +13,14 @@ use sctk::{
         xdg::window::{DecorationMode, Window, WindowConfigure, WindowDecorations, WindowHandler},
     },
 };
-use std::{
-    cell::{Cell, RefCell},
-    rc::Rc,
-    sync::Arc,
-};
+use std::{cell::RefCell, rc::Rc};
 
 use super::{
     RunError,
     app::AppInstance,
-    popup::Popups,
-    runtime::{Connected, Runtime, WindowContext, make_sender},
+    runtime::{Connected, Runtime, WindowContext},
     surface::SurfaceRole,
-    timer::{PingWake, Timers, WakeHandle},
+    timer::WakeHandle,
 };
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, serde::Deserialize, serde::Serialize)]
@@ -204,52 +199,41 @@ impl WindowControls {
         freya_core::prelude::consume_root_context()
     }
 
-    pub fn present(&self, activation_token: String) {
-        self.queue
-            .borrow_mut()
-            .push(WindowCommand::Present(activation_token));
+    fn send(&self, command: WindowCommand) {
+        self.queue.borrow_mut().push(command);
         self.ping.ping();
+    }
+
+    pub fn present(&self, activation_token: String) {
+        self.send(WindowCommand::Present(activation_token));
     }
 
     pub fn close(&self) {
-        self.queue.borrow_mut().push(WindowCommand::Close);
-        self.ping.ping();
+        self.send(WindowCommand::Close);
     }
 
     pub(crate) fn mark_toolbar(&self) {
-        self.queue.borrow_mut().push(WindowCommand::Toolbar);
-        self.ping.ping();
+        self.send(WindowCommand::Toolbar);
     }
 
     pub fn minimize(&self) {
-        self.queue.borrow_mut().push(WindowCommand::Minimize);
-        self.ping.ping();
+        self.send(WindowCommand::Minimize);
     }
 
     pub fn toggle_maximize(&self) {
-        self.queue.borrow_mut().push(WindowCommand::ToggleMaximize);
-        self.ping.ping();
+        self.send(WindowCommand::ToggleMaximize);
     }
 
     pub fn toggle_fullscreen(&self) {
-        self.queue
-            .borrow_mut()
-            .push(WindowCommand::ToggleFullscreen);
-        self.ping.ping();
+        self.send(WindowCommand::ToggleFullscreen);
     }
 
     pub fn move_window(&self) {
-        self.queue
-            .borrow_mut()
-            .push(WindowCommand::Move(self.pointer_serial.get()));
-        self.ping.ping();
+        self.send(WindowCommand::Move(self.pointer_serial.get()));
     }
 
     pub fn resize(&self, edge: WindowEdge) {
-        self.queue
-            .borrow_mut()
-            .push(WindowCommand::Resize(self.pointer_serial.get(), edge));
-        self.ping.ping();
+        self.send(WindowCommand::Resize(self.pointer_serial.get(), edge));
     }
 }
 
@@ -307,11 +291,7 @@ pub(super) fn resize_edge_at(
 impl Runtime {
     pub(super) fn resize_edge(&self, index: usize, position: (f64, f64)) -> Option<WindowEdge> {
         let surface = &self.surfaces[index];
-        let context = self
-            .window_contexts
-            .iter()
-            .find(|ctx| ctx.controls.surface_id == surface.surface.id())?;
-        let status = *context.controls.status.peek();
+        let status = *surface.context.as_ref()?.controls.status.peek();
         let resizable = status.decoration == DecorationResponse::Client
             && !status.maximized
             && !status.fullscreen
@@ -420,7 +400,6 @@ impl Runtime {
             menu_handle = Some(handle);
         }
 
-        let queue: Rc<RefCell<Vec<WindowCommand>>> = Rc::new(RefCell::new(Vec::new()));
         let pointer_serial = Rc::new(std::cell::Cell::new(0));
         let fixed = options.min_size.is_some() && options.min_size == options.max_size;
         let status = State::create_global(WindowStatus {
@@ -432,7 +411,7 @@ impl Runtime {
         });
         let surface_id = surface.id();
         let controls = WindowControls {
-            queue: queue.clone(),
+            queue: Rc::new(RefCell::new(Vec::new())),
             ping: self.ping.clone(),
             pointer_serial,
             status,
@@ -457,74 +436,46 @@ impl Runtime {
             }
             notice
         });
-        self.window_contexts.push(WindowContext {
-            controls: controls.clone(),
-            queue,
-            app_id,
-            focus_notice,
-        });
 
-        let waker = futures_util::task::waker(Arc::new(PingWake(self.ping.clone())));
-        let sender = make_sender(self.queue.clone(), self.ping.clone(), surface.id());
-        let popups = Popups {
-            queue: self.popup_commands.clone(),
-            ping: self.ping.clone(),
-            next_id: self.popup_next_id.clone(),
-            last_serial: self.last_input_serial.clone(),
-            owner: surface.id(),
-            current: None,
-            opens_left: Rc::new(Cell::new(false)),
-            scroll_shift: Rc::new(Cell::new(0.0)),
-        };
         let app_instance = AppInstance::new(
+            self,
+            surface.id(),
             app,
             1.0,
             options.size,
-            sender,
-            waker,
             Some(controls.clone()),
-            Timers {
-                queue: self.timers.clone(),
-                ping: self.ping.clone(),
-                wake: self.wake.clone(),
-            },
-            popups,
             None,
-            self.graphics.font_collection.clone(),
-            self.graphics.font_manager.clone(),
-            options.menu.clone(),
-            self.resolved,
-            self.clipboard.provider(),
-            self.defaults_revision,
-            |r| {
-                if let Some(handle) = menu_handle.clone() {
-                    r.provide_root_context(move || handle);
-                }
-                if let Some(hooks) = self.extension_hooks() {
-                    (hooks.provide_contexts)(self, r);
-                }
-            },
+            menu_handle.clone(),
         );
         let mut window = self.surface_window(surface, SurfaceRole::Window(window), app_instance);
         window.logical_size = options.size;
         window.menu_handle = menu_handle;
+        window.context = Some(WindowContext {
+            controls: controls.clone(),
+            app_id,
+            focus_notice,
+        });
         self.surfaces.push(window);
         Some(controls)
     }
 
     pub(super) fn process_window_commands(&mut self) {
-        let contexts = self.window_contexts.clone();
-        for context in contexts {
-            let commands = std::mem::take(&mut *context.queue.borrow_mut());
+        let pending: Vec<_> = self
+            .surfaces
+            .iter()
+            .filter_map(|surface| surface.context.as_ref())
+            .map(|context| {
+                let commands = std::mem::take(&mut *context.controls.queue.borrow_mut());
+                (context.controls.clone(), commands)
+            })
+            .collect();
+        for (controls, commands) in pending {
             for command in commands {
                 if let WindowCommand::Close = command {
-                    self.close_window(context.controls.surface_id.clone());
+                    self.close_window(controls.surface_id.clone());
                     continue;
                 }
-                let Some(index) = self.surfaces.iter().position(|surface| {
-                    matches!(surface.role, SurfaceRole::Window(_))
-                        && surface.surface.id() == context.controls.surface_id
-                }) else {
+                let Some(index) = self.surface_index_by_id(&controls.surface_id) else {
                     continue;
                 };
                 let SurfaceRole::Window(window) = &self.surfaces[index].role else {
@@ -533,14 +484,14 @@ impl Runtime {
                 match command {
                     WindowCommand::Minimize => window.set_minimized(),
                     WindowCommand::ToggleMaximize => {
-                        if context.controls.status.read().maximized {
+                        if controls.status.read().maximized {
                             window.unset_maximized();
                         } else {
                             window.set_maximized();
                         }
                     }
                     WindowCommand::ToggleFullscreen => {
-                        if context.controls.status.read().fullscreen {
+                        if controls.status.read().fullscreen {
                             window.unset_fullscreen();
                         } else {
                             window.set_fullscreen(None);
@@ -637,16 +588,11 @@ impl Runtime {
             };
             let size_changed = size != self.surfaces[index].logical_size;
             self.surfaces[index].configure(size, scale);
-            let surface_id = self.surfaces[index].surface.id();
             let decoration = match configure.decoration_mode {
                 DecorationMode::Server => DecorationResponse::Server,
                 DecorationMode::Client => DecorationResponse::Client,
             };
-            if let Some(context) = self
-                .window_contexts
-                .iter()
-                .find(|ctx| ctx.controls.surface_id == surface_id)
-            {
+            if let Some(context) = &self.surfaces[index].context {
                 let mut status = context.controls.status;
                 status.set(WindowStatus {
                     activated: configure.is_activated(),
@@ -676,11 +622,10 @@ impl Runtime {
         if window_count <= 1 {
             self.needs_exit = true;
         }
-        if let Some(context) = self
-            .window_contexts
-            .iter()
-            .find(|ctx| ctx.controls.surface_id == surface_id)
-        {
+        let Some(index) = self.surface_index_by_id(&surface_id) else {
+            return;
+        };
+        if let Some(context) = &self.surfaces[index].context {
             let mut status = context.controls.status;
             let shown = *status.peek();
             let state = window_state(&context.app_id);
@@ -691,15 +636,11 @@ impl Runtime {
                     maximized: true,
                     ..previous
                 }),
-                (false, false) => self
-                    .surfaces
-                    .iter()
-                    .find(|s| s.surface.id() == surface_id)
-                    .map(|surface| SavedSize {
-                        width: surface.logical_size.0,
-                        height: surface.logical_size.1,
-                        maximized: false,
-                    }),
+                (false, false) => Some(SavedSize {
+                    width: self.surfaces[index].logical_size.0,
+                    height: self.surfaces[index].logical_size.1,
+                    maximized: false,
+                }),
             };
             if let Some(saved) = saved
                 && let Err(error) = crate::app::save_restoration(&state, &saved)
@@ -711,11 +652,7 @@ impl Runtime {
                 ..*status.read()
             });
         }
-        if !self.needs_exit
-            && let Some(index) = self.surfaces.iter().position(|s| {
-                matches!(s.role, SurfaceRole::Window(_)) && s.surface.id() == surface_id
-            })
-        {
+        if !self.needs_exit && matches!(self.surfaces[index].role, SurfaceRole::Window(_)) {
             if let Some(address) = self.surfaces[index].appmenu_address.take() {
                 crate::app_menu::server::unregister(&address.path);
             }
@@ -723,13 +660,6 @@ impl Runtime {
                 appmenu.release();
             }
             self.surfaces.remove(index);
-            self.window_contexts.retain(|ctx| {
-                let closing = ctx.controls.surface_id == surface_id;
-                if closing && let Some(notice) = &ctx.focus_notice {
-                    notice.destroy();
-                }
-                !closing
-            });
         }
     }
 }

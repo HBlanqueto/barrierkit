@@ -11,14 +11,12 @@ use sctk::{
         LayerSurfaceData,
     },
 };
-use std::{cell::Cell, rc::Rc, sync::Arc};
 
 use crate::platform::{
-    Popups, RunError,
+    RunError,
     app::AppInstance,
-    runtime::{Connected, Runtime, make_sender},
+    runtime::{Connected, Runtime},
     surface::{ExtensionRole, SurfaceRole},
-    timer::{PingWake, Timers},
 };
 use crate::shell::ShellState;
 
@@ -145,48 +143,20 @@ pub fn run_layer(app: AppComponent, spec: LayerSpec) -> Result<(), RunError> {
     }
     surface.commit();
 
-    let waker = futures_util::task::waker(Arc::new(PingWake(shell.ping.clone())));
-    let sender = make_sender(shell.queue.clone(), shell.ping.clone(), surface.id());
-    let popups = Popups {
-        queue: shell.popup_commands.clone(),
-        ping: shell.ping.clone(),
-        next_id: shell.popup_next_id.clone(),
-        last_serial: shell.last_input_serial.clone(),
-        owner: surface.id(),
-        current: None,
-        opens_left: Rc::new(Cell::new(false)),
-        scroll_shift: Rc::new(Cell::new(0.0)),
-    };
     let app = shell
         .extension::<ShellState>()
         .expect("ShellState not installed after install")
         .app
         .clone();
     let app_instance = AppInstance::new(
+        &shell,
+        surface.id(),
         app,
         1.0,
         size.unwrap_or((1, 1)),
-        sender,
-        waker,
         None,
-        Timers {
-            queue: shell.timers.clone(),
-            ping: shell.ping.clone(),
-            wake: shell.wake.clone(),
-        },
-        popups,
         None,
-        shell.graphics.font_collection.clone(),
-        shell.graphics.font_manager.clone(),
         None,
-        shell.resolved,
-        shell.clipboard.provider(),
-        shell.defaults_revision,
-        |r| {
-            if let Some(hooks) = shell.extension_hooks() {
-                (hooks.provide_contexts)(&shell, r);
-            }
-        },
     );
     let mut window = shell.surface_window(
         surface.clone(),

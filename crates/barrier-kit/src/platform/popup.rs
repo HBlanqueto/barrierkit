@@ -9,22 +9,16 @@ use sctk::{
         },
     },
     shell::xdg::{
-        XdgPositioner, XdgSurface,
+        XdgPositioner, XdgShell, XdgSurface,
         popup::{Popup, PopupConfigure, PopupHandler},
     },
 };
 use std::{
     cell::{Cell, RefCell},
     rc::Rc,
-    sync::Arc,
 };
 
-use super::{
-    app::AppInstance,
-    runtime::{Runtime, make_sender},
-    surface::SurfaceRole,
-    timer::{PingWake, Timers},
-};
+use super::{app::AppInstance, runtime::Runtime, surface::SurfaceRole};
 
 #[cfg(test)]
 use sctk::reexports::calloop;
@@ -182,8 +176,8 @@ impl PopupHandle {
 
 #[derive(Clone)]
 pub struct PopupHandle {
-    id: PopupId,
-    popups: Popups,
+    pub(super) id: PopupId,
+    pub(super) popups: Popups,
 }
 
 impl PopupHandle {
@@ -268,23 +262,30 @@ fn gravity_to_sctk(gravity: PopupGravity) -> SctkGravity {
     }
 }
 fn constraint_to_sctk(c: PopupConstraintAdjustment) -> SctkConstraint {
-    let mut out = SctkConstraint::empty();
-    if c.flip_x {
-        out |= SctkConstraint::FlipX;
-    }
-    if c.flip_y {
-        out |= SctkConstraint::FlipY;
-    }
-    if c.slide_x {
-        out |= SctkConstraint::SlideX;
-    }
-    if c.slide_y {
-        out |= SctkConstraint::SlideY;
-    }
-    if c.resize_y {
-        out |= SctkConstraint::ResizeY;
-    }
-    out
+    [
+        (c.flip_x, SctkConstraint::FlipX),
+        (c.flip_y, SctkConstraint::FlipY),
+        (c.slide_x, SctkConstraint::SlideX),
+        (c.slide_y, SctkConstraint::SlideY),
+        (c.resize_y, SctkConstraint::ResizeY),
+    ]
+    .into_iter()
+    .filter(|(on, _)| *on)
+    .fold(SctkConstraint::empty(), |all, (_, flag)| all | flag)
+}
+
+fn positioner(xdg_shell: &XdgShell, spec: &PopupSpec) -> Option<XdgPositioner> {
+    let positioner = XdgPositioner::new(xdg_shell)
+        .inspect_err(|error| tracing::error!(%error, "BarrierKit: could not create xdg_positioner"))
+        .ok()?;
+    let (ax, ay, aw, ah) = spec.anchor_rect;
+    positioner.set_anchor_rect(ax, ay, aw as i32, ah as i32);
+    positioner.set_anchor(anchor_to_sctk(spec.anchor));
+    positioner.set_gravity(gravity_to_sctk(spec.gravity));
+    positioner.set_offset(spec.offset.0, spec.offset.1);
+    positioner.set_size(spec.size.0 as i32, spec.size.1 as i32);
+    positioner.set_constraint_adjustment(constraint_to_sctk(spec.constraint_adjustment));
+    Some(positioner)
 }
 impl Runtime {
     pub(crate) fn process_popup_commands(&mut self) {
@@ -349,21 +350,9 @@ impl Runtime {
                 }
             });
 
-        let positioner = match XdgPositioner::new(xdg_shell) {
-            Ok(positioner) => positioner,
-            Err(error) => {
-                tracing::error!(%error, "BarrierKit: could not create xdg_positioner");
-                return;
-            }
+        let Some(positioner) = positioner(xdg_shell, &spec) else {
+            return;
         };
-        let (ax, ay, aw, ah) = spec.anchor_rect;
-        positioner.set_anchor_rect(ax, ay, aw as i32, ah as i32);
-        positioner.set_anchor(anchor_to_sctk(spec.anchor));
-        positioner.set_gravity(gravity_to_sctk(spec.gravity));
-        let (ox, oy) = spec.offset;
-        positioner.set_offset(ox, oy);
-        positioner.set_size(spec.size.0 as i32, spec.size.1 as i32);
-        positioner.set_constraint_adjustment(constraint_to_sctk(spec.constraint_adjustment));
 
         let surface = match sctk::compositor::Surface::new(&self.compositor, &self.qh) {
             Ok(surface) => surface,
@@ -403,48 +392,16 @@ impl Runtime {
         }
         wl_surface.commit();
 
-        let waker = futures_util::task::waker(Arc::new(PingWake(self.ping.clone())));
-        let sender = make_sender(self.queue.clone(), self.ping.clone(), wl_surface.id());
         let opens_left = Rc::new(Cell::new(false));
-        let popups = Popups {
-            queue: self.popup_commands.clone(),
-            ping: self.ping.clone(),
-            next_id: self.popup_next_id.clone(),
-            last_serial: self.last_input_serial.clone(),
-            owner: wl_surface.id(),
-            current: Some(id),
-            opens_left: opens_left.clone(),
-            scroll_shift: Rc::new(Cell::new(0.0)),
-        };
-        let handle = PopupHandle {
-            id,
-            popups: popups.clone(),
-        };
         let app = AppInstance::new(
+            self,
+            wl_surface.id(),
             content,
             scale,
             spec.size,
-            sender,
-            waker,
             None,
-            Timers {
-                queue: self.timers.clone(),
-                ping: self.ping.clone(),
-                wake: self.wake.clone(),
-            },
-            popups,
-            Some(handle),
-            self.graphics.font_collection.clone(),
-            self.graphics.font_manager.clone(),
+            Some((id, opens_left.clone())),
             None,
-            self.resolved,
-            self.clipboard.provider(),
-            self.defaults_revision,
-            |r| {
-                if let Some(hooks) = self.extension_hooks() {
-                    (hooks.provide_contexts)(self, r);
-                }
-            },
         );
 
         let output = self.surfaces[owner_index].output.clone();
@@ -476,21 +433,9 @@ impl Runtime {
             _ => return,
         };
 
-        let positioner = match XdgPositioner::new(xdg_shell) {
-            Ok(positioner) => positioner,
-            Err(error) => {
-                tracing::error!(%error, "BarrierKit: could not create xdg_positioner");
-                return;
-            }
+        let Some(positioner) = positioner(xdg_shell, &spec) else {
+            return;
         };
-        let (ax, ay, aw, ah) = spec.anchor_rect;
-        positioner.set_anchor_rect(ax, ay, aw as i32, ah as i32);
-        positioner.set_anchor(anchor_to_sctk(spec.anchor));
-        positioner.set_gravity(gravity_to_sctk(spec.gravity));
-        let (ox, oy) = spec.offset;
-        positioner.set_offset(ox, oy);
-        positioner.set_size(spec.size.0 as i32, spec.size.1 as i32);
-        positioner.set_constraint_adjustment(constraint_to_sctk(spec.constraint_adjustment));
 
         popup.reposition(&positioner, 0);
         self.surfaces[index].surface.commit();

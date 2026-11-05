@@ -30,9 +30,8 @@ impl Dispatch<InfinityFocusSurfaceV1, ObjectId> for Runtime {
         _: &QueueHandle<Self>,
     ) {
         let Some(context) = state
-            .window_contexts
-            .iter()
-            .find(|context| context.controls.surface_id == *surface_id)
+            .surface_index_by_id(surface_id)
+            .and_then(|index| state.surfaces[index].context.as_ref())
         else {
             return;
         };

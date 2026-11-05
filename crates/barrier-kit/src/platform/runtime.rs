@@ -8,7 +8,7 @@ use super::{
     surface::SurfaceWindow,
     timer::{TimerQueue, Wake},
     vulkan::{GraphicsShared, IDLE_RESOURCE_RELEASE},
-    window::{WindowCommand, WindowControls},
+    window::WindowControls,
 };
 use freya_core::prelude::State;
 
@@ -111,7 +111,6 @@ pub(crate) struct Runtime {
     pub(crate) touch_surfaces: std::collections::HashMap<i32, (ObjectId, (f64, f64))>,
     pub(crate) popup_commands: Rc<RefCell<Vec<PopupCommand>>>,
     pub(crate) popup_next_id: Rc<Cell<u64>>,
-    pub(crate) window_contexts: Vec<WindowContext>,
     pub(crate) appearance_watch: Option<AppearanceWatch>,
     pub(crate) resolved: State<Resolved>,
     pub(crate) pending_menu_addresses: Arc<Mutex<Vec<(ObjectId, AppMenuAddress)>>>,
@@ -121,23 +120,10 @@ pub(crate) struct Runtime {
     pub(crate) clipboard_device: Option<ClipboardDevice>,
 }
 
-#[derive(Clone)]
 pub(crate) struct WindowContext {
     pub(crate) controls: WindowControls,
-    pub(crate) queue: Rc<RefCell<Vec<WindowCommand>>>,
     pub(crate) app_id: String,
     pub(crate) focus_notice: Option<super::focus::InfinityFocusSurfaceV1>,
-}
-
-pub(crate) fn make_sender(
-    queue: Rc<RefCell<Vec<(ObjectId, UserEvent)>>>,
-    ping: Ping,
-    owner: ObjectId,
-) -> Rc<dyn Fn(UserEvent)> {
-    Rc::new(move |event| {
-        queue.borrow_mut().push((owner.clone(), event));
-        ping.ping();
-    })
 }
 
 impl Runtime {
@@ -369,7 +355,6 @@ impl Runtime {
             touch_surfaces: std::collections::HashMap::new(),
             popup_commands: Rc::new(RefCell::new(Vec::new())),
             popup_next_id: Rc::new(Cell::new(1)),
-            window_contexts: Vec::new(),
             appearance_watch: None,
             resolved,
             pending_menu_addresses: Arc::new(Mutex::new(Vec::new())),

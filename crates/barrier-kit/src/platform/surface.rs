@@ -31,7 +31,7 @@ use super::{
     app::AppInstance,
     app_menu_export::AppMenuAddress,
     popup::PopupInfo,
-    runtime::Runtime,
+    runtime::{Runtime, WindowContext},
     vulkan::{Graphics, GraphicsShared},
 };
 
@@ -56,6 +56,7 @@ pub(crate) struct SurfaceWindow {
     pub(crate) menu_handle: Option<crate::app_menu::MenuHandle>,
     pub(crate) fractional: Option<WpFractionalScaleV1>,
     pub(crate) viewport: Option<WpViewport>,
+    pub(crate) context: Option<WindowContext>,
 }
 
 #[cfg(feature = "shell")]
@@ -261,6 +262,9 @@ impl Drop for SurfaceWindow {
         if let Some(viewport) = self.viewport.take() {
             viewport.destroy();
         }
+        if let Some(notice) = self.context.take().and_then(|context| context.focus_notice) {
+            notice.destroy();
+        }
     }
 }
 
@@ -300,6 +304,7 @@ impl Runtime {
             menu_handle: None,
             fractional,
             viewport,
+            context: None,
         }
     }
 }

@@ -6,14 +6,13 @@ use sctk::{
         SessionLock, SessionLockHandler, SessionLockSurface, SessionLockSurfaceConfigure,
     },
 };
-use std::{cell::Cell, rc::Rc, sync::Arc};
+use std::rc::Rc;
 
 use crate::platform::{
-    Popups, RunError,
+    RunError,
     app::AppInstance,
-    runtime::{Connected, Runtime, make_sender},
+    runtime::{Connected, Runtime},
     surface::{ExtensionRole, SurfaceRole},
-    timer::{PingWake, Timers},
 };
 use crate::shell::ShellState;
 
@@ -94,50 +93,12 @@ impl Runtime {
             .clone()?;
         let surface = self.compositor.create_surface(qh);
         let lock_surface = lock.create_lock_surface(surface.clone(), output, qh);
-        let waker = futures_util::task::waker(Arc::new(PingWake(self.ping.clone())));
-        let sender = make_sender(self.queue.clone(), self.ping.clone(), surface.id());
-        let popups = Popups {
-            queue: self.popup_commands.clone(),
-            ping: self.ping.clone(),
-            next_id: self.popup_next_id.clone(),
-            last_serial: self.last_input_serial.clone(),
-            owner: surface.id(),
-            current: None,
-            opens_left: Rc::new(Cell::new(false)),
-            scroll_shift: Rc::new(Cell::new(0.0)),
-        };
-        let app = {
-            let shell = self
-                .extension::<ShellState>()
-                .expect("create_lock_surface called without ShellState");
-            shell.app.clone()
-        };
-        let app = AppInstance::new(
-            app,
-            1.0,
-            (1, 1),
-            sender,
-            waker,
-            None,
-            Timers {
-                queue: self.timers.clone(),
-                ping: self.ping.clone(),
-                wake: self.wake.clone(),
-            },
-            popups,
-            None,
-            self.graphics.font_collection.clone(),
-            self.graphics.font_manager.clone(),
-            None,
-            self.resolved,
-            self.clipboard.provider(),
-            self.defaults_revision,
-            |r| {
-                if let Some(hooks) = self.extension_hooks() {
-                    (hooks.provide_contexts)(self, r);
-                }
-            },
-        );
+        let app = self
+            .extension::<ShellState>()
+            .expect("create_lock_surface called without ShellState")
+            .app
+            .clone();
+        let app = AppInstance::new(self, surface.id(), app, 1.0, (1, 1), None, None, None);
         let mut window =
             self.surface_window(surface, SurfaceRole::Extension(Box::new(lock_surface)), app);
         window.output = Some(output.id());

@@ -438,11 +438,7 @@ impl Runtime {
                 {
                     return None;
                 }
-                let menu = surface
-                    .menu_handle
-                    .as_ref()
-                    .map(|h| h.snapshot().0)
-                    .or_else(|| surface.app.menu.clone())?;
+                let menu = surface.menu_handle.as_ref()?.snapshot().0;
                 crate::app_menu::find_menu_shortcut(&menu, modifiers, &key)
                     .map(|action_id| (idx, action_id))
             })
@@ -618,12 +614,7 @@ impl Runtime {
     fn record_press_serial(&mut self, index: usize, serial: u32) -> Option<&WindowControls> {
         self.last_input_serial.set(serial);
         self.last_input_surface = Some(self.surfaces[index].surface.clone());
-        let surface_id = self.surfaces[index].surface.id();
-        let controls = &self
-            .window_contexts
-            .iter()
-            .find(|ctx| ctx.controls.surface_id == surface_id)?
-            .controls;
+        let controls = &self.surfaces[index].context.as_ref()?.controls;
         controls.pointer_serial.set(serial);
         Some(controls)
     }
