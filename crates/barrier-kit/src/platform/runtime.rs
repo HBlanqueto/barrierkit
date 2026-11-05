@@ -162,7 +162,9 @@ pub(crate) fn insert_ping(
             for (surface_id, event) in drain_user_events(&shell.queue) {
                 match event {
                     UserEvent::RequestRedraw => {
-                        shell.request_redraw_all = true;
+                        if let Some(index) = shell.surface_index_by_id(&surface_id) {
+                            shell.surfaces[index].needs_redraw = true;
+                        }
                     }
                     UserEvent::SetCursorIcon(icon) => {
                         if let Some(device) = &shell.cursor_shape_device {
@@ -173,11 +175,7 @@ pub(crate) fn insert_ping(
                         }
                     }
                     UserEvent::FocusAccessibilityNode(strategy) => {
-                        if let Some(index) = shell
-                            .surfaces
-                            .iter()
-                            .position(|s| s.surface.id() == surface_id)
-                        {
+                        if let Some(index) = shell.surface_index_by_id(&surface_id) {
                             shell.surfaces[index].app.requested_focus = Some(strategy);
                             shell.surfaces[index].needs_redraw = true;
                         }
@@ -397,7 +395,7 @@ impl Runtime {
 impl Runtime {
     pub(crate) fn poll_all(&mut self) {
         for window in &mut self.surfaces {
-            if window.app.poll() && window.app.update() {
+            if (window.app.poll() || window.app.accessibility_pending()) && window.app.update() {
                 window.needs_redraw = true;
             }
             if self.request_redraw_all {

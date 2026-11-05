@@ -32,6 +32,11 @@ impl Atspi {
         }
     }
 
+    pub(crate) fn pending(&self) -> bool {
+        self.requested.load(Ordering::Acquire)
+            || self.actions.lock().is_ok_and(|queue| !queue.is_empty())
+    }
+
     pub(crate) fn tree_requested(&self) -> bool {
         self.requested.swap(false, Ordering::AcqRel)
     }

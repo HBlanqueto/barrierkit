@@ -214,6 +214,14 @@ impl AppInstance {
         dirty
     }
 
+    pub(crate) fn accessibility_pending(&self) -> bool {
+        self.requested_focus.is_some()
+            || self
+                .atspi
+                .as_ref()
+                .is_some_and(super::atspi::Atspi::pending)
+    }
+
     pub(crate) fn update(&mut self) -> bool {
         let pressed = self.take_atspi_actions();
         let requested_focus = self.requested_focus.take();
