@@ -19,6 +19,10 @@ They run on any Wayland compositor (chapter
 [14](14-plataforma.en.md#the-first-frame)). On Malaysia they also get borders, shadow,
 blur and the global menu.
 
+`dev.sh` sets `MALAYSIA_CONFIG_DIR` and `MALAYSIA_DATA_DIR` under
+`$XDG_RUNTIME_DIR/barrierkit` unless they are already set. The apps do not
+touch your real configuration.
+
 ## Master Tengen App Show (`tengen-app-show`)
 
 The kit's only test app, like `gtk4-widget-factory`. It is a

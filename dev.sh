@@ -24,9 +24,10 @@ help() {
 Usage: ./dev.sh <command>
 
 Commands:
-  app <name> [args]       run tengen-app-show, marea or ondina against the current WAYLAND_DISPLAY
+  app <name> [args]       run tengen-app-show, marea or ondina against the current WAYLAND_DISPLAY,
+                          with MALAYSIA_CONFIG_DIR and MALAYSIA_DATA_DIR under $XDG_RUNTIME_DIR/barrierkit
   check                   run fmt, clippy, tests and kit-specific checks
-  tracy <name> [args]     run an app in release with the Tracy layer; connect with 'tracy'
+  tracy <name> [args]     run an app in release with the Tracy layer and the same dirs; connect with 'tracy'
   help                    show this message
 
 All commands require 'nix develop'.
@@ -40,12 +41,20 @@ require_app() {
     esac
 }
 
+scratch_dirs() {
+    _scratch=${XDG_RUNTIME_DIR:-$script_dir/target}/barrierkit
+    export MALAYSIA_CONFIG_DIR="${MALAYSIA_CONFIG_DIR:-$_scratch/config}"
+    export MALAYSIA_DATA_DIR="${MALAYSIA_DATA_DIR:-$_scratch/data}"
+    mkdir -p "$MALAYSIA_CONFIG_DIR" "$MALAYSIA_DATA_DIR"
+}
+
 app() {
     require_devshell
     require cargo
     _name=${1:-}
     require_app app "$_name"
     shift
+    scratch_dirs
     RUST_LOG=${RUST_LOG:-info} cargo run -p "$_name" -- "$@"
 }
 
@@ -55,6 +64,7 @@ tracy() {
     _name=${1:-}
     require_app tracy "$_name"
     shift
+    scratch_dirs
     RUST_LOG=${RUST_LOG:-info} cargo run --release --features barrier-kit/tracy -p "$_name" -- "$@"
 }
 
