@@ -63,10 +63,6 @@ impl ScrollController {
         self.inner.scroll_to_x(to)
     }
 
-    pub fn scroll_to_y(&mut self, to: i32) -> bool {
-        self.inner.scroll_to_y(to)
-    }
-
     // Freya sends the wheel only to the hovered node and its ancestors; a layer over the view uses this.
     pub fn scroll_by_wheel(mut self, event: &WheelEventData) {
         let (x, y): (i32, i32) = self.into();

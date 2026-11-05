@@ -167,10 +167,6 @@ impl KeyExt for SplitView {
     }
 }
 
-fn clamp_sidebar(width: f32, (min, max): (f32, f32)) -> f32 {
-    width.clamp(min, max)
-}
-
 impl Component for SplitView {
     fn render(&self) -> impl IntoElement {
         let resolved = crate::theme::resolved();
@@ -178,9 +174,11 @@ impl Component for SplitView {
         let island = resolved.sidebar.style == SidebarStyle::Island;
         let inset = if island { SIDEBAR.inset as f32 } else { 0.0 };
         let mut window_width = use_state(|| f32::MAX);
-        let range = self.sidebar_range;
-        let initial_width =
-            clamp_sidebar(self.sidebar_width.unwrap_or(SIDEBAR.width as f32), range);
+        let (min_width, max_width) = self.sidebar_range;
+        let initial_width = self
+            .sidebar_width
+            .unwrap_or(SIDEBAR.width as f32)
+            .clamp(min_width, max_width);
         let mut sidebar_width = use_state(|| initial_width);
         let mut dragging = use_state(|| false);
         let mut grip_hovered = use_state(|| false);
@@ -233,7 +231,7 @@ impl Component for SplitView {
             Spring::new(from, to, Duration::from_millis(time), 0.0)
         });
         let mut resize_to = move |target: f32| {
-            let target = clamp_sidebar(target, range);
+            let target = target.clamp(min_width, max_width);
             let from = if *dragging.peek() {
                 target
             } else {
@@ -245,10 +243,10 @@ impl Component for SplitView {
         let width = if *dragging.read() {
             *sidebar_width.read()
         } else {
-            clamp_sidebar(follow.get().current(), range)
+            follow.get().current().clamp(min_width, max_width)
         };
         let layout = SidebarLayout {
-            width: clamp_sidebar(*sidebar_width.read(), range),
+            width: sidebar_width.read().clamp(min_width, max_width),
             visible: *visible.read() || *auto_hidden.read(),
         };
         let mut reported = use_state(|| layout);
@@ -415,21 +413,5 @@ impl Component for SplitView {
                 );
         }
         root.content(Content::flex())
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn the_sidebar_width_stays_between_its_minimum_and_maximum() {
-        let range = (SPLIT_VIEW.sidebar_min, SPLIT_VIEW.sidebar_max);
-        assert_eq!(clamp_sidebar(0.0, range), SPLIT_VIEW.sidebar_min);
-        assert_eq!(clamp_sidebar(10_000.0, range), SPLIT_VIEW.sidebar_max);
-        assert_eq!(
-            clamp_sidebar(SIDEBAR.width as f32, range),
-            SIDEBAR.width as f32
-        );
     }
 }

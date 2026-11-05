@@ -65,10 +65,6 @@ impl Spring {
         self.value_at(elapsed.as_secs_f32() / secs)
     }
 
-    pub fn duration(&self) -> Duration {
-        self.duration
-    }
-
     pub fn current(&self) -> f32 {
         self.current
     }
