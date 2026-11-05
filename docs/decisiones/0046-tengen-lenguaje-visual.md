@@ -23,20 +23,11 @@ radios, sombras, medidas y comportamientos son exactamente los mismos.
    | Antes | Después |
    |---|---|
    | `crates/vow-design/neptunia/` | `crates/vow-design/tengen/` |
-   | `generated/neptunia.slint` | `generated/tengen.slint` |
-   | `generated/neptunia.css` | `generated/tengen.css` |
-   | `generated/Neptunia.qml` | `generated/Tengen.qml` |
-   | Tipo `NeptuniaMode` en Slint | `TengenMode` |
-   | Tipo `NeptuniaAccent` en Slint | `TengenAccent` |
    | `$OUT_DIR/neptunia.rs` | `$OUT_DIR/tengen.rs` |
    | Temas de BarrierKit `neptunia-shell`, `neptunia-shell-light`, `neptunia-shell-dark`, `neptunia-lock` | `tengen-shell`, `tengen-shell-light`, `tengen-shell-dark`, `tengen-lock` |
-   | `scripts/check-neptunia-generated.sh` | `scripts/check-tengen-generated.sh` |
-   | `tools/sync-neptunia.sh` | `tools/sync-tengen.sh` |
-   | Check `neptunia-generated` en `flake.nix` | `tengen-generated` |
 
 2. **Sin alias de compatibilidad.** No se mantienen nombres viejos en el código
-   (`type NeptuniaMode = TengenMode`), no se leen rutas antiguas y los scripts
-   no generan salidas con el nombre anterior.
+   y no se leen rutas antiguas.
 
 3. **Documentación histórica intacta.** Los ADRs anteriores a la 0046, los
    informes de bloques, la investigación y la auditoría conservan el nombre
@@ -50,6 +41,13 @@ radios, sombras, medidas y comportamientos son exactamente los mismos.
 - No hay cambio visual: los tokens, colores y medidas son idénticos.
 - Cualquier referencia externa a rutas o tipos antiguos debe actualizarse a
   mano.
+
+## Revisión del 2026-11-05
+
+El generador Slint, CSS y QML de `tengen/` (`default.nix`, `generated/`,
+`demo.slint`) y los campos de los JSON que solo él leía se borran: nadie los
+consumía. Tengen produce solo las constantes de `vow-design`. El proceso vivo
+está en `docs/arquitectura/tengen.md`.
 
 ## Referencias
 

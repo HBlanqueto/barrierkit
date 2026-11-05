@@ -1,44 +1,12 @@
 {
-  "name": "tengen-components",
-  "description": "Medidas y estados de los componentes aprobados. Cada implementación (Slint, GTK, QML, web) debe respetar estos números; los colores son nombres de tokens de tokens.json.",
-  "updated": "2026-10-29",
   "components": {
     "button": {
       "height": 30,
-      "height-lg": 38,
-      "height-sm": 24,
       "padding-x": 16,
-      "padding-x-lg": 22,
-      "padding-x-sm": 12,
-      "min-width-lg": 112,
       "radius": "radius.button",
       "font": {
         "size": 13,
         "weight": 500
-      },
-      "font-lg-weight": 600,
-      "icon": 16,
-      "icon-gap": 4,
-      "variants": {
-        "primary": {
-          "bg": "accent",
-          "bg-hover": "accent-hover",
-          "fg": "on-accent"
-        },
-        "secondary": {
-          "bg": "bg-control",
-          "bg-hover": "bg-hover",
-          "fg": "ink-strong"
-        },
-        "danger": {
-          "bg": "danger-fill",
-          "fg": "on-danger"
-        },
-        "plain": {
-          "bg": "transparent",
-          "bg-hover": "accent-soft",
-          "fg": "accent-strong"
-        }
       },
       "pressed-scale": 0.97,
       "small": {
@@ -46,14 +14,12 @@
         "padding-x": 13,
         "font-size": 13,
         "radius": 6
-      },
-      "rule": "Botones de texto: rectángulo redondeado, nunca cápsula. Un solo primary por vista."
+      }
     },
     "icon-button": {
       "size": 30,
       "radius": "radius.sm",
-      "icon": 16,
-      "round-variant-radius": "radius.pill"
+      "icon": 16
     },
     "switch": {
       "width": 32,
@@ -61,73 +27,34 @@
       "knob": 14,
       "inset": 2,
       "travel": 14,
-      "track-off": "bg-control",
-      "track-off-border": "line",
-      "track-on": "accent",
       "knob-color": "#ffffff",
       "transition": "duration.fast",
-      "disabled-opacity": 0.4,
-      "small": {
-        "width": 26,
-        "height": 15,
-        "knob": 11,
-        "inset": 2,
-        "travel": 11,
-        "use": "solo menús y listas densas"
-      }
+      "disabled-opacity": 0.4
     },
     "slider": {
       "height": 20,
       "track": 4,
       "knob": 20,
-      "track-color": "bg-control",
-      "fill-color": "accent",
-      "geometry": "knob.x = p * (width - knob); fill.width = knob.x + knob/2. La perilla nunca sale de la pista y todo va centrado en vertical.",
       "fat": {
         "height": 22,
         "fill-min": 22,
-        "lead-icon-x": 8,
-        "no-knob": true
+        "lead-icon-x": 8
       },
       "keyboard-step": 0.05
     },
     "checkbox": {
       "size": 16,
       "radius": "radius.xs",
-      "border": "line-strong",
-      "on": "accent",
       "check-stroke": 2.2
     },
     "symbol": {
       "stroke": 1.4,
       "grid": 16
     },
-    "radio": {
-      "size": 16,
-      "dot": 6,
-      "border": "line-strong",
-      "on": "accent"
-    },
     "text-field": {
       "height": 30,
       "padding-x": 12,
-      "radius": "radius.sm",
-      "bg": "bg-surface",
-      "border": "line",
-      "focus": {
-        "border": "accent",
-        "ring": "accent-soft",
-        "ring-width": 3
-      },
-      "error": {
-        "border": "danger",
-        "message": "danger"
-      },
-      "search": {
-        "radius": "radius.pill",
-        "bg": "bg-control",
-        "border": "none"
-      }
+      "radius": "radius.sm"
     },
     "segmented": {
       "padding": 2,
@@ -136,26 +63,16 @@
       "segment-radius": 6,
       "segment-height": 26,
       "segment-padding-x": 12,
-      "track": "bg-control",
-      "active-bg": "bg-selected-control",
-      "active-shadow": "shadow.knob",
-      "fg": "ink-muted",
-      "active-fg": "ink-strong",
       "font": {
         "size": 12,
         "weight": 500
-      },
-      "fill": "reparte el ancho a partes iguales",
-      "rule": "Rectangular (aprobado, propuesta B). Para alternar vistas dentro de una pantalla. Sin relleno de acento."
+      }
     },
     "toolbar-tabs": {
       "container": {
         "padding": 6,
         "gap": 4,
-        "radius": "radius.md",
-        "bg": "bg-sunken",
-        "border": "line",
-        "bare-variant": "sin fondo, para la barra de título"
+        "radius": "radius.md"
       },
       "tab": {
         "min-width": 76,
@@ -168,12 +85,7 @@
           "size": 11,
           "weight": 500
         }
-      },
-      "fg": "ink-muted",
-      "hover-bg": "bg-control",
-      "active-bg": "bg-hover",
-      "active-fg": "accent-strong",
-      "rule": "Aprobado (propuesta E). Para las secciones de una ventana de preferencias. Sin subrayado."
+      }
     },
     "table": {
       "row-height": 24,
@@ -200,57 +112,22 @@
     },
     "list-group": {
       "radius": "radius.lg",
-      "bg": "bg-surface",
-      "border": "line",
       "row-min-height": 44,
       "highlight": 0.12,
       "row-padding-x": 14,
       "label-min-share": 35,
       "stack-below": 360,
       "separator": {
-        "color": "line",
         "inset-left": 14
       },
       "section-header": {
-        "font": "caption",
-        "uppercase": true,
-        "color": "ink-muted",
         "padding": [
           10,
           14,
           4,
           14
         ]
-      },
-      "row-icon": {
-        "size": 22,
-        "radius": "radius.sm",
-        "optional": true
-      },
-      "rule": "Por defecto: una sola ficha con encabezados de sección internos (C+), iconos opcionales."
-    },
-    "bento-tile": {
-      "grid-columns": 4,
-      "row-height": 92,
-      "gap": "space.3",
-      "radius": "radius.lg",
-      "padding": 16,
-      "tint": "color sys-* al 12–16 % sobre bg-surface",
-      "active": "relleno sys-* o accent con texto blanco",
-      "rule": "Alternativa a la lista. Por defecto tintado por categoría; puede ser dinámico (se rellena al activar) y con iconos grandes."
-    },
-    "app-icon": {
-      "glyph": "#ffffff",
-      "fills": [
-        "sys-blue",
-        "sys-cyan",
-        "sys-purple",
-        "sys-orange",
-        "sys-green",
-        "sys-red",
-        "sys-gray"
-      ],
-      "radius-rule": "paso de la escala más cercano a un tercio del lado: 22–28 → 8, 34–36 → 12, 52 → 16"
+      }
     },
     "window": {
       "min-width": 480,
@@ -259,35 +136,17 @@
       "resize-corner": 16,
       "radius": "radius.lg",
       "toolbar-radius": 26,
-      "bg": "bg-window",
-      "titlebar-height": "size.titlebar-h",
-      "sidebar-width": "size.sidebar-w",
-      "outer-border": "window-outer",
-      "inner-line": "window-inner",
       "traffic-lights": {
         "size": 14,
         "radius": 4,
         "gap": 9,
         "pressed-darken": 0.2,
-        "colors": [
-          "traffic-close",
-          "traffic-min",
-          "traffic-zoom"
-        ],
-        "rule": "Mismos colores en todos los temas.",
         "styles": {
           "accent": {
-            "source": "accent",
-            "close-minimize": "mezcla 28 % hacia negro",
-            "zoom": "mezcla 58 % hacia blanco",
             "glyph-on-dark": "#ffffffd1",
             "glyph-on-light": "#000000b0",
             "close-minimize-darken": 0.28,
             "zoom-lighten": 0.58
-          },
-          "wallpaper": {
-            "source": "color dominante del fondo",
-            "rule": "misma fórmula que accent"
           },
           "standard": {
             "close": "{traffic-close}",
@@ -300,8 +159,7 @@
         "rim": {
           "color": "{traffic-rim}",
           "inactive": "{traffic-rim-inactive}",
-          "width": 0.5,
-          "rule": "Borde interior de 0,5 px lógicos (1 px físico en Retina, donde se midió) compuesto sobre el relleno: en claro, negro al 12 %; en oscuro (Tahoe), negro al 75 % si tiene color y blanco al 5 % si está gris."
+          "width": 0.5
         },
         "glyphs": {
           "box": 8,
@@ -419,7 +277,6 @@
           "inset": "size.sidebar-inset",
           "padding-x": 10,
           "radius": "size.sidebar-radius",
-          "bg": "sidebar-island-bg",
           "rim": "sidebar-island-rim",
           "rim-width": 1,
           "inner": "sidebar-island-inner",
@@ -429,12 +286,7 @@
           "traffic-y": 11
         },
         "flat": {
-          "bg": "sidebar-flat-bg",
-          "line": "line",
-          "line-width": 1,
-          "padding-x": 10,
-          "traffic-x": 17,
-          "traffic-y": 15
+          "line": "line"
         },
         "item": {
           "height": 30,
@@ -475,7 +327,6 @@
         "separator-w": 1,
         "separator-h": 16,
         "separator": "line",
-        "bg": "toolbar-glass-bg",
         "flat-button-w": 30,
         "flat-button-h": 28,
         "flat-radius": "radius.sm",
@@ -601,8 +452,7 @@
         "radius": 3,
         "wall-angle": 160,
         "wall-light": 0.25,
-        "wall-dark": 0.4,
-        "shadow": "0 0 0 0.5px rgba(0, 0, 0, 0.25), 0 1px 3px rgba(0, 0, 0, 0.3)"
+        "wall-dark": 0.4
       },
       "radio": {
         "size": 16,
@@ -636,11 +486,7 @@
     },
     "dialog": {
       "radius": "radius.lg",
-      "bg": "bg-raised",
-      "padding": 20,
-      "scrim": "scrim",
-      "outer-border": "window-outer",
-      "inner-line": "window-inner"
+      "padding": 20
     },
     "menu-popover": {
       "item-height": 24,
@@ -659,9 +505,6 @@
     },
     "progress": {
       "height": 6,
-      "radius": "radius.pill",
-      "track": "bg-control",
-      "fill": "accent",
       "ring": {
         "size": 28,
         "stroke": 3.5
@@ -739,15 +582,11 @@
     },
     "badge": {
       "height": 20,
-      "padding-x": 8,
-      "radius": "radius.pill",
-      "font": "caption"
+      "padding-x": 8
     },
     "focus-ring": {
       "width": 2,
-      "offset": 2,
-      "color": "accent-strong",
-      "rule": "Solo al navegar con teclado."
+      "offset": 2
     },
     "shell": {
       "menubar": {
@@ -764,7 +603,6 @@
         "bg": "{shell-bar}",
         "text": "{ink-strong}",
         "hover-bg": "{bg-hover}",
-        "hover-fg": "{ink-strong}",
         "title-open": {
           "bg": "{menubar-title-open}",
           "radius": 10,
@@ -776,9 +614,6 @@
         "gap": 6,
         "padding": 8,
         "font-size": 11,
-        "label-offset": 8,
-        "text-inset": 2,
-        "text-padding": 4,
         "tile": "{bg-control}",
         "tile-active": "{accent}",
         "tile-text-active": "{on-accent}"
@@ -801,18 +636,11 @@
       "lock": {
         "font-size": 24,
         "title-scale": 1.5,
-        "title-y-divisor": 3,
         "field-width": 360,
         "field-height": 44,
-        "field-min-width": 120,
-        "field-margin": 80,
-        "field-line": 2,
         "label-offset": 10,
-        "mask-offset": 30,
-        "status-offset": 22,
         "label-font-size": 16,
-        "mask-font-size": 22,
-        "status-font-size": 14
+        "mask-font-size": 22
       },
       "launcher": {
         "width": 560,
@@ -846,7 +674,6 @@
           "padding-x": 10,
           "font-size": 13,
           "shortcut-gap": 24,
-          "submenu-offset": 4,
           "fg": "ink",
           "shortcut-color": "ink-muted",
           "hover-bg": "accent",
@@ -855,7 +682,6 @@
         },
         "separator": {
           "height": 1,
-          "margin-x": 10,
           "margin-y": 5,
           "color": "line",
           "tint-ink-mix": 0.14
@@ -889,8 +715,6 @@
     }
   },
   "appearance": {
-    "status": "idea en estudio",
-    "setting": "Ajustes › Apariencia › Color de las ventanas",
     "tint-strength": {
       "subtle": 0.5,
       "normal": 1.0,
@@ -898,22 +722,13 @@
       "intense": 2.0
     },
     "modes": {
-      "neutral": {
-        "tint": null,
-        "accent": "el que elige el usuario",
-        "traffic-lights": "standard"
-      },
       "accent": {
-        "tint": "accent",
         "windows": {
           "light": 0.06,
           "dark": 0.08
-        },
-        "traffic-lights": "accent"
+        }
       },
       "wallpaper": {
-        "tint": "color dominante del fondo",
-        "accent": "el dominante, 8 % más oscuro en claro / 12 % más claro en oscuro",
         "accent-shift": {
           "light": {
             "darken": 0.08
@@ -924,27 +739,20 @@
         },
         "contrast": {
           "accent-on-window": 3.0,
-          "on-accent": 4.5,
-          "on-accent-floor": 3.0
+          "on-accent": 4.5
         },
         "muted": {
           "below-saturation": 0.35,
           "max-saturation": 0.45
         },
-        "traffic-lights": "wallpaper",
         "scope": {
           "windows": {
             "windows": {
               "light": 0.07,
               "dark": 0.09
-            },
-            "panel-dock": 0
+            }
           },
           "desktop": {
-            "windows": {
-              "light": 0.07,
-              "dark": 0.09
-            },
             "panel-dock": {
               "light": 0.2,
               "dark": 0.26
@@ -956,21 +764,9 @@
     "layer-factors": {
       "bg-sunken": 1.4,
       "bg-control": 1.2,
-      "bg-hover": 1.2,
       "line": 1.2,
-      "bg-window": 1.0,
       "bg-surface": 1.0,
       "bg-raised": 0.6
-    },
-    "never-tinted": [
-      "sys-*",
-      "danger",
-      "danger-fill",
-      "success",
-      "warning",
-      "info"
-    ],
-    "propagation": "regenerar Slint/CSS GTK/Kvantum/QML desde crates/vow-design/tengen y anunciarlo por portal o D-Bus para que las apps abiertas se actualicen",
-    "mockup": "https://claude.ai/artifact/N1WN3NJJftGL2CGdaUvaHf"
+    }
   }
 }
