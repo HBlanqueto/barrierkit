@@ -119,14 +119,32 @@ impl MenuHandle {
         if update_item(&mut state.menu, id.as_ref(), &f) {
             state.revision = state.revision.wrapping_add(1);
             drop(state);
-            if let Ok(slot) = self.path.lock()
-                && let Some(path) = slot.as_ref()
-            {
-                server::update(path);
-            }
-            if let Some(wake) = &self.wake {
-                wake.wake();
-            }
+            self.publish();
+        }
+    }
+
+    pub fn set_menu_items(&self, title: &str, items: Vec<MenuItem>) {
+        let mut state = self.state.lock().expect("menu state poisoned");
+        let Some(menu) = state.menu.menus.iter_mut().find(|menu| menu.title == title) else {
+            return;
+        };
+        if menu.items == items {
+            return;
+        }
+        menu.items = items;
+        state.revision = state.revision.wrapping_add(1);
+        drop(state);
+        self.publish();
+    }
+
+    fn publish(&self) {
+        if let Ok(slot) = self.path.lock()
+            && let Some(path) = slot.as_ref()
+        {
+            server::update(path);
+        }
+        if let Some(wake) = &self.wake {
+            wake.wake();
         }
     }
 

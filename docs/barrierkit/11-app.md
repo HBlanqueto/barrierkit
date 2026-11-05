@@ -50,6 +50,14 @@ El menú se publica por D-Bus (dbusmenu) y, si el compositor ofrece
 `org_kde_kwin_appmenu_manager`, aparece en la barra de menús de Malaysia.
 Sin ese protocolo sigue existiendo en D-Bus.
 
+Para cambiar el menú en vivo, la app toma el `MenuHandle` de la ventana con
+`try_consume_root_context::<MenuHandle>()`:
+
+- `update(id, |item| ..)` cambia un ítem o un submenú con id: etiqueta,
+  `enabled`, `check` o hijos.
+- `set_menu_items(título, ítems)` sustituye los ítems de un menú de primer
+  nivel, por ejemplo una lista de perfiles.
+
 ## Una sola instancia: `launch`
 
 ```rust
