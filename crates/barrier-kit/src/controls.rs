@@ -479,17 +479,15 @@ impl Component for Slider {
             });
         }
 
-        if self.disabled {
-            root = root.opacity(SWITCH.disabled_opacity);
-        }
-
-        let track_rect = bar(
+        let disabled = self.disabled;
+        let dim = move |el: Rect| el.maybe(disabled, |el| el.opacity(SWITCH.disabled_opacity));
+        let track_rect = dim(bar(
             knob / 2.0,
             (knob - track) / 2.0,
             run,
             track,
             color(palette.control_background),
-        );
+        ));
         let fill_rect = bar(
             -knob / 2.0,
             0.0,
@@ -500,15 +498,15 @@ impl Component for Slider {
 
         let ticks = (0..self.steps).map(|i| {
             let x = knob / 2.0 + run * (i as f32 / segments);
-            rect()
+            dim(rect()
                 .position(Position::new_absolute().left(x - tick / 2.0).top(tick_top))
                 .width(Size::px(tick))
                 .height(Size::px(tick))
                 .corner_radius(tick / 2.0)
-                .background(color(palette.control_border))
-                .into_element()
+                .background(color(palette.control_border)))
+            .into_element()
         });
-        let knob_rect = level::knob(knob_x, (track - knob) / 2.0, knob);
+        let knob_rect = level::knob(knob_x, 0.0, knob).layer(level::KNOB_ABOVE_FILL);
 
         let last = self.steps.saturating_sub(1);
         let labels = self
@@ -528,16 +526,18 @@ impl Component for Slider {
                     .color(theme::color(palette.label));
                 rect().child(label_node).into_element()
             });
-        let labels_row = rect()
+        let labels_row = dim(rect()
             .position(Position::new_absolute().left(0.0).top(knob + label_gap))
             .width(Size::px(width))
             .direction(Direction::Horizontal)
             .main_align(Alignment::SpaceBetween)
-            .children(labels);
+            .children(labels));
 
+        // freya 0.4.3 dims each element on its own (render_pipeline.rs): a dimmed knob would show the fill.
         root = root
             .children(ticks)
-            .child(track_rect.child(fill_rect.child(knob_rect)))
+            .child(track_rect.child(fill_rect))
+            .child(knob_rect)
             .child(labels_row);
         root = interaction.focus_ring(root, knob / 2.0);
 

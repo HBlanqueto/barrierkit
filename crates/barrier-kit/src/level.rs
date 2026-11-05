@@ -123,7 +123,6 @@ impl Component for LevelSlider {
             .on_sized(move |event: Event<SizedEventData>| {
                 width.set_if_modified(event.data().area.size.width);
             })
-            .maybe(!enabled, |el| el.opacity(SWITCH.disabled_opacity))
             .maybe(enabled, |el| {
                 el.on_mouse_down(move |event: Event<MouseEventData>| {
                     dragging.set(true);
@@ -149,6 +148,7 @@ impl Component for LevelSlider {
             LevelStyle::Regular => {
                 let track_top = (height - SLIDER.track) / 2.0;
                 let knob_x = run.max(0.0) * fraction;
+                // freya 0.4.3 dims each element on its own (render_pipeline.rs): a dimmed knob would show the fill.
                 root.child(
                     bar(
                         offset,
@@ -157,25 +157,23 @@ impl Component for LevelSlider {
                         SLIDER.track,
                         color(palette.control_background),
                     )
-                    .child(
-                        bar(
-                            -offset,
-                            0.0,
-                            knob_x + offset,
-                            SLIDER.track,
-                            self.tint.fill(&palette),
-                        )
-                        .child(knob(
-                            knob_x,
-                            (SLIDER.track - SLIDER.knob) / 2.0,
-                            SLIDER.knob,
-                        )),
-                    ),
+                    .maybe(!enabled, |el| el.opacity(SWITCH.disabled_opacity))
+                    .child(bar(
+                        -offset,
+                        0.0,
+                        knob_x + offset,
+                        SLIDER.track,
+                        self.tint.fill(&palette),
+                    )),
+                )
+                .child(
+                    knob(knob_x, (height - SLIDER.knob) / 2.0, SLIDER.knob).layer(KNOB_ABOVE_FILL),
                 )
             }
             LevelStyle::Fat(lead) => {
                 let fill = (measured * fraction).max(SLIDER_FAT.fill_min);
-                root.corner_radius(height / 2.0)
+                root.maybe(!enabled, |el| el.opacity(SWITCH.disabled_opacity))
+                    .corner_radius(height / 2.0)
                     .background(color(palette.control_background))
                     .child(bar(0.0, 0.0, fill, height, self.tint.fill(&palette)))
                     .child(
@@ -203,6 +201,9 @@ pub(crate) fn knob_shadow() -> Shadow {
     )
         .into()
 }
+
+// freya 0.4.3 paints by depth (data.rs `LayerState`); a sibling knob must outrank the fill, two levels down.
+pub(crate) const KNOB_ABOVE_FILL: i16 = 2;
 
 pub(crate) fn knob(left: f32, top: f32, size: f32) -> Rect {
     rect()

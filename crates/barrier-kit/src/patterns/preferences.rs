@@ -364,6 +364,7 @@ impl Component for PreferencesWindow {
                     Titlebar::new()
                         .with_sidebar(true)
                         .hairline(false)
+                        .spacing(SETTINGS.toolbar_gap as f32)
                         .title(pane.map(|pane| pane.title).unwrap_or_default())
                         .left(
                             rect()
