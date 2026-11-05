@@ -10,27 +10,10 @@ pub struct Oklab {
     pub b: f32,
 }
 
-fn linear(c: f32) -> f32 {
-    if c <= 0.04045 {
-        c / 12.92
-    } else {
-        ((c + 0.055) / 1.055).powf(2.4)
-    }
-}
-
-fn gamma(c: f32) -> f32 {
-    let c = c.clamp(0.0, 1.0);
-    if c <= 0.003_130_8 {
-        12.92 * c
-    } else {
-        1.055 * c.powf(1.0 / 2.4) - 0.055
-    }
-}
-
 // https://bottosson.github.io/posts/oklab/
 impl Oklab {
     pub fn from_rgba(color: Rgba) -> Self {
-        let (r, g, b) = (linear(color.r), linear(color.g), linear(color.b));
+        let Rgba { r, g, b, .. } = color.to_linear();
         let l = (0.412_221_46 * r + 0.536_332_55 * g + 0.051_445_995 * b).cbrt();
         let m = (0.211_903_5 * r + 0.680_699_5 * g + 0.107_396_96 * b).cbrt();
         let s = (0.088_302_46 * r + 0.281_718_85 * g + 0.629_978_7 * b).cbrt();
@@ -45,12 +28,12 @@ impl Oklab {
         let l = (self.l + 0.396_337_78 * self.a + 0.215_803_76 * self.b).powi(3);
         let m = (self.l - 0.105_561_346 * self.a - 0.063_854_17 * self.b).powi(3);
         let s = (self.l - 0.089_484_18 * self.a - 1.291_485_5 * self.b).powi(3);
-        Rgba {
-            r: gamma(4.076_741_7 * l - 3.307_711_6 * m + 0.230_969_94 * s),
-            g: gamma(-1.268_438 * l + 2.609_757_4 * m - 0.341_319_38 * s),
-            b: gamma(-0.004_196_086_3 * l - 0.703_418_6 * m + 1.707_614_7 * s),
+        Rgba::from_linear(Rgba {
+            r: 4.076_741_7 * l - 3.307_711_6 * m + 0.230_969_94 * s,
+            g: -1.268_438 * l + 2.609_757_4 * m - 0.341_319_38 * s,
+            b: -0.004_196_086_3 * l - 0.703_418_6 * m + 1.707_614_7 * s,
             a: 1.0,
-        }
+        })
     }
 
     fn chroma(self) -> f32 {

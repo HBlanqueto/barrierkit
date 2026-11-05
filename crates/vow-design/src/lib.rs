@@ -57,15 +57,42 @@ impl Rgba {
         [self.r * self.a, self.g * self.a, self.b * self.a, self.a]
     }
 
-    pub fn relative_luminance(self) -> f32 {
-        fn linear(channel: f32) -> f32 {
+    pub fn to_linear(self) -> Self {
+        let decode = |channel: f32| {
             if channel <= 0.04045 {
                 channel / 12.92
             } else {
                 ((channel + 0.055) / 1.055).powf(2.4)
             }
+        };
+        Self {
+            r: decode(self.r),
+            g: decode(self.g),
+            b: decode(self.b),
+            a: self.a,
         }
-        0.2126 * linear(self.r) + 0.7152 * linear(self.g) + 0.0722 * linear(self.b)
+    }
+
+    pub fn from_linear(linear: Self) -> Self {
+        let encode = |channel: f32| {
+            let channel = channel.clamp(0.0, 1.0);
+            if channel <= 0.003_130_8 {
+                12.92 * channel
+            } else {
+                1.055 * channel.powf(1.0 / 2.4) - 0.055
+            }
+        };
+        Self {
+            r: encode(linear.r),
+            g: encode(linear.g),
+            b: encode(linear.b),
+            a: linear.a,
+        }
+    }
+
+    pub fn relative_luminance(self) -> f32 {
+        let linear = self.to_linear();
+        0.2126 * linear.r + 0.7152 * linear.g + 0.0722 * linear.b
     }
 
     pub fn contrast_ratio(self, other: Self) -> f32 {
