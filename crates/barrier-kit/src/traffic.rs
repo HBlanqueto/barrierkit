@@ -5,7 +5,7 @@ use freya_core::prelude::*;
 use torin::prelude::{Direction, Size};
 use vow_appearance::traffic::{self, TrafficInput, TrafficPointer};
 use vow_appearance::{TrafficLightStyle, palette as base_palette};
-use vow_design::{ButtonKind, Rgba, TITLEBAR, TRAFFIC_GLYPHS, Triangle};
+use vow_design::{ButtonKind, Rgba, TITLEBAR, TRAFFIC_GLYPHS};
 
 use crate::ProbeExt;
 use crate::theme;
@@ -167,7 +167,12 @@ impl Component for TrafficLights {
                 .maybe_child(visual.glyph.map(|glyph| {
                     SvgViewer::new((
                         format!("traffic-{index}-{:?}-{fixed_width}", glyph.to_rgba8()),
-                        Bytes::from(glyph_svg(index, glyph, fixed_width)),
+                        Bytes::from(traffic::glyph_svg(
+                            index,
+                            glyph,
+                            fixed_width,
+                            TRAFFIC_GLYPHS.box_size,
+                        )),
                     ))
                     .width(Size::px(TRAFFIC_GLYPHS.box_size))
                     .height(Size::px(TRAFFIC_GLYPHS.box_size))
@@ -273,7 +278,12 @@ pub fn traffic_lights_view(
                 .maybe_child(visual.glyph.map(|glyph| {
                     SvgViewer::new((
                         format!("traffic-view-{index}-{:?}-false", glyph.to_rgba8()),
-                        Bytes::from(glyph_svg(index, glyph, false)),
+                        Bytes::from(traffic::glyph_svg(
+                            index,
+                            glyph,
+                            false,
+                            TRAFFIC_GLYPHS.box_size,
+                        )),
                     ))
                     .width(Size::px(TRAFFIC_GLYPHS.box_size))
                     .height(Size::px(TRAFFIC_GLYPHS.box_size))
@@ -288,79 +298,6 @@ pub fn traffic_lights_view(
 
 fn light_gap() -> f64 {
     f64::from(TITLEBAR.buttons.spacing)
-}
-
-fn glyph_svg(index: usize, color: Rgba, fixed_width: bool) -> String {
-    let [r, g, b, a] = color.to_rgba8();
-    let color = format!("#{r:02x}{g:02x}{b:02x}");
-    let opacity = f32::from(a) / 255.0;
-    let box_size = TRAFFIC_GLYPHS.box_size;
-    match index {
-        0 | 1 => {
-            let segments = if index == 0 {
-                TRAFFIC_GLYPHS.close
-            } else {
-                TRAFFIC_GLYPHS.minimize
-            };
-            let path = segments
-                .iter()
-                .map(|segment| {
-                    format!(
-                        "M{} {} L{} {}",
-                        segment.a.0, segment.a.1, segment.b.0, segment.b.1
-                    )
-                })
-                .collect::<Vec<_>>()
-                .join(" ");
-            format!(
-                "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{box_size}\" height=\"{box_size}\" viewBox=\"0 0 {box_size} {box_size}\"><path d=\"{path}\" fill=\"none\" stroke=\"{color}\" stroke-opacity=\"{opacity}\" stroke-width=\"{}\" stroke-linecap=\"round\"/></svg>",
-                TRAFFIC_GLYPHS.stroke
-            )
-        }
-        _ => {
-            let segments = if fixed_width {
-                TRAFFIC_GLYPHS.plus
-            } else {
-                &[]
-            };
-            if !segments.is_empty() {
-                let path = segments
-                    .iter()
-                    .map(|segment| {
-                        format!(
-                            "M{} {} L{} {}",
-                            segment.a.0, segment.a.1, segment.b.0, segment.b.1
-                        )
-                    })
-                    .collect::<Vec<_>>()
-                    .join(" ");
-                format!(
-                    "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{box_size}\" height=\"{box_size}\" viewBox=\"0 0 {box_size} {box_size}\"><path d=\"{path}\" fill=\"none\" stroke=\"{color}\" stroke-opacity=\"{opacity}\" stroke-width=\"{}\" stroke-linecap=\"round\"/></svg>",
-                    TRAFFIC_GLYPHS.stroke
-                )
-            } else {
-                let polygons = TRAFFIC_GLYPHS
-                    .zoom
-                    .iter()
-                    .map(polygon)
-                    .collect::<Vec<_>>()
-                    .join("");
-                format!(
-                    "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{box_size}\" height=\"{box_size}\" viewBox=\"0 0 {box_size} {box_size}\"><g fill=\"{color}\" fill-opacity=\"{opacity}\">{polygons}</g></svg>"
-                )
-            }
-        }
-    }
-}
-
-fn polygon(triangle: &Triangle) -> String {
-    let points = triangle
-        .0
-        .iter()
-        .map(|(x, y)| format!("{x},{y}"))
-        .collect::<Vec<_>>()
-        .join(" ");
-    format!("<polygon points=\"{points}\"/>")
 }
 
 #[cfg(test)]
