@@ -75,7 +75,11 @@ pub mod app_menu;
 
 pub mod sidebar;
 
+use std::rc::Rc;
+
+use freya_core::element::ElementExt;
 use freya_core::prelude::{AccessibilityExt, Rect};
+use freya_core::tree::DiffModifies;
 
 pub trait ProbeExt: Sized {
     fn probe(self, id: &'static str) -> Self;
@@ -84,5 +88,16 @@ pub trait ProbeExt: Sized {
 impl ProbeExt for Rect {
     fn probe(self, id: &'static str) -> Self {
         self.a11y_builder(move |node| node.set_author_id(id))
+    }
+}
+
+pub(crate) fn style_diff<T: PartialEq + 'static>(
+    element: &T,
+    other: &Rc<dyn ElementExt>,
+) -> DiffModifies {
+    match (other.as_ref() as &dyn std::any::Any).downcast_ref::<T>() {
+        Some(other) if other == element => DiffModifies::empty(),
+        Some(_) => DiffModifies::STYLE,
+        None => DiffModifies::all(),
     }
 }

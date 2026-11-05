@@ -8,6 +8,7 @@ use freya_core::prelude::*;
 use torin::prelude::{Direction, Gaps, Size};
 use vow_design::{MEDIA, Rgba, TEXT};
 
+pub use crate::glass::{material, top_glass};
 use crate::interaction::use_interaction;
 use crate::style::Palette;
 use crate::symbol::{Symbol, symbol};
@@ -38,14 +39,6 @@ pub fn scrim(edge: ScrimEdge) -> Rect {
         |gradient, &(at, alpha)| gradient.stop((color(Rgba { a: alpha, ..window }), at * 100.0)),
     );
     rect().background(gradient).interactive(Interactive::No)
-}
-
-pub fn material(corner_radius: f32) -> Element {
-    crate::glass::material(corner_radius)
-}
-
-pub fn top_glass() -> Element {
-    crate::glass::progressive_glass(crate::glass::GlassEdge::Top)
 }
 
 #[derive(PartialEq)]

@@ -118,10 +118,10 @@ pub(crate) fn fullscreen_backdrop(
     }
 }
 
-pub(crate) fn progressive_glass(edge: GlassEdge) -> Element {
+pub fn top_glass() -> Element {
     fullscreen_backdrop(
         FullscreenBar::ProgressiveGlass,
-        edge,
+        GlassEdge::Top,
         FULLSCREEN_GLASS.height,
         1.0,
     )
@@ -175,17 +175,11 @@ fn inwards(edge: GlassEdge, bounds: SkRect, color: Rgba, stops: &[(f32, f32)]) -
 
 impl ElementExt for Glass {
     fn changed(&self, other: &Rc<dyn ElementExt>) -> bool {
-        (other.as_ref() as &dyn std::any::Any)
-            .downcast_ref::<Self>()
-            .is_none_or(|other| other != self)
+        !crate::style_diff(self, other).is_empty()
     }
 
     fn diff(&self, other: &Rc<dyn ElementExt>) -> DiffModifies {
-        match (other.as_ref() as &dyn std::any::Any).downcast_ref::<Self>() {
-            Some(other) if other == self => DiffModifies::empty(),
-            Some(_) => DiffModifies::STYLE,
-            None => DiffModifies::all(),
-        }
+        crate::style_diff(self, other)
     }
 
     fn layout(&'_ self) -> Cow<'_, LayoutData> {
@@ -270,7 +264,7 @@ struct Material {
     layout: LayoutData,
 }
 
-pub(crate) fn material(corner_radius: f32) -> Element {
+pub fn material(corner_radius: f32) -> Element {
     let layout = torin::node::Node {
         width: Size::fill(),
         height: Size::fill(),
@@ -289,17 +283,11 @@ pub(crate) fn material(corner_radius: f32) -> Element {
 
 impl ElementExt for Material {
     fn changed(&self, other: &Rc<dyn ElementExt>) -> bool {
-        (other.as_ref() as &dyn std::any::Any)
-            .downcast_ref::<Self>()
-            .is_none_or(|other| other != self)
+        !crate::style_diff(self, other).is_empty()
     }
 
     fn diff(&self, other: &Rc<dyn ElementExt>) -> DiffModifies {
-        match (other.as_ref() as &dyn std::any::Any).downcast_ref::<Self>() {
-            Some(other) if other == self => DiffModifies::empty(),
-            Some(_) => DiffModifies::STYLE,
-            None => DiffModifies::all(),
-        }
+        crate::style_diff(self, other)
     }
 
     fn layout(&'_ self) -> Cow<'_, LayoutData> {

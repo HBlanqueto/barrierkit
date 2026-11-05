@@ -259,17 +259,11 @@ fn line(area: SkRect, degrees: f32) -> ((f32, f32), (f32, f32)) {
 
 impl ElementExt for Layer {
     fn changed(&self, other: &Rc<dyn ElementExt>) -> bool {
-        (other.as_ref() as &dyn std::any::Any)
-            .downcast_ref::<Self>()
-            .is_none_or(|other| other != self)
+        !crate::style_diff(self, other).is_empty()
     }
 
     fn diff(&self, other: &Rc<dyn ElementExt>) -> DiffModifies {
-        match (other.as_ref() as &dyn std::any::Any).downcast_ref::<Self>() {
-            Some(other) if other == self => DiffModifies::empty(),
-            Some(_) => DiffModifies::STYLE,
-            None => DiffModifies::all(),
-        }
+        crate::style_diff(self, other)
     }
 
     fn layout(&'_ self) -> Cow<'_, LayoutData> {
