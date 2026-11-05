@@ -69,42 +69,56 @@ pub(super) fn child_already_open(
     has_child && open_child_index.get() == Some(index)
 }
 
-#[allow(clippy::too_many_arguments)]
+#[derive(Clone)]
+pub(super) struct SubmenuCtx {
+    pub(super) popup: Option<PopupHandle>,
+    pub(super) size: (f32, f32),
+    pub(super) palette_source: PaletteSource,
+    pub(super) on_activate: Rc<dyn Fn(String)>,
+    pub(super) on_dismiss_all: Rc<dyn Fn()>,
+    pub(super) on_open_submenu: Option<Rc<dyn Fn(String)>>,
+    pub(super) submenu_source: Option<SubmenuSource>,
+    pub(super) open_child_id: Rc<Cell<Option<PopupId>>>,
+    pub(super) open_child_index: Rc<Cell<Option<usize>>>,
+    pub(super) opens_left: bool,
+}
+
+impl SubmenuCtx {
+    fn child_view(&self, items: Vec<MenuItem>) -> MenuView {
+        let on_activate = self.on_activate.clone();
+        let on_dismiss_all = self.on_dismiss_all.clone();
+        let on_dismiss_for_action = on_dismiss_all.clone();
+        let view = MenuView::new(
+            items,
+            move |id| {
+                on_activate(id);
+                on_dismiss_for_action();
+            },
+            move || on_dismiss_all(),
+        );
+        self.palette_source.inherit(view)
+    }
+}
+
 pub(super) fn open_child_popup(
+    ctx: &SubmenuCtx,
     index: usize,
     id: Option<&str>,
     sub_items: &[MenuItem],
-    popup: PopupHandle,
-    parent_size: (f32, f32),
-    palette_source: PaletteSource,
-    on_activate: Rc<dyn Fn(String)>,
-    on_dismiss_all: Rc<dyn Fn()>,
-    on_open_submenu: Option<Rc<dyn Fn(String)>>,
-    submenu_source: Option<SubmenuSource>,
-    open_child_id: Rc<Cell<Option<PopupId>>>,
-    open_child_index: Rc<Cell<Option<usize>>>,
-    parent_items: Rc<Vec<MenuItem>>,
-    opens_left: bool,
+    parent_items: &[MenuItem],
 ) -> Option<PopupId> {
-    if child_already_open(open_child_id.get().is_some(), &open_child_index, index) {
+    let popup = ctx.popup.as_ref()?;
+    let (open_child_id, open_child_index) = (&ctx.open_child_id, &ctx.open_child_index);
+    if child_already_open(open_child_id.get().is_some(), open_child_index, index) {
         return open_child_id.get();
     }
     close_child(open_child_id.clone(), open_child_index.clone());
-    announce_submenu(&on_open_submenu, id);
-    let m = palette_source.current();
+    announce_submenu(&ctx.on_open_submenu, id);
+    let m = ctx.palette_source.current();
     let initial_items = submenu_contents(id.is_some(), sub_items);
     let child_size = MenuView::preferred_size(&initial_items, m);
-    let on_dismiss_for_action = on_dismiss_all.clone();
-    let mut child_view = MenuView::new(
-        initial_items.clone(),
-        move |id| {
-            on_activate(id);
-            on_dismiss_for_action();
-        },
-        move || on_dismiss_all(),
-    );
-    child_view = palette_source.inherit(child_view);
-    if let (Some(source), Some(id)) = (&submenu_source, id) {
+    let mut child_view = ctx.child_view(initial_items.clone());
+    if let (Some(source), Some(id)) = (&ctx.submenu_source, id) {
         let source = source.clone();
         let id = id.to_string();
         let fallback = initial_items;
@@ -114,11 +128,11 @@ pub(super) fn open_child_popup(
                 .unwrap_or_else(|| fallback.clone())
         });
     }
-    if let Some(callback) = &on_open_submenu {
+    if let Some(callback) = &ctx.on_open_submenu {
         let callback = callback.clone();
         child_view = child_view.with_open_submenu(move |id| callback(id));
     }
-    if let Some(source) = &submenu_source {
+    if let Some(source) = &ctx.submenu_source {
         let source = source.clone();
         child_view = child_view.with_submenu_source(move |id| source(id));
     }
@@ -137,15 +151,9 @@ pub(super) fn open_child_popup(
         }
     };
     let inset = m.padding;
-    let (anchor, gravity, dx) = submenu_positioner(opens_left);
+    let (anchor, gravity, dx) = submenu_positioner(ctx.opens_left);
     let spec = PopupSpec {
-        anchor_rect: submenu_anchor_rect(
-            index,
-            &parent_items,
-            m,
-            parent_size.0,
-            popup.scroll_shift(),
-        ),
+        anchor_rect: submenu_anchor_rect(index, parent_items, m, ctx.size.0, popup.scroll_shift()),
         anchor,
         gravity,
         offset: (dx, -(inset as i32)),
@@ -167,25 +175,19 @@ pub(super) fn open_child_popup(
     Some(id)
 }
 
-#[allow(clippy::too_many_arguments)]
 pub(super) fn open_reveal_popup(
+    ctx: &SubmenuCtx,
     items: &[MenuItem],
     location: &SearchLocation,
-    popup: PopupHandle,
-    parent_size: (f32, f32),
-    palette_source: PaletteSource,
-    on_activate: Rc<dyn Fn(String)>,
-    on_dismiss_all: Rc<dyn Fn()>,
     reveal_child_id: Rc<Cell<Option<PopupId>>>,
-    opens_left: bool,
-    anchor_x: f32,
-    anchor_width: f32,
+    (anchor_x, anchor_width): (f32, f32),
 ) -> Option<PopupId> {
+    let popup = ctx.popup.as_ref()?;
     close_child(reveal_child_id.clone(), Rc::new(Cell::new(None)));
-    let m = palette_source.current();
+    let m = ctx.palette_source.current();
     let child_size = MenuView::preferred_size(items, m);
-    let parent_width = parent_size.0;
-    let parent_left = if opens_left {
+    let parent_width = ctx.size.0;
+    let parent_left = if ctx.opens_left {
         anchor_x + anchor_width - parent_width
     } else {
         anchor_x
@@ -194,18 +196,10 @@ pub(super) fn open_reveal_popup(
     if reveal_x < 0.0 {
         return None;
     }
-    let on_dismiss_for_action = on_dismiss_all.clone();
     let focused_index = location.indices.first().copied();
-    let mut child_view = MenuView::new(
-        items.to_vec(),
-        move |id| {
-            on_activate(id);
-            on_dismiss_for_action();
-        },
-        move || on_dismiss_all(),
-    );
-    child_view = palette_source.inherit(child_view);
-    let child_view = child_view.with_focused_index(focused_index);
+    let child_view = ctx
+        .child_view(items.to_vec())
+        .with_focused_index(focused_index);
     let reveal_child_id_set = reveal_child_id.clone();
     let on_dismissed = move || {
         reveal_child_id_set.set(None);

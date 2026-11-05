@@ -73,42 +73,11 @@ pub(super) fn activate_at(items: &[MenuItem], index: usize) -> Option<String> {
     }
 }
 
-#[allow(clippy::too_many_arguments)]
-pub(super) fn activate_or_open(
-    items: &[MenuItem],
-    index: usize,
-    popup: Option<PopupHandle>,
-    size: (f32, f32),
-    palette_source: PaletteSource,
-    on_activate: Rc<dyn Fn(String)>,
-    on_dismiss_all: Rc<dyn Fn()>,
-    on_open_submenu: Option<Rc<dyn Fn(String)>>,
-    submenu_source: Option<SubmenuSource>,
-    open_child_id: Rc<Cell<Option<PopupId>>>,
-    open_child_index: Rc<Cell<Option<usize>>>,
-    opens_left: bool,
-) {
+pub(super) fn activate_or_open(ctx: &SubmenuCtx, items: &[MenuItem], index: usize) {
     if let Some(id) = activate_at(items, index) {
-        on_activate(id);
-        on_dismiss_all();
-    } else if let Some(MenuItem::Submenu { id, items: sub, .. }) = items.get(index)
-        && let Some(popup) = popup
-    {
-        open_child_popup(
-            index,
-            id.as_deref(),
-            sub,
-            popup,
-            size,
-            palette_source,
-            on_activate,
-            on_dismiss_all,
-            on_open_submenu,
-            submenu_source,
-            open_child_id,
-            open_child_index,
-            Rc::new(items.to_vec()),
-            opens_left,
-        );
+        (ctx.on_activate)(id);
+        (ctx.on_dismiss_all)();
+    } else if let Some(MenuItem::Submenu { id, items: sub, .. }) = items.get(index) {
+        open_child_popup(ctx, index, id.as_deref(), sub, items);
     }
 }

@@ -77,34 +77,106 @@ pub(super) fn chevron_fg(enabled: bool, focused: bool, m: MenuPalette) -> Rgba {
     }
 }
 
-#[allow(clippy::too_many_arguments)]
+pub(super) fn trailing_width(item: &MenuItem, m: MenuPalette) -> f32 {
+    if matches!(item, MenuItem::Submenu { .. }) {
+        return m.chevron_size;
+    }
+    match item.shortcut() {
+        Some(shortcut) => m.shortcut_gap + measure_text(&shortcut, m.font_size),
+        None => 0.0,
+    }
+}
+
+fn item_fg(enabled: bool, focused: bool, m: MenuPalette) -> Rgba {
+    if !enabled {
+        m.disabled_fg
+    } else if focused {
+        m.hover_fg
+    } else {
+        m.fg
+    }
+}
+
+pub(super) struct RowCtx {
+    pub(super) m: MenuPalette,
+    pub(super) columns: LeadingColumns,
+    pub(super) text_inset: f32,
+    pub(super) size: (f32, f32),
+    pub(super) query: UseState<String>,
+    pub(super) selected: UseState<bool>,
+    pub(super) result_focused: UseState<Option<usize>>,
+    pub(super) menu_search_icon: Option<&'static str>,
+    pub(super) help_search_icon: Option<&'static str>,
+    pub(super) on_activate: Rc<dyn Fn(String)>,
+    pub(super) on_dismiss_all: Rc<dyn Fn()>,
+    pub(super) on_row_enter: Rc<dyn Fn(usize, CursorPoint)>,
+    pub(super) on_row_move: Rc<dyn Fn(usize, CursorPoint)>,
+    pub(super) on_row_click: Rc<dyn Fn(usize)>,
+    pub(super) show_mnemonic: bool,
+}
+
+impl RowCtx {
+    fn fitted_label(&self, item: &MenuItem) -> String {
+        let m = self.m;
+        let max_width = m.max_width
+            - 2.0 * m.padding
+            - self.text_inset
+            - m.item_padding_x
+            - trailing_width(item, m);
+        truncate_middle(
+            item.label().unwrap_or_default(),
+            max_width.max(0.0),
+            m.font_size,
+        )
+    }
+
+    fn activate(&self, id: &str) -> impl Fn(Event<MouseEventData>) + 'static {
+        let (id, on_activate, on_dismiss_all) = (
+            id.to_string(),
+            self.on_activate.clone(),
+            self.on_dismiss_all.clone(),
+        );
+        move |_| {
+            on_activate(id.clone());
+            on_dismiss_all();
+        }
+    }
+
+    fn shortcut_label(&self, item: &MenuItem, color: Rgba) -> Element {
+        let shortcut = item.shortcut().unwrap_or_default();
+        label()
+            .width(Size::px(measure_text(&shortcut, self.m.font_size)))
+            .text(shortcut)
+            .font_size(self.m.font_size)
+            .color(theme::color(color))
+            .max_lines(1)
+            .into_element()
+    }
+}
+
+fn row_frame(m: MenuPalette, highlighted: bool) -> Rect {
+    let row = rect()
+        .width(Size::fill())
+        .height(Size::px(m.item_height))
+        .padding(Gaps::new(0.0, m.item_padding_x, 0.0, m.item_padding_x))
+        .corner_radius(m.item_radius)
+        .direction(Direction::Horizontal)
+        .main_align(Alignment::SpaceBetween)
+        .cross_align(Alignment::Center);
+    if highlighted {
+        row.background(theme::color(m.hover_bg))
+    } else {
+        row
+    }
+}
+
 pub(super) fn render_item(
+    ctx: &RowCtx,
     item: &MenuItem,
     index: usize,
     is_focused: bool,
-    m: MenuPalette,
-    _palette_source: PaletteSource,
-    _popup: Option<PopupHandle>,
-    _opens_left: bool,
-    on_activate: Rc<dyn Fn(String)>,
-    on_dismiss_all: Rc<dyn Fn()>,
-    items: Rc<Vec<MenuItem>>,
-    _focused: UseState<Option<usize>>,
-    _open_child_id: Rc<Cell<Option<PopupId>>>,
-    _open_child_index: Rc<Cell<Option<usize>>>,
-    size: (f32, f32),
-    query: UseState<String>,
-    selected: UseState<bool>,
-    menu_search_icon: Option<&'static str>,
-    help_search_icon: Option<&'static str>,
-    result_focused: UseState<Option<usize>>,
-    _on_open_submenu: Option<Rc<dyn Fn(String)>>,
-    _submenu_source: Option<SubmenuSource>,
-    on_row_enter: Rc<dyn Fn(usize, CursorPoint)>,
-    on_row_move: Rc<dyn Fn(usize, CursorPoint)>,
-    on_row_click: Rc<dyn Fn(usize)>,
-    show_mnemonic: bool,
 ) -> Element {
+    let m = ctx.m;
     match item {
         MenuItem::Separator => rect()
             .width(Size::fill())
@@ -117,58 +189,11 @@ pub(super) fn render_item(
             ))
             .background(theme::color(m.separator_color))
             .into_element(),
-        MenuItem::Action {
-            id,
-            label: label_text,
-            shortcut: shortcut_text,
-            enabled,
-            check,
-            icon,
-        } => {
-            let id = id.clone();
-            let label_text = label_text.clone();
-            let shortcut_text = shortcut_text.as_ref().map(|s| format_shortcut(s));
+        MenuItem::Action { enabled, icon, .. } | MenuItem::Submenu { enabled, icon, .. } => {
             let enabled = *enabled;
-            let check = *check;
-            let icon = icon.clone();
-            let on_row_enter = on_row_enter.clone();
-            let on_row_move = on_row_move.clone();
-            let shortcut_w = shortcut_text
-                .as_ref()
-                .map(|s| measure_text(s, m.font_size))
-                .unwrap_or(0.0);
-            let columns = LeadingColumns::of(&items);
-            let text_inset = row_text_inset(&items, m);
-            let max_label_w = (m.max_width
-                - 2.0 * m.padding
-                - text_inset
-                - m.item_padding_x
-                - if shortcut_w > 0.0 {
-                    m.shortcut_gap + shortcut_w
-                } else {
-                    0.0
-                })
-            .max(0.0);
-            let label_text = truncate_middle(&label_text, max_label_w, m.font_size);
-            let fg = if enabled {
-                if is_focused { m.hover_fg } else { m.fg }
-            } else {
-                m.disabled_fg
-            };
-            let shortcut_color = shortcut_fg(enabled, is_focused, m);
-            let bg = if is_focused && enabled {
-                Some(m.hover_bg)
-            } else {
-                None
-            };
-            let mut row = rect()
-                .width(Size::fill())
-                .height(Size::px(m.item_height))
-                .padding(Gaps::new(0.0, m.item_padding_x, 0.0, m.item_padding_x))
-                .corner_radius(m.item_radius)
-                .direction(Direction::Horizontal)
-                .main_align(Alignment::SpaceBetween)
-                .cross_align(Alignment::Center)
+            let fg = item_fg(enabled, is_focused, m);
+            let (on_row_enter, on_row_move) = (ctx.on_row_enter.clone(), ctx.on_row_move.clone());
+            let mut row = row_frame(m, is_focused && enabled)
                 .on_pointer_enter(move |event: Event<PointerEventData>| {
                     if enabled {
                         on_row_enter(index, event.global_location());
@@ -178,106 +203,49 @@ pub(super) fn render_item(
                     if enabled {
                         on_row_move(index, event.global_location());
                     }
-                })
-                .on_mouse_down(move |_: Event<MouseEventData>| {
-                    if enabled {
-                        on_activate(id.clone());
-                        on_dismiss_all();
-                    }
                 });
-            if let Some(bg) = bg {
-                row = row.background(theme::color(bg));
-            }
+            let (check, trailing) = match item {
+                MenuItem::Action { id, check, .. } => {
+                    if enabled {
+                        row = row.on_mouse_down(ctx.activate(id));
+                    }
+                    (
+                        *check,
+                        ctx.shortcut_label(item, shortcut_fg(enabled, is_focused, m)),
+                    )
+                }
+                _ => {
+                    let on_row_click = ctx.on_row_click.clone();
+                    if enabled {
+                        row =
+                            row.on_mouse_down(move |_: Event<MouseEventData>| on_row_click(index));
+                    }
+                    (
+                        CheckState::None,
+                        chevron_element(chevron_fg(enabled, is_focused, m), m),
+                    )
+                }
+            };
             let mut left = rect()
                 .direction(Direction::Horizontal)
                 .cross_align(Alignment::Center);
-            if columns.any() {
+            if ctx.columns.any() {
                 left = left.spacing(MARK_TEXT_GAP).child(leading_slot(
                     icon.clone(),
                     check,
-                    columns,
+                    ctx.columns,
                     fg,
                     shortcut_fg(enabled, is_focused, m),
                     m,
                 ));
             }
-            left = left.child(item_label(&label_text, show_mnemonic, m.font_size, fg));
-            row.child(left)
-                .child(
-                    label()
-                        .text(shortcut_text.unwrap_or_default())
-                        .font_size(m.font_size)
-                        .color(theme::color(shortcut_color))
-                        .width(Size::px(shortcut_w))
-                        .max_lines(1),
-                )
-                .into_element()
-        }
-        MenuItem::Submenu {
-            id: _id,
-            label: label_text,
-            enabled,
-            items: _sub_items,
-            icon,
-        } => {
-            let label_text = label_text.clone();
-            let enabled = *enabled;
-            let icon = icon.clone();
-            let on_row_click = on_row_click.clone();
-            let fg = if enabled {
-                if is_focused { m.hover_fg } else { m.fg }
-            } else {
-                m.disabled_fg
-            };
-            let bg = if is_focused && enabled {
-                Some(m.hover_bg)
-            } else {
-                None
-            };
-            let columns = LeadingColumns::of(&items);
-            let mut row = rect()
-                .width(Size::fill())
-                .height(Size::px(m.item_height))
-                .padding(Gaps::new(0.0, m.item_padding_x, 0.0, m.item_padding_x))
-                .corner_radius(m.item_radius)
-                .direction(Direction::Horizontal)
-                .main_align(Alignment::SpaceBetween)
-                .cross_align(Alignment::Center)
-                .on_pointer_enter(move |event: Event<PointerEventData>| {
-                    if enabled {
-                        on_row_enter(index, event.global_location());
-                    }
-                })
-                .on_pointer_move(move |event: Event<PointerEventData>| {
-                    if enabled {
-                        on_row_move(index, event.global_location());
-                    }
-                })
-                .on_mouse_down(move |_: Event<MouseEventData>| {
-                    if enabled {
-                        on_row_click(index);
-                    }
-                });
-            if let Some(bg) = bg {
-                row = row.background(theme::color(bg));
-            }
-            let mut left = rect()
-                .direction(Direction::Horizontal)
-                .cross_align(Alignment::Center);
-            if columns.any() {
-                left = left.spacing(MARK_TEXT_GAP).child(leading_slot(
-                    icon.clone(),
-                    CheckState::None,
-                    columns,
-                    fg,
-                    shortcut_fg(enabled, is_focused, m),
-                    m,
-                ));
-            }
-            left = left.child(item_label(&label_text, show_mnemonic, m.font_size, fg));
-            row.child(left)
-                .child(chevron_element(chevron_fg(enabled, is_focused, m), m))
-                .into_element()
+            left = left.child(item_label(
+                &ctx.fitted_label(item),
+                ctx.show_mnemonic,
+                m.font_size,
+                fg,
+            ));
+            row.child(left).child(trailing).into_element()
         }
         MenuItem::Header {
             label: header,
@@ -310,233 +278,171 @@ pub(super) fn render_item(
             }
             row.into_element()
         }
-        MenuItem::SearchField { placeholder } => {
-            let mut query = query;
-            let mut selected = selected;
-            let query_text = (*query.read()).clone();
-            let is_selected = *selected.read();
-            let has_text = !query_text.is_empty();
-            let display_text = if has_text {
-                query_text.clone()
-            } else {
-                placeholder.clone()
-            };
-            let text_color = if has_text { m.fg } else { m.shortcut_color };
-            let clear_size = vow_design::MENU_SEARCH_CLEAR;
-            let clear_margin = vow_design::MENU_SEARCH_CLEAR_MARGIN;
-            let clear_gap = if has_text {
-                clear_size + clear_margin
-            } else {
-                0.0
-            };
-            let row_padding = m.item_padding_x;
-            let available_w = (size.0
-                - 2.0 * m.padding
-                - row_padding
-                - clear_margin
-                - m.icon_size
-                - 8.0
-                - clear_gap)
-                .max(0.0);
-
-            let mut text_box = rect()
-                .direction(Direction::Horizontal)
-                .cross_align(Alignment::Center)
-                .width(Size::px(available_w))
-                .overflow(Overflow::Clip)
-                .child(
-                    label()
-                        .text(display_text)
-                        .font_size(m.font_size)
-                        .color(theme::color(text_color))
-                        .max_lines(1),
-                );
-
-            if has_text && !is_selected {
-                text_box = text_box.child(
-                    rect()
-                        .width(Size::px(1.0))
-                        .height(Size::px(m.font_size))
-                        .margin(Gaps::new(0.0, 1.0, 0.0, 0.0))
-                        .background(theme::color(m.fg))
-                        .into_element(),
-                );
-            }
-
-            let mut content = rect()
-                .width(Size::fill())
-                .height(Size::px(m.search_height))
-                .padding(Gaps::new(0.0, clear_margin, 0.0, row_padding))
-                .background(theme::color(m.search_bg))
-                .corner_radius(m.search_radius)
-                .border(
-                    Border::new()
-                        .width(m.search_ring_width)
-                        .alignment(BorderAlignment::Inner)
-                        .fill(theme::color(m.search_ring)),
-                )
-                .direction(Direction::Horizontal)
-                .main_align(Alignment::SpaceBetween)
-                .cross_align(Alignment::Center)
-                .child(
-                    rect()
-                        .direction(Direction::Horizontal)
-                        .cross_align(Alignment::Center)
-                        .spacing(8.0)
-                        .child(
-                            symbol(Symbol::MagnifyingGlass, m.icon_size, m.shortcut_color)
-                                .into_element(),
-                        )
-                        .child(text_box),
-                );
-
-            if has_text {
-                let clear = rect()
-                    .width(Size::px(clear_size))
-                    .height(Size::px(clear_size))
-                    .corner_radius(clear_size / 2.0)
-                    .main_align(Alignment::Center)
-                    .cross_align(Alignment::Center)
-                    .background(theme::color(m.shortcut_color.mix(m.bg, 0.7)))
-                    .child(
-                        label()
-                            .text("×")
-                            .font_size(vow_design::MENU_SEARCH_CLEAR_GLYPH)
-                            .color(theme::color(m.fg))
-                            .max_lines(1),
-                    )
-                    .on_mouse_down(move |_: Event<MouseEventData>| {
-                        query.set(String::new());
-                        selected.set(false);
-                    });
-                content = content.child(clear);
-            }
-
-            content
-                .margin(Gaps::new(m.search_margin_y, 0.0, m.search_margin_y, 0.0))
-                .into_element()
-        }
+        MenuItem::SearchField { placeholder } => search_field(ctx, placeholder),
         MenuItem::SearchResult {
-            path: _,
-            item,
+            item: inner,
             source,
-            location: _,
+            ..
         } => {
-            let MenuItem::Action {
-                id,
-                label: label_text,
-                shortcut: shortcut_text,
-                enabled,
-                ..
-            } = item.as_ref()
-            else {
+            let MenuItem::Action { id, enabled, .. } = inner.as_ref() else {
                 return rect().into_element();
             };
-            let mut result_focused = result_focused;
-            let id = id.clone();
-            let label_text = label_text.clone();
-            let shortcut_text = shortcut_text.as_ref().map(|s| format_shortcut(s));
             let enabled = *enabled;
-            let fg = if enabled {
-                if is_focused { m.hover_fg } else { m.fg }
-            } else {
-                m.disabled_fg
-            };
-            let shortcut_color = shortcut_fg(enabled, is_focused, m);
-            let bg = if is_focused && enabled {
-                Some(m.hover_bg)
-            } else {
-                None
-            };
-            let shortcut_w = shortcut_text
-                .as_ref()
-                .map(|s| measure_text(s, m.font_size))
-                .unwrap_or(0.0);
-            let mut row = rect()
-                .width(Size::fill())
-                .height(Size::px(m.item_height))
-                .padding(Gaps::new(0.0, m.item_padding_x, 0.0, m.item_padding_x))
-                .corner_radius(m.item_radius)
-                .direction(Direction::Horizontal)
-                .main_align(Alignment::SpaceBetween)
-                .cross_align(Alignment::Center)
+            let fg = item_fg(enabled, is_focused, m);
+            let (mut on_enter, mut on_move) = (ctx.result_focused, ctx.result_focused);
+            let mut row = row_frame(m, is_focused && enabled)
                 .on_pointer_enter(move |_| {
                     if enabled {
-                        result_focused.set(Some(index));
+                        on_enter.set(Some(index));
                     }
                 })
                 .on_pointer_move(move |_| {
                     if enabled {
-                        result_focused.set(Some(index));
-                    }
-                })
-                .on_mouse_down(move |_: Event<MouseEventData>| {
-                    if enabled {
-                        on_activate(id.clone());
-                        on_dismiss_all();
+                        on_move.set(Some(index));
                     }
                 });
-            if let Some(bg) = bg {
-                row = row.background(theme::color(bg));
+            if enabled {
+                row = row.on_mouse_down(ctx.activate(id));
             }
-            let icon_element = search_icon_element(
-                *source,
-                enabled,
-                is_focused,
-                fg,
-                m.hover_bg,
-                menu_search_icon,
-                help_search_icon,
-                m,
-            );
             let left = rect()
                 .direction(Direction::Horizontal)
                 .cross_align(Alignment::Center)
                 .spacing(MARK_TEXT_GAP)
-                .child(icon_element)
+                .child(search_icon_element(ctx, *source, enabled, is_focused, fg))
                 .child(
                     label()
-                        .text(strip_mnemonic(&label_text))
+                        .text(strip_mnemonic(&ctx.fitted_label(item)))
                         .font_size(m.font_size)
                         .color(theme::color(fg))
                         .max_lines(1),
                 );
             row.child(left)
-                .child(
-                    label()
-                        .text(shortcut_text.unwrap_or_default())
-                        .font_size(m.font_size)
-                        .color(theme::color(shortcut_color))
-                        .width(Size::px(shortcut_w))
-                        .max_lines(1),
-                )
+                .child(ctx.shortcut_label(item, shortcut_fg(enabled, is_focused, m)))
                 .into_element()
         }
     }
 }
 
-#[allow(clippy::too_many_arguments)]
-pub(super) fn search_icon_element(
+fn search_field(ctx: &RowCtx, placeholder: &str) -> Element {
+    let m = ctx.m;
+    let (mut query, mut selected) = (ctx.query, ctx.selected);
+    let query_text = (*query.read()).clone();
+    let is_selected = *selected.read();
+    let has_text = !query_text.is_empty();
+    let display_text = if has_text {
+        query_text.clone()
+    } else {
+        placeholder.to_string()
+    };
+    let text_color = if has_text { m.fg } else { m.shortcut_color };
+    let clear_size = vow_design::MENU_SEARCH_CLEAR;
+    let clear_margin = vow_design::MENU_SEARCH_CLEAR_MARGIN;
+    let clear_gap = if has_text {
+        clear_size + clear_margin
+    } else {
+        0.0
+    };
+    let row_padding = m.item_padding_x;
+    let available_w =
+        (ctx.size.0 - 2.0 * m.padding - row_padding - clear_margin - m.icon_size - 8.0 - clear_gap)
+            .max(0.0);
+
+    let mut text_box = rect()
+        .direction(Direction::Horizontal)
+        .cross_align(Alignment::Center)
+        .width(Size::px(available_w))
+        .overflow(Overflow::Clip)
+        .child(
+            label()
+                .text(display_text)
+                .font_size(m.font_size)
+                .color(theme::color(text_color))
+                .max_lines(1),
+        );
+
+    if has_text && !is_selected {
+        text_box = text_box.child(
+            rect()
+                .width(Size::px(1.0))
+                .height(Size::px(m.font_size))
+                .margin(Gaps::new(0.0, 1.0, 0.0, 0.0))
+                .background(theme::color(m.fg))
+                .into_element(),
+        );
+    }
+
+    let mut content = rect()
+        .width(Size::fill())
+        .height(Size::px(m.search_height))
+        .padding(Gaps::new(0.0, clear_margin, 0.0, row_padding))
+        .background(theme::color(m.search_bg))
+        .corner_radius(m.search_radius)
+        .border(
+            Border::new()
+                .width(m.search_ring_width)
+                .alignment(BorderAlignment::Inner)
+                .fill(theme::color(m.search_ring)),
+        )
+        .direction(Direction::Horizontal)
+        .main_align(Alignment::SpaceBetween)
+        .cross_align(Alignment::Center)
+        .child(
+            rect()
+                .direction(Direction::Horizontal)
+                .cross_align(Alignment::Center)
+                .spacing(8.0)
+                .child(
+                    symbol(Symbol::MagnifyingGlass, m.icon_size, m.shortcut_color).into_element(),
+                )
+                .child(text_box),
+        );
+
+    if has_text {
+        let clear = rect()
+            .width(Size::px(clear_size))
+            .height(Size::px(clear_size))
+            .corner_radius(clear_size / 2.0)
+            .main_align(Alignment::Center)
+            .cross_align(Alignment::Center)
+            .background(theme::color(m.shortcut_color.mix(m.bg, 0.7)))
+            .child(
+                label()
+                    .text("×")
+                    .font_size(vow_design::MENU_SEARCH_CLEAR_GLYPH)
+                    .color(theme::color(m.fg))
+                    .max_lines(1),
+            )
+            .on_mouse_down(move |_: Event<MouseEventData>| {
+                query.set(String::new());
+                selected.set(false);
+            });
+        content = content.child(clear);
+    }
+
+    content
+        .margin(Gaps::new(m.search_margin_y, 0.0, m.search_margin_y, 0.0))
+        .into_element()
+}
+
+fn search_icon_element(
+    ctx: &RowCtx,
     source: SearchSource,
     enabled: bool,
     focused: bool,
     fg: Rgba,
-    accent: Rgba,
-    menu_icon: Option<&'static str>,
-    help_icon: Option<&'static str>,
-    m: MenuPalette,
 ) -> Element {
+    let m = ctx.m;
     match source {
         SearchSource::Menu => {
             let text_color = if focused { m.hover_fg } else { fg };
             let accent_color = if focused {
                 m.hover_fg
             } else if enabled {
-                accent
+                m.hover_bg
             } else {
                 fg
             };
-            let svg = search_icon_svg(menu_icon.unwrap_or(""), text_color, accent_color);
+            let svg = search_icon_svg(ctx.menu_search_icon.unwrap_or(""), text_color, accent_color);
             let [width, height] = vow_design::MENU_SEARCH_ICON;
             rect()
                 .width(Size::px(width))
@@ -552,7 +458,7 @@ pub(super) fn search_icon_element(
                 .into_element()
         }
         SearchSource::Help => {
-            let svg = help_icon.unwrap_or("").to_string();
+            let svg = ctx.help_search_icon.unwrap_or("").to_string();
             let color = if focused { m.hover_fg } else { fg };
             let side = vow_design::MENU_HELP_ICON;
             rect()
