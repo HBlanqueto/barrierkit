@@ -2,6 +2,7 @@
 
 pub mod backdrop;
 mod config;
+pub mod language;
 mod resolve;
 pub mod traffic;
 pub mod watch;
