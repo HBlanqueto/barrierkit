@@ -11,6 +11,8 @@ mod appearance;
 mod color;
 #[path = "build/controls.rs"]
 mod controls;
+#[path = "build/desktop.rs"]
+mod desktop;
 #[path = "build/json.rs"]
 mod json;
 #[path = "build/menu.rs"]
@@ -29,6 +31,7 @@ mod window;
 use appearance::*;
 use color::*;
 use controls::*;
+use desktop::*;
 use json::*;
 use menu::*;
 use settings::*;
@@ -90,6 +93,7 @@ fn main() {
     emit_menu_popover(&mut out, &tokens, &components);
     emit_metrics(&mut out, &tokens, &components);
     emit_settings(&mut out, &tokens, &components);
+    emit_desktop(&mut out, &components);
 
     let out_dir = PathBuf::from(env::var("OUT_DIR").expect("OUT_DIR"));
     fs::write(out_dir.join("tengen.rs"), out).expect("write tengen.rs");

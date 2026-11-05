@@ -219,15 +219,7 @@ pub(super) fn emit_metrics(out: &mut String, tokens: &Value, components: &Value)
             "components.shell.lock.mask-font-size",
         ),
     ];
-    for (name, ty, path) in metrics {
-        let value = number(components, path, COMPONENTS);
-        pub_const(out, name);
-        if ty == "f32" {
-            out.push_str(&format!(": {ty} = {};\n\n", float(value)));
-        } else {
-            out.push_str(&format!(": {ty} = {value};\n\n"));
-        }
-    }
+    emit_numbers(out, components, &metrics);
 
     for (name, path) in [
         ("LAUNCHER_WIDTH", "components.shell.launcher.width"),

@@ -131,6 +131,8 @@
     "window": {
       "min-width": 480,
       "min-height": 360,
+      "default-width": 640,
+      "default-height": 420,
       "resize-edge": 5,
       "resize-corner": 16,
       "radius": "radius.lg",
@@ -229,6 +231,8 @@
       },
       "superellipse-exponent": 2.0,
       "titlebar": {
+        "padding-x": 10,
+        "title-gap": 12,
         "double-click": {
           "interval-ms": 400,
           "slop": 4
@@ -658,7 +662,8 @@
         "mark": {
           "width": 16,
           "dot": 7,
-          "check": 12
+          "check": 12,
+          "text-gap": 6
         },
         "chevron": {
           "size": 8,
@@ -678,10 +683,47 @@
           "ring-width": 2,
           "radius": "radius.sm",
           "bg": "bg-control",
-          "ring": "accent"
-        }
+          "ring": "accent",
+          "icon": [16, 14],
+          "clear": 16,
+          "clear-glyph": 12,
+          "clear-margin": 8
+        },
+        "submenu": {
+          "intent-ms": 300,
+          "reveal-gap": 8
+        },
+        "scroll-tick-ms": 30,
+        "help-icon": 16
       }
-    }
+    },
+    "hairline": 1,
+    "glass-mask": "#ffffff",
+    "cursor-shake": {
+      "scale": 3.0,
+      "grow-ms": 180,
+      "shrink-ms": 220,
+      "tick-ms": 16
+    },
+    "screenshot": {
+      "dim": "#00000059",
+      "idle-dim": "#00000026",
+      "border": "#ffffffe6",
+      "border-width": 1
+    },
+    "spaces": {
+      "gap": 48,
+      "gap-color": "#000000",
+      "slide-ms": 480,
+      "slide-ease": [0.32, 0.72, 0.0, 1.0],
+      "focus-bar": "#000000",
+      "focus-bar-text": "#ffffff"
+    },
+    "tile": {
+      "margin": 8,
+      "gap": 8
+    },
+    "desktop-clear": "#0f0f17"
   },
   "appearance": {
     "tint-strength": {

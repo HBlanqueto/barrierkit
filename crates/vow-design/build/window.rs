@@ -81,6 +81,12 @@ pub(super) fn emit_titlebar(out: &mut String, tokens: &Value, components: &Value
         integer(components, "components.window.min-width", COMPONENTS),
         integer(components, "components.window.min-height", COMPONENTS)
     ));
+    pub_const(out, "WINDOW_DEFAULT_SIZE");
+    out.push_str(&format!(
+        ": (u32, u32) = ({}, {});\n\n",
+        integer(components, "components.window.default-width", COMPONENTS),
+        integer(components, "components.window.default-height", COMPONENTS)
+    ));
 
     let interval = integer(
         components,

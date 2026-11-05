@@ -81,6 +81,18 @@ pub(super) fn font(tokens: &Value, style: &str) -> String {
     )
 }
 
+pub(super) fn emit_numbers(out: &mut String, components: &Value, metrics: &[(&str, &str, &str)]) {
+    for (name, ty, path) in metrics {
+        let value = number(components, path, COMPONENTS);
+        pub_const(out, name);
+        if *ty == "f32" {
+            out.push_str(&format!(": {ty} = {};\n\n", float(value)));
+        } else {
+            out.push_str(&format!(": {ty} = {value};\n\n"));
+        }
+    }
+}
+
 pub(super) fn pub_const(out: &mut String, name: &str) {
     out.push_str(&format!("pub const {name}"));
 }

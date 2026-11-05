@@ -779,58 +779,6 @@ pub struct ToolgroupPalette {
     pub separator: Rgba,
 }
 
-pub const CURSOR_SHAKE_SCALE: f32 = 3.0;
-
-pub const CURSOR_SHAKE_GROW_MS: u64 = 180;
-
-pub const CURSOR_SHAKE_SHRINK_MS: u64 = 220;
-
-pub const CURSOR_SHAKE_TICK_MS: u64 = 16;
-
-pub const SCREENSHOT_DIM: [f32; 4] = [0.0, 0.0, 0.0, 0.35];
-
-pub const SCREENSHOT_IDLE_DIM: [f32; 4] = [0.0, 0.0, 0.0, 0.15];
-
-pub const SCREENSHOT_BORDER: [f32; 4] = [1.0, 1.0, 1.0, 0.9];
-
-pub const SCREENSHOT_BORDER_WIDTH: i32 = 1;
-
-pub const SPACE_GAP: i32 = 48;
-
-pub const SPACE_GAP_COLOR: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
-
-pub const SPACE_SLIDE_MS: u64 = 480;
-
-pub const FOCUS_BAR_BACKGROUND: Rgba = Rgba::rgb8(0, 0, 0);
-
-pub const FOCUS_BAR_TEXT: Rgba = Rgba::rgb8(255, 255, 255);
-
-pub const SPACE_SLIDE_EASE: [f32; 4] = [0.32, 0.72, 0.0, 1.0];
-
-pub const DESKTOP_CLEAR: [f32; 4] = [0.06, 0.06, 0.09, 1.0];
-
-pub const TILE_MARGIN: i32 = 8;
-
-pub const TILE_GAP: i32 = 8;
-
-pub const TITLEBAR_TITLE_GAP: f32 = 12.0;
-
-pub const GLASS_MASK: Rgba = Rgba::rgb8(255, 255, 255);
-
-pub const MENU_SUBMENU_INTENT_MS: u64 = 300;
-
-pub const MENU_SCROLL_TICK_MS: u64 = 30;
-
-pub const MENU_SEARCH_CLEAR: f32 = 16.0;
-
-pub const MENU_SEARCH_CLEAR_GLYPH: f32 = 12.0;
-
-pub const MENU_SEARCH_CLEAR_MARGIN: f32 = 8.0;
-
-pub const MENU_SEARCH_ICON: [f32; 2] = [16.0, 14.0];
-
-pub const MENU_HELP_ICON: f32 = 16.0;
-
 pub const NATIVE_APP_ID_PREFIX: &str = "io.github.hblanqueto.malaysia.";
 
 include!(concat!(env!("OUT_DIR"), "/tengen.rs"));
