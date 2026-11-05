@@ -301,6 +301,7 @@ impl Component for Titlebar {
             let title = rect()
                 .width(Size::flex(1.0))
                 .height(Size::fill())
+                .direction(Direction::Horizontal)
                 .cross_align(Alignment::Center)
                 .main_align(Alignment::Start)
                 .a11y_alt("titlebar-title")
@@ -332,7 +333,7 @@ impl Component for Titlebar {
             root = root.maybe_child(self.hairline.then(|| {
                 rect()
                     .position(Position::new_absolute().bottom(0.0).left(0.0))
-                    .width(Size::fill())
+                    .width(Size::percent(100.0))
                     .height(Size::px(1.0))
                     .background(theme::color(crate::sidebar::sidebar_palette().line))
             }));
