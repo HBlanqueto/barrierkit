@@ -42,16 +42,7 @@ A new color or size is never written in `barrier-kit`. It goes into Tengen:
 2. If the component has no struct yet, add the field to the struct in
    `crates/vow-design/src/lib.rs` and its emission in `crates/vow-design/build/`.
 3. Use the constant in the code: `SPLIT_VIEW.key_step`.
-4. Regenerate the outputs for other languages:
-
-   ```sh
-   cd crates/vow-design/tengen
-   nix eval --raw -f . slint > generated/tengen.slint
-   nix eval --raw -f . css   > generated/tengen.css
-   nix eval --raw -f . qml   > generated/Tengen.qml
-   ```
-
-5. Pass `./dev.sh check`. `scripts/check-design-tokens.sh` rejects color
+4. Pass `./dev.sh check`. `scripts/check-design-tokens.sh` rejects color
    literals outside `vow-design`, the apps included.
 
 ## User appearance
