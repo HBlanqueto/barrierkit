@@ -837,6 +837,7 @@ pub struct TextField {
     value: State<String>,
     placeholder: &'static str,
     width: Size,
+    auto_focus: bool,
     key: DiffKey,
 }
 
@@ -846,12 +847,18 @@ impl TextField {
             value,
             placeholder,
             width: Size::fill(),
+            auto_focus: false,
             key: DiffKey::None,
         }
     }
 
     pub fn width(mut self, width: Size) -> Self {
         self.width = width;
+        self
+    }
+
+    pub fn auto_focus(mut self, auto_focus: bool) -> Self {
+        self.auto_focus = auto_focus;
         self
     }
 }
@@ -872,7 +879,8 @@ impl Component for TextField {
             palette.separator,
             TEXT_FIELD.radius,
             TEXT_FIELD.padding_x,
-        );
+        )
+        .auto_focus(self.auto_focus);
         let field = use_hook(AccessibilityId::new_unique);
         let mut index = use_state(|| None);
         let holder = use_state(ParagraphHolder::default);

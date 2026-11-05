@@ -185,7 +185,8 @@ TextEditor::new(notas, "Notas").height(Size::px(72.0))
 
 `TextField` y `SearchField` escriben directamente en un `State<String>`. Con
 el foco en un campo, Ctrl+A, C, V, X, Y y Z son del campo antes que del menú.
-`SearchField::auto_focus(true)` toma el foco al montarse.
+`TextField::auto_focus(true)` y `SearchField::auto_focus(true)` toman el foco
+al montarse.
 
 `SecureField` guarda la contraseña en un `State<PasswordField>`
 (`barrier_kit::password`) que crea la app. Enter llama a `on_submit` con el

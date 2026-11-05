@@ -186,7 +186,8 @@ TextEditor::new(notas, "Notas").height(Size::px(72.0))
 
 `TextField` and `SearchField` write directly into a `State<String>`. With the
 focus in a field, Ctrl+A, C, V, X, Y and Z belong to the field before the menu.
-`SearchField::auto_focus(true)` takes the focus when it mounts.
+`TextField::auto_focus(true)` and `SearchField::auto_focus(true)` take the
+focus when they mount.
 
 `SecureField` keeps the password in a `State<PasswordField>`
 (`barrier_kit::password`) that the app creates. Enter calls `on_submit` with the
