@@ -566,7 +566,7 @@
           "weight": 700
         },
         "margin": 10,
-        "margin-right": 8,
+        "margin-right": 24,
         "title-padding-x": 10,
         "text-lift": 1,
         "title-max-width": 240,
@@ -576,7 +576,8 @@
         "title-open": {
           "bg": "{menubar-title-open}",
           "radius": 10,
-          "height": 24
+          "height": 24,
+          "bleed": 3
         }
       },
       "dock": {
@@ -641,7 +642,7 @@
         "item": {
           "height": 24,
           "radius": "radius.sm",
-          "padding-x": 10,
+          "padding-x": 13,
           "font-size": 13,
           "shortcut-gap": 24,
           "fg": "ink",

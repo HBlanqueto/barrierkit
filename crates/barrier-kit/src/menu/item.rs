@@ -163,9 +163,9 @@ pub(super) fn render_item(
             .height(Size::px(m.separator_height))
             .margin(Gaps::new(
                 m.separator_margin_y,
-                0.0,
+                m.item_padding_x,
                 m.separator_margin_y,
-                0.0,
+                m.item_padding_x,
             ))
             .background(theme::color(m.separator_color))
             .into_element(),

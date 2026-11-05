@@ -108,6 +108,7 @@ MENUBAR_MARGIN_RIGHT i32 components.shell.menubar.margin-right
 MENUBAR_TITLE_PADDING_X f32 components.shell.menubar.title-padding-x
 MENUBAR_TEXT_LIFT f32 components.shell.menubar.text-lift
 MENUBAR_TITLE_MAX_WIDTH f32 components.shell.menubar.title-max-width
+MENUBAR_TITLE_BLEED f32 components.shell.menubar.title-open.bleed
 DOCK_TILESIZE i32 components.shell.dock.tilesize
 DOCK_GAP i32 components.shell.dock.gap
 DOCK_PADDING i32 components.shell.dock.padding
