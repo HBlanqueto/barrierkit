@@ -57,11 +57,30 @@ impl Interaction {
             .on_global_pointer_press(move |_| pressed.set_if_modified(false))
     }
 
+    pub fn request_focus(&self) {
+        self.a11y_id.request_focus();
+    }
+
+    fn shows_focus(&self) -> bool {
+        self.keyboard_focused() && crate::platform::window_activated()
+    }
+
     pub fn focus_ring(&self, element: Rect, corner_radius: f32) -> Rect {
-        if !self.keyboard_focused() || !crate::platform::window_activated() {
+        if !self.shows_focus() {
             return element;
         }
         ring(element, corner_radius, crate::theme::resolved().accent)
+    }
+
+    pub fn inner_focus_ring(&self, element: Rect) -> Rect {
+        element.maybe(self.shows_focus(), |el| {
+            el.border(
+                Border::new()
+                    .width(FOCUS_RING.width)
+                    .alignment(BorderAlignment::Inner)
+                    .fill(crate::theme::color(crate::theme::resolved().accent)),
+            )
+        })
     }
 }
 

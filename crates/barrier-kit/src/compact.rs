@@ -1,6 +1,7 @@
 //! Compact controls built from small square buttons: icon button, stepper and toggle group.
 
 use freya_core::prelude::*;
+use keyboard_types::{Key, NamedKey};
 use torin::prelude::{Alignment, Direction, Gaps, Size};
 use vow_design::{BUTTON, DISPLAY, ICON_BUTTON, SEGMENTED, TEXT};
 
@@ -110,24 +111,28 @@ impl Stepper {
 impl Component for Stepper {
     fn render(&self) -> impl IntoElement {
         let palette = Palette::current();
+        let interaction = use_interaction();
         let value = crate::controlled::use_controlled(&self.value);
         let current = *value.read();
         let (min, max) = (self.min, self.max);
-        let step = |delta: i64| {
+        let on_change = self.on_change.clone();
+        let step = move |delta: i64| {
             let mut value = value;
-            let on_change = self.on_change.clone();
-            move |_| {
-                let next = (*value.read() + delta).clamp(min, max);
-                if next != *value.read() {
-                    value.set(next);
-                    if let Some(cb) = &on_change {
-                        cb.call(next);
-                    }
+            let next = (*value.peek() + delta).clamp(min, max);
+            if next != *value.peek() {
+                value.set(next);
+                if let Some(cb) = &on_change {
+                    cb.call(next);
                 }
             }
+            if next == min || next == max {
+                interaction.request_focus();
+            }
         };
+        let (step_down, step_up, step_key) = (step.clone(), step.clone(), step);
 
-        rect()
+        let stepper = interaction
+            .attach(rect(), true)
             .a11y_role(AccessibilityRole::SpinButton)
             .a11y_alt(self.label)
             .a11y_builder(move |node| node.set_numeric_value(current as f64))
@@ -135,10 +140,15 @@ impl Component for Stepper {
             .cross_align(Alignment::Center)
             .corner_radius(ICON_BUTTON.radius)
             .background(color(palette.control_background))
+            .on_key_down(move |event: Event<KeyboardEventData>| match event.key {
+                Key::Named(NamedKey::ArrowUp) => step_key(1),
+                Key::Named(NamedKey::ArrowDown) => step_key(-1),
+                _ => {}
+            })
             .child(
                 IconButton::new(Symbol::Minus, "Menos")
                     .disabled(current <= min)
-                    .on_press(step(-1)),
+                    .on_press(move |_| step_down(-1)),
             )
             .child(
                 rect()
@@ -149,8 +159,9 @@ impl Component for Stepper {
             .child(
                 IconButton::new(Symbol::Plus, "Más")
                     .disabled(current >= max)
-                    .on_press(step(1)),
-            )
+                    .on_press(move |_| step_up(1)),
+            );
+        interaction.focus_ring(stepper, ICON_BUTTON.radius)
     }
 }
 

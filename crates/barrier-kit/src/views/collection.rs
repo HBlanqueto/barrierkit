@@ -6,6 +6,7 @@ use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
 use vow_design::{CAPTION, COLLECTION, Rgba};
 
 use crate::interaction::use_interaction;
+use crate::platform::WindowControls;
 use crate::style::{Palette, text};
 use crate::theme::color;
 
@@ -57,6 +58,12 @@ pub fn select(current: &[usize], index: usize, additive: bool) -> Vec<usize> {
 impl Component for CollectionView {
     fn render(&self) -> impl IntoElement {
         let mut ctrl = use_state(|| false);
+        let status = try_consume_root_context::<WindowControls>().map(|controls| controls.status);
+        use_side_effect(move || {
+            if status.is_some_and(|status| !status.read().activated) {
+                ctrl.set_if_modified(false);
+            }
+        });
         let tiles = self.items.iter().enumerate().map(|(index, (icon, name))| {
             let selected = self.selected.clone();
             let on_select = self.on_select.clone();

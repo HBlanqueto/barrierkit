@@ -494,7 +494,7 @@ impl KeyExt for SidebarItem {
 impl Component for SidebarItem {
     fn render(&self) -> impl IntoElement {
         let palette = item_palette(self.emphasized);
-        let mut hovered = use_state(|| false);
+        let interaction = use_interaction();
 
         let (bg, fg, weight) = if self.selected {
             (
@@ -502,7 +502,7 @@ impl Component for SidebarItem {
                 theme::color(palette.selected_ink),
                 FontWeight::SEMI_BOLD,
             )
-        } else if *hovered.read() {
+        } else if interaction.hovered() {
             (
                 theme::color(palette.hover_bg),
                 theme::color(palette.item_ink),
@@ -516,7 +516,8 @@ impl Component for SidebarItem {
             )
         };
 
-        let mut row = rect()
+        let mut row = interaction
+            .attach(rect(), true)
             .width(Size::fill())
             .height(Size::px(SIDEBAR.item_height as f32))
             .direction(Direction::Horizontal)
@@ -532,12 +533,9 @@ impl Component for SidebarItem {
             .background(bg)
             .a11y_role(AccessibilityRole::ListItem)
             .a11y_alt(self.label.clone())
-            .a11y_focusable(true)
             .a11y_builder(move |node| {
                 node.set_selected(self.selected);
             })
-            .on_pointer_enter(move |_| hovered.set(true))
-            .on_pointer_leave(move |_| hovered.set(false))
             .maybe(self.on_select.is_some(), |el| {
                 let callback = self.on_select.clone().unwrap();
                 let control = crate::views::split::sidebar_control();
@@ -593,7 +591,7 @@ impl Component for SidebarItem {
         if let Some(id) = self.probe {
             row = row.a11y_builder(move |node| node.set_author_id(id));
         }
-        row
+        interaction.focus_ring(row, SIDEBAR.item_radius as f32)
     }
 }
 

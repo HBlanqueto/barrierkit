@@ -2,9 +2,11 @@
 
 use freya_components::scrollviews::VirtualScrollView;
 use freya_core::prelude::*;
+use keyboard_types::{Key, NamedKey};
 use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
 use vow_design::{CAPTION, Rgba, SPACE_1, TABLE, TEXT};
 
+use crate::interaction::use_interaction;
 use crate::style::{Palette, text};
 use crate::symbol::{Symbol, symbol};
 use crate::theme::color;
@@ -97,32 +99,22 @@ impl Component for Table {
     fn render(&self) -> impl IntoElement {
         let palette = Palette::current();
         let sort = self.sort;
+        let interaction = use_interaction();
         let header = cells(self.columns.iter().enumerate().map(|(index, title)| {
-            let on_sort = self.on_sort.clone();
             let arrow = match sort {
                 Some(order) if order.column == index && order.ascending => Some(Symbol::ChevronUp),
                 Some(order) if order.column == index => Some(Symbol::ChevronDown),
                 _ => None,
             };
-            let ink = if arrow.is_some() {
-                palette.label
-            } else {
-                palette.secondary_label
-            };
-            rect()
-                .a11y_role(AccessibilityRole::ColumnHeader)
-                .a11y_alt(*title)
-                .on_press(move |_| {
-                    if let Some(cb) = &on_sort {
-                        cb.call(next_sort(sort, index));
-                    }
-                })
-                .direction(Direction::Horizontal)
-                .cross_align(Alignment::Center)
-                .spacing(SPACE_1)
-                .child(text(*title, CAPTION, ink))
-                .maybe_child(arrow.map(|arrow| symbol(arrow, CAPTION.size as f32, ink)))
-                .into_element()
+            HeaderCell {
+                title,
+                arrow,
+                on_press: self
+                    .on_sort
+                    .clone()
+                    .map(|on_sort| Callback::new(move |_| on_sort.call(next_sort(sort, index)))),
+            }
+            .into_element()
         }))
         .height(Size::px(TABLE.header_height))
         .border(
@@ -178,14 +170,80 @@ impl Component for Table {
         .length(self.rows.len())
         .item_size(TABLE.row_height);
 
-        rect()
+        let (rows, selected, on_select) = (self.rows.len(), self.selected, self.on_select.clone());
+        let table = interaction
+            .attach(rect(), true)
             .a11y_role(AccessibilityRole::Table)
             .a11y_alt(self.label)
             .width(Size::fill())
             .height(Size::fill())
             .direction(Direction::Vertical)
+            .on_key_down(move |event: Event<KeyboardEventData>| {
+                let down = match event.key {
+                    Key::Named(NamedKey::ArrowDown) => true,
+                    Key::Named(NamedKey::ArrowUp) => false,
+                    _ => return,
+                };
+                let next = step_selection(selected, rows, down);
+                if next != selected
+                    && let (Some(next), Some(cb)) = (next, &on_select)
+                {
+                    cb.call(next);
+                }
+            })
             .child(header)
-            .child(body)
+            .child(body);
+        interaction.inner_focus_ring(table)
+    }
+}
+
+fn step_selection(selected: Option<usize>, rows: usize, down: bool) -> Option<usize> {
+    let last = rows.checked_sub(1)?;
+    Some(match (selected, down) {
+        (None, true) => 0,
+        (None, false) => last,
+        (Some(row), true) => (row + 1).min(last),
+        (Some(row), false) => row.saturating_sub(1),
+    })
+}
+
+#[derive(PartialEq)]
+struct HeaderCell {
+    title: &'static str,
+    arrow: Option<Symbol>,
+    on_press: Option<Callback<(), ()>>,
+}
+
+impl Component for HeaderCell {
+    fn render(&self) -> impl IntoElement {
+        let palette = Palette::current();
+        let interaction = use_interaction();
+        let ink = if self.arrow.is_some() {
+            palette.label
+        } else {
+            palette.secondary_label
+        };
+        let on_press = self.on_press.clone();
+        let cell = interaction
+            .attach(rect(), on_press.is_some())
+            .a11y_role(AccessibilityRole::ColumnHeader)
+            .a11y_alt(self.title)
+            .maybe(on_press.is_some(), |el| {
+                el.on_press(move |_| {
+                    if let Some(cb) = &on_press {
+                        cb.call(());
+                    }
+                })
+            })
+            .direction(Direction::Horizontal)
+            .cross_align(Alignment::Center)
+            .spacing(SPACE_1)
+            .child(text(self.title, CAPTION, ink))
+            .maybe_child(
+                self.arrow
+                    .map(|arrow| symbol(arrow, CAPTION.size as f32, ink)),
+            );
+        interaction.inner_focus_ring(cell)
     }
 }
 
@@ -211,5 +269,14 @@ mod tests {
                 ascending: true
             }
         );
+    }
+
+    #[test]
+    fn arrows_select_the_first_or_last_row_then_stop_at_the_edges() {
+        assert_eq!(step_selection(None, 3, true), Some(0));
+        assert_eq!(step_selection(None, 3, false), Some(2));
+        assert_eq!(step_selection(Some(2), 3, true), Some(2));
+        assert_eq!(step_selection(Some(0), 3, false), Some(0));
+        assert_eq!(step_selection(None, 0, true), None);
     }
 }

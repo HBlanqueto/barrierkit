@@ -298,6 +298,7 @@ impl Component for FormRow {
                     el.background(color(palette.control_hover))
                 })
                 .on_press(move |_| on_press.call(()));
+            element = interaction.inner_focus_ring(element);
         }
         if self.highlighted {
             element = element.background(color(Rgba {
