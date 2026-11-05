@@ -57,7 +57,7 @@ pub(in crate::platform) fn released_repeated_key(
 ) -> bool {
     repeat
         .as_ref()
-        .is_some_and(|state| state.event.keysym == event.keysym)
+        .is_some_and(|state| state.event.raw_code == event.raw_code)
 }
 
 fn edge_shape(edge: Option<WindowEdge>) -> CursorShape {

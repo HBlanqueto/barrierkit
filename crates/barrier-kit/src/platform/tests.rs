@@ -203,15 +203,20 @@ fn regular_keys_start_repeat() {
 }
 
 #[test]
-fn releasing_repeated_key_stops_repeat() {
+fn releasing_repeated_key_stops_repeat_after_shift_is_released() {
     let a = KeyEvent {
         time: 0,
         raw_code: 38,
         keysym: Keysym::a,
         utf8: Some("a".into()),
     };
+    let shifted_a = KeyEvent {
+        keysym: Keysym::A,
+        utf8: Some("A".into()),
+        ..a.clone()
+    };
     let repeat = Some(RepeatState {
-        event: a.clone(),
+        event: shifted_a,
         delay: Duration::from_millis(200),
         rate: Duration::from_millis(40),
         first: true,
