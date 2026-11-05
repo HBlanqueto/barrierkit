@@ -540,6 +540,22 @@ fn submenu_keeps_its_own_inset() {
 }
 
 #[test]
+fn an_icon_shifts_only_the_text_of_its_own_row() {
+    let items = vec![
+        action("Sin icono"),
+        action_with("Con icono", CheckState::None, Some(MenuIcon::svg("x"))),
+    ];
+    let (runner, _) = make_runner(items);
+    let m = MENU_LIGHT;
+    assert!((label_x(&runner, "Sin icono") - (m.padding + m.item_padding_x)).abs() <= 1.0);
+    let shift = label_x(&runner, "Con icono") - label_x(&runner, "Sin icono");
+    assert!(
+        (shift - (m.leading_width + MENU_MARK_TEXT_GAP)).abs() <= 1.0,
+        "the icon row moves its text by {shift}"
+    );
+}
+
+#[test]
 fn menu_without_columns_is_narrower_by_both_leading_columns_and_gaps() {
     let label = "Opción bastante larga del menú sin columnas";
     let plain = vec![action(label)];

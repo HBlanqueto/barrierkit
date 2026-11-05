@@ -95,8 +95,9 @@ ColorWell::new("Color de acento", &ACCENT_SWATCHES).selected(Some(0))
 
 - `PopUpButton` abre un `MenuView` como popup; `.icon_item(texto, MenuIcon::svg(..))`
   añade un icono, y `MenuIcon::Swatch(color)`, un círculo de color.
-- En un menú, la marca y el icono tienen columna propia: una fila marcada
-  conserva su icono.
+- En un menú, la marca tiene una columna para todo el menú, solo si alguna
+  fila la usa. El icono solo desplaza el texto de su fila, como en macOS; una
+  fila marcada conserva su icono.
 - `ChoiceCards::new(..).option(rótulo, vista_previa)` muestra tarjetas grandes
   (como «Claro, Oscuro, Acento» en Tengen App Show).
 

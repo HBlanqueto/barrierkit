@@ -2,48 +2,46 @@ use super::*;
 
 use vow_design::MENU_MARK_TEXT_GAP;
 
-#[derive(Clone, Copy, Default, PartialEq)]
-pub(super) struct LeadingColumns {
-    pub(super) marks: bool,
-    pub(super) icons: bool,
+pub(super) fn has_marks(items: &[MenuItem]) -> bool {
+    items.iter().any(|item| match item {
+        MenuItem::Action { check, .. } => !matches!(check, CheckState::None),
+        MenuItem::SearchResult { item, .. } => has_marks(std::slice::from_ref(item)),
+        _ => false,
+    })
 }
 
-impl LeadingColumns {
-    pub(super) fn of(items: &[MenuItem]) -> Self {
-        let mut columns = Self::default();
-        for item in items {
-            match item {
-                MenuItem::Action { check, icon, .. } => {
-                    columns.marks |= !matches!(check, CheckState::None);
-                    columns.icons |= icon.is_some();
-                }
-                MenuItem::Submenu { icon, .. } => columns.icons |= icon.is_some(),
-                MenuItem::SearchResult { item, .. } => {
-                    let inner = Self::of(std::slice::from_ref(item));
-                    columns.marks |= inner.marks;
-                    columns.icons |= inner.icons;
-                }
-                _ => {}
-            }
-        }
-        columns
+fn has_icon(item: &MenuItem) -> bool {
+    match item {
+        MenuItem::Action { icon, .. } | MenuItem::Submenu { icon, .. } => icon.is_some(),
+        MenuItem::SearchResult { .. } => true,
+        _ => false,
     }
+}
 
-    pub(super) fn any(self) -> bool {
-        self.marks || self.icons
-    }
-
-    fn count(self) -> f32 {
-        f32::from(u8::from(self.marks) + u8::from(self.icons))
+pub(super) fn icon_width(item: &MenuItem, m: MenuPalette) -> f32 {
+    if has_icon(item) {
+        m.leading_width + MENU_MARK_TEXT_GAP
+    } else {
+        0.0
     }
 }
 
 pub(super) fn row_text_inset(items: &[MenuItem], m: MenuPalette) -> f32 {
-    m.item_padding_x + LeadingColumns::of(items).count() * (m.leading_width + MENU_MARK_TEXT_GAP)
+    let marks = if has_marks(items) {
+        m.leading_width + MENU_MARK_TEXT_GAP
+    } else {
+        0.0
+    };
+    m.item_padding_x + marks
 }
 
 pub(crate) fn last_leading_column_inset(items: &[MenuItem], m: MenuPalette) -> f32 {
-    row_text_inset(items, m) - m.leading_width - MENU_MARK_TEXT_GAP
+    let inset = row_text_inset(items, m);
+    if items.iter().any(has_icon) {
+        inset
+    } else {
+        inset - m.leading_width - MENU_MARK_TEXT_GAP
+    }
 }
 
 pub(super) fn svg_rgb(color: Rgba) -> String {
@@ -79,7 +77,7 @@ pub(super) fn trailing_width(item: &MenuItem, m: MenuPalette) -> f32 {
 
 pub(super) struct RowCtx {
     pub(super) m: MenuPalette,
-    pub(super) columns: LeadingColumns,
+    pub(super) marks: bool,
     pub(super) text_inset: f32,
     pub(super) size: (f32, f32),
     pub(super) query: UseState<String>,
@@ -101,6 +99,7 @@ impl RowCtx {
         let max_width = m.max_width
             - 2.0 * m.padding
             - self.text_inset
+            - icon_width(item, m)
             - m.item_padding_x
             - trailing_width(item, m);
         truncate_middle(
@@ -204,20 +203,13 @@ pub(super) fn render_item(
                     )
                 }
             };
-            let mut left = rect()
+            let left = rect()
                 .direction(Direction::Horizontal)
-                .cross_align(Alignment::Center);
-            if ctx.columns.any() {
-                left = left.spacing(MENU_MARK_TEXT_GAP).child(leading_slot(
-                    icon.clone(),
-                    check,
-                    ctx.columns,
-                    fg,
-                    shortcut_color,
-                    m,
-                ));
-            }
-            left = left.child(item_label(
+                .cross_align(Alignment::Center)
+                .spacing(MENU_MARK_TEXT_GAP)
+                .maybe_child(ctx.marks.then(|| mark_element(check, fg, m)))
+                .maybe_child(icon.clone().map(|icon| icon_slot(icon, shortcut_color, m)));
+            let left = left.child(item_label(
                 &ctx.fitted_label(item),
                 ctx.show_mnemonic,
                 m.font_size,
@@ -439,45 +431,27 @@ fn search_icon_element(
         .into_element()
 }
 
-pub(super) fn leading_slot(
-    icon: Option<MenuIcon>,
-    check: CheckState,
-    columns: LeadingColumns,
-    fg: Rgba,
-    icon_fg: Rgba,
-    m: MenuPalette,
-) -> Element {
-    rect()
-        .direction(Direction::Horizontal)
-        .cross_align(Alignment::Center)
-        .spacing(MENU_MARK_TEXT_GAP)
-        .maybe_child(columns.marks.then(|| mark_element(check, fg, m)))
-        .maybe_child(columns.icons.then(|| icon_slot(icon, icon_fg, m)))
-        .into_element()
-}
-
-fn icon_slot(icon: Option<MenuIcon>, icon_fg: Rgba, m: MenuPalette) -> Element {
+fn icon_slot(icon: MenuIcon, icon_fg: Rgba, m: MenuPalette) -> Element {
     let side = Size::px(m.icon_size);
     let blank = || rect().width(side.clone()).height(side.clone());
     let icon_elem = match icon {
-        Some(MenuIcon::Svg(svg)) => SvgViewer::new(Bytes::from(svg.as_bytes().to_vec()))
+        MenuIcon::Svg(svg) => SvgViewer::new(Bytes::from(svg.as_bytes().to_vec()))
             .width(side.clone())
             .height(side.clone())
             .color(theme::color(icon_fg))
             .show_loader(false)
             .into_element(),
-        Some(MenuIcon::Image(bytes)) => match icon_image(&bytes, m.icon_size) {
+        MenuIcon::Image(bytes) => match icon_image(&bytes, m.icon_size) {
             Some(handle) => image(handle)
                 .width(side.clone())
                 .height(side.clone())
                 .into_element(),
             None => blank().into_element(),
         },
-        Some(MenuIcon::Swatch(fill)) => blank()
+        MenuIcon::Swatch(fill) => blank()
             .corner_radius(m.icon_size / 2.0)
             .background(theme::color(fill))
             .into_element(),
-        None => blank().into_element(),
     };
     rect()
         .width(Size::px(m.leading_width))

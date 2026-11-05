@@ -95,7 +95,8 @@ ColorWell::new("Color de acento", &ACCENT_SWATCHES).selected(Some(0))
 
 - `PopUpButton` opens a `MenuView` as a popup; `.icon_item(texto, MenuIcon::svg(..))`
   adds an icon, and `MenuIcon::Swatch(color)` adds a colour circle.
-- In a menu, the mark and the icon each have their own column: a checked row
+- In a menu, the mark has a column for the whole menu, only if some row uses
+  it. The icon only shifts the text of its own row, as in macOS; a checked row
   keeps its icon.
 - `ChoiceCards::new(..).option(rótulo, vista_previa)` shows large cards (like
   «Claro, Oscuro, Acento», "Light, Dark, Accent", in Tengen App Show).

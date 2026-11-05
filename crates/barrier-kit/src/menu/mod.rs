@@ -237,7 +237,8 @@ impl MenuView {
             let Some(label) = item.label() else {
                 continue;
             };
-            let fixed = text_inset + m.item_padding_x + trailing_width(item, m);
+            let fixed =
+                text_inset + icon_width(item, m) + m.item_padding_x + trailing_width(item, m);
             let max_label_w = (max_content_width - fixed).max(0.0);
             let label = truncate_middle(label, max_label_w, m.font_size);
             let label_w = measure_text(&label, m.font_size);
@@ -582,7 +583,7 @@ impl App for MenuView {
 
         let row_ctx = RowCtx {
             m,
-            columns: LeadingColumns::of(&visible),
+            marks: has_marks(&visible),
             text_inset: row_text_inset(&visible, m),
             size,
             query,
