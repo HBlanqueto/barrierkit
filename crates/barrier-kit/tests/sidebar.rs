@@ -385,51 +385,57 @@ struct ToggleApp;
 impl App for ToggleApp {
     fn render(&self) -> impl IntoElement {
         use_init_theme(|| theme::for_scheme(false));
-        let mut expanded = use_consume::<State<bool>>();
-        SidebarSection::new("Favoritos")
-            .on_toggle(move |value| expanded.set(value))
-            .child(SidebarItem::new("Uno"))
+        SidebarSection::new("Favoritos").child(SidebarItem::new("Uno"))
     }
+}
+
+fn toggle_test() -> TestingRunner {
+    let resolved = resolve(
+        &AppearanceConfig {
+            reduced_motion: true,
+            ..Default::default()
+        },
+        None,
+    );
+    let app = AppComponent::new(ToggleApp);
+    let (mut test, _) = TestingRunner::new(
+        app,
+        Size2D::new(300.0, 300.0),
+        move |runner| runner.provide_root_context(move || State::create(resolved)),
+        1.0,
+    );
+    test.sync_and_update();
+    test
+}
+
+fn expanded(test: &TestingRunner) -> bool {
+    section_content_height(test) > 0.0
 }
 
 #[test]
 fn sidebar_section_toggles_once_per_click() {
-    let app = AppComponent::new(ToggleApp);
-    let (mut test, expanded) = TestingRunner::new(
-        app,
-        Size2D::new(300.0, 300.0),
-        |runner| runner.provide_root_context(|| State::create(true)),
-        1.0,
-    );
-    test.sync_and_update();
+    let mut test = toggle_test();
     test.move_cursor((5.0, 15.0));
     test.press_cursor((5.0, 15.0));
     assert!(
-        *expanded.peek(),
+        expanded(&test),
         "mouse down alone must not toggle the section"
     );
     test.release_cursor((5.0, 15.0));
-    assert!(!(*expanded.peek()), "the click must collapse the section");
+    assert!(!expanded(&test), "the click must collapse the section");
 }
 
 #[test]
 fn sidebar_section_toggles_with_enter_and_space() {
-    let app = AppComponent::new(ToggleApp);
-    let (mut test, expanded) = TestingRunner::new(
-        app,
-        Size2D::new(300.0, 300.0),
-        |runner| runner.provide_root_context(|| State::create(true)),
-        1.0,
-    );
-    test.sync_and_update();
-    assert!(*expanded.peek(), "section starts expanded");
+    let mut test = toggle_test();
+    assert!(expanded(&test), "section starts expanded");
 
     test.press_key(Key::Named(NamedKey::Tab));
     test.press_key(Key::Named(NamedKey::Enter));
-    assert!(!(*expanded.peek()), "Enter should collapse the section");
+    assert!(!expanded(&test), "Enter should collapse the section");
 
     test.press_key(Key::Character(" ".into()));
-    assert!(*expanded.peek(), "Space should expand the section");
+    assert!(expanded(&test), "Space should expand the section");
 }
 
 struct AnimatedSectionCase;
@@ -438,7 +444,6 @@ impl App for AnimatedSectionCase {
     fn render(&self) -> impl IntoElement {
         Sidebar::new().child(
             SidebarSection::new("Grande")
-                .expanded(true)
                 .child(rect().width(Size::px(50.0)).height(Size::px(120.0))),
         )
     }
@@ -555,7 +560,6 @@ impl App for DrawerCase {
     fn render(&self) -> impl IntoElement {
         Sidebar::new().child(
             SidebarSection::new("Cajón")
-                .expanded(false)
                 .child(
                     rect()
                         .width(Size::fill())
@@ -573,7 +577,7 @@ impl App for DrawerCase {
 }
 
 #[test]
-fn opening_section_slides_as_a_drawer() {
+fn closing_section_slides_as_a_drawer() {
     let resolved = resolve(
         &AppearanceConfig {
             reduced_motion: false,
@@ -594,15 +598,15 @@ fn opening_section_slides_as_a_drawer() {
 
     let mut clip = section_content_area(&test);
     for _ in 0..60 {
-        if clip.3 >= 48.0 {
+        if clip.3 <= 72.0 {
             break;
         }
         test.poll_n(Duration::from_millis(100), 1);
         clip = section_content_area(&test);
     }
     assert!(
-        clip.3 >= 48.0 && clip.3 < 108.0,
-        "expected the drawer around half open, got {}",
+        clip.3 > 12.0 && clip.3 <= 72.0,
+        "expected the drawer around half closed, got {}",
         clip.3
     );
 
@@ -622,21 +626,14 @@ fn opening_section_slides_as_a_drawer() {
 
 #[test]
 fn sidebar_section_toggles_once_per_tap() {
-    let app = AppComponent::new(ToggleApp);
-    let (mut test, expanded) = TestingRunner::new(
-        app,
-        Size2D::new(300.0, 300.0),
-        |runner| runner.provide_root_context(|| State::create(true)),
-        1.0,
-    );
-    test.sync_and_update();
+    let mut test = toggle_test();
     test.press_touch((5.0, 15.0));
     assert!(
-        *expanded.peek(),
+        expanded(&test),
         "touch start alone must not toggle the section"
     );
     test.release_touch((5.0, 15.0));
-    assert!(!(*expanded.peek()), "the tap must collapse the section");
+    assert!(!expanded(&test), "the tap must collapse the section");
 }
 
 struct ToolGroupCase;
@@ -736,7 +733,7 @@ struct ItemCase;
 impl App for ItemCase {
     fn render(&self) -> impl IntoElement {
         use_init_theme(|| theme::for_scheme(false));
-        Sidebar::new().child(SidebarItem::new("Hola").badge(7))
+        Sidebar::new().child(SidebarItem::new("Hola"))
     }
 }
 
@@ -749,32 +746,6 @@ fn sidebar_item_uses_design_padding_and_gap() {
     assert!(!png.as_ref().is_empty());
 }
 
-const ICON_RECT: &str = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 16 16\"><rect x=\"3\" y=\"3\" width=\"10\" height=\"10\" fill=\"currentColor\"/></svg>";
-const ICON_CIRCLE: &str = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 16 16\"><circle cx=\"8\" cy=\"8\" r=\"5\" fill=\"currentColor\"/>             </svg>";
-
-struct SameLengthIconsCase;
-
-impl App for SameLengthIconsCase {
-    fn render(&self) -> impl IntoElement {
-        use_init_theme(|| theme::for_scheme(false));
-        Sidebar::new()
-            .child(SidebarItem::new("Uno").icon(ICON_RECT))
-            .child(SidebarItem::new("Dos").icon(ICON_CIRCLE))
-    }
-}
-
-fn icon_areas(test: &TestingRunner) -> Vec<(usize, usize)> {
-    test.find_many(|node, _el| {
-        let size = node.layout().area.size;
-        ((size.width - SIDEBAR.item_icon as f32).abs() < 0.5
-            && (size.height - SIDEBAR.item_icon as f32).abs() < 0.5)
-            .then(|| {
-                let origin = node.layout().area.origin;
-                (origin.x as usize, origin.y as usize)
-            })
-    })
-}
-
 fn crop(image: &[u8], width: usize, x: usize, y: usize, size: usize) -> Vec<[u8; 4]> {
     let mut out = Vec::with_capacity(size * size);
     for row in 0..size {
@@ -785,34 +756,12 @@ fn crop(image: &[u8], width: usize, x: usize, y: usize, size: usize) -> Vec<[u8;
     out
 }
 
-#[test]
-fn sidebar_items_with_same_length_icons_render_different_images() {
-    assert_eq!(ICON_RECT.len(), ICON_CIRCLE.len());
-    let app = AppComponent::new(SameLengthIconsCase);
-    let (mut test, _) = TestingRunner::new(app, Size2D::new(300.0, 300.0), |_| {}, 1.0);
-    test.sync_and_update();
-    let (width, _, image) = decode(test.render().as_bytes());
-    let icons = icon_areas(&test);
-    assert_eq!(icons.len(), 2, "expected two item icons, found {icons:?}");
-    let size = SIDEBAR.item_icon as usize;
-    let first = crop(&image, width, icons[0].0, icons[0].1, size);
-    let second = crop(&image, width, icons[1].0, icons[1].1, size);
-    assert_ne!(
-        first, second,
-        "two icons with the same byte length must not share the cached image"
-    );
-}
-
 struct ChevronCase;
 
 impl App for ChevronCase {
     fn render(&self) -> impl IntoElement {
         use_init_theme(|| theme::for_scheme(false));
-        Sidebar::new().child(
-            SidebarSection::new("Favoritos")
-                .expanded(true)
-                .child(SidebarItem::new("Uno")),
-        )
+        Sidebar::new().child(SidebarSection::new("Favoritos").child(SidebarItem::new("Uno")))
     }
 }
 
@@ -860,7 +809,6 @@ impl App for TallSectionCase {
     fn render(&self) -> impl IntoElement {
         Sidebar::new().child(
             SidebarSection::new("Grande")
-                .expanded(true)
                 .child(rect().width(Size::px(50.0)).height(Size::px(80.0))),
         )
     }
@@ -905,11 +853,7 @@ struct ExpandedSectionCase;
 impl App for ExpandedSectionCase {
     fn render(&self) -> impl IntoElement {
         use_init_theme(|| theme::for_scheme(false));
-        Sidebar::new().child(
-            SidebarSection::new("Favoritos")
-                .expanded(true)
-                .child(SidebarItem::new("Uno")),
-        )
+        Sidebar::new().child(SidebarSection::new("Favoritos").child(SidebarItem::new("Uno")))
     }
 }
 

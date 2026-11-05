@@ -341,7 +341,11 @@ fn alert() -> Element {
 fn sidebar_account() -> Element {
     rect()
         .width(Size::px(220.0))
-        .child(SidebarAccount::new("HB", "Héctor Blanqueto", "Cuenta local").selected(true))
+        .child(SidebarAccount::new(
+            "HB",
+            "Héctor Blanqueto",
+            "Cuenta local",
+        ))
         .into_element()
 }
 

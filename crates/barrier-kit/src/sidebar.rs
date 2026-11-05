@@ -1,6 +1,5 @@
 //! Sidebar, sidebar items, collapsible sections and sidebar layout.
 
-use freya_components::svg_viewer::SvgViewer;
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 use vow_appearance::{SidebarStyle, SidebarSurface};
@@ -20,14 +19,6 @@ use crate::symbol::{Symbol, symbol};
 use crate::theme;
 use crate::titlebar::{window_drag_handler, window_traffic_lights};
 use freya_core::prelude::try_consume_root_context;
-
-pub(crate) fn item_icon_color(selected: bool, palette: SidebarPalette) -> Rgba {
-    if selected {
-        palette.selected_ink
-    } else {
-        palette.item_icon
-    }
-}
 
 pub(crate) fn sidebar_palette() -> SidebarPalette {
     let palette = crate::theme::resolved().sidebar.palette;
@@ -119,24 +110,13 @@ pub(crate) fn symbol_tile(glyph: Symbol, tint: Rgba, rim: Option<Rgba>) -> Rect 
         ))
 }
 
-fn svg_viewer(template: Bytes, color: Rgba, size: u32) -> SvgViewer {
-    SvgViewer::new(template)
-        .width(Size::px(size as f32))
-        .height(Size::px(size as f32))
-        .color(theme::color(color))
-        .show_loader(false)
-}
-
-fn chevron_svg(down: bool, stroke: f32) -> String {
-    let path = if down {
-        "M2 4 L6 8 L10 4"
+#[cfg(test)]
+pub(crate) fn item_icon_color(selected: bool, palette: SidebarPalette) -> Rgba {
+    if selected {
+        palette.selected_ink
     } else {
-        "M4 2 L8 6 L4 10"
-    };
-    let size = SIDEBAR.chevron;
-    format!(
-        "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{size}\" height=\"{size}\" viewBox=\"0 0 12 12\"><path d=\"{path}\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"{stroke}\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>"
-    )
+        palette.item_icon
+    }
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -417,9 +397,7 @@ impl Component for Sidebar {
 #[derive(PartialEq)]
 pub struct SidebarItem {
     label: String,
-    icon: Option<&'static str>,
     symbol: Option<(Symbol, Rgba)>,
-    badge: Option<u32>,
     selected: bool,
     emphasized: bool,
     on_select: Option<Callback<(), ()>>,
@@ -438,9 +416,7 @@ impl SidebarItem {
     pub fn new(label: impl Into<String>) -> Self {
         Self {
             label: label.into(),
-            icon: None,
             symbol: None,
-            badge: None,
             selected: false,
             emphasized: true,
             on_select: None,
@@ -449,18 +425,8 @@ impl SidebarItem {
         }
     }
 
-    pub fn icon(mut self, svg: &'static str) -> Self {
-        self.icon = Some(svg);
-        self
-    }
-
     pub fn symbol(mut self, symbol: Symbol, tint: Rgba) -> Self {
         self.symbol = Some((symbol, tint));
-        self
-    }
-
-    pub fn badge(mut self, badge: u32) -> Self {
-        self.badge = Some(badge);
         self
     }
 
@@ -553,12 +519,6 @@ impl Component for SidebarItem {
                 tint,
                 self.selected.then_some(palette.selected_icon_rim),
             ));
-        } else if let Some(svg) = self.icon {
-            row = row.child(svg_viewer(
-                Bytes::from_static(svg.as_bytes()),
-                item_icon_color(self.selected, palette),
-                SIDEBAR.item_icon,
-            ));
         }
 
         row = row.child(
@@ -571,23 +531,6 @@ impl Component for SidebarItem {
                 .max_lines(1),
         );
 
-        if let Some(badge) = self.badge {
-            row = row.child(
-                rect()
-                    .width(Size::fill())
-                    .height(Size::fill())
-                    .main_align(Alignment::End)
-                    .cross_align(Alignment::Center)
-                    .child(
-                        label()
-                            .text(badge.to_string())
-                            .font_size(SIDEBAR.count_size as f32)
-                            .color(theme::color(palette.count_ink))
-                            .max_lines(1),
-                    ),
-            );
-        }
-
         if let Some(id) = self.probe {
             row = row.a11y_builder(move |node| node.set_author_id(id));
         }
@@ -599,8 +542,6 @@ impl Component for SidebarItem {
 pub struct SidebarSection {
     title: String,
     children: Vec<Element>,
-    initial_expanded: bool,
-    on_toggle: Option<Callback<bool, ()>>,
     key: DiffKey,
 }
 
@@ -609,8 +550,6 @@ impl SidebarSection {
         Self {
             title: title.into(),
             children: Vec::new(),
-            initial_expanded: true,
-            on_toggle: None,
             key: DiffKey::None,
         }
     }
@@ -623,16 +562,6 @@ impl SidebarSection {
     pub fn children(mut self, children: impl IntoIterator<Item = impl IntoElement>) -> Self {
         self.children
             .extend(children.into_iter().map(IntoElement::into_element));
-        self
-    }
-
-    pub fn expanded(mut self, expanded: bool) -> Self {
-        self.initial_expanded = expanded;
-        self
-    }
-
-    pub fn on_toggle(mut self, callback: impl Into<Callback<bool, ()>>) -> Self {
-        self.on_toggle = Some(callback.into());
         self
     }
 
@@ -650,21 +579,14 @@ impl KeyExt for SidebarSection {
 
 impl Component for SidebarSection {
     fn render(&self) -> impl IntoElement {
-        let expanded = use_state(|| self.initial_expanded);
+        let expanded = use_state(|| true);
         let palette = sidebar_palette();
         let interaction = use_interaction();
         let show_chevron = interaction.hovered() || interaction.keyboard_focused();
 
-        let on_toggle = self.on_toggle.clone();
         let toggle = {
             let mut expanded = expanded;
-            move |_| {
-                let new = !*expanded.read();
-                expanded.set(new);
-                if let Some(cb) = &on_toggle {
-                    cb.call(new);
-                }
-            }
+            move |_| expanded.toggle()
         };
 
         let mut content_height = use_state(|| 0.0f32);
@@ -706,12 +628,12 @@ impl Component for SidebarSection {
                             .max_lines(1),
                     )
                     .maybe(show_chevron, |el| {
-                        let svg = chevron_svg(*expanded.read(), SIDEBAR.chevron_stroke);
-                        el.child(svg_viewer(
-                            Bytes::from(svg),
-                            palette.section_ink,
-                            SIDEBAR.chevron,
-                        ))
+                        let chevron = if *expanded.read() {
+                            Symbol::ChevronDown
+                        } else {
+                            Symbol::ChevronRight
+                        };
+                        el.child(symbol(chevron, SIDEBAR.chevron as f32, palette.section_ink))
                     }),
             )
             .child(
@@ -740,8 +662,6 @@ pub struct SidebarAccount {
     initials: String,
     name: String,
     detail: String,
-    selected: bool,
-    on_select: Option<Callback<(), ()>>,
 }
 
 impl SidebarAccount {
@@ -754,44 +674,15 @@ impl SidebarAccount {
             initials: initials.into(),
             name: name.into(),
             detail: detail.into(),
-            selected: false,
-            on_select: None,
         }
-    }
-
-    pub fn selected(mut self, selected: bool) -> Self {
-        self.selected = selected;
-        self
-    }
-
-    pub fn on_select(mut self, callback: impl Into<Callback<(), ()>>) -> Self {
-        self.on_select = Some(callback.into());
-        self
     }
 }
 
 impl Component for SidebarAccount {
     fn render(&self) -> impl IntoElement {
         let palette = item_palette(true);
-        let interaction = use_interaction();
-        let selected = self.selected;
-        let on_select = self.on_select.clone();
-        let (bg, ink, detail_ink) = if selected {
-            (
-                Some(palette.selected_bg),
-                palette.selected_ink,
-                palette.selected_ink,
-            )
-        } else if interaction.hovered() {
-            (Some(palette.hover_bg), palette.item_ink, palette.count_ink)
-        } else {
-            (None, palette.item_ink, palette.count_ink)
-        };
-        let row = interaction
-            .attach(rect(), true)
-            .a11y_role(AccessibilityRole::Button)
+        rect()
             .a11y_alt(self.name.clone())
-            .a11y_builder(move |node| node.set_selected(selected))
             .width(Size::fill())
             .height(Size::px(SETTINGS.account_height as f32))
             .direction(Direction::Horizontal)
@@ -803,26 +694,20 @@ impl Component for SidebarAccount {
                 0.0,
                 SETTINGS.account_padding_x as f32,
             ))
-            .corner_radius(SIDEBAR.item_radius as f32)
-            .maybe(bg.is_some(), |el| {
-                el.background(theme::color(bg.unwrap_or(palette.hover_bg)))
-            })
-            .on_press(move |_| {
-                if let Some(cb) = &on_select {
-                    cb.call(());
-                }
-            })
             .child(avatar(&self.initials))
             .child(
                 rect()
                     .direction(Direction::Vertical)
-                    .child(text(self.name.clone(), SETTINGS.account_name_font, ink))
+                    .child(text(
+                        self.name.clone(),
+                        SETTINGS.account_name_font,
+                        palette.item_ink,
+                    ))
                     .child(text(
                         self.detail.clone(),
                         SETTINGS.account_detail_font,
-                        detail_ink,
+                        palette.count_ink,
                     )),
-            );
-        interaction.focus_ring(row, SIDEBAR.item_radius as f32)
+            )
     }
 }
