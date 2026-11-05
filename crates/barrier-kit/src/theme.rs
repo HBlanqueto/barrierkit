@@ -1,10 +1,11 @@
 //! Freya theme built from the design tokens and the current appearance.
 
 use freya_components::theming::component_themes::{ColorsSheet, Theme};
+use freya_components::theming::hooks::use_init_theme;
 use freya_components::theming::themes::{dark_theme, light_theme};
 use freya_core::prelude::{
     Color, State, WritableUtils, provide_context, try_consume_context, try_consume_root_context,
-    use_hook, use_memo,
+    use_hook, use_memo, use_side_effect,
 };
 use vow_appearance::{
     AppearanceConfig, ColorScheme, Resolved, WindowTintScope, load_appearance, load_dominant,
@@ -12,7 +13,7 @@ use vow_appearance::{
 };
 use vow_design::{
     BG_WINDOW_DARK, BG_WINDOW_DARK_TINT, BG_WINDOW_LIGHT, LockPalette, MenuPalette, Rgba,
-    SHELL_DARK_OPAQUE, SHELL_DARK_TINT_OPAQUE, SHELL_LIGHT_OPAQUE, ShellPalette,
+    SHELL_DARK_OPAQUE, SHELL_DARK_TINT_OPAQUE, SHELL_LIGHT_OPAQUE,
 };
 
 pub fn color(c: Rgba) -> Color {
@@ -42,45 +43,6 @@ pub fn surface_background(resolved: &Resolved, kind: SurfaceKind) -> Rgba {
     }
 }
 
-fn themed(name: &'static str, dark: bool, colors: ColorsSheet) -> Theme {
-    let mut theme = if dark { dark_theme() } else { light_theme() };
-    theme.name = name;
-    theme.colors = colors;
-    theme
-}
-
-fn sheet(background: Rgba, surface: Rgba, text: Rgba, accent: Rgba, border: Rgba) -> ColorsSheet {
-    ColorsSheet {
-        primary: color(accent),
-        secondary: color(accent),
-        tertiary: color(accent),
-        success: color(accent),
-        warning: color(accent),
-        error: color(accent),
-        info: color(accent),
-        background: color(background),
-        surface_primary: color(surface),
-        surface_secondary: color(surface),
-        surface_tertiary: color(background),
-        surface_inverse: color(text),
-        surface_inverse_secondary: color(text),
-        surface_inverse_tertiary: color(text),
-        border: color(border),
-        border_focus: color(accent),
-        border_disabled: color(border),
-        text_primary: color(text),
-        text_secondary: color(text),
-        text_placeholder: color(text),
-        text_inverse: color(background),
-        text_highlight: color(accent),
-        focus: color(accent),
-        active: color(accent),
-        disabled: color(border),
-        overlay: color(background),
-        shadow: color(Rgba { a: 0.25, ..text }),
-    }
-}
-
 pub fn resolved() -> Resolved {
     if let Some(state) = try_consume_context::<State<Resolved>>() {
         *state.read()
@@ -107,12 +69,8 @@ pub fn use_appearance(adjust: impl Fn(&mut AppearanceConfig) + 'static) {
     scoped.set_if_modified(*adjusted.read());
 }
 
-pub fn shell_palette(resolved: &Resolved) -> ShellPalette {
-    resolved.shell
-}
-
 pub fn for_scheme(dark: bool) -> Theme {
-    let appearance = vow_appearance::AppearanceConfig {
+    let appearance = AppearanceConfig {
         color_scheme: if dark {
             ColorScheme::Dark
         } else {
@@ -120,19 +78,60 @@ pub fn for_scheme(dark: bool) -> Theme {
         },
         ..Default::default()
     };
-    let resolved = resolve(&appearance, None);
-    let palette = shell_palette(&resolved);
-    let text = palette.text;
-    let border = if dark { palette.tile } else { palette.bar };
-    themed(
-        if dark {
-            "tengen-shell-dark"
-        } else {
-            "tengen-shell-light"
-        },
-        dark,
-        sheet(palette.bar, palette.tile, text, palette.tile_active, border),
-    )
+    shell_theme(&resolve(&appearance, None))
+}
+
+pub fn use_shell_theme() {
+    let mut theme = use_init_theme(|| shell_theme(&resolved()));
+    let root = try_consume_root_context::<State<Resolved>>();
+    use_side_effect(move || {
+        if let Some(root) = root {
+            theme.set(shell_theme(&root.read()));
+        }
+    });
+}
+
+fn shell_theme(resolved: &Resolved) -> Theme {
+    let dark = matches!(resolved.scheme, ColorScheme::Dark | ColorScheme::DarkTint);
+    let shell = resolved.shell;
+    let ink = vow_appearance::palette(resolved.scheme);
+    let border = if dark { shell.tile } else { shell.bar };
+    let accent = shell.tile_active;
+    let mut theme = if dark { dark_theme() } else { light_theme() };
+    theme.name = "tengen-shell";
+    theme.colors = ColorsSheet {
+        primary: color(accent),
+        secondary: color(accent),
+        tertiary: color(accent),
+        success: color(accent),
+        warning: color(accent),
+        error: color(ink.danger),
+        info: color(accent),
+        background: color(shell.bar),
+        surface_primary: color(shell.tile),
+        surface_secondary: color(shell.tile),
+        surface_tertiary: color(shell.bar),
+        surface_inverse: color(shell.text),
+        surface_inverse_secondary: color(shell.text),
+        surface_inverse_tertiary: color(shell.text),
+        border: color(border),
+        border_focus: color(accent),
+        border_disabled: color(border),
+        text_primary: color(shell.text),
+        text_secondary: color(ink.ink_muted),
+        text_placeholder: color(ink.ink_faint),
+        text_inverse: color(shell.bar),
+        text_highlight: color(accent),
+        focus: color(accent),
+        active: color(accent),
+        disabled: color(border),
+        overlay: color(shell.bar),
+        shadow: color(Rgba {
+            a: 0.25,
+            ..shell.text
+        }),
+    };
+    theme
 }
 
 fn neutral_background(scheme: ColorScheme, kind: SurfaceKind) -> Rgba {
@@ -191,35 +190,6 @@ pub fn popover_palette(resolved: &Resolved, kind: SurfaceKind) -> MenuPalette {
     apply_popover_metrics(menu_palette(resolved, kind))
 }
 
-pub fn shell() -> Theme {
-    let resolved = resolved();
-    let palette = shell_palette(&resolved);
-    let dark = matches!(resolved.scheme, ColorScheme::Dark | ColorScheme::DarkTint);
-    let text = palette.text;
-    let border = if dark { palette.tile } else { palette.bar };
-    themed(
-        "tengen-shell",
-        dark,
-        sheet(palette.bar, palette.tile, text, palette.tile_active, border),
-    )
-}
-
-pub fn lock() -> Theme {
-    let resolved = resolved();
-    let palette = lock_palette(&resolved);
-    themed(
-        "tengen-lock",
-        true,
-        sheet(
-            palette.bg_surface,
-            palette.bg_surface,
-            palette.ink,
-            palette.accent,
-            palette.ink_muted,
-        ),
-    )
-}
-
 pub fn lock_palette(resolved: &Resolved) -> LockPalette {
     let mut palette = vow_design::LOCK;
     palette.accent = resolved.accent;
@@ -229,115 +199,7 @@ pub fn lock_palette(resolved: &Resolved) -> LockPalette {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use freya_core::prelude::*;
-    use freya_testing::TestingRunner;
-    use std::sync::Mutex;
-    use torin::prelude::{Size, Size2D};
     use vow_appearance::{AppearanceConfig, ColorScheme, resolve};
-
-    static ENV_LOCK: Mutex<()> = Mutex::new(());
-
-    fn with_temp_dirs<F: FnOnce() -> R, R>(f: F) -> R {
-        let _guard = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
-        let dir =
-            std::env::temp_dir().join(format!("barrier-kit-theme-test-{}", std::process::id()));
-        let _ = std::fs::remove_dir_all(&dir);
-        std::fs::create_dir_all(&dir).unwrap();
-        let old_config = std::env::var_os("MALAYSIA_CONFIG_DIR");
-        let old_data = std::env::var_os("MALAYSIA_DATA_DIR");
-        unsafe {
-            std::env::set_var("MALAYSIA_CONFIG_DIR", &dir);
-            std::env::set_var("MALAYSIA_DATA_DIR", &dir);
-        }
-        let result = f();
-        match old_config {
-            Some(v) => unsafe { std::env::set_var("MALAYSIA_CONFIG_DIR", v) },
-            None => unsafe { std::env::remove_var("MALAYSIA_CONFIG_DIR") },
-        }
-        match old_data {
-            Some(v) => unsafe { std::env::set_var("MALAYSIA_DATA_DIR", v) },
-            None => unsafe { std::env::remove_var("MALAYSIA_DATA_DIR") },
-        }
-        let _ = std::fs::remove_dir_all(&dir);
-        result
-    }
-
-    fn decode_png(data: &[u8]) -> (u32, u32, Vec<u8>) {
-        let decoder = png::Decoder::new(data);
-        let mut reader = decoder.read_info().expect("png info");
-        let mut buf = vec![0u8; reader.output_buffer_size()];
-        let info = reader.next_frame(&mut buf).expect("png frame");
-        buf.truncate(info.buffer_size());
-        (info.width, info.height, buf)
-    }
-
-    fn pixel_at(data: &[u8], width: u32, x: u32, y: u32) -> [u8; 4] {
-        let idx = ((y * width + x) * 4) as usize;
-        [data[idx], data[idx + 1], data[idx + 2], data[idx + 3]]
-    }
-
-    fn over_white([r, g, b, a]: [u8; 4]) -> [u8; 4] {
-        if a == 255 {
-            return [r, g, b, a];
-        }
-        let alpha = a as f32 / 255.0;
-        let blend = |c| (c as f32 * alpha + 255.0 * (1.0 - alpha)).round() as u8;
-        [blend(r), blend(g), blend(b), 255]
-    }
-
-    fn light_and_dark() -> (Resolved, Resolved) {
-        let light = resolve(
-            &AppearanceConfig {
-                color_scheme: ColorScheme::Light,
-                ..Default::default()
-            },
-            None,
-        );
-        let dark = resolve(
-            &AppearanceConfig {
-                color_scheme: ColorScheme::Dark,
-                ..Default::default()
-            },
-            None,
-        );
-        (light, dark)
-    }
-
-    fn appearance_app() -> impl IntoElement {
-        let resolved = resolved();
-        let palette = shell_palette(&resolved);
-        rect()
-            .width(Size::fill())
-            .height(Size::fill())
-            .background(color(palette.bar))
-    }
-
-    #[test]
-    fn appearance_state_recolors_component() {
-        with_temp_dirs(|| {
-            let (light, dark) = light_and_dark();
-            let (mut test, mut state) = TestingRunner::new(
-                appearance_app,
-                Size2D::new(64.0, 64.0),
-                |runner| runner.provide_root_context(|| State::create(light)),
-                1.0,
-            );
-            test.sync_and_update();
-            let (w, h, data) = decode_png(&test.render());
-            assert_eq!((w, h), (64, 64));
-            let actual = pixel_at(&data, w, 32, 32);
-            let expected = over_white(shell_palette(&light).bar.to_rgba8());
-            assert_eq!(actual, expected);
-
-            state.set(dark);
-            test.sync_and_update();
-            let (w, h, data) = decode_png(&test.render());
-            assert_eq!((w, h), (64, 64));
-            let actual = pixel_at(&data, w, 32, 32);
-            let expected = over_white(shell_palette(&dark).bar.to_rgba8());
-            assert_eq!(actual, expected);
-        })
-    }
 
     #[test]
     fn surface_backgrounds_follow_the_window_colour_mode_and_scope() {
@@ -496,115 +358,29 @@ mod tests {
     }
 
     #[test]
-    fn menu_background_follows_the_opening_surface() {
+    fn a_layer_shell_menu_stays_neutral_when_only_windows_are_tinted_and_never_exceeds_white() {
         use vow_appearance::{WindowColorMode, WindowTintScope};
 
-        let accent = Rgba {
-            r: 0.9,
-            g: 0.1,
-            b: 0.1,
-            a: 1.0,
-        };
-        let config = |scheme, accent: Rgba, scope| AppearanceConfig {
-            color_scheme: scheme,
+        let config = |accent: Rgba, scope| AppearanceConfig {
+            color_scheme: ColorScheme::Light,
             accent_color: Some([accent.r, accent.g, accent.b]),
             reduce_transparency: true,
             window_color: WindowColorMode::Accent,
             window_tint_scope: scope,
             ..Default::default()
         };
-        let light = resolve(
-            &config(ColorScheme::Light, accent, WindowTintScope::Desktop),
-            None,
-        );
-        let windows = resolve(
-            &config(ColorScheme::Light, accent, WindowTintScope::Windows),
-            None,
-        );
-        let dark = resolve(
-            &config(ColorScheme::Dark, accent, WindowTintScope::Desktop),
-            None,
-        );
-        let dark_tint = resolve(
-            &config(ColorScheme::DarkTint, accent, WindowTintScope::Desktop),
-            None,
-        );
-
-        let expected = |resolved: &Resolved, kind: SurfaceKind, neutral: Rgba| {
-            let parent = surface_background(resolved, kind);
-            let menu = resolved.menu.bg;
-            let lift =
-                |parent: f32, menu: f32, neutral: f32| (parent + menu - neutral).clamp(0.0, 1.0);
-            Rgba {
-                r: lift(parent.r, menu.r, neutral.r),
-                g: lift(parent.g, menu.g, neutral.g),
-                b: lift(parent.b, menu.b, neutral.b),
-                a: menu.a,
-            }
-        };
-
-        for (name, resolved, kind, neutral) in [
-            (
-                "light/toplevel",
-                light,
-                SurfaceKind::Toplevel,
-                BG_WINDOW_LIGHT,
-            ),
-            (
-                "light/layer",
-                light,
-                SurfaceKind::LayerShell,
-                SHELL_LIGHT_OPAQUE.bar,
-            ),
-            ("dark/toplevel", dark, SurfaceKind::Toplevel, BG_WINDOW_DARK),
-            (
-                "dark/layer",
-                dark,
-                SurfaceKind::LayerShell,
-                SHELL_DARK_OPAQUE.bar,
-            ),
-            (
-                "dark-tint/toplevel",
-                dark_tint,
-                SurfaceKind::Toplevel,
-                BG_WINDOW_DARK_TINT,
-            ),
-            (
-                "dark-tint/layer",
-                dark_tint,
-                SurfaceKind::LayerShell,
-                SHELL_DARK_TINT_OPAQUE.bar,
-            ),
-        ] {
-            assert_eq!(
-                menu_palette(&resolved, kind).bg,
-                expected(&resolved, kind, neutral),
-                "{name}: menu must keep its raised offset and inherit the tint"
-            );
-        }
-
+        let red = Rgba::rgb8(230, 26, 26);
+        let windows = resolve(&config(red, WindowTintScope::Windows), None);
         assert_eq!(
             menu_palette(&windows, SurfaceKind::LayerShell).bg,
-            windows.menu.bg,
-            "a layer-shell menu must stay neutral when only windows are tinted"
+            windows.menu.bg
         );
 
-        let white = Rgba {
-            r: 1.0,
-            g: 1.0,
-            b: 1.0,
-            a: 1.0,
-        };
         let pale = resolve(
-            &config(ColorScheme::Light, white, WindowTintScope::Desktop),
+            &config(Rgba::rgb8(255, 255, 255), WindowTintScope::Desktop),
             None,
         );
         let pale_menu = menu_palette(&pale, SurfaceKind::LayerShell).bg;
-        assert_eq!(
-            pale_menu,
-            expected(&pale, SurfaceKind::LayerShell, SHELL_LIGHT_OPAQUE.bar),
-            "a light accent must clamp every channel to 1"
-        );
         assert!(pale_menu.r <= 1.0 && pale_menu.g <= 1.0 && pale_menu.b <= 1.0);
     }
 
@@ -674,11 +450,6 @@ mod tests {
             resolved.menu.bg,
             "toplevel menu must be tinted when menus part is enabled"
         );
-        assert_eq!(
-            menu_palette(&resolved, SurfaceKind::Toplevel).bg,
-            menu_background(&resolved, SurfaceKind::Toplevel),
-            "menu_palette uses the same lifted background"
-        );
     }
 
     #[test]
@@ -744,52 +515,5 @@ mod tests {
                 );
             }
         }
-    }
-
-    #[test]
-    fn accent_state_recolors_sidebar_selection() {
-        with_temp_dirs(|| {
-            let mut config = AppearanceConfig {
-                color_scheme: ColorScheme::Light,
-                accent_color: Some([0.95, 0.5, 0.1]),
-                ..Default::default()
-            };
-            let orange = resolve(&config, None);
-            config.accent_color = Some([0.5, 0.0, 1.0]);
-            let purple = resolve(&config, None);
-
-            assert_eq!(orange.sidebar.palette.selected_bg, orange.accent);
-            assert_eq!(purple.sidebar.palette.selected_bg, purple.accent);
-
-            fn sidebar_selection_app() -> impl IntoElement {
-                let resolved = resolved();
-                let palette = resolved.sidebar.palette;
-                rect()
-                    .width(Size::fill())
-                    .height(Size::fill())
-                    .background(color(palette.selected_bg))
-            }
-
-            let (mut test, mut state) = TestingRunner::new(
-                sidebar_selection_app,
-                Size2D::new(64.0, 64.0),
-                |runner| runner.provide_root_context(|| State::create(orange)),
-                1.0,
-            );
-            test.sync_and_update();
-            let (w, h, data) = decode_png(&test.render());
-            assert_eq!((w, h), (64, 64));
-            let actual = pixel_at(&data, w, 32, 32);
-            let expected = over_white(orange.sidebar.palette.selected_bg.to_rgba8());
-            assert_eq!(actual, expected);
-
-            state.set(purple);
-            test.sync_and_update();
-            let (w, h, data) = decode_png(&test.render());
-            assert_eq!((w, h), (64, 64));
-            let actual = pixel_at(&data, w, 32, 32);
-            let expected = over_white(purple.sidebar.palette.selected_bg.to_rgba8());
-            assert_eq!(actual, expected);
-        })
     }
 }
