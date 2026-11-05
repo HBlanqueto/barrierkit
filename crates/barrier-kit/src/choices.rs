@@ -1,5 +1,3 @@
-//! One-of-many choices: radio groups, colour wells and preview cards.
-
 use crate::i18n::text;
 
 use freya_core::prelude::*;

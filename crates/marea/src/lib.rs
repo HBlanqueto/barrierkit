@@ -1,5 +1,3 @@
-//! Marea: a media app that pushes BarrierKit: video under glass, artwork shelves and a player.
-
 mod art;
 pub mod assets;
 mod catalog;

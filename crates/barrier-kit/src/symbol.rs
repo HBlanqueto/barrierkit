@@ -1,5 +1,3 @@
-//! Named line icons drawn on the Tengen symbol grid.
-
 use std::cell::RefCell;
 use std::collections::HashMap;
 

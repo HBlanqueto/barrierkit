@@ -1,5 +1,3 @@
-//! Layouts that change shape with the width of the window.
-
 use freya_core::prelude::*;
 use vow_design::BREAKPOINT;
 

@@ -1,5 +1,3 @@
-//! Semantic colours and text faces resolved from Tengen and the live appearance.
-
 use std::borrow::Cow;
 
 use freya_core::prelude::*;

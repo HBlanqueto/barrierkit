@@ -1,5 +1,3 @@
-//! Headless focus-navigation tests.
-
 use freya_components::input::Input;
 use freya_core::integration::{App, AppComponent};
 use freya_core::prelude::*;

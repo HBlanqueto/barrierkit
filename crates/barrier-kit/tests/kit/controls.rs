@@ -1,5 +1,3 @@
-//! Golden-image tests for every control in light and dark.
-
 use std::{
     fs,
     path::{Path, PathBuf},

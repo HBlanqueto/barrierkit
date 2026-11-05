@@ -1,5 +1,3 @@
-//! Standard «About» window content.
-
 use std::borrow::Cow;
 
 use freya_core::prelude::*;

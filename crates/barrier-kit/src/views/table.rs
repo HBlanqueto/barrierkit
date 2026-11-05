@@ -1,5 +1,3 @@
-//! Table with sortable columns and virtualised rows.
-
 use freya_components::scrollviews::VirtualScrollView;
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Size};

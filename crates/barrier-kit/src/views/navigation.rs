@@ -1,5 +1,3 @@
-//! Back/forward navigation history and its toolbar buttons.
-
 use freya_core::prelude::*;
 use torin::prelude::{Direction, Size};
 

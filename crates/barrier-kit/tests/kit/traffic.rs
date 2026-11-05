@@ -1,5 +1,3 @@
-//! Pixel tests for the traffic lights.
-
 use crate::image::{decode, pixel};
 use barrier_kit::ProbeExt;
 use barrier_kit::traffic::TrafficLights;

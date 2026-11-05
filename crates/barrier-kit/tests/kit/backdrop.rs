@@ -1,5 +1,3 @@
-//! Tinted backdrops keep their look whatever the system colour scheme.
-
 use barrier_kit::backdrop::{Accent, Backdrop, BackdropSource, Tint};
 use barrier_kit::controls::{Checkbox, Slider, Switch};
 use barrier_kit::progress::ProgressBar;

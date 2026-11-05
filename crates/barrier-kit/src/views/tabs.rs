@@ -1,5 +1,3 @@
-//! Toolbar tabs (approved variant E) and a tab view that shows the chosen pane.
-
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Direction, Gaps, Size};
 use vow_design::{CAPTION, SPACE_2, TOOLBAR_TABS};

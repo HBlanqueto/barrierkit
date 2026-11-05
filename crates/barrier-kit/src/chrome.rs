@@ -1,6 +1,3 @@
-//! Titlebar layouts for client-side windows (top, or a rail on the left, as a
-//! strip or unified with the sidebar) and how each one hides and reveals.
-
 use freya_core::prelude::*;
 use serde::{Deserialize, Serialize};
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};

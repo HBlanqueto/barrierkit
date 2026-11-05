@@ -1,5 +1,3 @@
-//! Tests for how form rows adapt to narrow widths.
-
 use barrier_kit::controls::Switch;
 use barrier_kit::views::form::{Form, Row, Section};
 use freya_core::integration::AppComponent;

@@ -1,5 +1,3 @@
-//! Tests for the sidebar, sidebar layout and titlebar with sidebar.
-
 use std::env;
 use std::fs;
 use std::sync::{Arc, Mutex};

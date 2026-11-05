@@ -1,5 +1,3 @@
-//! Freya theme built from the design tokens and the current appearance.
-
 use freya_components::theming::component_themes::{ColorsSheet, Theme};
 use freya_components::theming::hooks::use_init_theme;
 use freya_components::theming::themes::{dark_theme, light_theme};

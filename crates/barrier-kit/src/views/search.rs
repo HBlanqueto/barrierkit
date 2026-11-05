@@ -1,5 +1,3 @@
-//! Search index over titled entries with keywords, matched without case or accents.
-
 #[derive(Clone, Debug, PartialEq)]
 pub struct Entry<K> {
     pub key: K,

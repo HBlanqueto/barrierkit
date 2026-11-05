@@ -1,5 +1,3 @@
-//! Grouped form: sections of rows on a Tengen list-group card.
-
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
 use vow_design::{CAPTION, LIST_GROUP, Rgba, SPACE_2, SPACE_3, SPACE_4, TEXT};

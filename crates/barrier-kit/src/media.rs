@@ -1,6 +1,3 @@
-//! Pieces for content over photos and video: scrims that melt media into the window,
-//! a blurred material, the light and the translucent round buttons, and artwork loading.
-
 use std::path::PathBuf;
 
 use freya_core::elements::image::ImageHandle;

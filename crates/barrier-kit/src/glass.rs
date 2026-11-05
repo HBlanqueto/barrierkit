@@ -1,6 +1,3 @@
-//! Progressive glass behind the full-screen titlebar: the window's own content
-//! blurred in stacked layers whose radius halves from the window edge inwards.
-
 use std::borrow::Cow;
 use std::rc::Rc;
 

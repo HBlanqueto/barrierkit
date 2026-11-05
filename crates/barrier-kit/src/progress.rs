@@ -1,5 +1,3 @@
-//! Progress bar (determinate and indeterminate), progress ring and spinner.
-
 use freya_animation::prelude::{
     AnimNum, Ease, Function, OnChange, OnCreation, OnFinish, use_animation,
 };

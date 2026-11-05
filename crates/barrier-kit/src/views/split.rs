@@ -1,6 +1,3 @@
-//! Split view: resizable sidebar that hides and shows with an animation, the
-//! detail and an optional inspector.
-
 use freya_animation::prelude::use_animation_transition;
 use std::time::Duration;
 

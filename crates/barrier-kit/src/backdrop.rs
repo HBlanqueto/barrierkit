@@ -1,6 +1,3 @@
-//! Window background tinted from an image or chosen colours. Inside it the
-//! controls read its own ink and accent, whatever the system colour scheme.
-
 use std::borrow::Cow;
 use std::f32::consts::FRAC_1_SQRT_2;
 use std::rc::Rc;

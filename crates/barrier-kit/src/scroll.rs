@@ -1,5 +1,3 @@
-//! Scroll view whose bar follows the appearance: only while scrolling, or always.
-
 use std::time::Duration;
 
 use freya_components::scrollviews::{

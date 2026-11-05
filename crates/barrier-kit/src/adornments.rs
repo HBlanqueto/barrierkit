@@ -1,5 +1,3 @@
-//! Small read-mostly pieces: badge, divider, link and avatar.
-
 use freya_core::prelude::*;
 use torin::prelude::{Gaps, Size};
 use vow_design::{BADGE, CAPTION, HEADLINE, SETTINGS, TEXT};

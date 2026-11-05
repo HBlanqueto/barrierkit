@@ -1,5 +1,3 @@
-//! Tests for the vertical titlebars and the titlebar light position.
-
 use barrier_kit::chrome::{ChromeStyle, RailStyle, TitlebarLayout, WindowChrome};
 use barrier_kit::compact::IconButton;
 use barrier_kit::symbol::Symbol;

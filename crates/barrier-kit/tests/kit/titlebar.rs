@@ -1,5 +1,3 @@
-//! Tests that the titlebar follows the compositor's decoration answer.
-
 use barrier_kit::platform::{DecorationResponse, WindowStatus};
 use barrier_kit::theme;
 use barrier_kit::titlebar::Titlebar;

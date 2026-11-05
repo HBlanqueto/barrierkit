@@ -1,5 +1,3 @@
-//! Sidebar, sidebar items, collapsible sections and sidebar layout.
-
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 use vow_appearance::{SidebarStyle, SidebarSurface};

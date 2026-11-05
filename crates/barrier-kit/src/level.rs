@@ -1,5 +1,3 @@
-//! Continuous slider for levels such as volume or brightness.
-
 use freya_core::prelude::*;
 use torin::prelude::{Position, Size};
 use vow_design::{KNOB_SHADOW, SLIDER, SLIDER_FAT, SLIDER_KEY_STEP, SWITCH, SYMBOL};

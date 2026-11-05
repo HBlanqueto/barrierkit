@@ -1,5 +1,3 @@
-//! Window patterns (ADR 0047 layer 3), composed only from layers 1 and 2.
-
 pub mod about;
 pub mod language;
 pub mod preferences;

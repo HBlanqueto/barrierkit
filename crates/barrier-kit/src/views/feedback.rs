@@ -1,5 +1,3 @@
-//! Empty states, sheets and alerts.
-
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Direction, Gaps, Position, Size};
 use vow_design::{DIALOG, DIALOG_PADDING, HEADLINE, SETTINGS, SPACE_2, SPACE_4, TEXT};

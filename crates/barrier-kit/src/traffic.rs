@@ -1,5 +1,3 @@
-//! Traffic-light window buttons for client-side windows.
-
 use freya_components::svg_viewer::SvgViewer;
 use freya_core::prelude::*;
 use torin::prelude::{Direction, Size};

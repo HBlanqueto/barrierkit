@@ -1,5 +1,3 @@
-//! Password field for the lock screen.
-
 use freya_core::prelude::{Key, Modifiers, NamedKey};
 use zeroize::{Zeroize, Zeroizing};
 

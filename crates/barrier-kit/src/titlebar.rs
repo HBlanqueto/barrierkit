@@ -1,5 +1,3 @@
-//! Client-side titlebar with traffic lights, title and toolbar area.
-
 use std::cell::Cell;
 use std::rc::Rc;
 use std::time::{Duration, Instant};

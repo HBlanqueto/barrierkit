@@ -1,6 +1,3 @@
-//! Master Tengen App Show: every BarrierKit component, animation and window
-//! layout on its own page (ADR 0047 §6).
-
 mod animation;
 mod chrome;
 mod events;

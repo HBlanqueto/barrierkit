@@ -1,9 +1,3 @@
-//! Video for the kit's own apps. GStreamer decodes on the GPU through VA-API and hands
-//! each frame over as a dmabuf that Skia samples in place; without dmabuf import the
-//! frame is downloaded once, and without VA-API the CPU decodes. Sources are local files
-//! or `http(s)` URIs streamed by `souphttpsrc`. Sound plays in the same pipeline, on its
-//! clock, and every stream starts muted until `set_volume`.
-
 use std::cell::RefCell;
 use std::os::fd::BorrowedFd;
 use std::os::unix::fs::MetadataExt;

@@ -1,5 +1,3 @@
-//! Hover, press and keyboard focus shared by every interactive control.
-
 use freya_core::prelude::*;
 use torin::prelude::{Position, Size, SizeFnContext};
 use vow_design::FOCUS_RING;
