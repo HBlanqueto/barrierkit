@@ -5,6 +5,7 @@ mod config;
 mod resolve;
 pub mod traffic;
 pub mod watch;
+pub mod window;
 pub mod xdg;
 
 pub use config::*;
