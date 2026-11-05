@@ -129,12 +129,8 @@ pub(super) fn emit_sidebar(out: &mut String, tokens: &Value, components: &Value)
         };
         format!(
             "ToolgroupPalette {{\n\
-             \x20   ink: {},\n\
-             \x20   disabled_ink: {},\n\
              \x20   separator: {},\n\
              }}",
-            color_at("components.window.toolgroup.ink"),
-            color_at("components.window.toolgroup.disabled-ink"),
             color_at("components.window.toolgroup.separator"),
         )
     }
@@ -261,11 +257,6 @@ pub(super) fn emit_sidebar(out: &mut String, tokens: &Value, components: &Value)
         "components.window.sidebar.section.chevron",
         COMPONENTS,
     ) as u32;
-    let chevron_stroke = number(
-        components,
-        "components.window.sidebar.section.chevron-stroke",
-        COMPONENTS,
-    );
 
     pub_const(out, "SIDEBAR");
     out.push_str(&format!(
@@ -293,11 +284,9 @@ pub(super) fn emit_sidebar(out: &mut String, tokens: &Value, components: &Value)
          \x20   section_size: {section_size},\n\
          \x20   section_weight: {section_weight},\n\
          \x20   chevron: {chevron},\n\
-         \x20   chevron_stroke: {},\n\
          }};\n\n",
         float(rim_width),
         float(inner_width),
-        float(chevron_stroke)
     ));
 
     let toolgroup_height = metric(
@@ -311,16 +300,6 @@ pub(super) fn emit_sidebar(out: &mut String, tokens: &Value, components: &Value)
         "components.window.toolgroup.padding-x",
         COMPONENTS,
     ) as u32;
-    let button_w = integer(
-        components,
-        "components.window.toolgroup.button-w",
-        COMPONENTS,
-    ) as u32;
-    let button_h = integer(
-        components,
-        "components.window.toolgroup.button-h",
-        COMPONENTS,
-    ) as u32;
     let separator_w = integer(
         components,
         "components.window.toolgroup.separator-w",
@@ -331,37 +310,14 @@ pub(super) fn emit_sidebar(out: &mut String, tokens: &Value, components: &Value)
         "components.window.toolgroup.separator-h",
         COMPONENTS,
     ) as u32;
-    let flat_button_w = integer(
-        components,
-        "components.window.toolgroup.flat-button-w",
-        COMPONENTS,
-    ) as u32;
-    let flat_button_h = integer(
-        components,
-        "components.window.toolgroup.flat-button-h",
-        COMPONENTS,
-    ) as u32;
-    let flat_radius = metric(
-        tokens,
-        components,
-        "components.window.toolgroup.flat-radius",
-        COMPONENTS,
-    ) as u32;
-    let icon = integer(components, "components.window.toolgroup.icon", COMPONENTS) as u32;
 
     pub_const(out, "TOOLGROUP");
     out.push_str(&format!(
         ": ToolgroupMetrics = ToolgroupMetrics {{\n\
          \x20   height: {toolgroup_height},\n\
          \x20   padding_x: {toolgroup_padding_x},\n\
-         \x20   button_w: {button_w},\n\
-         \x20   button_h: {button_h},\n\
          \x20   separator_w: {separator_w},\n\
          \x20   separator_h: {separator_h},\n\
-         \x20   flat_button_w: {flat_button_w},\n\
-         \x20   flat_button_h: {flat_button_h},\n\
-         \x20   flat_radius: {flat_radius},\n\
-         \x20   icon: {icon},\n\
          }};\n\n"
     ));
 }

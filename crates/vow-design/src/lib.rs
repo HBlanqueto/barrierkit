@@ -637,21 +637,14 @@ pub struct SidebarMetrics {
     pub section_size: u32,
     pub section_weight: u16,
     pub chevron: u32,
-    pub chevron_stroke: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ToolgroupMetrics {
     pub height: u32,
     pub padding_x: u32,
-    pub button_w: u32,
-    pub button_h: u32,
     pub separator_w: u32,
     pub separator_h: u32,
-    pub flat_button_w: u32,
-    pub flat_button_h: u32,
-    pub flat_radius: u32,
-    pub icon: u32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -801,8 +794,6 @@ pub struct SidebarPalette {
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ToolgroupPalette {
-    pub ink: Rgba,
-    pub disabled_ink: Rgba,
     pub separator: Rgba,
 }
 

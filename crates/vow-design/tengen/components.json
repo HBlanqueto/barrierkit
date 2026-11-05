@@ -316,24 +316,15 @@
           "size": 11,
           "weight": 600,
           "ink": "ink-muted",
-          "chevron": 12,
-          "chevron-stroke": 1.8
+          "chevron": 12
         }
       },
       "toolgroup": {
         "height": "size.toolgroup-h",
         "padding-x": 3,
-        "button-w": 34,
-        "button-h": 30,
         "separator-w": 1,
         "separator-h": 16,
-        "separator": "line",
-        "flat-button-w": 30,
-        "flat-button-h": 28,
-        "flat-radius": "radius.sm",
-        "icon": 16,
-        "ink": "ink-strong",
-        "disabled-ink": "ink-faint"
+        "separator": "line"
       }
     },
     "settings": {
