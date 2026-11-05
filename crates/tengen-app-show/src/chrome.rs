@@ -1,5 +1,3 @@
-use std::sync::LazyLock;
-
 use barrier_kit::app::save_defaults;
 use barrier_kit::chrome::{
     ChromeStyle, RailStyle, RestingEdge, Reveal, TitlebarLayout, WindowChrome,
@@ -21,35 +19,7 @@ use vow_design::TITLEBAR_RAIL;
 use crate::localize::tr;
 use crate::{APP, tint};
 
-static LAYOUTS: LazyLock<[(TitlebarLayout, &str); 2]> = LazyLock::new(|| {
-    [
-        (TitlebarLayout::Top, tr!("top")),
-        (TitlebarLayout::Rail, tr!("rail")),
-    ]
-});
-
-static REVEALS: LazyLock<[(Reveal, &str); 5]> = LazyLock::new(|| {
-    [
-        (Reveal::Always, tr!("always")),
-        (Reveal::Drawer, tr!("drawer")),
-        (Reveal::Push, tr!("push")),
-        (Reveal::Corner, tr!("corner")),
-        (Reveal::Popup, tr!("popup-pill")),
-    ]
-});
-
 const EDGES: [RestingEdge; 3] = [RestingEdge::None, RestingEdge::Line, RestingEdge::Accent];
-
-static BARS: LazyLock<[(FullscreenBar, &str); 3]> = LazyLock::new(|| {
-    [
-        (FullscreenBar::Solid, tr!("bar-solid")),
-        (FullscreenBar::Glass, tr!("bar-glass")),
-        (
-            FullscreenBar::ProgressiveGlass,
-            tr!("bar-progressive-glass"),
-        ),
-    ]
-});
 
 const SIDEBAR_LIMITS: [Option<(f32, f32)>; 3] = [None, Some((160.0, 220.0)), Some((240.0, 420.0))];
 
@@ -133,9 +103,9 @@ pub(crate) fn segmented(
         .on_change(on_change)
 }
 
-fn popup<T: PartialEq + Copy + 'static>(
+fn popup<T: PartialEq + Copy + 'static, const N: usize>(
     label: &'static str,
-    options: &'static [(T, &'static str)],
+    options: [(T, &'static str); N],
     current: T,
     on_change: impl Fn(T) + 'static,
 ) -> PopUpButton {
@@ -164,7 +134,10 @@ fn titlebar(prefs: State<Prefs>) -> Form {
     let mut titlebar = Section::titled(tr!("titlebar"))
         .row(Row::new(tr!("layout")).control(popup(
             tr!("layout"),
-            &*LAYOUTS,
+            [
+                (TitlebarLayout::Top, tr!("top")),
+                (TitlebarLayout::Rail, tr!("rail")),
+            ],
             current.layout,
             move |layout| update(prefs, |p| p.layout = layout),
         )))
@@ -201,7 +174,13 @@ fn titlebar(prefs: State<Prefs>) -> Form {
     }
     titlebar = titlebar.row(Row::new(tr!("reveal")).control(popup(
         tr!("reveal"),
-        &*REVEALS,
+        [
+            (Reveal::Always, tr!("always")),
+            (Reveal::Drawer, tr!("drawer")),
+            (Reveal::Push, tr!("push")),
+            (Reveal::Corner, tr!("corner")),
+            (Reveal::Popup, tr!("popup-pill")),
+        ],
         current.reveal,
         move |reveal| update(prefs, |p| p.reveal = reveal),
     )));
@@ -230,7 +209,14 @@ fn fullscreen(prefs: State<Prefs>) -> Form {
         Section::titled(tr!("fullscreen"))
             .row(Row::new(tr!("bar")).control(popup(
                 tr!("bar"),
-                &*BARS,
+                [
+                    (FullscreenBar::Solid, tr!("bar-solid")),
+                    (FullscreenBar::Glass, tr!("bar-glass")),
+                    (
+                        FullscreenBar::ProgressiveGlass,
+                        tr!("bar-progressive-glass"),
+                    ),
+                ],
                 current.fullscreen_bar,
                 move |bar| update(prefs, |p| p.fullscreen_bar = bar),
             )))

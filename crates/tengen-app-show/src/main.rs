@@ -28,7 +28,7 @@ use barrier_kit::password::PasswordField;
 use barrier_kit::patterns::about::about_window;
 use barrier_kit::patterns::language::app_language_row;
 use barrier_kit::patterns::preferences::{Pane, PaneGroup, PreferencesWindow};
-use barrier_kit::platform::{DecorationResponse, WindowControls, WindowStatus};
+use barrier_kit::platform::{WindowControls, WindowStatus};
 use barrier_kit::platform::{WindowOptions, run_window};
 use barrier_kit::popup_button::PopUpButton;
 use barrier_kit::progress::{ProgressBar, ProgressRing, Spinner};
@@ -242,13 +242,7 @@ fn fields(name: State<String>, query: State<String>, password: State<PasswordFie
 }
 
 fn window_parts() -> Form {
-    let status = WindowStatus {
-        activated: true,
-        maximized: false,
-        fullscreen: false,
-        decoration: DecorationResponse::Client,
-        fixed: false,
-    };
+    let status = WindowStatus::default();
     Form::new()
         .section(
             Section::titled(tr!("window"))
@@ -496,57 +490,50 @@ fn tabs() -> Form {
     )
 }
 
-fn preview(colors: [Rgba; 3], accent: Accent, fill: Tint) -> Rect {
+fn backdrop_card(colors: [Rgba; 3], accent: Accent, content: Rect) -> Rect {
     rect()
         .width(Size::px(320.0))
         .height(Size::px(150.0))
         .corner_radius(12.0)
         .overflow(Overflow::Clip)
-        .child(
-            Backdrop::new(
-                BackdropSource::Colors(colors),
-                rect()
-                    .width(Size::fill())
-                    .padding(16.0)
-                    .spacing(SPACE_2)
-                    .child(row_of([
-                        Switch::new(tr!("on")).on(true).tint(fill).into_element(),
-                        Checkbox::new(tr!("checked"))
-                            .checked(true)
-                            .tint(fill)
-                            .into_element(),
-                    ]))
-                    .child(ProgressBar::determinate(tr!("progress"), 0.6).tint(fill))
-                    .child(LevelSlider::new(tr!("level")).value(0.4).tint(fill)),
-            )
-            .accent(accent),
-        )
+        .child(Backdrop::new(BackdropSource::Colors(colors), content).accent(accent))
+}
+
+fn preview(colors: [Rgba; 3], accent: Accent, fill: Tint) -> Rect {
+    backdrop_card(
+        colors,
+        accent,
+        rect()
+            .width(Size::fill())
+            .padding(16.0)
+            .spacing(SPACE_2)
+            .child(row_of([
+                Switch::new(tr!("on")).on(true).tint(fill).into_element(),
+                Checkbox::new(tr!("checked"))
+                    .checked(true)
+                    .tint(fill)
+                    .into_element(),
+            ]))
+            .child(ProgressBar::determinate(tr!("progress"), 0.6).tint(fill))
+            .child(LevelSlider::new(tr!("level")).value(0.4).tint(fill)),
+    )
 }
 
 fn sidebar_preview(colors: [Rgba; 3], backdrop: SidebarBackdrop) -> Rect {
-    rect()
-        .width(Size::px(320.0))
-        .height(Size::px(150.0))
-        .corner_radius(12.0)
-        .overflow(Overflow::Clip)
-        .child(
-            Backdrop::new(
-                BackdropSource::Colors(colors),
-                rect().width(Size::px(160.0)).height(Size::fill()).child(
-                    Sidebar::new()
-                        .backdrop(backdrop)
-                        .child(
-                            SidebarItem::new(tr!("listening"))
-                                .symbol(Symbol::Play, tint(0))
-                                .selected(true),
-                        )
-                        .child(
-                            SidebarItem::new(tr!("library")).symbol(Symbol::SquareGrid, tint(1)),
-                        ),
-                ),
-            )
-            .accent(Accent::FromBackdrop),
-        )
+    backdrop_card(
+        colors,
+        Accent::FromBackdrop,
+        rect().width(Size::px(160.0)).height(Size::fill()).child(
+            Sidebar::new()
+                .backdrop(backdrop)
+                .child(
+                    SidebarItem::new(tr!("listening"))
+                        .symbol(Symbol::Play, tint(0))
+                        .selected(true),
+                )
+                .child(SidebarItem::new(tr!("library")).symbol(Symbol::SquareGrid, tint(1))),
+        ),
+    )
 }
 
 fn backdrops() -> Form {

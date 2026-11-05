@@ -30,16 +30,6 @@ pub static SLIDES: LazyLock<[(&str, &str, Symbol); 4]> = LazyLock::new(|| {
     ]
 });
 
-pub static TRANSITIONS: LazyLock<[&str; 5]> = LazyLock::new(|| {
-    [
-        tr!("slide"),
-        tr!("fade"),
-        tr!("zoom"),
-        tr!("cover"),
-        tr!("spring"),
-    ]
-});
-
 const BOUNCY: usize = 4;
 const WIDTH: f32 = SPLIT_VIEW.sidebar_max;
 const HEIGHT: f32 = SPLIT_VIEW.inspector * 0.75;

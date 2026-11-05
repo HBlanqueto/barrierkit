@@ -18,7 +18,7 @@ use crate::events::{
 use crate::kit::{Download, SCENES, sidebar_section};
 use crate::localize::tr;
 use crate::motion::{EasedTrack, Property, PropertyTile, SpringTrack};
-use crate::slides::{Stage, TRANSITIONS, pager};
+use crate::slides::{Stage, pager};
 use crate::{preview, tint};
 
 static CURVES: LazyLock<[(&str, Function); 7]> = LazyLock::new(|| {
@@ -168,7 +168,13 @@ fn navigation(page: State<usize>, mut transition: State<usize>, mut period: Stat
             Section::titled(tr!("slides"))
                 .row(Row::new(tr!("transition")).control(segmented(
                     tr!("transition"),
-                    &*TRANSITIONS,
+                    &[
+                        tr!("slide"),
+                        tr!("fade"),
+                        tr!("zoom"),
+                        tr!("cover"),
+                        tr!("spring"),
+                    ],
                     style,
                     move |index| transition.set(index),
                 )))
