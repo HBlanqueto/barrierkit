@@ -35,7 +35,7 @@ impl AppearanceWatch {
         Self::new_for(config_dir(), data_dir())
     }
 
-    pub fn new_for(config_dir: PathBuf, data_dir: PathBuf) -> io::Result<Self> {
+    fn new_for(config_dir: PathBuf, data_dir: PathBuf) -> io::Result<Self> {
         std::fs::create_dir_all(&config_dir)?;
         std::fs::create_dir_all(&data_dir)?;
         let inotify =

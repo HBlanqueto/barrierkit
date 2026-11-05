@@ -719,7 +719,7 @@ pub fn read_appearance() -> Result<Option<AppearanceConfig>, toml::de::Error> {
     read_appearance_from(&appearance_path())
 }
 
-pub fn read_appearance_from(path: &Path) -> Result<Option<AppearanceConfig>, toml::de::Error> {
+fn read_appearance_from(path: &Path) -> Result<Option<AppearanceConfig>, toml::de::Error> {
     match std::fs::read_to_string(path) {
         Ok(text) => {
             warn_legacy_traffic_light_name(&text);
@@ -783,10 +783,6 @@ pub fn write_appearance(path: &Path, config: &AppearanceConfig) -> std::io::Resu
     written
 }
 
-pub fn write_appearance_default() -> std::io::Result<()> {
-    write_appearance(&appearance_path(), &AppearanceConfig::default())
-}
-
 fn serialize_tint_parts<S: Serializer>(
     parts: &TintParts,
     serializer: S,
@@ -843,14 +839,10 @@ struct WallpaperState {
 }
 
 pub fn load_dominant() -> Option<Rgba> {
-    read_dominant()
-}
-
-pub fn read_dominant() -> Option<Rgba> {
     read_dominant_from(&wallpaper_state_path())
 }
 
-pub fn read_dominant_from(path: &Path) -> Option<Rgba> {
+fn read_dominant_from(path: &Path) -> Option<Rgba> {
     let text = std::fs::read_to_string(path).ok()?;
     let state: WallpaperState = toml::from_str(&text).ok()?;
     let [r, g, b] = state.dominant?;
@@ -1810,26 +1802,6 @@ sidebar_style = "flat"
         read_appearance_from(&path)
             .unwrap()
             .expect("created file parses");
-        std::fs::remove_dir_all(&dir).ok();
-    }
-
-    #[test]
-    fn write_appearance_default_uses_config_dir() {
-        let _env = ENV_LOCK.lock().unwrap();
-        let dir =
-            std::env::temp_dir().join(format!("vow-appearance-default-{}", std::process::id()));
-        std::fs::create_dir_all(&dir).unwrap();
-        let old = std::env::var_os("MALAYSIA_CONFIG_DIR");
-        unsafe { std::env::set_var("MALAYSIA_CONFIG_DIR", &dir) };
-        write_appearance_default().unwrap();
-        let path = dir.join("appearance.domain");
-        assert!(path.exists());
-        let read = read_appearance_from(&path).unwrap().unwrap();
-        assert_configs_equal(&AppearanceConfig::default(), &read);
-        match old {
-            Some(v) => unsafe { std::env::set_var("MALAYSIA_CONFIG_DIR", v) },
-            None => unsafe { std::env::remove_var("MALAYSIA_CONFIG_DIR") },
-        }
         std::fs::remove_dir_all(&dir).ok();
     }
 

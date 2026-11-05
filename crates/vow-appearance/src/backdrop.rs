@@ -60,7 +60,7 @@ impl Oklab {
     }
 }
 
-pub fn mix_oklab(from: Rgba, to: Rgba, amount: f32) -> Rgba {
+fn mix_oklab(from: Rgba, to: Rgba, amount: f32) -> Rgba {
     let (p, q) = (Oklab::from_rgba(from), Oklab::from_rgba(to));
     let t = amount.clamp(0.0, 1.0);
     let mut mixed = Oklab {
