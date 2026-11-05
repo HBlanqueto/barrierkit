@@ -15,6 +15,7 @@ use barrier_kit::controls::{
 };
 use barrier_kit::level::{LevelSlider, LevelStyle};
 use barrier_kit::menu::MenuIcon;
+use barrier_kit::password::PasswordField;
 use barrier_kit::patterns::about::about_window;
 use barrier_kit::patterns::preferences::{Pane, PaneGroup, PreferencesWindow};
 use barrier_kit::popup_button::PopUpButton;
@@ -429,7 +430,7 @@ fn text_field() -> Element {
 }
 
 fn secure_field() -> Element {
-    SecureField::new().into_element()
+    SecureField::new(use_state(PasswordField::default)).into_element()
 }
 
 fn scroll_view() -> Element {

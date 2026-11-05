@@ -20,28 +20,28 @@ use crate::choices::use_choice;
 use crate::interaction::use_interaction;
 use crate::level::{self, bar, knob_shadow};
 use crate::password::PasswordField;
-use crate::platform::inserts_text;
 use crate::style::Palette;
 use crate::symbol::{Symbol, symbol};
 use crate::theme;
 use crate::theme::color;
+use zeroize::Zeroizing;
 
-fn secure_field_accepts_text(key: &Key, modifiers: Modifiers) -> bool {
-    matches!(key, Key::Character(_)) && inserts_text(modifiers)
-}
-
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct SecureField {
     field: State<PasswordField>,
     width: f32,
+    auto_focus: bool,
+    on_submit: Option<Callback<Zeroizing<String>, ()>>,
     key: DiffKey,
 }
 
 impl SecureField {
-    pub fn new() -> Self {
+    pub fn new(field: State<PasswordField>) -> Self {
         Self {
-            field: use_state(PasswordField::default),
+            field,
             width: 240.0,
+            auto_focus: false,
+            on_submit: None,
             key: DiffKey::None,
         }
     }
@@ -51,15 +51,19 @@ impl SecureField {
         self
     }
 
+    pub fn auto_focus(mut self, auto_focus: bool) -> Self {
+        self.auto_focus = auto_focus;
+        self
+    }
+
+    pub fn on_submit(mut self, callback: impl Into<Callback<Zeroizing<String>, ()>>) -> Self {
+        self.on_submit = Some(callback.into());
+        self
+    }
+
     pub fn key(mut self, key: impl Into<DiffKey>) -> Self {
         self.key = key.into();
         self
-    }
-}
-
-impl Default for SecureField {
-    fn default() -> Self {
-        Self::new()
     }
 }
 
@@ -69,35 +73,30 @@ impl KeyExt for SecureField {
     }
 }
 
-impl PartialEq for SecureField {
-    fn eq(&self, _other: &Self) -> bool {
-        true
-    }
-}
-
 impl Component for SecureField {
     fn render(&self) -> impl IntoElement {
+        let interaction = use_interaction();
         let mut field = self.field;
+        let on_submit = self.on_submit.clone();
         let masked = field.read().masked();
-        rect()
+        let element = interaction
+            .attach(rect(), true)
+            .a11y_role(AccessibilityRole::PasswordInput)
+            .a11y_auto_focus(self.auto_focus)
             .width(Size::px(self.width))
             .height(Size::px(TEXT.size as f32 * TEXT_LINE_HEIGHT))
             .padding(Gaps::new(6.0, 8.0, 6.0, 8.0))
             .on_key_down(move |event: Event<KeyboardEventData>| {
-                let mut field = field.write();
-                match &event.key {
-                    Key::Named(NamedKey::Backspace) => field.backspace(),
-                    Key::Character(text)
-                        if secure_field_accepts_text(&event.key, event.modifiers) =>
-                    {
-                        for ch in text.chars() {
-                            field.insert(ch);
-                        }
+                let secret = field.write().handle_key(&event.key, event.modifiers);
+                if let Some(secret) = secret {
+                    event.prevent_default();
+                    if let Some(callback) = &on_submit {
+                        callback.call(secret);
                     }
-                    _ => {}
                 }
             })
-            .child(label().text(masked))
+            .child(label().text(masked));
+        interaction.focus_ring(element, TEXT_FIELD.radius)
     }
 }
 
@@ -1339,26 +1338,4 @@ fn svg_viewer(template: &'static str, color: Rgba, size: u32) -> SvgViewer {
         .height(Size::px(size as f32))
         .color(theme::color(color))
         .show_loader(false)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use keyboard_types::{Key, Modifiers};
-
-    #[test]
-    fn shift_h_is_accepted_as_secure_field_text() {
-        assert!(secure_field_accepts_text(
-            &Key::Character("H".into()),
-            Modifiers::SHIFT
-        ));
-    }
-
-    #[test]
-    fn ctrl_a_is_rejected_as_secure_field_text() {
-        assert!(!secure_field_accepts_text(
-            &Key::Character("a".into()),
-            Modifiers::CONTROL
-        ));
-    }
 }
