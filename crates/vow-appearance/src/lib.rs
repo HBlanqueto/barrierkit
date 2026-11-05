@@ -107,11 +107,25 @@ impl Default for TintParts {
     }
 }
 
+fn lenient<'de, D, T>(deserializer: D) -> Result<T, D::Error>
+where
+    D: Deserializer<'de>,
+    T: serde::de::DeserializeOwned + Default,
+{
+    let value = toml::Value::deserialize(deserializer)?;
+    Ok(T::deserialize(value).unwrap_or_else(|error| {
+        tracing::warn!(%error, "invalid appearance value; using its default");
+        T::default()
+    }))
+}
+
 fn deserialize_tint_parts<'de, D>(deserializer: D) -> Result<TintParts, D::Error>
 where
     D: Deserializer<'de>,
 {
-    let list: Vec<String> = Vec::deserialize(deserializer)?;
+    let Some(list) = lenient::<D, Option<Vec<String>>>(deserializer)? else {
+        return Ok(TintParts::default());
+    };
     let mut parts = TintParts {
         sidebars: false,
         window: false,
@@ -126,11 +140,7 @@ where
             "groups" => parts.groups = true,
             "controls" => parts.controls = true,
             "menus" => parts.menus = true,
-            _ => {
-                return Err(serde::de::Error::custom(format!(
-                    "unknown tint part: {name}"
-                )));
-            }
+            _ => tracing::warn!(name, "unknown tint part ignored"),
         }
     }
     Ok(parts)
@@ -174,22 +184,29 @@ pub enum ScrollBars {
 #[derive(Debug, Clone, Deserialize)]
 #[serde(default)]
 pub struct AppearanceConfig {
+    #[serde(deserialize_with = "lenient")]
     pub color_scheme: ColorScheme,
     pub accent_color: Option<[f32; 3]>,
     pub contrast: bool,
     pub reduced_motion: bool,
+    #[serde(deserialize_with = "lenient")]
     pub scroll_bars: ScrollBars,
     pub reduce_transparency: bool,
+    #[serde(deserialize_with = "lenient")]
     pub window_color: WindowColorMode,
+    #[serde(deserialize_with = "lenient")]
     pub window_tint_scope: WindowTintScope,
+    #[serde(deserialize_with = "lenient")]
     pub traffic_lights: TrafficLightStyle,
+    #[serde(deserialize_with = "lenient")]
     pub traffic_light_shape: TrafficLightShape,
+    #[serde(deserialize_with = "lenient")]
     pub sidebar_style: SidebarStyle,
-    #[serde(default)]
+    #[serde(deserialize_with = "lenient")]
     pub tint_strength_accent: TintStrength,
-    #[serde(default)]
+    #[serde(deserialize_with = "lenient")]
     pub tint_strength_wallpaper: TintStrength,
-    #[serde(default, deserialize_with = "deserialize_tint_parts")]
+    #[serde(deserialize_with = "deserialize_tint_parts")]
     pub tint_parts: TintParts,
 }
 
@@ -718,18 +735,26 @@ pub fn read_appearance_from(path: &Path) -> Result<Option<AppearanceConfig>, tom
 }
 
 pub fn write_appearance(path: &Path, config: &AppearanceConfig) -> std::io::Result<()> {
-    let text = std::fs::read_to_string(path).unwrap_or_default();
-    let parsed = text.parse::<toml_edit::DocumentMut>();
-    if !text.is_empty() && parsed.is_err() {
-        let backup = path.with_extension("domain.bak");
-        std::fs::copy(path, &backup)?;
-        tracing::warn!(
-            path = %path.display(),
-            backup = %backup.display(),
-            "unreadable appearance domain backed up before overwrite"
-        );
-    }
-    let mut doc = parsed.unwrap_or_else(|_| toml_edit::DocumentMut::new());
+    let parsed = match std::fs::read_to_string(path) {
+        Ok(text) => text.parse::<toml_edit::DocumentMut>().ok(),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            Some(toml_edit::DocumentMut::new())
+        }
+        Err(_) => None,
+    };
+    let mut doc = match parsed {
+        Some(doc) => doc,
+        None => {
+            let backup = path.with_extension("domain.bak");
+            std::fs::copy(path, &backup)?;
+            tracing::warn!(
+                path = %path.display(),
+                backup = %backup.display(),
+                "unreadable appearance domain backed up before overwrite"
+            );
+            toml_edit::DocumentMut::new()
+        }
+    };
 
     doc["color_scheme"] = toml_edit::value(color_scheme_str(config.color_scheme));
     if let Some(accent) = config.accent_color {
@@ -757,10 +782,23 @@ pub fn write_appearance(path: &Path, config: &AppearanceConfig) -> std::io::Resu
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent)?;
     }
-    let tmp = path.with_extension("tmp");
-    std::fs::write(&tmp, doc.to_string())?;
-    std::fs::rename(&tmp, path)?;
-    Ok(())
+    static TEMPORARY: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+    let mut tmp = path.as_os_str().to_owned();
+    tmp.push(format!(
+        ".{}.{}.tmp",
+        std::process::id(),
+        TEMPORARY.fetch_add(1, std::sync::atomic::Ordering::Relaxed)
+    ));
+    let written = std::fs::File::create(&tmp)
+        .and_then(|mut file| {
+            std::io::Write::write_all(&mut file, doc.to_string().as_bytes())?;
+            file.sync_all()
+        })
+        .and_then(|()| std::fs::rename(&tmp, path));
+    if written.is_err() {
+        let _ = std::fs::remove_file(&tmp);
+    }
+    written
 }
 
 pub fn write_appearance_default() -> std::io::Result<()> {
@@ -1842,8 +1880,7 @@ sidebar_style = "flat"
         let path = dir.join("appearance.domain");
         assert!(!path.exists());
         write_appearance(&path, &AppearanceConfig::default()).unwrap();
-        assert!(path.exists());
-        assert!(!dir.join("appearance.tmp").exists());
+        assert_eq!(std::fs::read_dir(&dir).unwrap().count(), 1);
         read_appearance_from(&path)
             .unwrap()
             .expect("created file parses");
@@ -2200,6 +2237,30 @@ sidebar_style = "island"
         assert_eq!(config.tint_strength_accent, TintStrength::Normal);
         assert_eq!(config.tint_strength_wallpaper, TintStrength::Normal);
         assert_eq!(config.tint_parts, TintParts::default());
+    }
+
+    #[test]
+    fn an_unknown_value_falls_back_only_for_its_field() {
+        let config: AppearanceConfig = toml::from_str(
+            r#"
+color_scheme = "dark"
+sidebar_style = "bubbly"
+tint_parts = ["window", "halo"]
+"#,
+        )
+        .unwrap();
+        assert_eq!(config.color_scheme, ColorScheme::Dark);
+        assert_eq!(config.sidebar_style, SidebarStyle::Island);
+        assert_eq!(
+            config.tint_parts,
+            TintParts {
+                sidebars: false,
+                window: true,
+                groups: false,
+                controls: false,
+                menus: false,
+            }
+        );
     }
 
     #[test]
