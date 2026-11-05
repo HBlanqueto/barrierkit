@@ -2,23 +2,20 @@
 
 use crate::image::{decode, pixel};
 use barrier_kit::ProbeExt;
-use barrier_kit::traffic::{TrafficLights, traffic_lights_view};
+use barrier_kit::traffic::TrafficLights;
 use freya_core::element::ElementExt;
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 use freya_testing::TestingRunner;
 use std::rc::Rc;
 use torin::prelude::Size2D;
-use vow_appearance::TrafficLightStyle;
 use vow_appearance::traffic::{TrafficInput, visual};
-use vow_design::{ButtonKind, LIGHT, Rgba};
+use vow_appearance::{AppearanceConfig, Resolved, resolve};
+use vow_design::{ButtonKind, Rgba};
 
-const LIGHTS: [Rgba; 3] = [
-    Rgba::rgb8(255, 95, 87),
-    Rgba::rgb8(254, 188, 46),
-    Rgba::rgb8(40, 200, 64),
-];
-const INACTIVE: Rgba = Rgba::rgb8(0xd3, 0xd3, 0xd5);
+fn resolved() -> Resolved {
+    resolve(&AppearanceConfig::default(), None)
+}
 
 struct Case {
     input: TrafficInput,
@@ -26,19 +23,18 @@ struct Case {
 
 impl App for Case {
     fn render(&self) -> impl IntoElement {
-        traffic_lights_view(
-            self.input,
-            LIGHTS,
-            TrafficLightStyle::Standard,
-            INACTIVE,
-            LIGHT.traffic_rim,
-        )
+        TrafficLights::new().input(self.input)
     }
 }
 
 fn render(input: TrafficInput, scale: f64) -> (Vec<u8>, usize) {
     let app = AppComponent::new(Case { input });
-    let (mut test, _) = TestingRunner::new(app, Size2D::new(80.0, 40.0), |_| {}, scale);
+    let (mut test, _) = TestingRunner::new(
+        app,
+        Size2D::new(80.0, 40.0),
+        |runner| runner.provide_root_context(|| State::create(resolved())),
+        scale,
+    );
     test.sync_and_update();
     let _ = test.render();
     test.sync_and_update();
@@ -113,13 +109,15 @@ fn traffic_lights_match_the_shared_visual_colours() {
             zoom_supported: true,
         },
     ];
+    let resolved = resolved();
+    let palette = vow_appearance::palette(resolved.scheme);
     for scale in [1.0, 2.0] {
         for input in states {
             let expected = visual(
-                LIGHTS,
-                TrafficLightStyle::Standard,
-                INACTIVE,
-                LIGHT.traffic_rim,
+                resolved.lights,
+                resolved.traffic_style,
+                palette.traffic_lights_inactive,
+                palette.traffic_rim,
                 input,
             )[0]
             .fill;
@@ -321,7 +319,7 @@ fn moving_the_pointer_away_after_a_press_clears_hover_and_press() {
     test.sync_and_update();
     let (image, width) = render_png(&mut test);
     let fill = pixel(&image, width, 6, 1);
-    compare(fill, LIGHTS[0]);
+    compare(fill, resolved().lights[0]);
     assert_eq!(
         pixel(&image, width, 6, 6),
         fill,

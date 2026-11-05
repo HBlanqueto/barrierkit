@@ -3,9 +3,9 @@
 use freya_components::svg_viewer::SvgViewer;
 use freya_core::prelude::*;
 use torin::prelude::{Direction, Size};
+use vow_appearance::palette as base_palette;
 use vow_appearance::traffic::{self, TrafficInput, TrafficPointer};
-use vow_appearance::{TrafficLightStyle, palette as base_palette};
-use vow_design::{ButtonKind, Rgba, TITLEBAR, TRAFFIC_GLYPHS, TRAFFIC_RIM_WIDTH, TrafficRim};
+use vow_design::{ButtonKind, Rgba, TITLEBAR, TRAFFIC_GLYPHS, TRAFFIC_RIM_WIDTH};
 
 use crate::ProbeExt;
 use crate::theme;
@@ -261,50 +261,6 @@ fn rim_border(color: Rgba) -> Border {
         .width(TRAFFIC_RIM_WIDTH)
         .alignment(BorderAlignment::Inner)
         .fill(theme::color(color))
-}
-
-pub fn traffic_lights_view(
-    input: TrafficInput,
-    lights: [Rgba; 3],
-    style: TrafficLightStyle,
-    inactive: Rgba,
-    rim: TrafficRim,
-) -> Element {
-    let visuals = traffic::visual(lights, style, inactive, rim, input);
-    let (_, _, diameter) = traffic::button_rect(0);
-    let gap = light_gap();
-    rect()
-        .width(Size::px(traffic::group_rect().2 as f32))
-        .height(Size::px(diameter as f32))
-        .direction(Direction::Horizontal)
-        .spacing(gap as f32)
-        .children(visuals.iter().enumerate().map(|(index, visual)| {
-            rect()
-                .width(Size::px(diameter as f32))
-                .height(Size::px(diameter as f32))
-                .corner_radius(TITLEBAR.buttons.corner_radius as f32)
-                .background(theme::color(visual.fill))
-                .border(rim_border(visual.rim))
-                .center()
-                .maybe_child(visual.glyph.map(|glyph| {
-                    SvgViewer::new((
-                        format!("traffic-view-{index}-{:?}-false", glyph.to_rgba8()),
-                        Bytes::from(traffic::glyph_svg(
-                            index,
-                            glyph,
-                            false,
-                            TRAFFIC_GLYPHS.box_size,
-                        )),
-                    ))
-                    .width(Size::px(TRAFFIC_GLYPHS.box_size))
-                    .height(Size::px(TRAFFIC_GLYPHS.box_size))
-                    .color(theme::color(glyph))
-                    .show_loader(false)
-                    .into_element()
-                }))
-                .into_element()
-        }))
-        .into_element()
 }
 
 fn light_gap() -> f64 {
