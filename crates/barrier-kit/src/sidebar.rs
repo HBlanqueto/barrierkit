@@ -669,6 +669,12 @@ impl Component for SidebarAccount {
             .a11y_alt(self.name.clone())
             .width(Size::fill())
             .height(Size::px(SETTINGS.account_height as f32))
+            .margin(Gaps::new(
+                0.0,
+                0.0,
+                SETTINGS.account_margin_bottom as f32,
+                0.0,
+            ))
             .direction(Direction::Horizontal)
             .cross_align(Alignment::Center)
             .spacing(SETTINGS.account_gap as f32)

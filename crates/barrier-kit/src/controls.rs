@@ -158,8 +158,16 @@ impl Component for ToolGroup {
 
         let mut items: Vec<Element> = Vec::with_capacity(self.children.len());
         let last = self.children.len().saturating_sub(1);
+        let slot = TOOLGROUP.height as f32;
         for (i, child) in self.children.iter().cloned().enumerate() {
-            items.push(child);
+            items.push(
+                rect()
+                    .width(Size::px(slot))
+                    .height(Size::px(slot))
+                    .center()
+                    .child(child)
+                    .into_element(),
+            );
             if island && i != last {
                 items.push(
                     rect()
@@ -187,6 +195,12 @@ impl Component for ToolGroup {
         if island {
             return root
                 .background(theme::color(resolved.toolgroup.bg))
+                .border(
+                    Border::new()
+                        .width(vow_design::HAIRLINE)
+                        .alignment(BorderAlignment::Inner)
+                        .fill(theme::color(palette.rim)),
+                )
                 .corner_radius((TOOLGROUP.height as f32 / 2.0).max(1.0))
                 .into_element();
         }
@@ -345,24 +359,17 @@ impl Component for Slider {
         });
         let knob_rect = level::knob(knob_x, 0.0, knob).layer(level::KNOB_ABOVE_FILL);
 
-        let last = self.steps.saturating_sub(1);
-        let labels = self
-            .labels
-            .iter()
-            .enumerate()
-            .take(self.steps)
-            .filter(|(i, _)| *i == 0 || *i == last)
-            .map(|(_, text)| {
-                let label_node = label()
-                    .text(*text)
-                    .font_family(TEXT.family)
-                    .font_size(CAPTION.size as f32)
-                    .font_weight(CAPTION.weight as i32)
-                    .line_height(CAPTION.line_height as f32 / CAPTION.size as f32)
-                    .max_lines(1)
-                    .color(theme::color(palette.label));
-                rect().child(label_node).into_element()
-            });
+        let labels = self.labels.iter().take(self.steps).map(|text| {
+            let label_node = label()
+                .text(*text)
+                .font_family(TEXT.family)
+                .font_size(CAPTION.size as f32)
+                .font_weight(CAPTION.weight as i32)
+                .line_height(CAPTION.line_height as f32 / CAPTION.size as f32)
+                .max_lines(1)
+                .color(theme::color(palette.label));
+            rect().child(label_node).into_element()
+        });
         let labels_row = dim(rect()
             .position(Position::new_absolute().left(0.0).top(knob + label_gap))
             .width(Size::px(width))

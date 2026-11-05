@@ -284,11 +284,13 @@ pub struct SettingsMetrics {
     pub account_gap: u32,
     pub account_height: u32,
     pub account_padding_x: u32,
+    pub account_margin_bottom: u32,
     pub account_name_font: Font,
     pub account_detail_font: Font,
     pub section_icon_bg: Rgba,
     pub swatch_size: u32,
     pub swatch_gap: u32,
+    pub option_column: u32,
     pub card_width: u32,
     pub card_height: u32,
     pub card_radius: u32,
@@ -791,6 +793,7 @@ pub struct SidebarPalette {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ToolgroupPalette {
     pub separator: Rgba,
+    pub rim: Rgba,
 }
 
 pub const NATIVE_APP_ID_PREFIX: &str = "io.github.hblanqueto.malaysia.";

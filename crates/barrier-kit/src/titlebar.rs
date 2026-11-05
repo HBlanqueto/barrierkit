@@ -12,7 +12,7 @@ use vow_appearance::window::{
 };
 use vow_design::NATIVE_APP_ID_PREFIX;
 use vow_design::{
-    ButtonKind, SETTINGS, SIDEBAR, TITLEBAR, TITLEBAR_CLIENT_HEIGHT, TITLEBAR_DOUBLE_CLICK,
+    ButtonKind, SETTINGS, SIDEBAR, TITLE_2, TITLEBAR, TITLEBAR_CLIENT_HEIGHT, TITLEBAR_DOUBLE_CLICK,
 };
 
 use crate::ProbeExt;
@@ -191,7 +191,7 @@ impl Component for Titlebar {
             )
         };
 
-        let title_font = TITLEBAR.font;
+        let title_font = if self.sidebar { TITLE_2 } else { TITLEBAR.font };
         let title_label = label()
             .text(title)
             .font_family(title_font.family)
@@ -241,7 +241,7 @@ impl Titlebar {
         let padding_left = if traffic.is_some() {
             padding_x.max(lights_end + padding_x - occupied)
         } else {
-            padding_x
+            padding_x - inset
         };
         // The lights stay at the sidebar's window position while it folds (fold in place).
         let fixed_lights = traffic.map(|traffic| {

@@ -845,9 +845,9 @@ fn radio_group_click_selects_and_disabled_does_not_emit() {
             disabled,
             values: values.clone(),
         });
-        let (mut test, _) = TestingRunner::new(app, Size2D::new(300.0, 30.0), |_| {}, 1.0);
+        let (mut test, _) = TestingRunner::new(app, Size2D::new(300.0, 60.0), |_| {}, 1.0);
         test.sync_and_update();
-        test.click_cursor((110.0, 9.0));
+        test.click_cursor((30.0, 33.0));
         test.sync_and_update();
         assert_eq!(*values.borrow(), expected);
     }
