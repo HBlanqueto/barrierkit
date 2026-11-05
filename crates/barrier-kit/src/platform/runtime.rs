@@ -5,7 +5,7 @@ use super::{
     extension::Extension,
     input::seat::{RepeatState, cursor_shape_from_icon},
     popup::PopupCommand,
-    surface::{SurfaceRole, SurfaceWindow},
+    surface::SurfaceWindow,
     timer::{TimerQueue, Wake},
     vulkan::{GraphicsShared, IDLE_RESOURCE_RELEASE},
     window::{WindowCommand, WindowControls},
@@ -128,6 +128,7 @@ pub(crate) struct WindowContext {
     pub(crate) controls: WindowControls,
     pub(crate) queue: Rc<RefCell<Vec<WindowCommand>>>,
     pub(crate) app_id: String,
+    pub(crate) focus_notice: Option<super::focus::InfinityFocusSurfaceV1>,
 }
 
 pub(crate) fn make_sender(
@@ -463,11 +464,6 @@ impl OutputHandler for Runtime {
             .iter()
             .position(|surface| surface.output == gone)
         {
-            // The role object goes before its wl_surface, as in window close.
-            drop(std::mem::replace(
-                &mut self.surfaces[index].role,
-                SurfaceRole::None,
-            ));
             self.surfaces.remove(index);
         }
     }

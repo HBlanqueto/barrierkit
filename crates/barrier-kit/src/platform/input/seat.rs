@@ -176,11 +176,29 @@ impl SeatHandler for Runtime {
     ) {
         match capability {
             Capability::Pointer => {
-                self.pointer = None;
-                self.cursor_shape_device = None;
+                if let Some(device) = self.cursor_shape_device.take() {
+                    device.destroy();
+                }
+                if let Some(pointer) = self.pointer.take()
+                    && pointer.version() >= 3
+                {
+                    pointer.release();
+                }
             }
-            Capability::Keyboard => self.keyboard = None,
-            Capability::Touch => self.touch = None,
+            Capability::Keyboard => {
+                if let Some(keyboard) = self.keyboard.take()
+                    && keyboard.version() >= 3
+                {
+                    keyboard.release();
+                }
+            }
+            Capability::Touch => {
+                if let Some(touch) = self.touch.take()
+                    && touch.version() >= 3
+                {
+                    touch.release();
+                }
+            }
             _ => {}
         }
     }

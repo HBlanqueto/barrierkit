@@ -74,7 +74,6 @@ pub(crate) enum SurfaceRole {
     Extension(Box<dyn ExtensionRole>),
     Window(Window),
     Popup(Popup),
-    None,
 }
 
 #[cfg(feature = "shell")]
@@ -259,6 +258,8 @@ impl SurfaceWindow {
 
 impl Drop for SurfaceWindow {
     fn drop(&mut self) {
+        // The swapchain must go before the role destroys the wl_surface (vkCreateWaylandSurfaceKHR).
+        self.graphics = None;
         self.destroy_fractional();
     }
 }

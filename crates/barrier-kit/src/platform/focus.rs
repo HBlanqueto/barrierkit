@@ -7,9 +7,8 @@ use sctk::reexports::client::{Connection, Dispatch, Proxy, QueueHandle};
 use super::runtime::Runtime;
 
 pub(crate) use infinity_protocol::client::focus::infinity_focus_v1::infinity_focus_manager_v1::InfinityFocusManagerV1;
-use infinity_protocol::client::focus::infinity_focus_v1::infinity_focus_surface_v1::{
-    self, InfinityFocusSurfaceV1,
-};
+use infinity_protocol::client::focus::infinity_focus_v1::infinity_focus_surface_v1;
+pub(crate) use infinity_protocol::client::focus::infinity_focus_v1::infinity_focus_surface_v1::InfinityFocusSurfaceV1;
 
 impl Dispatch<InfinityFocusManagerV1, ()> for Runtime {
     fn event(
@@ -45,6 +44,8 @@ impl Dispatch<InfinityFocusSurfaceV1, ObjectId> for Runtime {
                 let mut bar_height = context.controls.focus_bar_height;
                 if *bar_height.peek() != height as f32 {
                     bar_height.set(height as f32);
+                    state.request_redraw_all = true;
+                    state.ping.ping();
                 }
                 return;
             }

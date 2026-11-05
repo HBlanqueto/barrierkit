@@ -543,9 +543,7 @@ impl Runtime {
         {
             callback();
         }
-        let mut window = self.surfaces.remove(index);
-        drop(std::mem::replace(&mut window.role, SurfaceRole::None));
-        drop(window);
+        self.surfaces.remove(index);
     }
 }
 

@@ -529,16 +529,18 @@ impl Runtime {
             fullscreen_push: State::create_global(options.fullscreen_push),
             overlay_titlebar_height: State::create_global(0.0),
         };
-        if let Some(manager) = &self.focus_manager {
+        let focus_notice = self.focus_manager.as_ref().map(|manager| {
             let notice = manager.get_focus_surface(&surface, qh, surface.id());
             if controls.focus_overlay {
                 notice.set_overlay();
             }
-        }
+            notice
+        });
         self.window_contexts.push(WindowContext {
             controls: controls.clone(),
             queue,
             app_id,
+            focus_notice,
         });
 
         let waker = futures_util::task::waker(Arc::new(PingWake(self.ping.clone())));
@@ -848,12 +850,14 @@ impl Runtime {
             if let Some(appmenu) = self.surfaces[index].appmenu.take() {
                 appmenu.release();
             }
-            let mut role = SurfaceRole::None;
-            std::mem::swap(&mut self.surfaces[index].role, &mut role);
-            drop(role);
             self.surfaces.remove(index);
-            self.window_contexts
-                .retain(|ctx| ctx.controls.surface_id != surface_id);
+            self.window_contexts.retain(|ctx| {
+                let closing = ctx.controls.surface_id == surface_id;
+                if closing && let Some(notice) = &ctx.focus_notice {
+                    notice.destroy();
+                }
+                !closing
+            });
         }
     }
 }
