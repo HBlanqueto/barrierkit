@@ -726,6 +726,10 @@
     "desktop-clear": "#0f0f17"
   },
   "appearance": {
+    "dominant": {
+      "min-chroma": 0.04,
+      "lightness": [0.45, 0.65]
+    },
     "tint-strength": {
       "subtle": 0.5,
       "normal": 1.0,

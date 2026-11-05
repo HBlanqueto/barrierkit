@@ -1,7 +1,7 @@
 //! Tinted backgrounds: a palette taken from an image, the backdrop built from
 //! it and the ink that reads on top, whatever the system colour scheme.
 
-use vow_design::{BACKDROP, LIGHT, Rgba};
+use vow_design::{BACKDROP, DOMINANT_LIGHTNESS, DOMINANT_MIN_CHROMA, LIGHT, Rgba};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Oklab {
@@ -84,8 +84,8 @@ struct Cluster {
     share: f32,
 }
 
-// Deterministic k-means in OKLab: the same picture always gives the same backdrop.
-pub fn palette_from_pixels(rgba8: &[u8]) -> Option<ImagePalette> {
+// Deterministic k-means in OKLab: the same picture always gives the same clusters.
+fn clusters(rgba8: &[u8]) -> Vec<Cluster> {
     let pixels: Vec<Oklab> = rgba8
         .as_chunks::<4>()
         .0
@@ -94,7 +94,7 @@ pub fn palette_from_pixels(rgba8: &[u8]) -> Option<ImagePalette> {
         .map(|[r, g, b, _]| Oklab::from_rgba(Rgba::rgb8(*r, *g, *b)))
         .collect();
     if pixels.is_empty() {
-        return None;
+        return Vec::new();
     }
     let k = BACKDROP.clusters as usize;
     let mut centres: Vec<Oklab> = (0..k)
@@ -132,6 +132,14 @@ pub fn palette_from_pixels(rgba8: &[u8]) -> Option<ImagePalette> {
         .filter(|cluster| cluster.share > 0.0)
         .collect();
     clusters.sort_by(|p, q| q.share.total_cmp(&p.share));
+    clusters
+}
+
+pub fn palette_from_pixels(rgba8: &[u8]) -> Option<ImagePalette> {
+    let clusters = clusters(rgba8);
+    if clusters.is_empty() {
+        return None;
+    }
     let mid_tones: Vec<&Cluster> = clusters
         .iter()
         .filter(|c| c.centre.l > 0.12 && c.centre.l < 0.95)
@@ -161,6 +169,22 @@ pub fn palette_from_pixels(rgba8: &[u8]) -> Option<ImagePalette> {
         colors: [pick(0), pick(1), pick(2)],
         vivid: vivid.centre.to_rgba(),
     })
+}
+
+pub fn dominant_from_pixels(rgba8: &[u8]) -> Option<Rgba> {
+    let weight = |cluster: &Cluster| cluster.share * cluster.centre.chroma();
+    let dominant = clusters(rgba8)
+        .into_iter()
+        .filter(|cluster| cluster.centre.chroma() >= DOMINANT_MIN_CHROMA)
+        .max_by(|p, q| weight(p).total_cmp(&weight(q)))?;
+    let (hue, saturation, lightness) = dominant.centre.to_rgba().to_hsl();
+    let [low, high] = DOMINANT_LIGHTNESS;
+    Some(Rgba::from_hsl(
+        hue,
+        saturation,
+        lightness.clamp(low, high),
+        1.0,
+    ))
 }
 
 fn nearest(centres: &[Oklab], pixel: Oklab) -> usize {
@@ -325,6 +349,39 @@ mod tests {
             (Rgba::rgb8(240, 120, 30), 500),
         ]);
         assert_eq!(palette_from_pixels(&pixels), palette_from_pixels(&pixels));
+    }
+
+    #[test]
+    fn a_grey_image_has_no_dominant_colour() {
+        assert_eq!(
+            dominant_from_pixels(&image(&[(Rgba::rgb8(128, 128, 128), 256)])),
+            None
+        );
+    }
+
+    #[test]
+    fn a_wide_colour_beats_a_more_saturated_small_one() {
+        let (green, grey, red) = (
+            Rgba::rgb8(5, 125, 5),
+            Rgba::rgb8(128, 128, 128),
+            Rgba::rgb8(255, 0, 0),
+        );
+        let dominant =
+            dominant_from_pixels(&image(&[(green, 600), (grey, 150), (red, 250)])).unwrap();
+        assert!(
+            dominant.g > dominant.r && dominant.g > dominant.b,
+            "{dominant:?}"
+        );
+    }
+
+    #[test]
+    fn a_dark_dominant_is_lifted_into_the_lightness_band() {
+        let dominant = dominant_from_pixels(&image(&[(Rgba::rgb8(77, 26, 0), 256)])).unwrap();
+        let (_, _, lightness) = dominant.to_hsl();
+        assert!(
+            (DOMINANT_LIGHTNESS[0]..=DOMINANT_LIGHTNESS[1]).contains(&lightness),
+            "{lightness}"
+        );
     }
 
     #[test]

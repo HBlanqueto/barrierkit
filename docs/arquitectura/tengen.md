@@ -61,8 +61,14 @@ tipos (`Rgba`, `Palette`, `Titlebar`, `ShellPalette`…) y la API.
   `ColorScheme::resolved()`.
 - `window_tint_scope = "desktop"` mezcla barra y dock con el color dominante
   del wallpaper, que se lee de `wallpaper.state`.
-- `malaysia-wallpaper` (ADR 0049) decodifica la imagen, calcula el dominante
-  y escribe `~/.local/share/malaysia/wallpaper.state` (`dominant = [r, g, b]`).
+- `malaysia-wallpaper` (ADR 0049) decodifica la imagen y deja el dominante en
+  `wallpaper_state_path()` (`~/.local/share/malaysia/wallpaper.state`,
+  `dominant = [r, g, b]`).
+- El cálculo es de `vow_appearance::backdrop::dominant_from_pixels`: k-means
+  en OKLab, descarta los grupos con croma menor que
+  `appearance.dominant.min-chroma`, elige el de más superficie por croma y
+  lleva su luminosidad HSL a `appearance.dominant.lightness`.
+  `vow_appearance::write_dominant` escribe o borra el fichero.
 - El compositor, el kit y el portal leen ese fichero y lo vigilan junto con
   `appearance.domain`.
 

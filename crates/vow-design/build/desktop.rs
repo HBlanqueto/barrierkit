@@ -6,6 +6,11 @@ pub(super) fn emit_desktop(out: &mut String, components: &Value) {
         components,
         &[
             ("HAIRLINE", "f32", "components.hairline"),
+            (
+                "DOMINANT_MIN_CHROMA",
+                "f32",
+                "appearance.dominant.min-chroma",
+            ),
             ("CURSOR_SHAKE_SCALE", "f32", "components.cursor-shake.scale"),
             (
                 "CURSOR_SHAKE_GROW_MS",
@@ -97,6 +102,7 @@ pub(super) fn emit_desktop(out: &mut String, components: &Value) {
     }
     for (name, path) in [
         ("SPACE_SLIDE_EASE", "components.spaces.slide-ease"),
+        ("DOMINANT_LIGHTNESS", "appearance.dominant.lightness"),
         ("MENU_SEARCH_ICON", "components.shell.menu.search.icon"),
     ] {
         let values = floats(components, path);

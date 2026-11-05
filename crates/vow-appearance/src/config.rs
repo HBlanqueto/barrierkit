@@ -319,6 +319,10 @@ pub fn write_appearance(path: &Path, config: &AppearanceConfig) -> std::io::Resu
         doc.remove("accent_color");
     }
 
+    replace_file(path, &doc.to_string())
+}
+
+fn replace_file(path: &Path, text: &str) -> std::io::Result<()> {
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent)?;
     }
@@ -331,7 +335,7 @@ pub fn write_appearance(path: &Path, config: &AppearanceConfig) -> std::io::Resu
     ));
     let written = std::fs::File::create(&tmp)
         .and_then(|mut file| {
-            std::io::Write::write_all(&mut file, doc.to_string().as_bytes())?;
+            std::io::Write::write_all(&mut file, text.as_bytes())?;
             file.sync_all()
         })
         .and_then(|()| std::fs::rename(&tmp, path));
@@ -398,6 +402,22 @@ struct WallpaperState {
 
 pub fn load_dominant() -> Option<Rgba> {
     read_dominant_from(&wallpaper_state_path())
+}
+
+pub fn write_dominant(path: &Path, dominant: Option<Rgba>) -> std::io::Result<()> {
+    match dominant {
+        Some(color) => replace_file(
+            path,
+            &format!(
+                "dominant = [{:.6}, {:.6}, {:.6}]\n",
+                color.r, color.g, color.b
+            ),
+        ),
+        None => match std::fs::remove_file(path) {
+            Err(error) if error.kind() != std::io::ErrorKind::NotFound => Err(error),
+            _ => Ok(()),
+        },
+    }
 }
 
 fn read_dominant_from(path: &Path) -> Option<Rgba> {
@@ -611,6 +631,20 @@ tint_parts = ["window", "halo"]
                 menus: false,
             }
         );
+    }
+
+    #[test]
+    fn write_dominant_records_and_clears_the_wallpaper_state() {
+        let dir = std::env::temp_dir().join(format!("vow-appearance-state-{}", std::process::id()));
+        let path = dir.join("wallpaper.state");
+        let color = Rgba::rgb8(51, 102, 153);
+        write_dominant(&path, Some(color)).unwrap();
+        let read = read_dominant_from(&path).unwrap();
+        assert!((read.r - color.r).abs() < 1e-6 && (read.b - color.b).abs() < 1e-6);
+        write_dominant(&path, None).unwrap();
+        assert!(!path.exists());
+        write_dominant(&path, None).unwrap();
+        std::fs::remove_dir_all(&dir).ok();
     }
 
     #[test]

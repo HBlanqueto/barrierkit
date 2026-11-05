@@ -63,9 +63,14 @@ Do not edit `crates/vow-design/src/` to change a value: it holds the types
   `ColorScheme::resolved()`.
 - `window_tint_scope = "desktop"` mixes bar and dock with the wallpaper's
   dominant colour, read from `wallpaper.state`.
-- `malaysia-wallpaper` (ADR 0049) decodes the image, computes the dominant
-  colour and writes `~/.local/share/malaysia/wallpaper.state`
-  (`dominant = [r, g, b]`).
+- `malaysia-wallpaper` (ADR 0049) decodes the image and leaves the dominant
+  colour in `wallpaper_state_path()`
+  (`~/.local/share/malaysia/wallpaper.state`, `dominant = [r, g, b]`).
+- `vow_appearance::backdrop::dominant_from_pixels` computes it: k-means in
+  OKLab, it drops the clusters with less chroma than
+  `appearance.dominant.min-chroma`, picks the one with the most area times
+  chroma and brings its HSL lightness into `appearance.dominant.lightness`.
+  `vow_appearance::write_dominant` writes or removes the file.
 - The compositor, the kit and the portal read that file and watch it together
   with `appearance.domain`.
 
