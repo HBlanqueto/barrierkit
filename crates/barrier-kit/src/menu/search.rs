@@ -1,25 +1,14 @@
 use super::*;
+use crate::views::search::{fold, word_start};
 
-pub(super) fn normalize_query(text: &str) -> String {
-    crate::views::search::fold(&strip_mnemonic(text))
+pub fn normalize_query(text: &str) -> String {
+    fold(strip_mnemonic(text).trim())
 }
 
-pub(super) fn word_start(name: &str, query: &str) -> bool {
-    name.char_indices().any(|(index, _)| {
-        if index == 0 {
-            return false;
-        }
-        let before = name[..index].chars().next_back();
-        let boundary = before.is_none_or(|ch| !ch.is_alphanumeric());
-        boundary && name[index..].starts_with(query)
-    })
-}
-
-pub(super) fn search_score(label: &str, query: &str, enabled: bool) -> u8 {
-    let normalized = normalize_query(label);
+pub(super) fn search_score(normalized: &str, query: &str, enabled: bool) -> u8 {
     let base = if normalized.starts_with(query) {
         0
-    } else if word_start(&normalized, query) {
+    } else if word_start(normalized, query) {
         1
     } else {
         2
@@ -32,24 +21,21 @@ pub(super) fn filter_search_results(
     searchable: &[SearchableEntry],
 ) -> Vec<SearchableEntry> {
     let normalized = normalize_query(query);
-    let mut matches: Vec<(u8, &SearchableEntry)> = searchable
+    let mut matches: Vec<(u8, String, &SearchableEntry)> = searchable
         .iter()
         .filter_map(|entry| {
-            let label = entry.item.label()?;
-            if !normalize_query(label).contains(&normalized) {
+            let label = normalize_query(entry.item.label()?);
+            if !label.contains(&normalized) {
                 return None;
             }
-            let score = search_score(label, &normalized, entry.item.enabled());
-            Some((score, entry))
+            let score = search_score(&label, &normalized, entry.item.enabled());
+            Some((score, label, entry))
         })
         .collect();
-    matches.sort_by(|a, b| {
-        a.0.cmp(&b.0)
-            .then_with(|| a.1.item.label().cmp(&b.1.item.label()))
-    });
+    matches.sort_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.cmp(&b.1)));
     matches
         .into_iter()
-        .map(|(_, entry)| entry.clone())
+        .map(|(.., entry)| entry.clone())
         .collect()
 }
 
@@ -127,23 +113,6 @@ pub(super) fn visible_items(
                 location: None,
             });
         }
-    }
-
-    if !help_results.is_empty() || !menu_results.is_empty() {
-        out.push(MenuItem::Separator);
-        out.push(MenuItem::SearchResult {
-            path: "Temas de ayuda".to_string(),
-            item: Box::new(MenuItem::Action {
-                id: "app-help-topics-index".to_string(),
-                label: "Mostrar todos los temas de ayuda".to_string(),
-                shortcut: None,
-                enabled: true,
-                check: CheckState::None,
-                icon: None,
-            }),
-            source: SearchSource::Help,
-            location: None,
-        });
     }
 
     out.push(MenuItem::Separator);

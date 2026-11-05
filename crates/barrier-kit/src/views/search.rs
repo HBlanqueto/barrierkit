@@ -13,19 +13,36 @@ pub struct SearchIndex<K> {
 }
 
 pub fn fold(text: &str) -> String {
-    text.chars()
-        .flat_map(char::to_lowercase)
-        .map(|c| match c {
-            'á' | 'à' | 'ä' | 'â' | 'ã' | 'å' => 'a',
-            'é' | 'è' | 'ë' | 'ê' => 'e',
-            'í' | 'ì' | 'ï' | 'î' => 'i',
-            'ó' | 'ò' | 'ö' | 'ô' | 'õ' => 'o',
-            'ú' | 'ù' | 'ü' | 'û' => 'u',
-            'ñ' => 'n',
-            'ç' => 'c',
-            other => other,
-        })
-        .collect()
+    let mut folded = String::with_capacity(text.len());
+    for c in text.chars().flat_map(char::to_lowercase) {
+        match c {
+            '\u{300}'..='\u{36f}' => {}
+            'ß' => folded.push_str("ss"),
+            'á' | 'à' | 'ä' | 'â' | 'ã' | 'å' => folded.push('a'),
+            'é' | 'è' | 'ë' | 'ê' => folded.push('e'),
+            'í' | 'ì' | 'ï' | 'î' => folded.push('i'),
+            'ó' | 'ò' | 'ö' | 'ô' | 'õ' | 'ø' => folded.push('o'),
+            'ú' | 'ù' | 'ü' | 'û' => folded.push('u'),
+            'ñ' => folded.push('n'),
+            'ç' => folded.push('c'),
+            'š' => folded.push('s'),
+            'ř' => folded.push('r'),
+            'ł' => folded.push('l'),
+            other => folded.push(other),
+        }
+    }
+    folded
+}
+
+pub fn word_start(name: &str, query: &str) -> bool {
+    name.char_indices().any(|(index, _)| {
+        if index == 0 {
+            return false;
+        }
+        let before = name[..index].chars().next_back();
+        let boundary = before.is_none_or(|ch| !ch.is_alphanumeric());
+        boundary && name[index..].starts_with(query)
+    })
 }
 
 impl<K: Clone> SearchIndex<K> {
@@ -79,5 +96,11 @@ mod tests {
         assert_eq!(titles("tamano"), ["dock"]);
         assert_eq!(titles("BLOQUEO"), ["lock"]);
         assert_eq!(titles("   "), Vec::<&str>::new());
+    }
+
+    #[test]
+    fn folding_drops_combining_marks_and_latin_variants() {
+        assert_eq!(fold("Cafe\u{301}"), "cafe");
+        assert_eq!(fold("Šřłø Straße"), "srlo strasse");
     }
 }

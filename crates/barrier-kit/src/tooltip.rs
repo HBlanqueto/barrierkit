@@ -9,7 +9,7 @@ use freya_core::prelude::*;
 use torin::prelude::{CursorPoint, Gaps, Size};
 use vow_design::{CAPTION, TOOLTIP};
 
-use crate::menu::measure_text;
+use crate::menu::measure_text_weight;
 use crate::platform::{PopupAnchor, PopupGravity, PopupId, PopupSpec, Popups, Timers};
 use crate::style::text;
 use crate::theme::{SurfaceKind, color, popover_palette};
@@ -73,7 +73,12 @@ impl Tooltip {
 
     fn show(&self) {
         let at = self.shared.pointer.get();
-        let width = measure_text(self.text, CAPTION.size as f32) + 2.0 * TOOLTIP.padding_x;
+        let caption_width = measure_text_weight(
+            self.text,
+            CAPTION.size as f32,
+            FontWeight::from(CAPTION.weight as i32),
+        );
+        let width = caption_width + 2.0 * TOOLTIP.padding_x;
         let height = CAPTION.line_height as f32 + 2.0 * TOOLTIP.padding_y;
         let spec = PopupSpec {
             anchor_rect: (at.x.round() as i32, at.y.round() as i32, 1, 1),

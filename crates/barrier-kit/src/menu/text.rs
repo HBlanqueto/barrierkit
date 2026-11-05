@@ -64,26 +64,24 @@ pub(super) fn truncate_middle(text: &str, max_width: f32, font_size: f32) -> Str
     if max_width <= 0.0 || text.is_empty() || measure_text(text, font_size) <= max_width {
         return text.to_string();
     }
-    let ellipsis = "…";
-    let ellipsis_w = measure_text(ellipsis, font_size);
-    let max_body = (max_width - ellipsis_w).max(0.0);
     let chars: Vec<char> = text.chars().collect();
-    let mut left = chars.len() / 2;
-    let mut right = chars.len() - left;
-    while left > 0 || right > 0 {
-        let body: String = chars
+    let shortened = |kept: usize| -> String {
+        let head = kept.div_ceil(2);
+        let tail = chars.len() - (kept - head);
+        chars[..head]
             .iter()
-            .take(left)
-            .chain(chars.iter().skip(chars.len() - right))
-            .collect();
-        if measure_text(&body, font_size) <= max_body {
-            return format!("{body}{ellipsis}");
-        }
-        if left >= right && left > 0 {
-            left -= 1;
+            .chain(&['…'])
+            .chain(&chars[tail..])
+            .collect()
+    };
+    let (mut fits, mut overflows) = (0, chars.len());
+    while overflows - fits > 1 {
+        let kept = (fits + overflows) / 2;
+        if measure_text(&shortened(kept), font_size) <= max_width {
+            fits = kept;
         } else {
-            right = right.saturating_sub(1);
+            overflows = kept;
         }
     }
-    ellipsis.to_string()
+    shortened(fits)
 }

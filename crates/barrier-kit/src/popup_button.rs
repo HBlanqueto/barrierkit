@@ -1,5 +1,8 @@
 //! Pop-up button: shows the current choice and opens a menu with the others.
 
+use std::cell::Cell;
+use std::rc::Rc;
+
 use freya_components::svg_viewer::SvgViewer;
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
@@ -9,9 +12,7 @@ use vow_design::{MENU_POPOVER, SETTINGS, SYMBOL, TEXT};
 use crate::choices::use_choice;
 use crate::interaction::use_interaction;
 use crate::menu::{CheckState, MenuIcon, MenuItem, MenuView};
-use crate::platform::{
-    PopupAnchor, PopupConstraintAdjustment, PopupGravity, PopupHandle, PopupSpec, Popups,
-};
+use crate::platform::{PopupAnchor, PopupConstraintAdjustment, PopupGravity, PopupSpec, Popups};
 use crate::style::{Palette, text};
 use crate::symbol::{Symbol, symbol};
 use crate::theme::{SurfaceKind, color, popover_palette};
@@ -170,16 +171,19 @@ pub(crate) fn open_popover_menu(
             -((MENU_POPOVER.padding + above).round() as i32),
         )
     });
-    let view = MenuView::new(
-        entries,
-        move |id| {
-            on_activate(id);
-            PopupHandle::get().close();
-        },
-        || PopupHandle::get().close(),
-    )
-    .with_surface(SurfaceKind::Toplevel)
-    .with_popover_metrics();
+    let popups = Popups::get();
+    let root = Rc::new(Cell::new(None));
+    let close_root = {
+        let (popups, root) = (popups.clone(), root.clone());
+        move || {
+            if let Some(id) = root.get() {
+                popups.close(id);
+            }
+        }
+    };
+    let view = MenuView::new(entries, on_activate, close_root)
+        .with_surface(SurfaceKind::Toplevel)
+        .with_popover_metrics();
     let spec = PopupSpec {
         anchor_rect,
         anchor: PopupAnchor::TopLeft,
@@ -196,5 +200,5 @@ pub(crate) fn open_popover_menu(
         grab: true,
         on_dismissed: None,
     };
-    Popups::get().open(spec, AppComponent::new(view));
+    root.set(Some(popups.open(spec, AppComponent::new(view))));
 }

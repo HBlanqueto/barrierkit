@@ -237,6 +237,7 @@ impl MenuView {
         let max_content_width = (max_width - inset * 2.0).max(0.0);
         let min_content_width = (min_width - inset * 2.0).clamp(0.0, max_content_width);
         let mut content_width = min_content_width;
+        let text_inset = row_text_inset(items, m);
 
         for item in items {
             let Some(label) = item.label() else {
@@ -253,7 +254,6 @@ impl MenuView {
             } else {
                 0.0
             };
-            let text_inset = row_text_inset(items, m);
             let fixed = text_inset + m.item_padding_x + trailing;
             let max_label_w = (max_content_width - fixed).max(0.0);
             let label = truncate_middle(label, max_label_w, m.font_size);
@@ -346,7 +346,7 @@ impl App for MenuView {
             .unwrap_or_default();
         let query = use_state(|| initial.text);
         let selected = use_state(|| initial.selected);
-        let result_focused = use_state(|| None::<usize>);
+        let mut result_focused = use_state(|| None::<usize>);
         let prev_query = use_hook(|| Rc::new(RefCell::new(String::new())));
         let searchable = self.searchable.clone();
         let help_search = self.help_search.clone();
@@ -380,6 +380,7 @@ impl App for MenuView {
             *prev_query.borrow_mut() = query_text.clone();
             menu_scroll.set(0);
             help_scroll.set(0);
+            result_focused.set(None);
         }
 
         let visible = if query_text.is_empty() {
@@ -411,18 +412,12 @@ impl App for MenuView {
             }
         }
 
-        let results_start = visible
+        let result_rows: Vec<usize> = visible
             .iter()
-            .position(|item| matches!(item, MenuItem::SearchResult { .. }));
-        let results_count = if let Some(start) = results_start {
-            visible
-                .iter()
-                .skip(start)
-                .take_while(|item| matches!(item, MenuItem::SearchResult { .. }))
-                .count()
-        } else {
-            0
-        };
+            .enumerate()
+            .filter(|(_, item)| matches!(item, MenuItem::SearchResult { .. }))
+            .map(|(index, _)| index)
+            .collect();
         let menu_section = find_result_section(&visible, SearchSource::Menu);
         let help_section = find_result_section(&visible, SearchSource::Help);
 
@@ -659,7 +654,7 @@ impl App for MenuView {
             .iter()
             .enumerate()
             .map(|(index, item)| {
-                let is_focused = if !query_text.is_empty() && results_start.is_some() {
+                let is_focused = if !query_text.is_empty() && !result_rows.is_empty() {
                     result_focused_index == Some(index)
                 } else {
                     focused_index == Some(index)
@@ -790,32 +785,29 @@ impl App for MenuView {
                 Key::Named(NamedKey::ArrowDown) => {
                     selected.set(false);
                     if searching {
-                        if results_count > 0 {
-                            let start = results_start.unwrap();
-                            let end = start + results_count - 1;
-                            if let Some(i) = result_current {
-                                if i < end {
-                                    result_focused.set(Some(i + 1));
-                                } else {
-                                    if let Some((m_start, m_count)) = menu_section {
-                                        let m_end = m_start + m_count - 1;
-                                        if i == m_end
-                                            && *menu_scroll.read() + m_count < menu_results_len
-                                        {
-                                            menu_scroll.set(*menu_scroll.read() + 1);
-                                        }
-                                    }
-                                    if let Some((h_start, h_count)) = help_section {
-                                        let h_end = h_start + h_count - 1;
-                                        if i == h_end
-                                            && *help_scroll.read() + h_count < help_results_len
-                                        {
-                                            help_scroll.set(*help_scroll.read() + 1);
-                                        }
-                                    }
+                        let row = result_current
+                            .and_then(|i| result_rows.iter().position(|&row| row == i));
+                        match row {
+                            None => result_focused.set(result_rows.first().copied()),
+                            Some(row) => {
+                                let i = result_rows[row];
+                                let at_end =
+                                    |section: Option<(usize, usize)>, scroll: usize, len| {
+                                        section.is_some_and(|(start, count)| {
+                                            i == start + count - 1 && scroll + count < len
+                                        })
+                                    };
+                                if at_end(menu_section, *menu_scroll.read(), menu_results_len) {
+                                    menu_scroll.set(*menu_scroll.read() + 1);
+                                } else if at_end(
+                                    help_section,
+                                    *help_scroll.read(),
+                                    help_results_len,
+                                ) {
+                                    help_scroll.set(*help_scroll.read() + 1);
+                                } else if let Some(&next) = result_rows.get(row + 1) {
+                                    result_focused.set(Some(next));
                                 }
-                            } else {
-                                result_focused.set(Some(start));
                             }
                         }
                     } else {
@@ -825,27 +817,22 @@ impl App for MenuView {
                 Key::Named(NamedKey::ArrowUp) => {
                     selected.set(false);
                     if searching {
-                        if results_count > 0 {
-                            let start = results_start.unwrap();
-                            if let Some(i) = result_current {
-                                if i > start {
-                                    result_focused.set(Some(i - 1));
-                                } else {
-                                    if let Some((m_start, _m_count)) = menu_section
-                                        && i == m_start
-                                        && *menu_scroll.read() > 0
-                                    {
-                                        menu_scroll.set(*menu_scroll.read() - 1);
-                                    }
-                                    if let Some((h_start, _h_count)) = help_section
-                                        && i == h_start
-                                        && *help_scroll.read() > 0
-                                    {
-                                        help_scroll.set(*help_scroll.read() - 1);
-                                    }
+                        let row = result_current
+                            .and_then(|i| result_rows.iter().position(|&row| row == i));
+                        match row {
+                            None => result_focused.set(result_rows.last().copied()),
+                            Some(row) => {
+                                let i = result_rows[row];
+                                let at_start = |section: Option<(usize, usize)>, scroll: usize| {
+                                    scroll > 0 && section.is_some_and(|(start, _)| i == start)
+                                };
+                                if at_start(menu_section, *menu_scroll.read()) {
+                                    menu_scroll.set(*menu_scroll.read() - 1);
+                                } else if at_start(help_section, *help_scroll.read()) {
+                                    help_scroll.set(*help_scroll.read() - 1);
+                                } else if let Some(prev) = row.checked_sub(1) {
+                                    result_focused.set(Some(result_rows[prev]));
                                 }
-                            } else {
-                                result_focused.set(Some(start + results_count - 1));
                             }
                         }
                     } else {
@@ -933,16 +920,14 @@ impl App for MenuView {
                         query.set(text);
                     }
                 }
-                Key::Named(NamedKey::Escape) if has_search => {
-                    if query_text.is_empty() {
-                        if let Some(popup) = &popup {
-                            popup.close();
-                        }
-                    } else {
+                Key::Named(NamedKey::Escape) => {
+                    if searching {
                         query.set(String::new());
                         selected.set(false);
                         result_focused.set(None);
                         focused.set(first_selectable(&items));
+                    } else if let Some(popup) = &popup {
+                        popup.close();
                     }
                 }
                 Key::Named(NamedKey::ArrowRight) => {
