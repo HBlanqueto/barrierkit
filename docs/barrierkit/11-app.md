@@ -24,11 +24,11 @@ use_menu_action(move |id| {
 ```
 
 - `Shortcut::new(modificadores, tecla)` o `Shortcut::ctrl(tecla)`; las teclas
-  son `ShortcutKey::Char(c)`, `Left` y `Right`.
+  son `ShortcutKey::Char(c)`, `Left`, `Right` y `Named(NamedKey)` (`ArrowUp`, `F11`, `PageDown`…).
 - `RESET.item(true)` crea la entrada del menú; `item_with(true, CheckState::Checkbox(on))`
   la crea con casilla.
 - El handler corre siempre en el hilo de la interfaz.
-- Un atajo solo llega si su acción está en el menú de la ventana.
+- Un atajo solo llega si su acción está en el menú de la ventana. Cuando dispara su acción, la tecla ya no llega a la app.
 
 | Acción del kit | Atajo |
 |---|---|

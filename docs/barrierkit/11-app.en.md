@@ -23,11 +23,11 @@ use_menu_action(move |id| {
 ```
 
 - `Shortcut::new(modificadores, tecla)` or `Shortcut::ctrl(tecla)`; the keys
-  are `ShortcutKey::Char(c)`, `Left` and `Right`.
+  are `ShortcutKey::Char(c)`, `Left`, `Right` and `Named(NamedKey)` (`ArrowUp`, `F11`, `PageDown`…).
 - `RESET.item(true)` creates the menu entry; `item_with(true, CheckState::Checkbox(on))`
   creates it with a checkbox.
 - The handler always runs on the interface thread.
-- A shortcut only arrives if its action is in the window's menu.
+- A shortcut only arrives if its action is in the window's menu. When it fires its action, the key no longer reaches the app.
 
 | Kit action | Shortcut |
 |---|---|

@@ -457,10 +457,11 @@ impl Runtime {
             modifiers,
         };
         if let Some(idx) = index {
-            self.surfaces[idx].app.push(platform_event);
             if shortcut_action.is_some() {
                 self.poll_all();
                 self.redraw_all();
+            } else {
+                self.surfaces[idx].app.push(platform_event);
             }
         }
     }

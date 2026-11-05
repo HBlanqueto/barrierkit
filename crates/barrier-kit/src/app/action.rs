@@ -10,6 +10,7 @@ pub enum ShortcutKey {
     Char(char),
     Left,
     Right,
+    Named(NamedKey),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -34,6 +35,7 @@ impl Shortcut {
             }
             (ShortcutKey::Left, Key::Named(NamedKey::ArrowLeft))
             | (ShortcutKey::Right, Key::Named(NamedKey::ArrowRight)) => true,
+            (ShortcutKey::Named(named), Key::Named(pressed)) => named == *pressed,
             _ => false,
         };
         same_key && modifiers == self.modifiers
@@ -55,6 +57,7 @@ impl Shortcut {
             ShortcutKey::Char(c) => c.to_uppercase().to_string(),
             ShortcutKey::Left => "Left".into(),
             ShortcutKey::Right => "Right".into(),
+            ShortcutKey::Named(named) => named.to_string(),
         });
         parts.join("+")
     }
@@ -209,11 +212,20 @@ mod tests {
                 Modifiers::CONTROL | Modifiers::SHIFT,
                 ShortcutKey::Char('z'),
             ),
+            Shortcut::new(
+                Modifiers::META | Modifiers::ALT,
+                ShortcutKey::Named(NamedKey::ArrowUp),
+            ),
+            Shortcut::new(Modifiers::empty(), ShortcutKey::Named(NamedKey::F11)),
+            Shortcut::new(Modifiers::SHIFT, ShortcutKey::Named(NamedKey::PageDown)),
         ];
         let keys = [
             Key::Character("n".into()),
             Key::Named(NamedKey::ArrowLeft),
             Key::Character("z".into()),
+            Key::Named(NamedKey::ArrowUp),
+            Key::Named(NamedKey::F11),
+            Key::Named(NamedKey::PageDown),
         ];
         for (shortcut, key) in shortcuts.iter().zip(&keys) {
             assert!(shortcut.matches(shortcut.modifiers, key));
