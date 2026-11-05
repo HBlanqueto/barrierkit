@@ -19,11 +19,6 @@ pub(super) fn emit_titlebar(out: &mut String, tokens: &Value, components: &Value
         "components.window.traffic-lights.radius",
         COMPONENTS,
     ) as i64;
-    let margin = integer(
-        components,
-        "components.window.traffic-lights.margin-start",
-        COMPONENTS,
-    );
     let theme = default_theme(tokens);
     let close = color_ref(
         tokens,
@@ -73,7 +68,6 @@ pub(super) fn emit_titlebar(out: &mut String, tokens: &Value, components: &Value
          \x20       diameter: {diameter},\n\
          \x20       spacing: {gap},\n\
          \x20       corner_radius: {radius},\n\
-         \x20       margin_start: {margin},\n\
          \x20   }},\n\
          \x20   font: {},\n\
          }};\n\n",

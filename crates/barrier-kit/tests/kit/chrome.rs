@@ -44,10 +44,10 @@ fn light_groups(style: ChromeStyle) -> Vec<Area> {
 }
 
 #[test]
-fn the_titlebar_lights_start_where_the_compositor_draws_them() {
+fn the_titlebar_lights_are_as_far_from_the_left_edge_as_from_the_top() {
     let groups = light_groups(ChromeStyle::default());
     assert_eq!(groups.len(), 1);
-    assert_eq!(groups[0].min_x(), TITLEBAR.buttons.margin_start as f32);
+    assert_eq!(groups[0].min_x(), groups[0].min_y());
 }
 
 #[test]

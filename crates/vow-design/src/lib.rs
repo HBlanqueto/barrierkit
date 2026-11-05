@@ -207,7 +207,6 @@ pub struct TitlebarButtons {
     pub diameter: u32,
     pub spacing: u32,
     pub corner_radius: u32,
-    pub margin_start: u32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

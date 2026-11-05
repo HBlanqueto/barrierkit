@@ -8,12 +8,16 @@ use vow_design::{
 
 use crate::TrafficLightStyle;
 
+// macOS: the lights sit as far from the left edge as from the top of their bar.
+pub fn inset(bar_height: u32) -> f64 {
+    (f64::from(bar_height) - f64::from(TITLEBAR.buttons.diameter)) / 2.0
+}
+
 pub fn button_rect(index: usize) -> (f64, f64, f64) {
     let diameter = f64::from(TITLEBAR.buttons.diameter);
     let gap = f64::from(TITLEBAR.buttons.spacing);
-    let x = f64::from(TITLEBAR.buttons.margin_start) + index as f64 * (diameter + gap);
-    let y = (f64::from(TITLEBAR.thickness) - diameter) / 2.0;
-    (x, y, diameter)
+    let inset = inset(TITLEBAR.thickness);
+    (inset + index as f64 * (diameter + gap), inset, diameter)
 }
 
 pub fn group_rect() -> (f64, f64, f64, f64) {

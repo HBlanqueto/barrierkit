@@ -344,8 +344,13 @@ impl Component for Titlebar {
             );
         }
 
+        let height = if self.close_only {
+            TITLEBAR.thickness
+        } else {
+            TITLEBAR_CLIENT_HEIGHT
+        };
         let padding_x = if traffic.is_some() {
-            TITLEBAR.buttons.margin_start as f32
+            vow_appearance::traffic::inset(height) as f32
         } else {
             10.0
         };
@@ -400,11 +405,7 @@ impl Component for Titlebar {
             .on_mouse_down(drag)
             .child(title_label);
 
-        let height = if self.close_only {
-            TITLEBAR.thickness
-        } else {
-            TITLEBAR_CLIENT_HEIGHT
-        } as f32;
+        let height = height as f32;
         let root = rect()
             .width(Size::fill())
             .height(Size::px(height))

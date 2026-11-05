@@ -318,7 +318,7 @@ mod tests {
     #[test]
     fn the_traffic_lights_sit_at_their_token_positions() {
         let xs = [0, 1, 2].map(|index| traffic::button_rect(index).0);
-        assert_eq!(xs, [15.0, 38.0, 61.0], "14 px lights, 9 px apart");
+        assert_eq!(xs, [9.0, 32.0, 55.0], "14 px lights, 9 px apart");
         assert_eq!(light_gap(), 9.0);
         assert_eq!(traffic::button_rect(0).2, 14.0);
     }

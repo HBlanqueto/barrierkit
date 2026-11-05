@@ -296,7 +296,6 @@
           }
         },
         "inactive": "{traffic-inactive}",
-        "margin-start": 15,
         "rim": {
           "color": "{traffic-rim}",
           "inactive": "{traffic-rim-inactive}",
