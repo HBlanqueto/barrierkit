@@ -448,8 +448,8 @@ impl Runtime {
                         .push((surface_id.clone(), address));
                     wake.ping();
                 });
-                crate::app_menu::server::register(handle.clone());
             }
+            crate::app_menu::server::register(handle.clone());
             menu_handle = Some(handle);
         }
 
