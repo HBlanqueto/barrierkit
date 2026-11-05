@@ -234,14 +234,11 @@ impl Component for Sidebar {
         let padding_x = SIDEBAR.padding_x as f32;
         let radius = SIDEBAR.radius as f32;
 
-        let (status, fixed) = try_consume_root_context::<WindowControls>()
+        let (status, fixed) = controls
+            .as_ref()
             .map(|controls| (*controls.status.read(), controls.fixed))
             .unwrap_or_default();
         let drag = window_drag_handler(fixed);
-        let band_top = -top_height - inset;
-        let band_left = -(padding_x);
-        let band_width = SIDEBAR.width as f32;
-        let band_height = top_height + inset;
 
         let lights_column = chrome.unified(true) && self.traffic_lights;
         let reserved = if lights_column {
@@ -264,9 +261,13 @@ impl Component for Sidebar {
             ))
             .child(
                 rect()
-                    .position(Position::new_absolute().top(band_top).left(band_left))
-                    .width(Size::px(band_width))
-                    .height(Size::px(band_height))
+                    .position(
+                        Position::new_absolute()
+                            .top(-top_height - inset)
+                            .left(-padding_x),
+                    )
+                    .width(Size::px(SIDEBAR.width as f32))
+                    .height(Size::px(top_height + inset))
                     .a11y_alt("sidebar-drag-strip")
                     .on_mouse_down(drag),
             )
