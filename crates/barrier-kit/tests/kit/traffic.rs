@@ -132,9 +132,9 @@ fn hover_paints_the_close_glyph() {
 #[test]
 fn the_shared_module_has_the_same_group_footprint() {
     let (_, _, width, height) = vow_appearance::traffic::group_rect();
-    assert_eq!(width, 3.0 * 12.0 + 2.0 * 8.0);
-    assert_eq!(height, 12.0);
-    assert_eq!(vow_appearance::traffic::button_rect(1).2, 12.0);
+    assert_eq!(width, 3.0 * 14.0 + 2.0 * 9.0);
+    assert_eq!(height, 14.0);
+    assert_eq!(vow_appearance::traffic::button_rect(1).2, 14.0);
 }
 
 #[test]

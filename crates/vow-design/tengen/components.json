@@ -264,9 +264,9 @@
       "outer-border": "window-outer",
       "inner-line": "window-inner",
       "traffic-lights": {
-        "size": 12,
-        "radius": "radius.xs",
-        "gap": 8,
+        "size": 14,
+        "radius": 5,
+        "gap": 9,
         "pressed-darken": 0.2,
         "colors": [
           "traffic-close",
@@ -296,7 +296,7 @@
           }
         },
         "inactive": "{traffic-inactive}",
-        "margin-start": 16,
+        "margin-start": 15,
         "rim": {
           "color": "{traffic-rim}",
           "width": 0.5
@@ -423,16 +423,16 @@
           "inner": "sidebar-island-inner",
           "inner-width": 1,
           "blur": 30,
-          "traffic-x": 18,
-          "traffic-y": 16
+          "traffic-x": 17,
+          "traffic-y": 15
         },
         "flat": {
           "bg": "sidebar-flat-bg",
           "line": "line",
           "line-width": 1,
           "padding-x": 10,
-          "traffic-x": 18,
-          "traffic-y": 16
+          "traffic-x": 17,
+          "traffic-y": 15
         },
         "item": {
           "height": 30,
@@ -511,7 +511,7 @@
       "section-icon-bg": "#2b2b2b",
       "sidebar": {
         "width": 237,
-        "lights-gap": 18,
+        "lights-gap": 17,
         "search-gap": 12,
         "item-gap": 2,
         "padding-top": 16,
