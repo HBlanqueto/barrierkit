@@ -481,8 +481,8 @@ fn mark_sizes_fit_the_leading_column() {
 fn focused_shortcut_and_chevron_keep_4_5_contrast() {
     for (name, m) in [("light", MENU_LIGHT), ("dark", MENU_DARK)] {
         for color in [
-            shortcut_fg(true, true, m),
-            chevron_fg(true, true, m),
+            row_fg(true, true, m.shortcut_color, m),
+            row_fg(true, true, m.chevron_color, m),
             m.hover_fg,
         ] {
             let ratio = color.contrast_ratio(m.hover_bg);

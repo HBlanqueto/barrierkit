@@ -57,23 +57,13 @@ pub fn search_icon_svg(template: &str, text: Rgba, accent: Rgba) -> String {
         .replace("{{accent}}", &svg_rgb(accent))
 }
 
-pub(super) fn shortcut_fg(enabled: bool, focused: bool, m: MenuPalette) -> Rgba {
+pub(super) fn row_fg(enabled: bool, focused: bool, idle: Rgba, m: MenuPalette) -> Rgba {
     if !enabled {
         m.disabled_fg
     } else if focused {
         m.hover_fg
     } else {
-        m.shortcut_color
-    }
-}
-
-pub(super) fn chevron_fg(enabled: bool, focused: bool, m: MenuPalette) -> Rgba {
-    if !enabled {
-        m.disabled_fg
-    } else if focused {
-        m.hover_fg
-    } else {
-        m.chevron_color
+        idle
     }
 }
 
@@ -84,16 +74,6 @@ pub(super) fn trailing_width(item: &MenuItem, m: MenuPalette) -> f32 {
     match item.shortcut() {
         Some(shortcut) => m.shortcut_gap + measure_text(&shortcut, m.font_size),
         None => 0.0,
-    }
-}
-
-fn item_fg(enabled: bool, focused: bool, m: MenuPalette) -> Rgba {
-    if !enabled {
-        m.disabled_fg
-    } else if focused {
-        m.hover_fg
-    } else {
-        m.fg
     }
 }
 
@@ -191,7 +171,8 @@ pub(super) fn render_item(
             .into_element(),
         MenuItem::Action { enabled, icon, .. } | MenuItem::Submenu { enabled, icon, .. } => {
             let enabled = *enabled;
-            let fg = item_fg(enabled, is_focused, m);
+            let fg = row_fg(enabled, is_focused, m.fg, m);
+            let shortcut_color = row_fg(enabled, is_focused, m.shortcut_color, m);
             let (on_row_enter, on_row_move) = (ctx.on_row_enter.clone(), ctx.on_row_move.clone());
             let mut row = row_frame(m, is_focused && enabled)
                 .on_pointer_enter(move |event: Event<PointerEventData>| {
@@ -209,10 +190,7 @@ pub(super) fn render_item(
                     if enabled {
                         row = row.on_mouse_down(ctx.activate(id));
                     }
-                    (
-                        *check,
-                        ctx.shortcut_label(item, shortcut_fg(enabled, is_focused, m)),
-                    )
+                    (*check, ctx.shortcut_label(item, shortcut_color))
                 }
                 _ => {
                     let on_row_click = ctx.on_row_click.clone();
@@ -222,7 +200,7 @@ pub(super) fn render_item(
                     }
                     (
                         CheckState::None,
-                        chevron_element(chevron_fg(enabled, is_focused, m), m),
+                        chevron_element(row_fg(enabled, is_focused, m.chevron_color, m), m),
                     )
                 }
             };
@@ -235,7 +213,7 @@ pub(super) fn render_item(
                     check,
                     ctx.columns,
                     fg,
-                    shortcut_fg(enabled, is_focused, m),
+                    shortcut_color,
                     m,
                 ));
             }
@@ -251,32 +229,24 @@ pub(super) fn render_item(
             label: header,
             count,
         } => {
-            let mut row = rect()
+            let header_label = |text: String| {
+                label()
+                    .text(text)
+                    .font_size(m.header_font_size)
+                    .font_weight(m.header_weight)
+                    .color(theme::color(m.disabled_fg))
+                    .max_lines(1)
+            };
+            rect()
                 .width(Size::fill())
                 .height(Size::px(m.header_height))
                 .padding(Gaps::new(0.0, m.item_padding_x, 0.0, m.item_padding_x))
                 .direction(Direction::Horizontal)
                 .main_align(Alignment::SpaceBetween)
                 .cross_align(Alignment::End)
-                .child(
-                    label()
-                        .text(header.clone())
-                        .font_size(m.header_font_size)
-                        .font_weight(m.header_weight)
-                        .color(theme::color(m.disabled_fg))
-                        .max_lines(1),
-                );
-            if let Some(count) = count {
-                row = row.child(
-                    label()
-                        .text(format!("{count}"))
-                        .font_size(m.header_font_size)
-                        .font_weight(m.header_weight)
-                        .color(theme::color(m.disabled_fg))
-                        .max_lines(1),
-                );
-            }
-            row.into_element()
+                .child(header_label(header.clone()))
+                .maybe_child(count.map(|count| header_label(count.to_string())))
+                .into_element()
         }
         MenuItem::SearchField { placeholder } => search_field(ctx, placeholder),
         MenuItem::SearchResult {
@@ -288,7 +258,7 @@ pub(super) fn render_item(
                 return rect().into_element();
             };
             let enabled = *enabled;
-            let fg = item_fg(enabled, is_focused, m);
+            let fg = row_fg(enabled, is_focused, m.fg, m);
             let (mut on_enter, mut on_move) = (ctx.result_focused, ctx.result_focused);
             let mut row = row_frame(m, is_focused && enabled)
                 .on_pointer_enter(move |_| {
@@ -317,7 +287,7 @@ pub(super) fn render_item(
                         .max_lines(1),
                 );
             row.child(left)
-                .child(ctx.shortcut_label(item, shortcut_fg(enabled, is_focused, m)))
+                .child(ctx.shortcut_label(item, row_fg(enabled, is_focused, m.shortcut_color, m)))
                 .into_element()
         }
     }
@@ -437,50 +407,36 @@ fn search_icon_element(
     fg: Rgba,
 ) -> Element {
     let m = ctx.m;
-    match source {
+    let color = if focused { m.hover_fg } else { fg };
+    let (svg, [width, height], tint) = match source {
         SearchSource::Menu => {
-            let text_color = if focused { m.hover_fg } else { fg };
-            let accent_color = if focused {
-                m.hover_fg
-            } else if enabled {
+            let accent = if enabled && !focused {
                 m.hover_bg
             } else {
-                fg
+                color
             };
-            let svg = search_icon_svg(ctx.menu_search_icon.unwrap_or(""), text_color, accent_color);
-            let [width, height] = vow_design::MENU_SEARCH_ICON;
-            rect()
-                .width(Size::px(width))
-                .direction(Direction::Horizontal)
-                .main_align(Alignment::Center)
-                .child(
-                    SvgViewer::new(freya_core::prelude::Bytes::from(svg.into_bytes()))
-                        .width(Size::px(width))
-                        .height(Size::px(height))
-                        .show_loader(false)
-                        .into_element(),
-                )
-                .into_element()
+            let svg = search_icon_svg(ctx.menu_search_icon.unwrap_or(""), color, accent);
+            (svg, vow_design::MENU_SEARCH_ICON, None)
         }
         SearchSource::Help => {
-            let svg = ctx.help_search_icon.unwrap_or("").to_string();
-            let color = if focused { m.hover_fg } else { fg };
             let side = vow_design::MENU_HELP_ICON;
-            rect()
-                .width(Size::px(side))
-                .direction(Direction::Horizontal)
-                .main_align(Alignment::Center)
-                .child(
-                    SvgViewer::new(freya_core::prelude::Bytes::from(svg.into_bytes()))
-                        .width(Size::px(side))
-                        .height(Size::px(side))
-                        .color(theme::color(color))
-                        .show_loader(false)
-                        .into_element(),
-                )
-                .into_element()
+            let svg = ctx.help_search_icon.unwrap_or("").to_string();
+            (svg, [side, side], Some(theme::color(color)))
         }
+    };
+    let mut icon = SvgViewer::new(Bytes::from(svg.into_bytes()))
+        .width(Size::px(width))
+        .height(Size::px(height))
+        .show_loader(false);
+    if let Some(tint) = tint {
+        icon = icon.color(tint);
     }
+    rect()
+        .width(Size::px(width))
+        .direction(Direction::Horizontal)
+        .main_align(Alignment::Center)
+        .child(icon.into_element())
+        .into_element()
 }
 
 pub(super) fn leading_slot(
@@ -501,37 +457,27 @@ pub(super) fn leading_slot(
 }
 
 fn icon_slot(icon: Option<MenuIcon>, icon_fg: Rgba, m: MenuPalette) -> Element {
+    let side = Size::px(m.icon_size);
+    let blank = || rect().width(side.clone()).height(side.clone());
     let icon_elem = match icon {
         Some(MenuIcon::Svg(svg)) => SvgViewer::new(Bytes::from(svg.as_bytes().to_vec()))
-            .width(Size::px(m.icon_size))
-            .height(Size::px(m.icon_size))
+            .width(side.clone())
+            .height(side.clone())
             .color(theme::color(icon_fg))
             .show_loader(false)
             .into_element(),
-        Some(MenuIcon::Image(bytes)) => icon_image(&bytes, m.icon_size).map_or_else(
-            || {
-                rect()
-                    .width(Size::px(m.icon_size))
-                    .height(Size::px(m.icon_size))
-                    .into_element()
-            },
-            |handle| {
-                image(handle)
-                    .width(Size::px(m.icon_size))
-                    .height(Size::px(m.icon_size))
-                    .into_element()
-            },
-        ),
-        Some(MenuIcon::Swatch(fill)) => rect()
-            .width(Size::px(m.icon_size))
-            .height(Size::px(m.icon_size))
+        Some(MenuIcon::Image(bytes)) => match icon_image(&bytes, m.icon_size) {
+            Some(handle) => image(handle)
+                .width(side.clone())
+                .height(side.clone())
+                .into_element(),
+            None => blank().into_element(),
+        },
+        Some(MenuIcon::Swatch(fill)) => blank()
             .corner_radius(m.icon_size / 2.0)
             .background(theme::color(fill))
             .into_element(),
-        None => rect()
-            .width(Size::px(m.icon_size))
-            .height(Size::px(m.icon_size))
-            .into_element(),
+        None => blank().into_element(),
     };
     rect()
         .width(Size::px(m.leading_width))
