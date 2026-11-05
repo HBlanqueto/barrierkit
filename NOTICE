@@ -16,3 +16,9 @@ crates/marea/media/stills/sprite-fright-{1,2,3,poster}.jpg
   channel (https://www.youtube.com/watch?v=_cMxraX_5RE).
   crates/marea/media/stills/sprite-fright-logo.png is not the film's logo: it
   is the title set in Creepster (see crates/marea/fonts/ above).
+
+crates/barrier-kit/src/platform/vulkan.rs
+  Ported from the Vulkan driver of freya-winit 0.4.3 (src/drivers/vulkan.rs),
+  part of Freya (https://github.com/marc2332/freya).
+  Copyright (c) Marc Espín Sanz. Licensed under the MIT License:
+  https://github.com/marc2332/freya/blob/main/LICENSE.md
