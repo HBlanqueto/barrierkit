@@ -33,6 +33,7 @@ Cada capítulo se apoya en los anteriores.
 | 15 | [Apps de prueba](15-apps-de-prueba.md) | Tengen App Show, Ondina y Marea |
 | 16 | [Preguntas frecuentes](16-preguntas.md) | ¿Qué tenemos y qué falta? |
 | 17 | [Perfilar con Tracy](17-perfilado.md) | ¿Dónde se va el tiempo de cada frame? |
+| 18 | [Idiomas](18-idiomas.md) | ¿Cómo traduzco una app y cómo se elige el idioma? |
 
 ## Fuentes únicas
 

@@ -14,7 +14,7 @@ menús contextuales:
 
 ```rust
 const RESET: Action =
-    Action::new("reset", "Restablecer").shortcut(Shortcut::ctrl(ShortcutKey::Char('r')));
+    Action::new("reset", || tr!("reset")).shortcut(Shortcut::ctrl(ShortcutKey::Char('r')));
 
 use_menu_action(move |id| {
     if id == RESET.id {

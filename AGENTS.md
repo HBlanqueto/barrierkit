@@ -124,3 +124,5 @@ pub fn focused(mut self, focused: bool) -> Self { … }
   a `barrier-kit`.
 - Un control nuevo compone primitivas del kit; no reimplementa la barra
   lateral, los menús ni los semáforos (ADR 0047).
+- El texto visible va en `i18n/{en,es}/<crate>.ftl` y se lee con `tr!`;
+  nunca un literal en el código (`docs/barrierkit/18-idiomas.md`).

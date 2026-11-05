@@ -295,7 +295,7 @@ use freya_core::prelude::*;
 use vow_design::{ACCENT_SWATCHES, WINDOW_MIN_SIZE};
 
 const RESET: Action =
-    Action::new("reset", "Restablecer").shortcut(Shortcut::ctrl(ShortcutKey::Char('r')));
+    Action::new("reset", || tr!("reset")).shortcut(Shortcut::ctrl(ShortcutKey::Char('r')));
 
 struct Notas {
     app_id: &'static str,
