@@ -3,8 +3,8 @@ use std::sync::{Arc, Mutex};
 
 use zbus::zvariant::OwnedValue;
 
-use crate::app_menu::{AppMenu, IdMap, check_state, dbusmenu_label, dbusmenu_shortcut, owned};
-use crate::menu::MenuItem;
+use crate::app_menu::{AppMenu, IdMap, check_state, dbusmenu_label, owned};
+use crate::menu::{MenuItem, shortcut_keys};
 
 pub type LayoutItem = (i32, HashMap<String, OwnedValue>, Vec<OwnedValue>);
 
@@ -121,10 +121,7 @@ fn layout_item(
                 ("label".to_string(), owned(dbusmenu_label(label))),
                 ("enabled".to_string(), owned(*enabled)),
             ]);
-            let keys = shortcut
-                .as_deref()
-                .map(dbusmenu_shortcut)
-                .unwrap_or_default();
+            let keys = shortcut.as_deref().map(shortcut_keys).unwrap_or_default();
             if !keys.is_empty() {
                 properties.insert("shortcut".to_string(), owned(vec![keys]));
             }

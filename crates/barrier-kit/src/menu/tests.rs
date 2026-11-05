@@ -488,6 +488,13 @@ fn shortcuts_use_macos_glyphs_in_order() {
     assert_eq!(format_shortcut("Return"), "↩");
     assert_eq!(format_shortcut("Enter"), "↩");
     assert_eq!(format_shortcut("Ctrl+Tab"), "⌃⇥");
+    assert_eq!(format_shortcut("Control+comma"), "⌃,");
+    assert_eq!(format_shortcut("Shift+Delete"), "⇧⌦");
+    assert_eq!(format_shortcut("BackSpace"), "⌫");
+    assert_eq!(format_shortcut("Page_Up"), "⇞");
+    assert_eq!(format_shortcut("Ctrl+space"), "⌃␣");
+    assert_eq!(format_shortcut("Ctrl+Num+plus"), "⌃+");
+    assert_eq!(format_shortcut("Ctrl+bracketleft"), "⌃[");
 }
 
 #[test]

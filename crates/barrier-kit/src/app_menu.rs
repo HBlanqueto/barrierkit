@@ -215,93 +215,13 @@ impl IdMap {
     }
 }
 
-pub(crate) fn dbusmenu_shortcut(text: &str) -> Vec<String> {
-    let text = text.trim();
-    if text.is_empty() {
-        return Vec::new();
-    }
-    let mut keys = Vec::new();
-    for token in text.split('+').map(str::trim).filter(|t| !t.is_empty()) {
-        let normalized = match token.to_ascii_lowercase().as_str() {
-            "ctrl" | "control" => "Control",
-            "alt" | "option" | "opt" => "Alt",
-            "shift" => "Shift",
-            "super" | "meta" | "cmd" | "command" => "Super",
-            "up" => "Up",
-            "down" => "Down",
-            "left" => "Left",
-            "right" => "Right",
-            "return" | "enter" => "Return",
-            "tab" => "Tab",
-            "escape" | "esc" => "Escape",
-            _ => token,
-        };
-        keys.push(normalized.to_string());
-    }
-    keys
-}
-
 pub(crate) fn dbusmenu_label(label: &str) -> String {
     label.replace('_', "__")
 }
 
-use keyboard_types::{Key, Modifiers, NamedKey};
+use keyboard_types::{Key, Modifiers};
 
-#[derive(Clone, Debug, PartialEq)]
-pub(crate) struct ParsedShortcut {
-    pub modifiers: Modifiers,
-    pub key: String,
-}
-
-pub(crate) fn parse_shortcut(text: &str) -> ParsedShortcut {
-    let text = text.trim();
-    let mut modifiers = Modifiers::empty();
-    let mut key = String::new();
-    for token in text.split('+').map(str::trim).filter(|t| !t.is_empty()) {
-        match token.to_ascii_lowercase().as_str() {
-            "ctrl" | "control" => modifiers |= Modifiers::CONTROL,
-            "alt" | "option" | "opt" => modifiers |= Modifiers::ALT,
-            "shift" => modifiers |= Modifiers::SHIFT,
-            "super" | "meta" | "cmd" | "command" => modifiers |= Modifiers::META,
-            "escape" | "esc" => key = "esc".to_string(),
-            "left" => key = "left".to_string(),
-            "right" => key = "right".to_string(),
-            "up" => key = "up".to_string(),
-            "down" => key = "down".to_string(),
-            "return" | "enter" => key = "return".to_string(),
-            "tab" => key = "tab".to_string(),
-            _ => key = token.to_ascii_lowercase(),
-        }
-    }
-    ParsedShortcut { modifiers, key }
-}
-
-fn normalised_key(key: &Key) -> String {
-    match key {
-        Key::Character(s) => s.to_ascii_lowercase(),
-        Key::Named(n) => match n {
-            NamedKey::ArrowLeft => "left".to_string(),
-            NamedKey::ArrowRight => "right".to_string(),
-            NamedKey::ArrowUp => "up".to_string(),
-            NamedKey::ArrowDown => "down".to_string(),
-            NamedKey::Enter => "return".to_string(),
-            NamedKey::Tab => "tab".to_string(),
-            NamedKey::Escape => "esc".to_string(),
-            NamedKey::Backspace => "backspace".to_string(),
-            NamedKey::Delete => "delete".to_string(),
-            NamedKey::Home => "home".to_string(),
-            NamedKey::End => "end".to_string(),
-            NamedKey::PageUp => "pageup".to_string(),
-            NamedKey::PageDown => "pagedown".to_string(),
-            _ => String::new(),
-        },
-    }
-}
-
-pub fn shortcut_matches(text: &str, modifiers: Modifiers, key: &Key) -> bool {
-    let parsed = parse_shortcut(text);
-    parsed.modifiers == modifiers && parsed.key == normalised_key(key) && !parsed.key.is_empty()
-}
+pub use crate::menu::shortcut_matches;
 
 pub(crate) fn edits_text(modifiers: Modifiers, key: &Key) -> bool {
     let Key::Character(text) = key else {
@@ -366,17 +286,44 @@ pub(crate) fn check_state(check: &CheckState) -> (Option<&'static str>, i32) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use keyboard_types::NamedKey;
 
     #[test]
-    fn shortcut_parses_modifiers_and_keeps_super() {
+    fn shortcuts_export_as_keysyms_in_modifier_order() {
+        use crate::menu::shortcut_keys;
+        assert_eq!(shortcut_keys("Ctrl+Shift+S"), vec!["Control", "Shift", "S"]);
         assert_eq!(
-            dbusmenu_shortcut("Ctrl+Shift+S"),
-            vec!["Control", "Shift", "S"]
+            shortcut_keys("Super+Alt+Left"),
+            vec!["Alt", "Super", "Left"]
         );
-        assert_eq!(
-            dbusmenu_shortcut("Super+Alt+Left"),
-            vec!["Super", "Alt", "Left"]
-        );
+        assert_eq!(shortcut_keys("Ctrl+,"), vec!["Control", "comma"]);
+        assert_eq!(shortcut_keys("Ctrl+Num+Delete"), vec!["Control", "Delete"]);
+    }
+
+    #[test]
+    fn locks_and_named_keys_still_match() {
+        let locks = Modifiers::CAPS_LOCK | Modifiers::NUM_LOCK;
+        assert!(shortcut_matches(
+            "Ctrl+S",
+            Modifiers::CONTROL | locks,
+            &Key::Character("s".into())
+        ));
+        assert!(shortcut_matches("F11", locks, &Key::Named(NamedKey::F11)));
+        assert!(shortcut_matches(
+            "Ctrl+space",
+            Modifiers::CONTROL,
+            &Key::Character(" ".into())
+        ));
+        assert!(shortcut_matches(
+            "Ctrl+comma",
+            Modifiers::CONTROL,
+            &Key::Character(",".into())
+        ));
+        assert!(shortcut_matches(
+            "Page_Down",
+            Modifiers::empty(),
+            &Key::Named(NamedKey::PageDown)
+        ));
     }
 
     #[test]

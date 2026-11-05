@@ -38,43 +38,6 @@ pub(super) fn font_families() -> Vec<Cow<'static, str>> {
     families
 }
 
-pub fn format_shortcut(text: &str) -> String {
-    let text = text.trim();
-    let (mut ctrl, mut alt, mut shift, mut sup) = (false, false, false, false);
-    let mut key = String::new();
-    for token in text.split('+').map(str::trim).filter(|t| !t.is_empty()) {
-        match token.to_ascii_lowercase().as_str() {
-            "ctrl" | "control" => ctrl = true,
-            "alt" | "option" | "opt" => alt = true,
-            "shift" => shift = true,
-            "super" | "meta" | "cmd" | "command" => sup = true,
-            "escape" | "esc" => key.push('⎋'),
-            "left" => key.push('←'),
-            "right" => key.push('→'),
-            "up" => key.push('↑'),
-            "down" => key.push('↓'),
-            "return" | "enter" => key.push('↩'),
-            "tab" => key.push('⇥'),
-            _ => key.push_str(token),
-        }
-    }
-    let mut out = String::new();
-    if ctrl {
-        out.push('⌃');
-    }
-    if alt {
-        out.push('⌥');
-    }
-    if shift {
-        out.push('⇧');
-    }
-    if sup {
-        out.push('❖');
-    }
-    out.push_str(&key);
-    out
-}
-
 pub fn measure_text(text: &str, size: f32) -> f32 {
     measure_text_weight(text, size, FontWeight::NORMAL)
 }

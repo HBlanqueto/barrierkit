@@ -4,6 +4,7 @@ mod item;
 mod model;
 mod nav;
 mod search;
+mod shortcut;
 mod submenu;
 #[cfg(test)]
 mod tests;
@@ -13,6 +14,8 @@ pub use item::*;
 pub use model::*;
 use nav::*;
 use search::*;
+pub(crate) use shortcut::shortcut_keys;
+pub use shortcut::{format_shortcut, shortcut_matches};
 use submenu::*;
 pub use text::*;
 
