@@ -364,7 +364,7 @@ impl Runtime {
             appearance_watch: None,
             resolved,
             pending_menu_addresses: Arc::new(Mutex::new(Vec::new())),
-            clipboard: Clipboard::new(conn.clone(), ping.clone()),
+            clipboard: Clipboard::new(ping.clone()),
             activation: globals.bind::<XdgActivationV1, _, _>(&qh, 1..=1, ()).ok(),
             defaults_revision: State::create_global(0),
             clipboard_device: DataDeviceManagerState::bind(&globals, &qh)

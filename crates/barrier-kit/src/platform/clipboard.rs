@@ -1,7 +1,7 @@
 //! Clipboard on wl_data_device for Freya's ClipboardProvider.
 
 use std::io::{Read, Write};
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, OnceLock};
 
 use freya_clipboard::copypasta::ClipboardProvider;
 use sctk::data_device_manager::data_device::{DataDevice, DataDeviceHandler};
@@ -23,13 +23,12 @@ const TEXT_MIMES: [&str; 3] = ["text/plain;charset=utf-8", "text/plain", "UTF8_S
 struct Shared {
     own: Option<String>,
     to_publish: bool,
-    foreign: Option<SelectionOffer>,
+    foreign: Option<Arc<OnceLock<String>>>,
 }
 
 #[derive(Clone)]
 pub(crate) struct Clipboard {
     shared: Arc<Mutex<Shared>>,
-    connection: Connection,
     ping: Ping,
 }
 
@@ -50,10 +49,9 @@ impl ClipboardDevice {
 }
 
 impl Clipboard {
-    pub(crate) fn new(connection: Connection, ping: Ping) -> Self {
+    pub(crate) fn new(ping: Ping) -> Self {
         Self {
             shared: Arc::new(Mutex::new(Shared::default())),
-            connection,
             ping,
         }
     }
@@ -65,18 +63,16 @@ impl Clipboard {
 
 impl ClipboardProvider for Clipboard {
     fn get_contents(&mut self) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
-        let offer = {
-            let shared = self.shared.lock().map_err(|_| "clipboard poisoned")?;
-            if let Some(own) = &shared.own {
-                return Ok(own.clone());
-            }
-            shared.foreign.clone().ok_or("the clipboard is empty")?
-        };
-        let mut pipe = offer.receive(TEXT_MIMES[0].to_string())?;
-        self.connection.flush()?;
-        let mut text = String::new();
-        pipe.read_to_string(&mut text)?;
-        Ok(text)
+        let shared = self.shared.lock().map_err(|_| "clipboard poisoned")?;
+        if let Some(own) = &shared.own {
+            return Ok(own.clone());
+        }
+        Ok(shared
+            .foreign
+            .as_ref()
+            .and_then(|text| text.get())
+            .ok_or("the clipboard is empty")?
+            .clone())
     }
 
     fn set_contents(
@@ -121,6 +117,24 @@ impl Runtime {
     }
 }
 
+fn receive_text(offer: &SelectionOffer) -> Option<Arc<OnceLock<String>>> {
+    let mime = offer.with_mime_types(|offered| {
+        TEXT_MIMES
+            .into_iter()
+            .find(|mime| offered.iter().any(|offered| offered == mime))
+    })?;
+    let mut pipe = offer.receive(mime.to_string()).ok()?;
+    let text = Arc::new(OnceLock::new());
+    let slot = text.clone();
+    std::thread::spawn(move || {
+        let mut read = String::new();
+        if pipe.read_to_string(&mut read).is_ok() {
+            let _ = slot.set(read);
+        }
+    });
+    Some(text)
+}
+
 impl DataDeviceHandler for Runtime {
     fn enter(
         &mut self,
@@ -143,8 +157,9 @@ impl DataDeviceHandler for Runtime {
             .as_ref()
             .and_then(|data| data.device.as_ref())
             .and_then(|device| device.data().selection_offer());
+        let foreign = offer.as_ref().and_then(receive_text);
         if let Ok(mut shared) = self.clipboard.shared.lock() {
-            shared.foreign = offer;
+            shared.foreign = foreign;
         }
     }
 
@@ -195,10 +210,12 @@ impl DataSourceHandler for Runtime {
             .lock()
             .ok()
             .and_then(|shared| shared.own.clone());
-        if let Some(text) = own
-            && let Err(error) = pipe.write_all(text.as_bytes())
-        {
-            tracing::warn!(%error, "portapapeles: no se pudo enviar el texto");
+        if let Some(text) = own {
+            std::thread::spawn(move || {
+                if let Err(error) = pipe.write_all(text.as_bytes()) {
+                    tracing::warn!(%error, "portapapeles: no se pudo enviar el texto");
+                }
+            });
         }
     }
 
