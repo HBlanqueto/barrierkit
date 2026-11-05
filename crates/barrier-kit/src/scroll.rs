@@ -10,6 +10,7 @@ use torin::prelude::{Area, Direction, Position, Size};
 use vow_appearance::ScrollBars;
 use vow_design::{DURATION_FAST_MS, Rgba, SCROLL_BAR};
 
+use crate::adornments::divider;
 use crate::platform::Timers;
 use crate::style::Palette;
 use crate::theme::color;
@@ -241,11 +242,9 @@ impl Component for ScrollView {
                     ),
             )
             .maybe_child(self.top_line.then(|| {
-                rect()
+                divider()
                     .position(Position::new_absolute().top(0.0).left(0.0))
                     .layer(THUMB_LAYER)
-                    .width(Size::fill())
-                    .height(Size::px(1.0))
                     .background(color(crate::sidebar::sidebar_palette().line))
             }))
             .maybe_child(bar.filter(|_| always).map(|_| {

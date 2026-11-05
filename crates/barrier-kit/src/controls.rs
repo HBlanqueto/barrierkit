@@ -3,7 +3,6 @@
 pub use crate::scroll::{ScrollController, ScrollView, use_scroll_controller};
 
 use freya_components::input::{Input, InputColorsThemePartial, InputLayoutThemePartial};
-use freya_components::svg_viewer::SvgViewer;
 use freya_components::theming::macros::Preference;
 
 use freya_core::prelude::*;
@@ -1102,7 +1101,6 @@ impl Component for Checkbox {
         let label_text = self.label;
 
         let size = CHECKBOX.size;
-        let check_svg = r#"<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m2.5 6.2 2.3 2.3 4.7-4.8"/></svg>"#;
 
         let interaction = use_interaction();
         let mut toggle = {
@@ -1149,7 +1147,7 @@ impl Component for Checkbox {
             .center();
 
         if *checked.read() {
-            checkbox = checkbox.child(svg_viewer(check_svg, palette.on_accent, size as u32 - 4));
+            checkbox = checkbox.child(symbol(Symbol::Checkmark, size - 4.0, palette.on_accent));
         }
         checkbox = interaction.focus_ring(checkbox, CHECKBOX.radius);
 
@@ -1162,14 +1160,9 @@ impl Component for Checkbox {
             .a11y_role(AccessibilityRole::CheckBox)
             .a11y_alt(label_text)
             .a11y_builder(move |node| node.set_toggled(is_checked.into()))
+            .spacing(SETTINGS.check.gap as f32)
             .on_press(move |_| toggle())
             .child(checkbox)
-            .child(
-                rect()
-                    .width(Size::px(SETTINGS.check.gap as f32))
-                    .height(Size::px(1.0))
-                    .background(Color::TRANSPARENT),
-            )
             .child(
                 label()
                     .text(label_text)
@@ -1186,12 +1179,4 @@ impl Component for Checkbox {
 
         root
     }
-}
-
-fn svg_viewer(template: &'static str, color: Rgba, size: u32) -> SvgViewer {
-    SvgViewer::new(Bytes::from_static(template.as_bytes()))
-        .width(Size::px(size as f32))
-        .height(Size::px(size as f32))
-        .color(theme::color(color))
-        .show_loader(false)
 }

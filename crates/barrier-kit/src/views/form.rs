@@ -4,6 +4,7 @@ use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
 use vow_design::{CAPTION, LIST_GROUP, Rgba, SPACE_2, SPACE_3, SPACE_4, TEXT};
 
+use crate::adornments::divider;
 use crate::interaction::use_interaction;
 use crate::style::{Palette, text};
 use crate::symbol::{Symbol, symbol};
@@ -310,12 +311,7 @@ impl Component for FormRow {
             rect()
                 .width(Size::fill())
                 .padding(Gaps::new(0.0, 0.0, 0.0, LIST_GROUP.separator_inset))
-                .child(
-                    rect()
-                        .width(Size::fill())
-                        .height(Size::px(1.0))
-                        .background(color(palette.separator)),
-                )
+                .child(divider())
         });
         rect()
             .width(Size::fill())
