@@ -37,7 +37,7 @@ barrierkit/
   docs/                       decisiones del kit, glosario del kit
   flake.nix, nix/skia*        Skia precompilado para freya-skia-bindings 0.98.0 + su guardia
   scripts/                    check-client-only-deps, check-design-tokens (parte kit),
-                              check-tengen-generated, mockup-extract
+                              mockup-extract
 ```
 
 **`github.com/HBlanqueto/malaysia`** es el escritorio:

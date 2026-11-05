@@ -109,21 +109,6 @@
           fileset = lib.fileset.unions [ ./crates ./scripts ./nix ./protocols ./Cargo.toml ./Cargo.lock ];
         };
       in {
-        tengen-generated = let
-          tengen = import ./crates/vow-design/tengen;
-        in pkgs.runCommand "check-tengen-generated" {
-          nativeBuildInputs = with pkgs; [ diffutils ];
-        } ''
-          cd ${checkSrc}
-          diff -u crates/vow-design/tengen/generated/tengen.slint \
-            ${pkgs.writeText "tengen.slint" tengen.slint}
-          diff -u crates/vow-design/tengen/generated/tengen.css \
-            ${pkgs.writeText "tengen.css" tengen.css}
-          diff -u crates/vow-design/tengen/generated/Tengen.qml \
-            ${pkgs.writeText "Tengen.qml" tengen.qml}
-          touch $out
-        '';
-
         design-tokens = pkgs.runCommand "check-design-tokens" {
           nativeBuildInputs = with pkgs; [ bash coreutils findutils gawk gnugrep ];
         } ''
