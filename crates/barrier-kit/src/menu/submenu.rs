@@ -2,21 +2,14 @@ use super::*;
 use crate::i18n::text;
 
 pub(super) fn item_top(index: usize, items: &[MenuItem], m: MenuPalette) -> f32 {
-    let mut y = 0.0;
-    for (i, item) in items.iter().enumerate() {
-        if i == index {
-            return y;
-        }
-        y += item.height(m);
-    }
-    0.0
+    items[..index].iter().map(|item| item.height(m)).sum()
 }
 
-pub(super) fn submenu_positioner(opens_left: bool) -> (PopupAnchor, PopupGravity, i32) {
+pub(super) fn submenu_positioner(opens_left: bool) -> (PopupAnchor, PopupGravity) {
     if opens_left {
-        (PopupAnchor::TopLeft, PopupGravity::BottomLeft, 0)
+        (PopupAnchor::TopLeft, PopupGravity::BottomLeft)
     } else {
-        (PopupAnchor::TopRight, PopupGravity::BottomRight, 0)
+        (PopupAnchor::TopRight, PopupGravity::BottomRight)
     }
 }
 
@@ -36,8 +29,8 @@ pub(super) fn submenu_anchor_rect(
 }
 
 pub(super) fn close_child(
-    open_child_id: Rc<Cell<Option<PopupId>>>,
-    open_child_index: Rc<Cell<Option<usize>>>,
+    open_child_id: &Cell<Option<PopupId>>,
+    open_child_index: &Cell<Option<usize>>,
 ) {
     if let Some(id) = open_child_id.get() {
         if let Some(popups) = try_consume_root_context::<Popups>() {
@@ -54,20 +47,6 @@ pub fn submenu_contents(loading: bool, items: &[MenuItem]) -> Vec<MenuItem> {
     } else {
         items.to_vec()
     }
-}
-
-pub(super) fn announce_submenu(on_open: &Option<Rc<dyn Fn(String)>>, id: Option<&str>) {
-    if let (Some(callback), Some(id)) = (on_open, id) {
-        callback(id.to_string());
-    }
-}
-
-pub(super) fn child_already_open(
-    has_child: bool,
-    open_child_index: &Cell<Option<usize>>,
-    index: usize,
-) -> bool {
-    has_child && open_child_index.get() == Some(index)
 }
 
 #[derive(Clone)]
@@ -110,11 +89,13 @@ pub(super) fn open_child_popup(
 ) -> Option<PopupId> {
     let popup = ctx.popup.as_ref()?;
     let (open_child_id, open_child_index) = (&ctx.open_child_id, &ctx.open_child_index);
-    if child_already_open(open_child_id.get().is_some(), open_child_index, index) {
+    if open_child_id.get().is_some() && open_child_index.get() == Some(index) {
         return open_child_id.get();
     }
-    close_child(open_child_id.clone(), open_child_index.clone());
-    announce_submenu(&ctx.on_open_submenu, id);
+    close_child(open_child_id, open_child_index);
+    if let (Some(callback), Some(id)) = (&ctx.on_open_submenu, id) {
+        callback(id.to_string());
+    }
     let m = ctx.palette_source.current();
     let initial_items = submenu_contents(id.is_some(), sub_items);
     let child_size = MenuView::preferred_size(&initial_items, m);
@@ -129,14 +110,8 @@ pub(super) fn open_child_popup(
                 .unwrap_or_else(|| fallback.clone())
         });
     }
-    if let Some(callback) = &ctx.on_open_submenu {
-        let callback = callback.clone();
-        child_view = child_view.with_open_submenu(move |id| callback(id));
-    }
-    if let Some(source) = &ctx.submenu_source {
-        let source = source.clone();
-        child_view = child_view.with_submenu_source(move |id| source(id));
-    }
+    child_view.on_open_submenu = ctx.on_open_submenu.clone();
+    child_view.submenu_source = ctx.submenu_source.clone();
     let open_child_id_set = open_child_id.clone();
     let open_child_index_set = open_child_index.clone();
     let dismissed_id = Rc::new(Cell::new(None::<PopupId>));
@@ -152,12 +127,12 @@ pub(super) fn open_child_popup(
         }
     };
     let inset = m.padding;
-    let (anchor, gravity, dx) = submenu_positioner(ctx.opens_left);
+    let (anchor, gravity) = submenu_positioner(ctx.opens_left);
     let spec = PopupSpec {
         anchor_rect: submenu_anchor_rect(index, parent_items, m, ctx.size.0, popup.scroll_shift()),
         anchor,
         gravity,
-        offset: (dx, -(inset as i32)),
+        offset: (0, -(inset as i32)),
         size: (child_size.0 as u32, child_size.1 as u32),
         constraint_adjustment: PopupConstraintAdjustment {
             flip_x: true,
@@ -184,7 +159,7 @@ pub(super) fn open_reveal_popup(
     (anchor_x, anchor_width): (f32, f32),
 ) -> Option<PopupId> {
     let popup = ctx.popup.as_ref()?;
-    close_child(reveal_child_id.clone(), Rc::new(Cell::new(None)));
+    close_child(&reveal_child_id, &Cell::new(None));
     let m = ctx.palette_source.current();
     let child_size = MenuView::preferred_size(items, m);
     let parent_width = ctx.size.0;

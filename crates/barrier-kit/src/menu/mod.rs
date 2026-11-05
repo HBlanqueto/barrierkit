@@ -97,6 +97,7 @@ impl PaletteSource {
     }
 }
 
+#[derive(Clone)]
 pub struct MenuView {
     items: Rc<Vec<MenuItem>>,
     items_source: Option<ItemsSource>,
@@ -222,13 +223,7 @@ impl MenuView {
     pub const MAX_HELP_ROWS: usize = 5;
 
     pub fn preferred_size(items: &[MenuItem], m: MenuPalette) -> (f32, f32) {
-        let hint;
-        let items = if items.is_empty() {
-            hint = [empty_hint()];
-            hint.as_slice()
-        } else {
-            items
-        };
+        let items = &with_empty_hint(items.to_vec());
         let inset = m.padding;
         let content_height: f32 = items.iter().map(|item| item.height(m)).sum();
         let min_width = m.min_width.max(1.0);
@@ -254,30 +249,6 @@ impl MenuView {
             (content_width.min(max_content_width) + inset * 2.0).clamp(min_width, max_width);
         let height = content_height + inset * 2.0;
         (width.ceil(), height.ceil())
-    }
-}
-
-impl Clone for MenuView {
-    fn clone(&self) -> Self {
-        Self {
-            items: self.items.clone(),
-            items_source: self.items_source.clone(),
-            on_activate: self.on_activate.clone(),
-            on_dismiss_all: self.on_dismiss_all.clone(),
-            on_open_submenu: self.on_open_submenu.clone(),
-            submenu_source: self.submenu_source.clone(),
-            on_navigation: self.on_navigation.clone(),
-            palette_source: self.palette_source,
-            searchable: self.searchable.clone(),
-            help_search: self.help_search.clone(),
-            query_state: self.query_state.clone(),
-            menu_search_icon: self.menu_search_icon,
-            help_search_icon: self.help_search_icon,
-            popup_spec: self.popup_spec.clone(),
-            reveal_roots: self.reveal_roots.clone(),
-            focused_index: self.focused_index,
-            probe: self.probe,
-        }
     }
 }
 
@@ -316,8 +287,6 @@ impl App for MenuView {
         );
         let popup: Option<PopupHandle> = try_consume_root_context();
         let opens_left = popup.as_ref().is_some_and(PopupHandle::opens_left);
-        let menu_search_icon = self.menu_search_icon;
-        let help_search_icon = self.help_search_icon;
         let popup_spec = self.popup_spec.clone();
         let initial_focused = self.focused_index;
         let items_for_focus = items.clone();
@@ -332,14 +301,12 @@ impl App for MenuView {
             .as_ref()
             .map(|q| q.borrow().clone())
             .unwrap_or_default();
-        let query = use_state(|| initial.text);
-        let selected = use_state(|| initial.selected);
+        let mut query = use_state(|| initial.text);
+        let mut selected = use_state(|| initial.selected);
         let mut result_focused = use_state(|| None::<usize>);
         let prev_query = use_hook(|| Rc::new(RefCell::new(String::new())));
-        let searchable = self.searchable.clone();
-        let help_search = self.help_search.clone();
-        let searchable_entries = searchable.as_ref().map(|source| source());
-        let help_entries = help_search.as_ref().map(|source| source());
+        let searchable_entries = self.searchable.as_ref().map(|source| source());
+        let help_entries = self.help_search.as_ref().map(|source| source());
 
         let has_search = searchable_entries.is_some() || help_entries.is_some();
         let query_text = (*query.read()).clone();
@@ -350,7 +317,7 @@ impl App for MenuView {
                 text: query_text.clone(),
                 selected: is_selected,
             };
-            if state.borrow().text != current.text || state.borrow().selected != current.selected {
+            if *state.borrow() != current {
                 *state.borrow_mut() = current;
             }
         }
@@ -447,7 +414,7 @@ impl App for MenuView {
         });
         if revealed_location != *prev_revealed.borrow() {
             *prev_revealed.borrow_mut() = revealed_location.clone();
-            close_child(reveal_child_id.clone(), Rc::new(Cell::new(None)));
+            close_child(&reveal_child_id, &Cell::new(None));
             if let (Some(loc), Some(roots)) = (revealed_location, reveal_roots.as_ref()) {
                 let roots = roots();
                 if let Some(items) = roots.get(loc.title_index) {
@@ -462,7 +429,7 @@ impl App for MenuView {
 
         let visible_rc = Rc::new(visible.clone());
 
-        let alt_held = use_state(|| false);
+        let mut alt_held = use_state(|| false);
         let show_mnemonic = *alt_held.read();
 
         let inset = m.padding;
@@ -525,10 +492,7 @@ impl App for MenuView {
                 if submenus.open_child_index.get() == Some(index) {
                     return;
                 }
-                close_child(
-                    submenus.open_child_id.clone(),
-                    submenus.open_child_index.clone(),
-                );
+                close_child(&submenus.open_child_id, &submenus.open_child_index);
                 if let Some(MenuItem::Submenu { id, items: sub, .. }) = items.get(index) {
                     open_child_popup(&submenus, index, id.as_deref(), sub, &items);
                 }
@@ -624,8 +588,8 @@ impl App for MenuView {
             query,
             selected,
             result_focused,
-            menu_search_icon,
-            help_search_icon,
+            menu_search_icon: self.menu_search_icon,
+            help_search_icon: self.help_search_icon,
             on_activate: on_activate.clone(),
             on_dismiss_all: on_dismiss_all.clone(),
             on_row_enter: enter_row,
@@ -682,7 +646,6 @@ impl App for MenuView {
             .on_wheel(move |event: Event<WheelEventData>| {
                 if overflow {
                     let next = (*scroll.peek() - event.delta_y as f32).clamp(0.0, max_scroll);
-                    let mut scroll = scroll;
                     scroll.set(next);
                 }
             })
@@ -707,33 +670,24 @@ impl App for MenuView {
         if let Some(id) = self.probe {
             root = root.a11y_builder(move |node| node.set_author_id(id));
         }
-        let visible_for_keys = Rc::new(visible.clone());
-        let mut alt_up = alt_held;
         root = root.on_global_key_up(move |event: Event<KeyboardEventData>| {
             if event.key == Key::Named(NamedKey::Alt) {
-                alt_up.set(false);
+                alt_held.set(false);
             }
         });
-        let mut alt_down = alt_held;
         root.on_global_key_down(move |event: Event<KeyboardEventData>| {
             if event.key == Key::Named(NamedKey::Alt) {
-                alt_down.set(true);
+                alt_held.set(true);
                 return;
             }
             hover_state.borrow_mut().pending = None;
-            let mut focused = focused;
-            let mut query = query;
-            let mut result_focused = result_focused;
-            let mut selected = selected;
-            let mut menu_scroll = menu_scroll;
-            let mut help_scroll = help_scroll;
             let current = *focused.read();
             let query_text = (*query.read()).clone();
             let result_current = *result_focused.read();
+            let result_row =
+                result_current.and_then(|i| result_rows.iter().position(|&row| row == i));
             let searching = has_search && !query_text.is_empty();
             let is_selected = *selected.read();
-            let menu_results_len = menu_results.len();
-            let help_results_len = help_results.len();
             let activates = event.key == Key::Named(NamedKey::Enter)
                 || (event.key == Key::Character(" ".into())
                     && inserts_text(event.modifiers)
@@ -742,7 +696,7 @@ impl App for MenuView {
                 _ if activates => {
                     selected.set(false);
                     let (index, source): (Option<usize>, &[MenuItem]) = if searching {
-                        (result_current, visible_for_keys.as_slice())
+                        (result_current, visible_rc.as_slice())
                     } else {
                         (current, items.as_slice())
                     };
@@ -753,9 +707,7 @@ impl App for MenuView {
                 Key::Named(NamedKey::ArrowDown) => {
                     selected.set(false);
                     if searching {
-                        let row = result_current
-                            .and_then(|i| result_rows.iter().position(|&row| row == i));
-                        match row {
+                        match result_row {
                             None => result_focused.set(result_rows.first().copied()),
                             Some(row) => {
                                 let i = result_rows[row];
@@ -765,12 +717,12 @@ impl App for MenuView {
                                             i == start + count - 1 && scroll + count < len
                                         })
                                     };
-                                if at_end(menu_section, *menu_scroll.read(), menu_results_len) {
+                                if at_end(menu_section, *menu_scroll.read(), menu_results.len()) {
                                     menu_scroll.set(*menu_scroll.read() + 1);
                                 } else if at_end(
                                     help_section,
                                     *help_scroll.read(),
-                                    help_results_len,
+                                    help_results.len(),
                                 ) {
                                     help_scroll.set(*help_scroll.read() + 1);
                                 } else if let Some(&next) = result_rows.get(row + 1) {
@@ -785,9 +737,7 @@ impl App for MenuView {
                 Key::Named(NamedKey::ArrowUp) => {
                     selected.set(false);
                     if searching {
-                        let row = result_current
-                            .and_then(|i| result_rows.iter().position(|&row| row == i));
-                        match row {
+                        match result_row {
                             None => result_focused.set(result_rows.last().copied()),
                             Some(row) => {
                                 let i = result_rows[row];

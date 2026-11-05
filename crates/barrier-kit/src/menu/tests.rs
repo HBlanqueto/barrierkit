@@ -295,27 +295,6 @@ fn empty_remote_submenu_shows_a_disabled_loading_row() {
 }
 
 #[test]
-fn opening_a_remote_submenu_notifies_once() {
-    let calls = Rc::new(Cell::new(0));
-    let counter = calls.clone();
-    let callback: Option<Rc<dyn Fn(String)>> = Some(Rc::new(move |_| {
-        counter.set(counter.get() + 1);
-    }));
-    let open_index = Cell::new(None::<usize>);
-    for _ in 0..2 {
-        if !child_already_open(true, &open_index, 2) {
-            announce_submenu(&callback, Some("7"));
-            open_index.set(Some(2));
-        }
-    }
-    assert_eq!(calls.get(), 1);
-    assert!(!child_already_open(true, &open_index, 3));
-    assert!(!child_already_open(false, &open_index, 2));
-    announce_submenu(&callback, None);
-    assert_eq!(calls.get(), 1);
-}
-
-#[test]
 fn activate_at_ignores_disabled_and_submenus() {
     let items = sample();
     assert_eq!(activate_at(&items, 0), Some("new".to_string()));
@@ -396,25 +375,14 @@ fn icons_widen_the_menu_by_the_leading_column_and_gap() {
 
 #[test]
 fn left_handed_submenus_keep_their_descendants_on_the_left() {
-    let (anchor, gravity, dx) = submenu_positioner(true);
-    assert_eq!(anchor, PopupAnchor::TopLeft);
-    assert_eq!(gravity, PopupGravity::BottomLeft);
-    assert_eq!(dx, 0, "the panel-edge anchor needs no horizontal offset");
-
-    let mut parent_left = 1000.0;
-    for _ in 0..3 {
-        let child_right = parent_left + dx as f32;
-        assert!(
-            child_right <= parent_left,
-            "a left-handed child overlaps its ancestor"
-        );
-        parent_left = child_right;
-    }
-
-    let (anchor, gravity, dx) = submenu_positioner(false);
-    assert_eq!(anchor, PopupAnchor::TopRight);
-    assert_eq!(gravity, PopupGravity::BottomRight);
-    assert_eq!(dx, 0);
+    assert_eq!(
+        submenu_positioner(true),
+        (PopupAnchor::TopLeft, PopupGravity::BottomLeft)
+    );
+    assert_eq!(
+        submenu_positioner(false),
+        (PopupAnchor::TopRight, PopupGravity::BottomRight)
+    );
 }
 
 #[test]
@@ -461,13 +429,6 @@ fn submenu_anchor_rect_matches_the_row_top() {
     assert_eq!(x, 0);
     assert_eq!(w as f32, width);
     assert_eq!(h as f32, m.item_height);
-
-    let (_, _, dx) = submenu_positioner(false);
-    let inset = m.padding;
-    assert_eq!(dx, 0);
-    let child_top = row_top - inset;
-    let child_first_row_top = child_top + inset;
-    assert_eq!(child_first_row_top, row_top);
 }
 
 #[test]

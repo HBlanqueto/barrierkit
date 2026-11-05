@@ -239,13 +239,9 @@ pub fn normalize_separators(items: &mut Vec<MenuItem>) {
     }
 }
 
-pub(super) fn empty_hint() -> MenuItem {
-    MenuItem::placeholder(text!("no-items"))
-}
-
 pub(super) fn with_empty_hint(items: Vec<MenuItem>) -> Vec<MenuItem> {
     if items.is_empty() {
-        vec![empty_hint()]
+        vec![MenuItem::placeholder(text!("no-items"))]
     } else {
         items
     }
