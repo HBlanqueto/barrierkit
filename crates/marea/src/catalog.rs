@@ -351,18 +351,18 @@ pub const CATALOG: [Title; 21] = [
         series: true,
     },
     Title {
-        id: "jjk-netflix",
-        name: "JJK Showdown The Movie",
-        logo: logo("Bangers", 400, 52.0, Rgba::rgb8(0xff, 0xff, 0xff)),
+        id: "sprite-fright",
+        name: "Sprite Fright",
+        logo: logo("Creepster", 400, 52.0, Rgba::rgb8(0xff, 0x4d, 0x5a)),
         art: (
             160.0,
-            Rgba::rgb8(0xe5, 0x09, 0x14),
-            Rgba::rgb8(0x14, 0x06, 0x24),
+            Rgba::rgb8(0x2e, 0x8b, 0x57),
+            Rgba::rgb8(0x0b, 0x14, 0x24),
         ),
         genre: Genre::Animation,
-        kind: "Película · Collab especial con Netflix",
-        meta: ["Animación", "2026", "+16", "Película"],
-        lede: "Shinjuku, cuenta atrás. Prueba de destacado: póster, galería y vista previa desde YouTube.",
+        kind: "Cortometraje · Blender Studio",
+        meta: ["Animación", "2021", "+12", "Cortometraje"],
+        lede: "Unos adolescentes acampan en un bosque donde no todas las setas son amigas. Prueba de destacado: póster, galería y vista previa desde YouTube.",
         series: false,
     },
 ];
@@ -374,7 +374,7 @@ pub fn title(id: &str) -> &'static Title {
         .unwrap_or(&CATALOG[0])
 }
 
-pub const FEATURED: [&str; 6] = ["jjk-netflix", "orilla", "pan", "neon", "raras", "tronos"];
+pub const FEATURED: [&str; 6] = ["sprite-fright", "orilla", "pan", "neon", "raras", "tronos"];
 
 #[derive(PartialEq)]
 pub struct Gallery {
@@ -386,14 +386,14 @@ pub struct Gallery {
 }
 
 const GALLERIES: [Gallery; 1] = [Gallery {
-    id: "jjk-netflix",
-    franchise: "Jujutsu Kaisen",
-    logo: "jjk-netflix-logo.png",
-    poster: "jjk-netflix-poster.jpg",
+    id: "sprite-fright",
+    franchise: "Blender Open Movie",
+    logo: "sprite-fright-logo.png",
+    poster: "sprite-fright-poster.jpg",
     stills: [
-        "jjk-netflix-1.jpg",
-        "jjk-netflix-2.jpg",
-        "jjk-netflix-3.jpg",
+        "sprite-fright-1.jpg",
+        "sprite-fright-2.jpg",
+        "sprite-fright-3.jpg",
     ],
 }];
 
@@ -503,8 +503,8 @@ pub const SHELVES: [Shelf; 6] = [
         ],
     },
     Shelf {
-        name: "Collab especial con Netflix JJK",
+        name: "Películas abiertas",
         style: ShelfStyle::Wide,
-        entries: &[entry("jjk-netflix", Some("Tráiler · YouTube"), None)],
+        entries: &[entry("sprite-fright", Some("Cortometraje · YouTube"), None)],
     },
 ];

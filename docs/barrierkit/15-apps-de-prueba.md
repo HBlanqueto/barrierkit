@@ -116,14 +116,15 @@ Una app de cine y series que prueba el kit con medios (feature `video`):
 - Estanterías horizontales (`ScrollView` horizontal) con carátulas y vista
   previa en vídeo.
 - Chips de género, botones de medios y un reproductor.
-- Un destacado de prueba, «JJK Showdown The Movie», que muestra el póster y
-  tres imágenes con fundido. Con el ratón quieto 2 s sobre él, reproduce el
-  comienzo del tráiler desde YouTube (lo resuelve `yt-dlp`). La fila «Collab
-  especial con Netflix JJK» abre el mismo tráiler.
+- Un destacado de prueba, «Sprite Fright», que muestra el póster y tres
+  imágenes con fundido. Con el ratón quieto 2 s sobre él, reproduce el
+  comienzo del cortometraje desde YouTube (lo resuelve `yt-dlp`). La fila
+  «Películas abiertas» abre el mismo vídeo.
 
 Los vídeos y fotogramas de prueba se generan con
-`crates/marea/media/generate.mjs`, salvo los `jjk-netflix-*` de
-`media/stills/`, que son imágenes aportadas para esa prueba. La captura se hizo sin GPU: el vídeo se
+`crates/marea/media/generate.mjs`, salvo los `sprite-fright-*` de
+`media/stills/`: fotogramas de «Sprite Fright» (Blender Studio, CC BY 4.0) y
+un título dibujado con Creepster (ver `NOTICE`). La captura se hizo sin GPU: el vídeo se
 decodificó por CPU (`Decoding::Cpu`).
 
 Siguiente: [16. Preguntas frecuentes](16-preguntas.md).

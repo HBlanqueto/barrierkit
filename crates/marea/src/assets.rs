@@ -36,7 +36,7 @@ fn media() -> PathBuf {
     )
 }
 
-const YOUTUBE: [(&str, &str); 1] = [("jjk-netflix", "Jgt6gGNtleE")];
+const YOUTUBE: [(&str, &str); 1] = [("sprite-fright", "_cMxraX_5RE")];
 
 // The GPU decoders only take H.264 in MP4; YouTube serves it apart from the audio above 360p.
 const YOUTUBE_FORMAT: &str =

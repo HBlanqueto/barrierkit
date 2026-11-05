@@ -6,3 +6,13 @@ crates/marea/fonts/
   Special Elite, downloaded from Google Fonts (https://fonts.google.com).
   Each is licensed under the SIL Open Font License 1.1:
   https://openfontlicense.org/open-font-license-official-text/
+
+crates/marea/media/stills/sprite-fright-{1,2,3,poster}.jpg
+  Frames from "Sprite Fright" (2021), (c) Blender Foundation | studio.blender.org,
+  licensed under Creative Commons Attribution 4.0:
+  https://creativecommons.org/licenses/by/4.0/
+  Cropped and scaled from the film; the poster is a crop of a frame.
+  The Marea test app streams the same film from Blender Studio's YouTube
+  channel (https://www.youtube.com/watch?v=_cMxraX_5RE).
+  crates/marea/media/stills/sprite-fright-logo.png is not the film's logo: it
+  is the title set in Creepster (see crates/marea/fonts/ above).
