@@ -26,23 +26,22 @@ impl Default for PasswordField {
 
 impl PasswordField {
     pub fn insert(&mut self, ch: char) {
-        if self.state == State::Verifying || ch.is_control() {
-            return;
+        if !ch.is_control() && self.editable() {
+            self.value.push(ch);
         }
-        if matches!(self.state, State::Error(_)) {
-            self.state = State::Idle;
-        }
-        self.value.push(ch);
     }
 
     pub fn backspace(&mut self) {
-        if self.state == State::Verifying {
-            return;
+        if self.editable() {
+            self.value.pop();
         }
+    }
+
+    fn editable(&mut self) -> bool {
         if matches!(self.state, State::Error(_)) {
             self.state = State::Idle;
         }
-        self.value.pop();
+        self.state != State::Verifying
     }
 
     pub fn handle_key(&mut self, key: &Key, modifiers: Modifiers) -> Option<Zeroizing<String>> {
@@ -73,13 +72,11 @@ impl PasswordField {
 
     pub fn set_error(&mut self, message: impl Into<String>) {
         self.value.zeroize();
-        self.value.clear();
         self.state = State::Error(message.into());
     }
 
     pub fn reset(&mut self) {
         self.value.zeroize();
-        self.value.clear();
         self.state = State::Idle;
     }
 
