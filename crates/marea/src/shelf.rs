@@ -100,11 +100,6 @@ impl Component for Card {
         let shown = fade.get().value();
         let palette = Palette::current();
         let on_open = self.on_open.clone();
-        let new = self
-            .entry
-            .caption
-            .as_ref()
-            .is_some_and(|caption| caption.contains(tr!("new")));
 
         let art = rect()
             .width(Size::px(width))
@@ -157,7 +152,7 @@ impl Component for Card {
                             .color(color(Rgba::rgba8(255, 255, 255, 0.88))),
                     )
             }))
-            .maybe_child(new.then(|| {
+            .maybe_child(self.entry.new.then(|| {
                 rect()
                     .layer(ABOVE_ART + 4)
                     .position(Position::new_absolute().right(8.0).top(8.0))

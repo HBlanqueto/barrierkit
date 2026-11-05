@@ -529,6 +529,7 @@ pub struct Entry {
     pub id: &'static str,
     pub caption: Option<String>,
     pub watched: Option<f32>,
+    pub new: bool,
 }
 
 fn entry(id: &'static str, caption: Option<String>, watched: Option<f32>) -> Entry {
@@ -536,6 +537,14 @@ fn entry(id: &'static str, caption: Option<String>, watched: Option<f32>) -> Ent
         id,
         caption,
         watched,
+        new: false,
+    }
+}
+
+fn new_entry(id: &'static str, caption: String) -> Entry {
+    Entry {
+        new: true,
+        ..entry(id, Some(caption), None)
     }
 }
 
@@ -608,17 +617,9 @@ pub static SHELVES: LazyLock<[Shelf; 6]> = LazyLock::new(|| {
             name: tr!("shelf-new-this-week"),
             style: ShelfStyle::Wide,
             entries: vec![
-                entry(
-                    "lobos",
-                    Some(tr!("labelled-new", label = tr!("genre-horror"))),
-                    None,
-                ),
-                entry(
-                    "pixel",
-                    Some(tr!("labelled-new", label = tr!("genre-animation"))),
-                    None,
-                ),
-                entry("orilla", Some(tr!("season-new", season = 2)), None),
+                new_entry("lobos", tr!("labelled-new", label = tr!("genre-horror"))),
+                new_entry("pixel", tr!("labelled-new", label = tr!("genre-animation"))),
+                new_entry("orilla", tr!("season-new", season = 2)),
                 entry("lazo", Some(tr!("genre-comedy").into()), None),
                 entry("altamar", Some(tr!("genre-documentary").into()), None),
                 entry("tronos", Some(tr!("genre-fantasy").into()), None),
@@ -628,7 +629,7 @@ pub static SHELVES: LazyLock<[Shelf; 6]> = LazyLock::new(|| {
             name: tr!("shelf-anime"),
             style: ShelfStyle::Wide,
             entries: vec![
-                entry("jujutsu", Some(tr!("season-new", season = 3)), None),
+                new_entry("jujutsu", tr!("season-new", season = 3)),
                 entry("komi", Some(tr!("caption-school-comedy").into()), None),
                 entry("naruton", Some(tr!("caption-filler").into()), None),
                 entry("titos", Some(tr!("caption-final-season").into()), None),
