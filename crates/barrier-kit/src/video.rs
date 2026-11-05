@@ -5,13 +5,12 @@
 //! clock, and every stream starts muted until `set_volume`.
 
 use std::cell::RefCell;
-use std::collections::HashMap;
 use std::os::fd::BorrowedFd;
 use std::os::unix::fs::MetadataExt;
 use std::path::Path;
 use std::rc::Rc;
-use std::sync::atomic::{AtomicU64, Ordering};
-use std::sync::{Arc, Mutex};
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use std::sync::{Arc, Mutex, OnceLock};
 use std::time::Duration;
 
 use freya_core::data::LayoutData;
@@ -73,19 +72,46 @@ fn redraw_handle() -> Option<WakeHandle> {
     })
 }
 
-struct Shared {
-    pipeline: gst::Pipeline,
+#[derive(Default)]
+struct Frames {
     latest: Mutex<Option<gst::Sample>>,
     serial: AtomicU64,
+    ended: AtomicBool,
+    failed: AtomicBool,
+    wake: OnceLock<WakeHandle>,
+}
+
+impl Frames {
+    fn store(&self, sample: gst::Sample) {
+        if let Ok(mut latest) = self.latest.lock() {
+            *latest = Some(sample);
+        }
+        self.serial.fetch_add(1, Ordering::Release);
+        self.redraw();
+    }
+
+    fn redraw(&self) {
+        if let Some(wake) = self.wake.get() {
+            wake.wake();
+        }
+    }
+}
+
+struct Shared {
+    pipeline: gst::Pipeline,
+    frames: Arc<Frames>,
     decoding: Decoding,
 }
 
 impl Drop for Shared {
     fn drop(&mut self) {
-        // Tearing souphttpsrc down mid-transition crashes libsoup 3 in g_input_stream_close:
-        // https://retrace.fedoraproject.org/faf/reports/1057654
-        let _ = self.pipeline.state(gst::ClockTime::from_seconds(1));
-        let _ = self.pipeline.set_state(gst::State::Null);
+        let pipeline = self.pipeline.clone();
+        std::thread::spawn(move || {
+            // Tearing souphttpsrc down mid-transition crashes libsoup 3 in g_input_stream_close:
+            // https://retrace.fedoraproject.org/faf/reports/1057654
+            let _ = pipeline.state(gst::ClockTime::from_seconds(1));
+            let _ = pipeline.set_state(gst::State::Null);
+        });
     }
 }
 
@@ -148,27 +174,25 @@ fn attach_audio(pipeline: &gst::Pipeline, pad: &gst::Pad) {
 }
 
 // qtdemux seeks fragmented MP4 (YouTube's DASH) only in pull mode; a queue2 ring buffer gives it pull over HTTP ranges.
-fn remote(uri: &str) -> String {
-    format!(
-        "souphttpsrc location={} ! queue2 ring-buffer-max-size={REMOTE_RING_BYTES}",
-        quoted(uri)
-    )
+fn remote(name: &str) -> String {
+    format!("souphttpsrc name={name} ! queue2 ring-buffer-max-size={REMOTE_RING_BYTES}")
 }
 
-fn quoted(location: &str) -> String {
-    format!("\"{}\"", location.replace('"', "\\\""))
+fn set_locations(pipeline: &gst::Pipeline, locations: &[(&str, &str)]) -> Option<()> {
+    for (name, location) in locations {
+        pipeline.by_name(name)?.set_property("location", *location);
+    }
+    Some(())
 }
 
 pub fn fetch(uri: &str) -> Result<Vec<u8>, VideoError> {
     gst::init().map_err(|error| VideoError::Init(error.to_string()))?;
     let failed = || VideoError::Open(uri.to_owned());
-    let pipeline = gst::parse::launch(&format!(
-        "souphttpsrc location={} ! appsink name=sink sync=false",
-        quoted(uri)
-    ))
-    .map_err(|_| failed())?
-    .downcast::<gst::Pipeline>()
-    .map_err(|_| failed())?;
+    let pipeline = gst::parse::launch("souphttpsrc name=src ! appsink name=sink sync=false")
+        .map_err(|_| failed())?
+        .downcast::<gst::Pipeline>()
+        .map_err(|_| failed())?;
+    set_locations(&pipeline, &[("src", uri)]).ok_or_else(failed)?;
     let sink = pipeline
         .by_name("sink")
         .and_then(|sink| sink.downcast::<gst_app::AppSink>().ok())
@@ -195,22 +219,29 @@ pub fn fetch(uri: &str) -> Result<Vec<u8>, VideoError> {
 
 impl VideoStream {
     pub fn open(path: impl AsRef<Path>, looping: bool) -> Result<Self, VideoError> {
-        let location = quoted(&path.as_ref().to_string_lossy());
+        let location = path.as_ref().to_string_lossy();
         Self::open_source(
-            &format!("filesrc location={location}"),
+            "filesrc name=src",
+            &[("src", &location)],
             looping,
             PREROLL_TIMEOUT,
         )
     }
 
     pub fn open_uri(uri: &str, looping: bool) -> Result<Self, VideoError> {
-        Self::open_source(&remote(uri), looping, REMOTE_PREROLL_TIMEOUT)
+        Self::open_source(
+            &remote("src"),
+            &[("src", uri)],
+            looping,
+            REMOTE_PREROLL_TIMEOUT,
+        )
     }
 
     pub fn open_uris(video: &str, audio: &str, looping: bool) -> Result<Self, VideoError> {
         Self::open_source(
             // No queue after queue2: a plain queue only pushes, and the audio demuxer needs pull to seek.
-            &format!("{} ! {AUDIO}  {}", remote(audio), remote(video)),
+            &format!("{} ! {AUDIO}  {}", remote("audio"), remote("src")),
+            &[("src", video), ("audio", audio)],
             looping,
             REMOTE_PREROLL_TIMEOUT,
         )
@@ -218,34 +249,39 @@ impl VideoStream {
 
     fn open_source(
         source: &str,
+        locations: &[(&str, &str)],
         looping: bool,
         preroll_timeout: Duration,
     ) -> Result<Self, VideoError> {
         gst::init().map_err(|error| VideoError::Init(error.to_string()))?;
-        let wake = redraw_handle();
         for decoding in candidates() {
-            match Self::start(source, decoding, looping, preroll_timeout, wake.clone()) {
+            match Self::start(source, locations, decoding, looping, preroll_timeout) {
                 Some(stream) => {
-                    tracing::info!(?decoding, source, "vídeo abierto");
+                    tracing::info!(?decoding, ?locations, "vídeo abierto");
+                    if let Some(wake) = redraw_handle() {
+                        let _ = stream.0.frames.wake.set(wake);
+                    }
                     return Ok(stream);
                 }
-                None => tracing::info!(?decoding, source, "vídeo: decodificador descartado"),
+                None => tracing::info!(?decoding, ?locations, "vídeo: decodificador descartado"),
             }
         }
-        Err(VideoError::Open(source.to_owned()))
+        let opened: Vec<&str> = locations.iter().map(|&(_, location)| location).collect();
+        Err(VideoError::Open(opened.join(" ")))
     }
 
     fn start(
         source: &str,
+        locations: &[(&str, &str)],
         decoding: Decoding,
         looping: bool,
         preroll_timeout: Duration,
-        wake: Option<WakeHandle>,
     ) -> Option<Self> {
         let pipeline = gst::parse::launch(&description(source, decoding))
             .ok()?
             .downcast::<gst::Pipeline>()
             .ok()?;
+        set_locations(&pipeline, locations)?;
         if let Some(demux) = pipeline.by_name("demux") {
             let weak = pipeline.downgrade();
             demux.connect_pad_added(move |_, pad| {
@@ -260,35 +296,17 @@ impl VideoStream {
             .ok()?;
         sink.set_max_buffers(2);
         sink.set_drop(true);
-        let shared = Arc::new(Shared {
-            pipeline: pipeline.clone(),
-            latest: Mutex::new(None),
-            serial: AtomicU64::new(0),
-            decoding,
-        });
-        let store = {
-            let shared = Arc::downgrade(&shared);
-            move |sample: gst::Sample| {
-                if let Some(shared) = shared.upgrade() {
-                    if let Ok(mut latest) = shared.latest.lock() {
-                        *latest = Some(sample);
-                    }
-                    shared.serial.fetch_add(1, Ordering::Release);
-                    if let Some(wake) = &wake {
-                        wake.wake();
-                    }
-                }
-            }
-        };
-        let preroll = store.clone();
+        let frames = Arc::new(Frames::default());
+        let (sample_frames, preroll_frames, bus_frames) =
+            (frames.clone(), frames.clone(), frames.clone());
         sink.set_callbacks(
             gst_app::AppSinkCallbacks::builder()
                 .new_sample(move |sink| {
-                    store(sink.pull_sample().map_err(|_| gst::FlowError::Eos)?);
+                    sample_frames.store(sink.pull_sample().map_err(|_| gst::FlowError::Eos)?);
                     Ok(gst::FlowSuccess::Ok)
                 })
                 .new_preroll(move |sink| {
-                    preroll(sink.pull_preroll().map_err(|_| gst::FlowError::Eos)?);
+                    preroll_frames.store(sink.pull_preroll().map_err(|_| gst::FlowError::Eos)?);
                     Ok(gst::FlowSuccess::Ok)
                 })
                 .build(),
@@ -307,8 +325,14 @@ impl VideoStream {
                         });
                     }
                 }
+                gst::MessageView::Eos(_) => {
+                    bus_frames.ended.store(true, Ordering::Release);
+                    bus_frames.redraw();
+                }
                 gst::MessageView::Error(error) => {
                     tracing::warn!(error = %error.error(), "vídeo: error de GStreamer");
+                    bus_frames.failed.store(true, Ordering::Release);
+                    bus_frames.redraw();
                 }
                 _ => {}
             }
@@ -318,11 +342,23 @@ impl VideoStream {
         let (result, _, _) = pipeline.state(gst::ClockTime::from_nseconds(
             preroll_timeout.as_nanos() as u64,
         ));
-        if result.is_err() || shared.latest.lock().ok()?.is_none() {
+        if result.is_err() || frames.latest.lock().ok()?.is_none() {
             let _ = pipeline.set_state(gst::State::Null);
             return None;
         }
-        Some(Self(shared))
+        Some(Self(Arc::new(Shared {
+            pipeline,
+            frames,
+            decoding,
+        })))
+    }
+
+    pub fn ended(&self) -> bool {
+        self.0.frames.ended.load(Ordering::Acquire)
+    }
+
+    pub fn failed(&self) -> bool {
+        self.0.frames.failed.load(Ordering::Acquire)
     }
 
     pub fn set_volume(&self, level: f64) {
@@ -349,6 +385,7 @@ impl VideoStream {
     }
 
     pub fn seek(&self, seconds: f64) {
+        self.0.frames.ended.store(false, Ordering::Release);
         let _ = self.0.pipeline.seek_simple(
             gst::SeekFlags::FLUSH | gst::SeekFlags::KEY_UNIT,
             gst::ClockTime::from_nseconds((seconds.max(0.0) * 1e9) as u64),
@@ -370,10 +407,34 @@ impl VideoStream {
     }
 
     fn latest(&self) -> (u64, Option<gst::Sample>) {
-        let serial = self.0.serial.load(Ordering::Acquire);
-        let sample = self.0.latest.lock().ok().and_then(|latest| latest.clone());
+        let serial = self.0.frames.serial.load(Ordering::Acquire);
+        let sample = self
+            .0
+            .frames
+            .latest
+            .lock()
+            .ok()
+            .and_then(|latest| latest.clone());
         (serial, sample)
     }
+}
+
+pub async fn open_in_background(
+    open: impl FnOnce() -> Option<VideoStream> + Send + 'static,
+) -> Option<VideoStream> {
+    let wake = redraw_handle();
+    let (sender, receiver) = futures_channel::oneshot::channel();
+    std::thread::Builder::new()
+        .name("barrier-video".into())
+        .spawn(move || {
+            let _ = sender.send(open());
+        })
+        .ok()?;
+    let stream = receiver.await.ok()??;
+    if let Some(wake) = wake {
+        let _ = stream.0.frames.wake.set(wake);
+    }
+    Some(stream)
 }
 
 type BufferKey = (u64, u64);
@@ -385,7 +446,7 @@ struct Presenter {
     previous: Option<gst::Sample>,
     image: Option<SkImage>,
     // Tuple fields drop in order: the Skia image goes before the Vulkan image it borrows.
-    imported: HashMap<BufferKey, (Option<SkImage>, Imported)>,
+    imported: Vec<(BufferKey, Option<SkImage>, Imported)>,
 }
 
 fn buffer_key(fd: BorrowedFd<'_>) -> Option<BufferKey> {
@@ -427,9 +488,9 @@ impl Presenter {
         // SAFETY: the descriptor belongs to `memory`, which `sample` keeps alive for this call.
         let fd = unsafe { BorrowedFd::borrow_raw(fd) };
         let key = buffer_key(fd)?;
-        if !self.imported.contains_key(&key) {
+        if !self.imported.iter().any(|(imported, ..)| *imported == key) {
             if self.imported.len() >= IMPORT_CACHE {
-                self.imported.clear();
+                self.imported.remove(0);
             }
             let (offsets, strides) = match buffer.meta::<gst_video::VideoMeta>() {
                 Some(meta) => (meta.offset().to_vec(), meta.stride().to_vec()),
@@ -450,9 +511,12 @@ impl Presenter {
                 info.modifier(),
                 &planes,
             )?;
-            self.imported.insert(key, (None, imported));
+            self.imported.push((key, None, imported));
         }
-        let (image, imported) = self.imported.get_mut(&key)?;
+        let (_, image, imported) = self
+            .imported
+            .iter_mut()
+            .find(|(imported, ..)| *imported == key)?;
         if image.is_none() {
             let mut context = canvas.recording_context()?;
             *image = skia_safe::gpu::images::borrow_texture_from(
