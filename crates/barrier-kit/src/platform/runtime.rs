@@ -34,6 +34,7 @@ use sctk::{
             ping::{Ping, PingSource},
             timer::{TimeoutAction, Timer},
         },
+        calloop_wayland_source::WaylandSource,
         client::{
             Connection, Proxy, QueueHandle,
             globals::registry_queue_init,
@@ -86,7 +87,6 @@ pub(crate) struct Runtime {
     pub(crate) repeat_info: Option<RepeatInfo>,
     pub(crate) repeat_generation: u64,
     pub(crate) modifiers: SctkModifiers,
-    pub(crate) loop_signal: Option<LoopSignal>,
     pub(crate) needs_exit: bool,
     pub(crate) request_redraw_all: bool,
     pub(crate) queue: Rc<RefCell<Vec<(ObjectId, UserEvent)>>>,
@@ -140,10 +140,32 @@ pub(crate) fn make_sender(
     })
 }
 
-pub(crate) fn insert_ping(
-    event_loop: &mut EventLoop<Runtime>,
-    shell: &mut Runtime,
-) -> Result<(), RunError> {
+impl Runtime {
+    pub(crate) fn run(
+        mut self,
+        conn: Connection,
+        event_queue: sctk::reexports::client::EventQueue<Self>,
+        on_signal: impl FnOnce(&mut Self, LoopSignal),
+    ) -> Result<(), RunError> {
+        let mut event_loop: EventLoop<Self> = EventLoop::try_new()
+            .map_err(|_| RunError::EventLoop("calloop EventLoop::try_new failed"))?;
+        insert_ping(&mut event_loop, &mut self)?;
+        WaylandSource::new(conn, event_queue)
+            .insert(event_loop.handle())
+            .map_err(|_| RunError::EventLoop("inserting the Wayland source"))?;
+        let signal = event_loop.get_signal();
+        on_signal(&mut self, signal.clone());
+        event_loop
+            .run(None, &mut self, |runtime| {
+                if runtime.needs_exit {
+                    signal.stop();
+                }
+            })
+            .map_err(|_| RunError::EventLoop("calloop event loop failed"))
+    }
+}
+
+fn insert_ping(event_loop: &mut EventLoop<Runtime>, shell: &mut Runtime) -> Result<(), RunError> {
     let source = shell.ping_source.take().ok_or(RunError::EventLoop(
         "the Freya ping source is already installed",
     ))?;
@@ -318,7 +340,6 @@ impl Runtime {
             repeat_info: None,
             repeat_generation: 0,
             modifiers: SctkModifiers::default(),
-            loop_signal: None,
             needs_exit: false,
             request_redraw_all: false,
             queue,

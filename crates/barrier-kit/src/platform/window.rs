@@ -4,8 +4,7 @@ use freya_core::{
 };
 use sctk::{
     reexports::{
-        calloop::{EventLoop, ping::Ping},
-        calloop_wayland_source::WaylandSource,
+        calloop::ping::Ping,
         client::{Connection, Proxy, QueueHandle, backend::ObjectId},
         protocols::xdg::shell::client::xdg_toplevel,
     },
@@ -24,7 +23,7 @@ use super::{
     RunError,
     app::AppInstance,
     popup::Popups,
-    runtime::{Connected, Runtime, WindowContext, insert_ping, make_sender},
+    runtime::{Connected, Runtime, WindowContext, make_sender},
     surface::SurfaceRole,
     timer::{PingWake, Timers, WakeHandle},
 };
@@ -376,24 +375,7 @@ pub fn run_window(app: AppComponent, options: WindowOptions) -> Result<(), RunEr
         .create_window(app, options)
         .ok_or(RunError::MissingGlobal("xdg_wm_base"))?;
 
-    let mut event_loop: EventLoop<Runtime> = EventLoop::try_new()
-        .map_err(|_| RunError::EventLoop("calloop EventLoop::try_new failed"))?;
-    insert_ping(&mut event_loop, &mut shell)?;
-    WaylandSource::new(conn, event_queue)
-        .insert(event_loop.handle())
-        .map_err(|_| RunError::EventLoop("inserting the Wayland source"))?;
-    let signal = event_loop.get_signal();
-    shell.loop_signal = Some(signal);
-    event_loop
-        .run(None, &mut shell, |shell| {
-            if shell.needs_exit
-                && let Some(signal) = &shell.loop_signal
-            {
-                signal.stop();
-            }
-        })
-        .map_err(|_| RunError::EventLoop("calloop event loop failed"))?;
-    Ok(())
+    shell.run(conn, event_queue, |_, _| {})
 }
 impl Runtime {
     pub(super) fn create_window(

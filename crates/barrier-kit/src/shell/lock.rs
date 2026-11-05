@@ -1,11 +1,7 @@
 use freya_core::integration::AppComponent;
 use sctk::{
     delegate_session_lock,
-    reexports::{
-        calloop::EventLoop,
-        calloop_wayland_source::WaylandSource,
-        client::{Connection, Proxy, QueueHandle, protocol::wl_output},
-    },
+    reexports::client::{Connection, Proxy, QueueHandle, protocol::wl_output},
     session_lock::{
         SessionLock, SessionLockHandler, SessionLockSurface, SessionLockSurfaceConfigure,
     },
@@ -15,7 +11,7 @@ use std::{cell::Cell, rc::Rc, sync::Arc};
 use crate::platform::{
     Popups, RunError,
     app::AppInstance,
-    runtime::{Connected, Runtime, insert_ping, make_sender},
+    runtime::{Connected, Runtime, make_sender},
     surface::{ExtensionRole, SurfaceRole},
     timer::{PingWake, Timers},
 };
@@ -62,20 +58,12 @@ pub fn run_lock(app: AppComponent) -> Result<(), RunError> {
         .expect("ShellState not installed after install")
         .active_lock = Some(lock);
 
-    let mut event_loop: EventLoop<Runtime> = EventLoop::try_new()
-        .map_err(|_| RunError::EventLoop("calloop EventLoop::try_new failed"))?;
-    insert_ping(&mut event_loop, &mut runtime)?;
     let unlock_conn = conn.clone();
-    WaylandSource::new(conn, event_queue)
-        .insert(event_loop.handle())
-        .map_err(|_| RunError::EventLoop("inserting the Wayland source"))?;
-    let signal = event_loop.get_signal();
-    runtime.loop_signal = Some(signal.clone());
-    {
-        let shell = runtime
+    runtime.run(conn, event_queue, move |runtime, signal| {
+        runtime
             .extension_mut::<ShellState>()
-            .expect("ShellState not installed");
-        shell.session_unlock = Some(SessionUnlock {
+            .expect("ShellState not installed")
+            .session_unlock = Some(SessionUnlock {
             unlock: Rc::new(move || {
                 unlock_lock.unlock();
                 // ext-session-lock-v1: wait for unlock_and_destroy to be processed before exiting.
@@ -83,21 +71,11 @@ pub fn run_lock(app: AppComponent) -> Result<(), RunError> {
                 signal.stop();
             }),
         });
-    }
-    let outputs: Vec<wl_output::WlOutput> = runtime.output.outputs().collect();
-    for output in outputs {
-        runtime.create_lock_surface(&qh, &output);
-    }
-    event_loop
-        .run(None, &mut runtime, |runtime| {
-            if runtime.needs_exit
-                && let Some(signal) = &runtime.loop_signal
-            {
-                signal.stop();
-            }
-        })
-        .map_err(|_| RunError::EventLoop("calloop event loop failed"))?;
-    Ok(())
+        let outputs: Vec<wl_output::WlOutput> = runtime.output.outputs().collect();
+        for output in outputs {
+            runtime.create_lock_surface(&qh, &output);
+        }
+    })
 }
 
 impl Runtime {

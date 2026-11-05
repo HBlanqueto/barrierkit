@@ -1,8 +1,6 @@
 use freya_core::integration::AppComponent;
 use sctk::{
     reexports::{
-        calloop::EventLoop,
-        calloop_wayland_source::WaylandSource,
         client::{Connection, Proxy, QueueHandle, delegate_dispatch},
         protocols::xdg::shell::client::xdg_popup::XdgPopup,
         protocols_wlr::layer_shell::v1::client::{zwlr_layer_shell_v1, zwlr_layer_surface_v1},
@@ -18,7 +16,7 @@ use std::{cell::Cell, rc::Rc, sync::Arc};
 use crate::platform::{
     Popups, RunError,
     app::AppInstance,
-    runtime::{Connected, Runtime, insert_ping, make_sender},
+    runtime::{Connected, Runtime, make_sender},
     surface::{ExtensionRole, SurfaceRole},
     timer::{PingWake, Timers},
 };
@@ -198,24 +196,7 @@ pub fn run_layer(app: AppComponent, spec: LayerSpec) -> Result<(), RunError> {
     window.logical_size = size.unwrap_or((0, 0));
     shell.surfaces.push(window);
 
-    let mut event_loop: EventLoop<Runtime> = EventLoop::try_new()
-        .map_err(|_| RunError::EventLoop("calloop EventLoop::try_new failed"))?;
-    insert_ping(&mut event_loop, &mut shell)?;
-    WaylandSource::new(conn, event_queue)
-        .insert(event_loop.handle())
-        .map_err(|_| RunError::EventLoop("inserting the Wayland source"))?;
-    let signal = event_loop.get_signal();
-    shell.loop_signal = Some(signal.clone());
-    event_loop
-        .run(None, &mut shell, |shell| {
-            if shell.needs_exit
-                && let Some(signal) = &shell.loop_signal
-            {
-                signal.stop();
-            }
-        })
-        .map_err(|_| RunError::EventLoop("calloop event loop failed"))?;
-    Ok(())
+    shell.run(conn, event_queue, |_, _| {})
 }
 
 impl LayerShellHandler for Runtime {
