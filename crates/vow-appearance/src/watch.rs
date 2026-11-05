@@ -1,11 +1,11 @@
 //! Single inotify watcher for the configuration and data directories.
 
 use std::io;
-use std::os::fd::{AsFd, AsRawFd, RawFd};
+use std::os::fd::AsFd;
 use std::os::unix::ffi::OsStrExt;
 use std::path::PathBuf;
 
-use nix::sys::inotify::{AddWatchFlags, InitFlags, Inotify, InotifyEvent};
+use nix::sys::inotify::{AddWatchFlags, InitFlags, Inotify, InotifyEvent, WatchDescriptor};
 
 use crate::{config_dir, data_dir};
 
@@ -14,19 +14,20 @@ pub enum AppearanceEvent {
     Appearance,
     Wallpaper,
     WallpaperSelection,
-    Accent,
     Defaults,
 }
 
 impl AppearanceEvent {
     pub fn restyles(self) -> bool {
-        matches!(self, Self::Appearance | Self::Accent | Self::Wallpaper)
+        matches!(self, Self::Appearance | Self::Wallpaper)
     }
 }
 
 #[derive(Debug)]
 pub struct AppearanceWatch {
     inotify: Inotify,
+    config: WatchDescriptor,
+    data: WatchDescriptor,
 }
 
 impl AppearanceWatch {
@@ -37,15 +38,20 @@ impl AppearanceWatch {
     pub fn new_for(config_dir: PathBuf, data_dir: PathBuf) -> io::Result<Self> {
         std::fs::create_dir_all(&config_dir)?;
         std::fs::create_dir_all(&data_dir)?;
-        let inotify = Inotify::init(InitFlags::IN_NONBLOCK).map_err(into_io_error)?;
-        inotify
+        let inotify =
+            Inotify::init(InitFlags::IN_NONBLOCK | InitFlags::IN_CLOEXEC).map_err(into_io_error)?;
+        let config = inotify
             .add_watch(&config_dir, Self::flags())
             .map_err(into_io_error)?;
-        inotify
+        let data = inotify
             .add_watch(&data_dir, Self::flags())
             .map_err(into_io_error)?;
 
-        Ok(Self { inotify })
+        Ok(Self {
+            inotify,
+            config,
+            data,
+        })
     }
 
     fn flags() -> AddWatchFlags {
@@ -61,7 +67,7 @@ impl AppearanceWatch {
                         break;
                     }
                     for event in batch {
-                        Self::classify(&event, &mut events);
+                        self.classify(&event, &mut events);
                     }
                 }
                 Err(nix::Error::EAGAIN) => break,
@@ -71,33 +77,40 @@ impl AppearanceWatch {
         Ok(events)
     }
 
-    fn classify(event: &InotifyEvent, out: &mut Vec<AppearanceEvent>) {
+    fn classify(&self, event: &InotifyEvent, out: &mut Vec<AppearanceEvent>) {
+        if event.mask.contains(AddWatchFlags::IN_Q_OVERFLOW) {
+            for lost in [
+                AppearanceEvent::Appearance,
+                AppearanceEvent::Wallpaper,
+                AppearanceEvent::WallpaperSelection,
+                AppearanceEvent::Defaults,
+            ] {
+                push_unique(out, lost);
+            }
+            return;
+        }
         let Some(name) = event.name.as_deref() else {
             return;
         };
-        let name_bytes = name.as_bytes();
-        if name_bytes == b"appearance.domain" {
-            push_unique(out, AppearanceEvent::Appearance);
-            push_unique(out, AppearanceEvent::Accent);
-        } else if name_bytes == b"wallpaper.domain" {
-            push_unique(out, AppearanceEvent::WallpaperSelection);
-        } else if name_bytes == b"wallpaper.state" {
-            push_unique(out, AppearanceEvent::Wallpaper);
-        } else if name_bytes.ends_with(b".domain") {
-            push_unique(out, AppearanceEvent::Defaults);
-        }
+        let (name, in_config, in_data) = (
+            name.as_bytes(),
+            event.wd == self.config,
+            event.wd == self.data,
+        );
+        let kind = match name {
+            b"appearance.domain" if in_config => AppearanceEvent::Appearance,
+            b"wallpaper.domain" if in_data => AppearanceEvent::WallpaperSelection,
+            b"wallpaper.state" if in_data => AppearanceEvent::Wallpaper,
+            _ if in_config && name.ends_with(b".domain") => AppearanceEvent::Defaults,
+            _ => return,
+        };
+        push_unique(out, kind);
     }
 }
 
 impl AsFd for AppearanceWatch {
     fn as_fd(&self) -> std::os::fd::BorrowedFd<'_> {
         self.inotify.as_fd()
-    }
-}
-
-impl AsRawFd for AppearanceWatch {
-    fn as_raw_fd(&self) -> RawFd {
-        self.inotify.as_fd().as_raw_fd()
     }
 }
 
@@ -116,9 +129,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn only_appearance_accent_and_wallpaper_changes_restyle_the_desktop() {
+    fn only_appearance_and_wallpaper_changes_restyle_the_desktop() {
         assert!(AppearanceEvent::Appearance.restyles());
-        assert!(AppearanceEvent::Accent.restyles());
         assert!(AppearanceEvent::Wallpaper.restyles());
         assert!(!AppearanceEvent::Defaults.restyles());
         assert!(!AppearanceEvent::WallpaperSelection.restyles());
@@ -227,6 +239,25 @@ mod tests {
             std::thread::sleep(Duration::from_millis(5));
         }
         assert!(found, "an app domain change was not detected");
+    }
+
+    #[test]
+    fn a_domain_in_the_data_dir_is_not_reported_as_defaults() {
+        let (config_dir, data_dir) = tmp_dirs();
+        let watch = AppearanceWatch::new_for(config_dir, data_dir.clone()).unwrap();
+        write(&data_dir.join("window.domain"), "title = \"Terminal\"\n");
+        write(
+            &data_dir.join("wallpaper.state"),
+            "dominant = [0.8, 0.2, 0.1]\n",
+        );
+
+        let deadline = Instant::now() + Duration::from_secs(2);
+        let mut events = Vec::new();
+        while Instant::now() < deadline && !events.contains(&AppearanceEvent::Wallpaper) {
+            events.extend(watch.drain().unwrap());
+            std::thread::sleep(Duration::from_millis(5));
+        }
+        assert_eq!(events, [AppearanceEvent::Wallpaper]);
     }
 
     #[test]
