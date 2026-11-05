@@ -61,10 +61,6 @@ pub fn run_lock(app: AppComponent) -> Result<(), RunError> {
         .extension_mut::<ShellState>()
         .expect("ShellState not installed after install")
         .active_lock = Some(lock);
-    let outputs: Vec<wl_output::WlOutput> = runtime.output.outputs().collect();
-    for output in outputs {
-        runtime.create_lock_surface(&qh, &output);
-    }
 
     let mut event_loop: EventLoop<Runtime> = EventLoop::try_new()
         .map_err(|_| RunError::EventLoop("calloop EventLoop::try_new failed"))?;
@@ -87,6 +83,10 @@ pub fn run_lock(app: AppComponent) -> Result<(), RunError> {
                 signal.stop();
             }),
         });
+    }
+    let outputs: Vec<wl_output::WlOutput> = runtime.output.outputs().collect();
+    for output in outputs {
+        runtime.create_lock_surface(&qh, &output);
     }
     event_loop
         .run(None, &mut runtime, |runtime| {
