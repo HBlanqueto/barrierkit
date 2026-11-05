@@ -1,4 +1,5 @@
 mod albums;
+mod localize;
 mod views;
 
 use std::rc::Rc;
@@ -22,6 +23,7 @@ use torin::prelude::{Content, Gaps, Size};
 use vow_design::{ACCENT_SWATCHES, Rgba, WINDOW_MIN_SIZE};
 
 use albums::{Album, library};
+use localize::tr;
 
 const TICK: Duration = Duration::from_millis(500);
 
@@ -31,9 +33,11 @@ const STUDIO: [Rgba; 3] = [
     Rgba::rgb8(138, 63, 110),
 ];
 
-pub const PRESETS: [(&str, [Rgba; 3]); 3] = [
+type Title = fn() -> &'static str;
+
+pub const PRESETS: [(Title, [Rgba; 3]); 3] = [
     (
-        "Atardecer",
+        || tr!("preset-sunset"),
         [
             Rgba::rgb8(122, 59, 94),
             Rgba::rgb8(45, 110, 106),
@@ -41,7 +45,7 @@ pub const PRESETS: [(&str, [Rgba; 3]); 3] = [
         ],
     ),
     (
-        "Bosque",
+        || tr!("preset-forest"),
         [
             Rgba::rgb8(30, 77, 43),
             Rgba::rgb8(120, 160, 90),
@@ -49,7 +53,7 @@ pub const PRESETS: [(&str, [Rgba; 3]); 3] = [
         ],
     ),
     (
-        "Medianoche",
+        || tr!("preset-midnight"),
         [
             Rgba::rgb8(20, 33, 61),
             Rgba::rgb8(58, 79, 122),
@@ -71,10 +75,10 @@ impl Tab {
 
     pub fn title(self) -> &'static str {
         match self {
-            Self::Now => "Escuchando",
-            Self::Library => "Biblioteca",
-            Self::Mix => "Mezcla",
-            Self::Look => "Apariencia",
+            Self::Now => tr!("tab-now"),
+            Self::Library => tr!("tab-library"),
+            Self::Mix => tr!("tab-mix"),
+            Self::Look => tr!("tab-look"),
         }
     }
 
@@ -177,26 +181,30 @@ impl Mood {
     }
 }
 
-const PLAY_PAUSE: Action = Action::new("play-pause", || "Reproducir o pausar")
+const PLAY_PAUSE: Action = Action::new("play-pause", || tr!("play-pause"))
     .shortcut(Shortcut::ctrl(ShortcutKey::Char('p')));
 const NEXT: Action =
-    Action::new("next", || "Siguiente").shortcut(Shortcut::ctrl(ShortcutKey::Right));
+    Action::new("next", || tr!("next")).shortcut(Shortcut::ctrl(ShortcutKey::Right));
 const PREVIOUS: Action =
-    Action::new("previous", || "Anterior").shortcut(Shortcut::ctrl(ShortcutKey::Left));
+    Action::new("previous", || tr!("previous")).shortcut(Shortcut::ctrl(ShortcutKey::Left));
 const VIEWS: [Action; 4] = [
-    Action::new("tab-now", || "Escuchando").shortcut(Shortcut::ctrl(ShortcutKey::Char('1'))),
-    Action::new("tab-library", || "Biblioteca").shortcut(Shortcut::ctrl(ShortcutKey::Char('2'))),
-    Action::new("tab-mix", || "Mezcla").shortcut(Shortcut::ctrl(ShortcutKey::Char('3'))),
-    Action::new("tab-look", || "Apariencia").shortcut(Shortcut::ctrl(ShortcutKey::Char('4'))),
+    Action::new("tab-now", || tr!("tab-now")).shortcut(Shortcut::ctrl(ShortcutKey::Char('1'))),
+    Action::new("tab-library", || tr!("tab-library"))
+        .shortcut(Shortcut::ctrl(ShortcutKey::Char('2'))),
+    Action::new("tab-mix", || tr!("tab-mix")).shortcut(Shortcut::ctrl(ShortcutKey::Char('3'))),
+    Action::new("tab-look", || tr!("tab-look")).shortcut(Shortcut::ctrl(ShortcutKey::Char('4'))),
 ];
 
 fn menu() -> AppMenu {
     AppMenu::new(vec![
         Menu::new(
-            "Controles",
+            tr!("menu-controls"),
             vec![PLAY_PAUSE.item(true), NEXT.item(true), PREVIOUS.item(true)],
         ),
-        Menu::new("Ver", VIEWS.iter().map(|view| view.item(true)).collect()),
+        Menu::new(
+            tr!("menu-view"),
+            VIEWS.iter().map(|view| view.item(true)).collect(),
+        ),
     ])
 }
 
@@ -301,7 +309,7 @@ impl Component for Window {
         }
         if breakpoint != Breakpoint::Wide {
             titlebar = titlebar.right(
-                IconButton::new(Symbol::ListBullet, "Cola")
+                IconButton::new(Symbol::ListBullet, tr!("queue"))
                     .on_press(move |_| queue_open.set(!*queue_open.peek())),
             );
         }
@@ -309,7 +317,7 @@ impl Component for Window {
             Tab::ALL
                 .iter()
                 .fold(
-                    TabView::new("Secciones")
+                    TabView::new(tr!("sections"))
                         .selected(Tab::ALL.iter().position(|t| *t == current).unwrap_or(0))
                         .on_change(move |index| {
                             let mut tab = tab;
@@ -378,6 +386,7 @@ fn schedule(timers: Timers, player: Player) {
 }
 
 fn main() {
+    barrier_kit::i18n::use_app_language("ondina");
     barrier_kit::init_tracing();
     let instance = match launch(&barrier_kit::titlebar::app_id("ondina")) {
         Ok(Launch::Forwarded) => return,
@@ -432,7 +441,7 @@ mod tests {
             "the medium window hides the queue"
         );
         assert!(
-            medium.iter().any(|l| l == "Cola"),
+            medium.iter().any(|l| l == tr!("queue")),
             "the medium window offers a queue button"
         );
         assert_eq!(

@@ -3,6 +3,7 @@ use barrier_kit::choices::{ChoiceCards, ColorWell, RadioGroup};
 use barrier_kit::compact::IconButton;
 use barrier_kit::controls::{Button, Checkbox, SegmentedControl, Slider, Switch};
 use barrier_kit::level::LevelSlider;
+use barrier_kit::patterns::language::app_language_row;
 use barrier_kit::progress::ProgressBar;
 use barrier_kit::sidebar::SidebarBackdrop;
 use barrier_kit::style::{Palette, text};
@@ -18,6 +19,7 @@ use vow_design::{
 };
 
 use crate::albums::Album;
+use crate::localize::tr;
 use crate::{Background, Mood, PRESETS, Player};
 
 const WAVE_WIDTH: f32 = 380.0;
@@ -85,7 +87,7 @@ pub fn now_playing(albums: &[Album], player: Player, tint: Tint) -> Element {
         )
         .child(
             rect().width(Size::px(WAVE_WIDTH)).child(
-                LevelSlider::new("Posición")
+                LevelSlider::new(tr!("position"))
                     .value(position)
                     .tint(tint)
                     .on_change(move |at| seek.set(at)),
@@ -115,7 +117,7 @@ pub fn now_playing(albums: &[Album], player: Player, tint: Tint) -> Element {
                 .child(round(
                     40.0,
                     palette.control_background,
-                    IconButton::new(Symbol::Backward, "Anterior")
+                    IconButton::new(Symbol::Backward, tr!("previous"))
                         .on_press(move |_| player.skip(-1)),
                 ))
                 .child(round(
@@ -123,14 +125,14 @@ pub fn now_playing(albums: &[Album], player: Player, tint: Tint) -> Element {
                     palette.control_hover,
                     IconButton::new(
                         if playing { Symbol::Pause } else { Symbol::Play },
-                        if playing { "Pausar" } else { "Reproducir" },
+                        if playing { tr!("pause") } else { tr!("play") },
                     )
                     .on_press(move |_| player.toggle()),
                 ))
                 .child(round(
                     40.0,
                     palette.control_background,
-                    IconButton::new(Symbol::Forward, "Siguiente").on_press(move |_| player.skip(1)),
+                    IconButton::new(Symbol::Forward, tr!("next")).on_press(move |_| player.skip(1)),
                 )),
         )
         .child(
@@ -141,7 +143,7 @@ pub fn now_playing(albums: &[Album], player: Player, tint: Tint) -> Element {
                 .spacing(SPACE_2)
                 .child(symbol(Symbol::SpeakerWave, 16.0, palette.secondary_label))
                 .child(
-                    LevelSlider::new("Volumen")
+                    LevelSlider::new(tr!("volume"))
                         .value(*player.volume.read())
                         .tint(tint)
                         .on_change(move |v| volume.set(v)),
@@ -201,12 +203,8 @@ pub fn library(albums: &[Album], player: Player) -> Element {
         .width(Size::fill())
         .padding(Gaps::new(SPACE_2, SPACE_4, SPACE_4, SPACE_4))
         .spacing(SPACE_3)
-        .child(text("Biblioteca", TITLE_2, palette.label))
-        .child(text(
-            "El fondo sigue al disco que elijas.",
-            TEXT,
-            palette.secondary_label,
-        ))
+        .child(text(tr!("tab-library"), TITLE_2, palette.label))
+        .child(text(tr!("library-hint"), TEXT, palette.secondary_label))
         .child(
             rect()
                 .width(Size::fill())
@@ -229,26 +227,26 @@ pub fn mixer(mood: Mood, album: &Album) -> Element {
         mood.export,
     );
     let bands = ["32 Hz", "250 Hz", "1 kHz", "4 kHz", "16 kHz"];
-    let mut colour = Section::titled("Color de los controles").row(
-        Row::new("Relleno").control(
-            SegmentedControl::new("Relleno")
-                .segment("Acento")
-                .segment("Gradiente del fondo")
-                .segment("Propio")
+    let mut colour = Section::titled(tr!("control-color")).row(
+        Row::new(tr!("fill")).control(
+            SegmentedControl::new(tr!("fill"))
+                .segment(tr!("accent"))
+                .segment(tr!("backdrop-gradient"))
+                .segment(tr!("custom"))
                 .selected(*controls.read())
                 .on_change(move |i| controls.set(i)),
         ),
     );
     if *controls.read() == 2 {
         colour = colour.row(
-            Row::new("Color").control(
-                ColorWell::new("Color propio de los controles", &ACCENT_SWATCHES)
+            Row::new(tr!("color")).control(
+                ColorWell::new(tr!("custom-control-color"), &ACCENT_SWATCHES)
                     .selected(Some(*own.read()))
                     .on_change(move |i| own.set(i)),
             ),
         );
     }
-    let mut equaliser = Section::titled("Ecualizador");
+    let mut equaliser = Section::titled(tr!("equalizer"));
     for (index, band) in bands.iter().enumerate() {
         equaliser = equaliser.row(
             Row::new(band).control(
@@ -278,19 +276,16 @@ pub fn mixer(mood: Mood, album: &Album) -> Element {
         .section(colour)
         .section(equaliser)
         .section(
-            Section::titled("Reproducción")
+            Section::titled(tr!("playback"))
                 .row(
-                    Row::new("Normalizar volumen")
-                        .detail("Mismo nivel entre discos.")
-                        .control(switch(0, "Normalizar volumen")),
+                    Row::new(tr!("normalize-volume"))
+                        .detail(tr!("normalize-volume-detail"))
+                        .control(switch(0, tr!("normalize-volume"))),
                 )
+                .row(Row::new(tr!("crossfade")).control(switch(1, tr!("crossfade"))))
+                .row(Row::new(tr!("gapless")).control(switch(2, tr!("gapless"))))
                 .row(
-                    Row::new("Fundido entre canciones")
-                        .control(switch(1, "Fundido entre canciones")),
-                )
-                .row(Row::new("Sin silencios").control(switch(2, "Sin silencios")))
-                .row(
-                    Row::new("Graves").control(
+                    Row::new(tr!("bass")).control(
                         rect()
                             .width(Size::px(200.0))
                             .child(Slider::stepped(5).value(2).tint(tint)),
@@ -298,23 +293,23 @@ pub fn mixer(mood: Mood, album: &Album) -> Element {
                 ),
         )
         .section(
-            Section::titled("Calidad")
+            Section::titled(tr!("quality"))
                 .row(
-                    Row::new("Transmisión").control(
-                        RadioGroup::new("Calidad")
-                            .option("Ahorro")
-                            .option("Alta")
-                            .option("Sin pérdida")
+                    Row::new(tr!("streaming")).control(
+                        RadioGroup::new(tr!("quality"))
+                            .option(tr!("quality-saver"))
+                            .option(tr!("quality-high"))
+                            .option(tr!("quality-lossless"))
                             .selected(*quality.read())
                             .tint(tint)
                             .on_change(move |i| quality.set(i)),
                     ),
                 )
-                .row(Row::new("Letras sincronizadas").control(check(0, "Letras sincronizadas")))
-                .row(Row::new("Enviar escuchas").control(check(1, "Enviar escuchas"))),
+                .row(Row::new(tr!("synced-lyrics")).control(check(0, tr!("synced-lyrics"))))
+                .row(Row::new(tr!("share-listening")).control(check(1, tr!("share-listening")))),
         )
         .section(
-            Section::titled("Exportación")
+            Section::titled(tr!("export"))
                 .row(
                     Row::new(album.title).control(
                         rect()
@@ -325,7 +320,7 @@ pub fn mixer(mood: Mood, album: &Album) -> Element {
                             .content(Content::flex())
                             .child(
                                 rect().width(Size::flex(1.0)).child(
-                                    ProgressBar::determinate("Exportación", done).tint(tint),
+                                    ProgressBar::determinate(tr!("export"), done).tint(tint),
                                 ),
                             )
                             .child(text(
@@ -336,7 +331,7 @@ pub fn mixer(mood: Mood, album: &Album) -> Element {
                     ),
                 )
                 .row(
-                    Row::new("Siguiente pista").control(Button::new("Avanzar").on_press(
+                    Row::new(tr!("next-track")).control(Button::new(tr!("advance")).on_press(
                         move |_| {
                             export.set(if done >= 1.0 {
                                 0.0
@@ -358,55 +353,55 @@ pub fn appearance(mood: Mood) -> Element {
         mood.own_accent,
         mood.sidebar,
     );
-    let mut fondo = Section::titled("Fondo").row(
-        Row::new("Origen")
-            .detail("Mezcla conserva siempre el suyo.")
+    let mut fondo = Section::titled(tr!("background")).row(
+        Row::new(tr!("source"))
+            .detail(tr!("source-detail"))
             .control(
-                SegmentedControl::new("Origen del fondo")
-                    .segment("Portada")
-                    .segment("Paleta")
-                    .segment("Sin tinte")
+                SegmentedControl::new(tr!("background-source"))
+                    .segment(tr!("cover"))
+                    .segment(tr!("palette"))
+                    .segment(tr!("no-tint"))
                     .selected(background.read().index())
                     .on_change(move |i| background.set(Background::from_index(i))),
             ),
     );
     if *background.read() == Background::Palette {
-        let mut cards = ChoiceCards::new("Paleta del fondo")
+        let mut cards = ChoiceCards::new(tr!("background-palette"))
             .selected(*preset.read())
             .on_change(move |i| preset.set(i));
         for (name, colours) in PRESETS {
-            cards = cards.option(name, swatch(colours));
+            cards = cards.option(name(), swatch(colours));
         }
-        fondo = fondo.row(Row::new("Paleta").control(cards));
+        fondo = fondo.row(Row::new(tr!("palette")).control(cards));
     }
-    let mut acento = Section::titled("Acento").row(
-        Row::new("Color de acento")
-            .detail("Del sistema, sacado del fondo o elegido aquí.")
+    let mut acento = Section::titled(tr!("accent")).row(
+        Row::new(tr!("accent-color"))
+            .detail(tr!("accent-detail"))
             .control(
-                SegmentedControl::new("Acento")
-                    .segment("Sistema")
-                    .segment("Del fondo")
-                    .segment("Propio")
+                SegmentedControl::new(tr!("accent"))
+                    .segment(tr!("system"))
+                    .segment(tr!("from-background"))
+                    .segment(tr!("custom"))
                     .selected(*accent.read())
                     .on_change(move |i| accent.set(i)),
             ),
     );
     if *accent.read() == 2 {
         acento = acento.row(
-            Row::new("Color").control(
-                ColorWell::new("Acento propio", &ACCENT_SWATCHES)
+            Row::new(tr!("color")).control(
+                ColorWell::new(tr!("custom-accent"), &ACCENT_SWATCHES)
                     .selected(Some(*own.read()))
                     .on_change(move |i| own.set(i)),
             ),
         );
     }
-    let barra = Section::titled("Barra lateral").row(
-        Row::new("Isla")
-            .detail("La barra plana siempre deja ver el fondo.")
+    let barra = Section::titled(tr!("sidebar")).row(
+        Row::new(tr!("island"))
+            .detail(tr!("island-detail"))
             .control(
-                SegmentedControl::new("Isla de la barra lateral")
-                    .segment("Transparente")
-                    .segment("Tintada")
+                SegmentedControl::new(tr!("sidebar-island"))
+                    .segment(tr!("transparent"))
+                    .segment(tr!("tinted"))
                     .selected((*sidebar.read() == SidebarBackdrop::Tinted) as usize)
                     .on_change(move |i| {
                         sidebar.set(if i == 1 {
@@ -418,6 +413,7 @@ pub fn appearance(mood: Mood) -> Element {
             ),
     );
     Form::new()
+        .section(Section::new().row(app_language_row("ondina")))
         .section(fondo)
         .section(acento)
         .section(barra)
@@ -514,13 +510,13 @@ pub fn queue(albums: &[Album], player: Player, beside_titlebar: bool) -> Element
                         .padding(Gaps::new(padding_top, 8.0, 0.0, 8.0))
                 })
                 .content(Content::flex())
-                .child(
-                    rect()
-                        .width(Size::flex(1.0))
-                        .child(text("Cola", HEADLINE, palette.label)),
-                )
+                .child(rect().width(Size::flex(1.0)).child(text(
+                    tr!("queue"),
+                    HEADLINE,
+                    palette.label,
+                )))
                 .child(text(
-                    format!("{minutes} min restantes"),
+                    tr!("minutes-left", minutes = minutes),
                     CAPTION,
                     palette.secondary_label,
                 )),
