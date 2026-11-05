@@ -400,7 +400,7 @@ impl Component for Slider {
         let palette = Palette::current();
         let interaction = use_interaction();
         let value = crate::controlled::use_controlled(&self.value);
-        let dragging = use_state(|| false);
+        let mut left = use_state(|| 0.0f32);
         let on_change = self.on_change.clone();
 
         let width = SETTINGS.strength.width as f32;
@@ -445,25 +445,15 @@ impl Component for Slider {
 
         if !self.disabled {
             let mut update_mouse = update.clone();
-            let mut dragging_mouse = dragging;
             root = root.on_mouse_down(move |event: Event<MouseEventData>| {
-                dragging_mouse.set(true);
-                let new_value = set_from_x(event.element_location.x as f32);
-                update_mouse(new_value);
+                left.set((event.global_location.x - event.element_location.x) as f32);
+                update_mouse(set_from_x(event.element_location.x as f32));
             });
             let mut update_move = update.clone();
-            root = root.on_pointer_move(move |event: Event<PointerEventData>| {
-                if *dragging.read() {
-                    let new_value = set_from_x(event.element_location().x as f32);
-                    update_move(new_value);
+            root = root.on_global_pointer_move(move |event: Event<PointerEventData>| {
+                if interaction.held() {
+                    update_move(set_from_x(event.global_location().x as f32 - *left.peek()));
                 }
-            });
-            let mut dragging_up = dragging;
-            root = root.on_mouse_up(move |_: Event<MouseEventData>| {
-                dragging_up.set(false);
-            });
-            root = root.on_pointer_leave(move |_: Event<PointerEventData>| {
-                dragging_up.set(false);
             });
             let mut update_key = update.clone();
             root = root.on_key_down(move |event: Event<KeyboardEventData>| match event.key {

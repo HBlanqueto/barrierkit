@@ -2,7 +2,6 @@
 
 use freya_components::svg_viewer::SvgViewer;
 use freya_core::prelude::*;
-use keyboard_types::{Key, NamedKey};
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 use vow_appearance::{SidebarStyle, SidebarSurface};
 use vow_design::{
@@ -661,30 +660,11 @@ impl Component for SidebarSection {
         let on_toggle = self.on_toggle.clone();
         let toggle = {
             let mut expanded = expanded;
-            move |event: Event<PointerEventData>| {
-                if !event.is_primary() {
-                    return;
-                }
+            move |_| {
                 let new = !*expanded.read();
                 expanded.set(new);
                 if let Some(cb) = &on_toggle {
                     cb.call(new);
-                }
-            }
-        };
-
-        let on_toggle = self.on_toggle.clone();
-        let on_key = {
-            let mut expanded = expanded;
-            move |event: Event<KeyboardEventData>| {
-                let toggles = matches!(event.key, Key::Named(NamedKey::Enter))
-                    || matches!(event.key, Key::Character(ref s) if s == " ");
-                if toggles {
-                    let new = !*expanded.read();
-                    expanded.set(new);
-                    if let Some(cb) = &on_toggle {
-                        cb.call(new);
-                    }
                 }
             }
         };
@@ -718,8 +698,7 @@ impl Component for SidebarSection {
                     .a11y_builder(move |node| {
                         node.set_expanded(*expanded.read());
                     })
-                    .on_pointer_down(toggle)
-                    .on_key_down(on_key)
+                    .on_press(toggle)
                     .child(
                         label()
                             .text(self.title.clone())

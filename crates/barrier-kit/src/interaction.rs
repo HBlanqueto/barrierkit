@@ -28,6 +28,10 @@ impl Interaction {
     }
 
     pub fn pressed(&self) -> bool {
+        self.held() && self.hovered()
+    }
+
+    pub fn held(&self) -> bool {
         *self.pressed.read()
     }
 
@@ -43,10 +47,7 @@ impl Interaction {
             .a11y_id(self.a11y_id)
             .a11y_focusable(enabled)
             .on_pointer_enter(move |_| hovered.set(true))
-            .on_pointer_leave(move |_| {
-                hovered.set(false);
-                pressed.set_if_modified(false);
-            })
+            .on_pointer_leave(move |_| hovered.set(false))
             .maybe(enabled, |el| {
                 el.on_pointer_down(move |_| {
                     pressed.set(true);

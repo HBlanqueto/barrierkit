@@ -85,7 +85,7 @@ impl Component for LevelSlider {
         let interaction = use_interaction();
         let value = crate::controlled::use_controlled(&self.value);
         let mut width = use_state(|| 0.0f32);
-        let mut dragging = use_state(|| false);
+        let mut left = use_state(|| 0.0f64);
         let enabled = !self.disabled;
         let style = self.style;
         let fraction = *value.read();
@@ -125,15 +125,14 @@ impl Component for LevelSlider {
             })
             .maybe(enabled, |el| {
                 el.on_mouse_down(move |event: Event<MouseEventData>| {
-                    dragging.set(true);
+                    left.set(event.global_location.x - event.element_location.x);
                     set_down(from_x(event.element_location.x));
                 })
-                .on_pointer_move(move |event: Event<PointerEventData>| {
-                    if *dragging.read() {
-                        set_move(from_x(event.element_location().x));
+                .on_global_pointer_move(move |event: Event<PointerEventData>| {
+                    if interaction.held() {
+                        set_move(from_x(event.global_location().x - *left.peek()));
                     }
                 })
-                .on_global_pointer_press(move |_| dragging.set_if_modified(false))
                 .on_key_down(move |event: Event<KeyboardEventData>| {
                     let step = match event.key {
                         Key::Named(NamedKey::ArrowLeft | NamedKey::ArrowDown) => -SLIDER_KEY_STEP,

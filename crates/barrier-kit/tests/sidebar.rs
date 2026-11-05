@@ -393,7 +393,7 @@ impl App for ToggleApp {
 }
 
 #[test]
-fn sidebar_section_toggles_on_mouse_down() {
+fn sidebar_section_toggles_once_per_click() {
     let app = AppComponent::new(ToggleApp);
     let (mut test, expanded) = TestingRunner::new(
         app,
@@ -404,12 +404,12 @@ fn sidebar_section_toggles_on_mouse_down() {
     test.sync_and_update();
     test.move_cursor((5.0, 15.0));
     test.press_cursor((5.0, 15.0));
-    assert!(!(*expanded.peek()), "mouse down must collapse the section");
-    test.release_cursor((5.0, 15.0));
     assert!(
-        !(*expanded.peek()),
-        "releasing the mouse must not toggle the section again"
+        *expanded.peek(),
+        "mouse down alone must not toggle the section"
     );
+    test.release_cursor((5.0, 15.0));
+    assert!(!(*expanded.peek()), "the click must collapse the section");
 }
 
 #[test]
@@ -424,11 +424,10 @@ fn sidebar_section_toggles_with_enter_and_space() {
     test.sync_and_update();
     assert!(*expanded.peek(), "section starts expanded");
 
-    test.click_cursor((5.0, 15.0));
+    test.press_key(Key::Named(NamedKey::Tab));
     test.press_key(Key::Named(NamedKey::Enter));
     assert!(!(*expanded.peek()), "Enter should collapse the section");
 
-    test.click_cursor((5.0, 15.0));
     test.press_key(Key::Character(" ".into()));
     assert!(*expanded.peek(), "Space should expand the section");
 }
@@ -517,7 +516,7 @@ fn collapsing_section_animates_from_full_height() {
     assert!((section_content_height(&test) - 120.0).abs() < 0.5);
 
     test.animation_clock().set_speed(0.05);
-    test.press_cursor((12.0, 68.0));
+    test.click_cursor((12.0, 68.0));
     test.poll_n(Duration::from_millis(100), 4);
 
     let height = section_content_height(&test);
@@ -542,7 +541,7 @@ fn live_reduced_motion_collapses_without_animating() {
     ));
     test.sync_and_update();
 
-    test.press_cursor((12.0, 68.0));
+    test.click_cursor((12.0, 68.0));
     let height = section_content_height(&test);
     assert!(
         height == 0.0,
@@ -591,7 +590,7 @@ fn opening_section_slides_as_a_drawer() {
     );
     test.sync_and_update();
     test.animation_clock().set_speed(0.05);
-    test.press_cursor((12.0, 68.0));
+    test.click_cursor((12.0, 68.0));
 
     let mut clip = section_content_area(&test);
     for _ in 0..60 {
@@ -622,7 +621,7 @@ fn opening_section_slides_as_a_drawer() {
 }
 
 #[test]
-fn sidebar_section_toggles_on_touch() {
+fn sidebar_section_toggles_once_per_tap() {
     let app = AppComponent::new(ToggleApp);
     let (mut test, expanded) = TestingRunner::new(
         app,
@@ -632,12 +631,12 @@ fn sidebar_section_toggles_on_touch() {
     );
     test.sync_and_update();
     test.press_touch((5.0, 15.0));
-    assert!(!(*expanded.peek()), "touch start must collapse the section");
-    test.release_touch((5.0, 15.0));
     assert!(
-        !(*expanded.peek()),
-        "touch end must not toggle the section again"
+        *expanded.peek(),
+        "touch start alone must not toggle the section"
     );
+    test.release_touch((5.0, 15.0));
+    assert!(!(*expanded.peek()), "the tap must collapse the section");
 }
 
 struct ToolGroupCase;
