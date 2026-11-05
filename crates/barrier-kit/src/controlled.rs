@@ -10,6 +10,19 @@ pub(crate) fn use_controlled<T: Clone + PartialEq + 'static>(prop: &T) -> State<
     value
 }
 
+pub(crate) fn commit<T: Copy + PartialEq + 'static>(
+    mut value: State<T>,
+    on_change: &Option<Callback<T, ()>>,
+    new: T,
+) {
+    if new != *value.peek() {
+        value.set(new);
+        if let Some(callback) = on_change {
+            callback.call(new);
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

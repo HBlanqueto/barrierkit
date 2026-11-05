@@ -115,14 +115,8 @@ impl Component for Stepper {
         let (min, max) = (self.min, self.max);
         let on_change = self.on_change.clone();
         let step = move |delta: i64| {
-            let mut value = value;
             let next = (*value.peek() + delta).clamp(min, max);
-            if next != *value.peek() {
-                value.set(next);
-                if let Some(cb) = &on_change {
-                    cb.call(next);
-                }
-            }
+            crate::controlled::commit(value, &on_change, next);
             if next == min || next == max {
                 interaction.request_focus();
             }

@@ -3,7 +3,8 @@ use torin::prelude::{Position, Size};
 use vow_design::{KNOB_SHADOW, SLIDER, SLIDER_FAT, SLIDER_KEY_STEP, SWITCH, SYMBOL};
 
 use crate::backdrop::Tint;
-use crate::interaction::use_interaction;
+use crate::controlled::commit;
+use crate::interaction::{Interaction, use_interaction};
 use crate::style::Palette;
 use crate::symbol::{Symbol, symbol};
 use crate::theme::color;
@@ -82,7 +83,7 @@ impl Component for LevelSlider {
         let interaction = use_interaction();
         let value = crate::controlled::use_controlled(&self.value);
         let mut width = use_state(|| 0.0f32);
-        let mut left = use_state(|| 0.0f64);
+        let left = use_state(|| 0.0f64);
         let enabled = !self.disabled;
         let style = self.style;
         let fraction = *value.read();
@@ -92,23 +93,9 @@ impl Component for LevelSlider {
             LevelStyle::Regular => (SLIDER.height, measured - SLIDER.knob, SLIDER.knob / 2.0),
             LevelStyle::Fat(_) => (SLIDER_FAT.height, measured, 0.0),
         };
-        let set = {
-            let mut value = value;
-            let on_change = self.on_change.clone();
-            move |new: f32| {
-                let new = new.clamp(0.0, 1.0);
-                if new != *value.read() {
-                    value.set(new);
-                    if let Some(cb) = &on_change {
-                        cb.call(new);
-                    }
-                }
-            }
-        };
+        let on_change = self.on_change.clone();
+        let set = move |new: f32| commit(value, &on_change, new.clamp(0.0, 1.0));
         let from_x = move |x: f64| ((x as f32 - offset) / run.max(1.0)).clamp(0.0, 1.0);
-        let mut set_down = set.clone();
-        let mut set_move = set.clone();
-        let mut set_key = set;
 
         let mut root = interaction
             .attach(rect(), enabled)
@@ -121,23 +108,18 @@ impl Component for LevelSlider {
                 width.set_if_modified(event.data().area.size.width);
             })
             .maybe(enabled, |el| {
-                el.on_mouse_down(move |event: Event<MouseEventData>| {
-                    left.set(event.global_location.x - event.element_location.x);
-                    set_down(from_x(event.element_location.x));
-                })
-                .on_global_pointer_move(move |event: Event<PointerEventData>| {
-                    if interaction.held() {
-                        set_move(from_x(event.global_location().x - *left.peek()));
-                    }
-                })
-                .on_key_down(move |event: Event<KeyboardEventData>| {
-                    let step = match event.key {
-                        Key::Named(NamedKey::ArrowLeft | NamedKey::ArrowDown) => -SLIDER_KEY_STEP,
-                        Key::Named(NamedKey::ArrowRight | NamedKey::ArrowUp) => SLIDER_KEY_STEP,
-                        _ => return,
-                    };
-                    set_key(fraction + step);
-                })
+                on_drag(el, interaction, left, from_x, set.clone()).on_key_down(
+                    move |event: Event<KeyboardEventData>| {
+                        let step = match event.key {
+                            Key::Named(NamedKey::ArrowLeft | NamedKey::ArrowDown) => {
+                                -SLIDER_KEY_STEP
+                            }
+                            Key::Named(NamedKey::ArrowRight | NamedKey::ArrowUp) => SLIDER_KEY_STEP,
+                            _ => return,
+                        };
+                        set(fraction + step);
+                    },
+                )
             });
 
         root = match style {
@@ -185,6 +167,25 @@ impl Component for LevelSlider {
         };
         interaction.focus_ring(root, height / 2.0)
     }
+}
+
+pub(crate) fn on_drag<T: 'static>(
+    root: Rect,
+    interaction: Interaction,
+    mut left: State<f64>,
+    from_x: impl Fn(f64) -> T + Copy + 'static,
+    set: impl Fn(T) + Clone + 'static,
+) -> Rect {
+    let set_move = set.clone();
+    root.on_mouse_down(move |event: Event<MouseEventData>| {
+        left.set(event.global_location.x - event.element_location.x);
+        set(from_x(event.element_location.x));
+    })
+    .on_global_pointer_move(move |event: Event<PointerEventData>| {
+        if interaction.held() {
+            set_move(from_x(event.global_location().x - *left.peek()));
+        }
+    })
 }
 
 pub(crate) fn knob_shadow() -> Shadow {

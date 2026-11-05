@@ -13,6 +13,7 @@ use vow_design::{
 use crate::ProbeExt;
 use crate::backdrop::Tint;
 use crate::choices::use_choice;
+use crate::controlled::commit;
 use crate::i18n::text;
 use crate::interaction::use_interaction;
 use crate::level::{self, bar, knob_shadow};
@@ -271,7 +272,7 @@ impl Component for Slider {
         let palette = Palette::current();
         let interaction = use_interaction();
         let value = crate::controlled::use_controlled(&self.value);
-        let mut left = use_state(|| 0.0f32);
+        let left = use_state(|| 0.0f64);
         let on_change = self.on_change.clone();
 
         let width = SETTINGS.strength.width as f32;
@@ -286,24 +287,13 @@ impl Component for Slider {
         let fraction = *value.read() as f32 / segments;
         let knob_x = run * fraction;
 
-        let set_from_x = move |x: f32| {
-            let x = (x - knob / 2.0).clamp(0.0, run);
+        let set_from_x = move |x: f64| {
+            let x = (x as f32 - knob / 2.0).clamp(0.0, run);
             let step = ((x / run) * segments).round() as usize;
             step.min(steps - 1)
         };
 
-        let update = {
-            let mut value = value;
-            let on_change = on_change.clone();
-            move |new_value: usize| {
-                if new_value != *value.read() {
-                    value.set(new_value);
-                    if let Some(cb) = &on_change {
-                        cb.call(new_value);
-                    }
-                }
-            }
-        };
+        let update = move |new_value: usize| commit(value, &on_change, new_value);
 
         let current = *value.read();
         let mut root = interaction
@@ -315,27 +305,17 @@ impl Component for Slider {
             .a11y_role(AccessibilityRole::Slider);
 
         if !self.disabled {
-            let mut update_mouse = update.clone();
-            root = root.on_mouse_down(move |event: Event<MouseEventData>| {
-                left.set((event.global_location.x - event.element_location.x) as f32);
-                update_mouse(set_from_x(event.element_location.x as f32));
-            });
-            let mut update_move = update.clone();
-            root = root.on_global_pointer_move(move |event: Event<PointerEventData>| {
-                if interaction.held() {
-                    update_move(set_from_x(event.global_location().x as f32 - *left.peek()));
-                }
-            });
-            let mut update_key = update.clone();
-            root = root.on_key_down(move |event: Event<KeyboardEventData>| match event.key {
-                Key::Named(NamedKey::ArrowLeft | NamedKey::ArrowDown) => {
-                    update_key(current.saturating_sub(1))
-                }
-                Key::Named(NamedKey::ArrowRight | NamedKey::ArrowUp) => {
-                    update_key((current + 1).min(steps - 1))
-                }
-                _ => {}
-            });
+            root = level::on_drag(root, interaction, left, set_from_x, update.clone()).on_key_down(
+                move |event: Event<KeyboardEventData>| match event.key {
+                    Key::Named(NamedKey::ArrowLeft | NamedKey::ArrowDown) => {
+                        update(current.saturating_sub(1))
+                    }
+                    Key::Named(NamedKey::ArrowRight | NamedKey::ArrowUp) => {
+                        update((current + 1).min(steps - 1))
+                    }
+                    _ => {}
+                },
+            );
         }
 
         let disabled = self.disabled;
@@ -615,20 +595,7 @@ impl Component for Switch {
         let is_on = *on.read();
 
         let disabled = self.disabled;
-        let mut flip = {
-            let mut on = on;
-            let on_toggle = self.on_toggle.clone();
-            move || {
-                if disabled {
-                    return;
-                }
-                let new = !*on.read();
-                on.set(new);
-                if let Some(cb) = &on_toggle {
-                    cb.call(new);
-                }
-            }
-        };
+        let on_toggle = self.on_toggle.clone();
 
         let (track, border) = if is_on {
             (self.tint.fill(&palette), Color::TRANSPARENT)
@@ -655,7 +622,11 @@ impl Component for Switch {
                     .fill(border),
             )
             .maybe(disabled, |el| el.opacity(SWITCH.disabled_opacity))
-            .on_press(move |_| flip())
+            .on_press(move |_| {
+                if !disabled {
+                    commit(on, &on_toggle, !*on.peek());
+                }
+            })
             .child(level::knob(
                 SWITCH.inset + SWITCH.travel * progress,
                 SWITCH.inset,
@@ -1102,19 +1073,6 @@ impl Component for Checkbox {
         let size = CHECKBOX.size;
 
         let interaction = use_interaction();
-        let mut toggle = {
-            let mut checked = checked;
-            let on_toggle = on_toggle;
-            move || {
-                if !disabled {
-                    let new = !*checked.read();
-                    checked.set(new);
-                    if let Some(cb) = &on_toggle {
-                        cb.call(new);
-                    }
-                }
-            }
-        };
 
         let box_bg = if *checked.read() {
             self.tint.fill(&palette)
@@ -1160,7 +1118,11 @@ impl Component for Checkbox {
             .a11y_alt(label_text)
             .a11y_builder(move |node| node.set_toggled(is_checked.into()))
             .spacing(SETTINGS.check.gap as f32)
-            .on_press(move |_| toggle())
+            .on_press(move |_| {
+                if !disabled {
+                    commit(checked, &on_toggle, !*checked.peek());
+                }
+            })
             .child(checkbox)
             .child(
                 label()
