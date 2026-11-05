@@ -143,7 +143,7 @@ pub fn use_menu_action(handler: impl Fn(&str) + 'static) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::app_menu::shortcut_matches;
+    use crate::menu::shortcut_matches;
 
     #[test]
     fn a_menu_action_reaches_its_listener_until_the_listener_unmounts() {

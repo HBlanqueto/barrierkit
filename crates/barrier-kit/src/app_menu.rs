@@ -47,18 +47,6 @@ pub struct MenuHandle {
 type AddressCallback = Box<dyn Fn(AppMenuAddress) + Send>;
 type AddressCallbackCell = Arc<Mutex<Option<AddressCallback>>>;
 
-impl std::fmt::Debug for MenuHandle {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MenuHandle")
-            .field("state", &self.state)
-            .field("wake", &self.wake)
-            .field("path", &self.path)
-            .field("action_queue", &self.action_queue)
-            .field("address_callback", &"...")
-            .finish()
-    }
-}
-
 #[derive(Clone, Debug)]
 struct MenuState {
     menu: AppMenu,
@@ -149,12 +137,9 @@ impl MenuHandle {
 }
 
 fn update_item(menu: &mut AppMenu, id: &str, f: &dyn Fn(&mut MenuItem)) -> bool {
-    for m in &mut menu.menus {
-        if update_menu_items(&mut m.items, id, f) {
-            return true;
-        }
-    }
-    false
+    menu.menus
+        .iter_mut()
+        .any(|m| update_menu_items(&mut m.items, id, f))
 }
 
 fn update_menu_items(items: &mut [MenuItem], id: &str, f: &dyn Fn(&mut MenuItem)) -> bool {
@@ -203,7 +188,7 @@ pub(crate) fn dbusmenu_label(label: &str) -> String {
 
 use freya_core::prelude::{Key, Modifiers};
 
-pub use crate::menu::shortcut_matches;
+use crate::menu::shortcut_matches;
 
 pub(crate) fn edits_text(modifiers: Modifiers, key: &Key) -> bool {
     let Key::Character(text) = key else {
@@ -219,38 +204,24 @@ pub(crate) fn edits_text(modifiers: Modifiers, key: &Key) -> bool {
 }
 
 pub fn find_menu_shortcut(menu: &AppMenu, modifiers: Modifiers, key: &Key) -> Option<String> {
-    for m in &menu.menus {
-        if let Some(id) = find_shortcut_in_items(&m.items, modifiers, key) {
-            return Some(id);
-        }
-    }
-    None
+    menu.menus
+        .iter()
+        .find_map(|m| find_shortcut_in_items(&m.items, modifiers, key))
 }
 
 fn find_shortcut_in_items(items: &[MenuItem], modifiers: Modifiers, key: &Key) -> Option<String> {
-    for item in items {
-        match item {
-            MenuItem::Action {
-                id,
-                shortcut: Some(shortcut),
-                enabled: true,
-                ..
-            } => {
-                if shortcut_matches(shortcut, modifiers, key) {
-                    return Some(id.clone());
-                }
-            }
-            MenuItem::Submenu {
-                items: children, ..
-            } => {
-                if let Some(id) = find_shortcut_in_items(children, modifiers, key) {
-                    return Some(id);
-                }
-            }
-            _ => {}
-        }
-    }
-    None
+    items.iter().find_map(|item| match item {
+        MenuItem::Action {
+            id,
+            shortcut: Some(shortcut),
+            enabled: true,
+            ..
+        } if shortcut_matches(shortcut, modifiers, key) => Some(id.clone()),
+        MenuItem::Submenu {
+            items: children, ..
+        } => find_shortcut_in_items(children, modifiers, key),
+        _ => None,
+    })
 }
 
 fn owned<T: Into<Value<'static>>>(value: T) -> OwnedValue {

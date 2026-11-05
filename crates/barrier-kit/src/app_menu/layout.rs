@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, MutexGuard};
 
 use zbus::zvariant::OwnedValue;
 
@@ -25,6 +25,10 @@ impl RegisteredMenu {
             handle,
             last_layout: Mutex::new(None),
         })
+    }
+
+    pub(crate) fn layout(&self) -> MutexGuard<'_, Option<LayoutSnapshot>> {
+        self.last_layout.lock().expect("layout lock poisoned")
     }
 }
 
@@ -161,7 +165,7 @@ fn layout_item(
 }
 
 pub(crate) fn diff_layout(registered: &RegisteredMenu, new: LayoutSnapshot) -> Update {
-    let mut guard = registered.last_layout.lock().expect("layout lock poisoned");
+    let mut guard = registered.layout();
     let old = guard.replace(new);
     let new = guard.as_ref().expect("snapshot just stored");
     let Some(old) = old.filter(|old| {
@@ -207,8 +211,8 @@ pub(crate) fn action_id_for_numeric(
     registered: &RegisteredMenu,
     numeric_id: i32,
 ) -> Option<String> {
-    let guard = registered.last_layout.lock().expect("layout lock poisoned");
-    guard
+    registered
+        .layout()
         .as_ref()
         .and_then(|snapshot| snapshot.nodes.get(&numeric_id))
         .and_then(|node| node.action_id.clone())

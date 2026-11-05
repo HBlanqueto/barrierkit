@@ -31,62 +31,40 @@ enum Command {
     },
 }
 
-struct Server {
-    commands: UnboundedSender<Command>,
-}
+static SERVER: OnceLock<UnboundedSender<Command>> = OnceLock::new();
 
-static SERVER: OnceLock<Server> = OnceLock::new();
-
-impl Server {
-    fn get() -> &'static Server {
-        SERVER.get_or_init(|| {
-            let (commands, rx) = futures_channel::mpsc::unbounded();
-            std::thread::Builder::new()
-                .name("barrier-dbusmenu".to_string())
-                .spawn(move || {
-                    async_io::block_on(run(rx));
-                })
-                .expect("barrier-dbusmenu thread");
-            Server { commands }
-        })
-    }
-
-    fn register(handle: MenuHandle) {
-        let server = Self::get();
-        let index = NEXT_PATH_INDEX.fetch_add(1, Ordering::Relaxed);
-        let path = format!("{PATH_PREFIX}{index}");
-        handle.set_path(&path);
-        let _ = server.commands.unbounded_send(Command::Register {
-            path,
-            registered: RegisteredMenu::new(handle),
-        });
-    }
-
-    fn unregister(path: &str) {
-        let server = Self::get();
-        let _ = server.commands.unbounded_send(Command::Unregister {
-            path: path.to_string(),
-        });
-    }
-
-    fn update(path: &str) {
-        let server = Self::get();
-        let _ = server.commands.unbounded_send(Command::Update {
-            path: path.to_string(),
-        });
-    }
+fn send(command: Command) {
+    let commands = SERVER.get_or_init(|| {
+        let (commands, rx) = futures_channel::mpsc::unbounded();
+        std::thread::Builder::new()
+            .name("barrier-dbusmenu".to_string())
+            .spawn(move || async_io::block_on(run(rx)))
+            .expect("barrier-dbusmenu thread");
+        commands
+    });
+    let _ = commands.unbounded_send(command);
 }
 
 pub fn register(handle: MenuHandle) {
-    Server::register(handle)
+    let index = NEXT_PATH_INDEX.fetch_add(1, Ordering::Relaxed);
+    let path = format!("{PATH_PREFIX}{index}");
+    handle.set_path(&path);
+    send(Command::Register {
+        path,
+        registered: RegisteredMenu::new(handle),
+    });
 }
 
 pub fn unregister(path: &str) {
-    Server::unregister(path);
+    send(Command::Unregister {
+        path: path.to_string(),
+    });
 }
 
 pub fn update(path: &str) {
-    Server::update(path);
+    send(Command::Update {
+        path: path.to_string(),
+    });
 }
 
 async fn run(mut commands: UnboundedReceiver<Command>) {
@@ -118,22 +96,9 @@ async fn run(mut commands: UnboundedReceiver<Command>) {
                 let mut id_map = IdMap::default();
                 let snapshot = build_layout_from_handle(&registered, &mut id_map);
                 let revision = snapshot.revision;
-                let _ = registered
-                    .last_layout
-                    .lock()
-                    .expect("layout lock poisoned")
-                    .replace(snapshot);
+                registered.layout().replace(snapshot);
                 id_maps.insert(path.clone(), id_map);
-                if let Ok(iface_ref) = connection
-                    .object_server()
-                    .interface::<_, DbusMenuObject>(path.as_str())
-                    .await
-                    && let Err(error) =
-                        DbusMenuObject::layout_updated(iface_ref.signal_emitter(), revision, 0)
-                            .await
-                {
-                    tracing::warn!(%error, "barrier-dbusmenu: could not emit initial LayoutUpdated");
-                }
+                emit_layout_updated(&connection, &path, revision).await;
                 registered
                     .handle
                     .deliver_address(crate::platform::AppMenuAddress {
@@ -159,21 +124,7 @@ async fn run(mut commands: UnboundedReceiver<Command>) {
                 let revision = snapshot.revision;
                 match diff_layout(&registered, snapshot) {
                     Update::None => {}
-                    Update::Layout => {
-                        if let Ok(iface_ref) = connection
-                            .object_server()
-                            .interface::<_, DbusMenuObject>(path.as_str())
-                            .await
-                            && let Err(error) = DbusMenuObject::layout_updated(
-                                iface_ref.signal_emitter(),
-                                revision,
-                                0,
-                            )
-                            .await
-                        {
-                            tracing::warn!(%error, "barrier-dbusmenu: could not emit LayoutUpdated");
-                        }
-                    }
+                    Update::Layout => emit_layout_updated(&connection, &path, revision).await,
                     Update::Properties(updated, removed) => {
                         if let Ok(iface_ref) = connection
                             .object_server()
@@ -195,6 +146,18 @@ async fn run(mut commands: UnboundedReceiver<Command>) {
     }
 }
 
+async fn emit_layout_updated(connection: &zbus::Connection, path: &str, revision: u32) {
+    if let Ok(iface_ref) = connection
+        .object_server()
+        .interface::<_, DbusMenuObject>(path)
+        .await
+        && let Err(error) =
+            DbusMenuObject::layout_updated(iface_ref.signal_emitter(), revision, 0).await
+    {
+        tracing::warn!(%error, "barrier-dbusmenu: could not emit LayoutUpdated");
+    }
+}
+
 fn build_layout_from_handle(registered: &RegisteredMenu, id_map: &mut IdMap) -> LayoutSnapshot {
     let (menu, revision) = registered.handle.snapshot();
     build_layout(&menu, id_map, revision)
@@ -207,9 +170,7 @@ struct DbusMenuObject {
 impl DbusMenuObject {
     fn known(&self, id: i32) -> bool {
         self.registered
-            .last_layout
-            .lock()
-            .expect("layout lock poisoned")
+            .layout()
             .as_ref()
             .is_some_and(|snapshot| snapshot.nodes.contains_key(&id))
     }
@@ -238,11 +199,7 @@ impl DbusMenuObject {
         recursion_depth: i32,
         property_names: Vec<String>,
     ) -> DbusMenuLayout {
-        let guard = self
-            .registered
-            .last_layout
-            .lock()
-            .expect("layout lock poisoned");
+        let guard = self.registered.layout();
         let Some(snapshot) = guard.as_ref() else {
             return (0, (parent_id, HashMap::new(), Vec::new()));
         };
@@ -258,11 +215,7 @@ impl DbusMenuObject {
         ids: Vec<i32>,
         property_names: Vec<String>,
     ) -> Vec<(i32, HashMap<String, OwnedValue>)> {
-        let guard = self
-            .registered
-            .last_layout
-            .lock()
-            .expect("layout lock poisoned");
+        let guard = self.registered.layout();
         let Some(snapshot) = guard.as_ref() else {
             return Vec::new();
         };
@@ -280,11 +233,7 @@ impl DbusMenuObject {
     }
 
     fn get_property(&self, id: i32, name: String) -> OwnedValue {
-        let guard = self
-            .registered
-            .last_layout
-            .lock()
-            .expect("layout lock poisoned");
+        let guard = self.registered.layout();
         guard
             .as_ref()
             .and_then(|s| s.nodes.get(&id))
