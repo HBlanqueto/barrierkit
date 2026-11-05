@@ -59,6 +59,11 @@ Vulkan y la fuente Geist instalada:
 4. Recorta la ventana con `grim -g "x,y ancho×alto"`, tomando la geometría de
    `swaymsg -t get_tree`.
 
+El 2026-11-04 Marea dejó de pedir frames a mitad del fundido de entrada, también
+con el código del 2026-11-03. Para su captura, alterna el ancho con
+`swaymsg "[pid=…] resize set …"` cada 0,4 s durante unos 6 s: cada configure
+pinta un frame.
+
 Sway no respeta la petición de CSD en el primer configure. Para capturar, el
 binario se compiló con un cambio local que no está en `main`, en
 `platform/window.rs`: tratar el configure como `DecorationMode::Client`.

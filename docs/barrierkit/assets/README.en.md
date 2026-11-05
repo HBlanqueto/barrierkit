@@ -59,6 +59,11 @@ driver and the Geist font installed:
 4. Crop the window with `grim -g "x,y ancho×alto"`, taking the geometry from
    `swaymsg -t get_tree`.
 
+On 2026-11-04 Marea stopped requesting frames halfway through its fade-in,
+also with the 2026-11-03 code. For its screenshot, alternate the width with
+`swaymsg "[pid=…] resize set …"` every 0.4 s for about 6 s: each configure
+paints a frame.
+
 Sway does not honor the CSD request in the first configure. For the
 screenshots, the binary was built with one local change that is not on `main`,
 in `platform/window.rs`: treating the configure as `DecorationMode::Client`.
