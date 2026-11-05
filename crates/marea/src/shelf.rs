@@ -1,3 +1,4 @@
+use std::cell::Cell;
 use std::rc::Rc;
 use std::time::Duration;
 
@@ -57,6 +58,11 @@ impl Component for Card {
         });
         let mut preview = use_state(|| None::<VideoStream>);
         let mut generation = use_state(|| 0u64);
+        let alive = use_hook(|| Rc::new(Cell::new(true)));
+        use_drop({
+            let alive = alive.clone();
+            move || alive.set(false)
+        });
         let id = self.entry.id;
         use_side_effect_with_deps(&hovered, move |&hovered| {
             let next = *generation.peek() + 1;
@@ -68,8 +74,9 @@ impl Component for Card {
             let Some(timers) = try_consume_root_context::<Timers>() else {
                 return;
             };
+            let alive = alive.clone();
             timers.after(Duration::from_millis(MEDIA.preview_delay_ms), move || {
-                if *generation.peek() == next {
+                if alive.get() && *generation.peek() == next {
                     let mut preview = preview;
                     let stream = assets::open_video(id, true);
                     if let Some(stream) = &stream {
