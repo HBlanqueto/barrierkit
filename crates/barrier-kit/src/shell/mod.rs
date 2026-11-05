@@ -20,7 +20,6 @@ use sctk::{
     reexports::{
         client::{QueueHandle, backend::ObjectId, globals::GlobalList},
         protocols::ext::foreign_toplevel_list::v1::client::ext_foreign_toplevel_list_v1::ExtForeignToplevelListV1,
-        protocols::xdg::activation::v1::client::xdg_activation_v1::XdgActivationV1,
         protocols_wlr::foreign_toplevel::v1::client::zwlr_foreign_toplevel_manager_v1::ZwlrForeignToplevelManagerV1,
     },
     session_lock::{SessionLock, SessionLockState},
@@ -45,7 +44,6 @@ pub(crate) struct ShellState {
     pub(crate) toplevels: Toplevels,
     pub(crate) next_toplevel_id: u64,
     pub(crate) activation: Activation,
-    pub(crate) activation_global: Option<XdgActivationV1>,
     pub(crate) activation_callbacks: HashMap<ObjectId, ActivationCallback>,
 }
 
@@ -56,9 +54,6 @@ impl ShellState {
         globals: &GlobalList,
         qh: &QueueHandle<Runtime>,
     ) {
-        let layer_shell = LayerShell::bind(globals, qh).ok();
-        let session_lock = Some(SessionLockState::new(globals, qh));
-
         let foreign_mgmt = globals
             .bind::<ZwlrForeignToplevelManagerV1, _, _>(qh, 3..=3, ())
             .ok();
@@ -85,29 +80,24 @@ impl ShellState {
             seat: Rc::new(RefCell::new(rt.seat_handle.clone())),
             infinity,
         };
-        let activation_global = globals.bind::<XdgActivationV1, _, _>(qh, 1..=1, ()).ok();
-
-        let activation = Activation {
-            queue: Rc::new(RefCell::new(Vec::new())),
-            ping: rt.ping.clone(),
-        };
-
         let shell = Self {
             app,
-            layer_shell,
-            session_lock,
+            layer_shell: LayerShell::bind(globals, qh).ok(),
+            session_lock: Some(SessionLockState::new(globals, qh)),
             active_lock: None,
             session_unlock: None,
             _foreign_list: foreign_list,
             _foreign_mgmt: foreign_mgmt,
             toplevels,
             next_toplevel_id: 0,
-            activation,
-            activation_global,
+            activation: Activation {
+                queue: Rc::new(RefCell::new(Vec::new())),
+                ping: rt.ping.clone(),
+            },
             activation_callbacks: HashMap::new(),
         };
 
-        rt.install_extension(Extension {
+        rt.extension = Some(Extension {
             state: Box::new(shell),
             hooks: ExtensionHooks {
                 provide_contexts: Self::provide_contexts,
@@ -149,6 +139,7 @@ impl ShellState {
 
     fn poll(rt: &mut Runtime) {
         let seat = rt.seat_handle.clone();
+        let global = rt.activation.clone();
         let window = rt
             .last_input_surface
             .clone()
@@ -157,7 +148,7 @@ impl ShellState {
         let serial = rt.last_input_serial.get();
         let qh = rt.qh.clone();
         if let Some(shell) = rt.extension_mut::<ShellState>() {
-            shell.poll_activation(seat.as_ref(), window.as_ref(), serial, &qh);
+            shell.poll_activation(global.as_ref(), seat.as_ref(), window.as_ref(), serial, &qh);
         }
     }
 }

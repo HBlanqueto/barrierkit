@@ -4,7 +4,10 @@ use sctk::reexports::{
         Connection, Dispatch, Proxy, QueueHandle,
         protocol::{wl_seat, wl_surface},
     },
-    protocols::xdg::activation::v1::client::xdg_activation_token_v1::{self, XdgActivationTokenV1},
+    protocols::xdg::activation::v1::client::{
+        xdg_activation_token_v1::{self, XdgActivationTokenV1},
+        xdg_activation_v1::XdgActivationV1,
+    },
 };
 use std::{cell::RefCell, rc::Rc};
 
@@ -12,11 +15,10 @@ use crate::platform::runtime::Runtime;
 use crate::shell::ShellState;
 
 pub(crate) type ActivationCallback = Box<dyn Fn(Option<String>)>;
-pub(crate) type ActivationQueue = Rc<RefCell<Vec<ActivationCallback>>>;
 
 #[derive(Clone)]
 pub struct Activation {
-    pub(crate) queue: ActivationQueue,
+    pub(crate) queue: Rc<RefCell<Vec<ActivationCallback>>>,
     pub(crate) ping: Ping,
 }
 
@@ -33,6 +35,7 @@ impl Activation {
 impl ShellState {
     pub(crate) fn poll_activation(
         &mut self,
+        global: Option<&XdgActivationV1>,
         seat: Option<&wl_seat::WlSeat>,
         window: Option<&wl_surface::WlSurface>,
         serial: u32,
@@ -40,9 +43,7 @@ impl ShellState {
     ) {
         let requests = std::mem::take(&mut *self.activation.queue.borrow_mut());
         for callback in requests {
-            let (Some(global), Some(seat), Some(window)) =
-                (self.activation_global.as_ref(), seat, window)
-            else {
+            let (Some(global), Some(seat), Some(window)) = (global, seat, window) else {
                 callback(None);
                 continue;
             };
