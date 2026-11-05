@@ -13,17 +13,17 @@ report() {
 }
 
 production() {
-    for file in $(find "$@" -name '*.rs' | sort); do
+    for file in $(find "$@" -name '*.rs' ! -path 'crates/vow-design/*' | sort); do
         awk '/#\[cfg\(test\)\]/{exit} {print FILENAME ":" FNR ":" $0}' "$file"
     done
 }
 
-if matches=$(production crates/barrier-kit/src |
+if matches=$(production crates/*/src |
     grep -E '0x[0-9a-fA-F]{6,8}|Rgba::(rgb8|rgba8)'); then
     report "colour literals must live in vow-design" "$matches"
 fi
 
-if matches=$(production crates/barrier-kit/src |
+if matches=$(production crates/*/src |
     grep -E '\[u8; ?4\]'); then
     report "convert colours with Rgba::to_rgba8, not a local [u8; 4]" "$matches"
 fi

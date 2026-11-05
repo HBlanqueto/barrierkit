@@ -52,7 +52,7 @@ A new color or size is never written in `barrier-kit`. It goes into Tengen:
    ```
 
 5. Pass `./dev.sh check`. `scripts/check-design-tokens.sh` rejects color
-   literals in the kit.
+   literals outside `vow-design`, the apps included.
 
 ## User appearance
 

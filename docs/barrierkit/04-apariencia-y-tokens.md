@@ -52,7 +52,7 @@ Un color o una medida nueva nunca se escribe en `barrier-kit`. Se añade a Tenge
    ```
 
 5. Pasa `./dev.sh check`. `scripts/check-design-tokens.sh` rechaza literales de
-   color en el kit.
+   color fuera de `vow-design`, también en las apps.
 
 ## Apariencia del usuario
 
