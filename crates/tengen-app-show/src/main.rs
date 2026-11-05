@@ -409,17 +409,17 @@ fn data(sort: State<Option<SortOrder>>, selected: State<Vec<usize>>) -> Form {
     let mut sort_write = sort;
     let mut selected_write = selected;
     let mut files = [
-        ("adr-0047.pdf", "248 KB"),
-        ("notas.txt", "4 KB"),
-        ("portada.png", "2,3 MB"),
-        ("roadmap.pdf", "132 KB"),
+        ("adr-0047.pdf", "248 KB", 248_000),
+        ("notas.txt", "4 KB", 4_000),
+        ("portada.png", "2,3 MB", 2_300_000),
+        ("roadmap.pdf", "132 KB", 132_000),
     ];
     if let Some(order) = *sort.read() {
         files.sort_by(|a, b| {
             let ordering = if order.column == 0 {
                 a.0.cmp(b.0)
             } else {
-                a.1.cmp(b.1)
+                a.2.cmp(&b.2)
             };
             if order.ascending {
                 ordering
@@ -430,7 +430,7 @@ fn data(sort: State<Option<SortOrder>>, selected: State<Vec<usize>>) -> Form {
     }
     let rows = files
         .iter()
-        .map(|(name, size)| vec![name.to_string(), size.to_string()])
+        .map(|(name, size, _)| vec![name.to_string(), size.to_string()])
         .collect();
     let folder = |index: usize| {
         rect()
