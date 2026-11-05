@@ -6,15 +6,9 @@ pub(super) fn emit_sidebar(out: &mut String, tokens: &Value, components: &Value)
         ("SIDEBAR_ISLAND_DARK", "dark"),
         ("SIDEBAR_ISLAND_DARK_TINT", "dark-tint"),
     ] {
-        let bg_window = theme_color(tokens, theme, "bg-window");
         let island = theme_color(tokens, theme, "sidebar-island-bg");
         pub_const(out, name);
         out.push_str(&format!(": Rgba = {};\n\n", rgba(island)));
-        pub_const(out, &format!("{name}_OPAQUE"));
-        out.push_str(&format!(
-            ": Rgba = {};\n\n",
-            rgba(opaque_over(island, bg_window))
-        ));
     }
 
     for (name, theme) in [

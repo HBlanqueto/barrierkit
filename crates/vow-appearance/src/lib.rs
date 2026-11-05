@@ -19,10 +19,9 @@ use vow_design::{
     MUTED_BELOW_SATURATION, MUTED_MAX_SATURATION, MenuPalette, ON_ACCENT_MIN_CONTRAST,
     PANEL_TINT_WALLPAPER, Palette, Rgba, SHELL_DARK, SHELL_DARK_OPAQUE, SHELL_DARK_TINT,
     SHELL_DARK_TINT_OPAQUE, SHELL_LIGHT, SHELL_LIGHT_OPAQUE, SIDEBAR_DARK, SIDEBAR_DARK_OPAQUE,
-    SIDEBAR_DARK_TINT, SIDEBAR_DARK_TINT_OPAQUE, SIDEBAR_ISLAND_DARK, SIDEBAR_ISLAND_DARK_OPAQUE,
-    SIDEBAR_ISLAND_DARK_TINT, SIDEBAR_ISLAND_DARK_TINT_OPAQUE, SIDEBAR_ISLAND_INNER_DARK,
-    SIDEBAR_ISLAND_INNER_DARK_TINT, SIDEBAR_ISLAND_INNER_LIGHT, SIDEBAR_ISLAND_LIGHT,
-    SIDEBAR_ISLAND_LIGHT_OPAQUE, SIDEBAR_ISLAND_RIM_DARK, SIDEBAR_ISLAND_RIM_DARK_TINT,
+    SIDEBAR_DARK_TINT, SIDEBAR_DARK_TINT_OPAQUE, SIDEBAR_ISLAND_DARK, SIDEBAR_ISLAND_DARK_TINT,
+    SIDEBAR_ISLAND_INNER_DARK, SIDEBAR_ISLAND_INNER_DARK_TINT, SIDEBAR_ISLAND_INNER_LIGHT,
+    SIDEBAR_ISLAND_LIGHT, SIDEBAR_ISLAND_RIM_DARK, SIDEBAR_ISLAND_RIM_DARK_TINT,
     SIDEBAR_ISLAND_RIM_LIGHT, SIDEBAR_LIGHT, SIDEBAR_LIGHT_OPAQUE, SIDEBAR_PALETTE_DARK,
     SIDEBAR_PALETTE_DARK_TINT, SIDEBAR_PALETTE_LIGHT, ShellPalette, SidebarPalette, TINT_STRENGTH,
     TITLEBAR, TOOLGROUP_BG_DARK, TOOLGROUP_BG_DARK_OPAQUE, TOOLGROUP_BG_DARK_TINT,
@@ -381,7 +380,7 @@ fn sidebar_surface(
             SIDEBAR_ISLAND_INNER_DARK,
         ),
         (ColorScheme::Dark, true) => (
-            SIDEBAR_ISLAND_DARK_OPAQUE,
+            SIDEBAR_DARK_OPAQUE,
             SIDEBAR_ISLAND_RIM_DARK,
             SIDEBAR_ISLAND_INNER_DARK,
         ),
@@ -391,7 +390,7 @@ fn sidebar_surface(
             SIDEBAR_ISLAND_INNER_DARK_TINT,
         ),
         (ColorScheme::DarkTint, true) => (
-            SIDEBAR_ISLAND_DARK_TINT_OPAQUE,
+            SIDEBAR_DARK_TINT_OPAQUE,
             SIDEBAR_ISLAND_RIM_DARK_TINT,
             SIDEBAR_ISLAND_INNER_DARK_TINT,
         ),
@@ -401,7 +400,7 @@ fn sidebar_surface(
             SIDEBAR_ISLAND_INNER_LIGHT,
         ),
         (_, true) => (
-            SIDEBAR_ISLAND_LIGHT_OPAQUE,
+            SIDEBAR_LIGHT_OPAQUE,
             SIDEBAR_ISLAND_RIM_LIGHT,
             SIDEBAR_ISLAND_INNER_LIGHT,
         ),
@@ -944,7 +943,7 @@ mod tests {
     use vow_design::{
         BG_CONTROL_LIGHT, BG_HOVER_LIGHT, BG_RAISED_LIGHT, BG_SUNKEN_LIGHT, BG_SURFACE_LIGHT,
         BG_WINDOW_LIGHT, MENU_LIGHT_OPAQUE, PANEL_TINT_WALLPAPER, SHELL_LIGHT_OPAQUE,
-        SIDEBAR_ISLAND_INNER_LIGHT, SIDEBAR_ISLAND_LIGHT_OPAQUE, SIDEBAR_ISLAND_RIM_LIGHT,
+        SIDEBAR_ISLAND_INNER_LIGHT, SIDEBAR_ISLAND_RIM_LIGHT, SIDEBAR_LIGHT_OPAQUE,
         SIDEBAR_PALETTE_LIGHT, TITLEBAR, TOOLGROUP_BG_LIGHT_OPAQUE, TOOLGROUP_PALETTE_LIGHT,
         TRAFFIC_CLOSE_MINIMIZE_DARKEN, TRAFFIC_ZOOM_LIGHTEN, WINDOW_TINT_ACCENT,
         WINDOW_TINT_WALLPAPER,
@@ -1403,7 +1402,7 @@ sidebar_style = "flat"
             ColorScheme::Light,
             SidebarStyle::Island,
             true,
-            SIDEBAR_ISLAND_LIGHT_OPAQUE,
+            SIDEBAR_LIGHT_OPAQUE,
         );
         check(
             ColorScheme::Light,
@@ -1415,7 +1414,7 @@ sidebar_style = "flat"
             ColorScheme::Dark,
             SidebarStyle::Island,
             true,
-            SIDEBAR_ISLAND_DARK_OPAQUE,
+            SIDEBAR_DARK_OPAQUE,
         );
         check(
             ColorScheme::Dark,
@@ -1427,7 +1426,7 @@ sidebar_style = "flat"
             ColorScheme::DarkTint,
             SidebarStyle::Island,
             true,
-            SIDEBAR_ISLAND_DARK_TINT_OPAQUE,
+            SIDEBAR_DARK_TINT_OPAQUE,
         );
         check(
             ColorScheme::DarkTint,
@@ -1523,7 +1522,7 @@ sidebar_style = "flat"
             neutral.sidebar.bg.mix(tint, wallpaper_factor)
         );
 
-        assert_eq!(neutral.sidebar.bg, SIDEBAR_ISLAND_LIGHT_OPAQUE);
+        assert_eq!(neutral.sidebar.bg, SIDEBAR_LIGHT_OPAQUE);
         assert_eq!(neutral.toolgroup.bg, TOOLGROUP_BG_LIGHT_OPAQUE);
     }
 
@@ -2114,7 +2113,7 @@ sidebar_style = "flat"
             menu: MENU_LIGHT_OPAQUE,
             sidebar: SidebarSurface {
                 style: SidebarStyle::Island,
-                bg: SIDEBAR_ISLAND_LIGHT_OPAQUE,
+                bg: SIDEBAR_LIGHT_OPAQUE,
                 rim: SIDEBAR_ISLAND_RIM_LIGHT,
                 inner: SIDEBAR_ISLAND_INNER_LIGHT,
                 palette: SidebarPalette {
@@ -2189,7 +2188,7 @@ sidebar_style = "flat"
             },
             sidebar: SidebarSurface {
                 style: SidebarStyle::Island,
-                bg: SIDEBAR_ISLAND_LIGHT_OPAQUE.mix(accent, tint_factor * LAYER_FACTOR_BG_SUNKEN),
+                bg: SIDEBAR_LIGHT_OPAQUE.mix(accent, tint_factor * LAYER_FACTOR_BG_SUNKEN),
                 rim: SIDEBAR_ISLAND_RIM_LIGHT,
                 inner: SIDEBAR_ISLAND_INNER_LIGHT,
                 palette: SidebarPalette {
