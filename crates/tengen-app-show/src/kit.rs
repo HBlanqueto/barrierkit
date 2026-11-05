@@ -1,3 +1,5 @@
+use std::sync::LazyLock;
+
 use barrier_kit::controls::Button;
 use barrier_kit::progress::{ProgressBar, ProgressRing};
 use barrier_kit::sidebar::{Sidebar, SidebarItem, SidebarSection};
@@ -7,36 +9,39 @@ use freya_core::prelude::*;
 use torin::prelude::{Alignment, Direction, Size};
 use vow_design::{ACCENT_SWATCHES, DURATION_SLOW_MS, Rgba, SPACE_2, SPLIT_VIEW};
 
+use crate::localize::tr;
 use crate::motion::{time, use_reduced_motion};
 
 const DOWNLOAD_MS: u64 = DURATION_SLOW_MS * 6;
 
-pub const SCENES: [(&str, [Rgba; 3]); 3] = [
-    (
-        "Atardecer",
-        [
-            Rgba::rgb8(122, 59, 94),
-            Rgba::rgb8(45, 110, 106),
-            Rgba::rgb8(180, 112, 63),
-        ],
-    ),
-    (
-        "Noche",
-        [
-            Rgba::rgb8(20, 33, 61),
-            Rgba::rgb8(58, 79, 122),
-            Rgba::rgb8(150, 110, 40),
-        ],
-    ),
-    (
-        "Pálido",
-        [
-            Rgba::rgb8(236, 214, 196),
-            Rgba::rgb8(200, 222, 214),
-            Rgba::rgb8(240, 226, 170),
-        ],
-    ),
-];
+pub static SCENES: LazyLock<[(&str, [Rgba; 3]); 3]> = LazyLock::new(|| {
+    [
+        (
+            tr!("dusk"),
+            [
+                Rgba::rgb8(122, 59, 94),
+                Rgba::rgb8(45, 110, 106),
+                Rgba::rgb8(180, 112, 63),
+            ],
+        ),
+        (
+            tr!("night"),
+            [
+                Rgba::rgb8(20, 33, 61),
+                Rgba::rgb8(58, 79, 122),
+                Rgba::rgb8(150, 110, 40),
+            ],
+        ),
+        (
+            tr!("pale"),
+            [
+                Rgba::rgb8(236, 214, 196),
+                Rgba::rgb8(200, 222, 214),
+                Rgba::rgb8(240, 226, 170),
+            ],
+        ),
+    ]
+});
 
 pub fn sidebar_section() -> Rect {
     let tint = |index: usize| ACCENT_SWATCHES[index].1;
@@ -45,9 +50,9 @@ pub fn sidebar_section() -> Rect {
         .height(Size::px(SPLIT_VIEW.inspector * 0.75))
         .child(
             Sidebar::new().child(
-                SidebarSection::new("Favoritos")
-                    .child(SidebarItem::new("Escritorio").symbol(Symbol::SquareGrid, tint(0)))
-                    .child(SidebarItem::new("Música").symbol(Symbol::Play, tint(1))),
+                SidebarSection::new(tr!("favorites"))
+                    .child(SidebarItem::new(tr!("desktop")).symbol(Symbol::SquareGrid, tint(0)))
+                    .child(SidebarItem::new(tr!("music")).symbol(Symbol::Play, tint(1))),
             ),
         )
 }
@@ -73,9 +78,9 @@ impl Component for Download {
             .child(
                 rect()
                     .width(Size::px(SPLIT_VIEW.inspector))
-                    .child(ProgressBar::determinate("Descargando", done)),
+                    .child(ProgressBar::determinate(tr!("downloading"), done)),
             )
-            .child(ProgressRing::new("Descargando", done))
-            .child(Button::new("Descargar").on_press(move |_| replay.start()))
+            .child(ProgressRing::new(tr!("downloading"), done))
+            .child(Button::new(tr!("download")).on_press(move |_| replay.start()))
     }
 }

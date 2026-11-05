@@ -1,3 +1,5 @@
+use std::sync::LazyLock;
+
 use barrier_kit::backdrop::{Accent, Tint};
 use barrier_kit::controls::{Button, ButtonStyle, SegmentedControl, Switch};
 use barrier_kit::patterns::preferences::{Pane, PaneGroup};
@@ -14,47 +16,58 @@ use crate::events::{
     Arrivals, CopyToast, HoverCard, Inbox, PlusToggle, Popover, PressCard, ShakeField,
 };
 use crate::kit::{Download, SCENES, sidebar_section};
+use crate::localize::tr;
 use crate::motion::{EasedTrack, Property, PropertyTile, SpringTrack};
 use crate::slides::{Stage, TRANSITIONS, pager};
 use crate::{preview, tint};
 
-const CURVES: [(&str, Function); 7] = [
-    ("Lineal", Function::Linear),
-    ("Seno", Function::Sine),
-    ("Cúbica", Function::Cubic),
-    ("Exponencial", Function::Expo),
-    ("Atrás", Function::Back),
-    ("Elástica", Function::Elastic),
-    ("Rebote", Function::Bounce),
-];
+static CURVES: LazyLock<[(&str, Function); 7]> = LazyLock::new(|| {
+    [
+        (tr!("linear"), Function::Linear),
+        (tr!("sine"), Function::Sine),
+        (tr!("cubic"), Function::Cubic),
+        (tr!("exponential"), Function::Expo),
+        (tr!("back"), Function::Back),
+        (tr!("elastic"), Function::Elastic),
+        (tr!("bounce"), Function::Bounce),
+    ]
+});
 
-const SPRINGS: [(&str, f32); 3] = [("Rígido", 0.0), ("Suave", 0.3), ("Vivo", 0.7)];
+static SPRINGS: LazyLock<[(&str, f32); 3]> = LazyLock::new(|| {
+    [
+        (tr!("stiff"), 0.0),
+        (tr!("smooth"), 0.3),
+        (tr!("lively"), 0.7),
+    ]
+});
 
-const PROPERTIES: [(&str, Property); 7] = [
-    ("Opacidad", Property::Opacity),
-    ("Escala", Property::Scale),
-    ("Rotación", Property::Rotation),
-    ("Desplazamiento", Property::Offset),
-    ("Color", Property::Tint),
-    ("Radio", Property::Radius),
-    ("Anchura", Property::Width),
-];
+static PROPERTIES: LazyLock<[(&str, Property); 7]> = LazyLock::new(|| {
+    [
+        (tr!("opacity"), Property::Opacity),
+        (tr!("scale"), Property::Scale),
+        (tr!("rotation"), Property::Rotation),
+        (tr!("offset"), Property::Offset),
+        (tr!("color"), Property::Tint),
+        (tr!("radius"), Property::Radius),
+        (tr!("width"), Property::Width),
+    ]
+});
 
 fn curves(mut ahead: State<bool>) -> Form {
     let at_end = *ahead.read();
-    let play = Row::new("Reproducir").control(
-        Button::new(if at_end { "Volver" } else { "Reproducir" })
+    let play = Row::new(tr!("play")).control(
+        Button::new(if at_end { tr!("go-back") } else { tr!("play") })
             .style(ButtonStyle::Primary)
             .on_press(move |_| ahead.toggle()),
     );
     let durations = [
-        ("Rápida", SWITCH.transition_ms),
-        ("Base", DURATION_BASE),
-        ("Lenta", DURATION_SLOW_MS),
+        (tr!("fast"), SWITCH.transition_ms),
+        (tr!("base"), DURATION_BASE),
+        (tr!("slow"), DURATION_SLOW_MS),
     ];
     Form::new()
         .section(CURVES.iter().fold(
-            Section::titled("Curvas de Freya").row(play),
+            Section::titled(tr!("freya-curves")).row(play),
             |section, &(name, function)| {
                 section.row(Row::new(name).control(EasedTrack {
                     ahead: at_end,
@@ -64,7 +77,7 @@ fn curves(mut ahead: State<bool>) -> Form {
             },
         ))
         .section(SPRINGS.iter().fold(
-            Section::titled("Resorte de Grade"),
+            Section::titled(tr!("grade-spring")),
             |section, &(name, bounce)| {
                 section.row(Row::new(name).control(SpringTrack {
                     ahead: at_end,
@@ -73,7 +86,7 @@ fn curves(mut ahead: State<bool>) -> Form {
             },
         ))
         .section(durations.into_iter().fold(
-            Section::titled("Duraciones de Tengen"),
+            Section::titled(tr!("tengen-durations")),
             |section, (name, ms)| {
                 section.row(Row::new(name).control(EasedTrack {
                     ahead: at_end,
@@ -86,13 +99,13 @@ fn curves(mut ahead: State<bool>) -> Form {
 
 fn properties(mut on: State<bool>) -> Form {
     let animated = *on.read();
-    let toggle = Row::new("Animar").control(
-        Switch::new("Animar")
+    let toggle = Row::new(tr!("animate")).control(
+        Switch::new(tr!("animate"))
             .on(animated)
             .on_toggle(move |value: bool| on.set(value)),
     );
     Form::new().section(PROPERTIES.iter().fold(
-        Section::titled("Propiedades").row(toggle),
+        Section::titled(tr!("properties")).row(toggle),
         |section, &(name, property)| {
             section.row(Row::new(name).control(PropertyTile {
                 on: animated,
@@ -106,30 +119,30 @@ fn kit_controls(mut backdrop: State<usize>) -> Form {
     let selected = *backdrop.read();
     Form::new()
         .section(
-            Section::titled("Transiciones del kit")
-                .row(Row::new("Interruptor").control(Switch::new("Animado")))
-                .row(Row::new("Sección lateral").control(sidebar_section()))
+            Section::titled(tr!("kit-transitions"))
+                .row(Row::new(tr!("switch")).control(Switch::new(tr!("animated"))))
+                .row(Row::new(tr!("sidebar-section")).control(sidebar_section()))
                 .row(
-                    Row::new("Indeterminado").control(
+                    Row::new(tr!("indeterminate")).control(
                         rect()
                             .width(Size::px(SPLIT_VIEW.inspector))
-                            .child(ProgressBar::indeterminate("Buscando")),
+                            .child(ProgressBar::indeterminate(tr!("searching"))),
                     ),
                 )
-                .row(Row::new("Actividad").control(Spinner::new("Cargando")))
-                .row(Row::new("Descarga").control(Download)),
+                .row(Row::new(tr!("activity")).control(Spinner::new(tr!("loading"))))
+                .row(Row::new(tr!("download-row")).control(Download)),
         )
         .section(
-            Section::titled("Fondo tintado")
-                .row(Row::new("Escena").control(segmented(
-                    "Escena",
+            Section::titled(tr!("tinted-backdrop"))
+                .row(Row::new(tr!("scene")).control(segmented(
+                    tr!("scene"),
                     &SCENES.map(|(name, _)| name),
                     selected,
                     move |index| backdrop.set(index),
                 )))
                 .row(
-                    Row::new("Fundido")
-                        .detail("El fondo y su acento funden entre escenas.")
+                    Row::new(tr!("fade"))
+                        .detail(tr!("fade-detail"))
                         .control(preview(
                             SCENES[selected].1,
                             Accent::FromBackdrop,
@@ -141,9 +154,9 @@ fn kit_controls(mut backdrop: State<usize>) -> Form {
 
 fn appearing() -> Form {
     Form::new().section(
-        Section::titled("Entrar y salir")
-            .row(Row::new("Lista").control(Arrivals))
-            .row(Row::new("Tarjeta").control(Popover)),
+        Section::titled(tr!("enter-and-exit"))
+            .row(Row::new(tr!("list")).control(Arrivals))
+            .row(Row::new(tr!("card")).control(Popover)),
     )
 }
 
@@ -152,15 +165,15 @@ fn navigation(page: State<usize>, mut transition: State<usize>, mut period: Stat
     let shown_period = *period.read();
     Form::new()
         .section(
-            Section::titled("Diapositivas")
-                .row(Row::new("Transición").control(segmented(
-                    "Transición",
-                    &TRANSITIONS,
+            Section::titled(tr!("slides"))
+                .row(Row::new(tr!("transition")).control(segmented(
+                    tr!("transition"),
+                    &*TRANSITIONS,
                     style,
                     move |index| transition.set(index),
                 )))
                 .row(
-                    Row::new("Carrusel").control(
+                    Row::new(tr!("carousel")).control(
                         rect()
                             .cross_align(Alignment::Center)
                             .spacing(SPACE_2)
@@ -173,18 +186,18 @@ fn navigation(page: State<usize>, mut transition: State<usize>, mut period: Stat
                 ),
         )
         .section(
-            Section::titled("Pestañas").row(
-                Row::new("Con segmentos")
-                    .detail("El contenido se desplaza hacia el segmento elegido.")
+            Section::titled(tr!("tabs")).row(
+                Row::new(tr!("with-segments"))
+                    .detail(tr!("with-segments-detail"))
                     .control(
                         rect()
                             .cross_align(Alignment::Center)
                             .spacing(SPACE_2)
                             .child(
-                                SegmentedControl::new("Periodo")
-                                    .segment("Día")
-                                    .segment("Semana")
-                                    .segment("Mes")
+                                SegmentedControl::new(tr!("period"))
+                                    .segment(tr!("day"))
+                                    .segment(tr!("week"))
+                                    .segment(tr!("month"))
                                     .selected(shown_period)
                                     .on_change(move |index: usize| period.set(index)),
                             )
@@ -200,34 +213,34 @@ fn navigation(page: State<usize>, mut transition: State<usize>, mut period: Stat
 fn feedback() -> Form {
     Form::new()
         .section(
-            Section::titled("Puntero")
-                .row(Row::new("Pasar por encima").control(HoverCard))
+            Section::titled(tr!("pointer"))
+                .row(Row::new(tr!("hover")).control(HoverCard))
                 .row(
-                    Row::new("Pulsar")
-                        .detail("Se hunde al pulsar y rebota al soltar.")
+                    Row::new(tr!("press"))
+                        .detail(tr!("press-detail"))
                         .control(PressCard),
                 )
-                .row(Row::new("Alternar").control(PlusToggle)),
+                .row(Row::new(tr!("toggle")).control(PlusToggle)),
         )
         .section(
-            Section::titled("Respuesta")
+            Section::titled(tr!("response"))
                 .row(
-                    Row::new("Error")
-                        .detail("La contraseña es «tengen».")
+                    Row::new(tr!("error"))
+                        .detail(tr!("error-detail"))
                         .control(ShakeField),
                 )
-                .row(Row::new("Notificación").control(Inbox))
-                .row(Row::new("Aviso").control(CopyToast)),
+                .row(Row::new(tr!("notification")).control(Inbox))
+                .row(Row::new(tr!("notice")).control(CopyToast)),
         )
 }
 
 fn accessibility(mut reduced: State<bool>) -> Form {
     Form::new().section(
-        Section::titled("Accesibilidad").row(
-            Row::new("Reducir movimiento")
-                .detail("Cada animación salta a su estado final.")
+        Section::titled(tr!("accessibility")).row(
+            Row::new(tr!("reduce-motion"))
+                .detail(tr!("reduce-motion-detail"))
                 .control(
-                    Switch::new("Reducir movimiento")
+                    Switch::new(tr!("reduce-motion"))
                         .on(*reduced.read())
                         .on_toggle(move |on: bool| reduced.set(on)),
                 ),
@@ -242,52 +255,52 @@ pub fn group(reduced: State<bool>) -> PaneGroup {
     let page = use_state(|| 0);
     let transition = use_state(|| 0);
     let period = use_state(|| 0);
-    PaneGroup::new(Some("Animación"))
+    PaneGroup::new(Some(tr!("animation")))
         .pane(Pane::new(
             "curvas",
-            "Curvas",
+            tr!("curves"),
             Symbol::SlidersVertical,
             tint(0),
             curves(ahead),
         ))
         .pane(Pane::new(
             "propiedades",
-            "Propiedades",
+            tr!("properties"),
             Symbol::SquareGrid,
             tint(1),
             properties(animated),
         ))
         .pane(Pane::new(
             "controles",
-            "Kit en movimiento",
+            tr!("kit-in-motion"),
             Symbol::ChevronRight,
             tint(6),
             kit_controls(backdrop),
         ))
         .pane(Pane::new(
             "aparicion",
-            "Aparición",
+            tr!("appearing"),
             Symbol::Plus,
             tint(4),
             appearing(),
         ))
         .pane(Pane::new(
             "diapositivas",
-            "Diapositivas",
+            tr!("slides"),
             Symbol::Play,
             tint(7),
             navigation(page, transition, period),
         ))
         .pane(Pane::new(
             "eventos",
-            "Puntero y respuesta",
+            tr!("pointer-and-response"),
             Symbol::CircleHalf,
             tint(5),
             feedback(),
         ))
         .pane(Pane::new(
             "movimiento",
-            "Movimiento",
+            tr!("motion"),
             Symbol::Pause,
             tint(2),
             accessibility(reduced),

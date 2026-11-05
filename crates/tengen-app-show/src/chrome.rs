@@ -1,3 +1,5 @@
+use std::sync::LazyLock;
+
 use barrier_kit::app::save_defaults;
 use barrier_kit::chrome::{
     ChromeStyle, RailStyle, RestingEdge, Reveal, TitlebarLayout, WindowChrome,
@@ -16,34 +18,40 @@ use torin::prelude::Direction;
 use vow_appearance::SidebarStyle;
 use vow_design::TITLEBAR_RAIL;
 
+use crate::localize::tr;
 use crate::{APP, tint};
 
-const LAYOUTS: [(TitlebarLayout, &str); 2] = [
-    (TitlebarLayout::Top, "Arriba"),
-    (TitlebarLayout::Rail, "Rail"),
-];
+static LAYOUTS: LazyLock<[(TitlebarLayout, &str); 2]> = LazyLock::new(|| {
+    [
+        (TitlebarLayout::Top, tr!("top")),
+        (TitlebarLayout::Rail, tr!("rail")),
+    ]
+});
 
-const REVEALS: [(Reveal, &str); 5] = [
-    (Reveal::Always, "Siempre"),
-    (Reveal::Drawer, "Cajón"),
-    (Reveal::Push, "Empuja"),
-    (Reveal::Corner, "Esquina"),
-    (Reveal::Popup, "Píldora emergente"),
-];
+static REVEALS: LazyLock<[(Reveal, &str); 5]> = LazyLock::new(|| {
+    [
+        (Reveal::Always, tr!("always")),
+        (Reveal::Drawer, tr!("drawer")),
+        (Reveal::Push, tr!("push")),
+        (Reveal::Corner, tr!("corner")),
+        (Reveal::Popup, tr!("popup-pill")),
+    ]
+});
 
 const EDGES: [RestingEdge; 3] = [RestingEdge::None, RestingEdge::Line, RestingEdge::Accent];
 
-const BARS: [(FullscreenBar, &str); 3] = [
-    (FullscreenBar::Solid, "A · Lisa"),
-    (FullscreenBar::Glass, "B1 · Vidrio en banda"),
-    (FullscreenBar::ProgressiveGlass, "B2 · Vidrio progresivo"),
-];
+static BARS: LazyLock<[(FullscreenBar, &str); 3]> = LazyLock::new(|| {
+    [
+        (FullscreenBar::Solid, tr!("bar-solid")),
+        (FullscreenBar::Glass, tr!("bar-glass")),
+        (
+            FullscreenBar::ProgressiveGlass,
+            tr!("bar-progressive-glass"),
+        ),
+    ]
+});
 
-const SIDEBAR_LIMITS: [(&str, Option<(f32, f32)>); 3] = [
-    ("Tengen", None),
-    ("Estrecha", Some((160.0, 220.0))),
-    ("Ancha", Some((240.0, 420.0))),
-];
+const SIDEBAR_LIMITS: [Option<(f32, f32)>; 3] = [None, Some((160.0, 220.0)), Some((240.0, 420.0))];
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Serialize, Deserialize)]
 #[serde(default)]
@@ -97,7 +105,7 @@ impl Prefs {
     }
 
     pub fn sidebar_range(self) -> Option<(f32, f32)> {
-        SIDEBAR_LIMITS[self.sidebar_limits.min(SIDEBAR_LIMITS.len() - 1)].1
+        SIDEBAR_LIMITS[self.sidebar_limits.min(SIDEBAR_LIMITS.len() - 1)]
     }
 }
 
@@ -146,53 +154,54 @@ fn popup<T: PartialEq + Copy + 'static>(
 }
 
 fn yes_no(label: &'static str, on: bool, on_change: impl Fn(bool) + 'static) -> SegmentedControl {
-    segmented(label, &["No", "Sí"], usize::from(on), move |i| {
+    segmented(label, &[tr!("no"), tr!("yes")], usize::from(on), move |i| {
         on_change(i == 1)
     })
 }
 
 fn titlebar(prefs: State<Prefs>) -> Form {
     let current = *prefs.read();
-    let mut titlebar = Section::titled("Titlebar")
-        .row(
-            Row::new("Diseño").control(popup("Diseño", &LAYOUTS, current.layout, move |layout| {
-                update(prefs, |p| p.layout = layout)
-            })),
-        )
-        .row(Row::new("Ancho del rail").control(segmented(
-            "Ancho del rail",
-            &["Normal", "Ancho"],
+    let mut titlebar = Section::titled(tr!("titlebar"))
+        .row(Row::new(tr!("layout")).control(popup(
+            tr!("layout"),
+            &*LAYOUTS,
+            current.layout,
+            move |layout| update(prefs, |p| p.layout = layout),
+        )))
+        .row(Row::new(tr!("rail-width")).control(segmented(
+            tr!("rail-width"),
+            &[tr!("normal"), tr!("wide")],
             usize::from(current.wide_rail),
             move |i| update(prefs, |p| p.wide_rail = i == 1),
         )))
-        .row(Row::new("Semáforos").control(segmented(
-            "Semáforos",
-            &["Cuadrados", "Redondos"],
+        .row(Row::new(tr!("traffic-lights")).control(segmented(
+            tr!("traffic-lights"),
+            &[tr!("square"), tr!("round")],
             usize::from(current.round_lights),
             move |i| update(prefs, |p| p.round_lights = i == 1),
         )));
     if current.layout == TitlebarLayout::Rail {
         titlebar = titlebar
-            .row(Row::new("Estilo del rail").control(segmented(
-                "Estilo del rail",
-                &["Normal", "Unificado"],
+            .row(Row::new(tr!("rail-style")).control(segmented(
+                tr!("rail-style"),
+                &[tr!("normal"), tr!("unified")],
                 usize::from(current.rail_unified),
                 move |i| update(prefs, |p| p.rail_unified = i == 1),
             )))
-            .row(Row::new("Elementos arriba").control(yes_no(
-                "Elementos arriba",
+            .row(Row::new(tr!("top-items")).control(yes_no(
+                tr!("top-items"),
                 current.rail_top_items,
                 move |on| update(prefs, |p| p.rail_top_items = on),
             )))
-            .row(Row::new("Elementos abajo").control(yes_no(
-                "Elementos abajo",
+            .row(Row::new(tr!("bottom-items")).control(yes_no(
+                tr!("bottom-items"),
                 current.rail_bottom_items,
                 move |on| update(prefs, |p| p.rail_bottom_items = on),
             )));
     }
-    titlebar = titlebar.row(Row::new("Aparición").control(popup(
-        "Aparición",
-        &REVEALS,
+    titlebar = titlebar.row(Row::new(tr!("reveal")).control(popup(
+        tr!("reveal"),
+        &*REVEALS,
         current.reveal,
         move |reveal| update(prefs, |p| p.reveal = reveal),
     )));
@@ -201,9 +210,9 @@ fn titlebar(prefs: State<Prefs>) -> Form {
         Reveal::Drawer | Reveal::Push | Reveal::Popup
     ) {
         titlebar = titlebar.row(
-            Row::new("Borde en reposo").control(segmented(
-                "Borde en reposo",
-                &["Nada", "Línea fina", "Franja de acento"],
+            Row::new(tr!("resting-edge")).control(segmented(
+                tr!("resting-edge"),
+                &[tr!("none"), tr!("thin-line"), tr!("accent-strip")],
                 EDGES
                     .iter()
                     .position(|edge| *edge == current.resting_edge)
@@ -218,16 +227,16 @@ fn titlebar(prefs: State<Prefs>) -> Form {
 fn fullscreen(prefs: State<Prefs>) -> Form {
     let current = *prefs.read();
     Form::new().section(
-        Section::titled("Pantalla completa")
-            .row(Row::new("Barra").control(popup(
-                "Barra",
-                &BARS,
+        Section::titled(tr!("fullscreen"))
+            .row(Row::new(tr!("bar")).control(popup(
+                tr!("bar"),
+                &*BARS,
                 current.fullscreen_bar,
                 move |bar| update(prefs, |p| p.fullscreen_bar = bar),
             )))
             .row(
-                Row::new("Empujar el contenido").control(
-                    Switch::new("Empujar el contenido")
+                Row::new(tr!("push-content")).control(
+                    Switch::new(tr!("push-content"))
                         .on(current.fullscreen_push)
                         .on_toggle(move |on: bool| update(prefs, |p| p.fullscreen_push = on)),
                 ),
@@ -238,30 +247,30 @@ fn fullscreen(prefs: State<Prefs>) -> Form {
 fn sidebar(prefs: State<Prefs>) -> Form {
     let current = *prefs.read();
     Form::new().section(
-        Section::titled("Barra lateral")
-            .row(Row::new("Estilo").control(segmented(
-                "Estilo de la barra lateral",
-                &["Isla", "Plana"],
+        Section::titled(tr!("sidebar"))
+            .row(Row::new(tr!("style")).control(segmented(
+                tr!("sidebar-style"),
+                &[tr!("island"), tr!("flat")],
                 usize::from(current.flat_sidebar),
                 move |i| update(prefs, |p| p.flat_sidebar = i == 1),
             )))
-            .row(Row::new("Mostrar u ocultar").control(SidebarToggle))
+            .row(Row::new(tr!("show-or-hide")).control(SidebarToggle))
             .row(
-                Row::new("Redimensionable").control(
-                    Switch::new("Redimensionable")
+                Row::new(tr!("resizable")).control(
+                    Switch::new(tr!("resizable"))
                         .on(current.sidebar_resizable())
                         .on_toggle(move |on: bool| update(prefs, |p| p.sidebar_fixed = !on)),
                 ),
             )
-            .row(Row::new("Límites").control(segmented(
-                "Límites",
-                &SIDEBAR_LIMITS.map(|(name, _)| name),
+            .row(Row::new(tr!("limits")).control(segmented(
+                tr!("limits"),
+                &["Tengen", tr!("limits-narrow"), tr!("limits-wide")],
                 current.sidebar_limits,
                 move |i| update(prefs, |p| p.sidebar_limits = i),
             )))
-            .row(Row::new("En ventana estrecha").control(segmented(
-                "Barra lateral en ventana estrecha",
-                &["Superpuesta", "Forzada"],
+            .row(Row::new(tr!("in-narrow-window")).control(segmented(
+                tr!("sidebar-in-narrow-window"),
+                &[tr!("overlay"), tr!("forced")],
                 usize::from(current.narrow_sidebar == NarrowSidebar::Push),
                 move |i| {
                     update(prefs, |p| {
@@ -277,24 +286,24 @@ fn sidebar(prefs: State<Prefs>) -> Form {
 }
 
 pub fn group(prefs: State<Prefs>) -> PaneGroup {
-    PaneGroup::new(Some("Ventana"))
+    PaneGroup::new(Some(tr!("window")))
         .pane(Pane::new(
             "titlebar",
-            "Titlebar",
+            tr!("titlebar"),
             Symbol::SidebarLeft,
             tint(0),
             titlebar(prefs),
         ))
         .pane(Pane::new(
             "pantalla-completa",
-            "Pantalla completa",
+            tr!("fullscreen"),
             Symbol::SquareGrid,
             tint(5),
             fullscreen(prefs),
         ))
         .pane(Pane::new(
             "barra-lateral",
-            "Barra lateral",
+            tr!("sidebar"),
             Symbol::SidebarLeft,
             tint(3),
             sidebar(prefs),
@@ -313,14 +322,14 @@ pub fn window(prefs: Prefs, content: impl IntoElement) -> WindowChrome {
     let mut chrome = WindowChrome::new(prefs.style(), content);
     if prefs.rail_top_items {
         chrome = chrome.rail_top(rail_items(
-            (Symbol::Plus, "Nuevo"),
-            (Symbol::MagnifyingGlass, "Buscar"),
+            (Symbol::Plus, tr!("new")),
+            (Symbol::MagnifyingGlass, tr!("search")),
         ));
     }
     if prefs.rail_bottom_items {
         chrome = chrome.rail_bottom(rail_items(
-            (Symbol::SquareGrid, "Diseño"),
-            (Symbol::SlidersVertical, "Medidas"),
+            (Symbol::SquareGrid, tr!("layout")),
+            (Symbol::SlidersVertical, tr!("measurements")),
         ));
     }
     chrome

@@ -20,6 +20,7 @@ use vow_design::{
     SPLIT_VIEW, TABLE, TEXT,
 };
 
+use crate::localize::tr;
 use crate::motion::{spring, time, unit, use_reduced_motion};
 
 const PASSWORD: &str = "tengen";
@@ -65,7 +66,7 @@ impl Component for HoverCard {
                 .mix(palette.control_hover, progress),
         )
         .scale(1.0 + 0.05 * progress)
-        .child(text("Pasa el puntero", TEXT, palette.label))
+        .child(text(tr!("hover-me"), TEXT, palette.label))
     }
 }
 
@@ -84,7 +85,7 @@ impl Component for PressCard {
         let palette = Palette::current();
         card(interaction.attach(rect(), true), palette.control_background)
             .scale(1.0 - 0.06 * animation.get().current())
-            .child(text("Mantén pulsado", TEXT, palette.label))
+            .child(text(tr!("press-and-hold"), TEXT, palette.label))
     }
 }
 
@@ -117,24 +118,26 @@ impl Component for ShakeField {
                         .child(
                             rect()
                                 .width(Size::px(SPLIT_VIEW.inspector))
-                                .child(TextField::new(password, "Contraseña")),
+                                .child(TextField::new(password, tr!("password"))),
                         )
-                        .child(Button::new("Entrar").style(ButtonStyle::Primary).on_press(
-                            move |_| {
-                                let right = *password.peek() == PASSWORD;
-                                welcomed.set(right);
-                                if !right {
-                                    replay.start();
-                                }
-                            },
-                        )),
+                        .child(
+                            Button::new(tr!("log-in"))
+                                .style(ButtonStyle::Primary)
+                                .on_press(move |_| {
+                                    let right = *password.peek() == PASSWORD;
+                                    welcomed.set(right);
+                                    if !right {
+                                        replay.start();
+                                    }
+                                }),
+                        ),
                 ),
             )
             .child(
                 rect()
                     .scale(greeting.max(0.0))
                     .opacity(greeting.clamp(0.0, 1.0))
-                    .child(text("Bienvenido", HEADLINE, palette.accent)),
+                    .child(text(tr!("welcome"), HEADLINE, palette.accent)),
             )
     }
 }
@@ -170,7 +173,7 @@ impl Component for Inbox {
                         )
                     }),
             )
-            .child(Button::new("Recibir").on_press(move |_| *count.write() += 1))
+            .child(Button::new(tr!("receive")).on_press(move |_| *count.write() += 1))
     }
 }
 
@@ -199,7 +202,7 @@ impl Component for PlusToggle {
             ))
             .rotate(45.0 * progress)
             .a11y_role(AccessibilityRole::Button)
-            .a11y_alt("Abrir")
+            .a11y_alt(tr!("open"))
             .on_press(move |_| open.toggle())
             .child(symbol(Symbol::Plus, size / 2.0, palette.on_accent))
     }
@@ -231,7 +234,7 @@ impl Component for Arrival {
             .opacity(progress)
             .overflow(Overflow::Clip)
             .offset_x(SLIDE_IN * (1.0 - progress))
-            .child(text(format!("Elemento {}", self.id), TEXT, palette.label))
+            .child(text(tr!("item-n", number = self.id), TEXT, palette.label))
     }
 }
 
@@ -273,13 +276,13 @@ impl Component for Arrivals {
             .spacing(SPACE_2)
             .child(
                 horizontal()
-                    .child(Button::new("Añadir").on_press(move |_| {
+                    .child(Button::new(tr!("add")).on_press(move |_| {
                         let id = *next.peek();
                         next.set(id + 1);
                         items.write().push(id);
                     }))
                     .child(
-                        Button::new("Quitar")
+                        Button::new(tr!("remove"))
                             .disabled(removable.is_none())
                             .on_press(move |_| {
                                 let (Some(id), Some(timers)) =
@@ -324,7 +327,11 @@ impl Component for Popover {
             )
         });
         let progress = reveal.get().current();
-        let label = if *shown.read() { "Ocultar" } else { "Mostrar" };
+        let label = if *shown.read() {
+            tr!("hide")
+        } else {
+            tr!("show")
+        };
         let palette = Palette::current();
         rect()
             .spacing(SPACE_2)
@@ -333,7 +340,7 @@ impl Component for Popover {
                 card(rect(), palette.control_background)
                     .scale(0.9 + 0.1 * progress)
                     .opacity(progress.clamp(0.0, 1.0))
-                    .child(text("Llega con resorte", TEXT, palette.label)),
+                    .child(text(tr!("arrives-with-spring"), TEXT, palette.label)),
             )
     }
 }
@@ -364,7 +371,7 @@ impl Component for CopyToast {
         let mut replay = toast;
         let palette = Palette::current();
         horizontal()
-            .child(Button::new("Copiar enlace").on_press(move |_| replay.start()))
+            .child(Button::new(tr!("copy-link")).on_press(move |_| replay.start()))
             .child(
                 rect()
                     .padding(SPACE_2)
@@ -372,7 +379,11 @@ impl Component for CopyToast {
                     .background(color(palette.label))
                     .opacity(visible)
                     .scale(0.94 + 0.06 * visible)
-                    .child(text("Enlace copiado", CALLOUT, palette.content_background)),
+                    .child(text(
+                        tr!("link-copied"),
+                        CALLOUT,
+                        palette.content_background,
+                    )),
             )
     }
 }

@@ -5,8 +5,11 @@ mod animation;
 mod chrome;
 mod events;
 mod kit;
+mod localize;
 mod motion;
 mod slides;
+
+use std::sync::LazyLock;
 
 use barrier_kit::adaptive::{Breakpoint, use_breakpoint};
 use barrier_kit::adornments::{Link, avatar, badge, divider};
@@ -26,6 +29,7 @@ use barrier_kit::level::{LevelSlider, LevelStyle};
 use barrier_kit::menu::MenuItem;
 use barrier_kit::password::PasswordField;
 use barrier_kit::patterns::about::about_window;
+use barrier_kit::patterns::language::app_language_row;
 use barrier_kit::patterns::preferences::{Pane, PaneGroup, PreferencesWindow};
 use barrier_kit::platform::{DecorationResponse, WindowControls, WindowStatus};
 use barrier_kit::platform::{WindowOptions, run_window};
@@ -46,6 +50,7 @@ use barrier_kit::views::tabs::TabView;
 use chrome::Prefs;
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
+use localize::tr;
 use torin::prelude::{Direction, Size};
 use vow_appearance::ColorScheme;
 use vow_design::{
@@ -67,37 +72,37 @@ fn row_of(children: impl IntoIterator<Item = Element>) -> Rect {
 
 fn buttons() -> Form {
     Form::new().section(
-        Section::titled("Botones")
+        Section::titled(tr!("buttons"))
             .row(
-                Row::new("Variantes").control(row_of([
-                    Button::new("Cancelar").into_element(),
-                    Button::new("Guardar")
+                Row::new(tr!("variants")).control(row_of([
+                    Button::new(tr!("cancel")).into_element(),
+                    Button::new(tr!("save"))
                         .style(ButtonStyle::Primary)
                         .into_element(),
-                    Button::new("Inactivo").disabled(true).into_element(),
+                    Button::new(tr!("inactive")).disabled(true).into_element(),
                 ])),
             )
-            .row(Row::new("Botón de icono").control(row_of([
-                IconButton::new(Symbol::Plus, "Añadir").into_element(),
-                IconButton::new(Symbol::Minus, "Quitar").into_element(),
+            .row(Row::new(tr!("icon-button")).control(row_of([
+                IconButton::new(Symbol::Plus, tr!("add")).into_element(),
+                IconButton::new(Symbol::Minus, tr!("remove")).into_element(),
             ])))
-            .row(Row::new("Enlace").control(Link::new("Más información…")))
-            .row(Row::new("Ayuda emergente").control(TooltipDemo))
-            .row(Row::new("Menú contextual").control(context_menu(
+            .row(Row::new(tr!("link")).control(Link::new(tr!("learn-more"))))
+            .row(Row::new(tr!("tooltip")).control(TooltipDemo))
+            .row(Row::new(tr!("context-menu")).control(context_menu(
                 rect().child(text(
-                    "Clic secundario aquí",
+                    tr!("secondary-click-here"),
                     TEXT,
                     Palette::current().secondary_label,
                 )),
                 vec![
-                    Action::new("copy", || "Copiar")
+                    Action::new("copy", || tr!("copy"))
                         .shortcut(Shortcut::ctrl(ShortcutKey::Char('c')))
                         .item(true),
-                    Action::new("paste", || "Pegar")
+                    Action::new("paste", || tr!("paste"))
                         .shortcut(Shortcut::ctrl(ShortcutKey::Char('v')))
                         .item(false),
                     MenuItem::Separator,
-                    Action::new("info", || "Obtener información").item(true),
+                    Action::new("info", || tr!("get-info")).item(true),
                 ],
                 |id: String| tracing::info!(%id, "menú contextual"),
             ))),
@@ -109,29 +114,29 @@ struct TooltipDemo;
 
 impl Component for TooltipDemo {
     fn render(&self) -> impl IntoElement {
-        use_tooltip("Añade una cuenta").attach(IconButton::new(Symbol::Plus, "Añadir"))
+        use_tooltip(tr!("add-account")).attach(IconButton::new(Symbol::Plus, tr!("add")))
     }
 }
 
 fn toggles() -> Form {
     Form::new().section(
-        Section::titled("Interruptores y casillas")
+        Section::titled(tr!("switches-and-checkboxes"))
             .row(
-                Row::new("Interruptor").control(row_of([
-                    Switch::new("Apagado").into_element(),
-                    Switch::new("Encendido").on(true).into_element(),
-                    Switch::new("Inactivo")
+                Row::new(tr!("switch")).control(row_of([
+                    Switch::new(tr!("off")).into_element(),
+                    Switch::new(tr!("on")).on(true).into_element(),
+                    Switch::new(tr!("inactive"))
                         .on(true)
                         .disabled(true)
                         .into_element(),
                 ])),
             )
-            .row(Row::new("Casilla").control(Checkbox::new("Recordarme").checked(true)))
+            .row(Row::new(tr!("checkbox")).control(Checkbox::new(tr!("remember-me")).checked(true)))
             .row(
-                Row::new("Radio").control(
-                    RadioGroup::new("Alcance")
-                        .option("Solo las ventanas")
-                        .option("Todo el escritorio"),
+                Row::new(tr!("radio")).control(
+                    RadioGroup::new(tr!("scope"))
+                        .option(tr!("windows-only"))
+                        .option(tr!("whole-desktop")),
                 ),
             ),
     )
@@ -139,74 +144,74 @@ fn toggles() -> Form {
 
 fn choices() -> Form {
     Form::new().section(
-        Section::titled("Elección")
+        Section::titled(tr!("choice"))
             .row(
-                Row::new("Segmentado").control(
-                    SegmentedControl::new("Periodo")
-                        .segment("Día")
-                        .segment("Semana")
-                        .segment("Mes"),
+                Row::new(tr!("segmented")).control(
+                    SegmentedControl::new(tr!("period"))
+                        .segment(tr!("day"))
+                        .segment(tr!("week"))
+                        .segment(tr!("month")),
                 ),
             )
             .row(
-                Row::new("Desplegable").control(
-                    PopUpButton::new("Semáforos")
-                        .item("Automático")
-                        .item("Clásico")
-                        .item("Acento"),
+                Row::new(tr!("popup")).control(
+                    PopUpButton::new(tr!("traffic-lights"))
+                        .item(tr!("automatic"))
+                        .item(tr!("classic"))
+                        .item(tr!("accent")),
                 ),
             )
             .row(
-                Row::new("Color de acento")
-                    .control(ColorWell::new("Color de acento", &ACCENT_SWATCHES).selected(Some(0))),
-            )
-            .row(Row::new("Tarjetas").control(
-                ["Claro", "Oscuro", "Acento"].into_iter().enumerate().fold(
-                    ChoiceCards::new("Tema"),
-                    |cards, (index, caption)| {
-                        cards.option(
-                            caption,
-                            rect()
-                                .width(Size::fill())
-                                .height(Size::fill())
-                                .background(barrier_kit::theme::color(tint(index))),
-                        )
-                    },
+                Row::new(tr!("accent-color")).control(
+                    ColorWell::new(tr!("accent-color"), &ACCENT_SWATCHES).selected(Some(0)),
                 ),
-            ))
+            )
             .row(
-                Row::new("Grupo conmutable").control(
-                    ToggleGroup::new("Formato")
-                        .item("B", Face::Bold, "Negrita", true)
-                        .item("I", Face::Italic, "Cursiva", false)
-                        .item("U", Face::Underline, "Subrayado", false),
+                Row::new(tr!("cards")).control(
+                    [tr!("light"), tr!("dark"), tr!("accent")]
+                        .into_iter()
+                        .enumerate()
+                        .fold(ChoiceCards::new(tr!("theme")), |cards, (index, caption)| {
+                            cards.option(
+                                caption,
+                                rect()
+                                    .width(Size::fill())
+                                    .height(Size::fill())
+                                    .background(barrier_kit::theme::color(tint(index))),
+                            )
+                        }),
                 ),
             )
-            .row(Row::new("Stepper").control(Stepper::new("Núcleos", 1, 16).value(4))),
+            .row(
+                Row::new(tr!("toggle-group")).control(
+                    ToggleGroup::new(tr!("format"))
+                        .item("B", Face::Bold, tr!("bold"), true)
+                        .item("I", Face::Italic, tr!("italic"), false)
+                        .item("U", Face::Underline, tr!("underline"), false),
+                ),
+            )
+            .row(Row::new(tr!("stepper")).control(Stepper::new(tr!("cores"), 1, 16).value(4))),
     )
 }
 
+static LEVELS: LazyLock<[&str; 4]> =
+    LazyLock::new(|| [tr!("none"), tr!("little"), tr!("medium"), tr!("much")]);
+
 fn sliders() -> Form {
     Form::new().section(
-        Section::titled("Deslizadores")
+        Section::titled(tr!("sliders"))
+            .row(Row::new(tr!("stepped")).control(Slider::stepped(4).value(1).labels(&*LEVELS)))
             .row(
-                Row::new("Por pasos").control(
-                    Slider::stepped(4)
-                        .value(1)
-                        .labels(&["Nada", "Poco", "Medio", "Mucho"]),
-                ),
-            )
-            .row(
-                Row::new("Continuo").control(
+                Row::new(tr!("continuous")).control(
                     rect()
                         .width(Size::px(SPLIT_VIEW.inspector))
-                        .child(LevelSlider::new("Brillo").value(0.4)),
+                        .child(LevelSlider::new(tr!("brightness")).value(0.4)),
                 ),
             )
             .row(
-                Row::new("Centro de control").control(
+                Row::new(tr!("control-center")).control(
                     rect().width(Size::px(SPLIT_VIEW.inspector)).child(
-                        LevelSlider::new("Volumen")
+                        LevelSlider::new(tr!("volume"))
                             .value(0.6)
                             .style(LevelStyle::Fat(Symbol::SpeakerWave)),
                     ),
@@ -217,23 +222,23 @@ fn sliders() -> Form {
 
 fn fields(name: State<String>, query: State<String>, password: State<PasswordField>) -> Form {
     Form::new().section(
-        Section::titled("Campos")
+        Section::titled(tr!("fields"))
             .row(
-                Row::new("Texto").control(
+                Row::new(tr!("text-field")).control(
                     rect()
                         .width(Size::px(SPLIT_VIEW.inspector))
-                        .child(TextField::new(name, "Nombre de usuario")),
+                        .child(TextField::new(name, tr!("user-name"))),
                 ),
             )
             .row(
-                Row::new("Búsqueda").control(
+                Row::new(tr!("search-field")).control(
                     rect()
                         .width(Size::px(SPLIT_VIEW.inspector))
-                        .child(SearchField::new(query, "Buscar")),
+                        .child(SearchField::new(query, tr!("search"))),
                 ),
             )
             .row(
-                Row::new("Contraseña")
+                Row::new(tr!("password"))
                     .control(SecureField::new(password).width(SPLIT_VIEW.inspector)),
             ),
     )
@@ -249,35 +254,35 @@ fn window_parts() -> Form {
     };
     Form::new()
         .section(
-            Section::titled("Ventana")
-                .row(Row::new("Semáforos").control(TrafficLights::new().focused(true)))
+            Section::titled(tr!("window"))
+                .row(Row::new(tr!("traffic-lights")).control(TrafficLights::new().focused(true)))
                 .row(
-                    Row::new("Barra de título").control(
+                    Row::new(tr!("title-bar")).control(
                         rect()
                             .width(Size::px(SPLIT_VIEW.inspector))
-                            .child(Titlebar::preview(status, "Documento", false)),
+                            .child(Titlebar::preview(status, tr!("document"), false)),
                     ),
                 )
                 .row(
-                    Row::new("Solo cerrar").control(
+                    Row::new(tr!("close-only")).control(
                         rect()
                             .width(Size::px(SPLIT_VIEW.inspector))
-                            .child(Titlebar::preview(status, "Acerca de", true).close_only(true)),
+                            .child(Titlebar::preview(status, tr!("about"), true).close_only(true)),
                     ),
                 ),
         )
         .section(
-            Section::titled("Barra de herramientas").row(
-                Row::new("Grupo").control(
+            Section::titled(tr!("toolbar")).row(
+                Row::new(tr!("group")).control(
                     ToolGroup::new()
-                        .child(IconButton::new(Symbol::Plus, "Añadir"))
-                        .child(IconButton::new(Symbol::Minus, "Quitar").disabled(true)),
+                        .child(IconButton::new(Symbol::Plus, tr!("add")))
+                        .child(IconButton::new(Symbol::Minus, tr!("remove")).disabled(true)),
                 ),
             ),
         )
         .section(
-            Section::titled("Desplazamiento").row(
-                Row::new("Lista").control(
+            Section::titled(tr!("scrolling")).row(
+                Row::new(tr!("list")).control(
                     ScrollView::new()
                         .width(Size::px(SPLIT_VIEW.inspector))
                         .height(Size::px(TABLE.row_height * 4.0))
@@ -285,7 +290,7 @@ fn window_parts() -> Form {
                             rect()
                                 .height(Size::px(TABLE.row_height))
                                 .child(text(
-                                    format!("Elemento {n}"),
+                                    tr!("item-n", number = n),
                                     TEXT,
                                     Palette::current().label,
                                 ))
@@ -303,21 +308,23 @@ impl Component for AdaptiveDemo {
     fn render(&self) -> impl IntoElement {
         let size = use_breakpoint();
         let name = match size.current() {
-            Breakpoint::Compact => "Compacto",
-            Breakpoint::Medium => "Medio",
-            Breakpoint::Wide => "Ancho",
+            Breakpoint::Compact => tr!("compact"),
+            Breakpoint::Medium => tr!("medium"),
+            Breakpoint::Wide => tr!("wide"),
         };
         size.attach(rect().width(Size::fill()))
             .child(text(name, TEXT, Palette::current().label))
     }
 }
 
-const SCHEMES: [(Option<ColorScheme>, &str); 4] = [
-    (None, "Sistema"),
-    (Some(ColorScheme::Light), "Claro"),
-    (Some(ColorScheme::Dark), "Oscuro"),
-    (Some(ColorScheme::DarkTint), "Tintado"),
-];
+static SCHEMES: LazyLock<[(Option<ColorScheme>, &str); 4]> = LazyLock::new(|| {
+    [
+        (None, tr!("system")),
+        (Some(ColorScheme::Light), tr!("light")),
+        (Some(ColorScheme::Dark), tr!("dark")),
+        (Some(ColorScheme::DarkTint), tr!("tinted")),
+    ]
+});
 
 fn appearance(scheme: State<Option<ColorScheme>>) -> Form {
     let selected = SCHEMES
@@ -325,56 +332,56 @@ fn appearance(scheme: State<Option<ColorScheme>>) -> Form {
         .position(|(value, _)| *value == *scheme.read())
         .unwrap_or_default();
     Form::new().section(
-        Section::titled("Apariencia del catálogo").row(Row::new("Tema").control(
-            chrome::segmented(
-                "Tema",
+        Section::titled(tr!("catalog-appearance"))
+            .row(Row::new(tr!("theme")).control(chrome::segmented(
+                tr!("theme"),
                 &SCHEMES.map(|(_, name)| name),
                 selected,
                 move |index| {
                     let mut scheme = scheme;
                     scheme.set(SCHEMES[index].0);
                 },
-            ),
-        )),
+            )))
+            .row(app_language_row(APP)),
     )
 }
 
 fn adaptive() -> Form {
     Form::new().section(
-        Section::titled("Diseño adaptable")
-            .row(Row::new("Punto de corte del panel").control(AdaptiveDemo)),
+        Section::titled(tr!("adaptive-layout"))
+            .row(Row::new(tr!("panel-breakpoint")).control(AdaptiveDemo)),
     )
 }
 
 fn progress() -> Form {
     Form::new().section(
-        Section::titled("Progreso")
+        Section::titled(tr!("progress"))
             .row(
-                Row::new("Barra").control(
+                Row::new(tr!("bar")).control(
                     rect()
                         .width(Size::px(SPLIT_VIEW.inspector))
-                        .child(ProgressBar::determinate("Copiando", 0.62)),
+                        .child(ProgressBar::determinate(tr!("copying"), 0.62)),
                 ),
             )
             .row(
-                Row::new("Indeterminado").control(
+                Row::new(tr!("indeterminate")).control(
                     rect()
                         .width(Size::px(SPLIT_VIEW.inspector))
-                        .child(ProgressBar::indeterminate("Buscando")),
+                        .child(ProgressBar::indeterminate(tr!("searching"))),
                 ),
             )
-            .row(Row::new("Anillo").control(ProgressRing::new("Descargando", 0.4)))
-            .row(Row::new("Indicador de actividad").control(Spinner::new("Cargando"))),
+            .row(Row::new(tr!("progress-ring")).control(ProgressRing::new(tr!("downloading"), 0.4)))
+            .row(Row::new(tr!("activity-indicator")).control(Spinner::new(tr!("loading")))),
     )
 }
 
 fn adornments() -> Form {
     Form::new().section(
-        Section::titled("Insignias y adornos")
-            .row(Row::new("Insignia").control(badge("2")))
-            .row(Row::new("Avatar").control(avatar("HB")))
+        Section::titled(tr!("badges-and-adornments"))
+            .row(Row::new(tr!("badge")).control(badge("2")))
+            .row(Row::new(tr!("avatar")).control(avatar("HB")))
             .row(
-                Row::new("Separador").control(
+                Row::new(tr!("separator")).control(
                     rect()
                         .width(Size::px(SPLIT_VIEW.inspector))
                         .child(divider()),
@@ -386,20 +393,20 @@ fn adornments() -> Form {
 fn forms() -> Form {
     Form::new()
         .section(
-            Section::titled("Filas")
+            Section::titled(tr!("rows"))
                 .row(
-                    Row::new("Con control")
-                        .detail("Detalle debajo")
-                        .control(Switch::new("Demo")),
+                    Row::new(tr!("with-control"))
+                        .detail(tr!("detail-below"))
+                        .control(Switch::new(tr!("demo"))),
                 )
-                .row(Row::value("De valor", "Normal · 87 %"))
-                .row(Row::navigation("De navegación", |_| {}))
-                .row(Row::destructive("Destructiva…", |_| {})),
+                .row(Row::value(tr!("value-row"), tr!("value-sample")))
+                .row(Row::navigation(tr!("navigation-row"), |_| {}))
+                .row(Row::destructive(tr!("destructive-row"), |_| {})),
         )
         .section(
             Section::new()
-                .row(Row::new("Sección sin título"))
-                .footer("Pie de sección."),
+                .row(Row::new(tr!("untitled-section")))
+                .footer(tr!("section-footer")),
         )
 }
 
@@ -439,13 +446,13 @@ fn data(sort: State<Option<SortOrder>>, selected: State<Vec<usize>>) -> Form {
     };
     Form::new()
         .section(
-            Section::titled("Tabla").row(
-                Row::new("Archivos").control(
+            Section::titled(tr!("table")).row(
+                Row::new(tr!("files")).control(
                     rect()
                         .width(Size::px(SPLIT_VIEW.sidebar_max))
                         .height(Size::px(TABLE.header_height + 4.0 * TABLE.row_height))
                         .child(
-                            Table::new("Archivos", vec!["Nombre", "Tamaño"])
+                            Table::new(tr!("files"), vec![tr!("name"), tr!("size")])
                                 .rows(rows)
                                 .sort(*sort.read())
                                 .on_sort(move |order| sort_write.set(Some(order))),
@@ -454,9 +461,9 @@ fn data(sort: State<Option<SortOrder>>, selected: State<Vec<usize>>) -> Form {
             ),
         )
         .section(
-            Section::titled("Rejilla").row(
-                Row::new("Carpetas").control(
-                    CollectionView::new("Carpetas")
+            Section::titled(tr!("grid")).row(
+                Row::new(tr!("folders")).control(
+                    CollectionView::new(tr!("folders"))
                         .item(folder(0), "Malaysia")
                         .item(folder(1), "Facturas")
                         .item(folder(6), "Fotos")
@@ -469,22 +476,22 @@ fn data(sort: State<Option<SortOrder>>, selected: State<Vec<usize>>) -> Form {
 
 fn tabs() -> Form {
     Form::new().section(
-        Section::titled("Pestañas").row(
-            Row::new("Barra de herramientas").control(
+        Section::titled(tr!("tabs")).row(
+            Row::new(tr!("toolbar")).control(
                 rect()
                     .width(Size::px(SPLIT_VIEW.sidebar_max))
                     .height(Size::px(SPLIT_VIEW.inspector / 2.0))
                     .child(
-                        TabView::new("Secciones")
+                        TabView::new(tr!("sections"))
                             .tab(
                                 Symbol::MagnifyingGlass,
-                                "Buscar",
-                                text("Página Buscar", TEXT, Palette::current().label),
+                                tr!("search"),
+                                text(tr!("search-page"), TEXT, Palette::current().label),
                             )
                             .tab(
                                 Symbol::SpeakerWave,
-                                "Sonido",
-                                text("Página Sonido", TEXT, Palette::current().label),
+                                tr!("sound"),
+                                text(tr!("sound-page"), TEXT, Palette::current().label),
                             ),
                     ),
             ),
@@ -506,14 +513,14 @@ fn preview(colors: [Rgba; 3], accent: Accent, fill: Tint) -> Rect {
                     .padding(16.0)
                     .spacing(SPACE_2)
                     .child(row_of([
-                        Switch::new("Encendido").on(true).tint(fill).into_element(),
-                        Checkbox::new("Marcada")
+                        Switch::new(tr!("on")).on(true).tint(fill).into_element(),
+                        Checkbox::new(tr!("checked"))
                             .checked(true)
                             .tint(fill)
                             .into_element(),
                     ]))
-                    .child(ProgressBar::determinate("Progreso", 0.6).tint(fill))
-                    .child(LevelSlider::new("Nivel").value(0.4).tint(fill)),
+                    .child(ProgressBar::determinate(tr!("progress"), 0.6).tint(fill))
+                    .child(LevelSlider::new(tr!("level")).value(0.4).tint(fill)),
             )
             .accent(accent),
         )
@@ -532,11 +539,13 @@ fn sidebar_preview(colors: [Rgba; 3], backdrop: SidebarBackdrop) -> Rect {
                     Sidebar::new()
                         .backdrop(backdrop)
                         .child(
-                            SidebarItem::new("Escuchando")
+                            SidebarItem::new(tr!("listening"))
                                 .symbol(Symbol::Play, tint(0))
                                 .selected(true),
                         )
-                        .child(SidebarItem::new("Biblioteca").symbol(Symbol::SquareGrid, tint(1))),
+                        .child(
+                            SidebarItem::new(tr!("library")).symbol(Symbol::SquareGrid, tint(1)),
+                        ),
                 ),
             )
             .accent(Accent::FromBackdrop),
@@ -544,32 +553,32 @@ fn sidebar_preview(colors: [Rgba; 3], backdrop: SidebarBackdrop) -> Rect {
 }
 
 fn backdrops() -> Form {
-    let [(_, dusk), (_, night), (_, pale)] = kit::SCENES;
+    let [(_, dusk), (_, night), (_, pale)] = *kit::SCENES;
     Form::new().section(
-        Section::titled("Fondo tintado")
+        Section::titled(tr!("tinted-backdrop"))
             .row(
-                Row::new("Acento del fondo")
-                    .detail("Tinta blanca: el fondo es oscuro.")
+                Row::new(tr!("backdrop-accent"))
+                    .detail(tr!("backdrop-accent-detail"))
                     .control(preview(dusk, Accent::FromBackdrop, Tint::Accent)),
             )
             .row(
-                Row::new("Gradiente del fondo")
-                    .detail("Los controles se rellenan con el fondo.")
+                Row::new(tr!("backdrop-gradient"))
+                    .detail(tr!("backdrop-gradient-detail"))
                     .control(preview(night, Accent::System, Tint::Backdrop)),
             )
             .row(
-                Row::new("Paleta clara")
-                    .detail("Se lleva al rango legible; acento propio.")
+                Row::new(tr!("light-palette"))
+                    .detail(tr!("light-palette-detail"))
                     .control(preview(pale, Accent::Own(tint(4)), Tint::Accent)),
             )
             .row(
-                Row::new("Barra lateral")
-                    .detail("Deja ver el fondo, sea isla o plana.")
+                Row::new(tr!("sidebar"))
+                    .detail(tr!("sidebar-backdrop-detail"))
                     .control(sidebar_preview(dusk, SidebarBackdrop::Clear)),
             )
             .row(
-                Row::new("Isla tintada")
-                    .detail("La app la tiñe con el fondo; la plana no cambia.")
+                Row::new(tr!("tinted-island"))
+                    .detail(tr!("tinted-island-detail"))
                     .control(sidebar_preview(dusk, SidebarBackdrop::Tinted)),
             ),
     )
@@ -577,27 +586,30 @@ fn backdrops() -> Form {
 
 fn feedback(mut alert: State<bool>) -> Form {
     Form::new().section(
-        Section::titled("Estados y alertas")
-            .row(Row::new("Vacío").control(empty_state(Symbol::MagnifyingGlass, "Sin resultados")))
+        Section::titled(tr!("states-and-alerts"))
             .row(
-                Row::new("Alerta")
-                    .control(Button::new("Mostrar alerta").on_press(move |_| alert.set(true))),
+                Row::new(tr!("empty"))
+                    .control(empty_state(Symbol::MagnifyingGlass, tr!("no-results"))),
+            )
+            .row(
+                Row::new(tr!("alert"))
+                    .control(Button::new(tr!("show-alert")).on_press(move |_| alert.set(true))),
             ),
     )
 }
 
 fn undo(accent: UndoManager<usize>, selected: usize) -> Form {
     Form::new().section(
-        Section::titled("Deshacer")
+        Section::titled(tr!("undo"))
             .row(
-                Row::new("Color").control(
-                    ColorWell::new("Color", &ACCENT_SWATCHES)
+                Row::new(tr!("color")).control(
+                    ColorWell::new(tr!("color"), &ACCENT_SWATCHES)
                         .selected(Some(selected))
                         .on_change(move |index| accent.set(index)),
                 ),
             )
             .row(
-                Row::new("Historial").control(row_of([
+                Row::new(tr!("history")).control(row_of([
                     Button::new(UNDO.title())
                         .disabled(!accent.can_undo())
                         .on_press(move |_| accent.undo())
@@ -613,16 +625,16 @@ fn undo(accent: UndoManager<usize>, selected: usize) -> Form {
 
 fn about() -> Form {
     Form::new().section(
-        Section::titled("Acerca de").row(
-            Row::new("Ventana").control(
+        Section::titled(tr!("about")).row(
+            Row::new(tr!("window")).control(
                 rect()
                     .width(Size::px(SPLIT_VIEW.sidebar_max))
                     .height(Size::px(SPLIT_VIEW.inspector))
                     .child(about_window(
                         avatar("MT"),
                         "Master Tengen App Show",
-                        Some("Versión 0.1"),
-                        "™ y © 2026 Malaysia",
+                        Some(tr!("version", version = "0.1")),
+                        tr!("copyright"),
                     )),
             ),
         ),
@@ -676,121 +688,121 @@ impl App for Show {
             .sidebar_range(current.sidebar_range())
             .narrow_sidebar(current.narrow_sidebar)
             .group(
-                PaneGroup::new(Some("Capa 1 · Primitivas"))
+                PaneGroup::new(Some(tr!("layer-primitives")))
                     .pane(Pane::new(
                         "botones",
-                        "Botones",
+                        tr!("buttons"),
                         Symbol::Plus,
                         tint(0),
                         buttons(),
                     ))
                     .pane(Pane::new(
                         "interruptores",
-                        "Interruptores",
+                        tr!("switches"),
                         Symbol::ChevronRight,
                         tint(6),
                         toggles(),
                     ))
                     .pane(Pane::new(
                         "eleccion",
-                        "Elección",
+                        tr!("choice"),
                         Symbol::ChevronUpDown,
                         tint(1),
                         choices(),
                     ))
                     .pane(Pane::new(
                         "deslizadores",
-                        "Deslizadores",
+                        tr!("sliders"),
                         Symbol::SpeakerWave,
                         tint(4),
                         sliders(),
                     ))
                     .pane(Pane::new(
                         "campos",
-                        "Campos",
+                        tr!("fields"),
                         Symbol::MagnifyingGlass,
                         tint(7),
                         fields(name, query, password),
                     ))
                     .pane(Pane::new(
                         "progreso",
-                        "Progreso",
+                        tr!("progress"),
                         Symbol::ChevronDown,
                         tint(5),
                         progress(),
                     ))
                     .pane(Pane::new(
                         "adornos",
-                        "Adornos",
+                        tr!("adornments"),
                         Symbol::XMark,
                         tint(2),
                         adornments(),
                     )),
             )
             .group(
-                PaneGroup::new(Some("Capa 2 · Vistas"))
+                PaneGroup::new(Some(tr!("layer-views")))
                     .pane(Pane::new(
                         "formularios",
-                        "Formularios",
+                        tr!("forms"),
                         Symbol::ChevronRight,
                         tint(0),
                         forms(),
                     ))
                     .pane(Pane::new(
                         "datos",
-                        "Tabla y rejilla",
+                        tr!("table-and-grid"),
                         Symbol::ChevronDown,
                         tint(1),
                         data(sort, selected),
                     ))
                     .pane(Pane::new(
                         "pestanas",
-                        "Pestañas",
+                        tr!("tabs"),
                         Symbol::ChevronUp,
                         tint(3),
                         tabs(),
                     ))
                     .pane(Pane::new(
                         "fondos",
-                        "Fondo tintado",
+                        tr!("tinted-backdrop"),
                         Symbol::CircleHalf,
                         tint(5),
                         backdrops(),
                     ))
                     .pane(Pane::new(
                         "estados",
-                        "Estados y alertas",
+                        tr!("states-and-alerts"),
                         Symbol::XMark,
                         tint(3),
                         feedback(alert),
                     ))
                     .pane(Pane::new(
                         "ventana",
-                        "Ventana y herramientas",
+                        tr!("window-and-tools"),
                         Symbol::SidebarLeft,
                         tint(6),
                         window_parts(),
                     ))
                     .pane(Pane::new(
                         "adaptable",
-                        "Diseño adaptable",
+                        tr!("adaptive-layout"),
                         Symbol::SquareGrid,
                         tint(4),
                         adaptive(),
                     )),
             )
             .group(
-                PaneGroup::new(Some("Capa 3 · Patrones"))
+                PaneGroup::new(Some(tr!("layer-patterns")))
                     .pane(Pane::new(
                         "acerca",
-                        "Acerca de",
+                        tr!("about"),
                         Symbol::ChevronLeft,
                         tint(7),
                         about(),
                     ))
                     .pane(Pane::new(
                         "apariencia",
-                        "Apariencia",
+                        tr!("appearance"),
                         Symbol::CircleHalf,
                         tint(0),
                         appearance(scheme),
@@ -798,9 +810,9 @@ impl App for Show {
             )
             .group(chrome::group(prefs))
             .group(animation::group(reduced))
-            .group(PaneGroup::new(Some("App")).pane(Pane::new(
+            .group(PaneGroup::new(Some(tr!("app-group"))).pane(Pane::new(
                 "deshacer",
-                "Deshacer",
+                tr!("undo"),
                 Symbol::Backward,
                 tint(2),
                 undo(accent_history, *accent.read()),
@@ -812,18 +824,16 @@ impl App for Show {
             .child(chrome::window(current, window))
             .maybe(*alert.read(), |el| {
                 el.child(
-                    Alert::new(
-                        "¿Olvidar esta red?",
-                        "Tendrás que volver a escribir la contraseña.",
-                    )
-                    .confirm("Olvidar", move |_| alert.set(false))
-                    .cancel("Cancelar", move |_| alert.set(false)),
+                    Alert::new(tr!("forget-network"), tr!("forget-network-message"))
+                        .confirm(tr!("forget"), move |_| alert.set(false))
+                        .cancel(tr!("cancel"), move |_| alert.set(false)),
                 )
             })
     }
 }
 
 fn main() {
+    barrier_kit::i18n::use_app_language(APP);
     barrier_kit::init_tracing();
     let app_id = barrier_kit::titlebar::app_id(APP).leak();
     let instance = match launch(app_id) {
@@ -847,7 +857,7 @@ fn main() {
             .fullscreen_bar(prefs.fullscreen_bar)
             .fullscreen_push(prefs.fullscreen_push)
             .menu(AppMenu::new(vec![Menu::new(
-                "Edición",
+                tr!("edit"),
                 vec![UNDO.item(true), REDO.item(true)],
             )])),
     )

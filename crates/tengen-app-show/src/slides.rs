@@ -1,3 +1,5 @@
+use std::sync::LazyLock;
+
 use barrier_kit::compact::IconButton;
 use barrier_kit::style::{Palette, text};
 use barrier_kit::symbol::{Symbol, symbol};
@@ -11,28 +13,31 @@ use vow_design::{
     SPLIT_VIEW,
 };
 
+use crate::localize::tr;
 use crate::motion::{spring, time, unit, use_reduced_motion};
 
-pub const SLIDES: [(&str, &str, Symbol); 4] = [
-    (
-        "Bienvenida",
-        "Todo lo que se mueve en el kit.",
-        Symbol::Play,
-    ),
-    (
-        "Curvas",
-        "Cada gesto con su ritmo.",
-        Symbol::SlidersVertical,
-    ),
-    (
-        "Resorte",
-        "Grade Animation sobre Freya.",
-        Symbol::ChevronUpDown,
-    ),
-    ("Listo", "Úsalo en tu app.", Symbol::SquareGrid),
-];
+pub static SLIDES: LazyLock<[(&str, &str, Symbol); 4]> = LazyLock::new(|| {
+    [
+        (tr!("welcome-slide"), tr!("welcome-caption"), Symbol::Play),
+        (
+            tr!("curves"),
+            tr!("curves-caption"),
+            Symbol::SlidersVertical,
+        ),
+        (tr!("spring"), tr!("spring-caption"), Symbol::ChevronUpDown),
+        (tr!("done"), tr!("done-caption"), Symbol::SquareGrid),
+    ]
+});
 
-pub const TRANSITIONS: [&str; 5] = ["Desplazar", "Fundido", "Zoom", "Cubrir", "Resorte"];
+pub static TRANSITIONS: LazyLock<[&str; 5]> = LazyLock::new(|| {
+    [
+        tr!("slide"),
+        tr!("fade"),
+        tr!("zoom"),
+        tr!("cover"),
+        tr!("spring"),
+    ]
+});
 
 const BOUNCY: usize = 4;
 const WIDTH: f32 = SPLIT_VIEW.sidebar_max;
@@ -151,7 +156,7 @@ pub fn pager(mut page: State<usize>) -> Rect {
         .cross_align(Alignment::Center)
         .spacing(SPACE_2)
         .child(
-            IconButton::new(Symbol::ChevronLeft, "Anterior")
+            IconButton::new(Symbol::ChevronLeft, tr!("previous"))
                 .disabled(current == 0)
                 .on_press(move |_| page.set(current.saturating_sub(1))),
         )
@@ -162,7 +167,7 @@ pub fn pager(mut page: State<usize>) -> Rect {
             .into_element()
         }))
         .child(
-            IconButton::new(Symbol::ChevronRight, "Siguiente")
+            IconButton::new(Symbol::ChevronRight, tr!("next"))
                 .disabled(current == last)
                 .on_press(move |_| page.set((current + 1).min(last))),
         )
