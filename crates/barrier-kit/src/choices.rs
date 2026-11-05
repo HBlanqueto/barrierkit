@@ -41,6 +41,15 @@ impl Choice {
     }
 }
 
+fn choice_group(label: &'static str, spacing: f32, options: impl Iterator<Item = Element>) -> Rect {
+    rect()
+        .a11y_role(AccessibilityRole::RadioGroup)
+        .a11y_alt(label)
+        .direction(Direction::Horizontal)
+        .spacing(spacing)
+        .children(options)
+}
+
 #[derive(PartialEq)]
 pub struct RadioGroup {
     label: &'static str,
@@ -115,12 +124,7 @@ impl Component for RadioGroup {
             }
             .into_element()
         });
-        rect()
-            .a11y_role(AccessibilityRole::RadioGroup)
-            .a11y_alt(self.label)
-            .direction(Direction::Horizontal)
-            .spacing(SETTINGS.radio_spacing as f32)
-            .children(options)
+        choice_group(self.label, SETTINGS.radio_spacing as f32, options)
     }
 }
 
@@ -254,12 +258,7 @@ impl Component for ColorWell {
                 }
                 .into_element()
             });
-        rect()
-            .a11y_role(AccessibilityRole::RadioGroup)
-            .a11y_alt(self.label)
-            .direction(Direction::Horizontal)
-            .spacing(SETTINGS.swatch_gap as f32)
-            .children(swatches)
+        choice_group(self.label, SETTINGS.swatch_gap as f32, swatches)
     }
 }
 
@@ -388,12 +387,7 @@ impl Component for ChoiceCards {
                 }
                 .into_element()
             });
-        rect()
-            .a11y_role(AccessibilityRole::RadioGroup)
-            .a11y_alt(self.label)
-            .direction(Direction::Horizontal)
-            .spacing(SETTINGS.card_gap as f32)
-            .children(cards)
+        choice_group(self.label, SETTINGS.card_gap as f32, cards)
     }
 }
 
