@@ -21,7 +21,7 @@ use gstreamer_app as gst_app;
 use gstreamer_video as gst_video;
 use skia_safe::canvas::SrcRectConstraint;
 use thiserror::Error;
-use torin::prelude::Size;
+use torin::prelude::{Position, Size};
 
 use crate::platform::dmabuf::{self, Imported, Plane};
 use crate::platform::{Timers, WakeHandle};
@@ -648,21 +648,16 @@ impl VideoView {
 impl Component for VideoView {
     fn render(&self) -> impl IntoElement {
         let presenter = use_hook(|| Rc::new(RefCell::new(Presenter::default())));
-        let layout = torin::node::Node {
-            width: self.width.clone(),
-            height: self.height.clone(),
-            ..Default::default()
-        };
-        Element::Element {
-            key: DiffKey::None,
-            element: Rc::new(VideoElement {
-                stream: self.stream.clone(),
-                presenter,
-                corner_radius: self.corner_radius,
-                layout: layout.into(),
-            }),
-            elements: Vec::new(),
-        }
+        crate::glass::leaf(VideoElement {
+            stream: self.stream.clone(),
+            presenter,
+            corner_radius: self.corner_radius,
+            layout: crate::glass::layout(
+                self.width.clone(),
+                self.height.clone(),
+                Position::default(),
+            ),
+        })
     }
 }
 

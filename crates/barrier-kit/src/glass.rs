@@ -58,24 +58,32 @@ fn glass(
     opacity: f32,
 ) -> Element {
     let (width, height, position) = along(edge, depth);
-    let layout = torin::node::Node {
+    leaf(Glass {
+        edge,
+        metrics,
+        tint: glass_tint(),
+        line,
+        opacity,
+        layout: layout(width, height, position),
+    })
+}
+
+pub(crate) fn leaf(element: impl ElementExt) -> Element {
+    Element::Element {
+        key: DiffKey::None,
+        element: Rc::new(element),
+        elements: Vec::new(),
+    }
+}
+
+pub(crate) fn layout(width: Size, height: Size, position: Position) -> LayoutData {
+    torin::node::Node {
         width,
         height,
         position,
         ..Default::default()
-    };
-    Element::Element {
-        key: DiffKey::None,
-        element: Rc::new(Glass {
-            edge,
-            metrics,
-            tint: glass_tint(),
-            line,
-            opacity,
-            layout: layout.into(),
-        }),
-        elements: Vec::new(),
     }
+    .into()
 }
 
 // An opacity layer would hold the backdrop blur, which then samples that empty layer instead of the window.
@@ -262,20 +270,10 @@ struct Material {
 }
 
 pub fn material(corner_radius: f32) -> Element {
-    let layout = torin::node::Node {
-        width: Size::fill(),
-        height: Size::fill(),
-        position: Position::new_absolute(),
-        ..Default::default()
-    };
-    Element::Element {
-        key: DiffKey::None,
-        element: Rc::new(Material {
-            corner_radius,
-            layout: layout.into(),
-        }),
-        elements: Vec::new(),
-    }
+    leaf(Material {
+        corner_radius,
+        layout: layout(Size::fill(), Size::fill(), Position::new_absolute()),
+    })
 }
 
 impl ElementExt for Material {

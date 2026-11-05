@@ -254,20 +254,10 @@ struct Layer {
 }
 
 fn layer(backdrop: tint::Backdrop) -> Element {
-    let layout = torin::node::Node {
-        width: Size::fill(),
-        height: Size::fill(),
-        position: Position::new_absolute(),
-        ..Default::default()
-    };
-    Element::Element {
-        key: DiffKey::None,
-        element: Rc::new(Layer {
-            backdrop,
-            layout: layout.into(),
-        }),
-        elements: Vec::new(),
-    }
+    crate::glass::leaf(Layer {
+        backdrop,
+        layout: crate::glass::layout(Size::fill(), Size::fill(), Position::new_absolute()),
+    })
 }
 
 // CSS linear-gradient geometry: 0° points up, angles turn clockwise, and the
