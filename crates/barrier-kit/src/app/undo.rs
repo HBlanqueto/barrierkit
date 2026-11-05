@@ -1,5 +1,4 @@
 use freya_core::prelude::*;
-use keyboard_types::Modifiers;
 
 use super::{Action, Shortcut, ShortcutKey, use_menu_action};
 use crate::app_menu::MenuHandle;

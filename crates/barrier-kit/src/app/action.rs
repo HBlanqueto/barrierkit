@@ -1,8 +1,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use freya_core::prelude::{try_consume_root_context, use_drop, use_hook};
-use keyboard_types::{Key, Modifiers, NamedKey};
+use freya_core::prelude::{Key, Modifiers, NamedKey, try_consume_root_context, use_drop, use_hook};
 
 use crate::menu::{CheckState, MenuItem};
 
