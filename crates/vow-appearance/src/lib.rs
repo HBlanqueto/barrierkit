@@ -50,6 +50,18 @@ impl ColorScheme {
             scheme => scheme,
         }
     }
+
+    pub fn is_dark(self) -> bool {
+        matches!(self, Self::Dark | Self::DarkTint)
+    }
+
+    fn pick<T>(self, [light, dark, dark_tint]: [T; 3]) -> T {
+        match self {
+            Self::Auto | Self::Light => light,
+            Self::Dark => dark,
+            Self::DarkTint => dark_tint,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize)]
@@ -159,6 +171,17 @@ pub enum TrafficLightShape {
     #[default]
     Square,
     Round,
+}
+
+impl TrafficLightShape {
+    pub fn corner_radius(self, diameter: f32) -> f32 {
+        match self {
+            Self::Square => {
+                diameter * TITLEBAR.buttons.corner_radius as f32 / TITLEBAR.buttons.diameter as f32
+            }
+            Self::Round => diameter / 2.0,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize)]
@@ -303,138 +326,115 @@ impl Resolved {
 }
 
 pub fn palette(scheme: ColorScheme) -> Palette {
-    match scheme.resolved() {
-        ColorScheme::DarkTint => DARK_TINT,
-        ColorScheme::Dark => DARK,
-        _ => LIGHT,
-    }
+    scheme.resolved().pick([LIGHT, DARK, DARK_TINT])
 }
+
+const BG_WINDOW: [Rgba; 3] = [BG_WINDOW_LIGHT, BG_WINDOW_DARK, BG_WINDOW_DARK_TINT];
+
+const SHELL: [[ShellPalette; 3]; 2] = [
+    [SHELL_LIGHT, SHELL_DARK, SHELL_DARK_TINT],
+    [
+        SHELL_LIGHT_OPAQUE,
+        SHELL_DARK_OPAQUE,
+        SHELL_DARK_TINT_OPAQUE,
+    ],
+];
+
+const MENU: [[MenuPalette; 3]; 2] = [
+    [MENU_LIGHT, MENU_DARK, MENU_DARK_TINT],
+    [MENU_LIGHT_OPAQUE, MENU_DARK_OPAQUE, MENU_DARK_TINT_OPAQUE],
+];
+
+const SIDEBAR_FLAT: [[Rgba; 3]; 2] = [
+    [SIDEBAR_LIGHT, SIDEBAR_DARK, SIDEBAR_DARK_TINT],
+    [
+        SIDEBAR_LIGHT_OPAQUE,
+        SIDEBAR_DARK_OPAQUE,
+        SIDEBAR_DARK_TINT_OPAQUE,
+    ],
+];
+
+const SIDEBAR_ISLAND: [[Rgba; 3]; 2] = [
+    [
+        SIDEBAR_ISLAND_LIGHT,
+        SIDEBAR_ISLAND_DARK,
+        SIDEBAR_ISLAND_DARK_TINT,
+    ],
+    [
+        SIDEBAR_LIGHT_OPAQUE,
+        SIDEBAR_DARK_OPAQUE,
+        SIDEBAR_DARK_TINT_OPAQUE,
+    ],
+];
+
+const TOOLGROUP_BG: [[Rgba; 3]; 2] = [
+    [
+        TOOLGROUP_BG_LIGHT,
+        TOOLGROUP_BG_DARK,
+        TOOLGROUP_BG_DARK_TINT,
+    ],
+    [
+        TOOLGROUP_BG_LIGHT_OPAQUE,
+        TOOLGROUP_BG_DARK_OPAQUE,
+        TOOLGROUP_BG_DARK_TINT_OPAQUE,
+    ],
+];
 
 fn chrome_surfaces(
     scheme: ColorScheme,
     style: SidebarStyle,
     opaque: bool,
 ) -> (ShellPalette, MenuPalette, SidebarSurface, ToolgroupSurface) {
-    let sidebar_palette = match scheme {
-        ColorScheme::Dark => SIDEBAR_PALETTE_DARK,
-        ColorScheme::DarkTint => SIDEBAR_PALETTE_DARK_TINT,
-        _ => SIDEBAR_PALETTE_LIGHT,
+    let layer = usize::from(opaque);
+    let palette = scheme.pick([
+        SIDEBAR_PALETTE_LIGHT,
+        SIDEBAR_PALETTE_DARK,
+        SIDEBAR_PALETTE_DARK_TINT,
+    ]);
+    let sidebar = match style {
+        SidebarStyle::Flat => SidebarSurface {
+            style,
+            bg: scheme.pick(SIDEBAR_FLAT[layer]),
+            rim: Rgba::TRANSPARENT,
+            inner: Rgba::TRANSPARENT,
+            palette,
+        },
+        SidebarStyle::Island => SidebarSurface {
+            style,
+            bg: scheme.pick(SIDEBAR_ISLAND[layer]),
+            rim: scheme.pick([
+                SIDEBAR_ISLAND_RIM_LIGHT,
+                SIDEBAR_ISLAND_RIM_DARK,
+                SIDEBAR_ISLAND_RIM_DARK_TINT,
+            ]),
+            inner: scheme.pick([
+                SIDEBAR_ISLAND_INNER_LIGHT,
+                SIDEBAR_ISLAND_INNER_DARK,
+                SIDEBAR_ISLAND_INNER_DARK_TINT,
+            ]),
+            palette,
+        },
     };
-    let toolgroup_palette = match scheme {
-        ColorScheme::Dark => TOOLGROUP_PALETTE_DARK,
-        ColorScheme::DarkTint => TOOLGROUP_PALETTE_DARK_TINT,
-        _ => TOOLGROUP_PALETTE_LIGHT,
+    let toolgroup = ToolgroupSurface {
+        bg: scheme.pick(TOOLGROUP_BG[layer]),
+        palette: scheme.pick([
+            TOOLGROUP_PALETTE_LIGHT,
+            TOOLGROUP_PALETTE_DARK,
+            TOOLGROUP_PALETTE_DARK_TINT,
+        ]),
     };
     (
-        match (scheme, opaque) {
-            (ColorScheme::Dark, false) => SHELL_DARK,
-            (ColorScheme::Dark, true) => SHELL_DARK_OPAQUE,
-            (ColorScheme::DarkTint, false) => SHELL_DARK_TINT,
-            (ColorScheme::DarkTint, true) => SHELL_DARK_TINT_OPAQUE,
-            (_, false) => SHELL_LIGHT,
-            (_, true) => SHELL_LIGHT_OPAQUE,
-        },
-        match (scheme, opaque) {
-            (ColorScheme::Dark, false) => MENU_DARK,
-            (ColorScheme::Dark, true) => MENU_DARK_OPAQUE,
-            (ColorScheme::DarkTint, false) => MENU_DARK_TINT,
-            (ColorScheme::DarkTint, true) => MENU_DARK_TINT_OPAQUE,
-            (_, false) => MENU_LIGHT,
-            (_, true) => MENU_LIGHT_OPAQUE,
-        },
-        sidebar_surface(scheme, style, opaque, sidebar_palette),
-        toolgroup_surface(scheme, opaque, toolgroup_palette),
+        scheme.pick(SHELL[layer]),
+        scheme.pick(MENU[layer]),
+        sidebar,
+        toolgroup,
     )
-}
-
-fn sidebar_surface(
-    scheme: ColorScheme,
-    style: SidebarStyle,
-    opaque: bool,
-    palette: SidebarPalette,
-) -> SidebarSurface {
-    let transparent = Rgba::rgba8(0, 0, 0, 0.0);
-
-    if style == SidebarStyle::Flat {
-        let bg = match (scheme, opaque) {
-            (ColorScheme::Dark, false) => SIDEBAR_DARK,
-            (ColorScheme::Dark, true) => SIDEBAR_DARK_OPAQUE,
-            (ColorScheme::DarkTint, false) => SIDEBAR_DARK_TINT,
-            (ColorScheme::DarkTint, true) => SIDEBAR_DARK_TINT_OPAQUE,
-            (_, false) => SIDEBAR_LIGHT,
-            (_, true) => SIDEBAR_LIGHT_OPAQUE,
-        };
-        return SidebarSurface {
-            style,
-            bg,
-            rim: transparent,
-            inner: transparent,
-            palette,
-        };
-    }
-
-    let (bg, rim, inner) = match (scheme, opaque) {
-        (ColorScheme::Dark, false) => (
-            SIDEBAR_ISLAND_DARK,
-            SIDEBAR_ISLAND_RIM_DARK,
-            SIDEBAR_ISLAND_INNER_DARK,
-        ),
-        (ColorScheme::Dark, true) => (
-            SIDEBAR_DARK_OPAQUE,
-            SIDEBAR_ISLAND_RIM_DARK,
-            SIDEBAR_ISLAND_INNER_DARK,
-        ),
-        (ColorScheme::DarkTint, false) => (
-            SIDEBAR_ISLAND_DARK_TINT,
-            SIDEBAR_ISLAND_RIM_DARK_TINT,
-            SIDEBAR_ISLAND_INNER_DARK_TINT,
-        ),
-        (ColorScheme::DarkTint, true) => (
-            SIDEBAR_DARK_TINT_OPAQUE,
-            SIDEBAR_ISLAND_RIM_DARK_TINT,
-            SIDEBAR_ISLAND_INNER_DARK_TINT,
-        ),
-        (_, false) => (
-            SIDEBAR_ISLAND_LIGHT,
-            SIDEBAR_ISLAND_RIM_LIGHT,
-            SIDEBAR_ISLAND_INNER_LIGHT,
-        ),
-        (_, true) => (
-            SIDEBAR_LIGHT_OPAQUE,
-            SIDEBAR_ISLAND_RIM_LIGHT,
-            SIDEBAR_ISLAND_INNER_LIGHT,
-        ),
-    };
-    SidebarSurface {
-        style,
-        bg,
-        rim,
-        inner,
-        palette,
-    }
-}
-
-fn toolgroup_surface(
-    scheme: ColorScheme,
-    opaque: bool,
-    palette: ToolgroupPalette,
-) -> ToolgroupSurface {
-    let bg = match (scheme, opaque) {
-        (ColorScheme::Dark, false) => TOOLGROUP_BG_DARK,
-        (ColorScheme::Dark, true) => TOOLGROUP_BG_DARK_OPAQUE,
-        (ColorScheme::DarkTint, false) => TOOLGROUP_BG_DARK_TINT,
-        (ColorScheme::DarkTint, true) => TOOLGROUP_BG_DARK_TINT_OPAQUE,
-        (_, false) => TOOLGROUP_BG_LIGHT,
-        (_, true) => TOOLGROUP_BG_LIGHT_OPAQUE,
-    };
-    ToolgroupSurface { bg, palette }
 }
 
 pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolved {
     let scheme = appearance.color_scheme.resolved();
     let base = palette(scheme);
-    let dark = matches!(scheme, ColorScheme::Dark | ColorScheme::DarkTint);
-    let index = usize::from(dark);
+    let index = usize::from(scheme.is_dark());
 
     let normal_accent = appearance
         .accent_color
@@ -477,36 +477,19 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
         None
     };
 
-    let lights = match appearance.traffic_light_style() {
-        TrafficLightStyle::Auto | TrafficLightStyle::Standard => [
-            TITLEBAR.buttons.order[0].color,
-            TITLEBAR.buttons.order[1].color,
-            TITLEBAR.buttons.order[2].color,
-        ],
-        TrafficLightStyle::Accent => derived_lights(normal_accent),
-        TrafficLightStyle::Wallpaper => derived_lights(dominant),
-    };
+    let lights = lights_for(
+        appearance.traffic_light_style(),
+        normal_accent,
+        Some(dominant),
+    );
 
     let (mut shell, mut menu, mut sidebar, mut toolgroup) = chrome_surfaces(
         scheme,
         appearance.sidebar_style,
         appearance.reduce_transparency,
     );
-    let menu_parent = match window_tint {
-        Some((tint, factor)) => {
-            let bg_window = match scheme {
-                ColorScheme::DarkTint => BG_WINDOW_DARK_TINT,
-                ColorScheme::Dark => BG_WINDOW_DARK,
-                _ => BG_WINDOW_LIGHT,
-            };
-            bg_window.mix(tint, factor)
-        }
-        None => match scheme {
-            ColorScheme::DarkTint => BG_WINDOW_DARK_TINT,
-            ColorScheme::Dark => BG_WINDOW_DARK,
-            _ => BG_WINDOW_LIGHT,
-        },
-    };
+    let bg_window = scheme.pick(BG_WINDOW);
+    let menu_parent = window_tint.map_or(bg_window, |(tint, factor)| bg_window.mix(tint, factor));
     let surfaces = tinted_surfaces(scheme, window_tint, &base, appearance.tint_parts);
     menu.hover_bg = accent;
     menu.hover_fg = base.on_accent;
@@ -556,32 +539,32 @@ fn tinted_surfaces(
     base: &Palette,
     parts: TintParts,
 ) -> Surfaces {
-    let (window, sunken, surface, raised, control, hover) = match scheme {
-        ColorScheme::DarkTint => (
-            BG_WINDOW_DARK_TINT,
-            BG_SUNKEN_DARK_TINT,
-            BG_SURFACE_DARK_TINT,
-            BG_RAISED_DARK_TINT,
-            BG_CONTROL_DARK_TINT,
-            BG_HOVER_DARK_TINT,
-        ),
-        ColorScheme::Dark => (
-            BG_WINDOW_DARK,
-            BG_SUNKEN_DARK,
-            BG_SURFACE_DARK,
-            BG_RAISED_DARK,
-            BG_CONTROL_DARK,
-            BG_HOVER_DARK,
-        ),
-        _ => (
+    let [window, sunken, surface, raised, control, hover] = scheme.pick([
+        [
             BG_WINDOW_LIGHT,
             BG_SUNKEN_LIGHT,
             BG_SURFACE_LIGHT,
             BG_RAISED_LIGHT,
             BG_CONTROL_LIGHT,
             BG_HOVER_LIGHT,
-        ),
-    };
+        ],
+        [
+            BG_WINDOW_DARK,
+            BG_SUNKEN_DARK,
+            BG_SURFACE_DARK,
+            BG_RAISED_DARK,
+            BG_CONTROL_DARK,
+            BG_HOVER_DARK,
+        ],
+        [
+            BG_WINDOW_DARK_TINT,
+            BG_SUNKEN_DARK_TINT,
+            BG_SURFACE_DARK_TINT,
+            BG_RAISED_DARK_TINT,
+            BG_CONTROL_DARK_TINT,
+            BG_HOVER_DARK_TINT,
+        ],
+    ]);
     let line = base.line;
     let mix = |color: Rgba, factor: f32, enabled: bool| {
         if !enabled {
@@ -604,18 +587,14 @@ fn tinted_surfaces(
 }
 
 fn wallpaper_accent(dominant: Rgba, scheme: ColorScheme) -> Rgba {
-    let dark = matches!(scheme, ColorScheme::Dark | ColorScheme::DarkTint);
+    let dark = scheme.is_dark();
     let shifted = if dark {
         dominant.lighten(WALLPAPER_ACCENT_LIGHTEN_DARK)
     } else {
         dominant.darken(WALLPAPER_ACCENT_DARKEN_LIGHT)
     };
     let (hue, mut saturation, original_lightness) = shifted.to_hsl();
-    let bg_window = match scheme {
-        ColorScheme::DarkTint => BG_WINDOW_DARK_TINT,
-        ColorScheme::Dark => BG_WINDOW_DARK,
-        _ => BG_WINDOW_LIGHT,
-    };
+    let bg_window = scheme.pick(BG_WINDOW);
     let on_accent = palette(scheme).on_accent;
 
     let window_dir = if dark { 1.0 } else { -1.0 };
@@ -669,12 +648,25 @@ fn wallpaper_accent(dominant: Rgba, scheme: ColorScheme) -> Rgba {
     Rgba::from_hsl(hue, saturation, lightness, 1.0)
 }
 
-pub fn derived_lights(source: Rgba) -> [Rgba; 3] {
-    [
-        source.darken(TRAFFIC_CLOSE_MINIMIZE_DARKEN),
-        source.darken(TRAFFIC_CLOSE_MINIMIZE_DARKEN),
-        source.lighten(TRAFFIC_ZOOM_LIGHTEN),
-    ]
+pub fn lights_for(
+    style: TrafficLightStyle,
+    normal_accent: Rgba,
+    dominant: Option<Rgba>,
+) -> [Rgba; 3] {
+    let derived = |source: Rgba| {
+        [
+            source.darken(TRAFFIC_CLOSE_MINIMIZE_DARKEN),
+            source.darken(TRAFFIC_CLOSE_MINIMIZE_DARKEN),
+            source.lighten(TRAFFIC_ZOOM_LIGHTEN),
+        ]
+    };
+    match style {
+        TrafficLightStyle::Auto | TrafficLightStyle::Standard => {
+            TITLEBAR.buttons.order.map(|button| button.color)
+        }
+        TrafficLightStyle::Accent => derived(normal_accent),
+        TrafficLightStyle::Wallpaper => derived(dominant.unwrap_or(normal_accent)),
+    }
 }
 
 pub fn config_dir() -> PathBuf {
@@ -1985,7 +1977,7 @@ sidebar_style = "flat"
         let (hue, saturation, _) = raw.to_hsl();
         let yellow = Rgba::from_hsl(hue, saturation, 0.65, 1.0);
         for scheme in [ColorScheme::Light, ColorScheme::Dark, ColorScheme::DarkTint] {
-            let index = usize::from(matches!(scheme, ColorScheme::Dark | ColorScheme::DarkTint));
+            let index = usize::from(scheme.is_dark());
             let resolved = resolve(
                 &appearance(
                     scheme,
@@ -2173,7 +2165,7 @@ sidebar_style = "flat"
             window_tint: Some((accent, WINDOW_TINT_ACCENT[0])),
             window_tint_scope: WindowTintScope::Windows,
             panel_tint: None,
-            lights: derived_lights(accent),
+            lights: lights_for(TrafficLightStyle::Accent, accent, None),
             traffic_style: TrafficLightStyle::Accent,
             traffic_shape: TrafficLightShape::Square,
             reduce_transparency: true,
