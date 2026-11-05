@@ -212,11 +212,6 @@ pub(super) fn emit_sidebar(out: &mut String, tokens: &Value, components: &Value)
         "components.window.sidebar.item.text-size",
         COMPONENTS,
     ) as u32;
-    let count_size = integer(
-        components,
-        "components.window.sidebar.item.count-size",
-        COMPONENTS,
-    ) as u32;
     let item_icon = integer(
         components,
         "components.window.sidebar.item.icon",
@@ -275,7 +270,6 @@ pub(super) fn emit_sidebar(out: &mut String, tokens: &Value, components: &Value)
          \x20   item_padding_x: {item_padding_x},\n\
          \x20   item_gap: {item_gap},\n\
          \x20   item_text_size: {item_text_size},\n\
-         \x20   count_size: {count_size},\n\
          \x20   item_icon: {item_icon},\n\
          \x20   app_icon: {app_icon},\n\
          \x20   section_height: {section_height},\n\

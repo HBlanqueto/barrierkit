@@ -233,7 +233,6 @@ pub(super) fn emit_menu_popover(out: &mut String, tokens: &Value, components: &V
          \x20   min_width: {},\n\
          \x20   item_padding_start: {},\n\
          \x20   item_padding_x: {},\n\
-         \x20   item_gap: {},\n\
          \x20   check: {},\n\
          \x20   leading_column: {},\n\
          \x20   swatch_grid_size: {},\n\
@@ -252,7 +251,6 @@ pub(super) fn emit_menu_popover(out: &mut String, tokens: &Value, components: &V
         float(number_at("components.menu-popover.min-width")),
         float(number_at("components.menu-popover.item-padding-start")),
         float(number_at("components.menu-popover.item-padding-x")),
-        float(number_at("components.menu-popover.item-gap")),
         float(number_at("components.menu-popover.check")),
         float(number_at("components.menu-popover.leading-column")),
         float(number_at("components.menu-popover.swatch-grid-size")),

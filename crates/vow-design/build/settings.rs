@@ -225,7 +225,6 @@ pub(super) fn emit_settings(out: &mut String, tokens: &Value, components: &Value
         "components.settings.account.padding-x",
         COMPONENTS,
     ) as u32;
-    let row_gap = integer(components, "components.settings.row-gap", COMPONENTS) as u32;
     let dropdown_chevron_glyph = integer(
         components,
         "components.settings.dropdown.chevron-glyph",
@@ -328,7 +327,6 @@ pub(super) fn emit_settings(out: &mut String, tokens: &Value, components: &Value
          \x20   sidebar_lights_gap: {sidebar_lights_gap},\n\
          \x20   sidebar_search_gap: {sidebar_search_gap},\n\
          \x20   sidebar_padding_top: {sidebar_padding_top},\n\
-         \x20   row_gap: {row_gap},\n\
          \x20   strength: SettingsStrength {{ width: {strength_width}, track: {strength_track}, tick: {strength_tick}, tick_gap: {strength_tick_gap}, label_gap: {strength_label_gap} }},\n\
          \x20   check: SettingsCheck {{ gap: {check_gap}, row_gap: {check_row_gap} }},\n\
          \x20   dropdown_chevron_glyph: {dropdown_chevron_glyph},\n\
