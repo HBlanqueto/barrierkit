@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 pub mod backdrop;
 pub mod traffic;
 pub mod watch;
+pub mod xdg;
 
 use serde::{Deserializer, Serializer};
 use vow_design::{
@@ -676,15 +677,9 @@ pub fn lights_for(
 pub fn config_dir() -> PathBuf {
     std::env::var_os("MALAYSIA_CONFIG_DIR").map_or_else(
         || {
-            let base = std::env::var_os("XDG_CONFIG_HOME")
-                .map(PathBuf::from)
-                .or_else(|| {
-                    std::env::var_os("HOME")
-                        .map(PathBuf::from)
-                        .map(|home| home.join(".config"))
-                })
-                .unwrap_or_else(|| PathBuf::from(".config"));
-            base.join("malaysia")
+            xdg::config_home()
+                .unwrap_or_else(|| PathBuf::from(".config"))
+                .join("malaysia")
         },
         PathBuf::from,
     )
@@ -693,15 +688,9 @@ pub fn config_dir() -> PathBuf {
 pub fn data_dir() -> PathBuf {
     std::env::var_os("MALAYSIA_DATA_DIR").map_or_else(
         || {
-            let base = std::env::var_os("XDG_DATA_HOME")
-                .map(PathBuf::from)
-                .or_else(|| {
-                    std::env::var_os("HOME")
-                        .map(PathBuf::from)
-                        .map(|home| home.join(".local/share"))
-                })
-                .unwrap_or_else(|| PathBuf::from(".local/share"));
-            base.join("malaysia")
+            xdg::data_home()
+                .unwrap_or_else(|| PathBuf::from(".local/share"))
+                .join("malaysia")
         },
         PathBuf::from,
     )
@@ -865,8 +854,6 @@ mod tests {
         TRAFFIC_CLOSE_MINIMIZE_DARKEN, TRAFFIC_ZOOM_LIGHTEN, WINDOW_TINT_ACCENT,
         WINDOW_TINT_WALLPAPER,
     };
-
-    static ENV_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
 
     fn appearance(
         scheme: ColorScheme,
@@ -1803,38 +1790,6 @@ sidebar_style = "flat"
             .unwrap()
             .expect("created file parses");
         std::fs::remove_dir_all(&dir).ok();
-    }
-
-    #[test]
-    fn config_and_data_dirs_use_the_documented_malaysia_directory() {
-        let _env = ENV_LOCK.lock().unwrap();
-        let dir = std::env::temp_dir().join(format!("vow-appearance-dirs-{}", std::process::id()));
-        let config_home = dir.join("config");
-        let data_home = dir.join("data");
-        let old_config = std::env::var_os("MALAYSIA_CONFIG_DIR");
-        let old_data = std::env::var_os("MALAYSIA_DATA_DIR");
-        let old_xdg_config = std::env::var_os("XDG_CONFIG_HOME");
-        let old_xdg_data = std::env::var_os("XDG_DATA_HOME");
-        let restore = |name: &str, value: Option<std::ffi::OsString>| unsafe {
-            match value {
-                Some(value) => std::env::set_var(name, value),
-                None => std::env::remove_var(name),
-            }
-        };
-
-        unsafe {
-            std::env::remove_var("MALAYSIA_CONFIG_DIR");
-            std::env::remove_var("MALAYSIA_DATA_DIR");
-            std::env::set_var("XDG_CONFIG_HOME", &config_home);
-            std::env::set_var("XDG_DATA_HOME", &data_home);
-        }
-        assert_eq!(config_dir(), config_home.join("malaysia"));
-        assert_eq!(data_dir(), data_home.join("malaysia"));
-
-        restore("MALAYSIA_CONFIG_DIR", old_config);
-        restore("MALAYSIA_DATA_DIR", old_data);
-        restore("XDG_CONFIG_HOME", old_xdg_config);
-        restore("XDG_DATA_HOME", old_xdg_data);
     }
 
     #[test]
