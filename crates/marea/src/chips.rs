@@ -5,12 +5,12 @@ use freya_core::prelude::*;
 use torin::prelude::{Direction, Gaps, Position, Size};
 use vow_design::{DURATION_SLOW_MS, MEDIA, Rgba, TEXT};
 
+use crate::INSET;
 use crate::catalog::GENRES;
 
 const HEIGHT: f32 = 28.0;
 const PADDING_X: f32 = 14.0;
 const GAP: f32 = 8.0;
-const INSET: f32 = 40.0;
 
 #[derive(PartialEq)]
 pub struct Chips {

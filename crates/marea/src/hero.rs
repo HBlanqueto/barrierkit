@@ -18,6 +18,7 @@ use vow_design::{CALLOUT, CAPTION, DURATION_BASE, DURATION_SLOW_MS, Rgba, SPACE_
 use crate::art::{art_fill, logo};
 use crate::assets;
 use crate::catalog::{FEATURED, Gallery, gallery, title};
+use crate::{INSET, WHITE};
 
 pub const HERO_HEIGHT: f32 = 580.0;
 pub const AUTOPLAY: Duration = Duration::from_millis(8000);
@@ -138,7 +139,7 @@ impl Component for HeroLogo {
                     .font_family(TEXT.family)
                     .font_size(13.0)
                     .font_weight(700)
-                    .color(color(Rgba::rgb8(255, 255, 255))),
+                    .color(color(WHITE)),
             )
     }
 }
@@ -263,7 +264,7 @@ impl Component for Dot {
                 rect()
                     .width(Size::px(width * self.progress))
                     .height(Size::fill())
-                    .background(color(Rgba::rgb8(255, 255, 255)))
+                    .background(color(WHITE))
             }))
     }
 }
@@ -383,7 +384,7 @@ impl Component for HeroCopy {
             })
             .child(
                 rect()
-                    .position(Position::new_absolute().left(40.0).bottom(104.0))
+                    .position(Position::new_absolute().left(INSET).bottom(104.0))
                     .width(Size::px(460.0))
                     .opacity(shown * fade)
                     .offset_y(-10.0 * (1.0 - shown) - scrolled * 0.2)
@@ -397,10 +398,7 @@ impl Component for HeroCopy {
                         Some(gallery) => HeroLogo { gallery }.into_element(),
                         None => logo(title, 1.0).into_element(),
                     })
-                    .maybe_child(
-                        featured_gallery
-                            .map(|_| text(title.name, TITLE_2, Rgba::rgb8(255, 255, 255))),
-                    )
+                    .maybe_child(featured_gallery.map(|_| text(title.name, TITLE_2, WHITE)))
                     .child(
                         rect()
                             .direction(Direction::Horizontal)
@@ -466,7 +464,7 @@ impl Component for HeroCopy {
             }))
             .child(
                 rect()
-                    .position(Position::new_absolute().right(40.0).bottom(112.0))
+                    .position(Position::new_absolute().right(INSET).bottom(112.0))
                     .direction(Direction::Horizontal)
                     .spacing(6.0)
                     .cross_align(Alignment::Center)

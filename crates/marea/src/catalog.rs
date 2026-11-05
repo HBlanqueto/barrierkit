@@ -1,5 +1,7 @@
 use vow_design::Rgba;
 
+use crate::WHITE;
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Genre {
     Comedy,
@@ -30,8 +32,6 @@ pub struct Title {
     pub lede: &'static str,
     pub series: bool,
 }
-
-const WHITE: Rgba = Rgba::rgb8(255, 255, 255);
 
 const fn logo(family: &'static str, weight: u16, size: f32, ink: Rgba) -> Logo {
     Logo {

@@ -19,6 +19,7 @@ use vow_design::{
     CALLOUT, CAPTION, DURATION_SLOW_MS, HEADLINE, Rgba, SPACE_2, TEXT, TITLEBAR_CLIENT_HEIGHT,
 };
 
+use crate::WHITE;
 use crate::art::art_fill;
 use crate::assets;
 use crate::catalog::title;
@@ -34,7 +35,6 @@ const SUBTITLES: [&str; 3] = [
     "— Es la radio. Lleva años apagada.",
     "— Entonces, ¿quién está hablando?",
 ];
-const WHITE: Rgba = Rgba::rgb8(255, 255, 255);
 
 fn clock(seconds: f64) -> String {
     let seconds = seconds.max(0.0) as u64;

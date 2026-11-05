@@ -29,13 +29,14 @@ use hero::{HeroBackground, HeroCopy, ease_out};
 use player::Player;
 use shelf::ShelfRow;
 
-const ISLAND_INSET: f32 = 8.0;
 const ISLAND_LAYER: i16 = 64;
 const TOOLBAR_LAYER: i16 = 48;
 const TOOLBAR: f32 = 64.0;
 const TOOLBAR_FROM: f32 = 300.0;
 const TOOLBAR_SPAN: f32 = 120.0;
 
+const INSET: f32 = 40.0;
+const WHITE: Rgba = Rgba::rgb8(255, 255, 255);
 const NIGHT: Rgba = Rgba::rgb8(0x0b, 0x0c, 0x0e);
 
 fn tones(id: &str) -> [Rgba; 3] {
@@ -63,6 +64,7 @@ struct Island {
 
 impl Component for Island {
     fn render(&self) -> impl IntoElement {
+        let inset = SIDEBAR.inset as f32;
         let query = use_state(String::new);
         let mut section = use_state(|| 0usize);
         let item = |index: usize, name: &'static str, icon: Symbol| {
@@ -74,12 +76,12 @@ impl Component for Island {
         rect()
             .position(
                 Position::new_absolute()
-                    .left(ISLAND_INSET)
-                    .top(ISLAND_INSET)
-                    .bottom(ISLAND_INSET),
+                    .left(inset)
+                    .top(inset)
+                    .bottom(inset),
             )
             .width(Size::px(SIDEBAR.width as f32))
-            .height(Size::px((self.height - 2.0 * ISLAND_INSET).max(0.0)))
+            .height(Size::px((self.height - 2.0 * inset).max(0.0)))
             .layer(ISLAND_LAYER)
             .child(material(SIDEBAR.radius as f32))
             .child(
@@ -210,7 +212,7 @@ impl App for Marea {
                             0.0,
                             0.0,
                             24.0,
-                            SIDEBAR.width as f32 + 2.0 * ISLAND_INSET + 4.0,
+                            SIDEBAR.width as f32 + 2.0 * SIDEBAR.inset as f32 + 4.0,
                         ))
                         .child(HeroCopy {
                             featured: *featured.read(),

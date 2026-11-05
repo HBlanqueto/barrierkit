@@ -19,12 +19,12 @@ use vow_design::{CALLOUT, CAPTION, DURATION_BASE, DURATION_SLOW_MS, MEDIA, Rgba,
 use crate::art::{art_fill, logo};
 use crate::assets;
 use crate::catalog::{Entry, Genre, SHELVES, ShelfStyle, title};
+use crate::{INSET, WHITE};
 
 const WIDE: (f32, f32) = (232.0, 130.5);
 const TALL: (f32, f32) = (156.0, 234.0);
 const GAP: f32 = 14.0;
 const RADIUS: f32 = 10.0;
-const INSET: f32 = 40.0;
 const LIFT_ROOM: Gaps = Gaps::new(16.0, INSET, 18.0, INSET);
 const ABOVE_ART: i16 = 4;
 const ABOVE_CARDS: i16 = 24;
@@ -144,7 +144,7 @@ impl Component for Card {
                             .corner_radius(11.0)
                             .center()
                             .background(color(Rgba::rgba8(0, 0, 0, 0.53)))
-                            .child(symbol(Symbol::SpeakerWave, 12.0, Rgba::rgb8(255, 255, 255))),
+                            .child(symbol(Symbol::SpeakerWave, 12.0, WHITE)),
                     )
             }))
             .maybe_child((self.style == ShelfStyle::Ranked).then(|| {
@@ -167,7 +167,7 @@ impl Component for Card {
                     .padding(Gaps::new(2.0, 6.0, 2.0, 6.0))
                     .corner_radius(4.0)
                     .background(color(palette.destructive))
-                    .child(text("Nuevo", CAPTION, Rgba::rgb8(255, 255, 255)))
+                    .child(text("Nuevo", CAPTION, WHITE))
             }))
             .child(
                 rect()
@@ -202,7 +202,7 @@ impl Component for Card {
                         rect()
                             .width(Size::percent(watched * 100.0))
                             .height(Size::fill())
-                            .background(color(Rgba::rgb8(255, 255, 255))),
+                            .background(color(WHITE)),
                     )
             }))
             .maybe_child(self.entry.caption.map(|caption| {
