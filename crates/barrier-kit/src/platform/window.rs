@@ -81,7 +81,7 @@ impl WindowOptions {
             app_name: app_name.into(),
             app_id: None,
             decorations: Decorations::Client,
-            size: (640, 420),
+            size: vow_design::WINDOW_DEFAULT_SIZE,
             min_size: None,
             max_size: None,
             menu: None,

@@ -164,7 +164,7 @@ impl Component for RoundButton {
             .border(
                 Border::new()
                     .fill(color(MEDIA.round_rim))
-                    .width(1.0)
+                    .width(vow_design::HAIRLINE)
                     .alignment(BorderAlignment::Inner),
             )
             .maybe(interaction.pressed(), |el| {

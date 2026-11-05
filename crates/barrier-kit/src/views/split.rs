@@ -380,7 +380,7 @@ impl Component for SplitView {
             root = root
                 .child(
                     rect()
-                        .width(Size::px(1.0))
+                        .width(Size::px(vow_design::HAIRLINE))
                         .height(Size::fill())
                         .background(color(palette.separator)),
                 )

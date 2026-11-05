@@ -163,7 +163,7 @@ impl Component for RadioOption {
         } else {
             circle.background(color(palette.content_background)).border(
                 Border::new()
-                    .width(1.0)
+                    .width(vow_design::HAIRLINE)
                     .alignment(BorderAlignment::Inner)
                     .fill(color(palette.control_border)),
             )
@@ -287,7 +287,7 @@ impl Component for Swatch {
             .background(color(self.fill))
             .border(
                 Border::new()
-                    .width(1.0)
+                    .width(vow_design::HAIRLINE)
                     .alignment(BorderAlignment::Inner)
                     .fill(color(palette.separator)),
             );
@@ -424,7 +424,7 @@ impl Component for Card {
                         .corner_radius(radius)
                         .border(
                             Border::new()
-                                .width(1.0)
+                                .width(vow_design::HAIRLINE)
                                 .alignment(BorderAlignment::Inner)
                                 .fill(color(SETTINGS.card_outline)),
                         ),

@@ -49,7 +49,7 @@ pub fn sheet(content: impl IntoElement) -> Rect {
                 .background(color(palette.raised_background))
                 .border(
                     Border::new()
-                        .width(1.0)
+                        .width(vow_design::HAIRLINE)
                         .alignment(BorderAlignment::Outer)
                         .fill(color(palette.separator)),
                 )

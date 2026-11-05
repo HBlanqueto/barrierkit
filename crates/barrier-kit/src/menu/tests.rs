@@ -7,7 +7,7 @@ use freya_core::elements::label::LabelElement;
 use freya_core::integration::AppComponent;
 use freya_testing::TestingRunner;
 use torin::prelude::Size2D;
-use vow_design::{MENU_DARK, MENU_LIGHT};
+use vow_design::{MENU_DARK, MENU_LIGHT, MENU_MARK_TEXT_GAP};
 
 use crate::platform::{ObjectId, PopupCommand, PopupHandle, PopupId, Popups};
 
@@ -389,7 +389,7 @@ fn icons_widen_the_menu_by_the_leading_column_and_gap() {
     let with_icons = MenuView::preferred_size(&built(Some(MenuIcon::svg("x"))), MENU_LIGHT);
     assert_eq!(
         with_icons.0 - plain.0,
-        MENU_LIGHT.leading_width + MARK_TEXT_GAP,
+        MENU_LIGHT.leading_width + MENU_MARK_TEXT_GAP,
         "an icon column is only reserved when the menu actually uses one"
     );
 }
@@ -614,7 +614,7 @@ fn checkbox_false_shifts_text_by_leading_column_and_gap() {
     let (plain_runner, _) = make_runner(plain);
     let (checked_runner, _) = make_runner(checked);
     let diff = label_x(&checked_runner, "Solo texto") - label_x(&plain_runner, "Solo texto");
-    let expected = MENU_LIGHT.leading_width + MARK_TEXT_GAP;
+    let expected = MENU_LIGHT.leading_width + MENU_MARK_TEXT_GAP;
     assert!(
         (diff - expected).abs() <= 1.0,
         "checkbox adds {diff}, expected {expected}"
@@ -632,7 +632,7 @@ fn icon_shifts_text_by_leading_column_and_gap() {
     let (plain_runner, _) = make_runner(plain);
     let (icon_runner, _) = make_runner(with_icon);
     let diff = label_x(&icon_runner, "Solo texto") - label_x(&plain_runner, "Solo texto");
-    let expected = MENU_LIGHT.leading_width + MARK_TEXT_GAP;
+    let expected = MENU_LIGHT.leading_width + MENU_MARK_TEXT_GAP;
     assert!(
         (diff - expected).abs() <= 1.0,
         "icon adds {diff}, expected {expected}"
@@ -653,7 +653,7 @@ fn submenu_keeps_its_own_inset() {
     assert_eq!(row_text_inset(&parent, m), m.item_padding_x);
     assert_eq!(
         row_text_inset(&child, m),
-        m.item_padding_x + m.leading_width + MARK_TEXT_GAP
+        m.item_padding_x + m.leading_width + MENU_MARK_TEXT_GAP
     );
 }
 
@@ -671,7 +671,7 @@ fn menu_without_columns_is_narrower_by_both_leading_columns_and_gaps() {
     let (columns_w, _) = MenuView::preferred_size(&with_columns, m);
     assert_eq!(
         columns_w - plain_w,
-        2.0 * (m.leading_width + MARK_TEXT_GAP),
+        2.0 * (m.leading_width + MENU_MARK_TEXT_GAP),
         "plain menu should be narrower by the mark and icon columns plus their gaps"
     );
 }
@@ -686,7 +686,7 @@ fn menu_with_mark_and_icon_insets_text_past_both_columns() {
     let (runner, _) = make_runner(items);
     let m = MENU_LIGHT;
     let x = label_x(&runner, "Mixto");
-    let expected = m.padding + m.item_padding_x + 2.0 * (m.leading_width + MARK_TEXT_GAP);
+    let expected = m.padding + m.item_padding_x + 2.0 * (m.leading_width + MENU_MARK_TEXT_GAP);
     assert!(
         (x - expected).abs() <= 1.0,
         "two-column text starts at {x}, expected {expected}"
@@ -706,7 +706,7 @@ fn a_checked_row_with_an_icon_keeps_the_mark_and_adds_the_icon_column() {
     let m = MENU_LIGHT;
     let shift = label_x(&icon_runner, "X") - label_x(&plain_runner, "X");
     assert!(
-        (shift - (m.leading_width + MARK_TEXT_GAP)).abs() <= 1.0,
+        (shift - (m.leading_width + MENU_MARK_TEXT_GAP)).abs() <= 1.0,
         "the icon column shifts the text by {shift}"
     );
 }

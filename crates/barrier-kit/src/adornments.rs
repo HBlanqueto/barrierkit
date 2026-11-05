@@ -25,7 +25,7 @@ pub fn divider() -> Rect {
     rect()
         .a11y_role(AccessibilityRole::Splitter)
         .width(Size::fill())
-        .height(Size::px(1.0))
+        .height(Size::px(vow_design::HAIRLINE))
         .background(color(palette.separator))
 }
 

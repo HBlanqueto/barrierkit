@@ -305,8 +305,8 @@ impl Component for Sidebar {
                                 .right(0.0)
                                 .bottom(0.0),
                         )
-                        .margin(Gaps::new(1.0, 1.0, 1.0, 1.0))
-                        .corner_radius((radius - 1.0).max(0.0))
+                        .margin(Gaps::new_all(SIDEBAR.rim_width))
+                        .corner_radius((radius - SIDEBAR.rim_width).max(0.0))
                         .border(
                             Border::new()
                                 .width(SIDEBAR.inner_width)

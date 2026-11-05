@@ -652,7 +652,7 @@ impl Component for Switch {
             .background(track)
             .border(
                 Border::new()
-                    .width(1.0)
+                    .width(vow_design::HAIRLINE)
                     .alignment(BorderAlignment::Inner)
                     .fill(border),
             )
@@ -1137,7 +1137,7 @@ impl Component for Checkbox {
             .background(box_bg)
             .border(
                 Border::new()
-                    .width(1.0)
+                    .width(vow_design::HAIRLINE)
                     .alignment(BorderAlignment::Inner)
                     .fill(if *checked.read() {
                         Color::TRANSPARENT

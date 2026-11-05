@@ -108,7 +108,7 @@ impl App for Tag {
             .background(color(menu.bg))
             .border(
                 Border::new()
-                    .width(1.0)
+                    .width(vow_design::HAIRLINE)
                     .alignment(BorderAlignment::Inner)
                     .fill(color(menu.separator_color)),
             )

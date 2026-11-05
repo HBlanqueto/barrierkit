@@ -75,7 +75,7 @@ pub(crate) fn search_popover(
         .background(color(menu.bg))
         .border(
             Border::new()
-                .width(1.0)
+                .width(vow_design::HAIRLINE)
                 .alignment(BorderAlignment::Outer)
                 .fill(color(menu.separator_color)),
         )

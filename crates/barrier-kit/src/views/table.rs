@@ -119,7 +119,7 @@ impl Component for Table {
         .height(Size::px(TABLE.header_height))
         .border(
             Border::new()
-                .width(1.0)
+                .width(vow_design::HAIRLINE)
                 .alignment(BorderAlignment::Inner)
                 .fill(color(palette.separator)),
         );

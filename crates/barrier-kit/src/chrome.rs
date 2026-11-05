@@ -490,7 +490,7 @@ fn rail(style: ChromeStyle, items: &RailItems, lights_opacity: f32) -> Rect {
     let line = (!island && !floating).then(|| {
         rect()
             .position(Position::new_absolute().top(0.0).right(0.0))
-            .width(Size::px(1.0))
+            .width(Size::px(vow_design::HAIRLINE))
             .height(Size::fill())
             .background(color(resolved.sidebar.palette.line))
     });
@@ -606,7 +606,7 @@ fn pill(vertical: bool, slide: f32) -> Rect {
         .background(color(palette.raised_background))
         .border(
             Border::new()
-                .width(1.0)
+                .width(vow_design::HAIRLINE)
                 .alignment(BorderAlignment::Inner)
                 .fill(color(palette.separator)),
         )

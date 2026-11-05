@@ -3,6 +3,7 @@
 use freya_components::svg_viewer::SvgViewer;
 use freya_core::prelude::*;
 use torin::prelude::{Direction, Size};
+use vow_appearance::TrafficLightShape;
 use vow_appearance::palette as base_palette;
 use vow_appearance::traffic::{self, TrafficInput, TrafficPointer};
 use vow_design::{ButtonKind, Rgba, TITLEBAR, TRAFFIC_GLYPHS, TRAFFIC_RIM_WIDTH};
@@ -136,11 +137,12 @@ impl Component for TrafficLights {
         let fixed_width = self.fixed_width;
         let (_, _, diameter) = traffic::button_rect(0);
         let gap = light_gap();
-        let corner_radius = if self.round {
-            diameter as f32 / 2.0
+        let shape = if self.round {
+            TrafficLightShape::Round
         } else {
-            TITLEBAR.buttons.corner_radius as f32
+            TrafficLightShape::Square
         };
+        let corner_radius = shape.corner_radius(diameter as f32);
 
         let lights = visuals.iter().enumerate().map(|(index, visual)| {
             let kind = TITLEBAR.buttons.order[index].kind;

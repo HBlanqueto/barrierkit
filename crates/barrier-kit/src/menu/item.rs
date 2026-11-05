@@ -1,6 +1,6 @@
 use super::*;
 
-pub(super) const MARK_TEXT_GAP: f32 = 6.0;
+use vow_design::MENU_MARK_TEXT_GAP;
 
 #[derive(Clone, Copy, Default, PartialEq)]
 pub(super) struct LeadingColumns {
@@ -39,11 +39,11 @@ impl LeadingColumns {
 }
 
 pub(super) fn row_text_inset(items: &[MenuItem], m: MenuPalette) -> f32 {
-    m.item_padding_x + LeadingColumns::of(items).count() * (m.leading_width + MARK_TEXT_GAP)
+    m.item_padding_x + LeadingColumns::of(items).count() * (m.leading_width + MENU_MARK_TEXT_GAP)
 }
 
 pub(crate) fn last_leading_column_inset(items: &[MenuItem], m: MenuPalette) -> f32 {
-    row_text_inset(items, m) - m.leading_width - MARK_TEXT_GAP
+    row_text_inset(items, m) - m.leading_width - MENU_MARK_TEXT_GAP
 }
 
 pub(super) fn svg_rgb(color: Rgba) -> String {
@@ -230,7 +230,7 @@ pub(super) fn render_item(
                 .direction(Direction::Horizontal)
                 .cross_align(Alignment::Center);
             if ctx.columns.any() {
-                left = left.spacing(MARK_TEXT_GAP).child(leading_slot(
+                left = left.spacing(MENU_MARK_TEXT_GAP).child(leading_slot(
                     icon.clone(),
                     check,
                     ctx.columns,
@@ -307,7 +307,7 @@ pub(super) fn render_item(
             let left = rect()
                 .direction(Direction::Horizontal)
                 .cross_align(Alignment::Center)
-                .spacing(MARK_TEXT_GAP)
+                .spacing(MENU_MARK_TEXT_GAP)
                 .child(search_icon_element(ctx, *source, enabled, is_focused, fg))
                 .child(
                     label()
@@ -343,9 +343,14 @@ fn search_field(ctx: &RowCtx, placeholder: &str) -> Element {
         0.0
     };
     let row_padding = m.item_padding_x;
-    let available_w =
-        (ctx.size.0 - 2.0 * m.padding - row_padding - clear_margin - m.icon_size - 8.0 - clear_gap)
-            .max(0.0);
+    let available_w = (ctx.size.0
+        - 2.0 * m.padding
+        - row_padding
+        - clear_margin
+        - m.icon_size
+        - vow_design::MENU_SEARCH_ICON_GAP
+        - clear_gap)
+        .max(0.0);
 
     let mut text_box = rect()
         .direction(Direction::Horizontal)
@@ -363,7 +368,7 @@ fn search_field(ctx: &RowCtx, placeholder: &str) -> Element {
     if has_text && !is_selected {
         text_box = text_box.child(
             rect()
-                .width(Size::px(1.0))
+                .width(Size::px(vow_design::HAIRLINE))
                 .height(Size::px(m.font_size))
                 .margin(Gaps::new(0.0, 1.0, 0.0, 0.0))
                 .background(theme::color(m.fg))
@@ -390,7 +395,7 @@ fn search_field(ctx: &RowCtx, placeholder: &str) -> Element {
             rect()
                 .direction(Direction::Horizontal)
                 .cross_align(Alignment::Center)
-                .spacing(8.0)
+                .spacing(vow_design::MENU_SEARCH_ICON_GAP)
                 .child(
                     symbol(Symbol::MagnifyingGlass, m.icon_size, m.shortcut_color).into_element(),
                 )
@@ -489,7 +494,7 @@ pub(super) fn leading_slot(
     rect()
         .direction(Direction::Horizontal)
         .cross_align(Alignment::Center)
-        .spacing(MARK_TEXT_GAP)
+        .spacing(MENU_MARK_TEXT_GAP)
         .maybe_child(columns.marks.then(|| mark_element(check, fg, m)))
         .maybe_child(columns.icons.then(|| icon_slot(icon, icon_fg, m)))
         .into_element()

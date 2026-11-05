@@ -235,7 +235,7 @@ impl Titlebar {
         let padding_x = if island {
             SETTINGS.toolbar_padding_x as f32
         } else {
-            10.0
+            vow_design::TITLEBAR_PADDING_X
         };
         let inset = if island { SIDEBAR.inset as f32 } else { 0.0 };
         let lights_x = inset + SIDEBAR.traffic_x as f32;
@@ -302,7 +302,7 @@ impl Titlebar {
                 rect()
                     .position(Position::new_absolute().bottom(0.0).left(0.0))
                     .width(Size::percent(100.0))
-                    .height(Size::px(1.0))
+                    .height(Size::px(vow_design::HAIRLINE))
                     .background(theme::color(crate::sidebar::sidebar_palette().line))
             }));
         (root.into_element(), height)
@@ -324,7 +324,7 @@ impl Titlebar {
         let padding_x = if traffic.is_some() {
             vow_appearance::traffic::inset(height) as f32
         } else {
-            10.0
+            vow_design::TITLEBAR_PADDING_X
         };
         let (left_width, right_width) = *content_widths.read();
         let slot_width = (vow_appearance::traffic::group_rect().2 as f32)

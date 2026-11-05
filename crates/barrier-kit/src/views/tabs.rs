@@ -81,7 +81,7 @@ impl Component for TabView {
                     .background(color(palette.sunken_background))
                     .border(
                         Border::new()
-                            .width(1.0)
+                            .width(vow_design::HAIRLINE)
                             .alignment(BorderAlignment::Inner)
                             .fill(color(palette.separator)),
                     )

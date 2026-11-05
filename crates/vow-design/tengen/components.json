@@ -685,6 +685,7 @@
           "bg": "bg-control",
           "ring": "accent",
           "icon": [16, 14],
+          "icon-gap": 8,
           "clear": 16,
           "clear-glyph": 12,
           "clear-margin": 8

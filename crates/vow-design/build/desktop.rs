@@ -67,6 +67,11 @@ pub(super) fn emit_desktop(out: &mut String, components: &Value) {
                 "components.shell.menu.scroll-tick-ms",
             ),
             (
+                "MENU_SEARCH_ICON_GAP",
+                "f32",
+                "components.shell.menu.search.icon-gap",
+            ),
+            (
                 "MENU_SEARCH_CLEAR",
                 "f32",
                 "components.shell.menu.search.clear",

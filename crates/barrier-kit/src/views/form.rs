@@ -164,7 +164,7 @@ impl Component for Form {
                         .background(color(palette.content_background))
                         .border(
                             Border::new()
-                                .width(1.0)
+                                .width(vow_design::HAIRLINE)
                                 .alignment(BorderAlignment::Inner)
                                 .fill(color(palette.card_border)),
                         )
