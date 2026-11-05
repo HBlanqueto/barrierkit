@@ -63,12 +63,8 @@ impl Component for IconButton {
             .maybe(enabled && interaction.pressed(), |el| {
                 el.scale(BUTTON.pressed_scale)
             })
-            .maybe(enabled, |el| {
-                el.on_press(move |_| {
-                    if let Some(cb) = &on_press {
-                        cb.call(());
-                    }
-                })
+            .map(on_press.filter(|_| enabled), |el, on_press| {
+                el.on_press(move |_| on_press.call(()))
             })
             .child(symbol(self.symbol, ICON_BUTTON.icon, ink));
         interaction.focus_ring(button, ICON_BUTTON.radius)

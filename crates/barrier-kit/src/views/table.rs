@@ -153,8 +153,8 @@ impl Component for Table {
                 .a11y_role(AccessibilityRole::Row)
                 .a11y_builder(move |node| node.set_selected(selected_row))
                 .height(Size::px(TABLE.row_height))
-                .maybe(background.is_some(), |el| {
-                    el.background(color(background.unwrap_or(palette.accent)))
+                .map(background, |el, background| {
+                    el.background(color(background))
                 })
                 .on_press(move |_| {
                     if let Some(cb) = &on_select {
@@ -225,12 +225,8 @@ impl Component for HeaderCell {
             .attach(rect(), on_press.is_some())
             .a11y_role(AccessibilityRole::ColumnHeader)
             .a11y_alt(self.title)
-            .maybe(on_press.is_some(), |el| {
-                el.on_press(move |_| {
-                    if let Some(cb) = &on_press {
-                        cb.call(());
-                    }
-                })
+            .map(on_press, |el, on_press| {
+                el.on_press(move |_| on_press.call(()))
             })
             .direction(Direction::Horizontal)
             .cross_align(Alignment::Center)

@@ -92,12 +92,12 @@ pub(crate) fn symbol_tile(glyph: Symbol, tint: Rgba, rim: Option<Rgba>) -> Rect 
         .height(Size::px(tile))
         .corner_radius(SIDEBAR.item_radius as f32)
         .background(theme::color(tint))
-        .maybe(rim.is_some(), |el| {
+        .map(rim, |el, rim| {
             el.border(
                 Border::new()
                     .width(SIDEBAR.rim_width)
                     .alignment(BorderAlignment::Inner)
-                    .fill(theme::color(rim.unwrap_or(tint))),
+                    .fill(theme::color(rim)),
             )
         })
         .center()
@@ -376,10 +376,7 @@ impl Component for Sidebar {
             );
         }
 
-        if let Some(id) = self.probe {
-            root = root.a11y_builder(move |node| node.set_author_id(id));
-        }
-        root.into_element()
+        root.map(self.probe, ProbeExt::probe).into_element()
     }
 }
 
@@ -491,8 +488,7 @@ impl Component for SidebarItem {
             .a11y_builder(move |node| {
                 node.set_selected(self.selected);
             })
-            .maybe(self.on_select.is_some(), |el| {
-                let callback = self.on_select.clone().unwrap();
+            .map(self.on_select.clone(), |el, callback| {
                 let control = crate::views::split::sidebar_control();
                 el.on_press(move |_| {
                     callback.call(());
@@ -520,9 +516,7 @@ impl Component for SidebarItem {
                 .max_lines(1),
         );
 
-        if let Some(id) = self.probe {
-            row = row.a11y_builder(move |node| node.set_author_id(id));
-        }
+        row = row.map(self.probe, ProbeExt::probe);
         interaction.focus_ring(row, SIDEBAR.item_radius as f32)
     }
 }

@@ -215,8 +215,7 @@ impl Component for TrafficLights {
                             }
                         })
                 })
-                .maybe(child_probe.is_some(), |light| {
-                    let id = child_probe.unwrap();
+                .map(child_probe, |light, id| {
                     light.a11y_builder(move |node| node.set_author_id(id))
                 })
                 .into_element()
@@ -228,7 +227,7 @@ impl Component for TrafficLights {
         } else {
             (length, thickness, Direction::Horizontal)
         };
-        let mut root = rect()
+        let root = rect()
             .width(Size::px(width))
             .height(Size::px(height))
             .direction(direction)
@@ -249,10 +248,7 @@ impl Component for TrafficLights {
                     })
             })
             .children(lights);
-        if let Some(id) = self.probe {
-            root = root.a11y_builder(move |node| node.set_author_id(id));
-        }
-        root
+        root.map(self.probe, ProbeExt::probe)
     }
 }
 

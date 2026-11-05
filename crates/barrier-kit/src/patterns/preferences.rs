@@ -230,12 +230,11 @@ impl Component for PreferencesWindow {
         let text = query.read().clone();
         let dismissed = dismissed_at.read().as_ref() == Some(&text);
         let searching = *search_focused.read() && !dismissed;
-        let emphasized = !searching;
         let item = |pane: &Pane| {
             SidebarItem::new(pane.title)
                 .symbol(pane.symbol, pane.tint)
                 .selected(pane.id == current)
-                .emphasized(emphasized)
+                .emphasized(!searching)
                 .on_select(open(pane.id, None))
                 .into_element()
         };
@@ -381,16 +380,15 @@ impl Component for PreferencesWindow {
             width: SETTINGS.sidebar_width as f32,
             visible: true,
         });
-        let split = SplitView::new(sidebar, detail)
+        SplitView::new(sidebar, detail)
             .sidebar_width(restored.width)
             .sidebar_visible(restored.visible)
             .resizable(self.sidebar_resizable)
             .narrow_sidebar(self.narrow_sidebar)
-            .on_layout(move |sidebar| layout.set(Some(sidebar)));
-        match self.sidebar_range {
-            Some((min, max)) => split.sidebar_range(min, max),
-            None => split,
-        }
+            .on_layout(move |sidebar| layout.set(Some(sidebar)))
+            .map(self.sidebar_range, |split, (min, max)| {
+                split.sidebar_range(min, max)
+            })
     }
 }
 

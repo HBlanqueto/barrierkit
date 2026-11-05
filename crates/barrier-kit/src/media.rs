@@ -88,10 +88,8 @@ impl Component for MediaButton {
             .maybe(interaction.pressed(), |el| {
                 el.scale(vow_design::BUTTON.pressed_scale)
             })
-            .on_press(move |_| {
-                if let Some(callback) = &on_press {
-                    callback.call(());
-                }
+            .map(on_press, |el, on_press| {
+                el.on_press(move |_| on_press.call(()))
             })
             .maybe_child(
                 self.symbol
@@ -167,10 +165,8 @@ impl Component for RoundButton {
             .maybe(interaction.pressed(), |el| {
                 el.scale(vow_design::BUTTON.pressed_scale)
             })
-            .on_press(move |_| {
-                if let Some(callback) = &on_press {
-                    callback.call(());
-                }
+            .map(on_press, |el, on_press| {
+                el.on_press(move |_| on_press.call(()))
             })
             .child(symbol(self.symbol, MEDIA.round_icon, ink));
         interaction.focus_ring(button, size / 2.0)

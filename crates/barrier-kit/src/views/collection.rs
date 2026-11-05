@@ -149,9 +149,7 @@ impl Component for Tile {
                 rect()
                     .padding(Gaps::new(0.0, COLLECTION.gap, 0.0, COLLECTION.gap))
                     .corner_radius(COLLECTION.gap)
-                    .maybe(name_bg.is_some(), |el| {
-                        el.background(color(name_bg.unwrap_or(palette.accent)))
-                    })
+                    .map(name_bg, |el, background| el.background(color(background)))
                     .child(text(self.name.clone(), CAPTION, name_ink)),
             );
         interaction.focus_ring(tile, COLLECTION.radius)

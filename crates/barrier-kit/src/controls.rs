@@ -182,9 +182,7 @@ impl Component for ToolGroup {
                 TOOLGROUP.padding_x as f32,
             ))
             .children(items);
-        if let Some(id) = self.probe {
-            root = root.a11y_builder(move |node| node.set_author_id(id));
-        }
+        root = root.map(self.probe, ProbeExt::probe);
 
         if island {
             return root
@@ -380,11 +378,7 @@ impl Component for Slider {
             .child(labels_row);
         root = interaction.focus_ring(root, knob / 2.0);
 
-        if let Some(id) = self.probe {
-            root = root.a11y_builder(move |node| node.set_author_id(id));
-        }
-
-        root
+        root.map(self.probe, ProbeExt::probe)
     }
 }
 
@@ -634,11 +628,7 @@ impl Component for Switch {
             ));
         root = interaction.focus_ring(root, SWITCH.height / 2.0);
 
-        if let Some(id) = self.probe {
-            root = root.a11y_builder(move |node| node.set_author_id(id));
-        }
-
-        root
+        root.map(self.probe, ProbeExt::probe)
     }
 }
 
@@ -1109,7 +1099,7 @@ impl Component for Checkbox {
         checkbox = interaction.focus_ring(checkbox, CHECKBOX.radius);
 
         let is_checked = *checked.read();
-        let mut root = interaction
+        let root = interaction
             .attach(rect(), !disabled)
             .width(self.width.clone())
             .direction(Direction::Horizontal)
@@ -1134,10 +1124,6 @@ impl Component for Checkbox {
                     .color(label_color),
             );
 
-        if let Some(id) = self.probe {
-            root = root.a11y_builder(move |node| node.set_author_id(id));
-        }
-
-        root
+        root.map(self.probe, ProbeExt::probe)
     }
 }

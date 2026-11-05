@@ -70,10 +70,8 @@ impl Component for Link {
             .attach(rect(), true)
             .a11y_role(AccessibilityRole::Link)
             .a11y_alt(self.text)
-            .on_press(move |_| {
-                if let Some(cb) = &on_press {
-                    cb.call(());
-                }
+            .map(on_press, |el, on_press| {
+                el.on_press(move |_| on_press.call(()))
             })
             .child(text(self.text, TEXT, palette.accent));
         interaction.focus_ring(link, 0.0)

@@ -132,8 +132,8 @@ impl Component for ToolbarTab {
             .cross_align(Alignment::Center)
             .spacing(TOOLBAR_TABS.icon_gap)
             .corner_radius(TOOLBAR_TABS.tab_radius)
-            .maybe(background.is_some(), |el| {
-                el.background(color(background.unwrap_or(palette.control_hover)))
+            .map(background, |el, background| {
+                el.background(color(background))
             })
             .on_press(move |_| on_select.call(()))
             .child(symbol(self.icon, TOOLBAR_TABS.icon, ink))

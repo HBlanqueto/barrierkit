@@ -141,8 +141,8 @@ impl Component for SearchResult {
                 menu.item_padding_x,
             ))
             .corner_radius(menu.item_radius)
-            .maybe(background.is_some(), |el| {
-                el.background(color(background.unwrap_or(palette.accent)))
+            .map(background, |el, background| {
+                el.background(color(background))
             })
             .on_press(move |_| on_select.call(()))
             .child(symbol_tile(symbol, tint, None))

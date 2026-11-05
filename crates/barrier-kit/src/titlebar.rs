@@ -192,17 +192,17 @@ impl Component for Titlebar {
         };
 
         let title_font = TITLEBAR.font;
-        let mut title_label = label()
+        let title_label = label()
             .text(title)
             .font_family(title_font.family)
             .font_size(title_font.size as f32)
             .font_weight(FontWeight::from(title_font.weight as i32))
             .color(theme::color(title_color))
             .max_lines(1)
-            .text_overflow(TextOverflow::Ellipsis);
-        if let Some(id) = self.probe {
-            title_label = title_label.a11y_builder(move |node| node.set_author_id(id));
-        }
+            .text_overflow(TextOverflow::Ellipsis)
+            .map(self.probe, |label, id| {
+                label.a11y_builder(move |node| node.set_author_id(id))
+            });
 
         let (bar, height) = if self.sidebar {
             let occupied = control.map_or(0.0, |control| control.occupied());
