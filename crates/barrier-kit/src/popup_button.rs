@@ -125,13 +125,10 @@ fn open_menu(
     let entries: Vec<MenuItem> = items
         .iter()
         .enumerate()
-        .map(|(index, (label, icon))| MenuItem::Action {
-            id: index.to_string(),
-            label: label.to_string(),
-            shortcut: None,
-            enabled: true,
-            check: CheckState::Radio(index == current),
-            icon: icon.clone(),
+        .map(|(index, (label, icon))| {
+            MenuItem::action(index.to_string(), *label)
+                .with_check(CheckState::Radio(index == current))
+                .with_icon(icon.clone())
         })
         .collect();
     open_popover_menu(

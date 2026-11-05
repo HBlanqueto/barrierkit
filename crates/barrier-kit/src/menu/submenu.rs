@@ -47,16 +47,9 @@ pub(super) fn close_child(
     open_child_index.set(None);
 }
 
-pub(super) fn submenu_contents(id: Option<&str>, items: &[MenuItem]) -> Vec<MenuItem> {
-    if id.is_some() && items.is_empty() {
-        vec![MenuItem::Action {
-            id: String::new(),
-            label: "Cargando…".to_string(),
-            shortcut: None,
-            enabled: false,
-            check: CheckState::None,
-            icon: None,
-        }]
+pub fn submenu_contents(loading: bool, items: &[MenuItem]) -> Vec<MenuItem> {
+    if loading && items.is_empty() {
+        vec![MenuItem::placeholder("Cargando…")]
     } else {
         items.to_vec()
     }
@@ -99,7 +92,7 @@ pub(super) fn open_child_popup(
     close_child(open_child_id.clone(), open_child_index.clone());
     announce_submenu(&on_open_submenu, id);
     let m = palette_source.current();
-    let initial_items = submenu_contents(id, sub_items);
+    let initial_items = submenu_contents(id.is_some(), sub_items);
     let child_size = MenuView::preferred_size(&initial_items, m);
     let on_dismiss_for_action = on_dismiss_all.clone();
     let mut child_view = MenuView::new(

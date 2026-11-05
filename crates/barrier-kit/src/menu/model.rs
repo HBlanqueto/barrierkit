@@ -109,6 +109,66 @@ pub enum MenuItem {
 }
 
 impl MenuItem {
+    pub fn action(id: impl Into<String>, label: impl Into<String>) -> Self {
+        Self::Action {
+            id: id.into(),
+            label: label.into(),
+            shortcut: None,
+            enabled: true,
+            check: CheckState::None,
+            icon: None,
+        }
+    }
+
+    pub fn placeholder(label: impl Into<String>) -> Self {
+        Self::action("", label).with_enabled(false)
+    }
+
+    pub fn header(label: impl Into<String>) -> Self {
+        Self::Header {
+            label: label.into(),
+            count: None,
+        }
+    }
+
+    pub fn submenu(label: impl Into<String>, items: Vec<MenuItem>) -> Self {
+        Self::Submenu {
+            id: None,
+            label: label.into(),
+            enabled: true,
+            items,
+            icon: None,
+        }
+    }
+
+    pub fn with_shortcut(mut self, text: impl Into<String>) -> Self {
+        if let Self::Action { shortcut, .. } = &mut self {
+            *shortcut = Some(text.into());
+        }
+        self
+    }
+
+    pub fn with_enabled(mut self, value: bool) -> Self {
+        if let Self::Action { enabled, .. } | Self::Submenu { enabled, .. } = &mut self {
+            *enabled = value;
+        }
+        self
+    }
+
+    pub fn with_check(mut self, state: CheckState) -> Self {
+        if let Self::Action { check, .. } = &mut self {
+            *check = state;
+        }
+        self
+    }
+
+    pub fn with_icon(mut self, value: impl Into<Option<MenuIcon>>) -> Self {
+        if let Self::Action { icon, .. } | Self::Submenu { icon, .. } = &mut self {
+            *icon = value.into();
+        }
+        self
+    }
+
     pub(super) fn enabled(&self) -> bool {
         match self {
             MenuItem::Action { enabled, .. } => *enabled,
@@ -179,14 +239,7 @@ pub fn normalize_separators(items: &mut Vec<MenuItem>) {
 }
 
 pub(super) fn empty_hint() -> MenuItem {
-    MenuItem::Action {
-        id: String::new(),
-        label: "Sin elementos".to_string(),
-        shortcut: None,
-        enabled: false,
-        check: CheckState::None,
-        icon: None,
-    }
+    MenuItem::placeholder("Sin elementos")
 }
 
 pub(super) fn with_empty_hint(items: Vec<MenuItem>) -> Vec<MenuItem> {

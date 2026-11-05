@@ -281,7 +281,7 @@ fn live_items_replace_the_placeholder() {
 
 #[test]
 fn empty_remote_submenu_shows_a_disabled_loading_row() {
-    let loading = submenu_contents(Some("7"), &[]);
+    let loading = submenu_contents(true, &[]);
     assert_eq!(loading.len(), 1);
     assert!(matches!(
         &loading[0],
@@ -291,7 +291,7 @@ fn empty_remote_submenu_shows_a_disabled_loading_row() {
             ..
         } if label == "Cargando…"
     ));
-    assert!(submenu_contents(None, &[]).is_empty());
+    assert!(submenu_contents(false, &[]).is_empty());
 }
 
 #[test]

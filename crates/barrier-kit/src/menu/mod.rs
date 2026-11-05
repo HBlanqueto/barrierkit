@@ -13,9 +13,11 @@ mod text;
 pub use item::*;
 pub use model::*;
 use nav::*;
+pub use search::normalize_query;
 use search::*;
 pub(crate) use shortcut::shortcut_keys;
 pub use shortcut::{format_shortcut, shortcut_matches};
+pub use submenu::submenu_contents;
 use submenu::*;
 pub use text::*;
 
