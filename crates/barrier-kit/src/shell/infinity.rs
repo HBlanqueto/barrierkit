@@ -4,10 +4,7 @@ use freya_core::prelude::WritableUtils;
 use sctk::reexports::client::{Connection, Dispatch, Proxy, QueueHandle};
 
 use crate::platform::{AppMenuAddress, runtime::Runtime};
-use crate::shell::{
-    FocusBar, GtkMenusAddress, ShellState, SpaceInfo,
-    toplevels::{InfoEvent, update_toplevel_info},
-};
+use crate::shell::{FocusBar, GtkMenusAddress, ShellState, SpaceInfo, toplevels::InfoEvent};
 
 pub use infinity_protocol::client::infinity_window_manager_v1::infinity_window_manager_v1::{
     InfinityWindowManagerV1, Layout, PairLayout,
@@ -34,16 +31,14 @@ impl Dispatch<InfinityWindowManagerV1, ()> for Runtime {
                 .expect("infinity_window_manager event without ShellState");
             match event {
                 Event::Restorable { handle, restorable } => {
-                    let restorable = restorable != 0;
-                    for entry in shell.toplevel_entries.borrow_mut().iter_mut() {
-                        if entry
-                            .mgmt
-                            .as_ref()
-                            .is_some_and(|mgmt| mgmt.id() == handle.id())
-                        {
-                            entry.restorable = restorable;
-                            break;
-                        }
+                    if let Some(entry) = shell
+                        .toplevels
+                        .entries
+                        .borrow_mut()
+                        .iter_mut()
+                        .find(|entry| entry.mgmt.as_ref() == Some(&handle))
+                    {
+                        entry.info.restorable = restorable != 0;
                     }
                 }
                 Event::AppMenu {
@@ -56,11 +51,9 @@ impl Dispatch<InfinityWindowManagerV1, ()> for Runtime {
                     } else {
                         Some(AppMenuAddress { service, path })
                     };
-                    update_toplevel_info(
-                        &mut shell.toplevel_entries.borrow_mut(),
-                        &toplevel,
-                        InfoEvent::AppMenu(address),
-                    );
+                    shell
+                        .toplevels
+                        .update(&toplevel, InfoEvent::AppMenu(address));
                 }
                 Event::GtkMenus {
                     toplevel,
@@ -79,11 +72,9 @@ impl Dispatch<InfinityWindowManagerV1, ()> for Runtime {
                         application_object_path,
                         window_object_path,
                     );
-                    update_toplevel_info(
-                        &mut shell.toplevel_entries.borrow_mut(),
-                        &toplevel,
-                        InfoEvent::GtkMenus(address),
-                    );
+                    shell
+                        .toplevels
+                        .update(&toplevel, InfoEvent::GtkMenus(address));
                 }
                 Event::Space {
                     index,
