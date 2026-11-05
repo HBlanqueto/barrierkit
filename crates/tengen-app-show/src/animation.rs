@@ -8,6 +8,7 @@ use freya_core::prelude::*;
 use torin::prelude::{Alignment, Size};
 use vow_design::{DURATION_BASE, DURATION_SLOW_MS, SPACE_2, SPLIT_VIEW, SWITCH};
 
+use crate::chrome::segmented;
 use crate::events::{
     Arrivals, CopyToast, HoverCard, Inbox, PlusToggle, Popover, PressCard, ShakeField,
 };
@@ -119,17 +120,12 @@ fn kit_controls(mut backdrop: State<usize>) -> Form {
         )
         .section(
             Section::titled("Fondo tintado")
-                .row(
-                    Row::new("Escena").control(
-                        SCENES
-                            .iter()
-                            .fold(SegmentedControl::new("Escena"), |control, &(name, _)| {
-                                control.segment(name)
-                            })
-                            .selected(selected)
-                            .on_change(move |index: usize| backdrop.set(index)),
-                    ),
-                )
+                .row(Row::new("Escena").control(segmented(
+                    "Escena",
+                    &SCENES.map(|(name, _)| name),
+                    selected,
+                    move |index| backdrop.set(index),
+                )))
                 .row(
                     Row::new("Fundido")
                         .detail("El fondo y su acento funden entre escenas.")
@@ -152,17 +148,12 @@ fn navigation(page: State<usize>, mut transition: State<usize>, mut period: Stat
     Form::new()
         .section(
             Section::titled("Diapositivas")
-                .row(
-                    Row::new("Transición").control(
-                        TRANSITIONS
-                            .iter()
-                            .fold(SegmentedControl::new("Transición"), |control, &name| {
-                                control.segment(name)
-                            })
-                            .selected(style)
-                            .on_change(move |index: usize| transition.set(index)),
-                    ),
-                )
+                .row(Row::new("Transición").control(segmented(
+                    "Transición",
+                    &TRANSITIONS,
+                    style,
+                    move |index| transition.set(index),
+                )))
                 .row(
                     Row::new("Carrusel").control(
                         rect()

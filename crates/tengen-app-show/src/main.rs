@@ -324,20 +324,17 @@ fn appearance(scheme: State<Option<ColorScheme>>) -> Form {
         .position(|(value, _)| *value == *scheme.read())
         .unwrap_or_default();
     Form::new().section(
-        Section::titled("Apariencia del catálogo").row(
-            Row::new("Tema").control(
-                SCHEMES
-                    .iter()
-                    .fold(SegmentedControl::new("Tema"), |control, (_, name)| {
-                        control.segment(name)
-                    })
-                    .selected(selected)
-                    .on_change(move |index: usize| {
-                        let mut scheme = scheme;
-                        scheme.set(SCHEMES[index].0);
-                    }),
+        Section::titled("Apariencia del catálogo").row(Row::new("Tema").control(
+            chrome::segmented(
+                "Tema",
+                &SCHEMES.map(|(_, name)| name),
+                selected,
+                move |index| {
+                    let mut scheme = scheme;
+                    scheme.set(SCHEMES[index].0);
+                },
             ),
-        ),
+        )),
     )
 }
 

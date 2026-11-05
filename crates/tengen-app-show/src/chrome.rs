@@ -110,11 +110,11 @@ fn update(mut prefs: State<Prefs>, change: impl FnOnce(&mut Prefs)) {
     }
 }
 
-fn segmented(
+pub(crate) fn segmented(
     label: &'static str,
     segments: &[&'static str],
     selected: usize,
-    on_change: impl Fn(usize) + 'static,
+    on_change: impl FnMut(usize) + 'static,
 ) -> SegmentedControl {
     segments
         .iter()
