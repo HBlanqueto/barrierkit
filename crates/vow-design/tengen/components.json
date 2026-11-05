@@ -41,6 +41,11 @@
         }
       },
       "pressed-scale": 0.97,
+      "small": {
+        "height": 20,
+        "font-size": 12,
+        "radius": 5
+      },
       "rule": "Botones de texto: rectángulo redondeado, nunca cápsula. Un solo primary por vista."
     },
     "icon-button": {
@@ -479,8 +484,8 @@
     "settings": {
       "label-column": 150,
       "window": {
-        "width": 865,
-        "height": 864,
+        "width": 770,
+        "height": 848,
         "min-height": 480
       },
       "search": {
@@ -494,8 +499,8 @@
         "header-height": 24
       },
       "account": {
-        "avatar": 36,
-        "gap": 10,
+        "avatar": 38,
+        "gap": 8,
         "name": "headline",
         "detail": "callout",
         "height": 48,
@@ -504,7 +509,7 @@
       "section-gap": 14,
       "section-icon-bg": "#2b2b2b",
       "sidebar": {
-        "width": 271,
+        "width": 237,
         "lights-gap": 18,
         "search-gap": 12,
         "item-gap": 2,
@@ -778,15 +783,18 @@
       "about": {
         "width": 329,
         "height": 505,
-        "drawing-top": 89,
-        "drawing-width": 148,
-        "drawing-height": 78,
-        "title-gap": 61,
-        "label-width": 138,
-        "column-gap": 12,
-        "value-width": 160,
+        "drawing-top": 92,
+        "drawing-width": 150,
+        "drawing-height": 82,
+        "title-gap": 58,
+        "title-size": 21,
+        "specs-gap": 16,
+        "button-gap": 18,
+        "label-width": 125,
+        "column-gap": 11,
+        "value-width": 125,
         "row-gap": 2,
-        "footer-bottom": 34
+        "footer-bottom": 53
       },
       "lock": {
         "font-size": 24,

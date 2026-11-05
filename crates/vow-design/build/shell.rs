@@ -185,6 +185,17 @@ pub(super) fn emit_metrics(out: &mut String, tokens: &Value, components: &Value)
         ),
         ("ABOUT_TITLE_GAP", "f32", "components.shell.about.title-gap"),
         (
+            "ABOUT_TITLE_SIZE",
+            "f32",
+            "components.shell.about.title-size",
+        ),
+        ("ABOUT_SPECS_GAP", "f32", "components.shell.about.specs-gap"),
+        (
+            "ABOUT_BUTTON_GAP",
+            "f32",
+            "components.shell.about.button-gap",
+        ),
+        (
             "ABOUT_LABEL_WIDTH",
             "f32",
             "components.shell.about.label-width",

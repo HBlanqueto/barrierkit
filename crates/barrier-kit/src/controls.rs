@@ -561,6 +561,7 @@ pub struct Button {
     label: String,
     style: ButtonStyle,
     disabled: bool,
+    small: bool,
     width: Size,
     on_press: Option<Callback<(), ()>>,
     key: DiffKey,
@@ -572,6 +573,7 @@ impl Button {
             label: label.into(),
             style: ButtonStyle::default(),
             disabled: false,
+            small: false,
             width: Size::auto(),
             on_press: None,
             key: DiffKey::None,
@@ -585,6 +587,11 @@ impl Button {
 
     pub fn disabled(mut self, disabled: bool) -> Self {
         self.disabled = disabled;
+        self
+    }
+
+    pub fn small(mut self, small: bool) -> Self {
+        self.small = small;
         self
     }
 
@@ -624,15 +631,24 @@ impl Component for Button {
             (ButtonStyle::Secondary, true) => (palette.control_background, palette.label),
         };
         let on_press = self.on_press.clone();
+        let (height, font_size, radius) = if self.small {
+            (
+                BUTTON.small_height,
+                BUTTON.small_font_size,
+                BUTTON.small_radius,
+            )
+        } else {
+            (BUTTON.height, BUTTON.font_size, BUTTON.radius)
+        };
 
         let button = interaction
             .attach(rect(), enabled)
             .a11y_role(AccessibilityRole::Button)
             .a11y_alt(self.label.clone())
             .width(self.width.clone())
-            .height(Size::px(BUTTON.height))
+            .height(Size::px(height))
             .padding(Gaps::new(0.0, BUTTON.padding_x, 0.0, BUTTON.padding_x))
-            .corner_radius(BUTTON.radius)
+            .corner_radius(radius)
             .center()
             .background(color(background))
             .maybe(enabled && interaction.pressed(), |el| {
@@ -649,12 +665,12 @@ impl Component for Button {
                 label()
                     .text(self.label.clone())
                     .font_family(TEXT.family)
-                    .font_size(BUTTON.font_size)
+                    .font_size(font_size)
                     .font_weight(BUTTON.font_weight)
                     .max_lines(1)
                     .color(color(ink)),
             );
-        interaction.focus_ring(button, BUTTON.radius)
+        interaction.focus_ring(button, radius)
     }
 }
 

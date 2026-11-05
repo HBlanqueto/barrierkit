@@ -34,6 +34,7 @@ Button::new("Borrar").disabled(true)
 | ![Cancelar, Guardar and Borrar buttons](assets/componentes/button-light.png) | ![Buttons in dark](assets/componentes/button-dark.png) |
 
 - `ButtonStyle`: `Secondary` (default) and `Primary`.
+- `.small(true)`: 20 px tall with 12 px text (`button.small`), like the one in «Acerca de este PC».
 - `.width(Size)` and `.on_press(|_| ..)`. When pressed, the button scales to
   `BUTTON.pressed_scale` (0.97).
 

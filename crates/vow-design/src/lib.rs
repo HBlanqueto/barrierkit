@@ -403,6 +403,9 @@ pub struct ButtonMetrics {
     pub font_size: f32,
     pub font_weight: i32,
     pub pressed_scale: f32,
+    pub small_height: f32,
+    pub small_font_size: f32,
+    pub small_radius: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -965,14 +968,14 @@ mod tests {
     #[test]
     fn settings_metrics_and_swatches_match_components() {
         assert_eq!(super::SETTINGS.label_column, 150);
-        assert_eq!(super::SETTINGS.window_width, 865);
-        assert_eq!(super::SETTINGS.window_height, 864);
+        assert_eq!(super::SETTINGS.window_width, 770);
+        assert_eq!(super::SETTINGS.window_height, 848);
         assert_eq!(super::SETTINGS.window_min_height, 480);
         assert_eq!(super::SETTINGS.search_height, 30);
         assert_eq!(super::SETTINGS.search_padding_x, 10);
         assert_eq!(super::SETTINGS.search_icon, 16);
-        assert_eq!(super::SETTINGS.account_avatar, 36);
-        assert_eq!(super::SETTINGS.account_gap, 10);
+        assert_eq!(super::SETTINGS.account_avatar, 38);
+        assert_eq!(super::SETTINGS.account_gap, 8);
         assert_eq!(super::SETTINGS.account_name_font, super::HEADLINE);
         assert_eq!(super::SETTINGS.account_detail_font, super::CALLOUT);
         assert_eq!(super::SETTINGS.section_gap, 14);
