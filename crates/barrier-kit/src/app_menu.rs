@@ -203,7 +203,7 @@ pub(crate) fn dbusmenu_label(label: &str) -> String {
     label.replace('_', "__")
 }
 
-use keyboard_types::{Key, Modifiers};
+use freya_core::prelude::{Key, Modifiers};
 
 pub use crate::menu::shortcut_matches;
 
@@ -270,7 +270,7 @@ pub(crate) fn check_state(check: &CheckState) -> (Option<&'static str>, i32) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use keyboard_types::NamedKey;
+    use freya_core::prelude::NamedKey;
 
     #[test]
     fn shortcuts_export_as_keysyms_in_modifier_order() {

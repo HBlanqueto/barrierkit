@@ -1,6 +1,3 @@
-//! `window.domain`: what the green light and a titlebar double click do, shared
-//! by the compositor's chrome and the kit's client-side titlebar.
-
 use serde::Deserialize;
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Deserialize)]

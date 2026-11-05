@@ -2,7 +2,8 @@ use std::collections::HashMap;
 use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::{Arc, OnceLock};
 
-use async_channel::{Receiver, Sender};
+use futures_channel::mpsc::{UnboundedReceiver, UnboundedSender};
+use futures_util::StreamExt;
 use zbus::zvariant::{OwnedValue, Value};
 
 use crate::app_menu::layout::{
@@ -31,7 +32,7 @@ enum Command {
 }
 
 struct Server {
-    commands: Sender<Command>,
+    commands: UnboundedSender<Command>,
 }
 
 static SERVER: OnceLock<Server> = OnceLock::new();
@@ -39,7 +40,7 @@ static SERVER: OnceLock<Server> = OnceLock::new();
 impl Server {
     fn get() -> &'static Server {
         SERVER.get_or_init(|| {
-            let (commands, rx) = async_channel::unbounded();
+            let (commands, rx) = futures_channel::mpsc::unbounded();
             std::thread::Builder::new()
                 .name("barrier-dbusmenu".to_string())
                 .spawn(move || {
@@ -55,7 +56,7 @@ impl Server {
         let index = NEXT_PATH_INDEX.fetch_add(1, Ordering::Relaxed);
         let path = format!("{PATH_PREFIX}{index}");
         handle.set_path(&path);
-        let _ = server.commands.send_blocking(Command::Register {
+        let _ = server.commands.unbounded_send(Command::Register {
             path,
             registered: RegisteredMenu::new(handle),
         });
@@ -63,14 +64,14 @@ impl Server {
 
     fn unregister(path: &str) {
         let server = Self::get();
-        let _ = server.commands.send_blocking(Command::Unregister {
+        let _ = server.commands.unbounded_send(Command::Unregister {
             path: path.to_string(),
         });
     }
 
     fn update(path: &str) {
         let server = Self::get();
-        let _ = server.commands.send_blocking(Command::Update {
+        let _ = server.commands.unbounded_send(Command::Update {
             path: path.to_string(),
         });
     }
@@ -88,7 +89,7 @@ pub fn update(path: &str) {
     Server::update(path);
 }
 
-async fn run(commands: Receiver<Command>) {
+async fn run(mut commands: UnboundedReceiver<Command>) {
     let connection = match zbus::Connection::session().await {
         Ok(c) => c,
         Err(error) => {
@@ -100,7 +101,7 @@ async fn run(commands: Receiver<Command>) {
     let mut menus: HashMap<String, Arc<RegisteredMenu>> = HashMap::new();
     let mut id_maps: HashMap<String, IdMap> = HashMap::new();
 
-    while let Ok(command) = commands.recv().await {
+    while let Some(command) = commands.next().await {
         match command {
             Command::Register { path, registered } => {
                 let iface = DbusMenuObject {

@@ -1,7 +1,6 @@
 //! Back/forward navigation history and its toolbar buttons.
 
 use freya_core::prelude::*;
-use keyboard_types::Modifiers;
 use torin::prelude::{Direction, Size};
 
 use crate::app::{Action, Shortcut, ShortcutKey};

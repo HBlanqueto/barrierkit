@@ -47,9 +47,7 @@ gstreamer-allocators = { workspace = true, optional = true }
 ash.workspace = true
 futures-util.workspace = true
 futures-channel.workspace = true
-async-channel.workspace = true
 async-io.workspace = true
-keyboard-types.workspace = true
 
 [dev-dependencies]
 freya-testing.workspace = true

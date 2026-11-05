@@ -1,7 +1,6 @@
 //! Compact controls built from small square buttons: icon button, stepper and toggle group.
 
 use freya_core::prelude::*;
-use keyboard_types::{Key, NamedKey};
 use torin::prelude::{Alignment, Direction, Gaps, Size};
 use vow_design::{BUTTON, DISPLAY, ICON_BUTTON, SEGMENTED, TEXT};
 

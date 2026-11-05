@@ -36,7 +36,6 @@ use freya_engine::prelude::{
     AlphaType, ColorType, FontStyle, ImageInfo, ParagraphBuilder, ParagraphStyle, Pixmap, SkData,
     SkImage, Slant, TextStyle, Width,
 };
-use keyboard_types::{Key, NamedKey};
 use ragnarok::CursorPoint;
 use torin::prelude::{Alignment, Direction, Gaps, Size};
 

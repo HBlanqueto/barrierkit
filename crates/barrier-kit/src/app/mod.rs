@@ -1,5 +1,3 @@
-//! App-wide services: actions, preferences, restoration, undo and single instance.
-
 mod action;
 mod application;
 mod defaults;

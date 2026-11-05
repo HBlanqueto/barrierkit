@@ -1,8 +1,3 @@
-//! XDG Base Directory and user-dirs lookups.
-//!
-//! <https://specifications.freedesktop.org/basedir-spec/latest/>
-//! <https://www.freedesktop.org/wiki/Software/xdg-user-dirs/>
-
 use std::env;
 use std::path::{Path, PathBuf};
 

@@ -4,7 +4,6 @@ use freya_components::input::Input;
 use freya_core::integration::{App, AppComponent};
 use freya_core::prelude::*;
 use freya_testing::TestingRunner;
-use keyboard_types::{Key, NamedKey};
 use torin::prelude::{Direction, Size, Size2D};
 
 struct FocusApp {

@@ -5,7 +5,6 @@ use freya_animation::prelude::use_animation_transition;
 use std::time::Duration;
 
 use freya_core::prelude::*;
-use keyboard_types::Modifiers;
 use serde::{Deserialize, Serialize};
 use torin::prelude::{Content, Direction, Gaps, Position, Size};
 use vow_appearance::SidebarStyle;

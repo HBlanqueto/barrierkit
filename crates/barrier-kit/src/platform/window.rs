@@ -28,12 +28,6 @@ use super::{
     timer::{PingWake, Timers, WakeHandle},
 };
 
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub enum Decorations {
-    #[default]
-    Client,
-}
-
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, serde::Deserialize, serde::Serialize)]
 pub enum FullscreenBar {
     #[default]
@@ -65,7 +59,6 @@ pub struct WindowOptions {
     pub title: String,
     pub app_name: String,
     pub app_id: Option<String>,
-    pub decorations: Decorations,
     pub size: (u32, u32),
     pub min_size: Option<(u32, u32)>,
     pub max_size: Option<(u32, u32)>,
@@ -80,7 +73,6 @@ impl WindowOptions {
             title: title.into(),
             app_name: app_name.into(),
             app_id: None,
-            decorations: Decorations::Client,
             size: vow_design::WINDOW_DEFAULT_SIZE,
             min_size: None,
             max_size: None,
@@ -92,11 +84,6 @@ impl WindowOptions {
 
     pub fn app_id(mut self, app_id: impl Into<String>) -> Self {
         self.app_id = Some(app_id.into());
-        self
-    }
-
-    pub fn decorations(mut self, decorations: Decorations) -> Self {
-        self.decorations = decorations;
         self
     }
 

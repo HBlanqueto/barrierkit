@@ -1,4 +1,4 @@
-use keyboard_types::{Key, Modifiers};
+use freya_core::prelude::{Key, Modifiers};
 
 type Names = &'static [&'static str];
 

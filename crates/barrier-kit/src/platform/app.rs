@@ -3,6 +3,7 @@ use freya_clipboard::copypasta::ClipboardProvider;
 
 use crate::app::DefaultsRevision;
 use freya_components::{cache::AssetCacher, integration::integration};
+use freya_core::prelude::{Code, Key, Modifiers, NamedKey};
 use freya_core::{
     accessibility::tree::{ACCESSIBILITY_ROOT_ID, AccessibilityTree},
     element::IntoElement,
@@ -15,7 +16,6 @@ use freya_core::{
     prelude::{AccessibilityFocusStrategy, State},
 };
 use freya_engine::prelude::{FontCollection, FontMgr};
-use keyboard_types::{Code, Key, Modifiers, NamedKey};
 use ragnarok::{EventsExecutorRunner, EventsMeasurerRunner, NodesState};
 use std::{
     borrow::Cow,

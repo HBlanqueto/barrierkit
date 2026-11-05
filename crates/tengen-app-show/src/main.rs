@@ -28,7 +28,7 @@ use barrier_kit::password::PasswordField;
 use barrier_kit::patterns::about::about_window;
 use barrier_kit::patterns::preferences::{Pane, PaneGroup, PreferencesWindow};
 use barrier_kit::platform::{DecorationResponse, WindowControls, WindowStatus};
-use barrier_kit::platform::{Decorations, WindowOptions, run_window};
+use barrier_kit::platform::{WindowOptions, run_window};
 use barrier_kit::popup_button::PopUpButton;
 use barrier_kit::progress::{ProgressBar, ProgressRing, Spinner};
 use barrier_kit::sidebar::{Sidebar, SidebarBackdrop, SidebarItem};
@@ -842,7 +842,6 @@ fn main() {
             prefs,
         }),
         WindowOptions::new("Master Tengen App Show", APP)
-            .decorations(Decorations::Client)
             .size((980, 640))
             .min_size(Some(WINDOW_MIN_SIZE))
             .fullscreen_bar(prefs.fullscreen_bar)

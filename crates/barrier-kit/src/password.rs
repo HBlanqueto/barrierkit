@@ -1,6 +1,6 @@
 //! Password field for the lock screen.
 
-use keyboard_types::{Key, Modifiers, NamedKey};
+use freya_core::prelude::{Key, Modifiers, NamedKey};
 use zeroize::{Zeroize, Zeroizing};
 
 use crate::platform::inserts_text;

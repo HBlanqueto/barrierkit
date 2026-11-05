@@ -70,14 +70,6 @@ impl Palette {
     }
 }
 
-pub fn focus_tint(own_accent: Rgba) -> Rgba {
-    if crate::platform::window_activated() {
-        own_accent
-    } else {
-        Palette::current().accent_inactive
-    }
-}
-
 pub fn text(content: impl Into<Cow<'static, str>>, face: Font, ink: Rgba) -> Label {
     label()
         .text(content)

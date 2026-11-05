@@ -110,15 +110,6 @@ pub(crate) fn symbol_tile(glyph: Symbol, tint: Rgba, rim: Option<Rgba>) -> Rect 
         ))
 }
 
-#[cfg(test)]
-pub(crate) fn item_icon_color(selected: bool, palette: SidebarPalette) -> Rgba {
-    if selected {
-        palette.selected_ink
-    } else {
-        palette.item_icon
-    }
-}
-
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum SidebarBackdrop {
     #[default]

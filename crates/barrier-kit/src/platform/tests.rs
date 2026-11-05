@@ -663,14 +663,6 @@ mod inactive_accent_tests {
         assert_eq!(painted(false, accent), palette.accent_inactive);
         assert_ne!(painted(true, accent), palette.accent_inactive);
     }
-
-    #[test]
-    fn an_own_accent_turns_grey_with_the_kit_accent() {
-        let own = || crate::style::focus_tint(Rgba::rgb8(200, 30, 90));
-        let palette = vow_appearance::palette(resolve(&AppearanceConfig::default(), None).scheme);
-        assert_eq!(painted(true, own), Rgba::rgb8(200, 30, 90));
-        assert_eq!(painted(false, own), palette.accent_inactive);
-    }
 }
 
 #[cfg(test)]

@@ -2,7 +2,6 @@
 
 use freya_components::scrollviews::VirtualScrollView;
 use freya_core::prelude::*;
-use keyboard_types::{Key, NamedKey};
 use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
 use vow_design::{CAPTION, Rgba, SPACE_1, TABLE, TEXT};
 

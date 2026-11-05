@@ -1,7 +1,6 @@
 //! Icon grid with selection; pressing a selected item opens it.
 
 use freya_core::prelude::*;
-use keyboard_types::{Key, NamedKey};
 use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
 use vow_design::{CAPTION, COLLECTION, Rgba};
 

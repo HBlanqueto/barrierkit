@@ -321,16 +321,6 @@ mod tests {
             light.sidebar.palette.selected_ink,
             vow_design::LIGHT.on_accent
         );
-        assert_eq!(
-            crate::sidebar::item_icon_color(true, light.sidebar.palette),
-            vow_design::LIGHT.on_accent,
-            "light selected sidebar icon"
-        );
-        assert_eq!(
-            crate::sidebar::item_icon_color(false, light.sidebar.palette),
-            orange,
-            "light unselected sidebar icon"
-        );
         assert_ne!(light.menu.hover_bg, vow_design::LIGHT.accent);
 
         let dark = resolve(&config(ColorScheme::Dark), None);
@@ -344,16 +334,6 @@ mod tests {
         assert_eq!(
             dark.sidebar.palette.selected_ink,
             vow_design::DARK.on_accent
-        );
-        assert_eq!(
-            crate::sidebar::item_icon_color(true, dark.sidebar.palette),
-            vow_design::DARK.on_accent,
-            "dark selected sidebar icon"
-        );
-        assert_eq!(
-            crate::sidebar::item_icon_color(false, dark.sidebar.palette),
-            orange,
-            "dark unselected sidebar icon"
         );
     }
 

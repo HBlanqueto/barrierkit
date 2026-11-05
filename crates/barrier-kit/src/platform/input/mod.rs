@@ -1,22 +1,21 @@
 //! Converts Wayland input events into Freya platform events.
 
-use freya_core::prelude::{Code, Key, MouseButton, NamedKey};
-use keyboard_types::Modifiers;
+use freya_core::prelude::{Code, Key, Modifiers, MouseButton, NamedKey};
 use sctk::seat::keyboard::{Keysym, Modifiers as SctkModifiers};
 
-pub fn modifiers(m: SctkModifiers) -> keyboard_types::Modifiers {
-    let mut out = keyboard_types::Modifiers::empty();
+pub fn modifiers(m: SctkModifiers) -> Modifiers {
+    let mut out = Modifiers::empty();
     if m.ctrl {
-        out |= keyboard_types::Modifiers::CONTROL;
+        out |= Modifiers::CONTROL;
     }
     if m.alt {
-        out |= keyboard_types::Modifiers::ALT;
+        out |= Modifiers::ALT;
     }
     if m.shift {
-        out |= keyboard_types::Modifiers::SHIFT;
+        out |= Modifiers::SHIFT;
     }
     if m.logo {
-        out |= keyboard_types::Modifiers::META;
+        out |= Modifiers::META;
     }
     out
 }
@@ -144,7 +143,7 @@ mod tests {
 
     use super::{inserts_text, map_key, modifiers};
 
-    use keyboard_types::{Key, Modifiers};
+    use freya_core::prelude::{Key, Modifiers};
 
     #[test]
     fn shift_h_is_uppercase() {
