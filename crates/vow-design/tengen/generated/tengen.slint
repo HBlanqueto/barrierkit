@@ -75,6 +75,8 @@ export global Theme {
     out property <color> traffic-close: mode == TengenMode.dark ? #ff5f57 : mode == TengenMode.dark-tint ? #ff5f57 : #ff5f57;
     out property <color> traffic-inactive: mode == TengenMode.dark ? #4e4e50 : mode == TengenMode.dark-tint ? #4e4e50 : #d3d3d5;
     out property <color> traffic-min: mode == TengenMode.dark ? #febc2e : mode == TengenMode.dark-tint ? #febc2e : #febc2e;
+    out property <color> traffic-rim: mode == TengenMode.dark ? #000000bf : mode == TengenMode.dark-tint ? #000000bf : #0000001f;
+    out property <color> traffic-rim-inactive: mode == TengenMode.dark ? #ffffff0d : mode == TengenMode.dark-tint ? #ffffff0d : #0000001f;
     out property <color> traffic-zoom: mode == TengenMode.dark ? #28c840 : mode == TengenMode.dark-tint ? #28c840 : #28c840;
     out property <color> wallpaper-fallback: mode == TengenMode.dark ? #2b3038 : mode == TengenMode.dark-tint ? #2b3038 : #2b3038;
     out property <color> wallpaper-glass: mode == TengenMode.dark ? #ffffff3d : mode == TengenMode.dark-tint ? #ffffff3d : #ffffff3d;
@@ -604,8 +606,6 @@ export global Metrics {
     out property <length> window-traffic-lights-margin-start: 15px;
     out property <length> window-traffic-lights-pressed-darken: 0.200000px;
     out property <length> window-traffic-lights-radius: 5px;
-    out property <length> window-traffic-lights-rim-darken: 0.750000px;
-    out property <length> window-traffic-lights-rim-inactive-lighten: 0.050000px;
     out property <length> window-traffic-lights-rim-width: 1px;
     out property <length> window-traffic-lights-size: 14px;
     out property <length> window-traffic-lights-styles-accent-close-minimize-darken: 0.280000px;

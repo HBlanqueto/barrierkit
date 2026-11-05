@@ -135,6 +135,12 @@ impl Rgba {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct TrafficRim {
+    pub lit: Rgba,
+    pub idle: Rgba,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct FocusPair {
     pub focused: Rgba,
     pub unfocused: Rgba,
@@ -708,6 +714,7 @@ pub struct Palette {
     pub on_accent: Rgba,
     pub danger: Rgba,
     pub traffic_lights_inactive: Rgba,
+    pub traffic_rim: TrafficRim,
     pub scrim: Rgba,
     pub selected_control: Rgba,
     pub card_border: Rgba,

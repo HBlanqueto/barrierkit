@@ -58,7 +58,8 @@ literals that used to be copied by hand no longer live in `src/`.
 
 - **Themes**: `light`, `dark` and `dark-tint`, with `LIGHT`, `DARK` and `DARK_TINT`.
 - **Traffic lights**: `traffic-close/min/zoom` are `#ff5f57`, `#febc2e` and `#28c840`
-  in all three themes; `traffic-inactive`, `traffic-rim` (0.5 px ring) and
+  in all three themes; `traffic-inactive`, `traffic-rim` and
+  `traffic-rim-inactive` (1 px inner ring, composited over the fill) and
   `traffic-glyph` are in `tokens.json`.
 - **Titlebar**: `titlebar-bg`/`titlebar-bg-inactive` (`bg-window`/`bg-sunken`),
   `titlebar-title`/`titlebar-title-inactive` (`ink-strong`/`ink-muted`) and

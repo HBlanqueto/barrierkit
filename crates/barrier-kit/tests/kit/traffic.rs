@@ -11,7 +11,7 @@ use std::rc::Rc;
 use torin::prelude::Size2D;
 use vow_appearance::TrafficLightStyle;
 use vow_appearance::traffic::{TrafficInput, visual};
-use vow_design::{ButtonKind, Rgba};
+use vow_design::{ButtonKind, LIGHT, Rgba};
 
 const LIGHTS: [Rgba; 3] = [
     Rgba::rgb8(255, 95, 87),
@@ -26,7 +26,13 @@ struct Case {
 
 impl App for Case {
     fn render(&self) -> impl IntoElement {
-        traffic_lights_view(self.input, LIGHTS, TrafficLightStyle::Standard, INACTIVE)
+        traffic_lights_view(
+            self.input,
+            LIGHTS,
+            TrafficLightStyle::Standard,
+            INACTIVE,
+            LIGHT.traffic_rim,
+        )
     }
 }
 
@@ -109,7 +115,14 @@ fn traffic_lights_match_the_shared_visual_colours() {
     ];
     for scale in [1.0, 2.0] {
         for input in states {
-            let expected = visual(LIGHTS, TrafficLightStyle::Standard, INACTIVE, input)[0].fill;
+            let expected = visual(
+                LIGHTS,
+                TrafficLightStyle::Standard,
+                INACTIVE,
+                LIGHT.traffic_rim,
+                input,
+            )[0]
+            .fill;
             compare(sample(input, scale), expected);
         }
     }

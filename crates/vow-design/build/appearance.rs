@@ -367,17 +367,18 @@ pub(super) fn palette(tokens: &Value, components: &Value, theme: &str) -> String
             rgba(panel_edges)
         )
     };
-    let inactive = color_ref(
-        tokens,
-        theme,
-        string(
-            components,
-            "components.window.traffic-lights.inactive",
+    let traffic_ref = |path: &str| {
+        color_ref(
+            tokens,
+            theme,
+            string(components, path, COMPONENTS),
+            path,
             COMPONENTS,
-        ),
-        "components.window.traffic-lights.inactive",
-        COMPONENTS,
-    );
+        )
+    };
+    let inactive = traffic_ref("components.window.traffic-lights.inactive");
+    let rim_lit = traffic_ref("components.window.traffic-lights.rim.color");
+    let rim_idle = traffic_ref("components.window.traffic-lights.rim.inactive");
     format!(
         "Palette {{\n\
          \x20   titlebar_bg: FocusPair {{ focused: {}, unfocused: {} }},\n\
@@ -397,6 +398,7 @@ pub(super) fn palette(tokens: &Value, components: &Value, theme: &str) -> String
          \x20   on_accent: {},\n\
          \x20   danger: {},\n\
          \x20   traffic_lights_inactive: {},\n\
+         \x20   traffic_rim: TrafficRim {{ lit: {}, idle: {} }},\n\
          \x20   scrim: {},\n\
          \x20   selected_control: {},\n\
          \x20   card_border: {},\n\
@@ -419,6 +421,8 @@ pub(super) fn palette(tokens: &Value, components: &Value, theme: &str) -> String
         rgba(theme_color(tokens, theme, "on-accent")),
         rgba(theme_color(tokens, theme, "danger")),
         rgba(inactive),
+        rgba(rim_lit),
+        rgba(rim_idle),
         rgba(theme_color(tokens, theme, "scrim")),
         rgba(theme_color(tokens, theme, "bg-selected-control")),
         rgba(theme_color(tokens, theme, "card-border"))

@@ -2,8 +2,8 @@
 
 use vow_design::{
     ButtonKind, Rgba, TITLEBAR, TRAFFIC_GLYPH_ON_DARK, TRAFFIC_GLYPH_ON_LIGHT,
-    TRAFFIC_GLYPH_STANDARD, TRAFFIC_GLYPHS, TRAFFIC_PRESSED_DARKEN, TRAFFIC_RIM_DARKEN,
-    TRAFFIC_RIM_INACTIVE_LIGHTEN, TitlebarPosition, Triangle,
+    TRAFFIC_GLYPH_STANDARD, TRAFFIC_GLYPHS, TRAFFIC_PRESSED_DARKEN, TitlebarPosition, TrafficRim,
+    Triangle,
 };
 
 use crate::TrafficLightStyle;
@@ -63,10 +63,10 @@ pub struct ButtonVisual {
 }
 
 impl ButtonVisual {
-    pub fn idle(fill: Rgba) -> Self {
+    pub fn idle(fill: Rgba, rim: TrafficRim) -> Self {
         Self {
             fill,
-            rim: fill.lighten(TRAFFIC_RIM_INACTIVE_LIGHTEN),
+            rim: fill.mix(rim.idle, rim.idle.a),
             glyph: None,
         }
     }
@@ -76,9 +76,10 @@ pub fn visual(
     lights: [Rgba; 3],
     style: TrafficLightStyle,
     inactive: Rgba,
+    rim: TrafficRim,
     input: TrafficInput,
 ) -> [ButtonVisual; 3] {
-    let mut out = [ButtonVisual::idle(inactive); 3];
+    let mut out = [ButtonVisual::idle(inactive, rim); 3];
     for (index, slot) in out.iter_mut().enumerate() {
         let kind = TITLEBAR.buttons.order[index].kind;
         let admitted = kind != ButtonKind::Maximize || input.zoom_supported;
@@ -103,7 +104,7 @@ pub fn visual(
         });
         *slot = ButtonVisual {
             fill,
-            rim: fill.darken(TRAFFIC_RIM_DARKEN),
+            rim: fill.mix(rim.lit, rim.lit.a),
             glyph,
         };
     }
@@ -267,12 +268,17 @@ mod tests {
         Rgba::rgb8(0xd3, 0xd3, 0xd5)
     }
 
+    fn rim() -> TrafficRim {
+        vow_design::LIGHT.traffic_rim
+    }
+
     #[test]
     fn hover_uses_the_lit_colour_even_when_unfocused() {
         let visual = visual(
             lights(),
             TrafficLightStyle::Standard,
             inactive(),
+            rim(),
             TrafficInput {
                 focused: false,
                 group_hovered: true,
@@ -291,6 +297,7 @@ mod tests {
             lights(),
             TrafficLightStyle::Standard,
             inactive(),
+            rim(),
             TrafficInput {
                 focused: false,
                 group_hovered: false,
@@ -308,6 +315,7 @@ mod tests {
             lights(),
             TrafficLightStyle::Standard,
             inactive(),
+            rim(),
             TrafficInput {
                 focused: true,
                 group_hovered: false,
@@ -320,12 +328,13 @@ mod tests {
     }
 
     #[test]
-    fn a_lit_light_has_a_darker_rim_and_a_grey_one_a_lighter_rim() {
+    fn the_theme_rim_is_composited_over_each_fill() {
         let lit = |focused| {
             visual(
                 lights(),
                 TrafficLightStyle::Standard,
                 inactive(),
+                rim(),
                 TrafficInput {
                     focused,
                     group_hovered: false,
@@ -334,11 +343,8 @@ mod tests {
                 },
             )
         };
-        assert_eq!(lit(true)[0].rim, lights()[0].darken(TRAFFIC_RIM_DARKEN));
-        assert_eq!(
-            lit(false)[0].rim,
-            inactive().lighten(TRAFFIC_RIM_INACTIVE_LIGHTEN)
-        );
+        assert_eq!(lit(true)[0].rim, lights()[0].mix(rim().lit, rim().lit.a));
+        assert_eq!(lit(false)[0].rim, inactive().mix(rim().idle, rim().idle.a));
     }
 
     #[test]
@@ -347,6 +353,7 @@ mod tests {
             lights(),
             TrafficLightStyle::Standard,
             inactive(),
+            rim(),
             TrafficInput {
                 focused: true,
                 group_hovered: true,
@@ -363,6 +370,7 @@ mod tests {
             lights(),
             TrafficLightStyle::Accent,
             inactive(),
+            rim(),
             TrafficInput {
                 focused: true,
                 group_hovered: true,
@@ -380,6 +388,7 @@ mod tests {
             lights(),
             TrafficLightStyle::Accent,
             inactive(),
+            rim(),
             TrafficInput {
                 focused: true,
                 group_hovered: true,

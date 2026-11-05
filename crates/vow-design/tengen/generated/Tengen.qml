@@ -69,6 +69,8 @@ QtObject {
   readonly property color light_traffic_close: #ff5f57;
   readonly property color light_traffic_inactive: #d3d3d5;
   readonly property color light_traffic_min: #febc2e;
+  readonly property color light_traffic_rim: #0000001f;
+  readonly property color light_traffic_rim_inactive: #0000001f;
   readonly property color light_traffic_zoom: #28c840;
   readonly property color light_wallpaper_fallback: #2b3038;
   readonly property color light_wallpaper_glass: #ffffff3d;
@@ -147,6 +149,8 @@ QtObject {
   readonly property color dark_traffic_close: #ff5f57;
   readonly property color dark_traffic_inactive: #4e4e50;
   readonly property color dark_traffic_min: #febc2e;
+  readonly property color dark_traffic_rim: #000000bf;
+  readonly property color dark_traffic_rim_inactive: #ffffff0d;
   readonly property color dark_traffic_zoom: #28c840;
   readonly property color dark_wallpaper_fallback: #2b3038;
   readonly property color dark_wallpaper_glass: #ffffff3d;
@@ -225,6 +229,8 @@ QtObject {
   readonly property color dark_tint_traffic_close: #ff5f57;
   readonly property color dark_tint_traffic_inactive: #4e4e50;
   readonly property color dark_tint_traffic_min: #febc2e;
+  readonly property color dark_tint_traffic_rim: #000000bf;
+  readonly property color dark_tint_traffic_rim_inactive: #ffffff0d;
   readonly property color dark_tint_traffic_zoom: #28c840;
   readonly property color dark_tint_wallpaper_fallback: #2b3038;
   readonly property color dark_tint_wallpaper_glass: #ffffff3d;
