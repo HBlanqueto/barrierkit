@@ -1049,12 +1049,12 @@ mod tests {
         assert_eq!(super::SETTINGS.popup_light_gap, 5);
         assert_eq!(super::SETTINGS.popup_text_gap, 6);
         assert!((super::SETTINGS.selected_dark_mix - 0.5).abs() < 1e-6);
-        assert_eq!(super::SETTINGS.sidebar_lights_gap, 17);
+        assert_eq!(super::SETTINGS.sidebar_lights_gap, 21);
         assert_eq!(super::SETTINGS.sidebar_search_gap, 12);
         assert_eq!(super::SETTINGS.sidebar_item_gap, 2);
         assert_eq!(super::SETTINGS.toolbar_gap, 12);
         assert_eq!(super::SETTINGS.toolbar_height, 52);
-        assert_eq!(super::SETTINGS.toolbar_padding_top, 8);
+        assert_eq!(super::SETTINGS.toolbar_padding_top, 0);
         assert_eq!(super::SETTINGS.toolbar_padding_x, 14);
         assert_eq!(super::SETTINGS.sidebar_padding_top, 16);
         assert_eq!(super::SETTINGS.sidebar_padding_bottom, 10);

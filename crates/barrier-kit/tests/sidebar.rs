@@ -726,8 +726,8 @@ fn sidebar_traffic_lights_are_at_design_offset_and_first_child_sits_below() {
 
 #[test]
 fn sidebar_traffic_light_tokens_are_sane() {
-    assert_eq!(SIDEBAR.traffic_x, 17);
-    assert_eq!(SIDEBAR.traffic_y, 15);
+    assert_eq!(SIDEBAR.traffic_x, 11);
+    assert_eq!(SIDEBAR.traffic_y, 11);
     assert_eq!(TITLEBAR_CLIENT_HEIGHT, 44);
     assert_eq!(TITLEBAR.buttons.diameter, 14);
 }

@@ -304,20 +304,20 @@
         },
         "glyphs": {
           "box": 8,
-          "stroke": 1.2,
+          "stroke": 1.5,
           "close": {
             "segments": [
               [
-                2.2,
-                2.2,
-                5.8,
-                5.8
+                1.6,
+                1.6,
+                6.4,
+                6.4
               ],
               [
-                5.8,
-                2.2,
-                2.2,
-                5.8
+                6.4,
+                1.6,
+                1.6,
+                6.4
               ]
             ]
           },
@@ -334,20 +334,20 @@
           "zoom": {
             "triangles": [
               [
-                2.0,
-                6.0,
-                2.0,
-                3.1,
-                4.9,
-                6.0
+                1.3,
+                1.3,
+                5.5,
+                1.3,
+                1.3,
+                5.5
               ],
               [
-                6.0,
-                2.0,
-                6.0,
-                4.9,
-                3.1,
-                2.0
+                6.7,
+                6.7,
+                2.5,
+                6.7,
+                6.7,
+                2.5
               ]
             ]
           },
@@ -424,8 +424,8 @@
           "inner": "sidebar-island-inner",
           "inner-width": 1,
           "blur": 30,
-          "traffic-x": 17,
-          "traffic-y": 15
+          "traffic-x": 11,
+          "traffic-y": 11
         },
         "flat": {
           "bg": "sidebar-flat-bg",
@@ -512,7 +512,7 @@
       "section-icon-bg": "#2b2b2b",
       "sidebar": {
         "width": 237,
-        "lights-gap": 17,
+        "lights-gap": 21,
         "search-gap": 12,
         "item-gap": 2,
         "padding-top": 16,
@@ -522,7 +522,7 @@
       "toolbar": {
         "gap": 12,
         "height": 52,
-        "padding-top": "size.sidebar-inset",
+        "padding-top": 0,
         "padding-x": 14
       },
       "content": {
@@ -766,8 +766,8 @@
         "hover-fg": "{ink-strong}",
         "title-open": {
           "bg": "{menubar-title-open}",
-          "radius": "radius.sm",
-          "height": 22
+          "radius": 10,
+          "height": 24
         }
       },
       "dock": {
