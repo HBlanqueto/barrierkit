@@ -88,7 +88,7 @@ impl Component for Stage {
             .height(Size::px(HEIGHT))
             .corner_radius(COLLECTION.radius)
             .overflow(Overflow::Clip);
-        if from == to || progress >= 1.0 {
+        if from == to || !*animation.is_running().read() {
             return stage.child(at(slide(to), 0.0));
         }
         let (outgoing, incoming) = match self.transition {
