@@ -603,17 +603,20 @@ fn wallpaper_accent(dominant: Rgba, scheme: ColorScheme) -> Rgba {
     let on_accent = palette(scheme).on_accent;
 
     let window_dir = if dark { 1.0 } else { -1.0 };
-    let mut lightness = original_lightness;
-    for _ in 0..100 {
-        let accent = Rgba::from_hsl(hue, saturation, lightness, 1.0);
-        if accent.contrast_ratio(bg_window) >= ACCENT_MIN_CONTRAST_ON_WINDOW {
-            break;
+    let reach_window_contrast = |saturation: f32, mut lightness: f32| {
+        for _ in 0..100 {
+            let accent = Rgba::from_hsl(hue, saturation, lightness, 1.0);
+            if accent.contrast_ratio(bg_window) >= ACCENT_MIN_CONTRAST_ON_WINDOW {
+                break;
+            }
+            lightness += window_dir * 0.01;
+            if !(0.0..=1.0).contains(&lightness) {
+                break;
+            }
         }
-        lightness += window_dir * 0.01;
-        if !(0.0..=1.0).contains(&lightness) {
-            break;
-        }
-    }
+        lightness
+    };
+    let mut lightness = reach_window_contrast(saturation, original_lightness);
 
     let mut accent = Rgba::from_hsl(hue, saturation, lightness, 1.0);
     let mut on_contrast = accent.contrast_ratio(on_accent);
@@ -644,6 +647,7 @@ fn wallpaper_accent(dominant: Rgba, scheme: ColorScheme) -> Rgba {
     let delta_lightness = (lightness - original_lightness).abs();
     if saturation < MUTED_BELOW_SATURATION && delta_lightness > 0.10 {
         saturation = (saturation * (1.0 + delta_lightness)).min(MUTED_MAX_SATURATION);
+        lightness = reach_window_contrast(saturation, lightness);
     }
 
     Rgba::from_hsl(hue, saturation, lightness, 1.0)
@@ -1961,6 +1965,30 @@ sidebar_style = "flat"
                 Some((yellow, WINDOW_TINT_WALLPAPER[index])),
                 "{scheme:?}: window tint must be the raw dominant"
             );
+        }
+    }
+
+    #[test]
+    fn the_wallpaper_accent_always_contrasts_with_the_window() {
+        let channels = (0..=0xff).step_by(0x11).map(|c| c as u8);
+        for scheme in [ColorScheme::Light, ColorScheme::Dark, ColorScheme::DarkTint] {
+            let bg_window = match scheme {
+                ColorScheme::DarkTint => BG_WINDOW_DARK_TINT,
+                ColorScheme::Dark => BG_WINDOW_DARK,
+                _ => BG_WINDOW_LIGHT,
+            };
+            for r in channels.clone() {
+                for g in channels.clone() {
+                    for b in channels.clone() {
+                        let dominant = Rgba::rgb8(r, g, b);
+                        let ratio = wallpaper_accent(dominant, scheme).contrast_ratio(bg_window);
+                        assert!(
+                            ratio >= ACCENT_MIN_CONTRAST_ON_WINDOW,
+                            "{scheme:?} {dominant:?}: {ratio}"
+                        );
+                    }
+                }
+            }
         }
     }
 
