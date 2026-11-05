@@ -19,7 +19,7 @@ use crate::platform::{
     Popups, RunError,
     app::AppInstance,
     runtime::{Connected, Runtime, insert_ping, make_sender},
-    surface::{ExtensionRole, SurfaceRole, SurfaceWindow},
+    surface::{ExtensionRole, SurfaceRole},
     timer::{PingWake, Timers},
 };
 use crate::shell::ShellState;
@@ -190,29 +190,13 @@ pub fn run_layer(app: AppComponent, spec: LayerSpec) -> Result<(), RunError> {
             }
         },
     );
-    let (fractional, viewport) = shell.create_fractional(&surface);
-    shell.surfaces.push(SurfaceWindow {
-        surface: surface.clone(),
-        role: SurfaceRole::Extension(Box::new(layer_surface)),
-        popup: None,
-        shared: shell.graphics.clone(),
-        graphics: None,
-        app: app_instance,
-        logical_size: size.unwrap_or((0, 0)),
-        buffer_size: (0, 0),
-        scale: 1.0,
-        output: None,
-        needs_redraw: true,
-        frame_pending: false,
-        draw_count: 0,
-        opaque_size: None,
-        pending_configure: None,
-        appmenu: None,
-        appmenu_address: None,
-        menu_handle: None,
-        fractional,
-        viewport,
-    });
+    let mut window = shell.surface_window(
+        surface.clone(),
+        SurfaceRole::Extension(Box::new(layer_surface)),
+        app_instance,
+    );
+    window.logical_size = size.unwrap_or((0, 0));
+    shell.surfaces.push(window);
 
     let mut event_loop: EventLoop<Runtime> = EventLoop::try_new()
         .map_err(|_| RunError::EventLoop("calloop EventLoop::try_new failed"))?;

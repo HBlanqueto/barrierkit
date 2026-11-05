@@ -22,7 +22,7 @@ use std::{
 use super::{
     app::AppInstance,
     runtime::{Runtime, make_sender},
-    surface::{SurfaceRole, SurfaceWindow},
+    surface::SurfaceRole,
     timer::{PingWake, Timers},
 };
 
@@ -447,34 +447,18 @@ impl Runtime {
             },
         );
 
-        let (fractional, viewport) = self.create_fractional(&wl_surface);
-        self.surfaces.push(SurfaceWindow {
-            surface: wl_surface,
-            role: SurfaceRole::Popup(popup),
-            popup: Some(PopupInfo {
-                id,
-                parent,
-                on_dismissed: spec.on_dismissed,
-                opens_left,
-            }),
-            shared: self.graphics.clone(),
-            graphics: None,
-            app,
-            logical_size: spec.size,
-            buffer_size: (0, 0),
-            scale,
-            output: self.surfaces[owner_index].output.clone(),
-            needs_redraw: true,
-            frame_pending: false,
-            draw_count: 0,
-            opaque_size: None,
-            pending_configure: None,
-            appmenu: None,
-            appmenu_address: None,
-            menu_handle: None,
-            fractional,
-            viewport,
+        let output = self.surfaces[owner_index].output.clone();
+        let mut window = self.surface_window(wl_surface, SurfaceRole::Popup(popup), app);
+        window.popup = Some(PopupInfo {
+            id,
+            parent,
+            on_dismissed: spec.on_dismissed,
+            opens_left,
         });
+        window.logical_size = spec.size;
+        window.scale = scale;
+        window.output = output;
+        self.surfaces.push(window);
     }
     pub(crate) fn reposition_popup(&mut self, id: PopupId, spec: PopupSpec) {
         let Some(index) = self

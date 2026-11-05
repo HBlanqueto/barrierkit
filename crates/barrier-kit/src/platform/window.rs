@@ -25,7 +25,7 @@ use super::{
     app::AppInstance,
     popup::Popups,
     runtime::{Connected, Runtime, WindowContext, insert_ping, make_sender},
-    surface::{SurfaceRole, SurfaceWindow},
+    surface::SurfaceRole,
     timer::{PingWake, Timers, WakeHandle},
 };
 
@@ -544,29 +544,10 @@ impl Runtime {
                 }
             },
         );
-        let (fractional, viewport) = self.create_fractional(&surface);
-        self.surfaces.push(SurfaceWindow {
-            surface,
-            role: SurfaceRole::Window(window),
-            popup: None,
-            shared: self.graphics.clone(),
-            graphics: None,
-            app: app_instance,
-            logical_size: options.size,
-            buffer_size: (0, 0),
-            scale: 1.0,
-            output: None,
-            needs_redraw: true,
-            frame_pending: false,
-            draw_count: 0,
-            opaque_size: None,
-            pending_configure: None,
-            appmenu: None,
-            appmenu_address: None,
-            menu_handle,
-            fractional,
-            viewport,
-        });
+        let mut window = self.surface_window(surface, SurfaceRole::Window(window), app_instance);
+        window.logical_size = options.size;
+        window.menu_handle = menu_handle;
+        self.surfaces.push(window);
         Some(controls)
     }
 

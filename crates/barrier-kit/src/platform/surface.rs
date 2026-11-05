@@ -265,19 +265,42 @@ impl Drop for SurfaceWindow {
 }
 
 impl Runtime {
-    pub(crate) fn create_fractional(
+    pub(crate) fn surface_window(
         &self,
-        surface: &WlSurface,
-    ) -> (Option<WpFractionalScaleV1>, Option<WpViewport>) {
+        surface: WlSurface,
+        role: SurfaceRole,
+        app: AppInstance,
+    ) -> SurfaceWindow {
         let fractional = self
             .fractional_manager
             .as_ref()
-            .map(|manager| manager.get_fractional_scale(surface, &self.qh, surface.id()));
+            .map(|manager| manager.get_fractional_scale(&surface, &self.qh, surface.id()));
         let viewport = self
             .viewporter
             .as_ref()
-            .map(|viewporter| viewporter.get_viewport(surface, &self.qh, surface.id()));
-        (fractional, viewport)
+            .map(|viewporter| viewporter.get_viewport(&surface, &self.qh, surface.id()));
+        SurfaceWindow {
+            surface,
+            role,
+            popup: None,
+            shared: self.graphics.clone(),
+            graphics: None,
+            app,
+            logical_size: (0, 0),
+            buffer_size: (0, 0),
+            scale: 1.0,
+            output: None,
+            needs_redraw: true,
+            frame_pending: false,
+            draw_count: 0,
+            opaque_size: None,
+            pending_configure: None,
+            appmenu: None,
+            appmenu_address: None,
+            menu_handle: None,
+            fractional,
+            viewport,
+        }
     }
 }
 

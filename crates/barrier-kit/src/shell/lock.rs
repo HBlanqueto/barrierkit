@@ -16,7 +16,7 @@ use crate::platform::{
     Popups, RunError,
     app::AppInstance,
     runtime::{Connected, Runtime, insert_ping, make_sender},
-    surface::{ExtensionRole, SurfaceRole, SurfaceWindow},
+    surface::{ExtensionRole, SurfaceRole},
     timer::{PingWake, Timers},
 };
 use crate::shell::ShellState;
@@ -160,29 +160,10 @@ impl Runtime {
                 }
             },
         );
-        let (fractional, viewport) = self.create_fractional(&surface);
-        self.surfaces.push(SurfaceWindow {
-            surface,
-            role: SurfaceRole::Extension(Box::new(lock_surface)),
-            popup: None,
-            shared: self.graphics.clone(),
-            graphics: None,
-            app,
-            logical_size: (0, 0),
-            buffer_size: (0, 0),
-            scale: 1.0,
-            output: Some(output.id()),
-            needs_redraw: true,
-            frame_pending: false,
-            draw_count: 0,
-            opaque_size: None,
-            pending_configure: None,
-            appmenu: None,
-            appmenu_address: None,
-            menu_handle: None,
-            fractional,
-            viewport,
-        });
+        let mut window =
+            self.surface_window(surface, SurfaceRole::Extension(Box::new(lock_surface)), app);
+        window.output = Some(output.id());
+        self.surfaces.push(window);
         Some(self.surfaces.len() - 1)
     }
 }
