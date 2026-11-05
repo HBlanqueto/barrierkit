@@ -93,11 +93,6 @@ debug = "line-tables-only"
 opt-level = 2
 debug = false
 
-[profile.dev-fast]
-inherits = "dev"
-debug = false
-incremental = true
-
 [profile.release]
 lto = "thin"
 codegen-units = 16
