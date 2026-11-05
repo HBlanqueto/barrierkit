@@ -9,7 +9,7 @@ use crate::menu::{CheckState, MenuItem};
 use crate::platform::{AppMenuAddress, WakeHandle};
 
 pub mod layout;
-pub mod server;
+pub(crate) mod server;
 
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct AppMenu {
@@ -40,7 +40,7 @@ impl Menu {
 #[derive(Clone)]
 pub struct MenuHandle {
     state: Arc<Mutex<MenuState>>,
-    wake: Arc<Mutex<Option<WakeHandle>>>,
+    wake: Option<WakeHandle>,
     path: Arc<Mutex<Option<String>>>,
     action_queue: Arc<Mutex<Vec<String>>>,
     address_callback: AddressCallbackCell,
@@ -71,16 +71,11 @@ impl MenuHandle {
     pub(crate) fn new(menu: AppMenu, wake: Option<WakeHandle>) -> Self {
         Self {
             state: Arc::new(Mutex::new(MenuState { menu, revision: 1 })),
-            wake: Arc::new(Mutex::new(wake)),
+            wake,
             path: Arc::new(Mutex::new(None)),
             action_queue: Arc::new(Mutex::new(Vec::new())),
             address_callback: Arc::new(Mutex::new(None)),
         }
-    }
-
-    #[doc(hidden)]
-    pub fn for_test(menu: AppMenu) -> Self {
-        Self::new(menu, None)
     }
 
     pub(crate) fn set_path(&self, path: impl Into<String>) {
@@ -95,24 +90,18 @@ impl MenuHandle {
     }
 
     pub(crate) fn push_action(&self, action_id: String) -> bool {
-        if self.wake.lock().map(|g| g.is_some()).unwrap_or(false) {
-            {
-                let mut guard = self.action_queue.lock().expect("action queue poisoned");
-                guard.push(action_id);
-            }
-            if let Ok(guard) = self.wake.lock()
-                && let Some(wake) = guard.as_ref()
-            {
-                wake.wake();
-            }
-            true
-        } else {
-            false
-        }
+        let Some(wake) = &self.wake else {
+            return false;
+        };
+        self.action_queue
+            .lock()
+            .expect("action queue poisoned")
+            .push(action_id);
+        wake.wake();
+        true
     }
 
-    #[doc(hidden)]
-    pub fn drain_actions(&self) -> Vec<String> {
+    pub(crate) fn drain_actions(&self) -> Vec<String> {
         let mut guard = self.action_queue.lock().expect("action queue poisoned");
         std::mem::take(&mut *guard)
     }
@@ -149,16 +138,13 @@ impl MenuHandle {
             {
                 server::update(path);
             }
-            if let Ok(slot) = self.wake.lock()
-                && let Some(wake) = slot.as_ref()
-            {
+            if let Some(wake) = &self.wake {
                 wake.wake();
             }
         }
     }
 
-    #[doc(hidden)]
-    pub fn snapshot(&self) -> (AppMenu, u32) {
+    pub(crate) fn snapshot(&self) -> (AppMenu, u32) {
         let state = self.state.lock().expect("menu state poisoned");
         (state.menu.clone(), state.revision)
     }
@@ -196,15 +182,13 @@ fn update_menu_items(items: &mut [MenuItem], id: &str, f: &dyn Fn(&mut MenuItem)
 }
 
 #[derive(Clone, Debug, Default)]
-#[doc(hidden)]
-pub struct IdMap {
+pub(crate) struct IdMap {
     ids: HashMap<String, i32>,
     next: i32,
 }
 
 impl IdMap {
-    #[doc(hidden)]
-    pub fn get(&mut self, key: impl Into<String>) -> i32 {
+    pub(crate) fn get(&mut self, key: impl Into<String>) -> i32 {
         let key = key.into();
         if let Some(id) = self.ids.get(&key) {
             return *id;

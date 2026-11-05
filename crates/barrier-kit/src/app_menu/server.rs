@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicU32, Ordering};
-use std::sync::{Arc, Mutex, OnceLock, Weak};
+use std::sync::{Arc, OnceLock};
 
 use async_channel::{Receiver, Sender};
 use zbus::zvariant::{OwnedValue, Value};
@@ -9,7 +9,7 @@ use crate::app_menu::layout::{
     DbusMenuLayout, LayoutItem, LayoutNode, LayoutSnapshot, RegisteredMenu, Update,
     action_id_for_numeric, build_layout, diff_layout,
 };
-use crate::app_menu::{AppMenu, IdMap, MenuHandle};
+use crate::app_menu::{IdMap, MenuHandle};
 
 const VERSION: u32 = 3;
 
@@ -32,7 +32,6 @@ enum Command {
 
 struct Server {
     commands: Sender<Command>,
-    menus: Mutex<HashMap<String, Weak<RegisteredMenu>>>,
 }
 
 static SERVER: OnceLock<Server> = OnceLock::new();
@@ -47,10 +46,7 @@ impl Server {
                     async_io::block_on(run(rx));
                 })
                 .expect("barrier-dbusmenu thread");
-            Server {
-                commands,
-                menus: Mutex::new(HashMap::new()),
-            }
+            Server { commands }
         })
     }
 
@@ -59,25 +55,14 @@ impl Server {
         let index = NEXT_PATH_INDEX.fetch_add(1, Ordering::Relaxed);
         let path = format!("{PATH_PREFIX}{index}");
         handle.set_path(&path);
-        let registered = RegisteredMenu::new(handle);
-        server
-            .menus
-            .lock()
-            .expect("menu registry poisoned")
-            .insert(path.clone(), Arc::downgrade(&registered));
         let _ = server.commands.send_blocking(Command::Register {
-            path: path.clone(),
-            registered,
+            path,
+            registered: RegisteredMenu::new(handle),
         });
     }
 
     fn unregister(path: &str) {
         let server = Self::get();
-        server
-            .menus
-            .lock()
-            .expect("menu registry poisoned")
-            .remove(path);
         let _ = server.commands.send_blocking(Command::Unregister {
             path: path.to_string(),
         });
@@ -398,89 +383,10 @@ fn layout_node(
     (id, filtered(&node.properties, property_names), children)
 }
 
-#[derive(Clone)]
-#[doc(hidden)]
-pub struct TestMenuServer {
-    registered: Arc<RegisteredMenu>,
-    path: String,
-}
-
-impl TestMenuServer {
-    pub fn new(menu: AppMenu, path: impl Into<String>) -> Self {
-        let (ping, _) = sctk::reexports::calloop::ping::make_ping().expect("test ping");
-        let wake = crate::platform::WakeHandle::from_ping(ping);
-        let handle = crate::app_menu::MenuHandle::new(menu, Some(wake));
-        let registered = RegisteredMenu::new(handle);
-        Self {
-            registered,
-            path: path.into(),
-        }
-    }
-
-    pub fn handle(&self) -> MenuHandle {
-        self.registered.handle.clone()
-    }
-
-    pub async fn serve(&self, connection: &zbus::Connection) -> zbus::Result<()> {
-        connection
-            .object_server()
-            .at(
-                self.path.clone(),
-                DbusMenuObject {
-                    registered: self.registered.clone(),
-                },
-            )
-            .await?;
-        let mut id_map = IdMap::default();
-        let (menu, _) = self.registered.handle.snapshot();
-        let snapshot = build_layout(&menu, &mut id_map, 1);
-        let revision = snapshot.revision;
-        *self
-            .registered
-            .last_layout
-            .lock()
-            .expect("layout lock poisoned") = Some(snapshot);
-        if let Ok(iface_ref) = connection
-            .object_server()
-            .interface::<_, DbusMenuObject>(self.path.as_str())
-            .await
-        {
-            DbusMenuObject::layout_updated(iface_ref.signal_emitter(), revision, 0).await?;
-        }
-        Ok(())
-    }
-
-    pub async fn update_properties(
-        &self,
-        connection: &zbus::Connection,
-        updated: Vec<(i32, HashMap<String, OwnedValue>)>,
-    ) -> zbus::Result<()> {
-        {
-            let mut guard = self
-                .registered
-                .last_layout
-                .lock()
-                .expect("layout lock poisoned");
-            if let Some(snapshot) = guard.as_mut() {
-                for (id, props) in &updated {
-                    if let Some(node) = snapshot.nodes.get_mut(id) {
-                        node.properties.extend(props.clone());
-                    }
-                }
-            }
-        }
-        let iface_ref = connection
-            .object_server()
-            .interface::<_, DbusMenuObject>(self.path.as_str())
-            .await?;
-        DbusMenuObject::items_properties_updated(iface_ref.signal_emitter(), updated, Vec::new())
-            .await
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use std::collections::HashSet;
+    use std::sync::Arc;
     use std::time::{Duration, Instant};
 
     use zbus::zvariant::{OwnedValue, Value};
@@ -499,6 +405,12 @@ mod tests {
             check: CheckState::None,
             icon: None,
         }
+    }
+
+    fn registered(menu: AppMenu) -> Arc<RegisteredMenu> {
+        let (ping, _) = sctk::reexports::calloop::ping::make_ping().expect("test ping");
+        let wake = crate::platform::WakeHandle::from_ping(ping);
+        RegisteredMenu::new(MenuHandle::new(menu, Some(wake)))
     }
 
     fn separator() -> MenuItem {
@@ -590,8 +502,8 @@ mod tests {
     #[test]
     fn event_resolves_against_published_snapshot() {
         let menu = AppMenu::new(vec![Menu::new("File", vec![action("a1"), action("a2")])]);
-        let server = super::TestMenuServer::new(menu.clone(), "/MenuBar/0");
-        let handle = server.handle();
+        let registered = registered(menu.clone());
+        let handle = registered.handle.clone();
 
         let mut id_map = IdMap::default();
         let snapshot = build_layout(&menu, &mut id_map, 1);
@@ -601,14 +513,14 @@ mod tests {
             .find(|(_, node)| node.action_id.as_deref() == Some("a2"))
             .map(|(id, _)| *id)
             .expect("a2 in snapshot");
-        *server.registered.last_layout.lock().unwrap() = Some(snapshot);
+        *registered.last_layout.lock().unwrap() = Some(snapshot);
 
         let mut new_menu = menu.clone();
         new_menu.menus[0].items.insert(0, action("a0"));
         handle.replace_menu(new_menu);
 
         let obj = DbusMenuObject {
-            registered: server.registered.clone(),
+            registered: registered.clone(),
         };
         obj.event(
             id_a2,
@@ -623,8 +535,8 @@ mod tests {
     #[test]
     fn event_does_not_run_on_dbus_thread() {
         let menu = AppMenu::new(vec![Menu::new("File", vec![action("a1")])]);
-        let server = super::TestMenuServer::new(menu.clone(), "/MenuBar/0");
-        let handle = server.handle();
+        let registered = registered(menu.clone());
+        let handle = registered.handle.clone();
 
         let mut id_map = IdMap::default();
         let snapshot = build_layout(&menu, &mut id_map, 1);
@@ -634,12 +546,10 @@ mod tests {
             .find(|(_, node)| node.action_id.as_deref() == Some("a1"))
             .map(|(id, _)| *id)
             .expect("a1 in snapshot");
-        *server.registered.last_layout.lock().unwrap() = Some(snapshot);
+        *registered.last_layout.lock().unwrap() = Some(snapshot);
 
         std::thread::spawn(move || {
-            let obj = DbusMenuObject {
-                registered: server.registered.clone(),
-            };
+            let obj = DbusMenuObject { registered };
             obj.event(
                 id_a1,
                 "clicked".to_string(),
