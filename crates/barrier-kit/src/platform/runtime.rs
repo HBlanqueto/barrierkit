@@ -266,6 +266,7 @@ fn insert_ping(event_loop: &mut EventLoop<Runtime>, shell: &mut Runtime) -> Resu
                 {
                     if events.contains(&AppearanceEvent::Defaults) {
                         *shell.defaults_revision.write() += 1;
+                        shell.request_redraw_all = true;
                         shell.ping.ping();
                     }
                     if events.iter().any(|event| event.restyles()) {
