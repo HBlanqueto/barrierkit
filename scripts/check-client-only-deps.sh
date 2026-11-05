@@ -3,33 +3,32 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-fail=0
+host=$(rustc -vV | sed -n 's/^host: //p')
+metadata=$(cargo metadata --locked --offline --all-features --format-version 1 --filter-platform "$host")
 
-absent() {
-  local package=$1
-  shift
-  if cargo tree "$@" -i "$package" >/dev/null 2>&1; then
-    echo "check-client-only-deps: $package must not be in the graph ($*)" >&2
-    fail=1
-  fi
-}
+violations=$(jq -r '
+  . as $m
+  | ($m.resolve.nodes | map({(.id): [.deps[].pkg]}) | add) as $deps
+  | ($m.packages | map({(.id): .name}) | add) as $name
+  | def closure:
+      . as $ids
+      | ([$ids[], ($ids[] | $deps[.][])] | unique) as $next
+      | if $next == $ids then $ids else $next | closure end;
+    def reach($crate):
+      [$m.packages[] | select(.name == $crate and .source == null) | .id]
+      | if . == [] then error("\($crate) is not a workspace member") else . end
+      | closure | map($name[.]);
+  [
+    (reach("barrier-kit")[] | select(. == "winit") | "barrier-kit pulls \(.)"),
+    ($name[] | select(test("^(tokio|gtk|glutin|tray-icon|freya|freya-winit|laye-rs|otto-.+)$"))
+      | "the workspace pulls \(.)"),
+    (("vow-design", "vow-appearance", "infinity-protocol") as $crate
+      | reach($crate)[] | select(startswith("freya") or contains("skia"))
+      | "\($crate) pulls \(.)")
+  ] | unique[]
+' <<<"$metadata")
 
-absent winit -p barrier-kit
-absent tokio --workspace
-absent gtk --workspace
-absent glutin --workspace
-absent tray-icon --workspace
-
-if cargo tree --workspace -i x11rb >/dev/null 2>&1; then
-  echo "check-client-only-deps: WARNING: x11rb reached the graph via freya-clipboard; use wl_data_device instead" >&2
+if [ -n "$violations" ]; then
+  sed 's/^/check-client-only-deps: /' <<<"$violations" >&2
+  exit 1
 fi
-if cargo tree --workspace -i copypasta >/dev/null 2>&1; then
-  echo "check-client-only-deps: note: copypasta only supplies the ClipboardProvider trait; the kit's clipboard is wl_data_device" >&2
-fi
-
-if cargo tree -d -p barrier-kit 2>/dev/null | grep -q '^[a-z]'; then
-  echo "check-client-only-deps: duplicated crates in barrier-kit:" >&2
-  cargo tree -d -p barrier-kit >&2 || true
-fi
-
-exit "$fail"

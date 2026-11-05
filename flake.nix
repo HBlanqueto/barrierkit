@@ -119,8 +119,10 @@
           '';
 
           client-only-deps = pkgs.runCommand "check-client-only-deps" {
-            nativeBuildInputs = with pkgs; [ cargo rustc ];
+            nativeBuildInputs = with pkgs; [ cargo rustc jq ];
           } ''
+            export CARGO_HOME=$TMPDIR
+            ln -s ${craneLib.vendorCargoDeps { inherit src; }}/config.toml $CARGO_HOME/config.toml
             cd ${checkSrc}
             bash scripts/check-client-only-deps.sh
             touch $out
@@ -134,6 +136,7 @@
             clippy
             rustfmt
             pkg-config
+            jq
             mold
             shellcheck
             tracy
