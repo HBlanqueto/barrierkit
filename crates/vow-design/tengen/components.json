@@ -300,8 +300,8 @@
         "rim": {
           "color": "{traffic-rim}",
           "inactive": "{traffic-rim-inactive}",
-          "width": 1,
-          "rule": "Borde interior de 1 px compuesto sobre el relleno: en claro, negro al 12 %; en oscuro (Tahoe), negro al 75 % si tiene color y blanco al 5 % si está gris."
+          "width": 0.5,
+          "rule": "Borde interior de 0,5 px lógicos (1 px físico en Retina, donde se midió) compuesto sobre el relleno: en claro, negro al 12 %; en oscuro (Tahoe), negro al 75 % si tiene color y blanco al 5 % si está gris."
         },
         "glyphs": {
           "box": 8,
