@@ -42,9 +42,10 @@
       },
       "pressed-scale": 0.97,
       "small": {
-        "height": 20,
-        "font-size": 12,
-        "radius": 5
+        "height": 24,
+        "padding-x": 13,
+        "font-size": 13,
+        "radius": 6
       },
       "rule": "Botones de texto: rectángulo redondeado, nunca cápsula. Un solo primary por vista."
     },
@@ -781,20 +782,20 @@
         "tile-text-active": "{on-accent}"
       },
       "about": {
-        "width": 329,
-        "height": 505,
-        "drawing-top": 92,
+        "width": 280,
+        "height": 547,
+        "drawing-top": 93,
         "drawing-width": 150,
-        "drawing-height": 82,
-        "title-gap": 58,
+        "drawing-height": 101,
+        "title-gap": 37,
         "title-size": 21,
-        "specs-gap": 16,
-        "button-gap": 18,
-        "label-width": 125,
+        "specs-gap": 20,
+        "button-gap": 21,
+        "label-width": 102,
         "column-gap": 11,
-        "value-width": 125,
+        "value-width": 127,
         "row-gap": 2,
-        "footer-bottom": 53
+        "footer-bottom": 29
       },
       "lock": {
         "font-size": 24,

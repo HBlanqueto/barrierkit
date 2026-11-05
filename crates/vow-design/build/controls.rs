@@ -170,6 +170,8 @@ pub(super) fn emit_button(out: &mut String, tokens: &Value, components: &Value) 
 \
          \x20   small_height: {},
 \
+         \x20   small_padding_x: {},
+\
          \x20   small_font_size: {},
 \
          \x20   small_radius: {},
@@ -181,6 +183,7 @@ pub(super) fn emit_button(out: &mut String, tokens: &Value, components: &Value) 
         integer(components, "components.button.font.weight", COMPONENTS),
         field("pressed-scale"),
         field("small.height"),
+        field("small.padding-x"),
         field("small.font-size"),
         field("small.radius")
     ));

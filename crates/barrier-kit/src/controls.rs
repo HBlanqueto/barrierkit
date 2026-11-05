@@ -631,14 +631,20 @@ impl Component for Button {
             (ButtonStyle::Secondary, true) => (palette.control_background, palette.label),
         };
         let on_press = self.on_press.clone();
-        let (height, font_size, radius) = if self.small {
+        let (height, padding_x, font_size, radius) = if self.small {
             (
                 BUTTON.small_height,
+                BUTTON.small_padding_x,
                 BUTTON.small_font_size,
                 BUTTON.small_radius,
             )
         } else {
-            (BUTTON.height, BUTTON.font_size, BUTTON.radius)
+            (
+                BUTTON.height,
+                BUTTON.padding_x,
+                BUTTON.font_size,
+                BUTTON.radius,
+            )
         };
 
         let button = interaction
@@ -647,7 +653,7 @@ impl Component for Button {
             .a11y_alt(self.label.clone())
             .width(self.width.clone())
             .height(Size::px(height))
-            .padding(Gaps::new(0.0, BUTTON.padding_x, 0.0, BUTTON.padding_x))
+            .padding(Gaps::new(0.0, padding_x, 0.0, padding_x))
             .corner_radius(radius)
             .center()
             .background(color(background))
