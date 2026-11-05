@@ -76,12 +76,17 @@ pub fn format_shortcut(text: &str) -> String {
 }
 
 pub fn measure_text(text: &str, size: f32) -> f32 {
+    measure_text_weight(text, size, FontWeight::NORMAL)
+}
+
+pub fn measure_text_weight(text: &str, size: f32, weight: FontWeight) -> f32 {
     if text.is_empty() {
         return 0.0;
     }
     let mut paragraph_style = ParagraphStyle::default();
     let mut text_style = TextStyle::default();
     text_style.set_font_size(size);
+    text_style.set_font_style(FontStyle::new(weight.into(), Width::NORMAL, Slant::Upright));
     text_style.set_font_families(&font_families());
     paragraph_style.set_text_style(&text_style);
 

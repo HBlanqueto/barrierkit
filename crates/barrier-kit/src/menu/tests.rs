@@ -944,3 +944,10 @@ fn stale_submenu_dismissal_does_not_orphan_sibling_child() {
         "stale dismissal must not orphan the sibling submenu"
     );
 }
+
+#[test]
+fn semibold_text_measures_wider_than_regular() {
+    let regular = measure_text("Disco de arranque", 11.0);
+    let semibold = measure_text_weight("Disco de arranque", 11.0, FontWeight::SEMI_BOLD);
+    assert!(semibold > regular, "{semibold} must exceed {regular}");
+}

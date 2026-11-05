@@ -28,8 +28,8 @@ use freya_core::elements::image::ImageHandle;
 use freya_core::integration::{AppComponent, default_fonts};
 use freya_core::prelude::*;
 use freya_engine::prelude::{
-    AlphaType, ColorType, ImageInfo, ParagraphBuilder, ParagraphStyle, Pixmap, SkData, SkImage,
-    TextStyle,
+    AlphaType, ColorType, FontStyle, ImageInfo, ParagraphBuilder, ParagraphStyle, Pixmap, SkData,
+    SkImage, Slant, TextStyle, Width,
 };
 use keyboard_types::{Key, NamedKey};
 use ragnarok::CursorPoint;

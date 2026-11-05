@@ -196,11 +196,6 @@ pub(super) fn emit_metrics(out: &mut String, tokens: &Value, components: &Value)
             "components.shell.about.button-gap",
         ),
         (
-            "ABOUT_LABEL_WIDTH",
-            "f32",
-            "components.shell.about.label-width",
-        ),
-        (
             "ABOUT_COLUMN_GAP",
             "f32",
             "components.shell.about.column-gap",
