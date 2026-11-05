@@ -1,4 +1,4 @@
-use sctk::reexports::client::{Connection, Dispatch, Proxy, QueueHandle, backend::ObjectId};
+use sctk::reexports::client::{Connection, Dispatch, QueueHandle, backend::ObjectId};
 use wayland_protocols_plasma::appmenu::client::{
     org_kde_kwin_appmenu::{self, OrgKdeKwinAppmenu},
     org_kde_kwin_appmenu_manager::{self, OrgKdeKwinAppmenuManager},
@@ -14,34 +14,26 @@ pub struct AppMenuAddress {
 
 impl Runtime {
     pub(super) fn process_pending_menu_addresses(&mut self) {
-        let pending = {
-            let mut guard = self
+        let pending = std::mem::take(
+            &mut *self
                 .pending_menu_addresses
                 .lock()
-                .expect("pending menu addresses poisoned");
-            std::mem::take(&mut *guard)
-        };
+                .expect("pending menu addresses poisoned"),
+        );
         for (surface_id, address) in pending {
-            let Some(index) = self
-                .surfaces
-                .iter()
-                .position(|s| s.surface.id() == surface_id)
-            else {
+            let Some(index) = self.surface_index_by_id(&surface_id) else {
                 continue;
             };
-            if self.surfaces[index].appmenu.is_none()
+            let window = &mut self.surfaces[index];
+            if window.appmenu.is_none()
                 && let Some(manager) = &self.appmenu_manager
             {
-                self.surfaces[index].appmenu = Some(manager.create(
-                    &self.surfaces[index].surface,
-                    &self.qh,
-                    self.surfaces[index].surface.id(),
-                ));
+                window.appmenu = Some(manager.create(&window.surface, &self.qh, surface_id));
             }
-            if let Some(appmenu) = &self.surfaces[index].appmenu {
+            if let Some(appmenu) = &window.appmenu {
                 appmenu.set_address(address.service.clone(), address.path.clone());
             }
-            self.surfaces[index].appmenu_address = Some(address);
+            window.appmenu_address = Some(address);
         }
     }
 

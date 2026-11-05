@@ -53,10 +53,6 @@ impl Clipboard {
             ping,
         }
     }
-
-    pub(crate) fn provider(&self) -> Box<dyn ClipboardProvider> {
-        Box::new(self.clone())
-    }
 }
 
 impl ClipboardProvider for Clipboard {

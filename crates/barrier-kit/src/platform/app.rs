@@ -1,4 +1,5 @@
 use accesskit::Role;
+use freya_clipboard::copypasta::ClipboardProvider;
 
 use crate::app::DefaultsRevision;
 use freya_components::{cache::AssetCacher, integration::integration};
@@ -105,7 +106,7 @@ impl AppInstance {
         let font_collection = rt.graphics.font_collection.clone();
         let font_manager = rt.graphics.font_manager.clone();
         let resolved = rt.resolved;
-        let clipboard = rt.clipboard.provider();
+        let clipboard: Box<dyn ClipboardProvider> = Box::new(rt.clipboard.clone());
         let defaults_revision = rt.defaults_revision;
         let (events_sender, events_receiver) = futures_channel::mpsc::unbounded();
         let mut runner = Runner::new(move || {
