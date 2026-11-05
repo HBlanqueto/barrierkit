@@ -31,7 +31,7 @@ use sctk::{
 use std::time::Duration;
 use torin::prelude::CursorPoint;
 
-use super::super::{WindowEdge, runtime::Runtime, surface::physical_point};
+use super::super::{WindowEdge, runtime::Runtime, surface::physical_point, window::WindowControls};
 
 pub(crate) struct RepeatState {
     pub(in crate::platform) event: KeyEvent,
@@ -215,15 +215,8 @@ impl Runtime {
                 serial,
                 ..
             } if let Some(edge) = edge => {
-                self.last_input_serial.set(serial);
-                let surface_id = self.surfaces[index].surface.id();
-                if let Some(context) = self
-                    .window_contexts
-                    .iter()
-                    .find(|ctx| ctx.controls.surface_id == surface_id)
-                {
-                    context.controls.pointer_serial.set(serial);
-                    context.controls.resize(edge);
+                if let Some(controls) = self.record_press_serial(index, serial) {
+                    controls.resize(edge);
                 }
                 true
             }
@@ -277,15 +270,7 @@ impl PointerHandler for Runtime {
                     button: None,
                 },
                 PointerEventKind::Press { button, serial, .. } => {
-                    self.last_input_serial.set(serial);
-                    let surface_id = self.surfaces[index].surface.id();
-                    if let Some(context) = self
-                        .window_contexts
-                        .iter()
-                        .find(|ctx| ctx.controls.surface_id == surface_id)
-                    {
-                        context.controls.pointer_serial.set(serial);
-                    }
+                    self.record_press_serial(index, serial);
                     PlatformEvent::Mouse {
                         name: MouseEventName::MouseDown,
                         cursor: position,
@@ -516,29 +501,24 @@ impl Runtime {
     }
 }
 
-pub(in crate::platform) fn dispatch_touch_cancels(
-    touch_surfaces: &mut std::collections::HashMap<i32, ObjectId>,
-    mut dispatch: impl FnMut(i32, ObjectId),
-) {
-    for (id, surface_id) in touch_surfaces.drain() {
-        dispatch(id, surface_id);
-    }
-}
-
 impl TouchHandler for Runtime {
     fn down(
         &mut self,
         _: &Connection,
         _: &QueueHandle<Self>,
         _: &wl_touch::WlTouch,
-        _: u32,
+        serial: u32,
         _: u32,
         surface: WlSurface,
         id: i32,
         position: (f64, f64),
     ) {
         let surface_id = surface.id();
-        self.touch_surfaces.insert(id, surface_id.clone());
+        if let Some(index) = self.surface_index_by_id(&surface_id) {
+            self.record_press_serial(index, serial);
+        }
+        self.touch_surfaces
+            .insert(id, (surface_id.clone(), position));
         self.touch_event(
             surface_id,
             id,
@@ -556,13 +536,13 @@ impl TouchHandler for Runtime {
         _: u32,
         id: i32,
     ) {
-        let Some(surface_id) = self.touch_surfaces.remove(&id) else {
+        let Some((surface_id, position)) = self.touch_surfaces.remove(&id) else {
             return;
         };
         self.touch_event(
             surface_id,
             id,
-            (0.0, 0.0),
+            position,
             freya_core::prelude::TouchPhase::Ended,
         );
     }
@@ -576,9 +556,11 @@ impl TouchHandler for Runtime {
         id: i32,
         position: (f64, f64),
     ) {
-        let Some(surface_id) = self.touch_surfaces.get(&id).cloned() else {
+        let Some((surface_id, last_position)) = self.touch_surfaces.get_mut(&id) else {
             return;
         };
+        *last_position = position;
+        let surface_id = surface_id.clone();
         self.touch_event(
             surface_id,
             id,
@@ -609,19 +591,30 @@ impl TouchHandler for Runtime {
     }
 
     fn cancel(&mut self, _: &Connection, _: &QueueHandle<Self>, _: &wl_touch::WlTouch) {
-        let mut cancelled = std::mem::take(&mut self.touch_surfaces);
-        dispatch_touch_cancels(&mut cancelled, |id, surface_id| {
+        for (id, (surface_id, position)) in std::mem::take(&mut self.touch_surfaces) {
             self.touch_event(
                 surface_id,
                 id,
-                (0.0, 0.0),
+                position,
                 freya_core::prelude::TouchPhase::Cancelled,
             );
-        });
+        }
     }
 }
 
 impl Runtime {
+    fn record_press_serial(&self, index: usize, serial: u32) -> Option<&WindowControls> {
+        self.last_input_serial.set(serial);
+        let surface_id = self.surfaces[index].surface.id();
+        let controls = &self
+            .window_contexts
+            .iter()
+            .find(|ctx| ctx.controls.surface_id == surface_id)?
+            .controls;
+        controls.pointer_serial.set(serial);
+        Some(controls)
+    }
+
     fn touch_event(
         &mut self,
         surface_id: ObjectId,

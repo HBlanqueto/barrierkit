@@ -107,7 +107,7 @@ pub(crate) struct Runtime {
     pub(crate) last_pointer_serial: Cell<u32>,
     pub(crate) resize_hover: Option<super::WindowEdge>,
     pub(crate) pointer_pressed: bool,
-    pub(crate) touch_surfaces: std::collections::HashMap<i32, ObjectId>,
+    pub(crate) touch_surfaces: std::collections::HashMap<i32, (ObjectId, (f64, f64))>,
     pub(crate) popup_commands: Rc<RefCell<Vec<PopupCommand>>>,
     pub(crate) popup_next_id: Rc<Cell<u64>>,
     pub(crate) window_contexts: Vec<WindowContext>,

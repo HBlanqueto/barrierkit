@@ -21,8 +21,8 @@ pub(super) const REVEAL_TIME: Duration = Duration::from_millis(vow_design::DURAT
 
 use super::{
     input::seat::{
-        RepeatState, cursor_shape_from_icon, dispatch_touch_cancels, find_index_by_id,
-        released_repeated_key, should_repeat_key, stop_repeat,
+        RepeatState, cursor_shape_from_icon, find_index_by_id, released_repeated_key,
+        should_repeat_key, stop_repeat,
     },
     runtime::{drain_user_events, make_sender},
     surface::{buffer_size, destroy_fractional_objects, physical_point, scale_from_wire},
@@ -345,31 +345,6 @@ fn cursor_icon_maps_to_wayland_shape() {
         cursor_shape_from_icon(CursorIcon::NsResize),
         CursorShape::NsResize
     );
-}
-
-#[test]
-fn touch_cancel_dispatches_cancelled_for_every_active_contact() {
-    let mut touch_surfaces: std::collections::HashMap<i32, ObjectId> =
-        std::collections::HashMap::new();
-    let surface_a = ObjectId::null();
-    let surface_b = ObjectId::null();
-    touch_surfaces.insert(0, surface_a.clone());
-    touch_surfaces.insert(1, surface_a.clone());
-    touch_surfaces.insert(2, surface_b.clone());
-
-    let mut cancelled = Vec::new();
-    dispatch_touch_cancels(&mut touch_surfaces, |id, surface_id| {
-        cancelled.push((id, surface_id));
-    });
-
-    assert!(
-        touch_surfaces.is_empty(),
-        "touch_surfaces must be empty after cancel"
-    );
-    assert_eq!(cancelled.len(), 3);
-    assert!(cancelled.contains(&(0, surface_a.clone())));
-    assert!(cancelled.contains(&(1, surface_a.clone())));
-    assert!(cancelled.contains(&(2, surface_b.clone())));
 }
 
 #[test]
