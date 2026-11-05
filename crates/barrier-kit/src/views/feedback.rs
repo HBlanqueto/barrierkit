@@ -107,6 +107,10 @@ impl Component for Alert {
 
         sheet(
             rect()
+                .a11y_role(AccessibilityRole::AlertDialog)
+                .a11y_alt(self.title)
+                .a11y_focusable(true)
+                .a11y_auto_focus(true)
                 .direction(Direction::Vertical)
                 .spacing(SPACE_2)
                 .on_global_key_down(move |event: Event<KeyboardEventData>| match event.key {

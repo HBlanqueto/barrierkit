@@ -661,7 +661,11 @@ impl Component for Button {
                 el.scale(BUTTON.pressed_scale)
             })
             .maybe(enabled, |el| {
-                el.on_press(move |_| {
+                el.on_press(move |event: Event<PressEventData>| {
+                    // A focused button consumes Enter/Space so global key handlers (Alert) skip it.
+                    if matches!(*event, PressEventData::Keyboard(_)) {
+                        event.prevent_default();
+                    }
                     if let Some(cb) = &on_press {
                         cb.call(());
                     }
