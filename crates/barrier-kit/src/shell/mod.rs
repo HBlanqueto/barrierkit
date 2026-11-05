@@ -18,7 +18,7 @@ use freya_core::integration::AppComponent;
 
 use sctk::{
     reexports::{
-        client::{QueueHandle, globals::GlobalList},
+        client::{QueueHandle, backend::ObjectId, globals::GlobalList},
         protocols::ext::foreign_toplevel_list::v1::client::ext_foreign_toplevel_list_v1::ExtForeignToplevelListV1,
         protocols::xdg::activation::v1::client::xdg_activation_v1::XdgActivationV1,
         protocols_wlr::foreign_toplevel::v1::client::zwlr_foreign_toplevel_manager_v1::ZwlrForeignToplevelManagerV1,
@@ -26,7 +26,7 @@ use sctk::{
     session_lock::{SessionLock, SessionLockState},
     shell::wlr_layer::LayerShell,
 };
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use crate::platform::{
     extension::{Extension, ExtensionHooks},
@@ -46,7 +46,7 @@ pub(crate) struct ShellState {
     pub(crate) next_toplevel_id: u64,
     pub(crate) activation: Activation,
     pub(crate) activation_global: Option<XdgActivationV1>,
-    pub(crate) activation_callbacks: Vec<Option<ActivationCallback>>,
+    pub(crate) activation_callbacks: HashMap<ObjectId, ActivationCallback>,
 }
 
 impl ShellState {
@@ -104,7 +104,7 @@ impl ShellState {
             next_toplevel_id: 0,
             activation,
             activation_global,
-            activation_callbacks: Vec::new(),
+            activation_callbacks: HashMap::new(),
         };
 
         rt.install_extension(Extension {
@@ -149,7 +149,11 @@ impl ShellState {
 
     fn poll(rt: &mut Runtime) {
         let seat = rt.seat_handle.clone();
-        let window = rt.surfaces.first().map(|s| s.surface.clone());
+        let window = rt
+            .last_input_surface
+            .clone()
+            .filter(|surface| rt.surface_for(surface).is_some())
+            .or_else(|| rt.surfaces.first().map(|s| s.surface.clone()));
         let serial = rt.last_input_serial.get();
         let qh = rt.qh.clone();
         if let Some(shell) = rt.extension_mut::<ShellState>() {

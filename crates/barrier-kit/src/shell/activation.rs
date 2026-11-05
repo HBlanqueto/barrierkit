@@ -1,7 +1,7 @@
 use sctk::reexports::{
     calloop::ping::Ping,
     client::{
-        Connection, Dispatch, QueueHandle,
+        Connection, Dispatch, Proxy, QueueHandle,
         protocol::{wl_seat, wl_surface},
     },
     protocols::xdg::activation::v1::client::xdg_activation_token_v1::{self, XdgActivationTokenV1},
@@ -50,31 +50,30 @@ impl ShellState {
                 callback(None);
                 continue;
             }
-            let id = self.activation_callbacks.len();
-            self.activation_callbacks.push(Some(callback));
-            let token = global.get_activation_token(qh, id);
+            let token = global.get_activation_token(qh, ());
             token.set_serial(serial, seat);
             token.set_surface(window);
             token.commit();
+            self.activation_callbacks.insert(token.id(), callback);
         }
     }
 }
 
-impl Dispatch<XdgActivationTokenV1, usize> for Runtime {
+impl Dispatch<XdgActivationTokenV1, ()> for Runtime {
     fn event(
         state: &mut Self,
-        _: &XdgActivationTokenV1,
+        proxy: &XdgActivationTokenV1,
         event: xdg_activation_token_v1::Event,
-        id: &usize,
+        _: &(),
         _: &Connection,
         _: &QueueHandle<Self>,
     ) {
-        if let xdg_activation_token_v1::Event::Done { token } = event
-            && let Some(shell) = state.extension_mut::<ShellState>()
-            && let Some(callback) = shell
-                .activation_callbacks
-                .get_mut(*id)
-                .and_then(Option::take)
+        let xdg_activation_token_v1::Event::Done { token } = event else {
+            return;
+        };
+        proxy.destroy();
+        if let Some(shell) = state.extension_mut::<ShellState>()
+            && let Some(callback) = shell.activation_callbacks.remove(&proxy.id())
         {
             callback(Some(token));
         }

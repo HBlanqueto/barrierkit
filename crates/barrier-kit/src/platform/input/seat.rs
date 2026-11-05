@@ -341,6 +341,7 @@ impl KeyboardHandler for Runtime {
         event: KeyEvent,
     ) {
         self.last_input_serial.set(serial);
+        self.last_input_surface = self.keyboard_focus.clone();
         self.key_event(event.clone(), KeyboardEventName::KeyDown);
         if should_repeat_key(&event)
             && let Some((delay, rate)) = self.repeat_timing()
@@ -367,6 +368,7 @@ impl KeyboardHandler for Runtime {
         event: KeyEvent,
     ) {
         self.last_input_serial.set(serial);
+        self.last_input_surface = self.keyboard_focus.clone();
         self.key_event(event, KeyboardEventName::KeyDown);
     }
 
@@ -603,8 +605,9 @@ impl TouchHandler for Runtime {
 }
 
 impl Runtime {
-    fn record_press_serial(&self, index: usize, serial: u32) -> Option<&WindowControls> {
+    fn record_press_serial(&mut self, index: usize, serial: u32) -> Option<&WindowControls> {
         self.last_input_serial.set(serial);
+        self.last_input_surface = Some(self.surfaces[index].surface.clone());
         let surface_id = self.surfaces[index].surface.id();
         let controls = &self
             .window_contexts
