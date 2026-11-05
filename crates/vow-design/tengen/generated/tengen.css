@@ -819,7 +819,7 @@
   --window-traffic-lights-inactive: var(--traffic-inactive);
   --window-traffic-lights-margin-start: 15px;
   --window-traffic-lights-pressed-darken: 0.200000;
-  --window-traffic-lights-radius: 5px;
+  --window-traffic-lights-radius: 4px;
   --window-traffic-lights-rim-color: var(--traffic-rim);
   --window-traffic-lights-rim-inactive: var(--traffic-rim-inactive);
   --window-traffic-lights-rim-width: 1px;

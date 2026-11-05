@@ -265,7 +265,7 @@
       "inner-line": "window-inner",
       "traffic-lights": {
         "size": 14,
-        "radius": 5,
+        "radius": 4,
         "gap": 9,
         "pressed-darken": 0.2,
         "colors": [
