@@ -30,7 +30,7 @@ run_window(
 Dentro de la app, `WindowControls::get()` da el estado (`activated`,
 `maximized`, `fullscreen`, `decoration`, `fixed`) y las órdenes: `close()`,
 `minimize()`, `toggle_maximize()`, `toggle_fullscreen()`, `move_window()`,
-`resize(WindowEdge)`.
+`resize(WindowEdge)` y `set_title(título)`, que cambia el título que ven el compositor y la barra de menús.
 
 ## Ventanas auxiliares
 

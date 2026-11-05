@@ -232,6 +232,10 @@ impl WindowControls {
         self.send(WindowCommand::Bar(bar));
     }
 
+    pub fn set_title(&self, title: impl Into<String>) {
+        self.send(WindowCommand::SetTitle(title.into()));
+    }
+
     pub fn minimize(&self) {
         self.send(WindowCommand::Minimize);
     }
@@ -262,6 +266,7 @@ pub(crate) enum WindowCommand {
     Resize(u32, WindowEdge),
     Present(String),
     Bar(Bar),
+    SetTitle(String),
 }
 
 pub(super) fn resize_edge(edge: WindowEdge) -> xdg_toplevel::ResizeEdge {
@@ -574,6 +579,7 @@ impl Runtime {
                             activation.activate(token, window.wl_surface());
                         }
                     }
+                    WindowCommand::SetTitle(title) => window.set_title(title),
                     WindowCommand::Bar(bar) => {
                         if let Some(style) = &self.window_style {
                             style.set_bar(window.wl_surface(), bar);
