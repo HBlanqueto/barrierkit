@@ -1,4 +1,4 @@
-use std::cell::Cell;
+use std::cell::{Cell, OnceCell};
 use std::rc::Rc;
 use std::time::{Duration, Instant};
 
@@ -11,7 +11,7 @@ use barrier_kit::style::text;
 use barrier_kit::symbol::Symbol;
 use barrier_kit::theme::color;
 use barrier_kit::titlebar::{window_drag_handler, window_traffic_lights};
-use barrier_kit::video::VideoView;
+use barrier_kit::video::{VideoStream, VideoView};
 use freya_animation::prelude::{AnimDirection, OnCreation, use_animation};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Area, Content, Direction, Gaps, Position, Size};
@@ -83,7 +83,8 @@ impl Component for Player {
             }
             stream
         });
-        let thumb = use_hook(move || assets::open_video(id, false));
+        let thumb = use_hook(|| Rc::new(OnceCell::<Option<VideoStream>>::new()));
+        let thumb_second = use_hook(|| Rc::new(Cell::new(u64::MAX)));
         let tick = use_ticker();
         let _ = *tick.read();
         let mut closing = use_state(|| false);
@@ -103,15 +104,15 @@ impl Component for Player {
             Spring::new(0.0, 1.0, Duration::from_millis(DURATION_SLOW_MS + 100), 0.0)
         });
         let on_close = self.on_close.clone();
-        use_side_effect(move || {
-            if *closing.read() && !*open.is_running().read() {
-                on_close.call(());
-            }
-        });
         // The close button unmounts with the chrome; an animation run from its handler would die with it.
         use_side_effect(move || {
-            if *closing.read() {
+            if !*closing.read() || *open.is_running().read() {
+                return;
+            }
+            if open.get().current() > 0.0 {
                 open.run(AnimDirection::Reverse);
+            } else {
+                on_close.call(());
             }
         });
         let drag = window_drag_handler(false);
@@ -355,8 +356,13 @@ impl Component for Player {
                                     / area.width().max(1.0))
                                 .clamp(0.0, 1.0);
                                 hover.set(Some(at));
-                                if let Some(thumb) = &thumb_seek {
-                                    thumb.seek(f64::from(at) * thumb.duration());
+                                if let Some(thumb) =
+                                    thumb_seek.get_or_init(|| assets::open_video(id, false))
+                                {
+                                    let target = f64::from(at) * thumb.duration();
+                                    if thumb_second.replace(target as u64) != target as u64 {
+                                        thumb.seek(target);
+                                    }
                                 }
                             })
                             .on_pointer_leave(move |_| hover.set(None))
@@ -379,29 +385,35 @@ impl Component for Player {
                                             .background(color(WHITE)),
                                     ),
                             )
-                            .maybe_child(hover_at.zip(thumb.clone()).map(|(at, thumb)| {
-                                let left = (track.read().width() * at - THUMB.0 / 2.0)
-                                    .clamp(0.0, (track.read().width() - THUMB.0).max(0.0));
-                                rect()
-                                    .position(Position::new_absolute().left(left).bottom(26.0))
-                                    .width(Size::px(THUMB.0))
-                                    .spacing(4.0)
-                                    .cross_align(Alignment::Center)
-                                    .child(
-                                        rect()
-                                            .width(Size::px(THUMB.0))
-                                            .height(Size::px(THUMB.1))
-                                            .corner_radius(8.0)
-                                            .overflow(Overflow::Clip)
-                                            .border(
-                                                Border::new()
-                                                    .width(1.0)
-                                                    .fill(color(Rgba::rgba8(255, 255, 255, 0.25))),
-                                            )
-                                            .child(VideoView::new(thumb).corner_radius(8.0)),
-                                    )
-                                    .child(text(clock(f64::from(at) * duration), CAPTION, WHITE))
-                            })),
+                            .maybe_child(hover_at.zip(thumb.get().cloned().flatten()).map(
+                                |(at, thumb)| {
+                                    let left = (track.read().width() * at - THUMB.0 / 2.0)
+                                        .clamp(0.0, (track.read().width() - THUMB.0).max(0.0));
+                                    rect()
+                                        .position(Position::new_absolute().left(left).bottom(26.0))
+                                        .width(Size::px(THUMB.0))
+                                        .spacing(4.0)
+                                        .cross_align(Alignment::Center)
+                                        .child(
+                                            rect()
+                                                .width(Size::px(THUMB.0))
+                                                .height(Size::px(THUMB.1))
+                                                .corner_radius(8.0)
+                                                .overflow(Overflow::Clip)
+                                                .border(
+                                                    Border::new().width(1.0).fill(color(
+                                                        Rgba::rgba8(255, 255, 255, 0.25),
+                                                    )),
+                                                )
+                                                .child(VideoView::new(thumb).corner_radius(8.0)),
+                                        )
+                                        .child(text(
+                                            clock(f64::from(at) * duration),
+                                            CAPTION,
+                                            WHITE,
+                                        ))
+                                },
+                            )),
                     )
                     .child(
                         rect()
