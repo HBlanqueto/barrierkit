@@ -18,6 +18,7 @@ use vow_design::{CALLOUT, CAPTION, DURATION_BASE, DURATION_SLOW_MS, Rgba, SPACE_
 use crate::art::{art_fill, logo};
 use crate::assets;
 use crate::catalog::{FEATURED, Gallery, gallery, title};
+use crate::localize::tr;
 use crate::{INSET, WHITE};
 
 pub const HERO_HEIGHT: f32 = 580.0;
@@ -414,10 +415,15 @@ impl Component for HeroCopy {
                                                 .width(1.0)
                                                 .fill(color(Rgba::rgba8(255, 255, 255, 0.33))),
                                         )
-                                        .child(text(*meta, CAPTION, palette.secondary_label))
+                                        .child(text(
+                                            meta.as_str(),
+                                            CAPTION,
+                                            palette.secondary_label,
+                                        ))
                                         .into_element()
                                 } else {
-                                    text(*meta, CALLOUT, palette.secondary_label).into_element()
+                                    text(meta.as_str(), CALLOUT, palette.secondary_label)
+                                        .into_element()
                                 }
                             })),
                     )
@@ -436,7 +442,7 @@ impl Component for HeroCopy {
                             .spacing(10.0)
                             .cross_align(Alignment::Center)
                             .child(
-                                MediaButton::new("Reproducir")
+                                MediaButton::new(tr!("play"))
                                     .symbol(Symbol::Play)
                                     .on_press(move |_| on_play.call(*area.peek())),
                             )
@@ -447,7 +453,7 @@ impl Component for HeroCopy {
                                     } else {
                                         Symbol::Plus
                                     },
-                                    "Añadir a Mi lista",
+                                    tr!("add-to-my-list"),
                                 )
                                 .selected(self.listed)
                                 .on_press(move |_| on_list.call(())),
@@ -455,11 +461,11 @@ impl Component for HeroCopy {
                     ),
             )
             .maybe_child(paused.then(|| {
-                edge(Symbol::ChevronLeft, "Destacado anterior", step(-1))
+                edge(Symbol::ChevronLeft, tr!("previous-featured"), step(-1))
                     .position(Position::new_absolute().left(8.0).top(240.0))
             }))
             .maybe_child(paused.then(|| {
-                edge(Symbol::ChevronRight, "Destacado siguiente", step(1))
+                edge(Symbol::ChevronRight, tr!("next-featured"), step(1))
                     .position(Position::new_absolute().right(8.0).top(240.0))
             }))
             .child(

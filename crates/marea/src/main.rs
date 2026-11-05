@@ -3,6 +3,7 @@ use freya_core::integration::AppComponent;
 use vow_design::WINDOW_MIN_SIZE;
 
 fn main() {
+    barrier_kit::i18n::use_app_language("marea");
     barrier_kit::init_tracing();
     marea::assets::register_fonts();
     marea::assets::resolve_remote();

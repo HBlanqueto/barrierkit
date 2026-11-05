@@ -68,7 +68,7 @@ impl Component for Chips {
                     .padding(Gaps::new(0.0, PADDING_X, 0.0, PADDING_X))
                     .center()
                     .a11y_role(AccessibilityRole::Button)
-                    .a11y_alt(*name)
+                    .a11y_alt(name())
                     .on_sized(move |event: Event<SizedEventData>| {
                         let span = (event.area.min_x(), event.area.width());
                         if spans.peek()[index] != span {
@@ -78,7 +78,7 @@ impl Component for Chips {
                     .on_press(move |_| pick.call(index))
                     .child(
                         label()
-                            .text(*name)
+                            .text(name())
                             .font_family(TEXT.family)
                             .font_size(12.0)
                             .font_weight(500)

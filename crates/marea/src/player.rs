@@ -23,6 +23,7 @@ use crate::WHITE;
 use crate::art::art_fill;
 use crate::assets;
 use crate::catalog::title;
+use crate::localize::tr;
 
 const CHROME_IDLE: Duration = Duration::from_millis(2500);
 const TICK: Duration = Duration::from_millis(250);
@@ -30,10 +31,10 @@ const SEEK_STEP: f64 = 10.0;
 const TOP_BAR: f32 = 74.0;
 const NEXT_UP: f64 = 4.0;
 const THUMB: (f32, f32) = (168.0, 95.0);
-const SUBTITLES: [&str; 3] = [
-    "— ¿Has oído eso?",
-    "— Es la radio. Lleva años apagada.",
-    "— Entonces, ¿quién está hablando?",
+const SUBTITLES: [fn() -> &'static str; 3] = [
+    || tr!("subtitle-heard-that"),
+    || tr!("subtitle-radio"),
+    || tr!("subtitle-who-is-talking"),
 ];
 
 fn clock(seconds: f64) -> String {
@@ -212,7 +213,7 @@ impl Component for Player {
         let scrub_stream = stream.clone();
         let thumb_seek = thumb.clone();
         let line = (*subtitles.read() && playing)
-            .then(|| SUBTITLES[(position / 4.0) as usize % SUBTITLES.len()]);
+            .then(|| SUBTITLES[(position / 4.0) as usize % SUBTITLES.len()]());
 
         rect()
             .position(Position::new_absolute().left(frame.0).top(frame.1))
@@ -269,7 +270,7 @@ impl Component for Player {
                     )
                     .child(window_traffic_lights(activated, false))
                     .child(
-                        RoundButton::new(Symbol::ChevronLeft, "Cerrar el reproductor")
+                        RoundButton::new(Symbol::ChevronLeft, tr!("close-player"))
                             .on_press(move |_| close()),
                     )
                     .child(
@@ -281,9 +282,9 @@ impl Component for Player {
                             .child(text(title.name, HEADLINE, WHITE))
                             .child(text(
                                 if title.series {
-                                    "Temporada 1 · Episodio 1"
+                                    tr!("season-episode", season = 1, episode = 1)
                                 } else {
-                                    title.meta[0]
+                                    title.meta[0].clone()
                                 },
                                 CALLOUT,
                                 Rgba::rgba8(255, 255, 255, 0.7),
@@ -312,14 +313,14 @@ impl Component for Player {
                         rect()
                             .width(Size::flex(1.0))
                             .child(text(
-                                "Siguiente episodio",
+                                tr!("next-episode"),
                                 CAPTION,
                                 Rgba::rgba8(255, 255, 255, 0.6),
                             ))
-                            .child(text("Episodio 2", HEADLINE, WHITE)),
+                            .child(text(tr!("episode", episode = 2), HEADLINE, WHITE)),
                     )
                     .child(ProgressRing::new(
-                        "Siguiente episodio",
+                        tr!("next-episode"),
                         (1.0 - (duration - position) / NEXT_UP).clamp(0.0, 1.0) as f32,
                     ))
             }))
@@ -346,7 +347,7 @@ impl Component for Player {
                             .cross_align(Alignment::Center)
                             .main_align(Alignment::Center)
                             .a11y_role(AccessibilityRole::Slider)
-                            .a11y_alt("Tiempo")
+                            .a11y_alt(tr!("time"))
                             .on_sized(move |event: Event<SizedEventData>| {
                                 track.set_if_modified(event.area)
                             })
@@ -425,17 +426,17 @@ impl Component for Player {
                             .child(
                                 RoundButton::new(
                                     if playing { Symbol::Pause } else { Symbol::Play },
-                                    if playing { "Pausar" } else { "Reproducir" },
+                                    if playing { tr!("pause") } else { tr!("play") },
                                 )
                                 .selected(true)
                                 .on_press(move |_| toggle()),
                             )
                             .child(
-                                RoundButton::new(Symbol::GoBackward, "Retroceder 10 segundos")
+                                RoundButton::new(Symbol::GoBackward, tr!("skip-back"))
                                     .on_press(move |_| back(-SEEK_STEP)),
                             )
                             .child(
-                                RoundButton::new(Symbol::GoForward, "Avanzar 10 segundos")
+                                RoundButton::new(Symbol::GoForward, tr!("skip-forward"))
                                     .on_press(move |_| forward(SEEK_STEP)),
                             )
                             .child(text(
@@ -446,18 +447,18 @@ impl Component for Player {
                             .child(rect().width(Size::flex(1.0)))
                             .child(
                                 rect().width(Size::px(110.0)).child(
-                                    LevelSlider::new("Volumen")
+                                    LevelSlider::new(tr!("volume"))
                                         .value(*volume.read())
                                         .on_change(move |value: f32| volume.set(value)),
                                 ),
                             )
                             .child(
-                                RoundButton::new(Symbol::Captions, "Subtítulos")
+                                RoundButton::new(Symbol::Captions, tr!("subtitles"))
                                     .selected(*subtitles.read())
                                     .on_press(move |_| subtitles.toggle()),
                             )
                             .child(
-                                RoundButton::new(Symbol::Expand, "Pantalla completa")
+                                RoundButton::new(Symbol::Expand, tr!("full-screen"))
                                     .on_press(move |_| WindowControls::get().toggle_fullscreen()),
                             ),
                     )

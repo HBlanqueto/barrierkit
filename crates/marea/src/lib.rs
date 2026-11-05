@@ -5,6 +5,7 @@ pub mod assets;
 mod catalog;
 mod chips;
 mod hero;
+mod localize;
 mod player;
 mod shelf;
 
@@ -26,6 +27,7 @@ use vow_design::{ACCENT_SWATCHES, Rgba, SIDEBAR, TITLE_2};
 use catalog::{FEATURED, GENRES, SHELVES, title};
 use chips::Chips;
 use hero::{HeroBackground, HeroCopy, ease_out};
+use localize::tr;
 use player::Player;
 use shelf::ShelfRow;
 
@@ -96,19 +98,23 @@ impl Component for Island {
                             .child(
                                 rect()
                                     .padding(Gaps::new(0.0, 0.0, 10.0, 0.0))
-                                    .child(SearchField::new(query, "Buscar")),
+                                    .child(SearchField::new(query, tr!("search"))),
                             )
-                            .child(item(0, "Inicio", Symbol::House))
-                            .child(item(1, "Series", Symbol::Tv))
-                            .child(item(2, "Películas", Symbol::Film))
-                            .child(item(3, "Estrenos", Symbol::Star))
+                            .child(item(0, tr!("home"), Symbol::House))
+                            .child(item(1, tr!("series"), Symbol::Tv))
+                            .child(item(2, tr!("films"), Symbol::Film))
+                            .child(item(3, tr!("new-releases"), Symbol::Star))
                             .child(
-                                SidebarSection::new("Biblioteca")
-                                    .child(item(4, "Seguir viendo", Symbol::Clock))
-                                    .child(item(5, "Mi lista", Symbol::Bookmark))
-                                    .child(item(6, "Descargas", Symbol::ArrowDown)),
+                                SidebarSection::new(tr!("library"))
+                                    .child(item(4, tr!("continue-watching"), Symbol::Clock))
+                                    .child(item(5, tr!("my-list"), Symbol::Bookmark))
+                                    .child(item(6, tr!("downloads"), Symbol::ArrowDown)),
                             )
-                            .child(SidebarAccount::new("HB", "H. Blanqueto", "Plan familiar")),
+                            .child(SidebarAccount::new(
+                                "HB",
+                                "H. Blanqueto",
+                                tr!("family-plan"),
+                            )),
                     ),
             )
     }
@@ -157,7 +163,7 @@ impl Component for Toolbar {
                             .left(248.0),
                     )
                     .opacity(shown)
-                    .child(text("Inicio", TITLE_2, Palette::current().label)),
+                    .child(text(tr!("home"), TITLE_2, Palette::current().label)),
             )
     }
 }

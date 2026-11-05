@@ -19,6 +19,7 @@ use vow_design::{CALLOUT, CAPTION, DURATION_BASE, DURATION_SLOW_MS, MEDIA, Rgba,
 use crate::art::{art_fill, logo};
 use crate::assets;
 use crate::catalog::{Entry, Genre, SHELVES, ShelfStyle, title};
+use crate::localize::tr;
 use crate::{INSET, WHITE};
 
 const WIDE: (f32, f32) = (232.0, 130.5);
@@ -36,7 +37,7 @@ fn unit(on: bool) -> f32 {
 
 #[derive(PartialEq)]
 struct Card {
-    entry: Entry,
+    entry: &'static Entry,
     style: ShelfStyle,
     rank: usize,
     on_open: Callback<(&'static str, Area), ()>,
@@ -107,7 +108,8 @@ impl Component for Card {
         let new = self
             .entry
             .caption
-            .is_some_and(|caption| caption.contains("Nuevo"));
+            .as_ref()
+            .is_some_and(|caption| caption.contains(tr!("new")));
 
         let art = rect()
             .width(Size::px(width))
@@ -167,7 +169,7 @@ impl Component for Card {
                     .padding(Gaps::new(2.0, 6.0, 2.0, 6.0))
                     .corner_radius(4.0)
                     .background(color(palette.destructive))
-                    .child(text("Nuevo", CAPTION, WHITE))
+                    .child(text(tr!("new"), CAPTION, WHITE))
             }))
             .child(
                 rect()
@@ -205,7 +207,7 @@ impl Component for Card {
                             .background(color(WHITE)),
                     )
             }))
-            .maybe_child(self.entry.caption.map(|caption| {
+            .maybe_child(self.entry.caption.as_deref().map(|caption| {
                 rect().margin(Gaps::new(6.0, 0.0, 0.0, 0.0)).child(text(
                     caption,
                     CALLOUT,
@@ -260,7 +262,7 @@ impl Component for ShelfRow {
                 entered.set(true);
             }
         });
-        let visible: Vec<(usize, Entry)> = shelf
+        let visible: Vec<(usize, &'static Entry)> = shelf
             .entries
             .iter()
             .enumerate()
@@ -268,7 +270,7 @@ impl Component for ShelfRow {
                 self.genre
                     .is_none_or(|genre| title(entry.id).genre == genre)
             })
-            .map(|(rank, entry)| (rank + 1, *entry))
+            .map(|(rank, entry)| (rank + 1, entry))
             .collect();
         let on_open = self.on_open.clone();
         let style = shelf.style;
@@ -302,13 +304,13 @@ impl Component for ShelfRow {
             let (symbol_kind, label, side) = if direction < 0.0 {
                 (
                     Symbol::ChevronLeft,
-                    "Anterior",
+                    tr!("previous"),
                     Position::new_absolute().left(INSET - MEDIA.round / 2.0),
                 )
             } else {
                 (
                     Symbol::ChevronRight,
-                    "Siguiente",
+                    tr!("next"),
                     Position::new_absolute().right(INSET - MEDIA.round / 2.0),
                 )
             };

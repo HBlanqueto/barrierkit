@@ -11,6 +11,9 @@ repository.workspace = true
 barrier-kit = { workspace = true, features = ["video"] }
 freya-animation.workspace = true
 freya-core.workspace = true
+i18n-embed.workspace = true
+i18n-embed-fl.workspace = true
+rust-embed.workspace = true
 torin.workspace = true
 tracing.workspace = true
 vow-appearance.workspace = true
