@@ -1,8 +1,7 @@
-use std::cell::Cell;
 use std::rc::Rc;
 use std::time::Duration;
 
-use barrier_kit::animation::Spring;
+use barrier_kit::animation::{Spring, use_alive};
 use barrier_kit::controls::{ScrollView, use_scroll_controller};
 use barrier_kit::interaction::use_interaction;
 use barrier_kit::media::{RoundButton, material, use_artwork_from};
@@ -59,11 +58,7 @@ impl Component for Card {
         });
         let mut preview = use_state(|| None::<VideoStream>);
         let mut generation = use_state(|| 0u64);
-        let alive = use_hook(|| Rc::new(Cell::new(true)));
-        use_drop({
-            let alive = alive.clone();
-            move || alive.set(false)
-        });
+        let alive = use_alive();
         let id = self.entry.id;
         use_side_effect_with_deps(&hovered, move |&hovered| {
             let next = *generation.peek() + 1;

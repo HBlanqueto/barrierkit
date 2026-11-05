@@ -2,7 +2,7 @@ use std::cell::{Cell, OnceCell};
 use std::rc::Rc;
 use std::time::{Duration, Instant};
 
-use barrier_kit::animation::Spring;
+use barrier_kit::animation::{Spring, use_alive};
 use barrier_kit::level::LevelSlider;
 use barrier_kit::media::RoundButton;
 use barrier_kit::platform::{Timers, WindowControls};
@@ -43,26 +43,22 @@ fn clock(seconds: f64) -> String {
 }
 
 fn use_ticker() -> State<u64> {
+    fn schedule(timers: Timers, tick: State<u64>, alive: Rc<Cell<bool>>) {
+        timers.clone().after(TICK, move || {
+            if alive.get() {
+                let mut tick = tick;
+                *tick.write() += 1;
+                schedule(timers.clone(), tick, alive.clone());
+            }
+        });
+    }
     let tick = use_state(|| 0u64);
-    let alive = use_hook(|| Rc::new(Cell::new(true)));
-    use_hook({
-        let alive = alive.clone();
-        move || {
-            fn schedule(timers: Timers, tick: State<u64>, alive: Rc<Cell<bool>>) {
-                timers.clone().after(TICK, move || {
-                    if alive.get() {
-                        let mut tick = tick;
-                        *tick.write() += 1;
-                        schedule(timers.clone(), tick, alive.clone());
-                    }
-                });
-            }
-            if let Some(timers) = try_consume_root_context::<Timers>() {
-                schedule(timers, tick, alive);
-            }
+    let alive = use_alive();
+    use_hook(move || {
+        if let Some(timers) = try_consume_root_context::<Timers>() {
+            schedule(timers, tick, alive);
         }
     });
-    use_drop(move || alive.set(false));
     tick
 }
 

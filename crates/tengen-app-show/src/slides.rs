@@ -1,10 +1,11 @@
 use std::sync::LazyLock;
 
+use barrier_kit::animation::use_switch_progress;
 use barrier_kit::compact::IconButton;
 use barrier_kit::style::{Palette, text};
 use barrier_kit::symbol::{Symbol, symbol};
 use barrier_kit::theme::color;
-use freya_animation::prelude::{AnimNum, Ease, Function, use_animation_transition};
+use freya_animation::prelude::use_animation_transition;
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Direction, Position, Size};
 use vow_appearance::backdrop::ink_on;
@@ -14,7 +15,7 @@ use vow_design::{
 };
 
 use crate::localize::tr;
-use crate::motion::{spring, time, unit, use_reduced_motion};
+use crate::motion::{spring, use_reduced_motion};
 
 pub static SLIDES: LazyLock<[(&str, &str, Symbol); 4]> = LazyLock::new(|| {
     [
@@ -130,15 +131,7 @@ struct Dot {
 
 impl Component for Dot {
     fn render(&self) -> impl IntoElement {
-        let reduced_motion = use_reduced_motion();
-        let active = use_reactive(&self.active);
-        let animation = use_animation_transition(active, move |from, to| {
-            AnimNum::new(unit(from), unit(to))
-                .time(time(reduced_motion, DURATION_BASE))
-                .ease(Ease::Out)
-                .function(Function::Cubic)
-        });
-        let progress = animation.get().value();
+        let progress = use_switch_progress(use_reactive(&self.active), DURATION_BASE);
         let palette = Palette::current();
         rect()
             .width(Size::px(DOT * (1.0 + 2.0 * progress)))

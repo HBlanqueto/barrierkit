@@ -1,5 +1,5 @@
-//! Spring-based animation helpers built on `freya_animation`.
-
+use std::cell::Cell;
+use std::rc::Rc;
 use std::time::Duration;
 
 use freya_animation::prelude::{
@@ -7,7 +7,16 @@ use freya_animation::prelude::{
 };
 use freya_core::prelude::*;
 
-pub(crate) fn use_switch_progress(on: State<bool>, ms: u64) -> f32 {
+pub fn use_alive() -> Rc<Cell<bool>> {
+    let alive = use_hook(|| Rc::new(Cell::new(true)));
+    use_drop({
+        let alive = alive.clone();
+        move || alive.set(false)
+    });
+    alive
+}
+
+pub fn use_switch_progress(on: State<bool>, ms: u64) -> f32 {
     let reduced_motion = use_reactive(&crate::theme::resolved().reduced_motion);
     let animation = use_animation_transition(on, move |from: bool, to: bool| {
         AnimNum::new(f32::from(u8::from(from)), f32::from(u8::from(to)))

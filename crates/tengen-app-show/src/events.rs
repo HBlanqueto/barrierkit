@@ -1,8 +1,7 @@
-use std::cell::Cell;
-use std::rc::Rc;
 use std::time::Duration;
 
 use barrier_kit::adornments::badge;
+use barrier_kit::animation::{use_alive, use_switch_progress};
 use barrier_kit::controls::{Button, ButtonStyle, TextField};
 use barrier_kit::interaction::use_interaction;
 use barrier_kit::platform::Timers;
@@ -48,16 +47,8 @@ pub struct HoverCard;
 
 impl Component for HoverCard {
     fn render(&self) -> impl IntoElement {
-        let reduced_motion = use_reduced_motion();
         let interaction = use_interaction();
-        let hovered = use_reactive(&interaction.hovered());
-        let animation = use_animation_transition(hovered, move |from, to| {
-            AnimNum::new(unit(from), unit(to))
-                .time(time(reduced_motion, DURATION_BASE))
-                .ease(Ease::Out)
-                .function(Function::Cubic)
-        });
-        let progress = animation.get().value();
+        let progress = use_switch_progress(use_reactive(&interaction.hovered()), DURATION_BASE);
         let palette = Palette::current();
         card(
             interaction.attach(rect(), true),
@@ -247,11 +238,7 @@ impl Component for Arrivals {
         let mut items = use_state(|| vec![1u32, 2]);
         let mut next = use_state(|| 3u32);
         let leaving = use_state(Vec::<u32>::new);
-        let alive = use_hook(|| Rc::new(Cell::new(true)));
-        use_drop({
-            let alive = alive.clone();
-            move || alive.set(false)
-        });
+        let alive = use_alive();
         let leaving_now = leaving.read().clone();
         let removable = items
             .read()
