@@ -3,6 +3,7 @@
 use freya_animation::prelude::{
     AnimNum, Ease, Function, OnChange, OnCreation, OnFinish, use_animation,
 };
+use freya_components::cache::AssetAge;
 use freya_components::svg_viewer::SvgViewer;
 use freya_core::prelude::*;
 use torin::prelude::{Direction, Position, Size};
@@ -134,10 +135,15 @@ impl Component for ProgressRing {
             .width(Size::px(size))
             .height(Size::px(size))
             .child(layer(circle(String::new()), palette.control_background))
-            .child(rect().position(Position::new_absolute()).child(layer(
-                circle(format!(r#"stroke-dasharray="{filled} {circumference}""#)),
-                palette.accent,
-            )))
+            .child(
+                rect().position(Position::new_absolute()).child(
+                    layer(
+                        circle(format!(r#"stroke-dasharray="{filled} {circumference}""#)),
+                        palette.accent,
+                    )
+                    .asset_age(AssetAge::zero()),
+                ),
+            )
     }
 }
 
