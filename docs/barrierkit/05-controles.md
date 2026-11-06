@@ -34,7 +34,8 @@ Button::new("Borrar").disabled(true)
 | ![Botones Cancelar, Guardar y Borrar](assets/componentes/button-light.png) | ![Botones en oscuro](assets/componentes/button-dark.png) |
 
 - `ButtonStyle`: `Secondary` (por defecto) y `Primary`.
-- `.small(true)`: 24 px de alto y 13 px de margen lateral (`button.small`), como el de «Acerca de este PC».
+- Tamaño normal: 24 de alto, radio 6 y 12 de margen lateral (`button`), el `regular` de AppKit en macOS 26.
+- `.small(true)`: 20 de alto, 11 de margen lateral y texto de 11 (`button.small`), como el de «Acerca de este PC».
 - `.width(Size)` y `.on_press(|_| ..)`. Al pulsar, el botón se escala a
   `BUTTON.pressed_scale` (0,97).
 
