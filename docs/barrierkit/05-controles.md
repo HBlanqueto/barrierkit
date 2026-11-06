@@ -243,6 +243,17 @@ Retroceso con el campo vacío quita la última.
 popover con tono, saturación y brillo y el valor en hexadecimal, como el
 panel de colores de AppKit en pequeño.
 
+`FontPicker` (`barrier_kit::font_panel`) es un botón con la familia y el
+tamaño que abre el panel de fuentes en un popover, como `NSFontPanel`: una
+vista previa y las columnas Familia, Estilo y Tamaño. Las familias salen del
+gestor de fuentes del sistema y de `register_font`. La columna Estilo lista
+Normal, Cursiva, Negrita y Negrita cursiva solo si la familia los tiene. Los
+tamaños son la lista fija de GTK (`fallback_sizes` en
+[gtkfontchooserwidget.c](https://gitlab.gnome.org/GNOME/gtk/-/blob/main/gtk/gtkfontchooserwidget.c)),
+porque Apple no publica la del panel. En un `TextEditor` con `styles`,
+Ctrl+T (⌘T en macOS) abre el mismo panel y aplica familia, tamaño, negrita y
+cursiva a la selección (`rich_text::apply_font`).
+
 `barrier_kit::portal` habla con xdg-desktop-portal: `open_files` y
 `save_file` abren el selector de archivos del sistema (`FileChooser`),
 `open_uri` abre un enlace (`OpenURI`) y `notify` envía una notificación

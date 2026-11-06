@@ -71,7 +71,12 @@ pub fn node_at<'a>(nodes: &'a [TreeNode], path: &[usize]) -> Option<&'a TreeNode
     }
 }
 
-fn row(node: &TreeNode, selected: bool, lead: Option<Element>, trail: Option<Element>) -> Rect {
+pub(crate) fn row(
+    node: &TreeNode,
+    selected: bool,
+    lead: Option<Element>,
+    trail: Option<Element>,
+) -> Rect {
     let palette = Palette::current();
     let ink = if selected {
         palette.on_accent

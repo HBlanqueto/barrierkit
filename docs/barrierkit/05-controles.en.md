@@ -244,6 +244,17 @@ on an empty field removes the last one.
 popover with hue, saturation and brightness and the hex value, like a small
 AppKit color panel.
 
+`FontPicker` (`barrier_kit::font_panel`) is a button with the family and size
+that opens the font panel in a popover, like `NSFontPanel`: a preview and the
+Family, Typeface and Size columns. Families come from the system font manager
+and from `register_font`. The Typeface column lists Regular, Italic, Bold and
+Bold Italic only when the family has them. The sizes are GTK's preset list
+(`fallback_sizes` in
+[gtkfontchooserwidget.c](https://gitlab.gnome.org/GNOME/gtk/-/blob/main/gtk/gtkfontchooserwidget.c)),
+because Apple does not publish the panel's list. In a `TextEditor` with
+`styles`, Ctrl+T (⌘T in macOS) opens the same panel and applies family,
+size, bold and italic to the selection (`rich_text::apply_font`).
+
 `barrier_kit::portal` talks to xdg-desktop-portal: `open_files` and
 `save_file` open the system file chooser (`FileChooser`), `open_uri` opens a
 link (`OpenURI`) and `notify` sends a notification (`Notification`). They are

@@ -7,8 +7,11 @@ use vow_design::{CAPTION, SPACE_1, SPACE_2, TEXT, TEXT_FIELD};
 
 use crate::compact::IconButton;
 use crate::controls::{Button, SearchField};
+use crate::font_panel::show_font_panel;
 use crate::i18n::text;
-use crate::rich_text::{Emphasis, StyleRun, char_styles, restyle_after_edit, toggle};
+use crate::rich_text::{
+    Emphasis, FontChoice, StyleRun, apply_font, char_styles, font_at, restyle_after_edit, toggle,
+};
 use crate::style::text;
 use crate::symbol::Symbol;
 
@@ -117,6 +120,34 @@ impl Component for TextEditor {
             }
             if event.key == Key::Named(NamedKey::Escape) {
                 a11y_id.request_unfocus();
+                return;
+            }
+            if let (Some(mut styles), true) = (
+                styles,
+                event.key == Key::Character("t".into())
+                    && event.modifiers.contains(Modifiers::CONTROL),
+            ) {
+                let editor = editable.editor().peek();
+                let start = editor
+                    .get_selection()
+                    .map(|(from, to)| editor.utf16_cu_to_char(from.min(to)))
+                    .unwrap_or_else(|| editor.utf16_cu_to_char(editor.cursor_pos()));
+                let initial = font_at(&styles.peek(), editor.rope().len_chars(), start);
+                show_font_panel(
+                    *area.peek(),
+                    initial,
+                    Callback::new(move |font: FontChoice| {
+                        let editor = editable.editor().peek();
+                        let (from, to) = editor
+                            .get_selection()
+                            .map(|(from, to)| (from.min(to), from.max(to)))
+                            .unwrap_or((editor.cursor_pos(), editor.cursor_pos()));
+                        let range = editor.utf16_cu_to_char(from)..editor.utf16_cu_to_char(to);
+                        let length = editor.rope().len_chars();
+                        let next = apply_font(&styles.peek(), length, range, &font);
+                        styles.set(next);
+                    }),
+                );
                 return;
             }
             let emphasis = match &event.key {
@@ -374,6 +405,12 @@ fn styled_spans(text: &str, runs: &[StyleRun], link: vow_design::Rgba) -> Vec<Sp
         }
         if style.italic {
             span = span.font_slant(FontSlant::Italic);
+        }
+        if let Some(family) = &style.family {
+            span = span.font_family(family.clone());
+        }
+        if let Some(size) = style.size {
+            span = span.font_size(size);
         }
         if style.link.is_some() {
             span = span

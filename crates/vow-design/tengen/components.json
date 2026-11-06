@@ -117,6 +117,10 @@
       "icon": 16,
       "column-width": 200
     },
+    "font-panel": {
+      "sizes": [6, 8, 9, 10, 11, 12, 13, 14, 16, 20, 24, 36, 48, 72],
+      "size-column": 72
+    },
     "popover": {
       "radius": 20,
       "arrow-width": 25.42,

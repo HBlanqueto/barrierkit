@@ -640,6 +640,12 @@ pub struct DisclosureMetrics {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct FontPanelMetrics {
+    pub sizes: [f32; 14],
+    pub size_column: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct PopoverMetrics {
     pub radius: f32,
     pub arrow_width: f32,

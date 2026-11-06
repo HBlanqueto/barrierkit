@@ -1,6 +1,6 @@
 use std::cell::RefCell;
 
-use freya_engine::prelude::{FontCollection, FontMgr, TypefaceFontProvider};
+use freya_engine::prelude::{FontCollection, FontMgr, FontStyle, TypefaceFontProvider};
 
 thread_local! {
     static FONTS: RefCell<Option<(FontCollection, FontMgr)>> = const { RefCell::new(None) };
@@ -44,4 +44,31 @@ pub fn register_font(bytes: &[u8]) -> bool {
         });
     });
     true
+}
+
+fn managers() -> Vec<FontMgr> {
+    let own = OWN.with(|own| own.borrow().clone().map(FontMgr::from));
+    std::iter::once(FontMgr::default()).chain(own).collect()
+}
+
+pub(crate) fn family_names() -> Vec<String> {
+    let mut names: Vec<String> = managers()
+        .iter()
+        .flat_map(|manager| manager.family_names().collect::<Vec<_>>())
+        .collect();
+    names.sort_by_key(|name| name.to_lowercase());
+    names.dedup();
+    names
+}
+
+pub(crate) fn styles(family: &str) -> Vec<FontStyle> {
+    managers()
+        .iter()
+        .flat_map(|manager| {
+            let mut set = manager.match_family(family);
+            (0..set.count())
+                .map(|index| set.style(index).0)
+                .collect::<Vec<_>>()
+        })
+        .collect()
 }

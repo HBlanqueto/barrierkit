@@ -5,6 +5,16 @@ pub struct TextStyle {
     pub bold: bool,
     pub italic: bool,
     pub link: Option<String>,
+    pub family: Option<String>,
+    pub size: Option<f32>,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct FontChoice {
+    pub family: String,
+    pub size: f32,
+    pub bold: bool,
+    pub italic: bool,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -98,6 +108,37 @@ pub fn toggle(
     runs_from(&styles)
 }
 
+pub fn font_at(runs: &[StyleRun], length: usize, index: usize) -> FontChoice {
+    let style = char_styles(runs, length)
+        .get(index)
+        .cloned()
+        .unwrap_or_default();
+    FontChoice {
+        family: style
+            .family
+            .unwrap_or_else(|| vow_design::TEXT.family.to_owned()),
+        size: style.size.unwrap_or(vow_design::TEXT.size as f32),
+        bold: style.bold,
+        italic: style.italic,
+    }
+}
+
+pub fn apply_font(
+    runs: &[StyleRun],
+    length: usize,
+    range: Range<usize>,
+    font: &FontChoice,
+) -> Vec<StyleRun> {
+    let mut styles = char_styles(runs, length);
+    for style in &mut styles[range.start.min(length)..range.end.min(length)] {
+        style.family = Some(font.family.clone());
+        style.size = Some(font.size);
+        style.bold = font.bold;
+        style.italic = font.italic;
+    }
+    runs_from(&styles)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -141,6 +182,21 @@ mod tests {
             restyle_after_edit(std::slice::from_ref(&link), "web", "web!"),
             [link]
         );
+    }
+
+    #[test]
+    fn a_font_applies_only_to_its_range_and_reads_back_from_it() {
+        let font = FontChoice {
+            family: "Serif".into(),
+            size: 24.0,
+            bold: true,
+            italic: false,
+        };
+        let runs = apply_font(&[], 6, 2..4, &font);
+        assert_eq!(font_at(&runs, 6, 3), font);
+        assert_eq!(font_at(&runs, 6, 0).size, vow_design::TEXT.size as f32);
+        assert_eq!(runs.len(), 1);
+        assert_eq!(runs[0].range, 2..4);
     }
 
     #[test]
