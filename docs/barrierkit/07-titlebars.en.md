@@ -55,6 +55,23 @@ The app chooses none of these variants: they come from `with_sidebar`, from
 | Without a sidebar: traffic lights in the bar and the title centered between two symmetric zones | ![Titlebar without a sidebar](assets/estados/titlebar-sin-barra.png) |
 | Without a sidebar, unfocused window: `titlebar_inactive` background and gray traffic lights | ![Titlebar without a sidebar, unfocused](assets/estados/titlebar-sin-barra-inactiva.png) |
 
+### Corner radius
+
+The `Titlebar` tells the compositor which bar it draws with
+`infinity_window_style_v1.set_bar`, and Malaysia rounds the window with that
+bar's radius ([Malaysia ADR 0059](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0059-radio-por-barra-y-esquina-continua.en.md)).
+The app does nothing:
+
+| `Titlebar` | Bar (`set_bar`) | Height | Radius (`WINDOW_CORNER`) |
+|---|---|---|---|
+| `.close_only(true)` | `titlebar` | `TITLEBAR.thickness` (32) | `titlebar` (16) |
+| `with_sidebar(true)` and an island sidebar | `unified` | `SETTINGS.toolbar_height` (52) | `unified` (26) |
+| The rest | `compact` | `TITLEBAR_CLIENT_HEIGHT` (40) | `compact` (20) |
+
+If `sidebar_style` changes, the bar is sent again. `utility` (15) is left
+for panels. The user can set one radius for every window with
+`corner_radius` in `window.domain`.
+
 ## The traffic lights: `TrafficLights`
 
 Close, minimize and maximize. They are not usually created by hand:

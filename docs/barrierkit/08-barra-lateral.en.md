@@ -52,6 +52,10 @@ Over a tinted backdrop (chapter [13](13-fondos-y-medios.en.md)), the flat
 sidebar shows the backdrop, and the island either shows it or is tinted with
 `SidebarBackdrop::Tinted` ([ADR 0057](../decisiones/0057-cristal-y-barra-lateral-sobre-fondo.en.md)).
 
+The island sits `size.sidebar-inset` (8) from the edge and has radius
+`size.sidebar-radius` (18 = 26 − 8), with the window's continuous corner:
+it stays concentric with its `unified` corner (26).
+
 ## The container: `SplitView`
 
 ```rust

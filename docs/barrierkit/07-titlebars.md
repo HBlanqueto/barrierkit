@@ -56,6 +56,23 @@ Ninguna de estas variantes la elige la app: salen de `with_sidebar`, de
 | Sin barra lateral: semáforos en la barra y título centrado entre dos zonas simétricas | ![Titlebar sin barra lateral](assets/estados/titlebar-sin-barra.png) |
 | Sin barra lateral, ventana sin foco: fondo `titlebar_inactive` y semáforos grises | ![Titlebar sin barra lateral sin foco](assets/estados/titlebar-sin-barra-inactiva.png) |
 
+### Radio de la esquina
+
+La `Titlebar` dice al compositor qué barra dibuja con
+`infinity_window_style_v1.set_bar`, y Malaysia redondea la ventana con el
+radio de esa barra ([ADR 0059 de Malaysia](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0059-radio-por-barra-y-esquina-continua.md)).
+La app no hace nada:
+
+| `Titlebar` | Barra (`set_bar`) | Alto | Radio (`WINDOW_CORNER`) |
+|---|---|---|---|
+| `.close_only(true)` | `titlebar` | `TITLEBAR.thickness` (32) | `titlebar` (16) |
+| `with_sidebar(true)` y barra lateral en isla | `unified` | `SETTINGS.toolbar_height` (52) | `unified` (26) |
+| El resto | `compact` | `TITLEBAR_CLIENT_HEIGHT` (40) | `compact` (20) |
+
+Si cambia `sidebar_style`, la barra vuelve a enviarse. `utility` (15) queda
+para paneles. El usuario puede fijar un radio para todas las ventanas con
+`corner_radius` en `window.domain`.
+
 ## Los semáforos: `TrafficLights`
 
 Cerrar, minimizar y maximizar. Normalmente no se crean a mano:

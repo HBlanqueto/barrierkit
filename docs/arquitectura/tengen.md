@@ -52,6 +52,10 @@ tipos (`Rgba`, `Palette`, `Titlebar`, `ShellPalette`…) y la API.
   13/17/600.
 - **Sombras:** `shadow.layers.{light,dark}` guardan las capas ambient y
   contact; `shadow.unfocused` fija los factores de la ventana inactiva.
+- **Esquinas de ventana:** `components.window.corner` → `WINDOW_CORNER`, con
+  los nombres del enum `bar` de `set_bar`: `titlebar` 16, `compact` 20,
+  `unified` 26 y `utility` 15. `expansion` (1,52866) y `exponent` (3,34)
+  dan la esquina continua de Apple.
 - **Shell:** `components.shell` define menubar, dock y lock.
 
 ## Apariencia y wallpaper

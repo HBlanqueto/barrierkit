@@ -54,6 +54,10 @@ Do not edit `crates/vow-design/src/` to change a value: it holds the types
   13/17/600.
 - **Shadows:** `shadow.layers.{light,dark}` hold the ambient and contact
   layers; `shadow.unfocused` sets the inactive-window factors.
+- **Window corners:** `components.window.corner` → `WINDOW_CORNER`, with the
+  names of the `set_bar` `bar` enum: `titlebar` 16, `compact` 20,
+  `unified` 26 and `utility` 15. `expansion` (1.52866) and `exponent` (3.34)
+  give Apple's continuous corner.
 - **Shell:** `components.shell` defines menubar, dock and lock.
 
 ## Appearance and wallpaper

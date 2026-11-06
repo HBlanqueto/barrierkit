@@ -51,6 +51,10 @@ Sobre un fondo tintado (capítulo [13](13-fondos-y-medios.md)), la barra plana
 deja ver el fondo y la isla lo deja ver o se tiñe con
 `SidebarBackdrop::Tinted` ([ADR 0057](../decisiones/0057-cristal-y-barra-lateral-sobre-fondo.md)).
 
+La isla se separa `size.sidebar-inset` (8) del borde y tiene radio
+`size.sidebar-radius` (18 = 26 − 8), con la esquina continua de la ventana:
+queda concéntrica con su esquina `unified` (26).
+
 ## El contenedor: `SplitView`
 
 ```rust
