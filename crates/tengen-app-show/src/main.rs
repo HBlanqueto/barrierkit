@@ -23,6 +23,8 @@ use barrier_kit::controls::{
     Button, ButtonStyle, Checkbox, ScrollView, SearchField, SecureField, SegmentedControl, Slider,
     Switch, TextField, ToolGroup,
 };
+use barrier_kit::date::CivilDate;
+use barrier_kit::date_picker::DatePicker;
 use barrier_kit::indicator::{CapacityIndicator, RatingIndicator};
 use barrier_kit::level::{LevelSlider, LevelStyle};
 use barrier_kit::menu::MenuItem;
@@ -273,6 +275,7 @@ fn fields(
                         .width(Size::px(SPLIT_VIEW.inspector)),
                 ),
             )
+            .row(Row::new(tr!("date")).control(DatePickerDemo))
             .row(Row::new(tr!("path-control")).control(PathControl::new(
                 tr!("path-control"),
                 vec![
@@ -664,6 +667,16 @@ fn feedback(mut alert: State<bool>) -> Form {
 }
 
 #[derive(PartialEq)]
+struct DatePickerDemo;
+
+impl Component for DatePickerDemo {
+    fn render(&self) -> impl IntoElement {
+        let mut day = use_state(|| CivilDate::new(2026, 11, 6));
+        DatePicker::new(tr!("date"), *day.read()).on_change(move |picked| day.set(picked))
+    }
+}
+
+#[derive(PartialEq)]
 struct PopoverButton;
 
 impl Component for PopoverButton {
@@ -1022,4 +1035,3 @@ mod tests {
         }
     }
 }
-

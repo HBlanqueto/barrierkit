@@ -33,6 +33,10 @@ impl Interaction {
         *self.pressed.read()
     }
 
+    pub fn focused(&self) -> bool {
+        !matches!(*self.focus.read(), Focus::Not)
+    }
+
     pub fn keyboard_focused(&self) -> bool {
         matches!(*self.focus.read(), Focus::Keyboard)
     }

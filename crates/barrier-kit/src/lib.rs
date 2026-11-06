@@ -60,6 +60,10 @@ pub mod token_field;
 
 pub mod path_control;
 
+pub mod date;
+
+pub mod date_picker;
+
 pub mod context_menu;
 
 pub mod tooltip;

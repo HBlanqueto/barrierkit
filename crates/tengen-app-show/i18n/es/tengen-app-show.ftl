@@ -102,6 +102,7 @@ notes = Notas
 token-field = Campo de tokens
 recipients = Destinatarios
 path-control = Ruta
+date = Fecha
 home = Inicio
 documents = Documentos
 projects = Proyectos

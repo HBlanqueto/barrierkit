@@ -172,6 +172,22 @@ path separated by chevrons in a 22 row and reports the pressed part through
 padding and the accent at 20 %) is an estimate: there is no macOS 26 probe
 for these two controls.
 
+```rust
+DatePicker::new("Fecha", CivilDate::new(2026, 11, 6)).on_change(move |d| dia.set(d))
+```
+
+`DatePicker` (`barrier_kit::date_picker`) is the `textFieldAndStepper` style
+of `NSDatePicker` with the pop-up calendar of `presentsCalendarOverlay`. The
+arrows, or ↑ and ↓, change the chosen part; ← and → move between parts, and a
+click on a part opens the calendar. The order of the parts and the first day
+of the week come from the language (`date-order` and `week-start` in
+`barrier-kit.ftl`). The calendar measures 139 × 148, like WebKit's
+([WebDateTimePickerMac.mm](https://github.com/WebKit/WebKit/blob/e1b89c8323669cd1dcd013253cec56c8d46272b8/Source/WebKit/UIProcess/mac/WebDateTimePickerMac.mm#L35)),
+and the chosen day has a 3 corner, as in
+[macos_ui](https://pub.dev/packages/macos_ui). `barrier_kit::date::CivilDate`
+does the calendar arithmetic without dependencies (algorithms by
+[Howard Hinnant](https://howardhinnant.github.io/date_algorithms.html)).
+
 ## Progress
 
 ```rust

@@ -569,6 +569,16 @@ pub struct LevelIndicatorMetrics {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct DatePickerMetrics {
+    pub calendar_width: f32,
+    pub calendar_height: f32,
+    pub header_height: f32,
+    pub weekday_height: f32,
+    pub day_radius: f32,
+    pub segment_radius: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct TokenFieldMetrics {
     pub token_height: f32,
     pub token_padding_x: f32,

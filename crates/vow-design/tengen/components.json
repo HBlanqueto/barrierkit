@@ -61,6 +61,14 @@
       "stars": 5,
       "colors": ["green", "yellow", "red"]
     },
+    "date-picker": {
+      "calendar-width": 139,
+      "calendar-height": 148,
+      "header-height": 22,
+      "weekday-height": 16,
+      "day-radius": 3,
+      "segment-radius": 3
+    },
     "token-field": {
       "token-height": 18,
       "token-padding-x": 7,

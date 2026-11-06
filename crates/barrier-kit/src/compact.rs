@@ -141,45 +141,9 @@ impl Component for Stepper {
         };
         let (step_down, step_up, step_key) = (step.clone(), step.clone(), step);
 
-        let arrow = |kind: Symbol, label: &'static str, enabled: bool, press: Rc<dyn Fn()>| {
-            let ink = if enabled {
-                palette.label
-            } else {
-                palette.tertiary_label
-            };
-            rect()
-                .a11y_role(AccessibilityRole::Button)
-                .a11y_alt(label)
-                .width(Size::fill())
-                .height(Size::flex(1.0))
-                .center()
-                .maybe(enabled, |el| el.on_press(move |_| press()))
-                .child(symbol(kind, STEPPER.chevron, ink))
-        };
-        let arrows = rect()
-            .width(Size::px(STEPPER.width))
-            .height(Size::px(STEPPER.height))
-            .content(Content::flex())
-            .corner_radius(STEPPER.radius)
-            .background(color(palette.control_background))
-            .child(arrow(
-                Symbol::ChevronUp,
-                text!("increase"),
-                current < max,
-                Rc::new(move || step_up(1)),
-            ))
-            .child(
-                rect()
-                    .width(Size::fill())
-                    .height(Size::px(vow_design::HAIRLINE))
-                    .background(color(palette.separator)),
-            )
-            .child(arrow(
-                Symbol::ChevronDown,
-                text!("decrease"),
-                current > min,
-                Rc::new(move || step_down(-1)),
-            ));
+        let up = (current < max).then(|| Rc::new(move || step_up(1)) as Rc<dyn Fn()>);
+        let down = (current > min).then(|| Rc::new(move || step_down(-1)) as Rc<dyn Fn()>);
+        let arrows = stepper_arrows(up, down);
 
         let stepper = interaction
             .attach(rect(), true)
@@ -198,6 +162,45 @@ impl Component for Stepper {
             .child(interaction.focus_ring(arrows, STEPPER.radius));
         stepper.into_element()
     }
+}
+
+pub(crate) fn stepper_arrows(up: Option<Rc<dyn Fn()>>, down: Option<Rc<dyn Fn()>>) -> Rect {
+    let palette = Palette::current();
+    let arrow = |kind: Symbol, label: &'static str, press: Option<Rc<dyn Fn()>>| {
+        let ink = if press.is_some() {
+            palette.label
+        } else {
+            palette.tertiary_label
+        };
+        rect()
+            .a11y_role(AccessibilityRole::Button)
+            .a11y_alt(label)
+            .width(Size::fill())
+            .height(Size::flex(1.0))
+            .center()
+            .maybe(press.is_some(), |el| {
+                el.on_press(move |_| {
+                    if let Some(press) = &press {
+                        press()
+                    }
+                })
+            })
+            .child(symbol(kind, STEPPER.chevron, ink))
+    };
+    rect()
+        .width(Size::px(STEPPER.width))
+        .height(Size::px(STEPPER.height))
+        .content(Content::flex())
+        .corner_radius(STEPPER.radius)
+        .background(color(palette.control_background))
+        .child(arrow(Symbol::ChevronUp, text!("increase"), up))
+        .child(
+            rect()
+                .width(Size::fill())
+                .height(Size::px(vow_design::HAIRLINE))
+                .background(color(palette.separator)),
+        )
+        .child(arrow(Symbol::ChevronDown, text!("decrease"), down))
 }
 
 #[derive(Clone, Copy, PartialEq)]

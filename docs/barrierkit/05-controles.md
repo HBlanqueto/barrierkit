@@ -172,6 +172,22 @@ la parte pulsada. La altura de 22 sale de xib de Xcode; la cápsula (18 de
 alto, 7 de margen y el acento al 20 %) es una estimación: no hay un probe de
 macOS 26 para estos dos controles.
 
+```rust
+DatePicker::new("Fecha", CivilDate::new(2026, 11, 6)).on_change(move |d| dia.set(d))
+```
+
+`DatePicker` (`barrier_kit::date_picker`) es el estilo `textFieldAndStepper`
+de `NSDatePicker` con el calendario emergente de `presentsCalendarOverlay`.
+Las flechas, o ↑ y ↓, cambian la parte elegida; ← y → pasan de una a otra, y
+un clic en una parte abre el calendario. El orden de las partes y el primer
+día de la semana salen del idioma (`date-order` y `week-start` en
+`barrier-kit.ftl`). El calendario mide 139 × 148, como el de WebKit
+([WebDateTimePickerMac.mm](https://github.com/WebKit/WebKit/blob/e1b89c8323669cd1dcd013253cec56c8d46272b8/Source/WebKit/UIProcess/mac/WebDateTimePickerMac.mm#L35)),
+y el día elegido lleva esquina 3, como en
+[macos_ui](https://pub.dev/packages/macos_ui). `barrier_kit::date::CivilDate`
+hace las cuentas de calendario sin dependencias (algoritmos de
+[Howard Hinnant](https://howardhinnant.github.io/date_algorithms.html)).
+
 ## Progreso
 
 ```rust
