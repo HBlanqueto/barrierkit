@@ -266,12 +266,16 @@ panel de colores de AppKit en pequeño.
 
 `FontPicker` (`barrier_kit::font_panel`) es un botón con la familia y el
 tamaño que abre el panel de fuentes en un popover, como `NSFontPanel`: una
-vista previa y las columnas Familia, Estilo y Tamaño. Las familias salen del
-gestor de fuentes del sistema y de `register_font`. La columna Estilo lista
+vista previa y las columnas Colección, Familia, Estilo y Tamaño. Las familias
+salen del gestor de fuentes del sistema y de `register_font`. Colección filtra
+la lista: Todas las tipografías, Usadas recientemente (las elegidas en esta
+sesión, la última primero) y Ancho fijo (las que Skia marca como
+`is_fixed_pitch`). La columna Estilo lista
 Normal, Cursiva, Negrita y Negrita cursiva solo si la familia los tiene. Los
 tamaños son la lista fija de GTK (`fallback_sizes` en
 [gtkfontchooserwidget.c](https://gitlab.gnome.org/GNOME/gtk/-/blob/main/gtk/gtkfontchooserwidget.c)),
-porque Apple no publica la del panel. En un `TextEditor` con `styles`,
+porque Apple no publica la del panel. Encima de la lista, un campo admite
+cualquier tamaño positivo, también con decimales. En un `TextEditor` con `styles`,
 Ctrl+T (⌘T en macOS) abre el mismo panel y aplica familia, tamaño, negrita y
 cursiva a la selección (`rich_text::apply_font`).
 

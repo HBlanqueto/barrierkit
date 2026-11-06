@@ -3,8 +3,8 @@ use freya_engine::prelude::{FontStyle, Slant};
 use torin::prelude::{Area, Direction, Gaps, Size};
 use vow_design::{BUTTON, CAPTION, DISCLOSURE, FONT_PANEL, HAIRLINE, SPACE_1, SPACE_2, TEXT};
 
-use crate::controls::Button;
-use crate::fonts::{family_names, styles};
+use crate::controls::{Button, TextField};
+use crate::fonts::{family_names, fixed_pitch, styles};
 use crate::i18n::text;
 use crate::popover::show_popover;
 use crate::rich_text::FontChoice;
@@ -12,6 +12,40 @@ use crate::scroll::ScrollView;
 use crate::style::{Palette, text};
 use crate::theme::color;
 use crate::views::tree::{TreeNode, row};
+
+thread_local! {
+    static RECENT: State<Vec<String>> = State::create_global(Vec::new());
+}
+
+#[derive(Clone, Copy, PartialEq)]
+enum Collection {
+    All,
+    Recent,
+    FixedWidth,
+}
+
+const COLLECTIONS: [Collection; 3] = [Collection::All, Collection::Recent, Collection::FixedWidth];
+
+fn collection_name(collection: Collection) -> &'static str {
+    match collection {
+        Collection::All => text!("font-collection-all"),
+        Collection::Recent => text!("font-collection-recent"),
+        Collection::FixedWidth => text!("font-collection-fixed"),
+    }
+}
+
+pub fn remember(recent: &mut Vec<String>, family: &str) {
+    recent.retain(|name| name != family);
+    recent.insert(0, family.to_owned());
+}
+
+pub fn parse_size(typed: &str) -> Option<f32> {
+    typed
+        .trim()
+        .parse::<f32>()
+        .ok()
+        .filter(|size| size.is_finite() && *size > 0.0)
+}
 
 const FACES: [(bool, bool); 4] = [(false, false), (false, true), (true, false), (true, true)];
 
@@ -38,7 +72,7 @@ fn face_name(face: (bool, bool)) -> &'static str {
 
 pub(crate) fn panel_size() -> (f32, f32) {
     (
-        DISCLOSURE.column_width * 2.0 + FONT_PANEL.size_column,
+        DISCLOSURE.column_width * 3.0 + FONT_PANEL.size_column,
         DISCLOSURE.row_height * 10.0,
     )
 }
@@ -69,15 +103,53 @@ impl Component for FontPanel {
         let initial = self.initial.clone();
         let mut font = use_state(|| initial);
         let families = use_hook(family_names);
+        let fixed = use_hook(|| {
+            families
+                .iter()
+                .filter(|family| fixed_pitch(family))
+                .cloned()
+                .collect::<Vec<_>>()
+        });
+        let mut collection = use_state(|| Collection::All);
+        let recent = RECENT.with(|recent| *recent);
         let current = font.read().clone();
         let on_change = self.on_change.clone();
         let set = move |next: FontChoice| {
+            let mut recent = recent;
+            remember(&mut recent.write(), &next.family);
             font.set(next.clone());
             on_change.call(next);
         };
+        let mut typed = use_state(|| current.size.to_string());
+        let mut apply_typed = set.clone();
+        use_side_effect(move || {
+            if let Some(size) = parse_size(&typed.read())
+                && size != font.peek().size
+            {
+                apply_typed(FontChoice {
+                    size,
+                    ..font.peek().clone()
+                });
+            }
+        });
         let available = faces(&styles(&current.family));
+        let shown: Vec<String> = match *collection.read() {
+            Collection::All => families.clone(),
+            Collection::Recent => recent.read().clone(),
+            Collection::FixedWidth => fixed.clone(),
+        };
 
-        let family_rows = families.iter().map(|family| {
+        let collection_rows = COLLECTIONS.into_iter().map(|choice| {
+            row(
+                &TreeNode::new(collection_name(choice)),
+                choice == *collection.read(),
+                None,
+                None,
+            )
+            .on_press(move |_| collection.set(choice))
+            .into_element()
+        });
+        let family_rows = shown.iter().map(|family| {
             let chosen = *family == current.family;
             let mut set = set.clone();
             let next = FontChoice {
@@ -120,26 +192,31 @@ impl Component for FontPanel {
                 ..current.clone()
             };
             row(&TreeNode::new(size.to_string()), chosen, None, None)
-                .on_press(move |_| set(next.clone()))
+                .on_press(move |_| {
+                    typed.set(size.to_string());
+                    set(next.clone());
+                })
                 .into_element()
         });
-        let column = |label: &'static str, width: Size, rows: Vec<Element>| {
-            rect()
-                .a11y_role(AccessibilityRole::List)
-                .a11y_alt(label)
-                .width(width)
-                .height(Size::fill())
-                .direction(Direction::Vertical)
-                .content(torin::prelude::Content::flex())
-                .spacing(SPACE_1)
-                .child(text(label, CAPTION, palette.secondary_label))
-                .child(
-                    ScrollView::new()
-                        .width(Size::fill())
-                        .height(Size::flex(1.0))
-                        .children(rows),
-                )
-        };
+        let column =
+            |label: &'static str, width: Size, top: Option<Element>, rows: Vec<Element>| {
+                rect()
+                    .a11y_role(AccessibilityRole::List)
+                    .a11y_alt(label)
+                    .width(width)
+                    .height(Size::fill())
+                    .direction(Direction::Vertical)
+                    .content(torin::prelude::Content::flex())
+                    .spacing(SPACE_1)
+                    .child(text(label, CAPTION, palette.secondary_label))
+                    .maybe_child(top)
+                    .child(
+                        ScrollView::new()
+                            .width(Size::fill())
+                            .height(Size::flex(1.0))
+                            .children(rows),
+                    )
+            };
         let mut preview = text(
             format!("{} {}", current.family, current.size),
             TEXT,
@@ -183,18 +260,27 @@ impl Component for FontPanel {
                     .padding(Gaps::new(0.0, SPACE_1, 0.0, SPACE_1))
                     .content(torin::prelude::Content::flex())
                     .child(column(
+                        text!("font-collection"),
+                        Size::flex(1.0),
+                        None,
+                        collection_rows.collect(),
+                    ))
+                    .child(column(
                         text!("font-family"),
                         Size::flex(1.0),
+                        None,
                         family_rows.collect(),
                     ))
                     .child(column(
                         text!("font-typeface"),
                         Size::flex(1.0),
+                        None,
                         face_rows.collect(),
                     ))
                     .child(column(
                         text!("font-size"),
                         Size::px(FONT_PANEL.size_column),
+                        Some(TextField::new(typed, text!("font-size")).into_element()),
                         size_rows.collect(),
                     )),
             )
@@ -242,6 +328,20 @@ impl Component for FontPicker {
 mod tests {
     use super::*;
     use freya_engine::prelude::{Weight, Width};
+
+    #[test]
+    fn a_used_family_moves_to_the_front_of_recent_without_duplicates() {
+        let mut recent = vec!["Inter".to_string(), "Mono".to_string()];
+        remember(&mut recent, "Mono");
+        assert_eq!(recent, ["Mono", "Inter"]);
+    }
+
+    #[test]
+    fn only_a_positive_finite_number_is_a_size() {
+        assert_eq!(parse_size(" 15.5 "), Some(15.5));
+        assert_eq!(parse_size("0"), None);
+        assert_eq!(parse_size("doce"), None);
+    }
 
     #[test]
     fn regular_is_always_offered_and_other_faces_only_when_the_family_has_them() {

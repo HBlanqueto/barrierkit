@@ -266,12 +266,15 @@ AppKit color panel.
 
 `FontPicker` (`barrier_kit::font_panel`) is a button with the family and size
 that opens the font panel in a popover, like `NSFontPanel`: a preview and the
-Family, Typeface and Size columns. Families come from the system font manager
-and from `register_font`. The Typeface column lists Regular, Italic, Bold and
+Collection, Family, Typeface and Size columns. Families come from the system
+font manager and from `register_font`. Collection filters the list: All
+Fonts, Recently Used (the ones chosen in this session, the latest first) and
+Fixed Width (the ones Skia marks as `is_fixed_pitch`). The Typeface column lists Regular, Italic, Bold and
 Bold Italic only when the family has them. The sizes are GTK's preset list
 (`fallback_sizes` in
 [gtkfontchooserwidget.c](https://gitlab.gnome.org/GNOME/gtk/-/blob/main/gtk/gtkfontchooserwidget.c)),
-because Apple does not publish the panel's list. In a `TextEditor` with
+because Apple does not publish the panel's list. Above the list, a field
+takes any positive size, decimals included. In a `TextEditor` with
 `styles`, Ctrl+T (⌘T in macOS) opens the same panel and applies family,
 size, bold and italic to the selection (`rich_text::apply_font`).
 

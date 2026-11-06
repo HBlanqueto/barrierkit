@@ -72,3 +72,12 @@ pub(crate) fn styles(family: &str) -> Vec<FontStyle> {
         })
         .collect()
 }
+
+pub(crate) fn fixed_pitch(family: &str) -> bool {
+    managers().iter().any(|manager| {
+        manager
+            .match_family(family)
+            .match_style(FontStyle::normal())
+            .is_some_and(|typeface| typeface.is_fixed_pitch())
+    })
+}
