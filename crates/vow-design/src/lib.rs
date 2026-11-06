@@ -810,6 +810,7 @@ pub struct ToolgroupPalette {
 }
 
 pub const NATIVE_APP_ID_PREFIX: &str = "io.github.hblanqueto.malaysia.";
+pub const ALERT_LAYER_NAMESPACE: &str = "malaysia-dialog";
 
 include!(concat!(env!("OUT_DIR"), "/tengen.rs"));
 
