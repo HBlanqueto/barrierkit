@@ -23,9 +23,9 @@ use barrier_kit::controls::{
     Button, ButtonStyle, Checkbox, ScrollView, SearchField, SecureField, SegmentedControl, Slider,
     Switch, TextField, ToolGroup,
 };
-use barrier_kit::date::CivilDate;
-use barrier_kit::date_picker::DatePicker;
-use barrier_kit::indicator::{CapacityIndicator, RatingIndicator};
+use barrier_kit::date::{CivilDate, CivilDateTime};
+use barrier_kit::date_picker::{DateElements, DatePicker};
+use barrier_kit::indicator::{CapacityIndicator, CircularGauge, RatingIndicator};
 use barrier_kit::level::{LevelSlider, LevelStyle};
 use barrier_kit::menu::MenuItem;
 use barrier_kit::password::PasswordField;
@@ -276,14 +276,14 @@ fn fields(
                 ),
             )
             .row(Row::new(tr!("date")).control(DatePickerDemo))
-            .row(Row::new(tr!("path-control")).control(PathControl::new(
-                tr!("path-control"),
-                vec![
-                    tr!("home").to_owned(),
-                    tr!("documents").to_owned(),
-                    tr!("projects").to_owned(),
-                ],
-            ))),
+            .row(
+                Row::new(tr!("path-control")).control(
+                    PathControl::new(tr!("path-control"))
+                        .item(Symbol::House, tr!("home"))
+                        .item(Symbol::Folder, tr!("documents"))
+                        .item(Symbol::Document, tr!("projects")),
+                ),
+            ),
     )
 }
 
@@ -416,7 +416,8 @@ fn progress() -> Form {
                         .child(CapacityIndicator::new(tr!("disk"), 0.82).thresholds(0.75, 0.9)),
                 ),
             )
-            .row(Row::new(tr!("rating")).control(RatingDemo)),
+            .row(Row::new(tr!("rating")).control(RatingDemo))
+            .row(Row::new(tr!("gauge")).control(CircularGauge::new(tr!("gauge"), 0.64, "64°"))),
     )
 }
 
@@ -671,8 +672,10 @@ struct DatePickerDemo;
 
 impl Component for DatePickerDemo {
     fn render(&self) -> impl IntoElement {
-        let mut day = use_state(|| CivilDate::new(2026, 11, 6));
-        DatePicker::new(tr!("date"), *day.read()).on_change(move |picked| day.set(picked))
+        let mut moment = use_state(|| CivilDateTime::new(CivilDate::new(2026, 11, 6), 9, 30));
+        DatePicker::new(tr!("date"), *moment.read())
+            .elements(DateElements::DateAndTime)
+            .on_change(move |picked| moment.set(picked))
     }
 }
 

@@ -111,6 +111,7 @@ progress-ring = Ring
 capacity = Capacity
 disk = Disk
 rating = Rating
+gauge = Circular gauge
 copying = Copying
 activity-indicator = Activity indicator
 

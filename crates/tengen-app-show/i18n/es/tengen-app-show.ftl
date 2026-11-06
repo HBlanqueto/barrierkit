@@ -111,6 +111,7 @@ progress-ring = Anillo
 capacity = Capacidad
 disk = Disco
 rating = Valoración
+gauge = Indicador circular
 copying = Copiando
 activity-indicator = Indicador de actividad
 

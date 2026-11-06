@@ -10,6 +10,83 @@ pub enum DatePart {
     Day,
     Month,
     Year,
+    Hour,
+    Minute,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct CivilDateTime {
+    pub date: CivilDate,
+    pub hour: u32,
+    pub minute: u32,
+}
+
+impl DatePart {
+    pub fn digits(self) -> usize {
+        match self {
+            Self::Year => 4,
+            _ => 2,
+        }
+    }
+}
+
+impl CivilDateTime {
+    pub fn new(date: CivilDate, hour: u32, minute: u32) -> Self {
+        Self {
+            date,
+            hour: hour.min(23),
+            minute: minute.min(59),
+        }
+    }
+
+    pub fn shifted(self, part: DatePart, delta: i32) -> Self {
+        let wrap = |value: u32, len: i32| (value as i32 + delta).rem_euclid(len) as u32;
+        match part {
+            DatePart::Hour => Self {
+                hour: wrap(self.hour, 24),
+                ..self
+            },
+            DatePart::Minute => Self {
+                minute: wrap(self.minute, 60),
+                ..self
+            },
+            _ => Self {
+                date: self.date.shifted(part, delta),
+                ..self
+            },
+        }
+    }
+
+    pub fn typed(self, part: DatePart, value: u32) -> Self {
+        let date = self.date;
+        match part {
+            DatePart::Day => Self {
+                date: CivilDate::new(date.year, date.month, value),
+                ..self
+            },
+            DatePart::Month => Self {
+                date: CivilDate::new(date.year, value, date.day),
+                ..self
+            },
+            DatePart::Year => Self {
+                date: CivilDate::new(value as i32, date.month, date.day),
+                ..self
+            },
+            DatePart::Hour => Self::new(date, value, self.minute),
+            DatePart::Minute => Self::new(date, self.hour, value),
+        }
+    }
+}
+
+pub fn typing_is_done(part: DatePart, typed: &str) -> bool {
+    let largest = match part {
+        DatePart::Day => 31,
+        DatePart::Month => 12,
+        DatePart::Hour => 23,
+        DatePart::Minute => 59,
+        DatePart::Year => 9999,
+    };
+    typed.len() >= part.digits() || typed.parse::<u32>().is_ok_and(|value| value * 10 > largest)
 }
 
 pub fn days_in_month(year: i32, month: u32) -> u32 {
@@ -83,6 +160,7 @@ impl CivilDate {
             DatePart::Day => self.add_days(i64::from(delta)),
             DatePart::Month => self.add_months(delta),
             DatePart::Year => self.add_months(delta * 12),
+            DatePart::Hour | DatePart::Minute => self,
         }
     }
 
@@ -133,6 +211,29 @@ mod tests {
             CivilDate::new(2026, 12, 31).shifted(DatePart::Day, 1),
             CivilDate::new(2027, 1, 1)
         );
+    }
+
+    #[test]
+    fn hours_and_minutes_wrap_without_changing_the_day() {
+        let at = CivilDateTime::new(CivilDate::new(2026, 11, 6), 23, 59);
+        assert_eq!(at.shifted(DatePart::Hour, 1).hour, 0);
+        assert_eq!(at.shifted(DatePart::Minute, 1).minute, 0);
+        assert_eq!(at.shifted(DatePart::Minute, 1).date, at.date);
+    }
+
+    #[test]
+    fn typing_moves_on_when_the_part_is_full_or_no_digit_can_follow() {
+        assert!(!typing_is_done(DatePart::Day, "1"));
+        assert!(typing_is_done(DatePart::Day, "4"));
+        assert!(typing_is_done(DatePart::Month, "2"));
+        assert!(typing_is_done(DatePart::Year, "2026"));
+        assert!(!typing_is_done(DatePart::Year, "202"));
+        let at = CivilDateTime::new(CivilDate::new(2026, 2, 10), 9, 0);
+        assert_eq!(
+            at.typed(DatePart::Day, 31).date,
+            CivilDate::new(2026, 2, 28)
+        );
+        assert_eq!(at.typed(DatePart::Hour, 30).hour, 23);
     }
 
     #[test]

@@ -164,22 +164,29 @@ inside the height `.height(..)` gives it (by default, the whole container). It
 uses Freya's editing engine (`freya-edit`) and the look of `TextField`.
 
 `TokenField` (`barrier_kit::token_field`), like `NSTokenField`, keeps tags in
-a `State<Vec<String>>`: Enter or a comma turns the text into a capsule and
-Backspace on an empty field deletes the last one. `PathControl`
+a `State<Vec<String>>`: Enter or a comma turns the text into a capsule. On an
+empty field, Backspace selects the last one and a second press deletes it; ←
+and → walk the capsules, a click selects one and Backspace or Delete removes
+it. `PathControl`
 (`barrier_kit::path_control`), like `NSPathControl`, shows the parts of a
-path separated by chevrons in a 22 row and reports the pressed part through
+path separated by chevrons in a 22 row, each with its icon
+(`.item(Symbol::Folder, "Documentos")`), and reports the pressed part through
 `on_select`. The 22 height comes from Xcode xibs; the capsule (18 high, 7
 padding and the accent at 20 %) is an estimate: there is no macOS 26 probe
 for these two controls.
 
 ```rust
-DatePicker::new("Fecha", CivilDate::new(2026, 11, 6)).on_change(move |d| dia.set(d))
+DatePicker::new("Fecha", CivilDateTime::new(CivilDate::new(2026, 11, 6), 9, 30))
+    .elements(DateElements::DateAndTime)
+    .on_change(move |d| momento.set(d))
 ```
 
 `DatePicker` (`barrier_kit::date_picker`) is the `textFieldAndStepper` style
-of `NSDatePicker` with the pop-up calendar of `presentsCalendarOverlay`. The
-arrows, or ↑ and ↓, change the chosen part; ← and → move between parts, and a
-click on a part opens the calendar. The order of the parts and the first day
+of `NSDatePicker` with the pop-up calendar of `presentsCalendarOverlay`. `elements`
+chooses date, time or both, like `NSDatePicker.ElementFlags`. The arrows, or ↑
+and ↓, change the chosen part; ← and → move between parts, and a click on a
+date part opens the calendar. Numbers can be typed: the part moves on when it
+is full or when no other digit fits (a 4 in the day). The order of the parts and the first day
 of the week come from the language (`date-order` and `week-start` in
 `barrier-kit.ftl`). The calendar measures 139 × 148, like WebKit's
 ([WebDateTimePickerMac.mm](https://github.com/WebKit/WebKit/blob/e1b89c8323669cd1dcd013253cec56c8d46272b8/Source/WebKit/UIProcess/mac/WebDateTimePickerMac.mm#L35)),
@@ -202,12 +209,18 @@ Spinner::new("Cargando")
 ```rust
 CapacityIndicator::new("Disco", 0.82).thresholds(0.75, 0.9)
 RatingIndicator::new("Valoración", 3).on_change(move |v| estrellas.set(v))
+CircularGauge::new("Temperatura", 0.64, "64°")
 ```
 
 `barrier_kit::indicator` follows `NSLevelIndicator`. `CapacityIndicator` is a
 bar of `LEVEL_INDICATOR.height` (16) that turns from green to yellow at the
 warning threshold and to red at the critical one (`LEVEL_INDICATOR_COLORS`).
-`RatingIndicator` shows 5 stars of 12; a click on one sets that value. The
+`RatingIndicator` shows 5 stars of 12; a click on one sets that value.
+`CircularGauge` is the `accessoryCircular` style of `Gauge`: an open ring with
+a marker at the value and the current value in the centre
+([Apple](https://developer.apple.com/documentation/swiftui/gaugestyle/accessorycircular)).
+Apple does not publish its measurements; the size (44), stroke (4) and arc
+(270°) are an estimate. The
 measurements come from Xcode xibs and from
 [macos_ui](https://pub.dev/packages/macos_ui); there is no macOS 26 probe.
 

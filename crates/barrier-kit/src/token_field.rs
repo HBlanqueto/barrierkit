@@ -39,11 +39,38 @@ pub fn commit_token(tokens: &mut Vec<String>, draft: &str) -> bool {
     true
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum TokenKey {
+    Backspace,
+    Delete,
+    Left,
+    Right,
+}
+
+pub fn token_selection(
+    chosen: Option<usize>,
+    count: usize,
+    key: TokenKey,
+) -> (Option<usize>, Option<usize>) {
+    let last = count.checked_sub(1);
+    match (key, chosen) {
+        (TokenKey::Backspace | TokenKey::Delete, Some(index)) if index < count => {
+            (None, Some(index))
+        }
+        (TokenKey::Backspace | TokenKey::Left, None) => (last, None),
+        (TokenKey::Left, Some(index)) => (Some(index.saturating_sub(1)), None),
+        (TokenKey::Right, Some(index)) => (Some(index + 1).filter(|next| *next < count), None),
+        _ => (None, None),
+    }
+}
+
 impl Component for TokenField {
     fn render(&self) -> impl IntoElement {
         let palette = Palette::current();
         let mut tokens = self.tokens;
         let mut draft = use_state(String::new);
+        let mut chosen = use_state(|| None::<usize>);
+        let input_id = use_hook(AccessibilityId::new_unique);
         let clear = Rgba {
             a: 0.0,
             ..palette.content_background
@@ -51,6 +78,7 @@ impl Component for TokenField {
         let transparent = Some(Preference::Specific(color(clear)));
         let input = themed_input(draft, self.placeholder, clear, clear, 0.0, 0.0)
             .width(Size::px(TOKEN_FIELD.input_min_width))
+            .a11y_id(input_id)
             .theme_colors(InputColorsThemePartial {
                 background: transparent.clone(),
                 focus_background: transparent.clone(),
@@ -61,6 +89,24 @@ impl Component for TokenField {
             })
             .on_pre_key_down(move |event: Event<KeyboardEventData>| {
                 let empty = draft.peek().is_empty();
+                let count = tokens.peek().len();
+                let key = match &event.key {
+                    Key::Named(NamedKey::Backspace) if empty => Some(TokenKey::Backspace),
+                    Key::Named(NamedKey::Delete) if empty => Some(TokenKey::Delete),
+                    Key::Named(NamedKey::ArrowLeft) if empty => Some(TokenKey::Left),
+                    Key::Named(NamedKey::ArrowRight) if empty => Some(TokenKey::Right),
+                    _ => None,
+                };
+                if let Some(key) = key {
+                    let (next, removed) = token_selection(*chosen.peek(), count, key);
+                    if let Some(index) = removed {
+                        tokens.write().remove(index);
+                    }
+                    chosen.set(next);
+                    event.stop_propagation();
+                    return false;
+                }
+                chosen.set_if_modified(None);
                 match &event.key {
                     Key::Named(NamedKey::Enter) => {
                         let text = draft.peek().clone();
@@ -74,11 +120,6 @@ impl Component for TokenField {
                         if commit_token(&mut tokens.write(), &text) {
                             draft.set(String::new());
                         }
-                        event.stop_propagation();
-                        false
-                    }
-                    Key::Named(NamedKey::Backspace) if empty => {
-                        tokens.write().pop();
                         event.stop_propagation();
                         false
                     }
@@ -100,6 +141,18 @@ impl Component for TokenField {
             .into_iter()
             .enumerate()
             .map(|(index, token)| {
+                let selected = *chosen.read() == Some(index);
+                let (fill, ink) = if selected {
+                    (palette.accent, palette.on_accent)
+                } else {
+                    (
+                        Rgba {
+                            a: TOKEN_FIELD.token_opacity,
+                            ..palette.accent
+                        },
+                        palette.label,
+                    )
+                };
                 let chip = rect()
                     .height(Size::px(TOKEN_FIELD.token_height))
                     .padding(Gaps::new(
@@ -110,13 +163,15 @@ impl Component for TokenField {
                     ))
                     .corner_radius(TOKEN_FIELD.token_height / 2.0)
                     .main_align(Alignment::Center)
-                    .background(color(Rgba {
-                        a: TOKEN_FIELD.token_opacity,
-                        ..palette.accent
-                    }))
+                    .background(color(fill))
                     .a11y_role(AccessibilityRole::ListItem)
                     .a11y_alt(token.clone())
-                    .child(text(token.clone(), TEXT, palette.label))
+                    .a11y_builder(move |node| node.set_selected(selected))
+                    .on_press(move |_| {
+                        chosen.set(Some(index));
+                        input_id.request_focus();
+                    })
+                    .child(text(token.clone(), TEXT, ink))
                     .into_element();
                 line(format!("{index}:{token}"), chip)
             });
@@ -152,6 +207,32 @@ impl Component for TokenField {
 #[cfg(test)]
 mod tests {
     use super::commit_token;
+
+    use super::{TokenKey, token_selection};
+
+    #[test]
+    fn backspace_selects_the_last_token_first_and_deletes_it_the_second_time() {
+        assert_eq!(
+            token_selection(None, 2, TokenKey::Backspace),
+            (Some(1), None)
+        );
+        assert_eq!(
+            token_selection(Some(1), 2, TokenKey::Backspace),
+            (None, Some(1))
+        );
+        assert_eq!(token_selection(None, 0, TokenKey::Backspace), (None, None));
+    }
+
+    #[test]
+    fn arrows_walk_the_tokens_and_leave_them_past_the_last() {
+        assert_eq!(token_selection(None, 3, TokenKey::Left), (Some(2), None));
+        assert_eq!(token_selection(Some(0), 3, TokenKey::Left), (Some(0), None));
+        assert_eq!(
+            token_selection(Some(1), 3, TokenKey::Right),
+            (Some(2), None)
+        );
+        assert_eq!(token_selection(Some(2), 3, TokenKey::Right), (None, None));
+    }
 
     #[test]
     fn a_token_is_the_trimmed_draft_without_its_comma_and_empty_drafts_add_nothing() {

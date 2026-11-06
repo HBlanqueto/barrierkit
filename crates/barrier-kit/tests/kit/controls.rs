@@ -1019,7 +1019,8 @@ fn the_text_editor_inserts_a_new_line_on_enter() {
 }
 
 #[test]
-fn the_token_field_turns_enter_and_commas_into_tokens_and_backspace_removes_the_last() {
+fn the_token_field_turns_enter_and_commas_into_tokens_and_backspace_selects_then_removes_the_last()
+{
     use std::cell::RefCell;
     use std::rc::Rc;
 
@@ -1048,5 +1049,46 @@ fn the_token_field_turns_enter_and_commas_into_tokens_and_backspace_removes_the_
     assert_eq!(*seen.borrow(), ["ana", "luis"]);
     test.press_key(Key::Named(NamedKey::Backspace));
     test.sync_and_update();
+    assert_eq!(*seen.borrow(), ["ana", "luis"]);
+    test.press_key(Key::Named(NamedKey::Backspace));
+    test.sync_and_update();
     assert_eq!(*seen.borrow(), ["ana"]);
+}
+
+#[test]
+fn typing_digits_fills_each_date_part_and_moves_to_the_next() {
+    use std::cell::Cell;
+    use std::rc::Rc;
+
+    use barrier_kit::date::{CivilDate, CivilDateTime};
+    use barrier_kit::date_picker::{DateElements, DatePicker};
+
+    struct DateCase(Rc<Cell<CivilDateTime>>);
+    impl App for DateCase {
+        fn render(&self) -> impl IntoElement {
+            let seen = self.0.clone();
+            DatePicker::new("Fecha", seen.get())
+                .elements(DateElements::DateAndTime)
+                .on_change(move |value| seen.set(value))
+        }
+    }
+
+    let start = CivilDateTime::new(CivilDate::new(2026, 11, 6), 9, 30);
+    let seen = Rc::new(Cell::new(start));
+    let app = AppComponent::new(DateCase(seen.clone()));
+    let (mut test, _) = TestingRunner::new(app, Size2D::new(300.0, 60.0), |_| {}, 1.0);
+    test.sync_and_update();
+    test.press_key(Key::Named(NamedKey::Tab));
+    test.sync_and_update();
+    for digit in ["0", "3", "2", "5"] {
+        test.write_text(digit);
+    }
+    test.press_key(Key::Named(NamedKey::ArrowRight));
+    test.write_text("1");
+    test.write_text("8");
+    test.sync_and_update();
+    assert_eq!(
+        seen.get(),
+        CivilDateTime::new(CivilDate::new(2026, 3, 25), 18, 30)
+    );
 }

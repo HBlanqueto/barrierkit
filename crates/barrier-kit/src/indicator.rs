@@ -1,8 +1,10 @@
+use freya_components::cache::AssetAge;
+use freya_components::svg_viewer::SvgViewer;
 use freya_core::prelude::*;
-use torin::prelude::{Direction, Size};
-use vow_design::{HAIRLINE, LEVEL_INDICATOR, LEVEL_INDICATOR_COLORS};
+use torin::prelude::{Direction, Position, Size};
+use vow_design::{CAPTION, GAUGE, HAIRLINE, LEVEL_INDICATOR, LEVEL_INDICATOR_COLORS};
 
-use crate::style::Palette;
+use crate::style::{Palette, text};
 use crate::symbol::{Symbol, symbol};
 use crate::theme::color;
 
@@ -71,6 +73,80 @@ impl Component for CapacityIndicator {
 }
 
 #[derive(PartialEq)]
+pub struct CircularGauge {
+    label: &'static str,
+    value: f32,
+    current: String,
+}
+
+impl CircularGauge {
+    pub fn new(label: &'static str, value: f32, current: impl Into<String>) -> Self {
+        Self {
+            label,
+            value: value.clamp(0.0, 1.0),
+            current: current.into(),
+        }
+    }
+}
+
+pub fn gauge_marker(value: f32) -> (f32, f32) {
+    let radius = (GAUGE.size - GAUGE.stroke) / 2.0;
+    let start = 90.0 + (360.0 - GAUGE.arc) / 2.0;
+    let angle = (start + GAUGE.arc * value).to_radians();
+    let center = GAUGE.size / 2.0;
+    (center + radius * angle.cos(), center + radius * angle.sin())
+}
+
+impl Component for CircularGauge {
+    fn render(&self) -> impl IntoElement {
+        let palette = Palette::current();
+        let size = GAUGE.size;
+        let center = size / 2.0;
+        let radius = (size - GAUGE.stroke) / 2.0;
+        let circumference = std::f32::consts::TAU * radius;
+        let open = circumference * GAUGE.arc / 360.0;
+        let start = 90.0 + (360.0 - GAUGE.arc) / 2.0;
+        let ring = format!(
+            r#"<svg viewBox="0 0 {size} {size}"><circle cx="{center}" cy="{center}" r="{radius}" fill="none" stroke="currentColor" stroke-width="{stroke}" stroke-linecap="round" stroke-dasharray="{open} {circumference}" transform="rotate({start} {center} {center})"/></svg>"#,
+            stroke = GAUGE.stroke,
+        );
+        let (x, y) = gauge_marker(self.value);
+        let marker = format!(
+            r#"<svg viewBox="0 0 {size} {size}"><circle cx="{x}" cy="{y}" r="{dot}" fill="currentColor"/></svg>"#,
+            dot = GAUGE.marker / 2.0,
+        );
+        let layer = |svg: String, ink: vow_design::Rgba| {
+            SvgViewer::new(Bytes::from(svg))
+                .width(Size::px(size))
+                .height(Size::px(size))
+                .color(color(ink))
+                .show_loader(false)
+        };
+        let value = self.value;
+        rect()
+            .a11y_role(AccessibilityRole::Meter)
+            .a11y_alt(self.label)
+            .a11y_builder(move |node| node.set_numeric_value(f64::from(value)))
+            .width(Size::px(size))
+            .height(Size::px(size))
+            .child(layer(ring, palette.tertiary_label))
+            .child(
+                rect()
+                    .position(Position::new_absolute())
+                    .child(layer(marker, palette.label).asset_age(AssetAge::zero())),
+            )
+            .child(
+                rect()
+                    .position(Position::new_absolute())
+                    .width(Size::px(size))
+                    .height(Size::px(size))
+                    .center()
+                    .child(text(self.current.clone(), CAPTION, palette.label)),
+            )
+    }
+}
+
+#[derive(PartialEq)]
 pub struct RatingIndicator {
     label: &'static str,
     value: u32,
@@ -129,6 +205,16 @@ impl Component for RatingIndicator {
 #[cfg(test)]
 mod tests {
     use super::level_color;
+
+    #[test]
+    fn the_gauge_marker_runs_from_the_lower_left_to_the_lower_right() {
+        let (low_x, low_y) = super::gauge_marker(0.0);
+        let (high_x, high_y) = super::gauge_marker(1.0);
+        let center = vow_design::GAUGE.size / 2.0;
+        assert!(low_x < center && low_y > center);
+        assert!(high_x > center && high_y > center);
+        assert!((low_y - high_y).abs() < 0.01);
+    }
 
     #[test]
     fn the_capacity_turns_yellow_at_the_warning_and_red_at_the_critical_value() {

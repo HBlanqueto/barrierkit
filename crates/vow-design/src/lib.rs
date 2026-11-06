@@ -561,6 +561,14 @@ pub struct ChartMetrics {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct GaugeMetrics {
+    pub size: f32,
+    pub stroke: f32,
+    pub arc: f32,
+    pub marker: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct LevelIndicatorMetrics {
     pub height: f32,
     pub radius: f32,
@@ -592,6 +600,8 @@ pub struct PathControlMetrics {
     pub height: f32,
     pub gap: f32,
     pub chevron: f32,
+    pub icon: f32,
+    pub icon_gap: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

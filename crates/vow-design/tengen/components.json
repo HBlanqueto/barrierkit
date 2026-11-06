@@ -54,6 +54,12 @@
       "stream-hole": 0.32,
       "series": ["blue", "green", "orange", "purple", "red", "yellow", "pink"]
     },
+    "gauge": {
+      "size": 44,
+      "stroke": 4,
+      "arc": 270,
+      "marker": 7
+    },
     "level-indicator": {
       "height": 16,
       "radius": 2,
@@ -79,7 +85,9 @@
     "path-control": {
       "height": 22,
       "gap": 4,
-      "chevron": 10
+      "chevron": 10,
+      "icon": 16,
+      "icon-gap": 4
     },
     "group-box": {
       "radius": 11,

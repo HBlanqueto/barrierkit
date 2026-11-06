@@ -9,7 +9,7 @@ use vow_design::{
 
 use crate::compact::stepper_arrows;
 use crate::controlled::{commit, use_controlled};
-use crate::date::{CivilDate, DatePart};
+use crate::date::{CivilDate, CivilDateTime, DatePart, typing_is_done};
 use crate::i18n::text;
 use crate::interaction::use_interaction;
 use crate::platform::{
@@ -19,25 +19,49 @@ use crate::style::{Palette, text};
 use crate::symbol::{Symbol, symbol};
 use crate::theme::color;
 
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum DateElements {
+    #[default]
+    Date,
+    Time,
+    DateAndTime,
+}
+
 #[derive(PartialEq)]
 pub struct DatePicker {
     label: &'static str,
-    date: CivilDate,
-    on_change: Option<Callback<CivilDate, ()>>,
+    value: CivilDateTime,
+    elements: DateElements,
+    on_change: Option<Callback<CivilDateTime, ()>>,
 }
 
 impl DatePicker {
-    pub fn new(label: &'static str, date: CivilDate) -> Self {
+    pub fn new(label: &'static str, value: CivilDateTime) -> Self {
         Self {
             label,
-            date,
+            value,
+            elements: DateElements::default(),
             on_change: None,
         }
     }
 
-    pub fn on_change(mut self, callback: impl Into<Callback<CivilDate, ()>>) -> Self {
+    pub fn elements(mut self, elements: DateElements) -> Self {
+        self.elements = elements;
+        self
+    }
+
+    pub fn on_change(mut self, callback: impl Into<Callback<CivilDateTime, ()>>) -> Self {
         self.on_change = Some(callback.into());
         self
+    }
+}
+
+fn parts(elements: DateElements) -> Vec<DatePart> {
+    let time = [DatePart::Hour, DatePart::Minute];
+    match elements {
+        DateElements::Date => date_order().to_vec(),
+        DateElements::Time => time.to_vec(),
+        DateElements::DateAndTime => date_order().into_iter().chain(time).collect(),
     }
 }
 
@@ -87,11 +111,21 @@ fn weekday_initials() -> [&'static str; 7] {
     }
 }
 
-fn part_text(date: CivilDate, part: DatePart) -> String {
+fn part_text(value: CivilDateTime, part: DatePart) -> String {
     match part {
-        DatePart::Day => format!("{:02}", date.day),
-        DatePart::Month => format!("{:02}", date.month),
-        DatePart::Year => format!("{:04}", date.year),
+        DatePart::Day => format!("{:02}", value.date.day),
+        DatePart::Month => format!("{:02}", value.date.month),
+        DatePart::Year => format!("{:04}", value.date.year),
+        DatePart::Hour => format!("{:02}", value.hour),
+        DatePart::Minute => format!("{:02}", value.minute),
+    }
+}
+
+fn separator(before: DatePart, after: DatePart) -> &'static str {
+    match (before, after) {
+        (DatePart::Hour, DatePart::Minute) => ":",
+        (_, DatePart::Hour) => " ",
+        _ => "/",
     }
 }
 
@@ -99,25 +133,48 @@ impl Component for DatePicker {
     fn render(&self) -> impl IntoElement {
         let palette = Palette::current();
         let interaction = use_interaction();
-        let date = use_controlled(&self.date);
-        let current = *date.read();
-        let order = date_order();
+        let value = use_controlled(&self.value);
+        let current = *value.read();
+        let parts = parts(self.elements);
+        let last = parts.len() - 1;
         let mut selected = use_state(|| 0usize);
+        let mut typed = use_state(String::new);
         let mut area = use_state(Area::default);
         let on_change = self.on_change.clone();
-        let pick = Callback::new(move |picked: CivilDate| commit(date, &on_change, picked));
-        let stepped = pick.clone();
-        let step = Rc::new(move |delta: i32| {
-            let part = order[*selected.peek()];
-            stepped.call(date.peek().shifted(part, delta));
+        let change: Rc<dyn Fn(CivilDateTime)> =
+            Rc::new(move |next| commit(value, &on_change, next));
+        let picked = change.clone();
+        let pick = Callback::new(move |date: CivilDate| {
+            let next = CivilDateTime {
+                date,
+                ..*value.peek()
+            };
+            picked(next)
         });
+        let step = {
+            let parts = parts.clone();
+            let change = change.clone();
+            Rc::new(move |delta: i32| {
+                let mut typed = typed;
+                typed.set(String::new());
+                let next = value.peek().shifted(parts[*selected.peek()], delta);
+                change(next);
+            })
+        };
         let (up, down, keys) = (step.clone(), step.clone(), step);
         let highlight = interaction.focused();
 
         let mut segments = Vec::new();
-        for (index, part) in order.into_iter().enumerate() {
+        for (index, part) in parts.iter().copied().enumerate() {
             if index > 0 {
-                segments.push(text("/", TEXT, palette.secondary_label).into_element());
+                segments.push(
+                    text(
+                        separator(parts[index - 1], part),
+                        TEXT,
+                        palette.secondary_label,
+                    )
+                    .into_element(),
+                );
             }
             let active = highlight && *selected.read() == index;
             let ink = if active {
@@ -126,19 +183,24 @@ impl Component for DatePicker {
                 palette.label
             };
             let pick = pick.clone();
+            let is_date = !matches!(part, DatePart::Hour | DatePart::Minute);
             segments.push(
                 rect()
                     .corner_radius(DATE_PICKER.segment_radius)
                     .maybe(active, |el| el.background(color(palette.accent)))
                     .on_press(move |_| {
                         selected.set(index);
-                        open_calendar(*area.peek(), *date.peek(), pick.clone());
+                        typed.set(String::new());
+                        if is_date {
+                            open_calendar(*area.peek(), value.peek().date, pick.clone());
+                        }
                     })
                     .child(text(part_text(current, part), TEXT, ink))
                     .into_element(),
             );
         }
 
+        let typing_parts = parts.clone();
         let field = interaction
             .attach(rect(), true)
             .a11y_role(AccessibilityRole::DateInput)
@@ -161,16 +223,33 @@ impl Component for DatePicker {
             .direction(Direction::Horizontal)
             .cross_align(Alignment::Center)
             .on_sized(move |event: Event<SizedEventData>| area.set_if_modified(event.area))
-            .on_key_down(move |event: Event<KeyboardEventData>| match event.key {
+            .on_key_down(move |event: Event<KeyboardEventData>| match &event.key {
                 Key::Named(NamedKey::ArrowUp) => keys(1),
                 Key::Named(NamedKey::ArrowDown) => keys(-1),
                 Key::Named(NamedKey::ArrowLeft) => {
+                    typed.set(String::new());
                     let index = selected.peek().saturating_sub(1);
                     selected.set(index);
                 }
                 Key::Named(NamedKey::ArrowRight) => {
-                    let index = (*selected.peek() + 1).min(2);
+                    typed.set(String::new());
+                    let index = (*selected.peek() + 1).min(last);
                     selected.set(index);
+                }
+                Key::Character(digit) if digit.chars().all(|c| c.is_ascii_digit()) => {
+                    let index = *selected.peek();
+                    let part = typing_parts[index];
+                    let buffer = format!("{}{digit}", typed.peek());
+                    if let Ok(number) = buffer.parse() {
+                        let next = value.peek().typed(part, number);
+                        change(next);
+                    }
+                    if typing_is_done(part, &buffer) {
+                        typed.set(String::new());
+                        selected.set((index + 1).min(last));
+                    } else {
+                        typed.set(buffer);
+                    }
                 }
                 _ => {}
             })

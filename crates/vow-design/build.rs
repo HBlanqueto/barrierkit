@@ -55,6 +55,7 @@ DATE_PICKER DatePickerMetrics components.date-picker
 PATH_CONTROL PathControlMetrics components.path-control
 DISCLOSURE DisclosureMetrics components.disclosure
 LEVEL_INDICATOR LevelIndicatorMetrics components.level-indicator
+GAUGE GaugeMetrics components.gauge
 BADGE BadgeMetrics components.badge
 MEDIA MediaMetrics components.media preview_delay_ms=preview-delay
 SCROLL_BAR ScrollBarMetrics components.scroll-bar hide_delay_ms=hide-delay
