@@ -1094,9 +1094,8 @@ impl Component for Checkbox {
         let box_bg = if *checked.read() {
             self.tint.fill(&palette)
         } else {
-            color(palette.content_background).into()
+            color(palette.control_background).into()
         };
-        let box_border = color(palette.control_border);
         let label_color = if self.disabled {
             color(palette.tertiary_label)
         } else {
@@ -1108,16 +1107,6 @@ impl Component for Checkbox {
             .height(Size::px(size))
             .corner_radius(CHECKBOX.radius)
             .background(box_bg)
-            .border(
-                Border::new()
-                    .width(vow_design::HAIRLINE)
-                    .alignment(BorderAlignment::Inner)
-                    .fill(if *checked.read() {
-                        Color::TRANSPARENT
-                    } else {
-                        box_border
-                    }),
-            )
             .center();
 
         if *checked.read() {
