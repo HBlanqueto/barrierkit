@@ -2,6 +2,7 @@ mod plot;
 mod scale;
 mod sector;
 mod space;
+mod stream;
 mod surface;
 
 use freya_core::prelude::*;
@@ -12,6 +13,7 @@ use crate::style::{Palette, text};
 use scale::nice_ticks;
 
 pub use sector::SectorChart;
+pub use stream::StreamChart;
 pub use surface::{Chart3D, HeatMap};
 
 #[derive(Clone, Debug, PartialEq)]

@@ -551,7 +551,7 @@ pub struct ChartMetrics {
     pub azimuth: f32,
     pub inclination: f32,
     pub drag_degrees: f32,
-    pub surface_grid: u32,
+    pub stream_hole: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

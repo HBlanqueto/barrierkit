@@ -15,8 +15,8 @@ Charts: marks (`LineMark`, `AreaMark`, `BarMark`, `PointMark`, `RuleMark`,
 
 1. **One module, `charts`, shaped like Swift Charts:** `Chart` (line, area,
    bar and point, with stacking, linear, monotone or step interpolation and
-   rules), `SectorChart` (pie and donut), `HeatMap` and `Chart3D` (surface
-   and point cloud).
+   rules), `SectorChart` (pie and donut), `HeatMap`, `StreamChart` (stream with a
+   "wiggle" baseline, also polar) and `Chart3D` (surface and point cloud).
 2. **One Skia element per chart** (`ElementExt`, like `glass.rs`): marks are
    painted with strokes and fills in a single node. Axes, legend and readout
    are kit text, so they follow the typography and accessibility.

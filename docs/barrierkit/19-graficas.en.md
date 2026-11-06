@@ -15,6 +15,7 @@ axes, legend and readout are kit text.
 | `Chart` | `MarkKind::Line`, `Area`, `Bar`, `Point` | Series on an axis: histories, comparisons |
 | `SectorChart` | pie or `.donut(true)` | Shares of a total |
 | `HeatMap` | grid of cells | Intensity by row and column |
+| `StreamChart` | stream or `.polar(true)` (flow clock) | How a share changes over time |
 | `Chart3D` | `surface` or `points` | Surfaces z = f(x, y) and point clouds |
 
 ## Steps
@@ -37,7 +38,12 @@ axes, legend and readout are kit text.
    maximum.
 4. For a share, use `SectorChart::new(..).slice(name, value)`; the legend
    shows each value and its percentage, and the donut the total.
-5. For 3D, pass a grid of heights to `Chart3D::surface` or `[x, y, z]`
+5. To show how a share changes over time, use `StreamChart`. Its "wiggle"
+   baseline (Byron and Wattenberg) minimizes the layers' slope, and the
+   series that peak first go to the middle. With `.polar(true)` time goes
+   around a clock that starts at twelve and leaves one step open where the
+   start and the end meet.
+6. For 3D, pass a grid of heights to `Chart3D::surface` or `[x, y, z]`
    points to `Chart3D::points`. The user rotates it by dragging.
 
 When the pointer moves over a `Chart`, a rule marks the position and the
@@ -58,6 +64,7 @@ They all live in `components.chart` in `vow-design` (`CHART`):
 | `grid-width` / `rule-width` | 0.5 / 1 | Grid and rules |
 | `ticks` | 4 | Desired Y axis ticks (steps of 1, 2 or 5 × 10ⁿ) |
 | `sector-inner` / `sector-inset` | 0.62 / 1.5° | Donut hole and gap between sectors |
+| `stream-hole` | 0.32 | Center hole of the flow clock |
 | `azimuth` / `inclination` | −30° / 25° | Initial `Chart3D` pose |
 | `drag-degrees` | 0.5 | Degrees per point when dragging |
 

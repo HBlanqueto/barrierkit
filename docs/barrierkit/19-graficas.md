@@ -15,6 +15,7 @@ ejes, leyenda y lectura son texto del kit.
 | `Chart` | `MarkKind::Line`, `Area`, `Bar`, `Point` | Series sobre un eje: historiales, comparaciones |
 | `SectorChart` | pastel o `.donut(true)` | Repartos de un total |
 | `HeatMap` | rejilla de celdas | Intensidad por fila y columna |
+| `StreamChart` | flujo o `.polar(true)` (reloj de flujo) | Cómo cambia el reparto con el tiempo |
 | `Chart3D` | `surface` o `points` | Superficies z = f(x, y) y nubes de puntos |
 
 ## Pasos
@@ -36,7 +37,12 @@ ejes, leyenda y lectura son texto del kit.
    `.rule(valor)`. Sin `.y_domain`, el eje Y va de 0 al máximo redondeado.
 4. Para un reparto, usa `SectorChart::new(..).slice(nombre, valor)`; la
    leyenda muestra cada valor y su porcentaje, y el donut el total.
-5. Para 3D, pasa una rejilla de alturas a `Chart3D::surface` o puntos
+5. Para ver cómo cambia un reparto con el tiempo, usa `StreamChart`. Su
+   línea base «wiggle» (Byron y Wattenberg) minimiza la inclinación de las
+   capas, y las series que alcanzan antes su pico van al centro. Con
+   `.polar(true)` el tiempo da la vuelta a un reloj que empieza a las 12 y
+   deja un paso abierto donde se unen principio y final.
+6. Para 3D, pasa una rejilla de alturas a `Chart3D::surface` o puntos
    `[x, y, z]` a `Chart3D::points`. El usuario la gira arrastrando.
 
 Al pasar el puntero sobre un `Chart`, una regla marca la posición y la
@@ -57,6 +63,7 @@ Todos viven en `components.chart` de `vow-design` (`CHART`):
 | `grid-width` / `rule-width` | 0,5 / 1 | Rejilla y reglas |
 | `ticks` | 4 | Marcas deseadas en el eje Y (pasos de 1, 2 o 5 × 10ⁿ) |
 | `sector-inner` / `sector-inset` | 0,62 / 1,5° | Hueco del donut y separación entre sectores |
+| `stream-hole` | 0,32 | Hueco central del reloj de flujo |
 | `azimuth` / `inclination` | −30° / 25° | Pose inicial de `Chart3D` |
 | `drag-degrees` | 0,5 | Grados por punto al arrastrar |
 

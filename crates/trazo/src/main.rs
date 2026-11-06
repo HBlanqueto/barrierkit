@@ -4,7 +4,9 @@ mod sampler;
 use std::f64::consts::PI;
 use std::time::Duration;
 
-use barrier_kit::charts::{Chart, Chart3D, HeatMap, Interpolation, MarkKind, SectorChart, Series};
+use barrier_kit::charts::{
+    Chart, Chart3D, HeatMap, Interpolation, MarkKind, SectorChart, Series, StreamChart,
+};
 use barrier_kit::controls::ScrollView;
 use barrier_kit::platform::{Timers, WindowOptions, run_window};
 use barrier_kit::style::{Palette, text};
@@ -152,7 +154,41 @@ fn gallery() -> Element {
             tr!("heat-map"),
             HeatMap::new(tr!("heat-map"), heat).height(120.0),
         ),
+        card(
+            tr!("stream-chart"),
+            streams(StreamChart::new(tr!("stream-chart"))),
+        ),
+        card(
+            tr!("flow-clock"),
+            streams(StreamChart::new(tr!("flow-clock")).polar(true).size(320.0)),
+        ),
     ])
+}
+
+fn streams(chart: StreamChart) -> StreamChart {
+    let names = [
+        tr!("photos"),
+        tr!("apps"),
+        tr!("system"),
+        tr!("other"),
+        tr!("visits"),
+        tr!("sales"),
+    ];
+    names
+        .into_iter()
+        .enumerate()
+        .fold(chart, |chart, (i, name)| {
+            let peak = 6.0 + i as f64 * 7.0;
+            let values = (0..48)
+                .map(|t| {
+                    let d = (t as f64 - peak) / 6.0;
+                    (4.0 + 3.0 * i as f64) * (-d * d).exp()
+                        + 0.6
+                        + 0.4 * (t as f64 * 0.7 + i as f64).sin().abs()
+                })
+                .collect();
+            chart.series(Series::new(name, values))
+        })
 }
 
 fn sorted(processes: &[Process], sort: Option<SortOrder>) -> Vec<Vec<String>> {
@@ -198,6 +234,16 @@ fn monitor_page(state: &Monitor, mut sort: State<Option<SortOrder>>) -> Element 
             tr!("cores"),
             HeatMap::new(tr!("cores"), state.cores.iter().map(history).collect())
                 .height((state.cores.len() as f32 * 14.0).max(14.0)),
+        ),
+        card(
+            tr!("core-clock"),
+            state.cores.iter().enumerate().fold(
+                StreamChart::new(tr!("core-clock"))
+                    .polar(true)
+                    .size(300.0)
+                    .unit("%"),
+                |chart, (i, core)| chart.series(Series::new(format!("{}", i + 1), history(core))),
+            ),
         ),
         card(
             tr!("memory"),

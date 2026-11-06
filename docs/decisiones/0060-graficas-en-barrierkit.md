@@ -15,8 +15,9 @@ las ofrece con Swift Charts: marcas (`LineMark`, `AreaMark`, `BarMark`,
 
 1. **Un módulo, `charts`, con la forma de Swift Charts:** `Chart` (línea,
    área, barra y punto, con apilado, interpolación lineal, monótona o en
-   escalón y reglas), `SectorChart` (pastel y donut), `HeatMap` y `Chart3D`
-   (superficie y nube de puntos).
+   escalón y reglas), `SectorChart` (pastel y donut), `HeatMap`, `StreamChart` (flujo con
+   línea base «wiggle», también polar) y `Chart3D` (superficie y nube de
+   puntos).
 2. **Un elemento Skia por gráfica** (`ElementExt`, como `glass.rs`): las
    marcas se pintan con trazos y rellenos en un solo nodo. Los ejes, la
    leyenda y la lectura son texto del kit, así que siguen la tipografía y la

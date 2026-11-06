@@ -115,6 +115,99 @@ pub fn monotone_controls(points: &[(f64, f64)]) -> Vec<[(f64, f64); 2]> {
         .collect()
 }
 
+// Byron & Wattenberg, "Stacked Graphs – Geometry & Aesthetics" (2008): the baseline that minimizes weighted wiggle, as d3.stackOffsetWiggle.
+pub fn wiggle_baseline(series: &[Vec<f64>]) -> Vec<f64> {
+    let len = series.iter().map(Vec::len).min().unwrap_or(0);
+    let mut baseline = vec![0.0; len];
+    for j in 1..len {
+        let (mut total, mut weighted) = (0.0, 0.0);
+        let mut below = 0.0;
+        for values in series {
+            let change = values[j] - values[j - 1];
+            weighted += values[j] * (below + change / 2.0);
+            below += change;
+            total += values[j];
+        }
+        baseline[j] = baseline[j - 1] - if total > 0.0 { weighted / total } else { 0.0 };
+    }
+    baseline
+}
+
+pub fn inside_out(series: &[Vec<f64>]) -> Vec<usize> {
+    let peak = |values: &Vec<f64>| {
+        values
+            .iter()
+            .enumerate()
+            .max_by(|a, b| a.1.total_cmp(b.1))
+            .map_or(0, |(i, _)| i)
+    };
+    let mut by_peak: Vec<usize> = (0..series.len()).collect();
+    by_peak.sort_by_key(|i| peak(&series[*i]));
+    let (mut top, mut bottom) = (Vec::new(), Vec::new());
+    let (mut top_sum, mut bottom_sum) = (0.0, 0.0);
+    for i in by_peak {
+        let sum: f64 = series[i].iter().sum();
+        if top_sum < bottom_sum {
+            top.push(i);
+            top_sum += sum;
+        } else {
+            bottom.push(i);
+            bottom_sum += sum;
+        }
+    }
+    bottom.reverse();
+    bottom.into_iter().chain(top).collect()
+}
+
+pub fn stream_bands(series: &[Vec<f64>]) -> (Vec<usize>, Vec<Vec<(f64, f64)>>) {
+    let order = inside_out(series);
+    let ordered: Vec<Vec<f64>> = order.iter().map(|i| series[*i].clone()).collect();
+    let baseline = wiggle_baseline(&ordered);
+    let len = baseline.len();
+    let totals: Vec<f64> = (0..len)
+        .map(|j| ordered.iter().map(|v| v[j]).sum())
+        .collect();
+    let center = (0..len).map(|j| baseline[j] + totals[j] / 2.0).sum::<f64>() / len.max(1) as f64;
+    let mut lower: Vec<f64> = baseline.iter().map(|b| b - center).collect();
+    let bands = ordered
+        .iter()
+        .map(|values| {
+            (0..len)
+                .map(|j| {
+                    let band = (lower[j], lower[j] + values[j]);
+                    lower[j] = band.1;
+                    band
+                })
+                .collect()
+        })
+        .collect();
+    (order, bands)
+}
+
+pub fn monotone_samples(points: &[(f64, f64)], steps: usize) -> Vec<(f64, f64)> {
+    let Some(first) = points.first() else {
+        return Vec::new();
+    };
+    let mut samples = vec![*first];
+    for (controls, (start, end)) in monotone_controls(points)
+        .iter()
+        .zip(points.iter().zip(&points[1..]))
+    {
+        for step in 1..=steps.max(1) {
+            let t = step as f64 / steps.max(1) as f64;
+            let u = 1.0 - t;
+            let bezier = |a: f64, b: f64, c: f64, d: f64| {
+                u * u * u * a + 3.0 * u * u * t * b + 3.0 * u * t * t * c + t * t * t * d
+            };
+            samples.push((
+                bezier(start.0, controls[0].0, controls[1].0, end.0),
+                bezier(start.1, controls[0].1, controls[1].1, end.1),
+            ));
+        }
+    }
+    samples
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -162,5 +255,33 @@ mod tests {
         };
         assert_eq!(scale.map(0.0), 200.0);
         assert_eq!(scale.map(100.0), 0.0);
+    }
+    #[test]
+    fn a_lone_stream_grows_evenly_about_the_center() {
+        let (_, bands) = stream_bands(&[vec![2.0, 4.0, 6.0]]);
+        assert_eq!(bands[0], vec![(-1.0, 1.0), (-2.0, 2.0), (-3.0, 3.0)]);
+    }
+
+    #[test]
+    fn steady_streams_keep_a_flat_baseline() {
+        assert_eq!(wiggle_baseline(&[vec![1.0; 4], vec![3.0; 4]]), vec![0.0; 4]);
+    }
+
+    #[test]
+    fn inside_out_puts_the_earliest_peaks_in_the_middle() {
+        let late = vec![0.0, 0.0, 9.0];
+        let early = vec![9.0, 0.0, 0.0];
+        let middle = vec![0.0, 9.0, 0.0];
+        let order = inside_out(&[late, early, middle]);
+        assert_eq!(order[order.len() / 2], 1);
+    }
+
+    #[test]
+    fn monotone_samples_pass_through_every_point() {
+        let points = [(0.0, 0.0), (1.0, 4.0), (2.0, 1.0)];
+        let samples = monotone_samples(&points, 4);
+        assert_eq!(samples.len(), 9);
+        assert_eq!(samples[4], (1.0, 4.0));
+        assert_eq!(samples[8], (2.0, 1.0));
     }
 }

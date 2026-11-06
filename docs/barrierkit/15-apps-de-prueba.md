@@ -140,8 +140,8 @@ Prueba las gráficas (capítulo [19](19-graficas.md)) en tres pestañas:
 
 | Pestaña | Contenido |
 |---|---|
-| Gráficas 2D | Líneas monótonas, áreas apiladas, barras agrupadas con regla, barras apiladas, puntos, escalones, pastel, donut y mapa de calor |
-| Monitor | CPU de usuario y sistema, uso por núcleo, memoria, red, carga media y procesos, leídos de `/proc` cada segundo |
+| Gráficas 2D | Líneas monótonas, áreas apiladas, barras agrupadas con regla, barras apiladas, puntos, escalones, pastel, donut, mapa de calor, flujo y reloj de flujo |
+| Monitor | CPU de usuario y sistema, uso por núcleo, memoria, red, carga media, reloj de núcleos y procesos, leídos de `/proc` cada segundo |
 | 3D | Superficie sin(r)/r y nube de puntos; se giran arrastrando |
 
 `cargo test -p trazo` comprueba que cada pestaña dibuja sus gráficas; con

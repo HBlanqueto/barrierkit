@@ -45,7 +45,7 @@
       "azimuth": -30,
       "inclination": 25,
       "drag-degrees": 0.5,
-      "surface-grid": 24,
+      "stream-hole": 0.32,
       "series": ["blue", "green", "orange", "purple", "red", "yellow", "pink"]
     },
     "stepper": {

@@ -141,8 +141,8 @@ Tests the charts (chapter [19](19-graficas.en.md)) in three tabs:
 
 | Tab | Content |
 |---|---|
-| 2D charts | Monotone lines, stacked areas, grouped bars with a rule, stacked bars, points, steps, pie, donut and heat map |
-| Monitor | User and system CPU, usage per core, memory, network, load average and processes, read from `/proc` every second |
+| 2D charts | Monotone lines, stacked areas, grouped bars with a rule, stacked bars, points, steps, pie, donut, heat map, stream and flow clock |
+| Monitor | User and system CPU, usage per core, memory, network, load average, core clock and processes, read from `/proc` every second |
 | 3D | sin(r)/r surface and point cloud; drag to rotate |
 
 `cargo test -p trazo` checks that every tab draws its charts; with
