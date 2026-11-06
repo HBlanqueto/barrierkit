@@ -49,6 +49,7 @@ axes, legend and readout are kit text.
    or picks a plane: free, front, top, side or isometric. The mesh is drawn
    on the GPU in a single call (ADR 0060).
 
+As in Swift Charts, the Y axis is on the trailing side and the legend below.
 When the pointer moves over a `Chart`, a rule marks the position and the
 legend shows each series' value at that point. Without a pointer, it shows
 the last value.
@@ -62,11 +63,11 @@ They all live in `components.chart` in `vow-design` (`CHART`):
 | `height` | 180 | Default height of the data area |
 | `line-width` | 2 | Line thickness |
 | `point-size` | 7 | Point diameter |
-| `bar-gap` / `bar-radius` | 0.25 / 2 | Gap between bar groups and their radius |
+| `bar-gap` / `bar-radius` | 0.25 / 0 | Gap between bar groups; no radius, like `BarMark` |
 | `area-opacity` | 0.35 | Opacity of area fills |
 | `grid-width` / `rule-width` | 0.5 / 1 | Grid and rules |
 | `ticks` | 4 | Desired Y axis ticks (steps of 1, 2 or 5 × 10ⁿ) |
-| `sector-inner` / `sector-inset` | 0.62 / 1.5° | Donut hole and gap between sectors |
+| `sector-inner` / `sector-inset` / `sector-radius` | 0.618 / 1.5 / 5 | Donut hole, gap and sector corner, like the WWDC23 sample |
 | `stream-hole` | 0.32 | Center hole of the flow clock |
 | `azimuth` / `inclination` | −30° / 25° | Initial `Chart3D` pose |
 | `drag-degrees` | 0.5 | Degrees per point when dragging |

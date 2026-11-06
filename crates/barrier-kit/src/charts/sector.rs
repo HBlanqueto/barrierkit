@@ -5,7 +5,7 @@ use freya_core::element::{ElementExt, RenderContext};
 use freya_core::prelude::*;
 use freya_core::tree::DiffModifies;
 use freya_engine::prelude::{PaintStyle, PathBuilder, Rect as SkRect};
-use torin::prelude::{Alignment, Direction, Position, Size};
+use torin::prelude::{Direction, Position, Size};
 use vow_design::{CHART, HEADLINE, Rgba, SPACE_1, SPACE_2};
 
 use super::plot::paint;
@@ -59,9 +59,11 @@ impl ElementExt for Sectors {
                 path.arc_to(ring(outer), start, sweep, false);
             }
             path.close();
-            context
-                .canvas
-                .draw_path(&path.detach(), &paint(*color, PaintStyle::Fill, 0.0));
+            let mut fill = paint(*color, PaintStyle::Fill, 0.0);
+            fill.set_path_effect(skia_safe::corner_path_effect::new(
+                CHART.sector_radius * context.scale_factor as f32,
+            ));
+            context.canvas.draw_path(&path.detach(), &fill);
         }
     }
 }
@@ -136,8 +138,7 @@ impl Component for SectorChart {
             )
         });
         rect()
-            .direction(Direction::Horizontal)
-            .cross_align(Alignment::Center)
+            .direction(Direction::Vertical)
             .spacing(SPACE_2)
             .a11y_role(AccessibilityRole::Figure)
             .a11y_alt(self.label)

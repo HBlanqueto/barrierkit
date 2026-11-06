@@ -216,7 +216,7 @@ impl Component for Chart {
             let line = CAPTION.line_height as f32;
             let top = (y.map(*tick) as f32 - line / 2.0).clamp(0.0, self.height - line);
             rect()
-                .position(Position::new_absolute().top(top).right(CHART.axis_gap))
+                .position(Position::new_absolute().top(top).left(CHART.axis_gap))
                 .child(text(
                     format_value(*tick, self.unit),
                     CAPTION,
@@ -269,21 +269,8 @@ impl Component for Chart {
             .child(
                 rect()
                     .width(Size::fill())
-                    .direction(Direction::Horizontal)
-                    .spacing(CHART.legend_gap)
-                    .children(readout),
-            )
-            .child(
-                rect()
-                    .width(Size::fill())
                     .height(Size::px(self.height))
                     .direction(Direction::Horizontal)
-                    .child(
-                        rect()
-                            .width(Size::px(CHART.y_axis_width))
-                            .height(Size::fill())
-                            .children(y_labels),
-                    )
                     .child(
                         rect()
                             .width(Size::flex(1.0))
@@ -297,6 +284,12 @@ impl Component for Chart {
                             })
                             .on_pointer_leave(move |_| hover.set_if_modified(None))
                             .child(crate::glass::leaf(plot)),
+                    )
+                    .child(
+                        rect()
+                            .width(Size::px(CHART.y_axis_width))
+                            .height(Size::fill())
+                            .children(y_labels),
                     ),
             )
             .maybe(!self.x_labels.is_empty(), |el| {
@@ -304,10 +297,17 @@ impl Component for Chart {
                     rect()
                         .width(Size::fill())
                         .height(Size::px(CAPTION.line_height as f32))
-                        .padding(Gaps::new(0.0, 0.0, 0.0, CHART.y_axis_width))
+                        .padding(Gaps::new(0.0, CHART.y_axis_width, 0.0, 0.0))
                         .children(x_labels),
                 )
             })
+            .child(
+                rect()
+                    .width(Size::fill())
+                    .direction(Direction::Horizontal)
+                    .spacing(CHART.legend_gap)
+                    .children(readout),
+            )
     }
 }
 

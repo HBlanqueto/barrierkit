@@ -546,6 +546,7 @@ pub struct ChartMetrics {
     pub legend_gap: f32,
     pub sector_inner: f32,
     pub sector_inset: f32,
+    pub sector_radius: f32,
     pub heat_gap: f32,
     pub heat_radius: f32,
     pub azimuth: f32,

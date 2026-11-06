@@ -48,9 +48,9 @@ ejes, leyenda y lectura son texto del kit.
    plano: libre, frente, arriba, lado o isométrica. La malla se dibuja en la
    GPU en una sola llamada (ADR 0060).
 
-Al pasar el puntero sobre un `Chart`, una regla marca la posición y la
-leyenda muestra el valor de cada serie en ese punto. Sin puntero, muestra el
-último valor.
+Como en Swift Charts, el eje Y va a la derecha y la leyenda debajo. Al pasar
+el puntero sobre un `Chart`, una regla marca la posición y la leyenda muestra
+el valor de cada serie en ese punto. Sin puntero, muestra el último valor.
 
 ## Valores
 
@@ -61,11 +61,11 @@ Todos viven en `components.chart` de `vow-design` (`CHART`):
 | `height` | 180 | Alto por defecto del área de datos |
 | `line-width` | 2 | Grosor de las líneas |
 | `point-size` | 7 | Diámetro de los puntos |
-| `bar-gap` / `bar-radius` | 0,25 / 2 | Hueco entre grupos de barras y su radio |
+| `bar-gap` / `bar-radius` | 0,25 / 0 | Hueco entre grupos de barras; sin radio, como `BarMark` |
 | `area-opacity` | 0,35 | Opacidad del relleno de las áreas |
 | `grid-width` / `rule-width` | 0,5 / 1 | Rejilla y reglas |
 | `ticks` | 4 | Marcas deseadas en el eje Y (pasos de 1, 2 o 5 × 10ⁿ) |
-| `sector-inner` / `sector-inset` | 0,62 / 1,5° | Hueco del donut y separación entre sectores |
+| `sector-inner` / `sector-inset` / `sector-radius` | 0,618 / 1,5 / 5 | Hueco del donut, separación y esquina de los sectores, como la muestra de la WWDC23 |
 | `stream-hole` | 0,32 | Hueco central del reloj de flujo |
 | `azimuth` / `inclination` | −30° / 25° | Pose inicial de `Chart3D` |
 | `drag-degrees` | 0,5 | Grados por punto al arrastrar |

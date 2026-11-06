@@ -250,13 +250,6 @@ impl Component for StreamChart {
             .child(
                 rect()
                     .width(Size::fill())
-                    .direction(Direction::Horizontal)
-                    .spacing(CHART.legend_gap)
-                    .children(legend),
-            )
-            .child(
-                rect()
-                    .width(Size::fill())
                     .main_align(Alignment::Center)
                     .direction(Direction::Horizontal)
                     .child(
@@ -291,6 +284,13 @@ impl Component for StreamChart {
                                 ),
                             })),
                     ),
+            )
+            .child(
+                rect()
+                    .width(Size::fill())
+                    .direction(Direction::Horizontal)
+                    .spacing(CHART.legend_gap)
+                    .children(legend),
             )
     }
 }
