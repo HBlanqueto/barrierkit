@@ -2,7 +2,7 @@ use freya_components::cursor_blink::use_cursor_blink;
 use freya_core::prelude::*;
 use freya_edit::{EditableConfig, EditableEvent, EditorLine, TextEditor as _, use_editable};
 use freya_engine::prelude::{RectHeightStyle, RectWidthStyle};
-use torin::prelude::{Alignment, Area, Content, Direction, Gaps, Size};
+use torin::prelude::{Alignment, Area, Content, CursorPoint, Direction, Gaps, Size};
 use vow_design::{CAPTION, SPACE_1, SPACE_2, TEXT, TEXT_FIELD};
 
 use crate::compact::IconButton;
@@ -10,7 +10,8 @@ use crate::controls::{Button, SearchField};
 use crate::font_panel::show_font_panel;
 use crate::i18n::text;
 use crate::rich_text::{
-    Emphasis, FontChoice, StyleRun, apply_font, char_styles, font_at, restyle_after_edit, toggle,
+    Emphasis, FontChoice, StyleRun, apply_font, char_styles, font_at, link_at, restyle_after_edit,
+    toggle,
 };
 use crate::style::text;
 use crate::symbol::Symbol;
@@ -52,6 +53,43 @@ impl TextEditor {
     }
 }
 
+fn char_under(holder: &ParagraphHolder, text: &str, location: CursorPoint) -> Option<usize> {
+    let holder = holder.0.borrow();
+    let inner = holder.as_ref()?;
+    let scale = inner.scale_factor;
+    let (x, y) = ((location.x * scale) as f32, (location.y * scale) as f32);
+    let caret = inner
+        .paragraph
+        .get_glyph_position_at_coordinate((x, y))
+        .position
+        .max(0) as usize;
+    [caret, caret.saturating_sub(1)]
+        .into_iter()
+        .find_map(|utf16| {
+            let index = char_index(text, utf16);
+            let range = utf16_range(text, &(index..index + 1));
+            inner
+                .paragraph
+                .get_rects_for_range(range, RectHeightStyle::Max, RectWidthStyle::Tight)
+                .iter()
+                .any(|found| {
+                    let rect = found.rect;
+                    (rect.left..rect.right).contains(&x) && (rect.top..rect.bottom).contains(&y)
+                })
+                .then_some(index)
+        })
+}
+
+fn link_under(
+    holder: &ParagraphHolder,
+    text: &str,
+    styles: Option<State<Vec<StyleRun>>>,
+    location: CursorPoint,
+) -> Option<String> {
+    let index = char_under(holder, text, location)?;
+    link_at(&styles?.peek(), index).map(str::to_owned)
+}
+
 impl Component for TextEditor {
     fn render(&self) -> impl IntoElement {
         let palette = Palette::current();
@@ -68,6 +106,7 @@ impl Component for TextEditor {
         let mut finding = use_state(|| false);
         let mut history = use_state(|| (false, false));
         let mut spell_index = use_state(|| None);
+        let mut over_link = use_state(|| false);
         let query = use_state(String::new);
         let current = use_state(|| 0usize);
         let scroll = use_scroll_controller();
@@ -199,14 +238,37 @@ impl Component for TextEditor {
                 value.set(text);
             }
         };
-        let on_press = move |event: Event<FocusPressEventData>| {
+        let on_press = move |event: Event<PointerEventData>| {
+            let location = event.element_location();
+            match event.data() {
+                PointerEventData::Mouse(mouse) if mouse.button == Some(MouseButton::Right) => {
+                    if let Some(inner) = holder.peek().0.borrow().as_ref() {
+                        let scale = inner.scale_factor;
+                        let position = inner
+                            .paragraph
+                            .get_glyph_position_at_coordinate((
+                                (location.x * scale) as f32,
+                                (location.y * scale) as f32,
+                            ))
+                            .position;
+                        spell_index.set(Some(char_index(&value.peek(), position.max(0) as usize)));
+                    }
+                    return;
+                }
+                PointerEventData::Mouse(mouse) if mouse.button != Some(MouseButton::Left) => return,
+                _ => {}
+            }
             event.stop_propagation();
             event.prevent_default();
+            if let Some(link) = link_under(&holder.peek(), &value.peek(), styles, location) {
+                spawn(async move { crate::portal::open_uri(&link, false).await });
+                return;
+            }
             dragging.set_if_modified(true);
             blink.reset();
             if !value.peek().is_empty() {
                 editable.process_event(EditableEvent::Down {
-                    location: event.element_location(),
+                    location,
                     editor_line: EditorLine::SingleParagraph,
                     holder: &holder.read(),
                 });
@@ -243,20 +305,22 @@ impl Component for TextEditor {
             .width(Size::fill())
             .margin(Gaps::new_symmetric(margin_y, TEXT_FIELD.padding_x))
             .on_sized(move |event: Event<SizedEventData>| area.set(event.visible_area))
-            .on_focus_press(on_press)
-            .on_secondary_down(move |event: Event<PressEventData>| {
-                if let (PressEventData::Mouse(mouse), Some(inner)) =
-                    (event.data(), holder.peek().0.borrow().as_ref())
-                {
-                    let scale = inner.scale_factor;
-                    let position = inner
-                        .paragraph
-                        .get_glyph_position_at_coordinate((
-                            (mouse.element_location.x * scale) as f32,
-                            (mouse.element_location.y * scale) as f32,
-                        ))
-                        .position;
-                    spell_index.set(Some(char_index(&value.peek(), position.max(0) as usize)));
+            .on_pointer_down(on_press)
+            .on_pointer_move(move |event: Event<PointerEventData>| {
+                let over = link_under(
+                    &holder.peek(),
+                    &value.peek(),
+                    styles,
+                    event.element_location(),
+                )
+                .is_some();
+                if over != *over_link.peek() {
+                    over_link.set(over);
+                    Cursor::set(if over {
+                        CursorIcon::Pointer
+                    } else {
+                        CursorIcon::Text
+                    });
                 }
             })
             .cursor_index(focused.then(|| editor.cursor_pos()))

@@ -237,6 +237,9 @@ Ctrl+B y Ctrl+I alternan negrita y cursiva en la selección: si todo el rango la
 tiene, se quita; si no, se pone. Al escribir, los tramos se recolocan
 (`restyle_after_edit`). Lo escrito hereda la negrita y la cursiva del carácter
 anterior, pero no el enlace. Los enlaces se pintan con el acento y subrayados.
+Con el puntero encima se muestra la mano, y un clic los abre con el portal
+`OpenURI` en vez de mover el cursor, como `NSTextView`
+([`clicked(onLink:at:)`](https://developer.apple.com/documentation/appkit/nstextview/clicked(onlink:at:))).
 
 En `TextEditor`, Ctrl+F abre una barra de búsqueda encima del texto, como
 `findNavigator` de SwiftUI: un `SearchField`, el contador («2 de 3»), anterior

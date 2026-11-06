@@ -236,7 +236,9 @@ bold and italic on the selection: if the whole range has it, it is removed;
 otherwise it is added. While typing, the runs move along
 (`restyle_after_edit`). Typed text inherits the bold and italic of the
 previous character, but not the link. Links are painted with the accent and
-underlined.
+underlined. The pointer turns into a hand over them, and a click opens them
+through the `OpenURI` portal instead of moving the caret, like `NSTextView`
+([`clicked(onLink:at:)`](https://developer.apple.com/documentation/appkit/nstextview/clicked(onlink:at:))).
 
 In `TextEditor`, Ctrl+F opens a find bar above the text, like SwiftUI's
 `findNavigator`: a `SearchField`, the counter ("2 of 3"), previous and next

@@ -139,6 +139,12 @@ pub fn apply_font(
     runs_from(&styles)
 }
 
+pub fn link_at(runs: &[StyleRun], index: usize) -> Option<&str> {
+    runs.iter()
+        .find(|run| run.range.contains(&index))
+        .and_then(|run| run.style.link.as_deref())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -167,6 +173,19 @@ mod tests {
             restyle_after_edit(&[bold(0..4)], "hola mundo", "ho mundo"),
             [bold(0..2)]
         );
+    }
+
+    #[test]
+    fn a_link_covers_its_characters_and_not_the_one_after() {
+        let runs = [StyleRun {
+            range: 2..5,
+            style: TextStyle {
+                link: Some("https://example.org".into()),
+                ..TextStyle::default()
+            },
+        }];
+        assert_eq!(link_at(&runs, 2), Some("https://example.org"));
+        assert_eq!(link_at(&runs, 5), None);
     }
 
     #[test]
