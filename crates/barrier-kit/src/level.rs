@@ -90,7 +90,11 @@ impl Component for LevelSlider {
         let measured = *width.read();
 
         let (height, run, offset) = match style {
-            LevelStyle::Regular => (SLIDER.height, measured - SLIDER.knob, SLIDER.knob / 2.0),
+            LevelStyle::Regular => (
+                SLIDER.height,
+                measured - SLIDER.knob_width,
+                SLIDER.knob_width / 2.0,
+            ),
             LevelStyle::Fat(_) => (SLIDER_FAT.height, measured, 0.0),
         };
         let on_change = self.on_change.clone();
@@ -145,7 +149,13 @@ impl Component for LevelSlider {
                     )),
                 )
                 .child(
-                    knob(knob_x, (height - SLIDER.knob) / 2.0, SLIDER.knob).layer(KNOB_ABOVE_FILL),
+                    knob(
+                        knob_x,
+                        (height - SLIDER.knob_height) / 2.0,
+                        SLIDER.knob_width,
+                        SLIDER.knob_height,
+                    )
+                    .layer(KNOB_ABOVE_FILL),
                 )
             }
             LevelStyle::Fat(lead) => {
@@ -202,12 +212,12 @@ pub(crate) fn knob_shadow() -> Shadow {
 // freya 0.4.3 paints by depth (data.rs `LayerState`); a sibling knob must outrank the fill, two levels down.
 pub(crate) const KNOB_ABOVE_FILL: i16 = 2;
 
-pub(crate) fn knob(left: f32, top: f32, size: f32) -> Rect {
+pub(crate) fn knob(left: f32, top: f32, width: f32, height: f32) -> Rect {
     rect()
         .position(Position::new_absolute().left(left).top(top))
-        .width(Size::px(size))
-        .height(Size::px(size))
-        .corner_radius(size / 2.0)
+        .width(Size::px(width))
+        .height(Size::px(height))
+        .corner_radius(height / 2.0)
         .background(color(SWITCH.knob_color))
         .shadow(knob_shadow())
 }

@@ -303,7 +303,7 @@ fn emit_titlebar(out: &mut String, tengen: &Tengen, look: Look) {
         int(&format!("{lights}.size")),
         int(&format!("{lights}.gap")),
         int(&format!("{lights}.radius")),
-        tengen.font("font.styles.headline"),
+        tengen.font("font.styles.window-title"),
     ));
     for (name, key) in [
         ("WINDOW_MIN_SIZE", "min"),

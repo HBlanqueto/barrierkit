@@ -288,10 +288,10 @@ impl Component for Slider {
         let on_change = self.on_change.clone();
 
         let width = SETTINGS.strength.width as f32;
-        let knob = SLIDER.knob;
+        let (knob, knob_height) = (SLIDER.knob_width, SLIDER.knob_height);
         let track = SETTINGS.strength.track as f32;
         let tick = SETTINGS.strength.tick as f32;
-        let tick_top = (knob + track) / 2.0 + SETTINGS.strength.tick_gap as f32;
+        let tick_top = (knob_height + track) / 2.0 + SETTINGS.strength.tick_gap as f32;
         let label_gap = SETTINGS.strength.label_gap as f32;
         let steps = self.steps;
         let segments = steps.saturating_sub(1).max(1) as f32;
@@ -312,7 +312,7 @@ impl Component for Slider {
             .attach(rect(), !self.disabled)
             .width(Size::px(width))
             .height(Size::px(
-                knob + label_gap + CAPTION.size as f32 * TEXT_LINE_HEIGHT,
+                knob_height + label_gap + CAPTION.size as f32 * TEXT_LINE_HEIGHT,
             ))
             .a11y_role(AccessibilityRole::Slider);
 
@@ -334,7 +334,7 @@ impl Component for Slider {
         let dim = move |el: Rect| el.maybe(disabled, |el| el.opacity(SWITCH.disabled_opacity));
         let track_rect = dim(bar(
             knob / 2.0,
-            (knob - track) / 2.0,
+            (knob_height - track) / 2.0,
             run,
             track,
             color(palette.control_background),
@@ -357,7 +357,7 @@ impl Component for Slider {
                 .background(color(palette.control_border)))
             .into_element()
         });
-        let knob_rect = level::knob(knob_x, 0.0, knob).layer(level::KNOB_ABOVE_FILL);
+        let knob_rect = level::knob(knob_x, 0.0, knob, knob_height).layer(level::KNOB_ABOVE_FILL);
 
         let labels = self.labels.iter().take(self.steps).map(|text| {
             let label_node = label()
@@ -371,7 +371,11 @@ impl Component for Slider {
             rect().child(label_node).into_element()
         });
         let labels_row = dim(rect()
-            .position(Position::new_absolute().left(0.0).top(knob + label_gap))
+            .position(
+                Position::new_absolute()
+                    .left(0.0)
+                    .top(knob_height + label_gap),
+            )
             .width(Size::px(width))
             .direction(Direction::Horizontal)
             .main_align(Alignment::SpaceBetween)
@@ -631,7 +635,8 @@ impl Component for Switch {
             .child(level::knob(
                 SWITCH.inset + SWITCH.travel * progress,
                 SWITCH.inset,
-                SWITCH.knob,
+                SWITCH.knob_width,
+                SWITCH.knob_height,
             ));
         root = interaction.focus_ring(root, SWITCH.height / 2.0);
 

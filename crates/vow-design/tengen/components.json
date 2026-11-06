@@ -22,11 +22,12 @@
       "icon": 16
     },
     "switch": {
-      "width": 32,
-      "height": 18,
-      "knob": 14,
+      "width": 54,
+      "height": 24,
+      "knob-width": 31,
+      "knob-height": 20,
       "inset": 2,
-      "travel": 14,
+      "travel": 19,
       "knob-color": "#ffffff",
       "transition": "duration.fast",
       "disabled-opacity": 0.4
@@ -34,7 +35,8 @@
     "slider": {
       "height": 20,
       "track": 4,
-      "knob": 20,
+      "knob-width": 20,
+      "knob-height": 16,
       "fat": {
         "height": 22,
         "fill-min": 22,
@@ -306,7 +308,7 @@
           "radius": "radius.sm",
           "padding-x": 9,
           "gap": 8,
-          "icon": 16,
+          "icon": 17,
           "app-icon": 22,
           "ink": "ink",
           "icon-ink": "accent-strong",
@@ -560,8 +562,8 @@
       "padding-x": 8
     },
     "focus-ring": {
-      "width": 2,
-      "offset": 2
+      "width": 3.5,
+      "offset": 0
     },
     "shell": {
       "menubar": {

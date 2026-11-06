@@ -48,8 +48,9 @@ tipos (`Rgba`, `Palette`, `Titlebar`, `ShellPalette`…) y la API.
   `titlebar-title`/`titlebar-title-inactive` y `titlebar-line`.
 - **Alturas:** `size.titlebar-h = 40` en las apps propias y
   `size.titlebar-ssd-h = 32` en la barra que dibuja el compositor.
-- **Tipografía:** `font.families.sans` empieza por Geist; `titlebar-title` es
-  13/17/600.
+- **Tipografía:** `font.families.sans` empieza por Geist; el título de la
+  ventana (`font.styles.window-title`) es 13/18/700, como `titleBarFont` de
+  AppKit.
 - **Sombras:** `shadow.layers.{light,dark}` guardan las capas ambient y
   contact; `shadow.unfocused` fija los factores de la ventana inactiva.
 - **Esquinas de ventana:** `components.window.corner` → `WINDOW_CORNER`, con

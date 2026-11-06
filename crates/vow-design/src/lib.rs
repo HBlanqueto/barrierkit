@@ -362,7 +362,8 @@ pub struct SettingsMetrics {
 pub struct SliderMetrics {
     pub height: f32,
     pub track: f32,
-    pub knob: f32,
+    pub knob_width: f32,
+    pub knob_height: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -375,7 +376,8 @@ pub struct CheckboxMetrics {
 pub struct SwitchMetrics {
     pub width: f32,
     pub height: f32,
-    pub knob: f32,
+    pub knob_width: f32,
+    pub knob_height: f32,
     pub inset: f32,
     pub travel: f32,
     pub knob_color: Rgba,
