@@ -53,7 +53,7 @@ una app propia podría olvidarse de pedirlo.
 Sustituye la regla «native → Client siempre» del punto 3.
 
 - Cada ventana de CelestialKit pide `Client` y dibuja su barra unificada de
-  44 px (`titlebar-h`), con `TrafficLights` y hueco de toolbar. El kit no
+  40 px (`titlebar-h`), con `TrafficLights` y hueco de toolbar. El kit no
   ofrece pedir `Server`.
 - El kit pide **siempre** el modo de forma explícita con
   `xdg-decoration.set_mode` antes del primer commit, junto con

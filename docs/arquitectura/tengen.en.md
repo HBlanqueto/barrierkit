@@ -48,7 +48,7 @@ Do not edit `crates/vow-design/src/` to change a value: it holds the types
   `traffic-rim-inactive` and `traffic-glyph` are in `tokens.json`.
 - **Titlebar:** `titlebar-bg`/`titlebar-bg-inactive`,
   `titlebar-title`/`titlebar-title-inactive` and `titlebar-line`.
-- **Heights:** `size.titlebar-h = 44` in own apps and
+- **Heights:** `size.titlebar-h = 40` in own apps and
   `size.titlebar-ssd-h = 32` in the bar the compositor draws.
 - **Typography:** `font.families.sans` starts with Geist; `titlebar-title` is
   13/17/600.

@@ -52,7 +52,7 @@ an own app could forget to request it.
 
 Replaces the rule "native → Client always" of point 3.
 
-- Each CelestialKit window requests `Client` and draws its unified 44 px bar
+- Each CelestialKit window requests `Client` and draws its unified 40 px bar
   (`titlebar-h`), with `TrafficLights` and room for a toolbar. The kit does
   not offer a `Server` request.
 - The kit **always** requests the mode explicitly with
