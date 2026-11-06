@@ -292,13 +292,19 @@ link (`OpenURI`) and `notify` sends a notification (`Notification`). They are
 3. The kit hands the PDF to `Print` through a file descriptor and reuses the
    `token` from `PreparePrint`, so the dialog does not show again.
 
-`text_pages(text, &page)` paginates plain text into images at `PRINT.dpi`
-(300) without splitting lines, and `pdf_from_images` wraps them in a PDF with
-one image per page. The margins are the larger of the portal's and
-`NSPrintInfo`'s (72 points on the sides and 90 at top and bottom).
-`PrintPreview::new(page, &pages)` shows those same images in a column, with
-"Page 1 of 2", to put in a sheet before printing. The PDF text is an image:
-it cannot be selected, because Freya's Skia does not ship the PDF backend.
+`text_pdf(text, &page)` paginates plain text without splitting lines and
+writes a PDF 1.7 with real text that can be selected and searched. Freya's
+Skia does not ship the PDF backend, so the kit walks the paragraph glyphs
+(`Paragraph::visit`) and writes them with
+[pdf-writer](https://docs.rs/pdf-writer/0.15.0). Each font is embedded with
+only the glyphs in use ([subsetter](https://docs.rs/subsetter/0.2.6)), as a
+CID font with `Identity-H` and a `ToUnicode` map for copying the text. Fonts
+without outlines, such as color emoji, cannot be subset: their glyphs are
+painted into an image with transparency at `PRINT.dpi` (300), once per
+repeated run. The margins are the larger of the portal's and `NSPrintInfo`'s
+(72 points on the sides and 90 at top and bottom). `text_pages(text, &page)`
+paints the same pages as images, and `PrintPreview::new(page, &pages)` shows
+them in a column, with "Page 1 of 2", to put in a sheet before printing.
 
 ```rust
 DatePicker::new("Fecha", CivilDateTime::new(CivilDate::new(2026, 11, 6), 9, 30))

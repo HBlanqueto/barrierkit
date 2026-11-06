@@ -293,14 +293,20 @@ cursiva a la selección (`rich_text::apply_font`).
 3. El kit pasa el PDF a `Print` por un descriptor y reutiliza el `token` de
    `PreparePrint`, así que el diálogo no vuelve a salir.
 
-`text_pages(texto, &pagina)` pagina texto plano en imágenes a `PRINT.dpi`
-(300) sin cortar líneas, y `pdf_from_images` las envuelve en un PDF de una
-imagen por página. Los márgenes son los mayores entre los del portal y los
-de `NSPrintInfo` (72 puntos a los lados y 90 arriba y abajo).
-`PrintPreview::new(pagina, &paginas)` muestra esas mismas imágenes en
-columna, con «Página 1 de 2», para ponerlo en una hoja antes de imprimir. El
-texto del PDF es imagen: no se puede seleccionar, porque el Skia de Freya no
-trae el motor de PDF.
+`text_pdf(texto, &pagina)` pagina texto plano sin cortar líneas y escribe un
+PDF 1.7 con texto real, que se puede seleccionar y buscar. El Skia de Freya
+no trae el motor de PDF, así que el kit recorre los glifos del párrafo
+(`Paragraph::visit`) y los escribe con
+[pdf-writer](https://docs.rs/pdf-writer/0.15.0). Cada fuente va incrustada
+solo con los glifos usados ([subsetter](https://docs.rs/subsetter/0.2.6)),
+como fuente CID con `Identity-H` y un `ToUnicode` para copiar el texto. Las
+fuentes sin contornos, como los emoji en color, no se pueden recortar: sus
+glifos se pintan en una imagen con transparencia a `PRINT.dpi` (300), una sola
+vez por tramo repetido. Los márgenes son los mayores entre los del portal y
+los de `NSPrintInfo` (72 puntos a los lados y 90 arriba y abajo).
+`text_pages(texto, &pagina)` pinta las mismas páginas como imágenes, y
+`PrintPreview::new(pagina, &paginas)` las muestra en columna, con «Página 1
+de 2», para ponerlo en una hoja antes de imprimir.
 
 ```rust
 DatePicker::new("Fecha", CivilDateTime::new(CivilDate::new(2026, 11, 6), 9, 30))
