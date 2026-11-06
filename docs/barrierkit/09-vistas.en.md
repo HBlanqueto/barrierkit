@@ -166,6 +166,32 @@ let resultados = indice.search("inalam");
 It searches ignoring case and accents. `PreferencesWindow` builds it on its
 own from the titles and the `keywords` of each `Row`.
 
+## Rules: `RuleEditor`
+
+`RuleEditor` (`barrier_kit::rule_editor`) is the filter editor of
+`NSPredicateEditor`, as in Finder smart folders. It takes the fields
+(`RuleField` with its `RuleKind`: text, number or choices) and a
+`State<Predicate>`.
+
+```rust
+const CAMPOS: [RuleField; 2] = [
+    RuleField { label: "Nombre", kind: RuleKind::Text },
+    RuleField { label: "Tipo", kind: RuleKind::Choice(&["PDF", "Imagen"]) },
+];
+let filtro = use_state(|| Predicate { all: true, rules: vec![Rule::new(1, &CAMPOS, 0)] });
+RuleEditor::new("Filtro", CAMPOS.to_vec(), filtro)
+```
+
+1. The header chooses whether all rules or any of them must hold
+   (`Predicate::all`).
+2. Each row has the field, the operator and the value: a `TextField` or a
+   `PopUpButton` with the choices. Text takes contains, begins with, ends
+   with, is and is not; numbers take is, is not, greater and less.
+3. − removes the row and + adds another below it. The last one cannot be
+   removed.
+4. `Predicate::evaluate(&fields, |field| value)` applies the filter. Text
+   ignores case and numbers compare the value parsed as `f64`.
+
 ## Adaptive layout
 
 ```rust

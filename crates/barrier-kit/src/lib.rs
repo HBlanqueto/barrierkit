@@ -77,6 +77,8 @@ pub mod font_panel;
 
 pub mod spelling;
 
+pub mod rule_editor;
+
 pub mod context_menu;
 
 pub mod tooltip;

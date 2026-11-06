@@ -168,6 +168,30 @@ let resultados = indice.search("inalam");
 Busca sin distinguir mayúsculas ni tildes. `PreferencesWindow` lo construye
 solo con los títulos y las `keywords` de cada `Row`.
 
+## Reglas: `RuleEditor`
+
+`RuleEditor` (`barrier_kit::rule_editor`) es el editor de filtros de
+`NSPredicateEditor`, como en las carpetas inteligentes del Finder. Recibe los
+campos (`RuleField` con su `RuleKind`: texto, número u opciones) y un
+`State<Predicate>`.
+
+```rust
+const CAMPOS: [RuleField; 2] = [
+    RuleField { label: "Nombre", kind: RuleKind::Text },
+    RuleField { label: "Tipo", kind: RuleKind::Choice(&["PDF", "Imagen"]) },
+];
+let filtro = use_state(|| Predicate { all: true, rules: vec![Rule::new(1, &CAMPOS, 0)] });
+RuleEditor::new("Filtro", CAMPOS.to_vec(), filtro)
+```
+
+1. La cabecera elige si se cumplen todas las reglas o alguna (`Predicate::all`).
+2. Cada fila tiene el campo, el operador y el valor: un `TextField` o un
+   `PopUpButton` con las opciones. El texto admite contiene, empieza por,
+   termina en, es y no es; el número, es, no es, mayor y menor.
+3. − quita la fila y + añade otra debajo. La última no se puede quitar.
+4. `Predicate::evaluate(&campos, |campo| valor)` aplica el filtro. El texto no
+   distingue mayúsculas y el número compara el valor leído como `f64`.
+
 ## Diseño adaptable
 
 ```rust
