@@ -92,3 +92,4 @@ typeface-bold-italic = Bold Italic
 font-family = Family
 font-typeface = Typeface
 font-size = Size
+no-guesses = No Guesses Found

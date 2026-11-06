@@ -13,12 +13,13 @@ use vow_design::{
 use crate::ProbeExt;
 use crate::backdrop::Tint;
 use crate::choices::use_choice;
-use crate::context_menu::edit_menu;
+use crate::context_menu::{Spelling, edit_menu};
 use crate::controlled::commit;
 use crate::i18n::text;
 use crate::interaction::use_interaction;
 use crate::level::{self, bar, knob_shadow};
 use crate::password::PasswordField;
+use crate::spelling::{Squiggles, char_index, dictionary, misspelled, utf16_range};
 use crate::style::Palette;
 use crate::symbol::{Symbol, symbol};
 use crate::theme;
@@ -873,13 +874,74 @@ impl Component for TextField {
             TEXT_FIELD.padding_x,
         );
         let field = use_hook(AccessibilityId::new_unique);
+        let mut index = use_state(|| None);
+        let holder = use_state(ParagraphHolder::default);
+        let value = self.value;
+        let margin_y = (TEXT_FIELD.height - TEXT.line_height as f32) / 2.0;
+        let ranges = dictionary()
+            .map(|dictionary| {
+                let text = value.read();
+                misspelled(dictionary, &text)
+                    .iter()
+                    .map(|range| utf16_range(&text, range))
+                    .collect::<Vec<_>>()
+            })
+            .unwrap_or_default();
         edit_menu(
             text_style(rect().width(self.width.clone())),
             field,
             true,
             (true, true),
+            Some(Spelling {
+                value,
+                index,
+                styles: None,
+            }),
         )
-        .child(input.a11y_id(field))
+        .child(
+            rect()
+                .width(Size::fill())
+                .on_secondary_down(move |event: Event<PressEventData>| {
+                    if let (PressEventData::Mouse(mouse), Some(inner)) =
+                        (event.data(), holder.peek().0.borrow().as_ref())
+                    {
+                        let x = (mouse.element_location.x as f32 - TEXT_FIELD.padding_x)
+                            * inner.scale_factor as f32;
+                        let position = inner
+                            .paragraph
+                            .get_glyph_position_at_coordinate((x, 0.0))
+                            .position;
+                        index.set(Some(char_index(&value.peek(), position.max(0) as usize)));
+                    }
+                })
+                .child(input.a11y_id(field))
+                .maybe_child((!ranges.is_empty()).then(|| {
+                    crate::glass::leaf(Squiggles {
+                        holder: holder.read().clone(),
+                        single_line: true,
+                        ranges,
+                        color: palette.destructive,
+                        offset: (TEXT_FIELD.padding_x, margin_y),
+                        layout: crate::glass::layout(
+                            Size::fill(),
+                            Size::fill(),
+                            Position::new_absolute(),
+                        ),
+                    })
+                }))
+                .child(
+                    paragraph()
+                        .holder(holder.read().clone())
+                        .position(
+                            Position::new_absolute()
+                                .top(margin_y)
+                                .left(TEXT_FIELD.padding_x),
+                        )
+                        .max_lines(1)
+                        .color((0, 0, 0, 0))
+                        .span(Span::new(value.read().clone())),
+                ),
+        )
     }
 }
 
@@ -1047,6 +1109,7 @@ impl Component for SearchField {
             a11y_id,
             true,
             (true, true),
+            None,
         )
         .child(input)
         .child(

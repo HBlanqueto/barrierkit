@@ -209,6 +209,19 @@ V or A), so it acts on the selection and history the field already had. In
 `TextEditor`, Undo and Redo follow freya-edit's history and Shift+Ctrl+Z also
 redoes.
 
+`TextField` and `TextEditor` check spelling with
+[spellbook](https://github.com/helix-editor/spellbook), which reads Hunspell
+dictionaries (`.aff` and `.dic`). The dictionary follows the app language
+(`i18n::languages`): first the exact tag (`es_ES`), then the first regional
+one (`es_MX`). It is searched for like Hunspell does: `DICPATH`, then
+`hunspell/` and `myspell/` under `XDG_DATA_HOME` and `XDG_DATA_DIRS`. On NixOS,
+a package such as `hunspellDicts.es_ES` in the profile is enough. The first
+field loads it on a separate thread; without a dictionary nothing is marked.
+Misspelled words get a row of red dots, and a secondary click on one puts its
+guesses at the top of the edit menu ("No Guesses Found" when there are none).
+In `TextField` the dots only show while the text fits in the field, because
+Freya's `Input` does not expose its scroll.
+
 `TextEditor::styles(tramos)` takes rich text. A `State<Vec<StyleRun>>`
 (`barrier_kit::rich_text`) keeps runs in character indices with bold, italic
 or a link, and the text stays in the `State<String>`. Ctrl+B and Ctrl+I toggle

@@ -86,6 +86,7 @@ wayland-protocols-plasma = { version = "0.3.12", default-features = false }
 ash = "0.38"
 
 png = "0.17"
+spellbook = "0.4"
 
 sctk = { package = "smithay-client-toolkit", version = "0.20" }
 

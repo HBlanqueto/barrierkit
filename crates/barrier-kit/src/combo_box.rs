@@ -111,6 +111,7 @@ impl Component for ComboBox {
             field,
             true,
             (true, true),
+            None,
         )
         .on_sized(move |event: Event<SizedEventData>| area.set_if_modified(event.area))
         .child(input)

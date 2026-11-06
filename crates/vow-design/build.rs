@@ -55,6 +55,7 @@ DATE_PICKER DatePickerMetrics components.date-picker
 PATH_CONTROL PathControlMetrics components.path-control
 DISCLOSURE DisclosureMetrics components.disclosure
 FONT_PANEL FontPanelMetrics components.font-panel
+SPELLING SpellingMetrics components.spelling
 DRAG DragMetrics components.drag
 IMAGE_WELL ImageWellMetrics components.image-well
 LEVEL_INDICATOR LevelIndicatorMetrics components.level-indicator

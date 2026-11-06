@@ -185,6 +185,7 @@ impl Component for TokenField {
             input_id,
             true,
             (true, true),
+            None,
         )
         .a11y_role(AccessibilityRole::List)
         .a11y_alt(self.placeholder)

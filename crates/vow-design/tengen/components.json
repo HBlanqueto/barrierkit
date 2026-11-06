@@ -117,6 +117,9 @@
       "icon": 16,
       "column-width": 200
     },
+    "spelling": {
+      "dot": 2
+    },
     "font-panel": {
       "sizes": [6, 8, 9, 10, 11, 12, 13, 14, 16, 20, 24, 36, 48, 72],
       "size-column": 72

@@ -92,3 +92,4 @@ typeface-bold-italic = Negrita cursiva
 font-family = Familia
 font-typeface = Estilo
 font-size = Tamaño
+no-guesses = No hay sugerencias

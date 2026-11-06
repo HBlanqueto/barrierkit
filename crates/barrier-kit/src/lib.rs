@@ -75,6 +75,8 @@ pub mod color_picker;
 
 pub mod font_panel;
 
+pub mod spelling;
+
 pub mod context_menu;
 
 pub mod tooltip;

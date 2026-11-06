@@ -13,9 +13,12 @@ pub fn use_app_language(domain: &str) {
     let _ = APP_LANGUAGE.set(read_language(&path));
 }
 
+pub(crate) fn languages() -> Vec<String> {
+    requested_languages(APP_LANGUAGE.get().cloned().flatten().as_deref())
+}
+
 pub fn load(loader: FluentLanguageLoader, assets: &dyn I18nAssets) -> FluentLanguageLoader {
-    let app_language = APP_LANGUAGE.get().cloned().flatten();
-    let requested: Vec<LanguageIdentifier> = requested_languages(app_language.as_deref())
+    let requested: Vec<LanguageIdentifier> = languages()
         .iter()
         .filter_map(|tag| tag.parse().ok())
         .collect();

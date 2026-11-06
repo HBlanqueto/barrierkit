@@ -209,6 +209,19 @@ Pegar y Seleccionar todo. Cada orden enfoca el campo y le envía su atajo
 ya tenía. En `TextEditor`, Deshacer y Rehacer siguen el historial de
 freya-edit y Mayús+Ctrl+Z también rehace.
 
+`TextField` y `TextEditor` corrigen la ortografía con
+[spellbook](https://github.com/helix-editor/spellbook), que lee diccionarios
+de Hunspell (`.aff` y `.dic`). El diccionario sigue el idioma de la app
+(`i18n::languages`): primero la etiqueta exacta (`es_ES`) y después la primera
+regional (`es_MX`). Se busca como lo hace Hunspell: `DICPATH` y después
+`hunspell/` y `myspell/` bajo `XDG_DATA_HOME` y `XDG_DATA_DIRS`. En NixOS basta
+un paquete como `hunspellDicts.es_ES` en el perfil. El primer campo lo carga en
+otro hilo; sin diccionario no se marca nada. Las palabras mal escritas llevan
+una fila de puntos rojos, y el clic secundario sobre una pone sus sugerencias
+arriba del menú Editar («No hay sugerencias» si no hay ninguna). En
+`TextField` los puntos solo se ven mientras el texto cabe en el campo, porque
+el `Input` de Freya no expone su desplazamiento.
+
 `TextEditor::styles(tramos)` admite texto enriquecido. Un
 `State<Vec<StyleRun>>` (`barrier_kit::rich_text`) guarda tramos en índices de
 carácter con negrita, cursiva o enlace, y el texto sigue en el `State<String>`.

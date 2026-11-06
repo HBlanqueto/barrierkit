@@ -15,10 +15,11 @@ use crate::rich_text::{
 use crate::style::text;
 use crate::symbol::Symbol;
 
-use crate::context_menu::edit_menu;
+use crate::context_menu::{Spelling, edit_menu};
 use crate::controls::text_style;
 use crate::interaction::ring;
 use crate::scroll::{ScrollView, use_scroll_controller};
+use crate::spelling::{Squiggles, char_index, dictionary, misspelled, utf16_range};
 use crate::style::Palette;
 use crate::theme::{color, resolved};
 
@@ -66,6 +67,7 @@ impl Component for TextEditor {
         let (mut blink, cursor) = use_cursor_blink(focused, color(palette.label));
         let mut finding = use_state(|| false);
         let mut history = use_state(|| (false, false));
+        let mut spell_index = use_state(|| None);
         let query = use_state(String::new);
         let current = use_state(|| 0usize);
         let scroll = use_scroll_controller();
@@ -242,6 +244,21 @@ impl Component for TextEditor {
             .margin(Gaps::new_symmetric(margin_y, TEXT_FIELD.padding_x))
             .on_sized(move |event: Event<SizedEventData>| area.set(event.visible_area))
             .on_focus_press(on_press)
+            .on_secondary_down(move |event: Event<PressEventData>| {
+                if let (PressEventData::Mouse(mouse), Some(inner)) =
+                    (event.data(), holder.peek().0.borrow().as_ref())
+                {
+                    let scale = inner.scale_factor;
+                    let position = inner
+                        .paragraph
+                        .get_glyph_position_at_coordinate((
+                            (mouse.element_location.x * scale) as f32,
+                            (mouse.element_location.y * scale) as f32,
+                        ))
+                        .position;
+                    spell_index.set(Some(char_index(&value.peek(), position.max(0) as usize)));
+                }
+            })
             .cursor_index(focused.then(|| editor.cursor_pos()))
             .cursor_color(cursor)
             .highlights(
@@ -268,56 +285,95 @@ impl Component for TextEditor {
                 )
                 .into_iter()
             });
+        let ranges = dictionary()
+            .filter(|_| !empty)
+            .map(|dictionary| {
+                let text = value.read();
+                misspelled(dictionary, &text)
+                    .iter()
+                    .map(|range| utf16_range(&text, range))
+                    .collect::<Vec<_>>()
+            })
+            .unwrap_or_default();
+        let squiggles = (!ranges.is_empty()).then(|| {
+            crate::glass::leaf(Squiggles {
+                holder: holder.read().clone(),
+                single_line: false,
+                ranges,
+                color: palette.destructive,
+                offset: (TEXT_FIELD.padding_x, margin_y),
+                layout: crate::glass::layout(
+                    Size::fill(),
+                    Size::fill(),
+                    torin::prelude::Position::new_absolute(),
+                ),
+            })
+        });
         let has_selection = editor.get_selection().is_some();
-        let field = edit_menu(text_style(rect()), a11y_id, has_selection, *history.read())
-            .a11y_id(a11y_id)
-            .a11y_focusable(true)
-            .a11y_role(AccessibilityRole::MultilineTextInput)
-            .a11y_alt(if empty {
-                self.placeholder.to_owned()
+        let field = edit_menu(
+            text_style(rect()),
+            a11y_id,
+            has_selection,
+            *history.read(),
+            Some(Spelling {
+                value,
+                index: spell_index,
+                styles,
+            }),
+        )
+        .a11y_id(a11y_id)
+        .a11y_focusable(true)
+        .a11y_role(AccessibilityRole::MultilineTextInput)
+        .a11y_alt(if empty {
+            self.placeholder.to_owned()
+        } else {
+            value.read().clone()
+        })
+        .width(Size::fill())
+        .height(self.height.clone())
+        .corner_radius(TEXT_FIELD.radius)
+        .background(color(palette.content_background))
+        .border(
+            Border::new()
+                .width(vow_design::HAIRLINE)
+                .alignment(BorderAlignment::Inner)
+                .fill(color(palette.separator)),
+        )
+        .on_key_down(on_key_down)
+        .on_key_up(move |event: Event<KeyboardEventData>| {
+            editable.process_event(EditableEvent::KeyUp { key: &event.key });
+        })
+        .on_ime_preedit(move |event: Event<ImePreeditEventData>| {
+            let mut editor = editable.editor_mut().write();
+            if event.data().text.is_empty() {
+                editor.clear_preedit();
             } else {
-                value.read().clone()
-            })
-            .width(Size::fill())
-            .height(self.height.clone())
-            .corner_radius(TEXT_FIELD.radius)
-            .background(color(palette.content_background))
-            .border(
-                Border::new()
-                    .width(vow_design::HAIRLINE)
-                    .alignment(BorderAlignment::Inner)
-                    .fill(color(palette.separator)),
-            )
-            .on_key_down(on_key_down)
-            .on_key_up(move |event: Event<KeyboardEventData>| {
-                editable.process_event(EditableEvent::KeyUp { key: &event.key });
-            })
-            .on_ime_preedit(move |event: Event<ImePreeditEventData>| {
-                let mut editor = editable.editor_mut().write();
-                if event.data().text.is_empty() {
-                    editor.clear_preedit();
-                } else {
-                    editor.set_preedit(&event.data().text);
-                }
-            })
-            .on_pointer_enter(move |_| {
-                hovering.set(true);
-                Cursor::set(CursorIcon::Text);
-            })
-            .on_pointer_leave(move |_| {
-                hovering.set(false);
-                Cursor::set(CursorIcon::default());
-            })
-            .on_pointer_press(move |_| a11y_id.request_focus())
-            .on_global_pointer_move(on_drag)
-            .on_global_pointer_press(on_release)
-            .child(
-                ScrollView::new()
-                    .controller(scroll)
-                    .width(Size::fill())
-                    .height(Size::fill())
-                    .child(paragraph),
-            );
+                editor.set_preedit(&event.data().text);
+            }
+        })
+        .on_pointer_enter(move |_| {
+            hovering.set(true);
+            Cursor::set(CursorIcon::Text);
+        })
+        .on_pointer_leave(move |_| {
+            hovering.set(false);
+            Cursor::set(CursorIcon::default());
+        })
+        .on_pointer_press(move |_| a11y_id.request_focus())
+        .on_global_pointer_move(on_drag)
+        .on_global_pointer_press(on_release)
+        .child(
+            ScrollView::new()
+                .controller(scroll)
+                .width(Size::fill())
+                .height(Size::fill())
+                .child(
+                    rect()
+                        .width(Size::fill())
+                        .child(paragraph)
+                        .maybe_child(squiggles),
+                ),
+        );
         let field = if focused {
             ring(field, TEXT_FIELD.radius, resolved().accent)
         } else {

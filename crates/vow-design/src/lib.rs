@@ -640,6 +640,11 @@ pub struct DisclosureMetrics {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct SpellingMetrics {
+    pub dot: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct FontPanelMetrics {
     pub sizes: [f32; 14],
     pub size_column: f32,
