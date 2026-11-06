@@ -41,6 +41,7 @@
       "sector-inner": 0.618,
       "sector-inset": 1.5,
       "sector-radius": 5,
+      "unselected-opacity": 0.5,
       "heat-gap": 2,
       "heat-radius": 3,
       "azimuth": -30,

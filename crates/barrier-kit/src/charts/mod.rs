@@ -8,10 +8,11 @@ mod stream;
 
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
-use vow_design::{CAPTION, CHART, CHART_SERIES, DURATION_BASE, SPACE_1};
+use vow_design::{CAPTION, CHART, CHART_SERIES, DURATION_BASE, HAIRLINE, SPACE_1, TOOLTIP};
 
 use crate::i18n::text as tr_kit;
 use crate::style::{Palette, text};
+use crate::theme::{SurfaceKind, color, popover_palette};
 use scale::{Window, format_age, nice_ticks, time_ticks};
 
 pub use chart3d::Chart3D;
@@ -60,7 +61,7 @@ pub struct Chart {
     y_domain: Option<(f64, f64)>,
     unit: &'static str,
     x_labels: Vec<String>,
-    rules: Vec<f64>,
+    rules: Vec<(f64, String)>,
     height: f32,
     time_step: Option<f64>,
     scrollable: bool,
@@ -131,8 +132,8 @@ impl Chart {
         self
     }
 
-    pub fn rule(mut self, value: f64) -> Self {
-        self.rules.push(value);
+    pub fn rule(mut self, value: f64, label: impl Into<String>) -> Self {
+        self.rules.push((value, label.into()));
         self
     }
 
@@ -159,6 +160,16 @@ impl Chart {
         let max = values.iter().copied().fold(0.0, f64::max);
         let min = values.iter().copied().fold(0.0, f64::min);
         (min, if max > min { max } else { min + 1.0 })
+    }
+
+    fn category(&self, index: usize) -> String {
+        match self.time_step {
+            Some(step) => format_age(
+                (self.count().saturating_sub(1) - index) as f64 * step,
+                tr_kit!("chart-now"),
+            ),
+            None => self.x_labels.get(index).cloned().unwrap_or_default(),
+        }
     }
 
     fn count(&self) -> usize {
@@ -225,6 +236,8 @@ impl Component for Chart {
     fn render(&self) -> impl IntoElement {
         let palette = Palette::current();
         let mut hover = use_state(|| None::<usize>);
+        let mut selected = use_state(|| None::<usize>);
+        let mut pressed = use_state(|| None::<(usize, Window)>);
         let mut size = use_state(|| (0.0f32, 0.0f32));
         let mut window = use_state(|| None::<Window>);
         let mut drag = use_state(|| None::<(f64, Window)>);
@@ -300,10 +313,10 @@ impl Component for Chart {
             rules: self
                 .rules
                 .iter()
-                .map(|v| (*v, palette.secondary_label))
+                .map(|(v, _)| (*v, palette.secondary_label))
                 .collect(),
             grid: palette.separator,
-            hover: *hover.read(),
+            hover: hover.read().or(*selected.read()),
             hover_ink: palette.tertiary_label,
             halo: palette.content_background,
             window: view,
@@ -312,7 +325,8 @@ impl Component for Chart {
             layout: crate::glass::layout(Size::fill(), Size::fill(), Position::default()),
         };
 
-        let at = *hover.read();
+        let at = hover.read().or(*selected.read());
+        let selection = selected.read().filter(|i| *i < count);
         let readout = target.iter().enumerate().map(|(s, series)| {
             let value = at
                 .or(series.values.len().checked_sub(1))
@@ -407,6 +421,70 @@ impl Component for Chart {
             })
             .collect();
 
+        let rule_labels: Vec<Element> = self
+            .rules
+            .iter()
+            .filter(|_| plot_width > 0.0)
+            .map(|(value, label)| {
+                let label = axis_label(label.clone(), &palette);
+                let position = if horizontal {
+                    Position::new_absolute()
+                        .top(0.0)
+                        .left(value_fraction(*value) * plot_width + CHART.axis_gap)
+                } else {
+                    Position::new_absolute()
+                        .left(CHART.axis_gap)
+                        .top(((1.0 - value_fraction(*value)) * plot_height - line).max(0.0))
+                };
+                rect().position(position).child(label).into_element()
+            })
+            .collect();
+        let annotation = selection.filter(|_| plot_width > 0.0).map(|i| {
+            let menu = popover_palette(&crate::theme::resolved(), SurfaceKind::Toplevel);
+            let values = target.iter().enumerate().filter_map(|(s, series)| {
+                series.values.get(i).map(|v| {
+                    legend_entry(
+                        colors[s],
+                        format!("{} {}", series.name, format_value(*v, self.unit)),
+                        &palette,
+                    )
+                })
+            });
+            let position = if horizontal {
+                Position::new_absolute()
+                    .right(CHART.axis_gap)
+                    .top(plot_height * i as f32 / count.max(1) as f32)
+            } else {
+                let fraction = view.fraction(plot::position(kind, i)) as f32;
+                if fraction < 0.5 {
+                    Position::new_absolute()
+                        .top(0.0)
+                        .left(fraction * plot_width + CHART.axis_gap)
+                } else {
+                    Position::new_absolute()
+                        .top(0.0)
+                        .right((1.0 - fraction) * plot_width + CHART.axis_gap)
+                }
+            };
+            rect()
+                .position(position)
+                .direction(Direction::Vertical)
+                .spacing(SPACE_1)
+                .padding(Gaps::new_symmetric(TOOLTIP.padding_y, TOOLTIP.padding_x))
+                .corner_radius(TOOLTIP.radius)
+                .background(color(menu.bg))
+                .border(
+                    Border::new()
+                        .width(HAIRLINE)
+                        .alignment(BorderAlignment::Inner)
+                        .fill(color(menu.separator_color)),
+                )
+                .a11y_role(AccessibilityRole::Tooltip)
+                .child(text(self.category(i), CAPTION, menu.fg))
+                .children(values)
+                .into_element()
+        });
+
         let scrollable = self.scrollable && !horizontal;
         let mut area = rect()
             .width(Size::flex(1.0))
@@ -420,7 +498,24 @@ impl Component for Chart {
                 hover.set_if_modified(Some(index_at((point.x, point.y), *size.peek())));
             })
             .on_pointer_leave(move |_| hover.set_if_modified(None))
-            .child(crate::glass::leaf(plot));
+            .on_mouse_down(move |event: Event<MouseEventData>| {
+                let point = event.element_location;
+                pressed.set(Some((index_at((point.x, point.y), *size.peek()), view)));
+                if scrollable {
+                    drag.set(Some((event.global_location.x, view)));
+                }
+            })
+            .on_mouse_up(move |event: Event<MouseEventData>| {
+                let point = event.element_location;
+                let index = index_at((point.x, point.y), *size.peek());
+                if pressed.take() == Some((index, view)) {
+                    let next = (*selected.peek() != Some(index)).then_some(index);
+                    selected.set(next);
+                }
+            })
+            .child(crate::glass::leaf(plot))
+            .children(rule_labels)
+            .maybe_child(annotation);
         if scrollable {
             area = area
                 .on_wheel(move |event: Event<WheelEventData>| {
@@ -433,9 +528,6 @@ impl Component for Chart {
                         view.zoom_at(fraction, factor, total, f64::from(CHART.scroll_min_span))
                     };
                     window.set(Some(next));
-                })
-                .on_mouse_down(move |event: Event<MouseEventData>| {
-                    drag.set(Some((event.global_location.x, view)));
                 })
                 .on_global_pointer_move(move |event: Event<PointerEventData>| {
                     let Some((x, from)) = *drag.peek() else {

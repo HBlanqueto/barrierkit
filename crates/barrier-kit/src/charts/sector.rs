@@ -6,10 +6,10 @@ use freya_core::prelude::*;
 use freya_core::tree::DiffModifies;
 use freya_engine::prelude::{PaintStyle, PathBuilder, Rect as SkRect};
 use torin::prelude::{Direction, Position, Size};
-use vow_design::{CHART, HEADLINE, Rgba, SPACE_1, SPACE_2};
+use vow_design::{CAPTION, CHART, HEADLINE, Rgba, SPACE_1, SPACE_2};
 
 use super::plot::paint;
-use super::scale::sector_angles;
+use super::scale::{sector_angles, sector_at};
 use super::{format_value, legend_entry, series_color};
 use crate::style::{Palette, text};
 
@@ -18,6 +18,7 @@ struct Sectors {
     angles: Vec<(f32, f32)>,
     colors: Vec<Rgba>,
     inner: f32,
+    selected: Option<usize>,
     layout: LayoutData,
 }
 
@@ -40,7 +41,7 @@ impl ElementExt for Sectors {
         let outer = area.width().min(area.height()) / 2.0;
         let inner = outer * self.inner;
         let ring = |radius: f32| SkRect::new(cx - radius, cy - radius, cx + radius, cy + radius);
-        for ((start, sweep), color) in self.angles.iter().zip(&self.colors) {
+        for (i, ((start, sweep), color)) in self.angles.iter().zip(&self.colors).enumerate() {
             let inset = if *sweep >= 360.0 {
                 0.0
             } else {
@@ -60,6 +61,9 @@ impl ElementExt for Sectors {
             }
             path.close();
             let mut fill = paint(*color, PaintStyle::Fill, 0.0);
+            if self.selected.is_some_and(|selected| selected != i) {
+                fill.set_alpha_f(color.a * CHART.unselected_opacity);
+            }
             fill.set_path_effect(skia_safe::corner_path_effect::new(
                 CHART.sector_radius * context.scale_factor as f32,
             ));
@@ -112,13 +116,20 @@ impl SectorChart {
 impl Component for SectorChart {
     fn render(&self) -> impl IntoElement {
         let palette = Palette::current();
+        let mut selected = use_state(|| None::<usize>);
         let values: Vec<f64> = self.slices.iter().map(|(_, v)| *v).collect();
         let total: f64 = values.iter().sum();
         let colors: Vec<Rgba> = (0..values.len()).map(series_color).collect();
+        let angles = sector_angles(&values);
+        let hovered = selected.read().and_then(|i| self.slices.get(i));
+        let size = self.size;
+        let inner = if self.donut { CHART.sector_inner } else { 0.0 };
+        let hit_angles = angles.clone();
         let sectors = Sectors {
-            angles: sector_angles(&values),
+            angles,
             colors: colors.clone(),
-            inner: if self.donut { CHART.sector_inner } else { 0.0 },
+            inner,
+            selected: *selected.read(),
             layout: crate::glass::layout(Size::fill(), Size::fill(), Position::default()),
         };
         let legend = self.slices.iter().enumerate().map(|(i, (name, value))| {
@@ -147,6 +158,13 @@ impl Component for SectorChart {
                     .width(Size::px(self.size))
                     .height(Size::px(self.size))
                     .center()
+                    .on_pointer_move(move |event: Event<PointerEventData>| {
+                        let point = event.element_location();
+                        let offset = (point.x as f32 - size / 2.0, point.y as f32 - size / 2.0);
+                        let radii = (size / 2.0 * inner, size / 2.0);
+                        selected.set_if_modified(sector_at(&hit_angles, offset, radii));
+                    })
+                    .on_pointer_leave(move |_| selected.set_if_modified(None))
                     .child(crate::glass::leaf(sectors))
                     .maybe(self.donut, |el| {
                         el.child(
@@ -155,11 +173,17 @@ impl Component for SectorChart {
                                 .width(Size::px(self.size))
                                 .height(Size::px(self.size))
                                 .center()
+                                .direction(Direction::Vertical)
                                 .child(text(
-                                    format_value(total, self.unit),
+                                    hovered.map_or(format_value(total, self.unit), |(_, value)| {
+                                        format_value(*value, self.unit)
+                                    }),
                                     HEADLINE,
                                     palette.label,
-                                )),
+                                ))
+                                .maybe_child(hovered.map(|(name, _)| {
+                                    text(name.clone(), CAPTION, palette.secondary_label)
+                                })),
                         )
                     }),
             )

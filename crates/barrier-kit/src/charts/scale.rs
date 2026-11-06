@@ -70,6 +70,17 @@ pub fn sector_angles(values: &[f64]) -> Vec<(f32, f32)> {
         .collect()
 }
 
+pub fn sector_at(angles: &[(f32, f32)], (dx, dy): (f32, f32), radii: (f32, f32)) -> Option<usize> {
+    let distance = dx.hypot(dy);
+    if distance < radii.0 || distance > radii.1 {
+        return None;
+    }
+    let angle = (dy.atan2(dx).to_degrees() + 90.0).rem_euclid(360.0) - 90.0;
+    angles
+        .iter()
+        .position(|(start, sweep)| (*start..start + sweep).contains(&angle))
+}
+
 pub fn monotone_controls(points: &[(f64, f64)]) -> Vec<[(f64, f64); 2]> {
     let n = points.len();
     if n < 2 {
@@ -284,6 +295,16 @@ pub fn format_age(seconds: f64, now: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_sector_under_the_pointer_is_found_by_angle_and_ring() {
+        let angles = sector_angles(&[1.0, 1.0, 2.0]);
+        assert_eq!(sector_at(&angles, (10.0, -10.0), (0.0, 50.0)), Some(0));
+        assert_eq!(sector_at(&angles, (10.0, 10.0), (0.0, 50.0)), Some(1));
+        assert_eq!(sector_at(&angles, (-10.0, -1.0), (0.0, 50.0)), Some(2));
+        assert_eq!(sector_at(&angles, (10.0, 0.0), (20.0, 50.0)), None);
+        assert_eq!(sector_at(&angles, (60.0, 0.0), (0.0, 50.0)), None);
+    }
 
     #[test]
     fn nice_ticks_cover_the_data_with_round_steps() {

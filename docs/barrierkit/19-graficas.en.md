@@ -34,7 +34,7 @@ axes, legend and readout are kit text.
 2. Choose how points join with `.interpolation(..)`: `Linear` (default),
    `Monotone` (a curve that never overshoots the data) or `Step`.
 3. Add X axis labels with `.x_labels(..)` and reference lines with
-   `.rule(value)`. Without `.y_domain`, the Y axis runs from 0 to the rounded
+   `.rule(value, label)`; the label sits above the line. Without `.y_domain`, the Y axis runs from 0 to the rounded
    maximum. `Chart` options:
    - `.time_axis(seconds)`: each sample is that many seconds from the next
      and the last one is "now". The X axis marks the age (−30 s, −2 min,
@@ -50,7 +50,9 @@ axes, legend and readout are kit text.
    from the old to the new one, and new points grow from 0. With reduced
    motion, the change is immediate.
 4. For a share, use `SectorChart::new(..).slice(name, value)`; the legend
-   shows each value and its percentage, and the donut the total.
+   shows each value and its percentage, and the donut the total. With the
+   pointer over a sector, the others drop to `unselected-opacity` and the
+   donut shows that sector's value and name (`chartAngleSelection`).
 5. To show how a share changes over time, use `StreamChart`. Its "wiggle"
    baseline (Byron and Wattenberg) minimizes the layers' slope, and the
    series that peak first go to the middle. With `.polar(true)` time goes
@@ -73,7 +75,11 @@ axes, legend and readout are kit text.
 As in Swift Charts, the Y axis is on the trailing side and the legend below.
 When the pointer moves over a `Chart`, a rule marks the position and the
 legend shows each series' value at that point. Without a pointer, it shows
-the last value.
+the last value. A click pins the selection (`chartXSelection`): the rule stays
+and an annotation next to it shows the category and the values. Another click
+on the same point clears it. The annotation uses the tooltip look and flips
+side in the right half so it stays inside the chart. A drag that scrolls the
+window does not select.
 
 ## Values
 
@@ -89,6 +95,7 @@ They all live in `components.chart` in `vow-design` (`CHART`):
 | `grid-width` / `rule-width` | 0.5 / 1 | Grid and rules |
 | `ticks` | 4 | Desired Y axis ticks (steps of 1, 2 or 5 × 10ⁿ) |
 | `sector-inner` / `sector-inset` / `sector-radius` | 0.618 / 1.5 / 5 | Donut hole, gap and sector corner, like the WWDC23 sample |
+| `unselected-opacity` | 0.5 | Unselected sectors ([AppCoda](https://www.appcoda.com/swiftui-chart-ios17/)) |
 | `stream-hole` | 0.32 | Center hole of the flow clock |
 | `azimuth` / `inclination` | −30° / 25° | Initial `Chart3D` pose |
 | `y-axis-width` | 52 | Width of the axis value column |

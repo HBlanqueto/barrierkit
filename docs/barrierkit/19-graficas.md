@@ -34,7 +34,7 @@ ejes, leyenda y lectura son texto del kit.
 2. Elige cómo se unen los puntos con `.interpolation(..)`: `Linear` (por
    defecto), `Monotone` (curva sin sobrepasar los datos) o `Step`.
 3. Añade etiquetas del eje X con `.x_labels(..)` y líneas de referencia con
-   `.rule(valor)`. Sin `.y_domain`, el eje Y va de 0 al máximo redondeado.
+   `.rule(valor, etiqueta)`; la etiqueta va sobre la línea. Sin `.y_domain`, el eje Y va de 0 al máximo redondeado.
    Opciones de `Chart`:
    - `.time_axis(segundos)`: cada muestra está a esos segundos de la
      siguiente y la última es «ahora». El eje X marca la antigüedad (−30 s,
@@ -50,7 +50,9 @@ ejes, leyenda y lectura son texto del kit.
    anterior al nuevo, y los puntos nuevos crecen desde 0. Con movimiento
    reducido, el cambio es inmediato.
 4. Para un reparto, usa `SectorChart::new(..).slice(nombre, valor)`; la
-   leyenda muestra cada valor y su porcentaje, y el donut el total.
+   leyenda muestra cada valor y su porcentaje, y el donut el total. Con el
+   puntero sobre un sector, el resto baja a `unselected-opacity` y el donut
+   muestra el valor y el nombre de ese sector (`chartAngleSelection`).
 5. Para ver cómo cambia un reparto con el tiempo, usa `StreamChart`. Su
    línea base «wiggle» (Byron y Wattenberg) minimiza la inclinación de las
    capas, y las series que alcanzan antes su pico van al centro. Con
@@ -73,6 +75,11 @@ ejes, leyenda y lectura son texto del kit.
 Como en Swift Charts, el eje Y va a la derecha y la leyenda debajo. Al pasar
 el puntero sobre un `Chart`, una regla marca la posición y la leyenda muestra
 el valor de cada serie en ese punto. Sin puntero, muestra el último valor.
+Un clic fija la selección (`chartXSelection`): la regla se queda y una
+anotación junto a ella muestra la categoría y los valores. Otro clic en el
+mismo punto la quita. La anotación usa el aspecto del tooltip y cambia de
+lado en la mitad derecha para no salirse de la gráfica. Un arrastre que
+desplaza la ventana no selecciona.
 
 ## Valores
 
@@ -88,6 +95,7 @@ Todos viven en `components.chart` de `vow-design` (`CHART`):
 | `grid-width` / `rule-width` | 0,5 / 1 | Rejilla y reglas |
 | `ticks` | 4 | Marcas deseadas en el eje Y (pasos de 1, 2 o 5 × 10ⁿ) |
 | `sector-inner` / `sector-inset` / `sector-radius` | 0,618 / 1,5 / 5 | Hueco del donut, separación y esquina de los sectores, como la muestra de la WWDC23 |
+| `unselected-opacity` | 0,5 | Sectores no seleccionados ([AppCoda](https://www.appcoda.com/swiftui-chart-ios17/)) |
 | `stream-hole` | 0,32 | Hueco central del reloj de flujo |
 | `azimuth` / `inclination` | −30° / 25° | Pose inicial de `Chart3D` |
 | `y-axis-width` | 52 | Ancho de la columna de valores del eje |

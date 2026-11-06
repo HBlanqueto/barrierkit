@@ -107,7 +107,7 @@ fn gallery() -> Element {
                 .series(Series::new(tr!("north"), vec![42.0, 55.0, 61.0, 48.0]))
                 .series(Series::new(tr!("south"), vec![30.0, 38.0, 52.0, 66.0]))
                 .x_labels(quarters.clone())
-                .rule(50.0),
+                .rule(50.0, tr!("goal")),
         ),
         card(
             tr!("stacked-bars"),

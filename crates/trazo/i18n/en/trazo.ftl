@@ -6,6 +6,7 @@ tab-3d = 3D
 line-chart = Lines with a monotone curve
 area-chart = Stacked areas
 bar-chart = Grouped bars
+goal = Goal
 stacked-bars = Stacked bars
 horizontal-bars = Horizontal bars
 point-chart = Points

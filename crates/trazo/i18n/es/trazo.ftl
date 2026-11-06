@@ -6,6 +6,7 @@ tab-3d = 3D
 line-chart = Líneas con curva monótona
 area-chart = Áreas apiladas
 bar-chart = Barras agrupadas
+goal = Objetivo
 stacked-bars = Barras apiladas
 horizontal-bars = Barras horizontales
 point-chart = Puntos
