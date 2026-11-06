@@ -180,32 +180,37 @@ impl Component for TokenField {
                     .into_element();
                 line(format!("{index}:{token}"), chip)
             });
-        edit_menu(text_style(rect().width(self.width.clone())), input_id, true)
-            .a11y_role(AccessibilityRole::List)
-            .a11y_alt(self.placeholder)
-            .min_height(Size::px(TEXT_FIELD.height))
-            .padding(Gaps::new(
-                0.0,
-                TEXT_FIELD.padding_x,
-                0.0,
-                TEXT_FIELD.padding_x,
-            ))
-            .corner_radius(TEXT_FIELD.radius)
-            .background(color(palette.content_background))
-            .border(
-                Border::new()
-                    .width(HAIRLINE)
-                    .alignment(BorderAlignment::Inner)
-                    .fill(color(palette.separator)),
-            )
-            .direction(Direction::Horizontal)
-            .content(Content::Wrap {
-                wrap_spacing: Some(TOKEN_FIELD.gap),
-            })
-            .cross_align(Alignment::Center)
-            .spacing(TOKEN_FIELD.gap)
-            .children(chips)
-            .child(line(String::from("input"), input.into_element()))
+        edit_menu(
+            text_style(rect().width(self.width.clone())),
+            input_id,
+            true,
+            (true, true),
+        )
+        .a11y_role(AccessibilityRole::List)
+        .a11y_alt(self.placeholder)
+        .min_height(Size::px(TEXT_FIELD.height))
+        .padding(Gaps::new(
+            0.0,
+            TEXT_FIELD.padding_x,
+            0.0,
+            TEXT_FIELD.padding_x,
+        ))
+        .corner_radius(TEXT_FIELD.radius)
+        .background(color(palette.content_background))
+        .border(
+            Border::new()
+                .width(HAIRLINE)
+                .alignment(BorderAlignment::Inner)
+                .fill(color(palette.separator)),
+        )
+        .direction(Direction::Horizontal)
+        .content(Content::Wrap {
+            wrap_spacing: Some(TOKEN_FIELD.gap),
+        })
+        .cross_align(Alignment::Center)
+        .spacing(TOKEN_FIELD.gap)
+        .children(chips)
+        .child(line(String::from("input"), input.into_element()))
     }
 }
 

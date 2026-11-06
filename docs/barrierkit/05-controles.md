@@ -203,9 +203,11 @@ contenedor). Usa el motor de edición de Freya (`freya-edit`) y el aspecto de
 `TextField`.
 
 El clic secundario en `TextField`, `SearchField`, `ComboBox`, `TokenField` o
-`TextEditor` abre el menú Editar de la HIG: Cortar, Copiar, Pegar y
-Seleccionar todo. Cada orden enfoca el campo y le envía su atajo (Ctrl+X, C, V
-o A), así que actúa sobre la selección que ya tenía.
+`TextEditor` abre el menú Editar de la HIG: Deshacer, Rehacer, Cortar, Copiar,
+Pegar y Seleccionar todo. Cada orden enfoca el campo y le envía su atajo
+(Ctrl+Z, Y, X, C, V o A), así que actúa sobre la selección y el historial que
+ya tenía. En `TextEditor`, Deshacer y Rehacer siguen el historial de
+freya-edit y Mayús+Ctrl+Z también rehace.
 
 `TextEditor::styles(tramos)` admite texto enriquecido. Un
 `State<Vec<StyleRun>>` (`barrier_kit::rich_text`) guarda tramos en índices de

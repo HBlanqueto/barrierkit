@@ -873,8 +873,13 @@ impl Component for TextField {
             TEXT_FIELD.padding_x,
         );
         let field = use_hook(AccessibilityId::new_unique);
-        edit_menu(text_style(rect().width(self.width.clone())), field, true)
-            .child(input.a11y_id(field))
+        edit_menu(
+            text_style(rect().width(self.width.clone())),
+            field,
+            true,
+            (true, true),
+        )
+        .child(input.a11y_id(field))
     }
 }
 
@@ -1037,39 +1042,46 @@ impl Component for SearchField {
             );
         }
 
-        edit_menu(text_style(rect().width(self.width.clone())), a11y_id, true)
-            .child(input)
-            .child(
+        edit_menu(
+            text_style(rect().width(self.width.clone())),
+            a11y_id,
+            true,
+            (true, true),
+        )
+        .child(input)
+        .child(
+            rect()
+                .position(
+                    Position::new_absolute()
+                        .left(padding)
+                        .top((TEXT_FIELD.height - icon) / 2.0),
+                )
+                .child(symbol(
+                    Symbol::MagnifyingGlass,
+                    icon,
+                    palette.tertiary_label,
+                )),
+        )
+        .maybe(!shown_tokens.is_empty(), |el| {
+            el.child(
                 rect()
                     .position(
                         Position::new_absolute()
-                            .left(padding)
-                            .top((TEXT_FIELD.height - icon) / 2.0),
+                            .left(padding + icon + gap)
+                            .top((TEXT_FIELD.height - vow_design::TOKEN_FIELD.token_height) / 2.0),
                     )
-                    .child(symbol(
-                        Symbol::MagnifyingGlass,
-                        icon,
-                        palette.tertiary_label,
-                    )),
-            )
-            .maybe(!shown_tokens.is_empty(), |el| {
-                el.child(
-                    rect()
-                        .position(
-                            Position::new_absolute().left(padding + icon + gap).top(
-                                (TEXT_FIELD.height - vow_design::TOKEN_FIELD.token_height) / 2.0,
-                            ),
-                        )
-                        .direction(Direction::Horizontal)
-                        .spacing(vow_design::TOKEN_FIELD.gap)
-                        .on_sized(move |event: Event<SizedEventData>| {
-                            tokens_width.set_if_modified(event.area.width());
-                        })
-                        .children(shown_tokens.into_iter().map(|token| {
+                    .direction(Direction::Horizontal)
+                    .spacing(vow_design::TOKEN_FIELD.gap)
+                    .on_sized(move |event: Event<SizedEventData>| {
+                        tokens_width.set_if_modified(event.area.width());
+                    })
+                    .children(
+                        shown_tokens.into_iter().map(|token| {
                             crate::token_field::token_chip(token, false).into_element()
-                        })),
-                )
-            })
+                        }),
+                    ),
+            )
+        })
     }
 }
 

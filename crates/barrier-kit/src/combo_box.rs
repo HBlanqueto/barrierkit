@@ -106,35 +106,37 @@ impl Component for ComboBox {
             }
             default_pre_key(&event)
         });
-        edit_menu(text_style(rect().width(self.width.clone())), field, true)
-            .on_sized(move |event: Event<SizedEventData>| area.set_if_modified(event.area))
-            .child(input)
-            .child(
-                rect()
-                    .position(
-                        Position::new_absolute()
-                            .right(COMBO_BOX.button_inset_x)
-                            .top(
-                                ((area.read().size.height - COMBO_BOX.button_height) / 2.0)
-                                    .max(0.0),
-                            ),
-                    )
-                    .child(
-                        rect()
-                            .width(Size::px(COMBO_BOX.button_width))
-                            .height(Size::px(COMBO_BOX.button_height))
-                            .corner_radius(COMBO_BOX.button_radius)
-                            .center()
-                            .background(color(palette.control_background))
-                            .a11y_role(AccessibilityRole::Button)
-                            .a11y_alt(self.placeholder)
-                            .on_press(move |_| open())
-                            .child(symbol(
-                                Symbol::ChevronDown,
-                                COMBO_BOX.chevron,
-                                palette.label,
-                            )),
-                    ),
-            )
+        edit_menu(
+            text_style(rect().width(self.width.clone())),
+            field,
+            true,
+            (true, true),
+        )
+        .on_sized(move |event: Event<SizedEventData>| area.set_if_modified(event.area))
+        .child(input)
+        .child(
+            rect()
+                .position(
+                    Position::new_absolute()
+                        .right(COMBO_BOX.button_inset_x)
+                        .top(((area.read().size.height - COMBO_BOX.button_height) / 2.0).max(0.0)),
+                )
+                .child(
+                    rect()
+                        .width(Size::px(COMBO_BOX.button_width))
+                        .height(Size::px(COMBO_BOX.button_height))
+                        .corner_radius(COMBO_BOX.button_radius)
+                        .center()
+                        .background(color(palette.control_background))
+                        .a11y_role(AccessibilityRole::Button)
+                        .a11y_alt(self.placeholder)
+                        .on_press(move |_| open())
+                        .child(symbol(
+                            Symbol::ChevronDown,
+                            COMBO_BOX.chevron,
+                            palette.label,
+                        )),
+                ),
+        )
     }
 }

@@ -62,6 +62,7 @@ impl Component for TextEditor {
         let mut editable = use_editable(|| value.read().to_string(), EditableConfig::new);
         let (mut blink, cursor) = use_cursor_blink(focused, color(palette.label));
         let mut finding = use_state(|| false);
+        let mut history = use_state(|| (false, false));
         let query = use_state(String::new);
         let current = use_state(|| 0usize);
         let scroll = use_scroll_controller();
@@ -104,6 +105,7 @@ impl Component for TextEditor {
             editor.set(&value.read());
             editor.editor_history().clear();
             editor.clear_selection();
+            history.set_if_modified((false, false));
         }
 
         let on_key_down = move |event: Event<KeyboardEventData>| {
@@ -137,10 +139,24 @@ impl Component for TextEditor {
                 return;
             }
             blink.reset();
+            let redo = Key::Character("y".into());
+            let key = match &event.key {
+                Key::Character(c)
+                    if c.eq_ignore_ascii_case("z")
+                        && event.modifiers.contains(Modifiers::SHIFT) =>
+                {
+                    &redo
+                }
+                key => key,
+            };
             editable.process_event(EditableEvent::KeyDown {
-                key: &event.key,
+                key,
                 modifiers: event.modifiers,
             });
+            let mut editor = editable.editor_mut().write();
+            let undoable = editor.editor_history();
+            history.set_if_modified((undoable.can_undo(), undoable.can_redo()));
+            drop(editor);
             let text = editable.editor().read().committed_text();
             if *value.peek() != text {
                 if let Some(mut styles) = styles {
@@ -222,7 +238,7 @@ impl Component for TextEditor {
                 .into_iter()
             });
         let has_selection = editor.get_selection().is_some();
-        let field = edit_menu(text_style(rect()), a11y_id, has_selection)
+        let field = edit_menu(text_style(rect()), a11y_id, has_selection, *history.read())
             .a11y_id(a11y_id)
             .a11y_focusable(true)
             .a11y_role(AccessibilityRole::MultilineTextInput)

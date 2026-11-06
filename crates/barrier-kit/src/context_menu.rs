@@ -33,9 +33,17 @@ pub fn context_menu(
     })
 }
 
-pub(crate) fn edit_menu(element: Rect, field: AccessibilityId, has_selection: bool) -> Rect {
+pub(crate) fn edit_menu(
+    element: Rect,
+    field: AccessibilityId,
+    has_selection: bool,
+    (can_undo, can_redo): (bool, bool),
+) -> Rect {
     let platform = Platform::get();
     let items = vec![
+        MenuItem::action("z", text!("undo")).with_enabled(can_undo),
+        MenuItem::action("y", text!("redo")).with_enabled(can_redo),
+        MenuItem::Separator,
         MenuItem::action("x", text!("cut")).with_enabled(has_selection),
         MenuItem::action("c", text!("copy")).with_enabled(has_selection),
         MenuItem::action("v", text!("paste")),
