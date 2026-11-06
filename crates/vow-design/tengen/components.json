@@ -639,7 +639,7 @@
       },
       "menu": {
         "panel": {
-          "padding": 5,
+          "padding": 4,
           "min-width": 220,
           "max-width": 640,
           "radius": "radius.md",
@@ -649,7 +649,7 @@
         "item": {
           "height": 24,
           "radius": "radius.sm",
-          "padding-x": 13,
+          "padding-x": 11,
           "font-size": 13,
           "shortcut-gap": 24,
           "fg": "ink",
@@ -660,7 +660,7 @@
         },
         "separator": {
           "height": 1,
-          "margin-y": 5,
+          "margin-y": 4,
           "color": "line",
           "tint-ink-mix": 0.14
         },
