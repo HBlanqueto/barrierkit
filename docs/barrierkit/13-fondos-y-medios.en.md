@@ -58,6 +58,34 @@ this way.
 | `use_artwork_from(cargador)` | The same, with bytes from any source (for example, `video::fetch(url)`) |
 | `register_font(bytes)` | Registers a custom font (for example, for titles) |
 
+## Glass that merges: `GlassContainer`
+
+`GlassContainer` (`barrier_kit::glass_container`) is SwiftUI's
+`GlassEffectContainer`. Each `.item(id, radius, content)` carries its glass
+shape, and `id` plays the role of `glassEffectID`.
+
+```rust
+GlassContainer::new(20.0)
+    .gap(6.0)
+    .item("añadir", 22.0, IconButton::new(Symbol::Plus, "Añadir"))
+    .item("quitar", 22.0, IconButton::new(Symbol::Minus, "Quitar"))
+```
+
+1. Each item measures its frame and the container paints the union of all of
+   them as a single glass: backdrop blur, the `MEDIA.round_glass` tint and
+   the `MEDIA.round_rim` border.
+2. Shapes closer than `spacing` merge through a smooth minimum of their
+   distances ([smin](https://iquilezles.org/articles/smin/)) in an SkSL
+   shader; `gap` is the layout gap between items.
+3. When the set changes, each shape goes from its previous frame to the new
+   one. A new shape grows out of its nearest neighbour and one that leaves
+   melts into it.
+4. The curve is the kit's spring (`DURATION_BASE`, no bounce) and it honours
+   `reduced_motion`. Apple does not publish the morph curve and there are no
+   measured macOS 26 captures; when there are, only the duration and the
+   bounce change.
+5. A container holds up to `MAX_SHAPES` (8) shapes.
+
 ## Video (`video` feature)
 
 ```rust

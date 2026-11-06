@@ -56,6 +56,33 @@ leen todavía la paleta del sistema. El ejemplo
 | `use_artwork_from(cargador)` | Igual, con los bytes de cualquier origen (por ejemplo, `video::fetch(url)`) |
 | `register_font(bytes)` | Registra una fuente propia (por ejemplo, para títulos) |
 
+## Cristal que se funde: `GlassContainer`
+
+`GlassContainer` (`barrier_kit::glass_container`) es el `GlassEffectContainer`
+de SwiftUI. Cada `.item(id, radio, contenido)` lleva su forma de cristal, y
+`id` hace de `glassEffectID`.
+
+```rust
+GlassContainer::new(20.0)
+    .gap(6.0)
+    .item("añadir", 22.0, IconButton::new(Symbol::Plus, "Añadir"))
+    .item("quitar", 22.0, IconButton::new(Symbol::Minus, "Quitar"))
+```
+
+1. Cada elemento mide su marco y el contenedor pinta la unión de todos con un
+   único cristal: desenfoque del fondo, el tinte `MEDIA.round_glass` y el
+   borde `MEDIA.round_rim`.
+2. Las formas a menos de `spacing` se funden con un mínimo suave de sus
+   distancias ([smin](https://iquilezles.org/articles/smin/)) en un shader
+   SkSL; `gap` es el hueco del diseño entre elementos.
+3. Cuando cambia el conjunto, cada forma va de su marco anterior al nuevo. Una
+   forma nueva sale de la vecina más cercana y una que se va se funde en ella.
+4. La curva es el resorte del kit (`DURATION_BASE`, sin rebote) y respeta
+   `reduced_motion`. Apple no publica la curva de la transformación ni hay
+   capturas medidas de macOS 26; cuando las haya, cambian solo la duración y el
+   rebote.
+5. Caben `MAX_SHAPES` (8) formas por contenedor.
+
 ## Vídeo (feature `video`)
 
 ```rust

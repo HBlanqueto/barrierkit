@@ -81,6 +81,8 @@ pub mod rule_editor;
 
 pub mod print;
 
+pub mod glass_container;
+
 pub mod context_menu;
 
 pub mod tooltip;
