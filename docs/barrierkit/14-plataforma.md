@@ -40,7 +40,7 @@ el [ADR 0056](../decisiones/0056-barrierkit-sobre-vulkan.md).
 | `wl_data_device_manager` | No | Portapapeles |
 | `org_kde_kwin_appmenu_manager` | No | Enseñar el menú global en la barra de menús |
 | `infinity_focus_manager_v1` | No | Avisos del compositor de Malaysia sobre la barra de foco |
-| `infinity_window_style_v1` | No | Una `Titlebar` que no es `close_only` pide la esquina de ventana con barra de herramientas (ADR 0058 de Malaysia) |
+| `infinity_window_style_v1` | No | La `Titlebar` envía su barra con `set_bar`: `titlebar` si es `close_only`, `unified` con barra lateral en isla y `compact` en el resto (ADR 0059 de Malaysia) |
 
 Si falta un protocolo opcional, el runner lo registra con `tracing::info!` y
 sigue. Si falta uno obligatorio, `run_window` devuelve

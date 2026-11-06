@@ -25,27 +25,39 @@
 
   <interface name="infinity_window_style_v1" version="1">
     <description summary="window style hints for applications">
-      Malaysia rounds every window it composites (ADR 0058). As in macOS,
-      a window with a toolbar gets a larger corner than one with a plain
-      titlebar. A client-decorated application uses this global to say
-      which kind its toplevel is. It grants nothing, so every client may
-      bind it. Without it, every toplevel has the titlebar corner.
+      Malaysia rounds every window it composites (ADR 0059). As in macOS
+      Tahoe, the corner radius depends on the window's bar. A
+      client-decorated application uses this global to say which bar its
+      toplevel draws. It grants nothing, so every client may bind it.
+      Without it, the compositor picks the radius from the window's
+      decoration and role.
     </description>
+
+    <enum name="bar">
+      <description summary="kind of bar a toplevel draws">
+        Each value matches an AppKit window kind and its corner radius.
+      </description>
+      <entry name="titlebar" value="0" summary="a plain titlebar, as NSWindow without a toolbar"/>
+      <entry name="compact" value="1" summary="a compact toolbar, as NSWindowToolbarStyle.unifiedCompact"/>
+      <entry name="unified" value="2" summary="a full toolbar, as NSWindowToolbarStyle.unified"/>
+      <entry name="utility" value="3" summary="a panel or utility window"/>
+    </enum>
 
     <request name="destroy" type="destructor">
       <description summary="destroy the global object">
-        Styles already set stay in place.
+        Bars already set stay in place.
       </description>
     </request>
 
-    <request name="set_toolbar">
-      <description summary="the toplevel has a toolbar">
-        Tells the compositor that the toplevel whose wl_surface is given
-        draws a toolbar (a unified bar, possibly with a sidebar), so its
-        frame gets the toolbar corner from the next frame on. It lasts for
-        the lifetime of the wl_surface.
+    <request name="set_bar">
+      <description summary="the bar the toplevel draws">
+        Tells the compositor which bar the toplevel whose wl_surface is
+        given draws, so its frame gets that bar's corner from the next
+        frame on. A later request replaces it. It lasts for the lifetime of
+        the wl_surface.
       </description>
       <arg name="surface" type="object" interface="wl_surface"/>
+      <arg name="bar" type="uint" enum="bar"/>
     </request>
   </interface>
 </protocol>

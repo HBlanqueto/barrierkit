@@ -2,8 +2,8 @@ use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 use vow_appearance::{SidebarStyle, SidebarSurface};
 use vow_design::{
-    BACKDROP, DURATION_BASE, Rgba, SETTINGS, SIDEBAR, SidebarPalette, TEXT, TEXT_FIELD, TITLEBAR,
-    TITLEBAR_RAIL,
+    BACKDROP, CORNER_EXPANSION, DURATION_BASE, Rgba, SETTINGS, SIDEBAR, SidebarPalette, TEXT,
+    TEXT_FIELD, TITLEBAR, TITLEBAR_RAIL,
 };
 
 use crate::ProbeExt;
@@ -274,7 +274,7 @@ impl Component for Sidebar {
             .child(ScrollView::new().children(self.children.iter().cloned()));
 
         if island {
-            sidebar_body = sidebar_body.corner_radius(radius);
+            sidebar_body = sidebar_body.corner_radius(island_corner(radius));
 
             if surface.rim.a > 0.0 {
                 sidebar_body = sidebar_body.border(
@@ -296,7 +296,7 @@ impl Component for Sidebar {
                                 .bottom(0.0),
                         )
                         .margin(Gaps::new_all(SIDEBAR.rim_width))
-                        .corner_radius((radius - SIDEBAR.rim_width).max(0.0))
+                        .corner_radius(island_corner((radius - SIDEBAR.rim_width).max(0.0)))
                         .border(
                             Border::new()
                                 .width(SIDEBAR.inner_width)
@@ -700,4 +700,9 @@ impl Component for SidebarAccount {
                     )),
             )
     }
+}
+
+// Freya's smoothing s runs the curve to (1 + s) R, Apple's 1.5287 R (malaysia ADR 0059).
+fn island_corner(radius: f32) -> CornerRadius {
+    CornerRadius::new_all(radius).with_smoothing(CORNER_EXPANSION - 1.0)
 }

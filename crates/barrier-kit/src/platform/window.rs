@@ -21,6 +21,7 @@ use super::{
     runtime::{Connected, Runtime, WindowContext},
     surface::SurfaceRole,
     timer::WakeHandle,
+    window_style::Bar,
 };
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, serde::Deserialize, serde::Serialize)]
@@ -212,8 +213,8 @@ impl WindowControls {
         self.send(WindowCommand::Close);
     }
 
-    pub(crate) fn mark_toolbar(&self) {
-        self.send(WindowCommand::Toolbar);
+    pub(crate) fn set_bar(&self, bar: Bar) {
+        self.send(WindowCommand::Bar(bar));
     }
 
     pub fn minimize(&self) {
@@ -245,7 +246,7 @@ pub(crate) enum WindowCommand {
     Move(u32),
     Resize(u32, WindowEdge),
     Present(String),
-    Toolbar,
+    Bar(Bar),
 }
 
 pub(super) fn resize_edge(edge: WindowEdge) -> xdg_toplevel::ResizeEdge {
@@ -512,9 +513,9 @@ impl Runtime {
                             activation.activate(token, window.wl_surface());
                         }
                     }
-                    WindowCommand::Toolbar => {
+                    WindowCommand::Bar(bar) => {
                         if let Some(style) = &self.window_style {
-                            style.set_toolbar(window.wl_surface());
+                            style.set_bar(window.wl_surface(), bar);
                         }
                     }
                     WindowCommand::Close => unreachable!(),

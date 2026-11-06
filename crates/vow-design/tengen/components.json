@@ -142,7 +142,10 @@
       "resize-edge": 5,
       "resize-corner": 16,
       "radius": "radius.lg",
+      "compact-radius": 20,
       "toolbar-radius": 26,
+      "utility-radius": 15,
+      "corner-expansion": 1.52866,
       "traffic-lights": {
         "size": 14,
         "radius": 4,
@@ -235,7 +238,7 @@
           }
         }
       },
-      "superellipse-exponent": 2.0,
+      "superellipse-exponent": 3.34,
       "titlebar": {
         "padding-x": 10,
         "title-gap": 12,

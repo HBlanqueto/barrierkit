@@ -17,7 +17,7 @@ use vow_design::{
 
 use crate::ProbeExt;
 use crate::app::DefaultsRevision;
-use crate::platform::{DecorationResponse, WindowControls, WindowStatus};
+use crate::platform::{Bar, DecorationResponse, WindowControls, WindowStatus};
 use crate::theme;
 
 #[derive(PartialEq)]
@@ -119,11 +119,17 @@ impl Component for Titlebar {
     fn render(&self) -> impl IntoElement {
         let controls =
             try_consume_root_context::<WindowControls>().filter(|_| self.preview.is_none());
-        use_hook(|| {
-            if !self.close_only
-                && let Some(controls) = &controls
-            {
-                controls.mark_toolbar();
+        let bar = if self.close_only {
+            Bar::Titlebar
+        } else if self.sidebar && theme::resolved().sidebar.style == SidebarStyle::Island {
+            Bar::Unified
+        } else {
+            Bar::Compact
+        };
+        let bar_controls = controls.clone();
+        use_side_effect_with_deps(&bar, move |bar| {
+            if let Some(controls) = &bar_controls {
+                controls.set_bar(*bar);
             }
         });
         let content_widths = use_state(|| (0.0f32, 0.0f32));
