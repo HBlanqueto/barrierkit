@@ -423,4 +423,28 @@ mod tests {
             assert!(!figures.is_empty(), "tab {tab} has no chart");
         }
     }
+
+    #[test]
+    fn dragging_the_model_orbits_the_camera() {
+        let app = AppComponent::new(Trazo { tab: 2 });
+        let (mut test, _) = TestingRunner::new(app, Size2D::new(900.0, 760.0), |_| {}, 1.0);
+        test.sync_and_update();
+        test.press_cursor((450.0, 370.0));
+        test.move_cursor((590.0, 320.0));
+        test.release_cursor((590.0, 320.0));
+        test.sync_and_update();
+        let readout = test.find_many(|_, el| {
+            el.accessibility()
+                .builder
+                .label()
+                .filter(|label| label.contains('°'))
+                .map(str::to_owned)
+        });
+        assert!(
+            readout
+                .iter()
+                .any(|label| label.contains("40°") && label.contains(" 0°")),
+            "{readout:?}"
+        );
+    }
 }

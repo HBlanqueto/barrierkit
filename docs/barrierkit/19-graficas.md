@@ -44,9 +44,17 @@ ejes, leyenda y lectura son texto del kit.
    deja un paso abierto donde se unen principio y final.
 6. Para 3D, pasa una rejilla de alturas a `Chart3D::surface`, vértices y
    triángulos a `Chart3D::mesh` (el modelo se ajusta a la caja) o puntos
-   `[x, y, z]` a `Chart3D::points`. El usuario la gira arrastrando o elige un
-   plano: libre, frente, arriba, lado o isométrica. La malla se dibuja en la
-   GPU en una sola llamada (ADR 0060).
+   `[x, y, z]` a `Chart3D::points`. La malla se dibuja en la GPU en una sola
+   llamada (ADR 0060).
+7. La cámara 3D tiene tres modos, elegidos en su selector:
+   - **Libre**, como en Blender: arrastrar con el botón izquierdo o central
+     orbita, Mayúsculas + arrastrar o el botón derecho desplaza, y la rueda
+     hace zoom. El arrastre sigue aunque el puntero salga del área.
+   - **Personalizada:** deslizadores de azimut, inclinación y zoom.
+     «Fijar esta cámara» copia ahí la cámara que se ve.
+   - **Planos fijos:** frente (XY), arriba (XZ), lado (YZ) e isométrica.
+
+   Debajo, una lectura accesible muestra azimut, inclinación y zoom.
 
 Como en Swift Charts, el eje Y va a la derecha y la leyenda debajo. Al pasar
 el puntero sobre un `Chart`, una regla marca la posición y la leyenda muestra
@@ -69,6 +77,7 @@ Todos viven en `components.chart` de `vow-design` (`CHART`):
 | `stream-hole` | 0,32 | Hueco central del reloj de flujo |
 | `azimuth` / `inclination` | −30° / 25° | Pose inicial de `Chart3D` |
 | `drag-degrees` | 0,5 | Grados por punto al arrastrar |
+| `zoom-min` / `zoom-max` / `wheel-zoom` | 0,4 / 4 / 0,01 | Límites del zoom y su ritmo por punto de rueda |
 
 Los colores de las series siguen `series` (azul, verde, naranja, morado,
 rojo, amarillo, rosa), que apunta a los colores de acento del sistema

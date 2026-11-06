@@ -46,6 +46,9 @@
       "azimuth": -30,
       "inclination": 25,
       "drag-degrees": 0.5,
+      "zoom-min": 0.4,
+      "zoom-max": 4,
+      "wheel-zoom": 0.01,
       "stream-hole": 0.32,
       "series": ["blue", "green", "orange", "purple", "red", "yellow", "pink"]
     },

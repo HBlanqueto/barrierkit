@@ -7,14 +7,17 @@ use freya_core::tree::DiffModifies;
 use freya_engine::prelude::{BlendMode, Paint, PaintStyle, Point};
 use skia_safe::Vertices;
 use skia_safe::vertices::VertexMode;
-use torin::prelude::{Direction, Position, Size};
-use vow_design::{CHART, Rgba, SPACE_2};
+use torin::prelude::{Alignment, Direction, Position, Size};
+use vow_design::{CALLOUT, CHART, Rgba, SPACE_2};
 
 use super::plot::{mix, normalized, paint, shade};
 use super::series_color;
-use super::space::{Pose, View, back_to_front, fit, project, surface_triangles};
-use crate::controls::SegmentedControl;
+use super::space::{
+    Camera, Pose, View, back_to_front, fit, from_unit, project, surface_triangles, to_unit,
+};
+use crate::controls::{Button, SegmentedControl};
 use crate::i18n::text;
+use crate::level::LevelSlider;
 use crate::style::Palette;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -30,7 +33,7 @@ enum Plot3D {
 #[derive(PartialEq)]
 struct Space {
     plot: Plot3D,
-    pose: Pose,
+    camera: Camera,
     low: Rgba,
     high: Rgba,
     frame: Rgba,
@@ -78,7 +81,10 @@ impl Space {
         else {
             return;
         };
-        let projected: Vec<[f64; 3]> = vertices.iter().map(|v| project(*v, self.pose)).collect();
+        let projected: Vec<[f64; 3]> = vertices
+            .iter()
+            .map(|v| project(*v, self.camera.pose))
+            .collect();
         let mut normals = vec![[0.0; 3]; vertices.len()];
         let mut faces = Vec::with_capacity(triangles.len());
         for tri in triangles {
@@ -88,7 +94,7 @@ impl Space {
                 let n = &mut normals[*corner as usize];
                 *n = [n[0] + normal[0], n[1] + normal[1], n[2] + normal[2]];
             }
-            let facing = project(normal, self.pose)[2];
+            let facing = project(normal, self.camera.pose)[2];
             if *closed && facing <= 0.0 {
                 continue;
             }
@@ -99,7 +105,7 @@ impl Space {
             .iter()
             .zip(&normals)
             .map(|(vertex, normal)| {
-                let toward = project(*normal, self.pose);
+                let toward = project(*normal, self.camera.pose);
                 let facing = (toward[2] / length(toward).max(f64::EPSILON)).abs() as f32;
                 let height = ((vertex[1] + 1.0) / 2.0) as f32;
                 let Rgba { r, g, b, a } =
@@ -146,11 +152,25 @@ impl ElementExt for Space {
         let area = context.layout_node.visible_area();
         let scale = context.scale_factor as f32;
         let canvas = context.canvas;
-        let (cx, cy) = (area.center().x, area.center().y);
-        let unit = f64::from(area.width().min(area.height())) * 0.32;
+        let (cx, cy) = (
+            area.center().x + self.camera.pan.0 as f32 * scale,
+            area.center().y + self.camera.pan.1 as f32 * scale,
+        );
+        let unit = f64::from(area.width().min(area.height())) * 0.32 * self.camera.zoom;
         let screen =
             |[x, y, _]: [f64; 3]| Point::new(cx + (x * unit) as f32, cy - (y * unit) as f32);
 
+        canvas.save();
+        canvas.clip_rect(
+            freya_engine::prelude::Rect::new(
+                area.min_x(),
+                area.min_y(),
+                area.max_x(),
+                area.max_y(),
+            ),
+            None,
+            Some(true),
+        );
         let frame = paint(self.frame, PaintStyle::Stroke, CHART.grid_width * scale);
         let corners: Vec<Point> = (0..8)
             .map(|i| {
@@ -159,7 +179,7 @@ impl ElementExt for Space {
                     if i & 4 == 0 { -1.0 } else { 1.0 },
                     if i & 2 == 0 { -1.0 } else { 1.0 },
                 ];
-                screen(project(corner, self.pose))
+                screen(project(corner, self.camera.pose))
             })
             .collect();
         for (a, b) in BOX_EDGES {
@@ -173,7 +193,7 @@ impl ElementExt for Space {
                 let (min, span) = normalized(&ys);
                 let projected: Vec<([f64; 3], f32)> = points
                     .iter()
-                    .map(|p| (project(*p, self.pose), ((p[1] - min) / span) as f32))
+                    .map(|p| (project(*p, self.camera.pose), ((p[1] - min) / span) as f32))
                     .collect();
                 let depths: Vec<f64> = projected.iter().map(|p| p.0[2]).collect();
                 for i in back_to_front(&depths) {
@@ -187,6 +207,7 @@ impl ElementExt for Space {
                 }
             }
         }
+        canvas.restore();
     }
 }
 
@@ -242,6 +263,7 @@ impl Chart3D {
 fn view_title(view: View) -> &'static str {
     match view {
         View::Free => text!("view-free"),
+        View::Custom => text!("view-custom"),
         View::Front => text!("view-front"),
         View::Top => text!("view-top"),
         View::Side => text!("view-side"),
@@ -249,20 +271,54 @@ fn view_title(view: View) -> &'static str {
     }
 }
 
+const AZIMUTH: (f64, f64) = (-180.0, 180.0);
+const INCLINATION: (f64, f64) = (-90.0, 90.0);
+
+fn zoom_range() -> (f64, f64) {
+    (f64::from(CHART.zoom_min), f64::from(CHART.zoom_max))
+}
+
+fn coordinate(label: &'static str, value: f32, on_change: impl Fn(f32) + 'static) -> Element {
+    let palette = Palette::current();
+    rect()
+        .width(Size::fill())
+        .direction(Direction::Horizontal)
+        .cross_align(Alignment::Center)
+        .spacing(SPACE_2)
+        .child(
+            rect()
+                .width(Size::px(CHART.y_axis_width * 2.0))
+                .child(crate::style::text(label, CALLOUT, palette.secondary_label)),
+        )
+        .child(
+            rect().width(Size::flex(1.0)).child(
+                LevelSlider::new(label)
+                    .value(value)
+                    .on_change(move |fraction: f32| on_change(fraction)),
+            ),
+        )
+        .into_element()
+}
+
 impl Component for Chart3D {
     fn render(&self) -> impl IntoElement {
         let palette = Palette::current();
-        let mut free = use_state(|| Pose {
+        let start = Camera::at(Pose {
             azimuth: f64::from(CHART.azimuth),
             inclination: f64::from(CHART.inclination),
         });
+        let mut free = use_state(|| start);
+        let mut custom = use_state(|| start);
         let mut view = use_state(|| View::Free);
-        let mut drag = use_state(|| None::<(f64, f64, Pose)>);
-        let pose = view.read().pose().unwrap_or(*free.read());
-        let selected = View::ALL
-            .iter()
-            .position(|v| *v == *view.read())
-            .unwrap_or(0);
+        let mut drag = use_state(|| None::<(f64, f64, Camera, bool)>);
+        let mut shift = use_state(|| false);
+        let current = *view.read();
+        let camera = match current {
+            View::Free => *free.read(),
+            View::Custom => *custom.read(),
+            fixed => Camera::at(fixed.pose().unwrap_or(start.pose)),
+        };
+        let selected = View::ALL.iter().position(|v| *v == current).unwrap_or(0);
         let views = View::ALL
             .into_iter()
             .fold(SegmentedControl::new(text!("view")), |control, v| {
@@ -270,38 +326,127 @@ impl Component for Chart3D {
             })
             .selected(selected)
             .on_change(move |index| view.set(View::ALL[index]));
+        let readout = text!(
+            "camera-readout",
+            azimuth = format!("{:.0}", camera.pose.azimuth),
+            inclination = format!("{:.0}", camera.pose.inclination),
+            zoom = format!("{:.1}", camera.zoom)
+        );
+        let degrees = f64::from(CHART.drag_degrees);
+        let coordinates = (current == View::Custom).then(|| {
+            let set = move |change: fn(Camera, f32) -> Camera| {
+                move |fraction: f32| {
+                    let mut custom = custom;
+                    let next = change(*custom.peek(), fraction);
+                    custom.set(next);
+                }
+            };
+            rect()
+                .width(Size::fill())
+                .direction(Direction::Vertical)
+                .spacing(SPACE_2)
+                .child(coordinate(
+                    text!("camera-azimuth"),
+                    to_unit(camera.pose.azimuth, AZIMUTH),
+                    set(|c, f| Camera {
+                        pose: Pose {
+                            azimuth: from_unit(f, AZIMUTH),
+                            ..c.pose
+                        },
+                        ..c
+                    }),
+                ))
+                .child(coordinate(
+                    text!("camera-inclination"),
+                    to_unit(camera.pose.inclination, INCLINATION),
+                    set(|c, f| Camera {
+                        pose: Pose {
+                            inclination: from_unit(f, INCLINATION),
+                            ..c.pose
+                        },
+                        ..c
+                    }),
+                ))
+                .child(coordinate(
+                    text!("camera-zoom"),
+                    to_unit(camera.zoom, zoom_range()),
+                    set(|c, f| Camera {
+                        zoom: from_unit(f, zoom_range()),
+                        ..c
+                    }),
+                ))
+        });
         rect()
             .width(Size::fill())
             .direction(Direction::Vertical)
             .spacing(SPACE_2)
             .a11y_role(AccessibilityRole::Figure)
             .a11y_alt(self.label)
+            .on_global_key_down(move |event: Event<KeyboardEventData>| {
+                if event.key == Key::Named(NamedKey::Shift) {
+                    shift.set_if_modified(true);
+                }
+            })
+            .on_global_key_up(move |event: Event<KeyboardEventData>| {
+                if event.key == Key::Named(NamedKey::Shift) {
+                    shift.set_if_modified(false);
+                }
+            })
             .child(views)
+            .maybe_child(coordinates)
             .child(
                 rect()
                     .width(Size::fill())
                     .height(Size::px(self.height))
-                    .on_pointer_down(move |event: Event<PointerEventData>| {
-                        let at = event.global_location();
-                        drag.set(Some((at.x, at.y, pose)));
+                    .on_mouse_down(move |event: Event<MouseEventData>| {
+                        let pan = *shift.peek() || event.button == Some(MouseButton::Right);
+                        let at = event.global_location;
+                        if current != View::Custom {
+                            free.set(camera);
+                            view.set_if_modified(View::Free);
+                        }
+                        drag.set(Some((at.x, at.y, camera, pan)));
+                        Cursor::set(CursorIcon::Grabbing);
                     })
                     .on_global_pointer_move(move |event: Event<PointerEventData>| {
-                        let Some((x, y, start)) = *drag.peek() else {
+                        let Some((x, y, from, pan)) = *drag.peek() else {
                             return;
                         };
                         let at = event.global_location();
-                        let degrees = f64::from(CHART.drag_degrees);
-                        view.set_if_modified(View::Free);
-                        free.set(Pose {
-                            azimuth: start.azimuth + (at.x - x) * degrees,
-                            inclination: (start.inclination + (at.y - y) * degrees)
-                                .clamp(-90.0, 90.0),
-                        });
+                        let (dx, dy) = (at.x - x, at.y - y);
+                        let next = if pan {
+                            from.pan_by(dx, dy)
+                        } else {
+                            from.orbit(dx, dy, degrees)
+                        };
+                        if *view.peek() == View::Custom {
+                            custom.set(next);
+                        } else {
+                            free.set(next);
+                        }
                     })
-                    .on_global_pointer_press(move |_| drag.set_if_modified(None))
+                    .on_global_pointer_press(move |_| {
+                        if drag.peek().is_some() {
+                            drag.set(None);
+                            Cursor::set(CursorIcon::default());
+                        }
+                    })
+                    .on_wheel(move |event: Event<WheelEventData>| {
+                        let next = camera.zoom_by(
+                            event.delta_y,
+                            f64::from(CHART.wheel_zoom),
+                            zoom_range(),
+                        );
+                        if current == View::Custom {
+                            custom.set(next);
+                        } else {
+                            free.set(next);
+                            view.set_if_modified(View::Free);
+                        }
+                    })
                     .child(crate::glass::leaf(Space {
                         plot: self.plot.clone(),
-                        pose,
+                        camera,
                         low: series_color(0),
                         high: series_color(2),
                         frame: palette.separator,
@@ -311,6 +456,31 @@ impl Component for Chart3D {
                             Position::default(),
                         ),
                     })),
+            )
+            .child(
+                rect()
+                    .width(Size::fill())
+                    .direction(Direction::Horizontal)
+                    .cross_align(Alignment::Center)
+                    .spacing(SPACE_2)
+                    .child(
+                        rect()
+                            .a11y_role(AccessibilityRole::Label)
+                            .a11y_alt(readout.clone())
+                            .child(crate::style::text(
+                                readout,
+                                CALLOUT,
+                                palette.secondary_label,
+                            )),
+                    )
+                    .maybe(current != View::Custom, |el| {
+                        el.child(Button::new(text!("camera-keep")).small(true).on_press(
+                            move |_| {
+                                custom.set(camera);
+                                view.set(View::Custom);
+                            },
+                        ))
+                    }),
             )
     }
 }

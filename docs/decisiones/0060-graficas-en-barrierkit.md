@@ -31,9 +31,9 @@ las ofrece con Swift Charts: marcas (`LineMark`, `AreaMark`, `BarMark`,
    cerradas y los triángulos se ordenan de atrás hacia delante. Toda la malla
    va en un `Vertices` de Skia con color por vértice (sombra suave por
    normales promediadas y color por altura) y se rasteriza en la GPU con
-   `draw_vertices`, en una sola llamada sobre Vulkan (ADR 0056). El usuario
-   la gira arrastrando o elige un plano: libre, frente, arriba, lado o
-   isométrica.
+   `draw_vertices`, en una sola llamada sobre Vulkan (ADR 0056). La cámara
+   es libre al estilo Blender (orbitar, desplazar y zoom), personalizada por
+   coordenadas o fija en un plano: frente, arriba, lado o isométrica.
 5. **Valores en `vow-design`** (ADR 0011): `components.chart` (`CHART`). Los
    colores de las series apuntan a los colores de acento del sistema
    (`CHART_SERIES`), sin copiarlos.

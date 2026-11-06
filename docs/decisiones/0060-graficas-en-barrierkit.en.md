@@ -28,8 +28,9 @@ Charts: marks (`LineMark`, `AreaMark`, `BarMark`, `PointMark`, `RuleMark`,
    back to front. The whole mesh goes in one Skia `Vertices` with per-vertex
    color (smooth shading from averaged normals and color by height) and is
    rasterized on the GPU with `draw_vertices`, in a single call on Vulkan
-   (ADR 0056). The user rotates it by dragging or picks a plane: free,
-   front, top, side or isometric.
+   (ADR 0056). The camera is free in the Blender style (orbit, pan and
+   zoom), custom by coordinates or fixed on a plane: front, top, side or
+   isometric.
 5. **Values in `vow-design`** (ADR 0011): `components.chart` (`CHART`). Series
    colors point to the system accent colors (`CHART_SERIES`) without copying
    them.

@@ -22,6 +22,7 @@ pub fn back_to_front(depths: &[f64]) -> Vec<usize> {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum View {
     Free,
+    Custom,
     Front,
     Top,
     Side,
@@ -29,8 +30,9 @@ pub enum View {
 }
 
 impl View {
-    pub const ALL: [View; 5] = [
+    pub const ALL: [View; 6] = [
         View::Free,
+        View::Custom,
         View::Front,
         View::Top,
         View::Side,
@@ -39,7 +41,7 @@ impl View {
 
     pub fn pose(self) -> Option<Pose> {
         let (azimuth, inclination) = match self {
-            View::Free => return None,
+            View::Free | View::Custom => return None,
             View::Front => (0.0, 0.0),
             View::Top => (0.0, 90.0),
             View::Side => (90.0, 0.0),
@@ -50,6 +52,55 @@ impl View {
             inclination,
         })
     }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Camera {
+    pub pose: Pose,
+    pub zoom: f64,
+    pub pan: (f64, f64),
+}
+
+impl Camera {
+    pub fn at(pose: Pose) -> Self {
+        Self {
+            pose,
+            zoom: 1.0,
+            pan: (0.0, 0.0),
+        }
+    }
+
+    pub fn orbit(self, dx: f64, dy: f64, degrees: f64) -> Self {
+        Self {
+            pose: Pose {
+                azimuth: (self.pose.azimuth + dx * degrees + 180.0).rem_euclid(360.0) - 180.0,
+                inclination: (self.pose.inclination + dy * degrees).clamp(-90.0, 90.0),
+            },
+            ..self
+        }
+    }
+
+    pub fn pan_by(self, dx: f64, dy: f64) -> Self {
+        Self {
+            pan: (self.pan.0 + dx, self.pan.1 + dy),
+            ..self
+        }
+    }
+
+    pub fn zoom_by(self, wheel: f64, rate: f64, (min, max): (f64, f64)) -> Self {
+        Self {
+            zoom: (self.zoom * (wheel * rate).exp()).clamp(min, max),
+            ..self
+        }
+    }
+}
+
+pub fn to_unit(value: f64, (min, max): (f64, f64)) -> f32 {
+    ((value - min) / (max - min)).clamp(0.0, 1.0) as f32
+}
+
+pub fn from_unit(fraction: f32, (min, max): (f64, f64)) -> f64 {
+    min + f64::from(fraction) * (max - min)
 }
 
 pub fn fit(vertices: &[[f64; 3]]) -> Vec<[f64; 3]> {
@@ -168,5 +219,32 @@ mod tests {
     fn a_surface_grid_splits_each_cell_in_two_triangles() {
         let (vertices, triangles) = surface_triangles(&[vec![0.0, 1.0, 2.0], vec![1.0, 2.0, 3.0]]);
         assert_eq!((vertices.len(), triangles.len()), (6, 4));
+    }
+    #[test]
+    fn orbiting_wraps_azimuth_and_stops_inclination_at_the_poles() {
+        let camera = Camera::at(Pose {
+            azimuth: 170.0,
+            inclination: 80.0,
+        })
+        .orbit(40.0, 40.0, 0.5);
+        assert_eq!(
+            (camera.pose.azimuth, camera.pose.inclination),
+            (-170.0, 90.0)
+        );
+    }
+
+    #[test]
+    fn the_wheel_zoom_stays_inside_its_limits() {
+        let camera = Camera::at(View::Front.pose().unwrap());
+        assert_eq!(camera.zoom_by(10_000.0, 0.01, (0.4, 4.0)).zoom, 4.0);
+        assert_eq!(camera.zoom_by(-10_000.0, 0.01, (0.4, 4.0)).zoom, 0.4);
+    }
+
+    #[test]
+    fn slider_fractions_map_back_to_the_same_value() {
+        for value in [-180.0, -12.5, 0.0, 90.0, 180.0] {
+            let fraction = to_unit(value, (-180.0, 180.0));
+            assert!((from_unit(fraction, (-180.0, 180.0)) - value).abs() < 1e-4);
+        }
     }
 }

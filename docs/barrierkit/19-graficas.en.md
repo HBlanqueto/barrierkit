@@ -45,9 +45,17 @@ axes, legend and readout are kit text.
    start and the end meet.
 6. For 3D, pass a grid of heights to `Chart3D::surface`, vertices and
    triangles to `Chart3D::mesh` (the model is fitted to the box) or
-   `[x, y, z]` points to `Chart3D::points`. The user rotates it by dragging
-   or picks a plane: free, front, top, side or isometric. The mesh is drawn
-   on the GPU in a single call (ADR 0060).
+   `[x, y, z]` points to `Chart3D::points`. The mesh is drawn on the GPU in
+   a single call (ADR 0060).
+7. The 3D camera has three modes, picked in its selector:
+   - **Free**, like Blender: dragging with the left or middle button orbits,
+     Shift + drag or the right button pans, and the wheel zooms. The drag
+     keeps going when the pointer leaves the area.
+   - **Custom:** azimuth, inclination and zoom sliders. "Keep this camera"
+     copies the camera on screen there.
+   - **Fixed planes:** front (XY), top (XZ), side (YZ) and isometric.
+
+   Below it, an accessible readout shows azimuth, inclination and zoom.
 
 As in Swift Charts, the Y axis is on the trailing side and the legend below.
 When the pointer moves over a `Chart`, a rule marks the position and the
@@ -71,6 +79,7 @@ They all live in `components.chart` in `vow-design` (`CHART`):
 | `stream-hole` | 0.32 | Center hole of the flow clock |
 | `azimuth` / `inclination` | −30° / 25° | Initial `Chart3D` pose |
 | `drag-degrees` | 0.5 | Degrees per point when dragging |
+| `zoom-min` / `zoom-max` / `wheel-zoom` | 0.4 / 4 / 0.01 | Zoom limits and their rate per wheel point |
 
 Series colors follow `series` (blue, green, orange, purple, red, yellow,
 pink), which points to the system accent colors (`CHART_SERIES`).
