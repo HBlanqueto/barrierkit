@@ -91,6 +91,12 @@ de AppKit, con el protocolo
 La especificación escribe las interfaces como `org.freedesktop.*`, pero KDE,
 libayatana-appindicator y waybar usan `org.kde.*`, y el kit usa esos nombres.
 
+Con `zwp_text_input_v3`, el texto en composición del método de entrada llega a
+`WindowControls::get().ime_preedit` (un `State<String>`, vacío si no hay) y el
+texto confirmado llega como una tecla `Key::Character`.
+`set_ime_cursor_area(x, y, ancho, alto)` dice al método de entrada dónde está
+el cursor, en píxeles lógicos de la ventana.
+
 ## Estado de la ventana
 
 El estado llega en cada configure del compositor y se lee con

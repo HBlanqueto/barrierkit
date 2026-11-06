@@ -122,6 +122,7 @@ impl SeatHandler for Runtime {
 
     fn new_seat(&mut self, _: &Connection, _: &QueueHandle<Self>, seat: wl_seat::WlSeat) {
         self.seat_handle = Some(seat.clone());
+        self.attach_text_input(&seat);
         self.attach_clipboard(&seat);
         if let Some(hooks) = self.extension_hooks() {
             (hooks.new_seat)(self, &seat);

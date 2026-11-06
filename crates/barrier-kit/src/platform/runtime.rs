@@ -60,6 +60,7 @@ use vow_appearance::{
 };
 use wayland_protocols::wp::fractional_scale::v1::client::wp_fractional_scale_manager_v1::WpFractionalScaleManagerV1;
 use wayland_protocols::wp::viewporter::client::wp_viewporter::WpViewporter;
+use wayland_protocols::wp::text_input::zv3::client::zwp_text_input_manager_v3::ZwpTextInputManagerV3;
 use wayland_protocols_plasma::appmenu::client::org_kde_kwin_appmenu_manager::OrgKdeKwinAppmenuManager;
 
 pub(crate) struct Connected {
@@ -116,6 +117,8 @@ pub(crate) struct Runtime {
     pub(crate) resolved: State<Resolved>,
     pub(crate) pending_menu_addresses: Arc<Mutex<Vec<(ObjectId, AppMenuAddress)>>>,
     pub(crate) clipboard: Clipboard,
+    pub(crate) text_input_manager: Option<ZwpTextInputManagerV3>,
+    pub(crate) ime: super::ime::Ime,
     pub(crate) activation: Option<XdgActivationV1>,
     pub(crate) defaults_revision: State<u64>,
     pub(crate) clipboard_device: Option<ClipboardDevice>,
@@ -386,6 +389,10 @@ impl Runtime {
             resolved,
             pending_menu_addresses: Arc::new(Mutex::new(Vec::new())),
             clipboard: Clipboard::new(ping.clone()),
+            text_input_manager: globals
+                .bind::<ZwpTextInputManagerV3, _, _>(&qh, 1..=1, ())
+                .ok(),
+            ime: super::ime::Ime::default(),
             activation: globals.bind::<XdgActivationV1, _, _>(&qh, 1..=1, ()).ok(),
             defaults_revision: State::create_global(0),
             clipboard_device: DataDeviceManagerState::bind(&globals, &qh)
@@ -396,6 +403,7 @@ impl Runtime {
         };
         if let Some(seat) = shell.seat_handle.clone() {
             shell.attach_clipboard(&seat);
+            shell.attach_text_input(&seat);
         }
         Ok(Connected {
             conn,

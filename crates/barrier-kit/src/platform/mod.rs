@@ -9,6 +9,7 @@ pub(crate) mod dmabuf;
 mod doc_shots;
 pub(crate) mod extension;
 mod focus;
+mod ime;
 mod input;
 mod popup;
 pub(crate) mod runtime;

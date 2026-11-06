@@ -41,6 +41,7 @@ pub(super) fn window_controls(status: WindowStatus) -> WindowControls {
         fullscreen_push: freya_core::prelude::State::create(false),
         overlay_titlebar_height: freya_core::prelude::State::create(0.0),
         hud: false,
+        ime_preedit: freya_core::prelude::State::create(String::new()),
     }
 }
 

@@ -92,6 +92,12 @@ use_menu_action(|id| if id == STATUS_ITEM_ACTIVATE { /* mostrar la ventana */ })
 The specification spells the interfaces `org.freedesktop.*`, but KDE,
 libayatana-appindicator and waybar use `org.kde.*`, and so does the kit.
 
+With `zwp_text_input_v3`, the input method's composition text reaches
+`WindowControls::get().ime_preedit` (a `State<String>`, empty when there is
+none) and the committed text arrives as a `Key::Character` key.
+`set_ime_cursor_area(x, y, width, height)` tells the input method where the
+cursor is, in the window's logical pixels.
+
 ## Window state
 
 The state arrives with each compositor configure and is read with

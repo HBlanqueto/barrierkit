@@ -166,6 +166,7 @@ pub struct WindowControls {
     pub fullscreen_push: State<bool>,
     pub(crate) overlay_titlebar_height: State<f32>,
     pub hud: bool,
+    pub ime_preedit: State<String>,
 }
 
 pub(crate) fn window_activated() -> bool {
@@ -236,6 +237,13 @@ impl WindowControls {
         self.send(WindowCommand::SetTitle(title.into()));
     }
 
+    pub fn set_ime_cursor_area(&self, x: i32, y: i32, width: i32, height: i32) {
+        self.queue
+            .borrow_mut()
+            .push(WindowCommand::ImeCursor((x, y, width, height)));
+        self.ping.ping();
+    }
+
     pub fn open_window(&self, app: AppComponent, options: WindowOptions) {
         self.send(WindowCommand::Open(Box::new((app, options))));
     }
@@ -277,6 +285,7 @@ pub(crate) enum WindowCommand {
     SetTitle(String),
     BackgroundAlpha(f32),
     Open(Box<(AppComponent, WindowOptions)>),
+    ImeCursor((i32, i32, i32, i32)),
 }
 
 pub(super) fn resize_edge(edge: WindowEdge) -> xdg_toplevel::ResizeEdge {
@@ -492,6 +501,7 @@ impl Runtime {
             fullscreen_push: State::create_global(options.fullscreen_push),
             overlay_titlebar_height: State::create_global(0.0),
             hud: options.hud,
+            ime_preedit: State::create_global(String::new()),
         };
         let focus_notice = self.focus_manager.as_ref().map(|manager| {
             let notice = manager.get_focus_surface(&surface, qh, surface.id());
@@ -552,6 +562,10 @@ impl Runtime {
                     self.close_window(controls.surface_id.clone());
                     continue;
                 }
+                if let WindowCommand::ImeCursor(area) = command {
+                    self.set_ime_cursor(area);
+                    continue;
+                }
                 if let WindowCommand::Open(window) = command {
                     let (app, options) = *window;
                     self.create_window(app, options, None);
@@ -607,7 +621,8 @@ impl Runtime {
                     }
                     WindowCommand::Close
                     | WindowCommand::BackgroundAlpha(_)
-                    | WindowCommand::Open(_) => unreachable!(),
+                    | WindowCommand::Open(_)
+                    | WindowCommand::ImeCursor(_) => unreachable!(),
                 }
                 self.surfaces[index].needs_redraw = true;
             }
