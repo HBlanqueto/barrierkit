@@ -191,6 +191,11 @@ El clic secundario en `TextField`, `SearchField`, `ComboBox`, `TokenField` o
 Seleccionar todo. Cada orden enfoca el campo y le envía su atajo (Ctrl+X, C, V
 o A), así que actúa sobre la selección que ya tenía.
 
+En `TextEditor`, Ctrl+F abre una barra de búsqueda encima del texto, como
+`findNavigator` de SwiftUI: un `SearchField`, el contador («2 de 3»), anterior
+y siguiente (también ↑, ↓ y Enter) y Listo. La coincidencia actual queda
+seleccionada. `find_matches` ignora mayúsculas y no solapa coincidencias.
+
 `TokenField` (`barrier_kit::token_field`), como `NSTokenField`, guarda
 etiquetas en un `State<Vec<String>>`: Enter o una coma convierten el texto en
 una cápsula. Con el campo vacío, Retroceso elige la última y una segunda

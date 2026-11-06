@@ -1,8 +1,14 @@
 use freya_components::cursor_blink::use_cursor_blink;
 use freya_core::prelude::*;
 use freya_edit::{EditableConfig, EditableEvent, EditorLine, TextEditor as _, use_editable};
-use torin::prelude::{Area, Gaps, Size};
-use vow_design::{TEXT, TEXT_FIELD};
+use torin::prelude::{Alignment, Area, Content, Direction, Gaps, Size};
+use vow_design::{CAPTION, SPACE_1, SPACE_2, TEXT, TEXT_FIELD};
+
+use crate::compact::IconButton;
+use crate::controls::{Button, SearchField};
+use crate::i18n::text;
+use crate::style::text;
+use crate::symbol::Symbol;
 
 use crate::context_menu::edit_menu;
 use crate::controls::text_style;
@@ -45,6 +51,23 @@ impl Component for TextEditor {
         let mut value = self.value;
         let mut editable = use_editable(|| value.read().to_string(), EditableConfig::new);
         let (mut blink, cursor) = use_cursor_blink(focused, color(palette.label));
+        let mut finding = use_state(|| false);
+        let query = use_state(String::new);
+        let current = use_state(|| 0usize);
+        use_side_effect(move || {
+            let found = find_matches(&value.peek(), &query.read());
+            let index = (*current.read()).min(found.len().saturating_sub(1));
+            if *finding.peek()
+                && let Some(&range) = found.get(index)
+            {
+                let mut editor = editable.editor_mut().write();
+                let range = (
+                    editor.char_to_utf16_cu(range.0),
+                    editor.char_to_utf16_cu(range.1),
+                );
+                editor.set_selection(range);
+            }
+        });
 
         if *value.read() != editable.editor().read().committed_text() {
             let mut editor = editable.editor_mut().write();
@@ -55,6 +78,12 @@ impl Component for TextEditor {
         }
 
         let on_key_down = move |event: Event<KeyboardEventData>| {
+            if event.key == Key::Character("f".into())
+                && event.modifiers.contains(Modifiers::CONTROL)
+            {
+                finding.set(true);
+                return;
+            }
             if event.key == Key::Named(NamedKey::Escape) {
                 a11y_id.request_unfocus();
                 return;
@@ -117,7 +146,7 @@ impl Component for TextEditor {
             .cursor_index(focused.then(|| editor.cursor_pos()))
             .cursor_color(cursor)
             .highlights(
-                focused
+                (focused || *finding.read())
                     .then(|| editor.get_visible_selection(EditorLine::SingleParagraph))
                     .flatten()
                     .map(|selection| vec![selection]),
@@ -180,10 +209,102 @@ impl Component for TextEditor {
                     .height(Size::fill())
                     .child(paragraph),
             );
-        if focused {
+        let field = if focused {
             ring(field, TEXT_FIELD.radius, resolved().accent)
         } else {
             field
+        };
+        if !*finding.read() {
+            return field;
         }
+        let total = find_matches(&value.read(), &query.read()).len();
+        let shown = (*current.read()).min(total.saturating_sub(1));
+        let status = match total {
+            _ if query.read().is_empty() => String::new(),
+            0 => text!("find-none").to_owned(),
+            _ => text!(
+                "find-count",
+                current = (shown + 1).to_string(),
+                total = total.to_string()
+            ),
+        };
+        let step = move |delta: isize| {
+            let mut current = current;
+            let total = find_matches(&value.peek(), &query.peek()).len();
+            if total > 0 {
+                let next = (*current.peek() as isize + delta).rem_euclid(total as isize);
+                current.set(next as usize);
+            }
+        };
+        let bar = rect()
+            .width(Size::fill())
+            .direction(Direction::Horizontal)
+            .content(Content::flex())
+            .cross_align(Alignment::Center)
+            .spacing(SPACE_2)
+            .child(
+                rect().width(Size::flex(1.0)).child(
+                    SearchField::new(query, text!("search"))
+                        .auto_focus(true)
+                        .on_navigate(move |key| {
+                            step(if key == NamedKey::ArrowUp { -1 } else { 1 })
+                        }),
+                ),
+            )
+            .child(text(status, CAPTION, palette.secondary_label))
+            .child(
+                IconButton::new(Symbol::ChevronUp, text!("find-previous"))
+                    .disabled(total == 0)
+                    .on_press(move |_| step(-1)),
+            )
+            .child(
+                IconButton::new(Symbol::ChevronDown, text!("find-next"))
+                    .disabled(total == 0)
+                    .on_press(move |_| step(1)),
+            )
+            .child(
+                Button::new(text!("find-done"))
+                    .small(true)
+                    .on_press(move |_| {
+                        finding.set(false);
+                        a11y_id.request_focus();
+                    }),
+            );
+        rect()
+            .width(Size::fill())
+            .height(self.height.clone())
+            .spacing(SPACE_1)
+            .child(bar)
+            .child(field.height(Size::flex(1.0)))
+            .content(Content::flex())
+    }
+}
+
+pub fn find_matches(text: &str, query: &str) -> Vec<(usize, usize)> {
+    let fold = |c: char| c.to_lowercase().next().unwrap_or(c);
+    let text: Vec<char> = text.chars().map(fold).collect();
+    let query: Vec<char> = query.chars().map(fold).collect();
+    let mut found = Vec::new();
+    let mut start = 0;
+    while !query.is_empty() && start + query.len() <= text.len() {
+        if text[start..start + query.len()] == query[..] {
+            found.push((start, start + query.len()));
+            start += query.len();
+        } else {
+            start += 1;
+        }
+    }
+    found
+}
+
+#[cfg(test)]
+mod tests {
+    use super::find_matches;
+
+    #[test]
+    fn find_ignores_case_counts_characters_and_does_not_overlap() {
+        assert_eq!(find_matches("Ñandú y ñandú", "ÑAN"), [(0, 3), (8, 11)]);
+        assert_eq!(find_matches("aaaa", "aa"), [(0, 2), (2, 4)]);
+        assert!(find_matches("hola", "").is_empty());
     }
 }
