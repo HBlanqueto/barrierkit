@@ -119,7 +119,8 @@ impl Component for Titlebar {
     fn render(&self) -> impl IntoElement {
         let controls =
             try_consume_root_context::<WindowControls>().filter(|_| self.preview.is_none());
-        let bar = if self.close_only {
+        let close_only = self.close_only || controls.as_ref().is_some_and(|controls| controls.hud);
+        let bar = if close_only {
             Bar::Titlebar
         } else if self.sidebar && theme::resolved().sidebar.style == SidebarStyle::Island {
             Bar::Unified
@@ -166,7 +167,7 @@ impl Component for Titlebar {
         let sidebar = self.sidebar && control.is_none_or(|control| control.settled());
         let tinted = crate::backdrop::tinted().is_some();
         let ink = crate::style::Palette::current();
-        let background = if tinted || overlaid || self.close_only {
+        let background = if tinted || overlaid || close_only {
             vow_design::Rgba::TRANSPARENT
         } else if sidebar || status.activated {
             crate::theme::surface_background(&resolved, crate::theme::SurfaceKind::Toplevel)
@@ -191,9 +192,7 @@ impl Component for Titlebar {
             Some(
                 rect()
                     .opacity(lights_opacity)
-                    .child(
-                        window_traffic_lights(status.activated, fixed).close_only(self.close_only),
-                    )
+                    .child(window_traffic_lights(status.activated, fixed).close_only(close_only))
                     .into_element(),
             )
         };
@@ -215,7 +214,14 @@ impl Component for Titlebar {
             let occupied = control.map_or(0.0, |control| control.occupied());
             self.sidebar_bar(traffic, title_label, drag, background, occupied)
         } else {
-            self.centered_bar(traffic, title_label, drag, background, content_widths)
+            self.centered_bar(
+                traffic,
+                title_label,
+                drag,
+                background,
+                close_only,
+                content_widths,
+            )
         };
         place_overlaid(
             crate::chrome::revealable_bar(bar, height),
@@ -319,9 +325,10 @@ impl Titlebar {
         title_label: Label,
         drag: impl Fn(Event<MouseEventData>) + Clone + 'static,
         background: vow_design::Rgba,
+        close_only: bool,
         mut content_widths: State<(f32, f32)>,
     ) -> (Element, f32) {
-        let height = if self.close_only {
+        let height = if close_only {
             TITLEBAR.thickness
         } else {
             TITLEBAR_CLIENT_HEIGHT

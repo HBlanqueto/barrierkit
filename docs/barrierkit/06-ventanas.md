@@ -48,6 +48,21 @@ de Vista Previa, con `barrier_kit::platform::open_utility_window`:
    no pisar el de la principal.
 4. Cerrarla solo la quita a ella; la app sigue mientras quede otra ventana.
 
+`WindowOptions::hud(true)` le da el estilo HUD de `NSPanel`
+(`hudWindow`): un panel «más oscuro y translúcido» que la HIG reserva para
+apps de fotos, vídeo o presentaciones
+([Panels](https://developer.apple.com/design/human-interface-guidelines/panels)):
+
+1. La ventana se borra con `HUD_BACKGROUND`, que es translúcido, así que no
+   declara región opaca y el compositor desenfoca lo que hay detrás.
+2. Todo su contenido usa el esquema oscuro (`use_appearance`), sea cual sea el
+   de la app.
+3. Su `Titlebar` pasa a `close_only`: barra fina, fondo transparente y solo
+   cerrar activo, porque la HIG pide no ofrecer minimizar en un panel.
+4. El contenido no debe pintar fondo propio para que se vea el material.
+   Apple no publica el color del material; `#1e1e1e` al 85 % es una
+   aproximación.
+
 ## Estado de la ventana
 
 El estado llega en cada configure del compositor y se lee con

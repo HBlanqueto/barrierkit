@@ -61,6 +61,7 @@ pub struct WindowOptions {
     pub menu: Option<crate::app_menu::AppMenu>,
     pub fullscreen_bar: FullscreenBar,
     pub fullscreen_push: bool,
+    pub hud: bool,
 }
 
 impl WindowOptions {
@@ -75,6 +76,7 @@ impl WindowOptions {
             menu: None,
             fullscreen_bar: FullscreenBar::Solid,
             fullscreen_push: false,
+            hud: false,
         }
     }
 
@@ -110,6 +112,11 @@ impl WindowOptions {
 
     pub fn fullscreen_push(mut self, push: bool) -> Self {
         self.fullscreen_push = push;
+        self
+    }
+
+    pub fn hud(mut self, hud: bool) -> Self {
+        self.hud = hud;
         self
     }
 }
@@ -151,6 +158,7 @@ pub struct WindowControls {
     pub fullscreen_bar: State<FullscreenBar>,
     pub fullscreen_push: State<bool>,
     pub(crate) overlay_titlebar_height: State<f32>,
+    pub hud: bool,
 }
 
 pub(crate) fn window_activated() -> bool {
@@ -461,6 +469,7 @@ impl Runtime {
             fullscreen_bar: State::create_global(options.fullscreen_bar),
             fullscreen_push: State::create_global(options.fullscreen_push),
             overlay_titlebar_height: State::create_global(0.0),
+            hud: options.hud,
         };
         let focus_notice = self.focus_manager.as_ref().map(|manager| {
             let notice = manager.get_focus_surface(&surface, qh, surface.id());

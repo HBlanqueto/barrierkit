@@ -164,7 +164,13 @@ impl SurfaceWindow {
 
     pub(crate) fn draw(&mut self, compositor: &CompositorState) -> bool {
         let _draw = tracing::trace_span!("draw").entered();
-        let background = if matches!(&self.role, SurfaceRole::Window(_)) {
+        let hud = self
+            .context
+            .as_ref()
+            .is_some_and(|context| context.controls.hud);
+        let background = if hud {
+            crate::theme::color(vow_design::HUD_BACKGROUND)
+        } else if matches!(&self.role, SurfaceRole::Window(_)) {
             let resolved = *self.app.resolved.read();
             crate::theme::color(crate::theme::surface_background(
                 &resolved,

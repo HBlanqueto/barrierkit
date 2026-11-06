@@ -190,6 +190,7 @@ MENU_SEARCH_CLEAR_GLYPH f32 components.shell.menu.search.clear-glyph
 MENU_SEARCH_CLEAR_MARGIN f32 components.shell.menu.search.clear-margin
 MENU_HELP_ICON f32 components.shell.menu.help-icon
 GLASS_MASK Rgba components.glass-mask
+HUD_BACKGROUND Rgba components.hud.background
 SCREENSHOT_DIM Rgba components.screenshot.dim
 SCREENSHOT_IDLE_DIM Rgba components.screenshot.idle-dim
 SCREENSHOT_BORDER Rgba components.screenshot.border

@@ -103,6 +103,11 @@ pub(crate) fn use_focus_bar_reveal() {
 
 pub(crate) fn window_root(app: impl IntoElement) -> Rect {
     use_focus_bar_reveal();
+    if try_consume_root_context::<WindowControls>().is_some_and(|controls| controls.hud) {
+        crate::theme::use_appearance(|config| {
+            config.color_scheme = vow_appearance::ColorScheme::Dark
+        });
+    }
     let pushed =
         try_consume_root_context::<WindowControls>().map_or(0.0, |controls| controls.push_offset());
     rect()

@@ -48,6 +48,22 @@ inspector, with `barrier_kit::platform::open_utility_window`:
    size, so it does not overwrite the main one's.
 4. Closing it removes only it; the app goes on while another window remains.
 
+`WindowOptions::hud(true)` gives it the HUD style of `NSPanel`
+(`hudWindow`): a panel that is "darker and translucent", which the HIG keeps
+for photo, video or slide apps
+([Panels](https://developer.apple.com/design/human-interface-guidelines/panels)):
+
+1. The window clears with `HUD_BACKGROUND`, which is translucent, so it
+   declares no opaque region and the compositor blurs what is behind it.
+2. All its content uses the dark scheme (`use_appearance`), whatever the
+   app's is.
+3. Its `Titlebar` switches to `close_only`: a thin bar, a transparent
+   background and only close enabled, because the HIG asks not to offer
+   minimize in a panel.
+4. The content should not paint its own background so the material shows.
+   Apple does not publish the material color; `#1e1e1e` at 85 % is an
+   approximation.
+
 ## Window state
 
 The state arrives with each compositor configure and is read with
