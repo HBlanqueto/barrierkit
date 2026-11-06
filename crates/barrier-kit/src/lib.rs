@@ -56,6 +56,7 @@ pub mod text_editor;
 
 pub mod popover;
 
+pub mod image_well;
 pub mod indicator;
 
 pub mod token_field;

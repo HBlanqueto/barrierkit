@@ -13,9 +13,84 @@ use sctk::reexports::client::protocol::wl_data_source::WlDataSource;
 use sctk::reexports::client::protocol::wl_surface::WlSurface;
 use sctk::reexports::client::{Connection, QueueHandle};
 
+use std::path::PathBuf;
+
+use freya_core::integration::{FileEventName, PlatformEvent};
+use sctk::reexports::client::Proxy;
+use sctk::reexports::client::backend::ObjectId;
+use torin::prelude::CursorPoint;
+
 use super::runtime::Runtime;
+use super::surface::physical_point;
 
 const TEXT_MIMES: [&str; 3] = ["text/plain;charset=utf-8", "text/plain", "UTF8_STRING"];
+const URI_LIST: &str = "text/uri-list";
+
+pub(crate) struct PendingDrop {
+    target: (ObjectId, CursorPoint),
+    offer: DragOffer,
+    uris: Arc<OnceLock<String>>,
+}
+
+pub(crate) fn uri_list_paths(list: &str) -> Vec<PathBuf> {
+    list.lines()
+        .map(str::trim)
+        .filter(|line| !line.starts_with('#'))
+        .filter_map(crate::portal::file_path)
+        .collect()
+}
+
+impl Runtime {
+    fn drag_offer(&self) -> Option<DragOffer> {
+        self.clipboard_device
+            .as_ref()
+            .and_then(|data| data.device.as_ref())
+            .and_then(|device| device.data().drag_offer())
+    }
+
+    fn push_file(&mut self, name: FileEventName, file_path: Option<PathBuf>) {
+        let Some((surface, cursor)) = self.drag_target.clone() else {
+            return;
+        };
+        if let Some(index) = self.surface_index_by_id(&surface) {
+            self.surfaces[index].app.push(PlatformEvent::File {
+                name,
+                cursor,
+                file_path,
+            });
+            self.surfaces[index].needs_redraw = true;
+        }
+    }
+
+    fn hover(&mut self, surface: &WlSurface, x: f64, y: f64) {
+        let Some(index) = self.surface_for(surface) else {
+            return;
+        };
+        let cursor = physical_point((x, y), self.surfaces[index].scale);
+        self.drag_target = Some((surface.id(), cursor));
+        self.push_file(FileEventName::FileHover, None);
+    }
+
+    pub(crate) fn deliver_drop(&mut self) {
+        let Some(list) = self
+            .pending_drop
+            .as_ref()
+            .and_then(|pending| pending.uris.get().cloned())
+        else {
+            return;
+        };
+        let Some(pending) = self.pending_drop.take() else {
+            return;
+        };
+        self.drag_target = Some(pending.target);
+        for path in uri_list_paths(&list) {
+            self.push_file(FileEventName::FileDrop, Some(path));
+        }
+        pending.offer.finish();
+        pending.offer.destroy();
+        self.drag_target = None;
+    }
+}
 
 #[derive(Default)]
 struct Shared {
@@ -135,15 +210,33 @@ impl DataDeviceHandler for Runtime {
         _: &Connection,
         _: &QueueHandle<Self>,
         _: &WlDataDevice,
-        _: f64,
-        _: f64,
-        _: &WlSurface,
+        x: f64,
+        y: f64,
+        surface: &WlSurface,
     ) {
+        let Some(offer) = self.drag_offer() else {
+            return;
+        };
+        let has_files = offer.with_mime_types(|mimes| mimes.iter().any(|mime| mime == URI_LIST));
+        offer.accept_mime_type(offer.serial, has_files.then(|| URI_LIST.to_owned()));
+        if has_files {
+            offer.set_actions(DndAction::Copy, DndAction::Copy);
+            self.hover(surface, x, y);
+        }
     }
 
-    fn leave(&mut self, _: &Connection, _: &QueueHandle<Self>, _: &WlDataDevice) {}
+    fn leave(&mut self, _: &Connection, _: &QueueHandle<Self>, _: &WlDataDevice) {
+        self.push_file(FileEventName::FileHoverCancelled, None);
+        self.drag_target = None;
+    }
 
-    fn motion(&mut self, _: &Connection, _: &QueueHandle<Self>, _: &WlDataDevice, _: f64, _: f64) {}
+    fn motion(&mut self, _: &Connection, _: &QueueHandle<Self>, _: &WlDataDevice, x: f64, y: f64) {
+        if self.drag_target.is_some()
+            && let Some(offer) = self.drag_offer()
+        {
+            self.hover(&offer.surface, x, y);
+        }
+    }
 
     fn selection(&mut self, _: &Connection, _: &QueueHandle<Self>, _: &WlDataDevice) {
         let offer = self
@@ -157,7 +250,28 @@ impl DataDeviceHandler for Runtime {
         }
     }
 
-    fn drop_performed(&mut self, _: &Connection, _: &QueueHandle<Self>, _: &WlDataDevice) {}
+    fn drop_performed(&mut self, _: &Connection, _: &QueueHandle<Self>, _: &WlDataDevice) {
+        let (Some(offer), Some(target)) = (self.drag_offer(), self.drag_target.clone()) else {
+            return;
+        };
+        let Ok(mut pipe) = offer.receive(URI_LIST.to_owned()) else {
+            return;
+        };
+        let uris = Arc::new(OnceLock::new());
+        let (slot, ping) = (uris.clone(), self.ping.clone());
+        std::thread::spawn(move || {
+            let mut list = String::new();
+            if pipe.read_to_string(&mut list).is_ok() {
+                let _ = slot.set(list);
+                ping.ping();
+            }
+        });
+        self.pending_drop = Some(PendingDrop {
+            target,
+            offer,
+            uris,
+        });
+    }
 }
 
 impl DataOfferHandler for Runtime {
@@ -237,3 +351,21 @@ impl DataSourceHandler for Runtime {
 }
 
 sctk::delegate_data_device!(Runtime);
+
+#[cfg(test)]
+mod tests {
+    use super::uri_list_paths;
+    use std::path::PathBuf;
+
+    #[test]
+    fn a_uri_list_skips_comments_and_non_file_uris_and_decodes_paths() {
+        let list = "# from Files\r\nfile:///home/ana/Mi%20foto.png\r\nhttps://example.com/x\r\nfile:///tmp/a.txt\r\n";
+        assert_eq!(
+            uri_list_paths(list),
+            [
+                PathBuf::from("/home/ana/Mi foto.png"),
+                PathBuf::from("/tmp/a.txt")
+            ]
+        );
+    }
+}

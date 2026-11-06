@@ -61,6 +61,12 @@
       "arc": 270,
       "marker": 7
     },
+    "image-well": {
+      "size": 64,
+      "radius": 8,
+      "inset": 4,
+      "drop-border": 2
+    },
     "level-indicator": {
       "height": 16,
       "radius": 2,

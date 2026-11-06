@@ -1,7 +1,7 @@
 use super::{
     EditShortcut, ObjectId, RunError,
     app_menu_export::AppMenuAddress,
-    clipboard::{Clipboard, ClipboardDevice},
+    clipboard::{Clipboard, ClipboardDevice, PendingDrop},
     extension::Extension,
     input::seat::{RepeatState, cursor_shape_from_icon},
     popup::PopupCommand,
@@ -11,6 +11,7 @@ use super::{
     window::WindowControls,
 };
 use freya_core::prelude::{AccessibilityFocusStrategy, Key, State};
+use torin::prelude::CursorPoint;
 
 use std::{
     cell::{Cell, RefCell},
@@ -118,6 +119,8 @@ pub(crate) struct Runtime {
     pub(crate) activation: Option<XdgActivationV1>,
     pub(crate) defaults_revision: State<u64>,
     pub(crate) clipboard_device: Option<ClipboardDevice>,
+    pub(crate) drag_target: Option<(ObjectId, CursorPoint)>,
+    pub(crate) pending_drop: Option<PendingDrop>,
 }
 
 pub(crate) struct WindowContext {
@@ -195,6 +198,7 @@ fn insert_ping(event_loop: &mut EventLoop<Runtime>, shell: &mut Runtime) -> Resu
                 }
             }
             shell.publish_clipboard();
+            shell.deliver_drop();
             shell.poll_all();
             shell.process_popup_commands();
             shell.install_timers(&handle);
@@ -374,6 +378,8 @@ impl Runtime {
             clipboard_device: DataDeviceManagerState::bind(&globals, &qh)
                 .ok()
                 .map(ClipboardDevice::new),
+            drag_target: None,
+            pending_drop: None,
         };
         if let Some(seat) = shell.seat_handle.clone() {
             shell.attach_clipboard(&seat);

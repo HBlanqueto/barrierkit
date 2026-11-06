@@ -131,6 +131,16 @@ ColorWell::new("Color de acento", &ACCENT_SWATCHES).selected(Some(0))
   actions with icons into one horizontal row, like the Finder's colour tags
   (`NSMenu.presentationStyle = .palette`): ← and → walk it and Enter picks.
   In the global menu (dbusmenu) each swatch becomes a plain action.
+- `ImageWell::new("Avatar", imagen)` (`barrier_kit::image_well`), like the
+  HIG image well, keeps a `State<Option<PathBuf>>`. It accepts an image
+  dropped from another app (it lights up with the accent while one hovers),
+  opens the portal chooser when pressed and clears with Delete or Backspace.
+  It only takes image extensions (`is_image`). Its metrics
+  (`components.image-well`: 64 pt, radius 8, inset 4) are estimates: the HIG
+  gives no figures.
+- Dropping files works on any element with `on_file_drop`. The runtime
+  accepts `text/uri-list` on `wl_data_device` and emits `FileHover`,
+  `FileHoverCancelled` and one `FileDrop` per file (`uri_list_paths`).
 - `ChoiceCards::new(..).option(rótulo, vista_previa)` shows large cards (like
   «Claro, Oscuro, Acento», "Light, Dark, Accent", in Tengen App Show).
 

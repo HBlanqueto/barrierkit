@@ -131,6 +131,16 @@ ColorWell::new("Color de acento", &ACCENT_SWATCHES).selected(Some(0))
   con icono en una fila horizontal, como las etiquetas de color del Finder
   (`NSMenu.presentationStyle = .palette`): ← y → la recorren y Enter elige.
   En el menú global (dbusmenu) cada muestra sale como una acción normal.
+- `ImageWell::new("Avatar", imagen)` (`barrier_kit::image_well`), como el
+  *image well* de la HIG, guarda un `State<Option<PathBuf>>`. Acepta una
+  imagen soltada desde otra app (se ilumina con el acento mientras pasa por
+  encima), abre el selector del portal al pulsarlo y se vacía con Supr o
+  Retroceso. Solo admite extensiones de imagen (`is_image`). Sus medidas
+  (`components.image-well`: 64 pt, radio 8, margen 4) son estimadas: la HIG
+  no da cifras.
+- Soltar archivos funciona en cualquier elemento con `on_file_drop`. El
+  runtime acepta `text/uri-list` en `wl_data_device` y emite `FileHover`,
+  `FileHoverCancelled` y un `FileDrop` por archivo (`uri_list_paths`).
 - `ChoiceCards::new(..).option(rótulo, vista_previa)` muestra tarjetas grandes
   (como «Claro, Oscuro, Acento» en Tengen App Show).
 

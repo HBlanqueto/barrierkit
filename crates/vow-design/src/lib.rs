@@ -569,6 +569,14 @@ pub struct GaugeMetrics {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct ImageWellMetrics {
+    pub size: f32,
+    pub radius: f32,
+    pub inset: f32,
+    pub drop_border: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct LevelIndicatorMetrics {
     pub height: f32,
     pub radius: f32,

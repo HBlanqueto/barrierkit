@@ -84,3 +84,4 @@ find-count = { $current } of { $total }
 find-previous = Previous
 find-next = Next
 find-done = Done
+choose-image = Choose an Image
