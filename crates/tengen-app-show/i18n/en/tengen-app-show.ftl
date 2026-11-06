@@ -95,6 +95,10 @@ fields = Fields
 text-field = Text
 user-name = User name
 search-field = Search
+combo-box = Combo box
+shell = Shell
+text-editor = Text editor
+notes = Notes
 
 progress-ring = Ring
 copying = Copying

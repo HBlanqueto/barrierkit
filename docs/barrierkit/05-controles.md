@@ -133,6 +133,8 @@ TextField::new(nombre, "Nombre de usuario")
 SearchField::new(consulta, "Buscar").auto_focus(true)
 let clave = use_state(PasswordField::default);
 SecureField::new(clave).on_submit(move |valor| entrar(valor))
+ComboBox::new(shell, "Intérprete").item("zsh").item("fish")
+TextEditor::new(notas, "Notas").height(Size::px(72.0))
 ```
 
 | Texto y búsqueda | Contraseña |
@@ -147,6 +149,19 @@ el foco en un campo, Ctrl+A, C, V, X, Y y Z son del campo antes que del menú.
 (`barrier_kit::password`) que crea la app. Enter llama a `on_submit` con el
 valor en un `Zeroizing<String>`. Quien dibuja su propio campo pasa cada tecla a
 `PasswordField::handle_key(&key, modifiers)`: devuelve el valor al pulsar Enter.
+
+`ComboBox` (`barrier_kit::combo_box`) es un campo de texto con un botón de
+flecha, como `NSComboBox`: se escribe libremente o se elige de la lista, que
+abre debajo con el menú del kit. Mide lo que el render de AppKit en macOS 26
+([native-theme](https://github.com/tiborgats/native-theme)): botón de 24 × 20
+a 4 del borde, esquina `radius.xs` y 6 entre el texto y el botón
+(`components.combo-box`).
+
+`TextEditor` (`barrier_kit::text_editor`) edita varias líneas, como
+`NSTextView`. Enter añade una línea, Escape quita el foco y el texto se
+desplaza dentro del alto que le da `.height(..)` (por defecto, todo el
+contenedor). Usa el motor de edición de Freya (`freya-edit`) y el aspecto de
+`TextField`.
 
 ## Progreso
 

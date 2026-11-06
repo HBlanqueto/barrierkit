@@ -48,6 +48,10 @@ pub mod charts;
 
 pub mod popup_button;
 
+pub mod combo_box;
+
+pub mod text_editor;
+
 pub mod context_menu;
 
 pub mod tooltip;

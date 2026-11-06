@@ -131,6 +131,7 @@ fn open_menu(
         .collect();
     open_popover_menu(
         entries,
+        PopupAnchor::TopLeft,
         (
             area.origin.x.round() as i32,
             area.origin.y.round() as i32,
@@ -148,6 +149,7 @@ fn open_menu(
 
 pub(crate) fn open_popover_menu(
     entries: Vec<MenuItem>,
+    anchor: PopupAnchor,
     anchor_rect: (i32, i32, u32, u32),
     over: Option<usize>,
     on_activate: impl Fn(String) + 'static,
@@ -181,7 +183,7 @@ pub(crate) fn open_popover_menu(
         .with_popover_metrics();
     let spec = PopupSpec {
         anchor_rect,
-        anchor: PopupAnchor::TopLeft,
+        anchor,
         gravity: PopupGravity::BottomRight,
         offset,
         size: (size.0.ceil() as u32, size.1.ceil() as u32),

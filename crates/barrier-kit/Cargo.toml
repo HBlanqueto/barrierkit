@@ -15,6 +15,7 @@ video = ["dep:gstreamer", "dep:gstreamer-app", "dep:gstreamer-video", "dep:gstre
 [dependencies]
 freya-core.workspace = true
 freya-components.workspace = true
+freya-edit.workspace = true
 freya-animation.workspace = true
 freya-engine.workspace = true
 freya-skia-safe.workspace = true

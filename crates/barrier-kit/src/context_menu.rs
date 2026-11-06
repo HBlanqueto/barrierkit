@@ -1,6 +1,7 @@
 use freya_core::prelude::*;
 
 use crate::menu::MenuItem;
+use crate::platform::PopupAnchor;
 use crate::popup_button::open_popover_menu;
 
 pub fn context_menu(
@@ -16,6 +17,7 @@ pub fn context_menu(
         let on_activate = on_activate.clone();
         open_popover_menu(
             items.clone(),
+            PopupAnchor::TopLeft,
             (
                 mouse.global_location.x.round() as i32,
                 mouse.global_location.y.round() as i32,

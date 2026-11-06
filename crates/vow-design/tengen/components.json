@@ -54,6 +54,14 @@
       "stream-hole": 0.32,
       "series": ["blue", "green", "orange", "purple", "red", "yellow", "pink"]
     },
+    "combo-box": {
+      "button-width": 24,
+      "button-height": 20,
+      "button-inset-x": 4,
+      "button-radius": "radius.xs",
+      "text-gap": 6,
+      "chevron": 11
+    },
     "stepper": {
       "width": 20,
       "height": 26,

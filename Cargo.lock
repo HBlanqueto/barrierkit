@@ -308,6 +308,7 @@ dependencies = [
  "freya-clipboard",
  "freya-components",
  "freya-core",
+ "freya-edit",
  "freya-engine",
  "freya-skia-safe",
  "freya-testing",

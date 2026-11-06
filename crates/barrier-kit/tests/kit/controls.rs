@@ -985,3 +985,35 @@ fn preferences_search_opens_the_result_chosen_with_the_arrows() {
     });
     assert_eq!(selected, [Some("Sonido".to_owned())]);
 }
+
+#[test]
+fn the_text_editor_inserts_a_new_line_on_enter() {
+    use std::cell::RefCell;
+    use std::rc::Rc;
+
+    use barrier_kit::text_editor::TextEditor;
+
+    struct EditorCase(Rc<RefCell<String>>);
+    impl App for EditorCase {
+        fn render(&self) -> impl IntoElement {
+            let notes = use_state(String::new);
+            *self.0.borrow_mut() = notes.read().clone();
+            TextEditor::new(notes, "Notas")
+        }
+    }
+
+    let typed = Rc::new(RefCell::new(String::new()));
+    let app = AppComponent::new(EditorCase(typed.clone()));
+    let (mut test, _) = TestingRunner::new(app, Size2D::new(240.0, 120.0), |_| {}, 1.0);
+    test.sync_and_update();
+    test.click_cursor((20.0, 80.0));
+    test.sync_and_update();
+    test.write_text("Hola");
+    test.press_key(Key::Named(NamedKey::Enter));
+    test.write_text("mundo");
+    test.sync_and_update();
+    if let Some(path) = std::env::var_os("EDITOR_SHOT") {
+        test.render_to_file(std::path::PathBuf::from(path));
+    }
+    assert_eq!(*typed.borrow(), "Hola\nmundo");
+}

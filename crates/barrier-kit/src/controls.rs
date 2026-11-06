@@ -975,11 +975,11 @@ impl Component for SearchField {
     }
 }
 
-fn text_style(element: Rect) -> Rect {
+pub(crate) fn text_style(element: Rect) -> Rect {
     element.font_family(TEXT.family).font_size(TEXT.size as f32)
 }
 
-fn themed_input(
+pub(crate) fn themed_input(
     value: State<String>,
     placeholder: &'static str,
     background: Rgba,

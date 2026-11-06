@@ -47,6 +47,7 @@ SLIDER_KEY_STEP f32 components.slider.keyboard-step
 ICON_BUTTON IconButtonMetrics components.icon-button
 CHART ChartMetrics components.chart
 STEPPER StepperMetrics components.stepper
+COMBO_BOX ComboBoxMetrics components.combo-box
 BADGE BadgeMetrics components.badge
 MEDIA MediaMetrics components.media preview_delay_ms=preview-delay
 SCROLL_BAR ScrollBarMetrics components.scroll-bar hide_delay_ms=hide-delay

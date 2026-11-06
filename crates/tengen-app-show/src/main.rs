@@ -16,6 +16,7 @@ use barrier_kit::app::{Shortcut, ShortcutKey};
 use barrier_kit::app_menu::{AppMenu, Menu};
 use barrier_kit::backdrop::{Accent, Backdrop, BackdropSource, Tint};
 use barrier_kit::choices::{ChoiceCards, ColorWell, RadioGroup};
+use barrier_kit::combo_box::ComboBox;
 use barrier_kit::compact::{Face, IconButton, Stepper, ToggleGroup};
 use barrier_kit::context_menu::context_menu;
 use barrier_kit::controls::{
@@ -35,6 +36,7 @@ use barrier_kit::progress::{ProgressBar, ProgressRing, Spinner};
 use barrier_kit::sidebar::{Sidebar, SidebarBackdrop, SidebarItem};
 use barrier_kit::style::{Palette, text};
 use barrier_kit::symbol::Symbol;
+use barrier_kit::text_editor::TextEditor;
 use barrier_kit::theme::use_appearance;
 use barrier_kit::titlebar::Titlebar;
 use barrier_kit::tooltip::use_tooltip;
@@ -51,7 +53,8 @@ use localize::tr;
 use torin::prelude::{Direction, Size};
 use vow_appearance::ColorScheme;
 use vow_design::{
-    ACCENT_SWATCHES, COLLECTION, Rgba, SPACE_2, SPLIT_VIEW, TABLE, TEXT, WINDOW_MIN_SIZE,
+    ACCENT_SWATCHES, COLLECTION, Rgba, SPACE_2, SPLIT_VIEW, TABLE, TEXT, TEXT_FIELD,
+    WINDOW_MIN_SIZE,
 };
 
 const APP: &str = "tengen-app-show";
@@ -217,7 +220,13 @@ fn sliders() -> Form {
     )
 }
 
-fn fields(name: State<String>, query: State<String>, password: State<PasswordField>) -> Form {
+fn fields(
+    name: State<String>,
+    query: State<String>,
+    password: State<PasswordField>,
+    shell: State<String>,
+    notes: State<String>,
+) -> Form {
     Form::new().section(
         Section::titled(tr!("fields"))
             .row(
@@ -237,7 +246,21 @@ fn fields(name: State<String>, query: State<String>, password: State<PasswordFie
             .row(
                 Row::new(tr!("password"))
                     .control(SecureField::new(password).width(SPLIT_VIEW.inspector)),
-            ),
+            )
+            .row(
+                Row::new(tr!("combo-box")).control(
+                    ComboBox::new(shell, tr!("shell"))
+                        .item("zsh")
+                        .item("fish")
+                        .item("bash")
+                        .width(Size::px(SPLIT_VIEW.inspector)),
+                ),
+            )
+            .row(Row::new(tr!("text-editor")).control(
+                rect().width(Size::px(SPLIT_VIEW.inspector)).child(
+                    TextEditor::new(notes, tr!("notes")).height(Size::px(TEXT_FIELD.height * 3.0)),
+                ),
+            )),
     )
 }
 
@@ -642,6 +665,8 @@ impl App for Show {
         let name = use_state(|| "hblanqueto".to_string());
         let query = use_state(String::new);
         let password = use_state(PasswordField::default);
+        let shell = use_state(|| "fish".to_string());
+        let notes = use_state(String::new);
         let sort = use_state(|| None::<SortOrder>);
         let selected = use_state(Vec::new);
         let mut alert = use_state(|| false);
@@ -706,7 +731,7 @@ impl App for Show {
                         tr!("fields"),
                         Symbol::MagnifyingGlass,
                         tint(7),
-                        fields(name, query, password),
+                        fields(name, query, password, shell, notes),
                     ))
                     .pane(Pane::new(
                         "progreso",

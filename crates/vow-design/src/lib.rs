@@ -561,6 +561,16 @@ pub struct ChartMetrics {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct ComboBoxMetrics {
+    pub button_width: f32,
+    pub button_height: f32,
+    pub button_inset_x: f32,
+    pub button_radius: f32,
+    pub text_gap: f32,
+    pub chevron: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct StepperMetrics {
     pub width: f32,
     pub height: f32,

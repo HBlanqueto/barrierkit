@@ -61,6 +61,7 @@ infinity-protocol = { path = "crates/infinity-protocol" }
 
 freya-core = "=0.4.3"
 freya-components = { version = "=0.4.3", default-features = false }
+freya-edit = "=0.4.3"
 freya-animation = "=0.4.3"
 freya-engine = "=0.4.3"
 freya-testing = "=0.4.3"
