@@ -10,9 +10,9 @@ mod doc_shots;
 pub(crate) mod extension;
 mod focus;
 mod ime;
-mod primary;
 mod input;
 mod popup;
+mod primary;
 pub(crate) mod runtime;
 pub(crate) mod surface;
 #[cfg(test)]

@@ -27,6 +27,7 @@ pub(super) fn window_controls(status: WindowStatus) -> WindowControls {
     let (ping, _source) = calloop::ping::make_ping().unwrap();
     WindowControls {
         primary: super::clipboard::Clipboard::new(ping.clone()),
+        clipboard: super::clipboard::Clipboard::new(ping.clone()),
         queue: Rc::new(RefCell::new(Vec::new())),
         ping,
         pointer_serial: Rc::new(std::cell::Cell::new(0)),

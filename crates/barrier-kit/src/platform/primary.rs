@@ -10,8 +10,8 @@ use sctk::reexports::protocols::wp::primary_selection::zv1::client::zwp_primary_
 use sctk::reexports::protocols::wp::primary_selection::zv1::client::zwp_primary_selection_source_v1::ZwpPrimarySelectionSourceV1;
 
 use super::clipboard::read_in_background;
-use crate::drag::TEXT_MIMES;
 use super::runtime::Runtime;
+use crate::drag::TEXT_MIMES;
 
 pub(crate) struct PrimaryDevice {
     manager: PrimarySelectionManagerState,
@@ -46,14 +46,21 @@ impl Runtime {
         let Some(device) = &primary.device else {
             return;
         };
-        let source = primary.manager.create_selection_source(&self.qh, TEXT_MIMES);
+        let source = primary
+            .manager
+            .create_selection_source(&self.qh, TEXT_MIMES);
         source.set_selection(device, self.last_input_serial.get());
         primary.source = Some(source);
     }
 }
 
 impl PrimarySelectionDeviceHandler for Runtime {
-    fn selection(&mut self, _: &Connection, _: &QueueHandle<Self>, _: &ZwpPrimarySelectionDeviceV1) {
+    fn selection(
+        &mut self,
+        _: &Connection,
+        _: &QueueHandle<Self>,
+        _: &ZwpPrimarySelectionDeviceV1,
+    ) {
         let offer = self
             .primary_device
             .as_ref()
@@ -89,7 +96,12 @@ impl PrimarySelectionSourceHandler for Runtime {
         }
     }
 
-    fn cancelled(&mut self, _: &Connection, _: &QueueHandle<Self>, source: &ZwpPrimarySelectionSourceV1) {
+    fn cancelled(
+        &mut self,
+        _: &Connection,
+        _: &QueueHandle<Self>,
+        source: &ZwpPrimarySelectionSourceV1,
+    ) {
         let Some(primary) = self.primary_device.as_mut() else {
             return;
         };

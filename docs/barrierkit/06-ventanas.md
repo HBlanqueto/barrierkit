@@ -30,9 +30,23 @@ run_window(
 Dentro de la app, `WindowControls::get()` da el estado (`activated`,
 `maximized`, `fullscreen`, `decoration`, `fixed`) y las órdenes: `close()`,
 `minimize()`, `toggle_maximize()`, `toggle_fullscreen()`, `move_window()`,
-`resize(WindowEdge)`, `set_title(título)`, que cambia el título que ven el compositor y la barra de menús, y
-`set_background_alpha(alfa)`, que multiplica el alfa del fondo con que el runner limpia la ventana (1 es opaco), y
-`open_window(app, opciones)`, que abre otra ventana en el mismo proceso; el proceso termina al cerrarse la última.
+`resize(WindowEdge)`, `set_title(título)`, que cambia el título que ven el
+compositor y la barra de menús, `set_background_alpha(alfa)`, que multiplica
+el alfa del fondo con que el runner limpia la ventana (1 es opaco), y
+`open_window(app, opciones)`, que abre otra ventana en el mismo proceso; el
+proceso termina al cerrarse la última.
+
+Con `zwp_text_input_v3`, el texto en composición del método de entrada llega a
+`WindowControls::get().ime_preedit` (un `State<String>`, vacío si no hay) y el
+texto confirmado llega como una tecla `Key::Character`.
+`set_ime_cursor_area(x, y, ancho, alto)` dice al método de entrada dónde está
+el cursor, en píxeles lógicos de la ventana.
+
+`primary_selection()` da un `ClipboardProvider` para la selección primaria
+(`zwp_primary_selection`), la que pega el botón central: `set_contents` la
+publica y `get_contents` lee la de otra app. `copy_rich(texto, html)` copia al
+portapapeles el texto plano y además `text/html`, para que las apps que lo
+entienden peguen con formato.
 
 ## Ventanas auxiliares
 
@@ -90,16 +104,6 @@ de AppKit, con el protocolo
 
 La especificación escribe las interfaces como `org.freedesktop.*`, pero KDE,
 libayatana-appindicator y waybar usan `org.kde.*`, y el kit usa esos nombres.
-
-Con `zwp_text_input_v3`, el texto en composición del método de entrada llega a
-`WindowControls::get().ime_preedit` (un `State<String>`, vacío si no hay) y el
-texto confirmado llega como una tecla `Key::Character`.
-`set_ime_cursor_area(x, y, ancho, alto)` dice al método de entrada dónde está
-el cursor, en píxeles lógicos de la ventana.
-
-`primary_selection()` da un `ClipboardProvider` para la selección primaria
-(`zwp_primary_selection`), la que pega el botón central: `set_contents` la
-publica y `get_contents` lee la de otra app.
 
 ## Estado de la ventana
 

@@ -30,9 +30,23 @@ run_window(
 Inside the app, `WindowControls::get()` gives the state (`activated`,
 `maximized`, `fullscreen`, `decoration`, `fixed`) and the commands: `close()`,
 `minimize()`, `toggle_maximize()`, `toggle_fullscreen()`, `move_window()`,
-`resize(WindowEdge)`, `set_title(title)`, which changes the title the compositor and the menu bar see, and
-`set_background_alpha(alpha)`, which multiplies the alpha of the background the runner clears the window with (1 is opaque), and
-`open_window(app, options)`, which opens another window in the same process; the process ends when the last one closes.
+`resize(WindowEdge)`, `set_title(title)`, which changes the title the
+compositor and the menu bar see, `set_background_alpha(alpha)`, which
+multiplies the alpha of the background the runner clears the window with (1 is
+opaque), and `open_window(app, options)`, which opens another window in the
+same process; the process ends when the last one closes.
+
+With `zwp_text_input_v3`, the input method's composition text reaches
+`WindowControls::get().ime_preedit` (a `State<String>`, empty when there is
+none) and the committed text arrives as a `Key::Character` key.
+`set_ime_cursor_area(x, y, width, height)` tells the input method where the
+cursor is, in the window's logical pixels.
+
+`primary_selection()` gives a `ClipboardProvider` for the primary selection
+(`zwp_primary_selection`), the one the middle button pastes: `set_contents`
+publishes it and `get_contents` reads another app's. `copy_rich(text, html)`
+copies the plain text to the clipboard and also `text/html`, so apps that
+understand it paste with formatting.
 
 ## Utility windows
 
@@ -91,16 +105,6 @@ use_menu_action(|id| if id == STATUS_ITEM_ACTIVATE { /* mostrar la ventana */ })
 
 The specification spells the interfaces `org.freedesktop.*`, but KDE,
 libayatana-appindicator and waybar use `org.kde.*`, and so does the kit.
-
-With `zwp_text_input_v3`, the input method's composition text reaches
-`WindowControls::get().ime_preedit` (a `State<String>`, empty when there is
-none) and the committed text arrives as a `Key::Character` key.
-`set_ime_cursor_area(x, y, width, height)` tells the input method where the
-cursor is, in the window's logical pixels.
-
-`primary_selection()` gives a `ClipboardProvider` for the primary selection
-(`zwp_primary_selection`), the one the middle button pastes: `set_contents`
-publishes it and `get_contents` reads another app's.
 
 ## Window state
 

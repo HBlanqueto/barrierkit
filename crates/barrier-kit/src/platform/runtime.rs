@@ -59,8 +59,8 @@ use vow_appearance::{
     watch::{AppearanceEvent, AppearanceWatch},
 };
 use wayland_protocols::wp::fractional_scale::v1::client::wp_fractional_scale_manager_v1::WpFractionalScaleManagerV1;
-use wayland_protocols::wp::viewporter::client::wp_viewporter::WpViewporter;
 use wayland_protocols::wp::text_input::zv3::client::zwp_text_input_manager_v3::ZwpTextInputManagerV3;
+use wayland_protocols::wp::viewporter::client::wp_viewporter::WpViewporter;
 use wayland_protocols_plasma::appmenu::client::org_kde_kwin_appmenu_manager::OrgKdeKwinAppmenuManager;
 
 pub(crate) struct Connected {
@@ -397,9 +397,11 @@ impl Runtime {
                 .ok(),
             ime: super::ime::Ime::default(),
             primary: Clipboard::new(ping.clone()),
-            primary_device: sctk::primary_selection::PrimarySelectionManagerState::bind(&globals, &qh)
-                .ok()
-                .map(super::primary::PrimaryDevice::new),
+            primary_device: sctk::primary_selection::PrimarySelectionManagerState::bind(
+                &globals, &qh,
+            )
+            .ok()
+            .map(super::primary::PrimaryDevice::new),
             activation: globals.bind::<XdgActivationV1, _, _>(&qh, 1..=1, ()).ok(),
             defaults_revision: State::create_global(0),
             clipboard_device: DataDeviceManagerState::bind(&globals, &qh)

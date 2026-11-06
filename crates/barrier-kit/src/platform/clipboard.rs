@@ -24,6 +24,8 @@ use super::runtime::Runtime;
 use super::surface::physical_point;
 use crate::drag::{DragPayload, TEXT_MIMES, URI_LIST};
 
+const HTML_MIME: &str = "text/html";
+
 pub(crate) struct PendingDrop {
     target: (ObjectId, CursorPoint),
     offer: DragOffer,
@@ -123,6 +125,7 @@ impl Runtime {
 #[derive(Default)]
 struct Shared {
     own: Option<String>,
+    own_html: Option<String>,
     to_publish: bool,
     foreign: Option<Arc<OnceLock<String>>>,
 }
@@ -163,6 +166,15 @@ impl Clipboard {
         Box::new(self.clone())
     }
 
+    pub(crate) fn set_rich(&self, text: String, html: String) {
+        if let Ok(mut shared) = self.shared.lock() {
+            shared.own = Some(text);
+            shared.own_html = Some(html);
+            shared.to_publish = true;
+        }
+        self.ping.ping();
+    }
+
     pub(crate) fn take_publish(&self) -> bool {
         self.shared
             .lock()
@@ -170,7 +182,10 @@ impl Clipboard {
     }
 
     pub(crate) fn own(&self) -> Option<String> {
-        self.shared.lock().ok().and_then(|shared| shared.own.clone())
+        self.shared
+            .lock()
+            .ok()
+            .and_then(|shared| shared.own.clone())
     }
 
     pub(crate) fn clear_own(&self) {
@@ -206,6 +221,7 @@ impl ClipboardProvider for Clipboard {
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let mut shared = self.shared.lock().map_err(|_| "clipboard poisoned")?;
         shared.own = Some(text);
+        shared.own_html = None;
         shared.to_publish = true;
         drop(shared);
         self.ping.ping();
@@ -230,13 +246,17 @@ impl Runtime {
         if !std::mem::take(&mut shared.to_publish) {
             return;
         }
+        let html = shared.own_html.is_some().then_some(HTML_MIME);
+        drop(shared);
         let Some(data) = self.clipboard_device.as_mut() else {
             return;
         };
         let Some(device) = &data.device else {
             return;
         };
-        let source = data.manager.create_copy_paste_source(&self.qh, TEXT_MIMES);
+        let source = data
+            .manager
+            .create_copy_paste_source(&self.qh, TEXT_MIMES.into_iter().chain(html));
         source.set_selection(device, self.last_input_serial.get());
         data.source = Some(source);
     }
@@ -251,7 +271,9 @@ fn receive_text(offer: &SelectionOffer) -> Option<Arc<OnceLock<String>>> {
     offer.receive(mime.to_string()).ok().map(read_in_background)
 }
 
-pub(crate) fn read_in_background(mut pipe: sctk::data_device_manager::ReadPipe) -> Arc<OnceLock<String>> {
+pub(crate) fn read_in_background(
+    mut pipe: sctk::data_device_manager::ReadPipe,
+) -> Arc<OnceLock<String>> {
     let text = Arc::new(OnceLock::new());
     let slot = text.clone();
     std::thread::spawn(move || {
@@ -385,12 +407,13 @@ impl DataSourceHandler for Runtime {
             });
             return;
         }
-        let own = self
-            .clipboard
-            .shared
-            .lock()
-            .ok()
-            .and_then(|shared| shared.own.clone());
+        let own = self.clipboard.shared.lock().ok().and_then(|shared| {
+            if mime == HTML_MIME {
+                shared.own_html.clone()
+            } else {
+                shared.own.clone()
+            }
+        });
         if let Some(text) = own {
             std::thread::spawn(move || {
                 if let Err(error) = pipe.write_all(text.as_bytes()) {
@@ -413,6 +436,7 @@ impl DataSourceHandler for Runtime {
             data.source = None;
             if let Ok(mut shared) = self.clipboard.shared.lock() {
                 shared.own = None;
+                shared.own_html = None;
             }
         }
     }
