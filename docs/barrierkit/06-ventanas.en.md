@@ -98,6 +98,10 @@ none) and the committed text arrives as a `Key::Character` key.
 `set_ime_cursor_area(x, y, width, height)` tells the input method where the
 cursor is, in the window's logical pixels.
 
+`primary_selection()` gives a `ClipboardProvider` for the primary selection
+(`zwp_primary_selection`), the one the middle button pastes: `set_contents`
+publishes it and `get_contents` reads another app's.
+
 ## Window state
 
 The state arrives with each compositor configure and is read with

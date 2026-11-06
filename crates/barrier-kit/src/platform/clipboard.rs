@@ -158,6 +158,32 @@ impl Clipboard {
             ping,
         }
     }
+
+    pub(crate) fn provider(&self) -> Box<dyn ClipboardProvider> {
+        Box::new(self.clone())
+    }
+
+    pub(crate) fn take_publish(&self) -> bool {
+        self.shared
+            .lock()
+            .is_ok_and(|mut shared| std::mem::take(&mut shared.to_publish))
+    }
+
+    pub(crate) fn own(&self) -> Option<String> {
+        self.shared.lock().ok().and_then(|shared| shared.own.clone())
+    }
+
+    pub(crate) fn clear_own(&self) {
+        if let Ok(mut shared) = self.shared.lock() {
+            shared.own = None;
+        }
+    }
+
+    pub(crate) fn set_foreign(&self, foreign: Option<Arc<OnceLock<String>>>) {
+        if let Ok(mut shared) = self.shared.lock() {
+            shared.foreign = foreign;
+        }
+    }
 }
 
 impl ClipboardProvider for Clipboard {
@@ -222,7 +248,10 @@ fn receive_text(offer: &SelectionOffer) -> Option<Arc<OnceLock<String>>> {
             .into_iter()
             .find(|mime| offered.iter().any(|offered| offered == mime))
     })?;
-    let mut pipe = offer.receive(mime.to_string()).ok()?;
+    offer.receive(mime.to_string()).ok().map(read_in_background)
+}
+
+pub(crate) fn read_in_background(mut pipe: sctk::data_device_manager::ReadPipe) -> Arc<OnceLock<String>> {
     let text = Arc::new(OnceLock::new());
     let slot = text.clone();
     std::thread::spawn(move || {
@@ -231,7 +260,7 @@ fn receive_text(offer: &SelectionOffer) -> Option<Arc<OnceLock<String>>> {
             let _ = slot.set(read);
         }
     });
-    Some(text)
+    text
 }
 
 impl DataDeviceHandler for Runtime {

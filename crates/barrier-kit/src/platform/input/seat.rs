@@ -124,6 +124,7 @@ impl SeatHandler for Runtime {
         self.seat_handle = Some(seat.clone());
         self.attach_text_input(&seat);
         self.attach_clipboard(&seat);
+        self.attach_primary(&seat);
         if let Some(hooks) = self.extension_hooks() {
             (hooks.new_seat)(self, &seat);
         }

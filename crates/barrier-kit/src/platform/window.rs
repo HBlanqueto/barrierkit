@@ -167,6 +167,7 @@ pub struct WindowControls {
     pub(crate) overlay_titlebar_height: State<f32>,
     pub hud: bool,
     pub ime_preedit: State<String>,
+    pub(crate) primary: super::clipboard::Clipboard,
 }
 
 pub(crate) fn window_activated() -> bool {
@@ -235,6 +236,10 @@ impl WindowControls {
 
     pub fn set_title(&self, title: impl Into<String>) {
         self.send(WindowCommand::SetTitle(title.into()));
+    }
+
+    pub fn primary_selection(&self) -> Box<dyn freya_clipboard::copypasta::ClipboardProvider> {
+        self.primary.provider()
     }
 
     pub fn set_ime_cursor_area(&self, x: i32, y: i32, width: i32, height: i32) {
@@ -502,6 +507,7 @@ impl Runtime {
             overlay_titlebar_height: State::create_global(0.0),
             hud: options.hud,
             ime_preedit: State::create_global(String::new()),
+            primary: self.primary.clone(),
         };
         let focus_notice = self.focus_manager.as_ref().map(|manager| {
             let notice = manager.get_focus_surface(&surface, qh, surface.id());

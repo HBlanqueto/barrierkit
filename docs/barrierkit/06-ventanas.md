@@ -97,6 +97,10 @@ texto confirmado llega como una tecla `Key::Character`.
 `set_ime_cursor_area(x, y, ancho, alto)` dice al método de entrada dónde está
 el cursor, en píxeles lógicos de la ventana.
 
+`primary_selection()` da un `ClipboardProvider` para la selección primaria
+(`zwp_primary_selection`), la que pega el botón central: `set_contents` la
+publica y `get_contents` lee la de otra app.
+
 ## Estado de la ventana
 
 El estado llega en cada configure del compositor y se lee con

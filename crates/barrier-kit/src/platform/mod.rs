@@ -10,6 +10,7 @@ mod doc_shots;
 pub(crate) mod extension;
 mod focus;
 mod ime;
+mod primary;
 mod input;
 mod popup;
 pub(crate) mod runtime;

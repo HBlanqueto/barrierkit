@@ -118,6 +118,8 @@ pub(crate) struct Runtime {
     pub(crate) pending_menu_addresses: Arc<Mutex<Vec<(ObjectId, AppMenuAddress)>>>,
     pub(crate) clipboard: Clipboard,
     pub(crate) text_input_manager: Option<ZwpTextInputManagerV3>,
+    pub(crate) primary: Clipboard,
+    pub(crate) primary_device: Option<super::primary::PrimaryDevice>,
     pub(crate) ime: super::ime::Ime,
     pub(crate) activation: Option<XdgActivationV1>,
     pub(crate) defaults_revision: State<u64>,
@@ -214,6 +216,7 @@ fn insert_ping(event_loop: &mut EventLoop<Runtime>, shell: &mut Runtime) -> Resu
             }
             shell.publish_clipboard();
             shell.deliver_drop();
+            shell.publish_primary();
             shell.poll_all();
             shell.process_popup_commands();
             shell.install_timers(&handle);
@@ -393,6 +396,10 @@ impl Runtime {
                 .bind::<ZwpTextInputManagerV3, _, _>(&qh, 1..=1, ())
                 .ok(),
             ime: super::ime::Ime::default(),
+            primary: Clipboard::new(ping.clone()),
+            primary_device: sctk::primary_selection::PrimarySelectionManagerState::bind(&globals, &qh)
+                .ok()
+                .map(super::primary::PrimaryDevice::new),
             activation: globals.bind::<XdgActivationV1, _, _>(&qh, 1..=1, ()).ok(),
             defaults_revision: State::create_global(0),
             clipboard_device: DataDeviceManagerState::bind(&globals, &qh)
@@ -404,6 +411,7 @@ impl Runtime {
         if let Some(seat) = shell.seat_handle.clone() {
             shell.attach_clipboard(&seat);
             shell.attach_text_input(&seat);
+            shell.attach_primary(&seat);
         }
         Ok(Connected {
             conn,
