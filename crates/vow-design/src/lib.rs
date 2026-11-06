@@ -640,6 +640,13 @@ pub struct DisclosureMetrics {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct PrintMetrics {
+    pub dpi: f32,
+    pub margin_x: f32,
+    pub margin_y: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct SpellingMetrics {
     pub dot: f32,
 }

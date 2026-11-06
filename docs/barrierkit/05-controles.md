@@ -272,6 +272,24 @@ cursiva a la selección (`rich_text::apply_font`).
 `open_uri` abre un enlace (`OpenURI`) y `notify` envía una notificación
 (`Notification`). Son `async`; se lanzan con `spawn`.
 
+`barrier_kit::print` imprime por el portal `Print`:
+
+1. `portal::print(titulo, |pagina| pdf)` llama a `PreparePrint`, que abre el
+   diálogo de impresión del sistema y devuelve el tamaño de página.
+2. El cierre recibe ese `PageSetup` (milímetros, con la orientación ya
+   aplicada) y devuelve el documento en PDF.
+3. El kit pasa el PDF a `Print` por un descriptor y reutiliza el `token` de
+   `PreparePrint`, así que el diálogo no vuelve a salir.
+
+`text_pages(texto, &pagina)` pagina texto plano en imágenes a `PRINT.dpi`
+(300) sin cortar líneas, y `pdf_from_images` las envuelve en un PDF de una
+imagen por página. Los márgenes son los mayores entre los del portal y los
+de `NSPrintInfo` (72 puntos a los lados y 90 arriba y abajo).
+`PrintPreview::new(pagina, &paginas)` muestra esas mismas imágenes en
+columna, con «Página 1 de 2», para ponerlo en una hoja antes de imprimir. El
+texto del PDF es imagen: no se puede seleccionar, porque el Skia de Freya no
+trae el motor de PDF.
+
 ```rust
 DatePicker::new("Fecha", CivilDateTime::new(CivilDate::new(2026, 11, 6), 9, 30))
     .elements(DateElements::DateAndTime)

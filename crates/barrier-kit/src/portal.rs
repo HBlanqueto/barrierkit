@@ -5,6 +5,8 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use futures_util::StreamExt;
 use zbus::zvariant::{OwnedObjectPath, OwnedValue, Value};
 
+use crate::print::PageSetup;
+
 static NEXT_REQUEST: AtomicU64 = AtomicU64::new(0);
 
 const PORTAL: &str = "org.freedesktop.portal.Desktop";
@@ -81,47 +83,147 @@ async fn choose(
 
 // The Response signal is subscribed before the call so a fast portal cannot answer first
 // (https://flatpak.github.io/xdg-desktop-portal/docs/doc-org.freedesktop.portal.Request.html).
-async fn request(
-    method: &str,
-    title: &str,
-    mut options: HashMap<&str, Value<'_>>,
-) -> zbus::Result<Option<Vec<PathBuf>>> {
-    let connection = zbus::Connection::session().await?;
+async fn subscribe(
+    connection: &zbus::Connection,
+) -> zbus::Result<(String, zbus::proxy::SignalStream<'static>)> {
     let token = format!("barrierkit{}", NEXT_REQUEST.fetch_add(1, Ordering::Relaxed));
     let sender = connection
         .unique_name()
         .map(|name| name.trim_start_matches(':').replace('.', "_"))
         .unwrap_or_default();
     let handle = format!("{PORTAL_PATH}/request/{sender}/{token}");
-    let request = zbus::Proxy::new(
-        &connection,
+    let request = zbus::Proxy::new_owned(
+        connection.clone(),
         PORTAL,
-        handle.as_str(),
+        handle,
         "org.freedesktop.portal.Request",
     )
     .await?;
-    let mut responses = request.receive_signal("Response").await?;
-    options.insert("handle_token", Value::from(token.as_str()));
-    let chooser = zbus::Proxy::new(
-        &connection,
-        PORTAL,
-        PORTAL_PATH,
-        "org.freedesktop.portal.FileChooser",
-    )
-    .await?;
-    let _: OwnedObjectPath = chooser.call(method, &("", title, options)).await?;
+    let responses = request.receive_signal("Response").await?;
+    Ok((token, responses))
+}
+
+async fn answer(
+    mut responses: zbus::proxy::SignalStream<'static>,
+) -> zbus::Result<Option<HashMap<String, OwnedValue>>> {
     let Some(message) = responses.next().await else {
         return Ok(None);
     };
     let (code, results): (u32, HashMap<String, OwnedValue>) = message.body().deserialize()?;
-    if code != 0 {
+    Ok((code == 0).then_some(results))
+}
+
+async fn portal(
+    connection: &zbus::Connection,
+    interface: &str,
+) -> zbus::Result<zbus::Proxy<'static>> {
+    zbus::Proxy::new_owned(
+        connection.clone(),
+        PORTAL,
+        PORTAL_PATH,
+        interface.to_owned(),
+    )
+    .await
+}
+
+async fn request(
+    method: &str,
+    title: &str,
+    mut options: HashMap<&str, Value<'_>>,
+) -> zbus::Result<Option<Vec<PathBuf>>> {
+    let connection = zbus::Connection::session().await?;
+    let (token, responses) = subscribe(&connection).await?;
+    options.insert("handle_token", Value::from(token.as_str()));
+    let chooser = portal(&connection, "org.freedesktop.portal.FileChooser").await?;
+    let _: OwnedObjectPath = chooser.call(method, &("", title, options)).await?;
+    let Some(results) = answer(responses).await? else {
         return Ok(None);
-    }
+    };
     let uris = results
         .get("uris")
         .and_then(|uris| Vec::<String>::try_from(uris.clone()).ok())
         .unwrap_or_default();
     Ok(Some(uris.iter().filter_map(|uri| file_path(uri)).collect()))
+}
+
+pub async fn print(title: &str, document: impl FnOnce(&PageSetup) -> Vec<u8>) {
+    if let Err(error) = print_document(title, document).await {
+        tracing::warn!(%error, "BarrierKit: the print portal failed");
+    }
+}
+
+async fn print_document(
+    title: &str,
+    document: impl FnOnce(&PageSetup) -> Vec<u8>,
+) -> zbus::Result<()> {
+    let connection = zbus::Connection::session().await?;
+    let printing = portal(&connection, "org.freedesktop.portal.Print").await?;
+    let (token, responses) = subscribe(&connection).await?;
+    let empty: HashMap<&str, Value<'_>> = HashMap::new();
+    let options = HashMap::from([("handle_token", Value::from(token.as_str()))]);
+    let _: OwnedObjectPath = printing
+        .call("PreparePrint", &("", title, &empty, &empty, options))
+        .await?;
+    let Some(prepared) = answer(responses).await? else {
+        return Ok(());
+    };
+    let setup = prepared
+        .get("page-setup")
+        .and_then(|setup| HashMap::<String, OwnedValue>::try_from(setup.clone()).ok())
+        .map(|setup| page_setup(&setup))
+        .unwrap_or_default();
+    let pdf = document(&setup);
+    let mut file = tempfile()?;
+    std::io::Write::write_all(&mut file, &pdf)?;
+    std::io::Seek::rewind(&mut file)?;
+    let (token, responses) = subscribe(&connection).await?;
+    let mut options = HashMap::from([("handle_token", Value::from(token.as_str()))]);
+    if let Some(prepared) = prepared.get("token").and_then(|t| u32::try_from(t).ok()) {
+        options.insert("token", Value::from(prepared));
+    }
+    let fd = zbus::zvariant::Fd::from(&file);
+    let _: OwnedObjectPath = printing.call("Print", &("", title, fd, options)).await?;
+    answer(responses).await?;
+    Ok(())
+}
+
+fn tempfile() -> std::io::Result<std::fs::File> {
+    let path = std::env::temp_dir().join(format!(
+        "barrierkit-print-{}-{}.pdf",
+        std::process::id(),
+        NEXT_REQUEST.fetch_add(1, Ordering::Relaxed)
+    ));
+    let file = std::fs::OpenOptions::new()
+        .read(true)
+        .write(true)
+        .create_new(true)
+        .open(&path)?;
+    std::fs::remove_file(&path)?;
+    Ok(file)
+}
+
+fn page_setup(setup: &HashMap<String, OwnedValue>) -> PageSetup {
+    let number = |key: &str| setup.get(key).and_then(|value| f64::try_from(value).ok());
+    let landscape = setup
+        .get("Orientation")
+        .and_then(|value| String::try_from(value.clone()).ok())
+        .is_some_and(|orientation| orientation.ends_with("landscape"));
+    let fallback = PageSetup::default();
+    let (width, height) = (
+        number("Width").map_or(fallback.width, |w| w as f32),
+        number("Height").map_or(fallback.height, |h| h as f32),
+    );
+    let margin = |key: &str, default: f32| number(key).map_or(default, |m| m as f32);
+    PageSetup {
+        width: if landscape { height } else { width },
+        height: if landscape { width } else { height },
+        margins: [
+            margin("MarginTop", fallback.margins[0]),
+            margin("MarginRight", fallback.margins[1]),
+            margin("MarginBottom", fallback.margins[2]),
+            margin("MarginLeft", fallback.margins[3]),
+        ],
+    }
 }
 
 pub fn file_uri(path: &std::path::Path) -> String {

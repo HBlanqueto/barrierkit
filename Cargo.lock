@@ -304,6 +304,7 @@ dependencies = [
  "accesskit_unix",
  "ash",
  "async-io",
+ "flate2",
  "freya-animation",
  "freya-clipboard",
  "freya-components",

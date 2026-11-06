@@ -109,3 +109,5 @@ rule-is = is
 rule-is-not = is not
 rule-greater = is greater than
 rule-less = is less than
+print-page = Page { $page } of { $total }
+print-preview = Print preview

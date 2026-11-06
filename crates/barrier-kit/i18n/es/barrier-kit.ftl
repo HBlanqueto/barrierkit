@@ -109,3 +109,5 @@ rule-is = es
 rule-is-not = no es
 rule-greater = es mayor que
 rule-less = es menor que
+print-page = Página { $page } de { $total }
+print-preview = Vista previa de impresión

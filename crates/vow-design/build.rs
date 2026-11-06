@@ -56,6 +56,7 @@ PATH_CONTROL PathControlMetrics components.path-control
 DISCLOSURE DisclosureMetrics components.disclosure
 FONT_PANEL FontPanelMetrics components.font-panel
 SPELLING SpellingMetrics components.spelling
+PRINT PrintMetrics components.print
 DRAG DragMetrics components.drag
 IMAGE_WELL ImageWellMetrics components.image-well
 LEVEL_INDICATOR LevelIndicatorMetrics components.level-indicator

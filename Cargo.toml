@@ -87,6 +87,7 @@ ash = "0.38"
 
 png = "0.17"
 spellbook = "0.4"
+flate2 = "1"
 
 sctk = { package = "smithay-client-toolkit", version = "0.20" }
 

@@ -273,6 +273,23 @@ size, bold and italic to the selection (`rich_text::apply_font`).
 link (`OpenURI`) and `notify` sends a notification (`Notification`). They are
 `async`; launch them with `spawn`.
 
+`barrier_kit::print` prints through the `Print` portal:
+
+1. `portal::print(title, |page| pdf)` calls `PreparePrint`, which opens the
+   system print dialog and returns the page setup.
+2. The closure gets that `PageSetup` (millimetres, with the orientation
+   already applied) and returns the document as a PDF.
+3. The kit hands the PDF to `Print` through a file descriptor and reuses the
+   `token` from `PreparePrint`, so the dialog does not show again.
+
+`text_pages(text, &page)` paginates plain text into images at `PRINT.dpi`
+(300) without splitting lines, and `pdf_from_images` wraps them in a PDF with
+one image per page. The margins are the larger of the portal's and
+`NSPrintInfo`'s (72 points on the sides and 90 at top and bottom).
+`PrintPreview::new(page, &pages)` shows those same images in a column, with
+"Page 1 of 2", to put in a sheet before printing. The PDF text is an image:
+it cannot be selected, because Freya's Skia does not ship the PDF backend.
+
 ```rust
 DatePicker::new("Fecha", CivilDateTime::new(CivilDate::new(2026, 11, 6), 9, 30))
     .elements(DateElements::DateAndTime)
