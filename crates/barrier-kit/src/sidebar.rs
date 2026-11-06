@@ -2,8 +2,8 @@ use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 use vow_appearance::{SidebarStyle, SidebarSurface};
 use vow_design::{
-    BACKDROP, CORNER_EXPANSION, DURATION_BASE, Rgba, SETTINGS, SIDEBAR, SidebarPalette, TEXT,
-    TEXT_FIELD, TITLEBAR, TITLEBAR_RAIL,
+    BACKDROP, DURATION_BASE, Rgba, SETTINGS, SIDEBAR, SidebarPalette, TEXT, TEXT_FIELD, TITLEBAR,
+    TITLEBAR_RAIL, WINDOW_CORNER,
 };
 
 use crate::ProbeExt;
@@ -704,5 +704,5 @@ impl Component for SidebarAccount {
 
 // Freya's smoothing s runs the curve to (1 + s) R, Apple's 1.5287 R (malaysia ADR 0059).
 fn island_corner(radius: f32) -> CornerRadius {
-    CornerRadius::new_all(radius).with_smoothing(CORNER_EXPANSION - 1.0)
+    CornerRadius::new_all(radius).with_smoothing(WINDOW_CORNER.expansion - 1.0)
 }

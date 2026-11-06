@@ -13,15 +13,11 @@ const SOURCES: [&str; 3] = ["tengen/tokens.json", "tengen/components.json", "src
 const CONSTANTS: &str = r"
 TITLEBAR_CLIENT_HEIGHT u32 size.titlebar-h
 TITLEBAR_DOUBLE_CLICK DoubleClick components.window.titlebar.double-click
-WINDOW WindowStyle components.window corner_radius=radius
-WINDOW_COMPACT WindowStyle components.window corner_radius=compact-radius
-WINDOW_TOOLBAR WindowStyle components.window corner_radius=toolbar-radius
-WINDOW_UTILITY WindowStyle components.window corner_radius=utility-radius
-CORNER_EXPANSION f32 components.window.corner-expansion
+WINDOW_CORNER WindowCorner components.window.corner
 WINDOW_RESIZE WindowResize components.window edge=resize-edge corner=resize-corner
-DIALOG WindowStyle components.dialog corner_radius=radius superellipse_exponent=components.window.superellipse-exponent
+DIALOG WindowStyle components.dialog corner_radius=radius superellipse_exponent=components.window.corner.exponent
 DIALOG_PADDING f32 components.dialog.padding
-POPUP WindowStyle components.shell.menu.panel corner_radius=radius superellipse_exponent=components.window.superellipse-exponent
+POPUP WindowStyle components.shell.menu.panel corner_radius=radius superellipse_exponent=components.window.corner.exponent
 MENU_SEPARATOR_INK_MIX f32 components.shell.menu.separator.tint-ink-mix
 LAYER_FACTOR_BG_SUNKEN f32 appearance.layer-factors.bg-sunken
 LAYER_FACTOR_CONTROL f32 appearance.layer-factors.bg-control
