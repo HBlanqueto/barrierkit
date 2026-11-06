@@ -1,7 +1,10 @@
+use freya_core::integration::{SingleThreadErasedEvent, UserEvent};
 use freya_core::prelude::*;
 
+use crate::i18n::text;
+
 use crate::menu::MenuItem;
-use crate::platform::PopupAnchor;
+use crate::platform::{EditShortcut, PopupAnchor};
 use crate::popup_button::open_popover_menu;
 
 pub fn context_menu(
@@ -27,5 +30,21 @@ pub fn context_menu(
             None,
             move |id| on_activate.call(id),
         );
+    })
+}
+
+pub(crate) fn edit_menu(element: Rect, field: AccessibilityId) -> Rect {
+    let platform = Platform::get();
+    let items = vec![
+        MenuItem::action("x", text!("cut")),
+        MenuItem::action("c", text!("copy")),
+        MenuItem::action("v", text!("paste")),
+        MenuItem::Separator,
+        MenuItem::action("a", text!("select-all")),
+    ];
+    context_menu(element, items, move |key: String| {
+        platform.send(UserEvent::Erased(SingleThreadErasedEvent(Box::new(
+            EditShortcut { field, key },
+        ))));
     })
 }

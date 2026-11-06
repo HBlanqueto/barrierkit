@@ -75,3 +75,7 @@ share-mail = Enviar por correo
 share-open-with = Abrir con…
 new-tab = Nueva pestaña
 close-tab = Cerrar pestaña
+cut = Cortar
+copy = Copiar
+paste = Pegar
+select-all = Seleccionar todo

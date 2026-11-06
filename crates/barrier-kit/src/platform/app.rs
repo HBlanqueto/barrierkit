@@ -60,6 +60,7 @@ pub(crate) struct AppInstance {
     accessibility_initialized: bool,
     atspi: Option<super::atspi::Atspi>,
     pub(crate) requested_focus: Option<AccessibilityFocusStrategy>,
+    pub(crate) pending_shortcuts: Vec<Key>,
 }
 
 impl AppInstance {
@@ -186,6 +187,7 @@ impl AppInstance {
             accessibility_initialized: false,
             atspi,
             requested_focus: None,
+            pending_shortcuts: Vec::new(),
         }
     }
 
@@ -307,14 +309,10 @@ impl AppInstance {
             );
         }
         if pressed {
-            for name in [KeyboardEventName::KeyDown, KeyboardEventName::KeyUp] {
-                self.push(PlatformEvent::Keyboard {
-                    name,
-                    key: Key::Named(NamedKey::Enter),
-                    code: Code::Enter,
-                    modifiers: Modifiers::empty(),
-                });
-            }
+            self.press(Key::Named(NamedKey::Enter), Code::Enter, Modifiers::empty());
+        }
+        for key in std::mem::take(&mut self.pending_shortcuts) {
+            self.press(key, Code::Unidentified, Modifiers::CONTROL);
         }
         result.needs_render
     }
@@ -358,6 +356,17 @@ impl AppInstance {
             &self.fallback_fonts,
         );
         self.needs_layout = false;
+    }
+
+    fn press(&mut self, key: Key, code: Code, modifiers: Modifiers) {
+        for name in [KeyboardEventName::KeyDown, KeyboardEventName::KeyUp] {
+            self.push(PlatformEvent::Keyboard {
+                name,
+                key: key.clone(),
+                code,
+                modifiers,
+            });
+        }
     }
 
     pub(crate) fn push(&mut self, event: PlatformEvent) {

@@ -26,6 +26,11 @@ pub use popup::{
     PopupAnchor, PopupConstraintAdjustment, PopupGravity, PopupHandle, PopupId, PopupSpec, Popups,
 };
 pub use timer::{Timers, WakeHandle};
+
+pub(crate) struct EditShortcut {
+    pub(crate) field: freya_core::prelude::AccessibilityId,
+    pub(crate) key: String,
+}
 pub(crate) use window::window_activated;
 pub use window::{
     DecorationResponse, FullscreenBar, WindowControls, WindowEdge, WindowOptions, WindowStatus,

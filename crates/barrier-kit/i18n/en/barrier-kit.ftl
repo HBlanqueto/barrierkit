@@ -75,3 +75,7 @@ share-mail = Send by email
 share-open-with = Open with…
 new-tab = New tab
 close-tab = Close tab
+cut = Cut
+copy = Copy
+paste = Paste
+select-all = Select All

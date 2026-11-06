@@ -13,6 +13,7 @@ use vow_design::{
 use crate::ProbeExt;
 use crate::backdrop::Tint;
 use crate::choices::use_choice;
+use crate::context_menu::edit_menu;
 use crate::controlled::commit;
 use crate::i18n::text;
 use crate::interaction::use_interaction;
@@ -871,7 +872,8 @@ impl Component for TextField {
             TEXT_FIELD.radius,
             TEXT_FIELD.padding_x,
         );
-        text_style(rect().width(self.width.clone())).child(input)
+        let field = use_hook(AccessibilityId::new_unique);
+        edit_menu(text_style(rect().width(self.width.clone())), field).child(input.a11y_id(field))
     }
 }
 
@@ -1034,7 +1036,7 @@ impl Component for SearchField {
             );
         }
 
-        text_style(rect().width(self.width.clone()))
+        edit_menu(text_style(rect().width(self.width.clone())), a11y_id)
             .child(input)
             .child(
                 rect()

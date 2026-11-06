@@ -181,6 +181,11 @@ desplaza dentro del alto que le da `.height(..)` (por defecto, todo el
 contenedor). Usa el motor de edición de Freya (`freya-edit`) y el aspecto de
 `TextField`.
 
+El clic secundario en `TextField`, `SearchField`, `ComboBox`, `TokenField` o
+`TextEditor` abre el menú Editar de la HIG: Cortar, Copiar, Pegar y
+Seleccionar todo. Cada orden enfoca el campo y le envía su atajo (Ctrl+X, C, V
+o A), así que actúa sobre la selección que ya tenía.
+
 `TokenField` (`barrier_kit::token_field`), como `NSTokenField`, guarda
 etiquetas en un `State<Vec<String>>`: Enter o una coma convierten el texto en
 una cápsula. Con el campo vacío, Retroceso elige la última y una segunda

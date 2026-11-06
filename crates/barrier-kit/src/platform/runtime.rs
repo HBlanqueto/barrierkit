@@ -1,5 +1,5 @@
 use super::{
-    ObjectId, RunError,
+    EditShortcut, ObjectId, RunError,
     app_menu_export::AppMenuAddress,
     clipboard::{Clipboard, ClipboardDevice},
     extension::Extension,
@@ -10,7 +10,7 @@ use super::{
     vulkan::{GraphicsShared, IDLE_RESOURCE_RELEASE},
     window::WindowControls,
 };
-use freya_core::prelude::State;
+use freya_core::prelude::{AccessibilityFocusStrategy, Key, State};
 
 use std::{
     cell::{Cell, RefCell},
@@ -181,7 +181,17 @@ fn insert_ping(event_loop: &mut EventLoop<Runtime>, shell: &mut Runtime) -> Resu
                             shell.surfaces[index].needs_redraw = true;
                         }
                     }
-                    UserEvent::Erased(_) => {}
+                    UserEvent::Erased(event) => {
+                        if let Ok(shortcut) = event.0.downcast::<EditShortcut>()
+                            && let Some(index) = shell.surface_index_by_id(&surface_id)
+                        {
+                            let app = &mut shell.surfaces[index].app;
+                            app.requested_focus =
+                                Some(AccessibilityFocusStrategy::Node(shortcut.field));
+                            app.pending_shortcuts.push(Key::Character(shortcut.key));
+                            shell.surfaces[index].needs_redraw = true;
+                        }
+                    }
                 }
             }
             shell.publish_clipboard();

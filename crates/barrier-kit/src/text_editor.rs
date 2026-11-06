@@ -4,6 +4,7 @@ use freya_edit::{EditableConfig, EditableEvent, EditorLine, TextEditor as _, use
 use torin::prelude::{Area, Gaps, Size};
 use vow_design::{TEXT, TEXT_FIELD};
 
+use crate::context_menu::edit_menu;
 use crate::controls::text_style;
 use crate::interaction::ring;
 use crate::scroll::ScrollView;
@@ -131,7 +132,7 @@ impl Component for TextEditor {
             } else {
                 editor.rope().to_string()
             });
-        let field = text_style(rect())
+        let field = edit_menu(text_style(rect()), a11y_id)
             .a11y_id(a11y_id)
             .a11y_focusable(true)
             .a11y_role(AccessibilityRole::MultilineTextInput)

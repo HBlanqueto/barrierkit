@@ -181,6 +181,11 @@ with the kit menu. It measures like the AppKit render on macOS 26
 inside the height `.height(..)` gives it (by default, the whole container). It
 uses Freya's editing engine (`freya-edit`) and the look of `TextField`.
 
+A secondary click on `TextField`, `SearchField`, `ComboBox`, `TokenField` or
+`TextEditor` opens the HIG edit menu: Cut, Copy, Paste and Select All. Each
+command focuses the field and sends it its shortcut (Ctrl+X, C, V or A), so it
+acts on the selection the field already had.
+
 `TokenField` (`barrier_kit::token_field`), like `NSTokenField`, keeps tags in
 a `State<Vec<String>>`: Enter or a comma turns the text into a capsule. On an
 empty field, Backspace selects the last one and a second press deletes it; ←

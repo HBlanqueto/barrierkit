@@ -4,6 +4,7 @@ use freya_core::prelude::*;
 use torin::prelude::{Area, Gaps, Position, Size};
 use vow_design::{COMBO_BOX, TEXT, TEXT_FIELD};
 
+use crate::context_menu::edit_menu;
 use crate::controls::{default_pre_key, text_style, themed_input};
 use crate::menu::MenuItem;
 use crate::platform::PopupAnchor;
@@ -68,6 +69,8 @@ impl Component for ComboBox {
                 TEXT_FIELD.padding_x,
             ))),
         });
+        let field = use_hook(AccessibilityId::new_unique);
+        let input = input.a11y_id(field);
         let open = move || {
             let field = *area.peek();
             let entries = items
@@ -103,7 +106,7 @@ impl Component for ComboBox {
             }
             default_pre_key(&event)
         });
-        text_style(rect().width(self.width.clone()))
+        edit_menu(text_style(rect().width(self.width.clone())), field)
             .on_sized(move |event: Event<SizedEventData>| area.set_if_modified(event.area))
             .child(input)
             .child(

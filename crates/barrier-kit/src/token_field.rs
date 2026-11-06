@@ -4,6 +4,7 @@ use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
 use vow_design::{HAIRLINE, Rgba, TEXT, TEXT_FIELD, TOKEN_FIELD};
 
+use crate::context_menu::edit_menu;
 use crate::controls::{default_pre_key, text_style, themed_input};
 use crate::style::{Palette, text};
 use crate::theme::color;
@@ -179,7 +180,7 @@ impl Component for TokenField {
                     .into_element();
                 line(format!("{index}:{token}"), chip)
             });
-        text_style(rect().width(self.width.clone()))
+        edit_menu(text_style(rect().width(self.width.clone())), input_id)
             .a11y_role(AccessibilityRole::List)
             .a11y_alt(self.placeholder)
             .min_height(Size::px(TEXT_FIELD.height))
