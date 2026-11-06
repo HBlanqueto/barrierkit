@@ -124,6 +124,19 @@ async fn request(
     Ok(Some(uris.iter().filter_map(|uri| file_path(uri)).collect()))
 }
 
+pub fn file_uri(path: &std::path::Path) -> String {
+    use std::os::unix::ffi::OsStrExt;
+    let mut uri = String::from("file://");
+    for &byte in path.as_os_str().as_bytes() {
+        if byte.is_ascii_alphanumeric() || b"/-._~".contains(&byte) {
+            uri.push(byte as char);
+        } else {
+            uri.push_str(&format!("%{byte:02X}"));
+        }
+    }
+    uri
+}
+
 pub fn file_path(uri: &str) -> Option<PathBuf> {
     let encoded = uri.strip_prefix("file://")?;
     let bytes = encoded.as_bytes();
@@ -151,7 +164,7 @@ pub fn file_path(uri: &str) -> Option<PathBuf> {
 
 #[cfg(test)]
 mod tests {
-    use super::file_path;
+    use super::{file_path, file_uri};
 
     #[test]
     fn file_uris_decode_their_percent_escapes_and_other_schemes_are_refused() {
@@ -160,5 +173,15 @@ mod tests {
             std::path::PathBuf::from("/home/ana/Mis fotos/año.png")
         );
         assert!(file_path("https://example.org/a").is_none());
+    }
+
+    #[test]
+    fn a_path_survives_the_round_trip_through_a_file_uri() {
+        let path = std::path::Path::new("/home/ana/Mis fotos/año #1.png");
+        assert_eq!(
+            file_uri(path),
+            "file:///home/ana/Mis%20fotos/a%C3%B1o%20%231.png"
+        );
+        assert_eq!(file_path(&file_uri(path)).unwrap(), path);
     }
 }

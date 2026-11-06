@@ -569,6 +569,11 @@ pub struct GaugeMetrics {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct DragMetrics {
+    pub threshold: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ImageWellMetrics {
     pub size: f32,
     pub radius: f32,

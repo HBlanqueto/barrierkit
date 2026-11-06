@@ -61,6 +61,9 @@
       "arc": 270,
       "marker": 7
     },
+    "drag": {
+      "threshold": 8
+    },
     "image-well": {
       "size": 64,
       "radius": 8,

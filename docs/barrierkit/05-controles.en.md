@@ -141,6 +141,12 @@ ColorWell::new("Color de acento", &ACCENT_SWATCHES).selected(Some(0))
 - Dropping files works on any element with `on_file_drop`. The runtime
   accepts `text/uri-list` on `wl_data_device` and emits `FileHover`,
   `FileHoverCancelled` and one `FileDrop` per file (`uri_list_paths`).
+- Dragging to another app: `let arrastre = use_drag_source();` and
+  `arrastre.attach(rect(), || DragPayload::Files(rutas))` (`barrier_kit::drag`).
+  Once the pointer moves past `components.drag.threshold` (8 px, the default
+  `gtk-dnd-drag-threshold`; Apple does not publish its own) with the button
+  down, the runtime opens a `wl_data_source` with `text/uri-list` and plain
+  text, or only text for `DragPayload::Text`.
 - `ChoiceCards::new(..).option(rótulo, vista_previa)` shows large cards (like
   «Claro, Oscuro, Acento», "Light, Dark, Accent", in Tengen App Show).
 

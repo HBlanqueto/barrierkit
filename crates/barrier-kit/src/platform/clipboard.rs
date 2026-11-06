@@ -4,7 +4,7 @@ use std::sync::{Arc, Mutex, OnceLock};
 use freya_clipboard::copypasta::ClipboardProvider;
 use sctk::data_device_manager::data_device::{DataDevice, DataDeviceHandler};
 use sctk::data_device_manager::data_offer::{DataOfferHandler, DragOffer, SelectionOffer};
-use sctk::data_device_manager::data_source::{CopyPasteSource, DataSourceHandler};
+use sctk::data_device_manager::data_source::{CopyPasteSource, DataSourceHandler, DragSource};
 use sctk::data_device_manager::{DataDeviceManagerState, WritePipe};
 use sctk::reexports::calloop::ping::Ping;
 use sctk::reexports::client::protocol::wl_data_device::WlDataDevice;
@@ -22,9 +22,7 @@ use torin::prelude::CursorPoint;
 
 use super::runtime::Runtime;
 use super::surface::physical_point;
-
-const TEXT_MIMES: [&str; 3] = ["text/plain;charset=utf-8", "text/plain", "UTF8_STRING"];
-const URI_LIST: &str = "text/uri-list";
+use crate::drag::{DragPayload, TEXT_MIMES, URI_LIST};
 
 pub(crate) struct PendingDrop {
     target: (ObjectId, CursorPoint),
@@ -71,6 +69,36 @@ impl Runtime {
         self.push_file(FileEventName::FileHover, None);
     }
 
+    pub(crate) fn start_drag(&mut self, surface: &ObjectId, payload: DragPayload) {
+        let Some(index) = self.surface_index_by_id(surface) else {
+            return;
+        };
+        let serial = self.last_input_serial.get();
+        let origin = self.surfaces[index].surface.clone();
+        let Some(data) = self.clipboard_device.as_mut() else {
+            return;
+        };
+        let Some(device) = data.device.as_ref() else {
+            return;
+        };
+        let source =
+            data.manager
+                .create_drag_and_drop_source(&self.qh, payload.mimes(), DndAction::Copy);
+        source.start_drag(device, &origin, None, serial);
+        data.drag = Some((source, payload));
+    }
+
+    fn end_drag(&mut self, source: &WlDataSource) {
+        if let Some(data) = self.clipboard_device.as_mut()
+            && data
+                .drag
+                .as_ref()
+                .is_some_and(|(drag, _)| drag.inner() == source)
+        {
+            data.drag = None;
+        }
+    }
+
     pub(crate) fn deliver_drop(&mut self) {
         let Some(list) = self
             .pending_drop
@@ -109,6 +137,7 @@ pub(crate) struct ClipboardDevice {
     pub(crate) manager: DataDeviceManagerState,
     pub(crate) device: Option<DataDevice>,
     source: Option<CopyPasteSource>,
+    drag: Option<(DragSource, DragPayload)>,
 }
 
 impl ClipboardDevice {
@@ -117,6 +146,7 @@ impl ClipboardDevice {
             manager,
             device: None,
             source: None,
+            drag: None,
         }
     }
 }
@@ -308,10 +338,24 @@ impl DataSourceHandler for Runtime {
         &mut self,
         _: &Connection,
         _: &QueueHandle<Self>,
-        _: &WlDataSource,
-        _: String,
+        source: &WlDataSource,
+        mime: String,
         mut pipe: WritePipe,
     ) {
+        let dragged = self
+            .clipboard_device
+            .as_ref()
+            .and_then(|data| data.drag.as_ref())
+            .filter(|(drag, _)| drag.inner() == source)
+            .map(|(_, payload)| payload.bytes(&mime));
+        if let Some(bytes) = dragged {
+            std::thread::spawn(move || {
+                if let Err(error) = pipe.write_all(&bytes) {
+                    tracing::warn!(%error, "BarrierKit: could not send the dragged data");
+                }
+            });
+            return;
+        }
         let own = self
             .clipboard
             .shared
@@ -328,6 +372,7 @@ impl DataSourceHandler for Runtime {
     }
 
     fn cancelled(&mut self, _: &Connection, _: &QueueHandle<Self>, source: &WlDataSource) {
+        self.end_drag(source);
         let Some(data) = self.clipboard_device.as_mut() else {
             return;
         };
@@ -345,7 +390,9 @@ impl DataSourceHandler for Runtime {
 
     fn dnd_dropped(&mut self, _: &Connection, _: &QueueHandle<Self>, _: &WlDataSource) {}
 
-    fn dnd_finished(&mut self, _: &Connection, _: &QueueHandle<Self>, _: &WlDataSource) {}
+    fn dnd_finished(&mut self, _: &Connection, _: &QueueHandle<Self>, source: &WlDataSource) {
+        self.end_drag(source);
+    }
 
     fn action(&mut self, _: &Connection, _: &QueueHandle<Self>, _: &WlDataSource, _: DndAction) {}
 }

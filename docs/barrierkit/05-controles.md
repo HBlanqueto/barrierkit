@@ -141,6 +141,12 @@ ColorWell::new("Color de acento", &ACCENT_SWATCHES).selected(Some(0))
 - Soltar archivos funciona en cualquier elemento con `on_file_drop`. El
   runtime acepta `text/uri-list` en `wl_data_device` y emite `FileHover`,
   `FileHoverCancelled` y un `FileDrop` por archivo (`uri_list_paths`).
+- Arrastrar hacia otra app: `let arrastre = use_drag_source();` y
+  `arrastre.attach(rect(), || DragPayload::Files(rutas))` (`barrier_kit::drag`).
+  Al pasar de `components.drag.threshold` (8 px, el `gtk-dnd-drag-threshold`
+  por defecto; Apple no publica el suyo) con el botón pulsado, el runtime abre
+  un `wl_data_source` con `text/uri-list` y texto plano, o solo texto para
+  `DragPayload::Text`.
 - `ChoiceCards::new(..).option(rótulo, vista_previa)` muestra tarjetas grandes
   (como «Claro, Oscuro, Acento» en Tengen App Show).
 

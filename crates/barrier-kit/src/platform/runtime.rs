@@ -184,6 +184,11 @@ fn insert_ping(event_loop: &mut EventLoop<Runtime>, shell: &mut Runtime) -> Resu
                             shell.surfaces[index].needs_redraw = true;
                         }
                     }
+                    UserEvent::Erased(event) if event.0.is::<crate::drag::StartDrag>() => {
+                        if let Ok(drag) = event.0.downcast::<crate::drag::StartDrag>() {
+                            shell.start_drag(&surface_id, drag.0);
+                        }
+                    }
                     UserEvent::Erased(event) => {
                         if let Ok(shortcut) = event.0.downcast::<EditShortcut>()
                             && let Some(index) = shell.surface_index_by_id(&surface_id)

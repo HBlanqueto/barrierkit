@@ -54,6 +54,7 @@ TOKEN_FIELD TokenFieldMetrics components.token-field
 DATE_PICKER DatePickerMetrics components.date-picker
 PATH_CONTROL PathControlMetrics components.path-control
 DISCLOSURE DisclosureMetrics components.disclosure
+DRAG DragMetrics components.drag
 IMAGE_WELL ImageWellMetrics components.image-well
 LEVEL_INDICATOR LevelIndicatorMetrics components.level-indicator
 GAUGE GaugeMetrics components.gauge
