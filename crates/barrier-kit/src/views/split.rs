@@ -92,6 +92,7 @@ pub struct SplitView {
     sidebar: Element,
     detail: Element,
     inspector: Option<(Element, bool)>,
+    extension: Option<Element>,
     sidebar_visible: bool,
     sidebar_width: Option<f32>,
     sidebar_range: (f32, f32),
@@ -107,6 +108,7 @@ impl SplitView {
             sidebar: sidebar.into_element(),
             detail: detail.into_element(),
             inspector: None,
+            extension: None,
             sidebar_visible: true,
             sidebar_width: None,
             sidebar_range: (SPLIT_VIEW.sidebar_min, SPLIT_VIEW.sidebar_max),
@@ -119,6 +121,11 @@ impl SplitView {
 
     pub fn inspector(mut self, inspector: impl IntoElement, presented: bool) -> Self {
         self.inspector = Some((inspector.into_element(), presented));
+        self
+    }
+
+    pub fn background_extension(mut self, view: impl IntoElement) -> Self {
+        self.extension = Some(view.into_element());
         self
     }
 
@@ -309,6 +316,32 @@ impl Component for SplitView {
                 }
             });
 
+        if let Some(extension) = self.extension.as_ref().filter(|_| !overlay && shown > 0.0) {
+            let band = container * shown;
+            let detail_width = (*window_width.read() - band).max(1.0);
+            root = root.child(
+                rect()
+                    .position(Position::new_absolute().left(0.0).top(0.0))
+                    .width(Size::px(band))
+                    .height(Size::percent(100.0))
+                    .overflow(Overflow::Clip)
+                    .child(
+                        rect()
+                            .position(Position::new_absolute().left(band - 1.0).top(0.0))
+                            .width(Size::px(1.0))
+                            .height(Size::fill())
+                            .overflow(Overflow::Clip)
+                            .scale((band, 1.0))
+                            .transform_origin(TransformOrigin::right())
+                            .child(
+                                rect()
+                                    .width(Size::px(detail_width))
+                                    .height(Size::fill())
+                                    .child(extension.clone()),
+                            ),
+                    ),
+            );
+        }
         if !overlay && shown > 0.0 {
             root = root.child(
                 rect()

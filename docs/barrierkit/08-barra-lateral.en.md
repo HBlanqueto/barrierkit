@@ -74,6 +74,7 @@ SplitView::new(barra, detalle)
 | `.sidebar_range(mín, máx)` | `SPLIT_VIEW.sidebar_min`, `.sidebar_max` (180–320) | Width limits. If they change, the width is clamped to the new range |
 | `.narrow_sidebar(NarrowSidebar)` | `Overlay` | How it opens in a narrow window: see [Collapsing in narrow windows](#collapsing-in-narrow-windows) |
 | `.inspector(content, presented)` | no inspector | Right pane of `SPLIT_VIEW.inspector` (270, the standard width of [`NSSplitViewItem(inspectorWithViewController:)`](https://developer.apple.com/documentation/appkit/nssplitviewitem/init(inspectorwithviewcontroller:))) with a separator; changing `presented` opens or closes it over `DURATION_BASE`, like `.inspector(isPresented:)` |
+| `.background_extension(view)` | no extension | Paints `view` under the docked sidebar, stretching its first pixel column to the window edge, like macOS 26 `.backgroundExtensionEffect()`. The sidebar glass blurs it. Apple mirrors the view; Freya 0.4.3 drops children under a negative scale, so the edge is stretched (clamp) here |
 | `.on_layout(..)` | — | Reports `SidebarLayout { width, visible }` when the grip is released or the sidebar is hidden. Use it to save the layout |
 
 ### Resizing

@@ -73,6 +73,7 @@ SplitView::new(barra, detalle)
 | `.sidebar_range(mín, máx)` | `SPLIT_VIEW.sidebar_min`, `.sidebar_max` (180–320) | Límites del ancho. Si cambian, el ancho se recorta al nuevo rango |
 | `.narrow_sidebar(NarrowSidebar)` | `Overlay` | Cómo se abre en ventana estrecha: ver [Plegar en ventanas estrechas](#plegar-en-ventanas-estrechas) |
 | `.inspector(contenido, presented)` | sin inspector | Panel derecho de `SPLIT_VIEW.inspector` (270, el ancho estándar de [`NSSplitViewItem(inspectorWithViewController:)`](https://developer.apple.com/documentation/appkit/nssplitviewitem/init(inspectorwithviewcontroller:))) con un separador; al cambiar `presented` se abre o se cierra durante `DURATION_BASE`, como `.inspector(isPresented:)` |
+| `.background_extension(vista)` | sin extensión | Pinta `vista` bajo la barra lateral acoplada, prolongando su primera columna de píxeles hasta el borde de la ventana, como `.backgroundExtensionEffect()` de macOS 26. El cristal de la barra la desenfoca. Apple refleja la vista; Freya 0.4.3 descarta los hijos con escala negativa, así que aquí se estira el borde (*clamp*) |
 | `.on_layout(..)` | — | Avisa de `SidebarLayout { width, visible }` al soltar el asa o al ocultar. Sirve para guardarlo |
 
 ### Redimensionar
