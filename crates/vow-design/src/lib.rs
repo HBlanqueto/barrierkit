@@ -552,6 +552,7 @@ pub struct ChartMetrics {
     pub azimuth: f32,
     pub inclination: f32,
     pub drag_degrees: f32,
+    pub scroll_min_span: f32,
     pub zoom_min: f32,
     pub zoom_max: f32,
     pub wheel_zoom: f32,

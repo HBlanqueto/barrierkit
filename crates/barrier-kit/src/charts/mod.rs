@@ -7,11 +7,12 @@ mod space;
 mod stream;
 
 use freya_core::prelude::*;
-use torin::prelude::{Alignment, Direction, Gaps, Position, Size};
-use vow_design::{CAPTION, CHART, CHART_SERIES, SPACE_1};
+use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
+use vow_design::{CAPTION, CHART, CHART_SERIES, DURATION_BASE, SPACE_1};
 
+use crate::i18n::text as tr_kit;
 use crate::style::{Palette, text};
-use scale::nice_ticks;
+use scale::{Window, format_age, nice_ticks, time_ticks};
 
 pub use chart3d::Chart3D;
 pub use heat::HeatMap;
@@ -61,6 +62,9 @@ pub struct Chart {
     x_labels: Vec<String>,
     rules: Vec<f64>,
     height: f32,
+    time_step: Option<f64>,
+    scrollable: bool,
+    horizontal: bool,
 }
 
 impl Chart {
@@ -76,7 +80,25 @@ impl Chart {
             x_labels: Vec::new(),
             rules: Vec::new(),
             height: CHART.height,
+            time_step: None,
+            scrollable: false,
+            horizontal: false,
         }
+    }
+
+    pub fn time_axis(mut self, seconds_per_sample: f64) -> Self {
+        self.time_step = Some(seconds_per_sample);
+        self
+    }
+
+    pub fn scrollable(mut self, scrollable: bool) -> Self {
+        self.scrollable = scrollable;
+        self
+    }
+
+    pub fn horizontal(mut self, horizontal: bool) -> Self {
+        self.horizontal = horizontal;
+        self
     }
 
     pub fn series(mut self, series: Series) -> Self {
@@ -159,15 +181,82 @@ pub fn format_value(value: f64, unit: &str) -> String {
     format!("{value:.digits$}{unit}")
 }
 
+pub fn lerp_series(from: &[Series], to: &[Series], t: f64) -> Vec<Series> {
+    to.iter()
+        .enumerate()
+        .map(|(s, target)| Series {
+            name: target.name.clone(),
+            values: target
+                .values
+                .iter()
+                .enumerate()
+                .map(|(i, end)| {
+                    let start = from
+                        .get(s)
+                        .and_then(|f| f.values.get(i))
+                        .copied()
+                        .unwrap_or(0.0);
+                    start + (end - start) * t
+                })
+                .collect(),
+        })
+        .collect()
+}
+
 pub(crate) fn series_color(index: usize) -> vow_design::Rgba {
     CHART_SERIES[index % CHART_SERIES.len()]
+}
+
+fn axis_label(label: String, palette: &Palette) -> Element {
+    text(label, CAPTION, palette.secondary_label).into_element()
+}
+
+fn placed(position: Position, width: f32, label: Element) -> Element {
+    rect()
+        .position(position)
+        .width(Size::px(width))
+        .main_align(Alignment::Center)
+        .direction(Direction::Horizontal)
+        .child(label)
+        .into_element()
 }
 
 impl Component for Chart {
     fn render(&self) -> impl IntoElement {
         let palette = Palette::current();
         let mut hover = use_state(|| None::<usize>);
-        let mut width = use_state(|| 0.0f32);
+        let mut size = use_state(|| (0.0f32, 0.0f32));
+        let mut window = use_state(|| None::<Window>);
+        let mut drag = use_state(|| None::<(f64, Window)>);
+        let mut shown = use_state(|| self.series.clone());
+        let mut previous = use_state(|| self.series.clone());
+        let mut flip = use_state(|| false);
+        use_side_effect_with_deps(&self.series, move |series| {
+            if *shown.peek() != *series {
+                previous.set(shown.peek().clone());
+                shown.set(series.clone());
+                flip.toggle();
+            }
+        });
+        let switch = crate::animation::use_switch_progress(flip, DURATION_BASE);
+        let progress = f64::from(if *flip.read() { switch } else { 1.0 - switch });
+        let (target, before) = (shown.read().clone(), previous.read().clone());
+        let slid = self.time_step.is_some()
+            && progress < 1.0
+            && before.len() == target.len()
+            && before
+                .iter()
+                .zip(&target)
+                .all(|(a, b)| a.values.len() == b.values.len())
+            && before != target;
+        let (series, shift) = if slid {
+            (target.clone(), 1.0 - progress)
+        } else if self.time_step.is_some() {
+            (target.clone(), 0.0)
+        } else {
+            (lerp_series(&before, &target, progress), 0.0)
+        };
+
         let (lo, hi) = self.y_domain.unwrap_or_else(|| self.extent());
         let ticks: Vec<f64> = nice_ticks(lo, hi, CHART.ticks as usize)
             .into_iter()
@@ -179,18 +268,30 @@ impl Component for Chart {
         ));
         let count = self.count();
         let kind = self.kind;
-        let index_at = move |x: f64, width: f32| -> usize {
-            let fraction = (x / f64::from(width.max(1.0))).clamp(0.0, 1.0);
+        let horizontal = self.horizontal && kind == MarkKind::Bar;
+        let total = match kind {
+            MarkKind::Bar => count as f64,
+            _ => count.saturating_sub(1) as f64,
+        };
+        let view = window
+            .read()
+            .map_or(Window::full(total), |w| w.pan(0.0, total));
+        let index_at = move |(x, y): (f64, f64), (w, h): (f32, f32)| -> usize {
+            let last = count.saturating_sub(1);
+            if horizontal {
+                return ((y / f64::from(h.max(1.0)) * count as f64) as usize).min(last);
+            }
+            let at = view.position((x / f64::from(w.max(1.0))).clamp(0.0, 1.0));
             match kind {
-                MarkKind::Bar => ((fraction * count as f64) as usize).min(count.saturating_sub(1)),
-                _ => (fraction * count.saturating_sub(1) as f64).round() as usize,
+                MarkKind::Bar => (at.max(0.0) as usize).min(last),
+                _ => (at.round().max(0.0) as usize).min(last),
             }
         };
 
         let colors: Vec<_> = (0..self.series.len()).map(series_color).collect();
         let plot = plot::Plot {
             kind,
-            series: self.series.clone(),
+            series,
             colors: colors.clone(),
             stacked: self.stacked,
             interpolation: self.interpolation,
@@ -205,28 +306,14 @@ impl Component for Chart {
             hover: *hover.read(),
             hover_ink: palette.tertiary_label,
             halo: palette.content_background,
+            window: view,
+            shift,
+            horizontal,
             layout: crate::glass::layout(Size::fill(), Size::fill(), Position::default()),
         };
 
-        let y = scale::Linear {
-            domain,
-            range: (f64::from(self.height), 0.0),
-        };
-        let y_labels = ticks.iter().map(|tick| {
-            let line = CAPTION.line_height as f32;
-            let top = (y.map(*tick) as f32 - line / 2.0).clamp(0.0, self.height - line);
-            rect()
-                .position(Position::new_absolute().top(top).left(CHART.axis_gap))
-                .child(text(
-                    format_value(*tick, self.unit),
-                    CAPTION,
-                    palette.secondary_label,
-                ))
-                .into_element()
-        });
-
         let at = *hover.read();
-        let readout = self.series.iter().enumerate().map(|(s, series)| {
+        let readout = target.iter().enumerate().map(|(s, series)| {
             let value = at
                 .or(series.values.len().checked_sub(1))
                 .and_then(|i| series.values.get(i))
@@ -235,30 +322,161 @@ impl Component for Chart {
             legend_entry(colors[s], format!("{} {value}", series.name), &palette)
         });
 
-        let plot_width = *width.read();
-        let x_labels = self.x_labels.iter().enumerate().filter_map(|(i, label)| {
-            let step = (self.x_labels.len() / 6).max(1);
-            if i % step != 0 || plot_width <= 0.0 {
-                return None;
-            }
-            let center = match kind {
-                MarkKind::Bar => plot_width * (i as f32 + 0.5) / count.max(1) as f32,
-                _ => plot_width * i as f32 / count.saturating_sub(1).max(1) as f32,
-            };
-            Some(
-                rect()
-                    .position(
+        let (plot_width, plot_height) = *size.read();
+        let line = CAPTION.line_height as f32;
+        let value_fraction =
+            |tick: f64| ((tick - domain.0) / (domain.1 - domain.0).max(f64::EPSILON)) as f32;
+        let value_labels: Vec<Element> = ticks
+            .iter()
+            .map(|tick| {
+                let label = axis_label(format_value(*tick, self.unit), &palette);
+                if horizontal {
+                    let center = value_fraction(*tick) * plot_width;
+                    placed(
                         Position::new_absolute()
                             .left(center - CHART.y_axis_width / 2.0)
                             .top(0.0),
+                        CHART.y_axis_width,
+                        label,
                     )
-                    .width(Size::px(CHART.y_axis_width))
-                    .main_align(Alignment::Center)
-                    .direction(Direction::Horizontal)
-                    .child(text(label.clone(), CAPTION, palette.secondary_label))
-                    .into_element(),
-            )
-        });
+                } else {
+                    let top = ((1.0 - value_fraction(*tick)) * self.height - line / 2.0)
+                        .clamp(0.0, self.height - line);
+                    rect()
+                        .position(Position::new_absolute().top(top).left(CHART.axis_gap))
+                        .child(label)
+                        .into_element()
+                }
+            })
+            .collect();
+        let category_marks: Vec<(f32, String)> = match self.time_step {
+            Some(step) if !horizontal => {
+                let newest = count.saturating_sub(1) as f64;
+                let age = |position: f64| (newest - position) * step;
+                time_ticks(age(view.start), CHART.ticks as usize + 1)
+                    .into_iter()
+                    .map(|seconds| {
+                        (
+                            view.fraction(newest - seconds / step) as f32,
+                            format_age(seconds, tr_kit!("chart-now")),
+                        )
+                    })
+                    .filter(|(fraction, _)| (0.0..=1.0).contains(fraction))
+                    .collect()
+            }
+            _ => {
+                let step = (self.x_labels.len() / 6).max(1);
+                self.x_labels
+                    .iter()
+                    .enumerate()
+                    .filter(|(i, _)| horizontal || i % step == 0)
+                    .map(|(i, label)| {
+                        let fraction = if horizontal {
+                            (i as f32 + 0.5) / count.max(1) as f32
+                        } else {
+                            view.fraction(plot::position(kind, i)) as f32
+                        };
+                        (fraction, label.clone())
+                    })
+                    .filter(|(fraction, _)| (0.0..=1.0).contains(fraction))
+                    .collect()
+            }
+        };
+        let category_labels: Vec<Element> = category_marks
+            .into_iter()
+            .filter(|_| plot_width > 0.0)
+            .map(|(fraction, label)| {
+                let label = axis_label(label, &palette);
+                if horizontal {
+                    let top = (fraction * plot_height - line / 2.0)
+                        .clamp(0.0, (plot_height - line).max(0.0));
+                    rect()
+                        .position(Position::new_absolute().top(top).right(CHART.axis_gap))
+                        .child(label)
+                        .into_element()
+                } else {
+                    let center = fraction * plot_width;
+                    placed(
+                        Position::new_absolute()
+                            .left(center - CHART.y_axis_width / 2.0)
+                            .top(0.0),
+                        CHART.y_axis_width,
+                        label,
+                    )
+                }
+            })
+            .collect();
+
+        let scrollable = self.scrollable && !horizontal;
+        let mut area = rect()
+            .width(Size::flex(1.0))
+            .height(Size::fill())
+            .on_sized(move |event: Event<SizedEventData>| {
+                let area = event.area.size;
+                size.set_if_modified((area.width, area.height));
+            })
+            .on_pointer_move(move |event: Event<PointerEventData>| {
+                let point = event.element_location();
+                hover.set_if_modified(Some(index_at((point.x, point.y), *size.peek())));
+            })
+            .on_pointer_leave(move |_| hover.set_if_modified(None))
+            .child(crate::glass::leaf(plot));
+        if scrollable {
+            area = area
+                .on_wheel(move |event: Event<WheelEventData>| {
+                    let width = f64::from(size.peek().0.max(1.0));
+                    let next = if event.delta_x.abs() > event.delta_y.abs() {
+                        view.pan(-event.delta_x / width * view.span, total)
+                    } else {
+                        let factor = (event.delta_y * f64::from(CHART.wheel_zoom)).exp();
+                        let fraction = (event.element_location.x / width).clamp(0.0, 1.0);
+                        view.zoom_at(fraction, factor, total, f64::from(CHART.scroll_min_span))
+                    };
+                    window.set(Some(next));
+                })
+                .on_mouse_down(move |event: Event<MouseEventData>| {
+                    drag.set(Some((event.global_location.x, view)));
+                })
+                .on_global_pointer_move(move |event: Event<PointerEventData>| {
+                    let Some((x, from)) = *drag.peek() else {
+                        return;
+                    };
+                    let width = f64::from(size.peek().0.max(1.0));
+                    let moved = event.global_location().x - x;
+                    window.set(Some(from.pan(-moved / width * from.span, total)));
+                })
+                .on_global_pointer_press(move |_| drag.set_if_modified(None));
+        }
+
+        let side = if horizontal {
+            CHART.y_axis_width * 2.0
+        } else {
+            CHART.y_axis_width
+        };
+        let (side_children, bottom_labels) = if horizontal {
+            (category_labels, value_labels)
+        } else {
+            (value_labels, category_labels)
+        };
+        let side_labels = rect()
+            .width(Size::px(side))
+            .height(Size::fill())
+            .children(side_children);
+        let plot_row = rect()
+            .width(Size::fill())
+            .height(Size::px(self.height))
+            .direction(Direction::Horizontal)
+            .content(Content::flex());
+        let plot_row = if horizontal {
+            plot_row.child(side_labels).child(area)
+        } else {
+            plot_row.child(area).child(side_labels)
+        };
+        let padding = if horizontal {
+            Gaps::new(0.0, 0.0, 0.0, side)
+        } else {
+            Gaps::new(0.0, side, 0.0, 0.0)
+        };
 
         rect()
             .width(Size::fill())
@@ -266,39 +484,14 @@ impl Component for Chart {
             .spacing(SPACE_1)
             .a11y_role(AccessibilityRole::Figure)
             .a11y_alt(self.label)
-            .child(
-                rect()
-                    .width(Size::fill())
-                    .height(Size::px(self.height))
-                    .direction(Direction::Horizontal)
-                    .child(
-                        rect()
-                            .width(Size::flex(1.0))
-                            .height(Size::fill())
-                            .on_sized(move |event: Event<SizedEventData>| {
-                                width.set_if_modified(event.area.size.width)
-                            })
-                            .on_pointer_move(move |event: Event<PointerEventData>| {
-                                let index = index_at(event.element_location().x, *width.peek());
-                                hover.set_if_modified(Some(index));
-                            })
-                            .on_pointer_leave(move |_| hover.set_if_modified(None))
-                            .child(crate::glass::leaf(plot)),
-                    )
-                    .child(
-                        rect()
-                            .width(Size::px(CHART.y_axis_width))
-                            .height(Size::fill())
-                            .children(y_labels),
-                    ),
-            )
-            .maybe(!self.x_labels.is_empty(), |el| {
+            .child(plot_row)
+            .maybe(!bottom_labels.is_empty(), |el| {
                 el.child(
                     rect()
                         .width(Size::fill())
-                        .height(Size::px(CAPTION.line_height as f32))
-                        .padding(Gaps::new(0.0, CHART.y_axis_width, 0.0, 0.0))
-                        .children(x_labels),
+                        .height(Size::px(line))
+                        .padding(padding)
+                        .children(bottom_labels),
                 )
             })
             .child(
@@ -335,6 +528,13 @@ mod tests {
     fn an_empty_chart_spans_zero_to_one() {
         let chart = Chart::new("vacío", MarkKind::Line).series(Series::new("a", vec![0.0, 0.0]));
         assert_eq!(chart.extent(), (0.0, 1.0));
+    }
+
+    #[test]
+    fn data_changes_blend_from_the_old_values_and_new_points_grow_from_zero() {
+        let old = [Series::new("a", vec![10.0])];
+        let new = [Series::new("a", vec![20.0, 8.0])];
+        assert_eq!(lerp_series(&old, &new, 0.5)[0].values, vec![15.0, 4.0]);
     }
 
     #[test]

@@ -41,3 +41,4 @@ camera-azimuth = Azimuth
 camera-inclination = Inclination
 camera-zoom = Zoom
 camera-keep = Keep this camera
+chart-now = now

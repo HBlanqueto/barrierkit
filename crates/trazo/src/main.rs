@@ -115,7 +115,16 @@ fn gallery() -> Element {
                 .stacked(true)
                 .series(Series::new(tr!("sales"), vec![42.0, 55.0, 61.0, 48.0]))
                 .series(Series::new(tr!("returns"), vec![8.0, 6.0, 11.0, 7.0]))
-                .x_labels(quarters),
+                .x_labels(quarters.clone()),
+        ),
+        card(
+            tr!("horizontal-bars"),
+            Chart::new(tr!("horizontal-bars"), MarkKind::Bar)
+                .horizontal(true)
+                .series(Series::new(tr!("north"), vec![42.0, 55.0, 61.0, 48.0]))
+                .series(Series::new(tr!("south"), vec![30.0, 38.0, 52.0, 66.0]))
+                .x_labels(quarters)
+                .height(160.0),
         ),
         card(
             tr!("point-chart"),
@@ -225,6 +234,8 @@ fn monitor_page(state: &Monitor, mut sort: State<Option<SortOrder>>) -> Element 
         card(
             tr!("cpu-history"),
             Chart::new(tr!("cpu-history"), MarkKind::Area)
+                .time_axis(SAMPLE.as_secs_f64())
+                .scrollable(true)
                 .stacked(true)
                 .y_domain(0.0, 100.0)
                 .unit("%")
@@ -258,6 +269,8 @@ fn monitor_page(state: &Monitor, mut sort: State<Option<SortOrder>>) -> Element 
         card(
             tr!("network"),
             Chart::new(tr!("network"), MarkKind::Line)
+                .time_axis(SAMPLE.as_secs_f64())
+                .scrollable(true)
                 .interpolation(Interpolation::Monotone)
                 .unit(" KB/s")
                 .series(Series::new(tr!("received"), history(&state.received)))
@@ -274,6 +287,18 @@ fn monitor_page(state: &Monitor, mut sort: State<Option<SortOrder>>) -> Element 
                 ])
                 .height(120.0),
         ),
+        card(tr!("memory-by-process"), {
+            let top: Vec<&Process> = state.processes.iter().take(6).collect();
+            Chart::new(tr!("memory-by-process"), MarkKind::Bar)
+                .horizontal(true)
+                .unit(" MB")
+                .series(Series::new(
+                    tr!("memory"),
+                    top.iter().map(|p| p.memory).collect(),
+                ))
+                .x_labels(top.iter().map(|p| p.name.clone()).collect())
+                .height((top.len() as f32 * 26.0).max(26.0))
+        }),
         card(
             tr!("processes"),
             Table::new(

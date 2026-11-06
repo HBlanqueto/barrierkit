@@ -35,6 +35,20 @@ ejes, leyenda y lectura son texto del kit.
    defecto), `Monotone` (curva sin sobrepasar los datos) o `Step`.
 3. Añade etiquetas del eje X con `.x_labels(..)` y líneas de referencia con
    `.rule(valor)`. Sin `.y_domain`, el eje Y va de 0 al máximo redondeado.
+   Opciones de `Chart`:
+   - `.time_axis(segundos)`: cada muestra está a esos segundos de la
+     siguiente y la última es «ahora». El eje X marca la antigüedad (−30 s,
+     −2 min, −1 h) en pasos redondos.
+   - `.scrollable(true)`: la rueda acerca o aleja alrededor del puntero, y el
+     arrastre o el desplazamiento horizontal mueven la ventana visible. La
+     ventana nunca sale de los datos ni baja de `scroll-min-span` muestras.
+   - `.horizontal(true)` con `MarkKind::Bar`: categorías a la izquierda,
+     valores abajo; agrupadas o apiladas como las verticales.
+
+   Al cambiar los datos, la gráfica se anima durante `DURATION_BASE`. Con
+   `.time_axis`, la curva se desliza un paso; sin él, cada valor pasa del
+   anterior al nuevo, y los puntos nuevos crecen desde 0. Con movimiento
+   reducido, el cambio es inmediato.
 4. Para un reparto, usa `SectorChart::new(..).slice(nombre, valor)`; la
    leyenda muestra cada valor y su porcentaje, y el donut el total.
 5. Para ver cómo cambia un reparto con el tiempo, usa `StreamChart`. Su
@@ -76,6 +90,8 @@ Todos viven en `components.chart` de `vow-design` (`CHART`):
 | `sector-inner` / `sector-inset` / `sector-radius` | 0,618 / 1,5 / 5 | Hueco del donut, separación y esquina de los sectores, como la muestra de la WWDC23 |
 | `stream-hole` | 0,32 | Hueco central del reloj de flujo |
 | `azimuth` / `inclination` | −30° / 25° | Pose inicial de `Chart3D` |
+| `y-axis-width` | 52 | Ancho de la columna de valores del eje |
+| `scroll-min-span` | 4 | Muestras visibles como mínimo al acercar |
 | `drag-degrees` | 0,5 | Grados por punto al arrastrar |
 | `zoom-min` / `zoom-max` / `wheel-zoom` | 0,4 / 4 / 0,01 | Límites del zoom y su ritmo por punto de rueda |
 

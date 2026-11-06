@@ -208,6 +208,79 @@ pub fn monotone_samples(points: &[(f64, f64)], steps: usize) -> Vec<(f64, f64)> 
     samples
 }
 
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Window {
+    pub start: f64,
+    pub span: f64,
+}
+
+impl Window {
+    pub fn full(total: f64) -> Self {
+        Self {
+            start: 0.0,
+            span: total.max(1.0),
+        }
+    }
+
+    pub fn fraction(&self, position: f64) -> f64 {
+        (position - self.start) / self.span
+    }
+
+    pub fn position(&self, fraction: f64) -> f64 {
+        self.start + fraction * self.span
+    }
+
+    fn clamped(self, total: f64) -> Self {
+        let span = self.span.min(total.max(1.0));
+        Self {
+            start: self.start.clamp(0.0, (total - span).max(0.0)),
+            span,
+        }
+    }
+
+    pub fn zoom_at(self, fraction: f64, factor: f64, total: f64, min_span: f64) -> Self {
+        let anchor = self.position(fraction);
+        let span = (self.span / factor).clamp(min_span.min(total), total.max(1.0));
+        Self {
+            start: anchor - fraction * span,
+            span,
+        }
+        .clamped(total)
+    }
+
+    pub fn pan(self, delta: f64, total: f64) -> Self {
+        Self {
+            start: self.start + delta,
+            ..self
+        }
+        .clamped(total)
+    }
+}
+
+const TIME_STEPS: [f64; 15] = [
+    1.0, 2.0, 5.0, 10.0, 15.0, 30.0, 60.0, 120.0, 300.0, 600.0, 900.0, 1800.0, 3600.0, 7200.0,
+    21600.0,
+];
+
+pub fn time_ticks(span: f64, desired: usize) -> Vec<f64> {
+    let step = TIME_STEPS
+        .into_iter()
+        .find(|step| span / step <= desired.max(1) as f64)
+        .unwrap_or(86400.0);
+    (0..=(span / step).floor() as usize)
+        .map(|i| i as f64 * step)
+        .collect()
+}
+
+pub fn format_age(seconds: f64, now: &str) -> String {
+    match seconds.round() as i64 {
+        0 => now.to_string(),
+        s if s < 60 => format!("−{s} s"),
+        s if s < 3600 => format!("−{} min", s / 60),
+        s => format!("−{} h", s / 3600),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -283,5 +356,52 @@ mod tests {
         assert_eq!(samples.len(), 9);
         assert_eq!(samples[4], (1.0, 4.0));
         assert_eq!(samples[8], (2.0, 1.0));
+    }
+    #[test]
+    fn zooming_keeps_the_point_under_the_pointer_in_place() {
+        let window = Window::full(100.0).zoom_at(0.25, 2.0, 100.0, 4.0);
+        assert_eq!(
+            window,
+            Window {
+                start: 12.5,
+                span: 50.0
+            }
+        );
+        assert_eq!(window.position(0.25), 25.0);
+    }
+
+    #[test]
+    fn zoom_and_pan_never_leave_the_data() {
+        let tight = Window::full(100.0).zoom_at(1.0, 1000.0, 100.0, 4.0);
+        assert_eq!(
+            tight,
+            Window {
+                start: 96.0,
+                span: 4.0
+            }
+        );
+        assert_eq!(tight.pan(50.0, 100.0).start, 96.0);
+        assert_eq!(tight.pan(-500.0, 100.0).start, 0.0);
+        assert_eq!(
+            Window::full(100.0).zoom_at(0.5, 0.1, 100.0, 4.0),
+            Window::full(100.0)
+        );
+    }
+
+    #[test]
+    fn a_minute_of_history_gets_ticks_every_fifteen_seconds() {
+        assert_eq!(time_ticks(59.0, 5), vec![0.0, 15.0, 30.0, 45.0]);
+        assert_eq!(
+            time_ticks(3600.0, 5),
+            vec![0.0, 900.0, 1800.0, 2700.0, 3600.0]
+        );
+    }
+
+    #[test]
+    fn ages_read_as_now_seconds_minutes_or_hours() {
+        assert_eq!(format_age(0.0, "ahora"), "ahora");
+        assert_eq!(format_age(30.0, "ahora"), "−30 s");
+        assert_eq!(format_age(120.0, "ahora"), "−2 min");
+        assert_eq!(format_age(7200.0, "ahora"), "−2 h");
     }
 }

@@ -141,7 +141,7 @@ Prueba las gráficas (capítulo [19](19-graficas.md)) en tres pestañas:
 | Pestaña | Contenido |
 |---|---|
 | Gráficas 2D | Líneas monótonas, áreas apiladas, barras agrupadas con regla, barras apiladas, puntos, escalones, pastel, donut, mapa de calor, flujo y reloj de flujo |
-| Monitor | CPU de usuario y sistema, uso por núcleo, memoria, red, carga media, reloj de núcleos y procesos, leídos de `/proc` cada segundo |
+| Monitor | CPU de usuario y sistema, uso por núcleo, memoria, red, carga media, reloj de núcleos, memoria por proceso (barras horizontales) y procesos, leídos de `/proc` cada segundo |
 | 3D | Suzanne de Blender (3936 triángulos), superficie sin(r)/r y nube de puntos; se giran arrastrando o por planos |
 
 `cargo test -p trazo` comprueba que cada pestaña dibuja sus gráficas; con

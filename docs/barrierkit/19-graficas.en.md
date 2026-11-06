@@ -35,7 +35,20 @@ axes, legend and readout are kit text.
    `Monotone` (a curve that never overshoots the data) or `Step`.
 3. Add X axis labels with `.x_labels(..)` and reference lines with
    `.rule(value)`. Without `.y_domain`, the Y axis runs from 0 to the rounded
-   maximum.
+   maximum. `Chart` options:
+   - `.time_axis(seconds)`: each sample is that many seconds from the next
+     and the last one is "now". The X axis marks the age (−30 s, −2 min,
+     −1 h) in round steps.
+   - `.scrollable(true)`: the wheel zooms around the pointer, and dragging
+     or horizontal scrolling moves the visible window. The window never
+     leaves the data nor drops below `scroll-min-span` samples.
+   - `.horizontal(true)` with `MarkKind::Bar`: categories on the left,
+     values below; grouped or stacked like vertical bars.
+
+   When the data changes, the chart animates for `DURATION_BASE`. With
+   `.time_axis`, the curve slides one step; without it, each value moves
+   from the old to the new one, and new points grow from 0. With reduced
+   motion, the change is immediate.
 4. For a share, use `SectorChart::new(..).slice(name, value)`; the legend
    shows each value and its percentage, and the donut the total.
 5. To show how a share changes over time, use `StreamChart`. Its "wiggle"
@@ -78,6 +91,8 @@ They all live in `components.chart` in `vow-design` (`CHART`):
 | `sector-inner` / `sector-inset` / `sector-radius` | 0.618 / 1.5 / 5 | Donut hole, gap and sector corner, like the WWDC23 sample |
 | `stream-hole` | 0.32 | Center hole of the flow clock |
 | `azimuth` / `inclination` | −30° / 25° | Initial `Chart3D` pose |
+| `y-axis-width` | 52 | Width of the axis value column |
+| `scroll-min-span` | 4 | Minimum visible samples when zooming in |
 | `drag-degrees` | 0.5 | Degrees per point when dragging |
 | `zoom-min` / `zoom-max` / `wheel-zoom` | 0.4 / 4 / 0.01 | Zoom limits and their rate per wheel point |
 

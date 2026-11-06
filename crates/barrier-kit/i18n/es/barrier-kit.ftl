@@ -41,3 +41,4 @@ camera-azimuth = Azimut
 camera-inclination = Inclinación
 camera-zoom = Zoom
 camera-keep = Fijar esta cámara
+chart-now = ahora
