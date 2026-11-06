@@ -55,6 +55,10 @@ ToggleGroup::new("Formato")
 barra unificada (52) pasa a una cápsula de 36, la altura de `TOOLGROUP`,
 como los elementos de toolbar de macOS 26.
 
+`Stepper` muestra el valor y, a 8, las flechas de AppKit: 20 × 26, radio 6,
+subir arriba y bajar abajo (`stepper`). Las flechas del teclado también
+cambian el valor.
+
 `Link::new("Más información…")` es un enlace de texto con `on_press`.
 
 ## Interruptor y casilla

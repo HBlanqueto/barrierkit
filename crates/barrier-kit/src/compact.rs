@@ -1,6 +1,8 @@
 use freya_core::prelude::*;
-use torin::prelude::{Alignment, Direction, Gaps, Size};
-use vow_design::{BUTTON, DISPLAY, ICON_BUTTON, SEGMENTED, TEXT, TOOLGROUP};
+use std::rc::Rc;
+
+use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
+use vow_design::{BUTTON, DISPLAY, ICON_BUTTON, SEGMENTED, STEPPER, TEXT, TOOLGROUP};
 
 use crate::i18n::text;
 use crate::interaction::use_interaction;
@@ -139,6 +141,46 @@ impl Component for Stepper {
         };
         let (step_down, step_up, step_key) = (step.clone(), step.clone(), step);
 
+        let arrow = |kind: Symbol, label: &'static str, enabled: bool, press: Rc<dyn Fn()>| {
+            let ink = if enabled {
+                palette.label
+            } else {
+                palette.tertiary_label
+            };
+            rect()
+                .a11y_role(AccessibilityRole::Button)
+                .a11y_alt(label)
+                .width(Size::fill())
+                .height(Size::flex(1.0))
+                .center()
+                .maybe(enabled, |el| el.on_press(move |_| press()))
+                .child(symbol(kind, STEPPER.chevron, ink))
+        };
+        let arrows = rect()
+            .width(Size::px(STEPPER.width))
+            .height(Size::px(STEPPER.height))
+            .content(Content::flex())
+            .corner_radius(STEPPER.radius)
+            .background(color(palette.control_background))
+            .child(arrow(
+                Symbol::ChevronUp,
+                text!("increase"),
+                current < max,
+                Rc::new(move || step_up(1)),
+            ))
+            .child(
+                rect()
+                    .width(Size::fill())
+                    .height(Size::px(vow_design::HAIRLINE))
+                    .background(color(palette.separator)),
+            )
+            .child(arrow(
+                Symbol::ChevronDown,
+                text!("decrease"),
+                current > min,
+                Rc::new(move || step_down(-1)),
+            ));
+
         let stepper = interaction
             .attach(rect(), true)
             .a11y_role(AccessibilityRole::SpinButton)
@@ -146,30 +188,15 @@ impl Component for Stepper {
             .a11y_builder(move |node| node.set_numeric_value(current as f64))
             .direction(Direction::Horizontal)
             .cross_align(Alignment::Center)
-            .corner_radius(ICON_BUTTON.radius)
-            .background(color(palette.control_background))
+            .spacing(STEPPER.gap)
             .on_key_down(move |event: Event<KeyboardEventData>| match event.key {
                 Key::Named(NamedKey::ArrowUp) => step_key(1),
                 Key::Named(NamedKey::ArrowDown) => step_key(-1),
                 _ => {}
             })
-            .child(
-                IconButton::new(Symbol::Minus, text!("decrease"))
-                    .disabled(current <= min)
-                    .on_press(move |_| step_down(-1)),
-            )
-            .child(
-                rect()
-                    .min_width(Size::px(ICON_BUTTON.size))
-                    .center()
-                    .child(text(current.to_string(), TEXT, palette.label)),
-            )
-            .child(
-                IconButton::new(Symbol::Plus, text!("increase"))
-                    .disabled(current >= max)
-                    .on_press(move |_| step_up(1)),
-            );
-        interaction.focus_ring(stepper, ICON_BUTTON.radius)
+            .child(text(current.to_string(), TEXT, palette.label))
+            .child(interaction.focus_ring(arrows, STEPPER.radius));
+        stepper.into_element()
     }
 }
 

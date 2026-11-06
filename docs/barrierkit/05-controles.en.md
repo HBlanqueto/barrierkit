@@ -55,6 +55,10 @@ ToggleGroup::new("Formato")
 (52) it becomes a 36 capsule, the `TOOLGROUP` height, like macOS 26
 toolbar items.
 
+`Stepper` shows the value and, 8 away, AppKit's arrows: 20 × 26, radius 6,
+up on top and down below (`stepper`). The arrow keys also change the
+value.
+
 `Link::new("Más información…")` is a text link with `on_press`.
 
 ## Switch and checkbox

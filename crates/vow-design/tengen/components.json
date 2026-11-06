@@ -24,6 +24,13 @@
       "radius": "radius.sm",
       "icon": 16
     },
+    "stepper": {
+      "width": 20,
+      "height": 26,
+      "radius": "radius.button",
+      "chevron": 13,
+      "gap": 8
+    },
     "switch": {
       "width": 54,
       "height": 24,

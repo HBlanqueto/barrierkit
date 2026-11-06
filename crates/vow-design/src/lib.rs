@@ -530,6 +530,15 @@ pub struct IconButtonMetrics {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct StepperMetrics {
+    pub width: f32,
+    pub height: f32,
+    pub radius: f32,
+    pub chevron: f32,
+    pub gap: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct BadgeMetrics {
     pub height: f32,
     pub padding_x: f32,

@@ -927,7 +927,7 @@ fn stepper_stops_at_its_bounds() {
     let (mut test, _) = TestingRunner::new(app, Size2D::new(120.0, 30.0), |_| {}, 1.0);
     test.sync_and_update();
     for _ in 0..3 {
-        test.click_cursor((75.0, 15.0));
+        test.click_cursor((26.0, 6.0));
         test.sync_and_update();
     }
     assert_eq!(*value.peek(), 2);
