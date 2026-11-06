@@ -1,9 +1,10 @@
+mod chart3d;
+mod heat;
 mod plot;
 mod scale;
 mod sector;
 mod space;
 mod stream;
-mod surface;
 
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Direction, Gaps, Position, Size};
@@ -12,9 +13,10 @@ use vow_design::{CAPTION, CHART, CHART_SERIES, SPACE_1};
 use crate::style::{Palette, text};
 use scale::nice_ticks;
 
+pub use chart3d::Chart3D;
+pub use heat::HeatMap;
 pub use sector::SectorChart;
 pub use stream::StreamChart;
-pub use surface::{Chart3D, HeatMap};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Series {

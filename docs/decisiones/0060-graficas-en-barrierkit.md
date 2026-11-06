@@ -26,9 +26,14 @@ las ofrece con Swift Charts: marcas (`LineMark`, `AreaMark`, `BarMark`,
    «redondas» de Heckbert, apilado, ángulos de sectores y tangentes monótonas
    de Fritsch–Carlson) y `space.rs` (pose, proyección ortográfica y orden de
    pintado de atrás hacia delante).
-4. **3D sin GPU propia:** la superficie se proyecta en la CPU y cada cara se
-   pinta en orden de profundidad, con sombra por orientación y color por
-   altura. El usuario cambia azimut e inclinación arrastrando.
+4. **3D como una malla en la GPU:** superficies, modelos y nubes de puntos
+   se proyectan en la CPU, se descartan las caras traseras de las mallas
+   cerradas y los triángulos se ordenan de atrás hacia delante. Toda la malla
+   va en un `Vertices` de Skia con color por vértice (sombra suave por
+   normales promediadas y color por altura) y se rasteriza en la GPU con
+   `draw_vertices`, en una sola llamada sobre Vulkan (ADR 0056). El usuario
+   la gira arrastrando o elige un plano: libre, frente, arriba, lado o
+   isométrica.
 5. **Valores en `vow-design`** (ADR 0011): `components.chart` (`CHART`). Los
    colores de las series apuntan a los colores de acento del sistema
    (`CHART_SERIES`), sin copiarlos.
@@ -39,8 +44,10 @@ las ofrece con Swift Charts: marcas (`LineMark`, `AreaMark`, `BarMark`,
 
 - Una app dibuja una gráfica con una línea por serie; el monitor del sistema
   futuro reutiliza `Chart`, `SectorChart`, `HeatMap` y `Table`.
-- El 3D va bien hasta unos miles de caras por fotograma; más necesitaría
-  pintar en la GPU.
+- La GPU rasteriza la malla, pero la proyección y el orden por profundidad
+  siguen en la CPU: `freya-skia-safe` 0.98 no expone `SkMesh` (su
+  `mesh.rs` está vacío), que permitiría proyectar en un shader de vértices.
+  Con Suzanne (3936 triángulos) basta de sobra.
 - La lectura al pasar el puntero solo existe en `Chart`; los sectores y el
   mapa de calor muestran sus valores en la leyenda.
 
@@ -51,4 +58,6 @@ las ofrece con Swift Charts: marcas (`LineMark`, `AreaMark`, `BarMark`,
 - **Un nodo de freya por barra o punto:** miles de nodos por historial y
   diffs caros en cada muestra.
 - **3D con una superficie Vulkan propia:** demasiado para una gráfica; la
-  proyección en la CPU basta para el tamaño de datos de un monitor.
+  malla de Skia ya se rasteriza en la GPU.
+- **Un trazado por cara:** una llamada por triángulo, sin interpolar color
+  entre vértices.

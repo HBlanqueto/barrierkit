@@ -22,3 +22,10 @@ crates/barrier-kit/src/platform/vulkan.rs
   part of Freya (https://github.com/marc2332/freya).
   Copyright (c) Marc Espín Sanz. Licensed under the MIT License:
   https://github.com/marc2332/freya/blob/main/LICENSE.md
+
+crates/trazo/assets/suzanne.obj
+  Suzanne, Blender's monkey test primitive, generated with Blender 5.1.2
+  (https://www.blender.org): `bpy.ops.mesh.primitive_monkey_add`, one
+  Subdivision Surface level, triangulated and exported as OBJ. Output made
+  with Blender belongs to its author and is not covered by Blender's GPL
+  (https://www.blender.org/about/license/).

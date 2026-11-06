@@ -16,7 +16,7 @@ axes, legend and readout are kit text.
 | `SectorChart` | pie or `.donut(true)` | Shares of a total |
 | `HeatMap` | grid of cells | Intensity by row and column |
 | `StreamChart` | stream or `.polar(true)` (flow clock) | How a share changes over time |
-| `Chart3D` | `surface` or `points` | Surfaces z = f(x, y) and point clouds |
+| `Chart3D` | `surface`, `mesh` or `points` | Surfaces z = f(x, y), 3D models and point clouds |
 
 ## Steps
 
@@ -43,8 +43,11 @@ axes, legend and readout are kit text.
    series that peak first go to the middle. With `.polar(true)` time goes
    around a clock that starts at twelve and leaves one step open where the
    start and the end meet.
-6. For 3D, pass a grid of heights to `Chart3D::surface` or `[x, y, z]`
-   points to `Chart3D::points`. The user rotates it by dragging.
+6. For 3D, pass a grid of heights to `Chart3D::surface`, vertices and
+   triangles to `Chart3D::mesh` (the model is fitted to the box) or
+   `[x, y, z]` points to `Chart3D::points`. The user rotates it by dragging
+   or picks a plane: free, front, top, side or isometric. The mesh is drawn
+   on the GPU in a single call (ADR 0060).
 
 When the pointer moves over a `Chart`, a rule marks the position and the
 legend shows each series' value at that point. Without a pointer, it shows

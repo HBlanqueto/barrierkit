@@ -35,6 +35,30 @@ pub(super) fn paint(color: Rgba, style: PaintStyle, width: f32) -> Paint {
     paint
 }
 
+pub(super) fn mix(a: Rgba, b: Rgba, t: f32) -> Rgba {
+    Rgba {
+        r: a.r + (b.r - a.r) * t,
+        g: a.g + (b.g - a.g) * t,
+        b: a.b + (b.b - a.b) * t,
+        a: a.a + (b.a - a.a) * t,
+    }
+}
+
+pub(super) fn shade(color: Rgba, light: f32) -> Rgba {
+    Rgba {
+        r: color.r * light,
+        g: color.g * light,
+        b: color.b * light,
+        ..color
+    }
+}
+
+pub(super) fn normalized(values: &[f64]) -> (f64, f64) {
+    let min = values.iter().copied().fold(f64::MAX, f64::min);
+    let max = values.iter().copied().fold(f64::MIN, f64::max);
+    (min, (max - min).max(f64::EPSILON))
+}
+
 impl Plot {
     fn bands(&self) -> Vec<Vec<(f64, f64)>> {
         let values: Vec<Vec<f64>> = self.series.iter().map(|s| s.values.clone()).collect();

@@ -23,9 +23,13 @@ Charts: marks (`LineMark`, `AreaMark`, `BarMark`, `PointMark`, `RuleMark`,
 3. **Pure logic apart and tested:** `scale.rs` (linear scale, Heckbert "nice"
    ticks, stacking, sector angles and Fritsch–Carlson monotone tangents) and
    `space.rs` (pose, orthographic projection and back-to-front paint order).
-4. **3D without its own GPU path:** the surface is projected on the CPU and
-   each face is painted in depth order, shaded by orientation and colored by
-   height. The user changes azimuth and inclination by dragging.
+4. **3D as one GPU mesh:** surfaces, models and point clouds are projected
+   on the CPU, closed meshes drop their back faces and triangles are sorted
+   back to front. The whole mesh goes in one Skia `Vertices` with per-vertex
+   color (smooth shading from averaged normals and color by height) and is
+   rasterized on the GPU with `draw_vertices`, in a single call on Vulkan
+   (ADR 0056). The user rotates it by dragging or picks a plane: free,
+   front, top, side or isometric.
 5. **Values in `vow-design`** (ADR 0011): `components.chart` (`CHART`). Series
    colors point to the system accent colors (`CHART_SERIES`) without copying
    them.
@@ -36,8 +40,10 @@ Charts: marks (`LineMark`, `AreaMark`, `BarMark`, `PointMark`, `RuleMark`,
 
 - An app draws a chart with one line per series; the future system monitor
   reuses `Chart`, `SectorChart`, `HeatMap` and `Table`.
-- 3D works up to a few thousand faces per frame; more would need GPU
-  painting.
+- The GPU rasterizes the mesh, but projection and depth sorting stay on the
+  CPU: `freya-skia-safe` 0.98 does not expose `SkMesh` (its `mesh.rs` is
+  empty), which would allow projecting in a vertex shader. Suzanne (3936
+  triangles) runs well within that.
 - The pointer readout only exists in `Chart`; sectors and the heat map show
   their values in the legend.
 
@@ -47,5 +53,7 @@ Charts: marks (`LineMark`, `AreaMark`, `BarMark`, `PointMark`, `RuleMark`,
   does not follow the kit's tokens or typography.
 - **One freya node per bar or point:** thousands of nodes per history and
   expensive diffs on every sample.
-- **3D with its own Vulkan surface:** too much for a chart; CPU projection is
-  enough for a monitor's data size.
+- **3D with its own Vulkan surface:** too much for a chart; the Skia mesh is
+  already rasterized on the GPU.
+- **One path per face:** one call per triangle, with no color interpolation
+  between vertices.

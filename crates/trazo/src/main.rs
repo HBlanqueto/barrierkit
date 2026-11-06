@@ -1,4 +1,5 @@
 mod localize;
+mod model;
 mod sampler;
 
 use std::f64::consts::PI;
@@ -326,6 +327,10 @@ fn spaces() -> Element {
         .collect();
     let palette = Palette::current();
     page([
+        card(tr!("blender-model"), {
+            let model = model::suzanne();
+            Chart3D::mesh(tr!("blender-model"), &model.vertices, model.triangles).height(360.0)
+        }),
         card(tr!("surface"), Chart3D::surface(tr!("surface"), surface)),
         card(tr!("scatter"), Chart3D::points(tr!("scatter"), points)),
         text(tr!("drag-hint"), CALLOUT, palette.secondary_label).into_element(),

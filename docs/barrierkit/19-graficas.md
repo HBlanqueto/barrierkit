@@ -16,7 +16,7 @@ ejes, leyenda y lectura son texto del kit.
 | `SectorChart` | pastel o `.donut(true)` | Repartos de un total |
 | `HeatMap` | rejilla de celdas | Intensidad por fila y columna |
 | `StreamChart` | flujo o `.polar(true)` (reloj de flujo) | Cómo cambia el reparto con el tiempo |
-| `Chart3D` | `surface` o `points` | Superficies z = f(x, y) y nubes de puntos |
+| `Chart3D` | `surface`, `mesh` o `points` | Superficies z = f(x, y), modelos 3D y nubes de puntos |
 
 ## Pasos
 
@@ -42,8 +42,11 @@ ejes, leyenda y lectura son texto del kit.
    capas, y las series que alcanzan antes su pico van al centro. Con
    `.polar(true)` el tiempo da la vuelta a un reloj que empieza a las 12 y
    deja un paso abierto donde se unen principio y final.
-6. Para 3D, pasa una rejilla de alturas a `Chart3D::surface` o puntos
-   `[x, y, z]` a `Chart3D::points`. El usuario la gira arrastrando.
+6. Para 3D, pasa una rejilla de alturas a `Chart3D::surface`, vértices y
+   triángulos a `Chart3D::mesh` (el modelo se ajusta a la caja) o puntos
+   `[x, y, z]` a `Chart3D::points`. El usuario la gira arrastrando o elige un
+   plano: libre, frente, arriba, lado o isométrica. La malla se dibuja en la
+   GPU en una sola llamada (ADR 0060).
 
 Al pasar el puntero sobre un `Chart`, una regla marca la posición y la
 leyenda muestra el valor de cada serie en ese punto. Sin puntero, muestra el

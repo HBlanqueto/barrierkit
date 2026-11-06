@@ -143,7 +143,7 @@ Tests the charts (chapter [19](19-graficas.en.md)) in three tabs:
 |---|---|
 | 2D charts | Monotone lines, stacked areas, grouped bars with a rule, stacked bars, points, steps, pie, donut, heat map, stream and flow clock |
 | Monitor | User and system CPU, usage per core, memory, network, load average, core clock and processes, read from `/proc` every second |
-| 3D | sin(r)/r surface and point cloud; drag to rotate |
+| 3D | Blender's Suzanne (3936 triangles), sin(r)/r surface and point cloud; drag to rotate or pick a plane |
 
 `cargo test -p trazo` checks that every tab draws its charts; with
 `TRAZO_SHOT=<folder>` it saves one screenshot per tab.
