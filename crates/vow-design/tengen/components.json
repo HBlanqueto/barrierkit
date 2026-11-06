@@ -90,7 +90,7 @@
     },
     "table": {
       "row-height": 24,
-      "header-height": 26,
+      "header-height": 28,
       "padding-x": 8,
       "zebra": 0.04
     },
@@ -405,7 +405,7 @@
         "caption": "callout"
       },
       "popup": {
-        "height": 26,
+        "height": 24,
         "chevron": 18,
         "text-gap": 6
       },
@@ -481,7 +481,7 @@
       "separator-margin": 5
     },
     "progress": {
-      "height": 6,
+      "height": 8,
       "ring": {
         "size": 28,
         "stroke": 3.5
@@ -491,7 +491,7 @@
         "duration": 1200
       },
       "spinner": {
-        "size": 20,
+        "size": 16,
         "spokes": 12,
         "duration": 1000
       }
@@ -553,7 +553,7 @@
       "inset": 3,
       "min-length": 50,
       "opacity": 0.45,
-      "track": 11,
+      "track": 17,
       "track-opacity": 0.05,
       "always-opacity": 0.55
     },
