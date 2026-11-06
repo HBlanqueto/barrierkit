@@ -85,34 +85,41 @@ impl Component for TokenField {
                     _ => default_pre_key(&event),
                 }
             });
-        let line = |item: Element| {
+        let line = |key: String, item: Element| {
             rect()
+                .key(key)
                 .height(Size::px(TEXT_FIELD.height))
                 .main_align(Alignment::Center)
                 .child(item)
                 .into_element()
         };
-        let chips = self.tokens.read().clone().into_iter().map(|token| {
-            let chip = rect()
-                .height(Size::px(TOKEN_FIELD.token_height))
-                .padding(Gaps::new(
-                    0.0,
-                    TOKEN_FIELD.token_padding_x,
-                    0.0,
-                    TOKEN_FIELD.token_padding_x,
-                ))
-                .corner_radius(TOKEN_FIELD.token_height / 2.0)
-                .main_align(Alignment::Center)
-                .background(color(Rgba {
-                    a: TOKEN_FIELD.token_opacity,
-                    ..palette.accent
-                }))
-                .a11y_role(AccessibilityRole::ListItem)
-                .a11y_alt(token.clone())
-                .child(text(token, TEXT, palette.label))
-                .into_element();
-            line(chip)
-        });
+        let chips = self
+            .tokens
+            .read()
+            .clone()
+            .into_iter()
+            .enumerate()
+            .map(|(index, token)| {
+                let chip = rect()
+                    .height(Size::px(TOKEN_FIELD.token_height))
+                    .padding(Gaps::new(
+                        0.0,
+                        TOKEN_FIELD.token_padding_x,
+                        0.0,
+                        TOKEN_FIELD.token_padding_x,
+                    ))
+                    .corner_radius(TOKEN_FIELD.token_height / 2.0)
+                    .main_align(Alignment::Center)
+                    .background(color(Rgba {
+                        a: TOKEN_FIELD.token_opacity,
+                        ..palette.accent
+                    }))
+                    .a11y_role(AccessibilityRole::ListItem)
+                    .a11y_alt(token.clone())
+                    .child(text(token.clone(), TEXT, palette.label))
+                    .into_element();
+                line(format!("{index}:{token}"), chip)
+            });
         text_style(rect().width(self.width.clone()))
             .a11y_role(AccessibilityRole::List)
             .a11y_alt(self.placeholder)
@@ -138,7 +145,7 @@ impl Component for TokenField {
             .cross_align(Alignment::Center)
             .spacing(TOKEN_FIELD.gap)
             .children(chips)
-            .child(line(input.into_element()))
+            .child(line(String::from("input"), input.into_element()))
     }
 }
 
