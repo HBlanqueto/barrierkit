@@ -1,6 +1,7 @@
 use freya_components::cursor_blink::use_cursor_blink;
 use freya_core::prelude::*;
 use freya_edit::{EditableConfig, EditableEvent, EditorLine, TextEditor as _, use_editable};
+use freya_engine::prelude::{RectHeightStyle, RectWidthStyle};
 use torin::prelude::{Alignment, Area, Content, Direction, Gaps, Size};
 use vow_design::{CAPTION, SPACE_1, SPACE_2, TEXT, TEXT_FIELD};
 
@@ -13,7 +14,7 @@ use crate::symbol::Symbol;
 use crate::context_menu::edit_menu;
 use crate::controls::text_style;
 use crate::interaction::ring;
-use crate::scroll::ScrollView;
+use crate::scroll::{ScrollView, use_scroll_controller};
 use crate::style::Palette;
 use crate::theme::{color, resolved};
 
@@ -54,6 +55,7 @@ impl Component for TextEditor {
         let mut finding = use_state(|| false);
         let query = use_state(String::new);
         let current = use_state(|| 0usize);
+        let scroll = use_scroll_controller();
         use_side_effect(move || {
             let found = find_matches(&value.peek(), &query.read());
             let index = (*current.read()).min(found.len().saturating_sub(1));
@@ -66,6 +68,24 @@ impl Component for TextEditor {
                     editor.char_to_utf16_cu(range.1),
                 );
                 editor.set_selection(range);
+                if let Some(inner) = holder.peek().0.borrow().as_ref() {
+                    let scale = inner.scale_factor as f32;
+                    let margin_y = (TEXT_FIELD.height - TEXT.line_height as f32) / 2.0;
+                    if let Some(rect) = inner
+                        .paragraph
+                        .get_rects_for_range(
+                            range.0..range.1,
+                            RectHeightStyle::Max,
+                            RectWidthStyle::Tight,
+                        )
+                        .first()
+                    {
+                        scroll.reveal_y(
+                            rect.rect.top / scale + margin_y,
+                            rect.rect.bottom / scale + margin_y,
+                        );
+                    }
+                }
             }
         });
 
@@ -161,7 +181,8 @@ impl Component for TextEditor {
             } else {
                 editor.rope().to_string()
             });
-        let field = edit_menu(text_style(rect()), a11y_id)
+        let has_selection = editor.get_selection().is_some();
+        let field = edit_menu(text_style(rect()), a11y_id, has_selection)
             .a11y_id(a11y_id)
             .a11y_focusable(true)
             .a11y_role(AccessibilityRole::MultilineTextInput)
@@ -205,6 +226,7 @@ impl Component for TextEditor {
             .on_global_pointer_press(on_release)
             .child(
                 ScrollView::new()
+                    .controller(scroll)
                     .width(Size::fill())
                     .height(Size::fill())
                     .child(paragraph),

@@ -101,8 +101,10 @@ ColumnBrowser::new("Archivos", nodos)
 triángulos (`NSOutlineView`) o como columnas, al estilo del Finder
 (`NSBrowser`). Las filas miden 24 y cada nivel sangra 13, lo que mide
 `NSOutlineView` en macOS 26.6.2. Las columnas miden `DISCLOSURE.column_width`
-(200, una estimación). Las dos avisan con `on_select(ruta)`, una lista de
-índices desde la raíz.
+(200, una estimación). Una ruta es una lista de índices desde la raíz.
+`ColumnBrowser` avisa con `on_select(ruta)`. `OutlineView` avisa con
+`on_select(rutas)` y admite Ctrl+clic y Mayús+clic sobre las filas visibles,
+igual que `Table`.
 
 ## Pestañas de ventana: `WindowTabs`
 

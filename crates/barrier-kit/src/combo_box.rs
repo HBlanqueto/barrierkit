@@ -106,7 +106,7 @@ impl Component for ComboBox {
             }
             default_pre_key(&event)
         });
-        edit_menu(text_style(rect().width(self.width.clone())), field)
+        edit_menu(text_style(rect().width(self.width.clone())), field, true)
             .on_sized(move |event: Event<SizedEventData>| area.set_if_modified(event.area))
             .child(input)
             .child(

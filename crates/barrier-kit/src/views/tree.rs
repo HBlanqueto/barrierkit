@@ -8,6 +8,7 @@ use crate::scroll::ScrollView;
 use crate::style::{Palette, text};
 use crate::symbol::{Symbol, symbol};
 use crate::theme::color;
+use crate::views::collection::{select, track_modifiers, use_held_modifiers};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct TreeNode {
@@ -109,7 +110,7 @@ fn row(node: &TreeNode, selected: bool, lead: Option<Element>, trail: Option<Ele
 pub struct OutlineView {
     label: &'static str,
     nodes: Vec<TreeNode>,
-    on_select: Option<Callback<Vec<usize>, ()>>,
+    on_select: Option<Callback<Vec<Vec<usize>>, ()>>,
 }
 
 impl OutlineView {
@@ -121,7 +122,7 @@ impl OutlineView {
         }
     }
 
-    pub fn on_select(mut self, callback: impl Into<Callback<Vec<usize>, ()>>) -> Self {
+    pub fn on_select(mut self, callback: impl Into<Callback<Vec<Vec<usize>>, ()>>) -> Self {
         self.on_select = Some(callback.into());
         self
     }
@@ -131,61 +132,76 @@ impl Component for OutlineView {
     fn render(&self) -> impl IntoElement {
         let palette = Palette::current();
         let mut expanded = use_state(HashSet::<Vec<usize>>::new);
-        let mut selected = use_state(|| None::<Vec<usize>>);
+        let mut selected = use_state(Vec::<Vec<usize>>::new);
+        let held = use_held_modifiers();
         let rows = visible_rows(&self.nodes, &expanded.read());
-        let items = rows.into_iter().filter_map(|(path, depth)| {
-            let node = node_at(&self.nodes, &path)?;
-            let open = expanded.read().contains(&path);
-            let chosen = selected.read().as_ref() == Some(&path);
-            let ink = if chosen {
-                palette.on_accent
-            } else {
-                palette.secondary_label
-            };
-            let toggle_path = path.clone();
-            let chevron = rect()
-                .width(Size::px(DISCLOSURE.indent))
-                .center()
-                .maybe(!node.children.is_empty(), |el| {
-                    el.a11y_role(AccessibilityRole::Button)
-                        .on_press(move |event: Event<PressEventData>| {
-                            event.stop_propagation();
-                            let mut paths = expanded.write();
-                            if !paths.remove(&toggle_path) {
-                                paths.insert(toggle_path.clone());
-                            }
-                        })
-                        .child(symbol(
-                            if open {
-                                Symbol::ChevronDown
-                            } else {
-                                Symbol::ChevronRight
-                            },
-                            DISCLOSURE.chevron,
-                            ink,
-                        ))
-                })
-                .into_element();
-            let on_select = self.on_select.clone();
-            let select_path = path.clone();
-            Some(
-                rect()
-                    .width(Size::fill())
-                    .padding(Gaps::new(0.0, 0.0, 0.0, DISCLOSURE.indent * depth as f32))
-                    .child(
-                        row(node, chosen, Some(chevron), None)
-                            .a11y_builder(move |a11y| a11y.set_expanded(open))
-                            .on_press(move |_| {
-                                selected.set(Some(select_path.clone()));
-                                if let Some(on_select) = &on_select {
-                                    on_select.call(select_path.clone());
+        let paths: Vec<Vec<usize>> = rows.iter().map(|(path, _)| path.clone()).collect();
+        let items = rows
+            .into_iter()
+            .enumerate()
+            .filter_map(|(row_index, (path, depth))| {
+                let node = node_at(&self.nodes, &path)?;
+                let open = expanded.read().contains(&path);
+                let chosen = selected.read().contains(&path);
+                let ink = if chosen {
+                    palette.on_accent
+                } else {
+                    palette.secondary_label
+                };
+                let toggle_path = path.clone();
+                let chevron = rect()
+                    .width(Size::px(DISCLOSURE.indent))
+                    .center()
+                    .maybe(!node.children.is_empty(), |el| {
+                        el.a11y_role(AccessibilityRole::Button)
+                            .on_press(move |event: Event<PressEventData>| {
+                                event.stop_propagation();
+                                let mut paths = expanded.write();
+                                if !paths.remove(&toggle_path) {
+                                    paths.insert(toggle_path.clone());
                                 }
-                            }),
-                    )
-                    .into_element(),
-            )
-        });
-        rect()
+                            })
+                            .child(symbol(
+                                if open {
+                                    Symbol::ChevronDown
+                                } else {
+                                    Symbol::ChevronRight
+                                },
+                                DISCLOSURE.chevron,
+                                ink,
+                            ))
+                    })
+                    .into_element();
+                let on_select = self.on_select.clone();
+                let paths = paths.clone();
+                Some(
+                    rect()
+                        .width(Size::fill())
+                        .padding(Gaps::new(0.0, 0.0, 0.0, DISCLOSURE.indent * depth as f32))
+                        .child(
+                            row(node, chosen, Some(chevron), None)
+                                .a11y_builder(move |a11y| a11y.set_expanded(open))
+                                .on_press(move |_| {
+                                    let current: Vec<usize> = selected
+                                        .peek()
+                                        .iter()
+                                        .filter_map(|path| paths.iter().position(|row| row == path))
+                                        .collect();
+                                    let next: Vec<Vec<usize>> =
+                                        select(&current, row_index, *held.peek())
+                                            .into_iter()
+                                            .map(|index| paths[index].clone())
+                                            .collect();
+                                    if let Some(on_select) = &on_select {
+                                        on_select.call(next.clone());
+                                    }
+                                    selected.set(next);
+                                }),
+                        )
+                        .into_element(),
+                )
+            });
+        track_modifiers(rect(), held)
             .a11y_role(AccessibilityRole::Tree)
             .a11y_alt(self.label)
             .width(Size::fill())

@@ -58,9 +58,28 @@ fn clamped(offset: i32, delta: f64, viewport: f32, content: f32) -> i32 {
     (offset as f32 + delta as f32).clamp(-limit, 0.0) as i32
 }
 
+pub fn revealed_offset(offset: i32, top: f32, bottom: f32, viewport: f32) -> i32 {
+    let shown_top = -offset as f32;
+    if top < shown_top {
+        -(top.floor() as i32)
+    } else if bottom > shown_top + viewport {
+        -((bottom - viewport).ceil() as i32)
+    } else {
+        offset
+    }
+}
+
 impl ScrollController {
     pub fn scroll_to_x(&mut self, to: i32) -> bool {
         self.inner.scroll_to_x(to)
+    }
+
+    pub fn reveal_y(mut self, top: f32, bottom: f32) {
+        let (_, offset): (i32, i32) = self.into();
+        let next = revealed_offset(offset, top, bottom, self.viewport.peek().1);
+        if next != offset {
+            self.inner.scroll_to_y(next);
+        }
     }
 
     // Freya sends the wheel only to the hovered node and its ancestors; a layer over the view uses this.
@@ -289,6 +308,13 @@ impl Component for ScrollView {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn revealing_scrolls_only_as_far_as_the_range_needs() {
+        assert_eq!(revealed_offset(0, 10.0, 30.0, 100.0), 0);
+        assert_eq!(revealed_offset(0, 150.0, 170.0, 100.0), -70);
+        assert_eq!(revealed_offset(-200, 50.0, 70.0, 100.0), -50);
+    }
 
     #[test]
     fn a_forwarded_wheel_stops_at_both_ends() {

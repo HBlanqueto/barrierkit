@@ -99,8 +99,10 @@ ColumnBrowser::new("Archivos", nodos)
 `barrier_kit::views::tree` shows a `Vec<TreeNode>` as a tree with disclosure
 triangles (`NSOutlineView`) or as columns, Finder style (`NSBrowser`). Rows
 are 24 high and each level indents 13, what `NSOutlineView` measures on macOS
-26.6.2. Columns are `DISCLOSURE.column_width` wide (200, an estimate). Both
-report through `on_select(path)`, a list of indices from the root.
+26.6.2. Columns are `DISCLOSURE.column_width` wide (200, an estimate). A path
+is a list of indices from the root. `ColumnBrowser` reports through
+`on_select(path)`. `OutlineView` reports through `on_select(paths)` and takes
+Ctrl+click and Shift+click over the visible rows, as `Table` does.
 
 ## Window tabs: `WindowTabs`
 

@@ -204,7 +204,10 @@ o A), así que actúa sobre la selección que ya tenía.
 En `TextEditor`, Ctrl+F abre una barra de búsqueda encima del texto, como
 `findNavigator` de SwiftUI: un `SearchField`, el contador («2 de 3»), anterior
 y siguiente (también ↑, ↓ y Enter) y Listo. La coincidencia actual queda
-seleccionada. `find_matches` ignora mayúsculas y no solapa coincidencias.
+seleccionada y el texto se desplaza hasta ella (`ScrollController::reveal_y`).
+`find_matches` ignora mayúsculas y no solapa coincidencias. En `TextEditor`,
+Cortar y Copiar se desactivan sin selección. Los campos de una línea las dejan
+siempre activas, porque el `Input` de Freya no expone su selección.
 
 `TokenField` (`barrier_kit::token_field`), como `NSTokenField`, guarda
 etiquetas en un `State<Vec<String>>`: Enter o una coma convierten el texto en

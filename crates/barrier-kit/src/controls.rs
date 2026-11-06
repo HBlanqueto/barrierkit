@@ -873,7 +873,8 @@ impl Component for TextField {
             TEXT_FIELD.padding_x,
         );
         let field = use_hook(AccessibilityId::new_unique);
-        edit_menu(text_style(rect().width(self.width.clone())), field).child(input.a11y_id(field))
+        edit_menu(text_style(rect().width(self.width.clone())), field, true)
+            .child(input.a11y_id(field))
     }
 }
 
@@ -1036,7 +1037,7 @@ impl Component for SearchField {
             );
         }
 
-        edit_menu(text_style(rect().width(self.width.clone())), a11y_id)
+        edit_menu(text_style(rect().width(self.width.clone())), a11y_id, true)
             .child(input)
             .child(
                 rect()

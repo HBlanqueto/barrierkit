@@ -180,7 +180,7 @@ impl Component for TokenField {
                     .into_element();
                 line(format!("{index}:{token}"), chip)
             });
-        edit_menu(text_style(rect().width(self.width.clone())), input_id)
+        edit_menu(text_style(rect().width(self.width.clone())), input_id, true)
             .a11y_role(AccessibilityRole::List)
             .a11y_alt(self.placeholder)
             .min_height(Size::px(TEXT_FIELD.height))

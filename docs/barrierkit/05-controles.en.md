@@ -203,8 +203,11 @@ acts on the selection the field already had.
 
 In `TextEditor`, Ctrl+F opens a find bar above the text, like SwiftUI's
 `findNavigator`: a `SearchField`, the counter ("2 of 3"), previous and next
-(also ↑, ↓ and Enter) and Done. The current match stays selected.
-`find_matches` ignores case and does not overlap matches.
+(also ↑, ↓ and Enter) and Done. The current match stays selected and the
+text scrolls to it (`ScrollController::reveal_y`). `find_matches` ignores case
+and does not overlap matches. In `TextEditor`, Cut and Copy are disabled
+without a selection. One-line fields keep them always enabled, because
+Freya's `Input` does not expose its selection.
 
 `TokenField` (`barrier_kit::token_field`), like `NSTokenField`, keeps tags in
 a `State<Vec<String>>`: Enter or a comma turns the text into a capsule. On an
