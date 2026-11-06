@@ -1,6 +1,7 @@
 pub mod collection;
 pub mod feedback;
 pub mod form;
+pub mod group;
 pub mod navigation;
 pub mod search;
 pub mod split;

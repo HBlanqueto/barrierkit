@@ -174,6 +174,18 @@ Spinner::new("Cargando")
 
 ![Barra, barra indeterminada, anillo e indicador](assets/componentes/progress-light.png)
 
+```rust
+CapacityIndicator::new("Disco", 0.82).thresholds(0.75, 0.9)
+RatingIndicator::new("Valoración", 3).on_change(move |v| estrellas.set(v))
+```
+
+`barrier_kit::indicator` sigue a `NSLevelIndicator`. `CapacityIndicator` es
+una barra de `LEVEL_INDICATOR.height` (16) que pasa de verde a amarillo en
+el umbral de aviso y a rojo en el crítico (`LEVEL_INDICATOR_COLORS`).
+`RatingIndicator` muestra 5 estrellas de 12; un clic en una fija ese valor.
+Las medidas salen de xib de Xcode y de
+[macos_ui](https://pub.dev/packages/macos_ui); no hay un probe de macOS 26.
+
 ## Adornos
 
 ```rust
@@ -184,6 +196,21 @@ Link::new("Más información…")
 ```
 
 ![Insignia, separador, avatar y enlace](assets/componentes/adornments-light.png)
+
+```rust
+GroupBox::new(Some("Red")).child(Checkbox::new("Wi-Fi"))
+DisclosureGroup::new("Avanzado").expanded(true).child(Checkbox::new("Wi-Fi"))
+```
+
+`barrier_kit::views::group` tiene `GroupBox` (`NSBox`, `GroupBox` de
+SwiftUI) y `DisclosureGroup`. La caja tiene margen interior 5 (el
+`contentViewMargins` por defecto de `NSBox`) y esquina 11, la que Qt usa para
+la caja de macOS 26 ([qmacstyle_mac.mm](https://github.com/qt/qtbase/blob/22c02af96a9c0bdcfac956231bf706d6189fab07/src/plugins/styles/mac/qmacstyle_mac.mm#L139)).
+El grupo desplegable sangra el contenido 13, el `indentationPerLevel` de
+`NSOutlineView` en macOS 26.6.2 medido por
+[native-theme](https://github.com/tiborgats/native-theme), con una
+cabecera de 24 (su `rowHeight`). Un clic o Espacio en la cabecera lo abre o
+lo cierra.
 
 ## Popover
 

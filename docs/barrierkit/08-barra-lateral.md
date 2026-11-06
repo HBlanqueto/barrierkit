@@ -72,7 +72,7 @@ SplitView::new(barra, detalle)
 | `.resizable(bool)` | `true` | Con `false` no hay asa: ancho fijo |
 | `.sidebar_range(mín, máx)` | `SPLIT_VIEW.sidebar_min`, `.sidebar_max` (180–320) | Límites del ancho. Si cambian, el ancho se recorta al nuevo rango |
 | `.narrow_sidebar(NarrowSidebar)` | `Overlay` | Cómo se abre en ventana estrecha: ver [Plegar en ventanas estrechas](#plegar-en-ventanas-estrechas) |
-| `.inspector(contenido, presented)` | sin inspector | Panel derecho de `SPLIT_VIEW.inspector` (240) con un separador; al cambiar `presented` se abre o se cierra durante `DURATION_BASE`, como `.inspector(isPresented:)` |
+| `.inspector(contenido, presented)` | sin inspector | Panel derecho de `SPLIT_VIEW.inspector` (270, el ancho estándar de [`NSSplitViewItem(inspectorWithViewController:)`](https://developer.apple.com/documentation/appkit/nssplitviewitem/init(inspectorwithviewcontroller:))) con un separador; al cambiar `presented` se abre o se cierra durante `DURATION_BASE`, como `.inspector(isPresented:)` |
 | `.on_layout(..)` | — | Avisa de `SidebarLayout { width, visible }` al soltar el asa o al ocultar. Sirve para guardarlo |
 
 ### Redimensionar

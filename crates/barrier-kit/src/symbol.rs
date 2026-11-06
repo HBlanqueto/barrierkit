@@ -39,6 +39,7 @@ pub enum Symbol {
     Expand,
     GoBackward,
     GoForward,
+    StarFill,
 }
 
 impl Symbol {
@@ -71,7 +72,9 @@ impl Symbol {
             Self::House => "M2.5 7.5 8 3l5.5 4.5V13h-11z",
             Self::Tv => "M2.5 4h11v7.5h-11zM6 13.5h4",
             Self::Film => "M2.5 3.5h11v9h-11zM2.5 6.5h11M5.5 3.5v3M10.5 3.5v3",
-            Self::Star => "M8 2.5l1.7 3.4 3.8.6-2.7 2.7.6 3.8L8 11.2 4.6 13l.6-3.8-2.7-2.7 3.8-.6z",
+            Self::Star | Self::StarFill => {
+                "M8 2.5l1.7 3.4 3.8.6-2.7 2.7.6 3.8L8 11.2 4.6 13l.6-3.8-2.7-2.7 3.8-.6z"
+            }
             Self::Clock => "M8 4.5V8l2.5 1.5M8 14a6 6 0 1 0 0-12a6 6 0 0 0 0 12",
             Self::Bookmark => "M4 2.5h8v11L8 10.5l-4 3z",
             Self::ArrowDown => "M8 2v8M4.5 7 8 10.5 11.5 7M3 13.5h10",
@@ -98,9 +101,14 @@ fn source(symbol: Symbol) -> Bytes {
             .entry(symbol)
             .or_insert_with(|| {
                 Bytes::from(format!(
-                    r#"<svg viewBox="0 0 {grid} {grid}"><path d="{path}" fill="none" stroke="currentColor" stroke-width="{stroke}" stroke-linecap="round" stroke-linejoin="round"/></svg>"#,
+                    r#"<svg viewBox="0 0 {grid} {grid}"><path d="{path}" fill="{fill}" stroke="currentColor" stroke-width="{stroke}" stroke-linecap="round" stroke-linejoin="round"/></svg>"#,
                     grid = SYMBOL.grid,
                     path = symbol.path(),
+                    fill = if symbol == Symbol::StarFill {
+                        "currentColor"
+                    } else {
+                        "none"
+                    },
                     stroke = SYMBOL.stroke,
                 ))
             })

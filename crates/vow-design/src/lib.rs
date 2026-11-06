@@ -561,6 +561,29 @@ pub struct ChartMetrics {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct LevelIndicatorMetrics {
+    pub height: f32,
+    pub radius: f32,
+    pub star: f32,
+    pub stars: u32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct GroupBoxMetrics {
+    pub radius: f32,
+    pub padding: f32,
+    pub label_inset: f32,
+    pub fill_opacity: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct DisclosureMetrics {
+    pub indent: f32,
+    pub row_height: f32,
+    pub chevron: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct PopoverMetrics {
     pub radius: f32,
     pub arrow_width: f32,

@@ -101,6 +101,9 @@ text-editor = Text editor
 notes = Notes
 
 progress-ring = Ring
+capacity = Capacity
+disk = Disk
+rating = Rating
 copying = Copying
 activity-indicator = Activity indicator
 
@@ -109,6 +112,12 @@ badges-and-adornments = Badges and Adornments
 badge = Badge
 avatar = Avatar
 separator = Separator
+group-box = Group box
+network = Network
+wifi = Wi-Fi
+bluetooth = Bluetooth
+disclosure-group = Disclosure group
+advanced = Advanced
 
 forms = Forms
 rows = Rows

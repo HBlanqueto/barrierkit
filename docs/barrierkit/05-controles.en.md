@@ -174,6 +174,18 @@ Spinner::new("Cargando")
 
 ![Bar, indeterminate bar, ring and spinner](assets/componentes/progress-light.png)
 
+```rust
+CapacityIndicator::new("Disco", 0.82).thresholds(0.75, 0.9)
+RatingIndicator::new("Valoración", 3).on_change(move |v| estrellas.set(v))
+```
+
+`barrier_kit::indicator` follows `NSLevelIndicator`. `CapacityIndicator` is a
+bar of `LEVEL_INDICATOR.height` (16) that turns from green to yellow at the
+warning threshold and to red at the critical one (`LEVEL_INDICATOR_COLORS`).
+`RatingIndicator` shows 5 stars of 12; a click on one sets that value. The
+measurements come from Xcode xibs and from
+[macos_ui](https://pub.dev/packages/macos_ui); there is no macOS 26 probe.
+
 ## Adornments
 
 ```rust
@@ -184,6 +196,20 @@ Link::new("Más información…")
 ```
 
 ![Badge, divider, avatar and link](assets/componentes/adornments-light.png)
+
+```rust
+GroupBox::new(Some("Red")).child(Checkbox::new("Wi-Fi"))
+DisclosureGroup::new("Avanzado").expanded(true).child(Checkbox::new("Wi-Fi"))
+```
+
+`barrier_kit::views::group` has `GroupBox` (`NSBox`, SwiftUI `GroupBox`) and
+`DisclosureGroup`. The box has a 5 inner margin (the default
+`contentViewMargins` of `NSBox`) and an 11 corner, the one Qt uses for the
+macOS 26 box ([qmacstyle_mac.mm](https://github.com/qt/qtbase/blob/22c02af96a9c0bdcfac956231bf706d6189fab07/src/plugins/styles/mac/qmacstyle_mac.mm#L139)).
+The disclosure group indents its content by 13, the `indentationPerLevel` of
+`NSOutlineView` on macOS 26.6.2 measured by
+[native-theme](https://github.com/tiborgats/native-theme), with a 24 header
+(its `rowHeight`). A click or Space on the header opens or closes it.
 
 ## Popover
 

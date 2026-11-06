@@ -23,6 +23,7 @@ use barrier_kit::controls::{
     Button, ButtonStyle, Checkbox, ScrollView, SearchField, SecureField, SegmentedControl, Slider,
     Switch, TextField, ToolGroup,
 };
+use barrier_kit::indicator::{CapacityIndicator, RatingIndicator};
 use barrier_kit::level::{LevelSlider, LevelStyle};
 use barrier_kit::menu::MenuItem;
 use barrier_kit::password::PasswordField;
@@ -45,6 +46,7 @@ use barrier_kit::traffic::TrafficLights;
 use barrier_kit::views::collection::CollectionView;
 use barrier_kit::views::feedback::{Alert, empty_state};
 use barrier_kit::views::form::{Form, Row, Section};
+use barrier_kit::views::group::{DisclosureGroup, GroupBox};
 use barrier_kit::views::table::{SortOrder, Table};
 use barrier_kit::views::tabs::TabView;
 use chrome::Prefs;
@@ -386,8 +388,26 @@ fn progress() -> Form {
                 ),
             )
             .row(Row::new(tr!("progress-ring")).control(ProgressRing::new(tr!("downloading"), 0.4)))
-            .row(Row::new(tr!("activity-indicator")).control(Spinner::new(tr!("loading")))),
+            .row(Row::new(tr!("activity-indicator")).control(Spinner::new(tr!("loading"))))
+            .row(
+                Row::new(tr!("capacity")).control(
+                    rect()
+                        .width(Size::px(SPLIT_VIEW.inspector))
+                        .child(CapacityIndicator::new(tr!("disk"), 0.82).thresholds(0.75, 0.9)),
+                ),
+            )
+            .row(Row::new(tr!("rating")).control(RatingDemo)),
     )
+}
+
+#[derive(PartialEq)]
+struct RatingDemo;
+
+impl Component for RatingDemo {
+    fn render(&self) -> impl IntoElement {
+        let mut stars = use_state(|| 3);
+        RatingIndicator::new(tr!("rating"), *stars.read()).on_change(move |value| stars.set(value))
+    }
 }
 
 fn adornments() -> Form {
@@ -400,6 +420,25 @@ fn adornments() -> Form {
                     rect()
                         .width(Size::px(SPLIT_VIEW.inspector))
                         .child(divider()),
+                ),
+            )
+            .row(
+                Row::new(tr!("group-box")).control(
+                    rect().width(Size::px(SPLIT_VIEW.inspector)).child(
+                        GroupBox::new(Some(tr!("network")))
+                            .child(Checkbox::new(tr!("wifi")).checked(true))
+                            .child(Checkbox::new(tr!("bluetooth"))),
+                    ),
+                ),
+            )
+            .row(
+                Row::new(tr!("disclosure-group")).control(
+                    rect().width(Size::px(SPLIT_VIEW.inspector)).child(
+                        DisclosureGroup::new(tr!("advanced"))
+                            .expanded(true)
+                            .child(Checkbox::new(tr!("wifi")).checked(true))
+                            .child(Checkbox::new(tr!("bluetooth"))),
+                    ),
                 ),
             ),
     )
@@ -965,3 +1004,4 @@ mod tests {
         }
     }
 }
+

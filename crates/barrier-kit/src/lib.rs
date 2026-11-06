@@ -54,6 +54,8 @@ pub mod text_editor;
 
 pub mod popover;
 
+pub mod indicator;
+
 pub mod context_menu;
 
 pub mod tooltip;

@@ -54,6 +54,24 @@
       "stream-hole": 0.32,
       "series": ["blue", "green", "orange", "purple", "red", "yellow", "pink"]
     },
+    "level-indicator": {
+      "height": 16,
+      "radius": 2,
+      "star": 12,
+      "stars": 5,
+      "colors": ["green", "yellow", "red"]
+    },
+    "group-box": {
+      "radius": 11,
+      "padding": 5,
+      "label-inset": 9,
+      "fill-opacity": 0.05
+    },
+    "disclosure": {
+      "indent": 13,
+      "row-height": 24,
+      "chevron": 13
+    },
     "popover": {
       "radius": 20,
       "arrow-width": 25.42,
@@ -161,7 +179,7 @@
       "sidebar-min": 180,
       "sidebar-max": 320,
       "collapse-below": 760,
-      "inspector": 240,
+      "inspector": 270,
       "grip": 8,
       "grip-line": 2,
       "grip-line-inset": 18,
