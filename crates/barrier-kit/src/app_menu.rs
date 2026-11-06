@@ -333,6 +333,7 @@ mod tests {
                 enabled: false,
                 check: CheckState::None,
                 icon: None,
+                badge: None,
             }],
         )]);
         assert!(

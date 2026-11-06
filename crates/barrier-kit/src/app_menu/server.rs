@@ -354,6 +354,7 @@ mod tests {
             enabled: true,
             check: CheckState::None,
             icon: None,
+            badge: None,
         }
     }
 

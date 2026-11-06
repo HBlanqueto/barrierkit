@@ -197,6 +197,7 @@ fn long_label_items() -> Vec<MenuItem> {
         enabled: true,
         check: CheckState::None,
         icon: None,
+        badge: None,
     }]
 }
 
@@ -235,6 +236,7 @@ fn action(label: &str) -> MenuItem {
         enabled: true,
         check: CheckState::None,
         icon: None,
+        badge: None,
     }
 }
 

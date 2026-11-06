@@ -87,6 +87,7 @@ fn root_box_follows_the_configured_popup_size() {
         enabled: true,
         check: CheckState::None,
         icon: None,
+        badge: None,
     }))
     .collect();
     assert_eq!(MenuView::preferred_size(&items, MENU_LIGHT), (220.0, 114.0));
@@ -136,6 +137,7 @@ fn action(label: &str) -> MenuItem {
         enabled: true,
         check: CheckState::None,
         icon: None,
+        badge: None,
     }
 }
 
@@ -316,6 +318,7 @@ fn icons_widen_the_menu_by_the_leading_column_and_gap() {
                 enabled: true,
                 check: CheckState::None,
                 icon: icon.clone(),
+                badge: None,
             },
             MenuItem::Submenu {
                 id: None,
@@ -472,6 +475,7 @@ fn action_with(label: &str, check: CheckState, icon: Option<MenuIcon>) -> MenuIt
         shortcut: None,
         enabled: true,
         check,
+        badge: None,
         icon,
     }
 }
@@ -619,6 +623,7 @@ fn searchable(label: &str, enabled: bool) -> SearchableEntry {
             enabled,
             check: CheckState::None,
             icon: None,
+            badge: None,
         },
         location: None,
         source: SearchSource::Menu,
@@ -752,6 +757,7 @@ fn submenu_test(label: &str) -> MenuItem {
             enabled: true,
             check: CheckState::None,
             icon: None,
+            badge: None,
         }],
     }
 }

@@ -69,9 +69,17 @@ pub(super) fn trailing_width(item: &MenuItem, m: MenuPalette) -> f32 {
     if matches!(item, MenuItem::Submenu { .. }) {
         return m.chevron_size;
     }
-    match item.shortcut() {
-        Some(shortcut) => m.shortcut_gap + measure_text(&shortcut, m.font_size),
-        None => 0.0,
+    [item.shortcut(), badge(item)]
+        .into_iter()
+        .flatten()
+        .map(|text| m.shortcut_gap + measure_text(&text, m.font_size))
+        .sum()
+}
+
+fn badge(item: &MenuItem) -> Option<String> {
+    match item {
+        MenuItem::Action { badge, .. } => badge.clone(),
+        _ => None,
     }
 }
 
@@ -91,6 +99,7 @@ pub(super) struct RowCtx {
     pub(super) on_row_move: Rc<dyn Fn(usize, CursorPoint)>,
     pub(super) on_row_click: Rc<dyn Fn(usize)>,
     pub(super) show_mnemonic: bool,
+    pub(super) palette_cursor: UseState<usize>,
 }
 
 impl RowCtx {
@@ -122,14 +131,24 @@ impl RowCtx {
     }
 
     fn shortcut_label(&self, item: &MenuItem, color: Rgba) -> Element {
-        let shortcut = item.shortcut().unwrap_or_default();
-        label()
-            .width(Size::px(measure_text(&shortcut, self.m.font_size)))
-            .text(shortcut)
-            .font_size(self.m.font_size)
-            .color(theme::color(color))
-            .max_lines(1)
-            .into_element()
+        let text = |text: String| {
+            label()
+                .width(Size::px(measure_text(&text, self.m.font_size)))
+                .text(text)
+                .font_size(self.m.font_size)
+                .color(theme::color(color))
+                .max_lines(1)
+        };
+        let shortcut = text(item.shortcut().unwrap_or_default());
+        match badge(item) {
+            Some(count) => rect()
+                .direction(Direction::Horizontal)
+                .spacing(self.m.shortcut_gap)
+                .child(text(count))
+                .child(shortcut)
+                .into_element(),
+            None => shortcut.into_element(),
+        }
     }
 }
 
@@ -241,6 +260,7 @@ pub(super) fn render_item(
                 .into_element()
         }
         MenuItem::SearchField { placeholder } => search_field(ctx, placeholder),
+        MenuItem::Palette { items } => palette_row(ctx, items, index, is_focused),
         MenuItem::SearchResult {
             item: inner,
             source,
@@ -283,6 +303,56 @@ pub(super) fn render_item(
                 .into_element()
         }
     }
+}
+
+fn palette_row(ctx: &RowCtx, items: &[MenuItem], index: usize, is_focused: bool) -> Element {
+    let m = ctx.m;
+    let mut cursor = ctx.palette_cursor;
+    let on_row_enter = ctx.on_row_enter.clone();
+    let cells = items.iter().enumerate().map(|(position, item)| {
+        let MenuItem::Action {
+            id,
+            label,
+            enabled,
+            icon,
+            ..
+        } = item
+        else {
+            return rect().into_element();
+        };
+        let highlighted = is_focused && *enabled && *cursor.read() == position;
+        let fg = row_fg(*enabled, highlighted, m.fg, m);
+        rect()
+            .a11y_role(AccessibilityRole::MenuItem)
+            .a11y_alt(label.clone())
+            .width(Size::px(m.item_height))
+            .height(Size::px(m.item_height))
+            .center()
+            .corner_radius(m.item_radius)
+            .maybe(highlighted, |el| el.background(theme::color(m.hover_bg)))
+            .on_pointer_enter({
+                let on_row_enter = on_row_enter.clone();
+                move |event: Event<PointerEventData>| {
+                    cursor.set(position);
+                    on_row_enter(index, event.global_location());
+                }
+            })
+            .maybe(*enabled, |el| el.on_mouse_down(ctx.activate(id)))
+            .maybe_child(icon.clone().map(|icon| {
+                rect()
+                    .width(Size::px(m.icon_size))
+                    .child(icon_slot(icon, fg, m))
+            }))
+            .into_element()
+    });
+    rect()
+        .width(Size::fill())
+        .height(Size::px(m.item_height))
+        .padding(Gaps::new(0.0, m.item_padding_x, 0.0, m.item_padding_x))
+        .direction(Direction::Horizontal)
+        .cross_align(Alignment::Center)
+        .children(cells)
+        .into_element()
 }
 
 fn search_field(ctx: &RowCtx, placeholder: &str) -> Element {

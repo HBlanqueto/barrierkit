@@ -90,11 +90,17 @@ fn layout_items(
     id_map: &mut IdMap,
     snapshot: &mut LayoutSnapshot,
 ) -> Vec<i32> {
-    items
-        .iter()
-        .enumerate()
-        .filter_map(|(index, item)| layout_item(item, parent_key, index, id_map, snapshot))
-        .collect()
+    let mut ids = Vec::new();
+    for (index, item) in items.iter().enumerate() {
+        match item {
+            MenuItem::Palette { items } => {
+                let key = format!("{parent_key}:palette{index}");
+                ids.extend(layout_items(items, &key, id_map, snapshot));
+            }
+            item => ids.extend(layout_item(item, parent_key, index, id_map, snapshot)),
+        }
+    }
+    ids
 }
 
 fn layout_item(
@@ -156,7 +162,10 @@ fn layout_item(
             let children = layout_items(items, &key, id_map, snapshot);
             (id_map.get(&key), submenu_node(label, *enabled, children))
         }
-        MenuItem::Header { .. } | MenuItem::SearchField { .. } | MenuItem::SearchResult { .. } => {
+        MenuItem::Header { .. }
+        | MenuItem::SearchField { .. }
+        | MenuItem::SearchResult { .. }
+        | MenuItem::Palette { .. } => {
             return None;
         }
     };

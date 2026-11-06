@@ -126,6 +126,11 @@ ColorWell::new("Color de acento", &ACCENT_SWATCHES).selected(Some(0))
 - En un menú, la marca tiene una columna para todo el menú, solo si alguna
   fila la usa. El icono solo desplaza el texto de su fila, como en macOS; una
   fila marcada conserva su icono.
+- `.with_badge("12")` pone un contador a la derecha de la fila, delante del
+  atajo, como `NSMenuItemBadge`. `MenuItem::palette(vec![..])` agrupa acciones
+  con icono en una fila horizontal, como las etiquetas de color del Finder
+  (`NSMenu.presentationStyle = .palette`): ← y → la recorren y Enter elige.
+  En el menú global (dbusmenu) cada muestra sale como una acción normal.
 - `ChoiceCards::new(..).option(rótulo, vista_previa)` muestra tarjetas grandes
   (como «Claro, Oscuro, Acento» en Tengen App Show).
 

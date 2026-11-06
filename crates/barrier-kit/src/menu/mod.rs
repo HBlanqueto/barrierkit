@@ -293,6 +293,7 @@ impl App for MenuView {
         let items_for_focus = items.clone();
         let mut focused =
             use_state(move || initial_focused.or_else(|| first_selectable(&items_for_focus)));
+        let mut palette_cursor = use_state(|| 0usize);
         let open_child_id = use_hook(|| Rc::new(Cell::new(None)));
         let open_child_index = use_hook(|| Rc::new(Cell::new(None::<usize>)));
         let hover_state = use_hook(|| Rc::new(RefCell::new(HoverState::default())));
@@ -597,6 +598,7 @@ impl App for MenuView {
             on_row_move: move_row,
             on_row_click: execute_target,
             show_mnemonic,
+            palette_cursor,
         };
         let rows: Vec<Element> = visible
             .iter()
@@ -693,6 +695,29 @@ impl App for MenuView {
                 || (event.key == Key::Character(" ".into())
                     && inserts_text(event.modifiers)
                     && !searching);
+            if !searching
+                && let Some(MenuItem::Palette { items: cells }) = current.and_then(|i| items.get(i))
+            {
+                let cursor = *palette_cursor.peek();
+                match event.key {
+                    Key::Named(NamedKey::ArrowLeft) => {
+                        palette_cursor.set(cursor.saturating_sub(1));
+                        return;
+                    }
+                    Key::Named(NamedKey::ArrowRight) => {
+                        palette_cursor.set((cursor + 1).min(cells.len().saturating_sub(1)));
+                        return;
+                    }
+                    _ if activates => {
+                        if let Some(id) = activate_at(cells, cursor) {
+                            (submenus.on_activate)(id);
+                            (submenus.on_dismiss_all)();
+                        }
+                        return;
+                    }
+                    _ => {}
+                }
+            }
             match event.key {
                 _ if activates => {
                     selected.set(false);

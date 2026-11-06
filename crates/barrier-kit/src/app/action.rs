@@ -105,6 +105,7 @@ impl Action {
             enabled,
             check,
             icon: None,
+            badge: None,
         }
     }
 }

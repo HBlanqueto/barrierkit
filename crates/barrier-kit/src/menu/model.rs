@@ -85,6 +85,7 @@ pub enum MenuItem {
         enabled: bool,
         check: CheckState,
         icon: Option<MenuIcon>,
+        badge: Option<String>,
     },
     Submenu {
         id: Option<String>,
@@ -98,6 +99,9 @@ pub enum MenuItem {
         count: Option<usize>,
     },
     Separator,
+    Palette {
+        items: Vec<MenuItem>,
+    },
     SearchField {
         placeholder: String,
     },
@@ -118,7 +122,19 @@ impl MenuItem {
             enabled: true,
             check: CheckState::None,
             icon: None,
+            badge: None,
         }
+    }
+
+    pub fn palette(items: Vec<MenuItem>) -> Self {
+        Self::Palette { items }
+    }
+
+    pub fn with_badge(mut self, text: impl Into<String>) -> Self {
+        if let MenuItem::Action { badge, .. } = &mut self {
+            *badge = Some(text.into());
+        }
+        self
     }
 
     pub fn placeholder(label: impl Into<String>) -> Self {
@@ -175,6 +191,7 @@ impl MenuItem {
             MenuItem::Action { enabled, .. } => *enabled,
             MenuItem::Submenu { enabled, .. } => *enabled,
             MenuItem::SearchResult { item, .. } => item.enabled(),
+            MenuItem::Palette { items } => items.iter().any(MenuItem::enabled),
             MenuItem::Header { .. } | MenuItem::Separator | MenuItem::SearchField { .. } => false,
         }
     }
@@ -182,7 +199,10 @@ impl MenuItem {
     pub(super) fn selectable(&self) -> bool {
         matches!(
             self,
-            MenuItem::Action { .. } | MenuItem::Submenu { .. } | MenuItem::SearchResult { .. }
+            MenuItem::Action { .. }
+                | MenuItem::Submenu { .. }
+                | MenuItem::SearchResult { .. }
+                | MenuItem::Palette { .. }
         ) && self.enabled()
     }
 
@@ -192,7 +212,7 @@ impl MenuItem {
             | MenuItem::Submenu { label, .. }
             | MenuItem::Header { label, .. } => Some(label),
             MenuItem::SearchResult { item, .. } => item.label(),
-            MenuItem::Separator | MenuItem::SearchField { .. } => None,
+            MenuItem::Separator | MenuItem::SearchField { .. } | MenuItem::Palette { .. } => None,
         }
     }
 
@@ -203,6 +223,7 @@ impl MenuItem {
             MenuItem::Submenu { .. }
             | MenuItem::Header { .. }
             | MenuItem::Separator
+            | MenuItem::Palette { .. }
             | MenuItem::SearchField { .. } => None,
         }
     }
