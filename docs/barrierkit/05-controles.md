@@ -185,6 +185,23 @@ Link::new("Más información…")
 
 ![Insignia, separador, avatar y enlace](assets/componentes/adornments-light.png)
 
+## Popover
+
+```rust
+show_popover(area_del_boton, (240.0, 32.0), || text("Hola", TEXT, color).into_element());
+```
+
+`show_popover` (`barrier_kit::popover`) abre un popup bajo el área que se le
+pasa, con el tamaño del contenido más `POPOVER.padding` y la banda de la flecha.
+La app pide con `infinity_window_style_v1.set_popover` (versión 2) que Malaysia
+le dé la forma de `NSPopover` en macOS 26: esquina continua de 20 y una flecha
+de 25.42 × 13 con punta redonda, unida al cuerpo con un redondeo, que apunta
+al centro del área. El compositor recorta, bordea y sombrea esa forma
+([ADR 0059](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0059-radio-por-barra-y-esquina-continua.md));
+la app solo pinta el fondo. Las medidas son las que el paquete Flutter
+[`popover`](https://pub.dev/packages/popover) sacó de AppKit en macOS 26.7.
+Un clic fuera lo cierra.
+
 ## Ayuda emergente y menú contextual
 
 ```rust

@@ -23,7 +23,7 @@
     DEALINGS IN THE SOFTWARE.
   </copyright>
 
-  <interface name="infinity_window_style_v1" version="1">
+  <interface name="infinity_window_style_v1" version="2">
     <description summary="window style hints for applications">
       Malaysia rounds every window it composites (ADR 0059). As in macOS
       Tahoe, the corner radius depends on the window's bar. A
@@ -58,6 +58,18 @@
       </description>
       <arg name="surface" type="object" interface="wl_surface"/>
       <arg name="bar" type="uint" enum="bar"/>
+    </request>
+
+    <request name="set_popover" since="2">
+      <description summary="the popup is a popover with an arrow">
+        Tells the compositor that the xdg_popup whose wl_surface is given is
+        a popover, as NSPopover. The top arrow-height logical pixels of its
+        window geometry are the arrow band. The compositor shapes the body
+        below that band with the popover corner, and joins to it an arrow
+        that points up at the centre of the popup's anchor rectangle,
+        clamped to the body. It lasts for the lifetime of the wl_surface.
+      </description>
+      <arg name="surface" type="object" interface="wl_surface"/>
     </request>
   </interface>
 </protocol>

@@ -119,6 +119,14 @@ impl Popups {
     }
 
     pub fn open(&self, spec: PopupSpec, content: AppComponent) -> PopupId {
+        self.push_open(spec, content, false)
+    }
+
+    pub(crate) fn open_popover(&self, spec: PopupSpec, content: AppComponent) -> PopupId {
+        self.push_open(spec, content, true)
+    }
+
+    fn push_open(&self, spec: PopupSpec, content: AppComponent, popover: bool) -> PopupId {
         let id = PopupId::next(&self.next_id);
         self.queue.borrow_mut().push(PopupCommand::Open {
             owner: self.owner.clone(),
@@ -127,6 +135,7 @@ impl Popups {
             spec,
             content,
             serial: self.last_serial.get(),
+            popover,
         });
         self.ping.ping();
         id
@@ -228,6 +237,7 @@ pub(crate) enum PopupCommand {
         spec: PopupSpec,
         content: AppComponent,
         serial: u32,
+        popover: bool,
     },
     Reposition {
         id: PopupId,
@@ -299,8 +309,12 @@ impl Runtime {
                     spec,
                     content,
                     serial,
+                    popover,
                 } => {
                     self.open_popup(owner, parent, id, spec, content, serial);
+                    if popover {
+                        self.mark_popover(id);
+                    }
                 }
                 PopupCommand::Reposition { id, spec } => {
                     self.reposition_popup(id, spec);
@@ -416,6 +430,22 @@ impl Runtime {
         window.scale = scale;
         window.output = output;
         self.surfaces.push(window);
+    }
+    fn mark_popover(&self, id: PopupId) {
+        let Some(style) = self
+            .window_style
+            .as_ref()
+            .filter(|style| style.version() >= 2)
+        else {
+            return;
+        };
+        if let Some(window) = self
+            .surfaces
+            .iter()
+            .find(|s| s.popup.as_ref().is_some_and(|info| info.id == id))
+        {
+            style.set_popover(&window.surface);
+        }
     }
     pub(crate) fn reposition_popup(&mut self, id: PopupId, spec: PopupSpec) {
         let Some(index) = self

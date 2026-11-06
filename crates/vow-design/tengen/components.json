@@ -54,6 +54,14 @@
       "stream-hole": 0.32,
       "series": ["blue", "green", "orange", "purple", "red", "yellow", "pink"]
     },
+    "popover": {
+      "radius": 20,
+      "arrow-width": 25.42,
+      "arrow-height": 13,
+      "arrow-tip-radius": 4,
+      "arrow-fillet": 4,
+      "padding": "space.3"
+    },
     "combo-box": {
       "button-width": 24,
       "button-height": 20,

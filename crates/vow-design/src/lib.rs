@@ -561,6 +561,16 @@ pub struct ChartMetrics {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct PopoverMetrics {
+    pub radius: f32,
+    pub arrow_width: f32,
+    pub arrow_height: f32,
+    pub arrow_tip_radius: f32,
+    pub arrow_fillet: f32,
+    pub padding: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ComboBoxMetrics {
     pub button_width: f32,
     pub button_height: f32,

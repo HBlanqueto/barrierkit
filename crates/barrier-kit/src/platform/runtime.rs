@@ -279,7 +279,7 @@ impl Runtime {
             .bind::<super::focus::InfinityFocusManagerV1, _, _>(&qh, 1..=2, ())
             .ok();
         let window_style = globals
-            .bind::<super::window_style::InfinityWindowStyleV1, _, _>(&qh, 1..=1, ())
+            .bind::<super::window_style::InfinityWindowStyleV1, _, _>(&qh, 1..=2, ())
             .ok();
         let fractional_manager = globals
             .bind::<WpFractionalScaleManagerV1, _, _>(&qh, 1..=1, ())

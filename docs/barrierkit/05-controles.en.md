@@ -185,6 +185,23 @@ Link::new("Más información…")
 
 ![Badge, divider, avatar and link](assets/componentes/adornments-light.png)
 
+## Popover
+
+```rust
+show_popover(area_del_boton, (240.0, 32.0), || text("Hola", TEXT, color).into_element());
+```
+
+`show_popover` (`barrier_kit::popover`) opens a popup below the area it gets,
+sized to the content plus `POPOVER.padding` and the arrow band. The app asks
+Malaysia with `infinity_window_style_v1.set_popover` (version 2) for the shape
+of `NSPopover` on macOS 26: a continuous 20 corner and a 25.42 × 13 arrow with
+a round tip, filleted into the body, pointing at the centre of the area. The
+compositor clips, borders and shadows that shape
+([ADR 0059](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0059-radio-por-barra-y-esquina-continua.en.md));
+the app only paints the background. The measurements are the ones the Flutter
+package [`popover`](https://pub.dev/packages/popover) took from AppKit on
+macOS 26.7. A click outside closes it.
+
 ## Tooltip and context menu
 
 ```rust

@@ -31,6 +31,7 @@ use barrier_kit::patterns::language::app_language_row;
 use barrier_kit::patterns::preferences::{Pane, PaneGroup, PreferencesWindow};
 use barrier_kit::platform::{WindowControls, WindowStatus};
 use barrier_kit::platform::{WindowOptions, run_window};
+use barrier_kit::popover::show_popover;
 use barrier_kit::popup_button::PopUpButton;
 use barrier_kit::progress::{ProgressBar, ProgressRing, Spinner};
 use barrier_kit::sidebar::{Sidebar, SidebarBackdrop, SidebarItem};
@@ -50,7 +51,7 @@ use chrome::Prefs;
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 use localize::tr;
-use torin::prelude::{Direction, Size};
+use torin::prelude::{Area, Direction, Size};
 use vow_appearance::ColorScheme;
 use vow_design::{
     ACCENT_SWATCHES, COLLECTION, Rgba, SPACE_2, SPLIT_VIEW, TABLE, TEXT, TEXT_FIELD,
@@ -601,8 +602,27 @@ fn feedback(mut alert: State<bool>) -> Form {
             .row(
                 Row::new(tr!("alert"))
                     .control(Button::new(tr!("show-alert")).on_press(move |_| alert.set(true))),
-            ),
+            )
+            .row(Row::new(tr!("popover")).control(PopoverButton)),
     )
+}
+
+#[derive(PartialEq)]
+struct PopoverButton;
+
+impl Component for PopoverButton {
+    fn render(&self) -> impl IntoElement {
+        let mut area = use_state(Area::default);
+        rect()
+            .on_sized(move |event: Event<SizedEventData>| area.set_if_modified(event.area))
+            .child(Button::new(tr!("show-popover")).on_press(move |_| {
+                show_popover(
+                    *area.peek(),
+                    (SPLIT_VIEW.inspector, TEXT.line_height as f32 * 2.0),
+                    || text(tr!("popover-text"), TEXT, Palette::current().label).into_element(),
+                )
+            }))
+    }
 }
 
 fn undo(accent: UndoManager<usize>, selected: usize) -> Form {

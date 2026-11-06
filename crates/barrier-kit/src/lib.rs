@@ -52,6 +52,8 @@ pub mod combo_box;
 
 pub mod text_editor;
 
+pub mod popover;
+
 pub mod context_menu;
 
 pub mod tooltip;
