@@ -207,6 +207,14 @@ El clic secundario en `TextField`, `SearchField`, `ComboBox`, `TokenField` o
 Seleccionar todo. Cada orden enfoca el campo y le envía su atajo (Ctrl+X, C, V
 o A), así que actúa sobre la selección que ya tenía.
 
+`TextEditor::styles(tramos)` admite texto enriquecido. Un
+`State<Vec<StyleRun>>` (`barrier_kit::rich_text`) guarda tramos en índices de
+carácter con negrita, cursiva o enlace, y el texto sigue en el `State<String>`.
+Ctrl+B y Ctrl+I alternan negrita y cursiva en la selección: si todo el rango la
+tiene, se quita; si no, se pone. Al escribir, los tramos se recolocan
+(`restyle_after_edit`). Lo escrito hereda la negrita y la cursiva del carácter
+anterior, pero no el enlace. Los enlaces se pintan con el acento y subrayados.
+
 En `TextEditor`, Ctrl+F abre una barra de búsqueda encima del texto, como
 `findNavigator` de SwiftUI: un `SearchField`, el contador («2 de 3»), anterior
 y siguiente (también ↑, ↓ y Enter) y Listo. La coincidencia actual queda

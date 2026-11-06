@@ -207,6 +207,15 @@ A secondary click on `TextField`, `SearchField`, `ComboBox`, `TokenField` or
 command focuses the field and sends it its shortcut (Ctrl+X, C, V or A), so it
 acts on the selection the field already had.
 
+`TextEditor::styles(tramos)` takes rich text. A `State<Vec<StyleRun>>`
+(`barrier_kit::rich_text`) keeps runs in character indices with bold, italic
+or a link, and the text stays in the `State<String>`. Ctrl+B and Ctrl+I toggle
+bold and italic on the selection: if the whole range has it, it is removed;
+otherwise it is added. While typing, the runs move along
+(`restyle_after_edit`). Typed text inherits the bold and italic of the
+previous character, but not the link. Links are painted with the accent and
+underlined.
+
 In `TextEditor`, Ctrl+F opens a find bar above the text, like SwiftUI's
 `findNavigator`: a `SearchField`, the counter ("2 of 3"), previous and next
 (also ↑, ↓ and Enter) and Done. The current match stays selected and the

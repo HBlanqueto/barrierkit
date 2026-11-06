@@ -47,6 +47,7 @@ pub mod adornments;
 pub mod charts;
 
 pub mod popup_button;
+pub mod rich_text;
 
 pub mod buttons;
 

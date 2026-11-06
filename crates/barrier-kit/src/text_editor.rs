@@ -8,6 +8,7 @@ use vow_design::{CAPTION, SPACE_1, SPACE_2, TEXT, TEXT_FIELD};
 use crate::compact::IconButton;
 use crate::controls::{Button, SearchField};
 use crate::i18n::text;
+use crate::rich_text::{Emphasis, StyleRun, char_styles, restyle_after_edit, toggle};
 use crate::style::text;
 use crate::symbol::Symbol;
 
@@ -23,6 +24,7 @@ pub struct TextEditor {
     value: State<String>,
     placeholder: &'static str,
     height: Size,
+    styles: Option<State<Vec<StyleRun>>>,
 }
 
 impl TextEditor {
@@ -31,7 +33,13 @@ impl TextEditor {
             value,
             placeholder,
             height: Size::fill(),
+            styles: None,
         }
+    }
+
+    pub fn styles(mut self, styles: State<Vec<StyleRun>>) -> Self {
+        self.styles = Some(styles);
+        self
     }
 
     pub fn height(mut self, height: Size) -> Self {
@@ -50,6 +58,7 @@ impl Component for TextEditor {
         let mut hovering = use_state(|| false);
         let mut dragging = use_state(|| false);
         let mut value = self.value;
+        let styles = self.styles;
         let mut editable = use_editable(|| value.read().to_string(), EditableConfig::new);
         let (mut blink, cursor) = use_cursor_blink(focused, color(palette.label));
         let mut finding = use_state(|| false);
@@ -108,6 +117,25 @@ impl Component for TextEditor {
                 a11y_id.request_unfocus();
                 return;
             }
+            let emphasis = match &event.key {
+                Key::Character(c) if c == "b" => Some(Emphasis::Bold),
+                Key::Character(c) if c == "i" => Some(Emphasis::Italic),
+                _ => None,
+            };
+            if let (Some(mut styles), Some(emphasis), true) = (
+                styles,
+                emphasis,
+                event.modifiers.contains(Modifiers::CONTROL),
+            ) {
+                let editor = editable.editor().peek();
+                if let Some((from, to)) = editor.get_selection() {
+                    let (from, to) = (editor.utf16_cu_to_char(from), editor.utf16_cu_to_char(to));
+                    let length = editor.rope().len_chars();
+                    let next = toggle(&styles.peek(), length, from.min(to)..from.max(to), emphasis);
+                    styles.set(next);
+                }
+                return;
+            }
             blink.reset();
             editable.process_event(EditableEvent::KeyDown {
                 key: &event.key,
@@ -115,6 +143,10 @@ impl Component for TextEditor {
             });
             let text = editable.editor().read().committed_text();
             if *value.peek() != text {
+                if let Some(mut styles) = styles {
+                    let next = restyle_after_edit(&styles.peek(), &value.peek(), &text);
+                    styles.set(next);
+                }
                 value.set(text);
             }
         };
@@ -176,10 +208,18 @@ impl Component for TextEditor {
             } else {
                 palette.label
             }))
-            .span(if empty {
-                self.placeholder.to_owned()
+            .spans_iter(if empty {
+                vec![Span::new(self.placeholder.to_owned())].into_iter()
             } else {
-                editor.rope().to_string()
+                styled_spans(
+                    &editor.rope().to_string(),
+                    &self
+                        .styles
+                        .map(|styles| styles.read().clone())
+                        .unwrap_or_default(),
+                    palette.accent,
+                )
+                .into_iter()
             });
         let has_selection = editor.get_selection().is_some();
         let field = edit_menu(text_style(rect()), a11y_id, has_selection)
@@ -300,6 +340,34 @@ impl Component for TextEditor {
             .child(field.height(Size::flex(1.0)))
             .content(Content::flex())
     }
+}
+
+fn styled_spans(text: &str, runs: &[StyleRun], link: vow_design::Rgba) -> Vec<Span<'static>> {
+    let chars: Vec<char> = text.chars().collect();
+    let styles = char_styles(runs, chars.len());
+    let mut spans = Vec::new();
+    let mut start = 0;
+    while start < chars.len() {
+        let style = &styles[start];
+        let end = (start..chars.len())
+            .find(|&index| styles[index] != *style)
+            .unwrap_or(chars.len());
+        let mut span = Span::new(chars[start..end].iter().collect::<String>());
+        if style.bold {
+            span = span.font_weight(FontWeight::BOLD);
+        }
+        if style.italic {
+            span = span.font_slant(FontSlant::Italic);
+        }
+        if style.link.is_some() {
+            span = span
+                .color(color(link))
+                .text_decoration(TextDecoration::Underline);
+        }
+        spans.push(span);
+        start = end;
+    }
+    spans
 }
 
 pub fn find_matches(text: &str, query: &str) -> Vec<(usize, usize)> {
