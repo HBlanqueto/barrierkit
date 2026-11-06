@@ -9,6 +9,9 @@
         "weight": 400
       },
       "pressed-scale": 0.97,
+      "large": {
+        "height": 28
+      },
       "small": {
         "height": 20,
         "padding-x": 11,
@@ -463,8 +466,9 @@
       }
     },
     "dialog": {
-      "radius": "radius.lg",
-      "padding": 20
+      "radius": "components.window.corner.unified",
+      "padding": 20,
+      "alert-width": 260
     },
     "menu-popover": {
       "item-height": 24,
@@ -549,7 +553,7 @@
     },
     "scroll-bar": {
       "hide-delay": 800,
-      "thumb": 6,
+      "thumb": 7,
       "inset": 3,
       "min-length": 50,
       "opacity": 0.45,

@@ -1,12 +1,25 @@
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Direction, Gaps, Size};
-use vow_design::{BUTTON, DISPLAY, ICON_BUTTON, SEGMENTED, TEXT};
+use vow_design::{BUTTON, DISPLAY, ICON_BUTTON, SEGMENTED, TEXT, TOOLGROUP};
 
 use crate::i18n::text;
 use crate::interaction::use_interaction;
 use crate::style::{Palette, text};
 use crate::symbol::{Symbol, symbol};
 use crate::theme::color;
+
+#[derive(Clone, Copy)]
+struct ToolbarItems(State<bool>);
+
+// Tahoe toolbar items are glass capsules as tall as a tool group (macOS 26 UI kit: 36 × 36 in a 52 bar).
+pub(crate) fn use_toolbar_items(in_toolbar: bool) {
+    let mut items = use_hook(|| {
+        let items = State::create(in_toolbar);
+        provide_context(ToolbarItems(items));
+        items
+    });
+    items.set_if_modified(in_toolbar);
+}
 
 #[derive(PartialEq)]
 pub struct IconButton {
@@ -43,6 +56,13 @@ impl Component for IconButton {
         let interaction = use_interaction();
         let enabled = !self.disabled;
         let on_press = self.on_press.clone();
+        let in_toolbar = try_consume_context::<ToolbarItems>().is_some_and(|items| *items.0.read());
+        let (size, radius) = if in_toolbar {
+            let size = TOOLGROUP.height as f32;
+            (size, size / 2.0)
+        } else {
+            (ICON_BUTTON.size, ICON_BUTTON.radius)
+        };
         let ink = if enabled {
             palette.label
         } else {
@@ -53,9 +73,9 @@ impl Component for IconButton {
             .attach(rect(), enabled)
             .a11y_role(AccessibilityRole::Button)
             .a11y_alt(self.label)
-            .width(Size::px(ICON_BUTTON.size))
-            .height(Size::px(ICON_BUTTON.size))
-            .corner_radius(ICON_BUTTON.radius)
+            .width(Size::px(size))
+            .height(Size::px(size))
+            .corner_radius(radius)
             .center()
             .maybe(enabled && interaction.hovered(), |el| {
                 el.background(color(palette.control_hover))
@@ -67,7 +87,7 @@ impl Component for IconButton {
                 el.on_press(move |_| on_press.call(()))
             })
             .child(symbol(self.symbol, ICON_BUTTON.icon, ink));
-        interaction.focus_ring(button, ICON_BUTTON.radius)
+        interaction.focus_ring(button, radius)
     }
 }
 

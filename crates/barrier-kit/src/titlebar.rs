@@ -126,6 +126,7 @@ impl Component for Titlebar {
         } else {
             Bar::Compact
         };
+        crate::compact::use_toolbar_items(bar == Bar::Unified);
         let bar_controls = controls.clone();
         use_side_effect_with_deps(&bar, move |bar| {
             if let Some(controls) = &bar_controls {

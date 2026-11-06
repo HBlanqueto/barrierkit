@@ -91,8 +91,10 @@ Alert::new("¿Olvidar esta red?", "Tendrás que volver a escribir la contraseña
 | ![Estado vacío](assets/componentes/empty-state-light.png) | ![Alerta con botón de confirmar](assets/componentes/alert-light.png) |
 
 `sheet` muestra el contenido como diálogo centrado sobre un velo
-(`Palette::scrim`) que cubre la ventana. `Alert` confirma con Intro y cancela
-con Esc.
+(`Palette::scrim`) que cubre la ventana. El diálogo tiene radio 26 con
+esquina continua, como las sheets y alertas de macOS 26. `Alert` mide 260
+de ancho, reparte sus dos botones grandes (28, en cápsula) a partes iguales,
+confirma con Intro y cancela con Esc.
 
 ## Navegación: `History`
 

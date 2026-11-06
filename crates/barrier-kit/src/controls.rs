@@ -152,6 +152,7 @@ impl ProbeExt for ToolGroup {
 
 impl Component for ToolGroup {
     fn render(&self) -> impl IntoElement {
+        crate::compact::use_toolbar_items(true);
         let resolved = crate::theme::resolved();
         let palette = resolved.toolgroup.palette;
         let island = resolved.sidebar.style == vow_appearance::SidebarStyle::Island;
@@ -406,6 +407,7 @@ pub struct Button {
     style: ButtonStyle,
     disabled: bool,
     small: bool,
+    large: bool,
     width: Size,
     on_press: Option<Callback<(), ()>>,
     key: DiffKey,
@@ -418,6 +420,7 @@ impl Button {
             style: ButtonStyle::default(),
             disabled: false,
             small: false,
+            large: false,
             width: Size::auto(),
             on_press: None,
             key: DiffKey::None,
@@ -436,6 +439,11 @@ impl Button {
 
     pub fn small(mut self, small: bool) -> Self {
         self.small = small;
+        self
+    }
+
+    pub fn large(mut self, large: bool) -> Self {
+        self.large = large;
         self
     }
 
@@ -481,6 +489,13 @@ impl Component for Button {
                 BUTTON.small_padding_x,
                 BUTTON.small_font_size,
                 BUTTON.small_radius,
+            )
+        } else if self.large {
+            (
+                BUTTON.large_height,
+                BUTTON.padding_x,
+                BUTTON.font_size,
+                BUTTON.large_height / 2.0,
             )
         } else {
             (

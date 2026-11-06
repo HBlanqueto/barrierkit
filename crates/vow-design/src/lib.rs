@@ -411,6 +411,7 @@ pub struct ButtonMetrics {
     pub font_size: f32,
     pub font_weight: i32,
     pub pressed_scale: f32,
+    pub large_height: f32,
     pub small_height: f32,
     pub small_padding_x: f32,
     pub small_font_size: f32,

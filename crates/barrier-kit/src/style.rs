@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
 use freya_core::prelude::*;
-use vow_design::{Font, Rgba};
+use vow_design::{Font, Rgba, WINDOW_CORNER};
 
 use crate::theme::color;
 
@@ -77,4 +77,9 @@ pub fn text(content: impl Into<Cow<'static, str>>, face: Font, ink: Rgba) -> Lab
         .line_height(face.line_height as f32 / face.size as f32)
         .max_lines(1)
         .color(color(ink))
+}
+
+// Freya's smoothing s runs the curve to (1 + s) R, Apple's 1.5287 R (malaysia ADR 0059).
+pub fn continuous_corner(radius: f32) -> CornerRadius {
+    CornerRadius::new_all(radius).with_smoothing(WINDOW_CORNER.expansion - 1.0)
 }

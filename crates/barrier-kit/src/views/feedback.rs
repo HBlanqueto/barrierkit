@@ -1,6 +1,8 @@
 use freya_core::prelude::*;
-use torin::prelude::{Alignment, Direction, Gaps, Position, Size};
-use vow_design::{DIALOG, DIALOG_PADDING, HEADLINE, SETTINGS, SPACE_2, SPACE_4, TEXT};
+use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
+use vow_design::{
+    DIALOG, DIALOG_ALERT_WIDTH, DIALOG_PADDING, HEADLINE, SETTINGS, SPACE_2, SPACE_4, TEXT,
+};
 
 use crate::controls::{Button, ButtonStyle};
 use crate::i18n::text;
@@ -42,7 +44,7 @@ pub fn sheet(content: impl IntoElement) -> Rect {
             rect()
                 .a11y_role(AccessibilityRole::Dialog)
                 .padding(Gaps::new_all(DIALOG_PADDING))
-                .corner_radius(DIALOG.corner_radius as f32)
+                .corner_radius(crate::style::continuous_corner(DIALOG.corner_radius as f32))
                 .background(color(palette.raised_background))
                 .border(
                     Border::new()
@@ -109,6 +111,7 @@ impl Component for Alert {
                 .a11y_alt(self.title)
                 .a11y_focusable(true)
                 .a11y_auto_focus(true)
+                .width(Size::px(DIALOG_ALERT_WIDTH - 2.0 * DIALOG_PADDING))
                 .direction(Direction::Vertical)
                 .spacing(SPACE_2)
                 .on_global_key_down(move |event: Event<KeyboardEventData>| match event.key {
@@ -122,13 +125,20 @@ impl Component for Alert {
                     rect()
                         .width(Size::fill())
                         .direction(Direction::Horizontal)
-                        .main_align(Alignment::End)
+                        .content(Content::flex())
                         .margin(Gaps::new(SPACE_4, 0.0, 0.0, 0.0))
                         .spacing(SPACE_2)
-                        .child(Button::new(self.cancel).on_press(move |_| on_cancel()))
+                        .child(
+                            Button::new(self.cancel)
+                                .large(true)
+                                .width(Size::flex(1.0))
+                                .on_press(move |_| on_cancel()),
+                        )
                         .child(
                             Button::new(self.confirm)
                                 .style(ButtonStyle::Primary)
+                                .large(true)
+                                .width(Size::flex(1.0))
                                 .on_press(move |_| on_confirm()),
                         ),
                 ),

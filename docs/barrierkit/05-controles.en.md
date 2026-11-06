@@ -36,6 +36,7 @@ Button::new("Borrar").disabled(true)
 - `ButtonStyle`: `Secondary` (default) and `Primary`.
 - Regular size: 24 tall, radius 6 and 12 side padding (`button`), AppKit's `regular` on macOS 26.
 - `.small(true)`: 20 tall, 11 side padding and 11 text (`button.small`), like the one in «Acerca de este PC».
+- `.large(true)`: 28 tall, capsule (`button.large`), AppKit's `large`; `Alert` uses it.
 - `.width(Size)` and `.on_press(|_| ..)`. When pressed, the button scales to
   `BUTTON.pressed_scale` (0.97).
 
@@ -49,6 +50,10 @@ ToggleGroup::new("Formato")
 ```
 
 ![Icon button, stepper and toggle group](assets/componentes/compact-light.png)
+
+`IconButton` is 30 (`icon-button`). Inside a `ToolGroup` or a unified bar
+(52) it becomes a 36 capsule, the `TOOLGROUP` height, like macOS 26
+toolbar items.
 
 `Link::new("Más información…")` is a text link with `on_press`.
 
