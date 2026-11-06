@@ -4,7 +4,7 @@ use vow_design::{
     DIALOG, DIALOG_ALERT_WIDTH, DIALOG_PADDING, HEADLINE, SETTINGS, SPACE_2, SPACE_4, TEXT,
 };
 
-use crate::controls::{Button, ButtonStyle};
+use crate::controls::{Button, ButtonStyle, Checkbox};
 use crate::i18n::text;
 use crate::style::{Palette, text};
 use crate::symbol::{Symbol, symbol};
@@ -64,6 +64,7 @@ pub struct Alert {
     cancel: &'static str,
     on_confirm: Option<Callback<(), ()>>,
     on_cancel: Option<Callback<(), ()>>,
+    suppressed: Option<State<bool>>,
 }
 
 impl Alert {
@@ -75,7 +76,13 @@ impl Alert {
             cancel: text!("cancel"),
             on_confirm: None,
             on_cancel: None,
+            suppressed: None,
         }
+    }
+
+    pub fn suppression(mut self, suppressed: State<bool>) -> Self {
+        self.suppressed = Some(suppressed);
+        self
     }
 
     pub fn confirm(mut self, label: &'static str, callback: impl Into<Callback<(), ()>>) -> Self {
@@ -121,6 +128,11 @@ impl Component for Alert {
                 })
                 .child(text(self.title, HEADLINE, palette.label))
                 .child(text(self.message.clone(), TEXT, palette.secondary_label).max_lines(None))
+                .maybe_child(self.suppressed.map(|mut suppressed| {
+                    Checkbox::new(text!("alert-suppress"))
+                        .checked(*suppressed.read())
+                        .on_toggle(move |checked| suppressed.set(checked))
+                }))
                 .child(
                     rect()
                         .width(Size::fill())

@@ -134,6 +134,7 @@ sheet(contenido)
 Alert::new("¿Olvidar esta red?", "Tendrás que volver a escribir la contraseña.")
     .confirm("Olvidar", |_| {})
     .cancel("Cancelar", |_| {})
+    .suppression(no_volver)
 ```
 
 | Vacío | Alerta |
@@ -144,7 +145,9 @@ Alert::new("¿Olvidar esta red?", "Tendrás que volver a escribir la contraseña
 (`Palette::scrim`) que cubre la ventana. El diálogo tiene radio 26 con
 esquina continua, como las sheets y alertas de macOS 26. `Alert` mide 260
 de ancho, reparte sus dos botones grandes (28, en cápsula) a partes iguales,
-confirma con Intro y cancela con Esc.
+confirma con Intro y cancela con Esc. `.suppression(State<bool>)` añade
+encima de los botones la casilla «No volver a mostrar este mensaje», el
+`showsSuppressionButton` de `NSAlert`; la app lee el estado al cerrar.
 
 ## Navegación: `History`
 

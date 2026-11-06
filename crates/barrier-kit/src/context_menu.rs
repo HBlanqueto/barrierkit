@@ -7,7 +7,7 @@ use crate::menu::MenuItem;
 use crate::platform::{EditShortcut, PopupAnchor};
 use crate::popup_button::open_popover_menu;
 use crate::rich_text::{StyleRun, restyle_after_edit};
-use crate::spelling::{replace_chars, suggestion};
+use crate::spelling::{ignore, learn, replace_chars, suggestion};
 
 pub fn context_menu(
     element: Rect,
@@ -51,6 +51,8 @@ pub(crate) struct Spelling {
 }
 
 const GUESS: &str = "guess:";
+const IGNORE: &str = "spelling:ignore";
+const LEARN: &str = "spelling:learn";
 
 pub(crate) fn edit_menu(
     element: Rect,
@@ -66,20 +68,24 @@ pub(crate) fn edit_menu(
         suggestion(&spelling.value.peek(), index)
     };
     let items = move || {
-        let mut items: Vec<MenuItem> = match suggest() {
-            Some(found) if found.guesses.is_empty() => {
-                vec![MenuItem::action("", text!("no-guesses")).with_enabled(false)]
+        let mut items: Vec<MenuItem> = Vec::new();
+        if let Some(found) = suggest() {
+            if found.guesses.is_empty() {
+                items.push(MenuItem::action("", text!("no-guesses")).with_enabled(false));
             }
-            Some(found) => found
-                .guesses
-                .into_iter()
-                .enumerate()
-                .map(|(index, guess)| MenuItem::action(format!("{GUESS}{index}"), guess))
-                .collect(),
-            None => Vec::new(),
-        };
-        if !items.is_empty() {
-            items.push(MenuItem::Separator);
+            items.extend(
+                found
+                    .guesses
+                    .into_iter()
+                    .enumerate()
+                    .map(|(index, guess)| MenuItem::action(format!("{GUESS}{index}"), guess)),
+            );
+            items.extend([
+                MenuItem::Separator,
+                MenuItem::action(IGNORE, text!("ignore-spelling")),
+                MenuItem::action(LEARN, text!("learn-spelling")),
+                MenuItem::Separator,
+            ]);
         }
         items.extend([
             MenuItem::action("z", text!("undo")).with_enabled(can_undo),
@@ -94,6 +100,16 @@ pub(crate) fn edit_menu(
         items
     };
     context_menu_with(element, items, move |key: String| {
+        if key == IGNORE || key == LEARN {
+            if let Some(found) = suggest() {
+                if key == LEARN {
+                    learn(found.word);
+                } else {
+                    ignore(found.word);
+                }
+            }
+            return;
+        }
         if let (Some(spelling), Some(index)) = (spelling, key.strip_prefix(GUESS)) {
             if let (Some(found), Ok(index)) = (suggest(), index.parse::<usize>())
                 && let Some(guess) = found.guesses.get(index)

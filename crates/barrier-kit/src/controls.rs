@@ -19,7 +19,7 @@ use crate::i18n::text;
 use crate::interaction::use_interaction;
 use crate::level::{self, bar, knob_shadow};
 use crate::password::PasswordField;
-use crate::spelling::{Squiggles, char_index, dictionary, misspelled, utf16_range};
+use crate::spelling::{Squiggles, char_index, dictionary, known, misspelled, utf16_range};
 use crate::style::Palette;
 use crate::symbol::{Symbol, symbol};
 use crate::theme;
@@ -876,12 +876,13 @@ impl Component for TextField {
         let field = use_hook(AccessibilityId::new_unique);
         let mut index = use_state(|| None);
         let holder = use_state(ParagraphHolder::default);
+        let text_left = use_hook(|| std::rc::Rc::new(std::cell::Cell::new(TEXT_FIELD.padding_x)));
+        let left = text_left.clone();
         let value = self.value;
-        let margin_y = (TEXT_FIELD.height - TEXT.line_height as f32) / 2.0;
+        let text = value.read().clone();
         let ranges = dictionary()
             .map(|dictionary| {
-                let text = value.read();
-                misspelled(dictionary, &text)
+                misspelled(&text, |word| known(dictionary, word))
                     .iter()
                     .map(|range| utf16_range(&text, range))
                     .collect::<Vec<_>>()
@@ -905,7 +906,7 @@ impl Component for TextField {
                     if let (PressEventData::Mouse(mouse), Some(inner)) =
                         (event.data(), holder.peek().0.borrow().as_ref())
                     {
-                        let x = (mouse.element_location.x as f32 - TEXT_FIELD.padding_x)
+                        let x = (mouse.element_location.x as f32 - left.get())
                             * inner.scale_factor as f32;
                         let position = inner
                             .paragraph
@@ -918,29 +919,18 @@ impl Component for TextField {
                 .maybe_child((!ranges.is_empty()).then(|| {
                     crate::glass::leaf(Squiggles {
                         holder: holder.read().clone(),
-                        single_line: true,
+                        input: Some(field),
+                        text_left,
                         ranges,
                         color: palette.destructive,
-                        offset: (TEXT_FIELD.padding_x, margin_y),
+                        offset: (0.0, 0.0),
                         layout: crate::glass::layout(
                             Size::fill(),
                             Size::fill(),
                             Position::new_absolute(),
                         ),
                     })
-                }))
-                .child(
-                    paragraph()
-                        .holder(holder.read().clone())
-                        .position(
-                            Position::new_absolute()
-                                .top(margin_y)
-                                .left(TEXT_FIELD.padding_x),
-                        )
-                        .max_lines(1)
-                        .color((0, 0, 0, 0))
-                        .span(Span::new(value.read().clone())),
-                ),
+                })),
         )
     }
 }

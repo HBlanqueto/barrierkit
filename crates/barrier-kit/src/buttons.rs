@@ -89,6 +89,118 @@ impl Component for MenuButton {
 }
 
 #[derive(PartialEq)]
+pub struct SplitButton {
+    label: &'static str,
+    items: Vec<MenuItem>,
+    on_press: Option<Callback<(), ()>>,
+    on_activate: Option<Callback<String, ()>>,
+}
+
+impl SplitButton {
+    pub fn new(label: &'static str, items: Vec<MenuItem>) -> Self {
+        Self {
+            label,
+            items,
+            on_press: None,
+            on_activate: None,
+        }
+    }
+
+    pub fn on_press(mut self, callback: impl Into<Callback<(), ()>>) -> Self {
+        self.on_press = Some(callback.into());
+        self
+    }
+
+    pub fn on_activate(mut self, callback: impl Into<Callback<String, ()>>) -> Self {
+        self.on_activate = Some(callback.into());
+        self
+    }
+}
+
+impl Component for SplitButton {
+    fn render(&self) -> impl IntoElement {
+        let palette = Palette::current();
+        let action = use_interaction();
+        let arrow = use_interaction();
+        let mut area = use_state(Area::default);
+        let items = self.items.clone();
+        let on_press = self.on_press.clone();
+        let on_activate = self.on_activate.clone();
+        let fill = |hovered: bool| {
+            if hovered {
+                color(palette.control_hover)
+            } else {
+                Color::TRANSPARENT
+            }
+        };
+        let primary = action
+            .attach(rect(), true)
+            .a11y_role(AccessibilityRole::Button)
+            .a11y_alt(self.label)
+            .height(Size::fill())
+            .padding(Gaps::new(0.0, BUTTON.padding_x, 0.0, BUTTON.padding_x))
+            .center()
+            .background(fill(action.hovered()))
+            .map(on_press, |el, on_press| {
+                el.on_press(move |_| on_press.call(()))
+            })
+            .child(text(self.label, TEXT, palette.label));
+        let menu = arrow
+            .attach(rect(), true)
+            .a11y_role(AccessibilityRole::Button)
+            .a11y_alt(text!("more-options"))
+            .a11y_builder(|node| node.set_has_popup(accesskit::HasPopup::Menu))
+            .height(Size::fill())
+            .padding(Gaps::new(0.0, SPACE_1 * 1.5, 0.0, SPACE_1 * 1.5))
+            .center()
+            .background(fill(arrow.hovered()))
+            .on_press(move |_| {
+                let field = *area.peek();
+                let on_activate = on_activate.clone();
+                open_popover_menu(
+                    items.clone(),
+                    PopupAnchor::BottomLeft,
+                    (
+                        field.origin.x.round() as i32,
+                        field.origin.y.round() as i32,
+                        field.size.width.round() as u32,
+                        field.size.height.round() as u32,
+                    ),
+                    None,
+                    move |id| {
+                        if let Some(on_activate) = &on_activate {
+                            on_activate.call(id);
+                        }
+                    },
+                );
+            })
+            .child(symbol(
+                Symbol::ChevronDown,
+                SETTINGS.dropdown_chevron_glyph as f32,
+                palette.secondary_label,
+            ));
+        rect()
+            .a11y_role(AccessibilityRole::Group)
+            .a11y_alt(self.label)
+            .height(Size::px(BUTTON.height))
+            .corner_radius(BUTTON.radius)
+            .overflow(Overflow::Clip)
+            .background(color(palette.control_background))
+            .direction(Direction::Horizontal)
+            .cross_align(Alignment::Center)
+            .on_sized(move |event: Event<SizedEventData>| area.set_if_modified(event.area))
+            .child(action.focus_ring(primary, BUTTON.radius))
+            .child(
+                rect()
+                    .width(Size::px(vow_design::HAIRLINE))
+                    .height(Size::px(BUTTON.height / 2.0))
+                    .background(color(palette.separator)),
+            )
+            .child(arrow.focus_ring(menu, BUTTON.radius))
+    }
+}
+
+#[derive(PartialEq)]
 pub struct HelpButton {
     on_press: Option<Callback<(), ()>>,
 }

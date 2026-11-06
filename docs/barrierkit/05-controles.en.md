@@ -72,6 +72,9 @@ reports itself as `toggled`.
 - `MenuButton::new(label, items)`: a button with a chevron that opens a menu
   of actions (`NSPopUpButton` with `pullsDown`, SwiftUI `Menu`); it reports
   through `on_activate(id)`.
+- `SplitButton::new(label, items)`: the split button of `NSComboButton`
+  (`split` style): the label runs the main action (`on_press`) and the arrow,
+  past a thin line, opens the menu (`on_activate(id)`).
 - `HelpButton`: the round help button with "?".
 - `ControlGroup`: buttons joined by separators, like `ControlGroup`; give them
   the `Borderless` style.
@@ -218,9 +221,13 @@ one (`es_MX`). It is searched for like Hunspell does: `DICPATH`, then
 a package such as `hunspellDicts.es_ES` in the profile is enough. The first
 field loads it on a separate thread; without a dictionary nothing is marked.
 Misspelled words get a row of red dots, and a secondary click on one puts its
-guesses at the top of the edit menu ("No Guesses Found" when there are none).
-In `TextField` the dots only show while the text fits in the field, because
-Freya's `Input` does not expose its scroll.
+guesses at the top of the edit menu ("No Guesses Found" when there are none),
+followed by Ignore Spelling and Learn Spelling. Ignore accepts the word until
+the app quits. Learn also adds it to Enchant's personal list,
+`$XDG_CONFIG_HOME/enchant/<dictionary>.dic` (one word per line, see
+[enchant(5)](https://man.archlinux.org/man/enchant.5.en)), shared with GTK and
+GNOME apps. In `TextField` the dots come from the `Input`'s own paragraph, so
+they follow the text when it scrolls and are clipped at the field edge.
 
 `TextEditor::styles(tramos)` takes rich text. A `State<Vec<StyleRun>>`
 (`barrier_kit::rich_text`) keeps runs in character indices with bold, italic

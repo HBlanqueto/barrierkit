@@ -19,7 +19,7 @@ use crate::context_menu::{Spelling, edit_menu};
 use crate::controls::text_style;
 use crate::interaction::ring;
 use crate::scroll::{ScrollView, use_scroll_controller};
-use crate::spelling::{Squiggles, char_index, dictionary, misspelled, utf16_range};
+use crate::spelling::{Squiggles, char_index, dictionary, known, misspelled, utf16_range};
 use crate::style::Palette;
 use crate::theme::{color, resolved};
 
@@ -289,7 +289,7 @@ impl Component for TextEditor {
             .filter(|_| !empty)
             .map(|dictionary| {
                 let text = value.read();
-                misspelled(dictionary, &text)
+                misspelled(&text, |word| known(dictionary, word))
                     .iter()
                     .map(|range| utf16_range(&text, range))
                     .collect::<Vec<_>>()
@@ -298,7 +298,8 @@ impl Component for TextEditor {
         let squiggles = (!ranges.is_empty()).then(|| {
             crate::glass::leaf(Squiggles {
                 holder: holder.read().clone(),
-                single_line: false,
+                input: None,
+                text_left: Default::default(),
                 ranges,
                 color: palette.destructive,
                 offset: (TEXT_FIELD.padding_x, margin_y),

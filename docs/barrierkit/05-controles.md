@@ -72,6 +72,9 @@ lo anuncia como `toggled`.
 - `MenuButton::new(etiqueta, items)`: un botón con chevron que abre un menú de
   acciones (`NSPopUpButton` con `pullsDown`, `Menu` de SwiftUI); avisa con
   `on_activate(id)`.
+- `SplitButton::new(etiqueta, items)`: el botón dividido de `NSComboButton`
+  (estilo `split`): la etiqueta lanza la acción principal (`on_press`) y la
+  flecha, separada por una línea fina, abre el menú (`on_activate(id)`).
 - `HelpButton`: el botón redondo de ayuda con «?».
 - `ControlGroup`: botones unidos con separadores, como `ControlGroup`;
   conviene darles el estilo `Borderless`.
@@ -218,9 +221,14 @@ regional (`es_MX`). Se busca como lo hace Hunspell: `DICPATH` y después
 un paquete como `hunspellDicts.es_ES` en el perfil. El primer campo lo carga en
 otro hilo; sin diccionario no se marca nada. Las palabras mal escritas llevan
 una fila de puntos rojos, y el clic secundario sobre una pone sus sugerencias
-arriba del menú Editar («No hay sugerencias» si no hay ninguna). En
-`TextField` los puntos solo se ven mientras el texto cabe en el campo, porque
-el `Input` de Freya no expone su desplazamiento.
+arriba del menú Editar («No hay sugerencias» si no hay ninguna), seguidas de
+Ignorar ortografía y Aprender ortografía. Ignorar acepta la palabra hasta que
+la app se cierra. Aprender además la añade a la lista personal de Enchant,
+`$XDG_CONFIG_HOME/enchant/<diccionario>.dic` (una palabra por línea, ver
+[enchant(5)](https://man.archlinux.org/man/enchant.5.en)), que comparten las
+apps de GTK y GNOME. En `TextField` los puntos salen del párrafo del propio
+`Input`, así que siguen al texto cuando se desplaza y se recortan en el borde
+del campo.
 
 `TextEditor::styles(tramos)` admite texto enriquecido. Un
 `State<Vec<StyleRun>>` (`barrier_kit::rich_text`) guarda tramos en índices de
