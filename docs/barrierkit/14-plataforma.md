@@ -65,6 +65,7 @@ Solo `malaysia-shell` activa `barrier-kit/shell`. Añade:
 | `shell::Toplevels` | `ext_foreign_toplevel_list_v1`, `zwlr_foreign_toplevel_manager_v1` | Lista y control de ventanas para el Dock. Cada `ToplevelInfo` lleva un `id` estable; `activate`, `close`, `minimize` y el resto actúan por ese `id` |
 | `shell::InfinityLayout`, `Toplevels::arrange` | `infinity_window_manager_v1` | Colocar ventanas en mosaico |
 | `shell::Activation` | `xdg_activation_v1` | Lanzar apps desde el Dock |
+| `shell::use_status_items()` | [StatusNotifierWatcher](https://specifications.freedesktop.org/status-notifier-item/latest/) y dbusmenu | Iconos de estado de las apps en la barra de menús: hace de watcher (o sigue al que ya haya), lee título, icono (`IconName`, `IconThemePath` de KDE o `IconPixmap`, el de atención si el estado es `NeedsAttention`) y menú, y los relee con cada señal. `StatusHost` envía `Activate`, `SecondaryActivate` y los clics del menú; `pixmap_image` pinta un `IconPixmap` |
 
 Los submódulos de `shell/` son privados y su API sale solo de `shell/mod.rs`.
 `platform/` no sabe nada de la shell: la shell se engancha por una única

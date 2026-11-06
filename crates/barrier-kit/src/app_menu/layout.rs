@@ -53,6 +53,10 @@ pub(crate) fn build_layout(menu: &AppMenu, id_map: &mut IdMap, revision: u32) ->
     let mut root_children = Vec::new();
     for m in &menu.menus {
         let key = format!("menu:{}", m.title);
+        if m.title.is_empty() {
+            root_children.extend(layout_items(&m.items, &key, id_map, &mut snapshot));
+            continue;
+        }
         let id = id_map.get(&key);
         let children = layout_items(&m.items, &key, id_map, &mut snapshot);
         snapshot

@@ -3,6 +3,7 @@ mod infinity;
 mod layer;
 mod lock;
 mod menus;
+mod status_items;
 mod toplevels;
 
 pub use activation::Activation;
@@ -12,6 +13,7 @@ pub use infinity::{
 pub use layer::{Anchors, KeyboardInteractivity, Layer, LayerSpec, run_layer};
 pub use lock::{SessionUnlock, run_lock};
 pub use menus::GtkMenusAddress;
+pub use status_items::{Pixmap, StatusHost, TrayItem, pixmap_image, use_status_items};
 pub use toplevels::{FocusBar, SpaceInfo, ToplevelInfo, Toplevels};
 
 use freya_core::integration::AppComponent;

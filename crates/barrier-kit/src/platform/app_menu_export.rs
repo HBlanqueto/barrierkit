@@ -39,11 +39,12 @@ impl Runtime {
 
     pub(super) fn process_menu_actions(&mut self) {
         for surface in &mut self.surfaces {
-            let action_ids = surface
+            let action_ids: Vec<String> = surface
                 .menu_handle
-                .as_ref()
-                .map(|handle| handle.drain_actions())
-                .unwrap_or_default();
+                .iter()
+                .chain(&surface.status_handle)
+                .flat_map(|handle| handle.drain_actions())
+                .collect();
             for id in action_ids {
                 surface.app.menu_actions.dispatch(&id);
             }

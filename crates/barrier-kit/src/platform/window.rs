@@ -62,6 +62,7 @@ pub struct WindowOptions {
     pub fullscreen_bar: FullscreenBar,
     pub fullscreen_push: bool,
     pub hud: bool,
+    pub status_item: Option<crate::status_item::StatusItem>,
 }
 
 impl WindowOptions {
@@ -77,6 +78,7 @@ impl WindowOptions {
             fullscreen_bar: FullscreenBar::Solid,
             fullscreen_push: false,
             hud: false,
+            status_item: None,
         }
     }
 
@@ -117,6 +119,11 @@ impl WindowOptions {
 
     pub fn hud(mut self, hud: bool) -> Self {
         self.hud = hud;
+        self
+    }
+
+    pub fn status_item(mut self, item: crate::status_item::StatusItem) -> Self {
+        self.status_item = Some(item);
         self
     }
 }
@@ -492,6 +499,18 @@ impl Runtime {
         let mut window = self.surface_window(surface, SurfaceRole::Window(window), app_instance);
         window.logical_size = options.size;
         window.menu_handle = menu_handle;
+        window.status_handle = options.status_item.map(|item| {
+            let menu = crate::app_menu::AppMenu::new(vec![crate::app_menu::Menu::new(
+                "",
+                item.items.clone(),
+            )]);
+            let handle = crate::app_menu::MenuHandle::new(
+                menu,
+                Some(WakeHandle::from_ping(self.wake.ping.clone())),
+            );
+            crate::app_menu::server::register_status_item(handle.clone(), item);
+            handle
+        });
         window.context = Some(WindowContext {
             controls: controls.clone(),
             app_id,

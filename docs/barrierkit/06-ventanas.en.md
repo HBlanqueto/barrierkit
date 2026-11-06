@@ -64,6 +64,32 @@ for photo, video or slide apps
    Apple does not publish the material color; `#1e1e1e` at 85 % is an
    approximation.
 
+## Menu bar icon
+
+```rust
+let icono = StatusItem::new("correo", "Correo", "mail-unread")
+    .items(vec![MenuItem::action("nuevo", "Nuevo mensaje")]);
+run_window(app, WindowOptions::new("Correo", "Correo").status_item(icono))?;
+use_menu_action(|id| if id == STATUS_ITEM_ACTIVATE { /* mostrar la ventana */ });
+```
+
+`WindowOptions::status_item` publishes a status icon, AppKit's
+`NSStatusItem`, over the
+[StatusNotifierItem](https://specifications.freedesktop.org/status-notifier-item/latest/) protocol:
+
+1. The kit exports `org.kde.StatusNotifierItem` at `/StatusNotifierItem`,
+   named `org.kde.StatusNotifierItem-<pid>-<n>`, with the title, an icon
+   theme `IconName` and its menu as dbusmenu.
+2. It registers with `org.kde.StatusNotifierWatcher`. If the watcher shows up
+   later (the shell starts later or restarts), it registers again.
+3. Each menu item reaches `use_menu_action` with its `id`, like the app menu.
+   `Activate` arrives as `STATUS_ITEM_ACTIVATE`.
+4. The menu and the object share one connection, because the specification
+   looks up `Menu` on the icon's own bus name.
+
+The specification spells the interfaces `org.freedesktop.*`, but KDE,
+libayatana-appindicator and waybar use `org.kde.*`, and so does the kit.
+
 ## Window state
 
 The state arrives with each compositor configure and is read with

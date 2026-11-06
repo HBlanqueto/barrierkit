@@ -67,6 +67,7 @@ Only `malaysia-shell` enables `barrier-kit/shell`. It adds:
 | `shell::Toplevels` | `ext_foreign_toplevel_list_v1`, `zwlr_foreign_toplevel_manager_v1` | Window list and control for the Dock. Each `ToplevelInfo` carries a stable `id`; `activate`, `close`, `minimize` and the rest act by that `id` |
 | `shell::InfinityLayout`, `Toplevels::arrange` | `infinity_window_manager_v1` | Tiling windows |
 | `shell::Activation` | `xdg_activation_v1` | Launching apps from the Dock |
+| `shell::use_status_items()` | [StatusNotifierWatcher](https://specifications.freedesktop.org/status-notifier-item/latest/) and dbusmenu | App status icons in the menu bar: acts as the watcher (or follows the one already running), reads the title, icon (`IconName`, KDE's `IconThemePath` or `IconPixmap`, the attention one when the status is `NeedsAttention`) and menu, and reads them again on every signal. `StatusHost` sends `Activate`, `SecondaryActivate` and menu clicks; `pixmap_image` paints an `IconPixmap` |
 
 The submodules of `shell/` are private and their API comes only from
 `shell/mod.rs`. `platform/` knows nothing about the shell: the shell hooks in

@@ -29,6 +29,12 @@ enum Command {
     Update {
         path: String,
     },
+    StatusItem {
+        path: String,
+        registered: Arc<RegisteredMenu>,
+        item: crate::status_item::StatusItem,
+        index: u32,
+    },
 }
 
 static SERVER: OnceLock<UnboundedSender<Command>> = OnceLock::new();
@@ -52,6 +58,18 @@ pub fn register(handle: MenuHandle) {
     send(Command::Register {
         path,
         registered: RegisteredMenu::new(handle),
+    });
+}
+
+pub(crate) fn register_status_item(handle: MenuHandle, item: crate::status_item::StatusItem) {
+    let index = NEXT_PATH_INDEX.fetch_add(1, Ordering::Relaxed);
+    let path = format!("{PATH_PREFIX}{index}");
+    handle.set_path(&path);
+    send(Command::StatusItem {
+        path,
+        registered: RegisteredMenu::new(handle),
+        item,
+        index,
     });
 }
 
@@ -82,29 +100,28 @@ async fn run(mut commands: UnboundedReceiver<Command>) {
     while let Some(command) = commands.next().await {
         match command {
             Command::Register { path, registered } => {
-                let iface = DbusMenuObject {
-                    registered: registered.clone(),
-                };
                 let Some(unique) = connection.unique_name().map(|s| s.to_string()) else {
                     continue;
                 };
-                if let Err(error) = connection.object_server().at(path.clone(), iface).await {
-                    tracing::warn!(%error, path, "barrier-dbusmenu: could not register object");
-                    continue;
+                if export(&connection, &path, &registered, &mut menus, &mut id_maps).await {
+                    registered
+                        .handle
+                        .deliver_address(crate::platform::AppMenuAddress {
+                            service: unique,
+                            path,
+                        });
                 }
-                menus.insert(path.clone(), registered.clone());
-                let mut id_map = IdMap::default();
-                let snapshot = build_layout_from_handle(&registered, &mut id_map);
-                let revision = snapshot.revision;
-                registered.layout().replace(snapshot);
-                id_maps.insert(path.clone(), id_map);
-                emit_layout_updated(&connection, &path, revision).await;
-                registered
-                    .handle
-                    .deliver_address(crate::platform::AppMenuAddress {
-                        service: unique,
-                        path,
-                    });
+            }
+            Command::StatusItem {
+                path,
+                registered,
+                item,
+                index,
+            } => {
+                if export(&connection, &path, &registered, &mut menus, &mut id_maps).await {
+                    let handle = registered.handle.clone();
+                    crate::status_item::serve(&connection, item, path, handle, index).await;
+                }
             }
             Command::Unregister { path } => {
                 if menus.remove(&path).is_some() {
@@ -144,6 +161,30 @@ async fn run(mut commands: UnboundedReceiver<Command>) {
             }
         }
     }
+}
+
+async fn export(
+    connection: &zbus::Connection,
+    path: &str,
+    registered: &Arc<RegisteredMenu>,
+    menus: &mut HashMap<String, Arc<RegisteredMenu>>,
+    id_maps: &mut HashMap<String, IdMap>,
+) -> bool {
+    let iface = DbusMenuObject {
+        registered: registered.clone(),
+    };
+    if let Err(error) = connection.object_server().at(path, iface).await {
+        tracing::warn!(%error, path, "barrier-dbusmenu: could not register object");
+        return false;
+    }
+    menus.insert(path.to_owned(), registered.clone());
+    let mut id_map = IdMap::default();
+    let snapshot = build_layout_from_handle(registered, &mut id_map);
+    let revision = snapshot.revision;
+    registered.layout().replace(snapshot);
+    id_maps.insert(path.to_owned(), id_map);
+    emit_layout_updated(connection, path, revision).await;
+    true
 }
 
 async fn emit_layout_updated(connection: &zbus::Connection, path: &str, revision: u32) {
