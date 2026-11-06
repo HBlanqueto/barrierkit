@@ -3142,6 +3142,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "trazo"
+version = "0.1.0"
+dependencies = [
+ "barrier-kit",
+ "freya-core",
+ "freya-testing",
+ "i18n-embed",
+ "i18n-embed-fl",
+ "rust-embed",
+ "torin",
+ "tracing",
+ "vow-design",
+]
+
+[[package]]
 name = "type-map"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"

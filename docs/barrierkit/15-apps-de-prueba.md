@@ -13,6 +13,7 @@ lanzarla.
    ./dev.sh app tengen-app-show
    ./dev.sh app ondina
    ./dev.sh app marea
+   ./dev.sh app trazo
    ```
 
 Corren en cualquier compositor Wayland (capítulo
@@ -25,7 +26,7 @@ configuración real.
 
 ## Master Tengen App Show (`tengen-app-show`)
 
-La única app de pruebas del kit, como `gtk4-widget-factory`. Es un
+La app de pruebas de los componentes del kit, como `gtk4-widget-factory`. Es un
 `PreferencesWindow` dentro de un `WindowChrome`: un grupo por capa y un panel
 por componente, más los grupos Ventana y Animación.
 
@@ -132,5 +133,18 @@ con Playwright y Chromium, que el dev shell no trae. Quedan fuera los
 `media/stills/`: fotogramas de «Sprite Fright» (Blender Studio, CC BY 4.0) y
 un título dibujado con Creepster (ver `NOTICE`). La captura se hizo sin GPU: el vídeo se
 decodificó por CPU (`Decoding::Cpu`).
+
+## Trazo (`trazo`)
+
+Prueba las gráficas (capítulo [19](19-graficas.md)) en tres pestañas:
+
+| Pestaña | Contenido |
+|---|---|
+| Gráficas 2D | Líneas monótonas, áreas apiladas, barras agrupadas con regla, barras apiladas, puntos, escalones, pastel, donut y mapa de calor |
+| Monitor | CPU de usuario y sistema, uso por núcleo, memoria, red, carga media y procesos, leídos de `/proc` cada segundo |
+| 3D | Superficie sin(r)/r y nube de puntos; se giran arrastrando |
+
+`cargo test -p trazo` comprueba que cada pestaña dibuja sus gráficas; con
+`TRAZO_SHOT=<carpeta>` guarda una captura por pestaña.
 
 Siguiente: [16. Preguntas frecuentes](16-preguntas.md).

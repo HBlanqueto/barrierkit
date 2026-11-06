@@ -530,6 +530,31 @@ pub struct IconButtonMetrics {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct ChartMetrics {
+    pub height: f32,
+    pub line_width: f32,
+    pub point_size: f32,
+    pub rule_width: f32,
+    pub grid_width: f32,
+    pub area_opacity: f32,
+    pub bar_gap: f32,
+    pub bar_radius: f32,
+    pub ticks: u32,
+    pub y_axis_width: f32,
+    pub axis_gap: f32,
+    pub legend_swatch: f32,
+    pub legend_gap: f32,
+    pub sector_inner: f32,
+    pub sector_inset: f32,
+    pub heat_gap: f32,
+    pub heat_radius: f32,
+    pub azimuth: f32,
+    pub inclination: f32,
+    pub drag_degrees: f32,
+    pub surface_grid: u32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct StepperMetrics {
     pub width: f32,
     pub height: f32,

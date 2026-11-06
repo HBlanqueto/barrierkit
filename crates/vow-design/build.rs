@@ -45,6 +45,7 @@ SYMBOL SymbolMetrics components.symbol
 SLIDER_FAT SliderFatMetrics components.slider.fat
 SLIDER_KEY_STEP f32 components.slider.keyboard-step
 ICON_BUTTON IconButtonMetrics components.icon-button
+CHART ChartMetrics components.chart
 STEPPER StepperMetrics components.stepper
 BADGE BadgeMetrics components.badge
 MEDIA MediaMetrics components.media preview_delay_ms=preview-delay
@@ -448,5 +449,24 @@ fn emit_specials(out: &mut String, tengen: &Tengen) {
         "pub const ACCENT_SWATCHES: [(&str, Rgba); {}] = [{}];\n\n",
         swatches.len(),
         swatches.join(", ")
+    ));
+    let palette = tengen.get("components.settings.accent-swatches");
+    let series: Vec<String> = tengen
+        .get("components.chart.series")
+        .as_array()
+        .expect("vow-design: chart series must be a list of swatch names")
+        .iter()
+        .map(|name| {
+            let swatch = palette
+                .as_array()
+                .and_then(|list| list.iter().find(|swatch| swatch["name"] == *name))
+                .unwrap_or_else(|| panic!("vow-design: chart series {name} is not a swatch"));
+            rgba(parse_color(swatch["color"].as_str().unwrap_or_default()))
+        })
+        .collect();
+    out.push_str(&format!(
+        "pub const CHART_SERIES: [Rgba; {}] = [{}];\n\n",
+        series.len(),
+        series.join(", ")
     ));
 }

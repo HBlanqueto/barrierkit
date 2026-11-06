@@ -13,6 +13,7 @@ to launch it.
    ./dev.sh app tengen-app-show
    ./dev.sh app ondina
    ./dev.sh app marea
+   ./dev.sh app trazo
    ```
 
 They run on any Wayland compositor (chapter
@@ -25,7 +26,7 @@ touch your real configuration.
 
 ## Master Tengen App Show (`tengen-app-show`)
 
-The kit's only test app, like `gtk4-widget-factory`. It is a
+The test app for the kit's components, like `gtk4-widget-factory`. It is a
 `PreferencesWindow` inside a `WindowChrome`: one group per layer and one pane
 per component, plus the Ventana ("Window") and Animación ("Animation") groups.
 
@@ -133,5 +134,18 @@ the `sprite-fright-*` files in
 `media/stills/`: frames from "Sprite Fright" (Blender Studio, CC BY 4.0) and
 a title drawn with Creepster (see `NOTICE`). The screenshot was made without a GPU: the
 video was decoded on the CPU (`Decoding::Cpu`).
+
+## Trazo (`trazo`)
+
+Tests the charts (chapter [19](19-graficas.en.md)) in three tabs:
+
+| Tab | Content |
+|---|---|
+| 2D charts | Monotone lines, stacked areas, grouped bars with a rule, stacked bars, points, steps, pie, donut and heat map |
+| Monitor | User and system CPU, usage per core, memory, network, load average and processes, read from `/proc` every second |
+| 3D | sin(r)/r surface and point cloud; drag to rotate |
+
+`cargo test -p trazo` checks that every tab draws its charts; with
+`TRAZO_SHOT=<folder>` it saves one screenshot per tab.
 
 Next: [16. Frequently asked questions](16-preguntas.en.md).

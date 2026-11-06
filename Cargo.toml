@@ -10,6 +10,7 @@ members = [
     "crates/tengen-app-show",
     "crates/marea",
     "crates/ondina",
+    "crates/trazo",
 ]
 default-members = [
     "crates/barrier-kit",

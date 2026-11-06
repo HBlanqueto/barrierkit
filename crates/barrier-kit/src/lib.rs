@@ -44,6 +44,8 @@ pub mod compact;
 
 pub mod adornments;
 
+pub mod charts;
+
 pub mod popup_button;
 
 pub mod context_menu;

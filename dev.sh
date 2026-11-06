@@ -24,7 +24,7 @@ help() {
 Usage: ./dev.sh <command>
 
 Commands:
-  app <name> [args]       run tengen-app-show, marea or ondina against the current WAYLAND_DISPLAY,
+  app <name> [args]       run tengen-app-show, marea, ondina or trazo against the current WAYLAND_DISPLAY,
                           with MALAYSIA_CONFIG_DIR and MALAYSIA_DATA_DIR under $XDG_RUNTIME_DIR/barrierkit
   check                   run fmt, clippy, tests and kit-specific checks
   tracy <name> [args]     run an app in release with the Tracy layer and the same dirs; connect with 'tracy'
@@ -36,8 +36,8 @@ EOF
 
 require_app() {
     case "$2" in
-        tengen-app-show | marea | ondina) ;;
-        *) fail 1 "usage: ./dev.sh $1 tengen-app-show|marea|ondina [args]" ;;
+        tengen-app-show | marea | ondina | trazo) ;;
+        *) fail 1 "usage: ./dev.sh $1 tengen-app-show|marea|ondina|trazo [args]" ;;
     esac
 }
 
