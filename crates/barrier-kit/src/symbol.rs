@@ -42,6 +42,7 @@ pub enum Symbol {
     StarFill,
     Folder,
     Document,
+    ChevronDoubleRight,
 }
 
 impl Symbol {
@@ -54,6 +55,7 @@ impl Symbol {
             Self::Folder => {
                 "M2.5 4.5a1 1 0 0 1 1-1h3l1.5 1.5h4.5a1 1 0 0 1 1 1v5.5a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1z"
             }
+            Self::ChevronDoubleRight => "M4 4l4 4-4 4M8.5 4l4 4-4 4",
             Self::Document => "M4 2.5h5l3 3v8H4zM9 2.5v3h3",
             Self::Plus => "M8 3.5v9M3.5 8h9",
             Self::Minus => "M3.5 8h9",

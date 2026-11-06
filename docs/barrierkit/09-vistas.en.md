@@ -76,6 +76,40 @@ TabView::new("Preferencias")
 
 ![Buscar and Sonido tabs](assets/componentes/tab-view-light.png)
 
+## Outline and columns: `OutlineView`, `ColumnBrowser`
+
+```rust
+let nodos = vec![TreeNode::new("Documentos").icon(Symbol::Folder).child(TreeNode::new("notas.txt"))];
+OutlineView::new("Archivos", nodos.clone())
+ColumnBrowser::new("Archivos", nodos)
+```
+
+`barrier_kit::views::tree` shows a `Vec<TreeNode>` as a tree with disclosure
+triangles (`NSOutlineView`) or as columns, Finder style (`NSBrowser`). Rows
+are 24 high and each level indents 13, what `NSOutlineView` measures on macOS
+26.6.2. Columns are `DISCLOSURE.column_width` wide (200, an estimate). Both
+report through `on_select(path)`, a list of indices from the root.
+
+## Window tabs: `WindowTabs`
+
+```rust
+WindowTabs::new(titulos, elegida).on_select(..).on_close(..).on_new(..)
+```
+
+The tab bar of a tabbed `NSWindow`: capsules that share the width, the chosen
+one raised, with the X on hover and a + at the end. Its measurements are an
+estimate. The app keeps each tab's content; tabs cannot be dragged to another
+window.
+
+## Toolbar: search and overflow
+
+`compact::ToolbarSearch::new(text, "Buscar").collapsed(narrow)` is the toolbar
+search field: with `collapsed(true)` it stays a magnifying glass that opens
+when pressed and closes when it loses focus empty. `ToolbarOverflow::new(items)`
+is the » button that gathers what does not fit into a menu; the app shows it
+instead of those items when the `Breakpoint` is `Compact`. Both go in
+`Titlebar::right`.
+
 ## States, sheets and alerts
 
 ```rust

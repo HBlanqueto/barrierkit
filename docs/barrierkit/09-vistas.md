@@ -76,6 +76,41 @@ TabView::new("Preferencias")
 
 ![Pestañas Buscar y Sonido](assets/componentes/tab-view-light.png)
 
+## Árbol y columnas: `OutlineView`, `ColumnBrowser`
+
+```rust
+let nodos = vec![TreeNode::new("Documentos").icon(Symbol::Folder).child(TreeNode::new("notas.txt"))];
+OutlineView::new("Archivos", nodos.clone())
+ColumnBrowser::new("Archivos", nodos)
+```
+
+`barrier_kit::views::tree` muestra un `Vec<TreeNode>` como árbol con
+triángulos (`NSOutlineView`) o como columnas, al estilo del Finder
+(`NSBrowser`). Las filas miden 24 y cada nivel sangra 13, lo que mide
+`NSOutlineView` en macOS 26.6.2. Las columnas miden `DISCLOSURE.column_width`
+(200, una estimación). Las dos avisan con `on_select(ruta)`, una lista de
+índices desde la raíz.
+
+## Pestañas de ventana: `WindowTabs`
+
+```rust
+WindowTabs::new(titulos, elegida).on_select(..).on_close(..).on_new(..)
+```
+
+La barra de pestañas de una ventana con pestañas de `NSWindow`: cápsulas
+que se reparten el ancho, la elegida en relieve, con la X al pasar el puntero
+y un + al final. Sus medidas son una estimación. La app guarda el contenido
+de cada pestaña; las pestañas no se pueden arrastrar a otra ventana.
+
+## Barra de herramientas: búsqueda y desbordamiento
+
+`compact::ToolbarSearch::new(texto, "Buscar").collapsed(estrecha)` es el
+buscador de la toolbar: con `collapsed(true)` queda en una lupa que se abre
+al pulsarla y se cierra al perder el foco vacío. `ToolbarOverflow::new(items)`
+es el botón » que reúne en un menú lo que no cabe; la app lo muestra en vez
+de esos elementos cuando el `Breakpoint` es `Compact`. Los dos van en
+`Titlebar::right`.
+
 ## Estados, hojas y alertas
 
 ```rust

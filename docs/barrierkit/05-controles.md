@@ -61,6 +61,24 @@ cambian el valor.
 
 `Link::new("Más información…")` es un enlace de texto con `on_press`.
 
+`ButtonStyle` también tiene `Glass` y `GlassProminent`, los estilos `.glass` y
+`.glassProminent` de macOS 26 (cápsula con borde fino, neutra o con el
+acento), y `Borderless`, sin fondo hasta pasar el puntero. `.toggled(bool)`
+convierte el botón en uno de alternar: encendido toma el aspecto primario y
+lo anuncia como `toggled`.
+
+`barrier_kit::buttons` añade:
+
+- `MenuButton::new(etiqueta, items)`: un botón con chevron que abre un menú de
+  acciones (`NSPopUpButton` con `pullsDown`, `Menu` de SwiftUI); avisa con
+  `on_activate(id)`.
+- `HelpButton`: el botón redondo de ayuda con «?».
+- `ControlGroup`: botones unidos con separadores, como `ControlGroup`;
+  conviene darles el estilo `Borderless`.
+- `ShareButton::new(etiqueta, contenido)`: copiar, enviar por correo y, si es
+  un enlace, abrir con otra app (portal `OpenURI`). No hay un portal de
+  compartir en freedesktop, así que estas son las acciones.
+
 ## Interruptor y casilla
 
 ```rust
@@ -173,7 +191,18 @@ una ruta separadas por chevrones en una fila de 22, cada una con su icono
 (`.item(Symbol::Folder, "Documentos")`), y avisa con `on_select` de la parte
 pulsada. La altura de 22 sale de xib de Xcode; la cápsula (18 de
 alto, 7 de margen y el acento al 20 %) es una estimación: no hay un probe de
-macOS 26 para estos dos controles.
+macOS 26 para estos dos controles. `SearchField::tokens(estado)` muestra las
+mismas cápsulas dentro del buscador, como los filtros de Finder y Mail, y
+Retroceso con el campo vacío quita la última.
+
+`ColorPicker` (`barrier_kit::color_picker`) es un pozo de color que abre un
+popover con tono, saturación y brillo y el valor en hexadecimal, como el
+panel de colores de AppKit en pequeño.
+
+`barrier_kit::portal` habla con xdg-desktop-portal: `open_files` y
+`save_file` abren el selector de archivos del sistema (`FileChooser`),
+`open_uri` abre un enlace (`OpenURI`) y `notify` envía una notificación
+(`Notification`). Son `async`; se lanzan con `spawn`.
 
 ```rust
 DatePicker::new("Fecha", CivilDateTime::new(CivilDate::new(2026, 11, 6), 9, 30))
@@ -221,7 +250,12 @@ el umbral de aviso y a rojo en el crítico (`LEVEL_INDICATOR_COLORS`).
 con una marca en el valor y el valor actual en el centro
 ([Apple](https://developer.apple.com/documentation/swiftui/gaugestyle/accessorycircular)).
 Apple no publica sus medidas; el tamaño (44), el grosor (4) y el arco (270°)
-son una estimación.
+son una estimación. `.capacity(true)` lo cambia al estilo
+`accessoryCircularCapacity`: anillo cerrado que se llena con el acento.
+`CapacityIndicator::discrete(n)` lo parte en `n` celdas separadas por 2, y
+`RelevancyIndicator` dibuja las rayas finas del estilo de relevancia.
+Para una fila de etiqueta y valor (`LabeledContent`) ya existe
+`Row::value(título, valor)`.
 Las medidas salen de xib de Xcode y de
 [macos_ui](https://pub.dev/packages/macos_ui); no hay un probe de macOS 26.
 
@@ -300,7 +334,10 @@ ScrollView::new().height(Size::px(120.0)).child(lista)
 y un `use_scroll_controller()` para desplazar desde el código. La barra se
 desvanece en `DURATION_FAST_MS` salvo con `scroll_bars = "always"`, que la
 muestra con carril de 11 px. `.top_line(true)` dibuja el divisor encima del
-contenido, que pasa por debajo al desplazarse.
+contenido, que pasa por debajo al desplazarse. `.edge_effect(true)` es el
+efecto de borde suave de macOS 26 (`scrollEdgeEffectStyle(.soft)`): al
+desplazar, el contenido se desvanece bajo el borde superior en
+`SCROLL_BAR.edge_height` (24, una estimación).
 
 ## Símbolos
 

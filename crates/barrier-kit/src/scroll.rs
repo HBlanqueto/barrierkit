@@ -24,6 +24,7 @@ pub struct ScrollView {
     direction: Direction,
     scroll_bar: bool,
     top_line: bool,
+    edge_effect: bool,
     controller: Option<ScrollController>,
     key: DiffKey,
 }
@@ -88,9 +89,15 @@ impl ScrollView {
             direction: Direction::Vertical,
             scroll_bar: true,
             top_line: false,
+            edge_effect: false,
             controller: None,
             key: DiffKey::None,
         }
+    }
+
+    pub fn edge_effect(mut self, edge_effect: bool) -> Self {
+        self.edge_effect = edge_effect;
+        self
     }
 
     pub fn direction(mut self, direction: Direction) -> Self {
@@ -239,6 +246,21 @@ impl Component for ScrollView {
                             .children(self.children.clone()),
                     ),
             )
+            .maybe_child((self.edge_effect && !horizontal && scrolled < 0).then(|| {
+                let ground = Palette::current().window_background;
+                rect()
+                    .position(Position::new_absolute().top(0.0).left(0.0))
+                    .width(Size::percent(100.0))
+                    .height(Size::px(SCROLL_BAR.edge_height))
+                    .layer(THUMB_LAYER)
+                    .interactive(Interactive::No)
+                    .background(
+                        LinearGradient::new()
+                            .angle(0.0)
+                            .stop((color(ground), 0.0))
+                            .stop((color(Rgba { a: 0.0, ..ground }), 100.0)),
+                    )
+            }))
             .maybe_child(self.top_line.then(|| {
                 divider()
                     .position(Position::new_absolute().top(0.0).left(0.0))

@@ -15,9 +15,13 @@ use barrier_kit::app::{REDO, UNDO, UndoManager, use_undo};
 use barrier_kit::app::{Shortcut, ShortcutKey};
 use barrier_kit::app_menu::{AppMenu, Menu};
 use barrier_kit::backdrop::{Accent, Backdrop, BackdropSource, Tint};
+use barrier_kit::buttons::{ControlGroup, HelpButton, MenuButton, ShareButton};
 use barrier_kit::choices::{ChoiceCards, ColorWell, RadioGroup};
+use barrier_kit::color_picker::ColorPicker;
 use barrier_kit::combo_box::ComboBox;
-use barrier_kit::compact::{Face, IconButton, Stepper, ToggleGroup};
+use barrier_kit::compact::{
+    Face, IconButton, Stepper, ToggleGroup, ToolbarOverflow, ToolbarSearch,
+};
 use barrier_kit::context_menu::context_menu;
 use barrier_kit::controls::{
     Button, ButtonStyle, Checkbox, ScrollView, SearchField, SecureField, SegmentedControl, Slider,
@@ -25,7 +29,9 @@ use barrier_kit::controls::{
 };
 use barrier_kit::date::{CivilDate, CivilDateTime};
 use barrier_kit::date_picker::{DateElements, DatePicker};
-use barrier_kit::indicator::{CapacityIndicator, CircularGauge, RatingIndicator};
+use barrier_kit::indicator::{
+    CapacityIndicator, CircularGauge, RatingIndicator, RelevancyIndicator,
+};
 use barrier_kit::level::{LevelSlider, LevelStyle};
 use barrier_kit::menu::MenuItem;
 use barrier_kit::password::PasswordField;
@@ -53,6 +59,8 @@ use barrier_kit::views::form::{Form, Row, Section};
 use barrier_kit::views::group::{DisclosureGroup, GroupBox};
 use barrier_kit::views::table::{SortOrder, Table};
 use barrier_kit::views::tabs::TabView;
+use barrier_kit::views::tree::{ColumnBrowser, OutlineView, TreeNode};
+use barrier_kit::views::window_tabs::WindowTabs;
 use chrome::Prefs;
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
@@ -667,6 +675,256 @@ fn feedback(mut alert: State<bool>) -> Form {
     )
 }
 
+fn files() -> Vec<TreeNode> {
+    vec![
+        TreeNode::new(tr!("documents"))
+            .icon(Symbol::Folder)
+            .child(
+                TreeNode::new(tr!("projects"))
+                    .icon(Symbol::Folder)
+                    .child(TreeNode::new("malaysia.md").icon(Symbol::Document)),
+            )
+            .child(TreeNode::new("notas.txt").icon(Symbol::Document)),
+        TreeNode::new(tr!("home")).icon(Symbol::House),
+    ]
+}
+
+fn tahoe() -> Form {
+    let actions = || {
+        vec![
+            MenuItem::action("duplicate", tr!("duplicate")),
+            MenuItem::action("rename", tr!("rename")),
+        ]
+    };
+    Form::new()
+        .section(
+            Section::titled(tr!("tahoe-buttons"))
+                .row(
+                    Row::new(tr!("menu-button"))
+                        .control(MenuButton::new(tr!("actions"), actions())),
+                )
+                .row(
+                    Row::new(tr!("glass")).control(
+                        rect()
+                            .direction(Direction::Horizontal)
+                            .spacing(SPACE_2)
+                            .child(Button::new(tr!("glass")).style(ButtonStyle::Glass))
+                            .child(Button::new(tr!("prominent")).style(ButtonStyle::GlassProminent))
+                            .child(Button::new(tr!("borderless")).style(ButtonStyle::Borderless)),
+                    ),
+                )
+                .row(Row::new(tr!("toggle-button")).control(ToggleDemo))
+                .row(Row::new(tr!("help")).control(HelpButton::new()))
+                .row(
+                    Row::new(tr!("control-group")).control(
+                        ControlGroup::new(tr!("control-group"))
+                            .child(Button::new(tr!("previous")).style(ButtonStyle::Borderless))
+                            .child(Button::new(tr!("next")).style(ButtonStyle::Borderless)),
+                    ),
+                )
+                .row(Row::new(tr!("share")).control(ShareButton::new(
+                    tr!("share"),
+                    "https://github.com/HBlanqueto/barrierkit",
+                ))),
+        )
+        .section(
+            Section::titled(tr!("tahoe-indicators"))
+                .row(
+                    Row::new(tr!("discrete")).control(
+                        rect()
+                            .width(Size::px(SPLIT_VIEW.inspector))
+                            .child(CapacityIndicator::new(tr!("disk"), 0.6).discrete(10)),
+                    ),
+                )
+                .row(
+                    Row::new(tr!("relevancy")).control(
+                        rect()
+                            .width(Size::px(SPLIT_VIEW.inspector))
+                            .child(RelevancyIndicator::new(tr!("relevancy"), 0.7)),
+                    ),
+                )
+                .row(
+                    Row::new(tr!("capacity-ring"))
+                        .control(CircularGauge::new(tr!("battery"), 0.8, "80%").capacity(true)),
+                )
+                .row(Row::value(tr!("labeled-content"), "macOS 26")),
+        )
+        .section(
+            Section::titled(tr!("tahoe-panels"))
+                .row(Row::new(tr!("search-tokens")).control(SearchTokensDemo))
+                .row(Row::new(tr!("toolbar-search")).control(ToolbarSearchDemo))
+                .row(Row::new(tr!("overflow")).control(ToolbarOverflow::new(actions())))
+                .row(Row::new(tr!("color")).control(ColorDemo))
+                .row(Row::new(tr!("open-save")).control(FilesDemo))
+                .row(
+                    Row::new(tr!("notification")).control(Button::new(tr!("notify")).on_press(
+                        |_| {
+                            spawn(async {
+                                barrier_kit::portal::notify(
+                                    "demo",
+                                    tr!("tahoe"),
+                                    tr!("notification-body"),
+                                )
+                                .await
+                            });
+                        },
+                    )),
+                ),
+        )
+        .section(
+            Section::titled(tr!("tahoe-views"))
+                .row(
+                    Row::new(tr!("window-tabs"))
+                        .control(rect().width(Size::px(SPLIT_VIEW.inspector)).child(TabsDemo)),
+                )
+                .row(
+                    Row::new(tr!("outline")).control(
+                        rect()
+                            .width(Size::px(SPLIT_VIEW.inspector))
+                            .height(Size::px(TEXT_FIELD.height * 5.0))
+                            .child(OutlineView::new(tr!("outline"), files())),
+                    ),
+                )
+                .row(
+                    Row::new(tr!("browser")).control(
+                        rect()
+                            .width(Size::px(SPLIT_VIEW.inspector))
+                            .height(Size::px(TEXT_FIELD.height * 4.0))
+                            .child(ColumnBrowser::new(tr!("browser"), files())),
+                    ),
+                )
+                .row(
+                    Row::new(tr!("edge-effect")).control(
+                        rect()
+                            .width(Size::px(SPLIT_VIEW.inspector))
+                            .height(Size::px(TEXT_FIELD.height * 3.0))
+                            .child(ScrollView::new().edge_effect(true).children((1..=12).map(
+                                |line| {
+                                    text(
+                                        format!("{} {line}", tr!("line")),
+                                        TEXT,
+                                        Palette::current().label,
+                                    )
+                                    .into_element()
+                                },
+                            ))),
+                    ),
+                ),
+        )
+}
+
+#[derive(PartialEq)]
+struct ToggleDemo;
+
+impl Component for ToggleDemo {
+    fn render(&self) -> impl IntoElement {
+        let mut on = use_state(|| true);
+        Button::new(tr!("bold"))
+            .toggled(*on.read())
+            .on_press(move |_| on.toggle())
+    }
+}
+
+#[derive(PartialEq)]
+struct SearchTokensDemo;
+
+impl Component for SearchTokensDemo {
+    fn render(&self) -> impl IntoElement {
+        let query = use_state(String::new);
+        let tokens = use_state(|| vec![tr!("documents").to_string()]);
+        SearchField::new(query, tr!("search"))
+            .tokens(tokens)
+            .width(Size::px(SPLIT_VIEW.inspector))
+    }
+}
+
+#[derive(PartialEq)]
+struct ToolbarSearchDemo;
+
+impl Component for ToolbarSearchDemo {
+    fn render(&self) -> impl IntoElement {
+        let query = use_state(String::new);
+        ToolbarSearch::new(query, tr!("search")).collapsed(true)
+    }
+}
+
+#[derive(PartialEq)]
+struct ColorDemo;
+
+impl Component for ColorDemo {
+    fn render(&self) -> impl IntoElement {
+        let mut chosen = use_state(|| ACCENT_SWATCHES[0].1);
+        ColorPicker::new(tr!("color"), *chosen.read()).on_change(move |picked| chosen.set(picked))
+    }
+}
+
+#[derive(PartialEq)]
+struct FilesDemo;
+
+impl Component for FilesDemo {
+    fn render(&self) -> impl IntoElement {
+        let mut picked = use_state(String::new);
+        rect()
+            .direction(Direction::Horizontal)
+            .cross_align(torin::prelude::Alignment::Center)
+            .spacing(SPACE_2)
+            .child(text(
+                picked.read().clone(),
+                TEXT,
+                Palette::current().secondary_label,
+            ))
+            .child(Button::new(tr!("open")).on_press(move |_| {
+                spawn(async move {
+                    if let Some(paths) =
+                        barrier_kit::portal::open_files(tr!("open"), false, false).await
+                    {
+                        picked.set(
+                            paths
+                                .first()
+                                .map(|path| path.display().to_string())
+                                .unwrap_or_default(),
+                        );
+                    }
+                });
+            }))
+            .child(Button::new(tr!("save")).on_press(move |_| {
+                spawn(async move {
+                    if let Some(path) =
+                        barrier_kit::portal::save_file(tr!("save"), "notas.txt").await
+                    {
+                        picked.set(path.display().to_string());
+                    }
+                });
+            }))
+    }
+}
+
+#[derive(PartialEq)]
+struct TabsDemo;
+
+impl Component for TabsDemo {
+    fn render(&self) -> impl IntoElement {
+        let mut titles =
+            use_state(|| vec![tr!("documents").to_string(), tr!("projects").to_string()]);
+        let mut selected = use_state(|| 0usize);
+        WindowTabs::new(titles.read().clone(), *selected.read())
+            .on_select(move |index| selected.set(index))
+            .on_close(move |index| {
+                titles.write().remove(index);
+                let last = titles.peek().len().saturating_sub(1);
+                if *selected.peek() > last {
+                    selected.set(last);
+                }
+            })
+            .on_new(move |_| {
+                let next = format!("{} {}", tr!("tab"), titles.peek().len() + 1);
+                titles.write().push(next);
+                let last = titles.peek().len() - 1;
+                selected.set(last);
+            })
+    }
+}
+
 #[derive(PartialEq)]
 struct DatePickerDemo;
 
@@ -825,6 +1083,13 @@ impl App for Show {
                         Symbol::MagnifyingGlass,
                         tint(7),
                         fields(name, query, password, shell, notes, recipients),
+                    ))
+                    .pane(Pane::new(
+                        "tahoe",
+                        tr!("tahoe"),
+                        Symbol::Star,
+                        tint(2),
+                        tahoe(),
                     ))
                     .pane(Pane::new(
                         "progreso",

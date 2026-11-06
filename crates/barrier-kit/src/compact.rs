@@ -331,3 +331,106 @@ impl Component for Toggle {
         interaction.focus_ring(toggle, SEGMENTED.segment_radius)
     }
 }
+
+#[derive(PartialEq)]
+pub struct ToolbarSearch {
+    value: State<String>,
+    placeholder: &'static str,
+    collapsed: bool,
+}
+
+impl ToolbarSearch {
+    pub fn new(value: State<String>, placeholder: &'static str) -> Self {
+        Self {
+            value,
+            placeholder,
+            collapsed: false,
+        }
+    }
+
+    pub fn collapsed(mut self, collapsed: bool) -> Self {
+        self.collapsed = collapsed;
+        self
+    }
+}
+
+impl Component for ToolbarSearch {
+    fn render(&self) -> impl IntoElement {
+        let mut opened = use_state(|| false);
+        let open = !self.collapsed || *opened.read() || !self.value.read().is_empty();
+        if !open {
+            return rect()
+                .child(
+                    IconButton::new(Symbol::MagnifyingGlass, self.placeholder)
+                        .on_press(move |_| opened.set(true)),
+                )
+                .into_element();
+        }
+        rect()
+            .width(Size::px(vow_design::TOOLBAR_SEARCH_WIDTH))
+            .child(
+                crate::controls::SearchField::new(self.value, self.placeholder)
+                    .auto_focus(self.collapsed)
+                    .on_focus_change(move |focused: bool| {
+                        if !focused {
+                            opened.set(false);
+                        }
+                    }),
+            )
+            .into_element()
+    }
+}
+
+#[derive(PartialEq)]
+pub struct ToolbarOverflow {
+    items: Vec<crate::menu::MenuItem>,
+    on_activate: Option<Callback<String, ()>>,
+}
+
+impl ToolbarOverflow {
+    pub fn new(items: Vec<crate::menu::MenuItem>) -> Self {
+        Self {
+            items,
+            on_activate: None,
+        }
+    }
+
+    pub fn on_activate(mut self, callback: impl Into<Callback<String, ()>>) -> Self {
+        self.on_activate = Some(callback.into());
+        self
+    }
+}
+
+impl Component for ToolbarOverflow {
+    fn render(&self) -> impl IntoElement {
+        let mut area = use_state(torin::prelude::Area::default);
+        let items = self.items.clone();
+        let on_activate = self.on_activate.clone();
+        rect()
+            .on_sized(move |event: Event<SizedEventData>| area.set_if_modified(event.area))
+            .child(
+                IconButton::new(Symbol::ChevronDoubleRight, text!("more-items")).on_press(
+                    move |_| {
+                        let anchor = *area.peek();
+                        let on_activate = on_activate.clone();
+                        crate::popup_button::open_popover_menu(
+                            items.clone(),
+                            crate::platform::PopupAnchor::BottomLeft,
+                            (
+                                anchor.origin.x.round() as i32,
+                                anchor.origin.y.round() as i32,
+                                anchor.size.width.round() as u32,
+                                anchor.size.height.round() as u32,
+                            ),
+                            None,
+                            move |id| {
+                                if let Some(on_activate) = &on_activate {
+                                    on_activate.call(id);
+                                }
+                            },
+                        );
+                    },
+                ),
+            )
+    }
+}

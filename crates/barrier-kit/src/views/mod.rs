@@ -7,3 +7,5 @@ pub mod search;
 pub mod split;
 pub mod table;
 pub mod tabs;
+pub mod tree;
+pub mod window_tabs;

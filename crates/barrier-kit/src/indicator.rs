@@ -14,6 +14,7 @@ pub struct CapacityIndicator {
     value: f32,
     warning: f32,
     critical: f32,
+    segments: Option<u32>,
 }
 
 impl CapacityIndicator {
@@ -23,7 +24,13 @@ impl CapacityIndicator {
             value,
             warning: 1.0,
             critical: 1.0,
+            segments: None,
         }
+    }
+
+    pub fn discrete(mut self, segments: u32) -> Self {
+        self.segments = Some(segments.max(1));
+        self
     }
 
     pub fn thresholds(mut self, warning: f32, critical: f32) -> Self {
@@ -48,27 +55,85 @@ impl Component for CapacityIndicator {
         let palette = Palette::current();
         let value = self.value.clamp(0.0, 1.0);
         let fill = LEVEL_INDICATOR_COLORS[level_color(value, self.warning, self.critical)];
+        let cell = |filled: f32| {
+            rect()
+                .height(Size::fill())
+                .corner_radius(LEVEL_INDICATOR.radius)
+                .overflow(Overflow::Clip)
+                .background(color(palette.control_background))
+                .border(
+                    Border::new()
+                        .width(HAIRLINE)
+                        .alignment(BorderAlignment::Inner)
+                        .fill(color(palette.card_border)),
+                )
+                .child(
+                    rect()
+                        .width(Size::percent(filled * 100.0))
+                        .height(Size::fill())
+                        .background(color(fill)),
+                )
+        };
+        let bar = rect()
+            .a11y_role(AccessibilityRole::Meter)
+            .a11y_alt(self.label)
+            .a11y_builder(move |node| node.set_numeric_value(f64::from(value)))
+            .width(Size::fill())
+            .height(Size::px(LEVEL_INDICATOR.height));
+        match self.segments {
+            None => bar.child(cell(value).width(Size::fill())),
+            Some(segments) => bar
+                .direction(Direction::Horizontal)
+                .content(torin::prelude::Content::flex())
+                .spacing(LEVEL_INDICATOR.segment_gap)
+                .children((0..segments).map(|segment| {
+                    let filled = (value * segments as f32 - segment as f32).clamp(0.0, 1.0);
+                    cell(filled.round()).width(Size::flex(1.0)).into_element()
+                })),
+        }
+    }
+}
+
+#[derive(PartialEq)]
+pub struct RelevancyIndicator {
+    label: &'static str,
+    value: f32,
+}
+
+impl RelevancyIndicator {
+    pub fn new(label: &'static str, value: f32) -> Self {
+        Self {
+            label,
+            value: value.clamp(0.0, 1.0),
+        }
+    }
+}
+
+impl Component for RelevancyIndicator {
+    fn render(&self) -> impl IntoElement {
+        let palette = Palette::current();
+        let value = self.value;
+        let mut width = use_state(|| 0.0f32);
+        let pitch = LEVEL_INDICATOR.relevancy_line + LEVEL_INDICATOR.relevancy_gap;
+        let lines = ((*width.read() * value) / pitch).floor() as usize;
         rect()
             .a11y_role(AccessibilityRole::Meter)
             .a11y_alt(self.label)
             .a11y_builder(move |node| node.set_numeric_value(f64::from(value)))
             .width(Size::fill())
-            .height(Size::px(LEVEL_INDICATOR.height))
-            .corner_radius(LEVEL_INDICATOR.radius)
-            .overflow(Overflow::Clip)
-            .background(color(palette.control_background))
-            .border(
-                Border::new()
-                    .width(HAIRLINE)
-                    .alignment(BorderAlignment::Inner)
-                    .fill(color(palette.card_border)),
-            )
-            .child(
+            .height(Size::px(LEVEL_INDICATOR.relevancy_height))
+            .direction(Direction::Horizontal)
+            .spacing(LEVEL_INDICATOR.relevancy_gap)
+            .on_sized(move |event: Event<SizedEventData>| {
+                width.set_if_modified(event.area.width());
+            })
+            .children((0..lines).map(|_| {
                 rect()
-                    .width(Size::percent(value * 100.0))
+                    .width(Size::px(LEVEL_INDICATOR.relevancy_line))
                     .height(Size::fill())
-                    .background(color(fill)),
-            )
+                    .background(color(palette.secondary_label))
+                    .into_element()
+            }))
     }
 }
 
@@ -77,6 +142,7 @@ pub struct CircularGauge {
     label: &'static str,
     value: f32,
     current: String,
+    capacity: bool,
 }
 
 impl CircularGauge {
@@ -85,7 +151,13 @@ impl CircularGauge {
             label,
             value: value.clamp(0.0, 1.0),
             current: current.into(),
+            capacity: false,
         }
+    }
+
+    pub fn capacity(mut self, capacity: bool) -> Self {
+        self.capacity = capacity;
+        self
     }
 }
 
@@ -104,17 +176,30 @@ impl Component for CircularGauge {
         let center = size / 2.0;
         let radius = (size - GAUGE.stroke) / 2.0;
         let circumference = std::f32::consts::TAU * radius;
-        let open = circumference * GAUGE.arc / 360.0;
-        let start = 90.0 + (360.0 - GAUGE.arc) / 2.0;
-        let ring = format!(
-            r#"<svg viewBox="0 0 {size} {size}"><circle cx="{center}" cy="{center}" r="{radius}" fill="none" stroke="currentColor" stroke-width="{stroke}" stroke-linecap="round" stroke-dasharray="{open} {circumference}" transform="rotate({start} {center} {center})"/></svg>"#,
-            stroke = GAUGE.stroke,
-        );
+        let (arc, start) = if self.capacity {
+            (360.0, -90.0)
+        } else {
+            (GAUGE.arc, 90.0 + (360.0 - GAUGE.arc) / 2.0)
+        };
+        let arc_svg = |length: f32| {
+            format!(
+                r#"<svg viewBox="0 0 {size} {size}"><circle cx="{center}" cy="{center}" r="{radius}" fill="none" stroke="currentColor" stroke-width="{stroke}" stroke-linecap="round" stroke-dasharray="{length} {circumference}" transform="rotate({start} {center} {center})"/></svg>"#,
+                stroke = GAUGE.stroke,
+            )
+        };
+        let ring = arc_svg(circumference * arc / 360.0);
         let (x, y) = gauge_marker(self.value);
-        let marker = format!(
-            r#"<svg viewBox="0 0 {size} {size}"><circle cx="{x}" cy="{y}" r="{dot}" fill="currentColor"/></svg>"#,
-            dot = GAUGE.marker / 2.0,
-        );
+        let (marker, marker_ink) = if self.capacity {
+            (arc_svg(circumference * self.value), palette.accent)
+        } else {
+            (
+                format!(
+                    r#"<svg viewBox="0 0 {size} {size}"><circle cx="{x}" cy="{y}" r="{dot}" fill="currentColor"/></svg>"#,
+                    dot = GAUGE.marker / 2.0,
+                ),
+                palette.label,
+            )
+        };
         let layer = |svg: String, ink: vow_design::Rgba| {
             SvgViewer::new(Bytes::from(svg))
                 .width(Size::px(size))
@@ -129,11 +214,18 @@ impl Component for CircularGauge {
             .a11y_builder(move |node| node.set_numeric_value(f64::from(value)))
             .width(Size::px(size))
             .height(Size::px(size))
-            .child(layer(ring, palette.tertiary_label))
+            .child(layer(
+                ring,
+                if self.capacity {
+                    palette.control_background
+                } else {
+                    palette.tertiary_label
+                },
+            ))
             .child(
                 rect()
                     .position(Position::new_absolute())
-                    .child(layer(marker, palette.label).asset_age(AssetAge::zero())),
+                    .child(layer(marker, marker_ink).asset_age(AssetAge::zero())),
             )
             .child(
                 rect()

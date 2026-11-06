@@ -574,6 +574,10 @@ pub struct LevelIndicatorMetrics {
     pub radius: f32,
     pub star: f32,
     pub stars: u32,
+    pub segment_gap: f32,
+    pub relevancy_height: f32,
+    pub relevancy_line: f32,
+    pub relevancy_gap: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -617,6 +621,9 @@ pub struct DisclosureMetrics {
     pub indent: f32,
     pub row_height: f32,
     pub chevron: f32,
+    pub row_radius: f32,
+    pub icon: f32,
+    pub column_width: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -684,6 +691,7 @@ pub struct ScrollBarMetrics {
     pub track: f32,
     pub track_opacity: f32,
     pub always_opacity: f32,
+    pub edge_height: f32,
     pub hide_delay_ms: u64,
 }
 

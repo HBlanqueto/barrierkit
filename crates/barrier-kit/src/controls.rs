@@ -399,6 +399,9 @@ pub enum ButtonStyle {
     Primary,
     #[default]
     Secondary,
+    Glass,
+    GlassProminent,
+    Borderless,
 }
 
 #[derive(PartialEq)]
@@ -408,6 +411,7 @@ pub struct Button {
     disabled: bool,
     small: bool,
     large: bool,
+    on: Option<bool>,
     width: Size,
     on_press: Option<Callback<(), ()>>,
     key: DiffKey,
@@ -421,10 +425,16 @@ impl Button {
             disabled: false,
             small: false,
             large: false,
+            on: None,
             width: Size::auto(),
             on_press: None,
             key: DiffKey::None,
         }
+    }
+
+    pub fn toggled(mut self, on: bool) -> Self {
+        self.on = Some(on);
+        self
     }
 
     pub fn style(mut self, style: ButtonStyle) -> Self {
@@ -474,14 +484,29 @@ impl Component for Button {
         let palette = Palette::current();
         let interaction = use_interaction();
         let enabled = !self.disabled;
-        let (background, ink) = match (self.style, enabled) {
-            (_, false) => (palette.control_background, palette.tertiary_label),
-            (ButtonStyle::Primary, true) => (palette.accent, palette.on_accent),
-            (ButtonStyle::Secondary, true) if interaction.hovered() => {
-                (palette.control_hover, palette.label)
-            }
-            (ButtonStyle::Secondary, true) => (palette.control_background, palette.label),
+        let style = match self.on {
+            Some(true) => ButtonStyle::Primary,
+            _ => self.style,
         };
+        let clear = Rgba {
+            a: 0.0,
+            ..palette.control_background
+        };
+        let hovered = interaction.hovered();
+        let (background, ink) = match (style, enabled) {
+            (ButtonStyle::Borderless, false) => (clear, palette.tertiary_label),
+            (_, false) => (palette.control_background, palette.tertiary_label),
+            (ButtonStyle::Primary | ButtonStyle::GlassProminent, true) => {
+                (palette.accent, palette.on_accent)
+            }
+            (ButtonStyle::Secondary, true) if hovered => (palette.control_hover, palette.label),
+            (ButtonStyle::Secondary, true) => (palette.control_background, palette.label),
+            (ButtonStyle::Glass, true) if hovered => (palette.control_hover, palette.label),
+            (ButtonStyle::Glass, true) => (palette.raised_background, palette.label),
+            (ButtonStyle::Borderless, true) if hovered => (palette.control_hover, palette.label),
+            (ButtonStyle::Borderless, true) => (clear, palette.label),
+        };
+        let glass = matches!(style, ButtonStyle::Glass | ButtonStyle::GlassProminent);
         let on_press = self.on_press.clone();
         let (height, padding_x, font_size, radius) = if self.small {
             (
@@ -505,6 +530,7 @@ impl Component for Button {
                 BUTTON.radius,
             )
         };
+        let radius = if glass { height / 2.0 } else { radius };
 
         let button = interaction
             .attach(rect(), enabled)
@@ -516,6 +542,23 @@ impl Component for Button {
             .corner_radius(radius)
             .center()
             .background(color(background))
+            .maybe(glass, |el| {
+                el.border(
+                    Border::new()
+                        .width(vow_design::HAIRLINE)
+                        .alignment(BorderAlignment::Inner)
+                        .fill(color(palette.card_border)),
+                )
+            })
+            .map(self.on, |el, on| {
+                el.a11y_builder(move |node| {
+                    node.set_toggled(if on {
+                        accesskit::Toggled::True
+                    } else {
+                        accesskit::Toggled::False
+                    })
+                })
+            })
             .maybe(enabled && interaction.pressed(), |el| {
                 el.scale(BUTTON.pressed_scale)
             })
@@ -841,10 +884,16 @@ pub struct SearchField {
     on_focus_change: Option<Callback<bool, ()>>,
     on_navigate: Option<Callback<NamedKey, ()>>,
     a11y_id: Option<AccessibilityId>,
+    tokens: Option<State<Vec<String>>>,
     key: DiffKey,
 }
 
 impl SearchField {
+    pub fn tokens(mut self, tokens: State<Vec<String>>) -> Self {
+        self.tokens = Some(tokens);
+        self
+    }
+
     pub fn new(value: State<String>, placeholder: &'static str) -> Self {
         Self {
             value,
@@ -854,6 +903,7 @@ impl SearchField {
             on_focus_change: None,
             on_navigate: None,
             a11y_id: None,
+            tokens: None,
             key: DiffKey::None,
         }
     }
@@ -910,6 +960,19 @@ impl Component for SearchField {
                 }
             }
         });
+        let mut tokens_width = use_state(|| 0.0f32);
+        let tokens = self.tokens;
+        let shown_tokens = tokens
+            .map(|tokens| tokens.read().clone())
+            .unwrap_or_default();
+        let leading = padding
+            + icon
+            + gap
+            + if shown_tokens.is_empty() {
+                0.0
+            } else {
+                *tokens_width.read() + gap
+            };
         let mut input = themed_input(
             value,
             self.placeholder,
@@ -921,16 +984,37 @@ impl Component for SearchField {
             TEXT_FIELD.height / 2.0,
             padding + icon + gap,
         )
+        .theme_layout(InputLayoutThemePartial {
+            corner_radius: Some(Preference::Specific(CornerRadius::new_all(
+                TEXT_FIELD.height / 2.0,
+            ))),
+            inner_margin: Some(Preference::Specific(Gaps::new(
+                (TEXT_FIELD.height - TEXT.line_height as f32) / 2.0,
+                padding + icon + gap,
+                (TEXT_FIELD.height - TEXT.line_height as f32) / 2.0,
+                leading,
+            ))),
+        })
         .a11y_id(a11y_id)
         .auto_focus(self.auto_focus);
-        if let Some(on_navigate) = self.on_navigate.clone() {
+        let on_navigate = self.on_navigate.clone();
+        if on_navigate.is_some() || tokens.is_some() {
             input =
                 input.on_pre_key_down(move |event: Event<KeyboardEventData>| match &event.key {
                     Key::Named(
                         key @ (NamedKey::ArrowUp | NamedKey::ArrowDown | NamedKey::Enter),
-                    ) => {
+                    ) if on_navigate.is_some() => {
                         event.stop_propagation();
-                        on_navigate.call(*key);
+                        if let Some(on_navigate) = &on_navigate {
+                            on_navigate.call(*key);
+                        }
+                        false
+                    }
+                    Key::Named(NamedKey::Backspace) if value.peek().is_empty() => {
+                        if let Some(mut tokens) = tokens {
+                            tokens.write().pop();
+                        }
+                        event.stop_propagation();
                         false
                     }
                     _ => default_pre_key(&event),
@@ -965,6 +1049,24 @@ impl Component for SearchField {
                         palette.tertiary_label,
                     )),
             )
+            .maybe(!shown_tokens.is_empty(), |el| {
+                el.child(
+                    rect()
+                        .position(
+                            Position::new_absolute().left(padding + icon + gap).top(
+                                (TEXT_FIELD.height - vow_design::TOKEN_FIELD.token_height) / 2.0,
+                            ),
+                        )
+                        .direction(Direction::Horizontal)
+                        .spacing(vow_design::TOKEN_FIELD.gap)
+                        .on_sized(move |event: Event<SizedEventData>| {
+                            tokens_width.set_if_modified(event.area.width());
+                        })
+                        .children(shown_tokens.into_iter().map(|token| {
+                            crate::token_field::token_chip(token, false).into_element()
+                        })),
+                )
+            })
     }
 }
 

@@ -48,6 +48,8 @@ pub mod charts;
 
 pub mod popup_button;
 
+pub mod buttons;
+
 pub mod combo_box;
 
 pub mod text_editor;
@@ -63,6 +65,10 @@ pub mod path_control;
 pub mod date;
 
 pub mod date_picker;
+
+pub mod portal;
+
+pub mod color_picker;
 
 pub mod context_menu;
 

@@ -61,6 +61,24 @@ value.
 
 `Link::new("Más información…")` is a text link with `on_press`.
 
+`ButtonStyle` also has `Glass` and `GlassProminent`, the macOS 26 `.glass` and
+`.glassProminent` styles (a capsule with a thin border, neutral or with the
+accent), and `Borderless`, with no background until hovered. `.toggled(bool)`
+turns the button into a toggle: when on it takes the primary look and
+reports itself as `toggled`.
+
+`barrier_kit::buttons` adds:
+
+- `MenuButton::new(label, items)`: a button with a chevron that opens a menu
+  of actions (`NSPopUpButton` with `pullsDown`, SwiftUI `Menu`); it reports
+  through `on_activate(id)`.
+- `HelpButton`: the round help button with "?".
+- `ControlGroup`: buttons joined by separators, like `ControlGroup`; give them
+  the `Borderless` style.
+- `ShareButton::new(label, content)`: copy, send by email and, for a link,
+  open with another app (the `OpenURI` portal). freedesktop has no share
+  portal, so these are the actions.
+
 ## Switch and checkbox
 
 ```rust
@@ -173,7 +191,18 @@ path separated by chevrons in a 22 row, each with its icon
 (`.item(Symbol::Folder, "Documentos")`), and reports the pressed part through
 `on_select`. The 22 height comes from Xcode xibs; the capsule (18 high, 7
 padding and the accent at 20 %) is an estimate: there is no macOS 26 probe
-for these two controls.
+for these two controls. `SearchField::tokens(state)` shows the same capsules
+inside the search field, like the filters in Finder and Mail, and Backspace
+on an empty field removes the last one.
+
+`ColorPicker` (`barrier_kit::color_picker`) is a color well that opens a
+popover with hue, saturation and brightness and the hex value, like a small
+AppKit color panel.
+
+`barrier_kit::portal` talks to xdg-desktop-portal: `open_files` and
+`save_file` open the system file chooser (`FileChooser`), `open_uri` opens a
+link (`OpenURI`) and `notify` sends a notification (`Notification`). They are
+`async`; launch them with `spawn`.
 
 ```rust
 DatePicker::new("Fecha", CivilDateTime::new(CivilDate::new(2026, 11, 6), 9, 30))
@@ -220,7 +249,11 @@ warning threshold and to red at the critical one (`LEVEL_INDICATOR_COLORS`).
 a marker at the value and the current value in the centre
 ([Apple](https://developer.apple.com/documentation/swiftui/gaugestyle/accessorycircular)).
 Apple does not publish its measurements; the size (44), stroke (4) and arc
-(270°) are an estimate. The
+(270°) are an estimate. `.capacity(true)` switches it to the
+`accessoryCircularCapacity` style: a closed ring that fills with the accent.
+`CapacityIndicator::discrete(n)` splits it into `n` cells 2 apart, and
+`RelevancyIndicator` draws the thin lines of the relevancy style. For a label
+and value row (`LabeledContent`) there is already `Row::value(title, value)`. The
 measurements come from Xcode xibs and from
 [macos_ui](https://pub.dev/packages/macos_ui); there is no macOS 26 probe.
 
@@ -298,7 +331,9 @@ ScrollView::new().height(Size::px(120.0)).child(lista)
 and a `use_scroll_controller()` to scroll from code. The bar fades out over
 `DURATION_FAST_MS` unless `scroll_bars = "always"`, which shows it with an
 11 px track. `.top_line(true)` draws the divider over the content, which slides
-under it when scrolled.
+under it when scrolled. `.edge_effect(true)` is the soft edge effect of
+macOS 26 (`scrollEdgeEffectStyle(.soft)`): while scrolled, the content fades
+under the top edge over `SCROLL_BAR.edge_height` (24, an estimate).
 
 ## Symbols
 

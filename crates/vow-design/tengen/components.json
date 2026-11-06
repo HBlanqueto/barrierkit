@@ -54,6 +54,7 @@
       "stream-hole": 0.32,
       "series": ["blue", "green", "orange", "purple", "red", "yellow", "pink"]
     },
+    "toolbar-search-width": 180,
     "gauge": {
       "size": 44,
       "stroke": 4,
@@ -65,6 +66,10 @@
       "radius": 2,
       "star": 12,
       "stars": 5,
+      "segment-gap": 2,
+      "relevancy-height": 11,
+      "relevancy-line": 1,
+      "relevancy-gap": 1,
       "colors": ["green", "yellow", "red"]
     },
     "date-picker": {
@@ -98,7 +103,10 @@
     "disclosure": {
       "indent": 13,
       "row-height": 24,
-      "chevron": 13
+      "chevron": 13,
+      "row-radius": "radius.xs",
+      "icon": 16,
+      "column-width": 200
     },
     "popover": {
       "radius": 20,
@@ -658,7 +666,8 @@
       "opacity": 0.45,
       "track": 17,
       "track-opacity": 0.05,
-      "always-opacity": 0.55
+      "always-opacity": 0.55,
+      "edge-height": 24
     },
     "badge": {
       "height": 20,

@@ -39,6 +39,36 @@ pub fn commit_token(tokens: &mut Vec<String>, draft: &str) -> bool {
     true
 }
 
+pub(crate) fn token_chip(token: String, selected: bool) -> Rect {
+    let palette = Palette::current();
+    let (fill, ink) = if selected {
+        (palette.accent, palette.on_accent)
+    } else {
+        (
+            Rgba {
+                a: TOKEN_FIELD.token_opacity,
+                ..palette.accent
+            },
+            palette.label,
+        )
+    };
+    rect()
+        .height(Size::px(TOKEN_FIELD.token_height))
+        .padding(Gaps::new(
+            0.0,
+            TOKEN_FIELD.token_padding_x,
+            0.0,
+            TOKEN_FIELD.token_padding_x,
+        ))
+        .corner_radius(TOKEN_FIELD.token_height / 2.0)
+        .main_align(Alignment::Center)
+        .background(color(fill))
+        .a11y_role(AccessibilityRole::ListItem)
+        .a11y_alt(token.clone())
+        .a11y_builder(move |node| node.set_selected(selected))
+        .child(text(token, TEXT, ink))
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum TokenKey {
     Backspace,
@@ -141,37 +171,11 @@ impl Component for TokenField {
             .into_iter()
             .enumerate()
             .map(|(index, token)| {
-                let selected = *chosen.read() == Some(index);
-                let (fill, ink) = if selected {
-                    (palette.accent, palette.on_accent)
-                } else {
-                    (
-                        Rgba {
-                            a: TOKEN_FIELD.token_opacity,
-                            ..palette.accent
-                        },
-                        palette.label,
-                    )
-                };
-                let chip = rect()
-                    .height(Size::px(TOKEN_FIELD.token_height))
-                    .padding(Gaps::new(
-                        0.0,
-                        TOKEN_FIELD.token_padding_x,
-                        0.0,
-                        TOKEN_FIELD.token_padding_x,
-                    ))
-                    .corner_radius(TOKEN_FIELD.token_height / 2.0)
-                    .main_align(Alignment::Center)
-                    .background(color(fill))
-                    .a11y_role(AccessibilityRole::ListItem)
-                    .a11y_alt(token.clone())
-                    .a11y_builder(move |node| node.set_selected(selected))
+                let chip = token_chip(token.clone(), *chosen.read() == Some(index))
                     .on_press(move |_| {
                         chosen.set(Some(index));
                         input_id.request_focus();
                     })
-                    .child(text(token.clone(), TEXT, ink))
                     .into_element();
                 line(format!("{index}:{token}"), chip)
             });
