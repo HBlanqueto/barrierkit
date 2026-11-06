@@ -31,7 +31,8 @@ Dentro de la app, `WindowControls::get()` da el estado (`activated`,
 `maximized`, `fullscreen`, `decoration`, `fixed`) y las órdenes: `close()`,
 `minimize()`, `toggle_maximize()`, `toggle_fullscreen()`, `move_window()`,
 `resize(WindowEdge)`, `set_title(título)`, que cambia el título que ven el compositor y la barra de menús, y
-`set_background_alpha(alfa)`, que multiplica el alfa del fondo con que el runner limpia la ventana (1 es opaco).
+`set_background_alpha(alfa)`, que multiplica el alfa del fondo con que el runner limpia la ventana (1 es opaco), y
+`open_window(app, opciones)`, que abre otra ventana en el mismo proceso; el proceso termina al cerrarse la última.
 
 ## Ventanas auxiliares
 

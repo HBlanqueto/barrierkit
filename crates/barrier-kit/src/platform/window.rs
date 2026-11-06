@@ -236,6 +236,10 @@ impl WindowControls {
         self.send(WindowCommand::SetTitle(title.into()));
     }
 
+    pub fn open_window(&self, app: AppComponent, options: WindowOptions) {
+        self.send(WindowCommand::Open(Box::new((app, options))));
+    }
+
     pub fn set_background_alpha(&self, alpha: f32) {
         self.send(WindowCommand::BackgroundAlpha(alpha.clamp(0.0, 1.0)));
     }
@@ -272,6 +276,7 @@ pub(crate) enum WindowCommand {
     Bar(Bar),
     SetTitle(String),
     BackgroundAlpha(f32),
+    Open(Box<(AppComponent, WindowOptions)>),
 }
 
 pub(super) fn resize_edge(edge: WindowEdge) -> xdg_toplevel::ResizeEdge {
@@ -547,6 +552,11 @@ impl Runtime {
                     self.close_window(controls.surface_id.clone());
                     continue;
                 }
+                if let WindowCommand::Open(window) = command {
+                    let (app, options) = *window;
+                    self.create_window(app, options, None);
+                    continue;
+                }
                 let Some(index) = self.surface_index_by_id(&controls.surface_id) else {
                     continue;
                 };
@@ -595,7 +605,9 @@ impl Runtime {
                             style.set_bar(window.wl_surface(), bar);
                         }
                     }
-                    WindowCommand::Close | WindowCommand::BackgroundAlpha(_) => unreachable!(),
+                    WindowCommand::Close
+                    | WindowCommand::BackgroundAlpha(_)
+                    | WindowCommand::Open(_) => unreachable!(),
                 }
                 self.surfaces[index].needs_redraw = true;
             }
@@ -729,7 +741,7 @@ impl Runtime {
             }
             status.set(WindowStatus {
                 activated: false,
-                ..*status.read()
+                ..shown
             });
         }
         if !self.needs_exit && matches!(self.surfaces[index].role, SurfaceRole::Window(_)) {
