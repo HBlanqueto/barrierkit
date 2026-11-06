@@ -56,6 +56,10 @@ pub mod popover;
 
 pub mod indicator;
 
+pub mod token_field;
+
+pub mod path_control;
+
 pub mod context_menu;
 
 pub mod tooltip;

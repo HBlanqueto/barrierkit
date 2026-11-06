@@ -569,6 +569,22 @@ pub struct LevelIndicatorMetrics {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct TokenFieldMetrics {
+    pub token_height: f32,
+    pub token_padding_x: f32,
+    pub gap: f32,
+    pub input_min_width: f32,
+    pub token_opacity: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct PathControlMetrics {
+    pub height: f32,
+    pub gap: f32,
+    pub chevron: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct GroupBoxMetrics {
     pub radius: f32,
     pub padding: f32,

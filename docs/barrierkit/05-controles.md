@@ -163,6 +163,15 @@ desplaza dentro del alto que le da `.height(..)` (por defecto, todo el
 contenedor). Usa el motor de edición de Freya (`freya-edit`) y el aspecto de
 `TextField`.
 
+`TokenField` (`barrier_kit::token_field`), como `NSTokenField`, guarda
+etiquetas en un `State<Vec<String>>`: Enter o una coma convierten el texto en
+una cápsula y Retroceso con el campo vacío borra la última. `PathControl`
+(`barrier_kit::path_control`), como `NSPathControl`, muestra las partes de
+una ruta separadas por chevrones en una fila de 22 y avisa con `on_select` de
+la parte pulsada. La altura de 22 sale de xib de Xcode; la cápsula (18 de
+alto, 7 de margen y el acento al 20 %) es una estimación: no hay un probe de
+macOS 26 para estos dos controles.
+
 ## Progreso
 
 ```rust

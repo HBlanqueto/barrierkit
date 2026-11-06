@@ -163,6 +163,15 @@ with the kit menu. It measures like the AppKit render on macOS 26
 inside the height `.height(..)` gives it (by default, the whole container). It
 uses Freya's editing engine (`freya-edit`) and the look of `TextField`.
 
+`TokenField` (`barrier_kit::token_field`), like `NSTokenField`, keeps tags in
+a `State<Vec<String>>`: Enter or a comma turns the text into a capsule and
+Backspace on an empty field deletes the last one. `PathControl`
+(`barrier_kit::path_control`), like `NSPathControl`, shows the parts of a
+path separated by chevrons in a 22 row and reports the pressed part through
+`on_select`. The 22 height comes from Xcode xibs; the capsule (18 high, 7
+padding and the accent at 20 %) is an estimate: there is no macOS 26 probe
+for these two controls.
+
 ## Progress
 
 ```rust

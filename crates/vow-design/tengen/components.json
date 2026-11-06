@@ -61,6 +61,18 @@
       "stars": 5,
       "colors": ["green", "yellow", "red"]
     },
+    "token-field": {
+      "token-height": 18,
+      "token-padding-x": 7,
+      "gap": 4,
+      "input-min-width": 80,
+      "token-opacity": 0.2
+    },
+    "path-control": {
+      "height": 22,
+      "gap": 4,
+      "chevron": 10
+    },
     "group-box": {
       "radius": 11,
       "padding": 5,

@@ -1017,3 +1017,36 @@ fn the_text_editor_inserts_a_new_line_on_enter() {
     }
     assert_eq!(*typed.borrow(), "Hola\nmundo");
 }
+
+#[test]
+fn the_token_field_turns_enter_and_commas_into_tokens_and_backspace_removes_the_last() {
+    use std::cell::RefCell;
+    use std::rc::Rc;
+
+    use barrier_kit::token_field::TokenField;
+
+    struct TokensCase(Rc<RefCell<Vec<String>>>);
+    impl App for TokensCase {
+        fn render(&self) -> impl IntoElement {
+            let tokens = use_state(Vec::<String>::new);
+            *self.0.borrow_mut() = tokens.read().clone();
+            TokenField::new(tokens, "Para")
+        }
+    }
+
+    let seen = Rc::new(RefCell::new(Vec::new()));
+    let app = AppComponent::new(TokensCase(seen.clone()));
+    let (mut test, _) = TestingRunner::new(app, Size2D::new(300.0, 60.0), |_| {}, 1.0);
+    test.sync_and_update();
+    test.click_cursor((20.0, 12.0));
+    test.sync_and_update();
+    test.write_text("ana");
+    test.press_key(Key::Named(NamedKey::Enter));
+    test.write_text("luis");
+    test.write_text(",");
+    test.sync_and_update();
+    assert_eq!(*seen.borrow(), ["ana", "luis"]);
+    test.press_key(Key::Named(NamedKey::Backspace));
+    test.sync_and_update();
+    assert_eq!(*seen.borrow(), ["ana"]);
+}

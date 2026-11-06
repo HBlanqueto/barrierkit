@@ -27,6 +27,7 @@ use barrier_kit::indicator::{CapacityIndicator, RatingIndicator};
 use barrier_kit::level::{LevelSlider, LevelStyle};
 use barrier_kit::menu::MenuItem;
 use barrier_kit::password::PasswordField;
+use barrier_kit::path_control::PathControl;
 use barrier_kit::patterns::about::about_window;
 use barrier_kit::patterns::language::app_language_row;
 use barrier_kit::patterns::preferences::{Pane, PaneGroup, PreferencesWindow};
@@ -41,6 +42,7 @@ use barrier_kit::symbol::Symbol;
 use barrier_kit::text_editor::TextEditor;
 use barrier_kit::theme::use_appearance;
 use barrier_kit::titlebar::Titlebar;
+use barrier_kit::token_field::TokenField;
 use barrier_kit::tooltip::use_tooltip;
 use barrier_kit::traffic::TrafficLights;
 use barrier_kit::views::collection::CollectionView;
@@ -229,6 +231,7 @@ fn fields(
     password: State<PasswordField>,
     shell: State<String>,
     notes: State<String>,
+    recipients: State<Vec<String>>,
 ) -> Form {
     Form::new().section(
         Section::titled(tr!("fields"))
@@ -263,7 +266,21 @@ fn fields(
                 rect().width(Size::px(SPLIT_VIEW.inspector)).child(
                     TextEditor::new(notes, tr!("notes")).height(Size::px(TEXT_FIELD.height * 3.0)),
                 ),
-            )),
+            ))
+            .row(
+                Row::new(tr!("token-field")).control(
+                    TokenField::new(recipients, tr!("recipients"))
+                        .width(Size::px(SPLIT_VIEW.inspector)),
+                ),
+            )
+            .row(Row::new(tr!("path-control")).control(PathControl::new(
+                tr!("path-control"),
+                vec![
+                    tr!("home").to_owned(),
+                    tr!("documents").to_owned(),
+                    tr!("projects").to_owned(),
+                ],
+            ))),
     )
 }
 
@@ -726,6 +743,7 @@ impl App for Show {
         let password = use_state(PasswordField::default);
         let shell = use_state(|| "fish".to_string());
         let notes = use_state(String::new);
+        let recipients = use_state(|| vec!["ana@ejemplo.org".to_string()]);
         let sort = use_state(|| None::<SortOrder>);
         let selected = use_state(Vec::new);
         let mut alert = use_state(|| false);
@@ -790,7 +808,7 @@ impl App for Show {
                         tr!("fields"),
                         Symbol::MagnifyingGlass,
                         tint(7),
-                        fields(name, query, password, shell, notes),
+                        fields(name, query, password, shell, notes, recipients),
                     ))
                     .pane(Pane::new(
                         "progreso",

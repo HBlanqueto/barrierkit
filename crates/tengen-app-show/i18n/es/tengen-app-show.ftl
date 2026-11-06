@@ -99,6 +99,12 @@ combo-box = Combo box
 shell = Intérprete
 text-editor = Editor de texto
 notes = Notas
+token-field = Campo de tokens
+recipients = Destinatarios
+path-control = Ruta
+home = Inicio
+documents = Documentos
+projects = Proyectos
 
 progress-ring = Anillo
 capacity = Capacidad

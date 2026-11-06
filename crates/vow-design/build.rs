@@ -50,6 +50,8 @@ STEPPER StepperMetrics components.stepper
 COMBO_BOX ComboBoxMetrics components.combo-box
 POPOVER PopoverMetrics components.popover
 GROUP_BOX GroupBoxMetrics components.group-box
+TOKEN_FIELD TokenFieldMetrics components.token-field
+PATH_CONTROL PathControlMetrics components.path-control
 DISCLOSURE DisclosureMetrics components.disclosure
 LEVEL_INDICATOR LevelIndicatorMetrics components.level-indicator
 BADGE BadgeMetrics components.badge
