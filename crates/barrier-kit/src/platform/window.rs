@@ -324,6 +324,17 @@ fn within(size: (u32, u32), min: Option<(u32, u32)>, max: Option<(u32, u32)>) ->
     )
 }
 
+pub(crate) struct OpenUtility {
+    pub(crate) app: AppComponent,
+    pub(crate) options: WindowOptions,
+}
+
+pub fn open_utility_window(app: AppComponent, options: WindowOptions) {
+    freya_core::prelude::Platform::get().send(freya_core::integration::UserEvent::Erased(
+        freya_core::integration::SingleThreadErasedEvent(Box::new(OpenUtility { app, options })),
+    ));
+}
+
 pub fn run_window(app: AppComponent, options: WindowOptions) -> Result<(), RunError> {
     let Connected {
         conn,
@@ -332,7 +343,7 @@ pub fn run_window(app: AppComponent, options: WindowOptions) -> Result<(), RunEr
         ..
     } = Runtime::connect()?;
     shell
-        .create_window(app, options)
+        .create_window(app, options, None)
         .ok_or(RunError::MissingGlobal("xdg_wm_base"))?;
 
     shell.run(conn, event_queue, |_, _| {})
@@ -342,16 +353,37 @@ impl Runtime {
         &mut self,
         app: AppComponent,
         mut options: WindowOptions,
+        parent: Option<&ObjectId>,
     ) -> Option<WindowControls> {
+        let parent =
+            parent
+                .and_then(|id| self.surface_index_by_id(id))
+                .and_then(|index| match &self.surfaces[index].role {
+                    SurfaceRole::Window(window) => Some((
+                        window.clone(),
+                        self.surfaces[index].context.as_ref()?.app_id.clone(),
+                    )),
+                    _ => None,
+                });
         let xdg_shell = self.xdg_shell.as_ref()?;
         let qh = &self.qh;
         let surface = self.compositor.create_surface(qh);
         let window = xdg_shell.create_window(surface.clone(), WindowDecorations::RequestClient, qh);
-        let app_id = options
-            .app_id
-            .clone()
-            .unwrap_or_else(|| format!("{}{}", vow_design::NATIVE_APP_ID_PREFIX, options.app_name));
-        let saved: SavedSize = crate::app::load_restoration(&window_state(&app_id));
+        let app_id = match &parent {
+            Some((_, app_id)) => app_id.clone(),
+            None => options.app_id.clone().unwrap_or_else(|| {
+                format!("{}{}", vow_design::NATIVE_APP_ID_PREFIX, options.app_name)
+            }),
+        };
+        let utility = parent.is_some();
+        if let Some((parent, _)) = &parent {
+            window.set_parent(Some(parent));
+        }
+        let saved: SavedSize = if utility {
+            SavedSize::default()
+        } else {
+            crate::app::load_restoration(&window_state(&app_id))
+        };
         if saved.width > 0 && saved.height > 0 {
             options.size = within(
                 (saved.width, saved.height),
@@ -455,6 +487,7 @@ impl Runtime {
             controls: controls.clone(),
             app_id,
             focus_notice,
+            utility,
         });
         self.surfaces.push(window);
         Some(controls)
@@ -626,7 +659,9 @@ impl Runtime {
         let Some(index) = self.surface_index_by_id(&surface_id) else {
             return;
         };
-        if let Some(context) = &self.surfaces[index].context {
+        if let Some(context) = &self.surfaces[index].context
+            && !context.utility
+        {
             let mut status = context.controls.status;
             let shown = *status.peek();
             let state = window_state(&context.app_id);

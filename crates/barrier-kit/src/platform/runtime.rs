@@ -127,6 +127,7 @@ pub(crate) struct WindowContext {
     pub(crate) controls: WindowControls,
     pub(crate) app_id: String,
     pub(crate) focus_notice: Option<super::focus::InfinityFocusSurfaceV1>,
+    pub(crate) utility: bool,
 }
 
 impl Runtime {
@@ -182,6 +183,12 @@ fn insert_ping(event_loop: &mut EventLoop<Runtime>, shell: &mut Runtime) -> Resu
                         if let Some(index) = shell.surface_index_by_id(&surface_id) {
                             shell.surfaces[index].app.requested_focus = Some(strategy);
                             shell.surfaces[index].needs_redraw = true;
+                        }
+                    }
+                    UserEvent::Erased(event) if event.0.is::<super::window::OpenUtility>() => {
+                        if let Ok(open) = event.0.downcast::<super::window::OpenUtility>() {
+                            let open = *open;
+                            shell.create_window(open.app, open.options, Some(&surface_id));
                         }
                     }
                     UserEvent::Erased(event) if event.0.is::<crate::drag::StartDrag>() => {

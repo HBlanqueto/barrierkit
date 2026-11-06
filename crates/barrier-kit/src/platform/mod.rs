@@ -34,7 +34,7 @@ pub(crate) struct EditShortcut {
 pub(crate) use window::window_activated;
 pub use window::{
     DecorationResponse, FullscreenBar, WindowControls, WindowEdge, WindowOptions, WindowStatus,
-    run_window,
+    open_utility_window, run_window,
 };
 pub(crate) use window_style::Bar;
 

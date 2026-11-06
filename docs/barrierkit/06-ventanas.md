@@ -32,6 +32,22 @@ Dentro de la app, `WindowControls::get()` da el estado (`activated`,
 `minimize()`, `toggle_maximize()`, `toggle_fullscreen()`, `move_window()`,
 `resize(WindowEdge)`.
 
+## Ventanas auxiliares
+
+```rust
+open_utility_window(AppComponent::new(Inspector), WindowOptions::new("Inspector", "Vista").size((260, 360)));
+```
+
+Una app abre paneles flotantes, como `UtilityWindow` de SwiftUI o el inspector
+de Vista Previa, con `barrier_kit::platform::open_utility_window`:
+
+1. Se llama desde un componente de la ventana que la abre.
+2. El runtime crea otra `xdg_toplevel` con `set_parent` hacia esa ventana, así
+   que el compositor la mantiene encima y la agrupa con ella.
+3. Usa el `app_id` de la ventana madre y no guarda ni restaura su tamaño, para
+   no pisar el de la principal.
+4. Cerrarla solo la quita a ella; la app sigue mientras quede otra ventana.
+
 ## Estado de la ventana
 
 El estado llega en cada configure del compositor y se lee con

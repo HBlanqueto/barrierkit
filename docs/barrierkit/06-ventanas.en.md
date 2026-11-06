@@ -32,6 +32,22 @@ Inside the app, `WindowControls::get()` gives the state (`activated`,
 `minimize()`, `toggle_maximize()`, `toggle_fullscreen()`, `move_window()`,
 `resize(WindowEdge)`.
 
+## Utility windows
+
+```rust
+open_utility_window(AppComponent::new(Inspector), WindowOptions::new("Inspector", "Vista").size((260, 360)));
+```
+
+An app opens floating panels, like SwiftUI's `UtilityWindow` or the Preview
+inspector, with `barrier_kit::platform::open_utility_window`:
+
+1. Call it from a component of the window that opens it.
+2. The runtime creates another `xdg_toplevel` with `set_parent` towards that
+   window, so the compositor keeps it on top and groups it with it.
+3. It uses the parent window's `app_id` and neither saves nor restores its
+   size, so it does not overwrite the main one's.
+4. Closing it removes only it; the app goes on while another window remains.
+
 ## Window state
 
 The state arrives with each compositor configure and is read with
