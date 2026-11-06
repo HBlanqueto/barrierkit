@@ -37,7 +37,7 @@
     },
     "slider": {
       "height": 20,
-      "track": 4,
+      "track": 6,
       "knob-width": 20,
       "knob-height": 16,
       "fat": {
@@ -57,15 +57,15 @@
     },
     "text-field": {
       "height": 24,
-      "padding-x": 12,
+      "padding-x": 6,
       "radius": "radius.button"
     },
     "segmented": {
-      "padding": 2,
-      "gap": 2,
+      "padding": 0,
+      "gap": 0,
       "radius": "radius.button",
-      "segment-radius": 4,
-      "segment-height": 20,
+      "segment-radius": "radius.button",
+      "segment-height": 24,
       "segment-padding-x": 12,
       "font": {
         "size": 13,
@@ -351,9 +351,9 @@
       },
       "search": {
         "height": "size.control-md",
-        "padding-x": 10,
+        "padding-x": 4,
         "icon": 16,
-        "gap": 6,
+        "gap": 4,
         "popover-gap": 6,
         "popover-max-height": 420,
         "result-height": 40,
@@ -442,18 +442,18 @@
       "radio": {
         "size": 16,
         "dot": 6,
-        "gap": 7,
+        "gap": 6,
         "spacing": 6
       },
       "strength": {
         "width": 220,
-        "track": 5,
+        "track": 6,
         "tick": 2,
         "tick-gap": 4,
         "label-gap": 4
       },
       "check": {
-        "gap": 7,
+        "gap": 6,
         "row-gap": 6
       },
       "dropdown": {
@@ -566,7 +566,7 @@
       "padding-x": 8
     },
     "focus-ring": {
-      "width": 3.5,
+      "width": 3,
       "offset": 0
     },
     "shell": {

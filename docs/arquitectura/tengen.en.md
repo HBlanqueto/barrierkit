@@ -51,7 +51,8 @@ Do not edit `crates/vow-design/src/` to change a value: it holds the types
 - **Heights:** `size.titlebar-h = 40` in own apps and
   `size.titlebar-ssd-h = 32` in the bar the compositor draws.
 - **Typography:** `font.families.sans` starts with Geist; the window title
-  (`font.styles.window-title`) is 13/18/700, like AppKit's `titleBarFont`.
+  uses `font.styles.headline`, 13/18/700, like AppKit's `titleBarFont` and
+  `headline` style (weight trait 0.4).
 - **Shadows:** `shadow.layers.{light,dark}` hold the ambient and contact
   layers; `shadow.unfocused` sets the inactive-window factors.
 - **Window corners:** `components.window.corner` → `WINDOW_CORNER`, with the
