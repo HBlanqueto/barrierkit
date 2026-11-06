@@ -673,7 +673,8 @@ impl WindowHandler for Runtime {
         );
         self.surfaces[index].pending_configure = Some((configure, serial));
         self.surfaces[index].needs_redraw = true;
-        if self.surfaces[index].draw_count == 0 {
+        // xdg-shell: SCTK has acked, so the next commit must carry this configure's geometry.
+        if self.surfaces[index].draw_count == 0 || !self.surfaces[index].frame_pending {
             self.apply_pending_window_configures(qh);
         }
         self.surfaces[index].draw_after_configure(&self.compositor, qh);
