@@ -303,7 +303,7 @@ fn table() -> Element {
             column: 0,
             ascending: true,
         }))
-        .selected(Some(1))
+        .selected(vec![1])
         .into_element()
 }
 

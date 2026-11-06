@@ -1,12 +1,15 @@
 use freya_components::scrollviews::VirtualScrollView;
 use freya_core::prelude::*;
-use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
+use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 use vow_design::{CAPTION, Rgba, SPACE_1, TABLE, TEXT};
 
+use crate::context_menu::context_menu;
 use crate::interaction::use_interaction;
+use crate::menu::{CheckState, MenuItem};
 use crate::style::{Palette, text};
 use crate::symbol::{Symbol, symbol};
 use crate::theme::color;
+use crate::views::collection::{select, track_modifiers, use_held_modifiers};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct SortOrder {
@@ -20,9 +23,9 @@ pub struct Table {
     columns: Vec<&'static str>,
     rows: Vec<Vec<String>>,
     sort: Option<SortOrder>,
-    selected: Option<usize>,
+    selected: Vec<usize>,
     on_sort: Option<Callback<SortOrder, ()>>,
-    on_select: Option<Callback<usize, ()>>,
+    on_select: Option<Callback<Vec<usize>, ()>>,
 }
 
 impl Table {
@@ -32,7 +35,7 @@ impl Table {
             columns,
             rows: Vec::new(),
             sort: None,
-            selected: None,
+            selected: Vec::new(),
             on_sort: None,
             on_select: None,
         }
@@ -48,8 +51,8 @@ impl Table {
         self
     }
 
-    pub fn selected(mut self, row: Option<usize>) -> Self {
-        self.selected = row;
+    pub fn selected(mut self, rows: Vec<usize>) -> Self {
+        self.selected = rows;
         self
     }
 
@@ -58,7 +61,7 @@ impl Table {
         self
     }
 
-    pub fn on_select(mut self, callback: impl Into<Callback<usize, ()>>) -> Self {
+    pub fn on_select(mut self, callback: impl Into<Callback<Vec<usize>, ()>>) -> Self {
         self.on_select = Some(callback.into());
         self
     }
@@ -77,19 +80,36 @@ pub fn next_sort(current: Option<SortOrder>, column: usize) -> SortOrder {
     }
 }
 
-fn cells(values: impl Iterator<Item = Element>) -> Rect {
+fn cells(values: impl Iterator<Item = (Option<f32>, Element)>) -> Rect {
     rect()
         .width(Size::fill())
         .direction(Direction::Horizontal)
         .content(Content::flex())
         .cross_align(Alignment::Center)
-        .children(values.map(|cell| {
+        .children(values.map(|(width, cell)| {
             rect()
-                .width(Size::flex(1.0))
+                .width(width.map_or(Size::flex(1.0), Size::px))
                 .padding(Gaps::new(0.0, TABLE.padding_x, 0.0, TABLE.padding_x))
                 .child(cell)
                 .into_element()
         }))
+}
+
+pub fn shown_columns(hidden: &[usize], count: usize) -> Vec<usize> {
+    (0..count)
+        .filter(|column| !hidden.contains(column))
+        .collect()
+}
+
+pub fn toggle_column(hidden: &[usize], column: usize, count: usize) -> Vec<usize> {
+    if hidden.contains(&column) {
+        return hidden.iter().copied().filter(|&c| c != column).collect();
+    }
+    let mut next = hidden.to_vec();
+    if shown_columns(hidden, count).len() > 1 {
+        next.push(column);
+    }
+    next
 }
 
 impl Component for Table {
@@ -97,21 +117,52 @@ impl Component for Table {
         let palette = Palette::current();
         let sort = self.sort;
         let interaction = use_interaction();
-        let header = cells(self.columns.iter().enumerate().map(|(index, title)| {
+        let held = use_held_modifiers();
+        let mut hidden = use_state(Vec::<usize>::new);
+        let mut widths = use_state(|| vec![None::<f32>; self.columns.len()]);
+        let mut measured = use_state(|| vec![0.0f32; self.columns.len()]);
+        let mut drag = use_state(|| None::<(usize, f64, f32)>);
+        let shown = shown_columns(&hidden.read(), self.columns.len());
+        let width_of = move |column: usize| widths.read().get(column).copied().flatten();
+
+        let header = cells(shown.iter().map(|&index| {
             let arrow = match sort {
                 Some(order) if order.column == index && order.ascending => Some(Symbol::ChevronUp),
                 Some(order) if order.column == index => Some(Symbol::ChevronDown),
                 _ => None,
             };
-            HeaderCell {
-                title,
+            let cell = HeaderCell {
+                title: self.columns[index],
                 arrow,
                 on_press: self
                     .on_sort
                     .clone()
                     .map(|on_sort| Callback::new(move |_| on_sort.call(next_sort(sort, index)))),
-            }
-            .into_element()
+            };
+            let handle = rect()
+                .position(
+                    Position::new_absolute().right(-TABLE.padding_x - TABLE.resize_handle / 2.0),
+                )
+                .width(Size::px(TABLE.resize_handle))
+                .height(Size::px(TABLE.header_height))
+                .on_pointer_enter(|_| Cursor::set(CursorIcon::ColResize))
+                .on_pointer_leave(|_| Cursor::set(CursorIcon::default()))
+                .on_pointer_down(move |event: Event<PointerEventData>| {
+                    event.stop_propagation();
+                    let start = measured.peek()[index];
+                    drag.set(Some((index, event.global_location().x, start)));
+                });
+            let content = rect()
+                .width(Size::fill())
+                .on_sized(move |event: Event<SizedEventData>| {
+                    let width = event.area.width() + 2.0 * TABLE.padding_x;
+                    if measured.peek()[index] != width {
+                        measured.write()[index] = width;
+                    }
+                })
+                .child(cell)
+                .child(handle);
+            (width_of(index), content.into_element())
         }))
         .height(Size::px(TABLE.header_height))
         .border(
@@ -120,17 +171,37 @@ impl Component for Table {
                 .alignment(BorderAlignment::Inner)
                 .fill(color(palette.separator)),
         );
+        let count = self.columns.len();
+        let menu = self
+            .columns
+            .iter()
+            .enumerate()
+            .map(|(index, title)| {
+                MenuItem::action(index.to_string(), *title)
+                    .with_check(CheckState::Checkbox(!hidden.read().contains(&index)))
+            })
+            .collect();
+        let header = context_menu(header, menu, move |id: String| {
+            if let Ok(column) = id.parse::<usize>() {
+                let next = toggle_column(&hidden.peek(), column, count);
+                hidden.set(next);
+            }
+        });
 
+        let column_widths: Vec<Option<f32>> = shown.iter().map(|&c| width_of(c)).collect();
         let data = (
             self.rows.clone(),
-            self.selected,
+            self.selected.clone(),
             self.on_select.clone(),
             palette,
+            shown.clone(),
+            column_widths,
+            held,
         );
         let body = VirtualScrollView::new_with_data(
             data,
-            |index, (rows, selected, on_select, palette)| {
-                let selected_row = *selected == Some(index);
+            |index, (rows, selected, on_select, palette, shown, column_widths, held)| {
+                let selected_row = selected.contains(&index);
                 let (background, ink) = if selected_row {
                     (Some(palette.accent), palette.on_accent)
                 } else if index % 2 == 1 {
@@ -145,11 +216,16 @@ impl Component for Table {
                     (None, palette.label)
                 };
                 let on_select = on_select.clone();
-                cells(
-                    rows[index]
-                        .iter()
-                        .map(|value| text(value.clone(), TEXT, ink).into_element()),
-                )
+                let selected = selected.clone();
+                let held = *held;
+                cells(shown.iter().zip(column_widths).map(|(&column, width)| {
+                    let value = rows[index].get(column).cloned().unwrap_or_default();
+                    let value = rect()
+                        .width(Size::fill())
+                        .overflow(Overflow::Clip)
+                        .child(text(value, TEXT, ink));
+                    (*width, value.into_element())
+                }))
                 .a11y_role(AccessibilityRole::Row)
                 .a11y_builder(move |node| node.set_selected(selected_row))
                 .height(Size::px(TABLE.row_height))
@@ -158,7 +234,7 @@ impl Component for Table {
                 })
                 .on_press(move |_| {
                     if let Some(cb) = &on_select {
-                        cb.call(index);
+                        cb.call(select(&selected, index, *held.peek()));
                     }
                 })
                 .into_element()
@@ -167,14 +243,26 @@ impl Component for Table {
         .length(self.rows.len())
         .item_size(TABLE.row_height);
 
-        let (rows, selected, on_select) = (self.rows.len(), self.selected, self.on_select.clone());
-        let table = interaction
-            .attach(rect(), true)
+        let (rows, on_select) = (self.rows.len(), self.on_select.clone());
+        let selected = self.selected.last().copied();
+        let table = track_modifiers(interaction.attach(rect(), true), held)
             .a11y_role(AccessibilityRole::Table)
             .a11y_alt(self.label)
             .width(Size::fill())
             .height(Size::fill())
             .direction(Direction::Vertical)
+            .on_global_pointer_move(move |event: Event<PointerEventData>| {
+                if let Some((column, origin, start)) = *drag.peek() {
+                    let width = (start + (event.global_location().x - origin) as f32)
+                        .max(TABLE.min_column_width);
+                    widths.write()[column] = Some(width);
+                }
+            })
+            .on_global_pointer_press(move |_| {
+                if drag.peek().is_some() {
+                    drag.set(None);
+                }
+            })
             .on_key_down(move |event: Event<KeyboardEventData>| {
                 let down = match event.key {
                     Key::Named(NamedKey::ArrowDown) => true,
@@ -185,7 +273,7 @@ impl Component for Table {
                 if next != selected
                     && let (Some(next), Some(cb)) = (next, &on_select)
                 {
-                    cb.call(next);
+                    cb.call(vec![next]);
                 }
             })
             .child(header)
@@ -271,5 +359,13 @@ mod tests {
         assert_eq!(step_selection(Some(2), 3, true), Some(2));
         assert_eq!(step_selection(Some(0), 3, false), Some(0));
         assert_eq!(step_selection(None, 0, true), None);
+    }
+
+    #[test]
+    fn hiding_a_column_keeps_at_least_one_shown_and_hiding_it_again_shows_it() {
+        assert_eq!(toggle_column(&[], 1, 3), [1]);
+        assert_eq!(toggle_column(&[1], 1, 3), Vec::<usize>::new());
+        assert_eq!(toggle_column(&[0, 1], 2, 3), [0, 1]);
+        assert_eq!(shown_columns(&[0, 2], 3), [1]);
     }
 }

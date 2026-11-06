@@ -41,8 +41,19 @@ impl CollectionView {
     }
 }
 
-pub fn select(current: &[usize], index: usize, additive: bool) -> Vec<usize> {
-    if !additive {
+pub fn select(current: &[usize], index: usize, held: Modifiers) -> Vec<usize> {
+    if held.contains(Modifiers::SHIFT)
+        && let Some(&anchor) = current.last()
+    {
+        let mut range: Vec<usize> = if anchor <= index {
+            (anchor + 1..=index).collect()
+        } else {
+            (index..anchor).rev().collect()
+        };
+        range.push(anchor);
+        return range;
+    }
+    if !held.intersects(Modifiers::CONTROL | Modifiers::META) {
         return vec![index];
     }
     let mut next: Vec<usize> = current.iter().copied().filter(|&i| i != index).collect();
@@ -52,15 +63,39 @@ pub fn select(current: &[usize], index: usize, additive: bool) -> Vec<usize> {
     next
 }
 
+pub(crate) fn use_held_modifiers() -> State<Modifiers> {
+    let mut held = use_state(Modifiers::empty);
+    let status = try_consume_root_context::<WindowControls>().map(|controls| controls.status);
+    use_side_effect(move || {
+        if status.is_some_and(|status| !status.read().activated) {
+            held.set_if_modified(Modifiers::empty());
+        }
+    });
+    held
+}
+
+fn modifier_of(key: &Key) -> Modifiers {
+    match key {
+        Key::Named(NamedKey::Control) => Modifiers::CONTROL,
+        Key::Named(NamedKey::Shift) => Modifiers::SHIFT,
+        Key::Named(NamedKey::Meta) => Modifiers::META,
+        _ => Modifiers::empty(),
+    }
+}
+
+pub(crate) fn track_modifiers(element: Rect, mut held: State<Modifiers>) -> Rect {
+    element
+        .on_global_key_down(move |event: Event<KeyboardEventData>| {
+            held.set_if_modified(event.modifiers | modifier_of(&event.key));
+        })
+        .on_global_key_up(move |event: Event<KeyboardEventData>| {
+            held.set_if_modified(event.modifiers - modifier_of(&event.key));
+        })
+}
+
 impl Component for CollectionView {
     fn render(&self) -> impl IntoElement {
-        let mut ctrl = use_state(|| false);
-        let status = try_consume_root_context::<WindowControls>().map(|controls| controls.status);
-        use_side_effect(move || {
-            if status.is_some_and(|status| !status.read().activated) {
-                ctrl.set_if_modified(false);
-            }
-        });
+        let held = use_held_modifiers();
         let tiles = self.items.iter().enumerate().map(|(index, (icon, name))| {
             let selected = self.selected.clone();
             let on_select = self.on_select.clone();
@@ -70,32 +105,23 @@ impl Component for CollectionView {
                 name: name.clone(),
                 selected: is_selected,
                 on_press: Callback::new(move |_| {
-                    if (!is_selected || *ctrl.read())
+                    let held = *held.read();
+                    if (!is_selected || !held.is_empty())
                         && let Some(cb) = &on_select
                     {
-                        cb.call(select(&selected, index, *ctrl.read()));
+                        cb.call(select(&selected, index, held));
                     }
                 }),
             }
             .into_element()
         });
-        rect()
+        track_modifiers(rect(), held)
             .a11y_role(AccessibilityRole::Grid)
             .a11y_alt(self.label)
             .width(Size::fill())
             .direction(Direction::Horizontal)
             .content(Content::wrap_spacing(COLLECTION.gap))
             .spacing(COLLECTION.gap)
-            .on_global_key_down(move |event: Event<KeyboardEventData>| {
-                if event.key == Key::Named(NamedKey::Control) {
-                    ctrl.set(true);
-                }
-            })
-            .on_global_key_up(move |event: Event<KeyboardEventData>| {
-                if event.key == Key::Named(NamedKey::Control) {
-                    ctrl.set(false);
-                }
-            })
             .children(tiles)
     }
 }
@@ -162,8 +188,15 @@ mod tests {
 
     #[test]
     fn plain_selection_replaces_and_ctrl_selection_toggles() {
-        assert_eq!(select(&[1, 2], 3, false), [3]);
-        assert_eq!(select(&[1, 2], 3, true), [1, 2, 3]);
-        assert_eq!(select(&[1, 2], 2, true), [1]);
+        assert_eq!(select(&[1, 2], 3, Modifiers::empty()), [3]);
+        assert_eq!(select(&[1, 2], 3, Modifiers::CONTROL), [1, 2, 3]);
+        assert_eq!(select(&[1, 2], 2, Modifiers::CONTROL), [1]);
+    }
+
+    #[test]
+    fn shift_selects_the_range_from_the_last_click_which_stays_the_anchor() {
+        assert_eq!(select(&[2], 5, Modifiers::SHIFT), [3, 4, 5, 2]);
+        assert_eq!(select(&[3, 4, 5, 2], 0, Modifiers::SHIFT), [1, 0, 2]);
+        assert_eq!(select(&[], 4, Modifiers::SHIFT), [4]);
     }
 }

@@ -202,7 +202,9 @@
       "row-height": 24,
       "header-height": 28,
       "padding-x": 8,
-      "zebra": 0.04
+      "zebra": 0.04,
+      "min-column-width": 10,
+      "resize-handle": 6
     },
     "collection": {
       "tile": 92,

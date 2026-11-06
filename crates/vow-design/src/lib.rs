@@ -726,6 +726,8 @@ pub struct TableMetrics {
     pub header_height: f32,
     pub padding_x: f32,
     pub zebra: f32,
+    pub min_column_width: f32,
+    pub resize_handle: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

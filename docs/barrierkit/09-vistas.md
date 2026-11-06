@@ -41,15 +41,27 @@ Form::new()
 Table::new("Archivos", vec!["Nombre", "Tamaño"])
     .rows(filas)
     .sort(Some(SortOrder { column: 0, ascending: true }))
-    .selected(Some(1))
+    .selected(vec![1])
     .on_sort(move |orden| criterio.set(Some(orden)))
-    .on_select(move |fila| elegida.set(fila))
+    .on_select(move |filas: Vec<usize>| elegidas.set(filas))
 ```
 
 ![Tabla ordenada por nombre con una fila elegida](assets/componentes/table-light.png)
 
 Pulsar una cabecera pide un orden nuevo (`next_sort` alterna ascendente y
 descendente); la app ordena sus filas.
+
+Como `NSTableView`:
+
+1. Ctrl+clic añade o quita una fila y Mayús+clic elige el rango desde el
+   último clic (`select`, compartido con `CollectionView`).
+2. El borde derecho de cada cabecera se arrastra para fijar el ancho de su
+   columna, con un mínimo de `components.table.min-column-width` (10 pt, el
+   `minWidth` por defecto de `NSTableColumn`). El tirador mide
+   `resize-handle` (6 pt, estimado). Las columnas sin ancho fijo se reparten
+   el resto.
+3. El clic secundario en la cabecera abre un menú con una casilla por columna
+   para mostrarla u ocultarla. Siempre queda una visible (`toggle_column`).
 
 ## Rejilla: `CollectionView`
 
@@ -63,7 +75,8 @@ CollectionView::new("Documentos")
 
 ![Rejilla de iconos con uno elegido](assets/componentes/collection-light.png)
 
-Admite selección múltiple con modificador.
+Ctrl+clic añade o quita un elemento y Mayús+clic elige un rango, igual que en
+`Table`.
 
 ## Pestañas: `TabView`
 

@@ -41,15 +41,26 @@ Form::new()
 Table::new("Archivos", vec!["Nombre", "Tamaño"])
     .rows(filas)
     .sort(Some(SortOrder { column: 0, ascending: true }))
-    .selected(Some(1))
+    .selected(vec![1])
     .on_sort(move |orden| criterio.set(Some(orden)))
-    .on_select(move |fila| elegida.set(fila))
+    .on_select(move |filas: Vec<usize>| elegidas.set(filas))
 ```
 
 ![Table sorted by name with one row selected](assets/componentes/table-light.png)
 
 Clicking a header requests a new order (`next_sort` toggles ascending and
 descending); the app sorts its rows.
+
+Like `NSTableView`:
+
+1. Ctrl+click adds or removes a row and Shift+click picks the range from the
+   last click (`select`, shared with `CollectionView`).
+2. The right edge of each header drags to fix its column's width, with a
+   minimum of `components.table.min-column-width` (10 pt, the default
+   `minWidth` of `NSTableColumn`). The handle is `resize-handle` wide (6 pt,
+   estimated). Columns without a fixed width share the rest.
+3. A secondary click on the header opens a menu with one checkbox per column
+   to show or hide it. One column always stays visible (`toggle_column`).
 
 ## Grid: `CollectionView`
 
@@ -63,7 +74,8 @@ CollectionView::new("Documentos")
 
 ![Icon grid with one item selected](assets/componentes/collection-light.png)
 
-It supports multiple selection with a modifier.
+Ctrl+click adds or removes an item and Shift+click picks a range, as in
+`Table`.
 
 ## Tabs: `TabView`
 
