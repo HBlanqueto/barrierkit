@@ -91,7 +91,7 @@ impl Component for SidebarToggle {
 pub struct SplitView {
     sidebar: Element,
     detail: Element,
-    inspector: Option<Element>,
+    inspector: Option<(Element, bool)>,
     sidebar_visible: bool,
     sidebar_width: Option<f32>,
     sidebar_range: (f32, f32),
@@ -117,8 +117,8 @@ impl SplitView {
         }
     }
 
-    pub fn inspector(mut self, inspector: Option<Element>) -> Self {
-        self.inspector = inspector;
+    pub fn inspector(mut self, inspector: impl IntoElement, presented: bool) -> Self {
+        self.inspector = Some((inspector.into_element(), presented));
         self
     }
 
@@ -171,6 +171,12 @@ impl Component for SplitView {
         let island = resolved.sidebar.style == SidebarStyle::Island;
         let inset = if island { SIDEBAR.inset as f32 } else { 0.0 };
         let mut window_width = use_state(|| f32::MAX);
+        let mut presented = use_state(|| self.inspector.as_ref().is_some_and(|(_, shown)| *shown));
+        let wanted = self.inspector.as_ref().is_some_and(|(_, shown)| *shown);
+        if *presented.peek() != wanted {
+            presented.set(wanted);
+        }
+        let inspector_shown = crate::animation::use_switch_progress(presented, DURATION_BASE);
         let (min_width, max_width) = self.sidebar_range;
         let initial_width = self
             .sidebar_width
@@ -372,7 +378,7 @@ impl Component for SplitView {
                 .height(Size::fill())
                 .child(self.detail.clone()),
         );
-        if let Some(inspector) = &self.inspector {
+        if let Some((inspector, _)) = self.inspector.as_ref().filter(|_| inspector_shown > 0.0) {
             root = root
                 .child(
                     rect()
@@ -382,9 +388,15 @@ impl Component for SplitView {
                 )
                 .child(
                     rect()
-                        .width(Size::px(SPLIT_VIEW.inspector))
+                        .width(Size::px(SPLIT_VIEW.inspector * inspector_shown))
                         .height(Size::fill())
-                        .child(inspector.clone()),
+                        .overflow(Overflow::Clip)
+                        .child(
+                            rect()
+                                .width(Size::px(SPLIT_VIEW.inspector))
+                                .height(Size::fill())
+                                .child(inspector.clone()),
+                        ),
                 );
         }
         if overlay && shown > 0.0 {

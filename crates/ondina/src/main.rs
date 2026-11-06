@@ -371,7 +371,7 @@ impl Component for Window {
         size.attach(
             rect().width(Size::fill()).height(Size::fill()).child(
                 SplitView::new(sidebar, detail)
-                    .inspector(queue_shown.then(|| views::queue(&albums, player, true))),
+                    .inspector(views::queue(&albums, player, true), queue_shown),
             ),
         )
     }

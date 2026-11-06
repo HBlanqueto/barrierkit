@@ -59,7 +59,7 @@ queda concéntrica con su esquina `unified` (26).
 
 ```rust
 SplitView::new(barra, detalle)
-    .inspector(Some(inspector.into_element()))
+    .inspector(inspector, inspector_shown)
     .sidebar_width(guardado.width)
     .sidebar_visible(guardado.visible)
     .on_layout(move |layout: SidebarLayout| disposicion.set(Some(layout)))
@@ -72,7 +72,7 @@ SplitView::new(barra, detalle)
 | `.resizable(bool)` | `true` | Con `false` no hay asa: ancho fijo |
 | `.sidebar_range(mín, máx)` | `SPLIT_VIEW.sidebar_min`, `.sidebar_max` (180–320) | Límites del ancho. Si cambian, el ancho se recorta al nuevo rango |
 | `.narrow_sidebar(NarrowSidebar)` | `Overlay` | Cómo se abre en ventana estrecha: ver [Plegar en ventanas estrechas](#plegar-en-ventanas-estrechas) |
-| `.inspector(Option<Element>)` | `None` | Panel derecho de `SPLIT_VIEW.inspector` (240) con un separador |
+| `.inspector(contenido, presented)` | sin inspector | Panel derecho de `SPLIT_VIEW.inspector` (240) con un separador; al cambiar `presented` se abre o se cierra durante `DURATION_BASE`, como `.inspector(isPresented:)` |
 | `.on_layout(..)` | — | Avisa de `SidebarLayout { width, visible }` al soltar el asa o al ocultar. Sirve para guardarlo |
 
 ### Redimensionar

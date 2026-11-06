@@ -60,7 +60,7 @@ it stays concentric with its `unified` corner (26).
 
 ```rust
 SplitView::new(barra, detalle)
-    .inspector(Some(inspector.into_element()))
+    .inspector(inspector, inspector_shown)
     .sidebar_width(guardado.width)
     .sidebar_visible(guardado.visible)
     .on_layout(move |layout: SidebarLayout| disposicion.set(Some(layout)))
@@ -73,7 +73,7 @@ SplitView::new(barra, detalle)
 | `.resizable(bool)` | `true` | With `false` there is no grip: fixed width |
 | `.sidebar_range(mín, máx)` | `SPLIT_VIEW.sidebar_min`, `.sidebar_max` (180–320) | Width limits. If they change, the width is clamped to the new range |
 | `.narrow_sidebar(NarrowSidebar)` | `Overlay` | How it opens in a narrow window: see [Collapsing in narrow windows](#collapsing-in-narrow-windows) |
-| `.inspector(Option<Element>)` | `None` | Right pane of `SPLIT_VIEW.inspector` (240) with a separator |
+| `.inspector(content, presented)` | no inspector | Right pane of `SPLIT_VIEW.inspector` (240) with a separator; changing `presented` opens or closes it over `DURATION_BASE`, like `.inspector(isPresented:)` |
 | `.on_layout(..)` | — | Reports `SidebarLayout { width, visible }` when the grip is released or the sidebar is hidden. Use it to save the layout |
 
 ### Resizing

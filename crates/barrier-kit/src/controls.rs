@@ -933,14 +933,7 @@ impl Component for SearchField {
                         on_navigate.call(*key);
                         false
                     }
-                    // The rest mirrors Input's default pre-handler (freya-components 0.4.3, input.rs).
-                    Key::Named(NamedKey::Escape | NamedKey::Shift) => true,
-                    Key::Named(NamedKey::Tab) => false,
-                    _ => {
-                        event.stop_propagation();
-                        event.prevent_default();
-                        true
-                    }
+                    _ => default_pre_key(&event),
                 });
         }
         if !value.read().is_empty() {
@@ -972,6 +965,19 @@ impl Component for SearchField {
                         palette.tertiary_label,
                     )),
             )
+    }
+}
+
+// Mirrors Input's default pre-handler (freya-components 0.4.3, input.rs).
+pub(crate) fn default_pre_key(event: &Event<KeyboardEventData>) -> bool {
+    match &event.key {
+        Key::Named(NamedKey::Enter | NamedKey::Escape | NamedKey::Shift) => true,
+        Key::Named(NamedKey::Tab) => false,
+        _ => {
+            event.stop_propagation();
+            event.prevent_default();
+            true
+        }
     }
 }
 

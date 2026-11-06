@@ -4,7 +4,7 @@ use freya_core::prelude::*;
 use torin::prelude::{Area, Gaps, Position, Size};
 use vow_design::{COMBO_BOX, TEXT, TEXT_FIELD};
 
-use crate::controls::{text_style, themed_input};
+use crate::controls::{default_pre_key, text_style, themed_input};
 use crate::menu::MenuItem;
 use crate::platform::PopupAnchor;
 use crate::popup_button::open_popover_menu;
@@ -68,7 +68,7 @@ impl Component for ComboBox {
                 TEXT_FIELD.padding_x,
             ))),
         });
-        let open = move |_| {
+        let open = move || {
             let field = *area.peek();
             let entries = items
                 .iter()
@@ -94,6 +94,15 @@ impl Component for ComboBox {
                 },
             );
         };
+        let opener = open.clone();
+        let input = input.on_pre_key_down(move |event: Event<KeyboardEventData>| {
+            if event.key == Key::Named(NamedKey::ArrowDown) {
+                event.stop_propagation();
+                opener();
+                return false;
+            }
+            default_pre_key(&event)
+        });
         text_style(rect().width(self.width.clone()))
             .on_sized(move |event: Event<SizedEventData>| area.set_if_modified(event.area))
             .child(input)
@@ -116,7 +125,7 @@ impl Component for ComboBox {
                             .background(color(palette.control_background))
                             .a11y_role(AccessibilityRole::Button)
                             .a11y_alt(self.placeholder)
-                            .on_press(open)
+                            .on_press(move |_| open())
                             .child(symbol(
                                 Symbol::ChevronDown,
                                 COMBO_BOX.chevron,
