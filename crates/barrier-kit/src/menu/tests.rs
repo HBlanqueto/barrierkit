@@ -1,4 +1,5 @@
 use super::*;
+use crate::i18n::text;
 use std::any::Any;
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -216,7 +217,7 @@ fn an_empty_menu_shows_the_placeholder() {
             label,
             enabled: false,
             ..
-        }] if label == "Sin elementos"
+        }] if label == text!("no-items")
     ));
     assert_eq!(
         MenuView::preferred_size(&[], MENU_LIGHT),
@@ -240,7 +241,7 @@ fn the_placeholder_is_not_in_the_search_results() {
     assert!(
         !searched
             .iter()
-            .any(|item| item.label() == Some("Sin elementos"))
+            .any(|item| item.label() == Some(text!("no-items")))
     );
 }
 
@@ -248,7 +249,7 @@ fn the_placeholder_is_not_in_the_search_results() {
 fn live_items_replace_the_placeholder() {
     assert_eq!(
         with_empty_hint(Vec::new())[0].label(),
-        Some("Sin elementos")
+        Some(text!("no-items"))
     );
     assert_eq!(
         with_empty_hint(vec![action("Guardar")])[0].label(),
@@ -266,7 +267,7 @@ fn empty_remote_submenu_shows_a_disabled_loading_row() {
             label,
             enabled: false,
             ..
-        } if label == "Cargando…"
+        } if label == text!("loading")
     ));
     assert!(submenu_contents(false, &[]).is_empty());
 }
@@ -655,9 +656,9 @@ fn visible_items_limits_menu_results_to_nine_rows() {
         .map(|i| searchable(&format!("result {i}"), true))
         .collect();
     let visible = visible_items(&items, &searchable, &[], 0, 0);
-    let menu_header = visible
-        .iter()
-        .find(|item| matches!(item, MenuItem::Header { label, .. } if label == "Ítems del menú"));
+    let menu_header = visible.iter().find(
+        |item| matches!(item, MenuItem::Header { label, .. } if label == text!("menu-items")),
+    );
     assert!(menu_header.is_some());
     let count = match menu_header {
         Some(MenuItem::Header { count, .. }) => *count,
