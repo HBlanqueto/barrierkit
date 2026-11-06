@@ -79,6 +79,7 @@ fn modifier_of(key: &Key) -> Modifiers {
         Key::Named(NamedKey::Control) => Modifiers::CONTROL,
         Key::Named(NamedKey::Shift) => Modifiers::SHIFT,
         Key::Named(NamedKey::Meta) => Modifiers::META,
+        Key::Named(NamedKey::Alt) => Modifiers::ALT,
         _ => Modifiers::empty(),
     }
 }

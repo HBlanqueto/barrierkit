@@ -183,7 +183,7 @@ const CAMPOS: [RuleField; 2] = [
     RuleField { label: "Nombre", kind: RuleKind::Text },
     RuleField { label: "Tipo", kind: RuleKind::Choice(&["PDF", "Imagen"]) },
 ];
-let filtro = use_state(|| Predicate { all: true, rules: vec![Rule::new(1, &CAMPOS, 0)] });
+let filtro = use_state(|| Predicate { all: true, rules: vec![Criterion::Rule(Rule::new(1, &CAMPOS, 0))] });
 RuleEditor::new("Filtro", CAMPOS.to_vec(), filtro)
 ```
 
@@ -192,7 +192,12 @@ RuleEditor::new("Filtro", CAMPOS.to_vec(), filtro)
    `PopUpButton` con las opciones. El texto admite contiene, empieza por,
    termina en, es y no es; el número, es, no es, mayor y menor.
 3. − quita la fila y + añade otra debajo. La última no se puede quitar.
-4. `Predicate::evaluate(&campos, |campo| valor)` aplica el filtro. El texto no
+4. Con Alt pulsado, + se convierte en … y añade una regla compuesta, como el
+   Opción+clic de AppKit: un `Criterion::Group` con su propio «Todas» o
+   «Alguna» y una primera regla, sangrado `disclosure.indent` por nivel. Un
+   grupo que se queda sin reglas desaparece.
+5. `Predicate::evaluate(&campos, &|campo| valor)` aplica el filtro; cada grupo
+   cuenta como una sola condición. El texto no
    distingue mayúsculas y el número compara el valor leído como `f64`.
 
 ## Diseño adaptable

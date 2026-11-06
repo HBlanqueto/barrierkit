@@ -110,6 +110,7 @@ rule-operator = Operador
 rule-value = Valor
 rule-remove = Quitar regla
 rule-add = Añadir regla
+rule-add-compound = Añadir regla compuesta
 rule-contains = contiene
 rule-begins-with = empieza por
 rule-ends-with = termina en

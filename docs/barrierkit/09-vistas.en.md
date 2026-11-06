@@ -181,7 +181,7 @@ const CAMPOS: [RuleField; 2] = [
     RuleField { label: "Nombre", kind: RuleKind::Text },
     RuleField { label: "Tipo", kind: RuleKind::Choice(&["PDF", "Imagen"]) },
 ];
-let filtro = use_state(|| Predicate { all: true, rules: vec![Rule::new(1, &CAMPOS, 0)] });
+let filtro = use_state(|| Predicate { all: true, rules: vec![Criterion::Rule(Rule::new(1, &CAMPOS, 0))] });
 RuleEditor::new("Filtro", CAMPOS.to_vec(), filtro)
 ```
 
@@ -192,7 +192,12 @@ RuleEditor::new("Filtro", CAMPOS.to_vec(), filtro)
    with, is and is not; numbers take is, is not, greater and less.
 3. − removes the row and + adds another below it. The last one cannot be
    removed.
-4. `Predicate::evaluate(&fields, |field| value)` applies the filter. Text
+4. With Alt held, + turns into … and adds a compound rule, like AppKit's
+   Option-click: a `Criterion::Group` with its own "All" or "Any" and a first
+   rule, indented `disclosure.indent` per level. A group left without rules
+   disappears.
+5. `Predicate::evaluate(&fields, &|field| value)` applies the filter; each
+   group counts as one condition. Text
    ignores case and numbers compare the value parsed as `f64`.
 
 ## Adaptive layout
