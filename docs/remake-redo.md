@@ -121,3 +121,33 @@ Crates that leave the tree of `bk` (all features) when the group goes:
 `zbus` and `flate2` stay whatever `bk` does: `freya-core` 0.4.3 depends on
 `mundy` with the `async-io` feature, which pulls `zbus` on Linux, and
 `freya-skia-bindings` needs `flate2` to build.
+
+## Phase 1: profiles and toolchain
+
+Each row is one run of the same steps: `cargo clean && cargo build`, then two
+real edits of `controls.rs` followed by `cargo build` (lib) and
+`cargo test --workspace --features bk/shell,bk/tracy --no-run` (tests).
+
+| Change | Clean build | Edit, lib | Edit, tests | Adopted |
+|---|---|---|---|---|
+| Baseline (`mold`, deps at `opt-level = 2`) | 362.0 s | 3.6 s | 4.7 s | — |
+| Default linker | 364.0 s | 3.4 s | 7.9 s | no |
+| `wild` 0.11 | 360.5 s | 3.2 s | 4.6 s | no: within the noise of `mold` |
+| Deps at `opt-level = 0`, except Freya, Skia, Torin and Ragnarok | 120.2 s | 3.6 s | 4.8 s | yes |
+| The same, plus `spellbook` and the PNG stack at 2 | 119.8 s | 3.6 s | 4.9 s | yes |
+| `ash` without `debug` | 114.3 s | 3.5 s | 4.7 s | yes |
+
+Runtime checks for the `opt-level` change:
+
+| Check | At `opt-level = 0` | At `opt-level = 2` |
+|---|---|---|
+| `spellbook::Dictionary::new` with `es_ES` | 171 ms | 21 ms |
+| `cargo test -p bk --test kit` (PNG encode and decode) | 10.5 s | 9.7 s |
+
+Not changed, with the reason:
+
+- `zbus` defaults: `bk` uses `zbus::blocking` in `app/application.rs`,
+  `notifications.rs` and `secrets.rs`.
+- `wayland-protocols`: `bk` uses both `staging` and `unstable` protocols.
+- `toml` 0.8 → 1.x and `toml_edit` 0.22 → 0.25: the other versions build for
+  the host (proc macros and build scripts), so they are separate units anyway.
