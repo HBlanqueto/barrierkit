@@ -354,7 +354,10 @@ mod tests {
     use super::{ZwlrForeignToplevelHandleV1State as State, has_state};
 
     fn states(values: &[u32]) -> Vec<u8> {
-        values.iter().flat_map(|value| value.to_ne_bytes()).collect()
+        values
+            .iter()
+            .flat_map(|value| value.to_ne_bytes())
+            .collect()
     }
 
     #[test]
