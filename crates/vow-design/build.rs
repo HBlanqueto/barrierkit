@@ -72,6 +72,8 @@ SPACE_2 f32 space.2
 SPACE_3 f32 space.3
 SPACE_4 f32 space.4
 SPLIT_VIEW SplitViewMetrics components.split-view
+SPLIT_PANES SplitPanesMetrics components.split-panes
+FLOATING_PANE FloatingPaneMetrics components.floating-pane
 TABLE TableMetrics components.table
 COLLECTION CollectionMetrics components.collection
 TOOLBAR_TABS ToolbarTabsMetrics components.toolbar-tabs
@@ -100,6 +102,7 @@ TITLE_2 Font font.styles.title-2
 HEADLINE Font font.styles.headline
 CALLOUT Font font.styles.callout
 CAPTION Font font.styles.caption
+MONO Font font.styles.mono
 TEXT_LINE_HEIGHT f32 font.line-height-scale
 SHADOW ShadowStyle shadow.layers.light unfocused_blur_scale=shadow.unfocused.blur
     unfocused_offset_scale=shadow.unfocused.offset unfocused_opacity_scale=shadow.unfocused.opacity

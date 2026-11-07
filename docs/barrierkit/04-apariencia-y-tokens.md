@@ -24,9 +24,9 @@ use vow_design::{ACCENT_SWATCHES, BUTTON, DURATION_BASE, SPACE_3, SPLIT_VIEW, TI
 | Grupo | Ejemplos |
 |---|---|
 | Espacios | `SPACE_1` … `SPACE_4` |
-| Tipografía | `DISPLAY`, `TITLE_1`, `TITLE_2`, `HEADLINE`, `TEXT`, `CALLOUT`, `CAPTION` (tipo `Font`) |
+| Tipografía | `DISPLAY`, `TITLE_1`, `TITLE_2`, `HEADLINE`, `TEXT`, `CALLOUT`, `CAPTION` y la monoespaciada `MONO` (tipo `Font`) |
 | Duraciones (ms) | `DURATION_FAST_MS` (120), `DURATION_BASE` (220), `DURATION_SLOW_MS` (420) |
-| Medidas por componente | `BUTTON`, `SWITCH`, `SLIDER`, `SEGMENTED`, `TEXT_FIELD`, `TITLEBAR`, `SIDEBAR`, `SPLIT_VIEW`, `TABLE`, `COLLECTION`, `BREAKPOINT`… |
+| Medidas por componente | `BUTTON`, `SWITCH`, `SLIDER`, `SEGMENTED`, `TEXT_FIELD`, `TITLEBAR`, `SIDEBAR`, `SPLIT_VIEW`, `SPLIT_PANES`, `FLOATING_PANE`, `TABLE`, `COLLECTION`, `BREAKPOINT`… |
 | Colores base | `LIGHT`, `DARK`, `DARK_TINT` y sus fondos (`BG_WINDOW_LIGHT`…) |
 | Acentos | `ACCENT_SWATCHES`: Azul, Morado, Rosa, Rojo, Naranja, Amarillo, Verde, Gris |
 

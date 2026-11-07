@@ -38,6 +38,8 @@ el [ADR 0056](../decisiones/0056-barrierkit-sobre-vulkan.md).
 | `zxdg_decoration_manager_v1` | No | Decoración del servidor si la app la pide |
 | `xdg_activation_v1` | No | Traer la ventana al frente al reactivar una instancia |
 | `wl_data_device_manager` | No | Portapapeles |
+| `zwp_text_input_manager_v3` | No | Método de entrada: composición y texto confirmado |
+| `zwp_primary_selection_device_manager_v1` | No | Selección primaria, la que pega el botón central |
 | `org_kde_kwin_appmenu_manager` | No | Enseñar el menú global en la barra de menús |
 | `infinity_focus_manager_v1` | No | Avisos del compositor de Malaysia sobre la barra de foco |
 | `infinity_window_style_v1` | No | La `Titlebar` envía su barra con `set_bar`: `titlebar` si es `close_only`, `unified` con barra lateral en isla y `compact` en el resto (ADR 0059 de Malaysia) |
@@ -53,6 +55,18 @@ sigue. Si falta uno obligatorio, `run_window` devuelve
 - El árbol de accesibilidad se publica por AT-SPI con `accesskit_unix`: un
   lector de pantalla puede enfocar y pulsar.
 - `Cursor::set(CursorIcon::..)` cambia el cursor si hay `wp_cursor_shape_manager_v1`.
+
+## Servicios del escritorio
+
+- `notifications::post(Notice { .. }, |token| ..)` publica una notificación
+  por `org.freedesktop.Notifications`; al pulsarla, la función recibe el token
+  de xdg-activation que manda el servidor. `play_event_sound(nombre)` toca un
+  sonido del tema de sonidos de freedesktop.
+- `secrets::Secrets::open()` abre la colección por defecto del Secret Service
+  (`org.freedesktop.secrets`), el llavero de Linux: `search`, `secret`,
+  `create`, `set_secret` y `delete`. Los secretos vuelven en `Zeroizing`.
+  Con el llavero bloqueado devuelve `Error::Locked` y el servicio enseña su
+  propio diálogo.
 
 ## La parte de la shell (feature `shell`)
 

@@ -752,6 +752,22 @@ pub struct SplitViewMetrics {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct SplitPanesMetrics {
+    pub divider: f32,
+    pub pane_min: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct FloatingPaneMetrics {
+    pub title_height: f32,
+    pub outline: f32,
+    pub resize_band: f32,
+    pub shadow_opacity: f32,
+    pub shadow_blur: f32,
+    pub shadow_y: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct TableMetrics {
     pub row_height: f32,
     pub header_height: f32,

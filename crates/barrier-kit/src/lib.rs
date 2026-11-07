@@ -91,6 +91,12 @@ pub mod tooltip;
 
 pub mod backdrop;
 
+pub mod canvas;
+
+pub mod notifications;
+
+pub mod secrets;
+
 mod glass;
 
 mod controlled;

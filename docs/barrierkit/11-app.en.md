@@ -57,6 +57,11 @@ To change the menu live, the app takes the window's `MenuHandle` with
 - `set_menu_items(title, items)` replaces the items of a top-level menu, for
   example a list of profiles.
 
+From a component, `use_menu_enabled(id, yes)`, `use_menu_label(id, text)`,
+`use_menu_checked(id, yes)` and `use_submenu_items(id, items)` do the same
+and only publish when the value changes. A submenu takes an id with
+`MenuItem::submenu(..).with_id(id)`.
+
 ## Single instance: `launch`
 
 ```rust

@@ -158,6 +158,13 @@ impl MenuItem {
         }
     }
 
+    pub fn with_id(mut self, value: impl Into<String>) -> Self {
+        if let Self::Submenu { id, .. } = &mut self {
+            *id = Some(value.into());
+        }
+        self
+    }
+
     pub fn with_shortcut(mut self, text: impl Into<String>) -> Self {
         if let Self::Action { shortcut, .. } = &mut self {
             *shortcut = Some(text.into());

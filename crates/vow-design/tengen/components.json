@@ -237,6 +237,18 @@
       "radius": 10,
       "selection": 0.1
     },
+    "split-panes": {
+      "divider": 3,
+      "pane-min": 60
+    },
+    "floating-pane": {
+      "title-height": 22,
+      "outline": 1,
+      "resize-band": 6,
+      "shadow-opacity": 0.4,
+      "shadow-blur": 8,
+      "shadow-y": 3
+    },
     "split-view": {
       "sidebar-min": 180,
       "sidebar-max": 320,

@@ -204,7 +204,9 @@ pub(crate) fn dbusmenu_label(label: &str) -> String {
     label.replace('_', "__")
 }
 
-use freya_core::prelude::{Key, Modifiers};
+use freya_core::prelude::{
+    Key, Modifiers, WritableUtils, try_consume_root_context, use_hook, use_state,
+};
 
 use crate::menu::shortcut_matches;
 
@@ -252,6 +254,56 @@ pub(crate) fn check_state(check: &CheckState) -> (Option<&'static str>, i32) {
         CheckState::Radio(active) => (Some("radio"), *active as i32),
         CheckState::None => (None, 0),
     }
+}
+
+pub fn use_menu_update<T: PartialEq + Clone + 'static>(
+    id: &'static str,
+    value: T,
+    apply: fn(&mut MenuItem, &T),
+) {
+    let handle = use_hook(try_consume_root_context::<MenuHandle>);
+    let mut published = use_state(|| None::<T>);
+    if published.peek().as_ref() == Some(&value) {
+        return;
+    }
+    published.set(Some(value.clone()));
+    if let Some(handle) = handle {
+        handle.update(id, |item| apply(item, &value));
+    }
+}
+
+pub fn use_menu_enabled(id: &'static str, enabled: bool) {
+    use_menu_update(id, enabled, |item, enabled| {
+        if let MenuItem::Action { enabled: shown, .. } | MenuItem::Submenu { enabled: shown, .. } =
+            item
+        {
+            *shown = *enabled;
+        }
+    });
+}
+
+pub fn use_menu_label(id: &'static str, label: &'static str) {
+    use_menu_update(id, label, |item, label| {
+        if let MenuItem::Action { label: shown, .. } = item {
+            *shown = label.to_string();
+        }
+    });
+}
+
+pub fn use_menu_checked(id: &'static str, checked: bool) {
+    use_menu_update(id, checked, |item, checked| {
+        if let MenuItem::Action { check, .. } = item {
+            *check = CheckState::Checkbox(*checked);
+        }
+    });
+}
+
+pub fn use_submenu_items(id: &'static str, items: Vec<MenuItem>) {
+    use_menu_update(id, items, |item, items| {
+        if let MenuItem::Submenu { items: shown, .. } = item {
+            *shown = items.clone();
+        }
+    });
 }
 
 #[cfg(test)]

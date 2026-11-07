@@ -115,6 +115,35 @@ one raised, with the X on hover and a + at the end. Its measurements are an
 estimate. The app keeps each tab's content; tabs cannot be dragged to another
 window.
 
+## Split panes: `SplitPanes`
+
+```rust
+SplitPanes::new("Panes", Direction::Horizontal).pane(a).pane(b).ratios(vec![0.5, 0.5]).on_ratios(..)
+```
+
+Panes in a row or a column with dividers the user drags, like
+`NSSplitView`. They nest: a pane can be another `SplitPanes`. The ratios add
+up to 1; `on_ratios` reports when the divider is released, and no pane goes
+below `SPLIT_PANES.pane_min`.
+
+## Floating pane: `FloatingPane`
+
+A pane over the window's content, with a title bar to move it, a band on the
+edge to resize it, and a shadow. The app keeps its `PaneFrame` and receives
+it in `on_frame`; `on_raise` reports a press so the app can raise it. The
+outline takes the accent while it is active.
+
+## Frameless text: `TextView`
+
+```rust
+TextView::new(text, MONO.family, 13.0, 16.0, ink).on_key(..).auto_focus(true)
+```
+
+Multi-line editable text without a frame or scrolling, like an `NSTextView`
+inside a custom view. Enter breaks the line and Escape releases the focus,
+unless `on_key` takes the key and returns `true`. For a framed field with
+find and spelling there is `TextEditor`.
+
 ## Toolbar: search and overflow
 
 `compact::ToolbarSearch::new(text, "Buscar").collapsed(narrow)` is the toolbar

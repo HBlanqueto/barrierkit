@@ -1,11 +1,14 @@
 pub mod collection;
 pub mod feedback;
+pub mod floating_pane;
 pub mod form;
 pub mod group;
 pub mod navigation;
 pub mod search;
 pub mod split;
+pub mod split_panes;
 pub mod table;
 pub mod tabs;
+pub mod text_view;
 pub mod tree;
 pub mod window_tabs;

@@ -117,6 +117,35 @@ que se reparten el ancho, la elegida en relieve, con la X al pasar el puntero
 y un + al final. Sus medidas son una estimación. La app guarda el contenido
 de cada pestaña; las pestañas no se pueden arrastrar a otra ventana.
 
+## Paneles divididos: `SplitPanes`
+
+```rust
+SplitPanes::new("Paneles", Direction::Horizontal).pane(a).pane(b).ratios(vec![0.5, 0.5]).on_ratios(..)
+```
+
+Paneles en fila o en columna con divisores que se arrastran, como
+`NSSplitView`. Se anidan: un panel puede ser otro `SplitPanes`. Las
+proporciones suman 1; `on_ratios` avisa al soltar el divisor y ningún panel
+baja de `SPLIT_PANES.pane_min`.
+
+## Panel flotante: `FloatingPane`
+
+Un panel sobre el contenido de la ventana, con barra de título para moverlo,
+una banda en el borde para redimensionarlo y sombra. La app guarda su
+`PaneFrame` y lo recibe en `on_frame`; `on_raise` avisa al pulsarlo para
+subirlo. El borde lleva el acento cuando está activo.
+
+## Texto sin marco: `TextView`
+
+```rust
+TextView::new(texto, MONO.family, 13.0, 16.0, tinta).on_key(..).auto_focus(true)
+```
+
+Texto editable de varias líneas sin marco ni desplazamiento, como un
+`NSTextView` dentro de una vista propia. Intro parte la línea y Escape suelta
+el foco, salvo que `on_key` se quede la tecla y devuelva `true`. Para un campo
+con marco, búsqueda y ortografía está `TextEditor`.
+
 ## Barra de herramientas: búsqueda y desbordamiento
 
 `compact::ToolbarSearch::new(texto, "Buscar").collapsed(estrecha)` es el

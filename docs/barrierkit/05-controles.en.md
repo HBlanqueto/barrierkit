@@ -447,6 +447,17 @@ under the top edge over `SCROLL_BAR.edge_height` (24, an estimate).
 `House`, `Star`, `Clock`, `Checkmark`… `symbol(Symbol::Plus, 16.0, color)`
 draws it on its own; the controls take the `Symbol` directly.
 
+## Canvas: `canvas`
+
+```rust
+canvas(revision, move |ctx: &mut CanvasContext| ctx.canvas.draw_rect(..))
+```
+
+`canvas` hands its area to a function that draws with Skia, in logical
+pixels (`ctx.width`, `ctx.height`, `ctx.scale`, `ctx.fonts`). It repaints
+only when `revision` changes; it is for what is not rectangles or text, such
+as a terminal grid.
+
 ## Creating a new control
 
 1. Check whether it already exists (rule 1 of `AGENTS.md`); a new control

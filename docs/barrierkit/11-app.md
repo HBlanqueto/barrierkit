@@ -58,6 +58,11 @@ Para cambiar el menú en vivo, la app toma el `MenuHandle` de la ventana con
 - `set_menu_items(título, ítems)` sustituye los ítems de un menú de primer
   nivel, por ejemplo una lista de perfiles.
 
+Desde un componente, `use_menu_enabled(id, sí)`, `use_menu_label(id, texto)`,
+`use_menu_checked(id, sí)` y `use_submenu_items(id, ítems)` hacen lo mismo y
+solo publican cuando el valor cambia. Un submenú toma id con
+`MenuItem::submenu(..).with_id(id)`.
+
 ## Una sola instancia: `launch`
 
 ```rust

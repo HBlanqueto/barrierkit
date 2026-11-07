@@ -39,6 +39,8 @@ With the `video` feature the device also enables the dmabuf import extensions
 | `zxdg_decoration_manager_v1` | No | Server-side decoration if the app asks for it |
 | `xdg_activation_v1` | No | Bringing the window to the front when an instance is reactivated |
 | `wl_data_device_manager` | No | Clipboard |
+| `zwp_text_input_manager_v3` | No | Input method: composition and committed text |
+| `zwp_primary_selection_device_manager_v1` | No | Primary selection, the one the middle button pastes |
 | `org_kde_kwin_appmenu_manager` | No | Showing the global menu in the menu bar |
 | `infinity_focus_manager_v1` | No | Notices from the Malaysia compositor about the focus bar |
 | `infinity_window_style_v1` | No | The `Titlebar` sends its bar with `set_bar`: `titlebar` when `close_only`, `unified` with an island sidebar and `compact` otherwise (Malaysia ADR 0059) |
@@ -55,6 +57,18 @@ and continues. If a required one is missing, `run_window` returns
   screen reader can focus and press.
 - `Cursor::set(CursorIcon::..)` changes the cursor if
   `wp_cursor_shape_manager_v1` is present.
+
+## Desktop services
+
+- `notifications::post(Notice { .. }, |token| ..)` posts a notification
+  through `org.freedesktop.Notifications`; when it is clicked, the function
+  gets the xdg-activation token the server sends. `play_event_sound(name)`
+  plays a sound from the freedesktop sound theme.
+- `secrets::Secrets::open()` opens the Secret Service default collection
+  (`org.freedesktop.secrets`), the Linux keyring: `search`, `secret`,
+  `create`, `set_secret` and `delete`. Secrets come back in `Zeroizing`.
+  With the keyring locked it returns `Error::Locked` and the service shows
+  its own prompt.
 
 ## The shell part (`shell` feature)
 

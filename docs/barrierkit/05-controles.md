@@ -454,6 +454,17 @@ desplazar, el contenido se desvanece bajo el borde superior en
 `Pause`, `House`, `Star`, `Clock`, `Checkmark`… `symbol(Symbol::Plus, 16.0, color)`
 lo dibuja suelto; los controles reciben el `Symbol` directamente.
 
+## Lienzo: `canvas`
+
+```rust
+canvas(revisión, move |ctx: &mut CanvasContext| ctx.canvas.draw_rect(..))
+```
+
+`canvas` cede su área a una función que dibuja con Skia, en píxeles lógicos
+(`ctx.width`, `ctx.height`, `ctx.scale`, `ctx.fonts`). Solo se repinta cuando
+cambia `revisión`; sirve para lo que no son rectángulos ni texto, como la
+rejilla de un terminal.
+
 ## Crear un control nuevo
 
 1. Busca si ya existe (regla 1 de `AGENTS.md`); un control nuevo compone
