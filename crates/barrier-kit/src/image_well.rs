@@ -73,19 +73,16 @@ impl Component for ImageWell {
                     image.set(Some(path));
                 }
             })
-            .on_press(move |_| {
-                spawn(async move {
-                    if let Some(path) =
-                        crate::portal::open_files(text!("choose-image"), false, false)
-                            .await
-                            .and_then(|paths| paths.into_iter().next())
-                    {
-                        image.set(Some(path));
-                    }
-                });
+            // on_press and on_key_down share EventName::KeyDown, so the keyboard half lives here.
+            .on_pointer_press(move |event: Event<PointerEventData>| {
+                if event.is_primary() {
+                    choose(image);
+                }
             })
             .on_key_down(move |event: Event<KeyboardEventData>| {
-                if matches!(
+                if event.is_press_event() {
+                    choose(image);
+                } else if matches!(
                     event.key,
                     Key::Named(NamedKey::Delete | NamedKey::Backspace)
                 ) {
@@ -101,6 +98,17 @@ impl Component for ImageWell {
             }));
         interaction.focus_ring(element, IMAGE_WELL.radius)
     }
+}
+
+fn choose(mut image: State<Option<PathBuf>>) {
+    spawn(async move {
+        if let Some(path) = crate::portal::open_files(text!("choose-image"), false, false)
+            .await
+            .and_then(|paths| paths.into_iter().next())
+        {
+            image.set(Some(path));
+        }
+    });
 }
 
 #[derive(PartialEq)]
