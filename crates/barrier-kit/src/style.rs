@@ -45,12 +45,23 @@ impl Palette {
     pub fn system() -> Self {
         let resolved = crate::theme::resolved();
         let base = vow_appearance::palette(resolved.scheme);
+        // HIG «Increase Contrast»: each ink steps up one level and control edges reach 3:1.
+        let (secondary_label, tertiary_label, separator, control_border) = if resolved.contrast {
+            (
+                base.ink_strong,
+                base.ink_muted,
+                base.ink_muted,
+                base.ink_muted,
+            )
+        } else {
+            (base.ink_muted, base.ink_faint, base.line, base.line_strong)
+        };
         Self {
             label: base.ink_strong,
-            secondary_label: base.ink_muted,
-            tertiary_label: base.ink_faint,
-            separator: base.line,
-            control_border: base.line_strong,
+            secondary_label,
+            tertiary_label,
+            separator,
+            control_border,
             window_background: resolved.surfaces.window,
             content_background: resolved.surfaces.surface,
             control_background: resolved.surfaces.control,

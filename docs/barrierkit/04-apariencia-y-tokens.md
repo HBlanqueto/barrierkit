@@ -66,8 +66,20 @@ reduce_transparency = true
 scroll_bars = "when_scrolling"   # when_scrolling | always
 ```
 
-`theme::resolved()` lleva estas preferencias ya resueltas; `contrast` dice si
-el usuario pidió más contraste.
+`theme::resolved()` lleva estas preferencias ya resueltas. Con `contrast`, la
+`Palette` sube un nivel cada tinta (la secundaria pasa a `ink_strong`, la
+terciaria a `ink_muted`) y los separadores y bordes de control usan
+`ink_muted`, que llega a 3:1 sobre la ventana, como pide la
+[HIG](https://developer.apple.com/design/human-interface-guidelines/accessibility)
+para «Aumentar contraste».
+
+El acento no se toca, salvo para que se lea:
+
+- `on_accent` es blanco mientras llegue a 4,5:1 sobre el acento y, si no, la
+  tinta oscura; un acento de tono medio que no lo logra con ninguna se
+  oscurece lo justo.
+- `focus_ring` es el acento con la luminosidad movida hasta 3:1 sobre la
+  ventana, y lo usan los anillos de foco.
 
 El mismo botón en los tres modos:
 
