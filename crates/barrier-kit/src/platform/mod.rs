@@ -38,7 +38,7 @@ pub use window::{
     DecorationResponse, FullscreenBar, PanelBehavior, WindowControls, WindowEdge, WindowOptions,
     WindowStatus, open_utility_window, run_window,
 };
-pub(crate) use window_style::Bar;
+pub use window_style::Bar;
 
 #[cfg(test)]
 pub(crate) use popup::PopupCommand;

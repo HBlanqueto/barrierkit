@@ -266,7 +266,7 @@ impl WindowControls {
         self.send(WindowCommand::Close);
     }
 
-    pub(crate) fn set_bar(&self, bar: Bar) {
+    pub fn set_bar(&self, bar: Bar) {
         self.send(WindowCommand::Bar(bar));
     }
 

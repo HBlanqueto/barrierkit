@@ -70,7 +70,9 @@ La app no hace nada:
 | El resto | `compact` | `TITLEBAR_CLIENT_HEIGHT` (40) | `compact` (20) |
 
 Si cambia `sidebar_style`, la barra vuelve a enviarse. `utility` (15) queda
-para paneles. El usuario puede fijar un radio para todas las ventanas con
+para paneles. Una app que dibuja su propia barra sin `Titlebar` (CurseTerm)
+la declara con `WindowControls::get().set_bar(Bar::Titlebar)`; si no, Malaysia
+usa `unified`. El usuario puede fijar un radio para todas las ventanas con
 `corner_radius` en `window.domain`.
 
 ## Los semáforos: `TrafficLights`

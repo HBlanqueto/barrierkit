@@ -69,7 +69,9 @@ The app does nothing:
 | The rest | `compact` | `TITLEBAR_CLIENT_HEIGHT` (40) | `compact` (20) |
 
 If `sidebar_style` changes, the bar is sent again. `utility` (15) is left
-for panels. The user can set one radius for every window with
+for panels. An app that draws its own bar without `Titlebar` (CurseTerm)
+declares it with `WindowControls::get().set_bar(Bar::Titlebar)`; otherwise
+Malaysia uses `unified`. The user can set one radius for every window with
 `corner_radius` in `window.domain`.
 
 ## The traffic lights: `TrafficLights`
