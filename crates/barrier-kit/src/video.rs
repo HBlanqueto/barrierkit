@@ -413,24 +413,6 @@ impl VideoStream {
     }
 }
 
-pub async fn open_in_background(
-    open: impl FnOnce() -> Option<VideoStream> + Send + 'static,
-) -> Option<VideoStream> {
-    let wake = redraw_handle();
-    let (sender, receiver) = futures_channel::oneshot::channel();
-    std::thread::Builder::new()
-        .name("barrier-video".into())
-        .spawn(move || {
-            let _ = sender.send(open());
-        })
-        .ok()?;
-    let stream = receiver.await.ok()??;
-    if let Some(wake) = wake {
-        let _ = stream.0.frames.wake.set(wake);
-    }
-    Some(stream)
-}
-
 type BufferKey = (u64, u64);
 
 #[derive(Default)]
