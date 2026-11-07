@@ -514,7 +514,11 @@ impl OutputHandler for Runtime {
             .iter()
             .position(|surface| surface.output == gone)
         {
-            self.surfaces.remove(index);
+            let owner = self.surfaces[index].surface.id();
+            self.close_popups_of(&owner);
+            if let Some(index) = self.surface_index_by_id(&owner) {
+                self.surfaces.remove(index);
+            }
         }
     }
 }

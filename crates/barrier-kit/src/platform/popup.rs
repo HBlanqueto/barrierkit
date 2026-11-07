@@ -228,6 +228,7 @@ pub(crate) struct PopupInfo {
     on_dismissed: Option<Rc<dyn Fn()>>,
     opens_left: Rc<Cell<bool>>,
     grabbed: bool,
+    owner: ObjectId,
 }
 
 pub(crate) enum PopupCommand {
@@ -436,6 +437,7 @@ impl Runtime {
             on_dismissed: spec.on_dismissed,
             opens_left,
             grabbed,
+            owner,
         });
         window.logical_size = spec.size;
         window.scale = scale;
@@ -481,6 +483,18 @@ impl Runtime {
         popup.reposition(&positioner, 0);
         self.surfaces[index].surface.commit();
     }
+    pub(crate) fn close_popups_of(&mut self, owner: &ObjectId) {
+        let owned: Vec<PopupId> = self
+            .surfaces
+            .iter()
+            .filter_map(|s| s.popup.as_ref().filter(|info| info.owner == *owner))
+            .map(|info| info.id)
+            .collect();
+        for id in owned {
+            self.close_popup(id);
+        }
+    }
+
     pub(crate) fn close_popup(&mut self, id: PopupId) {
         let children: Vec<PopupId> = self
             .surfaces

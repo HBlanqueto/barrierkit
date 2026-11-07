@@ -842,6 +842,10 @@ impl Runtime {
             if let Some(appmenu) = self.surfaces[index].appmenu.take() {
                 appmenu.release();
             }
+            self.close_popups_of(&surface_id);
+            let Some(index) = self.surface_index_by_id(&surface_id) else {
+                return;
+            };
             self.surfaces.remove(index);
         }
     }
