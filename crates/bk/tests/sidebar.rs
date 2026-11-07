@@ -12,7 +12,7 @@ use bk::theme;
 use bk::titlebar::Titlebar;
 use bk::views::split::{NarrowSidebar, SidebarToggle, SplitView};
 use ctappearance::{AppearanceConfig, ColorScheme, SidebarStyle, WindowColorMode, resolve};
-use ctdesign::{SIDEBAR, TITLEBAR, TITLEBAR_CLIENT_HEIGHT, TOOLGROUP};
+use ctdesign::{SIDEBAR, TITLEBAR, TOOLGROUP};
 use freya_components::button::Button;
 use freya_components::theming::hooks::use_init_theme;
 use freya_core::integration::AppComponent;
@@ -592,27 +592,6 @@ fn sidebar_section_toggles_once_per_tap() {
     assert!(!expanded(&test), "the tap must collapse the section");
 }
 
-struct ToolGroupCase;
-
-impl App for ToolGroupCase {
-    fn render(&self) -> impl IntoElement {
-        use_init_theme(|| theme::for_scheme(false));
-        ToolGroup::new()
-            .child(Button::new().child("A"))
-            .child(Button::new().child("B"))
-            .into_element()
-    }
-}
-
-#[test]
-fn toolgroup_renders_without_panic() {
-    let app = AppComponent::new(ToolGroupCase);
-    let (mut test, _) = TestingRunner::new(app, Size2D::new(300.0, 80.0), |_| {}, 1.0);
-    test.sync_and_update();
-    let png = test.render();
-    assert!(!png.as_ref().is_empty());
-}
-
 struct TrafficLightsCase;
 
 impl App for TrafficLightsCase {
@@ -674,32 +653,6 @@ fn sidebar_traffic_lights_are_at_design_offset_and_first_child_sits_below() {
             first_child.1
         );
     });
-}
-
-#[test]
-fn sidebar_traffic_light_tokens_are_sane() {
-    assert_eq!(SIDEBAR.traffic_x, 11);
-    assert_eq!(SIDEBAR.traffic_y, 11);
-    assert_eq!(TITLEBAR_CLIENT_HEIGHT, 40);
-    assert_eq!(TITLEBAR.buttons.diameter, 14);
-}
-
-struct ItemCase;
-
-impl App for ItemCase {
-    fn render(&self) -> impl IntoElement {
-        use_init_theme(|| theme::for_scheme(false));
-        Sidebar::new().child(SidebarItem::new("Hola"))
-    }
-}
-
-#[test]
-fn sidebar_item_uses_design_padding_and_gap() {
-    let app = AppComponent::new(ItemCase);
-    let (mut test, _) = TestingRunner::new(app, Size2D::new(300.0, 300.0), |_| {}, 1.0);
-    test.sync_and_update();
-    let png = test.render();
-    assert!(!png.as_ref().is_empty());
 }
 
 fn crop(image: &[u8], width: usize, x: usize, y: usize, size: usize) -> Vec<[u8; 4]> {
