@@ -1,81 +1,95 @@
 # 3. Layers
 
-**Goal:** know where each piece lives and what each one can use.
-**Reader:** anyone choosing which level of the kit to build their app with.
-The full decision is in [ADR 0047](../decisions/0047-barrierkit-in-layers.md).
+**Goal:** find the module of any piece of the kit and know which layer a new
+piece belongs to.
+**Scope:** the modules of `crates/barrier-kit/src/`, the prelude and the rules
+between layers. Which layer to start an app from is in
+[1](01-what-is-barrierkit.md#which-level-to-use); the reasons are in
+[ADR 0047](../decisions/0047-barrierkit-in-layers.md).
+**Reader:** anyone who imports from the kit or adds a component to it.
+**Input:** a name from the kit or a component to add. **Output:** its module,
+its import and its layer.
+
+## Steps
+
+1. Try the prelude first: `use barrier_kit::prelude::*;` brings the names in
+   [The prelude](#the-prelude).
+2. For any other name, find its module in [Modules by layer](#modules-by-layer)
+   and import it by path, for example `use barrier_kit::views::form::Form;`.
+   The [glossary](20-glossary.md) lists every public name with its module.
+3. To add a component, put it in the lowest layer that has everything it needs.
+   It may use only the layers below it ([Rules](#rules)).
+4. Build it as every component is built ([What every component does](#what-every-component-does)).
 
 ## The map
 
-```
+```text
 ┌───────────────────────────────────────────────────────┐
-│ Layer 3 · Patterns    PreferencesWindow, about_window │
+│ Layer 3 · Patterns    PreferencesWindow, about_window, │
+│                       LanguagePicker                   │
 ├───────────────────────────────────────────────────────┤  App (cross-cutting)
-│ Layer 2 · Views       SplitView, Form, Table,         │  Application, Scene,
-│                       CollectionView, TabView,        │  Action, launch,
-│                       History, SearchIndex, Alert…    │  Defaults, Restoration,
-├───────────────────────────────────────────────────────┤  UndoManager, copy/paste
-│ Layer 1 · Primitives  Text, VStack, HStack, Palette,  │
-│                       text, Symbol, use_interaction,  │
-│                       controls, Titlebar, Sidebar…    │
+│ Layer 2 · Views       SplitView, Form, Table,          │  Application, Scene,
+│                       CollectionView, TabView, Alert…  │  Action, launch,
+├───────────────────────────────────────────────────────┤  defaults, restoration,
+│ Layer 1 · Primitives  Text, VStack, Palette, Symbol,   │  UndoManager
+│                       controls, Titlebar, Sidebar…     │
 ├───────────────────────────────────────────────────────┤
-│ Layer 0 · Platform    run_window, popups, input,      │
-│                       focus, cursor, scale, Vulkan    │
+│ Layer 0 · Platform    run_window, popups, input,       │
+│                       timers, portal, Vulkan           │
 └───────────────────────────────────────────────────────┘
-        shell/ (feature `shell`): layer-shell, lock, Dock
+        shell (feature `shell`): layer-shell, lock, toplevels, tray
 ```
 
-## Where each layer lives in the code
+## Modules by layer
 
-| Layer | Folder or modules in `crates/barrier-kit/src/` |
-|---|---|
-| 0 · Platform | `platform/`, `i18n`, `portal`, `drag`, `notifications`, `secrets` |
-| 1 · Primitives | `elements`, `style`, `theme`, `symbol`, `interaction`, `animation`, `controls`, `buttons`, `compact`, `choices`, `level`, `progress`, `indicator`, `adornments`, `popup_button`, `combo_box`, `popover`, `tooltip`, `context_menu`, `password`, `text_editor`, `rich_text`, `spelling`, `token_field`, `path_control`, `date`, `date_picker`, `color_picker`, `image_well`, `rule_editor`, `print`, `charts/`, `canvas`, `glass_container`, `backdrop`, `media`, `video`, `adaptive`, `titlebar`, `traffic`, `chrome`, `sidebar`, `menu/`, `app_menu/`, `status_item` |
-| 2 · Views | `views/` (`form`, `group`, `split`, `split_panes`, `floating_pane`, `table`, `tree`, `collection`, `tabs`, `window_tabs`, `text_view`, `feedback`, `navigation`, `search`) and `font_panel` |
-| 3 · Patterns | `patterns/` (`preferences`, `search_popover`, `about`, `language`) |
-| App | `app/` (`scene`, `action`, `application`, `defaults`, `undo`) and `prelude` |
-| Shell | `shell/`, only with the `shell` feature |
+Each row lists the public modules of `crates/barrier-kit/src/lib.rs`. Internal
+modules (not `pub`) are in the last column; an app cannot import them.
 
-`barrier_kit::prelude::*` brings the entry points (`Application`,
-`run_window`), the basic elements (`Text`, `VStack`, `HStack`), the controls,
-`Palette`, Freya's elements and hooks, and the type and spacing tokens. The
-rest is imported from its module, for example `barrier_kit::views::form::Form`.
-The list of names is in the [glossary](15-glossary.md).
+| Layer | Public modules | Internal |
+|---|---|---|
+| 0 · Platform | `platform`, `i18n`, `portal`, `drag`, `notifications`, `secrets` | `session_bus`, `fonts`, `logging` |
+| 1 · Primitives | `elements`, `style`, `theme`, `symbol`, `interaction`, `animation`, `adaptive`, `controls`, `buttons`, `compact`, `choices`, `level`, `progress`, `indicator`, `adornments`, `popup_button`, `combo_box`, `popover`, `tooltip`, `context_menu`, `menu`, `password`, `text_editor`, `rich_text`, `spelling`, `token_field`, `path_control`, `date`, `date_picker`, `color_picker`, `image_well`, `rule_editor`, `print`, `charts`, `canvas`, `glass_container`, `backdrop`, `media`, `video` (feature `video`), `titlebar`, `traffic`, `chrome`, `sidebar`, `app_menu`, `status_item` | `scroll`, `glass`, `controlled` |
+| 2 · Views | `views` (`collection`, `feedback`, `floating_pane`, `form`, `group`, `navigation`, `search`, `split`, `split_panes`, `table`, `tabs`, `text_view`, `tree`, `window_tabs`) and `font_panel` | — |
+| 3 · Patterns | `patterns` (`about`, `language`, `preferences`) | `patterns::search_popover` |
+| App | `app` and `prelude` | — |
+| Shell | `shell`, only with the `shell` feature | — |
+
+Three items live at the crate root: `register_font`, `init_tracing` and
+`ProbeExt` ([4](04-appearance-and-tokens.md#helpers)).
+
+## The prelude
+
+The prelude re-exports the entry points, the controls, Freya's prelude and the
+common tokens. Its exact contents are in [2](02-first-app.md#the-prelude). Any
+other token comes from `vow_design`, which the app then adds as a dependency.
 
 ## Rules
 
-1. A layer only uses the ones below it. Layer 1 does not know `SplitView`.
-   Exception: `platform::app` mounts the root of each window
-   (`chrome::window_root`), paints its background with `theme` and serves the
-   global menu and the status icons (`app_menu`, `status_item`). Tests
-   (`#[cfg(test)]`) mount whole windows and use any layer.
-2. Layer 3 only composes the public API of layer 2. Whatever a pattern needs is
-   added to layer 2 and becomes available to every app.
-3. An app can use any layer. Settings uses layer 3; a player composes layer 2
-   by hand; a very special view draws with Freya's `rect` and `label` and the
+1. A layer uses only the layers below it. Layer 1 does not know `SplitView`.
+2. `app` is cross-cutting: every layer may use it (actions, defaults,
+   restoration).
+3. Layer 0 has one exception: `platform` mounts the root of each window
+   (`chrome::window_root`), paints its background with `theme`, and serves the
+   menu bar menu and the status item (`app_menu`, `status_item`).
+4. Tests (`#[cfg(test)]`) mount whole windows and may use any layer.
+5. Layer 3 composes only the public API of layer 2. What a pattern needs is
+   added to layer 2, so every app gets it.
+6. An app may use any layer. A settings app uses layer 3; a player composes
+   layer 2; a special view draws with Freya's `rect` and `label` and the
    `Palette`.
-4. The shell (`menubar`, `dock`, `lock`, `launcher`) uses `shell/`. The other
-   apps do not enable the feature and do not even see the module.
+7. Only `malaysia-shell` enables the `shell` feature. Other apps do not see the
+   module.
 
-## Which layer to choose
+## What every component does
 
-| If you want… | Use |
-|---|---|
-| A settings app with a sidebar, search field and panes | Layer 3: `PreferencesWindow` |
-| An app with its own navigation (media player, file browser) | Layer 2: `SplitView` + `Sidebar` + `Titlebar` |
-| A small window or a dialog | Layer 1: controls inside a `rect` |
-| A component that does not exist | Layer 1 + `use_interaction` and the `Palette`; if other apps will use it, it goes into the kit |
-
-## The rules every component follows
-
-- **Tengen values.** No color or size literals; everything comes from
-  `vow_design`.
-- **Variants, not free styles.** `ButtonStyle::Primary`, `Tint::Backdrop`,
-  `SidebarBackdrop::Tinted`… never `.background(color)` on a kit control.
-- **Controlled.** The app holds the state and the control reports changes.
-- **Shared interaction.** Hover, pressed, keyboard focus and focus ring come
-  from `use_interaction()`.
-- **Accessible.** The accessible label is an argument of `new`: a control
-  without a label does not compile.
-- **Reactive.** A change of mode, accent or tint repaints without restarting.
+| Rule | ✗ | ✓ |
+|---|---|---|
+| Values come from Tengen ([4](04-appearance-and-tokens.md#tokens-vow-design)) | `.corner_radius(6.)` | `.corner_radius(BUTTON.radius)` |
+| Colors come from the `Palette` ([4](04-appearance-and-tokens.md#the-palette)) | `Color::from_rgb(0, 0, 0)` | `color(Palette::current().label)` |
+| Variants, not free styles | `.background(red)` on a kit control | `ButtonStyle::Primary`, `.tint(Tint::Color(..))`, `SidebarBackdrop::Tinted` |
+| The app holds the state | The control keeps the value | The control takes the value and reports changes |
+| Shared interaction | Own hover and focus code | `use_interaction()` for hover, press, focus and focus ring |
+| Accessible | A control without a name | The accessible label is an argument of `new`: `Button::new("Save")` |
+| Reactive | Read the appearance once | A change of mode, accent or tint repaints without a restart |
 
 Next: [4. Appearance and tokens](04-appearance-and-tokens.md).

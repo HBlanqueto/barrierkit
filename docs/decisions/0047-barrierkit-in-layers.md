@@ -163,7 +163,7 @@ barrier-kit/src/
   shell/      shell only, behind the `shell` feature (see below)
 ```
 
-The module list of each layer is in [Layers](../barrierkit/03-layers.md#where-each-layer-lives-in-the-code).
+The module list of each layer is in [Layers](../barrierkit/03-layers.md#modules-by-layer).
 
 There is no `prelude.rs`: each app imports from its module (`barrier_kit::views::form::Form`).
 

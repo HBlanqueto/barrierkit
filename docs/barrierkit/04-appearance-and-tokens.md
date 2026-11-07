@@ -1,119 +1,625 @@
 # 4. Appearance and tokens
 
-**Goal:** know where each color and each size comes from, how it changes with
-the system and how to add your own values.
+**Goal:** paint a view with the system's colors, type, symbols and sizes, follow
+the user's appearance without a restart, and add a token when one is missing.
+**Scope:** from the Tengen JSON files to the palette a view paints with. It
+covers `style`, `theme`, `symbol`, fonts, the whole of `vow-design` and the
+whole of `vow-appearance`. Backdrops and their tints are in
+[15](15-backdrops-and-media.md); traffic lights as a control in
+[9](09-titlebars.md); the language of the text in [17](17-languages.md); how
+`build.rs` reads the JSON in [Tengen](../architecture/tengen.md).
 **Reader:** anyone who designs an app or a component.
+**Input:** an app from [2](02-first-app.md). **Output:** a view that uses only
+tokens and the palette, and follows the user's appearance.
 
-## Three levels
+## Steps
 
-| Level | Who decides | Where it lives |
-|---|---|---|
-| Tengen **tokens**: base colors, radii, spacing, typefaces, durations, per-component metrics | The design system | `crates/vow-design/tengen/tokens.json` and `components.json` |
-| **Appearance**: light or dark mode, accent, tints, island or flat sidebar, reduced motion | The user | `~/.config/malaysia/appearance.domain` |
-| **Variants** of a control: primary, custom tint, tinted backdrop | The app | The app's code |
+1. Read the palette inside the component: `let palette = Palette::current();`
+   ([The palette](#the-palette)).
+2. Write text with a type token: `text("Storage", HEADLINE, palette.label)`
+   ([Text, shapes and colors](#text-shapes-and-colors)).
+3. Size and space with tokens: `.padding(SPACE_3)`,
+   `.corner_radius(continuous_corner(BUTTON.radius))`
+   ([Tokens](#tokens-vow-design)).
+4. Convert palette colors for Freya with `color`:
+   `.background(color(palette.content_background))`.
+5. Add a symbol: `symbol(Symbol::Folder, SYMBOL.grid, palette.secondary_label)`
+   ([Symbols](#symbols)).
+6. If the view needs a value Tengen does not have, add it:
+   [Adding a token](#adding-a-token).
+7. Run `./dev.sh check`. `scripts/check-design-tokens.sh` rejects color
+   literals and UI measurements outside `vow-design`.
 
-## Tokens: Tengen and `vow-design`
-
-`crates/vow-design/build.rs` reads both JSON files and generates typed Rust
-constants. An app imports them from `vow_design`:
+The result:
 
 ```rust
-use vow_design::{ACCENT_SWATCHES, BUTTON, DURATION_BASE, SPACE_3, SPLIT_VIEW, TITLE};
+use barrier_kit::prelude::*;
+use barrier_kit::style::continuous_corner;
+use barrier_kit::symbol::{Symbol, symbol};
+use vow_design::{BUTTON, SYMBOL};
+
+fn storage_row() -> impl IntoElement {
+    let palette = Palette::current();
+    HStack::new()
+        .padding(SPACE_3)
+        .corner_radius(continuous_corner(BUTTON.radius))
+        .background(color(palette.content_background))
+        .child(symbol(Symbol::Folder, SYMBOL.grid, palette.secondary_label))
+        .child(text("Storage", HEADLINE, palette.label))
+}
 ```
 
-| Group | Examples |
+## Where a value comes from
+
+| Source | Who decides | Where it lives |
+|---|---|---|
+| **Tokens**: base colors, spacing, type, durations, per-component metrics | The design system | `crates/vow-design/tengen/tokens.json` and `components.json` |
+| **Appearance**: mode, accent, tints, sidebar style, contrast, motion | The user | `~/.config/malaysia/appearance.domain` |
+| **Variants** of a control: primary, tint, tinted backdrop | The app | The app's code |
+
+The kit resolves the first two into a `Resolved` value
+([Resolution](#resolution)) and the `Palette` that views paint with.
+
+## The palette
+
+`style::Palette` holds the semantic colors of the current context. A view or a
+component paints only with them.
+
+| Method | Returns |
 |---|---|
-| Spacing | `SPACE_1` … `SPACE_4` |
-| Typography | `LARGE_TITLE`, `TITLE`, `TITLE_2`, `HEADLINE`, `BODY`, `CALLOUT`, `CAPTION` and the monospaced `MONO` (type `Font`) |
-| Durations (ms) | `DURATION_FAST_MS` (120), `DURATION_BASE` (220), `DURATION_SLOW_MS` (420) |
-| Per-component metrics | `BUTTON`, `SWITCH`, `SLIDER`, `SEGMENTED`, `TEXT_FIELD`, `TITLEBAR`, `SIDEBAR`, `SPLIT_VIEW`, `SPLIT_PANES`, `FLOATING_PANE`, `TABLE`, `COLLECTION`, `BREAKPOINT`… |
-| Base colors | `LIGHT`, `DARK`, `DARK_TINT` and their backgrounds (`BG_WINDOW_LIGHT`…) |
-| Accents | `ACCENT_SWATCHES`: Azul, Morado, Rosa, Rojo, Naranja, Amarillo, Verde, Gris (blue, purple, pink, red, orange, yellow, green, gray) |
+| `Palette::current()` | The palette in effect here: the one a `Backdrop` provides ([15](15-backdrops-and-media.md)), otherwise `Palette::system()`. In an inactive window `accent` becomes `accent_inactive`, and `on_accent` follows it. |
+| `Palette::system()` | The palette of the resolved appearance, without backdrop and without the active-window rule. |
 
-### Adding your own value
+| Field | Use | AppKit |
+|---|---|---|
+| `label` | Primary text | `NSColor.labelColor` |
+| `secondary_label` | Secondary text | `NSColor.secondaryLabelColor` |
+| `tertiary_label` | Tertiary text and placeholders | `NSColor.tertiaryLabelColor` |
+| `separator` | Separators | `NSColor.separatorColor` |
+| `control_border` | Edge of a control | — |
+| `window_background` | Window background | `NSColor.windowBackgroundColor` |
+| `content_background` | Background of lists, tables and groups | `NSColor.controlBackgroundColor` |
+| `control_background` | Face of a control at rest | `NSColor.controlColor` |
+| `control_hover` | Face of a control under the pointer | — |
+| `selected_control` | Face of a selected control | `NSColor.selectedControlColor` |
+| `accent` | Accent | `NSColor.controlAccentColor` |
+| `accent_inactive` | Accent in an inactive window | — |
+| `on_accent` | Ink on the accent | `NSColor.alternateSelectedControlTextColor` |
+| `destructive` | Destructive actions | `NSColor.systemRed` |
+| `raised_background` | Raised surfaces | — |
+| `sunken_background` | Sunken surfaces | — |
+| `scrim` | Dimming behind sheets | — |
+| `card_border` | Edge of a card | — |
 
-A new color or size is never written in `barrier-kit`. It goes into Tengen:
+With `contrast = true` ([The appearance file](#the-appearance-file)) each ink
+moves up one level: `secondary_label` takes the strong ink and
+`tertiary_label` the muted one. Separators and control borders use the muted
+ink, which reaches 3:1 on the window, as the HIG asks for «Increase Contrast».
 
-1. Add the key to the component in `tengen/components.json` (or to
-   `tokens.json` if it is a base value).
-2. If the component has no struct yet, add the field to the struct in
-   `crates/vow-design/src/lib.rs` and its emission in `crates/vow-design/build/`.
-3. Use the constant in the code: `SPLIT_VIEW.key_step`.
-4. Pass `./dev.sh check`. `scripts/check-design-tokens.sh` rejects color
-   literals outside `vow-design`.
+## Text, shapes and colors
 
-## User appearance
+| Function | What it does |
+|---|---|
+| `style::text(content, face, ink) -> Label` | A one-line Freya `label` with the family, size, weight and line height of a `Font` token and the color `ink`. For text that wraps, use `Text` ([2](02-first-app.md)). |
+| `style::continuous_corner(radius) -> CornerRadius` | A corner radius with Apple's continuous curve, smoothed as `WINDOW_CORNER.expansion` says (malaysia ADR 0059). |
+| `theme::color(rgba) -> Color` | Converts a Tengen `Rgba` to Freya's `Color`. |
 
-`vow-appearance` resolves it and the kit watches it: if the file changes, the
-window repaints without restarting. `MALAYSIA_CONFIG_DIR` changes the folder.
+## Symbols
 
-```toml
-# ~/.config/malaysia/appearance.domain
-color_scheme = "dark"            # auto | light | dark | dark_tint
-accent_color = [0.18, 0.44, 0.89]
-sidebar_style = "island"         # island | flat
-traffic_lights = "auto"          # auto | standard | accent | wallpaper
-traffic_light_shape = "square"  # square | round
-window_color = "neutral"         # neutral | accent | wallpaper
-tint_parts = ["sidebars", "window", "groups", "controls", "menus"]
-tint_strength_accent = "normal"  # subtle | normal | strong | intense
-contrast = false
-reduced_motion = false
-reduce_transparency = true
-scroll_bars = "when_scrolling"   # when_scrolling | always
+`symbol::symbol(symbol, size, color) -> SvgViewer` draws a line icon of
+`size` × `size` pixels in `color`. The icons are drawn on a grid of
+`SYMBOL.grid` (16) with a stroke of `SYMBOL.stroke` (1.4), like SF Symbols at
+regular weight.
+
+`symbol::Symbol` names the icon:
+
+| Group | Variants |
+|---|---|
+| Navigation | `ChevronRight`, `ChevronLeft`, `ChevronUp`, `ChevronDown`, `ChevronUpDown`, `ChevronDoubleRight`, `GoBackward`, `GoForward`, `ArrowDown` |
+| Actions | `MagnifyingGlass`, `XMark`, `Plus`, `Minus`, `Ellipsis`, `Checkmark`, `Expand` |
+| Media | `Play`, `Pause`, `Backward`, `Forward`, `SpeakerWave`, `Captions`, `Film`, `Tv` |
+| Layout | `ListBullet`, `SquareGrid`, `SlidersVertical`, `SidebarLeft` |
+| Places and things | `House`, `Folder`, `Document`, `Star`, `StarFill`, `Clock`, `Bookmark`, `CircleHalf` |
+
+`StarFill` is the only filled symbol. The kit caches the SVG of each symbol.
+
+## Fonts
+
+`register_font(bytes) -> bool` adds a typeface from the bytes of a TrueType or
+OpenType file. Its family is then available to text, menus, printing and the
+font panel of that thread. It returns `false` when the bytes are not a font.
+Call it on the thread that runs the window, before opening it:
+
+```rust
+barrier_kit::register_font(include_bytes!("../fonts/Display.otf"));
 ```
 
-`theme::resolved()` carries these preferences already resolved. With
-`contrast`, the `Palette` raises each ink one level (the secondary one becomes
-`ink_strong`, the tertiary one `ink_muted`) and separators and control borders
-use `ink_muted`, which reaches 3:1 on the window, as the
-[HIG](https://developer.apple.com/design/human-interface-guidelines/accessibility)
-asks for «Increase Contrast».
+The type tokens use Geist and Geist Mono ([Type](#type)). The dev shell
+installs them.
 
-The accent is left alone, except to keep it readable:
+## Theme functions
 
-- `on_accent` is white while it reaches 4.5:1 on the accent, and the dark ink
-  otherwise; a mid-tone accent that reaches it with neither is darkened just
-  enough.
-- `focus_ring` is the accent with its lightness moved until it reaches 3:1 on
-  the window, and focus rings use it.
+`barrier_kit::theme` connects the resolved appearance with Freya.
 
-The same button in the three modes:
-
-## The semantic palette
-
-`style::Palette::current()` gives the colors already resolved for the mode,
-the accent and the active or inactive window. An app or a component paints
-only with it:
-
-| Field | Use |
+| Function | What it does |
 |---|---|
-| `label`, `secondary_label`, `tertiary_label` | Primary, secondary and tertiary text |
-| `window_background`, `content_background` | Window and content background |
-| `control_background`, `control_hover`, `selected_control` | Controls at rest, under the pointer and selected |
-| `accent`, `accent_inactive`, `on_accent` | Accent, accent in an inactive window and ink on the accent |
-| `separator`, `control_border`, `card_border` | Lines and borders |
-| `raised_background`, `sunken_background`, `scrim` | Raised surfaces, sunken surfaces and scrims |
-| `destructive` | Destructive actions |
+| `resolved() -> Resolved` | The resolved appearance of this point of the tree: the one `use_appearance` provides, otherwise the window's, otherwise it reads the files. |
+| `use_appearance(adjust)` | Hook. Changes the appearance for this component and its children: `adjust` edits a copy of the user's `AppearanceConfig`. It follows later changes of the user's appearance. |
+| `use_shell_theme()` | Hook. Gives Freya's own components a theme built from the resolved shell colors, and updates it when the appearance changes. |
+| `for_scheme(dark) -> Theme` | Freya theme for the default light or dark appearance. |
+| `surface_background(resolved, kind) -> Rgba` | Background of a surface: the window color for `SurfaceKind::Toplevel`; the bar color for `SurfaceKind::LayerShell`, tinted when the tint covers the desktop. |
+| `menu_palette(resolved, kind) -> MenuPalette` | Menu colors over that surface. A tinted surface lifts the menu background and recomputes its separator. |
+| `popover_palette(resolved, kind) -> MenuPalette` | `menu_palette` with the metrics of a pop-up menu (`MENU_POPOVER`). |
+| `apply_popover_metrics(palette) -> MenuPalette` | Replaces the padding, widths, item size and check mark of a `MenuPalette` with `MENU_POPOVER`. |
+| `lock_palette(resolved) -> LockPalette` | `LOCK` with the resolved accent, for the lock screen. |
 
-`style::text(content, font, ink)` creates a text with a Tengen typeface.
-`theme::color(rgba)` converts a Tengen color to the Freya type.
-`theme::use_shell_theme()` gives Freya's components a theme with the resolved
-palette and changes it with the appearance.
+`SurfaceKind` has two variants: `Toplevel` (an app window) and `LayerShell`
+(a shell surface such as the menu bar).
+
+Force dark mode in one part of a window:
+
+```rust
+use barrier_kit::theme::use_appearance;
+use vow_appearance::ColorScheme;
+
+fn dark_panel() -> impl IntoElement {
+    use_appearance(|config| config.color_scheme = ColorScheme::Dark);
+    storage_row()
+}
+```
 
 ## Custom colors in an app
 
-An app does not change individual colors: it picks a variant.
+An app does not change single colors; it picks a variant.
 
-| I want… | Like this |
+| I want… | Like this | Where |
+|---|---|---|
+| A control in another color | `.tint(Tint::Color(ACCENT_SWATCHES[4].1))` on `Switch`, `Checkbox`, `Slider`, `LevelSlider`, `RadioGroup`, `ProgressBar` | [5](05-controls.md) |
+| A control filled with the backdrop gradient | `.tint(Tint::Backdrop)` inside a `Backdrop` | [15](15-backdrops-and-media.md) |
+| Another accent for a whole area | `Backdrop::new(..).accent(Accent::Own(color))` or `Accent::FromBackdrop` | [15](15-backdrops-and-media.md) |
+| Let the user pick a color | `ColorWell::new("Color", &ACCENT_SWATCHES)` | [5](05-controls.md) |
+| Light or dark in one area | `theme::use_appearance(..)` | [Theme functions](#theme-functions) |
+
+In an inactive window every tint uses the inactive accent.
+
+## User appearance: `vow-appearance`
+
+`vow-appearance` reads the user's appearance, resolves it into colors and
+watches it. The compositor, the shell, the portal and the kit share it, so all
+of them agree. The kit's runner watches the files: when the appearance or the
+wallpaper changes, every window repaints without a restart.
+
+### The appearance file
+
+`appearance_path()` is `config_dir()/appearance.domain`. `config_dir()` is
+`$MALAYSIA_CONFIG_DIR`, or `$XDG_CONFIG_HOME/malaysia`
+(`~/.config/malaysia`). A missing key takes its default; an invalid value takes
+its default and logs a warning.
+
+```toml
+# ~/.config/malaysia/appearance.domain
+color_scheme = "dark"
+accent_color = [0.18, 0.44, 0.89]
+window_color = "accent"
+tint_parts = ["sidebars", "window", "groups", "controls", "menus"]
+```
+
+| Key | Type (`AppearanceConfig` field) | Values | Default |
+|---|---|---|---|
+| `color_scheme` | `ColorScheme` | `auto`, `light`, `dark`, `dark_tint` | `auto` |
+| `accent_color` | `Option<[f32; 3]>` | RGB from 0 to 1 | the theme's accent |
+| `contrast` | `bool` | | `false` |
+| `reduced_motion` | `bool` | | `false` |
+| `reduce_transparency` | `bool` | | `true` |
+| `scroll_bars` | `ScrollBars` | `when_scrolling`, `always` | `when_scrolling` |
+| `window_color` | `WindowColorMode` | `neutral`, `accent`, `wallpaper` | `neutral` |
+| `window_tint_scope` | `WindowTintScope` | `windows`, `desktop` | `windows` |
+| `tint_strength_accent` | `TintStrength` | `subtle`, `normal`, `strong`, `intense` | `normal` |
+| `tint_strength_wallpaper` | `TintStrength` | same | `normal` |
+| `tint_parts` | `TintParts` | list of `sidebars`, `window`, `groups`, `controls`, `menus` | all five |
+| `sidebar_style` | `SidebarStyle` | `island`, `flat` | `island` |
+| `traffic_lights` | `TrafficLightStyle` | `auto`, `standard`, `accent`, `wallpaper` | `auto` |
+| `traffic_light_shape` | `TrafficLightShape` | `square`, `round` | `square` |
+
+Notes on the values:
+
+- `auto` resolves to `light` (`ColorScheme::resolved`); `is_dark()` is true for
+  `dark` and `dark_tint`.
+- `TintStrength::factor()` multiplies the tint by `TINT_STRENGTH`: 0.5, 1, 1.5
+  or 2.
+- `traffic_lights = "auto"` follows `window_color`
+  (`AppearanceConfig::traffic_light_style`). The old value `"macos"` still
+  reads as `standard`, with a warning.
+- `TrafficLightShape::corner_radius(diameter)` gives the radius of a light of
+  that size.
+
+### Reading and writing
+
+| Function | What it does |
 |---|---|
-| A control in another color | `.tint(Tint::Color(ACCENT_SWATCHES[5].1))` on `Switch`, `Checkbox`, `Slider`, `LevelSlider`, `RadioGroup`, `ProgressBar` |
-| A control filled with the backdrop gradient | `.tint(Tint::Backdrop)` inside a `Backdrop` |
-| A custom accent for a whole area | `Backdrop::new(..).accent(Accent::Own(color))` or `Accent::FromBackdrop` |
-| Let the user pick a color | `ColorWell::new("Color", &ACCENT_SWATCHES)` |
-| Force light or dark in my window | `theme::use_appearance(\|config\| config.color_scheme = ColorScheme::Dark)` |
+| `config_dir()`, `data_dir()` | `$MALAYSIA_CONFIG_DIR` or `$XDG_CONFIG_HOME/malaysia`; `$MALAYSIA_DATA_DIR` or `$XDG_DATA_HOME/malaysia`. |
+| `appearance_path()` | `config_dir()/appearance.domain`. |
+| `wallpaper_state_path()` | `data_dir()/wallpaper.state`, where the wallpaper's dominant color lives. |
+| `read_appearance()` | `Ok(None)` without a file, `Err` when the TOML does not parse. |
+| `load_appearance()` | The file's config, or the default on any error. |
+| `write_appearance(path, config)` | Writes the config and keeps other keys and comments. An unreadable file is first copied to `.domain.bak`. The file is replaced atomically. |
+| `load_dominant()`, `write_dominant(path, color)` | Read and write `dominant = [r, g, b]` in `wallpaper.state`; `None` removes the file. |
 
-In an inactive window, all tints use the palette's inactive accent. Tinted
-backdrops are explained in chapter [13](13-backdrops-and-media.md).
+### Resolution
+
+`resolve(&config, dominant) -> Resolved` turns the config and the wallpaper's
+dominant color into colors. `palette(scheme)` returns the base
+`vow_design::Palette` of a scheme (`LIGHT`, `DARK` or `DARK_TINT`).
+`lights_for(style, accent, dominant)` returns the three traffic-light colors of
+a style.
+
+| `Resolved` field | What it holds |
+|---|---|
+| `scheme` | The resolved `ColorScheme` (never `Auto`). |
+| `accent`, `on_accent` | The accent and its ink. With `window_color = "wallpaper"` the accent comes from the wallpaper. |
+| `focus_ring` | The accent moved until it reaches 3:1 on the window. |
+| `link` | The accent moved until it reaches 4.5:1 on the window and on content. |
+| `window_tint`, `panel_tint` | Tint color and amount for windows and for the menu bar and Dock, or `None`. |
+| `window_tint_scope`, `tint_parts` | Copies of the config. |
+| `lights`, `traffic_style`, `traffic_shape` | The traffic-light colors, style and shape. |
+| `contrast`, `reduce_transparency`, `reduced_motion`, `scroll_bars` | Copies of the config. |
+| `shell` | `ShellPalette`: menu bar and Dock colors. |
+| `menu`, `menu_parent` | `MenuPalette` and the window color a menu sits on. `Resolved::menu_separator(panel_bg)` gives the separator over another background. |
+| `sidebar` | `SidebarSurface`: `style`, `bg`, `rim`, `inner` and its `SidebarPalette`. |
+| `toolgroup` | `ToolgroupSurface`: `bg` and its `ToolgroupPalette`. |
+| `surfaces` | `Surfaces`: `window`, `titlebar_inactive`, `sunken`, `surface`, `raised`, `control`, `hover`, `line`, already tinted. |
+
+The rules `resolve` applies:
+
+1. `reduce_transparency` picks the `_OPAQUE` variants of the shell, menu,
+   sidebar and toolgroup colors.
+2. A tint mixes the tint color into each surface. The amount is
+   `WINDOW_TINT_ACCENT` or `WINDOW_TINT_WALLPAPER` (light, dark), times the
+   strength factor, times the `LAYER_FACTOR_*` of that layer. A part left out
+   of `tint_parts` stays neutral.
+3. `on_accent` is the light ink while it reaches 4.5:1 on the accent
+   (`ON_ACCENT_MIN_CONTRAST`), then the dark ink; an accent that reaches it with
+   neither is darkened just enough (WCAG 2.2 §1.4.3).
+4. A wallpaper accent lightens the dominant color in dark mode and darkens it in
+   light mode, then moves until it reaches 3:1 on the window
+   (`ACCENT_MIN_CONTRAST_ON_WINDOW`, WCAG 2.2 §1.4.11). A muted color gains
+   saturation (`MUTED_*`).
+5. Menu hover, sidebar selection and the shell's active tile take the accent.
+
+### Watching
+
+`watch::AppearanceWatch::new()` watches `config_dir()` and `data_dir()` with
+inotify. It is a file descriptor (`AsFd`) for an event loop; `drain()` returns
+what changed as `AppearanceEvent`s:
+
+| Event | File |
+|---|---|
+| `Appearance` | `appearance.domain` |
+| `Wallpaper` | `wallpaper.state` |
+| `WallpaperSelection` | `wallpaper.domain` |
+| `Defaults` | any other `.domain` in the config folder |
+
+`restyles()` is true for `Appearance` and `Wallpaper`. The kit's runner already
+uses it; an app needs it only with its own event loop.
+
+### Window behavior
+
+`window::read_window_behavior()` reads `config_dir()/window.domain` into a
+`WindowBehavior`:
+
+| Key | Type | Values | Default |
+|---|---|---|---|
+| `double_click_titlebar` | `DoubleClickAction` | `fill`, `minimize`, `zoom`, `none` | `zoom` |
+| `green_button` | `GreenButtonAction` | `focus` (also `fullscreen`), `zoom`, `none` | `focus` |
+
+`green_action(action, fixed_width)` and `double_click_action(action, zoomable)`
+turn them into a `TitlebarAction`: `Focus`, `Maximize`, `Minimize` or `None`.
+A fixed-width window maximizes instead of entering focus mode; a double click
+never enters focus mode. The titlebar uses them ([9](09-titlebars.md)).
+
+### Traffic-light geometry
+
+`vow_appearance::traffic` holds the geometry and look of the close, minimize and
+zoom lights, shared by the kit and the compositor:
+
+| Item | What it does |
+|---|---|
+| `inset(bar_height)` | Distance of the lights from the left and top edges of a bar. |
+| `button_rect(index) -> (x, y, size)` | Rectangle of light `index` in a server-side titlebar. |
+| `group_rect() -> (x, y, width, height)` | Rectangle of the three lights. |
+| `hit(point) -> Option<ButtonKind>` | The light under a point. |
+| `TrafficInput` | `focused`, `group_hovered`, `pressed`, `zoom_supported`. |
+| `visual(lights, style, inactive, rim, input) -> [ButtonVisual; 3]` | Fill, rim and glyph color of each light for that input. |
+| `ButtonVisual` | `fill`, `rim`, `glyph`; `ButtonVisual::idle(fill, rim)` is a light at rest. |
+| `glyph_svg(index, color, fixed_width, pixels)` | SVG of the glyph of a light; a fixed-width window gets a plus instead of the zoom arrows. |
+| `TrafficPointer` | Pointer state machine: `on_motion`, `on_group_enter`, `on_button_enter`, `on_leave_button`, `on_press`, `on_release` (returns the clicked light), `on_leave`, `hovered`, `pressed_visual`. |
+
+```rust
+// ✗ geometry computed again
+let x = 8.0 + i as f64 * (12.0 + 8.0);
+// ✓ the shared function
+let (x, y, d) = vow_appearance::traffic::button_rect(i);
+```
+
+### Backdrop colors
+
+`vow_appearance::backdrop` derives colors from an image, for tinted backdrops
+([15](15-backdrops-and-media.md)) and for the wallpaper accent:
+
+| Item | What it does |
+|---|---|
+| `palette_from_pixels(rgba8) -> Option<ImagePalette>` | Three representative colors (`colors`) and the most vivid one (`vivid`), by k-means in OKLab. |
+| `dominant_from_pixels(rgba8) -> Option<Rgba>` | The dominant chromatic color, with lightness kept inside `DOMINANT_LIGHTNESS`. `None` for a grey image. |
+| `Backdrop` | Three gradient `layers` and a `base`. `from_colors`, `solid`, `mix`, `average`, `ink`, `accent(vivid)`, `highlights`. |
+| `ink_on(background) -> Rgba` | The light or dark ink with more contrast on that background. |
+| `Oklab` | A color in OKLab: `from_rgba`, `to_rgba`. |
+
+### Language
+
+`vow_appearance::language` finds the language the user asked for
+([17](17-languages.md)):
+
+| Function | What it does |
+|---|---|
+| `read_language(path)` | The `language = "…"` of a `.domain` file; an empty value is `None`. |
+| `system_language()` | `read_language` of `config_dir()/language.domain`. |
+| `requested_languages(app_language)` | The app's language, else the system's, else `LANGUAGE` followed by the first of `LC_ALL`, `LC_MESSAGES`, `LANG`, as tags such as `es-MX`. The `C` locale requests nothing. |
+
+### Directories
+
+`vow_appearance::xdg` follows the XDG Base Directory specification and ignores
+relative paths:
+
+| Function | Returns |
+|---|---|
+| `config_home()` | `$XDG_CONFIG_HOME` or `~/.config` |
+| `data_home()` | `$XDG_DATA_HOME` or `~/.local/share` |
+| `data_dirs()` | `$XDG_DATA_DIRS` or `/usr/local/share` and `/usr/share` |
+| `user_dir(kind)` | `XDG_<kind>_DIR` from `user-dirs.dirs`, for example `user_dir("DOWNLOAD")` |
+
+## Tokens: `vow-design`
+
+`vow-design` is Tengen in Rust. `build.rs` reads `tengen/tokens.json` and
+`tengen/components.json` and writes one constant per token into
+`$OUT_DIR/tengen.rs`. The struct of each constant is in `src/lib.rs`. An app
+imports them from `vow_design`; the prelude re-exports the type and spacing
+tokens.
+
+### Adding a token
+
+A color, size or duration never goes into `barrier-kit`. It goes into Tengen:
+
+1. Add the key: under its component in `components.json`, or as a base value
+   in `tokens.json`. A color per theme goes under `themes.light`,
+   `themes.dark` and `themes.dark-tint`.
+2. A new field of an existing struct: add `pub name: Type,` to the struct in
+   `src/lib.rs`. `build.rs` finds the key by name (`_` becomes `-`, and
+   prefixes match nested objects).
+3. A new constant: add a line `NAME Type json.path` to `CONSTANTS` in
+   `build.rs`, plus its struct in `src/lib.rs` if it is a new type. A line in
+   `THEMED` makes one constant per theme (`_LIGHT`, `_DARK`, `_DARK_TINT`).
+   Write `field=path` after the path when a key has another name.
+4. Use it: `SPLIT_VIEW.key_step`.
+5. Add its row to the [glossary](20-glossary.md).
+6. Run `./dev.sh check`.
+
+### Token types
+
+| Type | What it is |
+|---|---|
+| `Rgba` | sRGB color with straight alpha, channels from 0 to 1. `TRANSPARENT`, `rgb8`, `rgba8`, `to_rgba8`, `premultiplied`, `mix` (keeps its own alpha), `darken`, `lighten`, `to_linear`, `from_linear`, `relative_luminance`, `contrast_ratio`, `to_hsl`, `from_hsl`. |
+| `Font` | `family`, `size`, `line_height` (pixels) and `weight`. |
+| `Palette` | Base colors of a theme: `titlebar_bg`, `hairline`, `inner_line`, `panel_inner_line`, `outer_border`, `title`, `text`, `ink_strong`, `ink_muted`, `ink_faint`, `line`, `line_strong`, `accent`, `accent_inactive`, `on_accent`, `danger`, `traffic_lights_inactive`, `traffic_rim`, `scrim`, `selected_control`, `card_border`. |
+| `FocusPair` | A color for the focused window and one for the unfocused. |
+| `PanelLine` | Inner line of a panel: `sides` and `edges`. |
+| `TrafficRim` | Rim of a traffic light: `lit` and `idle`. |
+| `ShellPalette` | Menu bar and Dock: `bar`, `text`, `tile`, `tile_active`, `tile_text_active`. |
+| `MenuPalette` | Colors and metrics of a menu: background, padding, item size, inks, hover, separator, check mark, header and search field. |
+| `LockPalette` | Lock screen: `bg_surface`, `ink`, `ink_muted`, `danger`, `accent`. |
+| `SidebarPalette` | Sidebar inks: item, icon, selection, inactive selection, hover, section, count, line. |
+| `ToolgroupPalette` | Toolbar group: `separator`, `rim`. |
+| `ShadowLayer` | `blur`, `y_offset`, `opacity`, `color`. |
+| `ShadowStyle` | `ambient` and `contact` layers and their scale when unfocused; `layers(focused)` returns both. |
+| `WindowCorner` | Window radii (`titlebar`, `compact`, `unified`, `utility`), curve `expansion` and superellipse `exponent`. |
+| `WindowStyle` | `corner_radius` and `superellipse_exponent` of a dialog or pop-up. |
+| `WindowResize` | Width of the resize band at an `edge` and a `corner`. |
+| `Titlebar` | Server-side titlebar: `thickness`, `buttons`, `font`. |
+| `TitlebarButtons` | `order` of the three lights, `diameter`, `spacing`, `corner_radius`. |
+| `Button` | One traffic light: its `kind` and `color`. |
+| `ButtonKind` | `Close`, `Minimize`, `Maximize`. |
+| `TrafficGlyphs` | Glyph geometry: `box_size`, `stroke`, `close`, `minimize`, `zoom`, `plus`. |
+| `Segment`, `Triangle` | A line from `a` to `b`; three points. |
+| `DoubleClick` | `interval_ms` and pointer `slop` of a double click. |
+| `SettingsStrength`, `SettingsCheck` | Parts of `SettingsMetrics`: the tint-strength scale and the check list. |
+| `*Metrics` | Sizes of one component; see the tables below. |
+
+### Spacing
+
+| Constant | Value |
+|---|---|
+| `SPACE_1`, `SPACE_2`, `SPACE_3`, `SPACE_4` | 4, 8, 12, 16 |
+| `HAIRLINE` | 1, the width of a separator |
+
+### Type
+
+| Constant | Size / line height | Weight | SwiftUI |
+|---|---|---|---|
+| `LARGE_TITLE` | 26 / 32 | 700 | `Font.TextStyle.largeTitle` |
+| `TITLE` | 22 / 26 | 650 | `.title` |
+| `TITLE_2` | 15 / 20 | 600 | `.title2` |
+| `HEADLINE` | 13 / 18 | 700 | `.headline` |
+| `BODY` | 13 / 18 | 400 | `.body` |
+| `CALLOUT` | 12 / 16 | 400 | `.callout` |
+| `CAPTION` | 11 / 14 | 500 | `.caption` |
+| `MONO` | 13 / 16 | 400 | `Font.monospaced()` |
+
+All use Geist; `MONO` uses Geist Mono. `SANS_FAMILIES` is the fallback list
+(Geist, Inter, Noto Sans CJK SC, system-ui, sans-serif). `TEXT_LINE_HEIGHT`
+(1.3) is the factor that turns a font size into the height of one line when
+the kit measures text without laying it out.
+
+### Motion
+
+| Constant | Value |
+|---|---|
+| `DURATION_FAST_MS`, `DURATION_BASE`, `DURATION_SLOW_MS` | 120, 220, 420 ms |
+| `THEME_FADE_WAIT_MS` | 150 ms: longest wait for clients before the compositor's theme fade |
+| `SPRING_DAMPING` | 5, damping of the kit's spring ([14](14-animations.md)) |
+
+### Colors
+
+| Constants | Type | What they are |
+|---|---|---|
+| `LIGHT`, `DARK`, `DARK_TINT` | `Palette` | Base palette of each theme. |
+| `BG_WINDOW_LIGHT`, `BG_WINDOW_DARK`, `BG_WINDOW_DARK_TINT` | `Rgba` | Window background. |
+| `BG_SURFACE_LIGHT`, `BG_SURFACE_DARK`, `BG_SURFACE_DARK_TINT` | `Rgba` | Content and group background. |
+| `BG_SUNKEN_LIGHT`, `BG_SUNKEN_DARK`, `BG_SUNKEN_DARK_TINT` | `Rgba` | Sunken background. |
+| `BG_RAISED_LIGHT`, `BG_RAISED_DARK`, `BG_RAISED_DARK_TINT` | `Rgba` | Raised background (menus). |
+| `BG_CONTROL_LIGHT`, `BG_CONTROL_DARK`, `BG_CONTROL_DARK_TINT` | `Rgba` | Control face. |
+| `BG_HOVER_LIGHT`, `BG_HOVER_DARK`, `BG_HOVER_DARK_TINT` | `Rgba` | Control face under the pointer. |
+| `LAYER_FACTOR_BG_SUNKEN`, `LAYER_FACTOR_SURFACE`, `LAYER_FACTOR_RAISED`, `LAYER_FACTOR_CONTROL`, `LAYER_FACTOR_LINE` | `f32` | Share of the window tint each layer takes: 1.4, 1, 0.6, 1.2, 1.2. |
+| `WINDOW_TINT_ACCENT`, `WINDOW_TINT_WALLPAPER`, `PANEL_TINT_WALLPAPER` | `[f32; 2]` | Tint amount in light and dark: accent windows, wallpaper windows, wallpaper menu bar and Dock. |
+| `TINT_STRENGTH` | `[f32; 4]` | Factor of each `TintStrength`: 0.5, 1, 1.5, 2. |
+| `ACCENT_MIN_CONTRAST_ON_WINDOW`, `ON_ACCENT_MIN_CONTRAST` | `f32` | 3 and 4.5: contrast of the accent on the window and of ink on the accent. |
+| `WALLPAPER_ACCENT_DARKEN_LIGHT`, `WALLPAPER_ACCENT_LIGHTEN_DARK` | `f32` | 0.08 and 0.12: shift of a wallpaper accent. |
+| `MUTED_BELOW_SATURATION`, `MUTED_MAX_SATURATION` | `f32` | 0.35 and 0.45: saturation boost of a muted wallpaper accent. |
+| `DOMINANT_LIGHTNESS`, `DOMINANT_MIN_CHROMA` | `[f32; 2]`, `f32` | Lightness range and minimum chroma of a wallpaper's dominant color. |
+| `ACCENT_SWATCHES` | `[(&str, Rgba); 8]` | The accent choices: blue, purple, pink, red, orange, yellow, green, graphite. |
+| `CHART_SERIES` | `[Rgba; 7]` | Series colors of charts ([16](16-charts.md)). |
+| `LEVEL_INDICATOR_COLORS` | `[Rgba; 3]` | Normal, warning and critical colors of a level indicator. |
+| `SHELL_LIGHT`, `SHELL_LIGHT_OPAQUE`, `SHELL_DARK`, `SHELL_DARK_OPAQUE`, `SHELL_DARK_TINT`, `SHELL_DARK_TINT_OPAQUE` | `ShellPalette` | Menu bar and Dock, translucent and opaque. |
+| `THEME_SHADOW_OPACITY` | `f32` | Shadow opacity of `use_shell_theme`. |
+| `MENU_LIGHT`, `MENU_LIGHT_OPAQUE`, `MENU_DARK`, `MENU_DARK_OPAQUE`, `MENU_DARK_TINT`, `MENU_DARK_TINT_OPAQUE` | `MenuPalette` | Menus, translucent and opaque. |
+| `SIDEBAR_LIGHT`, `SIDEBAR_LIGHT_OPAQUE`, `SIDEBAR_DARK`, `SIDEBAR_DARK_OPAQUE`, `SIDEBAR_DARK_TINT`, `SIDEBAR_DARK_TINT_OPAQUE` | `Rgba` | Flat sidebar background. |
+| `SIDEBAR_ISLAND_LIGHT`, `SIDEBAR_ISLAND_DARK`, `SIDEBAR_ISLAND_DARK_TINT` | `Rgba` | Island sidebar background. |
+| `SIDEBAR_ISLAND_RIM_LIGHT`, `SIDEBAR_ISLAND_RIM_DARK`, `SIDEBAR_ISLAND_RIM_DARK_TINT` | `Rgba` | Island sidebar outer rim. |
+| `SIDEBAR_ISLAND_INNER_LIGHT`, `SIDEBAR_ISLAND_INNER_DARK`, `SIDEBAR_ISLAND_INNER_DARK_TINT` | `Rgba` | Island sidebar inner line. |
+| `SIDEBAR_PALETTE_LIGHT`, `SIDEBAR_PALETTE_DARK`, `SIDEBAR_PALETTE_DARK_TINT` | `SidebarPalette` | Sidebar inks per theme. |
+| `TOOLGROUP_BG_LIGHT`, `TOOLGROUP_BG_LIGHT_OPAQUE`, `TOOLGROUP_BG_DARK`, `TOOLGROUP_BG_DARK_OPAQUE`, `TOOLGROUP_BG_DARK_TINT`, `TOOLGROUP_BG_DARK_TINT_OPAQUE` | `Rgba` | Toolbar group background. |
+| `TOOLGROUP_PALETTE_LIGHT`, `TOOLGROUP_PALETTE_DARK`, `TOOLGROUP_PALETTE_DARK_TINT` | `ToolgroupPalette` | Toolbar group lines per theme. |
+
+An `_OPAQUE` constant is its translucent twin painted over the theme's window
+background, for `reduce_transparency`.
+
+### Windows and titlebars
+
+| Constant | Type | Read by |
+|---|---|---|
+| `WINDOW_MIN_SIZE`, `WINDOW_DEFAULT_SIZE` | `(u32, u32)` | `WindowOptions`: 480 × 360 and 640 × 420 ([8](08-windows.md)) |
+| `WINDOW_CORNER` | `WindowCorner` | `style::continuous_corner`, the compositor |
+| `WINDOW_RESIZE` | `WindowResize` | `platform` |
+| `DIALOG`, `DIALOG_PADDING`, `DIALOG_ALERT_WIDTH` | `WindowStyle`, `f32`, `f32` | `views::feedback` |
+| `POPUP` | `WindowStyle` | The compositor, for pop-up corners |
+| `SHADOW`, `SHADOW_DARK` | `ShadowStyle` | `chrome`, the compositor |
+| `NATIVE_APP_ID_PREFIX` | `&str` | `io.github.hblanqueto.malaysia.`: app ids of the kit's apps (`platform`, `titlebar`) |
+| `ALERT_LAYER_NAMESPACE` | `&str` | `malaysia-dialog`: layer-shell namespace of shell alerts |
+| `TITLEBAR` | `Titlebar` | Server-side titlebar of the compositor, `vow_appearance::traffic` |
+| `TITLEBAR_CLIENT_HEIGHT`, `TITLEBAR_PADDING_X` | `u32`, `f32` | `titlebar`, `chrome` ([9](09-titlebars.md)) |
+| `TITLEBAR_TITLE_GAP` | `f32` | The compositor's titlebar |
+| `TITLEBAR_DOUBLE_CLICK` | `DoubleClick` | `titlebar`, the compositor |
+| `TITLEBAR_RAIL` | `TitlebarRailMetrics` | `chrome`, `sidebar` |
+| `FULLSCREEN_BAR`, `FULLSCREEN_GLASS`, `FULLSCREEN_BAND` | `FullscreenBarMetrics`, `FullscreenGlassMetrics` | `platform` and glass bars in full screen |
+| `GLASS_MASK` | `Rgba` | Base color of the mask that fades glass bars |
+| `HUD_BACKGROUND` | `Rgba` | Background of a HUD window (`platform`) |
+
+### Traffic lights
+
+| Constant | Type | What it is |
+|---|---|---|
+| `TRAFFIC_GLYPHS` | `TrafficGlyphs` | Geometry of the close, minimize, zoom and plus glyphs. |
+| `TRAFFIC_GLYPH_STANDARD`, `TRAFFIC_GLYPH_ON_DARK`, `TRAFFIC_GLYPH_ON_LIGHT` | `Rgba` | Glyph ink for the standard style and on tinted lights. |
+| `TRAFFIC_RIM_WIDTH` | `f32` | Rim width. |
+| `TRAFFIC_PRESSED_DARKEN` | `f32` | Darkening of a pressed light. |
+| `TRAFFIC_CLOSE_MINIMIZE_DARKEN`, `TRAFFIC_ZOOM_LIGHTEN` | `f32` | Shifts that derive tinted lights from one color. |
+
+### Control metrics
+
+| Constant | Type | Read by |
+|---|---|---|
+| `BUTTON` | `ButtonMetrics` | `controls`, `compact`, `views::window_tabs`, `font_panel` |
+| `ICON_BUTTON` | `IconButtonMetrics` | `compact`, `views::window_tabs` |
+| `SWITCH` | `SwitchMetrics` | `controls`, `choices`, `level` |
+| `CHECKBOX` | `CheckboxMetrics` | `controls` |
+| `SLIDER`, `SLIDER_FAT`, `SLIDER_KEY_STEP` | `SliderMetrics`, `SliderFatMetrics`, `f32` | `controls`, `level` |
+| `KNOB_SHADOW` | `ShadowLayer` | `level` |
+| `SEGMENTED` | `SegmentedMetrics` | `controls`, `compact` |
+| `STEPPER` | `StepperMetrics` | `compact`, `date_picker` |
+| `TOOLBAR_SEARCH_WIDTH` | `f32` | `compact` |
+| `TEXT_FIELD` | `TextFieldMetrics` | `controls`, `sidebar` |
+| `TOKEN_FIELD` | `TokenFieldMetrics` | `token_field` |
+| `SPELLING` | `SpellingMetrics` | `spelling` |
+| `COMBO_BOX` | `ComboBoxMetrics` | `combo_box` |
+| `PATH_CONTROL` | `PathControlMetrics` | `path_control` |
+| `DATE_PICKER` | `DatePickerMetrics` | `date_picker` |
+| `IMAGE_WELL` | `ImageWellMetrics` | `image_well` |
+| `LEVEL_INDICATOR`, `GAUGE` | `LevelIndicatorMetrics`, `GaugeMetrics` | `indicator` |
+| `PROGRESS` | `ProgressMetrics` | `progress` |
+| `BADGE` | `BadgeMetrics` | `adornments` |
+| `FOCUS_RING` | `FocusRingMetrics` | `interaction` |
+| `SYMBOL` | `SymbolMetrics` | `symbol`, `popup_button`, `progress` |
+| `TOOLTIP` | `TooltipMetrics` | `tooltip`, `charts` |
+| `POPOVER` | `PopoverMetrics` | `popover`, the compositor |
+| `MENU_POPOVER` | `MenuPopoverMetrics` | `theme`, `popup_button`, `date_picker` |
+| `MENU_MARK_TEXT_GAP`, `MENU_SUBMENU_INTENT_MS`, `MENU_SUBMENU_REVEAL_GAP`, `MENU_SCROLL_TICK_MS`, `MENU_SEARCH_ICON`, `MENU_SEARCH_ICON_GAP`, `MENU_SEARCH_CLEAR`, `MENU_SEARCH_CLEAR_GLYPH`, `MENU_SEARCH_CLEAR_MARGIN`, `MENU_SEARCH_CLEAR_MIX`, `MENU_HELP_ICON` | `f32`, `u64`, `[f32; 2]` | `menu` ([7](07-menus-and-popovers.md)) |
+| `MENU_SEPARATOR_INK_MIX` | `f32` | `Resolved::menu_separator` |
+| `DRAG` | `DragMetrics` | `drag` |
+
+### View metrics
+
+| Constant | Type | Read by |
+|---|---|---|
+| `SIDEBAR` | `SidebarMetrics` | `sidebar` |
+| `TOOLGROUP` | `ToolgroupMetrics` | `controls`, `compact` |
+| `SPLIT_VIEW` | `SplitViewMetrics` | `views::split`, `color_picker` |
+| `SPLIT_PANES` | `SplitPanesMetrics` | `views::split_panes` |
+| `FLOATING_PANE` | `FloatingPaneMetrics` | `views::floating_pane` |
+| `TABLE` | `TableMetrics` | `views::table` |
+| `COLLECTION` | `CollectionMetrics` | `views::collection` |
+| `LIST_GROUP` | `ListGroupMetrics` | `views::form` |
+| `GROUP_BOX` | `GroupBoxMetrics` | `views::group` |
+| `DISCLOSURE` | `DisclosureMetrics` | `views::group`, `views::tree`, `font_panel` |
+| `TOOLBAR_TABS` | `ToolbarTabsMetrics` | `views::tabs` |
+| `SCROLL_BAR` | `ScrollBarMetrics` | Scroll views |
+| `BREAKPOINT` | `BreakpointMetrics` | `adaptive`: 620 and 900 px |
+| `SETTINGS` | `SettingsMetrics` | `patterns::preferences`, `sidebar` |
+| `FONT_PANEL` | `FontPanelMetrics` | `font_panel` |
+| `PRINT` | `PrintMetrics` | `print` |
+| `CHART` | `ChartMetrics` | `charts` |
+| `MEDIA` | `MediaMetrics` | `media`, `glass_container` |
+| `BACKDROP` | `BackdropMetrics` | `backdrop`, `sidebar`, `vow_appearance::backdrop` |
+| `BACKDROP_SCENES` | `BackdropScenes` | Preset gradients `dusk`, `night`, `pale`, `forest`, `studio`; nothing reads them yet |
+
+### Shell
+
+`malaysia-shell` reads these; the kit does not, except `MENUBAR_HEIGHT` for the
+focus-mode bar and `LOCK` in `theme::lock_palette`.
+
+| Constants | What they size |
+|---|---|
+| `MENUBAR_HEIGHT`, `MENUBAR_FONT_SIZE`, `MENUBAR_APP_NAME_WEIGHT`, `MENUBAR_MARGIN`, `MENUBAR_MARGIN_RIGHT`, `MENUBAR_TITLE_PADDING_X`, `MENUBAR_TEXT_LIFT`, `MENUBAR_TITLE_MAX_WIDTH`, `MENUBAR_TITLE_BLEED` | The menu bar |
+| `FOCUS_BAR_BACKGROUND`, `FOCUS_BAR_TEXT` | The menu bar in focus mode |
+| `DOCK_TILESIZE`, `DOCK_GAP`, `DOCK_PADDING`, `DOCK_FONT_SIZE`, `DOCK_BAR_HEIGHT` | The Dock (`DOCK_BAR_HEIGHT` = tile + 2 × padding) |
+| `LAUNCHER_WIDTH`, `LAUNCHER_HEIGHT`, `LAUNCHER_PADDING`, `LAUNCHER_SEARCH_HEIGHT`, `LAUNCHER_RESULT_HEIGHT`, `LAUNCHER_RESULT_GAP`, `LAUNCHER_RESULT_RADIUS`, `LAUNCHER_ICON_SIZE`, `LAUNCHER_MAX_RESULTS`, `LAUNCHER_CORNER_RADIUS`, `LAUNCHER_FONT_SIZE`, `LAUNCHER_SUBTITLE_FONT_SIZE`, `LAUNCHER_SCALE_FROM`, `LAUNCHER_OPEN_MS`, `LAUNCHER_CLOSE_MS` | The launcher |
+| `LOCK`, `LOCK_FONT_SIZE`, `LOCK_TITLE_SCALE`, `LOCK_FIELD_WIDTH`, `LOCK_FIELD_HEIGHT`, `LOCK_LABEL_OFFSET`, `LOCK_LABEL_FONT_SIZE`, `LOCK_MASK_FONT_SIZE` | The lock screen |
+| `ABOUT_WIDTH`, `ABOUT_HEIGHT`, `ABOUT_DRAWING_TOP`, `ABOUT_DRAWING_WIDTH`, `ABOUT_DRAWING_HEIGHT`, `ABOUT_TITLE_GAP`, `ABOUT_TITLE_SIZE`, `ABOUT_SPECS_GAP`, `ABOUT_SPEC_ROW_GAP`, `ABOUT_COLUMN_GAP`, `ABOUT_VALUE_WIDTH`, `ABOUT_BUTTON_GAP`, `ABOUT_FOOTER_BOTTOM` | The «About this computer» window |
+
+### Compositor
+
+`malaysia-compositor` reads these:
+
+| Constants | What they are |
+|---|---|
+| `CURSOR_SHAKE_SCALE`, `CURSOR_SHAKE_GROW_MS`, `CURSOR_SHAKE_SHRINK_MS`, `CURSOR_SHAKE_TICK_MS` | The cursor that grows when the pointer is shaken |
+| `SCREENSHOT_DIM`, `SCREENSHOT_IDLE_DIM`, `SCREENSHOT_BORDER`, `SCREENSHOT_BORDER_WIDTH` | The screenshot selection overlay |
+| `SPACE_GAP`, `SPACE_GAP_COLOR`, `SPACE_SLIDE_MS`, `SPACE_SLIDE_EASE` | The gap and slide between Spaces |
+| `TILE_MARGIN`, `TILE_GAP` | Margins of tiled windows |
+| `DESKTOP_CLEAR` | The color behind everything |
+
+## Helpers
+
+| Item | What it does |
+|---|---|
+| `init_tracing()` | Installs the `tracing` subscriber: logs to stderr filtered by `RUST_LOG` (default `info`), and to Tracy with the `tracy` feature ([19](19-profiling.md)). Call it once, first thing in `main`. |
+| `ProbeExt::probe(id)` | Sets the accessibility id of a `rect`, so tests and tools can find the node: `rect().probe("sidebar-toggle")`. |
 
 Next: [5. Controls](05-controls.md).

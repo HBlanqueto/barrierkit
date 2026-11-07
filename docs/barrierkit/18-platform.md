@@ -193,21 +193,8 @@ call 25 s, as libdbus and GDBus do.
 
 ## Errors
 
-The runner returns `RunError` ([8. Windows](08-windows.md#errors)). This table says
-where each variant comes from.
-
-| Variant | Raised when |
-|---|---|
-| `NoDisplay` | `$WAYLAND_DISPLAY` names no reachable socket |
-| `Wayland`, `Registry` | The connection or the registry fails |
-| `MissingGlobal(name)` | A [needed global](#wayland-protocols) is missing, `zwlr_layer_shell_v1` for `run_layer`, or `ext_session_lock_manager_v1` for `run_lock` |
-| `Vulkan(reason)` | No `libvulkan`, no GPU that can present, or the surface lacks the swapchain format |
-| `Skia` | Skia cannot create its Vulkan context |
-| `DeviceLost` | The GPU device is lost; the loop stops and returns it |
-| `SurfaceLost` | Never returned: the runner creates a new Vulkan surface and swapchain |
-| `LayerSize` | A `LayerSpec` leaves a size at 0 without anchoring both opposite edges |
-| `EventLoop(reason)` | A `calloop` source cannot be created or the loop fails |
-| `Io` | The appearance watcher cannot start |
+Each `RunError` variant and the runner step that raises it are in
+[8. Windows](08-windows.md#errors).
 
 A draw that fails for another reason logs one warning and retries on the
 next frame.

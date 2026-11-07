@@ -1,11 +1,21 @@
-# 15. Glossary
+# 20. Glossary
 
-**Goal:** find the BarrierKit name for a concept you know from SwiftUI or
+**Goal:** find the BarrierKit name of a concept you know from SwiftUI or
 AppKit, and name new items the same way.
-**Reader:** anyone who writes an app with the kit, adds an item to the kit, or
-is an AI that generates code for it ([`docs/ai/prompt.md`](../ai/prompt.md)).
-**Rule:** a public item is added to this glossary in the same commit that adds
-or renames it (`AGENTS.md`, «Nombres y glosario»).
+**Scope:** every public item of `barrier-kit`, `vow-design` and
+`vow-appearance`, with its SwiftUI and AppKit equivalent and the chapter that
+documents it. Methods are in the chapters, not here.
+**Reader:** anyone who writes an app with the kit, adds an item to it, or is an
+AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
+**Input:** a name. **Output:** its counterpart and the chapter to read.
+
+## Steps
+
+1. Search this page for the SwiftUI or AppKit name (for example `Toggle`,
+   `NSPopUpButton`).
+2. Read the BarrierKit name in the first column and follow the chapter link.
+3. To add or rename a public item, follow [How names are chosen](#how-names-are-chosen)
+   and add its row here in the same commit (`AGENTS.md`, «Nombres y glosario»).
 
 ## How names are chosen
 
@@ -15,9 +25,9 @@ or renames it (`AGENTS.md`, «Nombres y glosario»).
    `NS` prefix: `ColorWell`, `PathControl`, `TokenField`.
 3. **Then plain English.** Otherwise, one or two common words that say what
    the item is, not how it is built: `Palette`, `Sidebar`.
-4. **Rust case.** Types `UpperCamelCase`; functions and methods
-   `snake_case` (`foregroundStyle` → `foreground_style`); constants
-   `SCREAMING_SNAKE_CASE` (`.title` → `TITLE`).
+4. **Rust case.** Types `UpperCamelCase`; functions and methods `snake_case`
+   (`foregroundStyle` → `foreground_style`); constants `SCREAMING_SNAKE_CASE`
+   (`.title` → `TITLE`).
 5. **Fixed shapes.** A constructor is `Type::new(required)`. Options are
    chained methods named after what they set (`.font`, `.size`). Events are
    `on_<verb>` (`on_press`, `on_change`). Booleans read as adjectives
@@ -25,133 +35,810 @@ or renames it (`AGENTS.md`, «Nombres y glosario»).
 6. **Taken names.** When Freya already uses a name (`App`, `label`, `rect`),
    take the next clear one (`Application`) and record it here.
 
-## Start an app
+## Renamed items
 
-| BarrierKit | SwiftUI | AppKit | What it does |
-|---|---|---|---|
-| `use barrier_kit::prelude::*` | `import SwiftUI` | `import AppKit` | Brings everything below, Freya's elements and hooks, and the type and spacing tokens |
-| `Application::new(name)` | `struct …: App` | `NSApplication` | The app. `name` gives the `app_id` and the saved window size |
-| `.window(title, \|\| content)` | `WindowGroup { }` | `NSWindow` | Adds the window; returns a `Scene` |
-| `Scene::options(\|window\| …)` | `.defaultSize`, `.windowResizability` | `NSWindow` properties | Changes any `WindowOptions` setting |
-| `Scene::run()` | `@main` | `NSApplication.run()` | Opens the window and runs until it closes |
-| `run_window(content, options)` | — | — | The same without the titlebar and background: you draw the whole window |
-| `WindowOptions` | Scene modifiers | `NSWindow` style | Title, size, limits, menu, full-screen bar (chapter [6](06-windows.md)) |
-| `RunError` | — | — | Why the window could not open (no Wayland, no Vulkan…) |
-
-`Scene::run()` draws the window background, a `Titlebar` with the title, and
-centers the content. Chapter [2](02-first-app.md) shows it step by step.
-
-## Text and layout
-
-| BarrierKit | SwiftUI | AppKit | Defaults |
-|---|---|---|---|
-| `Text::new("…")` | `Text("…")` | `NSTextField(labelWithString:)` | Font `BODY`, color `Palette::current().label`, wraps |
-| `.font(TITLE)` | `.font(.title)` | `NSFont.preferredFont` | — |
-| `VStack::new()` | `VStack { }` | `NSStackView` (vertical) | Centered, spacing `SPACE_3` |
-| `HStack::new()` | `HStack { }` | `NSStackView` (horizontal) | Centered, spacing `SPACE_3` |
-| `.child(view)` | the stack's body | `addArrangedSubview` | — |
-| `.padding(40.)` | `.padding(40)` | layout margins | — |
-| `.spacing(SPACE_1)` | `VStack(spacing:)` | `NSStackView.spacing` | — |
-| `.expanded()` | `.frame(maxWidth: .infinity, maxHeight: .infinity)` | Auto Layout to the edges | Also on `ScrollView` |
-| `.center()` | `.frame(alignment: .center)` | centering constraints | — |
-| `rect()` | — | `NSView` | Freya's basic box, with no defaults |
-| `text(content, font, color)` | — | — | A single-line `Text` with every value explicit; the kit uses it inside controls |
-
-`Text`, `VStack` and `HStack` accept Freya's layout, text-style and event
-methods (`width`, `padding`, `color`, `on_press`…). `VStack` and `HStack` also
-accept children, alignment, background and corner methods (`child`,
-`main_align`, `background`, `corner_radius`…), like `rect()`.
-
-## Typography
-
-| BarrierKit | SwiftUI | Size / weight |
+| Before | Now | Date |
 |---|---|---|
-| `LARGE_TITLE` | `.largeTitle` | 26 / 700 |
-| `TITLE` | `.title` | 22 / 650 |
-| `TITLE_2` | `.title2` | 15 / 600 |
-| `HEADLINE` | `.headline` | 13 / 700 |
-| `BODY` | `.body` | 13 / 400 |
-| `CALLOUT` | `.callout` | 12 / 400 |
-| `CAPTION` | `.caption` | 11 / 500 |
-| `MONO` | `.monospaced()` | 13 / 400, Geist Mono |
+| `vow_design::TEXT` | `vow_design::BODY` | 2026-11-07 |
+| `vow_design::DISPLAY` | `vow_design::LARGE_TITLE` | 2026-11-07 |
+| `vow_design::TITLE_1` | `vow_design::TITLE` | 2026-11-07 |
 
-The values come from `crates/vow-design/tengen/tokens.json`
-(`font.styles`). Until 2026-11-07, `BODY` was `TEXT`, `LARGE_TITLE` was
-`DISPLAY` and `TITLE` was `TITLE_1`.
+## How to read the tables
 
-## State and data
+- **BarrierKit:** the path inside `barrier_kit` (for example
+  `views::form::Form`), or the full path for the other crates.
+- **SwiftUI / AppKit:** the Apple equivalent; `≈` marks a partial match, `—`
+  means there is none.
+- **Chapter:** where the item is documented.
 
-| BarrierKit | SwiftUI | AppKit |
-|---|---|---|
-| `use_state(\|\| value)` | `@State` | a property and `needsDisplay` |
-| `.read()` / `.write()` | reading / assigning the property | — |
-| `use_defaults(app_id)` | `@AppStorage` | `UserDefaults` |
-| `UndoManager`, `use_undo` | `UndoManager` | `NSUndoManager` |
+## Entry points
 
-## Controls
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `prelude` | module | `import SwiftUI` | `import AppKit` | Re-exports the entry points, controls, Freya's prelude and the tokens | [2](02-first-app.md#the-prelude) |
+| `elements::Text` | struct | `Text` | `NSTextField(labelWithString:)` | Text with `BODY` and the label color by default; wraps | [2](02-first-app.md#text-and-stacks) |
+| `elements::VStack` | struct | `VStack` | `NSStackView` (vertical) | Column of children, centered, `SPACE_3` apart | [2](02-first-app.md#text-and-stacks) |
+| `elements::HStack` | struct | `HStack` | `NSStackView` (horizontal) | Row of children, centered, `SPACE_3` apart | [2](02-first-app.md#text-and-stacks) |
 
-| BarrierKit | SwiftUI | AppKit |
-|---|---|---|
-| `Button` | `Button` | `NSButton` |
-| `Switch` | `Toggle` (`.switch`) | `NSSwitch` |
-| `Checkbox` | `Toggle` (`.checkbox`) | `NSButton` (checkbox) |
-| `Slider` | `Slider` | `NSSlider` |
-| `SegmentedControl` | `Picker` (`.segmented`) | `NSSegmentedControl` |
-| `PopUpButton` | `Picker` (`.menu`) | `NSPopUpButton` |
-| `ComboBox` | — | `NSComboBox` |
-| `MenuButton` | `Menu` | `NSPopUpButton` (pull-down) |
-| `TextField` | `TextField` | `NSTextField` |
-| `SecureField` | `SecureField` | `NSSecureTextField` |
-| `SearchField` | `.searchable` | `NSSearchField` |
-| `Stepper` | `Stepper` | `NSStepper` |
-| `DatePicker` | `DatePicker` | `NSDatePicker` |
-| `ColorWell` | `ColorPicker` | `NSColorWell` |
-| `ProgressBar`, `ProgressRing`, `Spinner` | `ProgressView` | `NSProgressIndicator` |
-| `LevelSlider` | `Gauge` | `NSLevelIndicator` |
-| `TokenField` | — | `NSTokenField` |
-| `PathControl` | — | `NSPathControl` |
-| `ImageWell` | — | `NSImageView` (editable) |
-| `Tooltip` | `.help("…")` | `toolTip` |
+## Style and palette
 
-Chapter [5](05-controls.md) shows each control.
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `style::Palette` | struct | — | ≈ `NSColor` (semantic colors) | Semantic colors of the current context: labels, backgrounds, accent, separators | [4](04-appearance-and-tokens.md#the-palette) |
+| `style::text` | fn | ≈ `Text` | ≈ `NSTextField(labelWithString:)` | One-line label with a type token and a color | [4](04-appearance-and-tokens.md#text-shapes-and-colors) |
+| `style::continuous_corner` | fn | `RoundedCornerStyle.continuous` | — | Corner radius with Apple's continuous curvature | [4](04-appearance-and-tokens.md#text-shapes-and-colors) |
+| `theme::color` | fn | — | — | Converts a Tengen `Rgba` to Freya's `Color` | [4](04-appearance-and-tokens.md#text-shapes-and-colors) |
+| `theme::resolved` | fn | ≈ `EnvironmentValues` | ≈ `NSApplication.effectiveAppearance` | Resolved appearance at this point of the tree | [4](04-appearance-and-tokens.md#theme-functions) |
+| `theme::use_appearance` | fn | ≈ `.environment(_:_:)` | ≈ `NSAppearanceCustomization.appearance` | Hook: changes the appearance for a component and its children | [4](04-appearance-and-tokens.md#theme-functions) |
+| `theme::use_shell_theme` | fn | — | — | Hook: Freya component theme from the resolved shell colors | [4](04-appearance-and-tokens.md#theme-functions) |
+| `theme::for_scheme` | fn | — | — | Freya theme for the default light or dark appearance | [4](04-appearance-and-tokens.md#theme-functions) |
+| `theme::SurfaceKind` | enum | — | — | `Toplevel` or `LayerShell`: which kind of surface a color is for | [4](04-appearance-and-tokens.md#theme-functions) |
+| `theme::surface_background` | fn | — | — | Background color of a window or a shell surface | [4](04-appearance-and-tokens.md#theme-functions) |
+| `theme::menu_palette` | fn | — | — | Menu colors over a given surface, lifted when tinted | [4](04-appearance-and-tokens.md#theme-functions) |
+| `theme::popover_palette` | fn | — | — | Menu palette with pop-up menu metrics | [4](04-appearance-and-tokens.md#theme-functions) |
+| `theme::apply_popover_metrics` | fn | — | — | Replaces a menu palette's metrics with `MENU_POPOVER` | [4](04-appearance-and-tokens.md#theme-functions) |
+| `theme::lock_palette` | fn | — | — | Lock-screen colors with the resolved accent | [4](04-appearance-and-tokens.md#theme-functions) |
 
-## Views and windows
+## Symbols and fonts
 
-| BarrierKit | SwiftUI | AppKit |
-|---|---|---|
-| `Titlebar` | (drawn by the system) | `NSTitlebarAccessoryViewController` |
-| `Sidebar` | `List` (`.sidebar`) | `NSOutlineView` (source list) |
-| `SplitView` | `NavigationSplitView` | `NSSplitViewController` |
-| `Form` | `Form` | — |
-| `GroupBox` | `GroupBox` | `NSBox` |
-| `DisclosureGroup` | `DisclosureGroup` | disclosure button |
-| `Table` | `Table` | `NSTableView` |
-| `OutlineView` | `OutlineGroup` | `NSOutlineView` |
-| `CollectionView` | `LazyVGrid` | `NSCollectionView` |
-| `TabView` | `TabView` | `NSTabView` |
-| `ScrollView` | `ScrollView` | `NSScrollView` |
-| `Alert` | `.alert` | `NSAlert` |
-| `show_popover` | `.popover` | `NSPopover` |
-| `context_menu` | `.contextMenu` | `NSMenu` (contextual) |
-| `PreferencesWindow` | `Settings` | preferences window |
-| `about_window` | standard About panel | `orderFrontStandardAboutPanel` |
-| `Chart` | `Chart` (Swift Charts) | — |
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `symbol::Symbol` | enum | ≈ `Image(systemName:)` names | ≈ `NSImage(systemSymbolName:accessibilityDescription:)` names | Name of a built-in line icon; 36 variants | [4](04-appearance-and-tokens.md#symbols) |
+| `symbol::symbol` | fn | `Image(systemName:)` | `NSImage(systemSymbolName:accessibilityDescription:)` | Draws a symbol at a size and color | [4](04-appearance-and-tokens.md#symbols) |
+| `register_font` | fn | — | — | Adds a typeface from font file bytes; `false` if not a font | [4](04-appearance-and-tokens.md#fonts) |
 
-## App services
+## Helpers
 
-| BarrierKit | SwiftUI | AppKit |
-|---|---|---|
-| `AppMenu` | `.commands`, `CommandMenu` | `NSMenu` (main menu) |
-| `use_menu_action` | `Button` in `.commands` | `@IBAction` |
-| `StatusItem` | `MenuBarExtra` | `NSStatusItem` |
-| `launch(app_id)` | (single instance by default) | `NSRunningApplication` |
-| `Palette::current()` | semantic colors (`.primary`, `.secondary`) | `NSColor.labelColor`… |
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `init_tracing` | fn | — | — | Installs logging to stderr by `RUST_LOG`, and Tracy with `tracy` | [4](04-appearance-and-tokens.md#helpers) |
+| `ProbeExt` | trait | `.accessibilityIdentifier(_:)` | `accessibilityIdentifier()` | `probe(id)`: sets a `rect`'s accessibility id for tests | [4](04-appearance-and-tokens.md#helpers) |
+
+## Appearance settings
+
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `vow_appearance::AppearanceConfig` | struct | — | — | The user's `appearance.domain`: mode, accent, tints, contrast, motion | [4](04-appearance-and-tokens.md#the-appearance-file) |
+| `vow_appearance::ColorScheme` | enum | ≈ `ColorScheme` | ≈ `NSAppearance` | `Auto`, `Light`, `Dark`, `DarkTint`; SwiftUI has only light and dark | [4](04-appearance-and-tokens.md#the-appearance-file) |
+| `vow_appearance::WindowColorMode` | enum | — | — | Window tint source: `Neutral`, `Accent`, `Wallpaper` | [4](04-appearance-and-tokens.md#the-appearance-file) |
+| `vow_appearance::WindowTintScope` | enum | — | — | Tint reaches `Windows` only or the `Desktop` bars too | [4](04-appearance-and-tokens.md#the-appearance-file) |
+| `vow_appearance::TintStrength` | enum | — | — | `Subtle`, `Normal`, `Strong`, `Intense`; `factor()` from `TINT_STRENGTH` | [4](04-appearance-and-tokens.md#the-appearance-file) |
+| `vow_appearance::TintParts` | struct | — | — | Which parts take the tint: sidebars, window, groups, controls, menus | [4](04-appearance-and-tokens.md#the-appearance-file) |
+| `vow_appearance::SidebarStyle` | enum | — | — | `Island` or `Flat` sidebar | [4](04-appearance-and-tokens.md#the-appearance-file) |
+| `vow_appearance::TrafficLightStyle` | enum | — | — | `Auto`, `Standard`, `Accent`, `Wallpaper` traffic-light colors | [4](04-appearance-and-tokens.md#the-appearance-file) |
+| `vow_appearance::TrafficLightShape` | enum | — | — | `Square` or `Round` lights; `corner_radius(diameter)` | [4](04-appearance-and-tokens.md#the-appearance-file) |
+| `vow_appearance::ScrollBars` | enum | ≈ `ScrollIndicatorVisibility` | ≈ `NSScroller.Style` | Show scroll bars `WhenScrolling` or `Always` | [4](04-appearance-and-tokens.md#the-appearance-file) |
+
+## Appearance files and watch
+
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `vow_appearance::config_dir` | fn | — | — | `$MALAYSIA_CONFIG_DIR` or `$XDG_CONFIG_HOME/malaysia` | [4](04-appearance-and-tokens.md#reading-and-writing) |
+| `vow_appearance::data_dir` | fn | — | — | `$MALAYSIA_DATA_DIR` or `$XDG_DATA_HOME/malaysia` | [4](04-appearance-and-tokens.md#reading-and-writing) |
+| `vow_appearance::appearance_path` | fn | — | — | Path of `appearance.domain` | [4](04-appearance-and-tokens.md#reading-and-writing) |
+| `vow_appearance::wallpaper_state_path` | fn | — | — | Path of `wallpaper.state`, the wallpaper's dominant color | [4](04-appearance-and-tokens.md#reading-and-writing) |
+| `vow_appearance::read_appearance` | fn | — | — | Reads the appearance file; `None` without file, `Err` on bad TOML | [4](04-appearance-and-tokens.md#reading-and-writing) |
+| `vow_appearance::load_appearance` | fn | — | — | Reads the appearance file, or the default on any error | [4](04-appearance-and-tokens.md#reading-and-writing) |
+| `vow_appearance::write_appearance` | fn | — | — | Writes the config atomically, keeping other keys and comments | [4](04-appearance-and-tokens.md#reading-and-writing) |
+| `vow_appearance::load_dominant` | fn | — | — | Reads the wallpaper's dominant color | [4](04-appearance-and-tokens.md#reading-and-writing) |
+| `vow_appearance::write_dominant` | fn | — | — | Writes or removes the wallpaper's dominant color | [4](04-appearance-and-tokens.md#reading-and-writing) |
+| `vow_appearance::watch::AppearanceWatch` | struct | — | — | inotify watch on the config and data folders; `drain()` | [4](04-appearance-and-tokens.md#watching) |
+| `vow_appearance::watch::AppearanceEvent` | enum | — | — | `Appearance`, `Wallpaper`, `WallpaperSelection`, `Defaults`; `restyles()` | [4](04-appearance-and-tokens.md#watching) |
+
+## Appearance resolution
+
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `vow_appearance::resolve` | fn | — | — | Turns the config and wallpaper color into concrete colors | [4](04-appearance-and-tokens.md#resolution) |
+| `vow_appearance::Resolved` | struct | ≈ `EnvironmentValues` | — | Resolved appearance: accent, focus ring, link, tints, surfaces, palettes | [4](04-appearance-and-tokens.md#resolution) |
+| `vow_appearance::Surfaces` | struct | — | — | Tinted window, sunken, surface, raised, control, hover and line colors | [4](04-appearance-and-tokens.md#resolution) |
+| `vow_appearance::SidebarSurface` | struct | — | — | Sidebar style, background, rim, inner line and palette | [4](04-appearance-and-tokens.md#resolution) |
+| `vow_appearance::ToolgroupSurface` | struct | — | — | Toolbar group background and palette | [4](04-appearance-and-tokens.md#resolution) |
+| `vow_appearance::palette` | fn | — | — | Base `vow_design::Palette` of a color scheme | [4](04-appearance-and-tokens.md#resolution) |
+| `vow_appearance::lights_for` | fn | — | — | The three traffic-light colors of a style | [4](04-appearance-and-tokens.md#resolution) |
+
+## Window behavior
+
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `vow_appearance::window::WindowBehavior` | struct | — | — | `window.domain`: titlebar double click and green button actions | [4](04-appearance-and-tokens.md#window-behavior) |
+| `vow_appearance::window::read_window_behavior` | fn | — | — | Reads `window.domain`, or the default | [4](04-appearance-and-tokens.md#window-behavior) |
+| `vow_appearance::window::DoubleClickAction` | enum | — | — | Titlebar double click: `Fill`, `Minimize`, `Zoom`, `None` | [4](04-appearance-and-tokens.md#window-behavior) |
+| `vow_appearance::window::GreenButtonAction` | enum | — | — | Green light: `Focus`, `Zoom`, `None` | [4](04-appearance-and-tokens.md#window-behavior) |
+| `vow_appearance::window::TitlebarAction` | enum | — | — | What to do: `Focus`, `Maximize`, `Minimize`, `None` | [4](04-appearance-and-tokens.md#window-behavior) |
+| `vow_appearance::window::green_action` | fn | — | — | Green-button action for a window, fixed width or not | [4](04-appearance-and-tokens.md#window-behavior) |
+| `vow_appearance::window::double_click_action` | fn | — | — | Double-click action for a window, zoomable or not | [4](04-appearance-and-tokens.md#window-behavior) |
+
+## Traffic-light geometry
+
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `vow_appearance::traffic::inset` | fn | — | — | Distance of the lights from the edges of a bar | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
+| `vow_appearance::traffic::button_rect` | fn | — | ≈ `NSWindow.standardWindowButton(_:)` frame | Rectangle of one light | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
+| `vow_appearance::traffic::group_rect` | fn | — | — | Rectangle of the three lights | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
+| `vow_appearance::traffic::hit` | fn | — | — | The light under a point | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
+| `vow_appearance::traffic::visual` | fn | — | — | Fill, rim and glyph of each light for an input | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
+| `vow_appearance::traffic::glyph_svg` | fn | — | — | SVG of a light's glyph | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
+| `vow_appearance::traffic::TrafficInput` | struct | — | — | Focus, group hover, pressed light and zoom support | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
+| `vow_appearance::traffic::ButtonVisual` | struct | — | — | Fill, rim and optional glyph color of one light | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
+| `vow_appearance::traffic::TrafficPointer` | struct | — | — | Pointer state machine for hover, arm and click of the lights | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
+
+## Backdrop colors
+
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `vow_appearance::backdrop::Backdrop` | struct | — | — | Three gradient layers and a base color derived from an image | [4](04-appearance-and-tokens.md#backdrop-colors) |
+| `vow_appearance::backdrop::ImagePalette` | struct | — | — | Three representative colors and the most vivid one of an image | [4](04-appearance-and-tokens.md#backdrop-colors) |
+| `vow_appearance::backdrop::Oklab` | struct | — | — | A color in the OKLab space | [4](04-appearance-and-tokens.md#backdrop-colors) |
+| `vow_appearance::backdrop::palette_from_pixels` | fn | — | — | Image palette from RGBA8 pixels, by k-means in OKLab | [4](04-appearance-and-tokens.md#backdrop-colors) |
+| `vow_appearance::backdrop::dominant_from_pixels` | fn | — | — | Dominant chromatic color of RGBA8 pixels | [4](04-appearance-and-tokens.md#backdrop-colors) |
+| `vow_appearance::backdrop::ink_on` | fn | — | — | Light or dark ink with more contrast on a background | [4](04-appearance-and-tokens.md#backdrop-colors) |
+
+## Language and directories
+
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `vow_appearance::language::read_language` | fn | — | — | The `language` key of a `.domain` file | [4](04-appearance-and-tokens.md#language) |
+| `vow_appearance::language::system_language` | fn | — | — | The language chosen in `language.domain` | [4](04-appearance-and-tokens.md#language) |
+| `vow_appearance::language::requested_languages` | fn | — | — | App, system or POSIX-locale languages as tags, in order | [4](04-appearance-and-tokens.md#language) |
+| `vow_appearance::xdg::config_home` | fn | — | — | `$XDG_CONFIG_HOME` or `~/.config` | [4](04-appearance-and-tokens.md#directories) |
+| `vow_appearance::xdg::data_home` | fn | — | — | `$XDG_DATA_HOME` or `~/.local/share` | [4](04-appearance-and-tokens.md#directories) |
+| `vow_appearance::xdg::data_dirs` | fn | — | — | `$XDG_DATA_DIRS` or `/usr/local/share` and `/usr/share` | [4](04-appearance-and-tokens.md#directories) |
+| `vow_appearance::xdg::user_dir` | fn | — | — | An XDG user directory such as `DOWNLOAD` from `user-dirs.dirs` | [4](04-appearance-and-tokens.md#directories) |
+
+## Design token types
+
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `vow_design::Rgba` | struct | ≈ `Color` | ≈ `NSColor` | sRGB color, channels 0–1, with mixing and contrast helpers | [4](04-appearance-and-tokens.md#token-types) |
+| `vow_design::Font` | struct | ≈ `Font.TextStyle` | ≈ `NSFont.TextStyle` | Type token: family, size, line height, weight | [4](04-appearance-and-tokens.md#token-types) |
+| `vow_design::Palette` | struct | — | — | Base colors of one theme: inks, lines, accent, titlebar | [4](04-appearance-and-tokens.md#token-types) |
+| `vow_design::FocusPair` | struct | — | — | One color for a focused window, one for unfocused | [4](04-appearance-and-tokens.md#token-types) |
+| `vow_design::PanelLine` | struct | — | — | Inner line of a panel: sides and edges | [4](04-appearance-and-tokens.md#token-types) |
+| `vow_design::TrafficRim` | struct | — | — | Rim color of a lit and an idle traffic light | [4](04-appearance-and-tokens.md#token-types) |
+| `vow_design::ShellPalette` | struct | — | — | Menu bar and Dock colors | [4](04-appearance-and-tokens.md#token-types) |
+| `vow_design::MenuPalette` | struct | — | — | Menu colors and metrics | [4](04-appearance-and-tokens.md#token-types) |
+| `vow_design::LockPalette` | struct | — | — | Lock-screen colors | [4](04-appearance-and-tokens.md#token-types) |
+| `vow_design::SidebarPalette` | struct | — | — | Sidebar item, selection, section and line inks | [4](04-appearance-and-tokens.md#token-types) |
+| `vow_design::ToolgroupPalette` | struct | — | — | Toolbar group separator and rim | [4](04-appearance-and-tokens.md#token-types) |
+| `vow_design::ShadowLayer` | struct | ≈ `.shadow(color:radius:x:y:)` | ≈ `NSShadow` | One shadow: blur, offset, opacity, color | [4](04-appearance-and-tokens.md#token-types) |
+| `vow_design::ShadowStyle` | struct | — | — | Ambient and contact shadows, scaled when unfocused | [4](04-appearance-and-tokens.md#token-types) |
+| `vow_design::WindowCorner` | struct | — | — | Window corner radii and continuous-curve shape | [4](04-appearance-and-tokens.md#token-types) |
+| `vow_design::WindowStyle` | struct | — | — | Corner radius and superellipse exponent of a dialog or pop-up | [4](04-appearance-and-tokens.md#token-types) |
+| `vow_design::WindowResize` | struct | — | — | Width of the resize band at edges and corners | [4](04-appearance-and-tokens.md#token-types) |
+| `vow_design::Titlebar` | struct | — | — | Server-side titlebar thickness, lights and font | [4](04-appearance-and-tokens.md#token-types) |
+| `vow_design::TitlebarButtons` | struct | — | — | Order, diameter, spacing and radius of the traffic lights | [4](04-appearance-and-tokens.md#token-types) |
+| `vow_design::Button` | struct | — | — | One traffic light: kind and color | [4](04-appearance-and-tokens.md#token-types) |
+| `vow_design::ButtonKind` | enum | — | `NSWindow.ButtonType` | `Close`, `Minimize`, `Maximize` | [4](04-appearance-and-tokens.md#token-types) |
+| `vow_design::TrafficGlyphs` | struct | — | — | Geometry of the close, minimize, zoom and plus glyphs | [4](04-appearance-and-tokens.md#token-types) |
+| `vow_design::Segment` | struct | — | — | A line from point `a` to point `b` | [4](04-appearance-and-tokens.md#token-types) |
+| `vow_design::Triangle` | struct | — | — | Three points of a filled glyph triangle | [4](04-appearance-and-tokens.md#token-types) |
+| `vow_design::DoubleClick` | struct | — | ≈ `NSEvent.doubleClickInterval` | Double-click interval and pointer slop | [4](04-appearance-and-tokens.md#token-types) |
+| `vow_design::SettingsStrength` | struct | — | — | Tint-strength scale of the settings app | [4](04-appearance-and-tokens.md#token-types) |
+| `vow_design::SettingsCheck` | struct | — | — | Check list spacing of the settings app | [4](04-appearance-and-tokens.md#token-types) |
+| `vow_design::SettingsMetrics` | struct | — | — | Sizes of the settings window, sidebar, search and previews | [4](04-appearance-and-tokens.md#view-metrics) |
+| `vow_design::ButtonMetrics` | struct | — | — | Push button sizes, radius, font and pressed scale | [4](04-appearance-and-tokens.md#control-metrics) |
+| `vow_design::IconButtonMetrics` | struct | — | — | Icon button size, radius and icon size | [4](04-appearance-and-tokens.md#control-metrics) |
+| `vow_design::SwitchMetrics` | struct | — | — | Switch track, knob, travel and transition | [4](04-appearance-and-tokens.md#control-metrics) |
+| `vow_design::CheckboxMetrics` | struct | — | — | Checkbox size, radius and mark | [4](04-appearance-and-tokens.md#control-metrics) |
+| `vow_design::SliderMetrics` | struct | — | — | Slider height, track and knob | [4](04-appearance-and-tokens.md#control-metrics) |
+| `vow_design::SliderFatMetrics` | struct | — | — | Wide level slider height, minimum fill and icon position | [4](04-appearance-and-tokens.md#control-metrics) |
+| `vow_design::SegmentedMetrics` | struct | — | — | Segmented control padding, segments and font | [4](04-appearance-and-tokens.md#control-metrics) |
+| `vow_design::StepperMetrics` | struct | — | — | Stepper size, radius and chevrons | [4](04-appearance-and-tokens.md#control-metrics) |
+| `vow_design::TextFieldMetrics` | struct | — | — | Text field height, padding and radius | [4](04-appearance-and-tokens.md#control-metrics) |
+| `vow_design::TokenFieldMetrics` | struct | — | — | Token height, padding, gap and opacity | [4](04-appearance-and-tokens.md#control-metrics) |
+| `vow_design::SpellingMetrics` | struct | — | — | Size of the misspelling dot | [4](04-appearance-and-tokens.md#control-metrics) |
+| `vow_design::ComboBoxMetrics` | struct | — | — | Combo box button and chevron sizes | [4](04-appearance-and-tokens.md#control-metrics) |
+| `vow_design::PathControlMetrics` | struct | — | — | Path control height, chevrons and icons | [4](04-appearance-and-tokens.md#control-metrics) |
+| `vow_design::DatePickerMetrics` | struct | — | — | Calendar size, header, weekday row and radii | [4](04-appearance-and-tokens.md#control-metrics) |
+| `vow_design::ImageWellMetrics` | struct | — | — | Image well size, radius, inset and drop border | [4](04-appearance-and-tokens.md#control-metrics) |
+| `vow_design::LevelIndicatorMetrics` | struct | — | — | Level indicator bars, stars and relevancy sizes | [4](04-appearance-and-tokens.md#control-metrics) |
+| `vow_design::GaugeMetrics` | struct | — | — | Gauge size, stroke, arc and marker | [4](04-appearance-and-tokens.md#control-metrics) |
+| `vow_design::ProgressMetrics` | struct | — | — | Progress bar, ring and spinner sizes and timing | [4](04-appearance-and-tokens.md#control-metrics) |
+| `vow_design::BadgeMetrics` | struct | — | — | Badge height and padding | [4](04-appearance-and-tokens.md#control-metrics) |
+| `vow_design::FocusRingMetrics` | struct | — | — | Focus ring width and offset | [4](04-appearance-and-tokens.md#control-metrics) |
+| `vow_design::SymbolMetrics` | struct | — | — | Symbol grid and stroke width | [4](04-appearance-and-tokens.md#control-metrics) |
+| `vow_design::TooltipMetrics` | struct | — | — | Tooltip delay, padding, radius and pointer gap | [4](04-appearance-and-tokens.md#control-metrics) |
+| `vow_design::PopoverMetrics` | struct | — | — | Popover radius, arrow and padding | [4](04-appearance-and-tokens.md#control-metrics) |
+| `vow_design::MenuPopoverMetrics` | struct | — | — | Pop-up menu item, padding, check and swatch grid sizes | [4](04-appearance-and-tokens.md#control-metrics) |
+| `vow_design::DragMetrics` | struct | — | — | Pointer travel before a drag starts | [4](04-appearance-and-tokens.md#control-metrics) |
+| `vow_design::TitlebarRailMetrics` | struct | — | — | Titlebar rail widths, pill and reveal zone | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
+| `vow_design::FullscreenBarMetrics` | struct | — | — | Content offset and band line of a full-screen bar | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
+| `vow_design::FullscreenGlassMetrics` | struct | — | — | Height, blur, layers, tint and mask of full-screen glass | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
+| `vow_design::SidebarMetrics` | struct | — | — | Sidebar width, island, items and sections | [4](04-appearance-and-tokens.md#view-metrics) |
+| `vow_design::ToolgroupMetrics` | struct | — | — | Toolbar group height, padding and separators | [4](04-appearance-and-tokens.md#view-metrics) |
+| `vow_design::SplitViewMetrics` | struct | — | — | Sidebar limits, collapse width, inspector, grip and key step | [4](04-appearance-and-tokens.md#view-metrics) |
+| `vow_design::SplitPanesMetrics` | struct | — | — | Divider width and minimum pane size | [4](04-appearance-and-tokens.md#view-metrics) |
+| `vow_design::FloatingPaneMetrics` | struct | — | — | Floating pane title, outline, resize band and shadow | [4](04-appearance-and-tokens.md#view-metrics) |
+| `vow_design::TableMetrics` | struct | — | — | Table rows, header, zebra and column sizes | [4](04-appearance-and-tokens.md#view-metrics) |
+| `vow_design::CollectionMetrics` | struct | — | — | Collection tile, icon, gap, radius and selection | [4](04-appearance-and-tokens.md#view-metrics) |
+| `vow_design::ListGroupMetrics` | struct | — | — | Form group radius, rows, separators and headers | [4](04-appearance-and-tokens.md#view-metrics) |
+| `vow_design::GroupBoxMetrics` | struct | — | — | Group box radius, padding, label and fill | [4](04-appearance-and-tokens.md#view-metrics) |
+| `vow_design::DisclosureMetrics` | struct | — | — | Disclosure indent, rows, chevron and icon | [4](04-appearance-and-tokens.md#view-metrics) |
+| `vow_design::ToolbarTabsMetrics` | struct | — | — | Toolbar tab container and tab sizes | [4](04-appearance-and-tokens.md#view-metrics) |
+| `vow_design::ScrollBarMetrics` | struct | — | — | Scroll bar thumb, track, opacity and hide delay | [4](04-appearance-and-tokens.md#view-metrics) |
+| `vow_design::BreakpointMetrics` | struct | — | — | Medium and wide window widths for adaptive layouts | [4](04-appearance-and-tokens.md#view-metrics) |
+| `vow_design::FontPanelMetrics` | struct | — | — | Font panel size list and size column | [4](04-appearance-and-tokens.md#view-metrics) |
+| `vow_design::PrintMetrics` | struct | — | — | Print resolution and page margins | [4](04-appearance-and-tokens.md#view-metrics) |
+| `vow_design::ChartMetrics` | struct | — | — | Chart strokes, bars, sectors, axes, zoom and 3D view | [4](04-appearance-and-tokens.md#view-metrics) |
+| `vow_design::MediaMetrics` | struct | — | — | Media buttons, glass material, inks and scrims | [4](04-appearance-and-tokens.md#view-metrics) |
+| `vow_design::BackdropMetrics` | struct | — | — | Backdrop gradient, glass, ink and accent parameters | [4](04-appearance-and-tokens.md#view-metrics) |
+| `vow_design::BackdropScenes` | struct | — | — | Preset backdrop gradients: dusk, night, pale, forest, studio | [4](04-appearance-and-tokens.md#view-metrics) |
+
+## Design token constants
+
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `vow_design::SPACE_1`, `SPACE_2`, `SPACE_3`, `SPACE_4` | constant | — | — | Spacing steps: 4, 8, 12, 16 | [4](04-appearance-and-tokens.md#spacing) |
+| `vow_design::HAIRLINE` | constant | — | — | Separator width, 1 px | [4](04-appearance-and-tokens.md#spacing) |
+| `vow_design::LARGE_TITLE`, `TITLE`, `TITLE_2`, `HEADLINE`, `BODY`, `CALLOUT`, `CAPTION` | constant | `Font.TextStyle` | `NSFont.TextStyle` | Type styles named after SwiftUI's | [4](04-appearance-and-tokens.md#type) |
+| `vow_design::MONO` | constant | `Font.monospaced()` | `NSFont.monospacedSystemFont(ofSize:weight:)` | Monospaced body text, Geist Mono | [4](04-appearance-and-tokens.md#type) |
+| `vow_design::SANS_FAMILIES`, `TEXT_LINE_HEIGHT` | constant | — | — | Sans-serif fallback list; line-height factor for measuring text | [4](04-appearance-and-tokens.md#type) |
+| `vow_design::DURATION_FAST_MS`, `DURATION_BASE`, `DURATION_SLOW_MS`, `THEME_FADE_WAIT_MS` | constant | — | — | Durations: 120, 220, 420 ms; theme fade wait | [4](04-appearance-and-tokens.md#motion) |
+| `vow_design::SPRING_DAMPING` | constant | ≈ `Spring.damping` | — | Damping of the kit's spring | [4](04-appearance-and-tokens.md#motion) |
+| `vow_design::LIGHT`, `DARK`, `DARK_TINT` | constant | — | — | Base palette of each theme | [4](04-appearance-and-tokens.md#colors) |
+| `vow_design::BG_WINDOW_LIGHT`, `BG_WINDOW_DARK`, `BG_WINDOW_DARK_TINT`, `BG_SURFACE_LIGHT`, `BG_SURFACE_DARK`, `BG_SURFACE_DARK_TINT`, `BG_SUNKEN_LIGHT`, `BG_SUNKEN_DARK`, `BG_SUNKEN_DARK_TINT`, `BG_RAISED_LIGHT`, `BG_RAISED_DARK`, `BG_RAISED_DARK_TINT`, `BG_CONTROL_LIGHT`, `BG_CONTROL_DARK`, `BG_CONTROL_DARK_TINT`, `BG_HOVER_LIGHT`, `BG_HOVER_DARK`, `BG_HOVER_DARK_TINT` | constant | — | ≈ `NSColor.windowBackgroundColor`… | Background layers per theme | [4](04-appearance-and-tokens.md#colors) |
+| `vow_design::LAYER_FACTOR_BG_SUNKEN`, `LAYER_FACTOR_SURFACE`, `LAYER_FACTOR_RAISED`, `LAYER_FACTOR_CONTROL`, `LAYER_FACTOR_LINE` | constant | — | — | Share of the window tint each layer takes | [4](04-appearance-and-tokens.md#colors) |
+| `vow_design::WINDOW_TINT_ACCENT`, `WINDOW_TINT_WALLPAPER`, `PANEL_TINT_WALLPAPER`, `TINT_STRENGTH` | constant | — | — | Tint amounts in light and dark; strength factors | [4](04-appearance-and-tokens.md#colors) |
+| `vow_design::ACCENT_MIN_CONTRAST_ON_WINDOW`, `ON_ACCENT_MIN_CONTRAST` | constant | — | — | Contrast minimums: accent on window 3, ink on accent 4.5 | [4](04-appearance-and-tokens.md#colors) |
+| `vow_design::WALLPAPER_ACCENT_DARKEN_LIGHT`, `WALLPAPER_ACCENT_LIGHTEN_DARK`, `MUTED_BELOW_SATURATION`, `MUTED_MAX_SATURATION` | constant | — | — | How a wallpaper color becomes the accent | [4](04-appearance-and-tokens.md#colors) |
+| `vow_design::DOMINANT_LIGHTNESS`, `DOMINANT_MIN_CHROMA` | constant | — | — | Lightness range and minimum chroma of a wallpaper's dominant color | [4](04-appearance-and-tokens.md#colors) |
+| `vow_design::ACCENT_SWATCHES` | constant | — | — | The eight named accent choices | [4](04-appearance-and-tokens.md#colors) |
+| `vow_design::CHART_SERIES` | constant | — | — | Seven chart series colors | [4](04-appearance-and-tokens.md#colors) |
+| `vow_design::LEVEL_INDICATOR_COLORS` | constant | — | — | Normal, warning and critical level colors | [4](04-appearance-and-tokens.md#colors) |
+| `vow_design::SHELL_LIGHT`, `SHELL_LIGHT_OPAQUE`, `SHELL_DARK`, `SHELL_DARK_OPAQUE`, `SHELL_DARK_TINT`, `SHELL_DARK_TINT_OPAQUE` | constant | — | — | Menu bar and Dock colors per theme | [4](04-appearance-and-tokens.md#colors) |
+| `vow_design::THEME_SHADOW_OPACITY` | constant | — | — | Shadow opacity of the Freya shell theme | [4](04-appearance-and-tokens.md#colors) |
+| `vow_design::MENU_LIGHT`, `MENU_LIGHT_OPAQUE`, `MENU_DARK`, `MENU_DARK_OPAQUE`, `MENU_DARK_TINT`, `MENU_DARK_TINT_OPAQUE` | constant | — | — | Menu palettes per theme, translucent and opaque | [4](04-appearance-and-tokens.md#colors) |
+| `vow_design::SIDEBAR_LIGHT`, `SIDEBAR_LIGHT_OPAQUE`, `SIDEBAR_DARK`, `SIDEBAR_DARK_OPAQUE`, `SIDEBAR_DARK_TINT`, `SIDEBAR_DARK_TINT_OPAQUE` | constant | — | — | Flat sidebar background per theme | [4](04-appearance-and-tokens.md#colors) |
+| `vow_design::SIDEBAR_ISLAND_LIGHT`, `SIDEBAR_ISLAND_DARK`, `SIDEBAR_ISLAND_DARK_TINT`, `SIDEBAR_ISLAND_RIM_LIGHT`, `SIDEBAR_ISLAND_RIM_DARK`, `SIDEBAR_ISLAND_RIM_DARK_TINT`, `SIDEBAR_ISLAND_INNER_LIGHT`, `SIDEBAR_ISLAND_INNER_DARK`, `SIDEBAR_ISLAND_INNER_DARK_TINT` | constant | — | — | Island sidebar background, rim and inner line per theme | [4](04-appearance-and-tokens.md#colors) |
+| `vow_design::SIDEBAR_PALETTE_LIGHT`, `SIDEBAR_PALETTE_DARK`, `SIDEBAR_PALETTE_DARK_TINT` | constant | — | — | Sidebar inks per theme | [4](04-appearance-and-tokens.md#colors) |
+| `vow_design::TOOLGROUP_BG_LIGHT`, `TOOLGROUP_BG_LIGHT_OPAQUE`, `TOOLGROUP_BG_DARK`, `TOOLGROUP_BG_DARK_OPAQUE`, `TOOLGROUP_BG_DARK_TINT`, `TOOLGROUP_BG_DARK_TINT_OPAQUE`, `TOOLGROUP_PALETTE_LIGHT`, `TOOLGROUP_PALETTE_DARK`, `TOOLGROUP_PALETTE_DARK_TINT` | constant | — | — | Toolbar group background and lines per theme | [4](04-appearance-and-tokens.md#colors) |
+| `vow_design::WINDOW_MIN_SIZE`, `WINDOW_DEFAULT_SIZE` | constant | ≈ `.defaultSize(_:)` | ≈ `NSWindow.minSize` | Minimum and default window size: 480 × 360, 640 × 420 | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
+| `vow_design::WINDOW_CORNER`, `WINDOW_RESIZE` | constant | — | — | Window corner shape; resize band widths | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
+| `vow_design::DIALOG`, `DIALOG_PADDING`, `DIALOG_ALERT_WIDTH`, `POPUP` | constant | — | — | Dialog and pop-up corners, dialog padding, alert width | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
+| `vow_design::SHADOW`, `SHADOW_DARK` | constant | — | ≈ `NSShadow` | Window shadows in light and dark | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
+| `vow_design::NATIVE_APP_ID_PREFIX`, `ALERT_LAYER_NAMESPACE` | constant | — | — | App id prefix of kit apps; layer namespace of shell alerts | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
+| `vow_design::TITLEBAR`, `TITLEBAR_CLIENT_HEIGHT`, `TITLEBAR_PADDING_X`, `TITLEBAR_TITLE_GAP`, `TITLEBAR_DOUBLE_CLICK`, `TITLEBAR_RAIL` | constant | — | — | Titlebar sizes, lights, double click and rail | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
+| `vow_design::FULLSCREEN_BAR`, `FULLSCREEN_GLASS`, `FULLSCREEN_BAND`, `GLASS_MASK`, `HUD_BACKGROUND` | constant | — | — | Full-screen glass bars, their mask, HUD window background | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
+| `vow_design::TRAFFIC_GLYPHS`, `TRAFFIC_GLYPH_STANDARD`, `TRAFFIC_GLYPH_ON_DARK`, `TRAFFIC_GLYPH_ON_LIGHT`, `TRAFFIC_RIM_WIDTH`, `TRAFFIC_PRESSED_DARKEN`, `TRAFFIC_CLOSE_MINIMIZE_DARKEN`, `TRAFFIC_ZOOM_LIGHTEN` | constant | — | — | Traffic-light glyphs, inks, rim and color shifts | [4](04-appearance-and-tokens.md#traffic-lights) |
+| `vow_design::BUTTON`, `ICON_BUTTON`, `SWITCH`, `CHECKBOX`, `SLIDER`, `SLIDER_FAT`, `SLIDER_KEY_STEP`, `KNOB_SHADOW`, `SEGMENTED`, `STEPPER`, `TOOLBAR_SEARCH_WIDTH` | constant | — | — | Metrics of buttons, toggles, sliders and toolbar controls | [4](04-appearance-and-tokens.md#control-metrics) |
+| `vow_design::TEXT_FIELD`, `TOKEN_FIELD`, `SPELLING`, `COMBO_BOX`, `PATH_CONTROL`, `DATE_PICKER`, `IMAGE_WELL` | constant | — | — | Metrics of fields and pickers | [4](04-appearance-and-tokens.md#control-metrics) |
+| `vow_design::LEVEL_INDICATOR`, `GAUGE`, `PROGRESS`, `BADGE`, `FOCUS_RING`, `SYMBOL`, `TOOLTIP`, `POPOVER`, `DRAG` | constant | — | — | Metrics of indicators, focus ring, symbols, tooltips, popovers, drag | [4](04-appearance-and-tokens.md#control-metrics) |
+| `vow_design::MENU_POPOVER`, `MENU_MARK_TEXT_GAP`, `MENU_SUBMENU_INTENT_MS`, `MENU_SUBMENU_REVEAL_GAP`, `MENU_SCROLL_TICK_MS`, `MENU_SEARCH_ICON`, `MENU_SEARCH_ICON_GAP`, `MENU_SEARCH_CLEAR`, `MENU_SEARCH_CLEAR_GLYPH`, `MENU_SEARCH_CLEAR_MARGIN`, `MENU_SEARCH_CLEAR_MIX`, `MENU_HELP_ICON`, `MENU_SEPARATOR_INK_MIX` | constant | — | — | Menu and pop-up menu metrics and timing | [4](04-appearance-and-tokens.md#control-metrics) |
+| `vow_design::SIDEBAR`, `TOOLGROUP`, `SPLIT_VIEW`, `SPLIT_PANES`, `FLOATING_PANE`, `TABLE`, `COLLECTION`, `LIST_GROUP`, `GROUP_BOX`, `DISCLOSURE`, `TOOLBAR_TABS`, `SCROLL_BAR`, `BREAKPOINT` | constant | — | — | Metrics of sidebars, split views, lists, tables and groups | [4](04-appearance-and-tokens.md#view-metrics) |
+| `vow_design::SETTINGS`, `FONT_PANEL`, `PRINT`, `CHART`, `MEDIA`, `BACKDROP`, `BACKDROP_SCENES` | constant | — | — | Metrics of settings, font panel, printing, charts, media, backdrops | [4](04-appearance-and-tokens.md#view-metrics) |
+| `vow_design::MENUBAR_HEIGHT`, `MENUBAR_FONT_SIZE`, `MENUBAR_APP_NAME_WEIGHT`, `MENUBAR_MARGIN`, `MENUBAR_MARGIN_RIGHT`, `MENUBAR_TITLE_PADDING_X`, `MENUBAR_TEXT_LIFT`, `MENUBAR_TITLE_MAX_WIDTH`, `MENUBAR_TITLE_BLEED`, `FOCUS_BAR_BACKGROUND`, `FOCUS_BAR_TEXT` | constant | — | — | Shell menu bar sizes; focus-mode bar colors | [4](04-appearance-and-tokens.md#shell) |
+| `vow_design::DOCK_TILESIZE`, `DOCK_GAP`, `DOCK_PADDING`, `DOCK_FONT_SIZE`, `DOCK_BAR_HEIGHT` | constant | — | — | Shell Dock sizes | [4](04-appearance-and-tokens.md#shell) |
+| `vow_design::LAUNCHER_WIDTH`, `LAUNCHER_HEIGHT`, `LAUNCHER_PADDING`, `LAUNCHER_SEARCH_HEIGHT`, `LAUNCHER_RESULT_HEIGHT`, `LAUNCHER_RESULT_GAP`, `LAUNCHER_RESULT_RADIUS`, `LAUNCHER_ICON_SIZE`, `LAUNCHER_MAX_RESULTS`, `LAUNCHER_CORNER_RADIUS`, `LAUNCHER_FONT_SIZE`, `LAUNCHER_SUBTITLE_FONT_SIZE`, `LAUNCHER_SCALE_FROM`, `LAUNCHER_OPEN_MS`, `LAUNCHER_CLOSE_MS` | constant | — | — | Shell launcher sizes and animation | [4](04-appearance-and-tokens.md#shell) |
+| `vow_design::LOCK`, `LOCK_FONT_SIZE`, `LOCK_TITLE_SCALE`, `LOCK_FIELD_WIDTH`, `LOCK_FIELD_HEIGHT`, `LOCK_LABEL_OFFSET`, `LOCK_LABEL_FONT_SIZE`, `LOCK_MASK_FONT_SIZE` | constant | — | — | Lock screen colors and sizes | [4](04-appearance-and-tokens.md#shell) |
+| `vow_design::ABOUT_WIDTH`, `ABOUT_HEIGHT`, `ABOUT_DRAWING_TOP`, `ABOUT_DRAWING_WIDTH`, `ABOUT_DRAWING_HEIGHT`, `ABOUT_TITLE_GAP`, `ABOUT_TITLE_SIZE`, `ABOUT_SPECS_GAP`, `ABOUT_SPEC_ROW_GAP`, `ABOUT_COLUMN_GAP`, `ABOUT_VALUE_WIDTH`, `ABOUT_BUTTON_GAP`, `ABOUT_FOOTER_BOTTOM` | constant | — | — | Sizes of the shell's «About this computer» window | [4](04-appearance-and-tokens.md#shell) |
+| `vow_design::CURSOR_SHAKE_SCALE`, `CURSOR_SHAKE_GROW_MS`, `CURSOR_SHAKE_SHRINK_MS`, `CURSOR_SHAKE_TICK_MS` | constant | — | — | Compositor: cursor growth when the pointer is shaken | [4](04-appearance-and-tokens.md#compositor) |
+| `vow_design::SCREENSHOT_DIM`, `SCREENSHOT_IDLE_DIM`, `SCREENSHOT_BORDER`, `SCREENSHOT_BORDER_WIDTH` | constant | — | — | Compositor: screenshot selection overlay | [4](04-appearance-and-tokens.md#compositor) |
+| `vow_design::SPACE_GAP`, `SPACE_GAP_COLOR`, `SPACE_SLIDE_MS`, `SPACE_SLIDE_EASE` | constant | — | — | Compositor: gap and slide between Spaces | [4](04-appearance-and-tokens.md#compositor) |
+| `vow_design::TILE_MARGIN`, `TILE_GAP`, `DESKTOP_CLEAR` | constant | — | — | Compositor: tiled window margins; color behind everything | [4](04-appearance-and-tokens.md#compositor) |
+
+## Buttons
+
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `controls::Button` | struct | `Button` | `NSButton` | Push button with a text label | [5](05-controls.md#buttons) |
+| `controls::ButtonStyle` | enum | `PrimitiveButtonStyle` | `≈ NSButton.BezelStyle` | `Primary`, `Secondary`, `Glass`, `GlassProminent`, `Borderless` button looks | [5](05-controls.md#buttons) |
+| `controls::ControlSize` | enum | `ControlSize` | `NSControl.ControlSize` | `Small`, `Regular`, `Large` control heights | [5](05-controls.md#buttons) |
+| `compact::IconButton` | struct | `≈ Button` | `≈ NSButton` | Button showing only a symbol; 36 capsule inside a tool group | [5](05-controls.md#compact-buttons) |
+| `compact::Stepper` | struct | `Stepper` | `NSStepper` | Integer value with up and down arrows | [5](05-controls.md#compact-buttons) |
+| `compact::ToggleGroup` | struct | — | `≈ NSSegmentedControl` | Row of independent formatting toggles (select-any tracking) | [5](05-controls.md#compact-buttons) |
+| `compact::Face` | enum | — | — | `Bold`, `Italic`, `Underline`: how a toggle's text is drawn | [5](05-controls.md#compact-buttons) |
+| `buttons::MenuButton` | struct | `Menu` | `≈ NSPopUpButton` | Button with a chevron that opens an action menu (pull-down) | [5](05-controls.md#menu-buttons) |
+| `buttons::SplitButton` | struct | `≈ Menu` | `NSComboButton` | Main action plus a chevron that opens a menu | [5](05-controls.md#menu-buttons) |
+| `buttons::HelpButton` | struct | `HelpLink` | `≈ NSButton.BezelStyle.helpButton` | Round "?" help button | [5](05-controls.md#menu-buttons) |
+| `buttons::ControlGroup` | struct | `ControlGroup` | — | Controls joined on one background with separators | [5](05-controls.md#menu-buttons) |
+| `buttons::ShareButton` | struct | `ShareLink` | `≈ NSSharingServicePicker` | Menu to copy, email or open shared content; no share portal | [5](05-controls.md#menu-buttons) |
+| `buttons::mail_uri` | fn | — | — | Builds a percent-encoded `mailto:?body=` URI | [5](05-controls.md#menu-buttons) |
+| `controls::ToolGroup` | struct | `ToolbarItemGroup` | `NSToolbarItemGroup` | Toolbar items in 36 slots; island capsule with separators | [5](05-controls.md#toolbar-controls) |
+| `compact::ToolbarSearch` | struct | `≈ .searchable(text:placement:prompt:)` | `NSSearchToolbarItem` | Toolbar search field, optionally collapsed to an icon | [5](05-controls.md#toolbar-controls) |
+| `compact::ToolbarOverflow` | struct | — | — | Chevron button that lists extra toolbar items in a menu | [5](05-controls.md#toolbar-controls) |
+
+## Toggles and choices
+
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `controls::Switch` | struct | `ToggleStyle.switch` | `NSSwitch` | On/off switch | [5](05-controls.md#switch-and-checkbox) |
+| `controls::Checkbox` | struct | `ToggleStyle.checkbox` | `≈ NSButton` | Checkbox with its label (NSButton checkbox type) | [5](05-controls.md#switch-and-checkbox) |
+| `choices::RadioGroup` | struct | `PickerStyle.radioGroup` | `≈ NSButton` | Column of radio options; arrows move the choice | [5](05-controls.md#choices) |
+| `controls::SegmentedControl` | struct | `PickerStyle.segmented` | `NSSegmentedControl` | Segments filling the width; one is chosen | [5](05-controls.md#choices) |
+| `popup_button::PopUpButton` | struct | `PickerStyle.menu` | `NSPopUpButton` | Shows the chosen item; opens the list as a menu | [5](05-controls.md#choices) |
+| `choices::ColorWell` | struct | `≈ PickerStyle.palette` | — | Row of preset color swatches; reports the chosen index | [5](05-controls.md#choices) |
+| `choices::ChoiceCards` | struct | — | — | Large preview cards with captions; one is chosen | [5](05-controls.md#choices) |
+
+## Sliders and indicators
+
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `controls::Slider` | struct | `Slider` | `NSSlider` | Stepped slider with ticks and optional step captions | [5](05-controls.md#sliders) |
+| `level::LevelSlider` | struct | `Slider` | `NSSlider` | Continuous 0–1 slider, regular or fat with a symbol | [5](05-controls.md#sliders) |
+| `level::LevelStyle` | enum | — | — | `Regular` or `Fat(Symbol)` slider look | [5](05-controls.md#sliders) |
+| `progress::ProgressBar` | struct | `ProgressView` | `NSProgressIndicator` | Determinate or indeterminate progress bar | [5](05-controls.md#progress) |
+| `progress::ProgressRing` | struct | `ProgressViewStyle.circular` | `≈ NSProgressIndicator` | Determinate circular progress ring | [5](05-controls.md#progress) |
+| `progress::Spinner` | struct | `≈ ProgressView` | `≈ NSProgressIndicator` | Indeterminate spinning indicator, spinning style | [5](05-controls.md#progress) |
+| `indicator::CapacityIndicator` | struct | `≈ GaugeStyle.linearCapacity` | `≈ NSLevelIndicator` | Capacity bar, green-yellow-red by thresholds, continuous or discrete | [5](05-controls.md#level-indicators) |
+| `indicator::RelevancyIndicator` | struct | — | `≈ NSLevelIndicator` | Relevancy style: thin lines proportional to the value | [5](05-controls.md#level-indicators) |
+| `indicator::CircularGauge` | struct | `GaugeStyle.accessoryCircular` | — | Open ring with a marker; capacity mode is a filled ring | [5](05-controls.md#level-indicators) |
+| `indicator::RatingIndicator` | struct | — | `≈ NSLevelIndicator` | Five-star rating, editable when it has `on_change` | [5](05-controls.md#level-indicators) |
+| `indicator::level_color` | fn | — | — | Index 0–2 of the capacity color for a value | [5](05-controls.md#level-indicators) |
+| `indicator::gauge_marker` | fn | — | — | Center of the gauge marker for a value | [5](05-controls.md#level-indicators) |
+
+## Text fields and pickers
+
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `controls::TextField` | struct | `TextField` | `NSTextField` | One-line field bound to a `State<String>`, with spell checking | [5](05-controls.md#text-fields) |
+| `controls::SearchField` | struct | `≈ .searchable(text:tokens:placement:prompt:token:)` | `NSSearchField` | Search field with clear button and optional tokens | [5](05-controls.md#text-fields) |
+| `controls::SecureField` | struct | `SecureField` | `NSSecureTextField` | Masked password field; Enter submits the secret | [5](05-controls.md#text-fields) |
+| `combo_box::ComboBox` | struct | — | `NSComboBox` | Text field with an arrow that opens suggested values | [5](05-controls.md#text-fields) |
+| `password::PasswordField` | struct | — | — | Zeroizing password buffer with idle, verifying and error states | [5](05-controls.md#passwords) |
+| `password::State` | enum | — | — | `Idle`, `Verifying`, `Error(String)` of a password field | [5](05-controls.md#passwords) |
+| `color_picker::ColorPicker` | struct | `ColorPicker` | `≈ NSColorWell` | Color well opening an HSB popover, not a color panel | [5](05-controls.md#color-picker) |
+| `color_picker::hsb_to_rgb` | fn | — | `≈ NSColor.init(hue:saturation:brightness:alpha:)` | Opaque color from hue, saturation and brightness | [5](05-controls.md#color-picker) |
+| `color_picker::rgb_to_hsb` | fn | — | `≈ NSColor.getHue(_:saturation:brightness:alpha:)` | Hue, saturation and brightness of a color | [5](05-controls.md#color-picker) |
+| `color_picker::hex` | fn | — | — | `#RRGGBB` string of a color | [5](05-controls.md#color-picker) |
+| `date_picker::DatePicker` | struct | `DatePicker` | `NSDatePicker` | Segmented date/time field with stepper and pop-up calendar | [5](05-controls.md#date-picker) |
+| `date_picker::DateElements` | enum | `DatePickerComponents` | `NSDatePicker.ElementFlags` | `Date`, `Time` or `DateAndTime` parts shown | [5](05-controls.md#date-picker) |
+| `date::CivilDate` | struct | — | — | Calendar date with day and month arithmetic | [5](05-controls.md#date-picker) |
+| `date::CivilDateTime` | struct | — | — | Calendar date plus hour and minute | [5](05-controls.md#date-picker) |
+| `date::DatePart` | enum | — | — | `Day`, `Month`, `Year`, `Hour`, `Minute` | [5](05-controls.md#date-picker) |
+| `date::days_in_month` | fn | — | — | Days in a month, with leap years | [5](05-controls.md#date-picker) |
+| `date::typing_is_done` | fn | — | — | Whether typed digits complete a date part | [5](05-controls.md#date-picker) |
+| `path_control::PathControl` | struct | — | `NSPathControl` | Path parts with icons separated by chevrons | [5](05-controls.md#path-control) |
+| `image_well::ImageWell` | struct | — | `≈ NSImageView` | Editable image well: drop, choose or clear an image | [5](05-controls.md#image-well) |
+| `image_well::is_image` | fn | — | — | Whether a path has an image extension | [5](05-controls.md#image-well) |
+
+## Adornments, scrolling and drawing
+
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `adornments::badge` | fn | `≈ .badge(_:)` | — | Red capsule counter | [5](05-controls.md#adornments) |
+| `adornments::divider` | fn | `Divider` | `≈ NSBox` | Hairline separator filling the width (separator box) | [5](05-controls.md#adornments) |
+| `adornments::avatar` | fn | — | — | Circle with initials | [5](05-controls.md#adornments) |
+| `adornments::Link` | struct | `Link` | — | Pressable text in the link color | [5](05-controls.md#adornments) |
+| `controls::ScrollView` | struct | `ScrollView` | `NSScrollView` | Scrolling viewport with overlay bar and edge effect | [5](05-controls.md#scrolling) |
+| `controls::ScrollController` | struct | `≈ ScrollViewProxy` | `≈ NSClipView` | Scrolls a `ScrollView` from code | [5](05-controls.md#scrolling) |
+| `controls::use_scroll_controller` | fn | `≈ ScrollViewReader` | — | Creates a `ScrollController` | [5](05-controls.md#scrolling) |
+| `drag::DragSource` | struct | `≈ .draggable(_:)` | `NSDraggingSource` | Starts a drag to another app past a threshold | [5](05-controls.md#drag-source) |
+| `drag::use_drag_source` | fn | `≈ .draggable(_:)` | — | Creates a `DragSource` | [5](05-controls.md#drag-source) |
+| `drag::DragPayload` | enum | — | `≈ NSDraggingItem` | `Files(Vec<PathBuf>)` or `Text(String)` to drag | [5](05-controls.md#drag-source) |
+| `drag::URI_LIST` | constant | — | `≈ NSPasteboard.PasteboardType.fileURL` | MIME type `text/uri-list` | [5](05-controls.md#drag-source) |
+| `canvas::canvas` | fn | `Canvas` | `≈ NSView` | Element that paints with Skia, repainting on a new revision | [5](05-controls.md#canvas) |
+| `canvas::CanvasContext` | struct | `GraphicsContext` | `NSGraphicsContext` | Skia canvas, logical size, scale and fonts for a painter | [5](05-controls.md#canvas) |
+| `interaction::Interaction` | struct | — | `≈ NSTrackingArea` | Hover, press and focus state of a custom control | [5](05-controls.md#building-a-new-control) |
+| `interaction::use_interaction` | fn | `≈ .onHover(perform:)` | — | Creates an `Interaction` | [5](05-controls.md#building-a-new-control) |
+| `interaction::ring` | fn | — | `≈ NSView.drawFocusRingMask()` | Ring of a given color around an element | [5](05-controls.md#building-a-new-control) |
+
+## Text editing
+
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `text_editor::TextEditor` | struct | `TextEditor` | `NSTextView` | Multi-line editor with find bar, rich text and spelling | [6](06-text-and-editing.md#text-editor) |
+| `text_editor::find_matches` | fn | — | `≈ NSTextFinder` | Case-insensitive, non-overlapping matches in character indices | [6](06-text-and-editing.md#find-bar) |
+| `rich_text::TextStyle` | struct | — | — | Bold, italic, link, family and size of a run | [6](06-text-and-editing.md#rich-text) |
+| `rich_text::StyleRun` | struct | — | — | A `TextStyle` over a character range | [6](06-text-and-editing.md#rich-text) |
+| `rich_text::FontChoice` | struct | `≈ Font` | `≈ NSFontDescriptor` | Family, size, bold and italic | [6](06-text-and-editing.md#rich-text) |
+| `rich_text::Emphasis` | enum | — | `≈ NSFontDescriptor.SymbolicTraits` | `Bold` or `Italic` | [6](06-text-and-editing.md#rich-text) |
+| `rich_text::char_styles` | fn | — | — | One style per character from runs | [6](06-text-and-editing.md#rich-text) |
+| `rich_text::runs_from` | fn | — | — | Runs from per-character styles, merging neighbors | [6](06-text-and-editing.md#rich-text) |
+| `rich_text::restyle_after_edit` | fn | — | — | Moves runs after an edit; typed text inherits, links do not | [6](06-text-and-editing.md#rich-text) |
+| `rich_text::toggle` | fn | — | — | Toggles bold or italic on a range | [6](06-text-and-editing.md#rich-text) |
+| `rich_text::font_at` | fn | — | — | Font at a character, `BODY` when unset | [6](06-text-and-editing.md#rich-text) |
+| `rich_text::apply_font` | fn | — | `≈ NSFontManager.convert(_:)` | Applies a font choice to a range | [6](06-text-and-editing.md#rich-text) |
+| `rich_text::link_at` | fn | — | — | Link at a character, if any | [6](06-text-and-editing.md#rich-text) |
+| `font_panel::FontPicker` | struct | — | `≈ NSFontPanel` | Button with family and size that opens the font panel | [6](06-text-and-editing.md#font-panel) |
+| `font_panel::faces` | fn | — | — | Typefaces a family offers; Regular always | [6](06-text-and-editing.md#font-panel) |
+| `font_panel::parse_size` | fn | — | — | Typed font size if finite and positive | [6](06-text-and-editing.md#font-panel) |
+| `font_panel::remember` | fn | — | — | Moves a family to the front of the recent list | [6](06-text-and-editing.md#font-panel) |
+| `spelling::words` | fn | — | — | Character ranges of words; apostrophes join letters | [6](06-text-and-editing.md#spelling) |
+| `spelling::misspelled` | fn | — | `≈ NSSpellChecker.checkSpelling(of:startingAt:)` | Ranges of words the checker does not know | [6](06-text-and-editing.md#spelling) |
+| `spelling::word_at` | fn | — | — | Word range containing or touching a character | [6](06-text-and-editing.md#spelling) |
+| `spelling::replace_chars` | fn | — | — | Text with a character range replaced | [6](06-text-and-editing.md#spelling) |
+| `spelling::dictionary_name` | fn | — | `≈ NSSpellChecker.setLanguage(_:)` | Hunspell dictionary name for a language tag | [6](06-text-and-editing.md#spelling) |
+| `spelling::personal_words` | fn | — | — | Words of an Enchant personal list | [6](06-text-and-editing.md#spelling) |
+| `token_field::TokenField` | struct | — | `NSTokenField` | Tags as capsules; Enter or comma commits | [6](06-text-and-editing.md#token-field) |
+| `token_field::TokenKey` | enum | — | — | `Backspace`, `Delete`, `Left`, `Right` on an empty input | [6](06-text-and-editing.md#token-field) |
+| `token_field::commit_token` | fn | — | — | Pushes trimmed draft as a token; false if empty | [6](06-text-and-editing.md#token-field) |
+| `token_field::token_selection` | fn | — | — | Next selected token and removed index for a key | [6](06-text-and-editing.md#token-field) |
+
+## Printing
+
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `print::PageSetup` | struct | — | `≈ NSPrintInfo` | Page size and margins in millimetres from the portal | [6](06-text-and-editing.md#printing) |
+| `print::PrintPreview` | struct | — | — | Column of rendered pages with page numbers | [6](06-text-and-editing.md#printing) |
+| `print::text_pdf` | fn | — | `≈ NSView.dataWithPDF(inside:)` | Plain text as a searchable, font-subset PDF 1.7 | [6](06-text-and-editing.md#printing) |
+| `print::text_pages` | fn | — | — | Plain text paginated as page images | [6](06-text-and-editing.md#printing) |
+| `print::page_starts` | fn | — | — | Page tops that never split a line | [6](06-text-and-editing.md#printing) |
+| `print::page_of` | fn | — | — | Page index holding a given line top | [6](06-text-and-editing.md#printing) |
+
+## Rule editor
+
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `rule_editor::RuleEditor` | struct | — | `≈ NSPredicateEditor` | Edits a predicate as field, operator and value rows | [6](06-text-and-editing.md#rule-editor) |
+| `rule_editor::RuleField` | struct | — | `≈ NSPredicateEditorRowTemplate` | A filterable field: label and kind | [6](06-text-and-editing.md#rule-editor) |
+| `rule_editor::RuleKind` | enum | — | — | `Text`, `Number` or `Choice(&[..])` | [6](06-text-and-editing.md#rule-editor) |
+| `rule_editor::Operator` | enum | — | — | `Contains`, `BeginsWith`, `EndsWith`, `Is`, `IsNot`, `Greater`, `Less` | [6](06-text-and-editing.md#rule-editor) |
+| `rule_editor::operators` | fn | — | — | Operators offered for a field kind | [6](06-text-and-editing.md#rule-editor) |
+| `rule_editor::Rule` | struct | — | — | One condition: field, operator and value | [6](06-text-and-editing.md#rule-editor) |
+| `rule_editor::Criterion` | enum | — | — | `Rule(Rule)` or a nested `Group` | [6](06-text-and-editing.md#rule-editor) |
+| `rule_editor::Predicate` | struct | — | — | All or any of its criteria; evaluates an item | [6](06-text-and-editing.md#rule-editor) |
+
+## Menus
+
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `menu::MenuView` | struct | — | `≈ NSMenu` | Draws a list of menu items with keyboard, search and submenus | [7](07-menus-and-popovers.md#menu-view) |
+| `menu::MenuItem` | enum | — | `NSMenuItem` | A menu row: `Action`, `Submenu`, `Header`, `Separator`, `Palette`, `SearchField`, `SearchResult` | [7](07-menus-and-popovers.md#menu-items) |
+| `menu::CheckState` | enum | — | `≈ NSControl.StateValue` | Mark of an action: `None`, `Checkbox(bool)`, `Radio(bool)`; no mixed state | [7](07-menus-and-popovers.md#menu-items) |
+| `menu::MenuIcon` | enum | — | `≈ NSMenuItem.image` | Row icon: `Svg`, `Image` (encoded bytes, 64 KiB max) or `Swatch` color circle | [7](07-menus-and-popovers.md#menu-items) |
+| `menu::MenuNavigation` | enum | — | — | `Prev` or `Next`: ← or → asks the menu bar for a neighbouring menu | [7](07-menus-and-popovers.md#menu-view) |
+| `menu::ItemsSource` | type | — | — | Closure that returns a menu's items on every render | [7](07-menus-and-popovers.md#helpers) |
+| `menu::SubmenuSource` | type | — | `≈ NSMenuDelegate.menuNeedsUpdate(_:)` | Closure that returns a lazy submenu's items by id, once loaded | [7](07-menus-and-popovers.md#submenus) |
+| `menu::submenu_contents` | fn | — | — | A "Loading…" row while a submenu is loading and empty | [7](07-menus-and-popovers.md#submenus) |
+| `menu::normalize_separators` | fn | — | — | Removes leading, trailing and repeated separators, also in submenus | [7](07-menus-and-popovers.md#helpers) |
+| `menu::MNEMONIC_MARK` | constant | — | `≈ NSMenuItem.mnemonic` | U+2063 placed before the letter that Alt underlines | [7](07-menus-and-popovers.md#mnemonics) |
+| `menu::strip_mnemonic` | fn | — | — | Returns a label without the mnemonic mark | [7](07-menus-and-popovers.md#mnemonics) |
+| `menu::format_shortcut` | fn | — | — | Turns shortcut text such as `"Ctrl+Shift+G"` into glyphs `"⌃⇧G"` | [7](07-menus-and-popovers.md#shortcuts) |
+| `menu::shortcut_matches` | fn | — | — | Whether a key event with modifiers is the given shortcut text | [7](07-menus-and-popovers.md#shortcuts) |
+| `menu::measure_text` | fn | — | — | Width in pixels of text in the system sans font | [7](07-menus-and-popovers.md#helpers) |
+| `menu::measure_text_weight` | fn | — | — | Width in pixels of text at a given font weight | [7](07-menus-and-popovers.md#helpers) |
+
+## Menu search
+
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `menu::SearchableEntry` | struct | — | `≈ NSUserInterfaceItemSearching` | One findable item: path, item, location and source | [7](07-menus-and-popovers.md#search) |
+| `menu::SearchSource` | enum | — | — | Where a search entry comes from: `Menu` or `Help` | [7](07-menus-and-popovers.md#search) |
+| `menu::SearchLocation` | struct | — | — | Top menu index and row indices that lead to a found item | [7](07-menus-and-popovers.md#search) |
+| `menu::SearchQuery` | struct | — | — | Search text and whether it is selected, shared between menu rebuilds | [7](07-menus-and-popovers.md#search) |
+| `menu::SearchableSource` | type | — | — | Closure that returns the searchable entries | [7](07-menus-and-popovers.md#search) |
+| `menu::RevealRoots` | type | — | — | Closure that returns every top menu's items, to reveal found items | [7](07-menus-and-popovers.md#search) |
+| `menu::normalize_query` | fn | — | — | Prepares text for search: no mnemonic, trimmed, lower case, no accents | [7](07-menus-and-popovers.md#search) |
+| `menu::search_icon_svg` | fn | — | — | Fills `{{text}}` and `{{accent}}` colors in a search icon SVG | [7](07-menus-and-popovers.md#search) |
+
+## Context menus, popovers and tooltips
+
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `context_menu::context_menu` | fn | `.contextMenu(menuItems:)` | `NSMenu.popUpContextMenu(_:with:for:)` | Opens a menu at the pointer on secondary click | [7](07-menus-and-popovers.md#context-menu) |
+| `popover::show_popover` | fn | `.popover(isPresented:attachmentAnchor:arrowEdge:content:)` | `NSPopover` | Opens content in a popover with an arrow below an area | [7](07-menus-and-popovers.md#popover) |
+| `tooltip::use_tooltip` | fn | `.help(_:)` | `NSView.toolTip` | Hook that creates a tooltip with a fixed text | [7](07-menus-and-popovers.md#tooltip) |
+| `tooltip::Tooltip` | struct | `.help(_:)` | `NSView.toolTip` | A tooltip; `attach` shows it after a 1 s hover | [7](07-menus-and-popovers.md#tooltip) |
+
+## Windows
+
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `platform::run_window` | fn | `≈ App` | `≈ NSApplicationMain(_:_:)` | Opens a window with a root view and runs the event loop | [8](08-windows.md#running-a-window) |
+| `platform::WindowOptions` | struct | `≈ Window` | — | Title, name, app id, size, limits, menu and full-screen options of a window | [8](08-windows.md#window-options) |
+| `platform::WindowControls` | struct | — | `≈ NSWindow` | Window state and commands: close, minimize, zoom, full screen, move, resize | [8](08-windows.md#window-controls) |
+| `platform::WindowStatus` | struct | — | — | Configure state: activated, maximized, fullscreen, decoration, fixed | [8](08-windows.md#window-state) |
+| `platform::DecorationResponse` | enum | — | — | Who draws the title bar: `Client` or `Server` | [8](08-windows.md#window-state) |
+| `platform::WindowEdge` | enum | — | — | Edge or corner for a compositor resize | [8](08-windows.md#resizing-from-the-edges) |
+| `platform::open_utility_window` | fn | `UtilityWindow` | `≈ NSPanel` | Opens a floating panel child of the current window | [8](08-windows.md#utility-windows) |
+| `platform::PanelBehavior` | struct | — | `≈ NSPanel` | Panel flags: hides on deactivate, floating, key only if needed | [8](08-windows.md#utility-windows) |
+| `platform::FullscreenBar` | enum | — | — | Overlaid full-screen title bar: `Solid`, `Glass`, `ProgressiveGlass` | [9](09-titlebars.md#the-bar-in-full-screen-fullscreenbar) |
+| `platform::Bar` | enum | — | `≈ NSWindow.ToolbarStyle` | Bar the window draws, for its corner: `Titlebar`, `Compact`, `Unified`, `Utility` | [9](09-titlebars.md#corner-radius) |
+| `platform::AppMenuAddress` | struct | — | — | D-Bus service and path of a window's menu bar menu | [8](08-windows.md#menu-address) |
+| `platform::ObjectId` | struct | — | — | Wayland object id, re-exported from `wayland-backend` | [8](08-windows.md#menu-address) |
+| `platform::RunError` | enum | — | — | Why a window cannot run: display, protocol, Vulkan, event loop, I/O | [8](08-windows.md#errors) |
+
+## Popups
+
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `platform::Popups` | struct | — | — | Opens and closes `xdg_popup`s from a window or popup | [8](08-windows.md#popups) |
+| `platform::PopupSpec` | struct | — | — | Popup position, size, constraint adjustment, grab and dismiss callback | [8](08-windows.md#popups) |
+| `platform::PopupAnchor` | enum | — | — | Point of the anchor rectangle a popup attaches to; eight values | [8](08-windows.md#popups) |
+| `platform::PopupGravity` | enum | — | — | Direction a popup grows from its anchor point; eight values | [8](08-windows.md#popups) |
+| `platform::PopupConstraintAdjustment` | struct | — | — | Flip, slide or resize flags for a popup that does not fit | [8](08-windows.md#popups) |
+| `platform::PopupId` | struct | — | — | Identifies an open popup | [8](08-windows.md#popups) |
+| `platform::PopupHandle` | struct | — | — | A popup's own handle: close, reposition, open a child | [8](08-windows.md#popups) |
+
+## Timers and input
+
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `platform::Timers` | struct | — | — | Runs callbacks on the UI thread after a delay or on wake | [8](08-windows.md#timers) |
+| `platform::WakeHandle` | struct | — | — | `Send` handle another thread uses to run wake callbacks | [8](08-windows.md#timers) |
+| `platform::inserts_text` | fn | — | — | Whether a key press types text: no Control, Alt or Super | [8](08-windows.md#input-helpers) |
+
+## Titlebars
+
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `titlebar::Titlebar` | struct | `≈ .toolbar(content:)` | `≈ NSToolbar` | Client-side title bar: traffic lights, left and right items, title | [9](09-titlebars.md#titlebar) |
+| `traffic::TrafficLights` | struct | — | `≈ NSWindow.standardWindowButton(_:)` | Close, minimize and zoom buttons | [9](09-titlebars.md#traffic-lights) |
+| `titlebar::window_traffic_lights` | fn | — | `≈ NSWindow.standardWindowButton(_:)` | Traffic lights wired to the window and user settings | [9](09-titlebars.md#traffic-lights) |
+| `titlebar::window_drag_handler` | fn | — | `≈ NSWindow.performDrag(with:)` | Press handler that moves the window or runs the double-click action | [9](09-titlebars.md#traffic-lights) |
+| `titlebar::sidebar_bar_metrics` | fn | — | — | Height and top padding of the title bar row beside a sidebar | [9](09-titlebars.md#the-sidebar-with-the-rail) |
+| `titlebar::app_id` | fn | — | — | Default Wayland app id for an app name | [9](09-titlebars.md#helpers) |
+| `chrome::WindowChrome` | struct | — | — | Wraps the window and places lights, title and rail items | [9](09-titlebars.md#window-chrome) |
+| `chrome::ChromeStyle` | struct | — | — | Layout, rail width and style, round lights, reveal and resting edge | [9](09-titlebars.md#chromestyle-fields) |
+| `chrome::TitlebarLayout` | enum | — | — | `Top` horizontal title bar or `Rail` vertical bar on the left | [9](09-titlebars.md#chromestyle-fields) |
+| `chrome::RailStyle` | enum | — | — | `Normal` own strip or `Unified` column inside the sidebar | [9](09-titlebars.md#chromestyle-fields) |
+| `chrome::Reveal` | enum | — | — | When the bar shows: `Always`, `Drawer`, `Push`, `Corner`, `Popup` | [9](09-titlebars.md#reveal) |
+| `chrome::RestingEdge` | enum | — | — | What a hidden bar leaves: `None`, `Line`, `Accent` | [9](09-titlebars.md#chromestyle-fields) |
+
+## Sidebar and split view
+
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `sidebar::Sidebar` | struct | `SidebarListStyle` | `NSTableView.Style.sourceList` | The navigation column; island or flat by the user's `sidebar_style` | [10](10-sidebar.md#sidebar) |
+| `sidebar::SidebarItem` | struct | ≈ `Label` | — | A sidebar row with symbol tile and label; selection set by the app | [10](10-sidebar.md#sidebaritem) |
+| `sidebar::SidebarSection` | struct | `Section` | — | A titled, collapsible group of sidebar rows | [10](10-sidebar.md#sidebarsection) |
+| `sidebar::SidebarAccount` | struct | — | — | The account row: avatar with initials, name and a detail line | [10](10-sidebar.md#sidebaraccount) |
+| `sidebar::SidebarBackdrop` | enum | — | — | Island look over a tinted backdrop: `Clear` or `Tinted` | [10](10-sidebar.md#sidebarbackdrop) |
+| `sidebar::SidebarControl` | struct | ≈ `NavigationSplitViewVisibility` | ≈ `NSSplitViewController.toggleSidebar(_:)` | Handle to toggle, dismiss and read the enclosing `SplitView`'s sidebar | [10](10-sidebar.md#sidebarcontrol) |
+| `sidebar::sidebar_control` | fn | — | — | The enclosing `SplitView`'s `SidebarControl`, or `None` outside one | [10](10-sidebar.md#sidebarcontrol) |
+| `sidebar::symbol_tile` | fn | — | — | The colored square tile with a white symbol of a sidebar item | [10](10-sidebar.md#symbol_tile) |
+| `views::split::SplitView` | struct | `NavigationSplitView` | `NSSplitViewController` | Sidebar, detail and optional inspector; resizes, hides and collapses the sidebar | [10](10-sidebar.md#splitview) |
+| `views::split::SidebarLayout` | struct | — | — | Sidebar width and visibility reported by `on_layout`, serializable | [10](10-sidebar.md#sidebarlayout) |
+| `views::split::NarrowSidebar` | enum | — | — | Where the sidebar opens in narrow windows: `Overlay` or `Push` | [10](10-sidebar.md#narrow-windows) |
+| `views::split::SidebarToggle` | struct | — | `NSToolbarItem.Identifier.toggleSidebar` | The titlebar button that shows or hides the sidebar | [10](10-sidebar.md#hiding-sidebartoggle-and-toggle_sidebar) |
+| `views::split::TOGGLE_SIDEBAR` | constant | — | `NSSplitViewController.toggleSidebar(_:)` | The show-or-hide-sidebar action, Ctrl+Alt+S | [10](10-sidebar.md#hiding-sidebartoggle-and-toggle_sidebar) |
+
+## Forms and groups
+
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `views::form::Form` | struct | `Form` | — | Settings layout: sections of rows in rounded cards | [11](11-views.md#form) |
+| `views::form::Section` | struct | `Section` | — | One form card with optional title and footer | [11](11-views.md#section) |
+| `views::form::Row` | struct | `LabeledContent` | — | A form row: control, value, navigation or destructive | [11](11-views.md#row) |
+| `views::group::GroupBox` | struct | `GroupBox` | `NSBox` | A rounded box with an optional label that groups controls | [11](11-views.md#groupbox) |
+| `views::group::DisclosureGroup` | struct | `DisclosureGroup` | — | A chevron header that shows or hides its indented children | [11](11-views.md#disclosuregroup) |
+
+## Data views
+
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `views::table::Table` | struct | `Table` | `NSTableView` | Text rows in sortable, resizable, hideable columns with multiple selection | [11](11-views.md#table) |
+| `views::table::SortOrder` | struct | — | ≈ `NSTableView.sortDescriptors` | The sorted column index and direction; one column, not a list | [11](11-views.md#sortorder) |
+| `views::table::next_sort` | fn | — | — | The order a header click asks for: flip or start ascending | [11](11-views.md#table-helpers) |
+| `views::table::shown_columns` | fn | — | — | Column indices not hidden | [11](11-views.md#table-helpers) |
+| `views::table::toggle_column` | fn | — | — | Hides or shows a column, keeping at least one visible | [11](11-views.md#table-helpers) |
+| `views::collection::CollectionView` | struct | ≈ `LazyVGrid` | `NSCollectionView` | A wrapping grid of icon tiles with names and multiple selection | [11](11-views.md#collectionview) |
+| `views::collection::select` | fn | — | — | Click selection rule: plain, Ctrl/Super toggle, Shift range | [11](11-views.md#select) |
+| `views::tree::TreeNode` | struct | — | ≈ `NSTreeNode` | A node with title, optional icon and children | [11](11-views.md#treenode) |
+| `views::tree::OutlineView` | struct | `OutlineGroup` | `NSOutlineView` | A tree as indented rows with disclosure chevrons | [11](11-views.md#outlineview) |
+| `views::tree::ColumnBrowser` | struct | — | `NSBrowser` | A tree as Finder-style columns | [11](11-views.md#columnbrowser) |
+| `views::tree::visible_rows` | fn | — | — | Path and depth of each row shown for a set of open paths | [11](11-views.md#tree-helpers) |
+| `views::tree::node_at` | fn | — | — | The node at a path, or `None` | [11](11-views.md#tree-helpers) |
+
+## Containers
+
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `views::tabs::TabView` | struct | `TabView` | `NSTabView` | Pages chosen from a strip of icon-over-title tabs | [11](11-views.md#tabview) |
+| `views::window_tabs::WindowTabs` | struct | — | ≈ `NSWindowTabGroup` | The tab bar of a tabbed window; the app keeps each tab's content | [11](11-views.md#windowtabs) |
+| `views::split_panes::SplitPanes` | struct | `HSplitView`, `VSplitView` | `NSSplitView` | Panes in a row or column with draggable dividers; controlled ratios | [11](11-views.md#splitpanes) |
+| `views::floating_pane::FloatingPane` | struct | — | ≈ `NSPanel` | A movable, resizable pane drawn inside the window, not a separate window | [11](11-views.md#floatingpane) |
+| `views::floating_pane::PaneFrame` | struct | — | — | Position and size of a `FloatingPane` | [11](11-views.md#paneframe) |
+| `views::text_view::TextView` | struct | ≈ `TextEditor` | `NSTextView` | Frameless multi-line editable text without scrolling | [11](11-views.md#textview) |
+| `views::text_view::KeyPress` | struct | `KeyPress` | ≈ `NSEvent` | Key, modifiers and caret position passed to `TextView::on_key` | [11](11-views.md#keypress) |
+
+## Feedback
+
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `views::feedback::empty_state` | fn | `ContentUnavailableView` | — | A faint symbol over a line of text for an empty view | [11](11-views.md#empty_state) |
+| `views::feedback::sheet` | fn | `.sheet(isPresented:onDismiss:content:)` | `NSWindow.beginSheet(_:completionHandler:)` | A dialog attached to the window's top edge over a scrim | [11](11-views.md#sheet) |
+| `views::feedback::Alert` | struct | `.alert(_:isPresented:actions:message:)` | `NSAlert` | A sheet with title, message, two buttons and optional suppression checkbox | [11](11-views.md#alert) |
+
+## Navigation and search
+
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `views::navigation::History` | struct | — | — | A back-and-forward list of pages | [11](11-views.md#history) |
+| `views::navigation::navigation_buttons` | fn | — | — | Back and forward buttons in a tool group, with Alt+arrow shortcuts | [11](11-views.md#navigation_buttons) |
+| `views::navigation::GO_BACK`, `views::navigation::GO_FORWARD` | constant | — | — | The Back (Alt+←) and Forward (Alt+→) actions | [11](11-views.md#go_back-and-go_forward) |
+| `views::search::SearchIndex` | struct | — | — | Entries searched by title and keywords, ignoring case and accents | [11](11-views.md#searchindex) |
+| `views::search::Entry` | struct | — | — | One search entry: key, title and keywords | [11](11-views.md#entry) |
+| `views::search::fold` | fn | — | — | Lowercases text and removes accents for matching | [11](11-views.md#search-helpers) |
+| `views::search::word_start` | fn | — | — | Whether the query starts a word other than the first | [11](11-views.md#search-helpers) |
+
+## Adaptive layout
+
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `adaptive::use_breakpoint` | fn | ≈ `EnvironmentValues.horizontalSizeClass` | — | Creates a width reader for an element | [11](11-views.md#use_breakpoint) |
+| `adaptive::Adaptive` | struct | — | — | The width reader: `attach` measures, `current` gives the breakpoint | [11](11-views.md#use_breakpoint) |
+| `adaptive::Breakpoint` | enum | ≈ `UserInterfaceSizeClass` | — | Width class: `Compact`, `Medium`, `Wide`; three classes, not two | [11](11-views.md#breakpoint) |
+
+## Patterns
+
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `patterns::preferences::PreferencesWindow` | struct | ≈ `Settings` | — | Settings window with pane sidebar, search, history and saved state | [12](12-patterns.md#preferenceswindow) |
+| `patterns::preferences::Pane` | struct | — | — | One preferences pane: id, title, symbol, tint and form | [12](12-patterns.md#pane) |
+| `patterns::preferences::PaneGroup` | struct | — | — | Panes under an optional sidebar section title | [12](12-patterns.md#panegroup) |
+| `patterns::preferences::index` | fn | — | — | Builds the search index over panes and their rows | [12](12-patterns.md#index) |
+| `patterns::about::about_window` | fn | — | ≈ `NSApplication.orderFrontStandardAboutPanel(_:)` | Content of an About window: icon, name, version, copyright | [12](12-patterns.md#about_window) |
+| `patterns::language::LanguagePicker` | struct | — | — | Pop-up that writes the app or system language to a domain file | [12](12-patterns.md#languagepicker) |
+| `patterns::language::app_language_row` | fn | — | — | A "Language" form row with the app's picker | [12](12-patterns.md#app_language_row-and-system_language_row) |
+| `patterns::language::system_language_row` | fn | — | — | A "Language" form row with the system-wide picker | [12](12-patterns.md#app_language_row-and-system_language_row) |
+| `patterns::language::write_language` | fn | — | — | Sets or removes the `language` key in a TOML file | [12](12-patterns.md#write_language) |
+
+## App and scenes
+
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `app::Application` | struct | `App` | `NSApplication` | The app; its name gives the `app_id` and saved window size | [2](02-first-app.md#what-application-does-for-you) |
+| `app::Scene` | struct | `Scene`, `WindowGroup` | — | One window with a titlebar and centered content; `.options`, `.run` | [2](02-first-app.md#what-application-does-for-you) |
+
+## Actions and shortcuts
+
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `app::Action` | struct | — | ≈ `NSMenuItem` | A command: id, translated title and shortcut, shared by menus and keys | [13](13-app.md#actions-and-shortcuts) |
+| `app::Shortcut` | struct | `KeyboardShortcut` | ≈ `NSMenuItem.keyEquivalent` | Modifiers plus one key; gives the menu text and matches presses | [13](13-app.md#actions-and-shortcuts) |
+| `app::ShortcutKey` | enum | `KeyEquivalent` | — | The key of a shortcut: `Char`, `Left`, `Right`, `Named` | [13](13-app.md#actions-and-shortcuts) |
+| `app::use_menu_action` | fn | — | ≈ `NSApplication.sendAction(_:to:from:)` | Hook that receives every action id from menus, shortcuts and activation | [13](13-app.md#actions-and-shortcuts) |
+| `app::UNDO` | constant | `CommandGroupPlacement.undoRedo` | — | The kit's Undo action, Ctrl+Z | [13](13-app.md#undo) |
+| `app::REDO` | constant | `CommandGroupPlacement.undoRedo` | — | The kit's Redo action, Ctrl+Shift+Z | [13](13-app.md#undo) |
+
+## Menu bar menu
+
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `app_menu::AppMenu` | struct | `Commands` | `NSApplication.mainMenu` | The window's menu bar menu, published over dbusmenu | [13](13-app.md#menu-bar-menu) |
+| `app_menu::Menu` | struct | `CommandMenu` | `NSMenu` | One top-level menu: a title and its items | [13](13-app.md#menu-bar-menu) |
+| `app_menu::MenuHandle` | struct | — | ≈ `NSMenu` | Live handle to the window's menu: `update`, `set_menu_items` | [13](13-app.md#changing-the-menu-live) |
+| `app_menu::use_menu_enabled` | fn | `.disabled(_:)` | `NSMenuItemValidation` | Hook that enables or disables a menu item when the value changes | [13](13-app.md#changing-the-menu-live) |
+| `app_menu::use_menu_label` | fn | — | `NSMenuItem.title` | Hook that changes a menu item's label | [13](13-app.md#changing-the-menu-live) |
+| `app_menu::use_menu_checked` | fn | — | `NSMenuItem.state` | Hook that sets a menu item's checkbox | [13](13-app.md#changing-the-menu-live) |
+| `app_menu::use_submenu_items` | fn | — | `NSMenuItem.submenu` | Hook that replaces a submenu's children | [13](13-app.md#changing-the-menu-live) |
+| `app_menu::use_menu_update` | fn | — | — | Hook that applies any change to a menu item when a value changes | [13](13-app.md#changing-the-menu-live) |
+| `app_menu::find_menu_shortcut` | fn | — | `NSMenu.performKeyEquivalent(with:)` | Finds the enabled action whose shortcut matches a key press | [13](13-app.md#changing-the-menu-live) |
+| `app_menu::layout::DbusMenuLayout` | type | — | — | dbusmenu `GetLayout` reply: revision and root item | [13](13-app.md#menu-bar-menu) |
+| `app_menu::layout::LayoutItem` | type | — | — | dbusmenu layout node: id, properties, children | [13](13-app.md#menu-bar-menu) |
+
+## Undo
+
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `app::UndoManager` | struct | `EnvironmentValues.undoManager` | `UndoManager` | Undo and redo stacks for one `State`; `set`, `undo`, `redo` | [13](13-app.md#undo) |
+| `app::use_undo` | fn | `EnvironmentValues.undoManager` | `UndoManager` | Hook that wraps a `State` and handles `UNDO` and `REDO` | [13](13-app.md#undo) |
+
+## Settings and restoration
+
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `app::load_defaults` | fn | — | `UserDefaults` | Reads the app's settings from `<app_id>.domain` | [13](13-app.md#settings-and-restoration) |
+| `app::save_defaults` | fn | — | `UserDefaults` | Writes the app's settings to `<app_id>.domain` atomically | [13](13-app.md#settings-and-restoration) |
+| `app::use_defaults` | fn | `AppStorage` | — | Hook that reads the settings and reloads them when the file changes | [13](13-app.md#settings-and-restoration) |
+| `app::use_watched` | fn | — | — | Hook that reruns a loader when any settings file changes | [13](13-app.md#settings-and-restoration) |
+| `app::load_restoration` | fn | `SceneStorage` | ≈ `NSWindowRestoration` | Reads the app's saved state from `<app_id>.state` | [13](13-app.md#settings-and-restoration) |
+| `app::save_restoration` | fn | `SceneStorage` | ≈ `NSWindowRestoration` | Writes the app's state to `<app_id>.state` | [13](13-app.md#settings-and-restoration) |
+| `app::read_toml` | fn | — | — | Reads a TOML file into `T`; default on missing or invalid | [13](13-app.md#settings-and-restoration) |
+| `app::write_toml` | fn | — | — | Writes `T` as TOML through a temporary file and rename | [13](13-app.md#settings-and-restoration) |
+
+## Single instance
+
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `app::launch` | fn | — | — | Owns the app's bus name or forwards activation to the running instance | [13](13-app.md#single-instance) |
+| `app::Launch` | enum | — | — | Result of `launch`: `Primary(Instance)` or `Forwarded` | [13](13-app.md#single-instance) |
+| `app::Instance` | struct | — | ≈ `NSApplicationDelegate.applicationShouldHandleReopen(_:hasVisibleWindows:)` | The primary instance; `listen` presents the window and runs forwarded actions | [13](13-app.md#single-instance) |
+
+## Desktop services
+
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `status_item::StatusItem` | struct | `MenuBarExtra` | `NSStatusItem` | Status area icon with a menu, over StatusNotifierItem | [13](13-app.md#status-item) |
+| `status_item::STATUS_ITEM_ACTIVATE` | constant | — | — | Action id sent when the status icon is clicked | [13](13-app.md#status-item) |
+| `status_item::Pixmaps` | type | — | — | StatusNotifierItem `IconPixmap` type: width, height, ARGB bytes | [13](13-app.md#status-item) |
+| `notifications::Notice` | struct | — | ≈ `UNMutableNotificationContent` | A notification's app name, desktop entry, summary, body and action | [13](13-app.md#notifications) |
+| `notifications::post` | fn | — | ≈ `UNUserNotificationCenter` | Posts a notification; the callback gets the activation token on click | [13](13-app.md#notifications) |
+| `notifications::play_event_sound` | fn | — | ≈ `NSSound` | Plays a sound from the freedesktop sound theme | [13](13-app.md#notifications) |
+| `secrets::Secrets` | struct | — | ≈ `SecItemCopyMatching(_:_:)` | Session with the Secret Service keyring: search, read, create, delete | [13](13-app.md#secrets) |
+| `secrets::Item` | struct | — | — | A keyring item: object path, label and attributes | [13](13-app.md#secrets) |
+| `secrets::Error` | enum | — | — | Keyring error: `Locked` (prompt showing) or `Bus` | [13](13-app.md#secrets) |
+| `portal::open_files` | fn | `.fileImporter(isPresented:allowedContentTypes:allowsMultipleSelection:onCompletion:)` | `NSOpenPanel` | Async file or folder chooser through the portal | [13](13-app.md#portals) |
+| `portal::save_file` | fn | `.fileExporter(isPresented:document:contentType:defaultFilename:onCompletion:)` | `NSSavePanel` | Async save chooser through the portal | [13](13-app.md#portals) |
+| `portal::open_uri` | fn | `OpenURLAction` | `NSWorkspace.open(_:)` | Opens a URI in its default app through the portal | [13](13-app.md#portals) |
+| `portal::notify` | fn | — | ≈ `UNUserNotificationCenter` | Sends a notification through the notification portal | [13](13-app.md#portals) |
+| `portal::print` | fn | — | ≈ `NSPrintOperation` | Asks for page setup, builds the PDF and prints through the portal | [13](13-app.md#portals) |
+| `portal::file_uri` | fn | — | ≈ `URL.init(fileURLWithPath:)` | Turns a path into a percent-encoded `file://` URI | [13](13-app.md#portals) |
+| `portal::file_path` | fn | — | — | Turns a `file://` URI back into a path | [13](13-app.md#portals) |
+
+## Animation
+
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `animation::Spring` | struct | `Spring` | ≈ `CASpringAnimation` | The kit's spring curve with duration and bounce; a Freya animated value | [14](14-animations.md#spring) |
+| `animation::use_reduced_motion` | fn | `EnvironmentValues.accessibilityReduceMotion` | `NSWorkspace.accessibilityDisplayShouldReduceMotion` | Hook returning the live reduced motion preference | [14](14-animations.md#reduced-motion) |
+| `animation::motion_ms` | fn | — | — | A duration, or 0 when reduced motion is on | [14](14-animations.md#reduced-motion) |
+| `animation::use_switch_progress` | fn | — | — | Hook easing 0–1 after a boolean state; jumps with reduced motion | [14](14-animations.md#helpers) |
+| `animation::use_alive` | fn | — | — | Hook flag that turns false when the component unmounts | [14](14-animations.md#helpers) |
+
+## Backdrops and media
+
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `backdrop::Backdrop` | struct | — | — | Color backdrop from an image that gives its content a matching palette | [15](15-backdrops-and-media.md#backdrop) |
+| `backdrop::BackdropSource` | enum | — | — | Where the backdrop's colors come from: `None`, `Colors`, `Image` | [15](15-backdrops-and-media.md#backdrop) |
+| `backdrop::Accent` | enum | `.tint(_:)` | ≈ `NSColor.controlAccentColor` | Accent inside a backdrop: `System`, `Own`, `FromBackdrop` | [15](15-backdrops-and-media.md#backdrop) |
+| `backdrop::Tint` | enum | `.tint(_:)` | — | A control's fill: `Accent`, `Color`, `Backdrop` gradient | [15](15-backdrops-and-media.md#tint) |
+| `media::MediaButton` | struct | — | — | Large light pill button with an optional symbol, for media views | [15](15-backdrops-and-media.md#media) |
+| `media::RoundButton` | struct | — | — | Round glass button with a symbol; filled light when selected | [15](15-backdrops-and-media.md#media) |
+| `media::ScrimEdge` | enum | — | — | The solid edge of a scrim: `Leading` or `Bottom` | [15](15-backdrops-and-media.md#media) |
+| `media::scrim` | fn | — | — | Gradient that blends an image into the ground color | [15](15-backdrops-and-media.md#media) |
+| `media::ground` | fn | — | — | The color under the content: backdrop average or window background | [15](15-backdrops-and-media.md#media) |
+| `media::material` | fn | `Material` | `NSVisualEffectView` | Blurred, tinted layer with a rim that fills its parent | [15](15-backdrops-and-media.md#media) |
+| `media::top_glass` | fn | ≈ `.scrollEdgeEffectStyle(_:for:)` | — | Progressive glass band along the top edge | [15](15-backdrops-and-media.md#media) |
+| `media::use_artwork` | fn | ≈ `AsyncImage` | — | Hook that loads and decodes an image file in the background | [15](15-backdrops-and-media.md#media) |
+| `media::use_artwork_from` | fn | ≈ `AsyncImage` | — | Hook that decodes image bytes from any loader in the background | [15](15-backdrops-and-media.md#media) |
+| `glass_container::GlassContainer` | struct | `GlassEffectContainer` | `NSGlassEffectContainerView` | Row of glass shapes that merge when close and morph on change | [15](15-backdrops-and-media.md#glass-that-merges) |
+| `glass_container::Frame` | struct | — | — | A glass shape's rectangle and corner radius; `lerp` mixes two | [15](15-backdrops-and-media.md#glass-that-merges) |
+| `glass_container::Morph` | struct | — | — | One shape's move: id, from frame, to frame | [15](15-backdrops-and-media.md#glass-that-merges) |
+| `glass_container::plan` | fn | ≈ `.glassEffectID(_:in:)` | — | Pairs shown and new frames by id; new and leaving shapes use neighbours | [15](15-backdrops-and-media.md#glass-that-merges) |
+| `glass_container::MAX_SHAPES` | constant | — | — | Most shapes a container draws: 8 | [15](15-backdrops-and-media.md#glass-that-merges) |
+
+## Charts
+
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `charts::Chart` | struct | `Chart` (Swift Charts) | — | Series on an axis with line, area, bar or point marks | [16](16-charts.md#chart) |
+| `charts::Series` | struct | — | — | A named list of values | [16](16-charts.md#series) |
+| `charts::MarkKind` | enum | `LineMark`, `AreaMark`, `BarMark`, `PointMark` | — | How a `Chart` draws: `Line`, `Area`, `Bar`, `Point` | [16](16-charts.md#chart) |
+| `charts::Interpolation` | enum | `InterpolationMethod` | — | How points join: `Linear`, `Monotone`, `Step` | [16](16-charts.md#chart) |
+| `charts::SectorChart` | struct | `SectorMark` | — | Pie or donut chart of shares of a total | [16](16-charts.md#sectorchart) |
+| `charts::HeatMap` | struct | ≈ `RectangleMark` | — | Grid of cells colored by value | [16](16-charts.md#heatmap) |
+| `charts::StreamChart` | struct | — | — | Streamgraph with wiggle baseline, or flow clock when polar | [16](16-charts.md#streamchart) |
+| `charts::Chart3D` | struct | `Chart3D`, `SurfacePlot`, `PointPlot` | — | 3D surface, mesh or point cloud with an orbit camera | [16](16-charts.md#chart3d) |
+| `charts::format_value` | fn | — | — | Formats a value with 0–2 decimals and a unit, as charts show it | [16](16-charts.md#helpers) |
+| `charts::lerp_series` | fn | — | — | Mixes two lists of series; missing values start at 0 | [16](16-charts.md#helpers) |
+
+## Languages
+
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `localize!` | macro | — | — | Creates an app's embedded translations, its `LOADER` and its `tr!` | [17](17-languages.md#localize) |
+| `tr!` | macro | ≈ `LocalizedStringKey` | — | Returns the translated text for a Fluent id; not a key type | [17](17-languages.md#tr) |
+| `i18n::load` | fn | — | — | Selects the requested languages into a Fluent loader | [17](17-languages.md#i18nload) |
+| `i18n::use_app_language` | fn | — | — | Reads the app's chosen language from its `.domain` file, once | [17](17-languages.md#i18nuse_app_language) |
+
+## Shell
+
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `shell::run_layer` | fn | — | — | Runs an app in a wlr layer surface (menu bar, Dock, background) | [18](18-platform.md#run_layer-and-layerspec) |
+| `shell::LayerSpec` | struct | — | — | Namespace, layer, anchors, exclusive zone, keyboard and size of a layer surface | [18](18-platform.md#run_layer-and-layerspec) |
+| `shell::Layer` | enum | — | ≈ `NSWindow.Level` | Stacking layer of a layer surface: `Background`, `Bottom`, `Top`, `Overlay` | [18](18-platform.md#run_layer-and-layerspec) |
+| `shell::Anchors` | struct | — | — | Edges a layer surface sticks to; `TOP` and `BOTTOM` constants | [18](18-platform.md#run_layer-and-layerspec) |
+| `shell::KeyboardInteractivity` | enum | — | — | Keyboard focus of a layer surface: `None`, `Exclusive`, `OnDemand` | [18](18-platform.md#run_layer-and-layerspec) |
+| `shell::run_lock` | fn | — | — | Locks the session and draws an app on every output | [18](18-platform.md#run_lock-and-sessionunlock) |
+| `shell::SessionUnlock` | struct | — | — | Handle that ends the session lock | [18](18-platform.md#run_lock-and-sessionunlock) |
+| `shell::Toplevels` | struct | — | — | Every app's windows, the shown space, and actions on windows | [18](18-platform.md#toplevels) |
+| `shell::ToplevelInfo` | struct | — | — | One window of any app: id, title, app id, state, menu addresses | [18](18-platform.md#toplevels) |
+| `shell::SpaceInfo` | struct | — | — | The shown space: index, count, desktop number, focus bar | [18](18-platform.md#toplevels) |
+| `shell::FocusBar` | enum | — | — | The bar over the shown space: `None`, `Hidden`, `Revealed` | [18](18-platform.md#toplevels) |
+| `shell::GtkMenusAddress` | struct | — | — | D-Bus address of a GTK window's global menu | [18](18-platform.md#toplevels) |
+| `shell::InfinityLayout` | enum | — | — | Placement for `Toplevels::arrange`: fill, center, halves, quarters | [18](18-platform.md#toplevels) |
+| `shell::InfinityPairLayout` | enum | — | — | Pair tiling: `SideBySide`, `SideBySideReversed`, `Stacked`, `StackedReversed` | [18](18-platform.md#toplevels) |
+| `shell::InfinityWindowManagerV1` | struct | — | — | Proxy of Malaysia's private window-management protocol, used by `Toplevels` | [18](18-platform.md#toplevels) |
+| `shell::Activation` | struct | — | — | Requests xdg-activation tokens for the apps the shell launches | [18](18-platform.md#activation) |
+| `shell::use_status_items` | fn | — | — | Hook that hosts other apps' StatusNotifierItem icons and menus | [18](18-platform.md#status-items) |
+| `shell::TrayItem` | struct | — | ≈ `NSStatusItem` | Another app's status item, as the host reads it | [18](18-platform.md#status-items) |
+| `shell::StatusHost` | struct | — | — | Sends activate, secondary activate and menu clicks to status items | [18](18-platform.md#status-items) |
+| `shell::Pixmap` | struct | — | ≈ `NSBitmapImageRep` | RGBA bitmap of a status item's icon | [18](18-platform.md#status-items) |
+| `shell::pixmap_image` | fn | — | — | Image element of a `Pixmap` at a square size | [18](18-platform.md#status-items) |
 
 ## Freya names you will meet
 
-| Freya | Meaning |
-|---|---|
-| `App` | Trait of a root type with `fn render`. Why the kit's app is `Application` |
-| `Component` | A reusable view; it must be `PartialEq` |
-| `IntoElement` | Anything a view can return |
-| `rect()`, `label()`, `paragraph()` | The basic elements. `Text` is built on `label()` |
+| Freya | SwiftUI | What it is |
+|---|---|---|
+| `App` | `App` | Trait of a root type with `fn render`; why the kit's app is `Application` |
+| `Component` | `View` | A reusable view; it must be `PartialEq` |
+| `IntoElement` | `some View` | Anything a view can return |
+| `use_state` | `@State` | State that survives between renders |
+| `rect()` | — | The basic box; `VStack` and `HStack` are built on it |
+| `label()` | — | A single run of text; `Text` is built on it |
+| `paragraph()` | — | Text with several styled spans |

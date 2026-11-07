@@ -323,13 +323,17 @@ lists.
 
 `run_window` returns `RunError` when the window cannot run:
 
-| Variant | When |
+| Variant | Raised when |
 |---|---|
-| `NoDisplay` | `WAYLAND_DISPLAY` does not point to a reachable socket |
-| `MissingGlobal(name)` | The compositor does not offer a required protocol, such as `xdg_wm_base` |
-| `Vulkan(step)`, `DeviceLost`, `SurfaceLost`, `Skia` | The GPU path failed ([18. Platform](18-platform.md)) |
-| `LayerSize` | A layer surface without a width or height is not anchored to both opposite edges (shell surfaces) |
-| `EventLoop(step)` | The event loop could not start |
-| `Wayland(..)`, `Registry(..)`, `Io(..)` | Errors from the Wayland connection, the registry or the system |
+| `NoDisplay` | `$WAYLAND_DISPLAY` names no reachable socket |
+| `Wayland`, `Registry` | The connection or the registry fails |
+| `MissingGlobal(name)` | A [needed global](18-platform.md#wayland-protocols) is missing, `zwlr_layer_shell_v1` for `run_layer`, or `ext_session_lock_manager_v1` for `run_lock` |
+| `Vulkan(reason)` | No `libvulkan`, no GPU that can present, or the surface lacks the swapchain format |
+| `Skia` | Skia cannot create its Vulkan context |
+| `DeviceLost` | The GPU device is lost; the loop stops and returns it |
+| `SurfaceLost` | Never returned: the runner creates a new Vulkan surface and swapchain |
+| `LayerSize` | A `LayerSpec` leaves a size at 0 without anchoring both opposite edges |
+| `EventLoop(reason)` | A `calloop` source cannot be created or the loop fails |
+| `Io` | The appearance watcher cannot start |
 
 Next: [9. Titlebars](09-titlebars.md).

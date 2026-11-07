@@ -1,70 +1,116 @@
 # 1. What BarrierKit is
 
-**Goal:** know what the kit is, what it ships and what it needs to run.
-**Reader:** anyone starting with the kit.
+**Goal:** know what the kit is, what it needs to run and which level of it to
+start from.
+**Scope:** from the crates in the repository to the choice of a level. The
+first program is in [2](02-first-app.md); the modules of each level are in
+[3](03-layers.md).
+**Reader:** anyone who starts with the kit.
+**Input:** nothing. **Output:** the crates to depend on and the level to build
+with.
+
+## Steps
+
+1. Check that the machine has what the kit needs: [What it needs](#what-it-needs).
+2. Depend on `barrier-kit`. Add `vow-design` only to read tokens that the
+   prelude does not re-export, and `vow-appearance` only to read or change the
+   user's appearance ([The crates](#the-crates)).
+3. Pick the level of the kit with [Which level to use](#which-level-to-use).
+4. Open the first window: [2. Your first app](02-first-app.md).
+5. Find the modules of that level: [3. Layers](03-layers.md).
 
 ## In one sentence
 
-BarrierKit is to Malaysia what AppKit is to macOS or GTK + libadwaita is
-to GNOME: the set of pieces that builds the native apps and the shell. An app
-does not draw buttons or sidebars: it asks the kit for them, and they all look
-and behave the same.
+BarrierKit is to Malaysia what AppKit is to macOS and GTK with libadwaita is to
+GNOME: the toolkit for the shell and for Malaysia's own apps. An app asks the
+kit for a button or a sidebar; it does not draw one. So every app looks and
+behaves the same.
+
+The public API follows SwiftUI and AppKit: their names, their defaults and their
+shape ([ADR 0061](../decisions/0061-swiftui-style-entry-api.md)). The
+[glossary](20-glossary.md) gives the Apple equivalent of each name.
 
 ## Equivalents
 
-| Concept | AppKit / SwiftUI | libadwaita | BarrierKit |
+| Concept | SwiftUI / AppKit | libadwaita | BarrierKit |
 |---|---|---|---|
-| API style | Declarative SwiftUI | GtkBuilder + signals | Declarative, on top of Freya |
-| Button | `NSButton` | `GtkButton` | `controls::Button` |
-| Sidebar + detail | `NSSplitView` | `AdwNavigationSplitView` | `views::split::SplitView` |
-| Source list | `NSOutlineView` (source list) | `GtkListBox` `.navigation-sidebar` | `sidebar::Sidebar` |
-| Form | `Form` (SwiftUI) | `AdwPreferencesGroup` | `views::form::Form` |
-| Preferences window | `Settings` | `AdwPreferencesWindow` | `patterns::preferences::PreferencesWindow` |
-| Actions and shortcuts | `NSMenuItem` + responder chain | `GAction` | `app::Action` |
-| App preferences | `UserDefaults` | `GSettings` | `app::load_defaults` / `save_defaults` |
-| System colors | `NSColor.labelColor`… | CSS variables | `style::Palette` |
+| App and window | `App`, `WindowGroup` / `NSApplication` | `AdwApplication` | `app::Application`, `app::Scene` |
+| Text | `Text` / `NSTextField` | `GtkLabel` | `elements::Text` |
+| Stacks | `VStack`, `HStack` / `NSStackView` | `GtkBox` | `elements::VStack`, `elements::HStack` |
+| Button | `Button` / `NSButton` | `GtkButton` | `controls::Button` |
+| Sidebar and detail | `NavigationSplitView` / `NSSplitView` | `AdwNavigationSplitView` | `views::split::SplitView` |
+| Source list | `List` with `.sidebar` style / `NSOutlineView` | `GtkListBox` `.navigation-sidebar` | `sidebar::Sidebar` |
+| Form | `Form` | `AdwPreferencesGroup` | `views::form::Form` |
+| Settings window | `Settings` | `AdwPreferencesWindow` | `patterns::preferences::PreferencesWindow` |
+| Actions and shortcuts | `Commands` / `NSMenuItem` | `GAction` | `app::Action` |
+| App preferences | `UserDefaults` | `GSettings` | `app::load_defaults`, `app::save_defaults` |
+| System colors | `Color` / `NSColor.labelColor`… | CSS variables | `style::Palette` |
 
 ## The crates
 
-The [`barrierkit`](https://github.com/HBlanqueto/barrierkit) repository has
-four library crates:
+The [`barrierkit`](https://github.com/HBlanqueto/barrierkit) repository is a
+Cargo workspace with four library crates. They need Rust 1.98 (edition 2024).
 
-| Crate | What it is |
+| Crate | What it is | Who depends on it |
+|---|---|---|
+| `barrier-kit` | The kit: Wayland runner, style, controls, views, patterns and app services. | Apps and the shell. |
+| `vow-design` | **Tengen**, the design system. `build.rs` turns `tengen/tokens.json` and `tengen/components.json` into Rust constants ([4](04-appearance-and-tokens.md#tokens-vow-design)). | The kit, the compositor, the shell and the portal. |
+| `vow-appearance` | Reads the user's appearance and the wallpaper color and resolves them into concrete colors ([4](04-appearance-and-tokens.md#user-appearance-vow-appearance)). | The kit, the compositor, the shell and the portal. |
+| `infinity-protocol` | Private Wayland protocol between the apps and the Malaysia compositor ([18](18-platform.md)). | The kit and the compositor. |
+
+`barrier-kit` has three Cargo features:
+
+| Feature | What it adds |
 |---|---|
-| `barrier-kit` | The kit: Wayland runner, style, controls, views, patterns and app infrastructure. |
-| `vow-design` | **Tengen**, the design system. It turns `tengen/tokens.json` and `tengen/components.json` into Rust constants. |
-| `vow-appearance` | Reads `appearance.domain` and the wallpaper and resolves them into a concrete palette. It watches for changes. |
-| `infinity-protocol` | Private Wayland protocol between the apps and the Malaysia compositor. |
+| `shell` | The `shell` module: layer-shell surfaces, the lock screen, the list of toplevels and the status tray host ([18](18-platform.md)). Only `malaysia-shell` enables it. |
+| `video` | The `video` module, a GStreamer player ([15](15-backdrops-and-media.md)). |
+| `tracy` | Sends the traces of `init_tracing` to Tracy ([19](19-profiling.md)). |
+
+### On top of Freya
 
 The kit builds on [Freya](https://freyaui.dev) `=0.4.3`, but only on its core
-crates: `freya-core`, `freya-components` (no features), `freya-animation`,
-`freya-engine`, `torin` and `ragnarok`. Never on `freya` or `freya-winit`: the
-kit has its own Wayland runner ([ADR 0034](../decisions/0034-celestialkit-on-freya.md)).
+crates: `freya-core`, `freya-components` (without default features),
+`freya-edit`, `freya-animation`, `freya-engine`, `freya-clipboard`, `torin` and
+`ragnarok`. It never uses `freya` or `freya-winit`: the kit has its own Wayland
+runner ([ADR 0034](../decisions/0034-celestialkit-on-freya.md)). Freya's
+elements and hooks (`rect`, `label`, `use_state`…) come with the prelude.
 
 ## Does it use the GPU or the CPU?
 
 | Work | Where it runs |
 |---|---|
 | Layout with `torin` | CPU |
-| Drawing with Skia | **GPU, through Vulkan** ([ADR 0056](../decisions/0056-barrierkit-on-vulkan.md)) |
-| Presentation | Vulkan swapchain on `VK_KHR_wayland_surface`, `MAILBOX` if available, otherwise `FIFO` |
-| Video (`video` feature) | GPU with VA-API and dmabuf import; if missing, it downloads to the CPU or decodes on the CPU |
+| Drawing with Skia | GPU, through Vulkan ([ADR 0056](../decisions/0056-barrierkit-on-vulkan.md)) |
+| Presentation | Vulkan swapchain on `VK_KHR_wayland_surface`: `MAILBOX` when the driver offers it, otherwise `FIFO` |
+| Video (`video` feature) | VA-API decoding with zero-copy dmabuf import; without dmabuf the frames go through the CPU; without VA-API GStreamer decodes on the CPU |
 
-There is no EGL or `wl_shm` path. The kit picks the first Vulkan device that
-can present on the display. That device can be a real GPU or a software driver
-such as lavapipe (`llvmpipe`): the screenshots in this documentation were made
-that way, without a GPU. If there is no Vulkan device, the window does not open
-and `run_window` returns `RunError::Vulkan`.
+There is no EGL and no `wl_shm` path. The kit takes the first Vulkan device with
+a graphics queue that can present on the Wayland display. That device can be a
+GPU or a software driver such as lavapipe. If there is none, the window does not
+open and `run_window` returns `RunError::Vulkan`.
 
-Freya 0.4.3 repaints the whole tree on every frame; there is no partial damage
-yet ([ADR 0047](../decisions/0047-barrierkit-in-layers.md), section «Pendiente» ("Pending")).
+Freya 0.4.3 repaints the whole tree on every frame; partial damage waits for
+Freya ([ADR 0047](../decisions/0047-barrierkit-in-layers.md), «Pending»).
 
 ## What it needs
 
-- A Wayland compositor with `wl_compositor`, `xdg_wm_base` and `wl_seat`. The
-  other protocols are optional (chapter [14](14-platform.md)).
-- `libvulkan` and a Vulkan driver (ICD).
-- Building inside `nix develop` (Malaysia ADR 0007): the dev shell ships
-  Skia, the fonts (Geist) and the RADV driver.
+| Need | Why |
+|---|---|
+| A Wayland compositor with `wl_compositor` and `xdg_wm_base` | Without them `run_window` returns `RunError::MissingGlobal`. The other protocols are optional ([18](18-platform.md)). |
+| `libvulkan` and a Vulkan driver (ICD) | Drawing and presentation. |
+| `nix develop` | The dev shell ships the Skia binaries, the Geist and Inter fonts, the Mesa Vulkan drivers and the GStreamer plugins. `./dev.sh` refuses to run outside it. |
+
+## Which level to use
+
+The kit has four levels; each one builds on the one below
+([3](03-layers.md#the-map)). Start from the highest level that fits.
+
+| If you want… | Use | Level |
+|---|---|---|
+| A settings app with a sidebar, search field and panes | `PreferencesWindow` | 3 · Patterns |
+| An app with its own navigation (a player, a file browser) | `SplitView`, `Sidebar` and `Titlebar` | 2 · Views |
+| A small window or a dialog | `Application`, `VStack` and the controls | 1 · Primitives |
+| A component that does not exist | Freya's `rect` and `label`, `use_interaction` and the `Palette`. If other apps need it, it goes into the kit. | 1 · Primitives |
+| A window that draws its own titlebar | `run_window` and `WindowOptions` ([8](08-windows.md)) | 0 · Platform |
 
 Next: [2. Your first app](02-first-app.md).
