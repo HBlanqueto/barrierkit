@@ -124,7 +124,7 @@ impl Component for SearchResult {
             ),
             (false, _) => (None, palette.label, palette.secondary_label),
         };
-        interaction
+        let row = interaction
             .attach(rect(), true)
             .a11y_role(AccessibilityRole::ListItem)
             .a11y_alt(title)
@@ -152,6 +152,7 @@ impl Component for SearchResult {
                     .direction(Direction::Vertical)
                     .child(text(title, TEXT, ink).text_overflow(TextOverflow::Ellipsis))
                     .maybe_child(subtitle.map(|subtitle| text(subtitle, CAPTION, secondary))),
-            )
+            );
+        interaction.focus_ring(row, menu.item_radius)
     }
 }

@@ -117,7 +117,7 @@ impl Component for WindowTab {
         let on_select = self.on_select.clone();
         let on_close = self.on_close.clone();
         let selected = self.selected;
-        interaction
+        let tab = interaction
             .attach(rect(), true)
             .a11y_role(AccessibilityRole::Tab)
             .a11y_alt(self.title.clone())
@@ -162,6 +162,7 @@ impl Component for WindowTab {
                     .direction(Direction::Horizontal)
                     .child(text(self.title.clone(), TEXT, palette.label).max_lines(1)),
             )
-            .child(rect().width(Size::px(ICON_BUTTON.icon)))
+            .child(rect().width(Size::px(ICON_BUTTON.icon)));
+        interaction.focus_ring(tab, BUTTON.height / 2.0)
     }
 }
