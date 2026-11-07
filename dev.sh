@@ -41,6 +41,7 @@ check() {
     cargo clippy --workspace --all-targets --features bk/shell,bk/tracy -- -D warnings
     "$script_dir/scripts/check-design-tokens.sh"
     "$script_dir/scripts/check-client-only-deps.sh"
+    "$script_dir/scripts/tengen-css.sh" | diff -u "$script_dir/agents/tengen.css" -
     cargo test --workspace --features bk/shell,bk/tracy
 }
 
