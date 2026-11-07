@@ -1,6 +1,8 @@
 pub use crate::scroll::{ScrollController, ScrollView, use_scroll_controller};
 
-use freya_components::input::{Input, InputColorsThemePartial, InputLayoutThemePartial};
+use freya_components::input::{
+    Input, InputColorsThemePartial, InputLayoutThemePartial, InputValidator,
+};
 use freya_components::theming::macros::Preference;
 
 use freya_core::prelude::*;
@@ -1172,10 +1174,13 @@ pub(crate) fn themed_input(
     radius: f32,
     padding_x: f32,
 ) -> Input {
+    let (generation, mut typed) = use_input_generation(value);
     let palette = Palette::current();
     let margin_y = (TEXT_FIELD.height - TEXT.line_height as f32) / 2.0;
     let color = |c: Rgba| Some(Preference::Specific(color(c)));
     Input::new(value)
+        .key(generation)
+        .on_validate(move |validator: InputValidator| typed.set(validator.text().clone()))
         .placeholder(placeholder)
         .width(Size::fill())
         .theme_colors(InputColorsThemePartial {
@@ -1192,6 +1197,26 @@ pub(crate) fn themed_input(
                 margin_y, padding_x, margin_y, padding_x,
             ))),
         })
+}
+
+// freya-edit 0.4.3 set() checks the UTF-16 cursor against a byte length: https://docs.rs/crate/freya-edit/0.4.3/source/src/rope_editor.rs#273
+fn use_input_generation(value: State<String>) -> (u32, State<String>) {
+    let typed = use_state(String::new);
+    let mut seen = use_state(|| value.peek().clone());
+    let mut generation = use_state(|| 0u32);
+    let current = value.read().clone();
+    if current != *seen.peek() {
+        if current != *typed.peek() && cursor_may_pass_end(&seen.peek(), &current) {
+            *generation.write() += 1;
+        }
+        seen.set(current);
+    }
+    (*generation.peek(), typed)
+}
+
+fn cursor_may_pass_end(old: &str, new: &str) -> bool {
+    let units = new.encode_utf16().count();
+    old.encode_utf16().count().min(new.len()) > units
 }
 
 #[derive(PartialEq)]
@@ -1327,5 +1352,24 @@ impl Component for Checkbox {
             );
 
         root.map(self.probe, ProbeExt::probe)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::cursor_may_pass_end;
+
+    #[test]
+    fn a_shorter_non_ascii_value_may_leave_the_cursor_past_the_end() {
+        assert!(cursor_may_pass_end("Seville", "Málaga"));
+        assert!(cursor_may_pass_end("añoo año", "año año"));
+        assert!(cursor_may_pass_end("hello world", "😀"));
+    }
+
+    #[test]
+    fn clearing_growing_or_ascii_values_keep_the_cursor_inside() {
+        assert!(!cursor_may_pass_end("abc", ""));
+        assert!(!cursor_may_pass_end("Málaga", "Malaga"));
+        assert!(!cursor_may_pass_end("año", "años"));
     }
 }

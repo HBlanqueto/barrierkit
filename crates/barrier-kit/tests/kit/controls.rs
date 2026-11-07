@@ -1019,6 +1019,45 @@ fn the_text_editor_inserts_a_new_line_on_enter() {
 }
 
 #[test]
+fn typing_after_the_app_shortens_an_accented_value_does_not_panic() {
+    use std::cell::RefCell;
+    use std::rc::Rc;
+
+    use barrier_kit::text_editor::TextEditor;
+
+    struct ReplaceCase(Rc<RefCell<Option<State<String>>>>, bool);
+    impl App for ReplaceCase {
+        fn render(&self) -> impl IntoElement {
+            let value = use_state(String::new);
+            *self.0.borrow_mut() = Some(value);
+            if self.1 {
+                TextEditor::new(value, "Notas").into_element()
+            } else {
+                TextField::new(value, "Ciudad").into_element()
+            }
+        }
+    }
+
+    for editor in [true, false] {
+        let handle = Rc::new(RefCell::new(None));
+        let app = AppComponent::new(ReplaceCase(handle.clone(), editor));
+        let (mut test, _) = TestingRunner::new(app, Size2D::new(240.0, 120.0), |_| {}, 1.0);
+        test.sync_and_update();
+        test.click_cursor((20.0, 15.0));
+        test.sync_and_update();
+        test.write_text("añoo año");
+        test.sync_and_update();
+        let mut value = handle.borrow().unwrap();
+        value.set("año año".to_owned());
+        test.sync_and_update();
+        test.write_text("s");
+        test.press_key(Key::Named(NamedKey::Backspace));
+        test.sync_and_update();
+        assert!(value.peek().starts_with("año año"));
+    }
+}
+
+#[test]
 fn the_token_field_turns_enter_and_commas_into_tokens_and_backspace_selects_then_removes_the_last()
 {
     use std::cell::RefCell;
