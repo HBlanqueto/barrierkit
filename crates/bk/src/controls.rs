@@ -5,7 +5,7 @@ use freya_components::input::{
 };
 use freya_components::theming::macros::Preference;
 
-use ctdesign::{BODY, Font, Rgba, TEXT_FIELD, TEXT_LINE_HEIGHT};
+use ctdesign::{Font, Rgba, TEXT_LINE_HEIGHT};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, CursorPoint, Direction, Gaps, Position, Size};
 
@@ -19,11 +19,12 @@ use crate::interaction::use_interaction;
 use crate::level;
 use crate::password::PasswordField;
 use crate::spelling::{Squiggles, char_index, dictionary, known, misspelled, utf16_range};
-use crate::style::{Palette, with_font};
+use crate::style::with_font;
 use crate::styles::{
     Axis, ButtonStyle, CheckboxStyle, ControlState, Edge, LayoutDirection, Paints,
     SearchFieldStyle, SecureFieldStyle, SegmentedControlStyle, ShadowStyle, Shape, ShapeStyle,
-    SliderStyle, StateValue, SwitchStyle, TextFieldStyle, Theme, ToolGroupStyle, resolve,
+    SliderStyle, StateValue, SwitchStyle, TextFieldStyle, Theme, TokenFieldStyle, ToolGroupStyle,
+    resolve,
 };
 use crate::symbol::{Symbol, symbol};
 use crate::theme::color;
@@ -611,7 +612,7 @@ pub struct Button {
     on: Option<bool>,
     width: Size,
     on_press: Option<Callback<(), ()>>,
-    style: Theme,
+    pub(crate) style: Theme,
     key: DiffKey,
 }
 
@@ -1327,6 +1328,7 @@ impl KeyExt for SearchField {
 impl Component for SearchField {
     fn render(&self) -> impl IntoElement {
         let style: SearchFieldStyle = resolve(&self.style);
+        let token_style: TokenFieldStyle = resolve(&Theme::tengen());
         let mut value = self.value;
         let padding = style.padding_x;
         let icon = style.icon_size;
@@ -1453,18 +1455,16 @@ impl Component for SearchField {
                     .position(
                         Position::new_absolute()
                             .left(padding + icon + gap)
-                            .top((height - ctdesign::TOKEN_FIELD.token_height) / 2.0),
+                            .top((height - token_style.token_height) / 2.0),
                     )
                     .direction(Direction::Horizontal)
-                    .spacing(ctdesign::TOKEN_FIELD.gap)
+                    .spacing(token_style.gap)
                     .on_sized(move |event: Event<SizedEventData>| {
                         tokens_width.set_if_modified(event.area.width());
                     })
-                    .children(
-                        shown_tokens.into_iter().map(|token| {
-                            crate::token_field::token_chip(token, false).into_element()
-                        }),
-                    ),
+                    .children(shown_tokens.into_iter().map(|token| {
+                        crate::token_field::token_chip(token, false, &token_style).into_element()
+                    })),
             )
         })
     }
@@ -1490,32 +1490,7 @@ pub(crate) fn text_style(element: Rect, font: Font) -> Rect {
         .font_weight(font.weight as i32)
 }
 
-pub(crate) fn themed_input(
-    value: State<String>,
-    placeholder: &'static str,
-    background: Rgba,
-    border: Rgba,
-    radius: f32,
-    padding_x: f32,
-) -> Input {
-    let palette = Palette::current();
-    let margin_y = (TEXT_FIELD.height - BODY.line_height as f32) / 2.0;
-    input(
-        value,
-        placeholder,
-        [
-            background,
-            border,
-            palette.accent,
-            palette.label,
-            palette.secondary_label,
-        ],
-        CornerRadius::new_all(radius),
-        Gaps::new(margin_y, padding_x, margin_y, padding_x),
-    )
-}
-
-fn input(
+pub(crate) fn input(
     value: State<String>,
     placeholder: &'static str,
     [background, border, focus_border, text, placeholder_color]: [Rgba; 5],

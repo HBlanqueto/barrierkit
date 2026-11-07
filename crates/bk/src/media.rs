@@ -1,14 +1,17 @@
 use crate::elements::forward_container;
 use std::path::PathBuf;
 
-use ctdesign::{BODY, MEDIA, Rgba};
+use ctdesign::{MEDIA, Rgba};
 use freya_core::elements::image::ImageHandle;
 use freya_core::prelude::*;
 use torin::prelude::{Direction, Gaps, Size};
 
+use crate::animation::use_animated;
+use crate::controls::{dimmed, inner_border, shadowed};
 pub use crate::glass::{Material, TopGlass};
-use crate::interaction::use_interaction;
+use crate::interaction::{control_state, use_interaction};
 use crate::style::Palette;
+use crate::styles::{LayoutDirection, MediaButtonStyle, Paints, RoundButtonStyle, Theme, resolve};
 use crate::symbol::{Symbol, symbol};
 use crate::theme::color;
 
@@ -54,6 +57,7 @@ pub struct MediaButton {
     label: String,
     symbol: Option<Symbol>,
     on_press: Option<Callback<(), ()>>,
+    style: Theme,
 }
 
 impl MediaButton {
@@ -62,7 +66,16 @@ impl MediaButton {
             label: label.into(),
             symbol: None,
             on_press: None,
+            style: Theme::tengen(),
         }
+    }
+
+    pub fn style(
+        mut self,
+        restyle: impl Fn(MediaButtonStyle) -> MediaButtonStyle + 'static,
+    ) -> Self {
+        self.style = self.style.style(restyle);
+        self
     }
 
     pub fn symbol(mut self, symbol: Symbol) -> Self {
@@ -78,44 +91,63 @@ impl MediaButton {
 
 impl Component for MediaButton {
     fn render(&self) -> impl IntoElement {
+        let style: MediaButtonStyle = resolve(&self.style);
         let interaction = use_interaction();
+        let state = control_state(interaction, false);
+        let paints = Paints::current(state, style.effect);
+        let scale = use_animated(
+            if interaction.pressed() {
+                style.pressed_scale
+            } else {
+                1.0
+            },
+            style.animation,
+        );
         let on_press = self.on_press.clone();
+        let radius =
+            style
+                .shape
+                .corner_radius(style.height, style.height, LayoutDirection::LeftToRight);
+        let font = style.font;
         let button = interaction
             .attach(rect(), true)
             .a11y_role(AccessibilityRole::Button)
             .a11y_alt(self.label.clone())
-            .height(Size::px(MEDIA.button_height))
-            .padding(Gaps::new(
-                0.0,
-                MEDIA.button_padding_x,
-                0.0,
-                MEDIA.button_padding_x,
-            ))
-            .corner_radius(MEDIA.button_radius)
+            .height(Size::px(style.height))
+            .padding(Gaps::new(0.0, style.padding_x, 0.0, style.padding_x))
+            .corner_radius(radius)
             .direction(Direction::Horizontal)
-            .spacing(MEDIA.button_font_size / 2.0)
+            .spacing(style.icon_gap)
             .center()
-            .background(color(MEDIA.button_fill))
-            .maybe(interaction.pressed(), |el| {
-                el.scale(ctdesign::BUTTON.pressed_scale)
+            .background(paints.fill(&style.background))
+            .map(paints.blur(&style.background), Rect::blur)
+            .map(style.border.as_ref(), |el, border| {
+                el.border(inner_border(&paints, border))
             })
+            .maybe(scale != 1.0, |el| el.scale(scale))
             .map(on_press, |el, on_press| {
                 el.on_press(move |_| on_press.call(()))
             })
-            .maybe_child(
-                self.symbol
-                    .map(|icon| symbol(icon, MEDIA.button_font_size, MEDIA.button_ink)),
-            )
+            .maybe_child(self.symbol.map(|icon| {
+                symbol(
+                    icon,
+                    style.icon_size,
+                    paints.color(style.label.resolve(state)),
+                )
+            }))
             .child(
                 label()
                     .text(self.label.clone())
-                    .font_family(BODY.family)
-                    .font_size(MEDIA.button_font_size)
-                    .font_weight(600)
+                    .font_family(font.family)
+                    .font_size(font.size as f32)
+                    .font_weight(font.weight as i32)
                     .max_lines(1)
-                    .color(color(MEDIA.button_ink)),
+                    .color(paints.fill(&style.label)),
             );
-        interaction.focus_ring(button, MEDIA.button_radius)
+        interaction.focus_ring(
+            dimmed(shadowed(button, &style.shadows), style.opacity),
+            radius.top_left,
+        )
     }
 }
 
@@ -125,6 +157,7 @@ pub struct RoundButton {
     label: &'static str,
     selected: bool,
     on_press: Option<Callback<(), ()>>,
+    style: Theme,
 }
 
 impl RoundButton {
@@ -134,7 +167,16 @@ impl RoundButton {
             label,
             selected: false,
             on_press: None,
+            style: Theme::tengen(),
         }
+    }
+
+    pub fn style(
+        mut self,
+        restyle: impl Fn(RoundButtonStyle) -> RoundButtonStyle + 'static,
+    ) -> Self {
+        self.style = self.style.style(restyle);
+        self
     }
 
     pub fn selected(mut self, selected: bool) -> Self {
@@ -150,37 +192,54 @@ impl RoundButton {
 
 impl Component for RoundButton {
     fn render(&self) -> impl IntoElement {
+        let style: RoundButtonStyle = resolve(&self.style);
         let interaction = use_interaction();
+        let state = control_state(interaction, false);
+        let paints = Paints::current(state, style.effect);
+        let scale = use_animated(
+            if interaction.pressed() {
+                style.pressed_scale
+            } else {
+                1.0
+            },
+            style.animation,
+        );
         let on_press = self.on_press.clone();
         let (fill, ink) = if self.selected {
-            (MEDIA.button_fill, MEDIA.button_ink)
+            (&style.selected, &style.selected_icon)
         } else {
-            (MEDIA.round_glass, MEDIA.button_fill)
+            (&style.background, &style.icon)
         };
-        let size = MEDIA.round;
+        let size = style.size;
+        let radius = style
+            .shape
+            .corner_radius(size, size, LayoutDirection::LeftToRight);
         let button = interaction
             .attach(rect(), true)
             .a11y_role(AccessibilityRole::Button)
             .a11y_alt(self.label)
             .width(Size::px(size))
             .height(Size::px(size))
-            .corner_radius(size / 2.0)
+            .corner_radius(radius)
             .center()
-            .background(color(fill))
-            .border(
-                Border::new()
-                    .fill(color(MEDIA.round_rim))
-                    .width(ctdesign::HAIRLINE)
-                    .alignment(BorderAlignment::Inner),
-            )
-            .maybe(interaction.pressed(), |el| {
-                el.scale(ctdesign::BUTTON.pressed_scale)
+            .background(paints.fill(fill))
+            .map(paints.blur(fill), Rect::blur)
+            .map(style.border.as_ref(), |el, border| {
+                el.border(inner_border(&paints, border))
             })
+            .maybe(scale != 1.0, |el| el.scale(scale))
             .map(on_press, |el, on_press| {
                 el.on_press(move |_| on_press.call(()))
             })
-            .child(symbol(self.symbol, MEDIA.round_icon, ink));
-        interaction.focus_ring(button, size / 2.0)
+            .child(symbol(
+                self.symbol,
+                style.icon_size,
+                paints.color(ink.resolve(state)),
+            ));
+        interaction.focus_ring(
+            dimmed(shadowed(button, &style.shadows), style.opacity),
+            radius.top_left,
+        )
     }
 }
 

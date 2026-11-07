@@ -95,7 +95,8 @@ All of them are in `bk::styles` and in the prelude.
 Every control style has the same groups. The names of the parts change per
 control; the groups do not. A control leaves out a group it does not draw:
 only `ButtonStyle`, `HelpLinkStyle`, `IconButtonStyle`, `LevelSliderStyle`,
-`SliderStyle` and `SwitchStyle` have `animation`.
+`MediaButtonStyle`, `ProgressViewStyle`, `RoundButtonStyle`, `SliderStyle`,
+`SpinnerStyle` and `SwitchStyle` have `animation`.
 
 | Group | Fields (slider) |
 |---|---|
@@ -296,7 +297,9 @@ border 1 wide, and 2 wide while focused.
 
 States: `TextField` and `SearchField` are hovered and focused;
 `SecureField` is hovered, pressed and focused and draws the kit's focus ring.
-The token capsules of a `SearchField` keep the `TOKEN_FIELD` look.
+The token capsules of a `SearchField` draw from the
+[`TokenFieldStyle`](#tokenfieldstyle) in context, and the field of a
+[`ComboBox`](#comboboxstyle) from the `TextFieldStyle` in context.
 
 ### LevelSliderStyle
 
@@ -497,6 +500,231 @@ a `MenuButtonStyle`.
 States: only `normal`. The children keep their own styles: a `Button` inside
 draws from its `ButtonStyle`.
 
+### PopUpButtonStyle
+
+| Field | Type | Tengen |
+|---|---|---|
+| `height`, `gap` | `f32` | `SETTINGS.popup_height`, `SETTINGS.popup_text_gap` between the icon, the label and the indicator |
+| `icon_size` | `f32` | `SYMBOL.grid`, the SVG icon of the chosen item |
+| `indicator_size`, `chevron_size` | `f32` | `SETTINGS.popup_chevron`, `SETTINGS.dropdown_chevron_glyph` |
+| `indicator_shape` | `Shape` | `Circle`; the focus ring takes its corners |
+| `label`, `indicator`, `chevron` | `StateValue<ShapeStyle>` | `Role(Label)`, `Role(ControlBackground)`, `Role(Label)` |
+| `indicator_border` | `Option<(ShapeStyle, f32)>` | `None` |
+| `indicator_shadows` | `Vec<ShadowStyle>` | empty |
+| `opacity`, `effect` | `f32`, `ColorEffect` | `1.0`, `system_effect` |
+| `font` | `Font` | `BODY` |
+
+States: hovered, pressed, focused. The menu it opens is a [menu view](../barrierkit/07-menus-and-popovers.md).
+
+### ComboBoxStyle
+
+The field is a text field: it draws from the `TextFieldStyle` in context, whose
+`misspelling` has no effect and whose `opacity` dims the whole combo box.
+`ComboBoxStyle` holds the arrow button.
+
+| Field | Type | Tengen |
+|---|---|---|
+| `button_size` | `(f32, f32)` | `(COMBO_BOX.button_width, COMBO_BOX.button_height)` |
+| `button_inset`, `text_gap` | `f32` | `COMBO_BOX.button_inset_x` from the trailing edge, `COMBO_BOX.text_gap` between the text and the button |
+| `chevron_size` | `f32` | `COMBO_BOX.chevron` |
+| `button_shape` | `Shape` | `RoundedRectangle { radius: COMBO_BOX.button_radius, style: Circular }` |
+| `button`, `chevron` | `StateValue<ShapeStyle>` | `Role(ControlBackground)`, `Role(Label)` |
+| `button_border` | `Option<(ShapeStyle, f32)>` | `None` |
+| `button_shadows` | `Vec<ShadowStyle>` | empty |
+| `opacity`, `effect` | `f32`, `ColorEffect` | `1.0`, `system_effect`, for the button |
+
+States: the field is hovered and focused; the button has only `normal`.
+
+```rust
+ComboBox::new(shell, "Shell")
+    .style(|s| ComboBoxStyle { button: StateValue::new(ShapeStyle::Clear), ..s })
+    .control_style(|s: TextFieldStyle| TextFieldStyle { shape: Shape::Capsule, ..s })
+```
+
+### TokenFieldStyle
+
+| Field | Type | Tengen |
+|---|---|---|
+| `height`, `padding_x` | `f32` | `TEXT_FIELD.height`, the least height and the height of each line, `TEXT_FIELD.padding_x` |
+| `gap` | `f32` | `TOKEN_FIELD.gap`, between tokens and between wrapped lines |
+| `token_height`, `token_padding_x` | `f32` | `TOKEN_FIELD.token_height`, `TOKEN_FIELD.token_padding_x` |
+| `input_width` | `f32` | `TOKEN_FIELD.input_min_width`, the text input after the tokens |
+| `shape`, `token_shape` | `Shape` | `RoundedRectangle { radius: TEXT_FIELD.radius, style: Circular }`, `Capsule` |
+| `background`, `text`, `placeholder` | `StateValue<ShapeStyle>` | `Role(ContentBackground)`, `Role(Label)`, `Role(SecondaryLabel)` |
+| `token`, `selected_token` | `StateValue<ShapeStyle>` | `Color` of the accent at `TOKEN_FIELD.token_opacity`, `Accent` |
+| `token_label`, `selected_token_label` | `StateValue<ShapeStyle>` | `Role(Label)`, `Role(OnAccent)` |
+| `border` | `Option<(ShapeStyle, f32)>` | `Some((Role(Separator), HAIRLINE))` |
+| `shadows` | `Vec<ShadowStyle>` | empty |
+| `opacity`, `effect` | `f32`, `ColorEffect` | `1.0`, `system_effect` |
+| `font` | `Font` | `BODY`, for the text and the tokens |
+
+States: only `normal`; a token is selected with the arrows or a click.
+
+### DatePickerStyle
+
+| Field | Type | Tengen |
+|---|---|---|
+| `height`, `padding_x` | `f32` | `TEXT_FIELD.height`, `TEXT_FIELD.padding_x` |
+| `stepper_gap` | `f32` | `STEPPER.gap`, between the field and the arrows |
+| `calendar_size` | `(f32, f32)` | `(DATE_PICKER.calendar_width, DATE_PICKER.calendar_height)`, without the padding |
+| `calendar_padding`, `header_height`, `weekday_height` | `f32` | `MENU_POPOVER.padding`, `DATE_PICKER.header_height`, `DATE_PICKER.weekday_height` |
+| `chevron_size` | `f32` | `CAPTION.size`, the month arrows |
+| `shape`, `segment_shape`, `day_shape` | `Shape` | `RoundedRectangle` of `TEXT_FIELD.radius`, `DATE_PICKER.segment_radius` and `DATE_PICKER.day_radius`, all `Circular` |
+| `background`, `text`, `separator` | `StateValue<ShapeStyle>` | `Role(ContentBackground)`, `Role(Label)`, `Role(SecondaryLabel)` the `/` and `:` |
+| `selected_segment`, `selected_text` | `StateValue<ShapeStyle>` | `Accent`, `Role(OnAccent)`: the chosen part while the field has focus |
+| `title`, `chevron`, `weekday` | `StateValue<ShapeStyle>` | `Role(Label)` the month, `Role(SecondaryLabel)`, `Role(SecondaryLabel)` |
+| `day`, `other_month_day` | `StateValue<ShapeStyle>` | `Role(Label)`, `Role(SecondaryLabel)` |
+| `selected_day`, `selected_day_label` | `StateValue<ShapeStyle>` | `Accent`, `Role(OnAccent)` |
+| `border` | `Option<(ShapeStyle, f32)>` | `Some((Role(Separator), HAIRLINE))` |
+| `shadows` | `Vec<ShadowStyle>` | empty |
+| `opacity`, `effect` | `f32`, `ColorEffect` | `1.0`, `system_effect`, for the field |
+| `font`, `title_font`, `day_font` | `Font` | `BODY`, `HEADLINE`, `CAPTION` for the days and weekdays |
+
+States: the field is hovered, pressed and focused; the calendar has only
+`normal`, on the popover background. The arrows draw from the
+[`StepperStyle`](#stepperstyle) in context.
+
+### PathControlStyle
+
+| Field | Type | Tengen |
+|---|---|---|
+| `height`, `gap` | `f32` | `PATH_CONTROL.height`, `PATH_CONTROL.gap` between parts and chevrons |
+| `icon_size`, `icon_gap`, `chevron_size` | `f32` | `PATH_CONTROL.icon`, `PATH_CONTROL.icon_gap`, `PATH_CONTROL.chevron` |
+| `icon`, `label`, `chevron` | `StateValue<ShapeStyle>` | `Role(SecondaryLabel)`, `Role(Label)`, `Role(TertiaryLabel)` |
+| `opacity`, `effect` | `f32`, `ColorEffect` | `1.0`, `system_effect` |
+| `font` | `Font` | `BODY` |
+
+States: only `normal`.
+
+### ImageWellStyle
+
+| Field | Type | Tengen |
+|---|---|---|
+| `size`, `inset` | `f32` | `IMAGE_WELL.size`, a square; `IMAGE_WELL.inset` around the image, whose corners are the well's minus `inset` |
+| `shape` | `Shape` | `RoundedRectangle { radius: IMAGE_WELL.radius, style: Circular }` |
+| `background` | `StateValue<ShapeStyle>` | `Role(ContentBackground)` |
+| `border` | `Option<(ShapeStyle, f32)>` | `Some((Role(Separator), HAIRLINE))` |
+| `drop_border` | `(ShapeStyle, f32)` | `(Accent, IMAGE_WELL.drop_border)`, in place of `border` while an image is dragged over it |
+| `shadows` | `Vec<ShadowStyle>` | empty |
+| `opacity`, `effect` | `f32`, `ColorEffect` | `1.0`, `system_effect` |
+
+States: hovered, pressed, focused. The image is content.
+
+### ColorPickerStyle
+
+The color in the well and in the panel is content: no paint or `effect`
+changes it. The hex text keeps its contrast with the color.
+
+| Field | Type | Tengen |
+|---|---|---|
+| `size` | `(f32, f32)` | `(BUTTON.height × 2, BUTTON.height)`; the panel's preview takes its height |
+| `panel_size` | `(f32, f32)` | `(SPLIT_VIEW.inspector, BODY.line_height × 7)` |
+| `spacing` | `f32` | `SPACE_2`, between the rows of the panel |
+| `shape` | `Shape` | `RoundedRectangle { radius: BUTTON.radius, style: Circular }`, the well and the preview |
+| `caption` | `StateValue<ShapeStyle>` | `Role(SecondaryLabel)`, the names of the sliders |
+| `border` | `Option<(ShapeStyle, f32)>` | `Some((Role(CardBorder), HAIRLINE))` |
+| `shadows` | `Vec<ShadowStyle>` | empty |
+| `opacity`, `effect` | `f32`, `ColorEffect` | `1.0`, `system_effect` |
+| `font` | `Font` | `BODY` |
+
+States: the well is hovered, pressed and focused. The sliders of the panel
+are `LevelSlider`s with Tengen's `LevelSliderStyle`.
+
+`FontPicker` is a `Button`: its `.style` takes a `ButtonStyle`. The font
+panel it opens has no style.
+
+### ProgressViewStyle, ProgressRingStyle and SpinnerStyle
+
+An SVG part (the ring and the spinner) takes one color: a `Gradient` gives its
+first stop and a `Material` its tint.
+
+| Field | Type | `ProgressViewStyle` | `ProgressRingStyle` | `SpinnerStyle` |
+|---|---|---|---|---|
+| `height`; `size` | `f32` | `PROGRESS.height`; the bar fills its width | `PROGRESS.ring_size` | `PROGRESS.spinner_size` |
+| `indeterminate_length` | `f32` | `PROGRESS.indeterminate_segment`, the share of the track the sweeping segment takes | — | — |
+| `stroke` | `f32` | — | `PROGRESS.ring_stroke` | `SYMBOL.stroke` |
+| `spokes` | `u32` | — | — | `PROGRESS.spinner_spokes` |
+| `shape` | `Shape` | `Capsule`, the track and the fill | — | — |
+| `track`, `fill`; `spoke` | `StateValue<ShapeStyle>` | `Role(ControlBackground)`, `Accent` | `Role(ControlBackground)`, `Accent` | `spoke` `Role(SecondaryLabel)`, fading around the turn |
+| `border` | `Option<(ShapeStyle, f32)>` | `None`, around the track | — | — |
+| `shadows` | `Vec<ShadowStyle>` | empty | — | — |
+| `opacity`, `effect` | `f32`, `ColorEffect` | `1.0`, `system_effect` | the same | the same |
+| `animation` | `Animation` | `Custom { duration_ms: PROGRESS.indeterminate_ms, curve }` with an ease-in-out cubic curve: the segment sweeps there and back | — | `Custom { duration_ms: PROGRESS.spinner_ms, curve: identity }`: one turn, spoke by spoke, again and again |
+
+States: only `normal`. `ProgressView::tint(Tint)` is an instance override of
+`fill`. With `Animation::None` (also with reduce motion) the segment rests at
+the start and the spinner stands still.
+
+### CapacityIndicatorStyle
+
+| Field | Type | Tengen |
+|---|---|---|
+| `height`, `segment_gap` | `f32` | `LEVEL_INDICATOR.height`, `LEVEL_INDICATOR.segment_gap` between the cells of `discrete` |
+| `shape` | `Shape` | `RoundedRectangle { radius: LEVEL_INDICATOR.radius, style: Circular }`, the bar or each cell |
+| `track` | `StateValue<ShapeStyle>` | `Role(ControlBackground)` |
+| `fill`, `warning`, `critical` | `StateValue<ShapeStyle>` | `Color` of `LEVEL_INDICATOR_COLORS[0]`, `[1]` and `[2]`, picked by `level_color` |
+| `border` | `Option<(ShapeStyle, f32)>` | `Some((Role(CardBorder), HAIRLINE))` |
+| `shadows` | `Vec<ShadowStyle>` | empty, for the bar or each cell |
+| `opacity`, `effect` | `f32`, `ColorEffect` | `1.0`, `system_effect` |
+
+States: only `normal`.
+
+### RelevancyIndicatorStyle, RatingIndicatorStyle and GaugeStyle
+
+| Field | Type | `RelevancyIndicatorStyle` | `RatingIndicatorStyle` | `GaugeStyle` |
+|---|---|---|---|---|
+| `height`; `size` | `f32` | `LEVEL_INDICATOR.relevancy_height` | — | `GAUGE.size` |
+| `line_width`, `gap` | `f32` | `LEVEL_INDICATOR.relevancy_line`, `LEVEL_INDICATOR.relevancy_gap` | — | — |
+| `star_size` | `f32` | — | `LEVEL_INDICATOR.star` | — |
+| `stroke`, `arc`, `marker_size` | `f32` | — | — | `GAUGE.stroke`, `GAUGE.arc` in degrees, `GAUGE.marker` |
+| Paint | `StateValue<ShapeStyle>` | `line` `Role(SecondaryLabel)` | `star`, `empty_star` `Role(SecondaryLabel)` | `track` `Role(TertiaryLabel)`, `marker` `Role(Label)`, `capacity_track` `Role(ControlBackground)`, `capacity_fill` `Accent`, `label` `Role(Label)` |
+| `opacity`, `effect` | `f32`, `ColorEffect` | `1.0`, `system_effect` | the same | the same |
+| `font` | `Font` | — | — | `CAPTION`, the value in the center |
+
+States: `RatingIndicator` is hovered, pressed and focused; the others only
+`normal`. The ring and the marker of a `Gauge` take one color each, like the
+progress ring. `gauge_marker(style, value)` places the marker for a
+`GaugeStyle`.
+
+### MediaButtonStyle and RoundButtonStyle
+
+The media buttons sit on artwork, so their Tengen paints are fixed colors.
+
+| Field | Type | `MediaButtonStyle` | `RoundButtonStyle` |
+|---|---|---|---|
+| `height`, `padding_x`; `size` | `f32` | `MEDIA.button_height`, `MEDIA.button_padding_x` | `size` `MEDIA.round`, a square |
+| `icon_size` | `f32` | `MEDIA.button_font_size` | `MEDIA.round_icon` |
+| `icon_gap` | `f32` | `MEDIA.button_font_size` / 2 | — |
+| `shape` | `Shape` | `RoundedRectangle { radius: MEDIA.button_radius, style: Circular }` | `Circle` |
+| `background` | `StateValue<ShapeStyle>` | `Color(MEDIA.button_fill)` | `Color(MEDIA.round_glass)` |
+| `selected` | `StateValue<ShapeStyle>` | — | `Color(MEDIA.button_fill)`, while `.selected(true)` |
+| `label`; `icon`, `selected_icon` | `StateValue<ShapeStyle>` | `Color(MEDIA.button_ink)`, the text and the symbol | `Color(MEDIA.button_fill)`, `Color(MEDIA.button_ink)` |
+| `border` | `Option<(ShapeStyle, f32)>` | `None` | `Some((Color(MEDIA.round_rim), HAIRLINE))` |
+| `shadows` | `Vec<ShadowStyle>` | empty | empty |
+| `opacity`, `effect` | `f32`, `ColorEffect` | `1.0`, `system_effect` | the same |
+| `pressed_scale` | `f32` | `BUTTON.pressed_scale` | `BUTTON.pressed_scale` |
+| `font` | `Font` | `BODY` with `MEDIA.button_font_size` and `MEDIA.button_font_weight`; `line_height` has no effect | — |
+| `animation` | `Animation` | `None`: the pressed scale jumps | `None` |
+
+States: hovered, pressed, focused.
+
+### LinkStyle
+
+| Field | Type | Tengen |
+|---|---|---|
+| `label` | `StateValue<ShapeStyle>` | `Color` of the resolved link color, which keeps 4.5:1 on the window |
+| `opacity`, `effect` | `f32`, `ColorEffect` | `1.0`, `system_effect` |
+| `font` | `Font` | `BODY` |
+
+States: hovered, pressed, focused.
+
+```rust
+Link::new("Learn more…").style(|s| LinkStyle {
+    label: StateValue::new(ShapeStyle::Accent).hovered(ShapeStyle::Role(Role::Label)),
+    ..s
+})
+```
+
 ## Examples
 
 This slider red, taller, flat and with almost square corners; the others stay
@@ -625,6 +853,24 @@ needs 4.5:1 and control parts 3:1 (WCAG 2.2, 1.4.3 and 1.4.11). Roles and
 | `ComboButton` | `ComboButtonStyle` | 2026-11-07 |
 | `HelpLink` | `HelpLinkStyle` | 2026-11-07 |
 | `ControlGroup` | `ControlGroupStyle` | 2026-11-07 |
+| `PopUpButton` | `PopUpButtonStyle` | 2026-11-07 |
+| `ComboBox` | `ComboBoxStyle`; its field takes `TextFieldStyle` | 2026-11-07 |
+| `TokenField`, the tokens of `SearchField` | `TokenFieldStyle` | 2026-11-07 |
+| `DatePicker` | `DatePickerStyle`; its arrows take `StepperStyle` | 2026-11-07 |
+| `PathControl` | `PathControlStyle` | 2026-11-07 |
+| `ImageWell` | `ImageWellStyle` | 2026-11-07 |
+| `ColorPicker` | `ColorPickerStyle` | 2026-11-07 |
+| `FontPicker` | `ButtonStyle` | 2026-11-07 |
+| `ProgressView` | `ProgressViewStyle` | 2026-11-07 |
+| `ProgressRing` | `ProgressRingStyle` | 2026-11-07 |
+| `Spinner` | `SpinnerStyle` | 2026-11-07 |
+| `CapacityIndicator` | `CapacityIndicatorStyle` | 2026-11-07 |
+| `RelevancyIndicator` | `RelevancyIndicatorStyle` | 2026-11-07 |
+| `RatingIndicator` | `RatingIndicatorStyle` | 2026-11-07 |
+| `Gauge` | `GaugeStyle` | 2026-11-07 |
+| `MediaButton` | `MediaButtonStyle` | 2026-11-07 |
+| `RoundButton` | `RoundButtonStyle` | 2026-11-07 |
+| `Link` | `LinkStyle` | 2026-11-07 |
 
 Every style implements `ControlStyle`: `tengen()` and the accessibility rules
 of its control. Every other control still draws only Tengen. Its rollout order is in

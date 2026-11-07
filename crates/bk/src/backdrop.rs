@@ -56,19 +56,6 @@ pub(crate) fn tinted() -> Option<tint::Backdrop> {
     try_consume_context::<State<Option<tint::Backdrop>>>().and_then(|state| *state.read())
 }
 
-impl Tint {
-    pub(crate) fn fill(self, palette: &Palette) -> Fill {
-        if !crate::platform::window_activated() {
-            return color(palette.accent).into();
-        }
-        match (self, tinted()) {
-            (Self::Color(c), _) => color(c).into(),
-            (Self::Backdrop, Some(backdrop)) => highlights(backdrop, color).into(),
-            _ => color(palette.accent).into(),
-        }
-    }
-}
-
 pub(crate) fn highlights(backdrop: tint::Backdrop, ink: impl Fn(Rgba) -> Color) -> LinearGradient {
     backdrop
         .highlights()

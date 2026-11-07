@@ -1,19 +1,18 @@
-use ctdesign::{BODY, HAIRLINE, Rgba, TEXT_FIELD, TOKEN_FIELD};
-use freya_components::input::InputColorsThemePartial;
-use freya_components::theming::macros::Preference;
+use ctdesign::Rgba;
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
 
 use crate::context_menu::edit_menu;
-use crate::controls::{default_pre_key, text_style, themed_input};
-use crate::style::{Palette, text};
-use crate::theme::color;
+use crate::controls::{default_pre_key, dimmed, inner_border, input, shadowed, text_style};
+use crate::style::with_font;
+use crate::styles::{ControlState, LayoutDirection, Paints, Theme, TokenFieldStyle, resolve};
 
 #[derive(PartialEq)]
 pub struct TokenField {
     tokens: State<Vec<String>>,
     placeholder: &'static str,
     width: Size,
+    style: Theme,
 }
 
 impl TokenField {
@@ -22,7 +21,13 @@ impl TokenField {
             tokens,
             placeholder,
             width: Size::fill(),
+            style: Theme::tengen(),
         }
+    }
+
+    pub fn style(mut self, restyle: impl Fn(TokenFieldStyle) -> TokenFieldStyle + 'static) -> Self {
+        self.style = self.style.style(restyle);
+        self
     }
 
     pub fn width(mut self, width: Size) -> Self {
@@ -40,34 +45,38 @@ pub fn commit_token(tokens: &mut Vec<String>, draft: &str) -> bool {
     true
 }
 
-pub(crate) fn token_chip(token: String, selected: bool) -> Rect {
-    let palette = Palette::current();
+pub(crate) fn token_chip(token: String, selected: bool, style: &TokenFieldStyle) -> Rect {
+    let paints = Paints::current(ControlState::default(), style.effect);
     let (fill, ink) = if selected {
-        (palette.accent, palette.on_accent)
+        (&style.selected_token, &style.selected_token_label)
     } else {
-        (
-            Rgba {
-                a: TOKEN_FIELD.token_opacity,
-                ..palette.accent
-            },
-            palette.label,
-        )
+        (&style.token, &style.token_label)
     };
+    let height = style.token_height;
     rect()
-        .height(Size::px(TOKEN_FIELD.token_height))
+        .height(Size::px(height))
         .padding(Gaps::new(
             0.0,
-            TOKEN_FIELD.token_padding_x,
+            style.token_padding_x,
             0.0,
-            TOKEN_FIELD.token_padding_x,
+            style.token_padding_x,
         ))
-        .corner_radius(TOKEN_FIELD.token_height / 2.0)
+        .corner_radius(style.token_shape.corner_radius(
+            height,
+            height,
+            LayoutDirection::LeftToRight,
+        ))
         .main_align(Alignment::Center)
-        .background(color(fill))
+        .background(paints.fill(fill))
+        .map(paints.blur(fill), Rect::blur)
         .a11y_role(AccessibilityRole::ListItem)
         .a11y_alt(token.clone())
         .a11y_builder(move |node| node.set_selected(selected))
-        .child(text(token, BODY, ink))
+        .child(
+            with_font(label().text(token), style.font)
+                .max_lines(1)
+                .color(paints.fill(ink)),
+        )
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -97,70 +106,74 @@ pub fn token_selection(
 
 impl Component for TokenField {
     fn render(&self) -> impl IntoElement {
-        let palette = Palette::current();
+        let style: TokenFieldStyle = resolve(&self.style);
+        let paints = Paints::current(ControlState::default(), style.effect);
+        let ink = |paint| paints.color(paint);
         let mut tokens = self.tokens;
         let mut draft = use_state(String::new);
         let mut chosen = use_state(|| None::<usize>);
         let input_id = use_hook(AccessibilityId::new_unique);
-        let clear = Rgba {
-            a: 0.0,
-            ..palette.content_background
-        };
-        let transparent = Some(Preference::Specific(color(clear)));
-        let input = themed_input(draft, self.placeholder, clear, clear, 0.0, 0.0)
-            .width(Size::px(TOKEN_FIELD.input_min_width))
-            .a11y_id(input_id)
-            .theme_colors(InputColorsThemePartial {
-                background: transparent.clone(),
-                focus_background: transparent.clone(),
-                border_fill: transparent.clone(),
-                focus_border_fill: transparent,
-                color: Some(Preference::Specific(color(palette.label))),
-                placeholder_color: Some(Preference::Specific(color(palette.secondary_label))),
-            })
-            .on_pre_key_down(move |event: Event<KeyboardEventData>| {
-                let empty = draft.peek().is_empty();
-                let count = tokens.peek().len();
-                let key = match &event.key {
-                    Key::Named(NamedKey::Backspace) if empty => Some(TokenKey::Backspace),
-                    Key::Named(NamedKey::Delete) if empty => Some(TokenKey::Delete),
-                    Key::Named(NamedKey::ArrowLeft) if empty => Some(TokenKey::Left),
-                    Key::Named(NamedKey::ArrowRight) if empty => Some(TokenKey::Right),
-                    _ => None,
-                };
-                if let Some(key) = key {
-                    let (next, removed) = token_selection(*chosen.peek(), count, key);
-                    if let Some(index) = removed {
-                        tokens.write().remove(index);
+        let state = ControlState::default();
+        let margin_y = (style.height - style.font.line_height as f32) / 2.0;
+        let input = input(
+            draft,
+            self.placeholder,
+            [
+                Rgba::TRANSPARENT,
+                Rgba::TRANSPARENT,
+                Rgba::TRANSPARENT,
+                ink(style.text.resolve(state)),
+                ink(style.placeholder.resolve(state)),
+            ],
+            CornerRadius::new_all(0.0),
+            Gaps::new(margin_y, 0.0, margin_y, 0.0),
+        )
+        .width(Size::px(style.input_width))
+        .a11y_id(input_id)
+        .on_pre_key_down(move |event: Event<KeyboardEventData>| {
+            let empty = draft.peek().is_empty();
+            let count = tokens.peek().len();
+            let key = match &event.key {
+                Key::Named(NamedKey::Backspace) if empty => Some(TokenKey::Backspace),
+                Key::Named(NamedKey::Delete) if empty => Some(TokenKey::Delete),
+                Key::Named(NamedKey::ArrowLeft) if empty => Some(TokenKey::Left),
+                Key::Named(NamedKey::ArrowRight) if empty => Some(TokenKey::Right),
+                _ => None,
+            };
+            if let Some(key) = key {
+                let (next, removed) = token_selection(*chosen.peek(), count, key);
+                if let Some(index) = removed {
+                    tokens.write().remove(index);
+                }
+                chosen.set(next);
+                event.stop_propagation();
+                return false;
+            }
+            chosen.set_if_modified(None);
+            match &event.key {
+                Key::Named(NamedKey::Enter) => {
+                    let text = draft.peek().clone();
+                    if commit_token(&mut tokens.write(), &text) {
+                        draft.set(String::new());
                     }
-                    chosen.set(next);
+                    false
+                }
+                Key::Character(c) if c == "," => {
+                    let text = draft.peek().clone();
+                    if commit_token(&mut tokens.write(), &text) {
+                        draft.set(String::new());
+                    }
                     event.stop_propagation();
-                    return false;
+                    false
                 }
-                chosen.set_if_modified(None);
-                match &event.key {
-                    Key::Named(NamedKey::Enter) => {
-                        let text = draft.peek().clone();
-                        if commit_token(&mut tokens.write(), &text) {
-                            draft.set(String::new());
-                        }
-                        false
-                    }
-                    Key::Character(c) if c == "," => {
-                        let text = draft.peek().clone();
-                        if commit_token(&mut tokens.write(), &text) {
-                            draft.set(String::new());
-                        }
-                        event.stop_propagation();
-                        false
-                    }
-                    _ => default_pre_key(&event),
-                }
-            });
+                _ => default_pre_key(&event),
+            }
+        });
+        let height = style.height;
         let line = |key: String, item: Element| {
             rect()
                 .key(key)
-                .height(Size::px(TEXT_FIELD.height))
+                .height(Size::px(height))
                 .main_align(Alignment::Center)
                 .child(item)
                 .into_element()
@@ -172,7 +185,7 @@ impl Component for TokenField {
             .into_iter()
             .enumerate()
             .map(|(index, token)| {
-                let chip = token_chip(token.clone(), *chosen.read() == Some(index))
+                let chip = token_chip(token.clone(), *chosen.read() == Some(index), &style)
                     .on_press(move |_| {
                         chosen.set(Some(index));
                         input_id.request_focus();
@@ -180,8 +193,8 @@ impl Component for TokenField {
                     .into_element();
                 line(format!("{index}:{token}"), chip)
             });
-        edit_menu(
-            text_style(rect().width(self.width.clone()), BODY),
+        let field = edit_menu(
+            text_style(rect().width(self.width.clone()), style.font),
             input_id,
             true,
             (true, true),
@@ -189,29 +202,27 @@ impl Component for TokenField {
         )
         .a11y_role(AccessibilityRole::List)
         .a11y_alt(self.placeholder)
-        .min_height(Size::px(TEXT_FIELD.height))
-        .padding(Gaps::new(
-            0.0,
-            TEXT_FIELD.padding_x,
-            0.0,
-            TEXT_FIELD.padding_x,
+        .min_height(Size::px(style.height))
+        .padding(Gaps::new(0.0, style.padding_x, 0.0, style.padding_x))
+        .corner_radius(style.shape.corner_radius(
+            style.height,
+            style.height,
+            LayoutDirection::LeftToRight,
         ))
-        .corner_radius(TEXT_FIELD.radius)
-        .background(color(palette.content_background))
-        .border(
-            Border::new()
-                .width(HAIRLINE)
-                .alignment(BorderAlignment::Inner)
-                .fill(color(palette.separator)),
-        )
+        .background(paints.fill(&style.background))
+        .map(paints.blur(&style.background), Rect::blur)
+        .map(style.border.as_ref(), |el, border| {
+            el.border(inner_border(&paints, border))
+        })
         .direction(Direction::Horizontal)
         .content(Content::Wrap {
-            wrap_spacing: Some(TOKEN_FIELD.gap),
+            wrap_spacing: Some(style.gap),
         })
         .cross_align(Alignment::Center)
-        .spacing(TOKEN_FIELD.gap)
+        .spacing(style.gap)
         .children(chips)
-        .child(line(String::from("input"), input.into_element()))
+        .child(line(String::from("input"), input.into_element()));
+        dimmed(shadowed(field, &style.shadows), style.opacity)
     }
 }
 

@@ -1,10 +1,12 @@
-use ctdesign::{BADGE, BODY, CAPTION, HEADLINE, SETTINGS};
+use ctdesign::{BADGE, CAPTION, HEADLINE, SETTINGS};
 use freya_core::prelude::*;
 use torin::prelude::{Gaps, Size};
 
+use crate::controls::dimmed;
 use crate::elements::forward_container;
-use crate::interaction::use_interaction;
-use crate::style::{Palette, text};
+use crate::interaction::{control_state, use_interaction};
+use crate::style::{Palette, text, with_font};
+use crate::styles::{LinkStyle, Paints, Theme, resolve};
 use crate::theme::color;
 
 pub struct Badge(Rect);
@@ -79,6 +81,7 @@ forward_container!(Avatar);
 pub struct Link {
     text: &'static str,
     on_press: Option<Callback<(), ()>>,
+    style: Theme,
 }
 
 impl Link {
@@ -86,7 +89,13 @@ impl Link {
         Self {
             text,
             on_press: None,
+            style: Theme::tengen(),
         }
+    }
+
+    pub fn style(mut self, restyle: impl Fn(LinkStyle) -> LinkStyle + 'static) -> Self {
+        self.style = self.style.style(restyle);
+        self
     }
 
     pub fn on_press(mut self, callback: impl Into<Callback<(), ()>>) -> Self {
@@ -97,7 +106,9 @@ impl Link {
 
 impl Component for Link {
     fn render(&self) -> impl IntoElement {
+        let style: LinkStyle = resolve(&self.style);
         let interaction = use_interaction();
+        let paints = Paints::current(control_state(interaction, false), style.effect);
         let on_press = self.on_press.clone();
         let link = interaction
             .attach(rect(), true)
@@ -106,7 +117,11 @@ impl Component for Link {
             .map(on_press, |el, on_press| {
                 el.on_press(move |_| on_press.call(()))
             })
-            .child(text(self.text, BODY, crate::theme::resolved().link));
-        interaction.focus_ring(link, 0.0)
+            .child(
+                with_font(label().text(self.text), style.font)
+                    .max_lines(1)
+                    .color(paints.fill(&style.label)),
+            );
+        interaction.focus_ring(dimmed(link, style.opacity), 0.0)
     }
 }

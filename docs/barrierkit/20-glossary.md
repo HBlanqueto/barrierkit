@@ -143,6 +143,23 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 | `styles::ComboButtonStyle` | struct | ≈ `MenuStyle` | `NSComboButton.Style` | Every visual property of `ComboButton` | [Styles](../ai/styles.md#menubuttonstyle-combobuttonstyle-and-helplinkstyle) |
 | `styles::HelpLinkStyle` | struct | — | ≈ `NSButton.BezelStyle.helpButton` | Every visual property of `HelpLink` | [Styles](../ai/styles.md#menubuttonstyle-combobuttonstyle-and-helplinkstyle) |
 | `styles::ControlGroupStyle` | struct | `ControlGroupStyle` | — | Every visual property of `ControlGroup`: background and separators | [Styles](../ai/styles.md#controlgroupstyle) |
+| `styles::PopUpButtonStyle` | struct | `MenuPickerStyle` | ≈ `NSPopUpButtonCell` | Every visual property of `PopUpButton`: label, indicator and chevron | [Styles](../ai/styles.md#popupbuttonstyle) |
+| `styles::ComboBoxStyle` | struct | — | ≈ `NSComboBoxCell` | The arrow button of `ComboBox`; its field takes `TextFieldStyle` | [Styles](../ai/styles.md#comboboxstyle) |
+| `styles::TokenFieldStyle` | struct | — | ≈ `NSTokenFieldCell` | Every visual property of `TokenField` and of the tokens of `SearchField` | [Styles](../ai/styles.md#tokenfieldstyle) |
+| `styles::DatePickerStyle` | struct | `DatePickerStyle` | ≈ `NSDatePickerCell` | Every visual property of `DatePicker` and its calendar; its arrows take `StepperStyle` | [Styles](../ai/styles.md#datepickerstyle) |
+| `styles::PathControlStyle` | struct | — | ≈ `NSPathControlItem` | Every visual property of `PathControl` | [Styles](../ai/styles.md#pathcontrolstyle) |
+| `styles::ImageWellStyle` | struct | — | ≈ `NSImageCell` | Every visual property of `ImageWell`, with its drop border | [Styles](../ai/styles.md#imagewellstyle) |
+| `styles::ColorPickerStyle` | struct | — | ≈ `NSColorWell.Style` | Every visual property of `ColorPicker` and its panel but the color | [Styles](../ai/styles.md#colorpickerstyle) |
+| `styles::ProgressViewStyle` | struct | `LinearProgressViewStyle` | ≈ `NSProgressIndicator.Style` | Every visual property of `ProgressView`, with its sweep | [Styles](../ai/styles.md#progressviewstyle-progressringstyle-and-spinnerstyle) |
+| `styles::ProgressRingStyle` | struct | `CircularProgressViewStyle` | ≈ `NSProgressIndicator.Style` | Every visual property of `ProgressRing` | [Styles](../ai/styles.md#progressviewstyle-progressringstyle-and-spinnerstyle) |
+| `styles::SpinnerStyle` | struct | ≈ `CircularProgressViewStyle` | ≈ `NSProgressIndicator.Style` | Every visual property of `Spinner`, with its turn | [Styles](../ai/styles.md#progressviewstyle-progressringstyle-and-spinnerstyle) |
+| `styles::CapacityIndicatorStyle` | struct | ≈ `GaugeStyle` | ≈ `NSLevelIndicatorCell` | Every visual property of `CapacityIndicator` | [Styles](../ai/styles.md#capacityindicatorstyle) |
+| `styles::RelevancyIndicatorStyle` | struct | — | ≈ `NSLevelIndicatorCell` | Every visual property of `RelevancyIndicator` | [Styles](../ai/styles.md#relevancyindicatorstyle-ratingindicatorstyle-and-gaugestyle) |
+| `styles::RatingIndicatorStyle` | struct | — | ≈ `NSLevelIndicatorCell` | Every visual property of `RatingIndicator` | [Styles](../ai/styles.md#relevancyindicatorstyle-ratingindicatorstyle-and-gaugestyle) |
+| `styles::GaugeStyle` | struct | `GaugeStyle` | — | Every visual property of `Gauge` | [Styles](../ai/styles.md#relevancyindicatorstyle-ratingindicatorstyle-and-gaugestyle) |
+| `styles::MediaButtonStyle` | struct | ≈ `ButtonStyle` | — | Every visual property of `MediaButton` | [Styles](../ai/styles.md#mediabuttonstyle-and-roundbuttonstyle) |
+| `styles::RoundButtonStyle` | struct | ≈ `ButtonStyle` | — | Every visual property of `RoundButton` | [Styles](../ai/styles.md#mediabuttonstyle-and-roundbuttonstyle) |
+| `styles::LinkStyle` | struct | `LinkButtonStyle` | — | Every visual property of `Link` | [Styles](../ai/styles.md#linkstyle) |
 | `styles::Theme` | struct | ≈ styles set in the environment | ≈ `NSAppearance` | Style overrides for the whole app; `Theme::tengen()` changes nothing | [Styles](../ai/styles.md#levels) |
 | `styles::Theme::style` | method | ≈ `.buttonStyle(_:)` on the scene | — | Adds an override of the control whose style the closure takes | [Styles](../ai/styles.md#levels) |
 | `styles::StyleScope` | struct | ≈ a view after `.buttonStyle(_:)` | — | Component returned by `.control_style`: its overrides reach the controls inside | [Styles](../ai/styles.md#levels) |
@@ -174,6 +191,24 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 | `buttons::HelpLink::style` | method | — | — | Changes the style of one help button | [Styles](../ai/styles.md#menubuttonstyle-combobuttonstyle-and-helplinkstyle) |
 | `buttons::ShareLink::style` | method | `.menuStyle(_:)` on one view | — | Changes the `MenuButtonStyle` of one share link | [Styles](../ai/styles.md#menubuttonstyle-combobuttonstyle-and-helplinkstyle) |
 | `buttons::ControlGroup::style` | method | `.controlGroupStyle(_:)` on one view | — | Changes the style of one control group | [Styles](../ai/styles.md#controlgroupstyle) |
+| `popup_button::PopUpButton::style` | method | `.pickerStyle(.menu)` on one view | — | Changes the style of one pop-up button | [Styles](../ai/styles.md#popupbuttonstyle) |
+| `combo_box::ComboBox::style` | method | — | — | Changes the style of the arrow button of one combo box | [Styles](../ai/styles.md#comboboxstyle) |
+| `token_field::TokenField::style` | method | — | — | Changes the style of one token field | [Styles](../ai/styles.md#tokenfieldstyle) |
+| `date_picker::DatePicker::style` | method | `.datePickerStyle(_:)` on one view | ≈ `NSDatePicker.datePickerStyle` | Changes the style of one date picker | [Styles](../ai/styles.md#datepickerstyle) |
+| `path_control::PathControl::style` | method | — | — | Changes the style of one path control | [Styles](../ai/styles.md#pathcontrolstyle) |
+| `image_well::ImageWell::style` | method | — | — | Changes the style of one image well | [Styles](../ai/styles.md#imagewellstyle) |
+| `color_picker::ColorPicker::style` | method | — | ≈ `NSColorWell.colorWellStyle` | Changes the style of one color picker | [Styles](../ai/styles.md#colorpickerstyle) |
+| `font_panel::FontPicker::style` | method | `.buttonStyle(_:)` on one view | — | Changes the `ButtonStyle` of one font picker | [Styles](../ai/styles.md#colorpickerstyle) |
+| `progress::ProgressView::style` | method | `.progressViewStyle(_:)` on one view | ≈ `NSProgressIndicator.Style` | Changes the style of one progress bar | [Styles](../ai/styles.md#progressviewstyle-progressringstyle-and-spinnerstyle) |
+| `progress::ProgressRing::style` | method | `.progressViewStyle(.circular)` on one view | — | Changes the style of one progress ring | [Styles](../ai/styles.md#progressviewstyle-progressringstyle-and-spinnerstyle) |
+| `progress::Spinner::style` | method | `.progressViewStyle(.circular)` on one view | — | Changes the style of one spinner | [Styles](../ai/styles.md#progressviewstyle-progressringstyle-and-spinnerstyle) |
+| `indicator::CapacityIndicator::style` | method | `.gaugeStyle(_:)` on one view | ≈ `NSLevelIndicator.levelIndicatorStyle` | Changes the style of one capacity indicator | [Styles](../ai/styles.md#capacityindicatorstyle) |
+| `indicator::RelevancyIndicator::style` | method | — | ≈ `NSLevelIndicator.levelIndicatorStyle` | Changes the style of one relevancy indicator | [Styles](../ai/styles.md#relevancyindicatorstyle-ratingindicatorstyle-and-gaugestyle) |
+| `indicator::RatingIndicator::style` | method | — | ≈ `NSLevelIndicator.levelIndicatorStyle` | Changes the style of one rating indicator | [Styles](../ai/styles.md#relevancyindicatorstyle-ratingindicatorstyle-and-gaugestyle) |
+| `indicator::Gauge::style` | method | `.gaugeStyle(_:)` on one view | — | Changes the style of one gauge | [Styles](../ai/styles.md#relevancyindicatorstyle-ratingindicatorstyle-and-gaugestyle) |
+| `media::MediaButton::style` | method | `.buttonStyle(_:)` on one view | — | Changes the style of one media button | [Styles](../ai/styles.md#mediabuttonstyle-and-roundbuttonstyle) |
+| `media::RoundButton::style` | method | `.buttonStyle(_:)` on one view | — | Changes the style of one round button | [Styles](../ai/styles.md#mediabuttonstyle-and-roundbuttonstyle) |
+| `adornments::Link::style` | method | `.buttonStyle(.link)` on one view | — | Changes the style of one link | [Styles](../ai/styles.md#linkstyle) |
 | `app::Application::theme` | method | ≈ `.environment(_:_:)` on the scene | ≈ `NSApp.appearance` | Gives the app its `Theme` | [Styles](../ai/styles.md#levels) |
 
 ## Symbols and fonts
@@ -463,7 +498,7 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 | `indicator::Gauge` | struct | `GaugeStyle.accessoryCircular` | — | Open ring with a marker; capacity mode is a filled ring | [5](05-controls.md#level-indicators) |
 | `indicator::RatingIndicator` | struct | — | `≈ NSLevelIndicator` | Five-star rating, editable when it has `on_change` | [5](05-controls.md#level-indicators) |
 | `indicator::level_color` | fn | — | — | Index 0–2 of the capacity color for a value | [5](05-controls.md#level-indicators) |
-| `indicator::gauge_marker` | fn | — | — | Center of the gauge marker for a value | [5](05-controls.md#level-indicators) |
+| `indicator::gauge_marker` | fn | — | — | Center of the gauge marker for a `GaugeStyle` and a value | [5](05-controls.md#level-indicators) |
 
 ## Text fields and pickers
 

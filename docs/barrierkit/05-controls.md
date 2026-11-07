@@ -284,7 +284,7 @@ All of them report the chosen index with `.on_change(|index: usize| ..)`.
 |---|---|---|---|
 | `RadioGroup` | `choices` | `RadioGroup::new(label)`, `.option(text)`, `.disabled(bool)`, `.tint(Tint)`, `.style(\|s\| ..)` | `.selected(usize)` (default 0) |
 | `SegmentedControl` | `controls` | `SegmentedControl::new(label)`, `.segment(text)`, `.style(\|s\| ..)` | `.selected(usize)` (default 0) |
-| `PopUpButton` | `popup_button` | `PopUpButton::new(label)`, `.item(text)`, `.icon_item(text, MenuIcon)` | `.selected(usize)` (default 0) |
+| `PopUpButton` | `popup_button` | `PopUpButton::new(label)`, `.item(text)`, `.icon_item(text, MenuIcon)`, `.style(\|s\| ..)` | `.selected(usize)` (default 0) |
 | `ColorWell` | `choices` | `ColorWell::new(label, swatches)`, `.disabled(bool)`, `.style(\|s\| ..)` | `.selected(Option<usize>)` (default `None`) |
 | `ChoiceCards` | `choices` | `ChoiceCards::new(label)`, `.option(caption, preview)`, `.disabled(bool)`, `.style(\|s\| ..)` | `.selected(usize)` (default 0) |
 
@@ -335,6 +335,8 @@ options and the `label_position` of each label; `.tint(Tint)` sets its `fill`.
 `ColorWell` draws from a `ColorWellStyle` and `ChoiceCards` from a
 `ChoiceCardsStyle`, each with an `axis` and `wraps` for its swatches or cards.
 The fields are in [Styles and themes](../ai/styles.md#radiogroupstyle).
+`PopUpButton` draws from a [`PopUpButtonStyle`](../ai/styles.md#popupbuttonstyle):
+label, round indicator and chevron.
 
 ```rust
 SegmentedControl::new("View").segment("Icons").segment("List")
@@ -390,7 +392,7 @@ spell checking are in [6](06-text-and-editing.md#edit-menu).
 | `TextField` | `controls` | `TextField::new(value, placeholder)` | `.width(Size)` (fill), `.auto_focus(bool)`, `.style(\|s\| ..)` |
 | `SearchField` | `controls` | `SearchField::new(value, placeholder)` | `.width`, `.auto_focus`, `.style`, `.tokens(State<Vec<String>>)`, `.a11y_id(AccessibilityId)`, `.on_focus_change(\|focused: bool\| ..)`, `.on_navigate(\|key: NamedKey\| ..)` |
 | `SecureField` | `controls` | `SecureField::new(State<PasswordField>, label)` | `.width`, `.auto_focus`, `.style`, `.on_submit(\|secret: Zeroizing<String>\| ..)` |
-| `ComboBox` | `combo_box` | `ComboBox::new(value, placeholder)` | `.item(text)`, `.width(Size)` |
+| `ComboBox` | `combo_box` | `ComboBox::new(value, placeholder)` | `.item(text)`, `.width(Size)`, `.style(\|s\| ..)` |
 
 - All are 24 tall with a 6 side padding. `SecureField` draws the focus ring; the others turn
   their border to the accent while focused.
@@ -423,6 +425,9 @@ ComboBox::new(shell, "Shell").item("zsh").item("fish")
 background, border, text, placeholder and font. The fields, and what Freya's
 `Input` can draw, are in
 [Styles and themes](../ai/styles.md#textfieldstyle-searchfieldstyle-and-securefieldstyle).
+
+`ComboBox` draws its field from the `TextFieldStyle` in context and its arrow
+button from a [`ComboBoxStyle`](../ai/styles.md#comboboxstyle).
 
 ```rust
 TextField::new(name, "User name").style(|s| TextFieldStyle { shape: Shape::Capsule, ..s })
@@ -459,6 +464,12 @@ brightness `LevelSlider`s. Each move calls `.on_change(|color: Rgba| ..)`.
 | `hex(rgba)` | `"#RRGGBB"` |
 
 To choose from preset colors, use [`ColorWell`](#choices).
+
+### Style
+
+`ColorPicker` draws from a [`ColorPickerStyle`](../ai/styles.md#colorpickerstyle):
+the well's size, shape and border, and the panel's size and captions. The
+color itself is content.
 
 ## Date picker
 
@@ -498,11 +509,26 @@ Module `date` does the calendar arithmetic without dependencies, with
 | `days_in_month(year, month)` | 28 to 31, with leap years |
 | `typing_is_done(part, typed)` | Whether typed digits fill the part |
 
+### Style
+
+`DatePicker` draws the field, its parts and the calendar from a
+[`DatePickerStyle`](../ai/styles.md#datepickerstyle); `.style(|s| ..)` changes
+one picker. The arrows keep the `StepperStyle` in context.
+
+```rust
+DatePicker::new("Date", moment).style(|s| DatePickerStyle { day_shape: Shape::Circle, ..s })
+```
+
 ## Path control
 
 `path_control::PathControl::new(label)` shows the parts of a path in a 22 row, separated by
 chevrons. `.item(Symbol, name)` adds a part with its icon. `.on_select(|index: usize| ..)`
 reports the pressed part.
+
+### Style
+
+`PathControl` draws from a [`PathControlStyle`](../ai/styles.md#pathcontrolstyle):
+the sizes and paints of the icons, names and chevrons.
 
 ## Image well
 
@@ -518,13 +544,18 @@ shows the image at the path.
 
 `is_image(path)` accepts `png`, `jpg`, `jpeg`, `gif`, `webp` and `bmp`, in any case.
 
+### Style
+
+`ImageWell` draws from an [`ImageWellStyle`](../ai/styles.md#imagewellstyle),
+with the border it shows while an image is dragged over it.
+
 ## Progress
 
 Module `progress`. They report nothing.
 
 | Item | Build | Look |
 |---|---|---|
-| `ProgressView` | `ProgressView::determinate(label, value)` (0 to 1), `.tint(Tint)` | 8 tall bar |
+| `ProgressView` | `ProgressView::determinate(label, value)` (0 to 1), `.tint(Tint)`, `.style(\|s\| ..)` | 8 tall bar |
 | `ProgressView` | `ProgressView::indeterminate(label)` | A segment of 30 % that sweeps over 1.2 s |
 | `ProgressRing` | `ProgressRing::new(label, value)` | 28 ring, 3.5 stroke |
 | `Spinner` | `Spinner::new(label)` | 16, 12 spokes, one turn per second |
@@ -541,6 +572,18 @@ Spinner::new("Loading")
 
 ![Determinate bar, indeterminate bar, ring and spinner](assets/components/progress-light.png)
 
+### Style
+
+`ProgressView`, `ProgressRing` and `Spinner` draw from a `ProgressViewStyle`, a
+`ProgressRingStyle` and a `SpinnerStyle`, each with `.style(|s| ..)`. The
+sweep of the indeterminate bar and the turn of the spinner are their
+`animation`. The fields are in
+[Styles and themes](../ai/styles.md#progressviewstyle-progressringstyle-and-spinnerstyle).
+
+```rust
+ProgressView::determinate("Copying system", 0.62).style(|s| ProgressViewStyle { height: 4.0, ..s })
+```
+
 ## Level indicators
 
 Module `indicator`, after `NSLevelIndicator` and SwiftUI `Gauge`.
@@ -555,7 +598,7 @@ Module `indicator`, after `NSLevelIndicator` and SwiftUI `Gauge`.
 | Helper | Returns |
 |---|---|
 | `level_color(value, warning, critical)` | 0, 1 or 2: the index into `LEVEL_INDICATOR_COLORS` |
-| `gauge_marker(value)` | The `(x, y)` center of the gauge marker |
+| `gauge_marker(style, value)` | The `(x, y)` center of the marker of a gauge drawn with `style` |
 
 The gauge size, stroke and arc are estimates: Apple publishes no figures.
 
@@ -563,6 +606,17 @@ The gauge size, stroke and arc are estimates: Apple publishes no figures.
 CapacityIndicator::new("Disk", 0.82).thresholds(0.75, 0.9)
 RatingIndicator::new("Rating", 3).on_change(move |value| stars.set(value))
 Gauge::new("Temperature", 0.64, "64°")
+```
+
+### Style
+
+Each indicator has `.style(|s| ..)` and draws from its own style:
+[`CapacityIndicatorStyle`](../ai/styles.md#capacityindicatorstyle), and
+`RelevancyIndicatorStyle`, `RatingIndicatorStyle` and `GaugeStyle`
+([fields](../ai/styles.md#relevancyindicatorstyle-ratingindicatorstyle-and-gaugestyle)).
+
+```rust
+RatingIndicator::new("Rating", 3).style(|s| RatingIndicatorStyle { star: StateValue::new(ShapeStyle::Accent), ..s })
 ```
 
 ## Adornments
@@ -575,7 +629,7 @@ style methods.
 | `Badge::new(content)` | A 20 tall capsule, destructive red, with `content` in `CAPTION` |
 | `Divider::new()` | A hairline that fills the width; also in the prelude |
 | `Avatar::new(initials)` | A 38 circle with the initials in `HEADLINE` |
-| `Link::new(text)`, `.on_press(\|_\| ..)` | Text in the link color |
+| `Link::new(text)`, `.on_press(\|_\| ..)`, `.style(\|s\| ..)` | Text in the link color |
 
 ```rust
 Badge::new("2")
@@ -585,6 +639,12 @@ Link::new("Learn more…")
 ```
 
 ![Badge, divider, avatar and link](assets/components/adornments-light.png)
+
+### Style
+
+`Link` draws from a [`LinkStyle`](../ai/styles.md#linkstyle): its paint and
+font. `Badge`, `Divider` and `Avatar` take
+[paint on views](../ai/styles.md#paint-on-views).
 
 ## Scrolling
 

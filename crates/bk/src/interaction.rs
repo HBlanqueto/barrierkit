@@ -3,6 +3,7 @@ use freya_core::prelude::*;
 use torin::prelude::{Position, Size, SizeFnContext};
 
 use crate::platform::WindowControls;
+use crate::styles::ControlState;
 
 #[derive(Clone, Copy)]
 pub struct Interaction {
@@ -92,6 +93,15 @@ impl Interaction {
                     .fill(crate::theme::color(crate::theme::resolved().focus_ring)),
             )
         })
+    }
+}
+
+pub(crate) fn control_state(interaction: Interaction, disabled: bool) -> ControlState {
+    ControlState {
+        hovered: interaction.hovered(),
+        pressed: interaction.pressed(),
+        focused: interaction.focused(),
+        disabled,
     }
 }
 

@@ -710,6 +710,7 @@ pub struct MediaMetrics {
     pub button_padding_x: f32,
     pub button_radius: f32,
     pub button_font_size: f32,
+    pub button_font_weight: i32,
     pub button_fill: Rgba,
     pub button_ink: Rgba,
     pub round: f32,

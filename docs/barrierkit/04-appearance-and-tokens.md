@@ -575,23 +575,23 @@ background, for `reduce_transparency`.
 | `KNOB_SHADOW` | `ShadowLayer` | `level`, `styles` |
 | `MATERIAL` | `MaterialMetrics` | `styles` ([Materials](#materials)) |
 | `SEGMENTED` | `SegmentedMetrics` | `controls`, `compact` |
-| `STEPPER` | `StepperMetrics` | `compact`, `date_picker` |
+| `STEPPER` | `StepperMetrics` | `styles` |
 | `TOOLBAR_SEARCH_WIDTH` | `f32` | `compact` |
 | `TEXT_FIELD` | `TextFieldMetrics` | `controls`, `sidebar` |
-| `TOKEN_FIELD` | `TokenFieldMetrics` | `token_field` |
+| `TOKEN_FIELD` | `TokenFieldMetrics` | `styles` |
 | `SPELLING` | `SpellingMetrics` | `spelling` |
-| `COMBO_BOX` | `ComboBoxMetrics` | `combo_box` |
-| `PATH_CONTROL` | `PathControlMetrics` | `path_control` |
-| `DATE_PICKER` | `DatePickerMetrics` | `date_picker` |
-| `IMAGE_WELL` | `ImageWellMetrics` | `image_well` |
-| `LEVEL_INDICATOR`, `GAUGE` | `LevelIndicatorMetrics`, `GaugeMetrics` | `indicator` |
-| `PROGRESS` | `ProgressMetrics` | `progress` |
+| `COMBO_BOX` | `ComboBoxMetrics` | `styles` |
+| `PATH_CONTROL` | `PathControlMetrics` | `styles` |
+| `DATE_PICKER` | `DatePickerMetrics` | `styles` |
+| `IMAGE_WELL` | `ImageWellMetrics` | `styles` |
+| `LEVEL_INDICATOR`, `GAUGE` | `LevelIndicatorMetrics`, `GaugeMetrics` | `styles`; `indicator` reads the number of stars |
+| `PROGRESS` | `ProgressMetrics` | `styles` |
 | `BADGE` | `BadgeMetrics` | `adornments` |
 | `FOCUS_RING` | `FocusRingMetrics` | `interaction` |
-| `SYMBOL` | `SymbolMetrics` | `symbol`, `popup_button`, `progress` |
+| `SYMBOL` | `SymbolMetrics` | `symbol`, `styles` |
 | `TOOLTIP` | `TooltipMetrics` | `tooltip`, `charts` |
 | `POPOVER` | `PopoverMetrics` | `popover`, the compositor |
-| `MENU_POPOVER` | `MenuPopoverMetrics` | `theme`, `popup_button`, `date_picker` |
+| `MENU_POPOVER` | `MenuPopoverMetrics` | `theme`, `popup_button`, `styles` |
 | `MENU_MARK_TEXT_GAP`, `MENU_SUBMENU_INTENT_MS`, `MENU_SUBMENU_REVEAL_GAP`, `MENU_SCROLL_TICK_MS`, `MENU_SEARCH_ICON`, `MENU_SEARCH_ICON_GAP`, `MENU_SEARCH_CLEAR`, `MENU_SEARCH_CLEAR_GLYPH`, `MENU_SEARCH_CLEAR_MARGIN`, `MENU_SEARCH_CLEAR_MIX`, `MENU_HELP_ICON` | `f32`, `u64`, `[f32; 2]` | `menu` ([7](07-menus-and-popovers.md)) |
 | `MENU_SEPARATOR_INK_MIX` | `f32` | `Resolved::menu_separator` |
 | `DRAG` | `DragMetrics` | `drag` |
@@ -602,7 +602,7 @@ background, for `reduce_transparency`.
 |---|---|---|
 | `SIDEBAR` | `SidebarMetrics` | `sidebar` |
 | `TOOLGROUP` | `ToolgroupMetrics` | `controls`, `compact` |
-| `SPLIT_VIEW` | `SplitViewMetrics` | `views::split`, `color_picker` |
+| `SPLIT_VIEW` | `SplitViewMetrics` | `views::split`, `styles` |
 | `SPLIT_PANES` | `SplitPanesMetrics` | `views::split_panes` |
 | `FLOATING_PANE` | `FloatingPaneMetrics` | `views::floating_pane` |
 | `TABLE` | `TableMetrics` | `views::table` |
@@ -617,7 +617,7 @@ background, for `reduce_transparency`.
 | `FONT_PANEL` | `FontPanelMetrics` | `font_panel` |
 | `PRINT` | `PrintMetrics` | `print` |
 | `CHART` | `ChartMetrics` | `charts` |
-| `MEDIA` | `MediaMetrics` | `media`, `glass_container` |
+| `MEDIA` | `MediaMetrics` | `media`, `glass_container`, `styles`; `button_font_weight` is the weight of the `MediaButton` label |
 | `BACKDROP` | `BackdropMetrics` | `backdrop`, `sidebar`, `ctappearance::backdrop` |
 | `BACKDROP_SCENES` | `BackdropScenes` | Preset gradients `dusk`, `night`, `pale`, `forest`, `studio`; nothing reads them yet |
 

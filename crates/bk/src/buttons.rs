@@ -3,7 +3,7 @@ use torin::prelude::{Alignment, Area, Direction, Gaps, Size};
 
 use crate::controls::{dimmed, inner_border, shadowed};
 use crate::i18n::text;
-use crate::interaction::{Interaction, use_interaction};
+use crate::interaction::{control_state, use_interaction};
 use crate::menu::MenuItem;
 use crate::platform::PopupAnchor;
 use crate::popup_button::open_popover_menu;
@@ -13,15 +13,6 @@ use crate::styles::{
     MenuButtonStyle, Paints, Theme, resolve,
 };
 use crate::symbol::{Symbol, symbol};
-
-fn control_state(interaction: Interaction) -> ControlState {
-    ControlState {
-        hovered: interaction.hovered(),
-        pressed: interaction.pressed(),
-        focused: interaction.focused(),
-        disabled: false,
-    }
-}
 
 #[derive(PartialEq)]
 pub struct MenuButton {
@@ -56,7 +47,7 @@ impl Component for MenuButton {
     fn render(&self) -> impl IntoElement {
         let style: MenuButtonStyle = resolve(&self.style);
         let interaction = use_interaction();
-        let state = control_state(interaction);
+        let state = control_state(interaction, false);
         let paints = Paints::current(state, style.effect);
         let mut area = use_state(Area::default);
         let items = self.items.clone();
@@ -164,8 +155,8 @@ impl Component for ComboButton {
         let action = use_interaction();
         let arrow = use_interaction();
         let group = Paints::current(ControlState::default(), style.effect);
-        let action_paints = Paints::current(control_state(action), style.effect);
-        let arrow_state = control_state(arrow);
+        let action_paints = Paints::current(control_state(action, false), style.effect);
+        let arrow_state = control_state(arrow, false);
         let arrow_paints = Paints::current(arrow_state, style.effect);
         let mut area = use_state(Area::default);
         let items = self.items.clone();
@@ -294,7 +285,7 @@ impl Component for HelpLink {
     fn render(&self) -> impl IntoElement {
         let style: HelpLinkStyle = resolve(&self.style);
         let interaction = use_interaction();
-        let paints = Paints::current(control_state(interaction), style.effect);
+        let paints = Paints::current(control_state(interaction, false), style.effect);
         let scale = crate::animation::use_animated(
             if interaction.pressed() {
                 style.pressed_scale

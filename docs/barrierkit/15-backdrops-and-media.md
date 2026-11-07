@@ -103,9 +103,8 @@ Controls with a fill take `.tint(Tint)`: `Slider`, `Switch`, `Checkbox`,
 | `Color(color)` | A fixed color |
 | `Backdrop` | A horizontal gradient of the backdrop's three colors; the accent outside a `Backdrop` |
 
-In an inactive window `Accent` and `Backdrop` fall back to the palette's accent. On
-`Slider`, `Switch` and `Checkbox`, whose tint sets the `fill` of their style, a `Color`
-tint stays.
+In an inactive window `Accent` and `Backdrop` fall back to the palette's accent. The tint
+sets the `fill` of the control's style, so a `Color` tint stays.
 
 ## Media
 
@@ -134,6 +133,12 @@ When the user reduces transparency (`reduce_transparency`, on by default),
 the glass is solid and sharp: `Material` and `GlassContainer` fill with the
 opaque `MEDIA.material_tint` and keep their rim; `TopGlass` is an opaque band
 in the window color, `FULLSCREEN_GLASS.height` deep.
+
+### Style
+
+`MediaButton` and `RoundButton` take `.style(|s| ..)` with a `MediaButtonStyle` and a
+`RoundButtonStyle`. Their fields are in
+[Styles and themes](../ai/styles.md#mediabuttonstyle-and-roundbuttonstyle).
 
 ## Glass that merges
 

@@ -6,11 +6,11 @@ use torin::prelude::{Alignment, Content, Direction, Position, Size};
 
 use crate::backdrop::Tint;
 use crate::controls::{dimmed, dimmed_label, inner_border, labeled, shadowed};
-use crate::interaction::{Interaction, ring, use_interaction};
+use crate::interaction::{control_state, ring, use_interaction};
 use crate::style::with_font;
 use crate::styles::{
-    Axis, ChoiceCardsStyle, ColorWellStyle, ControlState, LayoutDirection, Paints, RadioGroupStyle,
-    StateValue, Theme, resolve,
+    Axis, ChoiceCardsStyle, ColorWellStyle, LayoutDirection, Paints, RadioGroupStyle, StateValue,
+    Theme, resolve,
 };
 use crate::theme::color;
 
@@ -90,15 +90,6 @@ fn choice_group(
         .spacing(spacing)
         .maybe(wraps, |el| el.content(Content::wrap_spacing(spacing)))
         .children(options)
-}
-
-fn control_state(interaction: Interaction, disabled: bool) -> ControlState {
-    ControlState {
-        hovered: interaction.hovered(),
-        pressed: interaction.pressed(),
-        focused: interaction.focused(),
-        disabled,
-    }
 }
 
 fn dimmed_when(element: Rect, disabled: bool, opacity: f32, disabled_opacity: f32) -> Rect {

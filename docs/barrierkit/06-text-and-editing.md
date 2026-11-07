@@ -155,6 +155,11 @@ FontPicker::new(font.read().clone()).on_change(move |picked| font.set(picked))
 | `parse_size(typed)` | `Some(size)` for a finite number above 0 |
 | `remember(&mut recent, family)` | Moves the family to the front without duplicates |
 
+### Style
+
+`FontPicker` is a `Button`: its `.style(|s| ..)` takes a
+[`ButtonStyle`](../ai/styles.md#buttonstyle). The panel has no style.
+
 ## Spelling
 
 `TextField` and `TextEditor` check spelling with
@@ -203,6 +208,12 @@ Tokens are 18 tall capsules with the accent at 20 %; a selected one takes the fu
 | `commit_token(&mut tokens, draft)` | Trims spaces and a trailing comma and pushes the token; `false` if empty |
 | `TokenKey` | `Backspace`, `Delete`, `Left`, `Right` |
 | `token_selection(chosen, count, key)` | `(next selection, removed index)` for a key |
+
+### Style
+
+`.style(|s| ..)` takes a [`TokenFieldStyle`](../ai/styles.md#tokenfieldstyle): the field,
+the tokens and the selected token. The tokens of a `SearchField` draw from the
+`TokenFieldStyle` in context.
 
 ## Printing
 

@@ -1,24 +1,33 @@
 use std::path::{Path, PathBuf};
 
-use ctdesign::{HAIRLINE, IMAGE_WELL};
 use freya_core::prelude::*;
 use torin::prelude::{Area, Size};
 
+use crate::controls::{dimmed, inner_border, shadowed};
 use crate::i18n::text;
-use crate::interaction::use_interaction;
+use crate::interaction::{control_state, use_interaction};
 use crate::media::use_artwork;
-use crate::style::Palette;
-use crate::theme::color;
+use crate::styles::{ImageWellStyle, LayoutDirection, Paints, Theme, resolve};
 
 #[derive(PartialEq)]
 pub struct ImageWell {
     label: &'static str,
     image: State<Option<PathBuf>>,
+    style: Theme,
 }
 
 impl ImageWell {
     pub fn new(label: &'static str, image: State<Option<PathBuf>>) -> Self {
-        Self { label, image }
+        Self {
+            label,
+            image,
+            style: Theme::tengen(),
+        }
+    }
+
+    pub fn style(mut self, restyle: impl Fn(ImageWellStyle) -> ImageWellStyle + 'static) -> Self {
+        self.style = self.style.style(restyle);
+        self
     }
 }
 
@@ -33,33 +42,43 @@ pub fn is_image(path: &Path) -> bool {
 
 impl Component for ImageWell {
     fn render(&self) -> impl IntoElement {
-        let palette = Palette::current();
+        let style: ImageWellStyle = resolve(&self.style);
         let interaction = use_interaction();
+        let paints = Paints::current(control_state(interaction, false), style.effect);
         let mut image = self.image;
         let mut area = use_state(Area::default);
         let mut targeted = use_state(|| false);
         let border = if *targeted.read() {
-            Border::new()
-                .width(IMAGE_WELL.drop_border)
-                .alignment(BorderAlignment::Inner)
-                .fill(color(palette.accent))
+            Some(&style.drop_border)
         } else {
-            Border::new()
-                .width(HAIRLINE)
-                .alignment(BorderAlignment::Inner)
-                .fill(color(palette.separator))
+            style.border.as_ref()
+        };
+        let size = style.size;
+        let radius = style
+            .shape
+            .corner_radius(size, size, LayoutDirection::LeftToRight);
+        let inset = style.inset;
+        let inner = CornerRadius {
+            top_left: (radius.top_left - inset).max(0.0),
+            top_right: (radius.top_right - inset).max(0.0),
+            bottom_right: (radius.bottom_right - inset).max(0.0),
+            bottom_left: (radius.bottom_left - inset).max(0.0),
+            ..radius
         };
         let element = interaction
             .attach(rect(), true)
             .a11y_role(AccessibilityRole::Image)
             .a11y_alt(self.label)
-            .width(Size::px(IMAGE_WELL.size))
-            .height(Size::px(IMAGE_WELL.size))
-            .padding(IMAGE_WELL.inset)
-            .corner_radius(IMAGE_WELL.radius)
+            .width(Size::px(size))
+            .height(Size::px(size))
+            .padding(inset)
+            .corner_radius(radius)
             .overflow(Overflow::Clip)
-            .background(color(palette.content_background))
-            .border(border)
+            .background(paints.fill(&style.background))
+            .map(paints.blur(&style.background), Rect::blur)
+            .map(border, |el, border| {
+                el.border(inner_border(&paints, border))
+            })
             .on_sized(move |event: Event<SizedEventData>| area.set_if_modified(event.area))
             .on_global_file_hover(move |event: Event<FileEventData>| {
                 let over = event.file_path.as_deref().is_none_or(is_image)
@@ -93,9 +112,15 @@ impl Component for ImageWell {
                 rect()
                     .key(path.to_string_lossy().into_owned())
                     .expanded()
-                    .child(WellImage { path })
+                    .child(WellImage {
+                        path,
+                        corner_radius: inner,
+                    })
             }));
-        interaction.focus_ring(element, IMAGE_WELL.radius)
+        interaction.focus_ring(
+            dimmed(shadowed(element, &style.shadows), style.opacity),
+            radius.top_left,
+        )
     }
 }
 
@@ -113,6 +138,7 @@ fn choose(mut image: State<Option<PathBuf>>) {
 #[derive(PartialEq)]
 struct WellImage {
     path: PathBuf,
+    corner_radius: CornerRadius,
 }
 
 impl Component for WellImage {
@@ -120,7 +146,7 @@ impl Component for WellImage {
         let artwork = use_artwork(self.path.clone());
         rect()
             .expanded()
-            .corner_radius(IMAGE_WELL.radius - IMAGE_WELL.inset)
+            .corner_radius(self.corner_radius)
             .overflow(Overflow::Clip)
             .maybe_child(
                 artwork

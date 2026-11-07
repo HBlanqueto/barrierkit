@@ -1,19 +1,21 @@
 use std::cell::Cell;
 use std::rc::Rc;
 
-use ctdesign::{BODY, MENU_POPOVER, SETTINGS, SYMBOL};
+use ctdesign::MENU_POPOVER;
 use freya_components::svg_viewer::SvgViewer;
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Area, Direction, Size};
 
 use crate::choices::use_choice;
-use crate::interaction::use_interaction;
+use crate::controls::{dimmed, inner_border, shadowed};
+use crate::interaction::{control_state, use_interaction};
 use crate::menu::{CheckState, MenuIcon, MenuItem, MenuView};
 use crate::platform::{PopupAnchor, PopupConstraintAdjustment, PopupGravity, PopupSpec, Popups};
-use crate::style::{Palette, text};
+use crate::style::with_font;
+use crate::styles::{LayoutDirection, Paints, PopUpButtonStyle, Theme, resolve};
 use crate::symbol::{Symbol, symbol};
-use crate::theme::{SurfaceKind, color, popover_palette};
+use crate::theme::{SurfaceKind, popover_palette};
 
 #[derive(PartialEq)]
 pub struct PopUpButton {
@@ -21,6 +23,7 @@ pub struct PopUpButton {
     items: Vec<(&'static str, Option<MenuIcon>)>,
     selected: usize,
     on_change: Option<Callback<usize, ()>>,
+    style: Theme,
 }
 
 impl PopUpButton {
@@ -30,7 +33,16 @@ impl PopUpButton {
             items: Vec::new(),
             selected: 0,
             on_change: None,
+            style: Theme::tengen(),
         }
+    }
+
+    pub fn style(
+        mut self,
+        restyle: impl Fn(PopUpButtonStyle) -> PopUpButtonStyle + 'static,
+    ) -> Self {
+        self.style = self.style.style(restyle);
+        self
     }
 
     pub fn item(mut self, label: &'static str) -> Self {
@@ -56,23 +68,43 @@ impl PopUpButton {
 
 impl Component for PopUpButton {
     fn render(&self) -> impl IntoElement {
-        let palette = Palette::current();
+        let style: PopUpButtonStyle = resolve(&self.style);
         let interaction = use_interaction();
+        let state = control_state(interaction, false);
+        let paints = Paints::current(state, style.effect);
         let choice = use_choice(Some(self.selected), self.on_change.clone());
         let mut area = use_state(Area::default);
         let current = (0..self.items.len()).find(|&i| choice.is(i)).unwrap_or(0);
         let items = self.items.clone();
         let selects: Vec<_> = (0..items.len()).map(|i| choice.select(i)).collect();
-        let chevron = SETTINGS.popup_chevron as f32;
+        let size = style.indicator_size;
+        let radius = style
+            .indicator_shape
+            .corner_radius(size, size, LayoutDirection::LeftToRight);
+        let indicator = rect()
+            .width(Size::px(size))
+            .height(Size::px(size))
+            .corner_radius(radius)
+            .center()
+            .background(paints.fill(&style.indicator))
+            .map(paints.blur(&style.indicator), Rect::blur)
+            .map(style.indicator_border.as_ref(), |el, border| {
+                el.border(inner_border(&paints, border))
+            })
+            .child(symbol(
+                Symbol::ChevronUpDown,
+                style.chevron_size,
+                paints.color(style.chevron.resolve(state)),
+            ));
 
         let button = interaction
             .attach(rect(), true)
             .a11y_role(AccessibilityRole::ComboBox)
             .a11y_alt(self.label)
-            .height(Size::px(SETTINGS.popup_height as f32))
+            .height(Size::px(style.height))
             .direction(Direction::Horizontal)
             .cross_align(Alignment::Center)
-            .spacing(SETTINGS.popup_text_gap as f32)
+            .spacing(style.gap)
             .on_sized(move |event: Event<SizedEventData>| area.set_if_modified(event.area))
             .on_press(move |_| open_menu(&items, current, *area.read(), selects.clone()))
             .maybe_child(
@@ -84,33 +116,26 @@ impl Component for PopUpButton {
                     })
                     .map(|svg| {
                         SvgViewer::new(Bytes::from(svg.as_bytes().to_vec()))
-                            .width(Size::px(SYMBOL.grid))
-                            .height(Size::px(SYMBOL.grid))
+                            .width(Size::px(style.icon_size))
+                            .height(Size::px(style.icon_size))
                             .show_loader(false)
                     }),
             )
-            .child(text(
-                self.items
-                    .get(current)
-                    .map(|item| item.0)
-                    .unwrap_or_default(),
-                BODY,
-                palette.label,
-            ))
             .child(
-                rect()
-                    .width(Size::px(chevron))
-                    .height(Size::px(chevron))
-                    .corner_radius(chevron / 2.0)
-                    .center()
-                    .background(color(palette.control_background))
-                    .child(symbol(
-                        Symbol::ChevronUpDown,
-                        SETTINGS.dropdown_chevron_glyph as f32,
-                        palette.label,
-                    )),
-            );
-        interaction.focus_ring(button, chevron / 2.0)
+                with_font(
+                    label().text(
+                        self.items
+                            .get(current)
+                            .map(|item| item.0)
+                            .unwrap_or_default(),
+                    ),
+                    style.font,
+                )
+                .max_lines(1)
+                .color(paints.fill(&style.label)),
+            )
+            .child(shadowed(indicator, &style.indicator_shadows));
+        interaction.focus_ring(dimmed(button, style.opacity), radius.top_left)
     }
 }
 

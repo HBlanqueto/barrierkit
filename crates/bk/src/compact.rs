@@ -5,7 +5,7 @@ use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
 
 use crate::controls::{dimmed, dimmed_label, inner_border, labeled, shadowed};
 use crate::i18n::text;
-use crate::interaction::{Interaction, use_interaction};
+use crate::interaction::{control_state, use_interaction};
 use crate::style::with_font;
 use crate::styles::{
     Axis, ControlState, IconButtonStyle, LayoutDirection, Paints, StepperStyle, Theme,
@@ -28,15 +28,6 @@ pub(crate) fn use_toolbar_items(in_toolbar: bool) {
 
 pub(crate) fn in_toolbar() -> bool {
     try_consume_context::<ToolbarItems>().is_some_and(|items| *items.0.read())
-}
-
-fn control_state(interaction: Interaction, disabled: bool) -> ControlState {
-    ControlState {
-        hovered: interaction.hovered(),
-        pressed: interaction.pressed(),
-        focused: interaction.focused(),
-        disabled,
-    }
 }
 
 #[derive(PartialEq)]

@@ -62,6 +62,14 @@ pub fn use_switch_progress(on: State<bool>, ms: u64) -> f32 {
     }
 }
 
+pub(crate) fn ease_in_out(progress: f32) -> f32 {
+    if progress < 0.5 {
+        4.0 * progress.powi(3)
+    } else {
+        1.0 - (2.0 - 2.0 * progress).powi(3) / 2.0
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct Spring {
     from: f32,

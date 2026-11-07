@@ -10,6 +10,7 @@ use crate::popover::Popover;
 use crate::rich_text::FontChoice;
 use crate::scroll::ScrollView;
 use crate::style::{Palette, text};
+use crate::styles::{ButtonStyle, Theme};
 use crate::theme::color;
 use crate::views::tree::{TreeNode, row};
 
@@ -291,6 +292,7 @@ impl Component for FontPanel {
 pub struct FontPicker {
     font: FontChoice,
     on_change: Option<Callback<FontChoice, ()>>,
+    style: Theme,
 }
 
 impl FontPicker {
@@ -298,7 +300,13 @@ impl FontPicker {
         Self {
             font,
             on_change: None,
+            style: Theme::tengen(),
         }
+    }
+
+    pub fn style(mut self, restyle: impl Fn(ButtonStyle) -> ButtonStyle + 'static) -> Self {
+        self.style = self.style.style(restyle);
+        self
     }
 
     pub fn on_change(mut self, callback: impl Into<Callback<FontChoice, ()>>) -> Self {
@@ -312,15 +320,15 @@ impl Component for FontPicker {
         let mut area = use_state(Area::default);
         let font = self.font.clone();
         let on_change = self.on_change.clone();
+        let mut button = Button::new(format!("{} {}", font.family, font.size));
+        button.style = self.style.clone();
         rect()
             .on_sized(move |event: Event<SizedEventData>| area.set_if_modified(event.area))
-            .child(
-                Button::new(format!("{} {}", font.family, font.size)).on_press(move |_| {
-                    if let Some(on_change) = &on_change {
-                        show_font_panel(*area.peek(), font.clone(), on_change.clone());
-                    }
-                }),
-            )
+            .child(button.on_press(move |_| {
+                if let Some(on_change) = &on_change {
+                    show_font_panel(*area.peek(), font.clone(), on_change.clone());
+                }
+            }))
     }
 }
 

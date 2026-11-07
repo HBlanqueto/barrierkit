@@ -1,12 +1,14 @@
-use ctdesign::{BODY, BUTTON, HAIRLINE, Rgba, SPACE_2, SPLIT_VIEW};
+use ctdesign::Rgba;
 use freya_core::prelude::*;
 use torin::prelude::{Area, Direction, Size};
 
+use crate::controls::{dimmed, inner_border, shadowed};
 use crate::i18n::text;
-use crate::interaction::use_interaction;
+use crate::interaction::{control_state, use_interaction};
 use crate::level::LevelSlider;
 use crate::popover::Popover;
-use crate::style::{Palette, text};
+use crate::style::{Palette, text, with_font};
+use crate::styles::{ColorPickerStyle, LayoutDirection, Paints, Theme, resolve};
 use crate::theme::color;
 
 pub fn hsb_to_rgb(hue: f32, saturation: f32, brightness: f32) -> Rgba {
@@ -62,6 +64,7 @@ pub struct ColorPicker {
     label: &'static str,
     color: Rgba,
     on_change: Option<Callback<Rgba, ()>>,
+    style: Theme,
 }
 
 impl ColorPicker {
@@ -70,7 +73,16 @@ impl ColorPicker {
             label,
             color,
             on_change: None,
+            style: Theme::tengen(),
         }
+    }
+
+    pub fn style(
+        mut self,
+        restyle: impl Fn(ColorPickerStyle) -> ColorPickerStyle + 'static,
+    ) -> Self {
+        self.style = self.style.style(restyle);
+        self
     }
 
     pub fn on_change(mut self, callback: impl Into<Callback<Rgba, ()>>) -> Self {
@@ -81,41 +93,48 @@ impl ColorPicker {
 
 impl Component for ColorPicker {
     fn render(&self) -> impl IntoElement {
-        let palette = Palette::current();
+        let style: ColorPickerStyle = resolve(&self.style);
         let interaction = use_interaction();
+        let paints = Paints::current(control_state(interaction, false), style.effect);
         let mut area = use_state(Area::default);
         let shown = self.color;
         let on_change = self.on_change.clone();
+        let (width, height) = style.size;
+        let radius = style
+            .shape
+            .corner_radius(width, height, LayoutDirection::LeftToRight);
+        let panel_size = style.panel_size;
+        let resolved = style.clone();
+        let panel_style = Theme::tengen().style(move |_: ColorPickerStyle| resolved.clone());
         let well = interaction
             .attach(rect(), true)
             .a11y_role(AccessibilityRole::ColorWell)
             .a11y_alt(self.label)
-            .width(Size::px(BUTTON.height * 2.0))
-            .height(Size::px(BUTTON.height))
-            .corner_radius(BUTTON.radius)
+            .width(Size::px(width))
+            .height(Size::px(height))
+            .corner_radius(radius)
             .background(color(shown))
-            .border(
-                Border::new()
-                    .width(HAIRLINE)
-                    .alignment(BorderAlignment::Inner)
-                    .fill(color(palette.card_border)),
-            )
+            .map(style.border.as_ref(), |el, border| {
+                el.border(inner_border(&paints, border))
+            })
             .on_sized(move |event: Event<SizedEventData>| area.set_if_modified(event.area))
             .on_press(move |_| {
                 let on_change = on_change.clone();
-                Popover::new(
-                    (SPLIT_VIEW.inspector, BODY.line_height as f32 * 7.0),
-                    move || {
-                        ColorPanel {
-                            initial: shown,
-                            on_change: on_change.clone(),
-                        }
-                        .into_element()
-                    },
-                )
+                let style = panel_style.clone();
+                Popover::new(panel_size, move || {
+                    ColorPanel {
+                        initial: shown,
+                        on_change: on_change.clone(),
+                        style: style.clone(),
+                    }
+                    .into_element()
+                })
                 .show(*area.peek());
             });
-        interaction.focus_ring(well, BUTTON.radius)
+        interaction.focus_ring(
+            dimmed(shadowed(well, &style.shadows), style.opacity),
+            radius.top_left,
+        )
     }
 }
 
@@ -123,10 +142,22 @@ impl Component for ColorPicker {
 struct ColorPanel {
     initial: Rgba,
     on_change: Option<Callback<Rgba, ()>>,
+    style: Theme,
 }
 
 impl Component for ColorPanel {
     fn render(&self) -> impl IntoElement {
+        let style: ColorPickerStyle = resolve(&self.style);
+        let paints = Paints::current(Default::default(), style.effect);
+        let caption = |content: &'static str| {
+            with_font(label().text(content), style.font)
+                .max_lines(1)
+                .color(paints.fill(&style.caption))
+        };
+        let (_, height) = style.size;
+        let radius = style
+            .shape
+            .corner_radius(height, height, LayoutDirection::LeftToRight);
         let palette = Palette::current();
         let initial = self.initial;
         let mut hsb = use_state(|| rgb_to_hsb(initial));
@@ -144,17 +175,17 @@ impl Component for ColorPanel {
         rect()
             .width(Size::fill())
             .direction(Direction::Vertical)
-            .spacing(SPACE_2)
+            .spacing(style.spacing)
             .child(
                 rect()
                     .width(Size::fill())
-                    .height(Size::px(BUTTON.height))
-                    .corner_radius(BUTTON.radius)
+                    .height(Size::px(height))
+                    .corner_radius(radius)
                     .background(color(current))
                     .center()
                     .child(text(
                         hex(current),
-                        BODY,
+                        style.font,
                         if brightness > 0.6 && saturation < 0.5 {
                             palette.label
                         } else {
@@ -162,19 +193,19 @@ impl Component for ColorPanel {
                         },
                     )),
             )
-            .child(text(text!("hue"), BODY, palette.secondary_label))
+            .child(caption(text!("hue")))
             .child(
                 LevelSlider::new(text!("hue"))
                     .value(hue)
                     .on_change(move |value| set((value, saturation, brightness))),
             )
-            .child(text(text!("saturation"), BODY, palette.secondary_label))
+            .child(caption(text!("saturation")))
             .child(
                 LevelSlider::new(text!("saturation"))
                     .value(saturation)
                     .on_change(move |value| set_saturation((hue, value, brightness))),
             )
-            .child(text(text!("brightness"), BODY, palette.secondary_label))
+            .child(caption(text!("brightness")))
             .child(
                 LevelSlider::new(text!("brightness"))
                     .value(brightness)

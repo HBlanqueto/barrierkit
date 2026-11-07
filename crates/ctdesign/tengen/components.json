@@ -694,6 +694,7 @@
       "button-padding-x": 22,
       "button-radius": 10,
       "button-font-size": 14,
+      "button-font-weight": 600,
       "button-fill": "#f2f2f4",
       "button-ink": "#111214",
       "round": 38,
