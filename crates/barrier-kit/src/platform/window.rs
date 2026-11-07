@@ -729,7 +729,9 @@ impl WindowHandler for Runtime {
         if self.surfaces[index].draw_count == 0 || !self.surfaces[index].frame_pending {
             self.apply_pending_window_configures(qh);
         }
-        self.surfaces[index].draw_after_configure(&self.compositor, qh);
+        if self.surfaces[index].pending_configure.is_none() {
+            self.surfaces[index].draw_after_configure(&self.compositor, qh);
+        }
     }
 }
 impl Runtime {

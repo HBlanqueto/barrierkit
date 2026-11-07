@@ -115,8 +115,9 @@ impl SurfaceWindow {
         compositor: &CompositorState,
         qh: &QueueHandle<Runtime>,
     ) {
-        // The first buffer follows the first configure; an unmapped surface gets no frame callbacks.
-        if self.draw_count == 0 {
+        // An acked size must arrive with a buffer: an empty commit would apply it to the old one
+        // (wl_surface.invalid_size, ext_session_lock_surface_v1.dimensions_mismatch).
+        if self.draw_count == 0 || self.needs_redraw {
             let _ = self.draw(compositor);
         }
         if self.needs_redraw {
@@ -325,7 +326,7 @@ impl CompositorHandler for Runtime {
     fn scale_factor_changed(
         &mut self,
         _: &Connection,
-        _: &QueueHandle<Self>,
+        qh: &QueueHandle<Self>,
         surface: &WlSurface,
         scale_factor: i32,
     ) {
@@ -342,6 +343,7 @@ impl CompositorHandler for Runtime {
             if window.logical_size.0 > 0 {
                 let size = window.logical_size;
                 window.configure(size, scale);
+                window.draw_after_configure(&self.compositor, qh);
             }
         }
     }
