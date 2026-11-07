@@ -44,7 +44,7 @@ check() {
     "$script_dir/scripts/check-links.sh"
     "$script_dir/scripts/check-recipes.sh"
     "$script_dir/scripts/tengen-css.sh" | diff -u "$script_dir/agents/tengen.css" -
-    cargo test --workspace --features bk/charts,bk/print,bk/shell,bk/tracy
+    cargo test --workspace --lib --tests --features bk/charts,bk/print,bk/shell,bk/tracy
 }
 
 case "${1:-}" in
