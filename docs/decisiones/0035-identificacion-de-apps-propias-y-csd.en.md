@@ -67,3 +67,17 @@ Replaces the rule "native → Client always" of point 3.
   decoración» ("own app without a decoration mode")).
 - If the compositor does not advertise `xdg-decoration`, the kit still draws
   its 44 px bar.
+
+## Infinity replaces the prefix (amendment 2026-11-07)
+
+Replaces point 1 and fulfils point 6.
+
+- The compositor recognizes a kit app because its client binds
+  `infinity_window_style_v1`. The kit always binds it at startup
+  (`platform/runtime.rs`).
+- The `app_id` no longer counts. An app built with the kit by another author
+  (`org.curseterm.CurseTerm`) gets the same treatment as one of our own: its
+  decoration mode is respected and its popups carry the kit frame.
+- `NATIVE_APP_ID_PREFIX` remains only as the default `app_id` when the app does
+  not request another one with `Window::app_id`.
+- It is still not security: any client can bind the protocol.

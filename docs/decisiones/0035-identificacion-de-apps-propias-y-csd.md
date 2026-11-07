@@ -67,3 +67,17 @@ Sustituye la regla «native → Client siempre» del punto 3.
   decoración»).
 - Si el compositor no anuncia `xdg-decoration`, el kit dibuja igualmente su
   barra de 44 px.
+
+## Infinity sustituye al prefijo (enmienda 2026-11-07)
+
+Sustituye el punto 1 y cumple el punto 6.
+
+- El compositor reconoce una app del kit porque su cliente enlaza
+  `infinity_window_style_v1`. El kit lo enlaza siempre al arrancar
+  (`platform/runtime.rs`).
+- El `app_id` ya no cuenta. Una app hecha con el kit por otro autor
+  (`org.curseterm.CurseTerm`) recibe el mismo trato que una propia: su modo de
+  decoración se respeta y sus popups llevan el marco del kit.
+- `NATIVE_APP_ID_PREFIX` queda solo como `app_id` por defecto cuando la app no
+  pide otro con `Window::app_id`.
+- Sigue sin ser seguridad: cualquier cliente puede enlazar el protocolo.
