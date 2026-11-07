@@ -28,9 +28,9 @@ below runs with the same environment:
 
 1. The dev shell: its `FONTCONFIG_FILE` gives Geist and Inter. Outside it the
    text falls back to another font and the images differ.
-2. Spanish, the language of the test texts: `LANG=es_ES.UTF-8`.
-3. An empty settings folder, so a `language.domain` of the host does not
-   choose another language: `MALAYSIA_CONFIG_DIR=$(mktemp -d)`.
+2. Spanish, the language of the test texts. `.cargo/config.toml` points
+   `MALAYSIA_CONFIG_DIR` at `crates/bk/tests/config`, whose `language.domain`
+   says `es`, so the host's language and settings do not change the images.
 
 ## Steps to regenerate `components/`
 
@@ -38,7 +38,7 @@ below runs with the same environment:
 2. Rewrite the golden images:
 
    ```sh
-   LANG=es_ES.UTF-8 MALAYSIA_CONFIG_DIR=$(mktemp -d) UPDATE_GOLDEN=1 cargo test -p bk --test kit
+   UPDATE_GOLDEN=1 cargo test -p bk --test kit
    ```
 
 3. Check the new images with `git diff --stat crates/bk/tests/golden/`
@@ -69,7 +69,7 @@ A golden image that does not exist is written instead of compared.
 2. Render the scenes into the folder:
 
    ```sh
-   LANG=es_ES.UTF-8 MALAYSIA_CONFIG_DIR=$(mktemp -d) BARRIER_KIT_SHOTS=$PWD/docs/barrierkit/assets/states cargo test -p bk --lib doc_shots
+   BARRIER_KIT_SHOTS=$PWD/docs/barrierkit/assets/states cargo test -p bk --lib doc_shots
    ```
 
 Without `BARRIER_KIT_SHOTS`, the test returns without rendering. Each scene

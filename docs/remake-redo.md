@@ -19,18 +19,59 @@ with the command that produced it.
 
 | Measurement | Command | Before |
 |---|---|---|
-| Clean build of the workspace | `cargo build --timings` after `cargo clean` | not run: dev shell blocked |
-| Incremental build of `bk` | `touch crates/bk/src/controls.rs && cargo build --timings` | not run: dev shell blocked |
-| Clippy of the workspace | `cargo clippy --workspace --all-targets` | not run: dev shell blocked |
-| Generic bloat of `bk` | `cargo llvm-lines -p bk` | not run: dev shell blocked |
+| Clean build of the workspace | `cargo clean && cargo build --timings` | 369.8 s |
+| Incremental build, `touch` | `touch crates/bk/src/controls.rs && cargo build` | 2.8 s |
+| Incremental build, real edit | change `.max_lines(1)` in `controls.rs`, `cargo build` | 3.2 s |
+| Incremental test build, real edit | the same edit, `cargo test --workspace --features bk/shell,bk/tracy --no-run` | 4.5 s |
+| Clippy after a build | `cargo clippy --workspace --all-targets` | 49.1 s |
+| Clippy, `touch` | `touch crates/bk/src/controls.rs && cargo clippy --workspace --all-targets` | 3.1 s |
+| LLVM IR of `bk` | `cargo llvm-lines -p bk --lib` | 1 347 165 lines, 45 191 functions |
 | Crates in the tree of `bk`, default features | `cargo tree -p bk -e normal,build --prefix none \| sort -u` | 271 |
 | Crates in the tree of `bk`, `shell,tracy,video` | same, with `--features shell,tracy,video` | 303 |
 | Unused dependencies | `cargo shear`, `cargo machete` | 0 real; 6 false positives (see below) |
 | Advisories | `cargo deny --all-features check advisories` | 6 unmaintained, 0 vulnerabilities |
 | Duplicate crates | `cargo deny --all-features check bans` | 16 crates with 2 or 3 versions |
 
-The dev shell needs the Skia source from `github.com/rust-skia/skia`; on
-2026-11-07 the cloud session could not download it.
+The machine has 4 cores. A `touch` does not change the content, so rustc's
+incremental cache reuses almost everything; the real edit is the number to
+beat.
+
+### Slowest crates of the clean build
+
+Seconds of compilation per crate, summed over its units, from
+`target/cargo-timings/cargo-timing.html`:
+
+| Crate | s | Pulled by |
+|---|---|---|
+| `syn` (2.0 and 3.0, three units) | 134.6 | proc macros |
+| `write-fonts` | 67.4 | `subsetter` (printing) |
+| `zbus` | 61.5 | `bk`, `mundy` (`freya-core`), `accesskit_unix` |
+| `bindgen` | 44.7 | `freya-skia-bindings` |
+| `atspi-proxies` | 36.7 | `accesskit_unix` |
+| `thiserror-impl` | 33.1 | proc macro |
+| `freya-components` | 32.9 | `bk` |
+| `accesskit_unix` | 32.1 | `bk` |
+| `zvariant_utils`, `zbus_macros` | 61.6 | `zbus` |
+| `read-fonts` | 28.9 | `subsetter` (printing) |
+| `bk` | 23.0 | — |
+
+`[profile.dev.package."*"]` outranks `build-override`, so proc macros and
+build scripts are also built at `opt-level = 2`
+([Cargo profiles](https://doc.rust-lang.org/cargo/reference/profiles.html#overrides)).
+
+### LLVM IR of `bk` by crate
+
+| Crate of the function | Share |
+|---|---|
+| `bk` | 18.6 % |
+| `core`, `alloc`, `std` | 34.2 % |
+| `freya_core` | 14.7 % |
+| `zbus`, `zvariant` | 12.8 % |
+| `hashbrown` | 3.0 % |
+| `spellbook` | 1.8 % |
+
+No single generic stands out: the largest function is `MenuView::render`,
+2 407 lines (0.2 %).
 
 ### Unused dependencies
 
