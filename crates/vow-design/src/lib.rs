@@ -438,6 +438,15 @@ pub struct ProgressMetrics {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct BackdropScenes {
+    pub dusk: [Rgba; 3],
+    pub night: [Rgba; 3],
+    pub pale: [Rgba; 3],
+    pub forest: [Rgba; 3],
+    pub studio: [Rgba; 3],
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct BackdropMetrics {
     pub angles: [f32; 3],
     pub opacity: f32,

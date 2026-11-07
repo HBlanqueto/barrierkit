@@ -40,6 +40,7 @@ FULLSCREEN_GLASS FullscreenGlassMetrics components.window.titlebar.fullscreen-gl
 FULLSCREEN_BAND FullscreenGlassMetrics components.window.titlebar.fullscreen-band
 FULLSCREEN_BAR FullscreenBarMetrics components.window.titlebar.fullscreen-bar
 BACKDROP BackdropMetrics components.backdrop
+BACKDROP_SCENES BackdropScenes components.backdrop-scenes
 BREAKPOINT BreakpointMetrics components.breakpoint
 SYMBOL SymbolMetrics components.symbol
 SLIDER_FAT SliderFatMetrics components.slider.fat

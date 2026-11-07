@@ -7,7 +7,7 @@ use barrier_kit::symbol::Symbol;
 use freya_animation::prelude::{AnimNum, Ease, Function, use_animation};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Direction, Size};
-use vow_design::{ACCENT_SWATCHES, DURATION_SLOW_MS, Rgba, SPACE_2, SPLIT_VIEW};
+use vow_design::{ACCENT_SWATCHES, BACKDROP_SCENES, DURATION_SLOW_MS, Rgba, SPACE_2, SPLIT_VIEW};
 
 use crate::localize::tr;
 use barrier_kit::animation::{motion_ms, use_reduced_motion};
@@ -16,30 +16,9 @@ const DOWNLOAD_MS: u64 = DURATION_SLOW_MS * 6;
 
 pub static SCENES: LazyLock<[(&str, [Rgba; 3]); 3]> = LazyLock::new(|| {
     [
-        (
-            tr!("dusk"),
-            [
-                Rgba::rgb8(122, 59, 94),
-                Rgba::rgb8(45, 110, 106),
-                Rgba::rgb8(180, 112, 63),
-            ],
-        ),
-        (
-            tr!("night"),
-            [
-                Rgba::rgb8(20, 33, 61),
-                Rgba::rgb8(58, 79, 122),
-                Rgba::rgb8(150, 110, 40),
-            ],
-        ),
-        (
-            tr!("pale"),
-            [
-                Rgba::rgb8(236, 214, 196),
-                Rgba::rgb8(200, 222, 214),
-                Rgba::rgb8(240, 226, 170),
-            ],
-        ),
+        (tr!("dusk"), BACKDROP_SCENES.dusk),
+        (tr!("night"), BACKDROP_SCENES.night),
+        (tr!("pale"), BACKDROP_SCENES.pale),
     ]
 });
 

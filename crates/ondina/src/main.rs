@@ -20,46 +20,21 @@ use barrier_kit::views::tabs::TabView;
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 use torin::prelude::{Content, Gaps, Size};
-use vow_design::{ACCENT_SWATCHES, Rgba, WINDOW_MIN_SIZE};
+use vow_design::{ACCENT_SWATCHES, BACKDROP_SCENES, Rgba, WINDOW_MIN_SIZE};
 
 use albums::{Album, library};
 use localize::tr;
 
 const TICK: Duration = Duration::from_millis(500);
 
-const STUDIO: [Rgba; 3] = [
-    Rgba::rgb8(59, 47, 122),
-    Rgba::rgb8(29, 111, 126),
-    Rgba::rgb8(138, 63, 110),
-];
+const STUDIO: [Rgba; 3] = BACKDROP_SCENES.studio;
 
 type Title = fn() -> &'static str;
 
 pub const PRESETS: [(Title, [Rgba; 3]); 3] = [
-    (
-        || tr!("preset-sunset"),
-        [
-            Rgba::rgb8(122, 59, 94),
-            Rgba::rgb8(45, 110, 106),
-            Rgba::rgb8(180, 112, 63),
-        ],
-    ),
-    (
-        || tr!("preset-forest"),
-        [
-            Rgba::rgb8(30, 77, 43),
-            Rgba::rgb8(120, 160, 90),
-            Rgba::rgb8(70, 60, 110),
-        ],
-    ),
-    (
-        || tr!("preset-midnight"),
-        [
-            Rgba::rgb8(20, 33, 61),
-            Rgba::rgb8(58, 79, 122),
-            Rgba::rgb8(150, 110, 40),
-        ],
-    ),
+    (|| tr!("preset-sunset"), BACKDROP_SCENES.dusk),
+    (|| tr!("preset-forest"), BACKDROP_SCENES.forest),
+    (|| tr!("preset-midnight"), BACKDROP_SCENES.night),
 ];
 
 #[derive(Clone, Copy, Debug, PartialEq)]

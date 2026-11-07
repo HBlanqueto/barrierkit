@@ -110,6 +110,16 @@ impl Tengen {
             ty if ty.starts_with("[f32;") => {
                 format!("[{}]", self.floats(self.get(path)).join(", "))
             }
+            ty if ty.starts_with("[Rgba;") => {
+                let colors: Vec<String> = self
+                    .get(path)
+                    .as_array()
+                    .unwrap_or_else(|| panic!("vow-design: `{path}` in tengen is not a list"))
+                    .iter()
+                    .map(|color| rgba(parse_color(color.as_str().expect("vow-design: colours"))))
+                    .collect();
+                format!("[{}]", colors.join(", "))
+            }
             ty => self.structure(ty, path, overrides, look),
         }
     }

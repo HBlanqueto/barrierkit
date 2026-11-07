@@ -666,6 +666,13 @@
       "accent-lightness-on-light": 0.5,
       "accent-min-chroma": 0.12
     },
+    "backdrop-scenes": {
+      "dusk": ["#7a3b5e", "#2d6e6a", "#b4703f"],
+      "night": ["#14213d", "#3a4f7a", "#966e28"],
+      "pale": ["#ecd6c4", "#c8ded6", "#f0e2aa"],
+      "forest": ["#1e4d2b", "#78a05a", "#463c6e"],
+      "studio": ["#3b2f7a", "#1d6f7e", "#8a3f6e"]
+    },
     "breakpoint": {
       "medium": 620,
       "wide": 900
