@@ -116,7 +116,7 @@ The kit, the compositor and the portal watch `appearance.domain` and
 |---|---|
 | A hex colour (`0xRRGGBB`) or `Rgba::rgb8(…)` / `Rgba::rgba8(…)` with numbers | Colours live in `ctdesign` |
 | A local `[u8; 4]` | Convert with `Rgba::to_rgba8` |
-| `const NAME: i32/u32/f32 = <number>` in `password.rs`, `controls.rs`, `theme.rs` | Measurements live in `ctdesign` |
+| `const NAME: i32/u32/f32 = <number>` in `password.rs`, `controls/`, `theme.rs` | Measurements live in `ctdesign` |
 
 ## Related
 

@@ -30,7 +30,7 @@ fi
 
 if matches=$(production \
     crates/bk/src/password.rs \
-    crates/bk/src/controls.rs \
+    crates/bk/src/controls \
     crates/bk/src/theme.rs |
     grep -E ':[0-9]+:[[:space:]]*const [A-Z0-9_]+: (i32|u32|f32) = [0-9]'); then
     report "UI measurements must live in ctdesign" "$matches"
