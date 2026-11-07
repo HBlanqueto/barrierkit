@@ -158,7 +158,7 @@ struct Glyphs {
     page: usize,
     ids: Vec<u16>,
     positions: Vec<(f32, f32)>,
-    clusters: Vec<String>,
+    starts: Vec<u32>,
 }
 
 struct EmbeddedFont {
@@ -187,15 +187,6 @@ fn glyph_runs(layout: &mut TextLayout, text: &str) -> (Vec<Glyphs>, Vec<Embedded
                 });
                 fonts.len() - 1
             });
-        let starts_utf8 = info.utf8_starts();
-        let clusters = (0..info.count())
-            .map(|index| {
-                let (from, to) = (starts_utf8[index] as usize, starts_utf8[index + 1] as usize);
-                text.get(from.min(to)..to.max(from))
-                    .unwrap_or_default()
-                    .to_owned()
-            })
-            .collect();
         let origin = info.origin();
         runs.push(Glyphs {
             font,
@@ -207,12 +198,20 @@ fn glyph_runs(layout: &mut TextLayout, text: &str) -> (Vec<Glyphs>, Vec<Embedded
                 .iter()
                 .map(|point| (origin.x + point.x, origin.y + point.y))
                 .collect(),
-            clusters,
+            starts: info.utf8_starts()[..info.count()].to_vec(),
         });
     });
+    let mut bounds: Vec<usize> = runs
+        .iter()
+        .flat_map(|run| run.starts.iter().map(|&start| start as usize))
+        .chain([text.len()])
+        .collect();
+    bounds.sort_unstable();
+    bounds.dedup();
     for run in &mut runs {
         let font = &mut fonts[run.font];
-        for (&id, cluster) in run.ids.iter().zip(&run.clusters) {
+        let clusters = cluster_texts(text, &run.starts, &bounds);
+        for (&id, cluster) in run.ids.iter().zip(&clusters) {
             let fresh = font.remapper.get(id).is_none();
             let new = font.remapper.remap(id);
             if fresh && !cluster.is_empty() {
@@ -221,6 +220,28 @@ fn glyph_runs(layout: &mut TextLayout, text: &str) -> (Vec<Glyphs>, Vec<Embedded
         }
     }
     (runs, fonts)
+}
+
+// Glyphs come in visual order, so in a right-to-left run the starts fall: a cluster ends at the
+// next larger start of the paragraph, and only its first glyph carries the text.
+fn cluster_texts(text: &str, starts: &[u32], bounds: &[usize]) -> Vec<String> {
+    let mut seen = Vec::new();
+    starts
+        .iter()
+        .map(|&start| {
+            let from = start as usize;
+            if seen.contains(&from) {
+                return String::new();
+            }
+            seen.push(from);
+            let to = bounds
+                .iter()
+                .copied()
+                .find(|&bound| bound > from)
+                .unwrap_or(from);
+            text.get(from..to).unwrap_or_default().to_owned()
+        })
+        .collect()
 }
 
 struct Bitmap {
@@ -326,8 +347,8 @@ fn write_font(
     let postscript = face
         .names()
         .into_iter()
-        .find(|name| name.name_id == ttf_parser::name_id::POST_SCRIPT_NAME)
-        .and_then(|name| name.to_string())
+        .filter(|name| name.name_id == ttf_parser::name_id::POST_SCRIPT_NAME)
+        .find_map(|name| name.to_string())
         .unwrap_or_else(|| "Font".into());
     let base = format!("{}+{postscript}", subset_tag(index));
     let cff = face.tables().cff.is_some();
@@ -592,6 +613,28 @@ mod tests {
         assert_eq!(page_of(&starts, 20.0), 1);
         assert_eq!(page_of(&starts, 39.0), 1);
         assert_eq!(page_of(&starts, 55.0), 2);
+    }
+
+    #[test]
+    fn a_right_to_left_run_maps_each_glyph_to_its_own_letters() {
+        let text = "שלום";
+        let starts = [6, 4, 2, 0];
+        let bounds = [0, 2, 4, 6, 8];
+        assert_eq!(
+            super::cluster_texts(text, &starts, &bounds),
+            ["ם", "ו", "ל", "ש"]
+        );
+    }
+
+    #[test]
+    fn a_cluster_of_several_glyphs_gives_its_text_to_the_first_one() {
+        let text = "ae\u{301}b";
+        let starts = [0, 1, 1, 4];
+        let bounds = [0, 1, 4, 5];
+        assert_eq!(
+            super::cluster_texts(text, &starts, &bounds),
+            ["a", "e\u{301}", "", "b"]
+        );
     }
 
     #[test]
