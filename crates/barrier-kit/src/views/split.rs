@@ -7,6 +7,7 @@ use torin::prelude::{Content, Direction, Gaps, Position, Size};
 use vow_appearance::SidebarStyle;
 use vow_design::{DURATION_BASE, DURATION_FAST_MS, SIDEBAR, SPLIT_VIEW};
 
+use crate::ProbeExt;
 use crate::animation::Spring;
 use crate::app::{Action, Shortcut, ShortcutKey};
 use crate::compact::IconButton;
@@ -77,13 +78,15 @@ pub struct SidebarToggle;
 impl Component for SidebarToggle {
     fn render(&self) -> impl IntoElement {
         let control = sidebar_control();
-        IconButton::new(Symbol::SidebarLeft, TOGGLE_SIDEBAR.title())
-            .disabled(control.is_none())
-            .on_press(move |_| {
-                if let Some(control) = control {
-                    control.toggle();
-                }
-            })
+        rect().probe("sidebar-toggle").child(
+            IconButton::new(Symbol::SidebarLeft, TOGGLE_SIDEBAR.title())
+                .disabled(control.is_none())
+                .on_press(move |_| {
+                    if let Some(control) = control {
+                        control.toggle();
+                    }
+                }),
+        )
     }
 }
 

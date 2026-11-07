@@ -1231,7 +1231,7 @@ fn typing_digits_fills_each_date_part_and_moves_to_the_next() {
     test.sync_and_update();
     test.press_key(Key::Named(NamedKey::Tab));
     test.sync_and_update();
-    for digit in ["0", "3", "2", "5"] {
+    for digit in ["0", "5", "0", "5"] {
         test.write_text(digit);
     }
     test.press_key(Key::Named(NamedKey::ArrowRight));
@@ -1240,6 +1240,6 @@ fn typing_digits_fills_each_date_part_and_moves_to_the_next() {
     test.sync_and_update();
     assert_eq!(
         seen.get(),
-        CivilDateTime::new(CivilDate::new(2026, 3, 25), 18, 30)
+        CivilDateTime::new(CivilDate::new(2026, 5, 5), 18, 30)
     );
 }

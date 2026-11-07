@@ -1007,7 +1007,7 @@ fn the_sidebar_toggle_hides_and_shows_the_sidebar() {
         "the sidebar starts visible"
     );
     let toggle = |test: &mut TestingRunner| {
-        let area = labelled(test, "Mostrar u ocultar la barra lateral").expect("toggle");
+        let area = probed(test, "sidebar-toggle").expect("toggle");
         test.click_cursor((f64::from(area.center().x), f64::from(area.center().y)));
         test.poll(Duration::from_millis(16), Duration::from_millis(100));
     };
@@ -1038,12 +1038,7 @@ fn the_traffic_lights_stay_in_place_when_the_sidebar_hides() {
     };
     let open = lights(&test);
     assert!(!open.is_empty(), "the sidebar shows the lights");
-    let toggle = test
-        .find(|node, el| {
-            (el.accessibility().builder.label() == Some("Mostrar u ocultar la barra lateral"))
-                .then(|| node.layout().area)
-        })
-        .expect("toggle");
+    let toggle = probed(&test, "sidebar-toggle").expect("toggle");
     test.click_cursor((f64::from(toggle.center().x), f64::from(toggle.center().y)));
     test.poll(Duration::from_millis(16), Duration::from_millis(100));
     let hidden = lights(&test);
@@ -1085,10 +1080,16 @@ fn narrow_runner(mode: NarrowSidebar) -> TestingRunner {
         1.0,
     );
     test.poll(Duration::from_millis(16), Duration::from_millis(100));
-    let area = labelled(&test, "Mostrar u ocultar la barra lateral").expect("toggle");
+    let area = probed(&test, "sidebar-toggle").expect("toggle");
     test.click_cursor((f64::from(area.center().x), f64::from(area.center().y)));
     test.poll(Duration::from_millis(16), Duration::from_millis(100));
     test
+}
+
+fn probed(test: &TestingRunner, id: &str) -> Option<torin::prelude::Area> {
+    test.find(|node, el| {
+        (el.accessibility().builder.author_id() == Some(id)).then(|| node.layout().area)
+    })
 }
 
 fn labelled(test: &TestingRunner, label: &str) -> Option<torin::prelude::Area> {
