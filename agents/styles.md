@@ -4,9 +4,9 @@
 blur, shape, corners, size, shadow, layout, direction, animation, color
 algorithm) for one control, a container or the whole app, or build a theme
 that does not look like Tengen.
-**Scope:** the styling system of [ADR 0064](../decisions/0064-styles-and-themes.md).
+**Scope:** the styling system of [ADR 0064](../docs/decisions/0064-styles-and-themes.md).
 Writing an app in general is in [`prompt.md`](prompt.md); colors and tokens
-are in [4. Appearance and tokens](../barrierkit/04-appearance-and-tokens.md).
+are in [4. Appearance and tokens](../docs/barrierkit/04-appearance-and-tokens.md).
 **Reader:** an AI agent. Read it whole before styling anything.
 **Input:** a description of the look. **Output:** style code at the right
 level, checked against [Rules](#rules).
@@ -85,7 +85,7 @@ All of them are in `bk::styles` and in the prelude.
 | `ShapeStyle` | any paint | `Role(Role)` follows light/dark/contrast · `Accent` follows the accent (system, app or `Backdrop`; inactive window) · `Color(Rgba)` fixed · `Gradient(Gradient)` · `Backdrop` the gradient of the surrounding `Backdrop`, the accent without one · `Material(Thickness)` translucency with blur · `Clear` nothing |
 | `Role` | a semantic color | every color of `Palette` but `accent` (that is `ShapeStyle::Accent`): `Label`, `SecondaryLabel`, `TertiaryLabel`, `Separator`, `ControlBorder`, `WindowBackground`, `ContentBackground`, `ControlBackground`, `ControlHover`, `AccentInactive`, `OnAccent`, `Destructive`, `RaisedBackground`, `SunkenBackground`, `Scrim`, `SelectedControl`, `CardBorder` |
 | `Gradient` | a gradient paint | `Gradient::new(angle, stops)`; `angle` in degrees, `stops: Vec<(ShapeStyle, f32)>` with positions 0–1 |
-| `Thickness` | how translucent a material is | `UltraThin`, `Thin`, `Regular`, `Thick`, `UltraThick`; opacity and blur from `MATERIAL` ([4](../barrierkit/04-appearance-and-tokens.md#materials)) |
+| `Thickness` | how translucent a material is | `UltraThin`, `Thin`, `Regular`, `Thick`, `UltraThick`; opacity and blur from `MATERIAL` ([4](../docs/barrierkit/04-appearance-and-tokens.md#materials)) |
 | `StateValue<T>` | a value that changes with the state | `StateValue::new(normal)` and `.hovered(..)`, `.pressed(..)`, `.focused(..)`, `.disabled(..)`; the first set one wins in the order disabled, pressed, hovered, focused, then `normal` |
 | `ControlState` | the state of a control | `hovered`, `pressed`, `focused`, `disabled` (`bool`) |
 | `Shape` | the outline of a part | `Rectangle`, `RoundedRectangle { radius, style }`, `UnevenRoundedRectangle { top_leading, bottom_leading, bottom_trailing, top_trailing, style }`, `Capsule`, `Circle` (a capsule on a part that is not square) |
@@ -212,7 +212,7 @@ Button::new("Delete").style(|s| ButtonStyle {
 | `opacity` | `f32` | `1.0` |
 | `disabled_opacity` | `f32` | `SWITCH.disabled_opacity`, for the switch and its label |
 | `effect` | `ColorEffect` | `system_effect` |
-| `label_position` | `Option<Edge>` | `None`: the label is only accessible, as in a [form row](../barrierkit/11-views.md); `Leading` and `Trailing` put it beside the switch, `Top` and `Bottom` above and below |
+| `label_position` | `Option<Edge>` | `None`: the label is only accessible, as in a [form row](../docs/barrierkit/11-views.md); `Leading` and `Trailing` put it beside the switch, `Top` and `Bottom` above and below |
 | `layout_direction` | `LayoutDirection` | `LeftToRight`; `RightToLeft` puts the knob of a switch that is on at the left and swaps `Leading` and `Trailing` |
 | `label_font` | `Font` | `BODY` |
 | `animation` | `Animation` | `Ease { duration_ms: SWITCH.transition_ms }`: the knob slides; `None` makes it jump |
@@ -523,7 +523,7 @@ draws from its `ButtonStyle`.
 | `opacity`, `effect` | `f32`, `ColorEffect` | `1.0`, `system_effect` |
 | `font` | `Font` | `BODY` |
 
-States: hovered, pressed, focused. The menu it opens is a [menu view](../barrierkit/07-menus-and-popovers.md).
+States: hovered, pressed, focused. The menu it opens is a [menu view](../docs/barrierkit/07-menus-and-popovers.md).
 
 ### ComboBoxStyle
 
@@ -987,7 +987,7 @@ chrome. Its paints are `focused` while the window is active.
 |---|---|---|
 | `layout` | `TitlebarLayout` | `Top`; `Rail` for the vertical bar |
 | `rail_style` | `RailStyle` | `Normal`; `Unified` puts the column inside the sidebar |
-| `reveal` | `Reveal` | `Always` ([9](../barrierkit/09-titlebars.md#reveal)) |
+| `reveal` | `Reveal` | `Always` ([9](../docs/barrierkit/09-titlebars.md#reveal)) |
 | `resting_edge` | `RestingEdge` | `None`; `Line` draws `line_edge`, `Accent` `accent_edge` |
 | `round_lights` | `bool` | `false`; `true` makes the window's traffic lights round |
 | `rail_width` | `f32` | `TITLEBAR_RAIL.width`, at least `TITLEBAR_RAIL.actions_width` with rail items |
@@ -1324,7 +1324,7 @@ With the `video` feature.
 
 `MenuStyle` is `ctdesign::MenuPalette`: every color and metric of a menu, a
 pop-up menu, the popover background and the tooltip. Its fields and their
-groups are in [4. Appearance and tokens](../barrierkit/04-appearance-and-tokens.md#token-types).
+groups are in [4. Appearance and tokens](../docs/barrierkit/04-appearance-and-tokens.md#token-types).
 
 | Tengen | Comes from |
 |---|---|
@@ -1547,7 +1547,7 @@ the [paint on views](#paint-on-views) and Freya's methods.
 
 Every style implements `ControlStyle`: `tengen()` and the accessibility rules
 of its control. The rollout order is in
-[ADR 0064](../decisions/0064-styles-and-themes.md#5-rollout).
+[ADR 0064](../docs/decisions/0064-styles-and-themes.md#5-rollout).
 
 ## Rules
 
@@ -1559,4 +1559,4 @@ of its control. The rollout order is in
 3. New default values go to `ctdesign`, never into `bk`.
 4. Do not imitate a control with `rect()` to change its look.
 5. Put a style on the smallest level that covers the request.
-6. Every name here is in the [glossary](../barrierkit/20-glossary.md).
+6. Every name here is in the [glossary](../docs/barrierkit/20-glossary.md).

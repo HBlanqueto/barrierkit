@@ -6,7 +6,7 @@ AppKit, and name new items the same way.
 `ctappearance`, with its SwiftUI and AppKit equivalent and the chapter that
 documents it. Methods are in the chapters, not here.
 **Reader:** anyone who writes an app with the kit, adds an item to it, or is an
-AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
+AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 **Input:** a name. **Output:** its counterpart and the chapter to read.
 
 ## Steps
@@ -103,200 +103,200 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 
 | BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
 |---|---|---|---|---|---|
-| `styles` | module | — | — | Value types of the styling system, `Theme`, `StyleScope` and the control styles | [Styles](../ai/styles.md) |
-| `styles::ShapeStyle` | enum | `ShapeStyle` | ≈ `NSColor` | Paint of a part: a role, the accent, a fixed color, a gradient, the backdrop, a material or nothing | [Styles](../ai/styles.md#value-types) |
-| `styles::Role` | enum | ≈ semantic `Color` (`.primary`, `.secondary`) | ≈ `NSColor.labelColor`… | One color of the `Palette` (all but `accent`), resolved late | [Styles](../ai/styles.md#value-types) |
-| `styles::Gradient` | struct | `LinearGradient` | `NSGradient` | Linear gradient: an angle and stops of `ShapeStyle` | [Styles](../ai/styles.md#value-types) |
-| `styles::Thickness` | enum | `Material` (`.ultraThin`…`.ultraThick`) | `NSVisualEffectView.Material` | How translucent and blurred a material is; values in `MATERIAL` | [Styles](../ai/styles.md#value-types) |
-| `styles::StateValue` | struct | — | — | A value with optional hovered, pressed, focused and disabled values | [Styles](../ai/styles.md#value-types) |
-| `styles::ControlState` | struct | ≈ `ButtonStyle.Configuration` (`isPressed`) | ≈ `NSControl.isHighlighted`, `isEnabled` | Hovered, pressed, focused and disabled flags of a control | [Styles](../ai/styles.md#value-types) |
-| `styles::Shape` | enum | `Rectangle`, `RoundedRectangle`, `UnevenRoundedRectangle`, `Capsule`, `Circle` | ≈ `NSBezierPath` | Outline of a part | [Styles](../ai/styles.md#value-types) |
-| `styles::CornerStyle` | enum | `RoundedCornerStyle` | — | `Continuous` or `Circular` corners | [Styles](../ai/styles.md#value-types) |
-| `styles::ShadowStyle` | struct | `ShadowStyle` (`.drop`, `.inner`) | `NSShadow` | One shadow: color, x, y, blur, spread, inner | [Styles](../ai/styles.md#value-types) |
-| `styles::Animation` | enum | `Animation` | ≈ `NSAnimationContext` | How a change moves: `None`, `Ease`, `Spring`, `Custom` | [Styles](../ai/styles.md#value-types) |
-| `styles::ColorEffect` | type | — | ≈ `NSColor.withSystemEffect(_:)` | `fn(Rgba, ControlState) -> Rgba` applied to every paint of a control | [Styles](../ai/styles.md#value-types) |
-| `styles::system_effect` | fn | — | ≈ `NSColor.SystemEffect` | Tengen's color effect: returns the color unchanged | [Styles](../ai/styles.md#value-types) |
-| `styles::Axis` | enum | `Axis` | `NSUserInterfaceLayoutOrientation` | `Horizontal` or `Vertical` | [Styles](../ai/styles.md#value-types) |
-| `styles::Edge` | enum | `Edge` | `NSRectEdge` | `Top`, `Bottom`, `Leading`, `Trailing` | [Styles](../ai/styles.md#value-types) |
-| `styles::LayoutDirection` | enum | `LayoutDirection` | `NSUserInterfaceLayoutDirection` | `LeftToRight` or `RightToLeft` | [Styles](../ai/styles.md#value-types) |
-| `styles::ControlStyle` | trait | ≈ the style protocols (`ButtonStyle`, `ToggleStyle`) | ≈ `NSCell` | Implemented by every control style: `tengen()` and the accessibility rules of its control | [Styles](../ai/styles.md#which-controls-take-a-style) |
-| `styles::SliderStyle` | struct | ≈ `ButtonStyle` | ≈ `NSSliderCell` | Every visual property of `Slider`; `tengen()` builds the default from the tokens | [Styles](../ai/styles.md#the-fields-of-a-style) |
-| `styles::ButtonStyle` | struct | `ButtonStyle`, `PrimitiveButtonStyle` | ≈ `NSButtonCell`, `NSButton.BezelStyle` | Every visual property of `Button`; `tengen()` is `.bordered` | [Styles](../ai/styles.md#buttonstyle) |
-| `styles::ButtonStyle::bordered_prominent` | method | `PrimitiveButtonStyle.borderedProminent` | ≈ `NSButton.keyEquivalent` `"\r"` | Preset: accent fill, `on_accent` label | [Styles](../ai/styles.md#buttonstyle) |
-| `styles::ButtonStyle::glass` | method | `PrimitiveButtonStyle.glass` | ≈ `NSButton.BezelStyle.glass` | Preset: raised capsule with a hairline rim | [Styles](../ai/styles.md#buttonstyle) |
-| `styles::ButtonStyle::glass_prominent` | method | `PrimitiveButtonStyle.glassProminent` | — | Preset: accent capsule with a hairline rim | [Styles](../ai/styles.md#buttonstyle) |
-| `styles::ButtonStyle::borderless` | method | `PrimitiveButtonStyle.borderless` | `NSButton.isBordered` `false` | Preset: no background until hovered | [Styles](../ai/styles.md#buttonstyle) |
-| `styles::SwitchStyle` | struct | `SwitchToggleStyle` | ≈ `NSSwitch` | Every visual property of `Switch`, with the label position | [Styles](../ai/styles.md#switchstyle) |
-| `styles::CheckboxStyle` | struct | `CheckboxToggleStyle` | ≈ `NSButtonCell` | Every visual property of `Checkbox`, with the label position | [Styles](../ai/styles.md#checkboxstyle) |
-| `styles::SegmentedControlStyle` | struct | `SegmentedPickerStyle` | ≈ `NSSegmentedCell` | Every visual property of `SegmentedControl`, with its axis | [Styles](../ai/styles.md#segmentedcontrolstyle) |
-| `styles::ToolGroupStyle` | struct | — | — | Every visual property of `ToolGroup`, with its axis | [Styles](../ai/styles.md#toolgroupstyle) |
-| `styles::TextFieldStyle` | struct | `TextFieldStyle` | ≈ `NSTextFieldCell` | Every visual property of `TextField` | [Styles](../ai/styles.md#textfieldstyle-searchfieldstyle-and-securefieldstyle) |
-| `styles::SearchFieldStyle` | struct | — | ≈ `NSSearchFieldCell` | Every visual property of `SearchField` | [Styles](../ai/styles.md#textfieldstyle-searchfieldstyle-and-securefieldstyle) |
-| `styles::SecureFieldStyle` | struct | ≈ `TextFieldStyle` | ≈ `NSSecureTextFieldCell` | Every visual property of `SecureField` | [Styles](../ai/styles.md#textfieldstyle-searchfieldstyle-and-securefieldstyle) |
-| `styles::LevelSliderStyle` | struct | — | ≈ `NSSliderCell` | Every visual property of `LevelSlider`, with the layout direction | [Styles](../ai/styles.md#levelsliderstyle) |
-| `styles::LevelSliderStyle::fat` | method | — | — | Preset: the 22 tall Control Center bar without a knob, with a symbol | [Styles](../ai/styles.md#levelsliderstyle) |
-| `styles::RadioGroupStyle` | struct | `RadioGroupPickerStyle` | ≈ `NSButtonCell` (radio) | Every visual property of `RadioGroup`, with the axis and the label position | [Styles](../ai/styles.md#radiogroupstyle) |
-| `styles::ColorWellStyle` | struct | ≈ `PalettePickerStyle` | ≈ `NSColorWell.Style` | Every visual property of `ColorWell`, with the axis and wrapping of the swatches | [Styles](../ai/styles.md#colorwellstyle-and-choicecardsstyle) |
-| `styles::ChoiceCardsStyle` | struct | — | — | Every visual property of `ChoiceCards`, with the axis and wrapping of the cards | [Styles](../ai/styles.md#colorwellstyle-and-choicecardsstyle) |
-| `styles::IconButtonStyle` | struct | ≈ `BorderlessButtonStyle` | ≈ `NSButtonCell` | Every visual property of `IconButton` and `ToolbarOverflow` | [Styles](../ai/styles.md#iconbuttonstyle) |
-| `styles::StepperStyle` | struct | — | ≈ `NSStepperCell` | Every visual property of `Stepper` and of the arrows of `DatePicker`, with the value position | [Styles](../ai/styles.md#stepperstyle) |
-| `styles::ToggleGroupStyle` | struct | — | ≈ `NSSegmentedCell` | Every visual property of `ToggleGroup`, with its axis | [Styles](../ai/styles.md#togglegroupstyle) |
-| `styles::ToolbarSearchStyle` | struct | — | ≈ `NSSearchToolbarItem` | Width of `ToolbarSearch`; its field and button take their own styles | [Styles](../ai/styles.md#toolbarsearchstyle) |
-| `styles::MenuButtonStyle` | struct | `ButtonMenuStyle` | ≈ `NSPopUpButtonCell` (pull-down) | Every visual property of `MenuButton` and `ShareLink` | [Styles](../ai/styles.md#menubuttonstyle-combobuttonstyle-and-helplinkstyle) |
-| `styles::ComboButtonStyle` | struct | ≈ `MenuStyle` | `NSComboButton.Style` | Every visual property of `ComboButton` | [Styles](../ai/styles.md#menubuttonstyle-combobuttonstyle-and-helplinkstyle) |
-| `styles::HelpLinkStyle` | struct | — | ≈ `NSButton.BezelStyle.helpButton` | Every visual property of `HelpLink` | [Styles](../ai/styles.md#menubuttonstyle-combobuttonstyle-and-helplinkstyle) |
-| `styles::ControlGroupStyle` | struct | `ControlGroupStyle` | — | Every visual property of `ControlGroup`: background and separators | [Styles](../ai/styles.md#controlgroupstyle) |
-| `styles::PopUpButtonStyle` | struct | `MenuPickerStyle` | ≈ `NSPopUpButtonCell` | Every visual property of `PopUpButton`: label, indicator and chevron | [Styles](../ai/styles.md#popupbuttonstyle) |
-| `styles::ComboBoxStyle` | struct | — | ≈ `NSComboBoxCell` | The arrow button of `ComboBox`; its field takes `TextFieldStyle` | [Styles](../ai/styles.md#comboboxstyle) |
-| `styles::TokenFieldStyle` | struct | — | ≈ `NSTokenFieldCell` | Every visual property of `TokenField` and of the tokens of `SearchField` | [Styles](../ai/styles.md#tokenfieldstyle) |
-| `styles::DatePickerStyle` | struct | `DatePickerStyle` | ≈ `NSDatePickerCell` | Every visual property of `DatePicker` and its calendar; its arrows take `StepperStyle` | [Styles](../ai/styles.md#datepickerstyle) |
-| `styles::PathControlStyle` | struct | — | ≈ `NSPathControlItem` | Every visual property of `PathControl` | [Styles](../ai/styles.md#pathcontrolstyle) |
-| `styles::ImageWellStyle` | struct | — | ≈ `NSImageCell` | Every visual property of `ImageWell`, with its drop border | [Styles](../ai/styles.md#imagewellstyle) |
-| `styles::ColorPickerStyle` | struct | — | ≈ `NSColorWell.Style` | Every visual property of `ColorPicker` and its panel but the color | [Styles](../ai/styles.md#colorpickerstyle) |
-| `styles::ProgressViewStyle` | struct | `LinearProgressViewStyle` | ≈ `NSProgressIndicator.Style` | Every visual property of `ProgressView`, with its sweep | [Styles](../ai/styles.md#progressviewstyle-progressringstyle-and-spinnerstyle) |
-| `styles::ProgressRingStyle` | struct | `CircularProgressViewStyle` | ≈ `NSProgressIndicator.Style` | Every visual property of `ProgressRing` | [Styles](../ai/styles.md#progressviewstyle-progressringstyle-and-spinnerstyle) |
-| `styles::SpinnerStyle` | struct | ≈ `CircularProgressViewStyle` | ≈ `NSProgressIndicator.Style` | Every visual property of `Spinner`, with its turn | [Styles](../ai/styles.md#progressviewstyle-progressringstyle-and-spinnerstyle) |
-| `styles::CapacityIndicatorStyle` | struct | ≈ `GaugeStyle` | ≈ `NSLevelIndicatorCell` | Every visual property of `CapacityIndicator` | [Styles](../ai/styles.md#capacityindicatorstyle) |
-| `styles::RelevancyIndicatorStyle` | struct | — | ≈ `NSLevelIndicatorCell` | Every visual property of `RelevancyIndicator` | [Styles](../ai/styles.md#relevancyindicatorstyle-ratingindicatorstyle-and-gaugestyle) |
-| `styles::RatingIndicatorStyle` | struct | — | ≈ `NSLevelIndicatorCell` | Every visual property of `RatingIndicator` | [Styles](../ai/styles.md#relevancyindicatorstyle-ratingindicatorstyle-and-gaugestyle) |
-| `styles::GaugeStyle` | struct | `GaugeStyle` | — | Every visual property of `Gauge` | [Styles](../ai/styles.md#relevancyindicatorstyle-ratingindicatorstyle-and-gaugestyle) |
-| `styles::MediaButtonStyle` | struct | ≈ `ButtonStyle` | — | Every visual property of `MediaButton` | [Styles](../ai/styles.md#mediabuttonstyle-and-roundbuttonstyle) |
-| `styles::RoundButtonStyle` | struct | ≈ `ButtonStyle` | — | Every visual property of `RoundButton` | [Styles](../ai/styles.md#mediabuttonstyle-and-roundbuttonstyle) |
-| `styles::LinkStyle` | struct | `LinkButtonStyle` | — | Every visual property of `Link` | [Styles](../ai/styles.md#linkstyle) |
-| `styles::TextStyle` | struct | ≈ `.font(_:)` and `.foregroundStyle(_:)` in the environment | ≈ `NSTextField.font`, `textColor` | Default font and paint of every `Text` | [Styles](../ai/styles.md#textstyle-badgestyle-dividerstyle-avatarstyle-and-imagestyle) |
-| `styles::BadgeStyle` | struct | ≈ `.badgeProminence(_:)` | — | Every visual property of `Badge` | [Styles](../ai/styles.md#textstyle-badgestyle-dividerstyle-avatarstyle-and-imagestyle) |
-| `styles::DividerStyle` | struct | — | ≈ `NSBox` (separator) | Thickness and paint of `Divider` | [Styles](../ai/styles.md#textstyle-badgestyle-dividerstyle-avatarstyle-and-imagestyle) |
-| `styles::AvatarStyle` | struct | — | — | Every visual property of `Avatar` | [Styles](../ai/styles.md#textstyle-badgestyle-dividerstyle-avatarstyle-and-imagestyle) |
-| `styles::ImageStyle` | struct | ≈ `.imageScale(_:)`, `.foregroundStyle(_:)` | — | Default size and paint of every `Image` | [Styles](../ai/styles.md#textstyle-badgestyle-dividerstyle-avatarstyle-and-imagestyle) |
-| `styles::MaterialStyle` | struct | `Material` | ≈ `NSVisualEffectView.Material` | Tint, blur and rim of `Material` | [Styles](../ai/styles.md#materialstyle-topglassstyle-and-glasscontainerstyle) |
-| `styles::TopGlassStyle` | struct | ≈ `.scrollEdgeEffectStyle(_:for:)` | — | Tint and glass metrics of `TopGlass` | [Styles](../ai/styles.md#materialstyle-topglassstyle-and-glasscontainerstyle) |
-| `styles::GlassContainerStyle` | struct | ≈ `.glassEffect(_:in:)` | ≈ `NSGlassEffectView` | Tint, solid color, rim, blur and morph of `GlassContainer` | [Styles](../ai/styles.md#materialstyle-topglassstyle-and-glasscontainerstyle) |
-| `styles::BackdropStyle` | struct | — | — | Angles, opacity and fade of the gradient layers of `Backdrop` | [Styles](../ai/styles.md#backdropstyle) |
-| `styles::ScrollViewStyle` | struct | ≈ `.scrollIndicators(_:axes:)` | ≈ `NSScroller.KnobStyle` | Every visual property of the bar, edge fade and top line of `ScrollView` | [Styles](../ai/styles.md#scrollviewstyle) |
-| `styles::TextEditorStyle` | struct | `TextEditorStyle` | ≈ `NSTextView` (`backgroundColor`, `textColor`) | Every visual property of `TextEditor` | [Styles](../ai/styles.md#texteditorstyle) |
-| `styles::RuleEditorStyle` | struct | — | ≈ `NSRuleEditor` | Gaps, indent and header text of `RuleEditor` | [Styles](../ai/styles.md#ruleeditorstyle) |
-| `styles::PrintPreviewStyle` | struct | — | — | Gaps, page background, shadows and page numbers of `PrintPreview` | [Styles](../ai/styles.md#printpreviewstyle) |
-| `styles::ChartStyle` | struct | ≈ `.chartForegroundStyleScale(_:)`, `.chartPlotStyle(content:)` | — | Every visual property of `Chart`, `SectorChart`, `HeatMap`, `StreamChart` and `Chart3D` | [Styles](../ai/styles.md#chartstyle) |
-| `styles::TitlebarStyle` | struct | ≈ `WindowToolbarStyle` | ≈ `NSWindow.ToolbarStyle`, `NSTitlebarSeparatorStyle` | Every visual property of `Titlebar`: heights, paddings, background, title and hairline | [Styles](../ai/styles.md#titlebarstyle-and-fullscreenbarstyle) |
-| `styles::FullscreenBarStyle` | struct | — | — | Tint, line and metrics of the full-screen bars; theme and container only | [Styles](../ai/styles.md#titlebarstyle-and-fullscreenbarstyle) |
-| `styles::TrafficLightsStyle` | struct | — | ≈ `NSWindow.standardWindowButton(_:)` | Size, gap, shape and the fill, rim and glyph of each traffic light per state | [Styles](../ai/styles.md#trafficlightsstyle) |
-| `styles::WindowChromeStyle` | struct | ≈ `WindowStyle` | — | Layout, reveal and resting edge of `WindowChrome`, and every visual property of its rail and pill | [Styles](../ai/styles.md#windowchromestyle) |
-| `styles::SidebarStyle` | struct | ≈ `SidebarListStyle` | ≈ `NSTableView.Style.sourceList` | Paddings, lights position, shape, background and borders of `Sidebar`; not `ctappearance::SidebarStyle` | [Styles](../ai/styles.md#sidebarstyle-sidebaritemstyle-sidebarsectionstyle-sidebaraccountstyle-and-symboltilestyle) |
-| `styles::SidebarItemStyle` | struct | ≈ `.listItemTint(_:)` | ≈ `NSTableCellView` | Every visual property of `SidebarItem`, selected and not | [Styles](../ai/styles.md#sidebarstyle-sidebaritemstyle-sidebarsectionstyle-sidebaraccountstyle-and-symboltilestyle) |
-| `styles::SidebarSectionStyle` | struct | — | — | Every visual property of `SidebarSection` and its fold | [Styles](../ai/styles.md#sidebarstyle-sidebaritemstyle-sidebarsectionstyle-sidebaraccountstyle-and-symboltilestyle) |
-| `styles::SidebarAccountStyle` | struct | — | — | Every visual property of `SidebarAccount` but its avatar | [Styles](../ai/styles.md#sidebarstyle-sidebaritemstyle-sidebarsectionstyle-sidebaraccountstyle-and-symboltilestyle) |
-| `styles::SymbolTileStyle` | struct | — | — | Size, shape, paints and border of `SymbolTile` | [Styles](../ai/styles.md#sidebarstyle-sidebaritemstyle-sidebarsectionstyle-sidebaraccountstyle-and-symboltilestyle) |
-| `styles::SplitViewStyle` | struct | ≈ `NavigationSplitViewStyle` | ≈ `NSSplitView.DividerStyle` | Inset, grip, background, scrim, inspector line and animations of `SplitView` | [Styles](../ai/styles.md#splitviewstyle-splitpanesstyle-and-floatingpanestyle) |
-| `styles::SplitPanesStyle` | struct | — | ≈ `NSSplitView.DividerStyle` | Width and paint of the dividers of `SplitPanes` | [Styles](../ai/styles.md#splitviewstyle-splitpanesstyle-and-floatingpanestyle) |
-| `styles::FloatingPaneStyle` | struct | — | ≈ `NSPanel` | Every visual property of `FloatingPane` | [Styles](../ai/styles.md#splitviewstyle-splitpanesstyle-and-floatingpanestyle) |
-| `styles::FormStyle` | struct | `FormStyle` (`.grouped`) | — | Every visual property of `Form`, its sections and rows | [Styles](../ai/styles.md#formstyle-groupboxstyle-and-disclosuregroupstyle) |
-| `styles::GroupBoxStyle` | struct | `GroupBoxStyle` | ≈ `NSBox` | Every visual property of `GroupBox` | [Styles](../ai/styles.md#formstyle-groupboxstyle-and-disclosuregroupstyle) |
-| `styles::DisclosureGroupStyle` | struct | `DisclosureGroupStyle` | ≈ `NSButton.BezelStyle.disclosure` | Every visual property of `DisclosureGroup` | [Styles](../ai/styles.md#formstyle-groupboxstyle-and-disclosuregroupstyle) |
-| `styles::TableStyle` | struct | `TableStyle` | ≈ `NSTableView.Style`, `NSTableHeaderCell` | Every visual property of `Table`, its header cells and rows | [Styles](../ai/styles.md#tablestyle-collectionviewstyle-and-outlineviewstyle) |
-| `styles::CollectionViewStyle` | struct | — | ≈ `NSCollectionViewItem` | Every visual property of `CollectionView` and its tiles | [Styles](../ai/styles.md#tablestyle-collectionviewstyle-and-outlineviewstyle) |
-| `styles::OutlineViewStyle` | struct | ≈ `ListStyle` | ≈ `NSOutlineView`, `NSBrowser` | Every visual property of `OutlineView` and `Browser` | [Styles](../ai/styles.md#tablestyle-collectionviewstyle-and-outlineviewstyle) |
-| `styles::TabViewStyle` | struct | `TabViewStyle` | ≈ `NSTabView` | Every visual property of `TabView` and its tabs | [Styles](../ai/styles.md#tabviewstyle-and-windowtabsstyle) |
-| `styles::WindowTabsStyle` | struct | — | ≈ `NSWindowTabGroup` | Every visual property of `WindowTabs` and its tabs | [Styles](../ai/styles.md#tabviewstyle-and-windowtabsstyle) |
-| `styles::TextViewStyle` | struct | ≈ `TextEditorStyle` | ≈ `NSTextView` (`textColor`, `insertionPointColor`) | Paint of the text and caret of `TextView` | [Styles](../ai/styles.md#textviewstyle) |
-| `styles::SheetStyle` | struct | ≈ `presentationBackground(_:)` | ≈ `NSWindow` sheet | Every visual property of `Sheet` and of the sheet under an `Alert` | [Styles](../ai/styles.md#sheetstyle-alertstyle-and-contentunavailableviewstyle) |
-| `styles::AlertStyle` | struct | — | ≈ `NSAlert` | Every visual property of `Alert` but its sheet, buttons and checkbox | [Styles](../ai/styles.md#sheetstyle-alertstyle-and-contentunavailableviewstyle) |
-| `styles::ContentUnavailableViewStyle` | struct | — | — | Every visual property of `ContentUnavailableView` | [Styles](../ai/styles.md#sheetstyle-alertstyle-and-contentunavailableviewstyle) |
-| `styles::SettingsWindowStyle` | struct | — | — | Gaps of `SettingsWindow` and its search popover | [Styles](../ai/styles.md#settingswindowstyle-and-aboutviewstyle) |
-| `styles::AboutViewStyle` | struct | — | — | Every visual property of `AboutView` | [Styles](../ai/styles.md#settingswindowstyle-and-aboutviewstyle) |
-| `styles::MenuStyle` | type | ≈ `MenuStyle` | ≈ `NSMenu` drawing | `ctdesign::MenuPalette`: the colors and metrics of menus, pop-up menus, popovers and tooltips | [Styles](../ai/styles.md#menustyle) |
-| `styles::VideoViewStyle` | struct | — | — | The clip shape of `VideoView` (feature `video`) | [Styles](../ai/styles.md#videoviewstyle) |
-| `styles::Theme` | struct | ≈ styles set in the environment | ≈ `NSAppearance` | Style overrides for the whole app; `Theme::tengen()` changes nothing | [Styles](../ai/styles.md#levels) |
-| `styles::Theme::style` | method | ≈ `.buttonStyle(_:)` on the scene | — | Adds an override of the control whose style the closure takes | [Styles](../ai/styles.md#levels) |
-| `styles::StyleScope` | struct | ≈ a view after `.buttonStyle(_:)` | — | Component returned by `.control_style`: its overrides reach the controls inside | [Styles](../ai/styles.md#levels) |
-| `modifiers::StyleModifiers` | trait | `View` modifiers | — | Style modifiers for every view | [Styles](../ai/styles.md#levels) |
-| `modifiers::StyleModifiers::control_style` | method | ≈ `.buttonStyle(_:)`, `.toggleStyle(_:)` | — | Changes the style of every control of that style inside the view | [Styles](../ai/styles.md#levels) |
-| `modifiers::ViewModifiers::foreground_style` | method | `.foregroundStyle(_:)` | ≈ `NSTextField.textColor` | Text color of `Text`, `label` or `paragraph` from a `ShapeStyle` | [Styles](../ai/styles.md#paint-on-views) |
-| `modifiers::ViewModifiers::background_style` | method | `.background(_:ignoresSafeAreaEdges:)`; Freya already uses `background` | ≈ `NSView.layer.backgroundColor` | Background of a view from a `ShapeStyle`, with blur for a material | [Styles](../ai/styles.md#paint-on-views) |
-| `modifiers::ViewModifiers::shadows` | method | ≈ `.shadow(color:radius:x:y:)`; Freya already uses `shadow` | ≈ `NSView.shadow` | Adds a list of `ShadowStyle` to a view | [Styles](../ai/styles.md#paint-on-views) |
-| `controls::Slider::style` | method | ≈ `.buttonStyle(_:)` on one view | ≈ `NSSlider.trackFillColor` | Changes the style of one slider | [Styles](../ai/styles.md#levels) |
-| `controls::Button::style` | method | `.buttonStyle(_:)` on one view | ≈ `NSButton.bezelStyle` | Changes the style of one button; takes a preset or a closure | [Styles](../ai/styles.md#buttonstyle) |
-| `controls::Switch::style` | method | `.toggleStyle(.switch)` on one view | — | Changes the style of one switch | [Styles](../ai/styles.md#switchstyle) |
-| `controls::Checkbox::style` | method | `.toggleStyle(.checkbox)` on one view | — | Changes the style of one checkbox | [Styles](../ai/styles.md#checkboxstyle) |
-| `controls::SegmentedControl::style` | method | `.pickerStyle(.segmented)` on one view | ≈ `NSSegmentedControl.segmentStyle` | Changes the style of one segmented control | [Styles](../ai/styles.md#segmentedcontrolstyle) |
-| `controls::ToolGroup::style` | method | — | — | Changes the style of one tool group | [Styles](../ai/styles.md#toolgroupstyle) |
-| `controls::TextField::style` | method | `.textFieldStyle(_:)` on one view | ≈ `NSTextField.bezelStyle` | Changes the style of one text field | [Styles](../ai/styles.md#textfieldstyle-searchfieldstyle-and-securefieldstyle) |
-| `controls::SearchField::style` | method | — | — | Changes the style of one search field | [Styles](../ai/styles.md#textfieldstyle-searchfieldstyle-and-securefieldstyle) |
-| `controls::SecureField::style` | method | `.textFieldStyle(_:)` on one view | — | Changes the style of one password field | [Styles](../ai/styles.md#textfieldstyle-searchfieldstyle-and-securefieldstyle) |
-| `level::LevelSlider::style` | method | — | — | Changes the style of one level slider | [Styles](../ai/styles.md#levelsliderstyle) |
-| `choices::RadioGroup::style` | method | `.pickerStyle(.radioGroup)` on one view | — | Changes the style of one radio group | [Styles](../ai/styles.md#radiogroupstyle) |
-| `choices::ColorWell::style` | method | `.pickerStyle(.palette)` on one view | ≈ `NSColorWell.colorWellStyle` | Changes the style of one color well | [Styles](../ai/styles.md#colorwellstyle-and-choicecardsstyle) |
-| `choices::ChoiceCards::style` | method | — | — | Changes the style of one set of choice cards | [Styles](../ai/styles.md#colorwellstyle-and-choicecardsstyle) |
-| `compact::IconButton::style` | method | `.buttonStyle(_:)` on one view | ≈ `NSButton.bezelStyle` | Changes the style of one icon button | [Styles](../ai/styles.md#iconbuttonstyle) |
-| `compact::Stepper::style` | method | — | — | Changes the style of one stepper | [Styles](../ai/styles.md#stepperstyle) |
-| `compact::ToggleGroup::style` | method | — | — | Changes the style of one toggle group | [Styles](../ai/styles.md#togglegroupstyle) |
-| `compact::ToolbarSearch::style` | method | — | — | Changes the width of one toolbar search | [Styles](../ai/styles.md#toolbarsearchstyle) |
-| `compact::ToolbarOverflow::style` | method | `.buttonStyle(_:)` on one view | — | Changes the `IconButtonStyle` of one overflow button | [Styles](../ai/styles.md#iconbuttonstyle) |
-| `buttons::MenuButton::style` | method | `.menuStyle(_:)` on one view | — | Changes the style of one menu button | [Styles](../ai/styles.md#menubuttonstyle-combobuttonstyle-and-helplinkstyle) |
-| `buttons::ComboButton::style` | method | `.menuStyle(_:)` on one view | ≈ `NSComboButton.style` | Changes the style of one combo button | [Styles](../ai/styles.md#menubuttonstyle-combobuttonstyle-and-helplinkstyle) |
-| `buttons::HelpLink::style` | method | — | — | Changes the style of one help button | [Styles](../ai/styles.md#menubuttonstyle-combobuttonstyle-and-helplinkstyle) |
-| `buttons::ShareLink::style` | method | `.menuStyle(_:)` on one view | — | Changes the `MenuButtonStyle` of one share link | [Styles](../ai/styles.md#menubuttonstyle-combobuttonstyle-and-helplinkstyle) |
-| `buttons::ControlGroup::style` | method | `.controlGroupStyle(_:)` on one view | — | Changes the style of one control group | [Styles](../ai/styles.md#controlgroupstyle) |
-| `popup_button::PopUpButton::style` | method | `.pickerStyle(.menu)` on one view | — | Changes the style of one pop-up button | [Styles](../ai/styles.md#popupbuttonstyle) |
-| `combo_box::ComboBox::style` | method | — | — | Changes the style of the arrow button of one combo box | [Styles](../ai/styles.md#comboboxstyle) |
-| `token_field::TokenField::style` | method | — | — | Changes the style of one token field | [Styles](../ai/styles.md#tokenfieldstyle) |
-| `date_picker::DatePicker::style` | method | `.datePickerStyle(_:)` on one view | ≈ `NSDatePicker.datePickerStyle` | Changes the style of one date picker | [Styles](../ai/styles.md#datepickerstyle) |
-| `path_control::PathControl::style` | method | — | — | Changes the style of one path control | [Styles](../ai/styles.md#pathcontrolstyle) |
-| `image_well::ImageWell::style` | method | — | — | Changes the style of one image well | [Styles](../ai/styles.md#imagewellstyle) |
-| `color_picker::ColorPicker::style` | method | — | ≈ `NSColorWell.colorWellStyle` | Changes the style of one color picker | [Styles](../ai/styles.md#colorpickerstyle) |
-| `font_panel::FontPicker::style` | method | `.buttonStyle(_:)` on one view | — | Changes the `ButtonStyle` of one font picker | [Styles](../ai/styles.md#colorpickerstyle) |
-| `progress::ProgressView::style` | method | `.progressViewStyle(_:)` on one view | ≈ `NSProgressIndicator.Style` | Changes the style of one progress bar | [Styles](../ai/styles.md#progressviewstyle-progressringstyle-and-spinnerstyle) |
-| `progress::ProgressRing::style` | method | `.progressViewStyle(.circular)` on one view | — | Changes the style of one progress ring | [Styles](../ai/styles.md#progressviewstyle-progressringstyle-and-spinnerstyle) |
-| `progress::Spinner::style` | method | `.progressViewStyle(.circular)` on one view | — | Changes the style of one spinner | [Styles](../ai/styles.md#progressviewstyle-progressringstyle-and-spinnerstyle) |
-| `indicator::CapacityIndicator::style` | method | `.gaugeStyle(_:)` on one view | ≈ `NSLevelIndicator.levelIndicatorStyle` | Changes the style of one capacity indicator | [Styles](../ai/styles.md#capacityindicatorstyle) |
-| `indicator::RelevancyIndicator::style` | method | — | ≈ `NSLevelIndicator.levelIndicatorStyle` | Changes the style of one relevancy indicator | [Styles](../ai/styles.md#relevancyindicatorstyle-ratingindicatorstyle-and-gaugestyle) |
-| `indicator::RatingIndicator::style` | method | — | ≈ `NSLevelIndicator.levelIndicatorStyle` | Changes the style of one rating indicator | [Styles](../ai/styles.md#relevancyindicatorstyle-ratingindicatorstyle-and-gaugestyle) |
-| `indicator::Gauge::style` | method | `.gaugeStyle(_:)` on one view | — | Changes the style of one gauge | [Styles](../ai/styles.md#relevancyindicatorstyle-ratingindicatorstyle-and-gaugestyle) |
-| `media::MediaButton::style` | method | `.buttonStyle(_:)` on one view | — | Changes the style of one media button | [Styles](../ai/styles.md#mediabuttonstyle-and-roundbuttonstyle) |
-| `media::RoundButton::style` | method | `.buttonStyle(_:)` on one view | — | Changes the style of one round button | [Styles](../ai/styles.md#mediabuttonstyle-and-roundbuttonstyle) |
-| `adornments::Link::style` | method | `.buttonStyle(.link)` on one view | — | Changes the style of one link | [Styles](../ai/styles.md#linkstyle) |
-| `elements::Text::style` | method | ≈ `.font(_:)` on one view | — | Builds one text again with its style changed | [Styles](../ai/styles.md#textstyle-badgestyle-dividerstyle-avatarstyle-and-imagestyle) |
-| `adornments::Badge::style` | method | — | — | Builds one badge again with its style changed | [Styles](../ai/styles.md#textstyle-badgestyle-dividerstyle-avatarstyle-and-imagestyle) |
-| `adornments::Divider::style` | method | — | — | Builds one divider again with its style changed | [Styles](../ai/styles.md#textstyle-badgestyle-dividerstyle-avatarstyle-and-imagestyle) |
-| `adornments::Avatar::style` | method | — | — | Builds one avatar again with its style changed | [Styles](../ai/styles.md#textstyle-badgestyle-dividerstyle-avatarstyle-and-imagestyle) |
-| `symbol::Image::style` | method | ≈ `.imageScale(_:)` on one view | — | Changes the style of one image | [Styles](../ai/styles.md#textstyle-badgestyle-dividerstyle-avatarstyle-and-imagestyle) |
-| `media::Material::style` | method | — | — | Changes the style of one material | [Styles](../ai/styles.md#materialstyle-topglassstyle-and-glasscontainerstyle) |
-| `media::TopGlass::style` | method | ≈ `.scrollEdgeEffectStyle(_:for:)` on one view | — | Changes the style of one top glass | [Styles](../ai/styles.md#materialstyle-topglassstyle-and-glasscontainerstyle) |
-| `glass_container::GlassContainer::style` | method | — | — | Changes the style of one glass container | [Styles](../ai/styles.md#materialstyle-topglassstyle-and-glasscontainerstyle) |
-| `backdrop::Backdrop::style` | method | — | — | Changes the style of one backdrop | [Styles](../ai/styles.md#backdropstyle) |
-| `controls::ScrollView::style` | method | ≈ `.scrollIndicators(_:axes:)` on one view | — | Changes the style of one scroll view | [Styles](../ai/styles.md#scrollviewstyle) |
-| `text_editor::TextEditor::style` | method | `.textEditorStyle(_:)` on one view | — | Changes the style of one text editor | [Styles](../ai/styles.md#texteditorstyle) |
-| `rule_editor::RuleEditor::style` | method | — | — | Changes the style of one rule editor | [Styles](../ai/styles.md#ruleeditorstyle) |
-| `print::PrintPreview::style` | method | — | — | Changes the style of one print preview | [Styles](../ai/styles.md#printpreviewstyle) |
-| `charts::Chart::style`, `SectorChart::style`, `HeatMap::style`, `StreamChart::style`, `Chart3D::style` | method | ≈ `.chartForegroundStyleScale(_:)` on one chart | — | Changes the `ChartStyle` of one chart | [Styles](../ai/styles.md#chartstyle) |
-| `titlebar::Titlebar::style` | method | — | — | Changes the style of one title bar | [Styles](../ai/styles.md#titlebarstyle-and-fullscreenbarstyle) |
-| `traffic::TrafficLights::style` | method | — | — | Changes the style of one set of traffic lights | [Styles](../ai/styles.md#trafficlightsstyle) |
-| `chrome::WindowChrome::style` | method | — | — | Sets the layout and look of the window chrome | [Styles](../ai/styles.md#windowchromestyle) |
-| `sidebar::Sidebar::style` | method | — | — | Changes the style of one sidebar | [Styles](../ai/styles.md#sidebarstyle-sidebaritemstyle-sidebarsectionstyle-sidebaraccountstyle-and-symboltilestyle) |
-| `sidebar::SidebarItem::style` | method | — | — | Changes the style of one sidebar row | [Styles](../ai/styles.md#sidebarstyle-sidebaritemstyle-sidebarsectionstyle-sidebaraccountstyle-and-symboltilestyle) |
-| `sidebar::SidebarSection::style` | method | — | — | Changes the style of one sidebar section | [Styles](../ai/styles.md#sidebarstyle-sidebaritemstyle-sidebarsectionstyle-sidebaraccountstyle-and-symboltilestyle) |
-| `sidebar::SidebarAccount::style` | method | — | — | Changes the style of one account row | [Styles](../ai/styles.md#sidebarstyle-sidebaritemstyle-sidebarsectionstyle-sidebaraccountstyle-and-symboltilestyle) |
-| `sidebar::SymbolTile::style` | method | — | — | Builds the tile again with a style override | [Styles](../ai/styles.md#sidebarstyle-sidebaritemstyle-sidebarsectionstyle-sidebaraccountstyle-and-symboltilestyle) |
-| `views::split::SplitView::style` | method | — | — | Changes the style of one split view | [Styles](../ai/styles.md#splitviewstyle-splitpanesstyle-and-floatingpanestyle) |
-| `views::split_panes::SplitPanes::style` | method | — | — | Changes the style of one set of panes | [Styles](../ai/styles.md#splitviewstyle-splitpanesstyle-and-floatingpanestyle) |
-| `views::floating_pane::FloatingPane::style` | method | — | — | Changes the style of one floating pane; the `style` field holds it | [Styles](../ai/styles.md#splitviewstyle-splitpanesstyle-and-floatingpanestyle) |
-| `views::form::Form::style` | method | `formStyle(_:)` | — | Changes the style of one form | [Styles](../ai/styles.md#formstyle-groupboxstyle-and-disclosuregroupstyle) |
-| `views::group::GroupBox::style` | method | `groupBoxStyle(_:)` | — | Changes the style of one group box | [Styles](../ai/styles.md#formstyle-groupboxstyle-and-disclosuregroupstyle) |
-| `views::group::DisclosureGroup::style` | method | `disclosureGroupStyle(_:)` | — | Changes the style of one disclosure group | [Styles](../ai/styles.md#formstyle-groupboxstyle-and-disclosuregroupstyle) |
-| `views::table::Table::style` | method | `tableStyle(_:)` | ≈ `NSTableView.style` | Changes the style of one table | [Styles](../ai/styles.md#tablestyle-collectionviewstyle-and-outlineviewstyle) |
-| `views::collection::CollectionView::style` | method | — | — | Changes the style of one collection view | [Styles](../ai/styles.md#tablestyle-collectionviewstyle-and-outlineviewstyle) |
-| `views::tree::OutlineView::style` | method | ≈ `listStyle(_:)` | — | Changes the style of one outline view | [Styles](../ai/styles.md#tablestyle-collectionviewstyle-and-outlineviewstyle) |
-| `views::tree::Browser::style` | method | — | — | Changes the style of one browser | [Styles](../ai/styles.md#tablestyle-collectionviewstyle-and-outlineviewstyle) |
-| `views::tabs::TabView::style` | method | `tabViewStyle(_:)` | — | Changes the style of one tab view | [Styles](../ai/styles.md#tabviewstyle-and-windowtabsstyle) |
-| `views::window_tabs::WindowTabs::style` | method | — | — | Changes the style of one tab bar | [Styles](../ai/styles.md#tabviewstyle-and-windowtabsstyle) |
-| `views::text_view::TextView::style` | method | ≈ `textEditorStyle(_:)` | — | Changes the style of one text view | [Styles](../ai/styles.md#textviewstyle) |
-| `views::feedback::Sheet::style` | method | ≈ `presentationBackground(_:)` | — | Builds the sheet again with a style; call it right after `new` | [Styles](../ai/styles.md#sheetstyle-alertstyle-and-contentunavailableviewstyle) |
-| `views::feedback::Alert::style` | method | — | — | Changes the style of one alert | [Styles](../ai/styles.md#sheetstyle-alertstyle-and-contentunavailableviewstyle) |
-| `views::feedback::ContentUnavailableView::style` | method | — | — | Builds the view again with a style; call it right after `new` | [Styles](../ai/styles.md#sheetstyle-alertstyle-and-contentunavailableviewstyle) |
-| `patterns::settings::SettingsWindow::style` | method | — | — | Changes the style of one preferences window | [Styles](../ai/styles.md#settingswindowstyle-and-aboutviewstyle) |
-| `patterns::about::AboutView::style` | method | — | — | Changes the style of one About view | [Styles](../ai/styles.md#settingswindowstyle-and-aboutviewstyle) |
+| `styles` | module | — | — | Value types of the styling system, `Theme`, `StyleScope` and the control styles | [Styles](../../agents/styles.md) |
+| `styles::ShapeStyle` | enum | `ShapeStyle` | ≈ `NSColor` | Paint of a part: a role, the accent, a fixed color, a gradient, the backdrop, a material or nothing | [Styles](../../agents/styles.md#value-types) |
+| `styles::Role` | enum | ≈ semantic `Color` (`.primary`, `.secondary`) | ≈ `NSColor.labelColor`… | One color of the `Palette` (all but `accent`), resolved late | [Styles](../../agents/styles.md#value-types) |
+| `styles::Gradient` | struct | `LinearGradient` | `NSGradient` | Linear gradient: an angle and stops of `ShapeStyle` | [Styles](../../agents/styles.md#value-types) |
+| `styles::Thickness` | enum | `Material` (`.ultraThin`…`.ultraThick`) | `NSVisualEffectView.Material` | How translucent and blurred a material is; values in `MATERIAL` | [Styles](../../agents/styles.md#value-types) |
+| `styles::StateValue` | struct | — | — | A value with optional hovered, pressed, focused and disabled values | [Styles](../../agents/styles.md#value-types) |
+| `styles::ControlState` | struct | ≈ `ButtonStyle.Configuration` (`isPressed`) | ≈ `NSControl.isHighlighted`, `isEnabled` | Hovered, pressed, focused and disabled flags of a control | [Styles](../../agents/styles.md#value-types) |
+| `styles::Shape` | enum | `Rectangle`, `RoundedRectangle`, `UnevenRoundedRectangle`, `Capsule`, `Circle` | ≈ `NSBezierPath` | Outline of a part | [Styles](../../agents/styles.md#value-types) |
+| `styles::CornerStyle` | enum | `RoundedCornerStyle` | — | `Continuous` or `Circular` corners | [Styles](../../agents/styles.md#value-types) |
+| `styles::ShadowStyle` | struct | `ShadowStyle` (`.drop`, `.inner`) | `NSShadow` | One shadow: color, x, y, blur, spread, inner | [Styles](../../agents/styles.md#value-types) |
+| `styles::Animation` | enum | `Animation` | ≈ `NSAnimationContext` | How a change moves: `None`, `Ease`, `Spring`, `Custom` | [Styles](../../agents/styles.md#value-types) |
+| `styles::ColorEffect` | type | — | ≈ `NSColor.withSystemEffect(_:)` | `fn(Rgba, ControlState) -> Rgba` applied to every paint of a control | [Styles](../../agents/styles.md#value-types) |
+| `styles::system_effect` | fn | — | ≈ `NSColor.SystemEffect` | Tengen's color effect: returns the color unchanged | [Styles](../../agents/styles.md#value-types) |
+| `styles::Axis` | enum | `Axis` | `NSUserInterfaceLayoutOrientation` | `Horizontal` or `Vertical` | [Styles](../../agents/styles.md#value-types) |
+| `styles::Edge` | enum | `Edge` | `NSRectEdge` | `Top`, `Bottom`, `Leading`, `Trailing` | [Styles](../../agents/styles.md#value-types) |
+| `styles::LayoutDirection` | enum | `LayoutDirection` | `NSUserInterfaceLayoutDirection` | `LeftToRight` or `RightToLeft` | [Styles](../../agents/styles.md#value-types) |
+| `styles::ControlStyle` | trait | ≈ the style protocols (`ButtonStyle`, `ToggleStyle`) | ≈ `NSCell` | Implemented by every control style: `tengen()` and the accessibility rules of its control | [Styles](../../agents/styles.md#which-controls-take-a-style) |
+| `styles::SliderStyle` | struct | ≈ `ButtonStyle` | ≈ `NSSliderCell` | Every visual property of `Slider`; `tengen()` builds the default from the tokens | [Styles](../../agents/styles.md#the-fields-of-a-style) |
+| `styles::ButtonStyle` | struct | `ButtonStyle`, `PrimitiveButtonStyle` | ≈ `NSButtonCell`, `NSButton.BezelStyle` | Every visual property of `Button`; `tengen()` is `.bordered` | [Styles](../../agents/styles.md#buttonstyle) |
+| `styles::ButtonStyle::bordered_prominent` | method | `PrimitiveButtonStyle.borderedProminent` | ≈ `NSButton.keyEquivalent` `"\r"` | Preset: accent fill, `on_accent` label | [Styles](../../agents/styles.md#buttonstyle) |
+| `styles::ButtonStyle::glass` | method | `PrimitiveButtonStyle.glass` | ≈ `NSButton.BezelStyle.glass` | Preset: raised capsule with a hairline rim | [Styles](../../agents/styles.md#buttonstyle) |
+| `styles::ButtonStyle::glass_prominent` | method | `PrimitiveButtonStyle.glassProminent` | — | Preset: accent capsule with a hairline rim | [Styles](../../agents/styles.md#buttonstyle) |
+| `styles::ButtonStyle::borderless` | method | `PrimitiveButtonStyle.borderless` | `NSButton.isBordered` `false` | Preset: no background until hovered | [Styles](../../agents/styles.md#buttonstyle) |
+| `styles::SwitchStyle` | struct | `SwitchToggleStyle` | ≈ `NSSwitch` | Every visual property of `Switch`, with the label position | [Styles](../../agents/styles.md#switchstyle) |
+| `styles::CheckboxStyle` | struct | `CheckboxToggleStyle` | ≈ `NSButtonCell` | Every visual property of `Checkbox`, with the label position | [Styles](../../agents/styles.md#checkboxstyle) |
+| `styles::SegmentedControlStyle` | struct | `SegmentedPickerStyle` | ≈ `NSSegmentedCell` | Every visual property of `SegmentedControl`, with its axis | [Styles](../../agents/styles.md#segmentedcontrolstyle) |
+| `styles::ToolGroupStyle` | struct | — | — | Every visual property of `ToolGroup`, with its axis | [Styles](../../agents/styles.md#toolgroupstyle) |
+| `styles::TextFieldStyle` | struct | `TextFieldStyle` | ≈ `NSTextFieldCell` | Every visual property of `TextField` | [Styles](../../agents/styles.md#textfieldstyle-searchfieldstyle-and-securefieldstyle) |
+| `styles::SearchFieldStyle` | struct | — | ≈ `NSSearchFieldCell` | Every visual property of `SearchField` | [Styles](../../agents/styles.md#textfieldstyle-searchfieldstyle-and-securefieldstyle) |
+| `styles::SecureFieldStyle` | struct | ≈ `TextFieldStyle` | ≈ `NSSecureTextFieldCell` | Every visual property of `SecureField` | [Styles](../../agents/styles.md#textfieldstyle-searchfieldstyle-and-securefieldstyle) |
+| `styles::LevelSliderStyle` | struct | — | ≈ `NSSliderCell` | Every visual property of `LevelSlider`, with the layout direction | [Styles](../../agents/styles.md#levelsliderstyle) |
+| `styles::LevelSliderStyle::fat` | method | — | — | Preset: the 22 tall Control Center bar without a knob, with a symbol | [Styles](../../agents/styles.md#levelsliderstyle) |
+| `styles::RadioGroupStyle` | struct | `RadioGroupPickerStyle` | ≈ `NSButtonCell` (radio) | Every visual property of `RadioGroup`, with the axis and the label position | [Styles](../../agents/styles.md#radiogroupstyle) |
+| `styles::ColorWellStyle` | struct | ≈ `PalettePickerStyle` | ≈ `NSColorWell.Style` | Every visual property of `ColorWell`, with the axis and wrapping of the swatches | [Styles](../../agents/styles.md#colorwellstyle-and-choicecardsstyle) |
+| `styles::ChoiceCardsStyle` | struct | — | — | Every visual property of `ChoiceCards`, with the axis and wrapping of the cards | [Styles](../../agents/styles.md#colorwellstyle-and-choicecardsstyle) |
+| `styles::IconButtonStyle` | struct | ≈ `BorderlessButtonStyle` | ≈ `NSButtonCell` | Every visual property of `IconButton` and `ToolbarOverflow` | [Styles](../../agents/styles.md#iconbuttonstyle) |
+| `styles::StepperStyle` | struct | — | ≈ `NSStepperCell` | Every visual property of `Stepper` and of the arrows of `DatePicker`, with the value position | [Styles](../../agents/styles.md#stepperstyle) |
+| `styles::ToggleGroupStyle` | struct | — | ≈ `NSSegmentedCell` | Every visual property of `ToggleGroup`, with its axis | [Styles](../../agents/styles.md#togglegroupstyle) |
+| `styles::ToolbarSearchStyle` | struct | — | ≈ `NSSearchToolbarItem` | Width of `ToolbarSearch`; its field and button take their own styles | [Styles](../../agents/styles.md#toolbarsearchstyle) |
+| `styles::MenuButtonStyle` | struct | `ButtonMenuStyle` | ≈ `NSPopUpButtonCell` (pull-down) | Every visual property of `MenuButton` and `ShareLink` | [Styles](../../agents/styles.md#menubuttonstyle-combobuttonstyle-and-helplinkstyle) |
+| `styles::ComboButtonStyle` | struct | ≈ `MenuStyle` | `NSComboButton.Style` | Every visual property of `ComboButton` | [Styles](../../agents/styles.md#menubuttonstyle-combobuttonstyle-and-helplinkstyle) |
+| `styles::HelpLinkStyle` | struct | — | ≈ `NSButton.BezelStyle.helpButton` | Every visual property of `HelpLink` | [Styles](../../agents/styles.md#menubuttonstyle-combobuttonstyle-and-helplinkstyle) |
+| `styles::ControlGroupStyle` | struct | `ControlGroupStyle` | — | Every visual property of `ControlGroup`: background and separators | [Styles](../../agents/styles.md#controlgroupstyle) |
+| `styles::PopUpButtonStyle` | struct | `MenuPickerStyle` | ≈ `NSPopUpButtonCell` | Every visual property of `PopUpButton`: label, indicator and chevron | [Styles](../../agents/styles.md#popupbuttonstyle) |
+| `styles::ComboBoxStyle` | struct | — | ≈ `NSComboBoxCell` | The arrow button of `ComboBox`; its field takes `TextFieldStyle` | [Styles](../../agents/styles.md#comboboxstyle) |
+| `styles::TokenFieldStyle` | struct | — | ≈ `NSTokenFieldCell` | Every visual property of `TokenField` and of the tokens of `SearchField` | [Styles](../../agents/styles.md#tokenfieldstyle) |
+| `styles::DatePickerStyle` | struct | `DatePickerStyle` | ≈ `NSDatePickerCell` | Every visual property of `DatePicker` and its calendar; its arrows take `StepperStyle` | [Styles](../../agents/styles.md#datepickerstyle) |
+| `styles::PathControlStyle` | struct | — | ≈ `NSPathControlItem` | Every visual property of `PathControl` | [Styles](../../agents/styles.md#pathcontrolstyle) |
+| `styles::ImageWellStyle` | struct | — | ≈ `NSImageCell` | Every visual property of `ImageWell`, with its drop border | [Styles](../../agents/styles.md#imagewellstyle) |
+| `styles::ColorPickerStyle` | struct | — | ≈ `NSColorWell.Style` | Every visual property of `ColorPicker` and its panel but the color | [Styles](../../agents/styles.md#colorpickerstyle) |
+| `styles::ProgressViewStyle` | struct | `LinearProgressViewStyle` | ≈ `NSProgressIndicator.Style` | Every visual property of `ProgressView`, with its sweep | [Styles](../../agents/styles.md#progressviewstyle-progressringstyle-and-spinnerstyle) |
+| `styles::ProgressRingStyle` | struct | `CircularProgressViewStyle` | ≈ `NSProgressIndicator.Style` | Every visual property of `ProgressRing` | [Styles](../../agents/styles.md#progressviewstyle-progressringstyle-and-spinnerstyle) |
+| `styles::SpinnerStyle` | struct | ≈ `CircularProgressViewStyle` | ≈ `NSProgressIndicator.Style` | Every visual property of `Spinner`, with its turn | [Styles](../../agents/styles.md#progressviewstyle-progressringstyle-and-spinnerstyle) |
+| `styles::CapacityIndicatorStyle` | struct | ≈ `GaugeStyle` | ≈ `NSLevelIndicatorCell` | Every visual property of `CapacityIndicator` | [Styles](../../agents/styles.md#capacityindicatorstyle) |
+| `styles::RelevancyIndicatorStyle` | struct | — | ≈ `NSLevelIndicatorCell` | Every visual property of `RelevancyIndicator` | [Styles](../../agents/styles.md#relevancyindicatorstyle-ratingindicatorstyle-and-gaugestyle) |
+| `styles::RatingIndicatorStyle` | struct | — | ≈ `NSLevelIndicatorCell` | Every visual property of `RatingIndicator` | [Styles](../../agents/styles.md#relevancyindicatorstyle-ratingindicatorstyle-and-gaugestyle) |
+| `styles::GaugeStyle` | struct | `GaugeStyle` | — | Every visual property of `Gauge` | [Styles](../../agents/styles.md#relevancyindicatorstyle-ratingindicatorstyle-and-gaugestyle) |
+| `styles::MediaButtonStyle` | struct | ≈ `ButtonStyle` | — | Every visual property of `MediaButton` | [Styles](../../agents/styles.md#mediabuttonstyle-and-roundbuttonstyle) |
+| `styles::RoundButtonStyle` | struct | ≈ `ButtonStyle` | — | Every visual property of `RoundButton` | [Styles](../../agents/styles.md#mediabuttonstyle-and-roundbuttonstyle) |
+| `styles::LinkStyle` | struct | `LinkButtonStyle` | — | Every visual property of `Link` | [Styles](../../agents/styles.md#linkstyle) |
+| `styles::TextStyle` | struct | ≈ `.font(_:)` and `.foregroundStyle(_:)` in the environment | ≈ `NSTextField.font`, `textColor` | Default font and paint of every `Text` | [Styles](../../agents/styles.md#textstyle-badgestyle-dividerstyle-avatarstyle-and-imagestyle) |
+| `styles::BadgeStyle` | struct | ≈ `.badgeProminence(_:)` | — | Every visual property of `Badge` | [Styles](../../agents/styles.md#textstyle-badgestyle-dividerstyle-avatarstyle-and-imagestyle) |
+| `styles::DividerStyle` | struct | — | ≈ `NSBox` (separator) | Thickness and paint of `Divider` | [Styles](../../agents/styles.md#textstyle-badgestyle-dividerstyle-avatarstyle-and-imagestyle) |
+| `styles::AvatarStyle` | struct | — | — | Every visual property of `Avatar` | [Styles](../../agents/styles.md#textstyle-badgestyle-dividerstyle-avatarstyle-and-imagestyle) |
+| `styles::ImageStyle` | struct | ≈ `.imageScale(_:)`, `.foregroundStyle(_:)` | — | Default size and paint of every `Image` | [Styles](../../agents/styles.md#textstyle-badgestyle-dividerstyle-avatarstyle-and-imagestyle) |
+| `styles::MaterialStyle` | struct | `Material` | ≈ `NSVisualEffectView.Material` | Tint, blur and rim of `Material` | [Styles](../../agents/styles.md#materialstyle-topglassstyle-and-glasscontainerstyle) |
+| `styles::TopGlassStyle` | struct | ≈ `.scrollEdgeEffectStyle(_:for:)` | — | Tint and glass metrics of `TopGlass` | [Styles](../../agents/styles.md#materialstyle-topglassstyle-and-glasscontainerstyle) |
+| `styles::GlassContainerStyle` | struct | ≈ `.glassEffect(_:in:)` | ≈ `NSGlassEffectView` | Tint, solid color, rim, blur and morph of `GlassContainer` | [Styles](../../agents/styles.md#materialstyle-topglassstyle-and-glasscontainerstyle) |
+| `styles::BackdropStyle` | struct | — | — | Angles, opacity and fade of the gradient layers of `Backdrop` | [Styles](../../agents/styles.md#backdropstyle) |
+| `styles::ScrollViewStyle` | struct | ≈ `.scrollIndicators(_:axes:)` | ≈ `NSScroller.KnobStyle` | Every visual property of the bar, edge fade and top line of `ScrollView` | [Styles](../../agents/styles.md#scrollviewstyle) |
+| `styles::TextEditorStyle` | struct | `TextEditorStyle` | ≈ `NSTextView` (`backgroundColor`, `textColor`) | Every visual property of `TextEditor` | [Styles](../../agents/styles.md#texteditorstyle) |
+| `styles::RuleEditorStyle` | struct | — | ≈ `NSRuleEditor` | Gaps, indent and header text of `RuleEditor` | [Styles](../../agents/styles.md#ruleeditorstyle) |
+| `styles::PrintPreviewStyle` | struct | — | — | Gaps, page background, shadows and page numbers of `PrintPreview` | [Styles](../../agents/styles.md#printpreviewstyle) |
+| `styles::ChartStyle` | struct | ≈ `.chartForegroundStyleScale(_:)`, `.chartPlotStyle(content:)` | — | Every visual property of `Chart`, `SectorChart`, `HeatMap`, `StreamChart` and `Chart3D` | [Styles](../../agents/styles.md#chartstyle) |
+| `styles::TitlebarStyle` | struct | ≈ `WindowToolbarStyle` | ≈ `NSWindow.ToolbarStyle`, `NSTitlebarSeparatorStyle` | Every visual property of `Titlebar`: heights, paddings, background, title and hairline | [Styles](../../agents/styles.md#titlebarstyle-and-fullscreenbarstyle) |
+| `styles::FullscreenBarStyle` | struct | — | — | Tint, line and metrics of the full-screen bars; theme and container only | [Styles](../../agents/styles.md#titlebarstyle-and-fullscreenbarstyle) |
+| `styles::TrafficLightsStyle` | struct | — | ≈ `NSWindow.standardWindowButton(_:)` | Size, gap, shape and the fill, rim and glyph of each traffic light per state | [Styles](../../agents/styles.md#trafficlightsstyle) |
+| `styles::WindowChromeStyle` | struct | ≈ `WindowStyle` | — | Layout, reveal and resting edge of `WindowChrome`, and every visual property of its rail and pill | [Styles](../../agents/styles.md#windowchromestyle) |
+| `styles::SidebarStyle` | struct | ≈ `SidebarListStyle` | ≈ `NSTableView.Style.sourceList` | Paddings, lights position, shape, background and borders of `Sidebar`; not `ctappearance::SidebarStyle` | [Styles](../../agents/styles.md#sidebarstyle-sidebaritemstyle-sidebarsectionstyle-sidebaraccountstyle-and-symboltilestyle) |
+| `styles::SidebarItemStyle` | struct | ≈ `.listItemTint(_:)` | ≈ `NSTableCellView` | Every visual property of `SidebarItem`, selected and not | [Styles](../../agents/styles.md#sidebarstyle-sidebaritemstyle-sidebarsectionstyle-sidebaraccountstyle-and-symboltilestyle) |
+| `styles::SidebarSectionStyle` | struct | — | — | Every visual property of `SidebarSection` and its fold | [Styles](../../agents/styles.md#sidebarstyle-sidebaritemstyle-sidebarsectionstyle-sidebaraccountstyle-and-symboltilestyle) |
+| `styles::SidebarAccountStyle` | struct | — | — | Every visual property of `SidebarAccount` but its avatar | [Styles](../../agents/styles.md#sidebarstyle-sidebaritemstyle-sidebarsectionstyle-sidebaraccountstyle-and-symboltilestyle) |
+| `styles::SymbolTileStyle` | struct | — | — | Size, shape, paints and border of `SymbolTile` | [Styles](../../agents/styles.md#sidebarstyle-sidebaritemstyle-sidebarsectionstyle-sidebaraccountstyle-and-symboltilestyle) |
+| `styles::SplitViewStyle` | struct | ≈ `NavigationSplitViewStyle` | ≈ `NSSplitView.DividerStyle` | Inset, grip, background, scrim, inspector line and animations of `SplitView` | [Styles](../../agents/styles.md#splitviewstyle-splitpanesstyle-and-floatingpanestyle) |
+| `styles::SplitPanesStyle` | struct | — | ≈ `NSSplitView.DividerStyle` | Width and paint of the dividers of `SplitPanes` | [Styles](../../agents/styles.md#splitviewstyle-splitpanesstyle-and-floatingpanestyle) |
+| `styles::FloatingPaneStyle` | struct | — | ≈ `NSPanel` | Every visual property of `FloatingPane` | [Styles](../../agents/styles.md#splitviewstyle-splitpanesstyle-and-floatingpanestyle) |
+| `styles::FormStyle` | struct | `FormStyle` (`.grouped`) | — | Every visual property of `Form`, its sections and rows | [Styles](../../agents/styles.md#formstyle-groupboxstyle-and-disclosuregroupstyle) |
+| `styles::GroupBoxStyle` | struct | `GroupBoxStyle` | ≈ `NSBox` | Every visual property of `GroupBox` | [Styles](../../agents/styles.md#formstyle-groupboxstyle-and-disclosuregroupstyle) |
+| `styles::DisclosureGroupStyle` | struct | `DisclosureGroupStyle` | ≈ `NSButton.BezelStyle.disclosure` | Every visual property of `DisclosureGroup` | [Styles](../../agents/styles.md#formstyle-groupboxstyle-and-disclosuregroupstyle) |
+| `styles::TableStyle` | struct | `TableStyle` | ≈ `NSTableView.Style`, `NSTableHeaderCell` | Every visual property of `Table`, its header cells and rows | [Styles](../../agents/styles.md#tablestyle-collectionviewstyle-and-outlineviewstyle) |
+| `styles::CollectionViewStyle` | struct | — | ≈ `NSCollectionViewItem` | Every visual property of `CollectionView` and its tiles | [Styles](../../agents/styles.md#tablestyle-collectionviewstyle-and-outlineviewstyle) |
+| `styles::OutlineViewStyle` | struct | ≈ `ListStyle` | ≈ `NSOutlineView`, `NSBrowser` | Every visual property of `OutlineView` and `Browser` | [Styles](../../agents/styles.md#tablestyle-collectionviewstyle-and-outlineviewstyle) |
+| `styles::TabViewStyle` | struct | `TabViewStyle` | ≈ `NSTabView` | Every visual property of `TabView` and its tabs | [Styles](../../agents/styles.md#tabviewstyle-and-windowtabsstyle) |
+| `styles::WindowTabsStyle` | struct | — | ≈ `NSWindowTabGroup` | Every visual property of `WindowTabs` and its tabs | [Styles](../../agents/styles.md#tabviewstyle-and-windowtabsstyle) |
+| `styles::TextViewStyle` | struct | ≈ `TextEditorStyle` | ≈ `NSTextView` (`textColor`, `insertionPointColor`) | Paint of the text and caret of `TextView` | [Styles](../../agents/styles.md#textviewstyle) |
+| `styles::SheetStyle` | struct | ≈ `presentationBackground(_:)` | ≈ `NSWindow` sheet | Every visual property of `Sheet` and of the sheet under an `Alert` | [Styles](../../agents/styles.md#sheetstyle-alertstyle-and-contentunavailableviewstyle) |
+| `styles::AlertStyle` | struct | — | ≈ `NSAlert` | Every visual property of `Alert` but its sheet, buttons and checkbox | [Styles](../../agents/styles.md#sheetstyle-alertstyle-and-contentunavailableviewstyle) |
+| `styles::ContentUnavailableViewStyle` | struct | — | — | Every visual property of `ContentUnavailableView` | [Styles](../../agents/styles.md#sheetstyle-alertstyle-and-contentunavailableviewstyle) |
+| `styles::SettingsWindowStyle` | struct | — | — | Gaps of `SettingsWindow` and its search popover | [Styles](../../agents/styles.md#settingswindowstyle-and-aboutviewstyle) |
+| `styles::AboutViewStyle` | struct | — | — | Every visual property of `AboutView` | [Styles](../../agents/styles.md#settingswindowstyle-and-aboutviewstyle) |
+| `styles::MenuStyle` | type | ≈ `MenuStyle` | ≈ `NSMenu` drawing | `ctdesign::MenuPalette`: the colors and metrics of menus, pop-up menus, popovers and tooltips | [Styles](../../agents/styles.md#menustyle) |
+| `styles::VideoViewStyle` | struct | — | — | The clip shape of `VideoView` (feature `video`) | [Styles](../../agents/styles.md#videoviewstyle) |
+| `styles::Theme` | struct | ≈ styles set in the environment | ≈ `NSAppearance` | Style overrides for the whole app; `Theme::tengen()` changes nothing | [Styles](../../agents/styles.md#levels) |
+| `styles::Theme::style` | method | ≈ `.buttonStyle(_:)` on the scene | — | Adds an override of the control whose style the closure takes | [Styles](../../agents/styles.md#levels) |
+| `styles::StyleScope` | struct | ≈ a view after `.buttonStyle(_:)` | — | Component returned by `.control_style`: its overrides reach the controls inside | [Styles](../../agents/styles.md#levels) |
+| `modifiers::StyleModifiers` | trait | `View` modifiers | — | Style modifiers for every view | [Styles](../../agents/styles.md#levels) |
+| `modifiers::StyleModifiers::control_style` | method | ≈ `.buttonStyle(_:)`, `.toggleStyle(_:)` | — | Changes the style of every control of that style inside the view | [Styles](../../agents/styles.md#levels) |
+| `modifiers::ViewModifiers::foreground_style` | method | `.foregroundStyle(_:)` | ≈ `NSTextField.textColor` | Text color of `Text`, `label` or `paragraph` from a `ShapeStyle` | [Styles](../../agents/styles.md#paint-on-views) |
+| `modifiers::ViewModifiers::background_style` | method | `.background(_:ignoresSafeAreaEdges:)`; Freya already uses `background` | ≈ `NSView.layer.backgroundColor` | Background of a view from a `ShapeStyle`, with blur for a material | [Styles](../../agents/styles.md#paint-on-views) |
+| `modifiers::ViewModifiers::shadows` | method | ≈ `.shadow(color:radius:x:y:)`; Freya already uses `shadow` | ≈ `NSView.shadow` | Adds a list of `ShadowStyle` to a view | [Styles](../../agents/styles.md#paint-on-views) |
+| `controls::Slider::style` | method | ≈ `.buttonStyle(_:)` on one view | ≈ `NSSlider.trackFillColor` | Changes the style of one slider | [Styles](../../agents/styles.md#levels) |
+| `controls::Button::style` | method | `.buttonStyle(_:)` on one view | ≈ `NSButton.bezelStyle` | Changes the style of one button; takes a preset or a closure | [Styles](../../agents/styles.md#buttonstyle) |
+| `controls::Switch::style` | method | `.toggleStyle(.switch)` on one view | — | Changes the style of one switch | [Styles](../../agents/styles.md#switchstyle) |
+| `controls::Checkbox::style` | method | `.toggleStyle(.checkbox)` on one view | — | Changes the style of one checkbox | [Styles](../../agents/styles.md#checkboxstyle) |
+| `controls::SegmentedControl::style` | method | `.pickerStyle(.segmented)` on one view | ≈ `NSSegmentedControl.segmentStyle` | Changes the style of one segmented control | [Styles](../../agents/styles.md#segmentedcontrolstyle) |
+| `controls::ToolGroup::style` | method | — | — | Changes the style of one tool group | [Styles](../../agents/styles.md#toolgroupstyle) |
+| `controls::TextField::style` | method | `.textFieldStyle(_:)` on one view | ≈ `NSTextField.bezelStyle` | Changes the style of one text field | [Styles](../../agents/styles.md#textfieldstyle-searchfieldstyle-and-securefieldstyle) |
+| `controls::SearchField::style` | method | — | — | Changes the style of one search field | [Styles](../../agents/styles.md#textfieldstyle-searchfieldstyle-and-securefieldstyle) |
+| `controls::SecureField::style` | method | `.textFieldStyle(_:)` on one view | — | Changes the style of one password field | [Styles](../../agents/styles.md#textfieldstyle-searchfieldstyle-and-securefieldstyle) |
+| `level::LevelSlider::style` | method | — | — | Changes the style of one level slider | [Styles](../../agents/styles.md#levelsliderstyle) |
+| `choices::RadioGroup::style` | method | `.pickerStyle(.radioGroup)` on one view | — | Changes the style of one radio group | [Styles](../../agents/styles.md#radiogroupstyle) |
+| `choices::ColorWell::style` | method | `.pickerStyle(.palette)` on one view | ≈ `NSColorWell.colorWellStyle` | Changes the style of one color well | [Styles](../../agents/styles.md#colorwellstyle-and-choicecardsstyle) |
+| `choices::ChoiceCards::style` | method | — | — | Changes the style of one set of choice cards | [Styles](../../agents/styles.md#colorwellstyle-and-choicecardsstyle) |
+| `compact::IconButton::style` | method | `.buttonStyle(_:)` on one view | ≈ `NSButton.bezelStyle` | Changes the style of one icon button | [Styles](../../agents/styles.md#iconbuttonstyle) |
+| `compact::Stepper::style` | method | — | — | Changes the style of one stepper | [Styles](../../agents/styles.md#stepperstyle) |
+| `compact::ToggleGroup::style` | method | — | — | Changes the style of one toggle group | [Styles](../../agents/styles.md#togglegroupstyle) |
+| `compact::ToolbarSearch::style` | method | — | — | Changes the width of one toolbar search | [Styles](../../agents/styles.md#toolbarsearchstyle) |
+| `compact::ToolbarOverflow::style` | method | `.buttonStyle(_:)` on one view | — | Changes the `IconButtonStyle` of one overflow button | [Styles](../../agents/styles.md#iconbuttonstyle) |
+| `buttons::MenuButton::style` | method | `.menuStyle(_:)` on one view | — | Changes the style of one menu button | [Styles](../../agents/styles.md#menubuttonstyle-combobuttonstyle-and-helplinkstyle) |
+| `buttons::ComboButton::style` | method | `.menuStyle(_:)` on one view | ≈ `NSComboButton.style` | Changes the style of one combo button | [Styles](../../agents/styles.md#menubuttonstyle-combobuttonstyle-and-helplinkstyle) |
+| `buttons::HelpLink::style` | method | — | — | Changes the style of one help button | [Styles](../../agents/styles.md#menubuttonstyle-combobuttonstyle-and-helplinkstyle) |
+| `buttons::ShareLink::style` | method | `.menuStyle(_:)` on one view | — | Changes the `MenuButtonStyle` of one share link | [Styles](../../agents/styles.md#menubuttonstyle-combobuttonstyle-and-helplinkstyle) |
+| `buttons::ControlGroup::style` | method | `.controlGroupStyle(_:)` on one view | — | Changes the style of one control group | [Styles](../../agents/styles.md#controlgroupstyle) |
+| `popup_button::PopUpButton::style` | method | `.pickerStyle(.menu)` on one view | — | Changes the style of one pop-up button | [Styles](../../agents/styles.md#popupbuttonstyle) |
+| `combo_box::ComboBox::style` | method | — | — | Changes the style of the arrow button of one combo box | [Styles](../../agents/styles.md#comboboxstyle) |
+| `token_field::TokenField::style` | method | — | — | Changes the style of one token field | [Styles](../../agents/styles.md#tokenfieldstyle) |
+| `date_picker::DatePicker::style` | method | `.datePickerStyle(_:)` on one view | ≈ `NSDatePicker.datePickerStyle` | Changes the style of one date picker | [Styles](../../agents/styles.md#datepickerstyle) |
+| `path_control::PathControl::style` | method | — | — | Changes the style of one path control | [Styles](../../agents/styles.md#pathcontrolstyle) |
+| `image_well::ImageWell::style` | method | — | — | Changes the style of one image well | [Styles](../../agents/styles.md#imagewellstyle) |
+| `color_picker::ColorPicker::style` | method | — | ≈ `NSColorWell.colorWellStyle` | Changes the style of one color picker | [Styles](../../agents/styles.md#colorpickerstyle) |
+| `font_panel::FontPicker::style` | method | `.buttonStyle(_:)` on one view | — | Changes the `ButtonStyle` of one font picker | [Styles](../../agents/styles.md#colorpickerstyle) |
+| `progress::ProgressView::style` | method | `.progressViewStyle(_:)` on one view | ≈ `NSProgressIndicator.Style` | Changes the style of one progress bar | [Styles](../../agents/styles.md#progressviewstyle-progressringstyle-and-spinnerstyle) |
+| `progress::ProgressRing::style` | method | `.progressViewStyle(.circular)` on one view | — | Changes the style of one progress ring | [Styles](../../agents/styles.md#progressviewstyle-progressringstyle-and-spinnerstyle) |
+| `progress::Spinner::style` | method | `.progressViewStyle(.circular)` on one view | — | Changes the style of one spinner | [Styles](../../agents/styles.md#progressviewstyle-progressringstyle-and-spinnerstyle) |
+| `indicator::CapacityIndicator::style` | method | `.gaugeStyle(_:)` on one view | ≈ `NSLevelIndicator.levelIndicatorStyle` | Changes the style of one capacity indicator | [Styles](../../agents/styles.md#capacityindicatorstyle) |
+| `indicator::RelevancyIndicator::style` | method | — | ≈ `NSLevelIndicator.levelIndicatorStyle` | Changes the style of one relevancy indicator | [Styles](../../agents/styles.md#relevancyindicatorstyle-ratingindicatorstyle-and-gaugestyle) |
+| `indicator::RatingIndicator::style` | method | — | ≈ `NSLevelIndicator.levelIndicatorStyle` | Changes the style of one rating indicator | [Styles](../../agents/styles.md#relevancyindicatorstyle-ratingindicatorstyle-and-gaugestyle) |
+| `indicator::Gauge::style` | method | `.gaugeStyle(_:)` on one view | — | Changes the style of one gauge | [Styles](../../agents/styles.md#relevancyindicatorstyle-ratingindicatorstyle-and-gaugestyle) |
+| `media::MediaButton::style` | method | `.buttonStyle(_:)` on one view | — | Changes the style of one media button | [Styles](../../agents/styles.md#mediabuttonstyle-and-roundbuttonstyle) |
+| `media::RoundButton::style` | method | `.buttonStyle(_:)` on one view | — | Changes the style of one round button | [Styles](../../agents/styles.md#mediabuttonstyle-and-roundbuttonstyle) |
+| `adornments::Link::style` | method | `.buttonStyle(.link)` on one view | — | Changes the style of one link | [Styles](../../agents/styles.md#linkstyle) |
+| `elements::Text::style` | method | ≈ `.font(_:)` on one view | — | Builds one text again with its style changed | [Styles](../../agents/styles.md#textstyle-badgestyle-dividerstyle-avatarstyle-and-imagestyle) |
+| `adornments::Badge::style` | method | — | — | Builds one badge again with its style changed | [Styles](../../agents/styles.md#textstyle-badgestyle-dividerstyle-avatarstyle-and-imagestyle) |
+| `adornments::Divider::style` | method | — | — | Builds one divider again with its style changed | [Styles](../../agents/styles.md#textstyle-badgestyle-dividerstyle-avatarstyle-and-imagestyle) |
+| `adornments::Avatar::style` | method | — | — | Builds one avatar again with its style changed | [Styles](../../agents/styles.md#textstyle-badgestyle-dividerstyle-avatarstyle-and-imagestyle) |
+| `symbol::Image::style` | method | ≈ `.imageScale(_:)` on one view | — | Changes the style of one image | [Styles](../../agents/styles.md#textstyle-badgestyle-dividerstyle-avatarstyle-and-imagestyle) |
+| `media::Material::style` | method | — | — | Changes the style of one material | [Styles](../../agents/styles.md#materialstyle-topglassstyle-and-glasscontainerstyle) |
+| `media::TopGlass::style` | method | ≈ `.scrollEdgeEffectStyle(_:for:)` on one view | — | Changes the style of one top glass | [Styles](../../agents/styles.md#materialstyle-topglassstyle-and-glasscontainerstyle) |
+| `glass_container::GlassContainer::style` | method | — | — | Changes the style of one glass container | [Styles](../../agents/styles.md#materialstyle-topglassstyle-and-glasscontainerstyle) |
+| `backdrop::Backdrop::style` | method | — | — | Changes the style of one backdrop | [Styles](../../agents/styles.md#backdropstyle) |
+| `controls::ScrollView::style` | method | ≈ `.scrollIndicators(_:axes:)` on one view | — | Changes the style of one scroll view | [Styles](../../agents/styles.md#scrollviewstyle) |
+| `text_editor::TextEditor::style` | method | `.textEditorStyle(_:)` on one view | — | Changes the style of one text editor | [Styles](../../agents/styles.md#texteditorstyle) |
+| `rule_editor::RuleEditor::style` | method | — | — | Changes the style of one rule editor | [Styles](../../agents/styles.md#ruleeditorstyle) |
+| `print::PrintPreview::style` | method | — | — | Changes the style of one print preview | [Styles](../../agents/styles.md#printpreviewstyle) |
+| `charts::Chart::style`, `SectorChart::style`, `HeatMap::style`, `StreamChart::style`, `Chart3D::style` | method | ≈ `.chartForegroundStyleScale(_:)` on one chart | — | Changes the `ChartStyle` of one chart | [Styles](../../agents/styles.md#chartstyle) |
+| `titlebar::Titlebar::style` | method | — | — | Changes the style of one title bar | [Styles](../../agents/styles.md#titlebarstyle-and-fullscreenbarstyle) |
+| `traffic::TrafficLights::style` | method | — | — | Changes the style of one set of traffic lights | [Styles](../../agents/styles.md#trafficlightsstyle) |
+| `chrome::WindowChrome::style` | method | — | — | Sets the layout and look of the window chrome | [Styles](../../agents/styles.md#windowchromestyle) |
+| `sidebar::Sidebar::style` | method | — | — | Changes the style of one sidebar | [Styles](../../agents/styles.md#sidebarstyle-sidebaritemstyle-sidebarsectionstyle-sidebaraccountstyle-and-symboltilestyle) |
+| `sidebar::SidebarItem::style` | method | — | — | Changes the style of one sidebar row | [Styles](../../agents/styles.md#sidebarstyle-sidebaritemstyle-sidebarsectionstyle-sidebaraccountstyle-and-symboltilestyle) |
+| `sidebar::SidebarSection::style` | method | — | — | Changes the style of one sidebar section | [Styles](../../agents/styles.md#sidebarstyle-sidebaritemstyle-sidebarsectionstyle-sidebaraccountstyle-and-symboltilestyle) |
+| `sidebar::SidebarAccount::style` | method | — | — | Changes the style of one account row | [Styles](../../agents/styles.md#sidebarstyle-sidebaritemstyle-sidebarsectionstyle-sidebaraccountstyle-and-symboltilestyle) |
+| `sidebar::SymbolTile::style` | method | — | — | Builds the tile again with a style override | [Styles](../../agents/styles.md#sidebarstyle-sidebaritemstyle-sidebarsectionstyle-sidebaraccountstyle-and-symboltilestyle) |
+| `views::split::SplitView::style` | method | — | — | Changes the style of one split view | [Styles](../../agents/styles.md#splitviewstyle-splitpanesstyle-and-floatingpanestyle) |
+| `views::split_panes::SplitPanes::style` | method | — | — | Changes the style of one set of panes | [Styles](../../agents/styles.md#splitviewstyle-splitpanesstyle-and-floatingpanestyle) |
+| `views::floating_pane::FloatingPane::style` | method | — | — | Changes the style of one floating pane; the `style` field holds it | [Styles](../../agents/styles.md#splitviewstyle-splitpanesstyle-and-floatingpanestyle) |
+| `views::form::Form::style` | method | `formStyle(_:)` | — | Changes the style of one form | [Styles](../../agents/styles.md#formstyle-groupboxstyle-and-disclosuregroupstyle) |
+| `views::group::GroupBox::style` | method | `groupBoxStyle(_:)` | — | Changes the style of one group box | [Styles](../../agents/styles.md#formstyle-groupboxstyle-and-disclosuregroupstyle) |
+| `views::group::DisclosureGroup::style` | method | `disclosureGroupStyle(_:)` | — | Changes the style of one disclosure group | [Styles](../../agents/styles.md#formstyle-groupboxstyle-and-disclosuregroupstyle) |
+| `views::table::Table::style` | method | `tableStyle(_:)` | ≈ `NSTableView.style` | Changes the style of one table | [Styles](../../agents/styles.md#tablestyle-collectionviewstyle-and-outlineviewstyle) |
+| `views::collection::CollectionView::style` | method | — | — | Changes the style of one collection view | [Styles](../../agents/styles.md#tablestyle-collectionviewstyle-and-outlineviewstyle) |
+| `views::tree::OutlineView::style` | method | ≈ `listStyle(_:)` | — | Changes the style of one outline view | [Styles](../../agents/styles.md#tablestyle-collectionviewstyle-and-outlineviewstyle) |
+| `views::tree::Browser::style` | method | — | — | Changes the style of one browser | [Styles](../../agents/styles.md#tablestyle-collectionviewstyle-and-outlineviewstyle) |
+| `views::tabs::TabView::style` | method | `tabViewStyle(_:)` | — | Changes the style of one tab view | [Styles](../../agents/styles.md#tabviewstyle-and-windowtabsstyle) |
+| `views::window_tabs::WindowTabs::style` | method | — | — | Changes the style of one tab bar | [Styles](../../agents/styles.md#tabviewstyle-and-windowtabsstyle) |
+| `views::text_view::TextView::style` | method | ≈ `textEditorStyle(_:)` | — | Changes the style of one text view | [Styles](../../agents/styles.md#textviewstyle) |
+| `views::feedback::Sheet::style` | method | ≈ `presentationBackground(_:)` | — | Builds the sheet again with a style; call it right after `new` | [Styles](../../agents/styles.md#sheetstyle-alertstyle-and-contentunavailableviewstyle) |
+| `views::feedback::Alert::style` | method | — | — | Changes the style of one alert | [Styles](../../agents/styles.md#sheetstyle-alertstyle-and-contentunavailableviewstyle) |
+| `views::feedback::ContentUnavailableView::style` | method | — | — | Builds the view again with a style; call it right after `new` | [Styles](../../agents/styles.md#sheetstyle-alertstyle-and-contentunavailableviewstyle) |
+| `patterns::settings::SettingsWindow::style` | method | — | — | Changes the style of one preferences window | [Styles](../../agents/styles.md#settingswindowstyle-and-aboutviewstyle) |
+| `patterns::about::AboutView::style` | method | — | — | Changes the style of one About view | [Styles](../../agents/styles.md#settingswindowstyle-and-aboutviewstyle) |
 | `menu::MenuView::style` | method | — | — | Changes the style of one menu and its submenus | [7](07-menus-and-popovers.md#style) |
-| `video::VideoView::style` | method | — | — | Changes the style of one video view | [Styles](../ai/styles.md#videoviewstyle) |
-| `app::Application::theme` | method | ≈ `.environment(_:_:)` on the scene | ≈ `NSApp.appearance` | Gives the app its `Theme` | [Styles](../ai/styles.md#levels) |
+| `video::VideoView::style` | method | — | — | Changes the style of one video view | [Styles](../../agents/styles.md#videoviewstyle) |
+| `app::Application::theme` | method | ≈ `.environment(_:_:)` on the scene | ≈ `NSApp.appearance` | Gives the app its `Theme` | [Styles](../../agents/styles.md#levels) |
 
 ## Symbols and fonts
 

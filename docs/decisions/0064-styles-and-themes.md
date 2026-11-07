@@ -12,7 +12,7 @@ orientation, direction, animation, color algorithm), for one control, for a
 container or for the whole app, and let a complete theme different from Tengen
 be built from those properties.
 **Scope:** the design and its rollout. The guide for agents is
-[`docs/ai/styles.md`](../ai/styles.md); the research is in
+[`agents/styles.md`](../../agents/styles.md); the research is in
 [`docs/research/styling-apple.md`](../research/styling-apple.md) and
 [`docs/research/styling-toolkits.md`](../research/styling-toolkits.md).
 **Reader:** anyone who styles an app or adds a control.
@@ -135,7 +135,7 @@ After every override the kit applies the user's settings:
    glossary rows and a recipe line.
 3. Then the views and the title bar.
 
-Each step documents only what exists; [`docs/ai/styles.md`](../ai/styles.md)
+Each step documents only what exists; [`agents/styles.md`](../../agents/styles.md)
 lists which controls already take a style.
 
 ## Consequences

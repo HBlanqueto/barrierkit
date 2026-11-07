@@ -133,7 +133,7 @@ Long titles and details wrap without clipping the control.
 ### Style
 
 `Form::style` takes a `FormStyle`: the cards, the rows and their texts. The
-fields are in [Styles and themes](../ai/styles.md#formstyle-groupboxstyle-and-disclosuregroupstyle).
+fields are in [Styles and themes](../../agents/styles.md#formstyle-groupboxstyle-and-disclosuregroupstyle).
 
 ```rust
 Form::new().section(section).style(|s| FormStyle { section_spacing: 32.0, ..s })
@@ -157,7 +157,7 @@ chevron that shows or hides its children, indented `DISCLOSURE.indent` (13).
 
 `GroupBox::style` and `DisclosureGroup::style` take a `GroupBoxStyle` and a
 `DisclosureGroupStyle`. The fields are in
-[Styles and themes](../ai/styles.md#formstyle-groupboxstyle-and-disclosuregroupstyle).
+[Styles and themes](../../agents/styles.md#formstyle-groupboxstyle-and-disclosuregroupstyle).
 
 ## Tables
 
@@ -209,7 +209,7 @@ direction.
 
 `Table::style` takes a `TableStyle`: the header, the stripes and the
 selection. The fields are in
-[Styles and themes](../ai/styles.md#tablestyle-collectionviewstyle-and-outlineviewstyle).
+[Styles and themes](../../agents/styles.md#tablestyle-collectionviewstyle-and-outlineviewstyle).
 
 ## Collections
 
@@ -251,7 +251,7 @@ selected reports nothing.
 ### Style
 
 `CollectionView::style` takes a `CollectionViewStyle` for its tiles. The
-fields are in [Styles and themes](../ai/styles.md#tablestyle-collectionviewstyle-and-outlineviewstyle).
+fields are in [Styles and themes](../../agents/styles.md#tablestyle-collectionviewstyle-and-outlineviewstyle).
 
 ## Trees
 
@@ -288,7 +288,7 @@ sideways. `on_select` receives the chosen path, `Vec<usize>`.
 
 `OutlineView::style` and `Browser::style` take the same `OutlineViewStyle`,
 so a theme draws both alike. The fields are in
-[Styles and themes](../ai/styles.md#tablestyle-collectionviewstyle-and-outlineviewstyle).
+[Styles and themes](../../agents/styles.md#tablestyle-collectionviewstyle-and-outlineviewstyle).
 
 ```rust
 Theme::tengen().style(|s: OutlineViewStyle| OutlineViewStyle { row_shape: Shape::Capsule, ..s })
@@ -322,7 +322,7 @@ The view switches pages by itself; `on_change` is for the app to remember.
 ### Style
 
 `TabView::style` takes a `TabViewStyle`: the strip and its tabs. The fields
-are in [Styles and themes](../ai/styles.md#tabviewstyle-and-windowtabsstyle).
+are in [Styles and themes](../../agents/styles.md#tabviewstyle-and-windowtabsstyle).
 
 ## Window tabs
 
@@ -350,7 +350,7 @@ The app keeps each tab's content. Tabs cannot be dragged.
 ### Style
 
 `WindowTabs::style` takes a `WindowTabsStyle`. The fields are in
-[Styles and themes](../ai/styles.md#tabviewstyle-and-windowtabsstyle).
+[Styles and themes](../../agents/styles.md#tabviewstyle-and-windowtabsstyle).
 
 ## Split panes
 
@@ -374,7 +374,7 @@ SplitPanes::new("Panes", Direction::Horizontal)
 | `.ratios(Vec<f32>)` | equal | The share of each pane. A list of the wrong length means equal shares |
 | `.on_ratios(callback)` | none | Receives the new shares on every pointer move of a drag |
 | `.divider(Rgba)` | `Palette::separator` | Divider color, an instance override of the style's `divider` |
-| `.style(f)` | Tengen | A `SplitPanesStyle`: divider width and paint ([Styles and themes](../ai/styles.md#splitviewstyle-splitpanesstyle-and-floatingpanestyle)) |
+| `.style(f)` | Tengen | A `SplitPanesStyle`: divider width and paint ([Styles and themes](../../agents/styles.md#splitviewstyle-splitpanesstyle-and-floatingpanestyle)) |
 
 The ratios are controlled: store what `on_ratios` reports and pass it back, or
 the divider does not move. A drag changes only the two panes beside the
@@ -411,7 +411,7 @@ FloatingPane {
 | `content: Element` | The pane's body |
 | `on_raise` | Called on any press in the pane, so the app can put it on top |
 | `on_frame` | Receives the new `PaneFrame` on every pointer move of a drag |
-| `style: Theme` | `Theme::tengen()`; `.style(f)` adds a `FloatingPaneStyle` override ([Styles and themes](../ai/styles.md#splitviewstyle-splitpanesstyle-and-floatingpanestyle)). `accent`, `title_bar` and `title_ink` override its `outline`, `title_bar` and `title` before it |
+| `style: Theme` | `Theme::tengen()`; `.style(f)` adds a `FloatingPaneStyle` override ([Styles and themes](../../agents/styles.md#splitviewstyle-splitpanesstyle-and-floatingpanestyle)). `accent`, `title_bar` and `title_ink` override its `outline`, `title_bar` and `title` before it |
 
 The title bar is `FLOATING_PANE.title_height` (22) high. A
 `FLOATING_PANE.resize_band` (6) band around the pane resizes it from each edge
@@ -460,7 +460,7 @@ position in UTF-16 units.
 
 `TextView::style` takes a `TextViewStyle`: the paint of the text and the
 caret. `ink` and `.cursor(color)` override it before `.style`
-([Styles and themes](../ai/styles.md#textviewstyle)).
+([Styles and themes](../../agents/styles.md#textviewstyle)).
 
 ## Feedback
 
@@ -510,7 +510,7 @@ evenly. It does not close itself: the callbacks stop drawing it.
 `Sheet::style`, `Alert::style` and `ContentUnavailableView::style` take a
 `SheetStyle`, an `AlertStyle` and a `ContentUnavailableViewStyle`. An `Alert`
 draws on the `SheetStyle` of the theme and the containers. The fields are in
-[Styles and themes](../ai/styles.md#sheetstyle-alertstyle-and-contentunavailableviewstyle).
+[Styles and themes](../../agents/styles.md#sheetstyle-alertstyle-and-contentunavailableviewstyle).
 
 ## Navigation
 
@@ -547,7 +547,7 @@ Two [`Action`](13-app.md)s: `go-back` ("Back", Alt+←) and `go-forward`
 
 `NavigationButtons` takes no style of its own: its group takes
 `ToolGroupStyle` and its arrows `IconButtonStyle`
-([Styles and themes](../ai/styles.md#which-controls-take-a-style)).
+([Styles and themes](../../agents/styles.md#which-controls-take-a-style)).
 
 ## Search
 

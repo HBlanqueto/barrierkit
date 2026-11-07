@@ -3,7 +3,7 @@
 **Goal:** open a window with text, then add state that changes it.
 **Scope:** from an empty crate to a window that counts. Controls are in
 [5](05-controls.md), window options in [8](08-windows.md), full programs for
-other tasks in the [recipes](../ai/recipes.md).
+other tasks in the [recipes](../../agents/recipes.md).
 **Reader:** anyone who has never used BarrierKit or Freya. SwiftUI helps but is
 not needed.
 **Input:** the repository and `nix develop`. **Output:** two programs that run.
@@ -92,14 +92,14 @@ fn main() -> Result<(), RunError> {
 | Item | What it does |
 |---|---|
 | `Application::new(name)` | Creates the app. `name` is short, lowercase and stable: it becomes the `app_id`, the settings domain and the key of the saved window size |
-| `Application::theme(theme)` | Gives every window the [`Theme`](../ai/styles.md#levels); without it, `Theme::tengen()` |
+| `Application::theme(theme)` | Gives every window the [`Theme`](../../agents/styles.md#levels); without it, `Theme::tengen()` |
 | `Application::window(title, content)` | Returns a `Scene` for one window. `content` is a closure that returns the view; hooks go at its top |
 | `Scene::options(\|window\| …)` | Changes any [`WindowOptions`](08-windows.md) setting: size, limits, menu, full-screen bar |
 | `Scene::run()` | Draws the window background (`Palette::current().window_background`), a [`Titlebar`](09-titlebars.md) with the title, centers `content` and calls [`run_window`](08-windows.md). Returns `Result<(), RunError>` |
 
 Use `run_window` directly when the window draws its own title bar (a sidebar,
 toolbar items) or the app opens several windows: see
-[recipe 7](../ai/recipes.md#7-drawing-the-whole-window-yourself).
+[recipe 7](../../agents/recipes.md#7-drawing-the-whole-window-yourself).
 
 ## Text and stacks
 
@@ -119,9 +119,9 @@ stacks, children and alignment (`child`, `children`, `spacing`,
 
 The defaults of `Text` come from a `TextStyle`, so a theme can change the font
 and color of every text; its fields are in
-[Styles and themes](../ai/styles.md#textstyle-badgestyle-dividerstyle-avatarstyle-and-imagestyle).
+[Styles and themes](../../agents/styles.md#textstyle-badgestyle-dividerstyle-avatarstyle-and-imagestyle).
 The stacks have no style of their own: their methods and the
-[paint on views](../ai/styles.md#paint-on-views) style them.
+[paint on views](../../agents/styles.md#paint-on-views) style them.
 
 ## The prelude
 
@@ -129,7 +129,7 @@ The stacks have no style of their own: their methods and the
 
 | From | Names |
 |---|---|
-| The kit | `Application`, `Scene`, `UtilityWindow`, `Text`, `VStack`, `HStack`, `Image`, `Symbol`, `Divider`, the [`ViewModifiers`](07-menus-and-popovers.md#view-modifiers) trait (`.help`, `.context_menu`, `.focus_ring`, `.foreground_style`, `.background_style`, `.shadows`), `run_window`, `WindowOptions`, `RunError`, `Palette`, `text`, `color`, `Titlebar`, every control in [`controls`](05-controls.md), the [`StyleModifiers`](../ai/styles.md#levels) trait (`.control_style`) and everything in [`styles`](../ai/styles.md#value-types) (`Theme`, `ControlStyle`, `SliderStyle`, `ShapeStyle`, `Rgba`…) |
+| The kit | `Application`, `Scene`, `UtilityWindow`, `Text`, `VStack`, `HStack`, `Image`, `Symbol`, `Divider`, the [`ViewModifiers`](07-menus-and-popovers.md#view-modifiers) trait (`.help`, `.context_menu`, `.focus_ring`, `.foreground_style`, `.background_style`, `.shadows`), `run_window`, `WindowOptions`, `RunError`, `Palette`, `text`, `color`, `Titlebar`, every control in [`controls`](05-controls.md), the [`StyleModifiers`](../../agents/styles.md#levels) trait (`.control_style`) and everything in [`styles`](../../agents/styles.md#value-types) (`Theme`, `ControlStyle`, `SliderStyle`, `ShapeStyle`, `Rgba`…) |
 | Freya | its whole prelude: `rect()`, `label()`, `use_state`, `Component`, `App`, `IntoElement`, element methods |
 | Torin | `Alignment`, `Direction`, `Size` |
 | Tokens | `BODY`, `CALLOUT`, `CAPTION`, `HEADLINE`, `LARGE_TITLE`, `MONO`, `TITLE`, `TITLE_2`, `Font`, `SPACE_1`…`SPACE_4`, `WINDOW_DEFAULT_SIZE`, `WINDOW_MIN_SIZE` |

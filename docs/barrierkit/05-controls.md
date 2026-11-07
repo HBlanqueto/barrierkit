@@ -128,7 +128,7 @@ Button::new("Delete").disabled(true)
 closure for one button, `.control_style(|s: ButtonStyle| ..)` for every button
 inside a view and `Theme::tengen().style(ButtonStyle::glass)` for the whole
 app. The fields, the presets and `.size` are in
-[Styles and themes](../ai/styles.md#buttonstyle).
+[Styles and themes](../../agents/styles.md#buttonstyle).
 
 ```rust
 Button::new("Save").style(|s| ButtonStyle { shape: Shape::Capsule, ..s.bordered_prominent() })
@@ -168,7 +168,7 @@ ToggleGroup::new("Format")
 `IconButton` draws only from an `IconButtonStyle`, `Stepper` from a
 `StepperStyle` and `ToggleGroup` from a `ToggleGroupStyle`. The arrows of a
 [`DatePicker`](#date-picker) draw from the `StepperStyle` in context too. The
-fields are in [Styles and themes](../ai/styles.md#iconbuttonstyle).
+fields are in [Styles and themes](../../agents/styles.md#iconbuttonstyle).
 
 ```rust
 Stepper::new("Cores", 1, 16).style(|s| StepperStyle { value_position: Some(Edge::Trailing), ..s })
@@ -208,7 +208,7 @@ as a popover menu below the button.
 `ControlGroupStyle`, which paints only the group and its separators: its
 children keep their own styles. `ShareLink` is a `MenuButton`, so it takes a
 `MenuButtonStyle`. The fields are in
-[Styles and themes](../ai/styles.md#menubuttonstyle-combobuttonstyle-and-helplinkstyle).
+[Styles and themes](../../agents/styles.md#menubuttonstyle-combobuttonstyle-and-helplinkstyle).
 
 ```rust
 MenuButton::new("Sort", items).style(|s| MenuButtonStyle { shape: Shape::Capsule, ..s })
@@ -229,7 +229,7 @@ Where they sit in the title bar is in [9](09-titlebars.md).
 `ToolGroup` draws only from a `ToolGroupStyle`: slot size, separators,
 background, rim and `axis` (a vertical group stacks its items). Its Tengen
 follows the user's sidebar style. The fields are in
-[Styles and themes](../ai/styles.md#toolgroupstyle).
+[Styles and themes](../../agents/styles.md#toolgroupstyle).
 
 `ToolbarSearch` takes a `ToolbarSearchStyle` with only its `width`: the field
 draws from the `SearchFieldStyle` and the collapsed button from the
@@ -270,7 +270,7 @@ Checkbox::new("Remember me").checked(true)
 `Switch` draws only from a `SwitchStyle` and `Checkbox` from a
 `CheckboxStyle`; `.tint(Tint)` sets their `fill`. Both styles place the label
 with `label_position` (an `Edge`) and `layout_direction`. The fields are in
-[Styles and themes](../ai/styles.md#switchstyle).
+[Styles and themes](../../agents/styles.md#switchstyle).
 
 ```rust
 Checkbox::new("Remember me").style(|s| CheckboxStyle { label_position: Some(Edge::Leading), ..s })
@@ -328,14 +328,14 @@ ColorWell::new("Accent color", &ACCENT_SWATCHES).selected(Some(0))
 
 `SegmentedControl` draws only from a `SegmentedControlStyle`: the group, each
 segment, the chosen one and `axis` (vertical stacks the segments). The fields
-are in [Styles and themes](../ai/styles.md#segmentedcontrolstyle).
+are in [Styles and themes](../../agents/styles.md#segmentedcontrolstyle).
 
 `RadioGroup` draws only from a `RadioGroupStyle`, with the `axis` of its
 options and the `label_position` of each label; `.tint(Tint)` sets its `fill`.
 `ColorWell` draws from a `ColorWellStyle` and `ChoiceCards` from a
 `ChoiceCardsStyle`, each with an `axis` and `wraps` for its swatches or cards.
-The fields are in [Styles and themes](../ai/styles.md#radiogroupstyle).
-`PopUpButton` draws from a [`PopUpButtonStyle`](../ai/styles.md#popupbuttonstyle):
+The fields are in [Styles and themes](../../agents/styles.md#radiogroupstyle).
+`PopUpButton` draws from a [`PopUpButtonStyle`](../../agents/styles.md#popupbuttonstyle):
 label, round indicator and chevron.
 
 ```rust
@@ -375,8 +375,8 @@ LevelSlider::new("Volume").value(0.6).style(|s| s.fat(Symbol::SpeakerWave))
 `.control_style(|s: SliderStyle| ..)` for every slider inside a view and
 `Theme::tengen().style(|s: SliderStyle| ..)`
 for the whole app. The levels, the fields and the value types are in
-[Styles and themes](../ai/styles.md). `LevelSlider` draws the same way from a
-`LevelSliderStyle` ([fields](../ai/styles.md#levelsliderstyle)).
+[Styles and themes](../../agents/styles.md). `LevelSlider` draws the same way from a
+`LevelSliderStyle` ([fields](../../agents/styles.md#levelsliderstyle)).
 
 ```rust
 Slider::stepped("Volume", 10).style(|s| SliderStyle { track_height: 10.0, ..s })
@@ -424,10 +424,10 @@ ComboBox::new(shell, "Shell").item("zsh").item("fish")
 `TextFieldStyle`, a `SearchFieldStyle` and a `SecureFieldStyle`: size, shape,
 background, border, text, placeholder and font. The fields, and what Freya's
 `Input` can draw, are in
-[Styles and themes](../ai/styles.md#textfieldstyle-searchfieldstyle-and-securefieldstyle).
+[Styles and themes](../../agents/styles.md#textfieldstyle-searchfieldstyle-and-securefieldstyle).
 
 `ComboBox` draws its field from the `TextFieldStyle` in context and its arrow
-button from a [`ComboBoxStyle`](../ai/styles.md#comboboxstyle).
+button from a [`ComboBoxStyle`](../../agents/styles.md#comboboxstyle).
 
 ```rust
 TextField::new(name, "User name").style(|s| TextFieldStyle { shape: Shape::Capsule, ..s })
@@ -467,7 +467,7 @@ To choose from preset colors, use [`ColorWell`](#choices).
 
 ### Style
 
-`ColorPicker` draws from a [`ColorPickerStyle`](../ai/styles.md#colorpickerstyle):
+`ColorPicker` draws from a [`ColorPickerStyle`](../../agents/styles.md#colorpickerstyle):
 the well's size, shape and border, and the panel's size and captions. The
 color itself is content.
 
@@ -475,7 +475,7 @@ color itself is content.
 
 `date_picker::DatePicker::new(label, CivilDateTime)` is a text field with one segment per part
 and a stepper beside it, like the `textFieldAndStepper` style of `NSDatePicker`. The
-stepper's arrows draw from the [`StepperStyle`](../ai/styles.md#stepperstyle) in context.
+stepper's arrows draw from the [`StepperStyle`](../../agents/styles.md#stepperstyle) in context.
 
 | Method | Default | Effect |
 |---|---|---|
@@ -512,7 +512,7 @@ Module `date` does the calendar arithmetic without dependencies, with
 ### Style
 
 `DatePicker` draws the field, its parts and the calendar from a
-[`DatePickerStyle`](../ai/styles.md#datepickerstyle); `.style(|s| ..)` changes
+[`DatePickerStyle`](../../agents/styles.md#datepickerstyle); `.style(|s| ..)` changes
 one picker. The arrows keep the `StepperStyle` in context.
 
 ```rust
@@ -527,7 +527,7 @@ reports the pressed part.
 
 ### Style
 
-`PathControl` draws from a [`PathControlStyle`](../ai/styles.md#pathcontrolstyle):
+`PathControl` draws from a [`PathControlStyle`](../../agents/styles.md#pathcontrolstyle):
 the sizes and paints of the icons, names and chevrons.
 
 ## Image well
@@ -546,7 +546,7 @@ shows the image at the path.
 
 ### Style
 
-`ImageWell` draws from an [`ImageWellStyle`](../ai/styles.md#imagewellstyle),
+`ImageWell` draws from an [`ImageWellStyle`](../../agents/styles.md#imagewellstyle),
 with the border it shows while an image is dragged over it.
 
 ## Progress
@@ -578,7 +578,7 @@ Spinner::new("Loading")
 `ProgressRingStyle` and a `SpinnerStyle`, each with `.style(|s| ..)`. The
 sweep of the indeterminate bar and the turn of the spinner are their
 `animation`. The fields are in
-[Styles and themes](../ai/styles.md#progressviewstyle-progressringstyle-and-spinnerstyle).
+[Styles and themes](../../agents/styles.md#progressviewstyle-progressringstyle-and-spinnerstyle).
 
 ```rust
 ProgressView::determinate("Copying system", 0.62).style(|s| ProgressViewStyle { height: 4.0, ..s })
@@ -611,9 +611,9 @@ Gauge::new("Temperature", 0.64, "64°")
 ### Style
 
 Each indicator has `.style(|s| ..)` and draws from its own style:
-[`CapacityIndicatorStyle`](../ai/styles.md#capacityindicatorstyle), and
+[`CapacityIndicatorStyle`](../../agents/styles.md#capacityindicatorstyle), and
 `RelevancyIndicatorStyle`, `RatingIndicatorStyle` and `GaugeStyle`
-([fields](../ai/styles.md#relevancyindicatorstyle-ratingindicatorstyle-and-gaugestyle)).
+([fields](../../agents/styles.md#relevancyindicatorstyle-ratingindicatorstyle-and-gaugestyle)).
 
 ```rust
 RatingIndicator::new("Rating", 3).style(|s| RatingIndicatorStyle { star: StateValue::new(ShapeStyle::Accent), ..s })
@@ -642,12 +642,12 @@ Link::new("Learn more…")
 
 ### Style
 
-`Link` draws from a [`LinkStyle`](../ai/styles.md#linkstyle): its paint and
+`Link` draws from a [`LinkStyle`](../../agents/styles.md#linkstyle): its paint and
 font. `Badge`, `Divider` and `Avatar` draw from a `BadgeStyle`, a
 `DividerStyle` and an `AvatarStyle`, resolved when they are built; their
 fields are in
-[Styles and themes](../ai/styles.md#textstyle-badgestyle-dividerstyle-avatarstyle-and-imagestyle).
-To change a single one, [paint on views](../ai/styles.md#paint-on-views) also works.
+[Styles and themes](../../agents/styles.md#textstyle-badgestyle-dividerstyle-avatarstyle-and-imagestyle).
+To change a single one, [paint on views](../../agents/styles.md#paint-on-views) also works.
 
 ```rust
 Badge::new("3").style(|s| BadgeStyle {
@@ -693,7 +693,7 @@ ScrollView::new().height(Size::px(120.0)).child(list)
 `ScrollView` draws its bar, edge fade and top line from a `ScrollViewStyle`:
 `.style(|s| ..)` for one view, `.control_style(|s: ScrollViewStyle| ..)` for
 the views inside another. The fields are in
-[Styles and themes](../ai/styles.md#scrollviewstyle).
+[Styles and themes](../../agents/styles.md#scrollviewstyle).
 
 ## Drag source
 

@@ -39,7 +39,7 @@ Fuentes de partida por área. Las de cada dependencia fijada están en la regla
 
 ## Documentación (solo inglés)
 
-Aplica a `README.md`, `docs/` y los ADR.
+Aplica a `README.md`, `docs/`, `agents/` y los ADR.
 
 1. **Solo en inglés.** Cada documento existe una vez, en inglés, como
    `nombre.md`; no hay copias en español ni archivos `.en.md`. Los comentarios
@@ -73,9 +73,9 @@ métodos, hooks, tokens).
    `rev`.
 4. **API nueva, documentada en el mismo commit:** su fila en el glosario, su
    uso en el capítulo que la describe y, si cambia cómo se escribe una app,
-   `docs/ai/` (`prompt.md`, `recipes.md`, `checklist.md`).
+   `agents/` (`prompt.md`, `recipes.md`, `checklist.md`).
 5. **El código de la documentación compila.** Cada bloque con `fn main` de
-   `docs/ai/recipes.md` y del capítulo 2 se compila antes del push (por
+   `agents/recipes.md` y del capítulo 2 se compila antes del push (por
    ejemplo, en un `crates/bk/examples/` temporal con
    `cargo clippy --examples -- -D warnings`, que se borra después).
 

@@ -160,7 +160,7 @@ scrolls.
 ### Style
 
 Every menu, pop-up menu, popover and tooltip draws from a
-[`MenuStyle`](../ai/styles.md#menustyle), resolved through the theme and the
+[`MenuStyle`](../../agents/styles.md#menustyle), resolved through the theme and the
 container styles of the view that opened it:
 
 ```rust
@@ -275,7 +275,7 @@ are components: call the modifier on a rect that holds them.
 | `.shadows(Vec<ShadowStyle>)` | `.shadow(color:radius:x:y:)` | Shadows |
 
 The last three take the paint types of the styling system and are described
-in [Styles and themes](../ai/styles.md#paint-on-views).
+in [Styles and themes](../../agents/styles.md#paint-on-views).
 
 A modifier sets Freya event handlers on the element: `.context_menu` sets
 `on_secondary_down`; `.help` sets `on_pointer_enter`, `on_pointer_move`,

@@ -2,7 +2,7 @@
 
 **Goal:** start a program from a whole `src/main.rs` that already compiles.
 **Scope:** one program per common task. Each item's reference lives in its
-chapter; the names are in the [glossary](../barrierkit/20-glossary.md).
+chapter; the names are in the [glossary](../docs/barrierkit/20-glossary.md).
 **Reader:** an AI agent sent here by [`prompt.md`](prompt.md), or a person.
 **Input:** a task. **Output:** the closest program, ready to change.
 
@@ -17,13 +17,13 @@ chapter; the names are in the [glossary](../barrierkit/20-glossary.md).
 
 SwiftUI: `WindowGroup { Text("Hello, world").font(.title).padding(40) }`
 
-The program is in [chapter 2, Hello, world](../barrierkit/02-first-app.md#hello-world).
+The program is in [chapter 2, Hello, world](../docs/barrierkit/02-first-app.md#hello-world).
 
 ## 2. State and a button
 
 SwiftUI: `@State var count = 0` with `VStack { Text("\(count)"); Button("Add one") { count += 1 } }`
 
-The program is in [chapter 2, Adding state](../barrierkit/02-first-app.md#adding-state).
+The program is in [chapter 2, Adding state](../docs/barrierkit/02-first-app.md#adding-state).
 
 ## 3. Rows and columns
 
@@ -95,7 +95,7 @@ fn main() -> Result<(), RunError> {
 ```
 
 For a real preferences window use `SettingsWindow` (chapter
-[12](../barrierkit/12-patterns.md)).
+[12](../docs/barrierkit/12-patterns.md)).
 
 ## 6. A reusable view
 
@@ -153,7 +153,7 @@ fn main() -> Result<(), RunError> {
 
 ## 8. Translated text
 
-Follow the steps in chapter [17](../barrierkit/17-languages.md); then every
+Follow the steps in chapter [17](../docs/barrierkit/17-languages.md); then every
 literal above becomes `tr!("id")`:
 
 ```rust
@@ -250,7 +250,7 @@ fn format_time(elapsed: Duration) -> String {
 }
 ```
 
-`Timers::after` runs a callback once after a delay ([8](../barrierkit/08-windows.md)).
+`Timers::after` runs a callback once after a delay ([8](../docs/barrierkit/08-windows.md)).
 `use_side_effect` runs again when `now` or `started` change, so each tick
 schedules the next one while the stopwatch runs.
 
@@ -295,13 +295,13 @@ fn main() -> Result<(), RunError> {
 }
 ```
 
-1. The gradient is a [`Backdrop`](../barrierkit/15-backdrops-and-media.md#backdrop),
+1. The gradient is a [`Backdrop`](../docs/barrierkit/15-backdrops-and-media.md#backdrop),
    not a hand-written `LinearGradient`: it gives the content a legible palette
    and makes the `Titlebar` transparent. Its colors come from a
    `BACKDROP_SCENES` preset or from an image (`BackdropSource::Image`).
 2. The content is a `Component`, so it reads the backdrop's palette.
 3. `run_window` is used because the window draws its own title bar with
-   buttons ([8](../barrierkit/08-windows.md)). Every kit window is
+   buttons ([8](../docs/barrierkit/08-windows.md)). Every kit window is
    client-side decorated.
 
 ## 11. Style one control

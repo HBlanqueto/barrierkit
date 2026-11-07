@@ -15,7 +15,7 @@ answers it.
    [glossary](20-glossary.md); each row links to its chapter.
 2. Otherwise, pick the chapter in the table below.
 3. New to the kit: read chapters 1 to 3 in order.
-4. An AI agent starts from [`docs/ai/prompt.md`](../ai/prompt.md).
+4. An AI agent starts from [`agents/prompt.md`](../../agents/prompt.md).
 
 ## Chapters
 

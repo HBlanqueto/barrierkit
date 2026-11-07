@@ -305,7 +305,7 @@ std::thread::spawn(move || {
 ```
 
 A repeating tick is an `after` that schedules the next one
-([recipe 9](../ai/recipes.md#9-a-stopwatch)).
+([recipe 9](../../agents/recipes.md#9-a-stopwatch)).
 
 ## Input helpers
 

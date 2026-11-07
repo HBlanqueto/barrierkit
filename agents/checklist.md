@@ -42,7 +42,7 @@ reason it cannot be.
 ## Changes to the kit itself
 
 13. Is every new or renamed public item in
-    [`docs/barrierkit/20-glossary.md`](../barrierkit/20-glossary.md), named by
+    [`docs/barrierkit/20-glossary.md`](../docs/barrierkit/20-glossary.md), named by
     its rules, in the same commit?
 14. Does the chapter that describes the changed behavior say what the code
     does now?

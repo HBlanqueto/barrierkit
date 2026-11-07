@@ -3,7 +3,7 @@
 **Goal:** show how Flutter, Compose, Material, GTK/libadwaita, Qt, CSS, DTCG tokens and AwesomeWM theme and override controls, with a source for every claim.
 **Scope:** research only; the decision built on it is
 [ADR 0064](../decisions/0064-styles-and-themes.md) and the guide for agents is
-[`docs/ai/styles.md`](../ai/styles.md).
+[`agents/styles.md`](../../agents/styles.md).
 **Reader:** anyone who changes the styling system.
 **Input:** the question in the first section. **Output:** findings and
 "Lessons for BarrierKit".

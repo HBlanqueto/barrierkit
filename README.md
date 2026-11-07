@@ -34,7 +34,7 @@ When `infinity_window_manager_v1`, `ext_foreign_toplevel_list_v1` / `zwlr_foreig
 
 [`docs/barrierkit/`](docs/barrierkit/README.md) explains the kit from the first window to the Wayland runner, with real screenshots. Start with [your first app](docs/barrierkit/02-first-app.md). The [glossary](docs/barrierkit/20-glossary.md) maps every SwiftUI and AppKit name to its BarrierKit name.
 
-AI agents start from one prompt: [`docs/ai/prompt.md`](docs/ai/prompt.md).
+AI agents start from one prompt: [`agents/prompt.md`](agents/prompt.md).
 
 ## Decisions
 

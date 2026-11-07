@@ -107,7 +107,7 @@ lights are in the sidebar, the first row starts below them.
 `SidebarAccount::style` and `SymbolTile::style` take a `SidebarStyle`,
 `SidebarItemStyle`, `SidebarSectionStyle`, `SidebarAccountStyle` and
 `SymbolTileStyle`. Their Tengen follows `sidebar_style`; the fields are in
-[Styles and themes](../ai/styles.md#sidebarstyle-sidebaritemstyle-sidebarsectionstyle-sidebaraccountstyle-and-symboltilestyle).
+[Styles and themes](../../agents/styles.md#sidebarstyle-sidebaritemstyle-sidebarsectionstyle-sidebaraccountstyle-and-symboltilestyle).
 
 ```rust
 Theme::tengen().style(|s: SidebarItemStyle| SidebarItemStyle {
@@ -224,7 +224,7 @@ It is `NavigationSplitView` with a sidebar and a detail column.
 | `.inspector(view, presented)` | none | See [Inspector](#inspector) |
 | `.background_extension(view)` | none | See [Background extension](#background-extension) |
 | `.on_layout(callback)` | none | Reports [`SidebarLayout`](#sidebarlayout) |
-| `.style(f)` | Tengen | A `SplitViewStyle`: inset, grip, background, scrim, inspector line and the animations ([Styles and themes](../ai/styles.md#splitviewstyle-splitpanesstyle-and-floatingpanestyle)) |
+| `.style(f)` | Tengen | A `SplitViewStyle`: inset, grip, background, scrim, inspector line and the animations ([Styles and themes](../../agents/styles.md#splitviewstyle-splitpanesstyle-and-floatingpanestyle)) |
 | `.key(key)` | none | Diff key |
 
 `sidebar_width` and `sidebar_visible` are starting values. After the first

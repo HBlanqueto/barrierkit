@@ -132,7 +132,7 @@ the panes: one entry per pane, keyed `(pane id, None)`, and one per row, keyed
 `SettingsWindow::style` takes a `SettingsWindowStyle`: the gaps between its
 parts and the search popover. Each part keeps its own style: the sidebar,
 the search field, the bar, the arrows, the split and the forms. The fields
-are in [Styles and themes](../ai/styles.md#settingswindowstyle-and-aboutviewstyle).
+are in [Styles and themes](../../agents/styles.md#settingswindowstyle-and-aboutviewstyle).
 
 ```rust
 SettingsWindow::new().group(group).style(|s| SettingsWindowStyle {
@@ -165,7 +165,7 @@ AboutView::new(Avatar::new("N"), "Notes", "© 2026 Jane Appleseed").version("Ver
 
 `AboutView::style` takes an `AboutViewStyle`: the paints and fonts of the
 name, the version and the copyright, and the gaps between them
-([Styles and themes](../ai/styles.md#settingswindowstyle-and-aboutviewstyle)).
+([Styles and themes](../../agents/styles.md#settingswindowstyle-and-aboutviewstyle)).
 
 ## Language picker
 
@@ -187,7 +187,7 @@ the `language` key of a `.domain` file in the config directory
 
 `LanguagePicker` is a `PopUpButton` and takes `PopUpButtonStyle` from the
 theme and the containers
-([Styles and themes](../ai/styles.md#popupbuttonstyle)).
+([Styles and themes](../../agents/styles.md#popupbuttonstyle)).
 
 ### `app_language_row` and `system_language_row`
 

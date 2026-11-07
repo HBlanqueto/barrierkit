@@ -18,7 +18,7 @@ version.
 
 1. Write down the SwiftUI code a Mac developer would write for the task.
 2. Translate it name by name with the
-   [glossary](../barrierkit/20-glossary.md). Do not guess a name.
+   [glossary](../docs/barrierkit/20-glossary.md). Do not guess a name.
 3. Start from the closest [recipe](recipes.md); change only what the task
    needs.
 4. Open the chapter of every item you use (the glossary links it) and check
@@ -42,7 +42,7 @@ version.
 - **Shape of every app:** `use bk::prelude::*;`, then
   `Application::new(name).window(title, || view).run()` in `main`. The program
   and what each part does are in
-  [chapter 2](../barrierkit/02-first-app.md#hello-world).
+  [chapter 2](../docs/barrierkit/02-first-app.md#hello-world).
 
 ## Hard rules
 
@@ -74,23 +74,23 @@ version.
 
 | When you need to… | Read |
 |---|---|
-| Find the name of anything (control, view, token, hook) | [`20-glossary.md`](../barrierkit/20-glossary.md) |
+| Find the name of anything (control, view, token, hook) | [`20-glossary.md`](../docs/barrierkit/20-glossary.md) |
 | Copy a working program | [`recipes.md`](recipes.md) |
 | Check your work before you answer | [`checklist.md`](checklist.md) |
-| Understand the first app line by line | [`02-first-app.md`](../barrierkit/02-first-app.md) |
-| Colors, fonts, symbols and tokens | [`04-appearance-and-tokens.md`](../barrierkit/04-appearance-and-tokens.md) |
-| Use a control | [`05-controls.md`](../barrierkit/05-controls.md) |
+| Understand the first app line by line | [`02-first-app.md`](../docs/barrierkit/02-first-app.md) |
+| Colors, fonts, symbols and tokens | [`04-appearance-and-tokens.md`](../docs/barrierkit/04-appearance-and-tokens.md) |
+| Use a control | [`05-controls.md`](../docs/barrierkit/05-controls.md) |
 | Change how a control looks (color, shape, size, motion) or build a theme | [`styles.md`](styles.md) |
-| Edit, style, spell-check or print text | [`06-text-and-editing.md`](../barrierkit/06-text-and-editing.md) |
-| Menus, context menus, popovers, tooltips | [`07-menus-and-popovers.md`](../barrierkit/07-menus-and-popovers.md) |
-| Window size, limits, popups, timers | [`08-windows.md`](../barrierkit/08-windows.md) |
-| Title bars and traffic lights | [`09-titlebars.md`](../barrierkit/09-titlebars.md) |
-| A sidebar app | [`10-sidebar.md`](../barrierkit/10-sidebar.md) |
-| Forms, tables, tabs, alerts, search | [`11-views.md`](../barrierkit/11-views.md) |
-| Preferences or About window | [`12-patterns.md`](../barrierkit/12-patterns.md) |
-| Menu bar menu, shortcuts, single instance, saved settings, undo | [`13-app.md`](../barrierkit/13-app.md) |
-| Animations | [`14-animations.md`](../barrierkit/14-animations.md) |
-| Tinted backdrops, glass, video | [`15-backdrops-and-media.md`](../barrierkit/15-backdrops-and-media.md) |
-| Charts | [`16-charts.md`](../barrierkit/16-charts.md) |
-| Translate the app | [`17-languages.md`](../barrierkit/17-languages.md) |
-| Change the kit itself | [`AGENTS.md`](../../AGENTS.md) and [`03-layers.md`](../barrierkit/03-layers.md) |
+| Edit, style, spell-check or print text | [`06-text-and-editing.md`](../docs/barrierkit/06-text-and-editing.md) |
+| Menus, context menus, popovers, tooltips | [`07-menus-and-popovers.md`](../docs/barrierkit/07-menus-and-popovers.md) |
+| Window size, limits, popups, timers | [`08-windows.md`](../docs/barrierkit/08-windows.md) |
+| Title bars and traffic lights | [`09-titlebars.md`](../docs/barrierkit/09-titlebars.md) |
+| A sidebar app | [`10-sidebar.md`](../docs/barrierkit/10-sidebar.md) |
+| Forms, tables, tabs, alerts, search | [`11-views.md`](../docs/barrierkit/11-views.md) |
+| Preferences or About window | [`12-patterns.md`](../docs/barrierkit/12-patterns.md) |
+| Menu bar menu, shortcuts, single instance, saved settings, undo | [`13-app.md`](../docs/barrierkit/13-app.md) |
+| Animations | [`14-animations.md`](../docs/barrierkit/14-animations.md) |
+| Tinted backdrops, glass, video | [`15-backdrops-and-media.md`](../docs/barrierkit/15-backdrops-and-media.md) |
+| Charts | [`16-charts.md`](../docs/barrierkit/16-charts.md) |
+| Translate the app | [`17-languages.md`](../docs/barrierkit/17-languages.md) |
+| Change the kit itself | [`AGENTS.md`](../AGENTS.md) and [`03-layers.md`](../docs/barrierkit/03-layers.md) |
