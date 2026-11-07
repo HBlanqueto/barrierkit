@@ -428,6 +428,52 @@ impl Graphics {
         } else {
             2
         };
+        // SAFETY: as above.
+        let formats = unsafe {
+            shared
+                .surface_fns
+                .get_physical_device_surface_formats(shared.physical_device, self.surface)
+        }
+        .map_err(failed("vkGetPhysicalDeviceSurfaceFormatsKHR"))?;
+        // VUID-VkSwapchainCreateInfoKHR-imageFormat-01273: the format must be one the surface lists.
+        if !formats.iter().any(|format| {
+            format.format == SWAPCHAIN_FORMAT
+                && format.color_space == ash_vk::ColorSpaceKHR::SRGB_NONLINEAR
+        }) {
+            return Err(RunError::Vulkan(
+                "the surface has no B8G8R8A8_UNORM sRGB format",
+            ));
+        }
+        let usage = capabilities.supported_usage_flags
+            & (ash_vk::ImageUsageFlags::COLOR_ATTACHMENT
+                | ash_vk::ImageUsageFlags::SAMPLED
+                | ash_vk::ImageUsageFlags::TRANSFER_SRC
+                | ash_vk::ImageUsageFlags::TRANSFER_DST);
+        if !usage.contains(ash_vk::ImageUsageFlags::COLOR_ATTACHMENT) {
+            return Err(RunError::Vulkan(
+                "the surface cannot be a colour attachment",
+            ));
+        }
+        let composite_alpha = [
+            ash_vk::CompositeAlphaFlagsKHR::PRE_MULTIPLIED,
+            ash_vk::CompositeAlphaFlagsKHR::INHERIT,
+            ash_vk::CompositeAlphaFlagsKHR::OPAQUE,
+        ]
+        .into_iter()
+        .find(|alpha| capabilities.supported_composite_alpha.contains(*alpha))
+        .unwrap_or(ash_vk::CompositeAlphaFlagsKHR::OPAQUE);
+        let extent = ash_vk::Extent2D {
+            width: size.0,
+            height: size.1,
+        };
+        let (min, max) = (capabilities.min_image_extent, capabilities.max_image_extent);
+        if !(min.width..=max.width).contains(&extent.width)
+            || !(min.height..=max.height).contains(&extent.height)
+        {
+            return Err(RunError::Vulkan(
+                "the window size is outside the surface's extents",
+            ));
+        }
         let mut image_count = capabilities.min_image_count.max(wanted_images);
         if capabilities.max_image_count > 0 {
             image_count = image_count.min(capabilities.max_image_count);
@@ -437,20 +483,12 @@ impl Graphics {
             .min_image_count(image_count)
             .image_format(SWAPCHAIN_FORMAT)
             .image_color_space(ash_vk::ColorSpaceKHR::SRGB_NONLINEAR)
-            .image_extent(ash_vk::Extent2D {
-                width: size.0,
-                height: size.1,
-            })
+            .image_extent(extent)
             .image_array_layers(1)
-            .image_usage(
-                ash_vk::ImageUsageFlags::COLOR_ATTACHMENT
-                    | ash_vk::ImageUsageFlags::SAMPLED
-                    | ash_vk::ImageUsageFlags::TRANSFER_SRC
-                    | ash_vk::ImageUsageFlags::TRANSFER_DST,
-            )
+            .image_usage(usage)
             .image_sharing_mode(ash_vk::SharingMode::EXCLUSIVE)
             .pre_transform(capabilities.current_transform)
-            .composite_alpha(ash_vk::CompositeAlphaFlagsKHR::PRE_MULTIPLIED)
+            .composite_alpha(composite_alpha)
             .present_mode(present_mode)
             .clipped(true)
             .old_swapchain(self.swapchain);
