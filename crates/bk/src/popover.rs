@@ -6,7 +6,7 @@ use freya_core::prelude::*;
 use torin::prelude::{Area, Gaps};
 
 use crate::platform::{PopupAnchor, PopupConstraintAdjustment, PopupGravity, PopupSpec, Popups};
-use crate::theme::{SurfaceKind, color, popover_palette, resolved};
+use crate::theme::color;
 
 pub struct Popover {
     size: (f32, f32),
@@ -51,7 +51,7 @@ struct PopoverBody(Rc<dyn Fn() -> Element>);
 
 impl App for PopoverBody {
     fn render(&self) -> impl IntoElement {
-        let menu = popover_palette(&resolved(), SurfaceKind::Toplevel);
+        let menu = crate::styles::popover_style();
         rect()
             .expanded()
             .background(color(menu.bg))

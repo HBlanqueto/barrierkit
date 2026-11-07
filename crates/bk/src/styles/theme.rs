@@ -2,6 +2,8 @@ use std::any::Any;
 use std::rc::Rc;
 
 use ctappearance::Resolved;
+use freya_core::current_context::CurrentContext;
+use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 
 pub trait ControlStyle: Clone + 'static {
@@ -54,9 +56,33 @@ impl PartialEq for Theme {
 }
 
 pub(crate) fn resolve<S: ControlStyle>(instance: &Theme) -> S {
-    let themed = try_consume_context::<State<Theme>>()
-        .map_or_else(S::tengen, |theme| theme.read().apply(S::tengen()));
+    resolve_from(S::tengen(), instance)
+}
+
+pub(crate) fn resolve_from<S: ControlStyle>(base: S, instance: &Theme) -> S {
+    let themed = match try_consume_context::<State<Theme>>() {
+        Some(theme) => theme.read().apply(base),
+        None => base,
+    };
     instance.apply(themed).accessible(&crate::theme::resolved())
+}
+
+pub(crate) fn current_theme() -> Theme {
+    CurrentContext::try_with(|_| try_consume_context::<State<Theme>>())
+        .flatten()
+        .map_or_else(Theme::tengen, |theme| theme.peek().clone())
+}
+
+pub(crate) struct PopupRoot {
+    pub(crate) theme: Theme,
+    pub(crate) content: AppComponent,
+}
+
+impl App for PopupRoot {
+    fn render(&self) -> impl IntoElement {
+        use_provide_theme(self.theme.clone());
+        self.content.clone()
+    }
 }
 
 pub(crate) fn use_provide_theme(theme: Theme) {
@@ -144,5 +170,60 @@ mod tests {
             .style(|Other(value)| Other(value * 3.0));
         assert_eq!(theme.apply(Other::tengen()).0, 3.0);
         assert_eq!(theme.apply(SliderStyle::tengen()).width, 100.0);
+    }
+
+    struct Probe(Rc<std::cell::Cell<f32>>);
+
+    impl App for Probe {
+        fn render(&self) -> impl IntoElement {
+            self.0.set(resolve::<SliderStyle>(&Theme::tengen()).width);
+            rect()
+        }
+    }
+
+    struct Opener(Rc<std::cell::Cell<f32>>);
+
+    impl App for Opener {
+        fn render(&self) -> impl IntoElement {
+            let width = self.0.clone();
+            use_hook(move || {
+                crate::platform::Popups::get().open(
+                    crate::platform::PopupSpec::default(),
+                    AppComponent::new(Probe(width)),
+                )
+            });
+            rect()
+        }
+    }
+
+    #[test]
+    fn a_popup_resolves_styles_with_the_theme_of_the_view_that_opened_it() {
+        let width = Rc::new(std::cell::Cell::new(0.0));
+        let scope = Theme::tengen().style(|s: SliderStyle| SliderStyle { width: 100.0, ..s });
+        let opener = AppComponent::new(Opener(width.clone()));
+        let window = AppComponent::from(move || StyleScope::new(scope.clone(), opener.clone()));
+        let (popups, queue) =
+            crate::platform::Popups::for_test(crate::platform::ObjectId::null(), None);
+        let size = torin::prelude::Size2D::new(100.0, 100.0);
+        let (mut runner, _) = freya_testing::TestingRunner::new(
+            window,
+            size,
+            move |runner| {
+                runner.provide_root_context(move || popups.clone());
+            },
+            1.0,
+        );
+        runner.sync_and_update();
+        let content = queue
+            .borrow_mut()
+            .drain(..)
+            .find_map(|command| match command {
+                crate::platform::PopupCommand::Open { content, .. } => Some(content),
+                _ => None,
+            })
+            .expect("the opener opens a popup");
+        let (mut popup, _) = freya_testing::TestingRunner::new(content, size, |_| {}, 1.0);
+        popup.sync_and_update();
+        assert_eq!(width.get(), 100.0);
     }
 }

@@ -10,7 +10,8 @@ use torin::prelude::{CursorPoint, Gaps};
 use crate::menu::measure_text_weight;
 use crate::platform::{PopupAnchor, PopupGravity, PopupId, PopupSpec, Popups, Timers};
 use crate::style::text;
-use crate::theme::{SurfaceKind, color, popover_palette};
+use crate::styles::{PopupRoot, Theme, current_theme};
+use crate::theme::color;
 
 #[derive(Default)]
 struct Shared {
@@ -32,13 +33,20 @@ impl Shared {
 pub(crate) struct Tooltip {
     text: &'static str,
     shared: Rc<Shared>,
+    popups: Option<Popups>,
+    theme: Theme,
 }
 
 pub(crate) fn use_tooltip(text: &'static str) -> Tooltip {
     let shared = use_hook(|| Rc::new(Shared::default()));
     let on_drop = shared.clone();
     use_drop(move || on_drop.hide());
-    Tooltip { text, shared }
+    Tooltip {
+        text,
+        shared,
+        popups: try_consume_root_context(),
+        theme: current_theme(),
+    }
 }
 
 impl Tooltip {
@@ -85,8 +93,14 @@ impl Tooltip {
             size: (width.ceil() as u32, height.ceil() as u32),
             ..PopupSpec::default()
         };
-        let popups = Popups::get();
-        let id = popups.open(spec, AppComponent::new(Tag(self.text)));
+        let Some(popups) = self.popups.clone() else {
+            return;
+        };
+        let content = AppComponent::new(PopupRoot {
+            theme: self.theme.clone(),
+            content: AppComponent::new(Tag(self.text)),
+        });
+        let id = popups.open(spec, content);
         self.shared.shown.replace(Some((popups, id)));
     }
 }
@@ -95,7 +109,7 @@ struct Tag(&'static str);
 
 impl App for Tag {
     fn render(&self) -> impl IntoElement {
-        let menu = popover_palette(&crate::theme::resolved(), SurfaceKind::Toplevel);
+        let menu = crate::styles::popover_style();
         rect()
             .expanded()
             .center()

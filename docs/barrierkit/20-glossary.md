@@ -203,6 +203,7 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 | `styles::ContentUnavailableViewStyle` | struct | — | — | Every visual property of `ContentUnavailableView` | [Styles](../ai/styles.md#sheetstyle-alertstyle-and-contentunavailableviewstyle) |
 | `styles::SettingsWindowStyle` | struct | — | — | Gaps of `SettingsWindow` and its search popover | [Styles](../ai/styles.md#settingswindowstyle-and-aboutviewstyle) |
 | `styles::AboutViewStyle` | struct | — | — | Every visual property of `AboutView` | [Styles](../ai/styles.md#settingswindowstyle-and-aboutviewstyle) |
+| `styles::MenuStyle` | type | ≈ `MenuStyle` | ≈ `NSMenu` drawing | `ctdesign::MenuPalette`: the colors and metrics of menus, pop-up menus, popovers and tooltips | [Styles](../ai/styles.md#menustyle) |
 | `styles::VideoViewStyle` | struct | — | — | The clip shape of `VideoView` (feature `video`) | [Styles](../ai/styles.md#videoviewstyle) |
 | `styles::Theme` | struct | ≈ styles set in the environment | ≈ `NSAppearance` | Style overrides for the whole app; `Theme::tengen()` changes nothing | [Styles](../ai/styles.md#levels) |
 | `styles::Theme::style` | method | ≈ `.buttonStyle(_:)` on the scene | — | Adds an override of the control whose style the closure takes | [Styles](../ai/styles.md#levels) |
@@ -293,6 +294,7 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 | `views::feedback::ContentUnavailableView::style` | method | — | — | Builds the view again with a style; call it right after `new` | [Styles](../ai/styles.md#sheetstyle-alertstyle-and-contentunavailableviewstyle) |
 | `patterns::settings::SettingsWindow::style` | method | — | — | Changes the style of one preferences window | [Styles](../ai/styles.md#settingswindowstyle-and-aboutviewstyle) |
 | `patterns::about::AboutView::style` | method | — | — | Changes the style of one About view | [Styles](../ai/styles.md#settingswindowstyle-and-aboutviewstyle) |
+| `menu::MenuView::style` | method | — | — | Changes the style of one menu and its submenus | [7](07-menus-and-popovers.md#style) |
 | `video::VideoView::style` | method | — | — | Changes the style of one video view | [Styles](../ai/styles.md#videoviewstyle) |
 | `app::Application::theme` | method | ≈ `.environment(_:_:)` on the scene | ≈ `NSApp.appearance` | Gives the app its `Theme` | [Styles](../ai/styles.md#levels) |
 
@@ -454,7 +456,7 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 | `ctdesign::GaugeMetrics` | struct | — | — | Gauge size, stroke, arc and marker | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::ProgressMetrics` | struct | — | — | Progress bar, ring and spinner sizes and timing | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::BadgeMetrics` | struct | — | — | Badge height and padding | [4](04-appearance-and-tokens.md#control-metrics) |
-| `ctdesign::FocusRingMetrics` | struct | — | — | Focus ring width and offset | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::FocusRingMetrics` | struct | — | — | Focus ring width | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::SymbolMetrics` | struct | — | — | Symbol grid and stroke width | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::TooltipMetrics` | struct | — | — | Tooltip delay, padding, radius and pointer gap | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::PopoverMetrics` | struct | — | — | Popover radius, arrow and padding | [4](04-appearance-and-tokens.md#control-metrics) |

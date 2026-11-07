@@ -129,6 +129,7 @@ action's `id` through `on_activate`, then calls `on_dismiss_all`.
 | `.with_open_submenu(f)`, `.with_submenu_source(f)` | Lazy submenus ([Submenus](#submenus)) |
 | `.with_searchable(f)`, `.with_help_topics(f)`, `.with_search_icons(menu, help)`, `.with_reveal_roots(f)`, `.with_query_state(state)` | Search ([Search](#search)) |
 | `.with_navigation(f)` | ← and → at the edge call `f(MenuNavigation::Prev)` or `f(MenuNavigation::Next)`, so a menu bar moves to the neighbouring menu |
+| `.style(\|s\| ..)` | Changes the `MenuStyle` of this menu and its submenus ([Style](#style)) |
 
 `MenuView::preferred_size(&items, palette)` returns the `(width, height)` the
 items need; open the popup with that size. Long labels are cut in the middle
@@ -155,6 +156,18 @@ scrolls.
 |---|---|
 | ![Menu with a shortcut, checkboxes, radios, a disabled row and a submenu](assets/components/menu-view-light.png) | ![The same menu in dark](assets/components/menu-view-dark.png) |
 | ![Two rows with shortcuts, the second disabled](assets/components/menu-view-accents-light.png) | ![The same rows in dark](assets/components/menu-view-accents-dark.png) |
+
+### Style
+
+Every menu, pop-up menu, popover and tooltip draws from a
+[`MenuStyle`](../ai/styles.md#menustyle), resolved through the theme and the
+container styles of the view that opened it:
+
+```rust
+VStack::new()
+    .child(PopUpButton::new("Sort").item("Name").item("Date"))
+    .control_style(|s: MenuStyle| MenuStyle { item_radius: 0.0, ..s })
+```
 
 ## Shortcuts
 
@@ -298,9 +311,10 @@ and square corners.
 ### `.focus_ring`
 
 `element.focus_ring(corner_radius, color)` draws a ring of `FOCUS_RING.width`
-(3) in `color` just outside the element. The ring is a child,
-so it needs an element with children: `rect`, `VStack`, `HStack` or a
-rect-like view type, not `label` or `Text`. A control uses it as a selection
+(3) in `color` just outside the element: an outer border that follows the
+element's corners, or `corner_radius` when the element has none. It needs an
+element with a style: `rect`, `VStack`, `HStack` or a rect-like view type, not
+`label` or `Text`. A control uses it as a selection
 mark; the keyboard focus ring is `Interaction::focus_ring`
 ([5. Controls](05-controls.md#building-a-new-control)).
 

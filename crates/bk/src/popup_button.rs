@@ -15,7 +15,7 @@ use crate::platform::{PopupAnchor, PopupConstraintAdjustment, PopupGravity, Popu
 use crate::style::with_font;
 use crate::styles::{LayoutDirection, Paints, PopUpButtonStyle, Theme, resolve};
 use crate::symbol::{Symbol, symbol};
-use crate::theme::{SurfaceKind, popover_palette};
+use crate::theme::SurfaceKind;
 
 #[derive(PartialEq)]
 pub struct PopUpButton {
@@ -179,7 +179,7 @@ pub(crate) fn open_popover_menu(
     over: Option<usize>,
     on_activate: impl Fn(String) + 'static,
 ) {
-    let palette = popover_palette(&crate::theme::resolved(), SurfaceKind::Toplevel);
+    let palette = crate::styles::popover_style();
     let size = MenuView::preferred_size(&entries, palette);
     let offset = over.map_or((0, 0), |index| {
         let above: f32 = entries[..index]

@@ -19,6 +19,7 @@ use std::{
 };
 
 use super::{app::AppInstance, runtime::Runtime, surface::SurfaceRole};
+use crate::styles::{PopupRoot, current_theme};
 
 #[cfg(test)]
 use sctk::reexports::calloop;
@@ -128,6 +129,10 @@ impl Popups {
 
     fn push_open(&self, spec: PopupSpec, content: AppComponent, popover: bool) -> PopupId {
         let id = PopupId::next(&self.next_id);
+        let content = AppComponent::new(PopupRoot {
+            theme: current_theme(),
+            content,
+        });
         self.queue.borrow_mut().push(PopupCommand::Open {
             owner: self.owner.clone(),
             parent: self.current,

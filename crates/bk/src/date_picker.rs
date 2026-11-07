@@ -350,10 +350,7 @@ impl App for Calendar {
                 .max_lines(1)
                 .color(paints.fill(paint))
         };
-        let menu = crate::theme::popover_palette(
-            &crate::theme::resolved(),
-            crate::theme::SurfaceKind::Toplevel,
-        );
+        let menu = crate::styles::popover_style();
         let selected = self.shown;
         let mut month = use_state(|| selected);
         let page = *month.read();

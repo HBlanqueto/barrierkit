@@ -22,7 +22,7 @@ pub trait ViewModifiers: EventHandlersExt + Sized {
 
     fn focus_ring(self, corner_radius: f32, color: Rgba) -> Self
     where
-        Self: ChildrenExt,
+        Self: StyleExt,
     {
         crate::interaction::ring(self, corner_radius, color)
     }

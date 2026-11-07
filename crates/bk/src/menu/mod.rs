@@ -47,16 +47,18 @@ use crate::platform::{
     PopupAnchor, PopupConstraintAdjustment, PopupGravity, PopupHandle, PopupId, PopupSpec, Popups,
     Timers, inserts_text,
 };
+use crate::styles::{MenuStyle, Theme, resolve_from};
 use crate::symbol::{Symbol, symbol};
 use crate::theme;
 use crate::theme::{SurfaceKind, menu_palette};
 use ctdesign::{MenuPalette, Rgba, SANS_FAMILIES};
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 struct PaletteSource {
     surface: SurfaceKind,
     fixed: Option<MenuPalette>,
     popover: bool,
+    style: Theme,
 }
 
 impl PaletteSource {
@@ -65,6 +67,7 @@ impl PaletteSource {
             surface,
             fixed: None,
             popover: false,
+            style: Theme::tengen(),
         }
     }
 
@@ -73,14 +76,15 @@ impl PaletteSource {
             surface: SurfaceKind::LayerShell,
             fixed: Some(palette),
             popover: false,
+            style: Theme::tengen(),
         }
     }
 
-    fn current(self) -> MenuPalette {
-        self.with_resolved(&crate::theme::resolved())
+    fn current(&self) -> MenuPalette {
+        resolve_from(self.with_resolved(&crate::theme::resolved()), &self.style)
     }
 
-    fn with_resolved(self, resolved: &ctappearance::Resolved) -> MenuPalette {
+    fn with_resolved(&self, resolved: &ctappearance::Resolved) -> MenuPalette {
         let palette = self
             .fixed
             .unwrap_or_else(|| menu_palette(resolved, self.surface));
@@ -91,8 +95,8 @@ impl PaletteSource {
         }
     }
 
-    fn inherit(self, mut view: MenuView) -> MenuView {
-        view.palette_source = self;
+    fn inherit(&self, mut view: MenuView) -> MenuView {
+        view.palette_source = self.clone();
         view
     }
 }
@@ -146,12 +150,23 @@ impl MenuView {
     }
 
     pub fn with_surface(mut self, kind: SurfaceKind) -> Self {
-        self.palette_source = PaletteSource::live(kind);
+        self.palette_source = PaletteSource {
+            style: self.palette_source.style,
+            ..PaletteSource::live(kind)
+        };
         self
     }
 
     pub fn with_fixed_palette(mut self, palette: MenuPalette) -> Self {
-        self.palette_source = PaletteSource::fixed(palette);
+        self.palette_source = PaletteSource {
+            style: self.palette_source.style,
+            ..PaletteSource::fixed(palette)
+        };
+        self
+    }
+
+    pub fn style(mut self, restyle: impl Fn(MenuStyle) -> MenuStyle + 'static) -> Self {
+        self.palette_source.style = self.palette_source.style.style(restyle);
         self
     }
 
@@ -277,7 +292,7 @@ impl App for MenuView {
         let on_open_submenu = self.on_open_submenu.clone();
         let submenu_source = self.submenu_source.clone();
         let on_navigation = self.on_navigation.clone();
-        let palette_source = self.palette_source;
+        let palette_source = self.palette_source.clone();
         let m = palette_source.current();
         let platform = Platform::get();
         let scale = (*platform.scale_factor.peek()).max(f64::EPSILON);

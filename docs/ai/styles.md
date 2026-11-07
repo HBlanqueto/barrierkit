@@ -56,7 +56,12 @@ of controls; chain one `.style(..)` per control.
 
 `.control_style` wraps the view in a `StyleScope`, so it comes last, after
 the children. It reaches every control of that style rendered inside, also
-inside nested components. `Slider::tint(Tint)` is an instance override of
+inside nested components.
+
+A popup is a window of its own: a menu, a submenu, a popover, a tooltip or the
+calendar of a `DatePicker`. When a view opens one, the kit hands it that
+view's theme and container styles, so the popup's content resolves its styles
+like the view that opened it. `Slider::tint(Tint)` is an instance override of
 `fill`.
 
 ✗ Copy Tengen's numbers into a style:
@@ -1315,6 +1320,32 @@ With the `video` feature.
 `.corner_radius(r)` is an instance override of `shape` with
 `RoundedRectangle { radius: r, style: Circular }`, applied before `.style`.
 
+### MenuStyle
+
+`MenuStyle` is `ctdesign::MenuPalette`: every color and metric of a menu, a
+pop-up menu, the popover background and the tooltip. Its fields and their
+groups are in [4. Appearance and tokens](../barrierkit/04-appearance-and-tokens.md#token-types).
+
+| Tengen | Comes from |
+|---|---|
+| A menu (`MenuView`, `.context_menu`, submenus) | `menu_palette(resolved, surface)` |
+| A pop-up menu (`PopUpButton`, `ComboBox`, `MenuButton`), a `Popover`, `.help` and the `DatePicker` calendar | `popover_palette(resolved, Toplevel)`: the `MENU_POPOVER` metrics |
+
+The colors are `Rgba`, not `ShapeStyle`, because a menu is drawn on its own
+surface. The override runs on every render, after the palette of the current
+appearance is built, so `..s` keeps following light, dark and contrast, and a
+value read from `Palette::current()` inside the closure follows it too.
+
+```rust
+Theme::tengen().style(|s: MenuStyle| MenuStyle {
+    item_radius: 0.0,
+    hover_bg: Palette::current().destructive,
+    ..s
+})
+```
+
+`MenuView::style(|s| …)` changes one menu and its submenus.
+
 ## Examples
 
 This slider red, taller, flat and with almost square corners; the others stay
@@ -1509,12 +1540,13 @@ needs 4.5:1 and control parts 3:1 (WCAG 2.2, 1.4.3 and 1.4.11). Roles and
 | `AboutView` | `AboutViewStyle` | 2026-11-07 |
 | `LanguagePicker` | `PopUpButtonStyle` | 2026-11-07 |
 | `VideoView` | `VideoViewStyle` (feature `video`) | 2026-11-07 |
+| `MenuView` and its submenus, pop-up menus, `Popover`, `.help` | `MenuStyle` | 2026-11-07 |
 
 `VStack`, `HStack`, `Scrim` and `Canvas` take no style: they are styled with
 the [paint on views](#paint-on-views) and Freya's methods.
 
 Every style implements `ControlStyle`: `tengen()` and the accessibility rules
-of its control. Every other control still draws only Tengen. Its rollout order is in
+of its control. The rollout order is in
 [ADR 0064](../decisions/0064-styles-and-themes.md#5-rollout).
 
 ## Rules

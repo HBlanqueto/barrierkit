@@ -1,6 +1,5 @@
 use ctdesign::FOCUS_RING;
 use freya_core::prelude::*;
-use torin::prelude::{Position, Size, SizeFnContext};
 
 use crate::platform::WindowControls;
 use crate::styles::ControlState;
@@ -105,21 +104,15 @@ pub(crate) fn control_state(interaction: Interaction, disabled: bool) -> Control
     }
 }
 
-pub(crate) fn ring<E: ChildrenExt>(element: E, corner_radius: f32, color: ctdesign::Rgba) -> E {
-    let spread = FOCUS_RING.offset + FOCUS_RING.width;
-    let around = move |context: SizeFnContext| Some(context.parent + 2.0 * spread);
-    element.child(
-        rect()
-            .position(Position::new_absolute().left(-spread).top(-spread))
-            .width(Size::func(around))
-            .height(Size::func(around))
-            .corner_radius(corner_radius + spread)
-            .border(
-                Border::new()
-                    .width(FOCUS_RING.width)
-                    .alignment(BorderAlignment::Inner)
-                    .fill(crate::theme::color(color)),
-            ),
+pub(crate) fn ring<E: StyleExt>(mut element: E, corner_radius: f32, color: ctdesign::Rgba) -> E {
+    if element.get_style().corner_radius == CornerRadius::default() {
+        element.get_style().corner_radius = CornerRadius::new_all(corner_radius);
+    }
+    element.border(
+        Border::new()
+            .width(FOCUS_RING.width)
+            .alignment(BorderAlignment::Outer)
+            .fill(crate::theme::color(color)),
     )
 }
 

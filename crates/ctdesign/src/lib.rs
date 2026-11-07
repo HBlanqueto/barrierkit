@@ -402,7 +402,6 @@ pub struct SegmentedMetrics {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct FocusRingMetrics {
     pub width: f32,
-    pub offset: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

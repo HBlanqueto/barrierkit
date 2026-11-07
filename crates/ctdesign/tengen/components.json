@@ -752,8 +752,7 @@
       "padding-x": 8
     },
     "focus-ring": {
-      "width": 3,
-      "offset": 0
+      "width": 3
     },
     "shell": {
       "menubar": {
