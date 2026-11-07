@@ -1,4 +1,3 @@
-use ctappearance::Resolved;
 use ctdesign::{BODY, Font};
 
 use super::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effect};
@@ -17,9 +16,5 @@ impl ControlStyle for TextStyle {
             effect: system_effect,
             font: BODY,
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }

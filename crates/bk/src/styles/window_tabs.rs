@@ -1,4 +1,3 @@
-use ctappearance::Resolved;
 use ctdesign::{BODY, BUTTON, Font, ICON_BUTTON, SPACE_1};
 
 use super::{ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, system_effect};
@@ -40,9 +39,5 @@ impl ControlStyle for WindowTabsStyle {
             effect: system_effect,
             font: BODY,
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }

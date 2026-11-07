@@ -1,4 +1,3 @@
-use ctappearance::Resolved;
 use ctappearance::backdrop::ink_on;
 use ctdesign::{Font, HEADLINE, SETTINGS};
 
@@ -33,9 +32,5 @@ impl ControlStyle for AvatarStyle {
             effect: system_effect,
             font: HEADLINE,
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }

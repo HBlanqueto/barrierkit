@@ -1,4 +1,3 @@
-use ctappearance::Resolved;
 use ctdesign::{BODY, Font, HAIRLINE, STEPPER};
 
 use super::button::rounded;
@@ -48,9 +47,5 @@ impl ControlStyle for StepperStyle {
             layout_direction: LayoutDirection::LeftToRight,
             value_font: BODY,
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }

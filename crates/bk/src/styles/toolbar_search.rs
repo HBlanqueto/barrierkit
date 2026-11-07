@@ -1,4 +1,3 @@
-use ctappearance::Resolved;
 use ctdesign::TOOLBAR_SEARCH_WIDTH;
 
 use super::ControlStyle;
@@ -13,9 +12,5 @@ impl ControlStyle for ToolbarSearchStyle {
         Self {
             width: TOOLBAR_SEARCH_WIDTH,
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }

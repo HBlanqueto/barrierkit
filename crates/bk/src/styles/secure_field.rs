@@ -1,4 +1,3 @@
-use ctappearance::Resolved;
 use ctdesign::{BODY, Font, HAIRLINE, TEXT_FIELD};
 
 use super::text_field::field_shape;
@@ -30,9 +29,5 @@ impl ControlStyle for SecureFieldStyle {
             effect: system_effect,
             font: BODY,
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }

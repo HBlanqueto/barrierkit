@@ -1,4 +1,3 @@
-use ctappearance::Resolved;
 use ctdesign::{BODY, Font, SIDEBAR};
 
 use super::button::rounded;
@@ -46,9 +45,5 @@ impl ControlStyle for SidebarItemStyle {
             font: font(SIDEBAR.item_weight),
             selected_font: font(SIDEBAR.item_selected_weight),
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }

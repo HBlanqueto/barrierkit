@@ -1,4 +1,3 @@
-use ctappearance::Resolved;
 use ctdesign::{HAIRLINE, IMAGE_WELL};
 
 use super::button::rounded;
@@ -32,9 +31,5 @@ impl ControlStyle for ImageWellStyle {
             opacity: 1.0,
             effect: system_effect,
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }

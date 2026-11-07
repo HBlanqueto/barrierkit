@@ -1,4 +1,3 @@
-use ctappearance::Resolved;
 use ctdesign::{BODY, BUTTON, Font, HAIRLINE, SPACE_2, SPLIT_VIEW};
 
 use super::button::rounded;
@@ -34,9 +33,5 @@ impl ControlStyle for ColorPickerStyle {
             effect: system_effect,
             font: BODY,
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }

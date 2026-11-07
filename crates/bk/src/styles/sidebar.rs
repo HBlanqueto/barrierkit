@@ -2,7 +2,8 @@ use ctappearance::{Resolved, SidebarStyle as SidebarKind, SidebarSurface};
 use ctdesign::{DURATION_BASE, SETTINGS, SIDEBAR};
 
 use super::{
-    Animation, ColorEffect, ControlStyle, CornerStyle, Shape, ShapeStyle, StateValue, system_effect,
+    Animation, ColorEffect, ControlStyle, CornerStyle, Shape, ShapeStyle, StateValue,
+    reduce_motion, system_effect,
 };
 use crate::sidebar::{SidebarBackdrop, over_backdrop};
 
@@ -71,13 +72,9 @@ impl ControlStyle for SidebarStyle {
     }
 
     fn accessible(self, appearance: &Resolved) -> Self {
-        if appearance.reduced_motion {
-            Self {
-                animation: Animation::None,
-                ..self
-            }
-        } else {
-            self
-        }
+        reduce_motion(self, appearance, |style| Self {
+            animation: Animation::None,
+            ..style
+        })
     }
 }

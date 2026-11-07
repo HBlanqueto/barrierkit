@@ -1,4 +1,3 @@
-use ctappearance::Resolved;
 use ctdesign::{BODY, CHECKBOX, Font, HAIRLINE, SETTINGS};
 
 use super::{
@@ -50,9 +49,5 @@ impl ControlStyle for CheckboxStyle {
             layout_direction: LayoutDirection::LeftToRight,
             label_font: BODY,
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }

@@ -1,4 +1,3 @@
-use ctappearance::Resolved;
 use ctdesign::{BODY, Font, SETTINGS, SYMBOL};
 
 use super::{
@@ -41,9 +40,5 @@ impl ControlStyle for PopUpButtonStyle {
             effect: system_effect,
             font: BODY,
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }

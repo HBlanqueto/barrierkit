@@ -1,4 +1,3 @@
-use ctappearance::Resolved;
 use ctdesign::{BODY, Font, TEXT_FIELD};
 
 use super::{
@@ -42,9 +41,5 @@ impl ControlStyle for TextFieldStyle {
             effect: system_effect,
             font: BODY,
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }

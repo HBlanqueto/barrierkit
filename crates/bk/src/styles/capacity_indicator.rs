@@ -1,4 +1,3 @@
-use ctappearance::Resolved;
 use ctdesign::{HAIRLINE, LEVEL_INDICATOR, LEVEL_INDICATOR_COLORS};
 
 use super::button::rounded;
@@ -38,9 +37,5 @@ impl ControlStyle for CapacityIndicatorStyle {
             opacity: 1.0,
             effect: system_effect,
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }

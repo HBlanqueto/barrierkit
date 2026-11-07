@@ -1,4 +1,3 @@
-use ctappearance::Resolved;
 use ctdesign::SIDEBAR;
 
 use super::button::rounded;
@@ -26,9 +25,5 @@ impl ControlStyle for SymbolTileStyle {
             border: None,
             effect: system_effect,
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }

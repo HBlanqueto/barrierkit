@@ -1,4 +1,3 @@
-use ctappearance::Resolved;
 use ctdesign::{BODY, Font, HAIRLINE, SETTINGS};
 
 use super::{
@@ -53,9 +52,5 @@ impl ControlStyle for RadioGroupStyle {
             layout_direction: LayoutDirection::LeftToRight,
             label_font: BODY,
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }

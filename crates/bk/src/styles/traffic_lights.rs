@@ -1,5 +1,5 @@
 use ctappearance::traffic::{self, ButtonVisual, TrafficInput};
-use ctappearance::{Resolved, TrafficLightShape, palette};
+use ctappearance::{TrafficLightShape, palette};
 use ctdesign::{Rgba, TITLEBAR, TRAFFIC_GLYPHS, TRAFFIC_RIM_WIDTH};
 
 use super::button::rounded;
@@ -80,9 +80,5 @@ impl ControlStyle for TrafficLightsStyle {
             effect: system_effect,
             axis: Axis::Horizontal,
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }

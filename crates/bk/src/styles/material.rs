@@ -1,4 +1,3 @@
-use ctappearance::Resolved;
 use ctdesign::{HAIRLINE, MEDIA};
 
 use super::{ColorEffect, ControlStyle, ShapeStyle, StateValue, system_effect};
@@ -19,9 +18,5 @@ impl ControlStyle for MaterialStyle {
             border: Some((ShapeStyle::Color(MEDIA.material_rim), HAIRLINE)),
             effect: system_effect,
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }

@@ -1,4 +1,3 @@
-use ctappearance::Resolved;
 use ctdesign::{DIALOG, DIALOG_PADDING, HAIRLINE};
 
 use super::{
@@ -28,9 +27,5 @@ impl ControlStyle for SheetStyle {
             border: Some((ShapeStyle::Role(Role::Separator), HAIRLINE)),
             effect: system_effect,
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }

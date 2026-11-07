@@ -1,7 +1,7 @@
 use ctappearance::Resolved;
 use ctdesign::{BACKDROP, DURATION_SLOW_MS};
 
-use super::{Animation, ControlStyle};
+use super::{Animation, ControlStyle, reduce_motion};
 use crate::animation::ease_in_out;
 
 #[derive(Clone, Debug)]
@@ -24,13 +24,9 @@ impl ControlStyle for BackdropStyle {
     }
 
     fn accessible(self, appearance: &Resolved) -> Self {
-        if appearance.reduced_motion {
-            Self {
-                animation: Animation::None,
-                ..self
-            }
-        } else {
-            self
-        }
+        reduce_motion(self, appearance, |style| Self {
+            animation: Animation::None,
+            ..style
+        })
     }
 }

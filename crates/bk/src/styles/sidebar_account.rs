@@ -1,4 +1,3 @@
-use ctappearance::Resolved;
 use ctdesign::{Font, SETTINGS};
 
 use super::{ColorEffect, ControlStyle, ShapeStyle, StateValue, system_effect};
@@ -30,9 +29,5 @@ impl ControlStyle for SidebarAccountStyle {
             name_font: SETTINGS.account_name_font,
             detail_font: SETTINGS.account_detail_font,
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }

@@ -1,4 +1,3 @@
-use ctappearance::Resolved;
 use ctdesign::{BADGE, CAPTION, Font};
 
 use super::{
@@ -31,9 +30,5 @@ impl ControlStyle for BadgeStyle {
             effect: system_effect,
             font: CAPTION,
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }

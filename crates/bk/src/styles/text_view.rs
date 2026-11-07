@@ -1,5 +1,3 @@
-use ctappearance::Resolved;
-
 use super::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effect};
 
 #[derive(Clone, Debug)]
@@ -16,9 +14,5 @@ impl ControlStyle for TextViewStyle {
             cursor: StateValue::new(ShapeStyle::Role(Role::Label)),
             effect: system_effect,
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }

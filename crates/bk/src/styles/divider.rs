@@ -1,4 +1,3 @@
-use ctappearance::Resolved;
 use ctdesign::HAIRLINE;
 
 use super::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effect};
@@ -17,9 +16,5 @@ impl ControlStyle for DividerStyle {
             line: StateValue::new(ShapeStyle::Role(Role::Separator)),
             effect: system_effect,
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }

@@ -1,4 +1,3 @@
-use ctappearance::Resolved;
 use ctdesign::{BODY, DIALOG_ALERT_WIDTH, Font, HEADLINE, SPACE_2, SPACE_4};
 
 use super::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effect};
@@ -29,9 +28,5 @@ impl ControlStyle for AlertStyle {
             title_font: HEADLINE,
             message_font: BODY,
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }

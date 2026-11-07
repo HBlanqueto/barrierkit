@@ -6,7 +6,7 @@ use ctdesign::{
 
 use super::{
     Animation, ColorEffect, ControlStyle, CornerStyle, Role, Shape, ShapeStyle, StateValue,
-    system_effect,
+    reduce_motion, system_effect,
 };
 use crate::theme::{SurfaceKind, popover_palette};
 
@@ -109,13 +109,9 @@ impl ControlStyle for ChartStyle {
     }
 
     fn accessible(self, appearance: &Resolved) -> Self {
-        if appearance.reduced_motion {
-            Self {
-                animation: Animation::None,
-                ..self
-            }
-        } else {
-            self
-        }
+        reduce_motion(self, appearance, |style| Self {
+            animation: Animation::None,
+            ..style
+        })
     }
 }

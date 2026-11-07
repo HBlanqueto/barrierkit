@@ -2,7 +2,8 @@ use ctappearance::{Resolved, SidebarStyle as SidebarKind};
 use ctdesign::{DURATION_BASE, DURATION_FAST_MS, HAIRLINE, SIDEBAR, SPLIT_VIEW};
 
 use super::{
-    Animation, ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, system_effect,
+    Animation, ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, reduce_motion,
+    system_effect,
 };
 use crate::theme::{SurfaceKind, surface_background};
 
@@ -57,14 +58,10 @@ impl ControlStyle for SplitViewStyle {
     }
 
     fn accessible(self, appearance: &Resolved) -> Self {
-        if appearance.reduced_motion {
-            Self {
-                animation: Animation::None,
-                resize_animation: Animation::None,
-                ..self
-            }
-        } else {
-            self
-        }
+        reduce_motion(self, appearance, |style| Self {
+            animation: Animation::None,
+            resize_animation: Animation::None,
+            ..style
+        })
     }
 }

@@ -1,4 +1,3 @@
-use ctappearance::Resolved;
 use ctdesign::{BODY, CAPTION, Font, HAIRLINE, SPACE_1, SPACE_2, TEXT_FIELD};
 
 use super::text_field::field_shape;
@@ -44,9 +43,5 @@ impl ControlStyle for TextEditorStyle {
             font: BODY,
             caption_font: CAPTION,
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }

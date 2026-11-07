@@ -1,4 +1,3 @@
-use ctappearance::Resolved;
 use ctdesign::{CAPTION, Font, SPACE_2, SPACE_3};
 
 use super::{
@@ -39,9 +38,5 @@ impl ControlStyle for PrintPreviewStyle {
             effect: system_effect,
             caption_font: CAPTION,
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }

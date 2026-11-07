@@ -1,4 +1,3 @@
-use ctappearance::Resolved;
 use ctdesign::{BODY, DISCLOSURE, Font, SPACE_1, SPACE_2};
 
 use super::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effect};
@@ -23,9 +22,5 @@ impl ControlStyle for RuleEditorStyle {
             effect: system_effect,
             font: BODY,
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }

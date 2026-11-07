@@ -1,4 +1,3 @@
-use ctappearance::Resolved;
 use ctdesign::{CAPTION, Font, GAUGE};
 
 use super::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effect};
@@ -35,9 +34,5 @@ impl ControlStyle for GaugeStyle {
             effect: system_effect,
             font: CAPTION,
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }

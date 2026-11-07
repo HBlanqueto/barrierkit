@@ -9,7 +9,17 @@ use freya_core::prelude::*;
 pub trait ControlStyle: Clone + 'static {
     fn tengen() -> Self;
 
-    fn accessible(self, appearance: &Resolved) -> Self;
+    fn accessible(self, _: &Resolved) -> Self {
+        self
+    }
+}
+
+pub(crate) fn reduce_motion<S>(style: S, appearance: &Resolved, still: impl FnOnce(S) -> S) -> S {
+    if appearance.reduced_motion {
+        still(style)
+    } else {
+        style
+    }
 }
 
 #[derive(Clone, Debug)]

@@ -1,4 +1,3 @@
-use ctappearance::Resolved;
 use ctdesign::PROGRESS;
 
 use super::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effect};
@@ -23,9 +22,5 @@ impl ControlStyle for ProgressRingStyle {
             opacity: 1.0,
             effect: system_effect,
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }

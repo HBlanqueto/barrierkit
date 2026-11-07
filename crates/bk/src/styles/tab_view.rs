@@ -1,4 +1,3 @@
-use ctappearance::Resolved;
 use ctdesign::{CAPTION, Font, HAIRLINE, SPACE_2, TOOLBAR_TABS};
 
 use super::button::rounded;
@@ -54,9 +53,5 @@ impl ControlStyle for TabViewStyle {
                 ..CAPTION
             },
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }

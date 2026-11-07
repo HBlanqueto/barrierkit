@@ -1,4 +1,3 @@
-use ctappearance::Resolved;
 use ctdesign::{BODY, CAPTION, DIALOG_PADDING, Font, SPACE_1, SPACE_3, TITLE};
 
 use super::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effect};
@@ -31,9 +30,5 @@ impl ControlStyle for AboutViewStyle {
             version_font: BODY,
             copyright_font: CAPTION,
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }

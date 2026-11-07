@@ -1,4 +1,3 @@
-use ctappearance::Resolved;
 use ctdesign::{BODY, CAPTION, Font, HAIRLINE, LIST_GROUP, SETTINGS, SIDEBAR, SPACE_2};
 
 use super::button::rounded;
@@ -72,9 +71,5 @@ impl ControlStyle for SettingsWindowStyle {
             title_font: BODY,
             subtitle_font: CAPTION,
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }

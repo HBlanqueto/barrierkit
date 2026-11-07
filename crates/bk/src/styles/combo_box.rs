@@ -1,4 +1,3 @@
-use ctappearance::Resolved;
 use ctdesign::COMBO_BOX;
 
 use super::button::rounded;
@@ -36,9 +35,5 @@ impl ControlStyle for ComboBoxStyle {
             opacity: 1.0,
             effect: system_effect,
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }

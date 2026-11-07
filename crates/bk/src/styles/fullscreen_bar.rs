@@ -1,7 +1,10 @@
 use ctappearance::Resolved;
 use ctdesign::{DURATION_BASE, FULLSCREEN_BAND, FULLSCREEN_GLASS, FullscreenGlassMetrics};
 
-use super::{Animation, ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effect};
+use super::{
+    Animation, ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, reduce_motion,
+    system_effect,
+};
 
 #[derive(Clone, Debug)]
 pub struct FullscreenBarStyle {
@@ -29,13 +32,9 @@ impl ControlStyle for FullscreenBarStyle {
     }
 
     fn accessible(self, appearance: &Resolved) -> Self {
-        if appearance.reduced_motion {
-            Self {
-                animation: Animation::None,
-                ..self
-            }
-        } else {
-            self
-        }
+        reduce_motion(self, appearance, |style| Self {
+            animation: Animation::None,
+            ..style
+        })
     }
 }

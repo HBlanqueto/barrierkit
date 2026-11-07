@@ -1,4 +1,3 @@
-use ctappearance::Resolved;
 use ctdesign::{BODY, DISCLOSURE, Font, HAIRLINE, SPACE_1};
 
 use super::button::rounded;
@@ -52,9 +51,5 @@ impl ControlStyle for OutlineViewStyle {
             effect: system_effect,
             font: BODY,
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }

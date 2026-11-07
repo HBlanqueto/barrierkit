@@ -3,7 +3,7 @@ use ctdesign::{BODY, BUTTON, Font};
 
 use super::{
     Animation, ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
-    system_effect,
+    reduce_motion, system_effect,
 };
 
 #[derive(Clone, Debug)]
@@ -40,13 +40,9 @@ impl ControlStyle for HelpLinkStyle {
     }
 
     fn accessible(self, appearance: &Resolved) -> Self {
-        if appearance.reduced_motion {
-            Self {
-                animation: Animation::None,
-                ..self
-            }
-        } else {
-            self
-        }
+        reduce_motion(self, appearance, |style| Self {
+            animation: Animation::None,
+            ..style
+        })
     }
 }

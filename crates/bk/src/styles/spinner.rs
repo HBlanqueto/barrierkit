@@ -1,7 +1,10 @@
 use ctappearance::Resolved;
 use ctdesign::{PROGRESS, SYMBOL};
 
-use super::{Animation, ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effect};
+use super::{
+    Animation, ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, reduce_motion,
+    system_effect,
+};
 
 #[derive(Clone, Debug)]
 pub struct SpinnerStyle {
@@ -31,13 +34,9 @@ impl ControlStyle for SpinnerStyle {
     }
 
     fn accessible(self, appearance: &Resolved) -> Self {
-        if appearance.reduced_motion {
-            Self {
-                animation: Animation::None,
-                ..self
-            }
-        } else {
-            self
-        }
+        reduce_motion(self, appearance, |style| Self {
+            animation: Animation::None,
+            ..style
+        })
     }
 }

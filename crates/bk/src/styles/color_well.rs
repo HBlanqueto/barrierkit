@@ -1,4 +1,3 @@
-use ctappearance::Resolved;
 use ctdesign::{CAPTION, Font, HAIRLINE, SETTINGS, SWITCH};
 
 use super::{
@@ -44,9 +43,5 @@ impl ControlStyle for ColorWellStyle {
             wraps: false,
             name_font: CAPTION,
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }

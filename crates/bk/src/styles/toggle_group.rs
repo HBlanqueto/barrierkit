@@ -1,4 +1,3 @@
-use ctappearance::Resolved;
 use ctdesign::{BODY, Font, ICON_BUTTON, LARGE_TITLE, SEGMENTED};
 
 use super::button::rounded;
@@ -55,9 +54,5 @@ impl ControlStyle for ToggleGroupStyle {
                 ..BODY
             },
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }

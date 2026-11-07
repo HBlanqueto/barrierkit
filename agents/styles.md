@@ -1546,8 +1546,9 @@ needs 4.5:1 and control parts 3:1 (WCAG 2.2, 1.4.3 and 1.4.11). Roles and
 `VStack`, `HStack`, `Scrim` and `Canvas` take no style: they are styled with
 the [paint on views](#paint-on-views) and Freya's methods.
 
-Every style implements `ControlStyle`: `tengen()` and the accessibility rules
-of its control. The rollout order is in
+Every style implements `ControlStyle`: `tengen()` and, when its control
+animates or must change under an accessibility setting, `accessible`. A style
+with `animation` turns it off under *Reduce motion* through `reduce_motion`. The rollout order is in
 [ADR 0064](../docs/decisions/0064-styles-and-themes.md#5-rollout).
 
 ## Rules

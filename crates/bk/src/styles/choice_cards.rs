@@ -1,4 +1,3 @@
-use ctappearance::Resolved;
 use ctdesign::{Font, HAIRLINE, SETTINGS, SWITCH};
 
 use super::button::rounded;
@@ -50,9 +49,5 @@ impl ControlStyle for ChoiceCardsStyle {
                 ..SETTINGS.card_caption_font
             },
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }

@@ -1,4 +1,3 @@
-use ctappearance::Resolved;
 use ctdesign::{BODY, Font};
 
 use super::{ColorEffect, ControlStyle, ShapeStyle, StateValue, system_effect};
@@ -19,9 +18,5 @@ impl ControlStyle for LinkStyle {
             effect: system_effect,
             font: BODY,
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }

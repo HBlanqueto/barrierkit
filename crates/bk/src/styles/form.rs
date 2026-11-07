@@ -1,4 +1,3 @@
-use ctappearance::Resolved;
 use ctdesign::{
     BODY, CAPTION, Font, HAIRLINE, HEADLINE, LIST_GROUP, Rgba, SPACE_2, SPACE_3, SPACE_4,
 };
@@ -71,9 +70,5 @@ impl ControlStyle for FormStyle {
             detail_font: CAPTION,
             value_font: BODY,
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }

@@ -1,4 +1,3 @@
-use ctappearance::Resolved;
 use ctdesign::{FULLSCREEN_GLASS, FullscreenGlassMetrics};
 
 use super::{ColorEffect, ControlStyle, ShapeStyle, StateValue, system_effect};
@@ -17,9 +16,5 @@ impl ControlStyle for TopGlassStyle {
             tint: StateValue::new(ShapeStyle::Color(crate::glass::glass_tint())),
             effect: system_effect,
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }

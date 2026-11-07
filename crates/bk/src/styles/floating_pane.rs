@@ -1,4 +1,3 @@
-use ctappearance::Resolved;
 use ctdesign::{CAPTION, FLOATING_PANE, Font};
 
 use super::{
@@ -40,9 +39,5 @@ impl ControlStyle for FloatingPaneStyle {
             effect: system_effect,
             title_font: CAPTION,
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }

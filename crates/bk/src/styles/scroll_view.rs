@@ -2,7 +2,8 @@ use ctappearance::Resolved;
 use ctdesign::{DURATION_FAST_MS, SCROLL_BAR};
 
 use super::{
-    Animation, ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, system_effect,
+    Animation, ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, reduce_motion,
+    system_effect,
 };
 
 #[derive(Clone, Debug)]
@@ -50,13 +51,9 @@ impl ControlStyle for ScrollViewStyle {
     }
 
     fn accessible(self, appearance: &Resolved) -> Self {
-        if appearance.reduced_motion {
-            Self {
-                animation: Animation::None,
-                ..self
-            }
-        } else {
-            self
-        }
+        reduce_motion(self, appearance, |style| Self {
+            animation: Animation::None,
+            ..style
+        })
     }
 }

@@ -5,7 +5,7 @@ use crate::symbol::Symbol;
 
 use super::{
     Animation, ColorEffect, ControlStyle, LayoutDirection, Role, ShadowStyle, Shape, ShapeStyle,
-    StateValue, system_effect,
+    StateValue, reduce_motion, system_effect,
 };
 
 #[derive(Clone, Debug)]
@@ -72,13 +72,9 @@ impl ControlStyle for LevelSliderStyle {
     }
 
     fn accessible(self, appearance: &Resolved) -> Self {
-        if appearance.reduced_motion {
-            Self {
-                animation: Animation::None,
-                ..self
-            }
-        } else {
-            self
-        }
+        reduce_motion(self, appearance, |style| Self {
+            animation: Animation::None,
+            ..style
+        })
     }
 }

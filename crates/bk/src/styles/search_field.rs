@@ -1,4 +1,3 @@
-use ctappearance::Resolved;
 use ctdesign::{BODY, Font, SETTINGS, TEXT_FIELD};
 
 use super::{ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, system_effect};
@@ -39,9 +38,5 @@ impl ControlStyle for SearchFieldStyle {
             effect: system_effect,
             font: BODY,
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }

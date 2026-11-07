@@ -4,7 +4,7 @@ use ctdesign::{DURATION_BASE, Font, HAIRLINE, SHADOW, SHADOW_DARK, TITLEBAR, TIT
 use super::button::rounded;
 use super::{
     Animation, ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
-    system_effect,
+    reduce_motion, system_effect,
 };
 use crate::chrome::{RailStyle, RestingEdge, Reveal, TitlebarLayout};
 use crate::theme::{SurfaceKind, surface_background};
@@ -97,13 +97,9 @@ impl ControlStyle for WindowChromeStyle {
     }
 
     fn accessible(self, appearance: &Resolved) -> Self {
-        if appearance.reduced_motion {
-            Self {
-                animation: Animation::None,
-                ..self
-            }
-        } else {
-            self
-        }
+        reduce_motion(self, appearance, |style| Self {
+            animation: Animation::None,
+            ..style
+        })
     }
 }

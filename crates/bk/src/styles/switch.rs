@@ -3,7 +3,7 @@ use ctdesign::{BODY, Font, HAIRLINE, KNOB_SHADOW, SETTINGS, SWITCH};
 
 use super::{
     Animation, ColorEffect, ControlStyle, Edge, LayoutDirection, Role, ShadowStyle, Shape,
-    ShapeStyle, StateValue, system_effect,
+    ShapeStyle, StateValue, reduce_motion, system_effect,
 };
 
 #[derive(Clone, Debug)]
@@ -61,14 +61,10 @@ impl ControlStyle for SwitchStyle {
     }
 
     fn accessible(self, appearance: &Resolved) -> Self {
-        if appearance.reduced_motion {
-            Self {
-                animation: Animation::None,
-                ..self
-            }
-        } else {
-            self
-        }
+        reduce_motion(self, appearance, |style| Self {
+            animation: Animation::None,
+            ..style
+        })
     }
 }
 

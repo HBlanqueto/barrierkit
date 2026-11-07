@@ -1,4 +1,3 @@
-use ctappearance::Resolved;
 use ctdesign::{
     BODY, CAPTION, DATE_PICKER, Font, HAIRLINE, HEADLINE, MENU_POPOVER, STEPPER, TEXT_FIELD,
 };
@@ -78,9 +77,5 @@ impl ControlStyle for DatePickerStyle {
             title_font: HEADLINE,
             day_font: CAPTION,
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }

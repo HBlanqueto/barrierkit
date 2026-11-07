@@ -1,4 +1,4 @@
-use ctappearance::{Resolved, SidebarStyle as SidebarKind, palette};
+use ctappearance::{SidebarStyle as SidebarKind, palette};
 use ctdesign::{
     Font, HAIRLINE, SETTINGS, TITLE_2, TITLEBAR, TITLEBAR_CLIENT_HEIGHT, TITLEBAR_PADDING_X,
 };
@@ -81,9 +81,5 @@ impl ControlStyle for TitlebarStyle {
             title_font: TITLEBAR.font,
             sidebar_title_font: TITLE_2,
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }

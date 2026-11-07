@@ -1,4 +1,3 @@
-use ctappearance::Resolved;
 use ctdesign::{BODY, Font, KNOB_SHADOW, SEGMENTED};
 
 use super::{
@@ -56,9 +55,5 @@ impl ControlStyle for SegmentedControlStyle {
                 ..BODY
             },
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }

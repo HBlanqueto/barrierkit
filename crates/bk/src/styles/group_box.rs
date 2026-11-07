@@ -1,4 +1,3 @@
-use ctappearance::Resolved;
 use ctdesign::{BODY, Font, GROUP_BOX, HAIRLINE, Rgba, SPACE_1};
 
 use super::button::rounded;
@@ -34,9 +33,5 @@ impl ControlStyle for GroupBoxStyle {
             effect: system_effect,
             font: BODY,
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }

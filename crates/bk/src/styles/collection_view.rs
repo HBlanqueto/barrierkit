@@ -1,4 +1,3 @@
-use ctappearance::Resolved;
 use ctdesign::{CAPTION, COLLECTION, Font, Rgba};
 
 use super::button::rounded;
@@ -48,9 +47,5 @@ impl ControlStyle for CollectionViewStyle {
             effect: system_effect,
             font: CAPTION,
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }

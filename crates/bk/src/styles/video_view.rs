@@ -1,5 +1,3 @@
-use ctappearance::Resolved;
-
 use super::{ControlStyle, Shape};
 
 #[derive(Clone, Debug)]
@@ -12,9 +10,5 @@ impl ControlStyle for VideoViewStyle {
         Self {
             shape: Shape::Rectangle,
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }

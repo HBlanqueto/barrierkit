@@ -1,4 +1,3 @@
-use ctappearance::Resolved;
 use ctdesign::{BODY, BUTTON, Font, HAIRLINE, SETTINGS};
 
 use super::button::rounded;
@@ -47,9 +46,5 @@ impl ControlStyle for ComboButtonStyle {
             effect: system_effect,
             font: BODY,
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }

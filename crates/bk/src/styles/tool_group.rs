@@ -1,4 +1,4 @@
-use ctappearance::{Resolved, SidebarStyle};
+use ctappearance::SidebarStyle;
 use ctdesign::{HAIRLINE, TOOLGROUP};
 
 use super::{
@@ -56,9 +56,5 @@ impl ControlStyle for ToolGroupStyle {
             effect: system_effect,
             axis: Axis::Horizontal,
         }
-    }
-
-    fn accessible(self, _: &Resolved) -> Self {
-        self
     }
 }
