@@ -187,8 +187,14 @@ async fn print_document(
     Ok(())
 }
 
+// XDG Base Directory: $XDG_RUNTIME_DIR is the user's alone (mode 0700); the file is 0600 anyway.
 fn tempfile() -> std::io::Result<std::fs::File> {
-    let path = std::env::temp_dir().join(format!(
+    use std::os::unix::fs::OpenOptionsExt;
+
+    let dir = std::env::var_os("XDG_RUNTIME_DIR")
+        .map(std::path::PathBuf::from)
+        .unwrap_or_else(std::env::temp_dir);
+    let path = dir.join(format!(
         "barrierkit-print-{}-{}.pdf",
         std::process::id(),
         NEXT_REQUEST.fetch_add(1, Ordering::Relaxed)
@@ -197,6 +203,7 @@ fn tempfile() -> std::io::Result<std::fs::File> {
         .read(true)
         .write(true)
         .create_new(true)
+        .mode(0o600)
         .open(&path)?;
     std::fs::remove_file(&path)?;
     Ok(file)
