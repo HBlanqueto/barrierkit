@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use barrier_kit::animation::Spring;
+use barrier_kit::animation::{Spring, motion_ms, use_reduced_motion};
 use barrier_kit::style::Palette;
 use barrier_kit::theme::color;
 use freya_animation::prelude::{AnimNum, Ease, Function, use_animation_transition};
@@ -10,19 +10,11 @@ use vow_design::{COLLECTION, DURATION_SLOW_MS, SPLIT_VIEW};
 
 const DOT: f32 = 16.0;
 
-pub fn use_reduced_motion() -> State<bool> {
-    use_reactive(&barrier_kit::theme::resolved().reduced_motion)
-}
-
-pub fn time(reduced_motion: State<bool>, ms: u64) -> u64 {
-    if *reduced_motion.peek() { 0 } else { ms }
-}
-
 pub fn spring(reduced_motion: State<bool>, from: f32, to: f32, ms: u64, bounce: f32) -> Spring {
     Spring::new(
         from,
         to,
-        Duration::from_millis(time(reduced_motion, ms)),
+        Duration::from_millis(motion_ms(reduced_motion, ms)),
         bounce,
     )
 }
@@ -66,7 +58,7 @@ impl Component for EasedTrack {
         let (function, ms) = (self.function, self.ms);
         let animation = use_animation_transition(ahead, move |from, to| {
             AnimNum::new(unit(from), unit(to))
-                .time(time(reduced_motion, ms))
+                .time(motion_ms(reduced_motion, ms))
                 .ease(Ease::InOut)
                 .function(function)
         });
@@ -121,7 +113,7 @@ impl Component for PropertyTile {
         let on = use_reactive(&self.on);
         let animation = use_animation_transition(on, move |from, to| {
             AnimNum::new(unit(from), unit(to))
-                .time(time(reduced_motion, DURATION_SLOW_MS))
+                .time(motion_ms(reduced_motion, DURATION_SLOW_MS))
                 .ease(Ease::InOut)
                 .function(Function::Cubic)
         });

@@ -15,7 +15,9 @@ use vow_design::{
 };
 
 use crate::localize::tr;
-use crate::motion::{spring, use_reduced_motion};
+use barrier_kit::animation::use_reduced_motion;
+
+use crate::motion::spring;
 
 pub static SLIDES: LazyLock<[(&str, &str, Symbol); 4]> = LazyLock::new(|| {
     [

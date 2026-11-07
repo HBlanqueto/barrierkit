@@ -20,7 +20,9 @@ use vow_design::{
 };
 
 use crate::localize::tr;
-use crate::motion::{spring, time, unit, use_reduced_motion};
+use barrier_kit::animation::{motion_ms, use_reduced_motion};
+
+use crate::motion::{spring, unit};
 
 const PASSWORD: &str = "tengen";
 const SHAKE: f32 = 8.0;
@@ -90,7 +92,7 @@ impl Component for ShakeField {
         let mut welcomed = use_state(|| false);
         let shake = use_animation(move |_| {
             AnimNum::new(0.0, 1.0)
-                .time(time(reduced_motion, DURATION_SLOW_MS))
+                .time(motion_ms(reduced_motion, DURATION_SLOW_MS))
                 .function(Function::Linear)
         });
         let welcome = use_animation_transition(welcomed, move |from, to| {
@@ -213,7 +215,7 @@ impl Component for Arrival {
             conf.on_change(OnChange::Rerun);
             let (from, to) = if *leaving { (1.0, 0.0) } else { (0.0, 1.0) };
             AnimNum::new(from, to)
-                .time(time(reduced_motion, DURATION_BASE))
+                .time(motion_ms(reduced_motion, DURATION_BASE))
                 .ease(Ease::Out)
                 .function(Function::Cubic)
         });
@@ -279,7 +281,7 @@ impl Component for Arrivals {
                                 };
                                 let mut leaving = leaving;
                                 leaving.write().push(id);
-                                let delay = time(reduced_motion, DURATION_BASE);
+                                let delay = motion_ms(reduced_motion, DURATION_BASE);
                                 let alive = alive.clone();
                                 timers.after(Duration::from_millis(delay), move || {
                                     if !alive.get() {
@@ -341,12 +343,12 @@ impl Component for CopyToast {
         let toast = use_animation(move |_| {
             AnimSequential::new([
                 AnimNum::new(0.0, 1.0)
-                    .time(time(reduced_motion, DURATION_BASE))
+                    .time(motion_ms(reduced_motion, DURATION_BASE))
                     .ease(Ease::Out)
                     .function(Function::Cubic),
                 AnimNum::new(1.0, 1.0).time(TOAST_HOLD_MS),
                 AnimNum::new(1.0, 0.0)
-                    .time(time(reduced_motion, DURATION_SLOW_MS))
+                    .time(motion_ms(reduced_motion, DURATION_SLOW_MS))
                     .ease(Ease::In)
                     .function(Function::Cubic),
             ])

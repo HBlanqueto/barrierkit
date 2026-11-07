@@ -10,7 +10,7 @@ use torin::prelude::{Alignment, Direction, Size};
 use vow_design::{ACCENT_SWATCHES, DURATION_SLOW_MS, Rgba, SPACE_2, SPLIT_VIEW};
 
 use crate::localize::tr;
-use crate::motion::{time, use_reduced_motion};
+use barrier_kit::animation::{motion_ms, use_reduced_motion};
 
 const DOWNLOAD_MS: u64 = DURATION_SLOW_MS * 6;
 
@@ -65,7 +65,7 @@ impl Component for Download {
         let reduced_motion = use_reduced_motion();
         let download = use_animation(move |_| {
             AnimNum::new(0.0, 1.0)
-                .time(time(reduced_motion, DOWNLOAD_MS))
+                .time(motion_ms(reduced_motion, DOWNLOAD_MS))
                 .ease(Ease::InOut)
                 .function(Function::Sine)
         });
