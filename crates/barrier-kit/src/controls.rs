@@ -819,11 +819,7 @@ impl Component for Segment {
                             .font_family(TEXT.family)
                             .font_size(SEGMENTED.font_size)
                             .font_weight(SEGMENTED.font_weight)
-                            .color(color(if active {
-                                palette.label
-                            } else {
-                                palette.secondary_label
-                            })),
+                            .color(color(palette.label)),
                     ),
             );
         if active {
@@ -1189,7 +1185,7 @@ pub(crate) fn themed_input(
             border_fill: color(border),
             focus_border_fill: color(palette.accent),
             color: color(palette.label),
-            placeholder_color: color(palette.tertiary_label),
+            placeholder_color: color(palette.secondary_label),
         })
         .theme_layout(InputLayoutThemePartial {
             corner_radius: Some(Preference::Specific(CornerRadius::new_all(radius))),

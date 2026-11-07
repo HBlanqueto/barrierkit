@@ -38,7 +38,11 @@ pub fn avatar(initials: &str) -> Rect {
         .corner_radius(size / 2.0)
         .center()
         .background(color(palette.secondary_label))
-        .child(text(initials.to_string(), HEADLINE, palette.on_accent))
+        .child(text(
+            initials.to_string(),
+            HEADLINE,
+            vow_appearance::backdrop::ink_on(palette.secondary_label),
+        ))
 }
 
 #[derive(PartialEq)]
@@ -63,7 +67,6 @@ impl Link {
 
 impl Component for Link {
     fn render(&self) -> impl IntoElement {
-        let palette = Palette::current();
         let interaction = use_interaction();
         let on_press = self.on_press.clone();
         let link = interaction
@@ -73,7 +76,7 @@ impl Component for Link {
             .map(on_press, |el, on_press| {
                 el.on_press(move |_| on_press.call(()))
             })
-            .child(text(self.text, TEXT, palette.accent));
+            .child(text(self.text, TEXT, crate::theme::resolved().link));
         interaction.focus_ring(link, 0.0)
     }
 }

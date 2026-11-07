@@ -268,7 +268,7 @@ impl Component for RatingIndicator {
             let (shape, ink) = if star <= value {
                 (Symbol::StarFill, palette.secondary_label)
             } else {
-                (Symbol::Star, palette.tertiary_label)
+                (Symbol::Star, palette.secondary_label)
             };
             let on_change = self.on_change.clone();
             rect()

@@ -361,7 +361,7 @@ impl App for Calendar {
                     } else if day.month == page.month {
                         palette.label
                     } else {
-                        palette.tertiary_label
+                        palette.secondary_label
                     };
                     let on_pick = self.on_pick.clone();
                     rect()

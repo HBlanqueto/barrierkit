@@ -116,7 +116,7 @@ impl Component for TokenField {
                 border_fill: transparent.clone(),
                 focus_border_fill: transparent,
                 color: Some(Preference::Specific(color(palette.label))),
-                placeholder_color: Some(Preference::Specific(color(palette.tertiary_label))),
+                placeholder_color: Some(Preference::Specific(color(palette.secondary_label))),
             })
             .on_pre_key_down(move |event: Event<KeyboardEventData>| {
                 let empty = draft.peek().is_empty();

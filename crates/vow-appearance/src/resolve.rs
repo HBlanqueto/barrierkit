@@ -60,6 +60,7 @@ pub struct Resolved {
     pub accent: Rgba,
     pub on_accent: Rgba,
     pub focus_ring: Rgba,
+    pub link: Rgba,
     pub window_tint: Option<(Rgba, f32)>,
     pub window_tint_scope: WindowTintScope,
     pub panel_tint: Option<(Rgba, f32)>,
@@ -254,7 +255,19 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
     let bg_window = scheme.pick(BG_WINDOW);
     let menu_parent = window_tint.map_or(bg_window, |(tint, factor)| bg_window.mix(tint, factor));
     let surfaces = tinted_surfaces(scheme, window_tint, &base, appearance.tint_parts);
-    let focus_ring = visible_on_window(accent, scheme);
+    // WCAG 2.2: a focus ring needs 3:1 on the window (§1.4.11), link text 4.5:1 where it sits (§1.4.3).
+    let focus_ring = reaching(
+        accent,
+        &[scheme.pick(BG_WINDOW)],
+        ACCENT_MIN_CONTRAST_ON_WINDOW,
+        scheme,
+    );
+    let link = reaching(
+        accent,
+        &[surfaces.window, surfaces.surface],
+        ON_ACCENT_MIN_CONTRAST,
+        scheme,
+    );
     menu.hover_bg = accent;
     menu.hover_fg = on_accent;
     menu.search_ring = focus_ring;
@@ -280,6 +293,7 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
         accent,
         on_accent,
         focus_ring,
+        link,
         window_tint,
         window_tint_scope: appearance.window_tint_scope,
         panel_tint,
@@ -370,35 +384,54 @@ fn legible_on_accent(accent: Rgba, light: Rgba) -> (Rgba, Rgba) {
     (fill, light)
 }
 
-// WCAG 2.2 §1.4.11: a focus ring needs 3:1 against the window, whatever accent the user chose.
-fn visible_on_window(accent: Rgba, scheme: ColorScheme) -> Rgba {
-    if accent.contrast_ratio(scheme.pick(BG_WINDOW)) >= ACCENT_MIN_CONTRAST_ON_WINDOW {
+// The accent with its lightness moved until it reaches `min` on every background; the hue stays.
+fn reaching(accent: Rgba, backgrounds: &[Rgba], min: f32, scheme: ColorScheme) -> Rgba {
+    if backgrounds
+        .iter()
+        .all(|bg| accent.contrast_ratio(*bg) >= min)
+    {
         return accent;
     }
     let (hue, saturation, lightness) = accent.to_hsl();
-    let lightness = reach_window_contrast(scheme, hue, saturation, lightness);
+    let lightness = reach_contrast(backgrounds, min, scheme, hue, saturation, lightness);
     Rgba::from_hsl(hue, saturation, lightness, 1.0)
 }
 
-fn reach_window_contrast(
+fn reach_contrast(
+    backgrounds: &[Rgba],
+    min: f32,
     scheme: ColorScheme,
     hue: f32,
     saturation: f32,
     mut lightness: f32,
 ) -> f32 {
-    let bg_window = scheme.pick(BG_WINDOW);
-    let window_dir = if scheme.is_dark() { 1.0 } else { -1.0 };
+    let direction = if scheme.is_dark() { 1.0 } else { -1.0 };
     for _ in 0..100 {
         let accent = Rgba::from_hsl(hue, saturation, lightness, 1.0);
-        if accent.contrast_ratio(bg_window) >= ACCENT_MIN_CONTRAST_ON_WINDOW {
+        if backgrounds
+            .iter()
+            .all(|bg| accent.contrast_ratio(*bg) >= min)
+        {
             break;
         }
-        lightness += window_dir * 0.01;
+        lightness += direction * 0.01;
         if !(0.0..=1.0).contains(&lightness) {
             break;
         }
     }
     lightness
+}
+
+fn reach_window_contrast(scheme: ColorScheme, hue: f32, saturation: f32, lightness: f32) -> f32 {
+    let window = [scheme.pick(BG_WINDOW)];
+    reach_contrast(
+        &window,
+        ACCENT_MIN_CONTRAST_ON_WINDOW,
+        scheme,
+        hue,
+        saturation,
+        lightness,
+    )
 }
 
 fn wallpaper_accent(dominant: Rgba, scheme: ColorScheme) -> Rgba {
@@ -1000,6 +1033,12 @@ mod tests {
                         >= ACCENT_MIN_CONTRAST_ON_WINDOW,
                     "{scheme:?} {name}: focus ring on the window"
                 );
+                for background in [resolved.surfaces.window, resolved.surfaces.surface] {
+                    assert!(
+                        resolved.link.contrast_ratio(background) >= ON_ACCENT_MIN_CONTRAST,
+                        "{scheme:?} {name}: link text"
+                    );
+                }
             }
         }
     }
