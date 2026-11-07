@@ -30,7 +30,7 @@ PreferencesWindow::new()
     )
 ```
 
-![PreferencesWindow with an account and two panes](assets/componentes/preferences-light.png)
+![PreferencesWindow with an account and two panes](assets/components/preferences-light.png)
 
 | Option | Effect |
 |---|---|
@@ -39,7 +39,7 @@ PreferencesWindow::new()
 | `.account(..)` | Account row at the top of the sidebar |
 | `.restoration(app_id)` | Saves and restores the open pane, the recent searches and the width and visibility of the sidebar |
 | `.suggestions(&[ids])` | Suggested panes when the search field is empty |
-| `.sidebar_resizable(bool)`, `.sidebar_range(Option<(mín, máx)>)`, `.narrow_sidebar(NarrowSidebar)` | Passed on to `SplitView` (chapter [8](08-barra-lateral.md)) |
+| `.sidebar_resizable(bool)`, `.sidebar_range(Option<(mín, máx)>)`, `.narrow_sidebar(NarrowSidebar)` | Passed on to `SplitView` (chapter [8](08-sidebar.md)) |
 | `.sidebar_toggle(false)` | Removes the `SidebarToggle` button from the bar |
 
 ### The search field
@@ -61,6 +61,6 @@ about_window(avatar("C"), "Contador", Some("Versión 1.0"), "™ y © 2026 Malay
 
 With `None` as the version, the window omits that line.
 
-![About window](assets/componentes/about-light.png)
+![About window](assets/components/about-light.png)
 
 Next: [11. App infrastructure](11-app.md).

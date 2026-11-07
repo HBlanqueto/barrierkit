@@ -50,6 +50,6 @@ Inside a `Backdrop`, the rows take the ink and the accent from `Palette::current
 
 ## References
 
-- [`0041`](0041-barra-lateral-en-isla.md): island sidebar.
-- [`0047`](0047-barrierkit-en-capas.md): layers and variants.
+- [`0041`](0041-island-sidebar.md): island sidebar.
+- [`0047`](0047-barrierkit-in-layers.md): layers and variants.
 - malaysia ADR 0054: overlaid titlebar in focus.

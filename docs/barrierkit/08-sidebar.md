@@ -36,17 +36,17 @@ Sidebar::new()
 | `SidebarAccount::new(iniciales, nombre, detalle)` | No options: it only shows the account |
 | `Sidebar` | `.traffic_lights(true)` puts the traffic lights inside; `.backdrop(SidebarBackdrop::Tinted)` tints it over a tinted backdrop. With the `Rail`, its first row rises to the titlebar row (chapter [7](07-titlebars.md#the-sidebar-with-the-rail)) |
 
-![Account row](assets/componentes/sidebar-account-light.png)
+![Account row](assets/components/sidebar-account-light.png)
 
 ## Island or flat
 
 The user decides in `appearance.domain` with `sidebar_style`
-([ADR 0041](../decisiones/0041-barra-lateral-en-isla.md)). The app does
+([ADR 0041](../decisions/0041-island-sidebar.md)). The app does
 nothing:
 
-Over a tinted backdrop (chapter [13](13-fondos-y-medios.md)), the flat
+Over a tinted backdrop (chapter [13](13-backdrops-and-media.md)), the flat
 sidebar shows the backdrop, and the island either shows it or is tinted with
-`SidebarBackdrop::Tinted` ([ADR 0057](../decisiones/0057-cristal-y-barra-lateral-sobre-fondo.md)).
+`SidebarBackdrop::Tinted` ([ADR 0057](../decisions/0057-glass-and-sidebar-over-backdrop.md)).
 
 The island sits `size.sidebar-inset` (8) from the edge and has radius
 `size.sidebar-radius` (18 = 26 − 8), with the window's continuous corner:
@@ -119,4 +119,4 @@ when it is overlaid.
 `.sidebar_range(Option<(mín, máx)>)` and `.narrow_sidebar(NarrowSidebar)`;
 `.sidebar_toggle(false)` removes the `SidebarToggle` button.
 
-Next: [9. Views](09-vistas.md).
+Next: [9. Views](09-views.md).

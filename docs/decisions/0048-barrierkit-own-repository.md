@@ -76,7 +76,7 @@ infinity-protocol = { git = "https://github.com/HBlanqueto/barrierkit", rev = "<
 ### 4. History and documentation
 
 - `crates/barrier-kit`, `crates/vow-design` and `crates/vow-appearance` move with **their history** (`git filter-repo`). In malaysia they are deleted with a commit that refers to barrierkit.
-- **A single ADR numbering for both repos.** A new decision takes the next free number wherever it is, so that "ADR 0047" means the same in both. The kit ADRs (0011, 0032, 0033, 0034, 0035, 0039, 0041, 0046, 0047) move to `barrierkit/docs/decisiones/`. In malaysia, a one-line file remains for each one, referring to the new location. This ADR (0048) exists in both repos.
+- **A single ADR numbering for both repos.** A new decision takes the next free number wherever it is, so that "ADR 0047" means the same in both. The kit ADRs (0011, 0032, 0033, 0034, 0035, 0039, 0041, 0046, 0047) move to `barrierkit/docs/decisions/`. In malaysia, a one-line file remains for each one, referring to the new location. This ADR (0048) exists in both repos.
 - The audits and the triage of P4 (BarrierKit) move to barrierkit.
 
 ### 5. Order
@@ -98,5 +98,5 @@ infinity-protocol = { git = "https://github.com/HBlanqueto/barrierkit", rev = "<
 ## References
 
 - [`0028`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0028-smithay-por-revision.md): git dependency with a fixed rev.
-- [`0034`](0034-celestialkit-sobre-freya.md): BarrierKit on Freya.
-- [`0047`](0047-barrierkit-en-capas.md): BarrierKit in layers.
+- [`0034`](0034-celestialkit-on-freya.md): BarrierKit on Freya.
+- [`0047`](0047-barrierkit-in-layers.md): BarrierKit in layers.

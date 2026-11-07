@@ -101,8 +101,8 @@ reaches a v4 or later compositor as `force_quit`. New requests go after `destroy
 
 ## References
 
-- [`0034`](0034-celestialkit-sobre-freya.md) — CelestialKit on Freya.
-- [`0035`](0035-identificacion-de-apps-propias-y-csd.md) — own apps and CSD.
+- [`0034`](0034-celestialkit-on-freya.md) — CelestialKit on Freya.
+- [`0035`](0035-own-app-identification-and-csd.md) — own apps and CSD.
 - [`0036`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0036-menu-global.md) — global menu.
 - [`0037`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0037-marco-compositor-dibuja-ventanas.md) — window
   frame drawn by the compositor.

@@ -39,14 +39,14 @@ four library crates:
 The kit builds on [Freya](https://freyaui.dev) `=0.4.3`, but only on its core
 crates: `freya-core`, `freya-components` (no features), `freya-animation`,
 `freya-engine`, `torin` and `ragnarok`. Never on `freya` or `freya-winit`: the
-kit has its own Wayland runner ([ADR 0034](../decisiones/0034-celestialkit-sobre-freya.md)).
+kit has its own Wayland runner ([ADR 0034](../decisions/0034-celestialkit-on-freya.md)).
 
 ## Does it use the GPU or the CPU?
 
 | Work | Where it runs |
 |---|---|
 | Layout with `torin` | CPU |
-| Drawing with Skia | **GPU, through Vulkan** ([ADR 0056](../decisiones/0056-barrierkit-sobre-vulkan.md)) |
+| Drawing with Skia | **GPU, through Vulkan** ([ADR 0056](../decisions/0056-barrierkit-on-vulkan.md)) |
 | Presentation | Vulkan swapchain on `VK_KHR_wayland_surface`, `MAILBOX` if available, otherwise `FIFO` |
 | Video (`video` feature) | GPU with VA-API and dmabuf import; if missing, it downloads to the CPU or decodes on the CPU |
 
@@ -57,14 +57,14 @@ that way, without a GPU. If there is no Vulkan device, the window does not open
 and `run_window` returns `RunError::Vulkan`.
 
 Freya 0.4.3 repaints the whole tree on every frame; there is no partial damage
-yet ([ADR 0047](../decisiones/0047-barrierkit-en-capas.md), section «Pendiente» ("Pending")).
+yet ([ADR 0047](../decisions/0047-barrierkit-in-layers.md), section «Pendiente» ("Pending")).
 
 ## What it needs
 
 - A Wayland compositor with `wl_compositor`, `xdg_wm_base` and `wl_seat`. The
-  other protocols are optional (chapter [14](14-plataforma.md)).
+  other protocols are optional (chapter [14](14-platform.md)).
 - `libvulkan` and a Vulkan driver (ICD).
 - Building inside `nix develop` (Malaysia ADR 0007): the dev shell ships
   Skia, the fonts (Geist) and the RADV driver.
 
-Next: [2. Your first app](02-primera-app.md).
+Next: [2. Your first app](02-first-app.md).

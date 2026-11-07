@@ -34,7 +34,7 @@ Backdrop::new(BackdropSource::Image(portada), Reproductor).accent(Accent::FromBa
 Controls with a fill accept `.tint(Tint::Backdrop)` to fill with the backdrop
 gradient.
 
-![Form over a tinted backdrop](assets/componentes/backdrop-light.png)
+![Form over a tinted backdrop](assets/components/backdrop-light.png)
 
 **Important:** the content must be a child component of the `Backdrop` (a
 `struct` that implements `Component`). Functions evaluated in the parent still
@@ -118,4 +118,4 @@ video.set_volume(0.7);
 video.play();
 ```
 
-Next: [14. Platform](14-plataforma.md).
+Next: [14. Platform](14-platform.md).

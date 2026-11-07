@@ -18,7 +18,7 @@ Form::new()
     .highlighted(Some("Estado"))
 ```
 
-![Form with a control row, a value row and a navigation row](assets/componentes/form-light.png)
+![Form with a control row, a value row and a navigation row](assets/components/form-light.png)
 
 | Row | For |
 |---|---|
@@ -33,7 +33,7 @@ Form::new()
 - `Section::new()` has no title; `.footer(texto)` adds a footer.
 - `.highlighted(Some(título))` highlights the row chosen by the search.
 
-![Form with long texts](assets/componentes/form-long-text-light.png)
+![Form with long texts](assets/components/form-long-text-light.png)
 
 ## Table: `Table`
 
@@ -46,7 +46,7 @@ Table::new("Archivos", vec!["Nombre", "Tamaño"])
     .on_select(move |filas: Vec<usize>| elegidas.set(filas))
 ```
 
-![Table sorted by name with one row selected](assets/componentes/table-light.png)
+![Table sorted by name with one row selected](assets/components/table-light.png)
 
 Clicking a header requests a new order (`next_sort` toggles ascending and
 descending); the app sorts its rows.
@@ -72,7 +72,7 @@ CollectionView::new("Documentos")
     .on_select(move |elegidos: Vec<usize>| seleccion.set(elegidos))
 ```
 
-![Icon grid with one item selected](assets/componentes/collection-light.png)
+![Icon grid with one item selected](assets/components/collection-light.png)
 
 Ctrl+click adds or removes an item and Shift+click picks a range, as in
 `Table`.
@@ -86,7 +86,7 @@ TabView::new("Preferencias")
     .selected(0)
 ```
 
-![Buscar and Sonido tabs](assets/componentes/tab-view-light.png)
+![Buscar and Sonido tabs](assets/components/tab-view-light.png)
 
 ## Outline and columns: `OutlineView`, `ColumnBrowser`
 
@@ -166,7 +166,7 @@ Alert::new("¿Olvidar esta red?", "Tendrás que volver a escribir la contraseña
 
 | Empty | Alert |
 |---|---|
-| ![Empty state](assets/componentes/empty-state-light.png) | ![Alert with a confirm button](assets/componentes/alert-light.png) |
+| ![Empty state](assets/components/empty-state-light.png) | ![Alert with a confirm button](assets/components/alert-light.png) |
 
 `sheet` shows the content as a centered dialog over a scrim
 (`Palette::scrim`) that covers the window. The dialog has radius 26 with a
@@ -243,4 +243,4 @@ match adaptable.current() {
 The breakpoints are `BREAKPOINT.medium` (620) and `BREAKPOINT.wide` (900).
 `adaptable.attach(rect())` measures the element it is attached to.
 
-Next: [10. Patterns](10-patrones.md).
+Next: [10. Patterns](10-patterns.md).

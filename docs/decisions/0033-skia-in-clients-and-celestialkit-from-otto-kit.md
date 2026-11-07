@@ -1,6 +1,6 @@
 # 0033 — Skia in clients and CelestialKit from otto-kit
 
-Status: **superseded by [0034](0034-celestialkit-sobre-freya.md)**. It modified [ADR 0024](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0024-stack-de-render-del-toolkit.md).
+Status: **superseded by [0034](0034-celestialkit-on-freya.md)**. It modified [ADR 0024](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0024-stack-de-render-del-toolkit.md).
 
 Yuki is now Malaysia and CelestialKit (`celestial-kit`) is BarrierKit (`barrier-kit`) since [ADR 0043](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0043-rebranding-a-malaysia.md).
 
@@ -63,12 +63,12 @@ visual language, because the tokens live in `yuki-design`.
 - [`0024`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0024-stack-de-render-del-toolkit.md) — toolkit render stack,
   modified by this ADR.
 - [`0020`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0020-politica-de-diseno-y-unificacion.md) — chrome and effects.
-- [`0011`](0011-valores-de-diseno-como-constantes-rust.md) — tokens in
+- [`0011`](0011-design-values-as-rust-constants.md) — tokens in
   `yuki-design`.
 - [`0023`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0023-los-componentes-del-shell-corren-como-procesos-separados.md) —
   one process per component.
 - [`0025`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0025-la-shell-es-nativa.md) — native shell `yuki-shell`.
-- [`0032`](0032-neptunia-como-fuente-de-diseno.md) — Neptunia as the source.
+- [`0032`](0032-neptunia-as-design-source.md) — Neptunia as the source.
 - `otto-kit` — MIT, <https://github.com/nongio/otto>.
 
 

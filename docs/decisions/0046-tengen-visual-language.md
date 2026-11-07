@@ -47,12 +47,12 @@ radii, shadows, measurements and behaviors are exactly the same.
 The Slint, CSS and QML generator in `tengen/` (`default.nix`, `generated/`,
 `demo.slint`) and the JSON fields only it read are deleted: nobody consumed
 them. Tengen produces only the `vow-design` constants. The living process is
-in `docs/arquitectura/tengen.md`.
+in `docs/architecture/tengen.md`.
 
 ## References
 
 - `crates/vow-design/tengen/` — renamed source folder.
 - `crates/vow-design/build.rs` — generates `$OUT_DIR/tengen.rs`.
-- `docs/decisiones/0032-neptunia-como-fuente-de-diseno.md` — original ADR,
+- `docs/decisions/0032-neptunia-as-design-source.md` — original ADR,
   now with a referral line.
-- `docs/arquitectura/tengen.md` — living documentation of the visual language.
+- `docs/architecture/tengen.md` — living documentation of the visual language.

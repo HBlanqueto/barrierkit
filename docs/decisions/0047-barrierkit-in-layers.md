@@ -163,7 +163,7 @@ barrier-kit/src/
   shell/      shell only, behind the `shell` feature (see below)
 ```
 
-The module list of each layer is in [Layers](../barrierkit/03-capas.md#where-each-layer-lives-in-the-code).
+The module list of each layer is in [Layers](../barrierkit/03-layers.md#where-each-layer-lives-in-the-code).
 
 There is no `prelude.rs`: each app imports from its module (`barrier_kit::views::form::Form`).
 
@@ -265,12 +265,12 @@ Decided: menu shortcuts stay stored as text (`MenuItem::Action::shortcut`). That
 
 ## References
 
-- [`0011`](0011-valores-de-diseno-como-constantes-rust.md), [`0032`](0032-neptunia-como-fuente-de-diseno.md), [`0046`](0046-tengen-lenguaje-visual.md): tokens and Tengen.
+- [`0011`](0011-design-values-as-rust-constants.md), [`0032`](0032-neptunia-as-design-source.md), [`0046`](0046-tengen-visual-language.md): tokens and Tengen.
 - [`0021`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0021-superficie-de-configuracion-y-control.md): `.domain` domains and D-Bus.
-- [`0034`](0034-celestialkit-sobre-freya.md): BarrierKit on top of Freya.
-- [`0035`](0035-identificacion-de-apps-propias-y-csd.md): CSD of our own apps.
+- [`0034`](0034-celestialkit-on-freya.md): BarrierKit on top of Freya.
+- [`0035`](0035-own-app-identification-and-csd.md): CSD of our own apps.
 - [`0040`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0040-menu-global-real.md): global menu.
-- [`0041`](0041-barra-lateral-en-isla.md): island sidebar.
+- [`0041`](0041-island-sidebar.md): island sidebar.
 - [`0042`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0042-ajustes-del-sistema.md): System Settings.
 
 ## Annex A · How an app is written

@@ -15,7 +15,7 @@
 
 ## What is missing?
 
-The pending work is in [ADR 0047](../decisiones/0047-barrierkit-en-capas.md),
+The pending work is in [ADR 0047](../decisions/0047-barrierkit-in-layers.md),
 «Pendiente» ("Pending"). In short:
 
 - **Blocked by Freya 0.4.3:** partial damage.
@@ -28,13 +28,13 @@ The pending work is in [ADR 0047](../decisiones/0047-barrierkit-en-capas.md),
 
 Drawing goes through Vulkan, normally on the GPU; layout runs on the CPU. A
 software Vulkan driver (lavapipe) also works. Video uses VA-API if available
-and, if not, the CPU. See [1](01-que-es.md#does-it-use-the-gpu-or-the-cpu)
-and [13](13-fondos-y-medios.md#video-video-feature).
+and, if not, the CPU. See [1](01-what-is-barrierkit.md#does-it-use-the-gpu-or-the-cpu)
+and [13](13-backdrops-and-media.md#video-video-feature).
 
 ## Does it work outside Malaysia?
 
 Yes, as a normal Wayland client (see
-[14](14-plataforma.md#the-first-frame)). Outside
+[14](14-platform.md#the-first-frame)). Outside
 Malaysia there are no compositor borders, shadow or blur, and the global
 menu only exists on D-Bus.
 
@@ -47,13 +47,13 @@ their default style: the kit already has its own version with the Tengen look.
 ## How do I set my own colors?
 
 With variants: `Tint`, `Accent` and `ColorWell`. A new value for everyone goes
-into Tengen. See [4](04-apariencia-y-tokens.md#custom-colors-in-an-app).
+into Tengen. See [4](04-appearance-and-tokens.md#custom-colors-in-an-app).
 
 ## How do I make the sidebar non-resizable or give it other limits?
 
 `SplitView::resizable(false)` and `SplitView::sidebar_range(mín, máx)`; in
 `PreferencesWindow`, `sidebar_resizable` and `sidebar_range`. See
-[8](08-barra-lateral.md).
+[8](08-sidebar.md).
 
 ## Where does an app store its data?
 
@@ -63,7 +63,7 @@ Preferences in `~/.config/malaysia/<app_id>.domain`; window state in
 
 ## How do I add a component to the kit?
 
-Follow [5, "Creating a new control"](05-controles.md#creating-a-new-control).
+Follow [5, "Creating a new control"](05-controls.md#creating-a-new-control).
 It comes with its render test in light and dark and, if it is interactive,
 its keyboard test.
 

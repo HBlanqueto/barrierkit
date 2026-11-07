@@ -3,7 +3,7 @@
 Read from [`prompt.md`](prompt.md). Each recipe is a whole `src/main.rs` that
 compiles against the current `main`. Start from the closest one and change only
 what the task needs. Names are explained in the
-[glossary](../barrierkit/15-glosario.md).
+[glossary](../barrierkit/15-glossary.md).
 
 ## 1. Text in a window
 
@@ -113,7 +113,7 @@ fn main() -> Result<(), RunError> {
 ```
 
 For a real preferences window use `PreferencesWindow` (chapter
-[10](../barrierkit/10-patrones.md)).
+[10](../barrierkit/10-patterns.md)).
 
 ## 6. A reusable view
 
@@ -171,7 +171,7 @@ fn main() -> Result<(), RunError> {
 
 ## 8. Translated text
 
-Follow the steps in chapter [18](../barrierkit/18-idiomas.md); then every
+Follow the steps in chapter [18](../barrierkit/18-languages.md); then every
 literal above becomes `tr!("id")`:
 
 ```rust

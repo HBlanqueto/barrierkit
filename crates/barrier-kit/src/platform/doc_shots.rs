@@ -342,36 +342,36 @@ fn doc_shots() {
     };
     let shots = [
         Shot {
-            name: "titlebar-isla",
+            name: "titlebar-island",
             ..docs
         },
         Shot {
-            name: "titlebar-isla-inactiva",
+            name: "titlebar-island-inactive",
             status: inactive,
             ..docs
         },
         Shot {
-            name: "titlebar-plana",
+            name: "titlebar-flat",
             flat: true,
             ..docs
         },
         Shot {
-            name: "titlebar-sin-barra",
+            name: "titlebar-no-bar",
             scene: Scene::Documents { sidebar: false },
             ..docs
         },
         Shot {
-            name: "titlebar-sin-barra-inactiva",
+            name: "titlebar-no-bar-inactive",
             scene: Scene::Documents { sidebar: false },
             status: inactive,
             ..docs
         },
         Shot {
-            name: "estado-normal",
+            name: "state-normal",
             ..design
         },
         Shot {
-            name: "estado-maximizada",
+            name: "state-maximized",
             scene: Scene::Design {
                 state: "Maximizada",
             },
@@ -379,7 +379,7 @@ fn doc_shots() {
             ..design
         },
         Shot {
-            name: "estado-completa-sin-protocolo",
+            name: "state-fullscreen-no-protocol",
             scene: Scene::Design {
                 state: "Pantalla completa",
             },
@@ -387,7 +387,7 @@ fn doc_shots() {
             ..design
         },
         Shot {
-            name: "estado-foco-barra-arriba",
+            name: "state-focus-bar-top",
             scene: Scene::Design {
                 state: "Pantalla completa",
             },
@@ -396,7 +396,7 @@ fn doc_shots() {
             ..design
         },
         Shot {
-            name: "foco-top",
+            name: "focus-top",
             compositor_bar: true,
             scene: Scene::Design {
                 state: "Pantalla completa",
@@ -407,92 +407,92 @@ fn doc_shots() {
             ..design
         },
         Shot {
-            name: "rail-elementos",
+            name: "rail-items",
             style: rail,
             items: true,
             ..design
         },
         Shot {
-            name: "rail-unificado-elementos",
+            name: "rail-unified-items",
             style: unified,
             items: true,
             ..design
         },
         Shot {
-            name: "barra-lisa",
+            name: "bar-solid",
             ..base
         },
         Shot {
-            name: "barra-vidrio-banda",
+            name: "bar-glass-band",
             bar: FullscreenBar::Glass,
             ..base
         },
         Shot {
-            name: "barra-vidrio-progresivo",
+            name: "bar-progressive-glass",
             bar: FullscreenBar::ProgressiveGlass,
             ..base
         },
         Shot {
-            name: "barra-empuja",
+            name: "bar-push",
             push: true,
             ..base
         },
         Shot {
-            name: "barra-empuja-vidrio-progresivo",
+            name: "bar-push-progressive-glass",
             push: true,
             bar: FullscreenBar::ProgressiveGlass,
             ..base
         },
         Shot {
-            name: "barra-empuja-arriba",
+            name: "bar-push-top",
             push: true,
             bar_down: false,
             ..base
         },
         Shot {
-            name: "rail-barra-lisa",
+            name: "rail-bar-solid",
             style: rail,
             ..base
         },
         Shot {
-            name: "rail-barra-vidrio-banda",
+            name: "rail-bar-glass-band",
             style: rail,
             bar: FullscreenBar::Glass,
             ..base
         },
         Shot {
-            name: "rail-barra-vidrio-progresivo",
+            name: "rail-bar-progressive-glass",
             style: rail,
             bar: FullscreenBar::ProgressiveGlass,
             ..base
         },
         Shot {
-            name: "rail-barra-empuja",
+            name: "rail-bar-push",
             style: rail,
             push: true,
             ..base
         },
         Shot {
-            name: "foco-unified",
+            name: "focus-unified",
             compositor_bar: true,
             style: unified,
             ..base
         },
         Shot {
-            name: "foco-rail-elementos",
+            name: "focus-rail-items",
             compositor_bar: true,
             style: rail,
             items: true,
             ..base
         },
         Shot {
-            name: "isla-rail-foco",
+            name: "island-rail-focus",
             compositor_bar: true,
             style: rail,
             ..base
         },
         Shot {
-            name: "isla-rail-maximizada",
+            name: "island-rail-maximized",
             size: (880.0, 420.0),
             style: rail,
             scene: Scene::Buttons {
@@ -505,7 +505,7 @@ fn doc_shots() {
             ..base
         },
         Shot {
-            name: "barra-lateral-top",
+            name: "sidebar-top",
             size: (980.0, 200.0),
             scene: Scene::Prefs,
             status: normal,
@@ -514,7 +514,7 @@ fn doc_shots() {
             ..base
         },
         Shot {
-            name: "barra-lateral-rail",
+            name: "sidebar-rail",
             size: (980.0, 200.0),
             scene: Scene::Prefs,
             style: rail,

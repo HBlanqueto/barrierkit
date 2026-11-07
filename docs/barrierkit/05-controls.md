@@ -16,7 +16,7 @@ it when it adds something.
   ring; Space or Enter activate; the arrow keys move sliders and segments.
 - The ones with a fill accept `.tint(Tint::Accent | Tint::Color(c) | Tint::Backdrop)`.
 
-![Focus ring when navigating with Tab](assets/componentes/focus-ring-light.png)
+![Focus ring when navigating with Tab](assets/components/focus-ring-light.png)
 
 ## Buttons
 
@@ -30,7 +30,7 @@ Button::new("Borrar").disabled(true)
 
 | Light | Dark |
 |---|---|
-| ![Cancelar, Guardar and Borrar buttons](assets/componentes/button-light.png) | ![Buttons in dark](assets/componentes/button-dark.png) |
+| ![Cancelar, Guardar and Borrar buttons](assets/components/button-light.png) | ![Buttons in dark](assets/components/button-dark.png) |
 
 - `ButtonStyle`: `Secondary` (default) and `Primary`.
 - Regular size: 24 tall, radius 6 and 12 side padding (`button`), AppKit's `regular` on macOS 26.
@@ -48,7 +48,7 @@ ToggleGroup::new("Formato")
     .item("U", Face::Underline, "Subrayado", false)
 ```
 
-![Icon button, stepper and toggle group](assets/componentes/compact-light.png)
+![Icon button, stepper and toggle group](assets/components/compact-light.png)
 
 `IconButton` is 30 (`icon-button`). Inside a `ToolGroup` or a unified bar
 (52) it becomes a 36 capsule, the `TOOLGROUP` height, like macOS 26
@@ -92,7 +92,7 @@ Checkbox::new("Recordarme").checked(true)
 
 | Switches | Checkbox |
 |---|---|
-| ![Three switches](assets/componentes/switch-light.png) | ![Checked checkbox](assets/componentes/checkbox-light.png) |
+| ![Three switches](assets/components/switch-light.png) | ![Checked checkbox](assets/components/checkbox-light.png) |
 
 `Switch` reports with `.on_toggle(|on: bool| ..)`; `Checkbox` does the same.
 The switch knob animates over `SWITCH.transition_ms`.
@@ -117,11 +117,11 @@ ColorWell::new("Color de acento", &ACCENT_SWATCHES).selected(Some(0))
 
 | Radio | Segmented |
 |---|---|
-| ![Active and inactive radio group](assets/componentes/radio-group-light.png) | ![Segmented control with Semana selected](assets/componentes/segmented-control-light.png) |
+| ![Active and inactive radio group](assets/components/radio-group-light.png) | ![Segmented control with Semana selected](assets/components/segmented-control-light.png) |
 
 | Pop-up | Pop-up with icon | Color swatches |
 |---|---|---|
-| ![PopUpButton](assets/componentes/popup-button-light.png) | ![PopUpButton with SVG icon](assets/componentes/popup-button-icon-light.png) | ![ColorWell with eight accents](assets/componentes/color-well-light.png) |
+| ![PopUpButton](assets/components/popup-button-light.png) | ![PopUpButton with SVG icon](assets/components/popup-button-icon-light.png) | ![ColorWell with eight accents](assets/components/color-well-light.png) |
 
 - `PopUpButton` opens a `MenuView` as a popup; `.icon_item(texto, MenuIcon::svg(..))`
   adds an icon, and `MenuIcon::Swatch(color)` adds a colour circle.
@@ -162,7 +162,7 @@ LevelSlider::new("Volumen").value(0.6).style(LevelStyle::Fat(Symbol::SpeakerWave
 
 | Stepped | Continuous and fat |
 |---|---|
-| ![Stepped slider](assets/componentes/slider-light.png) | ![Normal and fat LevelSlider](assets/componentes/level-slider-light.png) |
+| ![Stepped slider](assets/components/slider-light.png) | ![Normal and fat LevelSlider](assets/components/level-slider-light.png) |
 
 `Slider` works with indices (`usize`) and `LevelSlider` with an `f32` between
 0 and 1.
@@ -181,7 +181,7 @@ TextEditor::new(notas, "Notas").height(Size::px(72.0))
 
 | Text and search | Password |
 |---|---|
-| ![TextField and SearchField](assets/componentes/text-field-light.png) | ![SecureField](assets/componentes/secure-field-light.png) |
+| ![TextField and SearchField](assets/components/text-field-light.png) | ![SecureField](assets/components/secure-field-light.png) |
 
 `TextField` and `SearchField` write directly into a `State<String>`. With the
 focus in a field, Ctrl+A, C, V, X, Y and Z belong to the field before the menu.
@@ -338,7 +338,7 @@ ProgressRing::new("Descargando", 0.4)
 Spinner::new("Cargando")
 ```
 
-![Bar, indeterminate bar, ring and spinner](assets/componentes/progress-light.png)
+![Bar, indeterminate bar, ring and spinner](assets/components/progress-light.png)
 
 ```rust
 CapacityIndicator::new("Disco", 0.82).thresholds(0.75, 0.9)
@@ -371,7 +371,7 @@ avatar("HB")
 Link::new("Más información…")
 ```
 
-![Badge, divider, avatar and link](assets/componentes/adornments-light.png)
+![Badge, divider, avatar and link](assets/components/adornments-light.png)
 
 ```rust
 GroupBox::new(Some("Red")).child(Checkbox::new("Wi-Fi"))
@@ -430,7 +430,7 @@ context_menu(fila, elementos, |id: String| { /* action */ })
 ScrollView::new().height(Size::px(120.0)).child(lista)
 ```
 
-![ScrollView with three items](assets/componentes/scroll-view-light.png)
+![ScrollView with three items](assets/components/scroll-view-light.png)
 
 `ScrollView` supports `.direction(Direction::Horizontal)`, `.scroll_bar(false)`
 and a `use_scroll_controller()` to scroll from code. The bar fades out over
@@ -467,4 +467,4 @@ as a terminal grid.
 3. Paint only with `Palette::current()` and `vow_design` tokens.
 4. Add its case to `tests/kit/controls.rs` (light and dark).
 
-Next: [6. Windows](06-ventanas.md).
+Next: [6. Windows](06-windows.md).

@@ -68,19 +68,19 @@ fn main() -> Result<(), RunError> {
 
 | When you need to… | Read |
 |---|---|
-| Find the name of anything (control, view, token, hook) | [`docs/barrierkit/15-glosario.md`](../barrierkit/15-glosario.md) |
+| Find the name of anything (control, view, token, hook) | [`docs/barrierkit/15-glossary.md`](../barrierkit/15-glossary.md) |
 | Copy a working pattern (state, form, component, custom window) | [`recipes.md`](recipes.md) |
 | Check your work before you answer | [`checklist.md`](checklist.md) |
-| Understand the first app line by line | [`docs/barrierkit/02-primera-app.md`](../barrierkit/02-primera-app.md) |
-| Use a specific control | [`docs/barrierkit/05-controles.md`](../barrierkit/05-controles.md) |
-| Change window size, limits, menu or full screen | [`docs/barrierkit/06-ventanas.md`](../barrierkit/06-ventanas.md) |
-| Build a sidebar app | [`docs/barrierkit/08-barra-lateral.md`](../barrierkit/08-barra-lateral.md) |
-| Forms, tables, tabs, alerts, search | [`docs/barrierkit/09-vistas.md`](../barrierkit/09-vistas.md) |
-| Preferences or About window | [`docs/barrierkit/10-patrones.md`](../barrierkit/10-patrones.md) |
+| Understand the first app line by line | [`docs/barrierkit/02-first-app.md`](../barrierkit/02-first-app.md) |
+| Use a specific control | [`docs/barrierkit/05-controls.md`](../barrierkit/05-controls.md) |
+| Change window size, limits, menu or full screen | [`docs/barrierkit/06-windows.md`](../barrierkit/06-windows.md) |
+| Build a sidebar app | [`docs/barrierkit/08-sidebar.md`](../barrierkit/08-sidebar.md) |
+| Forms, tables, tabs, alerts, search | [`docs/barrierkit/09-views.md`](../barrierkit/09-views.md) |
+| Preferences or About window | [`docs/barrierkit/10-patterns.md`](../barrierkit/10-patterns.md) |
 | Menus, shortcuts, single instance, saved settings, undo | [`docs/barrierkit/11-app.md`](../barrierkit/11-app.md) |
-| Translate the app | [`docs/barrierkit/18-idiomas.md`](../barrierkit/18-idiomas.md) |
-| Charts | [`docs/barrierkit/19-graficas.md`](../barrierkit/19-graficas.md) |
-| Change the kit itself | [`AGENTS.md`](../../AGENTS.md) and [`docs/barrierkit/03-capas.md`](../barrierkit/03-capas.md) |
+| Translate the app | [`docs/barrierkit/18-languages.md`](../barrierkit/18-languages.md) |
+| Charts | [`docs/barrierkit/19-charts.md`](../barrierkit/19-charts.md) |
+| Change the kit itself | [`AGENTS.md`](../../AGENTS.md) and [`docs/barrierkit/03-layers.md`](../barrierkit/03-layers.md) |
 
 ## 5. How to work
 

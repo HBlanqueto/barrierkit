@@ -30,7 +30,7 @@ yes/no question.
 ## Changes to the kit itself
 
 12. Is every new or renamed public item in
-    [`docs/barrierkit/15-glosario.md`](../barrierkit/15-glosario.md), named by
+    [`docs/barrierkit/15-glossary.md`](../barrierkit/15-glossary.md), named by
     its rules, in the same commit?
 13. Does the chapter that describes the changed behavior say what the code
     does now?

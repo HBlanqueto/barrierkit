@@ -35,11 +35,11 @@ or renames it (`AGENTS.md`, «Nombres y glosario»).
 | `Scene::options(\|window\| …)` | `.defaultSize`, `.windowResizability` | `NSWindow` properties | Changes any `WindowOptions` setting |
 | `Scene::run()` | `@main` | `NSApplication.run()` | Opens the window and runs until it closes |
 | `run_window(content, options)` | — | — | The same without the titlebar and background: you draw the whole window |
-| `WindowOptions` | Scene modifiers | `NSWindow` style | Title, size, limits, menu, full-screen bar (chapter [6](06-ventanas.md)) |
+| `WindowOptions` | Scene modifiers | `NSWindow` style | Title, size, limits, menu, full-screen bar (chapter [6](06-windows.md)) |
 | `RunError` | — | — | Why the window could not open (no Wayland, no Vulkan…) |
 
 `Scene::run()` draws the window background, a `Titlebar` with the title, and
-centers the content. Chapter [2](02-primera-app.md) shows it step by step.
+centers the content. Chapter [2](02-first-app.md) shows it step by step.
 
 ## Text and layout
 
@@ -113,7 +113,7 @@ The values come from `crates/vow-design/tengen/tokens.json`
 | `ImageWell` | — | `NSImageView` (editable) |
 | `Tooltip` | `.help("…")` | `toolTip` |
 
-Chapter [5](05-controles.md) shows each control.
+Chapter [5](05-controls.md) shows each control.
 
 ## Views and windows
 

@@ -2,7 +2,7 @@
 
 **Goal:** know where each piece lives and what each one can use.
 **Reader:** anyone choosing which level of the kit to build their app with.
-The full decision is in [ADR 0047](../decisiones/0047-barrierkit-en-capas.md).
+The full decision is in [ADR 0047](../decisions/0047-barrierkit-in-layers.md).
 
 ## The map
 
@@ -39,7 +39,7 @@ The full decision is in [ADR 0047](../decisiones/0047-barrierkit-en-capas.md).
 `run_window`), the basic elements (`Text`, `VStack`, `HStack`), the controls,
 `Palette`, Freya's elements and hooks, and the type and spacing tokens. The
 rest is imported from its module, for example `barrier_kit::views::form::Form`.
-The list of names is in the [glossary](15-glosario.md).
+The list of names is in the [glossary](15-glossary.md).
 
 ## Rules
 
@@ -78,4 +78,4 @@ The list of names is in the [glossary](15-glosario.md).
   without a label does not compile.
 - **Reactive.** A change of mode, accent or tint repaints without restarting.
 
-Next: [4. Appearance and tokens](04-apariencia-y-tokens.md).
+Next: [4. Appearance and tokens](04-appearance-and-tokens.md).

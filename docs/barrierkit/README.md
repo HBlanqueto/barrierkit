@@ -14,25 +14,25 @@ Each chapter builds on the previous ones.
 
 | # | Chapter | Answers |
 |---|---|---|
-| 1 | [What BarrierKit is](01-que-es.md) | What is it, which crates does it have, does it use the GPU or the CPU? |
-| 2 | [Your first app](02-primera-app.md) | How do I open a window with text, state and a button? |
-| 3 | [Layers](03-capas.md) | How is the kit organized and what can I use? |
-| 4 | [Appearance and tokens](04-apariencia-y-tokens.md) | Where do colors and sizes come from? How do I set my own? |
-| 5 | [Controls](05-controles.md) | Which interactive elements exist and how do they look? |
-| 6 | [Windows](06-ventanas.md) | How do I open a window, resize it and read its state? |
+| 1 | [What BarrierKit is](01-what-is-barrierkit.md) | What is it, which crates does it have, does it use the GPU or the CPU? |
+| 2 | [Your first app](02-first-app.md) | How do I open a window with text, state and a button? |
+| 3 | [Layers](03-layers.md) | How is the kit organized and what can I use? |
+| 4 | [Appearance and tokens](04-appearance-and-tokens.md) | Where do colors and sizes come from? How do I set my own? |
+| 5 | [Controls](05-controls.md) | Which interactive elements exist and how do they look? |
+| 6 | [Windows](06-windows.md) | How do I open a window, resize it and read its state? |
 | 7 | [Titlebars](07-titlebars.md) | Which titlebars and traffic lights exist and how do they look in each state? |
-| 8 | [Sidebar and SplitView](08-barra-lateral.md) | How is it configured, resized and collapsed? |
-| 9 | [Views](09-vistas.md) | Forms, tables, grids, tabs, alerts, navigation and search |
-| 10 | [Patterns](10-patrones.md) | Preferences window and "About" |
+| 8 | [Sidebar and SplitView](08-sidebar.md) | How is it configured, resized and collapsed? |
+| 9 | [Views](09-views.md) | Forms, tables, grids, tabs, alerts, navigation and search |
+| 10 | [Patterns](10-patterns.md) | Preferences window and "About" |
 | 11 | [App infrastructure](11-app.md) | Actions, shortcuts, global menu, single instance, preferences, undo |
-| 12 | [Animations](12-animaciones.md) | What animates, with which curve, and how is motion reduced? |
-| 13 | [Tinted backdrops and media](13-fondos-y-medios.md) | Backdrops from an image, custom accent, video |
-| 14 | [Platform](14-plataforma.md) | Runner, Vulkan, Wayland protocols, the shell part |
-| 15 | [Glossary](15-glosario.md) | What is the BarrierKit name for a SwiftUI or AppKit concept? How are names chosen? |
-| 16 | [Frequently asked questions](16-preguntas.md) | What do we have and what is missing? |
-| 17 | [Profiling with Tracy](17-perfilado.md) | Where does each frame's time go? |
-| 18 | [Languages](18-idiomas.md) | How do I translate an app and how is the language chosen? |
-| 19 | [Charts](19-graficas.md) | How do I draw series, shares and 3D charts? |
+| 12 | [Animations](12-animations.md) | What animates, with which curve, and how is motion reduced? |
+| 13 | [Tinted backdrops and media](13-backdrops-and-media.md) | Backdrops from an image, custom accent, video |
+| 14 | [Platform](14-platform.md) | Runner, Vulkan, Wayland protocols, the shell part |
+| 15 | [Glossary](15-glossary.md) | What is the BarrierKit name for a SwiftUI or AppKit concept? How are names chosen? |
+| 16 | [Frequently asked questions](16-faq.md) | What do we have and what is missing? |
+| 17 | [Profiling with Tracy](17-profiling.md) | Where does each frame's time go? |
+| 18 | [Languages](18-languages.md) | How do I translate an app and how is the language chosen? |
+| 19 | [Charts](19-charts.md) | How do I draw series, shares and 3D charts? |
 
 ## For AI agents
 
@@ -45,9 +45,9 @@ checklist.
 This documentation links and does not copy. When a fact changes, it changes
 there:
 
-- Decisions: [`docs/decisiones/`](../decisiones/), especially
-  [ADR 0047](../decisiones/0047-barrierkit-en-capas.md) (layers and status)
-  and [ADR 0061](../decisiones/0061-api-de-entrada-estilo-swiftui.md) (entry
+- Decisions: [`docs/decisions/`](../decisions/), especially
+  [ADR 0047](../decisions/0047-barrierkit-in-layers.md) (layers and status)
+  and [ADR 0061](../decisions/0061-swiftui-style-entry-api.md) (entry
   API and names).
 - Tokens: `crates/vow-design/tengen/tokens.json` and `components.json`.
 - Appearance options: `crates/vow-appearance/src/config.rs`

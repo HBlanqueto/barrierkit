@@ -43,11 +43,11 @@ The app chooses none of these variants: they come from `with_sidebar`, from
 
 | Variant | How it looks |
 |---|---|
-| With an island sidebar (default): the traffic lights go in the sidebar; the bar has the translucent line at the bottom | ![Titlebar with an island sidebar](assets/estados/titlebar-isla.png) |
-| With an island sidebar, unfocused window: traffic lights and title in gray | ![Titlebar with an island sidebar, unfocused](assets/estados/titlebar-isla-inactiva.png) |
-| With a flat sidebar: a `TITLEBAR_CLIENT_HEIGHT` bar with a line at the bottom | ![Titlebar with a flat sidebar](assets/estados/titlebar-plana.png) |
-| Without a sidebar: traffic lights in the bar and the title centered between two symmetric zones | ![Titlebar without a sidebar](assets/estados/titlebar-sin-barra.png) |
-| Without a sidebar, unfocused window: `titlebar_inactive` background and gray traffic lights | ![Titlebar without a sidebar, unfocused](assets/estados/titlebar-sin-barra-inactiva.png) |
+| With an island sidebar (default): the traffic lights go in the sidebar; the bar has the translucent line at the bottom | ![Titlebar with an island sidebar](assets/states/titlebar-island.png) |
+| With an island sidebar, unfocused window: traffic lights and title in gray | ![Titlebar with an island sidebar, unfocused](assets/states/titlebar-island-inactive.png) |
+| With a flat sidebar: a `TITLEBAR_CLIENT_HEIGHT` bar with a line at the bottom | ![Titlebar with a flat sidebar](assets/states/titlebar-flat.png) |
+| Without a sidebar: traffic lights in the bar and the title centered between two symmetric zones | ![Titlebar without a sidebar](assets/states/titlebar-no-bar.png) |
+| Without a sidebar, unfocused window: `titlebar_inactive` background and gray traffic lights | ![Titlebar without a sidebar, unfocused](assets/states/titlebar-no-bar-inactive.png) |
 
 ### Corner radius
 
@@ -137,7 +137,7 @@ With any item, the rail widens to `TITLEBAR_RAIL.actions_width` (34). In
 
 | `Normal` with items | `Unified` with items |
 |---|---|
-| ![Normal rail with items at the top and the bottom](assets/estados/rail-elementos.png) | ![Unified rail with items at the top and the bottom](assets/estados/rail-unificado-elementos.png) |
+| ![Normal rail with items at the top and the bottom](assets/states/rail-items.png) | ![Unified rail with items at the top and the bottom](assets/states/rail-unified-items.png) |
 
 ### The sidebar with the `Rail`
 
@@ -153,7 +153,7 @@ window with the `Rail`.
 
 | `Top`: the search field, below the traffic lights | `Rail`: the search field, in the titlebar row |
 |---|---|
-| ![Sidebar with Top](assets/estados/barra-lateral-top.png) | ![Sidebar with Rail](assets/estados/barra-lateral-rail.png) |
+| ![Sidebar with Top](assets/states/sidebar-top.png) | ![Sidebar with Rail](assets/states/sidebar-rail.png) |
 
 ### `ChromeStyle` fields
 
@@ -171,7 +171,7 @@ becomes `Corner`; in full screen, `reveal` is always `Always`.
 
 ## Maximized, full screen and focus mode
 
-The state is read as chapter [6](06-ventanas.md#window-state) explains.
+The state is read as chapter [6](06-windows.md#window-state) explains.
 The screenshots in this section are a test window (island sidebar, `Top`
 layout unless stated) rendered by the kit in each state.
 
@@ -179,10 +179,10 @@ layout unless stated) rendered by the kit in each state.
 
 | State | How it is entered | What the kit does | How it looks |
 |---|---|---|---|
-| Normal | — | Titlebar in place, traffic lights in the sidebar. The window edges resize it. On close, the size is saved | ![Normal window](assets/estados/estado-normal.png) |
-| Maximized | Green button with `green_button = "zoom"`, double click with `zoom` or `fill`, or `toggle_maximize()` | Same as normal, without resize edges. In Malaysia the compositor keeps the frame (corners and shadow). On close, the kit saves that it was maximized and reopens it that way | ![Maximized window: same as normal](assets/estados/estado-maximizada.png) |
-| Full screen without the focus protocol (another compositor) | Green button with `focus` (default) or `fullscreen`, or `toggle_fullscreen()` | The titlebar stays in place and the traffic lights hide | ![Full screen without the protocol: no traffic lights](assets/estados/estado-completa-sin-protocolo.png) |
-| Malaysia focus mode, bar up | Same; the compositor gives the `fullscreen` state | The titlebar leaves the layout and the content fills the whole window | ![Focus mode with the bar up: content only](assets/estados/estado-foco-barra-arriba.png) |
+| Normal | — | Titlebar in place, traffic lights in the sidebar. The window edges resize it. On close, the size is saved | ![Normal window](assets/states/state-normal.png) |
+| Maximized | Green button with `green_button = "zoom"`, double click with `zoom` or `fill`, or `toggle_maximize()` | Same as normal, without resize edges. In Malaysia the compositor keeps the frame (corners and shadow). On close, the kit saves that it was maximized and reopens it that way | ![Maximized window: same as normal](assets/states/state-maximized.png) |
+| Full screen without the focus protocol (another compositor) | Green button with `focus` (default) or `fullscreen`, or `toggle_fullscreen()` | The titlebar stays in place and the traffic lights hide | ![Full screen without the protocol: no traffic lights](assets/states/state-fullscreen-no-protocol.png) |
+| Malaysia focus mode, bar up | Same; the compositor gives the `fullscreen` state | The titlebar leaves the layout and the content fills the whole window | ![Focus mode with the bar up: content only](assets/states/state-focus-bar-top.png) |
 
 In Malaysia, focus mode
 ([Malaysia ADRs 0051 and 0054](https://github.com/HBlanqueto/malaysia/tree/main/docs/decisiones))
@@ -208,9 +208,9 @@ top is the compositor bar, added to the image.
 
 | `FullscreenBar` | What it draws | Where the content starts (`fullscreen_content_top`) | How it looks |
 |---|---|---|---|
-| `Solid` ("A · Lisa", **default**) | An opaque band in the window color, as tall as the titlebar. It cuts what passes below with a hard edge | Bar + `FULLSCREEN_BAR.content_top` (44) | ![A · Lisa](assets/estados/barra-lisa.png) |
-| `Glass` ("B1 · Vidrio en banda") | A band as tall as the titlebar, from edge to edge of the window and over the sidebar, that blurs what is below (`FULLSCREEN_BAND`), with a tint and a line at the bottom | Bar + `FULLSCREEN_BAND.content_top` (44) | ![B1 · Glass band](assets/estados/barra-vidrio-banda.png) |
-| `ProgressiveGlass` ("B2 · Vidrio progresivo") | Maximum blur at the top that fades out over 96 px, without a line, from edge to edge of the window and over the sidebar ([ADR 0057](../decisiones/0057-cristal-y-barra-lateral-sobre-fondo.md)) | Bar + `FULLSCREEN_GLASS.content_top` (74) | ![B2 · Progressive glass](assets/estados/barra-vidrio-progresivo.png) |
+| `Solid` ("A · Lisa", **default**) | An opaque band in the window color, as tall as the titlebar. It cuts what passes below with a hard edge | Bar + `FULLSCREEN_BAR.content_top` (44) | ![A · Lisa](assets/states/bar-solid.png) |
+| `Glass` ("B1 · Vidrio en banda") | A band as tall as the titlebar, from edge to edge of the window and over the sidebar, that blurs what is below (`FULLSCREEN_BAND`), with a tint and a line at the bottom | Bar + `FULLSCREEN_BAND.content_top` (44) | ![B1 · Glass band](assets/states/bar-glass-band.png) |
+| `ProgressiveGlass` ("B2 · Vidrio progresivo") | Maximum blur at the top that fades out over 96 px, without a line, from edge to edge of the window and over the sidebar ([ADR 0057](../decisions/0057-glass-and-sidebar-over-backdrop.md)) | Bar + `FULLSCREEN_GLASS.content_top` (74) | ![B2 · Progressive glass](assets/states/bar-progressive-glass.png) |
 
 Only `Glass` and `ProgressiveGlass` blur.
 
@@ -235,9 +235,9 @@ and `fullscreen_content_top` is 0.
 
 | Combination | How it looks |
 |---|---|
-| `Solid` + `fullscreen_push(true)` | ![A · Lisa pushing the content](assets/estados/barra-empuja.png) |
-| `ProgressiveGlass` + `fullscreen_push(true)` | ![B2 · Progressive glass pushing the content](assets/estados/barra-empuja-vidrio-progresivo.png) |
-| Bar up: the content reaches the top edge | ![Push with the bar up](assets/estados/barra-empuja-arriba.png) |
+| `Solid` + `fullscreen_push(true)` | ![A · Lisa pushing the content](assets/states/bar-push.png) |
+| `ProgressiveGlass` + `fullscreen_push(true)` | ![B2 · Progressive glass pushing the content](assets/states/bar-push-progressive-glass.png) |
+| Bar up: the content reaches the top edge | ![Push with the bar up](assets/states/bar-push-top.png) |
 
 #### With the `Rail`
 
@@ -249,10 +249,10 @@ bar:
 
 | `FullscreenBar` | The rail | How it looks |
 |---|---|---|
-| `Solid` ("A · Lisa", **default**) | An opaque strip as wide as the rail, over the content | ![Rail with A · Lisa](assets/estados/rail-barra-lisa.png) |
-| `Glass` ("B1 · Vidrio en banda") | A strip as wide as the rail that blurs what is below, with a line on the inner edge | ![Rail with B1 · Glass band](assets/estados/rail-barra-vidrio-banda.png) |
-| `ProgressiveGlass` ("B2 · Vidrio progresivo") | Maximum blur at the window edge that fades inward over 96 px | ![Rail with B2 · Progressive glass](assets/estados/rail-barra-vidrio-progresivo.png) |
-| Any + `fullscreen_push(true)` | The rail returns to the layout and pushes the content sideways by its width | ![Rail pushing the content](assets/estados/rail-barra-empuja.png) |
+| `Solid` ("A · Lisa", **default**) | An opaque strip as wide as the rail, over the content | ![Rail with A · Lisa](assets/states/rail-bar-solid.png) |
+| `Glass` ("B1 · Vidrio en banda") | A strip as wide as the rail that blurs what is below, with a line on the inner edge | ![Rail with B1 · Glass band](assets/states/rail-bar-glass-band.png) |
+| `ProgressiveGlass` ("B2 · Vidrio progresivo") | Maximum blur at the window edge that fades inward over 96 px | ![Rail with B2 · Progressive glass](assets/states/rail-bar-progressive-glass.png) |
+| Any + `fullscreen_push(true)` | The rail returns to the layout and pushes the content sideways by its width | ![Rail pushing the content](assets/states/rail-bar-push.png) |
 
 ### Focus mode with the bar down, by layout
 
@@ -261,7 +261,7 @@ with an island sidebar: the `Rail` stays on the left.
 
 | `Rail` with an island, maximized | `Rail` with an island, focus mode |
 |---|---|
-| ![Rail with an island and the window maximized](assets/estados/isla-rail-maximizada.png) | ![Rail with an island in focus mode](assets/estados/isla-rail-foco.png) |
+| ![Rail with an island and the window maximized](assets/states/island-rail-maximized.png) | ![Rail with an island in focus mode](assets/states/island-rail-focus.png) |
 
 The screenshots in this table use the flat sidebar (except `Top`) and the default bar (`Solid`). The
 black strip at the top (30 px) is the compositor bar, added to the image: the
@@ -269,10 +269,10 @@ app does not draw it.
 
 | Layout | What comes down | How it looks |
 |---|---|---|
-| `Top` (default) | The `Titlebar` over the content; the sidebar traffic lights move down by the same amount | ![Top with the bar down](assets/estados/foco-top.png) |
-| Unified `Rail` | The sidebar column; the traffic lights appear with the bar, below it | ![Unified rail with the bar down](assets/estados/foco-unified.png) |
-| `Rail` | The rail slides in from the left with the chosen bar (above, "With the `Rail`"); its traffic lights sit below the compositor bar | ![Rail with the bar down](assets/estados/rail-barra-lisa.png) |
-| `Rail` with items | The same, with its items | ![Rail with items and the bar down](assets/estados/foco-rail-elementos.png) |
+| `Top` (default) | The `Titlebar` over the content; the sidebar traffic lights move down by the same amount | ![Top with the bar down](assets/states/focus-top.png) |
+| Unified `Rail` | The sidebar column; the traffic lights appear with the bar, below it | ![Unified rail with the bar down](assets/states/focus-unified.png) |
+| `Rail` | The rail slides in from the left with the chosen bar (above, "With the `Rail`"); its traffic lights sit below the compositor bar | ![Rail with the bar down](assets/states/rail-bar-solid.png) |
+| `Rail` with items | The same, with its items | ![Rail with items and the bar down](assets/states/focus-rail-items.png) |
 
 ### What the app does
 
@@ -306,4 +306,4 @@ app does not draw it.
 5. To offer it in a menu, it calls `toggle_maximize()` or
    `toggle_fullscreen()` from an `Action` (chapter [11](11-app.md)).
 
-Next: [8. Sidebar and SplitView](08-barra-lateral.md).
+Next: [8. Sidebar and SplitView](08-sidebar.md).

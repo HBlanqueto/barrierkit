@@ -4,7 +4,7 @@
 whole kit rests on.
 **Reader:** anyone who has never used BarrierKit or Freya.
 **Input:** the repository and `nix develop`. **Output:** a window that adds.
-**Names:** every name used here is in the [glossary](15-glosario.md).
+**Names:** every name used here is in the [glossary](15-glossary.md).
 
 ## Hello, world
 
@@ -86,7 +86,7 @@ Press «Add one»: the number goes up and the window repaints.
 4. **No color or size is written by hand.** `Text` takes its color from the
    system palette, and sizes and typefaces come from the tokens (`TITLE`,
    `SPACE_3`, `WINDOW_MIN_SIZE`). The app follows light or dark mode and the
-   accent on its own (chapter [4](04-apariencia-y-tokens.md)).
+   accent on its own (chapter [4](04-appearance-and-tokens.md)).
 5. **One import.** `barrier_kit::prelude::*` brings the kit's entry points,
    the controls, Freya's elements and hooks, and the type and spacing tokens.
 
@@ -97,7 +97,7 @@ Press «Add one»: the number goes up and the window repaints.
 
 1. Builds `WindowOptions::new(title, name)`. The `name` is the short name
    behind the `app_id` and the saved window size (chapter
-   [6](06-ventanas.md)).
+   [6](06-windows.md)).
 2. Draws the window background (`Palette::current().window_background`).
 3. Adds a `Titlebar` with the title.
 4. Centers `content` in the rest of the window.
@@ -155,4 +155,4 @@ fn main() -> Result<(), RunError> {
 }
 ```
 
-Next: [3. Layers](03-capas.md).
+Next: [3. Layers](03-layers.md).

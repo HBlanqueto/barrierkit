@@ -55,9 +55,9 @@ the apps.
 
 ## References
 
-- [`0032`](0032-neptunia-como-fuente-de-diseno.md) — Neptunia
+- [`0032`](0032-neptunia-as-design-source.md) — Neptunia
   as the design source.
-- [`0034`](0034-celestialkit-sobre-freya.md) — CelestialKit on Freya.
+- [`0034`](0034-celestialkit-on-freya.md) — CelestialKit on Freya.
 - `crates/yuki-design/neptunia/components.json` — definition of `sidebar`.
 - `crates/yuki-design/neptunia/tokens.json` — island colors.
 - `crates/yuki-appearance/src/lib.rs` — `SidebarStyle` and `SidebarSurface`.
