@@ -86,7 +86,7 @@ fn the_title_is_centred_in_the_window_whatever_each_side_holds() {
     test.sync_and_update();
     let title = test
         .find(|node, el| {
-            (el.accessibility().builder.label() == Some("titlebar-title"))
+            (el.accessibility().builder.author_id() == Some("titlebar-title"))
                 .then(|| node.layout().area)
         })
         .expect("title");

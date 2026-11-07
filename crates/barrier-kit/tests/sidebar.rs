@@ -206,7 +206,7 @@ fn titlebar_layout(sidebar: bool) -> Vec<(f32, f32, f32, f32)> {
     let (test, _) = TestingRunner::new(app, Size2D::new(300.0, 120.0), |_| {}, 1.0);
     test.find_many(|node, el| {
         let accessibility = el.accessibility();
-        let label = accessibility.builder.label()?;
+        let label = accessibility.builder.author_id()?;
         let is_slot = matches!(
             label,
             "titlebar-left-slot" | "titlebar-title" | "titlebar-right-slot"
@@ -271,7 +271,7 @@ fn titlebar_slots_grow_with_their_content() {
     test.sync_and_update();
     let slot_width = |label: &str| {
         test.find(|node, el| {
-            (el.accessibility().builder.label() == Some(label))
+            (el.accessibility().builder.author_id() == Some(label))
                 .then(|| node.layout().area.size.width)
         })
         .unwrap_or_else(|| panic!("{label} exists"))
@@ -954,7 +954,7 @@ fn island_toolbar_is_centred_with_the_traffic_lights() {
     test.sync_and_update();
     let traffic = test
         .find(|node, el| {
-            (el.accessibility().builder.label() == Some("sidebar-traffic-lights"))
+            (el.accessibility().builder.author_id() == Some("sidebar-traffic-lights"))
                 .then(|| node.layout().area)
         })
         .expect("the traffic lights exist");

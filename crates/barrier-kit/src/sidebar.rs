@@ -268,7 +268,7 @@ impl Component for Sidebar {
                     )
                     .width(Size::px(SIDEBAR.width as f32))
                     .height(Size::px(top_height + inset))
-                    .a11y_alt("sidebar-drag-strip")
+                    .probe("sidebar-drag-strip")
                     .on_mouse_down(drag),
             )
             .child(ScrollView::new().children(self.children.iter().cloned()));
@@ -346,7 +346,7 @@ impl Component for Sidebar {
                     })
                     .maybe_child(lights_shown.then(|| {
                         rect()
-                            .a11y_alt("sidebar-traffic-lights")
+                            .probe("sidebar-traffic-lights")
                             .opacity(lights_opacity)
                             .child(window_traffic_lights(status.activated, fixed).vertical(true))
                     }))
@@ -373,7 +373,7 @@ impl Component for Sidebar {
                     })
                     .width(Size::px(group_w as f32))
                     .height(Size::px(TITLEBAR.buttons.diameter as f32))
-                    .a11y_alt("sidebar-traffic-lights")
+                    .probe("sidebar-traffic-lights")
                     .opacity(lights_opacity)
                     .child(window_traffic_lights(status.activated, fixed)),
             );

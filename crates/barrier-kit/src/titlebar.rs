@@ -278,7 +278,7 @@ impl Titlebar {
             .cross_align(Alignment::Center)
             .main_align(Alignment::Center)
             .spacing(padding_x)
-            .a11y_alt("titlebar-left-slot")
+            .probe("titlebar-left-slot")
             .maybe_child(self.left.clone());
 
         let title = rect()
@@ -287,7 +287,7 @@ impl Titlebar {
             .direction(Direction::Horizontal)
             .cross_align(Alignment::Center)
             .main_align(Alignment::Start)
-            .a11y_alt("titlebar-title")
+            .probe("titlebar-title")
             .on_mouse_down(drag)
             .child(title_label);
 
@@ -308,7 +308,7 @@ impl Titlebar {
                     .height(Size::fill())
                     .direction(Direction::Horizontal)
                     .cross_align(Alignment::Center)
-                    .a11y_alt("titlebar-right-slot")
+                    .probe("titlebar-right-slot")
                     .child(right)
             }))
             .maybe_child(fixed_lights)
@@ -350,7 +350,7 @@ impl Titlebar {
             .height(Size::fill())
             .direction(Direction::Horizontal)
             .cross_align(Alignment::Center)
-            .a11y_alt("titlebar-left-slot")
+            .probe("titlebar-left-slot")
             .child(
                 rect()
                     .direction(Direction::Horizontal)
@@ -371,7 +371,7 @@ impl Titlebar {
             .direction(Direction::Horizontal)
             .main_align(Alignment::End)
             .cross_align(Alignment::Center)
-            .a11y_alt("titlebar-right-slot")
+            .probe("titlebar-right-slot")
             .child(
                 rect()
                     .on_sized(move |event: Event<SizedEventData>| {
@@ -388,7 +388,7 @@ impl Titlebar {
             .height(Size::fill())
             .cross_align(Alignment::Center)
             .main_align(Alignment::Center)
-            .a11y_alt("titlebar-title")
+            .probe("titlebar-title")
             .on_mouse_down(drag)
             .child(title_label);
 

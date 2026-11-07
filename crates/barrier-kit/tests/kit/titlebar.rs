@@ -96,7 +96,7 @@ fn title_label_width(test: &TestingRunner, title: &str) -> f32 {
 
 fn title_area_width(test: &TestingRunner) -> f32 {
     test.find(|node, el| {
-        (el.accessibility().builder.label() == Some("titlebar-title"))
+        (el.accessibility().builder.author_id() == Some("titlebar-title"))
             .then(|| node.layout().area.size.width)
     })
     .expect("the title slot exists")
