@@ -37,7 +37,7 @@ el [ADR 0056](../decisiones/0056-barrierkit-sobre-vulkan.md).
 | `wp_cursor_shape_manager_v1` | No | Cursores por componente (`col-resize`, texto…); sin él, el cursor por defecto |
 | `zxdg_decoration_manager_v1` | No | Decoración del servidor si la app la pide |
 | `xdg_activation_v1` | No | Traer la ventana al frente al reactivar una instancia |
-| `wl_data_device_manager` | No | Portapapeles |
+| `wl_data_device_manager` | No | Portapapeles y arrastrar y soltar |
 | `zwp_text_input_manager_v3` | No | Método de entrada: composición y texto confirmado |
 | `zwp_primary_selection_device_manager_v1` | No | Selección primaria, la que pega el botón central |
 | `org_kde_kwin_appmenu_manager` | No | Enseñar el menú global en la barra de menús |
@@ -82,13 +82,16 @@ Solo `malaysia-shell` activa `barrier-kit/shell`. Añade:
 | `shell::use_status_items()` | [StatusNotifierWatcher](https://specifications.freedesktop.org/status-notifier-item/latest/) y dbusmenu | Iconos de estado de las apps en la barra de menús: hace de watcher (o sigue al que ya haya), lee título, icono (`IconName`, `IconThemePath` de KDE o `IconPixmap`, el de atención si el estado es `NeedsAttention`) y menú, y los relee con cada señal. `StatusHost` envía `Activate`, `SecondaryActivate` y los clics del menú; `pixmap_image` pinta un `IconPixmap` |
 
 Los submódulos de `shell/` son privados y su API sale solo de `shell/mod.rs`.
-`platform/` no sabe nada de la shell: la shell se engancha por una única
-`Extension` del runner ([ADR 0047](../decisiones/0047-barrierkit-en-capas.md) §4).
+`platform/` no importa `shell/`: la shell se engancha por una única
+`Extension` del runner, y los `cfg(feature = "shell")` de `platform/` solo
+compilan ese enganche (superficies de extensión, sus popups y la lista de
+globals) ([ADR 0047](../decisiones/0047-barrierkit-en-capas.md) §4).
 
 ## Errores
 
 `RunError` tiene las variantes `NoDisplay`, `MissingGlobal`, `Vulkan`,
-`EventLoop`, `Skia`, `Wayland`, `Registry` e `Io`.
+`DeviceLost`, `SurfaceLost`, `LayerSize`, `EventLoop`, `Skia`, `Wayland`,
+`Registry` e `Io`.
 
 ## El primer frame
 

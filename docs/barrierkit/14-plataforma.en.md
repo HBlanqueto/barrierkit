@@ -38,7 +38,7 @@ With the `video` feature the device also enables the dmabuf import extensions
 | `wp_cursor_shape_manager_v1` | No | Per-component cursors (`col-resize`, text…); without it, the default cursor |
 | `zxdg_decoration_manager_v1` | No | Server-side decoration if the app asks for it |
 | `xdg_activation_v1` | No | Bringing the window to the front when an instance is reactivated |
-| `wl_data_device_manager` | No | Clipboard |
+| `wl_data_device_manager` | No | Clipboard and drag and drop |
 | `zwp_text_input_manager_v3` | No | Input method: composition and committed text |
 | `zwp_primary_selection_device_manager_v1` | No | Primary selection, the one the middle button pastes |
 | `org_kde_kwin_appmenu_manager` | No | Showing the global menu in the menu bar |
@@ -84,14 +84,17 @@ Only `malaysia-shell` enables `barrier-kit/shell`. It adds:
 | `shell::use_status_items()` | [StatusNotifierWatcher](https://specifications.freedesktop.org/status-notifier-item/latest/) and dbusmenu | App status icons in the menu bar: acts as the watcher (or follows the one already running), reads the title, icon (`IconName`, KDE's `IconThemePath` or `IconPixmap`, the attention one when the status is `NeedsAttention`) and menu, and reads them again on every signal. `StatusHost` sends `Activate`, `SecondaryActivate` and menu clicks; `pixmap_image` paints an `IconPixmap` |
 
 The submodules of `shell/` are private and their API comes only from
-`shell/mod.rs`. `platform/` knows nothing about the shell: the shell hooks in
-through a single runner `Extension`
+`shell/mod.rs`. `platform/` does not import `shell/`: the shell hooks in
+through a single runner `Extension`, and the `cfg(feature = "shell")` blocks
+in `platform/` only compile that hook (extension surfaces, their popups and
+the globals list)
 ([ADR 0047](../decisiones/0047-barrierkit-en-capas.en.md) §4).
 
 ## Errors
 
 `RunError` has the variants `NoDisplay`, `MissingGlobal`, `Vulkan`,
-`EventLoop`, `Skia`, `Wayland`, `Registry` and `Io`.
+`DeviceLost`, `SurfaceLost`, `LayerSize`, `EventLoop`, `Skia`, `Wayland`,
+`Registry` and `Io`.
 
 ## The first frame
 
