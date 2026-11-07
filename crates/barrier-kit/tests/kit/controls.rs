@@ -1020,6 +1020,24 @@ fn the_text_editor_inserts_a_new_line_on_enter() {
 }
 
 #[test]
+fn a_disabled_control_is_announced_as_disabled() {
+    fn disabled_switch() -> Element {
+        Switch::new("Wi-Fi").disabled(true).into_element()
+    }
+    let app = AppComponent::new(Case {
+        dark: false,
+        build: disabled_switch,
+    });
+    let (mut test, _) = TestingRunner::new(app, Size2D::new(200.0, 60.0), |_| {}, 1.0);
+    test.sync_and_update();
+    let disabled = test.find(|_, el| {
+        let node = &el.accessibility().builder;
+        (node.role() == AccessibilityRole::Switch).then(|| node.is_disabled())
+    });
+    assert_eq!(disabled, Some(true));
+}
+
+#[test]
 fn a_slider_announces_its_name_value_and_range() {
     let app = AppComponent::new(Case {
         dark: false,

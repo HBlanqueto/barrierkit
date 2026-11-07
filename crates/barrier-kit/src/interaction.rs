@@ -48,6 +48,7 @@ impl Interaction {
         element
             .a11y_id(self.a11y_id)
             .a11y_focusable(enabled)
+            .maybe(!enabled, |el| el.a11y_builder(|node| node.set_disabled()))
             .on_pointer_enter(move |_| hovered.set(true))
             .on_pointer_leave(move |_| hovered.set(false))
             .maybe(enabled, |el| {
