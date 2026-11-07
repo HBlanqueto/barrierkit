@@ -12,6 +12,7 @@ use crate::animation::Spring;
 use crate::app::{Action, Shortcut, ShortcutKey};
 use crate::compact::IconButton;
 use crate::i18n::text;
+use crate::sidebar::{SidebarControl, sidebar_control};
 use crate::style::Palette;
 use crate::symbol::Symbol;
 use crate::theme::{SurfaceKind, color, surface_background};
@@ -33,43 +34,6 @@ pub enum NarrowSidebar {
     #[default]
     Overlay,
     Push,
-}
-
-#[derive(Clone, Copy, PartialEq)]
-pub struct SidebarControl {
-    visible: State<bool>,
-    auto_hidden: State<bool>,
-    occupied: State<f32>,
-    settled: State<bool>,
-    overlaid: State<bool>,
-}
-
-impl SidebarControl {
-    pub fn occupied(&self) -> f32 {
-        *self.occupied.read()
-    }
-
-    pub fn settled(&self) -> bool {
-        *self.settled.read()
-    }
-
-    pub fn toggle(self) {
-        let (mut visible, mut auto_hidden) = (self.visible, self.auto_hidden);
-        auto_hidden.set(false);
-        let shown = *visible.peek();
-        visible.set(!shown);
-    }
-
-    pub fn dismiss(self) {
-        let mut visible = self.visible;
-        if *self.overlaid.peek() {
-            visible.set(false);
-        }
-    }
-}
-
-pub fn sidebar_control() -> Option<SidebarControl> {
-    try_consume_context()
 }
 
 #[derive(PartialEq)]

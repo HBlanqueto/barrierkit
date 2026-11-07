@@ -166,7 +166,7 @@ impl Component for Titlebar {
                 .is_some_and(WindowControls::titlebar_overlaid);
         let resolved = crate::theme::resolved();
         let theme = palette(resolved.scheme);
-        let control = crate::views::split::sidebar_control();
+        let control = crate::sidebar::sidebar_control();
         let sidebar = self.sidebar && control.is_none_or(|control| control.settled());
         let tinted = crate::backdrop::tinted().is_some();
         let ink = crate::style::Palette::current();

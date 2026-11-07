@@ -95,7 +95,8 @@ The grip is a `SPLIT_VIEW.grip` (8 px) strip on the right edge of the sidebar:
 
 - The `SidebarToggle` button (`SidebarLeft` symbol) and the `TOGGLE_SIDEBAR`
   action (Ctrl+Alt+S) show or hide it with a `DURATION_BASE` animation.
-- From any child: `sidebar_control().map(|c| c.toggle())`.
+- From any child: `sidebar::sidebar_control().map(|c| c.toggle())`;
+  `SplitView` provides that control and `Sidebar` and `Titlebar` read it.
 
 ### Collapsing in narrow windows
 

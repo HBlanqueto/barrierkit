@@ -85,7 +85,44 @@ fn item_palette(emphasized: bool) -> SidebarPalette {
     }
 }
 
-pub(crate) fn symbol_tile(glyph: Symbol, tint: Rgba, rim: Option<Rgba>) -> Rect {
+#[derive(Clone, Copy, PartialEq)]
+pub struct SidebarControl {
+    pub(crate) visible: State<bool>,
+    pub(crate) auto_hidden: State<bool>,
+    pub(crate) occupied: State<f32>,
+    pub(crate) settled: State<bool>,
+    pub(crate) overlaid: State<bool>,
+}
+
+impl SidebarControl {
+    pub fn occupied(&self) -> f32 {
+        *self.occupied.read()
+    }
+
+    pub fn settled(&self) -> bool {
+        *self.settled.read()
+    }
+
+    pub fn toggle(self) {
+        let (mut visible, mut auto_hidden) = (self.visible, self.auto_hidden);
+        auto_hidden.set(false);
+        let shown = *visible.peek();
+        visible.set(!shown);
+    }
+
+    pub fn dismiss(self) {
+        let mut visible = self.visible;
+        if *self.overlaid.peek() {
+            visible.set(false);
+        }
+    }
+}
+
+pub fn sidebar_control() -> Option<SidebarControl> {
+    try_consume_context()
+}
+
+pub fn symbol_tile(glyph: Symbol, tint: Rgba, rim: Option<Rgba>) -> Rect {
     let tile = SIDEBAR.app_icon as f32;
     rect()
         .width(Size::px(tile))
@@ -321,8 +358,7 @@ impl Component for Sidebar {
                     .background(theme::color(surface.palette.line))
             }));
 
-        let sidebar_shown =
-            crate::views::split::sidebar_control().is_none_or(|control| control.settled());
+        let sidebar_shown = sidebar_control().is_none_or(|control| control.settled());
         if lights_column {
             let items = crate::chrome::rail_items();
             let position = Position::new_absolute().top(0.0);
@@ -492,7 +528,7 @@ impl Component for SidebarItem {
                 node.set_selected(self.selected);
             })
             .map(self.on_select.clone(), |el, callback| {
-                let control = crate::views::split::sidebar_control();
+                let control = sidebar_control();
                 el.on_press(move |_| {
                     callback.call(());
                     if let Some(control) = control {

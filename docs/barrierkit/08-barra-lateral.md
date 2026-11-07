@@ -94,7 +94,8 @@ El asa es una franja de `SPLIT_VIEW.grip` (8 px) en el borde derecho de la barra
 
 - El botón `SidebarToggle` (símbolo `SidebarLeft`) y la acción `TOGGLE_SIDEBAR`
   (Ctrl+Alt+S) la muestran u ocultan con una animación de `DURATION_BASE`.
-- Desde cualquier hijo: `sidebar_control().map(|c| c.toggle())`.
+- Desde cualquier hijo: `sidebar::sidebar_control().map(|c| c.toggle())`;
+  `SplitView` publica ese control y `Sidebar` y `Titlebar` lo leen.
 
 ### Plegar en ventanas estrechas
 

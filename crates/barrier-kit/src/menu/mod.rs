@@ -1,7 +1,7 @@
 mod item;
 mod model;
 mod nav;
-mod search;
+pub(crate) mod search;
 mod shortcut;
 mod submenu;
 #[cfg(test)]

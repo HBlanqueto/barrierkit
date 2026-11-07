@@ -1,3 +1,5 @@
+pub use crate::menu::search::{fold, word_start};
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct Entry<K> {
     pub key: K,
@@ -8,39 +10,6 @@ pub struct Entry<K> {
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct SearchIndex<K> {
     entries: Vec<Entry<K>>,
-}
-
-pub fn fold(text: &str) -> String {
-    let mut folded = String::with_capacity(text.len());
-    for c in text.chars().flat_map(char::to_lowercase) {
-        match c {
-            '\u{300}'..='\u{36f}' => {}
-            'ß' => folded.push_str("ss"),
-            'á' | 'à' | 'ä' | 'â' | 'ã' | 'å' => folded.push('a'),
-            'é' | 'è' | 'ë' | 'ê' => folded.push('e'),
-            'í' | 'ì' | 'ï' | 'î' => folded.push('i'),
-            'ó' | 'ò' | 'ö' | 'ô' | 'õ' | 'ø' => folded.push('o'),
-            'ú' | 'ù' | 'ü' | 'û' => folded.push('u'),
-            'ñ' => folded.push('n'),
-            'ç' => folded.push('c'),
-            'š' => folded.push('s'),
-            'ř' => folded.push('r'),
-            'ł' => folded.push('l'),
-            other => folded.push(other),
-        }
-    }
-    folded
-}
-
-pub fn word_start(name: &str, query: &str) -> bool {
-    name.char_indices().any(|(index, _)| {
-        if index == 0 {
-            return false;
-        }
-        let before = name[..index].chars().next_back();
-        let boundary = before.is_none_or(|ch| !ch.is_alphanumeric());
-        boundary && name[index..].starts_with(query)
-    })
 }
 
 impl<K: Clone> SearchIndex<K> {
