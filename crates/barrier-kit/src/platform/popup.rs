@@ -227,6 +227,7 @@ pub(crate) struct PopupInfo {
     parent: Option<PopupId>,
     on_dismissed: Option<Rc<dyn Fn()>>,
     opens_left: Rc<Cell<bool>>,
+    grabbed: bool,
 }
 
 pub(crate) enum PopupCommand {
@@ -342,27 +343,26 @@ impl Runtime {
         };
         let scale = self.surfaces[owner_index].scale;
 
-        let parent_xdg_surface = parent
-            .and_then(|parent_id| {
-                self.surfaces.iter().find_map(|s| {
-                    if let SurfaceRole::Popup(popup) = &s.role
-                        && s.popup.as_ref().is_some_and(|info| info.id == parent_id)
-                    {
-                        Some(popup.xdg_surface().clone())
-                    } else {
-                        None
+        let parent_popup = parent.and_then(|parent_id| {
+            self.surfaces
+                .iter()
+                .find_map(|s| match (&s.role, &s.popup) {
+                    (SurfaceRole::Popup(popup), Some(info)) if info.id == parent_id => {
+                        Some((popup.xdg_surface().clone(), info.grabbed))
                     }
+                    _ => None,
                 })
-            })
-            .or_else(|| {
-                if parent.is_none()
-                    && let SurfaceRole::Window(window) = &self.surfaces[owner_index].role
-                {
-                    Some(window.xdg_surface().clone())
-                } else {
-                    None
-                }
-            });
+        });
+        let parent_grabbed = parent_popup.as_ref().is_none_or(|(_, grabbed)| *grabbed);
+        let parent_xdg_surface = parent_popup.map(|(surface, _)| surface).or_else(|| {
+            if parent.is_none()
+                && let SurfaceRole::Window(window) = &self.surfaces[owner_index].role
+            {
+                Some(window.xdg_surface().clone())
+            } else {
+                None
+            }
+        });
 
         let Some(positioner) = positioner(xdg_shell, &spec) else {
             return;
@@ -391,17 +391,27 @@ impl Runtime {
         };
 
         #[cfg(feature = "shell")]
-        if parent.is_none()
-            && self.surfaces[owner_index]
-                .role
-                .parent_popup(popup.xdg_popup())
-        {
+        let attached = parent_xdg_surface.is_some()
+            || parent.is_none()
+                && self.surfaces[owner_index]
+                    .role
+                    .parent_popup(popup.xdg_popup());
+        #[cfg(not(feature = "shell"))]
+        let attached = parent_xdg_surface.is_some();
+        // xdg_popup: a null parent must be set by another protocol before the first commit.
+        if !attached {
+            if let Some(dismissed) = &spec.on_dismissed {
+                dismissed();
+            }
+            return;
+        }
+        if parent_xdg_surface.is_none() {
             self.surfaces[owner_index].surface.commit();
         }
 
-        if spec.grab
-            && let Some(seat) = self.seat_handle.as_ref()
-        {
+        // xdg_popup.grab: a popup whose parent popup took no grab may not grab either.
+        let grabbed = spec.grab && parent_grabbed && self.seat_handle.is_some();
+        if grabbed && let Some(seat) = self.seat_handle.as_ref() {
             popup.xdg_popup().grab(seat, serial);
         }
         wl_surface.commit();
@@ -425,6 +435,7 @@ impl Runtime {
             parent,
             on_dismissed: spec.on_dismissed,
             opens_left,
+            grabbed,
         });
         window.logical_size = spec.size;
         window.scale = scale;
