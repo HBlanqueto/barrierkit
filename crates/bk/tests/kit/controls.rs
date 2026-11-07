@@ -8,8 +8,8 @@ use bk::backdrop::{Accent, Backdrop, BackdropSource, Tint};
 use bk::choices::{ColorWell, RadioGroup};
 use bk::compact::{Face, IconButton, Stepper, ToggleGroup};
 use bk::controls::{
-    Button, ButtonStyle, Checkbox, ScrollView, SearchField, SecureField, SegmentedControl, Slider,
-    Switch, TextField,
+    Button, Checkbox, ScrollView, SearchField, SecureField, SegmentedControl, Slider, Switch,
+    TextField,
 };
 use bk::level::{LevelSlider, LevelStyle};
 use bk::menu::MenuIcon;
@@ -19,6 +19,7 @@ use bk::patterns::settings::{Pane, PaneGroup, SettingsWindow};
 use bk::popup_button::PopUpButton;
 use bk::progress::{ProgressRing, ProgressView, Spinner};
 use bk::sidebar::SidebarAccount;
+use bk::styles::ButtonStyle;
 use bk::symbol::Symbol;
 use bk::theme;
 use bk::views::collection::CollectionView;
@@ -92,7 +93,7 @@ fn button() -> Element {
         .direction(Direction::Horizontal)
         .spacing(12.0)
         .child(Button::new("Cancelar"))
-        .child(Button::new("Guardar").style(ButtonStyle::Primary))
+        .child(Button::new("Guardar").style(ButtonStyle::bordered_prominent))
         .child(Button::new("Borrar").disabled(true))
         .into_element()
 }

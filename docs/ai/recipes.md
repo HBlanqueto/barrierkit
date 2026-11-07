@@ -218,7 +218,7 @@ fn main() -> Result<(), RunError> {
                         )
                         .child(
                             Button::new(if running { "Stop" } else { "Start" })
-                                .style(ButtonStyle::Primary)
+                                .style(ButtonStyle::bordered_prominent)
                                 .on_press(move |_| {
                                     if running {
                                         stored.set(elapsed);
@@ -313,11 +313,15 @@ use bk::prelude::*;
 
 fn main() -> Result<(), RunError> {
     Application::new("mixer")
-        .theme(Theme::tengen().style(|s: SliderStyle| SliderStyle {
-            track_shape: Shape::Rectangle,
-            knob_shape: Shape::Rectangle,
-            ..s
-        }))
+        .theme(
+            Theme::tengen()
+                .style(|s: SliderStyle| SliderStyle {
+                    track_shape: Shape::Rectangle,
+                    knob_shape: Shape::Rectangle,
+                    ..s
+                })
+                .style(ButtonStyle::glass),
+        )
         .window("Mixer", || {
             VStack::new()
                 .child(Slider::stepped("Volume", 10).value(4).style(|s| SliderStyle {
@@ -331,12 +335,15 @@ fn main() -> Result<(), RunError> {
                         .child(Slider::stepped("Treble", 5).value(3))
                         .control_style(|s: SliderStyle| SliderStyle { axis: Axis::Vertical, ..s }),
                 )
+                .child(Button::new("Reset"))
         })
         .run()
 }
 ```
 
-1. The theme makes every slider square; the stack turns its two sliders
+1. The theme makes every slider square and every button glass
+   (`ButtonStyle::glass` is a preset: a function of the style, like SwiftUI's
+   `.glass`); the stack turns its two sliders
    vertical; `.style` paints one fill red, grey while pressed. Each override names only what
    changes and ends with `..s`. `Theme::style` and `.control_style` take any
    control's style: the parameter's type (`|s: SliderStyle|`) picks it.

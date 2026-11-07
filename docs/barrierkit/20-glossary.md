@@ -47,6 +47,13 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 | crate `vow-appearance` (`vow_appearance`), then `ct-appearance` (`ct_appearance`) | crate `ctappearance`, CTAppearance | 2026-11-07 |
 | `styles::Theme::slider` | `styles::Theme::style` (generic: `\|s: SliderStyle\|`) | 2026-11-07 |
 | `modifiers::StyleModifiers::slider_style` | `modifiers::StyleModifiers::control_style` (generic) | 2026-11-07 |
+| enum `controls::ButtonStyle` | struct `styles::ButtonStyle` | 2026-11-07 |
+| `controls::Button::style(ButtonStyle)` | `controls::Button::style(\|s\| ..)`, the closure of every control | 2026-11-07 |
+| `ButtonStyle::Secondary` | `ButtonStyle::tengen()`, the default (SwiftUI `.bordered`) | 2026-11-07 |
+| `ButtonStyle::Primary` | `ButtonStyle::bordered_prominent` | 2026-11-07 |
+| `ButtonStyle::Glass` | `ButtonStyle::glass` | 2026-11-07 |
+| `ButtonStyle::GlassProminent` | `ButtonStyle::glass_prominent` | 2026-11-07 |
+| `ButtonStyle::Borderless` | `ButtonStyle::borderless` | 2026-11-07 |
 | The 22 views, modifiers and names listed in [ADR 0063](../decisions/0063-views-as-types-and-swift-names.md#decision) (`divider()`, `empty_state`, `use_tooltip`, `PreferencesWindow`, `AppMenu`, `ProgressBar`…) | `Divider`, `ContentUnavailableView`, `.help`, `SettingsWindow`, `MainMenu`, `ProgressView`… | 2026-11-07 |
 
 ## How to read the tables
@@ -107,6 +114,18 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 | `styles::LayoutDirection` | enum | `LayoutDirection` | `NSUserInterfaceLayoutDirection` | `LeftToRight` or `RightToLeft` | [Styles](../ai/styles.md#value-types) |
 | `styles::ControlStyle` | trait | ≈ the style protocols (`ButtonStyle`, `ToggleStyle`) | ≈ `NSCell` | Implemented by every control style: `tengen()` and the accessibility rules of its control | [Styles](../ai/styles.md#which-controls-take-a-style) |
 | `styles::SliderStyle` | struct | ≈ `ButtonStyle` | ≈ `NSSliderCell` | Every visual property of `Slider`; `tengen()` builds the default from the tokens | [Styles](../ai/styles.md#the-fields-of-a-style) |
+| `styles::ButtonStyle` | struct | `ButtonStyle`, `PrimitiveButtonStyle` | ≈ `NSButtonCell`, `NSButton.BezelStyle` | Every visual property of `Button`; `tengen()` is `.bordered` | [Styles](../ai/styles.md#buttonstyle) |
+| `styles::ButtonStyle::bordered_prominent` | method | `PrimitiveButtonStyle.borderedProminent` | ≈ `NSButton.keyEquivalent` `"\r"` | Preset: accent fill, `on_accent` label | [Styles](../ai/styles.md#buttonstyle) |
+| `styles::ButtonStyle::glass` | method | `PrimitiveButtonStyle.glass` | ≈ `NSButton.BezelStyle.glass` | Preset: raised capsule with a hairline rim | [Styles](../ai/styles.md#buttonstyle) |
+| `styles::ButtonStyle::glass_prominent` | method | `PrimitiveButtonStyle.glassProminent` | — | Preset: accent capsule with a hairline rim | [Styles](../ai/styles.md#buttonstyle) |
+| `styles::ButtonStyle::borderless` | method | `PrimitiveButtonStyle.borderless` | `NSButton.isBordered` `false` | Preset: no background until hovered | [Styles](../ai/styles.md#buttonstyle) |
+| `styles::SwitchStyle` | struct | `SwitchToggleStyle` | ≈ `NSSwitch` | Every visual property of `Switch`, with the label position | [Styles](../ai/styles.md#switchstyle) |
+| `styles::CheckboxStyle` | struct | `CheckboxToggleStyle` | ≈ `NSButtonCell` | Every visual property of `Checkbox`, with the label position | [Styles](../ai/styles.md#checkboxstyle) |
+| `styles::SegmentedControlStyle` | struct | `SegmentedPickerStyle` | ≈ `NSSegmentedCell` | Every visual property of `SegmentedControl`, with its axis | [Styles](../ai/styles.md#segmentedcontrolstyle) |
+| `styles::ToolGroupStyle` | struct | — | — | Every visual property of `ToolGroup`, with its axis | [Styles](../ai/styles.md#toolgroupstyle) |
+| `styles::TextFieldStyle` | struct | `TextFieldStyle` | ≈ `NSTextFieldCell` | Every visual property of `TextField` | [Styles](../ai/styles.md#textfieldstyle-searchfieldstyle-and-securefieldstyle) |
+| `styles::SearchFieldStyle` | struct | — | ≈ `NSSearchFieldCell` | Every visual property of `SearchField` | [Styles](../ai/styles.md#textfieldstyle-searchfieldstyle-and-securefieldstyle) |
+| `styles::SecureFieldStyle` | struct | ≈ `TextFieldStyle` | ≈ `NSSecureTextFieldCell` | Every visual property of `SecureField` | [Styles](../ai/styles.md#textfieldstyle-searchfieldstyle-and-securefieldstyle) |
 | `styles::Theme` | struct | ≈ styles set in the environment | ≈ `NSAppearance` | Style overrides for the whole app; `Theme::tengen()` changes nothing | [Styles](../ai/styles.md#levels) |
 | `styles::Theme::style` | method | ≈ `.buttonStyle(_:)` on the scene | — | Adds an override of the control whose style the closure takes | [Styles](../ai/styles.md#levels) |
 | `styles::StyleScope` | struct | ≈ a view after `.buttonStyle(_:)` | — | Component returned by `.control_style`: its overrides reach the controls inside | [Styles](../ai/styles.md#levels) |
@@ -116,6 +135,14 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 | `modifiers::ViewModifiers::background_style` | method | `.background(_:ignoresSafeAreaEdges:)`; Freya already uses `background` | ≈ `NSView.layer.backgroundColor` | Background of a view from a `ShapeStyle`, with blur for a material | [Styles](../ai/styles.md#paint-on-views) |
 | `modifiers::ViewModifiers::shadows` | method | ≈ `.shadow(color:radius:x:y:)`; Freya already uses `shadow` | ≈ `NSView.shadow` | Adds a list of `ShadowStyle` to a view | [Styles](../ai/styles.md#paint-on-views) |
 | `controls::Slider::style` | method | ≈ `.buttonStyle(_:)` on one view | ≈ `NSSlider.trackFillColor` | Changes the style of one slider | [Styles](../ai/styles.md#levels) |
+| `controls::Button::style` | method | `.buttonStyle(_:)` on one view | ≈ `NSButton.bezelStyle` | Changes the style of one button; takes a preset or a closure | [Styles](../ai/styles.md#buttonstyle) |
+| `controls::Switch::style` | method | `.toggleStyle(.switch)` on one view | — | Changes the style of one switch | [Styles](../ai/styles.md#switchstyle) |
+| `controls::Checkbox::style` | method | `.toggleStyle(.checkbox)` on one view | — | Changes the style of one checkbox | [Styles](../ai/styles.md#checkboxstyle) |
+| `controls::SegmentedControl::style` | method | `.pickerStyle(.segmented)` on one view | ≈ `NSSegmentedControl.segmentStyle` | Changes the style of one segmented control | [Styles](../ai/styles.md#segmentedcontrolstyle) |
+| `controls::ToolGroup::style` | method | — | — | Changes the style of one tool group | [Styles](../ai/styles.md#toolgroupstyle) |
+| `controls::TextField::style` | method | `.textFieldStyle(_:)` on one view | ≈ `NSTextField.bezelStyle` | Changes the style of one text field | [Styles](../ai/styles.md#textfieldstyle-searchfieldstyle-and-securefieldstyle) |
+| `controls::SearchField::style` | method | — | — | Changes the style of one search field | [Styles](../ai/styles.md#textfieldstyle-searchfieldstyle-and-securefieldstyle) |
+| `controls::SecureField::style` | method | `.textFieldStyle(_:)` on one view | — | Changes the style of one password field | [Styles](../ai/styles.md#textfieldstyle-searchfieldstyle-and-securefieldstyle) |
 | `app::Application::theme` | method | ≈ `.environment(_:_:)` on the scene | ≈ `NSApp.appearance` | Gives the app its `Theme` | [Styles](../ai/styles.md#levels) |
 
 ## Symbols and fonts
@@ -364,7 +391,6 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 | BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
 |---|---|---|---|---|---|
 | `controls::Button` | struct | `Button` | `NSButton` | Push button with a text label | [5](05-controls.md#buttons) |
-| `controls::ButtonStyle` | enum | `PrimitiveButtonStyle` | `≈ NSButton.BezelStyle` | `Primary`, `Secondary`, `Glass`, `GlassProminent`, `Borderless` button looks | [5](05-controls.md#buttons) |
 | `controls::ControlSize` | enum | `ControlSize` | `NSControl.ControlSize` | `Small`, `Regular`, `Large` control heights | [5](05-controls.md#buttons) |
 | `compact::IconButton` | struct | `≈ Button` | `≈ NSButton` | Button showing only a symbol; 36 capsule inside a tool group | [5](05-controls.md#compact-buttons) |
 | `compact::Stepper` | struct | `Stepper` | `NSStepper` | Integer value with up and down arrows | [5](05-controls.md#compact-buttons) |

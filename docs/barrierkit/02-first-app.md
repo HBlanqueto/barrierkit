@@ -59,7 +59,7 @@ fn main() -> Result<(), RunError> {
                 .child(Text::new(count.read().to_string()).font(TITLE))
                 .child(
                     Button::new("Add one")
-                        .style(ButtonStyle::Primary)
+                        .style(ButtonStyle::bordered_prominent)
                         .on_press(move |_| *count.write() += 1),
                 )
         })

@@ -383,7 +383,7 @@ impl Component for TextEditor {
         });
         let has_selection = editor.get_selection().is_some();
         let field = edit_menu(
-            text_style(rect()),
+            text_style(rect(), BODY),
             a11y_id,
             has_selection,
             *history.read(),

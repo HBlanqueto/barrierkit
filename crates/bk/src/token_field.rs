@@ -181,7 +181,7 @@ impl Component for TokenField {
                 line(format!("{index}:{token}"), chip)
             });
         edit_menu(
-            text_style(rect().width(self.width.clone())),
+            text_style(rect().width(self.width.clone()), BODY),
             input_id,
             true,
             (true, true),

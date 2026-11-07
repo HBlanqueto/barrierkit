@@ -59,7 +59,7 @@ fn storage_row() -> impl IntoElement {
 |---|---|---|
 | **Tokens**: base colors, spacing, type, durations, per-component metrics | The design system | `crates/ctdesign/tengen/tokens.json` and `components.json` |
 | **Appearance**: mode, accent, tints, sidebar style, contrast, motion | The user | `~/.config/malaysia/appearance.domain` |
-| **Variants** and **styles** of a control: primary, tint, tinted backdrop, a `SliderStyle` | The app | The app's code ([styles](../ai/styles.md)) |
+| **Variants** and **styles** of a control: a preset such as `ButtonStyle::bordered_prominent`, tint, tinted backdrop, a `SliderStyle` | The app | The app's code ([styles](../ai/styles.md)) |
 
 The kit resolves the first two into a `Resolved` value
 ([Resolution](#resolution)) and the `Palette` that views paint with.
@@ -191,7 +191,7 @@ An app picks a variant, or changes the style of a control that takes one
 | Another accent for a whole area | `Backdrop::new(..).accent(Accent::Own(color))` or `Accent::FromBackdrop` | [15](15-backdrops-and-media.md) |
 | Let the user pick a color | `ColorWell::new("Color", &ACCENT_SWATCHES)` | [5](05-controls.md) |
 | Light or dark in one area | `theme::use_appearance(..)` | [Theme functions](#theme-functions) |
-| Any color, shape, size or motion of a slider | `.style(\|s\| ..)`, `.control_style(\|s: SliderStyle\| ..)` or `Theme` | [Styles and themes](../ai/styles.md) |
+| Any color, shape, size or motion of a control that takes a style (slider, button, switch, checkbox, segmented control, tool group, text fields) | `.style(\|s\| ..)`, `.control_style(\|s: SliderStyle\| ..)` or `Theme` | [Styles and themes](../ai/styles.md#which-controls-take-a-style) |
 | The text color, background or shadow of a view | `.foreground_style(..)`, `.background_style(..)`, `.shadows(..)` | [Styles and themes](../ai/styles.md#paint-on-views) |
 
 In an inactive window every tint uses the inactive accent.

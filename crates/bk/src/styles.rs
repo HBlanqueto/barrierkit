@@ -9,12 +9,28 @@ use crate::backdrop::Tint;
 use crate::style::Palette;
 use crate::theme::color;
 
+mod button;
+mod checkbox;
+mod search_field;
+mod secure_field;
+mod segmented_control;
 mod slider;
+mod switch;
+mod text_field;
 mod theme;
+mod tool_group;
 
+pub use button::ButtonStyle;
+pub use checkbox::CheckboxStyle;
+pub use search_field::SearchFieldStyle;
+pub use secure_field::SecureFieldStyle;
+pub use segmented_control::SegmentedControlStyle;
 pub use slider::SliderStyle;
+pub use switch::SwitchStyle;
+pub use text_field::TextFieldStyle;
 pub use theme::{ControlStyle, StyleScope, Theme};
 pub(crate) use theme::{resolve, use_provide_theme};
+pub use tool_group::ToolGroupStyle;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum ShapeStyle {

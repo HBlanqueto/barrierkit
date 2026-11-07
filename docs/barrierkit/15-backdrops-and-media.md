@@ -103,7 +103,9 @@ Controls with a fill take `.tint(Tint)`: `Slider`, `Switch`, `Checkbox`,
 | `Color(color)` | A fixed color |
 | `Backdrop` | A horizontal gradient of the backdrop's three colors; the accent outside a `Backdrop` |
 
-In an inactive window every tint falls back to the palette's accent.
+In an inactive window `Accent` and `Backdrop` fall back to the palette's accent. On
+`Slider`, `Switch` and `Checkbox`, whose tint sets the `fill` of their style, a `Color`
+tint stays.
 
 ## Media
 

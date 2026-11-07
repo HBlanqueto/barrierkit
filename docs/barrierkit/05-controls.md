@@ -85,22 +85,22 @@ dark (`-dark.png`).
 | Method | Default | Effect |
 |---|---|---|
 | `Button::new(label)` | — | `label` is `impl Into<String>` |
-| `.style(ButtonStyle)` | `Secondary` | Look, see below |
-| `.size(ControlSize)` | `Regular` | Height, padding and font |
+| `.style(\|s\| ..)` | Tengen, SwiftUI's `.bordered` | Look: a preset or any field of `ButtonStyle`, see below |
+| `.size(ControlSize)` | `Regular` | Height, padding, font and corners |
 | `.width(Size)` | `Size::auto()` | Fixed or fill width |
-| `.toggled(bool)` | not a toggle | Makes it a toggle; `true` takes the `Primary` look and reports `toggled` |
+| `.toggled(bool)` | not a toggle | Makes it a toggle; `true` takes the `bordered_prominent` look and reports `toggled` |
 | `.disabled(bool)` | `false` | Dims it, no `on_press` |
 | `.on_press(\|_\| ..)` | — | Called on click, Space or Enter |
 
-`ButtonStyle`:
+Presets of `ButtonStyle`, given as `.style(ButtonStyle::glass)`:
 
-| Variant | Look |
+| Preset | Look |
 |---|---|
-| `Secondary` | Control background; hover color under the pointer |
-| `Primary` | Accent fill, `on_accent` text |
-| `Glass` | Capsule with a hairline border, raised background |
-| `GlassProminent` | Capsule with a hairline border and the accent fill |
-| `Borderless` | No background until hovered |
+| none (Tengen) | Control background; hover color under the pointer |
+| `bordered_prominent` | Accent fill, `on_accent` text |
+| `glass` | Capsule with a hairline border, raised background |
+| `glass_prominent` | Capsule with a hairline border and the accent fill |
+| `borderless` | No background until hovered |
 
 `ControlSize`:
 
@@ -114,13 +114,25 @@ A pressed button scales to `BUTTON.pressed_scale` (0.97).
 
 ```rust
 Button::new("Cancel")
-Button::new("Save").style(ButtonStyle::Primary)
+Button::new("Save").style(ButtonStyle::bordered_prominent)
 Button::new("Delete").disabled(true)
 ```
 
 | Light | Dark |
 |---|---|
-| ![Secondary, primary and disabled buttons](assets/components/button-light.png) | ![The same buttons in dark](assets/components/button-dark.png) |
+| ![Tengen, bordered prominent and disabled buttons](assets/components/button-light.png) | ![The same buttons in dark](assets/components/button-dark.png) |
+
+### Style
+
+`Button` draws only from a `ButtonStyle`. `.style(..)` takes a preset or a
+closure for one button, `.control_style(|s: ButtonStyle| ..)` for every button
+inside a view and `Theme::tengen().style(ButtonStyle::glass)` for the whole
+app. The fields, the presets and `.size` are in
+[Styles and themes](../ai/styles.md#buttonstyle).
+
+```rust
+Button::new("Save").style(|s| ButtonStyle { shape: Shape::Capsule, ..s.bordered_prominent() })
+```
 
 ## Compact buttons
 
@@ -169,7 +181,7 @@ as a popover menu below the button.
   chevron opens the menu.
 - `HelpLink` is a 24 round button with "?".
 - `ControlGroup` joins its children on one background with separators. Give child buttons
-  the `Borderless` style.
+  the `borderless` preset.
 - `ShareLink` opens a menu with Copy, Send by Email and, when `content` starts with
   `http://` or `https://`, Open With. Copy uses the clipboard; Send by Email opens
   `mail_uri(content)` and Open With opens the link, both through the `OpenURI` portal
@@ -182,11 +194,22 @@ as a popover menu below the button.
 
 | Item | Module | Build | Behavior |
 |---|---|---|---|
-| `ToolGroup` | `controls` | `ToolGroup::new()`, `.child(..)`, `.children(..)` | Puts each child in a 36 slot. With the `Island` sidebar style it adds separators and a capsule background |
+| `ToolGroup` | `controls` | `ToolGroup::new()`, `.child(..)`, `.children(..)`, `.style(\|s\| ..)` | Puts each child in a 36 slot. With the `Island` sidebar style it adds separators and a capsule background |
 | `ToolbarSearch` | `compact` | `ToolbarSearch::new(value, placeholder)`, `.collapsed(bool)` | A 180 wide `SearchField` (`TOOLBAR_SEARCH_WIDTH`). Collapsed, it shows a magnifying-glass `IconButton` until pressed or while the text is not empty |
 | `ToolbarOverflow` | `compact` | `ToolbarOverflow::new(items)`, `.on_activate(\|id: String\| ..)` | A `»` `IconButton` that opens the items as a menu |
 
 Where they sit in the title bar is in [9](09-titlebars.md).
+
+### Style
+
+`ToolGroup` draws only from a `ToolGroupStyle`: slot size, separators,
+background, rim and `axis` (a vertical group stacks its items). Its Tengen
+follows the user's sidebar style. The fields are in
+[Styles and themes](../ai/styles.md#toolgroupstyle).
+
+```rust
+ToolGroup::new().child(back).child(forward).style(|s| ToolGroupStyle { axis: Axis::Vertical, ..s })
+```
 
 ## Switch and checkbox
 
@@ -195,10 +218,11 @@ Where they sit in the title bar is in [9](09-titlebars.md).
 | `Switch` | `Switch::new(label)` | `.on(bool)` | `.on_toggle(\|on: bool\| ..)` |
 | `Checkbox` | `Checkbox::new(label)`, `.width(Size)` | `.checked(bool)` | `.on_toggle(\|checked: bool\| ..)` |
 
-Both take `.disabled(bool)` and `.tint(Tint)`.
+Both take `.disabled(bool)`, `.tint(Tint)` and `.style(|s| ..)`.
 
 - `Switch` is 54 × 24 with a 31 × 20 knob that slides over `SWITCH.transition_ms`. Its label is
-  only accessible; put the visible one in a [form row](11-views.md).
+  only accessible; put the visible one in a [form row](11-views.md) or set the style's
+  `label_position`.
 - `Checkbox` is a 16 box with a 12 check mark, followed by the label.
 
 ```rust
@@ -212,6 +236,17 @@ Checkbox::new("Remember me").checked(true)
 |---|---|
 | ![Off, on and inactive switches](assets/components/switch-light.png) | ![Checked checkbox](assets/components/checkbox-light.png) |
 
+### Style
+
+`Switch` draws only from a `SwitchStyle` and `Checkbox` from a
+`CheckboxStyle`; `.tint(Tint)` sets their `fill`. Both styles place the label
+with `label_position` (an `Edge`) and `layout_direction`. The fields are in
+[Styles and themes](../ai/styles.md#switchstyle).
+
+```rust
+Checkbox::new("Remember me").style(|s| CheckboxStyle { label_position: Some(Edge::Leading), ..s })
+```
+
 ## Choices
 
 All of them report the chosen index with `.on_change(|index: usize| ..)`.
@@ -219,7 +254,7 @@ All of them report the chosen index with `.on_change(|index: usize| ..)`.
 | Item | Module | Build | Value |
 |---|---|---|---|
 | `RadioGroup` | `choices` | `RadioGroup::new(label)`, `.option(text)`, `.disabled(bool)`, `.tint(Tint)` | `.selected(usize)` (default 0) |
-| `SegmentedControl` | `controls` | `SegmentedControl::new(label)`, `.segment(text)` | `.selected(usize)` (default 0) |
+| `SegmentedControl` | `controls` | `SegmentedControl::new(label)`, `.segment(text)`, `.style(\|s\| ..)` | `.selected(usize)` (default 0) |
 | `PopUpButton` | `popup_button` | `PopUpButton::new(label)`, `.item(text)`, `.icon_item(text, MenuIcon)` | `.selected(usize)` (default 0) |
 | `ColorWell` | `choices` | `ColorWell::new(label, swatches)`, `.disabled(bool)` | `.selected(Option<usize>)` (default `None`) |
 | `ChoiceCards` | `choices` | `ChoiceCards::new(label)`, `.option(caption, preview)`, `.disabled(bool)` | `.selected(usize)` (default 0) |
@@ -259,6 +294,17 @@ ColorWell::new("Accent color", &ACCENT_SWATCHES).selected(Some(0))
 | Pop-up | Pop-up with icon | Color swatches |
 |---|---|---|
 | ![PopUpButton](assets/components/popup-button-light.png) | ![PopUpButton with an SVG icon](assets/components/popup-button-icon-light.png) | ![ColorWell with eight accents](assets/components/color-well-light.png) |
+
+### Style
+
+`SegmentedControl` draws only from a `SegmentedControlStyle`: the group, each
+segment, the chosen one and `axis` (vertical stacks the segments). The fields
+are in [Styles and themes](../ai/styles.md#segmentedcontrolstyle).
+
+```rust
+SegmentedControl::new("View").segment("Icons").segment("List")
+    .style(|s| SegmentedControlStyle { axis: Axis::Vertical, ..s })
+```
 
 ## Sliders
 
@@ -303,9 +349,9 @@ spell checking are in [6](06-text-and-editing.md#edit-menu).
 
 | Item | Module | Build | Options |
 |---|---|---|---|
-| `TextField` | `controls` | `TextField::new(value, placeholder)` | `.width(Size)` (fill), `.auto_focus(bool)` |
-| `SearchField` | `controls` | `SearchField::new(value, placeholder)` | `.width`, `.auto_focus`, `.tokens(State<Vec<String>>)`, `.a11y_id(AccessibilityId)`, `.on_focus_change(\|focused: bool\| ..)`, `.on_navigate(\|key: NamedKey\| ..)` |
-| `SecureField` | `controls` | `SecureField::new(State<PasswordField>, label)` | `.width`, `.auto_focus`, `.on_submit(\|secret: Zeroizing<String>\| ..)` |
+| `TextField` | `controls` | `TextField::new(value, placeholder)` | `.width(Size)` (fill), `.auto_focus(bool)`, `.style(\|s\| ..)` |
+| `SearchField` | `controls` | `SearchField::new(value, placeholder)` | `.width`, `.auto_focus`, `.style`, `.tokens(State<Vec<String>>)`, `.a11y_id(AccessibilityId)`, `.on_focus_change(\|focused: bool\| ..)`, `.on_navigate(\|key: NamedKey\| ..)` |
+| `SecureField` | `controls` | `SecureField::new(State<PasswordField>, label)` | `.width`, `.auto_focus`, `.style`, `.on_submit(\|secret: Zeroizing<String>\| ..)` |
 | `ComboBox` | `combo_box` | `ComboBox::new(value, placeholder)` | `.item(text)`, `.width(Size)` |
 
 - All are 24 tall with a 6 side padding. `SecureField` draws the focus ring; the others turn
@@ -331,6 +377,18 @@ ComboBox::new(shell, "Shell").item("zsh").item("fish")
 | Text and search | Password |
 |---|---|
 | ![TextField and SearchField](assets/components/text-field-light.png) | ![SecureField](assets/components/secure-field-light.png) |
+
+### Style
+
+`TextField`, `SearchField` and `SecureField` draw only from a
+`TextFieldStyle`, a `SearchFieldStyle` and a `SecureFieldStyle`: size, shape,
+background, border, text, placeholder and font. The fields, and what Freya's
+`Input` can draw, are in
+[Styles and themes](../ai/styles.md#textfieldstyle-searchfieldstyle-and-securefieldstyle).
+
+```rust
+TextField::new(name, "User name").style(|s| TextFieldStyle { shape: Shape::Capsule, ..s })
+```
 
 ## Passwords
 

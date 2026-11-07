@@ -107,7 +107,7 @@ impl Component for ComboBox {
             default_pre_key(&event)
         });
         edit_menu(
-            text_style(rect().width(self.width.clone())),
+            text_style(rect().width(self.width.clone()), BODY),
             field,
             true,
             (true, true),

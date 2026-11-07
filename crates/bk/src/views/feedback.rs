@@ -5,9 +5,10 @@ use ctdesign::{
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 
-use crate::controls::{Button, ButtonStyle, Checkbox, ControlSize};
+use crate::controls::{Button, Checkbox, ControlSize};
 use crate::i18n::text;
 use crate::style::{Palette, text};
+use crate::styles::ButtonStyle;
 use crate::symbol::{Symbol, symbol};
 use crate::theme::color;
 
@@ -169,7 +170,7 @@ impl Component for Alert {
                         )
                         .child(
                             Button::new(self.confirm)
-                                .style(ButtonStyle::Primary)
+                                .style(ButtonStyle::bordered_prominent)
                                 .size(ControlSize::Large)
                                 .width(Size::flex(1.0))
                                 .on_press(move |_| on_confirm()),
