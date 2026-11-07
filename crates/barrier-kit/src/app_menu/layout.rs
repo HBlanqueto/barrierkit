@@ -67,7 +67,7 @@ pub(crate) fn build_layout(menu: &AppMenu, id_map: &mut IdMap, revision: u32) ->
     snapshot.nodes.insert(
         0,
         LayoutNode {
-            properties: HashMap::new(),
+            properties: HashMap::from([("children-display".to_string(), owned("submenu"))]),
             children: root_children,
             action_id: None,
         },
@@ -145,7 +145,7 @@ fn layout_item(
                 properties.insert("toggle-state".to_string(), owned(toggle_state));
             }
             (
-                id_map.get(action_id.as_str()),
+                unique_id(id_map, snapshot, action_id),
                 LayoutNode {
                     properties,
                     children: Vec::new(),
@@ -164,7 +164,10 @@ fn layout_item(
                 .clone()
                 .unwrap_or_else(|| format!("submenu:{parent_key}/{label}"));
             let children = layout_items(items, &key, id_map, snapshot);
-            (id_map.get(&key), submenu_node(label, *enabled, children))
+            (
+                unique_id(id_map, snapshot, &key),
+                submenu_node(label, *enabled, children),
+            )
         }
         MenuItem::Header { .. }
         | MenuItem::SearchField { .. }
@@ -175,6 +178,17 @@ fn layout_item(
     };
     snapshot.nodes.insert(id, node);
     Some(id)
+}
+
+// dbusmenu ids name one item each; an action listed twice gets a second, stable id.
+fn unique_id(id_map: &mut IdMap, snapshot: &LayoutSnapshot, key: &str) -> i32 {
+    let mut id = id_map.get(key);
+    let mut copy = 1;
+    while snapshot.nodes.contains_key(&id) {
+        id = id_map.get(format!("{key}#{copy}"));
+        copy += 1;
+    }
+    id
 }
 
 pub(crate) fn diff_layout(registered: &RegisteredMenu, new: LayoutSnapshot) -> Update {

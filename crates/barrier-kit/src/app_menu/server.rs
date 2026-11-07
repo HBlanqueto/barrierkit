@@ -198,6 +198,10 @@ async fn export(
     true
 }
 
+fn unknown(id: i32) -> zbus::fdo::Error {
+    zbus::fdo::Error::InvalidArgs(format!("no menu item with id {id}"))
+}
+
 async fn emit_layout_updated(connection: &zbus::Connection, path: &str, revision: u32) {
     if let Ok(iface_ref) = connection
         .object_server()
@@ -250,16 +254,19 @@ impl DbusMenuObject {
         parent_id: i32,
         recursion_depth: i32,
         property_names: Vec<String>,
-    ) -> DbusMenuLayout {
+    ) -> zbus::fdo::Result<DbusMenuLayout> {
         let guard = self.registered.layout();
         let Some(snapshot) = guard.as_ref() else {
-            return (0, (parent_id, HashMap::new(), Vec::new()));
+            return Ok((0, (parent_id, HashMap::new(), Vec::new())));
         };
-        let layout = match snapshot.nodes.get(&parent_id) {
-            Some(node) => layout_node(snapshot, parent_id, node, recursion_depth, &property_names),
-            None => (parent_id, HashMap::new(), Vec::new()),
-        };
-        (snapshot.revision, layout)
+        let node = snapshot
+            .nodes
+            .get(&parent_id)
+            .ok_or_else(|| unknown(parent_id))?;
+        Ok((
+            snapshot.revision,
+            layout_node(snapshot, parent_id, node, recursion_depth, &property_names),
+        ))
     }
 
     fn get_group_properties(
@@ -284,13 +291,16 @@ impl DbusMenuObject {
             .collect()
     }
 
-    fn get_property(&self, id: i32, name: String) -> OwnedValue {
+    fn get_property(&self, id: i32, name: String) -> zbus::fdo::Result<OwnedValue> {
         let guard = self.registered.layout();
-        guard
+        let node = guard
             .as_ref()
             .and_then(|s| s.nodes.get(&id))
-            .and_then(|node| node.properties.get(&name).cloned())
-            .unwrap_or_else(|| crate::app_menu::owned(""))
+            .ok_or_else(|| unknown(id))?;
+        node.properties
+            .get(&name)
+            .cloned()
+            .ok_or_else(|| zbus::fdo::Error::InvalidArgs(format!("item {id} has no {name}")))
     }
 
     fn event(&self, id: i32, event_id: String, _data: OwnedValue, _timestamp: u32) {
@@ -432,6 +442,26 @@ mod tests {
         super::unregister(&path_a);
         let path_c = make();
         assert_ne!(path_c, path_b, "path reused after unregister");
+    }
+
+    #[test]
+    fn an_action_listed_twice_gets_two_ids_and_both_dispatch_it() {
+        let menu = AppMenu::new(vec![
+            Menu::new("File", vec![action("save")]),
+            Menu::new("Edit", vec![action("save")]),
+        ]);
+        let mut ids = IdMap::default();
+        let snapshot = build_layout(&menu, &mut ids, 1);
+        let saves: Vec<i32> = snapshot
+            .nodes
+            .iter()
+            .filter(|(_, node)| node.action_id.as_deref() == Some("save"))
+            .map(|(id, _)| *id)
+            .collect();
+        assert_eq!(saves.len(), 2);
+        assert_ne!(saves[0], saves[1]);
+        let again = build_layout(&menu, &mut ids, 2);
+        assert!(saves.iter().all(|id| again.nodes.contains_key(id)));
     }
 
     #[test]
