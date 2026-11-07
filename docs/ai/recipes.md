@@ -1,47 +1,29 @@
 # Recipes
 
-Read from [`prompt.md`](prompt.md). Each recipe is a whole `src/main.rs` that
-compiles against the current `main`. Start from the closest one and change only
-what the task needs. Names are explained in the
-[glossary](../barrierkit/15-glossary.md).
+**Goal:** start a program from a whole `src/main.rs` that already compiles.
+**Scope:** one program per common task. Each item's reference lives in its
+chapter; the names are in the [glossary](../barrierkit/20-glossary.md).
+**Reader:** an AI agent sent here by [`prompt.md`](prompt.md), or a person.
+**Input:** a task. **Output:** the closest program, ready to change.
+
+## Steps
+
+1. Find the recipe closest to the task in the list below.
+2. Copy it into `src/main.rs`.
+3. Change only what the task needs.
+4. Build it inside `nix develop` and go through the [checklist](checklist.md).
 
 ## 1. Text in a window
 
 SwiftUI: `WindowGroup { Text("Hello, world").font(.title).padding(40) }`
 
-```rust
-use barrier_kit::prelude::*;
-
-fn main() -> Result<(), RunError> {
-    Application::new("hello")
-        .window("Hello", || Text::new("Hello, world").font(TITLE).padding(40.))
-        .run()
-}
-```
+The program is in [chapter 2, Hello, world](../barrierkit/02-first-app.md#hello-world).
 
 ## 2. State and a button
 
 SwiftUI: `@State var count = 0` with `VStack { Text("\(count)"); Button("Add one") { count += 1 } }`
 
-```rust
-use barrier_kit::prelude::*;
-
-fn main() -> Result<(), RunError> {
-    Application::new("counter")
-        .window("Counter", || {
-            let mut count = use_state(|| 0);
-            VStack::new()
-                .child(Text::new(count.read().to_string()).font(TITLE))
-                .child(
-                    Button::new("Add one")
-                        .style(ButtonStyle::Primary)
-                        .on_press(move |_| *count.write() += 1),
-                )
-        })
-        .options(|window| window.size((420, 300)).min_size(Some(WINDOW_MIN_SIZE)))
-        .run()
-}
-```
+The program is in [chapter 2, Adding state](../barrierkit/02-first-app.md#adding-state).
 
 ## 3. Rows and columns
 
@@ -113,7 +95,7 @@ fn main() -> Result<(), RunError> {
 ```
 
 For a real preferences window use `PreferencesWindow` (chapter
-[10](../barrierkit/10-patterns.md)).
+[12](../barrierkit/12-patterns.md)).
 
 ## 6. A reusable view
 
@@ -171,9 +153,104 @@ fn main() -> Result<(), RunError> {
 
 ## 8. Translated text
 
-Follow the steps in chapter [18](../barrierkit/18-languages.md); then every
+Follow the steps in chapter [17](../barrierkit/17-languages.md); then every
 literal above becomes `tr!("id")`:
 
 ```rust
 Text::new(tr!("hello")).font(TITLE)
 ```
+
+## 9. A stopwatch
+
+SwiftUI: a `Text` fed by `TimelineView(.periodic(from:by:))` with Start/Stop and Lap/Reset buttons.
+
+```rust
+use std::time::{Duration, Instant};
+
+use barrier_kit::platform::Timers;
+use barrier_kit::prelude::*;
+
+const TICK: Duration = Duration::from_millis(10);
+
+fn main() -> Result<(), RunError> {
+    Application::new("stopwatch")
+        .window("Stopwatch", || {
+            let mut started = use_state(|| None::<Instant>);
+            let mut stored = use_state(|| Duration::ZERO);
+            let now = use_state(Instant::now);
+            let mut laps = use_state(Vec::<Duration>::new);
+
+            use_side_effect(move || {
+                let _ = *now.read();
+                if started.read().is_some() {
+                    Timers::get().after(TICK, move || {
+                        let mut now = now;
+                        now.set(Instant::now());
+                    });
+                }
+            });
+
+            let running = started.read().is_some();
+            let elapsed = *stored.read()
+                + started
+                    .read()
+                    .map_or(Duration::ZERO, |start| now.read().duration_since(start));
+
+            VStack::new()
+                .child(
+                    Text::new(format_time(elapsed))
+                        .font(LARGE_TITLE)
+                        .font_family(MONO.family),
+                )
+                .child(
+                    HStack::new()
+                        .child(
+                            Button::new(if running { "Lap" } else { "Reset" })
+                                .disabled(!running && elapsed.is_zero())
+                                .on_press(move |_| {
+                                    if running {
+                                        laps.write().push(elapsed);
+                                    } else {
+                                        stored.set(Duration::ZERO);
+                                        laps.write().clear();
+                                    }
+                                }),
+                        )
+                        .child(
+                            Button::new(if running { "Stop" } else { "Start" })
+                                .style(ButtonStyle::Primary)
+                                .on_press(move |_| {
+                                    if running {
+                                        stored.set(elapsed);
+                                        started.set(None);
+                                    } else {
+                                        started.set(Some(Instant::now()));
+                                    }
+                                }),
+                        ),
+                )
+                .children(laps.read().iter().enumerate().rev().map(|(index, lap)| {
+                    Text::new(format!("Lap {}   {}", index + 1, format_time(*lap)))
+                        .font_family(MONO.family)
+                        .into_element()
+                }))
+        })
+        .options(|window| window.size((320, 420)).min_size(Some(WINDOW_MIN_SIZE)))
+        .run()
+}
+
+fn format_time(elapsed: Duration) -> String {
+    let centiseconds = elapsed.as_millis() / 10;
+    format!(
+        "{:02}:{:02}.{:02}",
+        centiseconds / 6000,
+        centiseconds / 100 % 60,
+        centiseconds % 100
+    )
+}
+```
+
+`Timers::after` runs a callback once after a delay ([8](../barrierkit/08-windows.md)).
+`use_side_effect` runs again when `now` or `started` change, so each tick
+schedules the next one while the stopwatch runs.
+

@@ -1,7 +1,16 @@
 # Checklist before answering
 
-Read from [`prompt.md`](prompt.md). Go through it in order; each item is a
-yes/no question.
+**Goal:** catch the usual mistakes before a program or a change is handed in.
+**Scope:** the code, the build, and changes to the kit itself.
+**Reader:** an AI agent sent here by [`prompt.md`](prompt.md), or a reviewer.
+**Input:** finished code. **Output:** every question answered "yes", or the
+reason it cannot be.
+
+## Steps
+
+1. Answer each question below in order.
+2. Fix the code for every "no", then start again from question 1.
+3. Report the questions you could not check and why.
 
 ## Code
 
@@ -30,7 +39,7 @@ yes/no question.
 ## Changes to the kit itself
 
 12. Is every new or renamed public item in
-    [`docs/barrierkit/15-glossary.md`](../barrierkit/15-glossary.md), named by
+    [`docs/barrierkit/20-glossary.md`](../barrierkit/20-glossary.md), named by
     its rules, in the same commit?
 13. Does the chapter that describes the changed behavior say what the code
     does now?

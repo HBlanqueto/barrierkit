@@ -60,7 +60,7 @@ Aplica a `README.md`, `docs/` y los ADR.
 Aplica a todo elemento público del kit y de `vow-design` (tipos, funciones,
 métodos, hooks, tokens).
 
-1. **Una sola fuente:** `docs/barrierkit/15-glossary.md` lista cada nombre
+1. **Una sola fuente:** `docs/barrierkit/20-glossary.md` lista cada nombre
    público con su equivalente en SwiftUI y AppKit, y las reglas para nombrar.
 2. **Cómo se nombra:** primero el nombre de SwiftUI; si no existe, el de AppKit
    sin `NS`; si tampoco, una o dos palabras de inglés llano que digan qué es,
@@ -156,4 +156,4 @@ pub fn focused(mut self, focused: bool) -> Self { … }
 - Un control nuevo compone primitivas del kit; no reimplementa la barra
   lateral, los menús ni los semáforos (ADR 0047).
 - El texto visible va en `i18n/{en,es}/<crate>.ftl` y se lee con `tr!`;
-  nunca un literal en el código (`docs/barrierkit/18-languages.md`).
+  nunca un literal en el código (`docs/barrierkit/17-languages.md`).

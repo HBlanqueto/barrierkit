@@ -1,10 +1,29 @@
 # 2. Your first app
 
-**Goal:** open a window, show text, add state, and understand the ideas the
-whole kit rests on.
-**Reader:** anyone who has never used BarrierKit or Freya.
-**Input:** the repository and `nix develop`. **Output:** a window that adds.
-**Names:** every name used here is in the [glossary](15-glossary.md).
+**Goal:** open a window with text, then add state that changes it.
+**Scope:** from an empty crate to a window that counts. Controls are in
+[5](05-controls.md), window options in [8](08-windows.md), full programs for
+other tasks in the [recipes](../ai/recipes.md).
+**Reader:** anyone who has never used BarrierKit or Freya. SwiftUI helps but is
+not needed.
+**Input:** the repository and `nix develop`. **Output:** two programs that run.
+
+## Steps
+
+1. Enter the dev shell: `nix develop`. Outside it, `build.rs` stops the build on
+   purpose.
+2. Create a binary crate (`cargo new hello`) and add one dependency:
+
+   ```toml
+   [dependencies]
+   barrier-kit = { git = "https://github.com/HBlanqueto/barrierkit", rev = "<commit on main>" }
+   ```
+
+3. Replace `src/main.rs` with the program in [Hello, world](#hello-world).
+4. Run `cargo run`. A window opens with a title bar, traffic lights and the
+   text in the center.
+5. Replace `src/main.rs` with the program in [Adding state](#adding-state) and
+   run it again. Press «Add one»: the number goes up.
 
 ## Hello, world
 
@@ -18,32 +37,14 @@ fn main() -> Result<(), RunError> {
 }
 ```
 
-The same program in SwiftUI, line by line:
+1. `use barrier_kit::prelude::*;` brings every name the program uses.
+2. `Application::new("hello")` creates the app. `"hello"` is its short name.
+3. `.window("Hello", || …)` adds the window. The closure is the view.
+4. `Text::new(…).font(TITLE).padding(40.)` is the view: a title-sized text
+   with 40 px of space around it.
+5. `.run()` opens the window and returns when it closes.
 
-| SwiftUI | BarrierKit |
-|---|---|
-| `import SwiftUI` | `use barrier_kit::prelude::*;` |
-| `@main struct HelloApp: App` | `fn main()` + `Application::new("hello")` |
-| `WindowGroup { … }` | `.window("Hello", \|\| …)` |
-| `Text("Hello, world")` | `Text::new("Hello, world")` |
-| `.font(.title)` | `.font(TITLE)` |
-| `.padding(40)` | `.padding(40.)` |
-| (implicit) | `.run()` |
-
-## Running it
-
-1. Enter the dev shell: `nix develop`.
-2. Create a binary crate with one dependency:
-
-   ```toml
-   [dependencies]
-   barrier-kit = { git = "https://github.com/HBlanqueto/barrierkit", rev = "<commit on main>" }
-   ```
-
-3. Put the code in `src/main.rs` and launch it with `cargo run`.
-
-The window opens with the titlebar, the traffic lights and the window
-background, and the text sits in the center.
+The SwiftUI and AppKit name of each piece is in the [glossary](20-glossary.md).
 
 ## Adding state
 
@@ -67,92 +68,66 @@ fn main() -> Result<(), RunError> {
 }
 ```
 
-Press «Add one»: the number goes up and the window repaints.
+1. `use_state(|| 0)` creates a value that survives between calls of the view.
+2. `count.read()` reads it; `count.write()` changes it.
+3. When the value changes, the kit calls the view again and applies the
+   difference.
+4. `VStack` places the text above the button.
+5. `.options(…)` sets the window size and its minimum size.
 
 ## The ideas
 
-1. **The interface is a function of the state.** The closure passed to
-   `.window` describes how the window looks now. Nothing is moved or deleted
-   by hand: when the state changes, the kit calls the closure again and
-   applies the difference.
-2. **The app holds the state.** `use_state(|| 0)` creates a value that
-   survives between calls. `read()` reads it and `write()` changes it. The
-   kit's controls are *controlled*: they receive the value (`value`, `on`,
-   `selected`) and report the change (`on_change`, `on_toggle`, `on_press`).
-3. **Everything is built by chaining methods.** `Type::new(..).option(..)`:
-   `Text`, `VStack`, `Button` and Freya's `rect()` all work the same way.
-   Layout and event methods (`padding`, `width`, `expanded`, `on_press`) work
-   on `Text`, `VStack` and `HStack` too.
+1. **The view is a function of the state.** Nothing is moved or deleted by
+   hand.
+2. **The app holds the state.** Controls are *controlled*: they receive the
+   value (`value`, `on`, `selected`) and report the change (`on_change`,
+   `on_toggle`, `on_press`).
+3. **Views are built by chaining methods:** `Type::new(..).option(..)`.
 4. **No color or size is written by hand.** `Text` takes its color from the
-   system palette, and sizes and typefaces come from the tokens (`TITLE`,
-   `SPACE_3`, `WINDOW_MIN_SIZE`). The app follows light or dark mode and the
-   accent on its own (chapter [4](04-appearance-and-tokens.md)).
-5. **One import.** `barrier_kit::prelude::*` brings the kit's entry points,
-   the controls, Freya's elements and hooks, and the type and spacing tokens.
+   palette, and sizes and fonts are tokens ([4](04-appearance-and-tokens.md)).
+5. **One import:** the [prelude](#the-prelude).
 
 ## What `Application` does for you
 
-`Application::new(name).window(title, content)` returns a `Scene`. Its
-`run()`:
+| Item | What it does |
+|---|---|
+| `Application::new(name)` | Creates the app. `name` is short, lowercase and stable: it becomes the `app_id`, the settings domain and the key of the saved window size |
+| `Application::window(title, content)` | Returns a `Scene` for one window. `content` is a closure that returns the view; hooks go at its top |
+| `Scene::options(\|window\| …)` | Changes any [`WindowOptions`](08-windows.md) setting: size, limits, menu, full-screen bar |
+| `Scene::run()` | Draws the window background (`Palette::current().window_background`), a [`Titlebar`](09-titlebars.md) with the title, centers `content` and calls [`run_window`](08-windows.md). Returns `Result<(), RunError>` |
 
-1. Builds `WindowOptions::new(title, name)`. The `name` is the short name
-   behind the `app_id` and the saved window size (chapter
-   [6](06-windows.md)).
-2. Draws the window background (`Palette::current().window_background`).
-3. Adds a `Titlebar` with the title.
-4. Centers `content` in the rest of the window.
-5. Calls `run_window`.
+Use `run_window` directly when the window draws its own title bar (a sidebar,
+toolbar items) or the app opens several windows: see
+[recipe 7](../ai/recipes.md#7-drawing-the-whole-window-yourself).
 
-`.options(|window| …)` gives access to every `WindowOptions` setting: size,
-limits, menu, full-screen bar.
+## Text and stacks
 
-## When you need more control
+| Item | Defaults | Own methods |
+|---|---|---|
+| `Text::new(content)` | Font `BODY`, color `Palette::current().label`, wraps to as many lines as needed | `.font(Font)` |
+| `VStack::new()` | Children in a column, centered, `SPACE_3` apart | — |
+| `HStack::new()` | Children in a row, centered, `SPACE_3` apart | — |
 
-`Scene` covers a window with a titlebar and centered content. When the window
-needs its own titlebar (a sidebar, toolbar items) or several windows, call
-`run_window` directly. It takes the same closure, or a type that implements
-`App`:
+`content` accepts a `&'static str`, a `String` or the result of `tr!`.
 
-```rust
-fn main() -> Result<(), RunError> {
-    run_window(
-        || {
-            rect()
-                .expanded()
-                .background(color(Palette::current().window_background))
-                .child(Titlebar::new().title("Notes").with_sidebar(true))
-                .child(Text::new("…"))
-        },
-        WindowOptions::new("Notes", "notes"),
-    )
-}
-```
+The three types wrap Freya's `label()` and `rect()` and forward all their
+traits, so Freya's methods work on them: layout (`padding`, `width`,
+`expanded`), text style (`color`, `font_size`), events (`on_press`) and, on the
+stacks, children and alignment (`child`, `children`, `spacing`,
+`main_align`, `cross_align`, `background`, `corner_radius`).
 
-## App and Component
+## The prelude
 
-A larger app moves its views into types. The root implements `App`. Any
-reusable piece implements `Component` and must be `PartialEq`, so the kit
-knows when to draw it again:
+`use barrier_kit::prelude::*;` brings:
 
-```rust
-use barrier_kit::prelude::*;
+| From | Names |
+|---|---|
+| The kit | `Application`, `Scene`, `Text`, `VStack`, `HStack`, `run_window`, `WindowOptions`, `RunError`, `Palette`, `text`, `color`, `Titlebar` and every control in [`controls`](05-controls.md) |
+| Freya | its whole prelude: `rect()`, `label()`, `use_state`, `Component`, `App`, `IntoElement`, element methods |
+| Torin | `Alignment`, `Direction`, `Size` |
+| Tokens | `BODY`, `CALLOUT`, `CAPTION`, `HEADLINE`, `LARGE_TITLE`, `MONO`, `TITLE`, `TITLE_2`, `Font`, `SPACE_1`…`SPACE_4`, `WINDOW_DEFAULT_SIZE`, `WINDOW_MIN_SIZE` |
 
-#[derive(PartialEq)]
-struct Greeting {
-    name: &'static str,
-}
-
-impl Component for Greeting {
-    fn render(&self) -> impl IntoElement {
-        Text::new(self.name).font(HEADLINE)
-    }
-}
-
-fn main() -> Result<(), RunError> {
-    Application::new("greeting")
-        .window("Greeting", || Greeting { name: "Ana" })
-        .run()
-}
-```
+Everything else is imported from its module, for example
+`barrier_kit::views::form::Form` ([3](03-layers.md)).
 
 Next: [3. Layers](03-layers.md).

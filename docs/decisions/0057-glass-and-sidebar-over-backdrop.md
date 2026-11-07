@@ -2,7 +2,7 @@
 
 Status: **accepted** (2026-11-03). Rule 1 applies to windows with
 `FullscreenBar::Glass` or `ProgressiveGlass` (Ondina); by default the bar is `Solid`
-(chapter 7 of [`docs/barrierkit`](../barrierkit/07-titlebars.md#the-bar-in-full-screen-fullscreenbar)).
+(chapter 7 of [`docs/barrierkit`](../barrierkit/09-titlebars.md#the-bar-in-full-screen-fullscreenbar)).
 
 ## Context
 

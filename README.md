@@ -30,21 +30,9 @@ The Skia prebuild for `freya-skia-bindings` 0.98.0 lives in `nix/skia.nix`.
 
 When `infinity_window_manager_v1`, `ext_foreign_toplevel_list_v1` / `zwlr_foreign_toplevel_manager_v1`, `wp_cursor_shape_manager_v1` or `org_kde_kwin_appmenu_manager` is missing, the runner logs it with `tracing::info!` and carries on.
 
-## Hello, world
-
-```rust
-use barrier_kit::prelude::*;
-
-fn main() -> Result<(), RunError> {
-    Application::new("hello")
-        .window("Hello", || Text::new("Hello, world").font(TITLE).padding(40.))
-        .run()
-}
-```
-
 ## Documentation
 
-[`docs/barrierkit/`](docs/barrierkit/README.md) explains the kit from the first window to the Wayland runner, with real screenshots. The [glossary](docs/barrierkit/15-glossary.md) maps every SwiftUI and AppKit name to its BarrierKit name.
+[`docs/barrierkit/`](docs/barrierkit/README.md) explains the kit from the first window to the Wayland runner, with real screenshots. Start with [your first app](docs/barrierkit/02-first-app.md). The [glossary](docs/barrierkit/20-glossary.md) maps every SwiftUI and AppKit name to its BarrierKit name.
 
 AI agents start from one prompt: [`docs/ai/prompt.md`](docs/ai/prompt.md).
 

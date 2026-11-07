@@ -36,7 +36,7 @@ configuration, and the call grows only with the use case
    event method still works.
 5. **SwiftUI names:** the font tokens become `LARGE_TITLE`, `TITLE`, `TITLE_2`,
    `HEADLINE`, `BODY`, `CALLOUT`, `CAPTION`, `MONO`. New names follow the rules
-   of the [glossary](../barrierkit/15-glossary.md): SwiftUI, then AppKit, then
+   of the [glossary](../barrierkit/20-glossary.md): SwiftUI, then AppKit, then
    plain English. The kit's app is `Application` because Freya owns `App`.
 6. **A guide for AI agents:** [`docs/ai/prompt.md`](../ai/prompt.md) is a
    single entry prompt that links the glossary, recipes that compile, and a
