@@ -57,7 +57,7 @@ impl Palette {
             control_hover: resolved.surfaces.hover,
             accent: resolved.accent,
             accent_inactive: base.accent_inactive,
-            on_accent: base.on_accent,
+            on_accent: resolved.on_accent,
             destructive: base.danger,
             raised_background: resolved.surfaces.raised,
             sunken_background: resolved.surfaces.sunken,

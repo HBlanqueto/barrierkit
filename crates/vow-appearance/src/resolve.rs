@@ -58,6 +58,8 @@ pub struct Surfaces {
 pub struct Resolved {
     pub scheme: ColorScheme,
     pub accent: Rgba,
+    pub on_accent: Rgba,
+    pub focus_ring: Rgba,
     pub window_tint: Option<(Rgba, f32)>,
     pub window_tint_scope: WindowTintScope,
     pub panel_tint: Option<(Rgba, f32)>,
@@ -215,6 +217,7 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
     } else {
         normal_accent
     };
+    let (accent, on_accent) = legible_on_accent(accent, base.on_accent);
 
     let window_tint = match appearance.window_color {
         WindowColorMode::Neutral => None,
@@ -251,12 +254,13 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
     let bg_window = scheme.pick(BG_WINDOW);
     let menu_parent = window_tint.map_or(bg_window, |(tint, factor)| bg_window.mix(tint, factor));
     let surfaces = tinted_surfaces(scheme, window_tint, &base, appearance.tint_parts);
+    let focus_ring = visible_on_window(accent, scheme);
     menu.hover_bg = accent;
-    menu.hover_fg = base.on_accent;
-    menu.search_ring = accent;
+    menu.hover_fg = on_accent;
+    menu.search_ring = focus_ring;
     sidebar.palette.selected_bg = accent;
     sidebar.palette.item_icon = accent;
-    sidebar.palette.selected_ink = base.on_accent;
+    sidebar.palette.selected_ink = on_accent;
     if let Some((tint, factor)) = panel_tint {
         shell.bar = shell.bar.mix(tint, factor);
         shell.tile = shell.tile.mix(tint, factor);
@@ -274,6 +278,8 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
     Resolved {
         scheme,
         accent,
+        on_accent,
+        focus_ring,
         window_tint,
         window_tint_scope: appearance.window_tint_scope,
         panel_tint,
@@ -345,6 +351,56 @@ fn tinted_surfaces(
     }
 }
 
+// WCAG 2.2 §1.4.3: text on the accent needs 4.5:1. The light ink stays while it reaches it, then
+// the dark ink; a mid-tone accent that neither reaches is darkened just enough for the light ink.
+fn legible_on_accent(accent: Rgba, light: Rgba) -> (Rgba, Rgba) {
+    if accent.contrast_ratio(light) >= ON_ACCENT_MIN_CONTRAST {
+        return (accent, light);
+    }
+    let ink = crate::backdrop::ink_on(accent);
+    if accent.contrast_ratio(ink) >= ON_ACCENT_MIN_CONTRAST {
+        return (accent, ink);
+    }
+    let (hue, saturation, mut lightness) = accent.to_hsl();
+    let mut fill = accent;
+    while fill.contrast_ratio(light) < ON_ACCENT_MIN_CONTRAST && lightness > 0.0 {
+        lightness = (lightness - 0.01).max(0.0);
+        fill = Rgba::from_hsl(hue, saturation, lightness, 1.0);
+    }
+    (fill, light)
+}
+
+// WCAG 2.2 §1.4.11: a focus ring needs 3:1 against the window, whatever accent the user chose.
+fn visible_on_window(accent: Rgba, scheme: ColorScheme) -> Rgba {
+    if accent.contrast_ratio(scheme.pick(BG_WINDOW)) >= ACCENT_MIN_CONTRAST_ON_WINDOW {
+        return accent;
+    }
+    let (hue, saturation, lightness) = accent.to_hsl();
+    let lightness = reach_window_contrast(scheme, hue, saturation, lightness);
+    Rgba::from_hsl(hue, saturation, lightness, 1.0)
+}
+
+fn reach_window_contrast(
+    scheme: ColorScheme,
+    hue: f32,
+    saturation: f32,
+    mut lightness: f32,
+) -> f32 {
+    let bg_window = scheme.pick(BG_WINDOW);
+    let window_dir = if scheme.is_dark() { 1.0 } else { -1.0 };
+    for _ in 0..100 {
+        let accent = Rgba::from_hsl(hue, saturation, lightness, 1.0);
+        if accent.contrast_ratio(bg_window) >= ACCENT_MIN_CONTRAST_ON_WINDOW {
+            break;
+        }
+        lightness += window_dir * 0.01;
+        if !(0.0..=1.0).contains(&lightness) {
+            break;
+        }
+    }
+    lightness
+}
+
 fn wallpaper_accent(dominant: Rgba, scheme: ColorScheme) -> Rgba {
     let dark = scheme.is_dark();
     let shifted = if dark {
@@ -356,21 +412,7 @@ fn wallpaper_accent(dominant: Rgba, scheme: ColorScheme) -> Rgba {
     let bg_window = scheme.pick(BG_WINDOW);
     let on_accent = palette(scheme).on_accent;
 
-    let window_dir = if dark { 1.0 } else { -1.0 };
-    let reach_window_contrast = |saturation: f32, mut lightness: f32| {
-        for _ in 0..100 {
-            let accent = Rgba::from_hsl(hue, saturation, lightness, 1.0);
-            if accent.contrast_ratio(bg_window) >= ACCENT_MIN_CONTRAST_ON_WINDOW {
-                break;
-            }
-            lightness += window_dir * 0.01;
-            if !(0.0..=1.0).contains(&lightness) {
-                break;
-            }
-        }
-        lightness
-    };
-    let mut lightness = reach_window_contrast(saturation, original_lightness);
+    let mut lightness = reach_window_contrast(scheme, hue, saturation, original_lightness);
 
     let mut accent = Rgba::from_hsl(hue, saturation, lightness, 1.0);
     let mut on_contrast = accent.contrast_ratio(on_accent);
@@ -401,7 +443,7 @@ fn wallpaper_accent(dominant: Rgba, scheme: ColorScheme) -> Rgba {
     let delta_lightness = (lightness - original_lightness).abs();
     if saturation < MUTED_BELOW_SATURATION && delta_lightness > 0.10 {
         saturation = (saturation * (1.0 + delta_lightness)).min(MUTED_MAX_SATURATION);
-        lightness = reach_window_contrast(saturation, lightness);
+        lightness = reach_window_contrast(scheme, hue, saturation, lightness);
     }
 
     Rgba::from_hsl(hue, saturation, lightness, 1.0)
@@ -498,7 +540,7 @@ mod tests {
 
     #[test]
     fn accent_tints_windows_but_not_panels() {
-        let accent = [0.9, 0.3, 0.1];
+        let accent = [0.1, 0.3, 0.8];
         let resolved = resolve(
             &appearance(
                 ColorScheme::Light,
@@ -929,6 +971,36 @@ mod tests {
                 Some((yellow, WINDOW_TINT_WALLPAPER[index])),
                 "{scheme:?}: window tint must be the raw dominant"
             );
+        }
+    }
+
+    #[test]
+    fn every_accent_swatch_gets_readable_ink_and_a_visible_focus_ring() {
+        for scheme in [ColorScheme::Light, ColorScheme::Dark, ColorScheme::DarkTint] {
+            for (name, swatch) in vow_design::ACCENT_SWATCHES {
+                let config = AppearanceConfig {
+                    color_scheme: scheme,
+                    accent_color: Some([swatch.r, swatch.g, swatch.b]),
+                    ..Default::default()
+                };
+                let resolved = resolve(&config, None);
+                if crate::backdrop::ink_on(swatch).contrast_ratio(swatch) >= ON_ACCENT_MIN_CONTRAST
+                {
+                    assert_eq!(
+                        resolved.accent, swatch,
+                        "{scheme:?} {name}: the fill is the user's"
+                    );
+                }
+                assert!(
+                    resolved.on_accent.contrast_ratio(resolved.accent) >= ON_ACCENT_MIN_CONTRAST,
+                    "{scheme:?} {name}: ink on the accent"
+                );
+                assert!(
+                    resolved.focus_ring.contrast_ratio(scheme.pick(BG_WINDOW))
+                        >= ACCENT_MIN_CONTRAST_ON_WINDOW,
+                    "{scheme:?} {name}: focus ring on the window"
+                );
+            }
         }
     }
 

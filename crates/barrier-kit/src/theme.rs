@@ -306,7 +306,14 @@ mod tests {
 
         let light = resolve(&config(ColorScheme::Light), None);
         assert_eq!(light.menu.hover_bg, orange, "light menu selection");
-        assert_eq!(light.menu.search_ring, orange, "light focus ring");
+        assert!(
+            light
+                .menu
+                .search_ring
+                .contrast_ratio(vow_design::BG_WINDOW_LIGHT)
+                >= 3.0,
+            "light focus ring"
+        );
         assert_eq!(
             light.sidebar.palette.selected_bg, orange,
             "light sidebar selection"
@@ -315,24 +322,24 @@ mod tests {
             light.sidebar.palette.item_icon, orange,
             "light sidebar icon"
         );
-        assert_eq!(
-            light.sidebar.palette.selected_ink,
-            vow_design::LIGHT.on_accent
-        );
+        assert!(light.sidebar.palette.selected_ink.contrast_ratio(orange) >= 4.5);
         assert_ne!(light.menu.hover_bg, vow_design::LIGHT.accent);
 
         let dark = resolve(&config(ColorScheme::Dark), None);
         assert_eq!(dark.menu.hover_bg, orange, "dark menu selection");
-        assert_eq!(dark.menu.search_ring, orange, "dark focus ring");
+        assert!(
+            dark.menu
+                .search_ring
+                .contrast_ratio(vow_design::BG_WINDOW_DARK)
+                >= 3.0,
+            "dark focus ring"
+        );
         assert_eq!(
             dark.sidebar.palette.selected_bg, orange,
             "dark sidebar selection"
         );
         assert_eq!(dark.sidebar.palette.item_icon, orange, "dark sidebar icon");
-        assert_eq!(
-            dark.sidebar.palette.selected_ink,
-            vow_design::DARK.on_accent
-        );
+        assert!(dark.sidebar.palette.selected_ink.contrast_ratio(orange) >= 4.5);
     }
 
     #[test]

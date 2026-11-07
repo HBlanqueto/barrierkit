@@ -71,7 +71,7 @@ impl Interaction {
         if !self.shows_focus() {
             return element;
         }
-        ring(element, corner_radius, crate::theme::resolved().accent)
+        ring(element, corner_radius, crate::theme::resolved().focus_ring)
     }
 
     pub fn inner_focus_ring(&self, element: Rect) -> Rect {
@@ -80,7 +80,7 @@ impl Interaction {
                 Border::new()
                     .width(FOCUS_RING.width)
                     .alignment(BorderAlignment::Inner)
-                    .fill(crate::theme::color(crate::theme::resolved().accent)),
+                    .fill(crate::theme::color(crate::theme::resolved().focus_ring)),
             )
         })
     }
