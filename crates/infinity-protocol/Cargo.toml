@@ -18,3 +18,9 @@ wayland-backend.workspace = true
 wayland-client = { workspace = true, optional = true }
 wayland-server = { workspace = true, optional = true }
 wayland-protocols-wlr = { workspace = true, optional = true, default-features = false }
+
+[package.metadata.cargo-shear]
+ignored = ["bitflags", "wayland-backend", "wayland-client", "wayland-server"]
+
+[package.metadata.cargo-machete]
+ignored = ["bitflags", "wayland-backend", "wayland-client", "wayland-server"]
