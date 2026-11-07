@@ -259,6 +259,7 @@ impl Component for Table {
                 }
             })
             .on_global_pointer_press(move |_| {
+                interaction.release();
                 if drag.peek().is_some() {
                     drag.set(None);
                 }

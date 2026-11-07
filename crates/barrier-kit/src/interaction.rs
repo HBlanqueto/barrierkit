@@ -60,6 +60,12 @@ impl Interaction {
             .on_global_pointer_press(move |_| pressed.set_if_modified(false))
     }
 
+    // An element that sets its own on_global_pointer_press replaces attach's; it calls this instead.
+    pub(crate) fn release(&self) {
+        let mut pressed = self.pressed;
+        pressed.set_if_modified(false);
+    }
+
     pub fn request_focus(&self) {
         self.a11y_id.request_focus();
     }
