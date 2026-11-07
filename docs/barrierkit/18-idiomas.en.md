@@ -41,9 +41,9 @@ app opens.
    play = Play
    minutes-left = { $minutes } min left
    ```
-4. Create `src/localize.rs`, as in `crates/ondina/src/localize.rs`:
-   a `LOADER` with `barrier_kit::i18n::load` and a `tr!` macro over
-   `barrier_kit::tr!`.
+4. Create `src/localize.rs` with a single line, `barrier_kit::localize!();`,
+   and declare `mod localize;` in `main.rs`. The macro creates the app's
+   `LOADER` and its `tr!`.
 5. Call `barrier_kit::i18n::use_app_language("<app>")` on the first line of
    `main`, with the same name `load_defaults` uses.
 6. Put `app_language_row("<app>")` in its preferences.

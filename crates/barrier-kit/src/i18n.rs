@@ -40,6 +40,30 @@ macro_rules! tr {
     };
 }
 
+// Expands in the app crate: `crate`, the `i18n/` folder and the package name are the app's.
+#[allow(clippy::crate_in_macro_def)]
+#[macro_export]
+macro_rules! localize {
+    () => {
+        $crate::localize!(@with $);
+    };
+    (@with $d:tt) => {
+        #[derive(::rust_embed::RustEmbed)]
+        #[folder = "i18n/"]
+        struct Localizations;
+
+        pub static LOADER: ::std::sync::LazyLock<::i18n_embed::fluent::FluentLanguageLoader> =
+            ::std::sync::LazyLock::new(|| {
+                $crate::i18n::load(::i18n_embed::fluent::fluent_language_loader!(), &Localizations)
+            });
+
+        macro_rules! tr {
+            ($d($d args:tt)*) => { $crate::tr!(crate::localize::LOADER, $d($d args)*) };
+        }
+        pub(crate) use tr;
+    };
+}
+
 #[derive(RustEmbed)]
 #[folder = "i18n/"]
 struct Localizations;
