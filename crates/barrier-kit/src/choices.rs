@@ -198,7 +198,12 @@ impl Component for RadioOption {
                     .background(color(palette.on_accent)),
             )
         } else {
-            circle.background(color(palette.control_background))
+            circle.background(color(palette.control_background)).border(
+                Border::new()
+                    .width(vow_design::HAIRLINE)
+                    .alignment(BorderAlignment::Inner)
+                    .fill(color(palette.separator)),
+            )
         };
         circle = interaction.focus_ring(circle, size / 2.0);
 
