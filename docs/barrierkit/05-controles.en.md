@@ -156,7 +156,7 @@ ColorWell::new("Color de acento", &ACCENT_SWATCHES).selected(Some(0))
 ## Sliders
 
 ```rust
-Slider::stepped(5).value(2).labels(&["A", "B", "C", "D", "E"])
+Slider::stepped("Level", 5).value(2).labels(&["A", "B", "C", "D", "E"])
 LevelSlider::new("Brillo").value(0.3)
 LevelSlider::new("Volumen").value(0.6).style(LevelStyle::Fat(Symbol::SpeakerWave))
 ```

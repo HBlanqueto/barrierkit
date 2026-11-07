@@ -109,7 +109,7 @@ fn switch() -> Element {
 }
 
 fn slider() -> Element {
-    Slider::stepped(5)
+    Slider::stepped("Nivel", 5)
         .value(2)
         .labels(&["A", "B", "C", "D", "E"])
         .into_element()
@@ -244,8 +244,9 @@ fn backdrop() -> Element {
                         )
                         .row(Row::new("Letras").control(Checkbox::new("Letras").checked(true)))
                         .row(
-                            Row::new("Graves")
-                                .control(Slider::stepped(5).value(3).tint(Tint::Backdrop)),
+                            Row::new("Graves").control(
+                                Slider::stepped("Graves", 5).value(3).tint(Tint::Backdrop),
+                            ),
                         ),
                 ),
             )
@@ -543,7 +544,7 @@ fn slider_click_snaps_to_the_nearest_step_unless_disabled() {
     impl App for SliderCase {
         fn render(&self) -> impl IntoElement {
             let values = self.values.clone();
-            Slider::stepped(4)
+            Slider::stepped("Intensidad", 4)
                 .value(1)
                 .labels(&["Sutil", "Normal", "Fuerte", "Intenso"])
                 .disabled(self.disabled)
@@ -889,7 +890,7 @@ fn stepped_slider_moves_one_step_per_arrow_and_stops_at_the_ends() {
     impl App for SteppedCase {
         fn render(&self) -> impl IntoElement {
             let mut steps = self.steps;
-            Slider::stepped(3).on_change(move |v| steps.write().push(v))
+            Slider::stepped("Pasos", 3).on_change(move |v| steps.write().push(v))
         }
     }
 
@@ -1016,6 +1017,36 @@ fn the_text_editor_inserts_a_new_line_on_enter() {
         test.render_to_file(std::path::PathBuf::from(path));
     }
     assert_eq!(*typed.borrow(), "Hola\nmundo");
+}
+
+#[test]
+fn a_slider_announces_its_name_value_and_range() {
+    let app = AppComponent::new(Case {
+        dark: false,
+        build: slider,
+    });
+    let (mut test, _) = TestingRunner::new(app, Size2D::new(300.0, 80.0), |_| {}, 1.0);
+    test.sync_and_update();
+    let announced = test.find(|_, el| {
+        let node = &el.accessibility().builder;
+        (node.role() == AccessibilityRole::Slider).then(|| {
+            (
+                node.label().map(str::to_owned),
+                node.numeric_value(),
+                node.max_numeric_value(),
+                node.value().map(str::to_owned),
+            )
+        })
+    });
+    assert_eq!(
+        announced,
+        Some((
+            Some("Nivel".to_owned()),
+            Some(2.0),
+            Some(4.0),
+            Some("C".to_owned())
+        ))
+    );
 }
 
 #[test]

@@ -234,6 +234,7 @@ impl Component for ToolGroup {
 
 #[derive(PartialEq)]
 pub struct Slider {
+    label: &'static str,
     steps: usize,
     value: usize,
     labels: &'static [&'static str],
@@ -245,8 +246,9 @@ pub struct Slider {
 }
 
 impl Slider {
-    pub fn stepped(steps: usize) -> Self {
+    pub fn stepped(label: &'static str, steps: usize) -> Self {
         Self {
+            label,
             steps: steps.max(2),
             value: 0,
             labels: &[],
@@ -331,13 +333,24 @@ impl Component for Slider {
         let update = move |new_value: usize| commit(value, &on_change, new_value);
 
         let current = *value.read();
+        let step_name = self.labels.get(current).copied();
         let mut root = interaction
             .attach(rect(), !self.disabled)
             .width(Size::px(width))
             .height(Size::px(
                 knob_height + label_gap + CAPTION.size as f32 * TEXT_LINE_HEIGHT,
             ))
-            .a11y_role(AccessibilityRole::Slider);
+            .a11y_role(AccessibilityRole::Slider)
+            .a11y_alt(self.label)
+            .a11y_builder(move |node| {
+                node.set_numeric_value(current as f64);
+                node.set_min_numeric_value(0.0);
+                node.set_max_numeric_value((steps - 1) as f64);
+                node.set_numeric_value_step(1.0);
+                if let Some(name) = step_name {
+                    node.set_value(name);
+                }
+            });
 
         if !self.disabled {
             root = level::on_drag(root, interaction, left, set_from_x, update.clone()).on_key_down(

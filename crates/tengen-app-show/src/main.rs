@@ -215,7 +215,10 @@ static LEVELS: LazyLock<[&str; 4]> =
 fn sliders() -> Form {
     Form::new().section(
         Section::titled(tr!("sliders"))
-            .row(Row::new(tr!("stepped")).control(Slider::stepped(4).value(1).labels(&*LEVELS)))
+            .row(
+                Row::new(tr!("stepped"))
+                    .control(Slider::stepped(tr!("stepped"), 4).value(1).labels(&*LEVELS)),
+            )
             .row(
                 Row::new(tr!("continuous")).control(
                     rect()

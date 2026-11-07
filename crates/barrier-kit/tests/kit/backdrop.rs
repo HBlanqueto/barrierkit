@@ -30,7 +30,10 @@ impl App for Case {
                         .control(Switch::new("Fundido").on(true).tint(Tint::Backdrop)),
                 )
                 .row(Row::new("Letras").control(Checkbox::new("Letras").checked(true)))
-                .row(Row::new("Graves").control(Slider::stepped(5).value(3).tint(Tint::Backdrop))),
+                .row(
+                    Row::new("Graves")
+                        .control(Slider::stepped("Graves", 5).value(3).tint(Tint::Backdrop)),
+                ),
         );
         Backdrop::new(
             self.source.clone(),

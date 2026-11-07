@@ -288,7 +288,7 @@ pub fn mixer(mood: Mood, album: &Album) -> Element {
                     Row::new(tr!("bass")).control(
                         rect()
                             .width(Size::px(200.0))
-                            .child(Slider::stepped(5).value(2).tint(tint)),
+                            .child(Slider::stepped(tr!("bass"), 5).value(2).tint(tint)),
                     ),
                 ),
         )
