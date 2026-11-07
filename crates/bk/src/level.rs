@@ -190,7 +190,7 @@ impl Component for LevelSlider {
                     paints.color(style.icon.resolve(state)),
                 ))
         });
-        // freya 0.4.3 dims each element on its own (render_pipeline.rs): a dimmed knob would show the fill.
+        // freya 0.5.0 dims each element on its own (render_pipeline.rs): a dimmed knob would show the fill.
         root = root.child(dimmed(
             part(
                 offset,
@@ -243,5 +243,5 @@ pub(crate) fn on_drag<T: 'static>(
     })
 }
 
-// freya 0.4.3 paints by depth (data.rs `LayerState`); a sibling knob must outrank the fill, two levels down.
+// freya 0.5.0 paints by depth (data.rs `LayerState`); a sibling knob must outrank the fill, two levels down.
 pub(crate) const KNOB_ABOVE_FILL: i16 = 2;

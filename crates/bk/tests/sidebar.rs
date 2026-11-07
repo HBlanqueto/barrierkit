@@ -686,17 +686,9 @@ fn chevron_node(test: &TestingRunner) -> Option<(usize, usize)> {
     })
 }
 
-// ragnarok and freya-core 0.4.3 derive pointer events through a std HashSet, so one move can
-// leave the hover unset (https://docs.rs/crate/ragnarok/0.4.3/source/src/name.rs#47); a pointer
-// that keeps moving settles it, as it does in a real session.
 fn hover_section(test: &mut TestingRunner) {
-    for nudge in 0..10 {
-        test.move_cursor((20.0 + f64::from(nudge), 68.0));
-        test.sync_and_update();
-        if chevron_node(test).is_some() {
-            return;
-        }
-    }
+    test.move_cursor((20.0, 68.0));
+    test.sync_and_update();
 }
 
 fn chevron_area(test: &TestingRunner) -> (usize, usize) {

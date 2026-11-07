@@ -176,7 +176,7 @@ impl Component for TextView {
                     return;
                 }
             }
-            // freya-edit 0.4.3 types any character even with Super or Ctrl held; a key
+            // freya-edit 0.5.0 types any character even with Super or Ctrl held; a key
             // equivalent never types in an NSTextView.
             if event
                 .modifiers

@@ -163,7 +163,7 @@ impl Component for TextEditor {
             let mut editor = editable.editor_mut().write();
             editor.clear_preedit();
             editor.set(&value.read());
-            // freya-edit 0.4.3 set() checks the UTF-16 cursor against a byte length: https://docs.rs/crate/freya-edit/0.4.3/source/src/rope_editor.rs#273
+            // freya-edit 0.5.0 set() checks the UTF-16 cursor against a byte length: https://docs.rs/crate/freya-edit/0.5.0/source/src/rope_editor.rs#278
             let end = editor.len_utf16_cu();
             if editor.cursor_pos() > end {
                 editor.move_cursor_to(end);

@@ -529,7 +529,7 @@ pub(crate) fn input(
         })
 }
 
-// freya-edit 0.4.3 set() checks the UTF-16 cursor against a byte length: https://docs.rs/crate/freya-edit/0.4.3/source/src/rope_editor.rs#273
+// freya-edit 0.5.0 set() checks the UTF-16 cursor against a byte length: https://docs.rs/crate/freya-edit/0.5.0/source/src/rope_editor.rs#278
 fn use_input_generation(value: State<String>) -> (u32, State<String>) {
     let typed = use_state(String::new);
     let mut seen = use_state(|| value.peek().clone());

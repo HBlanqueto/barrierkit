@@ -192,7 +192,7 @@ impl Component for Slider {
                 .painted(&paints, paint)
         };
         let dim = |el: Rect, opacity: f32| el.maybe(opacity < 1.0, |el| el.opacity(opacity));
-        // freya 0.4.3 dims each element on its own (render_pipeline.rs): a dimmed knob would show the fill.
+        // freya 0.5.0 dims each element on its own (render_pipeline.rs): a dimmed knob would show the fill.
         let parts_opacity = if self.disabled {
             style.opacity * style.disabled_opacity
         } else {
