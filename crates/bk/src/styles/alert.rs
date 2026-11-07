@@ -4,27 +4,17 @@ use super::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effe
 
 #[derive(Clone, Debug)]
 pub struct AlertStyle {
-    /// Tengen, with `spacing`, `buttons_spacing`, `buttons_margin_top`: `width`, `spacing`,
-
-    /// `buttons_spacing`, `buttons_margin_top`: `DIALOG_ALERT_WIDTH` with the sheet's
-
-    /// `padding`, `SPACE_2`, `SPACE_2`, `SPACE_4`.
+    /// Tengen: `DIALOG_ALERT_WIDTH` with the sheet's `padding`.
     pub width: f32,
-    /// Tengen, with `width`, `buttons_spacing`, `buttons_margin_top`: `width`, `spacing`,
-    /// `buttons_spacing`, `buttons_margin_top`: `DIALOG_ALERT_WIDTH` with the sheet's
-    /// `padding`, `SPACE_2`, `SPACE_2`, `SPACE_4`.
+    /// Tengen: `SPACE_2`.
     pub spacing: f32,
-    /// Tengen, with `width`, `spacing`, `buttons_margin_top`: `width`, `spacing`,
-    /// `buttons_spacing`, `buttons_margin_top`: `DIALOG_ALERT_WIDTH` with the sheet's
-    /// `padding`, `SPACE_2`, `SPACE_2`, `SPACE_4`.
+    /// Tengen: `SPACE_2`.
     pub buttons_spacing: f32,
-    /// Tengen, with `width`, `spacing`, `buttons_spacing`: `width`, `spacing`,
-    /// `buttons_spacing`, `buttons_margin_top`: `DIALOG_ALERT_WIDTH` with the sheet's
-    /// `padding`, `SPACE_2`, `SPACE_2`, `SPACE_4`.
+    /// Tengen: `SPACE_4`.
     pub buttons_margin_top: f32,
-    /// Tengen, with `message`: `title` `Role(Label)`; `message` `Role(SecondaryLabel)`.
+    /// Tengen: `title` `Role(Label)`.
     pub title: StateValue<ShapeStyle>,
-    /// Tengen, with `title`: `title` `Role(Label)`; `message` `Role(SecondaryLabel)`.
+    /// Tengen: `message` `Role(SecondaryLabel)`.
     pub message: StateValue<ShapeStyle>,
     /// Tengen: `system_effect`.
     pub effect: ColorEffect,

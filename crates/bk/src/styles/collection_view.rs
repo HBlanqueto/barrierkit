@@ -26,25 +26,20 @@ pub struct CollectionViewStyle {
     /// around a tile's content and on each side of the name; half of it between the icon and
     /// the name.
     pub label_padding_x: f32,
-    /// Tengen, with `label_shape`: `RoundedRectangle { radius: COLLECTION.radius, style:
-    /// Circular }`, the tile and the icon area; `RoundedRectangle { radius: COLLECTION.gap,
-    /// style: Circular }`, the name. A `Capsule` rounds the tile by half `tile_width`, the icon
-    /// area by half `icon_size` and the name by half the `line_height` of `font`.
+    /// Tengen: `RoundedRectangle { radius: COLLECTION.radius, style: Circular }`, the tile and
+    /// the icon area.
     pub shape: Shape,
-    /// Tengen, with `shape`: `RoundedRectangle { radius: COLLECTION.radius, style: Circular }`,
-    /// the tile and the icon area; `RoundedRectangle { radius: COLLECTION.gap, style: Circular
-    /// }`, the name. A `Capsule` rounds the tile by half `tile_width`, the icon area by half
-    /// `icon_size` and the name by half the `line_height` of `font`.
+    /// Tengen: `RoundedRectangle { radius: COLLECTION.gap, style: Circular }`, the name. A
+    /// `Capsule` rounds the tile by half `tile_width`, the icon area by half `icon_size` and
+    /// the name by half the `line_height` of `font`.
     pub label_shape: Shape,
-    /// Tengen, with `selected_icon_background`: `Clear`; `Color` of the label color at
-    /// `COLLECTION.selection`.
+    /// Tengen: `Clear`.
     pub icon_background: StateValue<ShapeStyle>,
-    /// Tengen, with `icon_background`: `Clear`; `Color` of the label color at
-    /// `COLLECTION.selection`.
+    /// Tengen: `Color` of the label color at `COLLECTION.selection`.
     pub selected_icon_background: StateValue<ShapeStyle>,
-    /// Tengen, with `selected_label_background`: `Clear`; `Accent`.
+    /// Tengen: `Clear`.
     pub label_background: StateValue<ShapeStyle>,
-    /// Tengen, with `label_background`: `Clear`; `Accent`.
+    /// Tengen: `Accent`.
     pub selected_label_background: StateValue<ShapeStyle>,
     /// Tengen: `Role(Label)`.
     pub label: StateValue<ShapeStyle>,

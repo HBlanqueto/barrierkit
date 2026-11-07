@@ -11,7 +11,6 @@ use super::{
 #[derive(Clone, Debug)]
 pub struct ScrollViewStyle {
     /// Tengen, with `track_width`: `SCROLL_BAR.thumb` for the bar that shows while scrolling,
-
     /// `SCROLL_BAR.track` for the thumb and track of the bar that is always shown.
     pub thumb_width: f32,
     /// Tengen, with `thumb_width`: `SCROLL_BAR.thumb` for the bar that shows while scrolling,

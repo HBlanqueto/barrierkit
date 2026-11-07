@@ -6,12 +6,9 @@ use super::{
 
 #[derive(Clone, Debug)]
 pub struct BadgeStyle {
-    /// Tengen, with `padding_x`: `height`, `padding_x`: `BADGE.height`, `BADGE.padding_x`; the
-
-    /// badge is at least as wide as it is tall.
+    /// Tengen: `BADGE.height`.
     pub height: f32,
-    /// Tengen, with `height`: `height`, `padding_x`: `BADGE.height`, `BADGE.padding_x`; the
-    /// badge is at least as wide as it is tall.
+    /// Tengen: `BADGE.padding_x`; the badge is at least as wide as it is tall.
     pub padding_x: f32,
     /// Tengen: `Capsule`.
     pub shape: Shape,

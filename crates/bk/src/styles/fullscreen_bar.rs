@@ -9,7 +9,6 @@ use super::{
 #[derive(Clone, Debug)]
 pub struct FullscreenBarStyle {
     /// Tengen, with `glass`: `FULLSCREEN_BAND` for `FullscreenBar::Glass`, `FULLSCREEN_GLASS`
-
     /// for `ProgressiveGlass`.
     pub band: FullscreenGlassMetrics,
     /// Tengen, with `band`: `FULLSCREEN_BAND` for `FullscreenBar::Glass`, `FULLSCREEN_GLASS`

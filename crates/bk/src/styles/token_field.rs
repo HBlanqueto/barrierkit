@@ -9,7 +9,6 @@ use super::{
 #[derive(Clone, Debug)]
 pub struct TokenFieldStyle {
     /// Tengen, with `padding_x`: `TEXT_FIELD.height`, the least height and the height of each
-
     /// line, `TEXT_FIELD.padding_x`.
     pub height: f32,
     /// Tengen, with `height`: `TEXT_FIELD.height`, the least height and the height of each

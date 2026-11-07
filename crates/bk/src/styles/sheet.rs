@@ -18,11 +18,9 @@ pub struct SheetStyle {
     /// Tengen: `RoundedRectangle { radius: DIALOG.corner_radius, style: Continuous }`; a
     /// `Capsule` or `Circle` stays square.
     pub shape: Shape,
-    /// Tengen, with `background`: `scrim` `Role(Scrim)` over the window; `background`
-    /// `Role(RaisedBackground)`.
+    /// Tengen: `scrim` `Role(Scrim)` over the window.
     pub scrim: StateValue<ShapeStyle>,
-    /// Tengen, with `scrim`: `scrim` `Role(Scrim)` over the window; `background`
-    /// `Role(RaisedBackground)`.
+    /// Tengen: `background` `Role(RaisedBackground)`.
     pub background: StateValue<ShapeStyle>,
     /// Tengen: `Some((Role(Separator), HAIRLINE))`, drawn outside.
     pub border: Option<(ShapeStyle, f32)>,

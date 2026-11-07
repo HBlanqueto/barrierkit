@@ -8,12 +8,9 @@ use super::{
 /// States: hovered, pressed, focused. The image is content.
 #[derive(Clone, Debug)]
 pub struct ImageWellStyle {
-    /// Tengen, with `inset`: `IMAGE_WELL.size`, a square; `IMAGE_WELL.inset` around the image,
-
-    /// whose corners are the well's minus `inset`.
+    /// Tengen: `IMAGE_WELL.size`, a square.
     pub size: f32,
-    /// Tengen, with `size`: `IMAGE_WELL.size`, a square; `IMAGE_WELL.inset` around the image,
-    /// whose corners are the well's minus `inset`.
+    /// Tengen: `IMAGE_WELL.inset` around the image, whose corners are the well's minus `inset`.
     pub inset: f32,
     /// Tengen: `RoundedRectangle { radius: IMAGE_WELL.radius, style: Circular }`.
     pub shape: Shape,

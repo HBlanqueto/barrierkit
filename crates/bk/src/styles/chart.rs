@@ -21,21 +21,17 @@ use crate::theme::{SurfaceKind, popover_palette};
 #[derive(Clone, Debug)]
 pub struct ChartStyle {
     /// Tengen, with `axis_gap`: `CHART.y_axis_width`, `CHART.axis_gap` between an axis label
-
     /// and the plot. Drawn by: `Chart`; `Chart3D` makes its camera labels twice as wide.
     pub axis_width: f32,
     /// Tengen, with `axis_width`: `CHART.y_axis_width`, `CHART.axis_gap` between an axis label
     /// and the plot. Drawn by: `Chart`; `Chart3D` makes its camera labels twice as wide.
     pub axis_gap: f32,
-    /// Tengen, with `group_spacing`: `SPACE_1` between the plot, the labels, the legend
-    /// entries, a swatch and its label and the readout rows; `SPACE_2` between the sections.
-    /// Drawn by: `spacing` `Chart`, `SectorChart`, `StreamChart`; `group_spacing`
-    /// `SectorChart`, `Chart3D`.
+    /// Tengen: `SPACE_1` between the plot, the labels, the legend entries, a swatch and its
+    /// label and the readout rows. Drawn by: `spacing` `Chart`, `SectorChart`, `StreamChart`;
+    /// `group_spacing` `SectorChart`, `Chart3D`.
     pub spacing: f32,
-    /// Tengen, with `spacing`: `SPACE_1` between the plot, the labels, the legend entries, a
-    /// swatch and its label and the readout rows; `SPACE_2` between the sections. Drawn by:
-    /// `spacing` `Chart`, `SectorChart`, `StreamChart`; `group_spacing` `SectorChart`,
-    /// `Chart3D`.
+    /// Tengen: `SPACE_2` between the sections. Drawn by: `spacing` `Chart`, `SectorChart`,
+    /// `StreamChart`; `group_spacing` `SectorChart`, `Chart3D`.
     pub group_spacing: f32,
     /// Tengen, with `legend_swatch`: `CHART.legend_gap` between the entries of a row,
     /// `CHART.legend_swatch`. Drawn by: `Chart`, `SectorChart`, `StreamChart`.
@@ -58,23 +54,15 @@ pub struct ChartStyle {
     /// Tengen: `CHART.grid_width`. Drawn by: `Chart`; `grid_width` and `rule_width` also the
     /// guides of `StreamChart`, `grid_width` and `point_size` the box and points of `Chart3D`.
     pub grid_width: f32,
-    /// Tengen, with `bar_radius`: `CHART.bar_gap`, the share of a category left empty;
-    /// `CHART.bar_radius`. Drawn by: `Chart`.
+    /// Tengen: `CHART.bar_gap`, the share of a category left empty. Drawn by: `Chart`.
     pub bar_gap: f32,
-    /// Tengen, with `bar_gap`: `CHART.bar_gap`, the share of a category left empty;
-    /// `CHART.bar_radius`. Drawn by: `Chart`.
+    /// Tengen: `CHART.bar_radius`. Drawn by: `Chart`.
     pub bar_radius: f32,
-    /// Tengen, with `sector_inset`, `sector_radius`: `CHART.sector_inner`, the hole of a donut;
-    /// `CHART.sector_inset` degrees between slices; `CHART.sector_radius`. Drawn by:
-    /// `SectorChart`.
+    /// Tengen: `CHART.sector_inner`, the hole of a donut. Drawn by: `SectorChart`.
     pub sector_inner: f32,
-    /// Tengen, with `sector_inner`, `sector_radius`: `CHART.sector_inner`, the hole of a donut;
-    /// `CHART.sector_inset` degrees between slices; `CHART.sector_radius`. Drawn by:
-    /// `SectorChart`.
+    /// Tengen: `CHART.sector_inset` degrees between slices. Drawn by: `SectorChart`.
     pub sector_inset: f32,
-    /// Tengen, with `sector_inner`, `sector_inset`: `CHART.sector_inner`, the hole of a donut;
-    /// `CHART.sector_inset` degrees between slices; `CHART.sector_radius`. Drawn by:
-    /// `SectorChart`.
+    /// Tengen: `CHART.sector_radius`. Drawn by: `SectorChart`.
     pub sector_radius: f32,
     /// Tengen: `CHART.heat_gap`. Drawn by: `HeatMap`.
     pub heat_gap: f32,
@@ -82,11 +70,10 @@ pub struct ChartStyle {
     pub heat_radius: f32,
     /// Tengen: `CHART.stream_hole`, the hole of the flow clock. Drawn by: `StreamChart`.
     pub stream_hole: f32,
-    /// Tengen, with `tooltip_shape`: `Circle`; `RoundedRectangle { radius: TOOLTIP.radius,
-    /// style: Circular }`. Drawn by: the legends; `Chart`.
+    /// Tengen: `Circle`. Drawn by: the legends; `Chart`.
     pub legend_shape: Shape,
-    /// Tengen, with `legend_shape`: `Circle`; `RoundedRectangle { radius: TOOLTIP.radius,
-    /// style: Circular }`. Drawn by: the legends; `Chart`.
+    /// Tengen: `RoundedRectangle { radius: TOOLTIP.radius, style: Circular }`. Drawn by: the
+    /// legends; `Chart`.
     pub tooltip_shape: Shape,
     /// Tengen: `Color` of each of `CHART_SERIES`, repeated when there are more series. Drawn
     /// by: every chart but `HeatMap`; `Chart3D` goes from the first to the third.
@@ -113,14 +100,12 @@ pub struct ChartStyle {
     /// Tengen, with `heat_empty`: `Role(ControlBackground)` for the lowest value, `Accent` for
     /// the highest. Drawn by: `HeatMap`.
     pub heat_fill: StateValue<ShapeStyle>,
-    /// Tengen, with `legend_label`: `Role(SecondaryLabel)`, `Role(Label)`; the center of a
-    /// donut takes `legend_label` for the value and `axis_label` for the name. Drawn by:
-    /// `axis_label` `Chart`, `SectorChart`, `Chart3D`; `legend_label` `Chart`, `SectorChart`,
-    /// `StreamChart`.
+    /// Tengen: `Role(SecondaryLabel)`, `Role(Label)`. Drawn by: `axis_label` `Chart`,
+    /// `SectorChart`, `Chart3D`; `legend_label` `Chart`, `SectorChart`, `StreamChart`.
     pub axis_label: StateValue<ShapeStyle>,
-    /// Tengen, with `axis_label`: `Role(SecondaryLabel)`, `Role(Label)`; the center of a donut
-    /// takes `legend_label` for the value and `axis_label` for the name. Drawn by: `axis_label`
-    /// `Chart`, `SectorChart`, `Chart3D`; `legend_label` `Chart`, `SectorChart`, `StreamChart`.
+    /// Tengen: the center of a donut takes `legend_label` for the value and `axis_label` for
+    /// the name. Drawn by: `axis_label` `Chart`, `SectorChart`, `Chart3D`; `legend_label`
+    /// `Chart`, `SectorChart`, `StreamChart`.
     pub legend_label: StateValue<ShapeStyle>,
     /// Tengen, with `tooltip_label`: `Color` of the popover background and text. Drawn by:
     /// `Chart`.
@@ -144,20 +129,14 @@ pub struct ChartStyle {
     pub hover_opacity: f32,
     /// Tengen: `system_effect`. Drawn by: every chart.
     pub effect: ColorEffect,
-    /// Tengen, with `value_font`, `title_font`: `CAPTION` for the labels, legend and readout;
-    /// `HEADLINE` for the value in a donut; `CALLOUT` for the camera labels. Drawn by: `font`
-    /// `Chart`, `SectorChart`, `StreamChart`; `value_font` `SectorChart`; `title_font`
-    /// `Chart3D`.
+    /// Tengen: `CAPTION` for the labels, legend and readout. Drawn by: `font` `Chart`,
+    /// `SectorChart`, `StreamChart`; `value_font` `SectorChart`; `title_font` `Chart3D`.
     pub font: Font,
-    /// Tengen, with `font`, `title_font`: `CAPTION` for the labels, legend and readout;
-    /// `HEADLINE` for the value in a donut; `CALLOUT` for the camera labels. Drawn by: `font`
-    /// `Chart`, `SectorChart`, `StreamChart`; `value_font` `SectorChart`; `title_font`
-    /// `Chart3D`.
+    /// Tengen: `HEADLINE` for the value in a donut. Drawn by: `font` `Chart`, `SectorChart`,
+    /// `StreamChart`; `value_font` `SectorChart`; `title_font` `Chart3D`.
     pub value_font: Font,
-    /// Tengen, with `font`, `value_font`: `CAPTION` for the labels, legend and readout;
-    /// `HEADLINE` for the value in a donut; `CALLOUT` for the camera labels. Drawn by: `font`
-    /// `Chart`, `SectorChart`, `StreamChart`; `value_font` `SectorChart`; `title_font`
-    /// `Chart3D`.
+    /// Tengen: `CALLOUT` for the camera labels. Drawn by: `font` `Chart`, `SectorChart`,
+    /// `StreamChart`; `value_font` `SectorChart`; `title_font` `Chart3D`.
     pub title_font: Font,
     /// Tengen: `Ease { duration_ms: DURATION_BASE }`: new data blends in and a time axis
     /// slides; `None` makes it jump. Drawn by: `Chart`.

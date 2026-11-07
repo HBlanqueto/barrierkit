@@ -9,7 +9,6 @@ use super::{
 #[derive(Clone, Debug)]
 pub struct CapacityIndicatorStyle {
     /// Tengen, with `segment_gap`: `LEVEL_INDICATOR.height`, `LEVEL_INDICATOR.segment_gap`
-
     /// between the cells of `discrete`.
     pub height: f32,
     /// Tengen, with `height`: `LEVEL_INDICATOR.height`, `LEVEL_INDICATOR.segment_gap` between

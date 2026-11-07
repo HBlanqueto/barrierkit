@@ -22,38 +22,25 @@ use crate::sidebar::{SidebarBackdrop, over_backdrop};
 /// `SidebarAccount` takes `AvatarStyle`.
 #[derive(Clone, Debug)]
 pub struct SidebarStyle {
-    /// Tengen, with `padding_top`, `padding_bottom`: `SIDEBAR.padding_x`;
-
-    /// `SETTINGS.sidebar_padding_top` without traffic lights; `SIDEBAR.padding_x` (island) or
-
-    /// `0.0` (flat).
+    /// Tengen: `SIDEBAR.padding_x`.
     pub padding_x: f32,
-    /// Tengen, with `padding_x`, `padding_bottom`: `SIDEBAR.padding_x`;
-    /// `SETTINGS.sidebar_padding_top` without traffic lights; `SIDEBAR.padding_x` (island) or
-    /// `0.0` (flat).
+    /// Tengen: `SETTINGS.sidebar_padding_top` without traffic lights.
     pub padding_top: f32,
-    /// Tengen, with `padding_x`, `padding_top`: `SIDEBAR.padding_x`;
-    /// `SETTINGS.sidebar_padding_top` without traffic lights; `SIDEBAR.padding_x` (island) or
-    /// `0.0` (flat).
+    /// Tengen: `SIDEBAR.padding_x` (island) or `0.0` (flat).
     pub padding_bottom: f32,
-    /// Tengen, with `lights_gap`: `(SIDEBAR.traffic_x, SIDEBAR.traffic_y)`;
-    /// `SETTINGS.sidebar_lights_gap` between the lights and the first row.
+    /// Tengen: `(SIDEBAR.traffic_x, SIDEBAR.traffic_y)`.
     pub lights_position: (f32, f32),
-    /// Tengen, with `lights_position`: `(SIDEBAR.traffic_x, SIDEBAR.traffic_y)`;
-    /// `SETTINGS.sidebar_lights_gap` between the lights and the first row.
+    /// Tengen: `SETTINGS.sidebar_lights_gap` between the lights and the first row.
     pub lights_gap: f32,
     /// Tengen: `RoundedRectangle { radius: SIDEBAR.radius, style: Continuous }` (island),
     /// `Rectangle` (flat); a `Capsule` or `Circle` has no size to round by and stays square.
     pub shape: Shape,
     /// Tengen: `Color` of the island or flat surface; `Clear` over a `Backdrop`.
     pub background: StateValue<ShapeStyle>,
-    /// Tengen, with `inner_border`: island: `Color` of the rim with `SIDEBAR.rim_width` and of
-    /// the inner line with `SIDEBAR.inner_width`, inside the rim; flat or over a `Backdrop`:
-    /// `None`.
+    /// Tengen: island: `Color` of the rim with `SIDEBAR.rim_width` and of the inner line with
+    /// `SIDEBAR.inner_width`, inside the rim.
     pub border: Option<(ShapeStyle, f32)>,
-    /// Tengen, with `border`: island: `Color` of the rim with `SIDEBAR.rim_width` and of the
-    /// inner line with `SIDEBAR.inner_width`, inside the rim; flat or over a `Backdrop`:
-    /// `None`.
+    /// Tengen: flat or over a `Backdrop`: `None`.
     pub inner_border: Option<(ShapeStyle, f32)>,
     /// Tengen: flat: `Some((Color of the sidebar line, SIDEBAR.inner_width))` on the right;
     /// island: `None`.

@@ -5,7 +5,6 @@ use super::{ColorEffect, ControlStyle, ShapeStyle, StateValue, system_effect};
 #[derive(Clone, Debug)]
 pub struct TopGlassStyle {
     /// Tengen: `FULLSCREEN_GLASS`: the height, blur, layers and the stops of the tint and the
-
     /// mask.
     pub glass: FullscreenGlassMetrics,
     /// Tengen: `Color` of the glass of the window: `raised_background` over a `Backdrop`, the

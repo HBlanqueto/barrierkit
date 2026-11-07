@@ -5,9 +5,7 @@ use super::{ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, syst
 #[derive(Clone, Debug)]
 pub struct WindowTabsStyle {
     /// Tengen, with `padding`, `spacing`, `tab_padding_x`: `BUTTON.height`; `SPACE_1` around
-
     /// the bar, between tabs and on each side of a tab's content. The bar is `tab_height` plus
-
     /// twice `padding` high.
     pub tab_height: f32,
     /// Tengen, with `tab_height`, `spacing`, `tab_padding_x`: `BUTTON.height`; `SPACE_1` around
@@ -22,25 +20,21 @@ pub struct WindowTabsStyle {
     /// bar, between tabs and on each side of a tab's content. The bar is `tab_height` plus
     /// twice `padding` high.
     pub tab_padding_x: f32,
-    /// Tengen, with `new_tab_width`: `ICON_BUTTON.icon`, the × and +; `ICON_BUTTON.size`, the +
-    /// button.
+    /// Tengen: `ICON_BUTTON.icon`, the × and +.
     pub symbol_size: f32,
-    /// Tengen, with `symbol_size`: `ICON_BUTTON.icon`, the × and +; `ICON_BUTTON.size`, the +
-    /// button.
+    /// Tengen: `ICON_BUTTON.size`, the + button.
     pub new_tab_width: f32,
     /// Tengen: `Capsule`.
     pub tab_shape: Shape,
     /// Tengen: `Role(ControlBackground)`, the bar.
     pub background: StateValue<ShapeStyle>,
-    /// Tengen, with `selected_tab_background`: `Clear`, hovered `Role(ControlHover)`;
-    /// `Role(RaisedBackground)`.
+    /// Tengen: `Clear`, hovered `Role(ControlHover)`.
     pub tab_background: StateValue<ShapeStyle>,
-    /// Tengen, with `tab_background`: `Clear`, hovered `Role(ControlHover)`;
-    /// `Role(RaisedBackground)`.
+    /// Tengen: `Role(RaisedBackground)`.
     pub selected_tab_background: StateValue<ShapeStyle>,
-    /// Tengen, with `symbol`: `Role(Label)`; `Role(SecondaryLabel)`, the × and +.
+    /// Tengen: `Role(Label)`.
     pub label: StateValue<ShapeStyle>,
-    /// Tengen, with `label`: `Role(Label)`; `Role(SecondaryLabel)`, the × and +.
+    /// Tengen: `Role(SecondaryLabel)`, the × and +.
     pub symbol: StateValue<ShapeStyle>,
     /// Tengen: `system_effect`.
     pub effect: ColorEffect,

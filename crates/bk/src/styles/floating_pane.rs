@@ -7,7 +7,6 @@ use super::{
 #[derive(Clone, Debug)]
 pub struct FloatingPaneStyle {
     /// Tengen, with `outline_width`: `title_height`, `outline_width`:
-
     /// `FLOATING_PANE.title_height`, `FLOATING_PANE.outline`, drawn outside.
     pub title_height: f32,
     /// Tengen: `Rectangle`; the title bar takes its top corners.

@@ -7,30 +7,17 @@ use super::{
 
 #[derive(Clone, Debug)]
 pub struct SidebarSectionStyle {
-    /// Tengen, with `margin_top`, `padding_x`, `chevron_size`, `chevron`: `height`,
-
-    /// `margin_top`, `padding_x`, `chevron_size`: `SIDEBAR.section_height`,
-
-    /// `section_margin_top`, `section_padding_x`, `chevron`.
+    /// Tengen: `SIDEBAR.section_height`.
     pub height: f32,
-    /// Tengen, with `height`, `padding_x`, `chevron_size`, `chevron`: `height`, `margin_top`,
-    /// `padding_x`, `chevron_size`: `SIDEBAR.section_height`, `section_margin_top`,
-    /// `section_padding_x`, `chevron`.
+    /// Tengen: `section_margin_top`.
     pub margin_top: f32,
-    /// Tengen, with `height`, `margin_top`, `chevron_size`, `chevron`: `height`, `margin_top`,
-    /// `padding_x`, `chevron_size`: `SIDEBAR.section_height`, `section_margin_top`,
-    /// `section_padding_x`, `chevron`.
+    /// Tengen: `section_padding_x`.
     pub padding_x: f32,
-    /// Tengen, with `height`, `margin_top`, `padding_x`, `chevron`: `height`, `margin_top`,
-    /// `padding_x`, `chevron_size`: `SIDEBAR.section_height`, `section_margin_top`,
-    /// `section_padding_x`, `chevron`.
+    /// Tengen: `chevron`.
     pub chevron_size: f32,
     /// Tengen, with `chevron`: `title`, `chevron`: `Color` of the section ink.
     pub title: StateValue<ShapeStyle>,
-    /// Tengen, with `height`, `margin_top`, `padding_x`, `chevron_size`: `height`,
-    /// `margin_top`, `padding_x`, `chevron_size`: `SIDEBAR.section_height`,
-    /// `section_margin_top`, `section_padding_x`, `chevron`. Tengen, with `title`: `title`,
-    /// `chevron`: `Color` of the section ink.
+    /// Tengen, with `title`: `title`, `chevron`: `Color` of the section ink.
     pub chevron: StateValue<ShapeStyle>,
     /// Tengen: `system_effect`.
     pub effect: ColorEffect,

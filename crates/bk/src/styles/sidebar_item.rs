@@ -5,15 +5,11 @@ use super::{ColorEffect, ControlStyle, Shape, ShapeStyle, StateValue, system_eff
 
 #[derive(Clone, Debug)]
 pub struct SidebarItemStyle {
-    /// Tengen, with `padding_x`, `spacing`: `height`, `padding_x`, `spacing`:
-
-    /// `SIDEBAR.item_height`, `item_padding_x`, `item_gap`.
+    /// Tengen: `SIDEBAR.item_height`.
     pub height: f32,
-    /// Tengen, with `height`, `spacing`: `height`, `padding_x`, `spacing`:
-    /// `SIDEBAR.item_height`, `item_padding_x`, `item_gap`.
+    /// Tengen: `item_padding_x`.
     pub padding_x: f32,
-    /// Tengen, with `height`, `padding_x`: `height`, `padding_x`, `spacing`:
-    /// `SIDEBAR.item_height`, `item_padding_x`, `item_gap`.
+    /// Tengen: `item_gap`.
     pub spacing: f32,
     /// Tengen: `RoundedRectangle { radius: SIDEBAR.item_radius, style: Circular }`.
     pub shape: Shape,
@@ -42,12 +38,10 @@ pub struct SidebarItemStyle {
     pub selected_tile_border: Option<(ShapeStyle, f32)>,
     /// Tengen: `system_effect`.
     pub effect: ColorEffect,
-    /// Tengen, with `selected_font`: `font`, `selected_font`: `BODY` at
-    /// `SIDEBAR.item_text_size` with `SIDEBAR.item_weight` and `SIDEBAR.item_selected_weight`;
-    /// one line.
+    /// Tengen: `font`, `selected_font`: `BODY` at `SIDEBAR.item_text_size` with
+    /// `SIDEBAR.item_weight` and `SIDEBAR.item_selected_weight`.
     pub font: Font,
-    /// Tengen, with `font`: `font`, `selected_font`: `BODY` at `SIDEBAR.item_text_size` with
-    /// `SIDEBAR.item_weight` and `SIDEBAR.item_selected_weight`; one line.
+    /// Tengen: one line.
     pub selected_font: Font,
 }
 

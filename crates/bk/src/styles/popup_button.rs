@@ -9,7 +9,6 @@ use super::{
 #[derive(Clone, Debug)]
 pub struct PopUpButtonStyle {
     /// Tengen, with `gap`: `SETTINGS.popup_height`, `SETTINGS.popup_text_gap` between the
-
     /// icon, the label and the indicator.
     pub height: f32,
     /// Tengen, with `height`: `SETTINGS.popup_height`, `SETTINGS.popup_text_gap` between the

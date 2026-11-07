@@ -5,11 +5,9 @@ use super::{ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, syst
 
 #[derive(Clone, Debug)]
 pub struct SymbolTileStyle {
-    /// Tengen, with `symbol_size`: `size`, `symbol_size`: `SIDEBAR.app_icon`,
-
-    /// `SIDEBAR.item_icon`.
+    /// Tengen: `SIDEBAR.app_icon`.
     pub size: f32,
-    /// Tengen, with `size`: `size`, `symbol_size`: `SIDEBAR.app_icon`, `SIDEBAR.item_icon`.
+    /// Tengen: `SIDEBAR.item_icon`.
     pub symbol_size: f32,
     /// Tengen: `RoundedRectangle { radius: SIDEBAR.item_radius, style: Circular }`.
     pub shape: Shape,

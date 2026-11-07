@@ -7,7 +7,6 @@ use super::{ControlStyle, Shape};
 #[derive(Clone, Debug)]
 pub struct VideoViewStyle {
     /// Tengen: `Rectangle`, the clip of the frame; a `Capsule` or `Circle` rounds by the
-
     /// view's size.
     pub shape: Shape,
 }

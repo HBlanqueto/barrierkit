@@ -11,12 +11,9 @@ use super::{
 /// `IconButton`: its `.style` takes an `IconButtonStyle`.
 #[derive(Clone, Debug)]
 pub struct IconButtonStyle {
-    /// Tengen, with `icon_size`: `ICON_BUTTON.size`, in a toolbar `TOOLGROUP.height`;
-
-    /// `ICON_BUTTON.icon`.
+    /// Tengen: `ICON_BUTTON.size`, in a toolbar `TOOLGROUP.height`.
     pub size: f32,
-    /// Tengen, with `size`: `ICON_BUTTON.size`, in a toolbar `TOOLGROUP.height`;
-    /// `ICON_BUTTON.icon`.
+    /// Tengen: `ICON_BUTTON.icon`.
     pub icon_size: f32,
     /// Tengen: `RoundedRectangle { radius: ICON_BUTTON.radius, style: Circular }`, in a toolbar
     /// `Capsule`.

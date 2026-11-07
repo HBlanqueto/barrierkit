@@ -17,26 +17,18 @@ use crate::style::Palette;
 /// `GroupBox` only `normal`. The children open and close at once.
 #[derive(Clone, Debug)]
 pub struct FormStyle {
-    /// Tengen, with `header_padding`: `LIST_GROUP.padding` around the form;
-
-    /// `LIST_GROUP.header_padding` around a section title. Top, right, bottom, left. A footer
-
-    /// takes the bottom, right and left of `header_padding`.
+    /// Tengen: `LIST_GROUP.padding` around the form.
     pub padding: [f32; 4],
     /// Tengen: `SPACE_4` between sections.
     pub section_spacing: f32,
-    /// Tengen, with `padding`: `LIST_GROUP.padding` around the form;
-    /// `LIST_GROUP.header_padding` around a section title. Top, right, bottom, left. A footer
-    /// takes the bottom, right and left of `header_padding`.
+    /// Tengen: `LIST_GROUP.header_padding` around a section title. Top, right, bottom, left. A
+    /// footer takes the bottom, right and left of `header_padding`.
     pub header_padding: [f32; 4],
-    /// Tengen, with `row_padding`, `row_spacing`: `LIST_GROUP.row_min_height`;
-    /// `(LIST_GROUP.row_padding_x, SPACE_2)`; `SPACE_3` between the labels and the accessory.
+    /// Tengen: `LIST_GROUP.row_min_height`.
     pub row_min_height: f32,
-    /// Tengen, with `row_min_height`, `row_spacing`: `LIST_GROUP.row_min_height`;
-    /// `(LIST_GROUP.row_padding_x, SPACE_2)`; `SPACE_3` between the labels and the accessory.
+    /// Tengen: `(LIST_GROUP.row_padding_x, SPACE_2)`.
     pub row_padding: (f32, f32),
-    /// Tengen, with `row_min_height`, `row_padding`: `LIST_GROUP.row_min_height`;
-    /// `(LIST_GROUP.row_padding_x, SPACE_2)`; `SPACE_3` between the labels and the accessory.
+    /// Tengen: `SPACE_3` between the labels and the accessory.
     pub row_spacing: f32,
     /// Tengen: `LIST_GROUP.separator_inset`, the left inset of the line between rows; the line
     /// is a `Divider` and takes `DividerStyle`.

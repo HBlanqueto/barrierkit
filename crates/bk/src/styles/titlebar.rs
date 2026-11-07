@@ -24,28 +24,21 @@ use crate::theme::{SurfaceKind, surface_background};
 /// solid `tint`.
 #[derive(Clone, Debug)]
 pub struct TitlebarStyle {
-    /// Tengen, with `close_only_height`: `TITLEBAR_CLIENT_HEIGHT`; `TITLEBAR.thickness` for
-
-    /// `.close_only(true)`, utility and HUD windows.
+    /// Tengen: `TITLEBAR_CLIENT_HEIGHT`.
     pub height: f32,
-    /// Tengen, with `height`: `TITLEBAR_CLIENT_HEIGHT`; `TITLEBAR.thickness` for
-    /// `.close_only(true)`, utility and HUD windows.
+    /// Tengen: `TITLEBAR.thickness` for `.close_only(true)`, utility and HUD windows.
     pub close_only_height: f32,
-    /// Tengen, with `sidebar_padding_top`: `SETTINGS.toolbar_height`,
-    /// `SETTINGS.toolbar_padding_top` with an island sidebar; `TITLEBAR_CLIENT_HEIGHT` and
-    /// `0.0` with a flat one. `sidebar_bar_metrics()` returns them.
+    /// Tengen: `SETTINGS.toolbar_height`, `SETTINGS.toolbar_padding_top` with an island
+    /// sidebar.
     pub sidebar_height: f32,
-    /// Tengen, with `sidebar_height`: `SETTINGS.toolbar_height`, `SETTINGS.toolbar_padding_top`
-    /// with an island sidebar; `TITLEBAR_CLIENT_HEIGHT` and `0.0` with a flat one.
-    /// `sidebar_bar_metrics()` returns them.
+    /// Tengen: `TITLEBAR_CLIENT_HEIGHT` and `0.0` with a flat one. `sidebar_bar_metrics()`
+    /// returns them.
     pub sidebar_padding_top: f32,
-    /// Tengen, with `sidebar_padding_x`: `TITLEBAR_PADDING_X`; `SETTINGS.toolbar_padding_x`
-    /// (island) or `TITLEBAR_PADDING_X` (flat). With the traffic lights in the centered bar the
-    /// side padding is half of `height` minus the lights' `diameter`.
+    /// Tengen: `TITLEBAR_PADDING_X`.
     pub padding_x: f32,
-    /// Tengen, with `padding_x`: `TITLEBAR_PADDING_X`; `SETTINGS.toolbar_padding_x` (island) or
-    /// `TITLEBAR_PADDING_X` (flat). With the traffic lights in the centered bar the side
-    /// padding is half of `height` minus the lights' `diameter`.
+    /// Tengen: `SETTINGS.toolbar_padding_x` (island) or `TITLEBAR_PADDING_X` (flat). With the
+    /// traffic lights in the centered bar the side padding is half of `height` minus the
+    /// lights' `diameter`.
     pub sidebar_padding_x: f32,
     /// Tengen: `0.0`, between the bar's items.
     pub spacing: f32,
@@ -65,17 +58,13 @@ pub struct TitlebarStyle {
     pub hairline: Option<(ShapeStyle, f32)>,
     /// Tengen: `system_effect`.
     pub effect: ColorEffect,
-    /// Tengen, with `sidebar_title_alignment`: `Center` between the two equal zones; `Start`,
-    /// next to the left zone.
+    /// Tengen: `Center` between the two equal zones.
     pub title_alignment: Alignment,
-    /// Tengen, with `title_alignment`: `Center` between the two equal zones; `Start`, next to
-    /// the left zone.
+    /// Tengen: `Start`, next to the left zone.
     pub sidebar_title_alignment: Alignment,
-    /// Tengen, with `sidebar_title_font`: `TITLEBAR.font`, `TITLE_2`; one line, so
-    /// `line_height` has no effect.
+    /// Tengen: `TITLEBAR.font`, `TITLE_2`.
     pub title_font: Font,
-    /// Tengen, with `title_font`: `TITLEBAR.font`, `TITLE_2`; one line, so `line_height` has no
-    /// effect.
+    /// Tengen: one line, so `line_height` has no effect.
     pub sidebar_title_font: Font,
 }
 

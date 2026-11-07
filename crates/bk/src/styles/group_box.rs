@@ -6,24 +6,18 @@ use crate::style::Palette;
 
 #[derive(Clone, Debug)]
 pub struct GroupBoxStyle {
-    /// Tengen, with `spacing`, `label_inset`: `padding`, `spacing`, `label_inset`:
-
-    /// `GROUP_BOX.padding`, `SPACE_1` between the label and the box, `GROUP_BOX.label_inset`.
+    /// Tengen: `GROUP_BOX.padding`.
     pub padding: f32,
-    /// Tengen, with `padding`, `label_inset`: `padding`, `spacing`, `label_inset`:
-    /// `GROUP_BOX.padding`, `SPACE_1` between the label and the box, `GROUP_BOX.label_inset`.
+    /// Tengen: `SPACE_1` between the label and the box.
     pub spacing: f32,
-    /// Tengen, with `padding`, `spacing`: `padding`, `spacing`, `label_inset`:
-    /// `GROUP_BOX.padding`, `SPACE_1` between the label and the box, `GROUP_BOX.label_inset`.
+    /// Tengen: `GROUP_BOX.label_inset`.
     pub label_inset: f32,
     /// Tengen: `RoundedRectangle { radius: GROUP_BOX.radius, style: Circular }`; a `Capsule` or
     /// `Circle` stays square.
     pub shape: Shape,
-    /// Tengen, with `label`: `background` `Color` of the label color at
-    /// `GROUP_BOX.fill_opacity`; `label` `Role(Label)`.
+    /// Tengen: `background` `Color` of the label color at `GROUP_BOX.fill_opacity`.
     pub background: StateValue<ShapeStyle>,
-    /// Tengen, with `background`: `background` `Color` of the label color at
-    /// `GROUP_BOX.fill_opacity`; `label` `Role(Label)`.
+    /// Tengen: `label` `Role(Label)`.
     pub label: StateValue<ShapeStyle>,
     /// Tengen: `Some((Role(CardBorder), HAIRLINE))`, drawn inside.
     pub border: Option<(ShapeStyle, f32)>,

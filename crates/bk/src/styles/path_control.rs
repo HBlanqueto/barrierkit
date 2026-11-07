@@ -6,7 +6,6 @@ use super::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effe
 #[derive(Clone, Debug)]
 pub struct PathControlStyle {
     /// Tengen, with `gap`: `PATH_CONTROL.height`, `PATH_CONTROL.gap` between parts and
-
     /// chevrons.
     pub height: f32,
     /// Tengen, with `height`: `PATH_CONTROL.height`, `PATH_CONTROL.gap` between parts and

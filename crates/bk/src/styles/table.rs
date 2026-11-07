@@ -16,9 +16,7 @@ use crate::style::Palette;
 #[derive(Clone, Debug)]
 pub struct TableStyle {
     /// Tengen, with `row_height`, `padding_x`, `header_spacing`: `TABLE.header_height`,
-
     /// `TABLE.row_height`, `TABLE.padding_x` on each side of a cell, `SPACE_1` between a
-
     /// header title and its arrow.
     pub header_height: f32,
     /// Tengen, with `header_height`, `padding_x`, `header_spacing`: `TABLE.header_height`,
@@ -33,20 +31,15 @@ pub struct TableStyle {
     /// `TABLE.row_height`, `TABLE.padding_x` on each side of a cell, `SPACE_1` between a header
     /// title and its arrow.
     pub header_spacing: f32,
-    /// Tengen, with `sorted_header_label`: `Role(SecondaryLabel)`; `Role(Label)` for the sorted
-    /// column, which also paints its arrow.
+    /// Tengen: `Role(SecondaryLabel)`.
     pub header_label: StateValue<ShapeStyle>,
-    /// Tengen, with `header_label`: `Role(SecondaryLabel)`; `Role(Label)` for the sorted
-    /// column, which also paints its arrow.
+    /// Tengen: `Role(Label)` for the sorted column, which also paints its arrow.
     pub sorted_header_label: StateValue<ShapeStyle>,
-    /// Tengen, with `alternate_row_background`, `selected_row_background`: `Clear` for even
-    /// rows; `Color` of the label color at `TABLE.zebra` for odd rows; `Accent`.
+    /// Tengen: `Clear` for even rows.
     pub row_background: StateValue<ShapeStyle>,
-    /// Tengen, with `row_background`, `selected_row_background`: `Clear` for even rows; `Color`
-    /// of the label color at `TABLE.zebra` for odd rows; `Accent`.
+    /// Tengen: `Color` of the label color at `TABLE.zebra` for odd rows.
     pub alternate_row_background: StateValue<ShapeStyle>,
-    /// Tengen, with `row_background`, `alternate_row_background`: `Clear` for even rows;
-    /// `Color` of the label color at `TABLE.zebra` for odd rows; `Accent`.
+    /// Tengen: `Accent`.
     pub selected_row_background: StateValue<ShapeStyle>,
     /// Tengen: `Role(Label)`.
     pub label: StateValue<ShapeStyle>,
@@ -56,9 +49,9 @@ pub struct TableStyle {
     pub header_border: Option<(ShapeStyle, f32)>,
     /// Tengen: `system_effect`.
     pub effect: ColorEffect,
-    /// Tengen, with `font`: `CAPTION`, its size also the arrow's; `BODY`.
+    /// Tengen: `CAPTION`, its size also the arrow's.
     pub header_font: Font,
-    /// Tengen, with `header_font`: `CAPTION`, its size also the arrow's; `BODY`.
+    /// Tengen: `BODY`.
     pub font: Font,
 }
 

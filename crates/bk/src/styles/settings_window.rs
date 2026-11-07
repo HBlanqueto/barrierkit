@@ -19,19 +19,11 @@ use crate::theme::{SurfaceKind, popover_palette};
 /// `ToolGroup` of two `IconButton`s. `LanguagePicker` is a `PopUpButton`.
 #[derive(Clone, Debug)]
 pub struct SettingsWindowStyle {
-    /// Tengen, with `toolbar_spacing`, `navigation_spacing`: `SETTINGS.sidebar_search_gap`
-
-    /// under the search field; `SETTINGS.toolbar_gap`, the `spacing` of the bar; `SPACE_2`
-
-    /// between the sidebar toggle and the arrows.
+    /// Tengen: `SETTINGS.sidebar_search_gap` under the search field.
     pub search_gap: f32,
-    /// Tengen, with `search_gap`, `navigation_spacing`: `SETTINGS.sidebar_search_gap` under the
-    /// search field; `SETTINGS.toolbar_gap`, the `spacing` of the bar; `SPACE_2` between the
-    /// sidebar toggle and the arrows.
+    /// Tengen: `SETTINGS.toolbar_gap`, the `spacing` of the bar.
     pub toolbar_spacing: f32,
-    /// Tengen, with `search_gap`, `toolbar_spacing`: `SETTINGS.sidebar_search_gap` under the
-    /// search field; `SETTINGS.toolbar_gap`, the `spacing` of the bar; `SPACE_2` between the
-    /// sidebar toggle and the arrows.
+    /// Tengen: `SPACE_2` between the sidebar toggle and the arrows.
     pub navigation_spacing: f32,
     /// Tengen, with `popover_max_height`, `popover_padding`: `SETTINGS.search_popover_gap`
     /// under the field, `SETTINGS.search_popover_max_height`, the `padding` of the popover menu
@@ -44,56 +36,36 @@ pub struct SettingsWindowStyle {
     /// the field, `SETTINGS.search_popover_max_height`, the `padding` of the popover menu
     /// palette.
     pub popover_padding: f32,
-    /// Tengen, with `result_height`, `result_subtitle_height`: `SETTINGS.search_header_height`;
-    /// `SIDEBAR.item_height`; `SETTINGS.search_result_height` for a result with a pane name
-    /// under it.
+    /// Tengen: `SETTINGS.search_header_height`.
     pub header_height: f32,
-    /// Tengen, with `header_height`, `result_subtitle_height`: `SETTINGS.search_header_height`;
-    /// `SIDEBAR.item_height`; `SETTINGS.search_result_height` for a result with a pane name
-    /// under it.
+    /// Tengen: `SIDEBAR.item_height`.
     pub result_height: f32,
-    /// Tengen, with `header_height`, `result_height`: `SETTINGS.search_header_height`;
-    /// `SIDEBAR.item_height`; `SETTINGS.search_result_height` for a result with a pane name
-    /// under it.
+    /// Tengen: `SETTINGS.search_result_height` for a result with a pane name under it.
     pub result_subtitle_height: f32,
-    /// Tengen, with `result_spacing`: `item_padding_x` of the popover menu palette, also for
-    /// the headers; `SIDEBAR.item_gap` between the tile and the text.
+    /// Tengen: `item_padding_x` of the popover menu palette, also for the headers.
     pub result_padding_x: f32,
-    /// Tengen, with `result_padding_x`: `item_padding_x` of the popover menu palette, also for
-    /// the headers; `SIDEBAR.item_gap` between the tile and the text.
+    /// Tengen: `SIDEBAR.item_gap` between the tile and the text.
     pub result_spacing: f32,
-    /// Tengen, with `result_shape`: `RoundedRectangle { radius: LIST_GROUP.radius, style:
-    /// Circular }`, a `Capsule` or `Circle` stays square; `RoundedRectangle` of the palette's
-    /// `item_radius`.
+    /// Tengen: `RoundedRectangle { radius: LIST_GROUP.radius, style: Circular }`, a `Capsule`
+    /// or `Circle` stays square.
     pub popover_shape: Shape,
-    /// Tengen, with `popover_shape`: `RoundedRectangle { radius: LIST_GROUP.radius, style:
-    /// Circular }`, a `Capsule` or `Circle` stays square; `RoundedRectangle` of the palette's
-    /// `item_radius`.
+    /// Tengen: `RoundedRectangle` of the palette's `item_radius`.
     pub result_shape: Shape,
     /// Tengen: `Color` of the popover menu background.
     pub popover_background: StateValue<ShapeStyle>,
     /// Tengen: `Role(SecondaryLabel)`, "Suggestions", "Recents".
     pub header: StateValue<ShapeStyle>,
-    /// Tengen, with `result_title`, `result_subtitle`: `Clear`, hovered `Color` of the inactive
-    /// sidebar selection; `Role(Label)`; `Role(SecondaryLabel)`. While the user types.
+    /// Tengen: `Clear`, hovered `Color` of the inactive sidebar selection.
     pub result_background: StateValue<ShapeStyle>,
-    /// Tengen, with `result_background`, `result_subtitle`: `Clear`, hovered `Color` of the
-    /// inactive sidebar selection; `Role(Label)`; `Role(SecondaryLabel)`. While the user types.
+    /// Tengen: `Role(Label)`.
     pub result_title: StateValue<ShapeStyle>,
-    /// Tengen, with `result_background`, `result_title`: `Clear`, hovered `Color` of the
-    /// inactive sidebar selection; `Role(Label)`; `Role(SecondaryLabel)`. While the user types.
+    /// Tengen: `Role(SecondaryLabel)`. While the user types.
     pub result_subtitle: StateValue<ShapeStyle>,
-    /// Tengen, with `suggestion_title`, `suggestion_subtitle`: `Clear`, hovered `Accent`;
-    /// `Role(Label)`, hovered `Role(OnAccent)`; `Role(SecondaryLabel)`, hovered
-    /// `Role(OnAccent)`. Before the user types.
+    /// Tengen: `Clear`, hovered `Accent`.
     pub suggestion_background: StateValue<ShapeStyle>,
-    /// Tengen, with `suggestion_background`, `suggestion_subtitle`: `Clear`, hovered `Accent`;
-    /// `Role(Label)`, hovered `Role(OnAccent)`; `Role(SecondaryLabel)`, hovered
-    /// `Role(OnAccent)`. Before the user types.
+    /// Tengen: `Role(Label)`, hovered `Role(OnAccent)`.
     pub suggestion_title: StateValue<ShapeStyle>,
-    /// Tengen, with `suggestion_background`, `suggestion_title`: `Clear`, hovered `Accent`;
-    /// `Role(Label)`, hovered `Role(OnAccent)`; `Role(SecondaryLabel)`, hovered
-    /// `Role(OnAccent)`. Before the user types.
+    /// Tengen: `Role(SecondaryLabel)`, hovered `Role(OnAccent)`. Before the user types.
     pub suggestion_subtitle: StateValue<ShapeStyle>,
     /// Tengen: `Some((Color of the popover separator, HAIRLINE))`, drawn outside.
     pub popover_border: Option<(ShapeStyle, f32)>,

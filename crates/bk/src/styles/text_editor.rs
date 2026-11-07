@@ -11,12 +11,9 @@ use super::{ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, syst
 /// States: hovered, focused.
 #[derive(Clone, Debug)]
 pub struct TextEditorStyle {
-    /// Tengen, with `padding_y`: `TEXT_FIELD.padding_x`; (`TEXT_FIELD.height` −
-
-    /// `BODY.line_height`) / 2.
+    /// Tengen: `TEXT_FIELD.padding_x`.
     pub padding_x: f32,
-    /// Tengen, with `padding_x`: `TEXT_FIELD.padding_x`; (`TEXT_FIELD.height` −
-    /// `BODY.line_height`) / 2.
+    /// Tengen: (`TEXT_FIELD.height` − `BODY.line_height`) / 2.
     pub padding_y: f32,
     /// Tengen, with `find_bar_spacing`: `SPACE_1` between the find bar and the text, `SPACE_2`
     /// inside the find bar.
@@ -29,9 +26,9 @@ pub struct TextEditorStyle {
     pub shape: Shape,
     /// Tengen: `Role(ContentBackground)`.
     pub background: StateValue<ShapeStyle>,
-    /// Tengen, with `placeholder`: `Role(Label)`, the caret too; `Role(TertiaryLabel)`.
+    /// Tengen: `Role(Label)`, the caret too.
     pub text: StateValue<ShapeStyle>,
-    /// Tengen, with `text`: `Role(Label)`, the caret too; `Role(TertiaryLabel)`.
+    /// Tengen: `Role(TertiaryLabel)`.
     pub placeholder: StateValue<ShapeStyle>,
     /// Tengen, with `misspelling`, `caption`: `Accent`, `Role(Destructive)`,
     /// `Role(SecondaryLabel)` for the match count.

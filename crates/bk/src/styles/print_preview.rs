@@ -11,7 +11,6 @@ use crate::style::Palette;
 #[derive(Clone, Debug)]
 pub struct PrintPreviewStyle {
     /// Tengen, with `spacing`, `caption_gap`: `SPACE_3` around the pages, `SPACE_3` between
-
     /// them, `SPACE_2` between a page and its number.
     pub padding: f32,
     /// Tengen, with `padding`, `caption_gap`: `SPACE_3` around the pages, `SPACE_3` between

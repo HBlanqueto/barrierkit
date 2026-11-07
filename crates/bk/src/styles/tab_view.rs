@@ -7,7 +7,6 @@ use super::{ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, syst
 #[derive(Clone, Debug)]
 pub struct TabViewStyle {
     /// Tengen, with `spacing`, `content_spacing`: `TOOLBAR_TABS.padding` inside the strip,
-
     /// `TOOLBAR_TABS.gap` between tabs, `SPACE_2` between the strip and the page.
     pub padding: f32,
     /// Tengen, with `padding`, `content_spacing`: `TOOLBAR_TABS.padding` inside the strip,
@@ -16,39 +15,28 @@ pub struct TabViewStyle {
     /// Tengen, with `padding`, `spacing`: `TOOLBAR_TABS.padding` inside the strip,
     /// `TOOLBAR_TABS.gap` between tabs, `SPACE_2` between the strip and the page.
     pub content_spacing: f32,
-    /// Tengen, with `tab_padding`, `icon_size`, `icon_spacing`: `TOOLBAR_TABS.tab_min_width`;
-    /// `(tab_padding_top, tab_padding_bottom)`; `TOOLBAR_TABS.icon`; `TOOLBAR_TABS.icon_gap`.
+    /// Tengen: `TOOLBAR_TABS.tab_min_width`.
     pub tab_min_width: f32,
-    /// Tengen, with `tab_min_width`, `icon_size`, `icon_spacing`: `TOOLBAR_TABS.tab_min_width`;
-    /// `(tab_padding_top, tab_padding_bottom)`; `TOOLBAR_TABS.icon`; `TOOLBAR_TABS.icon_gap`.
+    /// Tengen: `(tab_padding_top, tab_padding_bottom)`.
     pub tab_padding: (f32, f32),
-    /// Tengen, with `tab_min_width`, `tab_padding`, `icon_spacing`:
-    /// `TOOLBAR_TABS.tab_min_width`; `(tab_padding_top, tab_padding_bottom)`;
-    /// `TOOLBAR_TABS.icon`; `TOOLBAR_TABS.icon_gap`.
+    /// Tengen: `TOOLBAR_TABS.icon`.
     pub icon_size: f32,
-    /// Tengen, with `tab_min_width`, `tab_padding`, `icon_size`: `TOOLBAR_TABS.tab_min_width`;
-    /// `(tab_padding_top, tab_padding_bottom)`; `TOOLBAR_TABS.icon`; `TOOLBAR_TABS.icon_gap`.
+    /// Tengen: `TOOLBAR_TABS.icon_gap`.
     pub icon_spacing: f32,
-    /// Tengen, with `tab_shape`: `RoundedRectangle` of `TOOLBAR_TABS.radius` and of
-    /// `TOOLBAR_TABS.tab_radius`, `Circular`; a `Capsule` rounds by half the height of the
-    /// strip or the tab.
+    /// Tengen: `RoundedRectangle` of `TOOLBAR_TABS.radius` and of `TOOLBAR_TABS.tab_radius`,
+    /// `Circular`.
     pub shape: Shape,
-    /// Tengen, with `shape`: `RoundedRectangle` of `TOOLBAR_TABS.radius` and of
-    /// `TOOLBAR_TABS.tab_radius`, `Circular`; a `Capsule` rounds by half the height of the
-    /// strip or the tab.
+    /// Tengen: a `Capsule` rounds by half the height of the strip or the tab.
     pub tab_shape: Shape,
     /// Tengen: `Role(SunkenBackground)`, the strip.
     pub background: StateValue<ShapeStyle>,
-    /// Tengen, with `selected_tab_background`: `Clear`, hovered `Role(ControlBackground)`;
-    /// `Role(ControlHover)`.
+    /// Tengen: `Clear`, hovered `Role(ControlBackground)`.
     pub tab_background: StateValue<ShapeStyle>,
-    /// Tengen, with `tab_background`: `Clear`, hovered `Role(ControlBackground)`;
-    /// `Role(ControlHover)`.
+    /// Tengen: `Role(ControlHover)`.
     pub selected_tab_background: StateValue<ShapeStyle>,
-    /// Tengen, with `selected_label`: `Role(SecondaryLabel)`, `Accent`; the icon takes the same
-    /// paint.
+    /// Tengen: `Role(SecondaryLabel)`, `Accent`.
     pub label: StateValue<ShapeStyle>,
-    /// Tengen, with `label`: `Role(SecondaryLabel)`, `Accent`; the icon takes the same paint.
+    /// Tengen: the icon takes the same paint.
     pub selected_label: StateValue<ShapeStyle>,
     /// Tengen: `Some((Role(Separator), HAIRLINE))`, drawn inside the strip.
     pub border: Option<(ShapeStyle, f32)>,

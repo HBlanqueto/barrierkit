@@ -11,7 +11,6 @@ use super::{
 #[derive(Clone, Debug)]
 pub struct ToolGroupStyle {
     /// Tengen: `TOOLGROUP.height`: the square slot of each item and the thickness of the
-
     /// group.
     pub item_size: f32,
     /// Tengen: `TOOLGROUP.padding_x`, at both ends along the axis.

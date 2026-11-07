@@ -29,9 +29,9 @@ pub struct LevelSliderStyle {
     pub icon_size: f32,
     /// Tengen: `SLIDER_FAT.lead_icon_x`.
     pub icon_inset: f32,
-    /// Tengen, with `knob_shape`: `Capsule`, `Capsule`; the fill takes the track's shape.
+    /// Tengen: `Capsule`, `Capsule`.
     pub track_shape: Shape,
-    /// Tengen, with `track_shape`: `Capsule`, `Capsule`; the fill takes the track's shape.
+    /// Tengen: the fill takes the track's shape.
     pub knob_shape: Shape,
     /// Tengen: `Role(ControlBackground)`.
     pub track: StateValue<ShapeStyle>,
