@@ -310,7 +310,7 @@ impl Component for Window {
         if breakpoint != Breakpoint::Wide {
             titlebar = titlebar.right(
                 IconButton::new(Symbol::ListBullet, tr!("queue"))
-                    .on_press(move |_| queue_open.set(!*queue_open.peek())),
+                    .on_press(move |_| queue_open.toggle()),
             );
         }
         let content = if compact {
