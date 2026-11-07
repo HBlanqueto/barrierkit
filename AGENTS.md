@@ -57,7 +57,7 @@ Aplica a `README.md`, `docs/` y los ADR.
 
 ## Nombres y glosario
 
-Aplica a todo elemento público del kit y de `ct-design` (tipos, funciones,
+Aplica a todo elemento público del kit y de `ctdesign` (tipos, funciones,
 métodos, hooks, tokens).
 
 1. **Una sola fuente:** `docs/barrierkit/20-glossary.md` lista cada nombre
@@ -76,7 +76,7 @@ métodos, hooks, tokens).
    `docs/ai/` (`prompt.md`, `recipes.md`, `checklist.md`).
 5. **El código de la documentación compila.** Cada bloque con `fn main` de
    `docs/ai/recipes.md` y del capítulo 2 se compila antes del push (por
-   ejemplo, en un `crates/barrier-kit/examples/` temporal con
+   ejemplo, en un `crates/bk/examples/` temporal con
    `cargo clippy --examples -- -D warnings`, que se borra después).
 
 ## Código mínimo (reglas duras, estilo ponytail)
@@ -131,8 +131,8 @@ Se cumplen al pie de la letra. Ganan el diff más corto y la respuesta más cort
 ```rust
 // ✗ literal y geometría recalculada
 let x = 8.0 + i as f64 * (12.0 + 8.0);
-// ✓ token y función que ya existen (ct-design, ct-appearance::traffic)
-let (x, y, d) = ct_appearance::traffic::button_rect(i);
+// ✓ token y función que ya existen (ctdesign, ctappearance::traffic)
+let (x, y, d) = ctappearance::traffic::button_rect(i);
 ```
 
 ```rust
@@ -148,11 +148,11 @@ pub fn focused(mut self, focused: bool) -> Self { … }
 // SAFETY: instance, device and queue live in `Self` and outlive the Skia context.
 ```
 
-- Una app empieza por `use barrier_kit::prelude::*;` y
+- Una app empieza por `use bk::prelude::*;` y
   `Application::new(..).window(..).run()`; `run_window` solo cuando dibuja su
   propia barra de título (ADR 0061).
-- Los colores, radios, duraciones y métricas nuevos van a `ct-design`, nunca
-  a `barrier-kit`.
+- Los colores, radios, duraciones y métricas nuevos van a `ctdesign`, nunca
+  a `bk`.
 - Un control nuevo compone primitivas del kit; no reimplementa la barra
   lateral, los menús ni los semáforos (ADR 0047).
 - El texto visible va en `i18n/{en,es}/<crate>.ftl` y se lee con `tr!`;

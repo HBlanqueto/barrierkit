@@ -1,6 +1,6 @@
 BarrierKit includes third-party material.
 
-crates/barrier-kit/src/platform/vulkan.rs
+crates/bk/src/platform/vulkan.rs
   Ported from the Vulkan driver of freya-winit 0.4.3 (src/drivers/vulkan.rs),
   part of Freya (https://github.com/marc2332/freya).
   Copyright (c) Marc Espín Sanz. Licensed under the MIT License:

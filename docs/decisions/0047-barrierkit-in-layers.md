@@ -63,7 +63,7 @@ User decisions already taken (2026-10-28):
 
 ### 2. Rules for every kit component
 
-- **Single source of design.** Every visual value comes from `ct-design` (Tengen, ADR 0011/0032/0046). If a token is missing, it is added to `tengen/components.json` and generated; a literal never goes in the component.
+- **Single source of design.** Every visual value comes from `ctdesign` (Tengen, ADR 0011/0032/0046). If a token is missing, it is added to `tengen/components.json` and generated; a literal never goes in the component.
 - **Variants, not free styles.** Each component exposes system variants through enums such as `ButtonStyle::{Primary, Secondary, Glass, GlassProminent, Borderless}` or `ControlSize::{Small, Regular, Large}`. There is no `.background(color)` in the kit components.
 - **Controlled and declarative.** The app holds the state (`State<T>`). The component receives `value` and reports with `on_change`. No hidden state the app cannot read.
 - **Common interaction.** Every interactive control uses the same hook `use_interaction()`, which gives hover, pressed, keyboard focus and disabled. The focus ring (`focus-ring`) is drawn only when navigating with the keyboard.
@@ -151,10 +151,10 @@ Status: **exists** = already in the kit, even if it needs fixing · **partial** 
 
 ### 4. Crate structure
 
-A single crate, `barrier-kit`. Layers 0, 2, 3, the App column and the shell have a folder; layer 1 is loose modules at the root, one per control family:
+A single crate, `bk`. Layers 0, 2, 3, the App column and the shell have a folder; layer 1 is loose modules at the root, one per control family:
 
 ```
-barrier-kit/src/
+bk/src/
   platform/   layer 0
   *.rs        layer 1
   views/      layer 2
@@ -165,7 +165,7 @@ barrier-kit/src/
 
 The module list of each layer is in [Layers](../barrierkit/03-layers.md#modules-by-layer).
 
-There is no `prelude.rs`: each app imports from its module (`barrier_kit::views::form::Form`).
+There is no `prelude.rs`: each app imports from its module (`bk::views::form::Form`).
 
 **The shell part goes separately, as on macOS.** The macOS Dock, menu bar and lock screen do not use the public AppKit API for what they do differently: they use private frameworks (SkyLight and friends). Here that separation is reproduced inside the same crate:
 
@@ -182,9 +182,9 @@ There is no `prelude.rs`: each app imports from its module (`barrier_kit::views:
     activation.rs      xdg-activation tokens to launch apps from the Dock
   ```
 
-- The `shell/` submodules are private (`mod activation;`, `mod infinity;`…); the public API comes only from `mod.rs` through `pub use`. The shell views import `barrier_kit::shell::{LayerSpec, run_layer, …}`, not the internal files.
+- The `shell/` submodules are private (`mod activation;`, `mod infinity;`…); the public API comes only from `mod.rs` through `pub use`. The shell views import `bk::shell::{LayerSpec, run_layer, …}`, not the internal files.
 
-- The folder only compiles with the `shell` feature (`#[cfg(feature = "shell")] pub mod shell;`). `malaysia-shell` enables it in its `Cargo.toml`; Settings, Master Tengen App Show and any new app do not. For them `barrier_kit::shell` does not exist: they neither compile it nor can call it by mistake.
+- The folder only compiles with the `shell` feature (`#[cfg(feature = "shell")] pub mod shell;`). `malaysia-shell` enables it in its `Cargo.toml`; Settings, Master Tengen App Show and any new app do not. For them `bk::shell` does not exist: they neither compile it nor can call it by mistake.
 - **Direction of dependencies:** `shell/` uses `platform/`, but `platform/` knows nothing about `shell/`. The runner exposes extension points (see «Extension points» below), and `shell/` hooks into them. No stray `#[cfg(feature = "shell")]` inside `platform/`, except the line that registers the module.
 - The shell views (menubar, dock, lock, launcher) stay in `malaysia-shell` and are built with layers 1–3 like any app. `src/shell/` only provides the protocols and platform types those views need.
 
@@ -238,7 +238,7 @@ Done in `main`:
 - **App**: `Action` with typed `Shortcut`, `load_defaults`/`save_defaults` with change notification, `launch` (single instance; `Activate` brings the window to the front through xdg-activation and `ActivateAction` fires the action with the same id as the menu), a focused text field keeps Ctrl+A, C, V, X, Y and Z before the menu, panel restoration, `use_undo` (`UndoManager` with the standard actions `UNDO`, Ctrl+Z, and `REDO`, Ctrl+Shift+Z), which disables and enables its global menu entries according to the stack.
 - **Layer 2**: `Form`/`Section`/`Row`, `SplitView` (replaces `SidebarLayout`), `History` and `navigation_buttons` (actions `GO_BACK` and `GO_FORWARD` with Alt+← and Alt+→; `PreferencesWindow` puts the panel title in the bar), `SearchIndex`, `empty_state`, `sheet`, `Alert`, `TabView`, `Table`, `CollectionView`, `SidebarAccount` and `context_menu` (`MenuView` at the pointer on secondary click).
 - **Layer 3**: `PreferencesWindow` (search field with suggestions and recents that are restored, results with the icon of their panel and traversal with ↑, ↓ and Enter) and `about_window`.
-- **Tinted backdrops**: `Backdrop` paints three layers at 127°, 217° and 336° with dithering, from an image (k-means in OKLab, `ct_appearance::backdrop`) or three colours, and cross-fades between backdrops. Inside, `Palette::current()` gives its ink and its accent (`Accent::System`, `Own` or `FromBackdrop`), the same in light as in dark; filled controls accept `.tint(Tint::Accent | Color | Backdrop)`. The content has to be a child component of the `Backdrop`: functions evaluated in the parent read the system palette. The `Sidebar` lets the backdrop show through or, as an island, the app tints it with `SidebarBackdrop::Tinted` (ADR 0057).
+- **Tinted backdrops**: `Backdrop` paints three layers at 127°, 217° and 336° with dithering, from an image (k-means in OKLab, `ctappearance::backdrop`) or three colours, and cross-fades between backdrops. Inside, `Palette::current()` gives its ink and its accent (`Accent::System`, `Own` or `FromBackdrop`), the same in light as in dark; filled controls accept `.tint(Tint::Accent | Color | Backdrop)`. The content has to be a child component of the `Backdrop`: functions evaluated in the parent read the system palette. The `Sidebar` lets the backdrop show through or, as an island, the app tints it with `SidebarBackdrop::Tinted` (ADR 0057).
 - **Adaptive layout**: `use_breakpoint()` gives `Compact`, `Medium` or `Wide` according to `BREAKPOINT`.
 - **Master Tengen App Show** (`tengen-app-show`), which gathers components, animations and titlebars, **Ondina** (`ondina`), the player that uses the backdrops, its own accent, the three sizes and the kit navigation, and **Marea** (`marea`), with media; they are the test apps of the repository.
 - **Phase 6**: System Settings is a `PreferencesWindow` with a `Form`; it no longer has its own controls, sidebar or search field.
@@ -258,9 +258,9 @@ Decided: menu shortcuts stay stored as text (`MenuItem::Action::shortcut`). That
 ## Consequences
 
 - System Settings stops defining controls: `controls.rs`, `sidebar.rs`, `groups.rs` and their local `svg_viewer`/`rgba` disappear in phase 6.
-- `barrier_kit::controls` stops re-exporting Freya components with their default look.
+- `bk::controls` stops re-exporting Freya components with their default look.
 - The global menu, the shortcuts and the toolbar share a single action model.
-- Many tokens are added to `tengen/components.json` (controls, split view, toolbar, table…) and the `ct-design` generator grows.
+- Many tokens are added to `tengen/components.json` (controls, split view, toolbar, table…) and the `ctdesign` generator grows.
 - The work is long. Rebuilding Settings comes at the end of phase 6.
 
 ## References
@@ -280,17 +280,17 @@ This is the API of `main` as of 2026-11-03.
 ### A preferences app with layer 3
 
 ```rust
-use barrier_kit::app::{Action, Instance, Launch, Shortcut, ShortcutKey, launch};
-use barrier_kit::app::{REDO, UNDO, UndoManager, use_menu_action, use_undo};
-use barrier_kit::app_menu::{AppMenu, Menu};
-use barrier_kit::choices::ColorWell;
-use barrier_kit::patterns::preferences::{Pane, PaneGroup, PreferencesWindow};
-use barrier_kit::platform::{WindowOptions, run_window};
-use barrier_kit::symbol::Symbol;
-use barrier_kit::views::form::{Form, Row, Section};
+use bk::app::{Action, Instance, Launch, Shortcut, ShortcutKey, launch};
+use bk::app::{REDO, UNDO, UndoManager, use_menu_action, use_undo};
+use bk::app_menu::{AppMenu, Menu};
+use bk::choices::ColorWell;
+use bk::patterns::preferences::{Pane, PaneGroup, PreferencesWindow};
+use bk::platform::{WindowOptions, run_window};
+use bk::symbol::Symbol;
+use bk::views::form::{Form, Row, Section};
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
-use ct_design::{ACCENT_SWATCHES, WINDOW_MIN_SIZE};
+use ctdesign::{ACCENT_SWATCHES, WINDOW_MIN_SIZE};
 
 const RESET: Action =
     Action::new("reset", || tr!("reset")).shortcut(Shortcut::ctrl(ShortcutKey::Char('r')));
@@ -341,7 +341,7 @@ fn general(history: UndoManager<usize>, selected: usize) -> Form {
 }
 
 fn main() {
-    let app_id = barrier_kit::titlebar::app_id("notes").leak();
+    let app_id = bk::titlebar::app_id("notes").leak();
     let instance = match launch(app_id) {
         Ok(Launch::Forwarded) => return,
         Ok(Launch::Primary(instance)) => Some(instance),
@@ -366,4 +366,4 @@ fn main() {
 - `use_undo` wraps a `State` of the app. Each `set` saves the previous value, and `UNDO` and `REDO` walk it from the menu, the shortcut or the `undo` and `redo` methods.
 - `PreferencesWindow` builds the sidebar, the search field and the panel restoration. The `keywords` of each `Row` go into the search.
 - Controls are controlled: `selected`, `value`, `on` or `checked` rule when the app changes them, and the control keeps what the user changes in the meantime. That is why the `ColorWell` shows what the app undoes.
-- Colours and measurements come from `ct_design`. An app does not write design literals.
+- Colours and measurements come from `ctdesign`. An app does not write design literals.

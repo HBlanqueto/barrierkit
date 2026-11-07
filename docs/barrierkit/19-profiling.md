@@ -7,7 +7,7 @@ zones of a frame in the [Tracy](https://github.com/wolfpld/tracy) viewer.
 What a frame does is in [18. Platform](18-platform.md#the-frame).
 **Reader:** whoever looks for why an app is slow, or checks that a change
 makes it faster.
-**Input:** an app whose `main` calls `barrier_kit::init_tracing()`.
+**Input:** an app whose `main` calls `bk::init_tracing()`.
 **Output:** a Tracy trace with one frame per draw and its zones.
 
 ## Steps
@@ -16,7 +16,7 @@ makes it faster.
 2. Build and run the app in release with the feature:
 
    ```sh
-   cargo run --release --features barrier-kit/tracy -p <app>
+   cargo run --release --features bk/tracy -p <app>
    ```
 
 3. In another dev-shell terminal, start the viewer and connect to the app in
@@ -31,7 +31,7 @@ makes it faster.
 
 ## `init_tracing`
 
-`barrier_kit::init_tracing()` installs the global `tracing` subscriber. Call
+`bk::init_tracing()` installs the global `tracing` subscriber. Call
 it once, at the start of `main`.
 
 | Layer | Filter | Present |
@@ -40,7 +40,7 @@ it once, at the start of `main`.
 | `tracing_tracy::TracyLayer` | None: it gets every span | With the `tracy` feature |
 
 `RUST_LOG` is parsed as a `tracing_subscriber::filter::Targets` list, such as
-`RUST_LOG=info,barrier_kit::resize=debug`. Span-field filters are not
+`RUST_LOG=info,bk::resize=debug`. Span-field filters are not
 supported.
 
 The zones are `trace` spans. Without the `tracy` feature and with the default
@@ -74,11 +74,11 @@ connected.
 - `glass` and `material` appear inside `render` only when the frame contains
   those elements.
 
-For timings without the viewer, the `barrier_kit::resize` target logs each
+For timings without the viewer, the `bk::resize` target logs each
 draw start and the present time (`swap_us`) per surface:
 
 ```sh
-RUST_LOG=info,barrier_kit::resize=debug cargo run --release -p <app>
+RUST_LOG=info,bk::resize=debug cargo run --release -p <app>
 ```
 
 ## Tracy version

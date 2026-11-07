@@ -4,7 +4,7 @@
 bar menu, saved settings, undo, a single instance and the desktop services.
 **Scope:** starts with an app that already opens a window
 ([2. Your first app](02-first-app.md)) and ends with the services in
-`barrier_kit::app`, `app_menu`, `status_item`, `notifications`, `secrets` and
+`bk::app`, `app_menu`, `status_item`, `notifications`, `secrets` and
 `portal`. `Application` and `Scene` are in
 [2](02-first-app.md#what-application-does-for-you), `WindowOptions` in
 [8. Windows](08-windows.md), `MenuItem` and `CheckState` in
@@ -338,7 +338,7 @@ zeroed.
 
 ## Portals
 
-`barrier_kit::portal` talks to `org.freedesktop.portal.Desktop`. The calls are
+`bk::portal` talks to `org.freedesktop.portal.Desktop`. The calls are
 `async`: run them with `spawn` from a component. Failures log a warning.
 
 | Function | Portal | Returns |

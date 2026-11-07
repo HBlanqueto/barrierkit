@@ -2,7 +2,7 @@
 
 **Goal:** paint a backdrop tinted from an image, place media pieces over it,
 merge glass shapes and play video.
-**Scope:** `barrier_kit::backdrop`, `media`, `glass_container` and `video`.
+**Scope:** `bk::backdrop`, `media`, `glass_container` and `video`.
 The window's own glass bars are in [9. Titlebars](09-titlebars.md); the
 palette a backdrop replaces is in
 [4. Appearance and tokens](04-appearance-and-tokens.md); the controls that
@@ -104,8 +104,8 @@ In an inactive window every tint falls back to the palette's accent.
 
 ## Media
 
-`barrier_kit::media` has the pieces of a media view. Their colors and sizes
-are the `MEDIA` tokens of `ct_design`, fixed for a dark image behind them.
+`bk::media` has the pieces of a media view. Their colors and sizes
+are the `MEDIA` tokens of `ctdesign`, fixed for a dark image behind them.
 
 | Item | What it is |
 |---|---|
@@ -168,7 +168,7 @@ not publish its morph curve; only the duration and the bounce would change.
 
 ## Video
 
-`barrier_kit::video` needs the `video` feature and GStreamer.
+`bk::video` needs the `video` feature and GStreamer.
 
 ```rust
 let video = VideoStream::open("trailer.mp4", true)?;

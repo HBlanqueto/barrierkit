@@ -1,16 +1,16 @@
 # Tengen
 
 **Goal:** change or add a design value of Tengen, the desktop's visual
-language, and know which `ct-design` constant carries it.
-**Scope:** from the JSON files in `crates/ct-design/tengen/` to the Rust
-constants that `barrier-kit` and Malaysia (compositor, shell, portal) read,
-and how `ct-appearance` combines them with the user's appearance. Using the
+language, and know which `ctdesign` constant carries it.
+**Scope:** from the JSON files in `crates/ctdesign/tengen/` to the Rust
+constants that `bk` and Malaysia (compositor, shell, portal) read,
+and how `ctappearance` combines them with the user's appearance. Using the
 constants in an app is in
 [4. Appearance and tokens](../barrierkit/04-appearance-and-tokens.md).
 **Reader:** whoever changes a colour, a metric, a font or a design threshold.
 **Input:** `tengen/tokens.json` and `tengen/components.json`.
 **Output:** `$OUT_DIR/tengen.rs`, compile-time constants that
-`crates/ct-design/src/lib.rs` includes with `include!`
+`crates/ctdesign/src/lib.rs` includes with `include!`
 ([ADR 0011](../decisions/0011-design-values-as-rust-constants.md)).
 
 Tengen is the visual language (the role Aqua has in macOS). CTDesign is the
@@ -35,7 +35,7 @@ Do not edit `src/lib.rs` to change a value: it holds the types and the API.
 ## Steps to add a constant
 
 1. Add the key to `components.json` (or `tokens.json` for a base value).
-2. Add a line to the `CONSTANTS` table in `crates/ct-design/build.rs`:
+2. Add a line to the `CONSTANTS` table in `crates/ctdesign/build.rs`:
    `NAME type path`, for example `SPACE_4 f32 space.4`. For a value that
    changes per theme, use the `THEMED` table and write `{theme}` in the path.
 3. If the type is a new struct, declare it in `src/lib.rs`, one `pub field:
@@ -45,8 +45,8 @@ Do not edit `src/lib.rs` to change a value: it holds the types and the API.
 4. When a field's key has another name, add `field=key` after the path in the
    table. `field==value` writes a literal instead.
 5. Build. A missing key, struct or field stops the build with
-   `ct-design: …` and the path it looked for.
-6. Use the constant through `ct_design::NAME` and run `./dev.sh check`.
+   `ctdesign: …` and the path it looked for.
+6. Use the constant through `ctdesign::NAME` and run `./dev.sh check`.
 
 ## What the build writes
 
@@ -84,7 +84,7 @@ build.
 
 ## Appearance and wallpaper
 
-`ct-appearance` turns the constants into the resolved appearance with
+`ctappearance` turns the constants into the resolved appearance with
 `resolve(&load_appearance(), load_dominant())`.
 
 1. `appearance.color_scheme` picks the theme. `auto` resolves to `light`
@@ -96,8 +96,8 @@ build.
    the Dock (`PANEL_TINT_WALLPAPER`).
 4. The dominant colour comes from `wallpaper.state` in the data dir
    (`~/.local/share/malaysia/wallpaper.state`, `dominant = [r, g, b]`).
-   `malaysia-wallpaper` writes it with `ct_appearance::write_dominant`.
-5. `ct_appearance::backdrop::dominant_from_pixels` computes it: k-means in
+   `malaysia-wallpaper` writes it with `ctappearance::write_dominant`.
+5. `ctappearance::backdrop::dominant_from_pixels` computes it: k-means in
    OKLab, drops the clusters with less chroma than `DOMINANT_MIN_CHROMA`,
    picks the one with the largest area × chroma and clamps its HSL lightness
    into `DOMINANT_LIGHTNESS`.
@@ -110,13 +110,13 @@ The kit, the compositor and the portal watch `appearance.domain` and
 
 `scripts/check-design-tokens.sh` runs in `./dev.sh check` and in the flake's
 `design-tokens` check. In the production code of `crates/*/src`, except
-`ct-design`, it rejects:
+`ctdesign`, it rejects:
 
 | Pattern | Rule |
 |---|---|
-| A hex colour (`0xRRGGBB`) or `Rgba::rgb8(…)` / `Rgba::rgba8(…)` with numbers | Colours live in `ct-design` |
+| A hex colour (`0xRRGGBB`) or `Rgba::rgb8(…)` / `Rgba::rgba8(…)` with numbers | Colours live in `ctdesign` |
 | A local `[u8; 4]` | Convert with `Rgba::to_rgba8` |
-| `const NAME: i32/u32/f32 = <number>` in `password.rs`, `controls.rs`, `theme.rs` | Measurements live in `ct-design` |
+| `const NAME: i32/u32/f32 = <number>` in `password.rs`, `controls.rs`, `theme.rs` | Measurements live in `ctdesign` |
 
 ## Related
 

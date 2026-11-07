@@ -2,7 +2,7 @@
 
 **Goal:** find the module of any piece of the kit and know which layer a new
 piece belongs to.
-**Scope:** the modules of `crates/barrier-kit/src/`, the prelude and the rules
+**Scope:** the modules of `crates/bk/src/`, the prelude and the rules
 between layers. Which layer to start an app from is in
 [1](01-what-is-barrierkit.md#which-level-to-use); the reasons are in
 [ADR 0047](../decisions/0047-barrierkit-in-layers.md).
@@ -12,10 +12,10 @@ its import and its layer.
 
 ## Steps
 
-1. Try the prelude first: `use barrier_kit::prelude::*;` brings the names in
+1. Try the prelude first: `use bk::prelude::*;` brings the names in
    [The prelude](#the-prelude).
 2. For any other name, find its module in [Modules by layer](#modules-by-layer)
-   and import it by path, for example `use barrier_kit::views::form::Form;`.
+   and import it by path, for example `use bk::views::form::Form;`.
    The [glossary](20-glossary.md) lists every public name with its module.
 3. To add a component, put it in the lowest layer that has everything it needs.
    It may use only the layers below it ([Rules](#rules)).
@@ -42,7 +42,7 @@ its import and its layer.
 
 ## Modules by layer
 
-Each row lists the public modules of `crates/barrier-kit/src/lib.rs`. Internal
+Each row lists the public modules of `crates/bk/src/lib.rs`. Internal
 modules (not `pub`) are in the last column; an app cannot import them.
 
 | Layer | Public modules | Internal |
@@ -61,7 +61,7 @@ Three items live at the crate root: `register_font`, `init_tracing` and
 
 The prelude re-exports the entry points, the controls, Freya's prelude and the
 common tokens. Its exact contents are in [2](02-first-app.md#the-prelude). Any
-other token comes from `ct_design`, which the app then adds as a dependency.
+other token comes from `ctdesign`, which the app then adds as a dependency.
 
 ## Rules
 
@@ -84,7 +84,7 @@ other token comes from `ct_design`, which the app then adds as a dependency.
 
 | Rule | ✗ | ✓ |
 |---|---|---|
-| Values come from Tengen ([4](04-appearance-and-tokens.md#tokens-ct-design)) | `.corner_radius(6.)` | `.corner_radius(BUTTON.radius)` |
+| Values come from Tengen ([4](04-appearance-and-tokens.md#tokens-ctdesign)) | `.corner_radius(6.)` | `.corner_radius(BUTTON.radius)` |
 | Colors come from the `Palette` ([4](04-appearance-and-tokens.md#the-palette)) | `Color::from_rgb(0, 0, 0)` | `color(Palette::current().label)` |
 | Variants, not free styles | `.background(red)` on a kit control | `ButtonStyle::Primary`, `.tint(Tint::Color(..))`, `SidebarBackdrop::Tinted` |
 | The app holds the state | The control keeps the value | The control takes the value and reports changes |

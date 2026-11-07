@@ -2,7 +2,7 @@
 
 Status: **accepted** (2026-10-23).
 
-Yuki is now Malaysia and CelestialKit (`celestial-kit`) is BarrierKit (`barrier-kit`) since [ADR 0043](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0043-rebranding-a-malaysia.md).
+Yuki is now Malaysia and CelestialKit (`celestial-kit`) is BarrierKit (`bk`) since [ADR 0043](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0043-rebranding-a-malaysia.md).
 
 ## Context
 

@@ -43,7 +43,7 @@ language is chosen. The language picker widgets are in
    (`mod localize;` in `main.rs`):
 
    ```rust
-   barrier_kit::localize!();
+   bk::localize!();
    ```
 
 5. Choose the language on the first line of `main`, before any `tr!`. Use the
@@ -51,7 +51,7 @@ language is chosen. The language picker widgets are in
 
    ```rust
    fn main() -> Result<(), RunError> {
-       barrier_kit::i18n::use_app_language("notes");
+       bk::i18n::use_app_language("notes");
        Application::new("notes").window("Notes", content).run()
    }
    ```
@@ -75,7 +75,7 @@ language is chosen. The language picker widgets are in
 
 ## How the language is chosen
 
-The kit asks `ct_appearance::language` once per process, the first time a
+The kit asks `ctappearance::language` once per process, the first time a
 text is read. The first source that gives a value wins:
 
 | Order | Source | Written by |
@@ -99,18 +99,18 @@ it reads for the life of the process.
 
 ## `localize!`
 
-`barrier_kit::localize!()` expands in the app crate, so it must live in the
+`bk::localize!()` expands in the app crate, so it must live in the
 module `crate::localize`. It creates:
 
 | Item | What it is |
 |---|---|
 | `struct Localizations` | The `i18n/` folder, embedded with `rust-embed` |
 | `pub static LOADER` | A `LazyLock<FluentLanguageLoader>` built with `i18n::load` on first use |
-| `macro tr!` (`pub(crate)`) | `barrier_kit::tr!` bound to `crate::localize::LOADER` |
+| `macro tr!` (`pub(crate)`) | `bk::tr!` bound to `crate::localize::LOADER` |
 
 ## `tr!`
 
-The app calls the `tr!` that `localize!` creates. `barrier_kit::tr!` itself
+The app calls the `tr!` that `localize!` creates. `bk::tr!` itself
 takes the loader first: `tr!(LOADER, "id", ..)`.
 
 | Form | Returns | Notes |
@@ -160,9 +160,9 @@ keys of the file.
 ## Adding a language
 
 1. Copy `i18n/en/<package>.ftl` to `i18n/<language>/<package>.ftl` in each
-   crate, BarrierKit's `crates/barrier-kit/i18n/` included.
+   crate, BarrierKit's `crates/bk/i18n/` included.
 2. Translate the values. The ids stay the same.
 3. To offer it in the pickers, add it to `LANGUAGES` and to the entries in
-   `crates/barrier-kit/src/patterns/language.rs`.
+   `crates/bk/src/patterns/language.rs`.
 
 Next: [18. Platform](18-platform.md).

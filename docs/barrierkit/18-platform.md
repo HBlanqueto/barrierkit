@@ -22,7 +22,7 @@ These steps open a shell surface, the task only this chapter covers.
 1. Enable the feature in the shell's `Cargo.toml`:
 
    ```toml
-   barrier-kit = { git = "https://github.com/HBlanqueto/barrierkit", rev = "…", features = ["shell"] }
+   bk = { git = "https://github.com/HBlanqueto/barrierkit", rev = "…", features = ["shell"] }
    ```
 
 2. Write the root component, as for a window. Wrap it in an `AppComponent`
@@ -201,7 +201,7 @@ next frame.
 
 ## The `shell` feature
 
-Only shell components enable `barrier-kit/shell`. The feature adds the
+Only shell components enable `bk/shell`. The feature adds the
 `shell` module. Its submodules are private; everything public comes from
 `shell/mod.rs`.
 

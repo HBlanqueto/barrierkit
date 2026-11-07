@@ -3,7 +3,7 @@
 **Goal:** animate a value of your own with the kit's durations and spring, and
 respect reduced motion.
 **Scope:** starts with a component that changes a value and ends with that
-change animated. It covers `barrier_kit::animation` and how the kit uses
+change animated. It covers `bk::animation` and how the kit uses
 `freya-animation`. The duration tokens are defined in
 [4. Appearance and tokens](04-appearance-and-tokens.md); the controls that
 animate on their own are in their chapters.
@@ -44,7 +44,7 @@ reduced motion.
 
 ## Durations
 
-The kit times every animation with three tokens of `ct_design`:
+The kit times every animation with three tokens of `ctdesign`:
 
 | Token | Use |
 |---|---|
@@ -94,7 +94,7 @@ Pressing a button scales it to `BUTTON.pressed_scale` with no animation.
 - With `bounce` 0 the curve is a cubic ease-out, with no overshoot.
 - With more bounce it is a damped oscillation,
   `1 − e^(−SPRING_DAMPING·t)·cos(π(1 + bounce)·t)`, that overshoots and
-  settles. `SPRING_DAMPING` is a `ct_design` token.
+  settles. `SPRING_DAMPING` is a `ctdesign` token.
 - It always ends exactly on `to` at `duration`. In reverse it runs from `to`
   to `from`.
 

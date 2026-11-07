@@ -17,7 +17,7 @@ menu, a button that opens a popover and a control with a tooltip.
 1. Build the items. Each action has an `id` that comes back when it is chosen:
 
    ```rust
-   use barrier_kit::menu::{CheckState, MenuItem};
+   use bk::menu::{CheckState, MenuItem};
 
    let items = vec![
        MenuItem::action("open", tr!("open")).with_shortcut("Ctrl+O"),
@@ -30,7 +30,7 @@ menu, a button that opens a popover and a control with a tooltip.
 2. Wrap the element that receives the secondary click with `context_menu`:
 
    ```rust
-   use barrier_kit::context_menu::context_menu;
+   use bk::context_menu::context_menu;
 
    context_menu(rect().child(Text::new(tr!("file-name"))), items, |id: String| {
        // run the action `id`
@@ -41,7 +41,7 @@ menu, a button that opens a popover and a control with a tooltip.
    `show_popover` on press:
 
    ```rust
-   use barrier_kit::popover::show_popover;
+   use bk::popover::show_popover;
    use torin::prelude::Area;
 
    let mut area = use_state(Area::default);
@@ -57,7 +57,7 @@ menu, a button that opens a popover and a control with a tooltip.
    it to the element:
 
    ```rust
-   use barrier_kit::tooltip::use_tooltip;
+   use bk::tooltip::use_tooltip;
 
    let help = use_tooltip(tr!("add-folder"));
    help.attach(IconButton::new(Symbol::Plus, tr!("add")))
@@ -65,7 +65,7 @@ menu, a button that opens a popover and a control with a tooltip.
 
 ## Menu items
 
-`MenuItem` (`barrier_kit::menu`) is an enum. Build it with the constructors
+`MenuItem` (`bk::menu`) is an enum. Build it with the constructors
 and adjust it with the `with_*` methods; a method that does not apply to the
 variant does nothing.
 
@@ -119,7 +119,7 @@ action's `id` through `on_activate`, then calls `on_dismiss_all`.
 
 | Method | Effect |
 |---|---|
-| `.with_surface(SurfaceKind)` | Palette for a window (`Toplevel`) or a shell surface (`LayerShell`, default). `SurfaceKind` is in `barrier_kit::theme` |
+| `.with_surface(SurfaceKind)` | Palette for a window (`Toplevel`) or a shell surface (`LayerShell`, default). `SurfaceKind` is in `bk::theme` |
 | `.with_popover_metrics()` | Uses the `MENU_POPOVER` sizes (24 px rows, 4 px padding, 180 px minimum width), the look of an app menu on macOS |
 | `.with_fixed_palette(MenuPalette)` | A fixed palette that ignores the appearance (render tests use `MENU_LIGHT` and `MENU_DARK`) |
 | `.with_items_source(f)` | Reads the items from `f` on every render instead of the fixed list |
@@ -181,7 +181,7 @@ A mnemonic is the letter that Alt underlines. Put `MNEMONIC_MARK`
 (U+2063, invisible separator) right before that letter in the label:
 
 ```rust
-let label = format!("{}Open", barrier_kit::menu::MNEMONIC_MARK);
+let label = format!("{}Open", bk::menu::MNEMONIC_MARK);
 ```
 
 While Alt is held, the menu underlines the letter after the mark. The mark is

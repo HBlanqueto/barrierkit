@@ -19,10 +19,10 @@ violations=$(jq -r '
       | if . == [] then error("\($crate) is not a workspace member") else . end
       | closure | map($name[.]);
   [
-    (reach("barrier-kit")[] | select(. == "winit") | "barrier-kit pulls \(.)"),
+    (reach("bk")[] | select(. == "winit") | "bk pulls \(.)"),
     ($name[] | select(test("^(tokio|gtk|glutin|tray-icon|freya|freya-winit|laye-rs|otto-.+)$"))
       | "the workspace pulls \(.)"),
-    (("ct-design", "ct-appearance", "infinity-protocol") as $crate
+    (("ctdesign", "ctappearance", "infinity-protocol") as $crate
       | reach($crate)[] | select(startswith("freya") or contains("skia"))
       | "\($crate) pulls \(.)")
   ] | unique[]

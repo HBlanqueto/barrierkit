@@ -1,8 +1,8 @@
 # 0061 — A SwiftUI-shaped entry API and a glossary of names
 
-Status: **accepted** (2026-11-07). Implemented in `barrier_kit::prelude`,
-`barrier_kit::app::{Application, Scene}` and
-`barrier_kit::elements::{Text, VStack, HStack}`.
+Status: **accepted** (2026-11-07). Implemented in `bk::prelude`,
+`bk::app::{Application, Scene}` and
+`bk::elements::{Text, VStack, HStack}`.
 
 ## Context
 
@@ -19,10 +19,10 @@ configuration, and the call grows only with the use case
 
 ## Decision
 
-1. **One import:** `barrier_kit::prelude::*` re-exports the kit's entry points,
+1. **One import:** `bk::prelude::*` re-exports the kit's entry points,
    elements and controls, Freya's prelude, Torin's `Alignment`, `Direction`
    and `Size`, and the type and spacing tokens. An app depends only on
-   `barrier-kit`.
+   `bk`.
 2. **`Application::new(name).window(title, content).run()`:** `Scene::run`
    draws the window background and a `Titlebar` with the title, centers the
    content and calls `run_window`. `Scene::options` reaches every

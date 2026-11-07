@@ -45,7 +45,7 @@ behavior.
 
 ## Titlebar
 
-`Titlebar` (`barrier_kit::titlebar`, in the prelude) is the client-side title
+`Titlebar` (`bk::titlebar`, in the prelude) is the client-side title
 bar: traffic lights, a left zone, the title and a right zone.
 
 | Method | Default | Effect |
@@ -102,7 +102,7 @@ The app does nothing:
 | `.with_sidebar(true)` and an island sidebar | `Unified` | `SETTINGS.toolbar_height` (52) | `unified` (26) |
 | The rest | `Compact` | `TITLEBAR_CLIENT_HEIGHT` (40) | `compact` (20) |
 
-`Bar` (`barrier_kit::platform`) comes from the Infinity protocol and has four
+`Bar` (`bk::platform`) comes from the Infinity protocol and has four
 values, each an AppKit window kind: `Titlebar` (no toolbar), `Compact`
 (`NSWindow.ToolbarStyle.unifiedCompact`), `Unified` (`.unified`) and
 `Utility` (a panel, radius 15). The kit never sends `Utility`.
@@ -121,11 +121,11 @@ Close, minimize and zoom. `Titlebar`, the `Rail` and
 and the user's settings. Use that function when a view covers the title bar
 and needs its own lights.
 
-For a standalone set, `TrafficLights` (`barrier_kit::traffic`):
+For a standalone set, `TrafficLights` (`bk::traffic`):
 
 ```rust
-use barrier_kit::traffic::TrafficLights;
-use ct_design::ButtonKind;
+use bk::traffic::TrafficLights;
+use ctdesign::ButtonKind;
 
 TrafficLights::new()
     .focused(true)
@@ -174,12 +174,12 @@ draggable areas.
 
 ## Window chrome
 
-`WindowChrome` (`barrier_kit::chrome`) wraps the window and places the traffic
+`WindowChrome` (`bk::chrome`) wraps the window and places the traffic
 lights, the title and the rail items according to a `ChromeStyle`. `Titlebar`
 and `Sidebar` inside it read the style.
 
 ```rust
-use barrier_kit::chrome::{ChromeStyle, TitlebarLayout, WindowChrome};
+use bk::chrome::{ChromeStyle, TitlebarLayout, WindowChrome};
 
 let style = ChromeStyle {
     layout: TitlebarLayout::Rail,

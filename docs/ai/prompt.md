@@ -33,21 +33,21 @@ version.
 - **Language:** Rust 2024, stable toolchain.
 - **Platform:** Linux on Wayland, drawn with Vulkan and Skia. No macOS, no
   Windows, no X11.
-- **Layers:** BarrierKit (`barrier-kit`) is built on Freya 0.4.3
+- **Layers:** BarrierKit (`bk`) is built on Freya 0.4.3
   (`freya-core`), its layout engine Torin, and the design tokens of
-  `ct-design`. An app depends only on `barrier-kit`; the prelude re-exports
+  `ctdesign`. An app depends only on `bk`; the prelude re-exports
   what it needs from the others.
 - **Model:** declarative. A view is a function of the state; when the state
   changes, the kit calls it again and applies the difference.
-- **Shape of every app:** `use barrier_kit::prelude::*;`, then
+- **Shape of every app:** `use bk::prelude::*;`, then
   `Application::new(name).window(title, || view).run()` in `main`. The program
   and what each part does are in
   [chapter 2](../barrierkit/02-first-app.md#hello-world).
 
 ## Hard rules
 
-1. **One import:** `use barrier_kit::prelude::*;`. Import from a module only
-   what the prelude lacks (for example `barrier_kit::views::form::Form`).
+1. **One import:** `use bk::prelude::*;`. Import from a module only
+   what the prelude lacks (for example `bk::views::form::Form`).
 2. **No literal colors, sizes or fonts.** Colors from `Palette::current()`,
    sizes from the `SPACE_*` and component tokens, fonts from `LARGE_TITLE`,
    `TITLE`, `TITLE_2`, `HEADLINE`, `BODY`, `CALLOUT`, `CAPTION`, `MONO`. `Text`

@@ -3,8 +3,8 @@
 **Goal:** paint a view with the system's colors, type, symbols and sizes, follow
 the user's appearance without a restart, and add a token when one is missing.
 **Scope:** from the Tengen JSON files to the palette a view paints with. It
-covers `style`, `theme`, `symbol`, fonts, the whole of `ct-design` and the
-whole of `ct-appearance`. Backdrops and their tints are in
+covers `style`, `theme`, `symbol`, fonts, the whole of `ctdesign` and the
+whole of `ctappearance`. Backdrops and their tints are in
 [15](15-backdrops-and-media.md); traffic lights as a control in
 [9](09-titlebars.md); the language of the text in [17](17-languages.md); how
 `build.rs` reads the JSON in [Tengen](../architecture/tengen.md).
@@ -20,7 +20,7 @@ tokens and the palette, and follows the user's appearance.
    ([Text, shapes and colors](#text-shapes-and-colors)).
 3. Size and space with tokens: `.padding(SPACE_3)`,
    `.corner_radius(continuous_corner(BUTTON.radius))`
-   ([Tokens](#tokens-ct-design)).
+   ([Tokens](#tokens-ctdesign)).
 4. Convert palette colors for Freya with `color`:
    `.background(color(palette.content_background))`.
 5. Add a symbol: `symbol(Symbol::Folder, SYMBOL.grid, palette.secondary_label)`
@@ -28,15 +28,15 @@ tokens and the palette, and follows the user's appearance.
 6. If the view needs a value Tengen does not have, add it:
    [Adding a token](#adding-a-token).
 7. Run `./dev.sh check`. `scripts/check-design-tokens.sh` rejects color
-   literals and UI measurements outside `ct-design`.
+   literals and UI measurements outside `ctdesign`.
 
 The result:
 
 ```rust
-use barrier_kit::prelude::*;
-use barrier_kit::style::continuous_corner;
-use barrier_kit::symbol::{Symbol, symbol};
-use ct_design::{BUTTON, SYMBOL};
+use bk::prelude::*;
+use bk::style::continuous_corner;
+use bk::symbol::{Symbol, symbol};
+use ctdesign::{BUTTON, SYMBOL};
 
 fn storage_row() -> impl IntoElement {
     let palette = Palette::current();
@@ -53,7 +53,7 @@ fn storage_row() -> impl IntoElement {
 
 | Source | Who decides | Where it lives |
 |---|---|---|
-| **Tokens**: base colors, spacing, type, durations, per-component metrics | The design system | `crates/ct-design/tengen/tokens.json` and `components.json` |
+| **Tokens**: base colors, spacing, type, durations, per-component metrics | The design system | `crates/ctdesign/tengen/tokens.json` and `components.json` |
 | **Appearance**: mode, accent, tints, sidebar style, contrast, motion | The user | `~/.config/malaysia/appearance.domain` |
 | **Variants** of a control: primary, tint, tinted backdrop | The app | The app's code |
 
@@ -131,7 +131,7 @@ font panel of that thread. It returns `false` when the bytes are not a font.
 Call it on the thread that runs the window, before opening it:
 
 ```rust
-barrier_kit::register_font(include_bytes!("../fonts/Display.otf"));
+bk::register_font(include_bytes!("../fonts/Display.otf"));
 ```
 
 The type tokens use Geist and Geist Mono ([Type](#type)). The dev shell
@@ -139,7 +139,7 @@ installs them.
 
 ## Theme functions
 
-`barrier_kit::theme` connects the resolved appearance with Freya.
+`bk::theme` connects the resolved appearance with Freya.
 
 | Function | What it does |
 |---|---|
@@ -159,8 +159,8 @@ installs them.
 Force dark mode in one part of a window:
 
 ```rust
-use barrier_kit::theme::use_appearance;
-use ct_appearance::ColorScheme;
+use bk::theme::use_appearance;
+use ctappearance::ColorScheme;
 
 fn dark_panel() -> impl IntoElement {
     use_appearance(|config| config.color_scheme = ColorScheme::Dark);
@@ -182,9 +182,9 @@ An app does not change single colors; it picks a variant.
 
 In an inactive window every tint uses the inactive accent.
 
-## User appearance: `ct-appearance`
+## User appearance: `ctappearance`
 
-`ct-appearance` reads the user's appearance, resolves it into colors and
+`ctappearance` reads the user's appearance, resolves it into colors and
 watches it. The compositor, the shell, the portal and the kit share it, so all
 of them agree. The kit's runner watches the files: when the appearance or the
 wallpaper changes, every window repaints without a restart.
@@ -249,7 +249,7 @@ Notes on the values:
 
 `resolve(&config, dominant) -> Resolved` turns the config and the wallpaper's
 dominant color into colors. `palette(scheme)` returns the base
-`ct_design::Palette` of a scheme (`LIGHT`, `DARK` or `DARK_TINT`).
+`ctdesign::Palette` of a scheme (`LIGHT`, `DARK` or `DARK_TINT`).
 `lights_for(style, accent, dominant)` returns the three traffic-light colors of
 a style.
 
@@ -319,7 +319,7 @@ never enters focus mode. The titlebar uses them ([9](09-titlebars.md)).
 
 ### Traffic-light geometry
 
-`ct_appearance::traffic` holds the geometry and look of the close, minimize and
+`ctappearance::traffic` holds the geometry and look of the close, minimize and
 zoom lights, shared by the kit and the compositor:
 
 | Item | What it does |
@@ -338,12 +338,12 @@ zoom lights, shared by the kit and the compositor:
 // ✗ geometry computed again
 let x = 8.0 + i as f64 * (12.0 + 8.0);
 // ✓ the shared function
-let (x, y, d) = ct_appearance::traffic::button_rect(i);
+let (x, y, d) = ctappearance::traffic::button_rect(i);
 ```
 
 ### Backdrop colors
 
-`ct_appearance::backdrop` derives colors from an image, for tinted backdrops
+`ctappearance::backdrop` derives colors from an image, for tinted backdrops
 ([15](15-backdrops-and-media.md)) and for the wallpaper accent:
 
 | Item | What it does |
@@ -356,7 +356,7 @@ let (x, y, d) = ct_appearance::traffic::button_rect(i);
 
 ### Language
 
-`ct_appearance::language` finds the language the user asked for
+`ctappearance::language` finds the language the user asked for
 ([17](17-languages.md)):
 
 | Function | What it does |
@@ -367,7 +367,7 @@ let (x, y, d) = ct_appearance::traffic::button_rect(i);
 
 ### Directories
 
-`ct_appearance::xdg` follows the XDG Base Directory specification and ignores
+`ctappearance::xdg` follows the XDG Base Directory specification and ignores
 relative paths:
 
 | Function | Returns |
@@ -377,17 +377,17 @@ relative paths:
 | `data_dirs()` | `$XDG_DATA_DIRS` or `/usr/local/share` and `/usr/share` |
 | `user_dir(kind)` | `XDG_<kind>_DIR` from `user-dirs.dirs`, for example `user_dir("DOWNLOAD")` |
 
-## Tokens: `ct-design`
+## Tokens: `ctdesign`
 
-`ct-design` is Tengen in Rust. `build.rs` reads `tengen/tokens.json` and
+`ctdesign` is Tengen in Rust. `build.rs` reads `tengen/tokens.json` and
 `tengen/components.json` and writes one constant per token into
 `$OUT_DIR/tengen.rs`. The struct of each constant is in `src/lib.rs`. An app
-imports them from `ct_design`; the prelude re-exports the type and spacing
+imports them from `ctdesign`; the prelude re-exports the type and spacing
 tokens.
 
 ### Adding a token
 
-A color, size or duration never goes into `barrier-kit`. It goes into Tengen:
+A color, size or duration never goes into `bk`. It goes into Tengen:
 
 1. Add the key: under its component in `components.json`, or as a base value
    in `tokens.json`. A color per theme goes under `themes.light`,
@@ -513,7 +513,7 @@ background, for `reduce_transparency`.
 | `SHADOW`, `SHADOW_DARK` | `ShadowStyle` | `chrome`, the compositor |
 | `NATIVE_APP_ID_PREFIX` | `&str` | `io.github.hblanqueto.malaysia.`: app ids of the kit's apps (`platform`, `titlebar`) |
 | `ALERT_LAYER_NAMESPACE` | `&str` | `malaysia-dialog`: layer-shell namespace of shell alerts |
-| `TITLEBAR` | `Titlebar` | Server-side titlebar of the compositor, `ct_appearance::traffic` |
+| `TITLEBAR` | `Titlebar` | Server-side titlebar of the compositor, `ctappearance::traffic` |
 | `TITLEBAR_CLIENT_HEIGHT`, `TITLEBAR_PADDING_X` | `u32`, `f32` | `titlebar`, `chrome` ([9](09-titlebars.md)) |
 | `TITLEBAR_TITLE_GAP` | `f32` | The compositor's titlebar |
 | `TITLEBAR_DOUBLE_CLICK` | `DoubleClick` | `titlebar`, the compositor |
@@ -586,7 +586,7 @@ background, for `reduce_transparency`.
 | `PRINT` | `PrintMetrics` | `print` |
 | `CHART` | `ChartMetrics` | `charts` |
 | `MEDIA` | `MediaMetrics` | `media`, `glass_container` |
-| `BACKDROP` | `BackdropMetrics` | `backdrop`, `sidebar`, `ct_appearance::backdrop` |
+| `BACKDROP` | `BackdropMetrics` | `backdrop`, `sidebar`, `ctappearance::backdrop` |
 | `BACKDROP_SCENES` | `BackdropScenes` | Preset gradients `dusk`, `night`, `pale`, `forest`, `studio`; nothing reads them yet |
 
 ### Shell

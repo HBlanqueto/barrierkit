@@ -30,7 +30,7 @@ The program is in [chapter 2, Adding state](../barrierkit/02-first-app.md#adding
 SwiftUI: `VStack(alignment: .leading, spacing: 4) { HStack { … } }`
 
 ```rust
-use barrier_kit::prelude::*;
+use bk::prelude::*;
 
 fn main() -> Result<(), RunError> {
     Application::new("profile")
@@ -54,7 +54,7 @@ fn main() -> Result<(), RunError> {
 SwiftUI: `Toggle("Wi-Fi", isOn: $wifi)`
 
 ```rust
-use barrier_kit::prelude::*;
+use bk::prelude::*;
 
 fn main() -> Result<(), RunError> {
     Application::new("network")
@@ -73,8 +73,8 @@ fn main() -> Result<(), RunError> {
 SwiftUI: `Form { Section("General") { Toggle("Sounds", isOn: $sounds) } }`
 
 ```rust
-use barrier_kit::prelude::*;
-use barrier_kit::views::form::{Form, Row, Section};
+use bk::prelude::*;
+use bk::views::form::{Form, Row, Section};
 
 fn main() -> Result<(), RunError> {
     Application::new("settings-sample")
@@ -102,7 +102,7 @@ For a real preferences window use `PreferencesWindow` (chapter
 SwiftUI: `struct Greeting: View { let name: String; var body: some View { … } }`
 
 ```rust
-use barrier_kit::prelude::*;
+use bk::prelude::*;
 
 #[derive(PartialEq)]
 struct Greeting {
@@ -135,7 +135,7 @@ Use it when the titlebar needs a sidebar or toolbar items. `run_window` takes
 the same closure but adds nothing: you draw the background and the titlebar.
 
 ```rust
-use barrier_kit::prelude::*;
+use bk::prelude::*;
 
 fn main() -> Result<(), RunError> {
     run_window(
@@ -167,8 +167,8 @@ SwiftUI: a `Text` fed by `TimelineView(.periodic(from:by:))` with Start/Stop and
 ```rust
 use std::time::{Duration, Instant};
 
-use barrier_kit::platform::Timers;
-use barrier_kit::prelude::*;
+use bk::platform::Timers;
+use bk::prelude::*;
 
 const TICK: Duration = Duration::from_millis(10);
 

@@ -79,4 +79,4 @@ if it is interactive, a keyboard test. Add its row to the
    (library alone, then the workspace with the `shell` and `tracy` features),
    the token and client-dependency scripts, and the tests.
 3. If a visual change is intended, regenerate the reference images with
-   `UPDATE_GOLDEN=1 cargo test -p barrier-kit --test kit` and review them.
+   `UPDATE_GOLDEN=1 cargo test -p bk --test kit` and review them.

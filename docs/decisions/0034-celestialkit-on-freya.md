@@ -4,7 +4,7 @@ Status: **accepted** (2026-10-22). Supersedes [ADR 0033](0033-skia-in-clients-an
 and amends [ADR 0024](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0024-stack-de-render-del-toolkit.md) for the client
 processes.
 
-Renamed to BarrierKit, `vow-design` and `vow-appearance` in [ADR 0043](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0043-rebranding-a-malaysia.md), then to `ct-design` and `ct-appearance` in [ADR 0062](0062-curse-techniques-crate-names.md).
+Renamed to BarrierKit, `vow-design` and `vow-appearance` in [ADR 0043](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0043-rebranding-a-malaysia.md), then to `ctdesign` and `ctappearance` in [ADR 0062](0062-short-crate-names.md).
 
 ## Context
 

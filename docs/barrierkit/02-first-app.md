@@ -16,7 +16,7 @@ not needed.
 
    ```toml
    [dependencies]
-   barrier-kit = { git = "https://github.com/HBlanqueto/barrierkit", rev = "<commit on main>" }
+   bk = { git = "https://github.com/HBlanqueto/barrierkit", rev = "<commit on main>" }
    ```
 
 3. Replace `src/main.rs` with the program in [Hello, world](#hello-world).
@@ -28,7 +28,7 @@ not needed.
 ## Hello, world
 
 ```rust
-use barrier_kit::prelude::*;
+use bk::prelude::*;
 
 fn main() -> Result<(), RunError> {
     Application::new("hello")
@@ -37,7 +37,7 @@ fn main() -> Result<(), RunError> {
 }
 ```
 
-1. `use barrier_kit::prelude::*;` brings every name the program uses.
+1. `use bk::prelude::*;` brings every name the program uses.
 2. `Application::new("hello")` creates the app. `"hello"` is its short name.
 3. `.window("Hello", || …)` adds the window. The closure is the view.
 4. `Text::new(…).font(TITLE).padding(40.)` is the view: a title-sized text
@@ -49,7 +49,7 @@ The SwiftUI and AppKit name of each piece is in the [glossary](20-glossary.md).
 ## Adding state
 
 ```rust
-use barrier_kit::prelude::*;
+use bk::prelude::*;
 
 fn main() -> Result<(), RunError> {
     Application::new("counter")
@@ -118,7 +118,7 @@ stacks, children and alignment (`child`, `children`, `spacing`,
 
 ## The prelude
 
-`use barrier_kit::prelude::*;` brings:
+`use bk::prelude::*;` brings:
 
 | From | Names |
 |---|---|
@@ -128,6 +128,6 @@ stacks, children and alignment (`child`, `children`, `spacing`,
 | Tokens | `BODY`, `CALLOUT`, `CAPTION`, `HEADLINE`, `LARGE_TITLE`, `MONO`, `TITLE`, `TITLE_2`, `Font`, `SPACE_1`…`SPACE_4`, `WINDOW_DEFAULT_SIZE`, `WINDOW_MIN_SIZE` |
 
 Everything else is imported from its module, for example
-`barrier_kit::views::form::Form` ([3](03-layers.md)).
+`bk::views::form::Form` ([3](03-layers.md)).
 
 Next: [3. Layers](03-layers.md).

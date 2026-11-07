@@ -13,8 +13,8 @@ renders of the current code, never retouched.
 
 | Folder | Holds | Produced by |
 |---|---|---|
-| `components/` | One control or view per image, `<name>-light.png` and `<name>-dark.png` | Copies of the golden images in `crates/barrier-kit/tests/golden/` |
-| `states/` | The titlebar and the sidebar in each window state ([9. Titlebars](../09-titlebars.md)) | The `doc_shots` test in `crates/barrier-kit/src/platform/doc_shots.rs` |
+| `components/` | One control or view per image, `<name>-light.png` and `<name>-dark.png` | Copies of the golden images in `crates/bk/tests/golden/` |
+| `states/` | The titlebar and the sidebar in each window state ([9. Titlebars](../09-titlebars.md)) | The `doc_shots` test in `crates/bk/src/platform/doc_shots.rs` |
 | `brand/` | The BarrierKit icon and banner | `*.svg` are the sources; `*.png` are exports at twice the SVG size (icon 2048 × 2048, banner 3200 × 1600). The repository has no script for them |
 
 Both tests render with `freya-testing` on the CPU at scale 1, without a
@@ -27,15 +27,15 @@ compositor or a GPU. They set the appearance in code, so the host's
 2. Rewrite the golden images:
 
    ```sh
-   UPDATE_GOLDEN=1 cargo test -p barrier-kit --test kit
+   UPDATE_GOLDEN=1 cargo test -p bk --test kit
    ```
 
-3. Check the new images with `git diff --stat crates/barrier-kit/tests/golden/`
+3. Check the new images with `git diff --stat crates/bk/tests/golden/`
    and look at each changed one.
 4. Copy them:
 
    ```sh
-   cp crates/barrier-kit/tests/golden/*.png docs/barrierkit/assets/components/
+   cp crates/bk/tests/golden/*.png docs/barrierkit/assets/components/
    ```
 
 Which tests write golden images:
@@ -58,7 +58,7 @@ A golden image that does not exist is written instead of compared.
 2. Render the scenes into the folder:
 
    ```sh
-   BARRIER_KIT_SHOTS=$PWD/docs/barrierkit/assets/states cargo test -p barrier-kit --lib doc_shots
+   BARRIER_KIT_SHOTS=$PWD/docs/barrierkit/assets/states cargo test -p bk --lib doc_shots
    ```
 
 Without `BARRIER_KIT_SHOTS`, the test returns without rendering. Each scene

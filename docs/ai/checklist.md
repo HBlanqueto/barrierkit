@@ -14,7 +14,7 @@ reason it cannot be.
 
 ## Code
 
-1. Does the file start with `use barrier_kit::prelude::*;` and import only what
+1. Does the file start with `use bk::prelude::*;` and import only what
    the prelude lacks?
 2. Is every color from `Palette::current()` (or left to `Text`), every size a
    `SPACE_*` or component token, and every font one of the typography tokens?

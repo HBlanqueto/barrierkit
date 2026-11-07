@@ -2,8 +2,8 @@
 
 **Goal:** compose the content of a window from the kit's containers: forms,
 tables, grids, trees, tabs, panes, alerts and navigation.
-**Scope:** every module under `barrier_kit::views` except `split` (the sidebar
-container, in [10](10-sidebar.md)), plus `barrier_kit::adaptive`. Single
+**Scope:** every module under `bk::views` except `split` (the sidebar
+container, in [10](10-sidebar.md)), plus `bk::adaptive`. Single
 controls are in [5](05-controls.md), framed text editing in
 [6](06-text-and-editing.md), complete windows in [12](12-patterns.md).
 **Reader:** anyone who assembles full screens.

@@ -2,8 +2,8 @@
 
 **Goal:** find the BarrierKit name of a concept you know from SwiftUI or
 AppKit, and name new items the same way.
-**Scope:** every public item of `barrier-kit`, `ct-design` and
-`ct-appearance`, with its SwiftUI and AppKit equivalent and the chapter that
+**Scope:** every public item of `bk`, `ctdesign` and
+`ctappearance`, with its SwiftUI and AppKit equivalent and the chapter that
 documents it. Methods are in the chapters, not here.
 **Reader:** anyone who writes an app with the kit, adds an item to it, or is an
 AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
@@ -39,15 +39,16 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 
 | Before | Now | Date |
 |---|---|---|
-| `vow_design::TEXT` | `ct_design::BODY` | 2026-11-07 |
-| `vow_design::DISPLAY` | `ct_design::LARGE_TITLE` | 2026-11-07 |
-| `vow_design::TITLE_1` | `ct_design::TITLE` | 2026-11-07 |
-| crate `vow-design` (`vow_design`) | crate `ct-design` (`ct_design`), CTDesign | 2026-11-07 |
-| crate `vow-appearance` (`vow_appearance`) | crate `ct-appearance` (`ct_appearance`), CTAppearance | 2026-11-07 |
+| `vow_design::TEXT` | `ctdesign::BODY` | 2026-11-07 |
+| `vow_design::DISPLAY` | `ctdesign::LARGE_TITLE` | 2026-11-07 |
+| `vow_design::TITLE_1` | `ctdesign::TITLE` | 2026-11-07 |
+| crate `barrier-kit` (`barrier_kit`) | crate `bk`, BarrierKit | 2026-11-07 |
+| crate `vow-design` (`vow_design`), then `ct-design` (`ct_design`) | crate `ctdesign`, CTDesign | 2026-11-07 |
+| crate `vow-appearance` (`vow_appearance`), then `ct-appearance` (`ct_appearance`) | crate `ctappearance`, CTAppearance | 2026-11-07 |
 
 ## How to read the tables
 
-- **BarrierKit:** the path inside `barrier_kit` (for example
+- **BarrierKit:** the path inside `bk` (for example
   `views::form::Form`), or the full path for the other crates.
 - **SwiftUI / AppKit:** the Apple equivalent; `≈` marks a partial match, `—`
   means there is none.
@@ -100,224 +101,224 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 
 | BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
 |---|---|---|---|---|---|
-| `ct_appearance::AppearanceConfig` | struct | — | — | The user's `appearance.domain`: mode, accent, tints, contrast, motion | [4](04-appearance-and-tokens.md#the-appearance-file) |
-| `ct_appearance::ColorScheme` | enum | ≈ `ColorScheme` | ≈ `NSAppearance` | `Auto`, `Light`, `Dark`, `DarkTint`; SwiftUI has only light and dark | [4](04-appearance-and-tokens.md#the-appearance-file) |
-| `ct_appearance::WindowColorMode` | enum | — | — | Window tint source: `Neutral`, `Accent`, `Wallpaper` | [4](04-appearance-and-tokens.md#the-appearance-file) |
-| `ct_appearance::WindowTintScope` | enum | — | — | Tint reaches `Windows` only or the `Desktop` bars too | [4](04-appearance-and-tokens.md#the-appearance-file) |
-| `ct_appearance::TintStrength` | enum | — | — | `Subtle`, `Normal`, `Strong`, `Intense`; `factor()` from `TINT_STRENGTH` | [4](04-appearance-and-tokens.md#the-appearance-file) |
-| `ct_appearance::TintParts` | struct | — | — | Which parts take the tint: sidebars, window, groups, controls, menus | [4](04-appearance-and-tokens.md#the-appearance-file) |
-| `ct_appearance::SidebarStyle` | enum | — | — | `Island` or `Flat` sidebar | [4](04-appearance-and-tokens.md#the-appearance-file) |
-| `ct_appearance::TrafficLightStyle` | enum | — | — | `Auto`, `Standard`, `Accent`, `Wallpaper` traffic-light colors | [4](04-appearance-and-tokens.md#the-appearance-file) |
-| `ct_appearance::TrafficLightShape` | enum | — | — | `Square` or `Round` lights; `corner_radius(diameter)` | [4](04-appearance-and-tokens.md#the-appearance-file) |
-| `ct_appearance::ScrollBars` | enum | ≈ `ScrollIndicatorVisibility` | ≈ `NSScroller.Style` | Show scroll bars `WhenScrolling` or `Always` | [4](04-appearance-and-tokens.md#the-appearance-file) |
+| `ctappearance::AppearanceConfig` | struct | — | — | The user's `appearance.domain`: mode, accent, tints, contrast, motion | [4](04-appearance-and-tokens.md#the-appearance-file) |
+| `ctappearance::ColorScheme` | enum | ≈ `ColorScheme` | ≈ `NSAppearance` | `Auto`, `Light`, `Dark`, `DarkTint`; SwiftUI has only light and dark | [4](04-appearance-and-tokens.md#the-appearance-file) |
+| `ctappearance::WindowColorMode` | enum | — | — | Window tint source: `Neutral`, `Accent`, `Wallpaper` | [4](04-appearance-and-tokens.md#the-appearance-file) |
+| `ctappearance::WindowTintScope` | enum | — | — | Tint reaches `Windows` only or the `Desktop` bars too | [4](04-appearance-and-tokens.md#the-appearance-file) |
+| `ctappearance::TintStrength` | enum | — | — | `Subtle`, `Normal`, `Strong`, `Intense`; `factor()` from `TINT_STRENGTH` | [4](04-appearance-and-tokens.md#the-appearance-file) |
+| `ctappearance::TintParts` | struct | — | — | Which parts take the tint: sidebars, window, groups, controls, menus | [4](04-appearance-and-tokens.md#the-appearance-file) |
+| `ctappearance::SidebarStyle` | enum | — | — | `Island` or `Flat` sidebar | [4](04-appearance-and-tokens.md#the-appearance-file) |
+| `ctappearance::TrafficLightStyle` | enum | — | — | `Auto`, `Standard`, `Accent`, `Wallpaper` traffic-light colors | [4](04-appearance-and-tokens.md#the-appearance-file) |
+| `ctappearance::TrafficLightShape` | enum | — | — | `Square` or `Round` lights; `corner_radius(diameter)` | [4](04-appearance-and-tokens.md#the-appearance-file) |
+| `ctappearance::ScrollBars` | enum | ≈ `ScrollIndicatorVisibility` | ≈ `NSScroller.Style` | Show scroll bars `WhenScrolling` or `Always` | [4](04-appearance-and-tokens.md#the-appearance-file) |
 
 ## Appearance files and watch
 
 | BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
 |---|---|---|---|---|---|
-| `ct_appearance::config_dir` | fn | — | — | `$MALAYSIA_CONFIG_DIR` or `$XDG_CONFIG_HOME/malaysia` | [4](04-appearance-and-tokens.md#reading-and-writing) |
-| `ct_appearance::data_dir` | fn | — | — | `$MALAYSIA_DATA_DIR` or `$XDG_DATA_HOME/malaysia` | [4](04-appearance-and-tokens.md#reading-and-writing) |
-| `ct_appearance::appearance_path` | fn | — | — | Path of `appearance.domain` | [4](04-appearance-and-tokens.md#reading-and-writing) |
-| `ct_appearance::wallpaper_state_path` | fn | — | — | Path of `wallpaper.state`, the wallpaper's dominant color | [4](04-appearance-and-tokens.md#reading-and-writing) |
-| `ct_appearance::read_appearance` | fn | — | — | Reads the appearance file; `None` without file, `Err` on bad TOML | [4](04-appearance-and-tokens.md#reading-and-writing) |
-| `ct_appearance::load_appearance` | fn | — | — | Reads the appearance file, or the default on any error | [4](04-appearance-and-tokens.md#reading-and-writing) |
-| `ct_appearance::write_appearance` | fn | — | — | Writes the config atomically, keeping other keys and comments | [4](04-appearance-and-tokens.md#reading-and-writing) |
-| `ct_appearance::load_dominant` | fn | — | — | Reads the wallpaper's dominant color | [4](04-appearance-and-tokens.md#reading-and-writing) |
-| `ct_appearance::write_dominant` | fn | — | — | Writes or removes the wallpaper's dominant color | [4](04-appearance-and-tokens.md#reading-and-writing) |
-| `ct_appearance::watch::AppearanceWatch` | struct | — | — | inotify watch on the config and data folders; `drain()` | [4](04-appearance-and-tokens.md#watching) |
-| `ct_appearance::watch::AppearanceEvent` | enum | — | — | `Appearance`, `Wallpaper`, `WallpaperSelection`, `Defaults`; `restyles()` | [4](04-appearance-and-tokens.md#watching) |
+| `ctappearance::config_dir` | fn | — | — | `$MALAYSIA_CONFIG_DIR` or `$XDG_CONFIG_HOME/malaysia` | [4](04-appearance-and-tokens.md#reading-and-writing) |
+| `ctappearance::data_dir` | fn | — | — | `$MALAYSIA_DATA_DIR` or `$XDG_DATA_HOME/malaysia` | [4](04-appearance-and-tokens.md#reading-and-writing) |
+| `ctappearance::appearance_path` | fn | — | — | Path of `appearance.domain` | [4](04-appearance-and-tokens.md#reading-and-writing) |
+| `ctappearance::wallpaper_state_path` | fn | — | — | Path of `wallpaper.state`, the wallpaper's dominant color | [4](04-appearance-and-tokens.md#reading-and-writing) |
+| `ctappearance::read_appearance` | fn | — | — | Reads the appearance file; `None` without file, `Err` on bad TOML | [4](04-appearance-and-tokens.md#reading-and-writing) |
+| `ctappearance::load_appearance` | fn | — | — | Reads the appearance file, or the default on any error | [4](04-appearance-and-tokens.md#reading-and-writing) |
+| `ctappearance::write_appearance` | fn | — | — | Writes the config atomically, keeping other keys and comments | [4](04-appearance-and-tokens.md#reading-and-writing) |
+| `ctappearance::load_dominant` | fn | — | — | Reads the wallpaper's dominant color | [4](04-appearance-and-tokens.md#reading-and-writing) |
+| `ctappearance::write_dominant` | fn | — | — | Writes or removes the wallpaper's dominant color | [4](04-appearance-and-tokens.md#reading-and-writing) |
+| `ctappearance::watch::AppearanceWatch` | struct | — | — | inotify watch on the config and data folders; `drain()` | [4](04-appearance-and-tokens.md#watching) |
+| `ctappearance::watch::AppearanceEvent` | enum | — | — | `Appearance`, `Wallpaper`, `WallpaperSelection`, `Defaults`; `restyles()` | [4](04-appearance-and-tokens.md#watching) |
 
 ## Appearance resolution
 
 | BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
 |---|---|---|---|---|---|
-| `ct_appearance::resolve` | fn | — | — | Turns the config and wallpaper color into concrete colors | [4](04-appearance-and-tokens.md#resolution) |
-| `ct_appearance::Resolved` | struct | ≈ `EnvironmentValues` | — | Resolved appearance: accent, focus ring, link, tints, surfaces, palettes | [4](04-appearance-and-tokens.md#resolution) |
-| `ct_appearance::Surfaces` | struct | — | — | Tinted window, sunken, surface, raised, control, hover and line colors | [4](04-appearance-and-tokens.md#resolution) |
-| `ct_appearance::SidebarSurface` | struct | — | — | Sidebar style, background, rim, inner line and palette | [4](04-appearance-and-tokens.md#resolution) |
-| `ct_appearance::ToolgroupSurface` | struct | — | — | Toolbar group background and palette | [4](04-appearance-and-tokens.md#resolution) |
-| `ct_appearance::palette` | fn | — | — | Base `ct_design::Palette` of a color scheme | [4](04-appearance-and-tokens.md#resolution) |
-| `ct_appearance::lights_for` | fn | — | — | The three traffic-light colors of a style | [4](04-appearance-and-tokens.md#resolution) |
+| `ctappearance::resolve` | fn | — | — | Turns the config and wallpaper color into concrete colors | [4](04-appearance-and-tokens.md#resolution) |
+| `ctappearance::Resolved` | struct | ≈ `EnvironmentValues` | — | Resolved appearance: accent, focus ring, link, tints, surfaces, palettes | [4](04-appearance-and-tokens.md#resolution) |
+| `ctappearance::Surfaces` | struct | — | — | Tinted window, sunken, surface, raised, control, hover and line colors | [4](04-appearance-and-tokens.md#resolution) |
+| `ctappearance::SidebarSurface` | struct | — | — | Sidebar style, background, rim, inner line and palette | [4](04-appearance-and-tokens.md#resolution) |
+| `ctappearance::ToolgroupSurface` | struct | — | — | Toolbar group background and palette | [4](04-appearance-and-tokens.md#resolution) |
+| `ctappearance::palette` | fn | — | — | Base `ctdesign::Palette` of a color scheme | [4](04-appearance-and-tokens.md#resolution) |
+| `ctappearance::lights_for` | fn | — | — | The three traffic-light colors of a style | [4](04-appearance-and-tokens.md#resolution) |
 
 ## Window behavior
 
 | BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
 |---|---|---|---|---|---|
-| `ct_appearance::window::WindowBehavior` | struct | — | — | `window.domain`: titlebar double click and green button actions | [4](04-appearance-and-tokens.md#window-behavior) |
-| `ct_appearance::window::read_window_behavior` | fn | — | — | Reads `window.domain`, or the default | [4](04-appearance-and-tokens.md#window-behavior) |
-| `ct_appearance::window::DoubleClickAction` | enum | — | — | Titlebar double click: `Fill`, `Minimize`, `Zoom`, `None` | [4](04-appearance-and-tokens.md#window-behavior) |
-| `ct_appearance::window::GreenButtonAction` | enum | — | — | Green light: `Focus`, `Zoom`, `None` | [4](04-appearance-and-tokens.md#window-behavior) |
-| `ct_appearance::window::TitlebarAction` | enum | — | — | What to do: `Focus`, `Maximize`, `Minimize`, `None` | [4](04-appearance-and-tokens.md#window-behavior) |
-| `ct_appearance::window::green_action` | fn | — | — | Green-button action for a window, fixed width or not | [4](04-appearance-and-tokens.md#window-behavior) |
-| `ct_appearance::window::double_click_action` | fn | — | — | Double-click action for a window, zoomable or not | [4](04-appearance-and-tokens.md#window-behavior) |
+| `ctappearance::window::WindowBehavior` | struct | — | — | `window.domain`: titlebar double click and green button actions | [4](04-appearance-and-tokens.md#window-behavior) |
+| `ctappearance::window::read_window_behavior` | fn | — | — | Reads `window.domain`, or the default | [4](04-appearance-and-tokens.md#window-behavior) |
+| `ctappearance::window::DoubleClickAction` | enum | — | — | Titlebar double click: `Fill`, `Minimize`, `Zoom`, `None` | [4](04-appearance-and-tokens.md#window-behavior) |
+| `ctappearance::window::GreenButtonAction` | enum | — | — | Green light: `Focus`, `Zoom`, `None` | [4](04-appearance-and-tokens.md#window-behavior) |
+| `ctappearance::window::TitlebarAction` | enum | — | — | What to do: `Focus`, `Maximize`, `Minimize`, `None` | [4](04-appearance-and-tokens.md#window-behavior) |
+| `ctappearance::window::green_action` | fn | — | — | Green-button action for a window, fixed width or not | [4](04-appearance-and-tokens.md#window-behavior) |
+| `ctappearance::window::double_click_action` | fn | — | — | Double-click action for a window, zoomable or not | [4](04-appearance-and-tokens.md#window-behavior) |
 
 ## Traffic-light geometry
 
 | BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
 |---|---|---|---|---|---|
-| `ct_appearance::traffic::inset` | fn | — | — | Distance of the lights from the edges of a bar | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
-| `ct_appearance::traffic::button_rect` | fn | — | ≈ `NSWindow.standardWindowButton(_:)` frame | Rectangle of one light | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
-| `ct_appearance::traffic::group_rect` | fn | — | — | Rectangle of the three lights | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
-| `ct_appearance::traffic::hit` | fn | — | — | The light under a point | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
-| `ct_appearance::traffic::visual` | fn | — | — | Fill, rim and glyph of each light for an input | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
-| `ct_appearance::traffic::glyph_svg` | fn | — | — | SVG of a light's glyph | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
-| `ct_appearance::traffic::TrafficInput` | struct | — | — | Focus, group hover, pressed light and zoom support | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
-| `ct_appearance::traffic::ButtonVisual` | struct | — | — | Fill, rim and optional glyph color of one light | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
-| `ct_appearance::traffic::TrafficPointer` | struct | — | — | Pointer state machine for hover, arm and click of the lights | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
+| `ctappearance::traffic::inset` | fn | — | — | Distance of the lights from the edges of a bar | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
+| `ctappearance::traffic::button_rect` | fn | — | ≈ `NSWindow.standardWindowButton(_:)` frame | Rectangle of one light | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
+| `ctappearance::traffic::group_rect` | fn | — | — | Rectangle of the three lights | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
+| `ctappearance::traffic::hit` | fn | — | — | The light under a point | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
+| `ctappearance::traffic::visual` | fn | — | — | Fill, rim and glyph of each light for an input | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
+| `ctappearance::traffic::glyph_svg` | fn | — | — | SVG of a light's glyph | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
+| `ctappearance::traffic::TrafficInput` | struct | — | — | Focus, group hover, pressed light and zoom support | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
+| `ctappearance::traffic::ButtonVisual` | struct | — | — | Fill, rim and optional glyph color of one light | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
+| `ctappearance::traffic::TrafficPointer` | struct | — | — | Pointer state machine for hover, arm and click of the lights | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
 
 ## Backdrop colors
 
 | BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
 |---|---|---|---|---|---|
-| `ct_appearance::backdrop::Backdrop` | struct | — | — | Three gradient layers and a base color derived from an image | [4](04-appearance-and-tokens.md#backdrop-colors) |
-| `ct_appearance::backdrop::ImagePalette` | struct | — | — | Three representative colors and the most vivid one of an image | [4](04-appearance-and-tokens.md#backdrop-colors) |
-| `ct_appearance::backdrop::Oklab` | struct | — | — | A color in the OKLab space | [4](04-appearance-and-tokens.md#backdrop-colors) |
-| `ct_appearance::backdrop::palette_from_pixels` | fn | — | — | Image palette from RGBA8 pixels, by k-means in OKLab | [4](04-appearance-and-tokens.md#backdrop-colors) |
-| `ct_appearance::backdrop::dominant_from_pixels` | fn | — | — | Dominant chromatic color of RGBA8 pixels | [4](04-appearance-and-tokens.md#backdrop-colors) |
-| `ct_appearance::backdrop::ink_on` | fn | — | — | Light or dark ink with more contrast on a background | [4](04-appearance-and-tokens.md#backdrop-colors) |
+| `ctappearance::backdrop::Backdrop` | struct | — | — | Three gradient layers and a base color derived from an image | [4](04-appearance-and-tokens.md#backdrop-colors) |
+| `ctappearance::backdrop::ImagePalette` | struct | — | — | Three representative colors and the most vivid one of an image | [4](04-appearance-and-tokens.md#backdrop-colors) |
+| `ctappearance::backdrop::Oklab` | struct | — | — | A color in the OKLab space | [4](04-appearance-and-tokens.md#backdrop-colors) |
+| `ctappearance::backdrop::palette_from_pixels` | fn | — | — | Image palette from RGBA8 pixels, by k-means in OKLab | [4](04-appearance-and-tokens.md#backdrop-colors) |
+| `ctappearance::backdrop::dominant_from_pixels` | fn | — | — | Dominant chromatic color of RGBA8 pixels | [4](04-appearance-and-tokens.md#backdrop-colors) |
+| `ctappearance::backdrop::ink_on` | fn | — | — | Light or dark ink with more contrast on a background | [4](04-appearance-and-tokens.md#backdrop-colors) |
 
 ## Language and directories
 
 | BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
 |---|---|---|---|---|---|
-| `ct_appearance::language::read_language` | fn | — | — | The `language` key of a `.domain` file | [4](04-appearance-and-tokens.md#language) |
-| `ct_appearance::language::system_language` | fn | — | — | The language chosen in `language.domain` | [4](04-appearance-and-tokens.md#language) |
-| `ct_appearance::language::requested_languages` | fn | — | — | App, system or POSIX-locale languages as tags, in order | [4](04-appearance-and-tokens.md#language) |
-| `ct_appearance::xdg::config_home` | fn | — | — | `$XDG_CONFIG_HOME` or `~/.config` | [4](04-appearance-and-tokens.md#directories) |
-| `ct_appearance::xdg::data_home` | fn | — | — | `$XDG_DATA_HOME` or `~/.local/share` | [4](04-appearance-and-tokens.md#directories) |
-| `ct_appearance::xdg::data_dirs` | fn | — | — | `$XDG_DATA_DIRS` or `/usr/local/share` and `/usr/share` | [4](04-appearance-and-tokens.md#directories) |
-| `ct_appearance::xdg::user_dir` | fn | — | — | An XDG user directory such as `DOWNLOAD` from `user-dirs.dirs` | [4](04-appearance-and-tokens.md#directories) |
+| `ctappearance::language::read_language` | fn | — | — | The `language` key of a `.domain` file | [4](04-appearance-and-tokens.md#language) |
+| `ctappearance::language::system_language` | fn | — | — | The language chosen in `language.domain` | [4](04-appearance-and-tokens.md#language) |
+| `ctappearance::language::requested_languages` | fn | — | — | App, system or POSIX-locale languages as tags, in order | [4](04-appearance-and-tokens.md#language) |
+| `ctappearance::xdg::config_home` | fn | — | — | `$XDG_CONFIG_HOME` or `~/.config` | [4](04-appearance-and-tokens.md#directories) |
+| `ctappearance::xdg::data_home` | fn | — | — | `$XDG_DATA_HOME` or `~/.local/share` | [4](04-appearance-and-tokens.md#directories) |
+| `ctappearance::xdg::data_dirs` | fn | — | — | `$XDG_DATA_DIRS` or `/usr/local/share` and `/usr/share` | [4](04-appearance-and-tokens.md#directories) |
+| `ctappearance::xdg::user_dir` | fn | — | — | An XDG user directory such as `DOWNLOAD` from `user-dirs.dirs` | [4](04-appearance-and-tokens.md#directories) |
 
 ## Design token types
 
 | BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
 |---|---|---|---|---|---|
-| `ct_design::Rgba` | struct | ≈ `Color` | ≈ `NSColor` | sRGB color, channels 0–1, with mixing and contrast helpers | [4](04-appearance-and-tokens.md#token-types) |
-| `ct_design::Font` | struct | ≈ `Font.TextStyle` | ≈ `NSFont.TextStyle` | Type token: family, size, line height, weight | [4](04-appearance-and-tokens.md#token-types) |
-| `ct_design::Palette` | struct | — | — | Base colors of one theme: inks, lines, accent, titlebar | [4](04-appearance-and-tokens.md#token-types) |
-| `ct_design::FocusPair` | struct | — | — | One color for a focused window, one for unfocused | [4](04-appearance-and-tokens.md#token-types) |
-| `ct_design::PanelLine` | struct | — | — | Inner line of a panel: sides and edges | [4](04-appearance-and-tokens.md#token-types) |
-| `ct_design::TrafficRim` | struct | — | — | Rim color of a lit and an idle traffic light | [4](04-appearance-and-tokens.md#token-types) |
-| `ct_design::ShellPalette` | struct | — | — | Menu bar and Dock colors | [4](04-appearance-and-tokens.md#token-types) |
-| `ct_design::MenuPalette` | struct | — | — | Menu colors and metrics | [4](04-appearance-and-tokens.md#token-types) |
-| `ct_design::LockPalette` | struct | — | — | Lock-screen colors | [4](04-appearance-and-tokens.md#token-types) |
-| `ct_design::SidebarPalette` | struct | — | — | Sidebar item, selection, section and line inks | [4](04-appearance-and-tokens.md#token-types) |
-| `ct_design::ToolgroupPalette` | struct | — | — | Toolbar group separator and rim | [4](04-appearance-and-tokens.md#token-types) |
-| `ct_design::ShadowLayer` | struct | ≈ `.shadow(color:radius:x:y:)` | ≈ `NSShadow` | One shadow: blur, offset, opacity, color | [4](04-appearance-and-tokens.md#token-types) |
-| `ct_design::ShadowStyle` | struct | — | — | Ambient and contact shadows, scaled when unfocused | [4](04-appearance-and-tokens.md#token-types) |
-| `ct_design::WindowCorner` | struct | — | — | Window corner radii and continuous-curve shape | [4](04-appearance-and-tokens.md#token-types) |
-| `ct_design::WindowStyle` | struct | — | — | Corner radius and superellipse exponent of a dialog or pop-up | [4](04-appearance-and-tokens.md#token-types) |
-| `ct_design::WindowResize` | struct | — | — | Width of the resize band at edges and corners | [4](04-appearance-and-tokens.md#token-types) |
-| `ct_design::Titlebar` | struct | — | — | Server-side titlebar thickness, lights and font | [4](04-appearance-and-tokens.md#token-types) |
-| `ct_design::TitlebarButtons` | struct | — | — | Order, diameter, spacing and radius of the traffic lights | [4](04-appearance-and-tokens.md#token-types) |
-| `ct_design::Button` | struct | — | — | One traffic light: kind and color | [4](04-appearance-and-tokens.md#token-types) |
-| `ct_design::ButtonKind` | enum | — | `NSWindow.ButtonType` | `Close`, `Minimize`, `Maximize` | [4](04-appearance-and-tokens.md#token-types) |
-| `ct_design::TrafficGlyphs` | struct | — | — | Geometry of the close, minimize, zoom and plus glyphs | [4](04-appearance-and-tokens.md#token-types) |
-| `ct_design::Segment` | struct | — | — | A line from point `a` to point `b` | [4](04-appearance-and-tokens.md#token-types) |
-| `ct_design::Triangle` | struct | — | — | Three points of a filled glyph triangle | [4](04-appearance-and-tokens.md#token-types) |
-| `ct_design::DoubleClick` | struct | — | ≈ `NSEvent.doubleClickInterval` | Double-click interval and pointer slop | [4](04-appearance-and-tokens.md#token-types) |
-| `ct_design::SettingsStrength` | struct | — | — | Tint-strength scale of the settings app | [4](04-appearance-and-tokens.md#token-types) |
-| `ct_design::SettingsCheck` | struct | — | — | Check list spacing of the settings app | [4](04-appearance-and-tokens.md#token-types) |
-| `ct_design::SettingsMetrics` | struct | — | — | Sizes of the settings window, sidebar, search and previews | [4](04-appearance-and-tokens.md#view-metrics) |
-| `ct_design::ButtonMetrics` | struct | — | — | Push button sizes, radius, font and pressed scale | [4](04-appearance-and-tokens.md#control-metrics) |
-| `ct_design::IconButtonMetrics` | struct | — | — | Icon button size, radius and icon size | [4](04-appearance-and-tokens.md#control-metrics) |
-| `ct_design::SwitchMetrics` | struct | — | — | Switch track, knob, travel and transition | [4](04-appearance-and-tokens.md#control-metrics) |
-| `ct_design::CheckboxMetrics` | struct | — | — | Checkbox size, radius and mark | [4](04-appearance-and-tokens.md#control-metrics) |
-| `ct_design::SliderMetrics` | struct | — | — | Slider height, track and knob | [4](04-appearance-and-tokens.md#control-metrics) |
-| `ct_design::SliderFatMetrics` | struct | — | — | Wide level slider height, minimum fill and icon position | [4](04-appearance-and-tokens.md#control-metrics) |
-| `ct_design::SegmentedMetrics` | struct | — | — | Segmented control padding, segments and font | [4](04-appearance-and-tokens.md#control-metrics) |
-| `ct_design::StepperMetrics` | struct | — | — | Stepper size, radius and chevrons | [4](04-appearance-and-tokens.md#control-metrics) |
-| `ct_design::TextFieldMetrics` | struct | — | — | Text field height, padding and radius | [4](04-appearance-and-tokens.md#control-metrics) |
-| `ct_design::TokenFieldMetrics` | struct | — | — | Token height, padding, gap and opacity | [4](04-appearance-and-tokens.md#control-metrics) |
-| `ct_design::SpellingMetrics` | struct | — | — | Size of the misspelling dot | [4](04-appearance-and-tokens.md#control-metrics) |
-| `ct_design::ComboBoxMetrics` | struct | — | — | Combo box button and chevron sizes | [4](04-appearance-and-tokens.md#control-metrics) |
-| `ct_design::PathControlMetrics` | struct | — | — | Path control height, chevrons and icons | [4](04-appearance-and-tokens.md#control-metrics) |
-| `ct_design::DatePickerMetrics` | struct | — | — | Calendar size, header, weekday row and radii | [4](04-appearance-and-tokens.md#control-metrics) |
-| `ct_design::ImageWellMetrics` | struct | — | — | Image well size, radius, inset and drop border | [4](04-appearance-and-tokens.md#control-metrics) |
-| `ct_design::LevelIndicatorMetrics` | struct | — | — | Level indicator bars, stars and relevancy sizes | [4](04-appearance-and-tokens.md#control-metrics) |
-| `ct_design::GaugeMetrics` | struct | — | — | Gauge size, stroke, arc and marker | [4](04-appearance-and-tokens.md#control-metrics) |
-| `ct_design::ProgressMetrics` | struct | — | — | Progress bar, ring and spinner sizes and timing | [4](04-appearance-and-tokens.md#control-metrics) |
-| `ct_design::BadgeMetrics` | struct | — | — | Badge height and padding | [4](04-appearance-and-tokens.md#control-metrics) |
-| `ct_design::FocusRingMetrics` | struct | — | — | Focus ring width and offset | [4](04-appearance-and-tokens.md#control-metrics) |
-| `ct_design::SymbolMetrics` | struct | — | — | Symbol grid and stroke width | [4](04-appearance-and-tokens.md#control-metrics) |
-| `ct_design::TooltipMetrics` | struct | — | — | Tooltip delay, padding, radius and pointer gap | [4](04-appearance-and-tokens.md#control-metrics) |
-| `ct_design::PopoverMetrics` | struct | — | — | Popover radius, arrow and padding | [4](04-appearance-and-tokens.md#control-metrics) |
-| `ct_design::MenuPopoverMetrics` | struct | — | — | Pop-up menu item, padding, check and swatch grid sizes | [4](04-appearance-and-tokens.md#control-metrics) |
-| `ct_design::DragMetrics` | struct | — | — | Pointer travel before a drag starts | [4](04-appearance-and-tokens.md#control-metrics) |
-| `ct_design::TitlebarRailMetrics` | struct | — | — | Titlebar rail widths, pill and reveal zone | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
-| `ct_design::FullscreenBarMetrics` | struct | — | — | Content offset and band line of a full-screen bar | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
-| `ct_design::FullscreenGlassMetrics` | struct | — | — | Height, blur, layers, tint and mask of full-screen glass | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
-| `ct_design::SidebarMetrics` | struct | — | — | Sidebar width, island, items and sections | [4](04-appearance-and-tokens.md#view-metrics) |
-| `ct_design::ToolgroupMetrics` | struct | — | — | Toolbar group height, padding and separators | [4](04-appearance-and-tokens.md#view-metrics) |
-| `ct_design::SplitViewMetrics` | struct | — | — | Sidebar limits, collapse width, inspector, grip and key step | [4](04-appearance-and-tokens.md#view-metrics) |
-| `ct_design::SplitPanesMetrics` | struct | — | — | Divider width and minimum pane size | [4](04-appearance-and-tokens.md#view-metrics) |
-| `ct_design::FloatingPaneMetrics` | struct | — | — | Floating pane title, outline, resize band and shadow | [4](04-appearance-and-tokens.md#view-metrics) |
-| `ct_design::TableMetrics` | struct | — | — | Table rows, header, zebra and column sizes | [4](04-appearance-and-tokens.md#view-metrics) |
-| `ct_design::CollectionMetrics` | struct | — | — | Collection tile, icon, gap, radius and selection | [4](04-appearance-and-tokens.md#view-metrics) |
-| `ct_design::ListGroupMetrics` | struct | — | — | Form group radius, rows, separators and headers | [4](04-appearance-and-tokens.md#view-metrics) |
-| `ct_design::GroupBoxMetrics` | struct | — | — | Group box radius, padding, label and fill | [4](04-appearance-and-tokens.md#view-metrics) |
-| `ct_design::DisclosureMetrics` | struct | — | — | Disclosure indent, rows, chevron and icon | [4](04-appearance-and-tokens.md#view-metrics) |
-| `ct_design::ToolbarTabsMetrics` | struct | — | — | Toolbar tab container and tab sizes | [4](04-appearance-and-tokens.md#view-metrics) |
-| `ct_design::ScrollBarMetrics` | struct | — | — | Scroll bar thumb, track, opacity and hide delay | [4](04-appearance-and-tokens.md#view-metrics) |
-| `ct_design::BreakpointMetrics` | struct | — | — | Medium and wide window widths for adaptive layouts | [4](04-appearance-and-tokens.md#view-metrics) |
-| `ct_design::FontPanelMetrics` | struct | — | — | Font panel size list and size column | [4](04-appearance-and-tokens.md#view-metrics) |
-| `ct_design::PrintMetrics` | struct | — | — | Print resolution and page margins | [4](04-appearance-and-tokens.md#view-metrics) |
-| `ct_design::ChartMetrics` | struct | — | — | Chart strokes, bars, sectors, axes, zoom and 3D view | [4](04-appearance-and-tokens.md#view-metrics) |
-| `ct_design::MediaMetrics` | struct | — | — | Media buttons, glass material, inks and scrims | [4](04-appearance-and-tokens.md#view-metrics) |
-| `ct_design::BackdropMetrics` | struct | — | — | Backdrop gradient, glass, ink and accent parameters | [4](04-appearance-and-tokens.md#view-metrics) |
-| `ct_design::BackdropScenes` | struct | — | — | Preset backdrop gradients: dusk, night, pale, forest, studio | [4](04-appearance-and-tokens.md#view-metrics) |
+| `ctdesign::Rgba` | struct | ≈ `Color` | ≈ `NSColor` | sRGB color, channels 0–1, with mixing and contrast helpers | [4](04-appearance-and-tokens.md#token-types) |
+| `ctdesign::Font` | struct | ≈ `Font.TextStyle` | ≈ `NSFont.TextStyle` | Type token: family, size, line height, weight | [4](04-appearance-and-tokens.md#token-types) |
+| `ctdesign::Palette` | struct | — | — | Base colors of one theme: inks, lines, accent, titlebar | [4](04-appearance-and-tokens.md#token-types) |
+| `ctdesign::FocusPair` | struct | — | — | One color for a focused window, one for unfocused | [4](04-appearance-and-tokens.md#token-types) |
+| `ctdesign::PanelLine` | struct | — | — | Inner line of a panel: sides and edges | [4](04-appearance-and-tokens.md#token-types) |
+| `ctdesign::TrafficRim` | struct | — | — | Rim color of a lit and an idle traffic light | [4](04-appearance-and-tokens.md#token-types) |
+| `ctdesign::ShellPalette` | struct | — | — | Menu bar and Dock colors | [4](04-appearance-and-tokens.md#token-types) |
+| `ctdesign::MenuPalette` | struct | — | — | Menu colors and metrics | [4](04-appearance-and-tokens.md#token-types) |
+| `ctdesign::LockPalette` | struct | — | — | Lock-screen colors | [4](04-appearance-and-tokens.md#token-types) |
+| `ctdesign::SidebarPalette` | struct | — | — | Sidebar item, selection, section and line inks | [4](04-appearance-and-tokens.md#token-types) |
+| `ctdesign::ToolgroupPalette` | struct | — | — | Toolbar group separator and rim | [4](04-appearance-and-tokens.md#token-types) |
+| `ctdesign::ShadowLayer` | struct | ≈ `.shadow(color:radius:x:y:)` | ≈ `NSShadow` | One shadow: blur, offset, opacity, color | [4](04-appearance-and-tokens.md#token-types) |
+| `ctdesign::ShadowStyle` | struct | — | — | Ambient and contact shadows, scaled when unfocused | [4](04-appearance-and-tokens.md#token-types) |
+| `ctdesign::WindowCorner` | struct | — | — | Window corner radii and continuous-curve shape | [4](04-appearance-and-tokens.md#token-types) |
+| `ctdesign::WindowStyle` | struct | — | — | Corner radius and superellipse exponent of a dialog or pop-up | [4](04-appearance-and-tokens.md#token-types) |
+| `ctdesign::WindowResize` | struct | — | — | Width of the resize band at edges and corners | [4](04-appearance-and-tokens.md#token-types) |
+| `ctdesign::Titlebar` | struct | — | — | Server-side titlebar thickness, lights and font | [4](04-appearance-and-tokens.md#token-types) |
+| `ctdesign::TitlebarButtons` | struct | — | — | Order, diameter, spacing and radius of the traffic lights | [4](04-appearance-and-tokens.md#token-types) |
+| `ctdesign::Button` | struct | — | — | One traffic light: kind and color | [4](04-appearance-and-tokens.md#token-types) |
+| `ctdesign::ButtonKind` | enum | — | `NSWindow.ButtonType` | `Close`, `Minimize`, `Maximize` | [4](04-appearance-and-tokens.md#token-types) |
+| `ctdesign::TrafficGlyphs` | struct | — | — | Geometry of the close, minimize, zoom and plus glyphs | [4](04-appearance-and-tokens.md#token-types) |
+| `ctdesign::Segment` | struct | — | — | A line from point `a` to point `b` | [4](04-appearance-and-tokens.md#token-types) |
+| `ctdesign::Triangle` | struct | — | — | Three points of a filled glyph triangle | [4](04-appearance-and-tokens.md#token-types) |
+| `ctdesign::DoubleClick` | struct | — | ≈ `NSEvent.doubleClickInterval` | Double-click interval and pointer slop | [4](04-appearance-and-tokens.md#token-types) |
+| `ctdesign::SettingsStrength` | struct | — | — | Tint-strength scale of the settings app | [4](04-appearance-and-tokens.md#token-types) |
+| `ctdesign::SettingsCheck` | struct | — | — | Check list spacing of the settings app | [4](04-appearance-and-tokens.md#token-types) |
+| `ctdesign::SettingsMetrics` | struct | — | — | Sizes of the settings window, sidebar, search and previews | [4](04-appearance-and-tokens.md#view-metrics) |
+| `ctdesign::ButtonMetrics` | struct | — | — | Push button sizes, radius, font and pressed scale | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::IconButtonMetrics` | struct | — | — | Icon button size, radius and icon size | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::SwitchMetrics` | struct | — | — | Switch track, knob, travel and transition | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::CheckboxMetrics` | struct | — | — | Checkbox size, radius and mark | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::SliderMetrics` | struct | — | — | Slider height, track and knob | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::SliderFatMetrics` | struct | — | — | Wide level slider height, minimum fill and icon position | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::SegmentedMetrics` | struct | — | — | Segmented control padding, segments and font | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::StepperMetrics` | struct | — | — | Stepper size, radius and chevrons | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::TextFieldMetrics` | struct | — | — | Text field height, padding and radius | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::TokenFieldMetrics` | struct | — | — | Token height, padding, gap and opacity | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::SpellingMetrics` | struct | — | — | Size of the misspelling dot | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::ComboBoxMetrics` | struct | — | — | Combo box button and chevron sizes | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::PathControlMetrics` | struct | — | — | Path control height, chevrons and icons | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::DatePickerMetrics` | struct | — | — | Calendar size, header, weekday row and radii | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::ImageWellMetrics` | struct | — | — | Image well size, radius, inset and drop border | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::LevelIndicatorMetrics` | struct | — | — | Level indicator bars, stars and relevancy sizes | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::GaugeMetrics` | struct | — | — | Gauge size, stroke, arc and marker | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::ProgressMetrics` | struct | — | — | Progress bar, ring and spinner sizes and timing | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::BadgeMetrics` | struct | — | — | Badge height and padding | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::FocusRingMetrics` | struct | — | — | Focus ring width and offset | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::SymbolMetrics` | struct | — | — | Symbol grid and stroke width | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::TooltipMetrics` | struct | — | — | Tooltip delay, padding, radius and pointer gap | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::PopoverMetrics` | struct | — | — | Popover radius, arrow and padding | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::MenuPopoverMetrics` | struct | — | — | Pop-up menu item, padding, check and swatch grid sizes | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::DragMetrics` | struct | — | — | Pointer travel before a drag starts | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::TitlebarRailMetrics` | struct | — | — | Titlebar rail widths, pill and reveal zone | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
+| `ctdesign::FullscreenBarMetrics` | struct | — | — | Content offset and band line of a full-screen bar | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
+| `ctdesign::FullscreenGlassMetrics` | struct | — | — | Height, blur, layers, tint and mask of full-screen glass | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
+| `ctdesign::SidebarMetrics` | struct | — | — | Sidebar width, island, items and sections | [4](04-appearance-and-tokens.md#view-metrics) |
+| `ctdesign::ToolgroupMetrics` | struct | — | — | Toolbar group height, padding and separators | [4](04-appearance-and-tokens.md#view-metrics) |
+| `ctdesign::SplitViewMetrics` | struct | — | — | Sidebar limits, collapse width, inspector, grip and key step | [4](04-appearance-and-tokens.md#view-metrics) |
+| `ctdesign::SplitPanesMetrics` | struct | — | — | Divider width and minimum pane size | [4](04-appearance-and-tokens.md#view-metrics) |
+| `ctdesign::FloatingPaneMetrics` | struct | — | — | Floating pane title, outline, resize band and shadow | [4](04-appearance-and-tokens.md#view-metrics) |
+| `ctdesign::TableMetrics` | struct | — | — | Table rows, header, zebra and column sizes | [4](04-appearance-and-tokens.md#view-metrics) |
+| `ctdesign::CollectionMetrics` | struct | — | — | Collection tile, icon, gap, radius and selection | [4](04-appearance-and-tokens.md#view-metrics) |
+| `ctdesign::ListGroupMetrics` | struct | — | — | Form group radius, rows, separators and headers | [4](04-appearance-and-tokens.md#view-metrics) |
+| `ctdesign::GroupBoxMetrics` | struct | — | — | Group box radius, padding, label and fill | [4](04-appearance-and-tokens.md#view-metrics) |
+| `ctdesign::DisclosureMetrics` | struct | — | — | Disclosure indent, rows, chevron and icon | [4](04-appearance-and-tokens.md#view-metrics) |
+| `ctdesign::ToolbarTabsMetrics` | struct | — | — | Toolbar tab container and tab sizes | [4](04-appearance-and-tokens.md#view-metrics) |
+| `ctdesign::ScrollBarMetrics` | struct | — | — | Scroll bar thumb, track, opacity and hide delay | [4](04-appearance-and-tokens.md#view-metrics) |
+| `ctdesign::BreakpointMetrics` | struct | — | — | Medium and wide window widths for adaptive layouts | [4](04-appearance-and-tokens.md#view-metrics) |
+| `ctdesign::FontPanelMetrics` | struct | — | — | Font panel size list and size column | [4](04-appearance-and-tokens.md#view-metrics) |
+| `ctdesign::PrintMetrics` | struct | — | — | Print resolution and page margins | [4](04-appearance-and-tokens.md#view-metrics) |
+| `ctdesign::ChartMetrics` | struct | — | — | Chart strokes, bars, sectors, axes, zoom and 3D view | [4](04-appearance-and-tokens.md#view-metrics) |
+| `ctdesign::MediaMetrics` | struct | — | — | Media buttons, glass material, inks and scrims | [4](04-appearance-and-tokens.md#view-metrics) |
+| `ctdesign::BackdropMetrics` | struct | — | — | Backdrop gradient, glass, ink and accent parameters | [4](04-appearance-and-tokens.md#view-metrics) |
+| `ctdesign::BackdropScenes` | struct | — | — | Preset backdrop gradients: dusk, night, pale, forest, studio | [4](04-appearance-and-tokens.md#view-metrics) |
 
 ## Design token constants
 
 | BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
 |---|---|---|---|---|---|
-| `ct_design::SPACE_1`, `SPACE_2`, `SPACE_3`, `SPACE_4` | constant | — | — | Spacing steps: 4, 8, 12, 16 | [4](04-appearance-and-tokens.md#spacing) |
-| `ct_design::HAIRLINE` | constant | — | — | Separator width, 1 px | [4](04-appearance-and-tokens.md#spacing) |
-| `ct_design::LARGE_TITLE`, `TITLE`, `TITLE_2`, `HEADLINE`, `BODY`, `CALLOUT`, `CAPTION` | constant | `Font.TextStyle` | `NSFont.TextStyle` | Type styles named after SwiftUI's | [4](04-appearance-and-tokens.md#type) |
-| `ct_design::MONO` | constant | `Font.monospaced()` | `NSFont.monospacedSystemFont(ofSize:weight:)` | Monospaced body text, Geist Mono | [4](04-appearance-and-tokens.md#type) |
-| `ct_design::SANS_FAMILIES`, `TEXT_LINE_HEIGHT` | constant | — | — | Sans-serif fallback list; line-height factor for measuring text | [4](04-appearance-and-tokens.md#type) |
-| `ct_design::DURATION_FAST_MS`, `DURATION_BASE`, `DURATION_SLOW_MS`, `THEME_FADE_WAIT_MS` | constant | — | — | Durations: 120, 220, 420 ms; theme fade wait | [4](04-appearance-and-tokens.md#motion) |
-| `ct_design::SPRING_DAMPING` | constant | ≈ `Spring.damping` | — | Damping of the kit's spring | [4](04-appearance-and-tokens.md#motion) |
-| `ct_design::LIGHT`, `DARK`, `DARK_TINT` | constant | — | — | Base palette of each theme | [4](04-appearance-and-tokens.md#colors) |
-| `ct_design::BG_WINDOW_LIGHT`, `BG_WINDOW_DARK`, `BG_WINDOW_DARK_TINT`, `BG_SURFACE_LIGHT`, `BG_SURFACE_DARK`, `BG_SURFACE_DARK_TINT`, `BG_SUNKEN_LIGHT`, `BG_SUNKEN_DARK`, `BG_SUNKEN_DARK_TINT`, `BG_RAISED_LIGHT`, `BG_RAISED_DARK`, `BG_RAISED_DARK_TINT`, `BG_CONTROL_LIGHT`, `BG_CONTROL_DARK`, `BG_CONTROL_DARK_TINT`, `BG_HOVER_LIGHT`, `BG_HOVER_DARK`, `BG_HOVER_DARK_TINT` | constant | — | ≈ `NSColor.windowBackgroundColor`… | Background layers per theme | [4](04-appearance-and-tokens.md#colors) |
-| `ct_design::LAYER_FACTOR_BG_SUNKEN`, `LAYER_FACTOR_SURFACE`, `LAYER_FACTOR_RAISED`, `LAYER_FACTOR_CONTROL`, `LAYER_FACTOR_LINE` | constant | — | — | Share of the window tint each layer takes | [4](04-appearance-and-tokens.md#colors) |
-| `ct_design::WINDOW_TINT_ACCENT`, `WINDOW_TINT_WALLPAPER`, `PANEL_TINT_WALLPAPER`, `TINT_STRENGTH` | constant | — | — | Tint amounts in light and dark; strength factors | [4](04-appearance-and-tokens.md#colors) |
-| `ct_design::ACCENT_MIN_CONTRAST_ON_WINDOW`, `ON_ACCENT_MIN_CONTRAST` | constant | — | — | Contrast minimums: accent on window 3, ink on accent 4.5 | [4](04-appearance-and-tokens.md#colors) |
-| `ct_design::WALLPAPER_ACCENT_DARKEN_LIGHT`, `WALLPAPER_ACCENT_LIGHTEN_DARK`, `MUTED_BELOW_SATURATION`, `MUTED_MAX_SATURATION` | constant | — | — | How a wallpaper color becomes the accent | [4](04-appearance-and-tokens.md#colors) |
-| `ct_design::DOMINANT_LIGHTNESS`, `DOMINANT_MIN_CHROMA` | constant | — | — | Lightness range and minimum chroma of a wallpaper's dominant color | [4](04-appearance-and-tokens.md#colors) |
-| `ct_design::ACCENT_SWATCHES` | constant | — | — | The eight named accent choices | [4](04-appearance-and-tokens.md#colors) |
-| `ct_design::CHART_SERIES` | constant | — | — | Seven chart series colors | [4](04-appearance-and-tokens.md#colors) |
-| `ct_design::LEVEL_INDICATOR_COLORS` | constant | — | — | Normal, warning and critical level colors | [4](04-appearance-and-tokens.md#colors) |
-| `ct_design::SHELL_LIGHT`, `SHELL_LIGHT_OPAQUE`, `SHELL_DARK`, `SHELL_DARK_OPAQUE`, `SHELL_DARK_TINT`, `SHELL_DARK_TINT_OPAQUE` | constant | — | — | Menu bar and Dock colors per theme | [4](04-appearance-and-tokens.md#colors) |
-| `ct_design::THEME_SHADOW_OPACITY` | constant | — | — | Shadow opacity of the Freya shell theme | [4](04-appearance-and-tokens.md#colors) |
-| `ct_design::MENU_LIGHT`, `MENU_LIGHT_OPAQUE`, `MENU_DARK`, `MENU_DARK_OPAQUE`, `MENU_DARK_TINT`, `MENU_DARK_TINT_OPAQUE` | constant | — | — | Menu palettes per theme, translucent and opaque | [4](04-appearance-and-tokens.md#colors) |
-| `ct_design::SIDEBAR_LIGHT`, `SIDEBAR_LIGHT_OPAQUE`, `SIDEBAR_DARK`, `SIDEBAR_DARK_OPAQUE`, `SIDEBAR_DARK_TINT`, `SIDEBAR_DARK_TINT_OPAQUE` | constant | — | — | Flat sidebar background per theme | [4](04-appearance-and-tokens.md#colors) |
-| `ct_design::SIDEBAR_ISLAND_LIGHT`, `SIDEBAR_ISLAND_DARK`, `SIDEBAR_ISLAND_DARK_TINT`, `SIDEBAR_ISLAND_RIM_LIGHT`, `SIDEBAR_ISLAND_RIM_DARK`, `SIDEBAR_ISLAND_RIM_DARK_TINT`, `SIDEBAR_ISLAND_INNER_LIGHT`, `SIDEBAR_ISLAND_INNER_DARK`, `SIDEBAR_ISLAND_INNER_DARK_TINT` | constant | — | — | Island sidebar background, rim and inner line per theme | [4](04-appearance-and-tokens.md#colors) |
-| `ct_design::SIDEBAR_PALETTE_LIGHT`, `SIDEBAR_PALETTE_DARK`, `SIDEBAR_PALETTE_DARK_TINT` | constant | — | — | Sidebar inks per theme | [4](04-appearance-and-tokens.md#colors) |
-| `ct_design::TOOLGROUP_BG_LIGHT`, `TOOLGROUP_BG_LIGHT_OPAQUE`, `TOOLGROUP_BG_DARK`, `TOOLGROUP_BG_DARK_OPAQUE`, `TOOLGROUP_BG_DARK_TINT`, `TOOLGROUP_BG_DARK_TINT_OPAQUE`, `TOOLGROUP_PALETTE_LIGHT`, `TOOLGROUP_PALETTE_DARK`, `TOOLGROUP_PALETTE_DARK_TINT` | constant | — | — | Toolbar group background and lines per theme | [4](04-appearance-and-tokens.md#colors) |
-| `ct_design::WINDOW_MIN_SIZE`, `WINDOW_DEFAULT_SIZE` | constant | ≈ `.defaultSize(_:)` | ≈ `NSWindow.minSize` | Minimum and default window size: 480 × 360, 640 × 420 | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
-| `ct_design::WINDOW_CORNER`, `WINDOW_RESIZE` | constant | — | — | Window corner shape; resize band widths | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
-| `ct_design::DIALOG`, `DIALOG_PADDING`, `DIALOG_ALERT_WIDTH`, `POPUP` | constant | — | — | Dialog and pop-up corners, dialog padding, alert width | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
-| `ct_design::SHADOW`, `SHADOW_DARK` | constant | — | ≈ `NSShadow` | Window shadows in light and dark | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
-| `ct_design::NATIVE_APP_ID_PREFIX`, `ALERT_LAYER_NAMESPACE` | constant | — | — | App id prefix of kit apps; layer namespace of shell alerts | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
-| `ct_design::TITLEBAR`, `TITLEBAR_CLIENT_HEIGHT`, `TITLEBAR_PADDING_X`, `TITLEBAR_TITLE_GAP`, `TITLEBAR_DOUBLE_CLICK`, `TITLEBAR_RAIL` | constant | — | — | Titlebar sizes, lights, double click and rail | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
-| `ct_design::FULLSCREEN_BAR`, `FULLSCREEN_GLASS`, `FULLSCREEN_BAND`, `GLASS_MASK`, `HUD_BACKGROUND` | constant | — | — | Full-screen glass bars, their mask, HUD window background | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
-| `ct_design::TRAFFIC_GLYPHS`, `TRAFFIC_GLYPH_STANDARD`, `TRAFFIC_GLYPH_ON_DARK`, `TRAFFIC_GLYPH_ON_LIGHT`, `TRAFFIC_RIM_WIDTH`, `TRAFFIC_PRESSED_DARKEN`, `TRAFFIC_CLOSE_MINIMIZE_DARKEN`, `TRAFFIC_ZOOM_LIGHTEN` | constant | — | — | Traffic-light glyphs, inks, rim and color shifts | [4](04-appearance-and-tokens.md#traffic-lights) |
-| `ct_design::BUTTON`, `ICON_BUTTON`, `SWITCH`, `CHECKBOX`, `SLIDER`, `SLIDER_FAT`, `SLIDER_KEY_STEP`, `KNOB_SHADOW`, `SEGMENTED`, `STEPPER`, `TOOLBAR_SEARCH_WIDTH` | constant | — | — | Metrics of buttons, toggles, sliders and toolbar controls | [4](04-appearance-and-tokens.md#control-metrics) |
-| `ct_design::TEXT_FIELD`, `TOKEN_FIELD`, `SPELLING`, `COMBO_BOX`, `PATH_CONTROL`, `DATE_PICKER`, `IMAGE_WELL` | constant | — | — | Metrics of fields and pickers | [4](04-appearance-and-tokens.md#control-metrics) |
-| `ct_design::LEVEL_INDICATOR`, `GAUGE`, `PROGRESS`, `BADGE`, `FOCUS_RING`, `SYMBOL`, `TOOLTIP`, `POPOVER`, `DRAG` | constant | — | — | Metrics of indicators, focus ring, symbols, tooltips, popovers, drag | [4](04-appearance-and-tokens.md#control-metrics) |
-| `ct_design::MENU_POPOVER`, `MENU_MARK_TEXT_GAP`, `MENU_SUBMENU_INTENT_MS`, `MENU_SUBMENU_REVEAL_GAP`, `MENU_SCROLL_TICK_MS`, `MENU_SEARCH_ICON`, `MENU_SEARCH_ICON_GAP`, `MENU_SEARCH_CLEAR`, `MENU_SEARCH_CLEAR_GLYPH`, `MENU_SEARCH_CLEAR_MARGIN`, `MENU_SEARCH_CLEAR_MIX`, `MENU_HELP_ICON`, `MENU_SEPARATOR_INK_MIX` | constant | — | — | Menu and pop-up menu metrics and timing | [4](04-appearance-and-tokens.md#control-metrics) |
-| `ct_design::SIDEBAR`, `TOOLGROUP`, `SPLIT_VIEW`, `SPLIT_PANES`, `FLOATING_PANE`, `TABLE`, `COLLECTION`, `LIST_GROUP`, `GROUP_BOX`, `DISCLOSURE`, `TOOLBAR_TABS`, `SCROLL_BAR`, `BREAKPOINT` | constant | — | — | Metrics of sidebars, split views, lists, tables and groups | [4](04-appearance-and-tokens.md#view-metrics) |
-| `ct_design::SETTINGS`, `FONT_PANEL`, `PRINT`, `CHART`, `MEDIA`, `BACKDROP`, `BACKDROP_SCENES` | constant | — | — | Metrics of settings, font panel, printing, charts, media, backdrops | [4](04-appearance-and-tokens.md#view-metrics) |
-| `ct_design::MENUBAR_HEIGHT`, `MENUBAR_FONT_SIZE`, `MENUBAR_APP_NAME_WEIGHT`, `MENUBAR_MARGIN`, `MENUBAR_MARGIN_RIGHT`, `MENUBAR_TITLE_PADDING_X`, `MENUBAR_TEXT_LIFT`, `MENUBAR_TITLE_MAX_WIDTH`, `MENUBAR_TITLE_BLEED`, `FOCUS_BAR_BACKGROUND`, `FOCUS_BAR_TEXT` | constant | — | — | Shell menu bar sizes; focus-mode bar colors | [4](04-appearance-and-tokens.md#shell) |
-| `ct_design::DOCK_TILESIZE`, `DOCK_GAP`, `DOCK_PADDING`, `DOCK_FONT_SIZE`, `DOCK_BAR_HEIGHT` | constant | — | — | Shell Dock sizes | [4](04-appearance-and-tokens.md#shell) |
-| `ct_design::LAUNCHER_WIDTH`, `LAUNCHER_HEIGHT`, `LAUNCHER_PADDING`, `LAUNCHER_SEARCH_HEIGHT`, `LAUNCHER_RESULT_HEIGHT`, `LAUNCHER_RESULT_GAP`, `LAUNCHER_RESULT_RADIUS`, `LAUNCHER_ICON_SIZE`, `LAUNCHER_MAX_RESULTS`, `LAUNCHER_CORNER_RADIUS`, `LAUNCHER_FONT_SIZE`, `LAUNCHER_SUBTITLE_FONT_SIZE`, `LAUNCHER_SCALE_FROM`, `LAUNCHER_OPEN_MS`, `LAUNCHER_CLOSE_MS` | constant | — | — | Shell launcher sizes and animation | [4](04-appearance-and-tokens.md#shell) |
-| `ct_design::LOCK`, `LOCK_FONT_SIZE`, `LOCK_TITLE_SCALE`, `LOCK_FIELD_WIDTH`, `LOCK_FIELD_HEIGHT`, `LOCK_LABEL_OFFSET`, `LOCK_LABEL_FONT_SIZE`, `LOCK_MASK_FONT_SIZE` | constant | — | — | Lock screen colors and sizes | [4](04-appearance-and-tokens.md#shell) |
-| `ct_design::ABOUT_WIDTH`, `ABOUT_HEIGHT`, `ABOUT_DRAWING_TOP`, `ABOUT_DRAWING_WIDTH`, `ABOUT_DRAWING_HEIGHT`, `ABOUT_TITLE_GAP`, `ABOUT_TITLE_SIZE`, `ABOUT_SPECS_GAP`, `ABOUT_SPEC_ROW_GAP`, `ABOUT_COLUMN_GAP`, `ABOUT_VALUE_WIDTH`, `ABOUT_BUTTON_GAP`, `ABOUT_FOOTER_BOTTOM` | constant | — | — | Sizes of the shell's «About this computer» window | [4](04-appearance-and-tokens.md#shell) |
-| `ct_design::CURSOR_SHAKE_SCALE`, `CURSOR_SHAKE_GROW_MS`, `CURSOR_SHAKE_SHRINK_MS`, `CURSOR_SHAKE_TICK_MS` | constant | — | — | Compositor: cursor growth when the pointer is shaken | [4](04-appearance-and-tokens.md#compositor) |
-| `ct_design::SCREENSHOT_DIM`, `SCREENSHOT_IDLE_DIM`, `SCREENSHOT_BORDER`, `SCREENSHOT_BORDER_WIDTH` | constant | — | — | Compositor: screenshot selection overlay | [4](04-appearance-and-tokens.md#compositor) |
-| `ct_design::SPACE_GAP`, `SPACE_GAP_COLOR`, `SPACE_SLIDE_MS`, `SPACE_SLIDE_EASE` | constant | — | — | Compositor: gap and slide between Spaces | [4](04-appearance-and-tokens.md#compositor) |
-| `ct_design::TILE_MARGIN`, `TILE_GAP`, `DESKTOP_CLEAR` | constant | — | — | Compositor: tiled window margins; color behind everything | [4](04-appearance-and-tokens.md#compositor) |
+| `ctdesign::SPACE_1`, `SPACE_2`, `SPACE_3`, `SPACE_4` | constant | — | — | Spacing steps: 4, 8, 12, 16 | [4](04-appearance-and-tokens.md#spacing) |
+| `ctdesign::HAIRLINE` | constant | — | — | Separator width, 1 px | [4](04-appearance-and-tokens.md#spacing) |
+| `ctdesign::LARGE_TITLE`, `TITLE`, `TITLE_2`, `HEADLINE`, `BODY`, `CALLOUT`, `CAPTION` | constant | `Font.TextStyle` | `NSFont.TextStyle` | Type styles named after SwiftUI's | [4](04-appearance-and-tokens.md#type) |
+| `ctdesign::MONO` | constant | `Font.monospaced()` | `NSFont.monospacedSystemFont(ofSize:weight:)` | Monospaced body text, Geist Mono | [4](04-appearance-and-tokens.md#type) |
+| `ctdesign::SANS_FAMILIES`, `TEXT_LINE_HEIGHT` | constant | — | — | Sans-serif fallback list; line-height factor for measuring text | [4](04-appearance-and-tokens.md#type) |
+| `ctdesign::DURATION_FAST_MS`, `DURATION_BASE`, `DURATION_SLOW_MS`, `THEME_FADE_WAIT_MS` | constant | — | — | Durations: 120, 220, 420 ms; theme fade wait | [4](04-appearance-and-tokens.md#motion) |
+| `ctdesign::SPRING_DAMPING` | constant | ≈ `Spring.damping` | — | Damping of the kit's spring | [4](04-appearance-and-tokens.md#motion) |
+| `ctdesign::LIGHT`, `DARK`, `DARK_TINT` | constant | — | — | Base palette of each theme | [4](04-appearance-and-tokens.md#colors) |
+| `ctdesign::BG_WINDOW_LIGHT`, `BG_WINDOW_DARK`, `BG_WINDOW_DARK_TINT`, `BG_SURFACE_LIGHT`, `BG_SURFACE_DARK`, `BG_SURFACE_DARK_TINT`, `BG_SUNKEN_LIGHT`, `BG_SUNKEN_DARK`, `BG_SUNKEN_DARK_TINT`, `BG_RAISED_LIGHT`, `BG_RAISED_DARK`, `BG_RAISED_DARK_TINT`, `BG_CONTROL_LIGHT`, `BG_CONTROL_DARK`, `BG_CONTROL_DARK_TINT`, `BG_HOVER_LIGHT`, `BG_HOVER_DARK`, `BG_HOVER_DARK_TINT` | constant | — | ≈ `NSColor.windowBackgroundColor`… | Background layers per theme | [4](04-appearance-and-tokens.md#colors) |
+| `ctdesign::LAYER_FACTOR_BG_SUNKEN`, `LAYER_FACTOR_SURFACE`, `LAYER_FACTOR_RAISED`, `LAYER_FACTOR_CONTROL`, `LAYER_FACTOR_LINE` | constant | — | — | Share of the window tint each layer takes | [4](04-appearance-and-tokens.md#colors) |
+| `ctdesign::WINDOW_TINT_ACCENT`, `WINDOW_TINT_WALLPAPER`, `PANEL_TINT_WALLPAPER`, `TINT_STRENGTH` | constant | — | — | Tint amounts in light and dark; strength factors | [4](04-appearance-and-tokens.md#colors) |
+| `ctdesign::ACCENT_MIN_CONTRAST_ON_WINDOW`, `ON_ACCENT_MIN_CONTRAST` | constant | — | — | Contrast minimums: accent on window 3, ink on accent 4.5 | [4](04-appearance-and-tokens.md#colors) |
+| `ctdesign::WALLPAPER_ACCENT_DARKEN_LIGHT`, `WALLPAPER_ACCENT_LIGHTEN_DARK`, `MUTED_BELOW_SATURATION`, `MUTED_MAX_SATURATION` | constant | — | — | How a wallpaper color becomes the accent | [4](04-appearance-and-tokens.md#colors) |
+| `ctdesign::DOMINANT_LIGHTNESS`, `DOMINANT_MIN_CHROMA` | constant | — | — | Lightness range and minimum chroma of a wallpaper's dominant color | [4](04-appearance-and-tokens.md#colors) |
+| `ctdesign::ACCENT_SWATCHES` | constant | — | — | The eight named accent choices | [4](04-appearance-and-tokens.md#colors) |
+| `ctdesign::CHART_SERIES` | constant | — | — | Seven chart series colors | [4](04-appearance-and-tokens.md#colors) |
+| `ctdesign::LEVEL_INDICATOR_COLORS` | constant | — | — | Normal, warning and critical level colors | [4](04-appearance-and-tokens.md#colors) |
+| `ctdesign::SHELL_LIGHT`, `SHELL_LIGHT_OPAQUE`, `SHELL_DARK`, `SHELL_DARK_OPAQUE`, `SHELL_DARK_TINT`, `SHELL_DARK_TINT_OPAQUE` | constant | — | — | Menu bar and Dock colors per theme | [4](04-appearance-and-tokens.md#colors) |
+| `ctdesign::THEME_SHADOW_OPACITY` | constant | — | — | Shadow opacity of the Freya shell theme | [4](04-appearance-and-tokens.md#colors) |
+| `ctdesign::MENU_LIGHT`, `MENU_LIGHT_OPAQUE`, `MENU_DARK`, `MENU_DARK_OPAQUE`, `MENU_DARK_TINT`, `MENU_DARK_TINT_OPAQUE` | constant | — | — | Menu palettes per theme, translucent and opaque | [4](04-appearance-and-tokens.md#colors) |
+| `ctdesign::SIDEBAR_LIGHT`, `SIDEBAR_LIGHT_OPAQUE`, `SIDEBAR_DARK`, `SIDEBAR_DARK_OPAQUE`, `SIDEBAR_DARK_TINT`, `SIDEBAR_DARK_TINT_OPAQUE` | constant | — | — | Flat sidebar background per theme | [4](04-appearance-and-tokens.md#colors) |
+| `ctdesign::SIDEBAR_ISLAND_LIGHT`, `SIDEBAR_ISLAND_DARK`, `SIDEBAR_ISLAND_DARK_TINT`, `SIDEBAR_ISLAND_RIM_LIGHT`, `SIDEBAR_ISLAND_RIM_DARK`, `SIDEBAR_ISLAND_RIM_DARK_TINT`, `SIDEBAR_ISLAND_INNER_LIGHT`, `SIDEBAR_ISLAND_INNER_DARK`, `SIDEBAR_ISLAND_INNER_DARK_TINT` | constant | — | — | Island sidebar background, rim and inner line per theme | [4](04-appearance-and-tokens.md#colors) |
+| `ctdesign::SIDEBAR_PALETTE_LIGHT`, `SIDEBAR_PALETTE_DARK`, `SIDEBAR_PALETTE_DARK_TINT` | constant | — | — | Sidebar inks per theme | [4](04-appearance-and-tokens.md#colors) |
+| `ctdesign::TOOLGROUP_BG_LIGHT`, `TOOLGROUP_BG_LIGHT_OPAQUE`, `TOOLGROUP_BG_DARK`, `TOOLGROUP_BG_DARK_OPAQUE`, `TOOLGROUP_BG_DARK_TINT`, `TOOLGROUP_BG_DARK_TINT_OPAQUE`, `TOOLGROUP_PALETTE_LIGHT`, `TOOLGROUP_PALETTE_DARK`, `TOOLGROUP_PALETTE_DARK_TINT` | constant | — | — | Toolbar group background and lines per theme | [4](04-appearance-and-tokens.md#colors) |
+| `ctdesign::WINDOW_MIN_SIZE`, `WINDOW_DEFAULT_SIZE` | constant | ≈ `.defaultSize(_:)` | ≈ `NSWindow.minSize` | Minimum and default window size: 480 × 360, 640 × 420 | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
+| `ctdesign::WINDOW_CORNER`, `WINDOW_RESIZE` | constant | — | — | Window corner shape; resize band widths | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
+| `ctdesign::DIALOG`, `DIALOG_PADDING`, `DIALOG_ALERT_WIDTH`, `POPUP` | constant | — | — | Dialog and pop-up corners, dialog padding, alert width | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
+| `ctdesign::SHADOW`, `SHADOW_DARK` | constant | — | ≈ `NSShadow` | Window shadows in light and dark | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
+| `ctdesign::NATIVE_APP_ID_PREFIX`, `ALERT_LAYER_NAMESPACE` | constant | — | — | App id prefix of kit apps; layer namespace of shell alerts | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
+| `ctdesign::TITLEBAR`, `TITLEBAR_CLIENT_HEIGHT`, `TITLEBAR_PADDING_X`, `TITLEBAR_TITLE_GAP`, `TITLEBAR_DOUBLE_CLICK`, `TITLEBAR_RAIL` | constant | — | — | Titlebar sizes, lights, double click and rail | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
+| `ctdesign::FULLSCREEN_BAR`, `FULLSCREEN_GLASS`, `FULLSCREEN_BAND`, `GLASS_MASK`, `HUD_BACKGROUND` | constant | — | — | Full-screen glass bars, their mask, HUD window background | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
+| `ctdesign::TRAFFIC_GLYPHS`, `TRAFFIC_GLYPH_STANDARD`, `TRAFFIC_GLYPH_ON_DARK`, `TRAFFIC_GLYPH_ON_LIGHT`, `TRAFFIC_RIM_WIDTH`, `TRAFFIC_PRESSED_DARKEN`, `TRAFFIC_CLOSE_MINIMIZE_DARKEN`, `TRAFFIC_ZOOM_LIGHTEN` | constant | — | — | Traffic-light glyphs, inks, rim and color shifts | [4](04-appearance-and-tokens.md#traffic-lights) |
+| `ctdesign::BUTTON`, `ICON_BUTTON`, `SWITCH`, `CHECKBOX`, `SLIDER`, `SLIDER_FAT`, `SLIDER_KEY_STEP`, `KNOB_SHADOW`, `SEGMENTED`, `STEPPER`, `TOOLBAR_SEARCH_WIDTH` | constant | — | — | Metrics of buttons, toggles, sliders and toolbar controls | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::TEXT_FIELD`, `TOKEN_FIELD`, `SPELLING`, `COMBO_BOX`, `PATH_CONTROL`, `DATE_PICKER`, `IMAGE_WELL` | constant | — | — | Metrics of fields and pickers | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::LEVEL_INDICATOR`, `GAUGE`, `PROGRESS`, `BADGE`, `FOCUS_RING`, `SYMBOL`, `TOOLTIP`, `POPOVER`, `DRAG` | constant | — | — | Metrics of indicators, focus ring, symbols, tooltips, popovers, drag | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::MENU_POPOVER`, `MENU_MARK_TEXT_GAP`, `MENU_SUBMENU_INTENT_MS`, `MENU_SUBMENU_REVEAL_GAP`, `MENU_SCROLL_TICK_MS`, `MENU_SEARCH_ICON`, `MENU_SEARCH_ICON_GAP`, `MENU_SEARCH_CLEAR`, `MENU_SEARCH_CLEAR_GLYPH`, `MENU_SEARCH_CLEAR_MARGIN`, `MENU_SEARCH_CLEAR_MIX`, `MENU_HELP_ICON`, `MENU_SEPARATOR_INK_MIX` | constant | — | — | Menu and pop-up menu metrics and timing | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::SIDEBAR`, `TOOLGROUP`, `SPLIT_VIEW`, `SPLIT_PANES`, `FLOATING_PANE`, `TABLE`, `COLLECTION`, `LIST_GROUP`, `GROUP_BOX`, `DISCLOSURE`, `TOOLBAR_TABS`, `SCROLL_BAR`, `BREAKPOINT` | constant | — | — | Metrics of sidebars, split views, lists, tables and groups | [4](04-appearance-and-tokens.md#view-metrics) |
+| `ctdesign::SETTINGS`, `FONT_PANEL`, `PRINT`, `CHART`, `MEDIA`, `BACKDROP`, `BACKDROP_SCENES` | constant | — | — | Metrics of settings, font panel, printing, charts, media, backdrops | [4](04-appearance-and-tokens.md#view-metrics) |
+| `ctdesign::MENUBAR_HEIGHT`, `MENUBAR_FONT_SIZE`, `MENUBAR_APP_NAME_WEIGHT`, `MENUBAR_MARGIN`, `MENUBAR_MARGIN_RIGHT`, `MENUBAR_TITLE_PADDING_X`, `MENUBAR_TEXT_LIFT`, `MENUBAR_TITLE_MAX_WIDTH`, `MENUBAR_TITLE_BLEED`, `FOCUS_BAR_BACKGROUND`, `FOCUS_BAR_TEXT` | constant | — | — | Shell menu bar sizes; focus-mode bar colors | [4](04-appearance-and-tokens.md#shell) |
+| `ctdesign::DOCK_TILESIZE`, `DOCK_GAP`, `DOCK_PADDING`, `DOCK_FONT_SIZE`, `DOCK_BAR_HEIGHT` | constant | — | — | Shell Dock sizes | [4](04-appearance-and-tokens.md#shell) |
+| `ctdesign::LAUNCHER_WIDTH`, `LAUNCHER_HEIGHT`, `LAUNCHER_PADDING`, `LAUNCHER_SEARCH_HEIGHT`, `LAUNCHER_RESULT_HEIGHT`, `LAUNCHER_RESULT_GAP`, `LAUNCHER_RESULT_RADIUS`, `LAUNCHER_ICON_SIZE`, `LAUNCHER_MAX_RESULTS`, `LAUNCHER_CORNER_RADIUS`, `LAUNCHER_FONT_SIZE`, `LAUNCHER_SUBTITLE_FONT_SIZE`, `LAUNCHER_SCALE_FROM`, `LAUNCHER_OPEN_MS`, `LAUNCHER_CLOSE_MS` | constant | — | — | Shell launcher sizes and animation | [4](04-appearance-and-tokens.md#shell) |
+| `ctdesign::LOCK`, `LOCK_FONT_SIZE`, `LOCK_TITLE_SCALE`, `LOCK_FIELD_WIDTH`, `LOCK_FIELD_HEIGHT`, `LOCK_LABEL_OFFSET`, `LOCK_LABEL_FONT_SIZE`, `LOCK_MASK_FONT_SIZE` | constant | — | — | Lock screen colors and sizes | [4](04-appearance-and-tokens.md#shell) |
+| `ctdesign::ABOUT_WIDTH`, `ABOUT_HEIGHT`, `ABOUT_DRAWING_TOP`, `ABOUT_DRAWING_WIDTH`, `ABOUT_DRAWING_HEIGHT`, `ABOUT_TITLE_GAP`, `ABOUT_TITLE_SIZE`, `ABOUT_SPECS_GAP`, `ABOUT_SPEC_ROW_GAP`, `ABOUT_COLUMN_GAP`, `ABOUT_VALUE_WIDTH`, `ABOUT_BUTTON_GAP`, `ABOUT_FOOTER_BOTTOM` | constant | — | — | Sizes of the shell's «About this computer» window | [4](04-appearance-and-tokens.md#shell) |
+| `ctdesign::CURSOR_SHAKE_SCALE`, `CURSOR_SHAKE_GROW_MS`, `CURSOR_SHAKE_SHRINK_MS`, `CURSOR_SHAKE_TICK_MS` | constant | — | — | Compositor: cursor growth when the pointer is shaken | [4](04-appearance-and-tokens.md#compositor) |
+| `ctdesign::SCREENSHOT_DIM`, `SCREENSHOT_IDLE_DIM`, `SCREENSHOT_BORDER`, `SCREENSHOT_BORDER_WIDTH` | constant | — | — | Compositor: screenshot selection overlay | [4](04-appearance-and-tokens.md#compositor) |
+| `ctdesign::SPACE_GAP`, `SPACE_GAP_COLOR`, `SPACE_SLIDE_MS`, `SPACE_SLIDE_EASE` | constant | — | — | Compositor: gap and slide between Spaces | [4](04-appearance-and-tokens.md#compositor) |
+| `ctdesign::TILE_MARGIN`, `TILE_GAP`, `DESKTOP_CLEAR` | constant | — | — | Compositor: tiled window margins; color behind everything | [4](04-appearance-and-tokens.md#compositor) |
 
 ## Buttons
 

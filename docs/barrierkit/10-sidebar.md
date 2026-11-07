@@ -70,8 +70,8 @@ page follows the selected item.
        .on_layout(move |layout: SidebarLayout| saved.set(Some(layout)))
    ```
 
-The names come from `barrier_kit::sidebar`, `barrier_kit::views::split`,
-`barrier_kit::symbol::Symbol` and `ct_design::ACCENT_SWATCHES`.
+The names come from `bk::sidebar`, `bk::views::split`,
+`bk::symbol::Symbol` and `ctdesign::ACCENT_SWATCHES`.
 
 ## Sidebar content
 

@@ -2,7 +2,7 @@
 
 **Goal:** add a complete preferences window, an About window and a language
 choice, each with a single piece.
-**Scope:** `barrier_kit::patterns`: `preferences`, `about` and `language`. The
+**Scope:** `bk::patterns`: `preferences`, `about` and `language`. The
 parts they join are in [10](10-sidebar.md) (sidebar and split view) and
 [11](11-views.md) (form, history, search). Opening a second window from a
 menu is in [13](13-app.md).
@@ -56,8 +56,8 @@ search and saved state.
    )
    ```
 
-The names come from `barrier_kit::patterns::preferences`,
-`barrier_kit::views::form`, `barrier_kit::symbol::Symbol` and `ct_design`.
+The names come from `bk::patterns::preferences`,
+`bk::views::form`, `bk::symbol::Symbol` and `ctdesign`.
 
 ## Preferences window
 

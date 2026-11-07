@@ -1,6 +1,6 @@
 # 0060 — Charts in barrierkit
 
-Status: **accepted** (2026-11-06). Implemented in `barrier_kit::charts`. The test apps (Master Tengen App Show, Marea, Ondina and Trazo) and the examples were removed from the repository on 2026-11-07.
+Status: **accepted** (2026-11-06). Implemented in `bk::charts`. The test apps (Master Tengen App Show, Marea, Ondina and Trazo) and the examples were removed from the repository on 2026-11-07.
 
 ## Context
 
@@ -30,7 +30,7 @@ Charts: marks (`LineMark`, `AreaMark`, `BarMark`, `PointMark`, `RuleMark`,
    (ADR 0056). The camera is free in the Blender style (orbit, pan and
    zoom), custom by coordinates or fixed on a plane: front, top, side or
    isometric.
-5. **Values in `ct-design`** (ADR 0011): `components.chart` (`CHART`). Series
+5. **Values in `ctdesign`** (ADR 0011): `components.chart` (`CHART`). Series
    colors point to the system accent colors (`CHART_SERIES`) without copying
    them.
 6. **Tested in a separate app, Trazo**, not in Tengen App Show: 2D charts, a

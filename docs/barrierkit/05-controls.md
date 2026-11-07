@@ -67,7 +67,7 @@ Three controls keep no copy and only show what the app passes: `RatingIndicator`
 - Space or Enter press the focused button. The arrow keys move sliders, steppers,
   segments and radio options.
 - `.disabled(true)` dims the control and stops its callbacks.
-- Controls with a fill take `.tint(Tint)` (`barrier_kit::backdrop::Tint`: `Accent`,
+- Controls with a fill take `.tint(Tint)` (`bk::backdrop::Tint`: `Accent`,
   `Color(Rgba)`, `Backdrop`; see [15](15-backdrops-and-media.md)).
 - Visible text in a real app comes from `tr!` ([17](17-languages.md)); examples here use
   literals.
@@ -75,7 +75,7 @@ Three controls keep no copy and only show what the app passes: `RatingIndicator`
 
 ![Focus ring after Tab](assets/components/focus-ring-light.png)
 
-Each image is a golden render from `crates/barrier-kit/tests/kit/controls.rs`, in light and
+Each image is a golden render from `crates/bk/tests/kit/controls.rs`, in light and
 dark (`-dark.png`).
 
 ## Buttons
@@ -232,7 +232,7 @@ All of them report the chosen index with `.on_change(|index: usize| ..)`.
   click opens the items as a menu with a radio mark, placed so the chosen row covers the
   button. `MenuIcon` is in [7](07-menus-and-popovers.md).
 - `ColorWell` is a row of 18 swatches, 10 apart. `swatches` is
-  `&'static [(&'static str, Rgba)]`, for example `ct_design::ACCENT_SWATCHES`.
+  `&'static [(&'static str, Rgba)]`, for example `ctdesign::ACCENT_SWATCHES`.
 - `ChoiceCards` shows 66 × 44 previews with a caption below; the chosen card gets an accent
   ring.
 
@@ -369,7 +369,7 @@ and a stepper beside it, like the `textFieldAndStepper` style of `NSDatePicker`.
 | Click on a date part | Opens a 139 × 148 month calendar below |
 
 The order of the parts (`date-order`: `dmy`, `mdy` or `ymd`) and the first day of the week
-(`week-start`) come from the language file `barrier-kit.ftl`.
+(`week-start`) come from the language file `bk.ftl`.
 
 ```rust
 DatePicker::new("Date", CivilDateTime::new(CivilDate::new(2026, 11, 6), 9, 30))
@@ -549,8 +549,8 @@ canvas(revision, move |ctx: &mut CanvasContext| { ctx.canvas.draw_rect(..); })
    `keyboard_focused()` to choose colors.
 5. Wrap the result in `interaction.focus_ring(element, corner_radius)`. `ring(element, radius,
    color)` draws the same ring in another color, as a selection mark.
-6. Paint only with `Palette::current()` and `ct_design` tokens ([4](04-appearance-and-tokens.md)).
-   New metrics go to `ct-design`.
+6. Paint only with `Palette::current()` and `ctdesign` tokens ([4](04-appearance-and-tokens.md)).
+   New metrics go to `ctdesign`.
 7. If the control keeps a value, follow [the controlled pattern](#the-controlled-pattern).
 8. Add its case to `tests/kit/controls.rs`, in light and dark.
 

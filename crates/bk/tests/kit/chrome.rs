@@ -1,0 +1,95 @@
+use bk::chrome::{ChromeStyle, RailStyle, TitlebarLayout, WindowChrome};
+use bk::compact::IconButton;
+use bk::symbol::Symbol;
+use bk::titlebar::Titlebar;
+use ctdesign::TITLEBAR;
+use freya_core::integration::AppComponent;
+use freya_core::prelude::*;
+use freya_testing::TestingRunner;
+use torin::prelude::{Area, Size2D};
+
+struct Case(ChromeStyle);
+
+impl App for Case {
+    fn render(&self) -> impl IntoElement {
+        WindowChrome::new(
+            self.0,
+            rect().expanded().child(Titlebar::new().title("Rótulo")),
+        )
+    }
+}
+
+fn light_groups(style: ChromeStyle) -> Vec<Area> {
+    let (mut test, _) = TestingRunner::new(
+        AppComponent::new(Case(style)),
+        Size2D::new(900.0, 400.0),
+        |_| {},
+        1.0,
+    );
+    test.sync_and_update();
+    let diameter = TITLEBAR.buttons.diameter as f32;
+    let length = 3.0 * diameter + 2.0 * TITLEBAR.buttons.spacing as f32;
+    let mut groups = test.find_many(|node, _| {
+        let area = node.layout().area;
+        let size = (area.width(), area.height());
+        (size == (length, diameter) || size == (diameter, length)).then_some(area)
+    });
+    groups.dedup_by(|a, b| a.origin == b.origin);
+    groups
+}
+
+#[test]
+fn the_titlebar_lights_are_as_far_from_the_left_edge_as_from_the_top() {
+    let groups = light_groups(ChromeStyle::default());
+    assert_eq!(groups.len(), 1);
+    assert_eq!(groups[0].min_x(), groups[0].min_y());
+}
+
+#[test]
+fn a_unified_rail_without_a_sidebar_falls_back_to_a_strip_with_one_set_of_vertical_lights() {
+    let groups = light_groups(ChromeStyle {
+        layout: TitlebarLayout::Rail,
+        rail_style: RailStyle::Unified,
+        ..Default::default()
+    });
+    assert_eq!(groups.len(), 1, "got {groups:?}");
+    assert!(
+        groups[0].height() > groups[0].width(),
+        "the lights are stacked"
+    );
+}
+
+struct Uneven;
+
+impl App for Uneven {
+    fn render(&self) -> impl IntoElement {
+        rect().expanded().child(
+            Titlebar::new()
+                .title("Escuchando")
+                .right(IconButton::new(Symbol::ListBullet, "Cola")),
+        )
+    }
+}
+
+#[test]
+fn the_title_is_centred_in_the_window_whatever_each_side_holds() {
+    let (mut test, _) = TestingRunner::new(
+        AppComponent::new(Uneven),
+        Size2D::new(900.0, 400.0),
+        |_| {},
+        1.0,
+    );
+    test.sync_and_update();
+    test.sync_and_update();
+    let title = test
+        .find(|node, el| {
+            (el.accessibility().builder.author_id() == Some("titlebar-title"))
+                .then(|| node.layout().area)
+        })
+        .expect("title");
+    assert!(
+        (title.center().x - 450.0).abs() < 0.5,
+        "title centre {}",
+        title.center().x
+    );
+}

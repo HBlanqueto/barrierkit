@@ -2,7 +2,7 @@
 
 **Goal:** open a window with `run_window`, set its options, read and change
 its state, open utility windows and popups, and run code later.
-**Scope:** the window API of `barrier_kit::platform`: `run_window`,
+**Scope:** the window API of `bk::platform`: `run_window`,
 `WindowOptions`, `WindowControls`, `WindowStatus`, utility windows, popups,
 timers, input helpers and `RunError`. `Application` and `Scene` are in
 [2. Your first app](02-first-app.md). The title bar and the traffic lights are
@@ -21,7 +21,7 @@ Wayland protocols) is in [18. Platform](18-platform.md).
 2. Describe the window with `WindowOptions` and pass the root view:
 
    ```rust
-   use barrier_kit::prelude::*;
+   use bk::prelude::*;
 
    fn main() -> Result<(), RunError> {
        run_window(
@@ -42,7 +42,7 @@ Wayland protocols) is in [18. Platform](18-platform.md).
    `WindowControls`:
 
    ```rust
-   use barrier_kit::platform::WindowControls;
+   use bk::platform::WindowControls;
 
    let controls = WindowControls::get();
    let fullscreen = controls.status.read().fullscreen;
@@ -173,7 +173,7 @@ A utility window is a floating panel, like SwiftUI's `UtilityWindow` or an
 inspector:
 
 ```rust
-use barrier_kit::platform::open_utility_window;
+use bk::platform::open_utility_window;
 use freya_core::integration::AppComponent;
 
 open_utility_window(
@@ -224,7 +224,7 @@ popovers and tooltips use one ([7. Menus and popovers](07-menus-and-popovers.md)
 For your own:
 
 ```rust
-use barrier_kit::platform::{PopupAnchor, PopupGravity, PopupSpec, Popups};
+use bk::platform::{PopupAnchor, PopupGravity, PopupSpec, Popups};
 
 let spec = PopupSpec {
     anchor_rect: (x, y, width, height),

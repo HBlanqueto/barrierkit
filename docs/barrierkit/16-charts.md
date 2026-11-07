@@ -2,9 +2,9 @@
 
 **Goal:** draw data with the kit's charts, from a line on an axis to a 3D
 surface.
-**Scope:** everything in `barrier_kit::charts`. The design is in
+**Scope:** everything in `bk::charts`. The design is in
 [ADR 0060](../decisions/0060-charts-in-barrierkit.md); the series colors and
-the `CHART` tokens come from `ct_design`
+the `CHART` tokens come from `ctdesign`
 ([4. Appearance and tokens](04-appearance-and-tokens.md)).
 **Reader:** anyone who shows series, shares or measurements, like a system
 monitor.
@@ -193,7 +193,7 @@ accessible readout shows azimuth, inclination and zoom.
 
 ## Look
 
-Every value is in `components.chart` of `ct-design` (`CHART`):
+Every value is in `components.chart` of `ctdesign` (`CHART`):
 
 | Token | Value | Use |
 |---|---|---|
