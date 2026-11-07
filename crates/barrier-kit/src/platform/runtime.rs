@@ -319,15 +319,18 @@ impl Runtime {
         let window_style = globals
             .bind::<super::window_style::InfinityWindowStyleV1, _, _>(&qh, 1..=3, ())
             .ok();
-        let fractional_manager = globals
-            .bind::<WpFractionalScaleManagerV1, _, _>(&qh, 1..=1, ())
-            .ok();
+        let viewporter = globals.bind::<WpViewporter, _, _>(&qh, 1..=1, ()).ok();
+        // wp_fractional_scale_v1: a fractional buffer is only valid behind a wp_viewport.
+        let fractional_manager = viewporter.as_ref().and_then(|_| {
+            globals
+                .bind::<WpFractionalScaleManagerV1, _, _>(&qh, 1..=1, ())
+                .ok()
+        });
         if fractional_manager.is_none() {
             tracing::info!(
                 "wp_fractional_scale_manager_v1 no disponible; sigo con escalas enteras"
             );
         }
-        let viewporter = globals.bind::<WpViewporter, _, _>(&qh, 1..=1, ()).ok();
         if viewporter.is_none() {
             tracing::info!("wp_viewporter no disponible; sigo con escalas enteras");
         }
