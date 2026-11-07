@@ -27,6 +27,13 @@ impl Default for PasswordField {
 impl PasswordField {
     pub fn insert(&mut self, ch: char) {
         if !ch.is_control() && self.editable() {
+            if self.value.len() + ch.len_utf8() > self.value.capacity() {
+                // String::push would reallocate and free the old buffer without zeroing it.
+                let mut grown =
+                    Zeroizing::new(String::with_capacity((self.value.capacity() * 2).max(32)));
+                grown.push_str(&self.value);
+                self.value = grown;
+            }
             self.value.push(ch);
         }
     }
@@ -111,6 +118,17 @@ mod tests {
         typed(&mut field, "H", Modifiers::SHIFT);
         assert_eq!(enter(&mut field).as_deref().map(String::as_str), Some("H"));
         assert_eq!(*field.state(), State::Verifying);
+    }
+
+    #[test]
+    fn typing_past_the_capacity_keeps_every_character() {
+        let mut field = PasswordField::default();
+        let long = "contraseña-ñ".repeat(10);
+        long.chars().for_each(|ch| field.insert(ch));
+        assert_eq!(
+            enter(&mut field).as_deref().map(String::as_str),
+            Some(long.as_str())
+        );
     }
 
     #[test]

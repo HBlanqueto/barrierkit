@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use zbus::blocking::Connection;
 use zbus::zvariant::{ObjectPath, OwnedObjectPath, OwnedValue, Value};
-use zeroize::Zeroizing;
+use zeroize::{Zeroize, Zeroizing};
 
 const SERVICE: &str = "org.freedesktop.secrets";
 const SERVICE_PATH: &str = "/org/freedesktop/secrets";
@@ -153,23 +153,27 @@ impl Secrets {
             "org.freedesktop.Secret.Item.Attributes",
             Value::from(attributes.clone()),
         );
-        let (_, prompt): (OwnedObjectPath, OwnedObjectPath) = self.call(
+        let mut wrapped = self.wrapped(secret);
+        let created: Result<(OwnedObjectPath, OwnedObjectPath), Error> = self.call(
             DEFAULT_COLLECTION,
             "org.freedesktop.Secret.Collection",
             "CreateItem",
-            &(properties, self.wrapped(secret), true),
-        )?;
-        self.prompted(&prompt)
+            &(properties, &wrapped, true),
+        );
+        wrapped.2.zeroize();
+        self.prompted(&created?.1)
     }
 
     pub fn set_secret(&self, item: &Item, secret: &[u8]) -> Result<(), Error> {
-        let _: () = self.call(
+        let mut wrapped = self.wrapped(secret);
+        let set: Result<(), Error> = self.call(
             item.path.as_str(),
             ITEM_INTERFACE,
             "SetSecret",
-            &(self.wrapped(secret),),
-        )?;
-        Ok(())
+            &(&wrapped,),
+        );
+        wrapped.2.zeroize();
+        set
     }
 
     pub fn delete(&self, item: &Item) -> Result<(), Error> {
