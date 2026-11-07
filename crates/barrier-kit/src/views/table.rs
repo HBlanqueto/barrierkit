@@ -5,11 +5,12 @@ use vow_design::{CAPTION, Rgba, SPACE_1, TABLE, TEXT};
 
 use crate::context_menu::context_menu;
 use crate::interaction::use_interaction;
+use crate::interaction::{track_modifiers, use_held_modifiers};
 use crate::menu::{CheckState, MenuItem};
 use crate::style::{Palette, text};
 use crate::symbol::{Symbol, symbol};
 use crate::theme::color;
-use crate::views::collection::{select, track_modifiers, use_held_modifiers};
+use crate::views::collection::select;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct SortOrder {

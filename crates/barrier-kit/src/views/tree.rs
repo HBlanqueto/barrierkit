@@ -4,11 +4,12 @@ use freya_core::prelude::*;
 use torin::prelude::{Alignment, Direction, Gaps, Size};
 use vow_design::{DISCLOSURE, HAIRLINE, SPACE_1, TEXT};
 
+use crate::interaction::{track_modifiers, use_held_modifiers};
 use crate::scroll::ScrollView;
 use crate::style::{Palette, text};
 use crate::symbol::{Symbol, symbol};
 use crate::theme::color;
-use crate::views::collection::{select, track_modifiers, use_held_modifiers};
+use crate::views::collection::select;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct TreeNode {

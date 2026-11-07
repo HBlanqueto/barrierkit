@@ -2,8 +2,7 @@ use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
 use vow_design::{CAPTION, COLLECTION, Rgba};
 
-use crate::interaction::use_interaction;
-use crate::platform::WindowControls;
+use crate::interaction::{track_modifiers, use_held_modifiers, use_interaction};
 use crate::style::{Palette, text};
 use crate::theme::color;
 
@@ -61,37 +60,6 @@ pub fn select(current: &[usize], index: usize, held: Modifiers) -> Vec<usize> {
         next.push(index);
     }
     next
-}
-
-pub(crate) fn use_held_modifiers() -> State<Modifiers> {
-    let mut held = use_state(Modifiers::empty);
-    let status = try_consume_root_context::<WindowControls>().map(|controls| controls.status);
-    use_side_effect(move || {
-        if status.is_some_and(|status| !status.read().activated) {
-            held.set_if_modified(Modifiers::empty());
-        }
-    });
-    held
-}
-
-fn modifier_of(key: &Key) -> Modifiers {
-    match key {
-        Key::Named(NamedKey::Control) => Modifiers::CONTROL,
-        Key::Named(NamedKey::Shift) => Modifiers::SHIFT,
-        Key::Named(NamedKey::Meta) => Modifiers::META,
-        Key::Named(NamedKey::Alt) => Modifiers::ALT,
-        _ => Modifiers::empty(),
-    }
-}
-
-pub(crate) fn track_modifiers(element: Rect, mut held: State<Modifiers>) -> Rect {
-    element
-        .on_global_key_down(move |event: Event<KeyboardEventData>| {
-            held.set_if_modified(event.modifiers | modifier_of(&event.key));
-        })
-        .on_global_key_up(move |event: Event<KeyboardEventData>| {
-            held.set_if_modified(event.modifiers - modifier_of(&event.key));
-        })
 }
 
 impl Component for CollectionView {

@@ -5,10 +5,10 @@ use vow_design::{DISCLOSURE, SPACE_1, SPACE_2, TEXT};
 use crate::compact::IconButton;
 use crate::controls::TextField;
 use crate::i18n::text;
+use crate::interaction::{track_modifiers, use_held_modifiers};
 use crate::popup_button::PopUpButton;
 use crate::style::{Palette, text};
 use crate::symbol::Symbol;
-use crate::views::collection::{track_modifiers, use_held_modifiers};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum RuleKind {
