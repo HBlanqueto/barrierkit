@@ -1,29 +1,74 @@
 # Documentation images
 
-**Goal:** know where each image comes from and how to regenerate it.
-**Reader:** anyone who updates the documentation after a visual change.
+**Goal:** know where each image of the BarrierKit chapters comes from, and
+regenerate it after a visual change.
+**Scope:** the three folders under `docs/barrierkit/assets/`. Which chapter
+shows each image is in that chapter.
+**Reader:** whoever updates the documentation after changing how a control,
+the titlebar or the sidebar looks.
+**Input:** the dev shell (`nix develop`). **Output:** images that are real
+renders of the current code, never retouched.
 
-| Folder | Content | Origin |
+## Folders
+
+| Folder | Holds | Produced by |
 |---|---|---|
-| `components/` | A single control or view, in light and dark | Copy of `crates/barrier-kit/tests/golden/` |
-| `states/` | The titlebar and the sidebar in each window state (chapter [7](../07-titlebars.md)) | Kit scenes rendered headless by `platform/doc_shots.rs` |
-| `brand/` | BarrierKit icon and banner | Logo as SVG and its PNG version |
+| `components/` | One control or view per image, `<name>-light.png` and `<name>-dark.png` | Copies of the golden images in `crates/barrier-kit/tests/golden/` |
+| `states/` | The titlebar and the sidebar in each window state ([9. Titlebars](../09-titlebars.md)) | The `doc_shots` test in `crates/barrier-kit/src/platform/doc_shots.rs` |
+| `brand/` | The BarrierKit icon and banner | `*.svg` are the sources; `*.png` are exports at twice the SVG size (icon 2048 × 2048, banner 3200 × 1600). The repository has no script for them |
 
-All of them are real renders of the code. None is retouched.
+Both tests render with `freya-testing` on the CPU at scale 1, without a
+compositor or a GPU. They set the appearance in code, so the host's
+`appearance.domain` and wallpaper do not change the result.
 
-## Regenerating `components/`
-
-1. Enter the dev shell: `nix develop`.
-2. Regenerate the references: `UPDATE_GOLDEN=1 cargo test -p barrier-kit --test kit`.
-3. Copy them: `cp crates/barrier-kit/tests/golden/*.png docs/barrierkit/assets/components/`.
-
-## Regenerating `states/`
+## Steps to regenerate `components/`
 
 1. Enter the dev shell: `nix develop`.
-2. Render the scenes:
-   `BARRIER_KIT_SHOTS=$PWD/docs/barrierkit/assets/states cargo test -p barrier-kit --lib doc_shots`.
+2. Rewrite the golden images:
 
-Each scene sets the window state (focus, maximized, full screen), the
-compositor bar, `FullscreenBar` and the titlebar layout. The black band at the
-top of the focus-mode scenes is the compositor bar, which Malaysia draws in a
-real window.
+   ```sh
+   UPDATE_GOLDEN=1 cargo test -p barrier-kit --test kit
+   ```
+
+3. Check the new images with `git diff --stat crates/barrier-kit/tests/golden/`
+   and look at each changed one.
+4. Copy them:
+
+   ```sh
+   cp crates/barrier-kit/tests/golden/*.png docs/barrierkit/assets/components/
+   ```
+
+Which tests write golden images:
+
+| Test (`tests/kit/`) | Images | Size |
+|---|---|---|
+| `controls.rs`, `controls_match_their_golden_images` | Controls (`button`, `switch`, `slider`, `form`…) in light and dark | 360 × 240 |
+| The same test, window cases | `preferences`, `about`, `form-long-text`, `backdrop` in light and dark | 900 × 560 |
+| `controls.rs`, `keyboard_focus_ring_matches_its_golden_image` | `focus-ring-light`, after a Tab press (light only) | The test case's size |
+| `menu.rs` | `menu-view-*` and `menu-view-accents-*` in light and dark | The menu's preferred size |
+
+Without `UPDATE_GOLDEN`, the tests compare. A channel that differs by more
+than 3 fails the test, and the actual image is written to the temp dir
+(`malaysia-control-<name>-<theme>.png` or `malaysia-menu-<name>-<theme>.png`).
+A golden image that does not exist is written instead of compared.
+
+## Steps to regenerate `states/`
+
+1. Enter the dev shell: `nix develop`.
+2. Render the scenes into the folder:
+
+   ```sh
+   BARRIER_KIT_SHOTS=$PWD/docs/barrierkit/assets/states cargo test -p barrier-kit --lib doc_shots
+   ```
+
+Without `BARRIER_KIT_SHOTS`, the test returns without rendering. Each scene
+sets:
+
+- the window status (active, inactive, maximized, full screen);
+- the chrome style (`Top` or `Rail` layout, unified rail);
+- focus mode: overlay titlebar and the bar down;
+- the `FullscreenBar` and `fullscreen_push`;
+- the sidebar style (island or flat).
+
+The black band at the top of the focus-mode scenes stands for the compositor
+bar, which Malaysia draws over a real window.
