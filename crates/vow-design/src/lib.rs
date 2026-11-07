@@ -370,6 +370,7 @@ pub struct SliderMetrics {
 pub struct CheckboxMetrics {
     pub size: f32,
     pub radius: f32,
+    pub mark: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -416,6 +417,7 @@ pub struct ButtonMetrics {
     pub small_padding_x: f32,
     pub small_font_size: f32,
     pub small_radius: f32,
+    pub menu_padding_x: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

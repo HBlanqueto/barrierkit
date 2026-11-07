@@ -68,9 +68,8 @@ impl Spring {
         let base = if self.bounce == 0.0 {
             1.0 - (1.0 - t).powi(3)
         } else {
-            let damping = 5.0;
             let omega = std::f32::consts::PI * (1.0 + self.bounce);
-            1.0 - (-damping * t).exp() * (omega * t).cos()
+            1.0 - (-vow_design::SPRING_DAMPING * t).exp() * (omega * t).cos()
         };
         self.from + (self.to - self.from) * base
     }

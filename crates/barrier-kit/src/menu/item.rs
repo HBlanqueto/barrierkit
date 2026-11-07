@@ -441,7 +441,10 @@ fn search_field(ctx: &RowCtx, placeholder: &str) -> Element {
             .corner_radius(clear_size / 2.0)
             .main_align(Alignment::Center)
             .cross_align(Alignment::Center)
-            .background(theme::color(m.shortcut_color.mix(m.bg, 0.7)))
+            .background(theme::color(
+                m.shortcut_color
+                    .mix(m.bg, vow_design::MENU_SEARCH_CLEAR_MIX),
+            ))
             .child(
                 label()
                     .text("×")

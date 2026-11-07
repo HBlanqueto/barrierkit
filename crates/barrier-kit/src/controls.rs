@@ -1361,7 +1361,7 @@ impl Component for Checkbox {
             .center();
 
         if *checked.read() {
-            checkbox = checkbox.child(symbol(Symbol::Checkmark, size - 4.0, palette.on_accent));
+            checkbox = checkbox.child(symbol(Symbol::Checkmark, CHECKBOX.mark, palette.on_accent));
         }
         checkbox = interaction.focus_ring(checkbox, CHECKBOX.radius);
 

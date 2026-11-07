@@ -121,6 +121,8 @@ DURATION_BASE u64 duration.base
 DURATION_FAST_MS u64 duration.fast
 DURATION_SLOW_MS u64 duration.slow
 THEME_FADE_WAIT_MS u64 duration.wait-max
+SPRING_DAMPING f32 spring.damping
+THEME_SHADOW_OPACITY f32 shadow.theme.opacity
 MENUBAR_HEIGHT i32 components.shell.menubar.height
 MENUBAR_FONT_SIZE f32 components.shell.menubar.font-size
 MENUBAR_APP_NAME_WEIGHT i32 components.shell.menubar.app-name.weight
@@ -192,6 +194,7 @@ MENU_SEARCH_ICON_GAP f32 components.shell.menu.search.icon-gap
 MENU_SEARCH_CLEAR f32 components.shell.menu.search.clear
 MENU_SEARCH_CLEAR_GLYPH f32 components.shell.menu.search.clear-glyph
 MENU_SEARCH_CLEAR_MARGIN f32 components.shell.menu.search.clear-margin
+MENU_SEARCH_CLEAR_MIX f32 components.shell.menu.search.clear-mix
 MENU_HELP_ICON f32 components.shell.menu.help-icon
 GLASS_MASK Rgba components.glass-mask
 HUD_BACKGROUND Rgba components.hud.background

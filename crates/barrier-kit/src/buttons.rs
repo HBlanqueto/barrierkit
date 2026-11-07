@@ -151,7 +151,12 @@ impl Component for SplitButton {
             .a11y_alt(text!("more-options"))
             .a11y_builder(|node| node.set_has_popup(accesskit::HasPopup::Menu))
             .height(Size::fill())
-            .padding(Gaps::new(0.0, SPACE_1 * 1.5, 0.0, SPACE_1 * 1.5))
+            .padding(Gaps::new(
+                0.0,
+                BUTTON.menu_padding_x,
+                0.0,
+                BUTTON.menu_padding_x,
+            ))
             .center()
             .background(fill(arrow.hovered()))
             .on_press(move |_| {

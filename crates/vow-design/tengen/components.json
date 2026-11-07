@@ -17,6 +17,9 @@
         "padding-x": 11,
         "font-size": 11,
         "radius": 4.5
+      },
+      "menu": {
+        "padding-x": 6
       }
     },
     "icon-button": {
@@ -180,7 +183,8 @@
     },
     "checkbox": {
       "size": 16,
-      "radius": "radius.xs"
+      "radius": "radius.xs",
+      "mark": 12
     },
     "symbol": {
       "stroke": 1.4,
@@ -866,7 +870,8 @@
           "icon-gap": 8,
           "clear": 16,
           "clear-glyph": 12,
-          "clear-margin": 8
+          "clear-margin": 8,
+          "clear-mix": 0.7
         },
         "submenu": {
           "intent-ms": 300,

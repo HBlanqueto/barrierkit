@@ -125,7 +125,7 @@ fn shell_theme(resolved: &Resolved) -> Theme {
         disabled: color(border),
         overlay: color(shell.bar),
         shadow: color(Rgba {
-            a: 0.25,
+            a: vow_design::THEME_SHADOW_OPACITY,
             ..shell.text
         }),
     };
