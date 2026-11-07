@@ -264,7 +264,7 @@ ColorWell::new("Accent color", &ACCENT_SWATCHES).selected(Some(0))
 
 | Item | Module | Build | Value | Reports |
 |---|---|---|---|---|
-| `Slider` | `controls` | `Slider::stepped(label, steps)` (at least 2), `.labels(&[..])`, `.disabled(bool)`, `.tint(Tint)` | `.value(usize)` | `.on_change(\|step: usize\| ..)` |
+| `Slider` | `controls` | `Slider::stepped(label, steps)` (at least 2), `.labels(&[..])`, `.disabled(bool)`, `.tint(Tint)`, `.style(\|s\| ..)` | `.value(usize)` | `.on_change(\|step: usize\| ..)` |
 | `LevelSlider` | `level` | `LevelSlider::new(label)`, `.style(LevelStyle)`, `.disabled(bool)`, `.tint(Tint)` | `.value(f32)` (0 to 1) | `.on_change(\|value: f32\| ..)` |
 
 - `Slider` is 220 wide with a tick under each step and an optional caption per step. A click
@@ -282,6 +282,18 @@ LevelSlider::new("Volume").value(0.6).style(LevelStyle::Fat(Symbol::SpeakerWave)
 | Stepped | Regular and fat |
 |---|---|
 | ![Stepped slider](assets/components/slider-light.png) | ![Regular and fat LevelSlider](assets/components/level-slider-light.png) |
+
+### Style
+
+`Slider` draws only from a `SliderStyle` ([ADR 0064](../decisions/0064-styles-and-themes.md)).
+`.tint(Tint)` sets its `fill`; `.style(|s| ..)` changes any other field for one slider,
+`.slider_style(|s| ..)` for every slider inside a view and `Theme::tengen().slider(|s| ..)`
+for the whole app. The levels, the fields and the value types are in
+[Styles and themes](../ai/styles.md).
+
+```rust
+Slider::stepped("Volume", 10).style(|s| SliderStyle { track_height: 10.0, ..s })
+```
 
 ## Text fields
 

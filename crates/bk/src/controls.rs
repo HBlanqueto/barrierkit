@@ -6,11 +6,11 @@ use freya_components::input::{
 use freya_components::theming::macros::Preference;
 
 use ctdesign::{
-    BODY, BUTTON, CAPTION, CHECKBOX, Rgba, SEGMENTED, SETTINGS, SLIDER, SWITCH, TEXT_FIELD,
-    TEXT_LINE_HEIGHT, TOOLGROUP,
+    BODY, BUTTON, CHECKBOX, Rgba, SEGMENTED, SETTINGS, SWITCH, TEXT_FIELD, TEXT_LINE_HEIGHT,
+    TOOLGROUP,
 };
 use freya_core::prelude::*;
-use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
+use torin::prelude::{Alignment, Content, CursorPoint, Direction, Gaps, Position, Size};
 
 use crate::ProbeExt;
 use crate::backdrop::Tint;
@@ -19,10 +19,14 @@ use crate::context_menu::{Spelling, edit_menu};
 use crate::controlled::commit;
 use crate::i18n::text;
 use crate::interaction::use_interaction;
-use crate::level::{self, bar, knob_shadow};
+use crate::level::{self, knob_shadow};
 use crate::password::PasswordField;
 use crate::spelling::{Squiggles, char_index, dictionary, known, misspelled, utf16_range};
-use crate::style::Palette;
+use crate::style::{Palette, with_font};
+use crate::styles::{
+    Axis, ControlState, Edge, LayoutDirection, Paints, Shape, ShapeStyle, SliderOverride,
+    SliderStyle, StateValue, Theme,
+};
 use crate::symbol::{Symbol, symbol};
 use crate::theme;
 use crate::theme::color;
@@ -251,7 +255,7 @@ pub struct Slider {
     disabled: bool,
     on_change: Option<Callback<usize, ()>>,
     probe: Option<&'static str>,
-    tint: Tint,
+    style: SliderOverride,
     key: DiffKey,
 }
 
@@ -265,13 +269,20 @@ impl Slider {
             disabled: false,
             on_change: None,
             probe: None,
-            tint: Tint::Accent,
+            style: SliderOverride::default(),
             key: DiffKey::None,
         }
     }
 
-    pub fn tint(mut self, tint: Tint) -> Self {
-        self.tint = tint;
+    pub fn tint(self, tint: Tint) -> Self {
+        self.style(move |style| SliderStyle {
+            fill: StateValue::new(tint.into()),
+            ..style
+        })
+    }
+
+    pub fn style(mut self, restyle: impl Fn(SliderStyle) -> SliderStyle + 'static) -> Self {
+        self.style = std::mem::take(&mut self.style).then(restyle);
         self
     }
 
@@ -316,40 +327,71 @@ impl ProbeExt for Slider {
 
 impl Component for Slider {
     fn render(&self) -> impl IntoElement {
-        let palette = Palette::current();
         let interaction = use_interaction();
+        let style = SliderStyle::resolve(
+            &Theme::current(),
+            &self.style,
+            theme::resolved().reduced_motion,
+        );
+        let paints = Paints::current(
+            ControlState {
+                hovered: interaction.hovered(),
+                pressed: interaction.pressed(),
+                focused: interaction.focused(),
+                disabled: self.disabled,
+            },
+            style.effect,
+        );
         let value = crate::controlled::use_controlled(&self.value);
-        let left = use_state(|| 0.0f64);
+        let origin = use_state(CursorPoint::default);
         let on_change = self.on_change.clone();
 
-        let width = SETTINGS.strength.width as f32;
-        let (knob, knob_height) = (SLIDER.knob_width, SLIDER.knob_height);
-        let track = SETTINGS.strength.track as f32;
-        let tick = SETTINGS.strength.tick as f32;
-        let tick_top = (knob_height + track) / 2.0 + SETTINGS.strength.tick_gap as f32;
-        let label_gap = SETTINGS.strength.label_gap as f32;
+        let vertical = style.axis == Axis::Vertical;
+        let right_to_left = style.layout_direction == LayoutDirection::RightToLeft;
+        let reversed = vertical || right_to_left;
+        let length = style.width;
+        let (knob, knob_thickness) = style.knob_size;
+        let track = style.track_height;
+        let tick = style.tick_size;
         let steps = self.steps;
         let segments = steps.saturating_sub(1).max(1) as f32;
-        let run = width - knob;
-        let fraction = *value.read() as f32 / segments;
-        let knob_x = run * fraction;
+        let run = length - knob;
+        let current = *value.read();
+        let knob_at =
+            run * crate::animation::use_animated(current as f32 / segments, style.animation);
 
-        let set_from_x = move |x: f64| {
-            let x = (x as f32 - knob / 2.0).clamp(0.0, run);
-            let step = ((x / run) * segments).round() as usize;
+        let set_from_point = move |point: CursorPoint| {
+            let along = if vertical { point.y } else { point.x };
+            let at = (along as f32 - knob / 2.0).clamp(0.0, run);
+            let at = if reversed { run - at } else { at };
+            let step = ((at / run) * segments).round() as usize;
             step.min(steps - 1)
         };
 
         let update = move |new_value: usize| commit(value, &on_change, new_value);
 
-        let current = *value.read();
+        let labels_first =
+            matches!(style.labels, Some(Edge::Top | Edge::Leading)) != (vertical && right_to_left);
+        let label_line = style.label_font.size as f32 * TEXT_LINE_HEIGHT;
+        let (width, height, direction) = match (vertical, style.labels) {
+            (true, _) => (Size::auto(), Size::px(length), Direction::Horizontal),
+            (false, Some(_)) => (
+                Size::px(length),
+                Size::px(knob_thickness + style.label_gap + label_line),
+                Direction::Vertical,
+            ),
+            (false, None) => (
+                Size::px(length),
+                Size::px(knob_thickness),
+                Direction::Vertical,
+            ),
+        };
         let step_name = self.labels.get(current).copied();
         let mut root = interaction
             .attach(rect(), !self.disabled)
-            .width(Size::px(width))
-            .height(Size::px(
-                knob_height + label_gap + CAPTION.size as f32 * TEXT_LINE_HEIGHT,
-            ))
+            .width(width)
+            .height(height)
+            .direction(direction)
             .a11y_role(AccessibilityRole::Slider)
             .a11y_alt(self.label)
             .a11y_builder(move |node| {
@@ -363,76 +405,172 @@ impl Component for Slider {
             });
 
         if !self.disabled {
-            root = level::on_drag(root, interaction, left, set_from_x, update.clone()).on_key_down(
-                move |event: Event<KeyboardEventData>| match event.key {
-                    Key::Named(NamedKey::ArrowLeft | NamedKey::ArrowDown) => {
-                        update(current.saturating_sub(1))
-                    }
-                    Key::Named(NamedKey::ArrowRight | NamedKey::ArrowUp) => {
-                        update((current + 1).min(steps - 1))
-                    }
+            let forward = if right_to_left && !vertical {
+                NamedKey::ArrowLeft
+            } else {
+                NamedKey::ArrowRight
+            };
+            root = level::on_drag(root, interaction, origin, set_from_point, update.clone())
+                .on_key_down(move |event: Event<KeyboardEventData>| match event.key {
+                    Key::Named(NamedKey::ArrowUp) => update((current + 1).min(steps - 1)),
+                    Key::Named(key) if key == forward => update((current + 1).min(steps - 1)),
+                    Key::Named(
+                        NamedKey::ArrowLeft | NamedKey::ArrowRight | NamedKey::ArrowDown,
+                    ) => update(current.saturating_sub(1)),
                     _ => {}
-                },
-            );
+                });
         }
 
-        let disabled = self.disabled;
-        let dim = move |el: Rect| el.maybe(disabled, |el| el.opacity(SWITCH.disabled_opacity));
-        let track_rect = dim(bar(
-            knob / 2.0,
-            (knob_height - track) / 2.0,
-            run,
-            track,
-            color(palette.control_background),
-        ));
-        let fill_rect = bar(
-            -knob / 2.0,
-            0.0,
-            knob_x + knob / 2.0,
-            track,
-            self.tint.fill(&palette),
-        );
+        let part = |main: f32,
+                    size: f32,
+                    parent: f32,
+                    cross: f32,
+                    thickness: f32,
+                    shape: Shape,
+                    paint: &StateValue<ShapeStyle>| {
+            let main = if reversed { parent - main - size } else { main };
+            let (left, top, width, height) = if vertical {
+                (cross, main, thickness, size)
+            } else {
+                (main, cross, size, thickness)
+            };
+            rect()
+                .position(Position::new_absolute().left(left).top(top))
+                .width(Size::px(width))
+                .height(Size::px(height))
+                .corner_radius(shape.corner_radius(width, height, style.layout_direction))
+                .background(paints.fill(paint))
+                .map(paints.blur(paint), Rect::blur)
+        };
+        let dim = |el: Rect, opacity: f32| el.maybe(opacity < 1.0, |el| el.opacity(opacity));
+        // freya 0.4.3 dims each element on its own (render_pipeline.rs): a dimmed knob would show the fill.
+        let parts_opacity = if self.disabled {
+            style.opacity * style.disabled_opacity
+        } else {
+            style.opacity
+        };
 
-        let ticks = (0..self.steps).map(|i| {
+        let track_rect = dim(
+            part(
+                knob / 2.0,
+                run,
+                length,
+                (knob_thickness - track) / 2.0,
+                track,
+                style.track_shape,
+                &style.track,
+            ),
+            parts_opacity,
+        );
+        let fill_rect = part(
+            -knob / 2.0,
+            knob_at + knob / 2.0,
+            run,
+            0.0,
+            track,
+            style.track_shape,
+            &style.fill,
+        );
+        let tick_cross = if labels_first {
+            (knob_thickness - track) / 2.0 - style.tick_gap - tick
+        } else {
+            (knob_thickness + track) / 2.0 + style.tick_gap
+        };
+        let ticks = (0..steps).map(|i| {
             let x = knob / 2.0 + run * (i as f32 / segments);
-            dim(rect()
-                .position(Position::new_absolute().left(x - tick / 2.0).top(tick_top))
-                .width(Size::px(tick))
-                .height(Size::px(tick))
-                .corner_radius(tick / 2.0)
-                .background(color(palette.control_border)))
+            dim(
+                part(
+                    x - tick / 2.0,
+                    tick,
+                    length,
+                    tick_cross,
+                    tick,
+                    style.tick_shape,
+                    &style.tick,
+                ),
+                parts_opacity,
+            )
             .into_element()
         });
-        let knob_rect = level::knob(knob_x, 0.0, knob, knob_height).layer(level::KNOB_ABOVE_FILL);
-
-        let labels = self.labels.iter().take(self.steps).map(|text| {
-            let label_node = label()
-                .text(*text)
-                .font_family(BODY.family)
-                .font_size(CAPTION.size as f32)
-                .font_weight(CAPTION.weight as i32)
-                .line_height(CAPTION.line_height as f32 / CAPTION.size as f32)
-                .max_lines(1)
-                .color(theme::color(palette.label));
-            rect().child(label_node).into_element()
-        });
-        let labels_row = dim(rect()
-            .position(
-                Position::new_absolute()
-                    .left(0.0)
-                    .top(knob_height + label_gap),
+        let knob_rect = style
+            .knob_shadows
+            .iter()
+            .fold(
+                part(
+                    knob_at,
+                    knob,
+                    length,
+                    0.0,
+                    knob_thickness,
+                    style.knob_shape,
+                    &style.knob,
+                ),
+                |el, shadow| el.shadow(*shadow),
             )
-            .width(Size::px(width))
-            .direction(Direction::Horizontal)
-            .main_align(Alignment::SpaceBetween)
-            .children(labels));
-
-        // freya 0.4.3 dims each element on its own (render_pipeline.rs): a dimmed knob would show the fill.
-        root = root
+            .map(style.knob_border.as_ref(), |el, (paint, width)| {
+                el.border(
+                    Border::new()
+                        .width(*width)
+                        .alignment(BorderAlignment::Inner)
+                        .fill(color(paints.color(paint))),
+                )
+            })
+            .layer(level::KNOB_ABOVE_FILL);
+        let knob_rect = dim(knob_rect, style.opacity);
+        let (band_width, band_height) = if vertical {
+            (knob_thickness, length)
+        } else {
+            (length, knob_thickness)
+        };
+        let band = rect()
+            .width(Size::px(band_width))
+            .height(Size::px(band_height))
             .children(ticks)
             .child(track_rect.child(fill_rect))
-            .child(knob_rect)
-            .child(labels_row);
+            .child(knob_rect);
+
+        let labels_row = style.labels.map(|_| {
+            let names = self.labels.iter().take(steps).map(|text| {
+                let label_node = with_font(label().text(*text), style.label_font)
+                    .max_lines(1)
+                    .color(paints.fill(&style.label));
+                rect().child(label_node).into_element()
+            });
+            let names: Vec<Element> = if reversed {
+                names.rev().collect()
+            } else {
+                names.collect()
+            };
+            let gap = style.label_gap;
+            let margin = match (vertical, labels_first) {
+                (false, false) => Gaps::new(gap, 0.0, 0.0, 0.0),
+                (false, true) => Gaps::new(0.0, 0.0, gap, 0.0),
+                (true, false) => Gaps::new(0.0, 0.0, 0.0, gap),
+                (true, true) => Gaps::new(0.0, gap, 0.0, 0.0),
+            };
+            let row = if vertical {
+                rect()
+                    .height(Size::px(length))
+                    .direction(Direction::Vertical)
+            } else {
+                rect()
+                    .width(Size::px(length))
+                    .height(Size::px(label_line))
+                    .direction(Direction::Horizontal)
+            };
+            dim(
+                row.main_align(Alignment::SpaceBetween)
+                    .margin(margin)
+                    .children(names),
+                parts_opacity,
+            )
+        });
+
+        root = if labels_first {
+            root.map(labels_row, |el, row| el.child(row)).child(band)
+        } else {
+            root.child(band).map(labels_row, |el, row| el.child(row))
+        };
         root = interaction.focus_ring(root, knob / 2.0);
 
         root.map(self.probe, ProbeExt::probe)

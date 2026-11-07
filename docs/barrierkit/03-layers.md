@@ -86,7 +86,7 @@ other token comes from `ctdesign`, which the app then adds as a dependency.
 |---|---|---|
 | Values come from Tengen ([4](04-appearance-and-tokens.md#tokens-ctdesign)) | `.corner_radius(6.)` | `.corner_radius(BUTTON.radius)` |
 | Colors come from the `Palette` ([4](04-appearance-and-tokens.md#the-palette)) | `Color::from_rgb(0, 0, 0)` | `color(Palette::current().label)` |
-| Variants, not free styles | `.background(red)` on a kit control | `ButtonStyle::Primary`, `.tint(Tint::Color(..))`, `SidebarBackdrop::Tinted` |
+| Variants and styles, not paint on top ([ADR 0064](../decisions/0064-styles-and-themes.md)) | `.background(red)` on a kit control | `ButtonStyle::Primary`, `.tint(Tint::Color(..))`, `Slider::….style(\|s\| ..)` |
 | The app holds the state | The control keeps the value | The control takes the value and reports changes |
 | Shared interaction | Own hover and focus code | `use_interaction()` for hover, press, focus and focus ring |
 | Accessible | A control without a name | The accessible label is an argument of `new`: `Button::new("Save")` |

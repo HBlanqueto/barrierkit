@@ -65,6 +65,7 @@ GAUGE GaugeMetrics components.gauge
 TOOLBAR_SEARCH_WIDTH f32 components.toolbar-search-width
 BADGE BadgeMetrics components.badge
 MEDIA MediaMetrics components.media preview_delay_ms=preview-delay
+MATERIAL MaterialMetrics components.material
 SCROLL_BAR ScrollBarMetrics components.scroll-bar hide_delay_ms=hide-delay
 LIST_GROUP ListGroupMetrics components.list-group
     separator_inset=separator.inset-left header_padding=section-header.padding

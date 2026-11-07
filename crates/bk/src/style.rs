@@ -93,7 +93,11 @@ pub(crate) fn with_font(label: Label, face: Font) -> Label {
         .line_height(face.line_height as f32 / face.size as f32)
 }
 
-// Freya's smoothing s runs the curve to (1 + s) R, Apple's 1.5287 R (malaysia ADR 0059).
 pub fn continuous_corner(radius: f32) -> CornerRadius {
-    CornerRadius::new_all(radius).with_smoothing(WINDOW_CORNER.expansion - 1.0)
+    continuous(CornerRadius::new_all(radius))
+}
+
+// Freya's smoothing s runs the curve to (1 + s) R, Apple's 1.5287 R (malaysia ADR 0059).
+pub(crate) fn continuous(radius: CornerRadius) -> CornerRadius {
+    radius.with_smoothing(WINDOW_CORNER.expansion - 1.0)
 }

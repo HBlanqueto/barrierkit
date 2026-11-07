@@ -304,3 +304,41 @@ fn main() -> Result<(), RunError> {
    buttons ([8](../barrierkit/08-windows.md)). Every kit window is
    client-side decorated.
 
+## 11. Style one control
+
+SwiftUI: a custom `ButtonStyle` given with `.buttonStyle(_:)` to one view, a stack or the whole app.
+
+```rust
+use bk::prelude::*;
+
+fn main() -> Result<(), RunError> {
+    Application::new("mixer")
+        .theme(Theme::tengen().slider(|s| SliderStyle {
+            track_shape: Shape::Rectangle,
+            knob_shape: Shape::Rectangle,
+            ..s
+        }))
+        .window("Mixer", || {
+            VStack::new()
+                .child(Slider::stepped("Volume", 10).value(4).style(|s| SliderStyle {
+                    fill: StateValue::new(ShapeStyle::Role(Role::Destructive))
+                        .pressed(ShapeStyle::Role(Role::SecondaryLabel)),
+                    ..s
+                }))
+                .child(
+                    HStack::new()
+                        .child(Slider::stepped("Bass", 5).value(2))
+                        .child(Slider::stepped("Treble", 5).value(3))
+                        .slider_style(|s| SliderStyle { axis: Axis::Vertical, ..s }),
+                )
+        })
+        .run()
+}
+```
+
+1. The theme makes every slider square; the stack turns its two sliders
+   vertical; `.style` paints one fill red, grey while pressed. Each override names only what
+   changes and ends with `..s`.
+2. `Role` colors follow light, dark and contrast; the kit still applies
+   reduce motion, reduce transparency and the focus ring.
+3. The levels, fields and value types are in [`styles.md`](styles.md).

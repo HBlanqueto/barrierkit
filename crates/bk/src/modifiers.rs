@@ -2,6 +2,7 @@ use ctdesign::Rgba;
 use freya_core::prelude::*;
 
 use crate::menu::MenuItem;
+use crate::styles::{SliderStyle, StyleScope, Theme};
 
 pub trait ViewModifiers: EventHandlersExt + Sized {
     fn context_menu(
@@ -25,3 +26,11 @@ pub trait ViewModifiers: EventHandlersExt + Sized {
 }
 
 impl<T: EventHandlersExt> ViewModifiers for T {}
+
+pub trait StyleModifiers: IntoElement + Sized {
+    fn slider_style(self, restyle: impl Fn(SliderStyle) -> SliderStyle + 'static) -> StyleScope {
+        StyleScope::new(Theme::tengen().slider(restyle), self)
+    }
+}
+
+impl<T: IntoElement> StyleModifiers for T {}

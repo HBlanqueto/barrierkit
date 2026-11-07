@@ -59,7 +59,7 @@ fn storage_row() -> impl IntoElement {
 |---|---|---|
 | **Tokens**: base colors, spacing, type, durations, per-component metrics | The design system | `crates/ctdesign/tengen/tokens.json` and `components.json` |
 | **Appearance**: mode, accent, tints, sidebar style, contrast, motion | The user | `~/.config/malaysia/appearance.domain` |
-| **Variants** of a control: primary, tint, tinted backdrop | The app | The app's code |
+| **Variants** and **styles** of a control: primary, tint, tinted backdrop, a `SliderStyle` | The app | The app's code ([styles](../ai/styles.md)) |
 
 The kit resolves the first two into a `Resolved` value
 ([Resolution](#resolution)) and the `Palette` that views paint with.
@@ -181,7 +181,8 @@ fn dark_panel() -> impl IntoElement {
 
 ## Custom colors in an app
 
-An app does not change single colors; it picks a variant.
+An app picks a variant, or changes the style of a control that takes one
+([Styles and themes](../ai/styles.md)).
 
 | I want… | Like this | Where |
 |---|---|---|
@@ -190,6 +191,7 @@ An app does not change single colors; it picks a variant.
 | Another accent for a whole area | `Backdrop::new(..).accent(Accent::Own(color))` or `Accent::FromBackdrop` | [15](15-backdrops-and-media.md) |
 | Let the user pick a color | `ColorWell::new("Color", &ACCENT_SWATCHES)` | [5](05-controls.md) |
 | Light or dark in one area | `theme::use_appearance(..)` | [Theme functions](#theme-functions) |
+| Any color, shape, size or motion of a slider | `.style(\|s\| ..)`, `.slider_style(\|s\| ..)` or `Theme` | [Styles and themes](../ai/styles.md) |
 
 In an inactive window every tint uses the inactive accent.
 
@@ -430,6 +432,7 @@ A color, size or duration never goes into `bk`. It goes into Tengen:
 | `SidebarPalette` | Sidebar inks: item, icon, selection, inactive selection, hover, section, count, line. |
 | `ToolgroupPalette` | Toolbar group: `separator`, `rim`. |
 | `ShadowLayer` | `blur`, `y_offset`, `opacity`, `color`. |
+| `MaterialThickness` | `opacity` and `blur` of one material thickness. |
 | `ShadowStyle` | `ambient` and `contact` layers and their scale when unfocused; `layers(focused)` returns both. |
 | `WindowCorner` | Window radii (`titlebar`, `compact`, `unified`, `utility`), curve `expansion` and superellipse `exponent`. |
 | `WindowStyle` | `corner_radius` and `superellipse_exponent` of a dialog or pop-up. |
@@ -476,6 +479,22 @@ the kit measures text without laying it out.
 | `DURATION_FAST_MS`, `DURATION_BASE`, `DURATION_SLOW_MS` | 120, 220, 420 ms |
 | `THEME_FADE_WAIT_MS` | 150 ms: longest wait for clients before the compositor's theme fade |
 | `SPRING_DAMPING` | 5, damping of the kit's spring ([14](14-animations.md)) |
+
+### Materials
+
+`MATERIAL: MaterialMetrics` holds one `MaterialThickness` per
+`styles::Thickness`. A `ShapeStyle::Material` paints the glass tint of its
+context (the window color, or the `Backdrop` base) at `opacity` and blurs what
+lies under the part by `blur`. With Reduce Transparency the tint is opaque and
+nothing is blurred.
+
+| Field | `opacity` | `blur` |
+|---|---|---|
+| `ultra_thin` | 0.35 | 12 |
+| `thin` | 0.5 | 20 |
+| `regular` | 0.65 | 28 (`MEDIA.material_blur`) |
+| `thick` | 0.8 | 36 |
+| `ultra_thick` | 0.92 | 44 |
 
 ### Colors
 
@@ -551,8 +570,9 @@ background, for `reduce_transparency`.
 | `ICON_BUTTON` | `IconButtonMetrics` | `compact`, `views::window_tabs` |
 | `SWITCH` | `SwitchMetrics` | `controls`, `choices`, `level` |
 | `CHECKBOX` | `CheckboxMetrics` | `controls` |
-| `SLIDER`, `SLIDER_FAT`, `SLIDER_KEY_STEP` | `SliderMetrics`, `SliderFatMetrics`, `f32` | `controls`, `level` |
-| `KNOB_SHADOW` | `ShadowLayer` | `level` |
+| `SLIDER`, `SLIDER_FAT`, `SLIDER_KEY_STEP` | `SliderMetrics`, `SliderFatMetrics`, `f32` | `styles`, `level` |
+| `KNOB_SHADOW` | `ShadowLayer` | `level`, `styles` |
+| `MATERIAL` | `MaterialMetrics` | `styles` ([Materials](#materials)) |
 | `SEGMENTED` | `SegmentedMetrics` | `controls`, `compact` |
 | `STEPPER` | `StepperMetrics` | `compact`, `date_picker` |
 | `TOOLBAR_SEARCH_WIDTH` | `f32` | `compact` |
@@ -592,7 +612,7 @@ background, for `reduce_transparency`.
 | `TOOLBAR_TABS` | `ToolbarTabsMetrics` | `views::tabs` |
 | `SCROLL_BAR` | `ScrollBarMetrics` | Scroll views |
 | `BREAKPOINT` | `BreakpointMetrics` | `adaptive`: 620 and 900 px |
-| `SETTINGS` | `SettingsMetrics` | `patterns::settings`, `sidebar` |
+| `SETTINGS` | `SettingsMetrics` | `patterns::settings`, `sidebar`, `styles` |
 | `FONT_PANEL` | `FontPanelMetrics` | `font_panel` |
 | `PRINT` | `PrintMetrics` | `print` |
 | `CHART` | `ChartMetrics` | `charts` |

@@ -7,6 +7,8 @@ use freya_animation::prelude::{
 };
 use freya_core::prelude::*;
 
+use crate::styles::Animation;
+
 pub fn use_alive() -> Rc<Cell<bool>> {
     let alive = use_hook(|| Rc::new(Cell::new(true)));
     use_drop({
@@ -23,6 +25,26 @@ pub fn use_reduced_motion() -> State<bool> {
 
 pub fn motion_ms(reduced_motion: State<bool>, ms: u64) -> u64 {
     if *reduced_motion.peek() { 0 } else { ms }
+}
+
+pub(crate) fn use_animated(target: f32, animation: Animation) -> f32 {
+    let duration_ms = use_reactive(&animation.duration_ms());
+    let mut from = use_state(|| target);
+    let mut to = use_state(|| target);
+    let elapsed = use_animation_transition(to, move |_: f32, _| {
+        AnimNum::new(0.0, 1.0).time(*duration_ms.peek())
+    });
+    let (start, end) = (*from.peek(), *to.peek());
+    let shown = start + (end - start) * animation.progress(elapsed.get().value());
+    if end != target {
+        from.set(shown);
+        to.set(target);
+    }
+    if animation.duration_ms() == 0 {
+        target
+    } else {
+        shown
+    }
 }
 
 pub fn use_switch_progress(on: State<bool>, ms: u64) -> f32 {

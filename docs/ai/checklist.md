@@ -28,20 +28,23 @@ reason it cannot be.
 7. Are there no comments besides `// SAFETY:` and one-line invariants?
 8. Is the `Application` name the same one passed to `use_app_language` and
    `load_defaults`?
+9. Does every change to a control's look go through its style
+   ([`styles.md`](styles.md)), with overrides that name only what changes and
+   end in `..s`?
 
 ## Build
 
-9. Did you run, inside `nix develop`, `cargo build` and
-   `cargo clippy -- -D warnings` with no warnings?
-10. Did you run `cargo fmt`?
-11. If you could not open the window (no Wayland session), did you say so?
+10. Did you run, inside `nix develop`, `cargo build` and
+    `cargo clippy -- -D warnings` with no warnings?
+11. Did you run `cargo fmt`?
+12. If you could not open the window (no Wayland session), did you say so?
 
 ## Changes to the kit itself
 
-12. Is every new or renamed public item in
+13. Is every new or renamed public item in
     [`docs/barrierkit/20-glossary.md`](../barrierkit/20-glossary.md), named by
     its rules, in the same commit?
-13. Does the chapter that describes the changed behavior say what the code
+14. Does the chapter that describes the changed behavior say what the code
     does now?
-14. If the change affects how an agent writes apps, are `prompt.md`,
+15. If the change affects how an agent writes apps, are `prompt.md`,
     `recipes.md` and this checklist updated?

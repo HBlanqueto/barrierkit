@@ -80,6 +80,7 @@ version.
 | Understand the first app line by line | [`02-first-app.md`](../barrierkit/02-first-app.md) |
 | Colors, fonts, symbols and tokens | [`04-appearance-and-tokens.md`](../barrierkit/04-appearance-and-tokens.md) |
 | Use a control | [`05-controls.md`](../barrierkit/05-controls.md) |
+| Change how a control looks (color, shape, size, motion) or build a theme | [`styles.md`](styles.md) |
 | Edit, style, spell-check or print text | [`06-text-and-editing.md`](../barrierkit/06-text-and-editing.md) |
 | Menus, context menus, popovers, tooltips | [`07-menus-and-popovers.md`](../barrierkit/07-menus-and-popovers.md) |
 | Window size, limits, popups, timers | [`08-windows.md`](../barrierkit/08-windows.md) |

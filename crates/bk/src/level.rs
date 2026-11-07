@@ -1,6 +1,6 @@
 use ctdesign::{KNOB_SHADOW, SLIDER, SLIDER_FAT, SLIDER_KEY_STEP, SWITCH, SYMBOL};
 use freya_core::prelude::*;
-use torin::prelude::{Position, Size};
+use torin::prelude::{CursorPoint, Position, Size};
 
 use crate::backdrop::Tint;
 use crate::controlled::commit;
@@ -83,7 +83,7 @@ impl Component for LevelSlider {
         let interaction = use_interaction();
         let value = crate::controlled::use_controlled(&self.value);
         let mut width = use_state(|| 0.0f32);
-        let left = use_state(|| 0.0f64);
+        let origin = use_state(CursorPoint::default);
         let enabled = !self.disabled;
         let style = self.style;
         let fraction = *value.read();
@@ -99,7 +99,8 @@ impl Component for LevelSlider {
         };
         let on_change = self.on_change.clone();
         let set = move |new: f32| commit(value, &on_change, new.clamp(0.0, 1.0));
-        let from_x = move |x: f64| ((x as f32 - offset) / run.max(1.0)).clamp(0.0, 1.0);
+        let from_point =
+            move |point: CursorPoint| ((point.x as f32 - offset) / run.max(1.0)).clamp(0.0, 1.0);
 
         let mut root = interaction
             .attach(rect(), enabled)
@@ -112,7 +113,7 @@ impl Component for LevelSlider {
                 width.set_if_modified(event.data().area.size.width);
             })
             .maybe(enabled, |el| {
-                on_drag(el, interaction, left, from_x, set.clone()).on_key_down(
+                on_drag(el, interaction, origin, from_point, set.clone()).on_key_down(
                     move |event: Event<KeyboardEventData>| {
                         let step = match event.key {
                             Key::Named(NamedKey::ArrowLeft | NamedKey::ArrowDown) => {
@@ -182,18 +183,20 @@ impl Component for LevelSlider {
 pub(crate) fn on_drag<T: 'static>(
     root: Rect,
     interaction: Interaction,
-    mut left: State<f64>,
-    from_x: impl Fn(f64) -> T + Copy + 'static,
+    mut origin: State<CursorPoint>,
+    from_point: impl Fn(CursorPoint) -> T + Copy + 'static,
     set: impl Fn(T) + Clone + 'static,
 ) -> Rect {
     let set_move = set.clone();
     root.on_mouse_down(move |event: Event<MouseEventData>| {
-        left.set(event.global_location.x - event.element_location.x);
-        set(from_x(event.element_location.x));
+        origin.set((event.global_location - event.element_location).to_point());
+        set(from_point(event.element_location));
     })
     .on_global_pointer_move(move |event: Event<PointerEventData>| {
         if interaction.held() {
-            set_move(from_x(event.global_location().x - *left.peek()));
+            set_move(from_point(
+                event.global_location() - origin.peek().to_vector(),
+            ));
         }
     })
 }

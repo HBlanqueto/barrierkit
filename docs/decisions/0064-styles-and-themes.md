@@ -93,7 +93,7 @@ Later levels win. Containers apply from the outermost to the innermost.
 | `Shape` | `Rectangle`, `RoundedRectangle { radius, style }`, `UnevenRoundedRectangle`, `Capsule`, `Circle` | SwiftUI shapes |
 | `CornerStyle` | `Continuous`, `Circular` | `RoundedCornerStyle` |
 | `ShadowStyle` | color, x, y, blur, spread, inner | SwiftUI `ShadowStyle`, CSS `box-shadow` |
-| `Animation` | `None`, `Ease { duration_ms, curve }`, `Spring { duration_ms, bounce }`, `Custom(fn)` | SwiftUI `Animation`, `CustomAnimation` |
+| `Animation` | `None`, `Ease { duration_ms }`, `Spring { duration_ms, bounce }`, `Custom { duration_ms, curve }` | SwiftUI `Animation`, `CustomAnimation` |
 | `ColorEffect` | a function `(Rgba, ControlState) -> Rgba` | `NSColor.withSystemEffect` |
 | `Axis`, `Edge`, `LayoutDirection` | horizontal/vertical; top/bottom/leading/trailing; left-to-right/right-to-left | SwiftUI |
 

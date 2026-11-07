@@ -723,6 +723,13 @@
       "hover-scale": 1.05,
       "preview-delay": 550
     },
+    "material": {
+      "ultra-thin": { "opacity": 0.35, "blur": 12 },
+      "thin": { "opacity": 0.5, "blur": 20 },
+      "regular": { "opacity": 0.65, "blur": "components.media.material-blur" },
+      "thick": { "opacity": 0.8, "blur": 36 },
+      "ultra-thick": { "opacity": 0.92, "blur": 44 }
+    },
     "scroll-bar": {
       "hide-delay": 800,
       "thumb": 7,

@@ -741,6 +741,21 @@ pub struct MediaMetrics {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct MaterialMetrics {
+    pub ultra_thin: MaterialThickness,
+    pub thin: MaterialThickness,
+    pub regular: MaterialThickness,
+    pub thick: MaterialThickness,
+    pub ultra_thick: MaterialThickness,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct MaterialThickness {
+    pub opacity: f32,
+    pub blur: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ScrollBarMetrics {
     pub thumb: f32,
     pub inset: f32,

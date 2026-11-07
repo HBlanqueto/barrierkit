@@ -83,6 +83,34 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 | `theme::apply_popover_metrics` | fn | — | — | Replaces a menu palette's metrics with `MENU_POPOVER` | [4](04-appearance-and-tokens.md#theme-functions) |
 | `theme::lock_palette` | fn | — | — | Lock-screen colors with the resolved accent | [4](04-appearance-and-tokens.md#theme-functions) |
 
+## Styles and themes
+
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `styles` | module | — | — | Value types of the styling system, `Theme`, `StyleScope` and the control styles | [Styles](../ai/styles.md) |
+| `styles::ShapeStyle` | enum | `ShapeStyle` | ≈ `NSColor` | Paint of a part: a role, the accent, a fixed color, a gradient, the backdrop, a material or nothing | [Styles](../ai/styles.md#value-types) |
+| `styles::Role` | enum | ≈ semantic `Color` (`.primary`, `.secondary`) | ≈ `NSColor.labelColor`… | One color of the `Palette` (all but `accent`), resolved late | [Styles](../ai/styles.md#value-types) |
+| `styles::Gradient` | struct | `LinearGradient` | `NSGradient` | Linear gradient: an angle and stops of `ShapeStyle` | [Styles](../ai/styles.md#value-types) |
+| `styles::Thickness` | enum | `Material` (`.ultraThin`…`.ultraThick`) | `NSVisualEffectView.Material` | How translucent and blurred a material is; values in `MATERIAL` | [Styles](../ai/styles.md#value-types) |
+| `styles::StateValue` | struct | — | — | A value with optional hovered, pressed, focused and disabled values | [Styles](../ai/styles.md#value-types) |
+| `styles::ControlState` | struct | ≈ `ButtonStyle.Configuration` (`isPressed`) | ≈ `NSControl.isHighlighted`, `isEnabled` | Hovered, pressed, focused and disabled flags of a control | [Styles](../ai/styles.md#value-types) |
+| `styles::Shape` | enum | `Rectangle`, `RoundedRectangle`, `UnevenRoundedRectangle`, `Capsule`, `Circle` | ≈ `NSBezierPath` | Outline of a part | [Styles](../ai/styles.md#value-types) |
+| `styles::CornerStyle` | enum | `RoundedCornerStyle` | — | `Continuous` or `Circular` corners | [Styles](../ai/styles.md#value-types) |
+| `styles::ShadowStyle` | struct | `ShadowStyle` (`.drop`, `.inner`) | `NSShadow` | One shadow: color, x, y, blur, spread, inner | [Styles](../ai/styles.md#value-types) |
+| `styles::Animation` | enum | `Animation` | ≈ `NSAnimationContext` | How a change moves: `None`, `Ease`, `Spring`, `Custom` | [Styles](../ai/styles.md#value-types) |
+| `styles::ColorEffect` | type | — | ≈ `NSColor.withSystemEffect(_:)` | `fn(Rgba, ControlState) -> Rgba` applied to every paint of a control | [Styles](../ai/styles.md#value-types) |
+| `styles::system_effect` | fn | — | ≈ `NSColor.SystemEffect` | Tengen's color effect: returns the color unchanged | [Styles](../ai/styles.md#value-types) |
+| `styles::Axis` | enum | `Axis` | `NSUserInterfaceLayoutOrientation` | `Horizontal` or `Vertical` | [Styles](../ai/styles.md#value-types) |
+| `styles::Edge` | enum | `Edge` | `NSRectEdge` | `Top`, `Bottom`, `Leading`, `Trailing` | [Styles](../ai/styles.md#value-types) |
+| `styles::LayoutDirection` | enum | `LayoutDirection` | `NSUserInterfaceLayoutDirection` | `LeftToRight` or `RightToLeft` | [Styles](../ai/styles.md#value-types) |
+| `styles::SliderStyle` | struct | ≈ `ButtonStyle` | ≈ `NSSliderCell` | Every visual property of `Slider`; `tengen()` builds the default from the tokens | [Styles](../ai/styles.md#the-fields-of-a-style) |
+| `styles::Theme` | struct | ≈ styles set in the environment | ≈ `NSAppearance` | Style overrides for the whole app; `Theme::tengen()` changes nothing | [Styles](../ai/styles.md#levels) |
+| `styles::StyleScope` | struct | ≈ a view after `.buttonStyle(_:)` | — | Component returned by `.slider_style`: its overrides reach the controls inside | [Styles](../ai/styles.md#levels) |
+| `modifiers::StyleModifiers` | trait | `View` modifiers | — | Style modifiers for every view | [Styles](../ai/styles.md#levels) |
+| `modifiers::StyleModifiers::slider_style` | method | ≈ `.buttonStyle(_:)` | — | Changes the style of every `Slider` inside the view | [Styles](../ai/styles.md#levels) |
+| `controls::Slider::style` | method | ≈ `.buttonStyle(_:)` on one view | ≈ `NSSlider.trackFillColor` | Changes the style of one slider | [Styles](../ai/styles.md#levels) |
+| `app::Application::theme` | method | ≈ `.environment(_:_:)` on the scene | ≈ `NSApp.appearance` | Gives the app its `Theme` | [Styles](../ai/styles.md#levels) |
+
 ## Symbols and fonts
 
 | BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
@@ -207,6 +235,7 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 | `ctdesign::ToolgroupPalette` | struct | — | — | Toolbar group separator and rim | [4](04-appearance-and-tokens.md#token-types) |
 | `ctdesign::ShadowLayer` | struct | ≈ `.shadow(color:radius:x:y:)` | ≈ `NSShadow` | One shadow: blur, offset, opacity, color | [4](04-appearance-and-tokens.md#token-types) |
 | `ctdesign::ShadowStyle` | struct | — | — | Ambient and contact shadows, scaled when unfocused | [4](04-appearance-and-tokens.md#token-types) |
+| `ctdesign::MaterialThickness` | struct | ≈ `Material` | ≈ `NSVisualEffectView.Material` | Opacity and blur of one material thickness | [4](04-appearance-and-tokens.md#materials) |
 | `ctdesign::WindowCorner` | struct | — | — | Window corner radii and continuous-curve shape | [4](04-appearance-and-tokens.md#token-types) |
 | `ctdesign::WindowStyle` | struct | — | — | Corner radius and superellipse exponent of a dialog or pop-up | [4](04-appearance-and-tokens.md#token-types) |
 | `ctdesign::WindowResize` | struct | — | — | Width of the resize band at edges and corners | [4](04-appearance-and-tokens.md#token-types) |
@@ -266,6 +295,7 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 | `ctdesign::PrintMetrics` | struct | — | — | Print resolution and page margins | [4](04-appearance-and-tokens.md#view-metrics) |
 | `ctdesign::ChartMetrics` | struct | — | — | Chart strokes, bars, sectors, axes, zoom and 3D view | [4](04-appearance-and-tokens.md#view-metrics) |
 | `ctdesign::MediaMetrics` | struct | — | — | Media buttons, glass material, inks and scrims | [4](04-appearance-and-tokens.md#view-metrics) |
+| `ctdesign::MaterialMetrics` | struct | — | — | One `MaterialThickness` per `styles::Thickness` | [4](04-appearance-and-tokens.md#materials) |
 | `ctdesign::BackdropMetrics` | struct | — | — | Backdrop gradient, glass, ink and accent parameters | [4](04-appearance-and-tokens.md#view-metrics) |
 | `ctdesign::BackdropScenes` | struct | — | — | Preset backdrop gradients: dusk, night, pale, forest, studio | [4](04-appearance-and-tokens.md#view-metrics) |
 
@@ -311,6 +341,7 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 | `ctdesign::MENU_POPOVER`, `MENU_MARK_TEXT_GAP`, `MENU_SUBMENU_INTENT_MS`, `MENU_SUBMENU_REVEAL_GAP`, `MENU_SCROLL_TICK_MS`, `MENU_SEARCH_ICON`, `MENU_SEARCH_ICON_GAP`, `MENU_SEARCH_CLEAR`, `MENU_SEARCH_CLEAR_GLYPH`, `MENU_SEARCH_CLEAR_MARGIN`, `MENU_SEARCH_CLEAR_MIX`, `MENU_HELP_ICON`, `MENU_SEPARATOR_INK_MIX` | constant | — | — | Menu and pop-up menu metrics and timing | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::SIDEBAR`, `TOOLGROUP`, `SPLIT_VIEW`, `SPLIT_PANES`, `FLOATING_PANE`, `TABLE`, `COLLECTION`, `LIST_GROUP`, `GROUP_BOX`, `DISCLOSURE`, `TOOLBAR_TABS`, `SCROLL_BAR`, `BREAKPOINT` | constant | — | — | Metrics of sidebars, split views, lists, tables and groups | [4](04-appearance-and-tokens.md#view-metrics) |
 | `ctdesign::SETTINGS`, `FONT_PANEL`, `PRINT`, `CHART`, `MEDIA`, `BACKDROP`, `BACKDROP_SCENES` | constant | — | — | Metrics of settings, font panel, printing, charts, media, backdrops | [4](04-appearance-and-tokens.md#view-metrics) |
+| `ctdesign::MATERIAL` | constant | `Material` | `NSVisualEffectView.Material` | Opacity and blur of the five material thicknesses | [4](04-appearance-and-tokens.md#materials) |
 | `ctdesign::MENUBAR_HEIGHT`, `MENUBAR_FONT_SIZE`, `MENUBAR_APP_NAME_WEIGHT`, `MENUBAR_MARGIN`, `MENUBAR_MARGIN_RIGHT`, `MENUBAR_TITLE_PADDING_X`, `MENUBAR_TEXT_LIFT`, `MENUBAR_TITLE_MAX_WIDTH`, `MENUBAR_TITLE_BLEED`, `FOCUS_BAR_BACKGROUND`, `FOCUS_BAR_TEXT` | constant | — | — | Shell menu bar sizes; focus-mode bar colors | [4](04-appearance-and-tokens.md#shell) |
 | `ctdesign::DOCK_TILESIZE`, `DOCK_GAP`, `DOCK_PADDING`, `DOCK_FONT_SIZE`, `DOCK_BAR_HEIGHT` | constant | — | — | Shell Dock sizes | [4](04-appearance-and-tokens.md#shell) |
 | `ctdesign::LAUNCHER_WIDTH`, `LAUNCHER_HEIGHT`, `LAUNCHER_PADDING`, `LAUNCHER_SEARCH_HEIGHT`, `LAUNCHER_RESULT_HEIGHT`, `LAUNCHER_RESULT_GAP`, `LAUNCHER_RESULT_RADIUS`, `LAUNCHER_ICON_SIZE`, `LAUNCHER_MAX_RESULTS`, `LAUNCHER_CORNER_RADIUS`, `LAUNCHER_FONT_SIZE`, `LAUNCHER_SUBTITLE_FONT_SIZE`, `LAUNCHER_SCALE_FROM`, `LAUNCHER_OPEN_MS`, `LAUNCHER_CLOSE_MS` | constant | — | — | Shell launcher sizes and animation | [4](04-appearance-and-tokens.md#shell) |

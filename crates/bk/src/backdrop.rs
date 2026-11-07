@@ -63,17 +63,20 @@ impl Tint {
         }
         match (self, tinted()) {
             (Self::Color(c), _) => color(c).into(),
-            (Self::Backdrop, Some(backdrop)) => backdrop
-                .highlights()
-                .iter()
-                .enumerate()
-                .fold(LinearGradient::new().angle(90.0), |gradient, (i, c)| {
-                    gradient.stop((color(*c), i as f32 * 50.0))
-                })
-                .into(),
+            (Self::Backdrop, Some(backdrop)) => highlights(backdrop, color).into(),
             _ => color(palette.accent).into(),
         }
     }
+}
+
+pub(crate) fn highlights(backdrop: tint::Backdrop, ink: impl Fn(Rgba) -> Color) -> LinearGradient {
+    backdrop
+        .highlights()
+        .iter()
+        .enumerate()
+        .fold(LinearGradient::new().angle(90.0), |gradient, (i, c)| {
+            gradient.stop((ink(*c), i as f32 * 50.0))
+        })
 }
 
 #[derive(PartialEq)]

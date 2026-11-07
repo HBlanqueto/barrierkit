@@ -92,6 +92,7 @@ fn main() -> Result<(), RunError> {
 | Item | What it does |
 |---|---|
 | `Application::new(name)` | Creates the app. `name` is short, lowercase and stable: it becomes the `app_id`, the settings domain and the key of the saved window size |
+| `Application::theme(theme)` | Gives every window the [`Theme`](../ai/styles.md#levels); without it, `Theme::tengen()` |
 | `Application::window(title, content)` | Returns a `Scene` for one window. `content` is a closure that returns the view; hooks go at its top |
 | `Scene::options(\|window\| …)` | Changes any [`WindowOptions`](08-windows.md) setting: size, limits, menu, full-screen bar |
 | `Scene::run()` | Draws the window background (`Palette::current().window_background`), a [`Titlebar`](09-titlebars.md) with the title, centers `content` and calls [`run_window`](08-windows.md). Returns `Result<(), RunError>` |
@@ -122,7 +123,7 @@ stacks, children and alignment (`child`, `children`, `spacing`,
 
 | From | Names |
 |---|---|
-| The kit | `Application`, `Scene`, `UtilityWindow`, `Text`, `VStack`, `HStack`, `Image`, `Symbol`, `Divider`, the [`ViewModifiers`](07-menus-and-popovers.md#view-modifiers) trait (`.help`, `.context_menu`, `.focus_ring`), `run_window`, `WindowOptions`, `RunError`, `Palette`, `text`, `color`, `Titlebar` and every control in [`controls`](05-controls.md) |
+| The kit | `Application`, `Scene`, `UtilityWindow`, `Text`, `VStack`, `HStack`, `Image`, `Symbol`, `Divider`, the [`ViewModifiers`](07-menus-and-popovers.md#view-modifiers) trait (`.help`, `.context_menu`, `.focus_ring`), `run_window`, `WindowOptions`, `RunError`, `Palette`, `text`, `color`, `Titlebar`, every control in [`controls`](05-controls.md), the [`StyleModifiers`](../ai/styles.md#levels) trait (`.slider_style`) and everything in [`styles`](../ai/styles.md#value-types) (`Theme`, `SliderStyle`, `ShapeStyle`, `Rgba`…) |
 | Freya | its whole prelude: `rect()`, `label()`, `use_state`, `Component`, `App`, `IntoElement`, element methods |
 | Torin | `Alignment`, `Direction`, `Size` |
 | Tokens | `BODY`, `CALLOUT`, `CAPTION`, `HEADLINE`, `LARGE_TITLE`, `MONO`, `TITLE`, `TITLE_2`, `Font`, `SPACE_1`…`SPACE_4`, `WINDOW_DEFAULT_SIZE`, `WINDOW_MIN_SIZE` |
