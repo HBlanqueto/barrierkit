@@ -72,7 +72,7 @@ some of these colors at run time; the variables hold the untinted values.
 | `--bk-radius-*`, `--bk-space-*`, `--bk-size-*`, `--bk-duration-*` | `tokens.json` | `--bk-space-3` |
 | `--bk-font-styles-<style>-{size,line-height,weight}` | `tokens.json` › `font.styles` (`body`, `headline`, `title-1`…) | `--bk-font-styles-body-size` |
 | `--bk-<component>-*` | `components.json` › `components` | `--bk-button-padding-x` |
-| `--bk-<component>-<list>-<i>-<field>` | a list of objects in `components.json`, by index | `--bk-settings-accent-swatches-0-color` |
+| `--bk-<component>-<list>-<i>`, `--bk-<component>-<list>-<i>-<field>` | one item of a list in `components.json`, by index | `--bk-list-group-padding-0`, `--bk-settings-accent-swatches-0-color` |
 
 ## Example
 
@@ -84,8 +84,10 @@ Each file of [`twins/`](twins/) draws one scene of
 ## Rules
 
 1. One file. Only `tengen.css` and Google Fonts come from outside.
-2. No literal colors, sizes or fonts. The one exception is the white page of a
-   twin of a golden image ([`compare.md`](compare.md#steps)).
+2. No literal colors, sizes or fonts. A twin of a golden image has two
+   exceptions: the white page ([`compare.md`](compare.md#steps)) and the
+   layout numbers its scene in `crates/bk/tests/kit/controls.rs` writes as
+   literals, such as a stack's width.
 3. Every control has `class="bk-<name>"` and `data-bk="<View> <label>"`.
 4. The text is the app's text, in the app's language.
 5. Effects the browser cannot draw the same way (Skia's superellipse corners,

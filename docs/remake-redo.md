@@ -248,8 +248,8 @@ in px.
 | `segmented-control` | dark | 0.72 | 0 | 0 | `SegmentedControl Periodo` |
 | `text-field` | light | 4.93 | 1 | 0 | `TextField Nombre de usuario` |
 | `text-field` | dark | 4.98 | 1 | 0 | `TextField Nombre de usuario` |
-| `form` | light | 4.77 | 1 | 1 | `Form` |
-| `form` | dark | 4.78 | 2 | 1 | `Form` |
+| `form` | light | 5.25 | 2 | 1 | `Form` |
+| `form` | dark | 5.19 | 2 | 1 | `Form` |
 | `preferences` | light | 2.24 | 4 | 0 | `Form` |
 | `preferences` | dark | 2.62 | 4 | 0 | `Row Semáforos` |
 

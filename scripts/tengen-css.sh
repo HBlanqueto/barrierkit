@@ -23,7 +23,7 @@ jq -nr --slurpfile tokens tokens.json --slurpfile components components.json '
     else tostring end;
   def declarations:
     [paths(type != "object") as $path
-     | select(all($path[]; type == "string") or ($path[-1] | type) == "string")
+     | select(all($path[]; type == "string") or ($path[-1] | type) == "string" or (($path | length) > 1 and ($path[-2] | type) == "string"))
      | getpath($path) | css_value as $value
      | "  \($path | css_name): \($value);"]
     | join("\n");

@@ -122,7 +122,10 @@
   .bk-tool-group span { width: calc(var(--bk-size-toolgroup-h) * 1px); text-align: center; }
   .bk-tool-group span + span { box-shadow: -1px 0 var(--bk-line); }
   .title { font-weight: var(--bk-font-styles-headline-weight); }
-  .bk-form { padding: 12px 20px 20px 12px; }
+  .bk-form {
+    padding: calc(var(--bk-list-group-padding-0) * 1px) calc(var(--bk-list-group-padding-1) * 1px)
+      calc(var(--bk-list-group-padding-2) * 1px) calc(var(--bk-list-group-padding-3) * 1px);
+  }
   .bk-section {
     border-radius: calc(var(--bk-list-group-radius) * 1px);
     background: var(--bk-bg-surface);

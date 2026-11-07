@@ -21,10 +21,12 @@
   }
   .bk-form {
     flex: 1;
-    padding: 12px 20px 20px 12px;
+    padding: calc(var(--bk-list-group-padding-0) * 1px) calc(var(--bk-list-group-padding-1) * 1px)
+      calc(var(--bk-list-group-padding-2) * 1px) calc(var(--bk-list-group-padding-3) * 1px);
   }
   .header {
-    padding: 2px 10px 8px 10px;
+    padding: calc(var(--bk-list-group-section-header-padding-0) * 1px) calc(var(--bk-list-group-section-header-padding-1) * 1px)
+      calc(var(--bk-list-group-section-header-padding-2) * 1px) calc(var(--bk-list-group-section-header-padding-3) * 1px);
     font-weight: var(--bk-font-styles-headline-weight);
   }
   .bk-section {
@@ -44,8 +46,8 @@
     align-items: flex-start;
     justify-content: center;
     gap: calc(var(--bk-space-3) * 1px);
-    padding-top: 9px;
-    padding-bottom: 9px;
+    padding-top: calc(var(--bk-space-2) * 1px);
+    padding-bottom: calc(var(--bk-space-2) * 1px);
   }
   .bk-row + .bk-row {
     background-image: linear-gradient(var(--bk-line), var(--bk-line));
