@@ -60,10 +60,14 @@ traffic_light_shape = "square"  # square | round
 window_color = "neutral"         # neutral | accent | wallpaper
 tint_parts = ["sidebars", "window", "groups", "controls", "menus"]
 tint_strength_accent = "normal"  # subtle | normal | strong | intense
+contrast = false
 reduced_motion = false
 reduce_transparency = true
 scroll_bars = "when_scrolling"   # when_scrolling | always
 ```
+
+`theme::resolved()` carries these preferences already resolved; `contrast`
+says whether the user asked for more contrast.
 
 The same button in the three modes:
 
