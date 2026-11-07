@@ -173,6 +173,7 @@
       <arg name="focus_bar" type="uint" enum="focus_bar"/>
     </event>
 
+    <!-- Opcodes follow declaration order: new requests go after destroy (v4 moved it from 5 to 6). -->
   <request name="destroy" type="destructor">
       <description summary="destroy the manager object">
       </description>

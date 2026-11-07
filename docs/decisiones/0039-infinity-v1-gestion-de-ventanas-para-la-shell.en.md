@@ -2,6 +2,8 @@
 
 Status: **accepted**.
 
+Yuki is now Malaysia and CelestialKit (`celestial-kit`) is BarrierKit (`barrier-kit`) since [ADR 0043](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0043-rebranding-a-malaysia.en.md).
+
 ## Context
 
 Yuki's menubar (`yuki-shell menubar`) shows the **Ventana** ("Window") menu with
@@ -17,7 +19,7 @@ management for the shell components, starting with the menubar.
 ## Decision
 
 1. **Private protocol `infinity_window_manager_v1`.** It is defined in
-   `protocols/infinity-window-manager-v1.xml`. It is a server-side Wayland
+   `crates/infinity-protocol/protocols/infinity-window-manager-v1.xml`. It is a server-side Wayland
    extension generated with `wayland-scanner` in the compositor and with the
    client generation in `celestial-kit`.
 2. **Only the `yuki-shell` components can see the global.** Smithay's
@@ -70,6 +72,20 @@ management for the shell components, starting with the menubar.
    and 8 px between windows. `fill` takes the available area; `center` keeps the
    current size and centers the window.
 
+## Versions
+
+| Version | Adds |
+|---|---|
+| 1 | `arrange`, `arrange_pair`, `arrange_quarters`, `restore`, `set_fullscreen`, `restorable` and `destroy` |
+| 2 | The `app_menu` event |
+| 3 | The `gtk_menus` event |
+| 4 | The `force_quit` request |
+| 5 | The `space` event and the `focus_bar` enum |
+
+Opcodes follow the XML order. Version 4 declared `force_quit` before
+`destroy`, which moved from opcode 5 to 6: the `destroy` of a v1–v3 client
+reaches a v4 or later compositor as `force_quit`. New requests go after `destroy`.
+
 ## Consequences
 
 - `yuki-shell menubar` can enable the geometry entries when
@@ -90,4 +106,4 @@ management for the shell components, starting with the menubar.
 - [`0037`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0037-marco-compositor-dibuja-ventanas.md) — window
   frame drawn by the compositor.
 - [`glossary.md`](https://github.com/HBlanqueto/malaysia/blob/main/docs/glossary.md) — definition of Infinity.
-- `protocols/infinity-window-manager-v1.xml`.
+- `crates/infinity-protocol/protocols/infinity-window-manager-v1.xml`.

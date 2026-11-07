@@ -2,6 +2,8 @@
 
 Estado: **aceptado**.
 
+Yuki es hoy Malaysia y CelestialKit (`celestial-kit`) es BarrierKit (`barrier-kit`) desde la [ADR 0043](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0043-rebranding-a-malaysia.md).
+
 ## Contexto
 
 La menubar de Yuki (`yuki-shell menubar`) muestra el menú **Ventana** con
@@ -17,7 +19,7 @@ ventanas para los componentes de la shell, empezando por la menubar.
 ## Decisión
 
 1. **Protocolo privado `infinity_window_manager_v1`.** Se define en
-   `protocols/infinity-window-manager-v1.xml`. Es una extensión Wayland
+   `crates/infinity-protocol/protocols/infinity-window-manager-v1.xml`. Es una extensión Wayland
    server-side generada con `wayland-scanner` en el compositor y con la
    generación cliente en `celestial-kit`.
 2. **Solo los componentes de `yuki-shell` pueden ver el global.** El filtro de
@@ -70,6 +72,20 @@ ventanas para los componentes de la shell, empezando por la menubar.
    y 8 px entre ventanas. `fill` ocupa el área disponible; `center` mantiene el
    tamaño actual y centra la ventana.
 
+## Versiones
+
+| Versión | Añade |
+|---|---|
+| 1 | `arrange`, `arrange_pair`, `arrange_quarters`, `restore`, `set_fullscreen`, `restorable` y `destroy` |
+| 2 | El evento `app_menu` |
+| 3 | El evento `gtk_menus` |
+| 4 | La request `force_quit` |
+| 5 | El evento `space` y el enum `focus_bar` |
+
+Los opcodes siguen el orden del XML. La v4 declaró `force_quit` antes de
+`destroy`, que pasó del opcode 5 al 6: el `destroy` de un cliente v1–v3 llega a
+un compositor v4 o posterior como `force_quit`. Las requests nuevas van después de `destroy`.
+
 ## Consecuencias
 
 - `yuki-shell menubar` puede habilitar las entradas de geometría cuando
@@ -90,4 +106,4 @@ ventanas para los componentes de la shell, empezando por la menubar.
 - [`0037`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0037-marco-compositor-dibuja-ventanas.md) — marco de
   ventanas dibujado por el compositor.
 - [`glossary.md`](https://github.com/HBlanqueto/malaysia/blob/main/docs/glossary.md) — definición de Infinity.
-- `protocols/infinity-window-manager-v1.xml`.
+- `crates/infinity-protocol/protocols/infinity-window-manager-v1.xml`.

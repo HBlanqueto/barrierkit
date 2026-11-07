@@ -2,6 +2,8 @@
 
 Estado: **aceptado** (2026-10-26).
 
+Yuki es hoy Malaysia y CelestialKit (`celestial-kit`) es BarrierKit (`barrier-kit`) desde la [ADR 0043](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0043-rebranding-a-malaysia.md).
+
 ## Contexto
 
 `celestial-kit` provee una barra lateral reusable (`Sidebar`, `SidebarItem`,
