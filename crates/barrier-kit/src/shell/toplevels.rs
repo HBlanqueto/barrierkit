@@ -157,6 +157,14 @@ impl Toplevels {
         });
     }
 
+    pub fn send_shortcut(&self, id: u64, keys: &str) {
+        self.with_infinity(id, |manager, mgmt| {
+            if manager.version() >= 6 {
+                manager.send_shortcut(mgmt, keys.to_string());
+            }
+        });
+    }
+
     pub fn set_fullscreen(&self, id: u64, fullscreen: bool) {
         self.with_infinity(id, |manager, mgmt| {
             manager.set_fullscreen(mgmt, fullscreen as u32)

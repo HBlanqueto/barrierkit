@@ -23,7 +23,7 @@
     DEALINGS IN THE SOFTWARE.
   </copyright>
 
-  <interface name="infinity_window_manager_v1" version="5">
+  <interface name="infinity_window_manager_v1" version="6">
     <description summary="private window geometry channel for malaysia-shell">
       This protocol is private to malaysia-shell. It lets the shell ask the
       compositor to place windows in halves, quarters, pairs and fullscreen
@@ -177,6 +177,19 @@
   <request name="destroy" type="destructor">
       <description summary="destroy the manager object">
       </description>
+    </request>
+
+    <request name="send_shortcut" since="6">
+      <description summary="type a keyboard shortcut into a window">
+        The compositor focuses the window and types the chord into it, as if
+        the user pressed it, bypassing compositor shortcuts. It backs the
+        shell's shortcut menus for apps that publish no global menu. keys is
+        modifiers then one xkbcommon keysym name joined with '+', for example
+        "Ctrl+Shift+S". The request is ignored when a key is unknown, the
+        session is locked or the window cannot take keyboard focus.
+      </description>
+      <arg name="handle" type="object" interface="zwlr_foreign_toplevel_handle_v1"/>
+      <arg name="keys" type="string"/>
     </request>
   </interface>
 </protocol>

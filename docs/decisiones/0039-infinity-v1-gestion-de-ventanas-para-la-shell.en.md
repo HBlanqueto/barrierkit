@@ -81,6 +81,7 @@ management for the shell components, starting with the menubar.
 | 3 | The `gtk_menus` event |
 | 4 | The `force_quit` request |
 | 5 | The `space` event and the `focus_bar` enum |
+| 6 | The `send_shortcut(handle, keys)` request, which types a chord into the window (malaysia ADR 0061) |
 
 Opcodes follow the XML order. Version 4 declared `force_quit` before
 `destroy`, which moved from opcode 5 to 6: the `destroy` of a v1–v3 client

@@ -70,7 +70,7 @@ impl ShellState {
                 .ok()
         };
         let infinity = globals
-            .bind::<InfinityWindowManagerV1, _, _>(qh, 1..=5, ())
+            .bind::<InfinityWindowManagerV1, _, _>(qh, 1..=6, ())
             .ok();
         if infinity.is_none() {
             tracing::info!("infinity_window_manager_v1 no disponible; sigo sin él");

@@ -81,6 +81,7 @@ ventanas para los componentes de la shell, empezando por la menubar.
 | 3 | El evento `gtk_menus` |
 | 4 | La request `force_quit` |
 | 5 | El evento `space` y el enum `focus_bar` |
+| 6 | La request `send_shortcut(handle, keys)`, que teclea un atajo en la ventana (ADR 0061 de malaysia) |
 
 Los opcodes siguen el orden del XML. La v4 declaró `force_quit` antes de
 `destroy`, que pasó del opcode 5 al 6: el `destroy` de un cliente v1–v3 llega a
