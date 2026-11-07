@@ -221,7 +221,7 @@ regional (`es_MX`). Se busca como lo hace Hunspell: `DICPATH` y después
 `hunspell/` y `myspell/` bajo `XDG_DATA_HOME` y `XDG_DATA_DIRS`. En NixOS basta
 un paquete como `hunspellDicts.es_ES` en el perfil. El primer campo lo carga en
 otro hilo; sin diccionario no se marca nada. Las palabras mal escritas llevan
-una fila de puntos rojos, y el clic secundario sobre una pone sus sugerencias
+una fila de puntos rojos de 2 de diámetro (`SPELLING.dot`, una estimación), y el clic secundario sobre una pone sus sugerencias
 arriba del menú Editar («No hay sugerencias» si no hay ninguna), seguidas de
 Ignorar ortografía y Aprender ortografía. Ignorar acepta la palabra hasta que
 la app se cierra. Aprender además la añade a la lista personal de Enchant,
@@ -278,7 +278,8 @@ sesión, la última primero) y Ancho fijo (las que Skia marca como
 Normal, Cursiva, Negrita y Negrita cursiva solo si la familia los tiene. Los
 tamaños son la lista fija de GTK (`fallback_sizes` en
 [gtkfontchooserwidget.c](https://gitlab.gnome.org/GNOME/gtk/-/blob/main/gtk/gtkfontchooserwidget.c)),
-porque Apple no publica la del panel. Encima de la lista, un campo admite
+porque Apple no publica la del panel; la columna mide 72 de ancho
+(`FONT_PANEL.size_column`, una estimación). Encima de la lista, un campo admite
 cualquier tamaño positivo, también con decimales. En un `TextEditor` con `styles`,
 Ctrl+T (⌘T en macOS) abre el mismo panel y aplica familia, tamaño, negrita y
 cursiva a la selección (`rich_text::apply_font`).

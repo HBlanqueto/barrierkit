@@ -221,7 +221,7 @@ one (`es_MX`). It is searched for like Hunspell does: `DICPATH`, then
 `hunspell/` and `myspell/` under `XDG_DATA_HOME` and `XDG_DATA_DIRS`. On NixOS,
 a package such as `hunspellDicts.es_ES` in the profile is enough. The first
 field loads it on a separate thread; without a dictionary nothing is marked.
-Misspelled words get a row of red dots, and a secondary click on one puts its
+Misspelled words get a row of red dots 2 across (`SPELLING.dot`, an estimate), and a secondary click on one puts its
 guesses at the top of the edit menu ("No Guesses Found" when there are none),
 followed by Ignore Spelling and Learn Spelling. Ignore accepts the word until
 the app quits. Learn also adds it to Enchant's personal list,
@@ -276,7 +276,8 @@ Fixed Width (the ones Skia marks as `is_fixed_pitch`). The Typeface column lists
 Bold Italic only when the family has them. The sizes are GTK's preset list
 (`fallback_sizes` in
 [gtkfontchooserwidget.c](https://gitlab.gnome.org/GNOME/gtk/-/blob/main/gtk/gtkfontchooserwidget.c)),
-because Apple does not publish the panel's list. Above the list, a field
+because Apple does not publish the panel's list; the column is 72 wide
+(`FONT_PANEL.size_column`, an estimate). Above the list, a field
 takes any positive size, decimals included. In a `TextEditor` with
 `styles`, Ctrl+T (⌘T in macOS) opens the same panel and applies family,
 size, bold and italic to the selection (`rich_text::apply_font`).
