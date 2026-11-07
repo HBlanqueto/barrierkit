@@ -977,7 +977,10 @@ fn preferences_search_opens_the_result_chosen_with_the_arrows() {
     test.click_cursor((140.0, 92.0));
     test.sync_and_update();
     test.write_text("son");
-    test.sync_and_update();
+    test.poll(
+        std::time::Duration::from_millis(16),
+        std::time::Duration::from_millis(200),
+    );
     press(&mut test, Key::Named(NamedKey::ArrowDown));
     press(&mut test, Key::Named(NamedKey::Enter));
     let selected = test.find_many(|_, el| {
