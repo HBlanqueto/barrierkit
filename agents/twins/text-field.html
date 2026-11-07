@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Text field</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=block">
+<link rel="stylesheet" href="../tengen.css">
+<style>
+  html, body { margin: 0; height: 100%; }
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    padding: 24px;
+    background: white;
+    font-family: var(--bk-font-families-sans);
+    font-size: calc(var(--bk-font-styles-body-size) * 1px);
+    line-height: calc(var(--bk-font-styles-body-line-height) * 1px);
+    color: var(--bk-ink-strong);
+  }
+  .stack {
+    width: 240px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .bk-text-field, .bk-search-field {
+    box-sizing: border-box;
+    height: calc(var(--bk-text-field-height) * 1px);
+    display: flex;
+    align-items: center;
+    padding: 0 calc(var(--bk-text-field-padding-x) * 1px);
+    border-radius: calc(var(--bk-text-field-radius) * 1px);
+    background: var(--bk-bg-surface);
+    box-shadow: inset 0 0 0 1px var(--bk-line);
+  }
+  .placeholder { color: var(--bk-ink-muted); }
+  .bk-search-field {
+    padding: 0 calc(var(--bk-settings-search-padding-x) * 1px);
+    gap: calc(var(--bk-settings-search-gap) * 1px);
+    border-radius: calc(var(--bk-text-field-height) * 1px);
+    background: var(--bk-bg-control);
+    box-shadow: none;
+  }
+  .bk-search-field .value { flex: 1; }
+  .icon { width: calc(var(--bk-settings-search-icon) * 1px); text-align: center; color: var(--bk-ink-faint); }
+  .clear { color: var(--bk-ink-muted); }
+</style>
+</head>
+<body>
+  <div class="stack">
+    <div class="bk-text-field" data-bk="TextField Nombre de usuario">hblanqueto</div>
+    <div class="bk-text-field" data-bk="TextField Nombre de usuario (vacío)"><span class="placeholder">Nombre de usuario</span></div>
+    <div class="bk-search-field" data-bk="SearchField Buscar"><span class="icon">⌕</span><span class="value">wifi</span><span class="icon clear">✕</span></div>
+  </div>
+</body>
+</html>

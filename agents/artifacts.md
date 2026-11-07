@@ -72,12 +72,14 @@ some of these colors at run time; the variables hold the untinted values.
 | `--bk-radius-*`, `--bk-space-*`, `--bk-size-*`, `--bk-duration-*` | `tokens.json` | `--bk-space-3` |
 | `--bk-font-styles-<style>-{size,line-height,weight}` | `tokens.json` › `font.styles` (`body`, `headline`, `title-1`…) | `--bk-font-styles-body-size` |
 | `--bk-<component>-*` | `components.json` › `components` | `--bk-button-padding-x` |
+| `--bk-<component>-<list>-<i>-<field>` | a list of objects in `components.json`, by index | `--bk-settings-accent-swatches-0-color` |
 
 ## Example
 
-[`twins/button.html`](twins/button.html) draws the `button` scene of
-`crates/bk/tests/kit/controls.rs`: `Button`, a `bordered_prominent` button
-and a disabled one.
+Each file of [`twins/`](twins/) draws one scene of
+`crates/bk/tests/kit/controls.rs` with the name of its golden image:
+`button`, `switch`, `slider`, `segmented-control`, `text-field`, `form` and
+`preferences` (a whole `SettingsWindow`). Start from the closest one.
 
 ## Rules
 

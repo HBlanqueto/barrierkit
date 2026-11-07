@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Slider</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=block">
+<link rel="stylesheet" href="../tengen.css">
+<style>
+  html, body { margin: 0; height: 100%; }
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    padding: 24px;
+    background: white;
+    font-family: var(--bk-font-families-sans);
+    font-size: calc(var(--bk-font-styles-body-size) * 1px);
+    line-height: calc(var(--bk-font-styles-body-line-height) * 1px);
+    color: var(--bk-ink-strong);
+  }
+  .bk-slider { width: calc(var(--bk-settings-strength-width) * 1px); }
+  .track {
+    position: relative;
+    height: calc(var(--bk-slider-knob-height) * 1px);
+  }
+  .track::before, .fill {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc((var(--bk-slider-knob-height) - var(--bk-settings-strength-track)) / 2 * 1px);
+    height: calc(var(--bk-settings-strength-track) * 1px);
+    border-radius: calc(var(--bk-settings-strength-track) * 1px);
+    background: var(--bk-bg-control);
+  }
+  .fill { right: auto; width: 50%; background: var(--bk-accent); }
+  .knob {
+    position: absolute;
+    top: 0;
+    left: calc(50% - var(--bk-slider-knob-width) / 2 * 1px);
+    width: calc(var(--bk-slider-knob-width) * 1px);
+    height: calc(var(--bk-slider-knob-height) * 1px);
+    border-radius: calc(var(--bk-slider-knob-height) * 1px);
+    background: var(--bk-switch-knob-color);
+    box-shadow: 0 calc(var(--bk-shadow-slint-knob-offset-y) * 1px) calc(var(--bk-shadow-slint-knob-blur) * 1px) var(--bk-shadow-slint-knob-color);
+  }
+  .ticks, .labels { display: flex; justify-content: space-between; }
+  .ticks {
+    margin-top: calc((var(--bk-settings-strength-tick-gap) - (var(--bk-slider-knob-height) - var(--bk-settings-strength-track)) / 2) * 1px);
+    padding: 0 calc(var(--bk-slider-knob-width) / 2 * 1px);
+  }
+  .ticks span {
+    width: calc(var(--bk-settings-strength-tick) * 1px);
+    height: calc(var(--bk-settings-strength-tick) * 1px);
+    border-radius: 50%;
+    background: var(--bk-line-strong);
+  }
+  .labels {
+    margin-top: calc(var(--bk-settings-strength-label-gap) * 1px);
+    font-size: calc(var(--bk-font-styles-caption-size) * 1px);
+    line-height: calc(var(--bk-font-styles-caption-line-height) * 1px);
+    font-weight: var(--bk-font-styles-caption-weight);
+  }
+</style>
+</head>
+<body>
+  <div class="bk-slider" data-bk="Slider Nivel" aria-label="Nivel">
+    <div class="track"><div class="fill"></div><div class="knob"></div></div>
+    <div class="ticks"><span></span><span></span><span></span><span></span><span></span></div>
+    <div class="labels"><span>A</span><span>B</span><span>C</span><span>D</span><span>E</span></div>
+  </div>
+</body>
+</html>

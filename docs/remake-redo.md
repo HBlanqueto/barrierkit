@@ -229,3 +229,31 @@ nothing; only a smaller crate would. The candidates do not give one:
   control would rebuild the core and then them. Both are already optional
   features, and without them the edit takes 3.0 s instead of 3.2 s
   (phase 2).
+
+## Phase 5: twins of the golden images
+
+`node scripts/compare.cjs agents/twins/<name>.html crates/bk/tests/golden/<name>-<mode>.png`.
+`Δ geometry` is the largest `Δx`, `Δy`, `Δwidth` or `Δheight` of any control,
+in px.
+
+| Twin | Mode | % differ (whole) | Δ geometry | Δfill | Worst control |
+|---|---|---|---|---|---|
+| `button` | light | 0.83 | 1 | 0 | `Button Cancelar` |
+| `button` | dark | 0.78 | 1 | 0 | `Button Cancelar` |
+| `switch` | light | 0.05 | 0 | 1 | `Switch Apagado` |
+| `switch` | dark | 0.11 | 0 | 1 | `Switch Apagado` |
+| `slider` | light | 0.90 | 1 | 175 | `Slider Nivel` |
+| `slider` | dark | 0.87 | 1 | 0 | `Slider Nivel` |
+| `segmented-control` | light | 0.72 | 0 | 0 | `SegmentedControl Periodo` |
+| `segmented-control` | dark | 0.72 | 0 | 0 | `SegmentedControl Periodo` |
+| `text-field` | light | 4.93 | 1 | 0 | `TextField Nombre de usuario` |
+| `text-field` | dark | 4.98 | 1 | 0 | `TextField Nombre de usuario` |
+| `form` | light | 4.77 | 1 | 1 | `Form` |
+| `form` | dark | 4.78 | 2 | 1 | `Form` |
+| `preferences` | light | 2.24 | 4 | 0 | `Form` |
+| `preferences` | dark | 2.62 | 4 | 0 | `Row Semáforos` |
+
+The light slider's `Δfill` compares the white page of one image with the
+track of the other: the most frequent color of the box differs, not the
+paint. In `preferences` the kit aligns the label of the second row to the top
+and makes the row 4 px taller.

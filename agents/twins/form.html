@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Form</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=block">
+<link rel="stylesheet" href="../tengen.css">
+<style>
+  html, body { margin: 0; height: 100%; }
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    padding: 24px;
+    background: white;
+    font-family: var(--bk-font-families-sans);
+    font-size: calc(var(--bk-font-styles-body-size) * 1px);
+    line-height: calc(var(--bk-font-styles-body-line-height) * 1px);
+    color: var(--bk-ink-strong);
+  }
+  .bk-form {
+    flex: 1;
+    padding: 12px 20px 20px 12px;
+  }
+  .header {
+    padding: 2px 10px 8px 10px;
+    font-weight: var(--bk-font-styles-headline-weight);
+  }
+  .bk-section {
+    border-radius: calc(var(--bk-list-group-radius) * 1px);
+    background: var(--bk-bg-surface);
+    overflow: hidden;
+  }
+  .bk-row {
+    min-height: calc(var(--bk-list-group-row-min-height) * 1px);
+    padding: 0 calc(var(--bk-list-group-row-padding-x) * 1px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .bk-row.stacked {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: calc(var(--bk-space-3) * 1px);
+    padding-top: 9px;
+    padding-bottom: 9px;
+  }
+  .bk-row + .bk-row {
+    background-image: linear-gradient(var(--bk-line), var(--bk-line));
+    background-repeat: no-repeat;
+    background-position: calc(var(--bk-list-group-separator-inset-left) * 1px) 0;
+    background-size: calc(100% - var(--bk-list-group-separator-inset-left) * 2px) 1px;
+  }
+  .bk-row.highlighted {
+    background-color: color-mix(in srgb, var(--bk-accent) calc(var(--bk-list-group-highlight) * 100%), var(--bk-bg-surface));
+  }
+  .value, .chevron { color: var(--bk-ink-muted); }
+  .chevron { color: var(--bk-ink-faint); }
+  .bk-switch {
+    position: relative;
+    width: calc(var(--bk-switch-width) * 1px);
+    height: calc(var(--bk-switch-height) * 1px);
+    border-radius: calc(var(--bk-switch-height) * 1px);
+    background: var(--bk-accent);
+  }
+  .bk-switch::after {
+    content: "";
+    position: absolute;
+    top: calc(var(--bk-switch-inset) * 1px);
+    left: calc((var(--bk-switch-inset) + var(--bk-switch-travel)) * 1px);
+    width: calc(var(--bk-switch-knob-width) * 1px);
+    height: calc(var(--bk-switch-knob-height) * 1px);
+    border-radius: calc(var(--bk-switch-knob-height) * 1px);
+    background: var(--bk-switch-knob-color);
+    box-shadow: 0 calc(var(--bk-shadow-slint-knob-offset-y) * 1px) calc(var(--bk-shadow-slint-knob-blur) * 1px) var(--bk-shadow-slint-knob-color);
+  }
+</style>
+</head>
+<body>
+  <div class="bk-form" data-bk="Form">
+    <div class="header">Ventanas</div>
+    <div class="bk-section">
+      <div class="bk-row stacked" data-bk="Row Ampliación"><span>Ampliación</span><div class="bk-switch" aria-label="Ampliación"></div></div>
+      <div class="bk-row highlighted" data-bk="Row Estado"><span>Estado</span><span class="value">Normal · 87 %</span></div>
+      <div class="bk-row" data-bk="Row Avanzado"><span>Avanzado</span><span class="chevron">›</span></div>
+    </div>
+  </div>
+</body>
+</html>

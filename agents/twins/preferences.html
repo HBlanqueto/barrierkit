@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Preferences</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=block">
+<link rel="stylesheet" href="../tengen.css">
+<style>
+  html, body { margin: 0; height: 100%; }
+  body {
+    box-sizing: border-box;
+    padding: 24px;
+    background: white;
+    font-family: var(--bk-font-families-sans);
+    font-size: calc(var(--bk-font-styles-body-size) * 1px);
+    line-height: calc(var(--bk-font-styles-body-line-height) * 1px);
+    color: var(--bk-ink-strong);
+  }
+  .bk-settings-window { display: flex; height: 100%; background: var(--bk-bg-window); }
+  .bk-sidebar {
+    box-sizing: border-box;
+    flex: none;
+    width: calc(var(--bk-settings-sidebar-width) * 1px);
+    margin: calc(var(--bk-size-sidebar-inset) * 1px);
+    padding: 0 calc(var(--bk-window-sidebar-island-padding-x) * 1px);
+    border-radius: calc(var(--bk-size-sidebar-radius) * 1px);
+    background: var(--bk-sidebar-island-bg);
+    box-shadow: inset 0 0 0 calc(var(--bk-window-sidebar-island-rim-width) * 1px) var(--bk-sidebar-island-rim);
+  }
+  .bk-traffic-lights {
+    display: flex;
+    gap: calc(var(--bk-window-traffic-lights-gap) * 1px);
+    margin: calc(var(--bk-window-sidebar-island-traffic-y) * 1px) 0 0
+      calc((var(--bk-window-sidebar-island-traffic-x) - var(--bk-window-sidebar-island-padding-x)) * 1px);
+  }
+  .bk-traffic-lights span {
+    width: calc(var(--bk-window-traffic-lights-size) * 1px);
+    height: calc(var(--bk-window-traffic-lights-size) * 1px);
+    border-radius: calc(var(--bk-window-traffic-lights-radius) * 1px);
+    box-shadow: inset 0 0 0 calc(var(--bk-window-traffic-lights-rim-width) * 1px) var(--bk-traffic-rim);
+  }
+  .bk-search-field {
+    box-sizing: border-box;
+    height: calc(var(--bk-settings-search-height) * 1px);
+    margin-top: calc(var(--bk-settings-sidebar-lights-gap) * 1px);
+    padding: 0 calc(var(--bk-settings-search-padding-x) * 1px);
+    display: flex;
+    align-items: center;
+    gap: calc(var(--bk-settings-search-gap) * 1px);
+    border-radius: calc(var(--bk-settings-search-height) * 1px);
+    background: var(--bk-bg-control);
+    color: var(--bk-ink-muted);
+  }
+  .icon { width: calc(var(--bk-settings-search-icon) * 1px); text-align: center; }
+  .bk-sidebar-account {
+    height: calc(var(--bk-settings-account-height) * 1px);
+    margin: calc(var(--bk-settings-sidebar-search-gap) * 1px) 0 calc(var(--bk-settings-account-margin-bottom) * 1px);
+    padding: 0 calc(var(--bk-settings-account-padding-x) * 1px);
+    display: flex;
+    align-items: center;
+    gap: calc(var(--bk-settings-account-gap) * 1px);
+  }
+  .bk-avatar {
+    width: calc(var(--bk-settings-account-avatar) * 1px);
+    height: calc(var(--bk-settings-account-avatar) * 1px);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bk-ink-muted);
+    color: var(--bk-bg-window);
+    font-weight: var(--bk-font-styles-headline-weight);
+  }
+  .name { font-weight: var(--bk-font-styles-headline-weight); }
+  .detail {
+    font-size: calc(var(--bk-font-styles-callout-size) * 1px);
+    line-height: calc(var(--bk-font-styles-callout-line-height) * 1px);
+    color: var(--bk-ink-muted);
+  }
+  .bk-sidebar-item {
+    height: calc(var(--bk-window-sidebar-item-height) * 1px);
+    padding: 0 calc(var(--bk-window-sidebar-item-padding-x) * 1px);
+    display: flex;
+    align-items: center;
+    gap: calc(var(--bk-window-sidebar-item-gap) * 1px);
+    border-radius: calc(var(--bk-window-sidebar-item-radius) * 1px);
+    font-weight: var(--bk-window-sidebar-item-weight);
+  }
+  .bk-sidebar-item.selected {
+    background: var(--bk-window-sidebar-item-selected-bg);
+    color: var(--bk-window-sidebar-item-selected-ink);
+    font-weight: var(--bk-window-sidebar-item-selected-weight);
+  }
+  .tile {
+    width: calc(var(--bk-window-sidebar-item-app-icon) * 1px);
+    height: calc(var(--bk-window-sidebar-item-app-icon) * 1px);
+    border-radius: calc(var(--bk-window-sidebar-item-radius) * 1px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--bk-on-accent);
+  }
+  .detail-pane { flex: 1; display: flex; flex-direction: column; }
+  .bk-toolbar {
+    box-sizing: border-box;
+    height: calc(var(--bk-settings-toolbar-height) * 1px);
+    padding: 0 calc(var(--bk-settings-toolbar-padding-x) * 1px);
+    display: flex;
+    align-items: center;
+    gap: calc(var(--bk-settings-toolbar-gap) * 1px);
+    box-shadow: inset 0 -1px var(--bk-line);
+  }
+  .toggle { width: calc(var(--bk-size-control-md) * 1px); text-align: center; }
+  .bk-tool-group {
+    height: calc(var(--bk-size-toolgroup-h) * 1px);
+    display: flex;
+    align-items: center;
+    border-radius: calc(var(--bk-size-toolgroup-h) * 1px);
+    box-shadow: inset 0 0 0 1px var(--bk-toolgroup-rim);
+    color: var(--bk-ink-faint);
+  }
+  .bk-tool-group span { width: calc(var(--bk-size-toolgroup-h) * 1px); text-align: center; }
+  .bk-tool-group span + span { box-shadow: -1px 0 var(--bk-line); }
+  .title { font-weight: var(--bk-font-styles-headline-weight); }
+  .bk-form { padding: 12px 20px 20px 12px; }
+  .bk-section {
+    border-radius: calc(var(--bk-list-group-radius) * 1px);
+    background: var(--bk-bg-surface);
+  }
+  .bk-row {
+    min-height: calc(var(--bk-list-group-row-min-height) * 1px);
+    padding: calc(var(--bk-space-2) * 1px) calc(var(--bk-list-group-row-padding-x) * 1px);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    box-sizing: border-box;
+  }
+  .bk-row + .bk-row {
+    align-items: center;
+    background-image: linear-gradient(var(--bk-line), var(--bk-line));
+    background-repeat: no-repeat;
+    background-position: calc(var(--bk-list-group-separator-inset-left) * 1px) 0;
+    background-size: calc(100% - var(--bk-list-group-separator-inset-left) * 2px) 1px;
+  }
+  .bk-color-well { display: flex; gap: calc(var(--bk-settings-swatch-gap) * 1px); }
+  .swatch {
+    width: calc(var(--bk-settings-swatch-size) * 1px);
+    height: calc(var(--bk-settings-swatch-size) * 1px);
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 0.5px var(--bk-line);
+  }
+  .swatch.selected { outline: 2px solid var(--bk-ink-strong); outline-offset: 1px; }
+  .swatch-name {
+    margin-top: calc(var(--bk-settings-swatch-name-gap) * 1px);
+    font-size: calc(var(--bk-font-styles-caption-size) * 1px);
+    line-height: calc(var(--bk-font-styles-caption-line-height) * 1px);
+    font-weight: var(--bk-font-styles-caption-weight);
+    color: var(--bk-ink-muted);
+  }
+  .bk-pop-up-button { display: flex; align-items: center; gap: calc(var(--bk-space-1) * 1px); }
+  .chevrons {
+    width: calc(var(--bk-settings-swatch-size) * 1px);
+    height: calc(var(--bk-settings-swatch-size) * 1px);
+    border-radius: 50%;
+    background: var(--bk-bg-control);
+    font-size: calc(var(--bk-font-styles-caption-size) * 1px);
+    line-height: calc(var(--bk-settings-swatch-size) * 1px);
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+  <div class="bk-settings-window" data-bk="SettingsWindow">
+    <div class="bk-sidebar" data-bk="Sidebar">
+      <div class="bk-traffic-lights" data-bk="TrafficLights">
+        <span style="background: var(--bk-traffic-close)"></span><span style="background: var(--bk-traffic-min)"></span><span style="background: var(--bk-traffic-zoom)"></span>
+      </div>
+      <div class="bk-search-field" data-bk="SearchField Buscar"><span class="icon">⌕</span>Buscar</div>
+      <div class="bk-sidebar-account" data-bk="SidebarAccount Héctor Blanqueto">
+        <div class="bk-avatar">HB</div>
+        <div><div class="name">Héctor Blanqueto</div><div class="detail">Cuenta local</div></div>
+      </div>
+      <div class="bk-sidebar-item selected" data-bk="SidebarItem Apariencia"><span class="tile" style="background: var(--bk-settings-accent-swatches-0-color)">⌕</span>Apariencia</div>
+      <div class="bk-sidebar-item" data-bk="SidebarItem Sonido"><span class="tile" style="background: var(--bk-settings-accent-swatches-1-color)">◂</span>Sonido</div>
+    </div>
+    <div class="detail-pane">
+      <div class="bk-toolbar" data-bk="Titlebar Apariencia">
+        <span class="toggle">▯</span>
+        <div class="bk-tool-group"><span>‹</span><span>›</span></div>
+        <span class="title">Apariencia</span>
+      </div>
+      <div class="bk-form" data-bk="Form">
+        <div class="bk-section">
+          <div class="bk-row" data-bk="Row Color de acento">
+            <span>Color de acento</span>
+            <div data-bk="ColorWell Color de acento"><div class="bk-color-well"><span class="swatch selected" style="background: var(--bk-settings-accent-swatches-0-color)"></span><span class="swatch" style="background: var(--bk-settings-accent-swatches-1-color)"></span><span class="swatch" style="background: var(--bk-settings-accent-swatches-2-color)"></span><span class="swatch" style="background: var(--bk-settings-accent-swatches-3-color)"></span><span class="swatch" style="background: var(--bk-settings-accent-swatches-4-color)"></span><span class="swatch" style="background: var(--bk-settings-accent-swatches-5-color)"></span><span class="swatch" style="background: var(--bk-settings-accent-swatches-6-color)"></span><span class="swatch" style="background: var(--bk-settings-accent-swatches-7-color)"></span></div><div class="swatch-name">Azul</div></div>
+          </div>
+          <div class="bk-row" data-bk="Row Semáforos"><span>Semáforos</span><span class="bk-pop-up-button">Automático<span class="chevrons">⇕</span></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
