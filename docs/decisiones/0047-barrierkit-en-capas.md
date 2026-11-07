@@ -64,7 +64,7 @@ Decisiones del usuario ya tomadas (2026-10-28):
 ### 2. Reglas para todo componente del kit
 
 - **Fuente única de diseño.** Todo valor visual sale de `vow-design` (Tengen, ADR 0011/0032/0046). Si falta un token, se añade a `tengen/components.json` y se genera; nunca va un literal en el componente.
-- **Variantes, no estilos libres.** Cada componente expone variantes del sistema mediante enums como `ButtonStyle::{Primary, Secondary, Plain, Destructive}` o `ControlSize::{Small, Regular, Large}`. No hay `.background(color)` en los componentes del kit.
+- **Variantes, no estilos libres.** Cada componente expone variantes del sistema mediante enums como `ButtonStyle::{Primary, Secondary, Glass, GlassProminent, Borderless}` o `ControlSize::{Small, Regular, Large}`. No hay `.background(color)` en los componentes del kit.
 - **Controlado y declarativo.** El estado lo tiene la app (`State<T>`). El componente recibe `value` y avisa con `on_change`. Nada de estado oculto que la app no pueda leer.
 - **Interacción común.** Todo control interactivo usa el mismo hook `use_interaction()`, que da hover, pressed, foco de teclado y disabled. El anillo de foco (`focus-ring`) se dibuja solo al navegar con teclado.
 - **Accesibilidad obligatoria.** Cada componente asigna rol, etiqueta y estado (checked, expanded, selected), y es navegable por teclado. Un control sin etiqueta accesible no compila: la etiqueta es argumento de `new`.

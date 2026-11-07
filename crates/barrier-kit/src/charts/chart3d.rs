@@ -15,7 +15,7 @@ use super::series_color;
 use super::space::{
     Camera, Pose, View, back_to_front, fit, from_unit, project, surface_triangles, to_unit,
 };
-use crate::controls::{Button, SegmentedControl};
+use crate::controls::{Button, ControlSize, SegmentedControl};
 use crate::i18n::text;
 use crate::level::LevelSlider;
 use crate::style::Palette;
@@ -474,12 +474,14 @@ impl Component for Chart3D {
                             )),
                     )
                     .maybe(current != View::Custom, |el| {
-                        el.child(Button::new(text!("camera-keep")).small(true).on_press(
-                            move |_| {
-                                custom.set(camera);
-                                view.set(View::Custom);
-                            },
-                        ))
+                        el.child(
+                            Button::new(text!("camera-keep"))
+                                .size(ControlSize::Small)
+                                .on_press(move |_| {
+                                    custom.set(camera);
+                                    view.set(View::Custom);
+                                }),
+                        )
                     }),
             )
     }

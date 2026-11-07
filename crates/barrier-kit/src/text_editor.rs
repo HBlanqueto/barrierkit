@@ -6,7 +6,7 @@ use torin::prelude::{Alignment, Area, Content, CursorPoint, Direction, Gaps, Siz
 use vow_design::{CAPTION, SPACE_1, SPACE_2, TEXT, TEXT_FIELD};
 
 use crate::compact::IconButton;
-use crate::controls::{Button, SearchField};
+use crate::controls::{Button, ControlSize, SearchField};
 use crate::font_panel::show_font_panel;
 use crate::i18n::text;
 use crate::rich_text::{
@@ -501,7 +501,7 @@ impl Component for TextEditor {
             )
             .child(
                 Button::new(text!("find-done"))
-                    .small(true)
+                    .size(ControlSize::Small)
                     .on_press(move |_| {
                         finding.set(false);
                         a11y_id.request_focus();

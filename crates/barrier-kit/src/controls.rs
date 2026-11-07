@@ -439,13 +439,20 @@ pub enum ButtonStyle {
     Borderless,
 }
 
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum ControlSize {
+    Small,
+    #[default]
+    Regular,
+    Large,
+}
+
 #[derive(PartialEq)]
 pub struct Button {
     label: String,
     style: ButtonStyle,
     disabled: bool,
-    small: bool,
-    large: bool,
+    size: ControlSize,
     on: Option<bool>,
     width: Size,
     on_press: Option<Callback<(), ()>>,
@@ -458,8 +465,7 @@ impl Button {
             label: label.into(),
             style: ButtonStyle::default(),
             disabled: false,
-            small: false,
-            large: false,
+            size: ControlSize::default(),
             on: None,
             width: Size::auto(),
             on_press: None,
@@ -482,13 +488,8 @@ impl Button {
         self
     }
 
-    pub fn small(mut self, small: bool) -> Self {
-        self.small = small;
-        self
-    }
-
-    pub fn large(mut self, large: bool) -> Self {
-        self.large = large;
+    pub fn size(mut self, size: ControlSize) -> Self {
+        self.size = size;
         self
     }
 
@@ -543,27 +544,25 @@ impl Component for Button {
         };
         let glass = matches!(style, ButtonStyle::Glass | ButtonStyle::GlassProminent);
         let on_press = self.on_press.clone();
-        let (height, padding_x, font_size, radius) = if self.small {
-            (
+        let (height, padding_x, font_size, radius) = match self.size {
+            ControlSize::Small => (
                 BUTTON.small_height,
                 BUTTON.small_padding_x,
                 BUTTON.small_font_size,
                 BUTTON.small_radius,
-            )
-        } else if self.large {
-            (
+            ),
+            ControlSize::Large => (
                 BUTTON.large_height,
                 BUTTON.padding_x,
                 BUTTON.font_size,
                 BUTTON.large_height / 2.0,
-            )
-        } else {
-            (
+            ),
+            ControlSize::Regular => (
                 BUTTON.height,
                 BUTTON.padding_x,
                 BUTTON.font_size,
                 BUTTON.radius,
-            )
+            ),
         };
         let radius = if glass { height / 2.0 } else { radius };
 

@@ -64,7 +64,7 @@ User decisions already taken (2026-10-28):
 ### 2. Rules for every kit component
 
 - **Single source of design.** Every visual value comes from `vow-design` (Tengen, ADR 0011/0032/0046). If a token is missing, it is added to `tengen/components.json` and generated; a literal never goes in the component.
-- **Variants, not free styles.** Each component exposes system variants through enums such as `ButtonStyle::{Primary, Secondary, Plain, Destructive}` or `ControlSize::{Small, Regular, Large}`. There is no `.background(color)` in the kit components.
+- **Variants, not free styles.** Each component exposes system variants through enums such as `ButtonStyle::{Primary, Secondary, Glass, GlassProminent, Borderless}` or `ControlSize::{Small, Regular, Large}`. There is no `.background(color)` in the kit components.
 - **Controlled and declarative.** The app holds the state (`State<T>`). The component receives `value` and reports with `on_change`. No hidden state the app cannot read.
 - **Common interaction.** Every interactive control uses the same hook `use_interaction()`, which gives hover, pressed, keyboard focus and disabled. The focus ring (`focus-ring`) is drawn only when navigating with the keyboard.
 - **Mandatory accessibility.** Each component assigns role, label and state (checked, expanded, selected), and is keyboard navigable. A control without an accessible label does not compile: the label is an argument of `new`.

@@ -4,7 +4,7 @@ use vow_design::{
     DIALOG, DIALOG_ALERT_WIDTH, DIALOG_PADDING, HEADLINE, SETTINGS, SPACE_2, SPACE_4, TEXT,
 };
 
-use crate::controls::{Button, ButtonStyle, Checkbox};
+use crate::controls::{Button, ButtonStyle, Checkbox, ControlSize};
 use crate::i18n::text;
 use crate::style::{Palette, text};
 use crate::symbol::{Symbol, symbol};
@@ -142,14 +142,14 @@ impl Component for Alert {
                         .spacing(SPACE_2)
                         .child(
                             Button::new(self.cancel)
-                                .large(true)
+                                .size(ControlSize::Large)
                                 .width(Size::flex(1.0))
                                 .on_press(move |_| on_cancel()),
                         )
                         .child(
                             Button::new(self.confirm)
                                 .style(ButtonStyle::Primary)
-                                .large(true)
+                                .size(ControlSize::Large)
                                 .width(Size::flex(1.0))
                                 .on_press(move |_| on_confirm()),
                         ),
