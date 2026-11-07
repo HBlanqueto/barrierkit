@@ -2,7 +2,7 @@ use ctdesign::{BODY, CAPTION, HEADLINE, LIST_GROUP, Rgba, SPACE_2, SPACE_3, SPAC
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
 
-use crate::adornments::divider;
+use crate::adornments::Divider;
 use crate::interaction::use_interaction;
 use crate::style::{Palette, text};
 use crate::symbol::{Symbol, symbol};
@@ -310,7 +310,7 @@ impl Component for FormRow {
                     0.0,
                     LIST_GROUP.separator_inset,
                 ))
-                .child(divider())
+                .child(Divider::new())
         });
         rect()
             .width(Size::fill())

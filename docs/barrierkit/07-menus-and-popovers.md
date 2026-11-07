@@ -2,9 +2,10 @@
 
 **Goal:** show a context menu, open a popover and add a tooltip.
 **Scope:** menu items (`MenuItem`), the menu list (`MenuView`), its keyboard,
-search, shortcuts, mnemonics and submenus; `context_menu`, `show_popover` and
-`use_tooltip`. The menu bar menu (`AppMenu`) is in [13. App](13-app.md). The
-pop-up button (`PopUpButton`) is a control: [5. Controls](05-controls.md).
+search, shortcuts, mnemonics and submenus; the view modifiers
+(`.context_menu`, `.help`, `.focus_ring`) and `Popover`. The menu bar menu
+(`MainMenu`) is in [13. App](13-app.md). The pop-up button (`PopUpButton`) is
+a control: [5. Controls](05-controls.md).
 Popup surfaces in general (`Popups`, `PopupSpec`) are in
 [8. Windows](08-windows.md#popups).
 **Reader:** anyone who adds a menu, a popover or a tooltip to an app.
@@ -27,40 +28,40 @@ menu, a button that opens a popover and a control with a tooltip.
    ];
    ```
 
-2. Wrap the element that receives the secondary click with `context_menu`:
+2. Call `.context_menu` on the element that receives the secondary click:
 
    ```rust
-   use bk::context_menu::context_menu;
-
-   context_menu(rect().child(Text::new(tr!("file-name"))), items, |id: String| {
+   Text::new(tr!("file-name")).context_menu(items, |id: String| {
        // run the action `id`
    })
    ```
 
-3. For a popover, keep the area of the element that opens it and pass it to
-   `show_popover` on press:
+3. For a popover, keep the area of the element that opens it and call
+   `Popover::show` with it on press:
 
    ```rust
-   use bk::popover::show_popover;
+   use bk::popover::Popover;
    use torin::prelude::Area;
 
    let mut area = use_state(Area::default);
    rect()
        .on_sized(move |event: Event<SizedEventData>| area.set_if_modified(event.area))
        .on_press(move |_| {
-           show_popover(*area.peek(), (240.0, 32.0), || Text::new(tr!("hello")).into_element())
+           Popover::new((240.0, 32.0), || Text::new(tr!("hello")).into())
+               .show(*area.peek())
        })
        .child(Text::new(tr!("info")))
    ```
 
-4. Add a tooltip with `use_tooltip` at the top of the component and `attach`
-   it to the element:
+4. Add a tooltip with `.help`. Kit controls are components, so call it on the
+   rect that holds the control:
 
    ```rust
-   use bk::tooltip::use_tooltip;
+   use bk::compact::IconButton;
 
-   let help = use_tooltip(tr!("add-folder"));
-   help.attach(IconButton::new(Symbol::Plus, tr!("add")))
+   rect()
+       .help(tr!("add-folder"))
+       .child(IconButton::new(Symbol::Plus, tr!("add")))
    ```
 
 ## Menu items
@@ -106,7 +107,7 @@ An app action from [13. App](13-app.md) becomes an item with
 
 ## Menu view
 
-`MenuView` draws a list of items. `context_menu` and `PopUpButton` create it
+`MenuView` draws a list of items. `.context_menu` and `PopUpButton` create it
 for you; build one directly only for your own menu surface.
 
 ```rust
@@ -243,10 +244,29 @@ menu on macOS does. The Malaysia menu bar uses it; most apps do not need it.
 removes the mnemonic mark, trims, lower-cases and folds accents (`"Vídeos"` →
 `"videos"`).
 
-## Context menu
+## View modifiers
 
-`context_menu(element, items, on_activate)` returns `element` with a
-secondary-click handler. On a secondary press it opens a `MenuView` at the
+`modifiers::ViewModifiers` is a trait in the prelude. Its methods return the
+same element, like SwiftUI's view modifiers. It is implemented for every
+element with Freya's `EventHandlersExt`: `rect`, `label`, `Text`, `VStack`,
+`HStack` and the kit's view types, such as `Divider` or `Sheet`. Kit controls
+are components: call the modifier on a rect that holds them.
+
+| Method | SwiftUI | What it adds |
+|---|---|---|
+| `.context_menu(items, on_activate)` | `.contextMenu` | A menu at the pointer on secondary click |
+| `.help(text)` | `.help(_:)` | A tooltip |
+| `.focus_ring(corner_radius, color)` | — | A ring around the element |
+
+A modifier sets Freya event handlers on the element: `.context_menu` sets
+`on_secondary_down`; `.help` sets `on_pointer_enter`, `on_pointer_move`,
+`on_pointer_leave` and `on_pointer_down`. A handler for the same event, set
+before or after, replaces the other one.
+
+### `.context_menu`
+
+`element.context_menu(items, on_activate)` adds a secondary-click handler to
+`element`. On a secondary press it opens a `MenuView` at the
 pointer, with the popover metrics, as a popup with a grab. Choosing an action
 calls `on_activate(id)` and closes the menu; a click outside closes it. The
 popup flips and slides to stay on screen.
@@ -254,16 +274,42 @@ popup flips and slides to stay on screen.
 Text fields and `TextEditor` already have their own edit menu
 ([6. Text and editing](06-text-and-editing.md)).
 
-## Popover
+### `.help` (tooltips)
 
-`show_popover(anchor, size, content)` opens a popover below `anchor`, an
-`Area` in window coordinates:
+`element.help(text)` shows `text` as a tooltip over `element`. `text` is a
+`&'static str`, which is what `tr!` returns. `.help` calls a hook: call it on
+every render, never inside a condition. The tooltip works like this:
+
+1. The pointer enters the element and stays `TOOLTIP.delay_ms` (1000 ms).
+2. The tooltip opens as a popup without a grab, `TOOLTIP.pointer_gap` (16 px)
+   below the pointer.
+3. It closes when the pointer leaves, when a button is pressed and when the
+   component is dropped.
+
+It draws one line of `CAPTION` text with the popover colors, a hairline border
+and square corners.
+
+### `.focus_ring`
+
+`element.focus_ring(corner_radius, color)` draws a ring of `FOCUS_RING.width`
+(3) in `color` just outside the element. The ring is a child,
+so it needs an element with children: `rect`, `VStack`, `HStack` or a
+rect-like view type, not `label` or `Text`. A control uses it as a selection
+mark; the keyboard focus ring is `Interaction::focus_ring`
+([5. Controls](05-controls.md#building-a-new-control)).
+
+## Popovers
+
+### `Popover`
+
+`popover::Popover` is `NSPopover`. `Popover::new(size, content)` builds it and
+`.show(anchor)` opens it below `anchor`, an `Area` in window coordinates:
 
 | Argument | What it is |
 |---|---|
-| `anchor` | The area the arrow points at |
 | `size` | `(width, height)` of the content. The popup adds `POPOVER.padding` (12) on each side and the arrow band, `POPOVER.arrow_height` (13), on top |
-| `content` | A closure that builds the content. The popover paints the background |
+| `content` | A closure that returns the content as an `Element`. The popover paints the background |
+| `anchor` | The area the arrow points at |
 
 It opens with a grab: a click outside closes it. It slides sideways to stay on
 screen.
@@ -276,21 +322,6 @@ centre of the anchor. The compositor clips, borders and shadows that shape
 The measurements come from the Flutter package
 [`popover`](https://pub.dev/packages/popover), taken from AppKit on macOS
 26.7. Without version 2, the popup is a plain rectangle.
-
-## Tooltip
-
-`use_tooltip(text)` is a hook: call it at the top of the component. `text` is
-a `&'static str`, which is what `tr!` returns. `tooltip.attach(element)`
-returns `element` wrapped in a `rect` that shows the tooltip:
-
-1. The pointer enters the element and stays `TOOLTIP.delay_ms` (1000 ms).
-2. The tooltip opens as a popup without a grab, `TOOLTIP.pointer_gap` (16 px)
-   below the pointer.
-3. It closes when the pointer leaves, when a button is pressed and when the
-   component is dropped.
-
-It draws one line of `CAPTION` text with the popover colors, a hairline border
-and square corners.
 
 ## Helpers
 

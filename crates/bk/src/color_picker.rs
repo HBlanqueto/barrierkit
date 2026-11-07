@@ -5,7 +5,7 @@ use torin::prelude::{Area, Direction, Size};
 use crate::i18n::text;
 use crate::interaction::use_interaction;
 use crate::level::LevelSlider;
-use crate::popover::show_popover;
+use crate::popover::Popover;
 use crate::style::{Palette, text};
 use crate::theme::color;
 
@@ -103,8 +103,7 @@ impl Component for ColorPicker {
             .on_sized(move |event: Event<SizedEventData>| area.set_if_modified(event.area))
             .on_press(move |_| {
                 let on_change = on_change.clone();
-                show_popover(
-                    *area.peek(),
+                Popover::new(
                     (SPLIT_VIEW.inspector, BODY.line_height as f32 * 7.0),
                     move || {
                         ColorPanel {
@@ -113,7 +112,8 @@ impl Component for ColorPicker {
                         }
                         .into_element()
                     },
-                );
+                )
+                .show(*area.peek());
             });
         interaction.focus_ring(well, BUTTON.radius)
     }

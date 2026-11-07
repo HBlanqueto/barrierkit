@@ -1,7 +1,7 @@
 use crate::chrome::{ChromeStyle, RailStyle, TitlebarLayout, WindowChrome};
 use crate::compact::IconButton;
 use crate::controls::Switch;
-use crate::patterns::preferences::{Pane, PaneGroup, PreferencesWindow};
+use crate::patterns::settings::{Pane, PaneGroup, SettingsWindow};
 use crate::platform::FullscreenBar;
 use crate::sidebar::{Sidebar, SidebarItem};
 use crate::symbol::Symbol;
@@ -187,7 +187,7 @@ impl App for Case {
                 )
                 .into_element()
             }
-            Scene::Prefs => PreferencesWindow::new()
+            Scene::Prefs => SettingsWindow::new()
                 .group(
                     PaneGroup::new(Some("Capa 1")).pane(Pane::new(
                         "botones",

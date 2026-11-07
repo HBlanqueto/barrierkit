@@ -21,27 +21,43 @@ pub struct CanvasContext<'a> {
 
 type Painter = Rc<dyn Fn(&mut CanvasContext)>;
 
-struct Canvas {
+struct CanvasElement {
     revision: u64,
     painter: Painter,
     layout: LayoutData,
 }
 
-pub fn canvas(revision: u64, painter: impl Fn(&mut CanvasContext) + 'static) -> Element {
-    leaf(Canvas {
-        revision,
-        painter: Rc::new(painter),
-        layout: layout(Size::fill(), Size::fill(), Position::default()),
-    })
+pub struct Canvas {
+    revision: u64,
+    painter: Painter,
 }
 
-impl ElementExt for Canvas {
+impl Canvas {
+    pub fn new(revision: u64, painter: impl Fn(&mut CanvasContext) + 'static) -> Self {
+        Self {
+            revision,
+            painter: Rc::new(painter),
+        }
+    }
+}
+
+impl From<Canvas> for Element {
+    fn from(canvas: Canvas) -> Self {
+        leaf(CanvasElement {
+            revision: canvas.revision,
+            painter: canvas.painter,
+            layout: layout(Size::fill(), Size::fill(), Position::default()),
+        })
+    }
+}
+
+impl ElementExt for CanvasElement {
     fn changed(&self, other: &Rc<dyn ElementExt>) -> bool {
         !self.diff(other).is_empty()
     }
 
     fn diff(&self, other: &Rc<dyn ElementExt>) -> DiffModifies {
-        match (other.as_ref() as &dyn Any).downcast_ref::<Canvas>() {
+        match (other.as_ref() as &dyn Any).downcast_ref::<CanvasElement>() {
             Some(other) if other.revision == self.revision => DiffModifies::empty(),
             Some(_) => DiffModifies::STYLE,
             None => DiffModifies::all(),

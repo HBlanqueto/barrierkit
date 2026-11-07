@@ -86,9 +86,9 @@ pub mod print;
 
 pub mod glass_container;
 
-pub mod context_menu;
+mod context_menu;
 
-pub mod tooltip;
+mod tooltip;
 
 pub mod backdrop;
 
@@ -108,6 +108,8 @@ pub mod style;
 
 pub mod elements;
 
+pub mod modifiers;
+
 pub mod prelude;
 
 pub mod app;
@@ -120,7 +122,7 @@ pub mod symbol;
 
 pub mod menu;
 
-pub mod app_menu;
+pub mod main_menu;
 
 pub mod sidebar;
 

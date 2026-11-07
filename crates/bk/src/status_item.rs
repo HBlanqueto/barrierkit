@@ -1,7 +1,7 @@
 use futures_util::StreamExt;
 use zbus::zvariant::OwnedObjectPath;
 
-use crate::app_menu::MenuHandle;
+use crate::main_menu::MenuHandle;
 use crate::menu::MenuItem;
 
 pub const STATUS_ITEM_ACTIVATE: &str = "status-item.activate";

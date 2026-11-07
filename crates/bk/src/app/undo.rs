@@ -1,8 +1,8 @@
 use freya_core::prelude::*;
 
 use super::{Action, Shortcut, ShortcutKey, use_menu_action};
-use crate::app_menu::MenuHandle;
 use crate::i18n::text;
+use crate::main_menu::MenuHandle;
 use crate::menu::MenuItem;
 
 pub const UNDO: Action =

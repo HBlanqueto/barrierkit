@@ -4,7 +4,7 @@ use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 
 use crate::interaction::use_interaction;
-use crate::sidebar::symbol_tile;
+use crate::sidebar::SymbolTile;
 use crate::style::{Palette, text};
 use crate::symbol::Symbol;
 use crate::theme::{SurfaceKind, color, popover_palette};
@@ -145,7 +145,7 @@ impl Component for SearchResult {
                 el.background(color(background))
             })
             .on_press(move |_| on_select.call(()))
-            .child(symbol_tile(symbol, tint, None))
+            .child(SymbolTile::new(symbol, tint))
             .child(
                 rect()
                     .width(Size::flex(1.0))

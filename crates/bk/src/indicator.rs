@@ -139,14 +139,14 @@ impl Component for RelevancyIndicator {
 }
 
 #[derive(PartialEq)]
-pub struct CircularGauge {
+pub struct Gauge {
     label: &'static str,
     value: f32,
     current: String,
     capacity: bool,
 }
 
-impl CircularGauge {
+impl Gauge {
     pub fn new(label: &'static str, value: f32, current: impl Into<String>) -> Self {
         Self {
             label,
@@ -170,7 +170,7 @@ pub fn gauge_marker(value: f32) -> (f32, f32) {
     (center + radius * angle.cos(), center + radius * angle.sin())
 }
 
-impl Component for CircularGauge {
+impl Component for Gauge {
     fn render(&self) -> impl IntoElement {
         let palette = Palette::current();
         let size = GAUGE.size;

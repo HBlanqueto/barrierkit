@@ -1,6 +1,5 @@
 mod activation;
 pub(crate) mod app;
-mod app_menu_export;
 mod atspi;
 mod clipboard;
 #[cfg(feature = "video")]
@@ -11,6 +10,7 @@ pub(crate) mod extension;
 mod focus;
 mod ime;
 mod input;
+mod main_menu_export;
 mod popup;
 mod primary;
 pub(crate) mod runtime;
@@ -22,8 +22,8 @@ mod vulkan;
 mod window;
 mod window_style;
 
-pub use app_menu_export::AppMenuAddress;
 pub use input::inserts_text;
+pub use main_menu_export::MainMenuAddress;
 pub use popup::{
     PopupAnchor, PopupConstraintAdjustment, PopupGravity, PopupHandle, PopupId, PopupSpec, Popups,
 };
@@ -33,11 +33,11 @@ pub(crate) struct EditShortcut {
     pub(crate) field: freya_core::prelude::AccessibilityId,
     pub(crate) key: String,
 }
-pub(crate) use window::window_activated;
 pub use window::{
     DecorationResponse, FullscreenBar, PanelBehavior, WindowControls, WindowEdge, WindowOptions,
-    WindowStatus, open_utility_window, run_window,
+    WindowStatus, run_window,
 };
+pub(crate) use window::{open_utility_window, window_activated};
 pub use window_style::Bar;
 
 #[cfg(test)]

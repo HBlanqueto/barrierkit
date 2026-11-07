@@ -39,7 +39,7 @@ User decisions already taken (2026-10-28):
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ Layer 3 · Patterns     PreferencesWindow, BrowserWindow,    │
+│ Layer 3 · Patterns     SettingsWindow, BrowserWindow,    │
 │                        AboutWindow…                         │
 ├─────────────────────────────────────────────────────────────┤
 │ Layer 2 · Containers   SplitView, SourceList, Toolbar,      │  App (cross-cutting)
@@ -69,7 +69,7 @@ User decisions already taken (2026-10-28):
 - **Common interaction.** Every interactive control uses the same hook `use_interaction()`, which gives hover, pressed, keyboard focus and disabled. The focus ring (`focus-ring`) is drawn only when navigating with the keyboard.
 - **Mandatory accessibility.** Each component assigns role, label and state (checked, expanded, selected), and is keyboard navigable. A control without an accessible label does not compile: the label is an argument of `new`.
 - **Reactive to appearance.** Components read the appearance from the context the runner provides. A change of light or dark, accent or tint repaints without restarting the app.
-- **Do not reinvent Freya.** When `freya-components` 0.4.3 already has the logic, the kit wraps it with the Tengen look instead of rewriting it. Cases: `ResizableContainer`, `Table`, `VirtualScrollView`, `DragZone`/`DropZone`, `Tooltip`, `Attached`, `Checkbox`, `RadioItem`, `Select`, `ProgressBar`, `ContextMenu`, `Accordion`. If the wrapper is not possible, the reason is documented with `// shortcut:` or in the component's ADR.
+- **Do not reinvent Freya.** When `freya-components` 0.4.3 already has the logic, the kit wraps it with the Tengen look instead of rewriting it. Cases: `ResizableContainer`, `Table`, `VirtualScrollView`, `DragZone`/`DropZone`, `Tooltip`, `Attached`, `Checkbox`, `RadioItem`, `Select`, `ProgressView`, `ContextMenu`, `Accordion`. If the wrapper is not possible, the reason is documented with `// shortcut:` or in the component's ADR.
 - **AppKit names** when an equivalent exists (`SplitView`, `SourceList`, `PopUpButton`, `ColorWell`, `Sheet`), in English in the code.
 - **Each new component** arrives with:
   - a page in the catalogue app (see §6);
@@ -109,7 +109,7 @@ Status: **exists** = already in the kit, even if it needs fixing · **partial** 
 | `TextField`, `SecureField`, `SearchField` | partial | With focus ring, placeholder, clear button and password role |
 | `PopUpButton`, `ComboBox` | **new** | On top of `MenuView`; the traffic-light drop-down in Settings is a `PopUpButton` |
 | `ColorWell` | **new** | Named colour swatches; comes from Settings |
-| `ProgressBar`, `ProgressRing`, `Spinner` | new | Token `progress` |
+| `ProgressView`, `ProgressRing`, `Spinner` | new | Token `progress` |
 | `Badge`, `Label`, `Link`, `Divider`, `Avatar`, `Image` | new | |
 | `ToolGroup` | exists | Groups `IconButton`s; `ToolButton` is gone |
 | Traffic lights, titlebar | exists | Fixed in L1d |
@@ -125,7 +125,7 @@ Status: **exists** = already in the kit, even if it needs fixing · **partial** 
 | `Searchable` | **new** | Search index: each section and each row declare title and keywords; the kit searches and returns results; picking one navigates and highlights the row. `SearchField` uses it in the sidebar or in the toolbar |
 | `Form`, `Section`, `Row` | **new** | Token `list-group`. Row variants: label + control, navigation (chevron, `push`), information and destructive. Header and footer per section |
 | `ScrollView`, `VirtualList` | exists | Freya |
-| `Table`, `OutlineView`, `ColumnBrowser` | new | Sortable, virtualised columns. Base for a Finder |
+| `Table`, `OutlineView`, `Browser` | new | Sortable, virtualised columns. Base for a Finder |
 | `CollectionView` | new | Icon grid with multiple selection, drag selection, rename and drag |
 | `TabView` | new | Document tabs in the window |
 | `Sheet`, `Alert`, `Popover`, `Tooltip`, `ContextMenu` | partial | `MenuView` already exists. Sheet drops from the titlebar. Alert with default and cancel buttons |
@@ -135,7 +135,7 @@ Status: **exists** = already in the kit, even if it needs fixing · **partial** 
 
 | Piece | Status | Note |
 |---|---|---|
-| `PreferencesWindow` | **new** | SplitView + SourceList (account, groups) + SearchField with `Searchable` of the content + NavigationStack + Form. Fixed-width option (only the height changes) with the green «+» traffic light |
+| `SettingsWindow` | **new** | SplitView + SourceList (account, groups) + SearchField with `Searchable` of the content + NavigationStack + Form. Fixed-width option (only the height changes) with the green «+» traffic light |
 | `BrowserWindow` | rejected | Deleted with no users (`0c93856`); a Finder composes layer 2 directly |
 | `AboutWindow` | new | Standard «Acerca de» ("About") window |
 
@@ -188,7 +188,7 @@ There is no `prelude.rs`: each app imports from its module (`bk::views::form::Fo
 - **Direction of dependencies:** `shell/` uses `platform/`, but `platform/` knows nothing about `shell/`. The runner exposes extension points (see «Extension points» below), and `shell/` hooks into them. No stray `#[cfg(feature = "shell")]` inside `platform/`, except the line that registers the module.
 - The shell views (menubar, dock, lock, launcher) stay in `malaysia-shell` and are built with layers 1–3 like any app. `src/shell/` only provides the protocols and platform types those views need.
 
-Publishing an app's own menu (`app_menu_export.rs`, `AppMenuAddress`) belongs to the platform, because every app uses it.
+Publishing an app's own menu (`main_menu_export.rs`, `MainMenuAddress`) belongs to the platform, because every app uses it.
 
 #### Extension points
 
@@ -219,7 +219,7 @@ Each phase is split into small batches for opencode, with a visible test in the 
 
 ### 6. Catalogue app: Master Tengen App Show
 
-**Master Tengen App Show** (crate and binary `tengen-app-show`, `app_id` `…tengen-app-show`) is the kit's widget-factory, the equivalent of gtk4-widget-factory. It uses `PreferencesWindow`, with one section per layer and one page per component that shows all its variants and states. It is at the same time:
+**Master Tengen App Show** (crate and binary `tengen-app-show`, `app_id` `…tengen-app-show`) is the kit's widget-factory, the equivalent of gtk4-widget-factory. It uses `SettingsWindow`, with one section per layer and one page per component that shows all its variants and states. It is at the same time:
 
 - the living documentation of the kit;
 - the place for the visible tests of each batch;
@@ -234,15 +234,15 @@ Its Animation group shows motion: the Freya curves, the Grade spring (`Spring` i
 Done in `main`:
 
 - **Layer 0**: AT-SPI bridge with `accesskit_unix` (tree, focus and window focus in each window; the screen reader's Focus and Click focus and press), fractional scale, shell separation, focus and keyboard mode (Tab enables keyboard navigation; keys go to the focused node), clipboard on top of `wl_data_device` and opaque region of windows with an opaque background.
-- **Layer 1**: `style` (semantic palette and text faces), `symbol`, `interaction` (hover, pressed, focus and ring), `Button`, `IconButton`, `Switch`, `Checkbox`, `RadioGroup`, `ColorWell`, `ChoiceCards`, `SegmentedControl`, `ToggleGroup`, `Stepper`, stepped `Slider`, `LevelSlider` (continuous and thick), `TextField`, `SearchField`, `PopUpButton`, `ProgressBar`, `ProgressRing`, `Spinner`, `badge`, `divider`, `avatar`, `Link` and `use_tooltip` (popup without grab under the pointer).
+- **Layer 1**: `style` (semantic palette and text faces), `symbol`, `interaction` (hover, pressed, focus and ring), `Button`, `IconButton`, `Switch`, `Checkbox`, `RadioGroup`, `ColorWell`, `ChoiceCards`, `SegmentedControl`, `ToggleGroup`, `Stepper`, stepped `Slider`, `LevelSlider` (continuous and thick), `TextField`, `SearchField`, `PopUpButton`, `ProgressView`, `ProgressRing`, `Spinner`, `badge`, `divider`, `avatar`, `Link` and `use_tooltip` (popup without grab under the pointer).
 - **App**: `Action` with typed `Shortcut`, `load_defaults`/`save_defaults` with change notification, `launch` (single instance; `Activate` brings the window to the front through xdg-activation and `ActivateAction` fires the action with the same id as the menu), a focused text field keeps Ctrl+A, C, V, X, Y and Z before the menu, panel restoration, `use_undo` (`UndoManager` with the standard actions `UNDO`, Ctrl+Z, and `REDO`, Ctrl+Shift+Z), which disables and enables its global menu entries according to the stack.
-- **Layer 2**: `Form`/`Section`/`Row`, `SplitView` (replaces `SidebarLayout`), `History` and `navigation_buttons` (actions `GO_BACK` and `GO_FORWARD` with Alt+← and Alt+→; `PreferencesWindow` puts the panel title in the bar), `SearchIndex`, `empty_state`, `sheet`, `Alert`, `TabView`, `Table`, `CollectionView`, `SidebarAccount` and `context_menu` (`MenuView` at the pointer on secondary click).
-- **Layer 3**: `PreferencesWindow` (search field with suggestions and recents that are restored, results with the icon of their panel and traversal with ↑, ↓ and Enter) and `about_window`.
+- **Layer 2**: `Form`/`Section`/`Row`, `SplitView` (replaces `SidebarLayout`), `History` and `navigation_buttons` (actions `GO_BACK` and `GO_FORWARD` with Alt+← and Alt+→; `SettingsWindow` puts the panel title in the bar), `SearchIndex`, `empty_state`, `sheet`, `Alert`, `TabView`, `Table`, `CollectionView`, `SidebarAccount` and `context_menu` (`MenuView` at the pointer on secondary click).
+- **Layer 3**: `SettingsWindow` (search field with suggestions and recents that are restored, results with the icon of their panel and traversal with ↑, ↓ and Enter) and `about_window`.
 - **Tinted backdrops**: `Backdrop` paints three layers at 127°, 217° and 336° with dithering, from an image (k-means in OKLab, `ctappearance::backdrop`) or three colours, and cross-fades between backdrops. Inside, `Palette::current()` gives its ink and its accent (`Accent::System`, `Own` or `FromBackdrop`), the same in light as in dark; filled controls accept `.tint(Tint::Accent | Color | Backdrop)`. The content has to be a child component of the `Backdrop`: functions evaluated in the parent read the system palette. The `Sidebar` lets the backdrop show through or, as an island, the app tints it with `SidebarBackdrop::Tinted` (ADR 0057).
-- **Adaptive layout**: `use_breakpoint()` gives `Compact`, `Medium` or `Wide` according to `BREAKPOINT`.
+- **Adaptive layout**: `use_size_class()` gives `Compact`, `Medium` or `Wide` according to `BREAKPOINT`.
 - **Master Tengen App Show** (`tengen-app-show`), which gathers components, animations and titlebars, **Ondina** (`ondina`), the player that uses the backdrops, its own accent, the three sizes and the kit navigation, and **Marea** (`marea`), with media; they are the test apps of the repository.
-- **Phase 6**: System Settings is a `PreferencesWindow` with a `Form`; it no longer has its own controls, sidebar or search field.
-- **After phase 6**: primary selection (`primary_selection()`), drag and drop between apps (`drag`), `OutlineView` and `ColumnBrowser` (`views::tree`), opening files and URLs (`portal`) and a clipboard with HTML and file lists besides text.
+- **Phase 6**: System Settings is a `SettingsWindow` with a `Form`; it no longer has its own controls, sidebar or search field.
+- **After phase 6**: primary selection (`primary_selection()`), drag and drop between apps (`drag`), `OutlineView` and `Browser` (`views::tree`), opening files and URLs (`portal`) and a clipboard with HTML and file lists besides text.
 
 Pending. None of this is built until its reason goes away (rule 2 of AGENTS.md: nothing «por si acaso» ("just in case")):
 
@@ -282,9 +282,9 @@ This is the API of `main` as of 2026-11-03.
 ```rust
 use bk::app::{Action, Instance, Launch, Shortcut, ShortcutKey, launch};
 use bk::app::{REDO, UNDO, UndoManager, use_menu_action, use_undo};
-use bk::app_menu::{AppMenu, Menu};
+use bk::main_menu::{MainMenu, Menu};
 use bk::choices::ColorWell;
-use bk::patterns::preferences::{Pane, PaneGroup, PreferencesWindow};
+use bk::patterns::settings::{Pane, PaneGroup, SettingsWindow};
 use bk::platform::{WindowOptions, run_window};
 use bk::symbol::Symbol;
 use bk::views::form::{Form, Row, Section};
@@ -316,7 +316,7 @@ impl App for Notes {
             }
         });
 
-        PreferencesWindow::new()
+        SettingsWindow::new()
             .restoration(self.app_id)
             .group(PaneGroup::new(None).pane(Pane::new(
                 "general",
@@ -352,7 +352,7 @@ fn main() {
         WindowOptions::new("Notes", "notes")
             .size((760, 520))
             .min_size(Some(WINDOW_MIN_SIZE))
-            .menu(AppMenu::new(vec![Menu::new(
+            .menu(MainMenu::new(vec![Menu::new(
                 "Edit",
                 vec![UNDO.item(true), REDO.item(true), RESET.item(true)],
             )])),
@@ -364,6 +364,6 @@ fn main() {
 - `launch` gives the single instance: a second run forwards its activation token and exits.
 - An `Action` is declared once and feeds the global menu, its shortcut and `use_menu_action`. Shortcuts only arrive if the action is in the window's menu.
 - `use_undo` wraps a `State` of the app. Each `set` saves the previous value, and `UNDO` and `REDO` walk it from the menu, the shortcut or the `undo` and `redo` methods.
-- `PreferencesWindow` builds the sidebar, the search field and the panel restoration. The `keywords` of each `Row` go into the search.
+- `SettingsWindow` builds the sidebar, the search field and the panel restoration. The `keywords` of each `Row` go into the search.
 - Controls are controlled: `selected`, `value`, `on` or `checked` rule when the app changes them, and the control keeps what the user changes in the meantime. That is why the `ColorWell` shows what the app undoes.
 - Colours and measurements come from `ctdesign`. An app does not write design literals.

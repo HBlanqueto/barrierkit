@@ -2,7 +2,7 @@
 
 **Goal:** add a complete preferences window, an About window and a language
 choice, each with a single piece.
-**Scope:** `bk::patterns`: `preferences`, `about` and `language`. The
+**Scope:** `bk::patterns`: `settings`, `about` and `language`. The
 parts they join are in [10](10-sidebar.md) (sidebar and split view) and
 [11](11-views.md) (form, history, search). Opening a second window from a
 menu is in [13](13-app.md).
@@ -38,11 +38,11 @@ search and saved state.
    let group = PaneGroup::new(None).pane(general);
    ```
 
-4. Build the `PreferencesWindow`. `.restoration(app_id)` makes it reopen where
+4. Build the `SettingsWindow`. `.restoration(app_id)` makes it reopen where
    the user left it:
 
    ```rust
-   PreferencesWindow::new().restoration("notes").group(group)
+   SettingsWindow::new().restoration("notes").group(group)
    ```
 
 5. Run it as its own window with `run_window`: it draws its own sidebar and
@@ -50,28 +50,28 @@ search and saved state.
 
    ```rust
    run_window(
-       move || PreferencesWindow::new().restoration("notes").group(group.clone()),
+       move || SettingsWindow::new().restoration("notes").group(group.clone()),
        WindowOptions::new("Settings", "notes")
            .size((SETTINGS.window_width, SETTINGS.window_height)),
    )
    ```
 
-The names come from `bk::patterns::preferences`,
+The names come from `bk::patterns::settings`,
 `bk::views::form`, `bk::symbol::Symbol` and `ctdesign`.
 
 ## Preferences window
 
-### `PreferencesWindow`
+### `SettingsWindow`
 
 A [`SplitView`](10-sidebar.md#splitview) with a sidebar of panes, a search
 field, an account row, back and forward buttons and the selected pane's form.
 The app only declares the panes. System Settings is built with it.
 
-![PreferencesWindow with an account and two panes](assets/components/preferences-light.png)
+![SettingsWindow with an account and two panes](assets/components/preferences-light.png)
 
 | Method | Default | Effect |
 |---|---|---|
-| `PreferencesWindow::new()` | — | A window without panes |
+| `SettingsWindow::new()` | — | A window without panes |
 | `.group(PaneGroup)` | — | Adds a group of panes to the sidebar |
 | `.account(initials, name, detail)` | none | A [`SidebarAccount`](10-sidebar.md#sidebaraccount) under the search field |
 | `.restoration(app_id)` | none | Saves and restores the open pane, the recent panes and the sidebar layout |
@@ -84,7 +84,7 @@ The app only declares the panes. System Settings is built with it.
 1. It opens the restored pane, or the first pane.
 2. The sidebar starts `SETTINGS.sidebar_width` (229) wide, or as restored.
 3. Choosing a pane pushes it on the [`History`](11-views.md#history); the bar
-   shows its title, the toggle and [`navigation_buttons`](11-views.md#navigation_buttons).
+   shows its title, the toggle and [`NavigationButtons`](11-views.md#navigationbuttons).
 4. With `.restoration(app_id)`, every change is written to
    `<app_id>.state` in the data directory (`~/.local/share/malaysia/`, or
    `MALAYSIA_DATA_DIR`).
@@ -93,7 +93,7 @@ The app only declares the panes. System Settings is built with it.
 
 `Pane::new(id, title, symbol, tint, form)`: one sidebar item and the form it
 shows. `id` identifies it in suggestions and in the saved state; `symbol` and
-`tint` draw its [`symbol_tile`](10-sidebar.md#symbol_tile). `id` and `title`
+`tint` draw its [`SymbolTile`](10-sidebar.md#symboltile). `id` and `title`
 are public fields.
 
 ### `PaneGroup`
@@ -129,19 +129,19 @@ the panes: one entry per pane, keyed `(pane id, None)`, and one per row, keyed
 
 ## About window
 
-### `about_window`
+### `AboutView`
 
-`about_window(icon, name, version, copyright) -> Rect`: the content of an
-About window, centered: the icon, the name in `TITLE`, the version and the
+`AboutView::new(icon, name, copyright)`: the content of an About window,
+centered: the icon, the name in `TITLE`, the version in `BODY` and the
 copyright in `CAPTION`. It is the content of AppKit's
 `orderFrontStandardAboutPanel(_:)`.
 
 ```rust
-about_window(avatar("N"), "Notes", Some("Version 1.0"), "© 2026 Jane Appleseed")
+AboutView::new(Avatar::new("N"), "Notes", "© 2026 Jane Appleseed").version("Version 1.0")
 ```
 
-With `None` as the version (typed, for example `None::<&str>`), the line is
-left out. The function draws only the content: put it under a
+`.version(text)` adds the version line; without it, the line is left out.
+`AboutView` draws only the content: put it under a
 [`Titlebar`](09-titlebars.md#titlebar) in a small window.
 
 ![About window with an icon, the name, the version and the copyright](assets/components/about-light.png)

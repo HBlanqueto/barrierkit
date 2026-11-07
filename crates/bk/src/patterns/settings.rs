@@ -10,7 +10,7 @@ use crate::sidebar::{Sidebar, SidebarAccount, SidebarItem, SidebarSection};
 use crate::symbol::Symbol;
 use crate::titlebar::Titlebar;
 use crate::views::form::Form;
-use crate::views::navigation::{History, navigation_buttons};
+use crate::views::navigation::{History, NavigationButtons};
 use crate::views::search::SearchIndex;
 use crate::views::split::{NarrowSidebar, SidebarLayout, SidebarToggle, SplitView};
 
@@ -67,7 +67,7 @@ impl PaneGroup {
 }
 
 #[derive(PartialEq)]
-pub struct PreferencesWindow {
+pub struct SettingsWindow {
     restoration: Option<&'static str>,
     account: Option<(String, String, String)>,
     groups: Vec<PaneGroup>,
@@ -78,7 +78,7 @@ pub struct PreferencesWindow {
     narrow_sidebar: NarrowSidebar,
 }
 
-impl PreferencesWindow {
+impl SettingsWindow {
     pub fn new() -> Self {
         Self {
             restoration: None,
@@ -142,7 +142,7 @@ impl PreferencesWindow {
     }
 }
 
-impl Default for PreferencesWindow {
+impl Default for SettingsWindow {
     fn default() -> Self {
         Self::new()
     }
@@ -175,7 +175,7 @@ pub fn index(panes: &[&Pane]) -> SearchIndex<Hit> {
     index
 }
 
-impl Component for PreferencesWindow {
+impl Component for SettingsWindow {
     fn render(&self) -> impl IntoElement {
         let first = self.panes().next().map(|pane| pane.id).unwrap_or_default();
         let restoration = self.restoration;
@@ -362,7 +362,7 @@ impl Component for PreferencesWindow {
                                 .cross_align(Alignment::Center)
                                 .spacing(SPACE_2)
                                 .maybe_child(self.sidebar_toggle.then_some(SidebarToggle))
-                                .child(navigation_buttons(history)),
+                                .child(NavigationButtons::new(history)),
                         ),
                 )
                 .child(ScrollView::new().top_line(true).maybe_child(

@@ -15,7 +15,7 @@ type Clicked = Box<dyn FnOnce(Option<String>) + Send>;
 static WAITING: Mutex<Vec<(u32, Clicked)>> = Mutex::new(Vec::new());
 static TOKENS: Mutex<Vec<(u32, String)>> = Mutex::new(Vec::new());
 
-pub struct Notice {
+pub struct Notification {
     pub app_name: &'static str,
     pub desktop_entry: &'static str,
     pub summary: String,
@@ -24,7 +24,7 @@ pub struct Notice {
 }
 
 // `clicked` gets the xdg-activation token the server sends before ActionInvoked (spec 1.2).
-pub fn post(notice: Notice, clicked: impl FnOnce(Option<String>) + Send + 'static) {
+pub fn post(notice: Notification, clicked: impl FnOnce(Option<String>) + Send + 'static) {
     thread::spawn(move || {
         let Some(proxy) = proxy() else {
             return;

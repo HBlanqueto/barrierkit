@@ -3,7 +3,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use bk::adornments::{Link, avatar, badge, divider};
+use bk::adornments::{Avatar, Badge, Divider, Link};
 use bk::backdrop::{Accent, Backdrop, BackdropSource, Tint};
 use bk::choices::{ColorWell, RadioGroup};
 use bk::compact::{Face, IconButton, Stepper, ToggleGroup};
@@ -14,15 +14,15 @@ use bk::controls::{
 use bk::level::{LevelSlider, LevelStyle};
 use bk::menu::MenuIcon;
 use bk::password::PasswordField;
-use bk::patterns::about::about_window;
-use bk::patterns::preferences::{Pane, PaneGroup, PreferencesWindow};
+use bk::patterns::about::AboutView;
+use bk::patterns::settings::{Pane, PaneGroup, SettingsWindow};
 use bk::popup_button::PopUpButton;
-use bk::progress::{ProgressBar, ProgressRing, Spinner};
+use bk::progress::{ProgressRing, ProgressView, Spinner};
 use bk::sidebar::SidebarAccount;
 use bk::symbol::Symbol;
 use bk::theme;
 use bk::views::collection::CollectionView;
-use bk::views::feedback::{Alert, empty_state};
+use bk::views::feedback::{Alert, ContentUnavailableView};
 use bk::views::form::{Form, Row, Section};
 use bk::views::table::{SortOrder, Table};
 use bk::views::tabs::TabView;
@@ -153,8 +153,8 @@ fn progress() -> Element {
         .width(Size::px(240.0))
         .direction(Direction::Vertical)
         .spacing(16.0)
-        .child(ProgressBar::determinate("Copiando sistema", 0.62))
-        .child(ProgressBar::indeterminate("Buscando redes"))
+        .child(ProgressView::determinate("Copiando sistema", 0.62))
+        .child(ProgressView::indeterminate("Buscando redes"))
         .child(ProgressRing::new("Descargando", 0.4))
         .child(Spinner::new("Cargando"))
         .into_element()
@@ -194,9 +194,9 @@ fn adornments() -> Element {
         .width(Size::px(200.0))
         .direction(Direction::Vertical)
         .spacing(12.0)
-        .child(badge("2"))
-        .child(divider())
-        .child(avatar("HB"))
+        .child(Badge::new("2"))
+        .child(Divider::new())
+        .child(Avatar::new("HB"))
         .child(Link::new("Más información…"))
         .into_element()
 }
@@ -250,7 +250,7 @@ fn backdrop() -> Element {
                 ),
             )
             .child(
-                ProgressBar::determinate("Exportando", 0.6)
+                ProgressView::determinate("Exportando", 0.6)
                     .tint(Tint::Color(Rgba::rgb8(240, 164, 58))),
             ),
     )
@@ -323,7 +323,7 @@ fn collection() -> Element {
 }
 
 fn empty() -> Element {
-    empty_state(Symbol::MagnifyingGlass, "Sin resultados").into_element()
+    ContentUnavailableView::new("Sin resultados", Symbol::MagnifyingGlass).into_element()
 }
 
 fn alert() -> Element {
@@ -357,7 +357,7 @@ fn window_cases() -> Vec<Control> {
 
 fn preferences() -> Element {
     let [blue, purple, ..] = ACCENT_SWATCHES.map(|swatch| swatch.1);
-    PreferencesWindow::new()
+    SettingsWindow::new()
         .account("HB", "Héctor Blanqueto", "Cuenta local")
         .group(
             PaneGroup::new(None)
@@ -395,13 +395,9 @@ fn preferences() -> Element {
 }
 
 fn about() -> Element {
-    about_window(
-        avatar("C"),
-        "Contador",
-        Some("Versión 1.0"),
-        "™ y © 2026 MalaysiaDreams",
-    )
-    .into_element()
+    AboutView::new(Avatar::new("C"), "Contador", "™ y © 2026 MalaysiaDreams")
+        .version("Versión 1.0")
+        .into_element()
 }
 
 fn popup_button_icon() -> Element {

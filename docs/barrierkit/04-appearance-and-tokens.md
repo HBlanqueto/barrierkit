@@ -23,7 +23,8 @@ tokens and the palette, and follows the user's appearance.
    ([Tokens](#tokens-ctdesign)).
 4. Convert palette colors for Freya with `color`:
    `.background(color(palette.content_background))`.
-5. Add a symbol: `symbol(Symbol::Folder, SYMBOL.grid, palette.secondary_label)`
+5. Add a symbol:
+   `Image::system(Symbol::Folder).size(SYMBOL.grid).color(palette.secondary_label)`
    ([Symbols](#symbols)).
 6. If the view needs a value Tengen does not have, add it:
    [Adding a token](#adding-a-token).
@@ -35,7 +36,6 @@ The result:
 ```rust
 use bk::prelude::*;
 use bk::style::continuous_corner;
-use bk::symbol::{Symbol, symbol};
 use ctdesign::{BUTTON, SYMBOL};
 
 fn storage_row() -> impl IntoElement {
@@ -44,7 +44,11 @@ fn storage_row() -> impl IntoElement {
         .padding(SPACE_3)
         .corner_radius(continuous_corner(BUTTON.radius))
         .background(color(palette.content_background))
-        .child(symbol(Symbol::Folder, SYMBOL.grid, palette.secondary_label))
+        .child(
+            Image::system(Symbol::Folder)
+                .size(SYMBOL.grid)
+                .color(palette.secondary_label),
+        )
         .child(text("Storage", HEADLINE, palette.label))
 }
 ```
@@ -106,12 +110,19 @@ ink, which reaches 3:1 on the window, as the HIG asks for «Increase Contrast».
 
 ## Symbols
 
-`symbol::symbol(symbol, size, color) -> SvgViewer` draws a line icon of
-`size` × `size` pixels in `color`. The icons are drawn on a grid of
-`SYMBOL.grid` (16) with a stroke of `SYMBOL.stroke` (1.4), like SF Symbols at
-regular weight.
+`Image::system(symbol)` draws a line icon, like SwiftUI's
+`Image(systemName:)`. It is `BODY.size` pixels square, in the `label` color
+of the `Palette`. `.size(f32)` and `.color(Rgba)` change them. The icons
+are drawn on a grid of `SYMBOL.grid` (16) with a stroke of `SYMBOL.stroke`
+(1.4), like SF Symbols at regular weight.
 
-`symbol::Symbol` names the icon:
+```rust
+Image::system(Symbol::Folder)
+    .size(TITLE.size as f32)
+    .color(Palette::current().accent)
+```
+
+`Symbol` names the icon. `Image` and `Symbol` are in the prelude:
 
 | Group | Variants |
 |---|---|
@@ -174,7 +185,7 @@ An app does not change single colors; it picks a variant.
 
 | I want… | Like this | Where |
 |---|---|---|
-| A control in another color | `.tint(Tint::Color(ACCENT_SWATCHES[4].1))` on `Switch`, `Checkbox`, `Slider`, `LevelSlider`, `RadioGroup`, `ProgressBar` | [5](05-controls.md) |
+| A control in another color | `.tint(Tint::Color(ACCENT_SWATCHES[4].1))` on `Switch`, `Checkbox`, `Slider`, `LevelSlider`, `RadioGroup`, `ProgressView` | [5](05-controls.md) |
 | A control filled with the backdrop gradient | `.tint(Tint::Backdrop)` inside a `Backdrop` | [15](15-backdrops-and-media.md) |
 | Another accent for a whole area | `Backdrop::new(..).accent(Accent::Own(color))` or `Accent::FromBackdrop` | [15](15-backdrops-and-media.md) |
 | Let the user pick a color | `ColorWell::new("Color", &ACCENT_SWATCHES)` | [5](05-controls.md) |
@@ -581,7 +592,7 @@ background, for `reduce_transparency`.
 | `TOOLBAR_TABS` | `ToolbarTabsMetrics` | `views::tabs` |
 | `SCROLL_BAR` | `ScrollBarMetrics` | Scroll views |
 | `BREAKPOINT` | `BreakpointMetrics` | `adaptive`: 620 and 900 px |
-| `SETTINGS` | `SettingsMetrics` | `patterns::preferences`, `sidebar` |
+| `SETTINGS` | `SettingsMetrics` | `patterns::settings`, `sidebar` |
 | `FONT_PANEL` | `FontPanelMetrics` | `font_panel` |
 | `PRINT` | `PrintMetrics` | `print` |
 | `CHART` | `ChartMetrics` | `charts` |

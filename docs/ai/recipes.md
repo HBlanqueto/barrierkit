@@ -94,7 +94,7 @@ fn main() -> Result<(), RunError> {
 }
 ```
 
-For a real preferences window use `PreferencesWindow` (chapter
+For a real preferences window use `SettingsWindow` (chapter
 [12](../barrierkit/12-patterns.md)).
 
 ## 6. A reusable view

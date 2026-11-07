@@ -159,18 +159,18 @@ as a popover menu below the button.
 | Item | Build | Reports |
 |---|---|---|
 | `MenuButton` | `MenuButton::new(label, items)` | `.on_activate(\|id: String\| ..)` |
-| `SplitButton` | `SplitButton::new(label, items)` | `.on_press(\|_\| ..)` for the label, `.on_activate(\|id: String\| ..)` for the menu |
-| `HelpButton` | `HelpButton::new()` | `.on_press(\|_\| ..)` |
+| `ComboButton` | `ComboButton::new(label, items)` | `.on_press(\|_\| ..)` for the label, `.on_activate(\|id: String\| ..)` for the menu |
+| `HelpLink` | `HelpLink::new()` | `.on_press(\|_\| ..)` |
 | `ControlGroup` | `ControlGroup::new(label)`, `.child(..)` | — (its children report) |
-| `ShareButton` | `ShareButton::new(label, content)` | — (acts by itself) |
+| `ShareLink` | `ShareLink::new(label, content)` | — (acts by itself) |
 
 - `MenuButton` is a button with a down chevron that opens a menu of actions.
-- `SplitButton` has two halves split by a thin line: the label runs the main action, the
+- `ComboButton` has two halves split by a thin line: the label runs the main action, the
   chevron opens the menu.
-- `HelpButton` is a 24 round button with "?".
+- `HelpLink` is a 24 round button with "?".
 - `ControlGroup` joins its children on one background with separators. Give child buttons
   the `Borderless` style.
-- `ShareButton` opens a menu with Copy, Send by Email and, when `content` starts with
+- `ShareLink` opens a menu with Copy, Send by Email and, when `content` starts with
   `http://` or `https://`, Open With. Copy uses the clipboard; Send by Email opens
   `mail_uri(content)` and Open With opens the link, both through the `OpenURI` portal
   ([13](13-app.md)). freedesktop has no share
@@ -414,8 +414,8 @@ Module `progress`. They report nothing.
 
 | Item | Build | Look |
 |---|---|---|
-| `ProgressBar` | `ProgressBar::determinate(label, value)` (0 to 1), `.tint(Tint)` | 8 tall bar |
-| `ProgressBar` | `ProgressBar::indeterminate(label)` | A segment of 30 % that sweeps over 1.2 s |
+| `ProgressView` | `ProgressView::determinate(label, value)` (0 to 1), `.tint(Tint)` | 8 tall bar |
+| `ProgressView` | `ProgressView::indeterminate(label)` | A segment of 30 % that sweeps over 1.2 s |
 | `ProgressRing` | `ProgressRing::new(label, value)` | 28 ring, 3.5 stroke |
 | `Spinner` | `Spinner::new(label)` | 16, 12 spokes, one turn per second |
 
@@ -423,8 +423,8 @@ With reduced motion ([4](04-appearance-and-tokens.md)) the indeterminate bar and
 stand still.
 
 ```rust
-ProgressBar::determinate("Copying system", 0.62)
-ProgressBar::indeterminate("Searching for networks")
+ProgressView::determinate("Copying system", 0.62)
+ProgressView::indeterminate("Searching for networks")
 ProgressRing::new("Downloading", 0.4)
 Spinner::new("Loading")
 ```
@@ -439,7 +439,7 @@ Module `indicator`, after `NSLevelIndicator` and SwiftUI `Gauge`.
 |---|---|---|
 | `CapacityIndicator` | `new(label, value)`, `.thresholds(warning, critical)` (default 1, 1), `.discrete(cells)` | 16 tall bar; green, then yellow at `warning`, red at `critical`. `discrete` splits it into cells 2 apart |
 | `RelevancyIndicator` | `new(label, value)` | 11 tall row of 1 px lines, as many as `value` fills |
-| `CircularGauge` | `new(label, value, current)`, `.capacity(bool)` | 44 open ring (270°) with a marker and `current` in the center; `capacity(true)` is a closed ring that fills with the accent |
+| `Gauge` | `new(label, value, current)`, `.capacity(bool)` | 44 open ring (270°) with a marker and `current` in the center; `capacity(true)` is a closed ring that fills with the accent |
 | `RatingIndicator` | `new(label, stars)`, `.on_change(\|stars: u32\| ..)` | 5 stars of 12; editable only with `on_change` (click or arrows) |
 
 | Helper | Returns |
@@ -452,24 +452,25 @@ The gauge size, stroke and arc are estimates: Apple publishes no figures.
 ```rust
 CapacityIndicator::new("Disk", 0.82).thresholds(0.75, 0.9)
 RatingIndicator::new("Rating", 3).on_change(move |value| stars.set(value))
-CircularGauge::new("Temperature", 0.64, "64°")
+Gauge::new("Temperature", 0.64, "64°")
 ```
 
 ## Adornments
 
-Module `adornments`.
+Module `adornments`. `Badge`, `Divider` and `Avatar` are rects: they take Freya's layout and
+style methods.
 
 | Item | What it is |
 |---|---|
-| `badge(content)` | A 20 tall capsule, destructive red, with `content` in `CAPTION` |
-| `divider()` | A hairline that fills the width |
-| `avatar(initials)` | A 38 circle with the initials in `HEADLINE` |
+| `Badge::new(content)` | A 20 tall capsule, destructive red, with `content` in `CAPTION` |
+| `Divider::new()` | A hairline that fills the width; also in the prelude |
+| `Avatar::new(initials)` | A 38 circle with the initials in `HEADLINE` |
 | `Link::new(text)`, `.on_press(\|_\| ..)` | Text in the link color |
 
 ```rust
-badge("2")
-divider()
-avatar("HB")
+Badge::new("2")
+Divider::new()
+Avatar::new("HB")
 Link::new("Learn more…")
 ```
 
@@ -527,7 +528,7 @@ drag.attach(rect(), || DragPayload::Files(paths.clone()))
 
 ## Canvas
 
-`canvas::canvas(revision, painter)` fills its parent and hands the area to `painter`, which
+`canvas::Canvas::new(revision, painter)` fills its parent and hands the area to `painter`, which
 draws with Skia in logical pixels. It repaints only when `revision` (`u64`) changes. Use it for
 what is not rectangles or text, such as a terminal grid.
 
@@ -535,7 +536,7 @@ what is not rectangles or text, such as a terminal grid.
 `scale` and `fonts` (the font collection).
 
 ```rust
-canvas(revision, move |ctx: &mut CanvasContext| { ctx.canvas.draw_rect(..); })
+Canvas::new(revision, move |ctx: &mut CanvasContext| { ctx.canvas.draw_rect(..); })
 ```
 
 ## Building a new control
@@ -547,8 +548,9 @@ canvas(revision, move |ctx: &mut CanvasContext| { ctx.canvas.draw_rect(..); })
    hover and press tracking. Set its `a11y_role` and `a11y_alt`.
 4. Read `hovered()`, `pressed()` (held and still under the pointer), `held()`, `focused()` and
    `keyboard_focused()` to choose colors.
-5. Wrap the result in `interaction.focus_ring(element, corner_radius)`. `ring(element, radius,
-   color)` draws the same ring in another color, as a selection mark.
+5. Wrap the result in `interaction.focus_ring(element, corner_radius)`.
+   `element.focus_ring(radius, color)` ([`ViewModifiers`](07-menus-and-popovers.md#focus_ring))
+   draws the same ring in another color, as a selection mark.
 6. Paint only with `Palette::current()` and `ctdesign` tokens ([4](04-appearance-and-tokens.md)).
    New metrics go to `ctdesign`.
 7. If the control keeps a value, follow [the controlled pattern](#the-controlled-pattern).

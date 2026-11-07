@@ -45,8 +45,8 @@ optional video.
    rect().maybe_child(artwork.read().clone().map(|handle| image(handle).expanded()))
    ```
 
-4. Blend the cover into the window with a `scrim`, and put glass behind
-   floating controls with `material` or a `GlassContainer`.
+4. Blend the cover into the window with a `Scrim`, and put glass behind
+   floating controls with `Material` or a `GlassContainer`.
 5. For video, enable the `video` feature, open a `VideoStream` and show it in
    a `VideoView` ([Video](#video)).
 
@@ -92,7 +92,7 @@ before the `Backdrop` renders, still reads the system palette.
 ### Tint
 
 Controls with a fill take `.tint(Tint)`: `Slider`, `Switch`, `Checkbox`,
-`RadioGroup`, `ProgressBar` and `LevelSlider`.
+`RadioGroup`, `ProgressView` and `LevelSlider`.
 
 | `Tint` | The fill is… |
 |---|---|
@@ -111,18 +111,18 @@ are the `MEDIA` tokens of `ctdesign`, fixed for a dark image behind them.
 |---|---|
 | `MediaButton::new(label)` | A large light pill button; `.symbol(symbol)` adds an icon, `.on_press(..)` the action |
 | `RoundButton::new(symbol, label)` | A round glass button with an icon; `label` is its accessible name; `.selected(true)` fills it light; `.on_press(..)` |
-| `scrim(edge)` | A gradient `Rect` that fades from the ground color to transparent; size and place it yourself |
+| `Scrim::new(edge)` | A gradient rect that fades from the ground color to transparent; size and place it yourself with Freya's layout methods |
 | `ScrimEdge::Leading`, `Bottom` | The edge the scrim is solid on |
 | `ground()` | The color under the content: the backdrop's average inside a `Backdrop`, the window background outside |
-| `material(corner_radius)` | A layer that fills its parent with blur, the `MEDIA.material_tint` tint and a 1 px rim |
-| `top_glass()` | The progressive glass band along the top edge, as in [`FullscreenBar::ProgressiveGlass`](09-titlebars.md) |
+| `Material::new(corner_radius)` | A layer that fills its parent with blur, the `MEDIA.material_tint` tint and a 1 px rim |
+| `TopGlass::new()` | The progressive glass band along the top edge, as in [`FullscreenBar::ProgressiveGlass`](09-titlebars.md) |
 | `use_artwork(path)` | Reads and decodes an image in the background; returns `State<Option<ImageHandle>>`, `None` until it is ready |
 | `use_artwork_from(load)` | The same with bytes from `load: FnOnce() -> Option<Vec<u8>> + Send`, for example `video::fetch(url)` |
 
 `use_artwork` runs once per component. Loads share one reading thread and one
 decoding thread, so a grid of covers does not start a thread per cover.
 
-`material` and `top_glass` are positioned absolutely: put them as the first
+`Material` and `TopGlass` are positioned absolutely: put them as the first
 child of the element they sit behind.
 
 ## Glass that merges

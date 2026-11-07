@@ -1,6 +1,6 @@
 use bk::backdrop::{Accent, Backdrop, BackdropSource, Tint};
 use bk::controls::{Checkbox, Slider, Switch};
-use bk::progress::ProgressBar;
+use bk::progress::ProgressView;
 use bk::sidebar::{Sidebar, SidebarBackdrop, SidebarItem};
 use bk::views::form::{Form, Row, Section};
 use ctappearance::{AppearanceConfig, ColorScheme, SidebarStyle, resolve};
@@ -43,7 +43,7 @@ impl App for Case {
                 .spacing(12.0)
                 .child(controls)
                 .child(
-                    ProgressBar::determinate("Exportando", 0.6)
+                    ProgressView::determinate("Exportando", 0.6)
                         .tint(Tint::Color(Rgba::rgb8(240, 164, 58))),
                 ),
         )

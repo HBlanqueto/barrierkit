@@ -12,5 +12,5 @@ pub use defaults::{
     load_defaults, load_restoration, read_toml, save_defaults, save_restoration, use_defaults,
     use_watched, write_toml,
 };
-pub use scene::{Application, Scene};
+pub use scene::{Application, Scene, UtilityWindow};
 pub use undo::{REDO, UNDO, UndoManager, use_undo};

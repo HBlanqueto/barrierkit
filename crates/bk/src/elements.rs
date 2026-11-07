@@ -1,8 +1,6 @@
 use std::borrow::Cow;
 
 use ctdesign::{BODY, Font, SPACE_3};
-use freya_core::events::name::EventName;
-use freya_core::integration::{EventHandlerType, FxHashMap};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Direction};
 
@@ -10,85 +8,93 @@ use crate::style::{Palette, text, with_font};
 
 macro_rules! forward_element {
     ($outer:ident) => {
-        impl From<$outer> for Element {
+        impl From<$outer> for ::freya_core::prelude::Element {
             fn from(value: $outer) -> Self {
                 value.0.into()
             }
         }
 
-        impl KeyExt for $outer {
-            fn write_key(&mut self) -> &mut DiffKey {
+        impl ::freya_core::prelude::KeyExt for $outer {
+            fn write_key(&mut self) -> &mut ::freya_core::prelude::DiffKey {
                 self.0.write_key()
             }
         }
 
-        impl EventHandlersExt for $outer {
-            fn get_event_handlers(&mut self) -> &mut FxHashMap<EventName, EventHandlerType> {
+        impl ::freya_core::prelude::EventHandlersExt for $outer {
+            fn get_event_handlers(
+                &mut self,
+            ) -> &mut ::freya_core::integration::FxHashMap<
+                ::freya_core::events::name::EventName,
+                ::freya_core::integration::EventHandlerType,
+            > {
                 self.0.get_event_handlers()
             }
         }
 
-        impl AccessibilityExt for $outer {
-            fn get_accessibility_data(&mut self) -> &mut AccessibilityData {
+        impl ::freya_core::prelude::AccessibilityExt for $outer {
+            fn get_accessibility_data(&mut self) -> &mut ::freya_core::prelude::AccessibilityData {
                 self.0.get_accessibility_data()
             }
         }
 
-        impl TextStyleExt for $outer {
-            fn get_text_style_data(&mut self) -> &mut TextStyleData {
+        impl ::freya_core::prelude::TextStyleExt for $outer {
+            fn get_text_style_data(&mut self) -> &mut ::freya_core::prelude::TextStyleData {
                 self.0.get_text_style_data()
             }
         }
 
-        impl LayerExt for $outer {
-            fn get_layer(&mut self) -> &mut Layer {
+        impl ::freya_core::prelude::LayerExt for $outer {
+            fn get_layer(&mut self) -> &mut ::freya_core::prelude::Layer {
                 self.0.get_layer()
             }
         }
 
-        impl LayoutExt for $outer {
-            fn get_layout(&mut self) -> &mut LayoutData {
+        impl ::freya_core::prelude::LayoutExt for $outer {
+            fn get_layout(&mut self) -> &mut ::freya_core::prelude::LayoutData {
                 self.0.get_layout()
             }
         }
 
-        impl ContainerExt for $outer {}
+        impl ::freya_core::prelude::ContainerExt for $outer {}
 
-        impl MaybeExt for $outer {}
+        impl ::freya_core::prelude::MaybeExt for $outer {}
     };
 }
 
 macro_rules! forward_container {
     ($outer:ident) => {
-        forward_element!($outer);
+        $crate::elements::forward_element!($outer);
 
-        impl ChildrenExt for $outer {
-            fn get_children(&mut self) -> &mut Vec<Element> {
+        impl ::freya_core::prelude::ChildrenExt for $outer {
+            fn get_children(&mut self) -> &mut Vec<::freya_core::prelude::Element> {
                 self.0.get_children()
             }
         }
 
-        impl StyleExt for $outer {
-            fn get_style(&mut self) -> &mut StyleState {
+        impl ::freya_core::prelude::StyleExt for $outer {
+            fn get_style(&mut self) -> &mut ::freya_core::prelude::StyleState {
                 self.0.get_style()
             }
         }
 
-        impl ContainerWithContentExt for $outer {}
+        impl ::freya_core::prelude::ContainerWithContentExt for $outer {}
 
-        impl ScrollableExt for $outer {
-            fn get_effect(&mut self) -> &mut EffectData {
-                ScrollableExt::get_effect(&mut self.0)
+        impl ::freya_core::prelude::ScrollableExt for $outer {
+            fn get_effect(&mut self) -> &mut ::freya_core::prelude::EffectData {
+                ::freya_core::prelude::ScrollableExt::get_effect(&mut self.0)
             }
         }
 
-        impl EffectExt for $outer {
-            fn get_effect(&mut self) -> &mut EffectData {
-                EffectExt::get_effect(&mut self.0)
+        impl ::freya_core::prelude::EffectExt for $outer {
+            fn get_effect(&mut self) -> &mut ::freya_core::prelude::EffectData {
+                ::freya_core::prelude::EffectExt::get_effect(&mut self.0)
             }
         }
     };
 }
+
+pub(crate) use forward_container;
+pub(crate) use forward_element;
 
 pub struct Text(Label);
 

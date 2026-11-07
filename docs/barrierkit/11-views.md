@@ -28,7 +28,7 @@ before deleting.
 
    ```rust
    if files.read().is_empty() {
-       return empty_state(Symbol::Folder, "No files").into_element();
+       return ContentUnavailableView::new("No files", Symbol::Folder).into_element();
    }
    ```
 
@@ -59,14 +59,14 @@ before deleting.
    });
    ```
 
-5. Measure the width and choose the layout with `use_breakpoint`:
+5. Measure the width and choose the layout with `use_size_class`:
 
    ```rust
-   let adaptive = use_breakpoint();
+   let adaptive = use_size_class();
    adaptive
        .attach(rect().expanded())
        .child(table)
-       .maybe_child((adaptive.current() != Breakpoint::Compact).then(|| details()))
+       .maybe_child((adaptive.current() != SizeClass::Compact).then(|| details()))
        .maybe_child(alert)
    ```
 
@@ -96,7 +96,7 @@ Form::new()
 | `.section(Section)` | Adds a section |
 | `.highlighted(Option<&str>)` | Tints the row with that title with the accent at 12 % |
 
-`sections` is a public field: [`PreferencesWindow`](12-patterns.md#preferenceswindow)
+`sections` is a public field: [`SettingsWindow`](12-patterns.md#settingswindow)
 reads it to build its search. Below `LIST_GROUP.stack_below` (360 px) of width,
 rows with a control put the label above the control.
 
@@ -124,7 +124,7 @@ rows with a control put the label above the control.
 |---|---|
 | `.control(view)` | The control on the right, aligned with the first line of the title |
 | `.detail(text)` | An explanation under the title |
-| `.keywords(&[..])` | Extra words for the `PreferencesWindow` search |
+| `.keywords(&[..])` | Extra words for the `SettingsWindow` search |
 
 Long titles and details wrap without clipping the control.
 
@@ -244,9 +244,9 @@ which nodes are open. `on_select` receives the selected paths,
 `Vec<Vec<usize>>`; Ctrl+click and Shift+click work over the visible rows as in
 [`select`](#select).
 
-### `ColumnBrowser`
+### `Browser`
 
-`ColumnBrowser::new(label, nodes).on_select(callback)`: the tree as columns,
+`Browser::new(label, nodes).on_select(callback)`: the tree as columns,
 like Finder's column view (`NSBrowser`). Choosing a node with children opens
 the next column. Columns are `DISCLOSURE.column_width` (200) wide and scroll
 sideways. `on_select` receives the chosen path, `Vec<usize>`.
@@ -409,21 +409,25 @@ position in UTF-16 units.
 
 ## Feedback
 
-### `empty_state`
+Module `views::feedback`. `ContentUnavailableView` and `Sheet` are rects: they
+take Freya's layout and style methods.
 
-`empty_state(Symbol, title) -> Rect`: a large faint symbol over a line of
-text, for a view with nothing to show.
+### `ContentUnavailableView`
 
-### `sheet`
+`ContentUnavailableView::new(title, symbol)` draws a large faint symbol over a
+line of text, for a view with nothing to show, like SwiftUI's
+`ContentUnavailableView`.
 
-`sheet(content) -> Rect` covers the window with the `Palette::scrim` veil and
+### `Sheet`
+
+`Sheet::new(content)` covers the window with the `Palette::scrim` veil and
 shows `content` in a dialog attached to the top edge, centered horizontally.
 The dialog has radius 26 with a continuous corner and 20 of padding. Draw it
 while it should show; remove it to close it.
 
 ### `Alert`
 
-A [`sheet`](#sheet) with a title, a message and two buttons, like `NSAlert`.
+A [`Sheet`](#sheet) with a title, a message and two buttons, like `NSAlert`.
 
 ```rust
 Alert::new("Forget this network?", "You will have to type the password again.")
@@ -460,16 +464,16 @@ evenly. It does not close itself: the callbacks stop drawing it.
 | `.back()`, `.forward()` | Move one step if possible |
 | `.can_go_back()`, `.can_go_forward()` | Whether a step is possible |
 
-### `navigation_buttons`
+### `NavigationButtons`
 
-`navigation_buttons(State<History<T>>) -> Rect` draws ‹ and › in a
+`NavigationButtons::new(State<History<T>>)` draws ‹ and › in a
 [`ToolGroup`](05-controls.md) capsule. Each button is disabled at its end of
 the history. It also answers the shortcuts of `GO_BACK` and `GO_FORWARD`.
 
 ```rust
 let mut history = use_state(|| History::new(Page::Home));
 let open_settings = move |_| history.write().push(Page::Settings);
-Titlebar::new().left(navigation_buttons(history))
+Titlebar::new().left(NavigationButtons::new(history))
 ```
 
 ### `GO_BACK` and `GO_FORWARD`
@@ -495,7 +499,7 @@ let hits = index.search("WIREL");
 | `.add(key, title, keywords)` | Adds an entry |
 | `.search(query)` | The entries whose folded title or a keyword contains the folded query, in the order added. A blank query finds nothing |
 
-`PreferencesWindow` builds one from its panes
+`SettingsWindow` builds one from its panes
 ([`index`](12-patterns.md#index)).
 
 ### `Entry`
@@ -511,24 +515,24 @@ let hits = index.search("WIREL");
 
 ## Adaptive layout
 
-### `use_breakpoint`
+### `use_size_class`
 
-`use_breakpoint() -> Adaptive` creates a width reader.
-`Adaptive::attach(rect)` measures that element and `Adaptive::current()`
-returns its [`Breakpoint`](#breakpoint). Before the first measure, it is
+`use_size_class() -> SizeClassReader` creates a width reader.
+`SizeClassReader::attach(rect)` measures that element and `SizeClassReader::current()`
+returns its [`SizeClass`](#sizeclass). Before the first measure, it is
 `Wide`.
 
 ```rust
-let adaptive = use_breakpoint();
+let adaptive = use_size_class();
 let columns = match adaptive.current() {
-    Breakpoint::Wide => 3,
-    Breakpoint::Medium => 2,
-    Breakpoint::Compact => 1,
+    SizeClass::Wide => 3,
+    SizeClass::Medium => 2,
+    SizeClass::Compact => 1,
 };
 adaptive.attach(rect().expanded()).child(grid(columns))
 ```
 
-### `Breakpoint`
+### `SizeClass`
 
 | Variant | Width |
 |---|---|
@@ -536,6 +540,6 @@ adaptive.attach(rect().expanded()).child(grid(columns))
 | `Medium` | From 620 to below `BREAKPOINT.wide` (900) |
 | `Wide` | 900 and more |
 
-`Breakpoint::for_width(f32)` maps a width to its variant.
+`SizeClass::for_width(f32)` maps a width to its variant.
 
 Next: [12. Patterns](12-patterns.md).

@@ -29,12 +29,12 @@ impl Shared {
 }
 
 #[derive(Clone)]
-pub struct Tooltip {
+pub(crate) struct Tooltip {
     text: &'static str,
     shared: Rc<Shared>,
 }
 
-pub fn use_tooltip(text: &'static str) -> Tooltip {
+pub(crate) fn use_tooltip(text: &'static str) -> Tooltip {
     let shared = use_hook(|| Rc::new(Shared::default()));
     let on_drop = shared.clone();
     use_drop(move || on_drop.hide());
@@ -42,14 +42,14 @@ pub fn use_tooltip(text: &'static str) -> Tooltip {
 }
 
 impl Tooltip {
-    pub fn attach(self, element: impl Into<Element>) -> Rect {
+    pub(crate) fn attach<E: EventHandlersExt>(self, element: E) -> E {
         let (enter, moved, left, pressed) = (
             self.clone(),
             self.shared.clone(),
             self.shared.clone(),
             self.shared,
         );
-        rect()
+        element
             .on_pointer_enter(move |event: Event<PointerEventData>| {
                 let shared = &enter.shared;
                 shared.pointer.set(event.global_location());
@@ -66,7 +66,6 @@ impl Tooltip {
             })
             .on_pointer_leave(move |_| left.hide())
             .on_pointer_down(move |_| pressed.hide())
-            .child(element)
     }
 
     fn show(&self) {

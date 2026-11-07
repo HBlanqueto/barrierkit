@@ -9,19 +9,19 @@ use crate::popup_button::open_popover_menu;
 use crate::rich_text::{StyleRun, restyle_after_edit};
 use crate::spelling::{ignore, learn, replace_chars, suggestion};
 
-pub fn context_menu(
-    element: Rect,
+pub(crate) fn context_menu<E: EventHandlersExt>(
+    element: E,
     items: Vec<MenuItem>,
     on_activate: impl Into<Callback<String, ()>>,
-) -> Rect {
+) -> E {
     context_menu_with(element, move || items.clone(), on_activate)
 }
 
-fn context_menu_with(
-    element: Rect,
+fn context_menu_with<E: EventHandlersExt>(
+    element: E,
     items: impl Fn() -> Vec<MenuItem> + 'static,
     on_activate: impl Into<Callback<String, ()>>,
-) -> Rect {
+) -> E {
     let on_activate = on_activate.into();
     element.on_secondary_down(move |event: Event<PressEventData>| {
         let PressEventData::Mouse(mouse) = event.data() else {

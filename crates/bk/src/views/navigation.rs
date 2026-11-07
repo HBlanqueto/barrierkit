@@ -1,3 +1,4 @@
+use crate::elements::forward_container;
 use freya_core::prelude::*;
 use torin::prelude::{Direction, Size};
 
@@ -59,7 +60,17 @@ impl<T: Clone + PartialEq> History<T> {
     }
 }
 
-pub fn navigation_buttons<T: Clone + PartialEq + 'static>(history: State<History<T>>) -> Rect {
+pub struct NavigationButtons(Rect);
+
+impl NavigationButtons {
+    pub fn new<T: Clone + PartialEq + 'static>(history: State<History<T>>) -> Self {
+        Self(navigation_buttons(history))
+    }
+}
+
+forward_container!(NavigationButtons);
+
+fn navigation_buttons<T: Clone + PartialEq + 'static>(history: State<History<T>>) -> Rect {
     let mut back = history;
     let mut forward = history;
     let mut keys = history;

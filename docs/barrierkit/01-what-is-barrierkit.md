@@ -41,7 +41,7 @@ shape ([ADR 0061](../decisions/0061-swiftui-style-entry-api.md)). The
 | Sidebar and detail | `NavigationSplitView` / `NSSplitView` | `AdwNavigationSplitView` | `views::split::SplitView` |
 | Source list | `List` with `.sidebar` style / `NSOutlineView` | `GtkListBox` `.navigation-sidebar` | `sidebar::Sidebar` |
 | Form | `Form` | `AdwPreferencesGroup` | `views::form::Form` |
-| Settings window | `Settings` | `AdwPreferencesWindow` | `patterns::preferences::PreferencesWindow` |
+| Settings window | `Settings` | `AdwPreferencesWindow` | `patterns::settings::SettingsWindow` |
 | Actions and shortcuts | `Commands` / `NSMenuItem` | `GAction` | `app::Action` |
 | App preferences | `UserDefaults` | `GSettings` | `app::load_defaults`, `app::save_defaults` |
 | System colors | `Color` / `NSColor.labelColor`… | CSS variables | `style::Palette` |
@@ -107,7 +107,7 @@ The kit has four levels; each one builds on the one below
 
 | If you want… | Use | Level |
 |---|---|---|
-| A settings app with a sidebar, search field and panes | `PreferencesWindow` | 3 · Patterns |
+| A settings app with a sidebar, search field and panes | `SettingsWindow` | 3 · Patterns |
 | An app with its own navigation (a player, a file browser) | `SplitView`, `Sidebar` and `Titlebar` | 2 · Views |
 | A small window or a dialog | `Application`, `VStack` and the controls | 1 · Primitives |
 | A component that does not exist | Freya's `rect` and `label`, `use_interaction` and the `Palette`. If other apps need it, it goes into the kit. | 1 · Primitives |

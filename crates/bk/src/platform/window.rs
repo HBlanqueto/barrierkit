@@ -58,7 +58,7 @@ pub struct WindowOptions {
     pub size: (u32, u32),
     pub min_size: Option<(u32, u32)>,
     pub max_size: Option<(u32, u32)>,
-    pub menu: Option<crate::app_menu::AppMenu>,
+    pub menu: Option<crate::main_menu::MainMenu>,
     pub fullscreen_bar: FullscreenBar,
     pub fullscreen_push: bool,
     pub hud: bool,
@@ -131,7 +131,7 @@ impl WindowOptions {
         self
     }
 
-    pub fn menu(mut self, menu: crate::app_menu::AppMenu) -> Self {
+    pub fn menu(mut self, menu: crate::main_menu::MainMenu) -> Self {
         self.menu = Some(menu);
         self
     }
@@ -417,7 +417,7 @@ pub(crate) struct OpenUtility {
     pub(crate) options: WindowOptions,
 }
 
-pub fn open_utility_window(app: AppComponent, options: WindowOptions) {
+pub(crate) fn open_utility_window(app: AppComponent, options: WindowOptions) {
     freya_core::prelude::Platform::get().send(freya_core::integration::UserEvent::Erased(
         freya_core::integration::SingleThreadErasedEvent(Box::new(OpenUtility { app, options })),
     ));
@@ -508,9 +508,9 @@ impl Runtime {
         window.commit();
 
         let menu = options.menu.clone();
-        let mut menu_handle: Option<crate::app_menu::MenuHandle> = None;
+        let mut menu_handle: Option<crate::main_menu::MenuHandle> = None;
         if let Some(menu) = menu {
-            let handle = crate::app_menu::MenuHandle::new(
+            let handle = crate::main_menu::MenuHandle::new(
                 menu.clone(),
                 Some(WakeHandle::from_ping(self.wake.ping.clone())),
             );
@@ -526,7 +526,7 @@ impl Runtime {
                     wake.ping();
                 });
             }
-            crate::app_menu::server::register(handle.clone());
+            crate::main_menu::server::register(handle.clone());
             menu_handle = Some(handle);
         }
 
@@ -586,15 +586,15 @@ impl Runtime {
         window.logical_size = options.size;
         window.menu_handle = menu_handle;
         window.status_handle = options.status_item.map(|item| {
-            let menu = crate::app_menu::AppMenu::new(vec![crate::app_menu::Menu::new(
+            let menu = crate::main_menu::MainMenu::new(vec![crate::main_menu::Menu::new(
                 "",
                 item.items.clone(),
             )]);
-            let handle = crate::app_menu::MenuHandle::new(
+            let handle = crate::main_menu::MenuHandle::new(
                 menu,
                 Some(WakeHandle::from_ping(self.wake.ping.clone())),
             );
-            crate::app_menu::server::register_status_item(handle.clone(), item);
+            crate::main_menu::server::register_status_item(handle.clone(), item);
             handle
         });
         window.context = Some(WindowContext {
@@ -830,14 +830,14 @@ impl Runtime {
         }
         if !self.needs_exit && matches!(self.surfaces[index].role, SurfaceRole::Window(_)) {
             if let Some(address) = self.surfaces[index].appmenu_address.take() {
-                crate::app_menu::server::unregister(&address.path);
+                crate::main_menu::server::unregister(&address.path);
             }
             if let Some(path) = self.surfaces[index]
                 .status_handle
                 .take()
                 .and_then(|handle| handle.path())
             {
-                crate::app_menu::server::unregister(&path);
+                crate::main_menu::server::unregister(&path);
             }
             if let Some(appmenu) = self.surfaces[index].appmenu.take() {
                 appmenu.release();

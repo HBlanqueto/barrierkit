@@ -70,7 +70,7 @@ token with its own duration (`SWITCH.transition_ms`,
 | Sidebar width while dragging | `DURATION_FAST_MS` | `Spring`, no bounce |
 | Moving the sidebar into the rail, revealing hidden titlebars, the focus bar | `DURATION_BASE` | Ease out, cubic |
 | Scroll bar | `DURATION_FAST_MS` | Ease out, cubic |
-| Indeterminate `ProgressBar` | `PROGRESS.indeterminate_ms` | In-out, cubic, back and forth |
+| Indeterminate `ProgressView` | `PROGRESS.indeterminate_ms` | In-out, cubic, back and forth |
 | `Spinner` | `PROGRESS.spinner_ms` | Linear, one spoke at a time, looping |
 | Fade between [`Backdrop`](15-backdrops-and-media.md#backdrop) colors | `DURATION_SLOW_MS` | In-out, cubic |
 | [`GlassContainer`](15-backdrops-and-media.md#glass-that-merges) morph | `DURATION_BASE` | `Spring`, no bounce |

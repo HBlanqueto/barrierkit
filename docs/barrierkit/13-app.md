@@ -4,7 +4,7 @@
 bar menu, saved settings, undo, a single instance and the desktop services.
 **Scope:** starts with an app that already opens a window
 ([2. Your first app](02-first-app.md)) and ends with the services in
-`bk::app`, `app_menu`, `status_item`, `notifications`, `secrets` and
+`bk::app`, `main_menu`, `status_item`, `notifications`, `secrets` and
 `portal`. `Application` and `Scene` are in
 [2](02-first-app.md#what-application-does-for-you), `WindowOptions` in
 [8. Windows](08-windows.md), `MenuItem` and `CheckState` in
@@ -30,7 +30,7 @@ an Edit menu, a shortcut, undo and settings that survive a restart.
    Application::new("counter")
        .window("Counter", counter)
        .options(|window| {
-           window.menu(AppMenu::new(vec![Menu::new(
+           window.menu(MainMenu::new(vec![Menu::new(
                tr!("edit"),
                vec![UNDO.item(true), REDO.item(true), RESET.item(true)],
            )]))
@@ -119,7 +119,7 @@ menu, `STATUS_ITEM_ACTIVATE` or an `ActivateAction` sent to the
 How a shortcut reaches the app:
 
 1. On a key press, the kit looks for an **enabled** `MenuItem::Action` of the
-   window's `AppMenu` whose shortcut text matches. A popup or utility window
+   window's `MainMenu` whose shortcut text matches. A popup or utility window
    uses its parent's menu.
 2. When one matches, the kit dispatches its id to `use_menu_action` and the key
    does not reach the app.
@@ -140,12 +140,12 @@ The kit declares these actions:
 
 ## Menu bar menu
 
-`AppMenu` is the window's menu bar menu: a list of `Menu`, each with a title
+`MainMenu` is the window's menu bar menu: a list of `Menu`, each with a title
 and its `MenuItem`s. `WindowOptions::menu` gives it to the window.
 
 | Item | What it is |
 |---|---|
-| `AppMenu::new(menus)` | The menu bar menu; `menus` is a public field |
+| `MainMenu::new(menus)` | The menu bar menu; `menus` is a public field |
 | `Menu::new(title, items)` | One top-level menu; `title` and `items` are public fields |
 
 The kit publishes the menu on the session bus:
@@ -158,7 +158,7 @@ The kit publishes the menu on the session bus:
 3. Without that protocol the menu still exists on the bus, and its shortcuts
    still work.
 
-`app_menu::layout::LayoutItem` and `DbusMenuLayout` are the dbusmenu types of
+`main_menu::layout::LayoutItem` and `DbusMenuLayout` are the dbusmenu types of
 `GetLayout`: `(id, properties, children)` and `(revision, root)`. An app does
 not build them.
 
@@ -301,7 +301,7 @@ libayatana-appindicator and waybar use `org.kde.*`, and so does the kit.
 `notifications::post(notice, clicked)` posts a notification through
 `org.freedesktop.Notifications`, on a background thread.
 
-| `Notice` field | What it is |
+| `Notification` field | What it is |
 |---|---|
 | `app_name: &'static str` | The app name the server shows |
 | `desktop_entry: &'static str` | The `desktop-entry` hint, so the server finds the icon |

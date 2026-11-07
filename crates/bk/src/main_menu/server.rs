@@ -6,11 +6,11 @@ use futures_channel::mpsc::{UnboundedReceiver, UnboundedSender};
 use futures_util::StreamExt;
 use zbus::zvariant::{OwnedValue, Value};
 
-use crate::app_menu::layout::{
+use crate::main_menu::layout::{
     DbusMenuLayout, LayoutItem, LayoutNode, LayoutSnapshot, RegisteredMenu, Update,
     action_id_for_numeric, build_layout, diff_layout,
 };
-use crate::app_menu::{IdMap, MenuHandle};
+use crate::main_menu::{IdMap, MenuHandle};
 
 const VERSION: u32 = 3;
 
@@ -107,7 +107,7 @@ async fn run(mut commands: UnboundedReceiver<Command>) {
                 if export(&connection, &path, &registered, &mut menus, &mut id_maps).await {
                     registered
                         .handle
-                        .deliver_address(crate::platform::AppMenuAddress {
+                        .deliver_address(crate::platform::MainMenuAddress {
                             service: unique,
                             path,
                         });
@@ -403,9 +403,9 @@ mod tests {
 
     use zbus::zvariant::{OwnedValue, Value};
 
-    use crate::app_menu::layout::{RegisteredMenu, Update, build_layout, diff_layout};
-    use crate::app_menu::server::DbusMenuObject;
-    use crate::app_menu::{AppMenu, IdMap, Menu, MenuHandle, MenuItem};
+    use crate::main_menu::layout::{RegisteredMenu, Update, build_layout, diff_layout};
+    use crate::main_menu::server::DbusMenuObject;
+    use crate::main_menu::{IdMap, MainMenu, Menu, MenuHandle, MenuItem};
     use crate::menu::CheckState;
 
     fn action(id: &str) -> MenuItem {
@@ -420,7 +420,7 @@ mod tests {
         }
     }
 
-    fn registered(menu: AppMenu) -> Arc<RegisteredMenu> {
+    fn registered(menu: MainMenu) -> Arc<RegisteredMenu> {
         let (ping, _) = sctk::reexports::calloop::ping::make_ping().expect("test ping");
         let wake = crate::platform::WakeHandle::from_ping(ping);
         RegisteredMenu::new(MenuHandle::new(menu, Some(wake)))
@@ -433,7 +433,7 @@ mod tests {
     #[test]
     fn path_counter_never_reuses_index() {
         let make = || {
-            let handle = MenuHandle::new(AppMenu::new(vec![Menu::new("M", vec![])]), None);
+            let handle = MenuHandle::new(MainMenu::new(vec![Menu::new("M", vec![])]), None);
             super::register(handle.clone());
             handle.path().unwrap()
         };
@@ -446,7 +446,7 @@ mod tests {
 
     #[test]
     fn an_action_listed_twice_gets_two_ids_and_both_dispatch_it() {
-        let menu = AppMenu::new(vec![
+        let menu = MainMenu::new(vec![
             Menu::new("File", vec![action("save")]),
             Menu::new("Edit", vec![action("save")]),
         ]);
@@ -466,7 +466,7 @@ mod tests {
 
     #[test]
     fn separators_get_distinct_stable_ids() {
-        let menu = AppMenu::new(vec![Menu::new(
+        let menu = MainMenu::new(vec![Menu::new(
             "File",
             vec![
                 action("a1"),
@@ -494,7 +494,7 @@ mod tests {
             items: vec![],
             icon: None,
         };
-        let menu = AppMenu::new(vec![
+        let menu = MainMenu::new(vec![
             Menu::new("File", vec![recent()]),
             Menu::new("Edit", vec![recent()]),
         ]);
@@ -514,10 +514,10 @@ mod tests {
             *shortcut = Some("Ctrl+S".to_string());
         }
         let mut id_map = IdMap::default();
-        let registered = RegisteredMenu::new(MenuHandle::new(AppMenu::default(), None));
+        let registered = RegisteredMenu::new(MenuHandle::new(MainMenu::default(), None));
         let layout = |item: MenuItem, id_map: &mut IdMap| {
             build_layout(
-                &AppMenu::new(vec![Menu::new("File", vec![item])]),
+                &MainMenu::new(vec![Menu::new("File", vec![item])]),
                 id_map,
                 1,
             )
@@ -534,7 +534,7 @@ mod tests {
 
     #[test]
     fn event_resolves_against_published_snapshot() {
-        let menu = AppMenu::new(vec![Menu::new("File", vec![action("a1"), action("a2")])]);
+        let menu = MainMenu::new(vec![Menu::new("File", vec![action("a1"), action("a2")])]);
         let registered = registered(menu.clone());
         let handle = registered.handle.clone();
 
@@ -567,7 +567,7 @@ mod tests {
 
     #[test]
     fn event_does_not_run_on_dbus_thread() {
-        let menu = AppMenu::new(vec![Menu::new("File", vec![action("a1")])]);
+        let menu = MainMenu::new(vec![Menu::new("File", vec![action("a1")])]);
         let registered = registered(menu.clone());
         let handle = registered.handle.clone();
 
@@ -598,7 +598,7 @@ mod tests {
 
     #[test]
     fn register_returns_without_blocking() {
-        let handle = MenuHandle::new(AppMenu::new(vec![Menu::new("M", vec![])]), None);
+        let handle = MenuHandle::new(MainMenu::new(vec![Menu::new("M", vec![])]), None);
         let start = Instant::now();
         super::register(handle.clone());
         assert!(

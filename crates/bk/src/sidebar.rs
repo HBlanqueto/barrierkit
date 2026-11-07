@@ -1,3 +1,4 @@
+use crate::elements::forward_container;
 use ctappearance::{SidebarStyle, SidebarSurface};
 use ctdesign::{
     BACKDROP, BODY, DURATION_BASE, Rgba, SETTINGS, SIDEBAR, SidebarPalette, TEXT_FIELD, TITLEBAR,
@@ -7,7 +8,7 @@ use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 
 use crate::ProbeExt;
-use crate::adornments::avatar;
+use crate::adornments::Avatar;
 use crate::chrome::TitlebarLayout;
 use crate::interaction::use_interaction;
 use crate::platform::WindowControls;
@@ -15,7 +16,8 @@ use crate::scroll::ScrollView;
 use crate::style::{Palette, text};
 use crate::symbol::{Symbol, symbol};
 use crate::theme;
-use crate::titlebar::{window_drag_handler, window_traffic_lights};
+use crate::titlebar::window_drag_handler;
+use crate::traffic::TrafficLights;
 use freya_core::prelude::try_consume_root_context;
 
 pub(crate) fn sidebar_palette() -> SidebarPalette {
@@ -122,21 +124,34 @@ pub fn sidebar_control() -> Option<SidebarControl> {
     try_consume_context()
 }
 
-pub fn symbol_tile(glyph: Symbol, tint: Rgba, rim: Option<Rgba>) -> Rect {
+pub struct SymbolTile(Rect);
+
+impl SymbolTile {
+    pub fn new(glyph: Symbol, tint: Rgba) -> Self {
+        Self(symbol_tile(glyph, tint))
+    }
+
+    pub fn rim(self, rim: Rgba) -> Self {
+        Self(
+            self.0.border(
+                Border::new()
+                    .width(SIDEBAR.rim_width)
+                    .alignment(BorderAlignment::Inner)
+                    .fill(theme::color(rim)),
+            ),
+        )
+    }
+}
+
+forward_container!(SymbolTile);
+
+fn symbol_tile(glyph: Symbol, tint: Rgba) -> Rect {
     let tile = SIDEBAR.app_icon as f32;
     rect()
         .width(Size::px(tile))
         .height(Size::px(tile))
         .corner_radius(SIDEBAR.item_radius as f32)
         .background(theme::color(tint))
-        .map(rim, |el, rim| {
-            el.border(
-                Border::new()
-                    .width(SIDEBAR.rim_width)
-                    .alignment(BorderAlignment::Inner)
-                    .fill(theme::color(rim)),
-            )
-        })
         .center()
         .child(symbol(
             glyph,
@@ -382,7 +397,9 @@ impl Component for Sidebar {
                         rect()
                             .probe("sidebar-traffic-lights")
                             .opacity(lights_opacity)
-                            .child(window_traffic_lights(status.activated, fixed).vertical(true))
+                            .child(
+                                TrafficLights::for_window(status.activated, fixed).vertical(true),
+                            )
                     }))
                     .maybe_child(items.top)
                     .child(rect().height(Size::flex(1.0)))
@@ -409,7 +426,7 @@ impl Component for Sidebar {
                     .height(Size::px(TITLEBAR.buttons.diameter as f32))
                     .probe("sidebar-traffic-lights")
                     .opacity(lights_opacity)
-                    .child(window_traffic_lights(status.activated, fixed)),
+                    .child(TrafficLights::for_window(status.activated, fixed)),
             );
         }
 
@@ -536,10 +553,9 @@ impl Component for SidebarItem {
             });
 
         if let Some((glyph, tint)) = self.symbol {
-            row = row.child(symbol_tile(
-                glyph,
-                tint,
+            row = row.child(SymbolTile::new(glyph, tint).map(
                 self.selected.then_some(palette.selected_icon_rim),
+                SymbolTile::rim,
             ));
         }
 
@@ -720,7 +736,7 @@ impl Component for SidebarAccount {
                 0.0,
                 SETTINGS.account_padding_x as f32,
             ))
-            .child(avatar(&self.initials))
+            .child(Avatar::new(&self.initials))
             .child(
                 rect()
                     .direction(Direction::Vertical)

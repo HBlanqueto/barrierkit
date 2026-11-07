@@ -448,7 +448,7 @@ impl Runtime {
         let shortcut_action = if name == KeyboardEventName::KeyDown {
             index.and_then(|idx| {
                 let surface = &self.surfaces[idx];
-                if surface.app.text_field_focused() && crate::app_menu::edits_text(modifiers, &key)
+                if surface.app.text_field_focused() && crate::main_menu::edits_text(modifiers, &key)
                 {
                     return None;
                 }
@@ -457,7 +457,7 @@ impl Runtime {
                     None => self.surface_index_by_id(surface.context.as_ref()?.parent.as_ref()?)?,
                 };
                 let menu = self.surfaces[owner].menu_handle.as_ref()?.snapshot().0;
-                crate::app_menu::find_menu_shortcut(&menu, modifiers, &key)
+                crate::main_menu::find_menu_shortcut(&menu, modifiers, &key)
                     .map(|action_id| (owner, action_id))
             })
         } else {

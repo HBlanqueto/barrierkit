@@ -151,7 +151,7 @@ the runner logs it at `info` level and continues.
 
 - Keys go to the surface with keyboard focus, or to the first surface.
 - Before a key reaches the tree, the runner matches it against the window's
-  `AppMenu` shortcuts. A utility window uses its parent's menu. Edit
+  `MainMenu` shortcuts. A utility window uses its parent's menu. Edit
   shortcuts inside a focused text field stay with the field.
 - `Escape` closes a utility window, unless a text field has focus.
 - Key repeat follows the compositor's rate and delay.
@@ -187,7 +187,7 @@ call 25 s, as libdbus and GDBus do.
 | Secret Service | `org.freedesktop.secrets` | `secrets` ([13](13-app.md#secrets)) |
 | Desktop portal | `org.freedesktop.portal.Desktop` | `portal`: files, URIs, printing, notifications ([13](13-app.md#portals)) |
 | Single instance | `org.freedesktop.Application` | `Instance` ([13](13-app.md#single-instance)) |
-| Global menu | `com.canonical.dbusmenu` | A window with an `AppMenu` ([13](13-app.md#menu-bar-menu)) |
+| Global menu | `com.canonical.dbusmenu` | A window with a `MainMenu` ([13](13-app.md#menu-bar-menu)) |
 | Status icon | `org.kde.StatusNotifierItem-<pid>-<n>` | `StatusItem` ([13](13-app.md#status-item)) |
 | Status host | `org.kde.StatusNotifierWatcher` | [`use_status_items`](#status-items) |
 
@@ -275,7 +275,7 @@ context in `run_layer` and `run_lock`.
 | `title`, `app_id` | `String` | As the app sets them |
 | `active`, `maximized`, `minimized` | `bool` | Window state |
 | `restorable` | `bool` | `restore` has a saved rectangle |
-| `app_menu` | `Option<AppMenuAddress>` | The window's dbusmenu address ([8](08-windows.md#menu-address)) |
+| `main_menu` | `Option<MainMenuAddress>` | The window's dbusmenu address ([8](08-windows.md#menu-address)) |
 | `gtk_menus` | `Option<GtkMenusAddress>` | The window's GTK menu address |
 
 `GtkMenusAddress` holds `unique_bus_name`, `application_id`, `menubar_path`,

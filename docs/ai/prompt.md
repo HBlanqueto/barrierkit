@@ -60,9 +60,14 @@ version.
 5. **Use the kit's control** before building one from `rect()`.
 6. **Names come from the glossary.** Freya owns `App`, `label` and `rect`; the
    kit's app type is `Application`.
-7. **No comments** except `// SAFETY:` on `unsafe` and one line explaining a
+7. **Views are types, modifiers are methods**, as in SwiftUI: write
+   `Divider::new()`, `Image::system(Symbol::Plus)` or
+   `ContentUnavailableView::new(..)`, and `.help("…")` or
+   `.context_menu(items, …)` on any view. Call `.help` unconditionally: it uses
+   a hook.
+8. **No comments** except `// SAFETY:` on `unsafe` and one line explaining a
    non-obvious invariant. Names explain the code.
-8. **Build only inside `nix develop`.** Outside it, `build.rs` stops on
+9. **Build only inside `nix develop`.** Outside it, `build.rs` stops on
    purpose.
 
 ## Read more only when the task needs it

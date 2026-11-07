@@ -1,3 +1,4 @@
+use crate::elements::forward_container;
 use std::path::PathBuf;
 
 use ctdesign::{BODY, MEDIA, Rgba};
@@ -5,7 +6,7 @@ use freya_core::elements::image::ImageHandle;
 use freya_core::prelude::*;
 use torin::prelude::{Direction, Gaps, Size};
 
-pub use crate::glass::{material, top_glass};
+pub use crate::glass::{Material, TopGlass};
 use crate::interaction::use_interaction;
 use crate::style::Palette;
 use crate::symbol::{Symbol, symbol};
@@ -24,7 +25,17 @@ pub fn ground() -> Rgba {
     )
 }
 
-pub fn scrim(edge: ScrimEdge) -> Rect {
+pub struct Scrim(Rect);
+
+impl Scrim {
+    pub fn new(edge: ScrimEdge) -> Self {
+        Self(scrim(edge))
+    }
+}
+
+forward_container!(Scrim);
+
+fn scrim(edge: ScrimEdge) -> Rect {
     let window = ground();
     // Freya measures gradient angles from top to bottom, turning clockwise: 270° runs left to right.
     let (angle, stops) = match edge {

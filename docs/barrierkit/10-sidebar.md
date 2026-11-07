@@ -107,7 +107,7 @@ A row with an optional symbol tile and a one-line label.
 | Method | Default | Effect |
 |---|---|---|
 | `SidebarItem::new(label)` | — | A row with that text |
-| `.symbol(Symbol, tint)` | no tile | A [`symbol_tile`](#symbol_tile) of color `tint` before the label |
+| `.symbol(Symbol, tint)` | no tile | A [`SymbolTile`](#symboltile) of color `tint` before the label |
 | `.selected(bool)` | `false` | Draws the row as selected. The app decides which row is selected |
 | `.emphasized(bool)` | `true` | With `false`, the selection is gray instead of accent, as when the focus is elsewhere |
 | `.on_select(callback)` | none | Called when the row is pressed |
@@ -145,13 +145,13 @@ SidebarAccount::new("JA", "Jane Appleseed", "Local account")
 
 ![Account row with an avatar, the name and "Local account"](assets/components/sidebar-account-light.png)
 
-### `symbol_tile`
+### `SymbolTile`
 
-`symbol_tile(glyph, tint, rim: Option<Rgba>) -> Rect` draws the square tile of
-a sidebar item: `SIDEBAR.app_icon` (22) wide, radius 8, filled with `tint`, the
-glyph in `Palette::on_accent`. `Some(rim)` adds a 1 px inner border.
-`SidebarItem` uses it, and so do the search results of
-[`PreferencesWindow`](12-patterns.md#preferenceswindow).
+`SymbolTile::new(glyph, tint)` draws the square tile of a sidebar item:
+`SIDEBAR.app_icon` (22) wide, radius 8, filled with `tint`, the glyph in
+`Palette::on_accent`. `.rim(color)` adds a 1 px inner border. It is a rect: it
+takes Freya's layout and style methods. `SidebarItem` uses it, and so do the
+search results of [`SettingsWindow`](12-patterns.md#settingswindow).
 
 ### `SidebarBackdrop`
 

@@ -12,7 +12,8 @@ use crate::platform::FullscreenBar;
 use crate::platform::WindowControls;
 use crate::style::Palette;
 use crate::theme::{SurfaceKind, color, surface_background};
-use crate::titlebar::{window_drag_handler, window_traffic_lights};
+use crate::titlebar::window_drag_handler;
+use crate::traffic::TrafficLights;
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub enum TitlebarLayout {
@@ -512,7 +513,7 @@ fn rail(style: ChromeStyle, items: &RailItems, lights_opacity: f32) -> Rect {
             rect()
                 .maybe(overlaid, |el| el.layer(Layer::Overlay))
                 .opacity(lights_opacity)
-                .child(window_traffic_lights(activated, fixed).vertical(true))
+                .child(TrafficLights::for_window(activated, fixed).vertical(true))
         }))
         .maybe_child(items.top.clone())
         .child(RotatedTitle {
@@ -612,5 +613,5 @@ fn pill(vertical: bool, slide: f32) -> Rect {
         )
         .maybe(slide < 1.0 || vertical, |el| el.shadow(drop_shadow()))
         .layer(Layer::Overlay)
-        .child(window_traffic_lights(activated, fixed).vertical(vertical))
+        .child(TrafficLights::for_window(activated, fixed).vertical(vertical))
 }

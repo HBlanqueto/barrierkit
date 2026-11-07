@@ -1,7 +1,7 @@
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 
-use crate::platform::{RunError, WindowOptions, run_window};
+use crate::platform::{RunError, WindowOptions, open_utility_window, run_window};
 use crate::style::Palette;
 use crate::theme::color;
 use crate::titlebar::Titlebar;
@@ -48,6 +48,33 @@ impl Scene {
             content,
         } = self;
         run_window(move || window_root(&title, content.clone()), options)
+    }
+}
+
+pub struct UtilityWindow {
+    options: WindowOptions,
+    content: AppComponent,
+}
+
+impl UtilityWindow {
+    pub fn new<E: IntoElement>(
+        title: impl Into<String>,
+        name: impl Into<String>,
+        content: impl Fn() -> E + 'static,
+    ) -> Self {
+        Self {
+            options: WindowOptions::new(title, name),
+            content: AppComponent::from(content),
+        }
+    }
+
+    pub fn options(mut self, configure: impl FnOnce(WindowOptions) -> WindowOptions) -> Self {
+        self.options = configure(self.options);
+        self
+    }
+
+    pub fn open(self) {
+        open_utility_window(self.content, self.options);
     }
 }
 

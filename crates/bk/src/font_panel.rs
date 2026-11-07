@@ -6,7 +6,7 @@ use torin::prelude::{Area, Direction, Gaps, Size};
 use crate::controls::{Button, TextField};
 use crate::fonts::{family_names, fixed_pitch, styles};
 use crate::i18n::text;
-use crate::popover::show_popover;
+use crate::popover::Popover;
 use crate::rich_text::FontChoice;
 use crate::scroll::ScrollView;
 use crate::style::{Palette, text};
@@ -82,13 +82,14 @@ pub(crate) fn show_font_panel(
     initial: FontChoice,
     on_change: Callback<FontChoice, ()>,
 ) {
-    show_popover(anchor, panel_size(), move || {
+    Popover::new(panel_size(), move || {
         FontPanel {
             initial: initial.clone(),
             on_change: on_change.clone(),
         }
         .into_element()
-    });
+    })
+    .show(anchor);
 }
 
 #[derive(PartialEq)]

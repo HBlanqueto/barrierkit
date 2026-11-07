@@ -1,7 +1,7 @@
 use freya_core::prelude::WritableUtils;
 use sctk::reexports::client::{Connection, Dispatch, Proxy, QueueHandle};
 
-use crate::platform::{AppMenuAddress, runtime::Runtime};
+use crate::platform::{MainMenuAddress, runtime::Runtime};
 use crate::shell::{FocusBar, GtkMenusAddress, ShellState, SpaceInfo};
 
 pub use infinity_protocol::client::infinity_window_manager_v1::infinity_window_manager_v1::{
@@ -39,11 +39,11 @@ impl Dispatch<InfinityWindowManagerV1, ()> for Runtime {
                     let address = if service.is_empty() || path.is_empty() {
                         None
                     } else {
-                        Some(AppMenuAddress { service, path })
+                        Some(MainMenuAddress { service, path })
                     };
                     shell
                         .toplevels
-                        .update(&toplevel, |info| info.app_menu = address);
+                        .update(&toplevel, |info| info.main_menu = address);
                 }
                 Event::GtkMenus {
                     toplevel,

@@ -95,7 +95,7 @@ impl Interaction {
     }
 }
 
-pub fn ring(element: Rect, corner_radius: f32, color: ctdesign::Rgba) -> Rect {
+pub(crate) fn ring<E: ChildrenExt>(element: E, corner_radius: f32, color: ctdesign::Rgba) -> E {
     let spread = FOCUS_RING.offset + FOCUS_RING.width;
     let around = move |context: SizeFnContext| Some(context.parent + 2.0 * spread);
     element.child(

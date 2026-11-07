@@ -216,13 +216,13 @@ impl Component for OutlineView {
 }
 
 #[derive(PartialEq)]
-pub struct ColumnBrowser {
+pub struct Browser {
     label: &'static str,
     nodes: Vec<TreeNode>,
     on_select: Option<Callback<Vec<usize>, ()>>,
 }
 
-impl ColumnBrowser {
+impl Browser {
     pub fn new(label: &'static str, nodes: Vec<TreeNode>) -> Self {
         Self {
             label,
@@ -237,7 +237,7 @@ impl ColumnBrowser {
     }
 }
 
-impl Component for ColumnBrowser {
+impl Component for Browser {
     fn render(&self) -> impl IntoElement {
         let palette = Palette::current();
         let mut path = use_state(Vec::<usize>::new);

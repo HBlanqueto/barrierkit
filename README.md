@@ -40,6 +40,7 @@ AI agents start from one prompt: [`docs/ai/prompt.md`](docs/ai/prompt.md).
 
 - ADR 0047 — [BarrierKit in layers](docs/decisions/0047-barrierkit-in-layers.md)
 - ADR 0048 — [BarrierKit in its own repository](docs/decisions/0048-barrierkit-own-repository.md)
+- ADR 0063 — [Views are types, modifiers are methods, Apple names](docs/decisions/0063-views-as-types-and-swift-names.md)
 - ADR 0062 — [Short crate names: `bk`, `ctdesign` and `ctappearance`](docs/decisions/0062-short-crate-names.md)
 - ADR 0061 — [A SwiftUI-shaped entry API and a glossary of names](docs/decisions/0061-swiftui-style-entry-api.md)
 - ADR 0057 — [The full-screen glass covers the whole window; the sidebar over a tinted backdrop](docs/decisions/0057-glass-and-sidebar-over-backdrop.md)

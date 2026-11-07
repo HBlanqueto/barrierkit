@@ -73,7 +73,7 @@ impl AppInstance {
         size: (u32, u32),
         window: Option<WindowControls>,
         popup: Option<(PopupId, Rc<Cell<bool>>)>,
-        menu_handle: Option<crate::app_menu::MenuHandle>,
+        menu_handle: Option<crate::main_menu::MenuHandle>,
     ) -> Self {
         let waker = futures_util::task::waker(Arc::new(PingWake(rt.ping.clone())));
         let sender: Rc<dyn Fn(UserEvent)> = {

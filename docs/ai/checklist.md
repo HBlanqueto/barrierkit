@@ -23,8 +23,8 @@ reason it cannot be.
 4. Does every control receive its value and handle its change?
 5. Is every name the glossary name? Nothing named `App` of your own, nothing
    that copies a kit control.
-6. Are hooks (`use_state`, `use_defaults`…) at the top of the view, never
-   inside a condition or a loop?
+6. Are hooks (`use_state`, `use_defaults`…) and `.help(..)` called on every
+   render, never inside a condition or a loop?
 7. Are there no comments besides `// SAFETY:` and one-line invariants?
 8. Is the `Application` name the same one passed to `use_app_language` and
    `load_defaults`?

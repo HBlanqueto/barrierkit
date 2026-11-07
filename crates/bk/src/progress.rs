@@ -12,13 +12,13 @@ use crate::style::Palette;
 use crate::theme::color;
 
 #[derive(PartialEq)]
-pub struct ProgressBar {
+pub struct ProgressView {
     label: &'static str,
     value: Option<f32>,
     tint: Tint,
 }
 
-impl ProgressBar {
+impl ProgressView {
     pub fn determinate(label: &'static str, value: f32) -> Self {
         Self {
             label,
@@ -41,7 +41,7 @@ impl ProgressBar {
     }
 }
 
-impl Component for ProgressBar {
+impl Component for ProgressView {
     fn render(&self) -> impl IntoElement {
         let resolved = crate::theme::resolved();
         let palette = Palette::current();

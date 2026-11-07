@@ -89,14 +89,14 @@ impl Component for MenuButton {
 }
 
 #[derive(PartialEq)]
-pub struct SplitButton {
+pub struct ComboButton {
     label: &'static str,
     items: Vec<MenuItem>,
     on_press: Option<Callback<(), ()>>,
     on_activate: Option<Callback<String, ()>>,
 }
 
-impl SplitButton {
+impl ComboButton {
     pub fn new(label: &'static str, items: Vec<MenuItem>) -> Self {
         Self {
             label,
@@ -117,7 +117,7 @@ impl SplitButton {
     }
 }
 
-impl Component for SplitButton {
+impl Component for ComboButton {
     fn render(&self) -> impl IntoElement {
         let palette = Palette::current();
         let action = use_interaction();
@@ -206,11 +206,11 @@ impl Component for SplitButton {
 }
 
 #[derive(PartialEq)]
-pub struct HelpButton {
+pub struct HelpLink {
     on_press: Option<Callback<(), ()>>,
 }
 
-impl HelpButton {
+impl HelpLink {
     pub fn new() -> Self {
         Self { on_press: None }
     }
@@ -221,13 +221,13 @@ impl HelpButton {
     }
 }
 
-impl Default for HelpButton {
+impl Default for HelpLink {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl Component for HelpButton {
+impl Component for HelpLink {
     fn render(&self) -> impl IntoElement {
         let palette = Palette::current();
         let interaction = use_interaction();
@@ -305,12 +305,12 @@ impl Component for ControlGroup {
 }
 
 #[derive(PartialEq)]
-pub struct ShareButton {
+pub struct ShareLink {
     label: &'static str,
     content: String,
 }
 
-impl ShareButton {
+impl ShareLink {
     pub fn new(label: &'static str, content: impl Into<String>) -> Self {
         Self {
             label,
@@ -332,7 +332,7 @@ pub fn mail_uri(content: &str) -> String {
     format!("mailto:?body={body}")
 }
 
-impl Component for ShareButton {
+impl Component for ShareLink {
     fn render(&self) -> impl IntoElement {
         let content = self.content.clone();
         let is_link = content.starts_with("http://") || content.starts_with("https://");

@@ -117,9 +117,9 @@ every window with `corner_radius` in `window.domain`.
 
 Close, minimize and zoom. `Titlebar`, the `Rail` and
 `Sidebar::traffic_lights(true)` place them with
-`window_traffic_lights(focused, fixed)`, which wires them to `WindowControls`
-and the user's settings. Use that function when a view covers the title bar
-and needs its own lights.
+`TrafficLights::for_window(focused, fixed)`, which wires them to
+`WindowControls` and the user's settings. Use it when a view covers the title
+bar and needs its own lights.
 
 For a standalone set, `TrafficLights` (`bk::traffic`):
 
@@ -235,7 +235,7 @@ In `Unified` the items go in the sidebar column, in the same places.
 ### The sidebar with the `Rail`
 
 With the `Rail`, the traffic lights leave the sidebar. The `Sidebar` then
-raises its first row (the search field in `PreferencesWindow`) to the title
+raises its first row (the search field in `SettingsWindow`) to the title
 bar row; `sidebar_bar_metrics()` gives that row's height and top padding for
 the current sidebar style (52 and 0 for island, 40 and 0 for flat). Switching
 between `Top` and `Rail` slides the row over `DURATION_BASE` with a cubic
@@ -349,7 +349,7 @@ strip at the top (30 px) is the compositor bar, added to the image.
 
 ### What the app does
 
-1. With `Titlebar`, `WindowChrome`, `Sidebar` or `PreferencesWindow`, nothing:
+1. With `Titlebar`, `WindowChrome`, `Sidebar` or `SettingsWindow`, nothing:
    every state above already works.
 2. It leaves room for the bar in content that sits under the overlaid title
    bar:
@@ -364,7 +364,7 @@ strip at the top (30 px) is the compositor bar, added to the image.
    adds its own traffic lights, so the window can leave full screen:
 
    ```rust
-   window_traffic_lights(WindowControls::get().status.read().activated, false)
+   TrafficLights::for_window(WindowControls::get().status.read().activated, false)
    ```
 
 4. For its own behavior (an immersive mode that hides panels), it reads the
@@ -384,7 +384,6 @@ strip at the top (30 px) is the compositor bar, added to the image.
 |---|---|
 | `titlebar::app_id(app_name)` | The default `app_id`: `io.github.hblanqueto.malaysia.<app_name>` |
 | `titlebar::sidebar_bar_metrics()` | `(height, top padding)` of the title bar row beside a sidebar |
-| `titlebar::window_traffic_lights(focused, fixed)` | `TrafficLights` wired to the window ([Traffic lights](#traffic-lights)) |
 | `titlebar::window_drag_handler(fixed)` | The move and double-click handler of the title bar ([Traffic lights](#traffic-lights)) |
 
 Next: [10. Sidebar and split view](10-sidebar.md).

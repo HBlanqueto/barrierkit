@@ -31,7 +31,7 @@ use wayland_protocols_plasma::appmenu::client::org_kde_kwin_appmenu::OrgKdeKwinA
 
 use super::{
     app::AppInstance,
-    app_menu_export::AppMenuAddress,
+    main_menu_export::MainMenuAddress,
     popup::PopupInfo,
     runtime::{Runtime, WindowContext},
     vulkan::{Graphics, GraphicsShared},
@@ -56,9 +56,9 @@ pub(crate) struct SurfaceWindow {
     pub(crate) background_alpha: f32,
     pub(crate) pending_configure: Option<(WindowConfigure, u32)>,
     pub(crate) appmenu: Option<OrgKdeKwinAppmenu>,
-    pub(crate) appmenu_address: Option<AppMenuAddress>,
-    pub(crate) menu_handle: Option<crate::app_menu::MenuHandle>,
-    pub(crate) status_handle: Option<crate::app_menu::MenuHandle>,
+    pub(crate) appmenu_address: Option<MainMenuAddress>,
+    pub(crate) menu_handle: Option<crate::main_menu::MenuHandle>,
+    pub(crate) status_handle: Option<crate::main_menu::MenuHandle>,
     pub(crate) fractional: Option<WpFractionalScaleV1>,
     pub(crate) viewport: Option<WpViewport>,
     pub(crate) context: Option<WindowContext>,

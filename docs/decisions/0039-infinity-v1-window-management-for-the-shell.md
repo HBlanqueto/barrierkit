@@ -77,7 +77,7 @@ management for the shell components, starting with the menubar.
 | Version | Adds |
 |---|---|
 | 1 | `arrange`, `arrange_pair`, `arrange_quarters`, `restore`, `set_fullscreen`, `restorable` and `destroy` |
-| 2 | The `app_menu` event |
+| 2 | The `main_menu` event |
 | 3 | The `gtk_menus` event |
 | 4 | The `force_quit` request |
 | 5 | The `space` event and the `focus_bar` enum |

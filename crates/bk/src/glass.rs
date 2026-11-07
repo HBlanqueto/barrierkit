@@ -123,13 +123,24 @@ pub(crate) fn fullscreen_backdrop(
     }
 }
 
-pub fn top_glass() -> Element {
-    fullscreen_backdrop(
-        FullscreenBar::ProgressiveGlass,
-        GlassEdge::Top,
-        FULLSCREEN_GLASS.height,
-        1.0,
-    )
+#[derive(Default)]
+pub struct TopGlass;
+
+impl TopGlass {
+    pub fn new() -> Self {
+        Self
+    }
+}
+
+impl From<TopGlass> for Element {
+    fn from(_: TopGlass) -> Self {
+        fullscreen_backdrop(
+            FullscreenBar::ProgressiveGlass,
+            GlassEdge::Top,
+            FULLSCREEN_GLASS.height,
+            1.0,
+        )
+    }
 }
 
 fn strength_at(stops: &[(f32, f32)], t: f32) -> f32 {
@@ -264,19 +275,32 @@ impl ElementExt for Glass {
 }
 
 #[derive(PartialEq)]
-struct Material {
+struct MaterialElement {
     corner_radius: f32,
     layout: LayoutData,
 }
 
-pub fn material(corner_radius: f32) -> Element {
-    leaf(Material {
-        corner_radius,
-        layout: layout(Size::fill(), Size::fill(), Position::new_absolute()),
-    })
+pub struct Material {
+    corner_radius: f32,
 }
 
-impl ElementExt for Material {
+impl Material {
+    pub fn new(corner_radius: f32) -> Self {
+        Self { corner_radius }
+    }
+}
+
+impl From<Material> for Element {
+    fn from(material: Material) -> Self {
+        let corner_radius = material.corner_radius;
+        leaf(MaterialElement {
+            corner_radius,
+            layout: layout(Size::fill(), Size::fill(), Position::new_absolute()),
+        })
+    }
+}
+
+impl ElementExt for MaterialElement {
     fn changed(&self, other: &Rc<dyn ElementExt>) -> bool {
         !crate::style_diff(self, other).is_empty()
     }

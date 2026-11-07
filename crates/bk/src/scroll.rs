@@ -8,7 +8,7 @@ use freya_components::scrollviews::{
 use freya_core::prelude::*;
 use torin::prelude::{Area, Direction, Position, Size};
 
-use crate::adornments::divider;
+use crate::adornments::Divider;
 use crate::platform::Timers;
 use crate::style::Palette;
 use crate::theme::color;
@@ -285,7 +285,7 @@ impl Component for ScrollView {
                     )
             }))
             .maybe_child(self.top_line.then(|| {
-                divider()
+                Divider::new()
                     .position(Position::new_absolute().top(0.0).left(0.0))
                     .layer(THUMB_LAYER)
                     .background(color(crate::sidebar::sidebar_palette().line))

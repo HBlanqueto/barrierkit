@@ -56,7 +56,7 @@ for every app goes into Tengen's tokens. See [4](04-appearance-and-tokens.md).
 ## How do I make the sidebar fixed or change its limits?
 
 `SplitView::resizable(false)` and `SplitView::sidebar_range(min, max)`; in
-`PreferencesWindow`, `sidebar_resizable` and `sidebar_range`. See
+`SettingsWindow`, `sidebar_resizable` and `sidebar_range`. See
 [10](10-sidebar.md) and [12](12-patterns.md).
 
 ## Where does an app store its data?

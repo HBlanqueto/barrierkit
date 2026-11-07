@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex, MutexGuard};
 
 use zbus::zvariant::OwnedValue;
 
-use crate::app_menu::{AppMenu, IdMap, check_state, dbusmenu_label, owned};
+use crate::main_menu::{IdMap, MainMenu, check_state, dbusmenu_label, owned};
 use crate::menu::{MenuItem, shortcut_keys};
 
 pub type LayoutItem = (i32, HashMap<String, OwnedValue>, Vec<OwnedValue>);
@@ -15,12 +15,12 @@ pub(crate) type Properties = (i32, HashMap<String, OwnedValue>);
 pub(crate) type RemovedProperties = (i32, Vec<String>);
 
 pub(crate) struct RegisteredMenu {
-    pub(crate) handle: crate::app_menu::MenuHandle,
+    pub(crate) handle: crate::main_menu::MenuHandle,
     pub(crate) last_layout: Mutex<Option<LayoutSnapshot>>,
 }
 
 impl RegisteredMenu {
-    pub(crate) fn new(handle: crate::app_menu::MenuHandle) -> Arc<Self> {
+    pub(crate) fn new(handle: crate::main_menu::MenuHandle) -> Arc<Self> {
         Arc::new(Self {
             handle,
             last_layout: Mutex::new(None),
@@ -45,7 +45,7 @@ pub(crate) struct LayoutNode {
     pub(crate) action_id: Option<String>,
 }
 
-pub(crate) fn build_layout(menu: &AppMenu, id_map: &mut IdMap, revision: u32) -> LayoutSnapshot {
+pub(crate) fn build_layout(menu: &MainMenu, id_map: &mut IdMap, revision: u32) -> LayoutSnapshot {
     let mut snapshot = LayoutSnapshot {
         revision,
         nodes: HashMap::new(),

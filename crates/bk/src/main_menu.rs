@@ -4,17 +4,17 @@ use std::sync::{Arc, Mutex};
 use zbus::zvariant::{OwnedValue, Value};
 
 use crate::menu::{CheckState, MenuItem};
-use crate::platform::{AppMenuAddress, WakeHandle};
+use crate::platform::{MainMenuAddress, WakeHandle};
 
 pub mod layout;
 pub(crate) mod server;
 
 #[derive(Clone, Debug, Default, PartialEq)]
-pub struct AppMenu {
+pub struct MainMenu {
     pub menus: Vec<Menu>,
 }
 
-impl AppMenu {
+impl MainMenu {
     pub fn new(menus: Vec<Menu>) -> Self {
         Self { menus }
     }
@@ -44,17 +44,17 @@ pub struct MenuHandle {
     address_callback: AddressCallbackCell,
 }
 
-type AddressCallback = Box<dyn Fn(AppMenuAddress) + Send>;
+type AddressCallback = Box<dyn Fn(MainMenuAddress) + Send>;
 type AddressCallbackCell = Arc<Mutex<Option<AddressCallback>>>;
 
 #[derive(Clone, Debug)]
 struct MenuState {
-    menu: AppMenu,
+    menu: MainMenu,
     revision: u32,
 }
 
 impl MenuHandle {
-    pub(crate) fn new(menu: AppMenu, wake: Option<WakeHandle>) -> Self {
+    pub(crate) fn new(menu: MainMenu, wake: Option<WakeHandle>) -> Self {
         Self {
             state: Arc::new(Mutex::new(MenuState { menu, revision: 1 })),
             wake,
@@ -92,20 +92,20 @@ impl MenuHandle {
     }
 
     #[cfg(test)]
-    pub(crate) fn replace_menu(&self, menu: AppMenu) {
+    pub(crate) fn replace_menu(&self, menu: MainMenu) {
         let mut guard = self.state.lock().expect("menu state poisoned");
         guard.menu = menu;
         guard.revision = guard.revision.wrapping_add(1);
     }
 
-    pub(crate) fn set_address_callback(&self, f: impl Fn(AppMenuAddress) + Send + Sync + 'static) {
+    pub(crate) fn set_address_callback(&self, f: impl Fn(MainMenuAddress) + Send + Sync + 'static) {
         *self
             .address_callback
             .lock()
             .expect("address callback poisoned") = Some(Box::new(f));
     }
 
-    pub(crate) fn deliver_address(&self, address: AppMenuAddress) {
+    pub(crate) fn deliver_address(&self, address: MainMenuAddress) {
         if let Ok(guard) = self.address_callback.lock()
             && let Some(cb) = guard.as_ref()
         {
@@ -147,13 +147,13 @@ impl MenuHandle {
         }
     }
 
-    pub(crate) fn snapshot(&self) -> (AppMenu, u32) {
+    pub(crate) fn snapshot(&self) -> (MainMenu, u32) {
         let state = self.state.lock().expect("menu state poisoned");
         (state.menu.clone(), state.revision)
     }
 }
 
-fn update_item(menu: &mut AppMenu, id: &str, f: &dyn Fn(&mut MenuItem)) -> bool {
+fn update_item(menu: &mut MainMenu, id: &str, f: &dyn Fn(&mut MenuItem)) -> bool {
     menu.menus
         .iter_mut()
         .any(|m| update_menu_items(&mut m.items, id, f))
@@ -222,7 +222,7 @@ pub(crate) fn edits_text(modifiers: Modifiers, key: &Key) -> bool {
         )
 }
 
-pub fn find_menu_shortcut(menu: &AppMenu, modifiers: Modifiers, key: &Key) -> Option<String> {
+pub fn find_menu_shortcut(menu: &MainMenu, modifiers: Modifiers, key: &Key) -> Option<String> {
     menu.menus
         .iter()
         .find_map(|m| find_shortcut_in_items(&m.items, modifiers, key))
@@ -393,7 +393,7 @@ mod tests {
 
     #[test]
     fn disabled_action_does_not_fire() {
-        let menu = AppMenu::new(vec![Menu::new(
+        let menu = MainMenu::new(vec![Menu::new(
             "Archivo",
             vec![MenuItem::Action {
                 id: "save".into(),

@@ -20,7 +20,7 @@ use sctk::reexports::{
 };
 use std::{cell::RefCell, rc::Rc};
 
-use crate::platform::{AppMenuAddress, runtime::Runtime};
+use crate::platform::{MainMenuAddress, runtime::Runtime};
 use crate::shell::InfinityWindowManagerV1;
 use crate::shell::{GtkMenusAddress, ShellState};
 
@@ -33,7 +33,7 @@ pub struct ToplevelInfo {
     pub maximized: bool,
     pub minimized: bool,
     pub restorable: bool,
-    pub app_menu: Option<AppMenuAddress>,
+    pub main_menu: Option<MainMenuAddress>,
     pub gtk_menus: Option<GtkMenusAddress>,
 }
 

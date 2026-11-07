@@ -85,7 +85,7 @@ method changes one field (the fields are also public).
 | `.app_id(id)` | `io.github.hblanqueto.malaysia.<app_name>` | The Wayland `app_id`. [`titlebar::app_id(name)`](09-titlebars.md#helpers) builds the default |
 | `.size((width, height))` | `WINDOW_DEFAULT_SIZE` (640 × 420) | Initial size. A size saved on close wins, clamped to the limits |
 | `.min_size(Some((w, h)))`, `.max_size(..)` | `None` | Limits. Equal limits make the window fixed-size (`WindowStatus::fixed`) |
-| `.menu(AppMenu)` | none | The window's menu bar menu ([13. App](13-app.md)) |
+| `.menu(MainMenu)` | none | The window's menu bar menu ([13. App](13-app.md)) |
 | `.status_item(StatusItem)` | none | A status icon in the menu bar ([13. App](13-app.md)) |
 | `.fullscreen_bar(FullscreenBar)` | `Solid` | How the title bar is drawn over the content in full screen ([9](09-titlebars.md#the-bar-in-full-screen-fullscreenbar)) |
 | `.fullscreen_push(bool)` | `false` | In full screen, the bar pushes the content down instead of covering it ([9](09-titlebars.md#pushing-the-content-fullscreen_push)) |
@@ -170,19 +170,21 @@ along each corner.
 ## Utility windows
 
 A utility window is a floating panel, like SwiftUI's `UtilityWindow` or an
-inspector:
+inspector. `app::UtilityWindow` is in the prelude:
 
 ```rust
-use bk::platform::open_utility_window;
-use freya_core::integration::AppComponent;
-
-open_utility_window(
-    AppComponent::new(Inspector),
-    WindowOptions::new(tr!("inspector"), "notes").size((260, 360)),
-);
+UtilityWindow::new(tr!("inspector"), "notes", || Inspector)
+    .options(|window| window.size((260, 360)))
+    .open();
 ```
 
-1. Call it from a component of the window that owns the panel.
+`UtilityWindow::new(title, name, content)` builds the `WindowOptions` from
+`title` and `name`, as `WindowOptions::new` does. `content` is a closure that
+returns the view. `.options(|window| ..)` changes those options. Unlike
+`Application::window` ([13](13-app.md)), it adds no title bar and no
+background: `content` draws its own `Titlebar` if it wants one.
+
+1. Call `.open()` from a component of the window that owns the panel.
 2. The runner creates another `xdg_toplevel` with `set_parent` towards that
    window, so the compositor keeps it on top and groups it with it.
 3. It takes the parent's `app_id` and neither saves nor restores its size.
@@ -191,7 +193,7 @@ open_utility_window(
    `WindowOptions::panel`. A panel is never the main window: while it holds
    the keyboard, its parent stays active. Without version 3 it behaves like a
    normal window.
-5. Its `Titlebar` switches to `close_only`: a panel does not minimize.
+5. A `Titlebar` inside it switches to `close_only`: a panel does not minimize.
 6. Esc closes it when no text field is focused. Menu shortcuts pressed in it
    go to its parent's menu, as in an `NSPanel`.
 7. Closing it removes only the panel; the app keeps running.
@@ -312,7 +314,7 @@ types text: neither Control, Alt nor Super is held. Shift alone still types.
 
 ## Menu address
 
-`AppMenuAddress { service, path }` is the D-Bus address of a window's menu
+`MainMenuAddress { service, path }` is the D-Bus address of a window's menu
 bar menu. The runner publishes it to the compositor with
 `org_kde_kwin_appmenu`; a shell reads it back for each window
 ([18. Platform](18-platform.md)). `ObjectId` is the Wayland object id

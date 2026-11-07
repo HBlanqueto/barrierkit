@@ -7,7 +7,7 @@ use wayland_protocols_plasma::appmenu::client::{
 use super::runtime::Runtime;
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
-pub struct AppMenuAddress {
+pub struct MainMenuAddress {
     pub service: String,
     pub path: String,
 }

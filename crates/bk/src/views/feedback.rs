@@ -1,3 +1,4 @@
+use crate::elements::forward_container;
 use ctdesign::{
     BODY, DIALOG, DIALOG_ALERT_WIDTH, DIALOG_PADDING, HEADLINE, SETTINGS, SPACE_2, SPACE_4,
 };
@@ -10,7 +11,17 @@ use crate::style::{Palette, text};
 use crate::symbol::{Symbol, symbol};
 use crate::theme::color;
 
-pub fn empty_state(icon: Symbol, title: &'static str) -> Rect {
+pub struct ContentUnavailableView(Rect);
+
+impl ContentUnavailableView {
+    pub fn new(title: &'static str, symbol: Symbol) -> Self {
+        Self(empty_state(symbol, title))
+    }
+}
+
+forward_container!(ContentUnavailableView);
+
+fn empty_state(icon: Symbol, title: &'static str) -> Rect {
     let palette = Palette::current();
     rect()
         .width(Size::fill())
@@ -31,7 +42,17 @@ pub fn empty_state(icon: Symbol, title: &'static str) -> Rect {
         .child(text(title, BODY, palette.secondary_label))
 }
 
-pub fn sheet(content: impl IntoElement) -> Rect {
+pub struct Sheet(Rect);
+
+impl Sheet {
+    pub fn new(content: impl IntoElement) -> Self {
+        Self(sheet(content))
+    }
+}
+
+forward_container!(Sheet);
+
+fn sheet(content: impl IntoElement) -> Rect {
     let palette = Palette::current();
     rect()
         .position(Position::new_absolute().left(0.0).top(0.0))

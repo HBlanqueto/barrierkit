@@ -25,7 +25,7 @@ its import and its layer.
 
 ```text
 ┌───────────────────────────────────────────────────────┐
-│ Layer 3 · Patterns    PreferencesWindow, about_window, │
+│ Layer 3 · Patterns    SettingsWindow, AboutView,       │
 │                       LanguagePicker                   │
 ├───────────────────────────────────────────────────────┤  App (cross-cutting)
 │ Layer 2 · Views       SplitView, Form, Table,          │  Application, Scene,
@@ -48,9 +48,9 @@ modules (not `pub`) are in the last column; an app cannot import them.
 | Layer | Public modules | Internal |
 |---|---|---|
 | 0 · Platform | `platform`, `i18n`, `portal`, `drag`, `notifications`, `secrets` | `session_bus`, `fonts`, `logging` |
-| 1 · Primitives | `elements`, `style`, `theme`, `symbol`, `interaction`, `animation`, `adaptive`, `controls`, `buttons`, `compact`, `choices`, `level`, `progress`, `indicator`, `adornments`, `popup_button`, `combo_box`, `popover`, `tooltip`, `context_menu`, `menu`, `password`, `text_editor`, `rich_text`, `spelling`, `token_field`, `path_control`, `date`, `date_picker`, `color_picker`, `image_well`, `rule_editor`, `print`, `charts`, `canvas`, `glass_container`, `backdrop`, `media`, `video` (feature `video`), `titlebar`, `traffic`, `chrome`, `sidebar`, `app_menu`, `status_item` | `scroll`, `glass`, `controlled` |
+| 1 · Primitives | `elements`, `style`, `theme`, `symbol`, `interaction`, `animation`, `adaptive`, `controls`, `buttons`, `compact`, `choices`, `level`, `progress`, `indicator`, `adornments`, `popup_button`, `combo_box`, `popover`, `menu`, `password`, `text_editor`, `rich_text`, `spelling`, `token_field`, `path_control`, `date`, `date_picker`, `color_picker`, `image_well`, `rule_editor`, `print`, `charts`, `canvas`, `glass_container`, `backdrop`, `media`, `video` (feature `video`), `modifiers`, `titlebar`, `traffic`, `chrome`, `sidebar`, `main_menu`, `status_item` | `scroll`, `glass`, `controlled`, `context_menu`, `tooltip` |
 | 2 · Views | `views` (`collection`, `feedback`, `floating_pane`, `form`, `group`, `navigation`, `search`, `split`, `split_panes`, `table`, `tabs`, `text_view`, `tree`, `window_tabs`) and `font_panel` | — |
-| 3 · Patterns | `patterns` (`about`, `language`, `preferences`) | `patterns::search_popover` |
+| 3 · Patterns | `patterns` (`about`, `language`, `settings`) | `patterns::search_popover` |
 | App | `app` and `prelude` | — |
 | Shell | `shell`, only with the `shell` feature | — |
 
@@ -70,7 +70,7 @@ other token comes from `ctdesign`, which the app then adds as a dependency.
    restoration).
 3. Layer 0 has one exception: `platform` mounts the root of each window
    (`chrome::window_root`), paints its background with `theme`, and serves the
-   menu bar menu and the status item (`app_menu`, `status_item`).
+   menu bar menu and the status item (`main_menu`, `status_item`).
 4. Tests (`#[cfg(test)]`) mount whole windows and may use any layer.
 5. Layer 3 composes only the public API of layer 2. What a pattern needs is
    added to layer 2, so every app gets it.

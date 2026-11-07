@@ -45,6 +45,7 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 | crate `barrier-kit` (`barrier_kit`) | crate `bk`, BarrierKit | 2026-11-07 |
 | crate `vow-design` (`vow_design`), then `ct-design` (`ct_design`) | crate `ctdesign`, CTDesign | 2026-11-07 |
 | crate `vow-appearance` (`vow_appearance`), then `ct-appearance` (`ct_appearance`) | crate `ctappearance`, CTAppearance | 2026-11-07 |
+| The 22 views, modifiers and names listed in [ADR 0063](../decisions/0063-views-as-types-and-swift-names.md#decision) (`divider()`, `empty_state`, `use_tooltip`, `PreferencesWindow`, `AppMenu`, `ProgressBar`…) | `Divider`, `ContentUnavailableView`, `.help`, `SettingsWindow`, `MainMenu`, `ProgressView`… | 2026-11-07 |
 
 ## How to read the tables
 
@@ -87,7 +88,7 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 | BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
 |---|---|---|---|---|---|
 | `symbol::Symbol` | enum | ≈ `Image(systemName:)` names | ≈ `NSImage(systemSymbolName:accessibilityDescription:)` names | Name of a built-in line icon; 36 variants | [4](04-appearance-and-tokens.md#symbols) |
-| `symbol::symbol` | fn | `Image(systemName:)` | `NSImage(systemSymbolName:accessibilityDescription:)` | Draws a symbol at a size and color | [4](04-appearance-and-tokens.md#symbols) |
+| `symbol::Image` | struct | `Image(systemName:)` | `NSImage(systemSymbolName:accessibilityDescription:)` | A symbol as a view; `BODY` size and label color by default | [4](04-appearance-and-tokens.md#symbols) |
 | `register_font` | fn | — | — | Adds a typeface from font file bytes; `false` if not a font | [4](04-appearance-and-tokens.md#fonts) |
 
 ## Helpers
@@ -332,10 +333,10 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 | `compact::ToggleGroup` | struct | — | `≈ NSSegmentedControl` | Row of independent formatting toggles (select-any tracking) | [5](05-controls.md#compact-buttons) |
 | `compact::Face` | enum | — | — | `Bold`, `Italic`, `Underline`: how a toggle's text is drawn | [5](05-controls.md#compact-buttons) |
 | `buttons::MenuButton` | struct | `Menu` | `≈ NSPopUpButton` | Button with a chevron that opens an action menu (pull-down) | [5](05-controls.md#menu-buttons) |
-| `buttons::SplitButton` | struct | `≈ Menu` | `NSComboButton` | Main action plus a chevron that opens a menu | [5](05-controls.md#menu-buttons) |
-| `buttons::HelpButton` | struct | `HelpLink` | `≈ NSButton.BezelStyle.helpButton` | Round "?" help button | [5](05-controls.md#menu-buttons) |
+| `buttons::ComboButton` | struct | `≈ Menu` | `NSComboButton` | Main action plus a chevron that opens a menu | [5](05-controls.md#menu-buttons) |
+| `buttons::HelpLink` | struct | `HelpLink` | `≈ NSButton.BezelStyle.helpButton` | Round "?" help button | [5](05-controls.md#menu-buttons) |
 | `buttons::ControlGroup` | struct | `ControlGroup` | — | Controls joined on one background with separators | [5](05-controls.md#menu-buttons) |
-| `buttons::ShareButton` | struct | `ShareLink` | `≈ NSSharingServicePicker` | Menu to copy, email or open shared content; no share portal | [5](05-controls.md#menu-buttons) |
+| `buttons::ShareLink` | struct | `ShareLink` | `≈ NSSharingServicePicker` | Menu to copy, email or open shared content; no share portal | [5](05-controls.md#menu-buttons) |
 | `buttons::mail_uri` | fn | — | — | Builds a percent-encoded `mailto:?body=` URI | [5](05-controls.md#menu-buttons) |
 | `controls::ToolGroup` | struct | `ToolbarItemGroup` | `NSToolbarItemGroup` | Toolbar items in 36 slots; island capsule with separators | [5](05-controls.md#toolbar-controls) |
 | `compact::ToolbarSearch` | struct | `≈ .searchable(text:placement:prompt:)` | `NSSearchToolbarItem` | Toolbar search field, optionally collapsed to an icon | [5](05-controls.md#toolbar-controls) |
@@ -360,12 +361,12 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 | `controls::Slider` | struct | `Slider` | `NSSlider` | Stepped slider with ticks and optional step captions | [5](05-controls.md#sliders) |
 | `level::LevelSlider` | struct | `Slider` | `NSSlider` | Continuous 0–1 slider, regular or fat with a symbol | [5](05-controls.md#sliders) |
 | `level::LevelStyle` | enum | — | — | `Regular` or `Fat(Symbol)` slider look | [5](05-controls.md#sliders) |
-| `progress::ProgressBar` | struct | `ProgressView` | `NSProgressIndicator` | Determinate or indeterminate progress bar | [5](05-controls.md#progress) |
+| `progress::ProgressView` | struct | `ProgressView` | `NSProgressIndicator` | Determinate or indeterminate progress bar | [5](05-controls.md#progress) |
 | `progress::ProgressRing` | struct | `ProgressViewStyle.circular` | `≈ NSProgressIndicator` | Determinate circular progress ring | [5](05-controls.md#progress) |
 | `progress::Spinner` | struct | `≈ ProgressView` | `≈ NSProgressIndicator` | Indeterminate spinning indicator, spinning style | [5](05-controls.md#progress) |
 | `indicator::CapacityIndicator` | struct | `≈ GaugeStyle.linearCapacity` | `≈ NSLevelIndicator` | Capacity bar, green-yellow-red by thresholds, continuous or discrete | [5](05-controls.md#level-indicators) |
 | `indicator::RelevancyIndicator` | struct | — | `≈ NSLevelIndicator` | Relevancy style: thin lines proportional to the value | [5](05-controls.md#level-indicators) |
-| `indicator::CircularGauge` | struct | `GaugeStyle.accessoryCircular` | — | Open ring with a marker; capacity mode is a filled ring | [5](05-controls.md#level-indicators) |
+| `indicator::Gauge` | struct | `GaugeStyle.accessoryCircular` | — | Open ring with a marker; capacity mode is a filled ring | [5](05-controls.md#level-indicators) |
 | `indicator::RatingIndicator` | struct | — | `≈ NSLevelIndicator` | Five-star rating, editable when it has `on_change` | [5](05-controls.md#level-indicators) |
 | `indicator::level_color` | fn | — | — | Index 0–2 of the capacity color for a value | [5](05-controls.md#level-indicators) |
 | `indicator::gauge_marker` | fn | — | — | Center of the gauge marker for a value | [5](05-controls.md#level-indicators) |
@@ -399,9 +400,9 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 
 | BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
 |---|---|---|---|---|---|
-| `adornments::badge` | fn | `≈ .badge(_:)` | — | Red capsule counter | [5](05-controls.md#adornments) |
-| `adornments::divider` | fn | `Divider` | `≈ NSBox` | Hairline separator filling the width (separator box) | [5](05-controls.md#adornments) |
-| `adornments::avatar` | fn | — | — | Circle with initials | [5](05-controls.md#adornments) |
+| `adornments::Badge` | struct | `≈ .badge(_:)` | — | Red capsule counter | [5](05-controls.md#adornments) |
+| `adornments::Divider` | struct | `Divider` | `≈ NSBox` | Hairline separator filling the width | [5](05-controls.md#adornments) |
+| `adornments::Avatar` | struct | — | — | Circle with initials | [5](05-controls.md#adornments) |
 | `adornments::Link` | struct | `Link` | — | Pressable text in the link color | [5](05-controls.md#adornments) |
 | `controls::ScrollView` | struct | `ScrollView` | `NSScrollView` | Scrolling viewport with overlay bar and edge effect | [5](05-controls.md#scrolling) |
 | `controls::ScrollController` | struct | `≈ ScrollViewProxy` | `≈ NSClipView` | Scrolls a `ScrollView` from code | [5](05-controls.md#scrolling) |
@@ -410,11 +411,11 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 | `drag::use_drag_source` | fn | `≈ .draggable(_:)` | — | Creates a `DragSource` | [5](05-controls.md#drag-source) |
 | `drag::DragPayload` | enum | — | `≈ NSDraggingItem` | `Files(Vec<PathBuf>)` or `Text(String)` to drag | [5](05-controls.md#drag-source) |
 | `drag::URI_LIST` | constant | — | `≈ NSPasteboard.PasteboardType.fileURL` | MIME type `text/uri-list` | [5](05-controls.md#drag-source) |
-| `canvas::canvas` | fn | `Canvas` | `≈ NSView` | Element that paints with Skia, repainting on a new revision | [5](05-controls.md#canvas) |
+| `canvas::Canvas` | struct | `Canvas` | `≈ NSView` | Element that paints with Skia, repainting on a new revision | [5](05-controls.md#canvas) |
 | `canvas::CanvasContext` | struct | `GraphicsContext` | `NSGraphicsContext` | Skia canvas, logical size, scale and fonts for a painter | [5](05-controls.md#canvas) |
 | `interaction::Interaction` | struct | — | `≈ NSTrackingArea` | Hover, press and focus state of a custom control | [5](05-controls.md#building-a-new-control) |
 | `interaction::use_interaction` | fn | `≈ .onHover(perform:)` | — | Creates an `Interaction` | [5](05-controls.md#building-a-new-control) |
-| `interaction::ring` | fn | — | `≈ NSView.drawFocusRingMask()` | Ring of a given color around an element | [5](05-controls.md#building-a-new-control) |
+| `modifiers::ViewModifiers::focus_ring` | method | — | `≈ NSView.drawFocusRingMask()` | Ring of a given color around an element with children | [7](07-menus-and-popovers.md#focus_ring) |
 
 ## Text editing
 
@@ -509,10 +510,10 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 
 | BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
 |---|---|---|---|---|---|
-| `context_menu::context_menu` | fn | `.contextMenu(menuItems:)` | `NSMenu.popUpContextMenu(_:with:for:)` | Opens a menu at the pointer on secondary click | [7](07-menus-and-popovers.md#context-menu) |
-| `popover::show_popover` | fn | `.popover(isPresented:attachmentAnchor:arrowEdge:content:)` | `NSPopover` | Opens content in a popover with an arrow below an area | [7](07-menus-and-popovers.md#popover) |
-| `tooltip::use_tooltip` | fn | `.help(_:)` | `NSView.toolTip` | Hook that creates a tooltip with a fixed text | [7](07-menus-and-popovers.md#tooltip) |
-| `tooltip::Tooltip` | struct | `.help(_:)` | `NSView.toolTip` | A tooltip; `attach` shows it after a 1 s hover | [7](07-menus-and-popovers.md#tooltip) |
+| `modifiers::ViewModifiers` | trait | `View` modifiers | — | SwiftUI-style modifiers for every element with events | [7](07-menus-and-popovers.md#view-modifiers) |
+| `modifiers::ViewModifiers::context_menu` | method | `.contextMenu(menuItems:)` | `NSMenu.popUpContextMenu(_:with:for:)` | Opens a menu at the pointer on secondary click | [7](07-menus-and-popovers.md#context_menu) |
+| `popover::Popover` | struct | `.popover(isPresented:attachmentAnchor:arrowEdge:content:)` | `NSPopover` | Content in a popover with an arrow; `.show(anchor)` opens it below an area | [7](07-menus-and-popovers.md#popover) |
+| `modifiers::ViewModifiers::help` | method | `.help(_:)` | `NSView.toolTip` | Tooltip with a fixed text after a 1 s hover | [7](07-menus-and-popovers.md#help-tooltips) |
 
 ## Windows
 
@@ -524,11 +525,11 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 | `platform::WindowStatus` | struct | — | — | Configure state: activated, maximized, fullscreen, decoration, fixed | [8](08-windows.md#window-state) |
 | `platform::DecorationResponse` | enum | — | — | Who draws the title bar: `Client` or `Server` | [8](08-windows.md#window-state) |
 | `platform::WindowEdge` | enum | — | — | Edge or corner for a compositor resize | [8](08-windows.md#resizing-from-the-edges) |
-| `platform::open_utility_window` | fn | `UtilityWindow` | `≈ NSPanel` | Opens a floating panel child of the current window | [8](08-windows.md#utility-windows) |
+| `app::UtilityWindow` | struct | `UtilityWindow` | `≈ NSPanel` | A floating panel child of the current window; `.open()` shows it | [8](08-windows.md#utility-windows) |
 | `platform::PanelBehavior` | struct | — | `≈ NSPanel` | Panel flags: hides on deactivate, floating, key only if needed | [8](08-windows.md#utility-windows) |
 | `platform::FullscreenBar` | enum | — | — | Overlaid full-screen title bar: `Solid`, `Glass`, `ProgressiveGlass` | [9](09-titlebars.md#the-bar-in-full-screen-fullscreenbar) |
 | `platform::Bar` | enum | — | `≈ NSWindow.ToolbarStyle` | Bar the window draws, for its corner: `Titlebar`, `Compact`, `Unified`, `Utility` | [9](09-titlebars.md#corner-radius) |
-| `platform::AppMenuAddress` | struct | — | — | D-Bus service and path of a window's menu bar menu | [8](08-windows.md#menu-address) |
+| `platform::MainMenuAddress` | struct | — | — | D-Bus service and path of a window's menu bar menu | [8](08-windows.md#menu-address) |
 | `platform::ObjectId` | struct | — | — | Wayland object id, re-exported from `wayland-backend` | [8](08-windows.md#menu-address) |
 | `platform::RunError` | enum | — | — | Why a window cannot run: display, protocol, Vulkan, event loop, I/O | [8](08-windows.md#errors) |
 
@@ -558,7 +559,7 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 |---|---|---|---|---|---|
 | `titlebar::Titlebar` | struct | `≈ .toolbar(content:)` | `≈ NSToolbar` | Client-side title bar: traffic lights, left and right items, title | [9](09-titlebars.md#titlebar) |
 | `traffic::TrafficLights` | struct | — | `≈ NSWindow.standardWindowButton(_:)` | Close, minimize and zoom buttons | [9](09-titlebars.md#traffic-lights) |
-| `titlebar::window_traffic_lights` | fn | — | `≈ NSWindow.standardWindowButton(_:)` | Traffic lights wired to the window and user settings | [9](09-titlebars.md#traffic-lights) |
+| `traffic::TrafficLights::for_window` | fn | — | `≈ NSWindow.standardWindowButton(_:)` | Traffic lights wired to the window and user settings | [9](09-titlebars.md#traffic-lights) |
 | `titlebar::window_drag_handler` | fn | — | `≈ NSWindow.performDrag(with:)` | Press handler that moves the window or runs the double-click action | [9](09-titlebars.md#traffic-lights) |
 | `titlebar::sidebar_bar_metrics` | fn | — | — | Height and top padding of the title bar row beside a sidebar | [9](09-titlebars.md#the-sidebar-with-the-rail) |
 | `titlebar::app_id` | fn | — | — | Default Wayland app id for an app name | [9](09-titlebars.md#helpers) |
@@ -580,7 +581,7 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 | `sidebar::SidebarBackdrop` | enum | — | — | Island look over a tinted backdrop: `Clear` or `Tinted` | [10](10-sidebar.md#sidebarbackdrop) |
 | `sidebar::SidebarControl` | struct | ≈ `NavigationSplitViewVisibility` | ≈ `NSSplitViewController.toggleSidebar(_:)` | Handle to toggle, dismiss and read the enclosing `SplitView`'s sidebar | [10](10-sidebar.md#sidebarcontrol) |
 | `sidebar::sidebar_control` | fn | — | — | The enclosing `SplitView`'s `SidebarControl`, or `None` outside one | [10](10-sidebar.md#sidebarcontrol) |
-| `sidebar::symbol_tile` | fn | — | — | The colored square tile with a white symbol of a sidebar item | [10](10-sidebar.md#symbol_tile) |
+| `sidebar::SymbolTile` | struct | — | — | The colored square tile with a white symbol; `.rim(color)` adds a border | [10](10-sidebar.md#symboltile) |
 | `views::split::SplitView` | struct | `NavigationSplitView` | `NSSplitViewController` | Sidebar, detail and optional inspector; resizes, hides and collapses the sidebar | [10](10-sidebar.md#splitview) |
 | `views::split::SidebarLayout` | struct | — | — | Sidebar width and visibility reported by `on_layout`, serializable | [10](10-sidebar.md#sidebarlayout) |
 | `views::split::NarrowSidebar` | enum | — | — | Where the sidebar opens in narrow windows: `Overlay` or `Push` | [10](10-sidebar.md#narrow-windows) |
@@ -610,7 +611,7 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 | `views::collection::select` | fn | — | — | Click selection rule: plain, Ctrl/Super toggle, Shift range | [11](11-views.md#select) |
 | `views::tree::TreeNode` | struct | — | ≈ `NSTreeNode` | A node with title, optional icon and children | [11](11-views.md#treenode) |
 | `views::tree::OutlineView` | struct | `OutlineGroup` | `NSOutlineView` | A tree as indented rows with disclosure chevrons | [11](11-views.md#outlineview) |
-| `views::tree::ColumnBrowser` | struct | — | `NSBrowser` | A tree as Finder-style columns | [11](11-views.md#columnbrowser) |
+| `views::tree::Browser` | struct | — | `NSBrowser` | A tree as Finder-style columns | [11](11-views.md#browser) |
 | `views::tree::visible_rows` | fn | — | — | Path and depth of each row shown for a set of open paths | [11](11-views.md#tree-helpers) |
 | `views::tree::node_at` | fn | — | — | The node at a path, or `None` | [11](11-views.md#tree-helpers) |
 
@@ -630,8 +631,8 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 
 | BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
 |---|---|---|---|---|---|
-| `views::feedback::empty_state` | fn | `ContentUnavailableView` | — | A faint symbol over a line of text for an empty view | [11](11-views.md#empty_state) |
-| `views::feedback::sheet` | fn | `.sheet(isPresented:onDismiss:content:)` | `NSWindow.beginSheet(_:completionHandler:)` | A dialog attached to the window's top edge over a scrim | [11](11-views.md#sheet) |
+| `views::feedback::ContentUnavailableView` | struct | `ContentUnavailableView` | — | A faint symbol over a line of text for an empty view | [11](11-views.md#contentunavailableview) |
+| `views::feedback::Sheet` | struct | `.sheet(isPresented:onDismiss:content:)` | `NSWindow.beginSheet(_:completionHandler:)` | A dialog attached to the window's top edge over a scrim | [11](11-views.md#sheet) |
 | `views::feedback::Alert` | struct | `.alert(_:isPresented:actions:message:)` | `NSAlert` | A sheet with title, message, two buttons and optional suppression checkbox | [11](11-views.md#alert) |
 
 ## Navigation and search
@@ -639,7 +640,7 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 | BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
 |---|---|---|---|---|---|
 | `views::navigation::History` | struct | — | — | A back-and-forward list of pages | [11](11-views.md#history) |
-| `views::navigation::navigation_buttons` | fn | — | — | Back and forward buttons in a tool group, with Alt+arrow shortcuts | [11](11-views.md#navigation_buttons) |
+| `views::navigation::NavigationButtons` | struct | — | — | Back and forward buttons in a tool group, with Alt+arrow shortcuts | [11](11-views.md#navigationbuttons) |
 | `views::navigation::GO_BACK`, `views::navigation::GO_FORWARD` | constant | — | — | The Back (Alt+←) and Forward (Alt+→) actions | [11](11-views.md#go_back-and-go_forward) |
 | `views::search::SearchIndex` | struct | — | — | Entries searched by title and keywords, ignoring case and accents | [11](11-views.md#searchindex) |
 | `views::search::Entry` | struct | — | — | One search entry: key, title and keywords | [11](11-views.md#entry) |
@@ -650,19 +651,19 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 
 | BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
 |---|---|---|---|---|---|
-| `adaptive::use_breakpoint` | fn | ≈ `EnvironmentValues.horizontalSizeClass` | — | Creates a width reader for an element | [11](11-views.md#use_breakpoint) |
-| `adaptive::Adaptive` | struct | — | — | The width reader: `attach` measures, `current` gives the breakpoint | [11](11-views.md#use_breakpoint) |
-| `adaptive::Breakpoint` | enum | ≈ `UserInterfaceSizeClass` | — | Width class: `Compact`, `Medium`, `Wide`; three classes, not two | [11](11-views.md#breakpoint) |
+| `adaptive::use_size_class` | fn | ≈ `EnvironmentValues.horizontalSizeClass` | — | Creates a width reader for an element | [11](11-views.md#use_size_class) |
+| `adaptive::SizeClassReader` | struct | — | — | The width reader: `attach` measures, `current` gives the breakpoint | [11](11-views.md#use_size_class) |
+| `adaptive::SizeClass` | enum | ≈ `UserInterfaceSizeClass` | — | Width class: `Compact`, `Medium`, `Wide`; three classes, not two | [11](11-views.md#sizeclass) |
 
 ## Patterns
 
 | BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
 |---|---|---|---|---|---|
-| `patterns::preferences::PreferencesWindow` | struct | ≈ `Settings` | — | Settings window with pane sidebar, search, history and saved state | [12](12-patterns.md#preferenceswindow) |
-| `patterns::preferences::Pane` | struct | — | — | One preferences pane: id, title, symbol, tint and form | [12](12-patterns.md#pane) |
-| `patterns::preferences::PaneGroup` | struct | — | — | Panes under an optional sidebar section title | [12](12-patterns.md#panegroup) |
-| `patterns::preferences::index` | fn | — | — | Builds the search index over panes and their rows | [12](12-patterns.md#index) |
-| `patterns::about::about_window` | fn | — | ≈ `NSApplication.orderFrontStandardAboutPanel(_:)` | Content of an About window: icon, name, version, copyright | [12](12-patterns.md#about_window) |
+| `patterns::settings::SettingsWindow` | struct | ≈ `Settings` | — | Settings window with pane sidebar, search, history and saved state | [12](12-patterns.md#settingswindow) |
+| `patterns::settings::Pane` | struct | — | — | One preferences pane: id, title, symbol, tint and form | [12](12-patterns.md#pane) |
+| `patterns::settings::PaneGroup` | struct | — | — | Panes under an optional sidebar section title | [12](12-patterns.md#panegroup) |
+| `patterns::settings::index` | fn | — | — | Builds the search index over panes and their rows | [12](12-patterns.md#index) |
+| `patterns::about::AboutView` | struct | — | ≈ `NSApplication.orderFrontStandardAboutPanel(_:)` | Content of an About window: icon, name, copyright, optional version | [12](12-patterns.md#aboutview) |
 | `patterns::language::LanguagePicker` | struct | — | — | Pop-up that writes the app or system language to a domain file | [12](12-patterns.md#languagepicker) |
 | `patterns::language::app_language_row` | fn | — | — | A "Language" form row with the app's picker | [12](12-patterns.md#app_language_row-and-system_language_row) |
 | `patterns::language::system_language_row` | fn | — | — | A "Language" form row with the system-wide picker | [12](12-patterns.md#app_language_row-and-system_language_row) |
@@ -690,17 +691,17 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 
 | BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
 |---|---|---|---|---|---|
-| `app_menu::AppMenu` | struct | `Commands` | `NSApplication.mainMenu` | The window's menu bar menu, published over dbusmenu | [13](13-app.md#menu-bar-menu) |
-| `app_menu::Menu` | struct | `CommandMenu` | `NSMenu` | One top-level menu: a title and its items | [13](13-app.md#menu-bar-menu) |
-| `app_menu::MenuHandle` | struct | — | ≈ `NSMenu` | Live handle to the window's menu: `update`, `set_menu_items` | [13](13-app.md#changing-the-menu-live) |
-| `app_menu::use_menu_enabled` | fn | `.disabled(_:)` | `NSMenuItemValidation` | Hook that enables or disables a menu item when the value changes | [13](13-app.md#changing-the-menu-live) |
-| `app_menu::use_menu_label` | fn | — | `NSMenuItem.title` | Hook that changes a menu item's label | [13](13-app.md#changing-the-menu-live) |
-| `app_menu::use_menu_checked` | fn | — | `NSMenuItem.state` | Hook that sets a menu item's checkbox | [13](13-app.md#changing-the-menu-live) |
-| `app_menu::use_submenu_items` | fn | — | `NSMenuItem.submenu` | Hook that replaces a submenu's children | [13](13-app.md#changing-the-menu-live) |
-| `app_menu::use_menu_update` | fn | — | — | Hook that applies any change to a menu item when a value changes | [13](13-app.md#changing-the-menu-live) |
-| `app_menu::find_menu_shortcut` | fn | — | `NSMenu.performKeyEquivalent(with:)` | Finds the enabled action whose shortcut matches a key press | [13](13-app.md#changing-the-menu-live) |
-| `app_menu::layout::DbusMenuLayout` | type | — | — | dbusmenu `GetLayout` reply: revision and root item | [13](13-app.md#menu-bar-menu) |
-| `app_menu::layout::LayoutItem` | type | — | — | dbusmenu layout node: id, properties, children | [13](13-app.md#menu-bar-menu) |
+| `main_menu::MainMenu` | struct | `Commands` | `NSApplication.mainMenu` | The window's menu bar menu, published over dbusmenu | [13](13-app.md#menu-bar-menu) |
+| `main_menu::Menu` | struct | `CommandMenu` | `NSMenu` | One top-level menu: a title and its items | [13](13-app.md#menu-bar-menu) |
+| `main_menu::MenuHandle` | struct | — | ≈ `NSMenu` | Live handle to the window's menu: `update`, `set_menu_items` | [13](13-app.md#changing-the-menu-live) |
+| `main_menu::use_menu_enabled` | fn | `.disabled(_:)` | `NSMenuItemValidation` | Hook that enables or disables a menu item when the value changes | [13](13-app.md#changing-the-menu-live) |
+| `main_menu::use_menu_label` | fn | — | `NSMenuItem.title` | Hook that changes a menu item's label | [13](13-app.md#changing-the-menu-live) |
+| `main_menu::use_menu_checked` | fn | — | `NSMenuItem.state` | Hook that sets a menu item's checkbox | [13](13-app.md#changing-the-menu-live) |
+| `main_menu::use_submenu_items` | fn | — | `NSMenuItem.submenu` | Hook that replaces a submenu's children | [13](13-app.md#changing-the-menu-live) |
+| `main_menu::use_menu_update` | fn | — | — | Hook that applies any change to a menu item when a value changes | [13](13-app.md#changing-the-menu-live) |
+| `main_menu::find_menu_shortcut` | fn | — | `NSMenu.performKeyEquivalent(with:)` | Finds the enabled action whose shortcut matches a key press | [13](13-app.md#changing-the-menu-live) |
+| `main_menu::layout::DbusMenuLayout` | type | — | — | dbusmenu `GetLayout` reply: revision and root item | [13](13-app.md#menu-bar-menu) |
+| `main_menu::layout::LayoutItem` | type | — | — | dbusmenu layout node: id, properties, children | [13](13-app.md#menu-bar-menu) |
 
 ## Undo
 
@@ -737,7 +738,7 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 | `status_item::StatusItem` | struct | `MenuBarExtra` | `NSStatusItem` | Status area icon with a menu, over StatusNotifierItem | [13](13-app.md#status-item) |
 | `status_item::STATUS_ITEM_ACTIVATE` | constant | — | — | Action id sent when the status icon is clicked | [13](13-app.md#status-item) |
 | `status_item::Pixmaps` | type | — | — | StatusNotifierItem `IconPixmap` type: width, height, ARGB bytes | [13](13-app.md#status-item) |
-| `notifications::Notice` | struct | — | ≈ `UNMutableNotificationContent` | A notification's app name, desktop entry, summary, body and action | [13](13-app.md#notifications) |
+| `notifications::Notification` | struct | — | ≈ `UNMutableNotificationContent` | A notification's app name, desktop entry, summary, body and action | [13](13-app.md#notifications) |
 | `notifications::post` | fn | — | ≈ `UNUserNotificationCenter` | Posts a notification; the callback gets the activation token on click | [13](13-app.md#notifications) |
 | `notifications::play_event_sound` | fn | — | ≈ `NSSound` | Plays a sound from the freedesktop sound theme | [13](13-app.md#notifications) |
 | `secrets::Secrets` | struct | — | ≈ `SecItemCopyMatching(_:_:)` | Session with the Secret Service keyring: search, read, create, delete | [13](13-app.md#secrets) |
@@ -772,10 +773,10 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 | `media::MediaButton` | struct | — | — | Large light pill button with an optional symbol, for media views | [15](15-backdrops-and-media.md#media) |
 | `media::RoundButton` | struct | — | — | Round glass button with a symbol; filled light when selected | [15](15-backdrops-and-media.md#media) |
 | `media::ScrimEdge` | enum | — | — | The solid edge of a scrim: `Leading` or `Bottom` | [15](15-backdrops-and-media.md#media) |
-| `media::scrim` | fn | — | — | Gradient that blends an image into the ground color | [15](15-backdrops-and-media.md#media) |
+| `media::Scrim` | struct | — | — | Gradient that blends an image into the ground color | [15](15-backdrops-and-media.md#media) |
 | `media::ground` | fn | — | — | The color under the content: backdrop average or window background | [15](15-backdrops-and-media.md#media) |
-| `media::material` | fn | `Material` | `NSVisualEffectView` | Blurred, tinted layer with a rim that fills its parent | [15](15-backdrops-and-media.md#media) |
-| `media::top_glass` | fn | ≈ `.scrollEdgeEffectStyle(_:for:)` | — | Progressive glass band along the top edge | [15](15-backdrops-and-media.md#media) |
+| `media::Material` | struct | `Material` | `NSVisualEffectView` | Blurred, tinted layer with a rim that fills its parent | [15](15-backdrops-and-media.md#media) |
+| `media::TopGlass` | struct | ≈ `.scrollEdgeEffectStyle(_:for:)` | — | Progressive glass band along the top edge | [15](15-backdrops-and-media.md#media) |
 | `media::use_artwork` | fn | ≈ `AsyncImage` | — | Hook that loads and decodes an image file in the background | [15](15-backdrops-and-media.md#media) |
 | `media::use_artwork_from` | fn | ≈ `AsyncImage` | — | Hook that decodes image bytes from any loader in the background | [15](15-backdrops-and-media.md#media) |
 | `glass_container::GlassContainer` | struct | `GlassEffectContainer` | `NSGlassEffectContainerView` | Row of glass shapes that merge when close and morph on change | [15](15-backdrops-and-media.md#glass-that-merges) |

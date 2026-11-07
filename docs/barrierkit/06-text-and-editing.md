@@ -239,7 +239,7 @@ use ([subsetter](https://docs.rs/subsetter/0.2.6)), with a `ToUnicode` map for c
 without outlines, such as color emoji, are painted as images at 300 dpi.
 
 `PrintPreview::new(setup, &pages)` shows the images of `text_pages` in a scrolling column, each
-with "Page 1 of 2" below. Put it in a sheet before printing ([8](08-windows.md)).
+with "Page 1 of 2" below. Put it in a [`Sheet`](11-views.md#sheet) before printing.
 
 ```rust
 let setup = PageSetup::default();

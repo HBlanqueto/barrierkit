@@ -13,7 +13,7 @@ use zbus::object_server::SignalEmitter;
 use zbus::proxy::CacheProperties;
 use zbus::zvariant::{OwnedObjectPath, OwnedValue};
 
-use crate::app_menu::layout::{DbusMenuLayout, LayoutItem};
+use crate::main_menu::layout::{DbusMenuLayout, LayoutItem};
 use crate::menu::{CheckState, MenuItem};
 use crate::status_item::Pixmaps;
 

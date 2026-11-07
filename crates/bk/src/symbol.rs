@@ -1,7 +1,7 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
 
-use ctdesign::{Rgba, SYMBOL};
+use ctdesign::{BODY, Rgba, SYMBOL};
 use freya_components::svg_viewer::SvgViewer;
 use freya_core::prelude::*;
 use torin::prelude::Size;
@@ -126,7 +126,43 @@ fn source(symbol: Symbol) -> Bytes {
     })
 }
 
-pub fn symbol(symbol: Symbol, size: f32, color: Rgba) -> SvgViewer {
+#[derive(Clone, Copy, PartialEq)]
+pub struct Image {
+    symbol: Symbol,
+    size: f32,
+    color: Option<Rgba>,
+}
+
+impl Image {
+    pub fn system(symbol: Symbol) -> Self {
+        Self {
+            symbol,
+            size: BODY.size as f32,
+            color: None,
+        }
+    }
+
+    pub fn size(mut self, size: f32) -> Self {
+        self.size = size;
+        self
+    }
+
+    pub fn color(mut self, color: Rgba) -> Self {
+        self.color = Some(color);
+        self
+    }
+}
+
+impl From<Image> for Element {
+    fn from(image: Image) -> Self {
+        let color = image
+            .color
+            .unwrap_or_else(|| crate::style::Palette::current().label);
+        symbol(image.symbol, image.size, color).into_element()
+    }
+}
+
+pub(crate) fn symbol(symbol: Symbol, size: f32, color: Rgba) -> SvgViewer {
     SvgViewer::new(source(symbol))
         .width(Size::px(size))
         .height(Size::px(size))

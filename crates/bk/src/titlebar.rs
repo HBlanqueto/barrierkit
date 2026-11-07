@@ -195,7 +195,9 @@ impl Component for Titlebar {
             Some(
                 rect()
                     .opacity(lights_opacity)
-                    .child(window_traffic_lights(status.activated, fixed).close_only(close_only))
+                    .child(
+                        TrafficLights::for_window(status.activated, fixed).close_only(close_only),
+                    )
                     .into_element(),
             )
         };
@@ -472,24 +474,27 @@ pub fn sidebar_bar_metrics() -> (f32, f32) {
     }
 }
 
-pub fn window_traffic_lights(focused: bool, fixed: bool) -> TrafficLights {
-    let green = green_action(window_behavior().green_button, fixed);
-    TrafficLights::new()
-        .round(
-            crate::chrome::chrome_style().round_lights
-                || crate::theme::resolved().traffic_shape == ctappearance::TrafficLightShape::Round,
-        )
-        .focused(focused)
-        .zoom_supported(green != TitlebarAction::None)
-        .fixed_width(fixed)
-        .on_action(move |kind| {
-            let controls = WindowControls::get();
-            match kind {
-                ButtonKind::Close => controls.close(),
-                ButtonKind::Minimize => controls.minimize(),
-                ButtonKind::Maximize => run_action(&controls, green),
-            }
-        })
+impl TrafficLights {
+    pub fn for_window(focused: bool, fixed: bool) -> Self {
+        let green = green_action(window_behavior().green_button, fixed);
+        TrafficLights::new()
+            .round(
+                crate::chrome::chrome_style().round_lights
+                    || crate::theme::resolved().traffic_shape
+                        == ctappearance::TrafficLightShape::Round,
+            )
+            .focused(focused)
+            .zoom_supported(green != TitlebarAction::None)
+            .fixed_width(fixed)
+            .on_action(move |kind| {
+                let controls = WindowControls::get();
+                match kind {
+                    ButtonKind::Close => controls.close(),
+                    ButtonKind::Minimize => controls.minimize(),
+                    ButtonKind::Maximize => run_action(&controls, green),
+                }
+            })
+    }
 }
 
 pub fn window_drag_handler(fixed: bool) -> impl Fn(Event<MouseEventData>) + Clone {
