@@ -2,6 +2,7 @@ use ctdesign::Rgba;
 use freya_core::prelude::*;
 
 use crate::menu::MenuItem;
+use crate::styles::Painted;
 use crate::styles::{
     ControlState, ControlStyle, Paints, ShadowStyle, ShapeStyle, StateValue, StyleScope, Theme,
     system_effect,
@@ -39,13 +40,10 @@ pub trait ViewModifiers: EventHandlersExt + Sized {
     where
         Self: StyleExt + EffectExt,
     {
-        let paints = Paints::current(ControlState::default(), system_effect);
-        let paint = StateValue::new(style);
-        let view = self.background(paints.fill(&paint));
-        match paints.blur(&paint) {
-            Some(blur) => view.blur(blur),
-            None => view,
-        }
+        self.painted(
+            &Paints::current(ControlState::default(), system_effect),
+            &StateValue::new(style),
+        )
     }
 
     fn shadows(self, shadows: Vec<ShadowStyle>) -> Self

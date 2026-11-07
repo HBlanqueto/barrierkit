@@ -10,6 +10,7 @@ use crate::app::{Action, Shortcut, ShortcutKey};
 use crate::compact::IconButton;
 use crate::i18n::text;
 use crate::sidebar::{SidebarControl, sidebar_control};
+use crate::styles::Painted;
 use crate::styles::{
     ControlState, LayoutDirection, Paints, SplitViewStyle, StateValue, Theme, resolve,
 };
@@ -255,8 +256,7 @@ impl Component for SplitView {
         let mut root = rect()
             .expanded()
             .direction(Direction::Horizontal)
-            .background(paints.fill(&style.background))
-            .map(paints.blur(&style.background), Rect::blur)
+            .painted(&paints, &style.background)
             .on_sized(move |event: Event<SizedEventData>| {
                 window_width.set_if_modified(event.area.size.width);
             })

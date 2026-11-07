@@ -7,6 +7,7 @@ use crate::controls::{dimmed, inner_border, shadowed};
 use crate::i18n::text;
 use crate::interaction::{control_state, use_interaction};
 use crate::media::use_artwork;
+use crate::styles::Painted;
 use crate::styles::{ImageWellStyle, LayoutDirection, Paints, Theme, resolve};
 
 #[derive(PartialEq)]
@@ -74,8 +75,7 @@ impl Component for ImageWell {
             .padding(inset)
             .corner_radius(radius)
             .overflow(Overflow::Clip)
-            .background(paints.fill(&style.background))
-            .map(paints.blur(&style.background), Rect::blur)
+            .painted(&paints, &style.background)
             .map(border, |el, border| {
                 el.border(inner_border(&paints, border))
             })

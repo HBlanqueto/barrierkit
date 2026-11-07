@@ -12,6 +12,7 @@ use crate::interaction::{control_state, use_interaction};
 use crate::platform::WindowControls;
 use crate::scroll::ScrollView;
 use crate::style::{Palette, text};
+use crate::styles::Painted;
 use crate::styles::{
     ControlState, LayoutDirection, Paints, ShapeStyle, SidebarAccountStyle, SidebarItemStyle,
     SidebarSectionStyle, SidebarStyle, SplitViewStyle, StateValue, SymbolTileStyle, Theme,
@@ -161,8 +162,7 @@ impl SymbolTile {
                 style.size,
                 LayoutDirection::LeftToRight,
             ))
-            .background(paints.fill(&style.background))
-            .map(paints.blur(&style.background), Rect::blur)
+            .painted(&paints, &style.background)
             .map(style.border.as_ref(), |el, border| {
                 el.border(inner_border(&paints, border))
             })
@@ -334,8 +334,7 @@ impl Component for Sidebar {
         let sidebar_body = rect()
             .expanded()
             .direction(Direction::Vertical)
-            .background(paints.fill(&style.background))
-            .map(paints.blur(&style.background), Rect::blur)
+            .painted(&paints, &style.background)
             .a11y_role(AccessibilityRole::Navigation)
             .padding(Gaps::new(
                 top_height,
@@ -565,8 +564,7 @@ impl Component for SidebarItem {
             .spacing(style.spacing)
             .padding(Gaps::new(0.0, style.padding_x, 0.0, style.padding_x))
             .corner_radius(corner_radius)
-            .background(paints.fill(background))
-            .map(paints.blur(background), Rect::blur)
+            .painted(&paints, background)
             .a11y_role(AccessibilityRole::ListItem)
             .a11y_alt(self.label.clone())
             .a11y_builder(move |node| {

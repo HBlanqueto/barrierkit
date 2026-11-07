@@ -6,6 +6,7 @@ use crate::backdrop::Tint;
 use crate::controlled::commit;
 use crate::controls::{dimmed, inner_border, shadowed};
 use crate::interaction::{Interaction, use_interaction};
+use crate::styles::Painted;
 use crate::styles::{
     ControlState, LayoutDirection, LevelSliderStyle, Paints, Shape, ShapeStyle, StateValue, Theme,
     resolve,
@@ -159,8 +160,7 @@ impl Component for LevelSlider {
                 .width(Size::px(width))
                 .height(Size::px(height))
                 .corner_radius(shape.corner_radius(width, height, direction))
-                .background(paints.fill(paint))
-                .map(paints.blur(paint), Rect::blur)
+                .painted(&paints, paint)
         };
         let parts_opacity = if enabled {
             style.opacity

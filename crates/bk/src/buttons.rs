@@ -8,6 +8,7 @@ use crate::menu::MenuItem;
 use crate::platform::PopupAnchor;
 use crate::popup_button::open_popover_menu;
 use crate::style::with_font;
+use crate::styles::Painted;
 use crate::styles::{
     ComboButtonStyle, ControlGroupStyle, ControlState, HelpLinkStyle, LayoutDirection,
     MenuButtonStyle, Paints, Theme, resolve,
@@ -64,8 +65,7 @@ impl Component for MenuButton {
             .height(Size::px(style.height))
             .padding(Gaps::new(0.0, style.padding_x, 0.0, style.padding_x))
             .corner_radius(radius)
-            .background(paints.fill(&style.background))
-            .map(paints.blur(&style.background), Rect::blur)
+            .painted(&paints, &style.background)
             .map(style.border.as_ref(), |el, border| {
                 el.border(inner_border(&paints, border))
             })
@@ -173,8 +173,7 @@ impl Component for ComboButton {
             .height(Size::fill())
             .padding(Gaps::new(0.0, style.padding_x, 0.0, style.padding_x))
             .center()
-            .background(action_paints.fill(&style.segment))
-            .map(action_paints.blur(&style.segment), Rect::blur)
+            .painted(&action_paints, &style.segment)
             .map(on_press, |el, on_press| {
                 el.on_press(move |_| on_press.call(()))
             })
@@ -196,8 +195,7 @@ impl Component for ComboButton {
                 style.menu_padding_x,
             ))
             .center()
-            .background(arrow_paints.fill(&style.segment))
-            .map(arrow_paints.blur(&style.segment), Rect::blur)
+            .painted(&arrow_paints, &style.segment)
             .on_press(move |_| {
                 let field = *area.peek();
                 let on_activate = on_activate.clone();
@@ -230,8 +228,7 @@ impl Component for ComboButton {
             .height(Size::px(style.height))
             .corner_radius(radius)
             .overflow(Overflow::Clip)
-            .background(group.fill(&style.background))
-            .map(group.blur(&style.background), Rect::blur)
+            .painted(&group, &style.background)
             .map(style.border.as_ref(), |el, border| {
                 el.border(inner_border(&group, border))
             })
@@ -307,8 +304,7 @@ impl Component for HelpLink {
             .height(Size::px(size))
             .corner_radius(radius)
             .center()
-            .background(paints.fill(&style.background))
-            .map(paints.blur(&style.background), Rect::blur)
+            .painted(&paints, &style.background)
             .map(style.border.as_ref(), |el, border| {
                 el.border(inner_border(&paints, border))
             })
@@ -386,8 +382,7 @@ impl Component for ControlGroup {
                     .shape
                     .corner_radius(height, height, LayoutDirection::LeftToRight),
             )
-            .background(paints.fill(&style.background))
-            .map(paints.blur(&style.background), Rect::blur)
+            .painted(&paints, &style.background)
             .map(style.border.as_ref(), |el, border| {
                 el.border(inner_border(&paints, border))
             })

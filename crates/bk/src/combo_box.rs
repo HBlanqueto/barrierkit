@@ -6,6 +6,7 @@ use crate::controls::{default_pre_key, dimmed, inner_border, input, shadowed, te
 use crate::menu::MenuItem;
 use crate::platform::PopupAnchor;
 use crate::popup_button::open_popover_menu;
+use crate::styles::Painted;
 use crate::styles::{
     ComboBoxStyle, ControlState, LayoutDirection, Paints, ShapeStyle, StateValue, TextFieldStyle,
     Theme, resolve,
@@ -132,8 +133,7 @@ impl Component for ComboBox {
                 LayoutDirection::LeftToRight,
             ))
             .center()
-            .background(paints.fill(&style.button))
-            .map(paints.blur(&style.button), Rect::blur)
+            .painted(&paints, &style.button)
             .map(style.button_border.as_ref(), |el, border| {
                 el.border(inner_border(&paints, border))
             })

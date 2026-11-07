@@ -520,6 +520,18 @@ pub enum LayoutDirection {
     RightToLeft,
 }
 
+pub(crate) trait Painted: StyleExt + EffectExt + Sized {
+    fn painted(self, paints: &Paints, paint: &StateValue<ShapeStyle>) -> Self {
+        let view = self.background(paints.fill(paint));
+        match paints.blur(paint) {
+            Some(blur) => view.blur(blur),
+            None => view,
+        }
+    }
+}
+
+impl<T: StyleExt + EffectExt> Painted for T {}
+
 pub(crate) struct Paints {
     palette: Palette,
     backdrop: Option<Tinted>,

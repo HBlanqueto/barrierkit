@@ -7,6 +7,7 @@ use crate::controls::{dimmed, dimmed_label, inner_border, labeled, shadowed};
 use crate::i18n::text;
 use crate::interaction::{control_state, use_interaction};
 use crate::style::with_font;
+use crate::styles::Painted;
 use crate::styles::{
     Axis, ControlState, IconButtonStyle, LayoutDirection, Paints, StepperStyle, Theme,
     ToggleGroupStyle, ToolbarSearchStyle, resolve,
@@ -97,8 +98,7 @@ impl Component for IconButton {
             .height(Size::px(size))
             .corner_radius(radius)
             .center()
-            .background(paints.fill(&style.background))
-            .map(paints.blur(&style.background), Rect::blur)
+            .painted(&paints, &style.background)
             .map(style.border.as_ref(), |el, border| {
                 el.border(inner_border(&paints, border))
             })
@@ -254,8 +254,7 @@ pub(crate) fn stepper_arrows(
                 .shape
                 .corner_radius(width, height, LayoutDirection::LeftToRight),
         )
-        .background(paints.fill(&style.background))
-        .map(paints.blur(&style.background), Rect::blur)
+        .painted(&paints, &style.background)
         .map(style.border.as_ref(), |el, border| {
             el.border(inner_border(&paints, border))
         })
@@ -365,8 +364,7 @@ impl Component for ToggleGroup {
                 thickness,
                 LayoutDirection::LeftToRight,
             ))
-            .background(paints.fill(&style.background))
-            .map(paints.blur(&style.background), Rect::blur)
+            .painted(&paints, &style.background)
             .map(style.border.as_ref(), |el, border| {
                 el.border(inner_border(&paints, border))
             })
@@ -417,8 +415,7 @@ impl Component for Toggle {
             .height(Size::px(height))
             .corner_radius(radius)
             .center()
-            .background(paints.fill(paint))
-            .map(paints.blur(paint), Rect::blur)
+            .painted(&paints, paint)
             .on_press(move |_| on_press.call(()))
             .child(
                 paragraph()

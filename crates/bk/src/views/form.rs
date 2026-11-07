@@ -6,6 +6,7 @@ use crate::adornments::Divider;
 use crate::controls::inner_border;
 use crate::interaction::{control_state, use_interaction};
 use crate::style::text;
+use crate::styles::Painted;
 use crate::styles::{
     ControlState, FormStyle, LayoutDirection, Paints, ShapeStyle, StateValue, Theme, resolve,
 };
@@ -185,8 +186,7 @@ impl Component for Form {
                         .direction(Direction::Vertical)
                         .corner_radius(corner_radius)
                         .overflow(Overflow::Clip)
-                        .background(paints.fill(&style.background))
-                        .map(paints.blur(&style.background), Rect::blur)
+                        .painted(&paints, &style.background)
                         .map(style.border.as_ref(), |el, border| {
                             el.border(inner_border(&paints, border))
                         })
@@ -304,8 +304,7 @@ impl Component for FormRow {
             })
             .padding(Gaps::new(padding_y, padding_x, padding_y, padding_x))
             .spacing(style.row_spacing)
-            .background(paints.fill(&style.row_background))
-            .map(paints.blur(&style.row_background), Rect::blur)
+            .painted(&paints, &style.row_background)
             .child(labels)
             .child(
                 rect()
@@ -323,9 +322,7 @@ impl Component for FormRow {
             element = interaction.inner_focus_ring(element);
         }
         if self.highlighted {
-            element = element
-                .background(paints.fill(&style.highlight))
-                .map(paints.blur(&style.highlight), Rect::blur);
+            element = element.painted(&paints, &style.highlight);
         }
         let separator = (!self.first).then(|| {
             rect()

@@ -13,6 +13,7 @@ use crate::interaction::{control_state, use_interaction};
 use crate::menu::{CheckState, MenuIcon, MenuItem, MenuView};
 use crate::platform::{PopupAnchor, PopupConstraintAdjustment, PopupGravity, PopupSpec, Popups};
 use crate::style::with_font;
+use crate::styles::Painted;
 use crate::styles::{LayoutDirection, Paints, PopUpButtonStyle, Theme, resolve};
 use crate::symbol::{Symbol, symbol};
 use crate::theme::SurfaceKind;
@@ -86,8 +87,7 @@ impl Component for PopUpButton {
             .height(Size::px(size))
             .corner_radius(radius)
             .center()
-            .background(paints.fill(&style.indicator))
-            .map(paints.blur(&style.indicator), Rect::blur)
+            .painted(&paints, &style.indicator)
             .map(style.indicator_border.as_ref(), |el, border| {
                 el.border(inner_border(&paints, border))
             })

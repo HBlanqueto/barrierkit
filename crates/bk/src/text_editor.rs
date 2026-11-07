@@ -20,6 +20,7 @@ use crate::controls::{dimmed, inner_border, text_style};
 use crate::interaction::ring;
 use crate::scroll::{ScrollView, use_scroll_controller};
 use crate::spelling::{Squiggles, char_index, dictionary, known, misspelled, utf16_range};
+use crate::styles::Painted;
 use crate::styles::{
     ControlState, LayoutDirection, Paints, ShapeStyle, StateValue, TextEditorStyle, Theme, resolve,
 };
@@ -422,8 +423,7 @@ impl Component for TextEditor {
         .width(Size::fill())
         .height(self.height.clone())
         .corner_radius(radius)
-        .background(paints.fill(&style.background))
-        .map(paints.blur(&style.background), Rect::blur)
+        .painted(&paints, &style.background)
         .map(style.border.as_ref(), |el, border| {
             el.border(inner_border(&paints, border))
         })

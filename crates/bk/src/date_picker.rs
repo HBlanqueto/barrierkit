@@ -14,6 +14,7 @@ use crate::platform::{
     PopupAnchor, PopupConstraintAdjustment, PopupGravity, PopupHandle, PopupSpec, Popups,
 };
 use crate::style::with_font;
+use crate::styles::Painted;
 use crate::styles::{
     ControlState, DatePickerStyle, LayoutDirection, Paints, ShapeStyle, StateValue, StepperStyle,
     Theme, resolve,
@@ -207,10 +208,7 @@ impl Component for DatePicker {
             segments.push(
                 rect()
                     .corner_radius(segment_radius)
-                    .maybe(active, |el| {
-                        el.background(paints.fill(&style.selected_segment))
-                            .map(paints.blur(&style.selected_segment), Rect::blur)
-                    })
+                    .maybe(active, |el| el.painted(&paints, &style.selected_segment))
                     .on_press(move |_| {
                         selected.set(index);
                         typed.set(String::new());
@@ -240,8 +238,7 @@ impl Component for DatePicker {
             .height(Size::px(style.height))
             .padding(Gaps::new(0.0, style.padding_x, 0.0, style.padding_x))
             .corner_radius(field_radius)
-            .background(paints.fill(&style.background))
-            .map(paints.blur(&style.background), Rect::blur)
+            .painted(&paints, &style.background)
             .map(style.border.as_ref(), |el, border| {
                 el.border(inner_border(&paints, border))
             })
@@ -417,10 +414,7 @@ impl App for Calendar {
                         .height(Size::fill())
                         .center()
                         .corner_radius(day_radius)
-                        .maybe(chosen, |el| {
-                            el.background(paints.fill(&style.selected_day))
-                                .map(paints.blur(&style.selected_day), Rect::blur)
-                        })
+                        .maybe(chosen, |el| el.painted(&paints, &style.selected_day))
                         .a11y_role(AccessibilityRole::GridCell)
                         .a11y_alt(text!(
                             "calendar-day",

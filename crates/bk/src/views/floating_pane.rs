@@ -1,5 +1,6 @@
 use crate::controls::shadowed;
 use crate::style::text;
+use crate::styles::Painted;
 use crate::styles::{
     ControlState, FloatingPaneStyle, LayoutDirection, Paints, ShapeStyle, StateValue, Theme,
     resolve,
@@ -206,8 +207,7 @@ impl Component for FloatingPane {
                 bottom_right: 0.0,
                 ..corner_radius
             })
-            .background(paints.fill(&style.title_bar))
-            .map(paints.blur(&style.title_bar), Rect::blur)
+            .painted(&paints, &style.title_bar)
             .main_align(Alignment::Center)
             .cross_align(Alignment::Center)
             .on_pointer_enter(move |_| Cursor::set(CursorIcon::Grab))
@@ -229,8 +229,7 @@ impl Component for FloatingPane {
             .direction(Direction::Vertical)
             .content(Content::flex())
             .corner_radius(corner_radius)
-            .background(paints.fill(&style.background))
-            .map(paints.blur(&style.background), Rect::blur)
+            .painted(&paints, &style.background)
             .border(
                 Border::new()
                     .width(style.outline_width)

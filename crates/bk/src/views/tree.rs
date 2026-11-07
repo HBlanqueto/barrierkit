@@ -6,6 +6,7 @@ use torin::prelude::{Alignment, Direction, Gaps, Size};
 use crate::interaction::{track_modifiers, use_held_modifiers};
 use crate::scroll::ScrollView;
 use crate::style::text;
+use crate::styles::Painted;
 use crate::styles::{
     ControlState, LayoutDirection, OutlineViewStyle, Paints, ShapeStyle, StateValue, Theme, resolve,
 };
@@ -102,8 +103,7 @@ pub(crate) fn row(
             style.row_height,
             LayoutDirection::LeftToRight,
         ))
-        .background(paints.fill(background))
-        .map(paints.blur(background), Rect::blur)
+        .painted(paints, background)
         .direction(Direction::Horizontal)
         .cross_align(Alignment::Center)
         .spacing(style.spacing)

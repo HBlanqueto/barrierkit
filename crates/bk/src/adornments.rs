@@ -5,6 +5,7 @@ use crate::controls::{dimmed, inner_border, shadowed};
 use crate::elements::forward_container;
 use crate::interaction::{control_state, use_interaction};
 use crate::style::{text, with_font};
+use crate::styles::Painted;
 use crate::styles::{
     AvatarStyle, BadgeStyle, ControlState, DividerStyle, LayoutDirection, LinkStyle, Paints, Theme,
     resolve,
@@ -35,8 +36,7 @@ impl Badge {
                 LayoutDirection::LeftToRight,
             ))
             .center()
-            .background(paints.fill(&style.background))
-            .map(paints.blur(&style.background), Rect::blur)
+            .painted(&paints, &style.background)
             .map(style.border.as_ref(), |el, border| {
                 el.border(inner_border(&paints, border))
             })
@@ -106,8 +106,7 @@ impl Avatar {
                 LayoutDirection::LeftToRight,
             ))
             .center()
-            .background(paints.fill(&style.background))
-            .map(paints.blur(&style.background), Rect::blur)
+            .painted(&paints, &style.background)
             .map(style.border.as_ref(), |el, border| {
                 el.border(inner_border(&paints, border))
             })

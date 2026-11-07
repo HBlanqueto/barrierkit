@@ -4,6 +4,7 @@ use torin::prelude::{Alignment, Direction, Gaps, Size};
 use crate::choices::use_choice;
 use crate::controls::inner_border;
 use crate::interaction::{control_state, use_interaction};
+use crate::styles::Painted;
 use crate::styles::{ControlState, LayoutDirection, Paints, TabViewStyle, Theme, resolve};
 use crate::symbol::{Symbol, symbol};
 use crate::theme::color;
@@ -97,8 +98,7 @@ impl Component for TabView {
                         bar_height,
                         LayoutDirection::LeftToRight,
                     ))
-                    .background(paints.fill(&style.background))
-                    .map(paints.blur(&style.background), Rect::blur)
+                    .painted(&paints, &style.background)
                     .map(style.border.as_ref(), |el, border| {
                         el.border(inner_border(&paints, border))
                     })
@@ -152,8 +152,7 @@ impl Component for ToolbarTab {
             .cross_align(Alignment::Center)
             .spacing(style.icon_spacing)
             .corner_radius(radius)
-            .background(paints.fill(background))
-            .map(paints.blur(background), Rect::blur)
+            .painted(&paints, background)
             .on_press(move |_| on_select.call(()))
             .child(symbol(self.icon, style.icon_size, ink))
             .child(

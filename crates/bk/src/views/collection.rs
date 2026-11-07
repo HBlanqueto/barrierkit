@@ -3,6 +3,7 @@ use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
 
 use crate::interaction::{control_state, track_modifiers, use_held_modifiers, use_interaction};
 use crate::style::text;
+use crate::styles::Painted;
 use crate::styles::{CollectionViewStyle, LayoutDirection, Paints, Theme, resolve};
 
 #[derive(PartialEq)]
@@ -163,8 +164,7 @@ impl Component for Tile {
                     .height(Size::px(style.icon_size))
                     .center()
                     .corner_radius(icon_radius)
-                    .background(paints.fill(icon_background))
-                    .map(paints.blur(icon_background), Rect::blur)
+                    .painted(&paints, icon_background)
                     .child(self.icon.clone()),
             )
             .child(
@@ -176,8 +176,7 @@ impl Component for Tile {
                         style.label_padding_x,
                     ))
                     .corner_radius(label_radius)
-                    .background(paints.fill(label_background))
-                    .map(paints.blur(label_background), Rect::blur)
+                    .painted(&paints, label_background)
                     .child(text(
                         self.name.clone(),
                         style.font,

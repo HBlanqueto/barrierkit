@@ -5,6 +5,7 @@ use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 use crate::controls::{Button, Checkbox, ControlSize};
 use crate::i18n::text;
 use crate::style::text;
+use crate::styles::Painted;
 use crate::styles::{
     AlertStyle, ButtonStyle, ContentUnavailableViewStyle, ControlState, LayoutDirection, Paints,
     SheetStyle, Theme, resolve,
@@ -76,8 +77,7 @@ fn sheet(content: impl IntoElement, style: &SheetStyle) -> Rect {
         .width(Size::fill())
         .height(Size::percent(100.0))
         .layer(Layer::Overlay)
-        .background(paints.fill(&style.scrim))
-        .map(paints.blur(&style.scrim), Rect::blur)
+        .painted(&paints, &style.scrim)
         .cross_align(Alignment::Center)
         .child(
             rect()
@@ -88,8 +88,7 @@ fn sheet(content: impl IntoElement, style: &SheetStyle) -> Rect {
                         .shape
                         .corner_radius(0.0, 0.0, LayoutDirection::LeftToRight),
                 )
-                .background(paints.fill(&style.background))
-                .map(paints.blur(&style.background), Rect::blur)
+                .painted(&paints, &style.background)
                 .map(style.border.as_ref(), |el, (paint, width)| {
                     el.border(
                         Border::new()

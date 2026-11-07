@@ -13,6 +13,7 @@ use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 use crate::controls::inner_border;
 use crate::i18n::text as tr_kit;
 use crate::style::text;
+use crate::styles::Painted;
 use crate::styles::{
     ChartStyle, ControlState, LayoutDirection, Paints, ShapeStyle, StateValue, Theme, resolve,
 };
@@ -545,8 +546,7 @@ impl Component for Chart {
                     line_box,
                     LayoutDirection::LeftToRight,
                 ))
-                .background(paints.fill(&style.tooltip_background))
-                .map(paints.blur(&style.tooltip_background), Rect::blur)
+                .painted(&paints, &style.tooltip_background)
                 .map(style.tooltip_border.as_ref(), |el, border| {
                     el.border(inner_border(&paints, border))
                 })

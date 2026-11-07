@@ -6,6 +6,7 @@ use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 use crate::interaction::{control_state, use_interaction};
 use crate::sidebar::SymbolTile;
 use crate::style::text;
+use crate::styles::Painted;
 use crate::styles::{
     ControlState, LayoutDirection, Paints, SearchFieldStyle, SettingsWindowStyle, Theme, resolve,
 };
@@ -82,8 +83,7 @@ pub(crate) fn search_popover(
                 .popover_shape
                 .corner_radius(0.0, 0.0, LayoutDirection::LeftToRight),
         )
-        .background(paints.fill(&style.popover_background))
-        .map(paints.blur(&style.popover_background), Rect::blur)
+        .painted(&paints, &style.popover_background)
         .map(style.popover_border.as_ref(), |el, (paint, width)| {
             el.border(
                 Border::new()
@@ -163,8 +163,7 @@ impl Component for SearchResult {
                 style.result_padding_x,
             ))
             .corner_radius(radius)
-            .background(paints.fill(background))
-            .map(paints.blur(background), Rect::blur)
+            .painted(&paints, background)
             .on_press(move |_| on_select.call(()))
             .child(SymbolTile::new(symbol, tint))
             .child(

@@ -6,6 +6,7 @@ use torin::prelude::{Direction, Position, Size};
 
 use crate::backdrop::Tint;
 use crate::controls::{dimmed, inner_border, shadowed};
+use crate::styles::Painted;
 use crate::styles::{
     Animation, ControlState, LayoutDirection, Paints, ProgressRingStyle, ProgressViewStyle,
     SpinnerStyle, StateValue, Theme, resolve,
@@ -106,8 +107,7 @@ impl Component for ProgressView {
             .height(Size::px(height))
             .corner_radius(radius)
             .overflow(Overflow::Clip)
-            .background(paints.fill(&style.track))
-            .map(paints.blur(&style.track), Rect::blur)
+            .painted(&paints, &style.track)
             .map(style.border.as_ref(), |el, border| {
                 el.border(inner_border(&paints, border))
             })
@@ -118,8 +118,7 @@ impl Component for ProgressView {
                     .width(Size::percent(length * 100.0))
                     .height(Size::fill())
                     .corner_radius(radius)
-                    .background(paints.fill(&style.fill))
-                    .map(paints.blur(&style.fill), Rect::blur),
+                    .painted(&paints, &style.fill),
             );
         dimmed(shadowed(bar, &style.shadows), style.opacity)
     }

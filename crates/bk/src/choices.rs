@@ -8,6 +8,7 @@ use crate::backdrop::Tint;
 use crate::controls::{dimmed, dimmed_label, inner_border, labeled, shadowed};
 use crate::interaction::{control_state, ring, use_interaction};
 use crate::style::with_font;
+use crate::styles::Painted;
 use crate::styles::{
     Axis, ChoiceCardsStyle, ColorWellStyle, LayoutDirection, Paints, RadioGroupStyle, StateValue,
     Theme, resolve,
@@ -230,8 +231,7 @@ impl Component for RadioOption {
             .height(Size::px(size))
             .corner_radius(radius)
             .center()
-            .background(paints.fill(paint))
-            .map(paints.blur(paint), Rect::blur)
+            .painted(&paints, paint)
             .map(
                 style.button_border.as_ref().filter(|_| !selected),
                 |el, border| el.border(inner_border(&paints, border)),
@@ -242,8 +242,7 @@ impl Component for RadioOption {
                         .width(Size::px(dot))
                         .height(Size::px(dot))
                         .corner_radius(style.dot_shape.corner_radius(dot, dot, direction))
-                        .background(paints.fill(&style.dot))
-                        .map(paints.blur(&style.dot), Rect::blur),
+                        .painted(&paints, &style.dot),
                 )
             });
         let opacity = if enabled {

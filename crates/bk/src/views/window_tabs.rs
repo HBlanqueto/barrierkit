@@ -4,6 +4,7 @@ use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
 use crate::i18n::text;
 use crate::interaction::{control_state, use_interaction};
 use crate::style::text;
+use crate::styles::Painted;
 use crate::styles::{ControlState, LayoutDirection, Paints, Theme, WindowTabsStyle, resolve};
 use crate::symbol::{Symbol, symbol};
 
@@ -82,8 +83,7 @@ impl Component for WindowTabs {
             .content(Content::flex())
             .cross_align(Alignment::Center)
             .spacing(style.spacing)
-            .background(paints.fill(&style.background))
-            .map(paints.blur(&style.background), Rect::blur)
+            .painted(&paints, &style.background)
             .children(tabs)
             .map(on_new, |el, on_new| {
                 el.child(
@@ -141,8 +141,7 @@ impl Component for WindowTab {
             .width(Size::flex(1.0))
             .height(Size::px(style.tab_height))
             .corner_radius(radius)
-            .background(paints.fill(background))
-            .map(paints.blur(background), Rect::blur)
+            .painted(&paints, background)
             .direction(Direction::Horizontal)
             .cross_align(Alignment::Center)
             .padding(Gaps::new(

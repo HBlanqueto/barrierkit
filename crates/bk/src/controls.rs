@@ -20,6 +20,7 @@ use crate::level;
 use crate::password::PasswordField;
 use crate::spelling::{Squiggles, char_index, dictionary, known, misspelled, utf16_range};
 use crate::style::with_font;
+use crate::styles::Painted;
 use crate::styles::{
     Axis, ButtonStyle, CheckboxStyle, ControlState, Edge, LayoutDirection, Paints,
     SearchFieldStyle, SecureFieldStyle, SegmentedControlStyle, ShadowStyle, Shape, ShapeStyle,
@@ -122,8 +123,7 @@ impl Component for SecureField {
                 style.padding_x,
             ))
             .corner_radius(radius)
-            .background(paints.fill(&style.background))
-            .map(paints.blur(&style.background), Rect::blur)
+            .painted(&paints, &style.background)
             .map(style.border.as_ref(), |el, border| {
                 el.border(inner_border(&paints, border))
             })
@@ -256,8 +256,7 @@ impl Component for ToolGroup {
             .cross_align(Alignment::Center)
             .children(items)
             .map(self.probe, ProbeExt::probe)
-            .background(paints.fill(&style.background))
-            .map(paints.blur(&style.background), Rect::blur)
+            .painted(&paints, &style.background)
             .map(style.border.as_ref(), |el, border| {
                 el.border(inner_border(&paints, border))
             })
@@ -459,8 +458,7 @@ impl Component for Slider {
                 .width(Size::px(width))
                 .height(Size::px(height))
                 .corner_radius(shape.corner_radius(width, height, style.layout_direction))
-                .background(paints.fill(paint))
-                .map(paints.blur(paint), Rect::blur)
+                .painted(&paints, paint)
         };
         let dim = |el: Rect, opacity: f32| el.maybe(opacity < 1.0, |el| el.opacity(opacity));
         // freya 0.4.3 dims each element on its own (render_pipeline.rs): a dimmed knob would show the fill.
@@ -715,8 +713,7 @@ impl Component for Button {
             .padding(Gaps::new(0.0, style.padding_x, 0.0, style.padding_x))
             .corner_radius(radius)
             .center()
-            .background(paints.fill(&style.background))
-            .map(paints.blur(&style.background), Rect::blur)
+            .painted(&paints, &style.background)
             .map(style.border.as_ref(), |el, border| {
                 el.border(inner_border(&paints, border))
             })
@@ -870,8 +867,7 @@ impl Component for Switch {
                     .knob_shape
                     .corner_radius(knob_width, knob_height, direction),
             )
-            .background(paints.fill(&style.knob))
-            .map(paints.blur(&style.knob), Rect::blur)
+            .painted(&paints, &style.knob)
             .map(style.knob_border.as_ref(), |el, border| {
                 el.border(inner_border(&paints, border))
             });
@@ -881,8 +877,7 @@ impl Component for Switch {
             .width(Size::px(width))
             .height(Size::px(height))
             .corner_radius(radius)
-            .background(paints.fill(track_paint))
-            .map(paints.blur(track_paint), Rect::blur)
+            .painted(&paints, track_paint)
             .map(
                 style.track_border.as_ref().filter(|_| !is_on),
                 |el, border| el.border(inner_border(&paints, border)),
@@ -1016,8 +1011,7 @@ impl Component for SegmentedControl {
                     .shape
                     .corner_radius(height, height, LayoutDirection::LeftToRight),
             )
-            .background(paints.fill(&style.background))
-            .map(paints.blur(&style.background), Rect::blur)
+            .painted(&paints, &style.background)
             .map(style.border.as_ref(), |el, border| {
                 el.border(inner_border(&paints, border))
             })
@@ -1093,8 +1087,7 @@ impl Component for Segment {
                             .color(paints.fill(ink)),
                     ),
             )
-            .background(paints.fill(paint))
-            .map(paints.blur(paint), Rect::blur);
+            .painted(&paints, paint);
         let segment = if active {
             shadowed(segment, &style.selected_shadows)
         } else {
@@ -1650,8 +1643,7 @@ impl Component for Checkbox {
             .width(Size::px(size))
             .height(Size::px(size))
             .corner_radius(radius)
-            .background(paints.fill(paint))
-            .map(paints.blur(paint), Rect::blur)
+            .painted(&paints, paint)
             .map(
                 style.box_border.as_ref().filter(|_| !is_checked),
                 |el, border| el.border(inner_border(&paints, border)),

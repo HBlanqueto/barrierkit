@@ -5,6 +5,7 @@ use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
 use crate::context_menu::edit_menu;
 use crate::controls::{default_pre_key, dimmed, inner_border, input, shadowed, text_style};
 use crate::style::with_font;
+use crate::styles::Painted;
 use crate::styles::{ControlState, LayoutDirection, Paints, Theme, TokenFieldStyle, resolve};
 
 #[derive(PartialEq)]
@@ -67,8 +68,7 @@ pub(crate) fn token_chip(token: String, selected: bool, style: &TokenFieldStyle)
             LayoutDirection::LeftToRight,
         ))
         .main_align(Alignment::Center)
-        .background(paints.fill(fill))
-        .map(paints.blur(fill), Rect::blur)
+        .painted(&paints, fill)
         .a11y_role(AccessibilityRole::ListItem)
         .a11y_alt(token.clone())
         .a11y_builder(move |node| node.set_selected(selected))
@@ -209,8 +209,7 @@ impl Component for TokenField {
             style.height,
             LayoutDirection::LeftToRight,
         ))
-        .background(paints.fill(&style.background))
-        .map(paints.blur(&style.background), Rect::blur)
+        .painted(&paints, &style.background)
         .map(style.border.as_ref(), |el, border| {
             el.border(inner_border(&paints, border))
         })

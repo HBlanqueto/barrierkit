@@ -7,6 +7,7 @@ use torin::prelude::{Direction, Position, Size};
 use crate::controls::{dimmed, inner_border, shadowed};
 use crate::interaction::{control_state, use_interaction};
 use crate::style::with_font;
+use crate::styles::Painted;
 use crate::styles::{
     CapacityIndicatorStyle, ControlState, GaugeStyle, LayoutDirection, Paints,
     RatingIndicatorStyle, RelevancyIndicatorStyle, ShapeStyle, StateValue, Theme, resolve,
@@ -83,8 +84,7 @@ impl Component for CapacityIndicator {
                     .height(Size::fill())
                     .corner_radius(radius)
                     .overflow(Overflow::Clip)
-                    .background(paints.fill(&style.track))
-                    .map(paints.blur(&style.track), Rect::blur)
+                    .painted(&paints, &style.track)
                     .map(style.border.as_ref(), |el, border| {
                         el.border(inner_border(&paints, border))
                     })
@@ -92,8 +92,7 @@ impl Component for CapacityIndicator {
                         rect()
                             .width(Size::percent(filled * 100.0))
                             .height(Size::fill())
-                            .background(paints.fill(fill))
-                            .map(paints.blur(fill), Rect::blur),
+                            .painted(&paints, fill),
                     ),
                 &style.shadows,
             )

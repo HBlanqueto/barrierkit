@@ -11,6 +11,7 @@ use crate::controls::{dimmed, inner_border, shadowed};
 pub use crate::glass::{Material, TopGlass};
 use crate::interaction::{control_state, use_interaction};
 use crate::style::Palette;
+use crate::styles::Painted;
 use crate::styles::{LayoutDirection, MediaButtonStyle, Paints, RoundButtonStyle, Theme, resolve};
 use crate::symbol::{Symbol, symbol};
 use crate::theme::color;
@@ -119,8 +120,7 @@ impl Component for MediaButton {
             .direction(Direction::Horizontal)
             .spacing(style.icon_gap)
             .center()
-            .background(paints.fill(&style.background))
-            .map(paints.blur(&style.background), Rect::blur)
+            .painted(&paints, &style.background)
             .map(style.border.as_ref(), |el, border| {
                 el.border(inner_border(&paints, border))
             })
@@ -222,8 +222,7 @@ impl Component for RoundButton {
             .height(Size::px(size))
             .corner_radius(radius)
             .center()
-            .background(paints.fill(fill))
-            .map(paints.blur(fill), Rect::blur)
+            .painted(&paints, fill)
             .map(style.border.as_ref(), |el, border| {
                 el.border(inner_border(&paints, border))
             })
