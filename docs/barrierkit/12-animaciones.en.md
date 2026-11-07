@@ -55,10 +55,16 @@ let x = movimiento.get().current();
 ## Reduced motion
 
 With `reduced_motion = true` in `appearance.domain`, every kit animation uses
-duration 0 and the loops stop. Your own animation must do the same:
+duration 0 and the loops stop. Your own animation must do the same. Freya
+builds its closure only once, so read the preference with
+`use_reduced_motion()` and `motion_ms()`, from `barrier_kit::animation`; a
+live change then applies to the next animation:
 
 ```rust
-let tiempo = if theme::resolved().reduced_motion { 0 } else { DURATION_BASE };
+let reduced_motion = use_reduced_motion();
+let entrada = use_animation_transition(destino, move |desde, hasta| {
+    AnimNum::new(desde, hasta).time(motion_ms(reduced_motion, DURATION_BASE))
+});
 ```
 
 ## See it live: Tengen App Show

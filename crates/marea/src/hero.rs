@@ -1,5 +1,6 @@
 use std::time::Duration;
 
+use barrier_kit::animation::{motion_ms, use_reduced_motion};
 use barrier_kit::controls::ScrollController;
 use barrier_kit::media::{MediaButton, RoundButton, ScrimEdge, ground, scrim, use_artwork};
 use barrier_kit::platform::Timers;
@@ -177,10 +178,11 @@ impl Component for HeroBackground {
             }
             preview.set(stream);
         });
-        let arrive = use_animation(|conf| {
+        let reduced_motion = use_reduced_motion();
+        let arrive = use_animation(move |conf| {
             conf.on_creation(OnCreation::Run);
             AnimNum::new(1.0, 0.0)
-                .time(DURATION_SLOW_MS + DURATION_BASE)
+                .time(motion_ms(reduced_motion, DURATION_SLOW_MS + DURATION_BASE))
                 .ease(Ease::Out)
                 .function(Function::Cubic)
         });
@@ -244,9 +246,10 @@ struct Dot {
 impl Component for Dot {
     fn render(&self) -> impl IntoElement {
         let active = use_reactive(&self.active);
-        let grow = use_animation_transition(active, |from: bool, to: bool| {
+        let reduced_motion = use_reduced_motion();
+        let grow = use_animation_transition(active, move |from: bool, to: bool| {
             AnimNum::new(f32::from(u8::from(from)), f32::from(u8::from(to)))
-                .time(DURATION_BASE)
+                .time(motion_ms(reduced_motion, DURATION_BASE))
                 .ease(Ease::Out)
                 .function(Function::Cubic)
         });
@@ -298,9 +301,10 @@ impl Component for HeroCopy {
         let featured = use_reactive(&self.featured);
         let mut hovered = use_state(|| false);
         let mut area = use_state(Area::default);
-        let reveal = use_animation_transition(featured, |_: usize, _| {
+        let reduced_motion = use_reduced_motion();
+        let reveal = use_animation_transition(featured, move |_: usize, _| {
             AnimNum::new(0.0, 1.0)
-                .time(DURATION_SLOW_MS)
+                .time(motion_ms(reduced_motion, DURATION_SLOW_MS))
                 .ease(Ease::Out)
                 .function(Function::Cubic)
         });

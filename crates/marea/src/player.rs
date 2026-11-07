@@ -1,3 +1,4 @@
+use barrier_kit::animation::{motion_ms, use_reduced_motion};
 use std::cell::{Cell, OnceCell};
 use std::rc::Rc;
 use std::time::{Duration, Instant};
@@ -96,9 +97,11 @@ impl Component for Player {
         });
         let mut hover = use_state(|| None::<f32>);
         let mut track = use_state(Area::default);
-        let open = use_animation(|conf| {
+        let reduced_motion = use_reduced_motion();
+        let open = use_animation(move |conf| {
             conf.on_creation(OnCreation::Run);
-            Spring::new(0.0, 1.0, Duration::from_millis(DURATION_SLOW_MS + 100), 0.0)
+            let ms = motion_ms(reduced_motion, DURATION_SLOW_MS + 100);
+            Spring::new(0.0, 1.0, Duration::from_millis(ms), 0.0)
         });
         let on_close = self.on_close.clone();
         // The close button unmounts with the chrome; an animation run from its handler would die with it.

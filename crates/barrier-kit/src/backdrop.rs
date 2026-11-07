@@ -173,15 +173,13 @@ impl Component for Backdrop {
             .unwrap_or_else(|| tint::Backdrop::solid(resolved.surfaces.window));
         let mut from = use_state(|| target);
         let mut to = use_state(|| target);
-        // use_animation builds this closure once; the preference is read through a reactive state.
-        let reduced_motion = use_reactive(&resolved.reduced_motion);
+        let reduced_motion = crate::animation::use_reduced_motion();
         let progress = use_animation_transition(to, move |_: tint::Backdrop, _| {
             AnimNum::new(0.0, 1.0)
-                .time(if *reduced_motion.peek() {
-                    0
-                } else {
-                    DURATION_SLOW_MS
-                })
+                .time(crate::animation::motion_ms(
+                    reduced_motion,
+                    DURATION_SLOW_MS,
+                ))
                 .ease(Ease::InOut)
                 .function(Function::Cubic)
         });

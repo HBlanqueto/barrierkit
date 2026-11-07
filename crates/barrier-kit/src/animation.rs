@@ -16,11 +16,20 @@ pub fn use_alive() -> Rc<Cell<bool>> {
     alive
 }
 
+// Animations build their closure once, so the preference is a reactive state read when they run.
+pub fn use_reduced_motion() -> State<bool> {
+    use_reactive(&crate::theme::resolved().reduced_motion)
+}
+
+pub fn motion_ms(reduced_motion: State<bool>, ms: u64) -> u64 {
+    if *reduced_motion.peek() { 0 } else { ms }
+}
+
 pub fn use_switch_progress(on: State<bool>, ms: u64) -> f32 {
-    let reduced_motion = use_reactive(&crate::theme::resolved().reduced_motion);
+    let reduced_motion = use_reduced_motion();
     let animation = use_animation_transition(on, move |from: bool, to: bool| {
         AnimNum::new(f32::from(u8::from(from)), f32::from(u8::from(to)))
-            .time(if *reduced_motion.peek() { 0 } else { ms })
+            .time(motion_ms(reduced_motion, ms))
             .ease(Ease::Out)
             .function(Function::Cubic)
     });

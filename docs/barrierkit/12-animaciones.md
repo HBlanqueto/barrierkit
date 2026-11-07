@@ -55,10 +55,16 @@ let x = movimiento.get().current();
 ## Movimiento reducido
 
 Con `reduced_motion = true` en `appearance.domain`, cada animación del kit usa
-duración 0 y los bucles se detienen. Una animación propia debe hacer lo mismo:
+duración 0 y los bucles se detienen. Una animación propia debe hacer lo mismo.
+Freya construye su closure una sola vez, así que la preferencia se lee con
+`use_reduced_motion()` y `motion_ms()`, de `barrier_kit::animation`; así un
+cambio en vivo surte efecto en la siguiente animación:
 
 ```rust
-let tiempo = if theme::resolved().reduced_motion { 0 } else { DURATION_BASE };
+let reduced_motion = use_reduced_motion();
+let entrada = use_animation_transition(destino, move |desde, hasta| {
+    AnimNum::new(desde, hasta).time(motion_ms(reduced_motion, DURATION_BASE))
+});
 ```
 
 ## Verlo en vivo: Tengen App Show

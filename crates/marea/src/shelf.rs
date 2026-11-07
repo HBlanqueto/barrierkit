@@ -1,3 +1,4 @@
+use barrier_kit::animation::{motion_ms, use_reduced_motion};
 use std::rc::Rc;
 use std::time::Duration;
 
@@ -48,11 +49,12 @@ impl Component for Card {
         let interaction = use_interaction();
         let hovered = interaction.hovered();
         let hovering = use_reactive(&hovered);
-        let lift = use_animation_transition(hovering, |from, to| {
+        let reduced_motion = use_reduced_motion();
+        let lift = use_animation_transition(hovering, move |from, to| {
             Spring::new(
                 unit(from),
                 unit(to),
-                Duration::from_millis(DURATION_SLOW_MS),
+                Duration::from_millis(motion_ms(reduced_motion, DURATION_SLOW_MS)),
                 if to { 0.25 } else { 0.0 },
             )
         });

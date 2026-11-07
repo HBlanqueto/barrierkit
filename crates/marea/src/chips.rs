@@ -1,3 +1,4 @@
+use barrier_kit::animation::{motion_ms, use_reduced_motion};
 use barrier_kit::style::Palette;
 use barrier_kit::theme::color;
 use freya_animation::prelude::{AnimNum, Ease, Function, use_animation_transition};
@@ -23,9 +24,10 @@ impl Component for Chips {
         let mut origin = use_state(|| 0.0f32);
         let mut spans = use_state(|| [(0.0f32, 0.0f32); GENRES.len()]);
         let selected = use_reactive(&self.selected);
-        let slide = use_animation_transition(selected, |from: usize, to: usize| {
+        let reduced_motion = use_reduced_motion();
+        let slide = use_animation_transition(selected, move |from: usize, to: usize| {
             AnimNum::new(from as f32, to as f32)
-                .time(DURATION_SLOW_MS)
+                .time(motion_ms(reduced_motion, DURATION_SLOW_MS))
                 .ease(Ease::Out)
                 .function(Function::Cubic)
         });
