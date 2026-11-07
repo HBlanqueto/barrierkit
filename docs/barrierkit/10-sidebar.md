@@ -294,8 +294,7 @@ after a 1 px separator. Changing `presented` opens or closes it over
 
 `.background_extension(view)` paints `view` under the docked sidebar, as macOS
 26 `.backgroundExtensionEffect()` does. The view is laid out as wide as the
-detail and its first pixel column is stretched to the window edge. Apple
-mirrors the view; Freya 0.4.3 drops children under a negative scale, so the
-edge is stretched instead. It is not drawn while the sidebar floats.
+detail and its first pixel column is stretched to the window edge; Apple
+mirrors the view instead. It is not drawn while the sidebar floats.
 
 Next: [11. Views](11-views.md).

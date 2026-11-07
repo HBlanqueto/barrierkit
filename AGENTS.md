@@ -120,7 +120,7 @@ Se cumplen al pie de la letra. Ganan el diff más corto y la respuesta más cort
 10. **Investiga antes de suponer.** Si la causa o la API no está clara,
    consulta en internet, en este orden:
    1. el código y la documentación oficial de la dependencia **en la versión
-      fijada**: `freya-*` `=0.4.3` (docs.rs y código en el registro de cargo), smithay-client-toolkit, wayland-protocols en wayland.app, especificaciones de freedesktop (dbusmenu, appearance);
+      fijada**: `freya-*` `=0.5.0` (docs.rs y código en el registro de cargo), smithay-client-toolkit, wayland-protocols en wayland.app, especificaciones de freedesktop (dbusmenu, appearance);
    2. los issues, PR, changelogs y discusiones del proyecto upstream;
    3. foros como Discourse, Stack Overflow o Reddit, solo como pista y
       contrastados con 1 o 2.

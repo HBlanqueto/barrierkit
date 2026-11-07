@@ -246,7 +246,7 @@ Done in `main`:
 
 Pending. None of this is built until its reason goes away (rule 2 of AGENTS.md: nothing «por si acaso» ("just in case")):
 
-- **Blocked by Freya 0.4.3:** partial damage. `RenderPipeline::render` repaints the whole tree (`freya-core/src/render_pipeline.rs`, «TODO: Use incremental rendering»).
+- **Blocked by Freya 0.5.0:** partial damage. `RenderPipeline::render` repaints the whole tree (`freya-core/src/render_pipeline.rs`, «TODO: Use incremental rendering»).
 - **Waits for the first app that uses it:**
   - Layer 1: an `Image` of our own; today Freya's `ImageViewer` inside the controls is enough.
   - Layer 2: search slot and overflow in the `Titlebar`, which already has `left` and `right` zones and a title.

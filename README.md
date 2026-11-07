@@ -22,7 +22,7 @@ nix develop
 
 `./dev.sh check` runs fmt, clippy, the kit checks and the tests; its list is in [`dev.sh`](dev.sh).
 
-The Skia prebuild for `freya-skia-bindings` 0.98.0 lives in `nix/skia.nix`.
+The Skia prebuild for `freya-skia-bindings` 0.104.0 lives in `nix/skia.nix`.
 
 ## Try it on any desktop
 

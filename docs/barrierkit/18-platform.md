@@ -160,7 +160,9 @@ the runner logs it at `info` level and continues.
   root). A focus move turns on keyboard
   navigation, which shows the focus ring.
 - Touch events go to the surface where the touch started.
-- `CursorIcon` values map to `wp_cursor_shape_device_v1` shapes.
+- The cursor is the one the topmost hovered element declares with
+  `.cursor(icon)`; a view that drags declares it on its container while the
+  drag lasts. `CursorIcon` values map to `wp_cursor_shape_device_v1` shapes.
 
 ## Accessibility
 

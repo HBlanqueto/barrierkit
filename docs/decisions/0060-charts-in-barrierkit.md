@@ -41,7 +41,7 @@ Charts: marks (`LineMark`, `AreaMark`, `BarMark`, `PointMark`, `RuleMark`,
 - An app draws a chart with one line per series; the future system monitor
   reuses `Chart`, `SectorChart`, `HeatMap` and `Table`.
 - The GPU rasterizes the mesh, but projection and depth sorting stay on the
-  CPU: `freya-skia-safe` 0.98 does not expose `SkMesh` (its `mesh.rs` is
+  CPU: `freya-skia-safe` 0.104 does not expose `SkMesh` (its `mesh.rs` is
   empty), which would allow projecting in a vertex shader. Suzanne (3936
   triangles) runs well within that.
 - The pointer readout only exists in `Chart`; sectors and the heat map show

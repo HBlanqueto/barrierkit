@@ -72,7 +72,7 @@ others it needs: `bk = { …, features = ["charts", "print"] }`.
 
 ### On top of Freya
 
-The kit builds on [Freya](https://freyaui.dev) `=0.4.3`, but only on its core
+The kit builds on [Freya](https://freyaui.dev) `=0.5.0`, but only on its core
 crates: `freya-core`, `freya-components` (without default features),
 `freya-edit`, `freya-animation`, `freya-engine`, `freya-clipboard`, `torin` and
 `ragnarok`. It never uses `freya` or `freya-winit`: the kit has its own Wayland
@@ -93,7 +93,7 @@ a graphics queue that can present on the Wayland display. That device can be a
 GPU or a software driver such as lavapipe. If there is none, the window does not
 open and `run_window` returns `RunError::Vulkan`.
 
-Freya 0.4.3 repaints the whole tree on every frame; partial damage waits for
+Freya 0.5.0 repaints the whole tree on every frame; partial damage waits for
 Freya ([ADR 0047](../decisions/0047-barrierkit-in-layers.md), «Pending»).
 
 ## What it needs

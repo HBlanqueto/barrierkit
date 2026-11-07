@@ -33,7 +33,7 @@ version.
 - **Language:** Rust 2024, stable toolchain.
 - **Platform:** Linux on Wayland, drawn with Vulkan and Skia. No macOS, no
   Windows, no X11.
-- **Layers:** BarrierKit (`bk`) is built on Freya 0.4.3
+- **Layers:** BarrierKit (`bk`) is built on Freya 0.5.0
   (`freya-core`), its layout engine Torin, and the design tokens of
   `ctdesign`. An app depends only on `bk`; the prelude re-exports
   what it needs from the others.
