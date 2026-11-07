@@ -19,6 +19,7 @@ use crate::shell::ShellState;
 #[derive(Clone)]
 pub struct SessionUnlock {
     unlock: Rc<dyn Fn()>,
+    requested: Rc<std::cell::Cell<bool>>,
 }
 
 impl SessionUnlock {
@@ -58,12 +59,19 @@ pub fn run_lock(app: AppComponent) -> Result<(), RunError> {
         .active_lock = Some(lock);
 
     let unlock_conn = conn.clone();
+    let requested = Rc::new(std::cell::Cell::new(false));
     runtime.run(conn, event_queue, move |runtime, signal| {
         runtime
             .extension_mut::<ShellState>()
             .expect("ShellState not installed")
             .session_unlock = Some(SessionUnlock {
+            requested: requested.clone(),
             unlock: Rc::new(move || {
+                // ext-session-lock-v1: unlock_and_destroy is only valid once locked has arrived.
+                if !unlock_lock.is_locked() {
+                    requested.set(true);
+                    return;
+                }
                 unlock_lock.unlock();
                 // ext-session-lock-v1: wait for unlock_and_destroy to be processed before exiting.
                 let _ = unlock_conn.roundtrip();
@@ -108,7 +116,14 @@ impl Runtime {
 }
 
 impl SessionLockHandler for Runtime {
-    fn locked(&mut self, _: &Connection, _: &QueueHandle<Self>, _: SessionLock) {}
+    fn locked(&mut self, _: &Connection, _: &QueueHandle<Self>, _: SessionLock) {
+        let unlock = self
+            .extension::<ShellState>()
+            .and_then(|shell| shell.session_unlock.clone());
+        if let Some(unlock) = unlock.filter(|unlock| unlock.requested.get()) {
+            unlock.unlock();
+        }
+    }
 
     fn finished(&mut self, _: &Connection, _: &QueueHandle<Self>, _: SessionLock) {
         eprintln!("malaysia-shell lock: the compositor refused the session lock");
