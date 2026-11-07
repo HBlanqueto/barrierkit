@@ -54,6 +54,7 @@ enum Event {
 #[derive(Clone)]
 pub struct StatusHost {
     events: UnboundedSender<Event>,
+    _stop: std::rc::Rc<futures_channel::oneshot::Sender<()>>,
 }
 
 impl StatusHost {
@@ -79,17 +80,23 @@ pub fn use_status_items() -> (State<Vec<TrayItem>>, StatusHost) {
     let host = use_hook(|| {
         let (events, events_rx) = futures_channel::mpsc::unbounded();
         let (updates, mut updates_rx) = futures_channel::mpsc::unbounded();
+        let (stop, stopped) = futures_channel::oneshot::channel();
         let worker_events = events.clone();
-        std::thread::Builder::new()
+        let spawned = std::thread::Builder::new()
             .name("barrier-status-items".to_string())
-            .spawn(move || async_io::block_on(run(worker_events, events_rx, updates)))
-            .expect("barrier-status-items thread");
+            .spawn(move || async_io::block_on(run(worker_events, events_rx, updates, stopped)));
+        if let Err(error) = spawned {
+            tracing::warn!(%error, "BarrierKit: no status items thread");
+        }
         spawn(async move {
             while let Some(next) = updates_rx.next().await {
                 items.set(next);
             }
         });
-        StatusHost { events }
+        StatusHost {
+            events,
+            _stop: std::rc::Rc::new(stop),
+        }
     });
     (items, host)
 }
@@ -131,7 +138,11 @@ fn largest_pixmap(pixmaps: &[(i32, i32, Vec<u8>)]) -> Option<Pixmap> {
     let (width, height, argb) = pixmaps
         .iter()
         .filter(|(width, height, data)| {
-            *width > 0 && *height > 0 && data.len() == (*width * *height * 4) as usize
+            let bytes = usize::try_from(*width)
+                .ok()
+                .zip(usize::try_from(*height).ok())
+                .and_then(|(width, height)| width.checked_mul(height)?.checked_mul(4));
+            *width > 0 && *height > 0 && bytes == Some(data.len())
         })
         .max_by_key(|(width, ..)| *width)?;
     let rgba = argb
@@ -229,12 +240,16 @@ impl Watcher {
         &mut self,
         service: &str,
         #[zbus(header)] header: zbus::message::Header<'_>,
+        #[zbus(connection)] connection: &zbus::Connection,
         #[zbus(signal_emitter)] emitter: SignalEmitter<'_>,
     ) {
         let sender = header
             .sender()
             .map(|name| name.to_string())
             .unwrap_or_default();
+        if !service.starts_with('/') && !has_owner(connection, service).await {
+            return;
+        }
         let key = item_key(&sender, service);
         {
             let Ok(mut items) = self.items.lock() else {
@@ -246,6 +261,9 @@ impl Watcher {
             items.push(key.clone());
         }
         let _ = Self::status_notifier_item_registered(&emitter, &key).await;
+        let _ = self
+            .registered_status_notifier_items_changed(&emitter)
+            .await;
         let _ = self.events.unbounded_send(Event::Registered(key));
     }
 
@@ -256,6 +274,9 @@ impl Watcher {
     ) {
         if !self.hosts.iter().any(|host| host == service) {
             self.hosts.push(service.to_owned());
+            let _ = self
+                .is_status_notifier_host_registered_changed(&emitter)
+                .await;
         }
         let _ = Self::status_notifier_host_registered(&emitter).await;
     }
@@ -292,6 +313,22 @@ impl Watcher {
 
     #[zbus(signal)]
     async fn status_notifier_host_registered(emitter: &SignalEmitter<'_>) -> zbus::Result<()>;
+
+    #[zbus(signal)]
+    async fn status_notifier_host_unregistered(emitter: &SignalEmitter<'_>) -> zbus::Result<()>;
+}
+
+async fn has_owner(connection: &zbus::Connection, name: &str) -> bool {
+    let Ok(bus) = zbus::fdo::DBusProxy::new(connection).await else {
+        return false;
+    };
+    let Ok(name) = zbus::names::BusName::try_from(name) else {
+        return false;
+    };
+    timed(bus.name_has_owner(name))
+        .await
+        .and_then(Result::ok)
+        .unwrap_or(false)
 }
 
 struct Entry {
@@ -322,40 +359,32 @@ async fn proxy<'a>(
 async fn fetch(
     connection: &zbus::Connection,
     key: &str,
+    about_to_show: bool,
 ) -> Option<(TrayItem, Option<OwnedObjectPath>)> {
     let (bus, path) = split_key(key)?;
-    let item = proxy(connection, bus, path, ITEM).await?;
-    let text = |name: &'static str| {
-        let item = item.clone();
-        async move {
-            timed(item.get_property::<String>(name))
-                .await
-                .and_then(Result::ok)
-                .unwrap_or_default()
-        }
-    };
-    let attention = text("Status").await == "NeedsAttention";
+    let properties = proxy(connection, bus, path, "org.freedesktop.DBus.Properties").await?;
+    let properties: HashMap<String, OwnedValue> = timed(properties.call("GetAll", &(ITEM,)))
+        .await
+        .and_then(Result::ok)?;
+    let text = |name: &str| property::<String>(&properties, name).unwrap_or_default();
+    let attention = text("Status") == "NeedsAttention";
     let (icon_name, pixmap_name) = if attention {
         ("AttentionIconName", "AttentionIconPixmap")
     } else {
         ("IconName", "IconPixmap")
     };
-    let pixmaps: Pixmaps = timed(item.get_property(pixmap_name))
-        .await
-        .and_then(Result::ok)
-        .unwrap_or_default();
-    let menu_path: Option<OwnedObjectPath> =
-        timed(item.get_property("Menu")).await.and_then(Result::ok);
+    let pixmaps: Pixmaps = property(&properties, pixmap_name).unwrap_or_default();
+    let menu_path: Option<OwnedObjectPath> = property(&properties, "Menu");
     let menu = match &menu_path {
-        Some(menu_path) => layout(connection, bus, menu_path.as_str()).await,
+        Some(menu_path) => layout(connection, bus, menu_path.as_str(), about_to_show).await,
         None => Vec::new(),
     };
     Some((
         TrayItem {
             key: key.to_owned(),
-            title: text("Title").await,
-            icon_name: text(icon_name).await,
-            icon_theme_path: text("IconThemePath").await,
+            title: text("Title"),
+            icon_name: text(icon_name),
+            icon_theme_path: text("IconThemePath"),
             pixmap: largest_pixmap(&pixmaps),
             menu,
         },
@@ -363,11 +392,19 @@ async fn fetch(
     ))
 }
 
-async fn layout(connection: &zbus::Connection, bus: &str, path: &str) -> Vec<MenuItem> {
+// AboutToShow only once: apps that rebuild in it emit LayoutUpdated, which would refetch forever.
+async fn layout(
+    connection: &zbus::Connection,
+    bus: &str,
+    path: &str,
+    about_to_show: bool,
+) -> Vec<MenuItem> {
     let Some(menu) = proxy(connection, bus, path, DBUSMENU).await else {
         return Vec::new();
     };
-    let _ = timed(menu.call::<_, _, bool>("AboutToShow", &(0i32,))).await;
+    if about_to_show {
+        let _ = timed(menu.call::<_, _, bool>("AboutToShow", &(0i32,))).await;
+    }
     let layout: Option<DbusMenuLayout> =
         timed(menu.call("GetLayout", &(0i32, -1i32, Vec::<String>::new())))
             .await
@@ -424,11 +461,17 @@ async fn own_watcher(
     if !crate::session_bus::export(connection, WATCHER_PATH, watcher).await {
         return None;
     }
-    if let Err(error) = connection
+    let reply = connection
         .request_name_with_flags(WATCHER, zbus::fdo::RequestNameFlags::DoNotQueue.into())
-        .await
-    {
-        tracing::info!(%error, "BarrierKit: another StatusNotifierWatcher runs; hosting its items");
+        .await;
+    if !matches!(
+        reply,
+        Ok(zbus::fdo::RequestNameReply::PrimaryOwner | zbus::fdo::RequestNameReply::AlreadyOwner)
+    ) {
+        tracing::info!(
+            ?reply,
+            "BarrierKit: another StatusNotifierWatcher runs; hosting its items"
+        );
         let _ = connection
             .object_server()
             .remove::<Watcher, _>(WATCHER_PATH)
@@ -438,9 +481,12 @@ async fn own_watcher(
     Some(items)
 }
 
-async fn follow_watcher(connection: &zbus::Connection, events: &UnboundedSender<Event>) {
+async fn follow_watcher(
+    connection: &zbus::Connection,
+    events: &UnboundedSender<Event>,
+) -> Vec<zbus::Task<()>> {
     let Some(watcher) = proxy(connection, WATCHER, WATCHER_PATH, WATCHER).await else {
-        return;
+        return Vec::new();
     };
     let registered: Vec<String> = timed(watcher.get_property("RegisteredStatusNotifierItems"))
         .await
@@ -449,6 +495,7 @@ async fn follow_watcher(connection: &zbus::Connection, events: &UnboundedSender<
     for key in registered {
         let _ = events.unbounded_send(Event::Registered(key));
     }
+    let mut tasks = Vec::new();
     for (signal, added) in [
         ("StatusNotifierItemRegistered", true),
         ("StatusNotifierItemUnregistered", false),
@@ -457,50 +504,115 @@ async fn follow_watcher(connection: &zbus::Connection, events: &UnboundedSender<
             continue;
         };
         let events = events.clone();
-        connection
-            .executor()
-            .spawn(
-                async move {
-                    while let Some(message) = stream.next().await {
-                        if let Ok(key) = message.body().deserialize::<String>() {
-                            let event = if added {
-                                Event::Registered(key)
-                            } else {
-                                Event::Unregistered(key)
-                            };
-                            let _ = events.unbounded_send(event);
-                        }
-                    }
-                },
-                "status-watcher-signals",
-            )
-            .detach();
-    }
-}
-
-async fn watch_names(connection: &zbus::Connection, events: &UnboundedSender<Event>) {
-    let Ok(bus) = zbus::fdo::DBusProxy::new(connection).await else {
-        return;
-    };
-    let Ok(mut changes) = bus.receive_name_owner_changed().await else {
-        return;
-    };
-    let events = events.clone();
-    connection
-        .executor()
-        .spawn(
+        tasks.push(connection.executor().spawn(
             async move {
-                while let Some(change) = changes.next().await {
-                    if let Ok(args) = change.args()
-                        && args.new_owner.is_none()
-                    {
-                        let _ = events.unbounded_send(Event::Vanished(args.name.to_string()));
+                while let Some(message) = stream.next().await {
+                    if let Ok(key) = message.body().deserialize::<String>() {
+                        let event = if added {
+                            Event::Registered(key)
+                        } else {
+                            Event::Unregistered(key)
+                        };
+                        let _ = events.unbounded_send(event);
                     }
                 }
             },
-            "status-item-names",
-        )
-        .detach();
+            "status-watcher-signals",
+        ));
+    }
+    tasks
+}
+
+async fn watch_names(
+    connection: &zbus::Connection,
+    events: &UnboundedSender<Event>,
+) -> Option<zbus::Task<()>> {
+    let bus = zbus::fdo::DBusProxy::new(connection).await.ok()?;
+    let mut changes = bus.receive_name_owner_changed().await.ok()?;
+    let events = events.clone();
+    Some(connection.executor().spawn(
+        async move {
+            while let Some(change) = changes.next().await {
+                if let Ok(args) = change.args()
+                    && args.new_owner.is_none()
+                {
+                    let _ = events.unbounded_send(Event::Vanished(args.name.to_string()));
+                }
+            }
+        },
+        "status-item-names",
+    ))
+}
+
+struct Watching {
+    owned: Option<Arc<Mutex<Vec<String>>>>,
+    _following: Vec<zbus::Task<()>>,
+}
+
+// Own the watcher if nobody does, else follow the one that runs; either way register as host.
+async fn take_watcher(
+    connection: &zbus::Connection,
+    events: &UnboundedSender<Event>,
+    host: &str,
+) -> Watching {
+    let owned = own_watcher(connection, events).await;
+    let following = match owned {
+        Some(_) => Vec::new(),
+        None => follow_watcher(connection, events).await,
+    };
+    call(
+        connection,
+        WATCHER,
+        WATCHER_PATH,
+        WATCHER,
+        "RegisterStatusNotifierHost",
+        (host,),
+    )
+    .await;
+    Watching {
+        owned,
+        _following: following,
+    }
+}
+
+async fn forget(connection: &zbus::Connection, name: &str, items: &Arc<Mutex<Vec<String>>>) {
+    let Ok(watcher) = connection
+        .object_server()
+        .interface::<_, Watcher>(WATCHER_PATH)
+        .await
+    else {
+        return;
+    };
+    let gone: Vec<String> = items
+        .lock()
+        .map(|mut items| {
+            let gone = items
+                .iter()
+                .filter(|key| split_key(key).is_some_and(|(bus, _)| bus == name))
+                .cloned()
+                .collect();
+            items.retain(|key| split_key(key).is_none_or(|(bus, _)| bus != name));
+            gone
+        })
+        .unwrap_or_default();
+    let emitter = watcher.signal_emitter();
+    for key in &gone {
+        let _ = Watcher::status_notifier_item_unregistered(emitter, key).await;
+    }
+    let mut state = watcher.get_mut().await;
+    if !gone.is_empty() {
+        let _ = state
+            .registered_status_notifier_items_changed(emitter)
+            .await;
+    }
+    let hosts = state.hosts.len();
+    state.hosts.retain(|host| host != name);
+    if state.hosts.len() != hosts {
+        let _ = Watcher::status_notifier_host_unregistered(emitter).await;
+        let _ = state
+            .is_status_notifier_host_registered_changed(emitter)
+            .await;
+    }
 }
 
 async fn call(
@@ -522,6 +634,7 @@ async fn run(
     events: UnboundedSender<Event>,
     mut incoming: UnboundedReceiver<Event>,
     updates: UnboundedSender<Vec<TrayItem>>,
+    mut stopped: futures_channel::oneshot::Receiver<()>,
 ) {
     let connection = match crate::session_bus::connection().await {
         Ok(connection) => connection,
@@ -530,77 +643,37 @@ async fn run(
             return;
         }
     };
-    let owned = own_watcher(&connection, &events).await;
-    if owned.is_none() {
-        follow_watcher(&connection, &events).await;
-    }
-    watch_names(&connection, &events).await;
+    let _names = watch_names(&connection, &events).await;
     let host = format!("org.kde.StatusNotifierHost-{}", std::process::id());
-    if connection.request_name(host.as_str()).await.is_ok() {
-        call(
-            &connection,
-            WATCHER,
-            WATCHER_PATH,
-            WATCHER,
-            "RegisterStatusNotifierHost",
-            (host.as_str(),),
-        )
-        .await;
+    if let Err(error) = connection.request_name(host.as_str()).await {
+        tracing::warn!(%error, "BarrierKit: could not own the status host name");
     }
+    let mut watching = take_watcher(&connection, &events, &host).await;
     let mut order: Vec<String> = Vec::new();
     let mut entries: HashMap<String, Entry> = HashMap::new();
-    while let Some(event) = incoming.next().await {
+    while let futures_util::future::Either::Left((Some(event), _)) =
+        futures_util::future::select(incoming.next(), &mut stopped).await
+    {
         match event {
-            Event::Registered(key) | Event::Changed(key) => {
-                let Some((item, menu)) = fetch(&connection, &key).await else {
-                    continue;
-                };
-                if let Some(entry) = entries.get_mut(&key) {
-                    entry.item = item;
-                    entry.menu = menu;
-                } else {
-                    let signals = watch_item(&connection, &key, menu.as_ref(), &events).await;
-                    order.push(key.clone());
-                    entries.insert(
-                        key,
-                        Entry {
-                            item,
-                            menu,
-                            _signals: signals,
-                        },
-                    );
-                }
+            Event::Registered(key) => {
+                refresh(&connection, &events, &mut order, &mut entries, key, true).await
+            }
+            Event::Changed(key) => {
+                refresh(&connection, &events, &mut order, &mut entries, key, false).await
             }
             Event::Unregistered(key) => {
                 order.retain(|known| *known != key);
                 entries.remove(&key);
             }
             Event::Vanished(name) => {
-                let gone: Vec<String> = order
-                    .iter()
-                    .filter(|key| split_key(key).is_some_and(|(bus, _)| bus == name))
-                    .cloned()
-                    .collect();
-                for key in gone {
-                    order.retain(|known| *known != key);
-                    entries.remove(&key);
-                    if let Some(items) = &owned {
-                        if let Ok(mut items) = items.lock() {
-                            items.retain(|known| *known != key);
-                        }
-                        if let Ok(watcher) = connection
-                            .object_server()
-                            .interface::<_, Watcher>(WATCHER_PATH)
-                            .await
-                        {
-                            let _ = Watcher::status_notifier_item_unregistered(
-                                watcher.signal_emitter(),
-                                &key,
-                            )
-                            .await;
-                        }
-                    }
+                if name == WATCHER && watching.owned.is_none() {
+                    watching = take_watcher(&connection, &events, &host).await;
                 }
+                if let Some(items) = &watching.owned {
+                    forget(&connection, &name, items).await;
+                }
+                order.retain(|key| split_key(key).is_none_or(|(bus, _)| bus != name));
+                entries.retain(|key, _| split_key(key).is_none_or(|(bus, _)| bus != name));
             }
             Event::Activate(key) => {
                 if let Some((bus, path)) = split_key(&key) {
@@ -648,8 +721,46 @@ async fn run(
             .iter()
             .filter_map(|key| entries.get(key).map(|entry| entry.item.clone()))
             .collect();
-        let _ = updates.unbounded_send(snapshot);
+        if updates.unbounded_send(snapshot).is_err() {
+            break;
+        }
     }
+    if watching.owned.is_some() {
+        let _ = connection.release_name(WATCHER).await;
+        let _ = connection
+            .object_server()
+            .remove::<Watcher, _>(WATCHER_PATH)
+            .await;
+    }
+    let _ = connection.release_name(host.as_str()).await;
+}
+
+async fn refresh(
+    connection: &zbus::Connection,
+    events: &UnboundedSender<Event>,
+    order: &mut Vec<String>,
+    entries: &mut HashMap<String, Entry>,
+    key: String,
+    about_to_show: bool,
+) {
+    let Some((item, menu)) = fetch(connection, &key, about_to_show).await else {
+        return;
+    };
+    if let Some(entry) = entries.get_mut(&key) {
+        entry.item = item;
+        entry.menu = menu;
+        return;
+    }
+    let signals = watch_item(connection, &key, menu.as_ref(), events).await;
+    order.push(key.clone());
+    entries.insert(
+        key,
+        Entry {
+            item,
+            menu,
+            _signals: signals,
+        },
+    );
 }
 
 #[cfg(test)]
@@ -679,6 +790,13 @@ mod tests {
         let pixmap = largest_pixmap(&pixmaps).unwrap();
         assert_eq!((pixmap.width, pixmap.height), (2, 1));
         assert_eq!(&pixmap.rgba[..4], [10, 20, 30, 128]);
+    }
+
+    #[test]
+    fn a_pixmap_whose_size_overflows_is_ignored() {
+        let huge = vec![(i32::MAX, i32::MAX, vec![0; 4]), (1, 1, vec![255, 0, 0, 0])];
+        let pixmap = largest_pixmap(&huge).unwrap();
+        assert_eq!((pixmap.width, pixmap.height), (1, 1));
     }
 
     #[test]
