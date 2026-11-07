@@ -89,7 +89,11 @@ Se cumplen al pie de la letra. Ganan el diff más corto y la respuesta más cort
    genéricos, opciones o ramas que hoy nadie usa. El código muerto se borra: no
    se comenta ni se tapa con `#[allow(dead_code)]`.
 3. **Lo más directo.** Nada de wrappers ni abstracciones de un solo uso. Se
-   extrae a la tercera repetición, no antes.
+   extrae a la tercera repetición, no antes. Excepción: se permite un
+   envoltorio cuando da el nombre de SwiftUI a un elemento básico y aporta
+   valores por defecto que toda app usaría (`Text`, `VStack`, `HStack`, ADR
+   0061). Reenvía todos los rasgos de Freya del elemento que envuelve, para
+   que sus métodos sigan funcionando.
 4. **Una función, una tarea; un módulo, un motivo de cambio.** Si un bloque
    necesita un comentario para entenderse, extráelo a una función con ese nombre.
 5. **Los nombres sustituyen al comentario:** `dias_transcurridos`, no `d`.
