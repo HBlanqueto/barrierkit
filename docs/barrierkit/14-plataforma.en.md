@@ -43,7 +43,7 @@ With the `video` feature the device also enables the dmabuf import extensions
 | `zwp_primary_selection_device_manager_v1` | No | Primary selection, the one the middle button pastes |
 | `org_kde_kwin_appmenu_manager` | No | Showing the global menu in the menu bar |
 | `infinity_focus_manager_v1` | No | Notices from the Malaysia compositor about the focus bar |
-| `infinity_window_style_v1` | No | The `Titlebar` sends its bar with `set_bar`: `titlebar` when `close_only`, `unified` with an island sidebar and `compact` otherwise (Malaysia ADR 0059) |
+| `infinity_window_style_v1` | No | The `Titlebar` sends its bar with `set_bar`: `titlebar` when `close_only`, `unified` with an island sidebar and `compact` otherwise (Malaysia ADR 0059). From version 3, each utility window declares itself a panel with `set_panel` and the options of its `PanelBehavior` |
 
 If an optional protocol is missing, the runner logs it with `tracing::info!`
 and continues. If a required one is missing, `run_window` returns

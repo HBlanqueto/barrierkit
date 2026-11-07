@@ -63,6 +63,16 @@ inspector, with `barrier_kit::platform::open_utility_window`:
 3. It uses the parent window's `app_id` and neither saves nor restores its
    size, so it does not overwrite the main one's.
 4. Closing it removes only it; the app goes on while another window remains.
+5. Before its first commit it declares itself a panel (`set_panel`, version 3
+   of `infinity_window_style_v1`) with its `WindowOptions::panel`. By default,
+   `PanelBehavior::UTILITY`, the same as SwiftUI's `UtilityWindow`: it hides
+   while the app is not active
+   ([`hidesOnDeactivate`](https://developer.apple.com/documentation/appkit/nswindow/hidesondeactivate)),
+   floats above its app's windows and only takes the keyboard when needed
+   ([`becomesKeyOnlyIfNeeded`](https://developer.apple.com/documentation/appkit/nspanel/becomeskeyonlyifneeded)).
+   A panel is never the main window: while it holds the keyboard, the window
+   it came from stays active. The compositor applies it; without version 3
+   the window behaves like a normal one.
 
 `WindowOptions::hud(true)` gives it the HUD style of `NSPanel`
 (`hudWindow`): a panel that is "darker and translucent", which the HIG keeps

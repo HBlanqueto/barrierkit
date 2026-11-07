@@ -89,6 +89,7 @@ png = "0.17"
 spellbook = "0.4"
 flate2 = "1"
 pdf-writer = "0.15"
+bitflags = "2"
 subsetter = "0.2"
 ttf-parser = "0.25"
 

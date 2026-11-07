@@ -23,7 +23,7 @@
     DEALINGS IN THE SOFTWARE.
   </copyright>
 
-  <interface name="infinity_window_style_v1" version="2">
+  <interface name="infinity_window_style_v1" version="3">
     <description summary="window style hints for applications">
       Malaysia rounds every window it composites (ADR 0059). As in macOS
       Tahoe, the corner radius depends on the window's bar. A
@@ -70,6 +70,45 @@
         clamped to the body. It lasts for the lifetime of the wl_surface.
       </description>
       <arg name="surface" type="object" interface="wl_surface"/>
+    </request>
+
+    <enum name="panel" bitfield="true" since="3">
+      <description summary="how a panel behaves">
+        Each flag matches an AppKit NSPanel property.
+      </description>
+      <entry name="hides_on_deactivate" value="1"
+             summary="hidden while no toplevel of its client is active, as hidesOnDeactivate"/>
+      <entry name="floating" value="2"
+             summary="stacked above every toplevel of its client, as isFloatingPanel"/>
+      <entry name="key_only_if_needed" value="4"
+             summary="a press does not give it keyboard focus, as becomesKeyOnlyIfNeeded"/>
+    </enum>
+
+    <request name="set_panel" since="3">
+      <description summary="the toplevel is a panel">
+        Tells the compositor that the xdg_toplevel whose wl_surface is given
+        is a panel, as NSPanel. A panel never becomes its client's main
+        window: while it holds keyboard focus, the client's last focused
+        toplevel that is not a panel stays activated and remains the active
+        window the shell shows.
+
+        With hides_on_deactivate, the compositor hides the panel while the
+        active toplevel belongs to another client or there is none, and
+        shows it again, at the same place and stacking, when one of its
+        client's toplevels becomes active.
+
+        With floating, the panel stays above every toplevel of its client.
+
+        With key_only_if_needed, neither mapping nor a press on the panel
+        moves keyboard focus to it. The client asks for focus when a press
+        lands on a view that needs the keyboard, with an xdg_activation_v1
+        token made from that press.
+
+        Send it before the first commit with a buffer. A later request
+        replaces the flags. It lasts for the lifetime of the wl_surface.
+      </description>
+      <arg name="surface" type="object" interface="wl_surface"/>
+      <arg name="flags" type="uint" enum="panel"/>
     </request>
   </interface>
 </protocol>

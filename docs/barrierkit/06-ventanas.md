@@ -63,6 +63,16 @@ de Vista Previa, con `barrier_kit::platform::open_utility_window`:
 3. Usa el `app_id` de la ventana madre y no guarda ni restaura su tamaño, para
    no pisar el de la principal.
 4. Cerrarla solo la quita a ella; la app sigue mientras quede otra ventana.
+5. Antes del primer commit se declara panel (`set_panel`, versión 3 de
+   `infinity_window_style_v1`) con su `WindowOptions::panel`. Por defecto,
+   `PanelBehavior::UTILITY`, lo mismo que `UtilityWindow` de SwiftUI: se
+   oculta mientras la app no está activa
+   ([`hidesOnDeactivate`](https://developer.apple.com/documentation/appkit/nswindow/hidesondeactivate)),
+   flota sobre las ventanas de su app y solo toma el teclado cuando hace falta
+   ([`becomesKeyOnlyIfNeeded`](https://developer.apple.com/documentation/appkit/nspanel/becomeskeyonlyifneeded)).
+   Un panel nunca es la ventana principal: mientras tiene el teclado, la
+   ventana de la que salió sigue activa. Lo aplica el compositor; sin la
+   versión 3, la ventana se comporta como una normal.
 
 `WindowOptions::hud(true)` le da el estilo HUD de `NSPanel`
 (`hudWindow`): un panel «más oscuro y translúcido» que la HIG reserva para

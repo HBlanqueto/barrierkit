@@ -13,6 +13,7 @@ server = ["dep:wayland-server", "dep:wayland-protocols-wlr", "wayland-protocols-
 
 [dependencies]
 wayland-scanner.workspace = true
+bitflags.workspace = true
 wayland-backend.workspace = true
 wayland-client = { workspace = true, optional = true }
 wayland-server = { workspace = true, optional = true }

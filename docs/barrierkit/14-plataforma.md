@@ -42,7 +42,7 @@ el [ADR 0056](../decisiones/0056-barrierkit-sobre-vulkan.md).
 | `zwp_primary_selection_device_manager_v1` | No | Selección primaria, la que pega el botón central |
 | `org_kde_kwin_appmenu_manager` | No | Enseñar el menú global en la barra de menús |
 | `infinity_focus_manager_v1` | No | Avisos del compositor de Malaysia sobre la barra de foco |
-| `infinity_window_style_v1` | No | La `Titlebar` envía su barra con `set_bar`: `titlebar` si es `close_only`, `unified` con barra lateral en isla y `compact` en el resto (ADR 0059 de Malaysia) |
+| `infinity_window_style_v1` | No | La `Titlebar` envía su barra con `set_bar`: `titlebar` si es `close_only`, `unified` con barra lateral en isla y `compact` en el resto (ADR 0059 de Malaysia). Desde la versión 3, cada ventana auxiliar se declara panel con `set_panel` y las opciones de su `PanelBehavior` |
 
 Si falta un protocolo opcional, el runner lo registra con `tracing::info!` y
 sigue. Si falta uno obligatorio, `run_window` devuelve

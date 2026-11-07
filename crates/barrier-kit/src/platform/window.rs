@@ -63,6 +63,34 @@ pub struct WindowOptions {
     pub fullscreen_push: bool,
     pub hud: bool,
     pub status_item: Option<crate::status_item::StatusItem>,
+    pub panel: PanelBehavior,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct PanelBehavior {
+    pub hides_on_deactivate: bool,
+    pub floating: bool,
+    pub key_only_if_needed: bool,
+}
+
+impl PanelBehavior {
+    pub const UTILITY: Self = Self {
+        hides_on_deactivate: true,
+        floating: true,
+        key_only_if_needed: true,
+    };
+
+    fn flags(self) -> super::window_style::Panel {
+        use super::window_style::Panel;
+        [
+            (self.hides_on_deactivate, Panel::HidesOnDeactivate),
+            (self.floating, Panel::Floating),
+            (self.key_only_if_needed, Panel::KeyOnlyIfNeeded),
+        ]
+        .into_iter()
+        .filter(|(on, _)| *on)
+        .fold(Panel::empty(), |flags, (_, flag)| flags | flag)
+    }
 }
 
 impl WindowOptions {
@@ -79,6 +107,7 @@ impl WindowOptions {
             fullscreen_push: false,
             hud: false,
             status_item: None,
+            panel: PanelBehavior::UTILITY,
         }
     }
 
@@ -119,6 +148,11 @@ impl WindowOptions {
 
     pub fn hud(mut self, hud: bool) -> Self {
         self.hud = hud;
+        self
+    }
+
+    pub fn panel(mut self, panel: PanelBehavior) -> Self {
+        self.panel = panel;
         self
     }
 
@@ -427,6 +461,14 @@ impl Runtime {
         let utility = parent.is_some();
         if let Some((parent, _)) = &parent {
             window.set_parent(Some(parent));
+        }
+        if let Some(style) = self
+            .window_style
+            .as_ref()
+            .filter(|style| style.version() >= 3)
+            && utility
+        {
+            style.set_panel(window.wl_surface(), options.panel.flags());
         }
         let saved: SavedSize = if utility {
             SavedSize::default()

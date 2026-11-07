@@ -3,7 +3,7 @@ use sctk::reexports::client::{Connection, Dispatch, Proxy, QueueHandle};
 use super::runtime::Runtime;
 
 pub(crate) use infinity_protocol::client::style::infinity_window_style_v1::infinity_window_style_v1::{
-    Bar, InfinityWindowStyleV1,
+    Bar, InfinityWindowStyleV1, Panel,
 };
 
 impl Dispatch<InfinityWindowStyleV1, ()> for Runtime {
