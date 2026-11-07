@@ -96,6 +96,7 @@ async fn run(mut commands: UnboundedReceiver<Command>) {
 
     let mut menus: HashMap<String, Arc<RegisteredMenu>> = HashMap::new();
     let mut id_maps: HashMap<String, IdMap> = HashMap::new();
+    let mut status_items: HashMap<String, crate::status_item::Exported> = HashMap::new();
 
     while let Some(command) = commands.next().await {
         match command {
@@ -118,14 +119,22 @@ async fn run(mut commands: UnboundedReceiver<Command>) {
                 item,
                 index,
             } => {
-                if export(&connection, &path, &registered, &mut menus, &mut id_maps).await {
+                let Ok(own) = crate::session_bus::private_connection().await else {
+                    continue;
+                };
+                if export(&own, &path, &registered, &mut menus, &mut id_maps).await {
                     let handle = registered.handle.clone();
-                    crate::status_item::serve(&connection, item, path, handle, index).await;
+                    let served =
+                        crate::status_item::serve(own, item, path.clone(), handle, index).await;
+                    if let Some(exported) = served {
+                        status_items.insert(path, exported);
+                    }
                 }
             }
             Command::Unregister { path } => {
-                if menus.remove(&path).is_some() {
-                    id_maps.remove(&path);
+                id_maps.remove(&path);
+                let own = status_items.remove(&path);
+                if menus.remove(&path).is_some() && own.is_none() {
                     let _ = connection
                         .object_server()
                         .remove::<DbusMenuObject, _>(path.as_str())
@@ -136,12 +145,15 @@ async fn run(mut commands: UnboundedReceiver<Command>) {
                 let Some(registered) = menus.get(&path).cloned() else {
                     continue;
                 };
+                let connection = status_items
+                    .get(&path)
+                    .map_or(&connection, |item| &item.connection);
                 let id_map = id_maps.entry(path.clone()).or_default();
                 let snapshot = build_layout_from_handle(&registered, id_map);
                 let revision = snapshot.revision;
                 match diff_layout(&registered, snapshot) {
                     Update::None => {}
-                    Update::Layout => emit_layout_updated(&connection, &path, revision).await,
+                    Update::Layout => emit_layout_updated(connection, &path, revision).await,
                     Update::Properties(updated, removed) => {
                         if let Ok(iface_ref) = connection
                             .object_server()
@@ -173,8 +185,7 @@ async fn export(
     let iface = DbusMenuObject {
         registered: registered.clone(),
     };
-    if let Err(error) = connection.object_server().at(path, iface).await {
-        tracing::warn!(%error, path, "barrier-dbusmenu: could not register object");
+    if !crate::session_bus::export(connection, path, iface).await {
         return false;
     }
     menus.insert(path.to_owned(), registered.clone());

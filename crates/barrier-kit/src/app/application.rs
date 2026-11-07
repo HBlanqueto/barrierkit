@@ -137,12 +137,16 @@ pub fn launch(app_id: &str) -> zbus::Result<Launch> {
         return Ok(Launch::Forwarded);
     }
     let requests = Arc::new(Mutex::new(Requests::default()));
-    connection.object_server().at(
-        path.as_str(),
-        Activation {
-            requests: requests.clone(),
-        },
-    )?;
+    let activation = Activation {
+        requests: requests.clone(),
+    };
+    if !async_io::block_on(crate::session_bus::export(
+        connection.inner(),
+        &path,
+        activation,
+    )) {
+        return Err(zbus::Error::Failure(path));
+    }
     Ok(Launch::Primary(Instance { requests }))
 }
 

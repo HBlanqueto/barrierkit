@@ -823,6 +823,13 @@ impl Runtime {
             if let Some(address) = self.surfaces[index].appmenu_address.take() {
                 crate::app_menu::server::unregister(&address.path);
             }
+            if let Some(path) = self.surfaces[index]
+                .status_handle
+                .take()
+                .and_then(|handle| handle.path())
+            {
+                crate::app_menu::server::unregister(&path);
+            }
             if let Some(appmenu) = self.surfaces[index].appmenu.take() {
                 appmenu.release();
             }

@@ -421,11 +421,9 @@ async fn own_watcher(
         hosts: Vec::new(),
         events: events.clone(),
     };
-    connection
-        .object_server()
-        .at(WATCHER_PATH, watcher)
-        .await
-        .ok()?;
+    if !crate::session_bus::export(connection, WATCHER_PATH, watcher).await {
+        return None;
+    }
     if let Err(error) = connection
         .request_name_with_flags(WATCHER, zbus::fdo::RequestNameFlags::DoNotQueue.into())
         .await

@@ -40,10 +40,6 @@ impl StatusItem {
     }
 }
 
-pub fn bus_name(pid: u32, index: u32) -> String {
-    format!("org.kde.StatusNotifierItem-{pid}-{index}")
-}
-
 struct ItemObject {
     item: StatusItem,
     menu: OwnedObjectPath,
@@ -133,52 +129,51 @@ async fn register_with_watcher(connection: &zbus::Connection, name: &str) {
     }
 }
 
+// Watchers drop an item only when its bus name leaves the bus, so each item owns its connection.
+pub(crate) struct Exported {
+    _reregister: zbus::Task<()>,
+    pub(crate) connection: zbus::Connection,
+}
+
 pub(crate) async fn serve(
-    connection: &zbus::Connection,
+    connection: zbus::Connection,
     item: StatusItem,
     menu: String,
     handle: MenuHandle,
     index: u32,
-) {
-    let Ok(menu) = OwnedObjectPath::try_from(menu) else {
-        return;
-    };
+) -> Option<Exported> {
+    let menu = OwnedObjectPath::try_from(menu).ok()?;
     let object = ItemObject { item, menu, handle };
-    if let Err(error) = connection.object_server().at(ITEM_PATH, object).await {
-        tracing::warn!(%error, "BarrierKit: could not export the status item");
-        return;
+    if !crate::session_bus::export(&connection, ITEM_PATH, object).await {
+        return None;
     }
-    let name = bus_name(std::process::id(), index);
+    let name = format!("org.kde.StatusNotifierItem-{}-{index}", std::process::id());
     if let Err(error) = connection.request_name(name.as_str()).await {
         tracing::warn!(%error, "BarrierKit: could not own the status item name");
-        return;
+        return None;
     }
-    register_with_watcher(connection, &name).await;
-    let Ok(bus) = zbus::fdo::DBusProxy::new(connection).await else {
-        return;
-    };
-    let Ok(mut owners) = bus
+    register_with_watcher(&connection, &name).await;
+    let bus = zbus::fdo::DBusProxy::new(&connection).await.ok()?;
+    let mut owners = bus
         .receive_name_owner_changed_with_args(&[(0, WATCHER)])
         .await
-    else {
-        return;
-    };
-    let connection = connection.clone();
-    connection
-        .executor()
-        .spawn(
-            {
-                let connection = connection.clone();
-                async move {
-                    // The watcher can start after the app (the shell restarts); register again then.
-                    while let Some(change) = owners.next().await {
-                        if change.args().is_ok_and(|args| args.new_owner.is_some()) {
-                            register_with_watcher(&connection, &name).await;
-                        }
+        .ok()?;
+    let reregister = connection.executor().spawn(
+        {
+            let connection = connection.clone();
+            async move {
+                // The watcher can start after the app (the shell restarts); register again then.
+                while let Some(change) = owners.next().await {
+                    if change.args().is_ok_and(|args| args.new_owner.is_some()) {
+                        register_with_watcher(&connection, &name).await;
                     }
                 }
-            },
-            "status-item-watcher",
-        )
-        .detach();
+            }
+        },
+        "status-item-watcher",
+    );
+    Some(Exported {
+        _reregister: reregister,
+        connection,
+    })
 }
