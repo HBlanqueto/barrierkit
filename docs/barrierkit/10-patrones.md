@@ -50,7 +50,7 @@ PreferencesWindow::new()
 - Elegir un resultado abre el panel y resalta la fila.
 - El título del panel aparece en la barra, con los botones atrás y adelante.
 
-Tengen App Show y Ajustes del sistema están hechos con este patrón.
+Ajustes del sistema está hecho con este patrón.
 
 ## «Acerca de»: `about_window`
 

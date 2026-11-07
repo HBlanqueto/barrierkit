@@ -23,10 +23,6 @@ Backdrop::new(BackdropSource::Image(portada), Reproductor).accent(Accent::FromBa
 3. When the source changes, it fades from one backdrop to the other over
    `DURATION_SLOW_MS`.
 
-| Light | Dark |
-|---|---|
-| ![Tinted backdrops in light](assets/apps/tengen-fondos-light.png) | ![Tinted backdrops in dark](assets/apps/tengen-fondos-dark.png) |
-
 ### The accent inside the backdrop
 
 | `Accent` | The accent is… |
@@ -42,9 +38,7 @@ gradient.
 
 **Important:** the content must be a child component of the `Backdrop` (a
 `struct` that implements `Component`). Functions evaluated in the parent still
-read the system palette. The
-[`ambiente.rs`](../../crates/barrier-kit/examples/ambiente.rs) example does it
-this way.
+read the system palette.
 
 ## Media: `media`
 
@@ -123,7 +117,5 @@ volume:
 video.set_volume(0.7);
 video.play();
 ```
-
-Marea (chapter [15](15-apps-de-prueba.en.md)) uses all of this.
 
 Next: [14. Platform](14-plataforma.en.md).

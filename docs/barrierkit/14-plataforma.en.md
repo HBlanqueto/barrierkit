@@ -105,4 +105,4 @@ callbacks to a surface without content. Later frames wait for their frame
 callback. Checked on 2026-11-03 on Weston 16 (window) and on 2026-11-04 on
 sway 1.12 (layer), both headless.
 
-Next: [15. Test apps](15-apps-de-prueba.en.md).
+Next: [16. Frequently asked questions](16-preguntas.en.md).

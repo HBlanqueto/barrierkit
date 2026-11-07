@@ -1,6 +1,6 @@
 # 0047 — Layered BarrierKit: a toolkit for building complete apps
 
-Status: **accepted** (2026-10-28). What is done and what is pending is in «Status» (2026-11-02).
+Status: **accepted** (2026-10-28). What is done and what is pending is in «Status» (2026-11-02). The test apps (Master Tengen App Show, Marea, Ondina and Trazo) and the examples were removed from the repository on 2026-11-07.
 
 ## Context
 
@@ -275,7 +275,7 @@ Decided: menu shortcuts stay stored as text (`MenuItem::Action::shortcut`). That
 
 ## Annex A · How an app is written
 
-This is the API of `main` as of 2026-11-03. The repository apps are the complete reference: `tengen-app-show` uses layer 3 and tests both `TitlebarLayout`s with `WindowChrome`, and `ondina` composes layer 2 by hand (`SplitView`, `Titlebar`, `Backdrop`, `use_breakpoint`).
+This is the API of `main` as of 2026-11-03.
 
 ### A preferences app with layer 3
 

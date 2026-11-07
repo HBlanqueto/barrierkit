@@ -43,10 +43,6 @@ Sidebar::new()
 Lo decide el usuario en `appearance.domain` con `sidebar_style`
 ([ADR 0041](../decisiones/0041-barra-lateral-en-isla.md)). La app no hace nada:
 
-| `island` (por defecto) | `flat` |
-|---|---|
-| ![Barra lateral en isla](assets/apps/tengen-formularios-light.png) | ![Barra lateral plana](assets/apps/tengen-sidebar-flat-light.png) |
-
 Sobre un fondo tintado (capítulo [13](13-fondos-y-medios.md)), la barra plana
 deja ver el fondo y la isla lo deja ver o se tiñe con
 `SidebarBackdrop::Tinted` ([ADR 0057](../decisiones/0057-cristal-y-barra-lateral-sobre-fondo.md)).
@@ -116,20 +112,9 @@ Por debajo de `SPLIT_VIEW.collapse_below` (760 px) de ancho de ventana:
 Desde un hijo, `sidebar_control().map(|c| c.dismiss())` cierra la barra solo
 si está superpuesta.
 
-| Ancha | Estrecha (700 px) |
-|---|---|
-| ![SplitView con barra lateral](assets/apps/tengen-formularios-light.png) | ![SplitView plegado](assets/apps/tengen-collapsed-light.png) |
+### En `PreferencesWindow`
 
-### Probarlo
-
-En Tengen App Show, el panel «Ventana › Barra lateral» elige isla o plana,
-activa o quita el redimensionado y cambia entre tres rangos (Tengen 180–320,
-Estrecha 160–220, Ancha 240–420) y elige «En ventana estrecha»: Superpuesta
-o Forzada:
-
-![Panel Barra lateral de Tengen App Show](assets/apps/tengen-barra-lateral-light.png)
-
-`PreferencesWindow` pasa lo mismo con `.sidebar_resizable(bool)`,
+`PreferencesWindow` configura la barra lateral con `.sidebar_resizable(bool)`,
 `.sidebar_range(Option<(mín, máx)>)` y `.narrow_sidebar(NarrowSidebar)`;
 `.sidebar_toggle(false)` quita el botón `SidebarToggle`.
 

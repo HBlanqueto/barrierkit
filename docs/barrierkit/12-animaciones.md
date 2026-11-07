@@ -67,21 +67,4 @@ let entrada = use_animation_transition(destino, move |desde, hasta| {
 });
 ```
 
-## Verlo en vivo: Tengen App Show
-
-| Curvas de Freya y resortes de Grade | Propiedades animables |
-|---|---|
-| ![Panel Curvas](assets/apps/tengen-curvas-light.png) | ![Panel Propiedades](assets/apps/tengen-propiedades-light.png) |
-
-| Controles del kit | Aparición |
-|---|---|
-| ![Panel Kit en movimiento](assets/apps/tengen-controles-light.png) | ![Panel Aparición](assets/apps/tengen-aparicion-light.png) |
-
-| Diapositivas | Puntero y respuesta | Movimiento reducido |
-|---|---|---|
-| ![Panel Diapositivas](assets/apps/tengen-diapositivas-light.png) | ![Panel Puntero y respuesta](assets/apps/tengen-eventos-light.png) | ![Panel Movimiento](assets/apps/tengen-movimiento-light.png) |
-
-Los paneles del grupo Animación de Tengen App Show son un banco de pruebas: lo que
-funciona allí se lleva luego al kit.
-
 Siguiente: [13. Fondos tintados y medios](13-fondos-y-medios.md).

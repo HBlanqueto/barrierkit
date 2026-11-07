@@ -18,7 +18,7 @@ English: [17-perfilado.en.md](17-perfilado.en.md).
 2. Lanza la app en release con la capa de Tracy:
 
    ```sh
-   ./dev.sh tracy marea
+   cargo run --release --features barrier-kit/tracy -p <app>
    ```
 
 3. Abre el visor en otra terminal del dev shell y conéctate a la app que

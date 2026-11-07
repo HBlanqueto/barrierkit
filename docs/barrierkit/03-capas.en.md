@@ -47,8 +47,8 @@ There is no `prelude`: each piece is imported from its module, for example
    (`#[cfg(test)]`) mount whole windows and use any layer.
 2. Layer 3 only composes the public API of layer 2. Whatever a pattern needs is
    added to layer 2 and becomes available to every app.
-3. An app can use any layer. Settings uses layer 3; Ondina composes layer 2 by
-   hand; a very special view draws with Freya's `rect` and `label` and the
+3. An app can use any layer. Settings uses layer 3; a player composes layer 2
+   by hand; a very special view draws with Freya's `rect` and `label` and the
    `Palette`.
 4. The shell (`menubar`, `dock`, `lock`, `launcher`) uses `shell/`. The other
    apps do not enable the feature and do not even see the module.

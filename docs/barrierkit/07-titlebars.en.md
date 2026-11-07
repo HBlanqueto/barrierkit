@@ -35,12 +35,6 @@ Titlebar::new()
 - `.hairline(false)` removes the bottom divider; the settings window puts it on
   its `ScrollView` (`.top_line(true)`).
 
-The «Ventana y herramientas» ("Window and tools") pane of Tengen App Show
-shows standalone traffic lights, a `Titlebar` with a title and another one with
-`.close_only(true)`:
-
-![Traffic lights, title bar and "close only"](assets/apps/tengen-ventana-light.png)
-
 ### Variants in a normal window
 
 The same `Titlebar` changes by itself with the sidebar, its style and focus.
@@ -116,17 +110,17 @@ WindowChrome::new(estilo, SplitView::new(barra, detalle))
     .rail_bottom(abajo)
 ```
 
-| `TitlebarLayout` | What it is | Screenshot (Tengen App Show) |
-|---|---|---|
-| `Top` (default) | Horizontal titlebar at the top, with items on the left and the right (`Titlebar::left` and `right`) | ![Top layout](assets/apps/tengen-titlebar-top.png) |
-| `Rail` | Vertical titlebar on the left, with the traffic lights in a column, the title rotated 90° and items at the top and the bottom (`rail_top` and `rail_bottom`) | ![Rail layout](assets/apps/tengen-titlebar-rail.png) |
+| `TitlebarLayout` | What it is |
+|---|---|
+| `Top` (default) | Horizontal titlebar at the top, with items on the left and the right (`Titlebar::left` and `right`) |
+| `Rail` | Vertical titlebar on the left, with the traffic lights in a column, the title rotated 90° and items at the top and the bottom (`rail_top` and `rail_bottom`) |
 
 The `Rail` has two styles:
 
-| `RailStyle` | What it is | Screenshot (Tengen App Show) |
-|---|---|---|
-| `Normal` (default) | Its own strip on the left of the window | ![Normal rail](assets/apps/tengen-titlebar-rail.png) |
-| `Unified` | No strip: the column goes inside the sidebar. Without a visible sidebar it is drawn as `Normal` | ![Unified rail](assets/apps/tengen-titlebar-unified.png) |
+| `RailStyle` | What it is |
+|---|---|
+| `Normal` (default) | Its own strip on the left of the window |
+| `Unified` | No strip: the column goes inside the sidebar. Without a visible sidebar it is drawn as `Normal` |
 
 ### Rail items
 
@@ -175,10 +169,6 @@ Some combinations make no sense and correct themselves
 (`ChromeStyle::effective`): a unified `Rail` with `Drawer`, `Push` or `Popup`
 becomes `Corner`; in full screen, `reveal` is always `Always`.
 
-The Titlebar, Pantalla completa ("Full screen") and Barra lateral ("Sidebar")
-panes of Tengen App Show (chapter [15](15-apps-de-prueba.en.md)) test every
-combination live.
-
 ## Maximized, full screen and focus mode
 
 The state is read as chapter [6](06-ventanas.en.md#window-state) explains.
@@ -212,8 +202,7 @@ Each window chooses how its overlaid titlebar is drawn. The option goes in
 WindowOptions::new("Ondina", "ondina").fullscreen_bar(FullscreenBar::ProgressiveGlass)
 ```
 
-**By default, every app uses `Solid` ("A · Lisa").** Only Ondina requests
-`ProgressiveGlass`. The three come from the "Ondina a pantalla completa"
+**By default, every app uses `Solid` ("A · Lisa").** The three come from the "Ondina a pantalla completa"
 proposal; "C · Degradado" was dropped. In the screenshots, the black strip at the
 top is the compositor bar, added to the image.
 
@@ -221,7 +210,7 @@ top is the compositor bar, added to the image.
 |---|---|---|---|
 | `Solid` ("A · Lisa", **default**) | An opaque band in the window color, as tall as the titlebar. It cuts what passes below with a hard edge | Bar + `FULLSCREEN_BAR.content_top` (44) | ![A · Lisa](assets/estados/barra-lisa.png) |
 | `Glass` ("B1 · Vidrio en banda") | A band as tall as the titlebar, from edge to edge of the window and over the sidebar, that blurs what is below (`FULLSCREEN_BAND`), with a tint and a line at the bottom | Bar + `FULLSCREEN_BAND.content_top` (44) | ![B1 · Glass band](assets/estados/barra-vidrio-banda.png) |
-| `ProgressiveGlass` ("B2 · Vidrio progresivo", Ondina) | Maximum blur at the top that fades out over 96 px, without a line, from edge to edge of the window and over the sidebar ([ADR 0057](../decisiones/0057-cristal-y-barra-lateral-sobre-fondo.en.md)) | Bar + `FULLSCREEN_GLASS.content_top` (74) | ![B2 · Progressive glass](assets/estados/barra-vidrio-progresivo.png) |
+| `ProgressiveGlass` ("B2 · Vidrio progresivo") | Maximum blur at the top that fades out over 96 px, without a line, from edge to edge of the window and over the sidebar ([ADR 0057](../decisiones/0057-cristal-y-barra-lateral-sobre-fondo.en.md)) | Bar + `FULLSCREEN_GLASS.content_top` (74) | ![B2 · Progressive glass](assets/estados/barra-vidrio-progresivo.png) |
 
 Only `Glass` and `ProgressiveGlass` blur.
 
@@ -289,8 +278,7 @@ app does not draw it.
 
 1. If it uses `Titlebar`, `WindowChrome`, `Sidebar` or `PreferencesWindow`, it
    does nothing: every state in the tables already works.
-2. It leaves room for the bar in the content under the overlaid titlebar, as
-   Ondina does:
+2. It leaves room for the bar in the content under the overlaid titlebar:
 
    ```rust
    let arriba = try_consume_root_context::<WindowControls>()
@@ -300,7 +288,7 @@ app does not draw it.
 
 3. If a view covers the titlebar (a video player that fills the window), it
    adds its own traffic lights so the window can be maximized or leave full
-   screen without it, as the Marea player does:
+   screen without it:
 
    ```rust
    window_traffic_lights(WindowControls::get().status.read().activated, false)

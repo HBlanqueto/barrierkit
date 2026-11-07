@@ -7,7 +7,7 @@ aspecto.
 Cada imagen es la referencia de render del kit (`crates/barrier-kit/tests/golden/`),
 generada por el fragmento que la acompaña en `tests/kit/controls.rs`. Todas
 existen en claro y en oscuro; aquí se muestra el claro y el oscuro va al lado
-cuando aporta. En vivo, todos están en la app Tengen App Show (capítulo [15](15-apps-de-prueba.md)).
+cuando aporta.
 
 ## Reglas comunes
 
@@ -151,7 +151,7 @@ ColorWell::new("Color de acento", &ACCENT_SWATCHES).selected(Some(0))
   un `wl_data_source` con `text/uri-list` y texto plano, o solo texto para
   `DragPayload::Text`.
 - `ChoiceCards::new(..).option(rótulo, vista_previa)` muestra tarjetas grandes
-  (como «Claro, Oscuro, Acento» en Tengen App Show).
+  (como «Claro, Oscuro, Acento»).
 
 ## Deslizadores
 
@@ -473,7 +473,6 @@ rejilla de un terminal.
 2. Usa `use_interaction()` y `interaction.attach(rect(), habilitado)` para
    hover, pulsado y foco; `interaction.focus_ring(..)` para el anillo.
 3. Pinta solo con `Palette::current()` y tokens de `vow_design`.
-4. Añade su caso a `tests/kit/controls.rs` (claro y oscuro) y su página en
-   Tengen App Show ([ADR 0047](../decisiones/0047-barrierkit-en-capas.md) §2).
+4. Añade su caso a `tests/kit/controls.rs` (claro y oscuro).
 
 Siguiente: [6. Ventanas](06-ventanas.md).

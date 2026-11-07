@@ -5,15 +5,21 @@ kit rests on.
 **Reader:** anyone who has never used BarrierKit or Freya.
 **Input:** the repository and `nix develop`. **Output:** a window that adds.
 
-## The result
-
-![«Contador» window with a number and the «Sumar uno» button](assets/ejemplos/contador-light.png)
-
 ## The code
 
-The full code is in [`crates/barrier-kit/examples/contador.rs`](../../crates/barrier-kit/examples/contador.rs):
+The whole program:
 
 ```rust
+use barrier_kit::controls::{Button, ButtonStyle};
+use barrier_kit::platform::{WindowOptions, run_window};
+use barrier_kit::style::{Palette, text};
+use barrier_kit::theme::color;
+use barrier_kit::titlebar::Titlebar;
+use freya_core::integration::AppComponent;
+use freya_core::prelude::*;
+use torin::prelude::{Alignment, Direction, Size};
+use vow_design::{SPACE_3, TITLE_1, WINDOW_MIN_SIZE};
+
 struct Contador;
 
 impl App for Contador {
@@ -57,7 +63,8 @@ fn main() {
 ## Running it
 
 1. Enter the dev shell: `nix develop`.
-2. Launch the example: `cargo run -p barrier-kit --example contador`.
+2. Create a binary crate that depends on `barrier-kit`, `freya-core`, `torin`
+   and `vow-design`, put the code in `src/main.rs` and launch it with `cargo run`.
 3. Press «Sumar uno» ("Add one"): the number goes up and the window repaints.
 
 ## The five ideas

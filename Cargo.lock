@@ -1756,22 +1756,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "marea"
-version = "0.1.0"
-dependencies = [
- "barrier-kit",
- "freya-animation",
- "freya-core",
- "i18n-embed",
- "i18n-embed-fl",
- "rust-embed",
- "torin",
- "tracing",
- "vow-appearance",
- "vow-design",
-]
-
-[[package]]
 name = "matchers"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2192,23 +2176,6 @@ name = "once_cell"
 version = "1.21.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50"
-
-[[package]]
-name = "ondina"
-version = "0.1.0"
-dependencies = [
- "barrier-kit",
- "freya-components",
- "freya-core",
- "freya-engine",
- "freya-testing",
- "i18n-embed",
- "i18n-embed-fl",
- "rust-embed",
- "torin",
- "tracing",
- "vow-design",
-]
 
 [[package]]
 name = "option-operations"
@@ -2960,24 +2927,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tengen-app-show"
-version = "0.1.0"
-dependencies = [
- "barrier-kit",
- "freya-animation",
- "freya-core",
- "freya-testing",
- "i18n-embed",
- "i18n-embed-fl",
- "rust-embed",
- "serde",
- "torin",
- "tracing",
- "vow-appearance",
- "vow-design",
-]
-
-[[package]]
 name = "thiserror"
 version = "1.0.69"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3242,21 +3191,6 @@ checksum = "c5f7c95348f20c1c913d72157b3c6dee6ea3e30b3d19502c5a7f6d3f160dacbf"
 dependencies = [
  "cc",
  "windows-targets",
-]
-
-[[package]]
-name = "trazo"
-version = "0.1.0"
-dependencies = [
- "barrier-kit",
- "freya-core",
- "freya-testing",
- "i18n-embed",
- "i18n-embed-fl",
- "rust-embed",
- "torin",
- "tracing",
- "vow-design",
 ]
 
 [[package]]

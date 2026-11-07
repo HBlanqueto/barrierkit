@@ -18,7 +18,7 @@ Español: [17-perfilado.md](17-perfilado.md).
 2. Launch the app in release with the Tracy layer:
 
    ```sh
-   ./dev.sh tracy marea
+   cargo run --release --features barrier-kit/tracy -p <app>
    ```
 
 3. Open the viewer in another dev shell terminal and connect to the app that

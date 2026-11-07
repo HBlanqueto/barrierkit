@@ -37,11 +37,6 @@ Titlebar::new()
 - `.hairline(false)` quita el divisor de abajo; la ventana de ajustes lo pone en
   su `ScrollView` (`.top_line(true)`).
 
-El panel «Ventana y herramientas» de Tengen App Show muestra los semáforos
-sueltos, una `Titlebar` con título y otra con `.close_only(true)`:
-
-![Semáforos, barra de título y «solo cerrar»](assets/apps/tengen-ventana-light.png)
-
 ### Variantes en una ventana normal
 
 La misma `Titlebar` cambia sola según la barra lateral, su estilo y el foco.
@@ -117,17 +112,17 @@ WindowChrome::new(estilo, SplitView::new(barra, detalle))
     .rail_bottom(abajo)
 ```
 
-| `TitlebarLayout` | Qué es | Captura (Tengen App Show) |
-|---|---|---|
-| `Top` (por defecto) | Titlebar horizontal arriba, con elementos a la izquierda y a la derecha (`Titlebar::left` y `right`) | ![Diseño Top](assets/apps/tengen-titlebar-top.png) |
-| `Rail` | Titlebar vertical a la izquierda, con los semáforos en columna, el título girado 90° y elementos arriba y abajo (`rail_top` y `rail_bottom`) | ![Diseño Rail](assets/apps/tengen-titlebar-rail.png) |
+| `TitlebarLayout` | Qué es |
+|---|---|
+| `Top` (por defecto) | Titlebar horizontal arriba, con elementos a la izquierda y a la derecha (`Titlebar::left` y `right`) |
+| `Rail` | Titlebar vertical a la izquierda, con los semáforos en columna, el título girado 90° y elementos arriba y abajo (`rail_top` y `rail_bottom`) |
 
 El `Rail` tiene dos estilos:
 
-| `RailStyle` | Qué es | Captura (Tengen App Show) |
-|---|---|---|
-| `Normal` (por defecto) | Una franja propia a la izquierda de la ventana | ![Rail normal](assets/apps/tengen-titlebar-rail.png) |
-| `Unified` | Sin franja: la columna va dentro de la barra lateral. Sin barra lateral visible se dibuja como `Normal` | ![Rail unificado](assets/apps/tengen-titlebar-unified.png) |
+| `RailStyle` | Qué es |
+|---|---|
+| `Normal` (por defecto) | Una franja propia a la izquierda de la ventana |
+| `Unified` | Sin franja: la columna va dentro de la barra lateral. Sin barra lateral visible se dibuja como `Normal` |
 
 ### Elementos del rail
 
@@ -178,9 +173,6 @@ Algunas combinaciones no tienen sentido y se corrigen solas
 (`ChromeStyle::effective`): el `Rail` unificado con `Drawer`, `Push` o `Popup`
 pasa a `Corner`; en pantalla completa, `reveal` es siempre `Always`.
 
-Los paneles Titlebar, Pantalla completa y Barra lateral de Tengen App Show
-(capítulo [15](15-apps-de-prueba.md)) prueban todas las combinaciones en vivo.
-
 ## Maximizada, pantalla completa y modo foco
 
 El estado se lee como explica el capítulo [6](06-ventanas.md#estado-de-la-ventana).
@@ -214,8 +206,7 @@ Cada ventana elige cómo se dibuja su titlebar superpuesta. La opción va en
 WindowOptions::new("Ondina", "ondina").fullscreen_bar(FullscreenBar::ProgressiveGlass)
 ```
 
-**Por defecto, todas las apps usan `Solid` («A · Lisa»).** Solo Ondina pide
-`ProgressiveGlass`. Las tres salen de la propuesta «Ondina a pantalla
+**Por defecto, todas las apps usan `Solid` («A · Lisa»).** Las tres salen de la propuesta «Ondina a pantalla
 completa»; «C · Degradado» se descartó. En las capturas, la franja negra de arriba
 es la barra del compositor, añadida a la imagen.
 
@@ -223,7 +214,7 @@ es la barra del compositor, añadida a la imagen.
 |---|---|---|---|
 | `Solid` («A · Lisa», **por defecto**) | Una banda opaca del color de la ventana, del alto de la titlebar. Corta lo que pasa por debajo con un borde duro | Barra + `FULLSCREEN_BAR.content_top` (44) | ![A · Lisa](assets/estados/barra-lisa.png) |
 | `Glass` («B1 · Vidrio en banda») | Una banda del alto de la titlebar, de borde a borde de la ventana y sobre la barra lateral, que difumina lo de debajo (`FULLSCREEN_BAND`), con tinte y una línea abajo | Barra + `FULLSCREEN_BAND.content_top` (44) | ![B1 · Vidrio en banda](assets/estados/barra-vidrio-banda.png) |
-| `ProgressiveGlass` («B2 · Vidrio progresivo», Ondina) | Difuminado máximo arriba que se desvanece en 96 px, sin línea, de borde a borde de la ventana y sobre la barra lateral ([ADR 0057](../decisiones/0057-cristal-y-barra-lateral-sobre-fondo.md)) | Barra + `FULLSCREEN_GLASS.content_top` (74) | ![B2 · Vidrio progresivo](assets/estados/barra-vidrio-progresivo.png) |
+| `ProgressiveGlass` («B2 · Vidrio progresivo») | Difuminado máximo arriba que se desvanece en 96 px, sin línea, de borde a borde de la ventana y sobre la barra lateral ([ADR 0057](../decisiones/0057-cristal-y-barra-lateral-sobre-fondo.md)) | Barra + `FULLSCREEN_GLASS.content_top` (74) | ![B2 · Vidrio progresivo](assets/estados/barra-vidrio-progresivo.png) |
 
 Solo `Glass` y `ProgressiveGlass` difuminan.
 
@@ -291,7 +282,7 @@ compositor, añadida a la imagen: la app no la dibuja.
 1. Si usa `Titlebar`, `WindowChrome`, `Sidebar` o `PreferencesWindow`, no tiene
    que hacer nada: todos los estados de las tablas ya funcionan.
 2. Deja hueco para la barra en el contenido que va bajo la titlebar
-   superpuesta, como Ondina:
+   superpuesta:
 
    ```rust
    let arriba = try_consume_root_context::<WindowControls>()
@@ -301,7 +292,7 @@ compositor, añadida a la imagen: la app no la dibuja.
 
 3. Si una vista tapa la titlebar (un reproductor de vídeo a toda la ventana),
    pone sus propios semáforos para que se pueda maximizar o salir de pantalla
-   completa sin ella, como el reproductor de Marea:
+   completa sin ella:
 
    ```rust
    window_traffic_lights(WindowControls::get().status.read().activated, false)

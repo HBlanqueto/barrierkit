@@ -1,6 +1,6 @@
 # 0048 — BarrierKit en su propio repositorio
 
-Estado: **aceptado** (2026-10-28).
+Estado: **aceptado** (2026-10-28). Las apps de prueba (Master Tengen App Show, Marea, Ondina y Trazo) y los ejemplos se retiraron del repositorio el 2026-11-07.
 
 ## Contexto
 
@@ -33,12 +33,10 @@ barrierkit/
   crates/vow-appearance/      appearance.domain + fondo → paleta resuelta; watcher
   crates/infinity-protocol/   protocols/infinity-*.xml + código generado,
                               features `client` (kit) y `server` (compositor)
-  crates/tengen-app-show/     Master Tengen App Show
-  crates/marea/, ondina/      apps de prueba: vídeo y carátulas; fondo tintado
   docs/                       decisiones y documentación del kit
   flake.nix, nix/skia*        Skia precompilado para freya-skia-bindings 0.98.0 + su guardia
   scripts/                    check-client-only-deps, check-design-tokens
-  dev.sh                      app, check y tracy
+  dev.sh                      check
 ```
 
 **`github.com/HBlanqueto/malaysia`** es el escritorio:

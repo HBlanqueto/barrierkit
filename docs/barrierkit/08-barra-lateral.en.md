@@ -44,10 +44,6 @@ The user decides in `appearance.domain` with `sidebar_style`
 ([ADR 0041](../decisiones/0041-barra-lateral-en-isla.en.md)). The app does
 nothing:
 
-| `island` (default) | `flat` |
-|---|---|
-| ![Island sidebar](assets/apps/tengen-formularios-light.png) | ![Flat sidebar](assets/apps/tengen-sidebar-flat-light.png) |
-
 Over a tinted backdrop (chapter [13](13-fondos-y-medios.en.md)), the flat
 sidebar shows the backdrop, and the island either shows it or is tinted with
 `SidebarBackdrop::Tinted` ([ADR 0057](../decisiones/0057-cristal-y-barra-lateral-sobre-fondo.en.md)).
@@ -117,21 +113,9 @@ Below a window width of `SPLIT_VIEW.collapse_below` (760 px):
 From a child, `sidebar_control().map(|c| c.dismiss())` closes the sidebar only
 when it is overlaid.
 
-| Wide | Narrow (700 px) |
-|---|---|
-| ![SplitView with sidebar](assets/apps/tengen-formularios-light.png) | ![Collapsed SplitView](assets/apps/tengen-collapsed-light.png) |
+### In `PreferencesWindow`
 
-### Trying it
-
-In Tengen App Show, the «Ventana › Barra lateral» ("Window › Sidebar") pane
-picks island or flat, turns resizing on or off and switches between three
-ranges (Tengen 180–320, Estrecha "narrow" 160–220, Ancha "wide" 240–420), and
-picks «En ventana estrecha» ("In a narrow window"): Superpuesta ("overlay") or
-Forzada ("push"):
-
-![«Barra lateral» pane of Tengen App Show](assets/apps/tengen-barra-lateral-light.png)
-
-`PreferencesWindow` passes the same through `.sidebar_resizable(bool)`,
+`PreferencesWindow` configures the sidebar with `.sidebar_resizable(bool)`,
 `.sidebar_range(Option<(mín, máx)>)` and `.narrow_sidebar(NarrowSidebar)`;
 `.sidebar_toggle(false)` removes the `SidebarToggle` button.
 

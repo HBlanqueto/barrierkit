@@ -67,21 +67,4 @@ let entrada = use_animation_transition(destino, move |desde, hasta| {
 });
 ```
 
-## See it live: Tengen App Show
-
-| Freya curves and Grade springs | Animatable properties |
-|---|---|
-| ![«Curvas» pane](assets/apps/tengen-curvas-light.png) | ![«Propiedades» pane](assets/apps/tengen-propiedades-light.png) |
-
-| Kit controls | Appearance |
-|---|---|
-| ![«Kit en movimiento» pane](assets/apps/tengen-controles-light.png) | ![«Aparición» pane](assets/apps/tengen-aparicion-light.png) |
-
-| Slides | Pointer and response | Reduced motion |
-|---|---|---|
-| ![«Diapositivas» pane](assets/apps/tengen-diapositivas-light.png) | ![«Puntero y respuesta» pane](assets/apps/tengen-eventos-light.png) | ![«Movimiento» pane](assets/apps/tengen-movimiento-light.png) |
-
-The panes of the Animación ("Animation") group of Tengen App Show are a test
-bench: what works there is later moved into the kit.
-
 Next: [13. Tinted backdrops and media](13-fondos-y-medios.en.md).

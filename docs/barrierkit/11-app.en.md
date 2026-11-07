@@ -109,8 +109,6 @@ historial.undo();
 `REDO` walk through it from the menu or the shortcut, and their menu entries
 are disabled when the stack is empty.
 
-![«Deshacer» ("Undo") pane of Tengen App Show](assets/apps/tengen-deshacer-light.png)
-
 ## Clipboard
 
 ```rust

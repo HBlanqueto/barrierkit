@@ -22,10 +22,6 @@ Backdrop::new(BackdropSource::Image(portada), Reproductor).accent(Accent::FromBa
    modo claro y oscuro.
 3. Al cambiar de fuente, funde de un fondo a otro en `DURATION_SLOW_MS`.
 
-| Claro | Oscuro |
-|---|---|
-| ![Fondos tintados en claro](assets/apps/tengen-fondos-light.png) | ![Fondos tintados en oscuro](assets/apps/tengen-fondos-dark.png) |
-
 ### El acento dentro del fondo
 
 | `Accent` | El acento es… |
@@ -41,8 +37,7 @@ el degradado del fondo.
 
 **Importante:** el contenido tiene que ser un componente hijo del `Backdrop`
 (un `struct` que implementa `Component`). Las funciones evaluadas en el padre
-leen todavía la paleta del sistema. El ejemplo
-[`ambiente.rs`](../../crates/barrier-kit/examples/ambiente.rs) lo hace así.
+leen todavía la paleta del sistema.
 
 ## Medios: `media`
 
@@ -120,7 +115,5 @@ Así las vistas previas y los fondos no suenan, y el reproductor da volumen:
 video.set_volume(0.7);
 video.play();
 ```
-
-Marea (capítulo [15](15-apps-de-prueba.md)) usa todo esto.
 
 Siguiente: [14. Plataforma](14-plataforma.md).

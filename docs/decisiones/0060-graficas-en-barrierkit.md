@@ -1,7 +1,6 @@
 # 0060 — Gráficas en barrierkit
 
-Estado: **aceptado** (2026-11-06). Implementado en `barrier_kit::charts` y en la
-app de pruebas Trazo.
+Estado: **aceptado** (2026-11-06). Implementado en `barrier_kit::charts`. Las apps de prueba (Master Tengen App Show, Marea, Ondina y Trazo) y los ejemplos se retiraron del repositorio el 2026-11-07.
 
 ## Contexto
 

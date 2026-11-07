@@ -1,6 +1,6 @@
 # 0047 — BarrierKit en capas: un toolkit para construir apps completas
 
-Estado: **aceptado** (2026-10-28). Lo hecho y lo pendiente están en «Estado» (2026-11-02).
+Estado: **aceptado** (2026-10-28). Lo hecho y lo pendiente están en «Estado» (2026-11-02). Las apps de prueba (Master Tengen App Show, Marea, Ondina y Trazo) y los ejemplos se retiraron del repositorio el 2026-11-07.
 
 ## Contexto
 
@@ -275,7 +275,7 @@ Decidido: los atajos del menú siguen guardándose como texto (`MenuItem::Action
 
 ## Anexo A · Cómo se escribe una app
 
-Es la API de `main` a 2026-11-03. Las apps del repositorio son la referencia completa: `tengen-app-show` usa la capa 3 y prueba los dos `TitlebarLayout` con `WindowChrome`, y `ondina` compone la capa 2 a mano (`SplitView`, `Titlebar`, `Backdrop`, `use_breakpoint`).
+Es la API de `main` a 2026-11-03.
 
 ### Una app de preferencias con la capa 3
 

@@ -5,15 +5,21 @@ las que se basa todo el kit.
 **Lector:** quien nunca ha usado BarrierKit ni Freya.
 **Entrada:** el repositorio y `nix develop`. **Salida:** una ventana que suma.
 
-## El resultado
-
-![Ventana «Contador» con un número y el botón «Sumar uno»](assets/ejemplos/contador-light.png)
-
 ## El código
 
-Está completo en [`crates/barrier-kit/examples/contador.rs`](../../crates/barrier-kit/examples/contador.rs):
+El programa completo:
 
 ```rust
+use barrier_kit::controls::{Button, ButtonStyle};
+use barrier_kit::platform::{WindowOptions, run_window};
+use barrier_kit::style::{Palette, text};
+use barrier_kit::theme::color;
+use barrier_kit::titlebar::Titlebar;
+use freya_core::integration::AppComponent;
+use freya_core::prelude::*;
+use torin::prelude::{Alignment, Direction, Size};
+use vow_design::{SPACE_3, TITLE_1, WINDOW_MIN_SIZE};
+
 struct Contador;
 
 impl App for Contador {
@@ -57,7 +63,8 @@ fn main() {
 ## Ejecutarlo
 
 1. Entra en el dev shell: `nix develop`.
-2. Lanza el ejemplo: `cargo run -p barrier-kit --example contador`.
+2. Crea un crate binario que dependa de `barrier-kit`, `freya-core`, `torin`
+   y `vow-design`, pon el código en `src/main.rs` y lánzalo con `cargo run`.
 3. Pulsa «Sumar uno»: el número sube y la ventana se repinta.
 
 ## Las cinco ideas

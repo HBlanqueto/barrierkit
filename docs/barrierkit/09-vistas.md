@@ -241,7 +241,6 @@ match adaptable.current() {
 ```
 
 Los cortes son `BREAKPOINT.medium` (620) y `BREAKPOINT.wide` (900).
-`adaptable.attach(rect())` mide el elemento al que se engancha. Ondina lo usa
-para pasar de tres columnas a una (capítulo [15](15-apps-de-prueba.md)).
+`adaptable.attach(rect())` mide el elemento al que se engancha.
 
 Siguiente: [10. Patrones](10-patrones.md).

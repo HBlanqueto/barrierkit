@@ -40,10 +40,7 @@ A new color or size is never written in `barrier-kit`. It goes into Tengen:
    `crates/vow-design/src/lib.rs` and its emission in `crates/vow-design/build/`.
 3. Use the constant in the code: `SPLIT_VIEW.key_step`.
 4. Pass `./dev.sh check`. `scripts/check-design-tokens.sh` rejects color
-   literals outside `vow-design`, the apps included. Only the demo content
-   data stays out, since it is not design: Marea's catalogue
-   (`crates/marea/src/catalog.rs`) and Ondina's covers
-   (`crates/ondina/src/albums.rs`).
+   literals outside `vow-design`.
 
 ## User appearance
 
@@ -83,10 +80,6 @@ The accent is left alone, except to keep it readable:
 
 The same button in the three modes:
 
-| Light | Dark | Tinted dark |
-|---|---|---|
-| ![Buttons in light mode](assets/apps/tengen-botones-light.png) | ![Buttons in dark mode](assets/apps/tengen-botones-dark.png) | ![Buttons in tinted dark mode](assets/apps/tengen-botones-dark-tint.png) |
-
 ## The semantic palette
 
 `style::Palette::current()` gives the colors already resolved for the mode,
@@ -119,12 +112,6 @@ An app does not change individual colors: it picks a variant.
 | A custom accent for a whole area | `Backdrop::new(..).accent(Accent::Own(color))` or `Accent::FromBackdrop` |
 | Let the user pick a color | `ColorWell::new("Color", &ACCENT_SWATCHES)` |
 | Force light or dark in my window | `theme::use_appearance(\|config\| config.color_scheme = ColorScheme::Dark)` |
-
-The [`ambiente.rs`](../../crates/barrier-kit/examples/ambiente.rs) example
-uses the first three: a three-color backdrop, the accent taken from the
-backdrop, a switch with `Tint::Backdrop` and a yellow slider.
-
-![«Ambiente» window with a gradient backdrop and a tinted switch and slider](assets/ejemplos/ambiente.png)
 
 In an inactive window, all tints use the palette's inactive accent. Tinted
 backdrops are explained in chapter [13](13-fondos-y-medios.en.md).

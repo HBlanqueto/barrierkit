@@ -102,4 +102,4 @@ superficie sin contenido. Los frames siguientes esperan su frame callback.
 Comprobado el 2026-11-03 en Weston 16 (ventana) y el 2026-11-04 en sway 1.12
 (capa), ambos sin pantalla.
 
-Siguiente: [15. Apps de prueba](15-apps-de-prueba.md).
+Siguiente: [16. Preguntas frecuentes](16-preguntas.md).

@@ -105,9 +105,3 @@ They all live in `components.chart` in `vow-design` (`CHART`):
 
 Series colors follow `series` (blue, green, orange, purple, red, yellow,
 pink), which points to the system accent colors (`CHART_SERIES`).
-
-## Try it
-
-`./dev.sh app trazo` opens Trazo: a tab with every 2D mark, one with a system
-monitor that reads `/proc` every second and one with the 3D charts (chapter
-[15](15-apps-de-prueba.en.md#trazo-trazo)).

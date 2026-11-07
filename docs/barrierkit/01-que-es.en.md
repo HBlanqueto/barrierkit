@@ -27,7 +27,7 @@ and behave the same.
 ## The crates
 
 The [`barrierkit`](https://github.com/HBlanqueto/barrierkit) repository has
-four library crates and four test apps:
+four library crates:
 
 | Crate | What it is |
 |---|---|
@@ -35,7 +35,6 @@ four library crates and four test apps:
 | `vow-design` | **Tengen**, the design system. It turns `tengen/tokens.json` and `tengen/components.json` into Rust constants. |
 | `vow-appearance` | Reads `appearance.domain` and the wallpaper and resolves them into a concrete palette. It watches for changes. |
 | `infinity-protocol` | Private Wayland protocol between the apps and the Malaysia compositor. |
-| `tengen-app-show`, `ondina`, `marea`, `trazo` | Test apps (chapter [15](15-apps-de-prueba.en.md)). |
 
 The kit builds on [Freya](https://freyaui.dev) `=0.4.3`, but only on its core
 crates: `freya-core`, `freya-components` (no features), `freya-animation`,
@@ -67,10 +66,5 @@ yet ([ADR 0047](../decisiones/0047-barrierkit-en-capas.en.md), section «Pendien
 - `libvulkan` and a Vulkan driver (ICD).
 - Building inside `nix develop` (Malaysia ADR 0007): the dev shell ships
   Skia, the fonts (Geist) and the RADV driver.
-
-```sh
-nix develop
-./dev.sh app tengen-app-show
-```
 
 Next: [2. Your first app](02-primera-app.en.md).

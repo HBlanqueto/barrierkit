@@ -40,10 +40,7 @@ Un color o una medida nueva nunca se escribe en `barrier-kit`. Se añade a Tenge
    `crates/vow-design/src/lib.rs` y su emisión en `crates/vow-design/build/`.
 3. Usa la constante en el código: `SPLIT_VIEW.key_step`.
 4. Pasa `./dev.sh check`. `scripts/check-design-tokens.sh` rechaza literales de
-   color fuera de `vow-design`, también en las apps. Solo quedan fuera los datos
-   de contenido de demostración, que no son diseño: el catálogo de Marea
-   (`crates/marea/src/catalog.rs`) y las portadas de Ondina
-   (`crates/ondina/src/albums.rs`).
+   color fuera de `vow-design`.
 
 ## Apariencia del usuario
 
@@ -83,10 +80,6 @@ El acento no se toca, salvo para que se lea:
 
 El mismo botón en los tres modos:
 
-| Claro | Oscuro | Oscuro tintado |
-|---|---|---|
-| ![Botones en modo claro](assets/apps/tengen-botones-light.png) | ![Botones en modo oscuro](assets/apps/tengen-botones-dark.png) | ![Botones en modo oscuro tintado](assets/apps/tengen-botones-dark-tint.png) |
-
 ## La paleta semántica
 
 `style::Palette::current()` da los colores ya resueltos para el modo, el acento
@@ -118,12 +111,6 @@ Una app no cambia colores sueltos: elige una variante.
 | Un acento propio para toda una zona | `Backdrop::new(..).accent(Accent::Own(color))` o `Accent::FromBackdrop` |
 | Que el usuario elija un color | `ColorWell::new("Color", &ACCENT_SWATCHES)` |
 | Forzar claro u oscuro en mi ventana | `theme::use_appearance(\|config\| config.color_scheme = ColorScheme::Dark)` |
-
-El ejemplo [`ambiente.rs`](../../crates/barrier-kit/examples/ambiente.rs) usa
-las tres primeras: un fondo de tres colores, el acento sacado del fondo, un
-interruptor con `Tint::Backdrop` y un deslizador amarillo.
-
-![Ventana «Ambiente» con fondo degradado, interruptor y deslizador tintados](assets/ejemplos/ambiente.png)
 
 En una ventana inactiva, todos los tintes usan el acento inactivo de la paleta.
 Los fondos tintados se explican en el capítulo [13](13-fondos-y-medios.md).

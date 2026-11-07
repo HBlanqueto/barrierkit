@@ -27,7 +27,7 @@ se ven y se comportan igual.
 ## Los crates
 
 El repositorio [`barrierkit`](https://github.com/HBlanqueto/barrierkit) tiene
-cuatro crates de biblioteca y cuatro apps de prueba:
+cuatro crates de biblioteca:
 
 | Crate | Qué es |
 |---|---|
@@ -35,7 +35,6 @@ cuatro crates de biblioteca y cuatro apps de prueba:
 | `vow-design` | **Tengen**, el sistema de diseño. Convierte `tengen/tokens.json` y `tengen/components.json` en constantes Rust. |
 | `vow-appearance` | Lee `appearance.domain` y el fondo de pantalla y los resuelve en una paleta concreta. Vigila los cambios. |
 | `infinity-protocol` | Protocolo Wayland privado entre las apps y el compositor de Malaysia. |
-| `tengen-app-show`, `ondina`, `marea`, `trazo` | Apps de prueba (capítulo [15](15-apps-de-prueba.md)). |
 
 El kit se apoya en [Freya](https://freyaui.dev) `=0.4.3`, pero solo en sus
 crates de núcleo: `freya-core`, `freya-components` (sin features),
@@ -67,10 +66,5 @@ Freya 0.4.3 repinta el árbol entero en cada frame; aún no hay damage parcial
 - `libvulkan` y un driver Vulkan (ICD).
 - Compilar dentro de `nix develop` (ADR 0007 de Malaysia): el dev shell
   trae Skia, las fuentes (Geist) y el driver RADV.
-
-```sh
-nix develop
-./dev.sh app tengen-app-show
-```
 
 Siguiente: [2. Tu primera app](02-primera-app.md).

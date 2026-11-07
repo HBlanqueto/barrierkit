@@ -47,8 +47,8 @@ No hay `prelude`: cada pieza se importa de su módulo, por ejemplo
    (`#[cfg(test)]`) montan ventanas enteras y usan cualquier capa.
 2. La capa 3 solo compone la API pública de la capa 2. Lo que un patrón
    necesita se añade a la capa 2 y queda para todas las apps.
-3. Una app puede usar cualquier capa. Ajustes usa la 3; Ondina compone la 2 a
-   mano; una vista muy especial dibuja con `rect` y `label` de Freya y la
+3. Una app puede usar cualquier capa. Ajustes usa la 3; un reproductor compone la 2
+   a mano; una vista muy especial dibuja con `rect` y `label` de Freya y la
    `Palette`.
 4. La shell (`menubar`, `dock`, `lock`, `launcher`) usa `shell/`. Las demás apps
    no activan la feature y ni siquiera ven el módulo.

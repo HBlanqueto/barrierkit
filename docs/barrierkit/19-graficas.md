@@ -106,9 +106,3 @@ Todos viven en `components.chart` de `vow-design` (`CHART`):
 Los colores de las series siguen `series` (azul, verde, naranja, morado,
 rojo, amarillo, rosa), que apunta a los colores de acento del sistema
 (`CHART_SERIES`).
-
-## Prueba
-
-`./dev.sh app trazo` abre Trazo: una pestaña con cada marca 2D, otra con un
-monitor del sistema que lee `/proc` cada segundo y otra con las gráficas 3D
-(capítulo [15](15-apps-de-prueba.md#trazo-trazo)).

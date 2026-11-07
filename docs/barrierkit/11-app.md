@@ -109,8 +109,6 @@ historial.undo();
 `REDO` lo recorren desde el menú o el atajo, y sus entradas del menú se apagan
 cuando la pila está vacía.
 
-![Panel Deshacer de Tengen App Show](assets/apps/tengen-deshacer-light.png)
-
 ## Portapapeles
 
 ```rust

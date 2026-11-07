@@ -62,15 +62,14 @@ Preferencias en `~/.config/malaysia/<app_id>.domain`; estado de ventana en
 ## ¿Cómo añado un componente al kit?
 
 Sigue [5, «Crear un control nuevo»](05-controles.md#crear-un-control-nuevo).
-Lleva su página en Tengen App Show, su test de render en claro y oscuro y, si
-es interactivo, su test de teclado.
+Lleva su test de render en claro y oscuro y, si es interactivo, su test de
+teclado.
 
 ## ¿Cómo compruebo un cambio?
 
 ```sh
 nix develop
 ./dev.sh check
-./dev.sh app tengen-app-show
 ```
 
 `./dev.sh check` pasa `fmt`, `clippy`, los scripts de tokens y de dependencias

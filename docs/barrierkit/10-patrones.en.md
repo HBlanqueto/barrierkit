@@ -51,7 +51,7 @@ PreferencesWindow::new()
 - Choosing a result opens the pane and highlights the row.
 - The pane title appears in the bar, with the back and forward buttons.
 
-Tengen App Show and System Settings are built with this pattern.
+System Settings is built with this pattern.
 
 ## "About": `about_window`
 

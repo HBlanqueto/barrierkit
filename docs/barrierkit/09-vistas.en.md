@@ -241,7 +241,6 @@ match adaptable.current() {
 ```
 
 The breakpoints are `BREAKPOINT.medium` (620) and `BREAKPOINT.wide` (900).
-`adaptable.attach(rect())` measures the element it is attached to. Ondina uses
-it to go from three columns to one (chapter [15](15-apps-de-prueba.en.md)).
+`adaptable.attach(rect())` measures the element it is attached to.
 
 Next: [10. Patterns](10-patrones.en.md).

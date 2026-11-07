@@ -28,22 +28,7 @@ El binario precompilado de Skia para `freya-skia-bindings` 0.98.0 está en `nix/
 
 ## Probar en cualquier escritorio
 
-`barrier-kit` puede correr como cliente Wayland en cualquier compositor, no solo en Malaysia. Las apps del repositorio arrancan con el protocolo básico (`wl_compositor`, `xdg_shell`, `wl_seat`) y siguen adelante si faltan los globals opcionales.
-
-```sh
-nix develop
-./dev.sh app tengen-app-show # componentes, animaciones y titlebars (Master Tengen App Show)
-./dev.sh app marea           # cine y series: vídeo bajo cristal, carátulas y reproductor
-./dev.sh app ondina          # reproductor con fondo tintado, acento propio y diseño adaptable
-./dev.sh app trazo           # gráficas 2D y 3D y monitor del sistema leído de /proc
-```
-
-| App | GNOME / Mutter | Malaysia |
-|---|---|---|
-| `tengen-app-show` | Ventana CSD con su titlebar; sin menú global ni bordes del compositor. | Titlebar Tengen, bordes, sombra y blur del compositor. |
-| `marea` | Igual; decodifica con VA-API si hay GPU, si no por CPU. | Igual, con el vídeo importado como dmabuf en Vulkan. |
-| `ondina` | Igual; su menú (Controles, Ver) vive solo en D-Bus sin `org_kde_kwin_appmenu_manager`. | Menú global en la barra de menús; el fondo se tiñe con la portada. |
-| `trazo` | Igual; el monitor lee `/proc` y no depende del compositor. | Titlebar Tengen, bordes, sombra y blur del compositor. |
+`barrier-kit` puede correr como cliente Wayland en cualquier compositor, no solo en Malaysia. Una app arranca con el protocolo básico (`wl_compositor`, `xdg_shell`, `wl_seat`) y sigue adelante si faltan los globals opcionales.
 
 Si faltan `infinity_window_manager_v1`, `ext_foreign_toplevel_list_v1` / `zwlr_foreign_toplevel_manager_v1`, `wp_cursor_shape_manager_v1` u `org_kde_kwin_appmenu_manager`, el runner lo registra con `tracing::info!` y continúa.
 
