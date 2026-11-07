@@ -1,5 +1,6 @@
-use crate::style::Palette;
-use crate::theme::color;
+use crate::styles::{
+    ControlState, Paints, ShapeStyle, SplitPanesStyle, StateValue, Theme, resolve,
+};
 use ctdesign::{Rgba, SPLIT_PANES};
 use freya_core::prelude::*;
 use torin::prelude::{Content, Direction, Size};
@@ -11,7 +12,7 @@ pub struct SplitPanes {
     panes: Vec<Element>,
     ratios: Vec<f32>,
     on_ratios: Option<Callback<Vec<f32>, ()>>,
-    divider: Option<Rgba>,
+    style: Theme,
 }
 
 impl SplitPanes {
@@ -22,12 +23,19 @@ impl SplitPanes {
             panes: Vec::new(),
             ratios: Vec::new(),
             on_ratios: None,
-            divider: None,
+            style: Theme::tengen(),
         }
     }
 
-    pub fn divider(mut self, divider: Rgba) -> Self {
-        self.divider = Some(divider);
+    pub fn divider(self, divider: Rgba) -> Self {
+        self.style(move |s| SplitPanesStyle {
+            divider: StateValue::new(ShapeStyle::Color(divider)),
+            ..s
+        })
+    }
+
+    pub fn style(mut self, restyle: impl Fn(SplitPanesStyle) -> SplitPanesStyle + 'static) -> Self {
+        self.style = self.style.style(restyle);
         self
     }
 
@@ -49,6 +57,8 @@ impl SplitPanes {
 
 impl Component for SplitPanes {
     fn render(&self) -> impl IntoElement {
+        let style: SplitPanesStyle = resolve(&self.style);
+        let paints = Paints::current(ControlState::default(), style.effect);
         let mut length = use_state(|| 0.0f32);
         let direction = self.direction;
         let horizontal = direction == Direction::Horizontal;
@@ -77,11 +87,14 @@ impl Component for SplitPanes {
             if index > 0 {
                 let ratios = ratios.clone();
                 let on_ratios = self.on_ratios.clone();
+                let divider_width = style.divider_width;
                 row = row.child(Divider {
                     direction,
-                    ink: self.divider,
+                    thickness: divider_width,
+                    fill: paints.fill(&style.divider),
+                    blur: paints.blur(&style.divider),
                     on_drag: Callback::new(move |delta: f32| {
-                        let free = *length.peek() - SPLIT_PANES.divider * (count - 1) as f32;
+                        let free = *length.peek() - divider_width * (count - 1) as f32;
                         if let (Some(on_ratios), true) = (&on_ratios, free > 0.0) {
                             on_ratios.call(dragged(&ratios, index - 1, delta, free));
                         }
@@ -114,13 +127,14 @@ fn dragged(ratios: &[f32], divider: usize, delta: f32, free: f32) -> Vec<f32> {
 #[derive(PartialEq)]
 struct Divider {
     direction: Direction,
-    ink: Option<Rgba>,
+    thickness: f32,
+    fill: Fill,
+    blur: Option<f32>,
     on_drag: Callback<f32, ()>,
 }
 
 impl Component for Divider {
     fn render(&self) -> impl IntoElement {
-        let palette = Palette::current();
         let mut last = use_state(|| None::<f32>);
         let horizontal = self.direction == Direction::Horizontal;
         let on_drag = self.on_drag.clone();
@@ -130,13 +144,14 @@ impl Component for Divider {
         } else {
             CursorIcon::RowResize
         };
-        let line = rect().background(color(self.ink.unwrap_or(palette.separator)));
+        let line = rect()
+            .background(self.fill.clone())
+            .map(self.blur, Rect::blur);
+        let thickness = Size::px(self.thickness);
         let line = if horizontal {
-            line.width(Size::px(SPLIT_PANES.divider))
-                .height(Size::fill())
+            line.width(thickness).height(Size::fill())
         } else {
-            line.height(Size::px(SPLIT_PANES.divider))
-                .width(Size::fill())
+            line.height(thickness).width(Size::fill())
         };
         line.a11y_role(AccessibilityRole::Splitter)
             .on_pointer_enter(move |_| Cursor::set(icon))

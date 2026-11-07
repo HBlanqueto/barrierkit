@@ -1,5 +1,6 @@
-use bk::chrome::{ChromeStyle, RailStyle, TitlebarLayout, WindowChrome};
+use bk::chrome::{RailStyle, TitlebarLayout, WindowChrome};
 use bk::compact::IconButton;
+use bk::styles::WindowChromeStyle;
 use bk::symbol::Symbol;
 use bk::titlebar::Titlebar;
 use ctdesign::TITLEBAR;
@@ -8,20 +9,24 @@ use freya_core::prelude::*;
 use freya_testing::TestingRunner;
 use torin::prelude::{Area, Size2D};
 
-struct Case(ChromeStyle);
+struct Case(TitlebarLayout, RailStyle);
 
 impl App for Case {
     fn render(&self) -> impl IntoElement {
-        WindowChrome::new(
-            self.0,
-            rect().expanded().child(Titlebar::new().title("Rótulo")),
+        let Self(layout, rail_style) = *self;
+        WindowChrome::new(rect().expanded().child(Titlebar::new().title("Rótulo"))).style(
+            move |s| WindowChromeStyle {
+                layout,
+                rail_style,
+                ..s
+            },
         )
     }
 }
 
-fn light_groups(style: ChromeStyle) -> Vec<Area> {
+fn light_groups(layout: TitlebarLayout, rail_style: RailStyle) -> Vec<Area> {
     let (mut test, _) = TestingRunner::new(
-        AppComponent::new(Case(style)),
+        AppComponent::new(Case(layout, rail_style)),
         Size2D::new(900.0, 400.0),
         |_| {},
         1.0,
@@ -40,18 +45,14 @@ fn light_groups(style: ChromeStyle) -> Vec<Area> {
 
 #[test]
 fn the_titlebar_lights_are_as_far_from_the_left_edge_as_from_the_top() {
-    let groups = light_groups(ChromeStyle::default());
+    let groups = light_groups(TitlebarLayout::Top, RailStyle::Normal);
     assert_eq!(groups.len(), 1);
     assert_eq!(groups[0].min_x(), groups[0].min_y());
 }
 
 #[test]
 fn a_unified_rail_without_a_sidebar_falls_back_to_a_strip_with_one_set_of_vertical_lights() {
-    let groups = light_groups(ChromeStyle {
-        layout: TitlebarLayout::Rail,
-        rail_style: RailStyle::Unified,
-        ..Default::default()
-    });
+    let groups = light_groups(TitlebarLayout::Rail, RailStyle::Unified);
     assert_eq!(groups.len(), 1, "got {groups:?}");
     assert!(
         groups[0].height() > groups[0].width(),

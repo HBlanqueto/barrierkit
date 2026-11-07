@@ -2,7 +2,7 @@
 
 **Goal:** add a title bar to a window, choose its layout and know how it
 looks in each window state.
-**Scope:** `Titlebar`, `TrafficLights`, `WindowChrome` and its `ChromeStyle`,
+**Scope:** `Titlebar`, `TrafficLights`, `WindowChrome` and its `WindowChromeStyle`,
 and the full-screen bars (`FullscreenBar`). The window options and state they
 read are in [8. Windows](08-windows.md). The sidebar that holds the traffic
 lights is in [10. Sidebar](10-sidebar.md).
@@ -37,7 +37,8 @@ behavior.
 3. With a sidebar, pass `.with_sidebar(true)` so the bar aligns with it
    ([10](10-sidebar.md)).
 4. For a vertical title bar or one that hides, wrap the window in
-   `WindowChrome` with a `ChromeStyle` ([Window chrome](#window-chrome)).
+   `WindowChrome` and set its layout in a `WindowChromeStyle`
+   ([Window chrome](#window-chrome)).
 5. Choose the full-screen bar in `WindowOptions`
    ([The bar in full screen](#the-bar-in-full-screen-fullscreenbar)).
 6. Leave room under the overlaid title bar in full screen
@@ -56,7 +57,7 @@ bar: traffic lights, a left zone, the title and a right zone.
 | `.spacing(px)` | 0 | Gap between the bar's items |
 | `.with_sidebar(bool)` | `false` | Aligns the bar with a sidebar ([Variants](#variants-in-a-normal-window)) |
 | `.close_only(bool)` | `false` | Only the close button works, for dialogs and panels |
-| `.hairline(bool)` | `true` | The line at the bottom of the sidebar layout |
+| `.hairline(bool)` | `true` | The line at the bottom of the sidebar layout; `false` removes it, `true` keeps the style's |
 | `Titlebar::preview(status, title, fixed)` | — | Draws the bar for a given `WindowStatus` without a window, for previews and tests |
 
 Behavior:
@@ -73,6 +74,19 @@ Behavior:
   ([8](08-windows.md#utility-windows)).
 - With server-side decoration (`DecorationResponse::Server`) the bar takes no
   space: the compositor draws one.
+
+### Style
+
+`Titlebar::style` takes a `TitlebarStyle`: heights, paddings, background,
+title color, font and position, and the hairline. The fields are in
+[Styles and themes](../ai/styles.md#titlebarstyle-and-fullscreenbarstyle).
+
+```rust
+Titlebar::new().style(|s: TitlebarStyle| TitlebarStyle {
+    title_font: HEADLINE,
+    ..s
+})
+```
 
 ### Variants in a normal window
 
@@ -139,17 +153,30 @@ TrafficLights::new()
 | `.fixed_width(bool)` | `false` | The zoom glyph is a plus, for fixed-size windows |
 | `.close_only(bool)` | `false` | Only close is colored and clickable |
 | `.vertical(bool)` | `false` | A column instead of a row |
-| `.round(bool)` | `false` | Round instead of square |
+| `.round(bool)` | `false` | `true`: round instead of square; `false` keeps the style's shape |
 | `.input(TrafficInput)` | — | Draws a fixed state (focus, hover, press) and ignores the pointer, for previews |
 | `.on_action(f)` | — | Receives the `ButtonKind` pressed |
 
 Each light has the accessible role button and the name "Close", "Minimize" or
 "Zoom". Hovering the group shows the glyphs.
 
+`.style(..)` takes a `TrafficLightsStyle`: size, gap, shape, and the fill,
+rim and glyph of each light in each state; `.round` and `.vertical` override
+its `shape` and `axis`
+([Styles and themes](../ai/styles.md#trafficlightsstyle)). The lights that
+`TrafficLights::for_window` places take the theme and the containers:
+
+```rust
+Theme::tengen().style(|s: TrafficLightsStyle| TrafficLightsStyle {
+    shape: Shape::Circle,
+    ..s
+})
+```
+
 The user decides the rest. The appearance keys `traffic_lights` (color:
 `auto`, `standard`, `accent`, `wallpaper`) and `traffic_light_shape`
 (`square`, `round`) are in
-[4](04-appearance-and-tokens.md#the-appearance-file). `ChromeStyle::round_lights`
+[4](04-appearance-and-tokens.md#the-appearance-file). `WindowChromeStyle::round_lights`
 also makes them round. The behavior keys live in
 `~/.config/malaysia/window.domain`
 ([4](04-appearance-and-tokens.md#window-behavior)); the compositor's own
@@ -175,22 +202,27 @@ draggable areas.
 ## Window chrome
 
 `WindowChrome` (`bk::chrome`) wraps the window and places the traffic
-lights, the title and the rail items according to a `ChromeStyle`. `Titlebar`
-and `Sidebar` inside it read the style.
+lights, the title and the rail items according to its `WindowChromeStyle`.
+`Titlebar` and `Sidebar` inside it read the layout.
 
 ```rust
-use bk::chrome::{ChromeStyle, TitlebarLayout, WindowChrome};
+use bk::chrome::{TitlebarLayout, WindowChrome};
 
-let style = ChromeStyle {
-    layout: TitlebarLayout::Rail,
-    ..ChromeStyle::default()
-};
-WindowChrome::new(style, window_content)
+WindowChrome::new(window_content)
+    .style(|s| WindowChromeStyle {
+        layout: TitlebarLayout::Rail,
+        ..s
+    })
     .rail_top(top_items)
     .rail_bottom(bottom_items)
 ```
 
-### `ChromeStyle` fields
+### `WindowChromeStyle` layout fields
+
+These fields choose the layout. The style also holds the rail's paints,
+padding, title and the pill
+([Styles and themes](../ai/styles.md#windowchromestyle)); a `Theme` sets them
+for every window.
 
 | Field | Default | Values |
 |---|---|---|
@@ -289,7 +321,9 @@ compositor bar, added to the image.
 
 Only `Glass` and `ProgressiveGlass` blur. When the user reduces
 transparency (`reduce_transparency`, on by default), both draw as `Solid`;
-the content keeps the offset of the chosen bar.
+the content keeps the offset of the chosen bar. Their tint, line and metrics
+are a `FullscreenBarStyle`, set in the theme or with `.control_style`
+([Styles and themes](../ai/styles.md#titlebarstyle-and-fullscreenbarstyle)).
 
 #### Pushing the content: `fullscreen_push`
 

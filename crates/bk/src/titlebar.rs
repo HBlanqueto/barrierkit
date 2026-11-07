@@ -3,21 +3,22 @@ use std::rc::Rc;
 use std::time::{Duration, Instant};
 
 use crate::traffic::TrafficLights;
-use ctappearance::SidebarStyle;
-use ctappearance::palette;
+use ctappearance::SidebarStyle as SidebarKind;
 use ctappearance::window::{
     TitlebarAction, WindowBehavior, double_click_action, green_action, read_window_behavior,
 };
 use ctdesign::NATIVE_APP_ID_PREFIX;
-use ctdesign::{
-    ButtonKind, SETTINGS, SIDEBAR, TITLE_2, TITLEBAR, TITLEBAR_CLIENT_HEIGHT, TITLEBAR_DOUBLE_CLICK,
-};
+use ctdesign::{ButtonKind, TITLEBAR_DOUBLE_CLICK};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 
 use crate::ProbeExt;
 use crate::app::DefaultsRevision;
 use crate::platform::{Bar, DecorationResponse, WindowControls, WindowStatus};
+use crate::styles::{
+    ControlState, Paints, ShapeStyle, SidebarStyle, SplitViewStyle, StateValue, Theme,
+    TitlebarStyle, TrafficLightsStyle, resolve,
+};
 use crate::theme;
 
 #[derive(PartialEq)]
@@ -28,9 +29,8 @@ pub struct Titlebar {
     left: Option<Element>,
     right: Option<Element>,
     probe: Option<&'static str>,
-    spacing: f32,
     close_only: bool,
-    hairline: bool,
+    style: Theme,
 }
 
 #[derive(Clone, PartialEq)]
@@ -55,9 +55,8 @@ impl Titlebar {
             left: None,
             right: None,
             probe: None,
-            spacing: 0.0,
             close_only: false,
-            hairline: true,
+            style: Theme::tengen(),
         }
     }
 
@@ -92,9 +91,8 @@ impl Titlebar {
         self
     }
 
-    pub fn spacing(mut self, spacing: f32) -> Self {
-        self.spacing = spacing;
-        self
+    pub fn spacing(self, spacing: f32) -> Self {
+        self.style(move |s| TitlebarStyle { spacing, ..s })
     }
 
     pub fn close_only(mut self, close_only: bool) -> Self {
@@ -102,8 +100,19 @@ impl Titlebar {
         self
     }
 
-    pub fn hairline(mut self, hairline: bool) -> Self {
-        self.hairline = hairline;
+    pub fn hairline(self, hairline: bool) -> Self {
+        if hairline {
+            self
+        } else {
+            self.style(|s| TitlebarStyle {
+                hairline: None,
+                ..s
+            })
+        }
+    }
+
+    pub fn style(mut self, restyle: impl Fn(TitlebarStyle) -> TitlebarStyle + 'static) -> Self {
+        self.style = self.style.style(restyle);
         self
     }
 }
@@ -125,7 +134,7 @@ impl Component for Titlebar {
                 .is_some_and(|controls| controls.hud || controls.panel);
         let bar = if close_only {
             Bar::Titlebar
-        } else if self.sidebar && theme::resolved().sidebar.style == SidebarStyle::Island {
+        } else if self.sidebar && theme::resolved().sidebar.style == SidebarKind::Island {
             Bar::Unified
         } else {
             Bar::Compact
@@ -164,26 +173,25 @@ impl Component for Titlebar {
             && controls
                 .as_ref()
                 .is_some_and(WindowControls::titlebar_overlaid);
-        let resolved = crate::theme::resolved();
-        let theme = palette(resolved.scheme);
+        let style: TitlebarStyle = resolve(&self.style);
         let control = crate::sidebar::sidebar_control();
         let sidebar = self.sidebar && control.is_none_or(|control| control.settled());
-        let tinted = crate::backdrop::tinted().is_some();
-        let ink = crate::style::Palette::current();
-        let background = if tinted || overlaid || close_only {
-            ctdesign::Rgba::TRANSPARENT
-        } else if sidebar || status.activated {
-            crate::theme::surface_background(&resolved, crate::theme::SurfaceKind::Toplevel)
+        let state = ControlState {
+            focused: status.activated,
+            ..ControlState::default()
+        };
+        let paints = Paints::current(state, style.effect);
+        let background = if overlaid {
+            paints.fill(&StateValue::new(ShapeStyle::Clear))
+        } else if close_only {
+            paints.fill(&style.close_only_background)
+        } else if sidebar {
+            paints.fill(&style.sidebar_background)
         } else {
-            resolved.surfaces.titlebar_inactive
+            paints.fill(&style.background)
         };
 
-        let title_color = match (tinted, status.activated) {
-            (true, true) => ink.label,
-            (true, false) => ink.secondary_label,
-            (false, true) => theme.title.focused,
-            (false, false) => theme.title.unfocused,
-        };
+        let title_color = paints.color(style.title.resolve(state));
         let lights_shown = controls
             .as_ref()
             .is_none_or(WindowControls::traffic_lights_shown);
@@ -202,7 +210,11 @@ impl Component for Titlebar {
             )
         };
 
-        let title_font = if self.sidebar { TITLE_2 } else { TITLEBAR.font };
+        let title_font = if self.sidebar {
+            style.sidebar_title_font
+        } else {
+            style.title_font
+        };
         let title_label = label()
             .text(title)
             .font_family(title_font.family)
@@ -216,10 +228,10 @@ impl Component for Titlebar {
             });
 
         let (bar, height) = if self.sidebar {
-            let occupied = control.map_or(0.0, |control| control.occupied());
-            self.sidebar_bar(traffic, title_label, drag, background, occupied)
+            self.sidebar_bar(&style, &paints, traffic, title_label, drag, background)
         } else {
             self.centered_bar(
+                &style,
                 traffic,
                 title_label,
                 drag,
@@ -240,22 +252,23 @@ impl Component for Titlebar {
 impl Titlebar {
     fn sidebar_bar(
         &self,
+        style: &TitlebarStyle,
+        paints: &Paints,
         traffic: Option<Element>,
         title_label: Label,
         drag: impl Fn(Event<MouseEventData>) + 'static,
-        background: ctdesign::Rgba,
-        occupied: f32,
+        background: Fill,
     ) -> (Element, f32) {
-        let island = theme::resolved().sidebar.style == SidebarStyle::Island;
-        let (height, padding_top) = sidebar_bar_metrics();
-        let padding_x = if island {
-            SETTINGS.toolbar_padding_x as f32
-        } else {
-            ctdesign::TITLEBAR_PADDING_X
-        };
-        let inset = if island { SIDEBAR.inset as f32 } else { 0.0 };
-        let lights_x = inset + SIDEBAR.traffic_x as f32;
-        let lights_end = lights_x + ctappearance::traffic::group_rect().2 as f32;
+        let occupied = crate::sidebar::sidebar_control().map_or(0.0, |control| control.occupied());
+        let (height, padding_top) = (style.sidebar_height, style.sidebar_padding_top);
+        let padding_x = style.sidebar_padding_x;
+        let sidebar: SidebarStyle = resolve(&Theme::tengen());
+        let split: SplitViewStyle = resolve(&Theme::tengen());
+        let lights: TrafficLightsStyle = resolve(&Theme::tengen());
+        let inset = split.inset;
+        let (traffic_x, traffic_y) = sidebar.lights_position;
+        let lights_x = inset + traffic_x;
+        let lights_end = lights_x + lights.length();
         let padding_left = if traffic.is_some() {
             padding_x.max(lights_end + padding_x - occupied)
         } else {
@@ -267,7 +280,7 @@ impl Titlebar {
                 .position(
                     Position::new_absolute()
                         .left(lights_x - occupied - padding_left)
-                        .top(inset + SIDEBAR.traffic_y as f32 - padding_top),
+                        .top(inset + traffic_y - padding_top),
                 )
                 .layer(TITLEBAR_OVERLAY_LAYER + 1)
                 .child(traffic)
@@ -288,7 +301,7 @@ impl Titlebar {
             .height(Size::fill())
             .direction(Direction::Horizontal)
             .cross_align(Alignment::Center)
-            .main_align(Alignment::Start)
+            .main_align(style.sidebar_title_alignment.clone())
             .probe("titlebar-title")
             .on_mouse_down(drag)
             .child(title_label);
@@ -296,11 +309,11 @@ impl Titlebar {
         let root = rect()
             .width(Size::fill())
             .height(Size::px(height))
-            .background(theme::color(background))
+            .background(background)
             .direction(Direction::Horizontal)
             .content(Content::flex())
             .cross_align(Alignment::Center)
-            .spacing(self.spacing)
+            .spacing(style.spacing)
             .padding(Gaps::new(padding_top, padding_x, 0.0, padding_left))
             .child(left_slot)
             .child(title)
@@ -314,39 +327,40 @@ impl Titlebar {
                     .child(right)
             }))
             .maybe_child(fixed_lights)
-            .maybe_child(self.hairline.then(|| {
+            .maybe_child(style.hairline.as_ref().map(|(paint, thickness)| {
                 rect()
                     .position(Position::new_absolute().bottom(0.0).left(0.0))
                     .width(Size::percent(100.0))
-                    .height(Size::px(ctdesign::HAIRLINE))
-                    .background(theme::color(crate::sidebar::sidebar_palette().line))
+                    .height(Size::px(*thickness))
+                    .background(paints.fill(&StateValue::new(paint.clone())))
             }));
         (root.into_element(), height)
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn centered_bar(
         &self,
+        style: &TitlebarStyle,
         traffic: Option<Element>,
         title_label: Label,
         drag: impl Fn(Event<MouseEventData>) + Clone + 'static,
-        background: ctdesign::Rgba,
+        background: Fill,
         close_only: bool,
         mut content_widths: State<(f32, f32)>,
     ) -> (Element, f32) {
         let height = if close_only {
-            TITLEBAR.thickness
+            style.close_only_height
         } else {
-            TITLEBAR_CLIENT_HEIGHT
+            style.height
         };
+        let lights: TrafficLightsStyle = resolve(&Theme::tengen());
         let padding_x = if traffic.is_some() {
-            ctappearance::traffic::inset(height) as f32
+            lights_inset(height, &lights)
         } else {
-            ctdesign::TITLEBAR_PADDING_X
+            style.padding_x
         };
         let (left_width, right_width) = *content_widths.read();
-        let slot_width = (ctappearance::traffic::group_rect().2 as f32)
-            .max(left_width)
-            .max(right_width);
+        let slot_width = lights.length().max(left_width).max(right_width);
         let left_slot = rect()
             .width(Size::px(slot_width))
             .height(Size::fill())
@@ -357,7 +371,7 @@ impl Titlebar {
                 rect()
                     .direction(Direction::Horizontal)
                     .cross_align(Alignment::Center)
-                    .spacing(self.spacing)
+                    .spacing(style.spacing)
                     .on_sized(move |event: Event<SizedEventData>| {
                         let width = event.area.size.width;
                         let right = content_widths.peek().1;
@@ -388,17 +402,16 @@ impl Titlebar {
         let title = rect()
             .width(Size::flex(1.0))
             .height(Size::fill())
-            .cross_align(Alignment::Center)
+            .cross_align(style.title_alignment.clone())
             .main_align(Alignment::Center)
             .probe("titlebar-title")
             .on_mouse_down(drag)
             .child(title_label);
 
-        let height = height as f32;
         let root = rect()
             .width(Size::fill())
             .height(Size::px(height))
-            .background(theme::color(background))
+            .background(background)
             .direction(Direction::Horizontal)
             .content(Content::flex())
             .cross_align(Alignment::Center)
@@ -464,14 +477,12 @@ fn place_overlaid(
 pub(crate) const TITLEBAR_OVERLAY_LAYER: i16 = i16::MAX / 32;
 
 pub fn sidebar_bar_metrics() -> (f32, f32) {
-    if theme::resolved().sidebar.style == SidebarStyle::Island {
-        (
-            SETTINGS.toolbar_height as f32,
-            SETTINGS.toolbar_padding_top as f32,
-        )
-    } else {
-        (TITLEBAR_CLIENT_HEIGHT as f32, 0.0)
-    }
+    let style: TitlebarStyle = resolve(&Theme::tengen());
+    (style.sidebar_height, style.sidebar_padding_top)
+}
+
+fn lights_inset(height: f32, lights: &TrafficLightsStyle) -> f32 {
+    (height - lights.diameter) / 2.0
 }
 
 impl TrafficLights {

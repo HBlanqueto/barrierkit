@@ -59,6 +59,8 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 | `LevelStyle::Regular` | `LevelSliderStyle::tengen()`, the default | 2026-11-07 |
 | `LevelStyle::Fat(Symbol)` | `LevelSliderStyle::fat(symbol)` | 2026-11-07 |
 | `rich_text::TextStyle` | `rich_text::RunStyle`; `styles::TextStyle` is the style of `Text` | 2026-11-07 |
+| `chrome::ChromeStyle` | `styles::WindowChromeStyle`, with the look of the rail | 2026-11-07 |
+| `chrome::WindowChrome::new(style, child)` | `chrome::WindowChrome::new(child).style(\|s\| ..)` | 2026-11-07 |
 | The 22 views, modifiers and names listed in [ADR 0063](../decisions/0063-views-as-types-and-swift-names.md#decision) (`divider()`, `empty_state`, `use_tooltip`, `PreferencesWindow`, `AppMenu`, `ProgressBar`…) | `Divider`, `ContentUnavailableView`, `.help`, `SettingsWindow`, `MainMenu`, `ProgressView`… | 2026-11-07 |
 
 ## How to read the tables
@@ -175,6 +177,18 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 | `styles::RuleEditorStyle` | struct | — | ≈ `NSRuleEditor` | Gaps, indent and header text of `RuleEditor` | [Styles](../ai/styles.md#ruleeditorstyle) |
 | `styles::PrintPreviewStyle` | struct | — | — | Gaps, page background, shadows and page numbers of `PrintPreview` | [Styles](../ai/styles.md#printpreviewstyle) |
 | `styles::ChartStyle` | struct | ≈ `.chartForegroundStyleScale(_:)`, `.chartPlotStyle(content:)` | — | Every visual property of `Chart`, `SectorChart`, `HeatMap`, `StreamChart` and `Chart3D` | [Styles](../ai/styles.md#chartstyle) |
+| `styles::TitlebarStyle` | struct | ≈ `WindowToolbarStyle` | ≈ `NSWindow.ToolbarStyle`, `NSTitlebarSeparatorStyle` | Every visual property of `Titlebar`: heights, paddings, background, title and hairline | [Styles](../ai/styles.md#titlebarstyle-and-fullscreenbarstyle) |
+| `styles::FullscreenBarStyle` | struct | — | — | Tint, line and metrics of the full-screen bars; theme and container only | [Styles](../ai/styles.md#titlebarstyle-and-fullscreenbarstyle) |
+| `styles::TrafficLightsStyle` | struct | — | ≈ `NSWindow.standardWindowButton(_:)` | Size, gap, shape and the fill, rim and glyph of each traffic light per state | [Styles](../ai/styles.md#trafficlightsstyle) |
+| `styles::WindowChromeStyle` | struct | ≈ `WindowStyle` | — | Layout, reveal and resting edge of `WindowChrome`, and every visual property of its rail and pill | [Styles](../ai/styles.md#windowchromestyle) |
+| `styles::SidebarStyle` | struct | ≈ `SidebarListStyle` | ≈ `NSTableView.Style.sourceList` | Paddings, lights position, shape, background and borders of `Sidebar`; not `ctappearance::SidebarStyle` | [Styles](../ai/styles.md#sidebarstyle-sidebaritemstyle-sidebarsectionstyle-sidebaraccountstyle-and-symboltilestyle) |
+| `styles::SidebarItemStyle` | struct | ≈ `.listItemTint(_:)` | ≈ `NSTableCellView` | Every visual property of `SidebarItem`, selected and not | [Styles](../ai/styles.md#sidebarstyle-sidebaritemstyle-sidebarsectionstyle-sidebaraccountstyle-and-symboltilestyle) |
+| `styles::SidebarSectionStyle` | struct | — | — | Every visual property of `SidebarSection` and its fold | [Styles](../ai/styles.md#sidebarstyle-sidebaritemstyle-sidebarsectionstyle-sidebaraccountstyle-and-symboltilestyle) |
+| `styles::SidebarAccountStyle` | struct | — | — | Every visual property of `SidebarAccount` but its avatar | [Styles](../ai/styles.md#sidebarstyle-sidebaritemstyle-sidebarsectionstyle-sidebaraccountstyle-and-symboltilestyle) |
+| `styles::SymbolTileStyle` | struct | — | — | Size, shape, paints and border of `SymbolTile` | [Styles](../ai/styles.md#sidebarstyle-sidebaritemstyle-sidebarsectionstyle-sidebaraccountstyle-and-symboltilestyle) |
+| `styles::SplitViewStyle` | struct | ≈ `NavigationSplitViewStyle` | ≈ `NSSplitView.DividerStyle` | Inset, grip, background, scrim, inspector line and animations of `SplitView` | [Styles](../ai/styles.md#splitviewstyle-splitpanesstyle-and-floatingpanestyle) |
+| `styles::SplitPanesStyle` | struct | — | ≈ `NSSplitView.DividerStyle` | Width and paint of the dividers of `SplitPanes` | [Styles](../ai/styles.md#splitviewstyle-splitpanesstyle-and-floatingpanestyle) |
+| `styles::FloatingPaneStyle` | struct | — | ≈ `NSPanel` | Every visual property of `FloatingPane` | [Styles](../ai/styles.md#splitviewstyle-splitpanesstyle-and-floatingpanestyle) |
 | `styles::Theme` | struct | ≈ styles set in the environment | ≈ `NSAppearance` | Style overrides for the whole app; `Theme::tengen()` changes nothing | [Styles](../ai/styles.md#levels) |
 | `styles::Theme::style` | method | ≈ `.buttonStyle(_:)` on the scene | — | Adds an override of the control whose style the closure takes | [Styles](../ai/styles.md#levels) |
 | `styles::StyleScope` | struct | ≈ a view after `.buttonStyle(_:)` | — | Component returned by `.control_style`: its overrides reach the controls inside | [Styles](../ai/styles.md#levels) |
@@ -238,6 +252,17 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 | `rule_editor::RuleEditor::style` | method | — | — | Changes the style of one rule editor | [Styles](../ai/styles.md#ruleeditorstyle) |
 | `print::PrintPreview::style` | method | — | — | Changes the style of one print preview | [Styles](../ai/styles.md#printpreviewstyle) |
 | `charts::Chart::style`, `SectorChart::style`, `HeatMap::style`, `StreamChart::style`, `Chart3D::style` | method | ≈ `.chartForegroundStyleScale(_:)` on one chart | — | Changes the `ChartStyle` of one chart | [Styles](../ai/styles.md#chartstyle) |
+| `titlebar::Titlebar::style` | method | — | — | Changes the style of one title bar | [Styles](../ai/styles.md#titlebarstyle-and-fullscreenbarstyle) |
+| `traffic::TrafficLights::style` | method | — | — | Changes the style of one set of traffic lights | [Styles](../ai/styles.md#trafficlightsstyle) |
+| `chrome::WindowChrome::style` | method | — | — | Sets the layout and look of the window chrome | [Styles](../ai/styles.md#windowchromestyle) |
+| `sidebar::Sidebar::style` | method | — | — | Changes the style of one sidebar | [Styles](../ai/styles.md#sidebarstyle-sidebaritemstyle-sidebarsectionstyle-sidebaraccountstyle-and-symboltilestyle) |
+| `sidebar::SidebarItem::style` | method | — | — | Changes the style of one sidebar row | [Styles](../ai/styles.md#sidebarstyle-sidebaritemstyle-sidebarsectionstyle-sidebaraccountstyle-and-symboltilestyle) |
+| `sidebar::SidebarSection::style` | method | — | — | Changes the style of one sidebar section | [Styles](../ai/styles.md#sidebarstyle-sidebaritemstyle-sidebarsectionstyle-sidebaraccountstyle-and-symboltilestyle) |
+| `sidebar::SidebarAccount::style` | method | — | — | Changes the style of one account row | [Styles](../ai/styles.md#sidebarstyle-sidebaritemstyle-sidebarsectionstyle-sidebaraccountstyle-and-symboltilestyle) |
+| `sidebar::SymbolTile::style` | method | — | — | Builds the tile again with a style override | [Styles](../ai/styles.md#sidebarstyle-sidebaritemstyle-sidebarsectionstyle-sidebaraccountstyle-and-symboltilestyle) |
+| `views::split::SplitView::style` | method | — | — | Changes the style of one split view | [Styles](../ai/styles.md#splitviewstyle-splitpanesstyle-and-floatingpanestyle) |
+| `views::split_panes::SplitPanes::style` | method | — | — | Changes the style of one set of panes | [Styles](../ai/styles.md#splitviewstyle-splitpanesstyle-and-floatingpanestyle) |
+| `views::floating_pane::FloatingPane::style` | method | — | — | Changes the style of one floating pane; the `style` field holds it | [Styles](../ai/styles.md#splitviewstyle-splitpanesstyle-and-floatingpanestyle) |
 | `app::Application::theme` | method | ≈ `.environment(_:_:)` on the scene | ≈ `NSApp.appearance` | Gives the app its `Theme` | [Styles](../ai/styles.md#levels) |
 
 ## Symbols and fonts
@@ -722,11 +747,10 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 | `titlebar::sidebar_bar_metrics` | fn | — | — | Height and top padding of the title bar row beside a sidebar | [9](09-titlebars.md#the-sidebar-with-the-rail) |
 | `titlebar::app_id` | fn | — | — | Default Wayland app id for an app name | [9](09-titlebars.md#helpers) |
 | `chrome::WindowChrome` | struct | — | — | Wraps the window and places lights, title and rail items | [9](09-titlebars.md#window-chrome) |
-| `chrome::ChromeStyle` | struct | — | — | Layout, rail width and style, round lights, reveal and resting edge | [9](09-titlebars.md#chromestyle-fields) |
-| `chrome::TitlebarLayout` | enum | — | — | `Top` horizontal title bar or `Rail` vertical bar on the left | [9](09-titlebars.md#chromestyle-fields) |
-| `chrome::RailStyle` | enum | — | — | `Normal` own strip or `Unified` column inside the sidebar | [9](09-titlebars.md#chromestyle-fields) |
+| `chrome::TitlebarLayout` | enum | — | — | `Top` horizontal title bar or `Rail` vertical bar on the left | [9](09-titlebars.md#windowchromestyle-layout-fields) |
+| `chrome::RailStyle` | enum | — | — | `Normal` own strip or `Unified` column inside the sidebar | [9](09-titlebars.md#windowchromestyle-layout-fields) |
 | `chrome::Reveal` | enum | — | — | When the bar shows: `Always`, `Drawer`, `Push`, `Corner`, `Popup` | [9](09-titlebars.md#reveal) |
-| `chrome::RestingEdge` | enum | — | — | What a hidden bar leaves: `None`, `Line`, `Accent` | [9](09-titlebars.md#chromestyle-fields) |
+| `chrome::RestingEdge` | enum | — | — | What a hidden bar leaves: `None`, `Line`, `Accent` | [9](09-titlebars.md#windowchromestyle-layout-fields) |
 
 ## Sidebar and split view
 

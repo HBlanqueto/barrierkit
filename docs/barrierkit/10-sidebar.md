@@ -85,7 +85,8 @@ The column of navigation rows. Its children scroll in a
 | `Sidebar::new()` | — | An empty sidebar |
 | `.child(view)`, `.children(views)` | — | Adds rows: items, sections, an account or any view |
 | `.traffic_lights(bool)` | `false` | Draws the window's traffic lights in the sidebar's top corner. Where they go with each titlebar layout is in [9](09-titlebars.md) |
-| `.backdrop(SidebarBackdrop)` | `Clear` | How the island looks over a tinted backdrop: see [`SidebarBackdrop`](#sidebarbackdrop) |
+| `.backdrop(SidebarBackdrop)` | `Clear` | How the island looks over a tinted backdrop: see [`SidebarBackdrop`](#sidebarbackdrop); `Tinted` overrides the style's background and rim |
+| `.style(f)` | Tengen | A `SidebarStyle` ([Style](#style)) |
 | `.key(key)` | none | Diff key, as on any Freya element |
 
 Its look comes from `sidebar_style` in `appearance.domain`
@@ -100,6 +101,21 @@ Its look comes from `sidebar_style` in `appearance.domain`
 The strip above the first row moves the window when dragged. When the traffic
 lights are in the sidebar, the first row starts below them.
 
+#### Style
+
+`Sidebar::style`, `SidebarItem::style`, `SidebarSection::style`,
+`SidebarAccount::style` and `SymbolTile::style` take a `SidebarStyle`,
+`SidebarItemStyle`, `SidebarSectionStyle`, `SidebarAccountStyle` and
+`SymbolTileStyle`. Their Tengen follows `sidebar_style`; the fields are in
+[Styles and themes](../ai/styles.md#sidebarstyle-sidebaritemstyle-sidebarsectionstyle-sidebaraccountstyle-and-symboltilestyle).
+
+```rust
+Theme::tengen().style(|s: SidebarItemStyle| SidebarItemStyle {
+    shape: Shape::Capsule,
+    ..s
+})
+```
+
 ### `SidebarItem`
 
 A row with an optional symbol tile and a one-line label.
@@ -110,6 +126,7 @@ A row with an optional symbol tile and a one-line label.
 | `.symbol(Symbol, tint)` | no tile | A [`SymbolTile`](#symboltile) of color `tint` before the label |
 | `.selected(bool)` | `false` | Draws the row as selected. The app decides which row is selected |
 | `.emphasized(bool)` | `true` | With `false`, the selection is gray instead of accent, as when the focus is elsewhere |
+| `.style(f)` | Tengen | A `SidebarItemStyle` ([Style](#style)) |
 | `.on_select(callback)` | none | Called when the row is pressed |
 | `.key(key)` | none | Diff key |
 
@@ -131,13 +148,14 @@ or with the keyboard focus.
 |---|---|
 | `SidebarSection::new(title)` | A section with that title (11 pt, weight 600) |
 | `.child(view)`, `.children(views)` | Adds rows |
+| `.style(f)` | A `SidebarSectionStyle` ([Style](#style)) |
 | `.key(key)` | Diff key |
 
 ### `SidebarAccount`
 
 The account row at the top of the sidebar: an avatar with the initials, the
 name in bold and a detail line below. `SETTINGS.account_height` (48) high. It
-has no options and reports nothing.
+reports nothing; `.style(f)` takes a `SidebarAccountStyle`.
 
 ```rust
 SidebarAccount::new("JA", "Jane Appleseed", "Local account")
@@ -149,8 +167,9 @@ SidebarAccount::new("JA", "Jane Appleseed", "Local account")
 
 `SymbolTile::new(glyph, tint)` draws the square tile of a sidebar item:
 `SIDEBAR.app_icon` (22) wide, radius 8, filled with `tint`, the glyph in
-`Palette::on_accent`. `.rim(color)` adds a 1 px inner border. It is a rect: it
-takes Freya's layout and style methods. `SidebarItem` uses it, and so do the
+`Palette::on_accent`. `.rim(color)` adds a 1 px inner border and `.style(f)`
+takes a `SymbolTileStyle`; both build the tile again, so they come right after
+`new`. It is a rect: it takes Freya's layout and style methods. `SidebarItem` uses it, and so do the
 search results of [`SettingsWindow`](12-patterns.md#settingswindow).
 
 ### `SidebarBackdrop`
@@ -205,6 +224,7 @@ It is `NavigationSplitView` with a sidebar and a detail column.
 | `.inspector(view, presented)` | none | See [Inspector](#inspector) |
 | `.background_extension(view)` | none | See [Background extension](#background-extension) |
 | `.on_layout(callback)` | none | Reports [`SidebarLayout`](#sidebarlayout) |
+| `.style(f)` | Tengen | A `SplitViewStyle`: inset, grip, background, scrim, inspector line and the animations ([Styles and themes](../ai/styles.md#splitviewstyle-splitpanesstyle-and-floatingpanestyle)) |
 | `.key(key)` | none | Diff key |
 
 `sidebar_width` and `sidebar_visible` are starting values. After the first
@@ -229,7 +249,7 @@ exists only with `.resizable(true)` and while the sidebar is fully open.
 `SidebarToggle` is a unit struct: an icon button with the `SidebarLeft` symbol
 that calls `SidebarControl::toggle`. Its label is "Show or Hide Sidebar". It is
 disabled outside a `SplitView`. Put it in the titlebar's left zone:
-`Titlebar::new().left(SidebarToggle)`.
+`Titlebar::new().left(SidebarToggle)`. It takes `IconButtonStyle`.
 
 `TOGGLE_SIDEBAR` is the [`Action`](13-app.md) with the id `toggle-sidebar` and
 the shortcut Ctrl+Alt+S. `SplitView` answers its shortcut itself; add the

@@ -1,6 +1,10 @@
-use crate::style::{Palette, text};
-use crate::theme::color;
-use ctdesign::{CAPTION, FLOATING_PANE, Rgba};
+use crate::controls::shadowed;
+use crate::style::text;
+use crate::styles::{
+    ControlState, FloatingPaneStyle, LayoutDirection, Paints, ShapeStyle, StateValue, Theme,
+    resolve,
+};
+use ctdesign::{FLOATING_PANE, Rgba};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Position, Size};
 
@@ -75,19 +79,44 @@ pub struct FloatingPane {
     pub content: Element,
     pub on_raise: Callback<(), ()>,
     pub on_frame: Callback<PaneFrame, ()>,
+    pub style: Theme,
+}
+
+impl FloatingPane {
+    pub fn style(
+        mut self,
+        restyle: impl Fn(FloatingPaneStyle) -> FloatingPaneStyle + 'static,
+    ) -> Self {
+        self.style = self.style.style(restyle);
+        self
+    }
 }
 
 impl Component for FloatingPane {
     fn render(&self) -> impl IntoElement {
         let drag = use_state(|| None::<(Sides, (f64, f64))>);
-        let palette = Palette::current();
+        let (accent, title_bar, title_ink) = (self.accent, self.title_bar, self.title_ink);
+        let instance = self.style.clone();
+        let style: FloatingPaneStyle =
+            resolve(&Theme::tengen().style(move |s: FloatingPaneStyle| {
+                instance.apply(FloatingPaneStyle {
+                    outline: s.outline.clone().focused(ShapeStyle::Color(accent)),
+                    title_bar: StateValue::new(ShapeStyle::Color(title_bar)),
+                    title: StateValue::new(ShapeStyle::Color(title_ink)),
+                    ..s
+                })
+            }));
+        let state = ControlState {
+            focused: self.active,
+            ..ControlState::default()
+        };
+        let paints = Paints::current(state, style.effect);
         let frame = self.frame;
         let band = FLOATING_PANE.resize_band;
-        let outline = if self.active {
-            self.accent
-        } else {
-            palette.separator
-        };
+        let corner_radius =
+            style
+                .shape
+                .corner_radius(frame.width, frame.height, LayoutDirection::LeftToRight);
         let grab = move |sides: Sides| {
             let mut drag = drag;
             move |event: Event<MouseEventData>| {
@@ -171,8 +200,14 @@ impl Component for FloatingPane {
         let on_frame = self.on_frame.clone();
         let title_bar = rect()
             .width(Size::fill())
-            .height(Size::px(FLOATING_PANE.title_height))
-            .background(color(self.title_bar))
+            .height(Size::px(style.title_height))
+            .corner_radius(CornerRadius {
+                bottom_left: 0.0,
+                bottom_right: 0.0,
+                ..corner_radius
+            })
+            .background(paints.fill(&style.title_bar))
+            .map(paints.blur(&style.title_bar), Rect::blur)
             .main_align(Alignment::Center)
             .cross_align(Alignment::Center)
             .on_pointer_enter(move |_| Cursor::set(CursorIcon::Grab))
@@ -182,7 +217,28 @@ impl Component for FloatingPane {
                 }
             })
             .on_mouse_down(grab(MOVE))
-            .child(text(self.title.clone(), CAPTION, self.title_ink));
+            .child(text(
+                self.title.clone(),
+                style.title_font,
+                paints.color(style.title.resolve(state)),
+            ));
+        let pane = rect()
+            .position(Position::new_absolute().left(band).top(band))
+            .width(Size::px(frame.width))
+            .height(Size::px(frame.height))
+            .direction(Direction::Vertical)
+            .content(Content::flex())
+            .corner_radius(corner_radius)
+            .background(paints.fill(&style.background))
+            .map(paints.blur(&style.background), Rect::blur)
+            .border(
+                Border::new()
+                    .width(style.outline_width)
+                    .alignment(BorderAlignment::Outer)
+                    .fill(crate::theme::color(
+                        paints.color(style.outline.resolve(state)),
+                    )),
+            );
         rect()
             .position(
                 Position::new_absolute()
@@ -210,32 +266,12 @@ impl Component for FloatingPane {
                 }
             })
             .child(
-                rect()
-                    .position(Position::new_absolute().left(band).top(band))
-                    .width(Size::px(frame.width))
-                    .height(Size::px(frame.height))
-                    .direction(Direction::Vertical)
-                    .content(Content::flex())
-                    .background(color(palette.window_background))
-                    .border(
-                        Border::new()
-                            .width(FLOATING_PANE.outline)
-                            .alignment(BorderAlignment::Outer)
-                            .fill(color(outline)),
-                    )
-                    .shadow(
-                        Shadow::new()
-                            .y(FLOATING_PANE.shadow_y)
-                            .blur(FLOATING_PANE.shadow_blur)
-                            .color(color(FLOATING_PANE.shadow)),
-                    )
-                    .child(title_bar)
-                    .child(
-                        rect()
-                            .width(Size::fill())
-                            .height(Size::flex(1.0))
-                            .child(self.content.clone()),
-                    ),
+                shadowed(pane, &style.shadows).child(title_bar).child(
+                    rect()
+                        .width(Size::fill())
+                        .height(Size::flex(1.0))
+                        .child(self.content.clone()),
+                ),
             )
             .children(handles)
     }

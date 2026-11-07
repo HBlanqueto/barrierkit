@@ -1,19 +1,22 @@
 use crate::elements::forward_container;
-use ctappearance::{SidebarStyle, SidebarSurface};
-use ctdesign::{
-    BACKDROP, BODY, DURATION_BASE, Rgba, SETTINGS, SIDEBAR, SidebarPalette, TEXT_FIELD, TITLEBAR,
-    TITLEBAR_RAIL,
-};
+use ctappearance::{SidebarStyle as SidebarKind, SidebarSurface};
+use ctdesign::{BACKDROP, Rgba, SIDEBAR, SidebarPalette, TEXT_FIELD};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 
 use crate::ProbeExt;
 use crate::adornments::Avatar;
 use crate::chrome::TitlebarLayout;
-use crate::interaction::use_interaction;
+use crate::controls::inner_border;
+use crate::interaction::{control_state, use_interaction};
 use crate::platform::WindowControls;
 use crate::scroll::ScrollView;
 use crate::style::{Palette, text};
+use crate::styles::{
+    ControlState, LayoutDirection, Paints, ShapeStyle, SidebarAccountStyle, SidebarItemStyle,
+    SidebarSectionStyle, SidebarStyle, SplitViewStyle, StateValue, SymbolTileStyle, Theme,
+    TrafficLightsStyle, resolve,
+};
 use crate::symbol::{Symbol, symbol};
 use crate::theme;
 use crate::titlebar::window_drag_handler;
@@ -41,12 +44,11 @@ pub(crate) fn sidebar_palette() -> SidebarPalette {
     }
 }
 
-fn over_backdrop(surface: SidebarSurface, backdrop: SidebarBackdrop) -> SidebarSurface {
+pub(crate) fn over_backdrop(surface: SidebarSurface, backdrop: SidebarBackdrop) -> SidebarSurface {
     let Some(tint) = crate::backdrop::tinted() else {
         return surface;
     };
-    let tinted_island =
-        surface.style == SidebarStyle::Island && backdrop == SidebarBackdrop::Tinted;
+    let tinted_island = surface.style == SidebarKind::Island && backdrop == SidebarBackdrop::Tinted;
     let (bg, rim) = if tinted_island {
         (
             Rgba {
@@ -67,7 +69,7 @@ fn over_backdrop(surface: SidebarSurface, backdrop: SidebarBackdrop) -> SidebarS
     }
 }
 
-fn item_palette(emphasized: bool) -> SidebarPalette {
+pub(crate) fn item_palette(emphasized: bool) -> SidebarPalette {
     let palette = sidebar_palette();
     if !crate::platform::window_activated() {
         SidebarPalette {
@@ -124,41 +126,57 @@ pub fn sidebar_control() -> Option<SidebarControl> {
     try_consume_context()
 }
 
-pub struct SymbolTile(Rect);
+pub struct SymbolTile(Rect, Symbol, Theme);
 
 impl SymbolTile {
     pub fn new(glyph: Symbol, tint: Rgba) -> Self {
-        Self(symbol_tile(glyph, tint))
+        Self::styled(
+            glyph,
+            Theme::tengen().style(move |s| SymbolTileStyle {
+                background: StateValue::new(ShapeStyle::Color(tint)),
+                ..s
+            }),
+        )
     }
 
     pub fn rim(self, rim: Rgba) -> Self {
-        Self(
-            self.0.border(
-                Border::new()
-                    .width(SIDEBAR.rim_width)
-                    .alignment(BorderAlignment::Inner)
-                    .fill(theme::color(rim)),
-            ),
-        )
+        self.style(move |s| SymbolTileStyle {
+            border: Some((ShapeStyle::Color(rim), SIDEBAR.rim_width)),
+            ..s
+        })
+    }
+
+    pub fn style(self, restyle: impl Fn(SymbolTileStyle) -> SymbolTileStyle + 'static) -> Self {
+        Self::styled(self.1, self.2.style(restyle))
+    }
+
+    fn styled(glyph: Symbol, theme: Theme) -> Self {
+        let style: SymbolTileStyle = resolve(&theme);
+        let paints = Paints::current(ControlState::default(), style.effect);
+        let tile = rect()
+            .width(Size::px(style.size))
+            .height(Size::px(style.size))
+            .corner_radius(style.shape.corner_radius(
+                style.size,
+                style.size,
+                LayoutDirection::LeftToRight,
+            ))
+            .background(paints.fill(&style.background))
+            .map(paints.blur(&style.background), Rect::blur)
+            .map(style.border.as_ref(), |el, border| {
+                el.border(inner_border(&paints, border))
+            })
+            .center()
+            .child(symbol(
+                glyph,
+                style.symbol_size,
+                paints.color(style.symbol.resolve(ControlState::default())),
+            ));
+        Self(tile, glyph, theme)
     }
 }
 
 forward_container!(SymbolTile);
-
-fn symbol_tile(glyph: Symbol, tint: Rgba) -> Rect {
-    let tile = SIDEBAR.app_icon as f32;
-    rect()
-        .width(Size::px(tile))
-        .height(Size::px(tile))
-        .corner_radius(SIDEBAR.item_radius as f32)
-        .background(theme::color(tint))
-        .center()
-        .child(symbol(
-            glyph,
-            SIDEBAR.item_icon as f32,
-            Palette::current().on_accent,
-        ))
-}
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum SidebarBackdrop {
@@ -171,7 +189,7 @@ pub enum SidebarBackdrop {
 pub struct Sidebar {
     children: Vec<Element>,
     traffic_lights: bool,
-    backdrop: SidebarBackdrop,
+    style: Theme,
     probe: Option<&'static str>,
     key: DiffKey,
 }
@@ -194,7 +212,7 @@ impl Sidebar {
         Self {
             children: Vec::new(),
             traffic_lights: false,
-            backdrop: SidebarBackdrop::Clear,
+            style: Theme::tengen(),
             probe: None,
             key: DiffKey::None,
         }
@@ -216,8 +234,20 @@ impl Sidebar {
         self
     }
 
-    pub fn backdrop(mut self, backdrop: SidebarBackdrop) -> Self {
-        self.backdrop = backdrop;
+    pub fn backdrop(self, backdrop: SidebarBackdrop) -> Self {
+        match backdrop {
+            SidebarBackdrop::Clear => self,
+            SidebarBackdrop::Tinted => self.style(|s| {
+                s.surface(over_backdrop(
+                    crate::theme::resolved().sidebar,
+                    SidebarBackdrop::Tinted,
+                ))
+            }),
+        }
+    }
+
+    pub fn style(mut self, restyle: impl Fn(SidebarStyle) -> SidebarStyle + 'static) -> Self {
+        self.style = self.style.style(restyle);
         self
     }
 
@@ -235,9 +265,11 @@ impl KeyExt for Sidebar {
 
 impl Component for Sidebar {
     fn render(&self) -> impl IntoElement {
-        let resolved = crate::theme::resolved();
-        let surface = over_backdrop(resolved.sidebar, self.backdrop);
-        let island = surface.style == SidebarStyle::Island;
+        let style: SidebarStyle = resolve(&self.style);
+        let split: SplitViewStyle = resolve(&Theme::tengen());
+        let lights: TrafficLightsStyle = resolve(&Theme::tengen());
+        let paints = Paints::current(ControlState::default(), style.effect);
+        let (traffic_x, traffic_y) = style.lights_position;
 
         let controls = try_consume_root_context::<WindowControls>();
         let lights_opacity = crate::chrome::lights_opacity();
@@ -254,9 +286,8 @@ impl Component for Sidebar {
                 .titlebar_overlay_top()
                 .map(|top| top - controls.push_offset())
         });
-        let resting_top = SETTINGS.sidebar_padding_top as f32;
-        let lights_top =
-            (SIDEBAR.traffic_y + TITLEBAR.buttons.diameter + SETTINGS.sidebar_lights_gap) as f32;
+        let resting_top = style.padding_top;
+        let lights_top = traffic_y + lights.diameter + style.lights_gap;
         let top_height = match (
             lights_shown,
             controls.as_ref().filter(|_| overlay_top.is_some()),
@@ -275,16 +306,14 @@ impl Component for Sidebar {
         };
         let chrome = crate::chrome::chrome_style();
         let rail_layout = chrome.layout == TitlebarLayout::Rail;
-        let mut in_rail = use_state(|| rail_layout);
-        in_rail.set_if_modified(rail_layout);
-        let rail_progress = crate::animation::use_switch_progress(in_rail, DURATION_BASE);
-        let inset = if island { SIDEBAR.inset as f32 } else { 0.0 };
+        let rail_progress =
+            crate::animation::use_animated(f32::from(u8::from(rail_layout)), style.animation);
+        let inset = split.inset;
         let (bar_height, bar_padding_top) = crate::titlebar::sidebar_bar_metrics();
         // With the Rail the traffic lights leave the sidebar, so its first row rises to the titlebar row.
         let row_top = ((bar_padding_top + bar_height - TEXT_FIELD.height) / 2.0 - inset).max(0.0);
         let top_height = top_height + (row_top - top_height) * rail_progress;
-        let padding_x = SIDEBAR.padding_x as f32;
-        let radius = SIDEBAR.radius as f32;
+        let padding_x = style.padding_x;
 
         let (status, fixed) = controls
             .as_ref()
@@ -299,15 +328,19 @@ impl Component for Sidebar {
             0.0
         };
 
-        let mut sidebar_body = rect()
+        let corner_radius = style
+            .shape
+            .corner_radius(0.0, 0.0, LayoutDirection::LeftToRight);
+        let sidebar_body = rect()
             .expanded()
             .direction(Direction::Vertical)
-            .background(theme::color(surface.bg))
+            .background(paints.fill(&style.background))
+            .map(paints.blur(&style.background), Rect::blur)
             .a11y_role(AccessibilityRole::Navigation)
             .padding(Gaps::new(
                 top_height,
                 padding_x,
-                if island { padding_x } else { 0.0 },
+                style.padding_bottom,
                 padding_x + reserved,
             ))
             .child(
@@ -322,22 +355,21 @@ impl Component for Sidebar {
                     .probe("sidebar-drag-strip")
                     .on_mouse_down(drag),
             )
-            .child(ScrollView::new().children(self.children.iter().cloned()));
-
-        if island {
-            sidebar_body = sidebar_body.corner_radius(crate::style::continuous_corner(radius));
-
-            if surface.rim.a > 0.0 {
-                sidebar_body = sidebar_body.border(
-                    Border::new()
-                        .width(SIDEBAR.rim_width)
-                        .alignment(BorderAlignment::Inner)
-                        .fill(theme::color(surface.rim)),
-                );
-            }
-
-            if surface.inner.a > 0.0 {
-                sidebar_body = sidebar_body.child(
+            .child(ScrollView::new().children(self.children.iter().cloned()))
+            .corner_radius(corner_radius)
+            .map(style.border.as_ref(), |el, border| {
+                el.border(inner_border(&paints, border))
+            })
+            .map(style.inner_border.as_ref(), |el, inner| {
+                let rim = style.border.as_ref().map_or(0.0, |(_, width)| *width);
+                let radius = CornerRadius {
+                    top_left: (corner_radius.top_left - rim).max(0.0),
+                    top_right: (corner_radius.top_right - rim).max(0.0),
+                    bottom_right: (corner_radius.bottom_right - rim).max(0.0),
+                    bottom_left: (corner_radius.bottom_left - rim).max(0.0),
+                    ..corner_radius
+                };
+                el.child(
                     rect()
                         .position(
                             Position::new_absolute()
@@ -346,29 +378,21 @@ impl Component for Sidebar {
                                 .right(0.0)
                                 .bottom(0.0),
                         )
-                        .margin(Gaps::new_all(SIDEBAR.rim_width))
-                        .corner_radius(crate::style::continuous_corner(
-                            (radius - SIDEBAR.rim_width).max(0.0),
-                        ))
-                        .border(
-                            Border::new()
-                                .width(SIDEBAR.inner_width)
-                                .alignment(BorderAlignment::Inner)
-                                .fill(theme::color(surface.inner)),
-                        ),
-                );
-            }
-        }
+                        .margin(Gaps::new_all(rim))
+                        .corner_radius(radius)
+                        .border(inner_border(&paints, inner)),
+                )
+            });
 
         let mut root = rect()
             .expanded()
             .child(sidebar_body)
-            .maybe_child((!island).then(|| {
+            .maybe_child(style.line.as_ref().map(|(paint, width)| {
                 rect()
                     .position(Position::new_absolute().top(0.0).right(0.0))
-                    .width(Size::px(SIDEBAR.inner_width))
+                    .width(Size::px(*width))
                     .height(Size::percent(100.0))
-                    .background(theme::color(surface.palette.line))
+                    .background(paints.fill(&StateValue::new(paint.clone())))
             }));
 
         let sidebar_shown = sidebar_control().is_none_or(|control| control.settled());
@@ -383,11 +407,11 @@ impl Component for Sidebar {
                     .direction(Direction::Vertical)
                     .content(Content::flex())
                     .cross_align(Alignment::Center)
-                    .spacing(TITLEBAR.buttons.spacing as f32)
+                    .spacing(chrome.rail_spacing)
                     .padding(Gaps::new(
-                        SIDEBAR.traffic_y as f32 + overlay_top.unwrap_or_default(),
+                        traffic_y + overlay_top.unwrap_or_default(),
                         0.0,
-                        TITLEBAR_RAIL.padding_bottom,
+                        chrome.rail_padding_bottom,
                         0.0,
                     ))
                     .maybe(overlay_top.is_some(), |el| {
@@ -410,20 +434,18 @@ impl Component for Sidebar {
             && sidebar_shown
             && chrome.layout == TitlebarLayout::Top
         {
-            let (_, _, group_w, _) = ctappearance::traffic::group_rect();
-
             root = root.child(
                 rect()
                     .position(
                         Position::new_absolute()
-                            .top(SIDEBAR.traffic_y as f32 + overlay_top.unwrap_or_default())
-                            .left(SIDEBAR.traffic_x as f32),
+                            .top(traffic_y + overlay_top.unwrap_or_default())
+                            .left(traffic_x),
                     )
                     .maybe(overlay_top.is_some(), |el| {
                         el.layer(crate::titlebar::TITLEBAR_OVERLAY_LAYER + 1)
                     })
-                    .width(Size::px(group_w as f32))
-                    .height(Size::px(TITLEBAR.buttons.diameter as f32))
+                    .width(Size::px(lights.length()))
+                    .height(Size::px(lights.diameter))
                     .probe("sidebar-traffic-lights")
                     .opacity(lights_opacity)
                     .child(TrafficLights::for_window(status.activated, fixed)),
@@ -439,7 +461,7 @@ pub struct SidebarItem {
     label: String,
     symbol: Option<(Symbol, Rgba)>,
     selected: bool,
-    emphasized: bool,
+    style: Theme,
     on_select: Option<Callback<(), ()>>,
     probe: Option<&'static str>,
     key: DiffKey,
@@ -458,7 +480,7 @@ impl SidebarItem {
             label: label.into(),
             symbol: None,
             selected: false,
-            emphasized: true,
+            style: Theme::tengen(),
             on_select: None,
             probe: None,
             key: DiffKey::None,
@@ -475,8 +497,25 @@ impl SidebarItem {
         self
     }
 
-    pub fn emphasized(mut self, emphasized: bool) -> Self {
-        self.emphasized = emphasized;
+    pub fn emphasized(self, emphasized: bool) -> Self {
+        if emphasized {
+            self
+        } else {
+            self.style(|s| SidebarItemStyle {
+                selected_background: StateValue::new(ShapeStyle::Color(
+                    item_palette(false).selected_bg,
+                )),
+                selected_label: s.label.clone(),
+                ..s
+            })
+        }
+    }
+
+    pub fn style(
+        mut self,
+        restyle: impl Fn(SidebarItemStyle) -> SidebarItemStyle + 'static,
+    ) -> Self {
+        self.style = self.style.style(restyle);
         self
     }
 
@@ -499,44 +538,35 @@ impl KeyExt for SidebarItem {
 
 impl Component for SidebarItem {
     fn render(&self) -> impl IntoElement {
-        let palette = item_palette(self.emphasized);
+        let style: SidebarItemStyle = resolve(&self.style);
         let interaction = use_interaction();
-
-        let (bg, fg, weight) = if self.selected {
+        let state = control_state(interaction, false);
+        let paints = Paints::current(state, style.effect);
+        let (background, ink, font) = if self.selected {
             (
-                theme::color(palette.selected_bg),
-                theme::color(palette.selected_ink),
-                FontWeight::SEMI_BOLD,
-            )
-        } else if interaction.hovered() {
-            (
-                theme::color(palette.hover_bg),
-                theme::color(palette.item_ink),
-                FontWeight::MEDIUM,
+                &style.selected_background,
+                &style.selected_label,
+                style.selected_font,
             )
         } else {
-            (
-                Color::TRANSPARENT,
-                theme::color(palette.item_ink),
-                FontWeight::MEDIUM,
-            )
+            (&style.background, &style.label, style.font)
         };
+        let corner_radius =
+            style
+                .shape
+                .corner_radius(style.height, style.height, LayoutDirection::LeftToRight);
 
         let mut row = interaction
             .attach(rect(), true)
             .width(Size::fill())
-            .height(Size::px(SIDEBAR.item_height as f32))
+            .height(Size::px(style.height))
             .direction(Direction::Horizontal)
             .cross_align(Alignment::Center)
-            .spacing(SIDEBAR.item_gap as f32)
-            .padding(Gaps::new(
-                0.0,
-                SIDEBAR.item_padding_x as f32,
-                0.0,
-                SIDEBAR.item_padding_x as f32,
-            ))
-            .corner_radius(SIDEBAR.item_radius as f32)
-            .background(bg)
+            .spacing(style.spacing)
+            .padding(Gaps::new(0.0, style.padding_x, 0.0, style.padding_x))
+            .corner_radius(corner_radius)
+            .background(paints.fill(background))
+            .map(paints.blur(background), Rect::blur)
             .a11y_role(AccessibilityRole::ListItem)
             .a11y_alt(self.label.clone())
             .a11y_builder(move |node| {
@@ -553,24 +583,27 @@ impl Component for SidebarItem {
             });
 
         if let Some((glyph, tint)) = self.symbol {
-            row = row.child(SymbolTile::new(glyph, tint).map(
-                self.selected.then_some(palette.selected_icon_rim),
-                SymbolTile::rim,
-            ));
+            let border = style.selected_tile_border.clone().filter(|_| self.selected);
+            row = row.child(SymbolTile::new(glyph, tint).map(border, |tile, border| {
+                tile.style(move |s| SymbolTileStyle {
+                    border: Some(border.clone()),
+                    ..s
+                })
+            }));
         }
 
         row = row.child(
             label()
                 .text(self.label.clone())
-                .font_family(BODY.family)
-                .font_size(SIDEBAR.item_text_size as f32)
-                .font_weight(weight)
-                .color(fg)
+                .font_family(font.family)
+                .font_size(font.size as f32)
+                .font_weight(FontWeight::from(font.weight as i32))
+                .color(theme::color(paints.color(ink.resolve(state))))
                 .max_lines(1),
         );
 
         row = row.map(self.probe, ProbeExt::probe);
-        interaction.focus_ring(row, SIDEBAR.item_radius as f32)
+        interaction.focus_ring(row, corner_radius.top_left)
     }
 }
 
@@ -578,6 +611,7 @@ impl Component for SidebarItem {
 pub struct SidebarSection {
     title: String,
     children: Vec<Element>,
+    style: Theme,
     key: DiffKey,
 }
 
@@ -586,8 +620,17 @@ impl SidebarSection {
         Self {
             title: title.into(),
             children: Vec::new(),
+            style: Theme::tengen(),
             key: DiffKey::None,
         }
+    }
+
+    pub fn style(
+        mut self,
+        restyle: impl Fn(SidebarSectionStyle) -> SidebarSectionStyle + 'static,
+    ) -> Self {
+        self.style = self.style.style(restyle);
+        self
     }
 
     pub fn child(mut self, child: impl IntoElement) -> Self {
@@ -616,8 +659,10 @@ impl KeyExt for SidebarSection {
 impl Component for SidebarSection {
     fn render(&self) -> impl IntoElement {
         let expanded = use_state(|| true);
-        let palette = sidebar_palette();
+        let style: SidebarSectionStyle = resolve(&self.style);
         let interaction = use_interaction();
+        let state = control_state(interaction, false);
+        let paints = Paints::current(state, style.effect);
         let show_chevron = interaction.hovered() || interaction.keyboard_focused();
 
         let toggle = {
@@ -626,7 +671,8 @@ impl Component for SidebarSection {
         };
 
         let mut content_height = use_state(|| 0.0f32);
-        let progress = crate::animation::use_switch_progress(expanded, DURATION_BASE);
+        let progress =
+            crate::animation::use_animated(f32::from(u8::from(*expanded.read())), style.animation);
         let measured_height = *content_height.read();
         let height = progress * measured_height;
         let drawer_offset = -(1.0 - progress) * measured_height;
@@ -638,14 +684,9 @@ impl Component for SidebarSection {
                 interaction
                     .attach(rect(), true)
                     .width(Size::fill())
-                    .height(Size::px(SIDEBAR.section_height as f32))
-                    .margin(Gaps::new(SIDEBAR.section_margin_top as f32, 0.0, 0.0, 0.0))
-                    .padding(Gaps::new(
-                        0.0,
-                        SIDEBAR.section_padding_x as f32,
-                        0.0,
-                        SIDEBAR.section_padding_x as f32,
-                    ))
+                    .height(Size::px(style.height))
+                    .margin(Gaps::new(style.margin_top, 0.0, 0.0, 0.0))
+                    .padding(Gaps::new(0.0, style.padding_x, 0.0, style.padding_x))
                     .direction(Direction::Horizontal)
                     .cross_align(Alignment::Center)
                     .main_align(Alignment::SpaceBetween)
@@ -658,9 +699,10 @@ impl Component for SidebarSection {
                     .child(
                         label()
                             .text(self.title.clone())
-                            .font_size(SIDEBAR.section_size as f32)
-                            .font_weight(FontWeight::from(SIDEBAR.section_weight as i32))
-                            .color(theme::color(palette.section_ink))
+                            .font_family(style.font.family)
+                            .font_size(style.font.size as f32)
+                            .font_weight(FontWeight::from(style.font.weight as i32))
+                            .color(theme::color(paints.color(style.title.resolve(state))))
                             .max_lines(1),
                     )
                     .maybe(show_chevron, |el| {
@@ -669,7 +711,11 @@ impl Component for SidebarSection {
                         } else {
                             Symbol::ChevronRight
                         };
-                        el.child(symbol(chevron, SIDEBAR.chevron as f32, palette.section_ink))
+                        el.child(symbol(
+                            chevron,
+                            style.chevron_size,
+                            paints.color(style.chevron.resolve(state)),
+                        ))
                     }),
             )
             .child(
@@ -698,6 +744,7 @@ pub struct SidebarAccount {
     initials: String,
     name: String,
     detail: String,
+    style: Theme,
 }
 
 impl SidebarAccount {
@@ -710,45 +757,43 @@ impl SidebarAccount {
             initials: initials.into(),
             name: name.into(),
             detail: detail.into(),
+            style: Theme::tengen(),
         }
+    }
+
+    pub fn style(
+        mut self,
+        restyle: impl Fn(SidebarAccountStyle) -> SidebarAccountStyle + 'static,
+    ) -> Self {
+        self.style = self.style.style(restyle);
+        self
     }
 }
 
 impl Component for SidebarAccount {
     fn render(&self) -> impl IntoElement {
-        let palette = item_palette(true);
+        let style: SidebarAccountStyle = resolve(&self.style);
+        let paints = Paints::current(ControlState::default(), style.effect);
+        let ink =
+            |paint: &StateValue<ShapeStyle>| paints.color(paint.resolve(ControlState::default()));
         rect()
             .a11y_alt(self.name.clone())
             .width(Size::fill())
-            .height(Size::px(SETTINGS.account_height as f32))
-            .margin(Gaps::new(
-                0.0,
-                0.0,
-                SETTINGS.account_margin_bottom as f32,
-                0.0,
-            ))
+            .height(Size::px(style.height))
+            .margin(Gaps::new(0.0, 0.0, style.margin_bottom, 0.0))
             .direction(Direction::Horizontal)
             .cross_align(Alignment::Center)
-            .spacing(SETTINGS.account_gap as f32)
-            .padding(Gaps::new(
-                0.0,
-                SETTINGS.account_padding_x as f32,
-                0.0,
-                SETTINGS.account_padding_x as f32,
-            ))
+            .spacing(style.spacing)
+            .padding(Gaps::new(0.0, style.padding_x, 0.0, style.padding_x))
             .child(Avatar::new(&self.initials))
             .child(
                 rect()
                     .direction(Direction::Vertical)
-                    .child(text(
-                        self.name.clone(),
-                        SETTINGS.account_name_font,
-                        palette.item_ink,
-                    ))
+                    .child(text(self.name.clone(), style.name_font, ink(&style.name)))
                     .child(text(
                         self.detail.clone(),
-                        SETTINGS.account_detail_font,
-                        palette.count_ink,
+                        style.detail_font,
+                        ink(&style.detail),
                     )),
             )
     }

@@ -98,8 +98,9 @@ Every control style has the same groups. The names of the parts change per
 control; the groups do not. A control leaves out a group it does not draw:
 only `BackdropStyle`, `ButtonStyle`, `ChartStyle`, `GlassContainerStyle`,
 `HelpLinkStyle`, `IconButtonStyle`, `LevelSliderStyle`, `MediaButtonStyle`,
-`ProgressViewStyle`, `RoundButtonStyle`, `ScrollViewStyle`, `SliderStyle`,
-`SpinnerStyle` and `SwitchStyle` have `animation`.
+`ProgressViewStyle`, `RoundButtonStyle`, `ScrollViewStyle`,
+`SidebarSectionStyle`, `SidebarStyle`, `SliderStyle`, `SpinnerStyle`,
+`SplitViewStyle`, `SwitchStyle` and `WindowChromeStyle` have `animation`.
 
 | Group | Fields (slider) |
 |---|---|
@@ -902,6 +903,199 @@ Theme::tengen().style(|s: ChartStyle| ChartStyle {
 })
 ```
 
+### TitlebarStyle and FullscreenBarStyle
+
+`Titlebar` has two bars: the centered one (no sidebar) and the one beside a
+sidebar (`.with_sidebar(true)`). Its paints are `focused` while the window is
+active.
+
+| Field | Type | Tengen |
+|---|---|---|
+| `height`, `close_only_height` | `f32` | `TITLEBAR_CLIENT_HEIGHT`; `TITLEBAR.thickness` for `.close_only(true)`, utility and HUD windows |
+| `sidebar_height`, `sidebar_padding_top` | `f32` | `SETTINGS.toolbar_height`, `SETTINGS.toolbar_padding_top` with an island sidebar; `TITLEBAR_CLIENT_HEIGHT` and `0.0` with a flat one. `sidebar_bar_metrics()` returns them |
+| `padding_x`, `sidebar_padding_x` | `f32` | `TITLEBAR_PADDING_X`; `SETTINGS.toolbar_padding_x` (island) or `TITLEBAR_PADDING_X` (flat). With the traffic lights in the centered bar the side padding is half of `height` minus the lights' `diameter` |
+| `spacing` | `f32` | `0.0`, between the bar's items |
+| `background` | `StateValue<ShapeStyle>` | `Color` of `titlebar_inactive`, focused `Color` of the window surface; `Clear` over a `Backdrop` |
+| `sidebar_background` | `StateValue<ShapeStyle>` | `Color` of the window surface while the sidebar shows; `Clear` over a `Backdrop` |
+| `close_only_background` | `StateValue<ShapeStyle>` | `Clear` |
+| `title` | `StateValue<ShapeStyle>` | `Color` of the unfocused title, focused `Color` of the focused one; over a `Backdrop` `Role(SecondaryLabel)`, focused `Role(Label)` |
+| `hairline` | `Option<(ShapeStyle, f32)>` | `Some((Color of the sidebar line, HAIRLINE))`, at the bottom of the bar beside a sidebar |
+| `effect` | `ColorEffect` | `system_effect` |
+| `title_alignment`, `sidebar_title_alignment` | `Alignment` | `Center` between the two equal zones; `Start`, next to the left zone |
+| `title_font`, `sidebar_title_font` | `Font` | `TITLEBAR.font`, `TITLE_2`; one line, so `line_height` has no effect |
+
+States: focused (the window is active). In full screen the bar sits on the
+full-screen glass and draws no background. `.spacing(px)` is an instance
+override of `spacing`; `.hairline(false)` sets `hairline` to `None`.
+
+`FullscreenBarStyle` paints the glass under the overlaid bar and the rail in
+full screen. The kind of bar stays `WindowOptions::fullscreen_bar`. It has no
+instance level: set it in the theme or with `.control_style` around the
+window.
+
+| Field | Type | Tengen |
+|---|---|---|
+| `band`, `glass` | `FullscreenGlassMetrics` | `FULLSCREEN_BAND` for `FullscreenBar::Glass`, `FULLSCREEN_GLASS` for `ProgressiveGlass` |
+| `tint` | `StateValue<ShapeStyle>` | `Color` of the glass of the window, as `TopGlassStyle` |
+| `line` | `StateValue<ShapeStyle>` | `Role(Separator)`, the line under the `Glass` band |
+| `effect` | `ColorEffect` | `system_effect` |
+
+States: only `normal`. When the user reduces transparency every bar is the
+solid `tint`.
+
+```rust
+Titlebar::new().style(|s| TitlebarStyle {
+    title_alignment: Alignment::Start,
+    hairline: None,
+    ..s
+})
+```
+
+### TrafficLightsStyle
+
+`fills`, `rims` and `glyphs` hold one paint per light, in the order close,
+minimize, zoom.
+
+| Field | Type | Tengen |
+|---|---|---|
+| `diameter`, `spacing` | `f32` | `TITLEBAR.buttons.diameter`, `TITLEBAR.buttons.spacing` |
+| `glyph_size`, `rim_width` | `f32` | `TRAFFIC_GLYPHS.box_size`, `TRAFFIC_RIM_WIDTH` |
+| `shape` | `Shape` | `RoundedRectangle { radius: TITLEBAR.buttons.corner_radius, style: Circular }` |
+| `fills`, `rims`, `glyphs` | `[StateValue<ShapeStyle>; 3]` | the `Color`s of `ctappearance::traffic::visual` for the user's `traffic_lights`: normal and disabled are the gray idle light without a glyph, focused the lit light, hovered the lit light with its glyph, pressed the darkened light. `glyphs` is `Clear` where no glyph shows |
+| `opacity` | `f32` | `1.0` |
+| `effect` | `ColorEffect` | `system_effect` |
+| `axis` | `Axis` | `Horizontal` |
+
+States: hovered (the pointer is over the group), pressed (that light), focused
+(the window is focused), disabled (zoom without zoom support, the other
+lights with `.close_only(true)`). `.round(true)` is an instance override of
+`shape` (`Circle`), `.vertical(true)` of `axis`. `Titlebar`, the rail and the
+sidebar place their lights with `TrafficLights::for_window`, so their size
+comes from the theme and the containers.
+
+### WindowChromeStyle
+
+`WindowChrome::new(child).style(..)` takes the layout and the look of the
+chrome. Its paints are `focused` while the window is active.
+
+| Field | Type | Tengen |
+|---|---|---|
+| `layout` | `TitlebarLayout` | `Top`; `Rail` for the vertical bar |
+| `rail_style` | `RailStyle` | `Normal`; `Unified` puts the column inside the sidebar |
+| `reveal` | `Reveal` | `Always` ([9](../barrierkit/09-titlebars.md#reveal)) |
+| `resting_edge` | `RestingEdge` | `None`; `Line` draws `line_edge`, `Accent` `accent_edge` |
+| `round_lights` | `bool` | `false`; `true` makes the window's traffic lights round |
+| `rail_width` | `f32` | `TITLEBAR_RAIL.width`, at least `TITLEBAR_RAIL.actions_width` with rail items |
+| `rail_padding_top`, `rail_padding_bottom`, `rail_spacing` | `f32` | `TITLEBAR_RAIL.padding_top`, `TITLEBAR_RAIL.padding_bottom`, `TITLEBAR.buttons.spacing`; the unified column takes the last two |
+| `pill_inset`, `pill_padding` | `f32`, `(f32, f32)` | `TITLEBAR_RAIL.pill_inset`, `(pill_padding_x, pill_padding_y)` of the `Popup` pill |
+| `pill_shape` | `Shape` | `RoundedRectangle { radius: TITLEBAR_RAIL.pill_radius, style: Circular }` |
+| `rail_background` | `StateValue<ShapeStyle>` | `Color` of `titlebar_inactive`, focused `Color` of the window surface; `Clear` with an island sidebar |
+| `drawer_background` | `StateValue<ShapeStyle>` | `Color` of the window surface, the rail of `Reveal::Drawer` |
+| `title` | `StateValue<ShapeStyle>` | `Color` of the unfocused title, focused `Color` of the focused one |
+| `pill_background` | `StateValue<ShapeStyle>` | `Role(RaisedBackground)` |
+| `rail_line` | `Option<(ShapeStyle, f32)>` | `Some((Color of the sidebar line, HAIRLINE))` on the right of the rail; `None` with an island sidebar |
+| `line_edge`, `accent_edge` | `(ShapeStyle, f32)` | `(Color of the sidebar line, TITLEBAR_RAIL.edge_line)`, `(Accent, TITLEBAR_RAIL.edge_accent)` |
+| `pill_border` | `Option<(ShapeStyle, f32)>` | `Some((Role(Separator), HAIRLINE))`, drawn inside |
+| `shadows` | `Vec<ShadowStyle>` | `[SHADOW.contact]` (`SHADOW_DARK.contact` in dark) with its `opacity`, under a drawer and the pill |
+| `effect` | `ColorEffect` | `system_effect` |
+| `title_angle` | `f32` | `TITLEBAR_RAIL.title_angle`, the rotation of the rail title in degrees |
+| `title_font` | `Font` | `TITLEBAR.font` at `TITLEBAR_RAIL.title_size`; one line |
+| `animation` | `Animation` | `Ease { duration_ms: DURATION_BASE }`: a hidden bar slides and the lights fade in; `None` makes them jump |
+
+States: focused (the window is active). In full screen the rail sits on the
+full-screen glass and draws no background. A `Theme` that sets `layout` takes
+effect only inside a `WindowChrome`.
+
+```rust
+WindowChrome::new(content).style(|s| WindowChromeStyle {
+    layout: TitlebarLayout::Rail,
+    reveal: Reveal::Drawer,
+    resting_edge: RestingEdge::Accent,
+    ..s
+})
+```
+
+### SidebarStyle, SidebarItemStyle, SidebarSectionStyle, SidebarAccountStyle and SymbolTileStyle
+
+`SidebarStyle` is not `ctappearance::SidebarStyle`, the user's island or flat
+choice: the Tengen of each field follows that choice.
+
+| Field | Type | Tengen |
+|---|---|---|
+| `padding_x`, `padding_top`, `padding_bottom` | `f32` | `SIDEBAR.padding_x`; `SETTINGS.sidebar_padding_top` without traffic lights; `SIDEBAR.padding_x` (island) or `0.0` (flat) |
+| `lights_position`, `lights_gap` | `(f32, f32)`, `f32` | `(SIDEBAR.traffic_x, SIDEBAR.traffic_y)`; `SETTINGS.sidebar_lights_gap` between the lights and the first row |
+| `shape` | `Shape` | `RoundedRectangle { radius: SIDEBAR.radius, style: Continuous }` (island), `Rectangle` (flat); a `Capsule` or `Circle` has no size to round by and stays square |
+| `background` | `StateValue<ShapeStyle>` | `Color` of the island or flat surface; `Clear` over a `Backdrop` |
+| `border`, `inner_border` | `Option<(ShapeStyle, f32)>` | island: `Color` of the rim with `SIDEBAR.rim_width` and of the inner line with `SIDEBAR.inner_width`, inside the rim; flat or over a `Backdrop`: `None` |
+| `line` | `Option<(ShapeStyle, f32)>` | flat: `Some((Color of the sidebar line, SIDEBAR.inner_width))` on the right; island: `None` |
+| `effect` | `ColorEffect` | `system_effect` |
+| `animation` | `Animation` | `Ease { duration_ms: DURATION_BASE }`: the first row slides to the title bar row when the chrome switches to the `Rail`; `None` makes it jump |
+
+`.backdrop(SidebarBackdrop::Tinted)` is an instance override of `background`
+and `border` over a `Backdrop`.
+
+| Field | Type | `SidebarItemStyle` | `SidebarSectionStyle` | `SidebarAccountStyle` | `SymbolTileStyle` |
+|---|---|---|---|---|---|
+| Size | `f32` | `height`, `padding_x`, `spacing`: `SIDEBAR.item_height`, `item_padding_x`, `item_gap` | `height`, `margin_top`, `padding_x`, `chevron_size`: `SIDEBAR.section_height`, `section_margin_top`, `section_padding_x`, `chevron` | `height`, `margin_bottom`, `padding_x`, `spacing`: `SETTINGS.account_height`, `account_margin_bottom`, `account_padding_x`, `account_gap` | `size`, `symbol_size`: `SIDEBAR.app_icon`, `SIDEBAR.item_icon` |
+| `shape` | `Shape` | `RoundedRectangle { radius: SIDEBAR.item_radius, style: Circular }` | — | — | the same |
+| Paint | `StateValue<ShapeStyle>` | `background` `Clear`, hovered `Color` of the hover; `selected_background` `Color` of the selection; `label`, `selected_label` `Color` of the item and selected ink. In an inactive window the inactive colors | `title`, `chevron`: `Color` of the section ink | `name`, `detail`: `Color` of the item ink and of the count ink | `background` `Accent`, `symbol` `Role(OnAccent)` |
+| Border | `Option<(ShapeStyle, f32)>` | `selected_tile_border` `Some((Color of the selected icon rim, SIDEBAR.rim_width))`, the tile of a selected item | — | — | `border` `None`, drawn inside |
+| `effect` | `ColorEffect` | `system_effect` | the same | the same | the same |
+| Font | `Font` | `font`, `selected_font`: `BODY` at `SIDEBAR.item_text_size` with `SIDEBAR.item_weight` and `SIDEBAR.item_selected_weight`; one line | `font`: `BODY` at `SIDEBAR.section_size` with `SIDEBAR.section_weight` | `name_font`, `detail_font`: `SETTINGS.account_name_font`, `account_detail_font` | — |
+| `animation` | `Animation` | — | `Ease { duration_ms: DURATION_BASE }`: the rows fold; `None` makes them jump | — | — |
+
+States: `SidebarItem` and the header of `SidebarSection` take hovered,
+pressed and focused; the rest only `normal`. `SidebarItem::emphasized(false)`
+is an instance override of `selected_background` (the inactive selection) and
+`selected_label` (`label`). `SymbolTile::new(symbol, tint)` overrides
+`background` with `Color(tint)` and `.rim(rgba)` sets `border`; like `Badge`,
+`.style` builds the tile again, so it comes right after `new`. The avatar of
+`SidebarAccount` takes `AvatarStyle`.
+
+```rust
+Theme::tengen().style(|s: SidebarItemStyle| SidebarItemStyle {
+    selected_background: StateValue::new(ShapeStyle::Role(Role::SelectedControl)),
+    selected_label: StateValue::new(ShapeStyle::Role(Role::Label)),
+    shape: Shape::Capsule,
+    ..s
+})
+```
+
+### SplitViewStyle, SplitPanesStyle and FloatingPaneStyle
+
+The widths of a `SplitView` sidebar (`.sidebar_width`, `.sidebar_range`) stay
+options: they are layout the user changes.
+
+| Field | Type | Tengen |
+|---|---|---|
+| `inset` | `f32` | `SIDEBAR.inset` around an island sidebar, `0.0` around a flat one |
+| `inspector_width` | `f32` | `SPLIT_VIEW.inspector` |
+| `grip_width`, `grip_line_width`, `grip_line_inset` | `f32` | `SPLIT_VIEW.grip`, the area that resizes; `SPLIT_VIEW.grip_line`, `SPLIT_VIEW.grip_line_inset` from the top and the bottom |
+| `grip_shape` | `Shape` | `Capsule` |
+| `background` | `StateValue<ShapeStyle>` | `Color` of the window surface; `Clear` over a `Backdrop` |
+| `grip` | `StateValue<ShapeStyle>` | `Clear`, hovered, pressed (dragging) and focused (keyboard) `Color` of the accent |
+| `scrim` | `StateValue<ShapeStyle>` | `Role(Scrim)`, behind the sidebar over the content of a narrow window |
+| `inspector_line` | `(ShapeStyle, f32)` | `(Role(Separator), HAIRLINE)` |
+| `effect` | `ColorEffect` | `system_effect` |
+| `animation` | `Animation` | `Ease { duration_ms: DURATION_BASE }`: the sidebar and the inspector slide in and out |
+| `resize_animation` | `Animation` | `Ease { duration_ms: DURATION_FAST_MS }`: the sidebar follows a resize from the keyboard; a drag follows the pointer |
+
+`SidebarToggle` is an `IconButton` and takes `IconButtonStyle`.
+
+| Field | Type | `SplitPanesStyle` | `FloatingPaneStyle` |
+|---|---|---|---|
+| Size | `f32` | `divider_width`: `SPLIT_PANES.divider` | `title_height`, `outline_width`: `FLOATING_PANE.title_height`, `FLOATING_PANE.outline`, drawn outside |
+| `shape` | `Shape` | — | `Rectangle`; the title bar takes its top corners |
+| Paint | `StateValue<ShapeStyle>` | `divider` `Role(Separator)` | `background` `Role(WindowBackground)`, `title_bar` `Role(ControlBackground)`, `title` `Role(Label)`, `outline` `Role(Separator)`, focused `Accent` |
+| `shadows` | `Vec<ShadowStyle>` | — | `[FLOATING_PANE.shadow]` with `shadow_y` and `shadow_blur` |
+| `effect` | `ColorEffect` | `system_effect` | the same |
+| `title_font` | `Font` | — | `CAPTION` |
+
+States: `FloatingPane` is focused while `active`; `SplitPanes` only `normal`.
+`SplitPanes::divider(rgba)` is an instance override of `divider`. The fields
+`accent`, `title_bar` and `title_ink` of `FloatingPane` are instance overrides
+of `outline` (focused), `title_bar` and `title`, applied before `.style`.
+
 ## Examples
 
 This slider red, taller, flat and with almost square corners; the others stay
@@ -1066,6 +1260,19 @@ needs 4.5:1 and control parts 3:1 (WCAG 2.2, 1.4.3 and 1.4.11). Roles and
 | `RuleEditor` | `RuleEditorStyle`; its rows take `PopUpButtonStyle`, `TextFieldStyle` and `IconButtonStyle` | 2026-11-07 |
 | `PrintPreview` | `PrintPreviewStyle` | 2026-11-07 |
 | `Chart`, `SectorChart`, `HeatMap`, `StreamChart`, `Chart3D` | `ChartStyle` | 2026-11-07 |
+| `Titlebar` | `TitlebarStyle`; its traffic lights take `TrafficLightsStyle` | 2026-11-07 |
+| The full-screen bars (`FullscreenBar`) | `FullscreenBarStyle`, theme and container only | 2026-11-07 |
+| `TrafficLights` | `TrafficLightsStyle` | 2026-11-07 |
+| `WindowChrome` | `WindowChromeStyle`, with its layout and reveal | 2026-11-07 |
+| `Sidebar` | `SidebarStyle` | 2026-11-07 |
+| `SidebarItem` | `SidebarItemStyle`; its tile takes `SymbolTileStyle` | 2026-11-07 |
+| `SidebarSection` | `SidebarSectionStyle` | 2026-11-07 |
+| `SidebarAccount` | `SidebarAccountStyle`; its avatar takes `AvatarStyle` | 2026-11-07 |
+| `SymbolTile` | `SymbolTileStyle` | 2026-11-07 |
+| `SplitView` | `SplitViewStyle` | 2026-11-07 |
+| `SidebarToggle` | `IconButtonStyle` | 2026-11-07 |
+| `SplitPanes` | `SplitPanesStyle` | 2026-11-07 |
+| `FloatingPane` | `FloatingPaneStyle` | 2026-11-07 |
 
 `VStack`, `HStack`, `Scrim` and `Canvas` take no style: they are styled with
 the [paint on views](#paint-on-views) and Freya's methods.

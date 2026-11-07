@@ -327,7 +327,8 @@ SplitPanes::new("Panes", Direction::Horizontal)
 | `.pane(view)` | — | Adds a pane |
 | `.ratios(Vec<f32>)` | equal | The share of each pane. A list of the wrong length means equal shares |
 | `.on_ratios(callback)` | none | Receives the new shares on every pointer move of a drag |
-| `.divider(Rgba)` | `Palette::separator` | Divider color |
+| `.divider(Rgba)` | `Palette::separator` | Divider color, an instance override of the style's `divider` |
+| `.style(f)` | Tengen | A `SplitPanesStyle`: divider width and paint ([Styles and themes](../ai/styles.md#splitviewstyle-splitpanesstyle-and-floatingpanestyle)) |
 
 The ratios are controlled: store what `on_ratios` reports and pass it back, or
 the divider does not move. A drag changes only the two panes beside the
@@ -352,6 +353,7 @@ FloatingPane {
     content: inspector.into(),
     on_raise: Callback::new(|_| {}),
     on_frame: Callback::new(move |next| frame.set(next)),
+    style: Theme::tengen(),
 }
 ```
 
@@ -363,6 +365,7 @@ FloatingPane {
 | `content: Element` | The pane's body |
 | `on_raise` | Called on any press in the pane, so the app can put it on top |
 | `on_frame` | Receives the new `PaneFrame` on every pointer move of a drag |
+| `style: Theme` | `Theme::tengen()`; `.style(f)` adds a `FloatingPaneStyle` override ([Styles and themes](../ai/styles.md#splitviewstyle-splitpanesstyle-and-floatingpanestyle)). `accent`, `title_bar` and `title_ink` override its `outline`, `title_bar` and `title` before it |
 
 The title bar is `FLOATING_PANE.title_height` (22) high. A
 `FLOATING_PANE.resize_band` (6) band around the pane resizes it from each edge

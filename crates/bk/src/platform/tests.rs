@@ -670,8 +670,9 @@ mod inactive_accent_tests {
 
 #[cfg(test)]
 mod fullscreen_chrome_tests {
-    use crate::chrome::{ChromeStyle, RailStyle, TitlebarLayout, WindowChrome};
+    use crate::chrome::{RailStyle, TitlebarLayout, WindowChrome};
     use crate::sidebar::Sidebar;
+    use crate::styles::WindowChromeStyle;
     use crate::titlebar::Titlebar;
     use crate::views::split::SplitView;
     use ctappearance::{AppearanceConfig, resolve};
@@ -684,17 +685,22 @@ mod fullscreen_chrome_tests {
 
     use crate::platform::window::{WindowControls, WindowStatus};
 
-    struct Case(ChromeStyle);
+    struct Case(TitlebarLayout, RailStyle);
 
     impl App for Case {
         fn render(&self) -> impl IntoElement {
+            let Self(layout, rail_style) = *self;
             let detail = rect()
                 .expanded()
                 .child(Titlebar::new().title("Ventana").with_sidebar(true));
-            crate::chrome::window_root(WindowChrome::new(
-                self.0,
-                SplitView::new(Sidebar::new().traffic_lights(true), detail),
-            ))
+            crate::chrome::window_root(
+                WindowChrome::new(SplitView::new(Sidebar::new().traffic_lights(true), detail))
+                    .style(move |s| WindowChromeStyle {
+                        layout,
+                        rail_style,
+                        ..s
+                    }),
+            )
         }
     }
 
@@ -720,16 +726,11 @@ mod fullscreen_chrome_tests {
             (TitlebarLayout::Rail, RailStyle::Unified),
         ] {
             {
-                let style = ChromeStyle {
-                    layout,
-                    rail_style,
-                    ..ChromeStyle::default()
-                };
                 let bar = Rc::new(RefCell::new(None));
                 let shared = bar.clone();
                 let resolved = resolve(&AppearanceConfig::default(), None);
                 let (mut test, _) = TestingRunner::new(
-                    AppComponent::new(Case(style)),
+                    AppComponent::new(Case(layout, rail_style)),
                     Size2D::new(900.0, 500.0),
                     move |runner| {
                         let shared = shared.clone();
@@ -749,13 +750,24 @@ mod fullscreen_chrome_tests {
                     1.0,
                 );
                 test.sync_and_update();
-                assert_eq!(light_tops(&test), vec![], "{style:?} at rest");
+                assert_eq!(
+                    light_tops(&test),
+                    vec![],
+                    "{layout:?} {rail_style:?} at rest"
+                );
                 bar.borrow_mut().as_mut().unwrap().set(true);
                 test.sync_and_update();
                 test.poll(super::REVEAL_STEP, super::REVEAL_TIME);
                 let lights = light_tops(&test);
-                assert_eq!(lights.len(), 1, "{style:?} with the bar: {lights:?}");
-                assert!(lights[0].1 >= 28, "{style:?} under the bar: {lights:?}");
+                assert_eq!(
+                    lights.len(),
+                    1,
+                    "{layout:?} {rail_style:?} with the bar: {lights:?}"
+                );
+                assert!(
+                    lights[0].1 >= 28,
+                    "{layout:?} {rail_style:?} under the bar: {lights:?}"
+                );
             }
         }
     }

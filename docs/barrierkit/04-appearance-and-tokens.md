@@ -545,15 +545,15 @@ background, for `reduce_transparency`.
 | `WINDOW_RESIZE` | `WindowResize` | `platform` |
 | `DIALOG`, `DIALOG_PADDING`, `DIALOG_ALERT_WIDTH` | `WindowStyle`, `f32`, `f32` | `views::feedback` |
 | `POPUP` | `WindowStyle` | The compositor, for pop-up corners |
-| `SHADOW`, `SHADOW_DARK` | `ShadowStyle` | `chrome`, the compositor |
+| `SHADOW`, `SHADOW_DARK` | `ShadowStyle` | `styles` (`WindowChromeStyle`), the compositor |
 | `NATIVE_APP_ID_PREFIX` | `&str` | `io.github.hblanqueto.malaysia.`: app ids of the kit's apps (`platform`, `titlebar`) |
 | `ALERT_LAYER_NAMESPACE` | `&str` | `malaysia-dialog`: layer-shell namespace of shell alerts |
 | `TITLEBAR` | `Titlebar` | Server-side titlebar of the compositor, `ctappearance::traffic` |
-| `TITLEBAR_CLIENT_HEIGHT`, `TITLEBAR_PADDING_X` | `u32`, `f32` | `titlebar`, `chrome` ([9](09-titlebars.md)) |
+| `TITLEBAR_CLIENT_HEIGHT`, `TITLEBAR_PADDING_X` | `u32`, `f32` | `styles` (`TitlebarStyle`), `chrome` ([9](09-titlebars.md)) |
 | `TITLEBAR_TITLE_GAP` | `f32` | The compositor's titlebar |
 | `TITLEBAR_DOUBLE_CLICK` | `DoubleClick` | `titlebar`, the compositor |
-| `TITLEBAR_RAIL` | `TitlebarRailMetrics` | `chrome`, `sidebar` |
-| `FULLSCREEN_BAR`, `FULLSCREEN_GLASS`, `FULLSCREEN_BAND` | `FullscreenBarMetrics`, `FullscreenGlassMetrics` | `platform` and glass bars in full screen |
+| `TITLEBAR_RAIL` | `TitlebarRailMetrics` | `chrome`, `styles` (`WindowChromeStyle`); `title_angle` (−90) turns the rail title |
+| `FULLSCREEN_BAR`, `FULLSCREEN_GLASS`, `FULLSCREEN_BAND` | `FullscreenBarMetrics`, `FullscreenGlassMetrics` | `platform`, `styles` (`FullscreenBarStyle`, `TopGlassStyle`) |
 | `GLASS_MASK` | `Rgba` | Base color of the mask that fades glass bars |
 | `HUD_BACKGROUND` | `Rgba` | Background of a HUD window (`platform`) |
 
@@ -604,11 +604,11 @@ background, for `reduce_transparency`.
 
 | Constant | Type | Read by |
 |---|---|---|
-| `SIDEBAR` | `SidebarMetrics` | `sidebar` |
+| `SIDEBAR` | `SidebarMetrics` | `sidebar`, `styles` (the sidebar styles); `item_weight` (500) and `item_selected_weight` (600) weigh the row labels |
 | `TOOLGROUP` | `ToolgroupMetrics` | `controls`, `compact` |
 | `SPLIT_VIEW` | `SplitViewMetrics` | `views::split`, `styles` |
-| `SPLIT_PANES` | `SplitPanesMetrics` | `views::split_panes` |
-| `FLOATING_PANE` | `FloatingPaneMetrics` | `views::floating_pane` |
+| `SPLIT_PANES` | `SplitPanesMetrics` | `views::split_panes`, `styles` (`SplitPanesStyle`) |
+| `FLOATING_PANE` | `FloatingPaneMetrics` | `views::floating_pane`, `styles` (`FloatingPaneStyle`) |
 | `TABLE` | `TableMetrics` | `views::table` |
 | `COLLECTION` | `CollectionMetrics` | `views::collection` |
 | `LIST_GROUP` | `ListGroupMetrics` | `views::form` |

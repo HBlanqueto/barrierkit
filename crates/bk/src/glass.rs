@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 use std::rc::Rc;
 
-use ctdesign::{FULLSCREEN_BAND, FULLSCREEN_BAR, FULLSCREEN_GLASS, FullscreenGlassMetrics, Rgba};
+use ctdesign::{FULLSCREEN_BAR, FullscreenGlassMetrics, Rgba};
 use freya_core::data::LayoutData;
 use freya_core::element::{ElementExt, RenderContext};
 use freya_core::prelude::*;
@@ -13,7 +13,9 @@ use freya_engine::prelude::{
 use torin::prelude::{Position, Size};
 
 use crate::platform::FullscreenBar;
-use crate::styles::{ControlState, MaterialStyle, Paints, Theme, TopGlassStyle, resolve};
+use crate::styles::{
+    ControlState, FullscreenBarStyle, MaterialStyle, Paints, Theme, TopGlassStyle, resolve,
+};
 
 use crate::theme::{SurfaceKind, surface_background};
 
@@ -114,37 +116,29 @@ pub(crate) fn fullscreen_backdrop(
     depth: f32,
     opacity: f32,
 ) -> Element {
+    let style: FullscreenBarStyle = resolve(&Theme::tengen());
+    let paints = Paints::current(ControlState::default(), style.effect);
+    let tint = paints.color(style.tint.resolve(ControlState::default()));
     let bar = if transparency_reduced() {
         FullscreenBar::Solid
     } else {
         bar
     };
     match bar {
-        FullscreenBar::Solid => solid(
-            edge,
-            depth,
-            Rgba {
-                a: opacity,
-                ..glass_tint()
-            },
-        ),
+        FullscreenBar::Solid => solid(edge, depth, Rgba { a: opacity, ..tint }),
         FullscreenBar::Glass => glass(
             edge,
-            FULLSCREEN_BAND,
+            style.band,
             depth,
             (
-                glass_tint(),
-                Some(crate::style::Palette::current().separator),
+                tint,
+                Some(paints.color(style.line.resolve(ControlState::default()))),
             ),
             opacity,
         ),
-        FullscreenBar::ProgressiveGlass => glass(
-            edge,
-            FULLSCREEN_GLASS,
-            FULLSCREEN_GLASS.height,
-            (glass_tint(), None),
-            opacity,
-        ),
+        FullscreenBar::ProgressiveGlass => {
+            glass(edge, style.glass, style.glass.height, (tint, None), opacity)
+        }
     }
 }
 

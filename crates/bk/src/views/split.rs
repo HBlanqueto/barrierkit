@@ -1,21 +1,19 @@
-use freya_animation::prelude::use_animation_transition;
-use std::time::Duration;
+use freya_animation::prelude::{AnimNum, use_animation_transition};
 
-use ctappearance::SidebarStyle;
-use ctdesign::{DURATION_BASE, DURATION_FAST_MS, SIDEBAR, SPLIT_VIEW};
+use ctdesign::{SIDEBAR, SPLIT_VIEW};
 use freya_core::prelude::*;
 use serde::{Deserialize, Serialize};
 use torin::prelude::{Content, Direction, Gaps, Position, Size};
 
 use crate::ProbeExt;
-use crate::animation::Spring;
 use crate::app::{Action, Shortcut, ShortcutKey};
 use crate::compact::IconButton;
 use crate::i18n::text;
 use crate::sidebar::{SidebarControl, sidebar_control};
-use crate::style::Palette;
+use crate::styles::{
+    ControlState, LayoutDirection, Paints, SplitViewStyle, StateValue, Theme, resolve,
+};
 use crate::symbol::Symbol;
-use crate::theme::{SurfaceKind, color, surface_background};
 
 pub const TOGGLE_SIDEBAR: Action = Action::new("toggle-sidebar", || text!("toggle-sidebar"))
     .shortcut(Shortcut::new(
@@ -66,6 +64,7 @@ pub struct SplitView {
     resizable: bool,
     narrow_sidebar: NarrowSidebar,
     on_layout: Option<Callback<SidebarLayout, ()>>,
+    style: Theme,
     key: DiffKey,
 }
 
@@ -82,6 +81,7 @@ impl SplitView {
             resizable: true,
             narrow_sidebar: NarrowSidebar::Overlay,
             on_layout: None,
+            style: Theme::tengen(),
             key: DiffKey::None,
         }
     }
@@ -126,6 +126,11 @@ impl SplitView {
         self
     }
 
+    pub fn style(mut self, restyle: impl Fn(SplitViewStyle) -> SplitViewStyle + 'static) -> Self {
+        self.style = self.style.style(restyle);
+        self
+    }
+
     pub fn key(mut self, key: impl Into<DiffKey>) -> Self {
         self.key = key.into();
         self
@@ -140,17 +145,17 @@ impl KeyExt for SplitView {
 
 impl Component for SplitView {
     fn render(&self) -> impl IntoElement {
-        let resolved = crate::theme::resolved();
-        let palette = Palette::current();
-        let island = resolved.sidebar.style == SidebarStyle::Island;
-        let inset = if island { SIDEBAR.inset as f32 } else { 0.0 };
+        let style: SplitViewStyle = resolve(&self.style);
+        let paints = Paints::current(ControlState::default(), style.effect);
+        let inset = style.inset;
         let mut window_width = use_state(|| f32::MAX);
         let mut presented = use_state(|| self.inspector.as_ref().is_some_and(|(_, shown)| *shown));
         let wanted = self.inspector.as_ref().is_some_and(|(_, shown)| *shown);
         if *presented.peek() != wanted {
             presented.set(wanted);
         }
-        let inspector_shown = crate::animation::use_switch_progress(presented, DURATION_BASE);
+        let inspector_shown =
+            crate::animation::use_animated(f32::from(u8::from(*presented.read())), style.animation);
         let (min_width, max_width) = self.sidebar_range;
         let initial_width = self
             .sidebar_width
@@ -194,33 +199,34 @@ impl Component for SplitView {
             }
         }
 
-        let shown = crate::animation::use_switch_progress(visible, DURATION_BASE);
+        let shown =
+            crate::animation::use_animated(f32::from(u8::from(*visible.read())), style.animation);
         crate::chrome::report_sidebar_shown(*visible.read());
 
-        let reduced_motion = use_reactive(&resolved.reduced_motion);
+        let resize = style.resize_animation;
+        let resize_ms = use_reactive(&resize.duration_ms());
         let mut follow_from_to = use_state(|| (initial_width, initial_width));
-        let follow = use_animation_transition(follow_from_to, move |_, (from, to)| {
-            let time = if *reduced_motion.peek() {
-                0
-            } else {
-                DURATION_FAST_MS
-            };
-            Spring::new(from, to, Duration::from_millis(time), 0.0)
+        let follow = use_animation_transition(follow_from_to, move |_: (f32, f32), _| {
+            AnimNum::new(0.0, 1.0).time(*resize_ms.peek())
         });
+        let followed = move || {
+            let (from, to) = *follow_from_to.peek();
+            if resize.duration_ms() == 0 {
+                to
+            } else {
+                from + (to - from) * resize.progress(follow.get().value())
+            }
+        };
         let mut resize_to = move |target: f32| {
             let target = target.clamp(min_width, max_width);
-            let from = if *dragging.peek() {
-                target
-            } else {
-                follow.get().current()
-            };
+            let from = if *dragging.peek() { target } else { followed() };
             follow_from_to.set((from, target));
             sidebar_width.set(target);
         };
         let width = if *dragging.read() {
             *sidebar_width.read()
         } else {
-            follow.get().current().clamp(min_width, max_width)
+            followed().clamp(min_width, max_width)
         };
         let layout = SidebarLayout {
             width: sidebar_width.read().clamp(min_width, max_width),
@@ -249,19 +255,15 @@ impl Component for SplitView {
         let mut root = rect()
             .expanded()
             .direction(Direction::Horizontal)
-            .maybe(crate::backdrop::tinted().is_none(), |el| {
-                el.background(color(surface_background(
-                    &crate::theme::resolved(),
-                    SurfaceKind::Toplevel,
-                )))
-            })
+            .background(paints.fill(&style.background))
+            .map(paints.blur(&style.background), Rect::blur)
             .on_sized(move |event: Event<SizedEventData>| {
                 window_width.set_if_modified(event.area.size.width);
             })
             .on_global_pointer_move(move |event: Event<PointerEventData>| {
                 if *dragging.read() {
                     resize_to(
-                        event.global_location().x as f32 - 2.0 * inset + SPLIT_VIEW.grip / 2.0,
+                        event.global_location().x as f32 - 2.0 * inset + style.grip_width / 2.0,
                     );
                 }
             })
@@ -317,9 +319,14 @@ impl Component for SplitView {
                     .offset_x(container * (shown - 1.0))
                     .child(
                         sidebar().maybe_child((self.resizable && shown >= 1.0).then(|| {
-                            let highlighted = *grip_hovered.read()
-                                || *dragging.read()
-                                || matches!(*grip_focus.read(), Focus::Keyboard);
+                            let grip = ControlState {
+                                hovered: *grip_hovered.read(),
+                                pressed: *dragging.read(),
+                                focused: matches!(*grip_focus.read(), Focus::Keyboard),
+                                disabled: false,
+                            };
+                            let grip_paints = Paints::current(grip, style.effect);
+                            let grip_line = grip_paints.color(style.grip.resolve(grip));
                             let width = *sidebar_width.read();
                             rect()
                                 .a11y_id(grip_id)
@@ -327,16 +334,16 @@ impl Component for SplitView {
                                 .a11y_role(AccessibilityRole::Splitter)
                                 .position(
                                     Position::new_absolute()
-                                        .left(container - inset - SPLIT_VIEW.grip)
+                                        .left(container - inset - style.grip_width)
                                         .top(0.0),
                                 )
-                                .width(Size::px(SPLIT_VIEW.grip))
+                                .width(Size::px(style.grip_width))
                                 .height(Size::percent(100.0))
                                 .padding(Gaps::new(
-                                    SPLIT_VIEW.grip_line_inset,
+                                    style.grip_line_inset,
                                     0.0,
-                                    SPLIT_VIEW.grip_line_inset,
-                                    (SPLIT_VIEW.grip - SPLIT_VIEW.grip_line) / 2.0,
+                                    style.grip_line_inset,
+                                    (style.grip_width - style.grip_line_width) / 2.0,
                                 ))
                                 .on_pointer_enter(move |_| {
                                     grip_hovered.set(true);
@@ -360,12 +367,16 @@ impl Component for SplitView {
                                         _ => {}
                                     }
                                 })
-                                .maybe_child(highlighted.then(|| {
+                                .maybe_child((grip_line.a > 0.0).then(|| {
                                     rect()
-                                        .width(Size::px(SPLIT_VIEW.grip_line))
+                                        .width(Size::px(style.grip_line_width))
                                         .height(Size::fill())
-                                        .corner_radius(SPLIT_VIEW.grip_line / 2.0)
-                                        .background(color(resolved.accent))
+                                        .corner_radius(style.grip_shape.corner_radius(
+                                            style.grip_line_width,
+                                            style.grip_line_width,
+                                            LayoutDirection::LeftToRight,
+                                        ))
+                                        .background(grip_paints.fill(&style.grip))
                                 }))
                         })),
                     ),
@@ -381,18 +392,18 @@ impl Component for SplitView {
             root = root
                 .child(
                     rect()
-                        .width(Size::px(ctdesign::HAIRLINE))
+                        .width(Size::px(style.inspector_line.1))
                         .height(Size::fill())
-                        .background(color(palette.separator)),
+                        .background(paints.fill(&StateValue::new(style.inspector_line.0.clone()))),
                 )
                 .child(
                     rect()
-                        .width(Size::px(SPLIT_VIEW.inspector * inspector_shown))
+                        .width(Size::px(style.inspector_width * inspector_shown))
                         .height(Size::fill())
                         .overflow(Overflow::Clip)
                         .child(
                             rect()
-                                .width(Size::px(SPLIT_VIEW.inspector))
+                                .width(Size::px(style.inspector_width))
                                 .height(Size::fill())
                                 .child(inspector.clone()),
                         ),
@@ -407,7 +418,7 @@ impl Component for SplitView {
                         .height(Size::percent(100.0))
                         .layer(Layer::Overlay)
                         .opacity(shown)
-                        .background(color(palette.scrim))
+                        .background(paints.fill(&style.scrim))
                         .on_press(move |_| control.dismiss()),
                 )
                 .child(

@@ -1,9 +1,10 @@
-use crate::chrome::{ChromeStyle, RailStyle, TitlebarLayout, WindowChrome};
+use crate::chrome::{RailStyle, TitlebarLayout, WindowChrome};
 use crate::compact::IconButton;
 use crate::controls::Switch;
 use crate::patterns::settings::{Pane, PaneGroup, SettingsWindow};
 use crate::platform::FullscreenBar;
 use crate::sidebar::{Sidebar, SidebarItem};
+use crate::styles::WindowChromeStyle;
 use crate::symbol::Symbol;
 use crate::titlebar::Titlebar;
 use crate::views::form::{Form, Row, Section};
@@ -31,7 +32,7 @@ struct Shot {
     name: &'static str,
     size: (f32, f32),
     scene: Scene,
-    style: ChromeStyle,
+    style: (TitlebarLayout, RailStyle),
     items: bool,
     status: WindowStatus,
     overlay: bool,
@@ -200,7 +201,12 @@ impl App for Case {
                 )
                 .into_element(),
         };
-        let mut chrome = WindowChrome::new(shot.style, content);
+        let (layout, rail_style) = shot.style;
+        let mut chrome = WindowChrome::new(content).style(move |s| WindowChromeStyle {
+            layout,
+            rail_style,
+            ..s
+        });
         if shot.items {
             chrome = chrome
                 .rail_top(
@@ -298,15 +304,9 @@ fn doc_shots() {
         fullscreen: true,
         ..normal
     };
-    let top = ChromeStyle::default();
-    let rail = ChromeStyle {
-        layout: TitlebarLayout::Rail,
-        ..top
-    };
-    let unified = ChromeStyle {
-        rail_style: RailStyle::Unified,
-        ..rail
-    };
+    let top = (TitlebarLayout::Top, RailStyle::Normal);
+    let rail = (TitlebarLayout::Rail, RailStyle::Normal);
+    let unified = (TitlebarLayout::Rail, RailStyle::Unified);
     let base = Shot {
         name: "",
         size: (880.0, 440.0),
