@@ -45,6 +45,8 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 | crate `barrier-kit` (`barrier_kit`) | crate `bk`, BarrierKit | 2026-11-07 |
 | crate `vow-design` (`vow_design`), then `ct-design` (`ct_design`) | crate `ctdesign`, CTDesign | 2026-11-07 |
 | crate `vow-appearance` (`vow_appearance`), then `ct-appearance` (`ct_appearance`) | crate `ctappearance`, CTAppearance | 2026-11-07 |
+| `styles::Theme::slider` | `styles::Theme::style` (generic: `\|s: SliderStyle\|`) | 2026-11-07 |
+| `modifiers::StyleModifiers::slider_style` | `modifiers::StyleModifiers::control_style` (generic) | 2026-11-07 |
 | The 22 views, modifiers and names listed in [ADR 0063](../decisions/0063-views-as-types-and-swift-names.md#decision) (`divider()`, `empty_state`, `use_tooltip`, `PreferencesWindow`, `AppMenu`, `ProgressBar`…) | `Divider`, `ContentUnavailableView`, `.help`, `SettingsWindow`, `MainMenu`, `ProgressView`… | 2026-11-07 |
 
 ## How to read the tables
@@ -103,11 +105,16 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 | `styles::Axis` | enum | `Axis` | `NSUserInterfaceLayoutOrientation` | `Horizontal` or `Vertical` | [Styles](../ai/styles.md#value-types) |
 | `styles::Edge` | enum | `Edge` | `NSRectEdge` | `Top`, `Bottom`, `Leading`, `Trailing` | [Styles](../ai/styles.md#value-types) |
 | `styles::LayoutDirection` | enum | `LayoutDirection` | `NSUserInterfaceLayoutDirection` | `LeftToRight` or `RightToLeft` | [Styles](../ai/styles.md#value-types) |
+| `styles::ControlStyle` | trait | ≈ the style protocols (`ButtonStyle`, `ToggleStyle`) | ≈ `NSCell` | Implemented by every control style: `tengen()` and the accessibility rules of its control | [Styles](../ai/styles.md#which-controls-take-a-style) |
 | `styles::SliderStyle` | struct | ≈ `ButtonStyle` | ≈ `NSSliderCell` | Every visual property of `Slider`; `tengen()` builds the default from the tokens | [Styles](../ai/styles.md#the-fields-of-a-style) |
 | `styles::Theme` | struct | ≈ styles set in the environment | ≈ `NSAppearance` | Style overrides for the whole app; `Theme::tengen()` changes nothing | [Styles](../ai/styles.md#levels) |
-| `styles::StyleScope` | struct | ≈ a view after `.buttonStyle(_:)` | — | Component returned by `.slider_style`: its overrides reach the controls inside | [Styles](../ai/styles.md#levels) |
+| `styles::Theme::style` | method | ≈ `.buttonStyle(_:)` on the scene | — | Adds an override of the control whose style the closure takes | [Styles](../ai/styles.md#levels) |
+| `styles::StyleScope` | struct | ≈ a view after `.buttonStyle(_:)` | — | Component returned by `.control_style`: its overrides reach the controls inside | [Styles](../ai/styles.md#levels) |
 | `modifiers::StyleModifiers` | trait | `View` modifiers | — | Style modifiers for every view | [Styles](../ai/styles.md#levels) |
-| `modifiers::StyleModifiers::slider_style` | method | ≈ `.buttonStyle(_:)` | — | Changes the style of every `Slider` inside the view | [Styles](../ai/styles.md#levels) |
+| `modifiers::StyleModifiers::control_style` | method | ≈ `.buttonStyle(_:)`, `.toggleStyle(_:)` | — | Changes the style of every control of that style inside the view | [Styles](../ai/styles.md#levels) |
+| `modifiers::ViewModifiers::foreground_style` | method | `.foregroundStyle(_:)` | ≈ `NSTextField.textColor` | Text color of `Text`, `label` or `paragraph` from a `ShapeStyle` | [Styles](../ai/styles.md#paint-on-views) |
+| `modifiers::ViewModifiers::background_style` | method | `.background(_:ignoresSafeAreaEdges:)`; Freya already uses `background` | ≈ `NSView.layer.backgroundColor` | Background of a view from a `ShapeStyle`, with blur for a material | [Styles](../ai/styles.md#paint-on-views) |
+| `modifiers::ViewModifiers::shadows` | method | ≈ `.shadow(color:radius:x:y:)`; Freya already uses `shadow` | ≈ `NSView.shadow` | Adds a list of `ShadowStyle` to a view | [Styles](../ai/styles.md#paint-on-views) |
 | `controls::Slider::style` | method | ≈ `.buttonStyle(_:)` on one view | ≈ `NSSlider.trackFillColor` | Changes the style of one slider | [Styles](../ai/styles.md#levels) |
 | `app::Application::theme` | method | ≈ `.environment(_:_:)` on the scene | ≈ `NSApp.appearance` | Gives the app its `Theme` | [Styles](../ai/styles.md#levels) |
 

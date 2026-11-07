@@ -21,8 +21,10 @@ its style.
 
 1. Decide the level from the request (see [Levels](#levels)):
    - "this slider" → instance, `.style(..)`;
-   - "the sliders in this panel" → container, `.slider_style(..)`;
-   - "every slider in the app", "a new theme" → theme, `Theme`.
+   - "the sliders in this panel" → container, `.control_style(..)`;
+   - "every slider in the app", "a new theme" → theme, `Theme`;
+   - the color, background or shadow of a `Text`, a stack, `rect()`,
+     `Badge` or `Divider` → [Paint on views](#paint-on-views).
 2. Check in [Which controls take a style](#which-controls-take-a-style) that
    the control supports it. If not, say so; do not imitate it with `rect()`.
 3. Write the override as a function of the inherited style that names only
@@ -40,14 +42,20 @@ Later levels win, field by field.
 | Order | Level | Code |
 |---|---|---|
 | 1 | Tengen (default) | `SliderStyle::tengen()` |
-| 2 | Theme | `Application::new("app").theme(Theme::tengen().slider(\|s\| …))` |
-| 3 | Container | `VStack::new().child(..).slider_style(\|s\| …)` (outermost first) |
+| 2 | Theme | `Application::new("app").theme(Theme::tengen().style(\|s: SliderStyle\| …))` |
+| 3 | Container | `VStack::new().child(..).control_style(\|s: SliderStyle\| …)` (outermost first) |
 | 4 | Instance | `Slider::stepped("Volume", 10).style(\|s\| …)` |
 | 5 | Accessibility | applied by the kit, always |
 
-`.slider_style` wraps the view in a `StyleScope`, so it comes last, after
-the children. It reaches every `Slider` rendered inside, also inside nested
-components. `Slider::tint(Tint)` is an instance override of `fill`.
+`Theme::style` and `.control_style` are generic: the type of the closure's
+parameter (`|s: SliderStyle|`) picks the control they change. Write the type;
+without it the code does not compile. A `Theme` holds overrides of any number
+of controls; chain one `.style(..)` per control.
+
+`.control_style` wraps the view in a `StyleScope`, so it comes last, after
+the children. It reaches every control of that style rendered inside, also
+inside nested components. `Slider::tint(Tint)` is an instance override of
+`fill`.
 
 ✗ Copy Tengen's numbers into a style:
 
@@ -146,7 +154,7 @@ Every slider in a panel vertical, with a translucent track:
 HStack::new()
     .child(Slider::stepped("Bass", 10))
     .child(Slider::stepped("Treble", 10))
-    .slider_style(|s| SliderStyle {
+    .control_style(|s: SliderStyle| SliderStyle {
         axis: Axis::Vertical,
         track: StateValue::new(ShapeStyle::Material(Thickness::Thin)),
         ..s
@@ -164,11 +172,53 @@ fn darker_when_pressed(color: Rgba, state: ControlState) -> Rgba {
 
 fn main() -> Result<(), RunError> {
     Application::new("mixer")
-        .theme(Theme::tengen().slider(|s| SliderStyle { effect: darker_when_pressed, ..s }))
+        .theme(Theme::tengen().style(|s: SliderStyle| SliderStyle { effect: darker_when_pressed, ..s }))
         .window("Mixer", || Slider::stepped("Volume", 10).value(4))
         .run()
 }
 ```
+
+## Paint on views
+
+Views that are not controls take the same `ShapeStyle` through
+`ViewModifiers`, in the prelude:
+
+| Modifier | Views | Effect |
+|---|---|---|
+| `.foreground_style(ShapeStyle)` | `Text`, `label()`, `paragraph()` | The color of the text; a `Gradient` or `Backdrop` paints the glyphs; a `Material` is its tint, without blur |
+| `.background_style(ShapeStyle)` | `VStack`, `HStack`, `rect()`, `Badge`, `Divider` | The background; a `Material` adds its blur of what is behind |
+| `.shadows(Vec<ShadowStyle>)` | the same | Adds the shadows, in order |
+
+The paint resolves when the view is built, against the palette, accent,
+`Backdrop` and appearance of the component that builds it, with the same
+resolver as the controls: a `Material` is solid when the user reduces
+transparency.
+
+✗ Color a stack to change its texts: a `Text` keeps its own color.
+
+```rust
+VStack::new().child(Text::new("Saved")).foreground_style(ShapeStyle::Accent)
+```
+
+✓ Color each `Text`:
+
+```rust
+VStack::new()
+    .child(Text::new("Saved").foreground_style(ShapeStyle::Accent))
+    .background_style(ShapeStyle::Material(Thickness::Thin))
+    .shadows(vec![ShadowStyle {
+        color: Rgba { a: 0.2, ..Rgba::rgb8(0, 0, 0) },
+        x: 0.0,
+        y: 2.0,
+        blur: 8.0,
+        spread: 0.0,
+        inner: false,
+    }])
+```
+
+Corner radii stay with `.corner_radius(..)`: a `Shape` is not a view
+modifier, because `Capsule` and `Circle` need the size of the view, which is
+only known after layout.
 
 ## Accessibility
 
@@ -176,7 +226,9 @@ The kit applies these after every level; you cannot turn them off:
 
 1. Reduce motion: every `Animation` becomes `None`.
 2. Reduce transparency: every `Material` becomes its solid color, without
-   blur.
+   blur. So do the kit's own glass surfaces: the glass full-screen bars and
+   `TopGlass` become the solid bar, and the media `Material` and
+   `GlassContainer` become the opaque `MEDIA.material_tint`.
 3. Keyboard focus: the focus ring is always drawn; no field turns it off.
 
 Contrast is your job when you use `ShapeStyle::Color`: text on a fixed color
@@ -189,12 +241,15 @@ needs 4.5:1 and control parts 3:1 (WCAG 2.2, 1.4.3 and 1.4.11). Roles and
 |---|---|---|
 | `Slider` | `SliderStyle` | ADR 0064 pilot |
 
-Every other control still draws only Tengen. Its rollout order is in
+Every style implements `ControlStyle`: `tengen()` and the accessibility rules
+of its control. Every other control still draws only Tengen. Its rollout order is in
 [ADR 0064](../decisions/0064-styles-and-themes.md#5-rollout).
 
 ## Rules
 
 1. Override with `|s| Style { field: value, ..s }`; never rebuild a whole style.
+   In `Theme::style` and `.control_style`, write the parameter's type:
+   `|s: SliderStyle|`.
 2. Follow the system with `Role`, `Accent` or `Backdrop`; use `Color` only for
    a color that must stay fixed.
 3. New default values go to `ctdesign`, never into `bk`.

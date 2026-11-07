@@ -12,10 +12,9 @@ use crate::theme::color;
 mod slider;
 mod theme;
 
-pub(crate) use slider::SliderOverride;
 pub use slider::SliderStyle;
-pub(crate) use theme::use_provide_theme;
-pub use theme::{StyleScope, Theme};
+pub use theme::{ControlStyle, StyleScope, Theme};
+pub(crate) use theme::{resolve, use_provide_theme};
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum ShapeStyle {
@@ -115,13 +114,13 @@ impl Thickness {
         }
     }
 
-    fn tint(self, glass: Rgba, opaque: bool) -> Rgba {
-        let a = if opaque { 1.0 } else { self.metrics().opacity };
-        Rgba { a, ..glass }
-    }
-
-    fn blur(self, opaque: bool) -> Option<f32> {
-        (!opaque).then(|| self.metrics().blur)
+    fn material(self, glass: Rgba, opaque: bool) -> (Rgba, Option<f32>) {
+        let metrics = self.metrics();
+        let tint = Rgba {
+            a: metrics.opacity,
+            ..glass
+        };
+        crate::glass::material(tint, glass, metrics.blur, opaque)
     }
 }
 
@@ -369,7 +368,7 @@ impl Paints {
             palette: Palette::current(),
             backdrop: crate::backdrop::tinted().filter(|_| crate::platform::window_activated()),
             glass: crate::glass::glass_tint(),
-            opaque: crate::theme::resolved().reduce_transparency,
+            opaque: crate::glass::transparency_reduced(),
             state,
             effect,
         }
@@ -381,7 +380,7 @@ impl Paints {
 
     pub(crate) fn blur(&self, paint: &StateValue<ShapeStyle>) -> Option<f32> {
         match paint.resolve(self.state) {
-            ShapeStyle::Material(thickness) => thickness.blur(self.opaque),
+            ShapeStyle::Material(thickness) => thickness.material(self.glass, self.opaque).1,
             _ => None,
         }
     }
@@ -422,7 +421,7 @@ impl Paints {
             ShapeStyle::Backdrop => self
                 .backdrop
                 .map_or(self.palette.accent, |backdrop| backdrop.highlights()[0]),
-            ShapeStyle::Material(thickness) => thickness.tint(self.glass, self.opaque),
+            ShapeStyle::Material(thickness) => thickness.material(self.glass, self.opaque).0,
             ShapeStyle::Clear => Rgba::TRANSPARENT,
         }
     }
@@ -479,9 +478,9 @@ mod tests {
     #[test]
     fn reduced_transparency_makes_a_material_solid_and_sharp() {
         let glass = Rgba::rgb8(0x20, 0x30, 0x40);
-        assert_eq!(Thickness::Thin.tint(glass, true), glass);
-        assert_eq!(Thickness::Thin.blur(true), None);
-        assert_eq!(Thickness::Thin.tint(glass, false).a, MATERIAL.thin.opacity);
-        assert_eq!(Thickness::Thin.blur(false), Some(MATERIAL.thin.blur));
+        assert_eq!(Thickness::Thin.material(glass, true), (glass, None));
+        let (tint, blur) = Thickness::Thin.material(glass, false);
+        assert_eq!(tint.a, MATERIAL.thin.opacity);
+        assert_eq!(blur, Some(MATERIAL.thin.blur));
     }
 }

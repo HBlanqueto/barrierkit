@@ -191,7 +191,8 @@ An app picks a variant, or changes the style of a control that takes one
 | Another accent for a whole area | `Backdrop::new(..).accent(Accent::Own(color))` or `Accent::FromBackdrop` | [15](15-backdrops-and-media.md) |
 | Let the user pick a color | `ColorWell::new("Color", &ACCENT_SWATCHES)` | [5](05-controls.md) |
 | Light or dark in one area | `theme::use_appearance(..)` | [Theme functions](#theme-functions) |
-| Any color, shape, size or motion of a slider | `.style(\|s\| ..)`, `.slider_style(\|s\| ..)` or `Theme` | [Styles and themes](../ai/styles.md) |
+| Any color, shape, size or motion of a slider | `.style(\|s\| ..)`, `.control_style(\|s: SliderStyle\| ..)` or `Theme` | [Styles and themes](../ai/styles.md) |
+| The text color, background or shadow of a view | `.foreground_style(..)`, `.background_style(..)`, `.shadows(..)` | [Styles and themes](../ai/styles.md#paint-on-views) |
 
 In an inactive window every tint uses the inactive accent.
 

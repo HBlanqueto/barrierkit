@@ -14,7 +14,7 @@ use freya_engine::prelude::{
 use torin::prelude::{Area, Direction, Position, Size};
 
 use crate::animation::Spring;
-use crate::glass::{layout, leaf};
+use crate::glass::{layout, leaf, material, transparency_reduced};
 
 pub const MAX_SHAPES: usize = 8;
 
@@ -142,6 +142,7 @@ struct Blob {
     spacing: f32,
     origin: (f32, f32),
     tint: Rgba,
+    blur: Option<f32>,
     rim: Rgba,
     layout: LayoutData,
 }
@@ -240,11 +241,15 @@ impl ElementExt for Blob {
             ) else {
                 return;
             };
-            let sigma = MEDIA.material_blur * scale;
-            let Some(filter) = blur((sigma, sigma), TileMode::Clamp, None, None) else {
-                return;
-            };
-            canvas.save_layer(&SaveLayerRec::default().bounds(&bounds).backdrop(&filter));
+            let filter = self.blur.and_then(|radius| {
+                let sigma = radius * scale;
+                blur((sigma, sigma), TileMode::Clamp, None, None)
+            });
+            let layer = SaveLayerRec::default().bounds(&bounds);
+            canvas.save_layer(&match &filter {
+                Some(filter) => layer.backdrop(filter),
+                None => layer,
+            });
             mask.set_blend_mode(BlendMode::DstIn);
             canvas.draw_rect(bounds, &mask);
             canvas.draw_rect(bounds, &overlay);
@@ -351,6 +356,12 @@ impl Component for GlassContainer {
             .into_element()
         });
         let shown_origin = *origin.read();
+        let (tint, blur) = material(
+            MEDIA.round_glass,
+            MEDIA.material_tint,
+            MEDIA.material_blur,
+            transparency_reduced(),
+        );
         rect()
             .direction(Direction::Horizontal)
             .spacing(self.gap)
@@ -359,7 +370,8 @@ impl Component for GlassContainer {
                 frames: shown.into_iter().map(|(_, frame)| frame).collect(),
                 spacing: self.spacing,
                 origin: (shown_origin.origin.x, shown_origin.origin.y),
-                tint: MEDIA.round_glass,
+                tint,
+                blur,
                 rim: MEDIA.round_rim,
                 layout: layout(Size::fill(), Size::fill(), Position::new_absolute()),
             }))
@@ -440,6 +452,7 @@ mod tests {
             spacing: 12.0,
             origin: (0.0, 0.0),
             tint: MEDIA.round_glass,
+            blur: Some(MEDIA.material_blur),
             rim: MEDIA.round_rim,
             layout: layout(Size::fill(), Size::fill(), Position::new_absolute()),
         };

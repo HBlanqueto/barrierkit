@@ -1,10 +1,9 @@
-use std::rc::Rc;
-
+use ctappearance::Resolved;
 use ctdesign::{CAPTION, Font, KNOB_SHADOW, SETTINGS, SLIDER, SWITCH};
 
 use super::{
-    Animation, Axis, ColorEffect, Edge, LayoutDirection, Role, ShadowStyle, Shape, ShapeStyle,
-    StateValue, Theme, system_effect,
+    Animation, Axis, ColorEffect, ControlStyle, Edge, LayoutDirection, Role, ShadowStyle, Shape,
+    ShapeStyle, StateValue, system_effect,
 };
 
 #[derive(Clone, Debug)]
@@ -35,8 +34,8 @@ pub struct SliderStyle {
     pub animation: Animation,
 }
 
-impl SliderStyle {
-    pub fn tengen() -> Self {
+impl ControlStyle for SliderStyle {
+    fn tengen() -> Self {
         let strength = SETTINGS.strength;
         Self {
             width: strength.width as f32,
@@ -66,84 +65,38 @@ impl SliderStyle {
         }
     }
 
-    pub(crate) fn resolve(theme: &Theme, instance: &SliderOverride, reduced_motion: bool) -> Self {
-        let style = instance.apply(theme.slider.apply(Self::tengen()));
-        if reduced_motion {
+    fn accessible(self, appearance: &Resolved) -> Self {
+        if appearance.reduced_motion {
             Self {
                 animation: Animation::None,
-                ..style
+                ..self
             }
         } else {
-            style
-        }
-    }
-}
-
-#[derive(Clone, Default)]
-pub(crate) struct SliderOverride(Option<Rc<dyn Fn(SliderStyle) -> SliderStyle>>);
-
-impl SliderOverride {
-    pub(crate) fn then(self, next: impl Fn(SliderStyle) -> SliderStyle + 'static) -> Self {
-        Self(Some(Rc::new(move |style| next(self.apply(style)))))
-    }
-
-    pub(crate) fn apply(&self, style: SliderStyle) -> SliderStyle {
-        match &self.0 {
-            Some(restyle) => restyle(style),
-            None => style,
-        }
-    }
-}
-
-impl PartialEq for SliderOverride {
-    fn eq(&self, other: &Self) -> bool {
-        match (&self.0, &other.0) {
-            (Some(own), Some(other)) => Rc::ptr_eq(own, other),
-            (own, other) => own.is_none() && other.is_none(),
+            self
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use ctappearance::{AppearanceConfig, resolve};
+
     use super::*;
-
-    fn doubled_track(style: SliderStyle) -> SliderStyle {
-        SliderStyle {
-            track_height: style.track_height * 2.0,
-            ..style
-        }
-    }
-
-    #[test]
-    fn theme_then_containers_outermost_first_then_instance_each_see_the_previous_level() {
-        let theme = Theme::tengen().slider(|s| SliderStyle { width: 100.0, ..s });
-        let outer = Theme::tengen().slider(doubled_track);
-        let inner = Theme::tengen().slider(|s| SliderStyle {
-            track_height: s.track_height + 1.0,
-            ..s
-        });
-        let instance = SliderOverride::default().then(|s| SliderStyle {
-            track_height: s.track_height * 10.0,
-            ..s
-        });
-        let style = SliderStyle::resolve(&theme.within(outer).within(inner), &instance, false);
-        let tengen = SliderStyle::tengen();
-        assert_eq!(style.width, 100.0);
-        assert_eq!(style.track_height, (tengen.track_height * 2.0 + 1.0) * 10.0);
-        assert_eq!(style.knob_size, tengen.knob_size);
-    }
 
     #[test]
     fn reduced_motion_removes_any_animation_an_override_sets() {
-        let instance = SliderOverride::default().then(|s| SliderStyle {
+        let animated = SliderStyle {
             animation: Animation::Spring {
                 duration_ms: 400,
                 bounce: 0.5,
             },
-            ..s
-        });
-        let style = SliderStyle::resolve(&Theme::tengen(), &instance, true);
+            ..SliderStyle::tengen()
+        };
+        let reduced = AppearanceConfig {
+            reduced_motion: true,
+            ..Default::default()
+        };
+        let style = animated.accessible(&resolve(&reduced, None));
         assert!(matches!(style.animation, Animation::None));
     }
 }

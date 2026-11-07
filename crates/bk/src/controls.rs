@@ -24,8 +24,8 @@ use crate::password::PasswordField;
 use crate::spelling::{Squiggles, char_index, dictionary, known, misspelled, utf16_range};
 use crate::style::{Palette, with_font};
 use crate::styles::{
-    Axis, ControlState, Edge, LayoutDirection, Paints, Shape, ShapeStyle, SliderOverride,
-    SliderStyle, StateValue, Theme,
+    Axis, ControlState, Edge, LayoutDirection, Paints, Shape, ShapeStyle, SliderStyle, StateValue,
+    Theme, resolve,
 };
 use crate::symbol::{Symbol, symbol};
 use crate::theme;
@@ -255,7 +255,7 @@ pub struct Slider {
     disabled: bool,
     on_change: Option<Callback<usize, ()>>,
     probe: Option<&'static str>,
-    style: SliderOverride,
+    style: Theme,
     key: DiffKey,
 }
 
@@ -269,7 +269,7 @@ impl Slider {
             disabled: false,
             on_change: None,
             probe: None,
-            style: SliderOverride::default(),
+            style: Theme::tengen(),
             key: DiffKey::None,
         }
     }
@@ -282,7 +282,7 @@ impl Slider {
     }
 
     pub fn style(mut self, restyle: impl Fn(SliderStyle) -> SliderStyle + 'static) -> Self {
-        self.style = std::mem::take(&mut self.style).then(restyle);
+        self.style = self.style.style(restyle);
         self
     }
 
@@ -328,11 +328,7 @@ impl ProbeExt for Slider {
 impl Component for Slider {
     fn render(&self) -> impl IntoElement {
         let interaction = use_interaction();
-        let style = SliderStyle::resolve(
-            &Theme::current(),
-            &self.style,
-            theme::resolved().reduced_motion,
-        );
+        let style: SliderStyle = resolve(&self.style);
         let paints = Paints::current(
             ControlState {
                 hovered: interaction.hovered(),

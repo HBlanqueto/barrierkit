@@ -287,7 +287,8 @@ LevelSlider::new("Volume").value(0.6).style(LevelStyle::Fat(Symbol::SpeakerWave)
 
 `Slider` draws only from a `SliderStyle` ([ADR 0064](../decisions/0064-styles-and-themes.md)).
 `.tint(Tint)` sets its `fill`; `.style(|s| ..)` changes any other field for one slider,
-`.slider_style(|s| ..)` for every slider inside a view and `Theme::tengen().slider(|s| ..)`
+`.control_style(|s: SliderStyle| ..)` for every slider inside a view and
+`Theme::tengen().style(|s: SliderStyle| ..)`
 for the whole app. The levels, the fields and the value types are in
 [Styles and themes](../ai/styles.md).
 

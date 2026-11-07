@@ -313,7 +313,7 @@ use bk::prelude::*;
 
 fn main() -> Result<(), RunError> {
     Application::new("mixer")
-        .theme(Theme::tengen().slider(|s| SliderStyle {
+        .theme(Theme::tengen().style(|s: SliderStyle| SliderStyle {
             track_shape: Shape::Rectangle,
             knob_shape: Shape::Rectangle,
             ..s
@@ -329,7 +329,7 @@ fn main() -> Result<(), RunError> {
                     HStack::new()
                         .child(Slider::stepped("Bass", 5).value(2))
                         .child(Slider::stepped("Treble", 5).value(3))
-                        .slider_style(|s| SliderStyle { axis: Axis::Vertical, ..s }),
+                        .control_style(|s: SliderStyle| SliderStyle { axis: Axis::Vertical, ..s }),
                 )
         })
         .run()
@@ -338,7 +338,8 @@ fn main() -> Result<(), RunError> {
 
 1. The theme makes every slider square; the stack turns its two sliders
    vertical; `.style` paints one fill red, grey while pressed. Each override names only what
-   changes and ends with `..s`.
+   changes and ends with `..s`. `Theme::style` and `.control_style` take any
+   control's style: the parameter's type (`|s: SliderStyle|`) picks it.
 2. `Role` colors follow light, dark and contrast; the kit still applies
    reduce motion, reduce transparency and the focus ring.
 3. The levels, fields and value types are in [`styles.md`](styles.md).

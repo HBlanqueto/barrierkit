@@ -42,6 +42,18 @@ pub(crate) fn glass_tint() -> Rgba {
     }
 }
 
+pub(crate) fn transparency_reduced() -> bool {
+    crate::theme::resolved().reduce_transparency
+}
+
+pub(crate) fn material(tint: Rgba, solid: Rgba, blur: f32, opaque: bool) -> (Rgba, Option<f32>) {
+    if opaque {
+        (Rgba { a: 1.0, ..solid }, None)
+    } else {
+        (tint, Some(blur))
+    }
+}
+
 fn along(edge: GlassEdge, depth: f32) -> (Size, Size, Position) {
     let depth = Size::px(depth);
     match edge {
@@ -93,6 +105,11 @@ pub(crate) fn fullscreen_backdrop(
     depth: f32,
     opacity: f32,
 ) -> Element {
+    let bar = if transparency_reduced() {
+        FullscreenBar::Solid
+    } else {
+        bar
+    };
     match bar {
         FullscreenBar::Solid => {
             let (width, height, position) = along(edge, depth);
@@ -277,6 +294,8 @@ impl ElementExt for Glass {
 #[derive(PartialEq)]
 struct MaterialElement {
     corner_radius: f32,
+    tint: Rgba,
+    blur: Option<f32>,
     layout: LayoutData,
 }
 
@@ -292,9 +311,16 @@ impl Material {
 
 impl From<Material> for Element {
     fn from(material: Material) -> Self {
-        let corner_radius = material.corner_radius;
+        let (tint, blur) = self::material(
+            MEDIA.material_tint,
+            MEDIA.material_tint,
+            MEDIA.material_blur,
+            transparency_reduced(),
+        );
         leaf(MaterialElement {
-            corner_radius,
+            corner_radius: material.corner_radius,
+            tint,
+            blur,
             layout: layout(Size::fill(), Size::fill(), Position::new_absolute()),
         })
     }
@@ -320,15 +346,17 @@ impl ElementExt for MaterialElement {
         let radius = self.corner_radius * context.scale_factor as f32;
         let shape = RRect::new_rect_xy(bounds, radius, radius);
         let canvas = context.canvas;
-        let sigma = MEDIA.material_blur * context.scale_factor as f32;
         canvas.save();
         canvas.clip_rrect(shape, None, Some(true));
-        if let Some(filter) = blur((sigma, sigma), TileMode::Clamp, None, None) {
+        if let Some(filter) = self.blur.and_then(|radius| {
+            let sigma = radius * context.scale_factor as f32;
+            blur((sigma, sigma), TileMode::Clamp, None, None)
+        }) {
             canvas.save_layer(&SaveLayerRec::default().bounds(&bounds).backdrop(&filter));
             canvas.restore();
         }
         let mut tint = Paint::default();
-        tint.set_color4f(rgba4f(MEDIA.material_tint), None);
+        tint.set_color4f(rgba4f(self.tint), None);
         canvas.draw_rrect(shape, &tint);
         canvas.restore();
         let mut rim = Paint::default();

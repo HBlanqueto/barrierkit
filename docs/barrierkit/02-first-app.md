@@ -123,7 +123,7 @@ stacks, children and alignment (`child`, `children`, `spacing`,
 
 | From | Names |
 |---|---|
-| The kit | `Application`, `Scene`, `UtilityWindow`, `Text`, `VStack`, `HStack`, `Image`, `Symbol`, `Divider`, the [`ViewModifiers`](07-menus-and-popovers.md#view-modifiers) trait (`.help`, `.context_menu`, `.focus_ring`), `run_window`, `WindowOptions`, `RunError`, `Palette`, `text`, `color`, `Titlebar`, every control in [`controls`](05-controls.md), the [`StyleModifiers`](../ai/styles.md#levels) trait (`.slider_style`) and everything in [`styles`](../ai/styles.md#value-types) (`Theme`, `SliderStyle`, `ShapeStyle`, `Rgba`…) |
+| The kit | `Application`, `Scene`, `UtilityWindow`, `Text`, `VStack`, `HStack`, `Image`, `Symbol`, `Divider`, the [`ViewModifiers`](07-menus-and-popovers.md#view-modifiers) trait (`.help`, `.context_menu`, `.focus_ring`, `.foreground_style`, `.background_style`, `.shadows`), `run_window`, `WindowOptions`, `RunError`, `Palette`, `text`, `color`, `Titlebar`, every control in [`controls`](05-controls.md), the [`StyleModifiers`](../ai/styles.md#levels) trait (`.control_style`) and everything in [`styles`](../ai/styles.md#value-types) (`Theme`, `ControlStyle`, `SliderStyle`, `ShapeStyle`, `Rgba`…) |
 | Freya | its whole prelude: `rect()`, `label()`, `use_state`, `Component`, `App`, `IntoElement`, element methods |
 | Torin | `Alignment`, `Direction`, `Size` |
 | Tokens | `BODY`, `CALLOUT`, `CAPTION`, `HEADLINE`, `LARGE_TITLE`, `MONO`, `TITLE`, `TITLE_2`, `Font`, `SPACE_1`…`SPACE_4`, `WINDOW_DEFAULT_SIZE`, `WINDOW_MIN_SIZE` |

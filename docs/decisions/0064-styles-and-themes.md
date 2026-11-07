@@ -53,6 +53,10 @@ every visual property it draws. Its `tengen()` constructor builds the default
 from `ctdesign` constants and the palette in context, so the token stays the
 single source of each value.
 
+Every style struct implements the `ControlStyle` trait: `tengen()` and
+`accessible(self, &Resolved)`, which applies the user's settings of
+section 4 that concern its fields.
+
 Every style struct uses the same groups of fields:
 
 | Group | Properties |
@@ -74,12 +78,22 @@ changes only the fields it names (`|s| SliderStyle { track_height: 10.0, ..s }`)
 | Order | Level | How |
 |---|---|---|
 | 1 | Tengen | `SliderStyle::tengen()` |
-| 2 | Theme (whole app) | `Theme::tengen().slider(..)` given to `Application::theme` |
-| 3 | Container (subtree) | `.slider_style(..)` on any view |
+| 2 | Theme (whole app) | `Theme::tengen().style(\|s: SliderStyle\| ..)` given to `Application::theme` |
+| 3 | Container (subtree) | `.control_style(\|s: SliderStyle\| ..)` on any view |
 | 4 | Instance | `Slider::…().style(..)` |
-| 5 | Accessibility | applied last, always (section 4) |
+| 5 | Accessibility | `ControlStyle::accessible`, applied last, always (section 4) |
 
 Later levels win. Containers apply from the outermost to the innermost.
+
+`Theme::style` and `.control_style` are generic over `ControlStyle`: the
+type of the closure's parameter picks the control. A `Theme` keeps its
+overrides in order, each tagged by its style type, so one value holds the
+overrides of every control and a new control needs no change to `Theme`.
+The instance level is a `Theme` too, held by the control.
+
+Views that are not controls take a `ShapeStyle` through
+`.foreground_style`, `.background_style` and `.shadows`, resolved with the
+same code as the control paints.
 
 ### 3. Value types
 
@@ -106,14 +120,16 @@ app chooses, per property, whether a color follows the system.
 After every override the kit applies the user's settings:
 
 1. **Reduce motion:** every `Animation` becomes `None`.
-2. **Reduce transparency:** every `Material` paint becomes its solid color.
+2. **Reduce transparency:** every `Material` paint becomes its solid color,
+   and so do the kit's own glass surfaces (full-screen bars, `TopGlass`,
+   media `Material`, `GlassContainer`).
 3. **Focus:** the focus ring is always drawn when the control has keyboard
    focus.
 
 ### 5. Rollout
 
 1. Pilot: `Slider`, with every group of section 1, and the shared types,
-   `Theme`, `.slider_style` and `.style`.
+   `Theme`, `.control_style` and `.style`.
 2. Then one control per commit, in the order of
    [5. Controls](../barrierkit/05-controls.md), with its style struct, tokens,
    glossary rows and a recipe line.

@@ -257,6 +257,12 @@ are components: call the modifier on a rect that holds them.
 | `.context_menu(items, on_activate)` | `.contextMenu` | A menu at the pointer on secondary click |
 | `.help(text)` | `.help(_:)` | A tooltip |
 | `.focus_ring(corner_radius, color)` | — | A ring around the element |
+| `.foreground_style(ShapeStyle)` | `.foregroundStyle(_:)` | The text color of `Text`, `label` or `paragraph` |
+| `.background_style(ShapeStyle)` | `.background(_:ignoresSafeAreaEdges:)` | A background paint, with blur for a material |
+| `.shadows(Vec<ShadowStyle>)` | `.shadow(color:radius:x:y:)` | Shadows |
+
+The last three take the paint types of the styling system and are described
+in [Styles and themes](../ai/styles.md#paint-on-views).
 
 A modifier sets Freya event handlers on the element: `.context_menu` sets
 `on_secondary_down`; `.help` sets `on_pointer_enter`, `on_pointer_move`,

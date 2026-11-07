@@ -2,7 +2,10 @@ use ctdesign::Rgba;
 use freya_core::prelude::*;
 
 use crate::menu::MenuItem;
-use crate::styles::{SliderStyle, StyleScope, Theme};
+use crate::styles::{
+    ControlState, ControlStyle, Paints, ShadowStyle, ShapeStyle, StateValue, StyleScope, Theme,
+    system_effect,
+};
 
 pub trait ViewModifiers: EventHandlersExt + Sized {
     fn context_menu(
@@ -23,13 +26,43 @@ pub trait ViewModifiers: EventHandlersExt + Sized {
     {
         crate::interaction::ring(self, corner_radius, color)
     }
+
+    fn foreground_style(self, style: ShapeStyle) -> Self
+    where
+        Self: TextStyleExt,
+    {
+        let paints = Paints::current(ControlState::default(), system_effect);
+        self.color(paints.fill(&StateValue::new(style)))
+    }
+
+    fn background_style(self, style: ShapeStyle) -> Self
+    where
+        Self: StyleExt + EffectExt,
+    {
+        let paints = Paints::current(ControlState::default(), system_effect);
+        let paint = StateValue::new(style);
+        let view = self.background(paints.fill(&paint));
+        match paints.blur(&paint) {
+            Some(blur) => view.blur(blur),
+            None => view,
+        }
+    }
+
+    fn shadows(self, shadows: Vec<ShadowStyle>) -> Self
+    where
+        Self: StyleExt,
+    {
+        shadows
+            .into_iter()
+            .fold(self, |view, shadow| view.shadow(Shadow::from(shadow)))
+    }
 }
 
 impl<T: EventHandlersExt> ViewModifiers for T {}
 
 pub trait StyleModifiers: IntoElement + Sized {
-    fn slider_style(self, restyle: impl Fn(SliderStyle) -> SliderStyle + 'static) -> StyleScope {
-        StyleScope::new(Theme::tengen().slider(restyle), self)
+    fn control_style<S: ControlStyle>(self, restyle: impl Fn(S) -> S + 'static) -> StyleScope {
+        StyleScope::new(Theme::tengen().style(restyle), self)
     }
 }
 
