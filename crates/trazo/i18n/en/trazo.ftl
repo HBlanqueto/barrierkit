@@ -24,7 +24,6 @@ desktop = Desktop
 mobile = Mobile
 north = North
 south = South
-disk = Disk
 photos = Photos
 apps = Apps
 system = System

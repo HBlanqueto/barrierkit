@@ -24,7 +24,6 @@ desktop = Escritorio
 mobile = Móvil
 north = Norte
 south = Sur
-disk = Disco
 photos = Fotos
 apps = Apps
 system = Sistema
