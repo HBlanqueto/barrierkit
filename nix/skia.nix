@@ -5,7 +5,6 @@
   pkgs,
   rustPlatform,
   clangStdenv,
-  fetchFromGitHub,
   fetchgit,
   linkFarm,
   runCommand,
@@ -21,11 +20,11 @@ let
 
   skia-source =
     let
-      repo = fetchFromGitHub {
-        owner = "rust-skia";
-        repo = "skia";
-        tag = "m148-0.97.0";
-        hash = "sha256-uFnYX6ZDg+cJwLyCe6IGB6M3aCyI/+q2aYP4JfHm544=";
+      # Google's chrome/m148: the same externals as rust-skia/skia m148-0.97.0.
+      repo = fetchgit {
+        url = "https://skia.googlesource.com/skia";
+        rev = "13ffba253fc7854fd3b34f67c82dfb2418dc2944";
+        hash = "sha256-z85k29Yn7UOMUHtyDQ0lcUAMLLSSjEY0fBR6cO+jfYo=";
       };
       externals = linkFarm "skia-externals" (
         lib.mapAttrsToList
