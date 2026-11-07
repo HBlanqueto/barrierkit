@@ -7,6 +7,7 @@ use vow_appearance::traffic::{self, TrafficInput, TrafficPointer};
 use vow_design::{ButtonKind, Rgba, TITLEBAR, TRAFFIC_GLYPHS, TRAFFIC_RIM_WIDTH};
 
 use crate::ProbeExt;
+use crate::i18n::text;
 use crate::theme;
 
 #[derive(PartialEq)]
@@ -159,7 +160,14 @@ impl Component for TrafficLights {
                 ButtonKind::Minimize => format!("{base}.minimize").into_boxed_str(),
                 ButtonKind::Maximize => format!("{base}.zoom").into_boxed_str(),
             });
+            let name = match kind {
+                ButtonKind::Close => text!("window-close"),
+                ButtonKind::Minimize => text!("window-minimize"),
+                ButtonKind::Maximize => text!("window-zoom"),
+            };
             rect()
+                .a11y_role(AccessibilityRole::Button)
+                .a11y_alt(name)
                 .width(Size::px(diameter as f32))
                 .height(Size::px(diameter as f32))
                 .corner_radius(corner_radius)
