@@ -27,10 +27,10 @@ Ningún otro formato sale de estos JSON. Nada fuera de `build.rs` los lee.
 
 1. Edita `tokens.json` o `components.json`. Un valor de un componente puede
    ser un número o una referencia `grupo.clave` a `tokens.json`.
-2. Compila. `crates/vow-design/build.rs`, con un módulo por familia en
-   `build/`, lee los dos JSON con `serde_json` (solo en
-   `build-dependencies`) y escribe `tengen.rs`. `cargo:rerun-if-changed`
-   vigila los dos ficheros.
+2. Compila. `crates/vow-design/build.rs` y su módulo `build/tengen.rs` leen
+   los dos JSON con `serde_json` (solo en `build-dependencies`) y las
+   estructuras de `src/lib.rs`, y escriben `tengen.rs`.
+   `cargo:rerun-if-changed` vigila esos tres ficheros.
 3. Si falta un campo que `vow-design` necesita, el build falla y nombra el
    campo y el fichero.
 4. Ejecuta `./dev.sh check`.
@@ -42,8 +42,9 @@ tipos (`Rgba`, `Palette`, `Titlebar`, `ShellPalette`…) y la API.
 
 - **Temas:** `light`, `dark` y `dark-tint`, con `LIGHT`, `DARK` y `DARK_TINT`.
 - **Semáforos:** `traffic-close/min/zoom` son `#ff5f57`, `#febc2e` y `#28c840`
-  en los tres temas. `traffic-inactive`, `traffic-rim`,
-  `traffic-rim-inactive` y `traffic-glyph` están en `tokens.json`.
+  en los tres temas. `traffic-inactive`, `traffic-rim` y
+  `traffic-rim-inactive` están en `tokens.json`; los glifos, en
+  `window.traffic-lights` de `components.json`.
 - **Titlebar:** `titlebar-bg`/`titlebar-bg-inactive`,
   `titlebar-title`/`titlebar-title-inactive` y `titlebar-line`.
 - **Alturas:** `size.titlebar-h = 40` en las apps propias y

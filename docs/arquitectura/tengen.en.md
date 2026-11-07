@@ -28,10 +28,10 @@ them.
 
 1. Edit `tokens.json` or `components.json`. A component value can be a
    number or a `group.key` reference to `tokens.json`.
-2. Build. `crates/vow-design/build.rs`, with one module per family in
-   `build/`, reads both JSON files with `serde_json` (only in
-   `build-dependencies`) and writes `tengen.rs`. `cargo:rerun-if-changed`
-   watches both files.
+2. Build. `crates/vow-design/build.rs` and its `build/tengen.rs` module read
+   both JSON files with `serde_json` (only in `build-dependencies`) and the
+   structs in `src/lib.rs`, and write `tengen.rs`. `cargo:rerun-if-changed`
+   watches those three files.
 3. If a field that `vow-design` needs is missing, the build fails and names
    the field and the file.
 4. Run `./dev.sh check`.
@@ -44,8 +44,9 @@ Do not edit `crates/vow-design/src/` to change a value: it holds the types
 - **Themes:** `light`, `dark` and `dark-tint`, with `LIGHT`, `DARK` and
   `DARK_TINT`.
 - **Traffic lights:** `traffic-close/min/zoom` are `#ff5f57`, `#febc2e` and
-  `#28c840` in all three themes. `traffic-inactive`, `traffic-rim`,
-  `traffic-rim-inactive` and `traffic-glyph` are in `tokens.json`.
+  `#28c840` in all three themes. `traffic-inactive`, `traffic-rim` and
+  `traffic-rim-inactive` are in `tokens.json`; the glyphs are in
+  `window.traffic-lights` in `components.json`.
 - **Titlebar:** `titlebar-bg`/`titlebar-bg-inactive`,
   `titlebar-title`/`titlebar-title-inactive` and `titlebar-line`.
 - **Heights:** `size.titlebar-h = 40` in own apps and
