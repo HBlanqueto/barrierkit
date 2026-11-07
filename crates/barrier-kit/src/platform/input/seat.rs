@@ -184,6 +184,15 @@ impl SeatHandler for Runtime {
                 {
                     keyboard.release();
                 }
+                // A keyboard that goes away sends no leave; a held key would repeat forever.
+                stop_repeat(&mut self.repeat, &mut self.repeat_generation);
+                if let Some(index) = self
+                    .keyboard_focus
+                    .take()
+                    .and_then(|surface| self.surface_for(&surface))
+                {
+                    self.surfaces[index].app.set_focused(false);
+                }
             }
             Capability::Touch => {
                 if let Some(touch) = self.touch.take()
