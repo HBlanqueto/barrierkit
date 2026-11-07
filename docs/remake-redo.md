@@ -151,3 +151,36 @@ Not changed, with the reason:
 - `wayland-protocols`: `bk` uses both `staging` and `unstable` protocols.
 - `toml` 0.8 → 1.x and `toml_edit` 0.22 → 0.25: the other versions build for
   the host (proc macros and build scripts), so they are separate units anyway.
+
+## Phase 2: opt-in features of `bk`
+
+Clean build of `bk` alone (`cargo clean && cargo build -p bk …`), after
+phase 1:
+
+| Features | Clean build | Edit of `controls.rs` | Crates |
+|---|---|---|---|
+| `default` (`a11y`, `charts`, `print`) | 117.1 s | 3.2 s | 271 |
+| `--no-default-features` | 101.1 s | 3.0 s | 244 |
+| only `a11y` | 106.8 s | — | 260 |
+| only `charts` | 103.5 s | — | 244 |
+| only `print` | 113.5 s | — | 255 |
+
+| Feature | Modules | Dependencies it adds | Used by malaysia | Used by curseterm |
+|---|---|---|---|---|
+| `a11y` | `platform/atspi.rs` | `accesskit_unix` (+16 crates) | every app window | every window |
+| `charts` | `charts`, `styles::ChartStyle` | none | no | no |
+| `print` | `print`, `portal::print`, `styles::PrintPreviewStyle` | `pdf-writer`, `subsetter`, `ttf-parser`, `flate2` (+11 crates) | no | no |
+| `shell` | `shell` | none | `malaysia-shell` | no |
+| `video` | `video` | `gstreamer*` (+29 crates) | no | no |
+| `tracy` | `init_tracing` to Tracy | `tracing-tracy` | no | no |
+
+Candidates left out, with the reason:
+
+| Candidate | Why not |
+|---|---|
+| `spelling` | `spellbook` costs 7 s of CPU, and `TextField`, `TextEditor` and the context menu call it |
+| `dbus` | `freya-core` pulls `zbus` through `mundy` anyway, and `portal` serves the clipboard, drag and drop, `ImageWell`, `TextEditor` and buttons |
+| i18n | Every visible string of the kit goes through `tr!` |
+
+`cargo hack clippy --feature-powerset --no-dev-deps -p bk -- -D warnings`
+passes for the 64 combinations (691 s).
