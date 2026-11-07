@@ -154,6 +154,14 @@ pub fn dictionary_name(names: &[String], tag: &str) -> Option<String> {
     regional.first().map(|name| (*name).clone())
 }
 
+// The Unicode «Combining Diacritical Marks» blocks: a decomposed letter stays one word.
+fn is_combining_mark(c: char) -> bool {
+    matches!(
+        u32::from(c),
+        0x0300..=0x036F | 0x1AB0..=0x1AFF | 0x1DC0..=0x1DFF | 0x20D0..=0x20FF | 0xFE20..=0xFE2F
+    )
+}
+
 pub fn words(text: &str) -> Vec<Range<usize>> {
     let chars: Vec<char> = text.chars().collect();
     let joins = |index: usize| {
@@ -167,7 +175,10 @@ pub fn words(text: &str) -> Vec<Range<usize>> {
     let mut found = Vec::new();
     let mut start = None;
     for index in 0..=chars.len() {
-        let inside = index < chars.len() && (chars[index].is_alphanumeric() || joins(index));
+        let inside = index < chars.len()
+            && (chars[index].is_alphanumeric()
+                || joins(index)
+                || start.is_some() && is_combining_mark(chars[index]));
         match (inside, start) {
             (true, None) => start = Some(index),
             (false, Some(from)) => {
@@ -379,6 +390,13 @@ mod tests {
             .map(|r| text.chars().skip(r.start).take(r.len()).collect())
             .collect();
         assert_eq!(found, ["l’eau", "don't", "año"]);
+    }
+
+    #[test]
+    fn a_decomposed_accent_stays_inside_its_word() {
+        let text = "cafe\u{301} con leche";
+        assert_eq!(words(text), [0..5, 6..9, 10..15]);
+        assert_eq!(replace_chars(text, 0..5, "té"), "té con leche");
     }
 
     #[test]
