@@ -789,16 +789,18 @@ impl Component for SegmentedControl {
     fn render(&self) -> impl IntoElement {
         let palette = Palette::current();
         let choice = use_choice(Some(self.selected), self.on_change.clone());
+        let keyed = use_state(|| false);
         let segments = self.segments.iter().enumerate().map(|(index, text)| {
             Segment {
                 text,
                 active: choice.is(index),
+                take_focus: choice.is(index) && *keyed.read(),
                 on_select: choice.select(index),
             }
             .into_element()
         });
 
-        rect()
+        let group = rect()
             .a11y_role(AccessibilityRole::TabList)
             .a11y_alt(self.label)
             .width(Size::fill())
@@ -808,7 +810,8 @@ impl Component for SegmentedControl {
             .spacing(SEGMENTED.gap)
             .corner_radius(SEGMENTED.radius)
             .background(color(palette.control_background))
-            .children(segments)
+            .children(segments);
+        choice.arrow_keys(group, self.segments.len(), keyed)
     }
 }
 
@@ -816,6 +819,7 @@ impl Component for SegmentedControl {
 struct Segment {
     text: &'static str,
     active: bool,
+    take_focus: bool,
     on_select: Callback<(), ()>,
 }
 
@@ -823,6 +827,7 @@ impl Component for Segment {
     fn render(&self) -> impl IntoElement {
         let palette = Palette::current();
         let interaction = use_interaction();
+        crate::choices::take_focus_when(interaction, self.take_focus);
         let active = self.active;
         let on_select = self.on_select.clone();
 

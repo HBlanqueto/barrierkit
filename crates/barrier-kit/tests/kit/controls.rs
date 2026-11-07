@@ -1068,6 +1068,39 @@ fn the_rating_moves_with_the_arrow_keys() {
 }
 
 #[test]
+fn the_arrows_move_the_segment_and_wrap_at_the_ends() {
+    use std::cell::RefCell;
+    use std::rc::Rc;
+
+    struct SegmentsCase(Rc<RefCell<Vec<usize>>>);
+    impl App for SegmentsCase {
+        fn render(&self) -> impl IntoElement {
+            let events = self.0.clone();
+            SegmentedControl::new("Vista")
+                .segment("Lista")
+                .segment("Iconos")
+                .segment("Columnas")
+                .on_change(move |index| events.borrow_mut().push(index))
+        }
+    }
+
+    let events = Rc::new(RefCell::new(Vec::new()));
+    let (mut test, _) = TestingRunner::new(
+        AppComponent::new(SegmentsCase(events.clone())),
+        Size2D::new(300.0, 60.0),
+        |_| {},
+        1.0,
+    );
+    test.sync_and_update();
+    press(&mut test, Key::Named(NamedKey::Tab));
+    press(&mut test, Key::Named(NamedKey::ArrowRight));
+    press(&mut test, Key::Named(NamedKey::ArrowRight));
+    press(&mut test, Key::Named(NamedKey::ArrowRight));
+    press(&mut test, Key::Named(NamedKey::ArrowLeft));
+    assert_eq!(*events.borrow(), [1, 2, 0, 2]);
+}
+
+#[test]
 fn a_slider_announces_its_name_value_and_range() {
     let app = AppComponent::new(Case {
         dark: false,

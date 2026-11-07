@@ -9,6 +9,7 @@ use crate::interaction::{ring, use_interaction};
 use crate::style::{Palette, text};
 use crate::theme::color;
 
+#[derive(Clone)]
 pub(crate) struct Choice {
     selected: State<Option<usize>>,
     on_change: Option<Callback<usize, ()>>,
@@ -26,6 +27,23 @@ impl Choice {
         *self.selected.read() == Some(index)
     }
 
+    // WAI-ARIA APG radio group and tabs: the arrows move the selection, wrapping at the ends, and
+    // the newly chosen option takes the focus.
+    pub(crate) fn arrow_keys(&self, group: Rect, count: usize, mut keyed: State<bool>) -> Rect {
+        let choice = self.clone();
+        group.on_key_down(move |event: Event<KeyboardEventData>| {
+            let delta = match event.key {
+                Key::Named(NamedKey::ArrowLeft | NamedKey::ArrowUp) => -1,
+                Key::Named(NamedKey::ArrowRight | NamedKey::ArrowDown) => 1,
+                _ => return,
+            };
+            let current = (*choice.selected.peek()).unwrap_or(0);
+            let next = (current as isize + delta).rem_euclid(count.max(1) as isize) as usize;
+            keyed.set(true);
+            choice.select(next).call(());
+        })
+    }
+
     pub(crate) fn select(&self, index: usize) -> Callback<(), ()> {
         let mut selected = self.selected;
         let on_change = self.on_change.clone();
@@ -39,6 +57,15 @@ impl Choice {
             }
         })
     }
+}
+
+pub(crate) fn take_focus_when(interaction: crate::interaction::Interaction, take_focus: bool) {
+    let take_focus = use_reactive(&take_focus);
+    use_side_effect(move || {
+        if *take_focus.read() {
+            interaction.request_focus();
+        }
+    });
 }
 
 fn choice_group(label: &'static str, spacing: f32, options: impl Iterator<Item = Element>) -> Rect {
@@ -114,18 +141,25 @@ impl KeyExt for RadioGroup {
 impl Component for RadioGroup {
     fn render(&self) -> impl IntoElement {
         let choice = use_choice(Some(self.selected), self.on_change.clone());
+        let keyed = use_state(|| false);
         let options = self.options.iter().enumerate().map(|(index, text)| {
             RadioOption {
                 text,
                 selected: choice.is(index),
+                take_focus: choice.is(index) && *keyed.read(),
                 disabled: self.disabled,
                 on_select: choice.select(index),
                 tint: self.tint,
             }
             .into_element()
         });
-        choice_group(self.label, SETTINGS.radio_spacing as f32, options)
-            .direction(Direction::Vertical)
+        let group = choice_group(self.label, SETTINGS.radio_spacing as f32, options)
+            .direction(Direction::Vertical);
+        if self.disabled {
+            group
+        } else {
+            choice.arrow_keys(group, self.options.len(), keyed)
+        }
     }
 }
 
@@ -133,6 +167,7 @@ impl Component for RadioGroup {
 struct RadioOption {
     text: &'static str,
     selected: bool,
+    take_focus: bool,
     disabled: bool,
     on_select: Callback<(), ()>,
     tint: Tint,
@@ -142,6 +177,7 @@ impl Component for RadioOption {
     fn render(&self) -> impl IntoElement {
         let palette = Palette::current();
         let interaction = use_interaction();
+        take_focus_when(interaction, self.take_focus);
         let size = SETTINGS.radio_size as f32;
         let dot = SETTINGS.radio_dot as f32;
         let selected = self.selected;
