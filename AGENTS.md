@@ -34,8 +34,8 @@ Fuentes de partida por área. Las de cada dependencia fijada están en la regla
 - malaysia fija barrierkit por rev (`Cargo.toml`, `flake.nix`, `flake.lock`).
   Ese rev debe estar en `main`; un commit que solo vive en una rama puede
   desaparecer de GitHub y romper el build de malaysia.
-- `for-malaysia` se unió a `main` el 2026-10-31; su historia vive en el tag
-  `archivo/for-malaysia`.
+- `for-malaysia` se unió a `main` el 2026-10-31 con el merge `ab120c2`; su
+  historia sigue en `main`.
 
 ## Documentación (español e inglés)
 
