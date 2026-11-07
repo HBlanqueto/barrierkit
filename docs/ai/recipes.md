@@ -254,3 +254,53 @@ fn format_time(elapsed: Duration) -> String {
 `use_side_effect` runs again when `now` or `started` change, so each tick
 schedules the next one while the stopwatch runs.
 
+## 10. Buttons in the title bar over a gradient
+
+SwiftUI: `.toolbar { ToolbarItemGroup { … } }` over a `LinearGradient` background.
+
+```rust
+use bk::backdrop::{Backdrop, BackdropSource};
+use bk::compact::IconButton;
+use bk::prelude::*;
+use ctdesign::BACKDROP_SCENES;
+
+#[derive(PartialEq)]
+struct Hello;
+
+impl Component for Hello {
+    fn render(&self) -> impl IntoElement {
+        VStack::new()
+            .expanded()
+            .child(
+                Titlebar::new().title("Hello").right(
+                    ToolGroup::new()
+                        .child(IconButton::new(Symbol::Plus, "Add"))
+                        .child(IconButton::new(Symbol::Ellipsis, "More")),
+                ),
+            )
+            .child(
+                rect()
+                    .expanded()
+                    .center()
+                    .child(Text::new("Hello, world").font(TITLE)),
+            )
+    }
+}
+
+fn main() -> Result<(), RunError> {
+    run_window(
+        || Backdrop::new(BackdropSource::Colors(BACKDROP_SCENES.dusk), Hello),
+        WindowOptions::new("Hello", "hello"),
+    )
+}
+```
+
+1. The gradient is a [`Backdrop`](../barrierkit/15-backdrops-and-media.md#backdrop),
+   not a hand-written `LinearGradient`: it gives the content a legible palette
+   and makes the `Titlebar` transparent. Its colors come from a
+   `BACKDROP_SCENES` preset or from an image (`BackdropSource::Image`).
+2. The content is a `Component`, so it reads the backdrop's palette.
+3. `run_window` is used because the window draws its own title bar with
+   buttons ([8](../barrierkit/08-windows.md)). Every kit window is
+   client-side decorated.
+
