@@ -86,7 +86,7 @@ pub fn update(path: &str) {
 }
 
 async fn run(mut commands: UnboundedReceiver<Command>) {
-    let connection = match zbus::Connection::session().await {
+    let connection = match crate::session_bus::connection().await {
         Ok(c) => c,
         Err(error) => {
             tracing::warn!(%error, "barrier-dbusmenu: no session bus; menus are local only");

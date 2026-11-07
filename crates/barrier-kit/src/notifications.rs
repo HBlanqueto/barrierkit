@@ -3,7 +3,7 @@ use std::process::Command;
 use std::sync::{Mutex, OnceLock};
 use std::thread;
 
-use zbus::blocking::{Connection, Proxy};
+use zbus::blocking::Proxy;
 use zbus::zvariant::Value;
 
 const SERVICE: &str = "org.freedesktop.Notifications";
@@ -67,7 +67,7 @@ fn proxy() -> Option<&'static Proxy<'static>> {
     static PROXY: OnceLock<Option<Proxy<'static>>> = OnceLock::new();
     PROXY
         .get_or_init(|| {
-            let connected = Connection::session()
+            let connected = crate::session_bus::blocking()
                 .and_then(|connection| Proxy::new(&connection, SERVICE, PATH, SERVICE));
             let proxy = match connected {
                 Ok(proxy) => proxy,

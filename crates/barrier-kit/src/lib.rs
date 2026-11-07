@@ -1,5 +1,6 @@
 mod fonts;
 mod logging;
+mod session_bus;
 
 pub use fonts::register_font;
 pub use logging::init_tracing;

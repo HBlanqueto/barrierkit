@@ -525,7 +525,7 @@ async fn run(
     mut incoming: UnboundedReceiver<Event>,
     updates: UnboundedSender<Vec<TrayItem>>,
 ) {
-    let connection = match zbus::Connection::session().await {
+    let connection = match crate::session_bus::connection().await {
         Ok(connection) => connection,
         Err(error) => {
             tracing::warn!(%error, "BarrierKit: no session bus; no status items");

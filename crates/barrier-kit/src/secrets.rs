@@ -48,7 +48,7 @@ pub struct Secrets {
 impl Secrets {
     // §“Transfer of Secrets”: the plain algorithm; the bus is local to the user.
     pub fn open() -> Result<Self, Error> {
-        let connection = Connection::session()?;
+        let connection = crate::session_bus::blocking()?;
         let reply = connection.call_method(
             Some(SERVICE),
             SERVICE_PATH,

@@ -24,7 +24,6 @@ struct Requests {
 
 #[derive(Clone)]
 pub struct Instance {
-    _connection: Connection,
     requests: Arc<Mutex<Requests>>,
 }
 
@@ -120,7 +119,7 @@ fn forward(
 }
 
 pub fn launch(app_id: &str) -> zbus::Result<Launch> {
-    let connection = Connection::session()?;
+    let connection = crate::session_bus::blocking()?;
     let taken =
         match connection.request_name_with_flags(app_id, RequestNameFlags::DoNotQueue.into()) {
             Ok(RequestNameReply::Exists) | Err(zbus::Error::NameTaken) => true,
@@ -144,10 +143,7 @@ pub fn launch(app_id: &str) -> zbus::Result<Launch> {
             requests: requests.clone(),
         },
     )?;
-    Ok(Launch::Primary(Instance {
-        _connection: connection,
-        requests,
-    }))
+    Ok(Launch::Primary(Instance { requests }))
 }
 
 #[cfg(test)]

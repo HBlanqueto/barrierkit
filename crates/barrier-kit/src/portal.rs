@@ -27,7 +27,7 @@ pub async fn save_file(title: &str, current_name: &str) -> Option<PathBuf> {
 
 pub async fn open_uri(uri: &str, ask: bool) {
     let result = async {
-        let connection = zbus::Connection::session().await?;
+        let connection = crate::session_bus::connection().await?;
         let proxy = zbus::Proxy::new(
             &connection,
             PORTAL,
@@ -47,7 +47,7 @@ pub async fn open_uri(uri: &str, ask: bool) {
 
 pub async fn notify(id: &str, title: &str, body: &str) {
     let result = async {
-        let connection = zbus::Connection::session().await?;
+        let connection = crate::session_bus::connection().await?;
         let proxy = zbus::Proxy::new(
             &connection,
             PORTAL,
@@ -131,7 +131,7 @@ async fn request(
     title: &str,
     mut options: HashMap<&str, Value<'_>>,
 ) -> zbus::Result<Option<Vec<PathBuf>>> {
-    let connection = zbus::Connection::session().await?;
+    let connection = crate::session_bus::connection().await?;
     let (token, responses) = subscribe(&connection).await?;
     options.insert("handle_token", Value::from(token.as_str()));
     let chooser = portal(&connection, "org.freedesktop.portal.FileChooser").await?;
@@ -156,7 +156,7 @@ async fn print_document(
     title: &str,
     document: impl FnOnce(&PageSetup) -> Vec<u8>,
 ) -> zbus::Result<()> {
-    let connection = zbus::Connection::session().await?;
+    let connection = crate::session_bus::connection().await?;
     let printing = portal(&connection, "org.freedesktop.portal.Print").await?;
     let (token, responses) = subscribe(&connection).await?;
     let empty: HashMap<&str, Value<'_>> = HashMap::new();
