@@ -3,10 +3,11 @@ use freya_core::prelude::*;
 use serde::{Deserialize, Serialize};
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 
-use crate::controls::{inner_border, shadowed};
+use crate::controls::shadowed;
 use crate::glass::{GlassEdge, fullscreen_backdrop};
 use crate::platform::FullscreenBar;
 use crate::platform::WindowControls;
+use crate::styles::Painted;
 use crate::styles::{
     ControlState, ControlStyle, FullscreenBarStyle, LayoutDirection, Paints, ShadowStyle,
     ShapeStyle, StateValue, Theme, TrafficLightsStyle, WindowChromeStyle, resolve,
@@ -627,9 +628,7 @@ fn pill(style: &WindowChromeStyle, vertical: bool, slide: f32) -> Rect {
                 .corner_radius(width, height, LayoutDirection::LeftToRight),
         )
         .background(paints.fill(&style.pill_background))
-        .map(style.pill_border.as_ref(), |el, border| {
-            el.border(inner_border(&paints, border))
-        })
+        .bordered(&paints, style.pill_border.as_ref())
         .maybe(slide < 1.0 || vertical, |el| shadowed(el, &style.shadows))
         .layer(Layer::Overlay)
         .child(TrafficLights::for_window(activated, fixed).vertical(vertical))

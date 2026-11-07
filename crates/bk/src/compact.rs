@@ -3,7 +3,7 @@ use std::rc::Rc;
 
 use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
 
-use crate::controls::{dimmed, dimmed_label, inner_border, labeled, shadowed};
+use crate::controls::{dimmed, dimmed_label, labeled, shadowed};
 use crate::i18n::text;
 use crate::interaction::{control_state, use_interaction};
 use crate::style::with_font;
@@ -99,9 +99,7 @@ impl Component for IconButton {
             .corner_radius(radius)
             .center()
             .painted(&paints, &style.background)
-            .map(style.border.as_ref(), |el, border| {
-                el.border(inner_border(&paints, border))
-            })
+            .bordered(&paints, style.border.as_ref())
             .maybe(scale != 1.0, |el| el.scale(scale))
             .map(on_press.filter(|_| enabled), |el, on_press| {
                 el.on_press(move |_| on_press.call(()))
@@ -255,9 +253,7 @@ pub(crate) fn stepper_arrows(
                 .corner_radius(width, height, LayoutDirection::LeftToRight),
         )
         .painted(&paints, &style.background)
-        .map(style.border.as_ref(), |el, border| {
-            el.border(inner_border(&paints, border))
-        })
+        .bordered(&paints, style.border.as_ref())
         .child(arrow(Symbol::ChevronUp, text!("increase"), up))
         .child(
             rect()
@@ -365,9 +361,7 @@ impl Component for ToggleGroup {
                 LayoutDirection::LeftToRight,
             ))
             .painted(&paints, &style.background)
-            .map(style.border.as_ref(), |el, border| {
-                el.border(inner_border(&paints, border))
-            })
+            .bordered(&paints, style.border.as_ref())
             .children(toggles);
         dimmed(group, style.opacity)
     }

@@ -1,7 +1,7 @@
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Area, Direction, Gaps, Size};
 
-use crate::controls::{dimmed, inner_border, shadowed};
+use crate::controls::{dimmed, shadowed};
 use crate::i18n::text;
 use crate::interaction::{control_state, use_interaction};
 use crate::menu::MenuItem;
@@ -66,9 +66,7 @@ impl Component for MenuButton {
             .padding(Gaps::new(0.0, style.padding_x, 0.0, style.padding_x))
             .corner_radius(radius)
             .painted(&paints, &style.background)
-            .map(style.border.as_ref(), |el, border| {
-                el.border(inner_border(&paints, border))
-            })
+            .bordered(&paints, style.border.as_ref())
             .direction(Direction::Horizontal)
             .cross_align(Alignment::Center)
             .spacing(style.chevron_gap)
@@ -229,9 +227,7 @@ impl Component for ComboButton {
             .corner_radius(radius)
             .overflow(Overflow::Clip)
             .painted(&group, &style.background)
-            .map(style.border.as_ref(), |el, border| {
-                el.border(inner_border(&group, border))
-            })
+            .bordered(&group, style.border.as_ref())
             .direction(Direction::Horizontal)
             .cross_align(Alignment::Center)
             .on_sized(move |event: Event<SizedEventData>| area.set_if_modified(event.area))
@@ -305,9 +301,7 @@ impl Component for HelpLink {
             .corner_radius(radius)
             .center()
             .painted(&paints, &style.background)
-            .map(style.border.as_ref(), |el, border| {
-                el.border(inner_border(&paints, border))
-            })
+            .bordered(&paints, style.border.as_ref())
             .maybe(scale != 1.0, |el| el.scale(scale))
             .map(on_press, |el, on_press| {
                 el.on_press(move |_| on_press.call(()))
@@ -383,9 +377,7 @@ impl Component for ControlGroup {
                     .corner_radius(height, height, LayoutDirection::LeftToRight),
             )
             .painted(&paints, &style.background)
-            .map(style.border.as_ref(), |el, border| {
-                el.border(inner_border(&paints, border))
-            })
+            .bordered(&paints, style.border.as_ref())
             .direction(Direction::Horizontal)
             .cross_align(Alignment::Center)
             .children(items);

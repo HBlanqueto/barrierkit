@@ -2,12 +2,13 @@ use ctdesign::Rgba;
 use freya_core::prelude::*;
 use torin::prelude::{Area, Direction, Size};
 
-use crate::controls::{dimmed, inner_border, shadowed};
+use crate::controls::{dimmed, shadowed};
 use crate::i18n::text;
 use crate::interaction::{control_state, use_interaction};
 use crate::level::LevelSlider;
 use crate::popover::Popover;
 use crate::style::{Palette, text, with_font};
+use crate::styles::Painted;
 use crate::styles::{ColorPickerStyle, LayoutDirection, Paints, Theme, resolve};
 use crate::theme::color;
 
@@ -114,9 +115,7 @@ impl Component for ColorPicker {
             .height(Size::px(height))
             .corner_radius(radius)
             .background(color(shown))
-            .map(style.border.as_ref(), |el, border| {
-                el.border(inner_border(&paints, border))
-            })
+            .bordered(&paints, style.border.as_ref())
             .on_sized(move |event: Event<SizedEventData>| area.set_if_modified(event.area))
             .on_press(move |_| {
                 let on_change = on_change.clone();

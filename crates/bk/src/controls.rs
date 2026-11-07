@@ -124,9 +124,7 @@ impl Component for SecureField {
             ))
             .corner_radius(radius)
             .painted(&paints, &style.background)
-            .map(style.border.as_ref(), |el, border| {
-                el.border(inner_border(&paints, border))
-            })
+            .bordered(&paints, style.border.as_ref())
             .on_key_down(move |event: Event<KeyboardEventData>| {
                 let secret = field.write().handle_key(&event.key, event.modifiers);
                 if let Some(secret) = secret {
@@ -257,9 +255,7 @@ impl Component for ToolGroup {
             .children(items)
             .map(self.probe, ProbeExt::probe)
             .painted(&paints, &style.background)
-            .map(style.border.as_ref(), |el, border| {
-                el.border(inner_border(&paints, border))
-            })
+            .bordered(&paints, style.border.as_ref())
             .corner_radius(
                 style
                     .shape
@@ -714,9 +710,7 @@ impl Component for Button {
             .corner_radius(radius)
             .center()
             .painted(&paints, &style.background)
-            .map(style.border.as_ref(), |el, border| {
-                el.border(inner_border(&paints, border))
-            })
+            .bordered(&paints, style.border.as_ref())
             .map(self.on, |el, on| {
                 el.a11y_builder(move |node| {
                     node.set_toggled(if on {
@@ -868,9 +862,7 @@ impl Component for Switch {
                     .corner_radius(knob_width, knob_height, direction),
             )
             .painted(&paints, &style.knob)
-            .map(style.knob_border.as_ref(), |el, border| {
-                el.border(inner_border(&paints, border))
-            });
+            .bordered(&paints, style.knob_border.as_ref());
         let track_paint = if is_on { &style.fill } else { &style.track };
         let radius = style.track_shape.corner_radius(width, height, direction);
         let track = rect()
@@ -1012,9 +1004,7 @@ impl Component for SegmentedControl {
                     .corner_radius(height, height, LayoutDirection::LeftToRight),
             )
             .painted(&paints, &style.background)
-            .map(style.border.as_ref(), |el, border| {
-                el.border(inner_border(&paints, border))
-            })
+            .bordered(&paints, style.border.as_ref())
             .children(segments);
         choice.arrow_keys(dimmed(group, style.opacity), self.segments.len(), keyed)
     }

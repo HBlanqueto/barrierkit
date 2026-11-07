@@ -1,7 +1,7 @@
 use freya_core::prelude::*;
 use torin::prelude::{Gaps, Size};
 
-use crate::controls::{dimmed, inner_border, shadowed};
+use crate::controls::{dimmed, shadowed};
 use crate::elements::forward_container;
 use crate::interaction::{control_state, use_interaction};
 use crate::style::{text, with_font};
@@ -37,9 +37,7 @@ impl Badge {
             ))
             .center()
             .painted(&paints, &style.background)
-            .map(style.border.as_ref(), |el, border| {
-                el.border(inner_border(&paints, border))
-            })
+            .bordered(&paints, style.border.as_ref())
             .child(text(content.clone(), style.font, ink));
         Self(shadowed(badge, &style.shadows), content, theme)
     }
@@ -107,9 +105,7 @@ impl Avatar {
             ))
             .center()
             .painted(&paints, &style.background)
-            .map(style.border.as_ref(), |el, border| {
-                el.border(inner_border(&paints, border))
-            })
+            .bordered(&paints, style.border.as_ref())
             .child(text(initials.clone(), style.font, ink));
         Self(shadowed(avatar, &style.shadows), initials, theme)
     }

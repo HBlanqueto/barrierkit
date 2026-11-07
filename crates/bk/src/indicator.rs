@@ -4,7 +4,7 @@ use freya_components::svg_viewer::SvgViewer;
 use freya_core::prelude::*;
 use torin::prelude::{Direction, Position, Size};
 
-use crate::controls::{dimmed, inner_border, shadowed};
+use crate::controls::{dimmed, shadowed};
 use crate::interaction::{control_state, use_interaction};
 use crate::style::with_font;
 use crate::styles::Painted;
@@ -85,9 +85,7 @@ impl Component for CapacityIndicator {
                     .corner_radius(radius)
                     .overflow(Overflow::Clip)
                     .painted(&paints, &style.track)
-                    .map(style.border.as_ref(), |el, border| {
-                        el.border(inner_border(&paints, border))
-                    })
+                    .bordered(&paints, style.border.as_ref())
                     .child(
                         rect()
                             .width(Size::percent(filled * 100.0))

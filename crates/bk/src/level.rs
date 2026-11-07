@@ -4,7 +4,7 @@ use torin::prelude::{CursorPoint, Position, Size};
 
 use crate::backdrop::Tint;
 use crate::controlled::commit;
-use crate::controls::{dimmed, inner_border, shadowed};
+use crate::controls::{dimmed, shadowed};
 use crate::interaction::{Interaction, use_interaction};
 use crate::styles::Painted;
 use crate::styles::{
@@ -213,9 +213,7 @@ impl Component for LevelSlider {
                 style.knob_shape,
                 &style.knob,
             )
-            .map(style.knob_border.as_ref(), |el, border| {
-                el.border(inner_border(&paints, border))
-            })
+            .bordered(&paints, style.knob_border.as_ref())
             .layer(KNOB_ABOVE_FILL);
             root = root.child(dimmed(shadowed(knob, &style.knob_shadows), style.opacity));
         }

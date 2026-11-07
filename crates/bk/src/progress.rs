@@ -5,7 +5,7 @@ use freya_core::prelude::*;
 use torin::prelude::{Direction, Position, Size};
 
 use crate::backdrop::Tint;
-use crate::controls::{dimmed, inner_border, shadowed};
+use crate::controls::{dimmed, shadowed};
 use crate::styles::Painted;
 use crate::styles::{
     Animation, ControlState, LayoutDirection, Paints, ProgressRingStyle, ProgressViewStyle,
@@ -108,9 +108,7 @@ impl Component for ProgressView {
             .corner_radius(radius)
             .overflow(Overflow::Clip)
             .painted(&paints, &style.track)
-            .map(style.border.as_ref(), |el, border| {
-                el.border(inner_border(&paints, border))
-            })
+            .bordered(&paints, style.border.as_ref())
             .direction(Direction::Horizontal)
             .child(rect().width(Size::percent(start * 100.0)))
             .child(

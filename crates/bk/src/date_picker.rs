@@ -6,7 +6,7 @@ use torin::prelude::{Alignment, Area, Direction, Gaps, Size};
 
 use crate::compact::stepper_arrows;
 use crate::controlled::{commit, use_controlled};
-use crate::controls::{dimmed, inner_border, shadowed};
+use crate::controls::{dimmed, shadowed};
 use crate::date::{CivilDate, CivilDateTime, DatePart, typing_is_done};
 use crate::i18n::text;
 use crate::interaction::{control_state, use_interaction};
@@ -239,9 +239,7 @@ impl Component for DatePicker {
             .padding(Gaps::new(0.0, style.padding_x, 0.0, style.padding_x))
             .corner_radius(field_radius)
             .painted(&paints, &style.background)
-            .map(style.border.as_ref(), |el, border| {
-                el.border(inner_border(&paints, border))
-            })
+            .bordered(&paints, style.border.as_ref())
             .direction(Direction::Horizontal)
             .cross_align(Alignment::Center)
             .on_sized(move |event: Event<SizedEventData>| area.set_if_modified(event.area))

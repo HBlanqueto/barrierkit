@@ -3,7 +3,6 @@ use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
 
 use crate::adornments::Divider;
-use crate::controls::inner_border;
 use crate::interaction::{control_state, use_interaction};
 use crate::style::text;
 use crate::styles::Painted;
@@ -187,9 +186,7 @@ impl Component for Form {
                         .corner_radius(corner_radius)
                         .overflow(Overflow::Clip)
                         .painted(&paints, &style.background)
-                        .map(style.border.as_ref(), |el, border| {
-                            el.border(inner_border(&paints, border))
-                        })
+                        .bordered(&paints, style.border.as_ref())
                         .children(rows),
                 )
                 .maybe_child(section.footer.map(|footer| {

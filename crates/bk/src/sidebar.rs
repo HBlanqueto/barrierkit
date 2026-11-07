@@ -163,9 +163,7 @@ impl SymbolTile {
                 LayoutDirection::LeftToRight,
             ))
             .painted(&paints, &style.background)
-            .map(style.border.as_ref(), |el, border| {
-                el.border(inner_border(&paints, border))
-            })
+            .bordered(&paints, style.border.as_ref())
             .center()
             .child(symbol(
                 glyph,
@@ -356,9 +354,7 @@ impl Component for Sidebar {
             )
             .child(ScrollView::new().children(self.children.iter().cloned()))
             .corner_radius(corner_radius)
-            .map(style.border.as_ref(), |el, border| {
-                el.border(inner_border(&paints, border))
-            })
+            .bordered(&paints, style.border.as_ref())
             .map(style.inner_border.as_ref(), |el, inner| {
                 let rim = style.border.as_ref().map_or(0.0, |(_, width)| *width);
                 let radius = CornerRadius {

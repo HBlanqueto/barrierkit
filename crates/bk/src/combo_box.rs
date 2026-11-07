@@ -2,7 +2,7 @@ use freya_core::prelude::*;
 use torin::prelude::{Area, Gaps, Position, Size};
 
 use crate::context_menu::edit_menu;
-use crate::controls::{default_pre_key, dimmed, inner_border, input, shadowed, text_style};
+use crate::controls::{default_pre_key, dimmed, input, shadowed, text_style};
 use crate::menu::MenuItem;
 use crate::platform::PopupAnchor;
 use crate::popup_button::open_popover_menu;
@@ -134,9 +134,7 @@ impl Component for ComboBox {
             ))
             .center()
             .painted(&paints, &style.button)
-            .map(style.button_border.as_ref(), |el, border| {
-                el.border(inner_border(&paints, border))
-            })
+            .bordered(&paints, style.button_border.as_ref())
             .a11y_role(AccessibilityRole::Button)
             .a11y_alt(self.placeholder)
             .on_press(move |_| open())

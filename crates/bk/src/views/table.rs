@@ -4,11 +4,11 @@ use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 
 use crate::context_menu::context_menu;
-use crate::controls::inner_border;
 use crate::interaction::{control_state, use_interaction};
 use crate::interaction::{track_modifiers, use_held_modifiers};
 use crate::menu::{CheckState, MenuItem};
 use crate::style::text;
+use crate::styles::Painted;
 use crate::styles::{ControlState, Paints, ShapeStyle, StateValue, TableStyle, Theme, resolve};
 use crate::symbol::{Symbol, symbol};
 use crate::views::collection::select;
@@ -195,9 +195,7 @@ impl Component for Table {
         });
         let header = cells(padding_x, header_cells)
             .height(Size::px(style.header_height))
-            .map(style.header_border.as_ref(), |el, border| {
-                el.border(inner_border(&paints, border))
-            });
+            .bordered(&paints, style.header_border.as_ref());
         let count = self.columns.len();
         let menu = self
             .columns

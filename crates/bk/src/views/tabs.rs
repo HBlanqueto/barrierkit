@@ -2,7 +2,6 @@ use freya_core::prelude::*;
 use torin::prelude::{Alignment, Direction, Gaps, Size};
 
 use crate::choices::use_choice;
-use crate::controls::inner_border;
 use crate::interaction::{control_state, use_interaction};
 use crate::styles::Painted;
 use crate::styles::{ControlState, LayoutDirection, Paints, TabViewStyle, Theme, resolve};
@@ -99,9 +98,7 @@ impl Component for TabView {
                         LayoutDirection::LeftToRight,
                     ))
                     .painted(&paints, &style.background)
-                    .map(style.border.as_ref(), |el, border| {
-                        el.border(inner_border(&paints, border))
-                    })
+                    .bordered(&paints, style.border.as_ref())
                     .children(tabs),
             )
             .maybe_child(self.tabs.get(current).map(|tab| tab.2.clone()))

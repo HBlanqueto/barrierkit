@@ -406,9 +406,7 @@ impl Component for Swatch {
                 .height(Size::px(size))
                 .corner_radius(radius)
                 .background(color(self.fill))
-                .map(style.swatch_border.as_ref(), |el, border| {
-                    el.border(inner_border(&paints, border))
-                }),
+                .bordered(&paints, style.swatch_border.as_ref()),
             &style.swatch_shadows,
         );
         if selected {

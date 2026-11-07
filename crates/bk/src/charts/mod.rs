@@ -10,7 +10,6 @@ use ctdesign::{CHART, Rgba};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 
-use crate::controls::inner_border;
 use crate::i18n::text as tr_kit;
 use crate::style::text;
 use crate::styles::Painted;
@@ -547,9 +546,7 @@ impl Component for Chart {
                     LayoutDirection::LeftToRight,
                 ))
                 .painted(&paints, &style.tooltip_background)
-                .map(style.tooltip_border.as_ref(), |el, border| {
-                    el.border(inner_border(&paints, border))
-                })
+                .bordered(&paints, style.tooltip_border.as_ref())
                 .a11y_role(AccessibilityRole::Tooltip)
                 .child(text(
                     self.category(i),

@@ -8,7 +8,7 @@ use freya_core::prelude::*;
 use torin::prelude::{Alignment, Area, Direction, Size};
 
 use crate::choices::use_choice;
-use crate::controls::{dimmed, inner_border, shadowed};
+use crate::controls::{dimmed, shadowed};
 use crate::interaction::{control_state, use_interaction};
 use crate::menu::{CheckState, MenuIcon, MenuItem, MenuView};
 use crate::platform::{PopupAnchor, PopupConstraintAdjustment, PopupGravity, PopupSpec, Popups};
@@ -88,9 +88,7 @@ impl Component for PopUpButton {
             .corner_radius(radius)
             .center()
             .painted(&paints, &style.indicator)
-            .map(style.indicator_border.as_ref(), |el, border| {
-                el.border(inner_border(&paints, border))
-            })
+            .bordered(&paints, style.indicator_border.as_ref())
             .child(symbol(
                 Symbol::ChevronUpDown,
                 style.chevron_size,

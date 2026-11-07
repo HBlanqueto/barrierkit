@@ -16,7 +16,7 @@ use crate::style::text;
 use crate::symbol::Symbol;
 
 use crate::context_menu::{Spelling, edit_menu};
-use crate::controls::{dimmed, inner_border, text_style};
+use crate::controls::{dimmed, text_style};
 use crate::interaction::ring;
 use crate::scroll::{ScrollView, use_scroll_controller};
 use crate::spelling::{Squiggles, char_index, dictionary, known, misspelled, utf16_range};
@@ -424,9 +424,7 @@ impl Component for TextEditor {
         .height(self.height.clone())
         .corner_radius(radius)
         .painted(&paints, &style.background)
-        .map(style.border.as_ref(), |el, border| {
-            el.border(inner_border(&paints, border))
-        })
+        .bordered(&paints, style.border.as_ref())
         .on_key_down(on_key_down)
         .on_key_up(move |event: Event<KeyboardEventData>| {
             editable.process_event(EditableEvent::KeyUp { key: &event.key });

@@ -528,6 +528,13 @@ pub(crate) trait Painted: StyleExt + EffectExt + Sized {
             None => view,
         }
     }
+
+    fn bordered(self, paints: &Paints, border: Option<&(ShapeStyle, f32)>) -> Self {
+        match border {
+            Some(border) => self.border(crate::controls::inner_border(paints, border)),
+            None => self,
+        }
+    }
 }
 
 impl<T: StyleExt + EffectExt> Painted for T {}

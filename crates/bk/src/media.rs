@@ -7,7 +7,7 @@ use freya_core::prelude::*;
 use torin::prelude::{Direction, Gaps, Size};
 
 use crate::animation::use_animated;
-use crate::controls::{dimmed, inner_border, shadowed};
+use crate::controls::{dimmed, shadowed};
 pub use crate::glass::{Material, TopGlass};
 use crate::interaction::{control_state, use_interaction};
 use crate::style::Palette;
@@ -121,9 +121,7 @@ impl Component for MediaButton {
             .spacing(style.icon_gap)
             .center()
             .painted(&paints, &style.background)
-            .map(style.border.as_ref(), |el, border| {
-                el.border(inner_border(&paints, border))
-            })
+            .bordered(&paints, style.border.as_ref())
             .maybe(scale != 1.0, |el| el.scale(scale))
             .map(on_press, |el, on_press| {
                 el.on_press(move |_| on_press.call(()))
@@ -223,9 +221,7 @@ impl Component for RoundButton {
             .corner_radius(radius)
             .center()
             .painted(&paints, fill)
-            .map(style.border.as_ref(), |el, border| {
-                el.border(inner_border(&paints, border))
-            })
+            .bordered(&paints, style.border.as_ref())
             .maybe(scale != 1.0, |el| el.scale(scale))
             .map(on_press, |el, on_press| {
                 el.on_press(move |_| on_press.call(()))
