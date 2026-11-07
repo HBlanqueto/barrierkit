@@ -4,6 +4,8 @@ use std::{fmt::Debug, rc::Rc};
 use sctk::reexports::protocols::xdg::shell::client::xdg_popup::XdgPopup;
 
 use freya_core::{integration::RenderPipeline, prelude::Color};
+
+use super::RunError;
 use sctk::{
     compositor::{CompositorHandler, CompositorState, Region},
     reexports::{
@@ -49,6 +51,7 @@ pub(crate) struct SurfaceWindow {
     pub(crate) needs_redraw: bool,
     pub(crate) frame_pending: bool,
     pub(crate) draw_count: u64,
+    failing: bool,
     pub(crate) opaque_size: Option<(u32, u32)>,
     pub(crate) background_alpha: f32,
     pub(crate) pending_configure: Option<(WindowConfigure, u32)>,
@@ -117,7 +120,11 @@ impl SurfaceWindow {
     ) {
         // An acked size must arrive with a buffer: an empty commit would apply it to the old one
         // (wl_surface.invalid_size, ext_session_lock_surface_v1.dimensions_mismatch).
-        if self.draw_count == 0 || self.needs_redraw {
+        // A first draw that fails gets no frame callback to retry it; one swapchain recreation is free.
+        if (self.draw_count == 0 || self.needs_redraw)
+            && !self.draw(compositor)
+            && self.draw_count == 0
+        {
             let _ = self.draw(compositor);
         }
         if self.needs_redraw {
@@ -188,11 +195,8 @@ impl SurfaceWindow {
         let Some(graphics) = self.graphics.as_mut() else {
             return false;
         };
-        if tracing::trace_span!("acquire")
-            .in_scope(|| graphics.acquire())
-            .is_err()
-        {
-            return false;
+        if let Err(error) = tracing::trace_span!("acquire").in_scope(|| graphics.acquire()) {
+            return self.draw_failed(error);
         }
         self.draw_count += 1;
         tracing::debug!(
@@ -224,11 +228,8 @@ impl SurfaceWindow {
             .render();
         }
         let swap_start = std::time::Instant::now();
-        if tracing::trace_span!("present")
-            .in_scope(|| graphics.present())
-            .is_err()
-        {
-            return false;
+        if let Err(error) = tracing::trace_span!("present").in_scope(|| graphics.present()) {
+            return self.draw_failed(error);
         }
         #[cfg(feature = "tracy")]
         crate::logging::frame_mark();
@@ -242,7 +243,26 @@ impl SurfaceWindow {
         );
         let _ = self.app.ticker_sender.send(());
         self.needs_redraw = false;
+        self.failing = false;
         true
+    }
+
+    // Vulkan: a lost surface needs a new VkSurfaceKHR and swapchain; a lost device ends the run.
+    fn draw_failed(&mut self, error: RunError) -> bool {
+        match error {
+            RunError::SurfaceLost => {
+                self.graphics = None;
+                let (size, scale) = (self.logical_size, self.scale);
+                self.configure(size, scale);
+            }
+            RunError::DeviceLost => self.shared.lost.set(true),
+            _ => {}
+        }
+        if !self.failing && !matches!(error, RunError::Vulkan(super::vulkan::OUT_OF_DATE)) {
+            tracing::warn!(%error, surface = ?self.surface.id(), "BarrierKit: drawing failed");
+        }
+        self.failing = true;
+        false
     }
 }
 
@@ -308,6 +328,7 @@ impl Runtime {
             needs_redraw: true,
             frame_pending: false,
             draw_count: 0,
+            failing: false,
             opaque_size: None,
             background_alpha: 1.0,
             pending_configure: None,

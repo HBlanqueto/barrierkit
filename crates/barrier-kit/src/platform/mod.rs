@@ -52,6 +52,10 @@ pub enum RunError {
     MissingGlobal(&'static str),
     #[error("Vulkan failed: {0}")]
     Vulkan(&'static str),
+    #[error("the Vulkan device was lost")]
+    DeviceLost,
+    #[error("the Vulkan surface was lost")]
+    SurfaceLost,
     #[error("event loop failed: {0}")]
     EventLoop(&'static str),
     #[error("Skia could not create its Vulkan context")]

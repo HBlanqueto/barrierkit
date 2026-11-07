@@ -153,11 +153,15 @@ impl Runtime {
         on_signal(&mut self, signal.clone());
         event_loop
             .run(None, &mut self, |runtime| {
-                if runtime.needs_exit {
+                if runtime.needs_exit || runtime.graphics.lost.get() {
                     signal.stop();
                 }
             })
-            .map_err(|_| RunError::EventLoop("calloop event loop failed"))
+            .map_err(|_| RunError::EventLoop("calloop event loop failed"))?;
+        if self.graphics.lost.get() {
+            return Err(RunError::DeviceLost);
+        }
+        Ok(())
     }
 }
 

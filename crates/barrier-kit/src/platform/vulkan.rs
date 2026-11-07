@@ -40,8 +40,14 @@ pub(crate) struct DmabufDevice {
 }
 const SWAPCHAIN_FORMAT: ash_vk::Format = ash_vk::Format::B8G8R8A8_UNORM;
 
+pub(crate) const OUT_OF_DATE: &str = "swapchain out of date";
+
 fn failed(call: &'static str) -> impl Fn(ash_vk::Result) -> RunError {
-    move |_| RunError::Vulkan(call)
+    move |result| match result {
+        ash_vk::Result::ERROR_DEVICE_LOST => RunError::DeviceLost,
+        ash_vk::Result::ERROR_SURFACE_LOST_KHR => RunError::SurfaceLost,
+        _ => RunError::Vulkan(call),
+    }
 }
 
 pub(crate) struct GraphicsShared {
@@ -60,6 +66,7 @@ pub(crate) struct GraphicsShared {
     pub(crate) font_collection: FontCollection,
     pub(crate) font_manager: FontMgr,
     present_fences: bool,
+    pub(crate) lost: std::cell::Cell<bool>,
 }
 
 impl GraphicsShared {
@@ -233,6 +240,7 @@ impl GraphicsShared {
             font_collection: crate::fonts::collection(),
             font_manager: crate::fonts::manager(),
             present_fences,
+            lost: std::cell::Cell::new(false),
         })
     }
 }
@@ -584,9 +592,9 @@ impl Graphics {
             Ok((index, _)) => index,
             Err(ash_vk::Result::ERROR_OUT_OF_DATE_KHR) => {
                 self.recreate_swapchain(self.size)?;
-                return Err(RunError::Vulkan("swapchain out of date"));
+                return Err(RunError::Vulkan(OUT_OF_DATE));
             }
-            Err(_) => return Err(RunError::Vulkan("vkAcquireNextImageKHR")),
+            Err(result) => return Err(failed("vkAcquireNextImageKHR")(result)),
         };
         // SAFETY: the fence was handed to the successful acquire above.
         unsafe {
@@ -660,7 +668,7 @@ impl Graphics {
         match presented {
             Ok(_) => Ok(()),
             Err(ash_vk::Result::ERROR_OUT_OF_DATE_KHR) => self.recreate_swapchain(self.size),
-            Err(_) => Err(RunError::Vulkan("vkQueuePresentKHR")),
+            Err(result) => Err(failed("vkQueuePresentKHR")(result)),
         }
     }
 }
