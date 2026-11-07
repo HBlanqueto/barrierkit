@@ -30,6 +30,8 @@ pub fn post(notice: Notice, clicked: impl FnOnce(Option<String>) + Send + 'stati
             return;
         };
         let hints = HashMap::from([("desktop-entry", Value::from(notice.desktop_entry))]);
+        // Held across Notify so a NotificationClosed for this id waits until its callback is listed.
+        let mut waiting = lock(&WAITING);
         let sent = proxy.call::<_, _, u32>(
             "Notify",
             &(
@@ -44,7 +46,7 @@ pub fn post(notice: Notice, clicked: impl FnOnce(Option<String>) + Send + 'stati
             ),
         );
         match sent {
-            Ok(id) => lock(&WAITING).push((id, Box::new(clicked))),
+            Ok(id) => waiting.push((id, Box::new(clicked))),
             Err(error) => tracing::warn!(%error, "could not post a notification"),
         }
     });
@@ -63,28 +65,33 @@ pub fn play_event_sound(sound: &str) {
     }
 }
 
+static PROXY: OnceLock<Proxy<'static>> = OnceLock::new();
+static CONNECTING: Mutex<()> = Mutex::new(());
+
 fn proxy() -> Option<&'static Proxy<'static>> {
-    static PROXY: OnceLock<Option<Proxy<'static>>> = OnceLock::new();
-    PROXY
-        .get_or_init(|| {
-            let connected = crate::session_bus::blocking()
-                .and_then(|connection| Proxy::new(&connection, SERVICE, PATH, SERVICE));
-            let proxy = match connected {
-                Ok(proxy) => proxy,
-                Err(error) => {
-                    tracing::warn!(%error, "no notification service");
-                    return None;
-                }
-            };
-            match proxy.receive_all_signals() {
-                Ok(signals) => {
-                    thread::spawn(move || signals.for_each(|message| hear(&message)));
-                }
-                Err(error) => tracing::warn!(%error, "notification clicks will not be heard"),
-            }
-            Some(proxy)
-        })
-        .as_ref()
+    if let Some(proxy) = PROXY.get() {
+        return Some(proxy);
+    }
+    let _connecting = lock(&CONNECTING);
+    if let Some(proxy) = PROXY.get() {
+        return Some(proxy);
+    }
+    let connected = crate::session_bus::blocking()
+        .and_then(|connection| Proxy::new(&connection, SERVICE, PATH, SERVICE));
+    let proxy = match connected {
+        Ok(proxy) => proxy,
+        Err(error) => {
+            tracing::warn!(%error, "no notification service");
+            return None;
+        }
+    };
+    match proxy.receive_all_signals() {
+        Ok(signals) => {
+            thread::spawn(move || signals.for_each(|message| hear(&message)));
+        }
+        Err(error) => tracing::warn!(%error, "notification clicks will not be heard"),
+    }
+    Some(PROXY.get_or_init(|| proxy))
 }
 
 fn hear(message: &zbus::Message) {
