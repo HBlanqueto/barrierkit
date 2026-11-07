@@ -1096,6 +1096,225 @@ States: `FloatingPane` is focused while `active`; `SplitPanes` only `normal`.
 `accent`, `title_bar` and `title_ink` of `FloatingPane` are instance overrides
 of `outline` (focused), `title_bar` and `title`, applied before `.style`.
 
+### FormStyle, GroupBoxStyle and DisclosureGroupStyle
+
+`FormStyle` draws the whole `Form`: its sections and their rows. `Section`
+and `Row` are data and take no style.
+
+| Field | Type | Tengen |
+|---|---|---|
+| `padding`, `header_padding` | `[f32; 4]` | `LIST_GROUP.padding` around the form; `LIST_GROUP.header_padding` around a section title. Top, right, bottom, left. A footer takes the bottom, right and left of `header_padding` |
+| `section_spacing` | `f32` | `SPACE_4` between sections |
+| `row_min_height`, `row_padding`, `row_spacing` | `f32`, `(f32, f32)`, `f32` | `LIST_GROUP.row_min_height`; `(LIST_GROUP.row_padding_x, SPACE_2)`; `SPACE_3` between the labels and the accessory |
+| `separator_inset` | `f32` | `LIST_GROUP.separator_inset`, the left inset of the line between rows; the line is a `Divider` and takes `DividerStyle` |
+| `chevron_size` | `f32` | `CAPTION.size`, the chevron of a navigation row |
+| `shape` | `Shape` | `RoundedRectangle { radius: LIST_GROUP.radius, style: Circular }`, the card of a section; a `Capsule` or `Circle` has no size to round by and stays square |
+| `background` | `StateValue<ShapeStyle>` | `Role(ContentBackground)`, the card |
+| `row_background` | `StateValue<ShapeStyle>` | `Clear`, hovered `Role(ControlHover)` |
+| `highlight` | `StateValue<ShapeStyle>` | `Color` of the accent at `LIST_GROUP.highlight`, the row of `.highlighted(..)` |
+| `header`, `footer`, `title`, `destructive_title`, `detail`, `value`, `chevron` | `StateValue<ShapeStyle>` | `Role(Label)`, `Role(SecondaryLabel)`, `Role(Label)`, `Role(Destructive)`, `Role(SecondaryLabel)`, `Role(SecondaryLabel)`, `Role(TertiaryLabel)` |
+| `border` | `Option<(ShapeStyle, f32)>` | `Some((Role(CardBorder), HAIRLINE))`, drawn inside the card |
+| `effect` | `ColorEffect` | `system_effect` |
+| `header_font`, `footer_font`, `title_font`, `detail_font`, `value_font` | `Font` | `HEADLINE`, `CAPTION`, `BODY`, `CAPTION`, `BODY` |
+
+States: the rows of `Row::navigation` and `Row::destructive` take hovered,
+pressed and focused; the rest only `normal`. The width below which a row puts
+its control under the label stays `LIST_GROUP.stack_below`: it is layout.
+
+| Field | Type | `GroupBoxStyle` | `DisclosureGroupStyle` |
+|---|---|---|---|
+| Size | `f32` | `padding`, `spacing`, `label_inset`: `GROUP_BOX.padding`, `SPACE_1` between the label and the box, `GROUP_BOX.label_inset` | `row_height`, `indent`, `chevron_size`: `DISCLOSURE.row_height`, `DISCLOSURE.indent` of the chevron column and the children, `DISCLOSURE.chevron` |
+| `shape` | `Shape` | `RoundedRectangle { radius: GROUP_BOX.radius, style: Circular }`; a `Capsule` or `Circle` stays square | — |
+| Paint | `StateValue<ShapeStyle>` | `background` `Color` of the label color at `GROUP_BOX.fill_opacity`; `label` `Role(Label)` | `chevron` `Role(SecondaryLabel)`; `label` `Role(Label)` |
+| `border` | `Option<(ShapeStyle, f32)>` | `Some((Role(CardBorder), HAIRLINE))`, drawn inside | — |
+| `effect` | `ColorEffect` | `system_effect` | the same |
+| `font` | `Font` | `BODY` | `BODY` |
+
+States: the header of `DisclosureGroup` takes hovered, pressed and focused;
+`GroupBox` only `normal`. The children open and close at once.
+
+```rust
+Form::new()
+    .section(Section::titled("Network").row(Row::value("Status", "Connected")))
+    .style(|s| FormStyle {
+        shape: Shape::RoundedRectangle { radius: 16.0, style: CornerStyle::Continuous },
+        background: StateValue::new(ShapeStyle::Material(Thickness::Thin)),
+        ..s
+    })
+```
+
+### TableStyle, CollectionViewStyle and OutlineViewStyle
+
+`OutlineViewStyle` is one style for `OutlineView` and `Browser`, which draw
+the same rows; the rows of the font panel of `FontPicker` take it too.
+
+| Field | Type | `TableStyle` |
+|---|---|---|
+| `header_height`, `row_height`, `padding_x`, `header_spacing` | `f32` | `TABLE.header_height`, `TABLE.row_height`, `TABLE.padding_x` on each side of a cell, `SPACE_1` between a header title and its arrow |
+| `header_label`, `sorted_header_label` | `StateValue<ShapeStyle>` | `Role(SecondaryLabel)`; `Role(Label)` for the sorted column, which also paints its arrow |
+| `row_background`, `alternate_row_background`, `selected_row_background` | `StateValue<ShapeStyle>` | `Clear` for even rows; `Color` of the label color at `TABLE.zebra` for odd rows; `Accent` |
+| `label`, `selected_label` | `StateValue<ShapeStyle>` | `Role(Label)`, `Role(OnAccent)` |
+| `header_border` | `Option<(ShapeStyle, f32)>` | `Some((Role(Separator), HAIRLINE))`, drawn inside the header |
+| `effect` | `ColorEffect` | `system_effect` |
+| `header_font`, `font` | `Font` | `CAPTION`, its size also the arrow's; `BODY` |
+
+States: a header cell takes hovered, pressed and focused; rows only `normal`.
+The resize handle and the minimum column width stay `TABLE.resize_handle` and
+`TABLE.min_column_width`: they are behavior.
+
+| Field | Type | `CollectionViewStyle` |
+|---|---|---|
+| `tile_width`, `icon_size` | `f32` | `COLLECTION.tile`, `COLLECTION.icon` |
+| `spacing`, `padding`, `label_spacing`, `label_padding_x` | `f32` | `COLLECTION.gap` between tiles, around a tile's content and on each side of the name; half of it between the icon and the name |
+| `shape`, `label_shape` | `Shape` | `RoundedRectangle { radius: COLLECTION.radius, style: Circular }`, the tile and the icon area; `RoundedRectangle { radius: COLLECTION.gap, style: Circular }`, the name. A `Capsule` rounds the tile by half `tile_width`, the icon area by half `icon_size` and the name by half the `line_height` of `font` |
+| `icon_background`, `selected_icon_background` | `StateValue<ShapeStyle>` | `Clear`; `Color` of the label color at `COLLECTION.selection` |
+| `label_background`, `selected_label_background` | `StateValue<ShapeStyle>` | `Clear`; `Accent` |
+| `label`, `selected_label` | `StateValue<ShapeStyle>` | `Role(Label)`, `Role(OnAccent)` |
+| `effect` | `ColorEffect` | `system_effect` |
+| `font` | `Font` | `CAPTION` |
+
+States: tiles take hovered, pressed and focused.
+
+| Field | Type | `OutlineViewStyle` |
+|---|---|---|
+| `row_height`, `indent`, `spacing`, `icon_size`, `chevron_size` | `f32` | `DISCLOSURE.row_height`; `DISCLOSURE.indent` per level and of the chevron column; `SPACE_1` between the parts of a row; `DISCLOSURE.icon`; `DISCLOSURE.chevron` |
+| `column_width`, `column_padding_x` | `f32` | `DISCLOSURE.column_width`; `SPACE_1` on each side of a row. `Browser` only |
+| `row_shape` | `Shape` | `RoundedRectangle { radius: DISCLOSURE.row_radius, style: Circular }` |
+| `row_background`, `selected_row_background` | `StateValue<ShapeStyle>` | `Clear`, `Accent` |
+| `label`, `selected_label`, `icon`, `selected_icon` | `StateValue<ShapeStyle>` | `Role(Label)`, `Role(OnAccent)`, `Accent`, `Role(OnAccent)` |
+| `disclosure`, `column_chevron`, `selected_chevron` | `StateValue<ShapeStyle>` | `Role(SecondaryLabel)`, the disclosure chevron of `OutlineView`; `Role(TertiaryLabel)`, the chevron of a `Browser` row with children; `Role(OnAccent)` on a selected row |
+| `column_separator` | `(ShapeStyle, f32)` | `(Role(Separator), HAIRLINE)`, between `Browser` columns |
+| `effect` | `ColorEffect` | `system_effect` |
+| `font` | `Font` | `BODY` |
+
+States: only `normal`; selection has its own fields.
+
+```rust
+Table::new("Files", vec!["Name", "Size"])
+    .rows(rows)
+    .style(|s| TableStyle {
+        alternate_row_background: StateValue::new(ShapeStyle::Clear),
+        selected_row_background: StateValue::new(ShapeStyle::Role(Role::SelectedControl)),
+        selected_label: StateValue::new(ShapeStyle::Role(Role::Label)),
+        ..s
+    })
+```
+
+### TabViewStyle and WindowTabsStyle
+
+| Field | Type | `TabViewStyle` |
+|---|---|---|
+| `padding`, `spacing`, `content_spacing` | `f32` | `TOOLBAR_TABS.padding` inside the strip, `TOOLBAR_TABS.gap` between tabs, `SPACE_2` between the strip and the page |
+| `tab_min_width`, `tab_padding`, `icon_size`, `icon_spacing` | `f32`, `(f32, f32)`, `f32`, `f32` | `TOOLBAR_TABS.tab_min_width`; `(tab_padding_top, tab_padding_bottom)`; `TOOLBAR_TABS.icon`; `TOOLBAR_TABS.icon_gap` |
+| `shape`, `tab_shape` | `Shape` | `RoundedRectangle` of `TOOLBAR_TABS.radius` and of `TOOLBAR_TABS.tab_radius`, `Circular`; a `Capsule` rounds by half the height of the strip or the tab |
+| `background` | `StateValue<ShapeStyle>` | `Role(SunkenBackground)`, the strip |
+| `tab_background`, `selected_tab_background` | `StateValue<ShapeStyle>` | `Clear`, hovered `Role(ControlBackground)`; `Role(ControlHover)` |
+| `label`, `selected_label` | `StateValue<ShapeStyle>` | `Role(SecondaryLabel)`, `Accent`; the icon takes the same paint |
+| `border` | `Option<(ShapeStyle, f32)>` | `Some((Role(Separator), HAIRLINE))`, drawn inside the strip |
+| `effect` | `ColorEffect` | `system_effect` |
+| `font` | `Font` | `CAPTION` at `TOOLBAR_TABS.font_size` with `TOOLBAR_TABS.font_weight`; one line, so `line_height` only sets the tab's height for a `Capsule` |
+
+| Field | Type | `WindowTabsStyle` |
+|---|---|---|
+| `tab_height`, `padding`, `spacing`, `tab_padding_x` | `f32` | `BUTTON.height`; `SPACE_1` around the bar, between tabs and on each side of a tab's content. The bar is `tab_height` plus twice `padding` high |
+| `symbol_size`, `new_tab_width` | `f32` | `ICON_BUTTON.icon`, the × and +; `ICON_BUTTON.size`, the + button |
+| `tab_shape` | `Shape` | `Capsule` |
+| `background` | `StateValue<ShapeStyle>` | `Role(ControlBackground)`, the bar |
+| `tab_background`, `selected_tab_background` | `StateValue<ShapeStyle>` | `Clear`, hovered `Role(ControlHover)`; `Role(RaisedBackground)` |
+| `label`, `symbol` | `StateValue<ShapeStyle>` | `Role(Label)`; `Role(SecondaryLabel)`, the × and + |
+| `effect` | `ColorEffect` | `system_effect` |
+| `font` | `Font` | `BODY` |
+
+States: a tab of either view takes hovered, pressed and focused.
+
+### TextViewStyle
+
+| Field | Type | Tengen |
+|---|---|---|
+| `text`, `cursor` | `StateValue<ShapeStyle>` | `Role(Label)` |
+| `effect` | `ColorEffect` | `system_effect` |
+
+States: focused while the view edits. The `ink` of `TextView::new` and
+`.cursor(color)` are instance overrides of `text` and `cursor`, applied
+before `.style`; the font stays an argument of `new`, because it can be any
+family. The selection keeps Freya's highlight.
+
+### SheetStyle, AlertStyle and ContentUnavailableViewStyle
+
+`Alert` draws on a sheet: it takes `SheetStyle` from the theme and the
+containers, and `AlertStyle` for its own parts. Its buttons take
+`ButtonStyle` and its checkbox `CheckboxStyle`.
+
+| Field | Type | `SheetStyle` | `AlertStyle` | `ContentUnavailableViewStyle` |
+|---|---|---|---|---|
+| Size | `f32` | `padding`: `DIALOG_PADDING` | `width`, `spacing`, `buttons_spacing`, `buttons_margin_top`: `DIALOG_ALERT_WIDTH` with the sheet's `padding`, `SPACE_2`, `SPACE_2`, `SPACE_4` | `padding_y`, `spacing`, `symbol_size`: `SETTINGS.empty_padding_y`, `empty_gap`, `empty_icon` |
+| `shape` | `Shape` | `RoundedRectangle { radius: DIALOG.corner_radius, style: Continuous }`; a `Capsule` or `Circle` stays square | — | — |
+| Paint | `StateValue<ShapeStyle>` | `scrim` `Role(Scrim)` over the window; `background` `Role(RaisedBackground)` | `title` `Role(Label)`; `message` `Role(SecondaryLabel)` | `symbol` `Role(TertiaryLabel)`; `title` `Role(SecondaryLabel)` |
+| `border` | `Option<(ShapeStyle, f32)>` | `Some((Role(Separator), HAIRLINE))`, drawn outside | — | — |
+| `effect` | `ColorEffect` | `system_effect` | the same | the same |
+| Font | `Font` | — | `title_font` `HEADLINE`, `message_font` `BODY` | `font` `BODY` |
+
+States: only `normal`. Like `Badge`, `Sheet::style` and
+`ContentUnavailableView::style` build the view again, so they come right
+after `new`.
+
+```rust
+Sheet::new(content).style(|s| SheetStyle {
+    background: StateValue::new(ShapeStyle::Material(Thickness::Regular)),
+    border: None,
+    ..s
+})
+```
+
+### SettingsWindowStyle and AboutViewStyle
+
+`SettingsWindow` is built from styled views: its sidebar takes
+`SidebarStyle`, `SidebarItemStyle`, `SidebarSectionStyle` and
+`SidebarAccountStyle`, the search field `SearchFieldStyle`, the bar
+`TitlebarStyle`, the arrows `ToolGroupStyle` and `IconButtonStyle`, the
+split `SplitViewStyle`, the scroll area `ScrollViewStyle` and each pane
+`FormStyle`. `SettingsWindowStyle` holds the rest: the gaps between them and
+the search popover. `Pane` and `PaneGroup` are data and take no style.
+
+| Field | Type | `SettingsWindowStyle` |
+|---|---|---|
+| `search_gap`, `toolbar_spacing`, `navigation_spacing` | `f32` | `SETTINGS.sidebar_search_gap` under the search field; `SETTINGS.toolbar_gap`, the `spacing` of the bar; `SPACE_2` between the sidebar toggle and the arrows |
+| `popover_gap`, `popover_max_height`, `popover_padding` | `f32` | `SETTINGS.search_popover_gap` under the field, `SETTINGS.search_popover_max_height`, the `padding` of the popover menu palette |
+| `header_height`, `result_height`, `result_subtitle_height` | `f32` | `SETTINGS.search_header_height`; `SIDEBAR.item_height`; `SETTINGS.search_result_height` for a result with a pane name under it |
+| `result_padding_x`, `result_spacing` | `f32` | `item_padding_x` of the popover menu palette, also for the headers; `SIDEBAR.item_gap` between the tile and the text |
+| `popover_shape`, `result_shape` | `Shape` | `RoundedRectangle { radius: LIST_GROUP.radius, style: Circular }`, a `Capsule` or `Circle` stays square; `RoundedRectangle` of the palette's `item_radius` |
+| `popover_background` | `StateValue<ShapeStyle>` | `Color` of the popover menu background |
+| `header` | `StateValue<ShapeStyle>` | `Role(SecondaryLabel)`, "Suggestions", "Recents" |
+| `result_background`, `result_title`, `result_subtitle` | `StateValue<ShapeStyle>` | `Clear`, hovered `Color` of the inactive sidebar selection; `Role(Label)`; `Role(SecondaryLabel)`. While the user types |
+| `suggestion_background`, `suggestion_title`, `suggestion_subtitle` | `StateValue<ShapeStyle>` | `Clear`, hovered `Accent`; `Role(Label)`, hovered `Role(OnAccent)`; `Role(SecondaryLabel)`, hovered `Role(OnAccent)`. Before the user types |
+| `popover_border` | `Option<(ShapeStyle, f32)>` | `Some((Color of the popover separator, HAIRLINE))`, drawn outside |
+| `effect` | `ColorEffect` | `system_effect` |
+| `header_font`, `title_font`, `subtitle_font` | `Font` | `CAPTION`, `BODY`, `CAPTION` |
+
+States: a result takes hovered while the pointer or the keyboard cursor is on
+it, pressed and focused. Its tile takes `SymbolTileStyle`.
+
+| Field | Type | `AboutViewStyle` |
+|---|---|---|
+| `padding`, `spacing`, `name_spacing` | `f32` | `DIALOG_PADDING`; `SPACE_3` between the icon, the name block and the copyright; `SPACE_1` between the name and the version |
+| `name`, `version`, `copyright` | `StateValue<ShapeStyle>` | `Role(Label)`, `Role(SecondaryLabel)`, `Role(TertiaryLabel)` |
+| `effect` | `ColorEffect` | `system_effect` |
+| `name_font`, `version_font`, `copyright_font` | `Font` | `TITLE`, `BODY`, `CAPTION` |
+
+States: only `normal`. `NavigationButtons` draws nothing of its own: it is a
+`ToolGroup` of two `IconButton`s. `LanguagePicker` is a `PopUpButton`.
+
+### VideoViewStyle
+
+With the `video` feature.
+
+| Field | Type | Tengen |
+|---|---|---|
+| `shape` | `Shape` | `Rectangle`, the clip of the frame; a `Capsule` or `Circle` rounds by the view's size |
+
+`.corner_radius(r)` is an instance override of `shape` with
+`RoundedRectangle { radius: r, style: Circular }`, applied before `.style`.
+
 ## Examples
 
 This slider red, taller, flat and with almost square corners; the others stay
@@ -1235,7 +1454,7 @@ needs 4.5:1 and control parts 3:1 (WCAG 2.2, 1.4.3 and 1.4.11). Roles and
 | `PathControl` | `PathControlStyle` | 2026-11-07 |
 | `ImageWell` | `ImageWellStyle` | 2026-11-07 |
 | `ColorPicker` | `ColorPickerStyle` | 2026-11-07 |
-| `FontPicker` | `ButtonStyle` | 2026-11-07 |
+| `FontPicker` | `ButtonStyle`; the rows of its panel take `OutlineViewStyle` | 2026-11-07 |
 | `ProgressView` | `ProgressViewStyle` | 2026-11-07 |
 | `ProgressRing` | `ProgressRingStyle` | 2026-11-07 |
 | `Spinner` | `SpinnerStyle` | 2026-11-07 |
@@ -1273,6 +1492,23 @@ needs 4.5:1 and control parts 3:1 (WCAG 2.2, 1.4.3 and 1.4.11). Roles and
 | `SidebarToggle` | `IconButtonStyle` | 2026-11-07 |
 | `SplitPanes` | `SplitPanesStyle` | 2026-11-07 |
 | `FloatingPane` | `FloatingPaneStyle` | 2026-11-07 |
+| `Form` | `FormStyle`, for its sections and rows; the lines between rows take `DividerStyle` | 2026-11-07 |
+| `GroupBox` | `GroupBoxStyle` | 2026-11-07 |
+| `DisclosureGroup` | `DisclosureGroupStyle` | 2026-11-07 |
+| `Table` | `TableStyle`, for its header cells and rows | 2026-11-07 |
+| `CollectionView` | `CollectionViewStyle`, for its tiles | 2026-11-07 |
+| `OutlineView`, `Browser` | `OutlineViewStyle` | 2026-11-07 |
+| `TabView` | `TabViewStyle`, for its tabs | 2026-11-07 |
+| `WindowTabs` | `WindowTabsStyle`, for its tabs | 2026-11-07 |
+| `TextView` | `TextViewStyle` | 2026-11-07 |
+| `Sheet` | `SheetStyle` | 2026-11-07 |
+| `Alert` | `AlertStyle`; its sheet takes `SheetStyle`, its buttons `ButtonStyle` and its checkbox `CheckboxStyle` | 2026-11-07 |
+| `ContentUnavailableView` | `ContentUnavailableViewStyle` | 2026-11-07 |
+| `NavigationButtons` | `ToolGroupStyle` and `IconButtonStyle` | 2026-11-07 |
+| `SettingsWindow` | `SettingsWindowStyle`, for its gaps and search popover; its parts take their own styles | 2026-11-07 |
+| `AboutView` | `AboutViewStyle` | 2026-11-07 |
+| `LanguagePicker` | `PopUpButtonStyle` | 2026-11-07 |
+| `VideoView` | `VideoViewStyle` (feature `video`) | 2026-11-07 |
 
 `VStack`, `HStack`, `Scrim` and `Canvas` take no style: they are styled with
 the [paint on views](#paint-on-views) and Freya's methods.

@@ -1,15 +1,16 @@
-use ctdesign::{BODY, CAPTION, Rgba, SPACE_1, TABLE};
+use ctdesign::{Font, Rgba, TABLE};
 use freya_components::scrollviews::VirtualScrollView;
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 
 use crate::context_menu::context_menu;
-use crate::interaction::use_interaction;
+use crate::controls::inner_border;
+use crate::interaction::{control_state, use_interaction};
 use crate::interaction::{track_modifiers, use_held_modifiers};
 use crate::menu::{CheckState, MenuItem};
-use crate::style::{Palette, text};
+use crate::style::text;
+use crate::styles::{ControlState, Paints, ShapeStyle, StateValue, TableStyle, Theme, resolve};
 use crate::symbol::{Symbol, symbol};
-use crate::theme::color;
 use crate::views::collection::select;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -27,6 +28,7 @@ pub struct Table {
     selected: Vec<usize>,
     on_sort: Option<Callback<SortOrder, ()>>,
     on_select: Option<Callback<Vec<usize>, ()>>,
+    style: Theme,
 }
 
 impl Table {
@@ -39,7 +41,13 @@ impl Table {
             selected: Vec::new(),
             on_sort: None,
             on_select: None,
+            style: Theme::tengen(),
         }
+    }
+
+    pub fn style(mut self, restyle: impl Fn(TableStyle) -> TableStyle + 'static) -> Self {
+        self.style = self.style.style(restyle);
+        self
     }
 
     pub fn rows(mut self, rows: Vec<Vec<String>>) -> Self {
@@ -81,7 +89,26 @@ pub fn next_sort(current: Option<SortOrder>, column: usize) -> SortOrder {
     }
 }
 
-fn cells(values: impl Iterator<Item = (Option<f32>, Element)>) -> Rect {
+#[derive(PartialEq)]
+struct RowLook {
+    background: Fill,
+    blur: Option<f32>,
+    label: Rgba,
+}
+
+fn row_look(
+    paints: &Paints,
+    background: &StateValue<ShapeStyle>,
+    label: &StateValue<ShapeStyle>,
+) -> RowLook {
+    RowLook {
+        background: paints.fill(background),
+        blur: paints.blur(background),
+        label: paints.color(label.resolve(ControlState::default())),
+    }
+}
+
+fn cells(padding_x: f32, values: impl Iterator<Item = (Option<f32>, Element)>) -> Rect {
     rect()
         .width(Size::fill())
         .direction(Direction::Horizontal)
@@ -90,7 +117,7 @@ fn cells(values: impl Iterator<Item = (Option<f32>, Element)>) -> Rect {
         .children(values.map(|(width, cell)| {
             rect()
                 .width(width.map_or(Size::flex(1.0), Size::px))
-                .padding(Gaps::new(0.0, TABLE.padding_x, 0.0, TABLE.padding_x))
+                .padding(Gaps::new(0.0, padding_x, 0.0, padding_x))
                 .child(cell)
                 .into_element()
         }))
@@ -115,7 +142,9 @@ pub fn toggle_column(hidden: &[usize], column: usize, count: usize) -> Vec<usize
 
 impl Component for Table {
     fn render(&self) -> impl IntoElement {
-        let palette = Palette::current();
+        let style: TableStyle = resolve(&self.style);
+        let paints = Paints::current(ControlState::default(), style.effect);
+        let padding_x = style.padding_x;
         let sort = self.sort;
         let interaction = use_interaction();
         let held = use_held_modifiers();
@@ -126,7 +155,7 @@ impl Component for Table {
         let shown = shown_columns(&hidden.read(), self.columns.len());
         let width_of = move |column: usize| widths.read().get(column).copied().flatten();
 
-        let header = cells(shown.iter().map(|&index| {
+        let header_cells = shown.iter().map(|&index| {
             let arrow = match sort {
                 Some(order) if order.column == index && order.ascending => Some(Symbol::ChevronUp),
                 Some(order) if order.column == index => Some(Symbol::ChevronDown),
@@ -135,17 +164,16 @@ impl Component for Table {
             let cell = HeaderCell {
                 title: self.columns[index],
                 arrow,
+                style: self.style.clone(),
                 on_press: self
                     .on_sort
                     .clone()
                     .map(|on_sort| Callback::new(move |_| on_sort.call(next_sort(sort, index)))),
             };
             let handle = rect()
-                .position(
-                    Position::new_absolute().right(-TABLE.padding_x - TABLE.resize_handle / 2.0),
-                )
+                .position(Position::new_absolute().right(-padding_x - TABLE.resize_handle / 2.0))
                 .width(Size::px(TABLE.resize_handle))
-                .height(Size::px(TABLE.header_height))
+                .height(Size::px(style.header_height))
                 .on_pointer_enter(|_| Cursor::set(CursorIcon::ColResize))
                 .on_pointer_leave(|_| Cursor::set(CursorIcon::default()))
                 .on_pointer_down(move |event: Event<PointerEventData>| {
@@ -156,7 +184,7 @@ impl Component for Table {
             let content = rect()
                 .width(Size::fill())
                 .on_sized(move |event: Event<SizedEventData>| {
-                    let width = event.area.width() + 2.0 * TABLE.padding_x;
+                    let width = event.area.width() + 2.0 * padding_x;
                     if measured.peek()[index] != width {
                         measured.write()[index] = width;
                     }
@@ -164,14 +192,12 @@ impl Component for Table {
                 .child(cell)
                 .child(handle);
             (width_of(index), content.into_element())
-        }))
-        .height(Size::px(TABLE.header_height))
-        .border(
-            Border::new()
-                .width(ctdesign::HAIRLINE)
-                .alignment(BorderAlignment::Inner)
-                .fill(color(palette.separator)),
-        );
+        });
+        let header = cells(padding_x, header_cells)
+            .height(Size::px(style.header_height))
+            .map(style.header_border.as_ref(), |el, border| {
+                el.border(inner_border(&paints, border))
+            });
         let count = self.columns.len();
         let menu = self
             .columns
@@ -190,59 +216,63 @@ impl Component for Table {
         });
 
         let column_widths: Vec<Option<f32>> = shown.iter().map(|&c| width_of(c)).collect();
+        let looks = [
+            row_look(&paints, &style.row_background, &style.label),
+            row_look(&paints, &style.alternate_row_background, &style.label),
+            row_look(
+                &paints,
+                &style.selected_row_background,
+                &style.selected_label,
+            ),
+        ];
+        let metrics = (style.font, style.row_height, padding_x);
         let data = (
             self.rows.clone(),
             self.selected.clone(),
             self.on_select.clone(),
-            palette,
+            looks,
+            metrics,
             shown.clone(),
             column_widths,
             held,
         );
         let body = VirtualScrollView::new_with_data(
             data,
-            |index, (rows, selected, on_select, palette, shown, column_widths, held)| {
+            |index, (rows, selected, on_select, looks, metrics, shown, column_widths, held)| {
+                let (font, row_height, padding_x): &(Font, f32, f32) = metrics;
                 let selected_row = selected.contains(&index);
-                let (background, ink) = if selected_row {
-                    (Some(palette.accent), palette.on_accent)
-                } else if index % 2 == 1 {
-                    (
-                        Some(Rgba {
-                            a: TABLE.zebra,
-                            ..palette.label
-                        }),
-                        palette.label,
-                    )
+                let look = if selected_row {
+                    &looks[2]
                 } else {
-                    (None, palette.label)
+                    &looks[index % 2]
                 };
                 let on_select = on_select.clone();
                 let selected = selected.clone();
                 let held = *held;
-                cells(shown.iter().zip(column_widths).map(|(&column, width)| {
+                let values = shown.iter().zip(column_widths).map(|(&column, width)| {
                     let value = rows[index].get(column).cloned().unwrap_or_default();
                     let value = rect()
                         .width(Size::fill())
                         .overflow(Overflow::Clip)
-                        .child(text(value, BODY, ink));
+                        .child(text(value, *font, look.label));
                     (*width, value.into_element())
-                }))
-                .a11y_role(AccessibilityRole::Row)
-                .a11y_builder(move |node| node.set_selected(selected_row))
-                .height(Size::px(TABLE.row_height))
-                .map(background, |el, background| {
-                    el.background(color(background))
-                })
-                .on_press(move |_| {
-                    if let Some(cb) = &on_select {
-                        cb.call(select(&selected, index, *held.peek()));
-                    }
-                })
-                .into_element()
+                });
+                cells(*padding_x, values)
+                    .a11y_role(AccessibilityRole::Row)
+                    .a11y_builder(move |node| node.set_selected(selected_row))
+                    .height(Size::px(*row_height))
+                    .background(look.background.clone())
+                    .map(look.blur, Rect::blur)
+                    .on_press(move |_| {
+                        if let Some(cb) = &on_select {
+                            cb.call(select(&selected, index, *held.peek()));
+                        }
+                    })
+                    .into_element()
             },
         )
         .length(self.rows.len())
-        .item_size(TABLE.row_height);
+        .item_size(style.row_height);
 
         let (rows, on_select) = (self.rows.len(), self.on_select.clone());
         let selected = self.selected.last().copied();
@@ -298,17 +328,22 @@ struct HeaderCell {
     title: &'static str,
     arrow: Option<Symbol>,
     on_press: Option<Callback<(), ()>>,
+    style: Theme,
 }
 
 impl Component for HeaderCell {
     fn render(&self) -> impl IntoElement {
-        let palette = Palette::current();
+        let style: TableStyle = resolve(&self.style);
         let interaction = use_interaction();
-        let ink = if self.arrow.is_some() {
-            palette.label
+        let state = control_state(interaction, false);
+        let paints = Paints::current(state, style.effect);
+        let label = if self.arrow.is_some() {
+            &style.sorted_header_label
         } else {
-            palette.secondary_label
+            &style.header_label
         };
+        let ink = paints.color(label.resolve(state));
+        let font = style.header_font;
         let on_press = self.on_press.clone();
         let cell = interaction
             .attach(rect(), on_press.is_some())
@@ -319,12 +354,9 @@ impl Component for HeaderCell {
             })
             .direction(Direction::Horizontal)
             .cross_align(Alignment::Center)
-            .spacing(SPACE_1)
-            .child(text(self.title, CAPTION, ink))
-            .maybe_child(
-                self.arrow
-                    .map(|arrow| symbol(arrow, CAPTION.size as f32, ink)),
-            );
+            .spacing(style.header_spacing)
+            .child(text(self.title, font, ink))
+            .maybe_child(self.arrow.map(|arrow| symbol(arrow, font.size as f32, ink)));
         interaction.inner_focus_ring(cell)
     }
 }

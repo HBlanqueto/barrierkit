@@ -189,6 +189,21 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 | `styles::SplitViewStyle` | struct | ≈ `NavigationSplitViewStyle` | ≈ `NSSplitView.DividerStyle` | Inset, grip, background, scrim, inspector line and animations of `SplitView` | [Styles](../ai/styles.md#splitviewstyle-splitpanesstyle-and-floatingpanestyle) |
 | `styles::SplitPanesStyle` | struct | — | ≈ `NSSplitView.DividerStyle` | Width and paint of the dividers of `SplitPanes` | [Styles](../ai/styles.md#splitviewstyle-splitpanesstyle-and-floatingpanestyle) |
 | `styles::FloatingPaneStyle` | struct | — | ≈ `NSPanel` | Every visual property of `FloatingPane` | [Styles](../ai/styles.md#splitviewstyle-splitpanesstyle-and-floatingpanestyle) |
+| `styles::FormStyle` | struct | `FormStyle` (`.grouped`) | — | Every visual property of `Form`, its sections and rows | [Styles](../ai/styles.md#formstyle-groupboxstyle-and-disclosuregroupstyle) |
+| `styles::GroupBoxStyle` | struct | `GroupBoxStyle` | ≈ `NSBox` | Every visual property of `GroupBox` | [Styles](../ai/styles.md#formstyle-groupboxstyle-and-disclosuregroupstyle) |
+| `styles::DisclosureGroupStyle` | struct | `DisclosureGroupStyle` | ≈ `NSButton.BezelStyle.disclosure` | Every visual property of `DisclosureGroup` | [Styles](../ai/styles.md#formstyle-groupboxstyle-and-disclosuregroupstyle) |
+| `styles::TableStyle` | struct | `TableStyle` | ≈ `NSTableView.Style`, `NSTableHeaderCell` | Every visual property of `Table`, its header cells and rows | [Styles](../ai/styles.md#tablestyle-collectionviewstyle-and-outlineviewstyle) |
+| `styles::CollectionViewStyle` | struct | — | ≈ `NSCollectionViewItem` | Every visual property of `CollectionView` and its tiles | [Styles](../ai/styles.md#tablestyle-collectionviewstyle-and-outlineviewstyle) |
+| `styles::OutlineViewStyle` | struct | ≈ `ListStyle` | ≈ `NSOutlineView`, `NSBrowser` | Every visual property of `OutlineView` and `Browser` | [Styles](../ai/styles.md#tablestyle-collectionviewstyle-and-outlineviewstyle) |
+| `styles::TabViewStyle` | struct | `TabViewStyle` | ≈ `NSTabView` | Every visual property of `TabView` and its tabs | [Styles](../ai/styles.md#tabviewstyle-and-windowtabsstyle) |
+| `styles::WindowTabsStyle` | struct | — | ≈ `NSWindowTabGroup` | Every visual property of `WindowTabs` and its tabs | [Styles](../ai/styles.md#tabviewstyle-and-windowtabsstyle) |
+| `styles::TextViewStyle` | struct | ≈ `TextEditorStyle` | ≈ `NSTextView` (`textColor`, `insertionPointColor`) | Paint of the text and caret of `TextView` | [Styles](../ai/styles.md#textviewstyle) |
+| `styles::SheetStyle` | struct | ≈ `presentationBackground(_:)` | ≈ `NSWindow` sheet | Every visual property of `Sheet` and of the sheet under an `Alert` | [Styles](../ai/styles.md#sheetstyle-alertstyle-and-contentunavailableviewstyle) |
+| `styles::AlertStyle` | struct | — | ≈ `NSAlert` | Every visual property of `Alert` but its sheet, buttons and checkbox | [Styles](../ai/styles.md#sheetstyle-alertstyle-and-contentunavailableviewstyle) |
+| `styles::ContentUnavailableViewStyle` | struct | — | — | Every visual property of `ContentUnavailableView` | [Styles](../ai/styles.md#sheetstyle-alertstyle-and-contentunavailableviewstyle) |
+| `styles::SettingsWindowStyle` | struct | — | — | Gaps of `SettingsWindow` and its search popover | [Styles](../ai/styles.md#settingswindowstyle-and-aboutviewstyle) |
+| `styles::AboutViewStyle` | struct | — | — | Every visual property of `AboutView` | [Styles](../ai/styles.md#settingswindowstyle-and-aboutviewstyle) |
+| `styles::VideoViewStyle` | struct | — | — | The clip shape of `VideoView` (feature `video`) | [Styles](../ai/styles.md#videoviewstyle) |
 | `styles::Theme` | struct | ≈ styles set in the environment | ≈ `NSAppearance` | Style overrides for the whole app; `Theme::tengen()` changes nothing | [Styles](../ai/styles.md#levels) |
 | `styles::Theme::style` | method | ≈ `.buttonStyle(_:)` on the scene | — | Adds an override of the control whose style the closure takes | [Styles](../ai/styles.md#levels) |
 | `styles::StyleScope` | struct | ≈ a view after `.buttonStyle(_:)` | — | Component returned by `.control_style`: its overrides reach the controls inside | [Styles](../ai/styles.md#levels) |
@@ -263,6 +278,22 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 | `views::split::SplitView::style` | method | — | — | Changes the style of one split view | [Styles](../ai/styles.md#splitviewstyle-splitpanesstyle-and-floatingpanestyle) |
 | `views::split_panes::SplitPanes::style` | method | — | — | Changes the style of one set of panes | [Styles](../ai/styles.md#splitviewstyle-splitpanesstyle-and-floatingpanestyle) |
 | `views::floating_pane::FloatingPane::style` | method | — | — | Changes the style of one floating pane; the `style` field holds it | [Styles](../ai/styles.md#splitviewstyle-splitpanesstyle-and-floatingpanestyle) |
+| `views::form::Form::style` | method | `formStyle(_:)` | — | Changes the style of one form | [Styles](../ai/styles.md#formstyle-groupboxstyle-and-disclosuregroupstyle) |
+| `views::group::GroupBox::style` | method | `groupBoxStyle(_:)` | — | Changes the style of one group box | [Styles](../ai/styles.md#formstyle-groupboxstyle-and-disclosuregroupstyle) |
+| `views::group::DisclosureGroup::style` | method | `disclosureGroupStyle(_:)` | — | Changes the style of one disclosure group | [Styles](../ai/styles.md#formstyle-groupboxstyle-and-disclosuregroupstyle) |
+| `views::table::Table::style` | method | `tableStyle(_:)` | ≈ `NSTableView.style` | Changes the style of one table | [Styles](../ai/styles.md#tablestyle-collectionviewstyle-and-outlineviewstyle) |
+| `views::collection::CollectionView::style` | method | — | — | Changes the style of one collection view | [Styles](../ai/styles.md#tablestyle-collectionviewstyle-and-outlineviewstyle) |
+| `views::tree::OutlineView::style` | method | ≈ `listStyle(_:)` | — | Changes the style of one outline view | [Styles](../ai/styles.md#tablestyle-collectionviewstyle-and-outlineviewstyle) |
+| `views::tree::Browser::style` | method | — | — | Changes the style of one browser | [Styles](../ai/styles.md#tablestyle-collectionviewstyle-and-outlineviewstyle) |
+| `views::tabs::TabView::style` | method | `tabViewStyle(_:)` | — | Changes the style of one tab view | [Styles](../ai/styles.md#tabviewstyle-and-windowtabsstyle) |
+| `views::window_tabs::WindowTabs::style` | method | — | — | Changes the style of one tab bar | [Styles](../ai/styles.md#tabviewstyle-and-windowtabsstyle) |
+| `views::text_view::TextView::style` | method | ≈ `textEditorStyle(_:)` | — | Changes the style of one text view | [Styles](../ai/styles.md#textviewstyle) |
+| `views::feedback::Sheet::style` | method | ≈ `presentationBackground(_:)` | — | Builds the sheet again with a style; call it right after `new` | [Styles](../ai/styles.md#sheetstyle-alertstyle-and-contentunavailableviewstyle) |
+| `views::feedback::Alert::style` | method | — | — | Changes the style of one alert | [Styles](../ai/styles.md#sheetstyle-alertstyle-and-contentunavailableviewstyle) |
+| `views::feedback::ContentUnavailableView::style` | method | — | — | Builds the view again with a style; call it right after `new` | [Styles](../ai/styles.md#sheetstyle-alertstyle-and-contentunavailableviewstyle) |
+| `patterns::settings::SettingsWindow::style` | method | — | — | Changes the style of one preferences window | [Styles](../ai/styles.md#settingswindowstyle-and-aboutviewstyle) |
+| `patterns::about::AboutView::style` | method | — | — | Changes the style of one About view | [Styles](../ai/styles.md#settingswindowstyle-and-aboutviewstyle) |
+| `video::VideoView::style` | method | — | — | Changes the style of one video view | [Styles](../ai/styles.md#videoviewstyle) |
 | `app::Application::theme` | method | ≈ `.environment(_:_:)` on the scene | ≈ `NSApp.appearance` | Gives the app its `Theme` | [Styles](../ai/styles.md#levels) |
 
 ## Symbols and fonts

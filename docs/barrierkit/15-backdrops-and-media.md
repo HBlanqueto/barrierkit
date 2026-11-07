@@ -242,7 +242,8 @@ volume 0, so previews and backgrounds stay silent; a player calls
 |---|---|
 | `VideoView::new(stream)` | Draws the current frame; fills its parent by default |
 | `.width(size)`, `.height(size)` | Its size |
-| `.corner_radius(radius)` | Rounded corners |
+| `.corner_radius(radius)` | Rounded corners, an instance override of the style's `shape` |
+| `.style(f)` | A `VideoViewStyle`: the shape that clips the frame ([Styles and themes](../ai/styles.md#videoviewstyle)) |
 
 The frame fills the view and is cropped to keep its proportions.
 

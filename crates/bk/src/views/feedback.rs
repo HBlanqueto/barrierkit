@@ -1,85 +1,110 @@
 use crate::elements::forward_container;
-use ctdesign::{
-    BODY, DIALOG, DIALOG_ALERT_WIDTH, DIALOG_PADDING, HEADLINE, SETTINGS, SPACE_2, SPACE_4,
-};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 
 use crate::controls::{Button, Checkbox, ControlSize};
 use crate::i18n::text;
-use crate::style::{Palette, text};
-use crate::styles::ButtonStyle;
+use crate::style::text;
+use crate::styles::{
+    AlertStyle, ButtonStyle, ContentUnavailableViewStyle, ControlState, LayoutDirection, Paints,
+    SheetStyle, Theme, resolve,
+};
 use crate::symbol::{Symbol, symbol};
 use crate::theme::color;
 
-pub struct ContentUnavailableView(Rect);
+pub struct ContentUnavailableView(Rect, &'static str, Symbol, Theme);
 
 impl ContentUnavailableView {
     pub fn new(title: &'static str, symbol: Symbol) -> Self {
-        Self(empty_state(symbol, title))
+        Self::styled(title, symbol, Theme::tengen())
+    }
+
+    pub fn style(
+        self,
+        restyle: impl Fn(ContentUnavailableViewStyle) -> ContentUnavailableViewStyle + 'static,
+    ) -> Self {
+        Self::styled(self.1, self.2, self.3.style(restyle))
+    }
+
+    fn styled(title: &'static str, icon: Symbol, theme: Theme) -> Self {
+        let style: ContentUnavailableViewStyle = resolve(&theme);
+        let state = ControlState::default();
+        let paints = Paints::current(state, style.effect);
+        let view = rect()
+            .width(Size::fill())
+            .direction(Direction::Vertical)
+            .cross_align(Alignment::Center)
+            .padding(Gaps::new(style.padding_y, 0.0, style.padding_y, 0.0))
+            .spacing(style.spacing)
+            .child(symbol(
+                icon,
+                style.symbol_size,
+                paints.color(style.symbol.resolve(state)),
+            ))
+            .child(text(
+                title,
+                style.font,
+                paints.color(style.title.resolve(state)),
+            ));
+        Self(view, title, icon, theme)
     }
 }
 
 forward_container!(ContentUnavailableView);
 
-fn empty_state(icon: Symbol, title: &'static str) -> Rect {
-    let palette = Palette::current();
-    rect()
-        .width(Size::fill())
-        .direction(Direction::Vertical)
-        .cross_align(Alignment::Center)
-        .padding(Gaps::new(
-            SETTINGS.empty_padding_y as f32,
-            0.0,
-            SETTINGS.empty_padding_y as f32,
-            0.0,
-        ))
-        .spacing(SETTINGS.empty_gap as f32)
-        .child(symbol(
-            icon,
-            SETTINGS.empty_icon as f32,
-            palette.tertiary_label,
-        ))
-        .child(text(title, BODY, palette.secondary_label))
-}
-
-pub struct Sheet(Rect);
+pub struct Sheet(Rect, Element, Theme);
 
 impl Sheet {
     pub fn new(content: impl IntoElement) -> Self {
-        Self(sheet(content))
+        let content = content.into_element();
+        let theme = Theme::tengen();
+        Self(sheet(content.clone(), &resolve(&theme)), content, theme)
+    }
+
+    pub fn style(self, restyle: impl Fn(SheetStyle) -> SheetStyle + 'static) -> Self {
+        let theme = self.2.style(restyle);
+        Self(sheet(self.1.clone(), &resolve(&theme)), self.1, theme)
     }
 }
 
 forward_container!(Sheet);
 
-fn sheet(content: impl IntoElement) -> Rect {
-    let palette = Palette::current();
+fn sheet(content: impl IntoElement, style: &SheetStyle) -> Rect {
+    let paints = Paints::current(ControlState::default(), style.effect);
     rect()
         .position(Position::new_absolute().left(0.0).top(0.0))
         .width(Size::fill())
         .height(Size::percent(100.0))
         .layer(Layer::Overlay)
-        .background(color(palette.scrim))
+        .background(paints.fill(&style.scrim))
+        .map(paints.blur(&style.scrim), Rect::blur)
         .cross_align(Alignment::Center)
         .child(
             rect()
                 .a11y_role(AccessibilityRole::Dialog)
-                .padding(Gaps::new_all(DIALOG_PADDING))
-                .corner_radius(crate::style::continuous_corner(DIALOG.corner_radius as f32))
-                .background(color(palette.raised_background))
-                .border(
-                    Border::new()
-                        .width(ctdesign::HAIRLINE)
-                        .alignment(BorderAlignment::Outer)
-                        .fill(color(palette.separator)),
+                .padding(Gaps::new_all(style.padding))
+                .corner_radius(
+                    style
+                        .shape
+                        .corner_radius(0.0, 0.0, LayoutDirection::LeftToRight),
                 )
+                .background(paints.fill(&style.background))
+                .map(paints.blur(&style.background), Rect::blur)
+                .map(style.border.as_ref(), |el, (paint, width)| {
+                    el.border(
+                        Border::new()
+                            .width(*width)
+                            .alignment(BorderAlignment::Outer)
+                            .fill(color(paints.color(paint))),
+                    )
+                })
                 .child(content),
         )
 }
 
 #[derive(PartialEq)]
 pub struct Alert {
+    style: Theme,
     title: &'static str,
     message: String,
     confirm: &'static str,
@@ -92,6 +117,7 @@ pub struct Alert {
 impl Alert {
     pub fn new(title: &'static str, message: impl Into<String>) -> Self {
         Self {
+            style: Theme::tengen(),
             title,
             message: message.into(),
             confirm: text!("ok"),
@@ -100,6 +126,11 @@ impl Alert {
             on_cancel: None,
             suppressed: None,
         }
+    }
+
+    pub fn style(mut self, restyle: impl Fn(AlertStyle) -> AlertStyle + 'static) -> Self {
+        self.style = self.style.style(restyle);
+        self
     }
 
     pub fn suppression(mut self, suppressed: State<bool>) -> Self {
@@ -122,7 +153,10 @@ impl Alert {
 
 impl Component for Alert {
     fn render(&self) -> impl IntoElement {
-        let palette = Palette::current();
+        let style: AlertStyle = resolve(&self.style);
+        let sheet_style: SheetStyle = resolve(&Theme::tengen());
+        let state = ControlState::default();
+        let paints = Paints::current(state, style.effect);
         let call = |callback: &Option<Callback<(), ()>>| {
             let callback = callback.clone();
             move || {
@@ -140,16 +174,27 @@ impl Component for Alert {
                 .a11y_alt(self.title)
                 .a11y_focusable(true)
                 .a11y_auto_focus(true)
-                .width(Size::px(DIALOG_ALERT_WIDTH - 2.0 * DIALOG_PADDING))
+                .width(Size::px(style.width - 2.0 * sheet_style.padding))
                 .direction(Direction::Vertical)
-                .spacing(SPACE_2)
+                .spacing(style.spacing)
                 .on_global_key_down(move |event: Event<KeyboardEventData>| match event.key {
                     Key::Named(NamedKey::Enter) => confirm(),
                     Key::Named(NamedKey::Escape) => cancel(),
                     _ => {}
                 })
-                .child(text(self.title, HEADLINE, palette.label))
-                .child(text(self.message.clone(), BODY, palette.secondary_label).max_lines(None))
+                .child(text(
+                    self.title,
+                    style.title_font,
+                    paints.color(style.title.resolve(state)),
+                ))
+                .child(
+                    text(
+                        self.message.clone(),
+                        style.message_font,
+                        paints.color(style.message.resolve(state)),
+                    )
+                    .max_lines(None),
+                )
                 .maybe_child(self.suppressed.map(|mut suppressed| {
                     Checkbox::new(text!("alert-suppress"))
                         .checked(*suppressed.read())
@@ -160,8 +205,8 @@ impl Component for Alert {
                         .width(Size::fill())
                         .direction(Direction::Horizontal)
                         .content(Content::flex())
-                        .margin(Gaps::new(SPACE_4, 0.0, 0.0, 0.0))
-                        .spacing(SPACE_2)
+                        .margin(Gaps::new(style.buttons_margin_top, 0.0, 0.0, 0.0))
+                        .spacing(style.buttons_spacing)
                         .child(
                             Button::new(self.cancel)
                                 .size(ControlSize::Large)
@@ -176,6 +221,7 @@ impl Component for Alert {
                                 .on_press(move |_| on_confirm()),
                         ),
                 ),
+            &sheet_style,
         )
     }
 }

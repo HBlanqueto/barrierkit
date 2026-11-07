@@ -1,10 +1,9 @@
-use ctdesign::{CAPTION, COLLECTION, Rgba};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
 
-use crate::interaction::{track_modifiers, use_held_modifiers, use_interaction};
-use crate::style::{Palette, text};
-use crate::theme::color;
+use crate::interaction::{control_state, track_modifiers, use_held_modifiers, use_interaction};
+use crate::style::text;
+use crate::styles::{CollectionViewStyle, LayoutDirection, Paints, Theme, resolve};
 
 #[derive(PartialEq)]
 pub struct CollectionView {
@@ -12,6 +11,7 @@ pub struct CollectionView {
     items: Vec<(Element, String)>,
     selected: Vec<usize>,
     on_select: Option<Callback<Vec<usize>, ()>>,
+    style: Theme,
 }
 
 impl CollectionView {
@@ -21,7 +21,16 @@ impl CollectionView {
             items: Vec::new(),
             selected: Vec::new(),
             on_select: None,
+            style: Theme::tengen(),
         }
+    }
+
+    pub fn style(
+        mut self,
+        restyle: impl Fn(CollectionViewStyle) -> CollectionViewStyle + 'static,
+    ) -> Self {
+        self.style = self.style.style(restyle);
+        self
     }
 
     pub fn item(mut self, icon: impl IntoElement, name: impl Into<String>) -> Self {
@@ -64,6 +73,7 @@ pub fn select(current: &[usize], index: usize, held: Modifiers) -> Vec<usize> {
 
 impl Component for CollectionView {
     fn render(&self) -> impl IntoElement {
+        let style: CollectionViewStyle = resolve(&self.style);
         let held = use_held_modifiers();
         let tiles = self.items.iter().enumerate().map(|(index, (icon, name))| {
             let selected = self.selected.clone();
@@ -73,6 +83,7 @@ impl Component for CollectionView {
                 icon: icon.clone(),
                 name: name.clone(),
                 selected: is_selected,
+                style: self.style.clone(),
                 on_press: Callback::new(move |_| {
                     let held = *held.read();
                     if (!is_selected || !held.is_empty())
@@ -89,8 +100,8 @@ impl Component for CollectionView {
             .a11y_alt(self.label)
             .width(Size::fill())
             .direction(Direction::Horizontal)
-            .content(Content::wrap_spacing(COLLECTION.gap))
-            .spacing(COLLECTION.gap)
+            .content(Content::wrap_spacing(style.spacing))
+            .spacing(style.spacing)
             .children(tiles)
     }
 }
@@ -101,53 +112,79 @@ struct Tile {
     name: String,
     selected: bool,
     on_press: Callback<(), ()>,
+    style: Theme,
 }
 
 impl Component for Tile {
     fn render(&self) -> impl IntoElement {
-        let palette = Palette::current();
+        let style: CollectionViewStyle = resolve(&self.style);
         let interaction = use_interaction();
+        let state = control_state(interaction, false);
+        let paints = Paints::current(state, style.effect);
         let selected = self.selected;
         let on_press = self.on_press.clone();
-        let (name_bg, name_ink) = if selected {
-            (Some(palette.accent), palette.on_accent)
+        let (icon_background, label_background, label) = if selected {
+            (
+                &style.selected_icon_background,
+                &style.selected_label_background,
+                &style.selected_label,
+            )
         } else {
-            (None, palette.label)
+            (
+                &style.icon_background,
+                &style.label_background,
+                &style.label,
+            )
         };
+        let direction = LayoutDirection::LeftToRight;
+        let radius = style
+            .shape
+            .corner_radius(style.tile_width, style.tile_width, direction);
+        let icon_radius = style
+            .shape
+            .corner_radius(style.icon_size, style.icon_size, direction);
+        let line = style.font.line_height as f32;
+        let label_radius = style.label_shape.corner_radius(line, line, direction);
         let tile = interaction
             .attach(rect(), true)
             .a11y_role(AccessibilityRole::GridCell)
             .a11y_alt(self.name.clone())
             .a11y_builder(move |node| node.set_selected(selected))
-            .width(Size::px(COLLECTION.tile))
+            .width(Size::px(style.tile_width))
             .direction(Direction::Vertical)
             .cross_align(Alignment::Center)
-            .padding(Gaps::new_all(COLLECTION.gap))
-            .spacing(COLLECTION.gap / 2.0)
-            .corner_radius(COLLECTION.radius)
+            .padding(Gaps::new_all(style.padding))
+            .spacing(style.label_spacing)
+            .corner_radius(radius)
             .on_press(move |_| on_press.call(()))
             .child(
                 rect()
-                    .width(Size::px(COLLECTION.icon))
-                    .height(Size::px(COLLECTION.icon))
+                    .width(Size::px(style.icon_size))
+                    .height(Size::px(style.icon_size))
                     .center()
-                    .corner_radius(COLLECTION.radius)
-                    .maybe(selected, |el| {
-                        el.background(color(Rgba {
-                            a: COLLECTION.selection,
-                            ..palette.label
-                        }))
-                    })
+                    .corner_radius(icon_radius)
+                    .background(paints.fill(icon_background))
+                    .map(paints.blur(icon_background), Rect::blur)
                     .child(self.icon.clone()),
             )
             .child(
                 rect()
-                    .padding(Gaps::new(0.0, COLLECTION.gap, 0.0, COLLECTION.gap))
-                    .corner_radius(COLLECTION.gap)
-                    .map(name_bg, |el, background| el.background(color(background)))
-                    .child(text(self.name.clone(), CAPTION, name_ink)),
+                    .padding(Gaps::new(
+                        0.0,
+                        style.label_padding_x,
+                        0.0,
+                        style.label_padding_x,
+                    ))
+                    .corner_radius(label_radius)
+                    .background(paints.fill(label_background))
+                    .map(paints.blur(label_background), Rect::blur)
+                    .child(text(
+                        self.name.clone(),
+                        style.font,
+                        paints.color(label.resolve(state)),
+                    )),
             );
-        interaction.focus_ring(tile, COLLECTION.radius)
+        interaction.focus_ring(tile, radius.top_left)
     }
 }
 

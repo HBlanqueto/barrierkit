@@ -1,16 +1,17 @@
 use std::borrow::Cow;
 
-use ctdesign::{BODY, CAPTION, DIALOG_PADDING, SPACE_1, SPACE_3, TITLE};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Direction, Gaps};
 
-use crate::style::{Palette, text};
+use crate::style::text;
+use crate::styles::{AboutViewStyle, ControlState, Paints, ShapeStyle, StateValue, Theme, resolve};
 
 pub struct AboutView {
     icon: Element,
     name: Cow<'static, str>,
     version: Option<Cow<'static, str>>,
     copyright: Cow<'static, str>,
+    style: Theme,
 }
 
 impl AboutView {
@@ -24,7 +25,13 @@ impl AboutView {
             name: name.into(),
             version: None,
             copyright: copyright.into(),
+            style: Theme::tengen(),
         }
+    }
+
+    pub fn style(mut self, restyle: impl Fn(AboutViewStyle) -> AboutViewStyle + 'static) -> Self {
+        self.style = self.style.style(restyle);
+        self
     }
 
     pub fn version(mut self, version: impl Into<Cow<'static, str>>) -> Self {
@@ -35,32 +42,38 @@ impl AboutView {
 
 impl From<AboutView> for Element {
     fn from(about: AboutView) -> Self {
-        about_window(about.icon, about.name, about.version, about.copyright).into()
+        about_window(about).into()
     }
 }
 
-fn about_window(
-    icon: impl IntoElement,
-    name: impl Into<Cow<'static, str>>,
-    version: Option<impl Into<Cow<'static, str>>>,
-    copyright: impl Into<Cow<'static, str>>,
-) -> Rect {
-    let palette = Palette::current();
+fn about_window(about: AboutView) -> Rect {
+    let style: AboutViewStyle = resolve(&about.style);
+    let state = ControlState::default();
+    let paints = Paints::current(state, style.effect);
+    let ink = |paint: &StateValue<ShapeStyle>| paints.color(paint.resolve(state));
     rect()
         .expanded()
         .direction(Direction::Vertical)
         .cross_align(Alignment::Center)
         .main_align(Alignment::Center)
-        .padding(Gaps::new_all(DIALOG_PADDING))
-        .spacing(SPACE_3)
-        .child(icon)
+        .padding(Gaps::new_all(style.padding))
+        .spacing(style.spacing)
+        .child(about.icon)
         .child(
             rect()
                 .direction(Direction::Vertical)
                 .cross_align(Alignment::Center)
-                .spacing(SPACE_1)
-                .child(text(name, TITLE, palette.label))
-                .maybe_child(version.map(|version| text(version, BODY, palette.secondary_label))),
+                .spacing(style.name_spacing)
+                .child(text(about.name, style.name_font, ink(&style.name)))
+                .maybe_child(
+                    about
+                        .version
+                        .map(|version| text(version, style.version_font, ink(&style.version))),
+                ),
         )
-        .child(text(copyright, CAPTION, palette.tertiary_label))
+        .child(text(
+            about.copyright,
+            style.copyright_font,
+            ink(&style.copyright),
+        ))
 }

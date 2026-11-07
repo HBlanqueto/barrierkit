@@ -25,6 +25,7 @@ use torin::prelude::{Position, Size};
 
 use crate::platform::dmabuf::{self, Imported, Plane};
 use crate::platform::{Timers, WakeHandle};
+use crate::styles::{CornerStyle, LayoutDirection, Shape, Theme, VideoViewStyle, resolve};
 
 const GPU_CAPS: &str = "video/x-raw(memory:DMABuf),format=DMA_DRM,drm-format=AB24";
 const PREROLL_TIMEOUT: Duration = Duration::from_secs(3);
@@ -539,15 +540,13 @@ fn cover(image: (f32, f32), area: SkRect) -> SkRect {
 struct VideoElement {
     stream: VideoStream,
     presenter: Rc<RefCell<Presenter>>,
-    corner_radius: f32,
+    shape: Shape,
     layout: LayoutData,
 }
 
 impl PartialEq for VideoElement {
     fn eq(&self, other: &Self) -> bool {
-        self.stream == other.stream
-            && self.corner_radius == other.corner_radius
-            && self.layout == other.layout
+        self.stream == other.stream && self.shape == other.shape && self.layout == other.layout
     }
 }
 
@@ -575,12 +574,34 @@ impl ElementExt for VideoElement {
         let source = cover((image.width() as f32, image.height() as f32), bounds);
         let canvas = context.canvas;
         canvas.save();
-        if self.corner_radius > 0.0 {
-            canvas.clip_rrect(
-                RRect::new_rect_xy(bounds, self.corner_radius, self.corner_radius),
-                None,
-                Some(true),
+        let radius = self.shape.corner_radius(
+            bounds.width(),
+            bounds.height(),
+            LayoutDirection::LeftToRight,
+        );
+        if [
+            radius.top_left,
+            radius.top_right,
+            radius.bottom_right,
+            radius.bottom_left,
+        ]
+        .iter()
+        .any(|corner| *corner > 0.0)
+        {
+            let rounded = RRect::new_rect_radii(
+                bounds,
+                &[
+                    (radius.top_left, radius.top_left).into(),
+                    (radius.top_right, radius.top_right).into(),
+                    (radius.bottom_right, radius.bottom_right).into(),
+                    (radius.bottom_left, radius.bottom_left).into(),
+                ],
             );
+            if radius.smoothing > 0.0 {
+                canvas.clip_path(&radius.smoothed_path(rounded), None, Some(true));
+            } else {
+                canvas.clip_rrect(rounded, None, Some(true));
+            }
         }
         canvas.draw_image_rect_with_sampling_options(
             &image,
@@ -598,7 +619,8 @@ pub struct VideoView {
     stream: VideoStream,
     width: Size,
     height: Size,
-    corner_radius: f32,
+    corner_radius: Option<f32>,
+    style: Theme,
 }
 
 impl VideoView {
@@ -607,7 +629,8 @@ impl VideoView {
             stream,
             width: Size::fill(),
             height: Size::fill(),
-            corner_radius: 0.0,
+            corner_radius: None,
+            style: Theme::tengen(),
         }
     }
 
@@ -622,7 +645,12 @@ impl VideoView {
     }
 
     pub fn corner_radius(mut self, corner_radius: f32) -> Self {
-        self.corner_radius = corner_radius;
+        self.corner_radius = Some(corner_radius);
+        self
+    }
+
+    pub fn style(mut self, restyle: impl Fn(VideoViewStyle) -> VideoViewStyle + 'static) -> Self {
+        self.style = self.style.style(restyle);
         self
     }
 }
@@ -630,10 +658,19 @@ impl VideoView {
 impl Component for VideoView {
     fn render(&self) -> impl IntoElement {
         let presenter = use_hook(|| Rc::new(RefCell::new(Presenter::default())));
+        let (corner_radius, instance) = (self.corner_radius, self.style.clone());
+        let style: VideoViewStyle = resolve(&Theme::tengen().style(move |s: VideoViewStyle| {
+            instance.apply(VideoViewStyle {
+                shape: corner_radius.map_or(s.shape, |radius| Shape::RoundedRectangle {
+                    radius,
+                    style: CornerStyle::Circular,
+                }),
+            })
+        }));
         crate::glass::leaf(VideoElement {
             stream: self.stream.clone(),
             presenter,
-            corner_radius: self.corner_radius,
+            shape: style.shape,
             layout: crate::glass::layout(
                 self.width.clone(),
                 self.height.clone(),

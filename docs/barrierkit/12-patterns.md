@@ -127,6 +127,21 @@ While the search field has the focus, the sidebar selection turns gray
 the panes: one entry per pane, keyed `(pane id, None)`, and one per row, keyed
 `(pane id, Some(row title))`. See [`SearchIndex`](11-views.md#searchindex).
 
+### Style
+
+`SettingsWindow::style` takes a `SettingsWindowStyle`: the gaps between its
+parts and the search popover. Each part keeps its own style: the sidebar,
+the search field, the bar, the arrows, the split and the forms. The fields
+are in [Styles and themes](../ai/styles.md#settingswindowstyle-and-aboutviewstyle).
+
+```rust
+SettingsWindow::new().group(group).style(|s| SettingsWindowStyle {
+    suggestion_background: StateValue::new(ShapeStyle::Clear)
+        .hovered(ShapeStyle::Role(Role::SelectedControl)),
+    ..s
+})
+```
+
 ## About window
 
 ### `AboutView`
@@ -146,6 +161,12 @@ AboutView::new(Avatar::new("N"), "Notes", "© 2026 Jane Appleseed").version("Ver
 
 ![About window with an icon, the name, the version and the copyright](assets/components/about-light.png)
 
+### Style
+
+`AboutView::style` takes an `AboutViewStyle`: the paints and fonts of the
+name, the version and the copyright, and the gaps between them
+([Styles and themes](../ai/styles.md#settingswindowstyle-and-aboutviewstyle)).
+
 ## Language picker
 
 How the kit picks the language at launch is in [17](17-languages.md). These
@@ -161,6 +182,12 @@ the `language` key of a `.domain` file in the config directory
 |---|---|
 | `LanguagePicker::app(domain)` | `<domain>.domain`: the language of one app |
 | `LanguagePicker::system()` | `language.domain`: the language of every app |
+
+### Style
+
+`LanguagePicker` is a `PopUpButton` and takes `PopUpButtonStyle` from the
+theme and the containers
+([Styles and themes](../ai/styles.md#popupbuttonstyle)).
 
 ### `app_language_row` and `system_language_row`
 

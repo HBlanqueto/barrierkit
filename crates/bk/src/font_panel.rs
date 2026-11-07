@@ -10,9 +10,9 @@ use crate::popover::Popover;
 use crate::rich_text::FontChoice;
 use crate::scroll::ScrollView;
 use crate::style::{Palette, text};
-use crate::styles::{ButtonStyle, Theme};
+use crate::styles::{ButtonStyle, ControlState, OutlineViewStyle, Paints, Theme, resolve};
 use crate::theme::color;
-use crate::views::tree::{TreeNode, row};
+use crate::views::tree::TreeNode;
 
 thread_local! {
     static RECENT: State<Vec<String>> = State::create_global(Vec::new());
@@ -102,6 +102,12 @@ struct FontPanel {
 impl Component for FontPanel {
     fn render(&self) -> impl IntoElement {
         let palette = Palette::current();
+        let rows: OutlineViewStyle = resolve(&Theme::tengen());
+        let paints = Paints::current(ControlState::default(), rows.effect);
+        let row =
+            |node: &TreeNode, selected: bool, lead: Option<Element>, trail: Option<Element>| {
+                crate::views::tree::row(&rows, &paints, node, selected, lead, trail)
+            };
         let initial = self.initial.clone();
         let mut font = use_state(|| initial);
         let families = use_hook(family_names);

@@ -130,6 +130,15 @@ Long titles and details wrap without clipping the control.
 
 ![Form with long texts that wrap](assets/components/form-long-text-light.png)
 
+### Style
+
+`Form::style` takes a `FormStyle`: the cards, the rows and their texts. The
+fields are in [Styles and themes](../ai/styles.md#formstyle-groupboxstyle-and-disclosuregroupstyle).
+
+```rust
+Form::new().section(section).style(|s| FormStyle { section_spacing: 32.0, ..s })
+```
+
 ## Groups
 
 ### `GroupBox`
@@ -143,6 +152,12 @@ above it. It groups related controls without a form.
 `DisclosureGroup::new(label).expanded(bool).child(view)`: a header row with a
 chevron that shows or hides its children, indented `DISCLOSURE.indent` (13).
 `.expanded` is the starting state; after that the user owns it.
+
+### Style
+
+`GroupBox::style` and `DisclosureGroup::style` take a `GroupBoxStyle` and a
+`DisclosureGroupStyle`. The fields are in
+[Styles and themes](../ai/styles.md#formstyle-groupboxstyle-and-disclosuregroupstyle).
 
 ## Tables
 
@@ -190,6 +205,12 @@ direction.
 | `shown_columns(hidden, count)` | The indices in `0..count` not in `hidden` |
 | `toggle_column(hidden, column, count)` | `hidden` with `column` shown again, or hidden if another column stays visible |
 
+### Style
+
+`Table::style` takes a `TableStyle`: the header, the stripes and the
+selection. The fields are in
+[Styles and themes](../ai/styles.md#tablestyle-collectionviewstyle-and-outlineviewstyle).
+
 ## Collections
 
 ### `CollectionView`
@@ -227,6 +248,11 @@ selected reports nothing.
 | Ctrl or Super | `current` with `index` added or removed |
 | Shift | The range from the last item of `current` (the anchor, kept last) to `index` |
 
+### Style
+
+`CollectionView::style` takes a `CollectionViewStyle` for its tiles. The
+fields are in [Styles and themes](../ai/styles.md#tablestyle-collectionviewstyle-and-outlineviewstyle).
+
 ## Trees
 
 ### `TreeNode`
@@ -258,6 +284,16 @@ sideways. `on_select` receives the chosen path, `Vec<usize>`.
 | `visible_rows(nodes, expanded)` | `(path, depth)` for each row shown when the paths in `expanded` are open |
 | `node_at(nodes, path)` | The node at `path`, or `None` |
 
+### Style
+
+`OutlineView::style` and `Browser::style` take the same `OutlineViewStyle`,
+so a theme draws both alike. The fields are in
+[Styles and themes](../ai/styles.md#tablestyle-collectionviewstyle-and-outlineviewstyle).
+
+```rust
+Theme::tengen().style(|s: OutlineViewStyle| OutlineViewStyle { row_shape: Shape::Capsule, ..s })
+```
+
 ## Tabs
 
 ### `TabView`
@@ -283,6 +319,11 @@ TabView::new("Preferences")
 
 The view switches pages by itself; `on_change` is for the app to remember.
 
+### Style
+
+`TabView::style` takes a `TabViewStyle`: the strip and its tabs. The fields
+are in [Styles and themes](../ai/styles.md#tabviewstyle-and-windowtabsstyle).
+
 ## Window tabs
 
 ### `WindowTabs`
@@ -305,6 +346,11 @@ WindowTabs::new(titles, selected)
 | `.on_new(callback)` | Adds a + button at the end |
 
 The app keeps each tab's content. Tabs cannot be dragged.
+
+### Style
+
+`WindowTabs::style` takes a `WindowTabsStyle`. The fields are in
+[Styles and themes](../ai/styles.md#tabviewstyle-and-windowtabsstyle).
 
 ## Split panes
 
@@ -410,6 +456,12 @@ TextView::new(text, MONO.family, 13.0, 16.0, color(Palette::current().label))
 What `on_key` receives: `key`, `modifiers` and `cursor_utf16`, the caret
 position in UTF-16 units.
 
+### Style
+
+`TextView::style` takes a `TextViewStyle`: the paint of the text and the
+caret. `ink` and `.cursor(color)` override it before `.style`
+([Styles and themes](../ai/styles.md#textviewstyle)).
+
 ## Feedback
 
 Module `views::feedback`. `ContentUnavailableView` and `Sheet` are rects: they
@@ -453,6 +505,13 @@ Alert::new("Forget this network?", "You will have to type the password again.")
 The alert is `DIALOG_ALERT_WIDTH` (260) wide and splits its two large buttons
 evenly. It does not close itself: the callbacks stop drawing it.
 
+### Style
+
+`Sheet::style`, `Alert::style` and `ContentUnavailableView::style` take a
+`SheetStyle`, an `AlertStyle` and a `ContentUnavailableViewStyle`. An `Alert`
+draws on the `SheetStyle` of the theme and the containers. The fields are in
+[Styles and themes](../ai/styles.md#sheetstyle-alertstyle-and-contentunavailableviewstyle).
+
 ## Navigation
 
 ### `History`
@@ -483,6 +542,12 @@ Titlebar::new().left(NavigationButtons::new(history))
 
 Two [`Action`](13-app.md)s: `go-back` ("Back", Alt+←) and `go-forward`
 ("Forward", Alt+→).
+
+### Style
+
+`NavigationButtons` takes no style of its own: its group takes
+`ToolGroupStyle` and its arrows `IconButtonStyle`
+([Styles and themes](../ai/styles.md#which-controls-take-a-style)).
 
 ## Search
 

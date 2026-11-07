@@ -1,5 +1,5 @@
 use crate::scroll::ScrollView;
-use ctdesign::{Rgba, SETTINGS, SPACE_2};
+use ctdesign::{Rgba, SETTINGS};
 use freya_core::prelude::*;
 use serde::{Deserialize, Serialize};
 use torin::prelude::{Alignment, Direction, Gaps, Size};
@@ -7,6 +7,7 @@ use torin::prelude::{Alignment, Direction, Gaps, Size};
 use crate::app::{load_restoration, save_restoration};
 use crate::controls::SearchField;
 use crate::sidebar::{Sidebar, SidebarAccount, SidebarItem, SidebarSection};
+use crate::styles::{SettingsWindowStyle, Theme, resolve};
 use crate::symbol::Symbol;
 use crate::titlebar::Titlebar;
 use crate::views::form::Form;
@@ -76,6 +77,7 @@ pub struct SettingsWindow {
     sidebar_resizable: bool,
     sidebar_toggle: bool,
     narrow_sidebar: NarrowSidebar,
+    style: Theme,
 }
 
 impl SettingsWindow {
@@ -89,7 +91,16 @@ impl SettingsWindow {
             sidebar_resizable: true,
             sidebar_toggle: true,
             narrow_sidebar: NarrowSidebar::Overlay,
+            style: Theme::tengen(),
         }
+    }
+
+    pub fn style(
+        mut self,
+        restyle: impl Fn(SettingsWindowStyle) -> SettingsWindowStyle + 'static,
+    ) -> Self {
+        self.style = self.style.style(restyle);
+        self
     }
 
     pub fn suggestions(mut self, pane_ids: &'static [&'static str]) -> Self {
@@ -177,6 +188,7 @@ pub fn index(panes: &[&Pane]) -> SearchIndex<Hit> {
 
 impl Component for SettingsWindow {
     fn render(&self) -> impl IntoElement {
+        let style: SettingsWindowStyle = resolve(&self.style);
         let first = self.panes().next().map(|pane| pane.id).unwrap_or_default();
         let restoration = self.restoration;
         let saved = use_hook(|| {
@@ -315,7 +327,7 @@ impl Component for SettingsWindow {
         let mut sidebar = Sidebar::new().traffic_lights(true).child(
             rect()
                 .width(Size::fill())
-                .margin(Gaps::new(0.0, 0.0, SETTINGS.sidebar_search_gap as f32, 0.0))
+                .margin(Gaps::new(0.0, 0.0, style.search_gap, 0.0))
                 .child(
                     SearchField::new(query, text!("search"))
                         .a11y_id(search_id)
@@ -328,7 +340,13 @@ impl Component for SettingsWindow {
                         }),
                 )
                 .maybe_child(popover_open.then(|| {
-                    search_popover(entries, text.trim().is_empty(), active, popover_hovered)
+                    search_popover(
+                        entries,
+                        text.trim().is_empty(),
+                        active,
+                        popover_hovered,
+                        &self.style,
+                    )
                 })),
         );
         if let Some((initials, name, detail)) = &self.account {
@@ -354,13 +372,13 @@ impl Component for SettingsWindow {
                     Titlebar::new()
                         .with_sidebar(true)
                         .hairline(false)
-                        .spacing(SETTINGS.toolbar_gap as f32)
+                        .spacing(style.toolbar_spacing)
                         .title(pane.map(|pane| pane.title).unwrap_or_default())
                         .left(
                             rect()
                                 .direction(Direction::Horizontal)
                                 .cross_align(Alignment::Center)
-                                .spacing(SPACE_2)
+                                .spacing(style.navigation_spacing)
                                 .maybe_child(self.sidebar_toggle.then_some(SidebarToggle))
                                 .child(NavigationButtons::new(history)),
                         ),

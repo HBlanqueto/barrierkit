@@ -5,6 +5,9 @@ use freya_core::prelude::*;
 use freya_edit::*;
 use torin::prelude::{Area, Size};
 
+use crate::styles::{ControlState, Paints, ShapeStyle, StateValue, TextViewStyle, Theme, resolve};
+use crate::theme::color;
+
 const EDITING_KEYS: [&str; 6] = ["a", "c", "x", "v", "z", "y"];
 
 #[derive(Clone, PartialEq)]
@@ -22,6 +25,7 @@ pub struct TextView {
     line_height: f32,
     ink: Color,
     cursor: Color,
+    style: Theme,
     width: Size,
     height: Size,
     auto_focus: bool,
@@ -46,6 +50,7 @@ impl TextView {
             line_height,
             ink,
             cursor: ink,
+            style: Theme::tengen(),
             width: Size::fill(),
             height: Size::auto(),
             auto_focus: false,
@@ -58,6 +63,11 @@ impl TextView {
 
     pub fn cursor(mut self, cursor: Color) -> Self {
         self.cursor = cursor;
+        self
+    }
+
+    pub fn style(mut self, restyle: impl Fn(TextViewStyle) -> TextViewStyle + 'static) -> Self {
+        self.style = self.style.style(restyle);
         self
     }
 
@@ -92,6 +102,15 @@ impl TextView {
     }
 }
 
+fn rgba(color: Color) -> ctdesign::Rgba {
+    ctdesign::Rgba::rgba8(
+        color.r(),
+        color.g(),
+        color.b(),
+        f32::from(color.a()) / 255.0,
+    )
+}
+
 impl KeyExt for TextView {
     fn write_key(&mut self) -> &mut DiffKey {
         &mut self.key
@@ -100,14 +119,30 @@ impl KeyExt for TextView {
 
 impl Component for TextView {
     fn render(&self) -> impl IntoElement {
+        let (ink, cursor, instance) = (rgba(self.ink), rgba(self.cursor), self.style.clone());
+        let style: TextViewStyle = resolve(&Theme::tengen().style(move |s: TextViewStyle| {
+            instance.apply(TextViewStyle {
+                text: StateValue::new(ShapeStyle::Color(ink)),
+                cursor: StateValue::new(ShapeStyle::Color(cursor)),
+                ..s
+            })
+        }));
         let a11y_id = use_hook(AccessibilityId::new_unique);
         let focus = use_focus(a11y_id);
+        let state = ControlState {
+            focused: focus().is_focused(),
+            ..ControlState::default()
+        };
+        let paints = Paints::current(state, style.effect);
         let holder = use_state(ParagraphHolder::default);
         let mut area = use_state(Area::default);
         let mut dragging = use_state(|| false);
         let mut value = self.value;
         let mut editable = use_editable(|| value.read().to_string(), EditableConfig::new);
-        let (mut movement, cursor_color) = use_cursor_blink(focus().is_focused(), self.cursor);
+        let (mut movement, cursor_color) = use_cursor_blink(
+            state.focused,
+            color(paints.color(style.cursor.resolve(state))),
+        );
         let on_focus_change = use_reactive(&self.on_focus_change);
         let mut reported = use_state(|| false);
         use_side_effect(move || {
@@ -222,7 +257,7 @@ impl Component for TextView {
             .font_family(self.family.clone())
             .font_size(self.size)
             .line_height(self.line_height / self.size)
-            .color(self.ink)
+            .color(color(paints.color(style.text.resolve(state))))
             .cursor_index(focused.then(|| editor.cursor_pos()))
             .cursor_color(cursor_color)
             .highlights(

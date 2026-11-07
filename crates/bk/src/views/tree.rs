@@ -1,14 +1,15 @@
 use std::collections::HashSet;
 
-use ctdesign::{BODY, DISCLOSURE, HAIRLINE, SPACE_1};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Direction, Gaps, Size};
 
 use crate::interaction::{track_modifiers, use_held_modifiers};
 use crate::scroll::ScrollView;
-use crate::style::{Palette, text};
+use crate::style::text;
+use crate::styles::{
+    ControlState, LayoutDirection, OutlineViewStyle, Paints, ShapeStyle, StateValue, Theme, resolve,
+};
 use crate::symbol::{Symbol, symbol};
-use crate::theme::color;
 use crate::views::collection::select;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -72,42 +73,53 @@ pub fn node_at<'a>(nodes: &'a [TreeNode], path: &[usize]) -> Option<&'a TreeNode
     }
 }
 
+pub(crate) fn paint(paints: &Paints, paint: &StateValue<ShapeStyle>) -> ctdesign::Rgba {
+    paints.color(paint.resolve(ControlState::default()))
+}
+
 pub(crate) fn row(
+    style: &OutlineViewStyle,
+    paints: &Paints,
     node: &TreeNode,
     selected: bool,
     lead: Option<Element>,
     trail: Option<Element>,
 ) -> Rect {
-    let palette = Palette::current();
-    let ink = if selected {
-        palette.on_accent
+    let (background, label, icon) = if selected {
+        (
+            &style.selected_row_background,
+            &style.selected_label,
+            &style.selected_icon,
+        )
     } else {
-        palette.label
+        (&style.row_background, &style.label, &style.icon)
     };
     rect()
         .width(Size::fill())
-        .height(Size::px(DISCLOSURE.row_height))
-        .corner_radius(DISCLOSURE.row_radius)
-        .maybe(selected, |el| el.background(color(palette.accent)))
+        .height(Size::px(style.row_height))
+        .corner_radius(style.row_shape.corner_radius(
+            style.row_height,
+            style.row_height,
+            LayoutDirection::LeftToRight,
+        ))
+        .background(paints.fill(background))
+        .map(paints.blur(background), Rect::blur)
         .direction(Direction::Horizontal)
         .cross_align(Alignment::Center)
-        .spacing(SPACE_1)
+        .spacing(style.spacing)
         .content(torin::prelude::Content::flex())
         .a11y_role(AccessibilityRole::TreeItem)
         .a11y_alt(node.title.clone())
         .a11y_builder(move |a11y| a11y.set_selected(selected))
         .maybe_child(lead)
-        .maybe_child(node.icon.map(|icon| {
-            symbol(
-                icon,
-                DISCLOSURE.icon,
-                if selected { ink } else { palette.accent },
-            )
-        }))
+        .maybe_child(
+            node.icon
+                .map(|glyph| symbol(glyph, style.icon_size, paint(paints, icon))),
+        )
         .child(
             rect()
                 .width(Size::flex(1.0))
-                .child(text(node.title.clone(), BODY, ink).max_lines(1)),
+                .child(text(node.title.clone(), style.font, paint(paints, label)).max_lines(1)),
         )
         .maybe_child(trail)
 }
@@ -117,6 +129,7 @@ pub struct OutlineView {
     label: &'static str,
     nodes: Vec<TreeNode>,
     on_select: Option<Callback<Vec<Vec<usize>>, ()>>,
+    style: Theme,
 }
 
 impl OutlineView {
@@ -125,7 +138,16 @@ impl OutlineView {
             label,
             nodes,
             on_select: None,
+            style: Theme::tengen(),
         }
+    }
+
+    pub fn style(
+        mut self,
+        restyle: impl Fn(OutlineViewStyle) -> OutlineViewStyle + 'static,
+    ) -> Self {
+        self.style = self.style.style(restyle);
+        self
     }
 
     pub fn on_select(mut self, callback: impl Into<Callback<Vec<Vec<usize>>, ()>>) -> Self {
@@ -136,7 +158,8 @@ impl OutlineView {
 
 impl Component for OutlineView {
     fn render(&self) -> impl IntoElement {
-        let palette = Palette::current();
+        let style: OutlineViewStyle = resolve(&self.style);
+        let paints = Paints::current(ControlState::default(), style.effect);
         let mut expanded = use_state(HashSet::<Vec<usize>>::new);
         let mut selected = use_state(Vec::<Vec<usize>>::new);
         let held = use_held_modifiers();
@@ -149,14 +172,17 @@ impl Component for OutlineView {
                 let node = node_at(&self.nodes, &path)?;
                 let open = expanded.read().contains(&path);
                 let chosen = selected.read().contains(&path);
-                let ink = if chosen {
-                    palette.on_accent
-                } else {
-                    palette.secondary_label
-                };
+                let ink = paint(
+                    &paints,
+                    if chosen {
+                        &style.selected_chevron
+                    } else {
+                        &style.disclosure
+                    },
+                );
                 let toggle_path = path.clone();
                 let chevron = rect()
-                    .width(Size::px(DISCLOSURE.indent))
+                    .width(Size::px(style.indent))
                     .center()
                     .maybe(!node.children.is_empty(), |el| {
                         el.a11y_role(AccessibilityRole::Button)
@@ -173,7 +199,7 @@ impl Component for OutlineView {
                                 } else {
                                     Symbol::ChevronRight
                                 },
-                                DISCLOSURE.chevron,
+                                style.chevron_size,
                                 ink,
                             ))
                     })
@@ -183,9 +209,9 @@ impl Component for OutlineView {
                 Some(
                     rect()
                         .width(Size::fill())
-                        .padding(Gaps::new(0.0, 0.0, 0.0, DISCLOSURE.indent * depth as f32))
+                        .padding(Gaps::new(0.0, 0.0, 0.0, style.indent * depth as f32))
                         .child(
-                            row(node, chosen, Some(chevron), None)
+                            row(&style, &paints, node, chosen, Some(chevron), None)
                                 .a11y_builder(move |a11y| a11y.set_expanded(open))
                                 .on_press(move |_| {
                                     let current: Vec<usize> = selected
@@ -220,6 +246,7 @@ pub struct Browser {
     label: &'static str,
     nodes: Vec<TreeNode>,
     on_select: Option<Callback<Vec<usize>, ()>>,
+    style: Theme,
 }
 
 impl Browser {
@@ -228,7 +255,16 @@ impl Browser {
             label,
             nodes,
             on_select: None,
+            style: Theme::tengen(),
         }
+    }
+
+    pub fn style(
+        mut self,
+        restyle: impl Fn(OutlineViewStyle) -> OutlineViewStyle + 'static,
+    ) -> Self {
+        self.style = self.style.style(restyle);
+        self
     }
 
     pub fn on_select(mut self, callback: impl Into<Callback<Vec<usize>, ()>>) -> Self {
@@ -239,7 +275,8 @@ impl Browser {
 
 impl Component for Browser {
     fn render(&self) -> impl IntoElement {
-        let palette = Palette::current();
+        let style: OutlineViewStyle = resolve(&self.style);
+        let paints = Paints::current(ControlState::default(), style.effect);
         let mut path = use_state(Vec::<usize>::new);
         let current = path.read().clone();
         let mut columns: Vec<(Vec<usize>, &[TreeNode])> = vec![(Vec::new(), &self.nodes)];
@@ -250,6 +287,8 @@ impl Component for Browser {
                 _ => break,
             }
         }
+        let (separator, separator_width) = &style.column_separator;
+        let separator_width = *separator_width;
         let views = columns.into_iter().map(|(prefix, nodes)| {
             let rows = nodes.iter().enumerate().map(|(index, node)| {
                 let mut target = prefix.clone();
@@ -259,18 +298,26 @@ impl Component for Browser {
                 let trail = (!node.children.is_empty()).then(|| {
                     symbol(
                         Symbol::ChevronRight,
-                        DISCLOSURE.chevron,
-                        if chosen {
-                            palette.on_accent
-                        } else {
-                            palette.tertiary_label
-                        },
+                        style.chevron_size,
+                        paint(
+                            &paints,
+                            if chosen {
+                                &style.selected_chevron
+                            } else {
+                                &style.column_chevron
+                            },
+                        ),
                     )
                     .into_element()
                 });
                 let on_select = self.on_select.clone();
-                row(node, chosen, None, trail)
-                    .padding(Gaps::new(0.0, SPACE_1, 0.0, SPACE_1))
+                row(&style, &paints, node, chosen, None, trail)
+                    .padding(Gaps::new(
+                        0.0,
+                        style.column_padding_x,
+                        0.0,
+                        style.column_padding_x,
+                    ))
                     .on_press(move |_| {
                         path.set(target.clone());
                         if let Some(on_select) = &on_select {
@@ -280,7 +327,7 @@ impl Component for Browser {
                     .into_element()
             });
             rect()
-                .width(Size::px(DISCLOSURE.column_width))
+                .width(Size::px(style.column_width))
                 .height(Size::fill())
                 .direction(Direction::Horizontal)
                 .child(
@@ -291,9 +338,9 @@ impl Component for Browser {
                 )
                 .child(
                     rect()
-                        .width(Size::px(HAIRLINE))
+                        .width(Size::px(separator_width))
                         .height(Size::fill())
-                        .background(color(palette.separator)),
+                        .background(paints.fill(&StateValue::new(separator.clone()))),
                 )
                 .content(torin::prelude::Content::flex())
                 .into_element()

@@ -1,12 +1,15 @@
-use ctdesign::{BODY, CAPTION, HEADLINE, LIST_GROUP, Rgba, SPACE_2, SPACE_3, SPACE_4};
+use ctdesign::LIST_GROUP;
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
 
 use crate::adornments::Divider;
-use crate::interaction::use_interaction;
-use crate::style::{Palette, text};
+use crate::controls::inner_border;
+use crate::interaction::{control_state, use_interaction};
+use crate::style::text;
+use crate::styles::{
+    ControlState, FormStyle, LayoutDirection, Paints, ShapeStyle, StateValue, Theme, resolve,
+};
 use crate::symbol::{Symbol, symbol};
-use crate::theme::color;
 
 #[derive(Clone, PartialEq)]
 enum Accessory {
@@ -107,15 +110,31 @@ impl Default for Section {
     }
 }
 
-#[derive(Clone, PartialEq, Default)]
+#[derive(Clone, PartialEq)]
 pub struct Form {
     pub sections: Vec<Section>,
     highlighted: Option<&'static str>,
+    style: Theme,
+}
+
+impl Default for Form {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl Form {
     pub fn new() -> Self {
-        Self::default()
+        Self {
+            sections: Vec::new(),
+            highlighted: None,
+            style: Theme::tengen(),
+        }
+    }
+
+    pub fn style(mut self, restyle: impl Fn(FormStyle) -> FormStyle + 'static) -> Self {
+        self.style = self.style.style(restyle);
+        self
     }
 
     pub fn section(mut self, section: Section) -> Self {
@@ -131,10 +150,16 @@ impl Form {
 
 impl Component for Form {
     fn render(&self) -> impl IntoElement {
-        let palette = Palette::current();
+        let style: FormStyle = resolve(&self.style);
+        let paints = Paints::current(ControlState::default(), style.effect);
+        let ink =
+            |paint: &StateValue<ShapeStyle>| paints.color(paint.resolve(ControlState::default()));
         let mut width = use_state(|| f32::MAX);
         let stacked = *width.read() < LIST_GROUP.stack_below;
-        let [top, right, bottom, left] = LIST_GROUP.header_padding;
+        let [top, right, bottom, left] = style.header_padding;
+        let corner_radius = style
+            .shape
+            .corner_radius(0.0, 0.0, LayoutDirection::LeftToRight);
         let sections = self.sections.iter().map(|section| {
             let rows = section.rows.iter().enumerate().map(|(index, row)| {
                 FormRow {
@@ -142,6 +167,7 @@ impl Component for Form {
                     first: index == 0,
                     highlighted: self.highlighted == Some(row.title),
                     stacked,
+                    style: self.style.clone(),
                 }
                 .into_element()
             });
@@ -151,31 +177,29 @@ impl Component for Form {
                 .maybe_child(section.title.map(|title| {
                     rect()
                         .padding(Gaps::new(top, right, bottom, left))
-                        .child(text(title, HEADLINE, palette.label))
+                        .child(text(title, style.header_font, ink(&style.header)))
                 }))
                 .child(
                     rect()
                         .width(Size::fill())
                         .direction(Direction::Vertical)
-                        .corner_radius(LIST_GROUP.radius)
+                        .corner_radius(corner_radius)
                         .overflow(Overflow::Clip)
-                        .background(color(palette.content_background))
-                        .border(
-                            Border::new()
-                                .width(ctdesign::HAIRLINE)
-                                .alignment(BorderAlignment::Inner)
-                                .fill(color(palette.card_border)),
-                        )
+                        .background(paints.fill(&style.background))
+                        .map(paints.blur(&style.background), Rect::blur)
+                        .map(style.border.as_ref(), |el, border| {
+                            el.border(inner_border(&paints, border))
+                        })
                         .children(rows),
                 )
                 .maybe_child(section.footer.map(|footer| {
                     rect()
                         .padding(Gaps::new(bottom, right, 0.0, left))
-                        .child(text(footer, CAPTION, palette.secondary_label))
+                        .child(text(footer, style.footer_font, ink(&style.footer)))
                 }))
                 .into_element()
         });
-        let [form_top, form_right, form_bottom, form_left] = LIST_GROUP.padding;
+        let [form_top, form_right, form_bottom, form_left] = style.padding;
         rect()
             .width(Size::fill())
             .padding(Gaps::new(form_top, form_right, form_bottom, form_left))
@@ -183,7 +207,7 @@ impl Component for Form {
                 rect()
                     .width(Size::fill())
                     .direction(Direction::Vertical)
-                    .spacing(SPACE_4)
+                    .spacing(style.section_spacing)
                     .on_sized(move |event: Event<SizedEventData>| {
                         width.set_if_modified(event.area.size.width);
                     })
@@ -198,38 +222,47 @@ struct FormRow {
     first: bool,
     highlighted: bool,
     stacked: bool,
+    style: Theme,
 }
 
 impl Component for FormRow {
     fn render(&self) -> impl IntoElement {
-        let palette = Palette::current();
+        let style: FormStyle = resolve(&self.style);
         let interaction = use_interaction();
         let row = &self.row;
         let pressable = match &row.accessory {
             Accessory::Navigation(cb) | Accessory::Destructive(cb) => Some(cb.clone()),
             _ => None,
         };
+        let state = if pressable.is_some() {
+            control_state(interaction, false)
+        } else {
+            ControlState::default()
+        };
+        let paints = Paints::current(state, style.effect);
+        let ink = |paint: &StateValue<ShapeStyle>| paints.color(paint.resolve(state));
         let title_ink = match row.accessory {
-            Accessory::Destructive(_) => palette.destructive,
-            _ => palette.label,
+            Accessory::Destructive(_) => ink(&style.destructive_title),
+            _ => ink(&style.title),
         };
         let accessory: Option<Element> = match &row.accessory {
             Accessory::None | Accessory::Destructive(_) => None,
             Accessory::Control(element) => Some(element.clone()),
             Accessory::Value(value) => {
-                Some(text(value.clone(), BODY, palette.secondary_label).into_element())
+                Some(text(value.clone(), style.value_font, ink(&style.value)).into_element())
             }
             Accessory::Navigation(_) => Some(
                 symbol(
                     Symbol::ChevronRight,
-                    CAPTION.size as f32,
-                    palette.tertiary_label,
+                    style.chevron_size,
+                    ink(&style.chevron),
                 )
                 .into_element(),
             ),
         };
 
-        let first_line = LIST_GROUP.row_min_height - 2.0 * SPACE_2;
+        let (padding_x, padding_y) = style.row_padding;
+        let first_line = style.row_min_height - 2.0 * padding_y;
         let aligned_to_first_line = matches!(row.accessory, Accessory::Control(_));
         let stacked = self.stacked && aligned_to_first_line;
         let wrapping = |content: &'static str, face, ink| {
@@ -245,15 +278,15 @@ impl Component for FormRow {
             .direction(Direction::Vertical)
             .maybe(aligned_to_first_line, |el| {
                 el.padding(Gaps::new(
-                    (first_line - BODY.line_height as f32) / 2.0,
+                    (first_line - style.title_font.line_height as f32) / 2.0,
                     0.0,
                     0.0,
                     0.0,
                 ))
             })
-            .child(wrapping(row.title, BODY, title_ink));
+            .child(wrapping(row.title, style.title_font, title_ink));
         if let Some(detail) = row.detail {
-            labels = labels.child(wrapping(detail, CAPTION, palette.secondary_label));
+            labels = labels.child(wrapping(detail, style.detail_font, ink(&style.detail)));
         }
 
         let mut element = rect()
@@ -269,13 +302,10 @@ impl Component for FormRow {
             } else {
                 Alignment::Center
             })
-            .padding(Gaps::new(
-                SPACE_2,
-                LIST_GROUP.row_padding_x,
-                SPACE_2,
-                LIST_GROUP.row_padding_x,
-            ))
-            .spacing(SPACE_3)
+            .padding(Gaps::new(padding_y, padding_x, padding_y, padding_x))
+            .spacing(style.row_spacing)
+            .background(paints.fill(&style.row_background))
+            .map(paints.blur(&style.row_background), Rect::blur)
             .child(labels)
             .child(
                 rect()
@@ -289,27 +319,18 @@ impl Component for FormRow {
                 .attach(element, true)
                 .a11y_role(AccessibilityRole::Button)
                 .a11y_alt(row.title)
-                .maybe(interaction.hovered(), |el| {
-                    el.background(color(palette.control_hover))
-                })
                 .on_press(move |_| on_press.call(()));
             element = interaction.inner_focus_ring(element);
         }
         if self.highlighted {
-            element = element.background(color(Rgba {
-                a: LIST_GROUP.highlight,
-                ..palette.accent
-            }));
+            element = element
+                .background(paints.fill(&style.highlight))
+                .map(paints.blur(&style.highlight), Rect::blur);
         }
         let separator = (!self.first).then(|| {
             rect()
                 .width(Size::fill())
-                .padding(Gaps::new(
-                    0.0,
-                    LIST_GROUP.row_padding_x,
-                    0.0,
-                    LIST_GROUP.separator_inset,
-                ))
+                .padding(Gaps::new(0.0, padding_x, 0.0, style.separator_inset))
                 .child(Divider::new())
         });
         rect()

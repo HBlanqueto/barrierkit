@@ -1,13 +1,16 @@
 use crate::scroll::ScrollView;
-use ctdesign::{BODY, CAPTION, LIST_GROUP, Rgba, SETTINGS, SIDEBAR, TEXT_FIELD};
+use ctdesign::Rgba;
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 
-use crate::interaction::use_interaction;
+use crate::interaction::{control_state, use_interaction};
 use crate::sidebar::SymbolTile;
-use crate::style::{Palette, text};
+use crate::style::text;
+use crate::styles::{
+    ControlState, LayoutDirection, Paints, SearchFieldStyle, SettingsWindowStyle, Theme, resolve,
+};
 use crate::symbol::Symbol;
-use crate::theme::{SurfaceKind, color, popover_palette};
+use crate::theme::color;
 
 #[derive(Clone, PartialEq)]
 pub(crate) enum Entry {
@@ -22,11 +25,11 @@ pub(crate) enum Entry {
 }
 
 impl Entry {
-    fn height(&self) -> f32 {
+    fn height(&self, style: &SettingsWindowStyle) -> f32 {
         match self {
-            Self::Header(_) => SETTINGS.search_header_height as f32,
-            Self::Result { subtitle: None, .. } => SIDEBAR.item_height as f32,
-            Self::Result { .. } => SETTINGS.search_result_height as f32,
+            Self::Header(_) => style.header_height,
+            Self::Result { subtitle: None, .. } => style.result_height,
+            Self::Result { .. } => style.result_subtitle_height,
         }
     }
 }
@@ -36,27 +39,32 @@ pub(crate) fn search_popover(
     accent_highlight: bool,
     active: Option<usize>,
     mut hovered: State<bool>,
+    theme: &Theme,
 ) -> Rect {
-    let menu = popover_palette(&crate::theme::resolved(), SurfaceKind::Toplevel);
-    let content: f32 = entries.iter().map(Entry::height).sum();
-    let height = content.min(SETTINGS.search_popover_max_height as f32);
+    let style: SettingsWindowStyle = resolve(theme);
+    let field: SearchFieldStyle = resolve(&Theme::tengen());
+    let state = ControlState::default();
+    let paints = Paints::current(state, style.effect);
+    let content: f32 = entries.iter().map(|entry| entry.height(&style)).sum();
+    let height = content.min(style.popover_max_height);
+    let padding_x = style.result_padding_x;
     let mut results = 0..;
     let rows = entries.into_iter().map(|entry| match entry {
         Entry::Header(title) => rect()
-            .height(Size::px(SETTINGS.search_header_height as f32))
-            .padding(Gaps::new(
-                0.0,
-                menu.item_padding_x,
-                0.0,
-                menu.item_padding_x,
-            ))
+            .height(Size::px(style.header_height))
+            .padding(Gaps::new(0.0, padding_x, 0.0, padding_x))
             .main_align(Alignment::Center)
-            .child(text(title, CAPTION, Palette::current().secondary_label))
+            .child(text(
+                title,
+                style.header_font,
+                paints.color(style.header.resolve(state)),
+            ))
             .into_element(),
         result => SearchResult {
             entry: result,
             accent_highlight,
             active: results.next() == active,
+            style: theme.clone(),
         }
         .into_element(),
     });
@@ -64,19 +72,26 @@ pub(crate) fn search_popover(
         .position(
             Position::new_absolute()
                 .left(0.0)
-                .top(TEXT_FIELD.height + SETTINGS.search_popover_gap as f32),
+                .top(field.height + style.popover_gap),
         )
         .layer(Layer::Overlay)
         .width(Size::fill())
-        .padding(Gaps::new_all(menu.padding))
-        .corner_radius(LIST_GROUP.radius)
-        .background(color(menu.bg))
-        .border(
-            Border::new()
-                .width(ctdesign::HAIRLINE)
-                .alignment(BorderAlignment::Outer)
-                .fill(color(menu.separator_color)),
+        .padding(Gaps::new_all(style.popover_padding))
+        .corner_radius(
+            style
+                .popover_shape
+                .corner_radius(0.0, 0.0, LayoutDirection::LeftToRight),
         )
+        .background(paints.fill(&style.popover_background))
+        .map(paints.blur(&style.popover_background), Rect::blur)
+        .map(style.popover_border.as_ref(), |el, (paint, width)| {
+            el.border(
+                Border::new()
+                    .width(*width)
+                    .alignment(BorderAlignment::Outer)
+                    .fill(color(paints.color(paint))),
+            )
+        })
         .on_pointer_enter(move |_| hovered.set(true))
         .on_pointer_leave(move |_| hovered.set(false))
         .child(
@@ -92,6 +107,7 @@ struct SearchResult {
     entry: Entry,
     accent_highlight: bool,
     active: bool,
+    style: Theme,
 }
 
 impl Component for SearchResult {
@@ -106,53 +122,71 @@ impl Component for SearchResult {
         else {
             return rect();
         };
-        let palette = Palette::current();
-        let menu = popover_palette(&crate::theme::resolved(), SurfaceKind::Toplevel);
+        let style: SettingsWindowStyle = resolve(&self.style);
         let interaction = use_interaction();
-        let highlighted = self.active || interaction.hovered();
-        let (background, ink, secondary) = match (highlighted, self.accent_highlight) {
-            (true, true) => (Some(palette.accent), palette.on_accent, palette.on_accent),
-            (true, false) => (
-                Some(
-                    crate::theme::resolved()
-                        .sidebar
-                        .palette
-                        .inactive_selected_bg,
-                ),
-                palette.label,
-                palette.secondary_label,
-            ),
-            (false, _) => (None, palette.label, palette.secondary_label),
+        let state = ControlState {
+            hovered: self.active || interaction.hovered(),
+            ..control_state(interaction, false)
         };
+        let paints = Paints::current(state, style.effect);
+        let (background, title_ink, subtitle_ink) = if self.accent_highlight {
+            (
+                &style.suggestion_background,
+                &style.suggestion_title,
+                &style.suggestion_subtitle,
+            )
+        } else {
+            (
+                &style.result_background,
+                &style.result_title,
+                &style.result_subtitle,
+            )
+        };
+        let height = self.entry.height(&style);
+        let radius = style
+            .result_shape
+            .corner_radius(height, height, LayoutDirection::LeftToRight);
         let row = interaction
             .attach(rect(), true)
             .a11y_role(AccessibilityRole::ListItem)
             .a11y_alt(title)
             .width(Size::fill())
-            .height(Size::px(self.entry.height()))
+            .height(Size::px(height))
             .direction(Direction::Horizontal)
             .content(Content::flex())
             .cross_align(Alignment::Center)
-            .spacing(SIDEBAR.item_gap as f32)
+            .spacing(style.result_spacing)
             .padding(Gaps::new(
                 0.0,
-                menu.item_padding_x,
+                style.result_padding_x,
                 0.0,
-                menu.item_padding_x,
+                style.result_padding_x,
             ))
-            .corner_radius(menu.item_radius)
-            .map(background, |el, background| {
-                el.background(color(background))
-            })
+            .corner_radius(radius)
+            .background(paints.fill(background))
+            .map(paints.blur(background), Rect::blur)
             .on_press(move |_| on_select.call(()))
             .child(SymbolTile::new(symbol, tint))
             .child(
                 rect()
                     .width(Size::flex(1.0))
                     .direction(Direction::Vertical)
-                    .child(text(title, BODY, ink).text_overflow(TextOverflow::Ellipsis))
-                    .maybe_child(subtitle.map(|subtitle| text(subtitle, CAPTION, secondary))),
+                    .child(
+                        text(
+                            title,
+                            style.title_font,
+                            paints.color(title_ink.resolve(state)),
+                        )
+                        .text_overflow(TextOverflow::Ellipsis),
+                    )
+                    .maybe_child(subtitle.map(|subtitle| {
+                        text(
+                            subtitle,
+                            style.subtitle_font,
+                            paints.color(subtitle_ink.resolve(state)),
+                        )
+                    })),
             );
-        interaction.focus_ring(row, menu.item_radius)
+        interaction.focus_ring(row, radius.top_left)
     }
 }
