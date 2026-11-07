@@ -12,7 +12,7 @@ fill, center, restore and full screen. Today those entries appear greyed out
 because there is no channel through which the shell can ask the compositor for those
 geometry operations.
 
-Infinity (see [glossary](https://github.com/HBlanqueto/malaysia/blob/main/docs/glossary.md)) is Yuki's private
+Infinity (see [glossary](https://github.com/HBlanqueto/malaysia/blob/main/docs/glossary.en.md)) is Yuki's private
 app↔compositor protocol. The first piece implemented is window
 management for the shell components, starting with the menubar.
 
@@ -102,8 +102,8 @@ reaches a v4 or later compositor as `force_quit`. New requests go after `destroy
 
 - [`0034`](0034-celestialkit-sobre-freya.en.md) — CelestialKit on Freya.
 - [`0035`](0035-identificacion-de-apps-propias-y-csd.en.md) — own apps and CSD.
-- [`0036`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0036-menu-global.md) — global menu.
-- [`0037`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0037-marco-compositor-dibuja-ventanas.md) — window
+- [`0036`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0036-menu-global.en.md) — global menu.
+- [`0037`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0037-marco-compositor-dibuja-ventanas.en.md) — window
   frame drawn by the compositor.
-- [`glossary.md`](https://github.com/HBlanqueto/malaysia/blob/main/docs/glossary.md) — definition of Infinity.
+- [`glossary.md`](https://github.com/HBlanqueto/malaysia/blob/main/docs/glossary.en.md) — definition of Infinity.
 - `crates/infinity-protocol/protocols/infinity-window-manager-v1.xml`.

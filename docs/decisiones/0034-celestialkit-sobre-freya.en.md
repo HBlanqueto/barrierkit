@@ -1,7 +1,7 @@
 # 0034 — CelestialKit on Freya
 
 Status: **accepted** (2026-10-22). Supersedes [ADR 0033](0033-skia-en-clientes-y-celestialkit-desde-otto-kit.en.md)
-and amends [ADR 0024](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0024-stack-de-render-del-toolkit.md) for the client
+and amends [ADR 0024](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0024-stack-de-render-del-toolkit.en.md) for the client
 processes.
 
 Renamed to BarrierKit, `vow-design` and `vow-appearance` in [ADR 0043](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0043-rebranding-a-malaysia.en.md).
@@ -74,13 +74,13 @@ WindowServer), not a division by app type:
 
 ## References
 
-- [`0024`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0024-stack-de-render-del-toolkit.md) — render stack, amended
+- [`0024`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0024-stack-de-render-del-toolkit.en.md) — render stack, amended
   by this ADR for the clients.
-- [`0020`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0020-politica-de-diseno-y-unificacion.md) — chrome and effects.
+- [`0020`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0020-politica-de-diseno-y-unificacion.en.md) — chrome and effects.
 - [`0011`](0011-valores-de-diseno-como-constantes-rust.en.md) — tokens in
   `yuki-design`.
-- [`0023`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0023-los-componentes-del-shell-corren-como-procesos-separados.md) —
+- [`0023`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0023-los-componentes-del-shell-corren-como-procesos-separados.en.md) —
   one process per component.
-- [`0025`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0025-la-shell-es-nativa.md) — native shell `yuki-shell`.
+- [`0025`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0025-la-shell-es-nativa.en.md) — native shell `yuki-shell`.
 - [`0032`](0032-neptunia-como-fuente-de-diseno.en.md) — Neptunia as the source.
 - Freya — MIT, <https://github.com/marc2332/freya>.
