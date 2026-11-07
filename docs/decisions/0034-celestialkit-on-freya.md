@@ -1,8 +1,8 @@
 # 0034 — BarrierKit on Freya
 
 Status: **accepted** (2026-10-22), inherited from Malaysia. Supersedes
-[0033](0033-skia-in-clients-and-celestialkit-from-otto-kit.md). The full record
-is [Malaysia ADR 0034](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0034-celestialkit-sobre-freya.en.md).
+[0033](0033-skia-in-clients-and-celestialkit-from-otto-kit.md). The original record, in Spanish, is
+[Malaysia ADR 0034](https://github.com/HBlanqueto/malaysia/blob/c5f3060f66273c141168159017c90f98de4d87f1/docs/decisiones/0034-celestialkit-sobre-freya.md) in its history.
 
 ## What still holds
 

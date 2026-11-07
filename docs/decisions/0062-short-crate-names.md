@@ -13,7 +13,7 @@ inside the crates changes name.
 
 Paths such as `barrier_kit::views::form::Form` were long, and the token and
 appearance crates still carried the "Vow" name of
-[ADR 0043](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0043-rebranding-a-malaysia.md).
+[ADR 0043](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisions/0043-rebranding-to-malaysia.md).
 The project now groups those two under **CT**, for *Curse Techniques*.
 
 Rust already names an item through its crate (`bk::Button`), so a short crate

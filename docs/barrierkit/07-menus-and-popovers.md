@@ -338,7 +338,7 @@ The app asks Malaysia, with `infinity_window_style_v1.set_popover` (version
 2), for the shape of `NSPopover` on macOS 26: a continuous 20 px corner and a
 25.42 × 13 px arrow with a round tip, filleted into the body, pointing at the
 centre of the anchor. The compositor clips, borders and shadows that shape
-([Malaysia ADR 0059](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0059-radio-por-barra-y-esquina-continua.md)).
+([Malaysia ADR 0059](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisions/0059-radius-per-bar-and-continuous-corner.md)).
 The measurements come from the Flutter package
 [`popover`](https://pub.dev/packages/popover), taken from AppKit on macOS
 26.7. Without version 2, the popup is a plain rectangle.

@@ -1,7 +1,7 @@
 # 0011 — Design values are Rust constants
 
-Status: **accepted**, inherited from Malaysia. The full record is
-[Malaysia ADR 0011](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0011-valores-de-diseno-como-constantes-rust.en.md).
+Status: **accepted**, inherited from Malaysia. The original record, in Spanish, is
+[Malaysia ADR 0011](https://github.com/HBlanqueto/malaysia/blob/7daea4b7e3e5f2d59c9bce62103b16e4e0d63de2/docs/decisiones/0011-valores-de-diseno-como-constantes-rust.md) in its history.
 
 ## What still holds
 

@@ -1,7 +1,7 @@
 # 0035 — Identifying own apps and CSD
 
-Status: **accepted** (2026-10-23), inherited from Malaysia. The full record is
-[Malaysia ADR 0035](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0035-identificacion-de-apps-propias-y-csd.en.md).
+Status: **accepted** (2026-10-23), inherited from Malaysia. The original record, in Spanish, is
+[Malaysia ADR 0035](https://github.com/HBlanqueto/malaysia/blob/d4137864b382a8f019562b440dbb6d37d1d6433c/docs/decisiones/0035-identificacion-de-apps-propias-y-csd.md) in its history.
 
 ## What still holds in the kit
 

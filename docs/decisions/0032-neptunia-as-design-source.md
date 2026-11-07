@@ -1,7 +1,7 @@
 # 0032 — A JSON design source
 
-Status: **accepted**, inherited from Malaysia. The full record is
-[Malaysia ADR 0032](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0032-neptunia-como-fuente-de-diseno.en.md).
+Status: **accepted**, inherited from Malaysia. The original record, in Spanish, is
+[Malaysia ADR 0032](https://github.com/HBlanqueto/malaysia/blob/cae57594bdd8405e4a10fd61427ff6d07beefdf7/docs/decisiones/0032-neptunia-como-fuente-de-diseno.md) in its history.
 
 ## What still holds
 

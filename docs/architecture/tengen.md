@@ -122,6 +122,6 @@ The kit, the compositor and the portal watch `appearance.domain` and
 
 - [ADR 0011](../decisions/0011-design-values-as-rust-constants.md): the values are Rust constants.
 - [ADR 0032](../decisions/0032-neptunia-as-design-source.md) and [ADR 0046](../decisions/0046-tengen-visual-language.md): Tengen as the design source.
-- [`interfaz.md`](https://github.com/HBlanqueto/malaysia/blob/main/docs/arquitectura/interfaz.md): the full visual map.
-- [`ventanas.md`](https://github.com/HBlanqueto/malaysia/blob/main/docs/arquitectura/ventanas.md): titlebar and traffic lights.
-- [`wallpaper.md`](https://github.com/HBlanqueto/malaysia/blob/main/docs/arquitectura/wallpaper.md): the background component and its state.
+- [`interface.md`](https://github.com/HBlanqueto/malaysia/blob/main/docs/architecture/interface.md): the full visual map.
+- [`windows.md`](https://github.com/HBlanqueto/malaysia/blob/main/docs/architecture/windows.md): titlebar and traffic lights.
+- [`wallpaper.md`](https://github.com/HBlanqueto/malaysia/blob/main/docs/architecture/wallpaper.md): the background component and its state.

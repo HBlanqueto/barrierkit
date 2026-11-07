@@ -1,7 +1,7 @@
 # 0039 — Infinity v1: window management for the shell
 
-Status: **accepted**, inherited from Malaysia. The full record is
-[Malaysia ADR 0039](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0039-infinity-v1-gestion-de-ventanas-para-la-shell.en.md).
+Status: **accepted**, inherited from Malaysia. The original record, in Spanish, is
+[Malaysia ADR 0039](https://github.com/HBlanqueto/malaysia/blob/be6a139998f91f476e1d9e4d16c90b4b6e7cf4d6/docs/decisiones/0039-infinity-v1-gestion-de-ventanas-para-la-shell.md) in its history.
 
 ## What still holds in the kit
 

@@ -1,7 +1,7 @@
 # 0041 — Island sidebar
 
-Status: **accepted** (2026-10-26), inherited from Malaysia. The full record is
-[Malaysia ADR 0041](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0041-barra-lateral-en-isla.en.md).
+Status: **accepted** (2026-10-26), inherited from Malaysia. The original record, in Spanish, is
+[Malaysia ADR 0041](https://github.com/HBlanqueto/malaysia/blob/3a1ed3f50321dbd76a4efab8d481b2e4e427dc21/docs/decisiones/0041-barra-lateral-en-isla.md) in its history.
 
 ## What still holds
 
