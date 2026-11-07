@@ -18,10 +18,10 @@
 The pending work is in [ADR 0047](../decisiones/0047-barrierkit-en-capas.en.md),
 «Pendiente» ("Pending"). In short:
 
-- **Blocked by Freya 0.4.3:** partial damage and primary selection.
-- **Waiting for the first app that asks for it:** drag and drop between apps,
-  a native `Image`, search and overflow in the titlebar, `OutlineView`,
-  `ColumnBrowser`, opening files and URLs, typed clipboard.
+- **Blocked by Freya 0.4.3:** partial damage.
+- **Waiting for the first app that asks for it:** a native `Image`, search and
+  overflow in the titlebar, what to do when the last window closes and
+  restoring the navigation and the scroll.
 - **Depends on the compositor:** restoring the window position.
 
 ## Does it use the GPU or the CPU?

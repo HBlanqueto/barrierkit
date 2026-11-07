@@ -242,17 +242,15 @@ Hecho en `main`:
 - **Diseño adaptable**: `use_breakpoint()` da `Compact`, `Medium` o `Wide` según `BREAKPOINT`.
 - **Master Tengen App Show** (`tengen-app-show`), que reúne componentes, animaciones y titlebars, **Ondina** (`ondina`), el reproductor que usa los fondos, el acento propio, los tres tamaños y la navegación del kit, y **Marea** (`marea`), con medios; son las apps de prueba del repositorio.
 - **Fase 6**: Ajustes del sistema es un `PreferencesWindow` con un `Form`; ya no tiene controles, barra lateral ni buscador propios.
+- **Después de la fase 6**: selección primaria (`primary_selection()`), arrastrar y soltar entre apps (`drag`), `OutlineView` y `ColumnBrowser` (`views::tree`), abrir archivos y URLs (`portal`) y portapapeles con HTML y listas de archivos además de texto.
 
 Pendiente. Nada de esto se construye hasta que su motivo desaparezca (regla 2 de AGENTS.md: nada «por si acaso»):
 
-- **Bloqueado por Freya 0.4.3:**
-  - Damage parcial: `RenderPipeline::render` repinta el árbol entero (`freya-core/src/render_pipeline.rs`, «TODO: Use incremental rendering»).
-  - Selección primaria: el `Input` de `freya-components` no expone la selección ni el clic central, así que no hay nada que publicar ni dónde pegar.
+- **Bloqueado por Freya 0.4.3:** damage parcial. `RenderPipeline::render` repinta el árbol entero (`freya-core/src/render_pipeline.rs`, «TODO: Use incremental rendering»).
 - **Espera a la primera app que lo use:**
-  - Capa 0: arrastrar y soltar entre apps (un Finder o un gestor de archivos).
   - Capa 1: `Image` propio; hoy basta `ImageViewer` de Freya dentro de los controles.
-  - Capa 2: hueco de búsqueda y desbordamiento en la `Titlebar`, que ya tiene zonas `left`, `right` y título; `OutlineView` y `ColumnBrowser`.
-  - App: `Open` de archivos y URLs, política al cerrar la última ventana, restauración de la pila de navegación y del desplazamiento, portapapeles con tipos además de texto.
+  - Capa 2: hueco de búsqueda y desbordamiento en la `Titlebar`, que ya tiene zonas `left`, `right` y título.
+  - App: política al cerrar la última ventana y restauración de la pila de navegación y del desplazamiento.
 - **Depende del compositor:** la posición de la ventana, con `xdg-session-management`.
 
 Decidido: los atajos del menú siguen guardándose como texto (`MenuItem::Action::shortcut`). La barra de menús de la shell recibe así los aceleradores de GTK y dbusmenu de otras apps, y `find_menu_shortcut` solo recorre el menú de la ventana con el foco, que es pequeño. Las acciones propias del kit usan `Shortcut` tipado.

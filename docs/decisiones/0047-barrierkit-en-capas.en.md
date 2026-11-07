@@ -242,17 +242,15 @@ Done in `main`:
 - **Adaptive layout**: `use_breakpoint()` gives `Compact`, `Medium` or `Wide` according to `BREAKPOINT`.
 - **Master Tengen App Show** (`tengen-app-show`), which gathers components, animations and titlebars, **Ondina** (`ondina`), the player that uses the backdrops, its own accent, the three sizes and the kit navigation, and **Marea** (`marea`), with media; they are the test apps of the repository.
 - **Phase 6**: System Settings is a `PreferencesWindow` with a `Form`; it no longer has its own controls, sidebar or search field.
+- **After phase 6**: primary selection (`primary_selection()`), drag and drop between apps (`drag`), `OutlineView` and `ColumnBrowser` (`views::tree`), opening files and URLs (`portal`) and a clipboard with HTML and file lists besides text.
 
 Pending. None of this is built until its reason goes away (rule 2 of AGENTS.md: nothing «por si acaso» ("just in case")):
 
-- **Blocked by Freya 0.4.3:**
-  - Partial damage: `RenderPipeline::render` repaints the whole tree (`freya-core/src/render_pipeline.rs`, «TODO: Use incremental rendering»).
-  - Primary selection: the `Input` of `freya-components` exposes neither the selection nor the middle click, so there is nothing to publish and nowhere to paste.
+- **Blocked by Freya 0.4.3:** partial damage. `RenderPipeline::render` repaints the whole tree (`freya-core/src/render_pipeline.rs`, «TODO: Use incremental rendering»).
 - **Waits for the first app that uses it:**
-  - Layer 0: drag and drop between apps (a Finder or a file manager).
   - Layer 1: an `Image` of our own; today Freya's `ImageViewer` inside the controls is enough.
-  - Layer 2: search slot and overflow in the `Titlebar`, which already has `left` and `right` zones and a title; `OutlineView` and `ColumnBrowser`.
-  - App: `Open` for files and URLs, policy when the last window closes, restoration of the navigation stack and of the scroll, clipboard with types besides text.
+  - Layer 2: search slot and overflow in the `Titlebar`, which already has `left` and `right` zones and a title.
+  - App: policy when the last window closes and restoration of the navigation stack and of the scroll.
 - **Depends on the compositor:** the window position, with `xdg-session-management`.
 
 Decided: menu shortcuts stay stored as text (`MenuItem::Action::shortcut`). That way the shell menu bar receives the GTK and dbusmenu accelerators of other apps, and `find_menu_shortcut` only walks the menu of the focused window, which is small. The kit's own actions use typed `Shortcut`.

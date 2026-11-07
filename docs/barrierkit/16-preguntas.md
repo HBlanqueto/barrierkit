@@ -18,10 +18,10 @@
 Lo pendiente está en el [ADR 0047](../decisiones/0047-barrierkit-en-capas.md),
 «Pendiente». En resumen:
 
-- **Bloqueado por Freya 0.4.3:** damage parcial y selección primaria.
-- **Espera a la primera app que lo pida:** arrastrar y soltar entre apps,
-  `Image` propio, búsqueda y desbordamiento en la titlebar, `OutlineView`,
-  `ColumnBrowser`, abrir archivos y URLs, portapapeles con tipos.
+- **Bloqueado por Freya 0.4.3:** damage parcial.
+- **Espera a la primera app que lo pida:** `Image` propio, búsqueda y
+  desbordamiento en la titlebar, qué hacer al cerrar la última ventana y
+  restaurar la navegación y el desplazamiento.
 - **Depende del compositor:** restaurar la posición de la ventana.
 
 ## ¿Usa GPU o CPU?
