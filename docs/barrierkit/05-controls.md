@@ -140,9 +140,9 @@ Module `compact`.
 
 | Item | Build | Reports |
 |---|---|---|
-| `IconButton` | `IconButton::new(Symbol, label)`, `.disabled(bool)` | `.on_press(\|_\| ..)` |
-| `Stepper` | `Stepper::new(label, min, max)`, `.value(i64)` (clamped; default `min`) | `.on_change(\|value: i64\| ..)` |
-| `ToggleGroup` | `ToggleGroup::new(label)`, `.item(text, Face, label, on)` per toggle | `.on_toggle(\|(index, on)\| ..)` |
+| `IconButton` | `IconButton::new(Symbol, label)`, `.disabled(bool)`, `.style(\|s\| ..)` | `.on_press(\|_\| ..)` |
+| `Stepper` | `Stepper::new(label, min, max)`, `.value(i64)` (clamped; default `min`), `.style(\|s\| ..)` | `.on_change(\|value: i64\| ..)` |
+| `ToggleGroup` | `ToggleGroup::new(label)`, `.item(text, Face, label, on)` per toggle, `.style(\|s\| ..)` | `.on_toggle(\|(index, on)\| ..)` |
 
 - `IconButton` is 30 × 30 with a 16 symbol (`ICON_BUTTON`). Inside a
   [`ToolGroup`](#toolbar-controls) it becomes a 36 capsule, the `TOOLGROUP` height.
@@ -163,6 +163,17 @@ ToggleGroup::new("Format")
 
 ![Icon button, stepper and toggle group](assets/components/compact-light.png)
 
+### Style
+
+`IconButton` draws only from an `IconButtonStyle`, `Stepper` from a
+`StepperStyle` and `ToggleGroup` from a `ToggleGroupStyle`. The arrows of a
+[`DatePicker`](#date-picker) draw from the `StepperStyle` in context too. The
+fields are in [Styles and themes](../ai/styles.md#iconbuttonstyle).
+
+```rust
+Stepper::new("Cores", 1, 16).style(|s| StepperStyle { value_position: Some(Edge::Trailing), ..s })
+```
+
 ## Menu buttons
 
 Module `buttons`. The menus they open are [`MenuItem`](07-menus-and-popovers.md) lists, shown
@@ -170,11 +181,11 @@ as a popover menu below the button.
 
 | Item | Build | Reports |
 |---|---|---|
-| `MenuButton` | `MenuButton::new(label, items)` | `.on_activate(\|id: String\| ..)` |
-| `ComboButton` | `ComboButton::new(label, items)` | `.on_press(\|_\| ..)` for the label, `.on_activate(\|id: String\| ..)` for the menu |
-| `HelpLink` | `HelpLink::new()` | `.on_press(\|_\| ..)` |
-| `ControlGroup` | `ControlGroup::new(label)`, `.child(..)` | — (its children report) |
-| `ShareLink` | `ShareLink::new(label, content)` | — (acts by itself) |
+| `MenuButton` | `MenuButton::new(label, items)`, `.style(\|s\| ..)` | `.on_activate(\|id: String\| ..)` |
+| `ComboButton` | `ComboButton::new(label, items)`, `.style(\|s\| ..)` | `.on_press(\|_\| ..)` for the label, `.on_activate(\|id: String\| ..)` for the menu |
+| `HelpLink` | `HelpLink::new()`, `.style(\|s\| ..)` | `.on_press(\|_\| ..)` |
+| `ControlGroup` | `ControlGroup::new(label)`, `.child(..)`, `.style(\|s\| ..)` | — (its children report) |
+| `ShareLink` | `ShareLink::new(label, content)`, `.style(\|s\| ..)` | — (acts by itself) |
 
 - `MenuButton` is a button with a down chevron that opens a menu of actions.
 - `ComboButton` has two halves split by a thin line: the label runs the main action, the
@@ -190,13 +201,26 @@ as a popover menu below the button.
 - `mail_uri(content)` returns `mailto:?body=…` with every byte but unreserved characters
   percent-encoded.
 
+### Style
+
+`MenuButton` draws only from a `MenuButtonStyle`, `ComboButton` from a
+`ComboButtonStyle`, `HelpLink` from a `HelpLinkStyle` and `ControlGroup` from a
+`ControlGroupStyle`, which paints only the group and its separators: its
+children keep their own styles. `ShareLink` is a `MenuButton`, so it takes a
+`MenuButtonStyle`. The fields are in
+[Styles and themes](../ai/styles.md#menubuttonstyle-combobuttonstyle-and-helplinkstyle).
+
+```rust
+MenuButton::new("Sort", items).style(|s| MenuButtonStyle { shape: Shape::Capsule, ..s })
+```
+
 ## Toolbar controls
 
 | Item | Module | Build | Behavior |
 |---|---|---|---|
 | `ToolGroup` | `controls` | `ToolGroup::new()`, `.child(..)`, `.children(..)`, `.style(\|s\| ..)` | Puts each child in a 36 slot. With the `Island` sidebar style it adds separators and a capsule background |
-| `ToolbarSearch` | `compact` | `ToolbarSearch::new(value, placeholder)`, `.collapsed(bool)` | A 180 wide `SearchField` (`TOOLBAR_SEARCH_WIDTH`). Collapsed, it shows a magnifying-glass `IconButton` until pressed or while the text is not empty |
-| `ToolbarOverflow` | `compact` | `ToolbarOverflow::new(items)`, `.on_activate(\|id: String\| ..)` | A `»` `IconButton` that opens the items as a menu |
+| `ToolbarSearch` | `compact` | `ToolbarSearch::new(value, placeholder)`, `.collapsed(bool)`, `.style(\|s\| ..)` | A 180 wide `SearchField` (`TOOLBAR_SEARCH_WIDTH`). Collapsed, it shows a magnifying-glass `IconButton` until pressed or while the text is not empty |
+| `ToolbarOverflow` | `compact` | `ToolbarOverflow::new(items)`, `.on_activate(\|id: String\| ..)`, `.style(\|s\| ..)` | A `»` `IconButton` that opens the items as a menu |
 
 Where they sit in the title bar is in [9](09-titlebars.md).
 
@@ -206,6 +230,11 @@ Where they sit in the title bar is in [9](09-titlebars.md).
 background, rim and `axis` (a vertical group stacks its items). Its Tengen
 follows the user's sidebar style. The fields are in
 [Styles and themes](../ai/styles.md#toolgroupstyle).
+
+`ToolbarSearch` takes a `ToolbarSearchStyle` with only its `width`: the field
+draws from the `SearchFieldStyle` and the collapsed button from the
+`IconButtonStyle` in context. `ToolbarOverflow` is an `IconButton`, so its
+`.style` takes an `IconButtonStyle`.
 
 ```rust
 ToolGroup::new().child(back).child(forward).style(|s| ToolGroupStyle { axis: Axis::Vertical, ..s })
@@ -253,14 +282,14 @@ All of them report the chosen index with `.on_change(|index: usize| ..)`.
 
 | Item | Module | Build | Value |
 |---|---|---|---|
-| `RadioGroup` | `choices` | `RadioGroup::new(label)`, `.option(text)`, `.disabled(bool)`, `.tint(Tint)` | `.selected(usize)` (default 0) |
+| `RadioGroup` | `choices` | `RadioGroup::new(label)`, `.option(text)`, `.disabled(bool)`, `.tint(Tint)`, `.style(\|s\| ..)` | `.selected(usize)` (default 0) |
 | `SegmentedControl` | `controls` | `SegmentedControl::new(label)`, `.segment(text)`, `.style(\|s\| ..)` | `.selected(usize)` (default 0) |
 | `PopUpButton` | `popup_button` | `PopUpButton::new(label)`, `.item(text)`, `.icon_item(text, MenuIcon)` | `.selected(usize)` (default 0) |
-| `ColorWell` | `choices` | `ColorWell::new(label, swatches)`, `.disabled(bool)` | `.selected(Option<usize>)` (default `None`) |
-| `ChoiceCards` | `choices` | `ChoiceCards::new(label)`, `.option(caption, preview)`, `.disabled(bool)` | `.selected(usize)` (default 0) |
+| `ColorWell` | `choices` | `ColorWell::new(label, swatches)`, `.disabled(bool)`, `.style(\|s\| ..)` | `.selected(Option<usize>)` (default `None`) |
+| `ChoiceCards` | `choices` | `ChoiceCards::new(label)`, `.option(caption, preview)`, `.disabled(bool)`, `.style(\|s\| ..)` | `.selected(usize)` (default 0) |
 
-- `RadioGroup` stacks its options in a column. The arrow keys move the choice and wrap at the
-  ends.
+- `RadioGroup` stacks its options in a column; its style's `axis` puts them in a row. The
+  arrow keys move the choice and wrap at the ends.
 - `SegmentedControl` fills its width; each segment is 24 tall. The chosen one is raised with a
   shadow. The arrows move the choice and wrap.
 - `PopUpButton` shows the chosen item, its SVG icon if it has one, and an up-down chevron. A
@@ -301,9 +330,17 @@ ColorWell::new("Accent color", &ACCENT_SWATCHES).selected(Some(0))
 segment, the chosen one and `axis` (vertical stacks the segments). The fields
 are in [Styles and themes](../ai/styles.md#segmentedcontrolstyle).
 
+`RadioGroup` draws only from a `RadioGroupStyle`, with the `axis` of its
+options and the `label_position` of each label; `.tint(Tint)` sets its `fill`.
+`ColorWell` draws from a `ColorWellStyle` and `ChoiceCards` from a
+`ChoiceCardsStyle`, each with an `axis` and `wraps` for its swatches or cards.
+The fields are in [Styles and themes](../ai/styles.md#radiogroupstyle).
+
 ```rust
 SegmentedControl::new("View").segment("Icons").segment("List")
     .style(|s| SegmentedControlStyle { axis: Axis::Vertical, ..s })
+RadioGroup::new("Size").option("Small").option("Large")
+    .style(|s| RadioGroupStyle { axis: Axis::Horizontal, ..s })
 ```
 
 ## Sliders
@@ -311,18 +348,18 @@ SegmentedControl::new("View").segment("Icons").segment("List")
 | Item | Module | Build | Value | Reports |
 |---|---|---|---|---|
 | `Slider` | `controls` | `Slider::stepped(label, steps)` (at least 2), `.labels(&[..])`, `.disabled(bool)`, `.tint(Tint)`, `.style(\|s\| ..)` | `.value(usize)` | `.on_change(\|step: usize\| ..)` |
-| `LevelSlider` | `level` | `LevelSlider::new(label)`, `.style(LevelStyle)`, `.disabled(bool)`, `.tint(Tint)` | `.value(f32)` (0 to 1) | `.on_change(\|value: f32\| ..)` |
+| `LevelSlider` | `level` | `LevelSlider::new(label)`, `.disabled(bool)`, `.tint(Tint)`, `.style(\|s\| ..)` | `.value(f32)` (0 to 1) | `.on_change(\|value: f32\| ..)` |
 
 - `Slider` is 220 wide with a tick under each step and an optional caption per step. A click
   or drag snaps to the nearest step; ← ↓ and → ↑ move one step.
 - `LevelSlider` fills its width. The arrows move it by `SLIDER_KEY_STEP` (0.05).
-- `LevelStyle::Regular` is a 6 track with a 20 × 16 knob. `LevelStyle::Fat(Symbol)` is the
-  22 tall Control Center bar with the symbol inside the fill.
+- Its Tengen is a 6 track with a 20 × 16 knob. `.style(|s| s.fat(Symbol))` is the 22 tall
+  Control Center bar with the symbol inside the fill.
 
 ```rust
 Slider::stepped("Level", 5).value(2).labels(&["A", "B", "C", "D", "E"])
 LevelSlider::new("Brightness").value(0.3)
-LevelSlider::new("Volume").value(0.6).style(LevelStyle::Fat(Symbol::SpeakerWave))
+LevelSlider::new("Volume").value(0.6).style(|s| s.fat(Symbol::SpeakerWave))
 ```
 
 | Stepped | Regular and fat |
@@ -336,7 +373,8 @@ LevelSlider::new("Volume").value(0.6).style(LevelStyle::Fat(Symbol::SpeakerWave)
 `.control_style(|s: SliderStyle| ..)` for every slider inside a view and
 `Theme::tengen().style(|s: SliderStyle| ..)`
 for the whole app. The levels, the fields and the value types are in
-[Styles and themes](../ai/styles.md).
+[Styles and themes](../ai/styles.md). `LevelSlider` draws the same way from a
+`LevelSliderStyle` ([fields](../ai/styles.md#levelsliderstyle)).
 
 ```rust
 Slider::stepped("Volume", 10).style(|s| SliderStyle { track_height: 10.0, ..s })
@@ -425,7 +463,8 @@ To choose from preset colors, use [`ColorWell`](#choices).
 ## Date picker
 
 `date_picker::DatePicker::new(label, CivilDateTime)` is a text field with one segment per part
-and a stepper beside it, like the `textFieldAndStepper` style of `NSDatePicker`.
+and a stepper beside it, like the `textFieldAndStepper` style of `NSDatePicker`. The
+stepper's arrows draw from the [`StepperStyle`](../ai/styles.md#stepperstyle) in context.
 
 | Method | Default | Effect |
 |---|---|---|

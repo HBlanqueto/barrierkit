@@ -1,14 +1,17 @@
 use freya_core::prelude::*;
 use std::rc::Rc;
 
-use ctdesign::{BODY, BUTTON, ICON_BUTTON, LARGE_TITLE, SEGMENTED, STEPPER, TOOLGROUP};
 use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
 
+use crate::controls::{dimmed, dimmed_label, inner_border, labeled, shadowed};
 use crate::i18n::text;
-use crate::interaction::use_interaction;
-use crate::style::{Palette, text};
+use crate::interaction::{Interaction, use_interaction};
+use crate::style::with_font;
+use crate::styles::{
+    Axis, ControlState, IconButtonStyle, LayoutDirection, Paints, StepperStyle, Theme,
+    ToggleGroupStyle, ToolbarSearchStyle, resolve,
+};
 use crate::symbol::{Symbol, symbol};
-use crate::theme::color;
 
 #[derive(Clone, Copy)]
 struct ToolbarItems(State<bool>);
@@ -23,12 +26,26 @@ pub(crate) fn use_toolbar_items(in_toolbar: bool) {
     items.set_if_modified(in_toolbar);
 }
 
+pub(crate) fn in_toolbar() -> bool {
+    try_consume_context::<ToolbarItems>().is_some_and(|items| *items.0.read())
+}
+
+fn control_state(interaction: Interaction, disabled: bool) -> ControlState {
+    ControlState {
+        hovered: interaction.hovered(),
+        pressed: interaction.pressed(),
+        focused: interaction.focused(),
+        disabled,
+    }
+}
+
 #[derive(PartialEq)]
 pub struct IconButton {
     symbol: Symbol,
     label: &'static str,
     disabled: bool,
     on_press: Option<Callback<(), ()>>,
+    style: Theme,
 }
 
 impl IconButton {
@@ -38,7 +55,13 @@ impl IconButton {
             label,
             disabled: false,
             on_press: None,
+            style: Theme::tengen(),
         }
+    }
+
+    pub fn style(mut self, restyle: impl Fn(IconButtonStyle) -> IconButtonStyle + 'static) -> Self {
+        self.style = self.style.style(restyle);
+        self
     }
 
     pub fn disabled(mut self, disabled: bool) -> Self {
@@ -54,21 +77,25 @@ impl IconButton {
 
 impl Component for IconButton {
     fn render(&self) -> impl IntoElement {
-        let palette = Palette::current();
         let interaction = use_interaction();
+        let style: IconButtonStyle = resolve(&self.style);
         let enabled = !self.disabled;
+        let state = control_state(interaction, self.disabled);
+        let paints = Paints::current(state, style.effect);
+        let pressed = enabled && interaction.pressed();
+        let scale = crate::animation::use_animated(
+            if pressed { style.pressed_scale } else { 1.0 },
+            style.animation,
+        );
         let on_press = self.on_press.clone();
-        let in_toolbar = try_consume_context::<ToolbarItems>().is_some_and(|items| *items.0.read());
-        let (size, radius) = if in_toolbar {
-            let size = TOOLGROUP.height as f32;
-            (size, size / 2.0)
+        let size = style.size;
+        let radius = style
+            .shape
+            .corner_radius(size, size, LayoutDirection::LeftToRight);
+        let opacity = if enabled {
+            style.opacity
         } else {
-            (ICON_BUTTON.size, ICON_BUTTON.radius)
-        };
-        let ink = if enabled {
-            palette.label
-        } else {
-            palette.tertiary_label
+            style.opacity * style.disabled_opacity
         };
 
         let button = interaction
@@ -79,17 +106,24 @@ impl Component for IconButton {
             .height(Size::px(size))
             .corner_radius(radius)
             .center()
-            .maybe(enabled && interaction.hovered(), |el| {
-                el.background(color(palette.control_hover))
+            .background(paints.fill(&style.background))
+            .map(paints.blur(&style.background), Rect::blur)
+            .map(style.border.as_ref(), |el, border| {
+                el.border(inner_border(&paints, border))
             })
-            .maybe(enabled && interaction.pressed(), |el| {
-                el.scale(BUTTON.pressed_scale)
-            })
+            .maybe(scale != 1.0, |el| el.scale(scale))
             .map(on_press.filter(|_| enabled), |el, on_press| {
                 el.on_press(move |_| on_press.call(()))
             })
-            .child(symbol(self.symbol, ICON_BUTTON.icon, ink));
-        interaction.focus_ring(button, radius)
+            .child(symbol(
+                self.symbol,
+                style.icon_size,
+                paints.color(style.icon.resolve(state)),
+            ));
+        interaction.focus_ring(
+            dimmed(shadowed(button, &style.shadows), opacity),
+            radius.top_left,
+        )
     }
 }
 
@@ -100,6 +134,7 @@ pub struct Stepper {
     min: i64,
     max: i64,
     on_change: Option<Callback<i64, ()>>,
+    style: Theme,
 }
 
 impl Stepper {
@@ -110,7 +145,13 @@ impl Stepper {
             min,
             max,
             on_change: None,
+            style: Theme::tengen(),
         }
+    }
+
+    pub fn style(mut self, restyle: impl Fn(StepperStyle) -> StepperStyle + 'static) -> Self {
+        self.style = self.style.style(restyle);
+        self
     }
 
     pub fn value(mut self, value: i64) -> Self {
@@ -126,8 +167,10 @@ impl Stepper {
 
 impl Component for Stepper {
     fn render(&self) -> impl IntoElement {
-        let palette = Palette::current();
         let interaction = use_interaction();
+        let style: StepperStyle = resolve(&self.style);
+        let state = control_state(interaction, false);
+        let paints = Paints::current(state, style.effect);
         let value = crate::controlled::use_controlled(&self.value);
         let current = *value.read();
         let (min, max) = (self.min, self.max);
@@ -143,35 +186,58 @@ impl Component for Stepper {
 
         let up = (current < max).then(|| Rc::new(move || step_up(1)) as Rc<dyn Fn()>);
         let down = (current > min).then(|| Rc::new(move || step_down(-1)) as Rc<dyn Fn()>);
-        let arrows = stepper_arrows(up, down);
+        let (width, height) = style.arrows_size;
+        let radius = style
+            .shape
+            .corner_radius(width, height, LayoutDirection::LeftToRight);
+        let arrows =
+            interaction.focus_ring(stepper_arrows(&style, state, up, down), radius.top_left);
 
-        let stepper = interaction
+        let row = interaction
             .attach(rect(), true)
             .a11y_role(AccessibilityRole::SpinButton)
             .a11y_alt(self.label)
             .a11y_builder(move |node| node.set_numeric_value(current as f64))
-            .direction(Direction::Horizontal)
-            .cross_align(Alignment::Center)
-            .spacing(STEPPER.gap)
             .on_key_down(move |event: Event<KeyboardEventData>| match event.key {
                 Key::Named(NamedKey::ArrowUp) => step_key(1),
                 Key::Named(NamedKey::ArrowDown) => step_key(-1),
                 _ => {}
-            })
-            .child(text(current.to_string(), BODY, palette.label))
-            .child(interaction.focus_ring(arrows, STEPPER.radius));
-        stepper.into_element()
+            });
+        match style.value_position {
+            None => row
+                .direction(Direction::Horizontal)
+                .cross_align(Alignment::Center)
+                .child(arrows),
+            Some(edge) => {
+                let text = with_font(label().text(current.to_string()), style.value_font)
+                    .max_lines(1)
+                    .color(paints.fill(&style.value));
+                labeled(
+                    row,
+                    arrows,
+                    dimmed_label(text, style.opacity),
+                    edge,
+                    style.layout_direction,
+                    style.value_gap,
+                )
+            }
+        }
     }
 }
 
-pub(crate) fn stepper_arrows(up: Option<Rc<dyn Fn()>>, down: Option<Rc<dyn Fn()>>) -> Rect {
-    let palette = Palette::current();
+pub(crate) fn stepper_arrows(
+    style: &StepperStyle,
+    state: ControlState,
+    up: Option<Rc<dyn Fn()>>,
+    down: Option<Rc<dyn Fn()>>,
+) -> Rect {
+    let paints = Paints::current(state, style.effect);
     let arrow = |kind: Symbol, label: &'static str, press: Option<Rc<dyn Fn()>>| {
-        let ink = if press.is_some() {
-            palette.label
-        } else {
-            palette.tertiary_label
+        let state = ControlState {
+            disabled: press.is_none(),
+            ..state
         };
+        let ink = Paints::current(state, style.effect).color(style.chevron.resolve(state));
         rect()
             .a11y_role(AccessibilityRole::Button)
             .a11y_alt(label)
@@ -185,22 +251,32 @@ pub(crate) fn stepper_arrows(up: Option<Rc<dyn Fn()>>, down: Option<Rc<dyn Fn()>
                     }
                 })
             })
-            .child(symbol(kind, STEPPER.chevron, ink))
+            .child(symbol(kind, style.chevron_size, ink))
     };
-    rect()
-        .width(Size::px(STEPPER.width))
-        .height(Size::px(STEPPER.height))
+    let (width, height) = style.arrows_size;
+    let arrows = rect()
+        .width(Size::px(width))
+        .height(Size::px(height))
         .content(Content::flex())
-        .corner_radius(STEPPER.radius)
-        .background(color(palette.control_background))
+        .corner_radius(
+            style
+                .shape
+                .corner_radius(width, height, LayoutDirection::LeftToRight),
+        )
+        .background(paints.fill(&style.background))
+        .map(paints.blur(&style.background), Rect::blur)
+        .map(style.border.as_ref(), |el, border| {
+            el.border(inner_border(&paints, border))
+        })
         .child(arrow(Symbol::ChevronUp, text!("increase"), up))
         .child(
             rect()
                 .width(Size::fill())
-                .height(Size::px(ctdesign::HAIRLINE))
-                .background(color(palette.separator)),
+                .height(Size::px(style.separator_height))
+                .background(paints.fill(&style.separator)),
         )
-        .child(arrow(Symbol::ChevronDown, text!("decrease"), down))
+        .child(arrow(Symbol::ChevronDown, text!("decrease"), down));
+    dimmed(shadowed(arrows, &style.shadows), style.opacity)
 }
 
 #[derive(Clone, Copy, PartialEq)]
@@ -215,6 +291,7 @@ pub struct ToggleGroup {
     label: &'static str,
     items: Vec<(&'static str, Face, &'static str, bool)>,
     on_toggle: Option<Callback<(usize, bool), ()>>,
+    style: Theme,
 }
 
 impl ToggleGroup {
@@ -223,7 +300,16 @@ impl ToggleGroup {
             label,
             items: Vec::new(),
             on_toggle: None,
+            style: Theme::tengen(),
         }
+    }
+
+    pub fn style(
+        mut self,
+        restyle: impl Fn(ToggleGroupStyle) -> ToggleGroupStyle + 'static,
+    ) -> Self {
+        self.style = self.style.style(restyle);
+        self
     }
 
     pub fn item(mut self, text: &'static str, face: Face, label: &'static str, on: bool) -> Self {
@@ -239,7 +325,8 @@ impl ToggleGroup {
 
 impl Component for ToggleGroup {
     fn render(&self) -> impl IntoElement {
-        let palette = Palette::current();
+        let style: ToggleGroupStyle = resolve(&self.style);
+        let paints = Paints::current(ControlState::default(), style.effect);
         let states = crate::controlled::use_controlled(
             &self.items.iter().map(|item| item.3).collect::<Vec<_>>(),
         );
@@ -265,19 +352,35 @@ impl Component for ToggleGroup {
                             cb.call((index, next));
                         }
                     }),
+                    style: self.style.clone(),
                 }
                 .into_element()
             });
+        let (item_width, item_height) = style.item_size;
+        let (direction, thickness) = match style.axis {
+            Axis::Horizontal => (Direction::Horizontal, item_height),
+            Axis::Vertical => (Direction::Vertical, item_width),
+        };
+        let thickness = thickness + 2.0 * style.padding;
 
-        rect()
+        let group = rect()
             .a11y_role(AccessibilityRole::Toolbar)
             .a11y_alt(self.label)
-            .direction(Direction::Horizontal)
-            .padding(Gaps::new_all(SEGMENTED.padding))
-            .spacing(SEGMENTED.gap)
-            .corner_radius(SEGMENTED.radius)
-            .background(color(palette.control_background))
-            .children(toggles)
+            .direction(direction)
+            .padding(Gaps::new_all(style.padding))
+            .spacing(style.gap)
+            .corner_radius(style.shape.corner_radius(
+                thickness,
+                thickness,
+                LayoutDirection::LeftToRight,
+            ))
+            .background(paints.fill(&style.background))
+            .map(paints.blur(&style.background), Rect::blur)
+            .map(style.border.as_ref(), |el, border| {
+                el.border(inner_border(&paints, border))
+            })
+            .children(toggles);
+        dimmed(group, style.opacity)
     }
 }
 
@@ -288,47 +391,65 @@ struct Toggle {
     label: &'static str,
     on: bool,
     on_press: Callback<(), ()>,
+    style: Theme,
 }
 
 impl Component for Toggle {
     fn render(&self) -> impl IntoElement {
-        let palette = Palette::current();
+        let style: ToggleGroupStyle = resolve(&self.style);
         let interaction = use_interaction();
+        let state = control_state(interaction, false);
+        let paints = Paints::current(state, style.effect);
         let on = self.on;
         let on_press = self.on_press.clone();
-        let ink = if on { palette.on_accent } else { palette.label };
+        let (paint, ink) = if on {
+            (&style.selected, &style.selected_label)
+        } else {
+            (&style.item, &style.label)
+        };
         let face = self.face;
+        let font = match face {
+            Face::Bold => style.bold_font,
+            Face::Italic | Face::Underline => style.font,
+        };
+        let (width, height) = style.item_size;
+        let radius = style
+            .item_shape
+            .corner_radius(width, height, LayoutDirection::LeftToRight);
 
         let toggle = interaction
             .attach(rect(), true)
             .a11y_role(AccessibilityRole::Button)
             .a11y_alt(self.label)
             .a11y_builder(move |node| node.set_toggled(on.into()))
-            .width(Size::px(ICON_BUTTON.size))
-            .height(Size::px(SEGMENTED.segment_height))
-            .corner_radius(SEGMENTED.segment_radius)
+            .width(Size::px(width))
+            .height(Size::px(height))
+            .corner_radius(radius)
             .center()
-            .maybe(on, |el| el.background(color(palette.accent)))
+            .background(paints.fill(paint))
+            .map(paints.blur(paint), Rect::blur)
             .on_press(move |_| on_press.call(()))
             .child(
                 paragraph()
-                    .font_family(BODY.family)
-                    .font_size(BODY.size as f32)
-                    .font_weight(match face {
-                        Face::Bold => LARGE_TITLE.weight as i32,
-                        Face::Italic | Face::Underline => SEGMENTED.font_weight,
-                    })
+                    .font_family(font.family)
+                    .font_size(font.size as f32)
+                    .font_weight(font.weight as i32)
                     .font_slant(match face {
                         Face::Italic => FontSlant::Italic,
                         Face::Bold | Face::Underline => FontSlant::Upright,
                     })
-                    .color(color(ink))
+                    .color(paints.fill(ink))
                     .span(Span::new(self.text).text_decoration(match face {
                         Face::Underline => TextDecoration::Underline,
                         Face::Bold | Face::Italic => TextDecoration::None,
                     })),
             );
-        interaction.focus_ring(toggle, SEGMENTED.segment_radius)
+        let toggle = if on {
+            shadowed(toggle, &style.selected_shadows)
+        } else {
+            toggle
+        };
+        interaction.focus_ring(dimmed(toggle, style.opacity), radius.top_left)
     }
 }
 
@@ -337,6 +458,7 @@ pub struct ToolbarSearch {
     value: State<String>,
     placeholder: &'static str,
     collapsed: bool,
+    style: Theme,
 }
 
 impl ToolbarSearch {
@@ -345,7 +467,16 @@ impl ToolbarSearch {
             value,
             placeholder,
             collapsed: false,
+            style: Theme::tengen(),
         }
+    }
+
+    pub fn style(
+        mut self,
+        restyle: impl Fn(ToolbarSearchStyle) -> ToolbarSearchStyle + 'static,
+    ) -> Self {
+        self.style = self.style.style(restyle);
+        self
     }
 
     pub fn collapsed(mut self, collapsed: bool) -> Self {
@@ -356,6 +487,7 @@ impl ToolbarSearch {
 
 impl Component for ToolbarSearch {
     fn render(&self) -> impl IntoElement {
+        let style: ToolbarSearchStyle = resolve(&self.style);
         let mut opened = use_state(|| false);
         let open = !self.collapsed || *opened.read() || !self.value.read().is_empty();
         if !open {
@@ -367,7 +499,7 @@ impl Component for ToolbarSearch {
                 .into_element();
         }
         rect()
-            .width(Size::px(ctdesign::TOOLBAR_SEARCH_WIDTH))
+            .width(Size::px(style.width))
             .child(
                 crate::controls::SearchField::new(self.value, self.placeholder)
                     .auto_focus(self.collapsed)
@@ -385,6 +517,7 @@ impl Component for ToolbarSearch {
 pub struct ToolbarOverflow {
     items: Vec<crate::menu::MenuItem>,
     on_activate: Option<Callback<String, ()>>,
+    style: Theme,
 }
 
 impl ToolbarOverflow {
@@ -392,7 +525,13 @@ impl ToolbarOverflow {
         Self {
             items,
             on_activate: None,
+            style: Theme::tengen(),
         }
+    }
+
+    pub fn style(mut self, restyle: impl Fn(IconButtonStyle) -> IconButtonStyle + 'static) -> Self {
+        self.style = self.style.style(restyle);
+        self
     }
 
     pub fn on_activate(mut self, callback: impl Into<Callback<String, ()>>) -> Self {
@@ -409,28 +548,30 @@ impl Component for ToolbarOverflow {
         rect()
             .on_sized(move |event: Event<SizedEventData>| area.set_if_modified(event.area))
             .child(
-                IconButton::new(Symbol::ChevronDoubleRight, text!("more-items")).on_press(
-                    move |_| {
-                        let anchor = *area.peek();
-                        let on_activate = on_activate.clone();
-                        crate::popup_button::open_popover_menu(
-                            items.clone(),
-                            crate::platform::PopupAnchor::BottomLeft,
-                            (
-                                anchor.origin.x.round() as i32,
-                                anchor.origin.y.round() as i32,
-                                anchor.size.width.round() as u32,
-                                anchor.size.height.round() as u32,
-                            ),
-                            None,
-                            move |id| {
-                                if let Some(on_activate) = &on_activate {
-                                    on_activate.call(id);
-                                }
-                            },
-                        );
-                    },
-                ),
+                IconButton {
+                    style: self.style.clone(),
+                    ..IconButton::new(Symbol::ChevronDoubleRight, text!("more-items"))
+                }
+                .on_press(move |_| {
+                    let anchor = *area.peek();
+                    let on_activate = on_activate.clone();
+                    crate::popup_button::open_popover_menu(
+                        items.clone(),
+                        crate::platform::PopupAnchor::BottomLeft,
+                        (
+                            anchor.origin.x.round() as i32,
+                            anchor.origin.y.round() as i32,
+                            anchor.size.width.round() as u32,
+                            anchor.size.height.round() as u32,
+                        ),
+                        None,
+                        move |id| {
+                            if let Some(on_activate) = &on_activate {
+                                on_activate.call(id);
+                            }
+                        },
+                    );
+                }),
             )
     }
 }

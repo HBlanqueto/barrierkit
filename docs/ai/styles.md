@@ -94,7 +94,8 @@ All of them are in `bk::styles` and in the prelude.
 
 Every control style has the same groups. The names of the parts change per
 control; the groups do not. A control leaves out a group it does not draw:
-only `ButtonStyle`, `SliderStyle` and `SwitchStyle` have `animation`.
+only `ButtonStyle`, `HelpLinkStyle`, `IconButtonStyle`, `LevelSliderStyle`,
+`SliderStyle` and `SwitchStyle` have `animation`.
 
 | Group | Fields (slider) |
 |---|---|
@@ -297,6 +298,205 @@ States: `TextField` and `SearchField` are hovered and focused;
 `SecureField` is hovered, pressed and focused and draws the kit's focus ring.
 The token capsules of a `SearchField` keep the `TOKEN_FIELD` look.
 
+### LevelSliderStyle
+
+| Field | Type | Tengen |
+|---|---|---|
+| `height` | `f32` | `SLIDER.height`; the slider fills its width |
+| `track_height` | `f32` | `SLIDER.track` |
+| `knob_size` | `Option<(f32, f32)>` | `Some((SLIDER.knob_width, SLIDER.knob_height))`; `None` draws no knob and the fill starts and ends at the edges |
+| `fill_min` | `f32` | `0.0`: the shortest fill, so the symbol always sits on it |
+| `symbol` | `Option<Symbol>` | `None`; a symbol drawn inside the track at the leading end |
+| `icon_size`, `icon_inset` | `f32` | `SYMBOL.grid`, `SLIDER_FAT.lead_icon_x` |
+| `track_shape`, `knob_shape` | `Shape` | `Capsule`, `Capsule`; the fill takes the track's shape |
+| `track`, `fill`, `knob`, `icon` | `StateValue<ShapeStyle>` | `Role(ControlBackground)`, `Accent`, `Color(SWITCH.knob_color)`, `Role(OnAccent)` |
+| `knob_border` | `Option<(ShapeStyle, f32)>` | `None` |
+| `knob_shadows` | `Vec<ShadowStyle>` | `[KNOB_SHADOW]` |
+| `opacity` | `f32` | `1.0`, for every part |
+| `disabled_opacity` | `f32` | `SWITCH.disabled_opacity`, for the track, fill and symbol |
+| `effect` | `ColorEffect` | `system_effect` |
+| `layout_direction` | `LayoutDirection` | `LeftToRight`; `RightToLeft` fills from the right and swaps ← → |
+| `animation` | `Animation` | `None`: the knob and the fill jump, as in Tengen |
+
+States: hovered, pressed, focused, disabled. `LevelSlider::tint(Tint)` is an
+instance override of `fill`. The preset `LevelSliderStyle::fat(symbol)` is the
+Control Center bar: `height` and `track_height` `SLIDER_FAT.height`,
+`knob_size` `None`, `fill_min` `SLIDER_FAT.fill_min` and the symbol.
+
+```rust
+LevelSlider::new("Volume").style(|s| s.fat(Symbol::SpeakerWave))
+```
+
+### RadioGroupStyle
+
+| Field | Type | Tengen |
+|---|---|---|
+| `button_size`, `dot_size` | `f32` | `SETTINGS.radio_size`, `SETTINGS.radio_dot` |
+| `label_gap`, `spacing` | `f32` | `SETTINGS.radio_gap` between a button and its label, `SETTINGS.radio_spacing` between options |
+| `button_shape`, `dot_shape` | `Shape` | `Circle`, `Circle` |
+| `button_background`, `fill` | `StateValue<ShapeStyle>` | `Role(ControlBackground)` while not chosen, `Accent` while chosen |
+| `dot`, `label` | `StateValue<ShapeStyle>` | `Role(OnAccent)`, `Role(Label)` (disabled `Role(TertiaryLabel)`) |
+| `button_border` | `Option<(ShapeStyle, f32)>` | `Some((Role(Separator), HAIRLINE))`, drawn only while not chosen |
+| `button_shadows` | `Vec<ShadowStyle>` | empty |
+| `opacity`, `disabled_opacity` | `f32` | `1.0`, `1.0`, for the button and the label |
+| `effect` | `ColorEffect` | `system_effect` |
+| `axis` | `Axis` | `Vertical`: a column of options; `Horizontal` puts them in a row |
+| `label_position` | `Option<Edge>` | `Some(Edge::Trailing)`; `None` hides the labels, which stay accessible |
+| `layout_direction` | `LayoutDirection` | `LeftToRight`; `RightToLeft` swaps `Leading` and `Trailing` |
+| `label_font` | `Font` | `BODY` |
+
+States: each option is hovered, pressed, focused and disabled on its own.
+`RadioGroup::tint(Tint)` is an instance override of `fill`. The arrow keys
+move the choice on both axes.
+
+```rust
+RadioGroup::new("Size").option("Small").option("Large").style(|s| RadioGroupStyle {
+    axis: Axis::Horizontal,
+    label_position: Some(Edge::Leading),
+    ..s
+})
+```
+
+### ColorWellStyle and ChoiceCardsStyle
+
+The colors of the swatches and the previews of the cards are content: no
+paint or `effect` changes them.
+
+| Field | Type | `ColorWellStyle` | `ChoiceCardsStyle` |
+|---|---|---|---|
+| `swatch_size`; `card_size` | `f32`; `(f32, f32)` | `SETTINGS.swatch_size` | `(SETTINGS.card_width, SETTINGS.card_height)` |
+| `column_width` | `f32` | `SETTINGS.swatch_column`, the width of a swatch with its name | — |
+| `name_gap`; `caption_gap` | `f32` | `SETTINGS.swatch_name_gap` | `SETTINGS.card_caption_gap` |
+| `spacing` | `f32` | `SETTINGS.swatch_gap` | `SETTINGS.card_gap`; also between wrapped lines |
+| `swatch_shape`; `card_shape` | `Shape` | `Circle` | `RoundedRectangle { radius: SETTINGS.card_radius, style: Circular }` |
+| `selection` | `StateValue<ShapeStyle>` | `Role(Label)`, the ring of the chosen swatch | `Accent`, the ring of the chosen card |
+| `name`; `caption`, `selected_caption` | `StateValue<ShapeStyle>` | `Role(SecondaryLabel)`, shown only under the chosen swatch | `Role(SecondaryLabel)`, `Role(Label)` |
+| `swatch_border`; `card_border` | `Option<(ShapeStyle, f32)>` | `Some((Role(Separator), HAIRLINE))` | `Some((Color(SETTINGS.card_outline), HAIRLINE))` |
+| `swatch_shadows`; `card_shadows` | `Vec<ShadowStyle>` | empty | empty |
+| `opacity`, `disabled_opacity` | `f32` | `1.0`, `SWITCH.disabled_opacity` | the same |
+| `effect` | `ColorEffect` | `system_effect` | the same |
+| `axis` | `Axis` | `Horizontal`; `Vertical` stacks them | the same |
+| `wraps` | `bool` | `false`; `true` starts a new line when the next one does not fit | the same |
+| `name_font`; `caption_font`, `selected_caption_font` | `Font` | `CAPTION` | `SETTINGS.card_caption_font`, the same with `SETTINGS.card_caption_selected_weight` |
+
+States: each swatch and card is hovered, pressed, focused and disabled on its
+own.
+
+### IconButtonStyle
+
+| Field | Type | Tengen |
+|---|---|---|
+| `size`, `icon_size` | `f32` | `ICON_BUTTON.size`, in a toolbar `TOOLGROUP.height`; `ICON_BUTTON.icon` |
+| `shape` | `Shape` | `RoundedRectangle { radius: ICON_BUTTON.radius, style: Circular }`, in a toolbar `Capsule` |
+| `background` | `StateValue<ShapeStyle>` | `Clear`, hovered `Role(ControlHover)`, disabled `Clear` |
+| `icon` | `StateValue<ShapeStyle>` | `Role(Label)`, disabled `Role(TertiaryLabel)` |
+| `border` | `Option<(ShapeStyle, f32)>` | `None` |
+| `shadows` | `Vec<ShadowStyle>` | empty |
+| `opacity`, `disabled_opacity` | `f32` | `1.0`, `1.0` |
+| `pressed_scale` | `f32` | `BUTTON.pressed_scale` |
+| `effect` | `ColorEffect` | `system_effect` |
+| `animation` | `Animation` | `None`: the pressed scale jumps |
+
+States: hovered, pressed, focused, disabled. `ToolbarOverflow` is an
+`IconButton`: its `.style` takes an `IconButtonStyle`.
+
+### StepperStyle
+
+| Field | Type | Tengen |
+|---|---|---|
+| `arrows_size` | `(f32, f32)` | `(STEPPER.width, STEPPER.height)` |
+| `chevron_size`, `separator_height`, `value_gap` | `f32` | `STEPPER.chevron`, `HAIRLINE`, `STEPPER.gap` |
+| `shape` | `Shape` | `RoundedRectangle { radius: STEPPER.radius, style: Circular }`, the arrows |
+| `background`, `separator` | `StateValue<ShapeStyle>` | `Role(ControlBackground)`, `Role(Separator)` |
+| `chevron`, `value` | `StateValue<ShapeStyle>` | `Role(Label)` (disabled `Role(TertiaryLabel)`), `Role(Label)` |
+| `border` | `Option<(ShapeStyle, f32)>` | `None` |
+| `shadows` | `Vec<ShadowStyle>` | empty |
+| `opacity`, `effect` | `f32`, `ColorEffect` | `1.0`, `system_effect` |
+| `value_position` | `Option<Edge>` | `Some(Edge::Leading)`; `None` hides the value, which stays accessible |
+| `layout_direction` | `LayoutDirection` | `LeftToRight`; `RightToLeft` swaps `Leading` and `Trailing` |
+| `value_font` | `Font` | `BODY` |
+
+States: the stepper is hovered, pressed and focused; each arrow is disabled at
+its limit. The arrows of a `DatePicker` draw from the `StepperStyle` in
+context, with only `normal` and that disabled state.
+
+### ToggleGroupStyle
+
+| Field | Type | Tengen |
+|---|---|---|
+| `padding`, `gap` | `f32` | `SEGMENTED.padding`, `SEGMENTED.gap` |
+| `item_size` | `(f32, f32)` | `(ICON_BUTTON.size, SEGMENTED.segment_height)` |
+| `shape`, `item_shape` | `Shape` | `RoundedRectangle` of `SEGMENTED.radius` and of `SEGMENTED.segment_radius`, both `Circular` |
+| `background` | `StateValue<ShapeStyle>` | `Role(ControlBackground)`, behind the items |
+| `item`, `selected` | `StateValue<ShapeStyle>` | `Clear` for a toggle that is off, `Accent` for one that is on |
+| `label`, `selected_label` | `StateValue<ShapeStyle>` | `Role(Label)`, `Role(OnAccent)` |
+| `border` | `Option<(ShapeStyle, f32)>` | `None`, around the group |
+| `selected_shadows` | `Vec<ShadowStyle>` | empty |
+| `opacity`, `effect` | `f32`, `ColorEffect` | `1.0`, `system_effect` |
+| `axis` | `Axis` | `Horizontal`; `Vertical` stacks the toggles |
+| `font`, `bold_font` | `Font` | `BODY` with `SEGMENTED.font_weight`; `BODY` with `LARGE_TITLE.weight` for `Face::Bold`; `line_height` has no effect |
+
+States: each toggle is hovered, pressed and focused on its own; the group has
+only `normal`.
+
+### ToolbarSearchStyle
+
+| Field | Type | Tengen |
+|---|---|---|
+| `width` | `f32` | `TOOLBAR_SEARCH_WIDTH`, the width of the open field |
+
+The open field is a `SearchField` and draws from the `SearchFieldStyle` in
+context; the collapsed button is an `IconButton` and draws from the
+`IconButtonStyle` in context. Change them with `.control_style` around the
+toolbar search:
+
+```rust
+ToolbarSearch::new(query, "Search")
+    .control_style(|s: SearchFieldStyle| SearchFieldStyle { shape: Shape::Rectangle, ..s })
+```
+
+### MenuButtonStyle, ComboButtonStyle and HelpLinkStyle
+
+| Field | Type | `MenuButtonStyle` | `ComboButtonStyle` | `HelpLinkStyle` |
+|---|---|---|---|---|
+| `height`; `size` | `f32` | `BUTTON.height` | `BUTTON.height` | `size` `BUTTON.height`, a square |
+| `padding_x` | `f32` | `BUTTON.padding_x` | `BUTTON.padding_x`, the label half | — |
+| `menu_padding_x` | `f32` | — | `BUTTON.menu_padding_x`, the chevron half | — |
+| `chevron_gap` | `f32` | `SPACE_1` | — | — |
+| `chevron_size` | `f32` | `SETTINGS.dropdown_chevron_glyph` | `SETTINGS.dropdown_chevron_glyph` | — |
+| `separator_size` | `(f32, f32)` | — | `(HAIRLINE, BUTTON.height / 2)` | — |
+| `shape` | `Shape` | `RoundedRectangle { radius: BUTTON.radius, style: Circular }` | the same | `Circle` |
+| `background` | `StateValue<ShapeStyle>` | `Role(ControlBackground)`, hovered `Role(ControlHover)` | `Role(ControlBackground)`, behind both halves | `Role(ControlBackground)`, hovered `Role(ControlHover)` |
+| `segment` | `StateValue<ShapeStyle>` | — | `Clear`, hovered `Role(ControlHover)`, for each half | — |
+| `label` | `StateValue<ShapeStyle>` | `Role(Label)` | `Role(Label)` | `Role(Label)`, the `?` |
+| `chevron` | `StateValue<ShapeStyle>` | `Role(SecondaryLabel)` | `Role(SecondaryLabel)` | — |
+| `separator` | `StateValue<ShapeStyle>` | — | `Role(Separator)` | — |
+| `border` | `Option<(ShapeStyle, f32)>` | `None` | `None` | `None` |
+| `shadows` | `Vec<ShadowStyle>` | empty | empty | empty |
+| `opacity`, `effect` | `f32`, `ColorEffect` | `1.0`, `system_effect` | the same | the same |
+| `pressed_scale` | `f32` | — | — | `BUTTON.pressed_scale` |
+| `font` | `Font` | `BODY` | `BODY` | `BODY` |
+| `animation` | `Animation` | — | — | `None`: the pressed scale jumps |
+
+States: hovered, pressed and focused; each half of a `ComboButton` on its own,
+and its group only `normal`. `ShareLink` is a `MenuButton`: its `.style` takes
+a `MenuButtonStyle`.
+
+### ControlGroupStyle
+
+| Field | Type | Tengen |
+|---|---|---|
+| `height` | `f32` | `BUTTON.height` |
+| `separator_size` | `(f32, f32)` | `(HAIRLINE, BUTTON.height / 2)`, between children |
+| `shape` | `Shape` | `RoundedRectangle { radius: BUTTON.radius, style: Circular }` |
+| `background`, `separator` | `StateValue<ShapeStyle>` | `Role(ControlBackground)`, `Role(Separator)` |
+| `border` | `Option<(ShapeStyle, f32)>` | `None` |
+| `shadows` | `Vec<ShadowStyle>` | empty |
+| `opacity`, `effect` | `f32`, `ColorEffect` | `1.0`, `system_effect` |
+
+States: only `normal`. The children keep their own styles: a `Button` inside
+draws from its `ButtonStyle`.
+
 ## Examples
 
 This slider red, taller, flat and with almost square corners; the others stay
@@ -413,6 +613,18 @@ needs 4.5:1 and control parts 3:1 (WCAG 2.2, 1.4.3 and 1.4.11). Roles and
 | `SearchField` | `SearchFieldStyle` | 2026-11-07 |
 | `SecureField` | `SecureFieldStyle` | 2026-11-07 |
 | `ToolGroup` | `ToolGroupStyle` | 2026-11-07 |
+| `LevelSlider` | `LevelSliderStyle` | 2026-11-07 |
+| `RadioGroup` | `RadioGroupStyle` | 2026-11-07 |
+| `ColorWell` | `ColorWellStyle` | 2026-11-07 |
+| `ChoiceCards` | `ChoiceCardsStyle` | 2026-11-07 |
+| `IconButton`, `ToolbarOverflow` | `IconButtonStyle` | 2026-11-07 |
+| `Stepper`, the arrows of `DatePicker` | `StepperStyle` | 2026-11-07 |
+| `ToggleGroup` | `ToggleGroupStyle` | 2026-11-07 |
+| `ToolbarSearch` | `ToolbarSearchStyle`; its field and button take `SearchFieldStyle` and `IconButtonStyle` | 2026-11-07 |
+| `MenuButton`, `ShareLink` | `MenuButtonStyle` | 2026-11-07 |
+| `ComboButton` | `ComboButtonStyle` | 2026-11-07 |
+| `HelpLink` | `HelpLinkStyle` | 2026-11-07 |
+| `ControlGroup` | `ControlGroupStyle` | 2026-11-07 |
 
 Every style implements `ControlStyle`: `tengen()` and the accessibility rules
 of its control. Every other control still draws only Tengen. Its rollout order is in

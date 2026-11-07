@@ -14,6 +14,7 @@ use crate::platform::{
     PopupAnchor, PopupConstraintAdjustment, PopupGravity, PopupHandle, PopupSpec, Popups,
 };
 use crate::style::{Palette, text};
+use crate::styles::{ControlState, StepperStyle, Theme, resolve};
 use crate::symbol::{Symbol, symbol};
 use crate::theme::color;
 
@@ -258,6 +259,8 @@ impl Component for DatePicker {
             .spacing(STEPPER.gap)
             .child(interaction.focus_ring(field, TEXT_FIELD.radius))
             .child(stepper_arrows(
+                &resolve::<StepperStyle>(&Theme::tengen()),
+                ControlState::default(),
                 Some(Rc::new(move || up(1))),
                 Some(Rc::new(move || down(-1))),
             ))

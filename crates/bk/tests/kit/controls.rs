@@ -11,7 +11,7 @@ use bk::controls::{
     Button, Checkbox, ScrollView, SearchField, SecureField, SegmentedControl, Slider, Switch,
     TextField,
 };
-use bk::level::{LevelSlider, LevelStyle};
+use bk::level::LevelSlider;
 use bk::menu::MenuIcon;
 use bk::password::PasswordField;
 use bk::patterns::about::AboutView;
@@ -170,7 +170,7 @@ fn level_slider() -> Element {
         .child(
             LevelSlider::new("Volumen")
                 .value(0.6)
-                .style(LevelStyle::Fat(Symbol::SpeakerWave)),
+                .style(|s| s.fat(Symbol::SpeakerWave)),
         )
         .into_element()
 }

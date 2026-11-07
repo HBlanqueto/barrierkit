@@ -1,21 +1,34 @@
-use ctdesign::{BODY, BUTTON, SETTINGS, SPACE_1};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Area, Direction, Gaps, Size};
 
+use crate::controls::{dimmed, inner_border, shadowed};
 use crate::i18n::text;
-use crate::interaction::use_interaction;
+use crate::interaction::{Interaction, use_interaction};
 use crate::menu::MenuItem;
 use crate::platform::PopupAnchor;
 use crate::popup_button::open_popover_menu;
-use crate::style::{Palette, text};
+use crate::style::with_font;
+use crate::styles::{
+    ComboButtonStyle, ControlGroupStyle, ControlState, HelpLinkStyle, LayoutDirection,
+    MenuButtonStyle, Paints, Theme, resolve,
+};
 use crate::symbol::{Symbol, symbol};
-use crate::theme::color;
+
+fn control_state(interaction: Interaction) -> ControlState {
+    ControlState {
+        hovered: interaction.hovered(),
+        pressed: interaction.pressed(),
+        focused: interaction.focused(),
+        disabled: false,
+    }
+}
 
 #[derive(PartialEq)]
 pub struct MenuButton {
     label: &'static str,
     items: Vec<MenuItem>,
     on_activate: Option<Callback<String, ()>>,
+    style: Theme,
 }
 
 impl MenuButton {
@@ -24,7 +37,13 @@ impl MenuButton {
             label,
             items,
             on_activate: None,
+            style: Theme::tengen(),
         }
+    }
+
+    pub fn style(mut self, restyle: impl Fn(MenuButtonStyle) -> MenuButtonStyle + 'static) -> Self {
+        self.style = self.style.style(restyle);
+        self
     }
 
     pub fn on_activate(mut self, callback: impl Into<Callback<String, ()>>) -> Self {
@@ -35,28 +54,33 @@ impl MenuButton {
 
 impl Component for MenuButton {
     fn render(&self) -> impl IntoElement {
-        let palette = Palette::current();
+        let style: MenuButtonStyle = resolve(&self.style);
         let interaction = use_interaction();
+        let state = control_state(interaction);
+        let paints = Paints::current(state, style.effect);
         let mut area = use_state(Area::default);
         let items = self.items.clone();
         let on_activate = self.on_activate.clone();
-        let background = if interaction.hovered() {
-            palette.control_hover
-        } else {
-            palette.control_background
-        };
+        let radius =
+            style
+                .shape
+                .corner_radius(style.height, style.height, LayoutDirection::LeftToRight);
         let button = interaction
             .attach(rect(), true)
             .a11y_role(AccessibilityRole::Button)
             .a11y_alt(self.label)
             .a11y_builder(|node| node.set_has_popup(accesskit::HasPopup::Menu))
-            .height(Size::px(BUTTON.height))
-            .padding(Gaps::new(0.0, BUTTON.padding_x, 0.0, BUTTON.padding_x))
-            .corner_radius(BUTTON.radius)
-            .background(color(background))
+            .height(Size::px(style.height))
+            .padding(Gaps::new(0.0, style.padding_x, 0.0, style.padding_x))
+            .corner_radius(radius)
+            .background(paints.fill(&style.background))
+            .map(paints.blur(&style.background), Rect::blur)
+            .map(style.border.as_ref(), |el, border| {
+                el.border(inner_border(&paints, border))
+            })
             .direction(Direction::Horizontal)
             .cross_align(Alignment::Center)
-            .spacing(SPACE_1)
+            .spacing(style.chevron_gap)
             .on_sized(move |event: Event<SizedEventData>| area.set_if_modified(event.area))
             .on_press(move |_| {
                 let field = *area.peek();
@@ -78,13 +102,20 @@ impl Component for MenuButton {
                     },
                 );
             })
-            .child(text(self.label, BODY, palette.label))
+            .child(
+                with_font(label().text(self.label), style.font)
+                    .max_lines(1)
+                    .color(paints.fill(&style.label)),
+            )
             .child(symbol(
                 Symbol::ChevronDown,
-                SETTINGS.dropdown_chevron_glyph as f32,
-                palette.secondary_label,
+                style.chevron_size,
+                paints.color(style.chevron.resolve(state)),
             ));
-        interaction.focus_ring(button, BUTTON.radius)
+        interaction.focus_ring(
+            dimmed(shadowed(button, &style.shadows), style.opacity),
+            radius.top_left,
+        )
     }
 }
 
@@ -94,6 +125,7 @@ pub struct ComboButton {
     items: Vec<MenuItem>,
     on_press: Option<Callback<(), ()>>,
     on_activate: Option<Callback<String, ()>>,
+    style: Theme,
 }
 
 impl ComboButton {
@@ -103,7 +135,16 @@ impl ComboButton {
             items,
             on_press: None,
             on_activate: None,
+            style: Theme::tengen(),
         }
+    }
+
+    pub fn style(
+        mut self,
+        restyle: impl Fn(ComboButtonStyle) -> ComboButtonStyle + 'static,
+    ) -> Self {
+        self.style = self.style.style(restyle);
+        self
     }
 
     pub fn on_press(mut self, callback: impl Into<Callback<(), ()>>) -> Self {
@@ -119,32 +160,38 @@ impl ComboButton {
 
 impl Component for ComboButton {
     fn render(&self) -> impl IntoElement {
-        let palette = Palette::current();
+        let style: ComboButtonStyle = resolve(&self.style);
         let action = use_interaction();
         let arrow = use_interaction();
+        let group = Paints::current(ControlState::default(), style.effect);
+        let action_paints = Paints::current(control_state(action), style.effect);
+        let arrow_state = control_state(arrow);
+        let arrow_paints = Paints::current(arrow_state, style.effect);
         let mut area = use_state(Area::default);
         let items = self.items.clone();
         let on_press = self.on_press.clone();
         let on_activate = self.on_activate.clone();
-        let fill = |hovered: bool| {
-            if hovered {
-                color(palette.control_hover)
-            } else {
-                Color::TRANSPARENT
-            }
-        };
+        let radius =
+            style
+                .shape
+                .corner_radius(style.height, style.height, LayoutDirection::LeftToRight);
         let primary = action
             .attach(rect(), true)
             .a11y_role(AccessibilityRole::Button)
             .a11y_alt(self.label)
             .height(Size::fill())
-            .padding(Gaps::new(0.0, BUTTON.padding_x, 0.0, BUTTON.padding_x))
+            .padding(Gaps::new(0.0, style.padding_x, 0.0, style.padding_x))
             .center()
-            .background(fill(action.hovered()))
+            .background(action_paints.fill(&style.segment))
+            .map(action_paints.blur(&style.segment), Rect::blur)
             .map(on_press, |el, on_press| {
                 el.on_press(move |_| on_press.call(()))
             })
-            .child(text(self.label, BODY, palette.label));
+            .child(
+                with_font(label().text(self.label), style.font)
+                    .max_lines(1)
+                    .color(action_paints.fill(&style.label)),
+            );
         let menu = arrow
             .attach(rect(), true)
             .a11y_role(AccessibilityRole::Button)
@@ -153,12 +200,13 @@ impl Component for ComboButton {
             .height(Size::fill())
             .padding(Gaps::new(
                 0.0,
-                BUTTON.menu_padding_x,
+                style.menu_padding_x,
                 0.0,
-                BUTTON.menu_padding_x,
+                style.menu_padding_x,
             ))
             .center()
-            .background(fill(arrow.hovered()))
+            .background(arrow_paints.fill(&style.segment))
+            .map(arrow_paints.blur(&style.segment), Rect::blur)
             .on_press(move |_| {
                 let field = *area.peek();
                 let on_activate = on_activate.clone();
@@ -181,38 +229,53 @@ impl Component for ComboButton {
             })
             .child(symbol(
                 Symbol::ChevronDown,
-                SETTINGS.dropdown_chevron_glyph as f32,
-                palette.secondary_label,
+                style.chevron_size,
+                arrow_paints.color(style.chevron.resolve(arrow_state)),
             ));
-        rect()
+        let (separator_width, separator_height) = style.separator_size;
+        let combo = rect()
             .a11y_role(AccessibilityRole::Group)
             .a11y_alt(self.label)
-            .height(Size::px(BUTTON.height))
-            .corner_radius(BUTTON.radius)
+            .height(Size::px(style.height))
+            .corner_radius(radius)
             .overflow(Overflow::Clip)
-            .background(color(palette.control_background))
+            .background(group.fill(&style.background))
+            .map(group.blur(&style.background), Rect::blur)
+            .map(style.border.as_ref(), |el, border| {
+                el.border(inner_border(&group, border))
+            })
             .direction(Direction::Horizontal)
             .cross_align(Alignment::Center)
             .on_sized(move |event: Event<SizedEventData>| area.set_if_modified(event.area))
-            .child(action.focus_ring(primary, BUTTON.radius))
+            .child(action.focus_ring(primary, radius.top_left))
             .child(
                 rect()
-                    .width(Size::px(ctdesign::HAIRLINE))
-                    .height(Size::px(BUTTON.height / 2.0))
-                    .background(color(palette.separator)),
+                    .width(Size::px(separator_width))
+                    .height(Size::px(separator_height))
+                    .background(group.fill(&style.separator)),
             )
-            .child(arrow.focus_ring(menu, BUTTON.radius))
+            .child(arrow.focus_ring(menu, radius.top_left));
+        dimmed(shadowed(combo, &style.shadows), style.opacity)
     }
 }
 
 #[derive(PartialEq)]
 pub struct HelpLink {
     on_press: Option<Callback<(), ()>>,
+    style: Theme,
 }
 
 impl HelpLink {
     pub fn new() -> Self {
-        Self { on_press: None }
+        Self {
+            on_press: None,
+            style: Theme::tengen(),
+        }
+    }
+
+    pub fn style(mut self, restyle: impl Fn(HelpLinkStyle) -> HelpLinkStyle + 'static) -> Self {
+        self.style = self.style.style(restyle);
+        self
     }
 
     pub fn on_press(mut self, callback: impl Into<Callback<(), ()>>) -> Self {
@@ -229,30 +292,48 @@ impl Default for HelpLink {
 
 impl Component for HelpLink {
     fn render(&self) -> impl IntoElement {
-        let palette = Palette::current();
+        let style: HelpLinkStyle = resolve(&self.style);
         let interaction = use_interaction();
+        let paints = Paints::current(control_state(interaction), style.effect);
+        let scale = crate::animation::use_animated(
+            if interaction.pressed() {
+                style.pressed_scale
+            } else {
+                1.0
+            },
+            style.animation,
+        );
         let on_press = self.on_press.clone();
-        let size = BUTTON.height;
-        let background = if interaction.hovered() {
-            palette.control_hover
-        } else {
-            palette.control_background
-        };
+        let size = style.size;
+        let radius = style
+            .shape
+            .corner_radius(size, size, LayoutDirection::LeftToRight);
         let button = interaction
             .attach(rect(), true)
             .a11y_role(AccessibilityRole::Button)
             .a11y_alt(text!("help"))
             .width(Size::px(size))
             .height(Size::px(size))
-            .corner_radius(size / 2.0)
+            .corner_radius(radius)
             .center()
-            .background(color(background))
-            .maybe(interaction.pressed(), |el| el.scale(BUTTON.pressed_scale))
+            .background(paints.fill(&style.background))
+            .map(paints.blur(&style.background), Rect::blur)
+            .map(style.border.as_ref(), |el, border| {
+                el.border(inner_border(&paints, border))
+            })
+            .maybe(scale != 1.0, |el| el.scale(scale))
             .map(on_press, |el, on_press| {
                 el.on_press(move |_| on_press.call(()))
             })
-            .child(text("?", BODY, palette.label));
-        interaction.focus_ring(button, size / 2.0)
+            .child(
+                with_font(label().text("?"), style.font)
+                    .max_lines(1)
+                    .color(paints.fill(&style.label)),
+            );
+        interaction.focus_ring(
+            dimmed(shadowed(button, &style.shadows), style.opacity),
+            radius.top_left,
+        )
     }
 }
 
@@ -260,6 +341,7 @@ impl Component for HelpLink {
 pub struct ControlGroup {
     label: &'static str,
     children: Vec<Element>,
+    style: Theme,
 }
 
 impl ControlGroup {
@@ -267,7 +349,16 @@ impl ControlGroup {
         Self {
             label,
             children: Vec::new(),
+            style: Theme::tengen(),
         }
+    }
+
+    pub fn style(
+        mut self,
+        restyle: impl Fn(ControlGroupStyle) -> ControlGroupStyle + 'static,
+    ) -> Self {
+        self.style = self.style.style(restyle);
+        self
     }
 
     pub fn child(mut self, child: impl IntoElement) -> Self {
@@ -278,29 +369,41 @@ impl ControlGroup {
 
 impl Component for ControlGroup {
     fn render(&self) -> impl IntoElement {
-        let palette = Palette::current();
+        let style: ControlGroupStyle = resolve(&self.style);
+        let paints = Paints::current(ControlState::default(), style.effect);
+        let (separator_width, separator_height) = style.separator_size;
         let mut items = Vec::with_capacity(self.children.len() * 2);
         for (index, child) in self.children.iter().enumerate() {
             if index > 0 {
                 items.push(
                     rect()
-                        .width(Size::px(ctdesign::HAIRLINE))
-                        .height(Size::px(BUTTON.height / 2.0))
-                        .background(color(palette.separator))
+                        .width(Size::px(separator_width))
+                        .height(Size::px(separator_height))
+                        .background(paints.fill(&style.separator))
                         .into_element(),
                 );
             }
             items.push(child.clone());
         }
-        rect()
+        let height = style.height;
+        let group = rect()
             .a11y_role(AccessibilityRole::Group)
             .a11y_alt(self.label)
-            .height(Size::px(BUTTON.height))
-            .corner_radius(BUTTON.radius)
-            .background(color(palette.control_background))
+            .height(Size::px(height))
+            .corner_radius(
+                style
+                    .shape
+                    .corner_radius(height, height, LayoutDirection::LeftToRight),
+            )
+            .background(paints.fill(&style.background))
+            .map(paints.blur(&style.background), Rect::blur)
+            .map(style.border.as_ref(), |el, border| {
+                el.border(inner_border(&paints, border))
+            })
             .direction(Direction::Horizontal)
             .cross_align(Alignment::Center)
-            .children(items)
+            .children(items);
+        dimmed(shadowed(group, &style.shadows), style.opacity)
     }
 }
 
@@ -308,6 +411,7 @@ impl Component for ControlGroup {
 pub struct ShareLink {
     label: &'static str,
     content: String,
+    style: Theme,
 }
 
 impl ShareLink {
@@ -315,7 +419,13 @@ impl ShareLink {
         Self {
             label,
             content: content.into(),
+            style: Theme::tengen(),
         }
+    }
+
+    pub fn style(mut self, restyle: impl Fn(MenuButtonStyle) -> MenuButtonStyle + 'static) -> Self {
+        self.style = self.style.style(restyle);
+        self
     }
 }
 
@@ -343,7 +453,11 @@ impl Component for ShareLink {
         if is_link {
             items.push(MenuItem::action("open", text!("share-open-with")));
         }
-        MenuButton::new(self.label, items).on_activate(move |id: String| {
+        MenuButton {
+            style: self.style.clone(),
+            ..MenuButton::new(self.label, items)
+        }
+        .on_activate(move |id: String| {
             let content = content.clone();
             match id.as_str() {
                 "copy" => {

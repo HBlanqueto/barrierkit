@@ -1729,24 +1729,24 @@ impl Component for Checkbox {
     }
 }
 
-fn inner_border(paints: &Paints, (paint, width): &(ShapeStyle, f32)) -> Border {
+pub(crate) fn inner_border(paints: &Paints, (paint, width): &(ShapeStyle, f32)) -> Border {
     Border::new()
         .width(*width)
         .alignment(BorderAlignment::Inner)
         .fill(color(paints.color(paint)))
 }
 
-fn shadowed(element: Rect, shadows: &[ShadowStyle]) -> Rect {
+pub(crate) fn shadowed(element: Rect, shadows: &[ShadowStyle]) -> Rect {
     shadows
         .iter()
         .fold(element, |element, shadow| element.shadow(*shadow))
 }
 
-fn dimmed(element: Rect, opacity: f32) -> Rect {
+pub(crate) fn dimmed(element: Rect, opacity: f32) -> Rect {
     element.maybe(opacity < 1.0, |element| element.opacity(opacity))
 }
 
-fn dimmed_label(text: Label, opacity: f32) -> Element {
+pub(crate) fn dimmed_label(text: Label, opacity: f32) -> Element {
     if opacity < 1.0 {
         rect().opacity(opacity).child(text).into_element()
     } else {
@@ -1754,7 +1754,7 @@ fn dimmed_label(text: Label, opacity: f32) -> Element {
     }
 }
 
-fn labeled(
+pub(crate) fn labeled(
     row: Rect,
     control: Rect,
     label: Element,

@@ -307,6 +307,7 @@ pub struct SettingsMetrics {
     pub card_gap: u32,
     pub card_caption_gap: u32,
     pub card_caption_font: Font,
+    pub card_caption_selected_weight: u32,
     pub preview_window_radius: u32,
     pub preview_light: u32,
     pub preview_tint_window_x: u32,

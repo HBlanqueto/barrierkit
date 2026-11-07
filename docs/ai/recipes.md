@@ -309,6 +309,7 @@ fn main() -> Result<(), RunError> {
 SwiftUI: a custom `ButtonStyle` given with `.buttonStyle(_:)` to one view, a stack or the whole app.
 
 ```rust
+use bk::level::LevelSlider;
 use bk::prelude::*;
 
 fn main() -> Result<(), RunError> {
@@ -335,6 +336,7 @@ fn main() -> Result<(), RunError> {
                         .child(Slider::stepped("Treble", 5).value(3))
                         .control_style(|s: SliderStyle| SliderStyle { axis: Axis::Vertical, ..s }),
                 )
+                .child(LevelSlider::new("Output").value(0.6).style(|s| s.fat(Symbol::SpeakerWave)))
                 .child(Button::new("Reset"))
         })
         .run()
@@ -344,7 +346,8 @@ fn main() -> Result<(), RunError> {
 1. The theme makes every slider square and every button glass
    (`ButtonStyle::glass` is a preset: a function of the style, like SwiftUI's
    `.glass`); the stack turns its two sliders
-   vertical; `.style` paints one fill red, grey while pressed. Each override names only what
+   vertical; `.style` paints one fill red, grey while pressed, and gives the
+   `LevelSlider` the `fat` preset, the Control Center bar. Each override names only what
    changes and ends with `..s`. `Theme::style` and `.control_style` take any
    control's style: the parameter's type (`|s: SliderStyle|`) picks it.
 2. `Role` colors follow light, dark and contrast; the kit still applies

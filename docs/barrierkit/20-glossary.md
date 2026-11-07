@@ -54,6 +54,10 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 | `ButtonStyle::Glass` | `ButtonStyle::glass` | 2026-11-07 |
 | `ButtonStyle::GlassProminent` | `ButtonStyle::glass_prominent` | 2026-11-07 |
 | `ButtonStyle::Borderless` | `ButtonStyle::borderless` | 2026-11-07 |
+| enum `level::LevelStyle` | struct `styles::LevelSliderStyle` | 2026-11-07 |
+| `level::LevelSlider::style(LevelStyle)` | `level::LevelSlider::style(\|s\| ..)` | 2026-11-07 |
+| `LevelStyle::Regular` | `LevelSliderStyle::tengen()`, the default | 2026-11-07 |
+| `LevelStyle::Fat(Symbol)` | `LevelSliderStyle::fat(symbol)` | 2026-11-07 |
 | The 22 views, modifiers and names listed in [ADR 0063](../decisions/0063-views-as-types-and-swift-names.md#decision) (`divider()`, `empty_state`, `use_tooltip`, `PreferencesWindow`, `AppMenu`, `ProgressBar`…) | `Divider`, `ContentUnavailableView`, `.help`, `SettingsWindow`, `MainMenu`, `ProgressView`… | 2026-11-07 |
 
 ## How to read the tables
@@ -126,6 +130,19 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 | `styles::TextFieldStyle` | struct | `TextFieldStyle` | ≈ `NSTextFieldCell` | Every visual property of `TextField` | [Styles](../ai/styles.md#textfieldstyle-searchfieldstyle-and-securefieldstyle) |
 | `styles::SearchFieldStyle` | struct | — | ≈ `NSSearchFieldCell` | Every visual property of `SearchField` | [Styles](../ai/styles.md#textfieldstyle-searchfieldstyle-and-securefieldstyle) |
 | `styles::SecureFieldStyle` | struct | ≈ `TextFieldStyle` | ≈ `NSSecureTextFieldCell` | Every visual property of `SecureField` | [Styles](../ai/styles.md#textfieldstyle-searchfieldstyle-and-securefieldstyle) |
+| `styles::LevelSliderStyle` | struct | — | ≈ `NSSliderCell` | Every visual property of `LevelSlider`, with the layout direction | [Styles](../ai/styles.md#levelsliderstyle) |
+| `styles::LevelSliderStyle::fat` | method | — | — | Preset: the 22 tall Control Center bar without a knob, with a symbol | [Styles](../ai/styles.md#levelsliderstyle) |
+| `styles::RadioGroupStyle` | struct | `RadioGroupPickerStyle` | ≈ `NSButtonCell` (radio) | Every visual property of `RadioGroup`, with the axis and the label position | [Styles](../ai/styles.md#radiogroupstyle) |
+| `styles::ColorWellStyle` | struct | ≈ `PalettePickerStyle` | ≈ `NSColorWell.Style` | Every visual property of `ColorWell`, with the axis and wrapping of the swatches | [Styles](../ai/styles.md#colorwellstyle-and-choicecardsstyle) |
+| `styles::ChoiceCardsStyle` | struct | — | — | Every visual property of `ChoiceCards`, with the axis and wrapping of the cards | [Styles](../ai/styles.md#colorwellstyle-and-choicecardsstyle) |
+| `styles::IconButtonStyle` | struct | ≈ `BorderlessButtonStyle` | ≈ `NSButtonCell` | Every visual property of `IconButton` and `ToolbarOverflow` | [Styles](../ai/styles.md#iconbuttonstyle) |
+| `styles::StepperStyle` | struct | — | ≈ `NSStepperCell` | Every visual property of `Stepper` and of the arrows of `DatePicker`, with the value position | [Styles](../ai/styles.md#stepperstyle) |
+| `styles::ToggleGroupStyle` | struct | — | ≈ `NSSegmentedCell` | Every visual property of `ToggleGroup`, with its axis | [Styles](../ai/styles.md#togglegroupstyle) |
+| `styles::ToolbarSearchStyle` | struct | — | ≈ `NSSearchToolbarItem` | Width of `ToolbarSearch`; its field and button take their own styles | [Styles](../ai/styles.md#toolbarsearchstyle) |
+| `styles::MenuButtonStyle` | struct | `ButtonMenuStyle` | ≈ `NSPopUpButtonCell` (pull-down) | Every visual property of `MenuButton` and `ShareLink` | [Styles](../ai/styles.md#menubuttonstyle-combobuttonstyle-and-helplinkstyle) |
+| `styles::ComboButtonStyle` | struct | ≈ `MenuStyle` | `NSComboButton.Style` | Every visual property of `ComboButton` | [Styles](../ai/styles.md#menubuttonstyle-combobuttonstyle-and-helplinkstyle) |
+| `styles::HelpLinkStyle` | struct | — | ≈ `NSButton.BezelStyle.helpButton` | Every visual property of `HelpLink` | [Styles](../ai/styles.md#menubuttonstyle-combobuttonstyle-and-helplinkstyle) |
+| `styles::ControlGroupStyle` | struct | `ControlGroupStyle` | — | Every visual property of `ControlGroup`: background and separators | [Styles](../ai/styles.md#controlgroupstyle) |
 | `styles::Theme` | struct | ≈ styles set in the environment | ≈ `NSAppearance` | Style overrides for the whole app; `Theme::tengen()` changes nothing | [Styles](../ai/styles.md#levels) |
 | `styles::Theme::style` | method | ≈ `.buttonStyle(_:)` on the scene | — | Adds an override of the control whose style the closure takes | [Styles](../ai/styles.md#levels) |
 | `styles::StyleScope` | struct | ≈ a view after `.buttonStyle(_:)` | — | Component returned by `.control_style`: its overrides reach the controls inside | [Styles](../ai/styles.md#levels) |
@@ -143,6 +160,20 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 | `controls::TextField::style` | method | `.textFieldStyle(_:)` on one view | ≈ `NSTextField.bezelStyle` | Changes the style of one text field | [Styles](../ai/styles.md#textfieldstyle-searchfieldstyle-and-securefieldstyle) |
 | `controls::SearchField::style` | method | — | — | Changes the style of one search field | [Styles](../ai/styles.md#textfieldstyle-searchfieldstyle-and-securefieldstyle) |
 | `controls::SecureField::style` | method | `.textFieldStyle(_:)` on one view | — | Changes the style of one password field | [Styles](../ai/styles.md#textfieldstyle-searchfieldstyle-and-securefieldstyle) |
+| `level::LevelSlider::style` | method | — | — | Changes the style of one level slider | [Styles](../ai/styles.md#levelsliderstyle) |
+| `choices::RadioGroup::style` | method | `.pickerStyle(.radioGroup)` on one view | — | Changes the style of one radio group | [Styles](../ai/styles.md#radiogroupstyle) |
+| `choices::ColorWell::style` | method | `.pickerStyle(.palette)` on one view | ≈ `NSColorWell.colorWellStyle` | Changes the style of one color well | [Styles](../ai/styles.md#colorwellstyle-and-choicecardsstyle) |
+| `choices::ChoiceCards::style` | method | — | — | Changes the style of one set of choice cards | [Styles](../ai/styles.md#colorwellstyle-and-choicecardsstyle) |
+| `compact::IconButton::style` | method | `.buttonStyle(_:)` on one view | ≈ `NSButton.bezelStyle` | Changes the style of one icon button | [Styles](../ai/styles.md#iconbuttonstyle) |
+| `compact::Stepper::style` | method | — | — | Changes the style of one stepper | [Styles](../ai/styles.md#stepperstyle) |
+| `compact::ToggleGroup::style` | method | — | — | Changes the style of one toggle group | [Styles](../ai/styles.md#togglegroupstyle) |
+| `compact::ToolbarSearch::style` | method | — | — | Changes the width of one toolbar search | [Styles](../ai/styles.md#toolbarsearchstyle) |
+| `compact::ToolbarOverflow::style` | method | `.buttonStyle(_:)` on one view | — | Changes the `IconButtonStyle` of one overflow button | [Styles](../ai/styles.md#iconbuttonstyle) |
+| `buttons::MenuButton::style` | method | `.menuStyle(_:)` on one view | — | Changes the style of one menu button | [Styles](../ai/styles.md#menubuttonstyle-combobuttonstyle-and-helplinkstyle) |
+| `buttons::ComboButton::style` | method | `.menuStyle(_:)` on one view | ≈ `NSComboButton.style` | Changes the style of one combo button | [Styles](../ai/styles.md#menubuttonstyle-combobuttonstyle-and-helplinkstyle) |
+| `buttons::HelpLink::style` | method | — | — | Changes the style of one help button | [Styles](../ai/styles.md#menubuttonstyle-combobuttonstyle-and-helplinkstyle) |
+| `buttons::ShareLink::style` | method | `.menuStyle(_:)` on one view | — | Changes the `MenuButtonStyle` of one share link | [Styles](../ai/styles.md#menubuttonstyle-combobuttonstyle-and-helplinkstyle) |
+| `buttons::ControlGroup::style` | method | `.controlGroupStyle(_:)` on one view | — | Changes the style of one control group | [Styles](../ai/styles.md#controlgroupstyle) |
 | `app::Application::theme` | method | ≈ `.environment(_:_:)` on the scene | ≈ `NSApp.appearance` | Gives the app its `Theme` | [Styles](../ai/styles.md#levels) |
 
 ## Symbols and fonts
@@ -424,7 +455,6 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 |---|---|---|---|---|---|
 | `controls::Slider` | struct | `Slider` | `NSSlider` | Stepped slider with ticks and optional step captions | [5](05-controls.md#sliders) |
 | `level::LevelSlider` | struct | `Slider` | `NSSlider` | Continuous 0–1 slider, regular or fat with a symbol | [5](05-controls.md#sliders) |
-| `level::LevelStyle` | enum | — | — | `Regular` or `Fat(Symbol)` slider look | [5](05-controls.md#sliders) |
 | `progress::ProgressView` | struct | `ProgressView` | `NSProgressIndicator` | Determinate or indeterminate progress bar | [5](05-controls.md#progress) |
 | `progress::ProgressRing` | struct | `ProgressViewStyle.circular` | `≈ NSProgressIndicator` | Determinate circular progress ring | [5](05-controls.md#progress) |
 | `progress::Spinner` | struct | `≈ ProgressView` | `≈ NSProgressIndicator` | Indeterminate spinning indicator, spinning style | [5](05-controls.md#progress) |

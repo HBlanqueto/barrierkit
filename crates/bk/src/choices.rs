@@ -1,12 +1,17 @@
 use crate::i18n::text;
 
-use ctdesign::{BODY, CAPTION, Rgba, SETTINGS, SWITCH};
+use ctdesign::Rgba;
 use freya_core::prelude::*;
-use torin::prelude::{Alignment, Direction, Position, Size};
+use torin::prelude::{Alignment, Content, Direction, Position, Size};
 
 use crate::backdrop::Tint;
-use crate::interaction::{ring, use_interaction};
-use crate::style::{Palette, text};
+use crate::controls::{dimmed, dimmed_label, inner_border, labeled, shadowed};
+use crate::interaction::{Interaction, ring, use_interaction};
+use crate::style::with_font;
+use crate::styles::{
+    Axis, ChoiceCardsStyle, ColorWellStyle, ControlState, LayoutDirection, Paints, RadioGroupStyle,
+    StateValue, Theme, resolve,
+};
 use crate::theme::color;
 
 #[derive(Clone)]
@@ -68,13 +73,43 @@ pub(crate) fn take_focus_when(interaction: crate::interaction::Interaction, take
     });
 }
 
-fn choice_group(label: &'static str, spacing: f32, options: impl Iterator<Item = Element>) -> Rect {
+fn choice_group(
+    label: &'static str,
+    axis: Axis,
+    spacing: f32,
+    wraps: bool,
+    options: impl Iterator<Item = Element>,
+) -> Rect {
     rect()
         .a11y_role(AccessibilityRole::RadioGroup)
         .a11y_alt(label)
-        .direction(Direction::Horizontal)
+        .direction(match axis {
+            Axis::Horizontal => Direction::Horizontal,
+            Axis::Vertical => Direction::Vertical,
+        })
         .spacing(spacing)
+        .maybe(wraps, |el| el.content(Content::wrap_spacing(spacing)))
         .children(options)
+}
+
+fn control_state(interaction: Interaction, disabled: bool) -> ControlState {
+    ControlState {
+        hovered: interaction.hovered(),
+        pressed: interaction.pressed(),
+        focused: interaction.focused(),
+        disabled,
+    }
+}
+
+fn dimmed_when(element: Rect, disabled: bool, opacity: f32, disabled_opacity: f32) -> Rect {
+    dimmed(
+        element,
+        if disabled {
+            opacity * disabled_opacity
+        } else {
+            opacity
+        },
+    )
 }
 
 #[derive(PartialEq)]
@@ -84,7 +119,7 @@ pub struct RadioGroup {
     selected: usize,
     disabled: bool,
     on_change: Option<Callback<usize, ()>>,
-    tint: Tint,
+    style: Theme,
     key: DiffKey,
 }
 
@@ -96,13 +131,20 @@ impl RadioGroup {
             selected: 0,
             disabled: false,
             on_change: None,
-            tint: Tint::Accent,
+            style: Theme::tengen(),
             key: DiffKey::None,
         }
     }
 
-    pub fn tint(mut self, tint: Tint) -> Self {
-        self.tint = tint;
+    pub fn tint(self, tint: Tint) -> Self {
+        self.style(move |style| RadioGroupStyle {
+            fill: StateValue::new(tint.into()),
+            ..style
+        })
+    }
+
+    pub fn style(mut self, restyle: impl Fn(RadioGroupStyle) -> RadioGroupStyle + 'static) -> Self {
+        self.style = self.style.style(restyle);
         self
     }
 
@@ -140,6 +182,7 @@ impl KeyExt for RadioGroup {
 
 impl Component for RadioGroup {
     fn render(&self) -> impl IntoElement {
+        let style: RadioGroupStyle = resolve(&self.style);
         let choice = use_choice(Some(self.selected), self.on_change.clone());
         let keyed = use_state(|| false);
         let options = self.options.iter().enumerate().map(|(index, text)| {
@@ -149,12 +192,11 @@ impl Component for RadioGroup {
                 take_focus: choice.is(index) && *keyed.read(),
                 disabled: self.disabled,
                 on_select: choice.select(index),
-                tint: self.tint,
+                style: self.style.clone(),
             }
             .into_element()
         });
-        let group = choice_group(self.label, SETTINGS.radio_spacing as f32, options)
-            .direction(Direction::Vertical);
+        let group = choice_group(self.label, style.axis, style.spacing, false, options);
         if self.disabled {
             group
         } else {
@@ -170,62 +212,84 @@ struct RadioOption {
     take_focus: bool,
     disabled: bool,
     on_select: Callback<(), ()>,
-    tint: Tint,
+    style: Theme,
 }
 
 impl Component for RadioOption {
     fn render(&self) -> impl IntoElement {
-        let palette = Palette::current();
+        let style: RadioGroupStyle = resolve(&self.style);
         let interaction = use_interaction();
         take_focus_when(interaction, self.take_focus);
-        let size = SETTINGS.radio_size as f32;
-        let dot = SETTINGS.radio_dot as f32;
+        let paints = Paints::current(control_state(interaction, self.disabled), style.effect);
+        let direction = style.layout_direction;
+        let size = style.button_size;
+        let dot = style.dot_size;
         let selected = self.selected;
         let enabled = !self.disabled;
         let on_select = self.on_select.clone();
+        let radius = style.button_shape.corner_radius(size, size, direction);
+        let paint = if selected {
+            &style.fill
+        } else {
+            &style.button_background
+        };
 
-        let mut circle = rect()
+        let circle = rect()
             .width(Size::px(size))
             .height(Size::px(size))
-            .corner_radius(size / 2.0)
-            .center();
-        circle = if selected {
-            circle.background(self.tint.fill(&palette)).child(
-                rect()
-                    .width(Size::px(dot))
-                    .height(Size::px(dot))
-                    .corner_radius(dot / 2.0)
-                    .background(color(palette.on_accent)),
+            .corner_radius(radius)
+            .center()
+            .background(paints.fill(paint))
+            .map(paints.blur(paint), Rect::blur)
+            .map(
+                style.button_border.as_ref().filter(|_| !selected),
+                |el, border| el.border(inner_border(&paints, border)),
             )
+            .maybe(selected, |el| {
+                el.child(
+                    rect()
+                        .width(Size::px(dot))
+                        .height(Size::px(dot))
+                        .corner_radius(style.dot_shape.corner_radius(dot, dot, direction))
+                        .background(paints.fill(&style.dot))
+                        .map(paints.blur(&style.dot), Rect::blur),
+                )
+            });
+        let opacity = if enabled {
+            style.opacity
         } else {
-            circle.background(color(palette.control_background)).border(
-                Border::new()
-                    .width(ctdesign::HAIRLINE)
-                    .alignment(BorderAlignment::Inner)
-                    .fill(color(palette.separator)),
-            )
+            style.opacity * style.disabled_opacity
         };
-        circle = interaction.focus_ring(circle, size / 2.0);
+        let circle = interaction.focus_ring(
+            dimmed(shadowed(circle, &style.button_shadows), opacity),
+            radius.top_left,
+        );
 
-        interaction
+        let row = interaction
             .attach(rect(), enabled)
             .a11y_role(AccessibilityRole::RadioButton)
             .a11y_alt(self.text)
             .a11y_builder(move |node| node.set_toggled(selected.into()))
-            .direction(Direction::Horizontal)
-            .cross_align(Alignment::Center)
-            .spacing(SETTINGS.radio_gap as f32)
-            .maybe(enabled, |el| el.on_press(move |_| on_select.call(())))
-            .child(circle)
-            .child(text(
-                self.text,
-                BODY,
-                if enabled {
-                    palette.label
-                } else {
-                    palette.tertiary_label
-                },
-            ))
+            .maybe(enabled, |el| el.on_press(move |_| on_select.call(())));
+        match style.label_position {
+            None => row
+                .direction(Direction::Horizontal)
+                .cross_align(Alignment::Center)
+                .child(circle),
+            Some(edge) => {
+                let text = with_font(label().text(self.text), style.label_font)
+                    .max_lines(1)
+                    .color(paints.fill(&style.label));
+                labeled(
+                    row,
+                    circle,
+                    dimmed_label(text, opacity),
+                    edge,
+                    direction,
+                    style.label_gap,
+                )
+            }
+        }
     }
 }
 
@@ -250,6 +314,7 @@ pub struct ColorWell {
     selected: Option<usize>,
     disabled: bool,
     on_change: Option<Callback<usize, ()>>,
+    style: Theme,
     key: DiffKey,
 }
 
@@ -261,8 +326,14 @@ impl ColorWell {
             selected: None,
             disabled: false,
             on_change: None,
+            style: Theme::tengen(),
             key: DiffKey::None,
         }
+    }
+
+    pub fn style(mut self, restyle: impl Fn(ColorWellStyle) -> ColorWellStyle + 'static) -> Self {
+        self.style = self.style.style(restyle);
+        self
     }
 
     pub fn selected(mut self, index: Option<usize>) -> Self {
@@ -294,6 +365,7 @@ impl KeyExt for ColorWell {
 
 impl Component for ColorWell {
     fn render(&self) -> impl IntoElement {
+        let style: ColorWellStyle = resolve(&self.style);
         let choice = use_choice(self.selected, self.on_change.clone());
         let swatches = self
             .swatches
@@ -306,10 +378,11 @@ impl Component for ColorWell {
                     selected: choice.is(index),
                     disabled: self.disabled,
                     on_select: choice.select(index),
+                    style: self.style.clone(),
                 }
                 .into_element()
             });
-        choice_group(self.label, SETTINGS.swatch_gap as f32, swatches)
+        choice_group(self.label, style.axis, style.spacing, style.wraps, swatches)
     }
 }
 
@@ -320,50 +393,63 @@ struct Swatch {
     selected: bool,
     disabled: bool,
     on_select: Callback<(), ()>,
+    style: Theme,
 }
 
 impl Component for Swatch {
     fn render(&self) -> impl IntoElement {
-        let palette = Palette::current();
+        let style: ColorWellStyle = resolve(&self.style);
         let interaction = use_interaction();
-        let size = SETTINGS.swatch_size as f32;
+        let state = control_state(interaction, self.disabled);
+        let paints = Paints::current(state, style.effect);
+        let size = style.swatch_size;
+        let radius = style
+            .swatch_shape
+            .corner_radius(size, size, LayoutDirection::LeftToRight);
         let selected = self.selected;
         let enabled = !self.disabled;
         let on_select = self.on_select.clone();
 
-        let mut dot = rect()
-            .width(Size::px(size))
-            .height(Size::px(size))
-            .corner_radius(size / 2.0)
-            .background(color(self.fill))
-            .border(
-                Border::new()
-                    .width(ctdesign::HAIRLINE)
-                    .alignment(BorderAlignment::Inner)
-                    .fill(color(palette.separator)),
-            );
+        let mut dot = shadowed(
+            rect()
+                .width(Size::px(size))
+                .height(Size::px(size))
+                .corner_radius(radius)
+                .background(color(self.fill))
+                .map(style.swatch_border.as_ref(), |el, border| {
+                    el.border(inner_border(&paints, border))
+                }),
+            &style.swatch_shadows,
+        );
         if selected {
-            dot = ring(dot, size / 2.0, palette.label);
+            dot = ring(
+                dot,
+                radius.top_left,
+                paints.color(style.selection.resolve(state)),
+            );
         }
-        dot = interaction.focus_ring(dot, size / 2.0);
+        dot = interaction.focus_ring(dot, radius.top_left);
 
-        interaction
+        let column = interaction
             .attach(rect(), enabled)
             .a11y_role(AccessibilityRole::RadioButton)
             .a11y_alt(self.name)
             .a11y_builder(move |node| node.set_toggled(selected.into()))
-            .width(Size::px(SETTINGS.swatch_column as f32))
+            .width(Size::px(style.column_width))
             .direction(Direction::Vertical)
             .cross_align(Alignment::Center)
-            .spacing(SETTINGS.swatch_name_gap as f32)
-            .maybe(!enabled, |el| el.opacity(SWITCH.disabled_opacity))
+            .spacing(style.name_gap)
             .maybe(enabled, |el| el.on_press(move |_| on_select.call(())))
             .child(dot)
-            .child(text(
-                if selected { self.name } else { "" },
-                CAPTION,
-                palette.secondary_label,
-            ))
+            .child(
+                with_font(
+                    label().text(if selected { self.name } else { "" }),
+                    style.name_font,
+                )
+                .max_lines(1)
+                .color(paints.fill(&style.name)),
+            );
+        dimmed_when(column, self.disabled, style.opacity, style.disabled_opacity)
     }
 }
 
@@ -374,6 +460,7 @@ pub struct ChoiceCards {
     selected: usize,
     disabled: bool,
     on_change: Option<Callback<usize, ()>>,
+    style: Theme,
     key: DiffKey,
 }
 
@@ -385,8 +472,17 @@ impl ChoiceCards {
             selected: 0,
             disabled: false,
             on_change: None,
+            style: Theme::tengen(),
             key: DiffKey::None,
         }
+    }
+
+    pub fn style(
+        mut self,
+        restyle: impl Fn(ChoiceCardsStyle) -> ChoiceCardsStyle + 'static,
+    ) -> Self {
+        self.style = self.style.style(restyle);
+        self
     }
 
     pub fn option(mut self, caption: &'static str, preview: impl IntoElement) -> Self {
@@ -423,6 +519,7 @@ impl KeyExt for ChoiceCards {
 
 impl Component for ChoiceCards {
     fn render(&self) -> impl IntoElement {
+        let style: ChoiceCardsStyle = resolve(&self.style);
         let choice = use_choice(Some(self.selected), self.on_change.clone());
         let cards = self
             .options
@@ -435,10 +532,11 @@ impl Component for ChoiceCards {
                     selected: choice.is(index),
                     disabled: self.disabled,
                     on_select: choice.select(index),
+                    style: self.style.clone(),
                 }
                 .into_element()
             });
-        choice_group(self.label, SETTINGS.card_gap as f32, cards)
+        choice_group(self.label, style.axis, style.spacing, style.wraps, cards)
     }
 }
 
@@ -449,70 +547,72 @@ struct Card {
     selected: bool,
     disabled: bool,
     on_select: Callback<(), ()>,
+    style: Theme,
 }
 
 impl Component for Card {
     fn render(&self) -> impl IntoElement {
-        let palette = Palette::current();
+        let style: ChoiceCardsStyle = resolve(&self.style);
         let interaction = use_interaction();
-        let radius = SETTINGS.card_radius as f32;
+        let state = control_state(interaction, self.disabled);
+        let paints = Paints::current(state, style.effect);
+        let (width, height) = style.card_size;
+        let radius = style
+            .card_shape
+            .corner_radius(width, height, LayoutDirection::LeftToRight);
         let selected = self.selected;
         let enabled = !self.disabled;
         let on_select = self.on_select.clone();
 
-        let mut card = rect().corner_radius(radius).child(
+        let outline = style.card_border.as_ref().map(|border| {
             rect()
-                .width(Size::px(SETTINGS.card_width as f32))
-                .height(Size::px(SETTINGS.card_height as f32))
+                .position(Position::new_absolute().left(0.0).top(0.0))
+                .width(Size::fill())
+                .height(Size::percent(100.0))
                 .corner_radius(radius)
-                .overflow(Overflow::Clip)
-                .child(self.preview.clone())
-                .child(
-                    rect()
-                        .position(Position::new_absolute().left(0.0).top(0.0))
-                        .width(Size::fill())
-                        .height(Size::percent(100.0))
-                        .corner_radius(radius)
-                        .border(
-                            Border::new()
-                                .width(ctdesign::HAIRLINE)
-                                .alignment(BorderAlignment::Inner)
-                                .fill(color(SETTINGS.card_outline)),
-                        ),
-                ),
+                .border(inner_border(&paints, border))
+        });
+        let mut card = shadowed(
+            rect().corner_radius(radius).child(
+                rect()
+                    .width(Size::px(width))
+                    .height(Size::px(height))
+                    .corner_radius(radius)
+                    .overflow(Overflow::Clip)
+                    .child(self.preview.clone())
+                    .map(outline, |el, outline| el.child(outline)),
+            ),
+            &style.card_shadows,
         );
         if selected {
-            card = ring(card, radius, palette.accent);
+            card = ring(
+                card,
+                radius.top_left,
+                paints.color(style.selection.resolve(state)),
+            );
         }
-        card = interaction.focus_ring(card, radius);
+        card = interaction.focus_ring(card, radius.top_left);
 
-        let caption = SETTINGS.card_caption_font;
-        interaction
+        let (font, ink) = if selected {
+            (style.selected_caption_font, &style.selected_caption)
+        } else {
+            (style.caption_font, &style.caption)
+        };
+        let column = interaction
             .attach(rect(), enabled)
             .a11y_role(AccessibilityRole::RadioButton)
             .a11y_alt(self.caption)
             .a11y_builder(move |node| node.set_toggled(selected.into()))
             .direction(Direction::Vertical)
             .cross_align(Alignment::Center)
-            .spacing(SETTINGS.card_caption_gap as f32)
-            .maybe(!enabled, |el| el.opacity(SWITCH.disabled_opacity))
+            .spacing(style.caption_gap)
             .maybe(enabled, |el| el.on_press(move |_| on_select.call(())))
             .child(card)
             .child(
-                text(
-                    self.caption,
-                    caption,
-                    if selected {
-                        palette.label
-                    } else {
-                        palette.secondary_label
-                    },
-                )
-                .font_weight(if selected {
-                    FontWeight::SEMI_BOLD
-                } else {
-                    FontWeight::from(caption.weight as i32)
-                }),
-            )
+                with_font(label().text(self.caption), font)
+                    .max_lines(1)
+                    .color(paints.fill(ink)),
+            );
+        dimmed_when(column, self.disabled, style.opacity, style.disabled_opacity)
     }
 }

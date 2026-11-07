@@ -25,7 +25,7 @@ pub struct ButtonStyle {
     pub animation: Animation,
 }
 
-fn rounded(radius: f32) -> Shape {
+pub(super) fn rounded(radius: f32) -> Shape {
     Shape::RoundedRectangle {
         radius,
         style: CornerStyle::Circular,
