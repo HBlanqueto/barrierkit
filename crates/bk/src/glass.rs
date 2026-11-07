@@ -1,9 +1,7 @@
 use std::borrow::Cow;
 use std::rc::Rc;
 
-use ctdesign::{
-    FULLSCREEN_BAND, FULLSCREEN_BAR, FULLSCREEN_GLASS, FullscreenGlassMetrics, MEDIA, Rgba,
-};
+use ctdesign::{FULLSCREEN_BAND, FULLSCREEN_BAR, FULLSCREEN_GLASS, FullscreenGlassMetrics, Rgba};
 use freya_core::data::LayoutData;
 use freya_core::element::{ElementExt, RenderContext};
 use freya_core::prelude::*;
@@ -15,6 +13,7 @@ use freya_engine::prelude::{
 use torin::prelude::{Position, Size};
 
 use crate::platform::FullscreenBar;
+use crate::styles::{ControlState, MaterialStyle, Paints, Theme, TopGlassStyle, resolve};
 
 use crate::theme::{SurfaceKind, surface_background};
 
@@ -66,18 +65,28 @@ fn glass(
     edge: GlassEdge,
     metrics: FullscreenGlassMetrics,
     depth: f32,
-    line: Option<Rgba>,
+    (tint, line): (Rgba, Option<Rgba>),
     opacity: f32,
 ) -> Element {
     let (width, height, position) = along(edge, depth);
     leaf(Glass {
         edge,
         metrics,
-        tint: glass_tint(),
+        tint,
         line,
         opacity,
         layout: layout(width, height, position),
     })
+}
+
+fn solid(edge: GlassEdge, depth: f32, tint: Rgba) -> Element {
+    let (width, height, position) = along(edge, depth);
+    rect()
+        .position(position)
+        .width(width)
+        .height(height)
+        .background(crate::theme::color(tint))
+        .into_element()
 }
 
 pub(crate) fn leaf(element: impl ElementExt) -> Element {
@@ -111,52 +120,73 @@ pub(crate) fn fullscreen_backdrop(
         bar
     };
     match bar {
-        FullscreenBar::Solid => {
-            let (width, height, position) = along(edge, depth);
-            rect()
-                .position(position)
-                .width(width)
-                .height(height)
-                .background(crate::theme::color(Rgba {
-                    a: opacity,
-                    ..glass_tint()
-                }))
-                .into_element()
-        }
+        FullscreenBar::Solid => solid(
+            edge,
+            depth,
+            Rgba {
+                a: opacity,
+                ..glass_tint()
+            },
+        ),
         FullscreenBar::Glass => glass(
             edge,
             FULLSCREEN_BAND,
             depth,
-            Some(crate::style::Palette::current().separator),
+            (
+                glass_tint(),
+                Some(crate::style::Palette::current().separator),
+            ),
             opacity,
         ),
         FullscreenBar::ProgressiveGlass => glass(
             edge,
             FULLSCREEN_GLASS,
             FULLSCREEN_GLASS.height,
-            None,
+            (glass_tint(), None),
             opacity,
         ),
     }
 }
 
-#[derive(Default)]
-pub struct TopGlass;
+pub struct TopGlass {
+    style: Theme,
+}
 
 impl TopGlass {
     pub fn new() -> Self {
-        Self
+        Self {
+            style: Theme::tengen(),
+        }
+    }
+
+    pub fn style(mut self, restyle: impl Fn(TopGlassStyle) -> TopGlassStyle + 'static) -> Self {
+        self.style = self.style.style(restyle);
+        self
+    }
+}
+
+impl Default for TopGlass {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
 impl From<TopGlass> for Element {
-    fn from(_: TopGlass) -> Self {
-        fullscreen_backdrop(
-            FullscreenBar::ProgressiveGlass,
-            GlassEdge::Top,
-            FULLSCREEN_GLASS.height,
-            1.0,
-        )
+    fn from(top: TopGlass) -> Self {
+        let style: TopGlassStyle = resolve(&top.style);
+        let paints = Paints::current(ControlState::default(), style.effect);
+        let tint = paints.color(style.tint.resolve(ControlState::default()));
+        if transparency_reduced() {
+            solid(GlassEdge::Top, style.glass.height, Rgba { a: 1.0, ..tint })
+        } else {
+            glass(
+                GlassEdge::Top,
+                style.glass,
+                style.glass.height,
+                (tint, None),
+                1.0,
+            )
+        }
     }
 }
 
@@ -296,31 +326,42 @@ struct MaterialElement {
     corner_radius: f32,
     tint: Rgba,
     blur: Option<f32>,
+    rim: Option<(Rgba, f32)>,
     layout: LayoutData,
 }
 
 pub struct Material {
     corner_radius: f32,
+    style: Theme,
 }
 
 impl Material {
     pub fn new(corner_radius: f32) -> Self {
-        Self { corner_radius }
+        Self {
+            corner_radius,
+            style: Theme::tengen(),
+        }
+    }
+
+    pub fn style(mut self, restyle: impl Fn(MaterialStyle) -> MaterialStyle + 'static) -> Self {
+        self.style = self.style.style(restyle);
+        self
     }
 }
 
 impl From<Material> for Element {
     fn from(material: Material) -> Self {
-        let (tint, blur) = self::material(
-            MEDIA.material_tint,
-            MEDIA.material_tint,
-            MEDIA.material_blur,
-            transparency_reduced(),
-        );
+        let style: MaterialStyle = resolve(&material.style);
+        let paints = Paints::current(ControlState::default(), style.effect);
+        let tint = paints.color(style.tint.resolve(ControlState::default()));
+        let (tint, blur) = self::material(tint, tint, style.blur, transparency_reduced());
         leaf(MaterialElement {
             corner_radius: material.corner_radius,
             tint,
             blur,
+            rim: style
+                .border
+                .map(|(paint, width)| (paints.color(&paint), width)),
             layout: layout(Size::fill(), Size::fill(), Position::new_absolute()),
         })
     }
@@ -359,12 +400,16 @@ impl ElementExt for MaterialElement {
         tint.set_color4f(rgba4f(self.tint), None);
         canvas.draw_rrect(shape, &tint);
         canvas.restore();
+        let Some((color, width)) = self.rim else {
+            return;
+        };
+        let width = width * context.scale_factor as f32;
         let mut rim = Paint::default();
         rim.set_style(PaintStyle::Stroke);
-        rim.set_stroke_width(context.scale_factor as f32);
+        rim.set_stroke_width(width);
         rim.set_anti_alias(true);
-        rim.set_color4f(rgba4f(MEDIA.material_rim), None);
-        let inset = context.scale_factor as f32 / 2.0;
+        rim.set_color4f(rgba4f(color), None);
+        let inset = width / 2.0;
         canvas.draw_rrect(
             RRect::new_rect_xy(bounds.with_inset((inset, inset)), radius, radius),
             &rim,

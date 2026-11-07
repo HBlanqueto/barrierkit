@@ -105,7 +105,7 @@ toolbar items) or the app opens several windows: see
 
 | Item | Defaults | Own methods |
 |---|---|---|
-| `Text::new(content)` | Font `BODY`, color `Palette::current().label`, wraps to as many lines as needed | `.font(Font)` |
+| `Text::new(content)` | Font `BODY`, color `Palette::current().label`, wraps to as many lines as needed | `.style(\|s\| ..)`, `.font(Font)` |
 | `VStack::new()` | Children in a column, centered, `SPACE_3` apart | — |
 | `HStack::new()` | Children in a row, centered, `SPACE_3` apart | — |
 
@@ -116,6 +116,12 @@ traits, so Freya's methods work on them: layout (`padding`, `width`,
 `expanded`), text style (`color`, `font_size`), events (`on_press`) and, on the
 stacks, children and alignment (`child`, `children`, `spacing`,
 `main_align`, `cross_align`, `background`, `corner_radius`).
+
+The defaults of `Text` come from a `TextStyle`, so a theme can change the font
+and color of every text; its fields are in
+[Styles and themes](../ai/styles.md#textstyle-badgestyle-dividerstyle-avatarstyle-and-imagestyle).
+The stacks have no style of their own: their methods and the
+[paint on views](../ai/styles.md#paint-on-views) style them.
 
 ## The prelude
 

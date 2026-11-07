@@ -1,7 +1,7 @@
 use std::ops::Range;
 
 #[derive(Clone, Debug, Default, PartialEq)]
-pub struct TextStyle {
+pub struct RunStyle {
     pub bold: bool,
     pub italic: bool,
     pub link: Option<String>,
@@ -20,7 +20,7 @@ pub struct FontChoice {
 #[derive(Clone, Debug, PartialEq)]
 pub struct StyleRun {
     pub range: Range<usize>,
-    pub style: TextStyle,
+    pub style: RunStyle,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -29,8 +29,8 @@ pub enum Emphasis {
     Italic,
 }
 
-pub fn char_styles(runs: &[StyleRun], length: usize) -> Vec<TextStyle> {
-    let mut styles = vec![TextStyle::default(); length];
+pub fn char_styles(runs: &[StyleRun], length: usize) -> Vec<RunStyle> {
+    let mut styles = vec![RunStyle::default(); length];
     for run in runs {
         for style in styles
             .iter_mut()
@@ -43,10 +43,10 @@ pub fn char_styles(runs: &[StyleRun], length: usize) -> Vec<TextStyle> {
     styles
 }
 
-pub fn runs_from(styles: &[TextStyle]) -> Vec<StyleRun> {
+pub fn runs_from(styles: &[RunStyle]) -> Vec<StyleRun> {
     let mut runs: Vec<StyleRun> = Vec::new();
     for (index, style) in styles.iter().enumerate() {
-        if *style == TextStyle::default() {
+        if *style == RunStyle::default() {
             continue;
         }
         match runs.last_mut() {
@@ -73,7 +73,7 @@ pub fn restyle_after_edit(runs: &[StyleRun], old: &str, new: &str) -> Vec<StyleR
     let mut styles = char_styles(runs, old.len());
     let inherited = prefix
         .checked_sub(1)
-        .map(|index| TextStyle {
+        .map(|index| RunStyle {
             link: None,
             ..styles[index].clone()
         })
@@ -94,7 +94,7 @@ pub fn toggle(
 ) -> Vec<StyleRun> {
     let mut styles = char_styles(runs, length);
     let range = range.start.min(length)..range.end.min(length);
-    let has = |style: &TextStyle| match emphasis {
+    let has = |style: &RunStyle| match emphasis {
         Emphasis::Bold => style.bold,
         Emphasis::Italic => style.italic,
     };
@@ -152,9 +152,9 @@ mod tests {
     fn bold(range: Range<usize>) -> StyleRun {
         StyleRun {
             range,
-            style: TextStyle {
+            style: RunStyle {
                 bold: true,
-                ..TextStyle::default()
+                ..RunStyle::default()
             },
         }
     }
@@ -179,9 +179,9 @@ mod tests {
     fn a_link_covers_its_characters_and_not_the_one_after() {
         let runs = [StyleRun {
             range: 2..5,
-            style: TextStyle {
+            style: RunStyle {
                 link: Some("https://example.org".into()),
-                ..TextStyle::default()
+                ..RunStyle::default()
             },
         }];
         assert_eq!(link_at(&runs, 2), Some("https://example.org"));
@@ -192,9 +192,9 @@ mod tests {
     fn typing_after_a_link_does_not_extend_it() {
         let link = StyleRun {
             range: 0..3,
-            style: TextStyle {
+            style: RunStyle {
                 link: Some("https://example.org".into()),
-                ..TextStyle::default()
+                ..RunStyle::default()
             },
         };
         assert_eq!(

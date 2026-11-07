@@ -55,6 +55,7 @@
       "zoom-max": 4,
       "wheel-zoom": 0.01,
       "stream-hole": 0.32,
+      "hover-opacity": 0.12,
       "series": ["blue", "green", "orange", "purple", "red", "yellow", "pink"]
     },
     "toolbar-search-width": 180,

@@ -112,7 +112,8 @@ bar chart does not scroll.
 
 ### Animation
 
-When the series change, the chart animates for `DURATION_BASE`. With
+When the series change, the chart animates with the `animation` of its
+`ChartStyle`, `DURATION_BASE` in Tengen. With
 `.time_axis` and the same number of samples, the curve slides one step.
 Otherwise each value moves from the old to the new one, and new points grow
 from 0. With reduced motion the change is immediate
@@ -210,11 +211,20 @@ Every value is in `components.chart` of `ctdesign` (`CHART`):
 | `unselected-opacity` | 0.5 | Unselected sectors ([AppCoda](https://www.appcoda.com/swiftui-chart-ios17/)) |
 | `heat-gap` / `heat-radius` | 2 / 3 | Heat map cell gap and corner |
 | `stream-hole` | 0.32 | Center hole of the flow clock |
+| `hover-opacity` | 0.12 | Highlight of the hovered row of horizontal bars |
 | `azimuth` / `inclination` | −30° / 25° | First `Chart3D` pose |
 | `drag-degrees` | 0.5 | Degrees per point when orbiting |
 | `zoom-min` / `zoom-max` / `wheel-zoom` | 0.4 / 4 / 0.01 | Zoom limits and rate per wheel point |
 | `scroll-min-span` | 4 | Fewest visible samples when zooming in |
 | `series` | blue … pink | Series colors, the system accent colors (`CHART_SERIES`) |
+
+### Style
+
+The five charts draw from one `ChartStyle`, built from these tokens: series
+colors, grid, labels, legend, readout, line widths, marks and animation.
+`.style(|s| ..)` changes one chart and `Theme::tengen().style(|s: ChartStyle| ..)`
+every chart of the app. The fields and which chart draws each are in
+[Styles and themes](../ai/styles.md#chartstyle).
 
 ## Helpers
 

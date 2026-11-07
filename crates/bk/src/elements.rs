@@ -1,10 +1,11 @@
 use std::borrow::Cow;
 
-use ctdesign::{BODY, Font, SPACE_3};
+use ctdesign::{Font, SPACE_3};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Direction};
 
-use crate::style::{Palette, text, with_font};
+use crate::style::with_font;
+use crate::styles::{ControlState, Paints, TextStyle, Theme, resolve};
 
 macro_rules! forward_element {
     ($outer:ident) => {
@@ -96,15 +97,28 @@ macro_rules! forward_container {
 pub(crate) use forward_container;
 pub(crate) use forward_element;
 
-pub struct Text(Label);
+pub struct Text(Label, Cow<'static, str>, Theme);
 
 impl Text {
     pub fn new(content: impl Into<Cow<'static, str>>) -> Self {
-        Self(text(content, BODY, Palette::current().label).max_lines(None))
+        Self::styled(content.into(), Theme::tengen())
+    }
+
+    pub fn style(self, restyle: impl Fn(TextStyle) -> TextStyle + 'static) -> Self {
+        Self::styled(self.1, self.2.style(restyle))
     }
 
     pub fn font(self, font: Font) -> Self {
-        Self(with_font(self.0, font))
+        Self(with_font(self.0, font), self.1, self.2)
+    }
+
+    fn styled(content: Cow<'static, str>, theme: Theme) -> Self {
+        let style: TextStyle = resolve(&theme);
+        let paints = Paints::current(ControlState::default(), style.effect);
+        let view = with_font(label().text(content.clone()), style.font)
+            .max_lines(None)
+            .color(paints.fill(&style.foreground));
+        Self(view, content, theme)
     }
 }
 

@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use ctdesign::{CAPTION, CHART, HEADLINE, Rgba, SPACE_1, SPACE_2};
+use ctdesign::{CHART, Rgba};
 use freya_core::data::LayoutData;
 use freya_core::element::{ElementExt, RenderContext};
 use freya_core::prelude::*;
@@ -10,8 +10,9 @@ use torin::prelude::{Direction, Position, Size};
 
 use super::plot::paint;
 use super::scale::{sector_angles, sector_at};
-use super::{format_value, legend_entry, series_color};
-use crate::style::{Palette, text};
+use super::{Marks, format_value, ink, legend_entry, series_color};
+use crate::style::text;
+use crate::styles::{ChartStyle, ControlState, Paints, Theme, resolve};
 
 #[derive(PartialEq)]
 struct Sectors {
@@ -19,6 +20,7 @@ struct Sectors {
     colors: Vec<Rgba>,
     inner: f32,
     selected: Option<usize>,
+    marks: Marks,
     layout: LayoutData,
 }
 
@@ -45,7 +47,7 @@ impl ElementExt for Sectors {
             let inset = if *sweep >= 360.0 {
                 0.0
             } else {
-                CHART.sector_inset
+                self.marks.sector_inset
             };
             let (start, sweep) = (start + inset / 2.0, (sweep - inset).max(0.0));
             if sweep <= 0.0 {
@@ -62,10 +64,10 @@ impl ElementExt for Sectors {
             path.close();
             let mut fill = paint(*color, PaintStyle::Fill, 0.0);
             if self.selected.is_some_and(|selected| selected != i) {
-                fill.set_alpha_f(color.a * CHART.unselected_opacity);
+                fill.set_alpha_f(color.a * self.marks.unselected_opacity);
             }
             fill.set_path_effect(skia_safe::corner_path_effect::new(
-                CHART.sector_radius * context.scale_factor as f32,
+                self.marks.sector_radius * context.scale_factor as f32,
             ));
             context.canvas.draw_path(&path.detach(), &fill);
         }
@@ -79,6 +81,7 @@ pub struct SectorChart {
     donut: bool,
     unit: &'static str,
     size: f32,
+    style: Theme,
 }
 
 impl SectorChart {
@@ -89,7 +92,13 @@ impl SectorChart {
             donut: false,
             unit: "",
             size: CHART.height,
+            style: Theme::tengen(),
         }
+    }
+
+    pub fn style(mut self, restyle: impl Fn(ChartStyle) -> ChartStyle + 'static) -> Self {
+        self.style = self.style.style(restyle);
+        self
     }
 
     pub fn slice(mut self, name: impl Into<String>, value: f64) -> Self {
@@ -115,21 +124,25 @@ impl SectorChart {
 
 impl Component for SectorChart {
     fn render(&self) -> impl IntoElement {
-        let palette = Palette::current();
+        let style: ChartStyle = resolve(&self.style);
+        let paints = Paints::current(ControlState::default(), style.effect);
         let mut selected = use_state(|| None::<usize>);
         let values: Vec<f64> = self.slices.iter().map(|(_, v)| *v).collect();
         let total: f64 = values.iter().sum();
-        let colors: Vec<Rgba> = (0..values.len()).map(series_color).collect();
+        let colors: Vec<Rgba> = (0..values.len())
+            .map(|index| series_color(&style, &paints, index))
+            .collect();
         let angles = sector_angles(&values);
         let hovered = selected.read().and_then(|i| self.slices.get(i));
         let size = self.size;
-        let inner = if self.donut { CHART.sector_inner } else { 0.0 };
+        let inner = if self.donut { style.sector_inner } else { 0.0 };
         let hit_angles = angles.clone();
         let sectors = Sectors {
             angles,
             colors: colors.clone(),
             inner,
             selected: *selected.read(),
+            marks: Marks::of(&style),
             layout: crate::glass::layout(Size::fill(), Size::fill(), Position::default()),
         };
         let legend = self.slices.iter().enumerate().map(|(i, (name, value))| {
@@ -139,18 +152,19 @@ impl Component for SectorChart {
                 0.0
             };
             legend_entry(
+                &style,
+                &paints,
                 colors[i],
                 format!(
                     "{name} {} · {}",
                     format_value(*value, self.unit),
                     format_value(share, "%")
                 ),
-                &palette,
             )
         });
         rect()
             .direction(Direction::Vertical)
-            .spacing(SPACE_2)
+            .spacing(style.group_spacing)
             .a11y_role(AccessibilityRole::Figure)
             .a11y_alt(self.label)
             .child(
@@ -178,11 +192,11 @@ impl Component for SectorChart {
                                     hovered.map_or(format_value(total, self.unit), |(_, value)| {
                                         format_value(*value, self.unit)
                                     }),
-                                    HEADLINE,
-                                    palette.label,
+                                    style.value_font,
+                                    ink(&paints, &style.legend_label),
                                 ))
                                 .maybe_child(hovered.map(|(name, _)| {
-                                    text(name.clone(), CAPTION, palette.secondary_label)
+                                    text(name.clone(), style.font, ink(&paints, &style.axis_label))
                                 })),
                         )
                     }),
@@ -190,7 +204,7 @@ impl Component for SectorChart {
             .child(
                 rect()
                     .direction(Direction::Vertical)
-                    .spacing(SPACE_1)
+                    .spacing(style.spacing)
                     .children(legend),
             )
     }

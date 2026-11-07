@@ -1,6 +1,6 @@
 use std::io::Write;
 
-use ctdesign::{BODY, CAPTION, PRINT, SPACE_2, SPACE_3};
+use ctdesign::{BODY, PRINT};
 use flate2::Compression;
 use flate2::write::ZlibEncoder;
 use freya_core::elements::image::ImageHandle;
@@ -15,10 +15,11 @@ use pdf_writer::{Content, Filter, Finish, Name, Pdf, Rect, Ref, Str};
 use subsetter::GlyphRemapper;
 use torin::prelude::{Alignment, Direction, Gaps, Size};
 
+use crate::controls::shadowed;
 use crate::i18n::text;
 use crate::scroll::ScrollView;
-use crate::style::{Palette, text};
-use crate::theme::color;
+use crate::style::text;
+use crate::styles::{ControlState, LayoutDirection, Paints, PrintPreviewStyle, Theme, resolve};
 
 const MM_PER_INCH: f32 = 25.4;
 const POINTS_PER_INCH: f32 = 72.0;
@@ -531,6 +532,7 @@ pub fn text_pdf(text: &str, setup: &PageSetup) -> Vec<u8> {
 pub struct PrintPreview {
     pages: Vec<ImageHandle>,
     setup: PageSetup,
+    style: Theme,
 }
 
 impl PrintPreview {
@@ -541,30 +543,49 @@ impl PrintPreview {
                 .map(|page| ImageHandle::new(page.clone(), Bytes::new()))
                 .collect(),
             setup,
+            style: Theme::tengen(),
         }
+    }
+
+    pub fn style(
+        mut self,
+        restyle: impl Fn(PrintPreviewStyle) -> PrintPreviewStyle + 'static,
+    ) -> Self {
+        self.style = self.style.style(restyle);
+        self
     }
 }
 
 impl Component for PrintPreview {
     fn render(&self) -> impl IntoElement {
-        let palette = Palette::current();
+        let style: PrintPreviewStyle = resolve(&self.style);
+        let paints = Paints::current(ControlState::default(), style.effect);
         let total = self.pages.len();
         let aspect = self.setup.height / self.setup.width;
         let mut width = use_state(|| 0.0f32);
-        let page_height = *width.read() * aspect;
+        let page_width = *width.read();
+        let page_height = page_width * aspect;
         let pages = self.pages.iter().enumerate().map(|(index, page)| {
             rect()
                 .width(Size::fill())
                 .direction(Direction::Vertical)
                 .cross_align(Alignment::Center)
-                .spacing(SPACE_2)
+                .spacing(style.caption_gap)
                 .child(
-                    rect()
-                        .width(Size::fill())
-                        .height(Size::px(page_height))
-                        .background(color(palette.content_background))
-                        .shadow(Shadow::new().blur(SPACE_2).color(color(palette.separator)))
-                        .child(image(page.clone()).expanded()),
+                    shadowed(
+                        rect()
+                            .width(Size::fill())
+                            .height(Size::px(page_height))
+                            .corner_radius(style.page_shape.corner_radius(
+                                page_width,
+                                page_height,
+                                LayoutDirection::LeftToRight,
+                            ))
+                            .background(paints.fill(&style.page))
+                            .map(paints.blur(&style.page), |el, blur| el.blur(blur)),
+                        &style.page_shadows,
+                    )
+                    .child(image(page.clone()).expanded()),
                 )
                 .child(text(
                     text!(
@@ -572,18 +593,19 @@ impl Component for PrintPreview {
                         page = (index + 1).to_string(),
                         total = total.to_string()
                     ),
-                    CAPTION,
-                    palette.secondary_label,
+                    style.caption_font,
+                    paints.color(style.caption.resolve(ControlState::default())),
                 ))
                 .into_element()
         });
+        let padding = style.padding;
         ScrollView::new().expanded().child(
             rect()
                 .width(Size::fill())
-                .padding(Gaps::new_all(SPACE_3))
-                .spacing(SPACE_3)
+                .padding(Gaps::new_all(style.padding))
+                .spacing(style.spacing)
                 .on_sized(move |event: Event<SizedEventData>| {
-                    width.set_if_modified(event.area.width() - 2.0 * SPACE_3)
+                    width.set_if_modified(event.area.width() - 2.0 * padding)
                 })
                 .a11y_role(AccessibilityRole::Group)
                 .a11y_alt(text!("print-preview"))

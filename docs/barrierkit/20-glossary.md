@@ -58,6 +58,7 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 | `level::LevelSlider::style(LevelStyle)` | `level::LevelSlider::style(\|s\| ..)` | 2026-11-07 |
 | `LevelStyle::Regular` | `LevelSliderStyle::tengen()`, the default | 2026-11-07 |
 | `LevelStyle::Fat(Symbol)` | `LevelSliderStyle::fat(symbol)` | 2026-11-07 |
+| `rich_text::TextStyle` | `rich_text::RunStyle`; `styles::TextStyle` is the style of `Text` | 2026-11-07 |
 | The 22 views, modifiers and names listed in [ADR 0063](../decisions/0063-views-as-types-and-swift-names.md#decision) (`divider()`, `empty_state`, `use_tooltip`, `PreferencesWindow`, `AppMenu`, `ProgressBar`…) | `Divider`, `ContentUnavailableView`, `.help`, `SettingsWindow`, `MainMenu`, `ProgressView`… | 2026-11-07 |
 
 ## How to read the tables
@@ -160,6 +161,20 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 | `styles::MediaButtonStyle` | struct | ≈ `ButtonStyle` | — | Every visual property of `MediaButton` | [Styles](../ai/styles.md#mediabuttonstyle-and-roundbuttonstyle) |
 | `styles::RoundButtonStyle` | struct | ≈ `ButtonStyle` | — | Every visual property of `RoundButton` | [Styles](../ai/styles.md#mediabuttonstyle-and-roundbuttonstyle) |
 | `styles::LinkStyle` | struct | `LinkButtonStyle` | — | Every visual property of `Link` | [Styles](../ai/styles.md#linkstyle) |
+| `styles::TextStyle` | struct | ≈ `.font(_:)` and `.foregroundStyle(_:)` in the environment | ≈ `NSTextField.font`, `textColor` | Default font and paint of every `Text` | [Styles](../ai/styles.md#textstyle-badgestyle-dividerstyle-avatarstyle-and-imagestyle) |
+| `styles::BadgeStyle` | struct | ≈ `.badgeProminence(_:)` | — | Every visual property of `Badge` | [Styles](../ai/styles.md#textstyle-badgestyle-dividerstyle-avatarstyle-and-imagestyle) |
+| `styles::DividerStyle` | struct | — | ≈ `NSBox` (separator) | Thickness and paint of `Divider` | [Styles](../ai/styles.md#textstyle-badgestyle-dividerstyle-avatarstyle-and-imagestyle) |
+| `styles::AvatarStyle` | struct | — | — | Every visual property of `Avatar` | [Styles](../ai/styles.md#textstyle-badgestyle-dividerstyle-avatarstyle-and-imagestyle) |
+| `styles::ImageStyle` | struct | ≈ `.imageScale(_:)`, `.foregroundStyle(_:)` | — | Default size and paint of every `Image` | [Styles](../ai/styles.md#textstyle-badgestyle-dividerstyle-avatarstyle-and-imagestyle) |
+| `styles::MaterialStyle` | struct | `Material` | ≈ `NSVisualEffectView.Material` | Tint, blur and rim of `Material` | [Styles](../ai/styles.md#materialstyle-topglassstyle-and-glasscontainerstyle) |
+| `styles::TopGlassStyle` | struct | ≈ `.scrollEdgeEffectStyle(_:for:)` | — | Tint and glass metrics of `TopGlass` | [Styles](../ai/styles.md#materialstyle-topglassstyle-and-glasscontainerstyle) |
+| `styles::GlassContainerStyle` | struct | ≈ `.glassEffect(_:in:)` | ≈ `NSGlassEffectView` | Tint, solid color, rim, blur and morph of `GlassContainer` | [Styles](../ai/styles.md#materialstyle-topglassstyle-and-glasscontainerstyle) |
+| `styles::BackdropStyle` | struct | — | — | Angles, opacity and fade of the gradient layers of `Backdrop` | [Styles](../ai/styles.md#backdropstyle) |
+| `styles::ScrollViewStyle` | struct | ≈ `.scrollIndicators(_:axes:)` | ≈ `NSScroller.KnobStyle` | Every visual property of the bar, edge fade and top line of `ScrollView` | [Styles](../ai/styles.md#scrollviewstyle) |
+| `styles::TextEditorStyle` | struct | `TextEditorStyle` | ≈ `NSTextView` (`backgroundColor`, `textColor`) | Every visual property of `TextEditor` | [Styles](../ai/styles.md#texteditorstyle) |
+| `styles::RuleEditorStyle` | struct | — | ≈ `NSRuleEditor` | Gaps, indent and header text of `RuleEditor` | [Styles](../ai/styles.md#ruleeditorstyle) |
+| `styles::PrintPreviewStyle` | struct | — | — | Gaps, page background, shadows and page numbers of `PrintPreview` | [Styles](../ai/styles.md#printpreviewstyle) |
+| `styles::ChartStyle` | struct | ≈ `.chartForegroundStyleScale(_:)`, `.chartPlotStyle(content:)` | — | Every visual property of `Chart`, `SectorChart`, `HeatMap`, `StreamChart` and `Chart3D` | [Styles](../ai/styles.md#chartstyle) |
 | `styles::Theme` | struct | ≈ styles set in the environment | ≈ `NSAppearance` | Style overrides for the whole app; `Theme::tengen()` changes nothing | [Styles](../ai/styles.md#levels) |
 | `styles::Theme::style` | method | ≈ `.buttonStyle(_:)` on the scene | — | Adds an override of the control whose style the closure takes | [Styles](../ai/styles.md#levels) |
 | `styles::StyleScope` | struct | ≈ a view after `.buttonStyle(_:)` | — | Component returned by `.control_style`: its overrides reach the controls inside | [Styles](../ai/styles.md#levels) |
@@ -209,6 +224,20 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 | `media::MediaButton::style` | method | `.buttonStyle(_:)` on one view | — | Changes the style of one media button | [Styles](../ai/styles.md#mediabuttonstyle-and-roundbuttonstyle) |
 | `media::RoundButton::style` | method | `.buttonStyle(_:)` on one view | — | Changes the style of one round button | [Styles](../ai/styles.md#mediabuttonstyle-and-roundbuttonstyle) |
 | `adornments::Link::style` | method | `.buttonStyle(.link)` on one view | — | Changes the style of one link | [Styles](../ai/styles.md#linkstyle) |
+| `elements::Text::style` | method | ≈ `.font(_:)` on one view | — | Builds one text again with its style changed | [Styles](../ai/styles.md#textstyle-badgestyle-dividerstyle-avatarstyle-and-imagestyle) |
+| `adornments::Badge::style` | method | — | — | Builds one badge again with its style changed | [Styles](../ai/styles.md#textstyle-badgestyle-dividerstyle-avatarstyle-and-imagestyle) |
+| `adornments::Divider::style` | method | — | — | Builds one divider again with its style changed | [Styles](../ai/styles.md#textstyle-badgestyle-dividerstyle-avatarstyle-and-imagestyle) |
+| `adornments::Avatar::style` | method | — | — | Builds one avatar again with its style changed | [Styles](../ai/styles.md#textstyle-badgestyle-dividerstyle-avatarstyle-and-imagestyle) |
+| `symbol::Image::style` | method | ≈ `.imageScale(_:)` on one view | — | Changes the style of one image | [Styles](../ai/styles.md#textstyle-badgestyle-dividerstyle-avatarstyle-and-imagestyle) |
+| `media::Material::style` | method | — | — | Changes the style of one material | [Styles](../ai/styles.md#materialstyle-topglassstyle-and-glasscontainerstyle) |
+| `media::TopGlass::style` | method | ≈ `.scrollEdgeEffectStyle(_:for:)` on one view | — | Changes the style of one top glass | [Styles](../ai/styles.md#materialstyle-topglassstyle-and-glasscontainerstyle) |
+| `glass_container::GlassContainer::style` | method | — | — | Changes the style of one glass container | [Styles](../ai/styles.md#materialstyle-topglassstyle-and-glasscontainerstyle) |
+| `backdrop::Backdrop::style` | method | — | — | Changes the style of one backdrop | [Styles](../ai/styles.md#backdropstyle) |
+| `controls::ScrollView::style` | method | ≈ `.scrollIndicators(_:axes:)` on one view | — | Changes the style of one scroll view | [Styles](../ai/styles.md#scrollviewstyle) |
+| `text_editor::TextEditor::style` | method | `.textEditorStyle(_:)` on one view | — | Changes the style of one text editor | [Styles](../ai/styles.md#texteditorstyle) |
+| `rule_editor::RuleEditor::style` | method | — | — | Changes the style of one rule editor | [Styles](../ai/styles.md#ruleeditorstyle) |
+| `print::PrintPreview::style` | method | — | — | Changes the style of one print preview | [Styles](../ai/styles.md#printpreviewstyle) |
+| `charts::Chart::style`, `SectorChart::style`, `HeatMap::style`, `StreamChart::style`, `Chart3D::style` | method | ≈ `.chartForegroundStyleScale(_:)` on one chart | — | Changes the `ChartStyle` of one chart | [Styles](../ai/styles.md#chartstyle) |
 | `app::Application::theme` | method | ≈ `.environment(_:_:)` on the scene | ≈ `NSApp.appearance` | Gives the app its `Theme` | [Styles](../ai/styles.md#levels) |
 
 ## Symbols and fonts
@@ -552,8 +581,8 @@ AI agent ([`docs/ai/prompt.md`](../ai/prompt.md)).
 |---|---|---|---|---|---|
 | `text_editor::TextEditor` | struct | `TextEditor` | `NSTextView` | Multi-line editor with find bar, rich text and spelling | [6](06-text-and-editing.md#text-editor) |
 | `text_editor::find_matches` | fn | — | `≈ NSTextFinder` | Case-insensitive, non-overlapping matches in character indices | [6](06-text-and-editing.md#find-bar) |
-| `rich_text::TextStyle` | struct | — | — | Bold, italic, link, family and size of a run | [6](06-text-and-editing.md#rich-text) |
-| `rich_text::StyleRun` | struct | — | — | A `TextStyle` over a character range | [6](06-text-and-editing.md#rich-text) |
+| `rich_text::RunStyle` | struct | — | — | Bold, italic, link, family and size of a run | [6](06-text-and-editing.md#rich-text) |
+| `rich_text::StyleRun` | struct | — | — | A `RunStyle` over a character range | [6](06-text-and-editing.md#rich-text) |
 | `rich_text::FontChoice` | struct | `≈ Font` | `≈ NSFontDescriptor` | Family, size, bold and italic | [6](06-text-and-editing.md#rich-text) |
 | `rich_text::Emphasis` | enum | — | `≈ NSFontDescriptor.SymbolicTraits` | `Bold` or `Italic` | [6](06-text-and-editing.md#rich-text) |
 | `rich_text::char_styles` | fn | — | — | One style per character from runs | [6](06-text-and-editing.md#rich-text) |

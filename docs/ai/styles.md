@@ -23,8 +23,10 @@ its style.
    - "this slider" → instance, `.style(..)`;
    - "the sliders in this panel" → container, `.control_style(..)`;
    - "every slider in the app", "a new theme" → theme, `Theme`;
-   - the color, background or shadow of a `Text`, a stack, `rect()`,
-     `Badge` or `Divider` → [Paint on views](#paint-on-views).
+   - the color, background or shadow of one `Text`, a stack, `rect()`,
+     `Badge` or `Divider` → [Paint on views](#paint-on-views); the
+     defaults of every `Text`, `Badge`, `Divider`, `Avatar` or `Image` →
+     their [view styles](#textstyle-badgestyle-dividerstyle-avatarstyle-and-imagestyle).
 2. Check in [Which controls take a style](#which-controls-take-a-style) that
    the control supports it. If not, say so; do not imitate it with `rect()`.
 3. Write the override as a function of the inherited style that names only
@@ -94,8 +96,9 @@ All of them are in `bk::styles` and in the prelude.
 
 Every control style has the same groups. The names of the parts change per
 control; the groups do not. A control leaves out a group it does not draw:
-only `ButtonStyle`, `HelpLinkStyle`, `IconButtonStyle`, `LevelSliderStyle`,
-`MediaButtonStyle`, `ProgressViewStyle`, `RoundButtonStyle`, `SliderStyle`,
+only `BackdropStyle`, `ButtonStyle`, `ChartStyle`, `GlassContainerStyle`,
+`HelpLinkStyle`, `IconButtonStyle`, `LevelSliderStyle`, `MediaButtonStyle`,
+`ProgressViewStyle`, `RoundButtonStyle`, `ScrollViewStyle`, `SliderStyle`,
 `SpinnerStyle` and `SwitchStyle` have `animation`.
 
 | Group | Fields (slider) |
@@ -725,6 +728,180 @@ Link::new("Learn more…").style(|s| LinkStyle {
 })
 ```
 
+### TextStyle, BadgeStyle, DividerStyle, AvatarStyle and ImageStyle
+
+These views wrap `label()` or `rect()` and keep Freya's methods. They resolve
+their style when they are built, against the theme and the `.control_style`
+of the components around the one that builds them: a `.control_style` on a
+stack does not reach the views built in the same function. `.style` builds
+the view again, so it comes right after `new`, before Freya's methods.
+
+| Field | Type | `TextStyle` | `BadgeStyle` | `DividerStyle` | `AvatarStyle` | `ImageStyle` |
+|---|---|---|---|---|---|---|
+| Size | `f32` | — | `height`, `padding_x`: `BADGE.height`, `BADGE.padding_x`; the badge is at least as wide as it is tall | `thickness`: `HAIRLINE`; the line fills the width | `size`: `SETTINGS.account_avatar`, a square | `size`: `BODY.size`, a square |
+| `shape` | `Shape` | — | `Capsule` | — | `Circle` | — |
+| Paint | `StateValue<ShapeStyle>` | `foreground` `Role(Label)` | `background` `Role(Destructive)`, `label` `Role(OnAccent)` | `line` `Role(Separator)` | `background` `Role(SecondaryLabel)`, `label` `Color` of the ink that contrasts with the secondary label | `foreground` `Role(Label)`, the symbol |
+| `border` | `Option<(ShapeStyle, f32)>` | — | `None` | — | `None` | — |
+| `shadows` | `Vec<ShadowStyle>` | — | empty | — | empty | — |
+| `effect` | `ColorEffect` | `system_effect` | the same | the same | the same | the same |
+| Font | `Font` | `font` `BODY` | `font` `CAPTION` | — | `font` `HEADLINE` | — |
+
+States: only `normal`. `Text::font(Font)` changes the font of one text after
+its style. `Image::size` and `Image::color` are instance overrides of `size`
+and of `foreground` (`Color`). `VStack`, `HStack`, `Scrim` and `Canvas` have
+no style: their look is the [paint on views](#paint-on-views) and Freya's
+methods.
+
+```rust
+Theme::tengen()
+    .style(|s: TextStyle| TextStyle { font: CALLOUT, ..s })
+    .style(|s: BadgeStyle| BadgeStyle {
+        background: StateValue::new(ShapeStyle::Accent),
+        ..s
+    })
+```
+
+### MaterialStyle, TopGlassStyle and GlassContainerStyle
+
+| Field | Type | `MaterialStyle` | `TopGlassStyle` | `GlassContainerStyle` |
+|---|---|---|---|---|
+| `tint` | `StateValue<ShapeStyle>` | `Color(MEDIA.material_tint)` | `Color` of the glass of the window: `raised_background` over a `Backdrop`, the window surface without one | `Color(MEDIA.round_glass)` |
+| `solid` | `StateValue<ShapeStyle>` | — | — | `Color(MEDIA.material_tint)`, in place of `tint` when the user reduces transparency |
+| `rim` | `StateValue<ShapeStyle>` | — | — | `Color(MEDIA.round_rim)`, one pixel along the outline |
+| `blur` | `f32` | `MEDIA.material_blur` | — | `MEDIA.material_blur` |
+| `glass` | `FullscreenGlassMetrics` | — | `FULLSCREEN_GLASS`: the height, blur, layers and the stops of the tint and the mask | — |
+| `border` | `Option<(ShapeStyle, f32)>` | `Some((Color(MEDIA.material_rim), HAIRLINE))`, drawn inside | — | — |
+| `effect` | `ColorEffect` | `system_effect` | the same | the same |
+| `animation` | `Animation` | — | — | `Ease { duration_ms: DURATION_BASE }`: the shapes morph; `None` makes them jump |
+
+States: only `normal`. When the user reduces transparency the material and
+the top glass become their `tint`, opaque, and the glass container its
+`solid`. The corner radius of `Material::new` and the radii of
+`GlassContainer::item` stay arguments: they follow the content.
+
+### BackdropStyle
+
+The colors of a `Backdrop` come from its source: they are content. The
+palette it gives its content has no style.
+
+| Field | Type | Tengen |
+|---|---|---|
+| `angles` | `[f32; 3]` | `BACKDROP.angles`, the direction of each gradient layer in degrees |
+| `opacity` | `f32` | `BACKDROP.opacity`, of each layer where it starts |
+| `animation` | `Animation` | `Custom { duration_ms: DURATION_SLOW_MS, curve }` with an ease-in-out cubic curve: a new source fades in; `None` makes it jump |
+
+### ScrollViewStyle
+
+| Field | Type | Tengen |
+|---|---|---|
+| `thumb_width`, `track_width` | `f32` | `SCROLL_BAR.thumb` for the bar that shows while scrolling, `SCROLL_BAR.track` for the thumb and track of the bar that is always shown |
+| `min_thumb_length`, `inset` | `f32` | `SCROLL_BAR.min_length`, `SCROLL_BAR.inset` from the edge |
+| `edge_height` | `f32` | `SCROLL_BAR.edge_height`, the fade of `.edge_effect(true)` |
+| `thumb_shape` | `Shape` | `Capsule`, the thumb and the track |
+| `thumb`, `track` | `StateValue<ShapeStyle>` | `Role(Label)`, `Role(Label)`: the color of the paint with the opacity below |
+| `edge` | `StateValue<ShapeStyle>` | `Role(WindowBackground)`, fading to clear |
+| `top_line` | `StateValue<ShapeStyle>` | `Color` of the sidebar line, the line of `.top_line(true)` |
+| `thumb_opacity`, `always_thumb_opacity`, `track_opacity` | `f32` | `SCROLL_BAR.opacity`, `SCROLL_BAR.always_opacity`, `SCROLL_BAR.track_opacity` |
+| `effect` | `ColorEffect` | `system_effect` |
+| `hide_delay_ms` | `u64` | `SCROLL_BAR.hide_delay_ms`, from the last scroll until the bar fades out |
+| `animation` | `Animation` | `Ease { duration_ms: DURATION_FAST_MS }`: the bar fades; `None` makes it appear and vanish at once |
+
+States: only `normal`. The user's setting decides whether the bar is always
+shown; `.scroll_bar(false)` hides it.
+
+### TextEditorStyle
+
+`TextEditor` is drawn like a [`TextField`](#textfieldstyle-searchfieldstyle-and-securefieldstyle)
+with several lines, but its border does not turn to the accent: the focus
+ring marks the focus. The find bar holds a `SearchField`, two `IconButton`s
+and a small `Button`, which take their own styles.
+
+| Field | Type | Tengen |
+|---|---|---|
+| `padding_x`, `padding_y` | `f32` | `TEXT_FIELD.padding_x`; (`TEXT_FIELD.height` − `BODY.line_height`) / 2 |
+| `spacing`, `find_bar_spacing` | `f32` | `SPACE_1` between the find bar and the text, `SPACE_2` inside the find bar |
+| `shape` | `Shape` | `RoundedRectangle { radius: TEXT_FIELD.radius, style: Circular }`; a `Capsule` rounds by half of one line |
+| `background` | `StateValue<ShapeStyle>` | `Role(ContentBackground)` |
+| `text`, `placeholder` | `StateValue<ShapeStyle>` | `Role(Label)`, the caret too; `Role(TertiaryLabel)` |
+| `link`, `misspelling`, `caption` | `StateValue<ShapeStyle>` | `Accent`, `Role(Destructive)`, `Role(SecondaryLabel)` for the match count |
+| `border` | `Option<(ShapeStyle, f32)>` | `Some((Role(Separator), HAIRLINE))`, drawn inside |
+| `opacity`, `effect` | `f32`, `ColorEffect` | `1.0`, `system_effect` |
+| `font`, `caption_font` | `Font` | `BODY`, `CAPTION` |
+
+States: hovered, focused.
+
+### RuleEditorStyle
+
+The rows hold `PopUpButton`s, `TextField`s and `IconButton`s, which take
+their own styles.
+
+| Field | Type | Tengen |
+|---|---|---|
+| `spacing`, `row_spacing` | `f32` | `SPACE_2` between the rows, `SPACE_1` inside a row |
+| `indent` | `f32` | `DISCLOSURE.indent` per level of a nested group |
+| `label` | `StateValue<ShapeStyle>` | `Role(Label)`, the text "of the following" |
+| `effect` | `ColorEffect` | `system_effect` |
+| `font` | `Font` | `BODY` |
+
+States: only `normal`.
+
+### PrintPreviewStyle
+
+The pages are content: no paint or `effect` changes them.
+
+| Field | Type | Tengen |
+|---|---|---|
+| `padding`, `spacing`, `caption_gap` | `f32` | `SPACE_3` around the pages, `SPACE_3` between them, `SPACE_2` between a page and its number |
+| `page_shape` | `Shape` | `Rectangle` |
+| `page`, `caption` | `StateValue<ShapeStyle>` | `Role(ContentBackground)` behind each page, `Role(SecondaryLabel)` for the page number |
+| `page_shadows` | `Vec<ShadowStyle>` | one shadow in the separator color with `SPACE_2` of blur |
+| `effect` | `ColorEffect` | `system_effect` |
+| `caption_font` | `Font` | `CAPTION` |
+
+States: only `normal`.
+
+### ChartStyle
+
+One style for `Chart`, `SectorChart`, `HeatMap`, `StreamChart` and
+`Chart3D`, so a theme colors every chart alike. Each chart draws only the
+fields of its parts. The height or size of a chart stays an option of the
+chart (`.height`, `.size`): it is layout.
+
+| Field | Type | Tengen | Drawn by |
+|---|---|---|---|
+| `axis_width`, `axis_gap` | `f32` | `CHART.y_axis_width`, `CHART.axis_gap` between an axis label and the plot | `Chart`; `Chart3D` makes its camera labels twice as wide |
+| `spacing`, `group_spacing` | `f32` | `SPACE_1` between the plot, the labels, the legend entries, a swatch and its label and the readout rows; `SPACE_2` between the sections | `spacing` `Chart`, `SectorChart`, `StreamChart`; `group_spacing` `SectorChart`, `Chart3D` |
+| `legend_gap`, `legend_swatch` | `f32` | `CHART.legend_gap` between the entries of a row, `CHART.legend_swatch` | `Chart`, `SectorChart`, `StreamChart` |
+| `tooltip_padding` | `(f32, f32)` | `(TOOLTIP.padding_x, TOOLTIP.padding_y)` | `Chart`, the readout of a selected point |
+| `line_width`, `point_size`, `rule_width`, `grid_width` | `f32` | `CHART.line_width`, `CHART.point_size`, `CHART.rule_width`, `CHART.grid_width` | `Chart`; `grid_width` and `rule_width` also the guides of `StreamChart`, `grid_width` and `point_size` the box and points of `Chart3D` |
+| `bar_gap`, `bar_radius` | `f32` | `CHART.bar_gap`, the share of a category left empty; `CHART.bar_radius` | `Chart` |
+| `sector_inner`, `sector_inset`, `sector_radius` | `f32` | `CHART.sector_inner`, the hole of a donut; `CHART.sector_inset` degrees between slices; `CHART.sector_radius` | `SectorChart` |
+| `heat_gap`, `heat_radius` | `f32` | `CHART.heat_gap`, `CHART.heat_radius` | `HeatMap` |
+| `stream_hole` | `f32` | `CHART.stream_hole`, the hole of the flow clock | `StreamChart` |
+| `legend_shape`, `tooltip_shape` | `Shape` | `Circle`; `RoundedRectangle { radius: TOOLTIP.radius, style: Circular }` | the legends; `Chart` |
+| `series` | `Vec<ShapeStyle>` | `Color` of each of `CHART_SERIES`, repeated when there are more series | every chart but `HeatMap`; `Chart3D` goes from the first to the third |
+| `grid`, `rule`, `hover`, `halo` | `StateValue<ShapeStyle>` | `Role(Separator)`, `Role(SecondaryLabel)`, `Role(TertiaryLabel)`, `Role(ContentBackground)` around the hovered points | `Chart`; `grid` also `StreamChart`, `Chart3D` |
+| `heat_empty`, `heat_fill` | `StateValue<ShapeStyle>` | `Role(ControlBackground)` for the lowest value, `Accent` for the highest | `HeatMap` |
+| `axis_label`, `legend_label` | `StateValue<ShapeStyle>` | `Role(SecondaryLabel)`, `Role(Label)`; the center of a donut takes `legend_label` for the value and `axis_label` for the name | `axis_label` `Chart`, `SectorChart`, `Chart3D`; `legend_label` `Chart`, `SectorChart`, `StreamChart` |
+| `tooltip_background`, `tooltip_label` | `StateValue<ShapeStyle>` | `Color` of the popover background and text | `Chart` |
+| `tooltip_border` | `Option<(ShapeStyle, f32)>` | `Some((Color of the popover separator, HAIRLINE))` | `Chart` |
+| `area_opacity`, `unselected_opacity`, `hover_opacity` | `f32` | `CHART.area_opacity`, `CHART.unselected_opacity` of the other slices, `CHART.hover_opacity` of the hovered row of horizontal bars | `Chart`; `SectorChart` |
+| `effect` | `ColorEffect` | `system_effect` | every chart |
+| `font`, `value_font`, `title_font` | `Font` | `CAPTION` for the labels, legend and readout; `HEADLINE` for the value in a donut; `CALLOUT` for the camera labels | `font` `Chart`, `SectorChart`, `StreamChart`; `value_font` `SectorChart`; `title_font` `Chart3D` |
+| `animation` | `Animation` | `Ease { duration_ms: DURATION_BASE }`: new data blends in and a time axis slides; `None` makes it jump | `Chart` |
+
+States: only `normal`. `Chart3D` keeps its camera controls, a
+`SegmentedControl`, `LevelSlider`s and a small `Button`, which take their own
+styles.
+
+```rust
+Theme::tengen().style(|s: ChartStyle| ChartStyle {
+    series: vec![ShapeStyle::Accent, ShapeStyle::Role(Role::SecondaryLabel)],
+    bar_radius: 4.0,
+    ..s
+})
+```
+
 ## Examples
 
 This slider red, taller, flat and with almost square corners; the others stay
@@ -786,6 +963,10 @@ The paint resolves when the view is built, against the palette, accent,
 `Backdrop` and appearance of the component that builds it, with the same
 resolver as the controls: a `Material` is solid when the user reduces
 transparency.
+
+These modifiers change one view. The defaults of every `Text`, `Badge`,
+`Divider`, `Avatar` and `Image` are their
+[view styles](#textstyle-badgestyle-dividerstyle-avatarstyle-and-imagestyle).
 
 ✗ Color a stack to change its texts: a `Text` keeps its own color.
 
@@ -871,6 +1052,23 @@ needs 4.5:1 and control parts 3:1 (WCAG 2.2, 1.4.3 and 1.4.11). Roles and
 | `MediaButton` | `MediaButtonStyle` | 2026-11-07 |
 | `RoundButton` | `RoundButtonStyle` | 2026-11-07 |
 | `Link` | `LinkStyle` | 2026-11-07 |
+| `Text` | `TextStyle` | 2026-11-07 |
+| `Badge` | `BadgeStyle` | 2026-11-07 |
+| `Divider` | `DividerStyle` | 2026-11-07 |
+| `Avatar` | `AvatarStyle` | 2026-11-07 |
+| `Image` | `ImageStyle` | 2026-11-07 |
+| `Material` | `MaterialStyle` | 2026-11-07 |
+| `TopGlass` | `TopGlassStyle` | 2026-11-07 |
+| `GlassContainer` | `GlassContainerStyle` | 2026-11-07 |
+| `Backdrop` | `BackdropStyle` | 2026-11-07 |
+| `ScrollView` | `ScrollViewStyle` | 2026-11-07 |
+| `TextEditor` | `TextEditorStyle`; its find bar takes `SearchFieldStyle`, `IconButtonStyle` and `ButtonStyle` | 2026-11-07 |
+| `RuleEditor` | `RuleEditorStyle`; its rows take `PopUpButtonStyle`, `TextFieldStyle` and `IconButtonStyle` | 2026-11-07 |
+| `PrintPreview` | `PrintPreviewStyle` | 2026-11-07 |
+| `Chart`, `SectorChart`, `HeatMap`, `StreamChart`, `Chart3D` | `ChartStyle` | 2026-11-07 |
+
+`VStack`, `HStack`, `Scrim` and `Canvas` take no style: they are styled with
+the [paint on views](#paint-on-views) and Freya's methods.
 
 Every style implements `ControlStyle`: `tengen()` and the accessibility rules
 of its control. Every other control still draws only Tengen. Its rollout order is in

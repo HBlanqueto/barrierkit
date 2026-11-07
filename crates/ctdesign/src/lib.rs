@@ -570,6 +570,7 @@ pub struct ChartMetrics {
     pub zoom_max: f32,
     pub wheel_zoom: f32,
     pub stream_hole: f32,
+    pub hover_opacity: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

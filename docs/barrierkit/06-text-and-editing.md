@@ -89,6 +89,13 @@ move between matches. The current match is selected, and the text scrolls to it
 `find_matches(text, query)` returns the matches as `(start, end)` character indices. It ignores
 case, does not overlap and returns nothing for an empty query.
 
+### Style
+
+`TextEditor` draws from a `TextEditorStyle`: `.style(|s| ..)` for one editor,
+`.control_style(|s: TextEditorStyle| ..)` for the editors inside a view. The
+controls of the find bar take their own styles. The fields are in
+[Styles and themes](../ai/styles.md#texteditorstyle).
+
 ## Rich text
 
 Module `rich_text`. The text stays in the `State<String>`; the styles live beside it as runs
@@ -96,15 +103,15 @@ in character indices.
 
 | Type | Fields |
 |---|---|
-| `TextStyle` | `bold`, `italic`, `link: Option<String>`, `family: Option<String>`, `size: Option<f32>`; `Default` is plain |
-| `StyleRun` | `range: Range<usize>`, `style: TextStyle` |
+| `RunStyle` | `bold`, `italic`, `link: Option<String>`, `family: Option<String>`, `size: Option<f32>`; `Default` is plain |
+| `StyleRun` | `range: Range<usize>`, `style: RunStyle` |
 | `FontChoice` | `family`, `size`, `bold`, `italic` |
 | `Emphasis` | `Bold`, `Italic` |
 
 ```rust
 let styles = use_state(|| vec![StyleRun {
     range: 0..5,
-    style: TextStyle { bold: true, ..TextStyle::default() },
+    style: RunStyle { bold: true, ..RunStyle::default() },
 }]);
 ```
 
@@ -121,7 +128,7 @@ The functions behind it are pure and work on any runs:
 
 | Function | Returns |
 |---|---|
-| `char_styles(runs, length)` | One `TextStyle` per character |
+| `char_styles(runs, length)` | One `RunStyle` per character |
 | `runs_from(styles)` | Runs that merge equal neighbors and skip plain text |
 | `restyle_after_edit(runs, old, new)` | Runs moved after an edit from `old` to `new` |
 | `toggle(runs, length, range, Emphasis)` | Runs with the emphasis toggled on `range` |
@@ -258,6 +265,10 @@ let pages = text_pages(&notes.read(), &setup);
 PrintPreview::new(setup, &pages)
 ```
 
+The preview draws its gaps, page background, shadow and page numbers from a
+`PrintPreviewStyle` ([fields](../ai/styles.md#printpreviewstyle)); the pages
+themselves are content.
+
 ## Rule editor
 
 `rule_editor::RuleEditor` edits a filter as rows of field, operator and value, like
@@ -297,5 +308,12 @@ let shown = predicate.read().evaluate(&FIELDS, &|field| match field {
     _ => file.kind.clone(),
 });
 ```
+
+### Style
+
+`RuleEditor` draws its gaps, indent and header text from a `RuleEditorStyle`
+([fields](../ai/styles.md#ruleeditorstyle)). Its pop-up buttons, text fields
+and buttons take their own styles, so `.control_style(|s: PopUpButtonStyle| ..)`
+on the editor reaches them.
 
 Next: [7. Menus and popovers](07-menus-and-popovers.md).

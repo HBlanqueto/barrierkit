@@ -643,8 +643,18 @@ Link::new("Learn more…")
 ### Style
 
 `Link` draws from a [`LinkStyle`](../ai/styles.md#linkstyle): its paint and
-font. `Badge`, `Divider` and `Avatar` take
-[paint on views](../ai/styles.md#paint-on-views).
+font. `Badge`, `Divider` and `Avatar` draw from a `BadgeStyle`, a
+`DividerStyle` and an `AvatarStyle`, resolved when they are built; their
+fields are in
+[Styles and themes](../ai/styles.md#textstyle-badgestyle-dividerstyle-avatarstyle-and-imagestyle).
+To change a single one, [paint on views](../ai/styles.md#paint-on-views) also works.
+
+```rust
+Badge::new("3").style(|s| BadgeStyle {
+    background: StateValue::new(ShapeStyle::Accent),
+    ..s
+})
+```
 
 ## Scrolling
 
@@ -678,6 +688,13 @@ ScrollView::new().height(Size::px(120.0)).child(list)
 
 ![ScrollView with three items](assets/components/scroll-view-light.png)
 
+### Style
+
+`ScrollView` draws its bar, edge fade and top line from a `ScrollViewStyle`:
+`.style(|s| ..)` for one view, `.control_style(|s: ScrollViewStyle| ..)` for
+the views inside another. The fields are in
+[Styles and themes](../ai/styles.md#scrollviewstyle).
+
 ## Drag source
 
 Module `drag`. It makes an element the source of a drag to another app. Receiving drops and
@@ -708,6 +725,8 @@ what is not rectangles or text, such as a terminal grid.
 ```rust
 Canvas::new(revision, move |ctx: &mut CanvasContext| { ctx.canvas.draw_rect(..); })
 ```
+
+A `Canvas` has no style: the painter draws everything.
 
 ## Building a new control
 

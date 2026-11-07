@@ -1,4 +1,3 @@
-use ctdesign::{BODY, DISCLOSURE, SPACE_1, SPACE_2};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Direction, Gaps, Size};
 
@@ -7,7 +6,8 @@ use crate::controls::TextField;
 use crate::i18n::text;
 use crate::interaction::{track_modifiers, use_held_modifiers};
 use crate::popup_button::PopUpButton;
-use crate::style::{Palette, text};
+use crate::style::text;
+use crate::styles::{ControlState, Paints, RuleEditorStyle, Theme, resolve};
 use crate::symbol::Symbol;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -260,6 +260,7 @@ pub struct RuleEditor {
     label: &'static str,
     fields: Vec<RuleField>,
     predicate: State<Predicate>,
+    style: Theme,
 }
 
 impl RuleEditor {
@@ -268,7 +269,13 @@ impl RuleEditor {
             label,
             fields,
             predicate,
+            style: Theme::tengen(),
         }
+    }
+
+    pub fn style(mut self, restyle: impl Fn(RuleEditorStyle) -> RuleEditorStyle + 'static) -> Self {
+        self.style = self.style.style(restyle);
+        self
     }
 }
 
@@ -287,12 +294,16 @@ fn add_button(
         .on_press(move |_| predicate.write().insert_after(id, &fields, compound))
 }
 
-fn match_picker(all: bool, on_change: impl FnMut(usize) + 'static) -> impl IntoElement {
-    let palette = Palette::current();
+fn match_picker(
+    style: &RuleEditorStyle,
+    all: bool,
+    on_change: impl FnMut(usize) + 'static,
+) -> impl IntoElement {
+    let paints = Paints::current(ControlState::default(), style.effect);
     rect()
         .direction(Direction::Horizontal)
         .cross_align(Alignment::Center)
-        .spacing(SPACE_2)
+        .spacing(style.spacing)
         .child(
             PopUpButton::new(text!("rule-match"))
                 .item(text!("rule-all"))
@@ -300,16 +311,21 @@ fn match_picker(all: bool, on_change: impl FnMut(usize) + 'static) -> impl IntoE
                 .selected(usize::from(!all))
                 .on_change(on_change),
         )
-        .child(text(text!("rule-of-the-following"), BODY, palette.label))
+        .child(text(
+            text!("rule-of-the-following"),
+            style.font,
+            paints.color(style.label.resolve(ControlState::default())),
+        ))
 }
 
-fn indented(depth: usize, row: Rect) -> Rect {
+fn indented(depth: usize, indent: f32, row: Rect) -> Rect {
     row.width(Size::fill())
-        .padding(Gaps::new(0.0, 0.0, 0.0, depth as f32 * DISCLOSURE.indent))
+        .padding(Gaps::new(0.0, 0.0, 0.0, depth as f32 * indent))
 }
 
 impl Component for RuleEditor {
     fn render(&self) -> impl IntoElement {
+        let style: RuleEditorStyle = resolve(&self.style);
         let mut predicate = self.predicate;
         let held = use_held_modifiers();
         let compound = held.read().contains(Modifiers::ALT);
@@ -317,8 +333,8 @@ impl Component for RuleEditor {
         let header = rect()
             .direction(Direction::Horizontal)
             .cross_align(Alignment::Center)
-            .spacing(SPACE_2)
-            .child(match_picker(current.all, move |index: usize| {
+            .spacing(style.spacing)
+            .child(match_picker(&style, current.all, move |index: usize| {
                 predicate.write().all = index == 0
             }))
             .maybe_child(
@@ -337,6 +353,8 @@ impl Component for RuleEditor {
                 predicate,
                 removable: !(single && depth == 0),
                 depth,
+                indent: style.indent,
+                spacing: style.row_spacing,
                 compound,
             }
             .into_element(),
@@ -347,13 +365,14 @@ impl Component for RuleEditor {
                 let mut editor = predicate;
                 indented(
                     depth,
+                    style.indent,
                     rect()
                         .direction(Direction::Horizontal)
                         .content(torin::prelude::Content::flex())
                         .cross_align(Alignment::Center)
-                        .spacing(SPACE_1),
+                        .spacing(style.row_spacing),
                 )
-                .child(match_picker(group.all, move |index: usize| {
+                .child(match_picker(&style, group.all, move |index: usize| {
                     editor.write().set_all(id, index == 0)
                 }))
                 .child(rect().width(Size::flex(1.0)))
@@ -372,7 +391,7 @@ impl Component for RuleEditor {
                 .a11y_alt(self.label)
                 .width(Size::fill())
                 .direction(Direction::Vertical)
-                .spacing(SPACE_2)
+                .spacing(style.spacing)
                 .child(header)
                 .children(rows),
             held,
@@ -387,6 +406,8 @@ struct RuleRow {
     predicate: State<Predicate>,
     removable: bool,
     depth: usize,
+    indent: f32,
+    spacing: f32,
     compound: bool,
 }
 
@@ -462,11 +483,12 @@ impl Component for RuleRow {
         };
         indented(
             self.depth,
+            self.indent,
             rect()
                 .direction(Direction::Horizontal)
                 .content(torin::prelude::Content::flex())
                 .cross_align(Alignment::Center)
-                .spacing(SPACE_1),
+                .spacing(self.spacing),
         )
         .child(field_picker)
         .child(operator_picker)

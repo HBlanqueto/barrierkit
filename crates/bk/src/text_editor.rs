@@ -1,4 +1,3 @@
-use ctdesign::{BODY, CAPTION, SPACE_1, SPACE_2, TEXT_FIELD};
 use freya_components::cursor_blink::use_cursor_blink;
 use freya_core::prelude::*;
 use freya_edit::{EditableConfig, EditableEvent, EditorLine, TextEditor as _, use_editable};
@@ -17,11 +16,13 @@ use crate::style::text;
 use crate::symbol::Symbol;
 
 use crate::context_menu::{Spelling, edit_menu};
-use crate::controls::text_style;
+use crate::controls::{dimmed, inner_border, text_style};
 use crate::interaction::ring;
 use crate::scroll::{ScrollView, use_scroll_controller};
 use crate::spelling::{Squiggles, char_index, dictionary, known, misspelled, utf16_range};
-use crate::style::Palette;
+use crate::styles::{
+    ControlState, LayoutDirection, Paints, ShapeStyle, StateValue, TextEditorStyle, Theme, resolve,
+};
 use crate::theme::{color, resolved};
 
 #[derive(PartialEq)]
@@ -30,6 +31,7 @@ pub struct TextEditor {
     placeholder: &'static str,
     height: Size,
     styles: Option<State<Vec<StyleRun>>>,
+    style: Theme,
 }
 
 impl TextEditor {
@@ -39,7 +41,13 @@ impl TextEditor {
             placeholder,
             height: Size::fill(),
             styles: None,
+            style: Theme::tengen(),
         }
+    }
+
+    pub fn style(mut self, restyle: impl Fn(TextEditorStyle) -> TextEditorStyle + 'static) -> Self {
+        self.style = self.style.style(restyle);
+        self
     }
 
     pub fn styles(mut self, styles: State<Vec<StyleRun>>) -> Self {
@@ -92,17 +100,25 @@ fn link_under(
 
 impl Component for TextEditor {
     fn render(&self) -> impl IntoElement {
-        let palette = Palette::current();
+        let style: TextEditorStyle = resolve(&self.style);
         let a11y_id = use_hook(AccessibilityId::new_unique);
         let focused = use_focus(a11y_id).read().is_focused();
         let holder = use_state(ParagraphHolder::default);
         let mut area = use_state(Area::default);
         let mut hovering = use_state(|| false);
+        let state = ControlState {
+            hovered: *hovering.read(),
+            focused,
+            ..ControlState::default()
+        };
+        let paints = Paints::current(state, style.effect);
+        let ink = |paint: &StateValue<ShapeStyle>| paints.color(paint.resolve(state));
+        let (padding_x, padding_y) = (style.padding_x, style.padding_y);
         let mut dragging = use_state(|| false);
         let mut value = self.value;
         let styles = self.styles;
         let mut editable = use_editable(|| value.read().to_string(), EditableConfig::new);
-        let (mut blink, cursor) = use_cursor_blink(focused, color(palette.label));
+        let (mut blink, cursor) = use_cursor_blink(focused, color(ink(&style.text)));
         let mut finding = use_state(|| false);
         let mut history = use_state(|| (false, false));
         let mut spell_index = use_state(|| None);
@@ -124,7 +140,6 @@ impl Component for TextEditor {
                 editor.set_selection(range);
                 if let Some(inner) = holder.peek().0.borrow().as_ref() {
                     let scale = inner.scale_factor as f32;
-                    let margin_y = (TEXT_FIELD.height - BODY.line_height as f32) / 2.0;
                     if let Some(rect) = inner
                         .paragraph
                         .get_rects_for_range(
@@ -135,8 +150,8 @@ impl Component for TextEditor {
                         .first()
                     {
                         scroll.reveal_y(
-                            rect.rect.top / scale + margin_y,
-                            rect.rect.bottom / scale + margin_y,
+                            rect.rect.top / scale + padding_y,
+                            rect.rect.bottom / scale + padding_y,
                         );
                     }
                 }
@@ -306,11 +321,10 @@ impl Component for TextEditor {
 
         let empty = value.read().is_empty() && !editable.editor().read().has_preedit();
         let editor = editable.editor().read();
-        let margin_y = (TEXT_FIELD.height - BODY.line_height as f32) / 2.0;
         let paragraph = paragraph()
             .holder(holder.read().clone())
             .width(Size::fill())
-            .margin(Gaps::new_symmetric(margin_y, TEXT_FIELD.padding_x))
+            .margin(Gaps::new_symmetric(padding_y, padding_x))
             .on_sized(move |event: Event<SizedEventData>| area.set(event.visible_area))
             .on_pointer_down(on_press)
             .on_pointer_move(move |event: Event<PointerEventData>| {
@@ -338,10 +352,10 @@ impl Component for TextEditor {
                     .flatten()
                     .map(|selection| vec![selection]),
             )
-            .color(color(if empty {
-                palette.tertiary_label
+            .color(paints.fill(if empty {
+                &style.placeholder
             } else {
-                palette.label
+                &style.text
             }))
             .spans_iter(if empty {
                 vec![Span::new(self.placeholder.to_owned())].into_iter()
@@ -352,7 +366,7 @@ impl Component for TextEditor {
                         .styles
                         .map(|styles| styles.read().clone())
                         .unwrap_or_default(),
-                    palette.accent,
+                    ink(&style.link),
                 )
                 .into_iter()
             });
@@ -372,8 +386,8 @@ impl Component for TextEditor {
                 input: None,
                 text_left: Default::default(),
                 ranges,
-                color: palette.destructive,
-                offset: (TEXT_FIELD.padding_x, margin_y),
+                color: ink(&style.misspelling),
+                offset: (padding_x, padding_y),
                 layout: crate::glass::layout(
                     Size::fill(),
                     Size::fill(),
@@ -382,8 +396,12 @@ impl Component for TextEditor {
             })
         });
         let has_selection = editor.get_selection().is_some();
+        let line = style.font.line_height as f32 + 2.0 * padding_y;
+        let radius = style
+            .shape
+            .corner_radius(line, line, LayoutDirection::LeftToRight);
         let field = edit_menu(
-            text_style(rect(), BODY),
+            dimmed(text_style(rect(), style.font), style.opacity),
             a11y_id,
             has_selection,
             *history.read(),
@@ -403,14 +421,12 @@ impl Component for TextEditor {
         })
         .width(Size::fill())
         .height(self.height.clone())
-        .corner_radius(TEXT_FIELD.radius)
-        .background(color(palette.content_background))
-        .border(
-            Border::new()
-                .width(ctdesign::HAIRLINE)
-                .alignment(BorderAlignment::Inner)
-                .fill(color(palette.separator)),
-        )
+        .corner_radius(radius)
+        .background(paints.fill(&style.background))
+        .map(paints.blur(&style.background), Rect::blur)
+        .map(style.border.as_ref(), |el, border| {
+            el.border(inner_border(&paints, border))
+        })
         .on_key_down(on_key_down)
         .on_key_up(move |event: Event<KeyboardEventData>| {
             editable.process_event(EditableEvent::KeyUp { key: &event.key });
@@ -443,7 +459,7 @@ impl Component for TextEditor {
             ),
         );
         let field = if focused {
-            ring(field, TEXT_FIELD.radius, resolved().accent)
+            ring(field, radius.top_left, resolved().accent)
         } else {
             field
         };
@@ -474,7 +490,7 @@ impl Component for TextEditor {
             .direction(Direction::Horizontal)
             .content(Content::flex())
             .cross_align(Alignment::Center)
-            .spacing(SPACE_2)
+            .spacing(style.find_bar_spacing)
             .child(
                 rect().width(Size::flex(1.0)).child(
                     SearchField::new(query, text!("search"))
@@ -484,7 +500,7 @@ impl Component for TextEditor {
                         }),
                 ),
             )
-            .child(text(status, CAPTION, palette.secondary_label))
+            .child(text(status, style.caption_font, ink(&style.caption)))
             .child(
                 IconButton::new(Symbol::ChevronUp, text!("find-previous"))
                     .disabled(total == 0)
@@ -506,7 +522,7 @@ impl Component for TextEditor {
         rect()
             .width(Size::fill())
             .height(self.height.clone())
-            .spacing(SPACE_1)
+            .spacing(style.spacing)
             .child(bar)
             .child(field.height(Size::flex(1.0)))
             .content(Content::flex())

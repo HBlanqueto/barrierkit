@@ -92,6 +92,10 @@ before the `Backdrop` renders, still reads the system palette.
 ![Form over a tinted backdrop, light mode](assets/components/backdrop-light.png)
 ![Form over a tinted backdrop, dark mode](assets/components/backdrop-dark.png)
 
+`Backdrop::style(|s| ..)` changes the angles and opacity of the gradient
+layers and the fade of a new source; the fields are in
+[Styles and themes](../ai/styles.md#backdropstyle).
+
 ### Tint
 
 Controls with a fill take `.tint(Tint)`: `Slider`, `Switch`, `Checkbox`,
@@ -140,6 +144,12 @@ in the window color, `FULLSCREEN_GLASS.height` deep.
 `RoundButtonStyle`. Their fields are in
 [Styles and themes](../ai/styles.md#mediabuttonstyle-and-roundbuttonstyle).
 
+`Material`, `TopGlass` and `GlassContainer` take `.style(|s| ..)` with a
+`MaterialStyle`, a `TopGlassStyle` and a `GlassContainerStyle`: tint, blur,
+rim and, for the container, the morph. Their fields are in
+[Styles and themes](../ai/styles.md#materialstyle-topglassstyle-and-glasscontainerstyle).
+`Scrim` has no style: its gradient follows the ground color.
+
 ## Glass that merges
 
 `GlassContainer` draws several glass shapes as one, like SwiftUI's
@@ -166,8 +176,9 @@ GlassContainer::new(20.0)
    ([smin](https://iquilezles.org/articles/smin/)) in an SkSL shader, so near
    shapes melt into each other.
 3. When the set of items or their frames change, each shape moves from its
-   old frame to the new one with the kit's `Spring` (`DURATION_BASE`, no
-   bounce, 0 ms with reduced motion). The first layout does not animate.
+   old frame to the new one with the `animation` of its style (Tengen:
+   `Ease` over `DURATION_BASE`, the kit's spring without bounce; none with
+   reduced motion). The first layout does not animate.
 
 The morph plan is public, for tests and for other containers:
 

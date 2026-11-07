@@ -1,13 +1,13 @@
 use std::borrow::Cow;
 
-use ctdesign::{CHART, Rgba};
+use ctdesign::Rgba;
 use freya_core::data::LayoutData;
 use freya_core::element::{ElementExt, RenderContext};
 use freya_core::tree::DiffModifies;
 use freya_engine::prelude::{Paint, PaintStyle, PathBuilder, Rect as SkRect};
 
 use super::scale::{Linear, Window, monotone_controls, stack};
-use super::{Interpolation, MarkKind, Series};
+use super::{Interpolation, MarkKind, Marks, Series};
 
 #[derive(PartialEq)]
 pub(super) struct Plot {
@@ -26,6 +26,7 @@ pub(super) struct Plot {
     pub window: Window,
     pub shift: f64,
     pub horizontal: bool,
+    pub marks: Marks,
     pub layout: LayoutData,
 }
 
@@ -131,7 +132,7 @@ impl ElementExt for Plot {
             left + self.window.fraction(position(self.kind, i) + self.shift) as f32 * width
         };
 
-        let grid = paint(self.grid, PaintStyle::Stroke, CHART.grid_width * scale);
+        let grid = paint(self.grid, PaintStyle::Stroke, self.marks.grid_width * scale);
         for tick in &self.ticks {
             let ty = y.map(*tick) as f32;
             canvas.draw_line((left, ty), (right, ty), &grid);
@@ -148,7 +149,7 @@ impl ElementExt for Plot {
                 .collect();
             match self.kind {
                 MarkKind::Bar => {
-                    let slot = band * (1.0 - CHART.bar_gap);
+                    let slot = band * (1.0 - self.marks.bar_gap);
                     let width = slot / groups as f32;
                     let offset = if self.stacked { 0.0 } else { width * s as f32 };
                     let fill = paint(color, PaintStyle::Fill, 0.0);
@@ -156,7 +157,7 @@ impl ElementExt for Plot {
                         let x0 = x(i) - slot / 2.0 + offset;
                         let (y0, y1) = (y.map(*upper) as f32, y.map(*lower) as f32);
                         let rect = SkRect::new(x0, y0.min(y1), x0 + width, y0.max(y1));
-                        let radius = (CHART.bar_radius * scale).min(width / 2.0);
+                        let radius = (self.marks.bar_radius * scale).min(width / 2.0);
                         canvas.draw_round_rect(rect, radius, radius, &fill);
                     }
                 }
@@ -165,7 +166,7 @@ impl ElementExt for Plot {
                     for (px, py) in &points {
                         canvas.draw_circle(
                             (*px as f32, *py as f32),
-                            CHART.point_size * scale / 2.0,
+                            self.marks.point_size * scale / 2.0,
                             &fill,
                         );
                     }
@@ -185,7 +186,7 @@ impl ElementExt for Plot {
                         area.close();
                         let fill = paint(
                             Rgba {
-                                a: color.a * CHART.area_opacity,
+                                a: color.a * self.marks.area_opacity,
                                 ..color
                             },
                             PaintStyle::Fill,
@@ -193,7 +194,8 @@ impl ElementExt for Plot {
                         );
                         canvas.draw_path(&area.detach(), &fill);
                     }
-                    let mut stroke = paint(color, PaintStyle::Stroke, CHART.line_width * scale);
+                    let mut stroke =
+                        paint(color, PaintStyle::Stroke, self.marks.line_width * scale);
                     stroke.set_stroke_join(skia_safe::paint::Join::Round);
                     stroke.set_stroke_cap(skia_safe::paint::Cap::Round);
                     canvas.draw_path(&line.snapshot(), &stroke);
@@ -203,13 +205,17 @@ impl ElementExt for Plot {
 
         for (value, color) in &self.rules {
             let ry = y.map(*value) as f32;
-            let rule = paint(*color, PaintStyle::Stroke, CHART.rule_width * scale);
+            let rule = paint(*color, PaintStyle::Stroke, self.marks.rule_width * scale);
             canvas.draw_line((left, ry), (right, ry), &rule);
         }
 
         if let Some(i) = self.hover.filter(|i| *i < count) {
             let hx = x(i);
-            let rule = paint(self.hover_ink, PaintStyle::Stroke, CHART.rule_width * scale);
+            let rule = paint(
+                self.hover_ink,
+                PaintStyle::Stroke,
+                self.marks.rule_width * scale,
+            );
             canvas.draw_line((hx, top), (hx, bottom), &rule);
             if self.kind != MarkKind::Bar {
                 for (s, values) in bands.iter().enumerate() {
@@ -218,10 +224,10 @@ impl ElementExt for Plot {
                     };
                     let color = self.colors[s % self.colors.len()];
                     let center = (hx, y.map(*upper) as f32);
-                    let radius = CHART.point_size * scale / 2.0;
+                    let radius = self.marks.point_size * scale / 2.0;
                     canvas.draw_circle(
                         center,
-                        radius + CHART.rule_width * scale,
+                        radius + self.marks.rule_width * scale,
                         &paint(self.halo, PaintStyle::Fill, 0.0),
                     );
                     canvas.draw_circle(center, radius, &paint(color, PaintStyle::Fill, 0.0));
@@ -243,7 +249,7 @@ impl Plot {
             domain: self.y_domain,
             range: (f64::from(left), f64::from(right)),
         };
-        let grid = paint(self.grid, PaintStyle::Stroke, CHART.grid_width * scale);
+        let grid = paint(self.grid, PaintStyle::Stroke, self.marks.grid_width * scale);
         for tick in &self.ticks {
             let tx = x.map(*tick) as f32;
             canvas.draw_line((tx, top), (tx, bottom), &grid);
@@ -252,7 +258,7 @@ impl Plot {
         let count = self.count();
         let band = (bottom - top) / count.max(1) as f32;
         let groups = if self.stacked { 1 } else { bands.len().max(1) };
-        let slot = band * (1.0 - CHART.bar_gap);
+        let slot = band * (1.0 - self.marks.bar_gap);
         let thickness = slot / groups as f32;
         for (s, values) in bands.iter().enumerate() {
             let fill = paint(self.colors[s % self.colors.len()], PaintStyle::Fill, 0.0);
@@ -265,7 +271,7 @@ impl Plot {
                 let y0 = top + band * (i as f32 + 0.5) - slot / 2.0 + offset;
                 let (x0, x1) = (x.map(*lower) as f32, x.map(*upper) as f32);
                 let rect = SkRect::new(x0.min(x1), y0, x0.max(x1), y0 + thickness);
-                let radius = (CHART.bar_radius * scale).min(thickness / 2.0);
+                let radius = (self.marks.bar_radius * scale).min(thickness / 2.0);
                 canvas.draw_round_rect(rect, radius, radius, &fill);
             }
         }
@@ -274,12 +280,12 @@ impl Plot {
             canvas.draw_line(
                 (rx, top),
                 (rx, bottom),
-                &paint(*color, PaintStyle::Stroke, CHART.rule_width * scale),
+                &paint(*color, PaintStyle::Stroke, self.marks.rule_width * scale),
             );
         }
         if let Some(i) = self.hover.filter(|i| *i < count) {
             let mut highlight = paint(self.hover_ink, PaintStyle::Fill, 0.0);
-            highlight.set_alpha_f(0.12);
+            highlight.set_alpha_f(self.marks.hover_opacity);
             canvas.draw_rect(
                 SkRect::new(
                     left,

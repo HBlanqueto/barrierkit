@@ -6,13 +6,17 @@ mod sector;
 mod space;
 mod stream;
 
-use ctdesign::{CAPTION, CHART, CHART_SERIES, DURATION_BASE, HAIRLINE, SPACE_1, TOOLTIP};
+use ctdesign::{CHART, Rgba};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 
+use crate::controls::inner_border;
 use crate::i18n::text as tr_kit;
-use crate::style::{Palette, text};
-use crate::theme::{SurfaceKind, color, popover_palette};
+use crate::style::text;
+use crate::styles::{
+    ChartStyle, ControlState, LayoutDirection, Paints, ShapeStyle, StateValue, Theme, resolve,
+};
+use crate::theme::color;
 use scale::{Window, format_age, nice_ticks, time_ticks};
 
 pub use chart3d::Chart3D;
@@ -66,6 +70,7 @@ pub struct Chart {
     time_step: Option<f64>,
     scrollable: bool,
     horizontal: bool,
+    style: Theme,
 }
 
 impl Chart {
@@ -84,7 +89,13 @@ impl Chart {
             time_step: None,
             scrollable: false,
             horizontal: false,
+            style: Theme::tengen(),
         }
+    }
+
+    pub fn style(mut self, restyle: impl Fn(ChartStyle) -> ChartStyle + 'static) -> Self {
+        self.style = self.style.style(restyle);
+        self
     }
 
     pub fn time_axis(mut self, seconds_per_sample: f64) -> Self {
@@ -214,12 +225,58 @@ pub fn lerp_series(from: &[Series], to: &[Series], t: f64) -> Vec<Series> {
         .collect()
 }
 
-pub(crate) fn series_color(index: usize) -> ctdesign::Rgba {
-    CHART_SERIES[index % CHART_SERIES.len()]
+#[derive(Clone, Copy, PartialEq)]
+struct Marks {
+    line_width: f32,
+    point_size: f32,
+    rule_width: f32,
+    grid_width: f32,
+    bar_gap: f32,
+    bar_radius: f32,
+    sector_inset: f32,
+    sector_radius: f32,
+    heat_gap: f32,
+    heat_radius: f32,
+    stream_hole: f32,
+    area_opacity: f32,
+    unselected_opacity: f32,
+    hover_opacity: f32,
 }
 
-fn axis_label(label: String, palette: &Palette) -> Element {
-    text(label, CAPTION, palette.secondary_label).into_element()
+impl Marks {
+    fn of(style: &ChartStyle) -> Self {
+        Self {
+            line_width: style.line_width,
+            point_size: style.point_size,
+            rule_width: style.rule_width,
+            grid_width: style.grid_width,
+            bar_gap: style.bar_gap,
+            bar_radius: style.bar_radius,
+            sector_inset: style.sector_inset,
+            sector_radius: style.sector_radius,
+            heat_gap: style.heat_gap,
+            heat_radius: style.heat_radius,
+            stream_hole: style.stream_hole,
+            area_opacity: style.area_opacity,
+            unselected_opacity: style.unselected_opacity,
+            hover_opacity: style.hover_opacity,
+        }
+    }
+}
+
+fn ink(paints: &Paints, paint: &StateValue<ShapeStyle>) -> Rgba {
+    paints.color(paint.resolve(ControlState::default()))
+}
+
+fn series_color(style: &ChartStyle, paints: &Paints, index: usize) -> Rgba {
+    style
+        .series
+        .get(index % style.series.len().max(1))
+        .map_or(Rgba::TRANSPARENT, |paint| paints.color(paint))
+}
+
+fn axis_label(label: String, style: &ChartStyle, paints: &Paints) -> Element {
+    text(label, style.font, ink(paints, &style.axis_label)).into_element()
 }
 
 fn placed(position: Position, width: f32, label: Element) -> Element {
@@ -234,7 +291,8 @@ fn placed(position: Position, width: f32, label: Element) -> Element {
 
 impl Component for Chart {
     fn render(&self) -> impl IntoElement {
-        let palette = Palette::current();
+        let style: ChartStyle = resolve(&self.style);
+        let paints = Paints::current(ControlState::default(), style.effect);
         let mut hover = use_state(|| None::<usize>);
         let mut selected = use_state(|| None::<usize>);
         let mut pressed = use_state(|| None::<(usize, Window)>);
@@ -251,7 +309,8 @@ impl Component for Chart {
                 flip.toggle();
             }
         });
-        let switch = crate::animation::use_switch_progress(flip, DURATION_BASE);
+        let switch =
+            crate::animation::use_animated(f32::from(u8::from(*flip.read())), style.animation);
         let progress = f64::from(if *flip.read() { switch } else { 1.0 - switch });
         let (target, before) = (shown.read().clone(), previous.read().clone());
         let slid = self.time_step.is_some()
@@ -301,7 +360,9 @@ impl Component for Chart {
             }
         };
 
-        let colors: Vec<_> = (0..self.series.len()).map(series_color).collect();
+        let colors: Vec<_> = (0..self.series.len())
+            .map(|index| series_color(&style, &paints, index))
+            .collect();
         let plot = plot::Plot {
             kind,
             series,
@@ -313,12 +374,13 @@ impl Component for Chart {
             rules: self
                 .rules
                 .iter()
-                .map(|(v, _)| (*v, palette.secondary_label))
+                .map(|(v, _)| (*v, ink(&paints, &style.rule)))
                 .collect(),
-            grid: palette.separator,
+            grid: ink(&paints, &style.grid),
             hover: hover.read().or(*selected.read()),
-            hover_ink: palette.tertiary_label,
-            halo: palette.content_background,
+            hover_ink: ink(&paints, &style.hover),
+            halo: ink(&paints, &style.halo),
+            marks: Marks::of(&style),
             window: view,
             shift,
             horizontal,
@@ -333,31 +395,36 @@ impl Component for Chart {
                 .and_then(|i| series.values.get(i))
                 .map(|v| format_value(*v, self.unit))
                 .unwrap_or_default();
-            legend_entry(colors[s], format!("{} {value}", series.name), &palette)
+            legend_entry(
+                &style,
+                &paints,
+                colors[s],
+                format!("{} {value}", series.name),
+            )
         });
 
         let (plot_width, plot_height) = *size.read();
-        let line = CAPTION.line_height as f32;
+        let line = style.font.line_height as f32;
         let value_fraction =
             |tick: f64| ((tick - domain.0) / (domain.1 - domain.0).max(f64::EPSILON)) as f32;
         let value_labels: Vec<Element> = ticks
             .iter()
             .map(|tick| {
-                let label = axis_label(format_value(*tick, self.unit), &palette);
+                let label = axis_label(format_value(*tick, self.unit), &style, &paints);
                 if horizontal {
                     let center = value_fraction(*tick) * plot_width;
                     placed(
                         Position::new_absolute()
-                            .left(center - CHART.y_axis_width / 2.0)
+                            .left(center - style.axis_width / 2.0)
                             .top(0.0),
-                        CHART.y_axis_width,
+                        style.axis_width,
                         label,
                     )
                 } else {
                     let top = ((1.0 - value_fraction(*tick)) * self.height - line / 2.0)
                         .clamp(0.0, self.height - line);
                     rect()
-                        .position(Position::new_absolute().top(top).left(CHART.axis_gap))
+                        .position(Position::new_absolute().top(top).left(style.axis_gap))
                         .child(label)
                         .into_element()
                 }
@@ -400,21 +467,21 @@ impl Component for Chart {
             .into_iter()
             .filter(|_| plot_width > 0.0)
             .map(|(fraction, label)| {
-                let label = axis_label(label, &palette);
+                let label = axis_label(label, &style, &paints);
                 if horizontal {
                     let top = (fraction * plot_height - line / 2.0)
                         .clamp(0.0, (plot_height - line).max(0.0));
                     rect()
-                        .position(Position::new_absolute().top(top).right(CHART.axis_gap))
+                        .position(Position::new_absolute().top(top).right(style.axis_gap))
                         .child(label)
                         .into_element()
                 } else {
                     let center = fraction * plot_width;
                     placed(
                         Position::new_absolute()
-                            .left(center - CHART.y_axis_width / 2.0)
+                            .left(center - style.axis_width / 2.0)
                             .top(0.0),
-                        CHART.y_axis_width,
+                        style.axis_width,
                         label,
                     )
                 }
@@ -426,61 +493,69 @@ impl Component for Chart {
             .iter()
             .filter(|_| plot_width > 0.0)
             .map(|(value, label)| {
-                let label = axis_label(label.clone(), &palette);
+                let label = axis_label(label.clone(), &style, &paints);
                 let position = if horizontal {
                     Position::new_absolute()
                         .top(0.0)
-                        .left(value_fraction(*value) * plot_width + CHART.axis_gap)
+                        .left(value_fraction(*value) * plot_width + style.axis_gap)
                 } else {
                     Position::new_absolute()
-                        .left(CHART.axis_gap)
+                        .left(style.axis_gap)
                         .top(((1.0 - value_fraction(*value)) * plot_height - line).max(0.0))
                 };
                 rect().position(position).child(label).into_element()
             })
             .collect();
         let annotation = selection.filter(|_| plot_width > 0.0).map(|i| {
-            let menu = popover_palette(&crate::theme::resolved(), SurfaceKind::Toplevel);
             let values = target.iter().enumerate().filter_map(|(s, series)| {
                 series.values.get(i).map(|v| {
                     legend_entry(
+                        &style,
+                        &paints,
                         colors[s],
                         format!("{} {}", series.name, format_value(*v, self.unit)),
-                        &palette,
                     )
                 })
             });
             let position = if horizontal {
                 Position::new_absolute()
-                    .right(CHART.axis_gap)
+                    .right(style.axis_gap)
                     .top(plot_height * i as f32 / count.max(1) as f32)
             } else {
                 let fraction = view.fraction(plot::position(kind, i)) as f32;
                 if fraction < 0.5 {
                     Position::new_absolute()
                         .top(0.0)
-                        .left(fraction * plot_width + CHART.axis_gap)
+                        .left(fraction * plot_width + style.axis_gap)
                 } else {
                     Position::new_absolute()
                         .top(0.0)
-                        .right((1.0 - fraction) * plot_width + CHART.axis_gap)
+                        .right((1.0 - fraction) * plot_width + style.axis_gap)
                 }
             };
+            let (padding_x, padding_y) = style.tooltip_padding;
+            let line_box = style.font.line_height as f32 + 2.0 * padding_y;
             rect()
                 .position(position)
                 .direction(Direction::Vertical)
-                .spacing(SPACE_1)
-                .padding(Gaps::new_symmetric(TOOLTIP.padding_y, TOOLTIP.padding_x))
-                .corner_radius(TOOLTIP.radius)
-                .background(color(menu.bg))
-                .border(
-                    Border::new()
-                        .width(HAIRLINE)
-                        .alignment(BorderAlignment::Inner)
-                        .fill(color(menu.separator_color)),
-                )
+                .spacing(style.spacing)
+                .padding(Gaps::new_symmetric(padding_y, padding_x))
+                .corner_radius(style.tooltip_shape.corner_radius(
+                    line_box,
+                    line_box,
+                    LayoutDirection::LeftToRight,
+                ))
+                .background(paints.fill(&style.tooltip_background))
+                .map(paints.blur(&style.tooltip_background), Rect::blur)
+                .map(style.tooltip_border.as_ref(), |el, border| {
+                    el.border(inner_border(&paints, border))
+                })
                 .a11y_role(AccessibilityRole::Tooltip)
-                .child(text(self.category(i), CAPTION, menu.fg))
+                .child(text(
+                    self.category(i),
+                    style.font,
+                    ink(&paints, &style.tooltip_label),
+                ))
                 .children(values)
                 .into_element()
         });
@@ -541,9 +616,9 @@ impl Component for Chart {
         }
 
         let side = if horizontal {
-            CHART.y_axis_width * 2.0
+            style.axis_width * 2.0
         } else {
-            CHART.y_axis_width
+            style.axis_width
         };
         let (side_children, bottom_labels) = if horizontal {
             (category_labels, value_labels)
@@ -573,7 +648,7 @@ impl Component for Chart {
         rect()
             .width(Size::fill())
             .direction(Direction::Vertical)
-            .spacing(SPACE_1)
+            .spacing(style.spacing)
             .a11y_role(AccessibilityRole::Figure)
             .a11y_alt(self.label)
             .child(plot_row)
@@ -590,25 +665,30 @@ impl Component for Chart {
                 rect()
                     .width(Size::fill())
                     .direction(Direction::Horizontal)
-                    .spacing(CHART.legend_gap)
+                    .spacing(style.legend_gap)
                     .children(readout),
             )
     }
 }
 
-pub(crate) fn legend_entry(color: ctdesign::Rgba, label: String, palette: &Palette) -> Element {
+fn legend_entry(style: &ChartStyle, paints: &Paints, swatch: Rgba, label: String) -> Element {
+    let size = style.legend_swatch;
     rect()
         .direction(Direction::Horizontal)
         .cross_align(Alignment::Center)
-        .spacing(SPACE_1)
+        .spacing(style.spacing)
         .child(
             rect()
-                .width(Size::px(CHART.legend_swatch))
-                .height(Size::px(CHART.legend_swatch))
-                .corner_radius(CHART.legend_swatch / 2.0)
-                .background(crate::theme::color(color)),
+                .width(Size::px(size))
+                .height(Size::px(size))
+                .corner_radius(style.legend_shape.corner_radius(
+                    size,
+                    size,
+                    LayoutDirection::LeftToRight,
+                ))
+                .background(color(swatch)),
         )
-        .child(text(label, CAPTION, palette.label))
+        .child(text(label, style.font, ink(paints, &style.legend_label)))
         .into_element()
 }
 

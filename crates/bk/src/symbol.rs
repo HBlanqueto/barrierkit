@@ -1,10 +1,12 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
 
-use ctdesign::{BODY, Rgba, SYMBOL};
+use ctdesign::{Rgba, SYMBOL};
 use freya_components::svg_viewer::SvgViewer;
 use freya_core::prelude::*;
 use torin::prelude::Size;
+
+use crate::styles::{ControlState, ImageStyle, Paints, ShapeStyle, StateValue, Theme, resolve};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Symbol {
@@ -126,39 +128,43 @@ fn source(symbol: Symbol) -> Bytes {
     })
 }
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, PartialEq)]
 pub struct Image {
     symbol: Symbol,
-    size: f32,
-    color: Option<Rgba>,
+    style: Theme,
 }
 
 impl Image {
     pub fn system(symbol: Symbol) -> Self {
         Self {
             symbol,
-            size: BODY.size as f32,
-            color: None,
+            style: Theme::tengen(),
         }
     }
 
-    pub fn size(mut self, size: f32) -> Self {
-        self.size = size;
+    pub fn style(mut self, restyle: impl Fn(ImageStyle) -> ImageStyle + 'static) -> Self {
+        self.style = self.style.style(restyle);
         self
     }
 
-    pub fn color(mut self, color: Rgba) -> Self {
-        self.color = Some(color);
-        self
+    pub fn size(self, size: f32) -> Self {
+        self.style(move |s| ImageStyle { size, ..s })
+    }
+
+    pub fn color(self, color: Rgba) -> Self {
+        self.style(move |s| ImageStyle {
+            foreground: StateValue::new(ShapeStyle::Color(color)),
+            ..s
+        })
     }
 }
 
 impl From<Image> for Element {
     fn from(image: Image) -> Self {
-        let color = image
-            .color
-            .unwrap_or_else(|| crate::style::Palette::current().label);
-        symbol(image.symbol, image.size, color).into_element()
+        let style: ImageStyle = resolve(&image.style);
+        let paints = Paints::current(ControlState::default(), style.effect);
+        let color = paints.color(style.foreground.resolve(ControlState::default()));
+        symbol(image.symbol, style.size, color).into_element()
     }
 }
 

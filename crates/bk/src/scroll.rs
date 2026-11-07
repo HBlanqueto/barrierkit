@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use ctappearance::ScrollBars;
-use ctdesign::{DURATION_FAST_MS, Rgba, SCROLL_BAR};
+use ctdesign::Rgba;
 use freya_components::scrollviews::{
     ScrollConfig, ScrollController as Inner, ScrollView as Scroller,
 };
@@ -10,7 +10,9 @@ use torin::prelude::{Area, Direction, Position, Size};
 
 use crate::adornments::Divider;
 use crate::platform::Timers;
-use crate::style::Palette;
+use crate::styles::{
+    ControlState, LayoutDirection, Paints, ScrollViewStyle, ShapeStyle, StateValue, Theme, resolve,
+};
 use crate::theme::color;
 
 // Freya paints by tree depth; the thumb must sit above the scrolled content, like Freya's own bar.
@@ -26,6 +28,7 @@ pub struct ScrollView {
     top_line: bool,
     edge_effect: bool,
     controller: Option<ScrollController>,
+    style: Theme,
     key: DiffKey,
 }
 
@@ -110,8 +113,14 @@ impl ScrollView {
             top_line: false,
             edge_effect: false,
             controller: None,
+            style: Theme::tengen(),
             key: DiffKey::None,
         }
+    }
+
+    pub fn style(mut self, restyle: impl Fn(ScrollViewStyle) -> ScrollViewStyle + 'static) -> Self {
+        self.style = self.style.style(restyle);
+        self
     }
 
     pub fn edge_effect(mut self, edge_effect: bool) -> Self {
@@ -166,29 +175,33 @@ impl KeyExt for ScrollView {
     }
 }
 
-fn thumb(viewport: f32, content: f32, scrolled: f32) -> Option<(f32, f32)> {
+fn thumb(viewport: f32, content: f32, scrolled: f32, min_length: f32) -> Option<(f32, f32)> {
     if viewport <= 0.0 || content <= viewport {
         return None;
     }
     let length = (viewport * viewport / content)
-        .max(SCROLL_BAR.min_length)
+        .max(min_length)
         .min(viewport);
     let travel = (-scrolled / (content - viewport)).clamp(0.0, 1.0);
     Some((travel * (viewport - length), length))
 }
 
-fn bar_rect(horizontal: bool, offset: f32, length: f32, breadth: f32) -> Rect {
+fn bar_rect(
+    style: &ScrollViewStyle,
+    horizontal: bool,
+    offset: f32,
+    length: f32,
+    breadth: f32,
+) -> Rect {
     let (position, width, height) = if horizontal {
         (
-            Position::new_absolute()
-                .left(offset)
-                .bottom(SCROLL_BAR.inset),
+            Position::new_absolute().left(offset).bottom(style.inset),
             length,
             breadth,
         )
     } else {
         (
-            Position::new_absolute().top(offset).right(SCROLL_BAR.inset),
+            Position::new_absolute().top(offset).right(style.inset),
             breadth,
             length,
         )
@@ -198,11 +211,19 @@ fn bar_rect(horizontal: bool, offset: f32, length: f32, breadth: f32) -> Rect {
         .layer(THUMB_LAYER)
         .width(Size::px(width))
         .height(Size::px(height))
-        .corner_radius(breadth / 2.0)
+        .corner_radius(
+            style
+                .thumb_shape
+                .corner_radius(width, height, LayoutDirection::LeftToRight),
+        )
 }
 
 impl Component for ScrollView {
     fn render(&self) -> impl IntoElement {
+        let style: ScrollViewStyle = resolve(&self.style);
+        let paints = Paints::current(ControlState::default(), style.effect);
+        let ink =
+            |paint: &StateValue<ShapeStyle>| paints.color(paint.resolve(ControlState::default()));
         let resolved = crate::theme::resolved();
         let always = resolved.scroll_bars == ScrollBars::Always;
         let own = use_scroll_controller();
@@ -222,7 +243,7 @@ impl Component for ScrollView {
             scrolls.set(scroll);
             scrolling.set(true);
             if let Some(timers) = try_consume_root_context::<Timers>() {
-                timers.after(Duration::from_millis(SCROLL_BAR.hide_delay_ms), move || {
+                timers.after(Duration::from_millis(style.hide_delay_ms), move || {
                     if *scrolls.peek() == scroll {
                         let mut scrolling = scrolling;
                         scrolling.set(false);
@@ -230,25 +251,22 @@ impl Component for ScrollView {
                 });
             }
         }
-        let fade = crate::animation::use_switch_progress(scrolling, DURATION_FAST_MS);
+        let fade =
+            crate::animation::use_animated(f32::from(u8::from(*scrolling.read())), style.animation);
         let visibility = if always { 1.0 } else { fade };
         let (breadth, opacity, edge) = if always {
-            (
-                SCROLL_BAR.track,
-                SCROLL_BAR.always_opacity,
-                SCROLL_BAR.inset,
-            )
+            (style.track_width, style.always_thumb_opacity, style.inset)
         } else {
-            (SCROLL_BAR.thumb, SCROLL_BAR.opacity, 0.0)
+            (style.thumb_width, style.thumb_opacity, 0.0)
         };
         let track_length = along(*viewport.read()) - 2.0 * edge;
         let bar = thumb(
             track_length,
             along(*content.read()) - 2.0 * edge,
             scrolled as f32,
+            style.min_thumb_length,
         )
         .filter(|_| self.scroll_bar && visibility > 0.0);
-        let ink = Palette::current().label;
         rect()
             .width(self.width.clone())
             .height(self.height.clone())
@@ -270,11 +288,11 @@ impl Component for ScrollView {
                     ),
             )
             .maybe_child((self.edge_effect && !horizontal && scrolled < 0).then(|| {
-                let ground = Palette::current().window_background;
+                let ground = ink(&style.edge);
                 rect()
                     .position(Position::new_absolute().top(0.0).left(0.0))
                     .width(Size::percent(100.0))
-                    .height(Size::px(SCROLL_BAR.edge_height))
+                    .height(Size::px(style.edge_height))
                     .layer(THUMB_LAYER)
                     .interactive(Interactive::No)
                     .background(
@@ -288,19 +306,21 @@ impl Component for ScrollView {
                 Divider::new()
                     .position(Position::new_absolute().top(0.0).left(0.0))
                     .layer(THUMB_LAYER)
-                    .background(color(crate::sidebar::sidebar_palette().line))
+                    .background(color(ink(&style.top_line)))
             }))
             .maybe_child(bar.filter(|_| always).map(|_| {
-                bar_rect(horizontal, edge, track_length, breadth).background(color(Rgba {
-                    a: SCROLL_BAR.track_opacity,
-                    ..ink
+                bar_rect(&style, horizontal, edge, track_length, breadth).background(color(Rgba {
+                    a: style.track_opacity,
+                    ..ink(&style.track)
                 }))
             }))
             .maybe_child(bar.map(|(offset, length)| {
-                bar_rect(horizontal, edge + offset, length, breadth).background(color(Rgba {
-                    a: opacity * visibility,
-                    ..ink
-                }))
+                bar_rect(&style, horizontal, edge + offset, length, breadth).background(color(
+                    Rgba {
+                        a: opacity * visibility,
+                        ..ink(&style.thumb)
+                    },
+                ))
             }))
     }
 
@@ -311,6 +331,8 @@ impl Component for ScrollView {
 
 #[cfg(test)]
 mod tests {
+    use ctdesign::SCROLL_BAR;
+
     use super::*;
 
     #[test]
@@ -330,15 +352,15 @@ mod tests {
 
     #[test]
     fn content_that_fits_has_no_thumb() {
-        assert_eq!(thumb(200.0, 200.0, 0.0), None);
-        assert_eq!(thumb(0.0, 500.0, 0.0), None);
+        assert_eq!(thumb(200.0, 200.0, 0.0, SCROLL_BAR.min_length), None);
+        assert_eq!(thumb(0.0, 500.0, 0.0, SCROLL_BAR.min_length), None);
     }
 
     #[test]
     fn the_thumb_spans_the_track_from_top_to_bottom() {
-        let (top, length) = thumb(200.0, 800.0, 0.0).unwrap();
+        let (top, length) = thumb(200.0, 800.0, 0.0, SCROLL_BAR.min_length).unwrap();
         assert_eq!((top, length), (0.0, 50.0));
-        let (bottom, _) = thumb(200.0, 800.0, -600.0).unwrap();
+        let (bottom, _) = thumb(200.0, 800.0, -600.0, SCROLL_BAR.min_length).unwrap();
         assert_eq!(bottom, 150.0);
     }
 }

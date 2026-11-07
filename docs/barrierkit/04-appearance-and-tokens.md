@@ -134,6 +134,10 @@ Image::system(Symbol::Folder)
 
 `StarFill` is the only filled symbol. The kit caches the SVG of each symbol.
 
+`Image` draws from an `ImageStyle`: `size` and `foreground`, which `.size`
+and `.color` override for one image and a theme for every image. The fields
+are in [Styles and themes](../ai/styles.md#textstyle-badgestyle-dividerstyle-avatarstyle-and-imagestyle).
+
 ## Fonts
 
 `register_font(bytes) -> bool` adds a typeface from the bytes of a TrueType or
@@ -586,10 +590,10 @@ background, for `reduce_transparency`.
 | `IMAGE_WELL` | `ImageWellMetrics` | `styles` |
 | `LEVEL_INDICATOR`, `GAUGE` | `LevelIndicatorMetrics`, `GaugeMetrics` | `styles`; `indicator` reads the number of stars |
 | `PROGRESS` | `ProgressMetrics` | `styles` |
-| `BADGE` | `BadgeMetrics` | `adornments` |
+| `BADGE` | `BadgeMetrics` | `styles` (`BadgeStyle`) |
 | `FOCUS_RING` | `FocusRingMetrics` | `interaction` |
 | `SYMBOL` | `SymbolMetrics` | `symbol`, `styles` |
-| `TOOLTIP` | `TooltipMetrics` | `tooltip`, `charts` |
+| `TOOLTIP` | `TooltipMetrics` | `tooltip`, `styles` (`ChartStyle`) |
 | `POPOVER` | `PopoverMetrics` | `popover`, the compositor |
 | `MENU_POPOVER` | `MenuPopoverMetrics` | `theme`, `popup_button`, `styles` |
 | `MENU_MARK_TEXT_GAP`, `MENU_SUBMENU_INTENT_MS`, `MENU_SUBMENU_REVEAL_GAP`, `MENU_SCROLL_TICK_MS`, `MENU_SEARCH_ICON`, `MENU_SEARCH_ICON_GAP`, `MENU_SEARCH_CLEAR`, `MENU_SEARCH_CLEAR_GLYPH`, `MENU_SEARCH_CLEAR_MARGIN`, `MENU_SEARCH_CLEAR_MIX`, `MENU_HELP_ICON` | `f32`, `u64`, `[f32; 2]` | `menu` ([7](07-menus-and-popovers.md)) |
@@ -609,16 +613,16 @@ background, for `reduce_transparency`.
 | `COLLECTION` | `CollectionMetrics` | `views::collection` |
 | `LIST_GROUP` | `ListGroupMetrics` | `views::form` |
 | `GROUP_BOX` | `GroupBoxMetrics` | `views::group` |
-| `DISCLOSURE` | `DisclosureMetrics` | `views::group`, `views::tree`, `font_panel` |
+| `DISCLOSURE` | `DisclosureMetrics` | `views::group`, `views::tree`, `font_panel`, `styles` (`RuleEditorStyle`) |
 | `TOOLBAR_TABS` | `ToolbarTabsMetrics` | `views::tabs` |
-| `SCROLL_BAR` | `ScrollBarMetrics` | Scroll views |
+| `SCROLL_BAR` | `ScrollBarMetrics` | Scroll views, `styles` (`ScrollViewStyle`) |
 | `BREAKPOINT` | `BreakpointMetrics` | `adaptive`: 620 and 900 px |
 | `SETTINGS` | `SettingsMetrics` | `patterns::settings`, `sidebar`, `styles` |
 | `FONT_PANEL` | `FontPanelMetrics` | `font_panel` |
 | `PRINT` | `PrintMetrics` | `print` |
-| `CHART` | `ChartMetrics` | `charts` |
-| `MEDIA` | `MediaMetrics` | `media`, `glass_container`, `styles`; `button_font_weight` is the weight of the `MediaButton` label |
-| `BACKDROP` | `BackdropMetrics` | `backdrop`, `sidebar`, `ctappearance::backdrop` |
+| `CHART` | `ChartMetrics` | `charts`, `styles` (`ChartStyle`); `hover_opacity` is the highlight of the hovered row of horizontal bars |
+| `MEDIA` | `MediaMetrics` | `media`, `styles`; `button_font_weight` is the weight of the `MediaButton` label |
+| `BACKDROP` | `BackdropMetrics` | `backdrop`, `sidebar`, `ctappearance::backdrop`, `styles` (`BackdropStyle`) |
 | `BACKDROP_SCENES` | `BackdropScenes` | Preset gradients `dusk`, `night`, `pale`, `forest`, `studio`; nothing reads them yet |
 
 ### Shell

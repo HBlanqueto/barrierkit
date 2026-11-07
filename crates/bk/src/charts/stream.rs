@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 use std::f64::consts::TAU;
 
-use ctdesign::{CHART, Rgba, SPACE_1};
+use ctdesign::{CHART, Rgba};
 use freya_core::data::LayoutData;
 use freya_core::element::{ElementExt, RenderContext};
 use freya_core::prelude::*;
@@ -11,8 +11,8 @@ use torin::prelude::{Alignment, Direction, Position, Size};
 
 use super::plot::paint;
 use super::scale::{monotone_samples, stream_bands};
-use super::{Series, format_value, legend_entry, series_color};
-use crate::style::Palette;
+use super::{Marks, Series, format_value, ink, legend_entry, series_color};
+use crate::styles::{ChartStyle, ControlState, Paints, Theme, resolve};
 
 const SAMPLES_PER_STEP: usize = 8;
 const GUIDE_RINGS: usize = 3;
@@ -28,11 +28,11 @@ struct Geometry {
 }
 
 impl Geometry {
-    fn new(width: f64, height: f64, polar: bool) -> Self {
+    fn new(width: f64, height: f64, polar: bool, hole: f32) -> Self {
         let outer = width.min(height) / 2.0;
         Self {
             center: (width / 2.0, height / 2.0),
-            inner: outer * f64::from(CHART.stream_hole),
+            inner: outer * f64::from(hole),
             outer,
             width,
             height,
@@ -82,6 +82,7 @@ struct Stream {
     polar: bool,
     hover: Option<usize>,
     guide: Rgba,
+    marks: Marks,
     layout: LayoutData,
 }
 
@@ -106,6 +107,7 @@ impl ElementExt for Stream {
             f64::from(area.width()),
             f64::from(area.height()),
             self.polar,
+            self.marks.stream_hole,
         );
         let offset = (area.min_x(), area.min_y());
         let at = |(x, y): (f32, f32)| (x + offset.0, y + offset.1);
@@ -123,7 +125,11 @@ impl ElementExt for Stream {
         }
         let steps = time_span(count, self.polar);
 
-        let guide = paint(self.guide, PaintStyle::Stroke, CHART.grid_width * scale);
+        let guide = paint(
+            self.guide,
+            PaintStyle::Stroke,
+            self.marks.grid_width * scale,
+        );
         if self.polar {
             for ring in 0..=GUIDE_RINGS {
                 let fraction = ring as f64 / GUIDE_RINGS as f64;
@@ -160,13 +166,21 @@ impl ElementExt for Stream {
             canvas.draw_path(&path, &paint(*color, PaintStyle::Fill, 0.0));
             canvas.draw_path(
                 &path,
-                &paint(self.guide, PaintStyle::Stroke, CHART.grid_width * scale),
+                &paint(
+                    self.guide,
+                    PaintStyle::Stroke,
+                    self.marks.grid_width * scale,
+                ),
             );
         }
 
         if let Some(i) = self.hover.filter(|i| *i < count) {
             let t = i as f64 / steps;
-            let ray = paint(self.guide, PaintStyle::Stroke, CHART.rule_width * scale);
+            let ray = paint(
+                self.guide,
+                PaintStyle::Stroke,
+                self.marks.rule_width * scale,
+            );
             canvas.draw_line(at(geometry.place(t, 0.0)), at(geometry.place(t, 1.0)), &ray);
         }
     }
@@ -179,6 +193,7 @@ pub struct StreamChart {
     polar: bool,
     unit: &'static str,
     size: f32,
+    style: Theme,
 }
 
 impl StreamChart {
@@ -189,7 +204,13 @@ impl StreamChart {
             polar: false,
             unit: "",
             size: CHART.height,
+            style: Theme::tengen(),
         }
+    }
+
+    pub fn style(mut self, restyle: impl Fn(ChartStyle) -> ChartStyle + 'static) -> Self {
+        self.style = self.style.style(restyle);
+        self
     }
 
     pub fn series(mut self, series: Series) -> Self {
@@ -215,12 +236,17 @@ impl StreamChart {
 
 impl Component for StreamChart {
     fn render(&self) -> impl IntoElement {
-        let palette = Palette::current();
+        let style: ChartStyle = resolve(&self.style);
+        let paints = Paints::current(ControlState::default(), style.effect);
+        let hole = style.stream_hole;
         let mut hover = use_state(|| None::<usize>);
         let mut area = use_state(|| (0.0f64, 0.0f64));
         let values: Vec<Vec<f64>> = self.series.iter().map(|s| s.values.clone()).collect();
         let (order, bands) = stream_bands(&values);
-        let colors: Vec<Rgba> = order.iter().map(|i| series_color(*i)).collect();
+        let colors: Vec<Rgba> = order
+            .iter()
+            .map(|i| series_color(&style, &paints, *i))
+            .collect();
         let count = bands.first().map_or(0, Vec::len);
         let polar = self.polar;
         let at = *hover.read();
@@ -231,9 +257,10 @@ impl Component for StreamChart {
                 .map(|v| format_value(*v, self.unit))
                 .unwrap_or_default();
             legend_entry(
-                series_color(i),
+                &style,
+                &paints,
+                series_color(&style, &paints, i),
                 format!("{} {value}", series.name),
-                &palette,
             )
         });
         let (width, height) = if polar {
@@ -244,7 +271,7 @@ impl Component for StreamChart {
         rect()
             .width(Size::fill())
             .direction(Direction::Vertical)
-            .spacing(SPACE_1)
+            .spacing(style.spacing)
             .a11y_role(AccessibilityRole::Figure)
             .a11y_alt(self.label)
             .child(
@@ -266,7 +293,7 @@ impl Component for StreamChart {
                             .on_pointer_move(move |event: Event<PointerEventData>| {
                                 let (w, h) = *area.peek();
                                 let point = event.element_location();
-                                let t = Geometry::new(w, h, polar).time_at(point.x, point.y);
+                                let t = Geometry::new(w, h, polar, hole).time_at(point.x, point.y);
                                 let index = (t * time_span(count, polar)).round() as usize;
                                 hover.set_if_modified(Some(index.min(count.saturating_sub(1))));
                             })
@@ -276,7 +303,8 @@ impl Component for StreamChart {
                                 colors,
                                 polar,
                                 hover: at,
-                                guide: palette.separator,
+                                guide: ink(&paints, &style.grid),
+                                marks: Marks::of(&style),
                                 layout: crate::glass::layout(
                                     Size::fill(),
                                     Size::fill(),
@@ -289,7 +317,7 @@ impl Component for StreamChart {
                 rect()
                     .width(Size::fill())
                     .direction(Direction::Horizontal)
-                    .spacing(CHART.legend_gap)
+                    .spacing(style.legend_gap)
                     .children(legend),
             )
     }
@@ -301,7 +329,7 @@ mod tests {
 
     #[test]
     fn the_flow_clock_starts_at_twelve_and_runs_clockwise() {
-        let clock = Geometry::new(200.0, 200.0, true);
+        let clock = Geometry::new(200.0, 200.0, true, CHART.stream_hole);
         let (x, y) = clock.place(0.0, 1.0);
         assert!((x - 100.0).abs() < 1e-3 && y.abs() < 1e-3);
         let (x, _) = clock.place(0.25, 1.0);
@@ -316,7 +344,7 @@ mod tests {
 
     #[test]
     fn pointer_angle_maps_back_to_the_same_time() {
-        let clock = Geometry::new(200.0, 200.0, true);
+        let clock = Geometry::new(200.0, 200.0, true, CHART.stream_hole);
         for t in [0.0, 0.2, 0.5, 0.85] {
             let (x, y) = clock.place(t, 0.5);
             assert!((clock.time_at(f64::from(x), f64::from(y)) - t).abs() < 1e-4);

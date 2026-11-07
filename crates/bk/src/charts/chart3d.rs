@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use ctdesign::{CALLOUT, CHART, Rgba, SPACE_2};
+use ctdesign::{CHART, Rgba};
 use freya_core::data::LayoutData;
 use freya_core::element::{ElementExt, RenderContext};
 use freya_core::prelude::*;
@@ -11,14 +11,14 @@ use skia_safe::vertices::VertexMode;
 use torin::prelude::{Alignment, Direction, Position, Size};
 
 use super::plot::{mix, normalized, paint, shade};
-use super::series_color;
 use super::space::{
     Camera, Pose, View, back_to_front, fit, from_unit, project, surface_triangles, to_unit,
 };
+use super::{Marks, ink, series_color};
 use crate::controls::{Button, ControlSize, SegmentedControl};
 use crate::i18n::text;
 use crate::level::LevelSlider;
-use crate::style::Palette;
+use crate::styles::{ChartStyle, ControlState, Paints, Theme, resolve};
 
 #[derive(Clone, Debug, PartialEq)]
 enum Plot3D {
@@ -37,6 +37,7 @@ struct Space {
     low: Rgba,
     high: Rgba,
     frame: Rgba,
+    marks: Marks,
     layout: LayoutData,
 }
 
@@ -171,7 +172,11 @@ impl ElementExt for Space {
             None,
             Some(true),
         );
-        let frame = paint(self.frame, PaintStyle::Stroke, CHART.grid_width * scale);
+        let frame = paint(
+            self.frame,
+            PaintStyle::Stroke,
+            self.marks.grid_width * scale,
+        );
         let corners: Vec<Point> = (0..8)
             .map(|i| {
                 let corner = [
@@ -198,7 +203,8 @@ impl ElementExt for Space {
                 let depths: Vec<f64> = projected.iter().map(|p| p.0[2]).collect();
                 for i in back_to_front(&depths) {
                     let (point, t) = projected[i];
-                    let radius = CHART.point_size * scale / 2.0 * (1.0 + 0.2 * point[2] as f32);
+                    let radius =
+                        self.marks.point_size * scale / 2.0 * (1.0 + 0.2 * point[2] as f32);
                     canvas.draw_circle(
                         screen(point),
                         radius,
@@ -216,6 +222,7 @@ pub struct Chart3D {
     label: &'static str,
     plot: Plot3D,
     height: f32,
+    style: Theme,
 }
 
 impl Chart3D {
@@ -251,7 +258,13 @@ impl Chart3D {
             label,
             plot,
             height: CHART.height * 1.5,
+            style: Theme::tengen(),
         }
+    }
+
+    pub fn style(mut self, restyle: impl Fn(ChartStyle) -> ChartStyle + 'static) -> Self {
+        self.style = self.style.style(restyle);
+        self
     }
 
     pub fn height(mut self, height: f32) -> Self {
@@ -278,17 +291,25 @@ fn zoom_range() -> (f64, f64) {
     (f64::from(CHART.zoom_min), f64::from(CHART.zoom_max))
 }
 
-fn coordinate(label: &'static str, value: f32, on_change: impl Fn(f32) + 'static) -> Element {
-    let palette = Palette::current();
+fn coordinate(
+    (style, paints): (&ChartStyle, &Paints),
+    label: &'static str,
+    value: f32,
+    on_change: impl Fn(f32) + 'static,
+) -> Element {
     rect()
         .width(Size::fill())
         .direction(Direction::Horizontal)
         .cross_align(Alignment::Center)
-        .spacing(SPACE_2)
+        .spacing(style.group_spacing)
         .child(
             rect()
-                .width(Size::px(CHART.y_axis_width * 2.0))
-                .child(crate::style::text(label, CALLOUT, palette.secondary_label)),
+                .width(Size::px(style.axis_width * 2.0))
+                .child(crate::style::text(
+                    label,
+                    style.title_font,
+                    ink(paints, &style.axis_label),
+                )),
         )
         .child(
             rect().width(Size::flex(1.0)).child(
@@ -302,7 +323,8 @@ fn coordinate(label: &'static str, value: f32, on_change: impl Fn(f32) + 'static
 
 impl Component for Chart3D {
     fn render(&self) -> impl IntoElement {
-        let palette = Palette::current();
+        let style: ChartStyle = resolve(&self.style);
+        let paints = Paints::current(ControlState::default(), style.effect);
         let start = Camera::at(Pose {
             azimuth: f64::from(CHART.azimuth),
             inclination: f64::from(CHART.inclination),
@@ -344,8 +366,9 @@ impl Component for Chart3D {
             rect()
                 .width(Size::fill())
                 .direction(Direction::Vertical)
-                .spacing(SPACE_2)
+                .spacing(style.group_spacing)
                 .child(coordinate(
+                    (&style, &paints),
                     text!("camera-azimuth"),
                     to_unit(camera.pose.azimuth, AZIMUTH),
                     set(|c, f| Camera {
@@ -357,6 +380,7 @@ impl Component for Chart3D {
                     }),
                 ))
                 .child(coordinate(
+                    (&style, &paints),
                     text!("camera-inclination"),
                     to_unit(camera.pose.inclination, INCLINATION),
                     set(|c, f| Camera {
@@ -368,6 +392,7 @@ impl Component for Chart3D {
                     }),
                 ))
                 .child(coordinate(
+                    (&style, &paints),
                     text!("camera-zoom"),
                     to_unit(camera.zoom, zoom_range()),
                     set(|c, f| Camera {
@@ -379,7 +404,7 @@ impl Component for Chart3D {
         rect()
             .width(Size::fill())
             .direction(Direction::Vertical)
-            .spacing(SPACE_2)
+            .spacing(style.group_spacing)
             .a11y_role(AccessibilityRole::Figure)
             .a11y_alt(self.label)
             .on_global_key_down(move |event: Event<KeyboardEventData>| {
@@ -447,9 +472,10 @@ impl Component for Chart3D {
                     .child(crate::glass::leaf(Space {
                         plot: self.plot.clone(),
                         camera,
-                        low: series_color(0),
-                        high: series_color(2),
-                        frame: palette.separator,
+                        low: series_color(&style, &paints, 0),
+                        high: series_color(&style, &paints, 2),
+                        frame: ink(&paints, &style.grid),
+                        marks: Marks::of(&style),
                         layout: crate::glass::layout(
                             Size::fill(),
                             Size::fill(),
@@ -462,15 +488,15 @@ impl Component for Chart3D {
                     .width(Size::fill())
                     .direction(Direction::Horizontal)
                     .cross_align(Alignment::Center)
-                    .spacing(SPACE_2)
+                    .spacing(style.group_spacing)
                     .child(
                         rect()
                             .a11y_role(AccessibilityRole::Label)
                             .a11y_alt(readout.clone())
                             .child(crate::style::text(
                                 readout,
-                                CALLOUT,
-                                palette.secondary_label,
+                                style.title_font,
+                                ink(&paints, &style.axis_label),
                             )),
                     )
                     .maybe(current != View::Custom, |el| {

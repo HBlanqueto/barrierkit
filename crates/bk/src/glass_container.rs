@@ -1,9 +1,8 @@
 use std::borrow::Cow;
 use std::rc::Rc;
-use std::time::Duration;
 
-use ctdesign::{DURATION_BASE, MEDIA, Rgba};
-use freya_animation::prelude::use_animation_transition;
+use ctdesign::Rgba;
+use freya_animation::prelude::{AnimNum, use_animation_transition};
 use freya_core::data::LayoutData;
 use freya_core::element::{ElementExt, RenderContext};
 use freya_core::prelude::*;
@@ -13,8 +12,10 @@ use freya_engine::prelude::{
 };
 use torin::prelude::{Area, Direction, Position, Size};
 
-use crate::animation::Spring;
 use crate::glass::{layout, leaf, material, transparency_reduced};
+use crate::styles::{
+    ControlState, GlassContainerStyle, Paints, ShapeStyle, StateValue, Theme, resolve,
+};
 
 pub const MAX_SHAPES: usize = 8;
 
@@ -265,6 +266,7 @@ pub struct GlassContainer {
     spacing: f32,
     gap: f32,
     items: Vec<(&'static str, f32, Element)>,
+    style: Theme,
 }
 
 impl GlassContainer {
@@ -273,7 +275,16 @@ impl GlassContainer {
             spacing,
             gap: spacing,
             items: Vec::new(),
+            style: Theme::tengen(),
         }
+    }
+
+    pub fn style(
+        mut self,
+        restyle: impl Fn(GlassContainerStyle) -> GlassContainerStyle + 'static,
+    ) -> Self {
+        self.style = self.style.style(restyle);
+        self
     }
 
     pub fn gap(mut self, gap: f32) -> Self {
@@ -289,20 +300,17 @@ impl GlassContainer {
 
 impl Component for GlassContainer {
     fn render(&self) -> impl IntoElement {
+        let style: GlassContainerStyle = resolve(&self.style);
+        let animation = style.animation;
         let mut origin = use_state(Area::default);
         let measured = use_state(Measured::new);
         let mut morphs = use_state(Vec::<Morph>::new);
-        let reduced_motion = use_reactive(&crate::theme::resolved().reduced_motion);
+        let duration_ms = use_reactive(&animation.duration_ms());
         let mut generation = use_state(|| 0u64);
         let progress = use_animation_transition(generation, move |_: u64, _: u64| {
-            let time = if *reduced_motion.peek() {
-                0
-            } else {
-                DURATION_BASE
-            };
-            Spring::new(0.0, 1.0, Duration::from_millis(time), 0.0)
+            AnimNum::new(0.0, 1.0).time(*duration_ms.peek())
         });
-        let t = progress.get().current();
+        let t = animation.progress(progress.get().value());
         let shown: Measured = morphs
             .read()
             .iter()
@@ -331,7 +339,7 @@ impl Component for GlassContainer {
             if settled == target {
                 return;
             }
-            let t = progress.peek().current();
+            let t = animation.progress(progress.peek().value());
             let from: Measured = current
                 .iter()
                 .filter(|morph| target.iter().any(|(id, _)| *id == morph.id) || t < 1.0)
@@ -356,10 +364,13 @@ impl Component for GlassContainer {
             .into_element()
         });
         let shown_origin = *origin.read();
+        let paints = Paints::current(ControlState::default(), style.effect);
+        let ink =
+            |paint: &StateValue<ShapeStyle>| paints.color(paint.resolve(ControlState::default()));
         let (tint, blur) = material(
-            MEDIA.round_glass,
-            MEDIA.material_tint,
-            MEDIA.material_blur,
+            ink(&style.tint),
+            ink(&style.solid),
+            style.blur,
             transparency_reduced(),
         );
         rect()
@@ -372,7 +383,7 @@ impl Component for GlassContainer {
                 origin: (shown_origin.origin.x, shown_origin.origin.y),
                 tint,
                 blur,
-                rim: MEDIA.round_rim,
+                rim: ink(&style.rim),
                 layout: layout(Size::fill(), Size::fill(), Position::new_absolute()),
             }))
             .children(items)
@@ -416,6 +427,8 @@ impl Component for GlassItem {
 
 #[cfg(test)]
 mod tests {
+    use ctdesign::MEDIA;
+
     use super::*;
 
     fn frame(x: f32) -> Frame {

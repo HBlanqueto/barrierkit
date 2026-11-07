@@ -3,8 +3,8 @@ use std::f32::consts::FRAC_1_SQRT_2;
 use std::rc::Rc;
 
 use ctappearance::backdrop::{self as tint, ImagePalette, ink_on, palette_from_pixels};
-use ctdesign::{BACKDROP, DURATION_SLOW_MS, Rgba};
-use freya_animation::prelude::{AnimNum, Ease, Function, use_animation_transition};
+use ctdesign::{BACKDROP, Rgba};
+use freya_animation::prelude::{AnimNum, use_animation_transition};
 use freya_core::data::LayoutData;
 use freya_core::element::{ElementExt, RenderContext};
 use freya_core::prelude::*;
@@ -16,6 +16,7 @@ use freya_engine::prelude::{
 use torin::prelude::{Position, Size};
 
 use crate::style::Palette;
+use crate::styles::{BackdropStyle, Theme, resolve};
 use crate::theme::color;
 
 #[derive(Clone, Debug)]
@@ -71,6 +72,7 @@ pub struct Backdrop {
     source: BackdropSource,
     accent: Accent,
     child: Element,
+    style: Theme,
 }
 
 impl Backdrop {
@@ -79,7 +81,13 @@ impl Backdrop {
             source,
             accent: Accent::System,
             child: child.into(),
+            style: Theme::tengen(),
         }
+    }
+
+    pub fn style(mut self, restyle: impl Fn(BackdropStyle) -> BackdropStyle + 'static) -> Self {
+        self.style = self.style.style(restyle);
+        self
     }
 
     pub fn accent(mut self, accent: Accent) -> Self {
@@ -154,6 +162,8 @@ fn image_palette(bytes: &Bytes) -> Option<ImagePalette> {
 
 impl Component for Backdrop {
     fn render(&self) -> impl IntoElement {
+        let style: BackdropStyle = resolve(&self.style);
+        let animation = style.animation;
         let resolved = crate::theme::resolved();
         let system = Palette::system();
         let look = use_look(&self.source);
@@ -163,17 +173,13 @@ impl Component for Backdrop {
             .unwrap_or_else(|| tint::Backdrop::solid(resolved.surfaces.window));
         let mut from = use_state(|| target);
         let mut to = use_state(|| target);
-        let reduced_motion = crate::animation::use_reduced_motion();
+        let duration_ms = use_reactive(&animation.duration_ms());
         let progress = use_animation_transition(to, move |_: tint::Backdrop, _| {
-            AnimNum::new(0.0, 1.0)
-                .time(crate::animation::motion_ms(
-                    reduced_motion,
-                    DURATION_SLOW_MS,
-                ))
-                .ease(Ease::InOut)
-                .function(Function::Cubic)
+            AnimNum::new(0.0, 1.0).time(*duration_ms.peek())
         });
-        let shown = from.peek().mix(*to.peek(), progress.get().value());
+        let shown = from
+            .peek()
+            .mix(*to.peek(), animation.progress(progress.get().value()));
         if *to.peek() != target {
             from.set(shown);
             to.set(target);
@@ -203,7 +209,7 @@ impl Component for Backdrop {
 
         rect()
             .expanded()
-            .child(layer(shown))
+            .child(layer(shown, style.angles, style.opacity))
             .child(self.child.clone())
     }
 }
@@ -242,12 +248,16 @@ impl Palette {
 #[derive(PartialEq)]
 struct Layer {
     backdrop: tint::Backdrop,
+    angles: [f32; 3],
+    opacity: f32,
     layout: LayoutData,
 }
 
-fn layer(backdrop: tint::Backdrop) -> Element {
+fn layer(backdrop: tint::Backdrop, angles: [f32; 3], opacity: f32) -> Element {
     crate::glass::leaf(Layer {
         backdrop,
+        angles,
+        opacity,
         layout: crate::glass::layout(Size::fill(), Size::fill(), Position::new_absolute()),
     })
 }
@@ -285,13 +295,13 @@ impl ElementExt for Layer {
         context.canvas.draw_rect(bounds, &paint);
 
         let stops = BACKDROP.stops.max(2) as usize;
-        for (degrees, layer) in BACKDROP.angles.iter().zip(self.backdrop.layers) {
+        for (degrees, layer) in self.angles.iter().zip(self.backdrop.layers) {
             let (colors, offsets): (Vec<Color4f>, Vec<f32>) = (0..stops)
                 .map(|i| {
                     let t = i as f32 / (stops - 1) as f32;
                     let fade = 1.0 - t * t * (3.0 - 2.0 * t);
                     let c = Rgba {
-                        a: BACKDROP.opacity * fade,
+                        a: self.opacity * fade,
                         ..layer
                     };
                     (Color4f::new(c.r, c.g, c.b, c.a), t * FRAC_1_SQRT_2)
