@@ -176,8 +176,18 @@ impl Component for ToolGroup {
     fn render(&self) -> impl IntoElement {
         crate::compact::use_toolbar_items(true);
         let resolved = crate::theme::resolved();
-        let palette = resolved.toolgroup.palette;
         let island = resolved.sidebar.style == ctappearance::SidebarStyle::Island;
+        let (bg, separator, rim) = if crate::backdrop::tinted().is_some() {
+            let palette = Palette::current();
+            (
+                palette.control_background,
+                palette.separator,
+                palette.card_border,
+            )
+        } else {
+            let palette = resolved.toolgroup.palette;
+            (resolved.toolgroup.bg, palette.separator, palette.rim)
+        };
 
         let mut items: Vec<Element> = Vec::with_capacity(self.children.len());
         let last = self.children.len().saturating_sub(1);
@@ -196,7 +206,7 @@ impl Component for ToolGroup {
                     rect()
                         .width(Size::px(TOOLGROUP.separator_w as f32))
                         .height(Size::px(TOOLGROUP.separator_h as f32))
-                        .background(theme::color(palette.separator))
+                        .background(theme::color(separator))
                         .into_element(),
                 );
             }
@@ -217,12 +227,12 @@ impl Component for ToolGroup {
 
         if island {
             return root
-                .background(theme::color(resolved.toolgroup.bg))
+                .background(theme::color(bg))
                 .border(
                     Border::new()
                         .width(ctdesign::HAIRLINE)
                         .alignment(BorderAlignment::Inner)
-                        .fill(theme::color(palette.rim)),
+                        .fill(theme::color(rim)),
                 )
                 .corner_radius((TOOLGROUP.height as f32 / 2.0).max(1.0))
                 .into_element();

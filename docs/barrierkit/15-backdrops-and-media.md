@@ -73,6 +73,9 @@ legible on it.
    result is the same in light and dark mode.
 3. When the source changes, it fades from the old colors to the new ones over
    `DURATION_SLOW_MS`, in-out cubic, or at once with reduced motion.
+4. Inside it, a [`Titlebar`](09-titlebars.md#titlebar) has no background, and a
+   `ToolGroup` capsule takes its fill, separator and rim from the backdrop's
+   palette, so its icons stay legible.
 
 | `Accent` | The accent inside the backdrop is… |
 |---|---|
