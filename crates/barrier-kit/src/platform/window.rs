@@ -786,17 +786,19 @@ impl Runtime {
 
 impl Runtime {
     fn close_window(&mut self, surface_id: ObjectId) {
-        let window_count = self
-            .surfaces
-            .iter()
-            .filter(|s| matches!(s.role, SurfaceRole::Window(_)))
-            .count();
-        if window_count <= 1 {
-            self.needs_exit = true;
-        }
         let Some(index) = self.surface_index_by_id(&surface_id) else {
             return;
         };
+        let main = |surface: &super::surface::SurfaceWindow| {
+            matches!(surface.role, SurfaceRole::Window(_))
+                && surface
+                    .context
+                    .as_ref()
+                    .is_none_or(|context| context.parent.is_none())
+        };
+        if main(&self.surfaces[index]) && self.surfaces.iter().filter(|s| main(s)).count() <= 1 {
+            self.needs_exit = true;
+        }
         if let Some(context) = &self.surfaces[index].context
             && context.parent.is_none()
         {
