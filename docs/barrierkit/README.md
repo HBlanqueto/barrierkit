@@ -41,7 +41,18 @@ answers it.
 | 18 | [Platform](18-platform.md) | Runner, Vulkan, Wayland protocols, the shell feature |
 | 19 | [Profiling](19-profiling.md) | Where does each frame's time go? |
 | 20 | [Glossary](20-glossary.md) | What is the BarrierKit name of a SwiftUI or AppKit concept? |
-| 21 | [Frequently asked questions](21-faq.md) | Short answers that point to the chapters |
+
+## Other questions
+
+| Question | Where |
+|---|---|
+| What is missing? | The «Status» of [ADR 0047](../decisions/0047-barrierkit-in-layers.md#status-2026-11-02) |
+| Does it work outside Malaysia? | [18](18-platform.md#wayland-protocols): every protocol but `wl_compositor` and `xdg_wm_base` is optional |
+| Can I use Freya directly? | [3, Rules](03-layers.md#rules) and [2, The prelude](02-first-app.md#the-prelude) |
+| How do I change how a control looks? | [`agents/styles.md`](../../agents/styles.md) |
+| Where does an app store its data? | [13](13-app.md) |
+| How do I add a component to the kit? | [3, What every component does](03-layers.md#what-every-component-does) and [`AGENTS.md`](../../AGENTS.md) |
+| How do I check a change? | `./dev.sh check` inside `nix develop`; its steps are `check()` in [`dev.sh`](../../dev.sh) |
 
 ## Single sources
 
