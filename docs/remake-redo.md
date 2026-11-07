@@ -207,3 +207,25 @@ Left as they are, with the reason:
   Splitting its keyboard state machine needs a real menu to test against.
 - `sidebar.rs`: one family of views (`Sidebar`, `SidebarItem`,
   `SidebarSection`, `SidebarAccount`, `SymbolTile`).
+
+## Phase 4: split `bk` into crates (dropped)
+
+Incremental build of `bk` (`charts,print`) after one real edit, two runs each:
+
+| Edited file | Time |
+|---|---|
+| `controls/button.rs` | 3.0 s, 3.0 s |
+| `charts/mod.rs` | 3.1 s, 2.9 s |
+| `platform/popup.rs` | 3.1 s, 3.0 s |
+| Nothing (`cargo build` with no change) | 0.19 s |
+
+The time does not depend on the edited module, so a smaller module saves
+nothing; only a smaller crate would. The candidates do not give one:
+
+- `platform` (7 371 lines) uses `main_menu`, `styles`, `chrome`, `theme`,
+  `app`, `views`, `titlebar` and `sidebar`, so `bk-platform` cannot sit below
+  the rest without inverting those dependencies.
+- `charts` (2 916 lines) and `print` (665) sit above the core. An edit of a
+  control would rebuild the core and then them. Both are already optional
+  features, and without them the edit takes 3.0 s instead of 3.2 s
+  (phase 2).
