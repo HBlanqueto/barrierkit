@@ -34,17 +34,19 @@ reason it cannot be.
 
 ## Build
 
-10. Did you run, inside `nix develop`, `cargo build` and
+10. Does the app's `Cargo.toml` enable every `bk` feature whose module it
+    uses (`charts`, `print`, `video`)?
+11. Did you run, inside `nix develop`, `cargo build` and
     `cargo clippy -- -D warnings` with no warnings?
-11. Did you run `cargo fmt`?
-12. If you could not open the window (no Wayland session), did you say so?
+12. Did you run `cargo fmt`?
+13. If you could not open the window (no Wayland session), did you say so?
 
 ## Changes to the kit itself
 
-13. Is every new or renamed public item in
+14. Is every new or renamed public item in
     [`docs/barrierkit/20-glossary.md`](../docs/barrierkit/20-glossary.md), named by
     its rules, in the same commit?
-14. Does the chapter that describes the changed behavior say what the code
+15. Does the chapter that describes the changed behavior say what the code
     does now?
-15. If the change affects how an agent writes apps, are `prompt.md`,
+16. If the change affects how an agent writes apps, are `prompt.md`,
     `recipes.md` and this checklist updated?

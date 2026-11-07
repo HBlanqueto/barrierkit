@@ -159,7 +159,7 @@ phase 1:
 
 | Features | Clean build | Edit of `controls.rs` | Crates |
 |---|---|---|---|
-| `default` (`a11y`, `charts`, `print`) | 117.1 s | 3.2 s | 271 |
+| `a11y`, `charts`, `print` (the defaults until `default = ["a11y"]`) | 117.1 s | 3.2 s | 271 |
 | `--no-default-features` | 101.1 s | 3.0 s | 244 |
 | only `a11y` | 106.8 s | — | 260 |
 | only `charts` | 103.5 s | — | 244 |

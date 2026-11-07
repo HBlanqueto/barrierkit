@@ -8,7 +8,7 @@ license.workspace = true
 repository.workspace = true
 
 [features]
-default = ["a11y", "charts", "print"]
+default = ["a11y"]
 a11y = ["dep:accesskit_unix"]
 charts = []
 print = ["dep:flate2", "dep:pdf-writer", "dep:subsetter", "dep:ttf-parser"]

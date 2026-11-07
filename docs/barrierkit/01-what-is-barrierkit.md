@@ -58,15 +58,14 @@ Cargo workspace with four library crates. They need Rust 1.98 (edition 2024).
 | `ctappearance` | **CTAppearance**: reads the user's appearance and the wallpaper color and resolves them into concrete colors ([4](04-appearance-and-tokens.md#user-appearance-ctappearance)). | The kit, the compositor, the shell and the portal. |
 | `infinity-protocol` | Private Wayland protocol between the apps and the Malaysia compositor ([18](18-platform.md)). | The kit and the compositor. |
 
-`bk` has six Cargo features. `a11y`, `charts` and `print` are on by default;
-an app that does not need one turns the defaults off and lists the rest:
-`bk = { …, default-features = false, features = ["a11y"] }`.
+`bk` has six Cargo features. Only `a11y` is on by default; an app lists the
+others it needs: `bk = { …, features = ["charts", "print"] }`.
 
 | Feature | Default | What it adds |
 |---|---|---|
 | `a11y` | on | Publishes each window's accessibility tree over AT-SPI with `accesskit_unix` ([18](18-platform.md#accessibility)). |
-| `charts` | on | The `charts` module and `ChartStyle` ([16](16-charts.md)). |
-| `print` | on | The `print` module, `portal::print` and `PrintPreviewStyle` ([6](06-text-and-editing.md#printing)). |
+| `charts` | off | The `charts` module and `ChartStyle` ([16](16-charts.md)). |
+| `print` | off | The `print` module, `portal::print` and `PrintPreviewStyle` ([6](06-text-and-editing.md#printing)). |
 | `shell` | off | The `shell` module: layer-shell surfaces, the lock screen, the list of toplevels and the status tray host ([18](18-platform.md)). Only `malaysia-shell` enables it. |
 | `video` | off | The `video` module, a GStreamer player ([15](15-backdrops-and-media.md)). |
 | `tracy` | off | Sends the traces of `init_tracing` to Tracy ([19](19-profiling.md)). |

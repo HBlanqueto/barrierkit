@@ -39,6 +39,9 @@ version.
   what it needs from the others.
 - **Model:** declarative. A view is a function of the state; when the state
   changes, the kit calls it again and applies the difference.
+- **Features:** charts, printing and video need the `charts`, `print` and
+  `video` features of `bk` in the app's `Cargo.toml`
+  ([chapter 1](../docs/barrierkit/01-what-is-barrierkit.md#the-crates)).
 - **Shape of every app:** `use bk::prelude::*;`, then
   `Application::new(name).window(title, || view).run()` in `main`. The program
   and what each part does are in
