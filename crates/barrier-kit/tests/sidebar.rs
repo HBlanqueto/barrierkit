@@ -394,6 +394,7 @@ fn sidebar_section_toggles_with_enter_and_space() {
     assert!(expanded(&test), "section starts expanded");
 
     test.press_key(Key::Named(NamedKey::Tab));
+    test.sync_and_update();
     test.press_key(Key::Named(NamedKey::Enter));
     assert!(!expanded(&test), "Enter should collapse the section");
 
@@ -720,7 +721,7 @@ impl App for ChevronCase {
     }
 }
 
-fn chevron_area(test: &TestingRunner) -> (usize, usize) {
+fn chevron_node(test: &TestingRunner) -> Option<(usize, usize)> {
     test.find(|node, _el| {
         let size = node.layout().area.size;
         ((size.width - SIDEBAR.chevron as f32).abs() < 0.5
@@ -730,7 +731,23 @@ fn chevron_area(test: &TestingRunner) -> (usize, usize) {
                 (origin.x as usize, origin.y as usize)
             })
     })
-    .expect("the chevron is visible while the section is focused")
+}
+
+// ragnarok and freya-core 0.4.3 derive pointer events through a std HashSet, so one move can
+// leave the hover unset (https://docs.rs/crate/ragnarok/0.4.3/source/src/name.rs#47); a pointer
+// that keeps moving settles it, as it does in a real session.
+fn hover_section(test: &mut TestingRunner) {
+    for nudge in 0..10 {
+        test.move_cursor((20.0 + f64::from(nudge), 68.0));
+        test.sync_and_update();
+        if chevron_node(test).is_some() {
+            return;
+        }
+    }
+}
+
+fn chevron_area(test: &TestingRunner) -> (usize, usize) {
+    chevron_node(test).expect("the chevron is visible while the section is hovered")
 }
 
 #[test]
@@ -739,15 +756,18 @@ fn sidebar_section_chevron_changes_shape_when_toggled() {
     let (mut test, _) = TestingRunner::new(app, Size2D::new(300.0, 300.0), |_| {}, 1.0);
     let size = SIDEBAR.chevron as usize;
 
-    test.move_cursor((20.0, 68.0));
-    test.click_cursor((20.0, 68.0));
     test.sync_and_update();
+    hover_section(&mut test);
+    test.click_cursor((20.0, 68.0));
+    hover_section(&mut test);
+    test.poll(Duration::from_millis(16), Duration::from_millis(100));
     let (width, _, collapsed_image) = decode(test.render().as_bytes());
     let (x, y) = chevron_area(&test);
     let collapsed = crop(&collapsed_image, width, x, y, size);
 
     test.click_cursor((20.0, 68.0));
-    test.sync_and_update();
+    hover_section(&mut test);
+    test.poll(Duration::from_millis(16), Duration::from_millis(100));
     let (width, _, expanded_image) = decode(test.render().as_bytes());
     let (x, y) = chevron_area(&test);
     let expanded = crop(&expanded_image, width, x, y, size);
