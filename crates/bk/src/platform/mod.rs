@@ -30,6 +30,26 @@ pub use popup::{
 };
 pub use timer::{Timers, WakeHandle};
 
+pub(crate) enum Sent {
+    User(freya_core::integration::UserEvent),
+    Kit(Box<dyn std::any::Any>),
+}
+
+#[derive(Clone)]
+pub(crate) struct KitSender(pub(crate) std::rc::Rc<dyn Fn(Sent)>);
+
+impl KitSender {
+    // Without the kit's runner (freya-testing) these events have nowhere to go.
+    pub(crate) fn get() -> Self {
+        freya_core::prelude::try_consume_root_context()
+            .unwrap_or_else(|| Self(std::rc::Rc::new(|_| {})))
+    }
+
+    pub(crate) fn send(&self, event: impl std::any::Any) {
+        (self.0)(Sent::Kit(Box::new(event)));
+    }
+}
+
 pub(crate) struct EditShortcut {
     pub(crate) field: freya_core::prelude::AccessibilityId,
     pub(crate) key: String,

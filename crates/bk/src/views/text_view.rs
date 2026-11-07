@@ -112,7 +112,7 @@ fn rgba(color: Color) -> ctdesign::Rgba {
 }
 
 impl KeyExt for TextView {
-    fn write_key(&mut self) -> &mut DiffKey {
+    fn key_mut(&mut self) -> &mut DiffKey {
         &mut self.key
     }
 }
@@ -159,7 +159,7 @@ impl Component for TextView {
             let mut editor = editable.editor_mut().write();
             editor.clear_preedit();
             editor.set(&value.read());
-            editor.editor_history().clear();
+            editor.editor_history_mut().clear();
             editor.clear_selection();
         }
 
@@ -193,6 +193,8 @@ impl Component for TextView {
             editable.process_event(EditableEvent::KeyDown {
                 key: &event.key,
                 modifiers: event.modifiers,
+                editor_line: Some(EditorLine::SingleParagraph),
+                holder: Some(&holder.peek()),
             });
             let text = editable.editor().read().committed_text();
             if *value.peek() != text {
@@ -237,7 +239,7 @@ impl Component for TextView {
                 });
             }
         };
-        let on_global_pointer_press = move |_: Event<PointerEventData>| {
+        let on_global_pointer_up = move |_: Event<PointerEventData>| {
             editable.process_event(EditableEvent::Release);
             if *dragging.peek() {
                 dragging.set(false);
@@ -285,9 +287,8 @@ impl Component for TextView {
             .on_key_up(on_key_up)
             .on_ime_preedit(on_ime_preedit)
             .on_global_pointer_move(on_global_pointer_move)
-            .on_global_pointer_press(on_global_pointer_press)
-            .on_pointer_enter(|_| Cursor::set(CursorIcon::Text))
-            .on_pointer_leave(|_| Cursor::set(CursorIcon::default()))
+            .on_global_pointer_up(on_global_pointer_up)
+            .cursor(CursorIcon::Text)
             .width(self.width.clone())
             .height(self.height.clone())
             .child(paragraph)

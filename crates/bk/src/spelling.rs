@@ -1,6 +1,6 @@
 use std::any::Any;
 use std::borrow::Cow;
-use std::cell::Cell;
+use std::cell::{Cell, RefCell};
 use std::collections::HashSet;
 use std::io::Write;
 use std::ops::Range;
@@ -12,11 +12,13 @@ use ctdesign::{Rgba, SPELLING};
 use freya_core::data::LayoutData;
 use freya_core::element::{ElementExt, RenderContext};
 use freya_core::elements::paragraph::{ParagraphElement, ParagraphHolderInner};
+use freya_core::integration::FxHashMap;
 use freya_core::node_id::NodeId;
 use freya_core::prelude::*;
 use freya_core::tree::{DiffModifies, Tree};
 use freya_engine::prelude::{Paint, PaintStyle, Paragraph as SkParagraph};
 use spellbook::Dictionary;
+use torin::prelude::Gaps;
 
 static DICTIONARY: OnceLock<Option<Dictionary>> = OnceLock::new();
 static PERSONAL: OnceLock<(PathBuf, HashSet<String>)> = OnceLock::new();
@@ -251,10 +253,46 @@ pub(crate) fn suggestion(text: &str, index: usize) -> Option<Suggestion> {
     })
 }
 
+type InputParagraph = (Rc<SkParagraph>, f64, Gaps, (f32, f32));
+
+#[derive(Clone, Default)]
+pub(crate) struct InputParagraphs(Rc<RefCell<FxHashMap<AccessibilityId, Option<InputParagraph>>>>);
+
+impl PartialEq for InputParagraphs {
+    fn eq(&self, other: &Self) -> bool {
+        Rc::ptr_eq(&self.0, &other.0)
+    }
+}
+
+impl InputParagraphs {
+    pub(crate) fn watch(&self, field: AccessibilityId) {
+        self.0.borrow_mut().entry(field).or_insert(None);
+    }
+
+    // Freya 0.5 renders an element without the tree, so the runner finds Input's paragraph after layout.
+    pub(crate) fn refresh(&self, tree: &Tree) {
+        self.0.borrow_mut().retain(|field, slot| {
+            let Some((node, element)) = input_paragraph(tree, *field) else {
+                return false;
+            };
+            *slot = element.sk_paragraph.0.borrow().as_ref().and_then(|inner| {
+                let origin = tree.layout.get(&node)?.visible_area().origin;
+                Some((
+                    inner.paragraph.clone(),
+                    inner.scale_factor,
+                    inner.padding,
+                    (origin.x, origin.y),
+                ))
+            });
+            true
+        });
+    }
+}
+
 #[derive(PartialEq)]
 pub(crate) struct Squiggles {
     pub holder: ParagraphHolder,
-    pub input: Option<AccessibilityId>,
+    pub input: Option<(AccessibilityId, InputParagraphs)>,
     pub text_left: Rc<Cell<f32>>,
     pub ranges: Vec<Range<usize>>,
     pub color: Rgba,
@@ -303,26 +341,25 @@ impl Squiggles {
         }
     }
 
-    fn draw_in_input(&self, context: &RenderContext, field: AccessibilityId) {
-        let Some((node, element)) = input_paragraph(context.tree, field) else {
+    fn draw_in_input(
+        &self,
+        context: &RenderContext,
+        field: AccessibilityId,
+        inputs: &InputParagraphs,
+    ) {
+        let Some((paragraph, scale_factor, padding, origin)) =
+            inputs.0.borrow().get(&field).cloned().flatten()
+        else {
             return;
         };
-        let inner = element
-            .sk_paragraph
-            .0
-            .borrow()
-            .as_ref()
-            .map(|inner| ParagraphHolderInner {
-                paragraph: inner.paragraph.clone(),
-                scale_factor: inner.scale_factor,
-            });
-        let (Some(layout), Some(inner)) = (context.tree.layout.get(&node), inner) else {
-            return;
+        let inner = ParagraphHolderInner {
+            paragraph,
+            scale_factor,
+            padding,
         };
         let area = context.layout_node.visible_area();
         let scale = context.scale_factor as f32;
-        let origin = layout.visible_area().origin;
-        self.text_left.set((origin.x - area.min_x()) / scale);
+        self.text_left.set((origin.0 - area.min_x()) / scale);
         let paragraph = inner.paragraph.clone();
         *self.holder.0.borrow_mut() = Some(inner);
         context.canvas.save();
@@ -336,7 +373,7 @@ impl Squiggles {
             None,
             None,
         );
-        self.draw(context, &paragraph, (origin.x, origin.y));
+        self.draw(context, &paragraph, origin);
         context.canvas.restore();
     }
 }
@@ -355,8 +392,8 @@ impl ElementExt for Squiggles {
     }
 
     fn render(&self, context: RenderContext) {
-        if let Some(field) = self.input {
-            self.draw_in_input(&context, field);
+        if let Some((field, inputs)) = &self.input {
+            self.draw_in_input(&context, *field, inputs);
             return;
         }
         let Some(inner) = self

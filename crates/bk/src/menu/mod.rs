@@ -294,13 +294,8 @@ impl App for MenuView {
         let on_navigation = self.on_navigation.clone();
         let palette_source = self.palette_source.clone();
         let m = palette_source.current();
-        let platform = Platform::get();
-        let scale = (*platform.scale_factor.peek()).max(f64::EPSILON);
-        let root_size = *platform.root_size.peek();
-        let size = (
-            (root_size.width / scale as f32).max(1.0),
-            (root_size.height / scale as f32).max(1.0),
-        );
+        let root_size = *Platform::get().current_window().root_size.peek();
+        let size = (root_size.width.max(1.0), root_size.height.max(1.0));
         let popup: Option<PopupHandle> = try_consume_root_context();
         let opens_left = popup.as_ref().is_some_and(PopupHandle::opens_left);
         let popup_spec = self.popup_spec.clone();

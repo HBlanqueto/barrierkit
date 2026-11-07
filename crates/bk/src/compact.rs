@@ -111,7 +111,7 @@ impl Component for IconButton {
             ));
         interaction.focus_ring(
             dimmed(shadowed(button, &style.shadows), opacity),
-            radius.top_left,
+            radius.top_left(),
         )
     }
 }
@@ -180,7 +180,7 @@ impl Component for Stepper {
             .shape
             .corner_radius(width, height, LayoutDirection::LeftToRight);
         let arrows =
-            interaction.focus_ring(stepper_arrows(&style, state, up, down), radius.top_left);
+            interaction.focus_ring(stepper_arrows(&style, state, up, down), radius.top_left());
 
         let row = interaction
             .attach(rect(), true)
@@ -431,7 +431,7 @@ impl Component for Toggle {
         } else {
             toggle
         };
-        interaction.focus_ring(dimmed(toggle, style.opacity), radius.top_left)
+        interaction.focus_ring(dimmed(toggle, style.opacity), radius.top_left())
     }
 }
 

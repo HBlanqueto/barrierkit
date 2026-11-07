@@ -58,7 +58,7 @@ impl Switch {
 }
 
 impl KeyExt for Switch {
-    fn write_key(&mut self) -> &mut DiffKey {
+    fn key_mut(&mut self) -> &mut DiffKey {
         &mut self.key
     }
 }
@@ -129,7 +129,7 @@ impl Component for Switch {
                 |el, border| el.border(inner_border(&paints, border)),
             )
             .child(shadowed(knob, &style.knob_shadows));
-        let track = interaction.focus_ring(dimmed(track, opacity), radius.top_left);
+        let track = interaction.focus_ring(dimmed(track, opacity), radius.top_left());
         let control = match style.label_position {
             None => track,
             Some(edge) => {
@@ -226,7 +226,7 @@ impl Checkbox {
 }
 
 impl KeyExt for Checkbox {
-    fn write_key(&mut self) -> &mut DiffKey {
+    fn key_mut(&mut self) -> &mut DiffKey {
         &mut self.key
     }
 }
@@ -288,7 +288,7 @@ impl Component for Checkbox {
             });
         let checkbox = interaction.focus_ring(
             dimmed(shadowed(checkbox, &style.box_shadows), opacity),
-            radius.top_left,
+            radius.top_left(),
         );
 
         let row = interaction

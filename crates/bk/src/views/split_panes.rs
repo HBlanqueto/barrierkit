@@ -146,7 +146,7 @@ impl Component for Divider {
         };
         let line = rect()
             .background(self.fill.clone())
-            .map(self.blur, Rect::blur);
+            .map(self.blur, Rect::backdrop_blur);
         let thickness = Size::px(self.thickness);
         let line = if horizontal {
             line.width(thickness).height(Size::fill())
@@ -154,12 +154,7 @@ impl Component for Divider {
             line.height(thickness).width(Size::fill())
         };
         line.a11y_role(AccessibilityRole::Splitter)
-            .on_pointer_enter(move |_| Cursor::set(icon))
-            .on_pointer_leave(move |_| {
-                if last.peek().is_none() {
-                    Cursor::set(CursorIcon::default());
-                }
-            })
+            .cursor(icon)
             .on_mouse_down(move |event: Event<MouseEventData>| {
                 last.set(Some(along(event.data().global_location.to_tuple())));
             })
@@ -171,10 +166,9 @@ impl Component for Divider {
                 last.set(Some(to));
                 on_drag.call(to - from);
             })
-            .on_global_pointer_press(move |_| {
+            .on_global_pointer_up(move |_| {
                 if last.peek().is_some() {
                     last.set(None);
-                    Cursor::set(CursorIcon::default());
                 }
             })
     }

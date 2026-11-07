@@ -93,7 +93,7 @@ fn render(app: AppComponent, scheme: ColorScheme) -> Vec<u8> {
     );
     test.sync_and_update();
     test.sync_and_update();
-    test.render().as_ref().to_vec()
+    test.render().as_bytes().to_vec()
 }
 
 #[test]

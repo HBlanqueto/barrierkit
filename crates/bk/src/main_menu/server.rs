@@ -249,7 +249,7 @@ impl DbusMenuObject {
         "normal"
     }
 
-    fn get_layout(
+    fn layout_mut(
         &self,
         parent_id: i32,
         recursion_depth: i32,

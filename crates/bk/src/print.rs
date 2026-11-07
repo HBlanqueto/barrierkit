@@ -341,9 +341,9 @@ fn write_font(
     index: usize,
     font: &EmbeddedFont,
 ) -> Option<Ref> {
-    let (data, face_index) = font.typeface.to_font_data()?;
-    let face = ttf_parser::Face::parse(&data, face_index as u32).ok()?;
-    let subset = subsetter::subset(&data, face_index as u32, &font.remapper).ok()?;
+    let (data, face_index) = font.typeface.to_font_bytes()?;
+    let face = ttf_parser::Face::parse(&data, face_index).ok()?;
+    let subset = subsetter::subset(&data, face_index, &font.remapper).ok()?;
     let scale = 1000.0 / f32::from(face.units_per_em());
     let postscript = face
         .names()
@@ -582,7 +582,7 @@ impl Component for PrintPreview {
                                 LayoutDirection::LeftToRight,
                             ))
                             .background(paints.fill(&style.page))
-                            .map(paints.blur(&style.page), |el, blur| el.blur(blur)),
+                            .map(paints.blur(&style.page), |el, blur| el.backdrop_blur(blur)),
                         &style.page_shadows,
                     )
                     .child(image(page.clone()).expanded()),

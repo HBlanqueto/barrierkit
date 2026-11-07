@@ -189,6 +189,6 @@ impl Component for WindowTab {
                     ),
             )
             .child(rect().width(Size::px(style.symbol_size)));
-        interaction.focus_ring(tab, radius.top_left)
+        interaction.focus_ring(tab, radius.top_left())
     }
 }

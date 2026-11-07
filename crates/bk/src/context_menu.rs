@@ -1,4 +1,3 @@
-use freya_core::integration::{SingleThreadErasedEvent, UserEvent};
 use freya_core::prelude::*;
 
 use crate::i18n::text;
@@ -61,7 +60,7 @@ pub(crate) fn edit_menu(
     (can_undo, can_redo): (bool, bool),
     spelling: Option<Spelling>,
 ) -> Rect {
-    let platform = Platform::get();
+    let runtime = crate::platform::KitSender::get();
     let suggest = move || {
         let spelling = spelling?;
         let index = (*spelling.index.peek())?;
@@ -118,9 +117,7 @@ pub(crate) fn edit_menu(
             }
             return;
         }
-        platform.send(UserEvent::Erased(SingleThreadErasedEvent(Box::new(
-            EditShortcut { field, key },
-        ))));
+        runtime.send(EditShortcut { field, key });
     })
 }
 

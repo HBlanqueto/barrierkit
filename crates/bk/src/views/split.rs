@@ -139,7 +139,7 @@ impl SplitView {
 }
 
 impl KeyExt for SplitView {
-    fn write_key(&mut self) -> &mut DiffKey {
+    fn key_mut(&mut self) -> &mut DiffKey {
         &mut self.key
     }
 }
@@ -167,11 +167,6 @@ impl Component for SplitView {
         let mut grip_hovered = use_state(|| false);
         let grip_id = use_a11y();
         let grip_focus = use_focus(grip_id);
-        use_drop(move || {
-            if *grip_hovered.peek() || *dragging.peek() {
-                Cursor::set(CursorIcon::default());
-            }
-        });
         let mut visible = use_state(|| self.sidebar_visible);
         let mut auto_hidden = use_state(|| false);
         let mut occupied = use_state(|| 0.0f32);
@@ -256,6 +251,7 @@ impl Component for SplitView {
         let mut root = rect()
             .expanded()
             .direction(Direction::Horizontal)
+            .cursor(dragging.read().then_some(CursorIcon::ColResize))
             .painted(&paints, &style.background)
             .on_sized(move |event: Event<SizedEventData>| {
                 window_width.set_if_modified(event.area.size.width);
@@ -267,12 +263,7 @@ impl Component for SplitView {
                     );
                 }
             })
-            .on_global_pointer_press(move |_| {
-                if *dragging.peek() && !*grip_hovered.peek() {
-                    Cursor::set(CursorIcon::default());
-                }
-                dragging.set_if_modified(false);
-            })
+            .on_global_pointer_up(move |_| dragging.set_if_modified(false))
             .on_global_key_down(move |event: Event<KeyboardEventData>| {
                 if TOGGLE_SIDEBAR
                     .shortcut
@@ -345,16 +336,9 @@ impl Component for SplitView {
                                     style.grip_line_inset,
                                     (style.grip_width - style.grip_line_width) / 2.0,
                                 ))
-                                .on_pointer_enter(move |_| {
-                                    grip_hovered.set(true);
-                                    Cursor::set(CursorIcon::ColResize);
-                                })
-                                .on_pointer_leave(move |_| {
-                                    grip_hovered.set(false);
-                                    if !*dragging.peek() {
-                                        Cursor::set(CursorIcon::default());
-                                    }
-                                })
+                                .cursor(CursorIcon::ColResize)
+                                .on_pointer_enter(move |_| grip_hovered.set(true))
+                                .on_pointer_leave(move |_| grip_hovered.set(false))
                                 .on_mouse_down(move |_| dragging.set(true))
                                 .on_key_down(move |event: Event<KeyboardEventData>| {
                                     match event.key {

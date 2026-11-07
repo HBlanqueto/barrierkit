@@ -98,7 +98,7 @@ impl Component for MenuButton {
             ));
         interaction.focus_ring(
             dimmed(shadowed(button, &style.shadows), style.opacity),
-            radius.top_left,
+            radius.top_left(),
         )
     }
 }
@@ -221,14 +221,14 @@ impl Component for ComboButton {
             .direction(Direction::Horizontal)
             .cross_align(Alignment::Center)
             .on_sized(move |event: Event<SizedEventData>| area.set_if_modified(event.area))
-            .child(action.focus_ring(primary, radius.top_left))
+            .child(action.focus_ring(primary, radius.top_left()))
             .child(
                 rect()
                     .width(Size::px(separator_width))
                     .height(Size::px(separator_height))
                     .background(group.fill(&style.separator)),
             )
-            .child(arrow.focus_ring(menu, radius.top_left));
+            .child(arrow.focus_ring(menu, radius.top_left()));
         dimmed(shadowed(combo, &style.shadows), style.opacity)
     }
 }
@@ -303,7 +303,7 @@ impl Component for HelpLink {
             );
         interaction.focus_ring(
             dimmed(shadowed(button, &style.shadows), style.opacity),
-            radius.top_left,
+            radius.top_left(),
         )
     }
 }

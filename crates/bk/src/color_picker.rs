@@ -132,7 +132,7 @@ impl Component for ColorPicker {
             });
         interaction.focus_ring(
             dimmed(shadowed(well, &style.shadows), style.opacity),
-            radius.top_left,
+            radius.top_left(),
         )
     }
 }

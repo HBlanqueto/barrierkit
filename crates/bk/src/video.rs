@@ -60,8 +60,8 @@ fn redraw_handle() -> Option<WakeHandle> {
         if slot.is_none() {
             freya_core::current_context::CurrentContext::try_with(|_| ())?;
             let timers = try_consume_root_context::<Timers>()?;
-            let platform = Platform::get();
-            *slot = Some(timers.wakeup(move || platform.send(UserEvent::RequestRedraw)));
+            let window = Platform::get().current_window();
+            *slot = Some(timers.wakeup(move || window.request_redraw()));
         }
         slot.clone()
     })
@@ -580,10 +580,10 @@ impl ElementExt for VideoElement {
             LayoutDirection::LeftToRight,
         );
         if [
-            radius.top_left,
-            radius.top_right,
-            radius.bottom_right,
-            radius.bottom_left,
+            radius.top_left(),
+            radius.top_right(),
+            radius.bottom_right(),
+            radius.bottom_left(),
         ]
         .iter()
         .any(|corner| *corner > 0.0)
@@ -591,13 +591,13 @@ impl ElementExt for VideoElement {
             let rounded = RRect::new_rect_radii(
                 bounds,
                 &[
-                    (radius.top_left, radius.top_left).into(),
-                    (radius.top_right, radius.top_right).into(),
-                    (radius.bottom_right, radius.bottom_right).into(),
-                    (radius.bottom_left, radius.bottom_left).into(),
+                    (radius.top_left(), radius.top_left()).into(),
+                    (radius.top_right(), radius.top_right()).into(),
+                    (radius.bottom_right(), radius.bottom_right()).into(),
+                    (radius.bottom_left(), radius.bottom_left()).into(),
                 ],
             );
-            if radius.smoothing > 0.0 {
+            if radius.smoothing() > 0.0 {
                 canvas.clip_path(&radius.smoothed_path(rounded), None, Some(true));
             } else {
                 canvas.clip_rrect(rounded, None, Some(true));

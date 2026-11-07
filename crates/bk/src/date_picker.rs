@@ -280,7 +280,7 @@ impl Component for DatePicker {
             .spacing(style.stepper_gap)
             .child(interaction.focus_ring(
                 dimmed(shadowed(field, &style.shadows), style.opacity),
-                field_radius.top_left,
+                field_radius.top_left(),
             ))
             .child(stepper_arrows(
                 &resolve::<StepperStyle>(&Theme::tengen()),

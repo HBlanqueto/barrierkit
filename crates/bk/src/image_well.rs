@@ -59,13 +59,13 @@ impl Component for ImageWell {
             .shape
             .corner_radius(size, size, LayoutDirection::LeftToRight);
         let inset = style.inset;
-        let inner = CornerRadius {
-            top_left: (radius.top_left - inset).max(0.0),
-            top_right: (radius.top_right - inset).max(0.0),
-            bottom_right: (radius.bottom_right - inset).max(0.0),
-            bottom_left: (radius.bottom_left - inset).max(0.0),
-            ..radius
-        };
+        let inner = CornerRadius::new(
+            (radius.top_left() - inset).max(0.0),
+            (radius.top_right() - inset).max(0.0),
+            (radius.bottom_right() - inset).max(0.0),
+            (radius.bottom_left() - inset).max(0.0),
+        )
+        .with_smoothing(radius.smoothing());
         let element = interaction
             .attach(rect(), true)
             .a11y_role(AccessibilityRole::Image)
@@ -81,14 +81,19 @@ impl Component for ImageWell {
             })
             .on_sized(move |event: Event<SizedEventData>| area.set_if_modified(event.area))
             .on_global_file_hover(move |event: Event<FileEventData>| {
-                let over = event.file_path.as_deref().is_none_or(is_image)
+                let over = event.file_paths.first().is_none_or(|path| is_image(path))
                     && area.peek().contains(event.cursor.to_f32());
                 targeted.set_if_modified(over);
             })
             .on_global_file_hover_cancelled(move |_| targeted.set_if_modified(false))
             .on_file_drop(move |event: Event<FileEventData>| {
                 targeted.set_if_modified(false);
-                if let Some(path) = event.file_path.clone().filter(|path| is_image(path)) {
+                if let Some(path) = event
+                    .file_paths
+                    .first()
+                    .filter(|path| is_image(path))
+                    .cloned()
+                {
                     image.set(Some(path));
                 }
             })
@@ -119,7 +124,7 @@ impl Component for ImageWell {
             }));
         interaction.focus_ring(
             dimmed(shadowed(element, &style.shadows), style.opacity),
-            radius.top_left,
+            radius.top_left(),
         )
     }
 }

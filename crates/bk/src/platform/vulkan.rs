@@ -192,23 +192,21 @@ impl GraphicsShared {
             .iter()
             .map(|name| name.to_str().unwrap_or_default())
             .collect();
+        let builder = vk::BackendContext::new_builder(
+            instance.handle().as_raw() as _,
+            physical_device.as_raw() as _,
+            device.handle().as_raw() as _,
+            (queue.as_raw() as _, queue_family_index as usize),
+            &get_proc,
+            Some(vk::Version::new(
+                ash_vk::api_version_major(api_version) as usize,
+                ash_vk::api_version_minor(api_version) as usize,
+                ash_vk::api_version_patch(api_version) as usize,
+            )),
+        )
+        .with_extensions(&instance_extensions, &device_extensions);
         // SAFETY: instance, device and queue live in `Self` and outlive the Skia context.
-        let mut backend = unsafe {
-            vk::BackendContext::new_with_extensions(
-                instance.handle().as_raw() as _,
-                physical_device.as_raw() as _,
-                device.handle().as_raw() as _,
-                (queue.as_raw() as _, queue_family_index as usize),
-                &get_proc,
-                &instance_extensions,
-                &device_extensions,
-            )
-        };
-        backend.set_max_api_version(vk::Version::new(
-            ash_vk::api_version_major(api_version) as usize,
-            ash_vk::api_version_minor(api_version) as usize,
-            ash_vk::api_version_patch(api_version) as usize,
-        ));
+        let backend = unsafe { builder.build() };
         let mut gr = direct_contexts::make_vulkan(&backend, None).ok_or(RunError::Skia)?;
         drop(backend);
         gr.set_resource_cache_limit(128 * 1024 * 1024);

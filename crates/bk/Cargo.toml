@@ -21,7 +21,7 @@ freya-core.workspace = true
 freya-components.workspace = true
 freya-edit.workspace = true
 freya-animation.workspace = true
-freya-engine.workspace = true
+freya-engine = { workspace = true, features = ["vulkan"] }
 freya-skia-safe.workspace = true
 freya-clipboard.workspace = true
 torin.workspace = true

@@ -54,7 +54,7 @@ fn render(dark: bool) -> Vec<u8> {
     let app = AppComponent::new(MenuView::new(items, |_| {}, || {}).with_fixed_palette(palette));
     let (mut test, _) = TestingRunner::new(app, Size2D::new(size.0, size.1), |_| {}, 1.0);
     test.sync_and_update();
-    test.render().as_ref().to_vec()
+    test.render().as_bytes().to_vec()
 }
 
 fn render_accents(dark: bool) -> Vec<u8> {
@@ -64,7 +64,7 @@ fn render_accents(dark: bool) -> Vec<u8> {
     let app = AppComponent::new(MenuView::new(items, |_| {}, || {}).with_fixed_palette(palette));
     let (mut test, _) = TestingRunner::new(app, Size2D::new(size.0, size.1), |_| {}, 1.0);
     test.sync_and_update();
-    test.render().as_ref().to_vec()
+    test.render().as_bytes().to_vec()
 }
 
 fn golden_path(dark: bool) -> PathBuf {
@@ -208,7 +208,7 @@ fn render_long(dark: bool) -> Vec<u8> {
     let app = AppComponent::new(MenuView::new(items, |_| {}, || {}).with_fixed_palette(palette));
     let (mut test, _) = TestingRunner::new(app, Size2D::new(size.0, size.1), |_| {}, 1.0);
     test.sync_and_update();
-    test.render().as_ref().to_vec()
+    test.render().as_bytes().to_vec()
 }
 
 #[test]

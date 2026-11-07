@@ -68,7 +68,7 @@ impl Button {
 }
 
 impl KeyExt for Button {
-    fn write_key(&mut self) -> &mut DiffKey {
+    fn key_mut(&mut self) -> &mut DiffKey {
         &mut self.key
     }
 }
@@ -151,6 +151,6 @@ impl Component for Button {
                     .color(paints.fill(&style.label)),
             );
         let button = dimmed(shadowed(button, &style.shadows), opacity);
-        interaction.focus_ring(button, radius.top_left)
+        interaction.focus_ring(button, radius.top_left())
     }
 }

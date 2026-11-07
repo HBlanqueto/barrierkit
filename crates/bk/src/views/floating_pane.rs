@@ -131,12 +131,7 @@ impl Component for FloatingPane {
                 .width(width)
                 .height(height)
                 .layer(1)
-                .on_pointer_enter(move |_| Cursor::set(sides.cursor()))
-                .on_pointer_leave(move |_| {
-                    if drag.peek().is_none() {
-                        Cursor::set(CursorIcon::default());
-                    }
-                })
+                .cursor(sides.cursor())
                 .on_mouse_down(grab(sides))
                 .into_element()
         };
@@ -202,20 +197,19 @@ impl Component for FloatingPane {
         let title_bar = rect()
             .width(Size::fill())
             .height(Size::px(style.title_height))
-            .corner_radius(CornerRadius {
-                bottom_left: 0.0,
-                bottom_right: 0.0,
-                ..corner_radius
-            })
+            .corner_radius(
+                CornerRadius::new(
+                    corner_radius.top_left(),
+                    corner_radius.top_right(),
+                    0.0,
+                    0.0,
+                )
+                .with_smoothing(corner_radius.smoothing()),
+            )
             .painted(&paints, &style.title_bar)
             .main_align(Alignment::Center)
             .cross_align(Alignment::Center)
-            .on_pointer_enter(move |_| Cursor::set(CursorIcon::Grab))
-            .on_pointer_leave(move |_| {
-                if drag.peek().is_none() {
-                    Cursor::set(CursorIcon::default());
-                }
-            })
+            .cursor(CursorIcon::Grab)
             .on_mouse_down(grab(MOVE))
             .child(text(
                 self.title.clone(),
@@ -247,6 +241,13 @@ impl Component for FloatingPane {
             .width(Size::px(frame.width + 2.0 * band))
             .height(Size::px(frame.height + 2.0 * band))
             .layer(Layer::Overlay)
+            .cursor((*drag.read()).map(|(sides, _)| {
+                if sides == MOVE {
+                    CursorIcon::Grab
+                } else {
+                    sides.cursor()
+                }
+            }))
             .on_mouse_down(move |_| on_raise.call(()))
             .on_global_pointer_move(move |event: Event<PointerEventData>| {
                 let mut drag = drag;
@@ -257,11 +258,10 @@ impl Component for FloatingPane {
                 drag.set(Some((sides, (to_x, to_y))));
                 on_frame.call(sides.apply(frame, (to_x - x) as f32, (to_y - y) as f32));
             })
-            .on_global_pointer_press(move |_| {
+            .on_global_pointer_up(move |_| {
                 let mut drag = drag;
                 if drag.peek().is_some() {
                     drag.set(None);
-                    Cursor::set(CursorIcon::default());
                 }
             })
             .child(

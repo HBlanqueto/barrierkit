@@ -54,7 +54,7 @@ impl SecureField {
 }
 
 impl KeyExt for SecureField {
-    fn write_key(&mut self) -> &mut DiffKey {
+    fn key_mut(&mut self) -> &mut DiffKey {
         &mut self.key
     }
 }
@@ -108,7 +108,7 @@ impl Component for SecureField {
                 style.font,
                 paints.color(style.text.resolve(state)),
             ));
-        interaction.focus_ring(dimmed(element, style.opacity), radius.top_left)
+        interaction.focus_ring(dimmed(element, style.opacity), radius.top_left())
     }
 }
 
@@ -151,7 +151,7 @@ impl TextField {
 }
 
 impl KeyExt for TextField {
-    fn write_key(&mut self) -> &mut DiffKey {
+    fn key_mut(&mut self) -> &mut DiffKey {
         &mut self.key
     }
 }
@@ -221,7 +221,7 @@ impl Component for TextField {
             rect()
                 .width(Size::fill())
                 .map(paints.blur(&style.background), |el, blur| {
-                    el.corner_radius(radius).blur(blur)
+                    el.corner_radius(radius).backdrop_blur(blur)
                 })
                 .on_pointer_enter(move |_| hovered.set(true))
                 .on_pointer_leave(move |_| hovered.set(false))
@@ -242,7 +242,10 @@ impl Component for TextField {
                 .maybe_child((!ranges.is_empty()).then(|| {
                     crate::glass::leaf(Squiggles {
                         holder: holder.read().clone(),
-                        input: Some(field),
+                        input: try_consume_root_context::<InputParagraphs>().map(|inputs| {
+                            inputs.watch(field);
+                            (field, inputs)
+                        }),
                         text_left,
                         ranges,
                         color: ink(&style.misspelling),
@@ -328,7 +331,7 @@ impl SearchField {
 }
 
 impl KeyExt for SearchField {
-    fn write_key(&mut self) -> &mut DiffKey {
+    fn key_mut(&mut self) -> &mut DiffKey {
         &mut self.key
     }
 }
@@ -438,7 +441,7 @@ impl Component for SearchField {
                 style.opacity,
             )
             .map(paints.blur(&style.background), |el, blur| {
-                el.corner_radius(radius).blur(blur)
+                el.corner_radius(radius).backdrop_blur(blur)
             })
             .on_pointer_enter(move |_| hovered.set(true))
             .on_pointer_leave(move |_| hovered.set(false)),
@@ -478,7 +481,7 @@ impl Component for SearchField {
     }
 }
 
-// Mirrors Input's default pre-handler (freya-components 0.4.3, input.rs).
+// Mirrors Input's default pre-handler for one line (freya-components 0.5.0, input.rs).
 pub(crate) fn default_pre_key(event: &Event<KeyboardEventData>) -> bool {
     match &event.key {
         Key::Named(NamedKey::Enter | NamedKey::Escape | NamedKey::Shift) => true,
@@ -522,7 +525,7 @@ pub(crate) fn input(
         })
         .theme_layout(InputLayoutThemePartial {
             corner_radius: Some(Preference::Specific(corner_radius)),
-            inner_margin: Some(Preference::Specific(inner_margin)),
+            padding: Some(Preference::Specific(inner_margin)),
         })
 }
 

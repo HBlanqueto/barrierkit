@@ -143,7 +143,7 @@ impl Component for ComboBox {
             field_style.opacity,
         )
         .map(field_paints.blur(&field_style.background), |el, blur| {
-            el.corner_radius(radius).blur(blur)
+            el.corner_radius(radius).backdrop_blur(blur)
         })
         .on_pointer_enter(move |_| hovered.set(true))
         .on_pointer_leave(move |_| hovered.set(false));

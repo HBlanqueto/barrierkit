@@ -423,6 +423,7 @@ impl Component for Chart3D {
                 rect()
                     .width(Size::fill())
                     .height(Size::px(self.height))
+                    .cursor(drag.read().is_some().then_some(CursorIcon::Grabbing))
                     .on_mouse_down(move |event: Event<MouseEventData>| {
                         let pan = *shift.peek() || event.button == Some(MouseButton::Right);
                         let at = event.global_location;
@@ -431,7 +432,6 @@ impl Component for Chart3D {
                             view.set_if_modified(View::Free);
                         }
                         drag.set(Some((at.x, at.y, camera, pan)));
-                        Cursor::set(CursorIcon::Grabbing);
                     })
                     .on_global_pointer_move(move |event: Event<PointerEventData>| {
                         let Some((x, y, from, pan)) = *drag.peek() else {
@@ -450,10 +450,9 @@ impl Component for Chart3D {
                             free.set(next);
                         }
                     })
-                    .on_global_pointer_press(move |_| {
+                    .on_global_pointer_up(move |_| {
                         if drag.peek().is_some() {
                             drag.set(None);
-                            Cursor::set(CursorIcon::default());
                         }
                     })
                     .on_wheel(move |event: Event<WheelEventData>| {

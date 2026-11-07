@@ -1,6 +1,6 @@
 use std::cell::RefCell;
 
-use freya_engine::prelude::{FontCollection, FontMgr, FontStyle, TypefaceFontProvider};
+use freya_engine::prelude::{FontCollection, FontMgr, FontStyle, SkData, TypefaceFontProvider};
 
 thread_local! {
     static FONTS: RefCell<Option<(FontCollection, FontMgr)>> = const { RefCell::new(None) };
@@ -31,7 +31,7 @@ pub(crate) fn manager() -> FontMgr {
 }
 
 pub fn register_font(bytes: &[u8]) -> bool {
-    let Some(typeface) = FontMgr::default().new_from_data(bytes, None) else {
+    let Some(typeface) = FontMgr::default().new_from_data(SkData::new_copy(bytes), None) else {
         return false;
     };
     OWN.with(|own| {

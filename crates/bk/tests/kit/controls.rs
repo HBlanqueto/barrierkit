@@ -477,7 +477,7 @@ fn render(size: (f32, f32), dark: bool, build: fn() -> Element) -> Vec<u8> {
     test.sync_and_update();
     test.sync_and_update();
     let data = test.render();
-    data.as_ref().to_vec()
+    data.as_bytes().to_vec()
 }
 
 fn decode(path: &Path) -> (usize, usize, Vec<u8>) {
@@ -676,6 +676,7 @@ impl App for FocusCase {
         let (mut switch, mut checkbox, mut segment) = (self.switch, self.checkbox, self.segment);
         if self.keyboard {
             Platform::get()
+                .current_window()
                 .navigation_mode
                 .set_if_modified(NavigationMode::Keyboard);
         }
@@ -754,7 +755,7 @@ fn keyboard_focus_ring_matches_its_golden_image() {
     let (mut test, ..) = focus_case(true);
     press(&mut test, Key::Named(NamedKey::Tab));
     test.poll_n(std::time::Duration::from_millis(16), 3);
-    let actual = test.render().as_ref().to_vec();
+    let actual = test.render().as_bytes().to_vec();
     let path = golden_path("focus-ring", false);
     if std::env::var_os("UPDATE_GOLDEN").is_some() || !path.exists() {
         fs::write(&path, &actual).unwrap();

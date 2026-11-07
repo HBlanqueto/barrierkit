@@ -609,7 +609,7 @@ impl Component for Chart {
                     let moved = event.global_location().x - x;
                     window.set(Some(from.pan(-moved / width * from.span, total)));
                 })
-                .on_global_pointer_press(move |_| drag.set_if_modified(None));
+                .on_global_pointer_up(move |_| drag.set_if_modified(None));
         }
 
         let side = if horizontal {

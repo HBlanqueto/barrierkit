@@ -72,7 +72,7 @@ impl LevelSlider {
 }
 
 impl KeyExt for LevelSlider {
-    fn write_key(&mut self) -> &mut DiffKey {
+    fn key_mut(&mut self) -> &mut DiffKey {
         &mut self.key
     }
 }
@@ -218,7 +218,7 @@ impl Component for LevelSlider {
             root = root.child(dimmed(shadowed(knob, &style.knob_shadows), style.opacity));
         }
         let radius = style.track_shape.corner_radius(height, height, direction);
-        interaction.focus_ring(root, radius.top_left)
+        interaction.focus_ring(root, radius.top_left())
     }
 }
 

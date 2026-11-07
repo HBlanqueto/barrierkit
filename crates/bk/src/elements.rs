@@ -16,43 +16,44 @@ macro_rules! forward_element {
         }
 
         impl ::freya_core::prelude::KeyExt for $outer {
-            fn write_key(&mut self) -> &mut ::freya_core::prelude::DiffKey {
-                self.0.write_key()
+            fn key_mut(&mut self) -> &mut ::freya_core::prelude::DiffKey {
+                self.0.key_mut()
             }
         }
 
         impl ::freya_core::prelude::EventHandlersExt for $outer {
-            fn get_event_handlers(
-                &mut self,
-            ) -> &mut ::freya_core::integration::FxHashMap<
-                ::freya_core::events::name::EventName,
-                ::freya_core::integration::EventHandlerType,
-            > {
-                self.0.get_event_handlers()
+            fn event_handlers_mut(&mut self) -> &mut ::freya_core::integration::EventHandlers {
+                self.0.event_handlers_mut()
             }
         }
 
         impl ::freya_core::prelude::AccessibilityExt for $outer {
-            fn get_accessibility_data(&mut self) -> &mut ::freya_core::prelude::AccessibilityData {
-                self.0.get_accessibility_data()
+            fn accessibility_data_mut(&mut self) -> &mut ::freya_core::prelude::AccessibilityData {
+                self.0.accessibility_data_mut()
             }
         }
 
         impl ::freya_core::prelude::TextStyleExt for $outer {
-            fn get_text_style_data(&mut self) -> &mut ::freya_core::prelude::TextStyleData {
-                self.0.get_text_style_data()
+            fn text_style_data_mut(&mut self) -> &mut ::freya_core::prelude::TextStyleData {
+                self.0.text_style_data_mut()
             }
         }
 
         impl ::freya_core::prelude::LayerExt for $outer {
-            fn get_layer(&mut self) -> &mut ::freya_core::prelude::Layer {
-                self.0.get_layer()
+            fn layer_mut(&mut self) -> &mut ::freya_core::prelude::Layer {
+                self.0.layer_mut()
             }
         }
 
         impl ::freya_core::prelude::LayoutExt for $outer {
-            fn get_layout(&mut self) -> &mut ::freya_core::prelude::LayoutData {
-                self.0.get_layout()
+            fn layout_mut(&mut self) -> &mut ::freya_core::prelude::LayoutData {
+                self.0.layout_mut()
+            }
+        }
+
+        impl ::freya_core::prelude::EffectExt for $outer {
+            fn effect_mut(&mut self) -> &mut ::freya_core::prelude::EffectData {
+                ::freya_core::prelude::EffectExt::effect_mut(&mut self.0)
             }
         }
 
@@ -67,30 +68,28 @@ macro_rules! forward_container {
         $crate::elements::forward_element!($outer);
 
         impl ::freya_core::prelude::ChildrenExt for $outer {
-            fn get_children(&mut self) -> &mut Vec<::freya_core::prelude::Element> {
-                self.0.get_children()
+            fn children_mut(&mut self) -> &mut Vec<::freya_core::prelude::Element> {
+                self.0.children_mut()
             }
         }
 
         impl ::freya_core::prelude::StyleExt for $outer {
-            fn get_style(&mut self) -> &mut ::freya_core::prelude::StyleState {
-                self.0.get_style()
+            fn style_mut(&mut self) -> &mut ::freya_core::prelude::StyleState {
+                self.0.style_mut()
             }
         }
 
         impl ::freya_core::prelude::ContainerWithContentExt for $outer {}
 
         impl ::freya_core::prelude::ScrollableExt for $outer {
-            fn get_effect(&mut self) -> &mut ::freya_core::prelude::EffectData {
-                ::freya_core::prelude::ScrollableExt::get_effect(&mut self.0)
+            fn effect_mut(&mut self) -> &mut ::freya_core::prelude::EffectData {
+                ::freya_core::prelude::ScrollableExt::effect_mut(&mut self.0)
             }
         }
 
-        impl ::freya_core::prelude::EffectExt for $outer {
-            fn get_effect(&mut self) -> &mut ::freya_core::prelude::EffectData {
-                ::freya_core::prelude::EffectExt::get_effect(&mut self.0)
-            }
-        }
+        impl ::freya_core::prelude::BackgroundExt for $outer {}
+
+        impl ::freya_core::prelude::DecorationExt for $outer {}
     };
 }
 
@@ -123,6 +122,8 @@ impl Text {
 }
 
 forward_element!(Text);
+
+impl TextOverflowExt for Text {}
 
 pub struct VStack(Rect);
 

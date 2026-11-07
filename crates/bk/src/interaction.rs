@@ -59,10 +59,10 @@ impl Interaction {
                     a11y_id.request_focus();
                 })
             })
-            .on_global_pointer_press(move |_| pressed.set_if_modified(false))
+            .on_global_pointer_up(move |_| pressed.set_if_modified(false))
     }
 
-    // An element that sets its own on_global_pointer_press replaces attach's; it calls this instead.
+    // An element that sets its own on_global_pointer_up replaces attach's; it calls this instead.
     pub(crate) fn release(&self) {
         let mut pressed = self.pressed;
         pressed.set_if_modified(false);
@@ -104,9 +104,13 @@ pub(crate) fn control_state(interaction: Interaction, disabled: bool) -> Control
     }
 }
 
-pub(crate) fn ring<E: StyleExt>(mut element: E, corner_radius: f32, color: ctdesign::Rgba) -> E {
-    if element.get_style().corner_radius == CornerRadius::default() {
-        element.get_style().corner_radius = CornerRadius::new_all(corner_radius);
+pub(crate) fn ring<E: DecorationExt>(
+    mut element: E,
+    corner_radius: f32,
+    color: ctdesign::Rgba,
+) -> E {
+    if element.style_mut().corner_radius == CornerRadius::default() {
+        element.style_mut().corner_radius = CornerRadius::new_all(corner_radius);
     }
     element.border(
         Border::new()

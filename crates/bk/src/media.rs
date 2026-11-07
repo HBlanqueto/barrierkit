@@ -144,7 +144,7 @@ impl Component for MediaButton {
             );
         interaction.focus_ring(
             dimmed(shadowed(button, &style.shadows), style.opacity),
-            radius.top_left,
+            radius.top_left(),
         )
     }
 }
@@ -233,7 +233,7 @@ impl Component for RoundButton {
             ));
         interaction.focus_ring(
             dimmed(shadowed(button, &style.shadows), style.opacity),
-            radius.top_left,
+            radius.top_left(),
         )
     }
 }

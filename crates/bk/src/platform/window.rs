@@ -425,9 +425,7 @@ pub(crate) struct OpenUtility {
 }
 
 pub(crate) fn open_utility_window(app: AppComponent, options: WindowOptions) {
-    freya_core::prelude::Platform::get().send(freya_core::integration::UserEvent::Erased(
-        freya_core::integration::SingleThreadErasedEvent(Box::new(OpenUtility { app, options })),
-    ));
+    super::KitSender::get().send(OpenUtility { app, options });
 }
 
 pub fn run_window(app: impl Into<AppComponent>, options: WindowOptions) -> Result<(), RunError> {

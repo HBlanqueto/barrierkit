@@ -1,5 +1,5 @@
 use super::{
-    EditShortcut, ObjectId, RunError,
+    EditShortcut, ObjectId, RunError, Sent,
     clipboard::{Clipboard, ClipboardDevice, PendingDrop},
     extension::Extension,
     input::seat::{RepeatState, cursor_shape_from_icon},
@@ -10,7 +10,7 @@ use super::{
     vulkan::{GraphicsShared, IDLE_RESOURCE_RELEASE},
     window::WindowControls,
 };
-use freya_core::prelude::{AccessibilityFocusStrategy, Key, State};
+use freya_core::prelude::{AccessibilityFocusStrategy, CursorIcon, Key, State};
 use torin::prelude::CursorPoint;
 
 use std::{
@@ -25,7 +25,7 @@ use ctappearance::{
     Resolved, load_appearance, load_dominant, resolve,
     watch::{AppearanceEvent, AppearanceWatch},
 };
-use freya_core::integration::{UserEvent, WritableUtils};
+use freya_core::integration::{GlobalContexts, Platform, UserEvent, WritableUtils};
 use sctk::{
     compositor::CompositorState,
     data_device_manager::DataDeviceManagerState,
@@ -91,7 +91,7 @@ pub(crate) struct Runtime {
     pub(crate) modifiers: SctkModifiers,
     pub(crate) needs_exit: bool,
     pub(crate) request_redraw_all: bool,
-    pub(crate) queue: Rc<RefCell<Vec<(ObjectId, UserEvent)>>>,
+    pub(crate) queue: Rc<RefCell<Vec<(ObjectId, super::Sent)>>>,
     pub(crate) ping: Ping,
     pub(crate) ping_source: Option<PingSource>,
     pub(crate) wake: Wake,
@@ -110,6 +110,9 @@ pub(crate) struct Runtime {
     pub(crate) last_pointer_serial: Cell<u32>,
     pub(crate) resize_hover: Option<super::WindowEdge>,
     pub(crate) pointer_pressed: bool,
+    pub(crate) pointer_surface: Option<WlSurface>,
+    pub(crate) cursor_icon: CursorIcon,
+    pub(crate) touchpad_scrolling: bool,
     pub(crate) touch_surfaces: std::collections::HashMap<i32, (ObjectId, (f64, f64))>,
     pub(crate) popup_commands: Rc<RefCell<Vec<PopupCommand>>>,
     pub(crate) popup_next_id: Rc<Cell<u64>>,
@@ -176,38 +179,31 @@ fn insert_ping(event_loop: &mut EventLoop<Runtime>, shell: &mut Runtime) -> Resu
             let events = std::mem::take(&mut *shell.queue.borrow_mut());
             for (surface_id, event) in events {
                 match event {
-                    UserEvent::RequestRedraw => {
+                    Sent::User(UserEvent::RequestRedraw) => {
                         if let Some(index) = shell.surface_index_by_id(&surface_id) {
                             shell.surfaces[index].needs_redraw = true;
                         }
                     }
-                    UserEvent::SetCursorIcon(icon) => {
-                        if let Some(device) = &shell.cursor_shape_device {
-                            device.set_shape(
-                                shell.last_pointer_serial.get(),
-                                cursor_shape_from_icon(icon),
-                            );
-                        }
-                    }
-                    UserEvent::FocusAccessibilityNode(strategy) => {
+                    Sent::User(UserEvent::FocusAccessibilityNode(strategy)) => {
                         if let Some(index) = shell.surface_index_by_id(&surface_id) {
                             shell.surfaces[index].app.requested_focus = Some(strategy);
                             shell.surfaces[index].needs_redraw = true;
                         }
                     }
-                    UserEvent::Erased(event) if event.0.is::<super::window::OpenUtility>() => {
-                        if let Ok(open) = event.0.downcast::<super::window::OpenUtility>() {
+                    Sent::User(UserEvent::SetCustomScaleFactor(_)) => {}
+                    Sent::Kit(event) if event.is::<super::window::OpenUtility>() => {
+                        if let Ok(open) = event.downcast::<super::window::OpenUtility>() {
                             let open = *open;
                             shell.create_window(open.app, open.options, Some(&surface_id));
                         }
                     }
-                    UserEvent::Erased(event) if event.0.is::<crate::drag::StartDrag>() => {
-                        if let Ok(drag) = event.0.downcast::<crate::drag::StartDrag>() {
+                    Sent::Kit(event) if event.is::<crate::drag::StartDrag>() => {
+                        if let Ok(drag) = event.downcast::<crate::drag::StartDrag>() {
                             shell.start_drag(&surface_id, drag.0);
                         }
                     }
-                    UserEvent::Erased(event) => {
-                        if let Ok(shortcut) = event.0.downcast::<EditShortcut>()
+                    Sent::Kit(event) => {
+                        if let Ok(shortcut) = event.downcast::<EditShortcut>()
                             && let Some(index) = shell.surface_index_by_id(&surface_id)
                         {
                             let app = &mut shell.surfaces[index].app;
@@ -301,7 +297,11 @@ impl Runtime {
         let conn = Connection::connect_to_env().map_err(|_| RunError::NoDisplay)?;
         let (globals, event_queue) = registry_queue_init::<Runtime>(&conn)?;
         let qh = event_queue.handle();
-        let queue: Rc<RefCell<Vec<(ObjectId, UserEvent)>>> = Rc::new(RefCell::new(Vec::new()));
+        let queue: Rc<RefCell<Vec<(ObjectId, super::Sent)>>> = Rc::new(RefCell::new(Vec::new()));
+        let contexts = GlobalContexts::register();
+        contexts.insert_context(Platform::new(|event| {
+            tracing::debug!(?event, "BarrierKit: Freya's global event has no handler");
+        }));
         let (ping, ping_source) =
             calloop::ping::make_ping().map_err(|_| RunError::EventLoop("calloop ping failed"))?;
         let (wake_ping, wake_source) = calloop::ping::make_ping()
@@ -393,6 +393,9 @@ impl Runtime {
             last_pointer_serial: Cell::new(0),
             resize_hover: None,
             pointer_pressed: false,
+            pointer_surface: None,
+            cursor_icon: CursorIcon::Default,
+            touchpad_scrolling: false,
             touch_surfaces: std::collections::HashMap::new(),
             popup_commands: Rc::new(RefCell::new(Vec::new())),
             popup_next_id: Rc::new(Cell::new(1)),
@@ -418,6 +421,9 @@ impl Runtime {
             drag_target: None,
             pending_drop: None,
         };
+        contexts.insert_context(freya_clipboard::prelude::Clipboard::create(Some(Box::new(
+            shell.clipboard.clone(),
+        ))));
         if let Some(seat) = shell.seat_handle.clone() {
             shell.attach_clipboard(&seat);
             shell.attach_text_input(&seat);
@@ -459,6 +465,27 @@ impl Runtime {
         }
         self.process_window_commands();
         self.sync_ime();
+        self.sync_cursor();
+    }
+
+    fn sync_cursor(&mut self) {
+        if self.resize_hover.is_some() {
+            return;
+        }
+        let Some(index) = self
+            .pointer_surface
+            .as_ref()
+            .and_then(|surface| self.surface_for(surface))
+        else {
+            return;
+        };
+        let icon = self.surfaces[index].app.cursor_icon();
+        if icon != self.cursor_icon {
+            self.cursor_icon = icon;
+            if let Some(device) = &self.cursor_shape_device {
+                device.set_shape(self.last_pointer_serial.get(), cursor_shape_from_icon(icon));
+            }
+        }
     }
 
     pub(crate) fn redraw_all(&mut self) {

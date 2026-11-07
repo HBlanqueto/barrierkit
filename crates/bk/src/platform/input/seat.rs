@@ -24,7 +24,7 @@ use sctk::{
         keyboard::{
             KeyEvent, KeyboardHandler, Keysym, Modifiers as SctkModifiers, RawModifiers, RepeatInfo,
         },
-        pointer::{PointerEvent, PointerHandler},
+        pointer::{AxisScroll, PointerEvent, PointerHandler},
         touch::TouchHandler,
     },
 };
@@ -209,6 +209,34 @@ impl SeatHandler for Runtime {
 }
 
 impl Runtime {
+    // Freya 0.5 flings a touchpad scroll (WheelSource::Pixel) from Started to Ended.
+    fn wheel_gesture(
+        &mut self,
+        source: Option<wl_pointer::AxisSource>,
+        horizontal: &AxisScroll,
+        vertical: &AxisScroll,
+    ) -> (WheelSource, TouchPhase) {
+        use wl_pointer::AxisSource;
+        let stepped = |axis: &AxisScroll| axis.value120 != 0 || axis.discrete != 0;
+        let continuous = match source {
+            Some(AxisSource::Finger | AxisSource::Continuous) => true,
+            Some(_) => false,
+            None => !stepped(horizontal) && !stepped(vertical),
+        };
+        if !continuous {
+            return (WheelSource::Line, TouchPhase::Moved);
+        }
+        let phase = if horizontal.stop || vertical.stop {
+            self.touchpad_scrolling = false;
+            TouchPhase::Ended
+        } else if std::mem::replace(&mut self.touchpad_scrolling, true) {
+            TouchPhase::Moved
+        } else {
+            TouchPhase::Started
+        };
+        (WheelSource::Pixel, phase)
+    }
+
     fn resize_from_edge(&mut self, index: usize, event: &PointerEvent) -> bool {
         use sctk::seat::pointer::{BTN_LEFT, PointerEventKind};
         let edge = if self.pointer_pressed {
@@ -220,6 +248,7 @@ impl Runtime {
             PointerEventKind::Enter { .. } | PointerEventKind::Motion { .. } => {
                 if edge != self.resize_hover {
                     self.resize_hover = edge;
+                    self.cursor_icon = CursorIcon::Default;
                     if let Some(device) = &self.cursor_shape_device {
                         device.set_shape(self.last_pointer_serial.get(), edge_shape(edge));
                     }
@@ -265,11 +294,17 @@ impl PointerHandler for Runtime {
             let Some(index) = self.surface_for(&event.surface) else {
                 continue;
             };
-            if let sctk::seat::pointer::PointerEventKind::Enter { serial } = event.kind {
-                self.last_pointer_serial.set(serial);
-                if let Some(device) = &self.cursor_shape_device {
-                    device.set_shape(serial, CursorShape::Default);
+            match event.kind {
+                sctk::seat::pointer::PointerEventKind::Enter { serial } => {
+                    self.last_pointer_serial.set(serial);
+                    self.pointer_surface = Some(event.surface.clone());
+                    self.cursor_icon = CursorIcon::Default;
+                    if let Some(device) = &self.cursor_shape_device {
+                        device.set_shape(serial, CursorShape::Default);
+                    }
                 }
+                sctk::seat::pointer::PointerEventKind::Leave { .. } => self.pointer_surface = None,
+                _ => {}
             }
             use sctk::seat::pointer::PointerEventKind;
             if self.resize_from_edge(index, event) {
@@ -308,13 +343,18 @@ impl PointerHandler for Runtime {
                 PointerEventKind::Axis {
                     vertical,
                     horizontal,
+                    source,
                     ..
-                } => PlatformEvent::Wheel {
-                    name: WheelEventName::Wheel,
-                    scroll: CursorPoint::from((horizontal.absolute, vertical.absolute)),
-                    cursor: position,
-                    source: WheelSource::Device,
-                },
+                } => {
+                    let (source, phase) = self.wheel_gesture(source, &horizontal, &vertical);
+                    PlatformEvent::Wheel {
+                        name: WheelEventName::Wheel,
+                        scroll: CursorPoint::from((horizontal.absolute, vertical.absolute)),
+                        cursor: position,
+                        source,
+                        phase,
+                    }
+                }
             };
             self.surfaces[index].app.push(platform_event);
         }

@@ -167,7 +167,7 @@ impl RadioGroup {
 }
 
 impl KeyExt for RadioGroup {
-    fn write_key(&mut self) -> &mut DiffKey {
+    fn key_mut(&mut self) -> &mut DiffKey {
         &mut self.key
     }
 }
@@ -252,7 +252,7 @@ impl Component for RadioOption {
         };
         let circle = interaction.focus_ring(
             dimmed(shadowed(circle, &style.button_shadows), opacity),
-            radius.top_left,
+            radius.top_left(),
         );
 
         let row = interaction
@@ -348,7 +348,7 @@ impl ColorWell {
 }
 
 impl KeyExt for ColorWell {
-    fn write_key(&mut self) -> &mut DiffKey {
+    fn key_mut(&mut self) -> &mut DiffKey {
         &mut self.key
     }
 }
@@ -412,11 +412,11 @@ impl Component for Swatch {
         if selected {
             dot = ring(
                 dot,
-                radius.top_left,
+                radius.top_left(),
                 paints.color(style.selection.resolve(state)),
             );
         }
-        dot = interaction.focus_ring(dot, radius.top_left);
+        dot = interaction.focus_ring(dot, radius.top_left());
 
         let column = interaction
             .attach(rect(), enabled)
@@ -500,7 +500,7 @@ impl ChoiceCards {
 }
 
 impl KeyExt for ChoiceCards {
-    fn write_key(&mut self) -> &mut DiffKey {
+    fn key_mut(&mut self) -> &mut DiffKey {
         &mut self.key
     }
 }
@@ -575,11 +575,11 @@ impl Component for Card {
         if selected {
             card = ring(
                 card,
-                radius.top_left,
+                radius.top_left(),
                 paints.color(style.selection.resolve(state)),
             );
         }
-        card = interaction.focus_ring(card, radius.top_left);
+        card = interaction.focus_ring(card, radius.top_left());
 
         let (font, ink) = if selected {
             (style.selected_caption_font, &style.selected_caption)

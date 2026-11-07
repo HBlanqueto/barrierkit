@@ -161,6 +161,6 @@ impl Component for ToolbarTab {
                     .max_lines(1)
                     .color(color(ink)),
             );
-        interaction.focus_ring(tab, radius.top_left)
+        interaction.focus_ring(tab, radius.top_left())
     }
 }

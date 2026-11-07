@@ -241,7 +241,7 @@ impl SurfaceWindow {
             swap_us,
             "swap done (buffer committed)"
         );
-        let _ = self.app.ticker_sender.send(());
+        self.app.ticker_sender.notify();
         self.needs_redraw = false;
         self.failing = false;
         true

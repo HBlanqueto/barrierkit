@@ -141,7 +141,7 @@ fn render_titlebar(sidebar: bool, decoration: DecorationResponse) -> Vec<u8> {
     });
     let (mut test, _) = TestingRunner::new(app, Size2D::new(300.0, 120.0), |_| {}, 1.0);
     test.sync_and_update();
-    test.render().as_ref().to_vec()
+    test.render().as_bytes().to_vec()
 }
 
 fn render_titlebar_pixels(

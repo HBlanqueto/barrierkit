@@ -174,8 +174,7 @@ impl Component for Table {
                 .position(Position::new_absolute().right(-padding_x - TABLE.resize_handle / 2.0))
                 .width(Size::px(TABLE.resize_handle))
                 .height(Size::px(style.header_height))
-                .on_pointer_enter(|_| Cursor::set(CursorIcon::ColResize))
-                .on_pointer_leave(|_| Cursor::set(CursorIcon::default()))
+                .cursor(CursorIcon::ColResize)
                 .on_pointer_down(move |event: Event<PointerEventData>| {
                     event.stop_propagation();
                     let start = measured.peek()[index];
@@ -236,7 +235,8 @@ impl Component for Table {
         );
         let body = VirtualScrollView::new_with_data(
             data,
-            |index, (rows, selected, on_select, looks, metrics, shown, column_widths, held)| {
+            |item, (rows, selected, on_select, looks, metrics, shown, column_widths, held)| {
+                let index = item.index;
                 let (font, row_height, padding_x): &(Font, f32, f32) = metrics;
                 let selected_row = selected.contains(&index);
                 let look = if selected_row {
@@ -260,7 +260,7 @@ impl Component for Table {
                     .a11y_builder(move |node| node.set_selected(selected_row))
                     .height(Size::px(*row_height))
                     .background(look.background.clone())
-                    .map(look.blur, Rect::blur)
+                    .map(look.blur, Rect::backdrop_blur)
                     .on_press(move |_| {
                         if let Some(cb) = &on_select {
                             cb.call(select(&selected, index, *held.peek()));
@@ -279,6 +279,7 @@ impl Component for Table {
             .a11y_alt(self.label)
             .expanded()
             .direction(Direction::Vertical)
+            .cursor(drag.read().is_some().then_some(CursorIcon::ColResize))
             .on_global_pointer_move(move |event: Event<PointerEventData>| {
                 if let Some((column, origin, start)) = *drag.peek() {
                     let width = (start + (event.global_location().x - origin) as f32)
@@ -286,7 +287,7 @@ impl Component for Table {
                     widths.write()[column] = Some(width);
                 }
             })
-            .on_global_pointer_press(move |_| {
+            .on_global_pointer_up(move |_| {
                 interaction.release();
                 if drag.peek().is_some() {
                     drag.set(None);

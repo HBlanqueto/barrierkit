@@ -186,6 +186,6 @@ impl Component for SearchResult {
                         )
                     })),
             );
-        interaction.focus_ring(row, radius.top_left)
+        interaction.focus_ring(row, radius.top_left())
     }
 }

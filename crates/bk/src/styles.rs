@@ -399,13 +399,7 @@ impl Shape {
                         (top_trailing, top_leading, bottom_leading, bottom_trailing)
                     }
                 };
-                let radius = CornerRadius {
-                    top_left,
-                    top_right,
-                    bottom_right,
-                    bottom_left,
-                    smoothing: 0.0,
-                };
+                let radius = CornerRadius::new(top_left, top_right, bottom_right, bottom_left);
                 round(radius, style)
             }
             Self::Capsule | Self::Circle => CornerRadius::new_all(width.min(height) / 2.0),
@@ -520,11 +514,11 @@ pub enum LayoutDirection {
     RightToLeft,
 }
 
-pub(crate) trait Painted: StyleExt + EffectExt + Sized {
+pub(crate) trait Painted: BackgroundExt + DecorationExt + EffectExt + Sized {
     fn painted(self, paints: &Paints, paint: &StateValue<ShapeStyle>) -> Self {
         let view = self.background(paints.fill(paint));
         match paints.blur(paint) {
-            Some(blur) => view.blur(blur),
+            Some(blur) => view.backdrop_blur(blur),
             None => view,
         }
     }
@@ -537,7 +531,7 @@ pub(crate) trait Painted: StyleExt + EffectExt + Sized {
     }
 }
 
-impl<T: StyleExt + EffectExt> Painted for T {}
+impl<T: BackgroundExt + DecorationExt + EffectExt> Painted for T {}
 
 pub(crate) struct Paints {
     palette: Palette,

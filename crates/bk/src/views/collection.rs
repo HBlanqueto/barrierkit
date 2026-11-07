@@ -183,7 +183,7 @@ impl Component for Tile {
                         paints.color(label.resolve(state)),
                     )),
             );
-        interaction.focus_ring(tile, radius.top_left)
+        interaction.focus_ring(tile, radius.top_left())
     }
 }
 

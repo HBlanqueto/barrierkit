@@ -52,7 +52,7 @@ impl SegmentedControl {
 }
 
 impl KeyExt for SegmentedControl {
-    fn write_key(&mut self) -> &mut DiffKey {
+    fn key_mut(&mut self) -> &mut DiffKey {
         &mut self.key
     }
 }
@@ -176,6 +176,6 @@ impl Component for Segment {
         } else {
             segment
         };
-        interaction.focus_ring(segment, radius.top_left)
+        interaction.focus_ring(segment, radius.top_left())
     }
 }

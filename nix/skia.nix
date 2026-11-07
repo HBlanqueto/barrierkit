@@ -20,11 +20,11 @@ let
 
   skia-source =
     let
-      # Google's chrome/m148: the same externals as rust-skia/skia m148-0.97.0.
+      # chrome/m153 before fca11a08da, which changes GrDirectContext::flush from what freya-skia-safe 0.104 binds.
       repo = fetchgit {
         url = "https://skia.googlesource.com/skia";
-        rev = "13ffba253fc7854fd3b34f67c82dfb2418dc2944";
-        hash = "sha256-z85k29Yn7UOMUHtyDQ0lcUAMLLSSjEY0fBR6cO+jfYo=";
+        rev = "14d99416c52df27ad98e5ea2637121b867f54aad";
+        hash = "sha256-wmtuC2scBQXONYNnpWpMqOYaCfb31904YP1MngxCM3w=";
       };
       externals = linkFarm "skia-externals" (
         lib.mapAttrsToList
@@ -40,7 +40,7 @@ let
 in
 rustPlatform.buildRustPackage.override { stdenv = clangStdenv; } {
   pname = "skia-binaries";
-  version = "0.98.0";
+  version = "0.104.0";
 
   src = ./skia-prebuild;
   cargoLock.lockFile = ./skia-prebuild/Cargo.lock;
@@ -101,7 +101,7 @@ rustPlatform.buildRustPackage.override { stdenv = clangStdenv; } {
   disallowedReferences = [ skia-source ];
 
   meta = {
-    description = "Prebuilt Skia for freya-skia-bindings 0.98.0";
+    description = "Prebuilt Skia for freya-skia-bindings 0.104.0";
     license = lib.licenses.bsd3;
     platforms = [ "x86_64-linux" "aarch64-linux" ];
   };

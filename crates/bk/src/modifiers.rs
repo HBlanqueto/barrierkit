@@ -23,7 +23,7 @@ pub trait ViewModifiers: EventHandlersExt + Sized {
 
     fn focus_ring(self, corner_radius: f32, color: Rgba) -> Self
     where
-        Self: StyleExt,
+        Self: DecorationExt,
     {
         crate::interaction::ring(self, corner_radius, color)
     }
@@ -38,7 +38,7 @@ pub trait ViewModifiers: EventHandlersExt + Sized {
 
     fn background_style(self, style: ShapeStyle) -> Self
     where
-        Self: StyleExt + EffectExt,
+        Self: BackgroundExt + DecorationExt + EffectExt,
     {
         self.painted(
             &Paints::current(ControlState::default(), system_effect),
@@ -48,7 +48,7 @@ pub trait ViewModifiers: EventHandlersExt + Sized {
 
     fn shadows(self, shadows: Vec<ShadowStyle>) -> Self
     where
-        Self: StyleExt,
+        Self: DecorationExt,
     {
         shadows
             .into_iter()

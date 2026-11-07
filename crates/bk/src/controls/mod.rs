@@ -18,7 +18,9 @@ use crate::i18n::text;
 use crate::interaction::use_interaction;
 use crate::level;
 use crate::password::PasswordField;
-use crate::spelling::{Squiggles, char_index, dictionary, known, misspelled, utf16_range};
+use crate::spelling::{
+    InputParagraphs, Squiggles, char_index, dictionary, known, misspelled, utf16_range,
+};
 use crate::style::with_font;
 use crate::styles::Painted;
 use crate::styles::{

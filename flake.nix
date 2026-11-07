@@ -71,8 +71,8 @@
           preBuild = ''
             version="$(cargo tree --offline -i freya-skia-bindings --depth 0 --prefix none \
               | sed -n 's/.*freya-skia-bindings v\([0-9.]*\).*/\1/p' | head -n1)"
-            if [ "$version" != "0.98.0" ]; then
-              echo "freya-skia-bindings $version no coincide con la derivación 0.98.0" >&2
+            if [ "$version" != "0.104.0" ]; then
+              echo "freya-skia-bindings $version no coincide con la derivación 0.104.0" >&2
               exit 1
             fi
             cargo tree --offline -e features -i freya-skia-bindings --prefix none \

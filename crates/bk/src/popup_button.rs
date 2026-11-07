@@ -133,7 +133,7 @@ impl Component for PopUpButton {
                 .color(paints.fill(&style.label)),
             )
             .child(shadowed(indicator, &style.indicator_shadows));
-        interaction.focus_ring(dimmed(button, style.opacity), radius.top_left)
+        interaction.focus_ring(dimmed(button, style.opacity), radius.top_left())
     }
 }
 

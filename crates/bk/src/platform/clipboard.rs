@@ -56,7 +56,7 @@ impl Runtime {
             self.surfaces[index].app.push(PlatformEvent::File {
                 name,
                 cursor,
-                file_path,
+                file_paths: file_path.into_iter().collect(),
             });
             self.surfaces[index].needs_redraw = true;
         }

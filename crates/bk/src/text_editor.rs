@@ -168,7 +168,7 @@ impl Component for TextEditor {
             if editor.cursor_pos() > end {
                 editor.move_cursor_to(end);
             }
-            editor.editor_history().clear();
+            editor.editor_history_mut().clear();
             editor.clear_selection();
             history.set_if_modified((false, false));
         }
@@ -245,8 +245,10 @@ impl Component for TextEditor {
             editable.process_event(EditableEvent::KeyDown {
                 key,
                 modifiers: event.modifiers,
+                editor_line: Some(EditorLine::SingleParagraph),
+                holder: Some(&holder.peek()),
             });
-            let mut editor = editable.editor_mut().write();
+            let editor = editable.editor().read();
             let undoable = editor.editor_history();
             history.set_if_modified((undoable.can_undo(), undoable.can_redo()));
             drop(editor);
@@ -338,12 +340,12 @@ impl Component for TextEditor {
                 .is_some();
                 if over != *over_link.peek() {
                     over_link.set(over);
-                    Cursor::set(if over {
-                        CursorIcon::Pointer
-                    } else {
-                        CursorIcon::Text
-                    });
                 }
+            })
+            .cursor(if *over_link.read() {
+                CursorIcon::Pointer
+            } else {
+                CursorIcon::Text
             })
             .cursor_index(focused.then(|| editor.cursor_pos()))
             .cursor_color(cursor)
@@ -437,17 +439,12 @@ impl Component for TextEditor {
                 editor.set_preedit(&event.data().text);
             }
         })
-        .on_pointer_enter(move |_| {
-            hovering.set(true);
-            Cursor::set(CursorIcon::Text);
-        })
-        .on_pointer_leave(move |_| {
-            hovering.set(false);
-            Cursor::set(CursorIcon::default());
-        })
+        .cursor(CursorIcon::Text)
+        .on_pointer_enter(move |_| hovering.set(true))
+        .on_pointer_leave(move |_| hovering.set(false))
         .on_pointer_press(move |_| a11y_id.request_focus())
         .on_global_pointer_move(on_drag)
-        .on_global_pointer_press(on_release)
+        .on_global_pointer_up(on_release)
         .child(
             ScrollView::new().controller(scroll).expanded().child(
                 rect()
@@ -457,7 +454,7 @@ impl Component for TextEditor {
             ),
         );
         let field = if focused {
-            ring(field, radius.top_left, resolved().accent)
+            ring(field, radius.top_left(), resolved().accent)
         } else {
             field
         };

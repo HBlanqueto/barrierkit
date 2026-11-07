@@ -1,7 +1,6 @@
 use std::path::PathBuf;
 
 use ctdesign::DRAG;
-use freya_core::integration::{SingleThreadErasedEvent, UserEvent};
 use freya_core::prelude::*;
 use torin::prelude::CursorPoint;
 
@@ -58,7 +57,7 @@ pub fn use_drag_source() -> DragSource {
 impl DragSource {
     pub fn attach(self, element: Rect, payload: impl Fn() -> DragPayload + 'static) -> Rect {
         let mut origin = self.origin;
-        let platform = Platform::get();
+        let runtime = crate::platform::KitSender::get();
         element
             .on_pointer_down(move |event: Event<PointerEventData>| {
                 if event.is_primary() {
@@ -71,12 +70,10 @@ impl DragSource {
                 };
                 if (event.global_location() - start).length() as f32 > DRAG.threshold {
                     origin.set(None);
-                    platform.send(UserEvent::Erased(SingleThreadErasedEvent(Box::new(
-                        StartDrag(payload()),
-                    ))));
+                    runtime.send(StartDrag(payload()));
                 }
             })
-            .on_global_pointer_press(move |_| {
+            .on_global_pointer_up(move |_| {
                 if origin.peek().is_some() {
                     origin.set(None);
                 }

@@ -1,19 +1,19 @@
 use accesskit::Role;
-use freya_clipboard::copypasta::ClipboardProvider;
 
 use crate::app::DefaultsRevision;
 use crate::styles::Theme;
 use ctappearance::Resolved;
 use freya_components::{cache::AssetCacher, integration::integration};
-use freya_core::prelude::{Code, Key, Modifiers, NamedKey};
+use freya_core::prelude::{Code, CursorIcon, Key, Modifiers, NamedKey};
 use freya_core::{
     accessibility::tree::{ACCESSIBILITY_ROOT_ID, AccessibilityTree},
     element::IntoElement,
     integration::{
-        AccentColor, AnimationClock, AppComponent, EventsChunk, EventsExecutorAdapter,
-        EventsMeasurerAdapter, KeyboardEventName, MouseEventName, NavigationMode, NodeId, Platform,
-        PlatformEvent, PreferredTheme, RenderingTicker, RenderingTickerSender, Runner,
-        ScreenReader, Tree, UserEvent, WritableUtils, default_fonts,
+        AccentColor, AnimationClock, AppComponent, CurrentWindowId, EventsChunk,
+        EventsExecutorAdapter, EventsMeasurerAdapter, KeyboardEventName, MouseEventName,
+        NavigationMode, New, NodeId, Platform, PlatformEvent, PlatformWindow, PreferredTheme,
+        RenderingTicker, RenderingTickerSender, Runner, ScreenReader, Tree, UserEvent,
+        WritableUtils, default_fonts,
     },
     prelude::{AccessibilityFocusStrategy, State},
 };
@@ -25,12 +25,16 @@ use std::{
     cell::Cell,
     pin::pin,
     rc::Rc,
-    sync::Arc,
+    sync::{
+        Arc,
+        atomic::{AtomicU64, Ordering},
+    },
     task::{Context, Waker},
 };
 use torin::prelude::Size2D;
 
 use super::{
+    KitSender, Sent,
     popup::{PopupHandle, PopupId, Popups},
     runtime::Runtime,
     timer::{PingWake, Timers},
@@ -39,13 +43,15 @@ use super::{
 
 const MAX_SETTLE_PASSES: usize = 4;
 
+static NEXT_WINDOW_ID: AtomicU64 = AtomicU64::new(0);
+
 pub(crate) struct AppInstance {
     runner: Runner,
     pub(crate) tree: Tree,
     nodes_state: NodesState<NodeId>,
     events_sender: futures_channel::mpsc::UnboundedSender<EventsChunk>,
     events_receiver: futures_channel::mpsc::UnboundedReceiver<EventsChunk>,
-    platform: Platform,
+    platform: PlatformWindow,
     _animation_clock: AnimationClock,
     pub(crate) ticker_sender: RenderingTickerSender,
     pub(crate) font_collection: FontCollection,
@@ -63,6 +69,7 @@ pub(crate) struct AppInstance {
     atspi: Option<super::atspi::Atspi>,
     pub(crate) requested_focus: Option<AccessibilityFocusStrategy>,
     pub(crate) pending_shortcuts: Vec<Key>,
+    inputs: crate::spelling::InputParagraphs,
 }
 
 pub(crate) enum InstanceRole {
@@ -101,7 +108,7 @@ impl AppInstance {
             InstanceRole::Surface => (None, None, None, Theme::tengen()),
         };
         let waker = futures_util::task::waker(Arc::new(PingWake(rt.ping.clone())));
-        let sender: Rc<dyn Fn(UserEvent)> = {
+        let send: Rc<dyn Fn(Sent)> = {
             let (queue, ping, owner) = (rt.queue.clone(), rt.ping.clone(), owner.clone());
             Rc::new(move |event| {
                 queue.borrow_mut().push((owner.clone(), event));
@@ -132,7 +139,6 @@ impl AppInstance {
         let font_collection = rt.graphics.font_collection.clone();
         let font_manager = rt.graphics.font_manager.clone();
         let resolved = rt.resolved;
-        let clipboard: Box<dyn ClipboardProvider> = Box::new(rt.clipboard.clone());
         let defaults_revision = rt.defaults_revision;
         let (events_sender, events_receiver) = futures_channel::mpsc::unbounded();
         let mut runner = Runner::new(move || {
@@ -150,20 +156,26 @@ impl AppInstance {
 
         let mut tree = Tree::default();
 
-        let platform = runner.provide_root_context({
-            let size = Size2D::new(size.0 as f32, size.1 as f32);
-            move || Platform {
-                focused_accessibility_id: State::create(ACCESSIBILITY_ROOT_ID),
-                focused_accessibility_node: State::create(accesskit::Node::new(Role::Window)),
-                root_size: State::create(size),
-                scale_factor: State::create(scale_factor),
-                navigation_mode: State::create(NavigationMode::NotKeyboard),
-                preferred_theme: State::create(PreferredTheme::Light),
-                is_app_focused: State::create(true),
-                accent_color: State::create(AccentColor::default()),
-                sender,
-            }
+        let platform = runner.run_in(|| PlatformWindow {
+            id: NEXT_WINDOW_ID.fetch_add(1, Ordering::Relaxed),
+            focused_accessibility_id: State::create(ACCESSIBILITY_ROOT_ID),
+            focused_accessibility_node: State::create(accesskit::Node::new(Role::Window)),
+            root_size: State::create(logical_size(size, scale_factor)),
+            scale_factor: State::create(scale_factor),
+            custom_scale_factor: State::create(1.0),
+            navigation_mode: State::create(NavigationMode::NotKeyboard),
+            preferred_theme: State::create(PreferredTheme::Light),
+            is_app_focused: State::create(true),
+            accent_color: State::create(AccentColor::default()),
+            sender: {
+                let send = send.clone();
+                Rc::new(move |event: UserEvent| send(Sent::User(event)))
+            },
         });
+        Platform::get().register_window(platform.clone());
+        runner.provide_root_context(|| CurrentWindowId(platform.id));
+        runner.provide_root_context(move || KitSender(send));
+        let inputs = runner.provide_root_context(crate::spelling::InputParagraphs::default);
 
         if let Some(handle) = menu_handle {
             runner.provide_root_context(move || handle);
@@ -180,13 +192,12 @@ impl AppInstance {
             runner.provide_root_context(move || handle);
         }
         runner.provide_root_context(move || timers);
-        runner.provide_root_context(move || State::create(Some(clipboard)));
         runner.provide_root_context(move || DefaultsRevision(defaults_revision));
         runner.provide_root_context(|| tree.accessibility_generator.clone());
         runner.provide_root_context(|| font_collection.clone());
 
         let mutations = runner.sync_and_update();
-        let _ = runner.run_in(|| tree.apply_mutations(mutations));
+        let _ = runner.run_in(|| tree.apply_mutations(mutations, scale_factor as f32));
 
         let accessibility = AccessibilityTree::default();
         #[cfg(feature = "a11y")]
@@ -216,6 +227,7 @@ impl AppInstance {
             atspi,
             requested_focus: None,
             pending_shortcuts: Vec::new(),
+            inputs,
         }
     }
 
@@ -234,6 +246,10 @@ impl AppInstance {
                     && (area.min_y()..area.max_y()).contains(&y)
             })
         })
+    }
+
+    pub(crate) fn cursor_icon(&self) -> CursorIcon {
+        self.tree.cursor_icon(&self.nodes_state)
     }
 
     pub(crate) fn focused_role(&self) -> Role {
@@ -259,7 +275,9 @@ impl AppInstance {
     pub(crate) fn resize(&mut self, size: (u32, u32), scale_factor: f64) {
         self.size = Size2D::new(size.0 as f32, size.1 as f32);
         self.scale_factor = scale_factor;
-        self.platform.root_size.set(self.size);
+        self.platform
+            .root_size
+            .set(logical_size(size, scale_factor));
         self.platform.scale_factor.set(scale_factor);
         self.tree.layout.reset();
         self.tree.text_cache.reset();
@@ -318,7 +336,13 @@ impl AppInstance {
         let pressed = false;
         let requested_focus = self.requested_focus.take();
         let mutations = self.runner.sync_and_update();
-        let result = self.runner.run_in(|| self.tree.apply_mutations(mutations));
+        let scale_factor = self.scale_factor as f32;
+        let result = self
+            .runner
+            .run_in(|| self.tree.apply_mutations(mutations, scale_factor));
+        if let Some(strategy) = result.auto_focus {
+            self.requested_focus.get_or_insert(strategy);
+        }
         if result.needs_render {
             self.needs_layout = true;
         }
@@ -330,10 +354,10 @@ impl AppInstance {
                 .atspi
                 .as_ref()
                 .is_some_and(|atspi| atspi.tree_requested()))
-        .then(|| self.accessibility.init(&mut self.tree));
+        .then(|| self.accessibility.init(&mut self.tree, ""));
         #[cfg(not(feature = "a11y"))]
         if !self.accessibility_initialized {
-            self.accessibility.init(&mut self.tree);
+            self.accessibility.init(&mut self.tree, "");
         }
         self.accessibility_initialized = true;
         if let Some(strategy) = requested_focus {
@@ -346,9 +370,9 @@ impl AppInstance {
             self.tree.accessibility_diff.request_focus(strategy);
         }
 
-        let accessibility_update = self
-            .accessibility
-            .process_updates(&mut self.tree, &self.events_sender);
+        let accessibility_update =
+            self.accessibility
+                .process_updates(&mut self.tree, &self.events_sender, "");
         #[cfg(feature = "a11y")]
         let focus_moved =
             *self.platform.focused_accessibility_id.peek() != accessibility_update.focus;
@@ -369,7 +393,7 @@ impl AppInstance {
             && let Some(layout_node) = self.tree.layout.get(&node_id)
         {
             self.platform.focused_accessibility_node.set_if_modified(
-                AccessibilityTree::create_node(node_id, layout_node, &self.tree),
+                AccessibilityTree::create_node(node_id, layout_node, &self.tree, ""),
             );
         }
         if pressed {
@@ -417,9 +441,11 @@ impl AppInstance {
             &mut self.font_collection,
             &self.font_manager,
             &self.events_sender,
+            &mut self.nodes_state,
             self.scale_factor,
             &self.fallback_fonts,
         );
+        self.inputs.refresh(&self.tree);
         self.needs_layout = false;
     }
 
@@ -457,4 +483,14 @@ impl AppInstance {
             .unbounded_send(EventsChunk::Processed(processed));
         self.waker.wake_by_ref();
     }
+}
+
+impl Drop for AppInstance {
+    fn drop(&mut self) {
+        Platform::get().unregister_window(self.platform.id);
+    }
+}
+
+fn logical_size(size: (u32, u32), scale_factor: f64) -> Size2D {
+    Size2D::new(size.0 as f32, size.1 as f32) / scale_factor as f32
 }

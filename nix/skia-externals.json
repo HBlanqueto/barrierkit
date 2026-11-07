@@ -21,8 +21,8 @@
   },
   "icu": {
     "url": "https://chromium.googlesource.com/chromium/deps/icu.git",
-    "rev": "364118a1d9da24bb5b770ac3d762ac144d6da5a4",
-    "sha256": "sha256-frsmwYMiFixEULsE91x5+p98DvkyC0s0fNupqjoRnvg="
+    "rev": "d578f2e8b7bd5938e21cfb6bf15c079e0aa5b738",
+    "sha256": "sha256-DsktUjKFFbeSqlFZTBqbZgvuJLOKvssCym2M3tcOJtw="
   },
   "libjpeg-turbo": {
     "url": "https://chromium.googlesource.com/chromium/deps/libjpeg_turbo.git",
@@ -46,8 +46,8 @@
   },
   "vulkanmemoryallocator": {
     "url": "https://chromium.googlesource.com/external/github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator",
-    "rev": "a6bfc237255a6bac1513f7c1ebde6d8aed6b5191",
-    "sha256": "sha256-urUebQaPTgCECmm4Espri1HqYGy0ueAqTBu/VSiX/8I="
+    "rev": "eb744ea7a2b17040121b4bbb4d6f9e8a77e3cae7",
+    "sha256": "sha256-LBZJcom7G7maF9wpUVeVEJQAJwGy6365INk3VD0/0PM="
   },
   "wuffs": {
     "url": "https://skia.googlesource.com/external/github.com/google/wuffs-mirror-release-c.git",

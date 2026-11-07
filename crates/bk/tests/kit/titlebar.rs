@@ -61,7 +61,7 @@ fn a_server_to_client_decoration_change_does_not_panic() {
     status_state.set(status(DecorationResponse::Client));
     test.sync_and_update();
     test.sync_and_update();
-    assert!(!test.render().as_ref().is_empty());
+    assert!(!test.render().as_bytes().is_empty());
 }
 
 const LONG_TITLE: &str =

@@ -256,7 +256,7 @@ impl Sidebar {
 }
 
 impl KeyExt for Sidebar {
-    fn write_key(&mut self) -> &mut DiffKey {
+    fn key_mut(&mut self) -> &mut DiffKey {
         &mut self.key
     }
 }
@@ -357,13 +357,13 @@ impl Component for Sidebar {
             .bordered(&paints, style.border.as_ref())
             .map(style.inner_border.as_ref(), |el, inner| {
                 let rim = style.border.as_ref().map_or(0.0, |(_, width)| *width);
-                let radius = CornerRadius {
-                    top_left: (corner_radius.top_left - rim).max(0.0),
-                    top_right: (corner_radius.top_right - rim).max(0.0),
-                    bottom_right: (corner_radius.bottom_right - rim).max(0.0),
-                    bottom_left: (corner_radius.bottom_left - rim).max(0.0),
-                    ..corner_radius
-                };
+                let radius = CornerRadius::new(
+                    (corner_radius.top_left() - rim).max(0.0),
+                    (corner_radius.top_right() - rim).max(0.0),
+                    (corner_radius.bottom_right() - rim).max(0.0),
+                    (corner_radius.bottom_left() - rim).max(0.0),
+                )
+                .with_smoothing(corner_radius.smoothing());
                 el.child(
                     rect()
                         .position(
@@ -526,7 +526,7 @@ impl SidebarItem {
 }
 
 impl KeyExt for SidebarItem {
-    fn write_key(&mut self) -> &mut DiffKey {
+    fn key_mut(&mut self) -> &mut DiffKey {
         &mut self.key
     }
 }
@@ -597,7 +597,7 @@ impl Component for SidebarItem {
         );
 
         row = row.map(self.probe, ProbeExt::probe);
-        interaction.focus_ring(row, corner_radius.top_left)
+        interaction.focus_ring(row, corner_radius.top_left())
     }
 }
 
@@ -645,7 +645,7 @@ impl SidebarSection {
 }
 
 impl KeyExt for SidebarSection {
-    fn write_key(&mut self) -> &mut DiffKey {
+    fn key_mut(&mut self) -> &mut DiffKey {
         &mut self.key
     }
 }
