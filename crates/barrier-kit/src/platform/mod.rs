@@ -56,6 +56,8 @@ pub enum RunError {
     DeviceLost,
     #[error("the Vulkan surface was lost")]
     SurfaceLost,
+    #[error("a layer surface without a width or height must be anchored to both opposite edges")]
+    LayerSize,
     #[error("event loop failed: {0}")]
     EventLoop(&'static str),
     #[error("Skia could not create its Vulkan context")]

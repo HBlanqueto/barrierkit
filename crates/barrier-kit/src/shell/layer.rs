@@ -87,7 +87,16 @@ pub struct LayerSpec {
     pub size: Option<(u32, u32)>,
 }
 
+// zwlr_layer_surface_v1.set_size: a zero dimension needs the anchors on both of its edges.
+fn size_is_valid(anchors: Anchors, size: Option<(u32, u32)>) -> bool {
+    let (width, height) = size.unwrap_or_default();
+    (width > 0 || anchors.left && anchors.right) && (height > 0 || anchors.top && anchors.bottom)
+}
+
 pub fn run_layer(app: AppComponent, spec: LayerSpec) -> Result<(), RunError> {
+    if !size_is_valid(spec.anchors, spec.size) {
+        return Err(RunError::LayerSize);
+    }
     let LayerSpec {
         namespace,
         layer,
@@ -209,3 +218,26 @@ impl ExtensionRole for LayerSurface {
 
 delegate_dispatch!(Runtime: [zwlr_layer_shell_v1::ZwlrLayerShellV1: sctk::globals::GlobalData] => LayerShell);
 delegate_dispatch!(Runtime: [zwlr_layer_surface_v1::ZwlrLayerSurfaceV1: LayerSurfaceData] => LayerShell);
+
+#[cfg(test)]
+mod tests {
+    use super::{Anchors, size_is_valid};
+
+    #[test]
+    fn a_bar_anchored_on_three_edges_needs_a_height() {
+        assert!(!size_is_valid(Anchors::TOP, None));
+        assert!(size_is_valid(Anchors::TOP, Some((0, 30))));
+    }
+
+    #[test]
+    fn a_surface_anchored_on_every_edge_may_leave_the_size_to_the_compositor() {
+        let all = Anchors {
+            top: true,
+            bottom: true,
+            left: true,
+            right: true,
+        };
+        assert!(size_is_valid(all, None));
+        assert!(!size_is_valid(Anchors::default(), Some((0, 10))));
+    }
+}
