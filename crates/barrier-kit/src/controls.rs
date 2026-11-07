@@ -31,24 +31,26 @@ use zeroize::Zeroizing;
 #[derive(Clone, PartialEq)]
 pub struct SecureField {
     field: State<PasswordField>,
-    width: f32,
+    label: &'static str,
+    width: Size,
     auto_focus: bool,
     on_submit: Option<Callback<Zeroizing<String>, ()>>,
     key: DiffKey,
 }
 
 impl SecureField {
-    pub fn new(field: State<PasswordField>) -> Self {
+    pub fn new(field: State<PasswordField>, label: &'static str) -> Self {
         Self {
             field,
-            width: 240.0,
+            label,
+            width: Size::fill(),
             auto_focus: false,
             on_submit: None,
             key: DiffKey::None,
         }
     }
 
-    pub fn width(mut self, width: f32) -> Self {
+    pub fn width(mut self, width: Size) -> Self {
         self.width = width;
         self
     }
@@ -77,17 +79,33 @@ impl KeyExt for SecureField {
 
 impl Component for SecureField {
     fn render(&self) -> impl IntoElement {
+        let palette = Palette::current();
         let interaction = use_interaction();
         let mut field = self.field;
         let on_submit = self.on_submit.clone();
         let masked = field.read().masked();
+        let margin_y = (TEXT_FIELD.height - TEXT.line_height as f32) / 2.0;
         let element = interaction
             .attach(rect(), true)
             .a11y_role(AccessibilityRole::PasswordInput)
+            .a11y_alt(self.label)
             .a11y_auto_focus(self.auto_focus)
-            .width(Size::px(self.width))
-            .height(Size::px(TEXT.size as f32 * TEXT_LINE_HEIGHT))
-            .padding(Gaps::new(6.0, 8.0, 6.0, 8.0))
+            .width(self.width.clone())
+            .height(Size::px(TEXT_FIELD.height))
+            .padding(Gaps::new(
+                margin_y,
+                TEXT_FIELD.padding_x,
+                margin_y,
+                TEXT_FIELD.padding_x,
+            ))
+            .corner_radius(TEXT_FIELD.radius)
+            .background(color(palette.content_background))
+            .border(
+                Border::new()
+                    .width(vow_design::HAIRLINE)
+                    .alignment(BorderAlignment::Inner)
+                    .fill(color(palette.separator)),
+            )
             .on_key_down(move |event: Event<KeyboardEventData>| {
                 let secret = field.write().handle_key(&event.key, event.modifiers);
                 if let Some(secret) = secret {
@@ -97,7 +115,7 @@ impl Component for SecureField {
                     }
                 }
             })
-            .child(label().text(masked));
+            .child(crate::style::text(masked, TEXT, palette.label));
         interaction.focus_ring(element, TEXT_FIELD.radius)
     }
 }

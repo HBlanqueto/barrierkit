@@ -174,7 +174,7 @@ let nombre = use_state(|| "hblanqueto".to_string());
 TextField::new(nombre, "Nombre de usuario")
 SearchField::new(consulta, "Buscar").auto_focus(true)
 let clave = use_state(PasswordField::default);
-SecureField::new(clave).on_submit(move |valor| entrar(valor))
+SecureField::new(clave, "Contraseña").on_submit(move |valor| entrar(valor))
 ComboBox::new(shell, "Intérprete").item("zsh").item("fish")
 TextEditor::new(notas, "Notas").height(Size::px(72.0))
 ```

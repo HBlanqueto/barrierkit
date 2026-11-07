@@ -431,7 +431,7 @@ fn text_field() -> Element {
 }
 
 fn secure_field() -> Element {
-    SecureField::new(use_state(PasswordField::default)).into_element()
+    SecureField::new(use_state(PasswordField::default), "Contraseña").into_element()
 }
 
 fn scroll_view() -> Element {

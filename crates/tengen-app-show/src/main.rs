@@ -259,10 +259,9 @@ fn fields(
                         .child(SearchField::new(query, tr!("search"))),
                 ),
             )
-            .row(
-                Row::new(tr!("password"))
-                    .control(SecureField::new(password).width(SPLIT_VIEW.inspector)),
-            )
+            .row(Row::new(tr!("password")).control(
+                SecureField::new(password, tr!("password")).width(Size::px(SPLIT_VIEW.inspector)),
+            ))
             .row(
                 Row::new(tr!("combo-box")).control(
                     ComboBox::new(shell, tr!("shell"))
