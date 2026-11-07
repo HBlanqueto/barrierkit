@@ -2,7 +2,8 @@
 
 **Goal:** draw data with the kit's charts, from a line on an axis to a 3D
 surface.
-**Scope:** everything in `bk::charts`. The design is in
+**Scope:** everything in `bk::charts`, behind the `charts` feature
+([1](01-what-is-barrierkit.md#the-crates)). The design is in
 [ADR 0060](../decisions/0060-charts-in-barrierkit.md); the series colors and
 the `CHART` tokens come from `ctdesign`
 ([4. Appearance and tokens](04-appearance-and-tokens.md)).

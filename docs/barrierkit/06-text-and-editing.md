@@ -224,7 +224,8 @@ the tokens and the selected token. The tokens of a `SearchField` draw from the
 
 ## Printing
 
-Printing goes through the `Print` portal. The kit lays out plain text in `BODY`; styles are not
+Printing goes through the `Print` portal and needs the `print` feature
+([1](01-what-is-barrierkit.md#the-crates)). The kit lays out plain text in `BODY`; styles are not
 printed.
 
 1. `portal::print(title, |setup| pdf).await` calls `PreparePrint`, which opens the system print

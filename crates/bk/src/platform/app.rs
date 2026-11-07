@@ -59,6 +59,7 @@ pub(crate) struct AppInstance {
     pub(crate) resolved: State<Resolved>,
     accessibility: AccessibilityTree,
     accessibility_initialized: bool,
+    #[cfg(feature = "a11y")]
     atspi: Option<super::atspi::Atspi>,
     pub(crate) requested_focus: Option<AccessibilityFocusStrategy>,
     pub(crate) pending_shortcuts: Vec<Key>,
@@ -170,6 +171,7 @@ impl AppInstance {
         if let Some(hooks) = rt.extension_hooks() {
             (hooks.provide_contexts)(rt, &mut runner);
         }
+        #[cfg(feature = "a11y")]
         let window_shown = window.is_some();
         if let Some(window) = window {
             runner.provide_root_context(move || window);
@@ -187,6 +189,7 @@ impl AppInstance {
         let _ = runner.run_in(|| tree.apply_mutations(mutations));
 
         let accessibility = AccessibilityTree::default();
+        #[cfg(feature = "a11y")]
         let atspi = window_shown.then(|| super::atspi::Atspi::new(waker.clone()));
 
         Self {
@@ -209,6 +212,7 @@ impl AppInstance {
             resolved,
             accessibility,
             accessibility_initialized: false,
+            #[cfg(feature = "a11y")]
             atspi,
             requested_focus: None,
             pending_shortcuts: Vec::new(),
@@ -245,6 +249,7 @@ impl AppInstance {
 
     pub(crate) fn set_focused(&mut self, focused: bool) {
         self.platform.is_app_focused.set(focused);
+        #[cfg(feature = "a11y")]
         if let Some(atspi) = &mut self.atspi {
             atspi.adapter.update_window_focus_state(focused);
         }
@@ -295,15 +300,22 @@ impl AppInstance {
     }
 
     pub(crate) fn accessibility_pending(&self) -> bool {
+        #[cfg(feature = "a11y")]
+        if self
+            .atspi
+            .as_ref()
+            .is_some_and(super::atspi::Atspi::pending)
+        {
+            return true;
+        }
         self.requested_focus.is_some()
-            || self
-                .atspi
-                .as_ref()
-                .is_some_and(super::atspi::Atspi::pending)
     }
 
     pub(crate) fn update(&mut self) -> bool {
+        #[cfg(feature = "a11y")]
         let pressed = self.take_atspi_actions();
+        #[cfg(not(feature = "a11y"))]
+        let pressed = false;
         let requested_focus = self.requested_focus.take();
         let mutations = self.runner.sync_and_update();
         let result = self.runner.run_in(|| self.tree.apply_mutations(mutations));
@@ -312,12 +324,17 @@ impl AppInstance {
         }
         self.layout();
 
-        let tree_requested = self
-            .atspi
-            .as_ref()
-            .is_some_and(|atspi| atspi.tree_requested());
-        let full_tree = (!self.accessibility_initialized || tree_requested)
-            .then(|| self.accessibility.init(&mut self.tree));
+        #[cfg(feature = "a11y")]
+        let full_tree = (!self.accessibility_initialized
+            || self
+                .atspi
+                .as_ref()
+                .is_some_and(|atspi| atspi.tree_requested()))
+        .then(|| self.accessibility.init(&mut self.tree));
+        #[cfg(not(feature = "a11y"))]
+        if !self.accessibility_initialized {
+            self.accessibility.init(&mut self.tree);
+        }
         self.accessibility_initialized = true;
         if let Some(strategy) = requested_focus {
             if matches!(
@@ -332,11 +349,13 @@ impl AppInstance {
         let accessibility_update = self
             .accessibility
             .process_updates(&mut self.tree, &self.events_sender);
+        #[cfg(feature = "a11y")]
         let focus_moved =
             *self.platform.focused_accessibility_id.peek() != accessibility_update.focus;
         self.platform
             .focused_accessibility_id
             .set_if_modified(accessibility_update.focus);
+        #[cfg(feature = "a11y")]
         if let Some(atspi) = &mut self.atspi {
             match full_tree {
                 Some(tree) => atspi.adapter.update_if_active(|| tree),
@@ -363,6 +382,7 @@ impl AppInstance {
     }
 
     // A Click from a screen reader is Freya's press gesture (Enter) on the node it focuses first.
+    #[cfg(feature = "a11y")]
     fn take_atspi_actions(&mut self) -> bool {
         let Some(atspi) = &self.atspi else {
             return false;

@@ -45,6 +45,7 @@ pub mod compact;
 
 pub mod adornments;
 
+#[cfg(feature = "charts")]
 pub mod charts;
 
 pub mod popup_button;
@@ -82,6 +83,7 @@ pub mod status_item;
 
 pub mod rule_editor;
 
+#[cfg(feature = "print")]
 pub mod print;
 
 pub mod glass_container;

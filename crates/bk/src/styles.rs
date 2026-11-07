@@ -20,6 +20,7 @@ mod backdrop;
 mod badge;
 mod button;
 mod capacity_indicator;
+#[cfg(feature = "charts")]
 mod chart;
 mod checkbox;
 mod choice_cards;
@@ -52,6 +53,7 @@ mod menu_button;
 mod outline_view;
 mod path_control;
 mod popup_button;
+#[cfg(feature = "print")]
 mod print_preview;
 mod progress_ring;
 mod progress_view;
@@ -101,6 +103,7 @@ pub use backdrop::BackdropStyle;
 pub use badge::BadgeStyle;
 pub use button::ButtonStyle;
 pub use capacity_indicator::CapacityIndicatorStyle;
+#[cfg(feature = "charts")]
 pub use chart::ChartStyle;
 pub use checkbox::CheckboxStyle;
 pub use choice_cards::ChoiceCardsStyle;
@@ -132,6 +135,7 @@ pub use menu_button::MenuButtonStyle;
 pub use outline_view::OutlineViewStyle;
 pub use path_control::PathControlStyle;
 pub use popup_button::PopUpButtonStyle;
+#[cfg(feature = "print")]
 pub use print_preview::PrintPreviewStyle;
 pub use progress_ring::ProgressRingStyle;
 pub use progress_view::ProgressViewStyle;

@@ -164,7 +164,8 @@ the runner logs it at `info` level and continues.
 
 ## Accessibility
 
-Each toplevel window publishes its accessibility tree over AT-SPI with
+With the `a11y` feature ([1](01-what-is-barrierkit.md#the-crates)), each
+toplevel window publishes its accessibility tree over AT-SPI with
 `accesskit_unix`. Layer surfaces, lock surfaces and popups publish none.
 
 | Screen reader asks | The runner does |

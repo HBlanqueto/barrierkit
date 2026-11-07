@@ -1,5 +1,6 @@
 mod activation;
 pub(crate) mod app;
+#[cfg(feature = "a11y")]
 mod atspi;
 mod clipboard;
 #[cfg(feature = "video")]

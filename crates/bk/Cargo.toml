@@ -8,6 +8,10 @@ license.workspace = true
 repository.workspace = true
 
 [features]
+default = ["a11y", "charts", "print"]
+a11y = ["dep:accesskit_unix"]
+charts = []
+print = ["dep:flate2", "dep:pdf-writer", "dep:subsetter", "dep:ttf-parser"]
 shell = []
 tracy = ["dep:tracing-tracy"]
 video = ["dep:gstreamer", "dep:gstreamer-app", "dep:gstreamer-video", "dep:gstreamer-allocators"]
@@ -23,14 +27,14 @@ freya-clipboard.workspace = true
 torin.workspace = true
 ragnarok.workspace = true
 accesskit.workspace = true
-accesskit_unix.workspace = true
+accesskit_unix = { workspace = true, optional = true }
 thiserror.workspace = true
 serde.workspace = true
 spellbook.workspace = true
-flate2.workspace = true
-pdf-writer.workspace = true
-subsetter.workspace = true
-ttf-parser.workspace = true
+flate2 = { workspace = true, optional = true }
+pdf-writer = { workspace = true, optional = true }
+subsetter = { workspace = true, optional = true }
+ttf-parser = { workspace = true, optional = true }
 toml.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
