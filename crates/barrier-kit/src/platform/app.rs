@@ -208,9 +208,13 @@ impl AppInstance {
         })
     }
 
+    pub(crate) fn focused_role(&self) -> Role {
+        self.platform.focused_accessibility_node.peek().role()
+    }
+
     pub(crate) fn text_field_focused(&self) -> bool {
         matches!(
-            self.platform.focused_accessibility_node.peek().role(),
+            self.focused_role(),
             Role::TextInput | Role::MultilineTextInput | Role::SearchInput | Role::PasswordInput
         )
     }

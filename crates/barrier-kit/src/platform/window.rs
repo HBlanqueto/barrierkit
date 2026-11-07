@@ -625,7 +625,7 @@ impl Runtime {
                     continue;
                 }
                 if let WindowCommand::ImeCursor(area) = command {
-                    self.set_ime_cursor(area);
+                    self.set_ime_cursor(controls.surface_id.clone(), area);
                     continue;
                 }
                 if let WindowCommand::Open(window) = command {

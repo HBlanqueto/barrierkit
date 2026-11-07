@@ -451,6 +451,7 @@ impl Runtime {
             (hooks.poll)(self);
         }
         self.process_window_commands();
+        self.sync_ime();
     }
 
     pub(crate) fn redraw_all(&mut self) {
