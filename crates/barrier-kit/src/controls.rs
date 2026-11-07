@@ -689,7 +689,8 @@ impl Component for Switch {
             .maybe(disabled, |el| el.opacity(SWITCH.disabled_opacity))
             .on_press(move |_| {
                 if !disabled {
-                    commit(on, &on_toggle, !*on.peek());
+                    let next = !*on.peek();
+                    commit(on, &on_toggle, next);
                 }
             })
             .child(level::knob(
@@ -1310,7 +1311,8 @@ impl Component for Checkbox {
             .spacing(SETTINGS.check.gap as f32)
             .on_press(move |_| {
                 if !disabled {
-                    commit(checked, &on_toggle, !*checked.peek());
+                    let next = !*checked.peek();
+                    commit(checked, &on_toggle, next);
                 }
             })
             .child(checkbox)

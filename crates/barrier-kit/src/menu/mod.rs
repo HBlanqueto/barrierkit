@@ -744,13 +744,13 @@ impl App for MenuView {
                                         })
                                     };
                                 if at_end(menu_section, *menu_scroll.read(), menu_results.len()) {
-                                    menu_scroll.set(*menu_scroll.read() + 1);
+                                    *menu_scroll.write() += 1;
                                 } else if at_end(
                                     help_section,
                                     *help_scroll.read(),
                                     help_results.len(),
                                 ) {
-                                    help_scroll.set(*help_scroll.read() + 1);
+                                    *help_scroll.write() += 1;
                                 } else if let Some(&next) = result_rows.get(row + 1) {
                                     result_focused.set(Some(next));
                                 }
@@ -771,9 +771,9 @@ impl App for MenuView {
                                     scroll > 0 && section.is_some_and(|(start, _)| i == start)
                                 };
                                 if at_start(menu_section, *menu_scroll.read()) {
-                                    menu_scroll.set(*menu_scroll.read() - 1);
+                                    *menu_scroll.write() -= 1;
                                 } else if at_start(help_section, *help_scroll.read()) {
-                                    help_scroll.set(*help_scroll.read() - 1);
+                                    *help_scroll.write() -= 1;
                                 } else if let Some(prev) = row.checked_sub(1) {
                                     result_focused.set(Some(result_rows[prev]));
                                 }
