@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
-use torin::prelude::{Area, Gaps, Size};
+use torin::prelude::{Area, Gaps};
 use vow_design::POPOVER;
 
 use crate::platform::{PopupAnchor, PopupConstraintAdjustment, PopupGravity, PopupSpec, Popups};
@@ -38,8 +38,7 @@ impl App for PopoverBody {
     fn render(&self) -> impl IntoElement {
         let menu = popover_palette(&resolved(), SurfaceKind::Toplevel);
         rect()
-            .width(Size::fill())
-            .height(Size::fill())
+            .expanded()
             .background(color(menu.bg))
             .padding(Gaps::new(
                 POPOVER.arrow_height + POPOVER.padding,

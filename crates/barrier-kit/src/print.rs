@@ -13,7 +13,7 @@ use pdf_writer::types::{CidFontType, FontFlags, SystemInfo, UnicodeCmap};
 use pdf_writer::{Content, Filter, Finish, Name, Pdf, Rect, Ref, Str};
 use subsetter::GlyphRemapper;
 use torin::prelude::{Alignment, Direction, Gaps, Size};
-use vow_design::{CAPTION, PRINT, SPACE_2, SPACE_3, TEXT};
+use vow_design::{BODY, CAPTION, PRINT, SPACE_2, SPACE_3};
 
 use crate::i18n::text;
 use crate::scroll::ScrollView;
@@ -94,8 +94,8 @@ struct TextLayout {
 fn text_layout(text: &str, setup: &PageSetup) -> TextLayout {
     let content = setup.content_in_points();
     let mut style = TextStyle::new();
-    style.set_font_size(TEXT.size as f32);
-    style.set_font_families(&[TEXT.family]);
+    style.set_font_size(BODY.size as f32);
+    style.set_font_families(&[BODY.family]);
     style.set_font_style(FontStyle::new(
         Weight::NORMAL,
         Width::NORMAL,
@@ -564,7 +564,7 @@ impl Component for PrintPreview {
                         .height(Size::px(page_height))
                         .background(color(palette.content_background))
                         .shadow(Shadow::new().blur(SPACE_2).color(color(palette.separator)))
-                        .child(image(page.clone()).width(Size::fill()).height(Size::fill())),
+                        .child(image(page.clone()).expanded()),
                 )
                 .child(text(
                     text!(
@@ -577,21 +577,18 @@ impl Component for PrintPreview {
                 ))
                 .into_element()
         });
-        ScrollView::new()
-            .width(Size::fill())
-            .height(Size::fill())
-            .child(
-                rect()
-                    .width(Size::fill())
-                    .padding(Gaps::new_all(SPACE_3))
-                    .spacing(SPACE_3)
-                    .on_sized(move |event: Event<SizedEventData>| {
-                        width.set_if_modified(event.area.width() - 2.0 * SPACE_3)
-                    })
-                    .a11y_role(AccessibilityRole::Group)
-                    .a11y_alt(text!("print-preview"))
-                    .children(pages),
-            )
+        ScrollView::new().expanded().child(
+            rect()
+                .width(Size::fill())
+                .padding(Gaps::new_all(SPACE_3))
+                .spacing(SPACE_3)
+                .on_sized(move |event: Event<SizedEventData>| {
+                    width.set_if_modified(event.area.width() - 2.0 * SPACE_3)
+                })
+                .a11y_role(AccessibilityRole::Group)
+                .a11y_alt(text!("print-preview"))
+                .children(pages),
+        )
     }
 }
 

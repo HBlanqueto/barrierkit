@@ -62,8 +62,7 @@ impl Component for SplitPanes {
         let mut row = rect()
             .a11y_role(AccessibilityRole::Group)
             .a11y_alt(self.label)
-            .width(Size::fill())
-            .height(Size::fill())
+            .expanded()
             .direction(direction)
             .content(Content::flex())
             .on_sized(move |event: Event<SizedEventData>| {

@@ -65,8 +65,7 @@ impl App for Case {
                 let plus = IconButton::new(Symbol::Plus, "Nuevo");
                 if sidebar {
                     let detail = rect()
-                        .width(Size::fill())
-                        .height(Size::fill())
+                        .expanded()
                         .direction(Direction::Vertical)
                         .child(
                             Titlebar::new()
@@ -90,8 +89,7 @@ impl App for Case {
                     .into_element()
                 } else {
                     rect()
-                        .width(Size::fill())
-                        .height(Size::fill())
+                        .expanded()
                         .direction(Direction::Vertical)
                         .child(Titlebar::new().title("notas.txt").right(plus))
                         .child(form)
@@ -101,8 +99,7 @@ impl App for Case {
             Scene::Design { state } => {
                 let detail =
                     rect()
-                        .width(Size::fill())
-                        .height(Size::fill())
+                        .expanded()
                         .direction(Direction::Vertical)
                         .child(
                             Titlebar::new()
@@ -154,8 +151,7 @@ impl App for Case {
                             .into_element()
                     }));
                 let detail = rect()
-                    .width(Size::fill())
-                    .height(Size::fill())
+                    .expanded()
                     .direction(Direction::Vertical)
                     .child(
                         Titlebar::new()
@@ -233,8 +229,7 @@ impl App for Case {
                 .layer(i16::MAX)
         });
         rect()
-            .width(Size::fill())
-            .height(Size::fill())
+            .expanded()
             .child(crate::chrome::window_root(chrome))
             .maybe_child(compositor_bar)
     }

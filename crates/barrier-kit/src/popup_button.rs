@@ -5,7 +5,7 @@ use freya_components::svg_viewer::SvgViewer;
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Area, Direction, Size};
-use vow_design::{MENU_POPOVER, SETTINGS, SYMBOL, TEXT};
+use vow_design::{BODY, MENU_POPOVER, SETTINGS, SYMBOL};
 
 use crate::choices::use_choice;
 use crate::interaction::use_interaction;
@@ -94,7 +94,7 @@ impl Component for PopUpButton {
                     .get(current)
                     .map(|item| item.0)
                     .unwrap_or_default(),
-                TEXT,
+                BODY,
                 palette.label,
             ))
             .child(

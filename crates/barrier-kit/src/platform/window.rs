@@ -423,7 +423,7 @@ pub fn open_utility_window(app: AppComponent, options: WindowOptions) {
     ));
 }
 
-pub fn run_window(app: AppComponent, options: WindowOptions) -> Result<(), RunError> {
+pub fn run_window(app: impl Into<AppComponent>, options: WindowOptions) -> Result<(), RunError> {
     let Connected {
         conn,
         event_queue,
@@ -431,7 +431,7 @@ pub fn run_window(app: AppComponent, options: WindowOptions) -> Result<(), RunEr
         ..
     } = Runtime::connect()?;
     shell
-        .create_window(app, options, None)
+        .create_window(app.into(), options, None)
         .ok_or(RunError::MissingGlobal("xdg_wm_base"))?;
 
     shell.run(conn, event_queue, |_, _| {})

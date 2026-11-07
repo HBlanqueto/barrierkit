@@ -2,7 +2,7 @@ use freya_components::input::InputColorsThemePartial;
 use freya_components::theming::macros::Preference;
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
-use vow_design::{HAIRLINE, Rgba, TEXT, TEXT_FIELD, TOKEN_FIELD};
+use vow_design::{BODY, HAIRLINE, Rgba, TEXT_FIELD, TOKEN_FIELD};
 
 use crate::context_menu::edit_menu;
 use crate::controls::{default_pre_key, text_style, themed_input};
@@ -67,7 +67,7 @@ pub(crate) fn token_chip(token: String, selected: bool) -> Rect {
         .a11y_role(AccessibilityRole::ListItem)
         .a11y_alt(token.clone())
         .a11y_builder(move |node| node.set_selected(selected))
-        .child(text(token, TEXT, ink))
+        .child(text(token, BODY, ink))
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

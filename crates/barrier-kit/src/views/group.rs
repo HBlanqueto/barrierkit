@@ -1,6 +1,6 @@
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Direction, Gaps, Size};
-use vow_design::{DISCLOSURE, GROUP_BOX, HAIRLINE, Rgba, SPACE_1, TEXT};
+use vow_design::{BODY, DISCLOSURE, GROUP_BOX, HAIRLINE, Rgba, SPACE_1};
 
 use crate::interaction::use_interaction;
 use crate::style::{Palette, text};
@@ -41,7 +41,7 @@ impl Component for GroupBox {
             .maybe_child(self.label.map(|label| {
                 rect()
                     .padding(Gaps::new(0.0, 0.0, 0.0, GROUP_BOX.label_inset))
-                    .child(text(label, TEXT, palette.label))
+                    .child(text(label, BODY, palette.label))
             }))
             .child(
                 rect()
@@ -118,7 +118,7 @@ impl Component for DisclosureGroup {
                     .center()
                     .child(symbol(chevron, DISCLOSURE.chevron, palette.secondary_label)),
             )
-            .child(text(self.label, TEXT, palette.label));
+            .child(text(self.label, BODY, palette.label));
         rect()
             .width(Size::fill())
             .direction(Direction::Vertical)

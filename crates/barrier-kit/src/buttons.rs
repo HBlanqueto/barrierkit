@@ -1,6 +1,6 @@
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Area, Direction, Gaps, Size};
-use vow_design::{BUTTON, SETTINGS, SPACE_1, TEXT};
+use vow_design::{BODY, BUTTON, SETTINGS, SPACE_1};
 
 use crate::i18n::text;
 use crate::interaction::use_interaction;
@@ -78,7 +78,7 @@ impl Component for MenuButton {
                     },
                 );
             })
-            .child(text(self.label, TEXT, palette.label))
+            .child(text(self.label, BODY, palette.label))
             .child(symbol(
                 Symbol::ChevronDown,
                 SETTINGS.dropdown_chevron_glyph as f32,
@@ -144,7 +144,7 @@ impl Component for SplitButton {
             .map(on_press, |el, on_press| {
                 el.on_press(move |_| on_press.call(()))
             })
-            .child(text(self.label, TEXT, palette.label));
+            .child(text(self.label, BODY, palette.label));
         let menu = arrow
             .attach(rect(), true)
             .a11y_role(AccessibilityRole::Button)
@@ -251,7 +251,7 @@ impl Component for HelpButton {
             .map(on_press, |el, on_press| {
                 el.on_press(move |_| on_press.call(()))
             })
-            .child(text("?", TEXT, palette.label));
+            .child(text("?", BODY, palette.label));
         interaction.focus_ring(button, size / 2.0)
     }
 }

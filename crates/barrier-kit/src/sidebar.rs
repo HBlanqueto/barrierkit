@@ -2,7 +2,7 @@ use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 use vow_appearance::{SidebarStyle, SidebarSurface};
 use vow_design::{
-    BACKDROP, DURATION_BASE, Rgba, SETTINGS, SIDEBAR, SidebarPalette, TEXT, TEXT_FIELD, TITLEBAR,
+    BACKDROP, BODY, DURATION_BASE, Rgba, SETTINGS, SIDEBAR, SidebarPalette, TEXT_FIELD, TITLEBAR,
     TITLEBAR_RAIL,
 };
 
@@ -285,8 +285,7 @@ impl Component for Sidebar {
         };
 
         let mut sidebar_body = rect()
-            .width(Size::fill())
-            .height(Size::fill())
+            .expanded()
             .direction(Direction::Vertical)
             .background(theme::color(surface.bg))
             .a11y_role(AccessibilityRole::Navigation)
@@ -347,8 +346,7 @@ impl Component for Sidebar {
         }
 
         let mut root = rect()
-            .width(Size::fill())
-            .height(Size::fill())
+            .expanded()
             .child(sidebar_body)
             .maybe_child((!island).then(|| {
                 rect()
@@ -548,7 +546,7 @@ impl Component for SidebarItem {
         row = row.child(
             label()
                 .text(self.label.clone())
-                .font_family(TEXT.family)
+                .font_family(BODY.family)
                 .font_size(SIDEBAR.item_text_size as f32)
                 .font_weight(weight)
                 .color(fg)

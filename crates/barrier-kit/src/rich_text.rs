@@ -116,8 +116,8 @@ pub fn font_at(runs: &[StyleRun], length: usize, index: usize) -> FontChoice {
     FontChoice {
         family: style
             .family
-            .unwrap_or_else(|| vow_design::TEXT.family.to_owned()),
-        size: style.size.unwrap_or(vow_design::TEXT.size as f32),
+            .unwrap_or_else(|| vow_design::BODY.family.to_owned()),
+        size: style.size.unwrap_or(vow_design::BODY.size as f32),
         bold: style.bold,
         italic: style.italic,
     }
@@ -213,7 +213,7 @@ mod tests {
         };
         let runs = apply_font(&[], 6, 2..4, &font);
         assert_eq!(font_at(&runs, 6, 3), font);
-        assert_eq!(font_at(&runs, 6, 0).size, vow_design::TEXT.size as f32);
+        assert_eq!(font_at(&runs, 6, 0).size, vow_design::BODY.size as f32);
         assert_eq!(runs.len(), 1);
         assert_eq!(runs[0].range, 2..4);
     }

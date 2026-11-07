@@ -1,6 +1,6 @@
 use freya_core::prelude::*;
 use torin::prelude::{Area, Direction, Size};
-use vow_design::{BUTTON, HAIRLINE, Rgba, SPACE_2, SPLIT_VIEW, TEXT};
+use vow_design::{BODY, BUTTON, HAIRLINE, Rgba, SPACE_2, SPLIT_VIEW};
 
 use crate::i18n::text;
 use crate::interaction::use_interaction;
@@ -105,7 +105,7 @@ impl Component for ColorPicker {
                 let on_change = on_change.clone();
                 show_popover(
                     *area.peek(),
-                    (SPLIT_VIEW.inspector, TEXT.line_height as f32 * 7.0),
+                    (SPLIT_VIEW.inspector, BODY.line_height as f32 * 7.0),
                     move || {
                         ColorPanel {
                             initial: shown,
@@ -154,7 +154,7 @@ impl Component for ColorPanel {
                     .center()
                     .child(text(
                         hex(current),
-                        TEXT,
+                        BODY,
                         if brightness > 0.6 && saturation < 0.5 {
                             palette.label
                         } else {
@@ -162,19 +162,19 @@ impl Component for ColorPanel {
                         },
                     )),
             )
-            .child(text(text!("hue"), TEXT, palette.secondary_label))
+            .child(text(text!("hue"), BODY, palette.secondary_label))
             .child(
                 LevelSlider::new(text!("hue"))
                     .value(hue)
                     .on_change(move |value| set((value, saturation, brightness))),
             )
-            .child(text(text!("saturation"), TEXT, palette.secondary_label))
+            .child(text(text!("saturation"), BODY, palette.secondary_label))
             .child(
                 LevelSlider::new(text!("saturation"))
                     .value(saturation)
                     .on_change(move |value| set_saturation((hue, value, brightness))),
             )
-            .child(text(text!("brightness"), TEXT, palette.secondary_label))
+            .child(text(text!("brightness"), BODY, palette.secondary_label))
             .child(
                 LevelSlider::new(text!("brightness"))
                     .value(brightness)

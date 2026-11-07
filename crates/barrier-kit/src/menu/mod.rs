@@ -641,8 +641,7 @@ impl App for MenuView {
         };
 
         let content = rect()
-            .width(Size::fill())
-            .height(Size::fill())
+            .expanded()
             .padding(Gaps::new(m.padding, m.padding, m.padding, m.padding))
             .background(theme::color(m.bg))
             .direction(Direction::Vertical)
@@ -655,8 +654,7 @@ impl App for MenuView {
             .children(rows);
 
         let mut root = rect()
-            .width(Size::fill())
-            .height(Size::fill())
+            .expanded()
             .background(theme::color(m.bg))
             .overflow(Overflow::Clip)
             .child(content);

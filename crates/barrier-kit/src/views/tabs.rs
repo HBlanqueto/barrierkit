@@ -62,8 +62,7 @@ impl Component for TabView {
             });
 
         rect()
-            .width(Size::fill())
-            .height(Size::fill())
+            .expanded()
             .direction(Direction::Vertical)
             .spacing(SPACE_2)
             .child(

@@ -48,8 +48,7 @@ impl App for Case {
         let dark = self.dark;
         use_init_theme(|| theme::for_scheme(dark));
         rect()
-            .width(Size::fill())
-            .height(Size::fill())
+            .expanded()
             .direction(Direction::Vertical)
             .main_align(Alignment::Center)
             .cross_align(Alignment::Center)
@@ -684,8 +683,7 @@ impl App for FocusCase {
                 .set_if_modified(NavigationMode::Keyboard);
         }
         rect()
-            .width(Size::fill())
-            .height(Size::fill())
+            .expanded()
             .direction(Direction::Vertical)
             .main_align(Alignment::Center)
             .cross_align(Alignment::Center)

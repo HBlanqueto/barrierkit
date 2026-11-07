@@ -390,7 +390,7 @@ The disclosure group indents its content by 13, the `indentationPerLevel` of
 ## Popover
 
 ```rust
-show_popover(area_del_boton, (240.0, 32.0), || text("Hola", TEXT, color).into_element());
+show_popover(area_del_boton, (240.0, 32.0), || text("Hola", BODY, color).into_element());
 ```
 
 `show_popover` (`barrier_kit::popover`) opens a popup below the area it gets,

@@ -1,6 +1,6 @@
 use freya_core::prelude::*;
 use torin::prelude::{Gaps, Size};
-use vow_design::{BADGE, CAPTION, HEADLINE, SETTINGS, TEXT};
+use vow_design::{BADGE, BODY, CAPTION, HEADLINE, SETTINGS};
 
 use crate::interaction::use_interaction;
 use crate::style::{Palette, text};
@@ -76,7 +76,7 @@ impl Component for Link {
             .map(on_press, |el, on_press| {
                 el.on_press(move |_| on_press.call(()))
             })
-            .child(text(self.text, TEXT, crate::theme::resolved().link));
+            .child(text(self.text, BODY, crate::theme::resolved().link));
         interaction.focus_ring(link, 0.0)
     }
 }

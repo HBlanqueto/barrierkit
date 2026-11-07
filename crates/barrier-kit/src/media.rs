@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use freya_core::elements::image::ImageHandle;
 use freya_core::prelude::*;
 use torin::prelude::{Direction, Gaps, Size};
-use vow_design::{MEDIA, Rgba, TEXT};
+use vow_design::{BODY, MEDIA, Rgba};
 
 pub use crate::glass::{material, top_glass};
 use crate::interaction::use_interaction;
@@ -98,7 +98,7 @@ impl Component for MediaButton {
             .child(
                 label()
                     .text(self.label.clone())
-                    .font_family(TEXT.family)
+                    .font_family(BODY.family)
                     .font_size(MEDIA.button_font_size)
                     .font_weight(600)
                     .max_lines(1)

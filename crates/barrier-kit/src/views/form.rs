@@ -1,6 +1,6 @@
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
-use vow_design::{CAPTION, HEADLINE, LIST_GROUP, Rgba, SPACE_2, SPACE_3, SPACE_4, TEXT};
+use vow_design::{BODY, CAPTION, HEADLINE, LIST_GROUP, Rgba, SPACE_2, SPACE_3, SPACE_4};
 
 use crate::adornments::divider;
 use crate::interaction::use_interaction;
@@ -217,7 +217,7 @@ impl Component for FormRow {
             Accessory::None | Accessory::Destructive(_) => None,
             Accessory::Control(element) => Some(element.clone()),
             Accessory::Value(value) => {
-                Some(text(value.clone(), TEXT, palette.secondary_label).into_element())
+                Some(text(value.clone(), BODY, palette.secondary_label).into_element())
             }
             Accessory::Navigation(_) => Some(
                 symbol(
@@ -245,13 +245,13 @@ impl Component for FormRow {
             .direction(Direction::Vertical)
             .maybe(aligned_to_first_line, |el| {
                 el.padding(Gaps::new(
-                    (first_line - TEXT.line_height as f32) / 2.0,
+                    (first_line - BODY.line_height as f32) / 2.0,
                     0.0,
                     0.0,
                     0.0,
                 ))
             })
-            .child(wrapping(row.title, TEXT, title_ink));
+            .child(wrapping(row.title, BODY, title_ink));
         if let Some(detail) = row.detail {
             labels = labels.child(wrapping(detail, CAPTION, palette.secondary_label));
         }

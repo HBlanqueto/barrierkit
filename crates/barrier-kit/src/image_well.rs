@@ -92,8 +92,7 @@ impl Component for ImageWell {
             .maybe_child(self.image.read().clone().map(|path| {
                 rect()
                     .key(path.to_string_lossy().into_owned())
-                    .width(Size::fill())
-                    .height(Size::fill())
+                    .expanded()
                     .child(WellImage { path })
             }));
         interaction.focus_ring(element, IMAGE_WELL.radius)
@@ -120,16 +119,15 @@ impl Component for WellImage {
     fn render(&self) -> impl IntoElement {
         let artwork = use_artwork(self.path.clone());
         rect()
-            .width(Size::fill())
-            .height(Size::fill())
+            .expanded()
             .corner_radius(IMAGE_WELL.radius - IMAGE_WELL.inset)
             .overflow(Overflow::Clip)
-            .maybe_child(artwork.read().clone().map(|handle| {
-                image(handle)
-                    .width(Size::fill())
-                    .height(Size::fill())
-                    .aspect_ratio(AspectRatio::Min)
-            }))
+            .maybe_child(
+                artwork
+                    .read()
+                    .clone()
+                    .map(|handle| image(handle).expanded().aspect_ratio(AspectRatio::Min)),
+            )
     }
 }
 

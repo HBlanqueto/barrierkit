@@ -2,7 +2,7 @@ use freya_components::input::InputLayoutThemePartial;
 use freya_components::theming::macros::Preference;
 use freya_core::prelude::*;
 use torin::prelude::{Area, Gaps, Position, Size};
-use vow_design::{COMBO_BOX, TEXT, TEXT_FIELD};
+use vow_design::{BODY, COMBO_BOX, TEXT_FIELD};
 
 use crate::context_menu::edit_menu;
 use crate::controls::{default_pre_key, text_style, themed_input};
@@ -48,7 +48,7 @@ impl Component for ComboBox {
         let value = self.value;
         let mut area = use_state(Area::default);
         let items = self.items.clone();
-        let margin_y = (TEXT_FIELD.height - TEXT.line_height as f32) / 2.0;
+        let margin_y = (TEXT_FIELD.height - BODY.line_height as f32) / 2.0;
         let trailing = COMBO_BOX.button_inset_x + COMBO_BOX.button_width + COMBO_BOX.text_gap;
         let input = themed_input(
             value,

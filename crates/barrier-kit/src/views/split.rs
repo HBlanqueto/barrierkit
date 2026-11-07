@@ -247,8 +247,7 @@ impl Component for SplitView {
         };
 
         let mut root = rect()
-            .width(Size::fill())
-            .height(Size::fill())
+            .expanded()
             .direction(Direction::Horizontal)
             .maybe(crate::backdrop::tinted().is_none(), |el| {
                 el.background(color(surface_background(

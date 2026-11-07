@@ -266,7 +266,7 @@ mod drag_band_tests {
     use freya_core::prelude::{App, ContainerSizeExt, IntoElement, State, rect};
     use freya_testing::TestingRunner;
     use std::{cell::RefCell, rc::Rc};
-    use torin::prelude::{Size, Size2D};
+    use torin::prelude::Size2D;
     use vow_appearance::{AppearanceConfig, SidebarStyle, resolve};
 
     use crate::platform::window::{WindowCommand, WindowControls, WindowStatus};
@@ -279,7 +279,7 @@ mod drag_band_tests {
                 Sidebar::new()
                     .traffic_lights(true)
                     .child(SidebarItem::new("Uno").probe("island-first-item")),
-                rect().width(Size::fill()).height(Size::fill()),
+                rect().expanded(),
             )
         }
     }
@@ -395,7 +395,7 @@ mod overlay_titlebar_tests {
     use freya_core::prelude::*;
     use freya_testing::TestingRunner;
     use std::{cell::RefCell, rc::Rc};
-    use torin::prelude::{Direction, Size, Size2D};
+    use torin::prelude::{Direction, Size2D};
     use vow_appearance::{AppearanceConfig, resolve};
 
     use crate::platform::window::{WindowControls, WindowStatus};
@@ -406,14 +406,12 @@ mod overlay_titlebar_tests {
         fn render(&self) -> impl IntoElement {
             crate::chrome::use_focus_bar_reveal();
             rect()
-                .width(Size::fill())
-                .height(Size::fill())
+                .expanded()
                 .direction(Direction::Vertical)
                 .child(Titlebar::new().probe("overlay-title"))
                 .child(
                     rect()
-                        .width(Size::fill())
-                        .height(Size::fill())
+                        .expanded()
                         .a11y_builder(|node| node.set_author_id("overlay-content")),
                 )
         }
@@ -535,7 +533,7 @@ mod traffic_light_tests {
 
     impl App for Case {
         fn render(&self) -> impl IntoElement {
-            let content = rect().width(Size::fill()).height(Size::fill());
+            let content = rect().expanded();
             match self.0 {
                 Layout::Titlebar => rect()
                     .width(Size::fill())
@@ -680,7 +678,7 @@ mod fullscreen_chrome_tests {
     use freya_core::prelude::*;
     use freya_testing::TestingRunner;
     use std::{cell::RefCell, rc::Rc};
-    use torin::prelude::{Size, Size2D};
+    use torin::prelude::Size2D;
     use vow_appearance::{AppearanceConfig, resolve};
     use vow_design::TITLEBAR;
 
@@ -691,8 +689,7 @@ mod fullscreen_chrome_tests {
     impl App for Case {
         fn render(&self) -> impl IntoElement {
             let detail = rect()
-                .width(Size::fill())
-                .height(Size::fill())
+                .expanded()
                 .child(Titlebar::new().title("Ventana").with_sidebar(true));
             crate::chrome::window_root(WindowChrome::new(
                 self.0,

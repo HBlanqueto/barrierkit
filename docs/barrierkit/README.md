@@ -5,7 +5,7 @@ This documentation covers it from the first window to the Wayland runner.
 
 - **Reader:** anyone who writes an app with the kit or works inside the kit.
 - **Requirements:** basic Rust and knowing what a Wayland compositor is.
-- **Source:** the code on `main` as of 2026-11-03. The images are real
+- **Source:** the code on `main` as of 2026-11-07. The images are real
   screenshots of the code shown (see [`assets/README.md`](assets/README.md)).
 
 ## Walkthrough
@@ -15,7 +15,7 @@ Each chapter builds on the previous ones.
 | # | Chapter | Answers |
 |---|---|---|
 | 1 | [What BarrierKit is](01-que-es.md) | What is it, which crates does it have, does it use the GPU or the CPU? |
-| 2 | [Your first app](02-primera-app.md) | How do I open a window with a button? |
+| 2 | [Your first app](02-primera-app.md) | How do I open a window with text, state and a button? |
 | 3 | [Layers](03-capas.md) | How is the kit organized and what can I use? |
 | 4 | [Appearance and tokens](04-apariencia-y-tokens.md) | Where do colors and sizes come from? How do I set my own? |
 | 5 | [Controls](05-controles.md) | Which interactive elements exist and how do they look? |
@@ -28,10 +28,17 @@ Each chapter builds on the previous ones.
 | 12 | [Animations](12-animaciones.md) | What animates, with which curve, and how is motion reduced? |
 | 13 | [Tinted backdrops and media](13-fondos-y-medios.md) | Backdrops from an image, custom accent, video |
 | 14 | [Platform](14-plataforma.md) | Runner, Vulkan, Wayland protocols, the shell part |
+| 15 | [Glossary](15-glosario.md) | What is the BarrierKit name for a SwiftUI or AppKit concept? How are names chosen? |
 | 16 | [Frequently asked questions](16-preguntas.md) | What do we have and what is missing? |
 | 17 | [Profiling with Tracy](17-perfilado.md) | Where does each frame's time go? |
 | 18 | [Languages](18-idiomas.md) | How do I translate an app and how is the language chosen? |
 | 19 | [Charts](19-graficas.md) | How do I draw series, shares and 3D charts? |
+
+## For AI agents
+
+[`docs/ai/prompt.md`](../ai/prompt.md) is the single prompt for an agent that
+writes apps with the kit. It links the glossary, recipes that compile and a
+checklist.
 
 ## Single sources
 
@@ -39,7 +46,9 @@ This documentation links and does not copy. When a fact changes, it changes
 there:
 
 - Decisions: [`docs/decisiones/`](../decisiones/), especially
-  [ADR 0047](../decisiones/0047-barrierkit-en-capas.md) (layers and status).
+  [ADR 0047](../decisiones/0047-barrierkit-en-capas.md) (layers and status)
+  and [ADR 0061](../decisiones/0061-api-de-entrada-estilo-swiftui.md) (entry
+  API and names).
 - Tokens: `crates/vow-design/tengen/tokens.json` and `components.json`.
 - Appearance options: `crates/vow-appearance/src/config.rs`
   (`AppearanceConfig`).

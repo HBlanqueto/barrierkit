@@ -60,8 +60,9 @@ impl App for LayoutCase {
         let capture = self.capture.clone();
         SplitView::new(
             Sidebar::new(),
-            rect().width(Size::fill()).height(Size::fill()).on_sized(
-                move |event: Event<SizedEventData>| {
+            rect()
+                .expanded()
+                .on_sized(move |event: Event<SizedEventData>| {
                     let area = event.data().area;
                     *capture.lock().unwrap() = Some((
                         area.origin.x,
@@ -69,8 +70,7 @@ impl App for LayoutCase {
                         area.size.width,
                         area.size.height,
                     ));
-                },
-            ),
+                }),
         )
     }
 }
@@ -863,8 +863,7 @@ impl App for IslandShadowCase {
         let resolved = dark_resolved();
         use_init_theme(|| theme::for_scheme(true));
         rect()
-            .width(Size::fill())
-            .height(Size::fill())
+            .expanded()
             .background(color(resolved.surfaces.window))
             .child(SplitView::new(Sidebar::new(), rect()))
     }
@@ -877,8 +876,7 @@ impl App for ToolgroupShadowCase {
         let resolved = dark_resolved();
         use_init_theme(|| theme::for_scheme(true));
         rect()
-            .width(Size::fill())
-            .height(Size::fill())
+            .expanded()
             .background(color(resolved.surfaces.window))
             .main_align(Alignment::Center)
             .cross_align(Alignment::Center)
@@ -938,8 +936,7 @@ impl App for AlignedToolbarCase {
     fn render(&self) -> impl IntoElement {
         use_init_theme(|| theme::for_scheme(false));
         let content = rect()
-            .width(Size::fill())
-            .height(Size::fill())
+            .expanded()
             .direction(Direction::Vertical)
             .child(
                 Titlebar::preview(WindowStatus::default(), "Ventana", false)
@@ -1000,8 +997,7 @@ impl App for HidingCase {
                 .traffic_lights(true)
                 .child(SidebarItem::new("Uno")),
             rect()
-                .width(Size::fill())
-                .height(Size::fill())
+                .expanded()
                 .child(Titlebar::new().with_sidebar(true).left(SidebarToggle)),
         )
     }
@@ -1083,8 +1079,7 @@ impl App for NarrowCase {
                 .child(SidebarItem::new("Uno").on_select(|_| {})),
             rect()
                 .probe("detail")
-                .width(Size::fill())
-                .height(Size::fill())
+                .expanded()
                 .child(Titlebar::new().with_sidebar(true).left(SidebarToggle)),
         )
         .narrow_sidebar(self.0)

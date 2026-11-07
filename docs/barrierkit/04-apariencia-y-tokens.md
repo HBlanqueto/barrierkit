@@ -18,13 +18,13 @@ the system and how to add your own values.
 constants. An app imports them from `vow_design`:
 
 ```rust
-use vow_design::{ACCENT_SWATCHES, BUTTON, DURATION_BASE, SPACE_3, SPLIT_VIEW, TITLE_1};
+use vow_design::{ACCENT_SWATCHES, BUTTON, DURATION_BASE, SPACE_3, SPLIT_VIEW, TITLE};
 ```
 
 | Group | Examples |
 |---|---|
 | Spacing | `SPACE_1` … `SPACE_4` |
-| Typography | `DISPLAY`, `TITLE_1`, `TITLE_2`, `HEADLINE`, `TEXT`, `CALLOUT`, `CAPTION` and the monospaced `MONO` (type `Font`) |
+| Typography | `LARGE_TITLE`, `TITLE`, `TITLE_2`, `HEADLINE`, `BODY`, `CALLOUT`, `CAPTION` and the monospaced `MONO` (type `Font`) |
 | Durations (ms) | `DURATION_FAST_MS` (120), `DURATION_BASE` (220), `DURATION_SLOW_MS` (420) |
 | Per-component metrics | `BUTTON`, `SWITCH`, `SLIDER`, `SEGMENTED`, `TEXT_FIELD`, `TITLEBAR`, `SIDEBAR`, `SPLIT_VIEW`, `SPLIT_PANES`, `FLOATING_PANE`, `TABLE`, `COLLECTION`, `BREAKPOINT`… |
 | Base colors | `LIGHT`, `DARK`, `DARK_TINT` and their backgrounds (`BG_WINDOW_LIGHT`…) |

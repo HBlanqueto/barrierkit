@@ -1,7 +1,7 @@
 use freya_components::scrollviews::VirtualScrollView;
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
-use vow_design::{CAPTION, Rgba, SPACE_1, TABLE, TEXT};
+use vow_design::{BODY, CAPTION, Rgba, SPACE_1, TABLE};
 
 use crate::context_menu::context_menu;
 use crate::interaction::use_interaction;
@@ -224,7 +224,7 @@ impl Component for Table {
                     let value = rect()
                         .width(Size::fill())
                         .overflow(Overflow::Clip)
-                        .child(text(value, TEXT, ink));
+                        .child(text(value, BODY, ink));
                     (*width, value.into_element())
                 }))
                 .a11y_role(AccessibilityRole::Row)
@@ -249,8 +249,7 @@ impl Component for Table {
         let table = track_modifiers(interaction.attach(rect(), true), held)
             .a11y_role(AccessibilityRole::Table)
             .a11y_alt(self.label)
-            .width(Size::fill())
-            .height(Size::fill())
+            .expanded()
             .direction(Direction::Vertical)
             .on_global_pointer_move(move |event: Event<PointerEventData>| {
                 if let Some((column, origin, start)) = *drag.peek() {

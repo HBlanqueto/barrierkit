@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Direction, Gaps, Size};
-use vow_design::{DISCLOSURE, HAIRLINE, SPACE_1, TEXT};
+use vow_design::{BODY, DISCLOSURE, HAIRLINE, SPACE_1};
 
 use crate::interaction::{track_modifiers, use_held_modifiers};
 use crate::scroll::ScrollView;
@@ -107,7 +107,7 @@ pub(crate) fn row(
         .child(
             rect()
                 .width(Size::flex(1.0))
-                .child(text(node.title.clone(), TEXT, ink).max_lines(1)),
+                .child(text(node.title.clone(), BODY, ink).max_lines(1)),
         )
         .maybe_child(trail)
 }
@@ -210,14 +210,8 @@ impl Component for OutlineView {
         track_modifiers(rect(), held)
             .a11y_role(AccessibilityRole::Tree)
             .a11y_alt(self.label)
-            .width(Size::fill())
-            .height(Size::fill())
-            .child(
-                ScrollView::new()
-                    .width(Size::fill())
-                    .height(Size::fill())
-                    .children(items),
-            )
+            .expanded()
+            .child(ScrollView::new().expanded().children(items))
     }
 }
 
@@ -307,13 +301,11 @@ impl Component for ColumnBrowser {
         rect()
             .a11y_role(AccessibilityRole::Group)
             .a11y_alt(self.label)
-            .width(Size::fill())
-            .height(Size::fill())
+            .expanded()
             .child(
                 ScrollView::new()
                     .direction(Direction::Horizontal)
-                    .width(Size::fill())
-                    .height(Size::fill())
+                    .expanded()
                     .child(
                         rect()
                             .direction(Direction::Horizontal)

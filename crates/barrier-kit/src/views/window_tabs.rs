@@ -1,6 +1,6 @@
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
-use vow_design::{BUTTON, ICON_BUTTON, SPACE_1, TEXT};
+use vow_design::{BODY, BUTTON, ICON_BUTTON, SPACE_1};
 
 use crate::i18n::text;
 use crate::interaction::use_interaction;
@@ -160,7 +160,7 @@ impl Component for WindowTab {
                     .width(Size::flex(1.0))
                     .main_align(Alignment::Center)
                     .direction(Direction::Horizontal)
-                    .child(text(self.title.clone(), TEXT, palette.label).max_lines(1)),
+                    .child(text(self.title.clone(), BODY, palette.label).max_lines(1)),
             )
             .child(rect().width(Size::px(ICON_BUTTON.icon)));
         interaction.focus_ring(tab, BUTTON.height / 2.0)

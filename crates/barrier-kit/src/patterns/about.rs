@@ -1,8 +1,8 @@
 use std::borrow::Cow;
 
 use freya_core::prelude::*;
-use torin::prelude::{Alignment, Direction, Gaps, Size};
-use vow_design::{CAPTION, DIALOG_PADDING, SPACE_1, SPACE_3, TEXT, TITLE_1};
+use torin::prelude::{Alignment, Direction, Gaps};
+use vow_design::{BODY, CAPTION, DIALOG_PADDING, SPACE_1, SPACE_3, TITLE};
 
 use crate::style::{Palette, text};
 
@@ -14,8 +14,7 @@ pub fn about_window(
 ) -> Rect {
     let palette = Palette::current();
     rect()
-        .width(Size::fill())
-        .height(Size::fill())
+        .expanded()
         .direction(Direction::Vertical)
         .cross_align(Alignment::Center)
         .main_align(Alignment::Center)
@@ -27,8 +26,8 @@ pub fn about_window(
                 .direction(Direction::Vertical)
                 .cross_align(Alignment::Center)
                 .spacing(SPACE_1)
-                .child(text(name, TITLE_1, palette.label))
-                .maybe_child(version.map(|version| text(version, TEXT, palette.secondary_label))),
+                .child(text(name, TITLE, palette.label))
+                .maybe_child(version.map(|version| text(version, BODY, palette.secondary_label))),
         )
         .child(text(copyright, CAPTION, palette.tertiary_label))
 }

@@ -2,7 +2,7 @@ use freya_components::input::Input;
 use freya_core::integration::{App, AppComponent};
 use freya_core::prelude::*;
 use freya_testing::TestingRunner;
-use torin::prelude::{Direction, Size, Size2D};
+use torin::prelude::{Direction, Size2D};
 
 struct FocusApp {
     value_a: State<String>,
@@ -12,8 +12,7 @@ struct FocusApp {
 impl App for FocusApp {
     fn render(&self) -> impl IntoElement {
         rect()
-            .width(Size::fill())
-            .height(Size::fill())
+            .expanded()
             .direction(Direction::Vertical)
             .child(Input::new(self.value_a).auto_focus(true))
             .child(Input::new(self.value_b))

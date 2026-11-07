@@ -1,6 +1,6 @@
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Direction, Size};
-use vow_design::{PATH_CONTROL, TEXT};
+use vow_design::{BODY, PATH_CONTROL};
 
 use crate::style::{Palette, text};
 use crate::symbol::{Symbol, symbol};
@@ -56,7 +56,7 @@ impl Component for PathControl {
                     .cross_align(Alignment::Center)
                     .spacing(PATH_CONTROL.icon_gap)
                     .child(symbol(*icon, PATH_CONTROL.icon, palette.secondary_label))
-                    .child(text(item.clone(), TEXT, palette.label))
+                    .child(text(item.clone(), BODY, palette.label))
                     .into_element();
                 let separator = (index < last).then(|| {
                     symbol(

@@ -4,7 +4,7 @@ use std::time::Duration;
 
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
-use torin::prelude::{CursorPoint, Gaps, Size};
+use torin::prelude::{CursorPoint, Gaps};
 use vow_design::{CAPTION, TOOLTIP};
 
 use crate::menu::measure_text_weight;
@@ -98,8 +98,7 @@ impl App for Tag {
     fn render(&self) -> impl IntoElement {
         let menu = popover_palette(&crate::theme::resolved(), SurfaceKind::Toplevel);
         rect()
-            .width(Size::fill())
-            .height(Size::fill())
+            .expanded()
             .center()
             .padding(Gaps::new_symmetric(TOOLTIP.padding_y, TOOLTIP.padding_x))
             .corner_radius(TOOLTIP.radius)

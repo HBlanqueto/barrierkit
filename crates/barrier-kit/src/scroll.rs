@@ -148,6 +148,10 @@ impl ScrollView {
         self.height = height;
         self
     }
+
+    pub fn expanded(self) -> Self {
+        self.width(Size::fill()).height(Size::fill())
+    }
 }
 
 impl ChildrenExt for ScrollView {

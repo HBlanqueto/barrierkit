@@ -348,8 +348,7 @@ impl Component for PreferencesWindow {
 
         let detail =
             rect()
-                .width(Size::fill())
-                .height(Size::fill())
+                .expanded()
                 .direction(Direction::Vertical)
                 .child(
                     Titlebar::new()

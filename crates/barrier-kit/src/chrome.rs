@@ -111,8 +111,7 @@ pub(crate) fn window_root(app: impl IntoElement) -> Rect {
     let pushed =
         try_consume_root_context::<WindowControls>().map_or(0.0, |controls| controls.push_offset());
     rect()
-        .width(Size::fill())
-        .height(Size::fill())
+        .expanded()
         .padding(Gaps::new(pushed, 0.0, 0.0, 0.0))
         .child(app)
 }
@@ -385,8 +384,7 @@ impl Component for WindowChrome {
             (true, _) => Some(resting_edge(style.resting_edge, true).into_element()),
         };
         let mut root = rect()
-            .width(Size::fill())
-            .height(Size::fill())
+            .expanded()
             .direction(Direction::Horizontal)
             .content(Content::flex())
             .on_global_pointer_move(move |event: Event<PointerEventData>| {

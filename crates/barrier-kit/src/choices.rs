@@ -2,7 +2,7 @@ use crate::i18n::text;
 
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Direction, Position, Size};
-use vow_design::{CAPTION, Rgba, SETTINGS, SWITCH, TEXT};
+use vow_design::{BODY, CAPTION, Rgba, SETTINGS, SWITCH};
 
 use crate::backdrop::Tint;
 use crate::interaction::{ring, use_interaction};
@@ -219,7 +219,7 @@ impl Component for RadioOption {
             .child(circle)
             .child(text(
                 self.text,
-                TEXT,
+                BODY,
                 if enabled {
                     palette.label
                 } else {

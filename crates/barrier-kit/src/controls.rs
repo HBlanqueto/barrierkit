@@ -8,7 +8,7 @@ use freya_components::theming::macros::Preference;
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 use vow_design::{
-    BUTTON, CAPTION, CHECKBOX, Rgba, SEGMENTED, SETTINGS, SLIDER, SWITCH, TEXT, TEXT_FIELD,
+    BODY, BUTTON, CAPTION, CHECKBOX, Rgba, SEGMENTED, SETTINGS, SLIDER, SWITCH, TEXT_FIELD,
     TEXT_LINE_HEIGHT, TOOLGROUP,
 };
 
@@ -84,7 +84,7 @@ impl Component for SecureField {
         let mut field = self.field;
         let on_submit = self.on_submit.clone();
         let masked = field.read().masked();
-        let margin_y = (TEXT_FIELD.height - TEXT.line_height as f32) / 2.0;
+        let margin_y = (TEXT_FIELD.height - BODY.line_height as f32) / 2.0;
         let element = interaction
             .attach(rect(), true)
             .a11y_role(AccessibilityRole::PasswordInput)
@@ -115,7 +115,7 @@ impl Component for SecureField {
                     }
                 }
             })
-            .child(crate::style::text(masked, TEXT, palette.label));
+            .child(crate::style::text(masked, BODY, palette.label));
         interaction.focus_ring(element, TEXT_FIELD.radius)
     }
 }
@@ -398,7 +398,7 @@ impl Component for Slider {
         let labels = self.labels.iter().take(self.steps).map(|text| {
             let label_node = label()
                 .text(*text)
-                .font_family(TEXT.family)
+                .font_family(BODY.family)
                 .font_size(CAPTION.size as f32)
                 .font_weight(CAPTION.weight as i32)
                 .line_height(CAPTION.line_height as f32 / CAPTION.size as f32)
@@ -610,7 +610,7 @@ impl Component for Button {
             .child(
                 label()
                     .text(self.label.clone())
-                    .font_family(TEXT.family)
+                    .font_family(BODY.family)
                     .font_size(font_size)
                     .font_weight(BUTTON.font_weight)
                     .max_lines(1)
@@ -851,7 +851,7 @@ impl Component for Segment {
                     .child(
                         label()
                             .text(self.text)
-                            .font_family(TEXT.family)
+                            .font_family(BODY.family)
                             .font_size(SEGMENTED.font_size)
                             .font_weight(SEGMENTED.font_weight)
                             .color(color(palette.label)),
@@ -1091,9 +1091,9 @@ impl Component for SearchField {
                 TEXT_FIELD.height / 2.0,
             ))),
             inner_margin: Some(Preference::Specific(Gaps::new(
-                (TEXT_FIELD.height - TEXT.line_height as f32) / 2.0,
+                (TEXT_FIELD.height - BODY.line_height as f32) / 2.0,
                 padding + icon + gap,
-                (TEXT_FIELD.height - TEXT.line_height as f32) / 2.0,
+                (TEXT_FIELD.height - BODY.line_height as f32) / 2.0,
                 leading,
             ))),
         })
@@ -1194,7 +1194,7 @@ pub(crate) fn default_pre_key(event: &Event<KeyboardEventData>) -> bool {
 }
 
 pub(crate) fn text_style(element: Rect) -> Rect {
-    element.font_family(TEXT.family).font_size(TEXT.size as f32)
+    element.font_family(BODY.family).font_size(BODY.size as f32)
 }
 
 pub(crate) fn themed_input(
@@ -1207,7 +1207,7 @@ pub(crate) fn themed_input(
 ) -> Input {
     let (generation, mut typed) = use_input_generation(value);
     let palette = Palette::current();
-    let margin_y = (TEXT_FIELD.height - TEXT.line_height as f32) / 2.0;
+    let margin_y = (TEXT_FIELD.height - BODY.line_height as f32) / 2.0;
     let color = |c: Rgba| Some(Preference::Specific(color(c)));
     Input::new(value)
         .key(generation)
@@ -1384,10 +1384,10 @@ impl Component for Checkbox {
             .child(
                 label()
                     .text(label_text)
-                    .font_family(TEXT.family)
-                    .font_size(TEXT.size as f32)
-                    .font_weight(TEXT.weight as i32)
-                    .line_height(TEXT.line_height as f32 / TEXT.size as f32)
+                    .font_family(BODY.family)
+                    .font_size(BODY.size as f32)
+                    .font_weight(BODY.weight as i32)
+                    .line_height(BODY.line_height as f32 / BODY.size as f32)
                     .color(label_color),
             );
 

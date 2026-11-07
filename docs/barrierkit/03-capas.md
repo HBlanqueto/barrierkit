@@ -8,18 +8,18 @@ The full decision is in [ADR 0047](../decisiones/0047-barrierkit-en-capas.md).
 
 ```
 ┌───────────────────────────────────────────────────────┐
-│ Capa 3 · Patrones     PreferencesWindow, about_window │
-├───────────────────────────────────────────────────────┤  App (transversal)
-│ Capa 2 · Vistas       SplitView, Form, Table,         │  Action, launch,
-│                       CollectionView, TabView,        │  Defaults, Restoration,
-│                       History, SearchIndex, Alert…    │  UndoManager, copy/paste
+│ Layer 3 · Patterns    PreferencesWindow, about_window │
+├───────────────────────────────────────────────────────┤  App (cross-cutting)
+│ Layer 2 · Views       SplitView, Form, Table,         │  Application, Scene,
+│                       CollectionView, TabView,        │  Action, launch,
+│                       History, SearchIndex, Alert…    │  Defaults, Restoration,
+├───────────────────────────────────────────────────────┤  UndoManager, copy/paste
+│ Layer 1 · Primitives  Text, VStack, HStack, Palette,  │
+│                       text, Symbol, use_interaction,  │
+│                       controls, Titlebar, Sidebar…    │
 ├───────────────────────────────────────────────────────┤
-│ Capa 1 · Primitivas   Palette, text, Symbol,          │
-│                       use_interaction, controles,     │
-│                       Titlebar, Sidebar, MenuView…    │
-├───────────────────────────────────────────────────────┤
-│ Capa 0 · Plataforma   run_window, popups, entrada,    │
-│                       foco, cursor, escala, Vulkan    │
+│ Layer 0 · Platform    run_window, popups, input,      │
+│                       focus, cursor, scale, Vulkan    │
 └───────────────────────────────────────────────────────┘
         shell/ (feature `shell`): layer-shell, lock, Dock
 ```
@@ -29,14 +29,17 @@ The full decision is in [ADR 0047](../decisiones/0047-barrierkit-en-capas.md).
 | Layer | Folder or modules in `crates/barrier-kit/src/` |
 |---|---|
 | 0 · Platform | `platform/`, `i18n`, `portal`, `drag`, `notifications`, `secrets` |
-| 1 · Primitives | `style`, `theme`, `symbol`, `interaction`, `animation`, `controls`, `buttons`, `compact`, `choices`, `level`, `progress`, `indicator`, `adornments`, `popup_button`, `combo_box`, `popover`, `tooltip`, `context_menu`, `password`, `text_editor`, `rich_text`, `spelling`, `token_field`, `path_control`, `date`, `date_picker`, `color_picker`, `image_well`, `rule_editor`, `print`, `charts/`, `canvas`, `glass_container`, `backdrop`, `media`, `video`, `adaptive`, `titlebar`, `traffic`, `chrome`, `sidebar`, `menu/`, `app_menu/`, `status_item` |
+| 1 · Primitives | `elements`, `style`, `theme`, `symbol`, `interaction`, `animation`, `controls`, `buttons`, `compact`, `choices`, `level`, `progress`, `indicator`, `adornments`, `popup_button`, `combo_box`, `popover`, `tooltip`, `context_menu`, `password`, `text_editor`, `rich_text`, `spelling`, `token_field`, `path_control`, `date`, `date_picker`, `color_picker`, `image_well`, `rule_editor`, `print`, `charts/`, `canvas`, `glass_container`, `backdrop`, `media`, `video`, `adaptive`, `titlebar`, `traffic`, `chrome`, `sidebar`, `menu/`, `app_menu/`, `status_item` |
 | 2 · Views | `views/` (`form`, `group`, `split`, `split_panes`, `floating_pane`, `table`, `tree`, `collection`, `tabs`, `window_tabs`, `text_view`, `feedback`, `navigation`, `search`) and `font_panel` |
 | 3 · Patterns | `patterns/` (`preferences`, `search_popover`, `about`, `language`) |
-| App | `app/` (`action`, `application`, `defaults`, `undo`) |
+| App | `app/` (`scene`, `action`, `application`, `defaults`, `undo`) and `prelude` |
 | Shell | `shell/`, only with the `shell` feature |
 
-There is no `prelude`: each piece is imported from its module, for example
-`barrier_kit::views::form::Form`.
+`barrier_kit::prelude::*` brings the entry points (`Application`,
+`run_window`), the basic elements (`Text`, `VStack`, `HStack`), the controls,
+`Palette`, Freya's elements and hooks, and the type and spacing tokens. The
+rest is imported from its module, for example `barrier_kit::views::form::Form`.
+The list of names is in the [glossary](15-glosario.md).
 
 ## Rules
 

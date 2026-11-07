@@ -1,6 +1,6 @@
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Direction, Gaps, Size};
-use vow_design::{DISCLOSURE, SPACE_1, SPACE_2, TEXT};
+use vow_design::{BODY, DISCLOSURE, SPACE_1, SPACE_2};
 
 use crate::compact::IconButton;
 use crate::controls::TextField;
@@ -300,7 +300,7 @@ fn match_picker(all: bool, on_change: impl FnMut(usize) + 'static) -> impl IntoE
                 .selected(usize::from(!all))
                 .on_change(on_change),
         )
-        .child(text(text!("rule-of-the-following"), TEXT, palette.label))
+        .child(text(text!("rule-of-the-following"), BODY, palette.label))
 }
 
 fn indented(depth: usize, row: Rect) -> Rect {

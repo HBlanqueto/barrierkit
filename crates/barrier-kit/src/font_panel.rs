@@ -1,7 +1,7 @@
 use freya_core::prelude::*;
 use freya_engine::prelude::{FontStyle, Slant};
 use torin::prelude::{Area, Direction, Gaps, Size};
-use vow_design::{BUTTON, CAPTION, DISCLOSURE, FONT_PANEL, HAIRLINE, SPACE_1, SPACE_2, TEXT};
+use vow_design::{BODY, BUTTON, CAPTION, DISCLOSURE, FONT_PANEL, HAIRLINE, SPACE_1, SPACE_2};
 
 use crate::controls::{Button, TextField};
 use crate::fonts::{family_names, fixed_pitch, styles};
@@ -219,7 +219,7 @@ impl Component for FontPanel {
             };
         let mut preview = text(
             format!("{} {}", current.family, current.size),
-            TEXT,
+            BODY,
             palette.label,
         )
         .font_family(current.family.clone())
@@ -232,8 +232,7 @@ impl Component for FontPanel {
             preview = preview.font_slant(FontSlant::Italic);
         }
         rect()
-            .width(Size::fill())
-            .height(Size::fill())
+            .expanded()
             .direction(Direction::Vertical)
             .spacing(SPACE_2)
             .child(

@@ -5,7 +5,7 @@ use barrier_kit::titlebar::Titlebar;
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 use freya_testing::TestingRunner;
-use torin::prelude::{Area, Size, Size2D};
+use torin::prelude::{Area, Size2D};
 use vow_design::TITLEBAR;
 
 struct Case(ChromeStyle);
@@ -14,10 +14,7 @@ impl App for Case {
     fn render(&self) -> impl IntoElement {
         WindowChrome::new(
             self.0,
-            rect()
-                .width(Size::fill())
-                .height(Size::fill())
-                .child(Titlebar::new().title("Rótulo")),
+            rect().expanded().child(Titlebar::new().title("Rótulo")),
         )
     }
 }
@@ -66,7 +63,7 @@ struct Uneven;
 
 impl App for Uneven {
     fn render(&self) -> impl IntoElement {
-        rect().width(Size::fill()).height(Size::fill()).child(
+        rect().expanded().child(
             Titlebar::new()
                 .title("Escuchando")
                 .right(IconButton::new(Symbol::ListBullet, "Cola")),

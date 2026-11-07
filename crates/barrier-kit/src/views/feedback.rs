@@ -1,7 +1,7 @@
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 use vow_design::{
-    DIALOG, DIALOG_ALERT_WIDTH, DIALOG_PADDING, HEADLINE, SETTINGS, SPACE_2, SPACE_4, TEXT,
+    BODY, DIALOG, DIALOG_ALERT_WIDTH, DIALOG_PADDING, HEADLINE, SETTINGS, SPACE_2, SPACE_4,
 };
 
 use crate::controls::{Button, ButtonStyle, Checkbox, ControlSize};
@@ -28,7 +28,7 @@ pub fn empty_state(icon: Symbol, title: &'static str) -> Rect {
             SETTINGS.empty_icon as f32,
             palette.tertiary_label,
         ))
-        .child(text(title, TEXT, palette.secondary_label))
+        .child(text(title, BODY, palette.secondary_label))
 }
 
 pub fn sheet(content: impl IntoElement) -> Rect {
@@ -127,7 +127,7 @@ impl Component for Alert {
                     _ => {}
                 })
                 .child(text(self.title, HEADLINE, palette.label))
-                .child(text(self.message.clone(), TEXT, palette.secondary_label).max_lines(None))
+                .child(text(self.message.clone(), BODY, palette.secondary_label).max_lines(None))
                 .maybe_child(self.suppressed.map(|mut suppressed| {
                     Checkbox::new(text!("alert-suppress"))
                         .checked(*suppressed.read())

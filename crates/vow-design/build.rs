@@ -96,9 +96,9 @@ TRAFFIC_GLYPH_ON_DARK Rgba components.window.traffic-lights.styles.accent.glyph-
 TRAFFIC_GLYPH_ON_LIGHT Rgba components.window.traffic-lights.styles.accent.glyph-on-light
 TRAFFIC_GLYPHS TrafficGlyphs components.window.traffic-lights.glyphs box_size=box
     close=close.segments minimize=minimize.segments zoom=zoom.triangles plus=plus.segments
-TEXT Font font.styles.body
-DISPLAY Font font.styles.display
-TITLE_1 Font font.styles.title-1
+BODY Font font.styles.body
+LARGE_TITLE Font font.styles.display
+TITLE Font font.styles.title-1
 TITLE_2 Font font.styles.title-2
 HEADLINE Font font.styles.headline
 CALLOUT Font font.styles.callout

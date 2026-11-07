@@ -212,8 +212,7 @@ impl Component for Backdrop {
         });
 
         rect()
-            .width(Size::fill())
-            .height(Size::fill())
+            .expanded()
             .child(layer(shown))
             .child(self.child.clone())
     }

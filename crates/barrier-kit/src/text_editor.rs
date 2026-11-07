@@ -3,7 +3,7 @@ use freya_core::prelude::*;
 use freya_edit::{EditableConfig, EditableEvent, EditorLine, TextEditor as _, use_editable};
 use freya_engine::prelude::{RectHeightStyle, RectWidthStyle};
 use torin::prelude::{Alignment, Area, Content, CursorPoint, Direction, Gaps, Size};
-use vow_design::{CAPTION, SPACE_1, SPACE_2, TEXT, TEXT_FIELD};
+use vow_design::{BODY, CAPTION, SPACE_1, SPACE_2, TEXT_FIELD};
 
 use crate::compact::IconButton;
 use crate::controls::{Button, ControlSize, SearchField};
@@ -124,7 +124,7 @@ impl Component for TextEditor {
                 editor.set_selection(range);
                 if let Some(inner) = holder.peek().0.borrow().as_ref() {
                     let scale = inner.scale_factor as f32;
-                    let margin_y = (TEXT_FIELD.height - TEXT.line_height as f32) / 2.0;
+                    let margin_y = (TEXT_FIELD.height - BODY.line_height as f32) / 2.0;
                     if let Some(rect) = inner
                         .paragraph
                         .get_rects_for_range(
@@ -306,7 +306,7 @@ impl Component for TextEditor {
 
         let empty = value.read().is_empty() && !editable.editor().read().has_preedit();
         let editor = editable.editor().read();
-        let margin_y = (TEXT_FIELD.height - TEXT.line_height as f32) / 2.0;
+        let margin_y = (TEXT_FIELD.height - BODY.line_height as f32) / 2.0;
         let paragraph = paragraph()
             .holder(holder.read().clone())
             .width(Size::fill())
@@ -435,16 +435,12 @@ impl Component for TextEditor {
         .on_global_pointer_move(on_drag)
         .on_global_pointer_press(on_release)
         .child(
-            ScrollView::new()
-                .controller(scroll)
-                .width(Size::fill())
-                .height(Size::fill())
-                .child(
-                    rect()
-                        .width(Size::fill())
-                        .child(paragraph)
-                        .maybe_child(squiggles),
-                ),
+            ScrollView::new().controller(scroll).expanded().child(
+                rect()
+                    .width(Size::fill())
+                    .child(paragraph)
+                    .maybe_child(squiggles),
+            ),
         );
         let field = if focused {
             ring(field, TEXT_FIELD.radius, resolved().accent)

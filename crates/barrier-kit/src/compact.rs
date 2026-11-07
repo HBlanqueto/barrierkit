@@ -2,7 +2,7 @@ use freya_core::prelude::*;
 use std::rc::Rc;
 
 use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
-use vow_design::{BUTTON, DISPLAY, ICON_BUTTON, SEGMENTED, STEPPER, TEXT, TOOLGROUP};
+use vow_design::{BODY, BUTTON, ICON_BUTTON, LARGE_TITLE, SEGMENTED, STEPPER, TOOLGROUP};
 
 use crate::i18n::text;
 use crate::interaction::use_interaction;
@@ -158,7 +158,7 @@ impl Component for Stepper {
                 Key::Named(NamedKey::ArrowDown) => step_key(-1),
                 _ => {}
             })
-            .child(text(current.to_string(), TEXT, palette.label))
+            .child(text(current.to_string(), BODY, palette.label))
             .child(interaction.focus_ring(arrows, STEPPER.radius));
         stepper.into_element()
     }
@@ -312,10 +312,10 @@ impl Component for Toggle {
             .on_press(move |_| on_press.call(()))
             .child(
                 paragraph()
-                    .font_family(TEXT.family)
-                    .font_size(TEXT.size as f32)
+                    .font_family(BODY.family)
+                    .font_size(BODY.size as f32)
                     .font_weight(match face {
-                        Face::Bold => DISPLAY.weight as i32,
+                        Face::Bold => LARGE_TITLE.weight as i32,
                         Face::Italic | Face::Underline => SEGMENTED.font_weight,
                     })
                     .font_slant(match face {

@@ -1,7 +1,7 @@
 use crate::scroll::ScrollView;
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
-use vow_design::{CAPTION, LIST_GROUP, Rgba, SETTINGS, SIDEBAR, TEXT, TEXT_FIELD};
+use vow_design::{BODY, CAPTION, LIST_GROUP, Rgba, SETTINGS, SIDEBAR, TEXT_FIELD};
 
 use crate::interaction::use_interaction;
 use crate::sidebar::symbol_tile;
@@ -150,7 +150,7 @@ impl Component for SearchResult {
                 rect()
                     .width(Size::flex(1.0))
                     .direction(Direction::Vertical)
-                    .child(text(title, TEXT, ink).text_overflow(TextOverflow::Ellipsis))
+                    .child(text(title, BODY, ink).text_overflow(TextOverflow::Ellipsis))
                     .maybe_child(subtitle.map(|subtitle| text(subtitle, CAPTION, secondary))),
             );
         interaction.focus_ring(row, menu.item_radius)

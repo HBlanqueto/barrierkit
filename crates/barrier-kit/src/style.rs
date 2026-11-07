@@ -80,14 +80,17 @@ impl Palette {
 }
 
 pub fn text(content: impl Into<Cow<'static, str>>, face: Font, ink: Rgba) -> Label {
-    label()
-        .text(content)
+    with_font(label().text(content), face)
+        .max_lines(1)
+        .color(color(ink))
+}
+
+pub(crate) fn with_font(label: Label, face: Font) -> Label {
+    label
         .font_family(face.family)
         .font_size(face.size as f32)
         .font_weight(face.weight as i32)
         .line_height(face.line_height as f32 / face.size as f32)
-        .max_lines(1)
-        .color(color(ink))
 }
 
 // Freya's smoothing s runs the curve to (1 + s) R, Apple's 1.5287 R (malaysia ADR 0059).

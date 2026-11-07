@@ -4,7 +4,7 @@ use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Area, Direction, Gaps, Size};
 use vow_design::{
-    CAPTION, DATE_PICKER, HAIRLINE, HEADLINE, MENU_POPOVER, STEPPER, TEXT, TEXT_FIELD,
+    BODY, CAPTION, DATE_PICKER, HAIRLINE, HEADLINE, MENU_POPOVER, STEPPER, TEXT_FIELD,
 };
 
 use crate::compact::stepper_arrows;
@@ -170,7 +170,7 @@ impl Component for DatePicker {
                 segments.push(
                     text(
                         separator(parts[index - 1], part),
-                        TEXT,
+                        BODY,
                         palette.secondary_label,
                     )
                     .into_element(),
@@ -195,7 +195,7 @@ impl Component for DatePicker {
                             open_calendar(*area.peek(), value.peek().date, pick.clone());
                         }
                     })
-                    .child(text(part_text(current, part), TEXT, ink))
+                    .child(text(part_text(current, part), BODY, ink))
                     .into_element(),
             );
         }
@@ -393,8 +393,7 @@ impl App for Calendar {
             .a11y_alt(format!("{} {}", month_name(page.month), page.year))
             .children(rows);
         rect()
-            .width(Size::fill())
-            .height(Size::fill())
+            .expanded()
             .padding(Gaps::new_all(MENU_POPOVER.padding))
             .background(color(menu.bg))
             .direction(Direction::Vertical)

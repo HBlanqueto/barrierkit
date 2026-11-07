@@ -55,6 +55,30 @@ Aplica a `README.md`, `docs/` y los ADR.
    `opciones.md`). Ejemplos mínimos y ejecutables, mejor en pareja ✗/✓.
 5. **Comentarios en el código:** reglas 5 y 6 de «Código mínimo».
 
+## Nombres y glosario
+
+Aplica a todo elemento público del kit y de `vow-design` (tipos, funciones,
+métodos, hooks, tokens).
+
+1. **Una sola fuente:** `docs/barrierkit/15-glosario.md` lista cada nombre
+   público con su equivalente en SwiftUI y AppKit, y las reglas para nombrar.
+2. **Cómo se nombra:** primero el nombre de SwiftUI; si no existe, el de AppKit
+   sin `NS`; si tampoco, una o dos palabras de inglés llano que digan qué es,
+   no cómo está hecho. Mayúsculas de Rust: `foregroundStyle` →
+   `foreground_style`, `.title` → `TITLE`. Si Freya ya usa el nombre (`App`,
+   `label`, `rect`), el siguiente más claro (`Application`).
+3. **Al tocar un nombre:** si el elemento público que editas no sigue la regla
+   2, renómbralo en ese commit, actualiza sus usos y el glosario, y anota allí
+   el nombre anterior y la fecha. malaysia y curseterm se adaptan al subir el
+   `rev`.
+4. **API nueva, documentada en el mismo commit:** su fila en el glosario, su
+   uso en el capítulo que la describe y, si cambia cómo se escribe una app,
+   `docs/ai/` (`prompt.md`, `recipes.md`, `checklist.md`).
+5. **El código de la documentación compila.** Cada bloque con `fn main` de
+   `docs/ai/recipes.md` y del capítulo 2 se compila antes del push (por
+   ejemplo, en un `crates/barrier-kit/examples/` temporal con
+   `cargo clippy --examples -- -D warnings`, que se borra después).
+
 ## Código mínimo (reglas duras, estilo ponytail)
 
 Se cumplen al pie de la letra. Ganan el diff más corto y la respuesta más corta.
@@ -120,6 +144,9 @@ pub fn focused(mut self, focused: bool) -> Self { … }
 // SAFETY: instance, device and queue live in `Self` and outlive the Skia context.
 ```
 
+- Una app empieza por `use barrier_kit::prelude::*;` y
+  `Application::new(..).window(..).run()`; `run_window` solo cuando dibuja su
+  propia barra de título (ADR 0061).
 - Los colores, radios, duraciones y métricas nuevos van a `vow-design`, nunca
   a `barrier-kit`.
 - Un control nuevo compone primitivas del kit; no reimplementa la barra
