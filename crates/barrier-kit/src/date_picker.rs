@@ -351,6 +351,7 @@ impl App for Calendar {
         let grid = page.month_grid(week_starts_on_monday());
         let rows = grid.chunks(7).map(|week| {
             rect()
+                .a11y_role(AccessibilityRole::Row)
                 .height(Size::px(cell_height))
                 .direction(Direction::Horizontal)
                 .children(week.iter().map(|day| {
@@ -370,7 +371,14 @@ impl App for Calendar {
                         .center()
                         .corner_radius(DATE_PICKER.day_radius)
                         .maybe(chosen, |el| el.background(color(palette.accent)))
-                        .a11y_role(AccessibilityRole::Button)
+                        .a11y_role(AccessibilityRole::GridCell)
+                        .a11y_alt(text!(
+                            "calendar-day",
+                            day = day.day.to_string(),
+                            month = month_name(day.month),
+                            year = day.year.to_string()
+                        ))
+                        .a11y_builder(move |node| node.set_selected(chosen))
                         .on_press(move |_| {
                             on_pick.call(day);
                             PopupHandle::get().close();
@@ -380,6 +388,10 @@ impl App for Calendar {
                 }))
                 .into_element()
         });
+        let days = rect()
+            .a11y_role(AccessibilityRole::Grid)
+            .a11y_alt(format!("{} {}", month_name(page.month), page.year))
+            .children(rows);
         rect()
             .width(Size::fill())
             .height(Size::fill())
@@ -388,6 +400,6 @@ impl App for Calendar {
             .direction(Direction::Vertical)
             .child(header)
             .child(weekdays)
-            .children(rows)
+            .child(days)
     }
 }

@@ -44,6 +44,7 @@ camera-keep = Fijar esta cámara
 chart-now = ahora
 date-order = dmy
 week-start = monday
+calendar-day = { $day } de { $month } de { $year }
 month-1 = enero
 month-2 = febrero
 month-3 = marzo

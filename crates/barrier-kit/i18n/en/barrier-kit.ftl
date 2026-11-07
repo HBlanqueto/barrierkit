@@ -44,6 +44,7 @@ camera-keep = Keep this camera
 chart-now = now
 date-order = mdy
 week-start = sunday
+calendar-day = { $month } { $day }, { $year }
 month-1 = January
 month-2 = February
 month-3 = March
