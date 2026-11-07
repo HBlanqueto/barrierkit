@@ -241,6 +241,7 @@ impl Component for TextEditor {
                     styles.set(next);
                 }
                 value.set(text);
+                spell_index.set_if_modified(None);
             }
         };
         let on_press = move |event: Event<PointerEventData>| {
@@ -265,6 +266,7 @@ impl Component for TextEditor {
             }
             event.stop_propagation();
             event.prevent_default();
+            spell_index.set_if_modified(None);
             if let Some(link) = link_under(&holder.peek(), &value.peek(), styles, location) {
                 spawn(async move { crate::portal::open_uri(&link, false).await });
                 return;
