@@ -737,7 +737,10 @@ A `Canvas` has no style: the painter draws everything.
    hover and press tracking. Set its `a11y_role` and `a11y_alt`.
 4. Read `hovered()`, `pressed()` (held and still under the pointer), `held()`, `focused()` and
    `keyboard_focused()` to choose colors.
-5. Wrap the result in `interaction.focus_ring(element, corner_radius)`.
+5. Wrap the result in `interaction.focus_ring(element, corner_radius)`: an outer border of
+   `FOCUS_RING.width` that follows the element's corners. Use
+   `interaction.inner_focus_ring(element)` instead when the element fills its parent and an
+   outer ring would be clipped, like the rows of `Form` and the cells of `Table`.
    `element.focus_ring(radius, color)` ([`ViewModifiers`](07-menus-and-popovers.md#focus_ring))
    draws the same ring in another color, as a selection mark.
 6. Paint only with `Palette::current()` and `ctdesign` tokens ([4](04-appearance-and-tokens.md)).
