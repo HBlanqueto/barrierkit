@@ -1,6 +1,6 @@
 # 0047 — Layered BarrierKit: a toolkit for building complete apps
 
-Status: **accepted** (2026-10-28). What is done and what is pending is in «Status» (2026-11-02). The test apps (Master Tengen App Show, Marea, Ondina and Trazo) and the examples were removed from the repository on 2026-11-07.
+Status: **accepted** (2026-10-28). The rule «Variants, not free styles» of §2 is superseded by [0064](0064-styles-and-themes.md). What is done and what is pending is in «Status» (2026-11-02). The test apps (Master Tengen App Show, Marea, Ondina and Trazo) and the examples were removed from the repository on 2026-11-07.
 
 ## Context
 
