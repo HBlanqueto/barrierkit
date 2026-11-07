@@ -19,14 +19,14 @@ impl Dispatch<XdgActivationV1, ()> for Runtime {
     }
 }
 
-pub(crate) struct KeyboardRequest(WlSurface);
+pub(crate) struct ActivateSurface(WlSurface);
 
-impl Dispatch<XdgActivationTokenV1, KeyboardRequest> for Runtime {
+impl Dispatch<XdgActivationTokenV1, ActivateSurface> for Runtime {
     fn event(
         state: &mut Self,
         token: &XdgActivationTokenV1,
         event: xdg_activation_token_v1::Event,
-        request: &KeyboardRequest,
+        request: &ActivateSurface,
         _: &Connection,
         _: &QueueHandle<Self>,
     ) {
@@ -40,6 +40,16 @@ impl Dispatch<XdgActivationTokenV1, KeyboardRequest> for Runtime {
 }
 
 impl Runtime {
+    // xdg-activation-v1: a token without a serial lets the compositor decide between focus and attention.
+    pub(crate) fn request_activation(&self, surface: &WlSurface) {
+        let Some(activation) = &self.activation else {
+            return;
+        };
+        let token = activation.get_activation_token(&self.qh, ActivateSurface(surface.clone()));
+        token.set_surface(surface);
+        token.commit();
+    }
+
     // A key-only-if-needed panel never gets the keyboard from a press; it asks with the press's
     // token, which Malaysia accepts while the keyboard stays on the same client.
     pub(crate) fn request_keyboard(&self, index: usize, serial: u32) {
@@ -54,7 +64,7 @@ impl Runtime {
         let (Some(activation), Some(seat)) = (&self.activation, &self.seat_handle) else {
             return;
         };
-        let token = activation.get_activation_token(&self.qh, KeyboardRequest(surface.clone()));
+        let token = activation.get_activation_token(&self.qh, ActivateSurface(surface.clone()));
         token.set_serial(serial, seat);
         token.set_surface(surface);
         token.commit();

@@ -259,7 +259,11 @@ impl WindowControls {
     }
 
     pub fn present(&self, activation_token: String) {
-        self.send(WindowCommand::Present(activation_token));
+        self.send(WindowCommand::Present(Some(activation_token)));
+    }
+
+    pub(crate) fn present_without_token(&self) {
+        self.send(WindowCommand::Present(None));
     }
 
     pub fn close(&self) {
@@ -325,7 +329,7 @@ pub(crate) enum WindowCommand {
     ToggleFullscreen,
     Move(u32),
     Resize(u32, WindowEdge),
-    Present(String),
+    Present(Option<String>),
     Bar(Bar),
     SetTitle(String),
     BackgroundAlpha(f32),
@@ -667,11 +671,12 @@ impl Runtime {
                             window.resize(seat, serial, resize_edge(edge));
                         }
                     }
-                    WindowCommand::Present(token) => {
+                    WindowCommand::Present(Some(token)) => {
                         if let Some(activation) = &self.activation {
                             activation.activate(token, window.wl_surface());
                         }
                     }
+                    WindowCommand::Present(None) => self.request_activation(window.wl_surface()),
                     WindowCommand::SetTitle(title) => window.set_title(title),
                     WindowCommand::Bar(bar) => {
                         if let Some(style) = &self.window_style {

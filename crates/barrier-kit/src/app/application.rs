@@ -17,7 +17,7 @@ pub enum Launch {
 
 #[derive(Default)]
 struct Requests {
-    tokens: Vec<String>,
+    tokens: Vec<Option<String>>,
     actions: Vec<String>,
     wake: Option<WakeHandle>,
 }
@@ -43,7 +43,10 @@ impl Instance {
                 })
                 .unwrap_or_default();
             for token in tokens {
-                controls.present(token);
+                match token {
+                    Some(token) => controls.present(token),
+                    None => controls.present_without_token(),
+                }
             }
             if let Some(menu_actions) = &menu_actions {
                 for action in actions {
@@ -68,7 +71,7 @@ impl Activation {
         let token = platform_data
             .get("activation-token")
             .and_then(|value| String::try_from(value.clone()).ok());
-        if let (Some(token), Ok(mut pending)) = (token, self.requests.lock()) {
+        if let Ok(mut pending) = self.requests.lock() {
             pending.tokens.push(token);
             if let Some(wake) = &pending.wake {
                 wake.wake();
@@ -118,24 +121,10 @@ fn forward(
     Ok(())
 }
 
+// Export before owning the name: a second instance calls Activate as soon as the name is ours.
 pub fn launch(app_id: &str) -> zbus::Result<Launch> {
     let connection = crate::session_bus::blocking()?;
-    let taken =
-        match connection.request_name_with_flags(app_id, RequestNameFlags::DoNotQueue.into()) {
-            Ok(RequestNameReply::Exists) | Err(zbus::Error::NameTaken) => true,
-            Ok(_) => false,
-            Err(error) => return Err(error),
-        };
     let path = object_path(app_id);
-    if taken {
-        forward(
-            &connection,
-            app_id,
-            &path,
-            std::env::var("XDG_ACTIVATION_TOKEN").ok(),
-        )?;
-        return Ok(Launch::Forwarded);
-    }
     let requests = Arc::new(Mutex::new(Requests::default()));
     let activation = Activation {
         requests: requests.clone(),
@@ -146,6 +135,24 @@ pub fn launch(app_id: &str) -> zbus::Result<Launch> {
         activation,
     )) {
         return Err(zbus::Error::Failure(path));
+    }
+    let taken =
+        match connection.request_name_with_flags(app_id, RequestNameFlags::DoNotQueue.into()) {
+            Ok(RequestNameReply::Exists) | Err(zbus::Error::NameTaken) => true,
+            Ok(_) => false,
+            Err(error) => return Err(error),
+        };
+    if taken {
+        connection
+            .object_server()
+            .remove::<Activation, _>(path.as_str())?;
+        forward(
+            &connection,
+            app_id,
+            &path,
+            std::env::var("XDG_ACTIVATION_TOKEN").ok(),
+        )?;
+        return Ok(Launch::Forwarded);
     }
     Ok(Launch::Primary(Instance { requests }))
 }
@@ -172,7 +179,22 @@ mod tests {
         )
         .unwrap();
         let tokens = std::mem::take(&mut first.requests.lock().unwrap().tokens);
-        assert_eq!(tokens, ["token-1"]);
+        assert_eq!(tokens, [Some("token-1".to_string())]);
+    }
+
+    #[test]
+    fn an_activation_without_a_token_still_asks_to_present_the_window() {
+        if std::env::var_os("DBUS_SESSION_BUS_ADDRESS").is_none() {
+            return;
+        }
+        let app_id = format!("org.malaysia.untokened{}", std::process::id());
+        let Ok(Launch::Primary(first)) = launch(&app_id) else {
+            panic!("the first launch must own the name");
+        };
+        let second = Connection::session().unwrap();
+        forward(&second, &app_id, &object_path(&app_id), None).unwrap();
+        let tokens = std::mem::take(&mut first.requests.lock().unwrap().tokens);
+        assert_eq!(tokens, [None]);
     }
 
     #[test]
