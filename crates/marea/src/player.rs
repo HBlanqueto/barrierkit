@@ -17,10 +17,10 @@ use freya_animation::prelude::{AnimDirection, OnCreation, use_animation};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Area, Content, Direction, Gaps, Position, Size};
 use vow_design::{
-    CALLOUT, CAPTION, DURATION_SLOW_MS, HEADLINE, Rgba, SPACE_2, TEXT, TITLEBAR_CLIENT_HEIGHT,
+    CALLOUT, CAPTION, DURATION_SLOW_MS, HEADLINE, MEDIA, Rgba, SPACE_2, TEXT,
+    TITLEBAR_CLIENT_HEIGHT,
 };
 
-use crate::WHITE;
 use crate::art::art_fill;
 use crate::assets;
 use crate::catalog::title;
@@ -240,14 +240,14 @@ impl Component for Player {
                         rect()
                             .padding(Gaps::new(4.0, 10.0, 4.0, 10.0))
                             .corner_radius(6.0)
-                            .background(color(Rgba::rgba8(0, 0, 0, 0.66)))
+                            .background(color(MEDIA.scrim))
                             .child(
                                 label()
                                     .text(line)
                                     .font_family(TEXT.family)
                                     .font_size(18.0)
                                     .font_weight(500)
-                                    .color(color(WHITE)),
+                                    .color(color(MEDIA.ink)),
                             ),
                     )
             }))
@@ -262,11 +262,13 @@ impl Component for Player {
                     .direction(Direction::Horizontal)
                     .cross_align(Alignment::Center)
                     .spacing(12.0)
-                    .background(
-                        LinearGradient::new()
-                            .stop((color(Rgba::rgba8(0, 0, 0, 0.66)), 0.0))
-                            .stop((color(Rgba::rgba8(0, 0, 0, 0.0)), 100.0)),
-                    )
+                    .background(LinearGradient::new().stop((color(MEDIA.scrim), 0.0)).stop((
+                        color(Rgba {
+                            a: 0.0,
+                            ..MEDIA.scrim
+                        }),
+                        100.0,
+                    )))
                     .child(window_traffic_lights(activated, false))
                     .child(
                         RoundButton::new(Symbol::ChevronLeft, tr!("close-player"))
@@ -278,7 +280,7 @@ impl Component for Player {
                             .height(Size::fill())
                             .main_align(Alignment::Center)
                             .on_mouse_down(drag)
-                            .child(text(title.name, HEADLINE, WHITE))
+                            .child(text(title.name, HEADLINE, MEDIA.ink))
                             .child(text(
                                 if title.series {
                                     tr!("season-episode", season = 1, episode = 1)
@@ -286,7 +288,7 @@ impl Component for Player {
                                     title.meta[0].clone()
                                 },
                                 CALLOUT,
-                                Rgba::rgba8(255, 255, 255, 0.7),
+                                MEDIA.ink_secondary,
                             )),
                     )
             }))
@@ -300,7 +302,7 @@ impl Component for Player {
                     .direction(Direction::Horizontal)
                     .cross_align(Alignment::Center)
                     .spacing(10.0)
-                    .background(color(Rgba::rgba8(0x1c, 0x1d, 0x20, 0.91)))
+                    .background(color(MEDIA.panel))
                     .child(
                         rect()
                             .width(Size::px(90.0))
@@ -311,12 +313,8 @@ impl Component for Player {
                     .child(
                         rect()
                             .width(Size::flex(1.0))
-                            .child(text(
-                                tr!("next-episode"),
-                                CAPTION,
-                                Rgba::rgba8(255, 255, 255, 0.6),
-                            ))
-                            .child(text(tr!("episode", episode = 2), HEADLINE, WHITE)),
+                            .child(text(tr!("next-episode"), CAPTION, MEDIA.ink_tertiary))
+                            .child(text(tr!("episode", episode = 2), HEADLINE, MEDIA.ink)),
                     )
                     .child(ProgressRing::new(
                         tr!("next-episode"),
@@ -336,8 +334,14 @@ impl Component for Player {
                     .background(
                         LinearGradient::new()
                             .angle(180.0)
-                            .stop((color(Rgba::rgba8(0, 0, 0, 0.8)), 0.0))
-                            .stop((color(Rgba::rgba8(0, 0, 0, 0.0)), 100.0)),
+                            .stop((color(MEDIA.scrim_strong), 0.0))
+                            .stop((
+                                color(Rgba {
+                                    a: 0.0,
+                                    ..MEDIA.scrim_strong
+                                }),
+                                100.0,
+                            )),
                     )
                     .child(
                         rect()
@@ -376,13 +380,13 @@ impl Component for Player {
                                     .width(Size::fill())
                                     .height(Size::px(if hover_at.is_some() { 7.0 } else { 4.0 }))
                                     .corner_radius(3.5)
-                                    .background(color(Rgba::rgba8(255, 255, 255, 0.25)))
+                                    .background(color(MEDIA.track))
                                     .child(
                                         rect()
                                             .width(Size::percent(done * 100.0))
                                             .height(Size::fill())
                                             .corner_radius(3.5)
-                                            .background(color(WHITE)),
+                                            .background(color(MEDIA.ink)),
                                     ),
                             )
                             .maybe_child(hover_at.zip(thumb.get().cloned().flatten()).map(
@@ -401,16 +405,16 @@ impl Component for Player {
                                                 .corner_radius(8.0)
                                                 .overflow(Overflow::Clip)
                                                 .border(
-                                                    Border::new().width(1.0).fill(color(
-                                                        Rgba::rgba8(255, 255, 255, 0.25),
-                                                    )),
+                                                    Border::new()
+                                                        .width(1.0)
+                                                        .fill(color(MEDIA.track)),
                                                 )
                                                 .child(VideoView::new(thumb).corner_radius(8.0)),
                                         )
                                         .child(text(
                                             clock(f64::from(at) * duration),
                                             CAPTION,
-                                            WHITE,
+                                            MEDIA.ink,
                                         ))
                                 },
                             )),
@@ -441,7 +445,7 @@ impl Component for Player {
                             .child(text(
                                 format!("{} / {}", clock(position), clock(duration)),
                                 CALLOUT,
-                                Rgba::rgba8(255, 255, 255, 0.8),
+                                MEDIA.ink_strong,
                             ))
                             .child(rect().width(Size::flex(1.0)))
                             .child(

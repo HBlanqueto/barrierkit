@@ -12,8 +12,10 @@ report() {
     status=1
 }
 
+# Demo content (Marea's catalogue art, Ondina's album covers) is data, not design.
 production() {
-    for file in $(find "$@" -name '*.rs' ! -path 'crates/vow-design/*' | sort); do
+    for file in $(find "$@" -name '*.rs' ! -path 'crates/vow-design/*' \
+        ! -path 'crates/marea/src/catalog.rs' ! -path 'crates/ondina/src/albums.rs' | sort); do
         awk '/#\[cfg\(test\)\]/{exit} {print FILENAME ":" FNR ":" $0}' "$file"
     done
 }

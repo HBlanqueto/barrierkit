@@ -1,8 +1,7 @@
 use std::sync::LazyLock;
 
-use vow_design::Rgba;
+use vow_design::{MEDIA, Rgba};
 
-use crate::WHITE;
 use crate::localize::tr;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -51,7 +50,7 @@ pub static CATALOG: LazyLock<[Title; 21]> = LazyLock::new(|| {
         Title {
             id: "orilla",
             name: "La Última Orilla",
-            logo: logo("Abril Fatface", 400, 54.0, WHITE),
+            logo: logo("Abril Fatface", 400, 54.0, MEDIA.ink),
             art: (
                 160.0,
                 Rgba::rgb8(0x5a, 0xa6, 0xd6),
@@ -131,7 +130,7 @@ pub static CATALOG: LazyLock<[Title; 21]> = LazyLock::new(|| {
         Title {
             id: "carton",
             name: "La Casa de Cartón",
-            logo: logo("Bebas Neue", 400, 60.0, WHITE),
+            logo: logo("Bebas Neue", 400, 60.0, MEDIA.ink),
             art: (
                 150.0,
                 Rgba::rgb8(0xb3, 0x12, 0x1b),
@@ -297,7 +296,7 @@ pub static CATALOG: LazyLock<[Title; 21]> = LazyLock::new(|| {
         Title {
             id: "pixel",
             name: "Píxel Quest",
-            logo: logo("Press Start 2P", 400, 26.0, WHITE),
+            logo: logo("Press Start 2P", 400, 26.0, MEDIA.ink),
             art: (
                 180.0,
                 Rgba::rgb8(0x5c, 0x94, 0xfc),
@@ -337,7 +336,7 @@ pub static CATALOG: LazyLock<[Title; 21]> = LazyLock::new(|| {
         Title {
             id: "cometas",
             name: "Huerto de Cometas",
-            logo: logo("Pacifico", 400, 44.0, WHITE),
+            logo: logo("Pacifico", 400, 44.0, MEDIA.ink),
             art: (
                 160.0,
                 Rgba::rgb8(0x7a, 0xd3, 0xa0),

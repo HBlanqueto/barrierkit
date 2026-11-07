@@ -20,7 +20,7 @@ use barrier_kit::titlebar::window_drag_handler;
 use freya_core::prelude::*;
 use torin::prelude::{Area, Gaps, Position, Size};
 use vow_appearance::ColorScheme;
-use vow_design::{ACCENT_SWATCHES, Rgba, SIDEBAR, TITLE_2};
+use vow_design::{ACCENT_SWATCHES, MEDIA, Rgba, SIDEBAR, TITLE_2};
 
 use catalog::{FEATURED, GENRES, SHELVES, title};
 use chips::Chips;
@@ -36,15 +36,13 @@ const TOOLBAR_FROM: f32 = 300.0;
 const TOOLBAR_SPAN: f32 = 120.0;
 
 const INSET: f32 = 40.0;
-const WHITE: Rgba = Rgba::rgb8(255, 255, 255);
-const NIGHT: Rgba = Rgba::rgb8(0x0b, 0x0c, 0x0e);
 
 fn tones(id: &str) -> [Rgba; 3] {
     let (_, from, to) = title(id).art;
     [
-        from.mix(NIGHT, 0.72),
-        to.mix(NIGHT, 0.6),
-        from.mix(to, 0.5).mix(NIGHT, 0.8),
+        from.mix(MEDIA.night, 0.72),
+        to.mix(MEDIA.night, 0.6),
+        from.mix(to, 0.5).mix(MEDIA.night, 0.8),
     ]
 }
 

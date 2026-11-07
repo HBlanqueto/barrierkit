@@ -14,13 +14,13 @@ use barrier_kit::video::{VideoStream, VideoView};
 use freya_animation::prelude::{AnimNum, Ease, Function, use_animation_transition};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Area, Direction, Gaps, Position, Size};
-use vow_design::{CALLOUT, CAPTION, DURATION_BASE, DURATION_SLOW_MS, MEDIA, Rgba, TITLE_2};
+use vow_design::{CALLOUT, CAPTION, DURATION_BASE, DURATION_SLOW_MS, MEDIA, TITLE_2};
 
+use crate::INSET;
 use crate::art::{art_fill, logo};
 use crate::assets;
 use crate::catalog::{Entry, Genre, SHELVES, ShelfStyle, title};
 use crate::localize::tr;
-use crate::{INSET, WHITE};
 
 const WIDE: (f32, f32) = (232.0, 130.5);
 const TALL: (f32, f32) = (156.0, 234.0);
@@ -137,8 +137,8 @@ impl Component for Card {
                             .height(Size::px(22.0))
                             .corner_radius(11.0)
                             .center()
-                            .background(color(Rgba::rgba8(0, 0, 0, 0.53)))
-                            .child(symbol(Symbol::SpeakerWave, 12.0, WHITE)),
+                            .background(color(MEDIA.chip))
+                            .child(symbol(Symbol::SpeakerWave, 12.0, MEDIA.ink)),
                     )
             }))
             .maybe_child((self.style == ShelfStyle::Ranked).then(|| {
@@ -151,7 +151,7 @@ impl Component for Card {
                             .font_family(vow_design::TEXT.family)
                             .font_weight(800)
                             .font_size(54.0)
-                            .color(color(Rgba::rgba8(255, 255, 255, 0.88))),
+                            .color(color(MEDIA.ink_rank)),
                     )
             }))
             .maybe_child(self.entry.new.then(|| {
@@ -161,7 +161,7 @@ impl Component for Card {
                     .padding(Gaps::new(2.0, 6.0, 2.0, 6.0))
                     .corner_radius(4.0)
                     .background(color(palette.destructive))
-                    .child(text(tr!("new"), CAPTION, WHITE))
+                    .child(text(tr!("new"), CAPTION, MEDIA.ink))
             }))
             .child(
                 rect()
@@ -191,12 +191,12 @@ impl Component for Card {
                     .width(Size::fill())
                     .height(Size::px(3.0))
                     .corner_radius(1.5)
-                    .background(color(Rgba::rgba8(255, 255, 255, 0.2)))
+                    .background(color(MEDIA.progress_track))
                     .child(
                         rect()
                             .width(Size::percent(watched * 100.0))
                             .height(Size::fill())
-                            .background(color(WHITE)),
+                            .background(color(MEDIA.ink)),
                     )
             }))
             .maybe_child(self.entry.caption.as_deref().map(|caption| {

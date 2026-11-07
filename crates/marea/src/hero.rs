@@ -14,13 +14,15 @@ use freya_animation::prelude::{
 };
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Area, Direction, Gaps, Position, Size};
-use vow_design::{CALLOUT, CAPTION, DURATION_BASE, DURATION_SLOW_MS, Rgba, SPACE_2, TEXT, TITLE_2};
+use vow_design::{
+    CALLOUT, CAPTION, DURATION_BASE, DURATION_SLOW_MS, MEDIA, Rgba, SPACE_2, TEXT, TITLE_2,
+};
 
+use crate::INSET;
 use crate::art::{art_fill, logo};
 use crate::assets;
 use crate::catalog::{FEATURED, Gallery, gallery, title};
 use crate::localize::tr;
-use crate::{INSET, WHITE};
 
 pub const HERO_HEIGHT: f32 = 580.0;
 pub const AUTOPLAY: Duration = Duration::from_millis(8000);
@@ -141,7 +143,7 @@ impl Component for HeroLogo {
                     .font_family(TEXT.family)
                     .font_size(13.0)
                     .font_weight(700)
-                    .color(color(WHITE)),
+                    .color(color(MEDIA.ink)),
             )
     }
 }
@@ -261,14 +263,17 @@ impl Component for Dot {
             .height(Size::px(DOT))
             .corner_radius(DOT / 2.0)
             .overflow(Overflow::Clip)
-            .background(color(Rgba::rgba8(255, 255, 255, 0.33 - 0.08 * grown)))
+            .background(color(Rgba {
+                a: MEDIA.line.a - MEDIA.dot_fade * grown,
+                ..MEDIA.line
+            }))
             .a11y_role(AccessibilityRole::Button)
             .on_press(move |_| on_press.call(()))
             .maybe_child(self.active.then(|| {
                 rect()
                     .width(Size::px(width * self.progress))
                     .height(Size::fill())
-                    .background(color(WHITE))
+                    .background(color(MEDIA.ink))
             }))
     }
 }
@@ -281,7 +286,7 @@ fn edge(symbol_kind: Symbol, label: &'static str, on_press: Callback<(), ()>) ->
         .a11y_role(AccessibilityRole::Button)
         .a11y_alt(label)
         .on_press(move |_| on_press.call(()))
-        .child(symbol(symbol_kind, 22.0, Rgba::rgba8(255, 255, 255, 0.7)))
+        .child(symbol(symbol_kind, 22.0, MEDIA.ink_secondary))
 }
 
 #[derive(PartialEq)]
@@ -403,7 +408,7 @@ impl Component for HeroCopy {
                         Some(gallery) => HeroLogo { gallery }.into_element(),
                         None => logo(title, 1.0).into_element(),
                     })
-                    .maybe_child(featured_gallery.map(|_| text(title.name, TITLE_2, WHITE)))
+                    .maybe_child(featured_gallery.map(|_| text(title.name, TITLE_2, MEDIA.ink)))
                     .child(
                         rect()
                             .direction(Direction::Horizontal)
@@ -414,11 +419,7 @@ impl Component for HeroCopy {
                                     rect()
                                         .padding(Gaps::new(0.0, 4.0, 0.0, 4.0))
                                         .corner_radius(3.0)
-                                        .border(
-                                            Border::new()
-                                                .width(1.0)
-                                                .fill(color(Rgba::rgba8(255, 255, 255, 0.33))),
-                                        )
+                                        .border(Border::new().width(1.0).fill(color(MEDIA.line)))
                                         .child(text(
                                             meta.as_str(),
                                             CAPTION,
@@ -437,7 +438,7 @@ impl Component for HeroCopy {
                                 .text(title.lede)
                                 .font_family(TEXT.family)
                                 .font_size(14.0)
-                                .color(color(Rgba::rgb8(0xd8, 0xd9, 0xdd))),
+                                .color(color(MEDIA.lede)),
                         ),
                     )
                     .child(

@@ -43,7 +43,10 @@ Un color o una medida nueva nunca se escribe en `barrier-kit`. Se añade a Tenge
    `crates/vow-design/src/lib.rs` y su emisión en `crates/vow-design/build/`.
 3. Usa la constante en el código: `SPLIT_VIEW.key_step`.
 4. Pasa `./dev.sh check`. `scripts/check-design-tokens.sh` rechaza literales de
-   color fuera de `vow-design`, también en las apps.
+   color fuera de `vow-design`, también en las apps. Solo quedan fuera los datos
+   de contenido de demostración, que no son diseño: el catálogo de Marea
+   (`crates/marea/src/catalog.rs`) y las portadas de Ondina
+   (`crates/ondina/src/albums.rs`).
 
 ## Apariencia del usuario
 

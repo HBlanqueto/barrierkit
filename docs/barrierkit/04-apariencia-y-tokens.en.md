@@ -43,7 +43,10 @@ A new color or size is never written in `barrier-kit`. It goes into Tengen:
    `crates/vow-design/src/lib.rs` and its emission in `crates/vow-design/build/`.
 3. Use the constant in the code: `SPLIT_VIEW.key_step`.
 4. Pass `./dev.sh check`. `scripts/check-design-tokens.sh` rejects color
-   literals outside `vow-design`, the apps included.
+   literals outside `vow-design`, the apps included. Only the demo content
+   data stays out, since it is not design: Marea's catalogue
+   (`crates/marea/src/catalog.rs`) and Ondina's covers
+   (`crates/ondina/src/albums.rs`).
 
 ## User appearance
 

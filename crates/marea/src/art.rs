@@ -25,7 +25,7 @@ pub fn logo(title: &Title, scale: f32) -> Label {
         })
         .color(color(logo.ink))
         .text_shadow(TextShadow {
-            color: color(vow_design::Rgba::rgba8(0, 0, 0, 0.6)),
+            color: color(vow_design::MEDIA.logo_shadow),
             offset: (0.0, 2.0),
             blur_sigma: 7.0,
         })
