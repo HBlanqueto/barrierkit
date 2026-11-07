@@ -2,7 +2,7 @@
 
 Status: **accepted** (2026-11-03). Rule 1 applies to windows with
 `FullscreenBar::Glass` or `ProgressiveGlass` (Ondina); by default the bar is `Solid`
-(chapter 7 of [`docs/barrierkit`](../barrierkit/07-titlebars.en.md#the-bar-in-full-screen-fullscreenbar)).
+(chapter 7 of [`docs/barrierkit`](../barrierkit/07-titlebars.md#the-bar-in-full-screen-fullscreenbar)).
 
 ## Context
 
@@ -50,6 +50,6 @@ Inside a `Backdrop`, the rows take the ink and the accent from `Palette::current
 
 ## References
 
-- [`0041`](0041-barra-lateral-en-isla.en.md): island sidebar.
-- [`0047`](0047-barrierkit-en-capas.en.md): layers and variants.
+- [`0041`](0041-barra-lateral-en-isla.md): island sidebar.
+- [`0047`](0047-barrierkit-en-capas.md): layers and variants.
 - malaysia ADR 0054: overlaid titlebar in focus.

@@ -114,6 +114,6 @@ An app does not change individual colors: it picks a variant.
 | Force light or dark in my window | `theme::use_appearance(\|config\| config.color_scheme = ColorScheme::Dark)` |
 
 In an inactive window, all tints use the palette's inactive accent. Tinted
-backdrops are explained in chapter [13](13-fondos-y-medios.en.md).
+backdrops are explained in chapter [13](13-fondos-y-medios.md).
 
-Next: [5. Controls](05-controles.en.md).
+Next: [5. Controls](05-controles.md).

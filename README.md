@@ -1,10 +1,8 @@
 # BarrierKit
 
-![BarrierKit, the application toolkit of Malaysia Compositor](docs/barrierkit/assets/marca/barrierkit-banner.en.png)
+![BarrierKit, the application toolkit of Malaysia Compositor](docs/barrierkit/assets/marca/barrierkit-banner.png)
 
 BarrierKit is the application toolkit for [Malaysia](https://github.com/HBlanqueto/malaysia): the GTK + libadwaita to its GNOME, or the AppKit to its macOS. It provides the layers, controls, containers and patterns used to build Malaysia's own apps and its shell.
-
-Español: [`README.md`](README.md).
 
 ## Crates
 
@@ -34,12 +32,12 @@ When `infinity_window_manager_v1`, `ext_foreign_toplevel_list_v1` / `zwlr_foreig
 
 ## Documentation
 
-[`docs/barrierkit/`](docs/barrierkit/README.en.md) explains the kit from the first window to the Wayland runner, with real screenshots.
+[`docs/barrierkit/`](docs/barrierkit/README.md) explains the kit from the first window to the Wayland runner, with real screenshots.
 
 ## Decisions
 
-- ADR 0047 — [BarrierKit in layers](docs/decisiones/0047-barrierkit-en-capas.en.md)
-- ADR 0048 — [BarrierKit in its own repository](docs/decisiones/0048-barrierkit-repositorio-propio.en.md)
-- ADR 0057 — [The full-screen glass covers the whole window; the sidebar over a tinted backdrop](docs/decisiones/0057-cristal-y-barra-lateral-sobre-fondo.en.md)
+- ADR 0047 — [BarrierKit in layers](docs/decisiones/0047-barrierkit-en-capas.md)
+- ADR 0048 — [BarrierKit in its own repository](docs/decisiones/0048-barrierkit-repositorio-propio.md)
+- ADR 0057 — [The full-screen glass covers the whole window; the sidebar over a tinted backdrop](docs/decisiones/0057-cristal-y-barra-lateral-sobre-fondo.md)
 
 License: MIT

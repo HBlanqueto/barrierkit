@@ -4,7 +4,7 @@
 and popups.
 **Reader:** anyone who defines the main window of an app.
 **See also:** the look of the titlebar and the traffic lights is in chapter
-[7](07-titlebars.en.md).
+[7](07-titlebars.md).
 
 ## Opening a window
 
@@ -23,9 +23,9 @@ run_window(
 | `new(título, nombre)` | Visible title and short name. The `app_id` is `io.github.hblanqueto.malaysia.<nombre>` unless you pass `.app_id(..)` |
 | `.size((ancho, alto))` | Initial size (640 × 420 by default). If a saved one exists, it is restored |
 | `.min_size(..)`, `.max_size(..)` | Limits. If they are equal, the window has a fixed size |
-| `.menu(AppMenu)` | Global menu of the window (chapter [11](11-app.en.md)) |
-| `.fullscreen_bar(FullscreenBar)` | How the overlaid titlebar is drawn in full screen; `Solid` by default (chapter [7](07-titlebars.en.md#the-bar-in-full-screen-fullscreenbar)) |
-| `.fullscreen_push(bool)` | In full screen, the bar pushes all the content instead of covering it; off by default (chapter [7](07-titlebars.en.md#pushing-the-content-fullscreen_push)) |
+| `.menu(AppMenu)` | Global menu of the window (chapter [11](11-app.md)) |
+| `.fullscreen_bar(FullscreenBar)` | How the overlaid titlebar is drawn in full screen; `Solid` by default (chapter [7](07-titlebars.md#the-bar-in-full-screen-fullscreenbar)) |
+| `.fullscreen_push(bool)` | In full screen, the bar pushes all the content instead of covering it; off by default (chapter [7](07-titlebars.md#pushing-the-content-fullscreen_push)) |
 
 Inside the app, `WindowControls::get()` gives the state (`activated`,
 `maximized`, `fullscreen`, `decoration`, `fixed`) and the commands: `close()`,
@@ -129,7 +129,7 @@ libayatana-appindicator and waybar use `org.kde.*`, and so does the kit.
 The state arrives with each compositor configure and is read with
 `WindowControls::get().status.read()`: `activated`, `maximized`, `fullscreen`,
 `decoration` and `fixed`. How the titlebar looks in each state is in chapter
-[7](07-titlebars.en.md#maximized-full-screen-and-focus-mode).
+[7](07-titlebars.md#maximized-full-screen-and-focus-mode).
 
 ## Resizing from the edges
 
@@ -177,4 +177,4 @@ Popups::get().close(id);
 `PopupSpec` sets the anchor rectangle, the anchor, the gravity, the size, the
 adjustment when it does not fit and whether it takes the pointer grab.
 
-Next: [7. Titlebars](07-titlebars.en.md).
+Next: [7. Titlebars](07-titlebars.md).

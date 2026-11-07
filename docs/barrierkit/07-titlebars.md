@@ -53,7 +53,7 @@ The app chooses none of these variants: they come from `with_sidebar`, from
 
 The `Titlebar` tells the compositor which bar it draws with
 `infinity_window_style_v1.set_bar`, and Malaysia rounds the window with that
-bar's radius ([Malaysia ADR 0059](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0059-radio-por-barra-y-esquina-continua.en.md)).
+bar's radius ([Malaysia ADR 0059](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0059-radio-por-barra-y-esquina-continua.md)).
 The app does nothing:
 
 | `Titlebar` | Bar (`set_bar`) | Height | Radius (`WINDOW_CORNER`) |
@@ -171,7 +171,7 @@ becomes `Corner`; in full screen, `reveal` is always `Always`.
 
 ## Maximized, full screen and focus mode
 
-The state is read as chapter [6](06-ventanas.en.md#window-state) explains.
+The state is read as chapter [6](06-ventanas.md#window-state) explains.
 The screenshots in this section are a test window (island sidebar, `Top`
 layout unless stated) rendered by the kit in each state.
 
@@ -210,7 +210,7 @@ top is the compositor bar, added to the image.
 |---|---|---|---|
 | `Solid` ("A · Lisa", **default**) | An opaque band in the window color, as tall as the titlebar. It cuts what passes below with a hard edge | Bar + `FULLSCREEN_BAR.content_top` (44) | ![A · Lisa](assets/estados/barra-lisa.png) |
 | `Glass` ("B1 · Vidrio en banda") | A band as tall as the titlebar, from edge to edge of the window and over the sidebar, that blurs what is below (`FULLSCREEN_BAND`), with a tint and a line at the bottom | Bar + `FULLSCREEN_BAND.content_top` (44) | ![B1 · Glass band](assets/estados/barra-vidrio-banda.png) |
-| `ProgressiveGlass` ("B2 · Vidrio progresivo") | Maximum blur at the top that fades out over 96 px, without a line, from edge to edge of the window and over the sidebar ([ADR 0057](../decisiones/0057-cristal-y-barra-lateral-sobre-fondo.en.md)) | Bar + `FULLSCREEN_GLASS.content_top` (74) | ![B2 · Progressive glass](assets/estados/barra-vidrio-progresivo.png) |
+| `ProgressiveGlass` ("B2 · Vidrio progresivo") | Maximum blur at the top that fades out over 96 px, without a line, from edge to edge of the window and over the sidebar ([ADR 0057](../decisiones/0057-cristal-y-barra-lateral-sobre-fondo.md)) | Bar + `FULLSCREEN_GLASS.content_top` (74) | ![B2 · Progressive glass](assets/estados/barra-vidrio-progresivo.png) |
 
 Only `Glass` and `ProgressiveGlass` blur.
 
@@ -304,6 +304,6 @@ app does not draw it.
    ```
 
 5. To offer it in a menu, it calls `toggle_maximize()` or
-   `toggle_fullscreen()` from an `Action` (chapter [11](11-app.en.md)).
+   `toggle_fullscreen()` from an `Action` (chapter [11](11-app.md)).
 
-Next: [8. Sidebar and SplitView](08-barra-lateral.en.md).
+Next: [8. Sidebar and SplitView](08-barra-lateral.md).

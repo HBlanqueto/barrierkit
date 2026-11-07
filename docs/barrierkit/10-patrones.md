@@ -39,7 +39,7 @@ PreferencesWindow::new()
 | `.account(..)` | Account row at the top of the sidebar |
 | `.restoration(app_id)` | Saves and restores the open pane, the recent searches and the width and visibility of the sidebar |
 | `.suggestions(&[ids])` | Suggested panes when the search field is empty |
-| `.sidebar_resizable(bool)`, `.sidebar_range(Option<(mín, máx)>)`, `.narrow_sidebar(NarrowSidebar)` | Passed on to `SplitView` (chapter [8](08-barra-lateral.en.md)) |
+| `.sidebar_resizable(bool)`, `.sidebar_range(Option<(mín, máx)>)`, `.narrow_sidebar(NarrowSidebar)` | Passed on to `SplitView` (chapter [8](08-barra-lateral.md)) |
 | `.sidebar_toggle(false)` | Removes the `SidebarToggle` button from the bar |
 
 ### The search field
@@ -63,4 +63,4 @@ With `None` as the version, the window omits that line.
 
 ![About window](assets/componentes/about-light.png)
 
-Next: [11. App infrastructure](11-app.en.md).
+Next: [11. App infrastructure](11-app.md).

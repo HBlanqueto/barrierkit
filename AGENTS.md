@@ -37,14 +37,14 @@ Fuentes de partida por área. Las de cada dependencia fijada están en la regla
 - `for-malaysia` se unió a `main` el 2026-10-31 con el merge `ab120c2`; su
   historia sigue en `main`.
 
-## Documentación (español e inglés)
+## Documentación (solo inglés)
 
 Aplica a `README.md`, `docs/` y los ADR.
 
-1. **Bilingüe.** Cada documento existe en español (`nombre.md`) y en inglés
-   (`nombre.en.md`), en el mismo directorio. Ambos cambian en el mismo commit,
-   con la misma estructura y el mismo contenido; ninguno resume al otro. Los
-   comentarios y el rustdoc del código van solo en inglés.
+1. **Solo en inglés.** Cada documento existe una vez, en inglés, como
+   `nombre.md`; no hay copias en español ni archivos `.en.md`. Los comentarios
+   y el rustdoc del código también van en inglés. El texto visible de las apps
+   sigue en `i18n/{en,es}/<crate>.ftl`.
 2. **Un proceso por documento:** objetivo y alcance (dónde empieza y acaba),
    lector, entradas y salidas, y pasos numerados en orden de ejecución.
 3. **Fuente real.** Cada comando, ruta y nombre se comprueba contra el código

@@ -67,4 +67,4 @@ let entrada = use_animation_transition(destino, move |desde, hasta| {
 });
 ```
 
-Next: [13. Tinted backdrops and media](13-fondos-y-medios.en.md).
+Next: [13. Tinted backdrops and media](13-fondos-y-medios.md).

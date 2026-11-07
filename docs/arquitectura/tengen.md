@@ -88,8 +88,8 @@ Do not edit `crates/vow-design/src/` to change a value: it holds the types
 
 ## Related
 
-- [`interfaz.md`](https://github.com/HBlanqueto/malaysia/blob/main/docs/arquitectura/interfaz.en.md): the full visual map.
-- [`ventanas.md`](https://github.com/HBlanqueto/malaysia/blob/main/docs/arquitectura/ventanas.en.md): titlebar and traffic lights.
-- [`wallpaper.md`](https://github.com/HBlanqueto/malaysia/blob/main/docs/arquitectura/wallpaper.en.md): the background component and its state.
+- [`interfaz.md`](https://github.com/HBlanqueto/malaysia/blob/main/docs/arquitectura/interfaz.md): the full visual map.
+- [`ventanas.md`](https://github.com/HBlanqueto/malaysia/blob/main/docs/arquitectura/ventanas.md): titlebar and traffic lights.
+- [`wallpaper.md`](https://github.com/HBlanqueto/malaysia/blob/main/docs/arquitectura/wallpaper.md): the background component and its state.
 - ADR 0011: the values are Rust constants.
 - ADR 0032 and ADR 0046: Tengen as the design source.

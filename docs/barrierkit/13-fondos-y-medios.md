@@ -118,4 +118,4 @@ video.set_volume(0.7);
 video.play();
 ```
 
-Next: [14. Platform](14-plataforma.en.md).
+Next: [14. Platform](14-plataforma.md).

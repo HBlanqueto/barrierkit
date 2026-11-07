@@ -243,4 +243,4 @@ match adaptable.current() {
 The breakpoints are `BREAKPOINT.medium` (620) and `BREAKPOINT.wide` (900).
 `adaptable.attach(rect())` measures the element it is attached to.
 
-Next: [10. Patterns](10-patrones.en.md).
+Next: [10. Patterns](10-patrones.md).

@@ -399,7 +399,7 @@ Malaysia with `infinity_window_style_v1.set_popover` (version 2) for the shape
 of `NSPopover` on macOS 26: a continuous 20 corner and a 25.42 × 13 arrow with
 a round tip, filleted into the body, pointing at the centre of the area. The
 compositor clips, borders and shadows that shape
-([ADR 0059](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0059-radio-por-barra-y-esquina-continua.en.md));
+([ADR 0059](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0059-radio-por-barra-y-esquina-continua.md));
 the app only paints the background. The measurements are the ones the Flutter
 package [`popover`](https://pub.dev/packages/popover) took from AppKit on
 macOS 26.7. A click outside closes it.
@@ -416,7 +416,7 @@ context_menu(fila, elementos, |id: String| { /* action */ })
 - `use_tooltip` opens a popup without a grab under the pointer.
 - `context_menu` opens a `MenuView` at the pointer on secondary click.
   `elementos` is a `Vec<MenuItem>`; `Action::item(true)` creates one from an
-  action (chapter [11](11-app.en.md)).
+  action (chapter [11](11-app.md)).
 - `MenuItem::action(id, texto)`, `::submenu(texto, elementos)`,
   `::header(texto)` and `::placeholder(texto)` create the others;
   `.with_shortcut`, `.with_enabled`, `.with_check` and `.with_icon` adjust them.
@@ -467,4 +467,4 @@ as a terminal grid.
 3. Paint only with `Palette::current()` and `vow_design` tokens.
 4. Add its case to `tests/kit/controls.rs` (light and dark).
 
-Next: [6. Windows](06-ventanas.en.md).
+Next: [6. Windows](06-ventanas.md).

@@ -6,8 +6,8 @@
 | Folder | Content | Origin |
 |---|---|---|
 | `componentes/` | A single control or view, in light and dark | Copy of `crates/barrier-kit/tests/golden/` |
-| `estados/` | The titlebar and the sidebar in each window state (chapter [7](../07-titlebars.en.md)) | Kit scenes rendered headless by `platform/doc_shots.rs` |
-| `marca/` | BarrierKit icon and banner | Logo as SVG and its PNG version, in Spanish and English |
+| `estados/` | The titlebar and the sidebar in each window state (chapter [7](../07-titlebars.md)) | Kit scenes rendered headless by `platform/doc_shots.rs` |
+| `marca/` | BarrierKit icon and banner | Logo as SVG and its PNG version |
 
 All of them are real renders of the code. None is retouched.
 

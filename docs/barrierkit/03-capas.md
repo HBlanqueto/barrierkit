@@ -2,7 +2,7 @@
 
 **Goal:** know where each piece lives and what each one can use.
 **Reader:** anyone choosing which level of the kit to build their app with.
-The full decision is in [ADR 0047](../decisiones/0047-barrierkit-en-capas.en.md).
+The full decision is in [ADR 0047](../decisiones/0047-barrierkit-en-capas.md).
 
 ## The map
 
@@ -75,4 +75,4 @@ There is no `prelude`: each piece is imported from its module, for example
   without a label does not compile.
 - **Reactive.** A change of mode, accent or tint repaints without restarting.
 
-Next: [4. Appearance and tokens](04-apariencia-y-tokens.en.md).
+Next: [4. Appearance and tokens](04-apariencia-y-tokens.md).

@@ -26,8 +26,8 @@ compositor's frame callbacks.
 | Swapchain | One per surface, `B8G8R8A8_UNORM`, premultiplied alpha; `MAILBOX` if available, otherwise `FIFO`; one `SkSurface` per image. With `VK_EXT_swapchain_maintenance1`, each present carries a fence and a resize retires the old swapchain without waiting for the GPU; it is destroyed once its last present signals |
 
 With the `video` feature the device also enables the dmabuf import extensions
-(chapter [13](13-fondos-y-medios.en.md)). The decision is in
-[ADR 0056](../decisiones/0056-barrierkit-sobre-vulkan.en.md).
+(chapter [13](13-fondos-y-medios.md)). The decision is in
+[ADR 0056](../decisiones/0056-barrierkit-sobre-vulkan.md).
 
 ## Wayland protocols
 
@@ -88,7 +88,7 @@ The submodules of `shell/` are private and their API comes only from
 through a single runner `Extension`, and the `cfg(feature = "shell")` blocks
 in `platform/` only compile that hook (extension surfaces, their popups and
 the globals list)
-([ADR 0047](../decisiones/0047-barrierkit-en-capas.en.md) §4).
+([ADR 0047](../decisiones/0047-barrierkit-en-capas.md) §4).
 
 ## Errors
 
@@ -105,4 +105,4 @@ callbacks to a surface without content. Later frames wait for their frame
 callback. Checked on 2026-11-03 on Weston 16 (window) and on 2026-11-04 on
 sway 1.12 (layer), both headless.
 
-Next: [16. Frequently asked questions](16-preguntas.en.md).
+Next: [16. Frequently asked questions](16-preguntas.md).

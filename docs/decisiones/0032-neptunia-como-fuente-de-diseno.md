@@ -57,9 +57,9 @@ while Yuki is being built.
 ## References
 
 - `crates/yuki-design/neptunia/README.md`, `tokens.json`, `components.json`.
-- [`0011`](0011-valores-de-diseno-como-constantes-rust.en.md) — the values
+- [`0011`](0011-valores-de-diseno-como-constantes-rust.md) — the values
   live in `yuki-design`.
-- [`0020`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0020-politica-de-diseno-y-unificacion.en.md) — compositor-side chrome.
-- [`0024`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0024-stack-de-render-del-toolkit.en.md) — GLES/cosmic-text, no Skia.
-- [`../arquitectura/interfaz.md`](https://github.com/HBlanqueto/malaysia/blob/main/docs/arquitectura/interfaz.en.md) — the full map.
-- [`../arquitectura/ventanas.md`](https://github.com/HBlanqueto/malaysia/blob/main/docs/arquitectura/ventanas.en.md) — the titlebar.
+- [`0020`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0020-politica-de-diseno-y-unificacion.md) — compositor-side chrome.
+- [`0024`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0024-stack-de-render-del-toolkit.md) — GLES/cosmic-text, no Skia.
+- [`../arquitectura/interfaz.md`](https://github.com/HBlanqueto/malaysia/blob/main/docs/arquitectura/interfaz.md) — the full map.
+- [`../arquitectura/ventanas.md`](https://github.com/HBlanqueto/malaysia/blob/main/docs/arquitectura/ventanas.md) — the titlebar.

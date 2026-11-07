@@ -2,7 +2,7 @@
 
 Status: **accepted** (2026-10-26).
 
-Yuki is now Malaysia and CelestialKit (`celestial-kit`) is BarrierKit (`barrier-kit`) since [ADR 0043](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0043-rebranding-a-malaysia.en.md).
+Yuki is now Malaysia and CelestialKit (`celestial-kit`) is BarrierKit (`barrier-kit`) since [ADR 0043](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0043-rebranding-a-malaysia.md).
 
 ## Context
 
@@ -55,9 +55,9 @@ the apps.
 
 ## References
 
-- [`0032`](0032-neptunia-como-fuente-de-diseno.en.md) — Neptunia
+- [`0032`](0032-neptunia-como-fuente-de-diseno.md) — Neptunia
   as the design source.
-- [`0034`](0034-celestialkit-sobre-freya.en.md) — CelestialKit on Freya.
+- [`0034`](0034-celestialkit-sobre-freya.md) — CelestialKit on Freya.
 - `crates/yuki-design/neptunia/components.json` — definition of `sidebar`.
 - `crates/yuki-design/neptunia/tokens.json` — island colors.
 - `crates/yuki-appearance/src/lib.rs` — `SidebarStyle` and `SidebarSurface`.

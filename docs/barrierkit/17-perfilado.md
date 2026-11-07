@@ -10,8 +10,6 @@ speeds it up.
 **Outputs:** a trace in the [Tracy](https://github.com/wolfpld/tracy) viewer
 with one frame per `draw` and its zones.
 
-Español: [17-perfilado.md](17-perfilado.md).
-
 ## Steps
 
 1. Enter the dev shell: `nix develop`. It provides the `tracy` viewer.

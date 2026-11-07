@@ -122,7 +122,7 @@ The kit gives Freya a text clipboard over `wl_data_device`; the app uses the
 
 ## Complete example
 
-[ADR 0047, annex A](../decisiones/0047-barrierkit-en-capas.en.md#annex-a--how-an-app-is-written)
+[ADR 0047, annex A](../decisiones/0047-barrierkit-en-capas.md#annex-a--how-an-app-is-written)
 puts all of this together in a 60-line app.
 
-Next: [12. Animations](12-animaciones.en.md).
+Next: [12. Animations](12-animaciones.md).

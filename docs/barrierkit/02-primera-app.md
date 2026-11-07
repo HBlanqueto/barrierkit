@@ -83,10 +83,10 @@ fn main() {
 4. **No color or size is written by hand.** `Palette::current()` gives the
    system colors (text, background, accent) and `vow_design` gives the sizes
    and typefaces (`SPACE_3`, `TITLE_1`). This way the app follows light or dark
-   mode and the accent on its own (chapter [4](04-apariencia-y-tokens.en.md)).
+   mode and the accent on its own (chapter [4](04-apariencia-y-tokens.md)).
 5. **`run_window` is the only entry point.** It receives the root
    (`AppComponent`) and the window options: title, name, size, minimum size,
-   decoration and menu (chapter [6](06-ventanas.en.md)).
+   decoration and menu (chapter [6](06-ventanas.md)).
 
 ## App and Component
 
@@ -106,4 +106,4 @@ impl Component for Saludo {
 }
 ```
 
-Next: [3. Layers](03-capas.en.md).
+Next: [3. Layers](03-capas.md).
