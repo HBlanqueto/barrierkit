@@ -43,6 +43,7 @@
           root = ./.;
           fileset = lib.fileset.unions [
             ./crates
+            ./agents/recipes
             ./Cargo.toml
             ./Cargo.lock
           ];
@@ -90,7 +91,7 @@
 
         checkSrc = lib.fileset.toSource {
           root = ./.;
-          fileset = lib.fileset.unions [ ./crates ./scripts ./nix ./Cargo.toml ./Cargo.lock ];
+          fileset = lib.fileset.unions [ ./crates ./agents/recipes ./scripts ./nix ./Cargo.toml ./Cargo.lock ];
         };
 
         fontsConf = pkgs.writeText "barrierkit-fonts.conf" ''

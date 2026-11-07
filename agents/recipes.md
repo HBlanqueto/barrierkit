@@ -9,7 +9,9 @@ chapter; the names are in the [glossary](../docs/barrierkit/20-glossary.md).
 ## Steps
 
 1. Find the recipe closest to the task in the list below.
-2. Copy it into `src/main.rs`.
+2. Copy its file from [`recipes/`](recipes/) into `src/main.rs`. Each file is
+   an example of `bk`, so `./dev.sh check` builds and lints it; inside the
+   kit, `cargo run -p bk --example <name>` opens it.
 3. Change only what the task needs.
 4. Build it inside `nix develop` and go through the [checklist](checklist.md).
 
@@ -17,82 +19,31 @@ chapter; the names are in the [glossary](../docs/barrierkit/20-glossary.md).
 
 SwiftUI: `WindowGroup { Text("Hello, world").font(.title).padding(40) }`
 
-The program is in [chapter 2, Hello, world](../docs/barrierkit/02-first-app.md#hello-world).
+The program is [`recipes/hello_world.rs`](recipes/hello_world.rs); [chapter 2](../docs/barrierkit/02-first-app.md#hello-world) explains it line by line.
 
 ## 2. State and a button
 
 SwiftUI: `@State var count = 0` with `VStack { Text("\(count)"); Button("Add one") { count += 1 } }`
 
-The program is in [chapter 2, Adding state](../docs/barrierkit/02-first-app.md#adding-state).
+The program is [`recipes/counter.rs`](recipes/counter.rs); [chapter 2](../docs/barrierkit/02-first-app.md#adding-state) explains it line by line.
 
 ## 3. Rows and columns
 
 SwiftUI: `VStack(alignment: .leading, spacing: 4) { HStack { … } }`
 
-```rust
-use bk::prelude::*;
-
-fn main() -> Result<(), RunError> {
-    Application::new("profile")
-        .window("Profile", || {
-            VStack::new()
-                .cross_align(Alignment::Start)
-                .spacing(SPACE_1)
-                .child(Text::new("Ana Díaz").font(HEADLINE))
-                .child(
-                    HStack::new()
-                        .child(Text::new("Madrid").font(CAPTION))
-                        .child(Text::new("Designer").font(CAPTION)),
-                )
-        })
-        .run()
-}
-```
+The program is [`recipes/rows_and_columns.rs`](recipes/rows_and_columns.rs).
 
 ## 4. A toggle bound to state
 
 SwiftUI: `Toggle("Wi-Fi", isOn: $wifi)`
 
-```rust
-use bk::prelude::*;
-
-fn main() -> Result<(), RunError> {
-    Application::new("network")
-        .window("Network", || {
-            let mut wifi = use_state(|| true);
-            VStack::new()
-                .child(Switch::new("Wi-Fi").on(*wifi.read()).on_toggle(move |on| wifi.set(on)))
-                .child(Text::new(if *wifi.read() { "Connected" } else { "Off" }))
-        })
-        .run()
-}
-```
+The program is [`recipes/toggle.rs`](recipes/toggle.rs).
 
 ## 5. A settings form
 
 SwiftUI: `Form { Section("General") { Toggle("Sounds", isOn: $sounds) } }`
 
-```rust
-use bk::prelude::*;
-use bk::views::form::{Form, Row, Section};
-
-fn main() -> Result<(), RunError> {
-    Application::new("settings-sample")
-        .window("Settings", || {
-            let mut sounds = use_state(|| true);
-            Form::new().section(
-                Section::titled("General").row(
-                    Row::new("Sounds").control(
-                        Switch::new("Sounds")
-                            .on(*sounds.read())
-                            .on_toggle(move |on| sounds.set(on)),
-                    ),
-                ),
-            )
-        })
-        .run()
-}
-```
+The program is [`recipes/settings_form.rs`](recipes/settings_form.rs).
 
 For a real preferences window use `SettingsWindow` (chapter
 [12](../docs/barrierkit/12-patterns.md)).
@@ -101,30 +52,7 @@ For a real preferences window use `SettingsWindow` (chapter
 
 SwiftUI: `struct Greeting: View { let name: String; var body: some View { … } }`
 
-```rust
-use bk::prelude::*;
-
-#[derive(PartialEq)]
-struct Greeting {
-    name: &'static str,
-}
-
-impl Component for Greeting {
-    fn render(&self) -> impl IntoElement {
-        Text::new(format!("Hello, {}", self.name)).font(HEADLINE)
-    }
-}
-
-fn main() -> Result<(), RunError> {
-    Application::new("greeting")
-        .window("Greeting", || {
-            VStack::new()
-                .child(Greeting { name: "Ana" })
-                .child(Greeting { name: "Luis" })
-        })
-        .run()
-}
-```
+The program is [`recipes/reusable_view.rs`](recipes/reusable_view.rs).
 
 A `Component` must be `PartialEq`: the kit redraws it only when its fields
 change.
@@ -134,22 +62,7 @@ change.
 Use it when the titlebar needs a sidebar or toolbar items. `run_window` takes
 the same closure but adds nothing: you draw the background and the titlebar.
 
-```rust
-use bk::prelude::*;
-
-fn main() -> Result<(), RunError> {
-    run_window(
-        || {
-            rect()
-                .expanded()
-                .background(color(Palette::current().window_background))
-                .child(Titlebar::new().title("Notes").with_sidebar(true))
-                .child(Text::new("No notes yet").padding(SPACE_4))
-        },
-        WindowOptions::new("Notes", "notes"),
-    )
-}
-```
+The program is [`recipes/custom_window.rs`](recipes/custom_window.rs).
 
 ## 8. Translated text
 
@@ -164,91 +77,7 @@ Text::new(tr!("hello")).font(TITLE)
 
 SwiftUI: a `Text` fed by `TimelineView(.periodic(from:by:))` with Start/Stop and Lap/Reset buttons.
 
-```rust
-use std::time::{Duration, Instant};
-
-use bk::platform::Timers;
-use bk::prelude::*;
-
-const TICK: Duration = Duration::from_millis(10);
-
-fn main() -> Result<(), RunError> {
-    Application::new("stopwatch")
-        .window("Stopwatch", || {
-            let mut started = use_state(|| None::<Instant>);
-            let mut stored = use_state(|| Duration::ZERO);
-            let now = use_state(Instant::now);
-            let mut laps = use_state(Vec::<Duration>::new);
-
-            use_side_effect(move || {
-                let _ = *now.read();
-                if started.read().is_some() {
-                    Timers::get().after(TICK, move || {
-                        let mut now = now;
-                        now.set(Instant::now());
-                    });
-                }
-            });
-
-            let running = started.read().is_some();
-            let elapsed = *stored.read()
-                + started
-                    .read()
-                    .map_or(Duration::ZERO, |start| now.read().duration_since(start));
-
-            VStack::new()
-                .child(
-                    Text::new(format_time(elapsed))
-                        .font(LARGE_TITLE)
-                        .font_family(MONO.family),
-                )
-                .child(
-                    HStack::new()
-                        .child(
-                            Button::new(if running { "Lap" } else { "Reset" })
-                                .disabled(!running && elapsed.is_zero())
-                                .on_press(move |_| {
-                                    if running {
-                                        laps.write().push(elapsed);
-                                    } else {
-                                        stored.set(Duration::ZERO);
-                                        laps.write().clear();
-                                    }
-                                }),
-                        )
-                        .child(
-                            Button::new(if running { "Stop" } else { "Start" })
-                                .style(ButtonStyle::bordered_prominent)
-                                .on_press(move |_| {
-                                    if running {
-                                        stored.set(elapsed);
-                                        started.set(None);
-                                    } else {
-                                        started.set(Some(Instant::now()));
-                                    }
-                                }),
-                        ),
-                )
-                .children(laps.read().iter().enumerate().rev().map(|(index, lap)| {
-                    Text::new(format!("Lap {}   {}", index + 1, format_time(*lap)))
-                        .font_family(MONO.family)
-                        .into_element()
-                }))
-        })
-        .options(|window| window.size((320, 420)).min_size(Some(WINDOW_MIN_SIZE)))
-        .run()
-}
-
-fn format_time(elapsed: Duration) -> String {
-    let centiseconds = elapsed.as_millis() / 10;
-    format!(
-        "{:02}:{:02}.{:02}",
-        centiseconds / 6000,
-        centiseconds / 100 % 60,
-        centiseconds % 100
-    )
-}
-```
+The program is [`recipes/stopwatch.rs`](recipes/stopwatch.rs).
 
 `Timers::after` runs a callback once after a delay ([8](../docs/barrierkit/08-windows.md)).
 `use_side_effect` runs again when `now` or `started` change, so each tick
@@ -258,42 +87,7 @@ schedules the next one while the stopwatch runs.
 
 SwiftUI: `.toolbar { ToolbarItemGroup { … } }` over a `LinearGradient` background.
 
-```rust
-use bk::backdrop::{Backdrop, BackdropSource};
-use bk::compact::IconButton;
-use bk::prelude::*;
-use ctdesign::BACKDROP_SCENES;
-
-#[derive(PartialEq)]
-struct Hello;
-
-impl Component for Hello {
-    fn render(&self) -> impl IntoElement {
-        VStack::new()
-            .expanded()
-            .child(
-                Titlebar::new().title("Hello").right(
-                    ToolGroup::new()
-                        .child(IconButton::new(Symbol::Plus, "Add"))
-                        .child(IconButton::new(Symbol::Ellipsis, "More")),
-                ),
-            )
-            .child(
-                rect()
-                    .expanded()
-                    .center()
-                    .child(Text::new("Hello, world").font(TITLE)),
-            )
-    }
-}
-
-fn main() -> Result<(), RunError> {
-    run_window(
-        || Backdrop::new(BackdropSource::Colors(BACKDROP_SCENES.dusk), Hello),
-        WindowOptions::new("Hello", "hello"),
-    )
-}
-```
+The program is [`recipes/titlebar_over_gradient.rs`](recipes/titlebar_over_gradient.rs).
 
 1. The gradient is a [`Backdrop`](../docs/barrierkit/15-backdrops-and-media.md#backdrop),
    not a hand-written `LinearGradient`: it gives the content a legible palette
@@ -308,40 +102,7 @@ fn main() -> Result<(), RunError> {
 
 SwiftUI: a custom `ButtonStyle` given with `.buttonStyle(_:)` to one view, a stack or the whole app.
 
-```rust
-use bk::level::LevelSlider;
-use bk::prelude::*;
-
-fn main() -> Result<(), RunError> {
-    Application::new("mixer")
-        .theme(
-            Theme::tengen()
-                .style(|s: SliderStyle| SliderStyle {
-                    track_shape: Shape::Rectangle,
-                    knob_shape: Shape::Rectangle,
-                    ..s
-                })
-                .style(ButtonStyle::glass),
-        )
-        .window("Mixer", || {
-            VStack::new()
-                .child(Slider::stepped("Volume", 10).value(4).style(|s| SliderStyle {
-                    fill: StateValue::new(ShapeStyle::Role(Role::Destructive))
-                        .pressed(ShapeStyle::Role(Role::SecondaryLabel)),
-                    ..s
-                }))
-                .child(
-                    HStack::new()
-                        .child(Slider::stepped("Bass", 5).value(2))
-                        .child(Slider::stepped("Treble", 5).value(3))
-                        .control_style(|s: SliderStyle| SliderStyle { axis: Axis::Vertical, ..s }),
-                )
-                .child(LevelSlider::new("Output").value(0.6).style(|s| s.fat(Symbol::SpeakerWave)))
-                .child(Button::new("Reset"))
-        })
-        .run()
-}
-```
+The program is [`recipes/styled_control.rs`](recipes/styled_control.rs).
 
 1. The theme makes every slider square and every button glass
    (`ButtonStyle::glass` is a preset: a function of the style, like SwiftUI's

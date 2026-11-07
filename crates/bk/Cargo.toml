@@ -62,3 +62,43 @@ async-io.workspace = true
 [dev-dependencies]
 freya-testing.workspace = true
 png.workspace = true
+
+[[example]]
+name = "counter"
+path = "../../agents/recipes/counter.rs"
+
+[[example]]
+name = "custom_window"
+path = "../../agents/recipes/custom_window.rs"
+
+[[example]]
+name = "hello_world"
+path = "../../agents/recipes/hello_world.rs"
+
+[[example]]
+name = "reusable_view"
+path = "../../agents/recipes/reusable_view.rs"
+
+[[example]]
+name = "rows_and_columns"
+path = "../../agents/recipes/rows_and_columns.rs"
+
+[[example]]
+name = "settings_form"
+path = "../../agents/recipes/settings_form.rs"
+
+[[example]]
+name = "stopwatch"
+path = "../../agents/recipes/stopwatch.rs"
+
+[[example]]
+name = "styled_control"
+path = "../../agents/recipes/styled_control.rs"
+
+[[example]]
+name = "titlebar_over_gradient"
+path = "../../agents/recipes/titlebar_over_gradient.rs"
+
+[[example]]
+name = "toggle"
+path = "../../agents/recipes/toggle.rs"

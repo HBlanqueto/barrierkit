@@ -74,10 +74,12 @@ métodos, hooks, tokens).
 4. **API nueva, documentada en el mismo commit:** su fila en el glosario, su
    uso en el capítulo que la describe y, si cambia cómo se escribe una app,
    `agents/` (`prompt.md`, `recipes.md`, `checklist.md`).
-5. **El código de la documentación compila.** Cada bloque con `fn main` de
-   `agents/recipes.md` y del capítulo 2 se compila antes del push (por
-   ejemplo, en un `crates/bk/examples/` temporal con
-   `cargo clippy --examples -- -D warnings`, que se borra después).
+5. **El código de la documentación compila.** Cada receta es un archivo de
+   `agents/recipes/`, declarado como `[[example]]` en `crates/bk/Cargo.toml`;
+   `./dev.sh check` lo compila y lo pasa por clippy. Los programas del
+   capítulo 2 son copias exactas de `hello_world.rs` y `counter.rs`, y
+   `scripts/check-recipes.sh` lo comprueba. Una receta nueva es un archivo
+   nuevo con su `[[example]]`, nunca un bloque de código en `recipes.md`.
 
 ## Código mínimo (reglas duras, estilo ponytail)
 
