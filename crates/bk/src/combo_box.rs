@@ -99,12 +99,7 @@ impl Component for ComboBox {
             open_popover_menu(
                 entries,
                 PopupAnchor::BottomLeft,
-                (
-                    field.origin.x.round() as i32,
-                    field.origin.y.round() as i32,
-                    field.size.width.round() as u32,
-                    field.size.height.round() as u32,
-                ),
+                crate::platform::anchor_rect(field),
                 None,
                 move |id| {
                     if let Some(label) = id.parse::<usize>().ok().and_then(|i| items.get(i)) {

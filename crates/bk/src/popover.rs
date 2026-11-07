@@ -24,12 +24,7 @@ impl Popover {
     pub fn show(self, anchor: Area) {
         let size = self.size;
         let spec = PopupSpec {
-            anchor_rect: (
-                anchor.origin.x.round() as i32,
-                anchor.origin.y.round() as i32,
-                anchor.size.width.round().max(1.0) as u32,
-                anchor.size.height.round().max(1.0) as u32,
-            ),
+            anchor_rect: crate::platform::anchor_rect(anchor),
             anchor: PopupAnchor::Bottom,
             gravity: PopupGravity::Bottom,
             size: (

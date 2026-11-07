@@ -77,12 +77,7 @@ impl Component for MenuButton {
                 open_popover_menu(
                     items.clone(),
                     PopupAnchor::BottomLeft,
-                    (
-                        field.origin.x.round() as i32,
-                        field.origin.y.round() as i32,
-                        field.size.width.round() as u32,
-                        field.size.height.round() as u32,
-                    ),
+                    crate::platform::anchor_rect(field),
                     None,
                     move |id| {
                         if let Some(on_activate) = &on_activate {
@@ -200,12 +195,7 @@ impl Component for ComboButton {
                 open_popover_menu(
                     items.clone(),
                     PopupAnchor::BottomLeft,
-                    (
-                        field.origin.x.round() as i32,
-                        field.origin.y.round() as i32,
-                        field.size.width.round() as u32,
-                        field.size.height.round() as u32,
-                    ),
+                    crate::platform::anchor_rect(field),
                     None,
                     move |id| {
                         if let Some(on_activate) = &on_activate {

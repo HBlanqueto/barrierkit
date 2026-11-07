@@ -570,3 +570,13 @@ impl PopupHandler for Runtime {
     }
 }
 delegate_xdg_popup!(Runtime);
+
+// xdg_positioner is incomplete (invalid_positioner) without a non-zero anchor rectangle.
+pub(crate) fn anchor_rect(area: torin::prelude::Area) -> (i32, i32, u32, u32) {
+    (
+        area.origin.x.round() as i32,
+        area.origin.y.round() as i32,
+        area.size.width.round().max(1.0) as u32,
+        area.size.height.round().max(1.0) as u32,
+    )
+}

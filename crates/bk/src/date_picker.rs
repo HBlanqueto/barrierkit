@@ -300,12 +300,7 @@ fn open_calendar(
     let padding = style.calendar_padding;
     let (width, height) = style.calendar_size;
     let spec = PopupSpec {
-        anchor_rect: (
-            field.origin.x.round() as i32,
-            field.origin.y.round() as i32,
-            field.size.width.round().max(1.0) as u32,
-            field.size.height.round().max(1.0) as u32,
-        ),
+        anchor_rect: crate::platform::anchor_rect(field),
         anchor: PopupAnchor::BottomLeft,
         gravity: PopupGravity::BottomRight,
         size: (

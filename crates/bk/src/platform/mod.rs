@@ -43,6 +43,7 @@ pub use window_style::Bar;
 
 #[cfg(test)]
 pub(crate) use popup::PopupCommand;
+pub(crate) use popup::anchor_rect;
 pub use sctk::reexports::client::backend::ObjectId;
 
 #[derive(Debug, thiserror::Error)]

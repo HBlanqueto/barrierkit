@@ -540,12 +540,7 @@ impl Component for ToolbarOverflow {
                     crate::popup_button::open_popover_menu(
                         items.clone(),
                         crate::platform::PopupAnchor::BottomLeft,
-                        (
-                            anchor.origin.x.round() as i32,
-                            anchor.origin.y.round() as i32,
-                            anchor.size.width.round() as u32,
-                            anchor.size.height.round() as u32,
-                        ),
+                        crate::platform::anchor_rect(anchor),
                         None,
                         move |id| {
                             if let Some(on_activate) = &on_activate {

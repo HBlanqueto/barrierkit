@@ -155,12 +155,7 @@ fn open_menu(
     open_popover_menu(
         entries,
         PopupAnchor::TopLeft,
-        (
-            area.origin.x.round() as i32,
-            area.origin.y.round() as i32,
-            area.size.width.round() as u32,
-            area.size.height.round() as u32,
-        ),
+        crate::platform::anchor_rect(area),
         Some(current),
         move |id| {
             if let Some(select) = id.parse::<usize>().ok().and_then(|i| selects.get(i)) {
