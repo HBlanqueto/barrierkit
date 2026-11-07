@@ -1,6 +1,6 @@
+use ct_design::{BODY, DISCLOSURE, SPACE_1, SPACE_2};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Direction, Gaps, Size};
-use vow_design::{BODY, DISCLOSURE, SPACE_1, SPACE_2};
 
 use crate::compact::IconButton;
 use crate::controls::TextField;

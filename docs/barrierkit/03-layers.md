@@ -61,7 +61,7 @@ Three items live at the crate root: `register_font`, `init_tracing` and
 
 The prelude re-exports the entry points, the controls, Freya's prelude and the
 common tokens. Its exact contents are in [2](02-first-app.md#the-prelude). Any
-other token comes from `vow_design`, which the app then adds as a dependency.
+other token comes from `ct_design`, which the app then adds as a dependency.
 
 ## Rules
 
@@ -84,7 +84,7 @@ other token comes from `vow_design`, which the app then adds as a dependency.
 
 | Rule | ✗ | ✓ |
 |---|---|---|
-| Values come from Tengen ([4](04-appearance-and-tokens.md#tokens-vow-design)) | `.corner_radius(6.)` | `.corner_radius(BUTTON.radius)` |
+| Values come from Tengen ([4](04-appearance-and-tokens.md#tokens-ct-design)) | `.corner_radius(6.)` | `.corner_radius(BUTTON.radius)` |
 | Colors come from the `Palette` ([4](04-appearance-and-tokens.md#the-palette)) | `Color::from_rgb(0, 0, 0)` | `color(Palette::current().label)` |
 | Variants, not free styles | `.background(red)` on a kit control | `ButtonStyle::Primary`, `.tint(Tint::Color(..))`, `SidebarBackdrop::Tinted` |
 | The app holds the state | The control keeps the value | The control takes the value and reports changes |

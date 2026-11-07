@@ -1,9 +1,9 @@
+use ct_design::{BODY, CAPTION, SPACE_1, SPACE_2, TEXT_FIELD};
 use freya_components::cursor_blink::use_cursor_blink;
 use freya_core::prelude::*;
 use freya_edit::{EditableConfig, EditableEvent, EditorLine, TextEditor as _, use_editable};
 use freya_engine::prelude::{RectHeightStyle, RectWidthStyle};
 use torin::prelude::{Alignment, Area, Content, CursorPoint, Direction, Gaps, Size};
-use vow_design::{BODY, CAPTION, SPACE_1, SPACE_2, TEXT_FIELD};
 
 use crate::compact::IconButton;
 use crate::controls::{Button, ControlSize, SearchField};
@@ -407,7 +407,7 @@ impl Component for TextEditor {
         .background(color(palette.content_background))
         .border(
             Border::new()
-                .width(vow_design::HAIRLINE)
+                .width(ct_design::HAIRLINE)
                 .alignment(BorderAlignment::Inner)
                 .fill(color(palette.separator)),
         )
@@ -513,7 +513,7 @@ impl Component for TextEditor {
     }
 }
 
-fn styled_spans(text: &str, runs: &[StyleRun], link: vow_design::Rgba) -> Vec<Span<'static>> {
+fn styled_spans(text: &str, runs: &[StyleRun], link: ct_design::Rgba) -> Vec<Span<'static>> {
     let chars: Vec<char> = text.chars().collect();
     let styles = char_styles(runs, chars.len());
     let mut spans = Vec::new();

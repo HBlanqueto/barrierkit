@@ -1,6 +1,6 @@
+use ct_design::{BADGE, BODY, CAPTION, HEADLINE, SETTINGS};
 use freya_core::prelude::*;
 use torin::prelude::{Gaps, Size};
-use vow_design::{BADGE, BODY, CAPTION, HEADLINE, SETTINGS};
 
 use crate::interaction::use_interaction;
 use crate::style::{Palette, text};
@@ -23,7 +23,7 @@ pub fn divider() -> Rect {
     rect()
         .a11y_role(AccessibilityRole::Splitter)
         .width(Size::fill())
-        .height(Size::px(vow_design::HAIRLINE))
+        .height(Size::px(ct_design::HAIRLINE))
         .background(color(palette.separator))
 }
 
@@ -41,7 +41,7 @@ pub fn avatar(initials: &str) -> Rect {
         .child(text(
             initials.to_string(),
             HEADLINE,
-            vow_appearance::backdrop::ink_on(palette.secondary_label),
+            ct_appearance::backdrop::ink_on(palette.secondary_label),
         ))
 }
 

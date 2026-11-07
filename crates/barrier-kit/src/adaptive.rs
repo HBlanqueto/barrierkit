@@ -1,5 +1,5 @@
+use ct_design::BREAKPOINT;
 use freya_core::prelude::*;
-use vow_design::BREAKPOINT;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Breakpoint {

@@ -71,7 +71,7 @@ page follows the selected item.
    ```
 
 The names come from `barrier_kit::sidebar`, `barrier_kit::views::split`,
-`barrier_kit::symbol::Symbol` and `vow_design::ACCENT_SWATCHES`.
+`barrier_kit::symbol::Symbol` and `ct_design::ACCENT_SWATCHES`.
 
 ## Sidebar content
 

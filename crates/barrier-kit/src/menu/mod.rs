@@ -39,8 +39,8 @@ use torin::prelude::{Alignment, Direction, Gaps, Size};
 
 type UseState<T> = State<T>;
 
-const SUBMENU_INTENT_DELAY: Duration = Duration::from_millis(vow_design::MENU_SUBMENU_INTENT_MS);
-const SCROLL_TICK: Duration = Duration::from_millis(vow_design::MENU_SCROLL_TICK_MS);
+const SUBMENU_INTENT_DELAY: Duration = Duration::from_millis(ct_design::MENU_SUBMENU_INTENT_MS);
+const SCROLL_TICK: Duration = Duration::from_millis(ct_design::MENU_SCROLL_TICK_MS);
 
 use crate::ProbeExt;
 use crate::platform::{
@@ -50,7 +50,7 @@ use crate::platform::{
 use crate::symbol::{Symbol, symbol};
 use crate::theme;
 use crate::theme::{SurfaceKind, menu_palette};
-use vow_design::{MenuPalette, Rgba, SANS_FAMILIES};
+use ct_design::{MenuPalette, Rgba, SANS_FAMILIES};
 
 #[derive(Clone, Copy)]
 struct PaletteSource {
@@ -80,7 +80,7 @@ impl PaletteSource {
         self.with_resolved(&crate::theme::resolved())
     }
 
-    fn with_resolved(self, resolved: &vow_appearance::Resolved) -> MenuPalette {
+    fn with_resolved(self, resolved: &ct_appearance::Resolved) -> MenuPalette {
         let palette = self
             .fixed
             .unwrap_or_else(|| menu_palette(resolved, self.surface));

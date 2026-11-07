@@ -1,5 +1,6 @@
 use std::io::Write;
 
+use ct_design::{BODY, CAPTION, PRINT, SPACE_2, SPACE_3};
 use flate2::Compression;
 use flate2::write::ZlibEncoder;
 use freya_core::elements::image::ImageHandle;
@@ -13,7 +14,6 @@ use pdf_writer::types::{CidFontType, FontFlags, SystemInfo, UnicodeCmap};
 use pdf_writer::{Content, Filter, Finish, Name, Pdf, Rect, Ref, Str};
 use subsetter::GlyphRemapper;
 use torin::prelude::{Alignment, Direction, Gaps, Size};
-use vow_design::{BODY, CAPTION, PRINT, SPACE_2, SPACE_3};
 
 use crate::i18n::text;
 use crate::scroll::ScrollView;

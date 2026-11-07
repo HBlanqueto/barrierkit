@@ -1,6 +1,6 @@
+use ct_design::{BODY, DISCLOSURE, GROUP_BOX, HAIRLINE, Rgba, SPACE_1};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Direction, Gaps, Size};
-use vow_design::{BODY, DISCLOSURE, GROUP_BOX, HAIRLINE, Rgba, SPACE_1};
 
 use crate::interaction::use_interaction;
 use crate::style::{Palette, text};

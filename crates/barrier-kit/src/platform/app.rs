@@ -2,6 +2,7 @@ use accesskit::Role;
 use freya_clipboard::copypasta::ClipboardProvider;
 
 use crate::app::DefaultsRevision;
+use ct_appearance::Resolved;
 use freya_components::{cache::AssetCacher, integration::integration};
 use freya_core::prelude::{Code, Key, Modifiers, NamedKey};
 use freya_core::{
@@ -27,7 +28,6 @@ use std::{
     task::{Context, Waker},
 };
 use torin::prelude::Size2D;
-use vow_appearance::Resolved;
 
 use super::{
     popup::{PopupHandle, PopupId, Popups},

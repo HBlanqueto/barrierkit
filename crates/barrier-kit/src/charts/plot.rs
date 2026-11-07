@@ -1,10 +1,10 @@
 use std::borrow::Cow;
 
+use ct_design::{CHART, Rgba};
 use freya_core::data::LayoutData;
 use freya_core::element::{ElementExt, RenderContext};
 use freya_core::tree::DiffModifies;
 use freya_engine::prelude::{Paint, PaintStyle, PathBuilder, Rect as SkRect};
-use vow_design::{CHART, Rgba};
 
 use super::scale::{Linear, Window, monotone_controls, stack};
 use super::{Interpolation, MarkKind, Series};

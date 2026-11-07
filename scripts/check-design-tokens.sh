@@ -13,14 +13,14 @@ report() {
 }
 
 production() {
-    for file in $(find "$@" -name '*.rs' ! -path 'crates/vow-design/*' | sort); do
+    for file in $(find "$@" -name '*.rs' ! -path 'crates/ct-design/*' | sort); do
         awk '/#\[cfg\(test\)\]/{exit} {print FILENAME ":" FNR ":" $0}' "$file"
     done
 }
 
 if matches=$(production crates/*/src |
     grep -E '0x[0-9a-fA-F]{6,8}|Rgba::(rgb8|rgba8)\([[:space:]]*(0x)?[0-9]'); then
-    report "colour literals must live in vow-design" "$matches"
+    report "colour literals must live in ct-design" "$matches"
 fi
 
 if matches=$(production crates/*/src |
@@ -33,7 +33,7 @@ if matches=$(production \
     crates/barrier-kit/src/controls.rs \
     crates/barrier-kit/src/theme.rs |
     grep -E ':[0-9]+:[[:space:]]*const [A-Z0-9_]+: (i32|u32|f32) = [0-9]'); then
-    report "UI measurements must live in vow-design" "$matches"
+    report "UI measurements must live in ct-design" "$matches"
 fi
 
 exit "$status"

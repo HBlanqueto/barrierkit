@@ -142,8 +142,8 @@ mod tests {
     fn tmp_dirs() -> (PathBuf, PathBuf) {
         let n = COUNTER.fetch_add(1, Ordering::Relaxed);
         let pid = std::process::id();
-        let config = std::env::temp_dir().join(format!("vow-appearance-watch-config-{pid}-{n}"));
-        let data = std::env::temp_dir().join(format!("vow-appearance-watch-data-{pid}-{n}"));
+        let config = std::env::temp_dir().join(format!("ct-appearance-watch-config-{pid}-{n}"));
+        let data = std::env::temp_dir().join(format!("ct-appearance-watch-data-{pid}-{n}"));
         std::fs::create_dir_all(&config).unwrap();
         std::fs::create_dir_all(&data).unwrap();
         (config, data)
@@ -160,9 +160,9 @@ mod tests {
         let n = COUNTER.fetch_add(1, Ordering::Relaxed);
         let pid = std::process::id();
         let config_dir =
-            std::env::temp_dir().join(format!("vow-appearance-watch-missing-config-{pid}-{n}"));
+            std::env::temp_dir().join(format!("ct-appearance-watch-missing-config-{pid}-{n}"));
         let data_dir =
-            std::env::temp_dir().join(format!("vow-appearance-watch-missing-data-{pid}-{n}"));
+            std::env::temp_dir().join(format!("ct-appearance-watch-missing-data-{pid}-{n}"));
         let _ = std::fs::remove_dir_all(&config_dir);
         let _ = std::fs::remove_dir_all(&data_dir);
         assert!(!config_dir.exists());

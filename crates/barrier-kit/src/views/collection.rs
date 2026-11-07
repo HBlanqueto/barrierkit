@@ -1,6 +1,6 @@
+use ct_design::{CAPTION, COLLECTION, Rgba};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
-use vow_design::{CAPTION, COLLECTION, Rgba};
 
 use crate::interaction::{track_modifiers, use_held_modifiers, use_interaction};
 use crate::style::{Palette, text};

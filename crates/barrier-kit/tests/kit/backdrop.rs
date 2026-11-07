@@ -3,12 +3,12 @@ use barrier_kit::controls::{Checkbox, Slider, Switch};
 use barrier_kit::progress::ProgressBar;
 use barrier_kit::sidebar::{Sidebar, SidebarBackdrop, SidebarItem};
 use barrier_kit::views::form::{Form, Row, Section};
+use ct_appearance::{AppearanceConfig, ColorScheme, SidebarStyle, resolve};
+use ct_design::Rgba;
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 use freya_testing::TestingRunner;
 use torin::prelude::{Size, Size2D};
-use vow_appearance::{AppearanceConfig, ColorScheme, SidebarStyle, resolve};
-use vow_design::Rgba;
 
 const SIZE: (f32, f32) = (420.0, 300.0);
 const COVER: [Rgba; 3] = [

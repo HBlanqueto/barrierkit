@@ -35,7 +35,7 @@ version.
   Windows, no X11.
 - **Layers:** BarrierKit (`barrier-kit`) is built on Freya 0.4.3
   (`freya-core`), its layout engine Torin, and the design tokens of
-  `vow-design`. An app depends only on `barrier-kit`; the prelude re-exports
+  `ct-design`. An app depends only on `barrier-kit`; the prelude re-exports
   what it needs from the others.
 - **Model:** declarative. A view is a function of the state; when the state
   changes, the kit calls it again and applies the difference.

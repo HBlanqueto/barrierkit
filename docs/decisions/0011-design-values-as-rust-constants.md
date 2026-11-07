@@ -2,7 +2,7 @@
 
 Status: accepted (block 0, supersedes ADR 0008)
 
-`yuki-design` was renamed to `vow-design` in [ADR 0043](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0043-rebranding-a-malaysia.md).
+`yuki-design` was renamed to `vow-design` in [ADR 0043](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0043-rebranding-a-malaysia.md), and to `ct-design` in [ADR 0062](0062-curse-techniques-crate-names.md).
 
 ## Context
 

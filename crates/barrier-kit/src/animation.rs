@@ -69,7 +69,7 @@ impl Spring {
             1.0 - (1.0 - t).powi(3)
         } else {
             let omega = std::f32::consts::PI * (1.0 + self.bounce);
-            1.0 - (-vow_design::SPRING_DAMPING * t).exp() * (omega * t).cos()
+            1.0 - (-ct_design::SPRING_DAMPING * t).exp() * (omega * t).cos()
         };
         self.from + (self.to - self.from) * base
     }

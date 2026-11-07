@@ -1,9 +1,9 @@
 use std::path::PathBuf;
 
+use ct_design::{BODY, MEDIA, Rgba};
 use freya_core::elements::image::ImageHandle;
 use freya_core::prelude::*;
 use torin::prelude::{Direction, Gaps, Size};
-use vow_design::{BODY, MEDIA, Rgba};
 
 pub use crate::glass::{material, top_glass};
 use crate::interaction::use_interaction;
@@ -86,7 +86,7 @@ impl Component for MediaButton {
             .center()
             .background(color(MEDIA.button_fill))
             .maybe(interaction.pressed(), |el| {
-                el.scale(vow_design::BUTTON.pressed_scale)
+                el.scale(ct_design::BUTTON.pressed_scale)
             })
             .map(on_press, |el, on_press| {
                 el.on_press(move |_| on_press.call(()))
@@ -159,11 +159,11 @@ impl Component for RoundButton {
             .border(
                 Border::new()
                     .fill(color(MEDIA.round_rim))
-                    .width(vow_design::HAIRLINE)
+                    .width(ct_design::HAIRLINE)
                     .alignment(BorderAlignment::Inner),
             )
             .maybe(interaction.pressed(), |el| {
-                el.scale(vow_design::BUTTON.pressed_scale)
+                el.scale(ct_design::BUTTON.pressed_scale)
             })
             .map(on_press, |el, on_press| {
                 el.on_press(move |_| on_press.call(()))

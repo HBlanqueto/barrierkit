@@ -10,14 +10,14 @@ GNOME and macOS separate these pieces in the same way:
 
 | GNOME | macOS | Malaysia |
 |---|---|---|
-| GTK + libadwaita (with Adwaita and `AdwStyleManager`) | AppKit (with Aqua and `NSAppearance`) | **barrierkit**: barrier-kit + Tengen + vow-appearance |
+| GTK + libadwaita (with Adwaita and `AdwStyleManager`) | AppKit (with Aqua and `NSAppearance`) | **barrierkit**: barrier-kit + Tengen + ct-appearance |
 | gtk4-widget-factory (in the GTK repo) | — | Master Tengen App Show (in barrierkit) |
 | Mutter | WindowServer / SkyLight | malaysia-compositor |
 | gnome-shell | Dock, menu bar | malaysia-shell |
 | gnome-control-center | System Settings | malaysia-settings |
 | wayland-protocols | — | Infinity protocol |
 
-In both cases, **the toolkit takes its style and the reading of the system appearance with it**. If `vow-design` and `vow-appearance` stayed in malaysia, barrierkit would depend on malaysia and malaysia on barrierkit: a cycle.
+In both cases, **the toolkit takes its style and the reading of the system appearance with it**. If `ct-design` and `ct-appearance` stayed in malaysia, barrierkit would depend on malaysia and malaysia on barrierkit: a cycle.
 
 ## Decision
 
@@ -29,8 +29,8 @@ In both cases, **the toolkit takes its style and the reading of the system appea
 barrierkit/
   Cargo.toml                  own workspace, same pinned versions (freya-* =0.4.3, SCTK…)
   crates/barrier-kit/         the toolkit (ADR 0034, 0047), with the `shell` feature
-  crates/vow-design/          Tengen: tengen/tokens.json, components.json → Rust constants
-  crates/vow-appearance/      appearance.domain + backdrop → resolved palette; watcher
+  crates/ct-design/          Tengen: tengen/tokens.json, components.json → Rust constants
+  crates/ct-appearance/      appearance.domain + backdrop → resolved palette; watcher
   crates/infinity-protocol/   protocols/infinity-*.xml + generated code,
                               features `client` (kit) and `server` (compositor)
   docs/                       kit decisions and documentation
@@ -58,8 +58,8 @@ Like any Rust library from another repository, the same as Smithay (ADR 0028):
 ```toml
 # malaysia/Cargo.toml, [workspace.dependencies]
 barrier-kit       = { git = "https://github.com/HBlanqueto/barrierkit", rev = "<hash>" }
-vow-design        = { git = "https://github.com/HBlanqueto/barrierkit", rev = "<hash>" }
-vow-appearance    = { git = "https://github.com/HBlanqueto/barrierkit", rev = "<hash>" }
+ct-design        = { git = "https://github.com/HBlanqueto/barrierkit", rev = "<hash>" }
+ct-appearance    = { git = "https://github.com/HBlanqueto/barrierkit", rev = "<hash>" }
 infinity-protocol = { git = "https://github.com/HBlanqueto/barrierkit", rev = "<hash>" }
 ```
 
@@ -69,13 +69,13 @@ infinity-protocol = { git = "https://github.com/HBlanqueto/barrierkit", rev = "<
 
 ### 3. What does not change
 
-- The compositor still does not link Freya or Skia. It only uses `vow-design`, `vow-appearance` and `infinity-protocol` (feature `server`), none of which depends on Freya. Cargo compiles only the crates that are requested even if they share a repo. `malaysia/scripts/check-client-only-deps.sh` keeps checking it.
+- The compositor still does not link Freya or Skia. It only uses `ct-design`, `ct-appearance` and `infinity-protocol` (feature `server`), none of which depends on Freya. Cargo compiles only the crates that are requested even if they share a repo. `malaysia/scripts/check-client-only-deps.sh` keeps checking it.
 - The names of crates, modules and types stay. Only where they come from changes.
 - A single `main` branch in each repo.
 
 ### 4. History and documentation
 
-- `crates/barrier-kit`, `crates/vow-design` and `crates/vow-appearance` move with **their history** (`git filter-repo`). In malaysia they are deleted with a commit that refers to barrierkit.
+- `crates/barrier-kit`, `crates/ct-design` and `crates/ct-appearance` move with **their history** (`git filter-repo`). In malaysia they are deleted with a commit that refers to barrierkit.
 - **A single ADR numbering for both repos.** A new decision takes the next free number wherever it is, so that "ADR 0047" means the same in both. The kit ADRs (0011, 0032, 0033, 0034, 0035, 0039, 0041, 0046, 0047) move to `barrierkit/docs/decisions/`. In malaysia, a one-line file remains for each one, referring to the new location. This ADR (0048) exists in both repos.
 - The audits and the triage of P4 (BarrierKit) move to barrierkit.
 

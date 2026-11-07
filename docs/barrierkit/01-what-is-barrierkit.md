@@ -12,8 +12,8 @@ with.
 ## Steps
 
 1. Check that the machine has what the kit needs: [What it needs](#what-it-needs).
-2. Depend on `barrier-kit`. Add `vow-design` only to read tokens that the
-   prelude does not re-export, and `vow-appearance` only to read or change the
+2. Depend on `barrier-kit`. Add `ct-design` only to read tokens that the
+   prelude does not re-export, and `ct-appearance` only to read or change the
    user's appearance ([The crates](#the-crates)).
 3. Pick the level of the kit with [Which level to use](#which-level-to-use).
 4. Open the first window: [2. Your first app](02-first-app.md).
@@ -54,8 +54,8 @@ Cargo workspace with four library crates. They need Rust 1.98 (edition 2024).
 | Crate | What it is | Who depends on it |
 |---|---|---|
 | `barrier-kit` | The kit: Wayland runner, style, controls, views, patterns and app services. | Apps and the shell. |
-| `vow-design` | **Tengen**, the design system. `build.rs` turns `tengen/tokens.json` and `tengen/components.json` into Rust constants ([4](04-appearance-and-tokens.md#tokens-vow-design)). | The kit, the compositor, the shell and the portal. |
-| `vow-appearance` | Reads the user's appearance and the wallpaper color and resolves them into concrete colors ([4](04-appearance-and-tokens.md#user-appearance-vow-appearance)). | The kit, the compositor, the shell and the portal. |
+| `ct-design` | **CTDesign** (CT = Curse Techniques): **Tengen**, the design system. `build.rs` turns `tengen/tokens.json` and `tengen/components.json` into Rust constants ([4](04-appearance-and-tokens.md#tokens-ct-design)). | The kit, the compositor, the shell and the portal. |
+| `ct-appearance` | **CTAppearance**: reads the user's appearance and the wallpaper color and resolves them into concrete colors ([4](04-appearance-and-tokens.md#user-appearance-ct-appearance)). | The kit, the compositor, the shell and the portal. |
 | `infinity-protocol` | Private Wayland protocol between the apps and the Malaysia compositor ([18](18-platform.md)). | The kit and the compositor. |
 
 `barrier-kit` has three Cargo features:

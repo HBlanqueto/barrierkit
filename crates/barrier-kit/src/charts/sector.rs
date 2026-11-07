@@ -1,12 +1,12 @@
 use std::borrow::Cow;
 
+use ct_design::{CAPTION, CHART, HEADLINE, Rgba, SPACE_1, SPACE_2};
 use freya_core::data::LayoutData;
 use freya_core::element::{ElementExt, RenderContext};
 use freya_core::prelude::*;
 use freya_core::tree::DiffModifies;
 use freya_engine::prelude::{PaintStyle, PathBuilder, Rect as SkRect};
 use torin::prelude::{Direction, Position, Size};
-use vow_design::{CAPTION, CHART, HEADLINE, Rgba, SPACE_1, SPACE_2};
 
 use super::plot::paint;
 use super::scale::{sector_angles, sector_at};

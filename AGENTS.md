@@ -57,7 +57,7 @@ Aplica a `README.md`, `docs/` y los ADR.
 
 ## Nombres y glosario
 
-Aplica a todo elemento público del kit y de `vow-design` (tipos, funciones,
+Aplica a todo elemento público del kit y de `ct-design` (tipos, funciones,
 métodos, hooks, tokens).
 
 1. **Una sola fuente:** `docs/barrierkit/20-glossary.md` lista cada nombre
@@ -131,8 +131,8 @@ Se cumplen al pie de la letra. Ganan el diff más corto y la respuesta más cort
 ```rust
 // ✗ literal y geometría recalculada
 let x = 8.0 + i as f64 * (12.0 + 8.0);
-// ✓ token y función que ya existen (vow-design, vow-appearance::traffic)
-let (x, y, d) = vow_appearance::traffic::button_rect(i);
+// ✓ token y función que ya existen (ct-design, ct-appearance::traffic)
+let (x, y, d) = ct_appearance::traffic::button_rect(i);
 ```
 
 ```rust
@@ -151,7 +151,7 @@ pub fn focused(mut self, focused: bool) -> Self { … }
 - Una app empieza por `use barrier_kit::prelude::*;` y
   `Application::new(..).window(..).run()`; `run_window` solo cuando dibuja su
   propia barra de título (ADR 0061).
-- Los colores, radios, duraciones y métricas nuevos van a `vow-design`, nunca
+- Los colores, radios, duraciones y métricas nuevos van a `ct-design`, nunca
   a `barrier-kit`.
 - Un control nuevo compone primitivas del kit; no reimplementa la barra
   lateral, los menús ni los semáforos (ADR 0047).

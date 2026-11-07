@@ -1,8 +1,8 @@
 use crate::style::Palette;
 use crate::theme::color;
+use ct_design::{Rgba, SPLIT_PANES};
 use freya_core::prelude::*;
 use torin::prelude::{Content, Direction, Size};
-use vow_design::{Rgba, SPLIT_PANES};
 
 #[derive(PartialEq)]
 pub struct SplitPanes {
@@ -168,7 +168,7 @@ impl Component for Divider {
 #[cfg(test)]
 mod tests {
     use super::dragged;
-    use vow_design::SPLIT_PANES;
+    use ct_design::SPLIT_PANES;
 
     #[test]
     fn dragging_moves_only_the_two_panes_beside_the_divider_and_stops_at_the_minimum() {

@@ -53,7 +53,7 @@ in its source:
   API and names).
 - Names and their SwiftUI and AppKit equivalents: the
   [glossary](20-glossary.md).
-- Token values: `crates/vow-design/tengen/tokens.json` and `components.json`.
-- Appearance options: `crates/vow-appearance/src/config.rs`
+- Token values: `crates/ct-design/tengen/tokens.json` and `components.json`.
+- Appearance options: `crates/ct-appearance/src/config.rs`
   (`AppearanceConfig`).
 - Screenshots: [`assets/README.md`](assets/README.md).

@@ -8,6 +8,7 @@ use std::path::PathBuf;
 use std::rc::Rc;
 use std::sync::{Once, OnceLock};
 
+use ct_design::{Rgba, SPELLING};
 use freya_core::data::LayoutData;
 use freya_core::element::{ElementExt, RenderContext};
 use freya_core::elements::paragraph::{ParagraphElement, ParagraphHolderInner};
@@ -16,7 +17,6 @@ use freya_core::prelude::*;
 use freya_core::tree::{DiffModifies, Tree};
 use freya_engine::prelude::{Paint, PaintStyle, Paragraph as SkParagraph};
 use spellbook::Dictionary;
-use vow_design::{Rgba, SPELLING};
 
 static DICTIONARY: OnceLock<Option<Dictionary>> = OnceLock::new();
 static PERSONAL: OnceLock<(PathBuf, HashSet<String>)> = OnceLock::new();

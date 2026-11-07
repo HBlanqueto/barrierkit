@@ -1,8 +1,8 @@
 use crate::i18n::text;
 
+use ct_design::{BODY, CAPTION, Rgba, SETTINGS, SWITCH};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Direction, Position, Size};
-use vow_design::{BODY, CAPTION, Rgba, SETTINGS, SWITCH};
 
 use crate::backdrop::Tint;
 use crate::interaction::{ring, use_interaction};
@@ -200,7 +200,7 @@ impl Component for RadioOption {
         } else {
             circle.background(color(palette.control_background)).border(
                 Border::new()
-                    .width(vow_design::HAIRLINE)
+                    .width(ct_design::HAIRLINE)
                     .alignment(BorderAlignment::Inner)
                     .fill(color(palette.separator)),
             )
@@ -338,7 +338,7 @@ impl Component for Swatch {
             .background(color(self.fill))
             .border(
                 Border::new()
-                    .width(vow_design::HAIRLINE)
+                    .width(ct_design::HAIRLINE)
                     .alignment(BorderAlignment::Inner)
                     .fill(color(palette.separator)),
             );
@@ -475,7 +475,7 @@ impl Component for Card {
                         .corner_radius(radius)
                         .border(
                             Border::new()
-                                .width(vow_design::HAIRLINE)
+                                .width(ct_design::HAIRLINE)
                                 .alignment(BorderAlignment::Inner)
                                 .fill(color(SETTINGS.card_outline)),
                         ),

@@ -1,9 +1,9 @@
-pub use freya_core::prelude::*;
-pub use torin::prelude::{Alignment, Direction, Size};
-pub use vow_design::{
+pub use ct_design::{
     BODY, CALLOUT, CAPTION, Font, HEADLINE, LARGE_TITLE, MONO, SPACE_1, SPACE_2, SPACE_3, SPACE_4,
     TITLE, TITLE_2, WINDOW_DEFAULT_SIZE, WINDOW_MIN_SIZE,
 };
+pub use freya_core::prelude::*;
+pub use torin::prelude::{Alignment, Direction, Size};
 
 pub use crate::app::{Application, Scene};
 pub use crate::controls::*;

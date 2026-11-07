@@ -2,6 +2,7 @@ use std::borrow::Cow;
 use std::rc::Rc;
 use std::time::Duration;
 
+use ct_design::{DURATION_BASE, MEDIA, Rgba};
 use freya_animation::prelude::use_animation_transition;
 use freya_core::data::LayoutData;
 use freya_core::element::{ElementExt, RenderContext};
@@ -11,7 +12,6 @@ use freya_engine::prelude::{
     BlendMode, Data, Paint, Rect as SkRect, RuntimeEffect, SaveLayerRec, TileMode, blur,
 };
 use torin::prelude::{Area, Direction, Position, Size};
-use vow_design::{DURATION_BASE, MEDIA, Rgba};
 
 use crate::animation::Spring;
 use crate::glass::{layout, leaf};

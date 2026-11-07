@@ -1,8 +1,8 @@
 use freya_core::prelude::*;
 use std::rc::Rc;
 
+use ct_design::{BODY, BUTTON, ICON_BUTTON, LARGE_TITLE, SEGMENTED, STEPPER, TOOLGROUP};
 use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
-use vow_design::{BODY, BUTTON, ICON_BUTTON, LARGE_TITLE, SEGMENTED, STEPPER, TOOLGROUP};
 
 use crate::i18n::text;
 use crate::interaction::use_interaction;
@@ -197,7 +197,7 @@ pub(crate) fn stepper_arrows(up: Option<Rc<dyn Fn()>>, down: Option<Rc<dyn Fn()>
         .child(
             rect()
                 .width(Size::fill())
-                .height(Size::px(vow_design::HAIRLINE))
+                .height(Size::px(ct_design::HAIRLINE))
                 .background(color(palette.separator)),
         )
         .child(arrow(Symbol::ChevronDown, text!("decrease"), down))
@@ -367,7 +367,7 @@ impl Component for ToolbarSearch {
                 .into_element();
         }
         rect()
-            .width(Size::px(vow_design::TOOLBAR_SEARCH_WIDTH))
+            .width(Size::px(ct_design::TOOLBAR_SEARCH_WIDTH))
             .child(
                 crate::controls::SearchField::new(self.value, self.placeholder)
                     .auto_focus(self.collapsed)

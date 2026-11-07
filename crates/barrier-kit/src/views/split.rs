@@ -1,11 +1,11 @@
 use freya_animation::prelude::use_animation_transition;
 use std::time::Duration;
 
+use ct_appearance::SidebarStyle;
+use ct_design::{DURATION_BASE, DURATION_FAST_MS, SIDEBAR, SPLIT_VIEW};
 use freya_core::prelude::*;
 use serde::{Deserialize, Serialize};
 use torin::prelude::{Content, Direction, Gaps, Position, Size};
-use vow_appearance::SidebarStyle;
-use vow_design::{DURATION_BASE, DURATION_FAST_MS, SIDEBAR, SPLIT_VIEW};
 
 use crate::ProbeExt;
 use crate::animation::Spring;
@@ -381,7 +381,7 @@ impl Component for SplitView {
             root = root
                 .child(
                     rect()
-                        .width(Size::px(vow_design::HAIRLINE))
+                        .width(Size::px(ct_design::HAIRLINE))
                         .height(Size::fill())
                         .background(color(palette.separator)),
                 )

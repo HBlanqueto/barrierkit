@@ -168,7 +168,7 @@ pub(super) fn open_reveal_popup(
     } else {
         anchor_x
     };
-    let reveal_x = parent_left - child_size.0 - vow_design::MENU_SUBMENU_REVEAL_GAP;
+    let reveal_x = parent_left - child_size.0 - ct_design::MENU_SUBMENU_REVEAL_GAP;
     if reveal_x < 0.0 {
         return None;
     }
@@ -184,7 +184,7 @@ pub(super) fn open_reveal_popup(
         anchor_rect: (0, 0, 1, 1),
         anchor: PopupAnchor::TopLeft,
         gravity: PopupGravity::BottomLeft,
-        offset: (-(vow_design::MENU_SUBMENU_REVEAL_GAP as i32), 0),
+        offset: (-(ct_design::MENU_SUBMENU_REVEAL_GAP as i32), 0),
         size: (child_size.0 as u32, child_size.1 as u32),
         constraint_adjustment: PopupConstraintAdjustment::default(),
         grab: false,

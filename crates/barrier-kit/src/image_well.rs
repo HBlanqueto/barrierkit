@@ -1,8 +1,8 @@
 use std::path::{Path, PathBuf};
 
+use ct_design::{HAIRLINE, IMAGE_WELL};
 use freya_core::prelude::*;
 use torin::prelude::{Area, Size};
-use vow_design::{HAIRLINE, IMAGE_WELL};
 
 use crate::i18n::text;
 use crate::interaction::use_interaction;

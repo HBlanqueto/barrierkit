@@ -1,6 +1,9 @@
 use std::borrow::Cow;
 use std::rc::Rc;
 
+use ct_design::{
+    FULLSCREEN_BAND, FULLSCREEN_BAR, FULLSCREEN_GLASS, FullscreenGlassMetrics, MEDIA, Rgba,
+};
 use freya_core::data::LayoutData;
 use freya_core::element::{ElementExt, RenderContext};
 use freya_core::prelude::*;
@@ -10,9 +13,6 @@ use freya_engine::prelude::{
     SaveLayerRec, TileMode, blur, shaders,
 };
 use torin::prelude::{Position, Size};
-use vow_design::{
-    FULLSCREEN_BAND, FULLSCREEN_BAR, FULLSCREEN_GLASS, FullscreenGlassMetrics, MEDIA, Rgba,
-};
 
 use crate::platform::FullscreenBar;
 
@@ -209,7 +209,7 @@ impl ElementExt for Glass {
                 bounds,
                 Rgba {
                     a: self.opacity,
-                    ..vow_design::GLASS_MASK
+                    ..ct_design::GLASS_MASK
                 },
                 &layer_mask(self.metrics.mask, level / 2.0, level),
             );

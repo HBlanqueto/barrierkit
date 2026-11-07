@@ -6,13 +6,13 @@ use std::{
 use crate::image::{decode, pixel};
 use barrier_kit::menu::{CheckState, MenuItem, MenuView};
 use barrier_kit::theme::{SurfaceKind, menu_palette};
+use ct_appearance::{AppearanceConfig, ColorScheme, Resolved, resolve};
+use ct_design::{MENU_DARK, MENU_LIGHT, MenuPalette};
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 use freya_testing::TestingRunner;
 use freya_testing::prelude::{Code, Key, KeyboardEventName, Modifiers, NamedKey};
 use torin::prelude::Size2D;
-use vow_appearance::{AppearanceConfig, ColorScheme, Resolved, resolve};
-use vow_design::{MENU_DARK, MENU_LIGHT, MenuPalette};
 
 const TOLERANCE: u8 = 3;
 

@@ -1,11 +1,11 @@
 use std::rc::Rc;
 
+use ct_design::{
+    BODY, CAPTION, DATE_PICKER, HAIRLINE, HEADLINE, MENU_POPOVER, STEPPER, TEXT_FIELD,
+};
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Area, Direction, Gaps, Size};
-use vow_design::{
-    BODY, CAPTION, DATE_PICKER, HAIRLINE, HEADLINE, MENU_POPOVER, STEPPER, TEXT_FIELD,
-};
 
 use crate::compact::stepper_arrows;
 use crate::controlled::{commit, use_controlled};

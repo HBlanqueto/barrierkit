@@ -26,11 +26,11 @@ pub fn use_watched<T: PartialEq + Clone + 'static>(load: impl Fn() -> T + 'stati
 }
 
 fn domain(app_id: &str) -> PathBuf {
-    vow_appearance::config_dir().join(format!("{app_id}.domain"))
+    ct_appearance::config_dir().join(format!("{app_id}.domain"))
 }
 
 fn state(app_id: &str) -> PathBuf {
-    vow_appearance::data_dir().join(format!("{app_id}.state"))
+    ct_appearance::data_dir().join(format!("{app_id}.state"))
 }
 
 pub fn read_toml<T: DeserializeOwned + Default>(path: &Path) -> T {

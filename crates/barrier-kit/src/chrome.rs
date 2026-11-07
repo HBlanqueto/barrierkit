@@ -1,11 +1,11 @@
-use freya_core::prelude::*;
-use serde::{Deserialize, Serialize};
-use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
-use vow_appearance::{SidebarStyle, palette};
-use vow_design::{
+use ct_appearance::{SidebarStyle, palette};
+use ct_design::{
     DURATION_BASE, Rgba, SETTINGS, SHADOW, SHADOW_DARK, TITLEBAR, TITLEBAR_CLIENT_HEIGHT,
     TITLEBAR_RAIL,
 };
+use freya_core::prelude::*;
+use serde::{Deserialize, Serialize};
+use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 
 use crate::glass::{GlassEdge, fullscreen_backdrop};
 use crate::platform::FullscreenBar;
@@ -105,7 +105,7 @@ pub(crate) fn window_root(app: impl IntoElement) -> Rect {
     use_focus_bar_reveal();
     if try_consume_root_context::<WindowControls>().is_some_and(|controls| controls.hud) {
         crate::theme::use_appearance(|config| {
-            config.color_scheme = vow_appearance::ColorScheme::Dark
+            config.color_scheme = ct_appearance::ColorScheme::Dark
         });
     }
     let pushed =
@@ -252,7 +252,7 @@ pub(crate) fn revealable_bar(bar: Element, height: f32) -> Element {
 
 fn drop_shadow() -> Shadow {
     let resolved = crate::theme::resolved();
-    let layer = if resolved.scheme == vow_appearance::ColorScheme::Light {
+    let layer = if resolved.scheme == ct_appearance::ColorScheme::Light {
         SHADOW.contact
     } else {
         SHADOW_DARK.contact
@@ -490,7 +490,7 @@ fn rail(style: ChromeStyle, items: &RailItems, lights_opacity: f32) -> Rect {
     let line = (!island && !floating).then(|| {
         rect()
             .position(Position::new_absolute().top(0.0).right(0.0))
-            .width(Size::px(vow_design::HAIRLINE))
+            .width(Size::px(ct_design::HAIRLINE))
             .height(Size::fill())
             .background(color(resolved.sidebar.palette.line))
     });
@@ -606,7 +606,7 @@ fn pill(vertical: bool, slide: f32) -> Rect {
         .background(color(palette.raised_background))
         .border(
             Border::new()
-                .width(vow_design::HAIRLINE)
+                .width(ct_design::HAIRLINE)
                 .alignment(BorderAlignment::Inner)
                 .fill(color(palette.separator)),
         )

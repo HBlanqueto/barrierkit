@@ -1,8 +1,8 @@
 use crate::scroll::ScrollView;
+use ct_design::{Rgba, SETTINGS, SPACE_2};
 use freya_core::prelude::*;
 use serde::{Deserialize, Serialize};
 use torin::prelude::{Alignment, Direction, Gaps, Size};
-use vow_design::{Rgba, SETTINGS, SPACE_2};
 
 use crate::app::{load_restoration, save_restoration};
 use crate::controls::SearchField;

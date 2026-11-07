@@ -1,8 +1,8 @@
+use ct_design::{BODY, HAIRLINE, Rgba, TEXT_FIELD, TOKEN_FIELD};
 use freya_components::input::InputColorsThemePartial;
 use freya_components::theming::macros::Preference;
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
-use vow_design::{BODY, HAIRLINE, Rgba, TEXT_FIELD, TOKEN_FIELD};
 
 use crate::context_menu::edit_menu;
 use crate::controls::{default_pre_key, text_style, themed_input};

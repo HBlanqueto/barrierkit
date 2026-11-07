@@ -1,8 +1,8 @@
+use ct_design::{CAPTION, GAUGE, HAIRLINE, LEVEL_INDICATOR, LEVEL_INDICATOR_COLORS};
 use freya_components::cache::AssetAge;
 use freya_components::svg_viewer::SvgViewer;
 use freya_core::prelude::*;
 use torin::prelude::{Direction, Position, Size};
-use vow_design::{CAPTION, GAUGE, HAIRLINE, LEVEL_INDICATOR, LEVEL_INDICATOR_COLORS};
 
 use crate::interaction::use_interaction;
 use crate::style::{Palette, text};
@@ -201,7 +201,7 @@ impl Component for CircularGauge {
                 palette.label,
             )
         };
-        let layer = |svg: String, ink: vow_design::Rgba| {
+        let layer = |svg: String, ink: ct_design::Rgba| {
             SvgViewer::new(Bytes::from(svg))
                 .width(Size::px(size))
                 .height(Size::px(size))
@@ -320,7 +320,7 @@ mod tests {
     fn the_gauge_marker_runs_from_the_lower_left_to_the_lower_right() {
         let (low_x, low_y) = super::gauge_marker(0.0);
         let (high_x, high_y) = super::gauge_marker(1.0);
-        let center = vow_design::GAUGE.size / 2.0;
+        let center = ct_design::GAUGE.size / 2.0;
         assert!(low_x < center && low_y > center);
         assert!(high_x > center && high_y > center);
         assert!((low_y - high_y).abs() < 0.01);

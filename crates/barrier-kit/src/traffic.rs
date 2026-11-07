@@ -1,10 +1,10 @@
+use ct_appearance::TrafficLightShape;
+use ct_appearance::palette as base_palette;
+use ct_appearance::traffic::{self, TrafficInput, TrafficPointer};
+use ct_design::{ButtonKind, Rgba, TITLEBAR, TRAFFIC_GLYPHS, TRAFFIC_RIM_WIDTH};
 use freya_components::svg_viewer::SvgViewer;
 use freya_core::prelude::*;
 use torin::prelude::{Direction, Size};
-use vow_appearance::TrafficLightShape;
-use vow_appearance::palette as base_palette;
-use vow_appearance::traffic::{self, TrafficInput, TrafficPointer};
-use vow_design::{ButtonKind, Rgba, TITLEBAR, TRAFFIC_GLYPHS, TRAFFIC_RIM_WIDTH};
 
 use crate::ProbeExt;
 use crate::i18n::text;

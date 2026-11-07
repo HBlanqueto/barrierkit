@@ -1,8 +1,8 @@
+use ct_design::{BODY, COMBO_BOX, TEXT_FIELD};
 use freya_components::input::InputLayoutThemePartial;
 use freya_components::theming::macros::Preference;
 use freya_core::prelude::*;
 use torin::prelude::{Area, Gaps, Position, Size};
-use vow_design::{BODY, COMBO_BOX, TEXT_FIELD};
 
 use crate::context_menu::edit_menu;
 use crate::controls::{default_pre_key, text_style, themed_input};

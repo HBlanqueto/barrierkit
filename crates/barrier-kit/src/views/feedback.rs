@@ -1,8 +1,8 @@
-use freya_core::prelude::*;
-use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
-use vow_design::{
+use ct_design::{
     BODY, DIALOG, DIALOG_ALERT_WIDTH, DIALOG_PADDING, HEADLINE, SETTINGS, SPACE_2, SPACE_4,
 };
+use freya_core::prelude::*;
+use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 
 use crate::controls::{Button, ButtonStyle, Checkbox, ControlSize};
 use crate::i18n::text;
@@ -48,7 +48,7 @@ pub fn sheet(content: impl IntoElement) -> Rect {
                 .background(color(palette.raised_background))
                 .border(
                     Border::new()
-                        .width(vow_design::HAIRLINE)
+                        .width(ct_design::HAIRLINE)
                         .alignment(BorderAlignment::Outer)
                         .fill(color(palette.separator)),
                 )

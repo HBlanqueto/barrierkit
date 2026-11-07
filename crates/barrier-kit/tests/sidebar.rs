@@ -11,14 +11,14 @@ use barrier_kit::sidebar::{Sidebar, SidebarItem, SidebarSection};
 use barrier_kit::theme;
 use barrier_kit::titlebar::Titlebar;
 use barrier_kit::views::split::{NarrowSidebar, SidebarToggle, SplitView};
+use ct_appearance::{AppearanceConfig, ColorScheme, SidebarStyle, WindowColorMode, resolve};
+use ct_design::{SIDEBAR, TITLEBAR, TITLEBAR_CLIENT_HEIGHT, TOOLGROUP};
 use freya_components::button::Button;
 use freya_components::theming::hooks::use_init_theme;
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 use freya_testing::TestingRunner;
 use torin::prelude::{Alignment, Direction, Size, Size2D};
-use vow_appearance::{AppearanceConfig, ColorScheme, SidebarStyle, WindowColorMode, resolve};
-use vow_design::{SIDEBAR, TITLEBAR, TITLEBAR_CLIENT_HEIGHT, TOOLGROUP};
 
 #[path = "kit/image.rs"]
 mod image;
@@ -27,7 +27,7 @@ use image::{decode, pixel};
 
 static ENV_LOCK: Mutex<()> = Mutex::new(());
 
-fn color(c: vow_design::Rgba) -> Color {
+fn color(c: ct_design::Rgba) -> Color {
     let [r, g, b, a] = c.to_rgba8();
     Color::from_argb(a, r, g, b)
 }
@@ -146,7 +146,7 @@ fn render_titlebar(sidebar: bool, decoration: DecorationResponse) -> Vec<u8> {
 
 fn render_titlebar_pixels(
     activated: bool,
-    resolved: vow_appearance::Resolved,
+    resolved: ct_appearance::Resolved,
 ) -> (usize, usize, Vec<u8>) {
     let app = AppComponent::new(TitlebarCase {
         sidebar: false,
@@ -167,7 +167,7 @@ fn render_titlebar_pixels(
 
 #[test]
 fn titlebar_background_follows_the_resolved_window_tint() {
-    let accent = vow_design::Rgba {
+    let accent = ct_design::Rgba {
         r: 0.2,
         g: 0.4,
         b: 0.9,
@@ -232,7 +232,7 @@ fn titlebar_without_sidebar_keeps_the_classic_three_slot_layout() {
         "expected the three classic slots, found {bars:?}"
     );
     let widths: Vec<f32> = bars.iter().map(|(_, _, w, _)| *w).collect();
-    let group_w = vow_appearance::traffic::group_rect().2 as f32;
+    let group_w = ct_appearance::traffic::group_rect().2 as f32;
     assert!(
         !widths.contains(&80.0),
         "left/right slots must not use a fixed 80 px width: {widths:?}"
@@ -344,7 +344,7 @@ fn the_dragged_sidebar_edge_stays_under_the_pointer() {
     test.move_cursor((pointer, 300.0));
     test.sync_and_update();
     test.sync_and_update();
-    let grip_centre = detail_x(&capture) - vow_design::SPLIT_VIEW.grip / 2.0;
+    let grip_centre = detail_x(&capture) - ct_design::SPLIT_VIEW.grip / 2.0;
     assert!((grip_centre - pointer as f32).abs() < 1.0);
     test.release_cursor((pointer, 300.0));
 }
@@ -413,7 +413,7 @@ impl App for AnimatedSectionCase {
     }
 }
 
-fn motion(reduced_motion: bool) -> vow_appearance::Resolved {
+fn motion(reduced_motion: bool) -> ct_appearance::Resolved {
     resolve(
         &AppearanceConfig {
             reduced_motion,
@@ -423,7 +423,7 @@ fn motion(reduced_motion: bool) -> vow_appearance::Resolved {
     )
 }
 
-fn animated_section_test() -> (TestingRunner, State<vow_appearance::Resolved>) {
+fn animated_section_test() -> (TestingRunner, State<ct_appearance::Resolved>) {
     let resolved = motion(false);
     let app = AppComponent::new(AnimatedSectionCase);
     TestingRunner::new(
@@ -644,7 +644,7 @@ fn traffic_layout() -> Vec<(f32, f32, f32, f32)> {
 #[test]
 fn sidebar_traffic_lights_are_at_design_offset_and_first_child_sits_below() {
     with_config("island", || {
-        let (_, _, group_w, group_h) = vow_appearance::traffic::group_rect();
+        let (_, _, group_w, group_h) = ct_appearance::traffic::group_rect();
         let layouts = traffic_layout();
 
         let lights = layouts
@@ -845,7 +845,7 @@ fn sidebar_section_hides_chevron_without_hover_or_focus() {
     );
 }
 
-fn dark_resolved() -> vow_appearance::Resolved {
+fn dark_resolved() -> ct_appearance::Resolved {
     resolve(
         &AppearanceConfig {
             color_scheme: ColorScheme::Dark,
@@ -1044,7 +1044,7 @@ fn the_traffic_lights_stay_in_place_when_the_sidebar_hides() {
     );
     test.sync_and_update();
     let lights = |test: &TestingRunner| {
-        let (_, _, group_width, diameter) = vow_appearance::traffic::group_rect();
+        let (_, _, group_width, diameter) = ct_appearance::traffic::group_rect();
         test.find_many(|node, _| {
             let area = node.layout().area;
             ((area.size.width - group_width as f32).abs() < 0.5

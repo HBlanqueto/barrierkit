@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 
+use ct_design::{Rgba, TINT_STRENGTH, TITLEBAR};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use vow_design::{Rgba, TINT_STRENGTH, TITLEBAR};
 
 use crate::xdg;
 
@@ -468,7 +468,7 @@ traffic_lights = "auto"
 
     #[test]
     fn write_appearance_roundtrips() {
-        let dir = std::env::temp_dir().join(format!("vow-appearance-write-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("ct-appearance-write-{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
         let path = dir.join("appearance.domain");
         let config = AppearanceConfig {
@@ -502,7 +502,7 @@ traffic_lights = "auto"
     #[test]
     fn write_appearance_preserves_unknown_keys_and_comments() {
         let dir =
-            std::env::temp_dir().join(format!("vow-appearance-preserve-{}", std::process::id()));
+            std::env::temp_dir().join(format!("ct-appearance-preserve-{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
         let path = dir.join("appearance.domain");
         std::fs::write(
@@ -525,8 +525,7 @@ traffic_lights = "auto"
 
     #[test]
     fn write_appearance_backs_up_an_unreadable_domain() {
-        let dir =
-            std::env::temp_dir().join(format!("vow-appearance-backup-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("ct-appearance-backup-{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
         let path = dir.join("appearance.domain");
         let original = "color_scheme = ";
@@ -548,7 +547,7 @@ traffic_lights = "auto"
     #[test]
     fn write_appearance_does_not_back_up_a_readable_domain() {
         let dir =
-            std::env::temp_dir().join(format!("vow-appearance-nobackup-{}", std::process::id()));
+            std::env::temp_dir().join(format!("ct-appearance-nobackup-{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
         let path = dir.join("appearance.domain");
         std::fs::write(&path, "color_scheme = \"light\"\n").unwrap();
@@ -561,8 +560,7 @@ traffic_lights = "auto"
 
     #[test]
     fn write_appearance_creates_missing_file_and_leaves_no_temp() {
-        let dir =
-            std::env::temp_dir().join(format!("vow-appearance-create-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("ct-appearance-create-{}", std::process::id()));
         let path = dir.join("appearance.domain");
         assert!(!path.exists());
         write_appearance(&path, &AppearanceConfig::default()).unwrap();
@@ -619,7 +617,7 @@ tint_parts = ["window", "halo"]
 
     #[test]
     fn write_dominant_records_and_clears_the_wallpaper_state() {
-        let dir = std::env::temp_dir().join(format!("vow-appearance-state-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("ct-appearance-state-{}", std::process::id()));
         let path = dir.join("wallpaper.state");
         let color = Rgba::rgb8(51, 102, 153);
         write_dominant(&path, Some(color)).unwrap();
@@ -634,7 +632,7 @@ tint_parts = ["window", "halo"]
     #[test]
     fn tint_parts_roundtrip_through_write_appearance() {
         let dir = std::env::temp_dir().join(format!(
-            "vow-appearance-parts-roundtrip-{}",
+            "ct-appearance-parts-roundtrip-{}",
             std::process::id()
         ));
         std::fs::create_dir_all(&dir).unwrap();

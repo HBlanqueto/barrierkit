@@ -1,5 +1,5 @@
 [package]
-name = "vow-design"
+name = "ct-design"
 description = "Design tokens and shared visual decisions for Malaysia."
 version.workspace = true
 edition.workspace = true

@@ -1,8 +1,8 @@
 use std::borrow::Cow;
 
+use ct_design::{BODY, CAPTION, DIALOG_PADDING, SPACE_1, SPACE_3, TITLE};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Direction, Gaps};
-use vow_design::{BODY, CAPTION, DIALOG_PADDING, SPACE_1, SPACE_3, TITLE};
 
 use crate::style::{Palette, text};
 

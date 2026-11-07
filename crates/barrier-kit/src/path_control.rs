@@ -1,6 +1,6 @@
+use ct_design::{BODY, PATH_CONTROL};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Direction, Size};
-use vow_design::{BODY, PATH_CONTROL};
 
 use crate::style::{Palette, text};
 use crate::symbol::{Symbol, symbol};

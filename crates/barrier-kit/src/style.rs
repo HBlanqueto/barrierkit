@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
+use ct_design::{Font, Rgba, WINDOW_CORNER};
 use freya_core::prelude::*;
-use vow_design::{Font, Rgba, WINDOW_CORNER};
 
 use crate::theme::color;
 
@@ -36,7 +36,7 @@ impl Palette {
         } else {
             Self {
                 accent: palette.accent_inactive,
-                on_accent: vow_appearance::backdrop::ink_on(palette.accent_inactive),
+                on_accent: ct_appearance::backdrop::ink_on(palette.accent_inactive),
                 ..palette
             }
         }
@@ -44,7 +44,7 @@ impl Palette {
 
     pub fn system() -> Self {
         let resolved = crate::theme::resolved();
-        let base = vow_appearance::palette(resolved.scheme);
+        let base = ct_appearance::palette(resolved.scheme);
         // HIG «Increase Contrast»: each ink steps up one level and control edges reach 3:1.
         let (secondary_label, tertiary_label, separator, control_border) = if resolved.contrast {
             (

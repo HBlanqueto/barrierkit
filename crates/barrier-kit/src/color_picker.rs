@@ -1,6 +1,6 @@
+use ct_design::{BODY, BUTTON, HAIRLINE, Rgba, SPACE_2, SPLIT_VIEW};
 use freya_core::prelude::*;
 use torin::prelude::{Area, Direction, Size};
-use vow_design::{BODY, BUTTON, HAIRLINE, Rgba, SPACE_2, SPLIT_VIEW};
 
 use crate::i18n::text;
 use crate::interaction::use_interaction;

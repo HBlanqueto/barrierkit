@@ -1,8 +1,8 @@
 use crate::style::{Palette, text};
 use crate::theme::color;
+use ct_design::{CAPTION, FLOATING_PANE, Rgba};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Position, Size};
-use vow_design::{CAPTION, FLOATING_PANE, Rgba};
 
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct PaneFrame {

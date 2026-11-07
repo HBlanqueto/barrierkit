@@ -1,8 +1,8 @@
 use std::io;
 use std::path::{Path, PathBuf};
 
+use ct_appearance::language::read_language;
 use freya_core::prelude::*;
-use vow_appearance::language::read_language;
 
 use crate::app::{read_toml, write_toml};
 use crate::i18n::text;
@@ -19,13 +19,13 @@ pub struct LanguagePicker {
 impl LanguagePicker {
     pub fn app(domain: &str) -> Self {
         Self {
-            path: vow_appearance::config_dir().join(format!("{domain}.domain")),
+            path: ct_appearance::config_dir().join(format!("{domain}.domain")),
         }
     }
 
     pub fn system() -> Self {
         Self {
-            path: vow_appearance::config_dir().join("language.domain"),
+            path: ct_appearance::config_dir().join("language.domain"),
         }
     }
 }

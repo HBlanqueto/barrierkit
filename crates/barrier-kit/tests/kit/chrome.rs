@@ -2,11 +2,11 @@ use barrier_kit::chrome::{ChromeStyle, RailStyle, TitlebarLayout, WindowChrome};
 use barrier_kit::compact::IconButton;
 use barrier_kit::symbol::Symbol;
 use barrier_kit::titlebar::Titlebar;
+use ct_design::TITLEBAR;
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 use freya_testing::TestingRunner;
 use torin::prelude::{Area, Size2D};
-use vow_design::TITLEBAR;
 
 struct Case(ChromeStyle);
 

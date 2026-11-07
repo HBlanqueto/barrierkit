@@ -4,7 +4,7 @@
 surface.
 **Scope:** everything in `barrier_kit::charts`. The design is in
 [ADR 0060](../decisions/0060-charts-in-barrierkit.md); the series colors and
-the `CHART` tokens come from `vow_design`
+the `CHART` tokens come from `ct_design`
 ([4. Appearance and tokens](04-appearance-and-tokens.md)).
 **Reader:** anyone who shows series, shares or measurements, like a system
 monitor.
@@ -193,7 +193,7 @@ accessible readout shows azimuth, inclination and zoom.
 
 ## Look
 
-Every value is in `components.chart` of `vow-design` (`CHART`):
+Every value is in `components.chart` of `ct-design` (`CHART`):
 
 | Token | Value | Use |
 |---|---|---|

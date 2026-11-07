@@ -1,11 +1,11 @@
 use std::cell::Cell;
 use std::rc::Rc;
 
+use ct_design::{BODY, MENU_POPOVER, SETTINGS, SYMBOL};
 use freya_components::svg_viewer::SvgViewer;
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Area, Direction, Size};
-use vow_design::{BODY, MENU_POPOVER, SETTINGS, SYMBOL};
 
 use crate::choices::use_choice;
 use crate::interaction::use_interaction;

@@ -3,17 +3,17 @@ use std::rc::Rc;
 use std::time::{Duration, Instant};
 
 use crate::traffic::TrafficLights;
-use freya_core::prelude::*;
-use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
-use vow_appearance::SidebarStyle;
-use vow_appearance::palette;
-use vow_appearance::window::{
+use ct_appearance::SidebarStyle;
+use ct_appearance::palette;
+use ct_appearance::window::{
     TitlebarAction, WindowBehavior, double_click_action, green_action, read_window_behavior,
 };
-use vow_design::NATIVE_APP_ID_PREFIX;
-use vow_design::{
+use ct_design::NATIVE_APP_ID_PREFIX;
+use ct_design::{
     ButtonKind, SETTINGS, SIDEBAR, TITLE_2, TITLEBAR, TITLEBAR_CLIENT_HEIGHT, TITLEBAR_DOUBLE_CLICK,
 };
+use freya_core::prelude::*;
+use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 
 use crate::ProbeExt;
 use crate::app::DefaultsRevision;
@@ -171,7 +171,7 @@ impl Component for Titlebar {
         let tinted = crate::backdrop::tinted().is_some();
         let ink = crate::style::Palette::current();
         let background = if tinted || overlaid || close_only {
-            vow_design::Rgba::TRANSPARENT
+            ct_design::Rgba::TRANSPARENT
         } else if sidebar || status.activated {
             crate::theme::surface_background(&resolved, crate::theme::SurfaceKind::Toplevel)
         } else {
@@ -241,7 +241,7 @@ impl Titlebar {
         traffic: Option<Element>,
         title_label: Label,
         drag: impl Fn(Event<MouseEventData>) + 'static,
-        background: vow_design::Rgba,
+        background: ct_design::Rgba,
         occupied: f32,
     ) -> (Element, f32) {
         let island = theme::resolved().sidebar.style == SidebarStyle::Island;
@@ -249,11 +249,11 @@ impl Titlebar {
         let padding_x = if island {
             SETTINGS.toolbar_padding_x as f32
         } else {
-            vow_design::TITLEBAR_PADDING_X
+            ct_design::TITLEBAR_PADDING_X
         };
         let inset = if island { SIDEBAR.inset as f32 } else { 0.0 };
         let lights_x = inset + SIDEBAR.traffic_x as f32;
-        let lights_end = lights_x + vow_appearance::traffic::group_rect().2 as f32;
+        let lights_end = lights_x + ct_appearance::traffic::group_rect().2 as f32;
         let padding_left = if traffic.is_some() {
             padding_x.max(lights_end + padding_x - occupied)
         } else {
@@ -316,7 +316,7 @@ impl Titlebar {
                 rect()
                     .position(Position::new_absolute().bottom(0.0).left(0.0))
                     .width(Size::percent(100.0))
-                    .height(Size::px(vow_design::HAIRLINE))
+                    .height(Size::px(ct_design::HAIRLINE))
                     .background(theme::color(crate::sidebar::sidebar_palette().line))
             }));
         (root.into_element(), height)
@@ -327,7 +327,7 @@ impl Titlebar {
         traffic: Option<Element>,
         title_label: Label,
         drag: impl Fn(Event<MouseEventData>) + Clone + 'static,
-        background: vow_design::Rgba,
+        background: ct_design::Rgba,
         close_only: bool,
         mut content_widths: State<(f32, f32)>,
     ) -> (Element, f32) {
@@ -337,12 +337,12 @@ impl Titlebar {
             TITLEBAR_CLIENT_HEIGHT
         };
         let padding_x = if traffic.is_some() {
-            vow_appearance::traffic::inset(height) as f32
+            ct_appearance::traffic::inset(height) as f32
         } else {
-            vow_design::TITLEBAR_PADDING_X
+            ct_design::TITLEBAR_PADDING_X
         };
         let (left_width, right_width) = *content_widths.read();
-        let slot_width = (vow_appearance::traffic::group_rect().2 as f32)
+        let slot_width = (ct_appearance::traffic::group_rect().2 as f32)
             .max(left_width)
             .max(right_width);
         let left_slot = rect()
@@ -478,7 +478,7 @@ pub fn window_traffic_lights(focused: bool, fixed: bool) -> TrafficLights {
         .round(
             crate::chrome::chrome_style().round_lights
                 || crate::theme::resolved().traffic_shape
-                    == vow_appearance::TrafficLightShape::Round,
+                    == ct_appearance::TrafficLightShape::Round,
         )
         .focused(focused)
         .zoom_supported(green != TitlebarAction::None)

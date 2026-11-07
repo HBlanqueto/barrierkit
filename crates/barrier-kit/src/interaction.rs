@@ -1,6 +1,6 @@
+use ct_design::FOCUS_RING;
 use freya_core::prelude::*;
 use torin::prelude::{Position, Size, SizeFnContext};
-use vow_design::FOCUS_RING;
 
 use crate::platform::WindowControls;
 
@@ -95,7 +95,7 @@ impl Interaction {
     }
 }
 
-pub fn ring(element: Rect, corner_radius: f32, color: vow_design::Rgba) -> Rect {
+pub fn ring(element: Rect, corner_radius: f32, color: ct_design::Rgba) -> Rect {
     let spread = FOCUS_RING.offset + FOCUS_RING.width;
     let around = move |context: SizeFnContext| Some(context.parent + 2.0 * spread);
     element.child(

@@ -35,8 +35,8 @@ toml.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
 tracing-tracy = { workspace = true, optional = true }
-vow-design.workspace = true
-vow-appearance.workspace = true
+ct-design.workspace = true
+ct-appearance.workspace = true
 zeroize.workspace = true
 infinity-protocol = { workspace = true, features = ["client"] }
 sctk.workspace = true

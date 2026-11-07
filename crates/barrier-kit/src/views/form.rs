@@ -1,6 +1,6 @@
+use ct_design::{BODY, CAPTION, HEADLINE, LIST_GROUP, Rgba, SPACE_2, SPACE_3, SPACE_4};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
-use vow_design::{BODY, CAPTION, HEADLINE, LIST_GROUP, Rgba, SPACE_2, SPACE_3, SPACE_4};
 
 use crate::adornments::divider;
 use crate::interaction::use_interaction;
@@ -162,7 +162,7 @@ impl Component for Form {
                         .background(color(palette.content_background))
                         .border(
                             Border::new()
-                                .width(vow_design::HAIRLINE)
+                                .width(ct_design::HAIRLINE)
                                 .alignment(BorderAlignment::Inner)
                                 .fill(color(palette.card_border)),
                         )

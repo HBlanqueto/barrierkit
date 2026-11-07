@@ -1,13 +1,13 @@
 use std::borrow::Cow;
 use std::f64::consts::TAU;
 
+use ct_design::{CHART, Rgba, SPACE_1};
 use freya_core::data::LayoutData;
 use freya_core::element::{ElementExt, RenderContext};
 use freya_core::prelude::*;
 use freya_core::tree::DiffModifies;
 use freya_engine::prelude::{PaintStyle, PathBuilder};
 use torin::prelude::{Alignment, Direction, Position, Size};
-use vow_design::{CHART, Rgba, SPACE_1};
 
 use super::plot::paint;
 use super::scale::{monotone_samples, stream_bands};

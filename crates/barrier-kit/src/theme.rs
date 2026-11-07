@@ -1,17 +1,17 @@
+use ct_appearance::{
+    AppearanceConfig, ColorScheme, Resolved, WindowTintScope, load_appearance, load_dominant,
+    resolve,
+};
+use ct_design::{
+    BG_WINDOW_DARK, BG_WINDOW_DARK_TINT, BG_WINDOW_LIGHT, LockPalette, MenuPalette, Rgba,
+    SHELL_DARK_OPAQUE, SHELL_DARK_TINT_OPAQUE, SHELL_LIGHT_OPAQUE,
+};
 use freya_components::theming::component_themes::{ColorsSheet, Theme};
 use freya_components::theming::hooks::use_init_theme;
 use freya_components::theming::themes::{dark_theme, light_theme};
 use freya_core::prelude::{
     Color, State, WritableUtils, provide_context, try_consume_context, try_consume_root_context,
     use_hook, use_memo, use_side_effect,
-};
-use vow_appearance::{
-    AppearanceConfig, ColorScheme, Resolved, WindowTintScope, load_appearance, load_dominant,
-    resolve,
-};
-use vow_design::{
-    BG_WINDOW_DARK, BG_WINDOW_DARK_TINT, BG_WINDOW_LIGHT, LockPalette, MenuPalette, Rgba,
-    SHELL_DARK_OPAQUE, SHELL_DARK_TINT_OPAQUE, SHELL_LIGHT_OPAQUE,
 };
 
 pub fn color(c: Rgba) -> Color {
@@ -92,7 +92,7 @@ pub fn use_shell_theme() {
 fn shell_theme(resolved: &Resolved) -> Theme {
     let dark = matches!(resolved.scheme, ColorScheme::Dark | ColorScheme::DarkTint);
     let shell = resolved.shell;
-    let ink = vow_appearance::palette(resolved.scheme);
+    let ink = ct_appearance::palette(resolved.scheme);
     let border = if dark { shell.tile } else { shell.bar };
     let accent = shell.tile_active;
     let mut theme = if dark { dark_theme() } else { light_theme() };
@@ -125,7 +125,7 @@ fn shell_theme(resolved: &Resolved) -> Theme {
         disabled: color(border),
         overlay: color(shell.bar),
         shadow: color(Rgba {
-            a: vow_design::THEME_SHADOW_OPACITY,
+            a: ct_design::THEME_SHADOW_OPACITY,
             ..shell.text
         }),
     };
@@ -173,14 +173,14 @@ pub fn menu_palette(resolved: &Resolved, kind: SurfaceKind) -> MenuPalette {
 }
 
 pub fn apply_popover_metrics(mut palette: MenuPalette) -> MenuPalette {
-    palette.padding = vow_design::MENU_POPOVER.padding;
-    palette.min_width = vow_design::MENU_POPOVER.min_width;
-    palette.item_height = vow_design::MENU_POPOVER.item_height;
-    palette.item_radius = vow_design::MENU_POPOVER.item_radius;
-    palette.item_padding_x = vow_design::MENU_POPOVER.item_padding_start;
-    palette.leading_width = vow_design::MENU_POPOVER.leading_column;
-    palette.mark_check = vow_design::MENU_POPOVER.check;
-    palette.separator_margin_y = vow_design::MENU_POPOVER.separator_margin;
+    palette.padding = ct_design::MENU_POPOVER.padding;
+    palette.min_width = ct_design::MENU_POPOVER.min_width;
+    palette.item_height = ct_design::MENU_POPOVER.item_height;
+    palette.item_radius = ct_design::MENU_POPOVER.item_radius;
+    palette.item_padding_x = ct_design::MENU_POPOVER.item_padding_start;
+    palette.leading_width = ct_design::MENU_POPOVER.leading_column;
+    palette.mark_check = ct_design::MENU_POPOVER.check;
+    palette.separator_margin_y = ct_design::MENU_POPOVER.separator_margin;
     palette
 }
 
@@ -189,7 +189,7 @@ pub fn popover_palette(resolved: &Resolved, kind: SurfaceKind) -> MenuPalette {
 }
 
 pub fn lock_palette(resolved: &Resolved) -> LockPalette {
-    let mut palette = vow_design::LOCK;
+    let mut palette = ct_design::LOCK;
     palette.accent = resolved.accent;
     palette
 }
@@ -197,12 +197,12 @@ pub fn lock_palette(resolved: &Resolved) -> LockPalette {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use vow_appearance::{AppearanceConfig, ColorScheme, resolve};
+    use ct_appearance::{AppearanceConfig, ColorScheme, resolve};
 
     #[test]
     fn surface_backgrounds_follow_the_window_colour_mode_and_scope() {
-        use vow_appearance::{WindowColorMode, WindowTintScope};
-        use vow_design::{
+        use ct_appearance::{WindowColorMode, WindowTintScope};
+        use ct_design::{
             BG_WINDOW_LIGHT, PANEL_TINT_WALLPAPER, SHELL_LIGHT_OPAQUE, WINDOW_TINT_ACCENT,
             WINDOW_TINT_WALLPAPER,
         };
@@ -310,7 +310,7 @@ mod tests {
             light
                 .menu
                 .search_ring
-                .contrast_ratio(vow_design::BG_WINDOW_LIGHT)
+                .contrast_ratio(ct_design::BG_WINDOW_LIGHT)
                 >= 3.0,
             "light focus ring"
         );
@@ -323,14 +323,14 @@ mod tests {
             "light sidebar icon"
         );
         assert!(light.sidebar.palette.selected_ink.contrast_ratio(orange) >= 4.5);
-        assert_ne!(light.menu.hover_bg, vow_design::LIGHT.accent);
+        assert_ne!(light.menu.hover_bg, ct_design::LIGHT.accent);
 
         let dark = resolve(&config(ColorScheme::Dark), None);
         assert_eq!(dark.menu.hover_bg, orange, "dark menu selection");
         assert!(
             dark.menu
                 .search_ring
-                .contrast_ratio(vow_design::BG_WINDOW_DARK)
+                .contrast_ratio(ct_design::BG_WINDOW_DARK)
                 >= 3.0,
             "dark focus ring"
         );
@@ -344,7 +344,7 @@ mod tests {
 
     #[test]
     fn a_layer_shell_menu_stays_neutral_when_only_windows_are_tinted_and_never_exceeds_white() {
-        use vow_appearance::{WindowColorMode, WindowTintScope};
+        use ct_appearance::{WindowColorMode, WindowTintScope};
 
         let config = |accent: Rgba, scope| AppearanceConfig {
             color_scheme: ColorScheme::Light,
@@ -371,7 +371,7 @@ mod tests {
 
     #[test]
     fn a_toplevel_menu_is_tinted_only_by_the_menus_part() {
-        use vow_appearance::{TintParts, WindowColorMode, WindowTintScope};
+        use ct_appearance::{TintParts, WindowColorMode, WindowTintScope};
 
         let config = AppearanceConfig {
             color_scheme: ColorScheme::Light,
@@ -397,8 +397,8 @@ mod tests {
 
     #[test]
     fn tinted_menu_separators_stay_visible() {
-        use vow_appearance::WindowColorMode;
-        use vow_design::ACCENT_SWATCHES;
+        use ct_appearance::WindowColorMode;
+        use ct_design::ACCENT_SWATCHES;
 
         let wallpapers = [
             ("dark", Rgba::rgb8(13, 13, 13)),

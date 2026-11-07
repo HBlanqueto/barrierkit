@@ -1,6 +1,6 @@
+use ct_design::{BODY, BUTTON, SETTINGS, SPACE_1};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Area, Direction, Gaps, Size};
-use vow_design::{BODY, BUTTON, SETTINGS, SPACE_1};
 
 use crate::i18n::text;
 use crate::interaction::use_interaction;
@@ -197,7 +197,7 @@ impl Component for SplitButton {
             .child(action.focus_ring(primary, BUTTON.radius))
             .child(
                 rect()
-                    .width(Size::px(vow_design::HAIRLINE))
+                    .width(Size::px(ct_design::HAIRLINE))
                     .height(Size::px(BUTTON.height / 2.0))
                     .background(color(palette.separator)),
             )
@@ -284,7 +284,7 @@ impl Component for ControlGroup {
             if index > 0 {
                 items.push(
                     rect()
-                        .width(Size::px(vow_design::HAIRLINE))
+                        .width(Size::px(ct_design::HAIRLINE))
                         .height(Size::px(BUTTON.height / 2.0))
                         .background(color(palette.separator))
                         .into_element(),

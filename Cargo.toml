@@ -4,14 +4,14 @@
 resolver = "3"
 members = [
     "crates/barrier-kit",
-    "crates/vow-design",
-    "crates/vow-appearance",
+    "crates/ct-design",
+    "crates/ct-appearance",
     "crates/infinity-protocol",
 ]
 default-members = [
     "crates/barrier-kit",
-    "crates/vow-design",
-    "crates/vow-appearance",
+    "crates/ct-design",
+    "crates/ct-appearance",
     "crates/infinity-protocol",
 ]
 
@@ -50,8 +50,8 @@ gstreamer-video = { version = "0.25", features = ["v1_24"] }
 gstreamer-allocators = { version = "0.25", features = ["v1_24"] }
 
 
-vow-design = { path = "crates/vow-design" }
-vow-appearance = { path = "crates/vow-appearance" }
+ct-design = { path = "crates/ct-design" }
+ct-appearance = { path = "crates/ct-appearance" }
 infinity-protocol = { path = "crates/infinity-protocol" }
 
 freya-core = "=0.4.3"

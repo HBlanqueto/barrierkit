@@ -1,10 +1,10 @@
 use std::borrow::Cow;
 
+use ct_design::{BODY, Font, SPACE_3};
 use freya_core::events::name::EventName;
 use freya_core::integration::{EventHandlerType, FxHashMap};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Direction};
-use vow_design::{BODY, Font, SPACE_3};
 
 use crate::style::{Palette, text, with_font};
 

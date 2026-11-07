@@ -1,3 +1,4 @@
+use ct_design::{PROGRESS, SYMBOL};
 use freya_animation::prelude::{
     AnimNum, Ease, Function, OnChange, OnCreation, OnFinish, use_animation,
 };
@@ -5,7 +6,6 @@ use freya_components::cache::AssetAge;
 use freya_components::svg_viewer::SvgViewer;
 use freya_core::prelude::*;
 use torin::prelude::{Direction, Position, Size};
-use vow_design::{PROGRESS, SYMBOL};
 
 use crate::backdrop::Tint;
 use crate::style::Palette;
@@ -117,7 +117,7 @@ impl Component for ProgressRing {
                 c = size / 2.0,
             )
         };
-        let layer = |svg: String, fill: vow_design::Rgba| {
+        let layer = |svg: String, fill: ct_design::Rgba| {
             SvgViewer::new(Bytes::from(svg))
                 .width(Size::px(size))
                 .height(Size::px(size))

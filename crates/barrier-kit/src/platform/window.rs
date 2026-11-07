@@ -99,7 +99,7 @@ impl WindowOptions {
             title: title.into(),
             app_name: app_name.into(),
             app_id: None,
-            size: vow_design::WINDOW_DEFAULT_SIZE,
+            size: ct_design::WINDOW_DEFAULT_SIZE,
             min_size: None,
             max_size: None,
             menu: None,
@@ -222,9 +222,9 @@ impl WindowControls {
 
     pub fn fullscreen_content_top(&self) -> f32 {
         let below_bar = match *self.fullscreen_bar.read() {
-            FullscreenBar::ProgressiveGlass => vow_design::FULLSCREEN_GLASS.content_top,
-            FullscreenBar::Glass => vow_design::FULLSCREEN_BAND.content_top,
-            FullscreenBar::Solid => vow_design::FULLSCREEN_BAR.content_top,
+            FullscreenBar::ProgressiveGlass => ct_design::FULLSCREEN_GLASS.content_top,
+            FullscreenBar::Glass => ct_design::FULLSCREEN_BAND.content_top,
+            FullscreenBar::Solid => ct_design::FULLSCREEN_BAR.content_top,
         };
         if self.titlebar_overlaid() && !*self.fullscreen_push.read() {
             *self.focus_bar_height.read() + below_bar
@@ -244,7 +244,7 @@ impl WindowControls {
 
     pub fn titlebar_overlay_top(&self) -> Option<f32> {
         let progress = *self.focus_bar_progress.read();
-        let hidden_by = vow_design::TITLEBAR_CLIENT_HEIGHT as f32 * (1.0 - progress);
+        let hidden_by = ct_design::TITLEBAR_CLIENT_HEIGHT as f32 * (1.0 - progress);
         (self.titlebar_overlaid() && progress > 0.0)
             .then(|| *self.focus_bar_height.read() * progress - hidden_by)
     }
@@ -357,8 +357,8 @@ pub(super) fn resize_edge_at(
     (width, height): (u32, u32),
 ) -> Option<WindowEdge> {
     let (width, height) = (f64::from(width), f64::from(height));
-    let edge = f64::from(vow_design::WINDOW_RESIZE.edge);
-    let corner = f64::from(vow_design::WINDOW_RESIZE.corner);
+    let edge = f64::from(ct_design::WINDOW_RESIZE.edge);
+    let corner = f64::from(ct_design::WINDOW_RESIZE.corner);
     let near = |value: f64, end: f64, band: f64| (value < band, value >= end - band);
     let (left, right) = near(x, width, edge);
     let (top, bottom) = near(y, height, edge);
@@ -461,7 +461,7 @@ impl Runtime {
         let app_id = match &parent {
             Some((_, app_id)) => app_id.clone(),
             None => options.app_id.clone().unwrap_or_else(|| {
-                format!("{}{}", vow_design::NATIVE_APP_ID_PREFIX, options.app_name)
+                format!("{}{}", ct_design::NATIVE_APP_ID_PREFIX, options.app_name)
             }),
         };
         let utility = parent.is_some();
@@ -554,7 +554,7 @@ impl Runtime {
                 .focus_manager
                 .as_ref()
                 .is_some_and(|manager| manager.version() >= 2),
-            focus_bar_height: State::create_global(vow_design::MENUBAR_HEIGHT as f32),
+            focus_bar_height: State::create_global(ct_design::MENUBAR_HEIGHT as f32),
             fullscreen_bar: State::create_global(options.fullscreen_bar),
             fullscreen_push: State::create_global(options.fullscreen_push),
             overlay_titlebar_height: State::create_global(0.0),

@@ -21,6 +21,10 @@ use std::{
     sync::{Arc, Mutex},
 };
 
+use ct_appearance::{
+    Resolved, load_appearance, load_dominant, resolve,
+    watch::{AppearanceEvent, AppearanceWatch},
+};
 use freya_core::integration::{UserEvent, WritableUtils};
 use sctk::{
     compositor::CompositorState,
@@ -53,10 +57,6 @@ use sctk::{
         pointer::cursor_shape::CursorShapeManager,
     },
     shell::xdg::XdgShell,
-};
-use vow_appearance::{
-    Resolved, load_appearance, load_dominant, resolve,
-    watch::{AppearanceEvent, AppearanceWatch},
 };
 use wayland_protocols::wp::fractional_scale::v1::client::wp_fractional_scale_manager_v1::WpFractionalScaleManagerV1;
 use wayland_protocols::wp::text_input::zv3::client::zwp_text_input_manager_v3::ZwpTextInputManagerV3;

@@ -33,20 +33,20 @@ impl Tengen {
 
     pub(super) fn get(&self, path: &str) -> &Value {
         self.find(path)
-            .unwrap_or_else(|| panic!("vow-design: missing `{path}` in tengen"))
+            .unwrap_or_else(|| panic!("ct-design: missing `{path}` in tengen"))
     }
 
     pub(super) fn string(&self, path: &str) -> &str {
         self.get(path)
             .as_str()
-            .unwrap_or_else(|| panic!("vow-design: `{path}` in tengen is not a string"))
+            .unwrap_or_else(|| panic!("ct-design: `{path}` in tengen is not a string"))
     }
 
     pub(super) fn number(&self, path: &str) -> f64 {
         let value = self.get(path);
         value.as_f64().unwrap_or_else(|| match value.as_str() {
             Some(reference) => self.number(reference),
-            None => panic!("vow-design: `{path}` in tengen is neither a number nor a reference"),
+            None => panic!("ct-design: `{path}` in tengen is neither a number nor a reference"),
         })
     }
 
@@ -114,9 +114,9 @@ impl Tengen {
                 let colors: Vec<String> = self
                     .get(path)
                     .as_array()
-                    .unwrap_or_else(|| panic!("vow-design: `{path}` in tengen is not a list"))
+                    .unwrap_or_else(|| panic!("ct-design: `{path}` in tengen is not a list"))
                     .iter()
-                    .map(|color| rgba(parse_color(color.as_str().expect("vow-design: colours"))))
+                    .map(|color| rgba(parse_color(color.as_str().expect("ct-design: colours"))))
                     .collect();
                 format!("[{}]", colors.join(", "))
             }
@@ -166,7 +166,7 @@ impl Tengen {
         let start = self
             .structs
             .find(&format!("pub struct {ty} {{\n"))
-            .unwrap_or_else(|| panic!("vow-design: no struct `{ty}` in src/lib.rs"));
+            .unwrap_or_else(|| panic!("ct-design: no struct `{ty}` in src/lib.rs"));
         self.structs[start..]
             .lines()
             .skip(1)
@@ -181,7 +181,7 @@ impl Tengen {
 
     fn key(&self, prefix: &str, field: &str) -> String {
         self.nested_key(prefix, field)
-            .unwrap_or_else(|| panic!("vow-design: no key for `{field}` under `{prefix}`"))
+            .unwrap_or_else(|| panic!("ct-design: no key for `{field}` under `{prefix}`"))
     }
 
     fn nested_key(&self, prefix: &str, field: &str) -> Option<String> {
@@ -199,9 +199,9 @@ impl Tengen {
     fn floats(&self, value: &Value) -> Vec<String> {
         value
             .as_array()
-            .unwrap_or_else(|| panic!("vow-design: `{value}` in tengen is not a list"))
+            .unwrap_or_else(|| panic!("ct-design: `{value}` in tengen is not a list"))
             .iter()
-            .map(|n| float(n.as_f64().expect("vow-design: list of numbers")))
+            .map(|n| float(n.as_f64().expect("ct-design: list of numbers")))
             .collect()
     }
 
@@ -209,7 +209,7 @@ impl Tengen {
         let items: Vec<String> = self
             .get(path)
             .as_array()
-            .unwrap_or_else(|| panic!("vow-design: `{path}` in tengen is not a list"))
+            .unwrap_or_else(|| panic!("ct-design: `{path}` in tengen is not a list"))
             .iter()
             .map(|numbers| item(&self.floats(numbers)))
             .collect();
@@ -237,12 +237,12 @@ pub(super) fn parse_color(text: &str) -> Color {
         text.strip_prefix('#')
             .and_then(|hex| hex.get(index..index + 2))
             .and_then(|pair| u8::from_str_radix(pair, 16).ok())
-            .unwrap_or_else(|| panic!("vow-design: invalid colour `{text}` in tengen"))
+            .unwrap_or_else(|| panic!("ct-design: invalid colour `{text}` in tengen"))
     };
     let a = match text.len() {
         7 => 255,
         9 => channel(6),
-        _ => panic!("vow-design: invalid colour `{text}` in tengen"),
+        _ => panic!("ct-design: invalid colour `{text}` in tengen"),
     };
     Color {
         r: channel(0),

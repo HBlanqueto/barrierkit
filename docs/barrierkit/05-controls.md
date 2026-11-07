@@ -232,7 +232,7 @@ All of them report the chosen index with `.on_change(|index: usize| ..)`.
   click opens the items as a menu with a radio mark, placed so the chosen row covers the
   button. `MenuIcon` is in [7](07-menus-and-popovers.md).
 - `ColorWell` is a row of 18 swatches, 10 apart. `swatches` is
-  `&'static [(&'static str, Rgba)]`, for example `vow_design::ACCENT_SWATCHES`.
+  `&'static [(&'static str, Rgba)]`, for example `ct_design::ACCENT_SWATCHES`.
 - `ChoiceCards` shows 66 × 44 previews with a caption below; the chosen card gets an accent
   ring.
 
@@ -549,8 +549,8 @@ canvas(revision, move |ctx: &mut CanvasContext| { ctx.canvas.draw_rect(..); })
    `keyboard_focused()` to choose colors.
 5. Wrap the result in `interaction.focus_ring(element, corner_radius)`. `ring(element, radius,
    color)` draws the same ring in another color, as a selection mark.
-6. Paint only with `Palette::current()` and `vow_design` tokens ([4](04-appearance-and-tokens.md)).
-   New metrics go to `vow-design`.
+6. Paint only with `Palette::current()` and `ct_design` tokens ([4](04-appearance-and-tokens.md)).
+   New metrics go to `ct-design`.
 7. If the control keeps a value, follow [the controlled pattern](#the-controlled-pattern).
 8. Add its case to `tests/kit/controls.rs`, in light and dark.
 

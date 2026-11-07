@@ -26,13 +26,13 @@ use barrier_kit::views::feedback::{Alert, empty_state};
 use barrier_kit::views::form::{Form, Row, Section};
 use barrier_kit::views::table::{SortOrder, Table};
 use barrier_kit::views::tabs::TabView;
+use ct_appearance::{AppearanceConfig, ColorScheme, resolve};
+use ct_design::{ACCENT_SWATCHES, Rgba};
 use freya_components::theming::hooks::use_init_theme;
 use freya_core::integration::{AppComponent, NavigationMode, Platform};
 use freya_core::prelude::*;
 use freya_testing::TestingRunner;
 use torin::prelude::{Alignment, Direction, Gaps, Size, Size2D};
-use vow_appearance::{AppearanceConfig, ColorScheme, resolve};
-use vow_design::{ACCENT_SWATCHES, Rgba};
 
 const SIZE: (f32, f32) = (360.0, 240.0);
 const WINDOW_SIZE: (f32, f32) = (900.0, 560.0);

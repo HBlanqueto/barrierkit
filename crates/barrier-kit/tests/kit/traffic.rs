@@ -1,15 +1,15 @@
 use crate::image::{decode, pixel};
 use barrier_kit::ProbeExt;
 use barrier_kit::traffic::TrafficLights;
+use ct_appearance::traffic::{TrafficInput, visual};
+use ct_appearance::{AppearanceConfig, Resolved, resolve};
+use ct_design::{ButtonKind, Rgba};
 use freya_core::element::ElementExt;
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 use freya_testing::TestingRunner;
 use std::rc::Rc;
 use torin::prelude::Size2D;
-use vow_appearance::traffic::{TrafficInput, visual};
-use vow_appearance::{AppearanceConfig, Resolved, resolve};
-use vow_design::{ButtonKind, Rgba};
 
 fn resolved() -> Resolved {
     resolve(&AppearanceConfig::default(), None)
@@ -108,7 +108,7 @@ fn traffic_lights_match_the_shared_visual_colours() {
         },
     ];
     let resolved = resolved();
-    let palette = vow_appearance::palette(resolved.scheme);
+    let palette = ct_appearance::palette(resolved.scheme);
     for scale in [1.0, 2.0] {
         for input in states {
             let expected = visual(
@@ -140,10 +140,10 @@ fn hover_paints_the_close_glyph() {
 
 #[test]
 fn the_shared_module_has_the_same_group_footprint() {
-    let (_, _, width, height) = vow_appearance::traffic::group_rect();
+    let (_, _, width, height) = ct_appearance::traffic::group_rect();
     assert_eq!(width, 3.0 * 14.0 + 2.0 * 9.0);
     assert_eq!(height, 14.0);
-    assert_eq!(vow_appearance::traffic::button_rect(1).2, 14.0);
+    assert_eq!(ct_appearance::traffic::button_rect(1).2, 14.0);
 }
 
 #[test]
@@ -351,16 +351,16 @@ fn close_only_keeps_minimise_and_zoom_inactive() {
         let [r, g, b, _] = pixel(&image, width, x as usize, y as usize);
         [r, g, b]
     };
-    let resolved = vow_appearance::resolve(
-        &vow_appearance::load_appearance(),
-        vow_appearance::load_dominant(),
+    let resolved = ct_appearance::resolve(
+        &ct_appearance::load_appearance(),
+        ct_appearance::load_dominant(),
     );
-    let inactive = vow_appearance::palette(resolved.scheme)
+    let inactive = ct_appearance::palette(resolved.scheme)
         .traffic_lights_inactive
         .to_rgba8();
-    let (origin, _, diameter) = vow_appearance::traffic::button_rect(0);
+    let (origin, _, diameter) = ct_appearance::traffic::button_rect(0);
     for index in 1..3 {
-        let (x, _, _) = vow_appearance::traffic::button_rect(index);
+        let (x, _, _) = ct_appearance::traffic::button_rect(index);
         let pixel = at(x - origin + diameter * 0.2, diameter / 2.0);
         for (actual, expected) in pixel.iter().zip(inactive) {
             assert!(actual.abs_diff(expected) <= 1, "light {index}: {pixel:?}");

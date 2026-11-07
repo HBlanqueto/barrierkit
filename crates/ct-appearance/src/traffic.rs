@@ -1,4 +1,4 @@
-use vow_design::{
+use ct_design::{
     ButtonKind, Rgba, Segment, TITLEBAR, TRAFFIC_GLYPH_ON_DARK, TRAFFIC_GLYPH_ON_LIGHT,
     TRAFFIC_GLYPH_STANDARD, TRAFFIC_GLYPHS, TRAFFIC_PRESSED_DARKEN, TrafficRim, Triangle,
 };
@@ -240,7 +240,7 @@ mod tests {
     }
 
     fn rim() -> TrafficRim {
-        vow_design::LIGHT.traffic_rim
+        ct_design::LIGHT.traffic_rim
     }
 
     #[test]

@@ -125,7 +125,7 @@ For a standalone set, `TrafficLights` (`barrier_kit::traffic`):
 
 ```rust
 use barrier_kit::traffic::TrafficLights;
-use vow_design::ButtonKind;
+use ct_design::ButtonKind;
 
 TrafficLights::new()
     .focused(true)

@@ -1,4 +1,4 @@
-use vow_design::{BACKDROP, DOMINANT_LIGHTNESS, DOMINANT_MIN_CHROMA, LIGHT, Rgba};
+use ct_design::{BACKDROP, DOMINANT_LIGHTNESS, DOMINANT_MIN_CHROMA, LIGHT, Rgba};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Oklab {

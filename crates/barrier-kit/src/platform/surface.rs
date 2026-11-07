@@ -179,12 +179,12 @@ impl SurfaceWindow {
             .as_ref()
             .is_some_and(|context| context.controls.hud);
         let background = if hud {
-            crate::theme::color(vow_design::HUD_BACKGROUND)
+            crate::theme::color(ct_design::HUD_BACKGROUND)
         } else if matches!(&self.role, SurfaceRole::Window(_)) {
             let resolved = *self.app.resolved.read();
             let base =
                 crate::theme::surface_background(&resolved, crate::theme::SurfaceKind::Toplevel);
-            crate::theme::color(vow_design::Rgba {
+            crate::theme::color(ct_design::Rgba {
                 a: base.a * self.background_alpha,
                 ..base
             })

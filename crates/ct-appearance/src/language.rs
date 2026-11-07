@@ -103,7 +103,7 @@ mod tests {
 
     #[test]
     fn an_empty_language_setting_means_the_system_locale() {
-        let dir = std::env::temp_dir().join(format!("vow-language-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("ct-language-{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
         let path = dir.join("language.domain");
         std::fs::write(&path, "language = \"\"\n").unwrap();

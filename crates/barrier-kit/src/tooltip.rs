@@ -2,10 +2,10 @@ use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 use std::time::Duration;
 
+use ct_design::{CAPTION, TOOLTIP};
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 use torin::prelude::{CursorPoint, Gaps};
-use vow_design::{CAPTION, TOOLTIP};
 
 use crate::menu::measure_text_weight;
 use crate::platform::{PopupAnchor, PopupGravity, PopupId, PopupSpec, Popups, Timers};
@@ -105,7 +105,7 @@ impl App for Tag {
             .background(color(menu.bg))
             .border(
                 Border::new()
-                    .width(vow_design::HAIRLINE)
+                    .width(ct_design::HAIRLINE)
                     .alignment(BorderAlignment::Inner)
                     .fill(color(menu.separator_color)),
             )

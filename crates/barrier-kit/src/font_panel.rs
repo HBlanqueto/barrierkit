@@ -1,7 +1,7 @@
+use ct_design::{BODY, BUTTON, CAPTION, DISCLOSURE, FONT_PANEL, HAIRLINE, SPACE_1, SPACE_2};
 use freya_core::prelude::*;
 use freya_engine::prelude::{FontStyle, Slant};
 use torin::prelude::{Area, Direction, Gaps, Size};
-use vow_design::{BODY, BUTTON, CAPTION, DISCLOSURE, FONT_PANEL, HAIRLINE, SPACE_1, SPACE_2};
 
 use crate::controls::{Button, TextField};
 use crate::fonts::{family_names, fixed_pitch, styles};

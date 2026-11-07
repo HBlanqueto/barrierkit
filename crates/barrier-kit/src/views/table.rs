@@ -1,7 +1,7 @@
+use ct_design::{BODY, CAPTION, Rgba, SPACE_1, TABLE};
 use freya_components::scrollviews::VirtualScrollView;
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
-use vow_design::{BODY, CAPTION, Rgba, SPACE_1, TABLE};
 
 use crate::context_menu::context_menu;
 use crate::interaction::use_interaction;
@@ -168,7 +168,7 @@ impl Component for Table {
         .height(Size::px(TABLE.header_height))
         .border(
             Border::new()
-                .width(vow_design::HAIRLINE)
+                .width(ct_design::HAIRLINE)
                 .alignment(BorderAlignment::Inner)
                 .fill(color(palette.separator)),
         );

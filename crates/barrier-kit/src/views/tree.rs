@@ -1,8 +1,8 @@
 use std::collections::HashSet;
 
+use ct_design::{BODY, DISCLOSURE, HAIRLINE, SPACE_1};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Direction, Gaps, Size};
-use vow_design::{BODY, DISCLOSURE, HAIRLINE, SPACE_1};
 
 use crate::interaction::{track_modifiers, use_held_modifiers};
 use crate::scroll::ScrollView;

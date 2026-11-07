@@ -57,7 +57,7 @@ search and saved state.
    ```
 
 The names come from `barrier_kit::patterns::preferences`,
-`barrier_kit::views::form`, `barrier_kit::symbol::Symbol` and `vow_design`.
+`barrier_kit::views::form`, `barrier_kit::symbol::Symbol` and `ct_design`.
 
 ## Preferences window
 

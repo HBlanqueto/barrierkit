@@ -1,6 +1,6 @@
+use ct_design::{BODY, BUTTON, ICON_BUTTON, SPACE_1};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
-use vow_design::{BODY, BUTTON, ICON_BUTTON, SPACE_1};
 
 use crate::i18n::text;
 use crate::interaction::use_interaction;

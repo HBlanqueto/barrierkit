@@ -1,9 +1,9 @@
 use barrier_kit::theme::{resolved, use_appearance};
+use ct_appearance::ColorScheme;
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 use freya_testing::TestingRunner;
 use torin::prelude::Size2D;
-use vow_appearance::ColorScheme;
 
 #[derive(PartialEq)]
 struct Probe {
@@ -51,9 +51,9 @@ impl App for Host {
 
 #[test]
 fn a_forced_appearance_reaches_the_subtree_and_not_its_siblings() {
-    let system = vow_appearance::resolve(
-        &vow_appearance::load_appearance(),
-        vow_appearance::load_dominant(),
+    let system = ct_appearance::resolve(
+        &ct_appearance::load_appearance(),
+        ct_appearance::load_dominant(),
     );
     let scheme = if system.scheme == ColorScheme::DarkTint {
         ColorScheme::Light

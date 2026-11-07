@@ -1,6 +1,6 @@
 use super::*;
 
-use vow_design::MENU_MARK_TEXT_GAP;
+use ct_design::MENU_MARK_TEXT_GAP;
 
 pub(super) fn has_marks(items: &[MenuItem]) -> bool {
     items.iter().any(|item| match item {
@@ -367,8 +367,8 @@ fn search_field(ctx: &RowCtx, placeholder: &str) -> Element {
         placeholder.to_string()
     };
     let text_color = if has_text { m.fg } else { m.shortcut_color };
-    let clear_size = vow_design::MENU_SEARCH_CLEAR;
-    let clear_margin = vow_design::MENU_SEARCH_CLEAR_MARGIN;
+    let clear_size = ct_design::MENU_SEARCH_CLEAR;
+    let clear_margin = ct_design::MENU_SEARCH_CLEAR_MARGIN;
     let clear_gap = if has_text {
         clear_size + clear_margin
     } else {
@@ -380,7 +380,7 @@ fn search_field(ctx: &RowCtx, placeholder: &str) -> Element {
         - row_padding
         - clear_margin
         - m.icon_size
-        - vow_design::MENU_SEARCH_ICON_GAP
+        - ct_design::MENU_SEARCH_ICON_GAP
         - clear_gap)
         .max(0.0);
 
@@ -400,7 +400,7 @@ fn search_field(ctx: &RowCtx, placeholder: &str) -> Element {
     if has_text && !is_selected {
         text_box = text_box.child(
             rect()
-                .width(Size::px(vow_design::HAIRLINE))
+                .width(Size::px(ct_design::HAIRLINE))
                 .height(Size::px(m.font_size))
                 .margin(Gaps::new(0.0, 1.0, 0.0, 0.0))
                 .background(theme::color(m.fg))
@@ -427,7 +427,7 @@ fn search_field(ctx: &RowCtx, placeholder: &str) -> Element {
             rect()
                 .direction(Direction::Horizontal)
                 .cross_align(Alignment::Center)
-                .spacing(vow_design::MENU_SEARCH_ICON_GAP)
+                .spacing(ct_design::MENU_SEARCH_ICON_GAP)
                 .child(
                     symbol(Symbol::MagnifyingGlass, m.icon_size, m.shortcut_color).into_element(),
                 )
@@ -442,13 +442,12 @@ fn search_field(ctx: &RowCtx, placeholder: &str) -> Element {
             .main_align(Alignment::Center)
             .cross_align(Alignment::Center)
             .background(theme::color(
-                m.shortcut_color
-                    .mix(m.bg, vow_design::MENU_SEARCH_CLEAR_MIX),
+                m.shortcut_color.mix(m.bg, ct_design::MENU_SEARCH_CLEAR_MIX),
             ))
             .child(
                 label()
                     .text("×")
-                    .font_size(vow_design::MENU_SEARCH_CLEAR_GLYPH)
+                    .font_size(ct_design::MENU_SEARCH_CLEAR_GLYPH)
                     .color(theme::color(m.fg))
                     .max_lines(1),
             )
@@ -481,10 +480,10 @@ fn search_icon_element(
                 color
             };
             let svg = search_icon_svg(ctx.menu_search_icon.unwrap_or(""), color, accent);
-            (svg, vow_design::MENU_SEARCH_ICON, None)
+            (svg, ct_design::MENU_SEARCH_ICON, None)
         }
         SearchSource::Help => {
-            let side = vow_design::MENU_HELP_ICON;
+            let side = ct_design::MENU_HELP_ICON;
             let svg = ctx.help_search_icon.unwrap_or("").to_string();
             (svg, [side, side], Some(theme::color(color)))
         }

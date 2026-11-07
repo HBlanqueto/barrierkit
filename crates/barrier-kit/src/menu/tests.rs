@@ -4,11 +4,11 @@ use std::any::Any;
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use ct_design::{MENU_DARK, MENU_LIGHT, MENU_MARK_TEXT_GAP};
 use freya_core::elements::label::LabelElement;
 use freya_core::integration::AppComponent;
 use freya_testing::TestingRunner;
 use torin::prelude::Size2D;
-use vow_design::{MENU_DARK, MENU_LIGHT, MENU_MARK_TEXT_GAP};
 
 use crate::platform::{ObjectId, PopupCommand, PopupHandle, PopupId, Popups};
 
@@ -32,9 +32,7 @@ fn preferred_size_is_positive() {
 
 #[test]
 fn popover_metrics_keep_the_live_menu_colours() {
-    use vow_appearance::{
-        AppearanceConfig, ColorScheme, WindowColorMode, WindowTintScope, resolve,
-    };
+    use ct_appearance::{AppearanceConfig, ColorScheme, WindowColorMode, WindowTintScope, resolve};
 
     let accent = Rgba {
         r: 0.9,

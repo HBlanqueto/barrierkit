@@ -6,9 +6,9 @@ mod sector;
 mod space;
 mod stream;
 
+use ct_design::{CAPTION, CHART, CHART_SERIES, DURATION_BASE, HAIRLINE, SPACE_1, TOOLTIP};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
-use vow_design::{CAPTION, CHART, CHART_SERIES, DURATION_BASE, HAIRLINE, SPACE_1, TOOLTIP};
 
 use crate::i18n::text as tr_kit;
 use crate::style::{Palette, text};
@@ -214,7 +214,7 @@ pub fn lerp_series(from: &[Series], to: &[Series], t: f64) -> Vec<Series> {
         .collect()
 }
 
-pub(crate) fn series_color(index: usize) -> vow_design::Rgba {
+pub(crate) fn series_color(index: usize) -> ct_design::Rgba {
     CHART_SERIES[index % CHART_SERIES.len()]
 }
 
@@ -596,7 +596,7 @@ impl Component for Chart {
     }
 }
 
-pub(crate) fn legend_entry(color: vow_design::Rgba, label: String, palette: &Palette) -> Element {
+pub(crate) fn legend_entry(color: ct_design::Rgba, label: String, palette: &Palette) -> Element {
     rect()
         .direction(Direction::Horizontal)
         .cross_align(Alignment::Center)

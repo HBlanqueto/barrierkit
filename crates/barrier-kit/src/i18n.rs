@@ -1,15 +1,15 @@
 use std::sync::{LazyLock, OnceLock};
 
+use ct_appearance::language::{read_language, requested_languages};
 use i18n_embed::I18nAssets;
 use i18n_embed::fluent::{FluentLanguageLoader, fluent_language_loader};
 use i18n_embed::unic_langid::LanguageIdentifier;
 use rust_embed::RustEmbed;
-use vow_appearance::language::{read_language, requested_languages};
 
 static APP_LANGUAGE: OnceLock<Option<String>> = OnceLock::new();
 
 pub fn use_app_language(domain: &str) {
-    let path = vow_appearance::config_dir().join(format!("{domain}.domain"));
+    let path = ct_appearance::config_dir().join(format!("{domain}.domain"));
     let _ = APP_LANGUAGE.set(read_language(&path));
 }
 

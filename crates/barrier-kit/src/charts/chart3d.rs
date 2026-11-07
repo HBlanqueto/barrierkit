@@ -1,5 +1,6 @@
 use std::borrow::Cow;
 
+use ct_design::{CALLOUT, CHART, Rgba, SPACE_2};
 use freya_core::data::LayoutData;
 use freya_core::element::{ElementExt, RenderContext};
 use freya_core::prelude::*;
@@ -8,7 +9,6 @@ use freya_engine::prelude::{BlendMode, Paint, PaintStyle, Point};
 use skia_safe::Vertices;
 use skia_safe::vertices::VertexMode;
 use torin::prelude::{Alignment, Direction, Position, Size};
-use vow_design::{CALLOUT, CHART, Rgba, SPACE_2};
 
 use super::plot::{mix, normalized, paint, shade};
 use super::series_color;

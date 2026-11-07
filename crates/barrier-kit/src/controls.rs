@@ -5,12 +5,12 @@ use freya_components::input::{
 };
 use freya_components::theming::macros::Preference;
 
-use freya_core::prelude::*;
-use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
-use vow_design::{
+use ct_design::{
     BODY, BUTTON, CAPTION, CHECKBOX, Rgba, SEGMENTED, SETTINGS, SLIDER, SWITCH, TEXT_FIELD,
     TEXT_LINE_HEIGHT, TOOLGROUP,
 };
+use freya_core::prelude::*;
+use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 
 use crate::ProbeExt;
 use crate::backdrop::Tint;
@@ -102,7 +102,7 @@ impl Component for SecureField {
             .background(color(palette.content_background))
             .border(
                 Border::new()
-                    .width(vow_design::HAIRLINE)
+                    .width(ct_design::HAIRLINE)
                     .alignment(BorderAlignment::Inner)
                     .fill(color(palette.separator)),
             )
@@ -177,7 +177,7 @@ impl Component for ToolGroup {
         crate::compact::use_toolbar_items(true);
         let resolved = crate::theme::resolved();
         let palette = resolved.toolgroup.palette;
-        let island = resolved.sidebar.style == vow_appearance::SidebarStyle::Island;
+        let island = resolved.sidebar.style == ct_appearance::SidebarStyle::Island;
 
         let mut items: Vec<Element> = Vec::with_capacity(self.children.len());
         let last = self.children.len().saturating_sub(1);
@@ -220,7 +220,7 @@ impl Component for ToolGroup {
                 .background(theme::color(resolved.toolgroup.bg))
                 .border(
                     Border::new()
-                        .width(vow_design::HAIRLINE)
+                        .width(ct_design::HAIRLINE)
                         .alignment(BorderAlignment::Inner)
                         .fill(theme::color(palette.rim)),
                 )
@@ -579,7 +579,7 @@ impl Component for Button {
             .maybe(glass, |el| {
                 el.border(
                     Border::new()
-                        .width(vow_design::HAIRLINE)
+                        .width(ct_design::HAIRLINE)
                         .alignment(BorderAlignment::Inner)
                         .fill(color(palette.card_border)),
                 )
@@ -714,7 +714,7 @@ impl Component for Switch {
             .background(track)
             .border(
                 Border::new()
-                    .width(vow_design::HAIRLINE)
+                    .width(ct_design::HAIRLINE)
                     .alignment(BorderAlignment::Inner)
                     .fill(border),
             )
@@ -1163,10 +1163,10 @@ impl Component for SearchField {
                     .position(
                         Position::new_absolute()
                             .left(padding + icon + gap)
-                            .top((TEXT_FIELD.height - vow_design::TOKEN_FIELD.token_height) / 2.0),
+                            .top((TEXT_FIELD.height - ct_design::TOKEN_FIELD.token_height) / 2.0),
                     )
                     .direction(Direction::Horizontal)
-                    .spacing(vow_design::TOKEN_FIELD.gap)
+                    .spacing(ct_design::TOKEN_FIELD.gap)
                     .on_sized(move |event: Event<SizedEventData>| {
                         tokens_width.set_if_modified(event.area.width());
                     })
@@ -1353,7 +1353,7 @@ impl Component for Checkbox {
             .background(box_bg)
             .border(
                 Border::new()
-                    .width(vow_design::HAIRLINE)
+                    .width(ct_design::HAIRLINE)
                     .alignment(BorderAlignment::Inner)
                     .fill(box_border),
             )

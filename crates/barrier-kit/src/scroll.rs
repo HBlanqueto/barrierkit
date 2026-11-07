@@ -1,12 +1,12 @@
 use std::time::Duration;
 
+use ct_appearance::ScrollBars;
+use ct_design::{DURATION_FAST_MS, Rgba, SCROLL_BAR};
 use freya_components::scrollviews::{
     ScrollConfig, ScrollController as Inner, ScrollView as Scroller,
 };
 use freya_core::prelude::*;
 use torin::prelude::{Area, Direction, Position, Size};
-use vow_appearance::ScrollBars;
-use vow_design::{DURATION_FAST_MS, Rgba, SCROLL_BAR};
 
 use crate::adornments::divider;
 use crate::platform::Timers;

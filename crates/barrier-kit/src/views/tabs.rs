@@ -1,6 +1,6 @@
+use ct_design::{CAPTION, SPACE_2, TOOLBAR_TABS};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Direction, Gaps, Size};
-use vow_design::{CAPTION, SPACE_2, TOOLBAR_TABS};
 
 use crate::choices::use_choice;
 use crate::interaction::use_interaction;
@@ -78,7 +78,7 @@ impl Component for TabView {
                     .background(color(palette.sunken_background))
                     .border(
                         Border::new()
-                            .width(vow_design::HAIRLINE)
+                            .width(ct_design::HAIRLINE)
                             .alignment(BorderAlignment::Inner)
                             .fill(color(palette.separator)),
                     )

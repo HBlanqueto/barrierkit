@@ -2,6 +2,8 @@ use std::borrow::Cow;
 use std::f32::consts::FRAC_1_SQRT_2;
 use std::rc::Rc;
 
+use ct_appearance::backdrop::{self as tint, ImagePalette, ink_on, palette_from_pixels};
+use ct_design::{BACKDROP, DURATION_SLOW_MS, Rgba};
 use freya_animation::prelude::{AnimNum, Ease, Function, use_animation_transition};
 use freya_core::data::LayoutData;
 use freya_core::element::{ElementExt, RenderContext};
@@ -12,8 +14,6 @@ use freya_engine::prelude::{
     PaintStyle, Rect as SkRect, TileMode, raster_n32_premul, shaders,
 };
 use torin::prelude::{Position, Size};
-use vow_appearance::backdrop::{self as tint, ImagePalette, ink_on, palette_from_pixels};
-use vow_design::{BACKDROP, DURATION_SLOW_MS, Rgba};
 
 use crate::style::Palette;
 use crate::theme::color;

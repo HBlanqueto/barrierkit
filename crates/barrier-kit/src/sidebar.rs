@@ -1,10 +1,10 @@
-use freya_core::prelude::*;
-use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
-use vow_appearance::{SidebarStyle, SidebarSurface};
-use vow_design::{
+use ct_appearance::{SidebarStyle, SidebarSurface};
+use ct_design::{
     BACKDROP, BODY, DURATION_BASE, Rgba, SETTINGS, SIDEBAR, SidebarPalette, TEXT_FIELD, TITLEBAR,
     TITLEBAR_RAIL,
 };
+use freya_core::prelude::*;
+use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 
 use crate::ProbeExt;
 use crate::adornments::avatar;
@@ -393,7 +393,7 @@ impl Component for Sidebar {
             && sidebar_shown
             && chrome.layout == TitlebarLayout::Top
         {
-            let (_, _, group_w, _) = vow_appearance::traffic::group_rect();
+            let (_, _, group_w, _) = ct_appearance::traffic::group_rect();
 
             root = root.child(
                 rect()

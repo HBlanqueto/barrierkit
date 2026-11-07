@@ -44,7 +44,7 @@ reduced motion.
 
 ## Durations
 
-The kit times every animation with three tokens of `vow_design`:
+The kit times every animation with three tokens of `ct_design`:
 
 | Token | Use |
 |---|---|
@@ -94,7 +94,7 @@ Pressing a button scales it to `BUTTON.pressed_scale` with no animation.
 - With `bounce` 0 the curve is a cubic ease-out, with no overshoot.
 - With more bounce it is a damped oscillation,
   `1 − e^(−SPRING_DAMPING·t)·cos(π(1 + bounce)·t)`, that overshoots and
-  settles. `SPRING_DAMPING` is a `vow_design` token.
+  settles. `SPRING_DAMPING` is a `ct_design` token.
 - It always ends exactly on `to` at `duration`. In reverse it runs from `to`
   to `from`.
 

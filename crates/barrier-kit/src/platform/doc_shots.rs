@@ -8,12 +8,12 @@ use crate::symbol::Symbol;
 use crate::titlebar::Titlebar;
 use crate::views::form::{Form, Row, Section};
 use crate::views::split::{SidebarToggle, SplitView};
+use ct_appearance::{AppearanceConfig, SidebarStyle, resolve};
+use ct_design::ACCENT_SWATCHES;
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 use freya_testing::TestingRunner;
 use torin::prelude::{Direction, Position, Size, Size2D};
-use vow_appearance::{AppearanceConfig, SidebarStyle, resolve};
-use vow_design::ACCENT_SWATCHES;
 
 use super::tests::{REVEAL_STEP, REVEAL_TIME, window_controls};
 use crate::platform::window::{WindowControls, WindowStatus};
@@ -42,7 +42,7 @@ struct Shot {
     compositor_bar: bool,
 }
 
-fn tint(index: usize) -> vow_design::Rgba {
+fn tint(index: usize) -> ct_design::Rgba {
     ACCENT_SWATCHES[index % ACCENT_SWATCHES.len()].1
 }
 
@@ -206,14 +206,14 @@ impl App for Case {
                 .rail_top(
                     rect()
                         .direction(Direction::Vertical)
-                        .spacing(vow_design::TITLEBAR_RAIL.padding_bottom)
+                        .spacing(ct_design::TITLEBAR_RAIL.padding_bottom)
                         .child(IconButton::new(Symbol::Plus, "Nuevo"))
                         .child(IconButton::new(Symbol::MagnifyingGlass, "Buscar")),
                 )
                 .rail_bottom(
                     rect()
                         .direction(Direction::Vertical)
-                        .spacing(vow_design::TITLEBAR_RAIL.padding_bottom)
+                        .spacing(ct_design::TITLEBAR_RAIL.padding_bottom)
                         .child(IconButton::new(Symbol::SquareGrid, "Diseño"))
                         .child(IconButton::new(Symbol::SlidersVertical, "Medidas")),
                 );
@@ -225,7 +225,7 @@ impl App for Case {
                 .height(Size::px(
                     *window_controls(shot.status).focus_bar_height.peek(),
                 ))
-                .background(crate::theme::color(vow_design::FOCUS_BAR_BACKGROUND))
+                .background(crate::theme::color(ct_design::FOCUS_BAR_BACKGROUND))
                 .layer(i16::MAX)
         });
         rect()

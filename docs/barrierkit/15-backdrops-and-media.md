@@ -105,7 +105,7 @@ In an inactive window every tint falls back to the palette's accent.
 ## Media
 
 `barrier_kit::media` has the pieces of a media view. Their colors and sizes
-are the `MEDIA` tokens of `vow_design`, fixed for a dark image behind them.
+are the `MEDIA` tokens of `ct_design`, fixed for a dark image behind them.
 
 | Item | What it is |
 |---|---|

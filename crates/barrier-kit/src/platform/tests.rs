@@ -12,7 +12,7 @@ use std::{
 };
 
 pub(super) const REVEAL_STEP: Duration = Duration::from_millis(16);
-pub(super) const REVEAL_TIME: Duration = Duration::from_millis(vow_design::DURATION_BASE + 100);
+pub(super) const REVEAL_TIME: Duration = Duration::from_millis(ct_design::DURATION_BASE + 100);
 
 use super::{
     input::seat::{RepeatState, released_repeated_key, should_repeat_key, stop_repeat},
@@ -262,12 +262,12 @@ mod drag_band_tests {
     use crate::ProbeExt;
     use crate::sidebar::{Sidebar, SidebarItem};
     use crate::views::split::SplitView;
+    use ct_appearance::{AppearanceConfig, SidebarStyle, resolve};
     use freya_core::integration::AppComponent;
     use freya_core::prelude::{App, ContainerSizeExt, IntoElement, State, rect};
     use freya_testing::TestingRunner;
     use std::{cell::RefCell, rc::Rc};
     use torin::prelude::Size2D;
-    use vow_appearance::{AppearanceConfig, SidebarStyle, resolve};
 
     use crate::platform::window::{WindowCommand, WindowControls, WindowStatus};
 
@@ -313,10 +313,10 @@ mod drag_band_tests {
     fn without_traffic_lights_in_full_screen_the_sidebar_content_moves_up() {
         let windowed = first_item_top(false);
         let fullscreen = first_item_top(true);
-        let lights_band = (vow_design::SIDEBAR.traffic_y
-            + vow_design::TITLEBAR.buttons.diameter
-            + vow_design::SETTINGS.sidebar_lights_gap
-            - vow_design::SETTINGS.sidebar_padding_top) as f32;
+        let lights_band = (ct_design::SIDEBAR.traffic_y
+            + ct_design::TITLEBAR.buttons.diameter
+            + ct_design::SETTINGS.sidebar_lights_gap
+            - ct_design::SETTINGS.sidebar_padding_top) as f32;
         assert_eq!(windowed - fullscreen, lights_band);
     }
 
@@ -391,12 +391,12 @@ mod drag_band_tests {
 mod overlay_titlebar_tests {
     use crate::ProbeExt;
     use crate::titlebar::Titlebar;
+    use ct_appearance::{AppearanceConfig, resolve};
     use freya_core::integration::AppComponent;
     use freya_core::prelude::*;
     use freya_testing::TestingRunner;
     use std::{cell::RefCell, rc::Rc};
     use torin::prelude::{Direction, Size2D};
-    use vow_appearance::{AppearanceConfig, resolve};
 
     use crate::platform::window::{WindowControls, WindowStatus};
 
@@ -512,13 +512,13 @@ mod traffic_light_tests {
     use crate::sidebar::Sidebar;
     use crate::titlebar::Titlebar;
     use crate::views::split::SplitView;
+    use ct_appearance::{AppearanceConfig, resolve};
+    use ct_design::{Rgba, TITLEBAR};
     use freya_core::integration::AppComponent;
     use freya_core::prelude::*;
     use freya_testing::TestingRunner;
     use std::{cell::RefCell, rc::Rc};
     use torin::prelude::{Size, Size2D};
-    use vow_appearance::{AppearanceConfig, resolve};
-    use vow_design::{Rgba, TITLEBAR};
 
     use crate::platform::window::{WindowCommand, WindowControls, WindowStatus};
 
@@ -619,13 +619,13 @@ mod traffic_light_tests {
 #[cfg(test)]
 mod inactive_accent_tests {
     use crate::style::Palette;
+    use ct_appearance::{AppearanceConfig, resolve};
+    use ct_design::Rgba;
     use freya_core::integration::AppComponent;
     use freya_core::prelude::*;
     use freya_testing::TestingRunner;
     use std::{cell::Cell, rc::Rc};
     use torin::prelude::Size2D;
-    use vow_appearance::{AppearanceConfig, resolve};
-    use vow_design::Rgba;
 
     use crate::platform::window::WindowStatus;
 
@@ -661,7 +661,7 @@ mod inactive_accent_tests {
 
     #[test]
     fn an_unfocused_window_paints_the_accent_grey() {
-        let palette = vow_appearance::palette(resolve(&AppearanceConfig::default(), None).scheme);
+        let palette = ct_appearance::palette(resolve(&AppearanceConfig::default(), None).scheme);
         let accent = || Palette::current().accent;
         assert_eq!(painted(false, accent), palette.accent_inactive);
         assert_ne!(painted(true, accent), palette.accent_inactive);
@@ -674,13 +674,13 @@ mod fullscreen_chrome_tests {
     use crate::sidebar::Sidebar;
     use crate::titlebar::Titlebar;
     use crate::views::split::SplitView;
+    use ct_appearance::{AppearanceConfig, resolve};
+    use ct_design::TITLEBAR;
     use freya_core::integration::AppComponent;
     use freya_core::prelude::*;
     use freya_testing::TestingRunner;
     use std::{cell::RefCell, rc::Rc};
     use torin::prelude::Size2D;
-    use vow_appearance::{AppearanceConfig, resolve};
-    use vow_design::TITLEBAR;
 
     use crate::platform::window::{WindowControls, WindowStatus};
 

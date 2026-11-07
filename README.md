@@ -7,8 +7,8 @@ BarrierKit is the application toolkit for [Malaysia](https://github.com/HBlanque
 ## Crates
 
 - `barrier-kit` — the toolkit itself: platform runner, style primitives, controls, views and window patterns.
-- `vow-design` — Tengen, the design-token system. `tokens.json` and `components.json` become typed Rust constants through `build.rs`.
-- `vow-appearance` — resolves `appearance.domain` and the desktop wallpaper into a concrete palette, and watches the file.
+- `ct-design` — CTDesign (CT = Curse Techniques): Tengen, the design-token system. `tokens.json` and `components.json` become typed Rust constants through `build.rs`.
+- `ct-appearance` — CTAppearance: resolves `appearance.domain` and the desktop wallpaper into a concrete palette, and watches the file.
 - `infinity-protocol` — private Wayland protocol shared with the Malaysia compositor. Features `client` (kit) and `server` (compositor).
 
 ## Build
@@ -40,6 +40,7 @@ AI agents start from one prompt: [`docs/ai/prompt.md`](docs/ai/prompt.md).
 
 - ADR 0047 — [BarrierKit in layers](docs/decisions/0047-barrierkit-in-layers.md)
 - ADR 0048 — [BarrierKit in its own repository](docs/decisions/0048-barrierkit-own-repository.md)
+- ADR 0062 — [CTDesign and CTAppearance: the Curse Techniques crate names](docs/decisions/0062-curse-techniques-crate-names.md)
 - ADR 0061 — [A SwiftUI-shaped entry API and a glossary of names](docs/decisions/0061-swiftui-style-entry-api.md)
 - ADR 0057 — [The full-screen glass covers the whole window; the sidebar over a tinted backdrop](docs/decisions/0057-glass-and-sidebar-over-backdrop.md)
 

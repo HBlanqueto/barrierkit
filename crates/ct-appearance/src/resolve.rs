@@ -1,4 +1,4 @@
-use vow_design::{
+use ct_design::{
     ACCENT_MIN_CONTRAST_ON_WINDOW, BG_CONTROL_DARK, BG_CONTROL_DARK_TINT, BG_CONTROL_LIGHT,
     BG_HOVER_DARK, BG_HOVER_DARK_TINT, BG_HOVER_LIGHT, BG_RAISED_DARK, BG_RAISED_DARK_TINT,
     BG_RAISED_LIGHT, BG_SUNKEN_DARK, BG_SUNKEN_DARK_TINT, BG_SUNKEN_LIGHT, BG_SURFACE_DARK,
@@ -507,7 +507,7 @@ pub fn lights_for(
 mod tests {
     use super::*;
     use crate::TintStrength;
-    use vow_design::{
+    use ct_design::{
         BG_CONTROL_LIGHT, BG_RAISED_LIGHT, BG_SURFACE_LIGHT, BG_WINDOW_LIGHT, PANEL_TINT_WALLPAPER,
         SIDEBAR_LIGHT_OPAQUE, TITLEBAR, TOOLGROUP_BG_LIGHT_OPAQUE, TRAFFIC_CLOSE_MINIMIZE_DARKEN,
         TRAFFIC_ZOOM_LIGHTEN, WINDOW_TINT_ACCENT, WINDOW_TINT_WALLPAPER,
@@ -1010,7 +1010,7 @@ mod tests {
     #[test]
     fn every_accent_swatch_gets_readable_ink_and_a_visible_focus_ring() {
         for scheme in [ColorScheme::Light, ColorScheme::Dark, ColorScheme::DarkTint] {
-            for (name, swatch) in vow_design::ACCENT_SWATCHES {
+            for (name, swatch) in ct_design::ACCENT_SWATCHES {
                 let config = AppearanceConfig {
                     color_scheme: scheme,
                     accent_color: Some([swatch.r, swatch.g, swatch.b]),

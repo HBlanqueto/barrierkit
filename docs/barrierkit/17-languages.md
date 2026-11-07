@@ -75,7 +75,7 @@ language is chosen. The language picker widgets are in
 
 ## How the language is chosen
 
-The kit asks `vow_appearance::language` once per process, the first time a
+The kit asks `ct_appearance::language` once per process, the first time a
 text is read. The first source that gives a value wins:
 
 | Order | Source | Written by |

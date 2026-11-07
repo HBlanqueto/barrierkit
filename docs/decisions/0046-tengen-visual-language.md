@@ -9,8 +9,8 @@ is called **Tengen**. The names of the subsystems around it do not
 change:
 
 - **Tengen** = the visual language itself (the equivalent of Aqua in macOS).
-- **VowDesign** = the compiled tokens (`crates/vow-design`).
-- **VowAppearance** = the resolved active appearance (`crates/vow-appearance`).
+- **CTDesign** = the compiled tokens (`crates/ct-design`).
+- **CTAppearance** = the resolved active appearance (`crates/ct-appearance`).
 - **BarrierKit** = the shell toolkit (`crates/barrier-kit`).
 
 Only the name of the visual language and of its source folder change; colors,
@@ -22,7 +22,7 @@ radii, shadows, measurements and behaviors are exactly the same.
 
    | Before | After |
    |---|---|
-   | `crates/vow-design/neptunia/` | `crates/vow-design/tengen/` |
+   | `crates/ct-design/neptunia/` | `crates/ct-design/tengen/` |
    | `$OUT_DIR/neptunia.rs` | `$OUT_DIR/tengen.rs` |
    | BarrierKit themes `neptunia-shell`, `neptunia-shell-light`, `neptunia-shell-dark`, `neptunia-lock` | `tengen-shell`, `tengen-shell-light`, `tengen-shell-dark`, `tengen-lock` |
 
@@ -46,13 +46,13 @@ radii, shadows, measurements and behaviors are exactly the same.
 
 The Slint, CSS and QML generator in `tengen/` (`default.nix`, `generated/`,
 `demo.slint`) and the JSON fields only it read are deleted: nobody consumed
-them. Tengen produces only the `vow-design` constants. The living process is
+them. Tengen produces only the `ct-design` constants. The living process is
 in `docs/architecture/tengen.md`.
 
 ## References
 
-- `crates/vow-design/tengen/` — renamed source folder.
-- `crates/vow-design/build.rs` — generates `$OUT_DIR/tengen.rs`.
+- `crates/ct-design/tengen/` — renamed source folder.
+- `crates/ct-design/build.rs` — generates `$OUT_DIR/tengen.rs`.
 - `docs/decisions/0032-neptunia-as-design-source.md` — original ADR,
   now with a referral line.
 - `docs/architecture/tengen.md` — living documentation of the visual language.

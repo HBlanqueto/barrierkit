@@ -30,7 +30,7 @@ Charts: marks (`LineMark`, `AreaMark`, `BarMark`, `PointMark`, `RuleMark`,
    (ADR 0056). The camera is free in the Blender style (orbit, pan and
    zoom), custom by coordinates or fixed on a plane: front, top, side or
    isometric.
-5. **Values in `vow-design`** (ADR 0011): `components.chart` (`CHART`). Series
+5. **Values in `ct-design`** (ADR 0011): `components.chart` (`CHART`). Series
    colors point to the system accent colors (`CHART_SERIES`) without copying
    them.
 6. **Tested in a separate app, Trazo**, not in Tengen App Show: 2D charts, a
