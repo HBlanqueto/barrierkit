@@ -30,7 +30,7 @@ Each chapter builds on the previous ones.
 | 12 | [Animations](12-animaciones.en.md) | What animates, with which curve, and how is motion reduced? |
 | 13 | [Tinted backdrops and media](13-fondos-y-medios.en.md) | Backdrops from an image, custom accent, video |
 | 14 | [Platform](14-plataforma.en.md) | Runner, Vulkan, Wayland protocols, the shell part |
-| 15 | [Test apps](15-apps-de-prueba.en.md) | Tengen App Show, Ondina and Marea |
+| 15 | [Test apps](15-apps-de-prueba.en.md) | Tengen App Show, Ondina, Marea and Trazo |
 | 16 | [Frequently asked questions](16-preguntas.en.md) | What do we have and what is missing? |
 | 17 | [Profiling with Tracy](17-perfilado.en.md) | Where does each frame's time go? |
 | 18 | [Languages](18-idiomas.en.md) | How do I translate an app and how is the language chosen? |

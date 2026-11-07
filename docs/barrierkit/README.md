@@ -30,7 +30,7 @@ Cada capítulo se apoya en los anteriores.
 | 12 | [Animaciones](12-animaciones.md) | ¿Qué se anima, con qué curva y cómo se reduce el movimiento? |
 | 13 | [Fondos tintados y medios](13-fondos-y-medios.md) | Fondos desde una imagen, acento propio, vídeo |
 | 14 | [Plataforma](14-plataforma.md) | Runner, Vulkan, protocolos Wayland, la parte de la shell |
-| 15 | [Apps de prueba](15-apps-de-prueba.md) | Tengen App Show, Ondina y Marea |
+| 15 | [Apps de prueba](15-apps-de-prueba.md) | Tengen App Show, Ondina, Marea y Trazo |
 | 16 | [Preguntas frecuentes](16-preguntas.md) | ¿Qué tenemos y qué falta? |
 | 17 | [Perfilar con Tracy](17-perfilado.md) | ¿Dónde se va el tiempo de cada frame? |
 | 18 | [Idiomas](18-idiomas.md) | ¿Cómo traduzco una app y cómo se elige el idioma? |

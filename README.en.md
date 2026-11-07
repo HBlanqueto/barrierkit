@@ -35,6 +35,7 @@ nix develop
 ./dev.sh app tengen-app-show # components, animations and titlebars (Master Tengen App Show)
 ./dev.sh app marea           # films and series: video under glass, covers and a player
 ./dev.sh app ondina          # player with a tinted backdrop, its own accent and an adaptive layout
+./dev.sh app trazo           # 2D and 3D charts and a system monitor read from /proc
 ```
 
 | App | GNOME / Mutter | Malaysia |
@@ -42,6 +43,7 @@ nix develop
 | `tengen-app-show` | A CSD window with its titlebar; no global menu or compositor borders. | Tengen titlebar, plus the compositor's borders, shadow and blur. |
 | `marea` | The same; it decodes with VA-API when there is a GPU, otherwise on the CPU. | The same, with the video imported into Vulkan as a dmabuf. |
 | `ondina` | The same; its menu (Controles, Ver) lives only on D-Bus without `org_kde_kwin_appmenu_manager`. | Global menu in the menu bar; the backdrop takes its tint from the cover. |
+| `trazo` | The same; the monitor reads `/proc` and does not depend on the compositor. | Tengen titlebar, plus the compositor's borders, shadow and blur. |
 
 When `infinity_window_manager_v1`, `ext_foreign_toplevel_list_v1` / `zwlr_foreign_toplevel_manager_v1`, `wp_cursor_shape_manager_v1` or `org_kde_kwin_appmenu_manager` is missing, the runner logs it with `tracing::info!` and carries on.
 

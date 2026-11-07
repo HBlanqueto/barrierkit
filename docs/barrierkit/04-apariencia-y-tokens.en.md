@@ -30,9 +30,6 @@ use vow_design::{ACCENT_SWATCHES, BUTTON, DURATION_BASE, SPACE_3, SPLIT_VIEW, TI
 | Base colors | `LIGHT`, `DARK`, `DARK_TINT` and their backgrounds (`BG_WINDOW_LIGHT`…) |
 | Accents | `ACCENT_SWATCHES`: Azul, Morado, Rosa, Rojo, Naranja, Amarillo, Verde, Gris (blue, purple, pink, red, orange, yellow, green, gray) |
 
-The same JSON files also generate Slint, CSS and QML in `tengen/generated/`,
-for projects that are not written in Rust.
-
 ### Adding your own value
 
 A new color or size is never written in `barrier-kit`. It goes into Tengen:
