@@ -58,6 +58,4 @@ images the same way: render its view with `freya_testing::TestingRunner` and
   control more than 4 px larger is cut at that edge.
 - The box is the bounding box of pixels unlike the corner of the area, so a
   shadow or a focus ring is part of it.
-- A difference can come from the kit, not the artifact. On 2026-11-07 the
-  `button` golden draws buttons 28 px high, while `BUTTON.height` in
-  `components.json` is 24; the twin follows the token.
+- A difference can come from the kit, not the artifact.
