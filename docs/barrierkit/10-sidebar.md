@@ -1,122 +1,281 @@
-# 8. Sidebar and SplitView
+# 10. Sidebar and split view
 
-**Goal:** set up a sidebar, choose its style and control how it resizes, hides
-and collapses.
+**Goal:** build a window with a sidebar that selects what the detail shows, and
+control how the sidebar resizes, hides and collapses.
+**Scope:** from the sidebar content (`sidebar`) to the container that places it
+beside the detail (`views::split`). The titlebar over the detail is in
+[9](09-titlebars.md#titlebar); the views inside the detail are in
+[11](11-views.md); a ready-made settings window with a sidebar is in
+[12](12-patterns.md).
 **Reader:** anyone who builds an app with side navigation.
+**Input:** a window that draws its own titlebar with `run_window`
+([2](02-first-app.md), [8](08-windows.md)). **Output:** a sidebar app whose
+page follows the selected item.
 
-## The two pieces
+## Steps
 
-| Piece | Module | What it does |
+1. Keep the selected page in state:
+
+   ```rust
+   let mut page = use_state(|| 0);
+   ```
+
+2. Build one `SidebarItem` per page. It shows the selection the app passes and
+   reports a press through `on_select`:
+
+   ```rust
+   let item = |index: usize, title: &'static str, glyph: Symbol| {
+       SidebarItem::new(title)
+           .symbol(glyph, ACCENT_SWATCHES[index].1)
+           .selected(*page.read() == index)
+           .on_select(move |_| page.set(index))
+   };
+   ```
+
+3. Put the items in a `Sidebar`, grouped in `SidebarSection`s if needed:
+
+   ```rust
+   let sidebar = Sidebar::new()
+       .traffic_lights(true)
+       .child(item(0, "Home", Symbol::House))
+       .child(
+           SidebarSection::new("Library")
+               .child(item(1, "Recent", Symbol::Clock))
+               .child(item(2, "Downloads", Symbol::ArrowDown)),
+       );
+   ```
+
+4. Build the detail: a `Titlebar` with `.with_sidebar(true)` and the
+   `SidebarToggle` button, then the page:
+
+   ```rust
+   let detail = rect()
+       .expanded()
+       .direction(Direction::Vertical)
+       .child(Titlebar::new().with_sidebar(true).title("Home").left(SidebarToggle))
+       .child(VStack::new().expanded().child(Text::new("Home")));
+   ```
+
+5. Join both in a `SplitView` and return it from the `run_window` closure:
+
+   ```rust
+   SplitView::new(sidebar, detail)
+   ```
+
+6. Optional: save the layout the user leaves and pass it back on the next
+   launch with `.sidebar_width(..)` and `.sidebar_visible(..)`:
+
+   ```rust
+   SplitView::new(sidebar, detail)
+       .on_layout(move |layout: SidebarLayout| saved.set(Some(layout)))
+   ```
+
+The names come from `barrier_kit::sidebar`, `barrier_kit::views::split`,
+`barrier_kit::symbol::Symbol` and `vow_design::ACCENT_SWATCHES`.
+
+## Sidebar content
+
+### `Sidebar`
+
+The column of navigation rows. Its children scroll in a
+[`ScrollView`](05-controls.md). Its accessibility role is navigation.
+
+| Method | Default | Effect |
 |---|---|---|
-| `Sidebar` | `sidebar` | The content: items, sections, account and traffic lights |
-| `SplitView` | `views::split` | The container: sidebar + detail + optional inspector; width, hiding and collapsing |
+| `Sidebar::new()` | — | An empty sidebar |
+| `.child(view)`, `.children(views)` | — | Adds rows: items, sections, an account or any view |
+| `.traffic_lights(bool)` | `false` | Draws the window's traffic lights in the sidebar's top corner. Where they go with each titlebar layout is in [9](09-titlebars.md) |
+| `.backdrop(SidebarBackdrop)` | `Clear` | How the island looks over a tinted backdrop: see [`SidebarBackdrop`](#sidebarbackdrop) |
+| `.key(key)` | none | Diff key, as on any Freya element |
 
-## The sidebar: `Sidebar`
+Its look comes from `sidebar_style` in `appearance.domain`
+([4](04-appearance-and-tokens.md),
+[ADR 0041](../decisions/0041-island-sidebar.md)). The app chooses nothing:
 
-```rust
-Sidebar::new()
-    .traffic_lights(true)
-    .child(SidebarAccount::new("HB", "Héctor Blanqueto", "Local account"))
-    .child(
-        SidebarItem::new("Home")
-            .symbol(Symbol::House, ACCENT_SWATCHES[0].1)
-            .selected(true)
-            .on_select(move |_| section.set(0)),
-    )
-    .child(
-        SidebarSection::new("Library")
-            .child(SidebarItem::new("Downloads").symbol(Symbol::ArrowDown, green)),
-    )
-```
-
-| Piece | Options |
+| `sidebar_style` | Look |
 |---|---|
-| `SidebarItem::new(text)` | `.symbol(Symbol, tint)`, `.selected(bool)`, `.emphasized(bool)`, `.on_select(..)` |
-| `SidebarSection::new(title)` | Open when mounted; a click on the title collapses or opens it with a `DURATION_BASE` animation |
-| `SidebarAccount::new(initials, name, detail)` | No options: it only shows the account |
-| `Sidebar` | `.traffic_lights(true)` puts the traffic lights inside; `.backdrop(SidebarBackdrop::Tinted)` tints it over a tinted backdrop. With the `Rail`, its first row rises to the titlebar row (chapter [7](07-titlebars.md#the-sidebar-with-the-rail)) |
+| `island` (default) | A floating panel `SIDEBAR.inset` (8) from the window edges, radius `SIDEBAR.radius` (18) with a continuous corner, and a rim. It stays concentric with the window's 26 corner |
+| `flat` | Edge to edge, with a 1 px line on its right side |
 
-![Account row](assets/components/sidebar-account-light.png)
+The strip above the first row moves the window when dragged. When the traffic
+lights are in the sidebar, the first row starts below them.
 
-## Island or flat
+### `SidebarItem`
 
-The user decides in `appearance.domain` with `sidebar_style`
-([ADR 0041](../decisions/0041-island-sidebar.md)). The app does
-nothing:
+A row with an optional symbol tile and a one-line label.
 
-Over a tinted backdrop (chapter [13](13-backdrops-and-media.md)), the flat
-sidebar shows the backdrop, and the island either shows it or is tinted with
-`SidebarBackdrop::Tinted` ([ADR 0057](../decisions/0057-glass-and-sidebar-over-backdrop.md)).
+| Method | Default | Effect |
+|---|---|---|
+| `SidebarItem::new(label)` | — | A row with that text |
+| `.symbol(Symbol, tint)` | no tile | A [`symbol_tile`](#symbol_tile) of color `tint` before the label |
+| `.selected(bool)` | `false` | Draws the row as selected. The app decides which row is selected |
+| `.emphasized(bool)` | `true` | With `false`, the selection is gray instead of accent, as when the focus is elsewhere |
+| `.on_select(callback)` | none | Called when the row is pressed |
+| `.key(key)` | none | Diff key |
 
-The island sits `size.sidebar-inset` (8) from the edge and has radius
-`size.sidebar-radius` (18 = 26 − 8), with the window's continuous corner:
-it stays concentric with its `unified` corner (26).
+**Events:** `on_select(())`. After it, the item closes the sidebar if it floats
+over the content (see [Narrow windows](#narrow-windows)).
 
-## The container: `SplitView`
+**Look:** `SIDEBAR.item_height` (32) high, radius `SIDEBAR.item_radius` (8),
+text of `SIDEBAR.item_text_size` (13). The selected row has the accent
+background and semibold text; hover shows a light background. In an inactive
+window the selection turns gray.
+
+### `SidebarSection`
+
+A titled group of rows. It mounts open; a press on its title collapses or
+opens it over `DURATION_BASE` (220 ms). A chevron appears on the title on hover
+or with the keyboard focus.
+
+| Method | Effect |
+|---|---|
+| `SidebarSection::new(title)` | A section with that title (11 pt, weight 600) |
+| `.child(view)`, `.children(views)` | Adds rows |
+| `.key(key)` | Diff key |
+
+### `SidebarAccount`
+
+The account row at the top of the sidebar: an avatar with the initials, the
+name in bold and a detail line below. `SETTINGS.account_height` (48) high. It
+has no options and reports nothing.
 
 ```rust
-SplitView::new(sidebar, detail)
-    .inspector(inspector, inspector_shown)
-    .sidebar_width(saved.width)
-    .sidebar_visible(saved.visible)
-    .on_layout(move |layout: SidebarLayout| sidebar_layout.set(Some(layout)))
+SidebarAccount::new("JA", "Jane Appleseed", "Local account")
 ```
 
-| Option | Default | Effect |
+![Account row with an avatar, the name and "Local account"](assets/components/sidebar-account-light.png)
+
+### `symbol_tile`
+
+`symbol_tile(glyph, tint, rim: Option<Rgba>) -> Rect` draws the square tile of
+a sidebar item: `SIDEBAR.app_icon` (22) wide, radius 8, filled with `tint`, the
+glyph in `Palette::on_accent`. `Some(rim)` adds a 1 px inner border.
+`SidebarItem` uses it, and so do the search results of
+[`PreferencesWindow`](12-patterns.md#preferenceswindow).
+
+### `SidebarBackdrop`
+
+It matters only over a tinted backdrop
+([15](15-backdrops-and-media.md),
+[ADR 0057](../decisions/0057-glass-and-sidebar-over-backdrop.md)). Without one,
+both values look the same.
+
+| Variant | Island over a tinted backdrop |
+|---|---|
+| `Clear` (default) | Transparent: the backdrop shows through |
+| `Tinted` | Filled with the backdrop's average color, with a separator rim |
+
+The flat sidebar is always transparent over a tinted backdrop.
+
+### `SidebarControl`
+
+`sidebar_control() -> Option<SidebarControl>` gives any view inside a
+`SplitView` a handle on its sidebar. Outside a `SplitView` it returns `None`.
+`Titlebar` and `SidebarToggle` read it.
+
+| Method | Returns or does |
+|---|---|
+| `.toggle()` | Shows the sidebar if it is hidden, hides it if it is shown |
+| `.dismiss()` | Hides it only if it floats over the content |
+| `.occupied()` | The width the docked sidebar takes now, animated; `0.0` while it floats |
+| `.settled()` | `true` when it is shown and fully open |
+
+```rust
+if let Some(control) = sidebar_control() {
+    control.toggle();
+}
+```
+
+## Split view
+
+### `SplitView`
+
+The container: the sidebar on the left, the detail in the rest and an optional
+inspector on the right. It paints the window background, so the app does not.
+It is `NavigationSplitView` with a sidebar and a detail column.
+
+| Method | Default | Effect |
 |---|---|---|
-| `.sidebar_width(f32)` | `SIDEBAR.width` | Initial width |
-| `.sidebar_visible(bool)` | `true` | Visible on open |
-| `.resizable(bool)` | `true` | With `false` there is no grip: fixed width |
-| `.sidebar_range(min, max)` | `SPLIT_VIEW.sidebar_min`, `.sidebar_max` (180–320) | Width limits. If they change, the width is clamped to the new range |
-| `.narrow_sidebar(NarrowSidebar)` | `Overlay` | How it opens in a narrow window: see [Collapsing in narrow windows](#collapsing-in-narrow-windows) |
-| `.inspector(content, presented)` | no inspector | Right pane of `SPLIT_VIEW.inspector` (270, the standard width of [`NSSplitViewItem(inspectorWithViewController:)`](https://developer.apple.com/documentation/appkit/nssplitviewitem/init(inspectorwithviewcontroller:))) with a separator; changing `presented` opens or closes it over `DURATION_BASE`, like `.inspector(isPresented:)` |
-| `.background_extension(view)` | no extension | Paints `view` under the docked sidebar, stretching its first pixel column to the window edge, like macOS 26 `.backgroundExtensionEffect()`. The sidebar glass blurs it. Apple mirrors the view; Freya 0.4.3 drops children under a negative scale, so the edge is stretched (clamp) here |
-| `.on_layout(..)` | — | Reports `SidebarLayout { width, visible }` when the grip is released or the sidebar is hidden. Use it to save the layout |
+| `SplitView::new(sidebar, detail)` | — | Both panes |
+| `.sidebar_width(f32)` | `SIDEBAR.width` (220) | Width on the first render, clamped to the range |
+| `.sidebar_visible(bool)` | `true` | Visibility on the first render |
+| `.sidebar_range(min, max)` | `SPLIT_VIEW.sidebar_min`, `.sidebar_max` (180, 320) | Width limits. A new range clamps the current width |
+| `.resizable(bool)` | `true` | With `false` there is no grip: the width is fixed |
+| `.narrow_sidebar(NarrowSidebar)` | `Overlay` | Where the sidebar opens in a narrow window: see [Narrow windows](#narrow-windows) |
+| `.inspector(view, presented)` | none | See [Inspector](#inspector) |
+| `.background_extension(view)` | none | See [Background extension](#background-extension) |
+| `.on_layout(callback)` | none | Reports [`SidebarLayout`](#sidebarlayout) |
+| `.key(key)` | none | Diff key |
+
+`sidebar_width` and `sidebar_visible` are starting values. After the first
+render the user owns the layout; read it back with `on_layout`.
 
 ### Resizing
 
-The grip is a `SPLIT_VIEW.grip` (8 px) strip on the right edge of the sidebar:
+The grip is a `SPLIT_VIEW.grip` (8 px) strip on the sidebar's right edge. It
+exists only with `.resizable(true)` and while the sidebar is fully open.
 
-1. On hover, the cursor changes to `col-resize` and an accent line of
-   `grip_line` (2 px) appears, with `grip_line_inset` (18 px) free at the top
-   and bottom.
-2. While dragging, the width follows the pointer with a `DURATION_FAST_MS`
-   (120 ms) spring and stays between the minimum and the maximum. With reduced
-   motion, the change is immediate.
-3. Tab focuses the grip; ← and → change the width in steps of
-   `SPLIT_VIEW.key_step` (10 px).
-4. On release, `on_layout` receives the final width.
+1. On hover, the cursor becomes `col-resize` and an accent line of
+   `SPLIT_VIEW.grip_line` (2 px) appears, `grip_line_inset` (18 px) from the
+   top and the bottom.
+2. While dragging, the width follows the pointer and stays in the range.
+3. Tab focuses the grip; ← and → change the width by `SPLIT_VIEW.key_step`
+   (10 px) with a `DURATION_FAST_MS` (120 ms) spring. With reduced motion the
+   change is immediate.
+4. On release, `on_layout` receives the new width.
 
-### Hiding
+### Hiding: `SidebarToggle` and `TOGGLE_SIDEBAR`
 
-- The `SidebarToggle` button (`SidebarLeft` symbol) and the `TOGGLE_SIDEBAR`
-  action (Ctrl+Alt+S) show or hide it with a `DURATION_BASE` animation.
-- From any child: `sidebar::sidebar_control().map(|c| c.toggle())`;
-  `SplitView` provides that control and `Sidebar` and `Titlebar` read it.
+`SidebarToggle` is a unit struct: an icon button with the `SidebarLeft` symbol
+that calls `SidebarControl::toggle`. Its label is "Show or Hide Sidebar". It is
+disabled outside a `SplitView`. Put it in the titlebar's left zone:
+`Titlebar::new().left(SidebarToggle)`.
 
-### Collapsing in narrow windows
+`TOGGLE_SIDEBAR` is the [`Action`](13-app.md) with the id `toggle-sidebar` and
+the shortcut Ctrl+Alt+S. `SplitView` answers its shortcut itself; add the
+action to the app's menu to show it there.
 
-Below a window width of `SPLIT_VIEW.collapse_below` (760 px):
+Hiding and showing animate over `DURATION_BASE` (220 ms).
 
-1. The sidebar hides on its own.
-2. If the user opens it, `NarrowSidebar` decides where it appears:
-   - `Overlay`: it floats on top of the content over the `scrim` veil, without
-     moving it. It closes on a click on the veil, on Escape or when a
-     `SidebarItem` is chosen.
-   - `Push`: it docks and narrows the detail. At a 480 px window, the detail
-     is left with 244 px.
-3. When the window widens past 760 px, the sidebar comes back docked and
+### Narrow windows
+
+`NarrowSidebar` decides where the sidebar opens when the window is narrower
+than `SPLIT_VIEW.collapse_below` (760 px):
+
+| Variant | The sidebar opens |
+|---|---|
+| `Overlay` (default) | Floating over the detail, above the `Palette::scrim` veil, without moving the detail. A click on the veil, Escape or an item's `on_select` closes it |
+| `Push` | Docked: it narrows the detail |
+
+1. When the window becomes narrow, the sidebar hides by itself.
+2. The user opens it with `SidebarToggle` or Ctrl+Alt+S; it appears as
+   `NarrowSidebar` says.
+3. When the window grows past 760 px again, the sidebar comes back docked and
    visible, even if the user had closed it. This is the rule of
    [`AdwOverlaySplitView`](https://gnome.pages.gitlab.gnome.org/libadwaita/doc/1.4/class.OverlaySplitView.html)
    without `pin-sidebar`.
 
-From a child, `sidebar_control().map(|c| c.dismiss())` closes the sidebar only
-when it is overlaid.
+### `SidebarLayout`
 
-### In `PreferencesWindow`
+`SidebarLayout { width: f32, visible: bool }`, what `on_layout` reports. It is
+`Serialize` and `Deserialize`, so it can be saved as is. `SplitView` reports it
+when the width or the visibility changes, never during a drag. A sidebar that
+hid by itself in a narrow window counts as visible.
 
-`PreferencesWindow` configures the sidebar with `.sidebar_resizable(bool)`,
-`.sidebar_range(Option<(min, max)>)` and `.narrow_sidebar(NarrowSidebar)`;
-`.sidebar_toggle(false)` removes the `SidebarToggle` button.
+### Inspector
 
-Next: [9. Views](09-views.md).
+`.inspector(view, presented)` adds a right pane `SPLIT_VIEW.inspector` (270)
+wide, the width of
+[`NSSplitViewItem(inspectorWithViewController:)`](https://developer.apple.com/documentation/appkit/nssplitviewitem/init(inspectorwithviewcontroller:)),
+after a 1 px separator. Changing `presented` opens or closes it over
+`DURATION_BASE`, like SwiftUI's `.inspector(isPresented:content:)`.
+
+### Background extension
+
+`.background_extension(view)` paints `view` under the docked sidebar, as macOS
+26 `.backgroundExtensionEffect()` does. The view is laid out as wide as the
+detail and its first pixel column is stretched to the window edge. Apple
+mirrors the view; Freya 0.4.3 drops children under a negative scale, so the
+edge is stretched instead. It is not drawn while the sidebar floats.
+
+Next: [11. Views](11-views.md).
