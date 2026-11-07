@@ -155,15 +155,15 @@ Un solo crate `barrier-kit`. Las capas 0, 2, 3, la columna App y la shell tienen
 
 ```
 barrier-kit/src/
-  platform/   capa 0  (runtime, window, popup, surface, input, focus, clipboard, vulkan, timer…)
-  *.rs        capa 1  (style, theme, symbol, interaction, controls, compact, choices, level,
-                       progress, adornments, popup_button, tooltip, context_menu, backdrop,
-                       adaptive, titlebar, traffic, sidebar, menu/, app_menu/)
-  views/      capa 2  (split, navigation, search, form, table, collection, tabs, feedback)
-  patterns/   capa 3  (preferences, search_popover, about)
-  app/        transversal (action, application, defaults, undo)
+  platform/   capa 0
+  *.rs        capa 1
+  views/      capa 2
+  patterns/   capa 3
+  app/        transversal
   shell/      solo para la shell, detrás de la feature `shell` (ver abajo)
 ```
+
+La lista de módulos de cada capa está en [Capas](../barrierkit/03-capas.md#dónde-está-cada-capa-en-el-código).
 
 No hay `prelude.rs`: cada app importa de su módulo (`barrier_kit::views::form::Form`).
 

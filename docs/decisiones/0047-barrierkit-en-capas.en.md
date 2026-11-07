@@ -155,15 +155,15 @@ A single crate, `barrier-kit`. Layers 0, 2, 3, the App column and the shell have
 
 ```
 barrier-kit/src/
-  platform/   capa 0  (runtime, window, popup, surface, input, focus, clipboard, vulkan, timer…)
-  *.rs        capa 1  (style, theme, symbol, interaction, controls, compact, choices, level,
-                       progress, adornments, popup_button, tooltip, context_menu, backdrop,
-                       adaptive, titlebar, traffic, sidebar, menu/, app_menu/)
-  views/      capa 2  (split, navigation, search, form, table, collection, tabs, feedback)
-  patterns/   capa 3  (preferences, search_popover, about)
-  app/        transversal (action, application, defaults, undo)
-  shell/      solo para la shell, detrás de la feature `shell` (ver abajo)
+  platform/   layer 0
+  *.rs        layer 1
+  views/      layer 2
+  patterns/   layer 3
+  app/        cross-cutting
+  shell/      shell only, behind the `shell` feature (see below)
 ```
+
+The module list of each layer is in [Layers](../barrierkit/03-capas.en.md#where-each-layer-lives-in-the-code).
 
 There is no `prelude.rs`: each app imports from its module (`barrier_kit::views::form::Form`).
 

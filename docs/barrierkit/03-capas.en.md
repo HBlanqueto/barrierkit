@@ -28,10 +28,10 @@ The full decision is in [ADR 0047](../decisiones/0047-barrierkit-en-capas.en.md)
 
 | Layer | Folder or modules in `crates/barrier-kit/src/` |
 |---|---|
-| 0 · Platform | `platform/` |
-| 1 · Primitives | `style`, `theme`, `symbol`, `interaction`, `controls`, `compact`, `choices`, `level`, `progress`, `adornments`, `popup_button`, `tooltip`, `context_menu`, `backdrop`, `media`, `adaptive`, `titlebar`, `traffic`, `chrome`, `sidebar`, `menu/`, `app_menu/`, `animation` |
-| 2 · Views | `views/` (`form`, `split`, `table`, `collection`, `tabs`, `feedback`, `navigation`, `search`) |
-| 3 · Patterns | `patterns/` (`preferences`, `about`) |
+| 0 · Platform | `platform/`, `i18n`, `portal`, `drag`, `notifications`, `secrets` |
+| 1 · Primitives | `style`, `theme`, `symbol`, `interaction`, `animation`, `controls`, `buttons`, `compact`, `choices`, `level`, `progress`, `indicator`, `adornments`, `popup_button`, `combo_box`, `popover`, `tooltip`, `context_menu`, `password`, `text_editor`, `rich_text`, `spelling`, `token_field`, `path_control`, `date`, `date_picker`, `color_picker`, `image_well`, `rule_editor`, `print`, `charts/`, `canvas`, `glass_container`, `backdrop`, `media`, `video`, `adaptive`, `titlebar`, `traffic`, `chrome`, `sidebar`, `menu/`, `app_menu/`, `status_item` |
+| 2 · Views | `views/` (`form`, `group`, `split`, `split_panes`, `floating_pane`, `table`, `tree`, `collection`, `tabs`, `window_tabs`, `text_view`, `feedback`, `navigation`, `search`) and `font_panel` |
+| 3 · Patterns | `patterns/` (`preferences`, `search_popover`, `about`, `language`) |
 | App | `app/` (`action`, `application`, `defaults`, `undo`) |
 | Shell | `shell/`, only with the `shell` feature |
 
@@ -41,6 +41,10 @@ There is no `prelude`: each piece is imported from its module, for example
 ## Rules
 
 1. A layer only uses the ones below it. Layer 1 does not know `SplitView`.
+   Exception: `platform::app` mounts the root of each window
+   (`chrome::window_root`), paints its background with `theme` and serves the
+   global menu and the status icons (`app_menu`, `status_item`). Tests
+   (`#[cfg(test)]`) mount whole windows and use any layer.
 2. Layer 3 only composes the public API of layer 2. Whatever a pattern needs is
    added to layer 2 and becomes available to every app.
 3. An app can use any layer. Settings uses layer 3; Ondina composes layer 2 by

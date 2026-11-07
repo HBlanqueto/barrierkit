@@ -28,10 +28,10 @@ La decisión completa está en el [ADR 0047](../decisiones/0047-barrierkit-en-ca
 
 | Capa | Carpeta o módulos de `crates/barrier-kit/src/` |
 |---|---|
-| 0 · Plataforma | `platform/` |
-| 1 · Primitivas | `style`, `theme`, `symbol`, `interaction`, `controls`, `compact`, `choices`, `level`, `progress`, `adornments`, `popup_button`, `tooltip`, `context_menu`, `backdrop`, `media`, `adaptive`, `titlebar`, `traffic`, `chrome`, `sidebar`, `menu/`, `app_menu/`, `animation` |
-| 2 · Vistas | `views/` (`form`, `split`, `table`, `collection`, `tabs`, `feedback`, `navigation`, `search`) |
-| 3 · Patrones | `patterns/` (`preferences`, `about`) |
+| 0 · Plataforma | `platform/`, `i18n`, `portal`, `drag`, `notifications`, `secrets` |
+| 1 · Primitivas | `style`, `theme`, `symbol`, `interaction`, `animation`, `controls`, `buttons`, `compact`, `choices`, `level`, `progress`, `indicator`, `adornments`, `popup_button`, `combo_box`, `popover`, `tooltip`, `context_menu`, `password`, `text_editor`, `rich_text`, `spelling`, `token_field`, `path_control`, `date`, `date_picker`, `color_picker`, `image_well`, `rule_editor`, `print`, `charts/`, `canvas`, `glass_container`, `backdrop`, `media`, `video`, `adaptive`, `titlebar`, `traffic`, `chrome`, `sidebar`, `menu/`, `app_menu/`, `status_item` |
+| 2 · Vistas | `views/` (`form`, `group`, `split`, `split_panes`, `floating_pane`, `table`, `tree`, `collection`, `tabs`, `window_tabs`, `text_view`, `feedback`, `navigation`, `search`) y `font_panel` |
+| 3 · Patrones | `patterns/` (`preferences`, `search_popover`, `about`, `language`) |
 | App | `app/` (`action`, `application`, `defaults`, `undo`) |
 | Shell | `shell/`, solo con la feature `shell` |
 
@@ -41,6 +41,10 @@ No hay `prelude`: cada pieza se importa de su módulo, por ejemplo
 ## Reglas
 
 1. Una capa solo usa las de debajo. La capa 1 no conoce `SplitView`.
+   Excepción: `platform::app` monta la raíz de cada ventana
+   (`chrome::window_root`), pinta su fondo con `theme` y sirve el menú global
+   y los iconos de estado (`app_menu`, `status_item`). Los tests
+   (`#[cfg(test)]`) montan ventanas enteras y usan cualquier capa.
 2. La capa 3 solo compone la API pública de la capa 2. Lo que un patrón
    necesita se añade a la capa 2 y queda para todas las apps.
 3. Una app puede usar cualquier capa. Ajustes usa la 3; Ondina compone la 2 a
