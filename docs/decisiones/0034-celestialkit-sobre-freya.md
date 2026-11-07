@@ -1,86 +1,86 @@
-# 0034 — CelestialKit sobre Freya
+# 0034 — CelestialKit on Freya
 
-Estado: **aceptado** (2026-10-22). Reemplaza al [ADR 0033](0033-skia-en-clientes-y-celestialkit-desde-otto-kit.md)
-y modifica al [ADR 0024](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0024-stack-de-render-del-toolkit.md) para los procesos
-cliente.
+Status: **accepted** (2026-10-22). Supersedes [ADR 0033](0033-skia-en-clientes-y-celestialkit-desde-otto-kit.en.md)
+and amends [ADR 0024](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0024-stack-de-render-del-toolkit.en.md) for the client
+processes.
 
-Renombrado a BarrierKit, `vow-design` y `vow-appearance` en la [ADR 0043](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0043-rebranding-a-malaysia.md).
+Renamed to BarrierKit, `vow-design` and `vow-appearance` in [ADR 0043](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0043-rebranding-a-malaysia.en.md).
 
-## Contexto
+## Context
 
-El ADR 0033 puso Skia en los clientes y propuso basar CelestialKit en `otto-kit`
-con `laye-rs` como motor de animación. La revisión del código mostró dos
-problemas: `laye-rs` no tiene licencia y `otto-kit` no es un toolkit sobre el que
-se pueda construir sin arrastrar decisiones ajenas. Freya (MIT) ya ofrece un
-núcleo de UI reactiva, layout, accesibilidad y render Skia con crates separados
-del backend de ventanas.
+ADR 0033 put Skia in the clients and proposed basing CelestialKit on `otto-kit`
+with `laye-rs` as the animation engine. The code review showed two
+problems: `laye-rs` has no license and `otto-kit` is not a toolkit you can
+build on without dragging in other people's decisions. Freya (MIT) already offers a
+reactive UI core, layout, accessibility and Skia rendering, with crates separate
+from the window backend.
 
-## Decisión
+## Decision
 
-1. **CelestialKit se construye sobre los crates de núcleo de Freya**, fijados
-   exactos a `=0.4.3`: `freya-core`, `freya-components` (con
-   `default-features = false`), `freya-animation`, `freya-engine`, `torin` y
-   `ragnarok`. **Nunca** se usan el crate paraguas `freya` ni `freya-winit`: el
-   paraguas activa `winit` por defecto y `freya-winit` arrastra `winit`, `gtk`,
-   `rfd`, `tray-icon`, `ash` y `glutin`.
-2. **El kit tiene su propio runner Wayland** (SCTK + calloop + EGL), porque
-   `winit` no soporta layer-shell ni `ext-session-lock-v1`. El runner cubre
-   `zwlr_layer_shell_v1`, `ext-session-lock-v1` y, más adelante, `xdg_toplevel`.
-3. **Skia solo en procesos cliente.** El compositor nunca enlaza crates `freya-*`
-   ni Skia: sigue con GLES, `grade-graphics` y `cosmic-text`.
-4. **Grade Animation es un módulo de `celestial-kit` sobre `freya-animation`**,
-   con un resorte propio (duración + rebote) escrito desde cero. De `laye-rs`
-   solo se toma la idea, no el código.
-5. **Los tokens siguen saliendo de `yuki-design` y `yuki-appearance`.** El tema
-   de `freya-components` se genera desde ellos. Nada de `material-design`.
-6. **Infinity sigue igual**: opcional en el kit hasta que el compositor lo
-   anuncie.
-7. **`otto-kit` deja de ser fuente de código.** Queda solo como referencia de
-   lógica (DBusMenu, estados de menús). Si algún día se copia código MIT de Otto,
-   su aviso va a `NOTICE` en el mismo commit.
-8. **Subir a Freya 0.5 cuando sea estable**, en su propio commit, regenerando
+1. **CelestialKit is built on Freya's core crates**, pinned
+   exactly to `=0.4.3`: `freya-core`, `freya-components` (with
+   `default-features = false`), `freya-animation`, `freya-engine`, `torin` and
+   `ragnarok`. The umbrella crate `freya` and `freya-winit` are **never** used: the
+   umbrella enables `winit` by default and `freya-winit` drags in `winit`, `gtk`,
+   `rfd`, `tray-icon`, `ash` and `glutin`.
+2. **The kit has its own Wayland runner** (SCTK + calloop + EGL), because
+   `winit` does not support layer-shell or `ext-session-lock-v1`. The runner covers
+   `zwlr_layer_shell_v1`, `ext-session-lock-v1` and, later, `xdg_toplevel`.
+3. **Skia only in client processes.** The compositor never links `freya-*` crates
+   or Skia: it stays with GLES, `grade-graphics` and `cosmic-text`.
+4. **Grade Animation is a module of `celestial-kit` on `freya-animation`**,
+   with its own spring (duration + bounce) written from scratch. From `laye-rs`
+   only the idea is taken, not the code.
+5. **Tokens still come from `yuki-design` and `yuki-appearance`.** The
+   `freya-components` theme is generated from them. No `material-design`.
+6. **Infinity stays the same**: optional in the kit until the compositor
+   advertises it.
+7. **`otto-kit` stops being a source of code.** It remains only as a reference for
+   logic (DBusMenu, menu states). If MIT code from Otto is ever copied,
+   its notice goes to `NOTICE` in the same commit.
+8. **Move to Freya 0.5 when it is stable**, in its own commit, regenerating
    Skia.
 
-## Reparto de dibujo
+## Drawing split
 
-El reparto sigue el de macOS (Dock, SystemUIServer y loginwindow frente a
-WindowServer), no una división por tipo de app:
+The split follows macOS (Dock, SystemUIServer and loginwindow versus
+WindowServer), not a division by app type:
 
-1. **La shell** (wallpaper, menubar, dock, lock) **y las apps propias dibujan
-   toda su UI con CelestialKit**, cada componente en su propio proceso. No hay
-   chrome dibujado por el compositor dentro de la shell.
-2. **Las apps propias dibujan su titlebar y sus semáforos con el kit** (CSD,
-   `xdg-decoration` en modo client-side) y con los tokens de `yuki-design`.
-3. **El compositor sigue componiendo y aplicando los efectos** (sombras,
-   esquinas, desenfoque y animaciones de ventana) en GLES con
-   `grade-graphics`, como WindowServer. Más adelante, el kit los pedirá por
+1. **The shell** (wallpaper, menubar, dock, lock) **and the own apps draw
+   all their UI with CelestialKit**, each component in its own process. There is no
+   chrome drawn by the compositor inside the shell.
+2. **The own apps draw their titlebar and their traffic lights with the kit** (CSD,
+   `xdg-decoration` in client-side mode) and with the `yuki-design` tokens.
+3. **The compositor still composites and applies the effects** (shadows,
+   corners, blur and window animations) in GLES with
+   `grade-graphics`, like WindowServer. Later, the kit will request them through
    Infinity.
-4. **Las apps ajenas que piden SSD siguen recibiendo la titlebar del
-   compositor.** `chrome.rs` y el camino de render del compositor no cambian
-   por esta ADR.
+4. **Third-party apps that request SSD still receive the compositor's
+   titlebar.** `chrome.rs` and the compositor's render path do not change
+   because of this ADR.
 
-## Consecuencias
+## Consequences
 
-- `celestial-kit` gana un runner Wayland propio; el kit deja de ser un módulo de
-  dibujo y pasa a ser una biblioteca de UI completa para la shell.
-- El compositor no cambia su camino de render ni gana dependencias de Skia,
-  Freya o `winit`.
-- La derivación de Nix compila Skia para `freya-skia-bindings` 0.98.0, no para
-  `skia-safe` 0.93. Su versión y features se comprueban contra el árbol real de
-  Cargo.
-- `grade-animation` deja de existir como crate: es `celestial-kit::animation`.
-- Los avisos MIT de `otto-kit` y `laye-rs` desaparecen de `NOTICE`; no queda
-  código suyo.
+- `celestial-kit` gains its own Wayland runner; the kit stops being a
+  drawing module and becomes a complete UI library for the shell.
+- The compositor does not change its render path or gain Skia,
+  Freya or `winit` dependencies.
+- The Nix derivation builds Skia for `freya-skia-bindings` 0.98.0, not for
+  `skia-safe` 0.93. Its version and features are checked against the real
+  Cargo tree.
+- `grade-animation` no longer exists as a crate: it is `celestial-kit::animation`.
+- The MIT notices of `otto-kit` and `laye-rs` disappear from `NOTICE`; none of their
+  code remains.
 
-## Referencias
+## References
 
-- [`0024`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0024-stack-de-render-del-toolkit.md) — stack de render, modificado
-  por esta ADR para los clientes.
-- [`0020`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0020-politica-de-diseno-y-unificacion.md) — chrome y efectos.
-- [`0011`](0011-valores-de-diseno-como-constantes-rust.md) — tokens en
+- [`0024`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0024-stack-de-render-del-toolkit.en.md) — render stack, amended
+  by this ADR for the clients.
+- [`0020`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0020-politica-de-diseno-y-unificacion.en.md) — chrome and effects.
+- [`0011`](0011-valores-de-diseno-como-constantes-rust.en.md) — tokens in
   `yuki-design`.
-- [`0023`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0023-los-componentes-del-shell-corren-como-procesos-separados.md) —
-  un proceso por componente.
-- [`0025`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0025-la-shell-es-nativa.md) — shell nativa `yuki-shell`.
-- [`0032`](0032-neptunia-como-fuente-de-diseno.md) — Neptunia como fuente.
+- [`0023`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0023-los-componentes-del-shell-corren-como-procesos-separados.en.md) —
+  one process per component.
+- [`0025`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0025-la-shell-es-nativa.en.md) — native shell `yuki-shell`.
+- [`0032`](0032-neptunia-como-fuente-de-diseno.en.md) — Neptunia as the source.
 - Freya — MIT, <https://github.com/marc2332/freya>.

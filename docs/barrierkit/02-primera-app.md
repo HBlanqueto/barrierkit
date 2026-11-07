@@ -1,13 +1,13 @@
-# 2. Tu primera app
+# 2. Your first app
 
-**Objetivo:** abrir una ventana con un contador y entender las cinco ideas en
-las que se basa todo el kit.
-**Lector:** quien nunca ha usado BarrierKit ni Freya.
-**Entrada:** el repositorio y `nix develop`. **Salida:** una ventana que suma.
+**Goal:** open a window with a counter and understand the five ideas the whole
+kit rests on.
+**Reader:** anyone who has never used BarrierKit or Freya.
+**Input:** the repository and `nix develop`. **Output:** a window that adds.
 
-## El código
+## The code
 
-El programa completo:
+The whole program:
 
 ```rust
 use barrier_kit::controls::{Button, ButtonStyle};
@@ -60,37 +60,38 @@ fn main() {
 }
 ```
 
-## Ejecutarlo
+## Running it
 
-1. Entra en el dev shell: `nix develop`.
-2. Crea un crate binario que dependa de `barrier-kit`, `freya-core`, `torin`
-   y `vow-design`, pon el código en `src/main.rs` y lánzalo con `cargo run`.
-3. Pulsa «Sumar uno»: el número sube y la ventana se repinta.
+1. Enter the dev shell: `nix develop`.
+2. Create a binary crate that depends on `barrier-kit`, `freya-core`, `torin`
+   and `vow-design`, put the code in `src/main.rs` and launch it with `cargo run`.
+3. Press «Sumar uno» ("Add one"): the number goes up and the window repaints.
 
-## Las cinco ideas
+## The five ideas
 
-1. **La interfaz es una función del estado.** `render` describe cómo se ve la
-   ventana ahora. No hay que mover ni borrar nada a mano: cuando el estado
-   cambia, el kit vuelve a llamar a `render` y aplica la diferencia.
-2. **El estado lo guarda la app.** `use_state(|| 0)` crea un valor que
-   sobrevive entre llamadas a `render`. `read()` lo lee y `write()` lo cambia.
-   Los controles del kit son *controlados*: reciben el valor (`value`, `on`,
-   `selected`) y avisan del cambio (`on_change`, `on_toggle`, `on_press`).
-3. **Todo se construye encadenando métodos.** `rect()` es la caja básica de
-   Freya; los controles del kit (`Button`, `Titlebar`…) siguen el mismo patrón
-   `Tipo::new(..).opción(..)`.
-4. **Ningún color ni medida se escribe a mano.** `Palette::current()` da los
-   colores del sistema (texto, fondo, acento) y `vow_design` las medidas y
-   tipografías (`SPACE_3`, `TITLE_1`). Así la app cambia sola con el modo claro
-   u oscuro y con el acento (capítulo [4](04-apariencia-y-tokens.md)).
-5. **`run_window` es el único arranque.** Recibe la raíz (`AppComponent`) y las
-   opciones de la ventana: título, nombre, tamaño, mínimo, decoración y menú
-   (capítulo [6](06-ventanas.md)).
+1. **The interface is a function of the state.** `render` describes how the
+   window looks now. Nothing is moved or deleted by hand: when the state
+   changes, the kit calls `render` again and applies the difference.
+2. **The app holds the state.** `use_state(|| 0)` creates a value that
+   survives between calls to `render`. `read()` reads it and `write()` changes
+   it. The kit's controls are *controlled*: they receive the value (`value`,
+   `on`, `selected`) and report the change (`on_change`, `on_toggle`,
+   `on_press`).
+3. **Everything is built by chaining methods.** `rect()` is Freya's basic box;
+   the kit's controls (`Button`, `Titlebar`…) follow the same
+   `Type::new(..).option(..)` pattern.
+4. **No color or size is written by hand.** `Palette::current()` gives the
+   system colors (text, background, accent) and `vow_design` gives the sizes
+   and typefaces (`SPACE_3`, `TITLE_1`). This way the app follows light or dark
+   mode and the accent on its own (chapter [4](04-apariencia-y-tokens.en.md)).
+5. **`run_window` is the only entry point.** It receives the root
+   (`AppComponent`) and the window options: title, name, size, minimum size,
+   decoration and menu (chapter [6](06-ventanas.en.md)).
 
-## App y Component
+## App and Component
 
-La raíz implementa `App`. Cualquier pieza reutilizable implementa `Component`
-y debe ser `PartialEq`, para que el kit sepa cuándo volver a dibujarla:
+The root implements `App`. Any reusable piece implements `Component` and must
+be `PartialEq`, so the kit knows when to draw it again:
 
 ```rust
 #[derive(PartialEq)]
@@ -105,4 +106,4 @@ impl Component for Saludo {
 }
 ```
 
-Siguiente: [3. Capas](03-capas.md).
+Next: [3. Layers](03-capas.en.md).

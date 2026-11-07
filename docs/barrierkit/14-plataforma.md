@@ -1,105 +1,108 @@
-# 14. Plataforma
+# 14. Platform
 
-**Objetivo:** entender qué hace el runner del kit por debajo de los controles.
-**Lector:** quien trabaja dentro del kit o depura una app en otro escritorio.
+**Goal:** understand what the kit's runner does underneath the controls.
+**Reader:** anyone who works inside the kit or debugs an app on another
+desktop.
 
-## El runner
+## The runner
 
-`platform::run_window` abre una conexión Wayland con smithay-client-toolkit,
-crea una superficie `xdg_toplevel` y corre un bucle `calloop`. En cada frame:
+`platform::run_window` opens a Wayland connection with smithay-client-toolkit,
+creates an `xdg_toplevel` surface and runs a `calloop` loop. On each frame:
 
-1. Atiende los eventos de Wayland (entrada, configure, frame callbacks).
-2. Actualiza el árbol de Freya y calcula el diseño con `torin`.
-3. Dibuja con Skia sobre una imagen de la swapchain Vulkan y la presenta.
+1. It handles the Wayland events (input, configure, frame callbacks).
+2. It updates the Freya tree and computes the layout with `torin`.
+3. It draws with Skia onto a Vulkan swapchain image and presents it.
 
-El kit redibuja cuando cambia el estado o la apariencia, al ritmo de los frame
-callbacks del compositor.
+The kit redraws when the state or the appearance changes, at the pace of the
+compositor's frame callbacks.
 
 ## Vulkan
 
-| Paso | Detalle |
+| Step | Detail |
 |---|---|
-| Instancia | `VK_KHR_surface` y `VK_KHR_wayland_surface` |
-| Dispositivo | El primero que puede presentar en el display; la capa device-select de Mesa pone primero la GPU del compositor |
-| Contexto | Un `DirectContext` de Skia compartido por todas las ventanas, con 128 MB de caché; cada 10 s libera lo que lleva 10 s sin usarse |
-| Swapchain | Una por superficie, `B8G8R8A8_UNORM`, alfa premultiplicado; `MAILBOX` si existe, si no `FIFO`; una `SkSurface` por imagen. Con `VK_EXT_swapchain_maintenance1`, cada present lleva un fence y un redimensionado retira el swapchain viejo sin esperar a la GPU; se destruye cuando señala su último present |
+| Instance | `VK_KHR_surface` and `VK_KHR_wayland_surface` |
+| Device | The first one that can present on the display; Mesa's device-select layer puts the compositor's GPU first |
+| Context | A Skia `DirectContext` shared by all windows, with a 128 MB cache; every 10 s it releases what went 10 s unused |
+| Swapchain | One per surface, `B8G8R8A8_UNORM`, premultiplied alpha; `MAILBOX` if available, otherwise `FIFO`; one `SkSurface` per image. With `VK_EXT_swapchain_maintenance1`, each present carries a fence and a resize retires the old swapchain without waiting for the GPU; it is destroyed once its last present signals |
 
-Con la feature `video` el dispositivo activa además las extensiones de
-importación dmabuf (capítulo [13](13-fondos-y-medios.md)). La decisión está en
-el [ADR 0056](../decisiones/0056-barrierkit-sobre-vulkan.md).
+With the `video` feature the device also enables the dmabuf import extensions
+(chapter [13](13-fondos-y-medios.en.md)). The decision is in
+[ADR 0056](../decisiones/0056-barrierkit-sobre-vulkan.en.md).
 
-## Protocolos Wayland
+## Wayland protocols
 
-| Protocolo | ¿Obligatorio? | Para qué |
+| Protocol | Required? | What for |
 |---|---|---|
-| `wl_compositor`, `xdg_wm_base`, `wl_seat`, `wl_output` | Sí | Ventanas, entrada y pantallas |
-| `wp_fractional_scale_manager_v1` + `wp_viewporter` | No | Escala fraccional; sin ellos, escalas enteras |
-| `wp_cursor_shape_manager_v1` | No | Cursores por componente (`col-resize`, texto…); sin él, el cursor por defecto |
-| `zxdg_decoration_manager_v1` | No | Decoración del servidor si la app la pide |
-| `xdg_activation_v1` | No | Traer la ventana al frente al reactivar una instancia |
-| `wl_data_device_manager` | No | Portapapeles y arrastrar y soltar |
-| `zwp_text_input_manager_v3` | No | Método de entrada: composición y texto confirmado |
-| `zwp_primary_selection_device_manager_v1` | No | Selección primaria, la que pega el botón central |
-| `org_kde_kwin_appmenu_manager` | No | Enseñar el menú global en la barra de menús |
-| `infinity_focus_manager_v1` | No | Avisos del compositor de Malaysia sobre la barra de foco |
-| `infinity_window_style_v1` | No | La `Titlebar` envía su barra con `set_bar`: `titlebar` si es `close_only`, `unified` con barra lateral en isla y `compact` en el resto (ADR 0059 de Malaysia). Desde la versión 3, cada ventana auxiliar se declara panel con `set_panel` y las opciones de su `PanelBehavior` |
+| `wl_compositor`, `xdg_wm_base`, `wl_seat`, `wl_output` | Yes | Windows, input and outputs |
+| `wp_fractional_scale_manager_v1` + `wp_viewporter` | No | Fractional scaling; without them, integer scales |
+| `wp_cursor_shape_manager_v1` | No | Per-component cursors (`col-resize`, text…); without it, the default cursor |
+| `zxdg_decoration_manager_v1` | No | Server-side decoration if the app asks for it |
+| `xdg_activation_v1` | No | Bringing the window to the front when an instance is reactivated |
+| `wl_data_device_manager` | No | Clipboard and drag and drop |
+| `zwp_text_input_manager_v3` | No | Input method: composition and committed text |
+| `zwp_primary_selection_device_manager_v1` | No | Primary selection, the one the middle button pastes |
+| `org_kde_kwin_appmenu_manager` | No | Showing the global menu in the menu bar |
+| `infinity_focus_manager_v1` | No | Notices from the Malaysia compositor about the focus bar |
+| `infinity_window_style_v1` | No | The `Titlebar` sends its bar with `set_bar`: `titlebar` when `close_only`, `unified` with an island sidebar and `compact` otherwise (Malaysia ADR 0059). From version 3, each utility window declares itself a panel with `set_panel` and the options of its `PanelBehavior` |
 
-Si falta un protocolo opcional, el runner lo registra con `tracing::info!` y
-sigue. Si falta uno obligatorio, `run_window` devuelve
+If an optional protocol is missing, the runner logs it with `tracing::info!`
+and continues. If a required one is missing, `run_window` returns
 `RunError::MissingGlobal`.
 
-## Entrada, foco y accesibilidad
+## Input, focus and accessibility
 
-- El teclado va al nodo enfocado; Tab activa la navegación por teclado y el
-  anillo de foco.
-- El árbol de accesibilidad se publica por AT-SPI con `accesskit_unix`: un
-  lector de pantalla puede enfocar y pulsar.
-- `Cursor::set(CursorIcon::..)` cambia el cursor si hay `wp_cursor_shape_manager_v1`.
+- The keyboard goes to the focused node; Tab enables keyboard navigation and
+  the focus ring.
+- The accessibility tree is published over AT-SPI with `accesskit_unix`: a
+  screen reader can focus and press.
+- `Cursor::set(CursorIcon::..)` changes the cursor if
+  `wp_cursor_shape_manager_v1` is present.
 
-## Servicios del escritorio
+## Desktop services
 
-- `notifications::post(Notice { .. }, |token| ..)` publica una notificación
-  por `org.freedesktop.Notifications`; al pulsarla, la función recibe el token
-  de xdg-activation que manda el servidor. `play_event_sound(nombre)` toca un
-  sonido del tema de sonidos de freedesktop.
-- `secrets::Secrets::open()` abre la colección por defecto del Secret Service
-  (`org.freedesktop.secrets`), el llavero de Linux: `search`, `secret`,
-  `create`, `set_secret` y `delete`. Los secretos vuelven en `Zeroizing`.
-  Con el llavero bloqueado devuelve `Error::Locked` y el servicio enseña su
-  propio diálogo.
+- `notifications::post(Notice { .. }, |token| ..)` posts a notification
+  through `org.freedesktop.Notifications`; when it is clicked, the function
+  gets the xdg-activation token the server sends. `play_event_sound(name)`
+  plays a sound from the freedesktop sound theme.
+- `secrets::Secrets::open()` opens the Secret Service default collection
+  (`org.freedesktop.secrets`), the Linux keyring: `search`, `secret`,
+  `create`, `set_secret` and `delete`. Secrets come back in `Zeroizing`.
+  With the keyring locked it returns `Error::Locked` and the service shows
+  its own prompt.
 
-## La parte de la shell (feature `shell`)
+## The shell part (`shell` feature)
 
-Solo `malaysia-shell` activa `barrier-kit/shell`. Añade:
+Only `malaysia-shell` enables `barrier-kit/shell`. It adds:
 
-| API | Protocolo | Para |
+| API | Protocol | For |
 |---|---|---|
-| `shell::run_layer(app, LayerSpec)` | `zwlr_layer_shell_v1` | Barra de menús, Dock, fondo |
-| `shell::run_lock(app)` | `ext_session_lock_v1` | Pantalla de bloqueo |
-| `shell::Toplevels` | `ext_foreign_toplevel_list_v1`, `zwlr_foreign_toplevel_manager_v1` | Lista y control de ventanas para el Dock. Cada `ToplevelInfo` lleva un `id` estable; `activate`, `close`, `minimize` y el resto actúan por ese `id` |
-| `shell::InfinityLayout`, `Toplevels::arrange` | `infinity_window_manager_v1` | Colocar ventanas en mosaico |
-| `shell::Activation` | `xdg_activation_v1` | Lanzar apps desde el Dock |
-| `shell::use_status_items()` | [StatusNotifierWatcher](https://specifications.freedesktop.org/status-notifier-item/latest/) y dbusmenu | Iconos de estado de las apps en la barra de menús: hace de watcher (o sigue al que ya haya), lee título, icono (`IconName`, `IconThemePath` de KDE o `IconPixmap`, el de atención si el estado es `NeedsAttention`) y menú, y los relee con cada señal. `StatusHost` envía `Activate`, `SecondaryActivate` y los clics del menú; `pixmap_image` pinta un `IconPixmap` |
+| `shell::run_layer(app, LayerSpec)` | `zwlr_layer_shell_v1` | Menu bar, Dock, background |
+| `shell::run_lock(app)` | `ext_session_lock_v1` | Lock screen |
+| `shell::Toplevels` | `ext_foreign_toplevel_list_v1`, `zwlr_foreign_toplevel_manager_v1` | Window list and control for the Dock. Each `ToplevelInfo` carries a stable `id`; `activate`, `close`, `minimize` and the rest act by that `id` |
+| `shell::InfinityLayout`, `Toplevels::arrange` | `infinity_window_manager_v1` | Tiling windows |
+| `shell::Activation` | `xdg_activation_v1` | Launching apps from the Dock |
+| `shell::use_status_items()` | [StatusNotifierWatcher](https://specifications.freedesktop.org/status-notifier-item/latest/) and dbusmenu | App status icons in the menu bar: acts as the watcher (or follows the one already running), reads the title, icon (`IconName`, KDE's `IconThemePath` or `IconPixmap`, the attention one when the status is `NeedsAttention`) and menu, and reads them again on every signal. `StatusHost` sends `Activate`, `SecondaryActivate` and menu clicks; `pixmap_image` paints an `IconPixmap` |
 
-Los submódulos de `shell/` son privados y su API sale solo de `shell/mod.rs`.
-`platform/` no importa `shell/`: la shell se engancha por una única
-`Extension` del runner, y los `cfg(feature = "shell")` de `platform/` solo
-compilan ese enganche (superficies de extensión, sus popups y la lista de
-globals) ([ADR 0047](../decisiones/0047-barrierkit-en-capas.md) §4).
+The submodules of `shell/` are private and their API comes only from
+`shell/mod.rs`. `platform/` does not import `shell/`: the shell hooks in
+through a single runner `Extension`, and the `cfg(feature = "shell")` blocks
+in `platform/` only compile that hook (extension surfaces, their popups and
+the globals list)
+([ADR 0047](../decisiones/0047-barrierkit-en-capas.en.md) §4).
 
-## Errores
+## Errors
 
-`RunError` tiene las variantes `NoDisplay`, `MissingGlobal`, `Vulkan`,
+`RunError` has the variants `NoDisplay`, `MissingGlobal`, `Vulkan`,
 `DeviceLost`, `SurfaceLost`, `LayerSize`, `EventLoop`, `Skia`, `Wayland`,
-`Registry` e `Io`.
+`Registry` and `Io`.
 
-## El primer frame
+## The first frame
 
-El kit dibuja el primer frame de una ventana o una capa al recibir su primer
-configure, sin esperar un frame callback. Así lo piden `xdg_surface` y
-`zwlr_layer_surface_v1`, y un compositor puede no enviar frame callbacks a una
-superficie sin contenido. Los frames siguientes esperan su frame callback.
-Comprobado el 2026-11-03 en Weston 16 (ventana) y el 2026-11-04 en sway 1.12
-(capa), ambos sin pantalla.
+The kit draws the first frame of a window or a layer when its first configure
+arrives, without waiting for a frame callback. `xdg_surface` and
+`zwlr_layer_surface_v1` ask for this, and a compositor may not send frame
+callbacks to a surface without content. Later frames wait for their frame
+callback. Checked on 2026-11-03 on Weston 16 (window) and on 2026-11-04 on
+sway 1.12 (layer), both headless.
 
-Siguiente: [16. Preguntas frecuentes](16-preguntas.md).
+Next: [16. Frequently asked questions](16-preguntas.en.md).

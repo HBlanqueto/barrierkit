@@ -1,58 +1,58 @@
-# 0046 — Tengen: renombrado del lenguaje visual
+# 0046 — Tengen: renaming the visual language
 
-Estado: **aceptado** (2026-10-28).
+Status: **accepted** (2026-10-28).
 
-## Contexto
+## Context
 
-El lenguaje visual del escritorio se llamaba **Neptunia**. A partir de esta
-fecha pasa a llamarse **Tengen**. Los nombres de los subsistemas que lo rodean
-no cambian:
+The desktop's visual language was called **Neptunia**. From this date on it
+is called **Tengen**. The names of the subsystems around it do not
+change:
 
-- **Tengen** = el lenguaje visual en sí (equivalente a Aqua en macOS).
-- **VowDesign** = los tokens compilados (`crates/vow-design`).
-- **VowAppearance** = la apariencia activa resuelta (`crates/vow-appearance`).
-- **BarrierKit** = el toolkit de la shell (`crates/barrier-kit`).
+- **Tengen** = the visual language itself (the equivalent of Aqua in macOS).
+- **VowDesign** = the compiled tokens (`crates/vow-design`).
+- **VowAppearance** = the resolved active appearance (`crates/vow-appearance`).
+- **BarrierKit** = the shell toolkit (`crates/barrier-kit`).
 
-Solo el nombre del lenguaje visual y de su carpeta fuente cambian; colores,
-radios, sombras, medidas y comportamientos son exactamente los mismos.
+Only the name of the visual language and of its source folder change; colors,
+radii, shadows, measurements and behaviors are exactly the same.
 
-## Decisión
+## Decision
 
-1. **Renombrado completo.** La tabla siguiente resume el mapeo:
+1. **Full rename.** The following table summarises the mapping:
 
-   | Antes | Después |
+   | Before | After |
    |---|---|
    | `crates/vow-design/neptunia/` | `crates/vow-design/tengen/` |
    | `$OUT_DIR/neptunia.rs` | `$OUT_DIR/tengen.rs` |
-   | Temas de BarrierKit `neptunia-shell`, `neptunia-shell-light`, `neptunia-shell-dark`, `neptunia-lock` | `tengen-shell`, `tengen-shell-light`, `tengen-shell-dark`, `tengen-lock` |
+   | BarrierKit themes `neptunia-shell`, `neptunia-shell-light`, `neptunia-shell-dark`, `neptunia-lock` | `tengen-shell`, `tengen-shell-light`, `tengen-shell-dark`, `tengen-lock` |
 
-2. **Sin alias de compatibilidad.** No se mantienen nombres viejos en el código
-   y no se leen rutas antiguas.
+2. **No compatibility aliases.** The code keeps no old names
+   and old paths are not read.
 
-3. **Documentación histórica intacta.** Los ADRs anteriores a la 0046, los
-   informes de bloques, la investigación y la auditoría conservan el nombre
-   **Neptunia** porque son registro histórico. La ADR 0032 recibe solo una línea
-   que remite a esta decisión; el resto de su texto no cambia.
+3. **Historical documentation untouched.** The ADRs before 0046, the
+   block reports, the research and the audit keep the name
+   **Neptunia** because they are a historical record. ADR 0032 receives only one line
+   that refers to this decision; the rest of its text does not change.
 
-## Consecuencias
+## Consequences
 
-- La fuente de diseño del escritorio se llama ahora **Tengen** en todo el
-  código, los scripts, la documentación viva y los artefactos generados.
-- No hay cambio visual: los tokens, colores y medidas son idénticos.
-- Cualquier referencia externa a rutas o tipos antiguos debe actualizarse a
-  mano.
+- The desktop's design source is now called **Tengen** throughout the
+  code, the scripts, the living documentation and the generated artifacts.
+- There is no visual change: the tokens, colors and measurements are identical.
+- Any external reference to old paths or types must be updated by
+  hand.
 
-## Revisión del 2026-11-05
+## Revision of 2026-11-05
 
-El generador Slint, CSS y QML de `tengen/` (`default.nix`, `generated/`,
-`demo.slint`) y los campos de los JSON que solo él leía se borran: nadie los
-consumía. Tengen produce solo las constantes de `vow-design`. El proceso vivo
-está en `docs/arquitectura/tengen.md`.
+The Slint, CSS and QML generator in `tengen/` (`default.nix`, `generated/`,
+`demo.slint`) and the JSON fields only it read are deleted: nobody consumed
+them. Tengen produces only the `vow-design` constants. The living process is
+in `docs/arquitectura/tengen.md`.
 
-## Referencias
+## References
 
-- `crates/vow-design/tengen/` — carpeta fuente renombrada.
-- `crates/vow-design/build.rs` — genera `$OUT_DIR/tengen.rs`.
-- `docs/decisiones/0032-neptunia-como-fuente-de-diseno.md` — ADR original,
-  ahora con una línea de remisión.
-- `docs/arquitectura/tengen.md` — documentación viva del lenguaje visual.
+- `crates/vow-design/tengen/` — renamed source folder.
+- `crates/vow-design/build.rs` — generates `$OUT_DIR/tengen.rs`.
+- `docs/decisiones/0032-neptunia-como-fuente-de-diseno.md` — original ADR,
+  now with a referral line.
+- `docs/arquitectura/tengen.md` — living documentation of the visual language.

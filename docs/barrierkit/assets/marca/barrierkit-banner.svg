@@ -41,5 +41,5 @@
   </g>
   <path d="M285.4,100 H738.6 A185.4,185.4 0 0 1 924,285.4 V738.6 A185.4,185.4 0 0 1 738.6,924 H285.4 A185.4,185.4 0 0 1 100,738.6 V285.4 A185.4,185.4 0 0 1 285.4,100 Z" fill="none" stroke="#ffffff" stroke-opacity="0.6" stroke-width="2"/></g>
   <text x="800" y="380" font-family="Inter Display" font-weight="700" font-size="112" fill="#1d1d1f" letter-spacing="-3">BarrierKit</text>
-  <text x="804" y="448" font-family="Inter" font-weight="500" font-size="31" fill="#6e6e73">El toolkit de aplicaciones de <tspan font-style="italic">Malaysia Compositor</tspan></text>
+  <text x="804" y="448" font-family="Inter" font-weight="500" font-size="31" fill="#6e6e73">The application toolkit of <tspan font-style="italic">Malaysia Compositor</tspan></text>
 </svg>

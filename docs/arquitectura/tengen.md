@@ -1,93 +1,95 @@
-# Tengen: de los JSON a las constantes de vow-design
+# Tengen: from the JSON files to the vow-design constants
 
-Tengen es el sistema de diseño del escritorio (ADR 0032, renombrado en el
-ADR 0046). Este documento cubre cómo un valor de diseño pasa de los JSON de
-Tengen a las constantes Rust de `vow-design`, y cómo `vow-appearance` las
-aplica. Empieza al editar un JSON y acaba cuando el kit, el compositor, la
-shell y el portal leen la constante.
+Tengen is the desktop design system (ADR 0032, renamed in ADR 0046). This
+document covers how a design value goes from the Tengen JSON files to the
+Rust constants of `vow-design`, and how `vow-appearance` applies them. It
+starts when you edit a JSON file and ends when the kit, the compositor, the
+shell and the portal read the constant.
 
-**Lector:** quien cambia un color, una medida o un umbral de diseño.
+**Reader:** whoever changes a colour, a metric or a design threshold.
 
-## Entradas y salidas
+## Inputs and outputs
 
-- **Entradas:** `crates/vow-design/tengen/`.
-  - `tokens.json`: colores por tema, radios, espacios, tamaños, tipografía y
-    sombras.
-  - `components.json`: medidas y estados de los componentes, la shell, la
-    titlebar y los factores de apariencia.
-- **Salida:** `$OUT_DIR/tengen.rs`, que `crates/vow-design/src/lib.rs` incluye
-  con `include!`. Son constantes de compilación (ADR 0011).
-- **Consumidores:** `barrier-kit`, el compositor, la shell y el portal leen
-  las constantes. `vow-appearance` las combina con `appearance.domain` y
-  `wallpaper.state` para dar la apariencia resuelta.
+- **Inputs:** `crates/vow-design/tengen/`.
+  - `tokens.json`: colours per theme, radii, spacing, sizes, typography and
+    shadows.
+  - `components.json`: component metrics and states, the shell, the titlebar
+    and the appearance factors.
+- **Output:** `$OUT_DIR/tengen.rs`, which `crates/vow-design/src/lib.rs`
+  includes with `include!`. They are compile-time constants (ADR 0011).
+- **Consumers:** `barrier-kit`, the compositor, the shell and the portal read
+  the constants. `vow-appearance` combines them with `appearance.domain` and
+  `wallpaper.state` to give the resolved appearance.
 
-Ningún otro formato sale de estos JSON. Nada fuera de `build.rs` los lee.
+No other format comes out of these JSON files. Nothing but `build.rs` reads
+them.
 
-## Pasos para cambiar un valor
+## Steps to change a value
 
-1. Edita `tokens.json` o `components.json`. Un valor de un componente puede
-   ser un número o una referencia `grupo.clave` a `tokens.json`.
-2. Compila. `crates/vow-design/build.rs` y su módulo `build/tengen.rs` leen
-   los dos JSON con `serde_json` (solo en `build-dependencies`) y las
-   estructuras de `src/lib.rs`, y escriben `tengen.rs`.
-   `cargo:rerun-if-changed` vigila esos tres ficheros.
-3. Si falta un campo que `vow-design` necesita, el build falla y nombra el
-   campo y el fichero.
-4. Ejecuta `./dev.sh check`.
+1. Edit `tokens.json` or `components.json`. A component value can be a
+   number or a `group.key` reference to `tokens.json`.
+2. Build. `crates/vow-design/build.rs` and its `build/tengen.rs` module read
+   both JSON files with `serde_json` (only in `build-dependencies`) and the
+   structs in `src/lib.rs`, and write `tengen.rs`. `cargo:rerun-if-changed`
+   watches those three files.
+3. If a field that `vow-design` needs is missing, the build fails and names
+   the field and the file.
+4. Run `./dev.sh check`.
 
-No edites `crates/vow-design/src/` para cambiar un valor: allí viven los
-tipos (`Rgba`, `Palette`, `Titlebar`, `ShellPalette`…) y la API.
+Do not edit `crates/vow-design/src/` to change a value: it holds the types
+(`Rgba`, `Palette`, `Titlebar`, `ShellPalette`…) and the API.
 
-## Valores que manda Tengen
+## Values that Tengen owns
 
-- **Temas:** `light`, `dark` y `dark-tint`, con `LIGHT`, `DARK` y `DARK_TINT`.
-- **Semáforos:** `traffic-close/min/zoom` son `#ff5f57`, `#febc2e` y `#28c840`
-  en los tres temas. `traffic-inactive`, `traffic-rim` y
-  `traffic-rim-inactive` están en `tokens.json`; los glifos, en
-  `window.traffic-lights` de `components.json`.
+- **Themes:** `light`, `dark` and `dark-tint`, with `LIGHT`, `DARK` and
+  `DARK_TINT`.
+- **Traffic lights:** `traffic-close/min/zoom` are `#ff5f57`, `#febc2e` and
+  `#28c840` in all three themes. `traffic-inactive`, `traffic-rim` and
+  `traffic-rim-inactive` are in `tokens.json`; the glyphs are in
+  `window.traffic-lights` in `components.json`.
 - **Titlebar:** `titlebar-bg`/`titlebar-bg-inactive`,
-  `titlebar-title`/`titlebar-title-inactive` y `titlebar-line`.
-- **Alturas:** `size.titlebar-h = 40` en las apps propias y
-  `size.titlebar-ssd-h = 32` en la barra que dibuja el compositor.
-- **Tipografía:** `font.families.sans` empieza por Geist; el título de la
-  ventana usa `font.styles.headline`, 13/18/700, como `titleBarFont` y el
-  estilo `headline` de AppKit (rasgo de peso 0,4).
-- **Sombras:** `shadow.layers.{light,dark}` guardan las capas ambient y
-  contact; `shadow.unfocused` fija los factores de la ventana inactiva.
-- **Esquinas de ventana:** `components.window.corner` → `WINDOW_CORNER`, con
-  los nombres del enum `bar` de `set_bar`: `titlebar` 16, `compact` 20,
-  `unified` 26 y `utility` 15. `expansion` (1,52866) y `exponent` (3,34)
-  dan la esquina continua de Apple.
-- **Shell:** `components.shell` define menubar, dock y lock.
+  `titlebar-title`/`titlebar-title-inactive` and `titlebar-line`.
+- **Heights:** `size.titlebar-h = 40` in own apps and
+  `size.titlebar-ssd-h = 32` in the bar the compositor draws.
+- **Typography:** `font.families.sans` starts with Geist; the window title
+  uses `font.styles.headline`, 13/18/700, like AppKit's `titleBarFont` and
+  `headline` style (weight trait 0.4).
+- **Shadows:** `shadow.layers.{light,dark}` hold the ambient and contact
+  layers; `shadow.unfocused` sets the inactive-window factors.
+- **Window corners:** `components.window.corner` → `WINDOW_CORNER`, with the
+  names of the `set_bar` `bar` enum: `titlebar` 16, `compact` 20,
+  `unified` 26 and `utility` 15. `expansion` (1.52866) and `exponent` (3.34)
+  give Apple's continuous corner.
+- **Shell:** `components.shell` defines menubar, dock and lock.
 
-## Apariencia y wallpaper
+## Appearance and wallpaper
 
-- `ShellPalette` (`SHELL_LIGHT`, `SHELL_DARK`, `SHELL_DARK_TINT`) se elige por
-  `appearance.color_scheme`; `auto` resuelve a `light` con
+- `ShellPalette` (`SHELL_LIGHT`, `SHELL_DARK`, `SHELL_DARK_TINT`) is chosen by
+  `appearance.color_scheme`; `auto` resolves to `light` with
   `ColorScheme::resolved()`.
-- `window_tint_scope = "desktop"` mezcla barra y dock con el color dominante
-  del wallpaper, que se lee de `wallpaper.state`.
-- `malaysia-wallpaper` (ADR 0049) decodifica la imagen y deja el dominante en
-  `wallpaper_state_path()` (`~/.local/share/malaysia/wallpaper.state`,
-  `dominant = [r, g, b]`).
-- El cálculo es de `vow_appearance::backdrop::dominant_from_pixels`: k-means
-  en OKLab, descarta los grupos con croma menor que
-  `appearance.dominant.min-chroma`, elige el de más superficie por croma y
-  lleva su luminosidad HSL a `appearance.dominant.lightness`.
-  `vow_appearance::write_dominant` escribe o borra el fichero.
-- El compositor, el kit y el portal leen ese fichero y lo vigilan junto con
-  `appearance.domain`.
+- `window_tint_scope = "desktop"` mixes bar and dock with the wallpaper's
+  dominant colour, read from `wallpaper.state`.
+- `malaysia-wallpaper` (ADR 0049) decodes the image and leaves the dominant
+  colour in `wallpaper_state_path()`
+  (`~/.local/share/malaysia/wallpaper.state`, `dominant = [r, g, b]`).
+- `vow_appearance::backdrop::dominant_from_pixels` computes it: k-means in
+  OKLab, it drops the clusters with less chroma than
+  `appearance.dominant.min-chroma`, picks the one with the most area times
+  chroma and brings its HSL lightness into `appearance.dominant.lightness`.
+  `vow_appearance::write_dominant` writes or removes the file.
+- The compositor, the kit and the portal read that file and watch it together
+  with `appearance.domain`.
 
-## Comprobaciones
+## Checks
 
-- `scripts/check-design-tokens.sh`, en `./dev.sh check` y en el check
-  `design-tokens` del flake: ningún literal de color ni de medida de UI fuera
-  de `vow-design` en `crates/barrier-kit/src`.
+- `scripts/check-design-tokens.sh`, in `./dev.sh check` and in the flake's
+  `design-tokens` check: no UI colour or metric literal outside `vow-design`
+  in `crates/barrier-kit/src`.
 
-## Relación
+## Related
 
-- [`interfaz.md`](https://github.com/HBlanqueto/malaysia/blob/main/docs/arquitectura/interfaz.md): el mapa visual completo.
-- [`ventanas.md`](https://github.com/HBlanqueto/malaysia/blob/main/docs/arquitectura/ventanas.md): titlebar y semáforos.
-- [`wallpaper.md`](https://github.com/HBlanqueto/malaysia/blob/main/docs/arquitectura/wallpaper.md): el componente del fondo y su estado.
-- ADR 0011: los valores son constantes Rust.
-- ADR 0032 y ADR 0046: Tengen como fuente de diseño.
+- [`interfaz.md`](https://github.com/HBlanqueto/malaysia/blob/main/docs/arquitectura/interfaz.en.md): the full visual map.
+- [`ventanas.md`](https://github.com/HBlanqueto/malaysia/blob/main/docs/arquitectura/ventanas.en.md): titlebar and traffic lights.
+- [`wallpaper.md`](https://github.com/HBlanqueto/malaysia/blob/main/docs/arquitectura/wallpaper.en.md): the background component and its state.
+- ADR 0011: the values are Rust constants.
+- ADR 0032 and ADR 0046: Tengen as the design source.

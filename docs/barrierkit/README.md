@@ -1,46 +1,47 @@
-# Documentación de BarrierKit
+# BarrierKit documentation
 
-BarrierKit es el kit para crear las apps y la shell de Malaysia. Esta
-documentación lo explica desde la primera ventana hasta el runner Wayland.
+BarrierKit is the kit for building the apps and the shell of Malaysia.
+This documentation covers it from the first window to the Wayland runner.
 
-- **Lector:** quien escribe una app con el kit o trabaja dentro del kit.
-- **Requisitos:** Rust básico y saber qué es un compositor Wayland.
-- **Fuente:** el código de `main` a 2026-11-03. Las imágenes son capturas reales
-  del código que se muestra (ver [`assets/README.md`](assets/README.md)).
+- **Reader:** anyone who writes an app with the kit or works inside the kit.
+- **Requirements:** basic Rust and knowing what a Wayland compositor is.
+- **Source:** the code on `main` as of 2026-11-03. The images are real
+  screenshots of the code shown (see [`assets/README.en.md`](assets/README.en.md)).
 
-English: [README.en.md](README.en.md).
+Español: [README.md](README.md).
 
-## Recorrido
+## Walkthrough
 
-Cada capítulo se apoya en los anteriores.
+Each chapter builds on the previous ones.
 
-| # | Capítulo | Responde a |
+| # | Chapter | Answers |
 |---|---|---|
-| 1 | [Qué es BarrierKit](01-que-es.md) | ¿Qué es, qué crates tiene, usa GPU o CPU? |
-| 2 | [Tu primera app](02-primera-app.md) | ¿Cómo abro una ventana con un botón? |
-| 3 | [Capas](03-capas.md) | ¿Cómo está organizado el kit y qué puedo usar? |
-| 4 | [Apariencia y tokens](04-apariencia-y-tokens.md) | ¿De dónde salen colores y medidas? ¿Cómo pongo los míos? |
-| 5 | [Controles](05-controles.md) | ¿Qué elementos interactivos hay y cómo se ven? |
-| 6 | [Ventanas](06-ventanas.md) | ¿Cómo abro una ventana, la redimensiono y leo su estado? |
-| 7 | [Titlebars](07-titlebars.md) | ¿Qué titlebars y semáforos hay y cómo se ven en cada estado? |
-| 8 | [Barra lateral y SplitView](08-barra-lateral.md) | ¿Cómo se configura, se redimensiona y se pliega? |
-| 9 | [Vistas](09-vistas.md) | Formularios, tablas, rejillas, pestañas, alertas, navegación y búsqueda |
-| 10 | [Patrones](10-patrones.md) | Ventana de preferencias y «Acerca de» |
-| 11 | [Infraestructura de app](11-app.md) | Acciones, atajos, menú global, instancia única, preferencias, deshacer |
-| 12 | [Animaciones](12-animaciones.md) | ¿Qué se anima, con qué curva y cómo se reduce el movimiento? |
-| 13 | [Fondos tintados y medios](13-fondos-y-medios.md) | Fondos desde una imagen, acento propio, vídeo |
-| 14 | [Plataforma](14-plataforma.md) | Runner, Vulkan, protocolos Wayland, la parte de la shell |
-| 16 | [Preguntas frecuentes](16-preguntas.md) | ¿Qué tenemos y qué falta? |
-| 17 | [Perfilar con Tracy](17-perfilado.md) | ¿Dónde se va el tiempo de cada frame? |
-| 18 | [Idiomas](18-idiomas.md) | ¿Cómo traduzco una app y cómo se elige el idioma? |
-| 19 | [Gráficas](19-graficas.md) | ¿Cómo dibujo series, repartos y gráficas 3D? |
+| 1 | [What BarrierKit is](01-que-es.en.md) | What is it, which crates does it have, does it use the GPU or the CPU? |
+| 2 | [Your first app](02-primera-app.en.md) | How do I open a window with a button? |
+| 3 | [Layers](03-capas.en.md) | How is the kit organized and what can I use? |
+| 4 | [Appearance and tokens](04-apariencia-y-tokens.en.md) | Where do colors and sizes come from? How do I set my own? |
+| 5 | [Controls](05-controles.en.md) | Which interactive elements exist and how do they look? |
+| 6 | [Windows](06-ventanas.en.md) | How do I open a window, resize it and read its state? |
+| 7 | [Titlebars](07-titlebars.en.md) | Which titlebars and traffic lights exist and how do they look in each state? |
+| 8 | [Sidebar and SplitView](08-barra-lateral.en.md) | How is it configured, resized and collapsed? |
+| 9 | [Views](09-vistas.en.md) | Forms, tables, grids, tabs, alerts, navigation and search |
+| 10 | [Patterns](10-patrones.en.md) | Preferences window and "About" |
+| 11 | [App infrastructure](11-app.en.md) | Actions, shortcuts, global menu, single instance, preferences, undo |
+| 12 | [Animations](12-animaciones.en.md) | What animates, with which curve, and how is motion reduced? |
+| 13 | [Tinted backdrops and media](13-fondos-y-medios.en.md) | Backdrops from an image, custom accent, video |
+| 14 | [Platform](14-plataforma.en.md) | Runner, Vulkan, Wayland protocols, the shell part |
+| 16 | [Frequently asked questions](16-preguntas.en.md) | What do we have and what is missing? |
+| 17 | [Profiling with Tracy](17-perfilado.en.md) | Where does each frame's time go? |
+| 18 | [Languages](18-idiomas.en.md) | How do I translate an app and how is the language chosen? |
+| 19 | [Charts](19-graficas.en.md) | How do I draw series, shares and 3D charts? |
 
-## Fuentes únicas
+## Single sources
 
-Esta documentación enlaza y no copia. Cuando un dato cambia, cambia allí:
+This documentation links and does not copy. When a fact changes, it changes
+there:
 
-- Decisiones: [`docs/decisiones/`](../decisiones/), sobre todo el
-  [ADR 0047](../decisiones/0047-barrierkit-en-capas.md) (capas y estado).
-- Tokens: `crates/vow-design/tengen/tokens.json` y `components.json`.
-- Opciones de apariencia: `crates/vow-appearance/src/config.rs`
+- Decisions: [`docs/decisiones/`](../decisiones/), especially
+  [ADR 0047](../decisiones/0047-barrierkit-en-capas.en.md) (layers and status).
+- Tokens: `crates/vow-design/tengen/tokens.json` and `components.json`.
+- Appearance options: `crates/vow-appearance/src/config.rs`
   (`AppearanceConfig`).

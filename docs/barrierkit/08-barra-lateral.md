@@ -1,17 +1,17 @@
-# 8. Barra lateral y SplitView
+# 8. Sidebar and SplitView
 
-**Objetivo:** montar una barra lateral, decidir su estilo y controlar cómo se
-redimensiona, se oculta y se pliega.
-**Lector:** quien construye una app con navegación lateral.
+**Goal:** set up a sidebar, choose its style and control how it resizes, hides
+and collapses.
+**Reader:** anyone who builds an app with side navigation.
 
-## Las dos piezas
+## The two pieces
 
-| Pieza | Módulo | Qué hace |
+| Piece | Module | What it does |
 |---|---|---|
-| `Sidebar` | `sidebar` | El contenido: ítems, secciones, cuenta y semáforos |
-| `SplitView` | `views::split` | El contenedor: barra lateral + detalle + inspector opcional; ancho, ocultar y plegar |
+| `Sidebar` | `sidebar` | The content: items, sections, account and traffic lights |
+| `SplitView` | `views::split` | The container: sidebar + detail + optional inspector; width, hiding and collapsing |
 
-## La barra lateral: `Sidebar`
+## The sidebar: `Sidebar`
 
 ```rust
 Sidebar::new()
@@ -29,29 +29,30 @@ Sidebar::new()
     )
 ```
 
-| Pieza | Opciones |
+| Piece | Options |
 |---|---|
 | `SidebarItem::new(texto)` | `.symbol(Symbol, tinte)`, `.selected(bool)`, `.emphasized(bool)`, `.on_select(..)` |
-| `SidebarSection::new(título)` | Abierta al montarse; un clic en el título la pliega o la abre con una animación de `DURATION_BASE` |
-| `SidebarAccount::new(iniciales, nombre, detalle)` | Sin opciones: solo muestra la cuenta |
-| `Sidebar` | `.traffic_lights(true)` pone los semáforos dentro; `.backdrop(SidebarBackdrop::Tinted)` la tiñe sobre un fondo tintado. Con el `Rail`, su primera fila sube a la fila de la titlebar (capítulo [7](07-titlebars.md#la-barra-lateral-con-el-rail)) |
+| `SidebarSection::new(título)` | Open when mounted; a click on the title collapses or opens it with a `DURATION_BASE` animation |
+| `SidebarAccount::new(iniciales, nombre, detalle)` | No options: it only shows the account |
+| `Sidebar` | `.traffic_lights(true)` puts the traffic lights inside; `.backdrop(SidebarBackdrop::Tinted)` tints it over a tinted backdrop. With the `Rail`, its first row rises to the titlebar row (chapter [7](07-titlebars.en.md#the-sidebar-with-the-rail)) |
 
-![Fila de cuenta](assets/componentes/sidebar-account-light.png)
+![Account row](assets/componentes/sidebar-account-light.png)
 
-## Isla o plana
+## Island or flat
 
-Lo decide el usuario en `appearance.domain` con `sidebar_style`
-([ADR 0041](../decisiones/0041-barra-lateral-en-isla.md)). La app no hace nada:
+The user decides in `appearance.domain` with `sidebar_style`
+([ADR 0041](../decisiones/0041-barra-lateral-en-isla.en.md)). The app does
+nothing:
 
-Sobre un fondo tintado (capítulo [13](13-fondos-y-medios.md)), la barra plana
-deja ver el fondo y la isla lo deja ver o se tiñe con
-`SidebarBackdrop::Tinted` ([ADR 0057](../decisiones/0057-cristal-y-barra-lateral-sobre-fondo.md)).
+Over a tinted backdrop (chapter [13](13-fondos-y-medios.en.md)), the flat
+sidebar shows the backdrop, and the island either shows it or is tinted with
+`SidebarBackdrop::Tinted` ([ADR 0057](../decisiones/0057-cristal-y-barra-lateral-sobre-fondo.en.md)).
 
-La isla se separa `size.sidebar-inset` (8) del borde y tiene radio
-`size.sidebar-radius` (18 = 26 − 8), con la esquina continua de la ventana:
-queda concéntrica con su esquina `unified` (26).
+The island sits `size.sidebar-inset` (8) from the edge and has radius
+`size.sidebar-radius` (18 = 26 − 8), with the window's continuous corner:
+it stays concentric with its `unified` corner (26).
 
-## El contenedor: `SplitView`
+## The container: `SplitView`
 
 ```rust
 SplitView::new(barra, detalle)
@@ -61,61 +62,61 @@ SplitView::new(barra, detalle)
     .on_layout(move |layout: SidebarLayout| disposicion.set(Some(layout)))
 ```
 
-| Opción | Por defecto | Efecto |
+| Option | Default | Effect |
 |---|---|---|
-| `.sidebar_width(f32)` | `SIDEBAR.width` | Ancho inicial |
-| `.sidebar_visible(bool)` | `true` | Visible al abrir |
-| `.resizable(bool)` | `true` | Con `false` no hay asa: ancho fijo |
-| `.sidebar_range(mín, máx)` | `SPLIT_VIEW.sidebar_min`, `.sidebar_max` (180–320) | Límites del ancho. Si cambian, el ancho se recorta al nuevo rango |
-| `.narrow_sidebar(NarrowSidebar)` | `Overlay` | Cómo se abre en ventana estrecha: ver [Plegar en ventanas estrechas](#plegar-en-ventanas-estrechas) |
-| `.inspector(contenido, presented)` | sin inspector | Panel derecho de `SPLIT_VIEW.inspector` (270, el ancho estándar de [`NSSplitViewItem(inspectorWithViewController:)`](https://developer.apple.com/documentation/appkit/nssplitviewitem/init(inspectorwithviewcontroller:))) con un separador; al cambiar `presented` se abre o se cierra durante `DURATION_BASE`, como `.inspector(isPresented:)` |
-| `.background_extension(vista)` | sin extensión | Pinta `vista` bajo la barra lateral acoplada, prolongando su primera columna de píxeles hasta el borde de la ventana, como `.backgroundExtensionEffect()` de macOS 26. El cristal de la barra la desenfoca. Apple refleja la vista; Freya 0.4.3 descarta los hijos con escala negativa, así que aquí se estira el borde (*clamp*) |
-| `.on_layout(..)` | — | Avisa de `SidebarLayout { width, visible }` al soltar el asa o al ocultar. Sirve para guardarlo |
+| `.sidebar_width(f32)` | `SIDEBAR.width` | Initial width |
+| `.sidebar_visible(bool)` | `true` | Visible on open |
+| `.resizable(bool)` | `true` | With `false` there is no grip: fixed width |
+| `.sidebar_range(mín, máx)` | `SPLIT_VIEW.sidebar_min`, `.sidebar_max` (180–320) | Width limits. If they change, the width is clamped to the new range |
+| `.narrow_sidebar(NarrowSidebar)` | `Overlay` | How it opens in a narrow window: see [Collapsing in narrow windows](#collapsing-in-narrow-windows) |
+| `.inspector(content, presented)` | no inspector | Right pane of `SPLIT_VIEW.inspector` (270, the standard width of [`NSSplitViewItem(inspectorWithViewController:)`](https://developer.apple.com/documentation/appkit/nssplitviewitem/init(inspectorwithviewcontroller:))) with a separator; changing `presented` opens or closes it over `DURATION_BASE`, like `.inspector(isPresented:)` |
+| `.background_extension(view)` | no extension | Paints `view` under the docked sidebar, stretching its first pixel column to the window edge, like macOS 26 `.backgroundExtensionEffect()`. The sidebar glass blurs it. Apple mirrors the view; Freya 0.4.3 drops children under a negative scale, so the edge is stretched (clamp) here |
+| `.on_layout(..)` | — | Reports `SidebarLayout { width, visible }` when the grip is released or the sidebar is hidden. Use it to save the layout |
 
-### Redimensionar
+### Resizing
 
-El asa es una franja de `SPLIT_VIEW.grip` (8 px) en el borde derecho de la barra:
+The grip is a `SPLIT_VIEW.grip` (8 px) strip on the right edge of the sidebar:
 
-1. Al pasar el puntero, el cursor cambia a `col-resize` y aparece una línea de
-   acento de `grip_line` (2 px) con `grip_line_inset` (18 px) libres arriba y
-   abajo.
-2. Al arrastrar, el ancho sigue al puntero con un resorte de
-   `DURATION_FAST_MS` (120 ms) y se queda entre el mínimo y el máximo. Con
-   movimiento reducido, el cambio es inmediato.
-3. Con Tab se enfoca el asa; ← y → cambian el ancho en pasos de
+1. On hover, the cursor changes to `col-resize` and an accent line of
+   `grip_line` (2 px) appears, with `grip_line_inset` (18 px) free at the top
+   and bottom.
+2. While dragging, the width follows the pointer with a `DURATION_FAST_MS`
+   (120 ms) spring and stays between the minimum and the maximum. With reduced
+   motion, the change is immediate.
+3. Tab focuses the grip; ← and → change the width in steps of
    `SPLIT_VIEW.key_step` (10 px).
-4. Al soltar, `on_layout` recibe el ancho final.
+4. On release, `on_layout` receives the final width.
 
-### Ocultar
+### Hiding
 
-- El botón `SidebarToggle` (símbolo `SidebarLeft`) y la acción `TOGGLE_SIDEBAR`
-  (Ctrl+Alt+S) la muestran u ocultan con una animación de `DURATION_BASE`.
-- Desde cualquier hijo: `sidebar::sidebar_control().map(|c| c.toggle())`;
-  `SplitView` publica ese control y `Sidebar` y `Titlebar` lo leen.
+- The `SidebarToggle` button (`SidebarLeft` symbol) and the `TOGGLE_SIDEBAR`
+  action (Ctrl+Alt+S) show or hide it with a `DURATION_BASE` animation.
+- From any child: `sidebar::sidebar_control().map(|c| c.toggle())`;
+  `SplitView` provides that control and `Sidebar` and `Titlebar` read it.
 
-### Plegar en ventanas estrechas
+### Collapsing in narrow windows
 
-Por debajo de `SPLIT_VIEW.collapse_below` (760 px) de ancho de ventana:
+Below a window width of `SPLIT_VIEW.collapse_below` (760 px):
 
-1. La barra se oculta sola.
-2. Si el usuario la abre, `NarrowSidebar` decide dónde aparece:
-   - `Overlay`: flota encima del contenido sobre el velo `scrim`, sin moverlo.
-     Se cierra con un clic en el velo, con Escape o al elegir un
-     `SidebarItem`.
-   - `Push`: se acopla y estrecha el detalle. A 480 px de ventana, el detalle
-     se queda en 244 px.
-3. Al ensanchar por encima de 760 px, la barra vuelve acoplada y visible,
-   aunque el usuario la hubiera cerrado. Es la regla de
+1. The sidebar hides on its own.
+2. If the user opens it, `NarrowSidebar` decides where it appears:
+   - `Overlay`: it floats on top of the content over the `scrim` veil, without
+     moving it. It closes on a click on the veil, on Escape or when a
+     `SidebarItem` is chosen.
+   - `Push`: it docks and narrows the detail. At a 480 px window, the detail
+     is left with 244 px.
+3. When the window widens past 760 px, the sidebar comes back docked and
+   visible, even if the user had closed it. This is the rule of
    [`AdwOverlaySplitView`](https://gnome.pages.gitlab.gnome.org/libadwaita/doc/1.4/class.OverlaySplitView.html)
-   sin `pin-sidebar`.
+   without `pin-sidebar`.
 
-Desde un hijo, `sidebar_control().map(|c| c.dismiss())` cierra la barra solo
-si está superpuesta.
+From a child, `sidebar_control().map(|c| c.dismiss())` closes the sidebar only
+when it is overlaid.
 
-### En `PreferencesWindow`
+### In `PreferencesWindow`
 
-`PreferencesWindow` configura la barra lateral con `.sidebar_resizable(bool)`,
-`.sidebar_range(Option<(mín, máx)>)` y `.narrow_sidebar(NarrowSidebar)`;
-`.sidebar_toggle(false)` quita el botón `SidebarToggle`.
+`PreferencesWindow` configures the sidebar with `.sidebar_resizable(bool)`,
+`.sidebar_range(Option<(mín, máx)>)` and `.narrow_sidebar(NarrowSidebar)`;
+`.sidebar_toggle(false)` removes the `SidebarToggle` button.
 
-Siguiente: [9. Vistas](09-vistas.md).
+Next: [9. Views](09-vistas.en.md).

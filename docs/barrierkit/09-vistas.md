@@ -1,11 +1,11 @@
-# 9. Vistas
+# 9. Views
 
-**Objetivo:** conocer los contenedores de la capa 2 que organizan el contenido.
-**Lector:** quien arma pantallas completas.
+**Goal:** know the layer 2 containers that organize the content.
+**Reader:** anyone who assembles complete screens.
 
-## Formularios: `Form`, `Section`, `Row`
+## Forms: `Form`, `Section`, `Row`
 
-Es la pieza de los ajustes: filas agrupadas en tarjetas.
+This is the settings piece: rows grouped in cards.
 
 ```rust
 Form::new()
@@ -18,24 +18,24 @@ Form::new()
     .highlighted(Some("Estado"))
 ```
 
-![Formulario con fila de control, de valor y de navegación](assets/componentes/form-light.png)
+![Form with a control row, a value row and a navigation row](assets/componentes/form-light.png)
 
-| Fila | Para |
+| Row | For |
 |---|---|
-| `Row::new(título).control(..)` | Etiqueta y control |
-| `Row::value(título, valor)` | Información de solo lectura |
-| `Row::navigation(título, al_pulsar)` | Ir a una subpágina (chevron) |
-| `Row::destructive(título, al_pulsar)` | Acción destructiva, en rojo |
+| `Row::new(título).control(..)` | Label and control |
+| `Row::value(título, valor)` | Read-only information |
+| `Row::navigation(título, al_pulsar)` | Going to a subpage (chevron) |
+| `Row::destructive(título, al_pulsar)` | Destructive action, in red |
 
-- `.detail(texto)` añade una explicación bajo el título; los textos largos
-  pasan a varias líneas sin cortar el control.
-- `.keywords(&[..])` alimenta la búsqueda de `PreferencesWindow`.
-- `Section::new()` va sin título; `.footer(texto)` añade un pie.
-- `.highlighted(Some(título))` resalta la fila que eligió el buscador.
+- `.detail(texto)` adds an explanation under the title; long texts wrap to
+  several lines without clipping the control.
+- `.keywords(&[..])` feeds the `PreferencesWindow` search.
+- `Section::new()` has no title; `.footer(texto)` adds a footer.
+- `.highlighted(Some(título))` highlights the row chosen by the search.
 
-![Formulario con textos largos](assets/componentes/form-long-text-light.png)
+![Form with long texts](assets/componentes/form-long-text-light.png)
 
-## Tabla: `Table`
+## Table: `Table`
 
 ```rust
 Table::new("Archivos", vec!["Nombre", "Tamaño"])
@@ -46,24 +46,23 @@ Table::new("Archivos", vec!["Nombre", "Tamaño"])
     .on_select(move |filas: Vec<usize>| elegidas.set(filas))
 ```
 
-![Tabla ordenada por nombre con una fila elegida](assets/componentes/table-light.png)
+![Table sorted by name with one row selected](assets/componentes/table-light.png)
 
-Pulsar una cabecera pide un orden nuevo (`next_sort` alterna ascendente y
-descendente); la app ordena sus filas.
+Clicking a header requests a new order (`next_sort` toggles ascending and
+descending); the app sorts its rows.
 
-Como `NSTableView`:
+Like `NSTableView`:
 
-1. Ctrl+clic añade o quita una fila y Mayús+clic elige el rango desde el
-   último clic (`select`, compartido con `CollectionView`).
-2. El borde derecho de cada cabecera se arrastra para fijar el ancho de su
-   columna, con un mínimo de `components.table.min-column-width` (10 pt, el
-   `minWidth` por defecto de `NSTableColumn`). El tirador mide
-   `resize-handle` (6 pt, estimado). Las columnas sin ancho fijo se reparten
-   el resto.
-3. El clic secundario en la cabecera abre un menú con una casilla por columna
-   para mostrarla u ocultarla. Siempre queda una visible (`toggle_column`).
+1. Ctrl+click adds or removes a row and Shift+click picks the range from the
+   last click (`select`, shared with `CollectionView`).
+2. The right edge of each header drags to fix its column's width, with a
+   minimum of `components.table.min-column-width` (10 pt, the default
+   `minWidth` of `NSTableColumn`). The handle is `resize-handle` wide (6 pt,
+   estimated). Columns without a fixed width share the rest.
+3. A secondary click on the header opens a menu with one checkbox per column
+   to show or hide it. One column always stays visible (`toggle_column`).
 
-## Rejilla: `CollectionView`
+## Grid: `CollectionView`
 
 ```rust
 CollectionView::new("Documentos")
@@ -73,12 +72,12 @@ CollectionView::new("Documentos")
     .on_select(move |elegidos: Vec<usize>| seleccion.set(elegidos))
 ```
 
-![Rejilla de iconos con uno elegido](assets/componentes/collection-light.png)
+![Icon grid with one item selected](assets/componentes/collection-light.png)
 
-Ctrl+clic añade o quita un elemento y Mayús+clic elige un rango, igual que en
+Ctrl+click adds or removes an item and Shift+click picks a range, as in
 `Table`.
 
-## Pestañas: `TabView`
+## Tabs: `TabView`
 
 ```rust
 TabView::new("Preferencias")
@@ -87,9 +86,9 @@ TabView::new("Preferencias")
     .selected(0)
 ```
 
-![Pestañas Buscar y Sonido](assets/componentes/tab-view-light.png)
+![Buscar and Sonido tabs](assets/componentes/tab-view-light.png)
 
-## Árbol y columnas: `OutlineView`, `ColumnBrowser`
+## Outline and columns: `OutlineView`, `ColumnBrowser`
 
 ```rust
 let nodos = vec![TreeNode::new("Documentos").icon(Symbol::Folder).child(TreeNode::new("notas.txt"))];
@@ -97,65 +96,64 @@ OutlineView::new("Archivos", nodos.clone())
 ColumnBrowser::new("Archivos", nodos)
 ```
 
-`barrier_kit::views::tree` muestra un `Vec<TreeNode>` como árbol con
-triángulos (`NSOutlineView`) o como columnas, al estilo del Finder
-(`NSBrowser`). Las filas miden 24 y cada nivel sangra 13, lo que mide
-`NSOutlineView` en macOS 26.6.2. Las columnas miden `DISCLOSURE.column_width`
-(200, una estimación). Una ruta es una lista de índices desde la raíz.
-`ColumnBrowser` avisa con `on_select(ruta)`. `OutlineView` avisa con
-`on_select(rutas)` y admite Ctrl+clic y Mayús+clic sobre las filas visibles,
-igual que `Table`.
+`barrier_kit::views::tree` shows a `Vec<TreeNode>` as a tree with disclosure
+triangles (`NSOutlineView`) or as columns, Finder style (`NSBrowser`). Rows
+are 24 high and each level indents 13, what `NSOutlineView` measures on macOS
+26.6.2. Columns are `DISCLOSURE.column_width` wide (200, an estimate). A path
+is a list of indices from the root. `ColumnBrowser` reports through
+`on_select(path)`. `OutlineView` reports through `on_select(paths)` and takes
+Ctrl+click and Shift+click over the visible rows, as `Table` does.
 
-## Pestañas de ventana: `WindowTabs`
+## Window tabs: `WindowTabs`
 
 ```rust
 WindowTabs::new(titulos, elegida).on_select(..).on_close(..).on_new(..)
 ```
 
-La barra de pestañas de una ventana con pestañas de `NSWindow`: cápsulas
-que se reparten el ancho, la elegida en relieve, con la X al pasar el puntero
-y un + al final. Sus medidas son una estimación. La app guarda el contenido
-de cada pestaña; las pestañas no se pueden arrastrar a otra ventana.
+The tab bar of a tabbed `NSWindow`: capsules that share the width, the chosen
+one raised, with the X on hover and a + at the end. Its measurements are an
+estimate. The app keeps each tab's content; tabs cannot be dragged to another
+window.
 
-## Paneles divididos: `SplitPanes`
-
-```rust
-SplitPanes::new("Paneles", Direction::Horizontal).pane(a).pane(b).ratios(vec![0.5, 0.5]).on_ratios(..)
-```
-
-Paneles en fila o en columna con divisores que se arrastran, como
-`NSSplitView`. Se anidan: un panel puede ser otro `SplitPanes`. Las
-proporciones suman 1; `on_ratios` avisa al soltar el divisor y ningún panel
-baja de `SPLIT_PANES.pane_min`.
-
-## Panel flotante: `FloatingPane`
-
-Un panel sobre el contenido de la ventana, con barra de título para moverlo,
-una banda en el borde para redimensionarlo y sombra. La app guarda su
-`PaneFrame` y lo recibe en `on_frame`; `on_raise` avisa al pulsarlo para
-subirlo. El borde lleva el acento cuando está activo.
-
-## Texto sin marco: `TextView`
+## Split panes: `SplitPanes`
 
 ```rust
-TextView::new(texto, MONO.family, 13.0, 16.0, tinta).on_key(..).auto_focus(true)
+SplitPanes::new("Panes", Direction::Horizontal).pane(a).pane(b).ratios(vec![0.5, 0.5]).on_ratios(..)
 ```
 
-Texto editable de varias líneas sin marco ni desplazamiento, como un
-`NSTextView` dentro de una vista propia. Intro parte la línea y Escape suelta
-el foco, salvo que `on_key` se quede la tecla y devuelva `true`. Para un campo
-con marco, búsqueda y ortografía está `TextEditor`.
+Panes in a row or a column with dividers the user drags, like
+`NSSplitView`. They nest: a pane can be another `SplitPanes`. The ratios add
+up to 1; `on_ratios` reports when the divider is released, and no pane goes
+below `SPLIT_PANES.pane_min`.
 
-## Barra de herramientas: búsqueda y desbordamiento
+## Floating pane: `FloatingPane`
 
-`compact::ToolbarSearch::new(texto, "Buscar").collapsed(estrecha)` es el
-buscador de la toolbar: con `collapsed(true)` queda en una lupa que se abre
-al pulsarla y se cierra al perder el foco vacío. `ToolbarOverflow::new(items)`
-es el botón » que reúne en un menú lo que no cabe; la app lo muestra en vez
-de esos elementos cuando el `Breakpoint` es `Compact`. Los dos van en
+A pane over the window's content, with a title bar to move it, a band on the
+edge to resize it, and a shadow. The app keeps its `PaneFrame` and receives
+it in `on_frame`; `on_raise` reports a press so the app can raise it. The
+outline takes the accent while it is active.
+
+## Frameless text: `TextView`
+
+```rust
+TextView::new(text, MONO.family, 13.0, 16.0, ink).on_key(..).auto_focus(true)
+```
+
+Multi-line editable text without a frame or scrolling, like an `NSTextView`
+inside a custom view. Enter breaks the line and Escape releases the focus,
+unless `on_key` takes the key and returns `true`. For a framed field with
+find and spelling there is `TextEditor`.
+
+## Toolbar: search and overflow
+
+`compact::ToolbarSearch::new(text, "Buscar").collapsed(narrow)` is the toolbar
+search field: with `collapsed(true)` it stays a magnifying glass that opens
+when pressed and closes when it loses focus empty. `ToolbarOverflow::new(items)`
+is the » button that gathers what does not fit into a menu; the app shows it
+instead of those items when the `Breakpoint` is `Compact`. Both go in
 `Titlebar::right`.
 
-## Estados, hojas y alertas
+## States, sheets and alerts
 
 ```rust
 empty_state(Symbol::MagnifyingGlass, "Sin resultados")
@@ -166,19 +164,19 @@ Alert::new("¿Olvidar esta red?", "Tendrás que volver a escribir la contraseña
     .suppression(no_volver)
 ```
 
-| Vacío | Alerta |
+| Empty | Alert |
 |---|---|
-| ![Estado vacío](assets/componentes/empty-state-light.png) | ![Alerta con botón de confirmar](assets/componentes/alert-light.png) |
+| ![Empty state](assets/componentes/empty-state-light.png) | ![Alert with a confirm button](assets/componentes/alert-light.png) |
 
-`sheet` muestra el contenido como diálogo centrado sobre un velo
-(`Palette::scrim`) que cubre la ventana. El diálogo tiene radio 26 con
-esquina continua, como las sheets y alertas de macOS 26. `Alert` mide 260
-de ancho, reparte sus dos botones grandes (28, en cápsula) a partes iguales,
-confirma con Intro y cancela con Esc. `.suppression(State<bool>)` añade
-encima de los botones la casilla «No volver a mostrar este mensaje», el
-`showsSuppressionButton` de `NSAlert`; la app lee el estado al cerrar.
+`sheet` shows the content as a centered dialog over a scrim
+(`Palette::scrim`) that covers the window. The dialog has radius 26 with a
+continuous corner, like macOS 26 sheets and alerts. `Alert` is 260 wide,
+splits its two large buttons (28, capsule) evenly, confirms with Enter and
+cancels with Esc. `.suppression(State<bool>)` adds the "Do not show this
+message again" checkbox above the buttons, `NSAlert`'s
+`showsSuppressionButton`; the app reads the state on close.
 
-## Navegación: `History`
+## Navigation: `History`
 
 ```rust
 let historial = use_state(|| History::new(Seccion::Inicio));
@@ -186,10 +184,10 @@ historial.write().push(Seccion::Ajustes);
 navigation_buttons(historial)
 ```
 
-`History<T>` guarda la pila atrás/adelante. `navigation_buttons` dibuja ‹ y ›
-en una cápsula `ToolGroup` con divisor y responde a las acciones `GO_BACK` (Alt+←) y `GO_FORWARD` (Alt+→).
+`History<T>` keeps the back/forward stack. `navigation_buttons` draws ‹ and ›
+in a `ToolGroup` capsule with a divider and responds to the `GO_BACK` (Alt+←) and `GO_FORWARD` (Alt+→) actions.
 
-## Búsqueda: `SearchIndex`
+## Search: `SearchIndex`
 
 ```rust
 let mut indice = SearchIndex::new();
@@ -197,14 +195,14 @@ indice.add("wifi", "Wi-Fi", &["red", "inalámbrica"]);
 let resultados = indice.search("inalam");
 ```
 
-Busca sin distinguir mayúsculas ni tildes. `PreferencesWindow` lo construye
-solo con los títulos y las `keywords` de cada `Row`.
+It searches ignoring case and accents. `PreferencesWindow` builds it on its
+own from the titles and the `keywords` of each `Row`.
 
-## Reglas: `RuleEditor`
+## Rules: `RuleEditor`
 
-`RuleEditor` (`barrier_kit::rule_editor`) es el editor de filtros de
-`NSPredicateEditor`, como en las carpetas inteligentes del Finder. Recibe los
-campos (`RuleField` con su `RuleKind`: texto, número u opciones) y un
+`RuleEditor` (`barrier_kit::rule_editor`) is the filter editor of
+`NSPredicateEditor`, as in Finder smart folders. It takes the fields
+(`RuleField` with its `RuleKind`: text, number or choices) and a
 `State<Predicate>`.
 
 ```rust
@@ -216,20 +214,22 @@ let filtro = use_state(|| Predicate { all: true, rules: vec![Criterion::Rule(Rul
 RuleEditor::new("Filtro", CAMPOS.to_vec(), filtro)
 ```
 
-1. La cabecera elige si se cumplen todas las reglas o alguna (`Predicate::all`).
-2. Cada fila tiene el campo, el operador y el valor: un `TextField` o un
-   `PopUpButton` con las opciones. El texto admite contiene, empieza por,
-   termina en, es y no es; el número, es, no es, mayor y menor.
-3. − quita la fila y + añade otra debajo. La última no se puede quitar.
-4. Con Alt pulsado, + se convierte en … y añade una regla compuesta, como el
-   Opción+clic de AppKit: un `Criterion::Group` con su propio «Todas» o
-   «Alguna» y una primera regla, sangrado `disclosure.indent` por nivel. Un
-   grupo que se queda sin reglas desaparece.
-5. `Predicate::evaluate(&campos, &|campo| valor)` aplica el filtro; cada grupo
-   cuenta como una sola condición. El texto no
-   distingue mayúsculas y el número compara el valor leído como `f64`.
+1. The header chooses whether all rules or any of them must hold
+   (`Predicate::all`).
+2. Each row has the field, the operator and the value: a `TextField` or a
+   `PopUpButton` with the choices. Text takes contains, begins with, ends
+   with, is and is not; numbers take is, is not, greater and less.
+3. − removes the row and + adds another below it. The last one cannot be
+   removed.
+4. With Alt held, + turns into … and adds a compound rule, like AppKit's
+   Option-click: a `Criterion::Group` with its own "All" or "Any" and a first
+   rule, indented `disclosure.indent` per level. A group left without rules
+   disappears.
+5. `Predicate::evaluate(&fields, &|field| value)` applies the filter; each
+   group counts as one condition. Text
+   ignores case and numbers compare the value parsed as `f64`.
 
-## Diseño adaptable
+## Adaptive layout
 
 ```rust
 let adaptable = use_breakpoint();
@@ -240,7 +240,7 @@ match adaptable.current() {
 }
 ```
 
-Los cortes son `BREAKPOINT.medium` (620) y `BREAKPOINT.wide` (900).
-`adaptable.attach(rect())` mide el elemento al que se engancha.
+The breakpoints are `BREAKPOINT.medium` (620) and `BREAKPOINT.wide` (900).
+`adaptable.attach(rect())` measures the element it is attached to.
 
-Siguiente: [10. Patrones](10-patrones.md).
+Next: [10. Patterns](10-patrones.en.md).

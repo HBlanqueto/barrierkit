@@ -1,65 +1,65 @@
-# 0032 — Neptunia es la fuente de diseño del escritorio
+# 0032 — Neptunia is the desktop's design source
 
-Estado: **aceptado** (2026-10-22).
+Status: **accepted** (2026-10-22).
 
-Renombrado a Tengen en la ADR 0046.
+Renamed to Tengen in ADR 0046.
 
-## Contexto
+## Context
 
-El diseño del escritorio vive en `crates/yuki-design/neptunia`
-(`tokens.json`, `components.json`, `demo.slint` y las salidas de
-`generated/`). Neptunia es un sistema de diseño **como datos**, no un toolkit
-de runtime: define colores (light, dark, dark-tint), radios, espacios,
-tipografía, sombras y las medidas de los componentes. Hasta ahora
-`yuki-design` tenía valores tomados de somewm y una titlebar vertical de 32 px,
-que no coincidían con ese sistema.
+The desktop design lives in `crates/yuki-design/neptunia`
+(`tokens.json`, `components.json`, `demo.slint` and the outputs in
+`generated/`). Neptunia is a design system **as data**, not a runtime
+toolkit: it defines colours (light, dark, dark-tint), radii, spacing,
+typography, shadows and component metrics. Until now
+`yuki-design` had values taken from somewm and a 32 px vertical titlebar,
+which did not match that system.
 
-El usuario ha decidido que **Neptunia es el diseño por defecto del escritorio**
-mientras Yuki se construye.
+The user has decided that **Neptunia is the desktop's default design**
+while Yuki is being built.
 
-## Decisión
+## Decision
 
-1. **Neptunia manda.** El look por defecto es su tema `light`; `dark` y
-   `dark-tint` son las otras variantes. Los colores, radios, espacios,
-   tipografía, sombras y medidas de ventana salen de sus JSON.
-2. **La ventana de Neptunia**: titlebar **arriba**, semáforos de 12 px con 8 px
-   de separación y **radio 4** (cuadrados redondeados), radio de ventana
-   `radius.lg = 16` y el estilo de semáforos `macos` (colores `traffic-*`). El
-   compositor usa **32 px** para las ventanas SSD de terceros; Neptunia define
-   44 px para las ventanas propias de apps. Las apps CSD (GTK, wezterm) no
-   reciben la barra de Yuki.
-3. **Se implementa en Yuki, no en un framework ajeno.** El chrome es
-   compositor-side (ADR 0020); el texto de la titlebar usa `cosmic-text` en el
-   compositor. `celestial-kit` sigue siendo el toolkit de la shell y de las
-   apps, y el compositor no lo usa (ADR 0024): comparten shaders, no contexto.
-4. **La copia vive en `crates/yuki-design/neptunia` y `build.rs` genera las
-   constantes; ya no hay sincronización a mano.** Los cambios se hacen en los
-   JSON de esa copia (y, si se quiere, se devuelven a dotfiles a mano).
-5. **Otto es referencia, no dependencia.** Se leen sus ideas (ventana, shell,
-   launcher, ajustes, portal); **no se adopta Skia** por peso y porque Yuki ya
-   tiene GLES + `grade-graphics` + `celestial-kit`. Si algún día se copia
-   código MIT de Otto, se añade su aviso a `NOTICE` en el mismo commit.
+1. **Neptunia rules.** The default look is its `light` theme; `dark` and
+   `dark-tint` are the other variants. Colours, radii, spacing,
+   typography, shadows and window metrics come from its JSON.
+2. **The Neptunia window**: titlebar **on top**, 12 px traffic lights with 8 px
+   spacing and **radius 4** (rounded squares), window radius
+   `radius.lg = 16` and the `macos` traffic-light style (`traffic-*` colours). The
+   compositor uses **32 px** for third-party SSD windows; Neptunia defines
+   44 px for own app windows. CSD apps (GTK, wezterm) do not
+   receive the Yuki bar.
+3. **It is implemented in Yuki, not in a foreign framework.** The chrome is
+   compositor-side (ADR 0020); the titlebar text uses `cosmic-text` in the
+   compositor. `celestial-kit` remains the toolkit of the shell and of the
+   apps, and the compositor does not use it (ADR 0024): they share shaders, not context.
+4. **The copy lives in `crates/yuki-design/neptunia` and `build.rs` generates the
+   constants; there is no more manual syncing.** Changes are made in the
+   JSON of that copy (and, if wanted, sent back to dotfiles by hand).
+5. **Otto is a reference, not a dependency.** Its ideas are read (window, shell,
+   launcher, settings, portal); **Skia is not adopted** because of its weight and because Yuki already
+   has GLES + `grade-graphics` + `celestial-kit`. If MIT code from Otto is ever copied,
+   its notice is added to `NOTICE` in the same commit.
 
-## Consecuencias
+## Consequences
 
-- La titlebar, la menubar y el dock comparten la paleta clara de Neptunia.
-- La titlebar del compositor se dibuja con 32 px para ventanas SSD, semáforos de 12 y radio 16; sus botones
-  cierran, minimizan y maximizan.
-- `appearance.window_color` implementa los modos `neutral`/`accent`/`wallpaper`
-  de Neptunia: tiñe la titlebar con el acento o con el color dominante del
-  wallpaper y deriva los semáforos; `window_tint_scope` y el tinte de panel/dock
-  quedan para la shell.
-- Quedan pendientes el redondeo real de ventanas, la sombra, los glifos de los
-  semáforos al pasar el puntero y el cambio de tema en vivo.
-- La launcher y las apps propias se diseñan primero en Neptunia
-  (`demo.slint`) y luego se implementan con `celestial-kit`.
+- The titlebar, the menubar and the dock share Neptunia's light palette.
+- The compositor titlebar is drawn at 32 px for SSD windows, with 12 px traffic lights and radius 16; its buttons
+  close, minimise and maximise.
+- `appearance.window_color` implements Neptunia's `neutral`/`accent`/`wallpaper`
+  modes: it tints the titlebar with the accent or with the wallpaper's dominant
+  colour and derives the traffic lights; `window_tint_scope` and the panel/dock tint
+  are left to the shell.
+- Real window rounding, the shadow, the traffic-light glyphs on
+  hover and live theme switching are still pending.
+- The launcher and own apps are designed first in Neptunia
+  (`demo.slint`) and then implemented with `celestial-kit`.
 
-## Referencias
+## References
 
 - `crates/yuki-design/neptunia/README.md`, `tokens.json`, `components.json`.
-- [`0011`](0011-valores-de-diseno-como-constantes-rust.md) — los valores
-  viven en `yuki-design`.
-- [`0020`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0020-politica-de-diseno-y-unificacion.md) — chrome compositor-side.
-- [`0024`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0024-stack-de-render-del-toolkit.md) — GLES/cosmic-text, sin Skia.
-- [`../arquitectura/interfaz.md`](https://github.com/HBlanqueto/malaysia/blob/main/docs/arquitectura/interfaz.md) — el mapa completo.
-- [`../arquitectura/ventanas.md`](https://github.com/HBlanqueto/malaysia/blob/main/docs/arquitectura/ventanas.md) — la titlebar.
+- [`0011`](0011-valores-de-diseno-como-constantes-rust.en.md) — the values
+  live in `yuki-design`.
+- [`0020`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0020-politica-de-diseno-y-unificacion.en.md) — compositor-side chrome.
+- [`0024`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0024-stack-de-render-del-toolkit.en.md) — GLES/cosmic-text, no Skia.
+- [`../arquitectura/interfaz.md`](https://github.com/HBlanqueto/malaysia/blob/main/docs/arquitectura/interfaz.en.md) — the full map.
+- [`../arquitectura/ventanas.md`](https://github.com/HBlanqueto/malaysia/blob/main/docs/arquitectura/ventanas.en.md) — the titlebar.

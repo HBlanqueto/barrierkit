@@ -1,85 +1,85 @@
-# 0035 — Identificación de apps propias y CSD
+# 0035 — Identifying own apps and CSD
 
-Estado: **aceptado** (2026-10-23).
+Status: **accepted** (2026-10-23).
 
-Yuki es hoy Malaysia y CelestialKit (`celestial-kit`) es BarrierKit (`barrier-kit`) desde la [ADR 0043](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0043-rebranding-a-malaysia.md).
+Yuki is now Malaysia and CelestialKit (`celestial-kit`) is BarrierKit (`barrier-kit`) since [ADR 0043](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0043-rebranding-a-malaysia.en.md).
 
-## Contexto
+## Context
 
-Las apps propias de Yuki se dibujan con CelestialKit y llevan su propia
-titlebar y sus semáforos (CSD). El compositor también puede añadir chrome
-server-side (`window.decorations`, ADR 0019/0020). Con `force_server` esa
-política pintaría una segunda barra sobre una app propia.
+Yuki's own apps are drawn with CelestialKit and carry their own
+titlebar and traffic lights (CSD). The compositor can also add
+server-side chrome (`window.decorations`, ADR 0019/0020). With `force_server` that
+policy would paint a second bar over an own app.
 
-Hace falta una forma estable de que el compositor reconozca una ventana como
-propia y no le añada nunca su titlebar. No puede basarse en el título ni en el
-protocolo de decoración por sí solo: una app ajena también puede pedir CSD, y
-una app propia podría olvidarse de pedirlo.
+A stable way is needed for the compositor to recognise a window as
+own and never add its titlebar to it. It cannot rely on the title or on the
+decoration protocol alone: a third-party app can also request CSD, and
+an own app could forget to request it.
 
-## Decisión
+## Decision
 
-1. **Prefijo de app-id.** Una app de CelestialKit usa un `app_id` que empieza
-   por `NATIVE_APP_ID_PREFIX = "io.github.hblanqueto.yuki."`, constante de
+1. **App-id prefix.** A CelestialKit app uses an `app_id` that starts
+   with `NATIVE_APP_ID_PREFIX = "io.github.hblanqueto.yuki."`, a constant of
    `yuki-design`.
-2. **CSD explícito.** Antes de su primer commit, la app pide
-   `zxdg_toplevel_decoration_v1.set_mode(ClientSide)`, como hace `otto-kit` con
+2. **Explicit CSD.** Before its first commit, the app requests
+   `zxdg_toplevel_decoration_v1.set_mode(ClientSide)`, as `otto-kit` does with
    `WindowDecorations::RequestClient`.
-3. **Precedencia.** ~~Para una ventana con el prefijo, el modo efectivo es
-   siempre `Client`, incluso con `force_server`.~~ **Sustituido por la sección
-   «Elección de la app»**: una app propia elige `Client` o `Server` y Yuki
-   respeta esa elección.
-4. **Orden irrelevante.** El compositor guarda el modo *pedido* por ventana y
-   recalcula el efectivo cuando llega `app_id_changed` y antes del configure
-   inicial. Una petición KDE que llega antes del `xdg_toplevel` se guarda como
-   pedida, no como efectiva.
-5. **Aviso.** Si una app propia pidió explícitamente `Server`, el compositor
-   avisa una vez por ventana («app propia que no pidió CSD»). Sigue sin barra.
-6. **No es seguridad.** El prefijo solo decide si se dibuja una barra. Cualquier
-   cliente puede usar ese app-id; no autentica ni aísla nada. Infinity lo
-   sustituirá cuando exista.
+3. **Precedence.** ~~For a window with the prefix, the effective mode is
+   always `Client`, even with `force_server`.~~ **Replaced by the section
+   "App choice"**: an own app chooses `Client` or `Server` and Yuki
+   respects that choice.
+4. **Order does not matter.** The compositor stores the *requested* mode per window and
+   recomputes the effective one when `app_id_changed` arrives and before the initial
+   configure. A KDE request that arrives before the `xdg_toplevel` is stored as
+   requested, not as effective.
+5. **Warning.** If an own app explicitly requested `Server`, the compositor
+   warns once per window («app propia que no pidió CSD» ("own app that did not request CSD")). It still gets no bar.
+6. **It is not security.** The prefix only decides whether a bar is drawn. Any
+   client can use that app-id; it authenticates and isolates nothing. Infinity will
+   replace it when it exists.
 
-## Consecuencias
+## Consequences
 
-- El compositor comparte la regla pura `effective_decoration(policy, requested,
-  native)`; los handlers solo traducen protocolo a modo pedido.
-- CelestialKit expone `TrafficLights` para las apps propias. El runner todavía
-  no crea `xdg_toplevel`; el contrato para hacerlo queda anotado como
-  `TODO(ADR 0035)` en `platform/mod.rs`.
-- Una app propia sin CSD no recibe la barra del compositor: se ve sin chrome,
-  que es el fallo visible que el aviso pretende detectar.
-- `yuki_appearance::traffic` sigue siendo puro y sin Skia; el componente de
-  CelestialKit es el único que dibuja.
+- The compositor shares the pure rule `effective_decoration(policy, requested,
+  native)`; the handlers only translate protocol into requested mode.
+- CelestialKit exposes `TrafficLights` for the own apps. The runner does not
+  create `xdg_toplevel` yet; the contract for doing so is noted as
+  `TODO(ADR 0035)` in `platform/mod.rs`.
+- An own app without CSD does not receive the compositor's bar: it shows without chrome,
+  which is the visible failure the warning aims to detect.
+- `yuki_appearance::traffic` stays pure and without Skia; the CelestialKit
+  component is the only one that draws.
 
-## Elección de la app (enmienda 2026-10-23)
+## App choice (amendment 2026-10-23)
 
-Sustituye la regla «native → Client siempre» del punto 3.
+Replaces the rule "native → Client always" of point 3.
 
-- Cada ventana de CelestialKit pide `Client` y dibuja su barra unificada de
-  40 px (`titlebar-h`), con `TrafficLights` y hueco de toolbar. El kit no
-  ofrece pedir `Server`.
-- El kit pide **siempre** el modo de forma explícita con
-  `xdg-decoration.set_mode` antes del primer commit, junto con
+- Each CelestialKit window requests `Client` and draws its unified 40 px bar
+  (`titlebar-h`), with `TrafficLights` and room for a toolbar. The kit does
+  not offer a `Server` request.
+- The kit **always** requests the mode explicitly with
+  `xdg-decoration.set_mode` before the first commit, together with
   `set_app_id(NATIVE_APP_ID_PREFIX + nombre)`.
-- Para una ventana propia, Yuki respeta el modo pedido y no aplica
-  `window.decorations`: `force_server` y `force_client` solo afectan a apps
-  ajenas.
-- `requested` es `None` hasta que llega `request_mode`; crear el objeto de
-  decoración o hacer `unset_mode` no cuentan. Una app propia sin modo negocia
-  `Client` y el compositor avisa una vez por ventana («app propia sin modo de
-  decoración»).
-- Si el compositor no anuncia `xdg-decoration`, el kit dibuja igualmente su
-  barra de 44 px.
+- For an own window, Yuki respects the requested mode and does not apply
+  `window.decorations`: `force_server` and `force_client` only affect
+  third-party apps.
+- `requested` is `None` until `request_mode` arrives; creating the
+  decoration object or calling `unset_mode` do not count. An own app without a mode negotiates
+  `Client` and the compositor warns once per window («app propia sin modo de
+  decoración» ("own app without a decoration mode")).
+- If the compositor does not advertise `xdg-decoration`, the kit still draws
+  its 44 px bar.
 
-## Infinity sustituye al prefijo (enmienda 2026-11-07)
+## Infinity replaces the prefix (amendment 2026-11-07)
 
-Sustituye el punto 1 y cumple el punto 6.
+Replaces point 1 and fulfils point 6.
 
-- El compositor reconoce una app del kit porque su cliente enlaza
-  `infinity_window_style_v1`. El kit lo enlaza siempre al arrancar
+- The compositor recognizes a kit app because its client binds
+  `infinity_window_style_v1`. The kit always binds it at startup
   (`platform/runtime.rs`).
-- El `app_id` ya no cuenta. Una app hecha con el kit por otro autor
-  (`org.curseterm.CurseTerm`) recibe el mismo trato que una propia: su modo de
-  decoración se respeta y sus popups llevan el marco del kit.
-- `NATIVE_APP_ID_PREFIX` queda solo como `app_id` por defecto cuando la app no
-  pide otro con `Window::app_id`.
-- Sigue sin ser seguridad: cualquier cliente puede enlazar el protocolo.
+- The `app_id` no longer counts. An app built with the kit by another author
+  (`org.curseterm.CurseTerm`) gets the same treatment as one of our own: its
+  decoration mode is respected and its popups carry the kit frame.
+- `NATIVE_APP_ID_PREFIX` remains only as the default `app_id` when the app does
+  not request another one with `Window::app_id`.
+- It is still not security: any client can bind the protocol.

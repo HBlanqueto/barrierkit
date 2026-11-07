@@ -1,41 +1,41 @@
-# 0047 — BarrierKit en capas: un toolkit para construir apps completas
+# 0047 — Layered BarrierKit: a toolkit for building complete apps
 
-Estado: **aceptado** (2026-10-28). Lo hecho y lo pendiente están en «Estado» (2026-11-02). Las apps de prueba (Master Tengen App Show, Marea, Ondina y Trazo) y los ejemplos se retiraron del repositorio el 2026-11-07.
+Status: **accepted** (2026-10-28). What is done and what is pending is in «Status» (2026-11-02). The test apps (Master Tengen App Show, Marea, Ondina and Trazo) and the examples were removed from the repository on 2026-11-07.
 
-## Contexto
+## Context
 
-BarrierKit (ADR 0034) nació para dibujar la shell. Hoy tiene:
+BarrierKit (ADR 0034) was born to draw the shell. Today it has:
 
-- un runner Wayland propio;
-- la titlebar CSD, los semáforos, la barra lateral y el menú;
-- unos pocos controles propios;
-- re-exportaciones directas de `freya-components` (`Button`, `Switch`, `Slider`, `Input`…) que se ven con el estilo de Freya y no con el de Tengen.
+- its own Wayland runner;
+- the CSD titlebar, the traffic lights, the sidebar and the menu;
+- a few controls of its own;
+- direct re-exports of `freya-components` (`Button`, `Switch`, `Slider`, `Input`…) that look like Freya and not like Tengen.
 
-La auditoría P4 lo confirmó: Ajustes del sistema reimplementa la barra lateral, el buscador, los radios, el desplegable, las muestras de acento y las filas en tarjeta. Cada app nueva tendría que volver a hacerlo.
+The P4 audit confirmed it: System Settings reimplements the sidebar, the search field, the radios, the drop-down, the accent swatches and the card rows. Every new app would have to do it again.
 
-El objetivo es que BarrierKit sirva para construir **cualquier** app del escritorio, como AppKit o libadwaita, no una sola forma de app:
+The goal is for BarrierKit to serve for building **any** desktop app, like AppKit or libadwaita, not a single kind of app:
 
-- Ajustes del sistema;
-- un Finder propio;
-- apps al nivel de libadwaita;
-- una app de muestra con todos los controles (Master Tengen App Show).
+- System Settings;
+- a Finder of our own;
+- apps on par with libadwaita;
+- a sample app with every control (Master Tengen App Show).
 
-Para eso necesita una arquitectura en capas, un catálogo de piezas y reglas que impidan volver a duplicar.
+For that it needs a layered architecture, a catalogue of pieces and rules that prevent duplication from coming back.
 
-Decisiones del usuario ya tomadas (2026-10-28):
+User decisions already taken (2026-10-28):
 
-- **API declarativa**, como SwiftUI y como Freya hoy. Nada de controladores al estilo del AppKit clásico.
-- **Personalización por variantes de Tengen.** Una app elige variantes del sistema (tamaño, primario o destructivo, isla o plana), no colores ni medidas sueltas.
-- **Búsqueda como en macOS.** Encuentra secciones y también opciones dentro del contenido.
-- **Navegación atrás/adelante** con historial.
-- **Barra lateral completa:** grupos con título, grupos plegables, fila de cuenta e insignias.
-- **SplitView:** ancho ajustable, se puede ocultar, se pliega sola en ventanas estrechas y admite un inspector derecho.
-- **Infraestructura de app «como macOS»:** acciones unificadas, preferencias por app, instancia única y restauración de estado.
-- **Orden capa por capa.** Se termina una capa antes de empezar la siguiente, y Ajustes se rehace al final.
+- **Declarative API**, like SwiftUI and like Freya today. No controllers in the style of classic AppKit.
+- **Customisation through Tengen variants.** An app picks system variants (size, primary or destructive, island or flat), not loose colours or measurements.
+- **Search like on macOS.** It finds sections and also options inside the content.
+- **Back/forward navigation** with history.
+- **Full sidebar:** titled groups, collapsible groups, account row and badges.
+- **SplitView:** adjustable width, it can be hidden, it collapses by itself in narrow windows and it supports a right inspector.
+- **App infrastructure "like macOS":** unified actions, per-app preferences, single instance and state restoration.
+- **Layer-by-layer order.** One layer is finished before the next one starts, and Settings is rebuilt at the end.
 
-## Decisión
+## Decision
 
-### 1. Cuatro capas y una columna transversal
+### 1. Four layers and a cross-cutting column
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -54,122 +54,122 @@ Decisiones del usuario ya tomadas (2026-10-28):
 └─────────────────────────────────────────────────────────────┘
 ```
 
-**Reglas de dependencia**
+**Dependency rules**
 
-1. Una capa solo usa capas inferiores. La capa 1 no conoce `SplitView`, y la 0 no conoce los controles.
-2. **La capa 3 solo compone la API pública de la capa 2.** Si un patrón necesita algo que la capa 2 no ofrece, ese algo se añade a la capa 2 y queda disponible para cualquier app. Ningún patrón tiene comportamiento privado.
-3. Una app puede usar cualquier capa directamente. Ajustes usa la capa 3, un Finder compone la capa 2 y una vista muy especial puede dibujar con primitivas de Freya (`rect`, `label`) usando la paleta semántica.
-4. La columna **App** la usan las capas 2 y 3 (la barra de herramientas y los menús consumen `Action`), pero no depende de ellas.
+1. A layer only uses lower layers. Layer 1 does not know `SplitView`, and layer 0 does not know the controls.
+2. **Layer 3 only composes the public API of layer 2.** If a pattern needs something layer 2 does not offer, that something is added to layer 2 and becomes available to any app. No pattern has private behaviour.
+3. An app can use any layer directly. Settings uses layer 3, a Finder composes layer 2 and a very special view can draw with Freya primitives (`rect`, `label`) using the semantic palette.
+4. Layers 2 and 3 use the **App** column (the toolbar and the menus consume `Action`), but it does not depend on them.
 
-### 2. Reglas para todo componente del kit
+### 2. Rules for every kit component
 
-- **Fuente única de diseño.** Todo valor visual sale de `vow-design` (Tengen, ADR 0011/0032/0046). Si falta un token, se añade a `tengen/components.json` y se genera; nunca va un literal en el componente.
-- **Variantes, no estilos libres.** Cada componente expone variantes del sistema mediante enums como `ButtonStyle::{Primary, Secondary, Glass, GlassProminent, Borderless}` o `ControlSize::{Small, Regular, Large}`. No hay `.background(color)` en los componentes del kit.
-- **Controlado y declarativo.** El estado lo tiene la app (`State<T>`). El componente recibe `value` y avisa con `on_change`. Nada de estado oculto que la app no pueda leer.
-- **Interacción común.** Todo control interactivo usa el mismo hook `use_interaction()`, que da hover, pressed, foco de teclado y disabled. El anillo de foco (`focus-ring`) se dibuja solo al navegar con teclado.
-- **Accesibilidad obligatoria.** Cada componente asigna rol, etiqueta y estado (checked, expanded, selected), y es navegable por teclado. Un control sin etiqueta accesible no compila: la etiqueta es argumento de `new`.
-- **Reactivo a la apariencia.** Los componentes leen la apariencia del contexto que provee el runner. Un cambio de claro u oscuro, de acento o de tinte vuelve a pintar sin reiniciar la app.
-- **No reinventar Freya.** Cuando `freya-components` 0.4.3 ya tiene la lógica, el kit la envuelve con el aspecto de Tengen en lugar de reescribirla. Casos: `ResizableContainer`, `Table`, `VirtualScrollView`, `DragZone`/`DropZone`, `Tooltip`, `Attached`, `Checkbox`, `RadioItem`, `Select`, `ProgressBar`, `ContextMenu`, `Accordion`. Si el envoltorio no es posible, el porqué se documenta con `// shortcut:` o en el ADR del componente.
-- **Nombres de AppKit** cuando existe equivalente (`SplitView`, `SourceList`, `PopUpButton`, `ColorWell`, `Sheet`), en inglés en el código.
-- **Cada componente nuevo** llega con:
-  - una página en la app de catálogo (ver §6);
-  - un test de render en claro, oscuro y tintado;
-  - un test de teclado si es interactivo.
+- **Single source of design.** Every visual value comes from `vow-design` (Tengen, ADR 0011/0032/0046). If a token is missing, it is added to `tengen/components.json` and generated; a literal never goes in the component.
+- **Variants, not free styles.** Each component exposes system variants through enums such as `ButtonStyle::{Primary, Secondary, Glass, GlassProminent, Borderless}` or `ControlSize::{Small, Regular, Large}`. There is no `.background(color)` in the kit components.
+- **Controlled and declarative.** The app holds the state (`State<T>`). The component receives `value` and reports with `on_change`. No hidden state the app cannot read.
+- **Common interaction.** Every interactive control uses the same hook `use_interaction()`, which gives hover, pressed, keyboard focus and disabled. The focus ring (`focus-ring`) is drawn only when navigating with the keyboard.
+- **Mandatory accessibility.** Each component assigns role, label and state (checked, expanded, selected), and is keyboard navigable. A control without an accessible label does not compile: the label is an argument of `new`.
+- **Reactive to appearance.** Components read the appearance from the context the runner provides. A change of light or dark, accent or tint repaints without restarting the app.
+- **Do not reinvent Freya.** When `freya-components` 0.4.3 already has the logic, the kit wraps it with the Tengen look instead of rewriting it. Cases: `ResizableContainer`, `Table`, `VirtualScrollView`, `DragZone`/`DropZone`, `Tooltip`, `Attached`, `Checkbox`, `RadioItem`, `Select`, `ProgressBar`, `ContextMenu`, `Accordion`. If the wrapper is not possible, the reason is documented with `// shortcut:` or in the component's ADR.
+- **AppKit names** when an equivalent exists (`SplitView`, `SourceList`, `PopUpButton`, `ColorWell`, `Sheet`), in English in the code.
+- **Each new component** arrives with:
+  - a page in the catalogue app (see §6);
+  - a render test in light, dark and tinted;
+  - a keyboard test if it is interactive.
 
-### 3. Catálogo por capa
+### 3. Catalogue by layer
 
-Estado: **existe** = ya está en el kit, aunque haya que arreglarlo · **parcial** · **nuevo**.
+Status: **exists** = already in the kit, even if it needs fixing · **partial** · **new**.
 
-**Capa 0 · Plataforma** (`platform/`)
+**Layer 0 · Platform** (`platform/`)
 
-| Pieza | Estado | Nota |
+| Piece | Status | Note |
 |---|---|---|
-| Runner, ventanas, popups, layer-shell, lock | existe | Se parte en módulos después de los lotes L1 (P4a-08) |
-| Foco de teclado y Tab | **nuevo** | L1b (F-01) |
-| Cursor por componente | **nuevo** | L1b (F-02) |
-| Escala fraccional (wp_fractional_scale + viewporter) | **nuevo** | L1c |
-| Portapapeles y selección primaria | **nuevo** | `wl_data_device`, `zwp_primary_selection` |
-| Arrastrar y soltar entre apps | nuevo | `wl_data_device` + `DragZone` |
-| AT-SPI (accesskit_unix) | nuevo | Junto al Bloque 12b |
-| Damage y región opaca | nuevo | P4a S-07 |
+| Runner, windows, popups, layer-shell, lock | exists | Split into modules after the L1 batches (P4a-08) |
+| Keyboard focus and Tab | **new** | L1b (F-01) |
+| Per-component cursor | **new** | L1b (F-02) |
+| Fractional scale (wp_fractional_scale + viewporter) | **new** | L1c |
+| Clipboard and primary selection | **new** | `wl_data_device`, `zwp_primary_selection` |
+| Drag and drop between apps | new | `wl_data_device` + `DragZone` |
+| AT-SPI (accesskit_unix) | new | Together with Block 12b |
+| Damage and opaque region | new | P4a S-07 |
 
-**Capa 1 · Primitivas**
+**Layer 1 · Primitives**
 
-| Pieza | Estado | Nota |
+| Piece | Status | Note |
 |---|---|---|
-| `Palette` semántica | **nuevo** | `label`, `secondary_label`, `tertiary_label`, `separator`, `window_background`, `under_page_background`, `control_background`, `control_accent`, `selected_content_background`, `destructive`, `success`, `warning`, sacados de Tengen y del tinte (VowAppearance). Reemplaza el `ColorsSheet` aplanado de `theme.rs` |
-| Tema de Freya generado desde la paleta | parcial | Para los componentes de Freya que se usen tal cual; reactivo |
-| `TextStyle` | parcial | Los 9 estilos de Tengen (Display…Caption, Mono). `Text::new(..).style(Body).secondary()` |
-| `Symbol` / registro de iconos | **nuevo** | Iconos por nombre, tamaño ligado al estilo de texto, caché por (nombre, tamaño, color). Sustituye las 6 copias de `svg_viewer` |
-| `use_interaction` | **nuevo** | hover, pressed, foco de teclado, disabled |
-| `Button`, `IconButton` | **nuevo** | Variantes primary/secondary/plain/destructive y tres tamaños; botón por defecto (Enter) y de cancelar (Esc) |
-| `Switch`, `Checkbox`, `Radio` + `RadioGroup` | **nuevo** | `Radio` sale de Ajustes |
-| `Slider`, `Stepper` | nuevo | |
-| `SegmentedControl` | **nuevo** | Token `segmented` |
-| `TextField`, `SecureField`, `SearchField` | parcial | Con anillo de foco, placeholder, botón de borrar y rol de contraseña |
-| `PopUpButton`, `ComboBox` | **nuevo** | Sobre `MenuView`; el desplegable de semáforos de Ajustes es un `PopUpButton` |
-| `ColorWell` | **nuevo** | Muestras de color con nombre; sale de Ajustes |
-| `ProgressBar`, `ProgressRing`, `Spinner` | nuevo | Token `progress` |
-| `Badge`, `Label`, `Link`, `Divider`, `Avatar`, `Image` | nuevo | |
-| `ToolGroup` | existe | Agrupa `IconButton`; `ToolButton` desaparece |
-| Semáforos, titlebar | existe | Se arreglan en L1d |
+| Semantic `Palette` | **new** | `label`, `secondary_label`, `tertiary_label`, `separator`, `window_background`, `under_page_background`, `control_background`, `control_accent`, `selected_content_background`, `destructive`, `success`, `warning`, taken from Tengen and the tint (VowAppearance). Replaces the flattened `ColorsSheet` of `theme.rs` |
+| Freya theme generated from the palette | partial | For the Freya components used as they are; reactive |
+| `TextStyle` | partial | The 9 Tengen styles (Display…Caption, Mono). `Text::new(..).style(Body).secondary()` |
+| `Symbol` / icon registry | **new** | Icons by name, size tied to the text style, cache by (name, size, colour). Replaces the 6 copies of `svg_viewer` |
+| `use_interaction` | **new** | hover, pressed, keyboard focus, disabled |
+| `Button`, `IconButton` | **new** | Variants primary/secondary/plain/destructive and three sizes; default button (Enter) and cancel button (Esc) |
+| `Switch`, `Checkbox`, `Radio` + `RadioGroup` | **new** | `Radio` comes from Settings |
+| `Slider`, `Stepper` | new | |
+| `SegmentedControl` | **new** | Token `segmented` |
+| `TextField`, `SecureField`, `SearchField` | partial | With focus ring, placeholder, clear button and password role |
+| `PopUpButton`, `ComboBox` | **new** | On top of `MenuView`; the traffic-light drop-down in Settings is a `PopUpButton` |
+| `ColorWell` | **new** | Named colour swatches; comes from Settings |
+| `ProgressBar`, `ProgressRing`, `Spinner` | new | Token `progress` |
+| `Badge`, `Label`, `Link`, `Divider`, `Avatar`, `Image` | new | |
+| `ToolGroup` | exists | Groups `IconButton`s; `ToolButton` is gone |
+| Traffic lights, titlebar | exists | Fixed in L1d |
 
-**Capa 2 · Contenedores y vistas**
+**Layer 2 · Containers and views**
 
-| Pieza | Estado | Nota |
+| Piece | Status | Note |
 |---|---|---|
-| `SplitView` | **nuevo** | Barra lateral más detalle, con inspector derecho opcional. Ancho ajustable con mínimo y máximo, guardado en la restauración. Se oculta con un botón de la barra de herramientas y un atajo. Por debajo de un ancho de ventana (token) se pliega sola y se abre como panel superpuesto. Isla o plana (ADR 0041). Lleva dentro los semáforos cuando la barra lateral está visible. Sobre `ResizableContainer` |
-| `SourceList` | parcial | La barra lateral: grupos con título, grupos plegables, fila de cuenta, ítems con símbolo o icono de app, insignias y contadores, selección y teclado. Hoy son `Sidebar`/`SidebarItem`/`SidebarSection` |
-| `Toolbar` | parcial | Zonas leading, center y trailing; botones de navegación; título y subtítulo; hueco para búsqueda; overflow en menú. Vive en la titlebar CSD (ADR 0035) |
-| `NavigationStack` | **nuevo** | Historial atrás/adelante, subpáginas (`push`), título actual para la barra de herramientas, acciones `go-back` y `go-forward` con atajos |
-| `Searchable` | **nuevo** | Índice de búsqueda: cada sección y cada fila declaran título y palabras clave; el kit busca y devuelve resultados; elegir uno navega y resalta la fila. Lo usa `SearchField` en la barra lateral o en la barra de herramientas |
-| `Form`, `Section`, `Row` | **nuevo** | Token `list-group`. Variantes de fila: etiqueta + control, de navegación (chevron, `push`), de información y destructiva. Encabezado y pie por sección |
-| `ScrollView`, `VirtualList` | existe | Freya |
-| `Table`, `OutlineView`, `ColumnBrowser` | nuevo | Columnas ordenables, virtualizadas. Base para un Finder |
-| `CollectionView` | nuevo | Rejilla de iconos con selección múltiple, selección por arrastre, renombrar y arrastrar |
-| `TabView` | nuevo | Pestañas de documento en la ventana |
-| `Sheet`, `Alert`, `Popover`, `Tooltip`, `ContextMenu` | parcial | `MenuView` ya existe. Sheet baja de la titlebar. Alert con botones por defecto y cancelar |
-| `EmptyState` | nuevo | Token `settings.empty` generalizado |
+| `SplitView` | **new** | Sidebar plus detail, with optional right inspector. Adjustable width with minimum and maximum, saved in the restoration. It hides with a toolbar button and a shortcut. Below a window width (token) it collapses by itself and opens as an overlay panel. Island or flat (ADR 0041). It holds the traffic lights when the sidebar is visible. On top of `ResizableContainer` |
+| `SourceList` | partial | The sidebar: titled groups, collapsible groups, account row, items with symbol or app icon, badges and counters, selection and keyboard. Today they are `Sidebar`/`SidebarItem`/`SidebarSection` |
+| `Toolbar` | partial | Leading, center and trailing zones; navigation buttons; title and subtitle; slot for search; overflow into a menu. It lives in the CSD titlebar (ADR 0035) |
+| `NavigationStack` | **new** | Back/forward history, subpages (`push`), current title for the toolbar, actions `go-back` and `go-forward` with shortcuts |
+| `Searchable` | **new** | Search index: each section and each row declare title and keywords; the kit searches and returns results; picking one navigates and highlights the row. `SearchField` uses it in the sidebar or in the toolbar |
+| `Form`, `Section`, `Row` | **new** | Token `list-group`. Row variants: label + control, navigation (chevron, `push`), information and destructive. Header and footer per section |
+| `ScrollView`, `VirtualList` | exists | Freya |
+| `Table`, `OutlineView`, `ColumnBrowser` | new | Sortable, virtualised columns. Base for a Finder |
+| `CollectionView` | new | Icon grid with multiple selection, drag selection, rename and drag |
+| `TabView` | new | Document tabs in the window |
+| `Sheet`, `Alert`, `Popover`, `Tooltip`, `ContextMenu` | partial | `MenuView` already exists. Sheet drops from the titlebar. Alert with default and cancel buttons |
+| `EmptyState` | new | Token `settings.empty` generalised |
 
-**Capa 3 · Patrones**
+**Layer 3 · Patterns**
 
-| Pieza | Estado | Nota |
+| Piece | Status | Note |
 |---|---|---|
-| `PreferencesWindow` | **nuevo** | SplitView + SourceList (cuenta, grupos) + SearchField con `Searchable` del contenido + NavigationStack + Form. Opción de ancho fijo (solo cambia de alto) con el semáforo verde «+» |
-| `BrowserWindow` | descartado | Se borró sin usuarios (`0c93856`); un Finder compone la capa 2 directamente |
-| `AboutWindow` | nuevo | Ventana «Acerca de» estándar |
+| `PreferencesWindow` | **new** | SplitView + SourceList (account, groups) + SearchField with `Searchable` of the content + NavigationStack + Form. Fixed-width option (only the height changes) with the green «+» traffic light |
+| `BrowserWindow` | rejected | Deleted with no users (`0c93856`); a Finder composes layer 2 directly |
+| `AboutWindow` | new | Standard «Acerca de» ("About") window |
 
-**App (transversal, `app/`)**
+**App (cross-cutting, `app/`)**
 
-| Pieza | Estado | Nota |
+| Piece | Status | Note |
 |---|---|---|
-| `Application` | **nuevo** | `app_id`, arranque, instancia única (`org.freedesktop.Application`, `DBusActivatable`), abrir archivos y URLs, política de qué pasa al cerrar la última ventana |
-| `Action` | **nuevo** | id, título, `Shortcut` tipado, estado activa/marcada y handler **siempre en el hilo de UI**. Una acción alimenta el menú global (dbusmenu), la barra de herramientas, los menús contextuales y el teclado. Cadena de respuesta: ventana enfocada → app. Sustituye las cadenas de `MenuItem` y `shortcut_matches` (P4b-10/14) |
-| `Defaults` | **nuevo** | Preferencias por app en `~/.config/malaysia/<app_id>.domain` (formato `.domain`, ADR 0021), tipadas con serde, con aviso al cambiar (el mismo watcher que `AppearanceWatch`) |
-| `Restoration` | **nuevo** | Tamaño y posición, sección, ancho de barra lateral, pila de navegación y desplazamiento por ventana. Se conectará con `xdg-session-management` cuando el compositor lo tenga |
-| `UndoManager` | nuevo | Deshacer y rehacer conectados a las acciones estándar de Edición |
+| `Application` | **new** | `app_id`, startup, single instance (`org.freedesktop.Application`, `DBusActivatable`), opening files and URLs, policy for what happens when the last window closes |
+| `Action` | **new** | id, title, typed `Shortcut`, enabled/checked state and handler **always on the UI thread**. One action feeds the global menu (dbusmenu), the toolbar, the context menus and the keyboard. Responder chain: focused window → app. Replaces the `MenuItem` strings and `shortcut_matches` (P4b-10/14) |
+| `Defaults` | **new** | Per-app preferences in `~/.config/malaysia/<app_id>.domain` (`.domain` format, ADR 0021), typed with serde, with change notification (the same watcher as `AppearanceWatch`) |
+| `Restoration` | **new** | Size and position, section, sidebar width, navigation stack and scroll per window. It will connect to `xdg-session-management` when the compositor has it |
+| `UndoManager` | new | Undo and redo wired to the standard Edición ("Edit") actions |
 
-### 4. Estructura del crate
+### 4. Crate structure
 
-Un solo crate `barrier-kit`. Las capas 0, 2, 3, la columna App y la shell tienen carpeta; la capa 1 son módulos sueltos en la raíz, uno por familia de controles:
+A single crate, `barrier-kit`. Layers 0, 2, 3, the App column and the shell have a folder; layer 1 is loose modules at the root, one per control family:
 
 ```
 barrier-kit/src/
-  platform/   capa 0
-  *.rs        capa 1
-  views/      capa 2
-  patterns/   capa 3
-  app/        transversal
-  shell/      solo para la shell, detrás de la feature `shell` (ver abajo)
+  platform/   layer 0
+  *.rs        layer 1
+  views/      layer 2
+  patterns/   layer 3
+  app/        cross-cutting
+  shell/      shell only, behind the `shell` feature (see below)
 ```
 
-La lista de módulos de cada capa está en [Capas](../barrierkit/03-capas.md#dónde-está-cada-capa-en-el-código).
+The module list of each layer is in [Layers](../barrierkit/03-capas.en.md#where-each-layer-lives-in-the-code).
 
-No hay `prelude.rs`: cada app importa de su módulo (`barrier_kit::views::form::Form`).
+There is no `prelude.rs`: each app imports from its module (`barrier_kit::views::form::Form`).
 
-**La parte de la shell va separada, como en macOS.** El Dock, la barra de menús y la pantalla de bloqueo de macOS no usan la API pública de AppKit para lo que hacen distinto: usan frameworks privados (SkyLight y compañía). Aquí se reproduce esa separación dentro del mismo crate:
+**The shell part goes separately, as on macOS.** The macOS Dock, menu bar and lock screen do not use the public AppKit API for what they do differently: they use private frameworks (SkyLight and friends). Here that separation is reproduced inside the same crate:
 
-- Todo lo que solo usa `malaysia-shell` vive en su propia carpeta `src/shell/`, en archivos propios y nunca mezclado con el resto:
+- Everything only `malaysia-shell` uses lives in its own folder `src/shell/`, in its own files and never mixed with the rest:
 
   ```
   shell/
@@ -182,102 +182,102 @@ No hay `prelude.rs`: cada app importa de su módulo (`barrier_kit::views::form::
     activation.rs      tokens xdg-activation para lanzar apps desde el Dock
   ```
 
-- Los submódulos de `shell/` son privados (`mod activation;`, `mod infinity;`…); la API pública sale únicamente de `mod.rs` mediante `pub use`. Las vistas de la shell importan `barrier_kit::shell::{LayerSpec, run_layer, …}`, no los archivos internos.
+- The `shell/` submodules are private (`mod activation;`, `mod infinity;`…); the public API comes only from `mod.rs` through `pub use`. The shell views import `barrier_kit::shell::{LayerSpec, run_layer, …}`, not the internal files.
 
-- La carpeta solo se compila con la feature `shell` (`#[cfg(feature = "shell")] pub mod shell;`). `malaysia-shell` la activa en su `Cargo.toml`; Ajustes, Master Tengen App Show y cualquier app nueva no. Para ellas `barrier_kit::shell` no existe: ni lo compilan ni pueden llamarlo por error.
-- **Dirección de las dependencias:** `shell/` usa `platform/`, pero `platform/` no sabe nada de `shell/`. El runner expone puntos de extensión (ver «Puntos de extensión» más abajo), y `shell/` se engancha a ellos. Ningún `#[cfg(feature = "shell")]` suelto dentro de `platform/`, salvo la línea que registra el módulo.
-- Las vistas de la shell (menubar, dock, lock, launcher) siguen en `malaysia-shell` y se construyen con las capas 1–3 como cualquier app. `src/shell/` solo aporta los protocolos y tipos de plataforma que esas vistas necesitan.
+- The folder only compiles with the `shell` feature (`#[cfg(feature = "shell")] pub mod shell;`). `malaysia-shell` enables it in its `Cargo.toml`; Settings, Master Tengen App Show and any new app do not. For them `barrier_kit::shell` does not exist: they neither compile it nor can call it by mistake.
+- **Direction of dependencies:** `shell/` uses `platform/`, but `platform/` knows nothing about `shell/`. The runner exposes extension points (see «Extension points» below), and `shell/` hooks into them. No stray `#[cfg(feature = "shell")]` inside `platform/`, except the line that registers the module.
+- The shell views (menubar, dock, lock, launcher) stay in `malaysia-shell` and are built with layers 1–3 like any app. `src/shell/` only provides the protocols and platform types those views need.
 
-Publicar el menú propio de una app (`app_menu_export.rs`, `AppMenuAddress`) es de la plataforma, porque lo usan todas las apps.
+Publishing an app's own menu (`app_menu_export.rs`, `AppMenuAddress`) belongs to the platform, because every app uses it.
 
-#### Puntos de extensión
+#### Extension points
 
-- `Runtime` tiene una única ranura `extension: Option<Extension>`; la `Extension` guarda el estado de la shell como `Box<dyn Any>` y cuatro ganchos `fn`: `provide_contexts`, `new_seat`, `new_output` y `poll`.
-- Son `fn` (no closures ni traits) para que el núcleo los llame pasando `&mut Runtime`; la extensión nunca sale de `Runtime`: el código de la shell usa préstamos cortos (`extension` / `extension_mut`) y clona las asas que necesita.
-- `SurfaceRole::Extension(Box<dyn ExtensionRole>)` sustituye a `Layer` y `Lock`; `ExtensionRole::parent_popup` permite que una superficie layer sea padre de un `xdg_popup`.
-- `seat_handle` es de la plataforma (mover, redimensionar, grab de popups).
-- `run_window` no instala extensión; `run_layer` y `run_lock` instalan `ShellState`.
-- En el lote 1B-2 se completó: los archivos de la shell se movieron a `src/shell/` bajo la feature `shell`, los submódulos pasaron a ser privados detrás de una fachada de re-exports, `SurfaceSpec` se eliminó y `run_layer` recibe ahora `shell::LayerSpec` (las variantes `Lock` y `Window` desaparecieron porque `run_lock` y `run_window` tienen sus propias firmas), y la app del componente se instala en `ShellState::install` en lugar de `Runtime::app`.
+- `Runtime` has a single slot `extension: Option<Extension>`; the `Extension` holds the shell state as `Box<dyn Any>` and four `fn` hooks: `provide_contexts`, `new_seat`, `new_output` and `poll`.
+- They are `fn` (not closures or traits) so the core calls them passing `&mut Runtime`; the extension never leaves `Runtime`: the shell code uses short borrows (`extension` / `extension_mut`) and clones the handles it needs.
+- `SurfaceRole::Extension(Box<dyn ExtensionRole>)` replaces `Layer` and `Lock`; `ExtensionRole::parent_popup` lets a layer surface be the parent of an `xdg_popup`.
+- `seat_handle` belongs to the platform (move, resize, popup grab).
+- `run_window` installs no extension; `run_layer` and `run_lock` install `ShellState`.
+- Batch 1B-2 completed it: the shell files moved to `src/shell/` under the `shell` feature, the submodules became private behind a facade of re-exports, `SurfaceSpec` was removed and `run_layer` now receives `shell::LayerSpec` (the `Lock` and `Window` variants disappeared because `run_lock` and `run_window` have their own signatures), and the component's app is installed in `ShellState::install` instead of `Runtime::app`.
 
-Los únicos consumidores son `malaysia-shell` y `malaysia-settings`, así que la API puede romperse entre fases sin capa de compatibilidad.
+The only consumers are `malaysia-shell` and `malaysia-settings`, so the API can break between phases without a compatibility layer.
 
-### 5. Orden: capa por capa
+### 5. Order: layer by layer
 
-| Fase | Contenido | Sale cuando |
+| Phase | Content | Done when |
 |---|---|---|
-| 0 | Lotes de bugs L1a–L1d (auditoría P4) | Los informes de L1 revisados y con push |
-| 1 | **Capa 0**: escala fraccional, portapapeles, damage y región opaca, partir `platform/`, mover lo de la shell a `src/shell/` con la feature `shell` | Prueba visible en anidado y en el ThinkPad |
-| 2 | **Capa 1**: paleta semántica y tema reactivo, `TextStyle`, `Symbol`, `use_interaction`, todos los controles de la tabla | Cada control con su página en el catálogo y sus tests |
-| 3 | **App**: `Action`, `Application`, `Defaults` (la capa 2 los necesita) | El menú global y los atajos van por `Action` |
-| 4 | **Capa 2**: SplitView, SourceList, Toolbar, NavigationStack, Searchable, Form, Sheet/Alert/Popover. Después Table, CollectionView y TabView | Catálogo completo |
-| 5 | **Capa 3**: PreferencesWindow; `Restoration` | — |
-| 6 | **Ajustes del sistema rehecho** solo con la capa 3; se borran sus copias locales | Ajustes no define ningún control ni color propio |
+| 0 | Bug batches L1a–L1d (P4 audit) | The L1 reports reviewed and pushed |
+| 1 | **Layer 0**: fractional scale, clipboard, damage and opaque region, split `platform/`, move the shell parts to `src/shell/` with the `shell` feature | Visible test in nested mode and on the ThinkPad |
+| 2 | **Layer 1**: semantic palette and reactive theme, `TextStyle`, `Symbol`, `use_interaction`, every control in the table | Each control with its catalogue page and its tests |
+| 3 | **App**: `Action`, `Application`, `Defaults` (layer 2 needs them) | The global menu and the shortcuts go through `Action` |
+| 4 | **Layer 2**: SplitView, SourceList, Toolbar, NavigationStack, Searchable, Form, Sheet/Alert/Popover. Then Table, CollectionView and TabView | Complete catalogue |
+| 5 | **Layer 3**: PreferencesWindow; `Restoration` | — |
+| 6 | **System Settings rebuilt** with layer 3 only; its local copies are deleted | Settings defines no control or colour of its own |
 
-La app **Master Tengen App Show** se crea en la fase 2 con sus primeras páginas y crece con cada fase.
+The **Master Tengen App Show** app is created in phase 2 with its first pages and grows with each phase.
 
-Cada fase se divide en lotes pequeños para opencode, con prueba visible en la sesión anidada.
+Each phase is split into small batches for opencode, with a visible test in the nested session.
 
-### 6. App de catálogo: Master Tengen App Show
+### 6. Catalogue app: Master Tengen App Show
 
-**Master Tengen App Show** (crate y binario `tengen-app-show`, `app_id` `…tengen-app-show`) es la widget-factory del kit, equivalente a gtk4-widget-factory. Usa `PreferencesWindow`, con una sección por capa y una página por componente que muestra todas sus variantes y estados. Es a la vez:
+**Master Tengen App Show** (crate and binary `tengen-app-show`, `app_id` `…tengen-app-show`) is the kit's widget-factory, the equivalent of gtk4-widget-factory. It uses `PreferencesWindow`, with one section per layer and one page per component that shows all its variants and states. It is at the same time:
 
-- la documentación viva del kit;
-- el sitio de las pruebas visibles de cada lote;
-- la fuente de los tests de render (cada página se renderiza en claro, oscuro y tintado).
+- the living documentation of the kit;
+- the place for the visible tests of each batch;
+- the source of the render tests (each page renders in light, dark and tinted).
 
-Su grupo Animación enseña el movimiento: las curvas de Freya, el resorte de Grade (`Spring` es un `AnimatedValue` y se usa con `use_animation`), las duraciones de Tengen, las propiedades animables (opacidad, escala, rotación, posición, color, radio y anchura), los controles del kit que ya se animan, la entrada y salida de elementos, las transiciones entre diapositivas y pestañas, la respuesta a eventos (hover, pulsar, error, notificación y aviso) y el movimiento reducido. Es un mockup: de aquí sale lo que luego se lleve al kit. Su grupo Ventana cambia la titlebar (`TitlebarLayout`, rail, aparición), la barra de pantalla completa (`FullscreenBar`, `fullscreen_push`) y la barra lateral de su propia ventana.
+Its Animación ("Animation") group shows motion: the Freya curves, the Grade spring (`Spring` is an `AnimatedValue` and is used with `use_animation`), the Tengen durations, the animatable properties (opacity, scale, rotation, position, colour, radius and width), the kit controls that already animate, the entry and exit of elements, the transitions between slides and tabs, the response to events (hover, press, error, notification and alert) and reduced motion. It is a mockup: what later goes into the kit comes from here. Its Ventana ("Window") group changes the titlebar (`TitlebarLayout`, rail, appearance), the fullscreen bar (`FullscreenBar`, `fullscreen_push`) and the sidebar of its own window.
 
-**Marea** (`marea`) prueba el kit con medios: un destacado con vídeo de fondo, degradados que lo funden con la ventana, una isla de cristal encima, estanterías horizontales con carátulas y vista previa en vídeo, chips de género y un reproductor. Para ella el kit gana `video` (feature `video`: GStreamer decodifica con VA-API y cada fotograma llega como dmabuf importado en el `VkDevice` del kit, sin copias; sin dmabuf se descarga una vez y sin VA-API decodifica la CPU), `media` (`scrim`, `material`, `MediaButton`, `RoundButton`, `use_artwork`), `register_font`, `ScrollView` con dirección, controlador y barra opcional, y los tokens `MEDIA` y `SCROLL_BAR`. Los vídeos y fotogramas de prueba los genera `crates/marea/media/generate.mjs` a partir de las escenas del mockup.
+**Marea** (`marea`) tests the kit with media: a featured item with background video, gradients that blend it into the window, a glass island on top, horizontal shelves with posters and video preview, genre chips and a player. For it the kit gains `video` (feature `video`: GStreamer decodes with VA-API and each frame arrives as a dmabuf imported into the kit's `VkDevice`, with no copies; without dmabuf it is downloaded once and without VA-API the CPU decodes), `media` (`scrim`, `material`, `MediaButton`, `RoundButton`, `use_artwork`), `register_font`, `ScrollView` with direction, controller and optional bar, and the tokens `MEDIA` and `SCROLL_BAR`. `crates/marea/media/generate.mjs` generates the test videos and frames from the mockup scenes.
 
-## Estado (2026-11-02)
+## Status (2026-11-02)
 
-Hecho en `main`:
+Done in `main`:
 
-- **Capa 0**: puente AT-SPI con `accesskit_unix` (árbol, foco y foco de ventana en cada ventana; Focus y Click del lector de pantalla enfocan y pulsan), escala fraccional, separación de la shell, foco y modo teclado (Tab activa la navegación por teclado; las teclas van al nodo enfocado), portapapeles sobre `wl_data_device` y región opaca de las ventanas con fondo opaco.
-- **Capa 1**: `style` (paleta semántica y caras de texto), `symbol`, `interaction` (hover, pulsado, foco y anillo), `Button`, `IconButton`, `Switch`, `Checkbox`, `RadioGroup`, `ColorWell`, `ChoiceCards`, `SegmentedControl`, `ToggleGroup`, `Stepper`, `Slider` por pasos, `LevelSlider` (continuo y grueso), `TextField`, `SearchField`, `PopUpButton`, `ProgressBar`, `ProgressRing`, `Spinner`, `badge`, `divider`, `avatar`, `Link` y `use_tooltip` (popup sin grab bajo el puntero).
-- **App**: `Action` con `Shortcut` tipado, `load_defaults`/`save_defaults` con aviso de cambios, `launch` (instancia única; `Activate` trae la ventana al frente por xdg-activation y `ActivateAction` lanza la acción del mismo id que el menú), un campo de texto con el foco se queda Ctrl+A, C, V, X, Y y Z antes que el menú, restauración del panel, `use_undo` (`UndoManager` con las acciones estándar `UNDO`, Ctrl+Z, y `REDO`, Ctrl+Mayús+Z), que apaga y enciende sus entradas del menú global según la pila.
-- **Capa 2**: `Form`/`Section`/`Row`, `SplitView` (sustituye a `SidebarLayout`), `History` y `navigation_buttons` (acciones `GO_BACK` y `GO_FORWARD` con Alt+← y Alt+→; `PreferencesWindow` pone el título del panel en la barra), `SearchIndex`, `empty_state`, `sheet`, `Alert`, `TabView`, `Table`, `CollectionView`, `SidebarAccount` y `context_menu` (`MenuView` en el puntero con el clic secundario).
-- **Capa 3**: `PreferencesWindow` (buscador con sugerencias y recientes que se restauran, resultados con el icono de su panel y recorrido con ↑, ↓ y Enter) y `about_window`.
-- **Fondos tintados**: `Backdrop` pinta tres capas en 127°, 217° y 336° con dithering, desde una imagen (k-medias en OKLab, `vow_appearance::backdrop`) o tres colores, y funde entre fondos. Dentro, `Palette::current()` da su tinta y su acento (`Accent::System`, `Own` o `FromBackdrop`), igual en claro que en oscuro; los controles con relleno aceptan `.tint(Tint::Accent | Color | Backdrop)`. El contenido tiene que ser un componente hijo del `Backdrop`: las funciones evaluadas en el padre leen la paleta del sistema. La `Sidebar` deja ver el fondo o, en isla, la tiñe la app con `SidebarBackdrop::Tinted` (ADR 0057).
-- **Diseño adaptable**: `use_breakpoint()` da `Compact`, `Medium` o `Wide` según `BREAKPOINT`.
-- **Master Tengen App Show** (`tengen-app-show`), que reúne componentes, animaciones y titlebars, **Ondina** (`ondina`), el reproductor que usa los fondos, el acento propio, los tres tamaños y la navegación del kit, y **Marea** (`marea`), con medios; son las apps de prueba del repositorio.
-- **Fase 6**: Ajustes del sistema es un `PreferencesWindow` con un `Form`; ya no tiene controles, barra lateral ni buscador propios.
-- **Después de la fase 6**: selección primaria (`primary_selection()`), arrastrar y soltar entre apps (`drag`), `OutlineView` y `ColumnBrowser` (`views::tree`), abrir archivos y URLs (`portal`) y portapapeles con HTML y listas de archivos además de texto.
+- **Layer 0**: AT-SPI bridge with `accesskit_unix` (tree, focus and window focus in each window; the screen reader's Focus and Click focus and press), fractional scale, shell separation, focus and keyboard mode (Tab enables keyboard navigation; keys go to the focused node), clipboard on top of `wl_data_device` and opaque region of windows with an opaque background.
+- **Layer 1**: `style` (semantic palette and text faces), `symbol`, `interaction` (hover, pressed, focus and ring), `Button`, `IconButton`, `Switch`, `Checkbox`, `RadioGroup`, `ColorWell`, `ChoiceCards`, `SegmentedControl`, `ToggleGroup`, `Stepper`, stepped `Slider`, `LevelSlider` (continuous and thick), `TextField`, `SearchField`, `PopUpButton`, `ProgressBar`, `ProgressRing`, `Spinner`, `badge`, `divider`, `avatar`, `Link` and `use_tooltip` (popup without grab under the pointer).
+- **App**: `Action` with typed `Shortcut`, `load_defaults`/`save_defaults` with change notification, `launch` (single instance; `Activate` brings the window to the front through xdg-activation and `ActivateAction` fires the action with the same id as the menu), a focused text field keeps Ctrl+A, C, V, X, Y and Z before the menu, panel restoration, `use_undo` (`UndoManager` with the standard actions `UNDO`, Ctrl+Z, and `REDO`, Ctrl+Shift+Z), which disables and enables its global menu entries according to the stack.
+- **Layer 2**: `Form`/`Section`/`Row`, `SplitView` (replaces `SidebarLayout`), `History` and `navigation_buttons` (actions `GO_BACK` and `GO_FORWARD` with Alt+← and Alt+→; `PreferencesWindow` puts the panel title in the bar), `SearchIndex`, `empty_state`, `sheet`, `Alert`, `TabView`, `Table`, `CollectionView`, `SidebarAccount` and `context_menu` (`MenuView` at the pointer on secondary click).
+- **Layer 3**: `PreferencesWindow` (search field with suggestions and recents that are restored, results with the icon of their panel and traversal with ↑, ↓ and Enter) and `about_window`.
+- **Tinted backdrops**: `Backdrop` paints three layers at 127°, 217° and 336° with dithering, from an image (k-means in OKLab, `vow_appearance::backdrop`) or three colours, and cross-fades between backdrops. Inside, `Palette::current()` gives its ink and its accent (`Accent::System`, `Own` or `FromBackdrop`), the same in light as in dark; filled controls accept `.tint(Tint::Accent | Color | Backdrop)`. The content has to be a child component of the `Backdrop`: functions evaluated in the parent read the system palette. The `Sidebar` lets the backdrop show through or, as an island, the app tints it with `SidebarBackdrop::Tinted` (ADR 0057).
+- **Adaptive layout**: `use_breakpoint()` gives `Compact`, `Medium` or `Wide` according to `BREAKPOINT`.
+- **Master Tengen App Show** (`tengen-app-show`), which gathers components, animations and titlebars, **Ondina** (`ondina`), the player that uses the backdrops, its own accent, the three sizes and the kit navigation, and **Marea** (`marea`), with media; they are the test apps of the repository.
+- **Phase 6**: System Settings is a `PreferencesWindow` with a `Form`; it no longer has its own controls, sidebar or search field.
+- **After phase 6**: primary selection (`primary_selection()`), drag and drop between apps (`drag`), `OutlineView` and `ColumnBrowser` (`views::tree`), opening files and URLs (`portal`) and a clipboard with HTML and file lists besides text.
 
-Pendiente. Nada de esto se construye hasta que su motivo desaparezca (regla 2 de AGENTS.md: nada «por si acaso»):
+Pending. None of this is built until its reason goes away (rule 2 of AGENTS.md: nothing «por si acaso» ("just in case")):
 
-- **Bloqueado por Freya 0.4.3:** damage parcial. `RenderPipeline::render` repinta el árbol entero (`freya-core/src/render_pipeline.rs`, «TODO: Use incremental rendering»).
-- **Espera a la primera app que lo use:**
-  - Capa 1: `Image` propio; hoy basta `ImageViewer` de Freya dentro de los controles.
-  - Capa 2: hueco de búsqueda y desbordamiento en la `Titlebar`, que ya tiene zonas `left`, `right` y título.
-  - App: política al cerrar la última ventana y restauración de la pila de navegación y del desplazamiento.
-- **Depende del compositor:** la posición de la ventana, con `xdg-session-management`.
+- **Blocked by Freya 0.4.3:** partial damage. `RenderPipeline::render` repaints the whole tree (`freya-core/src/render_pipeline.rs`, «TODO: Use incremental rendering»).
+- **Waits for the first app that uses it:**
+  - Layer 1: an `Image` of our own; today Freya's `ImageViewer` inside the controls is enough.
+  - Layer 2: search slot and overflow in the `Titlebar`, which already has `left` and `right` zones and a title.
+  - App: policy when the last window closes and restoration of the navigation stack and of the scroll.
+- **Depends on the compositor:** the window position, with `xdg-session-management`.
 
-Decidido: los atajos del menú siguen guardándose como texto (`MenuItem::Action::shortcut`). La barra de menús de la shell recibe así los aceleradores de GTK y dbusmenu de otras apps, y `find_menu_shortcut` solo recorre el menú de la ventana con el foco, que es pequeño. Las acciones propias del kit usan `Shortcut` tipado.
+Decided: menu shortcuts stay stored as text (`MenuItem::Action::shortcut`). That way the shell menu bar receives the GTK and dbusmenu accelerators of other apps, and `find_menu_shortcut` only walks the menu of the focused window, which is small. The kit's own actions use typed `Shortcut`.
 
-## Consecuencias
+## Consequences
 
-- Ajustes del sistema deja de definir controles: `controls.rs`, `sidebar.rs`, `groups.rs` y sus `svg_viewer`/`rgba` locales desaparecen en la fase 6.
-- `barrier_kit::controls` deja de re-exportar componentes de Freya con su aspecto por defecto.
-- El menú global, los atajos y la barra de herramientas comparten un único modelo de acciones.
-- Se añaden muchos tokens a `tengen/components.json` (controles, split view, toolbar, tabla…) y el generador de `vow-design` crece.
-- El trabajo es largo. Rehacer Ajustes queda al final de la fase 6.
+- System Settings stops defining controls: `controls.rs`, `sidebar.rs`, `groups.rs` and their local `svg_viewer`/`rgba` disappear in phase 6.
+- `barrier_kit::controls` stops re-exporting Freya components with their default look.
+- The global menu, the shortcuts and the toolbar share a single action model.
+- Many tokens are added to `tengen/components.json` (controls, split view, toolbar, table…) and the `vow-design` generator grows.
+- The work is long. Rebuilding Settings comes at the end of phase 6.
 
-## Referencias
+## References
 
-- [`0011`](0011-valores-de-diseno-como-constantes-rust.md), [`0032`](0032-neptunia-como-fuente-de-diseno.md), [`0046`](0046-tengen-lenguaje-visual.md): tokens y Tengen.
-- [`0021`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0021-superficie-de-configuracion-y-control.md): dominios `.domain` y D-Bus.
-- [`0034`](0034-celestialkit-sobre-freya.md): BarrierKit sobre Freya.
-- [`0035`](0035-identificacion-de-apps-propias-y-csd.md): CSD de las apps propias.
-- [`0040`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0040-menu-global-real.md): menú global.
-- [`0041`](0041-barra-lateral-en-isla.md): barra lateral en isla.
-- [`0042`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0042-ajustes-del-sistema.md): Ajustes del sistema.
+- [`0011`](0011-valores-de-diseno-como-constantes-rust.en.md), [`0032`](0032-neptunia-como-fuente-de-diseno.en.md), [`0046`](0046-tengen-lenguaje-visual.en.md): tokens and Tengen.
+- [`0021`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0021-superficie-de-configuracion-y-control.en.md): `.domain` domains and D-Bus.
+- [`0034`](0034-celestialkit-sobre-freya.en.md): BarrierKit on top of Freya.
+- [`0035`](0035-identificacion-de-apps-propias-y-csd.en.md): CSD of our own apps.
+- [`0040`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0040-menu-global-real.en.md): global menu.
+- [`0041`](0041-barra-lateral-en-isla.en.md): island sidebar.
+- [`0042`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0042-ajustes-del-sistema.en.md): System Settings.
 
-## Anexo A · Cómo se escribe una app
+## Annex A · How an app is written
 
-Es la API de `main` a 2026-11-03.
+This is the API of `main` as of 2026-11-03.
 
-### Una app de preferencias con la capa 3
+### A preferences app with layer 3
 
 ```rust
 use barrier_kit::app::{Action, Instance, Launch, Shortcut, ShortcutKey, launch};
@@ -361,9 +361,9 @@ fn main() {
 }
 ```
 
-- `launch` da la instancia única: una segunda ejecución reenvía su token de activación y sale.
-- Una `Action` se declara una vez y alimenta el menú global, su atajo y `use_menu_action`. Los atajos solo llegan si la acción está en el menú de la ventana.
-- `use_undo` envuelve un `State` de la app. Cada `set` guarda el valor anterior, y `UNDO` y `REDO` lo recorren desde el menú, el atajo o los métodos `undo` y `redo`.
-- `PreferencesWindow` construye la barra lateral, el buscador y la restauración del panel. Las `keywords` de cada `Row` entran en la búsqueda.
-- Los controles son controlados: `selected`, `value`, `on` o `checked` mandan cuando la app los cambia, y el control conserva lo que cambia el usuario mientras tanto. Por eso el `ColorWell` muestra lo que deshace la app.
-- Los colores y medidas salen de `vow_design`. Una app no escribe literales de diseño.
+- `launch` gives the single instance: a second run forwards its activation token and exits.
+- An `Action` is declared once and feeds the global menu, its shortcut and `use_menu_action`. Shortcuts only arrive if the action is in the window's menu.
+- `use_undo` wraps a `State` of the app. Each `set` saves the previous value, and `UNDO` and `REDO` walk it from the menu, the shortcut or the `undo` and `redo` methods.
+- `PreferencesWindow` builds the sidebar, the search field and the panel restoration. The `keywords` of each `Row` go into the search.
+- Controls are controlled: `selected`, `value`, `on` or `checked` rule when the app changes them, and the control keeps what the user changes in the meantime. That is why the `ColorWell` shows what the app undoes.
+- Colours and measurements come from `vow_design`. An app does not write design literals.

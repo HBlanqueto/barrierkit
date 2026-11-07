@@ -1,16 +1,15 @@
-# 11. Infraestructura de app
+# 11. App infrastructure
 
-**Objetivo:** dar a una app lo que se espera de cualquier app del escritorio:
-acciones con atajos, menú global, una sola instancia, preferencias guardadas y
-deshacer.
-**Lector:** quien prepara una app para usarla de verdad.
+**Goal:** give an app what any desktop app is expected to have: actions with
+shortcuts, a global menu, a single instance, saved preferences and undo.
+**Reader:** anyone preparing an app for real use.
 
-Todo está en `barrier_kit::app` y `barrier_kit::app_menu`.
+Everything lives in `barrier_kit::app` and `barrier_kit::app_menu`.
 
-## Acciones y atajos: `Action`
+## Actions and shortcuts: `Action`
 
-Una acción se declara una vez y sirve para el menú global, el atajo y los
-menús contextuales:
+An action is declared once and serves the global menu, the shortcut and the
+context menus:
 
 ```rust
 const RESET: Action =
@@ -23,21 +22,21 @@ use_menu_action(move |id| {
 });
 ```
 
-- `Shortcut::new(modificadores, tecla)` o `Shortcut::ctrl(tecla)`; las teclas
-  son `ShortcutKey::Char(c)`, `Left`, `Right` y `Named(NamedKey)` (`ArrowUp`, `F11`, `PageDown`…).
-- `RESET.item(true)` crea la entrada del menú; `item_with(true, CheckState::Checkbox(on))`
-  la crea con casilla.
-- El handler corre siempre en el hilo de la interfaz.
-- Un atajo solo llega si su acción está en el menú de la ventana. Cuando dispara su acción, la tecla ya no llega a la app.
+- `Shortcut::new(modificadores, tecla)` or `Shortcut::ctrl(tecla)`; the keys
+  are `ShortcutKey::Char(c)`, `Left`, `Right` and `Named(NamedKey)` (`ArrowUp`, `F11`, `PageDown`…).
+- `RESET.item(true)` creates the menu entry; `item_with(true, CheckState::Checkbox(on))`
+  creates it with a checkbox.
+- The handler always runs on the interface thread.
+- A shortcut only arrives if its action is in the window's menu. When it fires its action, the key no longer reaches the app.
 
-| Acción del kit | Atajo |
+| Kit action | Shortcut |
 |---|---|
 | `UNDO` | Ctrl+Z |
-| `REDO` | Ctrl+Mayús+Z |
+| `REDO` | Ctrl+Shift+Z |
 | `GO_BACK`, `GO_FORWARD` | Alt+←, Alt+→ |
 | `TOGGLE_SIDEBAR` | Ctrl+Alt+S |
 
-## Menú global: `AppMenu`
+## Global menu: `AppMenu`
 
 ```rust
 WindowOptions::new("Notas", "notas").menu(AppMenu::new(vec![Menu::new(
@@ -46,24 +45,24 @@ WindowOptions::new("Notas", "notas").menu(AppMenu::new(vec![Menu::new(
 )]))
 ```
 
-El menú se publica por D-Bus (dbusmenu) y, si el compositor ofrece
-`org_kde_kwin_appmenu_manager`, aparece en la barra de menús de Malaysia.
-Sin ese protocolo sigue existiendo en D-Bus.
+The menu is published over D-Bus (dbusmenu) and, if the compositor offers
+`org_kde_kwin_appmenu_manager`, it appears in the Malaysia menu bar.
+Without that protocol it still exists on D-Bus.
 
-Para cambiar el menú en vivo, la app toma el `MenuHandle` de la ventana con
+To change the menu live, the app takes the window's `MenuHandle` with
 `try_consume_root_context::<MenuHandle>()`:
 
-- `update(id, |item| ..)` cambia un ítem o un submenú con id: etiqueta,
-  `enabled`, `check` o hijos.
-- `set_menu_items(título, ítems)` sustituye los ítems de un menú de primer
-  nivel, por ejemplo una lista de perfiles.
+- `update(id, |item| ..)` changes an item or a submenu with an id: label,
+  `enabled`, `check` or children.
+- `set_menu_items(title, items)` replaces the items of a top-level menu, for
+  example a list of profiles.
 
-Desde un componente, `use_menu_enabled(id, sí)`, `use_menu_label(id, texto)`,
-`use_menu_checked(id, sí)` y `use_submenu_items(id, ítems)` hacen lo mismo y
-solo publican cuando el valor cambia. Un submenú toma id con
+From a component, `use_menu_enabled(id, yes)`, `use_menu_label(id, text)`,
+`use_menu_checked(id, yes)` and `use_submenu_items(id, items)` do the same
+and only publish when the value changes. A submenu takes an id with
 `MenuItem::submenu(..).with_id(id)`.
 
-## Una sola instancia: `launch`
+## Single instance: `launch`
 
 ```rust
 let app_id = barrier_kit::titlebar::app_id("notas").leak();
@@ -74,29 +73,30 @@ let instancia = match launch(app_id) {
 };
 ```
 
-- Una segunda ejecución reenvía su token de activación a la primera y sale.
-- La primera trae su ventana al frente (xdg-activation).
-- Dentro de `render`, `instancia.listen()` (una vez, en `use_hook`) atiende
-  esos avisos y `ActivateAction`, que lanza la acción del mismo id.
-- Sin bus de sesión, `launch` falla y la app sigue sin instancia única.
+- A second run forwards its activation token to the first one and exits.
+- The first one brings its window to the front (xdg-activation).
+- Inside `render`, `instancia.listen()` (once, in `use_hook`) handles those
+  notices and `ActivateAction`, which triggers the action with the same id.
+- Without a session bus, `launch` fails and the app keeps running without a
+  single instance.
 
-## Preferencias y restauración
+## Preferences and restoration
 
-| Función | Fichero | Para |
+| Function | File | For |
 |---|---|---|
-| `load_defaults::<T>(app_id)`, `save_defaults(app_id, &valor)` | `~/.config/malaysia/<app_id>.domain` (TOML) | Preferencias del usuario |
-| `use_defaults::<T>(app_id)` | el mismo | Las lee y se actualiza si el fichero cambia |
-| `use_watched(load)` | cualquier `.domain` de las dos carpetas | Vuelve a llamar a `load` cuando cambia un dominio |
-| `load_restoration::<T>(app_id)`, `save_restoration(..)` | `~/.local/share/malaysia/<app_id>.state` | Estado de la ventana: panel, búsquedas, barra lateral |
-| `read_toml::<T>(ruta)`, `write_toml(ruta, &valor)` | cualquier ruta | La base de las anteriores, para ficheros propios |
+| `load_defaults::<T>(app_id)`, `save_defaults(app_id, &valor)` | `~/.config/malaysia/<app_id>.domain` (TOML) | User preferences |
+| `use_defaults::<T>(app_id)` | the same | Reads them and updates if the file changes |
+| `use_watched(load)` | any `.domain` in both folders | Calls `load` again when a domain changes |
+| `load_restoration::<T>(app_id)`, `save_restoration(..)` | `~/.local/share/malaysia/<app_id>.state` | Window state: pane, searches, sidebar |
+| `read_toml::<T>(ruta)`, `write_toml(ruta, &valor)` | any path | The base of the ones above, for your own files |
 
-`T` es un struct con `Serialize` y `Deserialize`. Si el fichero falta, la
-lectura da `T::default()`; si no se entiende, avisa, lo copia a `.bak` y da
-`T::default()`. La escritura es atómica (fichero temporal y renombrado).
-`MALAYSIA_CONFIG_DIR` y `MALAYSIA_DATA_DIR` cambian las carpetas; sin ellas,
-salen de `vow_appearance::xdg` (`config_home`, `data_home`). El tamaño de la ventana y si estaba maximizada se restauran solos.
+`T` is a struct with `Serialize` and `Deserialize`. If the file is missing,
+reading gives `T::default()`; if it cannot be parsed, it warns, copies it to
+`.bak` and gives `T::default()`. Writing is atomic (temporary file and rename).
+`MALAYSIA_CONFIG_DIR` and `MALAYSIA_DATA_DIR` change the folders; without them,
+they come from `vow_appearance::xdg` (`config_home`, `data_home`). The window size, and whether it was maximized, are restored automatically.
 
-## Deshacer: `use_undo`
+## Undo: `use_undo`
 
 ```rust
 let color = use_state(|| 0);
@@ -105,11 +105,11 @@ historial.set(3);
 historial.undo();
 ```
 
-`use_undo` envuelve un `State`. Cada `set` guarda el valor anterior; `UNDO` y
-`REDO` lo recorren desde el menú o el atajo, y sus entradas del menú se apagan
-cuando la pila está vacía.
+`use_undo` wraps a `State`. Each `set` saves the previous value; `UNDO` and
+`REDO` walk through it from the menu or the shortcut, and their menu entries
+are disabled when the stack is empty.
 
-## Portapapeles
+## Clipboard
 
 ```rust
 use freya_clipboard::prelude::Clipboard;
@@ -117,12 +117,12 @@ Clipboard::set("texto".to_string())?;
 let pegado: String = Clipboard::get()?;
 ```
 
-El kit da a Freya un portapapeles de texto sobre `wl_data_device`; la app usa
-el `Clipboard` de `freya-clipboard`.
+The kit gives Freya a text clipboard over `wl_data_device`; the app uses the
+`Clipboard` from `freya-clipboard`.
 
-## Ejemplo completo
+## Complete example
 
-El [ADR 0047, anexo A](../decisiones/0047-barrierkit-en-capas.md#anexo-a--cómo-se-escribe-una-app)
-une todo esto en una app de 60 líneas.
+[ADR 0047, annex A](../decisiones/0047-barrierkit-en-capas.en.md#annex-a--how-an-app-is-written)
+puts all of this together in a 60-line app.
 
-Siguiente: [12. Animaciones](12-animaciones.md).
+Next: [12. Animations](12-animaciones.en.md).

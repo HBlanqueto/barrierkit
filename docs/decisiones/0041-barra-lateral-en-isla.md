@@ -1,65 +1,65 @@
-# 0041 — Barra lateral en isla
+# 0041 — Island sidebar
 
-Estado: **aceptado** (2026-10-26).
+Status: **accepted** (2026-10-26).
 
-Yuki es hoy Malaysia y CelestialKit (`celestial-kit`) es BarrierKit (`barrier-kit`) desde la [ADR 0043](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0043-rebranding-a-malaysia.md).
+Yuki is now Malaysia and CelestialKit (`celestial-kit`) is BarrierKit (`barrier-kit`) since [ADR 0043](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0043-rebranding-a-malaysia.en.md).
 
-## Contexto
+## Context
 
-`celestial-kit` provee una barra lateral reusable (`Sidebar`, `SidebarItem`,
-`SidebarLayout`) usada por `yuki-settings` y pensada para futuras apps propias.
-El tema Neptunia define dos formas de dibujarla:
+`celestial-kit` provides a reusable sidebar (`Sidebar`, `SidebarItem`,
+`SidebarLayout`) used by `yuki-settings` and intended for future own apps.
+The Neptunia theme defines two ways to draw it:
 
-- **Isla**: tarjeta flotante con esquinas redondeadas, borde sutil, línea
-  interior, sombra y desenfoque de fondo.
-- **Plana**: lista empotrada que se confunde con el fondo de la ventana.
+- **Island**: a floating card with rounded corners, a subtle border, an
+  inner line, a shadow and a background blur.
+- **Flat**: an embedded list that blends with the window background.
 
-La barra debe poder cambiar de modo por configuración sin tocar el código de
-las apps.
+The sidebar must be able to switch mode through configuration without touching the code of
+the apps.
 
-## Decisión
+## Decision
 
-1. **El estilo de la barra es un token de diseño.**
-   `components.window.sidebar.default-style` en
-   `crates/yuki-design/neptunia/components.json` vale `"island"`. El modo plano
-   es `"flat"`.
+1. **The sidebar style is a design token.**
+   `components.window.sidebar.default-style` in
+   `crates/yuki-design/neptunia/components.json` is `"island"`. Flat mode
+   is `"flat"`.
 
-2. **Los valores concretos viven en `yuki-design`, nunca en las apps.**
-   Neptunia fija inset, radio, colores (`sidebar-island-bg`,
-   `sidebar-island-rim`, `sidebar-island-inner`, ...), sombra (`shadow.island`)
-   y desenfoque (`30`) en `components.json` y `tokens.json`. `build.rs` los
-   exporta como constantes Rust.
+2. **The concrete values live in `yuki-design`, never in the apps.**
+   Neptunia sets the inset, radius, colors (`sidebar-island-bg`,
+   `sidebar-island-rim`, `sidebar-island-inner`, ...), shadow (`shadow.island`)
+   and blur (`30`) in `components.json` and `tokens.json`. `build.rs`
+   exports them as Rust constants.
 
-3. **`yuki-appearance` resuelve el estilo en tiempo de ejecución.**
-   `AppearanceConfig::sidebar_style` (`SidebarStyle::Island | Flat`) se lee de
-   `appearance.domain`; por defecto es `Island`. `resolve()` devuelve un
-   `SidebarSurface` con los colores y la sombra ya mezclados para el esquema
-   actual.
+3. **`yuki-appearance` resolves the style at runtime.**
+   `AppearanceConfig::sidebar_style` (`SidebarStyle::Island | Flat`) is read from
+   `appearance.domain`; by default it is `Island`. `resolve()` returns a
+   `SidebarSurface` with the colors and the shadow already blended for the current
+   scheme.
 
-4. **`celestial-kit` dibuja la barra a partir de `SidebarSurface`.** La app
-   solo monta `Sidebar::new()` con sus hijos; el kit aplica el fondo, el radio,
-   la sombra y los semáforos según el estilo resuelto.
+4. **`celestial-kit` draws the sidebar from `SidebarSurface`.** The app
+   only mounts `Sidebar::new()` with its children; the kit applies the background, the radius,
+   the shadow and the traffic lights according to the resolved style.
 
-5. **En modo claro la isla no usa borde ni sombra.** En `tokens.json` el color
-   del borde y la sombra son transparentes en claro; en oscuro/tinte oscuro se
-   activan para separar la isla del fondo de ventana.
+5. **In light mode the island uses no border or shadow.** In `tokens.json` the
+   border color and the shadow are transparent in light; in dark/dark tint they
+   are enabled to separate the island from the window background.
 
-## Consecuencias
+## Consequences
 
-- Las apps propias obtienen el estilo Neptunia automáticamente.
-- Cambiar el estilo por defecto solo requiere editar `components.json`;
-  recompilar regenera las constantes.
-- El modo plano existe pero no se expone en la UI de Ajustes todavía.
-- La barra de `yuki-settings` muestra los semáforos integrados gracias a
-  `.traffic_lights(true)`; su posición también sale de los tokens.
+- The own apps get the Neptunia style automatically.
+- Changing the default style only requires editing `components.json`;
+  rebuilding regenerates the constants.
+- Flat mode exists but is not exposed in the Ajustes ("Settings") UI yet.
+- The `yuki-settings` sidebar shows the integrated traffic lights thanks to
+  `.traffic_lights(true)`; their position also comes from the tokens.
 
-## Referencias
+## References
 
-- [`0032`](0032-neptunia-como-fuente-de-diseno.md) — Neptunia
-  como fuente de diseño.
-- [`0034`](0034-celestialkit-sobre-freya.md) — CelestialKit sobre Freya.
-- `crates/yuki-design/neptunia/components.json` — definición de `sidebar`.
-- `crates/yuki-design/neptunia/tokens.json` — colores de la isla.
-- `crates/yuki-appearance/src/lib.rs` — `SidebarStyle` y `SidebarSurface`.
-- `crates/yuki-settings/src/main.rs` — uso de `SidebarLayout`.
-- `crates/celestial-kit/src/sidebar.rs` — componente del kit.
+- [`0032`](0032-neptunia-como-fuente-de-diseno.en.md) — Neptunia
+  as the design source.
+- [`0034`](0034-celestialkit-sobre-freya.en.md) — CelestialKit on Freya.
+- `crates/yuki-design/neptunia/components.json` — definition of `sidebar`.
+- `crates/yuki-design/neptunia/tokens.json` — island colors.
+- `crates/yuki-appearance/src/lib.rs` — `SidebarStyle` and `SidebarSurface`.
+- `crates/yuki-settings/src/main.rs` — use of `SidebarLayout`.
+- `crates/celestial-kit/src/sidebar.rs` — kit component.

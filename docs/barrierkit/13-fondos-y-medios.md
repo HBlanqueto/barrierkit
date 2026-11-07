@@ -1,61 +1,62 @@
-# 13. Fondos tintados y medios
+# 13. Tinted backdrops and media
 
-**Objetivo:** pintar fondos de color calculados desde una imagen, dar a una
-zona su propio acento y reproducir vídeo.
-**Lector:** quien hace apps con carátulas, fotos o vídeo.
+**Goal:** paint color backdrops computed from an image, give an area its own
+accent and play video.
+**Reader:** anyone who makes apps with cover art, photos or video.
 
-## `Backdrop`: un fondo que tiñe su contenido
+## `Backdrop`: a backdrop that tints its content
 
 ```rust
 Backdrop::new(BackdropSource::Image(portada), Reproductor).accent(Accent::FromBackdrop)
 ```
 
-| Fuente | Resultado |
+| Source | Result |
 |---|---|
-| `BackdropSource::Image(bytes)` | Muestrea la imagen y saca tres colores con k-medias en OKLab (`vow_appearance::backdrop::palette_from_pixels`) |
-| `BackdropSource::Colors([a, b, c])` | Usa tres colores dados |
-| `BackdropSource::None` | Sin fondo: la ventana normal del sistema |
+| `BackdropSource::Image(bytes)` | Samples the image and extracts three colors with k-means in OKLab (`vow_appearance::backdrop::palette_from_pixels`) |
+| `BackdropSource::Colors([a, b, c])` | Uses three given colors |
+| `BackdropSource::None` | No backdrop: the normal system window |
 
-1. Pinta tres capas de degradado a 127°, 217° y 336° con dithering, para que
-   no se vean bandas.
-2. Elige una tinta legible (clara u oscura) según el fondo. Es la misma en
-   modo claro y oscuro.
-3. Al cambiar de fuente, funde de un fondo a otro en `DURATION_SLOW_MS`.
+1. It paints three gradient layers at 127°, 217° and 336° with dithering, so
+   no banding shows.
+2. It picks a legible ink (light or dark) based on the backdrop. It is the same
+   in light and dark mode.
+3. When the source changes, it fades from one backdrop to the other over
+   `DURATION_SLOW_MS`.
 
-### El acento dentro del fondo
+### The accent inside the backdrop
 
-| `Accent` | El acento es… |
+| `Accent` | The accent is… |
 |---|---|
-| `System` (por defecto) | El del sistema |
-| `Own(color)` | Uno propio de la app |
-| `FromBackdrop` | El color más vivo del fondo |
+| `System` (default) | The system one |
+| `Own(color)` | The app's own |
+| `FromBackdrop` | The most vivid color of the backdrop |
 
-Los controles con relleno aceptan `.tint(Tint::Backdrop)` para rellenarse con
-el degradado del fondo.
+Controls with a fill accept `.tint(Tint::Backdrop)` to fill with the backdrop
+gradient.
 
-![Formulario sobre fondo tintado](assets/componentes/backdrop-light.png)
+![Form over a tinted backdrop](assets/componentes/backdrop-light.png)
 
-**Importante:** el contenido tiene que ser un componente hijo del `Backdrop`
-(un `struct` que implementa `Component`). Las funciones evaluadas en el padre
-leen todavía la paleta del sistema.
+**Important:** the content must be a child component of the `Backdrop` (a
+`struct` that implements `Component`). Functions evaluated in the parent still
+read the system palette.
 
-## Medios: `media`
+## Media: `media`
 
-| Pieza | Para |
+| Piece | For |
 |---|---|
-| `scrim(ScrimEdge::Leading \| Bottom)` | Velo degradado que funde una imagen o un vídeo con la ventana |
-| `material(radio)`, `top_glass()` | Cristal sobre el contenido |
-| `MediaButton::new(texto).symbol(Symbol::Play)` | Botón grande de reproducir |
-| `RoundButton::new(símbolo, etiqueta).selected(bool)` | Botón redondo de cristal |
-| `use_artwork(ruta)` | Carga una carátula en segundo plano |
-| `use_artwork_from(cargador)` | Igual, con los bytes de cualquier origen (por ejemplo, `video::fetch(url)`) |
-| `register_font(bytes)` | Registra una fuente propia (por ejemplo, para títulos) |
+| `scrim(ScrimEdge::Leading \| Bottom)` | Gradient scrim that blends an image or a video into the window |
+| `material(radio)`, `top_glass()` | Glass over the content |
+| `MediaButton::new(texto).symbol(Symbol::Play)` | Large play button |
+| `RoundButton::new(símbolo, etiqueta).selected(bool)` | Round glass button |
+| `use_artwork(ruta)` | Loads cover art in the background |
+| `use_artwork_from(cargador)` | The same, with bytes from any source (for example, `video::fetch(url)`) |
+| `register_font(bytes)` | Registers a custom font (for example, for titles) |
 
-## Cristal que se funde: `GlassContainer`
+## Glass that merges: `GlassContainer`
 
-`GlassContainer` (`barrier_kit::glass_container`) es el `GlassEffectContainer`
-de SwiftUI. Cada `.item(id, radio, contenido)` lleva su forma de cristal, y
-`id` hace de `glassEffectID`.
+`GlassContainer` (`barrier_kit::glass_container`) is SwiftUI's
+`GlassEffectContainer`. Each `.item(id, radius, content)` carries its glass
+shape, and `id` plays the role of `glassEffectID`.
 
 ```rust
 GlassContainer::new(20.0)
@@ -64,56 +65,57 @@ GlassContainer::new(20.0)
     .item("quitar", 22.0, IconButton::new(Symbol::Minus, "Quitar"))
 ```
 
-1. Cada elemento mide su marco y el contenedor pinta la unión de todos con un
-   único cristal: desenfoque del fondo, el tinte `MEDIA.round_glass` y el
-   borde `MEDIA.round_rim`.
-2. Las formas a menos de `spacing` se funden con un mínimo suave de sus
-   distancias ([smin](https://iquilezles.org/articles/smin/)) en un shader
-   SkSL; `gap` es el hueco del diseño entre elementos.
-3. Cuando cambia el conjunto, cada forma va de su marco anterior al nuevo. Una
-   forma nueva sale de la vecina más cercana y una que se va se funde en ella.
-4. La curva es el resorte del kit (`DURATION_BASE`, sin rebote) y respeta
-   `reduced_motion`. Apple no publica la curva de la transformación ni hay
-   capturas medidas de macOS 26; cuando las haya, cambian solo la duración y el
-   rebote.
-5. Caben `MAX_SHAPES` (8) formas por contenedor.
+1. Each item measures its frame and the container paints the union of all of
+   them as a single glass: backdrop blur, the `MEDIA.round_glass` tint and
+   the `MEDIA.round_rim` border.
+2. Shapes closer than `spacing` merge through a smooth minimum of their
+   distances ([smin](https://iquilezles.org/articles/smin/)) in an SkSL
+   shader; `gap` is the layout gap between items.
+3. When the set changes, each shape goes from its previous frame to the new
+   one. A new shape grows out of its nearest neighbour and one that leaves
+   melts into it.
+4. The curve is the kit's spring (`DURATION_BASE`, no bounce) and it honours
+   `reduced_motion`. Apple does not publish the morph curve and there are no
+   measured macOS 26 captures; when there are, only the duration and the
+   bounce change.
+5. A container holds up to `MAX_SHAPES` (8) shapes.
 
-## Vídeo (feature `video`)
+## Video (`video` feature)
 
 ```rust
 let video = VideoStream::open("trailer.webm", true)?;
 VideoView::new(video).width(Size::fill()).corner_radius(12.0)
 ```
 
-GStreamer decodifica y el kit elige el camino más directo:
+GStreamer decodes and the kit picks the most direct path:
 
-| `Decoding` | Cuándo | Coste |
+| `Decoding` | When | Cost |
 |---|---|---|
-| `GpuZeroCopy` | Hay VA-API y el dispositivo Vulkan importa dmabuf | Sin copias: el fotograma va de la GPU a la GPU |
-| `GpuDownload` | Hay VA-API pero no importación dmabuf | Una descarga por fotograma |
-| `Cpu` | No hay VA-API | Decodifica la CPU |
+| `GpuZeroCopy` | VA-API is present and the Vulkan device imports dmabuf | No copies: the frame goes from GPU to GPU |
+| `GpuDownload` | VA-API is present but there is no dmabuf import | One download per frame |
+| `Cpu` | No VA-API | The CPU decodes |
 
-`video.decoding()` dice cuál se usa. `play()`, `pause()`, `seek(segundos)`,
-`position()` y `duration()` controlan la reproducción.
+`video.decoding()` tells which one is in use. `play()`, `pause()`,
+`seek(segundos)`, `position()` and `duration()` control playback.
 
-El origen puede ser remoto:
+The source can be remote:
 
-| Constructor | Origen |
+| Constructor | Source |
 |---|---|
-| `VideoStream::open(ruta, bucle)` | Fichero local |
-| `VideoStream::open_uri(url, bucle)` | `http(s)`, con vídeo y audio en el mismo flujo |
-| `VideoStream::open_uris(url_vídeo, url_audio, bucle)` | `http(s)`, con vídeo y audio separados (como sirve YouTube) |
+| `VideoStream::open(ruta, bucle)` | Local file |
+| `VideoStream::open_uri(url, bucle)` | `http(s)`, with video and audio in the same stream |
+| `VideoStream::open_uris(url_vídeo, url_audio, bucle)` | `http(s)`, with video and audio apart (as YouTube serves them) |
 
-`video::fetch(url)` descarga los bytes de un fichero remoto, por ejemplo una
-carátula.
+`video::fetch(url)` downloads the bytes of a remote file, for example cover art.
 
-El sonido suena en el mismo pipeline y sigue su reloj. Todo vídeo empieza en
-silencio; `set_volume(nivel)` lo sube, con `nivel` de 0 a 1 en escala cúbica.
-Así las vistas previas y los fondos no suenan, y el reproductor da volumen:
+Sound plays in the same pipeline and follows its clock. Every video starts
+muted; `set_volume(nivel)` raises it, with `nivel` from 0 to 1 on a cubic
+scale. That way previews and backgrounds stay silent, and the player sets a
+volume:
 
 ```rust
 video.set_volume(0.7);
 video.play();
 ```
 
-Siguiente: [14. Plataforma](14-plataforma.md).
+Next: [14. Platform](14-plataforma.en.md).

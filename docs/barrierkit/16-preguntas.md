@@ -1,77 +1,79 @@
-# 16. Preguntas frecuentes
+# 16. Frequently asked questions
 
-**Objetivo:** responder rápido a lo que más se pregunta del kit.
-**Lector:** cualquiera. Cada respuesta enlaza al capítulo que la amplía.
+**Goal:** answer the most common questions about the kit quickly.
+**Reader:** anyone. Each answer links to the chapter that expands on it.
 
-## ¿Qué tenemos hoy?
+## What do we have today?
 
-| Capa | Piezas |
+| Layer | Pieces |
 |---|---|
-| 0 · Plataforma | Ventanas y popups, foco y Tab, cursor por componente, escala fraccional, portapapeles de texto, región opaca, AT-SPI, Vulkan |
-| 1 · Primitivas | `Palette`, `text`, `Symbol`, `use_interaction`, `Button`, `IconButton`, `Link`, `Switch`, `Checkbox`, `RadioGroup`, `SegmentedControl`, `PopUpButton`, `ColorWell`, `ChoiceCards`, `ToggleGroup`, `Stepper`, `Slider`, `LevelSlider`, `TextField`, `SearchField`, `SecureField`, `ProgressBar`, `ProgressRing`, `Spinner`, `badge`, `divider`, `avatar`, `use_tooltip`, `context_menu`, `ScrollView`, `MenuView`, `Titlebar`, `TrafficLights`, `WindowChrome`, `Sidebar`, `Backdrop`, `media`, `video`, `use_breakpoint`, `Spring` |
-| 2 · Vistas | `SplitView`, `Form`/`Section`/`Row`, `Table`, `CollectionView`, `TabView`, `History` + `navigation_buttons`, `SearchIndex`, `empty_state`, `sheet`, `Alert` |
-| 3 · Patrones | `PreferencesWindow`, `about_window` |
-| App | `Action` + `Shortcut`, `AppMenu`, `launch`, `load_defaults`/`save_defaults`/`use_defaults`, restauración, `use_undo` |
+| 0 · Platform | Windows and popups, focus and Tab, per-component cursor, fractional scaling, text clipboard, opaque region, AT-SPI, Vulkan |
+| 1 · Primitives | `Palette`, `text`, `Symbol`, `use_interaction`, `Button`, `IconButton`, `Link`, `Switch`, `Checkbox`, `RadioGroup`, `SegmentedControl`, `PopUpButton`, `ColorWell`, `ChoiceCards`, `ToggleGroup`, `Stepper`, `Slider`, `LevelSlider`, `TextField`, `SearchField`, `SecureField`, `ProgressBar`, `ProgressRing`, `Spinner`, `badge`, `divider`, `avatar`, `use_tooltip`, `context_menu`, `ScrollView`, `MenuView`, `Titlebar`, `TrafficLights`, `WindowChrome`, `Sidebar`, `Backdrop`, `media`, `video`, `use_breakpoint`, `Spring` |
+| 2 · Views | `SplitView`, `Form`/`Section`/`Row`, `Table`, `CollectionView`, `TabView`, `History` + `navigation_buttons`, `SearchIndex`, `empty_state`, `sheet`, `Alert` |
+| 3 · Patterns | `PreferencesWindow`, `about_window` |
+| App | `Action` + `Shortcut`, `AppMenu`, `launch`, `load_defaults`/`save_defaults`/`use_defaults`, restoration, `use_undo` |
 
-## ¿Qué falta?
+## What is missing?
 
-Lo pendiente está en el [ADR 0047](../decisiones/0047-barrierkit-en-capas.md),
-«Pendiente». En resumen:
+The pending work is in [ADR 0047](../decisiones/0047-barrierkit-en-capas.en.md),
+«Pendiente» ("Pending"). In short:
 
-- **Bloqueado por Freya 0.4.3:** damage parcial.
-- **Espera a la primera app que lo pida:** `Image` propio, búsqueda y
-  desbordamiento en la titlebar, qué hacer al cerrar la última ventana y
-  restaurar la navegación y el desplazamiento.
-- **Depende del compositor:** restaurar la posición de la ventana.
+- **Blocked by Freya 0.4.3:** partial damage.
+- **Waiting for the first app that asks for it:** a native `Image`, search and
+  overflow in the titlebar, what to do when the last window closes and
+  restoring the navigation and the scroll.
+- **Depends on the compositor:** restoring the window position.
 
-## ¿Usa GPU o CPU?
+## Does it use the GPU or the CPU?
 
-El dibujo va por Vulkan, normalmente en la GPU; el diseño, en la CPU. Un driver
-Vulkan por software (lavapipe) también sirve. El vídeo usa VA-API si existe y,
-si no, la CPU. Ver [1](01-que-es.md#usa-gpu-o-cpu) y [13](13-fondos-y-medios.md#vídeo-feature-video).
+Drawing goes through Vulkan, normally on the GPU; layout runs on the CPU. A
+software Vulkan driver (lavapipe) also works. Video uses VA-API if available
+and, if not, the CPU. See [1](01-que-es.en.md#does-it-use-the-gpu-or-the-cpu)
+and [13](13-fondos-y-medios.en.md#video-video-feature).
 
-## ¿Funciona fuera de Malaysia?
+## Does it work outside Malaysia?
 
-Sí, como cliente Wayland normal (ver
-[14](14-plataforma.md#el-primer-frame)). Fuera de
-Malaysia no hay bordes, sombra ni blur del compositor, y el menú global
-solo existe en D-Bus.
+Yes, as a normal Wayland client (see
+[14](14-plataforma.en.md#the-first-frame)). Outside
+Malaysia there are no compositor borders, shadow or blur, and the global
+menu only exists on D-Bus.
 
-## ¿Puedo usar Freya directamente?
+## Can I use Freya directly?
 
-Sí, `rect`, `label` y los hooks de `freya-core` están disponibles. Pinta con la
-`Palette` y los tokens. No uses los componentes de `freya-components` con su
-estilo por defecto: el kit ya tiene su versión con aspecto Tengen.
+Yes, `rect`, `label` and the `freya-core` hooks are available. Paint with the
+`Palette` and the tokens. Do not use the `freya-components` components with
+their default style: the kit already has its own version with the Tengen look.
 
-## ¿Cómo pongo mis propios colores?
+## How do I set my own colors?
 
-Con variantes: `Tint`, `Accent` y `ColorWell`. Un valor nuevo para todos va a
-Tengen. Ver [4](04-apariencia-y-tokens.md#colores-propios-en-una-app).
+With variants: `Tint`, `Accent` and `ColorWell`. A new value for everyone goes
+into Tengen. See [4](04-apariencia-y-tokens.en.md#custom-colors-in-an-app).
 
-## ¿Cómo hago que la barra lateral no se redimensione o tenga otros límites?
+## How do I make the sidebar non-resizable or give it other limits?
 
-`SplitView::resizable(false)` y `SplitView::sidebar_range(mín, máx)`; en
-`PreferencesWindow`, `sidebar_resizable` y `sidebar_range`. Ver
-[8](08-barra-lateral.md).
+`SplitView::resizable(false)` and `SplitView::sidebar_range(mín, máx)`; in
+`PreferencesWindow`, `sidebar_resizable` and `sidebar_range`. See
+[8](08-barra-lateral.en.md).
 
-## ¿Dónde guarda una app sus datos?
+## Where does an app store its data?
 
-Preferencias en `~/.config/malaysia/<app_id>.domain`; estado de ventana en
-`~/.local/share/malaysia/<app_id>.state`. Ver [11](11-app.md#preferencias-y-restauración).
+Preferences in `~/.config/malaysia/<app_id>.domain`; window state in
+`~/.local/share/malaysia/<app_id>.state`. See
+[11](11-app.en.md#preferences-and-restoration).
 
-## ¿Cómo añado un componente al kit?
+## How do I add a component to the kit?
 
-Sigue [5, «Crear un control nuevo»](05-controles.md#crear-un-control-nuevo).
-Lleva su test de render en claro y oscuro y, si es interactivo, su test de
-teclado.
+Follow [5, "Creating a new control"](05-controles.en.md#creating-a-new-control).
+It comes with its render test in light and dark and, if it is interactive,
+its keyboard test.
 
-## ¿Cómo compruebo un cambio?
+## How do I check a change?
 
 ```sh
 nix develop
 ./dev.sh check
 ```
 
-`./dev.sh check` pasa `fmt`, `clippy`, los scripts de tokens y de dependencias
-y los tests. Si un cambio visual es intencionado, regenera las imágenes de
-referencia con `UPDATE_GOLDEN=1 cargo test -p barrier-kit --test kit`.
+`./dev.sh check` runs `fmt`, `clippy`, the token and dependency scripts and
+the tests. If a visual change is intentional, regenerate the reference images
+with `UPDATE_GOLDEN=1 cargo test -p barrier-kit --test kit`.

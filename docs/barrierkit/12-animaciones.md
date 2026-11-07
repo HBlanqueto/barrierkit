@@ -1,38 +1,38 @@
-# 12. Animaciones
+# 12. Animations
 
-**Objetivo:** saber qué se anima ya, cómo animar algo propio y cómo se respeta
-el movimiento reducido.
-**Lector:** quien añade movimiento a una app o a un componente.
+**Goal:** know what already animates, how to animate something of your own and
+how reduced motion is respected.
+**Reader:** anyone who adds motion to an app or a component.
 
-## Base
+## Basis
 
-Las animaciones usan `freya-animation` (`use_animation`,
-`use_animation_transition`, `AnimNum` con `Ease` y `Function`) y el resorte
-propio del kit, **Grade**: `animation::Spring`. Las duraciones salen de Tengen:
+Animations use `freya-animation` (`use_animation`,
+`use_animation_transition`, `AnimNum` with `Ease` and `Function`) and the kit's
+own spring, **Grade**: `animation::Spring`. The durations come from Tengen:
 
-| Token | ms | Uso típico |
+| Token | ms | Typical use |
 |---|---|---|
-| `DURATION_FAST_MS` | 120 | Respuestas inmediatas: seguir el puntero, barras de desplazamiento |
-| `DURATION_BASE` | 220 | Mostrar, ocultar y plegar |
-| `DURATION_SLOW_MS` | 420 | Fundidos de fondo |
+| `DURATION_FAST_MS` | 120 | Immediate responses: following the pointer, scroll bars |
+| `DURATION_BASE` | 220 | Showing, hiding and collapsing |
+| `DURATION_SLOW_MS` | 420 | Backdrop fades |
 
-## Qué se anima en el kit
+## What animates in the kit
 
-| Elemento | Duración | Curva |
+| Element | Duration | Curve |
 |---|---|---|
-| Pomo del `Switch` | `SWITCH.transition_ms` | Ease out, cúbica |
-| Plegar una `SidebarSection` | `DURATION_BASE` | Ease out, cúbica |
-| Mostrar u ocultar la barra lateral | `DURATION_BASE` | Ease out, cúbica |
-| Ancho de la barra lateral al arrastrar | `DURATION_FAST_MS` | `Spring`, sin rebote |
-| Aparición de titlebars ocultas (`Reveal`) | `DURATION_BASE` | Ease out, cúbica |
-| `ProgressBar` indeterminada | `PROGRESS.indeterminate_ms` | In-out, cúbica, en bucle |
-| `Spinner` | `PROGRESS.spinner_ms` | Lineal, en bucle |
-| Fundido entre fondos de `Backdrop` | `DURATION_SLOW_MS` | In-out, cúbica |
-| Barra de desplazamiento | `DURATION_FAST_MS` | Fundido |
+| `Switch` knob | `SWITCH.transition_ms` | Ease out, cubic |
+| Collapsing a `SidebarSection` | `DURATION_BASE` | Ease out, cubic |
+| Showing or hiding the sidebar | `DURATION_BASE` | Ease out, cubic |
+| Sidebar width while dragging | `DURATION_FAST_MS` | `Spring`, no bounce |
+| Revealing hidden titlebars (`Reveal`) | `DURATION_BASE` | Ease out, cubic |
+| Indeterminate `ProgressBar` | `PROGRESS.indeterminate_ms` | In-out, cubic, looping |
+| `Spinner` | `PROGRESS.spinner_ms` | Linear, looping |
+| Fade between `Backdrop` backgrounds | `DURATION_SLOW_MS` | In-out, cubic |
+| Scroll bar | `DURATION_FAST_MS` | Fade |
 
-Pulsar un botón lo escala a `BUTTON.pressed_scale` sin animación.
+Pressing a button scales it to `BUTTON.pressed_scale` without animation.
 
-## El resorte: `Spring`
+## The spring: `Spring`
 
 ```rust
 use freya_animation::prelude::use_animation_transition;
@@ -44,21 +44,21 @@ let movimiento = use_animation_transition(destino, |desde, hasta| {
 let x = movimiento.get().current();
 ```
 
-- La app necesita `freya-animation` en su `Cargo.toml`; `Spring` se importa
-  de `barrier_kit::animation`.
-- `Spring::new(desde, hasta, duración, rebote)`. El rebote va de 0 a 1.
-- Con rebote 0 es una curva ease-out cúbica. Con más, es una oscilación
-  amortiguada.
-- Implementa `AnimatedValue`, así que sirve en `use_animation` como cualquier
-  animación de Freya.
+- The app needs `freya-animation` in its `Cargo.toml`; `Spring` is imported
+  from `barrier_kit::animation`.
+- `Spring::new(desde, hasta, duración, rebote)`. The bounce goes from 0 to 1.
+- With bounce 0 it is a cubic ease-out curve. With more, it is a damped
+  oscillation.
+- It implements `AnimatedValue`, so it works in `use_animation` like any Freya
+  animation.
 
-## Movimiento reducido
+## Reduced motion
 
-Con `reduced_motion = true` en `appearance.domain`, cada animación del kit usa
-duración 0 y los bucles se detienen. Una animación propia debe hacer lo mismo.
-Freya construye su closure una sola vez, así que la preferencia se lee con
-`use_reduced_motion()` y `motion_ms()`, de `barrier_kit::animation`; así un
-cambio en vivo surte efecto en la siguiente animación:
+With `reduced_motion = true` in `appearance.domain`, every kit animation uses
+duration 0 and the loops stop. Your own animation must do the same. Freya
+builds its closure only once, so read the preference with
+`use_reduced_motion()` and `motion_ms()`, from `barrier_kit::animation`; a
+live change then applies to the next animation:
 
 ```rust
 let reduced_motion = use_reduced_motion();
@@ -67,4 +67,4 @@ let entrada = use_animation_transition(destino, move |desde, hasta| {
 });
 ```
 
-Siguiente: [13. Fondos tintados y medios](13-fondos-y-medios.md).
+Next: [13. Tinted backdrops and media](13-fondos-y-medios.en.md).

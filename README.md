@@ -1,45 +1,45 @@
 # BarrierKit
 
-![BarrierKit, el toolkit de aplicaciones de Malaysia Compositor](docs/barrierkit/assets/marca/barrierkit-banner.png)
+![BarrierKit, the application toolkit of Malaysia Compositor](docs/barrierkit/assets/marca/barrierkit-banner.en.png)
 
-BarrierKit es el toolkit de aplicaciones de [Malaysia](https://github.com/HBlanqueto/malaysia): lo que GTK + libadwaita son para GNOME, o AppKit para macOS. Da las capas, los controles, los contenedores y los patrones con los que se construyen las apps propias de Malaysia y su shell.
+BarrierKit is the application toolkit for [Malaysia](https://github.com/HBlanqueto/malaysia): the GTK + libadwaita to its GNOME, or the AppKit to its macOS. It provides the layers, controls, containers and patterns used to build Malaysia's own apps and its shell.
 
-English: [`README.en.md`](README.en.md).
+Español: [`README.md`](README.md).
 
 ## Crates
 
-- `barrier-kit` — el toolkit: runner de la plataforma, primitivas de estilo, controles, vistas y patrones de ventana.
-- `vow-design` — Tengen, el sistema de tokens de diseño. `tokens.json` y `components.json` pasan a constantes Rust tipadas con `build.rs`.
-- `vow-appearance` — resuelve `appearance.domain` y el fondo del escritorio en una paleta concreta, y vigila el fichero.
-- `infinity-protocol` — protocolo Wayland privado compartido con el compositor de Malaysia. Features `client` (kit) y `server` (compositor).
+- `barrier-kit` — the toolkit itself: platform runner, style primitives, controls, views and window patterns.
+- `vow-design` — Tengen, the design-token system. `tokens.json` and `components.json` become typed Rust constants through `build.rs`.
+- `vow-appearance` — resolves `appearance.domain` and the desktop wallpaper into a concrete palette, and watches the file.
+- `infinity-protocol` — private Wayland protocol shared with the Malaysia compositor. Features `client` (kit) and `server` (compositor).
 
-## Compilar
+## Build
 
-El repositorio se compila dentro del dev shell de Nix (ADR 0007):
+The repository is built inside the Nix dev shell (ADR 0007):
 
 ```sh
 nix develop
 ./dev.sh check
 ```
 
-`./dev.sh check` pasa fmt, clippy, los checks del kit y los tests; su lista está en [`dev.sh`](dev.sh).
+`./dev.sh check` runs fmt, clippy, the kit checks and the tests; its list is in [`dev.sh`](dev.sh).
 
-El binario precompilado de Skia para `freya-skia-bindings` 0.98.0 está en `nix/skia.nix`.
+The Skia prebuild for `freya-skia-bindings` 0.98.0 lives in `nix/skia.nix`.
 
-## Probar en cualquier escritorio
+## Try it on any desktop
 
-`barrier-kit` puede correr como cliente Wayland en cualquier compositor, no solo en Malaysia. Una app arranca con el protocolo básico (`wl_compositor`, `xdg_shell`, `wl_seat`) y sigue adelante si faltan los globals opcionales.
+`barrier-kit` can run as a Wayland client on any compositor, not only on Malaysia. An app starts with the basic protocol (`wl_compositor`, `xdg_shell`, `wl_seat`) and carries on when the optional globals are missing.
 
-Si faltan `infinity_window_manager_v1`, `ext_foreign_toplevel_list_v1` / `zwlr_foreign_toplevel_manager_v1`, `wp_cursor_shape_manager_v1` u `org_kde_kwin_appmenu_manager`, el runner lo registra con `tracing::info!` y continúa.
+When `infinity_window_manager_v1`, `ext_foreign_toplevel_list_v1` / `zwlr_foreign_toplevel_manager_v1`, `wp_cursor_shape_manager_v1` or `org_kde_kwin_appmenu_manager` is missing, the runner logs it with `tracing::info!` and carries on.
 
-## Documentación
+## Documentation
 
-[`docs/barrierkit/`](docs/barrierkit/README.md) explica el kit desde la primera ventana hasta el runner Wayland, con capturas reales.
+[`docs/barrierkit/`](docs/barrierkit/README.en.md) explains the kit from the first window to the Wayland runner, with real screenshots.
 
-## Decisiones
+## Decisions
 
-- ADR 0047 — [BarrierKit en capas](docs/decisiones/0047-barrierkit-en-capas.md)
-- ADR 0048 — [BarrierKit en su propio repositorio](docs/decisiones/0048-barrierkit-repositorio-propio.md)
-- ADR 0057 — [El cristal de pantalla completa cubre toda la ventana; la barra lateral sobre un fondo tintado](docs/decisiones/0057-cristal-y-barra-lateral-sobre-fondo.md)
+- ADR 0047 — [BarrierKit in layers](docs/decisiones/0047-barrierkit-en-capas.en.md)
+- ADR 0048 — [BarrierKit in its own repository](docs/decisiones/0048-barrierkit-repositorio-propio.en.md)
+- ADR 0057 — [The full-screen glass covers the whole window; the sidebar over a tinted backdrop](docs/decisiones/0057-cristal-y-barra-lateral-sobre-fondo.en.md)
 
-Licencia: MIT
+License: MIT

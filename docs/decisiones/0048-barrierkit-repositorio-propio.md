@@ -1,59 +1,59 @@
-# 0048 — BarrierKit en su propio repositorio
+# 0048 — BarrierKit in its own repository
 
-Estado: **aceptado** (2026-10-28). Las apps de prueba (Master Tengen App Show, Marea, Ondina y Trazo) y los ejemplos se retiraron del repositorio el 2026-11-07.
+Status: **accepted** (2026-10-28). The test apps (Master Tengen App Show, Marea, Ondina and Trazo) and the examples were removed from the repository on 2026-11-07.
 
-## Contexto
+## Context
 
-BarrierKit vive dentro del workspace de Malaysia (`crates/barrier-kit`), junto con el compositor y la shell. El ADR 0047 lo convierte en un toolkit completo para construir cualquier app, a la manera de AppKit o GTK + libadwaita. Un toolkit así tiene su propio ciclo de vida, su app de muestra y sus decisiones, y no debería compartir repositorio con el compositor.
+BarrierKit lives inside the Malaysia workspace (`crates/barrier-kit`), together with the compositor and the shell. ADR 0047 turns it into a complete toolkit for building any app, in the manner of AppKit or GTK + libadwaita. A toolkit like that has its own life cycle, its own showcase app and its own decisions, and should not share a repository with the compositor.
 
-GNOME y macOS separan estas piezas del mismo modo:
+GNOME and macOS separate these pieces in the same way:
 
 | GNOME | macOS | Malaysia |
 |---|---|---|
-| GTK + libadwaita (con Adwaita y `AdwStyleManager`) | AppKit (con Aqua y `NSAppearance`) | **barrierkit**: barrier-kit + Tengen + vow-appearance |
-| gtk4-widget-factory (en el repo de GTK) | — | Master Tengen App Show (en barrierkit) |
+| GTK + libadwaita (with Adwaita and `AdwStyleManager`) | AppKit (with Aqua and `NSAppearance`) | **barrierkit**: barrier-kit + Tengen + vow-appearance |
+| gtk4-widget-factory (in the GTK repo) | — | Master Tengen App Show (in barrierkit) |
 | Mutter | WindowServer / SkyLight | malaysia-compositor |
-| gnome-shell | Dock, barra de menús | malaysia-shell |
-| gnome-control-center | Ajustes del sistema | malaysia-settings |
-| wayland-protocols | — | protocolo Infinity |
+| gnome-shell | Dock, menu bar | malaysia-shell |
+| gnome-control-center | System Settings | malaysia-settings |
+| wayland-protocols | — | Infinity protocol |
 
-En los dos casos, **el toolkit se lleva su estilo y la lectura de la apariencia del sistema**. Si `vow-design` y `vow-appearance` se quedaran en malaysia, barrierkit dependería de malaysia y malaysia de barrierkit: un ciclo.
+In both cases, **the toolkit takes its style and the reading of the system appearance with it**. If `vow-design` and `vow-appearance` stayed in malaysia, barrierkit would depend on malaysia and malaysia on barrierkit: a cycle.
 
-## Decisión
+## Decision
 
-### 1. Reparto de repositorios
+### 1. Split of repositories
 
-**`github.com/HBlanqueto/barrierkit`** (MIT) es la librería:
+**`github.com/HBlanqueto/barrierkit`** (MIT) is the library:
 
 ```
 barrierkit/
-  Cargo.toml                  workspace propio, mismas versiones fijadas (freya-* =0.4.3, SCTK…)
-  crates/barrier-kit/         el toolkit (ADR 0034, 0047), con la feature `shell`
-  crates/vow-design/          Tengen: tengen/tokens.json, components.json → constantes Rust
-  crates/vow-appearance/      appearance.domain + fondo → paleta resuelta; watcher
-  crates/infinity-protocol/   protocols/infinity-*.xml + código generado,
-                              features `client` (kit) y `server` (compositor)
-  docs/                       decisiones y documentación del kit
-  flake.nix, nix/skia*        Skia precompilado para freya-skia-bindings 0.98.0 + su guardia
+  Cargo.toml                  own workspace, same pinned versions (freya-* =0.4.3, SCTK…)
+  crates/barrier-kit/         the toolkit (ADR 0034, 0047), with the `shell` feature
+  crates/vow-design/          Tengen: tengen/tokens.json, components.json → Rust constants
+  crates/vow-appearance/      appearance.domain + backdrop → resolved palette; watcher
+  crates/infinity-protocol/   protocols/infinity-*.xml + generated code,
+                              features `client` (kit) and `server` (compositor)
+  docs/                       kit decisions and documentation
+  flake.nix, nix/skia*        prebuilt Skia for freya-skia-bindings 0.98.0 + its guard
   scripts/                    check-client-only-deps, check-design-tokens
   dev.sh                      check
 ```
 
-**`github.com/HBlanqueto/malaysia`** es el escritorio:
+**`github.com/HBlanqueto/malaysia`** is the desktop:
 
 ```
 malaysia/
   crates/malaysia-compositor, malaysia-scene, grade-graphics
-  crates/malaysia-shell        (barrier-kit con features = ["shell"])
-  crates/malaysia-settings     (Ajustes del sistema, se queda aquí)
+  crates/malaysia-shell        (barrier-kit with features = ["shell"])
+  crates/malaysia-settings     (System Settings, stays here)
   crates/xdg-desktop-portal-malaysia
-  protocols/gtk-shell.xml      (solo lo usa el compositor)
-  flake.nix, nix/malaysia.nix, dev.sh, share/, docs/ del escritorio
+  protocols/gtk-shell.xml      (only the compositor uses it)
+  flake.nix, nix/malaysia.nix, dev.sh, share/, desktop docs/
 ```
 
-### 2. Cómo consume malaysia el kit
+### 2. How malaysia consumes the kit
 
-Como cualquier librería Rust de otro repositorio, igual que Smithay (ADR 0028):
+Like any Rust library from another repository, the same as Smithay (ADR 0028):
 
 ```toml
 # malaysia/Cargo.toml, [workspace.dependencies]
@@ -63,40 +63,40 @@ vow-appearance    = { git = "https://github.com/HBlanqueto/barrierkit", rev = "<
 infinity-protocol = { git = "https://github.com/HBlanqueto/barrierkit", rev = "<hash>" }
 ```
 
-- Los cuatro llevan **el mismo `rev`**. Actualizar el kit en el escritorio es un commit de malaysia que cambia ese hash: `chore(deps): barrierkit <hash>`.
-- **Desarrollo conjunto.** Con `~/src/barrierkit` junto a `~/src/malaysia`, `./dev.sh kit-local` escribe un `.cargo/config.toml` **no versionado** con `[patch."https://github.com/HBlanqueto/barrierkit"]` apuntando a las rutas locales, y `./dev.sh kit-remote` lo borra. Así se prueba un cambio del kit en la sesión anidada antes de publicarlo.
-- **Nix.** barrierkit es un input del flake de malaysia. crane vendoriza la dependencia git con su `outputHashes`, igual que Smithay. Skia precompilado pasa a ser un output de barrierkit (`packages.skia-binaries`) y malaysia lo reutiliza: hay una sola guardia de versión, en barrierkit.
+- All four carry **the same `rev`**. Updating the kit in the desktop is a malaysia commit that changes that hash: `chore(deps): barrierkit <hash>`.
+- **Joint development.** With `~/src/barrierkit` next to `~/src/malaysia`, `./dev.sh kit-local` writes an **unversioned** `.cargo/config.toml` with `[patch."https://github.com/HBlanqueto/barrierkit"]` pointing to the local paths, and `./dev.sh kit-remote` deletes it. This way a kit change is tested in the nested session before it is published.
+- **Nix.** barrierkit is an input of the malaysia flake. crane vendors the git dependency with its `outputHashes`, the same as Smithay. Prebuilt Skia becomes an output of barrierkit (`packages.skia-binaries`) and malaysia reuses it: there is a single version guard, in barrierkit.
 
-### 3. Lo que no cambia
+### 3. What does not change
 
-- El compositor sigue sin enlazar Freya ni Skia. Solo usa `vow-design`, `vow-appearance` e `infinity-protocol` (feature `server`), ninguno de los cuales depende de Freya. Cargo compila únicamente los crates que se piden aunque compartan repo. `malaysia/scripts/check-client-only-deps.sh` lo sigue comprobando.
-- Los nombres de crates, módulos y tipos se mantienen. Solo cambia de dónde vienen.
-- Una sola rama `main` en cada repo.
+- The compositor still does not link Freya or Skia. It only uses `vow-design`, `vow-appearance` and `infinity-protocol` (feature `server`), none of which depends on Freya. Cargo compiles only the crates that are requested even if they share a repo. `malaysia/scripts/check-client-only-deps.sh` keeps checking it.
+- The names of crates, modules and types stay. Only where they come from changes.
+- A single `main` branch in each repo.
 
-### 4. Historial y documentación
+### 4. History and documentation
 
-- `crates/barrier-kit`, `crates/vow-design` y `crates/vow-appearance` pasan con **su historial** (`git filter-repo`). En malaysia se borran con un commit que remite a barrierkit.
-- **Numeración de ADR única para los dos repos.** Una decisión nueva toma el siguiente número libre esté donde esté, para que «ADR 0047» signifique lo mismo en ambos. Las ADR del kit (0011, 0032, 0033, 0034, 0035, 0039, 0041, 0046, 0047) se mueven a `barrierkit/docs/decisiones/`. En malaysia queda un archivo de una línea por cada una que remite a la nueva ubicación. Esta ADR (0048) existe en los dos repos.
-- Las auditorías y el triaje de la P4 (BarrierKit) se mueven a barrierkit.
+- `crates/barrier-kit`, `crates/vow-design` and `crates/vow-appearance` move with **their history** (`git filter-repo`). In malaysia they are deleted with a commit that refers to barrierkit.
+- **A single ADR numbering for both repos.** A new decision takes the next free number wherever it is, so that "ADR 0047" means the same in both. The kit ADRs (0011, 0032, 0033, 0034, 0035, 0039, 0041, 0046, 0047) move to `barrierkit/docs/decisiones/`. In malaysia, a one-line file remains for each one, referring to the new location. This ADR (0048) exists in both repos.
+- The audits and the triage of P4 (BarrierKit) move to barrierkit.
 
-### 5. Orden
+### 5. Order
 
-1. Cerrar y subir el lote L1b en malaysia, como está.
-2. Lote de separación, en un solo paso:
-   - crear barrierkit con historial;
-   - crear `infinity-protocol`;
-   - pasar malaysia a la dependencia git;
-   - ajustar los flakes y `dev.sh`.
-3. L1c, L1d y todas las fases del ADR 0047 se hacen en barrierkit. Cada lote que el escritorio necesite termina con un commit en malaysia que sube el `rev`.
+1. Close and push batch L1b in malaysia, as it is.
+2. Separation batch, in a single step:
+   - create barrierkit with history;
+   - create `infinity-protocol`;
+   - switch malaysia to the git dependency;
+   - adjust the flakes and `dev.sh`.
+3. L1c, L1d and all the phases of ADR 0047 are done in barrierkit. Each batch the desktop needs ends with a malaysia commit that bumps the `rev`.
 
-## Consecuencias
+## Consequences
 
-- Cambiar el kit y usarlo en el escritorio son dos commits en dos repos, aunque `dev.sh kit-local` permite probarlos juntos antes.
-- barrierkit se puede compilar, testear y enseñar (Master Tengen App Show) sin el compositor. Su CI no necesita Smithay.
-- Los informes de opencode que toquen los dos repos deben citar el commit de cada uno.
+- Changing the kit and using it in the desktop are two commits in two repos, although `dev.sh kit-local` lets you test them together first.
+- barrierkit can be built, tested and shown (Master Tengen App Show) without the compositor. Its CI does not need Smithay.
+- opencode reports that touch both repos must cite the commit of each one.
 
-## Referencias
+## References
 
-- [`0028`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0028-smithay-por-revision.md): dependencia git con rev fijo.
-- [`0034`](0034-celestialkit-sobre-freya.md): BarrierKit sobre Freya.
-- [`0047`](0047-barrierkit-en-capas.md): BarrierKit en capas.
+- [`0028`](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisiones/0028-smithay-por-revision.en.md): git dependency with a fixed rev.
+- [`0034`](0034-celestialkit-sobre-freya.en.md): BarrierKit on Freya.
+- [`0047`](0047-barrierkit-en-capas.en.md): BarrierKit in layers.

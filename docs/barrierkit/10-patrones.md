@@ -1,12 +1,12 @@
-# 10. Patrones
+# 10. Patterns
 
-**Objetivo:** montar una ventana completa con una sola pieza.
-**Lector:** quien hace una app de ajustes o necesita un «Acerca de».
+**Goal:** build a complete window with a single piece.
+**Reader:** anyone who makes a settings app or needs an "About" window.
 
-## Ventana de preferencias: `PreferencesWindow`
+## Preferences window: `PreferencesWindow`
 
-Une `SplitView`, `Sidebar`, buscador, historial y `Form`. La app solo declara
-los paneles:
+It joins `SplitView`, `Sidebar`, search field, history and `Form`. The app only
+declares the panes:
 
 ```rust
 PreferencesWindow::new()
@@ -30,36 +30,37 @@ PreferencesWindow::new()
     )
 ```
 
-![PreferencesWindow con cuenta y dos paneles](assets/componentes/preferences-light.png)
+![PreferencesWindow with an account and two panes](assets/componentes/preferences-light.png)
 
-| Opción | Efecto |
+| Option | Effect |
 |---|---|
-| `Pane::new(id, título, símbolo, tinte, form)` | Un panel: un ítem de la barra lateral y su formulario |
-| `PaneGroup::new(Some(título))` | Grupo con título en la barra lateral; `None` sin título |
-| `.account(..)` | Fila de cuenta arriba de la barra |
-| `.restoration(app_id)` | Guarda y restaura el panel abierto, las búsquedas recientes y el ancho y visibilidad de la barra |
-| `.suggestions(&[ids])` | Paneles sugeridos cuando el buscador está vacío |
-| `.sidebar_resizable(bool)`, `.sidebar_range(Option<(mín, máx)>)`, `.narrow_sidebar(NarrowSidebar)` | Pasan a `SplitView` (capítulo [8](08-barra-lateral.md)) |
-| `.sidebar_toggle(false)` | Quita el botón `SidebarToggle` de la barra |
+| `Pane::new(id, título, símbolo, tinte, form)` | A pane: a sidebar item and its form |
+| `PaneGroup::new(Some(título))` | Group with a title in the sidebar; `None` without a title |
+| `.account(..)` | Account row at the top of the sidebar |
+| `.restoration(app_id)` | Saves and restores the open pane, the recent searches and the width and visibility of the sidebar |
+| `.suggestions(&[ids])` | Suggested panes when the search field is empty |
+| `.sidebar_resizable(bool)`, `.sidebar_range(Option<(mín, máx)>)`, `.narrow_sidebar(NarrowSidebar)` | Passed on to `SplitView` (chapter [8](08-barra-lateral.en.md)) |
+| `.sidebar_toggle(false)` | Removes the `SidebarToggle` button from the bar |
 
-### El buscador
+### The search field
 
-- Una línea lo separa de la lista de paneles.
-- Busca en los títulos de los paneles y en los títulos y `keywords` de cada fila.
-- Muestra cada resultado con el icono de su panel. ↑, ↓ e Intro lo recorren.
-- Elegir un resultado abre el panel y resalta la fila.
-- El título del panel aparece en la barra, con los botones atrás y adelante.
+- A line separates it from the pane list.
+- It searches the pane titles and the titles and `keywords` of each row.
+- It shows each result with the icon of its pane. ↑, ↓ and Enter walk through
+  them.
+- Choosing a result opens the pane and highlights the row.
+- The pane title appears in the bar, with the back and forward buttons.
 
-Ajustes del sistema está hecho con este patrón.
+System Settings is built with this pattern.
 
-## «Acerca de»: `about_window`
+## "About": `about_window`
 
 ```rust
 about_window(avatar("C"), "Contador", Some("Versión 1.0"), "™ y © 2026 Malaysia")
 ```
 
-Con `None` en la versión, la ventana no muestra esa línea.
+With `None` as the version, the window omits that line.
 
-![Ventana Acerca de](assets/componentes/about-light.png)
+![About window](assets/componentes/about-light.png)
 
-Siguiente: [11. Infraestructura de app](11-app.md).
+Next: [11. App infrastructure](11-app.en.md).

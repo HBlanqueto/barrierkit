@@ -1,55 +1,55 @@
-# 0057 — El cristal de pantalla completa cubre toda la ventana; la barra lateral sobre un fondo tintado
+# 0057 — The full-screen glass covers the whole window; the sidebar on a tinted backdrop
 
-Estado: **aceptado** (2026-11-03). La regla 1 aplica a las ventanas con
-`FullscreenBar::Glass` o `ProgressiveGlass` (Ondina); por defecto la barra es `Solid`
-(capítulo 7 de [`docs/barrierkit`](../barrierkit/07-titlebars.md#la-barra-en-pantalla-completa-fullscreenbar)).
+Status: **accepted** (2026-11-03). Rule 1 applies to windows with
+`FullscreenBar::Glass` or `ProgressiveGlass` (Ondina); by default the bar is `Solid`
+(chapter 7 of [`docs/barrierkit`](../barrierkit/07-titlebars.en.md#the-bar-in-full-screen-fullscreenbar)).
 
-## Contexto
+## Context
 
-Ondina pasó a usar `SplitView`, `Sidebar` y `Titlebar` del kit (`6689f78`). Con eso aparecieron dos fallos:
+Ondina switched to the kit's `SplitView`, `Sidebar` and `Titlebar` (`6689f78`). With that, two bugs appeared:
 
-- En pantalla completa con la barra superpuesta (ADR 0054), el cristal lo dibujaba la `Titlebar` con el ancho de su columna. La barra lateral y el inspector quedaban fuera: la cola de Ondina se veía nítida bajo los botones mientras el centro se desenfocaba.
-- La `Sidebar` pintaba siempre el fondo de barra lateral del sistema. Sobre un `Backdrop` aparecía una isla gris opaca encima del degradado, aunque la `Titlebar` ya se volvía transparente con `backdrop::tinted()`.
+- In full screen with the overlaid bar (ADR 0054), the `Titlebar` drew the glass with the width of its column. The sidebar and the inspector stayed outside: Ondina's queue looked sharp under the buttons while the center blurred.
+- The `Sidebar` always painted the system sidebar background. On a `Backdrop`, an opaque gray island appeared on top of the gradient, even though the `Titlebar` already turned transparent with `backdrop::tinted()`.
 
-## Decisión
+## Decision
 
-### 1. Regla del cristal de pantalla completa
+### 1. Full-screen glass rule
 
-**En pantalla completa con la titlebar superpuesta, el cristal progresivo cubre toda la franja superior de la ventana, de borde a borde, sin importar qué haya debajo:** barra lateral en isla o plana, tintada o no, detalle, inspector o cualquier otra composición de la app. Ninguna columna lo limita ni lo recorta, y se ve igual que en el mockup aceptado (Main e Isla tintada):
+**In full screen with the overlaid titlebar, the progressive glass covers the whole top strip of the window, from edge to edge, no matter what is underneath:** island or flat sidebar, tinted or not, detail, inspector or any other composition of the app. No column limits or clips it, and it looks the same as in the accepted mockup (Main and tinted Island):
 
-- desenfoque fuerte en el borde superior que se desvanece hacia abajo (`FULLSCREEN_GLASS`);
-- por encima del cristal solo quedan la titlebar, los semáforos y las capas superpuestas (menús, popups, raíles verticales);
-- todo el contenido que pasa por debajo, en cualquier columna, se desenfoca igual.
+- strong blur at the top edge that fades out downwards (`FULLSCREEN_GLASS`);
+- above the glass there are only the titlebar, the traffic lights and the overlaid layers (menus, popups, vertical rails);
+- all the content that passes underneath, in any column, blurs the same way.
 
-Implementación: la `Titlebar` coloca el cristal con `Position::new_global()` y `Size::window_percent(100.0)`, en `TITLEBAR_OVERLAY_LAYER` y antes de la barra. La barra conserva el ancho de su columna; el cristal no. Sigue dentro del árbol de la app para leer el tinte del `Backdrop` (`glass_tint`).
+Implementation: the `Titlebar` places the glass with `Position::new_global()` and `Size::window_percent(100.0)`, in `TITLEBAR_OVERLAY_LAYER` and before the bar. The bar keeps the width of its column; the glass does not. It stays inside the app tree to read the `Backdrop` tint (`glass_tint`).
 
-El cristal nunca va dentro de una capa de opacidad: el desenfoque de Skia (`backdrop`) lee la capa en la que se dibuja, y dentro de una capa de opacidad esa capa está vacía, así que no difumina nada. El fundido de entrada con la barra lo aplica el propio cristal a su máscara, su tinte y su línea (`fullscreen_backdrop(.., opacity)`).
+The glass never goes inside an opacity layer: Skia's blur (`backdrop`) reads the layer it is drawn in, and inside an opacity layer that layer is empty, so it blurs nothing. The glass itself applies the fade-in with the bar to its mask, its tint and its line (`fullscreen_backdrop(.., opacity)`).
 
-### 2. La barra lateral sobre un fondo tintado
+### 2. The sidebar on a tinted backdrop
 
-Isla o plana sigue siendo preferencia del usuario (`sidebar_style`). La app solo elige una variante para cuando la barra está dentro de un `Backdrop`:
+Island or flat is still the user's preference (`sidebar_style`). The app only chooses a variant for when the bar is inside a `Backdrop`:
 
 ```rust
 pub enum SidebarBackdrop { Clear, Tinted }   // Clear por defecto
 Sidebar::new().backdrop(SidebarBackdrop::Tinted)
 ```
 
-| | Sin `Backdrop` | `Clear` | `Tinted` |
+| | Without `Backdrop` | `Clear` | `Tinted` |
 |---|---|---|---|
-| Plana | fondo del sistema | transparente, línea con `Palette::separator` | igual que `Clear` |
-| Isla | fondo, borde y borde interior del sistema | sin relleno ni bordes | `Backdrop::average()` con alfa `BACKDROP.island` y borde `Palette::separator` |
+| Flat | system background | transparent, line with `Palette::separator` | same as `Clear` |
+| Island | system background, border and inner border | no fill or borders | `Backdrop::average()` with alpha `BACKDROP.island` and border `Palette::separator` |
 
-Dentro de un `Backdrop`, las filas toman la tinta y el acento de `Palette::current()` (`sidebar_palette`), no la paleta de barra lateral del sistema.
+Inside a `Backdrop`, the rows take the ink and the accent from `Palette::current()` (`sidebar_palette`), not the system sidebar palette.
 
-## Consecuencias
+## Consequences
 
-- Una app nueva no tiene que hacer nada para que el cristal cubra toda la ventana; tampoco puede limitarlo a una columna.
-- Si una app mete la `Titlebar` dentro de un contenedor con `Overflow::Clip`, ese contenedor recorta el cristal: la `Titlebar` no debe ir dentro de uno.
-- Si una app envuelve la `Titlebar` en `.opacity(..)`, el cristal deja de difuminar por la misma razón que arriba.
-- Ondina ofrece *Transparente / Tintada* en Apariencia; Master Tengen App Show muestra las dos en «Fondo tintado».
+- A new app does not have to do anything for the glass to cover the whole window; it cannot limit it to one column either.
+- If an app puts the `Titlebar` inside a container with `Overflow::Clip`, that container clips the glass: the `Titlebar` must not go inside one.
+- If an app wraps the `Titlebar` in `.opacity(..)`, the glass stops blurring for the same reason as above.
+- Ondina offers *Transparente / Tintada* ("Transparent / Tinted") in Apariencia ("Appearance"); Master Tengen App Show shows both in «Fondo tintado» ("Tinted backdrop").
 
-## Referencias
+## References
 
-- [`0041`](0041-barra-lateral-en-isla.md): barra lateral en isla.
-- [`0047`](0047-barrierkit-en-capas.md): capas y variantes.
-- ADR 0054 de malaysia: titlebar superpuesta en foco.
+- [`0041`](0041-barra-lateral-en-isla.en.md): island sidebar.
+- [`0047`](0047-barrierkit-en-capas.en.md): layers and variants.
+- malaysia ADR 0054: overlaid titlebar in focus.

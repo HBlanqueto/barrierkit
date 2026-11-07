@@ -1,108 +1,107 @@
-# 19. Gráficas
+# 19. Charts
 
-**Objetivo:** dibujar datos con las gráficas del kit, de 2D a 3D.
-**Lector:** quien muestra series, repartos o mediciones, como un monitor del
-sistema.
+**Goal:** draw data with the kit's charts, from 2D to 3D.
+**Reader:** anyone who shows series, shares or measurements, like a system
+monitor.
 
-## Qué hay
+## What there is
 
-El módulo `barrier_kit::charts` sigue a Swift Charts: una gráfica recibe
-series y las dibuja con una marca. Todo se pinta con Skia en un solo elemento;
-ejes, leyenda y lectura son texto del kit.
+The `barrier_kit::charts` module follows Swift Charts: a chart takes series
+and draws them with a mark. Everything is painted with Skia in one element;
+axes, legend and readout are kit text.
 
-| Componente | Marcas | Para qué |
+| Component | Marks | For |
 |---|---|---|
-| `Chart` | `MarkKind::Line`, `Area`, `Bar`, `Point` | Series sobre un eje: historiales, comparaciones |
-| `SectorChart` | pastel o `.donut(true)` | Repartos de un total |
-| `HeatMap` | rejilla de celdas | Intensidad por fila y columna |
-| `StreamChart` | flujo o `.polar(true)` (reloj de flujo) | Cómo cambia el reparto con el tiempo |
-| `Chart3D` | `surface`, `mesh` o `points` | Superficies z = f(x, y), modelos 3D y nubes de puntos |
+| `Chart` | `MarkKind::Line`, `Area`, `Bar`, `Point` | Series on an axis: histories, comparisons |
+| `SectorChart` | pie or `.donut(true)` | Shares of a total |
+| `HeatMap` | grid of cells | Intensity by row and column |
+| `StreamChart` | stream or `.polar(true)` (flow clock) | How a share changes over time |
+| `Chart3D` | `surface`, `mesh` or `points` | Surfaces z = f(x, y), 3D models and point clouds |
 
-## Pasos
+## Steps
 
-1. Crea la gráfica con su etiqueta de accesibilidad y su marca:
+1. Create the chart with its accessibility label and its mark:
 
    ```rust
-   Chart::new("Uso de CPU", MarkKind::Area)
+   Chart::new("CPU usage", MarkKind::Area)
        .stacked(true)
        .y_domain(0.0, 100.0)
        .unit("%")
-       .series(Series::new("Usuario", usuario))
-       .series(Series::new("Sistema", sistema))
+       .series(Series::new("User", user))
+       .series(Series::new("System", system))
    ```
 
-2. Elige cómo se unen los puntos con `.interpolation(..)`: `Linear` (por
-   defecto), `Monotone` (curva sin sobrepasar los datos) o `Step`.
-3. Añade etiquetas del eje X con `.x_labels(..)` y líneas de referencia con
-   `.rule(valor, etiqueta)`; la etiqueta va sobre la línea. Sin `.y_domain`, el eje Y va de 0 al máximo redondeado.
-   Opciones de `Chart`:
-   - `.time_axis(segundos)`: cada muestra está a esos segundos de la
-     siguiente y la última es «ahora». El eje X marca la antigüedad (−30 s,
-     −2 min, −1 h) en pasos redondos.
-   - `.scrollable(true)`: la rueda acerca o aleja alrededor del puntero, y el
-     arrastre o el desplazamiento horizontal mueven la ventana visible. La
-     ventana nunca sale de los datos ni baja de `scroll-min-span` muestras.
-   - `.horizontal(true)` con `MarkKind::Bar`: categorías a la izquierda,
-     valores abajo; agrupadas o apiladas como las verticales.
+2. Choose how points join with `.interpolation(..)`: `Linear` (default),
+   `Monotone` (a curve that never overshoots the data) or `Step`.
+3. Add X axis labels with `.x_labels(..)` and reference lines with
+   `.rule(value, label)`; the label sits above the line. Without `.y_domain`, the Y axis runs from 0 to the rounded
+   maximum. `Chart` options:
+   - `.time_axis(seconds)`: each sample is that many seconds from the next
+     and the last one is "now". The X axis marks the age (−30 s, −2 min,
+     −1 h) in round steps.
+   - `.scrollable(true)`: the wheel zooms around the pointer, and dragging
+     or horizontal scrolling moves the visible window. The window never
+     leaves the data nor drops below `scroll-min-span` samples.
+   - `.horizontal(true)` with `MarkKind::Bar`: categories on the left,
+     values below; grouped or stacked like vertical bars.
 
-   Al cambiar los datos, la gráfica se anima durante `DURATION_BASE`. Con
-   `.time_axis`, la curva se desliza un paso; sin él, cada valor pasa del
-   anterior al nuevo, y los puntos nuevos crecen desde 0. Con movimiento
-   reducido, el cambio es inmediato.
-4. Para un reparto, usa `SectorChart::new(..).slice(nombre, valor)`; la
-   leyenda muestra cada valor y su porcentaje, y el donut el total. Con el
-   puntero sobre un sector, el resto baja a `unselected-opacity` y el donut
-   muestra el valor y el nombre de ese sector (`chartAngleSelection`).
-5. Para ver cómo cambia un reparto con el tiempo, usa `StreamChart`. Su
-   línea base «wiggle» (Byron y Wattenberg) minimiza la inclinación de las
-   capas, y las series que alcanzan antes su pico van al centro. Con
-   `.polar(true)` el tiempo da la vuelta a un reloj que empieza a las 12 y
-   deja un paso abierto donde se unen principio y final.
-6. Para 3D, pasa una rejilla de alturas a `Chart3D::surface`, vértices y
-   triángulos a `Chart3D::mesh` (el modelo se ajusta a la caja) o puntos
-   `[x, y, z]` a `Chart3D::points`. La malla se dibuja en la GPU en una sola
-   llamada (ADR 0060).
-7. La cámara 3D tiene tres modos, elegidos en su selector:
-   - **Libre**, como en Blender: arrastrar con el botón izquierdo o central
-     orbita, Mayúsculas + arrastrar o el botón derecho desplaza, y la rueda
-     hace zoom. El arrastre sigue aunque el puntero salga del área.
-   - **Personalizada:** deslizadores de azimut, inclinación y zoom.
-     «Fijar esta cámara» copia ahí la cámara que se ve.
-   - **Planos fijos:** frente (XY), arriba (XZ), lado (YZ) e isométrica.
+   When the data changes, the chart animates for `DURATION_BASE`. With
+   `.time_axis`, the curve slides one step; without it, each value moves
+   from the old to the new one, and new points grow from 0. With reduced
+   motion, the change is immediate.
+4. For a share, use `SectorChart::new(..).slice(name, value)`; the legend
+   shows each value and its percentage, and the donut the total. With the
+   pointer over a sector, the others drop to `unselected-opacity` and the
+   donut shows that sector's value and name (`chartAngleSelection`).
+5. To show how a share changes over time, use `StreamChart`. Its "wiggle"
+   baseline (Byron and Wattenberg) minimizes the layers' slope, and the
+   series that peak first go to the middle. With `.polar(true)` time goes
+   around a clock that starts at twelve and leaves one step open where the
+   start and the end meet.
+6. For 3D, pass a grid of heights to `Chart3D::surface`, vertices and
+   triangles to `Chart3D::mesh` (the model is fitted to the box) or
+   `[x, y, z]` points to `Chart3D::points`. The mesh is drawn on the GPU in
+   a single call (ADR 0060).
+7. The 3D camera has three modes, picked in its selector:
+   - **Free**, like Blender: dragging with the left or middle button orbits,
+     Shift + drag or the right button pans, and the wheel zooms. The drag
+     keeps going when the pointer leaves the area.
+   - **Custom:** azimuth, inclination and zoom sliders. "Keep this camera"
+     copies the camera on screen there.
+   - **Fixed planes:** front (XY), top (XZ), side (YZ) and isometric.
 
-   Debajo, una lectura accesible muestra azimut, inclinación y zoom.
+   Below it, an accessible readout shows azimuth, inclination and zoom.
 
-Como en Swift Charts, el eje Y va a la derecha y la leyenda debajo. Al pasar
-el puntero sobre un `Chart`, una regla marca la posición y la leyenda muestra
-el valor de cada serie en ese punto. Sin puntero, muestra el último valor.
-Un clic fija la selección (`chartXSelection`): la regla se queda y una
-anotación junto a ella muestra la categoría y los valores. Otro clic en el
-mismo punto la quita. La anotación usa el aspecto del tooltip y cambia de
-lado en la mitad derecha para no salirse de la gráfica. Un arrastre que
-desplaza la ventana no selecciona.
+As in Swift Charts, the Y axis is on the trailing side and the legend below.
+When the pointer moves over a `Chart`, a rule marks the position and the
+legend shows each series' value at that point. Without a pointer, it shows
+the last value. A click pins the selection (`chartXSelection`): the rule stays
+and an annotation next to it shows the category and the values. Another click
+on the same point clears it. The annotation uses the tooltip look and flips
+side in the right half so it stays inside the chart. A drag that scrolls the
+window does not select.
 
-## Valores
+## Values
 
-Todos viven en `components.chart` de `vow-design` (`CHART`):
+They all live in `components.chart` in `vow-design` (`CHART`):
 
-| Token | Valor | Uso |
+| Token | Value | Use |
 |---|---|---|
-| `height` | 180 | Alto por defecto del área de datos |
-| `line-width` | 2 | Grosor de las líneas |
-| `point-size` | 7 | Diámetro de los puntos |
-| `bar-gap` / `bar-radius` | 0,25 / 0 | Hueco entre grupos de barras; sin radio, como `BarMark` |
-| `area-opacity` | 0,35 | Opacidad del relleno de las áreas |
-| `grid-width` / `rule-width` | 0,5 / 1 | Rejilla y reglas |
-| `ticks` | 4 | Marcas deseadas en el eje Y (pasos de 1, 2 o 5 × 10ⁿ) |
-| `sector-inner` / `sector-inset` / `sector-radius` | 0,618 / 1,5 / 5 | Hueco del donut, separación y esquina de los sectores, como la muestra de la WWDC23 |
-| `unselected-opacity` | 0,5 | Sectores no seleccionados ([AppCoda](https://www.appcoda.com/swiftui-chart-ios17/)) |
-| `stream-hole` | 0,32 | Hueco central del reloj de flujo |
-| `azimuth` / `inclination` | −30° / 25° | Pose inicial de `Chart3D` |
-| `y-axis-width` | 52 | Ancho de la columna de valores del eje |
-| `scroll-min-span` | 4 | Muestras visibles como mínimo al acercar |
-| `drag-degrees` | 0,5 | Grados por punto al arrastrar |
-| `zoom-min` / `zoom-max` / `wheel-zoom` | 0,4 / 4 / 0,01 | Límites del zoom y su ritmo por punto de rueda |
+| `height` | 180 | Default height of the data area |
+| `line-width` | 2 | Line thickness |
+| `point-size` | 7 | Point diameter |
+| `bar-gap` / `bar-radius` | 0.25 / 0 | Gap between bar groups; no radius, like `BarMark` |
+| `area-opacity` | 0.35 | Opacity of area fills |
+| `grid-width` / `rule-width` | 0.5 / 1 | Grid and rules |
+| `ticks` | 4 | Desired Y axis ticks (steps of 1, 2 or 5 × 10ⁿ) |
+| `sector-inner` / `sector-inset` / `sector-radius` | 0.618 / 1.5 / 5 | Donut hole, gap and sector corner, like the WWDC23 sample |
+| `unselected-opacity` | 0.5 | Unselected sectors ([AppCoda](https://www.appcoda.com/swiftui-chart-ios17/)) |
+| `stream-hole` | 0.32 | Center hole of the flow clock |
+| `azimuth` / `inclination` | −30° / 25° | Initial `Chart3D` pose |
+| `y-axis-width` | 52 | Width of the axis value column |
+| `scroll-min-span` | 4 | Minimum visible samples when zooming in |
+| `drag-degrees` | 0.5 | Degrees per point when dragging |
+| `zoom-min` / `zoom-max` / `wheel-zoom` | 0.4 / 4 / 0.01 | Zoom limits and their rate per wheel point |
 
-Los colores de las series siguen `series` (azul, verde, naranja, morado,
-rojo, amarillo, rosa), que apunta a los colores de acento del sistema
-(`CHART_SERIES`).
+Series colors follow `series` (blue, green, orange, purple, red, yellow,
+pink), which points to the system accent colors (`CHART_SERIES`).

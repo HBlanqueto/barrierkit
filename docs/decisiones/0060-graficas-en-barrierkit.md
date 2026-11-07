@@ -1,62 +1,59 @@
-# 0060 — Gráficas en barrierkit
+# 0060 — Charts in barrierkit
 
-Estado: **aceptado** (2026-11-06). Implementado en `barrier_kit::charts`. Las apps de prueba (Master Tengen App Show, Marea, Ondina y Trazo) y los ejemplos se retiraron del repositorio el 2026-11-07.
+Status: **accepted** (2026-11-06). Implemented in `barrier_kit::charts`. The test apps (Master Tengen App Show, Marea, Ondina and Trazo) and the examples were removed from the repository on 2026-11-07.
 
-## Contexto
+## Context
 
-Un monitor del sistema y Ajustes necesitan historiales, repartos y mapas de
-intensidad. El kit no tenía gráficas, y freya 0.4.3 no trae ninguna. macOS 26
-las ofrece con Swift Charts: marcas (`LineMark`, `AreaMark`, `BarMark`,
-`PointMark`, `RuleMark`, `SectorMark`, `RectangleMark`) y, desde macOS 26,
-`Chart3D` con `SurfacePlot`.
+A system monitor and Settings need histories, shares and intensity maps. The
+kit had no charts, and freya 0.4.3 ships none. macOS 26 offers them with Swift
+Charts: marks (`LineMark`, `AreaMark`, `BarMark`, `PointMark`, `RuleMark`,
+`SectorMark`, `RectangleMark`) and, since macOS 26, `Chart3D` with
+`SurfacePlot`.
 
-## Decisión
+## Decision
 
-1. **Un módulo, `charts`, con la forma de Swift Charts:** `Chart` (línea,
-   área, barra y punto, con apilado, interpolación lineal, monótona o en
-   escalón y reglas), `SectorChart` (pastel y donut), `HeatMap`, `StreamChart` (flujo con
-   línea base «wiggle», también polar) y `Chart3D` (superficie y nube de
-   puntos).
-2. **Un elemento Skia por gráfica** (`ElementExt`, como `glass.rs`): las
-   marcas se pintan con trazos y rellenos en un solo nodo. Los ejes, la
-   leyenda y la lectura son texto del kit, así que siguen la tipografía y la
-   accesibilidad.
-3. **Lógica pura aparte y con tests:** `scale.rs` (escala lineal, marcas
-   «redondas» de Heckbert, apilado, ángulos de sectores y tangentes monótonas
-   de Fritsch–Carlson) y `space.rs` (pose, proyección ortográfica y orden de
-   pintado de atrás hacia delante).
-4. **3D como una malla en la GPU:** superficies, modelos y nubes de puntos
-   se proyectan en la CPU, se descartan las caras traseras de las mallas
-   cerradas y los triángulos se ordenan de atrás hacia delante. Toda la malla
-   va en un `Vertices` de Skia con color por vértice (sombra suave por
-   normales promediadas y color por altura) y se rasteriza en la GPU con
-   `draw_vertices`, en una sola llamada sobre Vulkan (ADR 0056). La cámara
-   es libre al estilo Blender (orbitar, desplazar y zoom), personalizada por
-   coordenadas o fija en un plano: frente, arriba, lado o isométrica.
-5. **Valores en `vow-design`** (ADR 0011): `components.chart` (`CHART`). Los
-   colores de las series apuntan a los colores de acento del sistema
-   (`CHART_SERIES`), sin copiarlos.
-6. **Prueba en una app aparte, Trazo**, no en Tengen App Show: gráficas 2D,
-   un monitor con datos reales de `/proc` y 3D.
+1. **One module, `charts`, shaped like Swift Charts:** `Chart` (line, area,
+   bar and point, with stacking, linear, monotone or step interpolation and
+   rules), `SectorChart` (pie and donut), `HeatMap`, `StreamChart` (stream with a
+   "wiggle" baseline, also polar) and `Chart3D` (surface and point cloud).
+2. **One Skia element per chart** (`ElementExt`, like `glass.rs`): marks are
+   painted with strokes and fills in a single node. Axes, legend and readout
+   are kit text, so they follow the typography and accessibility.
+3. **Pure logic apart and tested:** `scale.rs` (linear scale, Heckbert "nice"
+   ticks, stacking, sector angles and Fritsch–Carlson monotone tangents) and
+   `space.rs` (pose, orthographic projection and back-to-front paint order).
+4. **3D as one GPU mesh:** surfaces, models and point clouds are projected
+   on the CPU, closed meshes drop their back faces and triangles are sorted
+   back to front. The whole mesh goes in one Skia `Vertices` with per-vertex
+   color (smooth shading from averaged normals and color by height) and is
+   rasterized on the GPU with `draw_vertices`, in a single call on Vulkan
+   (ADR 0056). The camera is free in the Blender style (orbit, pan and
+   zoom), custom by coordinates or fixed on a plane: front, top, side or
+   isometric.
+5. **Values in `vow-design`** (ADR 0011): `components.chart` (`CHART`). Series
+   colors point to the system accent colors (`CHART_SERIES`) without copying
+   them.
+6. **Tested in a separate app, Trazo**, not in Tengen App Show: 2D charts, a
+   monitor with real data from `/proc` and 3D.
 
-## Consecuencias
+## Consequences
 
-- Una app dibuja una gráfica con una línea por serie; el monitor del sistema
-  futuro reutiliza `Chart`, `SectorChart`, `HeatMap` y `Table`.
-- La GPU rasteriza la malla, pero la proyección y el orden por profundidad
-  siguen en la CPU: `freya-skia-safe` 0.98 no expone `SkMesh` (su
-  `mesh.rs` está vacío), que permitiría proyectar en un shader de vértices.
-  Con Suzanne (3936 triángulos) basta de sobra.
-- La lectura al pasar el puntero solo existe en `Chart`; los sectores y el
-  mapa de calor muestran sus valores en la leyenda.
+- An app draws a chart with one line per series; the future system monitor
+  reuses `Chart`, `SectorChart`, `HeatMap` and `Table`.
+- The GPU rasterizes the mesh, but projection and depth sorting stay on the
+  CPU: `freya-skia-safe` 0.98 does not expose `SkMesh` (its `mesh.rs` is
+  empty), which would allow projecting in a vertex shader. Suzanne (3936
+  triangles) runs well within that.
+- The pointer readout only exists in `Chart`; sectors and the heat map show
+  their values in the legend.
 
-## Alternativas descartadas
+## Rejected alternatives
 
-- **Una crate de gráficas externa (plotters):** dibuja en su propio backend y
-  no sigue los tokens ni la tipografía del kit.
-- **Un nodo de freya por barra o punto:** miles de nodos por historial y
-  diffs caros en cada muestra.
-- **3D con una superficie Vulkan propia:** demasiado para una gráfica; la
-  malla de Skia ya se rasteriza en la GPU.
-- **Un trazado por cara:** una llamada por triángulo, sin interpolar color
-  entre vértices.
+- **An external charting crate (plotters):** it draws on its own backend and
+  does not follow the kit's tokens or typography.
+- **One freya node per bar or point:** thousands of nodes per history and
+  expensive diffs on every sample.
+- **3D with its own Vulkan surface:** too much for a chart; the Skia mesh is
+  already rasterized on the GPU.
+- **One path per face:** one call per triangle, with no color interpolation
+  between vertices.
