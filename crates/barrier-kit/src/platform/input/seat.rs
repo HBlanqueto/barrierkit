@@ -3,7 +3,7 @@ use freya_core::{
         KeyboardEventName, MouseEventName, PlatformEvent, TouchEventName, WheelEventName,
         WheelSource,
     },
-    prelude::{CursorIcon, TouchPhase},
+    prelude::{CursorIcon, Key, NamedKey, TouchPhase},
 };
 use sctk::{
     delegate_keyboard, delegate_pointer, delegate_seat, delegate_touch,
@@ -282,6 +282,9 @@ impl PointerHandler for Runtime {
                 },
                 PointerEventKind::Press { button, serial, .. } => {
                     self.record_press_serial(index, serial);
+                    if self.surfaces[index].app.text_field_at(position.into()) {
+                        self.request_keyboard(index, serial);
+                    }
                     PlatformEvent::Mouse {
                         name: MouseEventName::MouseDown,
                         cursor: position,
@@ -440,9 +443,13 @@ impl Runtime {
                 {
                     return None;
                 }
-                let menu = surface.menu_handle.as_ref()?.snapshot().0;
+                let owner = match &surface.menu_handle {
+                    Some(_) => idx,
+                    None => self.surface_index_by_id(surface.context.as_ref()?.parent.as_ref()?)?,
+                };
+                let menu = self.surfaces[owner].menu_handle.as_ref()?.snapshot().0;
                 crate::app_menu::find_menu_shortcut(&menu, modifiers, &key)
-                    .map(|action_id| (idx, action_id))
+                    .map(|action_id| (owner, action_id))
             })
         } else {
             None
@@ -450,6 +457,19 @@ impl Runtime {
 
         if let Some((idx, ref action_id)) = shortcut_action {
             self.surfaces[idx].app.menu_actions.dispatch(action_id);
+        }
+
+        if name == KeyboardEventName::KeyDown
+            && key == Key::Named(NamedKey::Escape)
+            && let Some(surface) = index.map(|idx| &self.surfaces[idx])
+            && !surface.app.text_field_focused()
+            && let Some(context) = surface
+                .context
+                .as_ref()
+                .filter(|context| context.parent.is_some())
+        {
+            context.controls.close();
+            return;
         }
 
         let platform_event = PlatformEvent::Keyboard {

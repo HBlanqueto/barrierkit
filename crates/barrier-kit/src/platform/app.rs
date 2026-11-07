@@ -191,6 +191,23 @@ impl AppInstance {
         }
     }
 
+    pub(crate) fn text_field_at(&self, (x, y): (f64, f64)) -> bool {
+        let (x, y) = (x as f32, y as f32);
+        self.tree.elements.iter().any(|(node, element)| {
+            matches!(
+                element.accessibility().builder.role(),
+                Role::TextInput
+                    | Role::MultilineTextInput
+                    | Role::SearchInput
+                    | Role::PasswordInput
+            ) && self.tree.layout.get(node).is_some_and(|layout| {
+                let area = layout.visible_area();
+                (area.min_x()..area.max_x()).contains(&x)
+                    && (area.min_y()..area.max_y()).contains(&y)
+            })
+        })
+    }
+
     pub(crate) fn text_field_focused(&self) -> bool {
         matches!(
             self.platform.focused_accessibility_node.peek().role(),

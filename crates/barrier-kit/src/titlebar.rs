@@ -119,7 +119,10 @@ impl Component for Titlebar {
     fn render(&self) -> impl IntoElement {
         let controls =
             try_consume_root_context::<WindowControls>().filter(|_| self.preview.is_none());
-        let close_only = self.close_only || controls.as_ref().is_some_and(|controls| controls.hud);
+        let close_only = self.close_only
+            || controls
+                .as_ref()
+                .is_some_and(|controls| controls.hud || controls.panel);
         let bar = if close_only {
             Bar::Titlebar
         } else if self.sidebar && theme::resolved().sidebar.style == SidebarStyle::Island {

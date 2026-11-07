@@ -200,6 +200,7 @@ pub struct WindowControls {
     pub fullscreen_push: State<bool>,
     pub(crate) overlay_titlebar_height: State<f32>,
     pub hud: bool,
+    pub panel: bool,
     pub ime_preedit: State<String>,
     pub(crate) primary: super::clipboard::Clipboard,
     pub(crate) clipboard: super::clipboard::Clipboard,
@@ -438,6 +439,7 @@ impl Runtime {
         mut options: WindowOptions,
         parent: Option<&ObjectId>,
     ) -> Option<WindowControls> {
+        let parent_id = parent.cloned();
         let parent =
             parent
                 .and_then(|id| self.surface_index_by_id(id))
@@ -553,6 +555,7 @@ impl Runtime {
             fullscreen_push: State::create_global(options.fullscreen_push),
             overlay_titlebar_height: State::create_global(0.0),
             hud: options.hud,
+            panel: utility,
             ime_preedit: State::create_global(String::new()),
             primary: self.primary.clone(),
             clipboard: self.clipboard.clone(),
@@ -594,7 +597,8 @@ impl Runtime {
             controls: controls.clone(),
             app_id,
             focus_notice,
-            utility,
+            parent: parent_id.filter(|_| utility),
+            key_only_if_needed: utility && options.panel.key_only_if_needed,
         });
         self.surfaces.push(window);
         Some(controls)
@@ -656,6 +660,7 @@ impl Runtime {
                         if let Some(seat) = &self.seat_handle {
                             window.move_(seat, serial);
                         }
+                        self.request_keyboard(index, serial);
                     }
                     WindowCommand::Resize(serial, edge) => {
                         if let Some(seat) = &self.seat_handle {
@@ -786,7 +791,7 @@ impl Runtime {
             return;
         };
         if let Some(context) = &self.surfaces[index].context
-            && !context.utility
+            && context.parent.is_none()
         {
             let mut status = context.controls.status;
             let shown = *status.peek();

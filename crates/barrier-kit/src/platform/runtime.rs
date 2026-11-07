@@ -132,7 +132,8 @@ pub(crate) struct WindowContext {
     pub(crate) controls: WindowControls,
     pub(crate) app_id: String,
     pub(crate) focus_notice: Option<super::focus::InfinityFocusSurfaceV1>,
-    pub(crate) utility: bool,
+    pub(crate) parent: Option<ObjectId>,
+    pub(crate) key_only_if_needed: bool,
 }
 
 impl Runtime {

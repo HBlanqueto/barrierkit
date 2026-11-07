@@ -73,6 +73,14 @@ inspector, with `barrier_kit::platform::open_utility_window`:
    A panel is never the main window: while it holds the keyboard, the window
    it came from stays active. The compositor applies it; without version 3
    the window behaves like a normal one.
+6. With `key_only_if_needed`, a press does not give it the keyboard. The kit
+   asks for it, with an
+   [xdg-activation](https://wayland.app/protocols/xdg-activation-v1) token made
+   from that press, when the press lands on a text field or starts dragging
+   the titlebar, like `UtilityWindow`.
+7. Its `Titlebar` switches to `close_only`: it does not minimize. Esc closes it
+   when no text field is focused, and menu shortcuts pressed in it go to the
+   menu of the window it came from, as in an `NSPanel`.
 
 `WindowOptions::hud(true)` gives it the HUD style of `NSPanel`
 (`hudWindow`): a panel that is "darker and translucent", which the HIG keeps

@@ -73,6 +73,13 @@ de Vista Previa, con `barrier_kit::platform::open_utility_window`:
    Un panel nunca es la ventana principal: mientras tiene el teclado, la
    ventana de la que salió sigue activa. Lo aplica el compositor; sin la
    versión 3, la ventana se comporta como una normal.
+6. Con `key_only_if_needed`, un clic no le da el teclado. Lo pide el kit, con
+   un token de [xdg-activation](https://wayland.app/protocols/xdg-activation-v1)
+   hecho con ese clic, cuando el clic cae en un campo de texto o empieza a
+   arrastrar la barra de título, como `UtilityWindow`.
+7. Su `Titlebar` pasa a `close_only`: no se minimiza. Esc la cierra si no hay
+   un campo de texto enfocado, y los atajos de menú que pulses en ella van al
+   menú de la ventana de la que salió, como en un `NSPanel`.
 
 `WindowOptions::hud(true)` le da el estilo HUD de `NSPanel`
 (`hudWindow`): un panel «más oscuro y translúcido» que la HIG reserva para
