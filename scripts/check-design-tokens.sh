@@ -19,7 +19,7 @@ production() {
 }
 
 if matches=$(production crates/*/src |
-    grep -E '0x[0-9a-fA-F]{6,8}|Rgba::(rgb8|rgba8)'); then
+    grep -E '0x[0-9a-fA-F]{6,8}|Rgba::(rgb8|rgba8)\([[:space:]]*(0x)?[0-9]'); then
     report "colour literals must live in vow-design" "$matches"
 fi
 

@@ -245,7 +245,7 @@
       "title-height": 22,
       "outline": 1,
       "resize-band": 6,
-      "shadow-opacity": 0.4,
+      "shadow": "#00000066",
       "shadow-blur": 8,
       "shadow-y": 3
     },

@@ -229,7 +229,7 @@ impl App for Case {
                 .height(Size::px(
                     *window_controls(shot.status).focus_bar_height.peek(),
                 ))
-                .background(crate::theme::color(vow_design::Rgba::rgb8(0, 0, 0)))
+                .background(crate::theme::color(vow_design::FOCUS_BAR_BACKGROUND))
                 .layer(i16::MAX)
         });
         rect()

@@ -762,7 +762,7 @@ pub struct FloatingPaneMetrics {
     pub title_height: f32,
     pub outline: f32,
     pub resize_band: f32,
-    pub shadow_opacity: f32,
+    pub shadow: Rgba,
     pub shadow_blur: f32,
     pub shadow_y: f32,
 }

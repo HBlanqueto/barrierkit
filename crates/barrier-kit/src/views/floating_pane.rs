@@ -183,10 +183,6 @@ impl Component for FloatingPane {
             })
             .on_mouse_down(grab(MOVE))
             .child(text(self.title.clone(), CAPTION, self.title_ink));
-        let shadow = Rgba {
-            a: FLOATING_PANE.shadow_opacity,
-            ..Rgba::rgb8(0, 0, 0)
-        };
         rect()
             .position(
                 Position::new_absolute()
@@ -231,7 +227,7 @@ impl Component for FloatingPane {
                         Shadow::new()
                             .y(FLOATING_PANE.shadow_y)
                             .blur(FLOATING_PANE.shadow_blur)
-                            .color(color(shadow)),
+                            .color(color(FLOATING_PANE.shadow)),
                     )
                     .child(title_bar)
                     .child(
