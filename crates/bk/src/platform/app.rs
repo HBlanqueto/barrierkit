@@ -2,6 +2,7 @@ use accesskit::Role;
 use freya_clipboard::copypasta::ClipboardProvider;
 
 use crate::app::DefaultsRevision;
+use crate::styles::Theme;
 use ctappearance::Resolved;
 use freya_components::{cache::AssetCacher, integration::integration};
 use freya_core::prelude::{Code, Key, Modifiers, NamedKey};
@@ -63,18 +64,41 @@ pub(crate) struct AppInstance {
     pub(crate) pending_shortcuts: Vec<Key>,
 }
 
+pub(crate) enum InstanceRole {
+    Window {
+        controls: Box<WindowControls>,
+        menu: Option<crate::main_menu::MenuHandle>,
+        theme: Theme,
+    },
+    Popup {
+        id: PopupId,
+        opens_left: Rc<Cell<bool>>,
+    },
+    #[cfg(feature = "shell")]
+    Surface,
+}
+
 impl AppInstance {
-    #[allow(clippy::too_many_arguments)]
     pub(crate) fn new(
         rt: &Runtime,
         owner: ObjectId,
         app: AppComponent,
         scale_factor: f64,
         size: (u32, u32),
-        window: Option<WindowControls>,
-        popup: Option<(PopupId, Rc<Cell<bool>>)>,
-        menu_handle: Option<crate::main_menu::MenuHandle>,
+        role: InstanceRole,
     ) -> Self {
+        let (window, popup, menu_handle, theme) = match role {
+            InstanceRole::Window {
+                controls,
+                menu,
+                theme,
+            } => (Some(*controls), None, menu, theme),
+            InstanceRole::Popup { id, opens_left } => {
+                (None, Some((id, opens_left)), None, Theme::tengen())
+            }
+            #[cfg(feature = "shell")]
+            InstanceRole::Surface => (None, None, None, Theme::tengen()),
+        };
         let waker = futures_util::task::waker(Arc::new(PingWake(rt.ping.clone())));
         let sender: Rc<dyn Fn(UserEvent)> = {
             let (queue, ping, owner) = (rt.queue.clone(), rt.ping.clone(), owner.clone());
@@ -111,7 +135,7 @@ impl AppInstance {
         let defaults_revision = rt.defaults_revision;
         let (events_sender, events_receiver) = futures_channel::mpsc::unbounded();
         let mut runner = Runner::new(move || {
-            crate::chrome::window_root(integration(app.clone())).into_element()
+            crate::chrome::window_root(theme.clone(), integration(app.clone())).into_element()
         });
 
         runner.provide_root_context(ScreenReader::new);

@@ -12,7 +12,7 @@ pub trait ControlStyle: Clone + 'static {
     fn accessible(self, appearance: &Resolved) -> Self;
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Theme {
     overrides: Vec<Rc<dyn Any>>,
 }

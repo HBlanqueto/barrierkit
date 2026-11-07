@@ -694,6 +694,7 @@ mod fullscreen_chrome_tests {
                 .expanded()
                 .child(Titlebar::new().title("Ventana").with_sidebar(true));
             crate::chrome::window_root(
+                crate::styles::Theme::tengen(),
                 WindowChrome::new(SplitView::new(Sidebar::new().traffic_lights(true), detail))
                     .style(move |s| WindowChromeStyle {
                         layout,
@@ -769,6 +770,51 @@ mod fullscreen_chrome_tests {
                     "{layout:?} {rail_style:?} under the bar: {lights:?}"
                 );
             }
+        }
+    }
+
+    struct Reveal(crate::styles::Theme);
+
+    impl App for Reveal {
+        fn render(&self) -> impl IntoElement {
+            crate::chrome::window_root(self.0.clone(), rect())
+        }
+    }
+
+    #[test]
+    fn the_window_theme_sets_the_animation_of_the_full_screen_bar() {
+        use crate::styles::{Animation, FullscreenBarStyle, Theme};
+        let instant = Theme::tengen().style(|s: FullscreenBarStyle| FullscreenBarStyle {
+            animation: Animation::None,
+            ..s
+        });
+        for (theme, at_once) in [(Theme::tengen(), false), (instant, true)] {
+            let shared = Rc::new(RefCell::new(None));
+            let states = shared.clone();
+            let resolved = resolve(&AppearanceConfig::default(), None);
+            let (mut test, _) = TestingRunner::new(
+                AppComponent::new(Reveal(theme)),
+                Size2D::new(100.0, 100.0),
+                move |runner| {
+                    let states = states.clone();
+                    runner.provide_root_context(move || {
+                        let controls = super::window_controls(WindowStatus {
+                            fullscreen: true,
+                            ..WindowStatus::default()
+                        });
+                        *states.borrow_mut() =
+                            Some((controls.focus_bar, controls.focus_bar_progress));
+                        controls
+                    });
+                    runner.provide_root_context(move || State::create(resolved));
+                },
+                1.0,
+            );
+            test.sync_and_update();
+            let (mut bar, progress) = shared.borrow().unwrap();
+            bar.set(true);
+            test.sync_and_update();
+            assert_eq!(*progress.peek() == 1.0, at_once);
         }
     }
 }

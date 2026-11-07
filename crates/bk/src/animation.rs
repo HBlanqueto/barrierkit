@@ -2,9 +2,7 @@ use std::cell::Cell;
 use std::rc::Rc;
 use std::time::Duration;
 
-use freya_animation::prelude::{
-    AnimDirection, AnimNum, AnimatedValue, Ease, Function, use_animation_transition,
-};
+use freya_animation::prelude::{AnimDirection, AnimNum, AnimatedValue, use_animation_transition};
 use freya_core::prelude::*;
 
 use crate::styles::Animation;
@@ -47,19 +45,26 @@ pub(crate) fn use_animated(target: f32, animation: Animation) -> f32 {
     }
 }
 
-pub fn use_switch_progress(on: State<bool>, ms: u64) -> f32 {
-    let reduced_motion = use_reduced_motion();
-    let animation = use_animation_transition(on, move |from: bool, to: bool| {
-        AnimNum::new(f32::from(u8::from(from)), f32::from(u8::from(to)))
-            .time(motion_ms(reduced_motion, ms))
-            .ease(Ease::Out)
-            .function(Function::Cubic)
-    });
-    if *reduced_motion.read() {
-        f32::from(u8::from(*on.read()))
+pub fn use_switch_progress(on: State<bool>, animation: Animation) -> f32 {
+    let animation = if *use_reduced_motion().read() {
+        Animation::None
     } else {
-        animation.get().value()
+        animation
+    };
+    let duration_ms = use_reactive(&animation.duration_ms());
+    let linear = use_animation_transition(on, move |from: bool, to: bool| {
+        AnimNum::new(f32::from(u8::from(from)), f32::from(u8::from(to))).time(*duration_ms.peek())
+    });
+    let linear = linear.get().value();
+    if *on.read() {
+        animation.progress(linear)
+    } else {
+        1.0 - animation.progress(1.0 - linear)
     }
+}
+
+pub(crate) fn ease_out(progress: f32) -> f32 {
+    1.0 - (1.0 - progress).powi(3)
 }
 
 pub(crate) fn ease_in_out(progress: f32) -> f32 {

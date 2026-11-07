@@ -1,7 +1,7 @@
 use ctappearance::Resolved;
-use ctdesign::{FULLSCREEN_BAND, FULLSCREEN_GLASS, FullscreenGlassMetrics};
+use ctdesign::{DURATION_BASE, FULLSCREEN_BAND, FULLSCREEN_GLASS, FullscreenGlassMetrics};
 
-use super::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effect};
+use super::{Animation, ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effect};
 
 #[derive(Clone, Debug)]
 pub struct FullscreenBarStyle {
@@ -10,6 +10,7 @@ pub struct FullscreenBarStyle {
     pub tint: StateValue<ShapeStyle>,
     pub line: StateValue<ShapeStyle>,
     pub effect: ColorEffect,
+    pub animation: Animation,
 }
 
 impl ControlStyle for FullscreenBarStyle {
@@ -20,10 +21,21 @@ impl ControlStyle for FullscreenBarStyle {
             tint: StateValue::new(ShapeStyle::Color(crate::glass::glass_tint())),
             line: StateValue::new(ShapeStyle::Role(Role::Separator)),
             effect: system_effect,
+            animation: Animation::Custom {
+                duration_ms: DURATION_BASE,
+                curve: crate::animation::ease_out,
+            },
         }
     }
 
-    fn accessible(self, _: &Resolved) -> Self {
-        self
+    fn accessible(self, appearance: &Resolved) -> Self {
+        if appearance.reduced_motion {
+            Self {
+                animation: Animation::None,
+                ..self
+            }
+        } else {
+            self
+        }
     }
 }

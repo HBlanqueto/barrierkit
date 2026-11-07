@@ -14,7 +14,7 @@ use sctk::{
 
 use crate::platform::{
     RunError,
-    app::AppInstance,
+    app::{AppInstance, InstanceRole},
     runtime::{Connected, Runtime},
     surface::{ExtensionRole, SurfaceRole},
 };
@@ -163,9 +163,7 @@ pub fn run_layer(app: AppComponent, spec: LayerSpec) -> Result<(), RunError> {
         app,
         1.0,
         size.unwrap_or((1, 1)),
-        None,
-        None,
-        None,
+        InstanceRole::Surface,
     );
     let mut window = shell.surface_window(
         surface.clone(),

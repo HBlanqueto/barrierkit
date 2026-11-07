@@ -121,12 +121,12 @@ captured in the closure.
 
 | Item | What it does |
 |---|---|
-| `use_switch_progress(on, ms)` | Returns 0–1 that follows `on: State<bool>` with a cubic ease-out over `ms`; jumps with reduced motion. The kit's show and hide animations use it |
+| `use_switch_progress(on, animation)` | Returns 0–1 that follows `on: State<bool>` with the duration and curve of an [`Animation`](../../agents/styles.md#value-types); it jumps with `Animation::None` and with reduced motion. The full-screen bar uses it with `FullscreenBarStyle::animation` |
 | `use_alive()` | Returns an `Rc<Cell<bool>>` that is `true` while the component is mounted and `false` after; a background task checks it before writing state |
 
 ```rust
 let expanded = use_state(|| false);
-let progress = use_switch_progress(expanded, DURATION_BASE);
+let progress = use_switch_progress(expanded, Animation::Ease { duration_ms: DURATION_BASE });
 rect().height(Size::px(progress * content_height))
 ```
 

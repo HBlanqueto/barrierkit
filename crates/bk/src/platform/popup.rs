@@ -18,7 +18,11 @@ use std::{
     rc::Rc,
 };
 
-use super::{app::AppInstance, runtime::Runtime, surface::SurfaceRole};
+use super::{
+    app::{AppInstance, InstanceRole},
+    runtime::Runtime,
+    surface::SurfaceRole,
+};
 use crate::styles::{PopupRoot, current_theme};
 
 #[cfg(test)]
@@ -429,9 +433,10 @@ impl Runtime {
             content,
             scale,
             spec.size,
-            None,
-            Some((id, opens_left.clone())),
-            None,
+            InstanceRole::Popup {
+                id,
+                opens_left: opens_left.clone(),
+            },
         );
 
         let output = self.surfaces[owner_index].output.clone();

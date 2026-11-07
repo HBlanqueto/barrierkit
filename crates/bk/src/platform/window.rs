@@ -17,7 +17,7 @@ use std::{cell::RefCell, rc::Rc};
 
 use super::{
     RunError,
-    app::AppInstance,
+    app::{AppInstance, InstanceRole},
     runtime::{Connected, Runtime, WindowContext},
     surface::SurfaceRole,
     timer::WakeHandle,
@@ -64,6 +64,7 @@ pub struct WindowOptions {
     pub hud: bool,
     pub status_item: Option<crate::status_item::StatusItem>,
     pub panel: PanelBehavior,
+    pub theme: crate::styles::Theme,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -108,11 +109,17 @@ impl WindowOptions {
             hud: false,
             status_item: None,
             panel: PanelBehavior::UTILITY,
+            theme: crate::styles::Theme::tengen(),
         }
     }
 
     pub fn app_id(mut self, app_id: impl Into<String>) -> Self {
         self.app_id = Some(app_id.into());
+        self
+    }
+
+    pub fn theme(mut self, theme: crate::styles::Theme) -> Self {
+        self.theme = theme;
         self
     }
 
@@ -578,9 +585,11 @@ impl Runtime {
             app,
             1.0,
             options.size,
-            Some(controls.clone()),
-            None,
-            menu_handle.clone(),
+            InstanceRole::Window {
+                controls: Box::new(controls.clone()),
+                menu: menu_handle.clone(),
+                theme: options.theme.clone(),
+            },
         );
         let mut window = self.surface_window(surface, SurfaceRole::Window(window), app_instance);
         window.logical_size = options.size;

@@ -10,7 +10,7 @@ use std::rc::Rc;
 
 use crate::platform::{
     RunError,
-    app::AppInstance,
+    app::{AppInstance, InstanceRole},
     runtime::{Connected, Runtime},
     surface::{ExtensionRole, SurfaceRole},
 };
@@ -106,7 +106,7 @@ impl Runtime {
             .expect("create_lock_surface called without ShellState")
             .app
             .clone();
-        let app = AppInstance::new(self, surface.id(), app, 1.0, (1, 1), None, None, None);
+        let app = AppInstance::new(self, surface.id(), app, 1.0, (1, 1), InstanceRole::Surface);
         let mut window =
             self.surface_window(surface, SurfaceRole::Extension(Box::new(lock_surface)), app);
         window.output = Some(output.id());

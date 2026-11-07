@@ -736,6 +736,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
 |---|---|---|---|---|---|
 | `platform::run_window` | fn | `≈ App` | `≈ NSApplicationMain(_:_:)` | Opens a window with a root view and runs the event loop | [8](08-windows.md#running-a-window) |
+| `platform::WindowOptions::theme` | method | ≈ `.environment(_:_:)` on the window | ≈ `NSAppearanceCustomization.appearance` | Gives one window its `Theme` | [8](08-windows.md#window-options) |
 | `platform::WindowOptions` | struct | `≈ Window` | — | Title, name, app id, size, limits, menu and full-screen options of a window | [8](08-windows.md#window-options) |
 | `platform::WindowControls` | struct | — | `≈ NSWindow` | Window state and commands: close, minimize, zoom, full screen, move, resize | [8](08-windows.md#window-controls) |
 | `platform::WindowStatus` | struct | — | — | Configure state: activated, maximized, fullscreen, decoration, fixed | [8](08-windows.md#window-state) |
@@ -974,7 +975,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `animation::Spring` | struct | `Spring` | ≈ `CASpringAnimation` | The kit's spring curve with duration and bounce; a Freya animated value | [14](14-animations.md#spring) |
 | `animation::use_reduced_motion` | fn | `EnvironmentValues.accessibilityReduceMotion` | `NSWorkspace.accessibilityDisplayShouldReduceMotion` | Hook returning the live reduced motion preference | [14](14-animations.md#reduced-motion) |
 | `animation::motion_ms` | fn | — | — | A duration, or 0 when reduced motion is on | [14](14-animations.md#reduced-motion) |
-| `animation::use_switch_progress` | fn | — | — | Hook easing 0–1 after a boolean state; jumps with reduced motion | [14](14-animations.md#helpers) |
+| `animation::use_switch_progress` | fn | — | — | Hook easing 0–1 after a boolean state with an `Animation`; jumps with reduced motion | [14](14-animations.md#helpers) |
 | `animation::use_alive` | fn | — | — | Hook flag that turns false when the component unmounts | [14](14-animations.md#helpers) |
 
 ## Backdrops and media

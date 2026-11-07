@@ -236,7 +236,10 @@ impl App for Case {
         });
         rect()
             .expanded()
-            .child(crate::chrome::window_root(chrome))
+            .child(crate::chrome::window_root(
+                crate::styles::Theme::tengen(),
+                chrome,
+            ))
             .maybe_child(compositor_bar)
     }
 }

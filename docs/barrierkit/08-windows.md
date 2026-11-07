@@ -91,6 +91,7 @@ method changes one field (the fields are also public).
 | `.fullscreen_push(bool)` | `false` | In full screen, the bar pushes the content down instead of covering it ([9](09-titlebars.md#pushing-the-content-fullscreen_push)) |
 | `.hud(bool)` | `false` | The HUD panel look ([Utility windows](#utility-windows)) |
 | `.panel(PanelBehavior)` | `PanelBehavior::UTILITY` | How a utility window behaves; ignored by main windows |
+| `.theme(Theme)` | `Theme::tengen()` | The [`Theme`](../../agents/styles.md#levels) of every control of the window, its title bar and full-screen bar included. `Application::theme` sets it |
 
 `FullscreenBar` has three variants, `Solid` (default), `Glass` and
 `ProgressiveGlass`; their look is in

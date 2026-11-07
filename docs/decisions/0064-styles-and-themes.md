@@ -78,7 +78,7 @@ changes only the fields it names (`|s| SliderStyle { track_height: 10.0, ..s }`)
 | Order | Level | How |
 |---|---|---|
 | 1 | Tengen | `SliderStyle::tengen()` |
-| 2 | Theme (whole app) | `Theme::tengen().style(\|s: SliderStyle\| ..)` given to `Application::theme` |
+| 2 | Theme (whole app) | `Theme::tengen().style(\|s: SliderStyle\| ..)` given to `Application::theme` or `WindowOptions::theme` |
 | 3 | Container (subtree) | `.control_style(\|s: SliderStyle\| ..)` on any view |
 | 4 | Instance | `Slider::…().style(..)` |
 | 5 | Accessibility | `ControlStyle::accessible`, applied last, always (section 4) |

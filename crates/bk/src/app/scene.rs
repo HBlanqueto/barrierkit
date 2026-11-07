@@ -3,7 +3,7 @@ use freya_core::prelude::*;
 
 use crate::platform::{RunError, WindowOptions, open_utility_window, run_window};
 use crate::style::Palette;
-use crate::styles::{Theme, use_provide_theme};
+use crate::styles::Theme;
 use crate::theme::color;
 use crate::titlebar::Titlebar;
 
@@ -32,10 +32,9 @@ impl Application {
     ) -> Scene {
         let title = title.into();
         Scene {
-            options: WindowOptions::new(title.clone(), self.name),
+            options: WindowOptions::new(title.clone(), self.name).theme(self.theme),
             title,
             content: AppComponent::from(content),
-            theme: self.theme,
         }
     }
 }
@@ -44,7 +43,6 @@ pub struct Scene {
     options: WindowOptions,
     title: String,
     content: AppComponent,
-    theme: Theme,
 }
 
 impl Scene {
@@ -58,12 +56,8 @@ impl Scene {
             options,
             title,
             content,
-            theme,
         } = self;
-        run_window(
-            move || window_root(&title, content.clone(), theme.clone()),
-            options,
-        )
+        run_window(move || window_root(&title, content.clone()), options)
     }
 }
 
@@ -94,8 +88,7 @@ impl UtilityWindow {
     }
 }
 
-fn window_root(title: &str, content: AppComponent, theme: Theme) -> impl IntoElement + use<> {
-    use_provide_theme(theme);
+fn window_root(title: &str, content: AppComponent) -> impl IntoElement + use<> {
     rect()
         .expanded()
         .background(color(Palette::current().window_background))

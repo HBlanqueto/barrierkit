@@ -44,7 +44,7 @@ Later levels win, field by field.
 | Order | Level | Code |
 |---|---|---|
 | 1 | Tengen (default) | `SliderStyle::tengen()` |
-| 2 | Theme | `Application::new("app").theme(Theme::tengen().style(\|s: SliderStyle\| …))` |
+| 2 | Theme | `Application::new("app").theme(Theme::tengen().style(\|s: SliderStyle\| …))`, or `WindowOptions::theme` for `run_window` |
 | 3 | Container | `VStack::new().child(..).control_style(\|s: SliderStyle\| …)` (outermost first) |
 | 4 | Instance | `Slider::stepped("Volume", 10).style(\|s\| …)` |
 | 5 | Accessibility | applied by the kit, always |
@@ -102,7 +102,7 @@ All of them are in `bk::styles` and in the prelude.
 Every control style has the same groups. The names of the parts change per
 control; the groups do not. A control leaves out a group it does not draw:
 only `BackdropStyle`, `ButtonStyle`, `ChartStyle`, `GlassContainerStyle`,
-`HelpLinkStyle`, `IconButtonStyle`, `LevelSliderStyle`, `MediaButtonStyle`,
+`FullscreenBarStyle`, `HelpLinkStyle`, `IconButtonStyle`, `LevelSliderStyle`, `MediaButtonStyle`,
 `ProgressViewStyle`, `RoundButtonStyle`, `ScrollViewStyle`,
 `SidebarSectionStyle`, `SidebarStyle`, `SliderStyle`, `SpinnerStyle`,
 `SplitViewStyle`, `SwitchStyle` and `WindowChromeStyle` have `animation`.
@@ -943,6 +943,7 @@ window.
 | `band`, `glass` | `FullscreenGlassMetrics` | `FULLSCREEN_BAND` for `FullscreenBar::Glass`, `FULLSCREEN_GLASS` for `ProgressiveGlass` |
 | `tint` | `StateValue<ShapeStyle>` | `Color` of the glass of the window, as `TopGlassStyle` |
 | `line` | `StateValue<ShapeStyle>` | `Role(Separator)`, the line under the `Glass` band |
+| `animation` | `Animation` | `Custom { duration_ms: DURATION_BASE, curve }` with a cubic ease-out, how the bar comes down and goes up |
 | `effect` | `ColorEffect` | `system_effect` |
 
 States: only `normal`. When the user reduces transparency every bar is the
