@@ -7,21 +7,37 @@ use super::{
 
 #[derive(Clone, Debug)]
 pub struct ComboButtonStyle {
+    /// Tengen: `BUTTON.height`.
     pub height: f32,
+    /// Tengen: `BUTTON.padding_x`, the label half.
     pub padding_x: f32,
+    /// Tengen: `BUTTON.menu_padding_x`, the chevron half.
     pub menu_padding_x: f32,
+    /// Tengen: `SETTINGS.dropdown_chevron_glyph`.
     pub chevron_size: f32,
+    /// Tengen: `(HAIRLINE, BUTTON.height / 2)`.
     pub separator_size: (f32, f32),
+    /// Tengen: `RoundedRectangle { radius: BUTTON.radius, style: Circular }`.
     pub shape: Shape,
+    /// Tengen: `Role(ControlBackground)`, behind both halves.
     pub background: StateValue<ShapeStyle>,
+    /// Tengen: `Clear`, hovered `Role(ControlHover)`, for each half.
     pub segment: StateValue<ShapeStyle>,
+    /// Tengen: `Role(Label)`.
     pub label: StateValue<ShapeStyle>,
+    /// Tengen: `Role(SecondaryLabel)`.
     pub chevron: StateValue<ShapeStyle>,
+    /// Tengen: `Role(Separator)`.
     pub separator: StateValue<ShapeStyle>,
+    /// Tengen: `None`.
     pub border: Option<(ShapeStyle, f32)>,
+    /// Tengen: empty.
     pub shadows: Vec<ShadowStyle>,
+    /// Tengen: `1.0`.
     pub opacity: f32,
+    /// Tengen: `system_effect`.
     pub effect: ColorEffect,
+    /// Tengen: `BODY`.
     pub font: Font,
 }
 

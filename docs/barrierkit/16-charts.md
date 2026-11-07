@@ -225,7 +225,7 @@ The five charts draw from one `ChartStyle`, built from these tokens: series
 colors, grid, labels, legend, readout, line widths, marks and animation.
 `.style(|s| ..)` changes one chart and `Theme::tengen().style(|s: ChartStyle| ..)`
 every chart of the app. The fields and which chart draws each are in
-[Styles and themes](../../agents/styles.md#chartstyle).
+[Styles and themes](../../crates/bk/src/styles/chart.rs).
 
 ## Helpers
 

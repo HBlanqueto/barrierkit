@@ -136,7 +136,7 @@ Image::system(Symbol::Folder)
 
 `Image` draws from an `ImageStyle`: `size` and `foreground`, which `.size`
 and `.color` override for one image and a theme for every image. The fields
-are in [Styles and themes](../../agents/styles.md#textstyle-badgestyle-dividerstyle-avatarstyle-and-imagestyle).
+are in [Styles and themes](../../crates/bk/src/styles/text.rs).
 
 ## Fonts
 

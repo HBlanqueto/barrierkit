@@ -8,12 +8,20 @@ use super::{
 
 #[derive(Clone, Debug)]
 pub struct SpinnerStyle {
+    /// Tengen: `PROGRESS.spinner_size`.
     pub size: f32,
+    /// Tengen: `PROGRESS.spinner_spokes`.
     pub spokes: u32,
+    /// Tengen: `SYMBOL.stroke`.
     pub stroke: f32,
+    /// Tengen: `spoke` `Role(SecondaryLabel)`, fading around the turn.
     pub spoke: StateValue<ShapeStyle>,
+    /// Tengen: `1.0`.
     pub opacity: f32,
+    /// Tengen: `system_effect`.
     pub effect: ColorEffect,
+    /// Tengen: `Custom { duration_ms: PROGRESS.spinner_ms, curve: identity }`: one turn, spoke
+    /// by spoke, again and again.
     pub animation: Animation,
 }
 

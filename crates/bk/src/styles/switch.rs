@@ -6,28 +6,56 @@ use super::{
     ShapeStyle, StateValue, reduce_motion, system_effect,
 };
 
+/// States: hovered, pressed, focused, disabled. `Switch::tint(Tint)` is an
+/// instance override of `fill`.
 #[derive(Clone, Debug)]
 pub struct SwitchStyle {
+    /// Tengen: `SWITCH.width`.
     pub width: f32,
+    /// Tengen: `SWITCH.height`.
     pub height: f32,
+    /// Tengen: `(SWITCH.knob_width, SWITCH.knob_height)`.
     pub knob_size: (f32, f32),
+    /// Tengen: `SWITCH.inset`: the knob's gap to the ends; it travels `width` − knob width − 2
+    /// × `inset`.
     pub inset: f32,
+    /// Tengen: `SETTINGS.check.gap`.
     pub label_gap: f32,
+    /// Tengen: `Capsule`.
     pub track_shape: Shape,
+    /// Tengen: `Capsule`.
     pub knob_shape: Shape,
+    /// Tengen, with `fill`: `Role(ControlBackground)` while off, `Accent` while on.
     pub track: StateValue<ShapeStyle>,
+    /// Tengen, with `track`: `Role(ControlBackground)` while off, `Accent` while on.
     pub fill: StateValue<ShapeStyle>,
+    /// Tengen: `Color(SWITCH.knob_color)`.
     pub knob: StateValue<ShapeStyle>,
+    /// Tengen: `Role(Label)`.
     pub label: StateValue<ShapeStyle>,
+    /// Tengen: `Some((Role(Separator), HAIRLINE))`, drawn only while off.
     pub track_border: Option<(ShapeStyle, f32)>,
+    /// Tengen: `None`.
     pub knob_border: Option<(ShapeStyle, f32)>,
+    /// Tengen: `[KNOB_SHADOW]`.
     pub knob_shadows: Vec<ShadowStyle>,
+    /// Tengen: `1.0`.
     pub opacity: f32,
+    /// Tengen: `SWITCH.disabled_opacity`, for the switch and its label.
     pub disabled_opacity: f32,
+    /// Tengen: `system_effect`.
     pub effect: ColorEffect,
+    /// Tengen: `None`: the label is only accessible, as in a form row
+    /// (`docs/barrierkit/11-views.md`); `Leading` and `Trailing` put it beside the switch,
+    /// `Top` and `Bottom` above and below.
     pub label_position: Option<Edge>,
+    /// Tengen: `LeftToRight`; `RightToLeft` puts the knob of a switch that is on at the left
+    /// and swaps `Leading` and `Trailing`.
     pub layout_direction: LayoutDirection,
+    /// Tengen: `BODY`.
     pub label_font: Font,
+    /// Tengen: `Ease { duration_ms: SWITCH.transition_ms }`: the knob slides; `None` makes it
+    /// jump.
     pub animation: Animation,
 }
 

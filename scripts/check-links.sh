@@ -4,6 +4,17 @@ set -eu
 root=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)
 cd "$root"
 
+anchors() {
+    awk '/^[[:space:]]*```/ { fenced = !fenced; next }
+        !fenced && /^#+ / {
+            sub(/^#+ /, "")
+            slug = tolower($0)
+            gsub(/[^a-z0-9 _-]/, "", slug)
+            gsub(/ /, "-", slug)
+            print slug
+        }' "$1"
+}
+
 broken=$(git ls-files '*.md' | while read -r file; do
     awk '/^[[:space:]]*```/ { fenced = !fenced; next }
         !fenced {
@@ -15,9 +26,22 @@ broken=$(git ls-files '*.md' | while read -r file; do
         }' "$file"
 done | while IFS="$(printf '\t')" read -r file target; do
     case $target in
-        *:* | '#'*) continue ;;
+        *://* | mailto:*) continue ;;
     esac
-    [ -e "$(dirname -- "$file")/${target%%#*}" ] || printf '%s: %s\n' "$file" "$target"
+    path=${target%%#*}
+    if [ -n "$path" ]; then
+        path="$(dirname -- "$file")/$path"
+        [ -e "$path" ] || { printf '%s: %s\n' "$file" "$target"; continue; }
+    else
+        path=$file
+    fi
+    case $target in
+        *#*) ;;
+        *) continue ;;
+    esac
+    case $path in
+        *.md) anchors "$path" | grep -qx -- "${target#*#}" || printf '%s: %s\n' "$file" "$target" ;;
+    esac
 done)
 
 if [ -n "$broken" ]; then

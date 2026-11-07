@@ -5,18 +5,37 @@ use super::{
     ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue, system_effect,
 };
 
+/// States: only `normal`.
 #[derive(Clone, Debug)]
 pub struct CapacityIndicatorStyle {
+    /// Tengen, with `segment_gap`: `LEVEL_INDICATOR.height`, `LEVEL_INDICATOR.segment_gap`
+
+    /// between the cells of `discrete`.
     pub height: f32,
+    /// Tengen, with `height`: `LEVEL_INDICATOR.height`, `LEVEL_INDICATOR.segment_gap` between
+    /// the cells of `discrete`.
     pub segment_gap: f32,
+    /// Tengen: `RoundedRectangle { radius: LEVEL_INDICATOR.radius, style: Circular }`, the bar
+    /// or each cell.
     pub shape: Shape,
+    /// Tengen: `Role(ControlBackground)`.
     pub track: StateValue<ShapeStyle>,
+    /// Tengen, with `warning`, `critical`: `Color` of `LEVEL_INDICATOR_COLORS[0]`, `[1]` and
+    /// `[2]`, picked by `level_color`.
     pub fill: StateValue<ShapeStyle>,
+    /// Tengen, with `fill`, `critical`: `Color` of `LEVEL_INDICATOR_COLORS[0]`, `[1]` and
+    /// `[2]`, picked by `level_color`.
     pub warning: StateValue<ShapeStyle>,
+    /// Tengen, with `fill`, `warning`: `Color` of `LEVEL_INDICATOR_COLORS[0]`, `[1]` and `[2]`,
+    /// picked by `level_color`.
     pub critical: StateValue<ShapeStyle>,
+    /// Tengen: `Some((Role(CardBorder), HAIRLINE))`.
     pub border: Option<(ShapeStyle, f32)>,
+    /// Tengen: empty, for the bar or each cell.
     pub shadows: Vec<ShadowStyle>,
+    /// Tengen: `1.0`.
     pub opacity: f32,
+    /// Tengen: `system_effect`.
     pub effect: ColorEffect,
 }
 

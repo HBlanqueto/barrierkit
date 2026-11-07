@@ -5,18 +5,47 @@ use ctdesign::{Rgba, TITLEBAR, TRAFFIC_GLYPHS, TRAFFIC_RIM_WIDTH};
 use super::button::rounded;
 use super::{Axis, ColorEffect, ControlStyle, Shape, ShapeStyle, StateValue, system_effect};
 
+/// `fills`, `rims` and `glyphs` hold one paint per light, in the order close,
+/// minimize, zoom.
+///
+/// States: hovered (the pointer is over the group), pressed (that light), focused
+/// (the window is focused), disabled (zoom without zoom support, the other
+/// lights with `.close_only(true)`). `.round(true)` is an instance override of
+/// `shape` (`Circle`), `.vertical(true)` of `axis`. `Titlebar`, the rail and the
+/// sidebar place their lights with `TrafficLights::for_window`, so their size
+/// comes from the theme and the containers.
 #[derive(Clone, Debug)]
 pub struct TrafficLightsStyle {
+    /// Tengen: `TITLEBAR.buttons.diameter`.
     pub diameter: f32,
+    /// Tengen: `TITLEBAR.buttons.spacing`.
     pub spacing: f32,
+    /// Tengen: `TRAFFIC_GLYPHS.box_size`.
     pub glyph_size: f32,
+    /// Tengen: `TRAFFIC_RIM_WIDTH`.
     pub rim_width: f32,
+    /// Tengen: `RoundedRectangle { radius: TITLEBAR.buttons.corner_radius, style: Circular }`.
     pub shape: Shape,
+    /// Tengen, with `rims`, `glyphs`: the `Color`s of `ctappearance::traffic::visual` for the
+    /// user's `traffic_lights`: normal and disabled are the gray idle light without a glyph,
+    /// focused the lit light, hovered the lit light with its glyph, pressed the darkened light.
+    /// `glyphs` is `Clear` where no glyph shows.
     pub fills: [StateValue<ShapeStyle>; 3],
+    /// Tengen, with `fills`, `glyphs`: the `Color`s of `ctappearance::traffic::visual` for the
+    /// user's `traffic_lights`: normal and disabled are the gray idle light without a glyph,
+    /// focused the lit light, hovered the lit light with its glyph, pressed the darkened light.
+    /// `glyphs` is `Clear` where no glyph shows.
     pub rims: [StateValue<ShapeStyle>; 3],
+    /// Tengen, with `fills`, `rims`: the `Color`s of `ctappearance::traffic::visual` for the
+    /// user's `traffic_lights`: normal and disabled are the gray idle light without a glyph,
+    /// focused the lit light, hovered the lit light with its glyph, pressed the darkened light.
+    /// `glyphs` is `Clear` where no glyph shows.
     pub glyphs: [StateValue<ShapeStyle>; 3],
+    /// Tengen: `1.0`.
     pub opacity: f32,
+    /// Tengen: `system_effect`.
     pub effect: ColorEffect,
+    /// Tengen: `Horizontal`.
     pub axis: Axis,
 }
 

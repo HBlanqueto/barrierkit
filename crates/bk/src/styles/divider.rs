@@ -4,8 +4,11 @@ use super::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effe
 
 #[derive(Clone, Debug)]
 pub struct DividerStyle {
+    /// Tengen: `thickness`: `HAIRLINE`; the line fills the width.
     pub thickness: f32,
+    /// Tengen: `line` `Role(Separator)`.
     pub line: StateValue<ShapeStyle>,
+    /// Tengen: `system_effect`.
     pub effect: ColorEffect,
 }
 

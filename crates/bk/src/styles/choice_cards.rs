@@ -8,21 +8,39 @@ use super::{
 
 #[derive(Clone, Debug)]
 pub struct ChoiceCardsStyle {
+    /// Tengen: `(SETTINGS.card_width, SETTINGS.card_height)`.
     pub card_size: (f32, f32),
+    /// Tengen: `SETTINGS.card_caption_gap`.
     pub caption_gap: f32,
+    /// Tengen: `SETTINGS.card_gap`; also between wrapped lines.
     pub spacing: f32,
+    /// Tengen: `RoundedRectangle { radius: SETTINGS.card_radius, style: Circular }`.
     pub card_shape: Shape,
+    /// Tengen: `Accent`, the ring of the chosen card.
     pub selection: StateValue<ShapeStyle>,
+    /// Tengen: `Role(SecondaryLabel)`.
     pub caption: StateValue<ShapeStyle>,
+    /// Tengen: `Role(Label)`.
     pub selected_caption: StateValue<ShapeStyle>,
+    /// Tengen: `Some((Color(SETTINGS.card_outline), HAIRLINE))`.
     pub card_border: Option<(ShapeStyle, f32)>,
+    /// Tengen: empty.
     pub card_shadows: Vec<ShadowStyle>,
+    /// Tengen: `1.0`.
     pub opacity: f32,
+    /// Tengen: `SWITCH.disabled_opacity`.
     pub disabled_opacity: f32,
+    /// Tengen: `system_effect`.
     pub effect: ColorEffect,
+    /// Tengen: `Horizontal`; `Vertical` stacks them.
     pub axis: Axis,
+    /// Tengen: `false`; `true` starts a new line when the next one does not fit.
     pub wraps: bool,
+    /// Tengen, with `selected_caption_font`: `SETTINGS.card_caption_font`, the same with
+    /// `SETTINGS.card_caption_selected_weight`.
     pub caption_font: Font,
+    /// Tengen, with `caption_font`: `SETTINGS.card_caption_font`, the same with
+    /// `SETTINGS.card_caption_selected_weight`.
     pub selected_caption_font: Font,
 }
 

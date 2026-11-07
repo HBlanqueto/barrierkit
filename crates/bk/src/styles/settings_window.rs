@@ -4,33 +4,106 @@ use super::button::rounded;
 use super::{ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, system_effect};
 use crate::theme::{SurfaceKind, popover_palette};
 
+/// `SettingsWindow` is built from styled views: its sidebar takes
+/// `SidebarStyle`, `SidebarItemStyle`, `SidebarSectionStyle` and
+/// `SidebarAccountStyle`, the search field `SearchFieldStyle`, the bar
+/// `TitlebarStyle`, the arrows `ToolGroupStyle` and `IconButtonStyle`, the
+/// split `SplitViewStyle`, the scroll area `ScrollViewStyle` and each pane
+/// `FormStyle`. `SettingsWindowStyle` holds the rest: the gaps between them and
+/// the search popover. `Pane` and `PaneGroup` are data and take no style.
+///
+/// States: a result takes hovered while the pointer or the keyboard cursor is on
+/// it, pressed and focused. Its tile takes `SymbolTileStyle`.
+///
+/// States: only `normal`. `NavigationButtons` draws nothing of its own: it is a
+/// `ToolGroup` of two `IconButton`s. `LanguagePicker` is a `PopUpButton`.
 #[derive(Clone, Debug)]
 pub struct SettingsWindowStyle {
+    /// Tengen, with `toolbar_spacing`, `navigation_spacing`: `SETTINGS.sidebar_search_gap`
+
+    /// under the search field; `SETTINGS.toolbar_gap`, the `spacing` of the bar; `SPACE_2`
+
+    /// between the sidebar toggle and the arrows.
     pub search_gap: f32,
+    /// Tengen, with `search_gap`, `navigation_spacing`: `SETTINGS.sidebar_search_gap` under the
+    /// search field; `SETTINGS.toolbar_gap`, the `spacing` of the bar; `SPACE_2` between the
+    /// sidebar toggle and the arrows.
     pub toolbar_spacing: f32,
+    /// Tengen, with `search_gap`, `toolbar_spacing`: `SETTINGS.sidebar_search_gap` under the
+    /// search field; `SETTINGS.toolbar_gap`, the `spacing` of the bar; `SPACE_2` between the
+    /// sidebar toggle and the arrows.
     pub navigation_spacing: f32,
+    /// Tengen, with `popover_max_height`, `popover_padding`: `SETTINGS.search_popover_gap`
+    /// under the field, `SETTINGS.search_popover_max_height`, the `padding` of the popover menu
+    /// palette.
     pub popover_gap: f32,
+    /// Tengen, with `popover_gap`, `popover_padding`: `SETTINGS.search_popover_gap` under the
+    /// field, `SETTINGS.search_popover_max_height`, the `padding` of the popover menu palette.
     pub popover_max_height: f32,
+    /// Tengen, with `popover_gap`, `popover_max_height`: `SETTINGS.search_popover_gap` under
+    /// the field, `SETTINGS.search_popover_max_height`, the `padding` of the popover menu
+    /// palette.
     pub popover_padding: f32,
+    /// Tengen, with `result_height`, `result_subtitle_height`: `SETTINGS.search_header_height`;
+    /// `SIDEBAR.item_height`; `SETTINGS.search_result_height` for a result with a pane name
+    /// under it.
     pub header_height: f32,
+    /// Tengen, with `header_height`, `result_subtitle_height`: `SETTINGS.search_header_height`;
+    /// `SIDEBAR.item_height`; `SETTINGS.search_result_height` for a result with a pane name
+    /// under it.
     pub result_height: f32,
+    /// Tengen, with `header_height`, `result_height`: `SETTINGS.search_header_height`;
+    /// `SIDEBAR.item_height`; `SETTINGS.search_result_height` for a result with a pane name
+    /// under it.
     pub result_subtitle_height: f32,
+    /// Tengen, with `result_spacing`: `item_padding_x` of the popover menu palette, also for
+    /// the headers; `SIDEBAR.item_gap` between the tile and the text.
     pub result_padding_x: f32,
+    /// Tengen, with `result_padding_x`: `item_padding_x` of the popover menu palette, also for
+    /// the headers; `SIDEBAR.item_gap` between the tile and the text.
     pub result_spacing: f32,
+    /// Tengen, with `result_shape`: `RoundedRectangle { radius: LIST_GROUP.radius, style:
+    /// Circular }`, a `Capsule` or `Circle` stays square; `RoundedRectangle` of the palette's
+    /// `item_radius`.
     pub popover_shape: Shape,
+    /// Tengen, with `popover_shape`: `RoundedRectangle { radius: LIST_GROUP.radius, style:
+    /// Circular }`, a `Capsule` or `Circle` stays square; `RoundedRectangle` of the palette's
+    /// `item_radius`.
     pub result_shape: Shape,
+    /// Tengen: `Color` of the popover menu background.
     pub popover_background: StateValue<ShapeStyle>,
+    /// Tengen: `Role(SecondaryLabel)`, "Suggestions", "Recents".
     pub header: StateValue<ShapeStyle>,
+    /// Tengen, with `result_title`, `result_subtitle`: `Clear`, hovered `Color` of the inactive
+    /// sidebar selection; `Role(Label)`; `Role(SecondaryLabel)`. While the user types.
     pub result_background: StateValue<ShapeStyle>,
+    /// Tengen, with `result_background`, `result_subtitle`: `Clear`, hovered `Color` of the
+    /// inactive sidebar selection; `Role(Label)`; `Role(SecondaryLabel)`. While the user types.
     pub result_title: StateValue<ShapeStyle>,
+    /// Tengen, with `result_background`, `result_title`: `Clear`, hovered `Color` of the
+    /// inactive sidebar selection; `Role(Label)`; `Role(SecondaryLabel)`. While the user types.
     pub result_subtitle: StateValue<ShapeStyle>,
+    /// Tengen, with `suggestion_title`, `suggestion_subtitle`: `Clear`, hovered `Accent`;
+    /// `Role(Label)`, hovered `Role(OnAccent)`; `Role(SecondaryLabel)`, hovered
+    /// `Role(OnAccent)`. Before the user types.
     pub suggestion_background: StateValue<ShapeStyle>,
+    /// Tengen, with `suggestion_background`, `suggestion_subtitle`: `Clear`, hovered `Accent`;
+    /// `Role(Label)`, hovered `Role(OnAccent)`; `Role(SecondaryLabel)`, hovered
+    /// `Role(OnAccent)`. Before the user types.
     pub suggestion_title: StateValue<ShapeStyle>,
+    /// Tengen, with `suggestion_background`, `suggestion_title`: `Clear`, hovered `Accent`;
+    /// `Role(Label)`, hovered `Role(OnAccent)`; `Role(SecondaryLabel)`, hovered
+    /// `Role(OnAccent)`. Before the user types.
     pub suggestion_subtitle: StateValue<ShapeStyle>,
+    /// Tengen: `Some((Color of the popover separator, HAIRLINE))`, drawn outside.
     pub popover_border: Option<(ShapeStyle, f32)>,
+    /// Tengen: `system_effect`.
     pub effect: ColorEffect,
+    /// Tengen: `CAPTION`.
     pub header_font: Font,
+    /// Tengen: `BODY`.
     pub title_font: Font,
+    /// Tengen: `CAPTION`.
     pub subtitle_font: Font,
 }
 

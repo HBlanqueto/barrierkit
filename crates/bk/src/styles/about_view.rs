@@ -4,15 +4,29 @@ use super::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effe
 
 #[derive(Clone, Debug)]
 pub struct AboutViewStyle {
+    /// Tengen, with `spacing`, `name_spacing`: `DIALOG_PADDING`; `SPACE_3` between the icon,
+
+    /// the name block and the copyright; `SPACE_1` between the name and the version.
     pub padding: f32,
+    /// Tengen, with `padding`, `name_spacing`: `DIALOG_PADDING`; `SPACE_3` between the icon,
+    /// the name block and the copyright; `SPACE_1` between the name and the version.
     pub spacing: f32,
+    /// Tengen, with `padding`, `spacing`: `DIALOG_PADDING`; `SPACE_3` between the icon, the
+    /// name block and the copyright; `SPACE_1` between the name and the version.
     pub name_spacing: f32,
+    /// Tengen: `Role(Label)`.
     pub name: StateValue<ShapeStyle>,
+    /// Tengen: `Role(SecondaryLabel)`.
     pub version: StateValue<ShapeStyle>,
+    /// Tengen: `Role(TertiaryLabel)`.
     pub copyright: StateValue<ShapeStyle>,
+    /// Tengen: `system_effect`.
     pub effect: ColorEffect,
+    /// Tengen: `TITLE`.
     pub name_font: Font,
+    /// Tengen: `BODY`.
     pub version_font: Font,
+    /// Tengen: `CAPTION`.
     pub copyright_font: Font,
 }
 

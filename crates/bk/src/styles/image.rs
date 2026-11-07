@@ -4,8 +4,11 @@ use super::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effe
 
 #[derive(Clone, Debug)]
 pub struct ImageStyle {
+    /// Tengen: `size`: `BODY.size`, a square.
     pub size: f32,
+    /// Tengen: `foreground` `Role(Label)`, the symbol.
     pub foreground: StateValue<ShapeStyle>,
+    /// Tengen: `system_effect`.
     pub effect: ColorEffect,
 }
 

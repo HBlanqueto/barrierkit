@@ -6,15 +6,36 @@ use super::{
 
 #[derive(Clone, Debug)]
 pub struct FloatingPaneStyle {
+    /// Tengen, with `outline_width`: `title_height`, `outline_width`:
+
+    /// `FLOATING_PANE.title_height`, `FLOATING_PANE.outline`, drawn outside.
     pub title_height: f32,
+    /// Tengen: `Rectangle`; the title bar takes its top corners.
     pub shape: Shape,
+    /// Tengen, with `title_bar`, `title`, `outline`: `background` `Role(WindowBackground)`,
+    /// `title_bar` `Role(ControlBackground)`, `title` `Role(Label)`, `outline`
+    /// `Role(Separator)`, focused `Accent`.
     pub background: StateValue<ShapeStyle>,
+    /// Tengen, with `background`, `title`, `outline`: `background` `Role(WindowBackground)`,
+    /// `title_bar` `Role(ControlBackground)`, `title` `Role(Label)`, `outline`
+    /// `Role(Separator)`, focused `Accent`.
     pub title_bar: StateValue<ShapeStyle>,
+    /// Tengen, with `background`, `title_bar`, `outline`: `background`
+    /// `Role(WindowBackground)`, `title_bar` `Role(ControlBackground)`, `title` `Role(Label)`,
+    /// `outline` `Role(Separator)`, focused `Accent`.
     pub title: StateValue<ShapeStyle>,
+    /// Tengen, with `background`, `title_bar`, `title`: `background` `Role(WindowBackground)`,
+    /// `title_bar` `Role(ControlBackground)`, `title` `Role(Label)`, `outline`
+    /// `Role(Separator)`, focused `Accent`.
     pub outline: StateValue<ShapeStyle>,
+    /// Tengen, with `title_height`: `title_height`, `outline_width`:
+    /// `FLOATING_PANE.title_height`, `FLOATING_PANE.outline`, drawn outside.
     pub outline_width: f32,
+    /// Tengen: `[FLOATING_PANE.shadow]` with `shadow_y` and `shadow_blur`.
     pub shadows: Vec<ShadowStyle>,
+    /// Tengen: `system_effect`.
     pub effect: ColorEffect,
+    /// Tengen: `CAPTION`.
     pub title_font: Font,
 }
 

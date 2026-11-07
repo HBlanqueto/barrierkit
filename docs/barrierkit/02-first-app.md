@@ -121,7 +121,7 @@ stacks, children and alignment (`child`, `children`, `spacing`,
 
 The defaults of `Text` come from a `TextStyle`, so a theme can change the font
 and color of every text; its fields are in
-[Styles and themes](../../agents/styles.md#textstyle-badgestyle-dividerstyle-avatarstyle-and-imagestyle).
+[Styles and themes](../../crates/bk/src/styles/text.rs).
 The stacks have no style of their own: their methods and the
 [paint on views](../../agents/styles.md#paint-on-views) style them.
 

@@ -6,31 +6,60 @@ use super::{
     ShapeStyle, StateValue, reduce_motion, system_effect,
 };
 
+/// On a horizontal slider `Leading` is `Top` and `Trailing` is `Bottom`; on a
+/// vertical one `Top` is `Leading` and `Bottom` is `Trailing`. The arrow keys
+/// follow the axis: ↑ always adds one step and ↓ removes one.
 #[derive(Clone, Debug)]
 pub struct SliderStyle {
+    /// Tengen: `SETTINGS.strength.width`, the length along the axis.
     pub width: f32,
+    /// Tengen: `SETTINGS.strength.track`.
     pub track_height: f32,
+    /// Tengen: `(SLIDER.knob_width, SLIDER.knob_height)`: along the axis, across it.
     pub knob_size: (f32, f32),
+    /// Tengen, with `tick_gap`, `label_gap`: `SETTINGS.strength.{tick, tick_gap, label_gap}`.
     pub tick_size: f32,
+    /// Tengen, with `tick_size`, `label_gap`: `SETTINGS.strength.{tick, tick_gap, label_gap}`.
     pub tick_gap: f32,
+    /// Tengen, with `tick_size`, `tick_gap`: `SETTINGS.strength.{tick, tick_gap, label_gap}`.
     pub label_gap: f32,
+    /// Tengen: `Capsule`; the fill takes the same shape.
     pub track_shape: Shape,
+    /// Tengen: `Capsule`.
     pub knob_shape: Shape,
+    /// Tengen: `Circle`.
     pub tick_shape: Shape,
+    /// Tengen: `Role(ControlBackground)`.
     pub track: StateValue<ShapeStyle>,
+    /// Tengen: `Accent`.
     pub fill: StateValue<ShapeStyle>,
+    /// Tengen: `Color(SWITCH.knob_color)`.
     pub knob: StateValue<ShapeStyle>,
+    /// Tengen: `Role(ControlBorder)`.
     pub tick: StateValue<ShapeStyle>,
+    /// Tengen: `Role(Label)`.
     pub label: StateValue<ShapeStyle>,
+    /// Tengen: `None`; paint and width, drawn inside the knob in one color.
     pub knob_border: Option<(ShapeStyle, f32)>,
+    /// Tengen: `[KNOB_SHADOW]`.
     pub knob_shadows: Vec<ShadowStyle>,
+    /// Tengen: `1.0`, for every part.
     pub opacity: f32,
+    /// Tengen: `SWITCH.disabled_opacity`, for the track, ticks and labels.
     pub disabled_opacity: f32,
+    /// Tengen: `system_effect`.
     pub effect: ColorEffect,
+    /// Tengen: `Horizontal`; `Vertical` grows upwards.
     pub axis: Axis,
+    /// Tengen: `Some(Edge::Bottom)`; the ticks sit on the same side, below when `None` hides
+    /// the labels and their space.
     pub labels: Option<Edge>,
+    /// Tengen: `LeftToRight`; `RightToLeft` grows to the left and swaps ← →.
     pub layout_direction: LayoutDirection,
+    /// Tengen: `CAPTION`.
     pub label_font: Font,
+    /// Tengen: `None`: the knob jumps to the new value, as in Tengen; set `Ease { duration_ms:
+    /// DURATION_FAST_MS }` or a `Spring` to animate the knob and the fill.
     pub animation: Animation,
 }
 

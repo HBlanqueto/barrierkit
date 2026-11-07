@@ -79,7 +79,7 @@ Behavior:
 
 `Titlebar::style` takes a `TitlebarStyle`: heights, paddings, background,
 title color, font and position, and the hairline. The fields are in
-[Styles and themes](../../agents/styles.md#titlebarstyle-and-fullscreenbarstyle).
+[Styles and themes](../../crates/bk/src/styles/titlebar.rs).
 
 ```rust
 Titlebar::new().style(|s: TitlebarStyle| TitlebarStyle {
@@ -163,7 +163,7 @@ Each light has the accessible role button and the name "Close", "Minimize" or
 `.style(..)` takes a `TrafficLightsStyle`: size, gap, shape, and the fill,
 rim and glyph of each light in each state; `.round` and `.vertical` override
 its `shape` and `axis`
-([Styles and themes](../../agents/styles.md#trafficlightsstyle)). The lights that
+([Styles and themes](../../crates/bk/src/styles/traffic_lights.rs)). The lights that
 `TrafficLights::for_window` places take the theme and the containers:
 
 ```rust
@@ -221,7 +221,7 @@ WindowChrome::new(window_content)
 
 These fields choose the layout. The style also holds the rail's paints,
 padding, title and the pill
-([Styles and themes](../../agents/styles.md#windowchromestyle)); a `Theme` sets them
+([Styles and themes](../../crates/bk/src/styles/window_chrome.rs)); a `Theme` sets them
 for every window.
 
 | Field | Default | Values |
@@ -323,7 +323,7 @@ Only `Glass` and `ProgressiveGlass` blur. When the user reduces
 transparency (`reduce_transparency`, on by default), both draw as `Solid`;
 the content keeps the offset of the chosen bar. Their tint, line and metrics
 are a `FullscreenBarStyle`, set in the theme or with `.control_style`
-([Styles and themes](../../agents/styles.md#titlebarstyle-and-fullscreenbarstyle)).
+([Styles and themes](../../crates/bk/src/styles/titlebar.rs)).
 
 #### Pushing the content: `fullscreen_push`
 

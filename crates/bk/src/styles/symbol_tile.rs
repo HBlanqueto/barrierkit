@@ -5,12 +5,21 @@ use super::{ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, syst
 
 #[derive(Clone, Debug)]
 pub struct SymbolTileStyle {
+    /// Tengen, with `symbol_size`: `size`, `symbol_size`: `SIDEBAR.app_icon`,
+
+    /// `SIDEBAR.item_icon`.
     pub size: f32,
+    /// Tengen, with `size`: `size`, `symbol_size`: `SIDEBAR.app_icon`, `SIDEBAR.item_icon`.
     pub symbol_size: f32,
+    /// Tengen: `RoundedRectangle { radius: SIDEBAR.item_radius, style: Circular }`.
     pub shape: Shape,
+    /// Tengen, with `symbol`: `background` `Accent`, `symbol` `Role(OnAccent)`.
     pub background: StateValue<ShapeStyle>,
+    /// Tengen, with `background`: `background` `Accent`, `symbol` `Role(OnAccent)`.
     pub symbol: StateValue<ShapeStyle>,
+    /// Tengen: `border` `None`, drawn inside.
     pub border: Option<(ShapeStyle, f32)>,
+    /// Tengen: `system_effect`.
     pub effect: ColorEffect,
 }
 

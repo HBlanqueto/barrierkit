@@ -4,12 +4,23 @@ use super::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effe
 
 #[derive(Clone, Debug)]
 pub struct ContentUnavailableViewStyle {
+    /// Tengen, with `spacing`, `symbol_size`: `padding_y`, `spacing`, `symbol_size`:
+
+    /// `SETTINGS.empty_padding_y`, `empty_gap`, `empty_icon`.
     pub padding_y: f32,
+    /// Tengen, with `padding_y`, `symbol_size`: `padding_y`, `spacing`, `symbol_size`:
+    /// `SETTINGS.empty_padding_y`, `empty_gap`, `empty_icon`.
     pub spacing: f32,
+    /// Tengen, with `padding_y`, `spacing`: `padding_y`, `spacing`, `symbol_size`:
+    /// `SETTINGS.empty_padding_y`, `empty_gap`, `empty_icon`.
     pub symbol_size: f32,
+    /// Tengen, with `title`: `symbol` `Role(TertiaryLabel)`; `title` `Role(SecondaryLabel)`.
     pub symbol: StateValue<ShapeStyle>,
+    /// Tengen, with `symbol`: `symbol` `Role(TertiaryLabel)`; `title` `Role(SecondaryLabel)`.
     pub title: StateValue<ShapeStyle>,
+    /// Tengen: `system_effect`.
     pub effect: ColorEffect,
+    /// Tengen: `font` `BODY`.
     pub font: Font,
 }
 

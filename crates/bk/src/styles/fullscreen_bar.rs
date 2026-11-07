@@ -8,11 +8,21 @@ use super::{
 
 #[derive(Clone, Debug)]
 pub struct FullscreenBarStyle {
+    /// Tengen, with `glass`: `FULLSCREEN_BAND` for `FullscreenBar::Glass`, `FULLSCREEN_GLASS`
+
+    /// for `ProgressiveGlass`.
     pub band: FullscreenGlassMetrics,
+    /// Tengen, with `band`: `FULLSCREEN_BAND` for `FullscreenBar::Glass`, `FULLSCREEN_GLASS`
+    /// for `ProgressiveGlass`.
     pub glass: FullscreenGlassMetrics,
+    /// Tengen: `Color` of the glass of the window, as `TopGlassStyle`.
     pub tint: StateValue<ShapeStyle>,
+    /// Tengen: `Role(Separator)`, the line under the `Glass` band.
     pub line: StateValue<ShapeStyle>,
+    /// Tengen: `system_effect`.
     pub effect: ColorEffect,
+    /// Tengen: `Custom { duration_ms: DURATION_BASE, curve }` with a cubic ease-out, how the
+    /// bar comes down and goes up.
     pub animation: Animation,
 }
 

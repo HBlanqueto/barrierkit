@@ -4,10 +4,15 @@ use super::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effe
 
 #[derive(Clone, Debug)]
 pub struct RatingIndicatorStyle {
+    /// Tengen: `LEVEL_INDICATOR.star`.
     pub star_size: f32,
+    /// Tengen, with `empty_star`: `star`, `empty_star` `Role(SecondaryLabel)`.
     pub star: StateValue<ShapeStyle>,
+    /// Tengen, with `star`: `star`, `empty_star` `Role(SecondaryLabel)`.
     pub empty_star: StateValue<ShapeStyle>,
+    /// Tengen: `1.0`.
     pub opacity: f32,
+    /// Tengen: `system_effect`.
     pub effect: ColorEffect,
 }
 

@@ -8,18 +8,31 @@ use super::{
 
 #[derive(Clone, Debug)]
 pub struct RoundButtonStyle {
+    /// Tengen: `size` `MEDIA.round`, a square.
     pub size: f32,
+    /// Tengen: `MEDIA.round_icon`.
     pub icon_size: f32,
+    /// Tengen: `Circle`.
     pub shape: Shape,
+    /// Tengen: `Color(MEDIA.round_glass)`.
     pub background: StateValue<ShapeStyle>,
+    /// Tengen: `Color(MEDIA.button_fill)`, while `.selected(true)`.
     pub selected: StateValue<ShapeStyle>,
+    /// Tengen: `Color(MEDIA.button_fill)`.
     pub icon: StateValue<ShapeStyle>,
+    /// Tengen: `Color(MEDIA.button_ink)`.
     pub selected_icon: StateValue<ShapeStyle>,
+    /// Tengen: `Some((Color(MEDIA.round_rim), HAIRLINE))`.
     pub border: Option<(ShapeStyle, f32)>,
+    /// Tengen: empty.
     pub shadows: Vec<ShadowStyle>,
+    /// Tengen: `1.0`.
     pub opacity: f32,
+    /// Tengen: `BUTTON.pressed_scale`.
     pub pressed_scale: f32,
+    /// Tengen: `system_effect`.
     pub effect: ColorEffect,
+    /// Tengen: `None`.
     pub animation: Animation,
 }
 

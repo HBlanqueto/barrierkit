@@ -7,19 +7,37 @@ use super::{
     reduce_motion, system_effect,
 };
 
+/// States: hovered, pressed, focused, disabled. `ToolbarOverflow` is an
+/// `IconButton`: its `.style` takes an `IconButtonStyle`.
 #[derive(Clone, Debug)]
 pub struct IconButtonStyle {
+    /// Tengen, with `icon_size`: `ICON_BUTTON.size`, in a toolbar `TOOLGROUP.height`;
+
+    /// `ICON_BUTTON.icon`.
     pub size: f32,
+    /// Tengen, with `size`: `ICON_BUTTON.size`, in a toolbar `TOOLGROUP.height`;
+    /// `ICON_BUTTON.icon`.
     pub icon_size: f32,
+    /// Tengen: `RoundedRectangle { radius: ICON_BUTTON.radius, style: Circular }`, in a toolbar
+    /// `Capsule`.
     pub shape: Shape,
+    /// Tengen: `Clear`, hovered `Role(ControlHover)`, disabled `Clear`.
     pub background: StateValue<ShapeStyle>,
+    /// Tengen: `Role(Label)`, disabled `Role(TertiaryLabel)`.
     pub icon: StateValue<ShapeStyle>,
+    /// Tengen: `None`.
     pub border: Option<(ShapeStyle, f32)>,
+    /// Tengen: empty.
     pub shadows: Vec<ShadowStyle>,
+    /// Tengen: `1.0`.
     pub opacity: f32,
+    /// Tengen: `1.0`.
     pub disabled_opacity: f32,
+    /// Tengen: `BUTTON.pressed_scale`.
     pub pressed_scale: f32,
+    /// Tengen: `system_effect`.
     pub effect: ColorEffect,
+    /// Tengen: `None`: the pressed scale jumps.
     pub animation: Animation,
 }
 

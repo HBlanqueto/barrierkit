@@ -94,7 +94,7 @@ before the `Backdrop` renders, still reads the system palette.
 
 `Backdrop::style(|s| ..)` changes the angles and opacity of the gradient
 layers and the fade of a new source; the fields are in
-[Styles and themes](../../agents/styles.md#backdropstyle).
+[Styles and themes](../../crates/bk/src/styles/backdrop.rs).
 
 ### Tint
 
@@ -142,12 +142,12 @@ in the window color, `FULLSCREEN_GLASS.height` deep.
 
 `MediaButton` and `RoundButton` take `.style(|s| ..)` with a `MediaButtonStyle` and a
 `RoundButtonStyle`. Their fields are in
-[Styles and themes](../../agents/styles.md#mediabuttonstyle-and-roundbuttonstyle).
+[Styles and themes](../../crates/bk/src/styles/media_button.rs).
 
 `Material`, `TopGlass` and `GlassContainer` take `.style(|s| ..)` with a
 `MaterialStyle`, a `TopGlassStyle` and a `GlassContainerStyle`: tint, blur,
 rim and, for the container, the morph. Their fields are in
-[Styles and themes](../../agents/styles.md#materialstyle-topglassstyle-and-glasscontainerstyle).
+[Styles and themes](../../crates/bk/src/styles/material.rs).
 `Scrim` has no style: its gradient follows the ground color.
 
 ## Glass that merges
@@ -243,7 +243,7 @@ volume 0, so previews and backgrounds stay silent; a player calls
 | `VideoView::new(stream)` | Draws the current frame; fills its parent by default |
 | `.width(size)`, `.height(size)` | Its size |
 | `.corner_radius(radius)` | Rounded corners, an instance override of the style's `shape` |
-| `.style(f)` | A `VideoViewStyle`: the shape that clips the frame ([Styles and themes](../../agents/styles.md#videoviewstyle)) |
+| `.style(f)` | A `VideoViewStyle`: the shape that clips the frame ([Styles and themes](../../crates/bk/src/styles/video_view.rs)) |
 
 The frame fills the view and is cropped to keep its proportions.
 

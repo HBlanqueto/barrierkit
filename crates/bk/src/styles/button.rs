@@ -8,20 +8,54 @@ use super::{
     StateValue, reduce_motion, system_effect,
 };
 
+/// `ButtonStyle::tengen()` is SwiftUI's `.bordered`.
+///
+/// States: hovered, pressed, focused, disabled.
+///
+/// The presets are functions of the style, so they go straight into `.style`,
+/// `Theme::style` or `.control_style`, and change only their own fields:
+///
+/// | Preset | SwiftUI | Changes |
+/// |---|---|---|
+/// | `ButtonStyle::bordered_prominent` | `.borderedProminent` | `background` `Accent` (disabled `Role(ControlBackground)`), `label` `Role(OnAccent)` (disabled `Role(TertiaryLabel)`), `border` `None` |
+/// | `ButtonStyle::glass` | `.glass` | `background` `Role(RaisedBackground)` (hovered `Role(ControlHover)`, disabled `Role(ControlBackground)`), `border` `(Role(CardBorder), HAIRLINE)`, `shape` `Capsule` |
+/// | `ButtonStyle::glass_prominent` | `.glassProminent` | `bordered_prominent`, then the border and shape of `glass` |
+/// | `ButtonStyle::borderless` | `.borderless` | `background` `Clear` (hovered `Role(ControlHover)`), `border` `None` |
+///
+/// `Button::size(ControlSize)` is an instance override of `height`, `padding_x`,
+/// `font` and `shape`: `Small` takes the `BUTTON.small_*` tokens, `Regular` the
+/// plain ones and `Large` `BUTTON.large_height` with a `Capsule`. A `Capsule`
+/// stays a `Capsule` at every size. A button that is `.toggled(true)` draws its
+/// style through `bordered_prominent`.
 #[derive(Clone, Debug)]
 pub struct ButtonStyle {
+    /// Tengen: `BUTTON.height`.
     pub height: f32,
+    /// Tengen: `BUTTON.padding_x`.
     pub padding_x: f32,
+    /// Tengen: `RoundedRectangle { radius: BUTTON.radius, style: Circular }`.
     pub shape: Shape,
+    /// Tengen: `Role(ControlBackground)`, hovered `Role(ControlHover)`, disabled
+    /// `Role(ControlBackground)`.
     pub background: StateValue<ShapeStyle>,
+    /// Tengen: `Role(Label)`, disabled `Role(TertiaryLabel)`.
     pub label: StateValue<ShapeStyle>,
+    /// Tengen: `None`; paint and width, drawn inside.
     pub border: Option<(ShapeStyle, f32)>,
+    /// Tengen: empty.
     pub shadows: Vec<ShadowStyle>,
+    /// Tengen, with `disabled_opacity`: `1.0`, `1.0`: the disabled look is in the paints.
     pub opacity: f32,
+    /// Tengen, with `opacity`: `1.0`, `1.0`: the disabled look is in the paints.
     pub disabled_opacity: f32,
+    /// Tengen: `BUTTON.pressed_scale`.
     pub pressed_scale: f32,
+    /// Tengen: `system_effect`.
     pub effect: ColorEffect,
+    /// Tengen: `BODY` with `BUTTON.font_size` and `BUTTON.font_weight`; the label is one line
+    /// centered in `height`, so `line_height` has no effect.
     pub font: Font,
+    /// Tengen: `None`: the pressed scale jumps; `Ease` or `Spring` animates it.
     pub animation: Animation,
 }
 

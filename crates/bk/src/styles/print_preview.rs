@@ -5,16 +5,34 @@ use super::{
 };
 use crate::style::Palette;
 
+/// The pages are content: no paint or `effect` changes them.
+///
+/// States: only `normal`.
 #[derive(Clone, Debug)]
 pub struct PrintPreviewStyle {
+    /// Tengen, with `spacing`, `caption_gap`: `SPACE_3` around the pages, `SPACE_3` between
+
+    /// them, `SPACE_2` between a page and its number.
     pub padding: f32,
+    /// Tengen, with `padding`, `caption_gap`: `SPACE_3` around the pages, `SPACE_3` between
+    /// them, `SPACE_2` between a page and its number.
     pub spacing: f32,
+    /// Tengen, with `padding`, `spacing`: `SPACE_3` around the pages, `SPACE_3` between them,
+    /// `SPACE_2` between a page and its number.
     pub caption_gap: f32,
+    /// Tengen: `Rectangle`.
     pub page_shape: Shape,
+    /// Tengen, with `caption`: `Role(ContentBackground)` behind each page,
+    /// `Role(SecondaryLabel)` for the page number.
     pub page: StateValue<ShapeStyle>,
+    /// Tengen, with `page`: `Role(ContentBackground)` behind each page, `Role(SecondaryLabel)`
+    /// for the page number.
     pub caption: StateValue<ShapeStyle>,
+    /// Tengen: one shadow in the separator color with `SPACE_2` of blur.
     pub page_shadows: Vec<ShadowStyle>,
+    /// Tengen: `system_effect`.
     pub effect: ColorEffect,
+    /// Tengen: `CAPTION`.
     pub caption_font: Font,
 }
 

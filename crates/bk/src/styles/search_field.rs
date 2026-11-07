@@ -4,19 +4,35 @@ use super::{ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, syst
 
 #[derive(Clone, Debug)]
 pub struct SearchFieldStyle {
+    /// Tengen: `TEXT_FIELD.height`.
     pub height: f32,
+    /// Tengen: `SETTINGS.search_padding_x`.
     pub padding_x: f32,
+    /// Tengen: `SETTINGS.search_icon`.
     pub icon_size: f32,
+    /// Tengen: `SETTINGS.search_gap`.
     pub icon_gap: f32,
+    /// Tengen: `Capsule`.
     pub shape: Shape,
+    /// Tengen: `Role(ControlBackground)`.
     pub background: StateValue<ShapeStyle>,
+    /// Tengen: `Clear`, focused `Accent`.
     pub border: StateValue<ShapeStyle>,
+    /// Tengen: `Role(Label)`.
     pub text: StateValue<ShapeStyle>,
+    /// Tengen: `Role(SecondaryLabel)`.
     pub placeholder: StateValue<ShapeStyle>,
+    /// Tengen, with `clear_icon`: `Role(TertiaryLabel)` magnifying glass,
+    /// `Role(SecondaryLabel)` clear button.
     pub icon: StateValue<ShapeStyle>,
+    /// Tengen, with `icon`: `Role(TertiaryLabel)` magnifying glass, `Role(SecondaryLabel)`
+    /// clear button.
     pub clear_icon: StateValue<ShapeStyle>,
+    /// Tengen: `1.0`.
     pub opacity: f32,
+    /// Tengen: `system_effect`.
     pub effect: ColorEffect,
+    /// Tengen: `BODY`; the text sits (`height` − `line_height`) / 2 from the top.
     pub font: Font,
 }
 

@@ -94,7 +94,7 @@ case, does not overlap and returns nothing for an empty query.
 `TextEditor` draws from a `TextEditorStyle`: `.style(|s| ..)` for one editor,
 `.control_style(|s: TextEditorStyle| ..)` for the editors inside a view. The
 controls of the find bar take their own styles. The fields are in
-[Styles and themes](../../agents/styles.md#texteditorstyle).
+[Styles and themes](../../crates/bk/src/styles/text_editor.rs).
 
 ## Rich text
 
@@ -165,7 +165,7 @@ FontPicker::new(font.read().clone()).on_change(move |picked| font.set(picked))
 ### Style
 
 `FontPicker` is a `Button`: its `.style(|s| ..)` takes a
-[`ButtonStyle`](../../agents/styles.md#buttonstyle). The panel has no style.
+[`ButtonStyle`](../../crates/bk/src/styles/button.rs). The panel has no style.
 
 ## Spelling
 
@@ -218,7 +218,7 @@ Tokens are 18 tall capsules with the accent at 20 %; a selected one takes the fu
 
 ### Style
 
-`.style(|s| ..)` takes a [`TokenFieldStyle`](../../agents/styles.md#tokenfieldstyle): the field,
+`.style(|s| ..)` takes a [`TokenFieldStyle`](../../crates/bk/src/styles/token_field.rs): the field,
 the tokens and the selected token. The tokens of a `SearchField` draw from the
 `TokenFieldStyle` in context.
 
@@ -267,7 +267,7 @@ PrintPreview::new(setup, &pages)
 ```
 
 The preview draws its gaps, page background, shadow and page numbers from a
-`PrintPreviewStyle` ([fields](../../agents/styles.md#printpreviewstyle)); the pages
+`PrintPreviewStyle` ([fields](../../crates/bk/src/styles/print_preview.rs)); the pages
 themselves are content.
 
 ## Rule editor
@@ -313,7 +313,7 @@ let shown = predicate.read().evaluate(&FIELDS, &|field| match field {
 ### Style
 
 `RuleEditor` draws its gaps, indent and header text from a `RuleEditorStyle`
-([fields](../../agents/styles.md#ruleeditorstyle)). Its pop-up buttons, text fields
+([fields](../../crates/bk/src/styles/rule_editor.rs)). Its pop-up buttons, text fields
 and buttons take their own styles, so `.control_style(|s: PopUpButtonStyle| ..)`
 on the editor reaches them.
 

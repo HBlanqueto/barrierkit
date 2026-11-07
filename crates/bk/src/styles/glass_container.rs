@@ -7,11 +7,18 @@ use super::{
 
 #[derive(Clone, Debug)]
 pub struct GlassContainerStyle {
+    /// Tengen: `Color(MEDIA.round_glass)`.
     pub tint: StateValue<ShapeStyle>,
+    /// Tengen: `Color(MEDIA.material_tint)`, in place of `tint` when the user reduces
+    /// transparency.
     pub solid: StateValue<ShapeStyle>,
+    /// Tengen: `Color(MEDIA.round_rim)`, one pixel along the outline.
     pub rim: StateValue<ShapeStyle>,
+    /// Tengen: `MEDIA.material_blur`.
     pub blur: f32,
+    /// Tengen: `system_effect`.
     pub effect: ColorEffect,
+    /// Tengen: `Ease { duration_ms: DURATION_BASE }`: the shapes morph; `None` makes them jump.
     pub animation: Animation,
 }
 
