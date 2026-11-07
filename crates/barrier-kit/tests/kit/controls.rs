@@ -1038,6 +1038,36 @@ fn a_disabled_control_is_announced_as_disabled() {
 }
 
 #[test]
+fn the_rating_moves_with_the_arrow_keys() {
+    use barrier_kit::indicator::RatingIndicator;
+
+    struct RatingCase;
+    impl App for RatingCase {
+        fn render(&self) -> impl IntoElement {
+            let mut rating = use_state(|| 2u32);
+            RatingIndicator::new("Valoración", *rating.read())
+                .on_change(move |value| rating.set(value))
+        }
+    }
+
+    let (mut test, _) = TestingRunner::new(
+        AppComponent::new(RatingCase),
+        Size2D::new(200.0, 60.0),
+        |_| {},
+        1.0,
+    );
+    test.sync_and_update();
+    let rating =
+        |test: &TestingRunner| test.find(|_, el| el.accessibility().builder.numeric_value());
+    press(&mut test, Key::Named(NamedKey::Tab));
+    press(&mut test, Key::Named(NamedKey::ArrowRight));
+    assert_eq!(rating(&test), Some(3.0));
+    press(&mut test, Key::Named(NamedKey::ArrowLeft));
+    press(&mut test, Key::Named(NamedKey::ArrowLeft));
+    assert_eq!(rating(&test), Some(1.0));
+}
+
+#[test]
 fn a_slider_announces_its_name_value_and_range() {
     let app = AppComponent::new(Case {
         dark: false,

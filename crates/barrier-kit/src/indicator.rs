@@ -4,6 +4,7 @@ use freya_core::prelude::*;
 use torin::prelude::{Direction, Position, Size};
 use vow_design::{CAPTION, GAUGE, HAIRLINE, LEVEL_INDICATOR, LEVEL_INDICATOR_COLORS};
 
+use crate::interaction::use_interaction;
 use crate::style::{Palette, text};
 use crate::symbol::{Symbol, symbol};
 use crate::theme::color;
@@ -263,12 +264,13 @@ impl RatingIndicator {
 impl Component for RatingIndicator {
     fn render(&self) -> impl IntoElement {
         let palette = Palette::current();
+        let interaction = use_interaction();
         let value = self.value.min(LEVEL_INDICATOR.stars);
         let stars = (1..=LEVEL_INDICATOR.stars).map(|star| {
-            let (shape, ink) = if star <= value {
-                (Symbol::StarFill, palette.secondary_label)
+            let shape = if star <= value {
+                Symbol::StarFill
             } else {
-                (Symbol::Star, palette.secondary_label)
+                Symbol::Star
             };
             let on_change = self.on_change.clone();
             rect()
@@ -279,18 +281,34 @@ impl Component for RatingIndicator {
                         }
                     })
                 })
-                .child(symbol(shape, LEVEL_INDICATOR.star, ink))
+                .child(symbol(shape, LEVEL_INDICATOR.star, palette.secondary_label))
                 .into_element()
         });
-        rect()
+        let on_change = self.on_change.clone();
+        let rating = interaction
+            .attach(rect(), on_change.is_some())
             .a11y_role(AccessibilityRole::Slider)
             .a11y_alt(self.label)
             .a11y_builder(move |node| {
                 node.set_numeric_value(f64::from(value));
+                node.set_min_numeric_value(0.0);
                 node.set_max_numeric_value(f64::from(LEVEL_INDICATOR.stars));
+                node.set_numeric_value_step(1.0);
+            })
+            .map(on_change, |el, on_change| {
+                el.on_key_down(move |event: Event<KeyboardEventData>| match event.key {
+                    Key::Named(NamedKey::ArrowLeft | NamedKey::ArrowDown) => {
+                        on_change.call(value.saturating_sub(1))
+                    }
+                    Key::Named(NamedKey::ArrowRight | NamedKey::ArrowUp) => {
+                        on_change.call((value + 1).min(LEVEL_INDICATOR.stars))
+                    }
+                    _ => {}
+                })
             })
             .direction(Direction::Horizontal)
-            .children(stars)
+            .children(stars);
+        interaction.focus_ring(rating, 0.0)
     }
 }
 
