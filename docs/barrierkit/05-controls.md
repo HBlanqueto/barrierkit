@@ -23,9 +23,9 @@ it when it adds something.
 Modules `controls` and `compact`.
 
 ```rust
-Button::new("Cancelar")
-Button::new("Guardar").style(ButtonStyle::Primary)
-Button::new("Borrar").disabled(true)
+Button::new("Cancel")
+Button::new("Save").style(ButtonStyle::Primary)
+Button::new("Delete").disabled(true)
 ```
 
 | Light | Dark |
@@ -40,9 +40,9 @@ Button::new("Borrar").disabled(true)
   `BUTTON.pressed_scale` (0.97).
 
 ```rust
-IconButton::new(Symbol::Plus, "Añadir")
-Stepper::new("Núcleos", 1, 16).value(4)
-ToggleGroup::new("Formato")
+IconButton::new(Symbol::Plus, "Add")
+Stepper::new("Cores", 1, 16).value(4)
+ToggleGroup::new("Format")
     .item("B", Face::Bold, "Negrita", true)
     .item("I", Face::Italic, "Cursiva", false)
     .item("U", Face::Underline, "Subrayado", false)
@@ -58,7 +58,7 @@ toolbar items.
 up on top and down below (`stepper`). The arrow keys also change the
 value.
 
-`Link::new("Más información…")` is a text link with `on_press`.
+`Link::new("Learn more…")` is a text link with `on_press`.
 
 `ButtonStyle` also has `Glass` and `GlassProminent`, the macOS 26 `.glass` and
 `.glassProminent` styles (a capsule with a thin border, neutral or with the
@@ -84,10 +84,10 @@ reports itself as `toggled`.
 ## Switch and checkbox
 
 ```rust
-Switch::new("Apagado")
-Switch::new("Encendido").on(true)
-Switch::new("Inactivo").on(true).disabled(true)
-Checkbox::new("Recordarme").checked(true)
+Switch::new("Off")
+Switch::new("On").on(true)
+Switch::new("Inactive").on(true).disabled(true)
+Checkbox::new("Remember me").checked(true)
 ```
 
 | Switches | Checkbox |
@@ -100,19 +100,19 @@ The switch knob animates over `SWITCH.transition_ms`.
 ## Choice
 
 ```rust
-RadioGroup::new("Aplicar el tinte a")
-    .option("Solo las ventanas")
-    .option("Todo el escritorio")
+RadioGroup::new("Apply the tint to")
+    .option("Windows only")
+    .option("The whole desktop")
 
-SegmentedControl::new("Periodo")
-    .segment("Día").segment("Semana").segment("Mes")
+SegmentedControl::new("Period")
+    .segment("Day").segment("Week").segment("Month")
     .selected(1)
 
-PopUpButton::new("Semáforos")
-    .item("Automático").item("Clásico").item("Acento")
+PopUpButton::new("Traffic lights")
+    .item("Automatic").item("Classic").item("Accent")
     .selected(1)
 
-ColorWell::new("Color de acento", &ACCENT_SWATCHES).selected(Some(0))
+ColorWell::new("Accent color", &ACCENT_SWATCHES).selected(Some(0))
 ```
 
 | Radio | Segmented |
@@ -123,7 +123,7 @@ ColorWell::new("Color de acento", &ACCENT_SWATCHES).selected(Some(0))
 |---|---|---|
 | ![PopUpButton](assets/components/popup-button-light.png) | ![PopUpButton with SVG icon](assets/components/popup-button-icon-light.png) | ![ColorWell with eight accents](assets/components/color-well-light.png) |
 
-- `PopUpButton` opens a `MenuView` as a popup; `.icon_item(texto, MenuIcon::svg(..))`
+- `PopUpButton` opens a `MenuView` as a popup; `.icon_item(text, MenuIcon::svg(..))`
   adds an icon, and `MenuIcon::Swatch(color)` adds a colour circle.
 - In a menu, the mark has a column for the whole menu, only if some row uses
   it. The icon only shifts the text of its own row, as in macOS; a checked row
@@ -133,7 +133,7 @@ ColorWell::new("Color de acento", &ACCENT_SWATCHES).selected(Some(0))
   actions with icons into one horizontal row, like the Finder's colour tags
   (`NSMenu.presentationStyle = .palette`): ← and → walk it and Enter picks.
   In the global menu (dbusmenu) each swatch becomes a plain action.
-- `ImageWell::new("Avatar", imagen)` (`barrier_kit::image_well`), like the
+- `ImageWell::new("Avatar", image)` (`barrier_kit::image_well`), like the
   HIG image well, keeps a `State<Option<PathBuf>>`. It accepts an image
   dropped from another app (it lights up with the accent while one hovers),
   opens the portal chooser when pressed and clears with Delete or Backspace.
@@ -143,21 +143,21 @@ ColorWell::new("Color de acento", &ACCENT_SWATCHES).selected(Some(0))
 - Dropping files works on any element with `on_file_drop`. The runtime
   accepts `text/uri-list` on `wl_data_device` and emits `FileHover`,
   `FileHoverCancelled` and one `FileDrop` per file (`uri_list_paths`).
-- Dragging to another app: `let arrastre = use_drag_source();` and
-  `arrastre.attach(rect(), || DragPayload::Files(rutas))` (`barrier_kit::drag`).
+- Dragging to another app: `let drag = use_drag_source();` and
+  `drag.attach(rect(), || DragPayload::Files(paths))` (`barrier_kit::drag`).
   Once the pointer moves past `components.drag.threshold` (8 px, the default
   `gtk-dnd-drag-threshold`; Apple does not publish its own) with the button
   down, the runtime opens a `wl_data_source` with `text/uri-list` and plain
   text, or only text for `DragPayload::Text`.
-- `ChoiceCards::new(..).option(rótulo, vista_previa)` shows large cards (like
+- `ChoiceCards::new(..).option(label, preview)` shows large cards (like
   «Claro, Oscuro, Acento», "Light, Dark, Accent").
 
 ## Sliders
 
 ```rust
 Slider::stepped("Level", 5).value(2).labels(&["A", "B", "C", "D", "E"])
-LevelSlider::new("Brillo").value(0.3)
-LevelSlider::new("Volumen").value(0.6).style(LevelStyle::Fat(Symbol::SpeakerWave))
+LevelSlider::new("Brightness").value(0.3)
+LevelSlider::new("Volume").value(0.6).style(LevelStyle::Fat(Symbol::SpeakerWave))
 ```
 
 | Stepped | Continuous and fat |
@@ -170,13 +170,13 @@ LevelSlider::new("Volumen").value(0.6).style(LevelStyle::Fat(Symbol::SpeakerWave
 ## Text fields
 
 ```rust
-let nombre = use_state(|| "hblanqueto".to_string());
-TextField::new(nombre, "Nombre de usuario")
-SearchField::new(consulta, "Buscar").auto_focus(true)
-let clave = use_state(PasswordField::default);
-SecureField::new(clave, "Password").on_submit(move |valor| entrar(valor))
-ComboBox::new(shell, "Intérprete").item("zsh").item("fish")
-TextEditor::new(notas, "Notas").height(Size::px(72.0))
+let name = use_state(|| "hblanqueto".to_string());
+TextField::new(name, "User name")
+SearchField::new(query, "Search").auto_focus(true)
+let password = use_state(PasswordField::default);
+SecureField::new(password, "Password").on_submit(move |value| sign_in(value))
+ComboBox::new(shell, "Shell").item("zsh").item("fish")
+TextEditor::new(notes, "Notes").height(Size::px(72.0))
 ```
 
 | Text and search | Password |
@@ -229,7 +229,7 @@ the app quits. Learn also adds it to Enchant's personal list,
 GNOME apps. In `TextField` the dots come from the `Input`'s own paragraph, so
 they follow the text when it scrolls and are clipped at the field edge.
 
-`TextEditor::styles(tramos)` takes rich text. A `State<Vec<StyleRun>>`
+`TextEditor::styles(runs)` takes rich text. A `State<Vec<StyleRun>>`
 (`barrier_kit::rich_text`) keeps runs in character indices with bold, italic
 or a link, and the text stays in the `State<String>`. Ctrl+B and Ctrl+I toggle
 bold and italic on the selection: if the whole range has it, it is removed;
@@ -255,7 +255,7 @@ and → walk the capsules, a click selects one and Backspace or Delete removes
 it. `PathControl`
 (`barrier_kit::path_control`), like `NSPathControl`, shows the parts of a
 path separated by chevrons in a 22 row, each with its icon
-(`.item(Symbol::Folder, "Documentos")`), and reports the pressed part through
+(`.item(Symbol::Folder, "Documents")`), and reports the pressed part through
 `on_select`. The 22 height comes from Xcode xibs; the capsule (18 high, 7
 padding and the accent at 20 %) is an estimate: there is no macOS 26 probe
 for these two controls. `SearchField::tokens(state)` shows the same capsules
@@ -310,9 +310,9 @@ paints the same pages as images, and `PrintPreview::new(page, &pages)` shows
 them in a column, with "Page 1 of 2", to put in a sheet before printing.
 
 ```rust
-DatePicker::new("Fecha", CivilDateTime::new(CivilDate::new(2026, 11, 6), 9, 30))
+DatePicker::new("Date", CivilDateTime::new(CivilDate::new(2026, 11, 6), 9, 30))
     .elements(DateElements::DateAndTime)
-    .on_change(move |d| momento.set(d))
+    .on_change(move |d| moment.set(d))
 ```
 
 `DatePicker` (`barrier_kit::date_picker`) is the `textFieldAndStepper` style
@@ -332,18 +332,18 @@ does the calendar arithmetic without dependencies (algorithms by
 ## Progress
 
 ```rust
-ProgressBar::determinate("Copiando sistema", 0.62)
-ProgressBar::indeterminate("Buscando redes")
-ProgressRing::new("Descargando", 0.4)
-Spinner::new("Cargando")
+ProgressBar::determinate("Copying system", 0.62)
+ProgressBar::indeterminate("Searching for networks")
+ProgressRing::new("Downloading", 0.4)
+Spinner::new("Loading")
 ```
 
 ![Bar, indeterminate bar, ring and spinner](assets/components/progress-light.png)
 
 ```rust
-CapacityIndicator::new("Disco", 0.82).thresholds(0.75, 0.9)
-RatingIndicator::new("Valoración", 3).on_change(move |v| estrellas.set(v))
-CircularGauge::new("Temperatura", 0.64, "64°")
+CapacityIndicator::new("Disk", 0.82).thresholds(0.75, 0.9)
+RatingIndicator::new("Rating", 3).on_change(move |v| stars.set(v))
+CircularGauge::new("Temperature", 0.64, "64°")
 ```
 
 `barrier_kit::indicator` follows `NSLevelIndicator`. `CapacityIndicator` is a
@@ -368,14 +368,14 @@ measurements come from Xcode xibs and from
 badge("2")
 divider()
 avatar("HB")
-Link::new("Más información…")
+Link::new("Learn more…")
 ```
 
 ![Badge, divider, avatar and link](assets/components/adornments-light.png)
 
 ```rust
 GroupBox::new(Some("Red")).child(Checkbox::new("Wi-Fi"))
-DisclosureGroup::new("Avanzado").expanded(true).child(Checkbox::new("Wi-Fi"))
+DisclosureGroup::new("Advanced").expanded(true).child(Checkbox::new("Wi-Fi"))
 ```
 
 `barrier_kit::views::group` has `GroupBox` (`NSBox`, SwiftUI `GroupBox`) and
@@ -390,7 +390,7 @@ The disclosure group indents its content by 13, the `indentationPerLevel` of
 ## Popover
 
 ```rust
-show_popover(area_del_boton, (240.0, 32.0), || text("Hola", BODY, color).into_element());
+show_popover(button_area, (240.0, 32.0), || text("Hello", BODY, color).into_element());
 ```
 
 `show_popover` (`barrier_kit::popover`) opens a popup below the area it gets,
@@ -407,27 +407,27 @@ macOS 26.7. A click outside closes it.
 ## Tooltip and context menu
 
 ```rust
-let ayuda = use_tooltip("Añadir una carpeta");
-ayuda.attach(IconButton::new(Symbol::Plus, "Añadir"))
+let help = use_tooltip("Add a folder");
+help.attach(IconButton::new(Symbol::Plus, "Add"))
 
-context_menu(fila, elementos, |id: String| { /* action */ })
+context_menu(row, items, |id: String| { /* action */ })
 ```
 
 - `use_tooltip` opens a popup without a grab under the pointer.
 - `context_menu` opens a `MenuView` at the pointer on secondary click.
-  `elementos` is a `Vec<MenuItem>`; `Action::item(true)` creates one from an
+  `items` is a `Vec<MenuItem>`; `Action::item(true)` creates one from an
   action (chapter [11](11-app.md)).
-- `MenuItem::action(id, texto)`, `::submenu(texto, elementos)`,
-  `::header(texto)` and `::placeholder(texto)` create the others;
+- `MenuItem::action(id, text)`, `::submenu(text, items)`,
+  `::header(text)` and `::placeholder(text)` create the others;
   `.with_shortcut`, `.with_enabled`, `.with_check` and `.with_icon` adjust them.
-- `menu::normalize_query(texto)` prepares a search the way the menu does, and
-  `menu::submenu_contents(cargando, elementos)` shows «Cargando…» ("Loading…")
+- `menu::normalize_query(text)` prepares a search the way the menu does, and
+  `menu::submenu_contents(loading, items)` shows "Loading…"
   in a submenu that still arrives empty.
 
 ## Scrolling
 
 ```rust
-ScrollView::new().height(Size::px(120.0)).child(lista)
+ScrollView::new().height(Size::px(120.0)).child(list)
 ```
 
 ![ScrollView with three items](assets/components/scroll-view-light.png)
@@ -462,7 +462,7 @@ as a terminal grid.
 
 1. Check whether it already exists (rule 1 of `AGENTS.md`); a new control
    composes kit primitives.
-2. Use `use_interaction()` and `interaction.attach(rect(), habilitado)` for
+2. Use `use_interaction()` and `interaction.attach(rect(), enabled)` for
    hover, pressed and focus; `interaction.focus_ring(..)` for the ring.
 3. Paint only with `Palette::current()` and `vow_design` tokens.
 4. Add its case to `tests/kit/controls.rs` (light and dark).

@@ -10,8 +10,8 @@ and popups.
 
 ```rust
 run_window(
-    AppComponent::new(MiApp),
-    WindowOptions::new("Notas", "notas")
+    AppComponent::new(MyApp),
+    WindowOptions::new("Notes", "notes")
         .size((760, 520))
         .min_size(Some(WINDOW_MIN_SIZE))
         .menu(menu),
@@ -20,8 +20,8 @@ run_window(
 
 | Option | Effect |
 |---|---|
-| `new(título, nombre)` | Visible title and short name. The `app_id` is `io.github.hblanqueto.malaysia.<nombre>` unless you pass `.app_id(..)` |
-| `.size((ancho, alto))` | Initial size (640 × 420 by default). If a saved one exists, it is restored |
+| `new(title, name)` | Visible title and short name. The `app_id` is `io.github.hblanqueto.malaysia.<name>` unless you pass `.app_id(..)` |
+| `.size((width, height))` | Initial size (640 × 420 by default). If a saved one exists, it is restored |
 | `.min_size(..)`, `.max_size(..)` | Limits. If they are equal, the window has a fixed size |
 | `.menu(AppMenu)` | Global menu of the window (chapter [11](11-app.md)) |
 | `.fullscreen_bar(FullscreenBar)` | How the overlaid titlebar is drawn in full screen; `Solid` by default (chapter [7](07-titlebars.md#the-bar-in-full-screen-fullscreenbar)) |
@@ -51,7 +51,7 @@ understand it paste with formatting.
 ## Utility windows
 
 ```rust
-open_utility_window(AppComponent::new(Inspector), WindowOptions::new("Inspector", "Vista").size((260, 360)));
+open_utility_window(AppComponent::new(Inspector), WindowOptions::new("Inspector", "View").size((260, 360)));
 ```
 
 An app opens floating panels, like SwiftUI's `UtilityWindow` or the Preview
@@ -101,10 +101,10 @@ for photo, video or slide apps
 ## Menu bar icon
 
 ```rust
-let icono = StatusItem::new("correo", "Correo", "mail-unread")
-    .items(vec![MenuItem::action("nuevo", "Nuevo mensaje")]);
-run_window(app, WindowOptions::new("Correo", "Correo").status_item(icono))?;
-use_menu_action(|id| if id == STATUS_ITEM_ACTIVATE { /* mostrar la ventana */ });
+let icon = StatusItem::new("mail", "Mail", "mail-unread")
+    .items(vec![MenuItem::action("new", "New message")]);
+run_window(app, WindowOptions::new("Mail", "mail").status_item(icon))?;
+use_menu_action(|id| if id == STATUS_ITEM_ACTIVATE { /* show the window */ });
 ```
 
 `WindowOptions::status_item` publishes a status icon, AppKit's
@@ -170,7 +170,7 @@ compositor's chrome uses the same functions.
 Menus, pop-up buttons and tooltips use `xdg_popup`. For your own:
 
 ```rust
-let id = Popups::get().open(spec, AppComponent::new(MiPopup));
+let id = Popups::get().open(spec, AppComponent::new(MyPopup));
 Popups::get().close(id);
 ```
 

@@ -6,7 +6,7 @@ Yuki is now Malaysia and CelestialKit (`celestial-kit`) is BarrierKit (`barrier-
 
 ## Context
 
-Yuki's menubar (`yuki-shell menubar`) shows the **Ventana** ("Window") menu with
+Yuki's menubar (`yuki-shell menubar`) shows the **Window** menu with
 entries to place the active window in halves, quarters, layouts,
 fill, center, restore and full screen. Today those entries appear greyed out
 because there is no channel through which the shell can ask the compositor for those
@@ -61,7 +61,7 @@ management for the shell components, starting with the menubar.
    Focus mode stays outside this protocol; it will be handled through another channel.
 6. **Event `restorable(handle, bool)`.** It is sent when it changes whether a window
    has a stored restore rectangle. The shell uses it to enable or
-   disable the entry "Regresar al tamaño anterior" ("Return to previous size"). A protocol event
+   disable the "Return to previous size" entry. A protocol event
    was chosen instead of reading it from `ToplevelInfo` because the
      restore state is not part of the toplevel state that
      `zwlr_foreign_toplevel_management_v1` publishes; it is internal to Infinity. Centralising

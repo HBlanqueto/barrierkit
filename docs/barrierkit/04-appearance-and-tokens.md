@@ -96,7 +96,7 @@ only with it:
 | `raised_background`, `sunken_background`, `scrim` | Raised surfaces, sunken surfaces and scrims |
 | `destructive` | Destructive actions |
 
-`style::text(contenido, fuente, tinta)` creates a text with a Tengen typeface.
+`style::text(content, font, ink)` creates a text with a Tengen typeface.
 `theme::color(rgba)` converts a Tengen color to the Freya type.
 `theme::use_shell_theme()` gives Freya's components a theme with the resolved
 palette and changes it with the appearance.

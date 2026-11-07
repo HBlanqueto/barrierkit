@@ -7,7 +7,7 @@ accent and play video.
 ## `Backdrop`: a backdrop that tints its content
 
 ```rust
-Backdrop::new(BackdropSource::Image(portada), Reproductor).accent(Accent::FromBackdrop)
+Backdrop::new(BackdropSource::Image(cover), Player).accent(Accent::FromBackdrop)
 ```
 
 | Source | Result |
@@ -46,10 +46,10 @@ read the system palette.
 |---|---|
 | `scrim(ScrimEdge::Leading \| Bottom)` | Gradient scrim that blends an image or a video into the window |
 | `material(radio)`, `top_glass()` | Glass over the content |
-| `MediaButton::new(texto).symbol(Symbol::Play)` | Large play button |
-| `RoundButton::new(símbolo, etiqueta).selected(bool)` | Round glass button |
-| `use_artwork(ruta)` | Loads cover art in the background |
-| `use_artwork_from(cargador)` | The same, with bytes from any source (for example, `video::fetch(url)`) |
+| `MediaButton::new(text).symbol(Symbol::Play)` | Large play button |
+| `RoundButton::new(symbol, label).selected(bool)` | Round glass button |
+| `use_artwork(path)` | Loads cover art in the background |
+| `use_artwork_from(loader)` | The same, with bytes from any source (for example, `video::fetch(url)`) |
 | `register_font(bytes)` | Registers a custom font (for example, for titles) |
 
 ## Glass that merges: `GlassContainer`
@@ -61,8 +61,8 @@ shape, and `id` plays the role of `glassEffectID`.
 ```rust
 GlassContainer::new(20.0)
     .gap(6.0)
-    .item("añadir", 22.0, IconButton::new(Symbol::Plus, "Añadir"))
-    .item("quitar", 22.0, IconButton::new(Symbol::Minus, "Quitar"))
+    .item("add", 22.0, IconButton::new(Symbol::Plus, "Add"))
+    .item("remove", 22.0, IconButton::new(Symbol::Minus, "Remove"))
 ```
 
 1. Each item measures its frame and the container paints the union of all of
@@ -96,20 +96,20 @@ GStreamer decodes and the kit picks the most direct path:
 | `Cpu` | No VA-API | The CPU decodes |
 
 `video.decoding()` tells which one is in use. `play()`, `pause()`,
-`seek(segundos)`, `position()` and `duration()` control playback.
+`seek(seconds)`, `position()` and `duration()` control playback.
 
 The source can be remote:
 
 | Constructor | Source |
 |---|---|
-| `VideoStream::open(ruta, bucle)` | Local file |
-| `VideoStream::open_uri(url, bucle)` | `http(s)`, with video and audio in the same stream |
-| `VideoStream::open_uris(url_vídeo, url_audio, bucle)` | `http(s)`, with video and audio apart (as YouTube serves them) |
+| `VideoStream::open(path, looped)` | Local file |
+| `VideoStream::open_uri(url, looped)` | `http(s)`, with video and audio in the same stream |
+| `VideoStream::open_uris(video_url, audio_url, looped)` | `http(s)`, with video and audio apart (as YouTube serves them) |
 
 `video::fetch(url)` downloads the bytes of a remote file, for example cover art.
 
 Sound plays in the same pipeline and follows its clock. Every video starts
-muted; `set_volume(nivel)` raises it, with `nivel` from 0 to 1 on a cubic
+muted; `set_volume(level)` raises it, with `level` from 0 to 1 on a cubic
 scale. That way previews and backgrounds stay silent, and the player sets a
 volume:
 

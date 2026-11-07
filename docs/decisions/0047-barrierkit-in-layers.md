@@ -39,18 +39,18 @@ User decisions already taken (2026-10-28):
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ Capa 3 · Patrones      PreferencesWindow, BrowserWindow,    │
+│ Layer 3 · Patterns     PreferencesWindow, BrowserWindow,    │
 │                        AboutWindow…                         │
 ├─────────────────────────────────────────────────────────────┤
-│ Capa 2 · Contenedores  SplitView, SourceList, Toolbar,      │  App (transversal)
-│          y vistas      NavigationStack, Form, Table,        │  Application, Action,
+│ Layer 2 · Containers   SplitView, SourceList, Toolbar,      │  App (cross-cutting)
+│          and views     NavigationStack, Form, Table,        │  Application, Action,
 │                        CollectionView, TabView, Sheet…      │  Defaults, Restoration,
 ├─────────────────────────────────────────────────────────────┤  UndoManager
-│ Capa 1 · Primitivas    Estilo (paleta semántica, texto,     │
-│                        símbolos) + controles                │
+│ Layer 1 · Primitives   Style (semantic palette, text,       │
+│                        symbols) + controls                  │
 ├─────────────────────────────────────────────────────────────┤
-│ Capa 0 · Plataforma    Runner Wayland, ventanas, popups,    │
-│                        entrada, foco, cursor, escala, a11y  │
+│ Layer 0 · Platform     Wayland runner, windows, popups,     │
+│                        input, focus, cursor, scale, a11y    │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -147,7 +147,7 @@ Status: **exists** = already in the kit, even if it needs fixing · **partial** 
 | `Action` | **new** | id, title, typed `Shortcut`, enabled/checked state and handler **always on the UI thread**. One action feeds the global menu (dbusmenu), the toolbar, the context menus and the keyboard. Responder chain: focused window → app. Replaces the `MenuItem` strings and `shortcut_matches` (P4b-10/14) |
 | `Defaults` | **new** | Per-app preferences in `~/.config/malaysia/<app_id>.domain` (`.domain` format, ADR 0021), typed with serde, with change notification (the same watcher as `AppearanceWatch`) |
 | `Restoration` | **new** | Size and position, section, sidebar width, navigation stack and scroll per window. It will connect to `xdg-session-management` when the compositor has it |
-| `UndoManager` | new | Undo and redo wired to the standard Edición ("Edit") actions |
+| `UndoManager` | new | Undo and redo wired to the standard Edit actions |
 
 ### 4. Crate structure
 
@@ -173,13 +173,13 @@ There is no `prelude.rs`: each app imports from its module (`barrier_kit::views:
 
   ```
   shell/
-    mod.rs             punto de entrada, solo existe con la feature; fachada pública
-    layer.rs           superficies layer-shell (run_layer, Anchors, Layer, LayerSpec…)
+    mod.rs             entry point, only exists with the feature; public facade
+    layer.rs           layer-shell surfaces (run_layer, Anchors, Layer, LayerSpec…)
     lock.rs            ext-session-lock (run_lock, SessionUnlock)
-    toplevels.rs       foreign-toplevel: lista y control de ventanas para el Dock
-    infinity.rs        protocolo privado de colocación de ventanas
-    menus.rs           direcciones de los menús globales de otras apps (GTK y dbusmenu) para la barra de menús
-    activation.rs      tokens xdg-activation para lanzar apps desde el Dock
+    toplevels.rs       foreign-toplevel: window list and control for the Dock
+    infinity.rs        private window-placement protocol
+    menus.rs           global-menu addresses of other apps (GTK and dbusmenu) for the menu bar
+    activation.rs      xdg-activation tokens to launch apps from the Dock
   ```
 
 - The `shell/` submodules are private (`mod activation;`, `mod infinity;`…); the public API comes only from `mod.rs` through `pub use`. The shell views import `barrier_kit::shell::{LayerSpec, run_layer, …}`, not the internal files.
@@ -225,7 +225,7 @@ Each phase is split into small batches for opencode, with a visible test in the 
 - the place for the visible tests of each batch;
 - the source of the render tests (each page renders in light, dark and tinted).
 
-Its Animación ("Animation") group shows motion: the Freya curves, the Grade spring (`Spring` is an `AnimatedValue` and is used with `use_animation`), the Tengen durations, the animatable properties (opacity, scale, rotation, position, colour, radius and width), the kit controls that already animate, the entry and exit of elements, the transitions between slides and tabs, the response to events (hover, press, error, notification and alert) and reduced motion. It is a mockup: what later goes into the kit comes from here. Its Ventana ("Window") group changes the titlebar (`TitlebarLayout`, rail, appearance), the fullscreen bar (`FullscreenBar`, `fullscreen_push`) and the sidebar of its own window.
+Its Animation group shows motion: the Freya curves, the Grade spring (`Spring` is an `AnimatedValue` and is used with `use_animation`), the Tengen durations, the animatable properties (opacity, scale, rotation, position, colour, radius and width), the kit controls that already animate, the entry and exit of elements, the transitions between slides and tabs, the response to events (hover, press, error, notification and alert) and reduced motion. It is a mockup: what later goes into the kit comes from here. Its Window group changes the titlebar (`TitlebarLayout`, rail, appearance), the fullscreen bar (`FullscreenBar`, `fullscreen_push`) and the sidebar of its own window.
 
 **Marea** (`marea`) tests the kit with media: a featured item with background video, gradients that blend it into the window, a glass island on top, horizontal shelves with posters and video preview, genre chips and a player. For it the kit gains `video` (feature `video`: GStreamer decodes with VA-API and each frame arrives as a dmabuf imported into the kit's `VkDevice`, with no copies; without dmabuf it is downloaded once and without VA-API the CPU decodes), `media` (`scrim`, `material`, `MediaButton`, `RoundButton`, `use_artwork`), `register_font`, `ScrollView` with direction, controller and optional bar, and the tokens `MEDIA` and `SCROLL_BAR`. `crates/marea/media/generate.mjs` generates the test videos and frames from the mockup scenes.
 
@@ -295,12 +295,12 @@ use vow_design::{ACCENT_SWATCHES, WINDOW_MIN_SIZE};
 const RESET: Action =
     Action::new("reset", || tr!("reset")).shortcut(Shortcut::ctrl(ShortcutKey::Char('r')));
 
-struct Notas {
+struct Notes {
     app_id: &'static str,
     instance: Option<Instance>,
 }
 
-impl App for Notas {
+impl App for Notes {
     fn render(&self) -> impl IntoElement {
         let instance = self.instance.clone();
         use_hook(move || {
@@ -330,8 +330,8 @@ impl App for Notas {
 
 fn general(history: UndoManager<usize>, selected: usize) -> Form {
     Form::new().section(
-        Section::titled("Etiqueta").row(
-            Row::new("Color").keywords(&["color", "etiqueta"]).control(
+        Section::titled("Label").row(
+            Row::new("Color").keywords(&["color", "label"]).control(
                 ColorWell::new("Color", &ACCENT_SWATCHES)
                     .selected(Some(selected))
                     .on_change(move |index| history.set(index)),
@@ -341,23 +341,23 @@ fn general(history: UndoManager<usize>, selected: usize) -> Form {
 }
 
 fn main() {
-    let app_id = barrier_kit::titlebar::app_id("notas").leak();
+    let app_id = barrier_kit::titlebar::app_id("notes").leak();
     let instance = match launch(app_id) {
         Ok(Launch::Forwarded) => return,
         Ok(Launch::Primary(instance)) => Some(instance),
         Err(_) => None,
     };
     run_window(
-        AppComponent::new(Notas { app_id, instance }),
-        WindowOptions::new("Notas", "notas")
+        AppComponent::new(Notes { app_id, instance }),
+        WindowOptions::new("Notes", "notes")
             .size((760, 520))
             .min_size(Some(WINDOW_MIN_SIZE))
             .menu(AppMenu::new(vec![Menu::new(
-                "Edición",
+                "Edit",
                 vec![UNDO.item(true), REDO.item(true), RESET.item(true)],
             )])),
     )
-    .expect("notas");
+    .expect("notes");
 }
 ```
 

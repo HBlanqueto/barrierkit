@@ -37,16 +37,16 @@ Pressing a button scales it to `BUTTON.pressed_scale` without animation.
 ```rust
 use freya_animation::prelude::use_animation_transition;
 
-let destino = use_state(|| 0.0f32);
-let movimiento = use_animation_transition(destino, |desde, hasta| {
-    Spring::new(desde, hasta, Duration::from_millis(DURATION_BASE), 0.3)
+let target = use_state(|| 0.0f32);
+let motion = use_animation_transition(target, |from, to| {
+    Spring::new(from, to, Duration::from_millis(DURATION_BASE), 0.3)
 });
-let x = movimiento.get().current();
+let x = motion.get().current();
 ```
 
 - The app needs `freya-animation` in its `Cargo.toml`; `Spring` is imported
   from `barrier_kit::animation`.
-- `Spring::new(desde, hasta, duración, rebote)`. The bounce goes from 0 to 1.
+- `Spring::new(from, to, duration, bounce)`. The bounce goes from 0 to 1.
 - With bounce 0 it is a cubic ease-out curve. With more, it is a damped
   oscillation.
 - It implements `AnimatedValue`, so it works in `use_animation` like any Freya
@@ -62,8 +62,8 @@ live change then applies to the next animation:
 
 ```rust
 let reduced_motion = use_reduced_motion();
-let entrada = use_animation_transition(destino, move |desde, hasta| {
-    AnimNum::new(desde, hasta).time(motion_ms(reduced_motion, DURATION_BASE))
+let entrance = use_animation_transition(target, move |from, to| {
+    AnimNum::new(from, to).time(motion_ms(reduced_motion, DURATION_BASE))
 });
 ```
 

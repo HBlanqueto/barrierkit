@@ -30,7 +30,7 @@ The glass never goes inside an opacity layer: Skia's blur (`backdrop`) reads the
 Island or flat is still the user's preference (`sidebar_style`). The app only chooses a variant for when the bar is inside a `Backdrop`:
 
 ```rust
-pub enum SidebarBackdrop { Clear, Tinted }   // Clear por defecto
+pub enum SidebarBackdrop { Clear, Tinted }   // Clear by default
 Sidebar::new().backdrop(SidebarBackdrop::Tinted)
 ```
 

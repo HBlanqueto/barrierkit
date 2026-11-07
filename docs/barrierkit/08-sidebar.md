@@ -16,24 +16,24 @@ and collapses.
 ```rust
 Sidebar::new()
     .traffic_lights(true)
-    .child(SidebarAccount::new("HB", "Héctor Blanqueto", "Cuenta local"))
+    .child(SidebarAccount::new("HB", "Héctor Blanqueto", "Local account"))
     .child(
-        SidebarItem::new("Inicio")
+        SidebarItem::new("Home")
             .symbol(Symbol::House, ACCENT_SWATCHES[0].1)
             .selected(true)
-            .on_select(move |_| seccion.set(0)),
+            .on_select(move |_| section.set(0)),
     )
     .child(
-        SidebarSection::new("Biblioteca")
-            .child(SidebarItem::new("Descargas").symbol(Symbol::ArrowDown, verde)),
+        SidebarSection::new("Library")
+            .child(SidebarItem::new("Downloads").symbol(Symbol::ArrowDown, green)),
     )
 ```
 
 | Piece | Options |
 |---|---|
-| `SidebarItem::new(texto)` | `.symbol(Symbol, tinte)`, `.selected(bool)`, `.emphasized(bool)`, `.on_select(..)` |
-| `SidebarSection::new(título)` | Open when mounted; a click on the title collapses or opens it with a `DURATION_BASE` animation |
-| `SidebarAccount::new(iniciales, nombre, detalle)` | No options: it only shows the account |
+| `SidebarItem::new(text)` | `.symbol(Symbol, tint)`, `.selected(bool)`, `.emphasized(bool)`, `.on_select(..)` |
+| `SidebarSection::new(title)` | Open when mounted; a click on the title collapses or opens it with a `DURATION_BASE` animation |
+| `SidebarAccount::new(initials, name, detail)` | No options: it only shows the account |
 | `Sidebar` | `.traffic_lights(true)` puts the traffic lights inside; `.backdrop(SidebarBackdrop::Tinted)` tints it over a tinted backdrop. With the `Rail`, its first row rises to the titlebar row (chapter [7](07-titlebars.md#the-sidebar-with-the-rail)) |
 
 ![Account row](assets/components/sidebar-account-light.png)
@@ -55,11 +55,11 @@ it stays concentric with its `unified` corner (26).
 ## The container: `SplitView`
 
 ```rust
-SplitView::new(barra, detalle)
+SplitView::new(sidebar, detail)
     .inspector(inspector, inspector_shown)
-    .sidebar_width(guardado.width)
-    .sidebar_visible(guardado.visible)
-    .on_layout(move |layout: SidebarLayout| disposicion.set(Some(layout)))
+    .sidebar_width(saved.width)
+    .sidebar_visible(saved.visible)
+    .on_layout(move |layout: SidebarLayout| sidebar_layout.set(Some(layout)))
 ```
 
 | Option | Default | Effect |
@@ -67,7 +67,7 @@ SplitView::new(barra, detalle)
 | `.sidebar_width(f32)` | `SIDEBAR.width` | Initial width |
 | `.sidebar_visible(bool)` | `true` | Visible on open |
 | `.resizable(bool)` | `true` | With `false` there is no grip: fixed width |
-| `.sidebar_range(mín, máx)` | `SPLIT_VIEW.sidebar_min`, `.sidebar_max` (180–320) | Width limits. If they change, the width is clamped to the new range |
+| `.sidebar_range(min, max)` | `SPLIT_VIEW.sidebar_min`, `.sidebar_max` (180–320) | Width limits. If they change, the width is clamped to the new range |
 | `.narrow_sidebar(NarrowSidebar)` | `Overlay` | How it opens in a narrow window: see [Collapsing in narrow windows](#collapsing-in-narrow-windows) |
 | `.inspector(content, presented)` | no inspector | Right pane of `SPLIT_VIEW.inspector` (270, the standard width of [`NSSplitViewItem(inspectorWithViewController:)`](https://developer.apple.com/documentation/appkit/nssplitviewitem/init(inspectorwithviewcontroller:))) with a separator; changing `presented` opens or closes it over `DURATION_BASE`, like `.inspector(isPresented:)` |
 | `.background_extension(view)` | no extension | Paints `view` under the docked sidebar, stretching its first pixel column to the window edge, like macOS 26 `.backgroundExtensionEffect()`. The sidebar glass blurs it. Apple mirrors the view; Freya 0.4.3 drops children under a negative scale, so the edge is stretched (clamp) here |
@@ -116,7 +116,7 @@ when it is overlaid.
 ### In `PreferencesWindow`
 
 `PreferencesWindow` configures the sidebar with `.sidebar_resizable(bool)`,
-`.sidebar_range(Option<(mín, máx)>)` and `.narrow_sidebar(NarrowSidebar)`;
+`.sidebar_range(Option<(min, max)>)` and `.narrow_sidebar(NarrowSidebar)`;
 `.sidebar_toggle(false)` removes the `SidebarToggle` button.
 
 Next: [9. Views](09-views.md).

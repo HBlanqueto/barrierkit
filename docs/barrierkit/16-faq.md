@@ -51,7 +51,7 @@ into Tengen. See [4](04-appearance-and-tokens.md#custom-colors-in-an-app).
 
 ## How do I make the sidebar non-resizable or give it other limits?
 
-`SplitView::resizable(false)` and `SplitView::sidebar_range(mín, máx)`; in
+`SplitView::resizable(false)` and `SplitView::sidebar_range(min, max)`; in
 `PreferencesWindow`, `sidebar_resizable` and `sidebar_range`. See
 [8](08-sidebar.md).
 

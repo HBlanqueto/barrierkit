@@ -10,40 +10,40 @@ This is the settings piece: rows grouped in cards.
 ```rust
 Form::new()
     .section(
-        Section::titled("Ventanas")
-            .row(Row::new("Ampliación").control(Switch::new("Ampliación").on(true)))
-            .row(Row::value("Estado", "Normal · 87 %"))
-            .row(Row::navigation("Avanzado", |_| {})),
+        Section::titled("Windows")
+            .row(Row::new("Zoom").control(Switch::new("Zoom").on(true)))
+            .row(Row::value("Status", "Normal · 87 %"))
+            .row(Row::navigation("Advanced", |_| {})),
     )
-    .highlighted(Some("Estado"))
+    .highlighted(Some("Status"))
 ```
 
 ![Form with a control row, a value row and a navigation row](assets/components/form-light.png)
 
 | Row | For |
 |---|---|
-| `Row::new(título).control(..)` | Label and control |
-| `Row::value(título, valor)` | Read-only information |
-| `Row::navigation(título, al_pulsar)` | Going to a subpage (chevron) |
-| `Row::destructive(título, al_pulsar)` | Destructive action, in red |
+| `Row::new(title).control(..)` | Label and control |
+| `Row::value(title, value)` | Read-only information |
+| `Row::navigation(title, on_press)` | Going to a subpage (chevron) |
+| `Row::destructive(title, on_press)` | Destructive action, in red |
 
-- `.detail(texto)` adds an explanation under the title; long texts wrap to
+- `.detail(text)` adds an explanation under the title; long texts wrap to
   several lines without clipping the control.
 - `.keywords(&[..])` feeds the `PreferencesWindow` search.
-- `Section::new()` has no title; `.footer(texto)` adds a footer.
-- `.highlighted(Some(título))` highlights the row chosen by the search.
+- `Section::new()` has no title; `.footer(text)` adds a footer.
+- `.highlighted(Some(title))` highlights the row chosen by the search.
 
 ![Form with long texts](assets/components/form-long-text-light.png)
 
 ## Table: `Table`
 
 ```rust
-Table::new("Archivos", vec!["Nombre", "Tamaño"])
-    .rows(filas)
+Table::new("Files", vec!["Name", "Size"])
+    .rows(rows)
     .sort(Some(SortOrder { column: 0, ascending: true }))
     .selected(vec![1])
-    .on_sort(move |orden| criterio.set(Some(orden)))
-    .on_select(move |filas: Vec<usize>| elegidas.set(filas))
+    .on_sort(move |order| sort.set(Some(order)))
+    .on_select(move |rows: Vec<usize>| selected_rows.set(rows))
 ```
 
 ![Table sorted by name with one row selected](assets/components/table-light.png)
@@ -65,11 +65,11 @@ Like `NSTableView`:
 ## Grid: `CollectionView`
 
 ```rust
-CollectionView::new("Documentos")
-    .item(icono(), "Malaysia")
-    .item(icono(), "Facturas")
+CollectionView::new("Documents")
+    .item(icon(), "Malaysia")
+    .item(icon(), "Invoices")
     .selected(vec![1])
-    .on_select(move |elegidos: Vec<usize>| seleccion.set(elegidos))
+    .on_select(move |chosen: Vec<usize>| selection.set(chosen))
 ```
 
 ![Icon grid with one item selected](assets/components/collection-light.png)
@@ -80,9 +80,9 @@ Ctrl+click adds or removes an item and Shift+click picks a range, as in
 ## Tabs: `TabView`
 
 ```rust
-TabView::new("Preferencias")
-    .tab(Symbol::MagnifyingGlass, "Buscar", pagina_buscar)
-    .tab(Symbol::SpeakerWave, "Sonido", pagina_sonido)
+TabView::new("Preferences")
+    .tab(Symbol::MagnifyingGlass, "Search", search_page)
+    .tab(Symbol::SpeakerWave, "Sound", sound_page)
     .selected(0)
 ```
 
@@ -91,9 +91,9 @@ TabView::new("Preferencias")
 ## Outline and columns: `OutlineView`, `ColumnBrowser`
 
 ```rust
-let nodos = vec![TreeNode::new("Documentos").icon(Symbol::Folder).child(TreeNode::new("notas.txt"))];
-OutlineView::new("Archivos", nodos.clone())
-ColumnBrowser::new("Archivos", nodos)
+let nodes = vec![TreeNode::new("Documents").icon(Symbol::Folder).child(TreeNode::new("notes.txt"))];
+OutlineView::new("Files", nodes.clone())
+ColumnBrowser::new("Files", nodes)
 ```
 
 `barrier_kit::views::tree` shows a `Vec<TreeNode>` as a tree with disclosure
@@ -107,7 +107,7 @@ Ctrl+click and Shift+click over the visible rows, as `Table` does.
 ## Window tabs: `WindowTabs`
 
 ```rust
-WindowTabs::new(titulos, elegida).on_select(..).on_close(..).on_new(..)
+WindowTabs::new(titles, selected).on_select(..).on_close(..).on_new(..)
 ```
 
 The tab bar of a tabbed `NSWindow`: capsules that share the width, the chosen
@@ -146,7 +146,7 @@ find and spelling there is `TextEditor`.
 
 ## Toolbar: search and overflow
 
-`compact::ToolbarSearch::new(text, "Buscar").collapsed(narrow)` is the toolbar
+`compact::ToolbarSearch::new(text, "Search").collapsed(narrow)` is the toolbar
 search field: with `collapsed(true)` it stays a magnifying glass that opens
 when pressed and closes when it loses focus empty. `ToolbarOverflow::new(items)`
 is the » button that gathers what does not fit into a menu; the app shows it
@@ -156,12 +156,12 @@ instead of those items when the `Breakpoint` is `Compact`. Both go in
 ## States, sheets and alerts
 
 ```rust
-empty_state(Symbol::MagnifyingGlass, "Sin resultados")
-sheet(contenido)
-Alert::new("¿Olvidar esta red?", "Tendrás que volver a escribir la contraseña.")
-    .confirm("Olvidar", |_| {})
-    .cancel("Cancelar", |_| {})
-    .suppression(no_volver)
+empty_state(Symbol::MagnifyingGlass, "No results")
+sheet(content)
+Alert::new("Forget this network?", "You will have to type the password again.")
+    .confirm("Forget", |_| {})
+    .cancel("Cancel", |_| {})
+    .suppression(dont_ask_again)
 ```
 
 | Empty | Alert |
@@ -179,9 +179,9 @@ message again" checkbox above the buttons, `NSAlert`'s
 ## Navigation: `History`
 
 ```rust
-let historial = use_state(|| History::new(Seccion::Inicio));
-historial.write().push(Seccion::Ajustes);
-navigation_buttons(historial)
+let history = use_state(|| History::new(Page::Home));
+history.write().push(Page::Settings);
+navigation_buttons(history)
 ```
 
 `History<T>` keeps the back/forward stack. `navigation_buttons` draws ‹ and ›
@@ -190,9 +190,9 @@ in a `ToolGroup` capsule with a divider and responds to the `GO_BACK` (Alt+←) 
 ## Search: `SearchIndex`
 
 ```rust
-let mut indice = SearchIndex::new();
-indice.add("wifi", "Wi-Fi", &["red", "inalámbrica"]);
-let resultados = indice.search("inalam");
+let mut index = SearchIndex::new();
+index.add("wifi", "Wi-Fi", &["network", "wireless"]);
+let results = index.search("WIREL");
 ```
 
 It searches ignoring case and accents. `PreferencesWindow` builds it on its
@@ -206,12 +206,12 @@ own from the titles and the `keywords` of each `Row`.
 `State<Predicate>`.
 
 ```rust
-const CAMPOS: [RuleField; 2] = [
-    RuleField { label: "Nombre", kind: RuleKind::Text },
-    RuleField { label: "Tipo", kind: RuleKind::Choice(&["PDF", "Imagen"]) },
+const FIELDS: [RuleField; 2] = [
+    RuleField { label: "Name", kind: RuleKind::Text },
+    RuleField { label: "Type", kind: RuleKind::Choice(&["PDF", "Image"]) },
 ];
-let filtro = use_state(|| Predicate { all: true, rules: vec![Criterion::Rule(Rule::new(1, &CAMPOS, 0))] });
-RuleEditor::new("Filtro", CAMPOS.to_vec(), filtro)
+let filter = use_state(|| Predicate { all: true, rules: vec![Criterion::Rule(Rule::new(1, &FIELDS, 0))] });
+RuleEditor::new("Filter", FIELDS.to_vec(), filter)
 ```
 
 1. The header chooses whether all rules or any of them must hold
@@ -234,9 +234,9 @@ RuleEditor::new("Filtro", CAMPOS.to_vec(), filtro)
 ```rust
 let adaptable = use_breakpoint();
 match adaptable.current() {
-    Breakpoint::Wide => tres_columnas(),
-    Breakpoint::Medium => dos_columnas(),
-    Breakpoint::Compact => una_columna(),
+    Breakpoint::Wide => three_columns(),
+    Breakpoint::Medium => two_columns(),
+    Breakpoint::Compact => one_column(),
 }
 ```
 

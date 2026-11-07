@@ -11,16 +11,16 @@ normal, unfocused, maximized, full screen and Malaysia focus mode.
 | `Titlebar` | The horizontal CSD titlebar: traffic lights, left and right zones, title | With a sidebar when `.with_sidebar(true)` is passed |
 | `TrafficLights` | Close, minimize and maximize | Square, `traffic_lights` colors |
 | `WindowChrome` + `ChromeStyle` | Two layouts: `Top` and `Rail` (normal or unified); both accept the app's own items | `Top` |
-| `FullscreenBar` | How the overlaid titlebar is drawn in full screen | `Solid` ("A · Lisa") |
+| `FullscreenBar` | How the overlaid titlebar is drawn in full screen | `Solid` ("A · Solid") |
 
 ## The horizontal titlebar: `Titlebar`
 
 ```rust
 Titlebar::new()
-    .title("Documento")
+    .title("Document")
     .with_sidebar(true)
     .left(SidebarToggle)
-    .right(IconButton::new(Symbol::Plus, "Nuevo"))
+    .right(IconButton::new(Symbol::Plus, "New"))
 ```
 
 - It has three areas: `left`, the centered title and `right`.
@@ -72,7 +72,7 @@ Malaysia uses `unified`. The user can set one radius for every window with
 
 Close, minimize and maximize. They are not usually created by hand:
 `Titlebar` and `Sidebar::traffic_lights(true)` place them with
-`titlebar::window_traffic_lights(enfocada, fija)`. If you need them standalone:
+`titlebar::window_traffic_lights(focused, fixed)`. If you need them standalone:
 
 ```rust
 TrafficLights::new()
@@ -80,7 +80,7 @@ TrafficLights::new()
     .zoom_supported(true)
     .vertical(false)
     .round(false)
-    .on_action(|boton: ButtonKind| { /* Close, Minimize, Maximize */ })
+    .on_action(|button: ButtonKind| { /* Close, Minimize, Maximize */ })
 ```
 
 | Setting | Where | Values |
@@ -93,11 +93,11 @@ In an inactive window the traffic lights turn gray.
 
 ## Two titlebar types: `WindowChrome`
 
-`chrome::WindowChrome::new(estilo, contenido)` wraps the window and places the
+`chrome::WindowChrome::new(style, content)` wraps the window and places the
 traffic lights, the title and the rail items according to a `ChromeStyle`:
 
 ```rust
-let estilo = ChromeStyle {
+let style = ChromeStyle {
     layout: TitlebarLayout::Rail,
     rail_width: TITLEBAR_RAIL.width,
     round_lights: false,
@@ -105,9 +105,9 @@ let estilo = ChromeStyle {
     reveal: Reveal::Always,
     resting_edge: RestingEdge::None,
 };
-WindowChrome::new(estilo, SplitView::new(barra, detalle))
-    .rail_top(arriba)
-    .rail_bottom(abajo)
+WindowChrome::new(style, SplitView::new(sidebar, detail))
+    .rail_top(top)
+    .rail_bottom(bottom)
 ```
 
 | `TitlebarLayout` | What it is |
@@ -202,21 +202,21 @@ Each window chooses how its overlaid titlebar is drawn. The option goes in
 WindowOptions::new("Ondina", "ondina").fullscreen_bar(FullscreenBar::ProgressiveGlass)
 ```
 
-**By default, every app uses `Solid` ("A · Lisa").** The three come from the "Ondina a pantalla completa"
-proposal; "C · Degradado" was dropped. In the screenshots, the black strip at the
+**By default, every app uses `Solid` ("A · Solid").** The three come from the "Ondina in full screen"
+proposal; "C · Gradient" was dropped. In the screenshots, the black strip at the
 top is the compositor bar, added to the image.
 
 | `FullscreenBar` | What it draws | Where the content starts (`fullscreen_content_top`) | How it looks |
 |---|---|---|---|
-| `Solid` ("A · Lisa", **default**) | An opaque band in the window color, as tall as the titlebar. It cuts what passes below with a hard edge | Bar + `FULLSCREEN_BAR.content_top` (44) | ![A · Lisa](assets/states/bar-solid.png) |
-| `Glass` ("B1 · Vidrio en banda") | A band as tall as the titlebar, from edge to edge of the window and over the sidebar, that blurs what is below (`FULLSCREEN_BAND`), with a tint and a line at the bottom | Bar + `FULLSCREEN_BAND.content_top` (44) | ![B1 · Glass band](assets/states/bar-glass-band.png) |
-| `ProgressiveGlass` ("B2 · Vidrio progresivo") | Maximum blur at the top that fades out over 96 px, without a line, from edge to edge of the window and over the sidebar ([ADR 0057](../decisions/0057-glass-and-sidebar-over-backdrop.md)) | Bar + `FULLSCREEN_GLASS.content_top` (74) | ![B2 · Progressive glass](assets/states/bar-progressive-glass.png) |
+| `Solid` ("A · Solid", **default**) | An opaque band in the window color, as tall as the titlebar. It cuts what passes below with a hard edge | Bar + `FULLSCREEN_BAR.content_top` (44) | ![A · Solid](assets/states/bar-solid.png) |
+| `Glass` ("B1 · Band glass") | A band as tall as the titlebar, from edge to edge of the window and over the sidebar, that blurs what is below (`FULLSCREEN_BAND`), with a tint and a line at the bottom | Bar + `FULLSCREEN_BAND.content_top` (44) | ![B1 · Glass band](assets/states/bar-glass-band.png) |
+| `ProgressiveGlass` ("B2 · Progressive glass") | Maximum blur at the top that fades out over 96 px, without a line, from edge to edge of the window and over the sidebar ([ADR 0057](../decisions/0057-glass-and-sidebar-over-backdrop.md)) | Bar + `FULLSCREEN_GLASS.content_top` (74) | ![B2 · Progressive glass](assets/states/bar-progressive-glass.png) |
 
 Only `Glass` and `ProgressiveGlass` blur.
 
 #### Pushing the content: `fullscreen_push`
 
-"E · Empuja" is not another bar but an option that combines with any of the
+"E · Push" is not another bar but an option that combines with any of the
 three. It is off by default:
 
 ```rust
@@ -235,7 +235,7 @@ and `fullscreen_content_top` is 0.
 
 | Combination | How it looks |
 |---|---|
-| `Solid` + `fullscreen_push(true)` | ![A · Lisa pushing the content](assets/states/bar-push.png) |
+| `Solid` + `fullscreen_push(true)` | ![A · Solid pushing the content](assets/states/bar-push.png) |
 | `ProgressiveGlass` + `fullscreen_push(true)` | ![B2 · Progressive glass pushing the content](assets/states/bar-push-progressive-glass.png) |
 | Bar up: the content reaches the top edge | ![Push with the bar up](assets/states/bar-push-top.png) |
 
@@ -249,9 +249,9 @@ bar:
 
 | `FullscreenBar` | The rail | How it looks |
 |---|---|---|
-| `Solid` ("A · Lisa", **default**) | An opaque strip as wide as the rail, over the content | ![Rail with A · Lisa](assets/states/rail-bar-solid.png) |
-| `Glass` ("B1 · Vidrio en banda") | A strip as wide as the rail that blurs what is below, with a line on the inner edge | ![Rail with B1 · Glass band](assets/states/rail-bar-glass-band.png) |
-| `ProgressiveGlass` ("B2 · Vidrio progresivo") | Maximum blur at the window edge that fades inward over 96 px | ![Rail with B2 · Progressive glass](assets/states/rail-bar-progressive-glass.png) |
+| `Solid` ("A · Solid", **default**) | An opaque strip as wide as the rail, over the content | ![Rail with A · Solid](assets/states/rail-bar-solid.png) |
+| `Glass` ("B1 · Band glass") | A strip as wide as the rail that blurs what is below, with a line on the inner edge | ![Rail with B1 · Glass band](assets/states/rail-bar-glass-band.png) |
+| `ProgressiveGlass` ("B2 · Progressive glass") | Maximum blur at the window edge that fades inward over 96 px | ![Rail with B2 · Progressive glass](assets/states/rail-bar-progressive-glass.png) |
 | Any + `fullscreen_push(true)` | The rail returns to the layout and pushes the content sideways by its width | ![Rail pushing the content](assets/states/rail-bar-push.png) |
 
 ### Focus mode with the bar down, by layout
@@ -281,9 +281,9 @@ app does not draw it.
 2. It leaves room for the bar in the content under the overlaid titlebar:
 
    ```rust
-   let arriba = try_consume_root_context::<WindowControls>()
+   let top = try_consume_root_context::<WindowControls>()
        .map_or(0.0, |controls| controls.fullscreen_content_top());
-   rect().padding(Gaps::new(arriba, 0.0, 0.0, 0.0)).child(contenido)
+   rect().padding(Gaps::new(top, 0.0, 0.0, 0.0)).child(content)
    ```
 
 3. If a view covers the titlebar (a video player that fills the window), it
@@ -299,8 +299,8 @@ app does not draw it.
 
    ```rust
    let controls = WindowControls::get();
-   let inmersivo = controls.status.read().fullscreen;
-   rect().maybe_child((!inmersivo).then(panel_de_herramientas))
+   let immersive = controls.status.read().fullscreen;
+   rect().maybe_child((!immersive).then(tool_panel))
    ```
 
 5. To offer it in a menu, it calls `toggle_maximize()` or

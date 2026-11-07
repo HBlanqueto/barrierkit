@@ -59,7 +59,7 @@ Replaces the rule "native → Client always" of point 3.
   not offer a `Server` request.
 - The kit **always** requests the mode explicitly with
   `xdg-decoration.set_mode` before the first commit, together with
-  `set_app_id(NATIVE_APP_ID_PREFIX + nombre)`.
+  `set_app_id(NATIVE_APP_ID_PREFIX + name)`.
 - For an own window, Yuki respects the requested mode and does not apply
   `window.decorations`: `force_server` and `force_client` only affect
   third-party apps.
