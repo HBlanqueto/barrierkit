@@ -184,3 +184,26 @@ Candidates left out, with the reason:
 
 `cargo hack clippy --feature-powerset --no-dev-deps -p bk -- -D warnings`
 passes for the 64 combinations (691 s).
+
+## Phase 3: dead code and duplicates
+
+| Step | Result |
+|---|---|
+| Public API that nothing uses | None: every one of the 1 140 `pub` items of `bk` is used by the kit, malaysia, curseterm or the documentation |
+| `#[allow(dead_code)]` | None in the workspace |
+| `ControlStyle::accessible` | Default implementation; 62 identical impls removed, `reduce_motion` for the other 19 (−354 lines) |
+| Background fill and blur | `Painted::painted` replaces 61 copies |
+| Optional inner border | `Painted::bordered` replaces 34 copies |
+| Popup anchor rectangle | `platform::anchor_rect` replaces 7 copies; 5 of them could send a zero-size anchor, which makes `xdg_positioner` invalid |
+| `controls.rs` (1 778 lines) | `controls/`: `button`, `toggle`, `slider`, `segmented_control`, `tool_group`, `text_field` |
+| `ctdesign/src/lib.rs` | `Rgba` and its color math move to `rgba.rs` |
+| Tests | Three tests of `tests/sidebar.rs` that checked nothing are removed |
+
+Left as they are, with the reason:
+
+- `ctappearance/src/resolve.rs`: 505 lines of one task (resolving the
+  appearance) and 673 lines of tests of contrast and wallpaper colors.
+- `menu/mod.rs`: `MenuView::render` is 580 lines with a dozen shared hooks.
+  Splitting its keyboard state machine needs a real menu to test against.
+- `sidebar.rs`: one family of views (`Sidebar`, `SidebarItem`,
+  `SidebarSection`, `SidebarAccount`, `SymbolTile`).
