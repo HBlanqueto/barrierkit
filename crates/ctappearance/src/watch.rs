@@ -97,7 +97,7 @@ impl AppearanceWatch {
         );
         let kind = match name {
             b"appearance.domain" if in_config => AppearanceEvent::Appearance,
-            b"wallpaper.domain" if in_data => AppearanceEvent::WallpaperSelection,
+            b"wallpaper-selection.state" if in_data => AppearanceEvent::WallpaperSelection,
             b"wallpaper.state" if in_data => AppearanceEvent::Wallpaper,
             _ if in_config && name.ends_with(b".domain") => AppearanceEvent::Defaults,
             _ => return,
@@ -281,10 +281,10 @@ mod tests {
     }
 
     #[test]
-    fn detects_wallpaper_domain_rename() {
+    fn detects_wallpaper_selection_rename() {
         let (config_dir, data_dir) = tmp_dirs();
         let watch = AppearanceWatch::new_for(config_dir, data_dir.clone()).unwrap();
-        let path = data_dir.join("wallpaper.domain");
+        let path = data_dir.join("wallpaper-selection.state");
 
         write(&path, "[desktops]\ndefault = \"file:///Solid Gray.png\"\n");
 
@@ -297,7 +297,7 @@ mod tests {
             }
             std::thread::sleep(Duration::from_millis(5));
         }
-        panic!("wallpaper.domain rename was not detected");
+        panic!("wallpaper-selection.state rename was not detected");
     }
 
     #[test]

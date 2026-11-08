@@ -314,7 +314,7 @@ what changed as `AppearanceEvent`s:
 |---|---|
 | `Appearance` | `appearance.domain` |
 | `Wallpaper` | `wallpaper.state` |
-| `WallpaperSelection` | `wallpaper.domain` |
+| `WallpaperSelection` | `wallpaper-selection.state` in the data directory |
 | `Defaults` | any other `.domain` in the config folder |
 
 `restyles()` is true for `Appearance` and `Wallpaper`. The kit's runner already
