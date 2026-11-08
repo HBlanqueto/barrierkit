@@ -51,8 +51,8 @@ Aplica a `README.md`, `docs/`, `agents/` y los ADR.
    antes de escribirlo. El documento se actualiza en el commit que cambia lo
    que describe; si deja de valer, se borra.
 4. **Estilo:** frases cortas, voz activa y presente; una idea por párrafo.
-   Nada se repite: se enlaza a su única fuente (`roadmap.md`, el ADR,
-   `opciones.md`). Ejemplos mínimos y ejecutables, mejor en pareja ✗/✓.
+   Nada se repite: se enlaza a su única fuente (el ADR, el capítulo o
+   `docs/barrierkit/20-glossary.md`). Ejemplos mínimos y ejecutables, mejor en pareja ✗/✓.
 5. **Comentarios en el código:** reglas 5 y 6 de «Código mínimo».
 
 ## Nombres y glosario

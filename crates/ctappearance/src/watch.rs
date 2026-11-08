@@ -243,7 +243,7 @@ mod tests {
     fn a_domain_in_the_data_dir_is_not_reported_as_defaults() {
         let (config_dir, data_dir) = tmp_dirs();
         let watch = AppearanceWatch::new_for(config_dir, data_dir.clone()).unwrap();
-        write(&data_dir.join("window.domain"), "title = \"Terminal\"\n");
+        write(&data_dir.join("example.domain"), "key = 1\n");
         write(
             &data_dir.join("wallpaper.state"),
             "dominant = [0.8, 0.2, 0.1]\n",
