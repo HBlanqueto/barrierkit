@@ -79,6 +79,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 |---|---|---|---|---|---|
 | `prelude` | module | `import SwiftUI` | `import AppKit` | Re-exports the entry points, controls, Freya's prelude and the tokens | [2](02-first-app.md#the-prelude) |
 | `elements::Text` | struct | `Text` | `NSTextField(labelWithString:)` | Text with `BODY` and the label color by default; wraps | [2](02-first-app.md#text-and-stacks) |
+| `elements::Text::line_limit` | method | `.lineLimit(_:)` | `NSTextField.maximumNumberOfLines` | Shows at most `n` lines | [2](02-first-app.md#text-and-stacks) |
 | `elements::VStack` | struct | `VStack` | `NSStackView` (vertical) | Column of children, centered, `SPACE_3` apart | [2](02-first-app.md#text-and-stacks) |
 | `elements::HStack` | struct | `HStack` | `NSStackView` (horizontal) | Row of children, centered, `SPACE_3` apart | [2](02-first-app.md#text-and-stacks) |
 

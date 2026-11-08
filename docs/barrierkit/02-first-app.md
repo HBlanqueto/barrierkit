@@ -107,7 +107,7 @@ toolbar items) or the app opens several windows: see
 
 | Item | Defaults | Own methods |
 |---|---|---|
-| `Text::new(content)` | Font `BODY`, color `Palette::current().label`, wraps to as many lines as needed | `.style(\|s\| ..)`, `.font(Font)` |
+| `Text::new(content)` | Font `BODY`, color `Palette::current().label`, wraps to as many lines as needed | `.style(\|s\| ..)`, `.font(Font)`, `.line_limit(n)` |
 | `VStack::new()` | Children in a column, centered, `SPACE_3` apart | — |
 | `HStack::new()` | Children in a row, centered, `SPACE_3` apart | — |
 

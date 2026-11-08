@@ -111,6 +111,10 @@ impl Text {
         Self(with_font(self.0, font), self.1, self.2)
     }
 
+    pub fn line_limit(self, lines: usize) -> Self {
+        Self(self.0.max_lines(lines), self.1, self.2)
+    }
+
     fn styled(content: Cow<'static, str>, theme: Theme) -> Self {
         let style: TextStyle = resolve(&theme);
         let paints = Paints::current(ControlState::default(), style.effect);
