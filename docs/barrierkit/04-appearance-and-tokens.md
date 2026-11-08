@@ -320,6 +320,12 @@ what changed as `AppearanceEvent`s:
 `restyles()` is true for `Appearance` and `Wallpaper`. The kit's runner already
 uses it; an app needs it only with its own event loop.
 
+### Menu bar
+
+`menubar::MenubarConfig` is `menubar.domain`: `app_menus` (default `true`)
+shows the active app's own menus. Malaysia's compositor and menu bar both read
+it.
+
 ### Window behavior
 
 `window::read_window_behavior()` reads `config_dir()/window.domain` into a

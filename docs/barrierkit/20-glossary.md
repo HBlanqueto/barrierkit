@@ -362,6 +362,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 
 | BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
 |---|---|---|---|---|---|
+| `ctappearance::menubar::MenubarConfig` | struct | — | — | `menubar.domain`: `app_menus` | [4](04-appearance-and-tokens.md#menu-bar) |
 | `ctappearance::window::WindowBehavior` | struct | — | — | `window.domain`: titlebar double click and green button actions | [4](04-appearance-and-tokens.md#window-behavior) |
 | `ctappearance::window::read_window_behavior` | fn | — | — | Reads `window.domain`, or the default | [4](04-appearance-and-tokens.md#window-behavior) |
 | `ctappearance::window::DoubleClickAction` | enum | — | — | Titlebar double click: `Fill`, `Minimize`, `Zoom`, `None` | [4](04-appearance-and-tokens.md#window-behavior) |

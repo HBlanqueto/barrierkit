@@ -1,6 +1,7 @@
 pub mod backdrop;
 mod config;
 pub mod language;
+pub mod menubar;
 mod resolve;
 pub mod traffic;
 pub mod watch;
