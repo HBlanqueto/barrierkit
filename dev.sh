@@ -38,13 +38,13 @@ check() {
     require cargo-clippy
     cargo fmt --all -- --check
     cargo clippy -p bk --lib -- -D warnings
-    cargo clippy --workspace --all-targets --features bk/charts,bk/print,bk/shell,bk/tracy -- -D warnings
+    cargo clippy --workspace --all-targets --features bk/charts,bk/print,bk/shell,bk/tracy,bk/video -- -D warnings
     "$script_dir/scripts/check-design-tokens.sh"
     "$script_dir/scripts/check-client-only-deps.sh"
     "$script_dir/scripts/check-links.sh"
     "$script_dir/scripts/check-recipes.sh"
     "$script_dir/scripts/tengen-css.sh" | diff -u "$script_dir/agents/tengen.css" -
-    cargo test --workspace --lib --tests --features bk/charts,bk/print,bk/shell,bk/tracy
+    cargo test --workspace --lib --tests --features bk/charts,bk/print,bk/shell,bk/tracy,bk/video
 }
 
 case "${1:-}" in
