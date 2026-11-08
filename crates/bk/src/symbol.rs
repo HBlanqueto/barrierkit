@@ -48,6 +48,8 @@ pub enum Symbol {
     ChevronDoubleRight,
     Accessibility,
     Display,
+    Moon,
+    Bell,
 }
 
 impl Symbol {
@@ -66,6 +68,10 @@ impl Symbol {
                 "M8 14a6 6 0 1 0 0-12a6 6 0 0 0 0 12M8 4.8h0M5.2 6.6 8 7.1l2.8-.5M8 7.1v2.3M6.6 11.8 8 9.4l1.4 2.4"
             }
             Self::Display => "M2.5 3.5h11v7.5h-11zM6 13.5h4M8 11v2.5",
+            Self::Bell => {
+                "M8 2.5A3.5 3.5 0 0 0 4.5 6v2.6L3 11.5h10l-1.5-2.9V6A3.5 3.5 0 0 0 8 2.5M6.5 13.5a1.5 1.5 0 0 0 3 0"
+            }
+            Self::Moon => "M13 9.6A5.5 5.5 0 1 1 6.4 3a4.4 4.4 0 0 0 6.6 6.6z",
             Self::Plus => "M8 3.5v9M3.5 8h9",
             Self::Minus => "M3.5 8h9",
             Self::Ellipsis => "M3.5 8h0M8 8h0M12.5 8h0",
