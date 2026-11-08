@@ -571,7 +571,7 @@ impl Runtime {
         };
         let focus_notice = self.focus_manager.as_ref().map(|manager| {
             let notice = manager.get_focus_surface(&surface, qh, surface.id());
-            if controls.focus_overlay {
+            if controls.focus_overlay && notice.version() >= 2 {
                 notice.set_overlay();
             }
             notice
