@@ -75,15 +75,11 @@ fn dictionary_dirs() -> Vec<PathBuf> {
             .map(|value| std::env::split_paths(&value).collect::<Vec<_>>())
             .unwrap_or_default()
     };
-    let data_home = std::env::var_os("XDG_DATA_HOME")
-        .map(PathBuf::from)
-        .or_else(|| std::env::var_os("HOME").map(|home| PathBuf::from(home).join(".local/share")));
-    let mut data_dirs = paths("XDG_DATA_DIRS");
-    if data_dirs.is_empty() {
-        data_dirs = vec!["/usr/local/share".into(), "/usr/share".into()];
-    }
     let mut dirs = paths("DICPATH");
-    for base in data_home.into_iter().chain(data_dirs) {
+    for base in ctappearance::xdg::data_home()
+        .into_iter()
+        .chain(ctappearance::xdg::data_dirs())
+    {
         dirs.push(base.join("hunspell"));
         dirs.push(base.join("myspell"));
     }
@@ -92,9 +88,7 @@ fn dictionary_dirs() -> Vec<PathBuf> {
 
 // Enchant's per-user word list, shared with GTK and GNOME apps (enchant(5)).
 fn personal_list(name: &str) -> PathBuf {
-    std::env::var_os("XDG_CONFIG_HOME")
-        .map(PathBuf::from)
-        .or_else(|| std::env::var_os("HOME").map(|home| PathBuf::from(home).join(".config")))
+    ctappearance::xdg::config_home()
         .unwrap_or_default()
         .join("enchant")
         .join(format!("{name}.dic"))
