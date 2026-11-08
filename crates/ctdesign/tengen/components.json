@@ -775,6 +775,11 @@
         "row-gap": 2,
         "footer-bottom": 29
       },
+      "about-app": {
+        "width": 260,
+        "height": 250,
+        "icon": 64
+      },
       "lock": {
         "font-size": 24,
         "title-scale": 1.5,

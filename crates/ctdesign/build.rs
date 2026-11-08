@@ -150,6 +150,9 @@ ABOUT_COLUMN_GAP f32 components.shell.about.column-gap
 ABOUT_VALUE_WIDTH f32 components.shell.about.value-width
 ABOUT_SPEC_ROW_GAP f32 components.shell.about.row-gap
 ABOUT_FOOTER_BOTTOM f32 components.shell.about.footer-bottom
+ABOUT_APP_WIDTH u32 components.shell.about-app.width
+ABOUT_APP_HEIGHT u32 components.shell.about-app.height
+ABOUT_APP_ICON f32 components.shell.about-app.icon
 LOCK_FONT_SIZE f32 components.shell.lock.font-size
 LOCK_TITLE_SCALE f32 components.shell.lock.title-scale
 LOCK_FIELD_WIDTH i32 components.shell.lock.field-width
