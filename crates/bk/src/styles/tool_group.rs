@@ -1,9 +1,9 @@
-use ctappearance::SidebarStyle;
+use ctappearance::{Resolved, SidebarStyle};
 use ctdesign::{HAIRLINE, TOOLGROUP};
 
 use super::{
     Axis, ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
-    system_effect,
+    show_borders, system_effect,
 };
 
 /// States: only `normal`. Tengen follows the user's sidebar style and reduce
@@ -73,5 +73,12 @@ impl ControlStyle for ToolGroupStyle {
             effect: system_effect,
             axis: Axis::Horizontal,
         }
+    }
+
+    fn accessible(self, appearance: &Resolved) -> Self {
+        show_borders(self, appearance, |style| Self {
+            border: Some((ShapeStyle::Role(Role::ControlBorder), HAIRLINE)),
+            ..style
+        })
     }
 }

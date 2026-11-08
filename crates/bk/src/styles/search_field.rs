@@ -1,6 +1,9 @@
+use ctappearance::Resolved;
 use ctdesign::{BODY, Font, SETTINGS, TEXT_FIELD};
 
-use super::{ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, system_effect};
+use super::{
+    ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, show_borders, system_effect,
+};
 
 #[derive(Clone, Debug)]
 pub struct SearchFieldStyle {
@@ -54,5 +57,13 @@ impl ControlStyle for SearchFieldStyle {
             effect: system_effect,
             font: BODY,
         }
+    }
+
+    fn accessible(self, appearance: &Resolved) -> Self {
+        show_borders(self, appearance, |style| Self {
+            border: StateValue::new(ShapeStyle::Role(Role::ControlBorder))
+                .focused(ShapeStyle::Accent),
+            ..style
+        })
     }
 }

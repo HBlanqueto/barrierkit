@@ -108,6 +108,7 @@ impl Text {
     }
 
     pub fn font(self, font: Font) -> Self {
+        let font = font.scaled(crate::theme::resolved().text_size);
         Self(with_font(self.0, font), self.1, self.2)
     }
 

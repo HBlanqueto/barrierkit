@@ -14,6 +14,14 @@ pub trait ControlStyle: Clone + 'static {
     }
 }
 
+pub(crate) fn show_borders<S>(style: S, appearance: &Resolved, bordered: impl FnOnce(S) -> S) -> S {
+    if appearance.show_borders {
+        bordered(style)
+    } else {
+        style
+    }
+}
+
 pub(crate) fn reduce_motion<S>(style: S, appearance: &Resolved, still: impl FnOnce(S) -> S) -> S {
     if appearance.reduced_motion {
         still(style)

@@ -24,6 +24,17 @@ pub struct Font {
     pub weight: u16,
 }
 
+impl Font {
+    pub fn scaled(self, factor: f32) -> Self {
+        let scale = |value: u32| (value as f32 * factor).round() as u32;
+        Self {
+            size: scale(self.size),
+            line_height: scale(self.line_height),
+            ..self
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ButtonKind {
     Close,

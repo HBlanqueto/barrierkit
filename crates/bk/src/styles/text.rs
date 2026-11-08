@@ -1,3 +1,4 @@
+use ctappearance::Resolved;
 use ctdesign::{BODY, Font};
 
 use super::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effect};
@@ -29,6 +30,13 @@ impl ControlStyle for TextStyle {
             foreground: StateValue::new(ShapeStyle::Role(Role::Label)),
             effect: system_effect,
             font: BODY,
+        }
+    }
+
+    fn accessible(self, appearance: &Resolved) -> Self {
+        Self {
+            font: self.font.scaled(appearance.text_size),
+            ..self
         }
     }
 }

@@ -330,6 +330,9 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `ctappearance::SidebarStyle` | enum | — | — | `Island` or `Flat` sidebar | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::TrafficLightStyle` | enum | — | — | `Auto`, `Standard`, `Accent`, `Wallpaper` traffic-light colors | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::TrafficLightShape` | enum | — | — | `Square` or `Round` lights; `corner_radius(diameter)` | [4](04-appearance-and-tokens.md#the-appearance-file) |
+| `ctappearance::MenuBarSize` | enum | — | — | Menu bar text `Default` or `Large` | [4](04-appearance-and-tokens.md#the-appearance-file) |
+| `ctappearance::ColorFilter` | enum | — | ≈ Accessibility › Display › Color filters | `Grayscale`, `RedGreen`, `GreenRed`, `BlueYellow` | [4](04-appearance-and-tokens.md#the-appearance-file) |
+| `ctappearance::AppearanceConfig::transparency_reduced` | method | — | ≈ `NSWorkspace.accessibilityDisplayShouldReduceTransparency` | True with `reduce_transparency` or `contrast` | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::ScrollBars` | enum | ≈ `ScrollIndicatorVisibility` | ≈ `NSScroller.Style` | Show scroll bars `WhenScrolling` or `Always` | [4](04-appearance-and-tokens.md#the-appearance-file) |
 
 ## Appearance files and watch
@@ -420,6 +423,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 |---|---|---|---|---|---|
 | `ctdesign::Rgba` | struct | ≈ `Color` | ≈ `NSColor` | sRGB color, channels 0–1, with mixing and contrast helpers | [4](04-appearance-and-tokens.md#token-types) |
 | `ctdesign::Font` | struct | ≈ `Font.TextStyle` | ≈ `NSFont.TextStyle` | Type token: family, size, line height, weight | [4](04-appearance-and-tokens.md#token-types) |
+| `ctdesign::Font::scaled` | method | — | — | The font with size and line height times a factor | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctdesign::Palette` | struct | — | — | Base colors of one theme: inks, lines, accent, titlebar | [4](04-appearance-and-tokens.md#token-types) |
 | `ctdesign::FocusPair` | struct | — | — | One color for a focused window, one for unfocused | [4](04-appearance-and-tokens.md#token-types) |
 | `ctdesign::PanelLine` | struct | — | — | Inner line of a focused panel: sides, edges and glow | [4](04-appearance-and-tokens.md#token-types) |
@@ -510,6 +514,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `ctdesign::BG_WINDOW_LIGHT`, `BG_WINDOW_DARK`, `BG_WINDOW_DARK_TINT`, `BG_SURFACE_LIGHT`, `BG_SURFACE_DARK`, `BG_SURFACE_DARK_TINT`, `BG_SUNKEN_LIGHT`, `BG_SUNKEN_DARK`, `BG_SUNKEN_DARK_TINT`, `BG_RAISED_LIGHT`, `BG_RAISED_DARK`, `BG_RAISED_DARK_TINT`, `BG_CONTROL_LIGHT`, `BG_CONTROL_DARK`, `BG_CONTROL_DARK_TINT`, `BG_HOVER_LIGHT`, `BG_HOVER_DARK`, `BG_HOVER_DARK_TINT` | constant | — | ≈ `NSColor.windowBackgroundColor`… | Background layers per theme | [4](04-appearance-and-tokens.md#colors) |
 | `ctdesign::LAYER_FACTOR_BG_SUNKEN`, `LAYER_FACTOR_SURFACE`, `LAYER_FACTOR_RAISED`, `LAYER_FACTOR_CONTROL`, `LAYER_FACTOR_LINE` | constant | — | — | Share of the window tint each layer takes | [4](04-appearance-and-tokens.md#colors) |
 | `ctdesign::WINDOW_TINT_ACCENT`, `TINT_STRENGTH` | constant | — | — | Accent tint amounts in light and dark; strength factors | [4](04-appearance-and-tokens.md#colors) |
+| `ctdesign::TEXT_SIZES`, `POINTER_SIZES`, `DISPLAY_CONTRAST`, `COLOR_FILTER_INTENSITY` | constant | — | — | The steps of the Accessibility › Display sliders | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctdesign::WALLPAPER_TINTING`, `WALLPAPER_TINTING_GRID` | constant | — | — | Amount of the wallpaper behind a window; cells per side of its grid | [4](04-appearance-and-tokens.md#colors) |
 | `ctdesign::ACCENT_MIN_CONTRAST_ON_WINDOW`, `ON_ACCENT_MIN_CONTRAST` | constant | — | — | Contrast minimums: accent on window 3, ink on accent 4.5 | [4](04-appearance-and-tokens.md#colors) |
 | `ctdesign::DOMINANT_LIGHTNESS`, `DOMINANT_MIN_CHROMA` | constant | — | — | Lightness range and minimum chroma of a wallpaper's dominant color | [4](04-appearance-and-tokens.md#colors) |
@@ -538,7 +543,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `ctdesign::SIDEBAR`, `TOOLGROUP`, `SPLIT_VIEW`, `SPLIT_PANES`, `FLOATING_PANE`, `TABLE`, `COLLECTION`, `LIST_GROUP`, `GROUP_BOX`, `DISCLOSURE`, `TOOLBAR_TABS`, `SCROLL_BAR`, `BREAKPOINT` | constant | — | — | Metrics of sidebars, split views, lists, tables and groups | [4](04-appearance-and-tokens.md#view-metrics) |
 | `ctdesign::SETTINGS`, `FONT_PANEL`, `PRINT`, `CHART`, `MEDIA`, `BACKDROP`, `BACKDROP_SCENES` | constant | — | — | Metrics of settings, font panel, printing, charts, media, backdrops | [4](04-appearance-and-tokens.md#view-metrics) |
 | `ctdesign::MATERIAL` | constant | `Material` | `NSVisualEffectView.Material` | Opacity and blur of the five material thicknesses | [4](04-appearance-and-tokens.md#materials) |
-| `ctdesign::MENUBAR_HEIGHT`, `MENUBAR_FONT_SIZE`, `MENUBAR_APP_NAME_WEIGHT`, `MENUBAR_MARGIN`, `MENUBAR_MARGIN_RIGHT`, `MENUBAR_TITLE_PADDING_X`, `MENUBAR_TEXT_LIFT`, `MENUBAR_TITLE_MAX_WIDTH`, `MENUBAR_TITLE_BLEED`, `FOCUS_BAR_BACKGROUND`, `FOCUS_BAR_TEXT` | constant | — | — | Shell menu bar sizes; focus-mode bar colors | [4](04-appearance-and-tokens.md#shell) |
+| `ctdesign::MENUBAR_HEIGHT`, `MENUBAR_FONT_SIZE`, `MENUBAR_FONT_SIZE_LARGE`, `MENUBAR_APP_NAME_WEIGHT`, `MENUBAR_MARGIN`, `MENUBAR_MARGIN_RIGHT`, `MENUBAR_TITLE_PADDING_X`, `MENUBAR_TEXT_LIFT`, `MENUBAR_TITLE_MAX_WIDTH`, `MENUBAR_TITLE_BLEED`, `FOCUS_BAR_BACKGROUND`, `FOCUS_BAR_TEXT` | constant | — | — | Shell menu bar sizes; focus-mode bar colors | [4](04-appearance-and-tokens.md#shell) |
 | `ctdesign::DOCK_TILESIZE`, `DOCK_GAP`, `DOCK_PADDING`, `DOCK_FONT_SIZE`, `DOCK_BAR_HEIGHT` | constant | — | — | Shell Dock sizes | [4](04-appearance-and-tokens.md#shell) |
 | `ctdesign::LAUNCHER_WIDTH`, `LAUNCHER_HEIGHT`, `LAUNCHER_PADDING`, `LAUNCHER_SEARCH_HEIGHT`, `LAUNCHER_RESULT_HEIGHT`, `LAUNCHER_RESULT_GAP`, `LAUNCHER_RESULT_RADIUS`, `LAUNCHER_ICON_SIZE`, `LAUNCHER_MAX_RESULTS`, `LAUNCHER_CORNER_RADIUS`, `LAUNCHER_FONT_SIZE`, `LAUNCHER_SUBTITLE_FONT_SIZE`, `LAUNCHER_SCALE_FROM`, `LAUNCHER_OPEN_MS`, `LAUNCHER_CLOSE_MS` | constant | — | — | Shell launcher sizes and animation | [4](04-appearance-and-tokens.md#shell) |
 | `ctdesign::LOCK`, `LOCK_FONT_SIZE`, `LOCK_TITLE_SCALE`, `LOCK_FIELD_WIDTH`, `LOCK_FIELD_HEIGHT`, `LOCK_LABEL_OFFSET`, `LOCK_LABEL_FONT_SIZE`, `LOCK_MASK_FONT_SIZE` | constant | — | — | Lock screen colors and sizes | [4](04-appearance-and-tokens.md#shell) |
@@ -821,6 +826,8 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `views::form::Form` | struct | `Form` | — | Settings layout: sections of rows in rounded cards | [11](11-views.md#form) |
 | `views::form::Section` | struct | `Section` | — | One form card with optional title and footer | [11](11-views.md#section) |
 | `views::form::Row` | struct | `LabeledContent` | — | A form row: control, value, navigation or destructive | [11](11-views.md#row) |
+| `views::form::Row::page` | function | ≈ `NavigationLink(value:)` | — | A row that opens a page of a `SettingsWindow` | [11](11-views.md#row) |
+| `views::form::Row::symbol` | method | ≈ `Label(_:systemImage:)` | — | A `SymbolTile` before the row title | [11](11-views.md#row) |
 | `views::group::GroupBox` | struct | `GroupBox` | `NSBox` | A rounded box with an optional label that groups controls | [11](11-views.md#groupbox) |
 | `views::group::DisclosureGroup` | struct | `DisclosureGroup` | — | A chevron header that shows or hides its indented children | [11](11-views.md#disclosuregroup) |
 
@@ -887,6 +894,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 |---|---|---|---|---|---|
 | `patterns::settings::SettingsWindow` | struct | ≈ `Settings` | — | Settings window with pane sidebar, search, history and saved state | [12](12-patterns.md#settingswindow) |
 | `patterns::settings::Pane` | struct | — | — | One preferences pane: id, title, symbol, tint and form | [12](12-patterns.md#pane) |
+| `patterns::settings::Pane::page` | method | ≈ `navigationDestination` | — | A page without a sidebar item, opened by `Row::page` | [12](12-patterns.md#pane) |
 | `patterns::settings::PaneGroup` | struct | — | — | Panes under an optional sidebar section title | [12](12-patterns.md#panegroup) |
 | `patterns::settings::index` | fn | — | — | Builds the search index over panes and their rows | [12](12-patterns.md#index) |
 | `patterns::about::AboutView` | struct | — | ≈ `NSApplication.orderFrontStandardAboutPanel(_:)` | Content of an About window: icon, name, copyright, optional version | [12](12-patterns.md#aboutview) |

@@ -1,6 +1,9 @@
 use std::path::{Path, PathBuf};
 
-use ctdesign::{Rgba, TINT_STRENGTH, TITLEBAR};
+use ctdesign::{
+    COLOR_FILTER_INTENSITY, DISPLAY_CONTRAST, POINTER_SIZES, Rgba, TEXT_SIZES, TINT_STRENGTH,
+    TITLEBAR,
+};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use crate::tinting::WallpaperGrid;
@@ -176,6 +179,24 @@ pub enum ScrollBars {
     Always,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum MenuBarSize {
+    #[default]
+    Default,
+    Large,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ColorFilter {
+    #[default]
+    Grayscale,
+    RedGreen,
+    GreenRed,
+    BlueYellow,
+}
+
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(default)]
 pub struct AppearanceConfig {
@@ -207,6 +228,19 @@ pub struct AppearanceConfig {
     pub tint_parts: TintParts,
     pub wallpaper_tinting: bool,
     pub wallpaper_tinting_in_light: bool,
+    pub invert_colors: bool,
+    pub show_borders: bool,
+    pub differentiate_without_color: bool,
+    pub display_contrast: f32,
+    pub text_size: f32,
+    #[serde(deserialize_with = "lenient")]
+    pub menu_bar_size: MenuBarSize,
+    pub shake_to_locate: bool,
+    pub pointer_size: f32,
+    pub color_filters: bool,
+    #[serde(deserialize_with = "lenient")]
+    pub color_filter: ColorFilter,
+    pub color_filter_intensity: f32,
 }
 
 impl Default for AppearanceConfig {
@@ -227,11 +261,26 @@ impl Default for AppearanceConfig {
             tint_parts: TintParts::default(),
             wallpaper_tinting: true,
             wallpaper_tinting_in_light: false,
+            invert_colors: false,
+            show_borders: false,
+            differentiate_without_color: false,
+            display_contrast: DISPLAY_CONTRAST[0],
+            text_size: TEXT_SIZES[0],
+            menu_bar_size: MenuBarSize::default(),
+            shake_to_locate: true,
+            pointer_size: POINTER_SIZES[0],
+            color_filters: false,
+            color_filter: ColorFilter::default(),
+            color_filter_intensity: COLOR_FILTER_INTENSITY[COLOR_FILTER_INTENSITY.len() - 1],
         }
     }
 }
 
 impl AppearanceConfig {
+    pub fn transparency_reduced(&self) -> bool {
+        self.reduce_transparency || self.contrast
+    }
+
     pub fn traffic_light_style(&self) -> TrafficLightStyle {
         match self.traffic_lights {
             TrafficLightStyle::Auto => match self.window_color {
@@ -493,6 +542,17 @@ traffic_lights = "auto"
             },
             wallpaper_tinting: false,
             wallpaper_tinting_in_light: true,
+            invert_colors: true,
+            show_borders: true,
+            differentiate_without_color: true,
+            display_contrast: DISPLAY_CONTRAST[2],
+            text_size: TEXT_SIZES[3],
+            menu_bar_size: MenuBarSize::Large,
+            shake_to_locate: false,
+            pointer_size: POINTER_SIZES[4],
+            color_filters: true,
+            color_filter: ColorFilter::BlueYellow,
+            color_filter_intensity: COLOR_FILTER_INTENSITY[1],
         };
         write_appearance(&path, &config).unwrap();
         let read = read_appearance_from(&path).unwrap().unwrap();

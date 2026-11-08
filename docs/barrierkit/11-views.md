@@ -118,12 +118,14 @@ rows with a control put the label above the control.
 | `Row::new(title)` | Only the title. Add `.control(view)` to put a control on the right |
 | `Row::value(title, value)` | Read-only text on the right |
 | `Row::navigation(title, on_press)` | A chevron; the whole row is a button |
+| `Row::page(title, pane_id)` | A chevron; the row opens that page of a [`SettingsWindow`](12-patterns.md#pane) |
 | `Row::destructive(title, on_press)` | The title in red; the whole row is a button |
 
 | Method | Effect |
 |---|---|
 | `.control(view)` | The control on the right, aligned with the first line of the title |
 | `.detail(text)` | An explanation under the title |
+| `.symbol(symbol, tint)` | A [`SymbolTile`](10-sidebar.md#symboltile) before the title |
 | `.keywords(&[..])` | Extra words for the `SettingsWindow` search |
 
 Long titles and details wrap without clipping the control.

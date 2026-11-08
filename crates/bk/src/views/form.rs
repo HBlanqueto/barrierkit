@@ -1,9 +1,11 @@
-use ctdesign::LIST_GROUP;
+use ctdesign::{LIST_GROUP, Rgba};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
 
 use crate::adornments::Divider;
 use crate::interaction::{control_state, use_interaction};
+use crate::patterns::settings::PageLink;
+use crate::sidebar::SymbolTile;
 use crate::style::text;
 use crate::styles::Painted;
 use crate::styles::{
@@ -17,6 +19,7 @@ enum Accessory {
     Control(Element),
     Value(String),
     Navigation(Callback<(), ()>),
+    Page(&'static str),
     Destructive(Callback<(), ()>),
 }
 
@@ -25,6 +28,7 @@ pub struct Row {
     pub title: &'static str,
     pub keywords: &'static [&'static str],
     detail: Option<&'static str>,
+    symbol: Option<(Symbol, Rgba)>,
     accessory: Accessory,
 }
 
@@ -34,6 +38,7 @@ impl Row {
             title,
             keywords: &[],
             detail: None,
+            symbol: None,
             accessory: Accessory::None,
         }
     }
@@ -46,6 +51,10 @@ impl Row {
         Self::new(title).with(Accessory::Navigation(on_press.into()))
     }
 
+    pub fn page(title: &'static str, pane_id: &'static str) -> Self {
+        Self::new(title).with(Accessory::Page(pane_id))
+    }
+
     pub fn destructive(title: &'static str, on_press: impl Into<Callback<(), ()>>) -> Self {
         Self::new(title).with(Accessory::Destructive(on_press.into()))
     }
@@ -56,6 +65,11 @@ impl Row {
 
     pub fn detail(mut self, detail: &'static str) -> Self {
         self.detail = Some(detail);
+        self
+    }
+
+    pub fn symbol(mut self, glyph: Symbol, tint: Rgba) -> Self {
+        self.symbol = Some((glyph, tint));
         self
     }
 
@@ -229,6 +243,10 @@ impl Component for FormRow {
         let row = &self.row;
         let pressable = match &row.accessory {
             Accessory::Navigation(cb) | Accessory::Destructive(cb) => Some(cb.clone()),
+            Accessory::Page(id) => {
+                let id = *id;
+                PageLink::current().map(|link| Callback::new(move |()| link.open(id)))
+            }
             _ => None,
         };
         let state = if pressable.is_some() {
@@ -248,7 +266,7 @@ impl Component for FormRow {
             Accessory::Value(value) => {
                 Some(text(value.clone(), style.value_font, ink(&style.value)).into_element())
             }
-            Accessory::Navigation(_) => Some(
+            Accessory::Navigation(_) | Accessory::Page(_) => Some(
                 symbol(
                     Symbol::ChevronRight,
                     style.chevron_size,
@@ -302,6 +320,10 @@ impl Component for FormRow {
             .padding(Gaps::new(padding_y, padding_x, padding_y, padding_x))
             .spacing(style.row_spacing)
             .painted(&paints, &style.row_background)
+            .maybe_child(
+                row.symbol
+                    .map(|(glyph, tint)| SymbolTile::new(glyph, tint).into_element()),
+            )
             .child(labels)
             .child(
                 rect()

@@ -104,7 +104,17 @@ impl ControlStyle for TrafficLightsStyle {
             shape: rounded(TrafficLightShape::Square.corner_radius(diameter)),
             fills: by_light(|visual| Some(visual.fill), true),
             rims: by_light(|visual| Some(visual.rim), true),
-            glyphs: by_light(|visual| visual.glyph, false),
+            glyphs: std::array::from_fn(|index| {
+                let focused = if resolved.differentiate_without_color {
+                    &hovered[index]
+                } else {
+                    &lit[index]
+                };
+                StateValue::new(paint(idle.glyph))
+                    .focused(paint(focused.glyph))
+                    .hovered(paint(hovered[index].glyph))
+                    .disabled(paint(idle.glyph))
+            }),
             opacity: 1.0,
             effect: system_effect,
             axis: Axis::Horizontal,

@@ -1,10 +1,10 @@
 use ctappearance::Resolved;
-use ctdesign::{BUTTON, ICON_BUTTON, TOOLGROUP};
+use ctdesign::{BUTTON, HAIRLINE, ICON_BUTTON, TOOLGROUP};
 
 use super::button::rounded;
 use super::{
     Animation, ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
-    reduce_motion, system_effect,
+    reduce_motion, show_borders, system_effect,
 };
 
 /// States: hovered, pressed, focused, disabled. `ToolbarOverflow` is an
@@ -65,8 +65,12 @@ impl ControlStyle for IconButtonStyle {
     }
 
     fn accessible(self, appearance: &Resolved) -> Self {
-        reduce_motion(self, appearance, |style| Self {
+        let style = reduce_motion(self, appearance, |style| Self {
             animation: Animation::None,
+            ..style
+        });
+        show_borders(style, appearance, |style| Self {
+            border: Some((ShapeStyle::Role(Role::ControlBorder), HAIRLINE)),
             ..style
         })
     }

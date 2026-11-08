@@ -27,6 +27,21 @@ pub struct Pane {
     symbol: Symbol,
     tint: Rgba,
     form: Form,
+    pages: Vec<Pane>,
+}
+
+#[derive(Clone, Copy)]
+pub(crate) struct PageLink(State<History<&'static str>>);
+
+impl PageLink {
+    pub(crate) fn current() -> Option<Self> {
+        try_consume_context()
+    }
+
+    pub(crate) fn open(self, id: &'static str) {
+        let mut history = self.0;
+        history.write().push(id);
+    }
 }
 
 impl Pane {
@@ -43,7 +58,13 @@ impl Pane {
             symbol,
             tint,
             form,
+            pages: Vec::new(),
         }
+    }
+
+    pub fn page(mut self, page: Pane) -> Self {
+        self.pages.push(page);
+        self
     }
 }
 
@@ -149,7 +170,10 @@ impl SettingsWindow {
     }
 
     fn panes(&self) -> impl Iterator<Item = &Pane> {
-        self.groups.iter().flat_map(|group| group.panes.iter())
+        self.groups
+            .iter()
+            .flat_map(|group| group.panes.iter())
+            .flat_map(|pane| std::iter::once(pane).chain(pane.pages.iter()))
     }
 }
 
@@ -198,6 +222,7 @@ impl Component for SettingsWindow {
         });
         let known = |id: &String| self.panes().map(|pane| pane.id).find(|known| known == id);
         let history = use_state(|| History::new(known(&saved.pane).unwrap_or(first)));
+        use_hook(|| provide_context(PageLink(history)));
         let recents: State<Vec<&'static str>> =
             use_state(|| saved.recents.iter().filter_map(known).collect());
         let mut layout = use_state(|| saved.sidebar);
@@ -244,7 +269,7 @@ impl Component for SettingsWindow {
         let item = |pane: &Pane| {
             SidebarItem::new(pane.title)
                 .symbol(pane.symbol, pane.tint)
-                .selected(pane.id == current)
+                .selected(pane.id == current || pane.pages.iter().any(|page| page.id == current))
                 .emphasized(!searching)
                 .on_select(open(pane.id, None))
                 .into_element()

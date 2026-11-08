@@ -85,6 +85,10 @@ TOOLBAR_TABS ToolbarTabsMetrics components.toolbar-tabs
 ACCENT_MIN_CONTRAST_ON_WINDOW f32 appearance.contrast.accent-on-window
 ON_ACCENT_MIN_CONTRAST f32 appearance.contrast.on-accent
 WALLPAPER_TINTING_GRID u32 appearance.wallpaper-tinting.grid
+TEXT_SIZES [f32;6] appearance.accessibility.text-sizes
+POINTER_SIZES [f32;7] appearance.accessibility.pointer-sizes
+DISPLAY_CONTRAST [f32;7] appearance.accessibility.display-contrast
+COLOR_FILTER_INTENSITY [f32;7] appearance.accessibility.color-filter-intensity
 TRAFFIC_RIM_WIDTH f32 components.window.traffic-lights.rim.width
 TRAFFIC_CLOSE_MINIMIZE_DARKEN f32
     components.window.traffic-lights.styles.accent.close-minimize-darken
@@ -124,6 +128,7 @@ SPRING_DAMPING f32 spring.damping
 THEME_SHADOW_OPACITY f32 shadow.theme.opacity
 MENUBAR_HEIGHT i32 components.shell.menubar.height
 MENUBAR_FONT_SIZE f32 components.shell.menubar.font-size
+MENUBAR_FONT_SIZE_LARGE f32 components.shell.menubar.font-size-large
 MENUBAR_APP_NAME_WEIGHT i32 components.shell.menubar.app-name.weight
 MENUBAR_MARGIN i32 components.shell.menubar.margin
 MENUBAR_MARGIN_RIGHT i32 components.shell.menubar.margin-right

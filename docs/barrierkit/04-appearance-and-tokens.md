@@ -239,6 +239,17 @@ tint_parts = ["sidebars", "window", "groups", "controls", "menus"]
 | `traffic_light_shape` | `TrafficLightShape` | `square`, `round` | `square` |
 | `wallpaper_tinting` | `bool` | | `true` |
 | `wallpaper_tinting_in_light` | `bool` | | `false` |
+| `invert_colors` | `bool` | | `false` |
+| `show_borders` | `bool` | | `false` |
+| `differentiate_without_color` | `bool` | | `false` |
+| `display_contrast` | `f32` | a value of `DISPLAY_CONTRAST` | `1.0` |
+| `text_size` | `f32` | a value of `TEXT_SIZES` | `1.0` |
+| `menu_bar_size` | `MenuBarSize` | `default`, `large` | `default` |
+| `shake_to_locate` | `bool` | | `true` |
+| `pointer_size` | `f32` | a value of `POINTER_SIZES` | `1.0` |
+| `color_filters` | `bool` | | `false` |
+| `color_filter` | `ColorFilter` | `grayscale`, `red_green`, `green_red`, `blue_yellow` | `grayscale` |
+| `color_filter_intensity` | `f32` | a value of `COLOR_FILTER_INTENSITY` | `1.0` |
 
 Notes on the values:
 
@@ -251,6 +262,14 @@ Notes on the values:
   reads as `standard`, with a warning.
 - `TrafficLightShape::corner_radius(diameter)` gives the radius of a light of
   that size.
+- The accessibility keys follow macOS System Settings › Accessibility ›
+  Display. The kit applies three of them in `ControlStyle::accessible`:
+  `show_borders` draws a `ControlBorder` line around icon buttons, tool groups
+  and search fields; `differentiate_without_color` keeps the traffic-light
+  symbols on while the window is focused; `text_size` scales `Text`, sidebar
+  items (and their height) with `Font::scaled`. The compositor applies
+  `invert_colors`, `display_contrast`, the color filter and the pointer keys;
+  the shell applies `menu_bar_size` (malaysia ADR 0066).
 
 ### Reading and writing
 
@@ -283,7 +302,9 @@ a style.
 | `wallpaper_tinting` | Amount of the wallpaper behind a window, or `None` when it is off. `Resolved::behind_window(color)` mixes that color into `sidebar.bg`. |
 | `window_tint_scope`, `tint_parts` | Copies of the config. |
 | `lights`, `traffic_style`, `traffic_shape` | The traffic-light colors, style and shape. |
-| `contrast`, `reduce_transparency`, `reduced_motion`, `scroll_bars` | Copies of the config. |
+| `contrast`, `reduced_motion`, `scroll_bars` | Copies of the config. |
+| `reduce_transparency` | `AppearanceConfig::transparency_reduced()`: true with `reduce_transparency` or `contrast`. |
+| `show_borders`, `differentiate_without_color`, `text_size`, `menu_bar_size` | Copies of the config. |
 | `shell` | `ShellPalette`: menu bar and Dock colors. |
 | `menu`, `menu_parent` | `MenuPalette` and the window color a menu sits on. `Resolved::menu_separator(panel_bg)` gives the separator over another background. |
 | `sidebar` | `SidebarSurface`: `style`, `bg`, `rim`, `inner` and its `SidebarPalette`. |
@@ -292,8 +313,9 @@ a style.
 
 The rules `resolve` applies:
 
-1. `reduce_transparency` picks the `_OPAQUE` variants of the shell, menu,
-   sidebar and toolgroup colors.
+1. `reduce_transparency` or `contrast` picks the `_OPAQUE` variants of the
+   shell, menu, sidebar and toolgroup colors. macOS turns Reduce transparency
+   on with Increase contrast.
 2. A tint mixes the tint color into each surface. The amount is
    `WINDOW_TINT_ACCENT` (light, dark), times the strength factor, times the
    `LAYER_FACTOR_*` of that layer. A part left out of `tint_parts` stays

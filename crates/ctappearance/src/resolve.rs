@@ -21,8 +21,8 @@ use ctdesign::{
 };
 
 use crate::{
-    AppearanceConfig, ColorScheme, ScrollBars, SidebarStyle, TintParts, TrafficLightShape,
-    TrafficLightStyle, WindowColorMode, WindowTintScope,
+    AppearanceConfig, ColorScheme, MenuBarSize, ScrollBars, SidebarStyle, TintParts,
+    TrafficLightShape, TrafficLightStyle, WindowColorMode, WindowTintScope,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -68,6 +68,10 @@ pub struct Resolved {
     pub contrast: bool,
     pub reduce_transparency: bool,
     pub reduced_motion: bool,
+    pub show_borders: bool,
+    pub differentiate_without_color: bool,
+    pub text_size: f32,
+    pub menu_bar_size: MenuBarSize,
     pub scroll_bars: ScrollBars,
     pub shell: ShellPalette,
     pub menu: MenuPalette,
@@ -236,7 +240,7 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
     let (mut shell, mut menu, mut sidebar, mut toolgroup) = chrome_surfaces(
         scheme,
         appearance.sidebar_style,
-        appearance.reduce_transparency,
+        appearance.transparency_reduced(),
     );
     let bg_window = scheme.pick(BG_WINDOW);
     let menu_parent = window_tint.map_or(bg_window, |(tint, factor)| bg_window.mix(tint, factor));
@@ -283,8 +287,12 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
         traffic_style: appearance.traffic_light_style(),
         traffic_shape: appearance.traffic_light_shape,
         contrast: appearance.contrast,
-        reduce_transparency: appearance.reduce_transparency,
+        reduce_transparency: appearance.transparency_reduced(),
         reduced_motion: appearance.reduced_motion,
+        show_borders: appearance.show_borders,
+        differentiate_without_color: appearance.differentiate_without_color,
+        text_size: appearance.text_size,
+        menu_bar_size: appearance.menu_bar_size,
         scroll_bars: appearance.scroll_bars,
         shell,
         menu,
@@ -621,6 +629,18 @@ mod tests {
                 assert_eq!(color.a, 1.0, "{scheme:?} {name} is still translucent");
             }
         }
+    }
+
+    #[test]
+    fn increase_contrast_also_reduces_transparency() {
+        let config = AppearanceConfig {
+            contrast: true,
+            reduce_transparency: false,
+            ..AppearanceConfig::default()
+        };
+        let resolved = resolve(&config, None);
+        assert!(resolved.reduce_transparency);
+        assert_eq!(resolved.shell.bar.a, 1.0);
     }
 
     #[test]

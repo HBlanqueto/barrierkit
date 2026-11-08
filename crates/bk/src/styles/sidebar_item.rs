@@ -1,3 +1,4 @@
+use ctappearance::Resolved;
 use ctdesign::{BODY, Font, SIDEBAR};
 
 use super::button::rounded;
@@ -70,6 +71,16 @@ impl ControlStyle for SidebarItemStyle {
             effect: system_effect,
             font: font(SIDEBAR.item_weight),
             selected_font: font(SIDEBAR.item_selected_weight),
+        }
+    }
+
+    fn accessible(self, appearance: &Resolved) -> Self {
+        let scale = appearance.text_size;
+        Self {
+            height: self.height * scale,
+            font: self.font.scaled(scale),
+            selected_font: self.selected_font.scaled(scale),
+            ..self
         }
     }
 }

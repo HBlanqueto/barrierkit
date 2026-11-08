@@ -169,7 +169,7 @@ pub use text_field::TextFieldStyle;
 pub use text_view::TextViewStyle;
 pub use theme::{ControlStyle, StyleScope, Theme};
 pub(crate) use theme::{
-    PopupRoot, current_theme, reduce_motion, resolve, resolve_from, use_provide_theme,
+    PopupRoot, current_theme, reduce_motion, resolve, resolve_from, show_borders, use_provide_theme,
 };
 pub use titlebar::TitlebarStyle;
 pub use toggle_group::ToggleGroupStyle;
