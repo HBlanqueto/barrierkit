@@ -306,7 +306,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 
 | BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
 |---|---|---|---|---|---|
-| `symbol::Symbol` | enum | ≈ `Image(systemName:)` names | ≈ `NSImage(systemSymbolName:accessibilityDescription:)` names | Name of a built-in line icon; 37 variants | [4](04-appearance-and-tokens.md#symbols) |
+| `symbol::Symbol` | enum | ≈ `Image(systemName:)` names | ≈ `NSImage(systemSymbolName:accessibilityDescription:)` names | Name of a built-in line icon; 38 variants | [4](04-appearance-and-tokens.md#symbols) |
 | `symbol::Image` | struct | `Image(systemName:)` | `NSImage(systemSymbolName:accessibilityDescription:)` | A symbol as a view; `BODY` size and label color by default | [4](04-appearance-and-tokens.md#symbols) |
 | `register_font` | fn | — | — | Adds a typeface from font file bytes; `false` if not a font | [4](04-appearance-and-tokens.md#fonts) |
 
@@ -825,6 +825,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 |---|---|---|---|---|---|
 | `views::form::Form` | struct | `Form` | — | Settings layout: sections of rows in rounded cards | [11](11-views.md#form) |
 | `views::form::Section` | struct | `Section` | — | One form card with optional title and footer | [11](11-views.md#section) |
+| `views::form::Section::illustration` | method | — | — | A full-width view at the top of a form card | [11](11-views.md#section) |
 | `views::form::Row` | struct | `LabeledContent` | — | A form row: control, value, navigation or destructive | [11](11-views.md#row) |
 | `views::form::Row::page` | function | ≈ `NavigationLink(value:)` | — | A row that opens a page of a `SettingsWindow` | [11](11-views.md#row) |
 | `views::form::Row::symbol` | method | ≈ `Label(_:systemImage:)` | — | A `SymbolTile` before the row title | [11](11-views.md#row) |

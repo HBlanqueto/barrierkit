@@ -47,6 +47,7 @@ pub enum Symbol {
     Document,
     ChevronDoubleRight,
     Accessibility,
+    Display,
 }
 
 impl Symbol {
@@ -64,6 +65,7 @@ impl Symbol {
             Self::Accessibility => {
                 "M8 14a6 6 0 1 0 0-12a6 6 0 0 0 0 12M8 4.8h0M5.2 6.6 8 7.1l2.8-.5M8 7.1v2.3M6.6 11.8 8 9.4l1.4 2.4"
             }
+            Self::Display => "M2.5 3.5h11v7.5h-11zM6 13.5h4M8 11v2.5",
             Self::Plus => "M8 3.5v9M3.5 8h9",
             Self::Minus => "M3.5 8h9",
             Self::Ellipsis => "M3.5 8h0M8 8h0M12.5 8h0",

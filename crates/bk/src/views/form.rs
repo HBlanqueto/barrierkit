@@ -88,6 +88,7 @@ impl Row {
 pub struct Section {
     pub title: Option<&'static str>,
     pub rows: Vec<Row>,
+    illustration: Option<Element>,
     footer: Option<&'static str>,
 }
 
@@ -96,6 +97,7 @@ impl Section {
         Self {
             title: None,
             rows: Vec::new(),
+            illustration: None,
             footer: None,
         }
     }
@@ -105,6 +107,11 @@ impl Section {
             title: Some(title),
             ..Self::new()
         }
+    }
+
+    pub fn illustration(mut self, view: impl IntoElement) -> Self {
+        self.illustration = Some(view.into_element());
+        self
     }
 
     pub fn row(mut self, row: Row) -> Self {
@@ -201,6 +208,7 @@ impl Component for Form {
                         .overflow(Overflow::Clip)
                         .painted(&paints, &style.background)
                         .bordered(&paints, style.border.as_ref())
+                        .maybe_child(section.illustration.clone())
                         .children(rows),
                 )
                 .maybe_child(section.footer.map(|footer| {

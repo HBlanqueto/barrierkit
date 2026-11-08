@@ -107,6 +107,7 @@ rows with a control put the label above the control.
 | `Section::new()` | A card without a title |
 | `Section::titled(title)` | A card with a `HEADLINE` title above |
 | `.row(Row)` | Adds a row; rows are separated by a line |
+| `.illustration(view)` | A full-width view at the top of the card, above the rows |
 | `.footer(text)` | A `CAPTION` note below the card |
 
 `title` and `rows` are public fields.
