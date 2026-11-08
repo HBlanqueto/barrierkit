@@ -417,7 +417,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `ctdesign::Font` | struct | ≈ `Font.TextStyle` | ≈ `NSFont.TextStyle` | Type token: family, size, line height, weight | [4](04-appearance-and-tokens.md#token-types) |
 | `ctdesign::Palette` | struct | — | — | Base colors of one theme: inks, lines, accent, titlebar | [4](04-appearance-and-tokens.md#token-types) |
 | `ctdesign::FocusPair` | struct | — | — | One color for a focused window, one for unfocused | [4](04-appearance-and-tokens.md#token-types) |
-| `ctdesign::PanelLine` | struct | — | — | Inner line of a panel: sides and edges | [4](04-appearance-and-tokens.md#token-types) |
+| `ctdesign::PanelLine` | struct | — | — | Inner line of a focused panel: sides, edges and glow | [4](04-appearance-and-tokens.md#token-types) |
 | `ctdesign::TrafficRim` | struct | — | — | Rim color of a lit and an idle traffic light | [4](04-appearance-and-tokens.md#token-types) |
 | `ctdesign::ShellPalette` | struct | — | — | Menu bar and Dock colors | [4](04-appearance-and-tokens.md#token-types) |
 | `ctdesign::MenuPalette` | struct | — | — | Menu colors and metrics | [4](04-appearance-and-tokens.md#token-types) |
@@ -520,7 +520,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `ctdesign::TOOLGROUP_BG_LIGHT`, `TOOLGROUP_BG_LIGHT_OPAQUE`, `TOOLGROUP_BG_DARK`, `TOOLGROUP_BG_DARK_OPAQUE`, `TOOLGROUP_BG_DARK_TINT`, `TOOLGROUP_BG_DARK_TINT_OPAQUE`, `TOOLGROUP_PALETTE_LIGHT`, `TOOLGROUP_PALETTE_DARK`, `TOOLGROUP_PALETTE_DARK_TINT` | constant | — | — | Toolbar group background and lines per theme | [4](04-appearance-and-tokens.md#colors) |
 | `ctdesign::WINDOW_MIN_SIZE`, `WINDOW_DEFAULT_SIZE` | constant | ≈ `.defaultSize(_:)` | ≈ `NSWindow.minSize` | Minimum and default window size: 480 × 360, 640 × 420 | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
 | `ctdesign::WINDOW_CORNER`, `WINDOW_RESIZE` | constant | — | — | Window corner shape; resize band widths | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
-| `ctdesign::DIALOG`, `DIALOG_PADDING`, `DIALOG_ALERT_WIDTH`, `POPUP` | constant | — | — | Dialog and pop-up corners, dialog padding, alert width | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
+| `ctdesign::DIALOG`, `DIALOG_PADDING`, `DIALOG_ALERT_WIDTH`, `POPUP`, `PANEL_GLOW_DEPTH` | constant | — | — | Dialog and pop-up corners, dialog padding, alert width, panel glow depth | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
 | `ctdesign::SHADOW`, `SHADOW_DARK` | constant | — | ≈ `NSShadow` | Window shadows in light and dark | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
 | `ctdesign::NATIVE_APP_ID_PREFIX`, `ALERT_LAYER_NAMESPACE` | constant | — | — | App id prefix of kit apps; layer namespace of shell alerts | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
 | `ctdesign::TITLEBAR`, `TITLEBAR_CLIENT_HEIGHT`, `TITLEBAR_PADDING_X`, `TITLEBAR_TITLE_GAP`, `TITLEBAR_DOUBLE_CLICK`, `TITLEBAR_RAIL` | constant | — | — | Titlebar sizes, lights, double click and rail | [4](04-appearance-and-tokens.md#windows-and-titlebars) |

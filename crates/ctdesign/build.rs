@@ -12,6 +12,7 @@ const SOURCES: [&str; 3] = ["tengen/tokens.json", "tengen/components.json", "src
 
 const CONSTANTS: &str = r"
 TITLEBAR_CLIENT_HEIGHT u32 size.titlebar-h
+PANEL_GLOW_DEPTH f32 size.panel-glow-depth
 TITLEBAR_DOUBLE_CLICK DoubleClick components.window.titlebar.double-click
 WINDOW_CORNER WindowCorner components.window.corner
 WINDOW_RESIZE WindowResize components.window edge=resize-edge corner=resize-corner
@@ -397,9 +398,10 @@ fn emit_palettes(out: &mut String, tengen: &Tengen) {
         let panel_inner_line = match (color("panel-inner"), color("panel-inner-edge")) {
             (sides, edges) if sides.a == 0 && edges.a == 0 => "None".to_string(),
             (sides, edges) => format!(
-                "Some(PanelLine {{ sides: {}, edges: {} }})",
+                "Some(PanelLine {{ sides: {}, edges: {}, glow: {} }})",
                 rgba(sides),
-                rgba(edges)
+                rgba(edges),
+                rgba_of("panel-glow")
             ),
         };
         let lights = "components.window.traffic-lights";

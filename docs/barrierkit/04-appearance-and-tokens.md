@@ -435,7 +435,7 @@ A color, size or duration never goes into `bk`. It goes into Tengen:
 | `Font` | `family`, `size`, `line_height` (pixels) and `weight`. |
 | `Palette` | Base colors of a theme: `titlebar_bg`, `hairline`, `inner_line`, `panel_inner_line`, `outer_border`, `title`, `text`, `ink_strong`, `ink_muted`, `ink_faint`, `line`, `line_strong`, `accent`, `accent_inactive`, `on_accent`, `danger`, `traffic_lights_inactive`, `traffic_rim`, `scrim`, `selected_control`, `card_border`. |
 | `FocusPair` | A color for the focused window and one for the unfocused. |
-| `PanelLine` | Inner line of a panel: `sides` and `edges`. |
+| `PanelLine` | Inner line of a focused panel, menu or dialog: `sides`, `edges` (top and bottom) and the `glow` under the edges. |
 | `TrafficRim` | Rim of a traffic light: `lit` and `idle`. |
 | `ShellPalette` | Menu bar and Dock: `bar`, `text`, `tile`, `tile_active`, `tile_text_active`. |
 | `MenuPalette` | Colors and metrics of a menu: background, padding, item size, inks, hover, separator, check mark, header and search field. |
@@ -551,6 +551,7 @@ background, for `reduce_transparency`.
 | `WINDOW_RESIZE` | `WindowResize` | `platform` |
 | `DIALOG`, `DIALOG_PADDING`, `DIALOG_ALERT_WIDTH` | `WindowStyle`, `f32`, `f32` | `views::feedback` |
 | `POPUP` | `WindowStyle` | The compositor, for pop-up corners |
+| `PANEL_GLOW_DEPTH` | `f32` | The compositor: depth in points of the `PanelLine::glow` |
 | `SHADOW`, `SHADOW_DARK` | `ShadowStyle` | `styles` (`WindowChromeStyle`), the compositor |
 | `NATIVE_APP_ID_PREFIX` | `&str` | `io.github.hblanqueto.malaysia.`: app ids of the kit's apps (`platform`, `titlebar`) |
 | `ALERT_LAYER_NAMESPACE` | `&str` | `malaysia-dialog`: layer-shell namespace of shell alerts |

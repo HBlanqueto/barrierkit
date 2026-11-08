@@ -729,6 +729,7 @@ impl ShadowStyle {
 pub struct PanelLine {
     pub sides: Rgba,
     pub edges: Rgba,
+    pub glow: Rgba,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
