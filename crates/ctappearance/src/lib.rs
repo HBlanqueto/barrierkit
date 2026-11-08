@@ -2,6 +2,7 @@ pub mod backdrop;
 mod config;
 pub mod language;
 pub mod menubar;
+pub mod notifications;
 mod resolve;
 pub mod tinting;
 pub mod traffic;

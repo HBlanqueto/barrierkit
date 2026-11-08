@@ -250,6 +250,21 @@ A width of 0 needs `left` and `right`; a height of 0 needs `top` and
 Popups of a layer surface work as in a window
 ([8. Windows](08-windows.md#popups)).
 
+A running component changes its surface with
+`set_layer_geometry(LayerGeometry { anchors, size, keyboard })`. The runner
+sends the new anchors, size and keyboard mode and commits; the compositor
+answers with a configure, and the next frame has the new size. A geometry with
+an unanchored 0 is ignored with a warning. Malaysia's notification banners
+grow with their content this way, and the panel takes the full height:
+
+```rust
+set_layer_geometry(LayerGeometry {
+    anchors: Anchors { top: true, right: true, bottom: true, left: false },
+    size: (width, 0),
+    keyboard: KeyboardInteractivity::OnDemand,
+});
+```
+
 ### `run_lock` and `SessionUnlock`
 
 `run_lock(app: AppComponent) -> Result<(), RunError>` locks the session with

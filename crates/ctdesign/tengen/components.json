@@ -790,6 +790,21 @@
         "label-font-size": 16,
         "mask-font-size": 22
       },
+      "notifications": {
+        "width": 344,
+        "radius": 20,
+        "padding": 12,
+        "gap": 8,
+        "margin": 10,
+        "icon-size": 38,
+        "text-gap": 10,
+        "close-size": 20,
+        "stack-peek": 6,
+        "stack-inset": 8,
+        "body-lines": 3,
+        "max-banners": 3,
+        "banner-duration": 5000
+      },
       "launcher": {
         "width": 560,
         "height": 460,

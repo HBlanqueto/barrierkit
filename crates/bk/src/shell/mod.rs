@@ -10,7 +10,9 @@ pub use activation::Activation;
 pub use infinity::{
     InfinityWindowManagerV1, Layout as InfinityLayout, PairLayout as InfinityPairLayout,
 };
-pub use layer::{Anchors, KeyboardInteractivity, Layer, LayerSpec, run_layer};
+pub use layer::{
+    Anchors, KeyboardInteractivity, Layer, LayerGeometry, LayerSpec, run_layer, set_layer_geometry,
+};
 pub use lock::{SessionUnlock, run_lock};
 pub use menus::GtkMenusAddress;
 pub use status_items::{Pixmap, StatusHost, TrayItem, pixmap_image, use_status_items};

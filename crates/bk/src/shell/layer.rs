@@ -1,10 +1,11 @@
 use freya_core::integration::AppComponent;
 use sctk::{
     reexports::{
-        client::{Connection, Proxy, QueueHandle, delegate_dispatch},
+        client::{Connection, Proxy, QueueHandle, backend::ObjectId, delegate_dispatch},
         protocols::xdg::shell::client::xdg_popup::XdgPopup,
         protocols_wlr::layer_shell::v1::client::{zwlr_layer_shell_v1, zwlr_layer_surface_v1},
     },
+    shell::WaylandSurface,
     shell::wlr_layer::{
         Anchor as SctkAnchor, KeyboardInteractivity as SctkKeyboardInteractivity,
         Layer as SctkLayer, LayerShell, LayerShellHandler, LayerSurface, LayerSurfaceConfigure,
@@ -87,6 +88,48 @@ pub struct LayerSpec {
     pub size: Option<(u32, u32)>,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct LayerGeometry {
+    pub anchors: Anchors,
+    pub size: (u32, u32),
+    pub keyboard: KeyboardInteractivity,
+}
+
+pub fn set_layer_geometry(geometry: LayerGeometry) {
+    crate::platform::KitSender::get().send(geometry);
+}
+
+fn keyboard_to_sctk(keyboard: KeyboardInteractivity) -> SctkKeyboardInteractivity {
+    match keyboard {
+        KeyboardInteractivity::None => SctkKeyboardInteractivity::None,
+        KeyboardInteractivity::Exclusive => SctkKeyboardInteractivity::Exclusive,
+        KeyboardInteractivity::OnDemand => SctkKeyboardInteractivity::OnDemand,
+    }
+}
+
+impl Runtime {
+    pub(crate) fn apply_layer_geometry(&mut self, surface_id: &ObjectId, geometry: LayerGeometry) {
+        if !size_is_valid(geometry.anchors, Some(geometry.size)) {
+            tracing::warn!(
+                ?geometry,
+                "BarrierKit: ignored a layer geometry with an unanchored zero size"
+            );
+            return;
+        }
+        let Some(layer_surface) = self.surface_index_by_id(surface_id).and_then(|index| {
+            self.surfaces[index]
+                .role
+                .as_extension_role::<LayerSurface>()
+        }) else {
+            return;
+        };
+        layer_surface.set_anchor(anchors_to_sctk(geometry.anchors));
+        layer_surface.set_size(geometry.size.0, geometry.size.1);
+        layer_surface.set_keyboard_interactivity(keyboard_to_sctk(geometry.keyboard));
+        layer_surface.wl_surface().commit();
+    }
+}
+
 // zwlr_layer_surface_v1.set_size: a zero dimension needs the anchors on both of its edges.
 fn size_is_valid(anchors: Anchors, size: Option<(u32, u32)>) -> bool {
     let (width, height) = size.unwrap_or_default();
@@ -142,11 +185,7 @@ pub fn run_layer(app: AppComponent, spec: LayerSpec) -> Result<(), RunError> {
     };
     layer_surface.set_anchor(anchors_to_sctk(anchors));
     layer_surface.set_exclusive_zone(exclusive_zone);
-    layer_surface.set_keyboard_interactivity(match keyboard {
-        KeyboardInteractivity::None => SctkKeyboardInteractivity::None,
-        KeyboardInteractivity::Exclusive => SctkKeyboardInteractivity::Exclusive,
-        KeyboardInteractivity::OnDemand => SctkKeyboardInteractivity::OnDemand,
-    });
+    layer_surface.set_keyboard_interactivity(keyboard_to_sctk(keyboard));
     if let Some((w, h)) = size {
         layer_surface.set_size(w, h);
     }

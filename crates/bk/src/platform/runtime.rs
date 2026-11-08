@@ -210,6 +210,12 @@ fn insert_ping(event_loop: &mut EventLoop<Runtime>, shell: &mut Runtime) -> Resu
                             shell.create_window(open.app, open.options, Some(&surface_id));
                         }
                     }
+                    #[cfg(feature = "shell")]
+                    Sent::Kit(event) if event.is::<crate::shell::LayerGeometry>() => {
+                        if let Ok(geometry) = event.downcast::<crate::shell::LayerGeometry>() {
+                            shell.apply_layer_geometry(&surface_id, *geometry);
+                        }
+                    }
                     Sent::Kit(event) if event.is::<crate::drag::StartDrag>() => {
                         if let Ok(drag) = event.downcast::<crate::drag::StartDrag>() {
                             shell.start_drag(&surface_id, drag.0);
