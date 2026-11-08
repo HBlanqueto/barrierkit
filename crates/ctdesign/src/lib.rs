@@ -80,7 +80,7 @@ pub struct Titlebar {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct WindowCorner {
     pub titlebar: u32,
-    pub compact: u32,
+    pub unified_compact: u32,
     pub unified: u32,
     pub utility: u32,
     pub expansion: f32,

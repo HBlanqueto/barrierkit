@@ -298,7 +298,7 @@
       "resize-corner": 16,
       "corner": {
         "titlebar": "radius.lg",
-        "compact": 20,
+        "unified-compact": 20,
         "unified": 26,
         "utility": 15,
         "expansion": 1.52866,

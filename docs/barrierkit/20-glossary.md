@@ -61,6 +61,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `rich_text::TextStyle` | `rich_text::RunStyle`; `styles::TextStyle` is the style of `Text` | 2026-11-07 |
 | `chrome::ChromeStyle` | `styles::WindowChromeStyle`, with the look of the rail | 2026-11-07 |
 | `chrome::WindowChrome::new(style, child)` | `chrome::WindowChrome::new(child).style(\|s\| ..)` | 2026-11-07 |
+| `platform::Bar::Compact`, `WindowCorner::compact`, Infinity `bar` entry `compact` | `Bar::UnifiedCompact`, `WindowCorner::unified_compact`, `unified_compact` | 2026-11-08 |
 | The 22 views, modifiers and names listed in [ADR 0063](../decisions/0063-views-as-types-and-swift-names.md#decision) (`divider()`, `empty_state`, `use_tooltip`, `PreferencesWindow`, `AppMenu`, `ProgressBar`…) | `Divider`, `ContentUnavailableView`, `.help`, `SettingsWindow`, `MainMenu`, `ProgressView`… | 2026-11-07 |
 
 ## How to read the tables
@@ -745,7 +746,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `app::UtilityWindow` | struct | `UtilityWindow` | `≈ NSPanel` | A floating panel child of the current window; `.open()` shows it | [8](08-windows.md#utility-windows) |
 | `platform::PanelBehavior` | struct | — | `≈ NSPanel` | Panel flags: hides on deactivate, floating, key only if needed | [8](08-windows.md#utility-windows) |
 | `platform::FullscreenBar` | enum | — | — | Overlaid full-screen title bar: `Solid`, `Glass`, `ProgressiveGlass` | [9](09-titlebars.md#the-bar-in-full-screen-fullscreenbar) |
-| `platform::Bar` | enum | — | `≈ NSWindow.ToolbarStyle` | Bar the window draws, for its corner: `Titlebar`, `Compact`, `Unified`, `Utility` | [9](09-titlebars.md#corner-radius) |
+| `platform::Bar` | enum | — | `≈ NSWindow.ToolbarStyle` | Bar the window draws, for its corner: `Titlebar`, `UnifiedCompact`, `Unified`, `Utility` | [9](09-titlebars.md#corner-radius) |
 | `platform::MainMenuAddress` | struct | — | — | D-Bus service and path of a window's menu bar menu | [8](08-windows.md#menu-address) |
 | `platform::ObjectId` | struct | — | — | Wayland object id, re-exported from `wayland-backend` | [8](08-windows.md#menu-address) |
 | `platform::RunError` | enum | — | — | Why a window cannot run: display, protocol, Vulkan, event loop, I/O | [8](08-windows.md#errors) |

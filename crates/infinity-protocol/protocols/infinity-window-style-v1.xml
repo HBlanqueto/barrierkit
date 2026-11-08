@@ -38,7 +38,7 @@
         Each value matches an AppKit window kind and its corner radius.
       </description>
       <entry name="titlebar" value="0" summary="a plain titlebar, as NSWindow without a toolbar"/>
-      <entry name="compact" value="1" summary="a compact toolbar, as NSWindowToolbarStyle.unifiedCompact"/>
+      <entry name="unified_compact" value="1" summary="a compact toolbar, as NSWindowToolbarStyle.unifiedCompact"/>
       <entry name="unified" value="2" summary="a full toolbar, as NSWindowToolbarStyle.unified"/>
       <entry name="utility" value="3" summary="a panel or utility window"/>
     </enum>

@@ -114,10 +114,10 @@ The app does nothing:
 |---|---|---|---|
 | `.close_only(true)`, utility or HUD window | `Titlebar` | `TITLEBAR.thickness` (32) | `titlebar` (16) |
 | `.with_sidebar(true)` and an island sidebar | `Unified` | `SETTINGS.toolbar_height` (52) | `unified` (26) |
-| The rest | `Compact` | `TITLEBAR_CLIENT_HEIGHT` (40) | `compact` (20) |
+| The rest | `UnifiedCompact` | `TITLEBAR_CLIENT_HEIGHT` (40) | `unified_compact` (20) |
 
 `Bar` (`bk::platform`) comes from the Infinity protocol and has four
-values, each an AppKit window kind: `Titlebar` (no toolbar), `Compact`
+values, each an AppKit window kind: `Titlebar` (no toolbar), `UnifiedCompact`
 (`NSWindow.ToolbarStyle.unifiedCompact`), `Unified` (`.unified`) and
 `Utility` (a panel, radius 15). The kit never sends `Utility`.
 

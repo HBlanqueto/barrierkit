@@ -439,7 +439,7 @@ A color, size or duration never goes into `bk`. It goes into Tengen:
 | `ShadowLayer` | `blur`, `y_offset`, `opacity`, `color`. |
 | `MaterialThickness` | `opacity` and `blur` of one material thickness. |
 | `ShadowStyle` | `ambient` and `contact` layers and their scale when unfocused; `layers(focused)` returns both. |
-| `WindowCorner` | Window radii (`titlebar`, `compact`, `unified`, `utility`), curve `expansion` and superellipse `exponent`. |
+| `WindowCorner` | Window radii (`titlebar`, `unified_compact`, `unified`, `utility`), curve `expansion` and superellipse `exponent`. |
 | `WindowStyle` | `corner_radius` and `superellipse_exponent` of a dialog or pop-up. |
 | `WindowResize` | Width of the resize band at an `edge` and a `corner`. |
 | `Titlebar` | Server-side titlebar: `thickness`, `buttons`, `font`. |

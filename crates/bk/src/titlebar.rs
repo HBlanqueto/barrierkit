@@ -137,7 +137,7 @@ impl Component for Titlebar {
         } else if self.sidebar && theme::resolved().sidebar.style == SidebarKind::Island {
             Bar::Unified
         } else {
-            Bar::Compact
+            Bar::UnifiedCompact
         };
         crate::compact::use_toolbar_items(bar == Bar::Unified);
         let bar_controls = controls.clone();
