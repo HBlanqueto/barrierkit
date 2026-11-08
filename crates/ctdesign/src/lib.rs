@@ -127,7 +127,6 @@ pub struct SettingsMetrics {
     pub window_width: u32,
     pub window_height: u32,
     pub window_min_height: u32,
-    pub search_height: u32,
     pub search_padding_x: u32,
     pub search_icon: u32,
     pub search_gap: u32,
@@ -226,7 +225,6 @@ pub struct SwitchMetrics {
     pub knob_width: f32,
     pub knob_height: f32,
     pub inset: f32,
-    pub travel: f32,
     pub knob_color: Rgba,
     pub transition_ms: u64,
     pub disabled_opacity: f32,
@@ -287,10 +285,6 @@ pub struct ProgressMetrics {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct BackdropScenes {
     pub dusk: [Rgba; 3],
-    pub night: [Rgba; 3],
-    pub pale: [Rgba; 3],
-    pub forest: [Rgba; 3],
-    pub studio: [Rgba; 3],
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -334,7 +328,6 @@ pub struct TooltipMetrics {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct TitlebarRailMetrics {
     pub width: f32,
-    pub width_wide: f32,
     pub actions_width: f32,
     pub padding_top: f32,
     pub padding_bottom: f32,
@@ -566,26 +559,8 @@ pub struct MediaMetrics {
     pub material_blur: f32,
     pub material_tint: Rgba,
     pub material_rim: Rgba,
-    pub ink: Rgba,
-    pub ink_secondary: Rgba,
-    pub ink_tertiary: Rgba,
-    pub ink_strong: Rgba,
-    pub ink_rank: Rgba,
-    pub lede: Rgba,
-    pub line: Rgba,
-    pub track: Rgba,
-    pub progress_track: Rgba,
-    pub chip: Rgba,
-    pub scrim: Rgba,
-    pub scrim_strong: Rgba,
-    pub panel: Rgba,
-    pub night: Rgba,
-    pub logo_shadow: Rgba,
-    pub dot_fade: f32,
     pub scrim_side: &'static [(f32, f32)],
     pub scrim_bottom: &'static [(f32, f32)],
-    pub hover_scale: f32,
-    pub preview_delay_ms: u64,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -699,7 +674,6 @@ pub struct SidebarMetrics {
     pub radius: u32,
     pub rim_width: f32,
     pub inner_width: f32,
-    pub blur: u32,
     pub traffic_x: u32,
     pub traffic_y: u32,
     pub item_height: u32,
@@ -797,7 +771,6 @@ pub struct MenuPopoverMetrics {
     pub padding: f32,
     pub min_width: f32,
     pub item_padding_start: f32,
-    pub item_padding_x: f32,
     pub check: f32,
     pub leading_column: f32,
     pub swatch_grid_size: f32,

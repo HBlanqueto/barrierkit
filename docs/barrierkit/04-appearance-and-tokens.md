@@ -623,7 +623,7 @@ background, for `reduce_transparency`.
 | `CHART` | `ChartMetrics` | `charts`, `styles` (`ChartStyle`); `hover_opacity` is the highlight of the hovered row of horizontal bars |
 | `MEDIA` | `MediaMetrics` | `media`, `styles`; `button_font_weight` is the weight of the `MediaButton` label |
 | `BACKDROP` | `BackdropMetrics` | `backdrop`, `sidebar`, `ctappearance::backdrop`, `styles` (`BackdropStyle`) |
-| `BACKDROP_SCENES` | `BackdropScenes` | Preset gradients `dusk`, `night`, `pale`, `forest`, `studio`; nothing reads them yet |
+| `BACKDROP_SCENES` | `BackdropScenes` | Preset gradient `dusk` (recipe `titlebar_over_gradient`) |
 
 ### Shell
 

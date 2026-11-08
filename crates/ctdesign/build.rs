@@ -64,7 +64,7 @@ LEVEL_INDICATOR LevelIndicatorMetrics components.level-indicator
 GAUGE GaugeMetrics components.gauge
 TOOLBAR_SEARCH_WIDTH f32 components.toolbar-search-width
 BADGE BadgeMetrics components.badge
-MEDIA MediaMetrics components.media preview_delay_ms=preview-delay
+MEDIA MediaMetrics components.media
 MATERIAL MaterialMetrics components.material
 SCROLL_BAR ScrollBarMetrics components.scroll-bar hide_delay_ms=hide-delay
 LIST_GROUP ListGroupMetrics components.list-group
@@ -114,7 +114,7 @@ KNOB_SHADOW ShadowLayer shadow.slint.knob y_offset=offset-y opacity==1.0
 LOCK LockPalette themes.dark-tint
 SIDEBAR SidebarMetrics components.window.sidebar width=size.sidebar-w inset=island.inset
     padding_x=island.padding-x radius=island.radius rim_width=island.rim-width
-    inner_width=island.inner-width blur=island.blur traffic_x=island.traffic-x
+    inner_width=island.inner-width traffic_x=island.traffic-x
     traffic_y=island.traffic-y app_icon=item.app-icon chevron=section.chevron
 TOOLGROUP ToolgroupMetrics components.window.toolgroup
 MENU_POPOVER MenuPopoverMetrics components.menu-popover

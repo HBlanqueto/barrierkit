@@ -405,7 +405,6 @@
         },
         "rail": {
           "width": 30,
-          "width-wide": 32,
           "actions-width": 34,
           "padding-top": 12,
           "padding-bottom": 10,
@@ -450,7 +449,6 @@
           "rim-width": 1,
           "inner": "sidebar-island-inner",
           "inner-width": 1,
-          "blur": 30,
           "traffic-x": 11,
           "traffic-y": 11
         },
@@ -630,7 +628,6 @@
       "padding": 4,
       "min-width": 180,
       "item-padding-start": 6,
-      "item-padding-x": 11,
       "check": 12,
       "leading-column": 16,
       "swatch-grid-size": 16,
@@ -676,11 +673,7 @@
       "accent-min-chroma": 0.12
     },
     "backdrop-scenes": {
-      "dusk": ["#7a3b5e", "#2d6e6a", "#b4703f"],
-      "night": ["#14213d", "#3a4f7a", "#966e28"],
-      "pale": ["#ecd6c4", "#c8ded6", "#f0e2aa"],
-      "forest": ["#1e4d2b", "#78a05a", "#463c6e"],
-      "studio": ["#3b2f7a", "#1d6f7e", "#8a3f6e"]
+      "dusk": ["#7a3b5e", "#2d6e6a", "#b4703f"]
     },
     "breakpoint": {
       "medium": 620,
@@ -708,26 +701,8 @@
       "material-blur": 28,
       "material-tint": "#16171acc",
       "material-rim": "#ffffff1f",
-      "ink": "#ffffff",
-      "ink-secondary": "#ffffffb3",
-      "ink-tertiary": "#ffffff99",
-      "ink-strong": "#ffffffcc",
-      "ink-rank": "#ffffffe0",
-      "lede": "#d8d9dd",
-      "line": "#ffffff54",
-      "track": "#ffffff40",
-      "progress-track": "#ffffff33",
-      "chip": "#00000087",
-      "scrim": "#000000a8",
-      "scrim-strong": "#000000cc",
-      "panel": "#1c1d20e8",
-      "night": "#0b0c0e",
-      "logo-shadow": "#00000099",
-      "dot-fade": 0.08,
       "scrim-side": [[0, 0.95], [0.38, 0.63], [1, 0]],
-      "scrim-bottom": [[0, 0], [0.45, 0.6], [1, 1]],
-      "hover-scale": 1.05,
-      "preview-delay": 550
+      "scrim-bottom": [[0, 0], [0.45, 0.6], [1, 1]]
     },
     "material": {
       "ultra-thin": { "opacity": 0.35, "blur": 12 },

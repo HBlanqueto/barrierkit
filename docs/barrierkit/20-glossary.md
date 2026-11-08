@@ -440,7 +440,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `ctdesign::SettingsMetrics` | struct | — | — | Sizes of the settings window, sidebar, search and previews | [4](04-appearance-and-tokens.md#view-metrics) |
 | `ctdesign::ButtonMetrics` | struct | — | — | Push button sizes, radius, font and pressed scale | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::IconButtonMetrics` | struct | — | — | Icon button size, radius and icon size | [4](04-appearance-and-tokens.md#control-metrics) |
-| `ctdesign::SwitchMetrics` | struct | — | — | Switch track, knob, travel and transition | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::SwitchMetrics` | struct | — | — | Switch track, knob and transition | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::CheckboxMetrics` | struct | — | — | Checkbox size, radius and mark | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::SliderMetrics` | struct | — | — | Slider height, track and knob | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::SliderFatMetrics` | struct | — | — | Wide level slider height, minimum fill and icon position | [4](04-appearance-and-tokens.md#control-metrics) |
@@ -485,7 +485,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `ctdesign::MediaMetrics` | struct | — | — | Media buttons, glass material, inks and scrims | [4](04-appearance-and-tokens.md#view-metrics) |
 | `ctdesign::MaterialMetrics` | struct | — | — | One `MaterialThickness` per `styles::Thickness` | [4](04-appearance-and-tokens.md#materials) |
 | `ctdesign::BackdropMetrics` | struct | — | — | Backdrop gradient, glass, ink and accent parameters | [4](04-appearance-and-tokens.md#view-metrics) |
-| `ctdesign::BackdropScenes` | struct | — | — | Preset backdrop gradients: dusk, night, pale, forest, studio | [4](04-appearance-and-tokens.md#view-metrics) |
+| `ctdesign::BackdropScenes` | struct | — | — | Preset backdrop gradient: dusk | [4](04-appearance-and-tokens.md#view-metrics) |
 
 ## Design token constants
 

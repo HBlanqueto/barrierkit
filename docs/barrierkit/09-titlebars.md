@@ -227,7 +227,7 @@ for every window.
 | Field | Default | Values |
 |---|---|---|
 | `layout` | `Top` | `TitlebarLayout::Top`: the horizontal `Titlebar`. `Rail`: a vertical bar on the left, with the traffic lights in a column, the title rotated 90° and the rail items |
-| `rail_width` | `TITLEBAR_RAIL.width` (30) | Rail width without items; `TITLEBAR_RAIL.width_wide` is 32 |
+| `rail_width` | `TITLEBAR_RAIL.width` (30) | Rail width without items |
 | `round_lights` | `false` | Round traffic lights |
 | `rail_style` | `Normal` | `RailStyle::Normal`: its own strip. `Unified`: no strip; the column goes inside the sidebar, and without a visible sidebar it draws as `Normal` |
 | `reveal` | `Always` | When the bar shows ([Reveal](#reveal)) |
