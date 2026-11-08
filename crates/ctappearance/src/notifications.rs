@@ -34,10 +34,12 @@ pub struct AppNotifications {
     pub allow: bool,
     pub desktop: bool,
     pub center: bool,
+    pub lock_screen: bool,
     pub style: AlertStyle,
     pub critical: bool,
     pub time_sensitive: bool,
     pub sound: bool,
+    pub badge: bool,
     pub grouping: Grouping,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub muted_until: Option<i64>,
@@ -49,10 +51,12 @@ impl Default for AppNotifications {
             allow: true,
             desktop: true,
             center: true,
+            lock_screen: true,
             style: AlertStyle::Temporary,
             critical: false,
             time_sensitive: true,
             sound: true,
+            badge: true,
             grouping: Grouping::Automatic,
             muted_until: None,
         }
@@ -65,11 +69,66 @@ impl AppNotifications {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum Focus {
+    DoNotDisturb,
+    Sleep,
+    Personal,
+    Work,
+}
+
+impl Focus {
+    pub const ALL: [Self; 4] = [Self::DoNotDisturb, Self::Sleep, Self::Personal, Self::Work];
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct FocusSettings {
+    pub allowed_apps: Vec<String>,
+    pub time_sensitive: bool,
+}
+
+impl Default for FocusSettings {
+    fn default() -> Self {
+        Self {
+            allowed_apps: Vec::new(),
+            time_sensitive: true,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum Widget {
+    Calendar,
+    Batteries,
+}
+
+impl Widget {
+    pub const ALL: [Self; 2] = [Self::Calendar, Self::Batteries];
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct NotificationsConfig {
     pub show_previews: ShowPreviews,
+    pub when_locked: bool,
     pub apps: BTreeMap<String, AppNotifications>,
+    pub focus: BTreeMap<Focus, FocusSettings>,
+    pub widgets: Vec<Widget>,
+}
+
+impl Default for NotificationsConfig {
+    fn default() -> Self {
+        Self {
+            show_previews: ShowPreviews::default(),
+            when_locked: true,
+            apps: BTreeMap::new(),
+            focus: BTreeMap::new(),
+            widgets: Widget::ALL.to_vec(),
+        }
+    }
 }
 
 impl NotificationsConfig {
@@ -79,6 +138,14 @@ impl NotificationsConfig {
 
     pub fn app_mut(&mut self, app_id: &str) -> &mut AppNotifications {
         self.apps.entry(app_id.to_string()).or_default()
+    }
+
+    pub fn focus(&self, focus: Focus) -> FocusSettings {
+        self.focus.get(&focus).cloned().unwrap_or_default()
+    }
+
+    pub fn focus_mut(&mut self, focus: Focus) -> &mut FocusSettings {
+        self.focus.entry(focus).or_default()
     }
 }
 
@@ -94,6 +161,20 @@ mod tests {
         assert!(app.allow && app.desktop && app.center && app.sound);
         assert_eq!(app.style, AlertStyle::Temporary);
         assert!(!app.critical);
+    }
+
+    #[test]
+    fn focus_modes_and_widgets_round_trip_through_toml() {
+        let mut config = NotificationsConfig::default();
+        config
+            .focus_mut(Focus::Work)
+            .allowed_apps
+            .push("org.gnome.Calendar".into());
+        config.widgets = vec![Widget::Batteries];
+        let text = toml::to_string(&config).unwrap();
+        let back: NotificationsConfig = toml::from_str(&text).unwrap();
+        assert_eq!(back, config);
+        assert!(back.focus(Focus::Sleep).time_sensitive);
     }
 
     #[test]

@@ -50,6 +50,12 @@ pub enum Symbol {
     Display,
     Moon,
     Bell,
+    Bed,
+    Person,
+    Briefcase,
+    Printer,
+    Phone,
+    SquareOnSquare,
 }
 
 impl Symbol {
@@ -68,6 +74,18 @@ impl Symbol {
                 "M8 14a6 6 0 1 0 0-12a6 6 0 0 0 0 12M8 4.8h0M5.2 6.6 8 7.1l2.8-.5M8 7.1v2.3M6.6 11.8 8 9.4l1.4 2.4"
             }
             Self::Display => "M2.5 3.5h11v7.5h-11zM6 13.5h4M8 11v2.5",
+            Self::Bed => {
+                "M2 12.5V5M2 9.5h12v3M14 9.5V8a1.5 1.5 0 0 0-1.5-1.5H7v3M4.5 8.5a1 1 0 1 0 0-2a1 1 0 0 0 0 2"
+            }
+            Self::Person => "M8 7.5a2.5 2.5 0 1 0 0-5a2.5 2.5 0 0 0 0 5M3 13.5a5 5 0 0 1 10 0",
+            Self::Briefcase => {
+                "M2.5 5.5h11v7.5h-11zM6 5.5V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v1.5M2.5 9h11"
+            }
+            Self::Printer => "M4.5 6V2.5h7V6M4.5 11.5h-2v-5.5h11v5.5h-2M4.5 9.5h7v4h-7z",
+            Self::Phone => {
+                "M4 2.5h2l1 3-1.5 1a7 7 0 0 0 4 4l1-1.5 3 1v2a1 1 0 0 1-1 1A10.5 10.5 0 0 1 3 3.5a1 1 0 0 1 1-1"
+            }
+            Self::SquareOnSquare => "M5.5 5.5h7v7h-7zM3.5 10.5v-7h7",
             Self::Bell => {
                 "M8 2.5A3.5 3.5 0 0 0 4.5 6v2.6L3 11.5h10l-1.5-2.9V6A3.5 3.5 0 0 0 8 2.5M6.5 13.5a1.5 1.5 0 0 0 3 0"
             }

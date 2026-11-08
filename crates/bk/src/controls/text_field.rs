@@ -118,6 +118,7 @@ pub struct TextField {
     placeholder: &'static str,
     width: Size,
     auto_focus: bool,
+    on_submit: Option<Callback<String, ()>>,
     style: Theme,
     key: DiffKey,
 }
@@ -129,9 +130,15 @@ impl TextField {
             placeholder,
             width: Size::fill(),
             auto_focus: false,
+            on_submit: None,
             style: Theme::tengen(),
             key: DiffKey::None,
         }
+    }
+
+    pub fn on_submit(mut self, callback: impl Into<Callback<String, ()>>) -> Self {
+        self.on_submit = Some(callback.into());
+        self
     }
 
     pub fn style(mut self, restyle: impl Fn(TextFieldStyle) -> TextFieldStyle + 'static) -> Self {
@@ -188,6 +195,10 @@ impl Component for TextField {
             Gaps::new(margin_y, style.padding_x, margin_y, style.padding_x),
         )
         .auto_focus(self.auto_focus);
+        let input = match self.on_submit.clone() {
+            Some(on_submit) => input.on_submit(move |text: String| on_submit.call(text)),
+            None => input,
+        };
         let mut index = use_state(|| None);
         let holder = use_state(ParagraphHolder::default);
         let padding_x = style.padding_x;

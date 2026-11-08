@@ -642,6 +642,7 @@
   --bk-shell-dock-gap: 6;
   --bk-shell-dock-padding: 8;
   --bk-shell-dock-font-size: 11;
+  --bk-shell-dock-progress-height: 4;
   --bk-shell-dock-tile: var(--bk-bg-control);
   --bk-shell-dock-tile-active: var(--bk-accent);
   --bk-shell-dock-tile-text-active: var(--bk-on-accent);
@@ -681,6 +682,16 @@
   --bk-shell-notifications-body-lines: 3;
   --bk-shell-notifications-max-banners: 3;
   --bk-shell-notifications-banner-duration: 5000;
+  --bk-shell-notifications-edge: 2;
+  --bk-shell-notifications-swipe: 60;
+  --bk-shell-notifications-widget-size: 168;
+  --bk-shell-notifications-widget-radius: 28;
+  --bk-shell-notifications-reply-height: 28;
+  --bk-shell-live-activity-width: 314;
+  --bk-shell-live-activity-height: 132;
+  --bk-shell-live-activity-radius: 20;
+  --bk-shell-live-activity-gap: 3;
+  --bk-shell-live-activity-ended-duration: 5000;
   --bk-shell-launcher-width: 560;
   --bk-shell-launcher-height: 460;
   --bk-shell-launcher-padding: 12;

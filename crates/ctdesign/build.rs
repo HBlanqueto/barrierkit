@@ -140,6 +140,7 @@ DOCK_TILESIZE i32 components.shell.dock.tilesize
 DOCK_GAP i32 components.shell.dock.gap
 DOCK_PADDING i32 components.shell.dock.padding
 DOCK_FONT_SIZE f32 components.shell.dock.font-size
+DOCK_PROGRESS_HEIGHT f32 components.shell.dock.progress-height
 ABOUT_WIDTH u32 components.shell.about.width
 ABOUT_HEIGHT u32 components.shell.about.height
 ABOUT_DRAWING_TOP f32 components.shell.about.drawing-top
@@ -176,6 +177,16 @@ NOTIFICATION_STACK_INSET f32 components.shell.notifications.stack-inset
 NOTIFICATION_BODY_LINES usize components.shell.notifications.body-lines
 NOTIFICATION_MAX_BANNERS usize components.shell.notifications.max-banners
 NOTIFICATION_BANNER_MS u64 components.shell.notifications.banner-duration
+NOTIFICATION_EDGE f64 components.shell.notifications.edge
+NOTIFICATION_SWIPE f64 components.shell.notifications.swipe
+NOTIFICATION_WIDGET_SIZE f32 components.shell.notifications.widget-size
+NOTIFICATION_WIDGET_RADIUS f32 components.shell.notifications.widget-radius
+NOTIFICATION_REPLY_HEIGHT f32 components.shell.notifications.reply-height
+LIVE_ACTIVITY_WIDTH u32 components.shell.live-activity.width
+LIVE_ACTIVITY_HEIGHT u32 components.shell.live-activity.height
+LIVE_ACTIVITY_RADIUS f32 components.shell.live-activity.radius
+LIVE_ACTIVITY_GAP i32 components.shell.live-activity.gap
+LIVE_ACTIVITY_ENDED_MS u64 components.shell.live-activity.ended-duration
 LAUNCHER_WIDTH i32 components.shell.launcher.width
 LAUNCHER_HEIGHT i32 components.shell.launcher.height
 LAUNCHER_PADDING i32 components.shell.launcher.padding
