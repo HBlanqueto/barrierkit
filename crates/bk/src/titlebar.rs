@@ -132,7 +132,10 @@ impl Component for Titlebar {
             || controls
                 .as_ref()
                 .is_some_and(|controls| controls.hud || controls.panel);
-        let bar = if close_only {
+        let panel = controls.as_ref().is_some_and(|controls| controls.panel);
+        let bar = if panel {
+            Bar::Utility
+        } else if close_only {
             Bar::Titlebar
         } else if self.sidebar && theme::resolved().sidebar.style == SidebarKind::Island {
             Bar::Unified
