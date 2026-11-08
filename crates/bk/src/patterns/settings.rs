@@ -66,6 +66,12 @@ impl Pane {
         self.pages.push(page);
         self
     }
+
+    fn with_pages(&self) -> Vec<&Pane> {
+        std::iter::once(self)
+            .chain(self.pages.iter().flat_map(Pane::with_pages))
+            .collect()
+    }
 }
 
 #[derive(Clone, PartialEq)]
@@ -173,7 +179,7 @@ impl SettingsWindow {
         self.groups
             .iter()
             .flat_map(|group| group.panes.iter())
-            .flat_map(|pane| std::iter::once(pane).chain(pane.pages.iter()))
+            .flat_map(Pane::with_pages)
     }
 }
 
@@ -269,7 +275,7 @@ impl Component for SettingsWindow {
         let item = |pane: &Pane| {
             SidebarItem::new(pane.title)
                 .symbol(pane.symbol, pane.tint)
-                .selected(pane.id == current || pane.pages.iter().any(|page| page.id == current))
+                .selected(pane.with_pages().iter().any(|page| page.id == current))
                 .emphasized(!searching)
                 .on_select(open(pane.id, None))
                 .into_element()

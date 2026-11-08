@@ -197,6 +197,34 @@ pub enum ColorFilter {
     BlueYellow,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Toolkit {
+    BarrierKit,
+    Gtk,
+    Qt,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Default, Deserialize, Serialize)]
+#[serde(default)]
+pub struct TextSizes {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub barrierkit: Option<f32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub gtk: Option<f32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub qt: Option<f32>,
+}
+
+impl TextSizes {
+    pub fn get_mut(&mut self, toolkit: Toolkit) -> &mut Option<f32> {
+        match toolkit {
+            Toolkit::BarrierKit => &mut self.barrierkit,
+            Toolkit::Gtk => &mut self.gtk,
+            Toolkit::Qt => &mut self.qt,
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(default)]
 pub struct AppearanceConfig {
@@ -233,6 +261,7 @@ pub struct AppearanceConfig {
     pub differentiate_without_color: bool,
     pub display_contrast: f32,
     pub text_size: f32,
+    pub text_sizes: TextSizes,
     #[serde(deserialize_with = "lenient")]
     pub menu_bar_size: MenuBarSize,
     pub shake_to_locate: bool,
@@ -266,6 +295,7 @@ impl Default for AppearanceConfig {
             differentiate_without_color: false,
             display_contrast: DISPLAY_CONTRAST[0],
             text_size: TEXT_SIZES[0],
+            text_sizes: TextSizes::default(),
             menu_bar_size: MenuBarSize::default(),
             shake_to_locate: true,
             pointer_size: POINTER_SIZES[0],
@@ -277,6 +307,11 @@ impl Default for AppearanceConfig {
 }
 
 impl AppearanceConfig {
+    pub fn text_size_for(&self, toolkit: Toolkit) -> f32 {
+        let mut sizes = self.text_sizes;
+        sizes.get_mut(toolkit).unwrap_or(self.text_size)
+    }
+
     pub fn transparency_reduced(&self) -> bool {
         self.reduce_transparency || self.contrast
     }
@@ -516,6 +551,15 @@ traffic_lights = "auto"
     }
 
     #[test]
+    fn a_toolkit_without_its_own_text_size_uses_the_preferred_one() {
+        let config: AppearanceConfig =
+            toml::from_str("text_size = 1.3\n[text_sizes]\nqt = 2.0\n").unwrap();
+        assert_eq!(config.text_size_for(Toolkit::Gtk), 1.3);
+        assert_eq!(config.text_size_for(Toolkit::BarrierKit), 1.3);
+        assert_eq!(config.text_size_for(Toolkit::Qt), 2.0);
+    }
+
+    #[test]
     fn write_appearance_roundtrips() {
         let dir = std::env::temp_dir().join(format!("ctappearance-write-{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
@@ -547,6 +591,11 @@ traffic_lights = "auto"
             differentiate_without_color: true,
             display_contrast: DISPLAY_CONTRAST[2],
             text_size: TEXT_SIZES[3],
+            text_sizes: TextSizes {
+                barrierkit: None,
+                gtk: Some(TEXT_SIZES[1]),
+                qt: Some(TEXT_SIZES[5]),
+            },
             menu_bar_size: MenuBarSize::Large,
             shake_to_locate: false,
             pointer_size: POINTER_SIZES[4],

@@ -21,7 +21,7 @@ use ctdesign::{
 };
 
 use crate::{
-    AppearanceConfig, ColorScheme, MenuBarSize, ScrollBars, SidebarStyle, TintParts,
+    AppearanceConfig, ColorScheme, MenuBarSize, ScrollBars, SidebarStyle, TintParts, Toolkit,
     TrafficLightShape, TrafficLightStyle, WindowColorMode, WindowTintScope,
 };
 
@@ -291,7 +291,7 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
         reduced_motion: appearance.reduced_motion,
         show_borders: appearance.show_borders,
         differentiate_without_color: appearance.differentiate_without_color,
-        text_size: appearance.text_size,
+        text_size: appearance.text_size_for(Toolkit::BarrierKit),
         menu_bar_size: appearance.menu_bar_size,
         scroll_bars: appearance.scroll_bars,
         shell,

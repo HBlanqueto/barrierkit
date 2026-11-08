@@ -97,7 +97,7 @@ shows. `id` identifies it in suggestions and in the saved state; `symbol` and
 are public fields.
 
 `.page(Pane)` adds a page that has no sidebar item, like macOS Accessibility ›
-Display. A `Row::page(title, id)` in the parent's form opens it; the sidebar
+Display. A page can have pages of its own (Display › Text size). A `Row::page(title, id)` in the parent's form opens it; the sidebar
 keeps the parent selected, the titlebar shows the page's title and the back
 button returns. Search finds the page's rows.
 

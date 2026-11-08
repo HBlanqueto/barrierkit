@@ -244,6 +244,7 @@ tint_parts = ["sidebars", "window", "groups", "controls", "menus"]
 | `differentiate_without_color` | `bool` | | `false` |
 | `display_contrast` | `f32` | a value of `DISPLAY_CONTRAST` | `1.0` |
 | `text_size` | `f32` | a value of `TEXT_SIZES` | `1.0` |
+| `text_sizes` | `TextSizes` | table with optional `barrierkit`, `gtk`, `qt`, each a value of `TEXT_SIZES` | empty: every toolkit uses `text_size` |
 | `menu_bar_size` | `MenuBarSize` | `default`, `large` | `default` |
 | `shake_to_locate` | `bool` | | `true` |
 | `pointer_size` | `f32` | a value of `POINTER_SIZES` | `1.0` |
@@ -304,7 +305,8 @@ a style.
 | `lights`, `traffic_style`, `traffic_shape` | The traffic-light colors, style and shape. |
 | `contrast`, `reduced_motion`, `scroll_bars` | Copies of the config. |
 | `reduce_transparency` | `AppearanceConfig::transparency_reduced()`: true with `reduce_transparency` or `contrast`. |
-| `show_borders`, `differentiate_without_color`, `text_size`, `menu_bar_size` | Copies of the config. |
+| `show_borders`, `differentiate_without_color`, `menu_bar_size` | Copies of the config. |
+| `text_size` | `AppearanceConfig::text_size_for(Toolkit::BarrierKit)`: the BarrierKit size, or the preferred `text_size`. |
 | `shell` | `ShellPalette`: menu bar and Dock colors. |
 | `menu`, `menu_parent` | `MenuPalette` and the window color a menu sits on. `Resolved::menu_separator(panel_bg)` gives the separator over another background. |
 | `sidebar` | `SidebarSurface`: `style`, `bg`, `rim`, `inner` and its `SidebarPalette`. |
