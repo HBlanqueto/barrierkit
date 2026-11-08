@@ -135,8 +135,21 @@ pub(crate) struct WindowContext {
     pub(crate) controls: WindowControls,
     pub(crate) app_id: String,
     pub(crate) focus_notice: Option<super::focus::InfinityFocusSurfaceV1>,
+    pub(crate) resolved: State<Resolved>,
+    pub(crate) wallpaper: Option<ctdesign::Rgba>,
     pub(crate) parent: Option<ObjectId>,
     pub(crate) key_only_if_needed: bool,
+}
+
+impl WindowContext {
+    pub(crate) fn restyle(&mut self, resolved: Resolved) {
+        let window = self
+            .wallpaper
+            .map_or(resolved, |wallpaper| resolved.behind_window(wallpaper));
+        if *self.resolved.peek() != window {
+            self.resolved.set(window);
+        }
+    }
 }
 
 impl Runtime {
@@ -280,6 +293,13 @@ fn insert_ping(event_loop: &mut EventLoop<Runtime>, shell: &mut Runtime) -> Resu
                         let resolved = resolve(&load_appearance(), load_dominant());
                         if *shell.resolved.peek() != resolved {
                             shell.resolved.set(resolved);
+                            for context in shell
+                                .surfaces
+                                .iter_mut()
+                                .filter_map(|surface| surface.context.as_mut())
+                            {
+                                context.restyle(resolved);
+                            }
                             shell.request_redraw_all = true;
                             shell.ping.ping();
                         }
@@ -314,7 +334,7 @@ impl Runtime {
             tracing::info!("org_kde_kwin_appmenu_manager no disponible; sigo sin él");
         }
         let focus_manager = globals
-            .bind::<super::focus::InfinityFocusManagerV1, _, _>(&qh, 1..=2, ())
+            .bind::<super::focus::InfinityFocusManagerV1, _, _>(&qh, 1..=3, ())
             .ok();
         let window_style = globals
             .bind::<super::window_style::InfinityWindowStyleV1, _, _>(&qh, 1..=3, ())

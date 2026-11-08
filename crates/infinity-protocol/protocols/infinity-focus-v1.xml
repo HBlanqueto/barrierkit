@@ -23,7 +23,7 @@
     DEALINGS IN THE SOFTWARE.
   </copyright>
 
-  <interface name="infinity_focus_manager_v1" version="2">
+  <interface name="infinity_focus_manager_v1" version="3">
     <description summary="focus mode notices for applications">
       Malaysia focus mode (ADR 0051): a maximized window gets a space of
       its own and the xdg fullscreen state. In that space, the pointer at the
@@ -38,6 +38,10 @@
       so its own titlebar stays visible under it. With set_overlay (version
       2) the window stays put and the client draws its titlebar over its
       content, below the bar (Malaysia ADR 0054).
+
+      From version 3 every object also reports the colour of the wallpaper
+      behind its toplevel, so the client can tint its window background as
+      macOS does (Malaysia ADR 0065).
     </description>
 
     <request name="destroy" type="destructor">
@@ -56,7 +60,7 @@
     </request>
   </interface>
 
-  <interface name="infinity_focus_surface_v1" version="2">
+  <interface name="infinity_focus_surface_v1" version="3">
     <description summary="focus mode notices for one toplevel"/>
 
     <request name="destroy" type="destructor">
@@ -95,6 +99,16 @@
         of the window. The titlebar goes right below it.
       </description>
       <arg name="height" type="uint"/>
+    </event>
+
+    <event name="wallpaper" since="3">
+      <description summary="the colour of the wallpaper behind the window">
+        The average colour of the part of the wallpaper behind the toplevel,
+        as 0xRRGGBB in sRGB. Sent once the toplevel is mapped and again
+        whenever that colour changes: the window moved or was resized, or the
+        wallpaper changed. It is not sent while no wallpaper is known.
+      </description>
+      <arg name="rgb" type="uint"/>
     </event>
   </interface>
 </protocol>

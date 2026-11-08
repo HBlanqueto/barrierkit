@@ -3,6 +3,7 @@ mod config;
 pub mod language;
 pub mod menubar;
 mod resolve;
+pub mod tinting;
 pub mod traffic;
 pub mod watch;
 pub mod window;

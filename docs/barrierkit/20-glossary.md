@@ -44,6 +44,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `vow_design::TITLE_1` | `ctdesign::TITLE` | 2026-11-07 |
 | crate `barrier-kit` (`barrier_kit`) | crate `bk`, BarrierKit | 2026-11-07 |
 | crate `vow-design` (`vow_design`), then `ct-design` (`ct_design`) | crate `ctdesign`, CTDesign | 2026-11-07 |
+| `ctappearance::write_dominant` | `ctappearance::write_wallpaper_state` | 2026-11-08 |
 | crate `vow-appearance` (`vow_appearance`), then `ct-appearance` (`ct_appearance`) | crate `ctappearance`, CTAppearance | 2026-11-07 |
 | `styles::Theme::slider` | `styles::Theme::style` (generic: `\|s: SliderStyle\|`) | 2026-11-07 |
 | `modifiers::StyleModifiers::slider_style` | `modifiers::StyleModifiers::control_style` (generic) | 2026-11-07 |
@@ -305,7 +306,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 
 | BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
 |---|---|---|---|---|---|
-| `symbol::Symbol` | enum | ≈ `Image(systemName:)` names | ≈ `NSImage(systemSymbolName:accessibilityDescription:)` names | Name of a built-in line icon; 36 variants | [4](04-appearance-and-tokens.md#symbols) |
+| `symbol::Symbol` | enum | ≈ `Image(systemName:)` names | ≈ `NSImage(systemSymbolName:accessibilityDescription:)` names | Name of a built-in line icon; 37 variants | [4](04-appearance-and-tokens.md#symbols) |
 | `symbol::Image` | struct | `Image(systemName:)` | `NSImage(systemSymbolName:accessibilityDescription:)` | A symbol as a view; `BODY` size and label color by default | [4](04-appearance-and-tokens.md#symbols) |
 | `register_font` | fn | — | — | Adds a typeface from font file bytes; `false` if not a font | [4](04-appearance-and-tokens.md#fonts) |
 
@@ -338,12 +339,15 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `ctappearance::config_dir` | fn | — | — | `$MALAYSIA_CONFIG_DIR` or `$XDG_CONFIG_HOME/malaysia` | [4](04-appearance-and-tokens.md#reading-and-writing) |
 | `ctappearance::data_dir` | fn | — | — | `$MALAYSIA_DATA_DIR` or `$XDG_DATA_HOME/malaysia` | [4](04-appearance-and-tokens.md#reading-and-writing) |
 | `ctappearance::appearance_path` | fn | — | — | Path of `appearance.domain` | [4](04-appearance-and-tokens.md#reading-and-writing) |
-| `ctappearance::wallpaper_state_path` | fn | — | — | Path of `wallpaper.state`, the wallpaper's dominant color | [4](04-appearance-and-tokens.md#reading-and-writing) |
+| `ctappearance::wallpaper_state_path` | fn | — | — | Path of `wallpaper.state`, the wallpaper's dominant color and grid | [4](04-appearance-and-tokens.md#reading-and-writing) |
 | `ctappearance::read_appearance` | fn | — | — | Reads the appearance file; `None` without file, `Err` on bad TOML | [4](04-appearance-and-tokens.md#reading-and-writing) |
 | `ctappearance::load_appearance` | fn | — | — | Reads the appearance file, or the default on any error | [4](04-appearance-and-tokens.md#reading-and-writing) |
 | `ctappearance::write_appearance` | fn | — | — | Writes the config atomically, keeping other keys and comments | [4](04-appearance-and-tokens.md#reading-and-writing) |
 | `ctappearance::load_dominant` | fn | — | — | Reads the wallpaper's dominant color | [4](04-appearance-and-tokens.md#reading-and-writing) |
-| `ctappearance::write_dominant` | fn | — | — | Writes or removes the wallpaper's dominant color | [4](04-appearance-and-tokens.md#reading-and-writing) |
+| `ctappearance::load_wallpaper_grid` | fn | — | — | Reads the wallpaper's grid of average colors | [4](04-appearance-and-tokens.md#reading-and-writing) |
+| `ctappearance::write_wallpaper_state` | fn | — | — | Writes or removes the wallpaper's dominant color and grid | [4](04-appearance-and-tokens.md#reading-and-writing) |
+| `ctappearance::WallpaperState` | struct | — | — | Contents of `wallpaper.state`: `dominant` and `grid` | [4](04-appearance-and-tokens.md#reading-and-writing) |
+| `ctappearance::tinting::WallpaperGrid` | struct | — | — | Average colors of the wallpaper; `from_rgba8`, `behind(output, window)` | [4](04-appearance-and-tokens.md#wallpaper-behind-a-window) |
 | `ctappearance::watch::AppearanceWatch` | struct | — | — | inotify watch on the config and data folders; `drain()` | [4](04-appearance-and-tokens.md#watching) |
 | `ctappearance::watch::AppearanceEvent` | enum | — | — | `Appearance`, `Wallpaper`, `WallpaperSelection`, `Defaults`; `restyles()` | [4](04-appearance-and-tokens.md#watching) |
 
@@ -353,6 +357,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 |---|---|---|---|---|---|
 | `ctappearance::resolve` | fn | — | — | Turns the config and wallpaper color into concrete colors | [4](04-appearance-and-tokens.md#resolution) |
 | `ctappearance::Resolved` | struct | ≈ `EnvironmentValues` | — | Resolved appearance: accent, focus ring, link, tints, surfaces, palettes | [4](04-appearance-and-tokens.md#resolution) |
+| `ctappearance::Resolved::behind_window` | method | — | ≈ desktop tinting of `NSVisualEffectView.Material.windowBackground` | Mixes the wallpaper behind a window into its backgrounds | [4](04-appearance-and-tokens.md#wallpaper-behind-a-window) |
 | `ctappearance::Surfaces` | struct | — | — | Tinted window, sunken, surface, raised, control, hover and line colors | [4](04-appearance-and-tokens.md#resolution) |
 | `ctappearance::SidebarSurface` | struct | — | — | Sidebar style, background, rim, inner line and palette | [4](04-appearance-and-tokens.md#resolution) |
 | `ctappearance::ToolgroupSurface` | struct | — | — | Toolbar group background and palette | [4](04-appearance-and-tokens.md#resolution) |
@@ -504,9 +509,9 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `ctdesign::LIGHT`, `DARK`, `DARK_TINT` | constant | — | — | Base palette of each theme | [4](04-appearance-and-tokens.md#colors) |
 | `ctdesign::BG_WINDOW_LIGHT`, `BG_WINDOW_DARK`, `BG_WINDOW_DARK_TINT`, `BG_SURFACE_LIGHT`, `BG_SURFACE_DARK`, `BG_SURFACE_DARK_TINT`, `BG_SUNKEN_LIGHT`, `BG_SUNKEN_DARK`, `BG_SUNKEN_DARK_TINT`, `BG_RAISED_LIGHT`, `BG_RAISED_DARK`, `BG_RAISED_DARK_TINT`, `BG_CONTROL_LIGHT`, `BG_CONTROL_DARK`, `BG_CONTROL_DARK_TINT`, `BG_HOVER_LIGHT`, `BG_HOVER_DARK`, `BG_HOVER_DARK_TINT` | constant | — | ≈ `NSColor.windowBackgroundColor`… | Background layers per theme | [4](04-appearance-and-tokens.md#colors) |
 | `ctdesign::LAYER_FACTOR_BG_SUNKEN`, `LAYER_FACTOR_SURFACE`, `LAYER_FACTOR_RAISED`, `LAYER_FACTOR_CONTROL`, `LAYER_FACTOR_LINE` | constant | — | — | Share of the window tint each layer takes | [4](04-appearance-and-tokens.md#colors) |
-| `ctdesign::WINDOW_TINT_ACCENT`, `WINDOW_TINT_WALLPAPER`, `PANEL_TINT_WALLPAPER`, `TINT_STRENGTH` | constant | — | — | Tint amounts in light and dark; strength factors | [4](04-appearance-and-tokens.md#colors) |
+| `ctdesign::WINDOW_TINT_ACCENT`, `TINT_STRENGTH` | constant | — | — | Accent tint amounts in light and dark; strength factors | [4](04-appearance-and-tokens.md#colors) |
+| `ctdesign::WALLPAPER_TINTING`, `WALLPAPER_TINTING_GRID` | constant | — | — | Amount of the wallpaper behind a window; cells per side of its grid | [4](04-appearance-and-tokens.md#colors) |
 | `ctdesign::ACCENT_MIN_CONTRAST_ON_WINDOW`, `ON_ACCENT_MIN_CONTRAST` | constant | — | — | Contrast minimums: accent on window 3, ink on accent 4.5 | [4](04-appearance-and-tokens.md#colors) |
-| `ctdesign::WALLPAPER_ACCENT_DARKEN_LIGHT`, `WALLPAPER_ACCENT_LIGHTEN_DARK`, `MUTED_BELOW_SATURATION`, `MUTED_MAX_SATURATION` | constant | — | — | How a wallpaper color becomes the accent | [4](04-appearance-and-tokens.md#colors) |
 | `ctdesign::DOMINANT_LIGHTNESS`, `DOMINANT_MIN_CHROMA` | constant | — | — | Lightness range and minimum chroma of a wallpaper's dominant color | [4](04-appearance-and-tokens.md#colors) |
 | `ctdesign::ACCENT_SWATCHES` | constant | — | — | The eight named accent choices | [4](04-appearance-and-tokens.md#colors) |
 | `ctdesign::CHART_SERIES` | constant | — | — | Seven chart series colors | [4](04-appearance-and-tokens.md#colors) |

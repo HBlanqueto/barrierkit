@@ -77,6 +77,7 @@ pub(crate) enum InstanceRole {
         controls: Box<WindowControls>,
         menu: Option<crate::main_menu::MenuHandle>,
         theme: Theme,
+        resolved: State<Resolved>,
     },
     Popup {
         id: PopupId,
@@ -95,17 +96,22 @@ impl AppInstance {
         size: (u32, u32),
         role: InstanceRole,
     ) -> Self {
-        let (window, popup, menu_handle, theme) = match role {
+        let (window, popup, menu_handle, theme, resolved) = match role {
             InstanceRole::Window {
                 controls,
                 menu,
                 theme,
-            } => (Some(*controls), None, menu, theme),
-            InstanceRole::Popup { id, opens_left } => {
-                (None, Some((id, opens_left)), None, Theme::tengen())
-            }
+                resolved,
+            } => (Some(*controls), None, menu, theme, resolved),
+            InstanceRole::Popup { id, opens_left } => (
+                None,
+                Some((id, opens_left)),
+                None,
+                Theme::tengen(),
+                rt.resolved,
+            ),
             #[cfg(feature = "shell")]
-            InstanceRole::Surface => (None, None, None, Theme::tengen()),
+            InstanceRole::Surface => (None, None, None, Theme::tengen(), rt.resolved),
         };
         let waker = futures_util::task::waker(Arc::new(PingWake(rt.ping.clone())));
         let send: Rc<dyn Fn(Sent)> = {
@@ -138,7 +144,6 @@ impl AppInstance {
         };
         let font_collection = rt.graphics.font_collection.clone();
         let font_manager = rt.graphics.font_manager.clone();
-        let resolved = rt.resolved;
         let defaults_revision = rt.defaults_revision;
         let (events_sender, events_receiver) = futures_channel::mpsc::unbounded();
         let mut runner = Runner::new(move || {

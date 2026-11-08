@@ -55,7 +55,7 @@ Do not edit `src/lib.rs` to change a value: it holds the types and the API.
 | `CONSTANTS` table | One constant per line |
 | `THEMED` table | `NAME_LIGHT`, `NAME_DARK`, `NAME_DARK_TINT`; `SHELL`, `SIDEBAR` and `TOOLGROUP_BG` also get `_OPAQUE` variants, composited over `bg-window` |
 | `emit_titlebar` | `TITLEBAR`, `WINDOW_MIN_SIZE`, `WINDOW_DEFAULT_SIZE` |
-| `emit_tints` | `WINDOW_TINT_ACCENT`, `WINDOW_TINT_WALLPAPER`, `PANEL_TINT_WALLPAPER`, `TINT_STRENGTH` |
+| `emit_tints` | `WINDOW_TINT_ACCENT`, `WALLPAPER_TINTING`, `TINT_STRENGTH` |
 | `emit_palettes` | `LIGHT`, `DARK`, `DARK_TINT` (`Palette`) and `MENU_<THEME>_OPAQUE` |
 | `emit_specials` | `SANS_FAMILIES`, `DOCK_BAR_HEIGHT`, `ACCENT_SWATCHES`, `CHART_SERIES`, `LEVEL_INDICATOR_COLORS` |
 
@@ -91,12 +91,12 @@ build.
    (`ColorScheme::resolved`).
 2. `reduce_transparency` picks the `_OPAQUE` shell, menu and sidebar
    palettes.
-3. `window_color = "wallpaper"` tints windows with the wallpaper's dominant
-   colour. With `window_tint_scope = "desktop"`, it also tints the menu bar and
-   the Dock (`PANEL_TINT_WALLPAPER`).
-4. The dominant colour comes from `wallpaper.state` in the data dir
-   (`~/.local/share/malaysia/wallpaper.state`, `dominant = [r, g, b]`).
-   `malaysia-wallpaper` writes it with `ctappearance::write_dominant`.
+3. `wallpaper_tinting` mixes the wallpaper behind each window into its
+   backgrounds, by `WALLPAPER_TINTING`
+   ([4](../barrierkit/04-appearance-and-tokens.md#wallpaper-behind-a-window)).
+4. The dominant colour and the wallpaper grid come from `wallpaper.state` in
+   the data dir (`~/.local/share/malaysia/wallpaper.state`).
+   `malaysia-wallpaper` writes it with `ctappearance::write_wallpaper_state`.
 5. `ctappearance::backdrop::dominant_from_pixels` computes it: k-means in
    OKLab, drops the clusters with less chroma than `DOMINANT_MIN_CHROMA`,
    picks the one with the largest area × chroma and clamps its HSL lightness

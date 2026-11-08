@@ -29,10 +29,21 @@ impl Dispatch<InfinityFocusSurfaceV1, ObjectId> for Runtime {
         _: &Connection,
         _: &QueueHandle<Self>,
     ) {
-        let Some(context) = state
-            .surface_index_by_id(surface_id)
-            .and_then(|index| state.surfaces[index].context.as_ref())
-        else {
+        let Some(index) = state.surface_index_by_id(surface_id) else {
+            return;
+        };
+        if let infinity_focus_surface_v1::Event::Wallpaper { rgb } = event {
+            let [_, r, g, b] = rgb.to_be_bytes();
+            let global = *state.resolved.peek();
+            if let Some(context) = state.surfaces[index].context.as_mut() {
+                context.wallpaper = Some(ctdesign::Rgba::rgb8(r, g, b));
+                context.restyle(global);
+                state.request_redraw_all = true;
+                state.ping.ping();
+            }
+            return;
+        }
+        let Some(context) = state.surfaces[index].context.as_ref() else {
             return;
         };
         let revealed = match event {

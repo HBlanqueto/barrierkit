@@ -130,7 +130,7 @@ Image::system(Symbol::Folder)
 | Actions | `MagnifyingGlass`, `XMark`, `Plus`, `Minus`, `Ellipsis`, `Checkmark`, `Expand` |
 | Media | `Play`, `Pause`, `Backward`, `Forward`, `SpeakerWave`, `Captions`, `Film`, `Tv` |
 | Layout | `ListBullet`, `SquareGrid`, `SlidersVertical`, `SidebarLeft` |
-| Places and things | `House`, `Folder`, `Document`, `Star`, `StarFill`, `Clock`, `Bookmark`, `CircleHalf` |
+| Places and things | `House`, `Folder`, `Document`, `Star`, `StarFill`, `Clock`, `Bookmark`, `CircleHalf`, `Accessibility` |
 
 `StarFill` is the only filled symbol. The kit caches the SVG of each symbol.
 
@@ -230,14 +230,15 @@ tint_parts = ["sidebars", "window", "groups", "controls", "menus"]
 | `reduced_motion` | `bool` | | `false` |
 | `reduce_transparency` | `bool` | | `true` |
 | `scroll_bars` | `ScrollBars` | `when_scrolling`, `always` | `when_scrolling` |
-| `window_color` | `WindowColorMode` | `neutral`, `accent`, `wallpaper` | `neutral` |
+| `window_color` | `WindowColorMode` | `neutral`, `accent` (an old `wallpaper` reads as `neutral`) | `neutral` |
 | `window_tint_scope` | `WindowTintScope` | `windows`, `desktop` | `windows` |
 | `tint_strength_accent` | `TintStrength` | `subtle`, `normal`, `strong`, `intense` | `normal` |
-| `tint_strength_wallpaper` | `TintStrength` | same | `normal` |
 | `tint_parts` | `TintParts` | list of `sidebars`, `window`, `groups`, `controls`, `menus` | all five |
 | `sidebar_style` | `SidebarStyle` | `island`, `flat` | `island` |
 | `traffic_lights` | `TrafficLightStyle` | `auto`, `standard`, `accent`, `wallpaper` | `auto` |
 | `traffic_light_shape` | `TrafficLightShape` | `square`, `round` | `square` |
+| `wallpaper_tinting` | `bool` | | `true` |
+| `wallpaper_tinting_in_light` | `bool` | | `false` |
 
 Notes on the values:
 
@@ -257,11 +258,12 @@ Notes on the values:
 |---|---|
 | `config_dir()`, `data_dir()` | `$MALAYSIA_CONFIG_DIR` or `$XDG_CONFIG_HOME/malaysia`; `$MALAYSIA_DATA_DIR` or `$XDG_DATA_HOME/malaysia`. |
 | `appearance_path()` | `config_dir()/appearance.domain`. |
-| `wallpaper_state_path()` | `data_dir()/wallpaper.state`, where the wallpaper's dominant color lives. |
+| `wallpaper_state_path()` | `data_dir()/wallpaper.state`, where the wallpaper's dominant color and grid live. |
 | `read_appearance()` | `Ok(None)` without a file, `Err` when the TOML does not parse. |
 | `load_appearance()` | The file's config, or the default on any error. |
 | `write_appearance(path, config)` | Writes the config and keeps other keys and comments. An unreadable file is first copied to `.domain.bak`. The file is replaced atomically. |
-| `load_dominant()`, `write_dominant(path, color)` | Read and write `dominant = [r, g, b]` in `wallpaper.state`; `None` removes the file. |
+| `load_dominant()`, `load_wallpaper_grid()` | Read `dominant` and `grid` from `wallpaper.state`. |
+| `write_wallpaper_state(path, &WallpaperState)` | Writes `dominant` and `grid`; an empty state removes the file. |
 
 ### Resolution
 
@@ -274,10 +276,11 @@ a style.
 | `Resolved` field | What it holds |
 |---|---|
 | `scheme` | The resolved `ColorScheme` (never `Auto`). |
-| `accent`, `on_accent` | The accent and its ink. With `window_color = "wallpaper"` the accent comes from the wallpaper. |
+| `accent`, `on_accent` | The accent and its ink. |
 | `focus_ring` | The accent moved until it reaches 3:1 on the window. |
 | `link` | The accent moved until it reaches 4.5:1 on the window and on content. |
-| `window_tint`, `panel_tint` | Tint color and amount for windows and for the menu bar and Dock, or `None`. |
+| `window_tint` | Accent tint color and amount, or `None`. |
+| `wallpaper_tinting` | Amount of the wallpaper behind a window, or `None` when it is off. `Resolved::behind_window(color)` mixes that color into `window`, `titlebar_inactive`, `sunken` and `surface`. |
 | `window_tint_scope`, `tint_parts` | Copies of the config. |
 | `lights`, `traffic_style`, `traffic_shape` | The traffic-light colors, style and shape. |
 | `contrast`, `reduce_transparency`, `reduced_motion`, `scroll_bars` | Copies of the config. |
@@ -292,17 +295,36 @@ The rules `resolve` applies:
 1. `reduce_transparency` picks the `_OPAQUE` variants of the shell, menu,
    sidebar and toolgroup colors.
 2. A tint mixes the tint color into each surface. The amount is
-   `WINDOW_TINT_ACCENT` or `WINDOW_TINT_WALLPAPER` (light, dark), times the
-   strength factor, times the `LAYER_FACTOR_*` of that layer. A part left out
-   of `tint_parts` stays neutral.
+   `WINDOW_TINT_ACCENT` (light, dark), times the strength factor, times the
+   `LAYER_FACTOR_*` of that layer. A part left out of `tint_parts` stays
+   neutral.
 3. `on_accent` is the light ink while it reaches 4.5:1 on the accent
    (`ON_ACCENT_MIN_CONTRAST`), then the dark ink; an accent that reaches it with
    neither is darkened just enough (WCAG 2.2 §1.4.3).
-4. A wallpaper accent lightens the dominant color in dark mode and darkens it in
-   light mode, then moves until it reaches 3:1 on the window
-   (`ACCENT_MIN_CONTRAST_ON_WINDOW`, WCAG 2.2 §1.4.11). A muted color gains
-   saturation (`MUTED_*`).
+4. Wallpaper tinting is on with `wallpaper_tinting`, a neutral
+   `window_color` and any accent but graphite (WWDC 2018, session 210). It
+   applies in dark schemes, and in light ones with
+   `wallpaper_tinting_in_light`. The amount is `WALLPAPER_TINTING` (light,
+   dark).
 5. Menu hover, sidebar selection and the shell's active tile take the accent.
+
+### Wallpaper behind a window
+
+macOS tints each window with the average color of the wallpaper behind it
+(WWDC 2018, session 210). `ctappearance::tinting::WallpaperGrid` does the same
+from a grid of average colors:
+
+1. `malaysia-wallpaper` builds it with `WallpaperGrid::from_rgba8(rgba8,
+   width, height)`: `WALLPAPER_TINTING_GRID` cells per side and the image's
+   `aspect`. It writes it to `wallpaper.state` next to `dominant`.
+2. The compositor reads it with `load_wallpaper_grid()`. `grid.behind(output,
+   window)` averages the cells behind the window rectangle, weighted by area,
+   with the wallpaper scaled to cover the output.
+3. The compositor sends that color to the window with the `wallpaper` event of
+   `infinity_focus_surface_v1` (version 3).
+4. The kit keeps one `Resolved` per window: the global one passed through
+   `behind_window(color)`. It recomputes it when the event arrives and when the
+   appearance changes.
 
 ### Watching
 
@@ -368,7 +390,7 @@ let (x, y, d) = ctappearance::traffic::button_rect(i);
 ### Backdrop colors
 
 `ctappearance::backdrop` derives colors from an image, for tinted backdrops
-([15](15-backdrops-and-media.md)) and for the wallpaper accent:
+([15](15-backdrops-and-media.md)) and for the wallpaper's dominant color:
 
 | Item | What it does |
 |---|---|
@@ -519,11 +541,10 @@ nothing is blurred.
 | `BG_CONTROL_LIGHT`, `BG_CONTROL_DARK`, `BG_CONTROL_DARK_TINT` | `Rgba` | Control face. |
 | `BG_HOVER_LIGHT`, `BG_HOVER_DARK`, `BG_HOVER_DARK_TINT` | `Rgba` | Control face under the pointer. |
 | `LAYER_FACTOR_BG_SUNKEN`, `LAYER_FACTOR_SURFACE`, `LAYER_FACTOR_RAISED`, `LAYER_FACTOR_CONTROL`, `LAYER_FACTOR_LINE` | `f32` | Share of the window tint each layer takes: 1.4, 1, 0.6, 1.2, 1.2. |
-| `WINDOW_TINT_ACCENT`, `WINDOW_TINT_WALLPAPER`, `PANEL_TINT_WALLPAPER` | `[f32; 2]` | Tint amount in light and dark: accent windows, wallpaper windows, wallpaper menu bar and Dock. |
+| `WINDOW_TINT_ACCENT` | `[f32; 2]` | Accent tint amount in light and dark. |
+| `WALLPAPER_TINTING`, `WALLPAPER_TINTING_GRID` | `[f32; 2]`, `u32` | Amount of the wallpaper behind a window in light and dark, provisional until measured (ADR 0065); cells per side of the wallpaper grid. |
 | `TINT_STRENGTH` | `[f32; 4]` | Factor of each `TintStrength`: 0.5, 1, 1.5, 2. |
 | `ACCENT_MIN_CONTRAST_ON_WINDOW`, `ON_ACCENT_MIN_CONTRAST` | `f32` | 3 and 4.5: contrast of the accent on the window and of ink on the accent. |
-| `WALLPAPER_ACCENT_DARKEN_LIGHT`, `WALLPAPER_ACCENT_LIGHTEN_DARK` | `f32` | 0.08 and 0.12: shift of a wallpaper accent. |
-| `MUTED_BELOW_SATURATION`, `MUTED_MAX_SATURATION` | `f32` | 0.35 and 0.45: saturation boost of a muted wallpaper accent. |
 | `DOMINANT_LIGHTNESS`, `DOMINANT_MIN_CHROMA` | `[f32; 2]`, `f32` | Lightness range and minimum chroma of a wallpaper's dominant color. |
 | `ACCENT_SWATCHES` | `[(&str, Rgba); 8]` | The accent choices: blue, purple, pink, red, orange, yellow, green, graphite. |
 | `CHART_SERIES` | `[Rgba; 7]` | Series colors of charts ([16](16-charts.md)). |

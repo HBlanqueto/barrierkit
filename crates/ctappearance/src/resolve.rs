@@ -1,25 +1,23 @@
 use ctdesign::{
-    ACCENT_MIN_CONTRAST_ON_WINDOW, BG_CONTROL_DARK, BG_CONTROL_DARK_TINT, BG_CONTROL_LIGHT,
-    BG_HOVER_DARK, BG_HOVER_DARK_TINT, BG_HOVER_LIGHT, BG_RAISED_DARK, BG_RAISED_DARK_TINT,
-    BG_RAISED_LIGHT, BG_SUNKEN_DARK, BG_SUNKEN_DARK_TINT, BG_SUNKEN_LIGHT, BG_SURFACE_DARK,
-    BG_SURFACE_DARK_TINT, BG_SURFACE_LIGHT, BG_WINDOW_DARK, BG_WINDOW_DARK_TINT, BG_WINDOW_LIGHT,
-    DARK, DARK_TINT, LAYER_FACTOR_BG_SUNKEN, LAYER_FACTOR_CONTROL, LAYER_FACTOR_LINE,
-    LAYER_FACTOR_RAISED, LAYER_FACTOR_SURFACE, LIGHT, MENU_DARK, MENU_DARK_OPAQUE, MENU_DARK_TINT,
-    MENU_DARK_TINT_OPAQUE, MENU_LIGHT, MENU_LIGHT_OPAQUE, MENU_SEPARATOR_INK_MIX,
-    MUTED_BELOW_SATURATION, MUTED_MAX_SATURATION, MenuPalette, ON_ACCENT_MIN_CONTRAST,
-    PANEL_TINT_WALLPAPER, Palette, Rgba, SHELL_DARK, SHELL_DARK_OPAQUE, SHELL_DARK_TINT,
-    SHELL_DARK_TINT_OPAQUE, SHELL_LIGHT, SHELL_LIGHT_OPAQUE, SIDEBAR_DARK, SIDEBAR_DARK_OPAQUE,
-    SIDEBAR_DARK_TINT, SIDEBAR_DARK_TINT_OPAQUE, SIDEBAR_ISLAND_DARK, SIDEBAR_ISLAND_DARK_TINT,
-    SIDEBAR_ISLAND_INNER_DARK, SIDEBAR_ISLAND_INNER_DARK_TINT, SIDEBAR_ISLAND_INNER_LIGHT,
-    SIDEBAR_ISLAND_LIGHT, SIDEBAR_ISLAND_RIM_DARK, SIDEBAR_ISLAND_RIM_DARK_TINT,
-    SIDEBAR_ISLAND_RIM_LIGHT, SIDEBAR_LIGHT, SIDEBAR_LIGHT_OPAQUE, SIDEBAR_PALETTE_DARK,
-    SIDEBAR_PALETTE_DARK_TINT, SIDEBAR_PALETTE_LIGHT, ShellPalette, SidebarPalette, TITLEBAR,
-    TOOLGROUP_BG_DARK, TOOLGROUP_BG_DARK_OPAQUE, TOOLGROUP_BG_DARK_TINT,
-    TOOLGROUP_BG_DARK_TINT_OPAQUE, TOOLGROUP_BG_LIGHT, TOOLGROUP_BG_LIGHT_OPAQUE,
-    TOOLGROUP_PALETTE_DARK, TOOLGROUP_PALETTE_DARK_TINT, TOOLGROUP_PALETTE_LIGHT,
-    TRAFFIC_CLOSE_MINIMIZE_DARKEN, TRAFFIC_ZOOM_LIGHTEN, ToolgroupPalette,
-    WALLPAPER_ACCENT_DARKEN_LIGHT, WALLPAPER_ACCENT_LIGHTEN_DARK, WINDOW_TINT_ACCENT,
-    WINDOW_TINT_WALLPAPER,
+    ACCENT_MIN_CONTRAST_ON_WINDOW, ACCENT_SWATCHES, BG_CONTROL_DARK, BG_CONTROL_DARK_TINT,
+    BG_CONTROL_LIGHT, BG_HOVER_DARK, BG_HOVER_DARK_TINT, BG_HOVER_LIGHT, BG_RAISED_DARK,
+    BG_RAISED_DARK_TINT, BG_RAISED_LIGHT, BG_SUNKEN_DARK, BG_SUNKEN_DARK_TINT, BG_SUNKEN_LIGHT,
+    BG_SURFACE_DARK, BG_SURFACE_DARK_TINT, BG_SURFACE_LIGHT, BG_WINDOW_DARK, BG_WINDOW_DARK_TINT,
+    BG_WINDOW_LIGHT, DARK, DARK_TINT, LAYER_FACTOR_BG_SUNKEN, LAYER_FACTOR_CONTROL,
+    LAYER_FACTOR_LINE, LAYER_FACTOR_RAISED, LAYER_FACTOR_SURFACE, LIGHT, MENU_DARK,
+    MENU_DARK_OPAQUE, MENU_DARK_TINT, MENU_DARK_TINT_OPAQUE, MENU_LIGHT, MENU_LIGHT_OPAQUE,
+    MENU_SEPARATOR_INK_MIX, MenuPalette, ON_ACCENT_MIN_CONTRAST, Palette, Rgba, SHELL_DARK,
+    SHELL_DARK_OPAQUE, SHELL_DARK_TINT, SHELL_DARK_TINT_OPAQUE, SHELL_LIGHT, SHELL_LIGHT_OPAQUE,
+    SIDEBAR_DARK, SIDEBAR_DARK_OPAQUE, SIDEBAR_DARK_TINT, SIDEBAR_DARK_TINT_OPAQUE,
+    SIDEBAR_ISLAND_DARK, SIDEBAR_ISLAND_DARK_TINT, SIDEBAR_ISLAND_INNER_DARK,
+    SIDEBAR_ISLAND_INNER_DARK_TINT, SIDEBAR_ISLAND_INNER_LIGHT, SIDEBAR_ISLAND_LIGHT,
+    SIDEBAR_ISLAND_RIM_DARK, SIDEBAR_ISLAND_RIM_DARK_TINT, SIDEBAR_ISLAND_RIM_LIGHT, SIDEBAR_LIGHT,
+    SIDEBAR_LIGHT_OPAQUE, SIDEBAR_PALETTE_DARK, SIDEBAR_PALETTE_DARK_TINT, SIDEBAR_PALETTE_LIGHT,
+    ShellPalette, SidebarPalette, TITLEBAR, TOOLGROUP_BG_DARK, TOOLGROUP_BG_DARK_OPAQUE,
+    TOOLGROUP_BG_DARK_TINT, TOOLGROUP_BG_DARK_TINT_OPAQUE, TOOLGROUP_BG_LIGHT,
+    TOOLGROUP_BG_LIGHT_OPAQUE, TOOLGROUP_PALETTE_DARK, TOOLGROUP_PALETTE_DARK_TINT,
+    TOOLGROUP_PALETTE_LIGHT, TRAFFIC_CLOSE_MINIMIZE_DARKEN, TRAFFIC_ZOOM_LIGHTEN, ToolgroupPalette,
+    WALLPAPER_TINTING, WINDOW_TINT_ACCENT,
 };
 
 use crate::{
@@ -63,7 +61,7 @@ pub struct Resolved {
     pub link: Rgba,
     pub window_tint: Option<(Rgba, f32)>,
     pub window_tint_scope: WindowTintScope,
-    pub panel_tint: Option<(Rgba, f32)>,
+    pub wallpaper_tinting: Option<f32>,
     pub lights: [Rgba; 3],
     pub traffic_style: TrafficLightStyle,
     pub traffic_shape: TrafficLightShape,
@@ -81,6 +79,21 @@ pub struct Resolved {
 }
 
 impl Resolved {
+    pub fn behind_window(mut self, wallpaper: Rgba) -> Self {
+        if let Some(factor) = self.wallpaper_tinting {
+            let surfaces = &mut self.surfaces;
+            for surface in [
+                &mut surfaces.window,
+                &mut surfaces.titlebar_inactive,
+                &mut surfaces.sunken,
+                &mut surfaces.surface,
+            ] {
+                *surface = surface.mix(wallpaper, factor);
+            }
+        }
+        self
+    }
+
     pub fn menu_separator(&self, panel_bg: Rgba) -> Rgba {
         if self.window_tint.is_none() || panel_bg == self.menu.bg {
             self.menu.separator_color
@@ -211,14 +224,7 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
         })
         .unwrap_or(base.accent);
 
-    let dominant = dominant.unwrap_or(normal_accent);
-
-    let accent = if appearance.window_color == WindowColorMode::Wallpaper {
-        wallpaper_accent(dominant, scheme)
-    } else {
-        normal_accent
-    };
-    let (accent, on_accent) = legible_on_accent(accent, base.on_accent);
+    let (accent, on_accent) = legible_on_accent(normal_accent, base.on_accent);
 
     let window_tint = match appearance.window_color {
         WindowColorMode::Neutral => None,
@@ -226,26 +232,14 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
             normal_accent,
             WINDOW_TINT_ACCENT[index] * appearance.tint_strength_accent.factor(),
         )),
-        WindowColorMode::Wallpaper => Some((
-            dominant,
-            WINDOW_TINT_WALLPAPER[index] * appearance.tint_strength_wallpaper.factor(),
-        )),
     };
+    let wallpaper_tinting = (appearance.wallpaper_tinting
+        && window_tint.is_none()
+        && !is_graphite(normal_accent)
+        && (scheme.is_dark() || appearance.wallpaper_tinting_in_light))
+        .then_some(WALLPAPER_TINTING[index]);
 
-    let panel_tint = (appearance.window_color == WindowColorMode::Wallpaper
-        && appearance.window_tint_scope == WindowTintScope::Desktop)
-        .then(|| {
-            (
-                dominant,
-                PANEL_TINT_WALLPAPER[index] * appearance.tint_strength_wallpaper.factor(),
-            )
-        });
-
-    let lights = lights_for(
-        appearance.traffic_light_style(),
-        normal_accent,
-        Some(dominant),
-    );
+    let lights = lights_for(appearance.traffic_light_style(), normal_accent, dominant);
 
     let (mut shell, mut menu, mut sidebar, mut toolgroup) = chrome_surfaces(
         scheme,
@@ -274,10 +268,6 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
     sidebar.palette.selected_bg = accent;
     sidebar.palette.item_icon = accent;
     sidebar.palette.selected_ink = on_accent;
-    if let Some((tint, factor)) = panel_tint {
-        shell.bar = shell.bar.mix(tint, factor);
-        shell.tile = shell.tile.mix(tint, factor);
-    }
     if let Some((tint, factor)) = window_tint {
         if appearance.tint_parts.sidebars {
             sidebar.bg = sidebar.bg.mix(tint, factor * LAYER_FACTOR_BG_SUNKEN);
@@ -296,7 +286,7 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
         link,
         window_tint,
         window_tint_scope: appearance.window_tint_scope,
-        panel_tint,
+        wallpaper_tinting,
         lights,
         traffic_style: appearance.traffic_light_style(),
         traffic_shape: appearance.traffic_light_shape,
@@ -422,64 +412,18 @@ fn reach_contrast(
     lightness
 }
 
-fn reach_window_contrast(scheme: ColorScheme, hue: f32, saturation: f32, lightness: f32) -> f32 {
-    let window = [scheme.pick(BG_WINDOW)];
-    reach_contrast(
-        &window,
-        ACCENT_MIN_CONTRAST_ON_WINDOW,
-        scheme,
-        hue,
-        saturation,
-        lightness,
-    )
-}
-
-fn wallpaper_accent(dominant: Rgba, scheme: ColorScheme) -> Rgba {
-    let dark = scheme.is_dark();
-    let shifted = if dark {
-        dominant.lighten(WALLPAPER_ACCENT_LIGHTEN_DARK)
-    } else {
-        dominant.darken(WALLPAPER_ACCENT_DARKEN_LIGHT)
-    };
-    let (hue, mut saturation, original_lightness) = shifted.to_hsl();
-    let bg_window = scheme.pick(BG_WINDOW);
-    let on_accent = palette(scheme).on_accent;
-
-    let mut lightness = reach_window_contrast(scheme, hue, saturation, original_lightness);
-
-    let mut accent = Rgba::from_hsl(hue, saturation, lightness, 1.0);
-    let mut on_contrast = accent.contrast_ratio(on_accent);
-    for _ in 0..100 {
-        if on_contrast >= ON_ACCENT_MIN_CONTRAST {
-            break;
-        }
-        let accent_lum = accent.relative_luminance();
-        let on_lum = on_accent.relative_luminance();
-        let improve_dir = if accent_lum < on_lum { -1.0 } else { 1.0 };
-        let next_lightness = lightness + improve_dir * 0.01;
-        if !(0.0..=1.0).contains(&next_lightness) {
-            break;
-        }
-        let next = Rgba::from_hsl(hue, saturation, next_lightness, 1.0);
-        if next.contrast_ratio(bg_window) < ACCENT_MIN_CONTRAST_ON_WINDOW {
-            break;
-        }
-        let next_on_contrast = next.contrast_ratio(on_accent);
-        if next_on_contrast <= on_contrast {
-            break;
-        }
-        lightness = next_lightness;
-        accent = next;
-        on_contrast = next_on_contrast;
-    }
-
-    let delta_lightness = (lightness - original_lightness).abs();
-    if saturation < MUTED_BELOW_SATURATION && delta_lightness > 0.10 {
-        saturation = (saturation * (1.0 + delta_lightness)).min(MUTED_MAX_SATURATION);
-        lightness = reach_window_contrast(scheme, hue, saturation, lightness);
-    }
-
-    Rgba::from_hsl(hue, saturation, lightness, 1.0)
+// WWDC 2018 session 210: the Graphite accent turns desktop tinting off.
+fn is_graphite(accent: Rgba) -> bool {
+    ACCENT_SWATCHES.iter().any(|(name, swatch)| {
+        *name == "graphite"
+            && [
+                swatch.r - accent.r,
+                swatch.g - accent.g,
+                swatch.b - accent.b,
+            ]
+            .iter()
+            .all(|delta| delta.abs() < 0.002)
+    })
 }
 
 pub fn lights_for(
@@ -506,11 +450,10 @@ pub fn lights_for(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::TintStrength;
     use ctdesign::{
-        BG_CONTROL_LIGHT, BG_RAISED_LIGHT, BG_SURFACE_LIGHT, BG_WINDOW_LIGHT, PANEL_TINT_WALLPAPER,
-        SIDEBAR_LIGHT_OPAQUE, TITLEBAR, TOOLGROUP_BG_LIGHT_OPAQUE, TRAFFIC_CLOSE_MINIMIZE_DARKEN,
-        TRAFFIC_ZOOM_LIGHTEN, WINDOW_TINT_ACCENT, WINDOW_TINT_WALLPAPER,
+        BG_CONTROL_LIGHT, BG_RAISED_LIGHT, BG_SURFACE_LIGHT, BG_WINDOW_LIGHT, SIDEBAR_LIGHT_OPAQUE,
+        TITLEBAR, TOOLGROUP_BG_LIGHT_OPAQUE, TRAFFIC_CLOSE_MINIMIZE_DARKEN, TRAFFIC_ZOOM_LIGHTEN,
+        WINDOW_TINT_ACCENT,
     };
 
     fn appearance(
@@ -567,12 +510,11 @@ mod tests {
             Some(dominant()),
         );
         assert_eq!(resolved.window_tint, None);
-        assert_eq!(resolved.panel_tint, None);
         assert_eq!(resolved.accent, LIGHT.accent);
     }
 
     #[test]
-    fn accent_tints_windows_but_not_panels() {
+    fn accent_tints_windows() {
         let accent = [0.1, 0.3, 0.8];
         let resolved = resolve(
             &appearance(
@@ -595,102 +537,6 @@ mod tests {
             resolved.window_tint,
             Some((expected, WINDOW_TINT_ACCENT[0]))
         );
-        assert_eq!(resolved.panel_tint, None);
-    }
-
-    #[test]
-    fn wallpaper_desktop_tints_panels_and_uses_the_dominant_accent() {
-        let resolved = resolve(
-            &appearance(
-                ColorScheme::Light,
-                WindowColorMode::Wallpaper,
-                WindowTintScope::Desktop,
-                TrafficLightStyle::Auto,
-                Some([0.9, 0.3, 0.1]),
-            ),
-            Some(dominant()),
-        );
-        assert_ne!(resolved.accent, dominant());
-        assert!(
-            resolved.accent.contrast_ratio(resolved.surfaces.window) >= 3.0,
-            "wallpaper accent must contrast with the window background"
-        );
-        assert_eq!(
-            resolved.window_tint,
-            Some((dominant(), WINDOW_TINT_WALLPAPER[0]))
-        );
-        assert_eq!(
-            resolved.panel_tint,
-            Some((dominant(), PANEL_TINT_WALLPAPER[0]))
-        );
-    }
-
-    #[test]
-    fn the_selected_sidebar_row_follows_the_wallpaper_accent() {
-        let resolved = resolve(
-            &appearance(
-                ColorScheme::Dark,
-                WindowColorMode::Wallpaper,
-                WindowTintScope::Windows,
-                TrafficLightStyle::Auto,
-                Some([0.9, 0.3, 0.1]),
-            ),
-            Some(dominant()),
-        );
-        assert_eq!(resolved.sidebar.palette.selected_bg, resolved.accent);
-    }
-
-    #[test]
-    fn wallpaper_windows_never_tints_panels() {
-        let resolved = resolve(
-            &appearance(
-                ColorScheme::Dark,
-                WindowColorMode::Wallpaper,
-                WindowTintScope::Windows,
-                TrafficLightStyle::Auto,
-                None,
-            ),
-            Some(dominant()),
-        );
-        assert_eq!(resolved.panel_tint, None);
-        assert_ne!(resolved.accent, dominant());
-        assert!(
-            resolved.accent.contrast_ratio(resolved.surfaces.window) >= 3.0,
-            "wallpaper accent must contrast with the window background"
-        );
-        assert_eq!(
-            resolved.window_tint,
-            Some((dominant(), WINDOW_TINT_WALLPAPER[1]))
-        );
-    }
-
-    #[test]
-    fn wallpaper_without_dominant_falls_back_to_the_normal_accent() {
-        let resolved = resolve(
-            &appearance(
-                ColorScheme::Light,
-                WindowColorMode::Wallpaper,
-                WindowTintScope::Desktop,
-                TrafficLightStyle::Auto,
-                Some([0.9, 0.3, 0.1]),
-            ),
-            None,
-        );
-        let normal = Rgba {
-            r: 0.9,
-            g: 0.3,
-            b: 0.1,
-            a: 1.0,
-        };
-        assert!(
-            resolved.accent.contrast_ratio(resolved.surfaces.window) >= 3.0,
-            "fallback accent must contrast with the window background"
-        );
-        assert_eq!(resolved.panel_tint, Some((normal, PANEL_TINT_WALLPAPER[0])));
-        assert_eq!(
-            resolved.window_tint,
-            Some((normal, WINDOW_TINT_WALLPAPER[0]))
-        );
     }
 
     #[test]
@@ -699,20 +545,16 @@ mod tests {
             let resolved = resolve(
                 &appearance(
                     scheme,
-                    WindowColorMode::Wallpaper,
+                    WindowColorMode::Accent,
                     WindowTintScope::Desktop,
                     TrafficLightStyle::Auto,
                     None,
                 ),
-                Some(dominant()),
+                None,
             );
             assert_eq!(
                 resolved.window_tint,
-                Some((dominant(), WINDOW_TINT_WALLPAPER[1]))
-            );
-            assert_eq!(
-                resolved.panel_tint,
-                Some((dominant(), PANEL_TINT_WALLPAPER[1]))
+                Some((palette(scheme).accent, WINDOW_TINT_ACCENT[1]))
             );
         }
     }
@@ -849,7 +691,7 @@ mod tests {
     }
 
     #[test]
-    fn accent_and_wallpaper_tint_sidebar_and_toolgroup_but_neutral_does_not() {
+    fn accent_tints_sidebar_and_toolgroup_but_neutral_does_not() {
         let accent = Rgba {
             r: 0.9,
             g: 0.3,
@@ -883,16 +725,6 @@ mod tests {
         let expected_toolgroup_factor = WINDOW_TINT_ACCENT[0] * LAYER_FACTOR_CONTROL;
         let expected_toolgroup_bg = neutral.toolgroup.bg.mix(accent, expected_toolgroup_factor);
         assert_eq!(accent_resolved.toolgroup.bg, expected_toolgroup_bg);
-
-        let mut wallpaper = accent_mode.clone();
-        wallpaper.window_color = WindowColorMode::Wallpaper;
-        let wallpaper_resolved = resolve(&wallpaper, Some(dominant()));
-        let tint = dominant();
-        let wallpaper_factor = WINDOW_TINT_WALLPAPER[0] * LAYER_FACTOR_BG_SUNKEN;
-        assert_eq!(
-            wallpaper_resolved.sidebar.bg,
-            neutral.sidebar.bg.mix(tint, wallpaper_factor)
-        );
 
         assert_eq!(neutral.sidebar.bg, SIDEBAR_LIGHT_OPAQUE);
         assert_eq!(neutral.toolgroup.bg, TOOLGROUP_BG_LIGHT_OPAQUE);
@@ -942,72 +774,6 @@ mod tests {
     }
 
     #[test]
-    fn wallpaper_accent_for_saturated_yellow_meets_contrast() {
-        let raw = Rgba::rgb8(0xF5, 0xD0, 0x20);
-        let (hue, saturation, _) = raw.to_hsl();
-        let yellow = Rgba::from_hsl(hue, saturation, 0.65, 1.0);
-        for scheme in [ColorScheme::Light, ColorScheme::Dark, ColorScheme::DarkTint] {
-            let resolved = resolve(
-                &appearance(
-                    scheme,
-                    WindowColorMode::Wallpaper,
-                    WindowTintScope::Windows,
-                    TrafficLightStyle::Auto,
-                    None,
-                ),
-                Some(yellow),
-            );
-            let bg_window = match scheme {
-                ColorScheme::DarkTint => BG_WINDOW_DARK_TINT,
-                ColorScheme::Dark => BG_WINDOW_DARK,
-                _ => BG_WINDOW_LIGHT,
-            };
-            assert!(
-                resolved.accent.contrast_ratio(bg_window) >= 3.0,
-                "{scheme:?}: accent must contrast with the untinted window background"
-            );
-            let on_accent = palette(scheme).on_accent;
-            let on_accent_ratio = on_accent.contrast_ratio(resolved.accent);
-            if matches!(scheme, ColorScheme::Light) {
-                assert!(
-                    on_accent_ratio >= 3.0,
-                    "{scheme:?}: on-accent must contrast with the accent"
-                );
-            } else {
-                assert!(
-                    on_accent_ratio >= 1.5,
-                    "{scheme:?}: on-accent should at least remain readable-ish"
-                );
-            }
-        }
-    }
-
-    #[test]
-    fn wallpaper_window_tint_uses_the_dominant_not_the_accent() {
-        let raw = Rgba::rgb8(0xF5, 0xD0, 0x20);
-        let (hue, saturation, _) = raw.to_hsl();
-        let yellow = Rgba::from_hsl(hue, saturation, 0.65, 1.0);
-        for scheme in [ColorScheme::Light, ColorScheme::Dark, ColorScheme::DarkTint] {
-            let index = usize::from(scheme.is_dark());
-            let resolved = resolve(
-                &appearance(
-                    scheme,
-                    WindowColorMode::Wallpaper,
-                    WindowTintScope::Windows,
-                    TrafficLightStyle::Auto,
-                    None,
-                ),
-                Some(yellow),
-            );
-            assert_eq!(
-                resolved.window_tint,
-                Some((yellow, WINDOW_TINT_WALLPAPER[index])),
-                "{scheme:?}: window tint must be the raw dominant"
-            );
-        }
-    }
-
-    #[test]
     fn every_accent_swatch_gets_readable_ink_and_a_visible_focus_ring() {
         for scheme in [ColorScheme::Light, ColorScheme::Dark, ColorScheme::DarkTint] {
             for (name, swatch) in ctdesign::ACCENT_SWATCHES {
@@ -1041,79 +807,6 @@ mod tests {
                 }
             }
         }
-    }
-
-    #[test]
-    fn the_wallpaper_accent_always_contrasts_with_the_window() {
-        let channels = (0..=0xff).step_by(0x11).map(|c| c as u8);
-        for scheme in [ColorScheme::Light, ColorScheme::Dark, ColorScheme::DarkTint] {
-            let bg_window = match scheme {
-                ColorScheme::DarkTint => BG_WINDOW_DARK_TINT,
-                ColorScheme::Dark => BG_WINDOW_DARK,
-                _ => BG_WINDOW_LIGHT,
-            };
-            for r in channels.clone() {
-                for g in channels.clone() {
-                    for b in channels.clone() {
-                        let dominant = Rgba::rgb8(r, g, b);
-                        let ratio = wallpaper_accent(dominant, scheme).contrast_ratio(bg_window);
-                        assert!(
-                            ratio >= ACCENT_MIN_CONTRAST_ON_WINDOW,
-                            "{scheme:?} {dominant:?}: {ratio}"
-                        );
-                    }
-                }
-            }
-        }
-    }
-
-    fn hue_diff_degrees(a: Rgba, b: Rgba) -> f32 {
-        let (h_a, _, _) = a.to_hsl();
-        let (h_b, _, _) = b.to_hsl();
-        let diff = ((h_a - h_b) * 360.0).abs();
-        diff.min(360.0 - diff)
-    }
-
-    #[test]
-    fn wallpaper_accent_for_forest_green_keeps_hue_and_shifts_lightness() {
-        let forest = Rgba::rgb8(0x2E, 0x7D, 0x32);
-        let light = resolve(
-            &appearance(
-                ColorScheme::Light,
-                WindowColorMode::Wallpaper,
-                WindowTintScope::Windows,
-                TrafficLightStyle::Auto,
-                None,
-            ),
-            Some(forest),
-        );
-        let dark = resolve(
-            &appearance(
-                ColorScheme::Dark,
-                WindowColorMode::Wallpaper,
-                WindowTintScope::Windows,
-                TrafficLightStyle::Auto,
-                None,
-            ),
-            Some(forest),
-        );
-
-        assert!(
-            light.accent.relative_luminance() < forest.relative_luminance(),
-            "light accent must be darker than the dominant"
-        );
-        assert!(
-            dark.accent.relative_luminance() > forest.relative_luminance(),
-            "dark accent must be lighter than the dominant"
-        );
-        assert!(
-            hue_diff_degrees(light.accent, forest) <= 2.0,
-            "light accent hue drift is too large"
-        );
-        assert!(
-            hue_diff_degrees(dark.accent, forest) <= 2.0,
-            "dark accent hue drift is too large"
-        );
     }
 
     #[test]
@@ -1151,29 +844,73 @@ mod tests {
     }
 
     #[test]
-    fn intense_wallpaper_dark_doubles_the_tint_factors() {
-        let mut config = appearance(
-            ColorScheme::Dark,
-            WindowColorMode::Wallpaper,
-            WindowTintScope::Desktop,
-            TrafficLightStyle::Auto,
+    fn dark_window_backgrounds_take_the_wallpaper_behind_them_but_sidebars_do_not() {
+        let neutral = resolve(
+            &AppearanceConfig {
+                color_scheme: ColorScheme::Dark,
+                ..AppearanceConfig::default()
+            },
             None,
         );
-        config.tint_strength_wallpaper = TintStrength::Intense;
-        let dominant = Rgba {
-            r: 0.8,
-            g: 0.2,
-            b: 0.1,
-            a: 1.0,
+        assert_eq!(neutral.wallpaper_tinting, Some(WALLPAPER_TINTING[1]));
+        let red = Rgba::rgb8(200, 30, 30);
+        let behind = neutral.behind_window(red);
+        assert_eq!(
+            behind.surfaces.window,
+            neutral.surfaces.window.mix(red, WALLPAPER_TINTING[1])
+        );
+        assert_eq!(
+            behind.surfaces.surface,
+            neutral.surfaces.surface.mix(red, WALLPAPER_TINTING[1])
+        );
+        assert_eq!(behind.surfaces.control, neutral.surfaces.control);
+        assert_eq!(behind.sidebar, neutral.sidebar);
+    }
+
+    #[test]
+    fn light_windows_take_the_wallpaper_only_with_the_accessibility_option() {
+        let light = AppearanceConfig {
+            color_scheme: ColorScheme::Light,
+            ..AppearanceConfig::default()
         };
-        let resolved = resolve(&config, Some(dominant));
+        assert_eq!(resolve(&light, None).wallpaper_tinting, None);
+        let opted_in = AppearanceConfig {
+            wallpaper_tinting_in_light: true,
+            ..light
+        };
         assert_eq!(
-            resolved.window_tint,
-            Some((dominant, WINDOW_TINT_WALLPAPER[1] * 2.0))
+            resolve(&opted_in, None).wallpaper_tinting,
+            Some(WALLPAPER_TINTING[0])
         );
-        assert_eq!(
-            resolved.panel_tint,
-            Some((dominant, PANEL_TINT_WALLPAPER[1] * 2.0))
-        );
+    }
+
+    #[test]
+    fn graphite_the_accent_window_colour_and_the_switch_turn_wallpaper_tinting_off() {
+        let dark = AppearanceConfig {
+            color_scheme: ColorScheme::Dark,
+            ..AppearanceConfig::default()
+        };
+        let graphite = ACCENT_SWATCHES
+            .iter()
+            .find(|(name, _)| *name == "graphite")
+            .map(|(_, swatch)| [swatch.r, swatch.g, swatch.b]);
+        for config in [
+            AppearanceConfig {
+                accent_color: graphite,
+                ..dark.clone()
+            },
+            AppearanceConfig {
+                window_color: WindowColorMode::Accent,
+                ..dark.clone()
+            },
+            AppearanceConfig {
+                wallpaper_tinting: false,
+                ..dark.clone()
+            },
+        ] {
+            let resolved = resolve(&config, None);
+            assert_eq!(resolved.wallpaper_tinting, None);
+            assert_eq!(resolved.behind_window(Rgba::rgb8(200, 30, 30)), resolved);
+        }
     }
 }

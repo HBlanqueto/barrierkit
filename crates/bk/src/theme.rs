@@ -31,7 +31,6 @@ pub fn surface_background(resolved: &Resolved, kind: SurfaceKind) -> Rgba {
         SurfaceKind::LayerShell => {
             let mut bar = resolved.shell.bar;
             if resolved.window_tint_scope == WindowTintScope::Desktop
-                && resolved.panel_tint.is_none()
                 && let Some((tint, factor)) = resolved.window_tint
             {
                 bar = bar.mix(tint, factor);
@@ -202,10 +201,7 @@ mod tests {
     #[test]
     fn surface_backgrounds_follow_the_window_colour_mode_and_scope() {
         use ctappearance::{WindowColorMode, WindowTintScope};
-        use ctdesign::{
-            BG_WINDOW_LIGHT, PANEL_TINT_WALLPAPER, SHELL_LIGHT_OPAQUE, WINDOW_TINT_ACCENT,
-            WINDOW_TINT_WALLPAPER,
-        };
+        use ctdesign::{BG_WINDOW_LIGHT, SHELL_LIGHT_OPAQUE, WINDOW_TINT_ACCENT};
 
         let accent = Rgba {
             r: 0.2,
@@ -228,7 +224,7 @@ mod tests {
             ..Default::default()
         };
 
-        let cases: [(&str, WindowColorMode, WindowTintScope, Rgba, Rgba); 6] = [
+        let cases: [(&str, WindowColorMode, WindowTintScope, Rgba, Rgba); 4] = [
             (
                 "neutral/windows",
                 WindowColorMode::Neutral,
@@ -256,22 +252,6 @@ mod tests {
                 WindowTintScope::Desktop,
                 BG_WINDOW_LIGHT.mix(accent, WINDOW_TINT_ACCENT[0]),
                 SHELL_LIGHT_OPAQUE.bar.mix(accent, WINDOW_TINT_ACCENT[0]),
-            ),
-            (
-                "wallpaper/windows",
-                WindowColorMode::Wallpaper,
-                WindowTintScope::Windows,
-                BG_WINDOW_LIGHT.mix(dominant, WINDOW_TINT_WALLPAPER[0]),
-                SHELL_LIGHT_OPAQUE.bar,
-            ),
-            (
-                "wallpaper/desktop",
-                WindowColorMode::Wallpaper,
-                WindowTintScope::Desktop,
-                BG_WINDOW_LIGHT.mix(dominant, WINDOW_TINT_WALLPAPER[0]),
-                SHELL_LIGHT_OPAQUE
-                    .bar
-                    .mix(dominant, PANEL_TINT_WALLPAPER[0]),
             ),
         ];
 
@@ -400,11 +380,6 @@ mod tests {
         use ctappearance::WindowColorMode;
         use ctdesign::ACCENT_SWATCHES;
 
-        let wallpapers = [
-            ("dark", Rgba::rgb8(13, 13, 13)),
-            ("mid", Rgba::rgb8(128, 115, 102)),
-            ("light", Rgba::rgb8(235, 230, 219)),
-        ];
         let config = |scheme, mode, accent: Option<[f32; 3]>| AppearanceConfig {
             color_scheme: scheme,
             accent_color: accent,
@@ -430,21 +405,6 @@ mod tests {
                     assert!(
                         ratio >= 1.25,
                         "{scheme:?}/acento {name}/{kind:?}: {ratio:.3}:1"
-                    );
-                }
-            }
-
-            for (name, tint) in wallpapers {
-                let resolved = resolve(
-                    &config(scheme, WindowColorMode::Wallpaper, None),
-                    Some(tint),
-                );
-                for kind in [SurfaceKind::Toplevel, SurfaceKind::LayerShell] {
-                    let palette = menu_palette(&resolved, kind);
-                    let ratio = palette.separator_color.contrast_ratio(palette.bg);
-                    assert!(
-                        ratio >= 1.25,
-                        "{scheme:?}/fondo {name}/{kind:?}: {ratio:.3}:1"
                     );
                 }
             }

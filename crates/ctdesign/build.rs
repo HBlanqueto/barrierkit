@@ -82,12 +82,9 @@ COLLECTION CollectionMetrics components.collection
 TOOLBAR_TABS ToolbarTabsMetrics components.toolbar-tabs
     padding=container.padding gap=container.gap radius=container.radius icon=tab.icon
     icon_gap=tab.gap font_size=tab.font.size font_weight=tab.font.weight
-WALLPAPER_ACCENT_DARKEN_LIGHT f32 appearance.modes.wallpaper.accent-shift.light.darken
-WALLPAPER_ACCENT_LIGHTEN_DARK f32 appearance.modes.wallpaper.accent-shift.dark.lighten
-ACCENT_MIN_CONTRAST_ON_WINDOW f32 appearance.modes.wallpaper.contrast.accent-on-window
-ON_ACCENT_MIN_CONTRAST f32 appearance.modes.wallpaper.contrast.on-accent
-MUTED_BELOW_SATURATION f32 appearance.modes.wallpaper.muted.below-saturation
-MUTED_MAX_SATURATION f32 appearance.modes.wallpaper.muted.max-saturation
+ACCENT_MIN_CONTRAST_ON_WINDOW f32 appearance.contrast.accent-on-window
+ON_ACCENT_MIN_CONTRAST f32 appearance.contrast.on-accent
+WALLPAPER_TINTING_GRID u32 appearance.wallpaper-tinting.grid
 TRAFFIC_RIM_WIDTH f32 components.window.traffic-lights.rim.width
 TRAFFIC_CLOSE_MINIMIZE_DARKEN f32
     components.window.traffic-lights.styles.accent.close-minimize-darken
@@ -353,12 +350,8 @@ fn emit_tints(out: &mut String, tengen: &Tengen) {
     for (name, path) in [
         ("WINDOW_TINT_ACCENT", format!("{modes}.accent.windows")),
         (
-            "WINDOW_TINT_WALLPAPER",
-            format!("{modes}.wallpaper.scope.windows.windows"),
-        ),
-        (
-            "PANEL_TINT_WALLPAPER",
-            format!("{modes}.wallpaper.scope.desktop.panel-dock"),
+            "WALLPAPER_TINTING",
+            "appearance.wallpaper-tinting".to_owned(),
         ),
     ] {
         let mode = |theme: &str| float(tengen.number(&format!("{path}.{theme}")));

@@ -3,6 +3,7 @@ use std::path::{Path, PathBuf};
 use ctdesign::{Rgba, TINT_STRENGTH, TITLEBAR};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
+use crate::tinting::WallpaperGrid;
 use crate::xdg;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize, Serialize)]
@@ -43,7 +44,6 @@ pub enum WindowColorMode {
     #[default]
     Neutral,
     Accent,
-    Wallpaper,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize, Serialize)]
@@ -200,13 +200,13 @@ pub struct AppearanceConfig {
     pub sidebar_style: SidebarStyle,
     #[serde(deserialize_with = "lenient")]
     pub tint_strength_accent: TintStrength,
-    #[serde(deserialize_with = "lenient")]
-    pub tint_strength_wallpaper: TintStrength,
     #[serde(
         deserialize_with = "deserialize_tint_parts",
         serialize_with = "serialize_tint_parts"
     )]
     pub tint_parts: TintParts,
+    pub wallpaper_tinting: bool,
+    pub wallpaper_tinting_in_light: bool,
 }
 
 impl Default for AppearanceConfig {
@@ -224,8 +224,9 @@ impl Default for AppearanceConfig {
             traffic_light_shape: TrafficLightShape::default(),
             sidebar_style: SidebarStyle::default(),
             tint_strength_accent: TintStrength::default(),
-            tint_strength_wallpaper: TintStrength::default(),
             tint_parts: TintParts::default(),
+            wallpaper_tinting: true,
+            wallpaper_tinting_in_light: false,
         }
     }
 }
@@ -236,7 +237,6 @@ impl AppearanceConfig {
             TrafficLightStyle::Auto => match self.window_color {
                 WindowColorMode::Neutral => TrafficLightStyle::Standard,
                 WindowColorMode::Accent => TrafficLightStyle::Accent,
-                WindowColorMode::Wallpaper => TrafficLightStyle::Wallpaper,
             },
             style => style,
         }
@@ -395,41 +395,41 @@ pub fn load_appearance() -> AppearanceConfig {
     read_appearance().ok().flatten().unwrap_or_default()
 }
 
-#[derive(Debug, Deserialize)]
-struct WallpaperState {
-    dominant: Option<[f32; 3]>,
+#[derive(Debug, Default, PartialEq, Deserialize, Serialize)]
+pub struct WallpaperState {
+    pub dominant: Option<[f32; 3]>,
+    pub grid: Option<WallpaperGrid>,
 }
 
 pub fn load_dominant() -> Option<Rgba> {
-    read_dominant_from(&wallpaper_state_path())
-}
-
-pub fn write_dominant(path: &Path, dominant: Option<Rgba>) -> std::io::Result<()> {
-    match dominant {
-        Some(color) => replace_file(
-            path,
-            &format!(
-                "dominant = [{:.6}, {:.6}, {:.6}]\n",
-                color.r, color.g, color.b
-            ),
-        ),
-        None => match std::fs::remove_file(path) {
-            Err(error) if error.kind() != std::io::ErrorKind::NotFound => Err(error),
-            _ => Ok(()),
-        },
-    }
-}
-
-fn read_dominant_from(path: &Path) -> Option<Rgba> {
-    let text = std::fs::read_to_string(path).ok()?;
-    let state: WallpaperState = toml::from_str(&text).ok()?;
-    let [r, g, b] = state.dominant?;
+    let [r, g, b] = read_wallpaper_state(&wallpaper_state_path())?.dominant?;
     Some(Rgba {
         r: r.clamp(0.0, 1.0),
         g: g.clamp(0.0, 1.0),
         b: b.clamp(0.0, 1.0),
         a: 1.0,
     })
+}
+
+pub fn load_wallpaper_grid() -> Option<WallpaperGrid> {
+    read_wallpaper_state(&wallpaper_state_path())?.grid
+}
+
+pub fn write_wallpaper_state(path: &Path, state: &WallpaperState) -> std::io::Result<()> {
+    if *state == WallpaperState::default() {
+        return match std::fs::remove_file(path) {
+            Err(error) if error.kind() != std::io::ErrorKind::NotFound => Err(error),
+            _ => Ok(()),
+        };
+    }
+    replace_file(
+        path,
+        &toml::to_string(state).map_err(std::io::Error::other)?,
+    )
+}
+
+fn read_wallpaper_state(path: &Path) -> Option<WallpaperState> {
+    toml::from_str(&std::fs::read_to_string(path).ok()?).ok()
 }
 
 #[cfg(test)]
@@ -484,7 +484,6 @@ traffic_lights = "auto"
             traffic_light_shape: TrafficLightShape::Round,
             sidebar_style: SidebarStyle::Flat,
             tint_strength_accent: TintStrength::Strong,
-            tint_strength_wallpaper: TintStrength::Subtle,
             tint_parts: TintParts {
                 sidebars: true,
                 window: false,
@@ -492,6 +491,8 @@ traffic_lights = "auto"
                 controls: false,
                 menus: true,
             },
+            wallpaper_tinting: false,
+            wallpaper_tinting_in_light: true,
         };
         write_appearance(&path, &config).unwrap();
         let read = read_appearance_from(&path).unwrap().unwrap();
@@ -587,8 +588,18 @@ sidebar_style = "island"
         )
         .unwrap();
         assert_eq!(config.tint_strength_accent, TintStrength::Normal);
-        assert_eq!(config.tint_strength_wallpaper, TintStrength::Normal);
         assert_eq!(config.tint_parts, TintParts::default());
+        assert!(config.wallpaper_tinting);
+        assert!(!config.wallpaper_tinting_in_light);
+    }
+
+    #[test]
+    fn the_old_wallpaper_window_colour_reads_as_neutral() {
+        let config: AppearanceConfig =
+            toml::from_str("window_color = \"wallpaper\"\ntraffic_lights = \"accent\"\n").unwrap();
+        assert_eq!(config.window_color, WindowColorMode::Neutral);
+        assert_eq!(config.traffic_lights, TrafficLightStyle::Accent);
+        assert!(config.wallpaper_tinting);
     }
 
     #[test]
@@ -616,16 +627,21 @@ tint_parts = ["window", "halo"]
     }
 
     #[test]
-    fn write_dominant_records_and_clears_the_wallpaper_state() {
+    fn write_wallpaper_state_records_and_clears_the_state() {
         let dir = std::env::temp_dir().join(format!("ctappearance-state-{}", std::process::id()));
         let path = dir.join("wallpaper.state");
-        let color = Rgba::rgb8(51, 102, 153);
-        write_dominant(&path, Some(color)).unwrap();
-        let read = read_dominant_from(&path).unwrap();
-        assert!((read.r - color.r).abs() < 1e-6 && (read.b - color.b).abs() < 1e-6);
-        write_dominant(&path, None).unwrap();
+        let state = WallpaperState {
+            dominant: Some([0.2, 0.4, 0.6]),
+            grid: Some(WallpaperGrid {
+                aspect: 1.6,
+                rows: vec![vec![[0.1, 0.2, 0.3], [0.4, 0.5, 0.6]]],
+            }),
+        };
+        write_wallpaper_state(&path, &state).unwrap();
+        assert_eq!(read_wallpaper_state(&path), Some(state));
+        write_wallpaper_state(&path, &WallpaperState::default()).unwrap();
         assert!(!path.exists());
-        write_dominant(&path, None).unwrap();
+        write_wallpaper_state(&path, &WallpaperState::default()).unwrap();
         std::fs::remove_dir_all(&dir).ok();
     }
 
@@ -639,7 +655,6 @@ tint_parts = ["window", "halo"]
         let path = dir.join("appearance.domain");
         let config = AppearanceConfig {
             tint_strength_accent: TintStrength::Intense,
-            tint_strength_wallpaper: TintStrength::Subtle,
             tint_parts: TintParts {
                 sidebars: true,
                 window: false,

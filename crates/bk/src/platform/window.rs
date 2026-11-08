@@ -569,6 +569,7 @@ impl Runtime {
             primary: self.primary.clone(),
             clipboard: self.clipboard.clone(),
         };
+        let window_resolved = State::create_global(*self.resolved.peek());
         let focus_notice = self.focus_manager.as_ref().map(|manager| {
             let notice = manager.get_focus_surface(&surface, qh, surface.id());
             if controls.focus_overlay && notice.version() >= 2 {
@@ -587,6 +588,7 @@ impl Runtime {
                 controls: Box::new(controls.clone()),
                 menu: menu_handle.clone(),
                 theme: options.theme.clone(),
+                resolved: window_resolved,
             },
         );
         let mut window = self.surface_window(surface, SurfaceRole::Window(window), app_instance);
@@ -608,6 +610,8 @@ impl Runtime {
             controls: controls.clone(),
             app_id,
             focus_notice,
+            resolved: window_resolved,
+            wallpaper: None,
             parent: parent_id.filter(|_| utility),
             key_only_if_needed: utility && options.panel.key_only_if_needed,
         });
