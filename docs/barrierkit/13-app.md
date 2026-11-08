@@ -258,7 +258,7 @@ let instance = match launch("io.github.hblanqueto.malaysia.notes") {
    `use_hook`.
 
 Without a session bus, `launch` returns `Err` and the app runs without a
-single instance. `Open` (opening files) is accepted and ignored.
+single instance. `Open` raises the app like `Activate`; bk has no API to open files yet, and its URIs are dropped.
 
 ## Status item
 

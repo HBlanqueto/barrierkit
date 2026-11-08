@@ -79,7 +79,9 @@ impl Activation {
         }
     }
 
-    fn open(&self, _uris: Vec<String>, _platform_data: HashMap<String, OwnedValue>) {}
+    fn open(&self, _uris: Vec<String>, platform_data: HashMap<String, OwnedValue>) {
+        self.activate(platform_data);
+    }
 
     fn activate_action(
         &self,
