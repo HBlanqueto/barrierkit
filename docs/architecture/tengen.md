@@ -92,7 +92,7 @@ build.
 2. `reduce_transparency` picks the `_OPAQUE` shell, menu and sidebar
    palettes.
 3. `wallpaper_tinting` mixes the wallpaper behind each window into its
-   backgrounds, by `WALLPAPER_TINTING`
+   sidebar, by `WALLPAPER_TINTING`
    ([4](../barrierkit/04-appearance-and-tokens.md#wallpaper-behind-a-window)).
 4. The dominant colour and the wallpaper grid come from `wallpaper.state` in
    the data dir (`~/.local/share/malaysia/wallpaper.state`).

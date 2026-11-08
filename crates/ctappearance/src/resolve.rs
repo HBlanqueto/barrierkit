@@ -81,15 +81,7 @@ pub struct Resolved {
 impl Resolved {
     pub fn behind_window(mut self, wallpaper: Rgba) -> Self {
         if let Some(factor) = self.wallpaper_tinting {
-            let surfaces = &mut self.surfaces;
-            for surface in [
-                &mut surfaces.window,
-                &mut surfaces.titlebar_inactive,
-                &mut surfaces.sunken,
-                &mut surfaces.surface,
-            ] {
-                *surface = surface.mix(wallpaper, factor);
-            }
+            self.sidebar.bg = self.sidebar.bg.mix(wallpaper, factor);
         }
         self
     }
@@ -844,7 +836,7 @@ mod tests {
     }
 
     #[test]
-    fn dark_window_backgrounds_take_the_wallpaper_behind_them_but_sidebars_do_not() {
+    fn dark_sidebars_take_the_wallpaper_behind_them_but_window_backgrounds_do_not() {
         let neutral = resolve(
             &AppearanceConfig {
                 color_scheme: ColorScheme::Dark,
@@ -856,15 +848,10 @@ mod tests {
         let red = Rgba::rgb8(200, 30, 30);
         let behind = neutral.behind_window(red);
         assert_eq!(
-            behind.surfaces.window,
-            neutral.surfaces.window.mix(red, WALLPAPER_TINTING[1])
+            behind.sidebar.bg,
+            neutral.sidebar.bg.mix(red, WALLPAPER_TINTING[1])
         );
-        assert_eq!(
-            behind.surfaces.surface,
-            neutral.surfaces.surface.mix(red, WALLPAPER_TINTING[1])
-        );
-        assert_eq!(behind.surfaces.control, neutral.surfaces.control);
-        assert_eq!(behind.sidebar, neutral.sidebar);
+        assert_eq!(behind.surfaces, neutral.surfaces);
     }
 
     #[test]

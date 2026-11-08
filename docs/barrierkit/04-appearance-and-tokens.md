@@ -280,7 +280,7 @@ a style.
 | `focus_ring` | The accent moved until it reaches 3:1 on the window. |
 | `link` | The accent moved until it reaches 4.5:1 on the window and on content. |
 | `window_tint` | Accent tint color and amount, or `None`. |
-| `wallpaper_tinting` | Amount of the wallpaper behind a window, or `None` when it is off. `Resolved::behind_window(color)` mixes that color into `window`, `titlebar_inactive`, `sunken` and `surface`. |
+| `wallpaper_tinting` | Amount of the wallpaper behind a window, or `None` when it is off. `Resolved::behind_window(color)` mixes that color into `sidebar.bg`. |
 | `window_tint_scope`, `tint_parts` | Copies of the config. |
 | `lights`, `traffic_style`, `traffic_shape` | The traffic-light colors, style and shape. |
 | `contrast`, `reduce_transparency`, `reduced_motion`, `scroll_bars` | Copies of the config. |
@@ -302,7 +302,7 @@ The rules `resolve` applies:
    (`ON_ACCENT_MIN_CONTRAST`), then the dark ink; an accent that reaches it with
    neither is darkened just enough (WCAG 2.2 §1.4.3).
 4. Wallpaper tinting is on with `wallpaper_tinting`, a neutral
-   `window_color` and any accent but graphite (WWDC 2018, session 210). It
+   `window_color` and any accent but graphite (malaysia ADR 0065). It
    applies in dark schemes, and in light ones with
    `wallpaper_tinting_in_light`. The amount is `WALLPAPER_TINTING` (light,
    dark).
@@ -310,8 +310,8 @@ The rules `resolve` applies:
 
 ### Wallpaper behind a window
 
-macOS tints each window with the average color of the wallpaper behind it
-(WWDC 2018, session 210). `ctappearance::tinting::WallpaperGrid` does the same
+macOS 26 tints each window's sidebar with the average color of the wallpaper
+behind it; the window background stays gray (malaysia ADR 0065). `ctappearance::tinting::WallpaperGrid` does the same
 from a grid of average colors:
 
 1. `malaysia-wallpaper` builds it with `WallpaperGrid::from_rgba8(rgba8,

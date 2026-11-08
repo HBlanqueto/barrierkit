@@ -357,7 +357,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 |---|---|---|---|---|---|
 | `ctappearance::resolve` | fn | — | — | Turns the config and wallpaper color into concrete colors | [4](04-appearance-and-tokens.md#resolution) |
 | `ctappearance::Resolved` | struct | ≈ `EnvironmentValues` | — | Resolved appearance: accent, focus ring, link, tints, surfaces, palettes | [4](04-appearance-and-tokens.md#resolution) |
-| `ctappearance::Resolved::behind_window` | method | — | ≈ desktop tinting of `NSVisualEffectView.Material.windowBackground` | Mixes the wallpaper behind a window into its backgrounds | [4](04-appearance-and-tokens.md#wallpaper-behind-a-window) |
+| `ctappearance::Resolved::behind_window` | method | — | ≈ desktop tinting of `NSVisualEffectView.Material.sidebar` | Mixes the wallpaper behind a window into its sidebar | [4](04-appearance-and-tokens.md#wallpaper-behind-a-window) |
 | `ctappearance::Surfaces` | struct | — | — | Tinted window, sunken, surface, raised, control, hover and line colors | [4](04-appearance-and-tokens.md#resolution) |
 | `ctappearance::SidebarSurface` | struct | — | — | Sidebar style, background, rim, inner line and palette | [4](04-appearance-and-tokens.md#resolution) |
 | `ctappearance::ToolgroupSurface` | struct | — | — | Toolbar group background and palette | [4](04-appearance-and-tokens.md#resolution) |
