@@ -57,18 +57,10 @@ impl FocusBar {
     }
 }
 
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
-pub struct SpaceInfo {
-    pub index: u32,
-    pub count: u32,
-    pub desktop: Option<u32>,
-    pub focus_bar: FocusBar,
-}
-
 #[derive(Clone)]
 pub struct Toplevels {
     pub list: State<Vec<ToplevelInfo>>,
-    pub space: State<SpaceInfo>,
+    pub focus_bar: State<FocusBar>,
     pub(super) entries: Rc<RefCell<Vec<ToplevelEntry>>>,
     pub(super) seat: Rc<RefCell<Option<WlSeat>>>,
     pub(super) infinity: Option<InfinityWindowManagerV1>,

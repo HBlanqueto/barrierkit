@@ -61,6 +61,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `rich_text::TextStyle` | `rich_text::RunStyle`; `styles::TextStyle` is the style of `Text` | 2026-11-07 |
 | `chrome::ChromeStyle` | `styles::WindowChromeStyle`, with the look of the rail | 2026-11-07 |
 | `chrome::WindowChrome::new(style, child)` | `chrome::WindowChrome::new(child).style(\|s\| ..)` | 2026-11-07 |
+| `shell::SpaceInfo`, `Toplevels::space` | `Toplevels::focus_bar` (`FocusBar`); the `space` event keeps only `focus_bar` (Infinity v7) | 2026-11-08 |
 | `platform::Bar::Compact`, `WindowCorner::compact`, Infinity `bar` entry `compact` | `Bar::UnifiedCompact`, `WindowCorner::unified_compact`, `unified_compact` | 2026-11-08 |
 | The 22 views, modifiers and names listed in [ADR 0063](../decisions/0063-views-as-types-and-swift-names.md#decision) (`divider()`, `empty_state`, `use_tooltip`, `PreferencesWindow`, `AppMenu`, `ProgressBar`…) | `Divider`, `ContentUnavailableView`, `.help`, `SettingsWindow`, `MainMenu`, `ProgressView`… | 2026-11-07 |
 
@@ -1039,7 +1040,6 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `shell::SessionUnlock` | struct | — | — | Handle that ends the session lock | [18](18-platform.md#run_lock-and-sessionunlock) |
 | `shell::Toplevels` | struct | — | — | Every app's windows, the shown space, and actions on windows | [18](18-platform.md#toplevels) |
 | `shell::ToplevelInfo` | struct | — | — | One window of any app: id, title, app id, state, menu addresses | [18](18-platform.md#toplevels) |
-| `shell::SpaceInfo` | struct | — | — | The shown space: index, count, desktop number, focus bar | [18](18-platform.md#toplevels) |
 | `shell::FocusBar` | enum | — | — | The bar over the shown space: `None`, `Hidden`, `Revealed` | [18](18-platform.md#toplevels) |
 | `shell::GtkMenusAddress` | struct | — | — | D-Bus address of a GTK window's global menu | [18](18-platform.md#toplevels) |
 | `shell::InfinityLayout` | enum | — | — | Placement for `Toplevels::arrange`: fill, center, halves, quarters | [18](18-platform.md#toplevels) |

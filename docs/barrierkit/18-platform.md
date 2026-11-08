@@ -270,7 +270,7 @@ context in `run_layer` and `run_lock`.
 | Field | Type | Holds |
 |---|---|---|
 | `list` | `State<Vec<ToplevelInfo>>` | The windows, in arrival order |
-| `space` | `State<SpaceInfo>` | The shown space (Malaysia ADR 0051) |
+| `focus_bar` | `State<FocusBar>` | The bar over the shown space: `None` on a desktop, `Hidden` or `Revealed` over a focus space (Malaysia ADR 0051) |
 
 | `ToplevelInfo` field | Type | Meaning |
 |---|---|---|

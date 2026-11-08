@@ -2,7 +2,7 @@ use freya_core::prelude::WritableUtils;
 use sctk::reexports::client::{Connection, Dispatch, Proxy, QueueHandle};
 
 use crate::platform::{MainMenuAddress, runtime::Runtime};
-use crate::shell::{FocusBar, GtkMenusAddress, ShellState, SpaceInfo};
+use crate::shell::{FocusBar, GtkMenusAddress, ShellState};
 
 pub use infinity_protocol::client::infinity_window_manager_v1::infinity_window_manager_v1::{
     InfinityWindowManagerV1, Layout, PairLayout,
@@ -66,12 +66,7 @@ impl Dispatch<InfinityWindowManagerV1, ()> for Runtime {
                         .toplevels
                         .update(&toplevel, |info| info.gtk_menus = address);
                 }
-                Event::Space {
-                    index,
-                    count,
-                    desktop,
-                    focus_bar,
-                } => {
+                Event::Space { focus_bar } => {
                     let focus_bar = match focus_bar.into_result() {
                         Ok(protocol::infinity_window_manager_v1::FocusBar::Hidden) => {
                             FocusBar::Hidden
@@ -81,14 +76,8 @@ impl Dispatch<InfinityWindowManagerV1, ()> for Runtime {
                         }
                         _ => FocusBar::None,
                     };
-                    let info = SpaceInfo {
-                        index,
-                        count,
-                        desktop: (desktop > 0).then_some(desktop),
-                        focus_bar,
-                    };
-                    if *shell.toplevels.space.peek() != info {
-                        shell.toplevels.space.set(info);
+                    if *shell.toplevels.focus_bar.peek() != focus_bar {
+                        shell.toplevels.focus_bar.set(focus_bar);
                         space_changed = true;
                     }
                 }

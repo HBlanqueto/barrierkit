@@ -23,7 +23,7 @@
     DEALINGS IN THE SOFTWARE.
   </copyright>
 
-  <interface name="infinity_window_manager_v1" version="6">
+  <interface name="infinity_window_manager_v1" version="7">
     <description summary="private window geometry channel for malaysia-shell">
       This protocol is private to malaysia-shell. It lets the shell ask the
       compositor to place windows in halves, quarters, pairs and fullscreen
@@ -158,18 +158,15 @@
     </enum>
 
     <event name="space" since="5">
-      <description summary="the shown space">
-        The row of spaces (Malaysia ADR 0051): which one is shown, how
-        many there are, the shown desktop's number as the user sees it
-        («Escritorio 3»), 0 for a focus space, and the bar's state over a
-        focus space. Over a focus space the bar is drawn in absolute black
-        with white text.
+      <description summary="the bar over the shown space">
+        Whether the shown space (Malaysia ADR 0051) is a focus space, and the
+        bar's state over it. Over a focus space the bar is drawn in absolute
+        black with white text. Version 7 dropped the index, count and desktop
+        arguments, which no client read; a client binds the same version as
+        the compositor it ships with.
 
-        Sent when the manager binds and whenever any value changes.
+        Sent when the manager binds and whenever the value changes.
       </description>
-      <arg name="index" type="uint" summary="0-based position of the shown space"/>
-      <arg name="count" type="uint" summary="how many spaces the row has"/>
-      <arg name="desktop" type="uint" summary="1-based desktop number, 0 for a focus space"/>
       <arg name="focus_bar" type="uint" enum="focus_bar"/>
     </event>
 

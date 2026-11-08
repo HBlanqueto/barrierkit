@@ -14,7 +14,7 @@ pub use layer::{Anchors, KeyboardInteractivity, Layer, LayerSpec, run_layer};
 pub use lock::{SessionUnlock, run_lock};
 pub use menus::GtkMenusAddress;
 pub use status_items::{Pixmap, StatusHost, TrayItem, pixmap_image, use_status_items};
-pub use toplevels::{FocusBar, SpaceInfo, ToplevelInfo, Toplevels};
+pub use toplevels::{FocusBar, ToplevelInfo, Toplevels};
 
 use freya_core::integration::AppComponent;
 
@@ -70,14 +70,14 @@ impl ShellState {
                 .ok()
         };
         let infinity = globals
-            .bind::<InfinityWindowManagerV1, _, _>(qh, 1..=6, ())
+            .bind::<InfinityWindowManagerV1, _, _>(qh, 1..=7, ())
             .ok();
         if infinity.is_none() {
             tracing::info!("infinity_window_manager_v1 no disponible; sigo sin él");
         }
         let toplevels = Toplevels {
             list: freya_core::prelude::State::create_global(Vec::new()),
-            space: freya_core::prelude::State::create_global(SpaceInfo::default()),
+            focus_bar: freya_core::prelude::State::create_global(FocusBar::default()),
             entries: Rc::new(RefCell::new(Vec::new())),
             seat: Rc::new(RefCell::new(rt.seat_handle.clone())),
             infinity,
