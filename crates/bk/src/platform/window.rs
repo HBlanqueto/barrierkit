@@ -483,6 +483,8 @@ impl Runtime {
             }),
         };
         let utility = parent.is_some();
+        // A sheet is not a panel: it takes the keyboard and deactivates its parent, like AppKit.
+        let panel = utility && !options.modal;
         if let Some((parent, _)) = &parent {
             window.set_parent(Some(parent));
         }
@@ -500,7 +502,7 @@ impl Runtime {
             .window_style
             .as_ref()
             .filter(|style| style.version() >= 3)
-            && utility
+            && panel
         {
             style.set_panel(window.wl_surface(), options.panel.flags());
         }
@@ -636,7 +638,7 @@ impl Runtime {
             resolved: window_resolved,
             wallpaper: None,
             parent: parent_id.filter(|_| utility),
-            key_only_if_needed: utility && options.panel.key_only_if_needed,
+            key_only_if_needed: panel && options.panel.key_only_if_needed,
         });
         self.surfaces.push(window);
         Some(controls)

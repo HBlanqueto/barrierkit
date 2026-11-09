@@ -155,6 +155,8 @@ impl Component for SheetWindow {
             shared.set(self.content.clone());
         }
         let opened: Rc<RefCell<Option<WindowControls>>> = use_hook(Rc::default);
+        let style: SheetStyle = resolve(&self.theme);
+        let paints = Paints::current(ControlState::default(), style.effect);
         let theme = self.theme.clone();
         let parent = self.parent.0.clone();
         let registered = opened.clone();
@@ -174,6 +176,7 @@ impl Component for SheetWindow {
             .width(Size::fill())
             .height(Size::percent(100.0))
             .layer(Layer::Overlay)
+            .painted(&paints, &style.scrim)
             .on_mouse_down(|event: Event<MouseEventData>| event.stop_propagation())
             .child(SheetPresence)
     }

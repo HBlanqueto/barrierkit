@@ -489,7 +489,9 @@ remove it to close it.
 In a window, the sheet is a window of its own, like an AppKit sheet: a child
 toplevel marked modal with `xdg-dialog-v1`, sized to its content (it starts at
 `DIALOG_SHEET_WIDTH` × `DIALOG_SHEET_HEIGHT`). The compositor keeps it centered
-on the window that opened it and moves it with that window. Without a window
+on the window that opened it and moves it with that window. It is not a
+panel: it takes the keyboard, so the window behind deactivates and dims under
+the veil. Without a window
 (tests, shell layers) it draws inside the surface over the veil.
 
 While a sheet or an [`Alert`](#alert) shows, the window that opened it is modal
