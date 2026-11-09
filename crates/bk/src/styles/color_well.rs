@@ -22,8 +22,10 @@ pub struct ColorWellStyle {
     pub spacing: f32,
     /// Tengen: `Circle`.
     pub swatch_shape: Shape,
-    /// Tengen: `Role(Label)`, the ring of the chosen swatch.
+    /// Tengen: `Accent`, the ring of the chosen swatch, like macOS.
     pub selection: StateValue<ShapeStyle>,
+    /// Tengen: `SETTINGS.swatch.ring_gap`, between the swatch and its ring.
+    pub selection_gap: f32,
     /// Tengen: `Role(SecondaryLabel)`, shown only under the chosen swatch.
     pub name: StateValue<ShapeStyle>,
     /// Tengen: `Some((Role(Separator), HAIRLINE))`.
@@ -52,7 +54,8 @@ impl ControlStyle for ColorWellStyle {
             name_gap: SETTINGS.swatch_name_gap as f32,
             spacing: SETTINGS.swatch_gap as f32,
             swatch_shape: Shape::Circle,
-            selection: StateValue::new(ShapeStyle::Role(Role::Label)),
+            selection: StateValue::new(ShapeStyle::Accent),
+            selection_gap: SETTINGS.swatch_ring_gap as f32,
             name: StateValue::new(ShapeStyle::Role(Role::SecondaryLabel)),
             swatch_border: Some((ShapeStyle::Role(Role::Separator), HAIRLINE)),
             swatch_shadows: Vec::new(),

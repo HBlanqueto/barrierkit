@@ -549,7 +549,8 @@
       "option-column": 220,
       "swatch": {
         "column": 18,
-        "name-gap": 5
+        "name-gap": 5,
+        "ring-gap": 2
       },
       "card": {
         "width": 66,

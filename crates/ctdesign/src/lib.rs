@@ -211,6 +211,7 @@ pub struct SettingsMetrics {
     pub toolbar_padding_x: u32,
     pub swatch_column: u32,
     pub swatch_name_gap: u32,
+    pub swatch_ring_gap: u32,
     pub card_outline: Rgba,
 }
 

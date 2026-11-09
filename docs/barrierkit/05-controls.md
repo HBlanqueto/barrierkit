@@ -295,7 +295,8 @@ All of them report the chosen index with `.on_change(|index: usize| ..)`.
 - `PopUpButton` shows the chosen item, its SVG icon if it has one, and an up-down chevron. A
   click opens the items as a menu with a radio mark, placed so the chosen row covers the
   button. `MenuIcon` is in [7](07-menus-and-popovers.md).
-- `ColorWell` is a row of 18 swatches, 10 apart. `swatches` is
+- `ColorWell` is a row of 18 swatches, 10 apart. The chosen one gets an accent ring
+  2 away (`SETTINGS.swatch_ring_gap`), like macOS. `swatches` is
   `&'static [(&'static str, Rgba)]`, for example `ctdesign::ACCENT_SWATCHES`.
   `.multicolor(name)` puts a rainbow swatch first, from `ctdesign::MULTICOLOR`,
   like «Multicolor» in macOS; it is index 0 and the swatches follow.

@@ -434,11 +434,15 @@ impl Component for Swatch {
                 &style.swatch_shadows,
             );
         if selected {
-            dot = ring(
-                dot,
-                radius.top_left(),
+            let gap = style.selection_gap;
+            dot = dot.child(ring(
+                rect()
+                    .position(Position::new_absolute().left(-gap).top(-gap))
+                    .width(Size::px(size + 2.0 * gap))
+                    .height(Size::px(size + 2.0 * gap)),
+                radius.top_left() + gap,
                 paints.color(style.selection.resolve(state)),
-            );
+            ));
         }
         dot = interaction.focus_ring(dot, radius.top_left());
 

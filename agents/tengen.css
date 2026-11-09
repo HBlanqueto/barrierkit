@@ -480,6 +480,7 @@
   --bk-settings-option-column: 220;
   --bk-settings-swatch-column: 18;
   --bk-settings-swatch-name-gap: 5;
+  --bk-settings-swatch-ring-gap: 2;
   --bk-settings-card-width: 66;
   --bk-settings-card-height: 44;
   --bk-settings-card-radius: var(--bk-radius-sm);
