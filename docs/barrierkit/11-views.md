@@ -127,6 +127,7 @@ rows with a control put the label above the control.
 | `.control(view)` | The control on the right, aligned with the first line of the title |
 | `.detail(text)` | An explanation under the title |
 | `.symbol(symbol, tint)` | A [`SymbolTile`](10-sidebar.md#symboltile) before the title |
+| `.icon(view)` | Any view before the title, such as a device picture; it replaces `.symbol` |
 | `.keywords(&[..])` | Extra words for the `SettingsWindow` search |
 
 Long titles and details wrap without clipping the control.

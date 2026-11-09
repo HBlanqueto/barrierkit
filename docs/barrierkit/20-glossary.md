@@ -834,6 +834,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `views::form::Row` | struct | `LabeledContent` | — | A form row: control, value, navigation or destructive | [11](11-views.md#row) |
 | `views::form::Row::page` | function | ≈ `NavigationLink(value:)` | — | A row that opens a page of a `SettingsWindow` | [11](11-views.md#row) |
 | `views::form::Row::symbol` | method | ≈ `Label(_:systemImage:)` | — | A `SymbolTile` before the row title | [11](11-views.md#row) |
+| `views::form::Row::icon` | method | `Label(title:icon:)` | — | Any view before the row title | [11](11-views.md#row) |
 | `views::group::GroupBox` | struct | `GroupBox` | `NSBox` | A rounded box with an optional label that groups controls | [11](11-views.md#groupbox) |
 | `views::group::DisclosureGroup` | struct | `DisclosureGroup` | — | A chevron header that shows or hides its indented children | [11](11-views.md#disclosuregroup) |
 

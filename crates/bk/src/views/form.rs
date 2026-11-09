@@ -29,6 +29,7 @@ pub struct Row {
     pub keywords: &'static [&'static str],
     detail: Option<&'static str>,
     symbol: Option<(Symbol, Rgba)>,
+    icon: Option<Element>,
     accessory: Accessory,
 }
 
@@ -39,6 +40,7 @@ impl Row {
             keywords: &[],
             detail: None,
             symbol: None,
+            icon: None,
             accessory: Accessory::None,
         }
     }
@@ -70,6 +72,11 @@ impl Row {
 
     pub fn symbol(mut self, glyph: Symbol, tint: Rgba) -> Self {
         self.symbol = Some((glyph, tint));
+        self
+    }
+
+    pub fn icon(mut self, icon: impl IntoElement) -> Self {
+        self.icon = Some(icon.into_element());
         self
     }
 
@@ -328,10 +335,10 @@ impl Component for FormRow {
             .padding(Gaps::new(padding_y, padding_x, padding_y, padding_x))
             .spacing(style.row_spacing)
             .painted(&paints, &style.row_background)
-            .maybe_child(
+            .maybe_child(row.icon.clone().or_else(|| {
                 row.symbol
-                    .map(|(glyph, tint)| SymbolTile::new(glyph, tint).into_element()),
-            )
+                    .map(|(glyph, tint)| SymbolTile::new(glyph, tint).into_element())
+            }))
             .child(labels)
             .child(
                 rect()

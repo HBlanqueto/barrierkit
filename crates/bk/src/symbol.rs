@@ -56,6 +56,12 @@ pub enum Symbol {
     Printer,
     Phone,
     SquareOnSquare,
+    Wifi,
+    Bluetooth,
+    Network,
+    Lock,
+    Bolt,
+    Battery,
 }
 
 impl Symbol {
@@ -86,6 +92,16 @@ impl Symbol {
                 "M4 2.5h2l1 3-1.5 1a7 7 0 0 0 4 4l1-1.5 3 1v2a1 1 0 0 1-1 1A10.5 10.5 0 0 1 3 3.5a1 1 0 0 1 1-1"
             }
             Self::SquareOnSquare => "M5.5 5.5h7v7h-7zM3.5 10.5v-7h7",
+            Self::Wifi => {
+                "M2 6.5a9 9 0 0 1 12 0M4.3 9a5.5 5.5 0 0 1 7.4 0M6.5 11.4a2.2 2.2 0 0 1 3 0M8 13.5h0"
+            }
+            Self::Bluetooth => "M4.5 5l7 6-3.5 3V2l3.5 3-7 6",
+            Self::Network => {
+                "M8 14a6 6 0 1 0 0-12a6 6 0 0 0 0 12M2 8h12M8 2c-3.4 3.4-3.4 8.6 0 12M8 2c3.4 3.4 3.4 8.6 0 12"
+            }
+            Self::Lock => "M4 7.5h8v6H4zM5.5 7.5v-2a2.5 2.5 0 0 1 5 0v2",
+            Self::Bolt => "M9 2 4 9h4l-1 5 5-7H8z",
+            Self::Battery => "M2 5h10.5v6H2zM14 7v2",
             Self::Bell => {
                 "M8 2.5A3.5 3.5 0 0 0 4.5 6v2.6L3 11.5h10l-1.5-2.9V6A3.5 3.5 0 0 0 8 2.5M6.5 13.5a1.5 1.5 0 0 0 3 0"
             }
