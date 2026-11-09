@@ -482,7 +482,8 @@ line of text, for a view with nothing to show, like SwiftUI's
 
 `Sheet::new(content)` covers the window with the `Palette::scrim` veil and
 shows `content` in a dialog centered in the window. The dialog has radius 26
-with a continuous corner and 20 of padding. Draw it while it should show;
+with a continuous corner, 20 of padding and the window shadow (`SHADOW`, or
+`SHADOW_DARK` in dark), so it floats like a window of its own. Draw it while it should show;
 remove it to close it.
 
 While a sheet or an [`Alert`](#alert) shows, the window is modal as in AppKit:

@@ -112,7 +112,7 @@ fn sheet(content: impl IntoElement, style: &SheetStyle) -> Rect {
         .main_align(Alignment::Center)
         .cross_align(Alignment::Center)
         .child(SheetPresence)
-        .child(
+        .child(crate::controls::shadowed(
             rect()
                 .a11y_role(AccessibilityRole::Dialog)
                 .padding(Gaps::new_all(style.padding))
@@ -131,7 +131,8 @@ fn sheet(content: impl IntoElement, style: &SheetStyle) -> Rect {
                     )
                 })
                 .child(content),
-        )
+            &style.shadows,
+        ))
 }
 
 #[derive(PartialEq)]

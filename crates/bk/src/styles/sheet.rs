@@ -1,7 +1,9 @@
-use ctdesign::{DIALOG, DIALOG_PADDING, HAIRLINE};
+use ctappearance::ColorScheme;
+use ctdesign::{DIALOG, DIALOG_PADDING, HAIRLINE, SHADOW, SHADOW_DARK};
 
 use super::{
-    ColorEffect, ControlStyle, CornerStyle, Role, Shape, ShapeStyle, StateValue, system_effect,
+    ColorEffect, ControlStyle, CornerStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
+    system_effect,
 };
 
 /// `Alert` draws on a sheet: it takes `SheetStyle` from the theme and the
@@ -24,12 +26,19 @@ pub struct SheetStyle {
     pub background: StateValue<ShapeStyle>,
     /// Tengen: `Some((Role(Separator), HAIRLINE))`, drawn outside.
     pub border: Option<(ShapeStyle, f32)>,
+    /// Tengen: the window shadow, `SHADOW` (`SHADOW_DARK` in dark): the sheet floats like a window.
+    pub shadows: Vec<ShadowStyle>,
     /// Tengen: `system_effect`.
     pub effect: ColorEffect,
 }
 
 impl ControlStyle for SheetStyle {
     fn tengen() -> Self {
+        let shadow = if crate::theme::resolved().scheme == ColorScheme::Light {
+            SHADOW
+        } else {
+            SHADOW_DARK
+        };
         Self {
             padding: DIALOG_PADDING,
             shape: Shape::RoundedRectangle {
@@ -39,6 +48,16 @@ impl ControlStyle for SheetStyle {
             scrim: StateValue::new(ShapeStyle::Role(Role::Scrim)),
             background: StateValue::new(ShapeStyle::Role(Role::RaisedBackground)),
             border: Some((ShapeStyle::Role(Role::Separator), HAIRLINE)),
+            shadows: [shadow.ambient, shadow.contact]
+                .into_iter()
+                .map(|layer| ShadowStyle {
+                    color: ctdesign::Rgba {
+                        a: layer.opacity,
+                        ..layer.color
+                    },
+                    ..layer.into()
+                })
+                .collect(),
             effect: system_effect,
         }
     }
