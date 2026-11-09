@@ -23,7 +23,7 @@
     DEALINGS IN THE SOFTWARE.
   </copyright>
 
-  <interface name="infinity_window_style_v1" version="3">
+  <interface name="infinity_window_style_v1" version="4">
     <description summary="window style hints for applications">
       Malaysia rounds every window it composites (ADR 0059). As in macOS
       Tahoe, the corner radius depends on the window's bar. A
@@ -109,6 +109,23 @@
       </description>
       <arg name="surface" type="object" interface="wl_surface"/>
       <arg name="flags" type="uint" enum="panel"/>
+    </request>
+
+    <request name="set_cards" since="4">
+      <description summary="the layer surface draws cards">
+        Tells the compositor that the layer surface whose wl_surface is
+        given draws cards, as macOS notifications, at these rectangles. The
+        array holds int32 quadruples x, y, width and height in
+        surface-local logical pixels. The compositor gives each card the
+        window frame around a continuous corner of the given radius: the
+        shadow below the surface, and the inner and outer borders above it.
+        The client draws the card itself with that corner. A later request
+        replaces the cards; an empty array removes them. It lasts for the
+        lifetime of the wl_surface.
+      </description>
+      <arg name="surface" type="object" interface="wl_surface"/>
+      <arg name="radius" type="uint"/>
+      <arg name="cards" type="array"/>
     </request>
   </interface>
 </protocol>

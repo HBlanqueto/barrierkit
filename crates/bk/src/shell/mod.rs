@@ -11,7 +11,8 @@ pub use infinity::{
     InfinityWindowManagerV1, Layout as InfinityLayout, PairLayout as InfinityPairLayout,
 };
 pub use layer::{
-    Anchors, KeyboardInteractivity, Layer, LayerGeometry, LayerSpec, run_layer, set_layer_geometry,
+    Anchors, CardFrames, KeyboardInteractivity, Layer, LayerGeometry, LayerSpec, run_layer,
+    set_card_frames, set_layer_geometry,
 };
 pub use lock::{SessionUnlock, run_lock};
 pub use menus::GtkMenusAddress;

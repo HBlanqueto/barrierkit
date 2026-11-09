@@ -211,6 +211,12 @@ fn insert_ping(event_loop: &mut EventLoop<Runtime>, shell: &mut Runtime) -> Resu
                         }
                     }
                     #[cfg(feature = "shell")]
+                    Sent::Kit(event) if event.is::<crate::shell::CardFrames>() => {
+                        if let Ok(frames) = event.downcast::<crate::shell::CardFrames>() {
+                            shell.apply_card_frames(&surface_id, *frames);
+                        }
+                    }
+                    #[cfg(feature = "shell")]
                     Sent::Kit(event) if event.is::<crate::shell::LayerGeometry>() => {
                         if let Ok(geometry) = event.downcast::<crate::shell::LayerGeometry>() {
                             shell.apply_layer_geometry(&surface_id, *geometry);
@@ -343,7 +349,7 @@ impl Runtime {
             .bind::<super::focus::InfinityFocusManagerV1, _, _>(&qh, 1..=3, ())
             .ok();
         let window_style = globals
-            .bind::<super::window_style::InfinityWindowStyleV1, _, _>(&qh, 1..=3, ())
+            .bind::<super::window_style::InfinityWindowStyleV1, _, _>(&qh, 1..=4, ())
             .ok();
         let viewporter = globals.bind::<WpViewporter, _, _>(&qh, 1..=1, ()).ok();
         // wp_fractional_scale_v1: a fractional buffer is only valid behind a wp_viewport.

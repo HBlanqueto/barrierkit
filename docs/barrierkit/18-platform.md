@@ -265,6 +265,16 @@ set_layer_geometry(LayerGeometry {
 });
 ```
 
+A layer surface that draws cards, as Malaysia's notifications do, can ask
+the compositor for the window frame around each of them with
+`set_card_frames(CardFrames { radius, cards })`: `cards` are `(x, y, width,
+height)` in surface-local logical pixels. The runner sends them through
+`infinity_window_style_v1.set_cards` (version 4); the compositor draws the
+window shadow below the surface and the inner and outer borders above it,
+around a continuous corner of `radius`. The app draws each card with
+`style::continuous_corner(radius)` so the shapes meet. An empty list removes
+the frames.
+
 ### `run_lock` and `SessionUnlock`
 
 `run_lock(app: AppComponent) -> Result<(), RunError>` locks the session with

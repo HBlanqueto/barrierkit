@@ -99,6 +99,16 @@ pub fn set_layer_geometry(geometry: LayerGeometry) {
     crate::platform::KitSender::get().send(geometry);
 }
 
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct CardFrames {
+    pub radius: u32,
+    pub cards: Vec<(i32, i32, i32, i32)>,
+}
+
+pub fn set_card_frames(frames: CardFrames) {
+    crate::platform::KitSender::get().send(frames);
+}
+
 fn keyboard_to_sctk(keyboard: KeyboardInteractivity) -> SctkKeyboardInteractivity {
     match keyboard {
         KeyboardInteractivity::None => SctkKeyboardInteractivity::None,
@@ -127,6 +137,28 @@ impl Runtime {
         layer_surface.set_size(geometry.size.0, geometry.size.1);
         layer_surface.set_keyboard_interactivity(keyboard_to_sctk(geometry.keyboard));
         layer_surface.wl_surface().commit();
+    }
+}
+
+impl Runtime {
+    pub(crate) fn apply_card_frames(&mut self, surface_id: &ObjectId, frames: CardFrames) {
+        let Some(style) = self
+            .window_style
+            .as_ref()
+            .filter(|style| style.version() >= 4)
+        else {
+            return;
+        };
+        let Some(index) = self.surface_index_by_id(surface_id) else {
+            return;
+        };
+        let cards = frames
+            .cards
+            .iter()
+            .flat_map(|&(x, y, width, height)| [x, y, width, height])
+            .flat_map(i32::to_ne_bytes)
+            .collect();
+        style.set_cards(&self.surfaces[index].surface, frames.radius, cards);
     }
 }
 

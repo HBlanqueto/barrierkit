@@ -1056,6 +1056,8 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `shell::run_layer` | fn | — | — | Runs an app in a wlr layer surface (menu bar, Dock, background) | [18](18-platform.md#run_layer-and-layerspec) |
 | `shell::LayerSpec` | struct | — | — | Namespace, layer, anchors, exclusive zone, keyboard and size of a layer surface | [18](18-platform.md#run_layer-and-layerspec) |
 | `shell::LayerGeometry` | struct | — | ≈ `NSWindow.setFrame(_:display:)` | Anchors, size and keyboard of a running layer surface | [18](18-platform.md#run_layer-and-layerspec) |
+| `shell::CardFrames` | struct | — | — | Corner radius and rectangles of the cards a layer surface draws | [18](18-platform.md#run_layer-and-layerspec) |
+| `shell::set_card_frames` | fn | — | — | Asks the compositor for the window frame (shadow, inner and outer border) around each card of the calling layer surface | [18](18-platform.md#run_layer-and-layerspec) |
 | `shell::set_layer_geometry` | fn | — | ≈ `NSWindow.setFrame(_:display:)` | Moves, resizes or refocuses the layer surface of the calling component | [18](18-platform.md#run_layer-and-layerspec) |
 | `shell::Layer` | enum | — | ≈ `NSWindow.Level` | Stacking layer of a layer surface: `Background`, `Bottom`, `Top`, `Overlay` | [18](18-platform.md#run_layer-and-layerspec) |
 | `shell::Anchors` | struct | — | — | Edges a layer surface sticks to; `TOP` and `BOTTOM` constants | [18](18-platform.md#run_layer-and-layerspec) |
