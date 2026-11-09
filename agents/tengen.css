@@ -696,6 +696,9 @@
   --bk-shell-notifications-body-lines: 3;
   --bk-shell-notifications-max-banners: 3;
   --bk-shell-notifications-banner-duration: 5000;
+  --bk-shell-notifications-slide-in-duration: 450;
+  --bk-shell-notifications-slide-out-duration: 260;
+  --bk-shell-notifications-slide-bounce: 0.15;
   --bk-shell-notifications-edge: 2;
   --bk-shell-notifications-swipe: 60;
   --bk-shell-notifications-widget-size: 168;

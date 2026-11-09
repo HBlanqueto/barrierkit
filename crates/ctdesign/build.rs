@@ -180,6 +180,9 @@ NOTIFICATION_STACK_INSET f32 components.shell.notifications.stack-inset
 NOTIFICATION_BODY_LINES usize components.shell.notifications.body-lines
 NOTIFICATION_MAX_BANNERS usize components.shell.notifications.max-banners
 NOTIFICATION_BANNER_MS u64 components.shell.notifications.banner-duration
+NOTIFICATION_SLIDE_IN_MS u64 components.shell.notifications.slide-in-duration
+NOTIFICATION_SLIDE_OUT_MS u64 components.shell.notifications.slide-out-duration
+NOTIFICATION_SLIDE_BOUNCE f32 components.shell.notifications.slide-bounce
 NOTIFICATION_EDGE f64 components.shell.notifications.edge
 NOTIFICATION_SWIPE f64 components.shell.notifications.swipe
 NOTIFICATION_WIDGET_SIZE f32 components.shell.notifications.widget-size
