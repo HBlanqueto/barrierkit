@@ -526,6 +526,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `ctdesign::ACCENT_MIN_CONTRAST_ON_WINDOW`, `ON_ACCENT_MIN_CONTRAST` | constant | — | — | Contrast minimums: accent on window 3, ink on accent 4.5 | [4](04-appearance-and-tokens.md#colors) |
 | `ctdesign::DOMINANT_LIGHTNESS`, `DOMINANT_MIN_CHROMA` | constant | — | — | Lightness range and minimum chroma of a wallpaper's dominant color | [4](04-appearance-and-tokens.md#colors) |
 | `ctdesign::ACCENT_SWATCHES` | constant | — | — | The eight named accent choices | [4](04-appearance-and-tokens.md#colors) |
+| `ctdesign::MULTICOLOR` | constant | — | — | The rainbow stops of `ColorWell::multicolor` | [4](04-appearance-and-tokens.md#colors) |
 | `ctdesign::CHART_SERIES` | constant | — | — | Seven chart series colors | [4](04-appearance-and-tokens.md#colors) |
 | `ctdesign::LEVEL_INDICATOR_COLORS` | constant | — | — | Normal, warning and critical level colors | [4](04-appearance-and-tokens.md#colors) |
 | `ctdesign::SHELL_LIGHT`, `SHELL_LIGHT_OPAQUE`, `SHELL_DARK`, `SHELL_DARK_OPAQUE`, `SHELL_DARK_TINT`, `SHELL_DARK_TINT_OPAQUE` | constant | — | — | Menu bar and Dock colors per theme | [4](04-appearance-and-tokens.md#colors) |
@@ -593,6 +594,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `controls::SegmentedControl` | struct | `PickerStyle.segmented` | `NSSegmentedControl` | Segments filling the width; one is chosen | [5](05-controls.md#choices) |
 | `popup_button::PopUpButton` | struct | `PickerStyle.menu` | `NSPopUpButton` | Shows the chosen item; opens the list as a menu | [5](05-controls.md#choices) |
 | `choices::ColorWell` | struct | `≈ PickerStyle.palette` | — | Row of preset color swatches; reports the chosen index | [5](05-controls.md#choices) |
+| `choices::ColorWell::multicolor` | method | — | ≈ the «Multicolor» accent of System Settings | A rainbow swatch first, at index 0 | [5](05-controls.md#choices) |
 | `choices::ChoiceCards` | struct | — | — | Large preview cards with captions; one is chosen | [5](05-controls.md#choices) |
 
 ## Sliders and indicators

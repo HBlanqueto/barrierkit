@@ -543,6 +543,7 @@
         {"name": "green", "color": "#4fb848"},
         {"name": "graphite", "color": "#8e8e93"}
       ],
+      "multicolor": ["red", "orange", "yellow", "green", "blue", "purple", "pink", "red"],
       "swatch-size": 18,
       "swatch-gap": 10,
       "option-column": 220,

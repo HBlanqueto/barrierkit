@@ -285,7 +285,7 @@ All of them report the chosen index with `.on_change(|index: usize| ..)`.
 | `RadioGroup` | `choices` | `RadioGroup::new(label)`, `.option(text)`, `.disabled(bool)`, `.tint(Tint)`, `.style(\|s\| ..)` | `.selected(usize)` (default 0) |
 | `SegmentedControl` | `controls` | `SegmentedControl::new(label)`, `.segment(text)`, `.style(\|s\| ..)` | `.selected(usize)` (default 0) |
 | `PopUpButton` | `popup_button` | `PopUpButton::new(label)`, `.item(text)`, `.icon_item(text, MenuIcon)`, `.style(\|s\| ..)` | `.selected(usize)` (default 0) |
-| `ColorWell` | `choices` | `ColorWell::new(label, swatches)`, `.disabled(bool)`, `.style(\|s\| ..)` | `.selected(Option<usize>)` (default `None`) |
+| `ColorWell` | `choices` | `ColorWell::new(label, swatches)`, `.multicolor(name)`, `.disabled(bool)`, `.style(\|s\| ..)` | `.selected(Option<usize>)` (default `None`) |
 | `ChoiceCards` | `choices` | `ChoiceCards::new(label)`, `.option(caption, preview)`, `.disabled(bool)`, `.style(\|s\| ..)` | `.selected(usize)` (default 0) |
 
 - `RadioGroup` stacks its options in a column; its style's `axis` puts them in a row. The
@@ -297,6 +297,8 @@ All of them report the chosen index with `.on_change(|index: usize| ..)`.
   button. `MenuIcon` is in [7](07-menus-and-popovers.md).
 - `ColorWell` is a row of 18 swatches, 10 apart. `swatches` is
   `&'static [(&'static str, Rgba)]`, for example `ctdesign::ACCENT_SWATCHES`.
+  `.multicolor(name)` puts a rainbow swatch first, from `ctdesign::MULTICOLOR`,
+  like «Multicolor» in macOS; it is index 0 and the swatches follow.
 - `ChoiceCards` shows 66 × 44 previews with a caption below; the chosen card gets an accent
   ring.
 

@@ -86,6 +86,7 @@
   --bk-button-font-size: 13;
   --bk-button-font-weight: 400;
   --bk-button-pressed-scale: 0.97;
+  --bk-button-destructive-fill: 0.22;
   --bk-button-large-height: 28;
   --bk-button-small-height: 20;
   --bk-button-small-padding-x: 11;
@@ -465,6 +466,15 @@
   --bk-settings-accent-swatches-6-color: #4fb848;
   --bk-settings-accent-swatches-7-name: graphite;
   --bk-settings-accent-swatches-7-color: #8e8e93;
+  --bk-settings-multicolor: red orange yellow green blue purple pink red;
+  --bk-settings-multicolor-0: red;
+  --bk-settings-multicolor-1: orange;
+  --bk-settings-multicolor-2: yellow;
+  --bk-settings-multicolor-3: green;
+  --bk-settings-multicolor-4: blue;
+  --bk-settings-multicolor-5: purple;
+  --bk-settings-multicolor-6: pink;
+  --bk-settings-multicolor-7: red;
   --bk-settings-swatch-size: 18;
   --bk-settings-swatch-gap: 10;
   --bk-settings-option-column: 220;
@@ -524,6 +534,8 @@
   --bk-dialog-radius: var(--bk-window-corner-unified);
   --bk-dialog-padding: 20;
   --bk-dialog-alert-width: 260;
+  --bk-dialog-sheet-width: 430;
+  --bk-dialog-sheet-height: 280;
   --bk-menu-popover-item-height: 24;
   --bk-menu-popover-item-radius: var(--bk-radius-sm);
   --bk-menu-popover-padding: 4;

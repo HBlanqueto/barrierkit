@@ -1,6 +1,6 @@
 use crate::i18n::text;
 
-use ctdesign::Rgba;
+use ctdesign::{MULTICOLOR, Rgba};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Position, Size};
 
@@ -300,6 +300,7 @@ fn swatch_name(id: &'static str) -> &'static str {
 #[derive(PartialEq)]
 pub struct ColorWell {
     label: &'static str,
+    multicolor: Option<&'static str>,
     swatches: &'static [(&'static str, Rgba)],
     selected: Option<usize>,
     disabled: bool,
@@ -312,6 +313,7 @@ impl ColorWell {
     pub fn new(label: &'static str, swatches: &'static [(&'static str, Rgba)]) -> Self {
         Self {
             label,
+            multicolor: None,
             swatches,
             selected: None,
             disabled: false,
@@ -323,6 +325,11 @@ impl ColorWell {
 
     pub fn style(mut self, restyle: impl Fn(ColorWellStyle) -> ColorWellStyle + 'static) -> Self {
         self.style = self.style.style(restyle);
+        self
+    }
+
+    pub fn multicolor(mut self, name: &'static str) -> Self {
+        self.multicolor = Some(name);
         self
     }
 
@@ -358,13 +365,19 @@ impl Component for ColorWell {
         let style: ColorWellStyle = resolve(&self.style);
         let choice = use_choice(self.selected, self.on_change.clone());
         let swatches = self
-            .swatches
-            .iter()
+            .multicolor
+            .map(|name| (name, None))
+            .into_iter()
+            .chain(
+                self.swatches
+                    .iter()
+                    .map(|(name, fill)| (swatch_name(name), Some(*fill))),
+            )
             .enumerate()
             .map(|(index, (name, fill))| {
                 Swatch {
-                    name: swatch_name(name),
-                    fill: *fill,
+                    name,
+                    fill,
                     selected: choice.is(index),
                     disabled: self.disabled,
                     on_select: choice.select(index),
@@ -379,7 +392,7 @@ impl Component for ColorWell {
 #[derive(PartialEq)]
 struct Swatch {
     name: &'static str,
-    fill: Rgba,
+    fill: Option<Rgba>,
     selected: bool,
     disabled: bool,
     on_select: Callback<(), ()>,
@@ -400,15 +413,26 @@ impl Component for Swatch {
         let enabled = !self.disabled;
         let on_select = self.on_select.clone();
 
-        let mut dot = shadowed(
-            rect()
-                .width(Size::px(size))
-                .height(Size::px(size))
-                .corner_radius(radius)
-                .background(color(self.fill))
-                .bordered(&paints, style.swatch_border.as_ref()),
-            &style.swatch_shadows,
-        );
+        let mut dot =
+            shadowed(
+                rect()
+                    .width(Size::px(size))
+                    .height(Size::px(size))
+                    .corner_radius(radius)
+                    .map(self.fill, |el, fill| el.background(color(fill)))
+                    .maybe(self.fill.is_none(), |el| {
+                        el.background(ConicGradient::new().stops(
+                            MULTICOLOR.iter().enumerate().map(|(index, stop)| {
+                                GradientStop::new(
+                                    color(*stop),
+                                    index as f32 * 100.0 / (MULTICOLOR.len() - 1) as f32,
+                                )
+                            }),
+                        ))
+                    })
+                    .bordered(&paints, style.swatch_border.as_ref()),
+                &style.swatch_shadows,
+            );
         if selected {
             dot = ring(
                 dot,

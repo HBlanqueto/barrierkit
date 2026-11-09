@@ -581,6 +581,7 @@ nothing is blurred.
 | `ACCENT_MIN_CONTRAST_ON_WINDOW`, `ON_ACCENT_MIN_CONTRAST` | `f32` | 3 and 4.5: contrast of the accent on the window and of ink on the accent. |
 | `DOMINANT_LIGHTNESS`, `DOMINANT_MIN_CHROMA` | `[f32; 2]`, `f32` | Lightness range and minimum chroma of a wallpaper's dominant color. |
 | `ACCENT_SWATCHES` | `[(&str, Rgba); 8]` | The accent choices: blue, purple, pink, red, orange, yellow, green, graphite. |
+| `MULTICOLOR` | `[Rgba; 8]` | The stops of the rainbow swatch, from the accent swatches, red to red. |
 | `CHART_SERIES` | `[Rgba; 7]` | Series colors of charts ([16](16-charts.md)). |
 | `LEVEL_INDICATOR_COLORS` | `[Rgba; 3]` | Normal, warning and critical colors of a level indicator. |
 | `SHELL_LIGHT`, `SHELL_LIGHT_OPAQUE`, `SHELL_DARK`, `SHELL_DARK_OPAQUE`, `SHELL_DARK_TINT`, `SHELL_DARK_TINT_OPAQUE` | `ShellPalette` | Menu bar and Dock, translucent and opaque. |

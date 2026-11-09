@@ -507,6 +507,7 @@ fn emit_specials(out: &mut String, tengen: &Tengen) {
     let palette = tengen.get("components.settings.accent-swatches");
     for (constant, path) in [
         ("CHART_SERIES", "components.chart.series"),
+        ("MULTICOLOR", "components.settings.multicolor"),
         (
             "LEVEL_INDICATOR_COLORS",
             "components.level-indicator.colors",
