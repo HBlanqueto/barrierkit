@@ -100,6 +100,8 @@ pub(crate) struct Runtime {
     pub(crate) extension: Option<Extension>,
     pub(crate) appmenu_manager: Option<OrgKdeKwinAppmenuManager>,
     pub(crate) focus_manager: Option<super::focus::InfinityFocusManagerV1>,
+    pub(crate) dialog_manager:
+        Option<wayland_protocols::xdg::dialog::v1::client::xdg_wm_dialog_v1::XdgWmDialogV1>,
     pub(crate) window_style: Option<super::window_style::InfinityWindowStyleV1>,
     pub(crate) fractional_manager: Option<WpFractionalScaleManagerV1>,
     pub(crate) viewporter: Option<WpViewporter>,
@@ -348,6 +350,7 @@ impl Runtime {
         let focus_manager = globals
             .bind::<super::focus::InfinityFocusManagerV1, _, _>(&qh, 1..=3, ())
             .ok();
+        let dialog_manager = globals.bind(&qh, 1..=1, ()).ok();
         let window_style = globals
             .bind::<super::window_style::InfinityWindowStyleV1, _, _>(&qh, 1..=4, ())
             .ok();
@@ -415,6 +418,7 @@ impl Runtime {
             extension: None,
             appmenu_manager,
             focus_manager,
+            dialog_manager,
             window_style,
             fractional_manager,
             viewporter,

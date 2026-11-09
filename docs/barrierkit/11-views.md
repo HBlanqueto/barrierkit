@@ -486,9 +486,15 @@ with a continuous corner, 20 of padding and the window shadow (`SHADOW`, or
 `SHADOW_DARK` in dark), so it floats like a window of its own. Draw it while it should show;
 remove it to close it.
 
-While a sheet or an [`Alert`](#alert) shows, the window is modal as in AppKit:
-the veil takes every click, minimize and zoom still work, and the close light
-is disabled.
+In a window, the sheet is a window of its own, like an AppKit sheet: a child
+toplevel marked modal with `xdg-dialog-v1`, sized to its content (it starts at
+`DIALOG_SHEET_WIDTH` × `DIALOG_SHEET_HEIGHT`). The compositor keeps it centered
+on the window that opened it and moves it with that window. Without a window
+(tests, shell layers) it draws inside the surface over the veil.
+
+While a sheet or an [`Alert`](#alert) shows, the window that opened it is modal
+as in AppKit: its content takes no clicks, minimize and zoom still work, and the
+close light is disabled.
 
 ### `Alert`
 
@@ -511,6 +517,7 @@ Alert::new("Forget this network?", "You will have to type the password again.")
 | `.confirm(label, callback)` | "OK", nothing | The primary button, on the right; Enter presses it |
 | `.cancel(label, callback)` | "Cancel", nothing | The other button; Escape presses it |
 | `.suppression(State<bool>)` | none | Adds the "Do not show this message again" checkbox bound to the state, like `NSAlert`'s `showsSuppressionButton` |
+| `.destructive()` | off | The primary button takes `ButtonStyle::destructive`, like `NSAlert.hasDestructiveAction` |
 
 The alert is `DIALOG_ALERT_WIDTH` (260) wide and splits its two large buttons
 evenly. It does not close itself: the callbacks stop drawing it.

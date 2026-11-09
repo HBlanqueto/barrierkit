@@ -18,6 +18,7 @@ use super::{
 /// | Preset | SwiftUI | Changes |
 /// |---|---|---|
 /// | `ButtonStyle::bordered_prominent` | `.borderedProminent` | `background` `Accent` (disabled `Role(ControlBackground)`), `label` `Role(OnAccent)` (disabled `Role(TertiaryLabel)`), `border` `None` |
+/// | `ButtonStyle::destructive` | `Button(role: .destructive)` | `background` `Role(DestructiveFill)` (`destructive` at `BUTTON_DESTRUCTIVE_FILL`), `label` `Role(Destructive)`, `border` `None` |
 /// | `ButtonStyle::glass` | `.glass` | `background` `Role(RaisedBackground)` (hovered `Role(ControlHover)`, disabled `Role(ControlBackground)`), `border` `(Role(CardBorder), HAIRLINE)`, `shape` `Capsule` |
 /// | `ButtonStyle::glass_prominent` | `.glassProminent` | `bordered_prominent`, then the border and shape of `glass` |
 /// | `ButtonStyle::borderless` | `.borderless` | `background` `Clear` (hovered `Role(ControlHover)`), `border` `None` |
@@ -80,6 +81,17 @@ impl ButtonStyle {
             background: StateValue::new(ShapeStyle::Accent)
                 .disabled(ShapeStyle::Role(Role::ControlBackground)),
             label: StateValue::new(ShapeStyle::Role(Role::OnAccent))
+                .disabled(ShapeStyle::Role(Role::TertiaryLabel)),
+            border: None,
+            ..self
+        }
+    }
+
+    pub fn destructive(self) -> Self {
+        Self {
+            background: StateValue::new(ShapeStyle::Role(Role::DestructiveFill))
+                .disabled(ShapeStyle::Role(Role::ControlBackground)),
+            label: StateValue::new(ShapeStyle::Role(Role::Destructive))
                 .disabled(ShapeStyle::Role(Role::TertiaryLabel)),
             border: None,
             ..self

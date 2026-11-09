@@ -64,6 +64,7 @@ pub struct WindowOptions {
     pub hud: bool,
     pub status_item: Option<crate::status_item::StatusItem>,
     pub panel: PanelBehavior,
+    pub(crate) modal: bool,
     pub theme: crate::styles::Theme,
 }
 
@@ -109,6 +110,7 @@ impl WindowOptions {
             hud: false,
             status_item: None,
             panel: PanelBehavior::UTILITY,
+            modal: false,
             theme: crate::styles::Theme::tengen(),
         }
     }
@@ -300,6 +302,15 @@ impl WindowControls {
         self.ping.ping();
     }
 
+    pub(crate) fn open_sheet(&self, app: AppComponent, mut options: WindowOptions) {
+        options.modal = true;
+        self.send(WindowCommand::Sheet(Box::new((app, options))));
+    }
+
+    pub(crate) fn fit(&self, size: (u32, u32)) {
+        self.send(WindowCommand::Fit(size));
+    }
+
     pub fn open_window(&self, app: AppComponent, options: WindowOptions) {
         self.send(WindowCommand::Open(Box::new((app, options))));
     }
@@ -341,6 +352,8 @@ pub(crate) enum WindowCommand {
     SetTitle(String),
     BackgroundAlpha(f32),
     Open(Box<(AppComponent, WindowOptions)>),
+    Sheet(Box<(AppComponent, WindowOptions)>),
+    Fit((u32, u32)),
     ImeCursor((i32, i32, i32, i32)),
 }
 
@@ -472,6 +485,16 @@ impl Runtime {
         let utility = parent.is_some();
         if let Some((parent, _)) = &parent {
             window.set_parent(Some(parent));
+        }
+        // The xdg_dialog_v1 object lives as long as the toplevel; destroying it would drop the hint.
+        if let Some(manager) = self
+            .dialog_manager
+            .as_ref()
+            .filter(|_| options.modal && parent.is_some())
+        {
+            manager
+                .get_xdg_dialog(window.xdg_toplevel(), qh, ())
+                .set_modal();
         }
         if let Some(style) = self
             .window_style
@@ -644,6 +667,15 @@ impl Runtime {
                     self.create_window(app, options, None);
                     continue;
                 }
+                if let WindowCommand::Sheet(window) = command {
+                    let (app, options) = *window;
+                    self.create_window(app, options, Some(&controls.surface_id));
+                    continue;
+                }
+                if let WindowCommand::Fit(size) = command {
+                    self.fit_window(&controls.surface_id, size);
+                    continue;
+                }
                 let Some(index) = self.surface_index_by_id(&controls.surface_id) else {
                     continue;
                 };
@@ -697,6 +729,8 @@ impl Runtime {
                     WindowCommand::Close
                     | WindowCommand::BackgroundAlpha(_)
                     | WindowCommand::Open(_)
+                    | WindowCommand::Sheet(_)
+                    | WindowCommand::Fit(_)
                     | WindowCommand::ImeCursor(_) => unreachable!(),
                 }
                 self.surfaces[index].needs_redraw = true;
@@ -796,6 +830,26 @@ impl Runtime {
 }
 
 impl Runtime {
+    fn fit_window(&mut self, surface_id: &ObjectId, size: (u32, u32)) {
+        let Some(index) = self.surface_index_by_id(surface_id) else {
+            return;
+        };
+        if self.surfaces[index].logical_size == size {
+            return;
+        }
+        if let SurfaceRole::Window(window) = &self.surfaces[index].role {
+            let fixed = Some((
+                clamp_toplevel_size_dimension(size.0),
+                clamp_toplevel_size_dimension(size.1),
+            ));
+            window.set_min_size(fixed);
+            window.set_max_size(fixed);
+        }
+        let scale = self.surfaces[index].scale;
+        self.surfaces[index].configure(size, scale);
+        self.surfaces[index].needs_redraw = true;
+    }
+
     fn close_window(&mut self, surface_id: ObjectId) {
         let Some(index) = self.surface_index_by_id(&surface_id) else {
             return;

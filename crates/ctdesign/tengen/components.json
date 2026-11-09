@@ -9,6 +9,7 @@
         "weight": 400
       },
       "pressed-scale": 0.97,
+      "destructive-fill": 0.22,
       "large": {
         "height": 28
       },
@@ -620,7 +621,9 @@
     "dialog": {
       "radius": "components.window.corner.unified",
       "padding": 20,
-      "alert-width": 260
+      "alert-width": 260,
+      "sheet-width": 430,
+      "sheet-height": 280
     },
     "menu-popover": {
       "item-height": 24,

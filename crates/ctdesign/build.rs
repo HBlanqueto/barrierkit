@@ -19,6 +19,9 @@ WINDOW_RESIZE WindowResize components.window edge=resize-edge corner=resize-corn
 DIALOG WindowStyle components.dialog corner_radius=radius superellipse_exponent=components.window.corner.exponent
 DIALOG_PADDING f32 components.dialog.padding
 DIALOG_ALERT_WIDTH f32 components.dialog.alert-width
+BUTTON_DESTRUCTIVE_FILL f32 components.button.destructive-fill
+DIALOG_SHEET_WIDTH u32 components.dialog.sheet-width
+DIALOG_SHEET_HEIGHT u32 components.dialog.sheet-height
 POPUP WindowStyle components.shell.menu.panel corner_radius=radius superellipse_exponent=components.window.corner.exponent
 MENU_SEPARATOR_INK_MIX f32 components.shell.menu.separator.tint-ink-mix
 LAYER_FACTOR_BG_SUNKEN f32 appearance.layer-factors.bg-sunken

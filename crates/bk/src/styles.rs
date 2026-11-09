@@ -218,6 +218,7 @@ pub enum Role {
     AccentInactive,
     OnAccent,
     Destructive,
+    DestructiveFill,
     RaisedBackground,
     SunkenBackground,
     Scrim,
@@ -240,6 +241,10 @@ impl Role {
             Self::AccentInactive => palette.accent_inactive,
             Self::OnAccent => palette.on_accent,
             Self::Destructive => palette.destructive,
+            Self::DestructiveFill => Rgba {
+                a: ctdesign::BUTTON_DESTRUCTIVE_FILL,
+                ..palette.destructive
+            },
             Self::RaisedBackground => palette.raised_background,
             Self::SunkenBackground => palette.sunken_background,
             Self::Scrim => palette.scrim,

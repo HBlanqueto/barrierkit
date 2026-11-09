@@ -3,6 +3,7 @@ pub(crate) mod app;
 #[cfg(feature = "a11y")]
 mod atspi;
 mod clipboard;
+mod dialog;
 #[cfg(feature = "video")]
 pub(crate) mod dmabuf;
 #[cfg(test)]
