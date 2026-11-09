@@ -62,6 +62,7 @@ pub enum Symbol {
     Lock,
     Bolt,
     Battery,
+    EllipsisCircle,
 }
 
 impl Symbol {
@@ -102,6 +103,7 @@ impl Symbol {
             Self::Lock => "M4 7.5h8v6H4zM5.5 7.5v-2a2.5 2.5 0 0 1 5 0v2",
             Self::Bolt => "M9 2 4 9h4l-1 5 5-7H8z",
             Self::Battery => "M2 5h10.5v6H2zM14 7v2",
+            Self::EllipsisCircle => "M8 14a6 6 0 1 0 0-12a6 6 0 0 0 0 12M5.4 8h0M8 8h0M10.6 8h0",
             Self::Bell => {
                 "M8 2.5A3.5 3.5 0 0 0 4.5 6v2.6L3 11.5h10l-1.5-2.9V6A3.5 3.5 0 0 0 8 2.5M6.5 13.5a1.5 1.5 0 0 0 3 0"
             }

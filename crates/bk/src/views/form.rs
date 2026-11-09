@@ -30,6 +30,7 @@ pub struct Row {
     detail: Option<&'static str>,
     symbol: Option<(Symbol, Rgba)>,
     icon: Option<Element>,
+    hover_control: Option<Element>,
     accessory: Accessory,
 }
 
@@ -41,6 +42,7 @@ impl Row {
             detail: None,
             symbol: None,
             icon: None,
+            hover_control: None,
             accessory: Accessory::None,
         }
     }
@@ -72,6 +74,11 @@ impl Row {
 
     pub fn symbol(mut self, glyph: Symbol, tint: Rgba) -> Self {
         self.symbol = Some((glyph, tint));
+        self
+    }
+
+    pub fn hover_control(mut self, control: impl IntoElement) -> Self {
+        self.hover_control = Some(control.into_element());
         self
     }
 
@@ -255,6 +262,7 @@ impl Component for FormRow {
     fn render(&self) -> impl IntoElement {
         let style: FormStyle = resolve(&self.style);
         let interaction = use_interaction();
+        let mut hovered = use_state(|| false);
         let row = &self.row;
         let pressable = match &row.accessory {
             Accessory::Navigation(cb) | Accessory::Destructive(cb) => Some(cb.clone()),
@@ -344,9 +352,18 @@ impl Component for FormRow {
                 rect()
                     .direction(Direction::Horizontal)
                     .cross_align(Alignment::Center)
+                    .maybe(row.hover_control.is_some(), |accessories| {
+                        accessories.spacing(style.row_spacing)
+                    })
                     .child(rect().width(Size::px(0.0)).height(Size::px(first_line)))
+                    .maybe_child(row.hover_control.clone().filter(|_| *hovered.read()))
                     .maybe_child(accessory),
             );
+        if row.hover_control.is_some() {
+            element = element
+                .on_pointer_enter(move |_| hovered.set(true))
+                .on_pointer_leave(move |_| hovered.set(false));
+        }
         if let Some(on_press) = pressable {
             element = interaction
                 .attach(element, true)

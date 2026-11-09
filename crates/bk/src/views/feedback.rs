@@ -55,6 +55,37 @@ forward_container!(ContentUnavailableView);
 
 pub struct Sheet(Rect, Element, Theme);
 
+// A window-modal sheet leaves minimize and zoom working but disables close, as in AppKit.
+#[derive(Clone, Copy)]
+pub(crate) struct OpenSheets(pub(crate) State<u32>);
+
+impl OpenSheets {
+    pub(crate) fn any() -> bool {
+        try_consume_root_context::<OpenSheets>().is_some_and(|OpenSheets(open)| *open.read() > 0)
+    }
+}
+
+#[derive(PartialEq)]
+struct SheetPresence;
+
+impl Component for SheetPresence {
+    fn render(&self) -> impl IntoElement {
+        let open = use_hook(try_consume_root_context::<OpenSheets>);
+        use_hook(move || {
+            if let Some(OpenSheets(mut open)) = open {
+                *open.write() += 1;
+            }
+        });
+        use_drop(move || {
+            if let Some(OpenSheets(mut open)) = open {
+                let count = *open.peek();
+                open.set(count.saturating_sub(1));
+            }
+        });
+        rect()
+    }
+}
+
 impl Sheet {
     pub fn new(content: impl IntoElement) -> Self {
         let content = content.into_element();
@@ -78,7 +109,9 @@ fn sheet(content: impl IntoElement, style: &SheetStyle) -> Rect {
         .height(Size::percent(100.0))
         .layer(Layer::Overlay)
         .painted(&paints, &style.scrim)
+        .main_align(Alignment::Center)
         .cross_align(Alignment::Center)
+        .child(SheetPresence)
         .child(
             rect()
                 .a11y_role(AccessibilityRole::Dialog)

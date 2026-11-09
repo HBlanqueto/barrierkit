@@ -1,3 +1,4 @@
+use ctdesign::SYMBOL;
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Area, Direction, Gaps, Size};
 
@@ -18,6 +19,7 @@ use crate::symbol::{Symbol, symbol};
 #[derive(PartialEq)]
 pub struct MenuButton {
     label: &'static str,
+    image: Option<Symbol>,
     items: Vec<MenuItem>,
     on_activate: Option<Callback<String, ()>>,
     style: Theme,
@@ -27,9 +29,17 @@ impl MenuButton {
     pub fn new(label: &'static str, items: Vec<MenuItem>) -> Self {
         Self {
             label,
+            image: None,
             items,
             on_activate: None,
             style: Theme::tengen(),
+        }
+    }
+
+    pub fn system_image(label: &'static str, image: Symbol, items: Vec<MenuItem>) -> Self {
+        Self {
+            image: Some(image),
+            ..Self::new(label, items)
         }
     }
 
@@ -63,10 +73,15 @@ impl Component for MenuButton {
             .a11y_alt(self.label)
             .a11y_builder(|node| node.set_has_popup(accesskit::HasPopup::Menu))
             .height(Size::px(style.height))
-            .padding(Gaps::new(0.0, style.padding_x, 0.0, style.padding_x))
+            .maybe(self.image.is_none(), |button| {
+                button.padding(Gaps::new(0.0, style.padding_x, 0.0, style.padding_x))
+            })
             .corner_radius(radius)
-            .painted(&paints, &style.background)
-            .bordered(&paints, style.border.as_ref())
+            .maybe(self.image.is_none(), |button| {
+                button
+                    .painted(&paints, &style.background)
+                    .bordered(&paints, style.border.as_ref())
+            })
             .direction(Direction::Horizontal)
             .cross_align(Alignment::Center)
             .spacing(style.chevron_gap)
@@ -86,16 +101,26 @@ impl Component for MenuButton {
                     },
                 );
             })
-            .child(
-                with_font(label().text(self.label), style.font)
-                    .max_lines(1)
-                    .color(paints.fill(&style.label)),
-            )
-            .child(symbol(
-                Symbol::ChevronDown,
-                style.chevron_size,
-                paints.color(style.chevron.resolve(state)),
-            ));
+            .map(self.image, |button, image| {
+                button.child(symbol(
+                    image,
+                    SYMBOL.grid,
+                    paints.color(style.chevron.resolve(state)),
+                ))
+            })
+            .maybe(self.image.is_none(), |button| {
+                button
+                    .child(
+                        with_font(label().text(self.label), style.font)
+                            .max_lines(1)
+                            .color(paints.fill(&style.label)),
+                    )
+                    .child(symbol(
+                        Symbol::ChevronDown,
+                        style.chevron_size,
+                        paints.color(style.chevron.resolve(state)),
+                    ))
+            });
         interaction.focus_ring(
             dimmed(shadowed(button, &style.shadows), style.opacity),
             radius.top_left(),

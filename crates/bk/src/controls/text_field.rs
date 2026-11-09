@@ -6,6 +6,7 @@ pub struct SecureField {
     label: &'static str,
     width: Size,
     auto_focus: bool,
+    revealed: bool,
     on_submit: Option<Callback<Zeroizing<String>, ()>>,
     style: Theme,
     key: DiffKey,
@@ -18,10 +19,16 @@ impl SecureField {
             label,
             width: Size::fill(),
             auto_focus: false,
+            revealed: false,
             on_submit: None,
             style: Theme::tengen(),
             key: DiffKey::None,
         }
+    }
+
+    pub fn revealed(mut self, revealed: bool) -> Self {
+        self.revealed = revealed;
+        self
     }
 
     pub fn style(
@@ -72,7 +79,11 @@ impl Component for SecureField {
         let paints = Paints::current(state, style.effect);
         let mut field = self.field;
         let on_submit = self.on_submit.clone();
-        let masked = field.read().masked();
+        let shown = if self.revealed {
+            field.read().revealed()
+        } else {
+            field.read().masked()
+        };
         let margin_y = (style.height - style.font.line_height as f32) / 2.0;
         let radius =
             style
@@ -104,7 +115,7 @@ impl Component for SecureField {
                 }
             })
             .child(crate::style::text(
-                masked,
+                shown,
                 style.font,
                 paints.color(style.text.resolve(state)),
             ));

@@ -181,7 +181,7 @@ as a popover menu below the button.
 
 | Item | Build | Reports |
 |---|---|---|
-| `MenuButton` | `MenuButton::new(label, items)`, `.style(\|s\| ..)` | `.on_activate(\|id: String\| ..)` |
+| `MenuButton` | `MenuButton::new(label, items)`, `MenuButton::system_image(label, Symbol, items)` (only the symbol, borderless, like the «⋯» of a list row; `label` names it for screen readers), `.style(\|s\| ..)` | `.on_activate(\|id: String\| ..)` |
 | `ComboButton` | `ComboButton::new(label, items)`, `.style(\|s\| ..)` | `.on_press(\|_\| ..)` for the label, `.on_activate(\|id: String\| ..)` for the menu |
 | `HelpLink` | `HelpLink::new()`, `.style(\|s\| ..)` | `.on_press(\|_\| ..)` |
 | `ControlGroup` | `ControlGroup::new(label)`, `.child(..)`, `.style(\|s\| ..)` | — (its children report) |
@@ -391,7 +391,7 @@ spell checking are in [6](06-text-and-editing.md#edit-menu).
 |---|---|---|---|
 | `TextField` | `controls` | `TextField::new(value, placeholder)` | `.width(Size)` (fill), `.auto_focus(bool)`, `.style(\|s\| ..)`, `.on_submit(\|text: String\| ..)` |
 | `SearchField` | `controls` | `SearchField::new(value, placeholder)` | `.width`, `.auto_focus`, `.style`, `.tokens(State<Vec<String>>)`, `.a11y_id(AccessibilityId)`, `.on_focus_change(\|focused: bool\| ..)`, `.on_navigate(\|key: NamedKey\| ..)` |
-| `SecureField` | `controls` | `SecureField::new(State<PasswordField>, label)` | `.width`, `.auto_focus`, `.style`, `.on_submit(\|secret: Zeroizing<String>\| ..)` |
+| `SecureField` | `controls` | `SecureField::new(State<PasswordField>, label)` | `.width`, `.auto_focus`, `.revealed(bool)` (shows the text, for «Show password»), `.style`, `.on_submit(\|secret: Zeroizing<String>\| ..)` |
 | `ComboBox` | `combo_box` | `ComboBox::new(value, placeholder)` | `.item(text)`, `.width(Size)`, `.style(\|s\| ..)` |
 
 - All are 24 tall with a 6 side padding. `SecureField` draws the focus ring; the others turn

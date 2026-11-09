@@ -91,6 +91,10 @@ impl PasswordField {
         &self.state
     }
 
+    pub(crate) fn revealed(&self) -> String {
+        self.value.to_string()
+    }
+
     pub fn masked(&self) -> String {
         "•".repeat(self.value.chars().count())
     }

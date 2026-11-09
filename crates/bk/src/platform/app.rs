@@ -198,6 +198,7 @@ impl AppInstance {
         }
         runner.provide_root_context(move || timers);
         runner.provide_root_context(move || DefaultsRevision(defaults_revision));
+        runner.provide_root_context(|| crate::views::feedback::OpenSheets(State::create_global(0)));
         runner.provide_root_context(|| tree.accessibility_generator.clone());
         runner.provide_root_context(|| font_collection.clone());
 

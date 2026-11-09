@@ -570,6 +570,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `compact::ToggleGroup` | struct | — | `≈ NSSegmentedControl` | Row of independent formatting toggles (select-any tracking) | [5](05-controls.md#compact-buttons) |
 | `compact::Face` | enum | — | — | `Bold`, `Italic`, `Underline`: how a toggle's text is drawn | [5](05-controls.md#compact-buttons) |
 | `buttons::MenuButton` | struct | `Menu` | `≈ NSPopUpButton` | Button with a chevron that opens an action menu (pull-down) | [5](05-controls.md#menu-buttons) |
+| `buttons::MenuButton::system_image` | function | `Menu(_:systemImage:)` | — | A menu button that shows only a symbol | [5](05-controls.md#menu-buttons) |
 | `buttons::ComboButton` | struct | `≈ Menu` | `NSComboButton` | Main action plus a chevron that opens a menu | [5](05-controls.md#menu-buttons) |
 | `buttons::HelpLink` | struct | `HelpLink` | `≈ NSButton.BezelStyle.helpButton` | Round "?" help button | [5](05-controls.md#menu-buttons) |
 | `buttons::ControlGroup` | struct | `ControlGroup` | — | Controls joined on one background with separators | [5](05-controls.md#menu-buttons) |
@@ -615,6 +616,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `controls::TextField::on_submit` | method | `.onSubmit(_:)` | `NSTextField.action` | Runs when the user presses Enter, with the text | [5](05-controls.md#text-fields) |
 | `controls::SearchField` | struct | `≈ .searchable(text:tokens:placement:prompt:token:)` | `NSSearchField` | Search field with clear button and optional tokens | [5](05-controls.md#text-fields) |
 | `controls::SecureField` | struct | `SecureField` | `NSSecureTextField` | Masked password field; Enter submits the secret | [5](05-controls.md#text-fields) |
+| `controls::SecureField::revealed` | method | — | — | Shows the typed text instead of dots | [5](05-controls.md#text-fields) |
 | `combo_box::ComboBox` | struct | — | `NSComboBox` | Text field with an arrow that opens suggested values | [5](05-controls.md#text-fields) |
 | `password::PasswordField` | struct | — | — | Zeroizing password buffer with idle, verifying and error states | [5](05-controls.md#passwords) |
 | `password::State` | enum | — | — | `Idle`, `Verifying`, `Error(String)` of a password field | [5](05-controls.md#passwords) |
@@ -836,6 +838,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `views::form::Row::page` | function | ≈ `NavigationLink(value:)` | — | A row that opens a page of a `SettingsWindow` | [11](11-views.md#row) |
 | `views::form::Row::symbol` | method | ≈ `Label(_:systemImage:)` | — | A `SymbolTile` before the row title | [11](11-views.md#row) |
 | `views::form::Row::icon` | method | `Label(title:icon:)` | — | Any view before the row title | [11](11-views.md#row) |
+| `views::form::Row::hover_control` | method | ≈ `.onHover` | — | A control shown only while the pointer is over the row | [11](11-views.md#row) |
 | `views::group::GroupBox` | struct | `GroupBox` | `NSBox` | A rounded box with an optional label that groups controls | [11](11-views.md#groupbox) |
 | `views::group::DisclosureGroup` | struct | `DisclosureGroup` | — | A chevron header that shows or hides its indented children | [11](11-views.md#disclosuregroup) |
 
@@ -873,7 +876,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
 |---|---|---|---|---|---|
 | `views::feedback::ContentUnavailableView` | struct | `ContentUnavailableView` | — | A faint symbol over a line of text for an empty view | [11](11-views.md#contentunavailableview) |
-| `views::feedback::Sheet` | struct | `.sheet(isPresented:onDismiss:content:)` | `NSWindow.beginSheet(_:completionHandler:)` | A dialog attached to the window's top edge over a scrim | [11](11-views.md#sheet) |
+| `views::feedback::Sheet` | struct | `.sheet(isPresented:onDismiss:content:)` | `NSWindow.beginSheet(_:completionHandler:)` | A window-modal dialog centered over a scrim; close is disabled while it shows | [11](11-views.md#sheet) |
 | `views::feedback::Alert` | struct | `.alert(_:isPresented:actions:message:)` | `NSAlert` | A sheet with title, message, two buttons and optional suppression checkbox | [11](11-views.md#alert) |
 
 ## Navigation and search

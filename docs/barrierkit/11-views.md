@@ -128,6 +128,7 @@ rows with a control put the label above the control.
 | `.detail(text)` | An explanation under the title |
 | `.symbol(symbol, tint)` | A [`SymbolTile`](10-sidebar.md#symboltile) before the title |
 | `.icon(view)` | Any view before the title, such as a device picture; it replaces `.symbol` |
+| `.hover_control(view)` | A control before the accessory that shows only while the pointer is over the row, like «Connect» in a Wi-Fi list |
 | `.keywords(&[..])` | Extra words for the `SettingsWindow` search |
 
 Long titles and details wrap without clipping the control.
@@ -480,9 +481,13 @@ line of text, for a view with nothing to show, like SwiftUI's
 ### `Sheet`
 
 `Sheet::new(content)` covers the window with the `Palette::scrim` veil and
-shows `content` in a dialog attached to the top edge, centered horizontally.
-The dialog has radius 26 with a continuous corner and 20 of padding. Draw it
-while it should show; remove it to close it.
+shows `content` in a dialog centered in the window. The dialog has radius 26
+with a continuous corner and 20 of padding. Draw it while it should show;
+remove it to close it.
+
+While a sheet or an [`Alert`](#alert) shows, the window is modal as in AppKit:
+the veil takes every click, minimize and zoom still work, and the close light
+is disabled.
 
 ### `Alert`
 

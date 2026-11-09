@@ -124,6 +124,7 @@ impl Component for TrafficLights {
             }
         });
         let zoom_shown = input.zoom_supported || self.fixed_width;
+        let close_blocked = crate::views::feedback::OpenSheets::any();
         let close_only = self.close_only;
         let interactive = self.input.is_none();
         let action = self.on_action.clone();
@@ -146,7 +147,7 @@ impl Component for TrafficLights {
                     kind == ButtonKind::Close
                 } else {
                     zoom_shown || kind != ButtonKind::Maximize
-                };
+                } && !(close_blocked && kind == ButtonKind::Close);
                 let state = ControlState {
                     hovered: input.group_hovered,
                     pressed: input.pressed == Some(kind) && (input.focused || input.group_hovered),
@@ -166,7 +167,7 @@ impl Component for TrafficLights {
                     kind == ButtonKind::Close
                 } else {
                     zoom_supported || fixed_width || kind != ButtonKind::Maximize
-                };
+                } && !(close_blocked && kind == ButtonKind::Close);
                 let child_probe = self.probe.map(|base| match kind {
                     ButtonKind::Close => format!("{base}.close").into_boxed_str(),
                     ButtonKind::Minimize => format!("{base}.minimize").into_boxed_str(),
