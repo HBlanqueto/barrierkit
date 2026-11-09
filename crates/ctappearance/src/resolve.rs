@@ -360,16 +360,9 @@ fn tinted_surfaces(
     }
 }
 
-// WCAG 2.2 §1.4.3: text on the accent needs 4.5:1. The light ink stays while it reaches it, then
-// the dark ink; a mid-tone accent that neither reaches is darkened just enough for the light ink.
+// WCAG 2.2 §1.4.3: text on the accent needs 4.5:1. The ink stays light, as in macOS; an accent
+// that does not reach it is darkened just enough.
 fn legible_on_accent(accent: Rgba, light: Rgba) -> (Rgba, Rgba) {
-    if accent.contrast_ratio(light) >= ON_ACCENT_MIN_CONTRAST {
-        return (accent, light);
-    }
-    let ink = crate::backdrop::ink_on(accent);
-    if accent.contrast_ratio(ink) >= ON_ACCENT_MIN_CONTRAST {
-        return (accent, ink);
-    }
     let (hue, saturation, mut lightness) = accent.to_hsl();
     let mut fill = accent;
     while fill.contrast_ratio(light) < ON_ACCENT_MIN_CONTRAST && lightness > 0.0 {
@@ -801,8 +794,7 @@ mod tests {
                     ..Default::default()
                 };
                 let resolved = resolve(&config, None);
-                if crate::backdrop::ink_on(swatch).contrast_ratio(swatch) >= ON_ACCENT_MIN_CONTRAST
-                {
+                if palette(scheme).on_accent.contrast_ratio(swatch) >= ON_ACCENT_MIN_CONTRAST {
                     assert_eq!(
                         resolved.accent, swatch,
                         "{scheme:?} {name}: the fill is the user's"

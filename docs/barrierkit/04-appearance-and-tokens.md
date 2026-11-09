@@ -330,9 +330,9 @@ The rules `resolve` applies:
    `WINDOW_TINT_ACCENT` (light, dark), times the strength factor, times the
    `LAYER_FACTOR_*` of that layer. A part left out of `tint_parts` stays
    neutral.
-3. `on_accent` is the light ink while it reaches 4.5:1 on the accent
-   (`ON_ACCENT_MIN_CONTRAST`), then the dark ink; an accent that reaches it with
-   neither is darkened just enough (WCAG 2.2 §1.4.3).
+3. `on_accent` is always the light ink, as in macOS. An accent where it does
+   not reach 4.5:1 (`ON_ACCENT_MIN_CONTRAST`) is darkened just enough
+   (WCAG 2.2 §1.4.3).
 4. Wallpaper tinting is on with `wallpaper_tinting`, a neutral
    `window_color` and any accent but graphite (malaysia ADR 0065). It
    applies in dark schemes, and in light ones with
