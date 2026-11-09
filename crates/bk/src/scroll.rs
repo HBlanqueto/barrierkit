@@ -1,6 +1,7 @@
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 
-use ctappearance::ScrollBars;
+use ctappearance::{ScrollBarClick, ScrollBars};
 use ctdesign::Rgba;
 use freya_components::scrollviews::{
     ScrollConfig, ScrollController as Inner, ScrollView as Scroller,
@@ -17,6 +18,8 @@ use crate::theme::color;
 
 // Freya paints by tree depth; the thumb must sit above the scrolled content, like Freya's own bar.
 const THUMB_LAYER: i16 = 999;
+
+pub(crate) static SCROLLED_WITH_A_MOUSE: AtomicBool = AtomicBool::new(false);
 
 #[derive(Clone, PartialEq)]
 pub struct ScrollView {
@@ -186,6 +189,31 @@ fn thumb(viewport: f32, content: f32, scrolled: f32, min_length: f32) -> Option<
     Some((travel * (viewport - length), length))
 }
 
+fn track_click(
+    click: ScrollBarClick,
+    at: f32,
+    thumb: (f32, f32),
+    track: f32,
+    offset: i32,
+    viewport: f32,
+    content: f32,
+) -> i32 {
+    let (start, length) = thumb;
+    match click {
+        ScrollBarClick::NextPage if at < start => {
+            clamped(offset, viewport.into(), viewport, content)
+        }
+        ScrollBarClick::NextPage if at > start + length => {
+            clamped(offset, (-viewport).into(), viewport, content)
+        }
+        ScrollBarClick::NextPage => offset,
+        ScrollBarClick::ClickedSpot => {
+            let travel = ((at - length / 2.0) / (track - length).max(1.0)).clamp(0.0, 1.0);
+            -(travel * (content - viewport).max(0.0)).round() as i32
+        }
+    }
+}
+
 fn bar_rect(
     style: &ScrollViewStyle,
     horizontal: bool,
@@ -225,7 +253,11 @@ impl Component for ScrollView {
         let ink =
             |paint: &StateValue<ShapeStyle>| paints.color(paint.resolve(ControlState::default()));
         let resolved = crate::theme::resolved();
-        let always = resolved.scroll_bars == ScrollBars::Always;
+        let always = match resolved.scroll_bars {
+            ScrollBars::Always => true,
+            ScrollBars::WhenScrolling => false,
+            ScrollBars::Automatic => SCROLLED_WITH_A_MOUSE.load(Ordering::Relaxed),
+        };
         let own = use_scroll_controller();
         let controller = self.controller.unwrap_or(own);
         let horizontal = self.direction == Direction::Horizontal;
@@ -308,11 +340,30 @@ impl Component for ScrollView {
                     .layer(THUMB_LAYER)
                     .background(color(ink(&style.top_line)))
             }))
-            .maybe_child(bar.filter(|_| always).map(|_| {
-                bar_rect(&style, horizontal, edge, track_length, breadth).background(color(Rgba {
-                    a: style.track_opacity,
-                    ..ink(&style.track)
-                }))
+            .maybe_child(bar.filter(|_| always).map(|thumb| {
+                let click = resolved.scroll_bar_click;
+                let (shown, whole) = (along(*viewport.peek()), along(*content.peek()));
+                let mut inner = controller.inner;
+                bar_rect(&style, horizontal, edge, track_length, breadth)
+                    .background(color(Rgba {
+                        a: style.track_opacity,
+                        ..ink(&style.track)
+                    }))
+                    .on_mouse_down(move |event: Event<MouseEventData>| {
+                        event.stop_propagation();
+                        let at = if horizontal {
+                            event.element_location.x
+                        } else {
+                            event.element_location.y
+                        } as f32;
+                        let next =
+                            track_click(click, at, thumb, track_length, scrolled, shown, whole);
+                        if horizontal {
+                            inner.scroll_to_x(next);
+                        } else {
+                            inner.scroll_to_y(next);
+                        }
+                    })
             }))
             .maybe_child(bar.map(|(offset, length)| {
                 bar_rect(&style, horizontal, edge + offset, length, breadth).background(color(
@@ -348,6 +399,54 @@ mod tests {
         assert_eq!(clamped(-590, -30.0, 200.0, 800.0), -600);
         assert_eq!(clamped(0, -30.0, 200.0, 100.0), 0);
         assert_eq!(clamped(-100, -30.0, 200.0, 800.0), -130);
+    }
+
+    #[test]
+    fn a_click_beside_the_thumb_pages_toward_it_and_a_click_on_it_does_nothing() {
+        let page = |at| {
+            track_click(
+                ScrollBarClick::NextPage,
+                at,
+                (40.0, 20.0),
+                100.0,
+                -200,
+                100.0,
+                500.0,
+            )
+        };
+        assert_eq!(page(10.0), -100);
+        assert_eq!(page(90.0), -300);
+        assert_eq!(page(50.0), -200);
+        assert_eq!(
+            track_click(
+                ScrollBarClick::NextPage,
+                95.0,
+                (70.0, 20.0),
+                100.0,
+                -350,
+                100.0,
+                500.0
+            ),
+            -400
+        );
+    }
+
+    #[test]
+    fn a_click_on_the_spot_centres_the_thumb_there() {
+        let spot = |at| {
+            track_click(
+                ScrollBarClick::ClickedSpot,
+                at,
+                (0.0, 20.0),
+                100.0,
+                0,
+                100.0,
+                500.0,
+            )
+        };
+        assert_eq!(spot(10.0), 0);
+        assert_eq!(spot(50.0), -200);
+        assert_eq!(spot(95.0), -400);
     }
 
     #[test]

@@ -228,17 +228,19 @@ tint_parts = ["sidebars", "window", "groups", "controls", "menus"]
 |---|---|---|---|
 | `color_scheme` | `ColorScheme` | `auto`, `light`, `dark`, `dark_tint` | `auto` |
 | `accent_color` | `Option<[f32; 3]>` | RGB from 0 to 1 | the theme's accent |
+| `wallpaper_accent` | `bool` | the accent is the wallpaper's dominant color; `accent_color` stays as the fallback | `false` |
 | `contrast` | `bool` | | `false` |
 | `reduced_motion` | `bool` | | `false` |
 | `reduce_transparency` | `bool` | | `true` |
-| `scroll_bars` | `ScrollBars` | `when_scrolling`, `always` | `when_scrolling` |
+| `scroll_bars` | `ScrollBars` | `automatic`, `when_scrolling`, `always` | `automatic` |
+| `scroll_bar_click` | `ScrollBarClick` | `next_page`, `clicked_spot` | `next_page` |
 | `window_color` | `WindowColorMode` | `neutral`, `accent` (an old `wallpaper` reads as `neutral`) | `neutral` |
 | `window_tint_scope` | `WindowTintScope` | `windows`, `desktop` | `windows` |
-| `tint_strength_accent` | `TintStrength` | `subtle`, `normal`, `strong`, `intense` | `normal` |
+| `tint_strength` | `TintStrength` | `subtle`, `normal`, `strong`, `intense` (the old key `tint_strength_accent` still reads) | `normal` |
 | `tint_parts` | `TintParts` | list of `sidebars`, `window`, `groups`, `controls`, `menus` | all five |
 | `sidebar_style` | `SidebarStyle` | `island`, `flat` | `island` |
-| `traffic_lights` | `TrafficLightStyle` | `auto`, `standard`, `accent`, `wallpaper` | `auto` |
-| `traffic_light_shape` | `TrafficLightShape` | `square`, `round` | `square` |
+| `traffic_lights` | `TrafficLightStyle` | `auto`, `standard`, `accent` (an old `wallpaper` reads as `accent`) | `auto` |
+| `traffic_light_shape` | `TrafficLightShape` | corner radius from 0 to 7 on the 14 light; the old `square` reads as 4 and `round` as 7 | `4` |
 | `wallpaper_tinting` | `bool` | | `true` |
 | `wallpaper_tinting_in_light` | `bool` | | `false` |
 | `invert_colors` | `bool` | | `false` |
@@ -258,13 +260,16 @@ Notes on the values:
 
 - `auto` resolves to `light` (`ColorScheme::resolved`); `is_dark()` is true for
   `dark` and `dark_tint`.
-- `TintStrength::factor()` multiplies the tint by `TINT_STRENGTH`: 0.5, 1, 1.5
-  or 2.
+- `TintStrength::factor()` multiplies the accent tint and the wallpaper tint by
+  `TINT_STRENGTH`: 0.5, 1, 1.5 or 2.
+- `scroll_bars = "automatic"` keeps the bar on screen after a mouse wheel and
+  hides it after a touchpad scroll, like macOS «Automatically based on mouse or
+  trackpad».
 - `traffic_lights = "auto"` follows `window_color`
   (`AppearanceConfig::traffic_light_style`). The old value `"macos"` still
   reads as `standard`, with a warning.
 - `TrafficLightShape::corner_radius(diameter)` gives the radius of a light of
-  that size.
+  that size; `TrafficLightShape::new(radius)` stops at `ROUND`.
 - The accessibility keys follow macOS System Settings › Accessibility ›
   Display. The kit applies three of them in `ControlStyle::accessible`:
   `show_borders` draws a `ControlBorder` line around icon buttons, tool groups
@@ -305,7 +310,7 @@ a style.
 | `wallpaper_tinting` | Amount of the wallpaper behind a window, or `None` when it is off. `Resolved::behind_window(color)` mixes that color into `sidebar.bg`. |
 | `window_tint_scope`, `tint_parts` | Copies of the config. |
 | `lights`, `traffic_style`, `traffic_shape` | The traffic-light colors, style and shape. |
-| `contrast`, `reduced_motion`, `scroll_bars` | Copies of the config. |
+| `contrast`, `reduced_motion`, `scroll_bars`, `scroll_bar_click` | Copies of the config. |
 | `reduce_transparency` | `AppearanceConfig::transparency_reduced()`: true with `reduce_transparency` or `contrast`. |
 | `show_borders`, `differentiate_without_color`, `menu_bar_size` | Copies of the config. |
 | `text_size` | `AppearanceConfig::text_size_for(Toolkit::BarrierKit)`: the BarrierKit size, or the preferred `text_size`. |
@@ -331,8 +336,9 @@ The rules `resolve` applies:
    `window_color` and any accent but graphite (malaysia ADR 0065). It
    applies in dark schemes, and in light ones with
    `wallpaper_tinting_in_light`. The amount is `WALLPAPER_TINTING` (light,
-   dark).
-5. Menu hover, sidebar selection and the shell's active tile take the accent.
+   dark) times `tint_strength`.
+5. With `wallpaper_accent` and a dominant color, the accent is that color.
+6. Menu hover, sidebar selection and the shell's active tile take the accent.
 
 ### Wallpaper behind a window
 

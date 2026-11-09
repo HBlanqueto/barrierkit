@@ -672,7 +672,9 @@ Badge::new("3").style(|s| BadgeStyle {
 
 The bar is a 7 thumb that appears while scrolling and fades 800 ms later. With the
 appearance setting `scroll_bars = "always"` ([4](04-appearance-and-tokens.md)) it stays,
-17 wide on a faint track.
+17 wide on a faint track; `"automatic"` does so after a mouse wheel. A click on
+the track pages toward the click, or with `scroll_bar_click = "clicked_spot"`
+centers the thumb there, like the macOS Appearance setting.
 
 `use_scroll_controller()` returns a `ScrollController` (`Copy`):
 

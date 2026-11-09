@@ -21,8 +21,8 @@ use ctdesign::{
 };
 
 use crate::{
-    AppearanceConfig, ColorScheme, MenuBarSize, ScrollBars, SidebarStyle, TintParts, Toolkit,
-    TrafficLightShape, TrafficLightStyle, WindowColorMode, WindowTintScope,
+    AppearanceConfig, ColorScheme, MenuBarSize, ScrollBarClick, ScrollBars, SidebarStyle,
+    TintParts, Toolkit, TrafficLightShape, TrafficLightStyle, WindowColorMode, WindowTintScope,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -73,6 +73,7 @@ pub struct Resolved {
     pub text_size: f32,
     pub menu_bar_size: MenuBarSize,
     pub scroll_bars: ScrollBars,
+    pub scroll_bar_click: ScrollBarClick,
     pub shell: ShellPalette,
     pub menu: MenuPalette,
     pub sidebar: SidebarSurface,
@@ -210,7 +211,7 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
     let base = palette(scheme);
     let index = usize::from(scheme.is_dark());
 
-    let normal_accent = appearance
+    let chosen_accent = appearance
         .accent_color
         .map(|[r, g, b]| Rgba {
             r: r.clamp(0.0, 1.0),
@@ -219,6 +220,9 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
             a: 1.0,
         })
         .unwrap_or(base.accent);
+    let normal_accent = dominant
+        .filter(|_| appearance.wallpaper_accent)
+        .unwrap_or(chosen_accent);
 
     let (accent, on_accent) = legible_on_accent(normal_accent, base.on_accent);
 
@@ -226,16 +230,16 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
         WindowColorMode::Neutral => None,
         WindowColorMode::Accent => Some((
             normal_accent,
-            WINDOW_TINT_ACCENT[index] * appearance.tint_strength_accent.factor(),
+            WINDOW_TINT_ACCENT[index] * appearance.tint_strength.factor(),
         )),
     };
     let wallpaper_tinting = (appearance.wallpaper_tinting
         && window_tint.is_none()
         && !is_graphite(normal_accent)
         && (scheme.is_dark() || appearance.wallpaper_tinting_in_light))
-        .then_some(WALLPAPER_TINTING[index]);
+        .then_some(WALLPAPER_TINTING[index] * appearance.tint_strength.factor());
 
-    let lights = lights_for(appearance.traffic_light_style(), normal_accent, dominant);
+    let lights = lights_for(appearance.traffic_light_style(), normal_accent);
 
     let (mut shell, mut menu, mut sidebar, mut toolgroup) = chrome_surfaces(
         scheme,
@@ -294,6 +298,7 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
         text_size: appearance.text_size_for(Toolkit::BarrierKit),
         menu_bar_size: appearance.menu_bar_size,
         scroll_bars: appearance.scroll_bars,
+        scroll_bar_click: appearance.scroll_bar_click,
         shell,
         menu,
         sidebar,
@@ -426,11 +431,7 @@ fn is_graphite(accent: Rgba) -> bool {
     })
 }
 
-pub fn lights_for(
-    style: TrafficLightStyle,
-    normal_accent: Rgba,
-    dominant: Option<Rgba>,
-) -> [Rgba; 3] {
+pub fn lights_for(style: TrafficLightStyle, normal_accent: Rgba) -> [Rgba; 3] {
     let derived = |source: Rgba| {
         [
             source.darken(TRAFFIC_CLOSE_MINIMIZE_DARKEN),
@@ -443,7 +444,6 @@ pub fn lights_for(
             TITLEBAR.buttons.order.map(|button| button.color)
         }
         TrafficLightStyle::Accent => derived(normal_accent),
-        TrafficLightStyle::Wallpaper => derived(dominant.unwrap_or(normal_accent)),
     }
 }
 
@@ -560,16 +560,19 @@ mod tests {
     }
 
     #[test]
-    fn wallpaper_traffic_lights_follow_the_dominant_even_in_accent_mode() {
+    fn the_wallpaper_accent_follows_the_dominant_and_falls_back_to_the_chosen_colour() {
         let accent = [0.9, 0.3, 0.1];
         let with_dominant = resolve(
-            &appearance(
-                ColorScheme::Light,
-                WindowColorMode::Accent,
-                WindowTintScope::Windows,
-                TrafficLightStyle::Wallpaper,
-                Some(accent),
-            ),
+            &AppearanceConfig {
+                wallpaper_accent: true,
+                ..appearance(
+                    ColorScheme::Light,
+                    WindowColorMode::Accent,
+                    WindowTintScope::Windows,
+                    TrafficLightStyle::Accent,
+                    Some(accent),
+                )
+            },
             Some(dominant()),
         );
         assert_eq!(
@@ -582,13 +585,16 @@ mod tests {
         );
 
         let without_dominant = resolve(
-            &appearance(
-                ColorScheme::Light,
-                WindowColorMode::Accent,
-                WindowTintScope::Windows,
-                TrafficLightStyle::Wallpaper,
-                Some(accent),
-            ),
+            &AppearanceConfig {
+                wallpaper_accent: true,
+                ..appearance(
+                    ColorScheme::Light,
+                    WindowColorMode::Accent,
+                    WindowTintScope::Windows,
+                    TrafficLightStyle::Accent,
+                    Some(accent),
+                )
+            },
             None,
         );
         let normal = Rgba {

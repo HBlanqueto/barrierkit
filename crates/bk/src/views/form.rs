@@ -32,6 +32,7 @@ pub struct Row {
     icon: Option<Element>,
     hover_control: Option<Element>,
     accessory: Accessory,
+    stacked: bool,
 }
 
 impl Row {
@@ -44,6 +45,7 @@ impl Row {
             icon: None,
             hover_control: None,
             accessory: Accessory::None,
+            stacked: false,
         }
     }
 
@@ -84,6 +86,11 @@ impl Row {
 
     pub fn icon(mut self, icon: impl IntoElement) -> Self {
         self.icon = Some(icon.into_element());
+        self
+    }
+
+    pub fn stacked(mut self) -> Self {
+        self.stacked = true;
         self
     }
 
@@ -302,7 +309,7 @@ impl Component for FormRow {
         let (padding_x, padding_y) = style.row_padding;
         let first_line = style.row_min_height - 2.0 * padding_y;
         let aligned_to_first_line = matches!(row.accessory, Accessory::Control(_));
-        let stacked = self.stacked && aligned_to_first_line;
+        let stacked = (self.stacked || row.stacked) && aligned_to_first_line;
         let wrapping = |content: &'static str, face, ink| {
             text(content, face, ink).width(Size::fill()).max_lines(None)
         };

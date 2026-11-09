@@ -175,8 +175,8 @@ Theme::tengen().style(|s: TrafficLightsStyle| TrafficLightsStyle {
 ```
 
 The user decides the rest. The appearance keys `traffic_lights` (color:
-`auto`, `standard`, `accent`, `wallpaper`) and `traffic_light_shape`
-(`square`, `round`) are in
+`auto`, `standard`, `accent`) and `traffic_light_shape` (corner radius
+from 0, square, to 7, round) are in
 [4](04-appearance-and-tokens.md#the-appearance-file). `WindowChromeStyle::round_lights`
 also makes them round. The behavior keys live in
 `~/.config/malaysia/window.domain`

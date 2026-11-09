@@ -141,22 +141,44 @@ pub enum SidebarStyle {
     Flat,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize, Serialize)]
-#[serde(rename_all = "lowercase")]
-pub enum TrafficLightShape {
-    #[default]
-    Square,
-    Round,
-}
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize)]
+pub struct TrafficLightShape(u32);
 
 impl TrafficLightShape {
+    pub const ROUND: Self = Self(TITLEBAR.buttons.diameter / 2);
+
+    pub fn new(radius: u32) -> Self {
+        Self(radius.min(Self::ROUND.0))
+    }
+
+    pub fn radius(self) -> u32 {
+        self.0
+    }
+
     pub fn corner_radius(self, diameter: f32) -> f32 {
-        match self {
-            Self::Square => {
-                diameter * TITLEBAR.buttons.corner_radius as f32 / TITLEBAR.buttons.diameter as f32
-            }
-            Self::Round => diameter / 2.0,
+        diameter * self.0 as f32 / TITLEBAR.buttons.diameter as f32
+    }
+}
+
+impl Default for TrafficLightShape {
+    fn default() -> Self {
+        Self(TITLEBAR.buttons.corner_radius)
+    }
+}
+
+impl<'de> Deserialize<'de> for TrafficLightShape {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[derive(Deserialize)]
+        #[serde(untagged)]
+        enum Stored {
+            Radius(u32),
+            Named(String),
         }
+        Ok(match Stored::deserialize(deserializer)? {
+            Stored::Radius(radius) => Self::new(radius),
+            Stored::Named(name) if name == "round" => Self::ROUND,
+            Stored::Named(_) => Self::default(),
+        })
     }
 }
 
@@ -167,16 +189,25 @@ pub enum TrafficLightStyle {
     Auto,
     #[serde(alias = "macos")]
     Standard,
+    #[serde(alias = "wallpaper")]
     Accent,
-    Wallpaper,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ScrollBars {
     #[default]
+    Automatic,
     WhenScrolling,
     Always,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ScrollBarClick {
+    #[default]
+    NextPage,
+    ClickedSpot,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize, Serialize)]
@@ -232,10 +263,13 @@ pub struct AppearanceConfig {
     pub color_scheme: ColorScheme,
     #[serde(skip_serializing)]
     pub accent_color: Option<[f32; 3]>,
+    pub wallpaper_accent: bool,
     pub contrast: bool,
     pub reduced_motion: bool,
     #[serde(deserialize_with = "lenient")]
     pub scroll_bars: ScrollBars,
+    #[serde(deserialize_with = "lenient")]
+    pub scroll_bar_click: ScrollBarClick,
     pub reduce_transparency: bool,
     #[serde(deserialize_with = "lenient")]
     pub window_color: WindowColorMode,
@@ -247,8 +281,8 @@ pub struct AppearanceConfig {
     pub traffic_light_shape: TrafficLightShape,
     #[serde(deserialize_with = "lenient")]
     pub sidebar_style: SidebarStyle,
-    #[serde(deserialize_with = "lenient")]
-    pub tint_strength_accent: TintStrength,
+    #[serde(deserialize_with = "lenient", alias = "tint_strength_accent")]
+    pub tint_strength: TintStrength,
     #[serde(
         deserialize_with = "deserialize_tint_parts",
         serialize_with = "serialize_tint_parts"
@@ -277,16 +311,18 @@ impl Default for AppearanceConfig {
         Self {
             color_scheme: ColorScheme::default(),
             accent_color: None,
+            wallpaper_accent: false,
             contrast: false,
             reduced_motion: false,
             scroll_bars: ScrollBars::default(),
+            scroll_bar_click: ScrollBarClick::default(),
             reduce_transparency: true,
             window_color: WindowColorMode::default(),
             window_tint_scope: WindowTintScope::default(),
             traffic_lights: TrafficLightStyle::default(),
             traffic_light_shape: TrafficLightShape::default(),
             sidebar_style: SidebarStyle::default(),
-            tint_strength_accent: TintStrength::default(),
+            tint_strength: TintStrength::default(),
             tint_parts: TintParts::default(),
             wallpaper_tinting: true,
             wallpaper_tinting_in_light: false,
@@ -567,16 +603,18 @@ traffic_lights = "auto"
         let config = AppearanceConfig {
             color_scheme: ColorScheme::Dark,
             accent_color: Some([0.184, 0.435, 0.894]),
+            wallpaper_accent: true,
             contrast: false,
             reduced_motion: false,
             scroll_bars: ScrollBars::WhenScrolling,
+            scroll_bar_click: ScrollBarClick::ClickedSpot,
             reduce_transparency: true,
             window_color: WindowColorMode::Accent,
             window_tint_scope: WindowTintScope::Desktop,
             traffic_lights: TrafficLightStyle::Accent,
-            traffic_light_shape: TrafficLightShape::Round,
+            traffic_light_shape: TrafficLightShape::new(2),
             sidebar_style: SidebarStyle::Flat,
-            tint_strength_accent: TintStrength::Strong,
+            tint_strength: TintStrength::Strong,
             tint_parts: TintParts {
                 sidebars: true,
                 window: false,
@@ -696,7 +734,7 @@ sidebar_style = "island"
 "#,
         )
         .unwrap();
-        assert_eq!(config.tint_strength_accent, TintStrength::Normal);
+        assert_eq!(config.tint_strength, TintStrength::Normal);
         assert_eq!(config.tint_parts, TintParts::default());
         assert!(config.wallpaper_tinting);
         assert!(!config.wallpaper_tinting_in_light);
@@ -755,6 +793,38 @@ tint_parts = ["window", "halo"]
     }
 
     #[test]
+    fn the_named_traffic_light_shapes_read_as_their_radius_and_a_radius_stops_at_round() {
+        let read = |text: &str| toml::from_str::<AppearanceConfig>(text).unwrap();
+        assert_eq!(
+            read("traffic_light_shape = \"square\"\n").traffic_light_shape,
+            TrafficLightShape::default()
+        );
+        assert_eq!(
+            read("traffic_light_shape = \"round\"\n").traffic_light_shape,
+            TrafficLightShape::ROUND
+        );
+        assert_eq!(
+            read("traffic_light_shape = 0\n")
+                .traffic_light_shape
+                .radius(),
+            0
+        );
+        assert_eq!(
+            read("traffic_light_shape = 99\n").traffic_light_shape,
+            TrafficLightShape::ROUND
+        );
+    }
+
+    #[test]
+    fn the_old_names_read_into_the_shared_tint_strength_and_the_accent_lights() {
+        let config: AppearanceConfig =
+            toml::from_str("tint_strength_accent = \"strong\"\ntraffic_lights = \"wallpaper\"\n")
+                .unwrap();
+        assert_eq!(config.tint_strength, TintStrength::Strong);
+        assert_eq!(config.traffic_lights, TrafficLightStyle::Accent);
+    }
+
+    #[test]
     fn tint_parts_roundtrip_through_write_appearance() {
         let dir = std::env::temp_dir().join(format!(
             "ctappearance-parts-roundtrip-{}",
@@ -763,7 +833,7 @@ tint_parts = ["window", "halo"]
         std::fs::create_dir_all(&dir).unwrap();
         let path = dir.join("appearance.domain");
         let config = AppearanceConfig {
-            tint_strength_accent: TintStrength::Intense,
+            tint_strength: TintStrength::Intense,
             tint_parts: TintParts {
                 sidebars: true,
                 window: false,

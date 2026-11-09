@@ -326,20 +326,21 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 |---|---|---|---|---|---|
 | `ctappearance::AppearanceConfig` | struct | — | — | The user's `appearance.domain`: mode, accent, tints, contrast, motion | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::ColorScheme` | enum | ≈ `ColorScheme` | ≈ `NSAppearance` | `Auto`, `Light`, `Dark`, `DarkTint`; SwiftUI has only light and dark | [4](04-appearance-and-tokens.md#the-appearance-file) |
-| `ctappearance::WindowColorMode` | enum | — | — | Window tint source: `Neutral`, `Accent`, `Wallpaper` | [4](04-appearance-and-tokens.md#the-appearance-file) |
+| `ctappearance::WindowColorMode` | enum | — | — | Window tint source: `Neutral` or `Accent` | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::WindowTintScope` | enum | — | — | Tint reaches `Windows` only or the `Desktop` bars too | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::TintStrength` | enum | — | — | `Subtle`, `Normal`, `Strong`, `Intense`; `factor()` from `TINT_STRENGTH` | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::TintParts` | struct | — | — | Which parts take the tint: sidebars, window, groups, controls, menus | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::SidebarStyle` | enum | — | — | `Island` or `Flat` sidebar | [4](04-appearance-and-tokens.md#the-appearance-file) |
-| `ctappearance::TrafficLightStyle` | enum | — | — | `Auto`, `Standard`, `Accent`, `Wallpaper` traffic-light colors | [4](04-appearance-and-tokens.md#the-appearance-file) |
-| `ctappearance::TrafficLightShape` | enum | — | — | `Square` or `Round` lights; `corner_radius(diameter)` | [4](04-appearance-and-tokens.md#the-appearance-file) |
+| `ctappearance::TrafficLightStyle` | enum | — | — | `Auto`, `Standard`, `Accent` traffic-light colors | [4](04-appearance-and-tokens.md#the-appearance-file) |
+| `ctappearance::TrafficLightShape` | struct | — | — | The lights' corner radius from 0 to `ROUND` (2026-11-09: was the enum `Square`/`Round`); `new(radius)`, `radius()`, `corner_radius(diameter)` | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::Toolkit` | enum | — | — | `BarrierKit`, `Gtk`, `Qt`: the kinds of app in Accessibility › Display › Text size | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::TextSizes` | struct | — | ≈ the per-app list of Accessibility › Display › Text size | An optional text size per `Toolkit`; `get_mut(toolkit)` | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::AppearanceConfig::text_size_for` | method | — | — | The toolkit's own text size, or the preferred `text_size` | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::MenuBarSize` | enum | — | — | Menu bar text `Default` or `Large` | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::ColorFilter` | enum | — | ≈ Accessibility › Display › Color filters | `Grayscale`, `RedGreen`, `GreenRed`, `BlueYellow` | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::AppearanceConfig::transparency_reduced` | method | — | ≈ `NSWorkspace.accessibilityDisplayShouldReduceTransparency` | True with `reduce_transparency` or `contrast` | [4](04-appearance-and-tokens.md#the-appearance-file) |
-| `ctappearance::ScrollBars` | enum | ≈ `ScrollIndicatorVisibility` | ≈ `NSScroller.Style` | Show scroll bars `WhenScrolling` or `Always` | [4](04-appearance-and-tokens.md#the-appearance-file) |
+| `ctappearance::ScrollBars` | enum | ≈ `ScrollIndicatorVisibility` | ≈ `NSScroller.Style` | Show scroll bars `Automatic` (by mouse or touchpad), `WhenScrolling` or `Always` | [4](04-appearance-and-tokens.md#the-appearance-file) |
+| `ctappearance::ScrollBarClick` | enum | — | ≈ `AppleScrollerPagingBehavior` | A click on the track goes to the `NextPage` or the `ClickedSpot` | [4](04-appearance-and-tokens.md#the-appearance-file) |
 
 ## Appearance files and watch
 
@@ -841,6 +842,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `views::form::Row::symbol` | method | ≈ `Label(_:systemImage:)` | — | A `SymbolTile` before the row title | [11](11-views.md#row) |
 | `views::form::Row::icon` | method | `Label(title:icon:)` | — | Any view before the row title | [11](11-views.md#row) |
 | `views::form::Row::hover_control` | method | ≈ `.onHover` | — | A control shown only while the pointer is over the row | [11](11-views.md#row) |
+| `views::form::Row::stacked` | method | ≈ `.pickerStyle(.radioGroup)` under its label | — | The control goes under the title at any width | [11](11-views.md#row) |
 | `views::group::GroupBox` | struct | `GroupBox` | `NSBox` | A rounded box with an optional label that groups controls | [11](11-views.md#groupbox) |
 | `views::group::DisclosureGroup` | struct | `DisclosureGroup` | — | A chevron header that shows or hides its indented children | [11](11-views.md#disclosuregroup) |
 

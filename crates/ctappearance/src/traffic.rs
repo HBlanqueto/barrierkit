@@ -91,7 +91,7 @@ pub fn visual(
             base
         };
         let glyph = input.group_hovered.then(|| match style {
-            TrafficLightStyle::Accent | TrafficLightStyle::Wallpaper => {
+            TrafficLightStyle::Accent => {
                 if kind == ButtonKind::Maximize {
                     TRAFFIC_GLYPH_ON_LIGHT
                 } else {

@@ -1,5 +1,5 @@
+use ctappearance::palette;
 use ctappearance::traffic::{self, ButtonVisual, TrafficInput};
-use ctappearance::{TrafficLightShape, palette};
 use ctdesign::{Rgba, TITLEBAR, TRAFFIC_GLYPHS, TRAFFIC_RIM_WIDTH};
 
 use super::button::rounded;
@@ -101,7 +101,7 @@ impl ControlStyle for TrafficLightsStyle {
             spacing: TITLEBAR.buttons.spacing as f32,
             glyph_size: TRAFFIC_GLYPHS.box_size,
             rim_width: TRAFFIC_RIM_WIDTH,
-            shape: rounded(TrafficLightShape::Square.corner_radius(diameter)),
+            shape: rounded(resolved.traffic_shape.corner_radius(diameter)),
             fills: by_light(|visual| Some(visual.fill), true),
             rims: by_light(|visual| Some(visual.rim), true),
             glyphs: std::array::from_fn(|index| {

@@ -129,6 +129,7 @@ rows with a control put the label above the control.
 | `.symbol(symbol, tint)` | A [`SymbolTile`](10-sidebar.md#symboltile) before the title |
 | `.icon(view)` | Any view before the title, such as a device picture; it replaces `.symbol` |
 | `.hover_control(view)` | A control before the accessory that shows only while the pointer is over the row, like «Connect» in a Wi-Fi list |
+| `.stacked()` | The control goes under the title at any width, as macOS does with radio groups and lists of checkboxes |
 | `.keywords(&[..])` | Extra words for the `SettingsWindow` search |
 
 Long titles and details wrap without clipping the control.

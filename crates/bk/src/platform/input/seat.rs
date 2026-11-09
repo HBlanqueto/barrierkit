@@ -223,6 +223,8 @@ impl Runtime {
             Some(_) => false,
             None => !stepped(horizontal) && !stepped(vertical),
         };
+        crate::scroll::SCROLLED_WITH_A_MOUSE
+            .store(!continuous, std::sync::atomic::Ordering::Relaxed);
         if !continuous {
             return (WheelSource::Line, TouchPhase::Moved);
         }
