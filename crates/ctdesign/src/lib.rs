@@ -198,6 +198,7 @@ pub struct SettingsMetrics {
     pub sidebar_width: u32,
     pub sidebar_lights_gap: u32,
     pub sidebar_search_gap: u32,
+    pub sidebar_group_gap: u32,
     pub sidebar_padding_top: u32,
     pub strength: SettingsStrength,
     pub check: SettingsCheck,
