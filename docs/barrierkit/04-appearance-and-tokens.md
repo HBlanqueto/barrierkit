@@ -133,6 +133,7 @@ Image::system(Symbol::Folder)
 | Places and things | `House`, `Folder`, `Document`, `Star`, `StarFill`, `Clock`, `Bookmark`, `CircleHalf`, `Accessibility`, `Display`, `Moon`, `Bell`, `Bed`, `Person`, `Briefcase`, `Printer`, `Phone`, `SquareOnSquare` |
 | Connections and power | `Wifi`, `Bluetooth`, `Network`, `Lock`, `Bolt`, `Battery` |
 | Row actions | `EllipsisCircle` |
+| Shapes | `Square`, `Circle` |
 
 `StarFill` is the only filled symbol. The kit caches the SVG of each symbol.
 

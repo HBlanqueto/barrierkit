@@ -63,6 +63,8 @@ pub enum Symbol {
     Bolt,
     Battery,
     EllipsisCircle,
+    Square,
+    Circle,
 }
 
 impl Symbol {
@@ -110,6 +112,8 @@ impl Symbol {
             Self::Moon => "M13 9.6A5.5 5.5 0 1 1 6.4 3a4.4 4.4 0 0 0 6.6 6.6z",
             Self::Plus => "M8 3.5v9M3.5 8h9",
             Self::Minus => "M3.5 8h9",
+            Self::Square => "M3.5 3.5h9v9h-9z",
+            Self::Circle => "M8 12.5a4.5 4.5 0 1 0 0-9a4.5 4.5 0 0 0 0 9",
             Self::Ellipsis => "M3.5 8h0M8 8h0M12.5 8h0",
             Self::ChevronUpDown => "M4 6l4-4 4 4M4 10l4 4 4-4",
             Self::ChevronRight => "M6 3l5 5-5 5",
