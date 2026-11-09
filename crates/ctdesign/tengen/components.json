@@ -525,6 +525,7 @@
         "width": 229,
         "lights-gap": 28,
         "search-gap": 8,
+        "group-gap": 12,
         "padding-top": 16
       },
       "toolbar": {

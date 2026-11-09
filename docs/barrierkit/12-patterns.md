@@ -32,7 +32,8 @@ search and saved state.
    let general = Pane::new("general", "General", Symbol::CircleHalf, ACCENT_SWATCHES[0].1, startup);
    ```
 
-3. Group the panes. `None` leaves the group without a title:
+3. Group the panes. `None` leaves the group without a title; the sidebar
+   separates it from the group above by `SETTINGS.sidebar_group_gap`:
 
    ```rust
    let group = PaneGroup::new(None).pane(general);

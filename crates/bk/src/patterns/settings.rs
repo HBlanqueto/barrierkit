@@ -406,10 +406,13 @@ impl Component for SettingsWindow {
                 detail.clone(),
             ));
         }
-        for group in &self.groups {
+        for (index, group) in self.groups.iter().enumerate() {
             let items = group.panes.iter().map(item);
             sidebar = match group.title {
                 Some(title) => sidebar.child(SidebarSection::new(title).children(items)),
+                None if index > 0 => sidebar
+                    .child(rect().height(Size::px(SETTINGS.sidebar_group_gap as f32)))
+                    .children(items),
                 None => sidebar.children(items),
             };
         }
