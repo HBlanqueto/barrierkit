@@ -371,7 +371,9 @@ uses it; an app needs it only with its own event loop.
 
 `menubar::MenubarConfig` is `menubar.domain`: `app_menus` (default `true`)
 shows the active app's own menus. Malaysia's compositor and menu bar both read
-it.
+it. `show_wifi`, `show_bluetooth`, `show_battery`, `show_battery_percentage`
+and `show_vpn` (all `true`) choose the status menus of the bar; System
+Settings writes them.
 
 ### Window behavior
 

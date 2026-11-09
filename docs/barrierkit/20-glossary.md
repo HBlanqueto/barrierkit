@@ -296,6 +296,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `views::feedback::Sheet::style` | method | ≈ `presentationBackground(_:)` | — | Builds the sheet again with a style; call it right after `new` | [Styles](../../crates/bk/src/styles/sheet.rs) |
 | `views::feedback::Alert::style` | method | — | — | Changes the style of one alert | [Styles](../../crates/bk/src/styles/sheet.rs) |
 | `views::feedback::ContentUnavailableView::style` | method | — | — | Builds the view again with a style; call it right after `new` | [Styles](../../crates/bk/src/styles/sheet.rs) |
+| `patterns::settings::SettingsWindow::navigation_destination` | method | `navigationDestination(item:)` | — | Opens a pane by id on request | [12](12-patterns.md#settingswindow) |
 | `patterns::settings::SettingsWindow::style` | method | — | — | Changes the style of one preferences window | [Styles](../../crates/bk/src/styles/settings_window.rs) |
 | `patterns::about::AboutView::style` | method | — | — | Changes the style of one About view | [Styles](../../crates/bk/src/styles/settings_window.rs) |
 | `menu::MenuView::style` | method | — | — | Changes the style of one menu and its submenus | [7](07-menus-and-popovers.md#style) |
@@ -374,7 +375,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 
 | BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
 |---|---|---|---|---|---|
-| `ctappearance::menubar::MenubarConfig` | struct | — | — | `menubar.domain`: `app_menus` | [4](04-appearance-and-tokens.md#menu-bar) |
+| `ctappearance::menubar::MenubarConfig` | struct | — | — | `menubar.domain`: `app_menus` and the `show_*` status menus | [4](04-appearance-and-tokens.md#menu-bar) |
 | `ctappearance::window::WindowBehavior` | struct | — | — | `window.domain`: titlebar double click and green button actions | [4](04-appearance-and-tokens.md#window-behavior) |
 | `ctappearance::window::read_window_behavior` | fn | — | — | Reads `window.domain`, or the default | [4](04-appearance-and-tokens.md#window-behavior) |
 | `ctappearance::window::DoubleClickAction` | enum | — | — | Titlebar double click: `Fill`, `Minimize`, `Zoom`, `None` | [4](04-appearance-and-tokens.md#window-behavior) |

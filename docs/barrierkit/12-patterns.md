@@ -76,6 +76,7 @@ The app only declares the panes. System Settings is built with it.
 | `.account(initials, name, detail)` | none | A [`SidebarAccount`](10-sidebar.md#sidebaraccount) under the search field |
 | `.restoration(app_id)` | none | Saves and restores the open pane, the recent panes and the sidebar layout |
 | `.suggestions(&[pane ids])` | none | Panes listed when the search field is focused and empty |
+| `.navigation_destination(State<Option<String>>)` | none | Opens the pane whose id it holds, then sets it back to `None`; an unknown id waits until that pane exists |
 | `.sidebar_range(Option<(min, max)>)` | `SplitView`'s | Passed to [`SplitView::sidebar_range`](10-sidebar.md#splitview) |
 | `.sidebar_resizable(bool)` | `true` | Passed to `SplitView::resizable` |
 | `.narrow_sidebar(NarrowSidebar)` | `Overlay` | Passed to `SplitView::narrow_sidebar` |

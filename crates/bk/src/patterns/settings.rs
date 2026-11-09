@@ -104,6 +104,7 @@ pub struct SettingsWindow {
     sidebar_resizable: bool,
     sidebar_toggle: bool,
     narrow_sidebar: NarrowSidebar,
+    destination: Option<State<Option<String>>>,
     style: Theme,
 }
 
@@ -118,6 +119,7 @@ impl SettingsWindow {
             sidebar_resizable: true,
             sidebar_toggle: true,
             narrow_sidebar: NarrowSidebar::Overlay,
+            destination: None,
             style: Theme::tengen(),
         }
     }
@@ -167,6 +169,11 @@ impl SettingsWindow {
 
     pub fn narrow_sidebar(mut self, narrow_sidebar: NarrowSidebar) -> Self {
         self.narrow_sidebar = narrow_sidebar;
+        self
+    }
+
+    pub fn navigation_destination(mut self, pane_id: State<Option<String>>) -> Self {
+        self.destination = Some(pane_id);
         self
     }
 
@@ -251,6 +258,18 @@ impl Component for SettingsWindow {
         let mut dismissed_at: State<Option<String>> = use_state(|| None);
         let mut cursor: State<Option<(String, usize)>> = use_state(|| None);
         let mut highlighted: State<Option<&'static str>> = use_state(|| None);
+        if let Some(mut destination) = self.destination {
+            let wanted = destination.read().clone();
+            if let Some(id) =
+                wanted.and_then(|wanted| self.panes().map(|pane| pane.id).find(|id| *id == wanted))
+            {
+                destination.set(None);
+                let mut history = history;
+                if *history.peek().current() != id {
+                    history.write().push(id);
+                }
+            }
+        }
         let current = *history.read().current();
         let panes: Vec<&Pane> = self.panes().collect();
         let pane = panes.iter().find(|pane| pane.id == current).copied();
@@ -458,5 +477,57 @@ mod tests {
         };
         assert_eq!(keys("escritorio"), [("dock", None)]);
         assert_eq!(keys("iconos"), [("dock", Some("Tamaño"))]);
+    }
+
+    #[test]
+    fn a_destination_opens_its_pane_and_clears_itself() {
+        use freya_core::integration::{App, AppComponent};
+        use freya_testing::TestingRunner;
+        use torin::prelude::Size2D;
+
+        struct Window {
+            destination: State<Option<String>>,
+        }
+
+        impl App for Window {
+            fn render(&self) -> impl IntoElement {
+                let pane = |id, title| {
+                    Pane::new(
+                        id,
+                        title,
+                        Symbol::MagnifyingGlass,
+                        Rgba::rgb8(0, 0, 0),
+                        Form::new().section(Section::new().row(Row::new(title))),
+                    )
+                };
+                SettingsWindow::new()
+                    .navigation_destination(self.destination)
+                    .group(
+                        PaneGroup::new(None)
+                            .pane(pane("first", "First"))
+                            .pane(pane("second", "Second")),
+                    )
+            }
+        }
+
+        let destination = State::create_global(Some("second".to_string()));
+        let (mut test, _) = TestingRunner::new(
+            AppComponent::new(Window { destination }),
+            Size2D::new(700.0, 500.0),
+            |_| {},
+            1.0,
+        );
+        test.sync_and_update();
+        test.sync_and_update();
+        let shown = test.find_many(|node, element| {
+            Label::try_downcast(element)
+                .is_some_and(|label| label.text == "Second")
+                .then_some(node)
+        });
+        assert!(
+            shown.len() >= 2,
+            "the sidebar and the bar title name Second"
+        );
+        assert_eq!(*destination.peek(), None);
     }
 }
