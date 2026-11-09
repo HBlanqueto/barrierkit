@@ -281,7 +281,7 @@ pub struct AppearanceConfig {
     pub traffic_light_shape: TrafficLightShape,
     #[serde(deserialize_with = "lenient")]
     pub sidebar_style: SidebarStyle,
-    #[serde(deserialize_with = "lenient", alias = "tint_strength_accent")]
+    #[serde(deserialize_with = "lenient")]
     pub tint_strength: TintStrength,
     #[serde(
         deserialize_with = "deserialize_tint_parts",
@@ -407,6 +407,8 @@ fn read_appearance_from(path: &Path) -> Result<Option<AppearanceConfig>, toml::d
     }
 }
 
+const RETIRED_KEYS: [&str; 1] = ["tint_strength_accent"];
+
 pub fn write_appearance(path: &Path, config: &AppearanceConfig) -> std::io::Result<()> {
     let parsed = match std::fs::read_to_string(path) {
         Ok(text) => text.parse::<toml_edit::DocumentMut>().ok(),
@@ -432,6 +434,10 @@ pub fn write_appearance(path: &Path, config: &AppearanceConfig) -> std::io::Resu
     let fresh = toml_edit::ser::to_document(config).map_err(std::io::Error::other)?;
     for (key, item) in fresh.iter() {
         doc[key] = item.clone();
+    }
+    // A key that no field reads any more would stay in the file forever.
+    for retired in RETIRED_KEYS {
+        doc.remove(retired);
     }
     if let Some(accent) = config.accent_color {
         doc["accent_color"] = toml_edit::value(accent_array(accent));
@@ -816,12 +822,23 @@ tint_parts = ["window", "halo"]
     }
 
     #[test]
-    fn the_old_names_read_into_the_shared_tint_strength_and_the_accent_lights() {
-        let config: AppearanceConfig =
-            toml::from_str("tint_strength_accent = \"strong\"\ntraffic_lights = \"wallpaper\"\n")
-                .unwrap();
+    fn a_retired_key_next_to_its_replacement_still_parses_and_a_write_removes_it() {
+        let text = "tint_strength_accent = \"intense\"\ntint_strength = \"strong\"\ntraffic_lights = \"wallpaper\"\n";
+        let config: AppearanceConfig = toml::from_str(text).unwrap();
         assert_eq!(config.tint_strength, TintStrength::Strong);
         assert_eq!(config.traffic_lights, TrafficLightStyle::Accent);
+
+        let dir = std::env::temp_dir().join(format!("ctappearance-retired-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("appearance.domain");
+        std::fs::write(&path, text).unwrap();
+        write_appearance(&path, &config).unwrap();
+        assert!(
+            !std::fs::read_to_string(&path)
+                .unwrap()
+                .contains("tint_strength_accent")
+        );
+        std::fs::remove_dir_all(&dir).ok();
     }
 
     #[test]

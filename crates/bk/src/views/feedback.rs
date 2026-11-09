@@ -77,6 +77,10 @@ impl OpenSheets {
     }
 }
 
+// AppKit: under a sheet the window still drags by its title bar and minimizes and zooms.
+pub(crate) const SHEET_TITLEBAR: Layer = Layer::OverlayLevel(2);
+pub(crate) const SHEET_TRAFFIC_LIGHTS: Layer = Layer::OverlayLevel(3);
+
 #[derive(PartialEq)]
 struct SheetPresence;
 

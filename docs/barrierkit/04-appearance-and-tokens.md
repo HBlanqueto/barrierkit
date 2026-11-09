@@ -237,7 +237,7 @@ tint_parts = ["sidebars", "window", "groups", "controls", "menus"]
 | `scroll_bar_click` | `ScrollBarClick` | `next_page`, `clicked_spot` | `next_page` |
 | `window_color` | `WindowColorMode` | `neutral`, `accent` (an old `wallpaper` reads as `neutral`) | `neutral` |
 | `window_tint_scope` | `WindowTintScope` | `windows`, `desktop` | `windows` |
-| `tint_strength` | `TintStrength` | `subtle`, `normal`, `strong`, `intense` (the old key `tint_strength_accent` still reads) | `normal` |
+| `tint_strength` | `TintStrength` | `subtle`, `normal`, `strong`, `intense` | `normal` |
 | `tint_parts` | `TintParts` | list of `sidebars`, `window`, `groups`, `controls`, `menus` | all five |
 | `sidebar_style` | `SidebarStyle` | `island`, `flat` | `island` |
 | `traffic_lights` | `TrafficLightStyle` | `auto`, `standard`, `accent` (an old `wallpaper` reads as `accent`) | `auto` |

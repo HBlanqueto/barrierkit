@@ -230,6 +230,7 @@ impl Component for Titlebar {
                 label.a11y_builder(move |node| node.set_author_id(id))
             });
 
+        let shield = crate::views::feedback::OpenSheets::any().then(|| drag.clone());
         let (bar, height) = if self.sidebar {
             self.sidebar_bar(&style, &paints, traffic, title_label, drag, background)
         } else {
@@ -242,6 +243,21 @@ impl Component for Titlebar {
                 close_only,
                 content_widths,
             )
+        };
+        let bar = match shield {
+            Some(drag) => rect()
+                .width(Size::fill())
+                .child(bar)
+                .child(
+                    rect()
+                        .position(Position::new_absolute().top(0.0).left(0.0))
+                        .width(Size::fill())
+                        .height(Size::px(height))
+                        .layer(crate::views::feedback::SHEET_TITLEBAR)
+                        .on_mouse_down(drag),
+                )
+                .into_element(),
+            None => bar,
         };
         place_overlaid(
             crate::chrome::revealable_bar(bar, height),

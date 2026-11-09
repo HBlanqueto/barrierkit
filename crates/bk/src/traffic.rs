@@ -267,7 +267,10 @@ impl Component for TrafficLights {
                         }
                     })
             })
-            .children(lights);
+            .children(lights)
+            .maybe(close_blocked, |group| {
+                group.layer(crate::views::feedback::SHEET_TRAFFIC_LIGHTS)
+            });
         dimmed(root, style.opacity).map(self.probe, ProbeExt::probe)
     }
 }
