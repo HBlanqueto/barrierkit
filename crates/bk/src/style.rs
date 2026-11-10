@@ -101,3 +101,111 @@ pub fn continuous_corner(radius: f32) -> CornerRadius {
 pub(crate) fn continuous(radius: CornerRadius) -> CornerRadius {
     radius.with_smoothing(WINDOW_CORNER.expansion - 1.0)
 }
+
+/// A card filled with `fill` and framed like a panel window: in dark the glass inner line
+/// (brighter on the top and bottom edges, with a faint inward glow), otherwise the window inner
+/// line, and the window outer line. Same colours as the compositor's panel frames (malaysia ADR 0068).
+pub fn panel_edges(body: Rect, radius: f32, fill: Rgba) -> Rect {
+    let palette = ctappearance::palette(crate::theme::resolved().scheme);
+    let corner = continuous_corner(radius);
+    let body = body.corner_radius(corner);
+    let body = match (palette.panel_inner_line, palette.inner_line) {
+        (Some(line), _) => body.background(Fill::Callback(RenderCallback::new(move |context| {
+            glass_line(context, fill, line, corner)
+        }))),
+        (None, Some(inner)) => body.background(color(fill)).border(
+            Border::new()
+                .fill(color(inner))
+                .width(ctdesign::HAIRLINE / 2.0)
+                .alignment(BorderAlignment::Inner),
+        ),
+        (None, None) => body.background(color(fill)),
+    };
+    rect()
+        .corner_radius(corner)
+        .border(
+            Border::new()
+                .fill(color(palette.outer_border))
+                .width(ctdesign::HAIRLINE / 2.0)
+                .alignment(BorderAlignment::Outer),
+        )
+        .child(body)
+}
+
+fn glass_line(
+    context: &mut FillRenderContext,
+    fill: Rgba,
+    line: ctdesign::PanelLine,
+    corner: CornerRadius,
+) {
+    use freya_engine::prelude::{PaintStyle, PathBuilder, RRect, Rect as SkRect};
+    context.set_color(color(fill));
+    let RenderTarget::Background { canvas, .. } = &context.target else {
+        return;
+    };
+    let (width, height) = (context.size.width, context.size.height);
+    let bounds = SkRect::from_wh(width, height);
+    let radius = corner.top_left();
+    let curve = (radius * WINDOW_CORNER.expansion / height).min(0.5);
+    let depth = (ctdesign::PANEL_GLOW_DEPTH / height).min(0.5);
+    let clear = Rgba {
+        a: 0.0,
+        ..line.glow
+    };
+    canvas.draw_rect(
+        bounds,
+        &vertical(
+            height,
+            &[
+                (0.0, line.glow),
+                (depth, clear),
+                (1.0 - depth, clear),
+                (1.0, line.glow),
+            ],
+        ),
+    );
+    let mut paint = vertical(
+        height,
+        &[
+            (0.0, line.edges),
+            (curve, line.sides),
+            (1.0 - curve, line.sides),
+            (1.0, line.edges),
+        ],
+    );
+    paint.set_style(PaintStyle::Stroke);
+    paint.set_anti_alias(true);
+    // One physical pixel on each side of the edge; the clip keeps the inner half, as the compositor's line.
+    paint.set_stroke_width(2.0 / context.scale_factor as f32);
+    // Freya's smoothed path leaves its last contour open: a fill closes it, a stroke does not.
+    let mut outline = PathBuilder::new();
+    outline
+        .add_path(
+            &corner.smoothed_path(RRect::new_rect_xy(bounds, radius, radius)),
+            None,
+        )
+        .close();
+    canvas.draw_path(&outline.detach(), &paint);
+}
+
+fn vertical(height: f32, stops: &[(f32, Rgba)]) -> freya_engine::prelude::Paint {
+    use freya_engine::prelude::{
+        Color4f, Colors, Gradient, Interpolation, Paint, TileMode, shaders,
+    };
+    let (colors, offsets): (Vec<Color4f>, Vec<f32>) = stops
+        .iter()
+        .map(|&(offset, c)| (Color4f::new(c.r, c.g, c.b, c.a), offset))
+        .unzip();
+    let gradient = Gradient::new(
+        Colors::new(&colors, Some(&offsets), TileMode::Clamp, None),
+        Interpolation::default(),
+    );
+    let mut paint = Paint::default();
+    paint.set_dither(true);
+    paint.set_shader(shaders::linear_gradient(
+        ((0.0, 0.0), (0.0, height)),
+        &gradient,
+        None,
+    ));
+    paint
+}
