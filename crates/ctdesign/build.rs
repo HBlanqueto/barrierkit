@@ -135,6 +135,7 @@ MENUBAR_FONT_SIZE_LARGE f32 components.shell.menubar.font-size-large
 MENUBAR_APP_NAME_WEIGHT i32 components.shell.menubar.app-name.weight
 MENUBAR_MARGIN i32 components.shell.menubar.margin
 MENUBAR_MARGIN_RIGHT i32 components.shell.menubar.margin-right
+MENUBAR_FADED_ALPHA f32 components.shell.menubar.faded-alpha
 MENUBAR_TITLE_PADDING_X f32 components.shell.menubar.title-padding-x
 MENUBAR_TEXT_LIFT f32 components.shell.menubar.text-lift
 MENUBAR_TITLE_MAX_WIDTH f32 components.shell.menubar.title-max-width

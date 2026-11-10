@@ -745,6 +745,7 @@
         },
         "margin": 10,
         "margin-right": 24,
+        "faded-alpha": 0.3,
         "title-padding-x": 10,
         "text-lift": 1,
         "title-max-width": 240,

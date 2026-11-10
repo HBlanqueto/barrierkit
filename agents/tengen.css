@@ -642,6 +642,7 @@
   --bk-shell-menubar-app-name-weight: 700;
   --bk-shell-menubar-margin: 10;
   --bk-shell-menubar-margin-right: 24;
+  --bk-shell-menubar-faded-alpha: 0.3;
   --bk-shell-menubar-title-padding-x: 10;
   --bk-shell-menubar-text-lift: 1;
   --bk-shell-menubar-title-max-width: 240;
