@@ -244,6 +244,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `buttons::ShareLink::style` | method | `.menuStyle(_:)` on one view | — | Changes the `MenuButtonStyle` of one share link | [Styles](../../crates/bk/src/styles/menu_button.rs) |
 | `buttons::ControlGroup::style` | method | `.controlGroupStyle(_:)` on one view | — | Changes the style of one control group | [Styles](../../crates/bk/src/styles/control_group.rs) |
 | `popup_button::PopUpButton::style` | method | `.pickerStyle(.menu)` on one view | — | Changes the style of one pop-up button | [Styles](../../crates/bk/src/styles/popup_button.rs) |
+| `popup_button::PopUpButton::disabled` | method | `.disabled(_:)` | `isEnabled` | Dims the pop-up button and stops it opening | [5](05-controls.md#choices) |
 | `combo_box::ComboBox::style` | method | — | — | Changes the style of the arrow button of one combo box | [Styles](../../crates/bk/src/styles/combo_box.rs) |
 | `token_field::TokenField::style` | method | — | — | Changes the style of one token field | [Styles](../../crates/bk/src/styles/token_field.rs) |
 | `date_picker::DatePicker::style` | method | `.datePickerStyle(_:)` on one view | ≈ `NSDatePicker.datePickerStyle` | Changes the style of one date picker | [Styles](../../crates/bk/src/styles/date_picker.rs) |
@@ -421,6 +422,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `ctappearance::language::system_language` | fn | — | — | The language chosen in `language.domain` | [4](04-appearance-and-tokens.md#language) |
 | `ctappearance::language::requested_languages` | fn | — | — | App, system or POSIX-locale languages as tags, in order | [4](04-appearance-and-tokens.md#language) |
 | `ctappearance::xdg::config_home` | fn | — | — | `$XDG_CONFIG_HOME` or `~/.config` | [4](04-appearance-and-tokens.md#directories) |
+| `ctappearance::ini::value`, `ini::set` | fn | — | — | Read, set or remove a key of an INI file (GTK `settings.ini`, qt5ct and qt6ct) | [4](04-appearance-and-tokens.md#directories) |
 | `ctappearance::xdg::data_home` | fn | — | — | `$XDG_DATA_HOME` or `~/.local/share` | [4](04-appearance-and-tokens.md#directories) |
 | `ctappearance::xdg::data_dirs` | fn | — | — | `$XDG_DATA_DIRS` or `/usr/local/share` and `/usr/share` | [4](04-appearance-and-tokens.md#directories) |
 | `ctappearance::xdg::user_dir` | fn | — | — | An XDG user directory such as `DOWNLOAD` from `user-dirs.dirs` | [4](04-appearance-and-tokens.md#directories) |

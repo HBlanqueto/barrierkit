@@ -24,6 +24,7 @@ pub struct PopUpButton {
     items: Vec<(&'static str, Option<MenuIcon>)>,
     selected: usize,
     on_change: Option<Callback<usize, ()>>,
+    disabled: bool,
     style: Theme,
 }
 
@@ -34,6 +35,7 @@ impl PopUpButton {
             items: Vec::new(),
             selected: 0,
             on_change: None,
+            disabled: false,
             style: Theme::tengen(),
         }
     }
@@ -65,13 +67,18 @@ impl PopUpButton {
         self.on_change = Some(callback.into());
         self
     }
+
+    pub fn disabled(mut self, disabled: bool) -> Self {
+        self.disabled = disabled;
+        self
+    }
 }
 
 impl Component for PopUpButton {
     fn render(&self) -> impl IntoElement {
         let style: PopUpButtonStyle = resolve(&self.style);
         let interaction = use_interaction();
-        let state = control_state(interaction, false);
+        let state = control_state(interaction, self.disabled);
         let paints = Paints::current(state, style.effect);
         let choice = use_choice(Some(self.selected), self.on_change.clone());
         let mut area = use_state(Area::default);
@@ -96,7 +103,7 @@ impl Component for PopUpButton {
             ));
 
         let button = interaction
-            .attach(rect(), true)
+            .attach(rect(), !self.disabled)
             .a11y_role(AccessibilityRole::ComboBox)
             .a11y_alt(self.label)
             .height(Size::px(style.height))
@@ -104,7 +111,9 @@ impl Component for PopUpButton {
             .cross_align(Alignment::Center)
             .spacing(style.gap)
             .on_sized(move |event: Event<SizedEventData>| area.set_if_modified(event.area))
-            .on_press(move |_| open_menu(&items, current, *area.read(), selects.clone()))
+            .maybe(!self.disabled, |button| {
+                button.on_press(move |_| open_menu(&items, current, *area.read(), selects.clone()))
+            })
             .maybe_child(
                 self.items
                     .get(current)
@@ -133,7 +142,12 @@ impl Component for PopUpButton {
                 .color(paints.fill(&style.label)),
             )
             .child(shadowed(indicator, &style.indicator_shadows));
-        interaction.focus_ring(dimmed(button, style.opacity), radius.top_left())
+        let opacity = if self.disabled {
+            style.opacity * style.disabled_opacity
+        } else {
+            style.opacity
+        };
+        interaction.focus_ring(dimmed(button, opacity), radius.top_left())
     }
 }
 

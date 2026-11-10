@@ -284,7 +284,7 @@ All of them report the chosen index with `.on_change(|index: usize| ..)`.
 |---|---|---|---|
 | `RadioGroup` | `choices` | `RadioGroup::new(label)`, `.option(text)`, `.disabled(bool)`, `.tint(Tint)`, `.style(\|s\| ..)` | `.selected(usize)` (default 0) |
 | `SegmentedControl` | `controls` | `SegmentedControl::new(label)`, `.segment(text)`, `.style(\|s\| ..)` | `.selected(usize)` (default 0) |
-| `PopUpButton` | `popup_button` | `PopUpButton::new(label)`, `.item(text)`, `.icon_item(text, MenuIcon)`, `.style(\|s\| ..)` | `.selected(usize)` (default 0) |
+| `PopUpButton` | `popup_button` | `PopUpButton::new(label)`, `.item(text)`, `.icon_item(text, MenuIcon)`, `.disabled(bool)`, `.style(\|s\| ..)` | `.selected(usize)` (default 0) |
 | `ColorWell` | `choices` | `ColorWell::new(label, swatches)`, `.multicolor(name)`, `.disabled(bool)`, `.style(\|s\| ..)` | `.selected(Option<usize>)` (default `None`) |
 | `ChoiceCards` | `choices` | `ChoiceCards::new(label)`, `.option(caption, preview)`, `.disabled(bool)`, `.style(\|s\| ..)` | `.selected(usize)` (default 0) |
 

@@ -304,6 +304,8 @@ pub struct AppearanceConfig {
     #[serde(deserialize_with = "lenient")]
     pub color_filter: ColorFilter,
     pub color_filter_intensity: f32,
+    pub gtk_bridge: bool,
+    pub qt_bridge: bool,
 }
 
 impl Default for AppearanceConfig {
@@ -338,6 +340,8 @@ impl Default for AppearanceConfig {
             color_filters: false,
             color_filter: ColorFilter::default(),
             color_filter_intensity: COLOR_FILTER_INTENSITY[COLOR_FILTER_INTENSITY.len() - 1],
+            gtk_bridge: true,
+            qt_bridge: true,
         }
     }
 }
@@ -646,6 +650,8 @@ traffic_lights = "auto"
             color_filters: true,
             color_filter: ColorFilter::BlueYellow,
             color_filter_intensity: COLOR_FILTER_INTENSITY[1],
+            gtk_bridge: false,
+            qt_bridge: false,
         };
         write_appearance(&path, &config).unwrap();
         let read = read_appearance_from(&path).unwrap().unwrap();

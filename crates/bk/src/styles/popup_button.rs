@@ -1,4 +1,4 @@
-use ctdesign::{BODY, Font, SETTINGS, SYMBOL};
+use ctdesign::{BODY, Font, SETTINGS, SWITCH, SYMBOL};
 
 use super::{
     ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue, system_effect,
@@ -34,6 +34,8 @@ pub struct PopUpButtonStyle {
     pub indicator_shadows: Vec<ShadowStyle>,
     /// Tengen: `1.0`.
     pub opacity: f32,
+    /// Tengen: `SWITCH.disabled_opacity`, dimmed like a disabled switch.
+    pub disabled_opacity: f32,
     /// Tengen: `system_effect`.
     pub effect: ColorEffect,
     /// Tengen: `BODY`.
@@ -55,6 +57,7 @@ impl ControlStyle for PopUpButtonStyle {
             indicator_border: None,
             indicator_shadows: Vec::new(),
             opacity: 1.0,
+            disabled_opacity: SWITCH.disabled_opacity,
             effect: system_effect,
             font: BODY,
         }

@@ -459,6 +459,15 @@ relative paths:
 | `data_dirs()` | `$XDG_DATA_DIRS` or `/usr/local/share` and `/usr/share` |
 | `user_dir(kind)` | `XDG_<kind>_DIR` from `user-dirs.dirs`, for example `user_dir("DOWNLOAD")` |
 
+`ctappearance::ini` reads and edits the INI files that GTK 3 (`settings.ini`)
+and qt5ct and qt6ct read, and keeps every other line:
+
+| Function | Does |
+|---|---|
+| `value(ini, section, key)` | The value of `key` in `[section]`, or `None` |
+| `set(ini, section, key, Some(value))` | Sets the key in place, adding the section if missing |
+| `set(ini, section, key, None)` | Removes the key |
+
 ## Tokens: `ctdesign`
 
 `ctdesign` is Tengen in Rust. `build.rs` reads `tengen/tokens.json` and
