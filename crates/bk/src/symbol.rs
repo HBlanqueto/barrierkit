@@ -65,6 +65,8 @@ pub enum Symbol {
     Lock,
     Bolt,
     Battery,
+    Keyboard,
+    QuestionMark,
     EllipsisCircle,
     Square,
     Circle,
@@ -94,6 +96,8 @@ impl Symbol {
             Self::Briefcase => {
                 "M2.5 5.5h11v7.5h-11zM6 5.5V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v1.5M2.5 9h11"
             }
+            Self::Keyboard => "M2 4.5h12v7H2zM4.5 7h0M7 7h0M9 7h0M11.5 7h0M5.5 9.5h5",
+            Self::QuestionMark => "M6 6a2 2 0 1 1 3 1.7c-.6.4-1 .8-1 1.6V10M8 12.8h0",
             Self::Printer => "M4.5 6V2.5h7V6M4.5 11.5h-2v-5.5h11v5.5h-2M4.5 9.5h7v4h-7z",
             Self::Phone => {
                 "M4 2.5h2l1 3-1.5 1a7 7 0 0 0 4 4l1-1.5 3 1v2a1 1 0 0 1-1 1A10.5 10.5 0 0 1 3 3.5a1 1 0 0 1 1-1"

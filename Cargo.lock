@@ -390,6 +390,7 @@ dependencies = [
  "ttf-parser",
  "wayland-protocols",
  "wayland-protocols-plasma",
+ "xkbcommon",
  "zbus",
  "zeroize",
 ]

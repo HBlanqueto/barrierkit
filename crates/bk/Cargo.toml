@@ -47,6 +47,7 @@ sctk.workspace = true
 wayland-protocols = { workspace = true }
 wayland-protocols-plasma = { workspace = true, features = ["client"] }
 zbus.workspace = true
+xkbcommon.workspace = true
 i18n-embed.workspace = true
 i18n-embed-fl.workspace = true
 rust-embed.workspace = true

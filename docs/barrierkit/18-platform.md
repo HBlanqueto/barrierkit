@@ -294,6 +294,12 @@ confirmed the lock, which Malaysia does after the lock screen's first frame is
 on screen (ADR 0074), so the app can start its entry animation then. If the compositor refuses the lock, the process prints an error
 and exits with status 1.
 
+`SessionUnlock::keyboard_layout()` returns the name of the active keyboard
+layout, as the compositor's keymap gives it (for example «Spanish (Latin
+American)»). It follows `wl_keyboard.keymap` and the layout index of
+`wl_keyboard.modifiers`, which only the focused surface receives; while
+locked, that is the lock surface.
+
 ### Screen lock and blur region
 
 `use_screen_lock() -> State<ScreenLock>` follows `infinity_session_v1`. It is

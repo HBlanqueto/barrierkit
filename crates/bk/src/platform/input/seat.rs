@@ -3,7 +3,7 @@ use freya_core::{
         KeyboardEventName, MouseEventName, PlatformEvent, TouchEventName, WheelEventName,
         WheelSource,
     },
-    prelude::{CursorIcon, Key, NamedKey, TouchPhase},
+    prelude::{CursorIcon, Key, NamedKey, TouchPhase, WritableUtils},
 };
 use sctk::{
     delegate_keyboard, delegate_pointer, delegate_seat, delegate_touch,
@@ -22,7 +22,8 @@ use sctk::{
     seat::{
         Capability, SeatHandler, SeatState,
         keyboard::{
-            KeyEvent, KeyboardHandler, Keysym, Modifiers as SctkModifiers, RawModifiers, RepeatInfo,
+            KeyEvent, KeyboardHandler, Keymap, Keysym, Modifiers as SctkModifiers, RawModifiers,
+            RepeatInfo,
         },
         pointer::{AxisScroll, PointerEvent, PointerHandler},
         touch::TouchHandler,
@@ -459,9 +460,22 @@ impl KeyboardHandler for Runtime {
         _: u32,
         modifiers: SctkModifiers,
         _: RawModifiers,
-        _: u32,
+        layout: u32,
     ) {
         self.modifiers = modifiers;
+        self.keyboard_layout_index = layout;
+        self.publish_keyboard_layout();
+    }
+
+    fn update_keymap(
+        &mut self,
+        _: &Connection,
+        _: &QueueHandle<Self>,
+        _: &wl_keyboard::WlKeyboard,
+        keymap: Keymap<'_>,
+    ) {
+        self.keyboard_layouts = layout_names(keymap.as_string());
+        self.publish_keyboard_layout();
     }
 
     fn update_repeat_info(
@@ -703,3 +717,31 @@ delegate_seat!(Runtime);
 delegate_pointer!(Runtime);
 delegate_keyboard!(Runtime);
 delegate_touch!(Runtime);
+
+impl Runtime {
+    fn publish_keyboard_layout(&mut self) {
+        if let Some(mut layout) = self.keyboard_layout {
+            layout.set_if_modified(
+                self.keyboard_layouts
+                    .get(self.keyboard_layout_index as usize)
+                    .cloned(),
+            );
+        }
+    }
+}
+
+fn layout_names(keymap: String) -> Vec<String> {
+    let context = xkbcommon::xkb::Context::new(xkbcommon::xkb::CONTEXT_NO_FLAGS);
+    xkbcommon::xkb::Keymap::new_from_string(
+        &context,
+        keymap,
+        xkbcommon::xkb::KEYMAP_FORMAT_TEXT_V1,
+        xkbcommon::xkb::KEYMAP_COMPILE_NO_FLAGS,
+    )
+    .map(|keymap| {
+        (0..keymap.num_layouts())
+            .map(|index| keymap.layout_get_name(index).to_string())
+            .collect()
+    })
+    .unwrap_or_default()
+}

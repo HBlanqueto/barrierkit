@@ -40,6 +40,7 @@ md-5 = "0.11"
 toml_edit = "0.22"
 
 zbus = "5"
+xkbcommon = "0.8"
 
 i18n-embed = { version = "0.16", features = ["fluent-system"] }
 i18n-embed-fl = "0.10"

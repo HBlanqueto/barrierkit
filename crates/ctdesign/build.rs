@@ -167,6 +167,7 @@ LOCK_TOP_PERCENT f32 components.shell.lock.top-percent
 LOCK_BOTTOM_MARGIN f32 components.shell.lock.bottom-margin
 LOCK_SPACING f32 components.shell.lock.spacing
 LOCK_AVATAR_SIZE f32 components.shell.lock.avatar-size
+LOCK_KEYBOARD_WIDTH f32 components.shell.lock.keyboard-width
 LOCK_FIELD_HEIGHT f32 components.shell.lock.field-height
 LOCK_FIELD_MIN_WIDTH f32 components.shell.lock.field-min-width
 LOCK_FIELD_MAX_WIDTH f32 components.shell.lock.field-max-width

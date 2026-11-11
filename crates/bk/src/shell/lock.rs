@@ -22,6 +22,7 @@ pub struct SessionUnlock {
     unlock: Rc<dyn Fn()>,
     requested: Rc<std::cell::Cell<bool>>,
     locked: freya_core::prelude::State<bool>,
+    keyboard_layout: freya_core::prelude::State<Option<String>>,
 }
 
 impl SessionUnlock {
@@ -35,6 +36,10 @@ impl SessionUnlock {
 
     pub fn locked(&self) -> bool {
         *self.locked.read()
+    }
+
+    pub fn keyboard_layout(&self) -> Option<String> {
+        self.keyboard_layout.read().clone()
     }
 }
 
@@ -67,6 +72,8 @@ pub fn run_lock(app: AppComponent) -> Result<(), RunError> {
     let unlock_conn = conn.clone();
     let requested = Rc::new(std::cell::Cell::new(false));
     let locked = freya_core::prelude::State::create_global(false);
+    let keyboard_layout = freya_core::prelude::State::create_global(None);
+    runtime.keyboard_layout = Some(keyboard_layout);
     runtime.run(conn, event_queue, move |runtime, signal| {
         runtime
             .extension_mut::<ShellState>()
@@ -74,6 +81,7 @@ pub fn run_lock(app: AppComponent) -> Result<(), RunError> {
             .session_unlock = Some(SessionUnlock {
             requested: requested.clone(),
             locked,
+            keyboard_layout,
             unlock: Rc::new(move || {
                 // ext-session-lock-v1: unlock_and_destroy is only valid once locked has arrived.
                 if !unlock_lock.is_locked() {
