@@ -20,7 +20,7 @@ pub use layer::{
 pub use lock::{SessionUnlock, run_lock};
 pub use menus::GtkMenusAddress;
 pub use screen_lock::{ScreenLock, use_screen_lock};
-pub use status_items::{Pixmap, StatusHost, TrayItem, pixmap_image, use_status_items};
+pub use status_items::{Pixmap, StatusHost, TrayItem, use_status_items};
 pub use toplevels::{FocusBar, ToplevelInfo, Toplevels};
 
 use freya_core::integration::AppComponent;

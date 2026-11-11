@@ -421,7 +421,7 @@ separators, submenus, check marks and radio marks.
 | `click(key, id)` | A dbusmenu `clicked` event for the menu entry with action `id` |
 
 `Pixmap` has `width`, `height` and `rgba` (straight alpha, converted from
-the wire's ARGB). `pixmap_image(pixmap, size)` returns an image element of
-`size` × `size` logical pixels, or `None` when Skia rejects the data.
+the wire's ARGB). `Image::rgba(width, height, rgba)` draws it
+([Images and template rendering](04-appearance-and-tokens.md#images-and-template-rendering)).
 
 Next: [19. Profiling](19-profiling.md).

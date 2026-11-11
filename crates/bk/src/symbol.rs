@@ -2,8 +2,14 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 
 use ctdesign::{Rgba, SYMBOL};
+use freya_components::image_viewer::ImageViewer;
 use freya_components::svg_viewer::SvgViewer;
+use freya_core::elements::image::{ImageHandle, SamplingMode};
 use freya_core::prelude::*;
+use freya_engine::prelude::{
+    AlphaType, BlendMode, ColorType, FontMgr, ImageInfo, Paint, SkColor, SkData, SkImage, SkRect,
+    color_filters, raster_from_data, raster_n32_premul, svg,
+};
 use torin::prelude::Size;
 
 use crate::styles::{ControlState, ImageStyle, Paints, ShapeStyle, StateValue, Theme, resolve};
@@ -196,18 +202,59 @@ fn source(symbol: Symbol) -> Bytes {
     })
 }
 
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum TemplateRenderingMode {
+    #[default]
+    Original,
+    Template,
+}
+
+#[derive(Clone, PartialEq)]
+enum Source {
+    System(Symbol),
+    Data(Bytes),
+    Rgba {
+        width: u32,
+        height: u32,
+        pixels: Bytes,
+    },
+}
+
 #[derive(Clone, PartialEq)]
 pub struct Image {
-    symbol: Symbol,
+    source: Source,
+    rendering_mode: TemplateRenderingMode,
     style: Theme,
 }
 
 impl Image {
     pub fn system(symbol: Symbol) -> Self {
+        Self::from_source(Source::System(symbol))
+    }
+
+    pub fn data(bytes: impl Into<Bytes>) -> Self {
+        Self::from_source(Source::Data(bytes.into()))
+    }
+
+    pub fn rgba(width: u32, height: u32, pixels: impl Into<Bytes>) -> Self {
+        Self::from_source(Source::Rgba {
+            width,
+            height,
+            pixels: pixels.into(),
+        })
+    }
+
+    fn from_source(source: Source) -> Self {
         Self {
-            symbol,
+            source,
+            rendering_mode: TemplateRenderingMode::Original,
             style: Theme::tengen(),
         }
+    }
+
+    pub fn rendering_mode(mut self, rendering_mode: TemplateRenderingMode) -> Self {
+        self.rendering_mode = rendering_mode;
+        self
     }
 
     pub fn style(mut self, restyle: impl Fn(ImageStyle) -> ImageStyle + 'static) -> Self {
@@ -232,7 +279,39 @@ impl From<Image> for Element {
         let style: ImageStyle = resolve(&image.style);
         let paints = Paints::current(ControlState::default(), style.effect);
         let color = paints.color(style.foreground.resolve(ControlState::default()));
-        symbol(image.symbol, style.size, color).into_element()
+        let side = Size::px(style.size);
+        match (image.source, image.rendering_mode) {
+            (Source::System(glyph), _) => symbol(glyph, style.size, color).into_element(),
+            (source, TemplateRenderingMode::Template) => {
+                match template_image(&source, style.size, color) {
+                    Some(handle) => freya_core::elements::image::image(handle)
+                        .width(side.clone())
+                        .height(side)
+                        .into_element(),
+                    None => rect().width(side.clone()).height(side).into_element(),
+                }
+            }
+            (Source::Data(bytes), TemplateRenderingMode::Original) if is_svg(&bytes) => {
+                SvgViewer::new(bytes)
+                    .width(side.clone())
+                    .height(side)
+                    .show_loader(false)
+                    .into_element()
+            }
+            (Source::Data(bytes), TemplateRenderingMode::Original) => ImageViewer::new(bytes)
+                .width(side.clone())
+                .height(side)
+                .into_element(),
+            (source, TemplateRenderingMode::Original) => match raster(&source, 0) {
+                Some(raster) => {
+                    freya_core::elements::image::image(ImageHandle::new(raster, Bytes::new()))
+                        .width(side.clone())
+                        .height(side)
+                        .into_element()
+                }
+                None => rect().width(side.clone()).height(side).into_element(),
+            },
+        }
     }
 }
 
@@ -242,4 +321,98 @@ pub(crate) fn symbol(symbol: Symbol, size: f32, color: Rgba) -> SvgViewer {
         .height(Size::px(size))
         .color(crate::theme::color(color))
         .show_loader(false)
+}
+
+const TEMPLATE_CACHE_CAPACITY: usize = 256;
+
+type TemplateKey = (Bytes, u32, u32, [u32; 4]);
+
+thread_local! {
+    static TEMPLATE_CACHE: RefCell<HashMap<TemplateKey, Option<ImageHandle>>> =
+        RefCell::new(HashMap::new());
+}
+
+fn is_svg(bytes: &[u8]) -> bool {
+    let head = &bytes[..bytes.len().min(512)];
+    head.windows(4).any(|window| window == b"<svg")
+}
+
+fn template_image(source: &Source, size: f32, color: Rgba) -> Option<ImageHandle> {
+    let scale = *Platform::get().current_window().scale_factor.read() as f32;
+    let side = (size * scale).round().max(1.0) as u32;
+    let (bytes, width) = match source {
+        Source::Data(bytes) => (bytes.clone(), 0),
+        Source::Rgba { width, pixels, .. } => (pixels.clone(), *width),
+        Source::System(_) => return None,
+    };
+    let key = (
+        bytes,
+        width,
+        side,
+        [color.r, color.g, color.b, color.a].map(f32::to_bits),
+    );
+    TEMPLATE_CACHE.with(|cache| {
+        if let Some(cached) = cache.borrow().get(&key) {
+            return cached.clone();
+        }
+        let tinted = raster(source, side).and_then(|raster| tint(&raster, side, color));
+        let mut cache = cache.borrow_mut();
+        if cache.len() >= TEMPLATE_CACHE_CAPACITY {
+            cache.clear();
+        }
+        cache.insert(key, tinted.clone());
+        tinted
+    })
+}
+
+fn raster(source: &Source, svg_side: u32) -> Option<SkImage> {
+    match source {
+        Source::Data(bytes) if is_svg(bytes) => rasterize_svg(bytes, svg_side.max(1)),
+        Source::Data(bytes) => SkImage::from_encoded(SkData::new_copy(bytes)),
+        Source::Rgba {
+            width,
+            height,
+            pixels,
+        } => {
+            let info = ImageInfo::new(
+                (*width as i32, *height as i32),
+                ColorType::RGBA8888,
+                AlphaType::Unpremul,
+                None,
+            );
+            raster_from_data(&info, SkData::new_copy(pixels), *width as usize * 4)
+        }
+        Source::System(_) => None,
+    }
+}
+
+fn rasterize_svg(bytes: &[u8], side: u32) -> Option<SkImage> {
+    let mut dom = svg::Dom::from_bytes(bytes, FontMgr::empty()).ok()?;
+    let side = side as i32;
+    dom.set_container_size((side, side));
+    let mut root = dom.root();
+    root.set_width(svg::Length::new(side as f32, svg::LengthUnit::PX));
+    root.set_height(svg::Length::new(side as f32, svg::LengthUnit::PX));
+    let mut surface = raster_n32_premul((side, side))?;
+    dom.render(surface.canvas());
+    Some(surface.image_snapshot())
+}
+
+fn tint(raster: &SkImage, side: u32, color: Rgba) -> Option<ImageHandle> {
+    let side = side as i32;
+    let mut surface = raster_n32_premul((side, side))?;
+    let mut paint = Paint::default();
+    paint.set_anti_alias(true);
+    paint.set_color_filter(color_filters::blend(
+        SkColor::from(crate::theme::color(color)),
+        BlendMode::SrcIn,
+    ));
+    surface.canvas().draw_image_rect_with_sampling_options(
+        raster,
+        None,
+        SkRect::from_wh(side as f32, side as f32),
+        SamplingMode::Mitchell.sampling_options(),
+        &paint,
+    );
+    Some(ImageHandle::new(surface.image_snapshot(), Bytes::new()))
 }

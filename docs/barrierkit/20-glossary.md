@@ -68,6 +68,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `ctdesign::LOCK_TOP_MARGIN` (72 px) | `ctdesign::LOCK_TOP_PERCENT`, a share of the screen height | 2026-11-11 |
 | `ctdesign::LOCK_FIELD_FILL_OPAQUE` (the field with «Reduce transparency») | `ctdesign::LOCK_AVATAR_FILL`; the field is always `LOCK_FIELD_FILL` | 2026-11-11 |
 | The 22 views, modifiers and names listed in [ADR 0063](../decisions/0063-views-as-types-and-swift-names.md#decision) (`divider()`, `empty_state`, `use_tooltip`, `PreferencesWindow`, `AppMenu`, `ProgressBar`…) | `Divider`, `ContentUnavailableView`, `.help`, `SettingsWindow`, `MainMenu`, `ProgressView`… | 2026-11-07 |
+| `shell::pixmap_image(pixmap, size)` | `symbol::Image::rgba(width, height, rgba).size(size)` | 2026-11-11 |
 
 ## How to read the tables
 
@@ -315,6 +316,9 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 |---|---|---|---|---|---|
 | `symbol::Symbol` | enum | ≈ `Image(systemName:)` names | ≈ `NSImage(systemSymbolName:accessibilityDescription:)` names | Name of a built-in line icon; 61 variants | [4](04-appearance-and-tokens.md#symbols) |
 | `symbol::Image` | struct | `Image(systemName:)` | `NSImage(systemSymbolName:accessibilityDescription:)` | A symbol as a view; `BODY` size and label color by default | [4](04-appearance-and-tokens.md#symbols) |
+| `symbol::Image::data` | fn | `Image(nsImage:)` | `NSImage(data:)` | An image view from SVG, PNG or JPEG bytes | [4](04-appearance-and-tokens.md#images-and-template-rendering) |
+| `symbol::Image::rgba` | fn | `Image(nsImage:)` | ≈ `NSBitmapImageRep` | An image view from straight-alpha RGBA pixels | [4](04-appearance-and-tokens.md#images-and-template-rendering) |
+| `symbol::TemplateRenderingMode` | enum | `Image.TemplateRenderingMode` | ≈ `NSImage.isTemplate` | `Original` keeps the colors; `Template` paints the shape in the foreground color | [4](04-appearance-and-tokens.md#images-and-template-rendering) |
 | `register_font` | fn | — | — | Adds a typeface from font file bytes; `false` if not a font | [4](04-appearance-and-tokens.md#fonts) |
 
 ## Helpers
@@ -1139,7 +1143,6 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `shell::TrayItem` | struct | — | ≈ `NSStatusItem` | Another app's status item, as the host reads it | [18](18-platform.md#status-items) |
 | `shell::StatusHost` | struct | — | — | Sends activate, secondary activate and menu clicks to status items | [18](18-platform.md#status-items) |
 | `shell::Pixmap` | struct | — | ≈ `NSBitmapImageRep` | RGBA bitmap of a status item's icon | [18](18-platform.md#status-items) |
-| `shell::pixmap_image` | fn | — | — | Image element of a `Pixmap` at a square size | [18](18-platform.md#status-items) |
 
 ## Freya names you will meet
 

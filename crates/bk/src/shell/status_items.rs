@@ -3,12 +3,9 @@ use std::future::Future;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-use freya_core::elements::image::ImageHandle;
 use freya_core::prelude::*;
-use freya_engine::prelude::{AlphaType, ColorType, Data, ImageInfo, raster_from_data};
 use futures_channel::mpsc::{UnboundedReceiver, UnboundedSender};
 use futures_util::StreamExt;
-use torin::prelude::Size;
 use zbus::object_server::SignalEmitter;
 use zbus::proxy::CacheProperties;
 use zbus::zvariant::{OwnedObjectPath, OwnedValue};
@@ -99,26 +96,6 @@ pub fn use_status_items() -> (State<Vec<TrayItem>>, StatusHost) {
         }
     });
     (items, host)
-}
-
-pub fn pixmap_image(pixmap: &Pixmap, size: f32) -> Option<Element> {
-    let info = ImageInfo::new(
-        (pixmap.width as i32, pixmap.height as i32),
-        ColorType::RGBA8888,
-        AlphaType::Unpremul,
-        None,
-    );
-    let raster = raster_from_data(
-        &info,
-        Data::new_copy(&pixmap.rgba),
-        pixmap.width as usize * 4,
-    )?;
-    Some(
-        image(ImageHandle::new(raster, Bytes::new()))
-            .width(Size::px(size))
-            .height(Size::px(size))
-            .into_element(),
-    )
 }
 
 fn item_key(sender: &str, service: &str) -> String {

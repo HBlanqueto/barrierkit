@@ -6,5 +6,6 @@ mod focus;
 mod form_stack;
 mod image;
 mod menu;
+mod template;
 mod titlebar;
 mod traffic;

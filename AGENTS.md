@@ -160,3 +160,9 @@ pub fn focused(mut self, focused: bool) -> Self { … }
   lateral, los menús ni los semáforos (ADR 0047).
 - El texto visible va en `i18n/{en,es}/<crate>.ftl` y se lee con `tr!`;
   nunca un literal en el código (`docs/barrierkit/17-languages.md`).
+- Los símbolos son SVG, nunca PNG: `Image::system`, o un SVG con
+  `currentColor`. Un icono de un solo color (SVG o PNG, como los
+  `-symbolic` de freedesktop) se dibuja con
+  `.rendering_mode(TemplateRenderingMode::Template)`: negro en claro y blanco
+  en oscuro. Iconos de apps, fotos e ilustraciones quedan `Original`
+  (`docs/barrierkit/04-appearance-and-tokens.md`).

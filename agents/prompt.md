@@ -72,6 +72,10 @@ version.
    non-obvious invariant. Names explain the code.
 9. **Build only inside `nix develop`.** Outside it, `build.rs` stops on
    purpose.
+10. **Symbols are SVG, never PNG.** Use `Image::system(..)`; for another
+    one-color icon, `Image::data(svg).rendering_mode(TemplateRenderingMode::Template)`,
+    which paints it black in light and white in dark
+    ([Images and template rendering](../docs/barrierkit/04-appearance-and-tokens.md#images-and-template-rendering)).
 
 ## Read more only when the task needs it
 

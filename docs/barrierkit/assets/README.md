@@ -15,7 +15,7 @@ renders of the current code, never retouched.
 |---|---|---|
 | `components/` | One control or view per image, `<name>-light.png` and `<name>-dark.png` | Copies of the golden images in `crates/bk/tests/golden/` |
 | `states/` | The titlebar and the sidebar in each window state ([9. Titlebars](../09-titlebars.md)) | The `doc_shots` test in `crates/bk/src/platform/doc_shots.rs` |
-| `brand/` | The BarrierKit icon and banner | `*.svg` are the sources; `*.png` are exports at twice the SVG size (icon 2048 × 2048, banner 3200 × 1600). The repository has no script for them |
+| `brand/` | The BarrierKit icon and banner, as SVG | Drawn by hand; the repository has no script for them |
 
 Both tests render with `freya-testing` on the CPU at scale 1, without a
 compositor or a GPU. They set the appearance in code, so the host's

@@ -31,22 +31,25 @@ reason it cannot be.
 9. Does every change to a control's look go through its style
    ([`styles.md`](styles.md)), with overrides that name only what changes and
    end in `..s`?
+10. Is every symbol an SVG (`Image::system`, or an SVG with `currentColor`),
+    and does every one-color image use `TemplateRenderingMode::Template` so
+    it is black in light and white in dark?
 
 ## Build
 
-10. Does the app's `Cargo.toml` enable every `bk` feature whose module it
+11. Does the app's `Cargo.toml` enable every `bk` feature whose module it
     uses (`charts`, `print`, `video`)?
-11. Did you run, inside `nix develop`, `cargo build` and
+12. Did you run, inside `nix develop`, `cargo build` and
     `cargo clippy -- -D warnings` with no warnings?
-12. Did you run `cargo fmt`?
-13. If you could not open the window (no Wayland session), did you say so?
+13. Did you run `cargo fmt`?
+14. If you could not open the window (no Wayland session), did you say so?
 
 ## Changes to the kit itself
 
-14. Is every new or renamed public item in
+15. Is every new or renamed public item in
     [`docs/barrierkit/20-glossary.md`](../docs/barrierkit/20-glossary.md), named by
     its rules, in the same commit?
-15. Does the chapter that describes the changed behavior say what the code
+16. Does the chapter that describes the changed behavior say what the code
     does now?
-16. If the change affects how an agent writes apps, are `prompt.md`,
+17. If the change affects how an agent writes apps, are `prompt.md`,
     `recipes.md` and this checklist updated?

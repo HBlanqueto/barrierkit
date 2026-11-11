@@ -25,7 +25,9 @@ tokens and the palette, and follows the user's appearance.
    `.background(color(palette.content_background))`.
 5. Add a symbol:
    `Image::system(Symbol::Folder).size(SYMBOL.grid).color(palette.secondary_label)`
-   ([Symbols](#symbols)).
+   ([Symbols](#symbols)). A one-color image takes the theme's color with
+   `.rendering_mode(TemplateRenderingMode::Template)`
+   ([Images and template rendering](#images-and-template-rendering)).
 6. If the view needs a value Tengen does not have, add it:
    [Adding a token](#adding-a-token).
 7. Run `./dev.sh check`. `scripts/check-design-tokens.sh` rejects color
@@ -141,6 +143,36 @@ Image::system(Symbol::Folder)
 `Image` draws from an `ImageStyle`: `size` and `foreground`, which `.size`
 and `.color` override for one image and a theme for every image. The fields
 are in [Styles and themes](../../crates/bk/src/styles/text.rs).
+
+## Images and template rendering
+
+Symbols are SVG. A symbol the kit does not have is an SVG too, never a PNG:
+an SVG stays sharp at every scale and takes the theme's color.
+
+`Image::data(bytes)` draws SVG, PNG or JPEG bytes. `Image::rgba(width,
+height, rgba)` draws straight-alpha pixels, such as a status item's `Pixmap`.
+Both draw the image's own colors by default.
+
+`.rendering_mode(TemplateRenderingMode::Template)` keeps only the image's
+alpha and paints it in the foreground color, like SwiftUI's
+`.renderingMode(.template)` and AppKit's `isTemplate`. The foreground is
+`label` unless `.color` changes it, so the image is black in light and white
+in dark, and changes with the appearance.
+
+```rust
+Image::data(include_bytes!("wifi-symbolic.svg").as_slice())
+    .rendering_mode(TemplateRenderingMode::Template)
+    .size(SYMBOL.grid)
+```
+
+| Image | Mode |
+|---|---|
+| A symbol: `Image::system`, or an SVG drawn with `currentColor` | Always template |
+| A one-color icon in SVG or PNG, such as a freedesktop `-symbolic` icon | `Template` |
+| An app icon, a photo or an illustration | `Original`, the default |
+
+A template image rasterizes at the window's scale and is cached by bytes,
+size and color.
 
 ## Fonts
 
