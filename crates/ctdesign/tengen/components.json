@@ -854,6 +854,7 @@
         "minimize-ms": 500,
         "reveal-strip": 2,
         "recents": 3,
+        "icon-body": 0.805,
         "window-frame": 0.8,
         "window-icon": 0.6,
         "label-gap": 12,

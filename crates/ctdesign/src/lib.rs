@@ -909,6 +909,7 @@ pub const NATIVE_APP_ID_PREFIX: &str = "io.github.hblanqueto.malaysia.";
 pub const ALERT_LAYER_NAMESPACE: &str = "malaysia-dialog";
 pub const NOTIFICATIONS_LAYER_NAMESPACE: &str = "malaysia-notifications";
 pub const MENUBAR_LAYER_NAMESPACE: &str = "malaysia-menubar";
+pub const DOCK_LAYER_NAMESPACE: &str = "malaysia-dock";
 pub const WALLPAPER_LAYER_NAMESPACE: &str = "malaysia-wallpaper";
 
 include!(concat!(env!("OUT_DIR"), "/tengen.rs"));
