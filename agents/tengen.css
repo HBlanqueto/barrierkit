@@ -538,6 +538,9 @@
   --bk-settings-wallpaper-tile-height: 58;
   --bk-settings-wallpaper-dot: 38;
   --bk-settings-wallpaper-sheet-width: 490;
+  --bk-settings-wallpaper-row-fits: 4;
+  --bk-settings-wallpaper-shuffle-scrim: 0.28;
+  --bk-settings-wallpaper-shuffle-icon: 26;
   --bk-settings-wallpaper-field-width: 200;
   --bk-settings-wallpaper-source-width: 32;
   --bk-settings-wallpaper-source-height: 20;

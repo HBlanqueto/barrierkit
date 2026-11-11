@@ -109,6 +109,7 @@ impl Row {
 pub struct Section {
     pub title: Option<&'static str>,
     pub rows: Vec<Row>,
+    header: Option<Element>,
     illustration: Option<Element>,
     footer: Option<&'static str>,
 }
@@ -118,6 +119,7 @@ impl Section {
         Self {
             title: None,
             rows: Vec::new(),
+            header: None,
             illustration: None,
             footer: None,
         }
@@ -128,6 +130,11 @@ impl Section {
             title: Some(title),
             ..Self::new()
         }
+    }
+
+    pub fn header(mut self, view: impl IntoElement) -> Self {
+        self.header = Some(view.into_element());
+        self
     }
 
     pub fn illustration(mut self, view: impl IntoElement) -> Self {
@@ -216,11 +223,20 @@ impl Component for Form {
             rect()
                 .width(Size::fill())
                 .direction(Direction::Vertical)
-                .maybe_child(section.title.map(|title| {
-                    rect()
-                        .padding(Gaps::new(top, right, bottom, left))
-                        .child(text(title, style.header_font, ink(&style.header)))
-                }))
+                .maybe_child(match (&section.header, section.title) {
+                    (Some(header), _) => Some(
+                        rect()
+                            .width(Size::fill())
+                            .padding(Gaps::new(top, right, bottom, left))
+                            .child(header.clone()),
+                    ),
+                    (None, Some(title)) => Some(
+                        rect()
+                            .padding(Gaps::new(top, right, bottom, left))
+                            .child(text(title, style.header_font, ink(&style.header))),
+                    ),
+                    (None, None) => None,
+                })
                 .child(
                     rect()
                         .width(Size::fill())

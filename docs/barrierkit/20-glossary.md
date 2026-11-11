@@ -363,8 +363,8 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `ctappearance::wallpaper_selection_path` | fn | — | — | Path of `wallpaper-selection.state`, the wallpaper each desktop shows | [4](04-appearance-and-tokens.md#the-wallpaper-files) |
 | `ctappearance::read_wallpaper_selection` | fn | — | — | Reads the selection; the default without a file, `Err` on bad TOML | [4](04-appearance-and-tokens.md#the-wallpaper-files) |
 | `ctappearance::write_wallpaper_selection` | fn | — | — | Writes the selection atomically | [4](04-appearance-and-tokens.md#the-wallpaper-files) |
-| `ctappearance::WallpaperSelection` | struct | — | ≈ `NSWorkspace.desktopImageURL(for:)` and its options | `wallpaper-selection.state`: sources, scales, crops and dynamic appearances per desktop and output, and `shuffle` | [4](04-appearance-and-tokens.md#the-wallpaper-files) |
-| `ctappearance::WallpaperSelection::show_on_all_desktops` | method | — | ≈ «Show on all Spaces» | Makes a desktop's wallpaper, framing and appearance the shared ones | [4](04-appearance-and-tokens.md#the-wallpaper-files) |
+| `ctappearance::WallpaperSelection` | struct | — | ≈ `NSWorkspace.desktopImageURL(for:)` and its options | `wallpaper-selection.state`: sources, scales, crops, dynamic appearances and paused animations per desktop and output, and `shuffle` | [4](04-appearance-and-tokens.md#the-wallpaper-files) |
+| `ctappearance::WallpaperSelection::show_on_all_desktops` | method | — | ≈ «Show on all Spaces» | Makes a desktop's wallpaper, framing, appearance and pause the shared ones | [4](04-appearance-and-tokens.md#the-wallpaper-files) |
 | `ctappearance::WallpaperScale` | enum | — | ≈ `NSImageScaling` | `Fill`, `Fit`, `Stretch`, `Center`, `Custom` | [4](04-appearance-and-tokens.md#the-wallpaper-files) |
 | `ctappearance::ALL_DESKTOPS` | constant | — | — | Key `"default"`: the wallpaper and crop of every desktop | [4](04-appearance-and-tokens.md#the-wallpaper-files) |
 | `ctappearance::desktop_key` | fn | — | — | Key of a desktop in the wallpaper files: its number, or `ALL_DESKTOPS` | [4](04-appearance-and-tokens.md#the-wallpaper-files) |
@@ -876,6 +876,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 |---|---|---|---|---|---|
 | `views::form::Form` | struct | `Form` | — | Settings layout: sections of rows in rounded cards | [11](11-views.md#form) |
 | `views::form::Section` | struct | `Section` | — | One form card with optional title and footer | [11](11-views.md#section) |
+| `views::form::Section::header` | method | `Section(content:header:)` | — | A view in place of a form card's title | [11](11-views.md#section) |
 | `views::form::Section::illustration` | method | — | — | A full-width view at the top of a form card | [11](11-views.md#section) |
 | `views::form::Row` | struct | `LabeledContent` | — | A form row: control, value, navigation or destructive | [11](11-views.md#row) |
 | `views::form::Row::page` | function | ≈ `NavigationLink(value:)` | — | A row that opens a page of a `SettingsWindow` | [11](11-views.md#row) |

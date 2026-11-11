@@ -626,6 +626,9 @@
         "tile-height": 58,
         "dot": 38,
         "sheet-width": 490,
+        "row-fits": 4,
+        "shuffle-scrim": 0.28,
+        "shuffle-icon": 26,
         "field-width": 200,
         "source": {
           "width": 32,

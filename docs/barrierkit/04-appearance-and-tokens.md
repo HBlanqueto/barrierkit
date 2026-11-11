@@ -316,7 +316,7 @@ and `malaysia-wallpaper` reads them and writes the third.
 
 Every map of the selection is keyed by `desktop_key`: a desktop number from 1,
 or `ALL_DESKTOPS` (`"default"`) for every desktop. A desktop without its own key
-shows the shared one with its scale, crop and appearance. Crops can also be
+shows the shared one with its scale, crop, appearance and pause. Crops can also be
 keyed `"<desktop>/<output>"`, which wins over the desktop's own.
 
 | Field | Holds |
@@ -325,11 +325,12 @@ keyed `"<desktop>/<output>"`, which wins over the desktop's own.
 | `scale`, `scales` | `WallpaperScale` of the shared wallpaper and of each desktop's own: `Fill`, `Fit`, `Stretch`, `Center` or `Custom`. |
 | `crop` | `[x, y, width, height]`, fractions of the image. With `Custom` it covers the screen like `Fill`. |
 | `appearance` | `WallpaperAppearance` (`Light` or `Dark`): the still a dynamic wallpaper keeps instead of following the system appearance or the time. |
+| `paused` | Desktop keys whose animated wallpaper stands still. |
 | `shuffle` | `WallpaperShuffle`: `Login`, `Hourly` or `Daily`. |
 
 Edit it through its methods so the keys stay consistent: `set_source`,
-`make_own`, `set_scale`, `set_crop` and `set_appearance` write; `source`,
-`scale_for`, `crop_for` and `appearance_for` read with the fallbacks above.
+`make_own`, `set_scale`, `set_crop`, `set_appearance` and `set_paused` write;
+`source`, `scale_for`, `crop_for`, `appearance_for` and `paused_for` read with the fallbacks above.
 `set_source(None, _)` sets the wallpaper of every desktop: it drops each
 desktop's own choices. `make_own(desktop)` gives a desktop a copy of the shared
 choices, and `show_on_all_desktops(desktop)` makes a desktop's choices the

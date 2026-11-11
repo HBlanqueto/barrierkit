@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
@@ -131,6 +131,8 @@ pub struct WallpaperSelection {
     pub crop: BTreeMap<String, [f32; 4]>,
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub appearance: BTreeMap<String, WallpaperAppearance>,
+    #[serde(default, skip_serializing_if = "BTreeSet::is_empty")]
+    pub paused: BTreeSet<String>,
     #[serde(default)]
     pub shuffle: WallpaperShuffle,
 }
@@ -180,6 +182,10 @@ impl WallpaperSelection {
         self.appearance.get(&self.owner(desktop)).copied()
     }
 
+    pub fn paused_for(&self, desktop: Option<u32>) -> bool {
+        self.paused.contains(&self.owner(desktop))
+    }
+
     pub fn set_source(&mut self, desktop: Option<u32>, source: Option<WallpaperSource>) {
         let key = desktop_key(desktop);
         if desktop.is_none() {
@@ -187,6 +193,7 @@ impl WallpaperSelection {
             self.scales.clear();
             self.crop.retain(|key, _| owner_of(key) == ALL_DESKTOPS);
             self.appearance.retain(|key, _| key == ALL_DESKTOPS);
+            self.paused.retain(|key| key == ALL_DESKTOPS);
         }
         match source {
             Some(source) => self.desktops.insert(key.clone(), source.value()),
@@ -194,6 +201,7 @@ impl WallpaperSelection {
         };
         self.crop.retain(|crop, _| owner_of(crop) != key);
         self.appearance.remove(&key);
+        self.paused.remove(&key);
         if self.scale_for(desktop) == WallpaperScale::Custom {
             self.set_scale(desktop, WallpaperScale::Fill);
         }
@@ -214,6 +222,9 @@ impl WallpaperSelection {
             .map(|(crop, value)| (crop.replacen(ALL_DESKTOPS, &key, 1), *value))
             .collect();
         self.crop.extend(shared);
+        if self.paused.contains(ALL_DESKTOPS) {
+            self.paused.insert(key.clone());
+        }
         if let Some(appearance) = self.appearance.get(ALL_DESKTOPS).copied() {
             self.appearance.insert(key, appearance);
         }
@@ -227,6 +238,7 @@ impl WallpaperSelection {
         let source = self.desktops.get(&key).cloned();
         let scale = self.scale_for(Some(desktop));
         let appearance = self.appearance.get(&key).copied();
+        let paused = self.paused.contains(&key);
         let crops: Vec<(String, [f32; 4])> = self
             .crop
             .iter()
@@ -244,6 +256,9 @@ impl WallpaperSelection {
         }
         if let Some(appearance) = appearance {
             self.appearance.insert(ALL_DESKTOPS.into(), appearance);
+        }
+        if paused {
+            self.paused.insert(ALL_DESKTOPS.into());
         }
     }
 
@@ -280,6 +295,15 @@ impl WallpaperSelection {
             Some(appearance) => self.appearance.insert(owner, appearance),
             None => self.appearance.remove(&owner),
         };
+    }
+
+    pub fn set_paused(&mut self, desktop: Option<u32>, paused: bool) {
+        let owner = self.owner(desktop);
+        if paused {
+            self.paused.insert(owner);
+        } else {
+            self.paused.remove(&owner);
+        }
     }
 }
 
@@ -515,6 +539,7 @@ mod tests {
         selection.set_source(Some(2), Some(WallpaperSource::ShuffleColors));
         selection.set_crop(None, Some("eDP-1"), [0.1, 0.2, 0.5, 0.4]);
         selection.set_appearance(Some(2), Some(WallpaperAppearance::Dark));
+        selection.set_paused(Some(2), true);
         selection.shuffle = WallpaperShuffle::Daily;
         write_wallpaper_selection(&path, &selection).unwrap();
         assert_eq!(read_wallpaper_selection(&path).unwrap(), selection);
@@ -529,6 +554,7 @@ mod tests {
         selection.set_source(Some(2), Some(bandura()));
         selection.set_crop(Some(2), Some("eDP-1"), [0.1, 0.2, 0.5, 0.4]);
         selection.set_appearance(Some(2), Some(WallpaperAppearance::Dark));
+        selection.set_paused(Some(2), true);
         selection.show_on_all_desktops(2);
         assert_eq!(selection.own_desktops().count(), 0);
         assert_eq!(selection.source(Some(3)), Some(bandura()));
@@ -541,6 +567,7 @@ mod tests {
             selection.appearance_for(Some(1)),
             Some(WallpaperAppearance::Dark)
         );
+        assert!(selection.paused_for(Some(1)));
     }
 
     #[test]
