@@ -339,6 +339,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `ctappearance::TextSizes` | struct | — | ≈ the per-app list of Accessibility › Display › Text size | An optional text size per `Toolkit`; `get_mut(toolkit)` | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::AppearanceConfig::text_size_for` | method | — | — | The toolkit's own text size, or the preferred `text_size` | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::MenuBarSize` | enum | — | — | Menu bar text `Default` or `Large` | [4](04-appearance-and-tokens.md#the-appearance-file) |
+| `ctappearance::BlurBehind` | enum | — | ≈ `NSVisualEffectView.BlendingMode` | What the compositor's background blur shows: `Mixed` (by surface), `Wallpaper` or `Windows` (malaysia ADR 0071) | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::ColorFilter` | enum | — | ≈ Accessibility › Display › Color filters | `Grayscale`, `RedGreen`, `GreenRed`, `BlueYellow` | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::AppearanceConfig::transparency_reduced` | method | — | ≈ `NSWorkspace.accessibilityDisplayShouldReduceTransparency` | True with `reduce_transparency` or `contrast` | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::ScrollBars` | enum | ≈ `ScrollIndicatorVisibility` | ≈ `NSScroller.Style` | Show scroll bars `Automatic` (by mouse or touchpad), `WhenScrolling` or `Always` | [4](04-appearance-and-tokens.md#the-appearance-file) |

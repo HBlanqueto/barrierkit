@@ -257,6 +257,8 @@ tint_parts = ["sidebars", "window", "groups", "controls", "menus"]
 | `color_filters` | `bool` | | `false` |
 | `color_filter` | `ColorFilter` | `grayscale`, `red_green`, `green_red`, `blue_yellow` | `grayscale` |
 | `color_filter_intensity` | `f32` | a value of `COLOR_FILTER_INTENSITY` | `1.0` |
+| `blur_behind` | `BlurBehind` | `mixed`, `wallpaper`, `windows` | `mixed` |
+| `blur_all_windows` | `bool` | | `false` |
 
 Notes on the values:
 
@@ -280,6 +282,12 @@ Notes on the values:
   items (and their height) with `Font::scaled`. The compositor applies
   `invert_colors`, `display_contrast`, the color filter and the pointer keys;
   the shell applies `menu_bar_size` (malaysia ADR 0066).
+- `blur_behind` and `blur_all_windows` are for the compositor's background
+  blur (malaysia ADR 0071). `mixed` blurs what is behind pop-ups, kit dialogs,
+  the Dock and notifications, and only the wallpaper behind the rest;
+  `wallpaper` blurs only the wallpaper everywhere; `windows` blurs everything
+  behind. `blur_all_windows` also blurs windows that do not ask for it. Both
+  do nothing while `transparency_reduced()` is true.
 
 ### Reading and writing
 

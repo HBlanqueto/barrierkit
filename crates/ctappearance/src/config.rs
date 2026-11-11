@@ -220,6 +220,15 @@ pub enum MenuBarSize {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
+pub enum BlurBehind {
+    #[default]
+    Mixed,
+    Wallpaper,
+    Windows,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
 pub enum ColorFilter {
     #[default]
     Grayscale,
@@ -304,6 +313,9 @@ pub struct AppearanceConfig {
     #[serde(deserialize_with = "lenient")]
     pub color_filter: ColorFilter,
     pub color_filter_intensity: f32,
+    #[serde(deserialize_with = "lenient")]
+    pub blur_behind: BlurBehind,
+    pub blur_all_windows: bool,
     pub gtk_bridge: bool,
     pub qt_bridge: bool,
 }
@@ -340,6 +352,8 @@ impl Default for AppearanceConfig {
             color_filters: false,
             color_filter: ColorFilter::default(),
             color_filter_intensity: COLOR_FILTER_INTENSITY[COLOR_FILTER_INTENSITY.len() - 1],
+            blur_behind: BlurBehind::default(),
+            blur_all_windows: false,
             gtk_bridge: true,
             qt_bridge: true,
         }
@@ -694,6 +708,8 @@ traffic_lights = "auto"
             color_filters: true,
             color_filter: ColorFilter::BlueYellow,
             color_filter_intensity: COLOR_FILTER_INTENSITY[1],
+            blur_behind: BlurBehind::Windows,
+            blur_all_windows: true,
             gtk_bridge: false,
             qt_bridge: false,
         };
