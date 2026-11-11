@@ -838,6 +838,7 @@
   --bk-shell-menu-separator-margin-y: 5;
   --bk-shell-menu-separator-color: var(--bk-line);
   --bk-shell-menu-separator-tint-ink-mix: 0.14;
+  --bk-shell-menu-mark-inset: 3;
   --bk-shell-menu-mark-width: 16;
   --bk-shell-menu-mark-dot: 7;
   --bk-shell-menu-mark-check: 12;

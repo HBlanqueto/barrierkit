@@ -27,12 +27,11 @@ pub(super) fn icon_width(item: &MenuItem, m: MenuPalette) -> f32 {
 }
 
 pub(super) fn row_text_inset(items: &[MenuItem], m: MenuPalette) -> f32 {
-    let marks = if has_marks(items) {
-        m.leading_width + MENU_MARK_TEXT_GAP
+    if has_marks(items) {
+        m.mark_inset + m.leading_width + MENU_MARK_TEXT_GAP
     } else {
-        0.0
-    };
-    m.item_padding_x + marks
+        m.item_padding_x
+    }
 }
 
 pub(crate) fn last_leading_column_inset(items: &[MenuItem], m: MenuPalette) -> f32 {
@@ -152,11 +151,11 @@ impl RowCtx {
     }
 }
 
-fn row_frame(m: MenuPalette, highlighted: bool) -> Rect {
+fn row_frame(m: MenuPalette, highlighted: bool, start: f32) -> Rect {
     let row = rect()
         .width(Size::fill())
         .height(Size::px(m.item_height))
-        .padding(Gaps::new(0.0, m.item_padding_x, 0.0, m.item_padding_x))
+        .padding(Gaps::new(0.0, m.item_padding_x, 0.0, start))
         .corner_radius(m.item_radius)
         .direction(Direction::Horizontal)
         .main_align(Alignment::SpaceBetween)
@@ -192,7 +191,12 @@ pub(super) fn render_item(
             let fg = row_fg(enabled, is_focused, m.fg, m);
             let shortcut_color = row_fg(enabled, is_focused, m.shortcut_color, m);
             let (on_row_enter, on_row_move) = (ctx.on_row_enter.clone(), ctx.on_row_move.clone());
-            let mut row = row_frame(m, is_focused && enabled)
+            let start = if ctx.marks {
+                m.mark_inset
+            } else {
+                m.item_padding_x
+            };
+            let mut row = row_frame(m, is_focused && enabled, start)
                 .on_pointer_enter(move |event: Event<PointerEventData>| {
                     if enabled {
                         on_row_enter(index, event.global_location());
@@ -272,7 +276,7 @@ pub(super) fn render_item(
             let enabled = *enabled;
             let fg = row_fg(enabled, is_focused, m.fg, m);
             let (mut on_enter, mut on_move) = (ctx.result_focused, ctx.result_focused);
-            let mut row = row_frame(m, is_focused && enabled)
+            let mut row = row_frame(m, is_focused && enabled, m.item_padding_x)
                 .on_pointer_enter(move |_| {
                     if enabled {
                         on_enter.set(Some(index));

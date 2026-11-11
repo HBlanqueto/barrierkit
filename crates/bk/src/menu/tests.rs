@@ -496,13 +496,12 @@ fn plain_menu_text_starts_at_item_padding() {
 }
 
 #[test]
-fn checkbox_false_shifts_text_by_leading_column_and_gap() {
-    let plain = vec![action("Solo texto")];
+fn a_mark_column_starts_the_text_after_the_mark_inset_column_and_gap() {
     let checked = vec![action_with("Solo texto", CheckState::Checkbox(false), None)];
-    let (plain_runner, _) = make_runner(plain);
     let (checked_runner, _) = make_runner(checked);
-    let diff = label_x(&checked_runner, "Solo texto") - label_x(&plain_runner, "Solo texto");
-    let expected = MENU_LIGHT.leading_width + MENU_MARK_TEXT_GAP;
+    let diff = label_x(&checked_runner, "Solo texto");
+    let m = MENU_LIGHT;
+    let expected = m.padding + m.mark_inset + m.leading_width + MENU_MARK_TEXT_GAP;
     assert!(
         (diff - expected).abs() <= 1.0,
         "checkbox adds {diff}, expected {expected}"
@@ -541,7 +540,7 @@ fn submenu_keeps_its_own_inset() {
     assert_eq!(row_text_inset(&parent, m), m.item_padding_x);
     assert_eq!(
         row_text_inset(&child, m),
-        m.item_padding_x + m.leading_width + MENU_MARK_TEXT_GAP
+        m.mark_inset + m.leading_width + MENU_MARK_TEXT_GAP
     );
 }
 
@@ -575,7 +574,7 @@ fn menu_without_columns_is_narrower_by_both_leading_columns_and_gaps() {
     let (columns_w, _) = MenuView::preferred_size(&with_columns, m);
     assert_eq!(
         columns_w - plain_w,
-        2.0 * (m.leading_width + MENU_MARK_TEXT_GAP),
+        m.mark_inset - m.item_padding_x + 2.0 * (m.leading_width + MENU_MARK_TEXT_GAP),
         "plain menu should be narrower by the mark and icon columns plus their gaps"
     );
 }
@@ -590,7 +589,7 @@ fn menu_with_mark_and_icon_insets_text_past_both_columns() {
     let (runner, _) = make_runner(items);
     let m = MENU_LIGHT;
     let x = label_x(&runner, "Mixto");
-    let expected = m.padding + m.item_padding_x + 2.0 * (m.leading_width + MENU_MARK_TEXT_GAP);
+    let expected = m.padding + m.mark_inset + 2.0 * (m.leading_width + MENU_MARK_TEXT_GAP);
     assert!(
         (x - expected).abs() <= 1.0,
         "two-column text starts at {x}, expected {expected}"

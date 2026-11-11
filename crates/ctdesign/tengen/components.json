@@ -982,6 +982,7 @@
           "tint-ink-mix": 0.14
         },
         "mark": {
+          "inset": 3,
           "width": 16,
           "dot": 7,
           "check": 12,

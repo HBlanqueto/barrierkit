@@ -869,6 +869,7 @@ pub struct MenuPalette {
     pub separator_height: f32,
     pub separator_margin_y: f32,
     pub leading_width: f32,
+    pub mark_inset: f32,
     pub mark_dot: f32,
     pub mark_check: f32,
     pub chevron_size: f32,
