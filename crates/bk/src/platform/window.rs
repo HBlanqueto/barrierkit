@@ -200,6 +200,7 @@ pub struct WindowControls {
     pub status: State<WindowStatus>,
     pub title: String,
     pub fixed: bool,
+    pub fixed_width: bool,
     pub(super) surface_id: ObjectId,
     pub focus_bar: State<bool>,
     pub focus_bar_progress: State<f32>,
@@ -426,7 +427,8 @@ fn window_state(app_id: &str) -> String {
 
 fn within(size: (u32, u32), min: Option<(u32, u32)>, max: Option<(u32, u32)>) -> (u32, u32) {
     let (low_w, low_h) = min.unwrap_or((1, 1));
-    let (high_w, high_h) = max.unwrap_or((u32::MAX, u32::MAX));
+    let unbounded = |limit: u32| if limit == 0 { u32::MAX } else { limit };
+    let (high_w, high_h) = max.map_or((u32::MAX, u32::MAX), |(w, h)| (unbounded(w), unbounded(h)));
     (
         size.0.clamp(low_w, high_w.max(low_w)),
         size.1.clamp(low_h, high_h.max(low_h)),
@@ -563,6 +565,10 @@ impl Runtime {
 
         let pointer_serial = Rc::new(std::cell::Cell::new(0));
         let fixed = options.min_size.is_some() && options.min_size == options.max_size;
+        let fixed_width = matches!(
+            (options.min_size, options.max_size),
+            (Some((min, _)), Some((max, _))) if min > 0 && min == max
+        );
         let status = State::create_global(WindowStatus {
             activated: true,
             maximized: false,
@@ -578,6 +584,7 @@ impl Runtime {
             status,
             title: options.title.clone(),
             fixed,
+            fixed_width,
             surface_id,
             focus_bar: State::create_global(false),
             focus_bar_progress: State::create_global(0.0),
@@ -934,6 +941,14 @@ mod tests {
         assert_eq!(
             within((500, 500), Some((640, 420)), Some((640, 420))),
             (640, 420)
+        );
+    }
+
+    #[test]
+    fn a_zero_maximum_leaves_that_dimension_unbounded() {
+        assert_eq!(
+            within((640, 900), Some((640, 420)), Some((640, 0))),
+            (640, 900)
         );
     }
 }

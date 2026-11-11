@@ -133,8 +133,9 @@ every window with `corner_radius` in `window.domain`.
 Close, minimize and zoom. `Titlebar`, the `Rail` and
 `Sidebar::traffic_lights(true)` place them with
 `TrafficLights::for_window(focused, fixed)`, which wires them to
-`WindowControls` and the user's settings. Use it when a view covers the title
-bar and needs its own lights.
+`WindowControls` and the user's settings. In a fixed-width window
+(`WindowControls::fixed_width`) the green light is a plus and zooms to the full
+height. Use it when a view covers the title bar and needs its own lights.
 
 For a standalone set, `TrafficLights` (`bk::traffic`):
 
@@ -151,7 +152,7 @@ TrafficLights::new()
 |---|---|---|
 | `.focused(bool)` | `true` | Unfocused lights are gray until the pointer hovers them |
 | `.zoom_supported(bool)` | `true` | Without zoom, the green light is gray, has no glyph and does nothing |
-| `.fixed_width(bool)` | `false` | The zoom glyph is a plus, for fixed-size windows |
+| `.fixed_width(bool)` | `false` | The zoom glyph is a plus, for fixed-width windows |
 | `.close_only(bool)` | `false` | Only close is colored and clickable |
 | `.vertical(bool)` | `false` | A column instead of a row |
 | `.round(bool)` | `false` | `true`: round instead of square; `false` keeps the style's shape |

@@ -506,6 +506,9 @@ fn lights_inset(height: f32, lights: &TrafficLightsStyle) -> f32 {
 
 impl TrafficLights {
     pub fn for_window(focused: bool, fixed: bool) -> Self {
+        let fixed = fixed
+            || try_consume_root_context::<WindowControls>()
+                .is_some_and(|controls| controls.fixed_width);
         let green = green_action(window_behavior().green_button, fixed);
         TrafficLights::new()
             .round(crate::chrome::chrome_style().round_lights)
