@@ -98,6 +98,19 @@ impl SurfaceRole {
     }
 }
 
+#[cfg(debug_assertions)]
+fn simulated_device_loss(draw_count: u64) -> bool {
+    static LOSE_AT: std::sync::LazyLock<Option<u64>> = std::sync::LazyLock::new(|| {
+        std::env::var("BARRIERKIT_LOSE_DEVICE_AT")
+            .ok()?
+            .parse()
+            .ok()
+    });
+    static FIRED: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+    LOSE_AT.is_some_and(|at| draw_count >= at)
+        && !FIRED.swap(true, std::sync::atomic::Ordering::Relaxed)
+}
+
 impl SurfaceWindow {
     pub(crate) fn request_frame_callback(&mut self, qh: &QueueHandle<Runtime>) {
         // ext-session-lock-v1: a commit without a buffer is a protocol error (null_buffer).
@@ -174,6 +187,10 @@ impl SurfaceWindow {
 
     pub(crate) fn draw(&mut self, compositor: &CompositorState) -> bool {
         let _draw = tracing::trace_span!("draw").entered();
+        #[cfg(debug_assertions)]
+        if simulated_device_loss(self.draw_count) {
+            return self.draw_failed(RunError::DeviceLost);
+        }
         let hud = self
             .context
             .as_ref()

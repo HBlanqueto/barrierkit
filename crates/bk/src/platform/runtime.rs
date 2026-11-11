@@ -78,6 +78,9 @@ pub(crate) struct Runtime {
     pub(crate) xdg_shell: Option<XdgShell>,
     pub(crate) surfaces: Vec<SurfaceWindow>,
     pub(crate) graphics: Rc<GraphicsShared>,
+    // SAFETY: this pointer is the live wl_display of the connection that owns this Runtime;
+    // it must outlive every surface and every GraphicsShared recreated from it.
+    pub(crate) display: *mut c_void,
     pub(crate) seat: SeatState,
     pub(crate) pointer: Option<wl_pointer::WlPointer>,
     pub(crate) cursor_shape: Option<CursorShapeManager>,
@@ -90,6 +93,7 @@ pub(crate) struct Runtime {
     pub(crate) repeat_generation: u64,
     pub(crate) modifiers: SctkModifiers,
     pub(crate) needs_exit: bool,
+    pub(crate) recover_failed: bool,
     pub(crate) request_redraw_all: bool,
     pub(crate) queue: Rc<RefCell<Vec<(ObjectId, super::Sent)>>>,
     pub(crate) ping: Ping,
@@ -171,15 +175,53 @@ impl Runtime {
         on_signal(&mut self, signal.clone());
         event_loop
             .run(None, &mut self, |runtime| {
-                if runtime.needs_exit || runtime.graphics.lost.get() {
+                if runtime.needs_exit {
                     signal.stop();
+                } else if runtime.graphics.lost.get() {
+                    while runtime.graphics.lost.get() {
+                        if !runtime.recover_graphics() {
+                            runtime.recover_failed = true;
+                            signal.stop();
+                            break;
+                        }
+                    }
                 }
             })
             .map_err(|_| RunError::EventLoop("calloop event loop failed"))?;
-        if self.graphics.lost.get() {
+        if self.recover_failed || self.graphics.lost.get() {
             return Err(RunError::DeviceLost);
         }
         Ok(())
+    }
+
+    fn recover_graphics(&mut self) -> bool {
+        if self.graphics.recoveries.get() >= 2 {
+            return false;
+        }
+        let Ok(shared) = GraphicsShared::new(self.display) else {
+            return false;
+        };
+        let shared = Rc::new(shared);
+        shared.recoveries.set(self.graphics.recoveries.get() + 1);
+        for surface in &mut self.surfaces {
+            surface.graphics = None;
+        }
+        for surface in &mut self.surfaces {
+            surface.shared = shared.clone();
+            surface.configure(surface.logical_size, surface.scale);
+        }
+        self.graphics = shared;
+        #[cfg(feature = "video")]
+        super::dmabuf::set_current(&self.graphics);
+        let qh = self.qh.clone();
+        self.apply_pending_window_configures(&qh);
+        for surface in &mut self.surfaces {
+            if surface.logical_size.0 > 0 && surface.logical_size.1 > 0 {
+                surface.draw_after_configure(&self.compositor, &qh);
+            }
+        }
+        tracing::warn!("Vulkan device lost; the device and the surfaces were recreated");
+        true
     }
 }
 
@@ -371,6 +413,7 @@ impl Runtime {
         }
         let seat = SeatState::new(&globals, &qh);
         let seat_handle = seat.seats().next();
+        let display_ptr = conn.display().id().as_ptr().cast::<c_void>();
         let mut shell = Runtime {
             registry: RegistryState::new(&globals),
             compositor: CompositorState::bind(&globals, &qh)
@@ -379,12 +422,12 @@ impl Runtime {
             xdg_shell: XdgShell::bind(&globals, &qh).ok(),
             surfaces: Vec::new(),
             graphics: {
-                let display_ptr = conn.display().id().as_ptr().cast::<c_void>();
                 let graphics = Rc::new(GraphicsShared::new(display_ptr)?);
                 #[cfg(feature = "video")]
                 super::dmabuf::set_current(&graphics);
                 graphics
             },
+            display: display_ptr,
             seat,
             pointer: None,
             cursor_shape: {
@@ -405,6 +448,7 @@ impl Runtime {
             repeat_generation: 0,
             modifiers: SctkModifiers::default(),
             needs_exit: false,
+            recover_failed: false,
             request_redraw_all: false,
             queue,
             ping: ping.clone(),

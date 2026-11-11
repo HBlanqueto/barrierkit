@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 use std::os::fd::{AsRawFd, BorrowedFd, IntoRawFd};
 use std::rc::{Rc, Weak};
 
@@ -10,14 +10,20 @@ use super::vulkan::GraphicsShared;
 
 thread_local! {
     static CURRENT: RefCell<Weak<GraphicsShared>> = const { RefCell::new(Weak::new()) };
+    static GENERATION: Cell<u64> = const { Cell::new(0) };
 }
 
 pub(crate) fn set_current(shared: &Rc<GraphicsShared>) {
     CURRENT.with(|current| *current.borrow_mut() = Rc::downgrade(shared));
+    GENERATION.with(|generation| generation.set(generation.get() + 1));
 }
 
 pub(crate) fn current() -> Option<Rc<GraphicsShared>> {
     CURRENT.with(|current| current.borrow().upgrade())
+}
+
+pub(crate) fn generation() -> u64 {
+    GENERATION.with(|generation| generation.get())
 }
 
 const DRM_FORMAT_ABGR8888: u32 = u32::from_le_bytes(*b"AB24");

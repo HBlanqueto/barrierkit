@@ -67,6 +67,7 @@ pub(crate) struct GraphicsShared {
     pub(crate) font_manager: FontMgr,
     present_fences: bool,
     pub(crate) lost: std::cell::Cell<bool>,
+    pub(crate) recoveries: std::cell::Cell<u8>,
 }
 
 impl GraphicsShared {
@@ -239,11 +240,11 @@ impl GraphicsShared {
             font_manager: crate::fonts::manager(),
             present_fences,
             lost: std::cell::Cell::new(false),
+            recoveries: std::cell::Cell::new(0),
         })
     }
 }
 
-// Skia keeps up to its cache limit of GPU memory alive; anything idle this long is released.
 pub(crate) const IDLE_RESOURCE_RELEASE: Duration = Duration::from_secs(10);
 
 impl GraphicsShared {
@@ -702,7 +703,10 @@ impl Graphics {
         }
         // VK_SUBOPTIMAL_KHR still presented; recreating on it loops when nothing can fix it.
         match presented {
-            Ok(_) => Ok(()),
+            Ok(_) => {
+                self.shared.recoveries.set(0);
+                Ok(())
+            }
             Err(ash_vk::Result::ERROR_OUT_OF_DATE_KHR) => self.recreate_swapchain(self.size),
             Err(result) => Err(failed("vkQueuePresentKHR")(result)),
         }
@@ -727,7 +731,6 @@ unsafe fn destroy_retired(shared: &GraphicsShared, retired: Retired) -> VecDeque
     presents
 }
 
-// Skia's VulkanWindowContext keeps one SkSurface per swapchain image as well.
 fn wrap_swapchain_image(
     shared: &GraphicsShared,
     image: ash_vk::Image,

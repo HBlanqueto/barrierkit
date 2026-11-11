@@ -418,6 +418,7 @@ type BufferKey = (u64, u64);
 
 #[derive(Default)]
 struct Presenter {
+    generation: u64,
     serial: Option<u64>,
     shown: Option<gst::Sample>,
     previous: Option<gst::Sample>,
@@ -435,6 +436,13 @@ fn buffer_key(fd: BorrowedFd<'_>) -> Option<BufferKey> {
 
 impl Presenter {
     fn refresh(&mut self, stream: &VideoStream, canvas: &freya_engine::prelude::Canvas) {
+        let generation = dmabuf::generation();
+        if self.generation != generation {
+            self.generation = generation;
+            self.image = None;
+            self.imported.clear();
+            self.serial = None;
+        }
         let (serial, sample) = stream.latest();
         if self.serial == Some(serial) {
             return;

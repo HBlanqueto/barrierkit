@@ -78,7 +78,10 @@ These steps open a shell surface, the task only this chapter covers.
 
 The loop ends when the last main window closes (utility windows do not
 count), the compositor closes a layer surface, the lock is released, or the
-Vulkan device is lost.
+Vulkan device is lost again after two recreations without a presented frame.
+A lost device is destroyed and recreated with every surface; a presented
+frame resets the count. Debug builds fake one loss after `n` draws with
+`BARRIERKIT_LOSE_DEVICE_AT=n`.
 
 ## The frame
 

@@ -333,7 +333,7 @@ lists.
 | `MissingGlobal(name)` | A [needed global](18-platform.md#wayland-protocols) is missing, `zwlr_layer_shell_v1` for `run_layer`, or `ext_session_lock_manager_v1` for `run_lock` |
 | `Vulkan(reason)` | No `libvulkan`, no GPU that can present, or the surface lacks the swapchain format |
 | `Skia` | Skia cannot create its Vulkan context |
-| `DeviceLost` | The GPU device is lost; the loop stops and returns it |
+| `DeviceLost` | The GPU device cannot be recreated, or is lost again after two recreations without a presented frame |
 | `SurfaceLost` | Never returned: the runner creates a new Vulkan surface and swapchain |
 | `LayerSize` | A `LayerSpec` leaves a size at 0 without anchoring both opposite edges |
 | `EventLoop(reason)` | A `calloop` source cannot be created or the loop fails |
