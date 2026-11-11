@@ -86,7 +86,7 @@ impl ShellState {
                 .ok()
         };
         let infinity = globals
-            .bind::<InfinityWindowManagerV1, _, _>(qh, 1..=7, ())
+            .bind::<InfinityWindowManagerV1, _, _>(qh, 1..=8, ())
             .ok();
         if infinity.is_none() {
             tracing::info!("infinity_window_manager_v1 no disponible; sigo sin él");
@@ -94,6 +94,7 @@ impl ShellState {
         let toplevels = Toplevels {
             list: freya_core::prelude::State::create_global(Vec::new()),
             focus_bar: freya_core::prelude::State::create_global(FocusBar::default()),
+            desktop: freya_core::prelude::State::create_global(None),
             entries: Rc::new(RefCell::new(Vec::new())),
             seat: Rc::new(RefCell::new(rt.seat_handle.clone())),
             infinity,

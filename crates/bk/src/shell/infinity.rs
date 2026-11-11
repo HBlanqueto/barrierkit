@@ -81,6 +81,13 @@ impl Dispatch<InfinityWindowManagerV1, ()> for Runtime {
                         space_changed = true;
                     }
                 }
+                Event::Desktop { desktop } => {
+                    let desktop = (desktop > 0).then_some(desktop);
+                    if *shell.toplevels.desktop.peek() != desktop {
+                        shell.toplevels.desktop.set(desktop);
+                        space_changed = true;
+                    }
+                }
                 _ => {}
             }
         }

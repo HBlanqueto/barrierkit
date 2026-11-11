@@ -23,7 +23,7 @@
     DEALINGS IN THE SOFTWARE.
   </copyright>
 
-  <interface name="infinity_window_manager_v1" version="7">
+  <interface name="infinity_window_manager_v1" version="8">
     <description summary="private window geometry channel for malaysia-shell">
       This protocol is private to malaysia-shell. It lets the shell ask the
       compositor to place windows in halves, quarters, pairs and fullscreen
@@ -168,6 +168,17 @@
         Sent when the manager binds and whenever the value changes.
       </description>
       <arg name="focus_bar" type="uint" enum="focus_bar"/>
+    </event>
+
+    <event name="desktop" since="8">
+      <description summary="the desktop that is shown">
+        The number of the shown desktop, counted from 1 among the desktops
+        (Malaysia ADR 0051), or 0 while a focus space is shown. The bar uses
+        it to read the wallpaper of that desktop.
+
+        Sent when the manager binds and whenever the value changes.
+      </description>
+      <arg name="desktop" type="uint"/>
     </event>
 
     <!-- Opcodes follow declaration order: new requests go after destroy (v4 moved it from 5 to 6). -->

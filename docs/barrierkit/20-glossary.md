@@ -1131,7 +1131,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `shell::use_screen_lock` | fn | — | — | Hook that follows the session lock (`infinity_session_v1`) | [18](18-platform.md#screen-lock-and-blur-region) |
 | `shell::BlurRegion` | struct | `.background(.ultraThinMaterial)` | `NSVisualEffectView` | Rectangles the compositor blurs behind a surface | [18](18-platform.md#screen-lock-and-blur-region) |
 | `shell::set_blur_region` | fn | — | — | Asks the compositor to blur behind the calling surface (`ext_background_effect_v1`) | [18](18-platform.md#screen-lock-and-blur-region) |
-| `shell::Toplevels` | struct | — | — | Every app's windows, the shown space, and actions on windows | [18](18-platform.md#toplevels) |
+| `shell::Toplevels` | struct | — | — | Every app's windows, the shown space and desktop, and actions on windows | [18](18-platform.md#toplevels) |
 | `shell::ToplevelInfo` | struct | — | — | One window of any app: id, title, app id, state, menu addresses | [18](18-platform.md#toplevels) |
 | `shell::FocusBar` | enum | — | — | The bar over the shown space: `None`, `Hidden`, `Revealed` | [18](18-platform.md#toplevels) |
 | `shell::GtkMenusAddress` | struct | — | — | D-Bus address of a GTK window's global menu | [18](18-platform.md#toplevels) |

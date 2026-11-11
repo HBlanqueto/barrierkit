@@ -61,6 +61,7 @@ impl FocusBar {
 pub struct Toplevels {
     pub list: State<Vec<ToplevelInfo>>,
     pub focus_bar: State<FocusBar>,
+    pub desktop: State<Option<u32>>,
     pub(super) entries: Rc<RefCell<Vec<ToplevelEntry>>>,
     pub(super) seat: Rc<RefCell<Option<WlSeat>>>,
     pub(super) infinity: Option<InfinityWindowManagerV1>,

@@ -224,7 +224,7 @@ output and a poll on each loop turn
 | `ext_session_lock_manager_v1` | sctk | `run_lock` |
 | `zwlr_foreign_toplevel_manager_v1` | 3 | `Toplevels`, first choice |
 | `ext_foreign_toplevel_list_v1` | 1 | `Toplevels`, only when the wlr manager is missing |
-| `infinity_window_manager_v1` | 1–6 | Tiling, force quit, shortcuts, spaces and menu addresses in `Toplevels` |
+| `infinity_window_manager_v1` | 1–8 | Tiling, force quit, shortcuts, spaces, the shown desktop and menu addresses in `Toplevels` |
 | `xdg_activation_v1` | 1 | `Activation` |
 
 ### `run_layer` and `LayerSpec`
@@ -326,6 +326,7 @@ context in `run_layer` and `run_lock`.
 |---|---|---|
 | `list` | `State<Vec<ToplevelInfo>>` | The windows, in arrival order |
 | `focus_bar` | `State<FocusBar>` | The bar over the shown space: `None` on a desktop, `Hidden` or `Revealed` over a focus space (Malaysia ADR 0051) |
+| `desktop` | `State<Option<u32>>` | The number of the shown desktop, from 1; `None` over a focus space or without Infinity v8 |
 
 | `ToplevelInfo` field | Type | Meaning |
 |---|---|---|
