@@ -128,6 +128,21 @@ pub struct SettingsStrength {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct SettingsWallpaper {
+    pub preview_width: u32,
+    pub tile_width: u32,
+    pub tile_height: u32,
+    pub dot: u32,
+    pub crop_width: u32,
+    pub crop_aspect: f32,
+    pub crop_dim: f32,
+    pub crop_corner: u32,
+    pub crop_corner_stroke: u32,
+    pub crop_zoom_max: f32,
+    pub crop_zoom_step: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct SettingsCheck {
     pub gap: u32,
     pub row_gap: u32,
@@ -206,6 +221,7 @@ pub struct SettingsMetrics {
     pub empty_padding_y: u32,
     pub empty_icon: u32,
     pub empty_gap: u32,
+    pub wallpaper: SettingsWallpaper,
     pub toolbar_gap: u32,
     pub toolbar_height: u32,
     pub toolbar_padding_top: u32,

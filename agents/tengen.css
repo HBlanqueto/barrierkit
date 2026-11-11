@@ -533,6 +533,17 @@
   --bk-settings-empty-padding-y: 48;
   --bk-settings-empty-icon: 28;
   --bk-settings-empty-gap: 6;
+  --bk-settings-wallpaper-preview-width: 136;
+  --bk-settings-wallpaper-tile-width: 92;
+  --bk-settings-wallpaper-tile-height: 58;
+  --bk-settings-wallpaper-dot: 38;
+  --bk-settings-wallpaper-crop-width: 560;
+  --bk-settings-wallpaper-crop-aspect: 1.6;
+  --bk-settings-wallpaper-crop-dim: 0.55;
+  --bk-settings-wallpaper-crop-corner: 16;
+  --bk-settings-wallpaper-crop-corner-stroke: 3;
+  --bk-settings-wallpaper-crop-zoom-max: 4;
+  --bk-settings-wallpaper-crop-zoom-step: 0.25;
   --bk-dialog-radius: var(--bk-window-corner-unified);
   --bk-dialog-padding: 20;
   --bk-dialog-alert-width: 260;

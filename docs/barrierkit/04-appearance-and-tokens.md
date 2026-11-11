@@ -131,7 +131,7 @@ Image::system(Symbol::Folder)
 | Actions | `MagnifyingGlass`, `XMark`, `Plus`, `Minus`, `Ellipsis`, `Checkmark`, `Expand` |
 | Media | `Play`, `Pause`, `Backward`, `Forward`, `SpeakerWave`, `Captions`, `Film`, `Tv` |
 | Layout | `ListBullet`, `SquareGrid`, `SlidersVertical`, `SidebarLeft` |
-| Places and things | `House`, `Folder`, `Document`, `Star`, `StarFill`, `Clock`, `Bookmark`, `CircleHalf`, `Accessibility`, `Display`, `Moon`, `Bell`, `Bed`, `Person`, `Briefcase`, `Printer`, `Phone`, `SquareOnSquare` |
+| Places and things | `House`, `Folder`, `Document`, `Star`, `StarFill`, `Clock`, `Bookmark`, `CircleHalf`, `Accessibility`, `Display`, `Photo`, `Moon`, `Bell`, `Bed`, `Person`, `Briefcase`, `Printer`, `Phone`, `SquareOnSquare` |
 | Connections and power | `Wifi`, `Bluetooth`, `Network`, `Lock`, `Bolt`, `Battery` |
 | Row actions | `EllipsisCircle` |
 | Shapes | `Square`, `Circle` |
@@ -293,6 +293,26 @@ Notes on the values:
 | `write_appearance(path, config)` | Writes the config and keeps other keys and comments. An unreadable file is first copied to `.domain.bak`. The file is replaced atomically. |
 | `load_dominant()`, `load_wallpaper_grid()` | Read `dominant` and `grid` from `wallpaper.state`. |
 | `write_wallpaper_state(path, &WallpaperState)` | Writes `dominant` and `grid`; an empty state removes the file. |
+| `wallpaper_selection_path()` | `data_dir()/wallpaper-selection.state`, the wallpaper each desktop shows. |
+| `read_wallpaper_selection(path)` | The selection; the default without a file, `Err` when the TOML does not parse. |
+| `write_wallpaper_selection(path, &WallpaperSelection)` | Replaces the file atomically. |
+
+`WallpaperSelection` holds `scale` (`WallpaperScale`: `Fill`, `Fit`,
+`Stretch`, `Center` or `Custom`), `desktops` (a `file://` URI per desktop) and
+`crop` (`[x, y, width, height]` per desktop, fractions of the image). The key
+`ALL_DESKTOPS` (`"default"`) applies to every desktop; a missing key shows the
+built-in wallpaper. With `Custom`, the crop rectangle covers the screen like
+`Fill`, so one crop serves outputs of any shape.
+
+```toml
+scale = "custom"
+
+[desktops]
+default = "file:///run/current-system/sw/share/wallpapers/bandura.jpg"
+
+[crop]
+default = [0.2, 0.15, 0.55, 0.62]
+```
 
 ### Resolution
 
@@ -522,7 +542,7 @@ A color, size or duration never goes into `bk`. It goes into Tengen:
 | `TrafficGlyphs` | Glyph geometry: `box_size`, `stroke`, `close`, `minimize`, `zoom`, `plus`. |
 | `Segment`, `Triangle` | A line from `a` to `b`; three points. |
 | `DoubleClick` | `interval_ms` and pointer `slop` of a double click. |
-| `SettingsStrength`, `SettingsCheck` | Parts of `SettingsMetrics`: the tint-strength scale and the check list. |
+| `SettingsStrength`, `SettingsCheck`, `SettingsWallpaper` | Parts of `SettingsMetrics`: the tint-strength scale, the check list and the Wallpaper pane (preview, tiles, color dots and custom framing). |
 | `*Metrics` | Sizes of one component; see the tables below. |
 
 ### Spacing

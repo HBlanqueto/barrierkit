@@ -619,6 +619,21 @@
         "padding-y": 48,
         "icon": 28,
         "gap": 6
+      },
+      "wallpaper": {
+        "preview-width": 136,
+        "tile-width": 92,
+        "tile-height": 58,
+        "dot": 38,
+        "crop": {
+          "width": 560,
+          "aspect": 1.6,
+          "dim": 0.55,
+          "corner": 16,
+          "corner-stroke": 3,
+          "zoom-max": 4,
+          "zoom-step": 0.25
+        }
       }
     },
     "dialog": {

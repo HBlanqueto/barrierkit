@@ -311,7 +311,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 
 | BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
 |---|---|---|---|---|---|
-| `symbol::Symbol` | enum | ≈ `Image(systemName:)` names | ≈ `NSImage(systemSymbolName:accessibilityDescription:)` names | Name of a built-in line icon; 55 variants | [4](04-appearance-and-tokens.md#symbols) |
+| `symbol::Symbol` | enum | ≈ `Image(systemName:)` names | ≈ `NSImage(systemSymbolName:accessibilityDescription:)` names | Name of a built-in line icon; 56 variants | [4](04-appearance-and-tokens.md#symbols) |
 | `symbol::Image` | struct | `Image(systemName:)` | `NSImage(systemSymbolName:accessibilityDescription:)` | A symbol as a view; `BODY` size and label color by default | [4](04-appearance-and-tokens.md#symbols) |
 | `register_font` | fn | — | — | Adds a typeface from font file bytes; `false` if not a font | [4](04-appearance-and-tokens.md#fonts) |
 
@@ -359,6 +359,12 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `ctappearance::load_wallpaper_grid` | fn | — | — | Reads the wallpaper's grid of average colors | [4](04-appearance-and-tokens.md#reading-and-writing) |
 | `ctappearance::write_wallpaper_state` | fn | — | — | Writes or removes the wallpaper's dominant color and grid | [4](04-appearance-and-tokens.md#reading-and-writing) |
 | `ctappearance::WallpaperState` | struct | — | — | Contents of `wallpaper.state`: `dominant` and `grid` | [4](04-appearance-and-tokens.md#reading-and-writing) |
+| `ctappearance::wallpaper_selection_path` | fn | — | — | Path of `wallpaper-selection.state`, the wallpaper each desktop shows | [4](04-appearance-and-tokens.md#reading-and-writing) |
+| `ctappearance::read_wallpaper_selection` | fn | — | — | Reads the selection; the default without a file, `Err` on bad TOML | [4](04-appearance-and-tokens.md#reading-and-writing) |
+| `ctappearance::write_wallpaper_selection` | fn | — | — | Writes the selection atomically | [4](04-appearance-and-tokens.md#reading-and-writing) |
+| `ctappearance::WallpaperSelection` | struct | — | ≈ `NSWorkspace.desktopImageURL(for:)` and its options | `scale`, `desktops` and `crop` of `wallpaper-selection.state` | [4](04-appearance-and-tokens.md#reading-and-writing) |
+| `ctappearance::WallpaperScale` | enum | — | ≈ `NSImageScaling` | `Fill`, `Fit`, `Stretch`, `Center`, `Custom` | [4](04-appearance-and-tokens.md#reading-and-writing) |
+| `ctappearance::ALL_DESKTOPS` | constant | — | — | Key `"default"`: the wallpaper and crop of every desktop | [4](04-appearance-and-tokens.md#reading-and-writing) |
 | `ctappearance::tinting::WallpaperGrid` | struct | — | — | Average colors of the wallpaper; `from_rgba8`, `behind(output, window)` | [4](04-appearance-and-tokens.md#wallpaper-behind-a-window) |
 | `ctappearance::watch::AppearanceWatch` | struct | — | — | inotify watch on the config and data folders; `drain()` | [4](04-appearance-and-tokens.md#watching) |
 | `ctappearance::watch::AppearanceEvent` | enum | — | — | `Appearance`, `Wallpaper`, `WallpaperSelection`, `Defaults`; `restyles()` | [4](04-appearance-and-tokens.md#watching) |
@@ -459,6 +465,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `ctdesign::DoubleClick` | struct | — | ≈ `NSEvent.doubleClickInterval` | Double-click interval and pointer slop | [4](04-appearance-and-tokens.md#token-types) |
 | `ctdesign::SettingsStrength` | struct | — | — | Tint-strength scale of the settings app | [4](04-appearance-and-tokens.md#token-types) |
 | `ctdesign::SettingsCheck` | struct | — | — | Check list spacing of the settings app | [4](04-appearance-and-tokens.md#token-types) |
+| `ctdesign::SettingsWallpaper` | struct | — | — | Wallpaper pane of the settings app: preview, tiles, color dots, custom framing | [4](04-appearance-and-tokens.md#token-types) |
 | `ctdesign::SettingsMetrics` | struct | — | — | Sizes of the settings window, sidebar, search and previews | [4](04-appearance-and-tokens.md#view-metrics) |
 | `ctdesign::ButtonMetrics` | struct | — | — | Push button sizes, radius, font and pressed scale | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::IconButtonMetrics` | struct | — | — | Icon button size, radius and icon size | [4](04-appearance-and-tokens.md#control-metrics) |
