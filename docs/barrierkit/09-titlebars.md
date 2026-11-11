@@ -321,7 +321,7 @@ compositor bar, added to the image.
 | `ProgressiveGlass` | Full blur at the top that fades out over `FULLSCREEN_GLASS.height` (96 px), without a line, across the whole window and the sidebar ([ADR 0057](../decisions/0057-glass-and-sidebar-over-backdrop.md)) | Bar + `FULLSCREEN_GLASS.content_top` (74) | ![Progressive glass](assets/states/bar-progressive-glass.png) |
 
 Only `Glass` and `ProgressiveGlass` blur. When the user reduces
-transparency (`reduce_transparency`, on by default), both draw as `Solid`;
+transparency (`reduce_transparency`, off by default), both draw as `Solid`;
 the content keeps the offset of the chosen bar. Their tint, line and metrics
 are a `FullscreenBarStyle`, set in the theme or with `.control_style`
 ([Styles and themes](../../crates/bk/src/styles/titlebar.rs)).

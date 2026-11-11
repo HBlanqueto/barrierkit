@@ -593,7 +593,11 @@
         "radius": 3,
         "wall-angle": 160,
         "wall-light": 0.25,
-        "wall-dark": 0.4
+        "wall-dark": 0.4,
+        "bar-h": 8,
+        "bar-padding": 4,
+        "bar-item-w": 4,
+        "bar-item-gap": 3
       },
       "radio": {
         "size": 16,
@@ -792,6 +796,15 @@
     "shell": {
       "menubar": {
         "height": 30,
+        "height-wide": 38,
+        "over-light": {
+          "ink": "#000000db",
+          "glass": "#ffffff29"
+        },
+        "over-dark": {
+          "ink": "#ffffffeb",
+          "glass": "#00000029"
+        },
         "font-size": 13,
         "font-size-large": 15,
         "app-name": {

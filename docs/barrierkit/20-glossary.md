@@ -313,7 +313,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 
 | BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
 |---|---|---|---|---|---|
-| `symbol::Symbol` | enum | ≈ `Image(systemName:)` names | ≈ `NSImage(systemSymbolName:accessibilityDescription:)` names | Name of a built-in line icon; 58 variants | [4](04-appearance-and-tokens.md#symbols) |
+| `symbol::Symbol` | enum | ≈ `Image(systemName:)` names | ≈ `NSImage(systemSymbolName:accessibilityDescription:)` names | Name of a built-in line icon; 61 variants | [4](04-appearance-and-tokens.md#symbols) |
 | `symbol::Image` | struct | `Image(systemName:)` | `NSImage(systemSymbolName:accessibilityDescription:)` | A symbol as a view; `BODY` size and label color by default | [4](04-appearance-and-tokens.md#symbols) |
 | `register_font` | fn | — | — | Adds a typeface from font file bytes; `false` if not a font | [4](04-appearance-and-tokens.md#fonts) |
 
@@ -412,7 +412,11 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 
 | BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
 |---|---|---|---|---|---|
-| `ctappearance::menubar::MenubarConfig` | struct | — | — | `menubar.domain`: `app_menus` and the `show_*` status menus | [4](04-appearance-and-tokens.md#menu-bar) |
+| `ctappearance::menubar::MenubarConfig` | struct | — | — | `menubar.domain`: `app_menus` the `show_*` status menus, `style` and `bar_height` | [4](04-appearance-and-tokens.md#menu-bar) |
+| `ctappearance::menubar::MenubarConfig::height` | method | — | — | Menu bar height in logical pixels for `bar_height` | [4](04-appearance-and-tokens.md#menu-bar) |
+| `ctappearance::menubar::colors_over` | function | — | — | Ink and glass of a translucent or floating menu bar over a wallpaper color: dark over light, light over dark | [4](04-appearance-and-tokens.md#menu-bar) |
+| `ctappearance::menubar::MenubarStyle` | enum | — | — | `Solid`, `Translucent`, `Floating`: how the menu bar draws its background | [4](04-appearance-and-tokens.md#menu-bar) |
+| `ctappearance::menubar::MenubarHeight` | enum | — | — | `Slim`, `Wide`: the menu bar height | [4](04-appearance-and-tokens.md#menu-bar) |
 | `ctappearance::window::WindowBehavior` | struct | — | — | `window.domain`: titlebar double click and green button actions | [4](04-appearance-and-tokens.md#window-behavior) |
 | `ctappearance::window::read_window_behavior` | fn | — | — | Reads `window.domain`, or the default | [4](04-appearance-and-tokens.md#window-behavior) |
 | `ctappearance::window::DoubleClickAction` | enum | — | — | Titlebar double click: `Fill`, `Minimize`, `Zoom`, `None` | [4](04-appearance-and-tokens.md#window-behavior) |
@@ -586,7 +590,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `ctdesign::SIDEBAR`, `TOOLGROUP`, `SPLIT_VIEW`, `SPLIT_PANES`, `FLOATING_PANE`, `TABLE`, `COLLECTION`, `LIST_GROUP`, `GROUP_BOX`, `DISCLOSURE`, `TOOLBAR_TABS`, `SCROLL_BAR`, `BREAKPOINT` | constant | — | — | Metrics of sidebars, split views, lists, tables and groups | [4](04-appearance-and-tokens.md#view-metrics) |
 | `ctdesign::SETTINGS`, `FONT_PANEL`, `PRINT`, `CHART`, `MEDIA`, `BACKDROP`, `BACKDROP_SCENES` | constant | — | — | Metrics of settings, font panel, printing, charts, media, backdrops | [4](04-appearance-and-tokens.md#view-metrics) |
 | `ctdesign::MATERIAL` | constant | `Material` | `NSVisualEffectView.Material` | Opacity and blur of the five material thicknesses | [4](04-appearance-and-tokens.md#materials) |
-| `ctdesign::MENUBAR_HEIGHT`, `MENUBAR_FONT_SIZE`, `MENUBAR_FONT_SIZE_LARGE`, `MENUBAR_APP_NAME_WEIGHT`, `MENUBAR_MARGIN`, `MENUBAR_MARGIN_RIGHT`, `MENUBAR_FADED_ALPHA`, `MENUBAR_TITLE_PADDING_X`, `MENUBAR_TEXT_LIFT`, `MENUBAR_TITLE_MAX_WIDTH`, `MENUBAR_SYSTEM_MENU_MIN_WIDTH`, `MENUBAR_TITLE_BLEED`, `FOCUS_BAR_BACKGROUND`, `FOCUS_BAR_TEXT` | constant | — | — | Shell menu bar sizes; focus-mode bar colors | [4](04-appearance-and-tokens.md#shell) |
+| `ctdesign::MENUBAR_HEIGHT`, `MENUBAR_HEIGHT_WIDE`, `MENUBAR_OVER_LIGHT_INK`, `MENUBAR_OVER_LIGHT_GLASS`, `MENUBAR_OVER_DARK_INK`, `MENUBAR_OVER_DARK_GLASS`, `MENUBAR_FONT_SIZE`, `MENUBAR_FONT_SIZE_LARGE`, `MENUBAR_APP_NAME_WEIGHT`, `MENUBAR_MARGIN`, `MENUBAR_MARGIN_RIGHT`, `MENUBAR_FADED_ALPHA`, `MENUBAR_TITLE_PADDING_X`, `MENUBAR_TEXT_LIFT`, `MENUBAR_TITLE_MAX_WIDTH`, `MENUBAR_SYSTEM_MENU_MIN_WIDTH`, `MENUBAR_TITLE_BLEED`, `FOCUS_BAR_BACKGROUND`, `FOCUS_BAR_TEXT` | constant | — | — | Shell menu bar sizes; focus-mode bar colors | [4](04-appearance-and-tokens.md#shell) |
 | `ctdesign::DOCK_TILESIZE`, `DOCK_GAP`, `DOCK_PADDING`, `DOCK_FONT_SIZE`, `DOCK_PROGRESS_HEIGHT`, `DOCK_BAR_HEIGHT` | constant | — | — | Shell Dock sizes | [4](04-appearance-and-tokens.md#shell) |
 | `ctdesign::NOTIFICATION_WIDTH`, `NOTIFICATION_RADIUS`, `NOTIFICATION_PADDING`, `NOTIFICATION_GAP`, `NOTIFICATION_MARGIN`, `NOTIFICATION_ICON_SIZE`, `NOTIFICATION_TEXT_GAP`, `NOTIFICATION_CLOSE_SIZE`, `NOTIFICATION_STACK_PEEK`, `NOTIFICATION_STACK_INSET`, `NOTIFICATION_BODY_LINES`, `NOTIFICATION_MAX_BANNERS`, `NOTIFICATION_BANNER_MS`, `NOTIFICATION_SLIDE_IN_MS`, `NOTIFICATION_SLIDE_OUT_MS`, `NOTIFICATION_SLIDE_BOUNCE`, `NOTIFICATION_EDGE`, `NOTIFICATION_SWIPE`, `NOTIFICATION_WIDGET_SIZE`, `NOTIFICATION_WIDGET_RADIUS`, `NOTIFICATION_REPLY_HEIGHT`, `LIVE_ACTIVITY_WIDTH`, `LIVE_ACTIVITY_HEIGHT`, `LIVE_ACTIVITY_RADIUS`, `LIVE_ACTIVITY_GAP`, `LIVE_ACTIVITY_ENDED_MS` | constant | — | — | Notification banner, Notification Center, widget and Live Activity sizes, timing and slides | [4](04-appearance-and-tokens.md#shell) |
 | `ctdesign::LAUNCHER_WIDTH`, `LAUNCHER_HEIGHT`, `LAUNCHER_PADDING`, `LAUNCHER_SEARCH_HEIGHT`, `LAUNCHER_RESULT_HEIGHT`, `LAUNCHER_RESULT_GAP`, `LAUNCHER_RESULT_RADIUS`, `LAUNCHER_ICON_SIZE`, `LAUNCHER_MAX_RESULTS`, `LAUNCHER_CORNER_RADIUS`, `LAUNCHER_FONT_SIZE`, `LAUNCHER_SUBTITLE_FONT_SIZE`, `LAUNCHER_SCALE_FROM`, `LAUNCHER_OPEN_MS`, `LAUNCHER_CLOSE_MS` | constant | — | — | Shell launcher sizes and animation | [4](04-appearance-and-tokens.md#shell) |
@@ -1109,7 +1113,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 |---|---|---|---|---|---|
 | `shell::run_layer` | fn | — | — | Runs an app in a wlr layer surface (menu bar, Dock, background) | [18](18-platform.md#run_layer-and-layerspec) |
 | `shell::LayerSpec` | struct | — | — | Namespace, layer, anchors, exclusive zone, keyboard and size of a layer surface | [18](18-platform.md#run_layer-and-layerspec) |
-| `shell::LayerGeometry` | struct | — | ≈ `NSWindow.setFrame(_:display:)` | Anchors, size and keyboard of a running layer surface | [18](18-platform.md#run_layer-and-layerspec) |
+| `shell::LayerGeometry` | struct | — | ≈ `NSWindow.setFrame(_:display:)` | Anchors, exclusive zone, size and keyboard of a running layer surface | [18](18-platform.md#run_layer-and-layerspec) |
 | `shell::CardFrames` | struct | — | — | Corner radius and rectangles of the cards a layer surface draws | [18](18-platform.md#run_layer-and-layerspec) |
 | `shell::set_card_frames` | fn | — | — | Asks the compositor for the window frame (shadow, inner and outer border) around each card of the calling layer surface | [18](18-platform.md#run_layer-and-layerspec) |
 | `shell::set_layer_geometry` | fn | — | ≈ `NSWindow.setFrame(_:display:)` | Moves, resizes or refocuses the layer surface of the calling component | [18](18-platform.md#run_layer-and-layerspec) |

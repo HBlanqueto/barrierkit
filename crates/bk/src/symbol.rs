@@ -50,6 +50,7 @@ pub enum Symbol {
     ChevronDoubleRight,
     Accessibility,
     Display,
+    MenubarDockRectangle,
     Photo,
     Moon,
     Bell,
@@ -88,6 +89,7 @@ impl Symbol {
                 "M8 14a6 6 0 1 0 0-12a6 6 0 0 0 0 12M8 4.8h0M5.2 6.6 8 7.1l2.8-.5M8 7.1v2.3M6.6 11.8 8 9.4l1.4 2.4"
             }
             Self::Display => "M2.5 3.5h11v7.5h-11zM6 13.5h4M8 11v2.5",
+            Self::MenubarDockRectangle => "M2.5 3.5h11v9h-11zM2.5 5.5h11M6 10.5h4",
             Self::Photo => "M2.5 3.5h11v9h-11zM2.5 11l3.5-3.5 3 3 1.5-1.5 3 3M10.5 6.5h0",
             Self::Bed => {
                 "M2 12.5V5M2 9.5h12v3M14 9.5V8a1.5 1.5 0 0 0-1.5-1.5H7v3M4.5 8.5a1 1 0 1 0 0-2a1 1 0 0 0 0 2"

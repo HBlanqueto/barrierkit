@@ -454,7 +454,7 @@ fn golden_path(name: &str, dark: bool) -> PathBuf {
 
 fn render(size: (f32, f32), dark: bool, build: fn() -> Element) -> Vec<u8> {
     let app = AppComponent::new(Case { dark, build });
-    // The goldens must not depend on the host's appearance.domain or wallpaper accent.
+    // The goldens must not depend on the host's appearance.domain, wallpaper accent or default transparency.
     let resolved = resolve(
         &AppearanceConfig {
             color_scheme: if dark {
@@ -462,6 +462,7 @@ fn render(size: (f32, f32), dark: bool, build: fn() -> Element) -> Vec<u8> {
             } else {
                 ColorScheme::Light
             },
+            reduce_transparency: true,
             ..Default::default()
         },
         None,
@@ -711,6 +712,7 @@ fn focus_case(keyboard: bool) -> (TestingRunner, State<bool>, State<bool>, State
     let resolved = resolve(
         &AppearanceConfig {
             color_scheme: ColorScheme::Light,
+            reduce_transparency: true,
             ..Default::default()
         },
         None,

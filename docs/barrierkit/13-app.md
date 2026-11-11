@@ -227,7 +227,8 @@ struct with `Serialize`, `Deserialize` and `Default`, stored as TOML.
 - `MALAYSIA_CONFIG_DIR` and `MALAYSIA_DATA_DIR` replace the two folders.
   Without them they are `malaysia/` under the XDG config and data homes.
 - `use_defaults` and `use_watched` reload when any `.domain` file in the
-  config folder changes, except `appearance.domain`.
+  config folder changes, except `appearance.domain`, and when `wallpaper.state`
+  changes.
 
 The window size and the maximized state are saved and restored by the kit
 ([8. Windows](08-windows.md)).

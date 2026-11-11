@@ -91,6 +91,7 @@ pub struct LayerSpec {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct LayerGeometry {
     pub anchors: Anchors,
+    pub exclusive_zone: i32,
     pub size: (u32, u32),
     pub keyboard: KeyboardInteractivity,
 }
@@ -135,6 +136,7 @@ impl Runtime {
         };
         layer_surface.set_anchor(anchors_to_sctk(geometry.anchors));
         layer_surface.set_size(geometry.size.0, geometry.size.1);
+        layer_surface.set_exclusive_zone(geometry.exclusive_zone);
         layer_surface.set_keyboard_interactivity(keyboard_to_sctk(geometry.keyboard));
         layer_surface.wl_surface().commit();
     }

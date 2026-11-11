@@ -133,7 +133,7 @@ decoding thread, so a grid of covers does not start a thread per cover.
 `Material` and `TopGlass` are positioned absolutely: put them as the first
 child of the element they sit behind.
 
-When the user reduces transparency (`reduce_transparency`, on by default),
+When the user reduces transparency (`reduce_transparency`, off by default),
 the glass is solid and sharp: `Material` and `GlassContainer` fill with the
 opaque `MEDIA.material_tint` and keep their rim; `TopGlass` is an opaque band
 in the window color, `FULLSCREEN_GLASS.height` deep.

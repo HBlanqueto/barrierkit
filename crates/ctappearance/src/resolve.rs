@@ -609,16 +609,17 @@ mod tests {
     #[test]
     fn reduced_transparency_makes_shell_menu_and_sidebar_opaque() {
         for scheme in [ColorScheme::Light, ColorScheme::Dark, ColorScheme::DarkTint] {
-            let resolved = resolve(
-                &appearance(
+            let config = AppearanceConfig {
+                reduce_transparency: true,
+                ..appearance(
                     scheme,
                     WindowColorMode::Neutral,
                     WindowTintScope::Windows,
                     TrafficLightStyle::Auto,
                     None,
-                ),
-                Some(dominant()),
-            );
+                )
+            };
+            let resolved = resolve(&config, Some(dominant()));
             assert!(resolved.reduce_transparency);
             for (name, color) in [
                 ("shell bar", resolved.shell.bar),
@@ -644,14 +645,13 @@ mod tests {
 
     #[test]
     fn transparency_keeps_the_translucent_bar_when_disabled() {
-        let mut config = appearance(
+        let config = appearance(
             ColorScheme::Light,
             WindowColorMode::Neutral,
             WindowTintScope::Windows,
             TrafficLightStyle::Auto,
             None,
         );
-        config.reduce_transparency = false;
         let resolved = resolve(&config, None);
         assert!(!resolved.reduce_transparency);
         assert!(resolved.shell.bar.a < 1.0);

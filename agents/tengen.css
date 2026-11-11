@@ -518,6 +518,10 @@
   --bk-settings-preview-wall-angle: 160;
   --bk-settings-preview-wall-light: 0.25;
   --bk-settings-preview-wall-dark: 0.4;
+  --bk-settings-preview-bar-h: 8;
+  --bk-settings-preview-bar-padding: 4;
+  --bk-settings-preview-bar-item-w: 4;
+  --bk-settings-preview-bar-item-gap: 3;
   --bk-settings-radio-size: 16;
   --bk-settings-radio-dot: 6;
   --bk-settings-radio-gap: 6;
@@ -679,6 +683,11 @@
   --bk-badge-padding-x: 8;
   --bk-focus-ring-width: 3;
   --bk-shell-menubar-height: 30;
+  --bk-shell-menubar-height-wide: 38;
+  --bk-shell-menubar-over-light-ink: #000000db;
+  --bk-shell-menubar-over-light-glass: #ffffff29;
+  --bk-shell-menubar-over-dark-ink: #ffffffeb;
+  --bk-shell-menubar-over-dark-glass: #00000029;
   --bk-shell-menubar-font-size: 13;
   --bk-shell-menubar-font-size-large: 15;
   --bk-shell-menubar-app-name-weight: 700;

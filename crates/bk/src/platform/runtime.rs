@@ -349,7 +349,12 @@ fn insert_ping(event_loop: &mut EventLoop<Runtime>, shell: &mut Runtime) -> Resu
                     && let Ok(events) = watch.drain()
                     && !events.is_empty()
                 {
-                    if events.contains(&AppearanceEvent::Defaults) {
+                    if events.iter().any(|event| {
+                        matches!(
+                            event,
+                            AppearanceEvent::Defaults | AppearanceEvent::Wallpaper
+                        )
+                    }) {
                         *shell.defaults_revision.write() += 1;
                         shell.request_redraw_all = true;
                         shell.ping.ping();

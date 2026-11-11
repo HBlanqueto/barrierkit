@@ -131,7 +131,7 @@ Image::system(Symbol::Folder)
 | Actions | `MagnifyingGlass`, `XMark`, `Plus`, `Minus`, `Ellipsis`, `Checkmark`, `Expand`, `QuestionMark` |
 | Media | `Play`, `Pause`, `Shuffle`, `ChevronLeftForwardSlashChevronRight`, `Backward`, `Forward`, `SpeakerWave`, `Captions`, `Film`, `Tv` |
 | Layout | `ListBullet`, `SquareGrid`, `SlidersVertical`, `SidebarLeft` |
-| Places and things | `House`, `Folder`, `Document`, `Star`, `StarFill`, `Clock`, `Bookmark`, `CircleHalf`, `Accessibility`, `Display`, `Photo`, `Moon`, `Bell`, `Bed`, `Person`, `Briefcase`, `Printer`, `Phone`, `SquareOnSquare`, `Keyboard` |
+| Places and things | `House`, `Folder`, `Document`, `Star`, `StarFill`, `Clock`, `Bookmark`, `CircleHalf`, `Accessibility`, `Display`, `MenubarDockRectangle`, `Photo`, `Moon`, `Bell`, `Bed`, `Person`, `Briefcase`, `Printer`, `Phone`, `SquareOnSquare`, `Keyboard` |
 | Connections and power | `Wifi`, `Bluetooth`, `Network`, `Lock`, `Bolt`, `Battery` |
 | Row actions | `EllipsisCircle` |
 | Shapes | `Square`, `Circle` |
@@ -232,7 +232,7 @@ tint_parts = ["sidebars", "window", "groups", "controls", "menus"]
 | `wallpaper_accent` | `bool` | the accent is the wallpaper's dominant color; `accent_color` stays as the fallback | `false` |
 | `contrast` | `bool` | | `false` |
 | `reduced_motion` | `bool` | | `false` |
-| `reduce_transparency` | `bool` | | `true` |
+| `reduce_transparency` | `bool` | | `false` |
 | `scroll_bars` | `ScrollBars` | `automatic`, `when_scrolling`, `always` | `automatic` |
 | `scroll_bar_click` | `ScrollBarClick` | `next_page`, `clicked_spot` | `next_page` |
 | `window_color` | `WindowColorMode` | `neutral`, `accent` (an old `wallpaper` reads as `neutral`) | `neutral` |
@@ -453,6 +453,15 @@ it. `show_wifi`, `show_bluetooth`, `show_battery`, `show_battery_percentage`
 and `show_vpn` (all `true`) choose the status menus of the bar; System
 Settings writes them. `show_printer` (`true`) shows a printer while a print job
 is queued, on the bar and on the lock screen.
+
+`style` is a `MenubarStyle`: `solid`, `translucent` or `floating` (default).
+`bar_height` is a `MenubarHeight`: `slim` (default, `MENUBAR_HEIGHT`) or
+`wide` (`MENUBAR_HEIGHT_WIDE`). `MenubarConfig::height()` returns the height
+in logical pixels; the bar and the lock screen both use it. An unknown value
+falls back to the default. `menubar::colors_over(wallpaper)` returns the ink
+and glass of a translucent or floating bar over that wallpaper color: the
+`MENUBAR_OVER_LIGHT_*` pair over a light one, `MENUBAR_OVER_DARK_*` over a
+dark one, whatever the color scheme.
 
 ### Window behavior
 
@@ -776,7 +785,7 @@ focus-mode bar.
 
 | Constants | What they size |
 |---|---|
-| `MENUBAR_HEIGHT`, `MENUBAR_FONT_SIZE`, `MENUBAR_APP_NAME_WEIGHT`, `MENUBAR_MARGIN`, `MENUBAR_MARGIN_RIGHT`, `MENUBAR_FADED_ALPHA`, `MENUBAR_TITLE_PADDING_X`, `MENUBAR_TEXT_LIFT`, `MENUBAR_TITLE_MAX_WIDTH`, `MENUBAR_SYSTEM_MENU_MIN_WIDTH`, `MENUBAR_TITLE_BLEED` | The menu bar |
+| `MENUBAR_HEIGHT`, `MENUBAR_HEIGHT_WIDE`, `MENUBAR_OVER_LIGHT_INK`, `MENUBAR_OVER_LIGHT_GLASS`, `MENUBAR_OVER_DARK_INK`, `MENUBAR_OVER_DARK_GLASS`, `MENUBAR_FONT_SIZE`, `MENUBAR_APP_NAME_WEIGHT`, `MENUBAR_MARGIN`, `MENUBAR_MARGIN_RIGHT`, `MENUBAR_FADED_ALPHA`, `MENUBAR_TITLE_PADDING_X`, `MENUBAR_TEXT_LIFT`, `MENUBAR_TITLE_MAX_WIDTH`, `MENUBAR_SYSTEM_MENU_MIN_WIDTH`, `MENUBAR_TITLE_BLEED` | The menu bar |
 | `FOCUS_BAR_BACKGROUND`, `FOCUS_BAR_TEXT` | The menu bar in focus mode |
 | `DOCK_TILESIZE`, `DOCK_GAP`, `DOCK_PADDING`, `DOCK_FONT_SIZE`, `DOCK_PROGRESS_HEIGHT`, `DOCK_BAR_HEIGHT` | The Dock (`DOCK_BAR_HEIGHT` = tile + 2 × padding) |
 | `NOTIFICATION_WIDTH`, `NOTIFICATION_RADIUS`, `NOTIFICATION_PADDING`, `NOTIFICATION_GAP`, `NOTIFICATION_MARGIN`, `NOTIFICATION_ICON_SIZE`, `NOTIFICATION_TEXT_GAP`, `NOTIFICATION_CLOSE_SIZE`, `NOTIFICATION_STACK_PEEK`, `NOTIFICATION_STACK_INSET`, `NOTIFICATION_BODY_LINES`, `NOTIFICATION_MAX_BANNERS`, `NOTIFICATION_BANNER_MS`, `NOTIFICATION_SLIDE_IN_MS`, `NOTIFICATION_SLIDE_OUT_MS`, `NOTIFICATION_SLIDE_BOUNCE`, `NOTIFICATION_EDGE`, `NOTIFICATION_SWIPE`, `NOTIFICATION_WIDGET_SIZE`, `NOTIFICATION_WIDGET_RADIUS`, `NOTIFICATION_REPLY_HEIGHT`, `LIVE_ACTIVITY_WIDTH`, `LIVE_ACTIVITY_HEIGHT`, `LIVE_ACTIVITY_RADIUS`, `LIVE_ACTIVITY_GAP`, `LIVE_ACTIVITY_ENDED_MS` | Notification banners, Notification Center, its widgets and the Live Activities of the menu bar (ADR 0068 in malaysia; the banner radius is provisional until measured on Tahoe, the Live Activity size is measured on Apple's WWDC25 video) |

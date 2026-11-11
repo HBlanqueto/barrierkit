@@ -94,7 +94,7 @@ impl Default for TintParts {
     }
 }
 
-fn lenient<'de, D, T>(deserializer: D) -> Result<T, D::Error>
+pub(crate) fn lenient<'de, D, T>(deserializer: D) -> Result<T, D::Error>
 where
     D: Deserializer<'de>,
     T: serde::de::DeserializeOwned + Default,
@@ -330,7 +330,7 @@ impl Default for AppearanceConfig {
             reduced_motion: false,
             scroll_bars: ScrollBars::default(),
             scroll_bar_click: ScrollBarClick::default(),
-            reduce_transparency: true,
+            reduce_transparency: false,
             window_color: WindowColorMode::default(),
             window_tint_scope: WindowTintScope::default(),
             traffic_lights: TrafficLightStyle::default(),
@@ -612,7 +612,7 @@ mod tests {
     }
 
     #[test]
-    fn reduce_transparency_defaults_to_true() {
+    fn reduce_transparency_defaults_to_false() {
         let without_key: AppearanceConfig = toml::from_str(
             r#"
 color_scheme = "dark"
@@ -625,12 +625,12 @@ traffic_lights = "auto"
 "#,
         )
         .unwrap();
-        assert!(without_key.reduce_transparency);
+        assert!(!without_key.reduce_transparency);
 
-        let with_false: AppearanceConfig = toml::from_str("reduce_transparency = false\n").unwrap();
-        assert!(!with_false.reduce_transparency);
+        let with_true: AppearanceConfig = toml::from_str("reduce_transparency = true\n").unwrap();
+        assert!(with_true.reduce_transparency);
 
-        assert!(AppearanceConfig::default().reduce_transparency);
+        assert!(!AppearanceConfig::default().reduce_transparency);
     }
 
     #[test]
