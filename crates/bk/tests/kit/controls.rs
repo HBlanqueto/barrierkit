@@ -28,7 +28,7 @@ use bk::views::form::{Form, Row, Section};
 use bk::views::table::{SortOrder, Table};
 use bk::views::tabs::TabView;
 use ctappearance::{AppearanceConfig, ColorScheme, resolve};
-use ctdesign::{ACCENT_SWATCHES, Rgba};
+use ctdesign::{ACCENT_SWATCHES, Rgba, SANS_FAMILIES};
 use freya_components::theming::hooks::use_init_theme;
 use freya_core::integration::{AppComponent, NavigationMode, Platform};
 use freya_core::prelude::*;
@@ -475,6 +475,7 @@ fn render(size: (f32, f32), dark: bool, build: fn() -> Element) -> Vec<u8> {
         },
         1.0,
     );
+    test.set_default_fonts(&SANS_FAMILIES.map(std::borrow::Cow::Borrowed));
     test.sync_and_update();
     test.sync_and_update();
     let data = test.render();
@@ -725,6 +726,7 @@ fn focus_case(keyboard: bool) -> (TestingRunner, State<bool>, State<bool>, State
         },
         1.0,
     );
+    test.set_default_fonts(&SANS_FAMILIES.map(std::borrow::Cow::Borrowed));
     test.sync_and_update();
     (test, switch, checkbox, segment)
 }
