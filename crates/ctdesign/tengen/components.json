@@ -631,6 +631,12 @@
         "shuffle-icon": 26,
         "field-width": 200,
         "filter-width": 320,
+        "filter-control": 20,
+        "filter-inset": 2,
+        "filter-chevron": 14,
+        "filter-close-icon": 9,
+        "filter-scope-tint": 0.18,
+        "edge-fade": 40,
         "kind": {
           "size": 16,
           "icon": 10,

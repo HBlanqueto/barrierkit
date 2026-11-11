@@ -183,7 +183,7 @@ as a popover menu below the button.
 
 | Item | Build | Reports |
 |---|---|---|
-| `MenuButton` | `MenuButton::new(label, items)`, `MenuButton::system_image(label, Symbol, items)` (only the symbol, borderless, like the «⋯» of a list row; `label` names it for screen readers), `.style(\|s\| ..)` | `.on_activate(\|id: String\| ..)` |
+| `MenuButton` | `MenuButton::new(label, items)`, `MenuButton::system_image(label, Symbol, items)` (only the symbol, borderless, like the «⋯» of a list row; `label` names it for screen readers), `.label_style(LabelStyle::TitleAndIcon)` (the symbol before the label, on the bezel), `.style(\|s\| ..)` | `.on_activate(\|id: String\| ..)` |
 | `ComboButton` | `ComboButton::new(label, items)`, `.style(\|s\| ..)` | `.on_press(\|_\| ..)` for the label, `.on_activate(\|id: String\| ..)` for the menu |
 | `HelpLink` | `HelpLink::new()`, `.style(\|s\| ..)` | `.on_press(\|_\| ..)` |
 | `ControlGroup` | `ControlGroup::new(label)`, `.child(..)`, `.style(\|s\| ..)` | — (its children report) |
@@ -286,7 +286,7 @@ All of them report the chosen index with `.on_change(|index: usize| ..)`.
 |---|---|---|---|
 | `RadioGroup` | `choices` | `RadioGroup::new(label)`, `.option(text)`, `.disabled(bool)`, `.tint(Tint)`, `.style(\|s\| ..)` | `.selected(usize)` (default 0) |
 | `SegmentedControl` | `controls` | `SegmentedControl::new(label)`, `.segment(text)`, `.style(\|s\| ..)` | `.selected(usize)` (default 0) |
-| `PopUpButton` | `popup_button` | `PopUpButton::new(label)`, `.item(text)`, `.icon_item(text, MenuIcon)`, `.disabled(bool)`, `.style(\|s\| ..)` | `.selected(usize)` (default 0) |
+| `PopUpButton` | `popup_button` | `PopUpButton::new(label)`, `.item(text)`, `.icon_item(text, MenuIcon)`, `.section_header(title)` (a separator and a title before the next item), `.disabled(bool)`, `.style(\|s\| ..)` | `.selected(usize)` (default 0) |
 | `ColorWell` | `choices` | `ColorWell::new(label, swatches)`, `.multicolor(name)`, `.disabled(bool)`, `.style(\|s\| ..)` | `.selected(Option<usize>)` (default `None`) |
 | `ChoiceCards` | `choices` | `ChoiceCards::new(label)`, `.option(caption, preview)`, `.disabled(bool)`, `.style(\|s\| ..)` | `.selected(usize)` (default 0) |
 
@@ -672,7 +672,7 @@ Badge::new("3").style(|s| BadgeStyle {
 | `.direction(Direction)` | `Vertical` | Scroll axis |
 | `.scroll_bar(bool)` | `true` | Draws the bar |
 | `.top_line(bool)` | `false` | A divider over the top edge; content slides under it |
-| `.edge_effect(bool)` | `false` | While scrolled, content fades under the top edge over 24 (`SCROLL_BAR.edge_height`), like `scrollEdgeEffectStyle(.soft)` |
+| `.edge_effect(bool)` | `false` | Content fades under an edge over 24 (`SCROLL_BAR.edge_height`), like `scrollEdgeEffectStyle(.soft)`: the top edge while scrolled; sideways, each edge with more content past it |
 | `.controller(ScrollController)` | its own | Scroll from code |
 
 The bar is a 7 thumb that appears while scrolling and fades 800 ms later. With the

@@ -246,6 +246,41 @@ fn bar_rect(
         )
 }
 
+#[derive(Clone, Copy)]
+enum FadedEdge {
+    Top,
+    Left,
+    Right,
+}
+
+fn edge_fade(style: &ScrollViewStyle, edge: FadedEdge) -> Rect {
+    let paints = Paints::current(ControlState::default(), style.effect);
+    let ground = paints.color(style.edge.resolve(ControlState::default()));
+    let (position, angle) = match edge {
+        FadedEdge::Top => (Position::new_absolute().top(0.0).left(0.0), 0.0),
+        FadedEdge::Left => (Position::new_absolute().top(0.0).left(0.0), -90.0),
+        FadedEdge::Right => (Position::new_absolute().top(0.0).right(0.0), 90.0),
+    };
+    let fade = rect()
+        .position(position)
+        .layer(THUMB_LAYER)
+        .interactive(Interactive::No)
+        .background(
+            LinearGradient::new()
+                .angle(angle)
+                .stop((color(ground), 0.0))
+                .stop((color(Rgba { a: 0.0, ..ground }), 100.0)),
+        );
+    match edge {
+        FadedEdge::Top => fade
+            .width(Size::percent(100.0))
+            .height(Size::px(style.edge_height)),
+        FadedEdge::Left | FadedEdge::Right => fade
+            .width(Size::px(style.edge_height))
+            .height(Size::percent(100.0)),
+    }
+}
+
 impl Component for ScrollView {
     fn render(&self) -> impl IntoElement {
         let style: ScrollViewStyle = resolve(&self.style);
@@ -319,21 +354,19 @@ impl Component for ScrollView {
                             .children(self.children.clone()),
                     ),
             )
-            .maybe_child((self.edge_effect && !horizontal && scrolled < 0).then(|| {
-                let ground = ink(&style.edge);
-                rect()
-                    .position(Position::new_absolute().top(0.0).left(0.0))
-                    .width(Size::percent(100.0))
-                    .height(Size::px(style.edge_height))
-                    .layer(THUMB_LAYER)
-                    .interactive(Interactive::No)
-                    .background(
-                        LinearGradient::new()
-                            .angle(0.0)
-                            .stop((color(ground), 0.0))
-                            .stop((color(Rgba { a: 0.0, ..ground }), 100.0)),
-                    )
+            .maybe_child((self.edge_effect && scrolled < 0).then(|| {
+                if horizontal {
+                    edge_fade(&style, FadedEdge::Left)
+                } else {
+                    edge_fade(&style, FadedEdge::Top)
+                }
             }))
+            .maybe_child(
+                (self.edge_effect
+                    && horizontal
+                    && along(*content.read()) - along(*viewport.read()) + scrolled as f32 >= 1.0)
+                    .then(|| edge_fade(&style, FadedEdge::Right)),
+            )
             .maybe_child(self.top_line.then(|| {
                 Divider::new()
                     .position(Position::new_absolute().top(0.0).left(0.0))

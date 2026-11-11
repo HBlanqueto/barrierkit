@@ -16,10 +16,17 @@ use crate::styles::{
 };
 use crate::symbol::{Symbol, symbol};
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum LabelStyle {
+    IconOnly,
+    TitleAndIcon,
+}
+
 #[derive(PartialEq)]
 pub struct MenuButton {
     label: &'static str,
     image: Option<Symbol>,
+    label_style: LabelStyle,
     items: Vec<MenuItem>,
     on_activate: Option<Callback<String, ()>>,
     style: Theme,
@@ -30,6 +37,7 @@ impl MenuButton {
         Self {
             label,
             image: None,
+            label_style: LabelStyle::IconOnly,
             items,
             on_activate: None,
             style: Theme::tengen(),
@@ -48,6 +56,11 @@ impl MenuButton {
         self
     }
 
+    pub fn label_style(mut self, label_style: LabelStyle) -> Self {
+        self.label_style = label_style;
+        self
+    }
+
     pub fn on_activate(mut self, callback: impl Into<Callback<String, ()>>) -> Self {
         self.on_activate = Some(callback.into());
         self
@@ -63,6 +76,7 @@ impl Component for MenuButton {
         let mut area = use_state(Area::default);
         let items = self.items.clone();
         let on_activate = self.on_activate.clone();
+        let icon_only = self.image.is_some() && self.label_style == LabelStyle::IconOnly;
         let radius =
             style
                 .shape
@@ -73,11 +87,11 @@ impl Component for MenuButton {
             .a11y_alt(self.label)
             .a11y_builder(|node| node.set_has_popup(accesskit::HasPopup::Menu))
             .height(Size::px(style.height))
-            .maybe(self.image.is_none(), |button| {
+            .maybe(!icon_only, |button| {
                 button.padding(Gaps::new(0.0, style.padding_x, 0.0, style.padding_x))
             })
             .corner_radius(radius)
-            .maybe(self.image.is_none(), |button| {
+            .maybe(!icon_only, |button| {
                 button
                     .painted(&paints, &style.background)
                     .bordered(&paints, style.border.as_ref())
@@ -101,15 +115,22 @@ impl Component for MenuButton {
                     },
                 );
             })
-            .map(self.image, |button, image| {
+            .map(self.image.filter(|_| icon_only), |button, image| {
                 button.child(symbol(
                     image,
                     SYMBOL.grid,
                     paints.color(style.chevron.resolve(state)),
                 ))
             })
-            .maybe(self.image.is_none(), |button| {
+            .maybe(!icon_only, |button| {
                 button
+                    .map(self.image, |button, image| {
+                        button.child(
+                            crate::symbol::Image::system(image)
+                                .size(style.font.size as f32)
+                                .color(paints.color(style.label.resolve(state))),
+                        )
+                    })
                     .child(
                         with_font(label().text(self.label), style.font)
                             .max_lines(1)

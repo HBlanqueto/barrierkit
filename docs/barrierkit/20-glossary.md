@@ -612,6 +612,8 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `compact::Face` | enum | — | — | `Bold`, `Italic`, `Underline`: how a toggle's text is drawn | [5](05-controls.md#compact-buttons) |
 | `buttons::MenuButton` | struct | `Menu` | `≈ NSPopUpButton` | Button with a chevron that opens an action menu (pull-down) | [5](05-controls.md#menu-buttons) |
 | `buttons::MenuButton::system_image` | function | `Menu(_:systemImage:)` | — | A menu button that shows only a symbol | [5](05-controls.md#menu-buttons) |
+| `buttons::MenuButton::label_style` | method | `.labelStyle(_:)` | — | Shows the symbol alone or before the label | [5](05-controls.md#menu-buttons) |
+| `buttons::LabelStyle` | enum | `LabelStyle` (`.iconOnly`, `.titleAndIcon`) | — | How a menu button with a symbol shows it | [5](05-controls.md#menu-buttons) |
 | `buttons::ComboButton` | struct | `≈ Menu` | `NSComboButton` | Main action plus a chevron that opens a menu | [5](05-controls.md#menu-buttons) |
 | `buttons::HelpLink` | struct | `HelpLink` | `≈ NSButton.BezelStyle.helpButton` | Round "?" help button | [5](05-controls.md#menu-buttons) |
 | `buttons::ControlGroup` | struct | `ControlGroup` | — | Controls joined on one background with separators | [5](05-controls.md#menu-buttons) |
@@ -630,6 +632,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `choices::RadioGroup` | struct | `PickerStyle.radioGroup` | `≈ NSButton` | Column of radio options; arrows move the choice | [5](05-controls.md#choices) |
 | `controls::SegmentedControl` | struct | `PickerStyle.segmented` | `NSSegmentedControl` | Segments filling the width; one is chosen | [5](05-controls.md#choices) |
 | `popup_button::PopUpButton` | struct | `PickerStyle.menu` | `NSPopUpButton` | Shows the chosen item; opens the list as a menu | [5](05-controls.md#choices) |
+| `popup_button::PopUpButton::section_header` | method | `Section(_:)` in a `Picker` | `NSMenuItem.sectionHeader(title:)` | Titles the items that follow, after a separator | [5](05-controls.md#choices) |
 | `choices::ColorWell` | struct | `≈ PickerStyle.palette` | — | Row of preset color swatches; reports the chosen index | [5](05-controls.md#choices) |
 | `choices::ColorWell::multicolor` | method | — | ≈ the «Multicolor» accent of System Settings | A rainbow swatch first, at index 0 | [5](05-controls.md#choices) |
 | `choices::ChoiceCards` | struct | — | — | Large preview cards with captions; one is chosen | [5](05-controls.md#choices) |

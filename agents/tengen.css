@@ -543,6 +543,12 @@
   --bk-settings-wallpaper-shuffle-icon: 26;
   --bk-settings-wallpaper-field-width: 200;
   --bk-settings-wallpaper-filter-width: 320;
+  --bk-settings-wallpaper-filter-control: 20;
+  --bk-settings-wallpaper-filter-inset: 2;
+  --bk-settings-wallpaper-filter-chevron: 14;
+  --bk-settings-wallpaper-filter-close-icon: 9;
+  --bk-settings-wallpaper-filter-scope-tint: 0.18;
+  --bk-settings-wallpaper-edge-fade: 40;
   --bk-settings-wallpaper-kind-size: 16;
   --bk-settings-wallpaper-kind-icon: 10;
   --bk-settings-wallpaper-kind-inset: 4;

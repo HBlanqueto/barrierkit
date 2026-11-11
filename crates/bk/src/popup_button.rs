@@ -22,6 +22,7 @@ use crate::theme::SurfaceKind;
 pub struct PopUpButton {
     label: &'static str,
     items: Vec<(&'static str, Option<MenuIcon>)>,
+    section_headers: Vec<(usize, &'static str)>,
     selected: usize,
     on_change: Option<Callback<usize, ()>>,
     disabled: bool,
@@ -33,6 +34,7 @@ impl PopUpButton {
         Self {
             label,
             items: Vec::new(),
+            section_headers: Vec::new(),
             selected: 0,
             on_change: None,
             disabled: false,
@@ -55,6 +57,11 @@ impl PopUpButton {
 
     pub fn icon_item(mut self, label: &'static str, icon: MenuIcon) -> Self {
         self.items.push((label, Some(icon)));
+        self
+    }
+
+    pub fn section_header(mut self, title: &'static str) -> Self {
+        self.section_headers.push((self.items.len(), title));
         self
     }
 
@@ -84,6 +91,7 @@ impl Component for PopUpButton {
         let mut area = use_state(Area::default);
         let current = (0..self.items.len()).find(|&i| choice.is(i)).unwrap_or(0);
         let items = self.items.clone();
+        let section_headers = self.section_headers.clone();
         let selects: Vec<_> = (0..items.len()).map(|i| choice.select(i)).collect();
         let size = style.indicator_size;
         let radius = style
@@ -112,7 +120,15 @@ impl Component for PopUpButton {
             .spacing(style.gap)
             .on_sized(move |event: Event<SizedEventData>| area.set_if_modified(event.area))
             .maybe(!self.disabled, |button| {
-                button.on_press(move |_| open_menu(&items, current, *area.read(), selects.clone()))
+                button.on_press(move |_| {
+                    open_menu(
+                        &items,
+                        &section_headers,
+                        current,
+                        *area.read(),
+                        selects.clone(),
+                    )
+                })
             })
             .maybe_child(
                 self.items
@@ -153,24 +169,34 @@ impl Component for PopUpButton {
 
 fn open_menu(
     items: &[(&str, Option<MenuIcon>)],
+    section_headers: &[(usize, &str)],
     current: usize,
     area: Area,
     selects: Vec<Callback<(), ()>>,
 ) {
-    let entries: Vec<MenuItem> = items
-        .iter()
-        .enumerate()
-        .map(|(index, (label, icon))| {
+    let mut entries = Vec::new();
+    let mut current_entry = 0;
+    for (index, (label, icon)) in items.iter().enumerate() {
+        for (_, title) in section_headers.iter().filter(|(at, _)| *at == index) {
+            if !entries.is_empty() {
+                entries.push(MenuItem::Separator);
+            }
+            entries.push(MenuItem::header(*title));
+        }
+        if index == current {
+            current_entry = entries.len();
+        }
+        entries.push(
             MenuItem::action(index.to_string(), *label)
                 .with_check(CheckState::Radio(index == current))
-                .with_icon(icon.clone())
-        })
-        .collect();
+                .with_icon(icon.clone()),
+        );
+    }
     open_popover_menu(
         entries,
         PopupAnchor::TopLeft,
         crate::platform::anchor_rect(area),
-        Some(current),
+        Some(current_entry),
         move |id| {
             if let Some(select) = id.parse::<usize>().ok().and_then(|i| selects.get(i)) {
                 select.call(());
