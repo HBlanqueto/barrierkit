@@ -814,6 +814,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 |---|---|---|---|---|---|
 | `modifiers::ViewModifiers` | trait | `View` modifiers | — | SwiftUI-style modifiers for every element with events | [7](07-menus-and-popovers.md#view-modifiers) |
 | `modifiers::ViewModifiers::context_menu` | method | `.contextMenu(menuItems:)` | `NSMenu.popUpContextMenu(_:with:for:)` | Opens a menu at the pointer on secondary click | [7](07-menus-and-popovers.md#context_menu) |
+| `popup_button::pop_up_menu` | fn | — | `NSMenu.popUp(positioning:at:in:)` | Opens a menu beside a rectangle, centred on one of its edges | [7](07-menus-and-popovers.md#pop_up_menu) |
 | `popover::Popover` | struct | `.popover(isPresented:attachmentAnchor:arrowEdge:content:)` | `NSPopover` | Content in a popover with an arrow; `.show(anchor)` opens it below an area | [7](07-menus-and-popovers.md#popover) |
 | `modifiers::ViewModifiers::help` | method | `.help(_:)` | `NSView.toolTip` | Tooltip with a fixed text after a 1 s hover | [7](07-menus-and-popovers.md#help-tooltips) |
 

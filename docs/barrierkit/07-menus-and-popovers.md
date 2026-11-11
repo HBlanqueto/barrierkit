@@ -293,6 +293,16 @@ popup flips and slides to stay on screen.
 Text fields and `TextEditor` already have their own edit menu
 ([6. Text and editing](06-text-and-editing.md)).
 
+### `pop_up_menu`
+
+`popup_button::pop_up_menu(items, rect, side, on_activate, on_close)` opens a
+`MenuView` beside `rect`, in surface coordinates, toward `side` (a
+`PopupAnchor`: `Top`, `Bottom`, `Left` or `Right`) and centred on that edge.
+It is AppKit's `NSMenu.popUp(positioning:at:in:)`. `on_close` runs when the
+menu closes, chosen or dismissed. Malaysia's Dock opens an icon's menu this
+way, above the icon on a bottom Dock and beside it on a side Dock, and stays
+up until `on_close`.
+
 ### `.help` (tooltips)
 
 `element.help(text)` shows `text` as a tooltip over `element`. `text` is a

@@ -212,6 +212,51 @@ pub(crate) fn open_popover_menu(
     over: Option<usize>,
     on_activate: impl Fn(String) + 'static,
 ) {
+    open_placed_menu(
+        entries,
+        (anchor, PopupGravity::BottomRight),
+        anchor_rect,
+        over,
+        on_activate,
+        None,
+    );
+}
+
+/// AppKit: `NSMenu.popUp(positioning:at:in:)`. Opens `items` beside `rect`, in surface
+/// coordinates, toward `side` and centred on that edge, as the Dock opens an icon's menu.
+/// `on_close` runs when the menu closes, chosen or dismissed.
+pub fn pop_up_menu(
+    items: Vec<MenuItem>,
+    rect: (i32, i32, u32, u32),
+    side: PopupAnchor,
+    on_activate: impl Fn(String) + 'static,
+    on_close: impl Fn() + 'static,
+) {
+    let gravity = match side {
+        PopupAnchor::Top => PopupGravity::Top,
+        PopupAnchor::Bottom => PopupGravity::Bottom,
+        PopupAnchor::Left => PopupGravity::Left,
+        PopupAnchor::Right => PopupGravity::Right,
+        _ => PopupGravity::BottomRight,
+    };
+    open_placed_menu(
+        items,
+        (side, gravity),
+        rect,
+        None,
+        on_activate,
+        Some(Rc::new(on_close)),
+    );
+}
+
+fn open_placed_menu(
+    entries: Vec<MenuItem>,
+    (anchor, gravity): (PopupAnchor, PopupGravity),
+    anchor_rect: (i32, i32, u32, u32),
+    over: Option<usize>,
+    on_activate: impl Fn(String) + 'static,
+    on_dismissed: Option<Rc<dyn Fn()>>,
+) {
     let palette = crate::styles::popover_style();
     let size = MenuView::preferred_size(&entries, palette);
     let offset = over.map_or((0, 0), |index| {
@@ -242,7 +287,7 @@ pub(crate) fn open_popover_menu(
     let spec = PopupSpec {
         anchor_rect,
         anchor,
-        gravity: PopupGravity::BottomRight,
+        gravity,
         offset,
         size: (size.0.ceil() as u32, size.1.ceil() as u32),
         constraint_adjustment: PopupConstraintAdjustment {
@@ -253,7 +298,7 @@ pub(crate) fn open_popover_menu(
             resize_y: false,
         },
         grab: true,
-        on_dismissed: None,
+        on_dismissed,
     };
     root.set(Some(popups.open(spec, AppComponent::new(view))));
 }
