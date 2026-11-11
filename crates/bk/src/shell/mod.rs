@@ -1,12 +1,15 @@
 mod activation;
+mod blur_region;
 mod infinity;
 mod layer;
 mod lock;
 mod menus;
+mod screen_lock;
 mod status_items;
 mod toplevels;
 
 pub use activation::Activation;
+pub use blur_region::{BlurRegion, set_blur_region};
 pub use infinity::{
     InfinityWindowManagerV1, Layout as InfinityLayout, PairLayout as InfinityPairLayout,
 };
@@ -16,11 +19,13 @@ pub use layer::{
 };
 pub use lock::{SessionUnlock, run_lock};
 pub use menus::GtkMenusAddress;
+pub use screen_lock::{ScreenLock, use_screen_lock};
 pub use status_items::{Pixmap, StatusHost, TrayItem, pixmap_image, use_status_items};
 pub use toplevels::{FocusBar, ToplevelInfo, Toplevels};
 
 use freya_core::integration::AppComponent;
 
+use infinity_protocol::client::session::infinity_session_v1::infinity_session_v1::InfinitySessionV1;
 use sctk::{
     reexports::{
         client::{QueueHandle, backend::ObjectId, globals::GlobalList},
@@ -31,6 +36,10 @@ use sctk::{
     shell::wlr_layer::LayerShell,
 };
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
+use wayland_protocols::ext::background_effect::v1::client::{
+    ext_background_effect_manager_v1::ExtBackgroundEffectManagerV1,
+    ext_background_effect_surface_v1::ExtBackgroundEffectSurfaceV1,
+};
 
 use crate::platform::{
     extension::{Extension, ExtensionHooks},
@@ -50,6 +59,10 @@ pub(crate) struct ShellState {
     pub(crate) next_toplevel_id: u64,
     pub(crate) activation: Activation,
     pub(crate) activation_callbacks: HashMap<ObjectId, ActivationCallback>,
+    pub(crate) screen_lock: freya_core::prelude::State<ScreenLock>,
+    pub(crate) _session: Option<InfinitySessionV1>,
+    pub(crate) background_effect: Option<ExtBackgroundEffectManagerV1>,
+    pub(crate) background_effects: HashMap<ObjectId, ExtBackgroundEffectSurfaceV1>,
 }
 
 impl ShellState {
@@ -100,6 +113,12 @@ impl ShellState {
                 ping: rt.ping.clone(),
             },
             activation_callbacks: HashMap::new(),
+            screen_lock: freya_core::prelude::State::create_global(ScreenLock::default()),
+            _session: globals.bind::<InfinitySessionV1, _, _>(qh, 1..=1, ()).ok(),
+            background_effect: globals
+                .bind::<ExtBackgroundEffectManagerV1, _, _>(qh, 1..=1, ())
+                .ok(),
+            background_effects: HashMap::new(),
         };
 
         rt.extension = Some(Extension {
@@ -124,6 +143,8 @@ impl ShellState {
         }
         let activation = shell.activation.clone();
         runner.provide_root_context(move || activation);
+        let screen_lock = shell.screen_lock;
+        runner.provide_root_context(move || screen_lock);
     }
 
     fn new_seat(rt: &mut Runtime, seat: &sctk::reexports::client::protocol::wl_seat::WlSeat) {

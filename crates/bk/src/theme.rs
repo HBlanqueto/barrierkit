@@ -3,8 +3,8 @@ use ctappearance::{
     resolve,
 };
 use ctdesign::{
-    BG_WINDOW_DARK, BG_WINDOW_DARK_TINT, BG_WINDOW_LIGHT, LockPalette, MenuPalette, Rgba,
-    SHELL_DARK_OPAQUE, SHELL_DARK_TINT_OPAQUE, SHELL_LIGHT_OPAQUE,
+    BG_WINDOW_DARK, BG_WINDOW_DARK_TINT, BG_WINDOW_LIGHT, MenuPalette, Rgba, SHELL_DARK_OPAQUE,
+    SHELL_DARK_TINT_OPAQUE, SHELL_LIGHT_OPAQUE,
 };
 use freya_components::theming::component_themes::{ColorsSheet, Theme};
 use freya_components::theming::hooks::use_init_theme;
@@ -185,12 +185,6 @@ pub fn apply_popover_metrics(mut palette: MenuPalette) -> MenuPalette {
 
 pub fn popover_palette(resolved: &Resolved, kind: SurfaceKind) -> MenuPalette {
     apply_popover_metrics(menu_palette(resolved, kind))
-}
-
-pub fn lock_palette(resolved: &Resolved) -> LockPalette {
-    let mut palette = ctdesign::LOCK;
-    palette.accent = resolved.accent;
-    palette
 }
 
 #[cfg(test)]

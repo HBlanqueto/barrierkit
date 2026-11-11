@@ -103,7 +103,6 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `theme::menu_palette` | fn | — | — | Menu colors over a given surface, lifted when tinted | [4](04-appearance-and-tokens.md#theme-functions) |
 | `theme::popover_palette` | fn | — | — | Menu palette with pop-up menu metrics | [4](04-appearance-and-tokens.md#theme-functions) |
 | `theme::apply_popover_metrics` | fn | — | — | Replaces a menu palette's metrics with `MENU_POPOVER` | [4](04-appearance-and-tokens.md#theme-functions) |
-| `theme::lock_palette` | fn | — | — | Lock-screen colors with the resolved accent | [4](04-appearance-and-tokens.md#theme-functions) |
 
 ## Styles and themes
 
@@ -471,7 +470,6 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `ctdesign::TrafficRim` | struct | — | — | Rim color of a lit and an idle traffic light | [4](04-appearance-and-tokens.md#token-types) |
 | `ctdesign::ShellPalette` | struct | — | — | Menu bar and Dock colors | [4](04-appearance-and-tokens.md#token-types) |
 | `ctdesign::MenuPalette` | struct | — | — | Menu colors and metrics | [4](04-appearance-and-tokens.md#token-types) |
-| `ctdesign::LockPalette` | struct | — | — | Lock-screen colors | [4](04-appearance-and-tokens.md#token-types) |
 | `ctdesign::SidebarPalette` | struct | — | — | Sidebar item, selection, section and line inks | [4](04-appearance-and-tokens.md#token-types) |
 | `ctdesign::ToolgroupPalette` | struct | — | — | Toolbar group separator and rim | [4](04-appearance-and-tokens.md#token-types) |
 | `ctdesign::ShadowLayer` | struct | ≈ `.shadow(color:radius:x:y:)` | ≈ `NSShadow` | One shadow: blur, offset, opacity, color | [4](04-appearance-and-tokens.md#token-types) |
@@ -575,7 +573,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `ctdesign::WINDOW_CORNER`, `WINDOW_RESIZE` | constant | — | — | Window corner shape; resize band widths | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
 | `ctdesign::DIALOG`, `DIALOG_PADDING`, `DIALOG_ALERT_WIDTH`, `POPUP`, `PANEL_GLOW_DEPTH` | constant | — | — | Dialog and pop-up corners, dialog padding, alert width, panel glow depth | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
 | `ctdesign::SHADOW`, `SHADOW_DARK` | constant | — | ≈ `NSShadow` | Window shadows in light and dark | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
-| `ctdesign::NATIVE_APP_ID_PREFIX`, `ALERT_LAYER_NAMESPACE`, `NOTIFICATIONS_LAYER_NAMESPACE` | constant | — | — | App id prefix of kit apps; layer namespaces of shell alerts and notifications | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
+| `ctdesign::NATIVE_APP_ID_PREFIX`, `ALERT_LAYER_NAMESPACE`, `NOTIFICATIONS_LAYER_NAMESPACE`, `MENUBAR_LAYER_NAMESPACE`, `WALLPAPER_LAYER_NAMESPACE` | constant | — | — | App id prefix of kit apps; layer namespaces of shell alerts, notifications, the menu bar and the wallpaper | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
 | `ctdesign::TITLEBAR`, `TITLEBAR_CLIENT_HEIGHT`, `TITLEBAR_PADDING_X`, `TITLEBAR_TITLE_GAP`, `TITLEBAR_DOUBLE_CLICK`, `TITLEBAR_RAIL` | constant | — | — | Titlebar sizes, lights, double click and rail | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
 | `ctdesign::FULLSCREEN_BAR`, `FULLSCREEN_GLASS`, `FULLSCREEN_BAND`, `GLASS_MASK`, `HUD_BACKGROUND` | constant | — | — | Full-screen glass bars, their mask, HUD window background | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
 | `ctdesign::TRAFFIC_GLYPHS`, `TRAFFIC_GLYPH_STANDARD`, `TRAFFIC_GLYPH_ON_DARK`, `TRAFFIC_GLYPH_ON_LIGHT`, `TRAFFIC_RIM_WIDTH`, `TRAFFIC_PRESSED_DARKEN`, `TRAFFIC_CLOSE_MINIMIZE_DARKEN`, `TRAFFIC_ZOOM_LIGHTEN` | constant | — | — | Traffic-light glyphs, inks, rim and color shifts | [4](04-appearance-and-tokens.md#traffic-lights) |
@@ -590,7 +588,8 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `ctdesign::DOCK_TILESIZE`, `DOCK_GAP`, `DOCK_PADDING`, `DOCK_FONT_SIZE`, `DOCK_PROGRESS_HEIGHT`, `DOCK_BAR_HEIGHT` | constant | — | — | Shell Dock sizes | [4](04-appearance-and-tokens.md#shell) |
 | `ctdesign::NOTIFICATION_WIDTH`, `NOTIFICATION_RADIUS`, `NOTIFICATION_PADDING`, `NOTIFICATION_GAP`, `NOTIFICATION_MARGIN`, `NOTIFICATION_ICON_SIZE`, `NOTIFICATION_TEXT_GAP`, `NOTIFICATION_CLOSE_SIZE`, `NOTIFICATION_STACK_PEEK`, `NOTIFICATION_STACK_INSET`, `NOTIFICATION_BODY_LINES`, `NOTIFICATION_MAX_BANNERS`, `NOTIFICATION_BANNER_MS`, `NOTIFICATION_SLIDE_IN_MS`, `NOTIFICATION_SLIDE_OUT_MS`, `NOTIFICATION_SLIDE_BOUNCE`, `NOTIFICATION_EDGE`, `NOTIFICATION_SWIPE`, `NOTIFICATION_WIDGET_SIZE`, `NOTIFICATION_WIDGET_RADIUS`, `NOTIFICATION_REPLY_HEIGHT`, `LIVE_ACTIVITY_WIDTH`, `LIVE_ACTIVITY_HEIGHT`, `LIVE_ACTIVITY_RADIUS`, `LIVE_ACTIVITY_GAP`, `LIVE_ACTIVITY_ENDED_MS` | constant | — | — | Notification banner, Notification Center, widget and Live Activity sizes, timing and slides | [4](04-appearance-and-tokens.md#shell) |
 | `ctdesign::LAUNCHER_WIDTH`, `LAUNCHER_HEIGHT`, `LAUNCHER_PADDING`, `LAUNCHER_SEARCH_HEIGHT`, `LAUNCHER_RESULT_HEIGHT`, `LAUNCHER_RESULT_GAP`, `LAUNCHER_RESULT_RADIUS`, `LAUNCHER_ICON_SIZE`, `LAUNCHER_MAX_RESULTS`, `LAUNCHER_CORNER_RADIUS`, `LAUNCHER_FONT_SIZE`, `LAUNCHER_SUBTITLE_FONT_SIZE`, `LAUNCHER_SCALE_FROM`, `LAUNCHER_OPEN_MS`, `LAUNCHER_CLOSE_MS` | constant | — | — | Shell launcher sizes and animation | [4](04-appearance-and-tokens.md#shell) |
-| `ctdesign::LOCK`, `LOCK_FONT_SIZE`, `LOCK_TITLE_SCALE`, `LOCK_FIELD_WIDTH`, `LOCK_FIELD_HEIGHT`, `LOCK_LABEL_OFFSET`, `LOCK_LABEL_FONT_SIZE`, `LOCK_MASK_FONT_SIZE` | constant | — | — | Lock screen colors and sizes | [4](04-appearance-and-tokens.md#shell) |
+| `ctdesign::LOCK_CLOCK_FONT_SIZE`, `LOCK_DATE_FONT_SIZE`, `LOCK_TOP_MARGIN`, `LOCK_BOTTOM_MARGIN`, `LOCK_SPACING`, `LOCK_AVATAR_SIZE`, `LOCK_FIELD_HEIGHT`, `LOCK_FIELD_MIN_WIDTH`, `LOCK_FIELD_MAX_WIDTH`, `LOCK_MASK_FONT_SIZE`, `LOCK_INK`, `LOCK_FIELD_FILL`, `LOCK_FIELD_FILL_OPAQUE`, `LOCK_FIELD_ERROR`, `LOCK_FIELD_INK` | constant | — | — | Lock screen sizes and colors over the wallpaper | [4](04-appearance-and-tokens.md#shell) |
+| `ctdesign::LOCK_FADE_MS`, `LOCK_SETTLE_MS`, `LOCK_RISE_MS`, `LOCK_RISE_OFFSET`, `LOCK_LOGIN_MS` | constant | — | — | Timing of the transition from the desktop to the lock screen | [4](04-appearance-and-tokens.md#shell) |
 | `ctdesign::ABOUT_WIDTH`, `ABOUT_HEIGHT`, `ABOUT_DRAWING_TOP`, `ABOUT_DRAWING_WIDTH`, `ABOUT_DRAWING_HEIGHT`, `ABOUT_TITLE_GAP`, `ABOUT_TITLE_SIZE`, `ABOUT_SPECS_GAP`, `ABOUT_SPEC_ROW_GAP`, `ABOUT_COLUMN_GAP`, `ABOUT_VALUE_WIDTH`, `ABOUT_BUTTON_GAP`, `ABOUT_FOOTER_BOTTOM` | constant | — | — | Sizes of the shell's «About this computer» window | [4](04-appearance-and-tokens.md#shell) |
 | `ctdesign::ABOUT_APP_WIDTH`, `ABOUT_APP_HEIGHT`, `ABOUT_APP_ICON` | constant | — | — | Size of the shell's «About ‹app›» window and of its icon | [4](04-appearance-and-tokens.md#shell) |
 | `ctdesign::CURSOR_SHAKE_SCALE`, `CURSOR_SHAKE_GROW_MS`, `CURSOR_SHAKE_SHRINK_MS`, `CURSOR_SHAKE_TICK_MS` | constant | — | — | Compositor: cursor growth when the pointer is shaken | [4](04-appearance-and-tokens.md#compositor) |
@@ -1114,6 +1113,10 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `shell::KeyboardInteractivity` | enum | — | — | Keyboard focus of a layer surface: `None`, `Exclusive`, `OnDemand` | [18](18-platform.md#run_layer-and-layerspec) |
 | `shell::run_lock` | fn | — | — | Locks the session and draws an app on every output | [18](18-platform.md#run_lock-and-sessionunlock) |
 | `shell::SessionUnlock` | struct | — | — | Handle that ends the session lock | [18](18-platform.md#run_lock-and-sessionunlock) |
+| `shell::ScreenLock` | enum | — | — | Whether the session is locking, and for how long the fade lasts | [18](18-platform.md#screen-lock-and-blur-region) |
+| `shell::use_screen_lock` | fn | — | — | Hook that follows the session lock (`infinity_session_v1`) | [18](18-platform.md#screen-lock-and-blur-region) |
+| `shell::BlurRegion` | struct | `.background(.ultraThinMaterial)` | `NSVisualEffectView` | Rectangles the compositor blurs behind a surface | [18](18-platform.md#screen-lock-and-blur-region) |
+| `shell::set_blur_region` | fn | — | — | Asks the compositor to blur behind the calling surface (`ext_background_effect_v1`) | [18](18-platform.md#screen-lock-and-blur-region) |
 | `shell::Toplevels` | struct | — | — | Every app's windows, the shown space, and actions on windows | [18](18-platform.md#toplevels) |
 | `shell::ToplevelInfo` | struct | — | — | One window of any app: id, title, app id, state, menu addresses | [18](18-platform.md#toplevels) |
 | `shell::FocusBar` | enum | — | — | The bar over the shown space: `None`, `Hidden`, `Revealed` | [18](18-platform.md#toplevels) |

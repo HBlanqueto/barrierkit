@@ -832,13 +832,26 @@
         "icon": 64
       },
       "lock": {
-        "font-size": 24,
-        "title-scale": 1.5,
-        "field-width": 360,
-        "field-height": 44,
-        "label-offset": 10,
-        "label-font-size": 16,
-        "mask-font-size": 22
+        "clock-font-size": 108,
+        "date-font-size": 24,
+        "top-margin": 72,
+        "bottom-margin": 92,
+        "spacing": 12,
+        "avatar-size": 52,
+        "field-height": 30,
+        "field-min-width": 108,
+        "field-max-width": 200,
+        "mask-font-size": 18,
+        "ink": "#ffffff",
+        "field-fill": "#ffffff2e",
+        "field-fill-opaque": "#5c5d61",
+        "field-error": "#ff6b6b73",
+        "field-ink": "#ffffffbf",
+        "fade": 1100,
+        "settle": 600,
+        "rise": 900,
+        "rise-offset": 120,
+        "login": 600
       },
       "notifications": {
         "width": 344,

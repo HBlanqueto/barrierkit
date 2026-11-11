@@ -261,6 +261,12 @@ fn insert_ping(event_loop: &mut EventLoop<Runtime>, shell: &mut Runtime) -> Resu
                         }
                     }
                     #[cfg(feature = "shell")]
+                    Sent::Kit(event) if event.is::<crate::shell::BlurRegion>() => {
+                        if let Ok(region) = event.downcast::<crate::shell::BlurRegion>() {
+                            shell.apply_blur_region(&surface_id, *region);
+                        }
+                    }
+                    #[cfg(feature = "shell")]
                     Sent::Kit(event) if event.is::<crate::shell::LayerGeometry>() => {
                         if let Ok(geometry) = event.downcast::<crate::shell::LayerGeometry>() {
                             shell.apply_layer_geometry(&surface_id, *geometry);

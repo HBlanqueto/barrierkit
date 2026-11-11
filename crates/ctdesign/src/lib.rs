@@ -872,15 +872,6 @@ pub struct MenuPalette {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub struct LockPalette {
-    pub bg_surface: Rgba,
-    pub ink: Rgba,
-    pub ink_muted: Rgba,
-    pub danger: Rgba,
-    pub accent: Rgba,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct SidebarPalette {
     pub item_ink: Rgba,
     pub item_icon: Rgba,
@@ -904,5 +895,7 @@ pub struct ToolgroupPalette {
 pub const NATIVE_APP_ID_PREFIX: &str = "io.github.hblanqueto.malaysia.";
 pub const ALERT_LAYER_NAMESPACE: &str = "malaysia-dialog";
 pub const NOTIFICATIONS_LAYER_NAMESPACE: &str = "malaysia-notifications";
+pub const MENUBAR_LAYER_NAMESPACE: &str = "malaysia-menubar";
+pub const WALLPAPER_LAYER_NAMESPACE: &str = "malaysia-wallpaper";
 
 include!(concat!(env!("OUT_DIR"), "/tengen.rs"));

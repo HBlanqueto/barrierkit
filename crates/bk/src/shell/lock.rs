@@ -1,4 +1,5 @@
 use freya_core::integration::AppComponent;
+use freya_core::prelude::WritableUtils;
 use sctk::{
     delegate_session_lock,
     reexports::client::{Connection, Proxy, QueueHandle, protocol::wl_output},
@@ -20,6 +21,7 @@ use crate::shell::ShellState;
 pub struct SessionUnlock {
     unlock: Rc<dyn Fn()>,
     requested: Rc<std::cell::Cell<bool>>,
+    locked: freya_core::prelude::State<bool>,
 }
 
 impl SessionUnlock {
@@ -29,6 +31,10 @@ impl SessionUnlock {
 
     pub fn unlock(&self) {
         (self.unlock)();
+    }
+
+    pub fn locked(&self) -> bool {
+        *self.locked.read()
     }
 }
 
@@ -60,12 +66,14 @@ pub fn run_lock(app: AppComponent) -> Result<(), RunError> {
 
     let unlock_conn = conn.clone();
     let requested = Rc::new(std::cell::Cell::new(false));
+    let locked = freya_core::prelude::State::create_global(false);
     runtime.run(conn, event_queue, move |runtime, signal| {
         runtime
             .extension_mut::<ShellState>()
             .expect("ShellState not installed")
             .session_unlock = Some(SessionUnlock {
             requested: requested.clone(),
+            locked,
             unlock: Rc::new(move || {
                 // ext-session-lock-v1: unlock_and_destroy is only valid once locked has arrived.
                 if !unlock_lock.is_locked() {
@@ -120,7 +128,14 @@ impl SessionLockHandler for Runtime {
         let unlock = self
             .extension::<ShellState>()
             .and_then(|shell| shell.session_unlock.clone());
-        if let Some(unlock) = unlock.filter(|unlock| unlock.requested.get()) {
+        let Some(unlock) = unlock else {
+            return;
+        };
+        let mut locked = unlock.locked;
+        locked.set(true);
+        self.request_redraw_all = true;
+        self.ping.ping();
+        if unlock.requested.get() {
             unlock.unlock();
         }
     }

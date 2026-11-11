@@ -37,6 +37,18 @@ macro_rules! side {
             );
         }
 
+        pub mod session {
+            pub mod __interfaces {
+                wayland_scanner::generate_interfaces!("protocols/infinity-session-v1.xml");
+            }
+
+            pub mod infinity_session_v1 {
+                use super::__interfaces::*;
+                use $wayland;
+                wayland_scanner::$generate!("protocols/infinity-session-v1.xml");
+            }
+        }
+
         pub mod style {
             protocol!(
                 infinity_window_style_v1,

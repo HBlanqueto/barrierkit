@@ -9,6 +9,7 @@ pub struct MenubarConfig {
     pub show_battery: bool,
     pub show_battery_percentage: bool,
     pub show_vpn: bool,
+    pub show_printer: bool,
 }
 
 impl Default for MenubarConfig {
@@ -20,6 +21,7 @@ impl Default for MenubarConfig {
             show_battery: true,
             show_battery_percentage: true,
             show_vpn: true,
+            show_printer: true,
         }
     }
 }

@@ -170,7 +170,6 @@ installs them.
 | `menu_palette(resolved, kind) -> MenuPalette` | Menu colors over that surface. A tinted surface lifts the menu background and recomputes its separator. |
 | `popover_palette(resolved, kind) -> MenuPalette` | `menu_palette` with the metrics of a pop-up menu (`MENU_POPOVER`). |
 | `apply_popover_metrics(palette) -> MenuPalette` | Replaces the padding, widths, item size and check mark of a `MenuPalette` with `MENU_POPOVER`. |
-| `lock_palette(resolved) -> LockPalette` | `LOCK` with the resolved accent, for the lock screen. |
 
 `SurfaceKind` has two variants: `Toplevel` (an app window) and `LayerShell`
 (a shell surface such as the menu bar).
@@ -452,7 +451,8 @@ uses it; an app needs it only with its own event loop.
 shows the active app's own menus. Malaysia's compositor and menu bar both read
 it. `show_wifi`, `show_bluetooth`, `show_battery`, `show_battery_percentage`
 and `show_vpn` (all `true`) choose the status menus of the bar; System
-Settings writes them.
+Settings writes them. `show_printer` (`true`) shows a printer while a print job
+is queued, on the bar and on the lock screen.
 
 ### Window behavior
 
@@ -576,7 +576,6 @@ A color, size or duration never goes into `bk`. It goes into Tengen:
 | `TrafficRim` | Rim of a traffic light: `lit` and `idle`. |
 | `ShellPalette` | Menu bar and Dock: `bar`, `text`, `tile`, `tile_active`, `tile_text_active`. |
 | `MenuPalette` | Colors and metrics of a menu: background, padding, item size, inks, hover, separator, check mark, header and search field. |
-| `LockPalette` | Lock screen: `bg_surface`, `ink`, `ink_muted`, `danger`, `accent`. |
 | `SidebarPalette` | Sidebar inks: item, icon, selection, inactive selection, hover, section, count, line. |
 | `ToolgroupPalette` | Toolbar group: `separator`, `rim`. |
 | `ShadowLayer` | `blur`, `y_offset`, `opacity`, `color`. |
@@ -773,7 +772,7 @@ background, for `reduce_transparency`.
 ### Shell
 
 `malaysia-shell` reads these; the kit does not, except `MENUBAR_HEIGHT` for the
-focus-mode bar and `LOCK` in `theme::lock_palette`.
+focus-mode bar.
 
 | Constants | What they size |
 |---|---|
@@ -782,7 +781,8 @@ focus-mode bar and `LOCK` in `theme::lock_palette`.
 | `DOCK_TILESIZE`, `DOCK_GAP`, `DOCK_PADDING`, `DOCK_FONT_SIZE`, `DOCK_PROGRESS_HEIGHT`, `DOCK_BAR_HEIGHT` | The Dock (`DOCK_BAR_HEIGHT` = tile + 2 × padding) |
 | `NOTIFICATION_WIDTH`, `NOTIFICATION_RADIUS`, `NOTIFICATION_PADDING`, `NOTIFICATION_GAP`, `NOTIFICATION_MARGIN`, `NOTIFICATION_ICON_SIZE`, `NOTIFICATION_TEXT_GAP`, `NOTIFICATION_CLOSE_SIZE`, `NOTIFICATION_STACK_PEEK`, `NOTIFICATION_STACK_INSET`, `NOTIFICATION_BODY_LINES`, `NOTIFICATION_MAX_BANNERS`, `NOTIFICATION_BANNER_MS`, `NOTIFICATION_SLIDE_IN_MS`, `NOTIFICATION_SLIDE_OUT_MS`, `NOTIFICATION_SLIDE_BOUNCE`, `NOTIFICATION_EDGE`, `NOTIFICATION_SWIPE`, `NOTIFICATION_WIDGET_SIZE`, `NOTIFICATION_WIDGET_RADIUS`, `NOTIFICATION_REPLY_HEIGHT`, `LIVE_ACTIVITY_WIDTH`, `LIVE_ACTIVITY_HEIGHT`, `LIVE_ACTIVITY_RADIUS`, `LIVE_ACTIVITY_GAP`, `LIVE_ACTIVITY_ENDED_MS` | Notification banners, Notification Center, its widgets and the Live Activities of the menu bar (ADR 0068 in malaysia; the banner radius is provisional until measured on Tahoe, the Live Activity size is measured on Apple's WWDC25 video) |
 | `LAUNCHER_WIDTH`, `LAUNCHER_HEIGHT`, `LAUNCHER_PADDING`, `LAUNCHER_SEARCH_HEIGHT`, `LAUNCHER_RESULT_HEIGHT`, `LAUNCHER_RESULT_GAP`, `LAUNCHER_RESULT_RADIUS`, `LAUNCHER_ICON_SIZE`, `LAUNCHER_MAX_RESULTS`, `LAUNCHER_CORNER_RADIUS`, `LAUNCHER_FONT_SIZE`, `LAUNCHER_SUBTITLE_FONT_SIZE`, `LAUNCHER_SCALE_FROM`, `LAUNCHER_OPEN_MS`, `LAUNCHER_CLOSE_MS` | The launcher |
-| `LOCK`, `LOCK_FONT_SIZE`, `LOCK_TITLE_SCALE`, `LOCK_FIELD_WIDTH`, `LOCK_FIELD_HEIGHT`, `LOCK_LABEL_OFFSET`, `LOCK_LABEL_FONT_SIZE`, `LOCK_MASK_FONT_SIZE` | The lock screen |
+| `LOCK_CLOCK_FONT_SIZE`, `LOCK_DATE_FONT_SIZE`, `LOCK_TOP_MARGIN`, `LOCK_BOTTOM_MARGIN`, `LOCK_SPACING`, `LOCK_AVATAR_SIZE`, `LOCK_FIELD_HEIGHT`, `LOCK_FIELD_MIN_WIDTH`, `LOCK_FIELD_MAX_WIDTH`, `LOCK_MASK_FONT_SIZE`, `LOCK_INK`, `LOCK_FIELD_FILL`, `LOCK_FIELD_FILL_OPAQUE`, `LOCK_FIELD_ERROR`, `LOCK_FIELD_INK` | The lock screen over the wallpaper (Malaysia ADR 0074) |
+| `LOCK_FADE_MS`, `LOCK_SETTLE_MS`, `LOCK_RISE_MS`, `LOCK_RISE_OFFSET`, `LOCK_LOGIN_MS` | The transition from the desktop to the lock screen: the fade, the menu bar closing up, the clock rising and the login appearing |
 | `ABOUT_WIDTH`, `ABOUT_HEIGHT`, `ABOUT_DRAWING_TOP`, `ABOUT_DRAWING_WIDTH`, `ABOUT_DRAWING_HEIGHT`, `ABOUT_TITLE_GAP`, `ABOUT_TITLE_SIZE`, `ABOUT_SPECS_GAP`, `ABOUT_SPEC_ROW_GAP`, `ABOUT_COLUMN_GAP`, `ABOUT_VALUE_WIDTH`, `ABOUT_BUTTON_GAP`, `ABOUT_FOOTER_BOTTOM` | The «About this computer» window |
 | `ABOUT_APP_WIDTH`, `ABOUT_APP_HEIGHT`, `ABOUT_APP_ICON` | The «About ‹app›» window and its icon |
 

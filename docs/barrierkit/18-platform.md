@@ -143,6 +143,8 @@ to use Vulkan is [ADR 0056](../decisions/0056-barrierkit-on-vulkan.md).
 | `zwp_text_input_manager_v3` | 1 | No | Input methods: preedit and commit | Keys only |
 | `org_kde_kwin_appmenu_manager` | 1 | No | Announces a window's D-Bus menu for the global menu bar | No global menu |
 | `infinity_focus_manager_v1` | 1–4 | No | Focus mode: when the bar comes down; from version 2, `set_overlay` and the bar height; from 3, the wallpaper behind the window; from 4, the desktop it is on (`WindowControls::desktop`) | Focus mode notices, the wallpaper tint and the desktop are missing |
+| `infinity_session_v1` | 1 | No | `locking` and `unlocked`, read by [`use_screen_lock`](#screen-lock-and-blur-region) | The menu bar never learns that the session is locking |
+| `ext_background_effect_manager_v1` | 1 | No | [`set_blur_region`](#screen-lock-and-blur-region) | No blur behind the surface |
 | `infinity_window_style_v1` | 1–4 | No | `set_bar` with the `Titlebar`'s bar; `set_popover` (v2) for popups; `set_panel` (v3) for utility windows; `set_cards` (v4) for card layers. Version 5 adds `set_desktop`, used by `malaysia-wallpaper` | The compositor guesses the window style |
 
 `sctk` means the version range smithay-client-toolkit 0.20 binds. The
@@ -287,8 +289,24 @@ that appears later gets its own surface.
 Inside `app`, `SessionUnlock::get()` returns the unlock handle.
 `SessionUnlock::unlock()` ends the lock and makes `run_lock` return `Ok`.
 An `unlock()` before the compositor confirms the lock waits for that
-confirmation. If the compositor refuses the lock, the process prints an error
+confirmation. `SessionUnlock::locked()` turns `true` once the compositor has
+confirmed the lock, which Malaysia does after the lock screen's first frame is
+on screen (ADR 0074), so the app can start its entry animation then. If the compositor refuses the lock, the process prints an error
 and exits with status 1.
+
+### Screen lock and blur region
+
+`use_screen_lock() -> State<ScreenLock>` follows `infinity_session_v1`. It is
+`ScreenLock::Locking(duration)` from the moment a client asks to lock the
+session, and `ScreenLock::Unlocked` again once the session is unlocked. The
+menu bar uses it to close up into the lock screen's status row while the
+compositor fades everything else out (Malaysia ADR 0074). A zero `duration`
+means no transition.
+
+`set_blur_region(BlurRegion { rects })` asks the compositor to blur what is
+behind the calling surface inside `rects`, in surface coordinates, with
+`ext_background_effect_v1`. An empty list removes the blur. Send it again
+whenever the rectangles move; the kit commits the surface with it.
 
 ### `Toplevels`
 

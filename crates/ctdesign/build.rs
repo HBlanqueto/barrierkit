@@ -116,7 +116,6 @@ SHADOW ShadowStyle shadow.layers.light unfocused_blur_scale=shadow.unfocused.blu
 SHADOW_DARK ShadowStyle shadow.layers.dark unfocused_blur_scale=shadow.unfocused.blur
     unfocused_offset_scale=shadow.unfocused.offset unfocused_opacity_scale=shadow.unfocused.opacity
 KNOB_SHADOW ShadowLayer shadow.slint.knob y_offset=offset-y opacity==1.0
-LOCK LockPalette themes.dark-tint
 SIDEBAR SidebarMetrics components.window.sidebar width=size.sidebar-w inset=island.inset
     padding_x=island.padding-x radius=island.radius rim_width=island.rim-width
     inner_width=island.inner-width traffic_x=island.traffic-x
@@ -161,13 +160,26 @@ ABOUT_FOOTER_BOTTOM f32 components.shell.about.footer-bottom
 ABOUT_APP_WIDTH u32 components.shell.about-app.width
 ABOUT_APP_HEIGHT u32 components.shell.about-app.height
 ABOUT_APP_ICON f32 components.shell.about-app.icon
-LOCK_FONT_SIZE f32 components.shell.lock.font-size
-LOCK_TITLE_SCALE f32 components.shell.lock.title-scale
-LOCK_FIELD_WIDTH i32 components.shell.lock.field-width
-LOCK_FIELD_HEIGHT i32 components.shell.lock.field-height
-LOCK_LABEL_OFFSET i32 components.shell.lock.label-offset
-LOCK_LABEL_FONT_SIZE f32 components.shell.lock.label-font-size
+LOCK_CLOCK_FONT_SIZE f32 components.shell.lock.clock-font-size
+LOCK_DATE_FONT_SIZE f32 components.shell.lock.date-font-size
+LOCK_TOP_MARGIN f32 components.shell.lock.top-margin
+LOCK_BOTTOM_MARGIN f32 components.shell.lock.bottom-margin
+LOCK_SPACING f32 components.shell.lock.spacing
+LOCK_AVATAR_SIZE f32 components.shell.lock.avatar-size
+LOCK_FIELD_HEIGHT f32 components.shell.lock.field-height
+LOCK_FIELD_MIN_WIDTH f32 components.shell.lock.field-min-width
+LOCK_FIELD_MAX_WIDTH f32 components.shell.lock.field-max-width
 LOCK_MASK_FONT_SIZE f32 components.shell.lock.mask-font-size
+LOCK_INK Rgba components.shell.lock.ink
+LOCK_FIELD_FILL Rgba components.shell.lock.field-fill
+LOCK_FIELD_FILL_OPAQUE Rgba components.shell.lock.field-fill-opaque
+LOCK_FIELD_ERROR Rgba components.shell.lock.field-error
+LOCK_FIELD_INK Rgba components.shell.lock.field-ink
+LOCK_FADE_MS u64 components.shell.lock.fade
+LOCK_SETTLE_MS u64 components.shell.lock.settle
+LOCK_RISE_MS u64 components.shell.lock.rise
+LOCK_RISE_OFFSET f32 components.shell.lock.rise-offset
+LOCK_LOGIN_MS u64 components.shell.lock.login
 NOTIFICATION_WIDTH i32 components.shell.notifications.width
 NOTIFICATION_RADIUS f32 components.shell.notifications.radius
 NOTIFICATION_PADDING f32 components.shell.notifications.padding
