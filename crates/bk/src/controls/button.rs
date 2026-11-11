@@ -11,6 +11,7 @@ pub enum ControlSize {
 #[derive(PartialEq)]
 pub struct Button {
     label: String,
+    image: Option<Symbol>,
     disabled: bool,
     on: Option<bool>,
     width: Size,
@@ -23,12 +24,20 @@ impl Button {
     pub fn new(label: impl Into<String>) -> Self {
         Self {
             label: label.into(),
+            image: None,
             disabled: false,
             on: None,
             width: Size::auto(),
             on_press: None,
             style: Theme::tengen(),
             key: DiffKey::None,
+        }
+    }
+
+    pub fn system_image(label: impl Into<String>, image: Symbol) -> Self {
+        Self {
+            image: Some(image),
+            ..Self::new(label)
         }
     }
 
@@ -83,15 +92,13 @@ impl Component for Button {
         } else {
             style
         };
-        let paints = Paints::current(
-            ControlState {
-                hovered: interaction.hovered(),
-                pressed: interaction.pressed(),
-                focused: interaction.focused(),
-                disabled: self.disabled,
-            },
-            style.effect,
-        );
+        let state = ControlState {
+            hovered: interaction.hovered(),
+            pressed: interaction.pressed(),
+            focused: interaction.focused(),
+            disabled: self.disabled,
+        };
+        let paints = Paints::current(state, style.effect);
         let pressed = enabled && interaction.pressed();
         let scale = crate::animation::use_animated(
             if pressed { style.pressed_scale } else { 1.0 },
@@ -118,6 +125,8 @@ impl Component for Button {
             .padding(Gaps::new(0.0, style.padding_x, 0.0, style.padding_x))
             .corner_radius(radius)
             .center()
+            .direction(Direction::Horizontal)
+            .spacing(ctdesign::SPACE_1)
             .painted(&paints, &style.background)
             .bordered(&paints, style.border.as_ref())
             .map(self.on, |el, on| {
@@ -141,6 +150,11 @@ impl Component for Button {
                     }
                 })
             })
+            .maybe_child(self.image.map(|image| {
+                crate::symbol::Image::system(image)
+                    .size(font.size as f32)
+                    .color(paints.color(style.label.resolve(state)))
+            }))
             .child(
                 label()
                     .text(self.label.clone())

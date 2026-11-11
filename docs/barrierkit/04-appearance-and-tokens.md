@@ -357,7 +357,8 @@ user's.
 
 Previews follow the [thumbnail spec](https://specifications.freedesktop.org/thumbnail-spec/latest/):
 `thumbnail_path` is the x-large PNG named by the MD5 of `file_uri` (escaped as
-GLib does), valid while `thumbnail_is_fresh`. `frame_path` holds the light and the
+GLib does), valid while `thumbnail_is_fresh`. `thumbnail_image_size` reads the
+size of the original image from its `Thumb::Image::Width` and `Height`. `frame_path` holds the light and the
 dark still of a dynamic wallpaper; System Settings treats a HEIC with both as
 dynamic.
 
@@ -590,7 +591,7 @@ A color, size or duration never goes into `bk`. It goes into Tengen:
 | `TrafficGlyphs` | Glyph geometry: `box_size`, `stroke`, `close`, `minimize`, `zoom`, `plus`. |
 | `Segment`, `Triangle` | A line from `a` to `b`; three points. |
 | `DoubleClick` | `interval_ms` and pointer `slop` of a double click. |
-| `SettingsStrength`, `SettingsCheck`, `SettingsWallpaper` | Parts of `SettingsMetrics`: the tint-strength scale, the check list and the Wallpaper pane (preview, tiles, color dots and custom framing). |
+| `SettingsStrength`, `SettingsCheck`, `SettingsWallpaper` | Parts of `SettingsMetrics`: the tint-strength scale, the check list and the Wallpaper pane (preview, tiles, color dots, the collection sheet and the custom framing sheet with its desktop preview). |
 | `*Metrics` | Sizes of one component; see the tables below. |
 
 ### Spacing

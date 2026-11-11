@@ -80,11 +80,13 @@ dark (`-dark.png`).
 
 ## Buttons
 
-`controls::Button` is a push button with a text label.
+`controls::Button` is a push button with a text label, and a symbol if you
+give one.
 
 | Method | Default | Effect |
 |---|---|---|
 | `Button::new(label)` | — | `label` is `impl Into<String>` |
+| `Button::system_image(label, Symbol)` | — | A symbol before the label, in the label's color |
 | `.style(\|s\| ..)` | Tengen, SwiftUI's `.bordered` | Look: a preset or any field of `ButtonStyle`, see below |
 | `.size(ControlSize)` | `Regular` | Height, padding, font and corners |
 | `.width(Size)` | `Size::auto()` | Fixed or fill width |

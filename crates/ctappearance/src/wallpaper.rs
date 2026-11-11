@@ -394,6 +394,12 @@ pub fn thumbnail_is_fresh(thumbnail: &Path, file: &Path) -> bool {
     png_text(&bytes, "Thumb::MTime").is_some_and(|value| value == modified.to_string())
 }
 
+pub fn thumbnail_image_size(thumbnail: &Path) -> Option<(u32, u32)> {
+    let bytes = std::fs::read(thumbnail).ok()?;
+    let side = |key| png_text(&bytes, key)?.parse().ok();
+    Some((side("Thumb::Image::Width")?, side("Thumb::Image::Height")?))
+}
+
 fn png_text(png: &[u8], key: &str) -> Option<String> {
     let mut at = 8;
     while at + 8 <= png.len() {

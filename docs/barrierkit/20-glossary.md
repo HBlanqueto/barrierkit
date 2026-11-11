@@ -385,8 +385,9 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `ctappearance::thumbnail_path` | fn | — | — | The x-large thumbnail of a file in the freedesktop thumbnail cache | [4](04-appearance-and-tokens.md#the-wallpaper-files) |
 | `ctappearance::frame_path` | fn | — | — | The light or dark still of a dynamic wallpaper, in `~/.cache/malaysia/wallpaper-frames` | [4](04-appearance-and-tokens.md#the-wallpaper-files) |
 | `ctappearance::thumbnail_is_fresh` | fn | — | — | Whether a thumbnail's `Thumb::MTime` matches its file | [4](04-appearance-and-tokens.md#the-wallpaper-files) |
+| `ctappearance::thumbnail_image_size` | fn | — | — | The original image size a thumbnail records in `Thumb::Image::Width` and `Height` | [4](04-appearance-and-tokens.md#the-wallpaper-files) |
 | `ctappearance::modified_seconds` | fn | — | — | A file's modification time in seconds | [4](04-appearance-and-tokens.md#the-wallpaper-files) |
-| `ctappearance::WallpaperOutput` | struct | — | ≈ `NSScreen` | An output the wallpaper draws on: `name`, `width`, `height` | [4](04-appearance-and-tokens.md#reading-and-writing) |
+| `ctappearance::WallpaperOutput` | struct | — | ≈ `NSScreen` | An output the wallpaper draws on: `name`, and `width` and `height` in pixels | [4](04-appearance-and-tokens.md#reading-and-writing) |
 | `ctappearance::load_wallpaper_state` | fn | — | — | Reads `wallpaper.state`, or the default | [4](04-appearance-and-tokens.md#reading-and-writing) |
 | `ctappearance::xdg::cache_home` | fn | — | — | `$XDG_CACHE_HOME` or `~/.cache` | [4](04-appearance-and-tokens.md#reading-and-writing) |
 | `ctappearance::tinting::WallpaperGrid` | struct | — | — | Average colors of the wallpaper; `from_rgba8`, `behind(output, window)` | [4](04-appearance-and-tokens.md#wallpaper-behind-a-window) |
@@ -604,6 +605,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
 |---|---|---|---|---|---|
 | `controls::Button` | struct | `Button` | `NSButton` | Push button with a text label | [5](05-controls.md#buttons) |
+| `controls::Button::system_image` | fn | `Button(_:systemImage:)` | `NSButton(title:image:target:action:)` | Push button with a symbol before its label | [5](05-controls.md#buttons) |
 | `controls::ControlSize` | enum | `ControlSize` | `NSControl.ControlSize` | `Small`, `Regular`, `Large` control heights | [5](05-controls.md#buttons) |
 | `compact::IconButton` | struct | `≈ Button` | `≈ NSButton` | Button showing only a symbol; 36 capsule inside a tool group | [5](05-controls.md#compact-buttons) |
 | `compact::Stepper` | struct | `Stepper` | `NSStepper` | Integer value with up and down arrows | [5](05-controls.md#compact-buttons) |

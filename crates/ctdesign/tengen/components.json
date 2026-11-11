@@ -625,15 +625,38 @@
         "tile-width": 92,
         "tile-height": 58,
         "dot": 38,
-        "sheet-width": 480,
+        "sheet-width": 490,
+        "field-width": 200,
+        "source": {
+          "width": 32,
+          "height": 20,
+          "radius": 4
+        },
         "crop": {
-          "width": 560,
+          "width": 722,
+          "side": 236,
           "aspect": 1.6,
           "dim": 0.55,
+          "frame": 1.5,
+          "guide": 0.45,
           "corner": 16,
           "corner-stroke": 3,
           "zoom-max": 4,
-          "zoom-step": 0.25
+          "zoom-step": 0.25,
+          "zoom-button": 24,
+          "zoom-label": 44,
+          "soft": 1.0,
+          "blurry": 2.0,
+          "preview": {
+            "bar": 0.05,
+            "dock": {
+              "width": 0.36,
+              "bottom": 0.03,
+              "tiles": 5,
+              "gap": 2,
+              "radius": 5
+            }
+          }
         }
       }
     },
