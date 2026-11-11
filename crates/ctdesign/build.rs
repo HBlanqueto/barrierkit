@@ -172,7 +172,7 @@ LOCK_FIELD_MAX_WIDTH f32 components.shell.lock.field-max-width
 LOCK_MASK_FONT_SIZE f32 components.shell.lock.mask-font-size
 LOCK_INK Rgba components.shell.lock.ink
 LOCK_FIELD_FILL Rgba components.shell.lock.field-fill
-LOCK_FIELD_FILL_OPAQUE Rgba components.shell.lock.field-fill-opaque
+LOCK_AVATAR_FILL Rgba components.shell.lock.avatar-fill
 LOCK_FIELD_ERROR Rgba components.shell.lock.field-error
 LOCK_FIELD_INK Rgba components.shell.lock.field-ink
 LOCK_FADE_MS u64 components.shell.lock.fade
