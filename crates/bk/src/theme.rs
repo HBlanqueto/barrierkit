@@ -285,7 +285,7 @@ mod tests {
         };
 
         let light = resolve(&config(ColorScheme::Light), None);
-        assert_eq!(light.menu.hover_bg, orange, "light menu selection");
+        assert_eq!(light.menu.hover_bg, light.accent, "light menu selection");
         assert!(
             light
                 .menu
@@ -295,18 +295,25 @@ mod tests {
             "light focus ring"
         );
         assert_eq!(
-            light.sidebar.palette.selected_bg, orange,
+            light.sidebar.palette.selected_bg, light.accent,
             "light sidebar selection"
         );
         assert_eq!(
-            light.sidebar.palette.item_icon, orange,
+            light.sidebar.palette.item_icon, light.accent,
             "light sidebar icon"
         );
-        assert!(light.sidebar.palette.selected_ink.contrast_ratio(orange) >= 4.5);
+        assert!(
+            light
+                .sidebar
+                .palette
+                .selected_ink
+                .contrast_ratio(light.accent)
+                >= 4.5
+        );
         assert_ne!(light.menu.hover_bg, ctdesign::LIGHT.accent);
 
         let dark = resolve(&config(ColorScheme::Dark), None);
-        assert_eq!(dark.menu.hover_bg, orange, "dark menu selection");
+        assert_eq!(dark.menu.hover_bg, dark.accent, "dark menu selection");
         assert!(
             dark.menu
                 .search_ring
@@ -315,11 +322,20 @@ mod tests {
             "dark focus ring"
         );
         assert_eq!(
-            dark.sidebar.palette.selected_bg, orange,
+            dark.sidebar.palette.selected_bg, dark.accent,
             "dark sidebar selection"
         );
-        assert_eq!(dark.sidebar.palette.item_icon, orange, "dark sidebar icon");
-        assert!(dark.sidebar.palette.selected_ink.contrast_ratio(orange) >= 4.5);
+        assert_eq!(
+            dark.sidebar.palette.item_icon, dark.accent,
+            "dark sidebar icon"
+        );
+        assert!(
+            dark.sidebar
+                .palette
+                .selected_ink
+                .contrast_ratio(dark.accent)
+                >= 4.5
+        );
     }
 
     #[test]
