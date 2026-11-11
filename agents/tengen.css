@@ -719,10 +719,10 @@
   --bk-shell-about-app-width: 260;
   --bk-shell-about-app-height: 250;
   --bk-shell-about-app-icon: 64;
-  --bk-shell-lock-clock-font-size: 108;
-  --bk-shell-lock-date-font-size: 24;
-  --bk-shell-lock-top-percent: 15;
-  --bk-shell-lock-bottom-margin: 92;
+  --bk-shell-lock-clock-font-size: 140;
+  --bk-shell-lock-date-font-size: 28;
+  --bk-shell-lock-top-percent: 9;
+  --bk-shell-lock-bottom-margin: 55;
   --bk-shell-lock-spacing: 12;
   --bk-shell-lock-avatar-size: 52;
   --bk-shell-lock-field-height: 30;

@@ -844,10 +844,10 @@
         "icon": 64
       },
       "lock": {
-        "clock-font-size": 108,
-        "date-font-size": 24,
-        "top-percent": 15,
-        "bottom-margin": 92,
+        "clock-font-size": 140,
+        "date-font-size": 28,
+        "top-percent": 9,
+        "bottom-margin": 55,
         "spacing": 12,
         "avatar-size": 52,
         "field-height": 30,
