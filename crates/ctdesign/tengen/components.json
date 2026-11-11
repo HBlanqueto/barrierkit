@@ -630,6 +630,12 @@
         "shuffle-scrim": 0.28,
         "shuffle-icon": 26,
         "field-width": 200,
+        "filter-width": 320,
+        "kind": {
+          "size": 16,
+          "icon": 10,
+          "inset": 4
+        },
         "source": {
           "width": 32,
           "height": 20,

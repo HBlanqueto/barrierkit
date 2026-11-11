@@ -129,7 +129,7 @@ Image::system(Symbol::Folder)
 |---|---|
 | Navigation | `ChevronRight`, `ChevronLeft`, `ChevronUp`, `ChevronDown`, `ChevronUpDown`, `ChevronDoubleRight`, `GoBackward`, `GoForward`, `ArrowDown` |
 | Actions | `MagnifyingGlass`, `XMark`, `Plus`, `Minus`, `Ellipsis`, `Checkmark`, `Expand` |
-| Media | `Play`, `Pause`, `Shuffle`, `Backward`, `Forward`, `SpeakerWave`, `Captions`, `Film`, `Tv` |
+| Media | `Play`, `Pause`, `Shuffle`, `ChevronLeftForwardSlashChevronRight`, `Backward`, `Forward`, `SpeakerWave`, `Captions`, `Film`, `Tv` |
 | Layout | `ListBullet`, `SquareGrid`, `SlidersVertical`, `SidebarLeft` |
 | Places and things | `House`, `Folder`, `Document`, `Star`, `StarFill`, `Clock`, `Bookmark`, `CircleHalf`, `Accessibility`, `Display`, `Photo`, `Moon`, `Bell`, `Bed`, `Person`, `Briefcase`, `Printer`, `Phone`, `SquareOnSquare` |
 | Connections and power | `Wifi`, `Bluetooth`, `Network`, `Lock`, `Bolt`, `Battery` |

@@ -237,16 +237,18 @@ impl Component for Form {
                     ),
                     (None, None) => None,
                 })
-                .child(
-                    rect()
-                        .width(Size::fill())
-                        .direction(Direction::Vertical)
-                        .corner_radius(corner_radius)
-                        .overflow(Overflow::Clip)
-                        .painted(&paints, &style.background)
-                        .bordered(&paints, style.border.as_ref())
-                        .maybe_child(section.illustration.clone())
-                        .children(rows),
+                .maybe_child(
+                    (!section.rows.is_empty() || section.illustration.is_some()).then(|| {
+                        rect()
+                            .width(Size::fill())
+                            .direction(Direction::Vertical)
+                            .corner_radius(corner_radius)
+                            .overflow(Overflow::Clip)
+                            .painted(&paints, &style.background)
+                            .bordered(&paints, style.border.as_ref())
+                            .maybe_child(section.illustration.clone())
+                            .children(rows)
+                    }),
                 )
                 .maybe_child(section.footer.map(|footer| {
                     rect()

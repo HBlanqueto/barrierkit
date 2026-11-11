@@ -542,6 +542,10 @@
   --bk-settings-wallpaper-shuffle-scrim: 0.28;
   --bk-settings-wallpaper-shuffle-icon: 26;
   --bk-settings-wallpaper-field-width: 200;
+  --bk-settings-wallpaper-filter-width: 320;
+  --bk-settings-wallpaper-kind-size: 16;
+  --bk-settings-wallpaper-kind-icon: 10;
+  --bk-settings-wallpaper-kind-inset: 4;
   --bk-settings-wallpaper-source-width: 32;
   --bk-settings-wallpaper-source-height: 20;
   --bk-settings-wallpaper-source-radius: 4;
