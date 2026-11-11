@@ -24,6 +24,7 @@ pub enum Symbol {
     CircleHalf,
     Play,
     Pause,
+    Shuffle,
     Backward,
     Forward,
     ListBullet,
@@ -127,6 +128,9 @@ impl Symbol {
             }
             Self::Play => "M5 3.5v9l7.5-4.5z",
             Self::Pause => "M5.5 3.5v9M10.5 3.5v9",
+            Self::Shuffle => {
+                "M2.5 5h2.6c2.8 0 3.9 6 6.8 6h1.6M11.8 9.2l1.7 1.8-1.7 1.8M2.5 11h2.6c1.2 0 2-1.1 2.7-2.3M9.4 6.2C10 5.5 10.8 5 11.9 5h1.6M11.8 3.2 13.5 5l-1.7 1.8"
+            }
             Self::Backward => "M4 3.5v9M12 3.5 6 8l6 4.5z",
             Self::Forward => "M12 3.5v9M4 3.5 10 8l-6 4.5z",
             Self::ListBullet => "M6 4h8M6 8h8M6 12h8M2.5 4h.01M2.5 8h.01M2.5 12h.01",

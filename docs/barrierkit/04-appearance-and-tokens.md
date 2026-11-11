@@ -129,7 +129,7 @@ Image::system(Symbol::Folder)
 |---|---|
 | Navigation | `ChevronRight`, `ChevronLeft`, `ChevronUp`, `ChevronDown`, `ChevronUpDown`, `ChevronDoubleRight`, `GoBackward`, `GoForward`, `ArrowDown` |
 | Actions | `MagnifyingGlass`, `XMark`, `Plus`, `Minus`, `Ellipsis`, `Checkmark`, `Expand` |
-| Media | `Play`, `Pause`, `Backward`, `Forward`, `SpeakerWave`, `Captions`, `Film`, `Tv` |
+| Media | `Play`, `Pause`, `Shuffle`, `Backward`, `Forward`, `SpeakerWave`, `Captions`, `Film`, `Tv` |
 | Layout | `ListBullet`, `SquareGrid`, `SlidersVertical`, `SidebarLeft` |
 | Places and things | `House`, `Folder`, `Document`, `Star`, `StarFill`, `Clock`, `Bookmark`, `CircleHalf`, `Accessibility`, `Display`, `Photo`, `Moon`, `Bell`, `Bed`, `Person`, `Briefcase`, `Printer`, `Phone`, `SquareOnSquare` |
 | Connections and power | `Wifi`, `Bluetooth`, `Network`, `Lock`, `Bolt`, `Battery` |
@@ -299,7 +299,7 @@ Notes on the values:
 | `read_appearance()` | `Ok(None)` without a file, `Err` when the TOML does not parse. |
 | `load_appearance()` | The file's config, or the default on any error. |
 | `write_appearance(path, config)` | Writes the config and keeps other keys and comments. An unreadable file is first copied to `.domain.bak`. The file is replaced atomically. |
-| `load_dominant()`, `load_wallpaper_grid()` | Read `dominant` and `grid` from `wallpaper.state`. |
+| `load_dominant()` | Reads `dominant` from `wallpaper.state`. |
 | `write_wallpaper_state(path, &WallpaperState)` | Writes `dominant` and `grid`; an empty state removes the file. |
 | `load_wallpaper_state()` | The whole `wallpaper.state`, or the default. `WallpaperState::grid_for(desktop)` picks a desktop's grid. |
 
@@ -316,7 +316,7 @@ and `malaysia-wallpaper` reads them and writes the third.
 
 Every map of the selection is keyed by `desktop_key`: a desktop number from 1,
 or `ALL_DESKTOPS` (`"default"`) for every desktop. A desktop without its own key
-shows the shared one with its scale, crop and pinned image. Crops can also be
+shows the shared one with its scale, crop and appearance. Crops can also be
 keyed `"<desktop>/<output>"`, which wins over the desktop's own.
 
 | Field | Holds |
@@ -324,14 +324,16 @@ keyed `"<desktop>/<output>"`, which wins over the desktop's own.
 | `desktops` | A `WallpaperSource` as text: `builtin`, a `file://` URI, `shuffle:colors` or `shuffle:collection:<name>`. No shared key shows the built-in wallpaper. |
 | `scale`, `scales` | `WallpaperScale` of the shared wallpaper and of each desktop's own: `Fill`, `Fit`, `Stretch`, `Center` or `Custom`. |
 | `crop` | `[x, y, width, height]`, fractions of the image. With `Custom` it covers the screen like `Fill`. |
-| `pinned` | The image a dynamic wallpaper keeps instead of following the appearance or the time. |
+| `appearance` | `WallpaperAppearance` (`Light` or `Dark`): the still a dynamic wallpaper keeps instead of following the system appearance or the time. |
 | `shuffle` | `WallpaperShuffle`: `Login`, `Hourly` or `Daily`. |
 
 Edit it through its methods so the keys stay consistent: `set_source`,
-`make_own`, `set_scale`, `set_crop` and `set_pinned` write; `source`,
-`scale_for`, `crop_for` and `pinned_for` read with the fallbacks above.
-`set_source(None, _)` is «Show on all desktops»: it drops each desktop's own
-choices.
+`make_own`, `set_scale`, `set_crop` and `set_appearance` write; `source`,
+`scale_for`, `crop_for` and `appearance_for` read with the fallbacks above.
+`set_source(None, _)` sets the wallpaper of every desktop: it drops each
+desktop's own choices. `make_own(desktop)` gives a desktop a copy of the shared
+choices, and `show_on_all_desktops(desktop)` makes a desktop's choices the
+shared ones, like macOS «Show on all Spaces».
 
 ```toml
 scale = "custom"
@@ -350,11 +352,14 @@ default = [0.2, 0.15, 0.55, 0.62]
 wallpapers: PNG, JPEG, HEIC and HEIF images, MP4, MOV, WebM and MKV videos, and
 GLSL shaders (`.frag`, `.glsl`). `system_wallpapers_dir` is the first
 `$XDG_DATA_DIRS/wallpapers` and `custom_colors_dir` holds the user's own colors.
+`wallpaper_colors` lists the colors: the system's `solid-colors`, then the
+user's.
 
 Previews follow the [thumbnail spec](https://specifications.freedesktop.org/thumbnail-spec/latest/):
 `thumbnail_path` is the x-large PNG named by the MD5 of `file_uri` (escaped as
-GLib does), valid while `thumbnail_is_fresh`. `frame_path` holds a still of each
-image of a dynamic wallpaper.
+GLib does), valid while `thumbnail_is_fresh`. `frame_path` holds the light and the
+dark still of a dynamic wallpaper; System Settings treats a HEIC with both as
+dynamic.
 
 ### Resolution
 
@@ -413,7 +418,8 @@ from a grid of average colors:
 1. `malaysia-wallpaper` builds it with `WallpaperGrid::from_rgba8(rgba8,
    width, height)`: `WALLPAPER_TINTING_GRID` cells per side and the image's
    `aspect`. It writes it to `wallpaper.state` next to `dominant`.
-2. The compositor reads it with `load_wallpaper_grid()`. `grid.behind(output,
+2. The compositor reads it with `load_wallpaper_state()` and takes
+   `grid_for(desktop)`, the grid of the window's desktop. `grid.behind(output,
    window)` averages the cells behind the window rectangle, weighted by area,
    with the wallpaper scaled to cover the output.
 3. The compositor sends that color to the window with the `wallpaper` event of

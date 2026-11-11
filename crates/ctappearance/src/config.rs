@@ -582,10 +582,6 @@ pub fn load_dominant() -> Option<Rgba> {
     })
 }
 
-pub fn load_wallpaper_grid() -> Option<WallpaperGrid> {
-    read_wallpaper_state(&wallpaper_state_path())?.grid
-}
-
 pub fn write_wallpaper_state(path: &Path, state: &WallpaperState) -> std::io::Result<()> {
     if *state == WallpaperState::default() {
         return match std::fs::remove_file(path) {

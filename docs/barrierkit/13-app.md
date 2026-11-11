@@ -353,7 +353,7 @@ zeroed.
 PDF. `PageSetup` and the PDF helpers are in
 [6. Text and editing](06-text-and-editing.md).
 
-`file_uri(path)` turns a path into a `file://` URI with percent-encoding;
+`file_uri(path)` turns a path into a `file://` URI escaped like GLib;
 `file_path(uri)` does the reverse and returns `None` for other schemes.
 
 ## Clipboard

@@ -41,6 +41,13 @@ impl WallpaperShuffle {
     }
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum WallpaperAppearance {
+    Light,
+    Dark,
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum WallpaperSource {
     BuiltIn,
@@ -123,7 +130,7 @@ pub struct WallpaperSelection {
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub crop: BTreeMap<String, [f32; 4]>,
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    pub pinned: BTreeMap<String, usize>,
+    pub appearance: BTreeMap<String, WallpaperAppearance>,
     #[serde(default)]
     pub shuffle: WallpaperShuffle,
 }
@@ -169,8 +176,8 @@ impl WallpaperSelection {
             .copied()
     }
 
-    pub fn pinned_for(&self, desktop: Option<u32>) -> Option<usize> {
-        self.pinned.get(&self.owner(desktop)).copied()
+    pub fn appearance_for(&self, desktop: Option<u32>) -> Option<WallpaperAppearance> {
+        self.appearance.get(&self.owner(desktop)).copied()
     }
 
     pub fn set_source(&mut self, desktop: Option<u32>, source: Option<WallpaperSource>) {
@@ -179,14 +186,14 @@ impl WallpaperSelection {
             self.desktops.retain(|key, _| key == ALL_DESKTOPS);
             self.scales.clear();
             self.crop.retain(|key, _| owner_of(key) == ALL_DESKTOPS);
-            self.pinned.retain(|key, _| key == ALL_DESKTOPS);
+            self.appearance.retain(|key, _| key == ALL_DESKTOPS);
         }
         match source {
             Some(source) => self.desktops.insert(key.clone(), source.value()),
             None => self.desktops.remove(&key),
         };
         self.crop.retain(|crop, _| owner_of(crop) != key);
-        self.pinned.remove(&key);
+        self.appearance.remove(&key);
         if self.scale_for(desktop) == WallpaperScale::Custom {
             self.set_scale(desktop, WallpaperScale::Fill);
         }
@@ -207,8 +214,36 @@ impl WallpaperSelection {
             .map(|(crop, value)| (crop.replacen(ALL_DESKTOPS, &key, 1), *value))
             .collect();
         self.crop.extend(shared);
-        if let Some(image) = self.pinned.get(ALL_DESKTOPS).copied() {
-            self.pinned.insert(key, image);
+        if let Some(appearance) = self.appearance.get(ALL_DESKTOPS).copied() {
+            self.appearance.insert(key, appearance);
+        }
+    }
+
+    pub fn show_on_all_desktops(&mut self, desktop: u32) {
+        if !self.has_own(desktop) {
+            return;
+        }
+        let key = desktop.to_string();
+        let source = self.desktops.get(&key).cloned();
+        let scale = self.scale_for(Some(desktop));
+        let appearance = self.appearance.get(&key).copied();
+        let crops: Vec<(String, [f32; 4])> = self
+            .crop
+            .iter()
+            .filter(|(crop, _)| owner_of(crop) == key)
+            .map(|(crop, value)| (crop.replacen(&key, ALL_DESKTOPS, 1), *value))
+            .collect();
+        *self = Self {
+            scale,
+            crop: crops.into_iter().collect(),
+            shuffle: self.shuffle,
+            ..Self::default()
+        };
+        if let Some(source) = source {
+            self.desktops.insert(ALL_DESKTOPS.into(), source);
+        }
+        if let Some(appearance) = appearance {
+            self.appearance.insert(ALL_DESKTOPS.into(), appearance);
         }
     }
 
@@ -235,11 +270,15 @@ impl WallpaperSelection {
         self.set_scale(desktop, WallpaperScale::Custom);
     }
 
-    pub fn set_pinned(&mut self, desktop: Option<u32>, image: Option<usize>) {
+    pub fn set_appearance(
+        &mut self,
+        desktop: Option<u32>,
+        appearance: Option<WallpaperAppearance>,
+    ) {
         let owner = self.owner(desktop);
-        match image {
-            Some(image) => self.pinned.insert(owner, image),
-            None => self.pinned.remove(&owner),
+        match appearance {
+            Some(appearance) => self.appearance.insert(owner, appearance),
+            None => self.appearance.remove(&owner),
         };
     }
 }
@@ -323,8 +362,12 @@ pub fn thumbnail_path(file: &Path) -> Option<PathBuf> {
     )
 }
 
-pub fn frame_path(file: &Path, image: usize) -> Option<PathBuf> {
-    let name = format!("{}-{image}.png", uri_hash(file));
+pub fn frame_path(file: &Path, appearance: WallpaperAppearance) -> Option<PathBuf> {
+    let suffix = match appearance {
+        WallpaperAppearance::Light => "light",
+        WallpaperAppearance::Dark => "dark",
+    };
+    let name = format!("{}-{suffix}.png", uri_hash(file));
     Some(
         crate::xdg::cache_home()?
             .join("malaysia")
@@ -374,6 +417,15 @@ fn png_text(png: &[u8], key: &str) -> Option<String> {
 
 pub fn custom_colors_dir() -> PathBuf {
     data_dir().join("wallpapers").join("colors")
+}
+
+pub fn wallpaper_colors() -> Vec<PathBuf> {
+    let system = system_wallpapers_dir().map(|dir| dir.join("solid-colors"));
+    system
+        .into_iter()
+        .chain([custom_colors_dir()])
+        .flat_map(|folder| wallpapers_in(&folder))
+        .collect()
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Deserialize, Serialize)]
@@ -456,11 +508,33 @@ mod tests {
         selection.set_source(None, Some(bandura()));
         selection.set_source(Some(2), Some(WallpaperSource::ShuffleColors));
         selection.set_crop(None, Some("eDP-1"), [0.1, 0.2, 0.5, 0.4]);
-        selection.set_pinned(Some(2), Some(1));
+        selection.set_appearance(Some(2), Some(WallpaperAppearance::Dark));
         selection.shuffle = WallpaperShuffle::Daily;
         write_wallpaper_selection(&path, &selection).unwrap();
         assert_eq!(read_wallpaper_selection(&path).unwrap(), selection);
         std::fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn showing_a_desktop_on_all_desktops_makes_its_choices_the_shared_ones() {
+        let mut selection = WallpaperSelection::default();
+        selection.make_own(2);
+        selection.make_own(3);
+        selection.set_source(Some(2), Some(bandura()));
+        selection.set_crop(Some(2), Some("eDP-1"), [0.1, 0.2, 0.5, 0.4]);
+        selection.set_appearance(Some(2), Some(WallpaperAppearance::Dark));
+        selection.show_on_all_desktops(2);
+        assert_eq!(selection.own_desktops().count(), 0);
+        assert_eq!(selection.source(Some(3)), Some(bandura()));
+        assert_eq!(selection.scale_for(Some(3)), WallpaperScale::Custom);
+        assert_eq!(
+            selection.crop_for(None, "eDP-1"),
+            Some([0.1, 0.2, 0.5, 0.4])
+        );
+        assert_eq!(
+            selection.appearance_for(Some(1)),
+            Some(WallpaperAppearance::Dark)
+        );
     }
 
     #[test]
