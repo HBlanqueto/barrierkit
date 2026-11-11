@@ -132,8 +132,10 @@ MENUBAR_HEIGHT i32 components.shell.menubar.height
 MENUBAR_HEIGHT_WIDE i32 components.shell.menubar.height-wide
 MENUBAR_OVER_LIGHT_INK Rgba components.shell.menubar.over-light.ink
 MENUBAR_OVER_LIGHT_GLASS Rgba components.shell.menubar.over-light.glass
+MENUBAR_OVER_LIGHT_SELECTION Rgba components.shell.menubar.over-light.selection
 MENUBAR_OVER_DARK_INK Rgba components.shell.menubar.over-dark.ink
 MENUBAR_OVER_DARK_GLASS Rgba components.shell.menubar.over-dark.glass
+MENUBAR_OVER_DARK_SELECTION Rgba components.shell.menubar.over-dark.selection
 MENUBAR_FONT_SIZE f32 components.shell.menubar.font-size
 MENUBAR_FONT_SIZE_LARGE f32 components.shell.menubar.font-size-large
 MENUBAR_APP_NAME_WEIGHT i32 components.shell.menubar.app-name.weight

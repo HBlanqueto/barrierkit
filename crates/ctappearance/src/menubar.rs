@@ -1,6 +1,7 @@
 use ctdesign::{
     MENUBAR_HEIGHT, MENUBAR_HEIGHT_WIDE, MENUBAR_OVER_DARK_GLASS, MENUBAR_OVER_DARK_INK,
-    MENUBAR_OVER_LIGHT_GLASS, MENUBAR_OVER_LIGHT_INK, Rgba,
+    MENUBAR_OVER_DARK_SELECTION, MENUBAR_OVER_LIGHT_GLASS, MENUBAR_OVER_LIGHT_INK,
+    MENUBAR_OVER_LIGHT_SELECTION, Rgba,
 };
 use serde::{Deserialize, Serialize};
 
@@ -64,13 +65,28 @@ impl Default for MenubarConfig {
     }
 }
 
-pub fn colors_over(wallpaper: Rgba) -> (Rgba, Rgba) {
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct MenubarColors {
+    pub ink: Rgba,
+    pub glass: Rgba,
+    pub selection: Rgba,
+}
+
+pub fn colors_over(wallpaper: Rgba) -> MenubarColors {
     if wallpaper.contrast_ratio(MENUBAR_OVER_LIGHT_INK)
         >= wallpaper.contrast_ratio(MENUBAR_OVER_DARK_INK)
     {
-        (MENUBAR_OVER_LIGHT_INK, MENUBAR_OVER_LIGHT_GLASS)
+        MenubarColors {
+            ink: MENUBAR_OVER_LIGHT_INK,
+            glass: MENUBAR_OVER_LIGHT_GLASS,
+            selection: MENUBAR_OVER_LIGHT_SELECTION,
+        }
     } else {
-        (MENUBAR_OVER_DARK_INK, MENUBAR_OVER_DARK_GLASS)
+        MenubarColors {
+            ink: MENUBAR_OVER_DARK_INK,
+            glass: MENUBAR_OVER_DARK_GLASS,
+            selection: MENUBAR_OVER_DARK_SELECTION,
+        }
     }
 }
 
@@ -90,12 +106,12 @@ mod tests {
     #[test]
     fn a_pale_wallpaper_gets_dark_ink_and_a_dark_one_light_ink() {
         assert_eq!(
-            colors_over(Rgba::rgb8(230, 225, 210)),
-            (MENUBAR_OVER_LIGHT_INK, MENUBAR_OVER_LIGHT_GLASS)
+            colors_over(Rgba::rgb8(230, 225, 210)).ink,
+            MENUBAR_OVER_LIGHT_INK
         );
         assert_eq!(
-            colors_over(Rgba::rgb8(20, 30, 60)),
-            (MENUBAR_OVER_DARK_INK, MENUBAR_OVER_DARK_GLASS)
+            colors_over(Rgba::rgb8(20, 30, 60)).ink,
+            MENUBAR_OVER_DARK_INK
         );
     }
 }

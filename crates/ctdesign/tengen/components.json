@@ -799,11 +799,13 @@
         "height-wide": 38,
         "over-light": {
           "ink": "#000000db",
-          "glass": "#ffffff29"
+          "glass": "#ffffff29",
+          "selection": "#0d12191f"
         },
         "over-dark": {
           "ink": "#ffffffeb",
-          "glass": "#00000029"
+          "glass": "#00000029",
+          "selection": "#ffffff2e"
         },
         "font-size": 13,
         "font-size-large": 15,
