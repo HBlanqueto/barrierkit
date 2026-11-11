@@ -217,6 +217,8 @@ CURSOR_SHAKE_SCALE f32 components.cursor-shake.scale
 CURSOR_SHAKE_GROW_MS u64 components.cursor-shake.grow-ms
 CURSOR_SHAKE_SHRINK_MS u64 components.cursor-shake.shrink-ms
 CURSOR_SHAKE_TICK_MS u64 components.cursor-shake.tick-ms
+BACKGROUND_BLUR_PASSES u32 components.background-blur.passes
+BACKGROUND_BLUR_OFFSET f32 components.background-blur.offset
 SCREENSHOT_BORDER_WIDTH i32 components.screenshot.border-width
 SPACE_GAP i32 components.spaces.gap
 SPACE_SLIDE_MS u64 components.spaces.slide-ms

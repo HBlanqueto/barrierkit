@@ -935,6 +935,10 @@
       "shrink-ms": 220,
       "tick-ms": 16
     },
+    "background-blur": {
+      "passes": 3,
+      "offset": 3.0
+    },
     "screenshot": {
       "dim": "#00000059",
       "idle-dim": "#00000026",

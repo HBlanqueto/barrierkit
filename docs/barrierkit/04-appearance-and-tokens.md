@@ -751,6 +751,7 @@ focus-mode bar and `LOCK` in `theme::lock_palette`.
 | Constants | What they are |
 |---|---|
 | `CURSOR_SHAKE_SCALE`, `CURSOR_SHAKE_GROW_MS`, `CURSOR_SHAKE_SHRINK_MS`, `CURSOR_SHAKE_TICK_MS` | The cursor that grows when the pointer is shaken |
+| `BACKGROUND_BLUR_PASSES`, `BACKGROUND_BLUR_OFFSET` | The compositor's dual Kawase blur behind surfaces: halvings and sample spread (malaysia ADR 0071) |
 | `SCREENSHOT_DIM`, `SCREENSHOT_IDLE_DIM`, `SCREENSHOT_BORDER`, `SCREENSHOT_BORDER_WIDTH` | The screenshot selection overlay |
 | `SPACE_GAP`, `SPACE_GAP_COLOR`, `SPACE_SLIDE_MS`, `SPACE_SLIDE_EASE` | The gap and slide between Spaces |
 | `TILE_MARGIN`, `TILE_GAP` | Margins of tiled windows |

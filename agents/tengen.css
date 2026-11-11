@@ -790,6 +790,8 @@
   --bk-cursor-shake-grow-ms: 180;
   --bk-cursor-shake-shrink-ms: 220;
   --bk-cursor-shake-tick-ms: 16;
+  --bk-background-blur-passes: 3;
+  --bk-background-blur-offset: 3.0;
   --bk-screenshot-dim: #00000059;
   --bk-screenshot-idle-dim: #00000026;
   --bk-screenshot-border: #ffffffe6;
