@@ -851,6 +851,7 @@
         "bounce-height": 0.55,
         "launch-timeout-ms": 8000,
         "hide-ms": 280,
+        "minimize-ms": 500,
         "reveal-strip": 2,
         "recents": 3,
         "window-frame": 0.8,

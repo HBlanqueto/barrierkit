@@ -168,6 +168,7 @@ DOCK_BOUNCE_MS u64 components.shell.dock.bounce-ms
 DOCK_BOUNCE_HEIGHT f32 components.shell.dock.bounce-height
 DOCK_LAUNCH_TIMEOUT_MS u64 components.shell.dock.launch-timeout-ms
 DOCK_HIDE_MS u64 components.shell.dock.hide-ms
+DOCK_MINIMIZE_MS u64 components.shell.dock.minimize-ms
 DOCK_REVEAL_STRIP i32 components.shell.dock.reveal-strip
 DOCK_RECENTS usize components.shell.dock.recents
 DOCK_WINDOW_FRAME f32 components.shell.dock.window-frame

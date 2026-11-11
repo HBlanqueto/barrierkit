@@ -373,6 +373,12 @@ and `app_id`, and no action works. The actions:
 | `force_quit(id)` | Infinity v4 | The compositor kills the window's process |
 | `send_shortcut(id, keys)` | Infinity v6 | Types a chord such as `"Ctrl+Shift+S"` into the window |
 
+`set_minimize_target(MinimizeTarget { window, rect })` tells the compositor
+where the window minimizes to: `rect` is `(x, y, width, height)` in the
+calling surface's coordinates (`zwlr_foreign_toplevel_handle_v1.set_rectangle`).
+A width or height of 0 removes it. Malaysia's Dock sends the slot of each
+window's tile, and the compositor runs the minimize effect toward it.
+
 `InfinityLayout`: `Fill`, `Center`, `Left`, `Right`, `Top`, `Bottom`,
 `TopLeft`, `TopRight`, `BottomLeft`, `BottomRight`.
 `InfinityPairLayout`: `SideBySide`, `SideBySideReversed`, `Stacked`,

@@ -21,7 +21,7 @@ pub use lock::{SessionUnlock, run_lock};
 pub use menus::GtkMenusAddress;
 pub use screen_lock::{ScreenLock, use_screen_lock};
 pub use status_items::{Pixmap, StatusHost, TrayItem, use_status_items};
-pub use toplevels::{FocusBar, ToplevelInfo, Toplevels};
+pub use toplevels::{FocusBar, MinimizeTarget, ToplevelInfo, Toplevels, set_minimize_target};
 
 use freya_core::integration::AppComponent;
 

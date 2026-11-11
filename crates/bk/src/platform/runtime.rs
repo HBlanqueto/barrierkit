@@ -270,6 +270,12 @@ fn insert_ping(event_loop: &mut EventLoop<Runtime>, shell: &mut Runtime) -> Resu
                         }
                     }
                     #[cfg(feature = "shell")]
+                    Sent::Kit(event) if event.is::<crate::shell::MinimizeTarget>() => {
+                        if let Ok(target) = event.downcast::<crate::shell::MinimizeTarget>() {
+                            shell.apply_minimize_target(&surface_id, *target);
+                        }
+                    }
+                    #[cfg(feature = "shell")]
                     Sent::Kit(event) if event.is::<crate::shell::InputRegion>() => {
                         if let Ok(region) = event.downcast::<crate::shell::InputRegion>() {
                             shell.apply_input_region(&surface_id, *region);

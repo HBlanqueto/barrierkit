@@ -2,6 +2,7 @@ use freya_core::prelude::{State, WritableUtils};
 use infinity_protocol::client::infinity_window_manager_v1::infinity_window_manager_v1::{
     Layout as InfinityLayout, PairLayout as InfinityPairLayout,
 };
+use sctk::reexports::client::backend::ObjectId;
 use sctk::reexports::{
     client::{
         Connection, Dispatch, Proxy, QueueHandle, event_created_child, protocol::wl_seat::WlSeat,
@@ -180,7 +181,32 @@ impl Toplevels {
     }
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct MinimizeTarget {
+    pub window: u64,
+    pub rect: (i32, i32, i32, i32),
+}
+
+pub fn set_minimize_target(target: MinimizeTarget) {
+    crate::platform::KitSender::get().send(target);
+}
+
 impl Runtime {
+    // zwlr_foreign_toplevel_handle_v1.set_rectangle: the rectangle is relative to the calling surface.
+    pub(crate) fn apply_minimize_target(&mut self, surface_id: &ObjectId, target: MinimizeTarget) {
+        let Some(index) = self.surface_index_by_id(surface_id) else {
+            return;
+        };
+        let surface = self.surfaces[index].surface.clone();
+        let Some(shell) = self.extension::<ShellState>() else {
+            return;
+        };
+        let (x, y, width, height) = target.rect;
+        shell.toplevels.with_handle(target.window, |mgmt| {
+            mgmt.set_rectangle(&surface, x, y, width, height)
+        });
+    }
+
     pub(super) fn sync_toplevels(&mut self) {
         let toplevels = &self
             .extension::<ShellState>()
