@@ -162,7 +162,7 @@ ABOUT_APP_HEIGHT u32 components.shell.about-app.height
 ABOUT_APP_ICON f32 components.shell.about-app.icon
 LOCK_CLOCK_FONT_SIZE f32 components.shell.lock.clock-font-size
 LOCK_DATE_FONT_SIZE f32 components.shell.lock.date-font-size
-LOCK_TOP_MARGIN f32 components.shell.lock.top-margin
+LOCK_TOP_PERCENT f32 components.shell.lock.top-percent
 LOCK_BOTTOM_MARGIN f32 components.shell.lock.bottom-margin
 LOCK_SPACING f32 components.shell.lock.spacing
 LOCK_AVATAR_SIZE f32 components.shell.lock.avatar-size
