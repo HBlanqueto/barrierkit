@@ -34,6 +34,7 @@ pub(super) fn window_controls(status: WindowStatus) -> WindowControls {
         status: freya_core::prelude::State::create(status),
         title: "Ventana".to_string(),
         fixed: false,
+        fixed_width: false,
         surface_id: ObjectId::null(),
         focus_bar: freya_core::prelude::State::create(false),
         focus_bar_progress: freya_core::prelude::State::create(0.0),
