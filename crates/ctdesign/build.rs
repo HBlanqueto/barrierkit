@@ -253,7 +253,7 @@ MENU_SCROLL_TICK_MS u64 components.shell.menu.scroll-tick-ms
 MENU_SEARCH_ICON_GAP f32 components.shell.menu.search.icon-gap
 MENU_SEARCH_CLEAR f32 components.shell.menu.search.clear
 MENU_SEARCH_CLEAR_GLYPH f32 components.shell.menu.search.clear-glyph
-MENU_SEARCH_CLEAR_MARGIN f32 components.shell.menu.search.clear-margin
+MENU_SEARCH_PADDING_X f32 components.shell.menu.search.padding-x
 MENU_SEARCH_CLEAR_MIX f32 components.shell.menu.search.clear-mix
 MENU_HELP_ICON f32 components.shell.menu.help-icon
 GLASS_MASK Rgba components.glass-mask

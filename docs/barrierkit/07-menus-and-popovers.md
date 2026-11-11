@@ -237,8 +237,8 @@ menu on macOS does. The Malaysia menu bar uses it; most apps do not need it.
 2. `.with_help_topics(f)` adds a second list of entries, shown under a "Help
    Topics" header.
 3. Typing adds to the query; Backspace removes the last character; Esc clears
-   it. A `SearchField` row shows the query; the menu adds one at the top if the
-   items have none.
+   it. A `SearchField` row shows the query in a capsule with no focus ring, as
+   on macOS; the menu adds one at the top if the items have none.
 4. Matches are ranked: label starts with the query, then a word starts with
    it, then it appears anywhere; disabled rows go after enabled ones. The menu
    shows up to `MenuView::MAX_MENU_ROWS` (9) menu results and

@@ -89,7 +89,7 @@ fn root_box_follows_the_configured_popup_size() {
         badge: None,
     }))
     .collect();
-    assert_eq!(MenuView::preferred_size(&items, MENU_LIGHT), (220.0, 114.0));
+    assert_eq!(MenuView::preferred_size(&items, MENU_LIGHT), (220.0, 116.0));
 
     let view = MenuView::new(items, |_| {}, || {}).with_fixed_palette(MENU_LIGHT);
     let app = AppComponent::new(view);

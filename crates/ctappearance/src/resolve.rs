@@ -264,7 +264,6 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
     );
     menu.hover_bg = accent;
     menu.hover_fg = on_accent;
-    menu.search_ring = focus_ring;
     sidebar.palette.selected_bg = accent;
     sidebar.palette.item_icon = accent;
     sidebar.palette.selected_ink = on_accent;

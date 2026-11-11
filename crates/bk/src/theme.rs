@@ -280,14 +280,6 @@ mod tests {
 
         let light = resolve(&config(ColorScheme::Light), None);
         assert_eq!(light.menu.hover_bg, light.accent, "light menu selection");
-        assert!(
-            light
-                .menu
-                .search_ring
-                .contrast_ratio(ctdesign::BG_WINDOW_LIGHT)
-                >= 3.0,
-            "light focus ring"
-        );
         assert_eq!(
             light.sidebar.palette.selected_bg, light.accent,
             "light sidebar selection"
@@ -308,13 +300,6 @@ mod tests {
 
         let dark = resolve(&config(ColorScheme::Dark), None);
         assert_eq!(dark.menu.hover_bg, dark.accent, "dark menu selection");
-        assert!(
-            dark.menu
-                .search_ring
-                .contrast_ratio(ctdesign::BG_WINDOW_DARK)
-                >= 3.0,
-            "dark focus ring"
-        );
         assert_eq!(
             dark.sidebar.palette.selected_bg, dark.accent,
             "dark sidebar selection"

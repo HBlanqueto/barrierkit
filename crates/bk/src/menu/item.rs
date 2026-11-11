@@ -368,58 +368,48 @@ fn search_field(ctx: &RowCtx, placeholder: &str) -> Element {
     };
     let text_color = if has_text { m.fg } else { m.shortcut_color };
     let clear_size = ctdesign::MENU_SEARCH_CLEAR;
-    let clear_margin = ctdesign::MENU_SEARCH_CLEAR_MARGIN;
+    let padding_x = ctdesign::MENU_SEARCH_PADDING_X;
     let clear_gap = if has_text {
-        clear_size + clear_margin
+        clear_size + ctdesign::MENU_SEARCH_ICON_GAP
     } else {
         0.0
     };
-    let row_padding = m.item_padding_x;
     let available_w = (ctx.size.0
-        - 2.0 * m.padding
-        - row_padding
-        - clear_margin
+        - 2.0 * (m.padding + m.search_margin_x + padding_x)
         - m.icon_size
         - ctdesign::MENU_SEARCH_ICON_GAP
         - clear_gap)
         .max(0.0);
 
-    let mut text_box = rect()
+    let caret = rect()
+        .width(Size::px(ctdesign::HAIRLINE))
+        .height(Size::px(m.font_size))
+        .background(theme::color(m.hover_bg));
+    let text_label = label()
+        .text(display_text)
+        .font_size(m.font_size)
+        .color(theme::color(text_color))
+        .max_lines(1);
+    let text_box = rect()
         .direction(Direction::Horizontal)
         .cross_align(Alignment::Center)
+        .spacing(ctdesign::HAIRLINE)
         .width(Size::px(available_w))
-        .overflow(Overflow::Clip)
-        .child(
-            label()
-                .text(display_text)
-                .font_size(m.font_size)
-                .color(theme::color(text_color))
-                .max_lines(1),
-        );
-
-    if has_text && !is_selected {
-        text_box = text_box.child(
-            rect()
-                .width(Size::px(ctdesign::HAIRLINE))
-                .height(Size::px(m.font_size))
-                .margin(Gaps::new(0.0, 1.0, 0.0, 0.0))
-                .background(theme::color(m.fg))
-                .into_element(),
-        );
-    }
+        .overflow(Overflow::Clip);
+    let text_box = if !has_text {
+        text_box.child(caret).child(text_label)
+    } else if is_selected {
+        text_box.child(text_label)
+    } else {
+        text_box.child(text_label).child(caret)
+    };
 
     let mut content = rect()
         .width(Size::fill())
         .height(Size::px(m.search_height))
-        .padding(Gaps::new(0.0, clear_margin, 0.0, row_padding))
+        .padding(Gaps::new(0.0, padding_x, 0.0, padding_x))
         .background(theme::color(m.search_bg))
-        .corner_radius(m.search_radius)
-        .border(
-            Border::new()
-                .width(m.search_ring_width)
-                .alignment(BorderAlignment::Inner)
-                .fill(theme::color(m.search_ring)),
-        )
+        .corner_radius(m.search_height / 2.0)
         .direction(Direction::Horizontal)
         .main_align(Alignment::SpaceBetween)
         .cross_align(Alignment::Center)
@@ -459,7 +449,12 @@ fn search_field(ctx: &RowCtx, placeholder: &str) -> Element {
     }
 
     content
-        .margin(Gaps::new(m.search_margin_y, 0.0, m.search_margin_y, 0.0))
+        .margin(Gaps::new(
+            m.search_margin_y,
+            m.search_margin_x,
+            m.search_margin_y,
+            m.search_margin_x,
+        ))
         .into_element()
 }
 

@@ -878,11 +878,9 @@ pub struct MenuPalette {
     pub header_weight: i32,
     pub header_height: f32,
     pub search_height: f32,
+    pub search_margin_x: f32,
     pub search_margin_y: f32,
-    pub search_ring_width: f32,
-    pub search_radius: f32,
     pub search_bg: Rgba,
-    pub search_ring: Rgba,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
