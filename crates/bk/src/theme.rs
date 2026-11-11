@@ -1,6 +1,5 @@
 use ctappearance::{
-    AppearanceConfig, ColorScheme, Resolved, WindowTintScope, load_appearance, load_dominant,
-    resolve,
+    AppearanceConfig, ColorScheme, Resolved, load_appearance, load_dominant, resolve,
 };
 use ctdesign::{
     BG_WINDOW_DARK, BG_WINDOW_DARK_TINT, BG_WINDOW_LIGHT, MenuPalette, Rgba, SHELL_DARK_OPAQUE,
@@ -28,15 +27,11 @@ pub enum SurfaceKind {
 pub fn surface_background(resolved: &Resolved, kind: SurfaceKind) -> Rgba {
     match kind {
         SurfaceKind::Toplevel => resolved.surfaces.window,
-        SurfaceKind::LayerShell => {
-            let mut bar = resolved.shell.bar;
-            if resolved.window_tint_scope == WindowTintScope::Desktop
-                && let Some((tint, factor)) = resolved.window_tint
-            {
-                bar = bar.mix(tint, factor);
-            }
-            bar
-        }
+        SurfaceKind::LayerShell => resolved
+            .bar_tint
+            .map_or(resolved.shell.bar, |(tint, factor)| {
+                resolved.shell.bar.mix(tint, factor)
+            }),
     }
 }
 
@@ -193,8 +188,8 @@ mod tests {
     use ctappearance::{AppearanceConfig, ColorScheme, resolve};
 
     #[test]
-    fn surface_backgrounds_follow_the_window_colour_mode_and_scope() {
-        use ctappearance::{WindowColorMode, WindowTintScope};
+    fn surface_backgrounds_follow_the_window_colour_mode_and_the_bars_part() {
+        use ctappearance::{TintParts, WindowColorMode};
         use ctdesign::{BG_WINDOW_LIGHT, SHELL_LIGHT_OPAQUE, WINDOW_TINT_ACCENT};
 
         let accent = Rgba {
@@ -209,48 +204,51 @@ mod tests {
             b: 0.1,
             a: 1.0,
         };
-        let config = |window_color, window_tint_scope| AppearanceConfig {
+        let config = |window_color, bars| AppearanceConfig {
             color_scheme: ColorScheme::Light,
             accent_color: Some([accent.r, accent.g, accent.b]),
             reduce_transparency: true,
             window_color,
-            window_tint_scope,
+            tint_parts: TintParts {
+                bars,
+                ..TintParts::default()
+            },
             ..Default::default()
         };
 
-        let cases: [(&str, WindowColorMode, WindowTintScope, Rgba, Rgba); 4] = [
+        let cases: [(&str, WindowColorMode, bool, Rgba, Rgba); 4] = [
             (
                 "neutral/windows",
                 WindowColorMode::Neutral,
-                WindowTintScope::Windows,
+                false,
                 BG_WINDOW_LIGHT,
                 SHELL_LIGHT_OPAQUE.bar,
             ),
             (
-                "neutral/desktop",
+                "neutral/bars",
                 WindowColorMode::Neutral,
-                WindowTintScope::Desktop,
+                true,
                 BG_WINDOW_LIGHT,
                 SHELL_LIGHT_OPAQUE.bar,
             ),
             (
                 "accent/windows",
                 WindowColorMode::Accent,
-                WindowTintScope::Windows,
+                false,
                 BG_WINDOW_LIGHT.mix(accent, WINDOW_TINT_ACCENT[0]),
                 SHELL_LIGHT_OPAQUE.bar,
             ),
             (
-                "accent/desktop",
+                "accent/bars",
                 WindowColorMode::Accent,
-                WindowTintScope::Desktop,
+                true,
                 BG_WINDOW_LIGHT.mix(accent, WINDOW_TINT_ACCENT[0]),
                 SHELL_LIGHT_OPAQUE.bar.mix(accent, WINDOW_TINT_ACCENT[0]),
             ),
         ];
 
-        for (name, window_color, window_tint_scope, toplevel, layer) in cases {
-            let resolved = resolve(&config(window_color, window_tint_scope), Some(dominant));
+        for (name, window_color, bars, toplevel, layer) in cases {
+            let resolved = resolve(&config(window_color, bars), Some(dominant));
             assert_eq!(
                 surface_background(&resolved, SurfaceKind::Toplevel),
                 toplevel,
@@ -319,41 +317,40 @@ mod tests {
 
     #[test]
     fn a_layer_shell_menu_stays_neutral_when_only_windows_are_tinted_and_never_exceeds_white() {
-        use ctappearance::{WindowColorMode, WindowTintScope};
+        use ctappearance::{TintParts, WindowColorMode};
 
-        let config = |accent: Rgba, scope| AppearanceConfig {
+        let config = |accent: Rgba, bars| AppearanceConfig {
             color_scheme: ColorScheme::Light,
             accent_color: Some([accent.r, accent.g, accent.b]),
             reduce_transparency: true,
             window_color: WindowColorMode::Accent,
-            window_tint_scope: scope,
+            tint_parts: TintParts {
+                bars,
+                ..TintParts::default()
+            },
             ..Default::default()
         };
         let red = Rgba::rgb8(230, 26, 26);
-        let windows = resolve(&config(red, WindowTintScope::Windows), None);
+        let windows = resolve(&config(red, false), None);
         assert_eq!(
             menu_palette(&windows, SurfaceKind::LayerShell).bg,
             windows.menu.bg
         );
 
-        let pale = resolve(
-            &config(Rgba::rgb8(255, 255, 255), WindowTintScope::Desktop),
-            None,
-        );
+        let pale = resolve(&config(Rgba::rgb8(255, 255, 255), true), None);
         let pale_menu = menu_palette(&pale, SurfaceKind::LayerShell).bg;
         assert!(pale_menu.r <= 1.0 && pale_menu.g <= 1.0 && pale_menu.b <= 1.0);
     }
 
     #[test]
     fn a_toplevel_menu_is_tinted_only_by_the_menus_part() {
-        use ctappearance::{TintParts, WindowColorMode, WindowTintScope};
+        use ctappearance::{TintParts, WindowColorMode};
 
         let config = AppearanceConfig {
             color_scheme: ColorScheme::Light,
             accent_color: Some([0.9, 0.1, 0.1]),
             reduce_transparency: true,
             window_color: WindowColorMode::Accent,
-            window_tint_scope: WindowTintScope::Windows,
             ..Default::default()
         };
         for menus in [false, true] {
@@ -364,6 +361,7 @@ mod tests {
                 groups: !menus,
                 controls: !menus,
                 menus,
+                bars: false,
             };
             let tinted = menu_palette(&resolved, SurfaceKind::Toplevel).bg != resolved.menu.bg;
             assert_eq!(tinted, menus);
@@ -380,7 +378,10 @@ mod tests {
             accent_color: accent,
             reduce_transparency: true,
             window_color: mode,
-            window_tint_scope: WindowTintScope::Desktop,
+            tint_parts: ctappearance::TintParts {
+                bars: true,
+                ..Default::default()
+            },
             ..Default::default()
         };
 

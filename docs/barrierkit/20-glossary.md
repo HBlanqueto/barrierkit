@@ -337,9 +337,8 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `ctappearance::AppearanceConfig` | struct | — | — | The user's `appearance.domain`: mode, accent, tints, contrast, motion | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::ColorScheme` | enum | ≈ `ColorScheme` | ≈ `NSAppearance` | `Auto`, `Light`, `Dark`, `DarkTint`; SwiftUI has only light and dark | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::WindowColorMode` | enum | — | — | Window tint source: `Neutral` or `Accent` | [4](04-appearance-and-tokens.md#the-appearance-file) |
-| `ctappearance::WindowTintScope` | enum | — | — | Tint reaches `Windows` only or the `Desktop` bars too | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::TintStrength` | enum | — | — | `Subtle`, `Normal`, `Strong`, `Intense`; `factor()` from `TINT_STRENGTH` | [4](04-appearance-and-tokens.md#the-appearance-file) |
-| `ctappearance::TintParts` | struct | — | — | Which parts take the tint: sidebars, window, groups, controls, menus | [4](04-appearance-and-tokens.md#the-appearance-file) |
+| `ctappearance::TintParts` | struct | — | — | Which parts take the tint: sidebars, window, groups, controls, menus, and the bars (menu bar and Dock) | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::SidebarStyle` | enum | — | — | `Island` or `Flat` sidebar | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::TrafficLightStyle` | enum | — | — | `Auto`, `Standard`, `Accent` traffic-light colors | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::TrafficLightShape` | struct | — | — | The lights' corner radius from 0 to `ROUND` (2026-11-09: was the enum `Square`/`Round`); `new(radius)`, `radius()`, `corner_radius(diameter)` | [4](04-appearance-and-tokens.md#the-appearance-file) |
@@ -407,7 +406,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 |---|---|---|---|---|---|
 | `ctappearance::resolve` | fn | — | — | Turns the config and wallpaper color into concrete colors | [4](04-appearance-and-tokens.md#resolution) |
 | `ctappearance::Resolved` | struct | ≈ `EnvironmentValues` | — | Resolved appearance: accent, focus ring, link, tints, surfaces, palettes | [4](04-appearance-and-tokens.md#resolution) |
-| `ctappearance::Resolved::behind_window` | method | — | ≈ desktop tinting of `NSVisualEffectView.Material.sidebar` | Mixes the wallpaper behind a window into its sidebar | [4](04-appearance-and-tokens.md#wallpaper-behind-a-window) |
+| `ctappearance::Resolved::behind_window` | method | — | ≈ desktop tinting of `NSVisualEffectView.Material.sidebar` | Tints a window's `tint_parts` with the wallpaper behind it | [4](04-appearance-and-tokens.md#wallpaper-behind-a-window) |
 | `ctappearance::Surfaces` | struct | — | — | Tinted window, sunken, surface, raised, control, hover and line colors | [4](04-appearance-and-tokens.md#resolution) |
 | `ctappearance::SidebarSurface` | struct | — | — | Sidebar style, background, rim, inner line and palette | [4](04-appearance-and-tokens.md#resolution) |
 | `ctappearance::ToolgroupSurface` | struct | — | — | Toolbar group background and palette | [4](04-appearance-and-tokens.md#resolution) |

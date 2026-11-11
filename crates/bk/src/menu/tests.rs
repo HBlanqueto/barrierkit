@@ -32,7 +32,7 @@ fn preferred_size_is_positive() {
 
 #[test]
 fn popover_metrics_keep_the_live_menu_colours() {
-    use ctappearance::{AppearanceConfig, ColorScheme, WindowColorMode, WindowTintScope, resolve};
+    use ctappearance::{AppearanceConfig, ColorScheme, TintParts, WindowColorMode, resolve};
 
     let accent = Rgba {
         r: 0.9,
@@ -54,7 +54,10 @@ fn popover_metrics_keep_the_live_menu_colours() {
             accent_color: Some([accent.r, accent.g, accent.b]),
             reduce_transparency: true,
             window_color: WindowColorMode::Accent,
-            window_tint_scope: WindowTintScope::Desktop,
+            tint_parts: TintParts {
+                bars: true,
+                ..TintParts::default()
+            },
             ..Default::default()
         },
         None,

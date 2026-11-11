@@ -50,14 +50,6 @@ pub enum WindowColorMode {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub enum WindowTintScope {
-    #[default]
-    Windows,
-    Desktop,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum TintStrength {
     Subtle,
@@ -80,6 +72,7 @@ pub struct TintParts {
     pub groups: bool,
     pub controls: bool,
     pub menus: bool,
+    pub bars: bool,
 }
 
 impl Default for TintParts {
@@ -90,6 +83,7 @@ impl Default for TintParts {
             groups: true,
             controls: true,
             menus: true,
+            bars: false,
         }
     }
 }
@@ -119,6 +113,7 @@ where
         groups: false,
         controls: false,
         menus: false,
+        bars: false,
     };
     for name in list {
         match name.as_str() {
@@ -127,6 +122,7 @@ where
             "groups" => parts.groups = true,
             "controls" => parts.controls = true,
             "menus" => parts.menus = true,
+            "bars" => parts.bars = true,
             _ => tracing::warn!(name, "unknown tint part ignored"),
         }
     }
@@ -272,7 +268,6 @@ pub struct AppearanceConfig {
     pub color_scheme: ColorScheme,
     #[serde(skip_serializing)]
     pub accent_color: Option<[f32; 3]>,
-    pub wallpaper_accent: bool,
     pub contrast: bool,
     pub reduced_motion: bool,
     #[serde(deserialize_with = "lenient")]
@@ -282,8 +277,6 @@ pub struct AppearanceConfig {
     pub reduce_transparency: bool,
     #[serde(deserialize_with = "lenient")]
     pub window_color: WindowColorMode,
-    #[serde(deserialize_with = "lenient")]
-    pub window_tint_scope: WindowTintScope,
     #[serde(deserialize_with = "lenient")]
     pub traffic_lights: TrafficLightStyle,
     #[serde(deserialize_with = "lenient")]
@@ -325,14 +318,12 @@ impl Default for AppearanceConfig {
         Self {
             color_scheme: ColorScheme::default(),
             accent_color: None,
-            wallpaper_accent: false,
             contrast: false,
             reduced_motion: false,
             scroll_bars: ScrollBars::default(),
             scroll_bar_click: ScrollBarClick::default(),
             reduce_transparency: false,
             window_color: WindowColorMode::default(),
-            window_tint_scope: WindowTintScope::default(),
             traffic_lights: TrafficLightStyle::default(),
             traffic_light_shape: TrafficLightShape::default(),
             sidebar_style: SidebarStyle::default(),
@@ -425,7 +416,11 @@ fn read_appearance_from(path: &Path) -> Result<Option<AppearanceConfig>, toml::d
     }
 }
 
-const RETIRED_KEYS: [&str; 1] = ["tint_strength_accent"];
+const RETIRED_KEYS: [&str; 3] = [
+    "tint_strength_accent",
+    "wallpaper_accent",
+    "window_tint_scope",
+];
 
 pub fn write_appearance(path: &Path, config: &AppearanceConfig) -> std::io::Result<()> {
     let parsed = match std::fs::read_to_string(path) {
@@ -499,6 +494,7 @@ fn serialize_tint_parts<S: Serializer>(
         ("groups", parts.groups),
         ("controls", parts.controls),
         ("menus", parts.menus),
+        ("bars", parts.bars),
     ];
     serializer.collect_seq(
         named
@@ -650,14 +646,12 @@ traffic_lights = "auto"
         let config = AppearanceConfig {
             color_scheme: ColorScheme::Dark,
             accent_color: Some([0.184, 0.435, 0.894]),
-            wallpaper_accent: true,
             contrast: false,
             reduced_motion: false,
             scroll_bars: ScrollBars::WhenScrolling,
             scroll_bar_click: ScrollBarClick::ClickedSpot,
             reduce_transparency: true,
             window_color: WindowColorMode::Accent,
-            window_tint_scope: WindowTintScope::Desktop,
             traffic_lights: TrafficLightStyle::Accent,
             traffic_light_shape: TrafficLightShape::new(2),
             sidebar_style: SidebarStyle::Flat,
@@ -668,6 +662,7 @@ traffic_lights = "auto"
                 groups: true,
                 controls: false,
                 menus: true,
+                bars: false,
             },
             wallpaper_tinting: false,
             wallpaper_tinting_in_light: true,
@@ -820,6 +815,7 @@ tint_parts = ["window", "halo"]
                 groups: false,
                 controls: false,
                 menus: false,
+                bars: false,
             }
         );
     }
@@ -903,6 +899,7 @@ tint_parts = ["window", "halo"]
                 groups: true,
                 controls: false,
                 menus: true,
+                bars: false,
             },
             ..AppearanceConfig::default()
         };

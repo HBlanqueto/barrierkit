@@ -186,6 +186,7 @@ impl Component for Backdrop {
         }
 
         let accent = match (self.accent, look.tint, look.vivid) {
+            _ if !resolved.automatic_accent => resolved.accent,
             (Accent::Own(own), _, _) => own,
             (Accent::FromBackdrop, Some(backdrop), Some(vivid)) => backdrop.accent(vivid),
             _ => resolved.accent,

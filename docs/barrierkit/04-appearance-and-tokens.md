@@ -227,7 +227,7 @@ An app picks a variant, or changes the style of a control that takes one
 |---|---|---|
 | A control in another color | `.tint(Tint::Color(ACCENT_SWATCHES[4].1))` on `Switch`, `Checkbox`, `Slider`, `LevelSlider`, `RadioGroup`, `ProgressView` | [5](05-controls.md) |
 | A control filled with the backdrop gradient | `.tint(Tint::Backdrop)` inside a `Backdrop` | [15](15-backdrops-and-media.md) |
-| Another accent for a whole area | `Backdrop::new(..).accent(Accent::Own(color))` or `Accent::FromBackdrop` | [15](15-backdrops-and-media.md) |
+| Another accent for a whole area | `Backdrop::new(..).accent(Accent::Own(color))` or `Accent::FromBackdrop`; it holds only while the user's accent is automatic | [15](15-backdrops-and-media.md) |
 | Let the user pick a color | `ColorWell::new("Color", &ACCENT_SWATCHES)` | [5](05-controls.md) |
 | Light or dark in one area | `theme::use_appearance(..)` | [Theme functions](#theme-functions) |
 | Any color, shape, size or motion of a control that takes a style (sliders, buttons, menu buttons, switch, checkbox, choices, stepper, toggle group, segmented control, tool group, text fields) | `.style(\|s\| ..)`, `.control_style(\|s: SliderStyle\| ..)` or `Theme` | [Styles and themes](../../agents/styles.md#which-controls-take-a-style) |
@@ -260,17 +260,15 @@ tint_parts = ["sidebars", "window", "groups", "controls", "menus"]
 | Key | Type (`AppearanceConfig` field) | Values | Default |
 |---|---|---|---|
 | `color_scheme` | `ColorScheme` | `auto`, `light`, `dark`, `dark_tint` | `auto` |
-| `accent_color` | `Option<[f32; 3]>` | RGB from 0 to 1 | the theme's accent |
-| `wallpaper_accent` | `bool` | the accent is the wallpaper's dominant color; `accent_color` stays as the fallback | `false` |
+| `accent_color` | `Option<[f32; 3]>` | RGB from 0 to 1; absent means automatic: the theme's accent, and apps keep their own | absent |
 | `contrast` | `bool` | | `false` |
 | `reduced_motion` | `bool` | | `false` |
 | `reduce_transparency` | `bool` | | `false` |
 | `scroll_bars` | `ScrollBars` | `automatic`, `when_scrolling`, `always` | `automatic` |
 | `scroll_bar_click` | `ScrollBarClick` | `next_page`, `clicked_spot` | `next_page` |
 | `window_color` | `WindowColorMode` | `neutral`, `accent` (an old `wallpaper` reads as `neutral`) | `neutral` |
-| `window_tint_scope` | `WindowTintScope` | `windows`, `desktop` | `windows` |
 | `tint_strength` | `TintStrength` | `subtle`, `normal`, `strong`, `intense` | `normal` |
-| `tint_parts` | `TintParts` | list of `sidebars`, `window`, `groups`, `controls`, `menus` | all five |
+| `tint_parts` | `TintParts` | list of `sidebars`, `window`, `groups`, `controls`, `menus`, `bars` (the menu bar and the Dock) | all but `bars` |
 | `sidebar_style` | `SidebarStyle` | `island`, `flat` | `island` |
 | `traffic_lights` | `TrafficLightStyle` | `auto`, `standard`, `accent` (an old `wallpaper` reads as `accent`) | `auto` |
 | `traffic_light_shape` | `TrafficLightShape` | corner radius from 0 to 7 on the 14 light; the old `square` reads as 4 and `round` as 7 | `4` |
@@ -406,11 +404,13 @@ a style.
 |---|---|
 | `scheme` | The resolved `ColorScheme` (never `Auto`). |
 | `accent`, `on_accent` | The accent and its ink. |
+| `automatic_accent` | True without `accent_color`: an `Accent::Own` or `Accent::FromBackdrop` keeps its color. |
 | `focus_ring` | The accent moved until it reaches 3:1 on the window. |
 | `link` | The accent moved until it reaches 4.5:1 on the window and on content. |
-| `window_tint` | Accent tint color and amount, or `None`. |
-| `wallpaper_tinting` | Amount of the wallpaper behind a window, or `None` when it is off. `Resolved::behind_window(color)` mixes that color into `sidebar.bg`. |
-| `window_tint_scope`, `tint_parts` | Copies of the config. |
+| `window_tint` | Tint color and amount, or `None`: the accent, or the wallpaper after `behind_window`. |
+| `bar_tint` | Tint of the menu bar and the Dock with the `bars` part: the accent tint, or the dominant color by `wallpaper_tinting`. |
+| `wallpaper_tinting` | Amount of the wallpaper behind a window, or `None` when it is off. `Resolved::behind_window(color)` tints the `tint_parts` with that color, as an accent tint does. |
+| `tint_parts` | Copy of the config. |
 | `lights`, `traffic_style`, `traffic_shape` | The traffic-light colors, style and shape. |
 | `contrast`, `reduced_motion`, `scroll_bars`, `scroll_bar_click` | Copies of the config. |
 | `reduce_transparency` | `AppearanceConfig::transparency_reduced()`: true with `reduce_transparency` or `contrast`. |
@@ -434,18 +434,21 @@ The rules `resolve` applies:
 3. `on_accent` is always the light ink, as in macOS. An accent where it does
    not reach 4.5:1 (`ON_ACCENT_MIN_CONTRAST`) is darkened just enough
    (WCAG 2.2 §1.4.3).
-4. Wallpaper tinting is on with `wallpaper_tinting`, a neutral
-   `window_color` and any accent but graphite (malaysia ADR 0065). It
+4. Wallpaper tinting is on with `wallpaper_tinting` and a neutral
+   `window_color`, with any accent (malaysia ADR 0065). It
    applies in dark schemes, and in light ones with
    `wallpaper_tinting_in_light`. The amount is `WALLPAPER_TINTING` (light,
-   dark) times `tint_strength`.
-5. With `wallpaper_accent` and a dominant color, the accent is that color.
+   dark) times `tint_strength`, and it reaches the same `tint_parts` and
+   `LAYER_FACTOR_*` as an accent tint.
+5. Without `accent_color` the accent is the theme's, and `automatic_accent`
+   lets an area keep its own.
 6. Menu hover, sidebar selection and the shell's active tile take the accent.
 
 ### Wallpaper behind a window
 
-macOS 26 tints each window's sidebar with the average color of the wallpaper
-behind it; the window background stays gray (malaysia ADR 0065). `ctappearance::tinting::WallpaperGrid` does the same
+Each window takes the average color of the wallpaper behind it into the
+parts of `tint_parts`, with the strength of `tint_strength` (malaysia ADR
+0065). `ctappearance::tinting::WallpaperGrid` does the same
 from a grid of average colors:
 
 1. `malaysia-wallpaper` builds it with `WallpaperGrid::from_rgba8(rgba8,
