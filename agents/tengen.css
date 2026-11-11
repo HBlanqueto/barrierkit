@@ -686,8 +686,10 @@
   --bk-shell-menubar-height-wide: 38;
   --bk-shell-menubar-over-light-ink: #000000db;
   --bk-shell-menubar-over-light-glass: #ffffff29;
+  --bk-shell-menubar-over-light-selection: #0d12191f;
   --bk-shell-menubar-over-dark-ink: #ffffffeb;
   --bk-shell-menubar-over-dark-glass: #00000029;
+  --bk-shell-menubar-over-dark-selection: #ffffff2e;
   --bk-shell-menubar-font-size: 13;
   --bk-shell-menubar-font-size-large: 15;
   --bk-shell-menubar-app-name-weight: 700;
@@ -736,9 +738,8 @@
   --bk-shell-lock-spacing: 12;
   --bk-shell-lock-avatar-size: 52;
   --bk-shell-lock-keyboard-width: 128;
-  --bk-shell-lock-field-height: 30;
-  --bk-shell-lock-field-min-width: 160;
-  --bk-shell-lock-field-max-width: 200;
+  --bk-shell-lock-field-height: 22;
+  --bk-shell-lock-field-width: 120;
   --bk-shell-lock-mask-font-size: 18;
   --bk-shell-lock-ink: #ffffff;
   --bk-shell-lock-field-fill: #ffffff4d;
