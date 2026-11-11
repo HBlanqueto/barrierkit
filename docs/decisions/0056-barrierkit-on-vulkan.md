@@ -15,5 +15,5 @@ The kit's runner (ADR 0034) drew Skia on EGL/GLES. Freya 0.4.3 already builds Sk
 
 ## Consequences
 
-- The kit's clients need `libvulkan` and an ICD. The dev shell points `VK_DRIVER_FILES` to the flake's RADV, like `malaysia-wallpaper` (ADR 0049).
+- The kit's clients need `libvulkan` and an ICD. The dev shell adds the flake's Mesa ICDs with `VK_ADD_DRIVER_FILES`, so the system's drivers stay available.
 - Since Freya 0.5, `freya-engine` takes Skia's backends as features. `bk` enables only `vulkan`, so Skia no longer builds or links GL, EGL or X11.

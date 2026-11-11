@@ -9,7 +9,7 @@
   outputs =
     { self, nixpkgs, crane }:
     let
-      systems = [ "x86_64-linux" ];
+      systems = [ "x86_64-linux" "aarch64-linux" ];
       perSystem = nixpkgs.lib.genAttrs systems (system: let
         pkgs = import nixpkgs { inherit system; };
         lib = pkgs.lib;
@@ -158,7 +158,7 @@
           shellHook = ''
             export LD_LIBRARY_PATH="${libraryPath}''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
             mesa_icds=$(printf '%s:' ${pkgs.mesa}/share/vulkan/icd.d/*.json)
-            export VK_DRIVER_FILES="''${mesa_icds%:}''${VK_DRIVER_FILES:+:$VK_DRIVER_FILES}"
+            export VK_ADD_DRIVER_FILES="''${mesa_icds%:}''${VK_ADD_DRIVER_FILES:+:$VK_ADD_DRIVER_FILES}"
             unset mesa_icds
             export GST_PLUGIN_SYSTEM_PATH_1_0="${lib.makeSearchPathOutput "lib" "lib/gstreamer-1.0" videoDeps}"
             # souphttpsrc needs a GIO TLS backend to open https:// sources.
