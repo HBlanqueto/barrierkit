@@ -57,7 +57,7 @@ Do not edit `src/lib.rs` to change a value: it holds the types and the API.
 | `emit_titlebar` | `TITLEBAR`, `WINDOW_MIN_SIZE`, `WINDOW_DEFAULT_SIZE` |
 | `emit_tints` | `WINDOW_TINT_ACCENT`, `WALLPAPER_TINTING`, `TINT_STRENGTH` |
 | `emit_palettes` | `LIGHT`, `DARK`, `DARK_TINT` (`Palette`) and `MENU_<THEME>_OPAQUE` |
-| `emit_specials` | `SANS_FAMILIES`, `DOCK_BAR_HEIGHT`, `ACCENT_SWATCHES`, `CHART_SERIES`, `LEVEL_INDICATOR_COLORS` |
+| `emit_specials` | `SANS_FAMILIES`, `ACCENT_SWATCHES`, `CHART_SERIES`, `LEVEL_INDICATOR_COLORS` |
 
 `CHART_SERIES` and `LEVEL_INDICATOR_COLORS` list swatch names of
 `components.settings.accent-swatches`; a name that is not a swatch stops the

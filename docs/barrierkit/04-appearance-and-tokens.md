@@ -511,6 +511,36 @@ turn them into a `TitlebarAction`: `Focus`, `Maximize`, `Minimize` or `None`.
 A fixed-width window maximizes instead of entering focus mode; a double click
 never enters focus mode. The titlebar uses them ([9](09-titlebars.md)).
 
+`window::write_double_click_titlebar(path, action)` rewrites only
+`double_click_titlebar` in that file and keeps the compositor's other keys.
+System Settings uses it.
+
+### Dock
+
+`dock::DockConfig` is `dock.domain`. Its keys are those of
+`defaults write com.apple.dock`:
+
+| Key | Type | Default |
+|---|---|---|
+| `autohide` | bool | `false` |
+| `orientation` | `DockOrientation`: `left`, `bottom`, `right` | `bottom` |
+| `magnification` | bool | `false` |
+| `tilesize` | integer | `DOCK_TILESIZE` |
+| `largesize` | integer | `DOCK_LARGESIZE` |
+| `mineffect` | `MinimizeEffect`: `genie`, `scale`, `suck` | `genie` |
+| `show-process-indicators` | bool | `true` |
+| `static-only` | bool | `false` |
+| `minimize-to-application` | bool | `false` |
+| `show-recents` | bool | `true` |
+| `launchanim` | bool | `true` |
+| `autohide-delay` | seconds | `0.0` |
+| `autohide-time-modifier` | factor | `1.0` |
+
+`DockConfig::tilesize()` clamps `tilesize` to `DOCK_TILESIZE_MIN` and
+`DOCK_TILESIZE_MAX`. `largesize()` is the magnified size: never smaller than
+`tilesize()`, and equal to it without magnification. An unknown orientation or
+effect falls back to the default.
+
 ### Traffic-light geometry
 
 `ctappearance::traffic` holds the geometry and look of the close, minimize and
@@ -820,7 +850,12 @@ focus-mode bar.
 |---|---|
 | `MENUBAR_HEIGHT`, `MENUBAR_HEIGHT_WIDE`, `MENUBAR_OVER_LIGHT_INK`, `MENUBAR_OVER_LIGHT_GLASS`, `MENUBAR_OVER_LIGHT_SELECTION`, `MENUBAR_OVER_DARK_INK`, `MENUBAR_OVER_DARK_GLASS`, `MENUBAR_OVER_DARK_SELECTION`, `MENUBAR_FONT_SIZE`, `MENUBAR_APP_NAME_WEIGHT`, `MENUBAR_MARGIN`, `MENUBAR_MARGIN_RIGHT`, `MENUBAR_FADED_ALPHA`, `MENUBAR_TITLE_PADDING_X`, `MENUBAR_TEXT_LIFT`, `MENUBAR_TITLE_MAX_WIDTH`, `MENUBAR_SYSTEM_MENU_MIN_WIDTH`, `MENUBAR_TITLE_BLEED` | The menu bar |
 | `FOCUS_BAR_BACKGROUND`, `FOCUS_BAR_TEXT` | The menu bar in focus mode |
-| `DOCK_TILESIZE`, `DOCK_GAP`, `DOCK_PADDING`, `DOCK_FONT_SIZE`, `DOCK_PROGRESS_HEIGHT`, `DOCK_BAR_HEIGHT` | The Dock (`DOCK_BAR_HEIGHT` = tile + 2 × padding) |
+| `DOCK_TILESIZE`, `DOCK_TILESIZE_MIN`, `DOCK_TILESIZE_MAX`, `DOCK_LARGESIZE` | Dock icon sizes: default, 16 and 128 px, and the default magnified size |
+| `DOCK_EDGE_MARGIN`, `DOCK_SIDE_MARGIN`, `DOCK_PADDING`, `DOCK_PADDING_SCALE`, `DOCK_RADIUS` | Dock bar: gap to the screen edge, side margin as a share of the screen, padding = `DOCK_PADDING` + `DOCK_PADDING_SCALE` × size, corner radius as a share of its thickness |
+| `DOCK_SEPARATOR`, `DOCK_SEPARATOR_LENGTH`, `DOCK_MAGNIFY_RADIUS`, `DOCK_MAGNIFY_MS` | Separator slot and line as shares of the size; magnification reach in icons and its fade |
+| `DOCK_DOT`, `DOCK_DOT_MIN`, `DOCK_DOT_MAX`, `DOCK_PROGRESS_HEIGHT`, `DOCK_WINDOW_FRAME`, `DOCK_WINDOW_ICON` | Open-app dot, progress bar, and the frame and icon of a minimized window |
+| `DOCK_BOUNCE_MS`, `DOCK_BOUNCE_HEIGHT`, `DOCK_LAUNCH_TIMEOUT_MS`, `DOCK_HIDE_MS`, `DOCK_REVEAL_STRIP`, `DOCK_RECENTS` | Launch bounce, automatic hiding, and the number of recent apps |
+| `DOCK_LABEL_GAP`, `DOCK_LABEL_FONT_SIZE`, `DOCK_LABEL_PADDING_X`, `DOCK_LABEL_PADDING_Y`, `DOCK_LABEL_RADIUS` | The name label over the icon under the pointer |
 | `NOTIFICATION_WIDTH`, `NOTIFICATION_RADIUS`, `NOTIFICATION_PADDING`, `NOTIFICATION_GAP`, `NOTIFICATION_MARGIN`, `NOTIFICATION_ICON_SIZE`, `NOTIFICATION_TEXT_GAP`, `NOTIFICATION_CLOSE_SIZE`, `NOTIFICATION_STACK_PEEK`, `NOTIFICATION_STACK_INSET`, `NOTIFICATION_BODY_LINES`, `NOTIFICATION_MAX_BANNERS`, `NOTIFICATION_BANNER_MS`, `NOTIFICATION_SLIDE_IN_MS`, `NOTIFICATION_SLIDE_OUT_MS`, `NOTIFICATION_SLIDE_BOUNCE`, `NOTIFICATION_EDGE`, `NOTIFICATION_SWIPE`, `NOTIFICATION_WIDGET_SIZE`, `NOTIFICATION_WIDGET_RADIUS`, `NOTIFICATION_REPLY_HEIGHT`, `LIVE_ACTIVITY_WIDTH`, `LIVE_ACTIVITY_HEIGHT`, `LIVE_ACTIVITY_RADIUS`, `LIVE_ACTIVITY_GAP`, `LIVE_ACTIVITY_ENDED_MS` | Notification banners, Notification Center, its widgets and the Live Activities of the menu bar (ADR 0068 in malaysia; the banner radius is provisional until measured on Tahoe, the Live Activity size is measured on Apple's WWDC25 video) |
 | `LAUNCHER_WIDTH`, `LAUNCHER_HEIGHT`, `LAUNCHER_PADDING`, `LAUNCHER_SEARCH_HEIGHT`, `LAUNCHER_RESULT_HEIGHT`, `LAUNCHER_RESULT_GAP`, `LAUNCHER_RESULT_RADIUS`, `LAUNCHER_ICON_SIZE`, `LAUNCHER_MAX_RESULTS`, `LAUNCHER_CORNER_RADIUS`, `LAUNCHER_FONT_SIZE`, `LAUNCHER_SUBTITLE_FONT_SIZE`, `LAUNCHER_SCALE_FROM`, `LAUNCHER_OPEN_MS`, `LAUNCHER_CLOSE_MS` | The launcher |
 | `LOCK_CLOCK_FONT_SIZE`, `LOCK_DATE_FONT_SIZE`, `LOCK_TOP_PERCENT`, `LOCK_BOTTOM_MARGIN`, `LOCK_SPACING`, `LOCK_AVATAR_SIZE`, `LOCK_KEYBOARD_WIDTH`, `LOCK_FIELD_HEIGHT`, `LOCK_FIELD_WIDTH`, `LOCK_MASK_FONT_SIZE`, `LOCK_INK`, `LOCK_FIELD_FILL`, `LOCK_AVATAR_FILL`, `LOCK_FIELD_ERROR`, `LOCK_FIELD_INK` | The lock screen over the wallpaper (Malaysia ADR 0074) |

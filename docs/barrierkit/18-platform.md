@@ -317,6 +317,12 @@ behind the calling surface inside `rects`, in surface coordinates, with
 `ext_background_effect_v1`. An empty list removes the blur. Send it again
 whenever the rectangles move; the kit commits the surface with it.
 
+`set_input_region(InputRegion { rects })` limits where the calling surface
+takes the pointer to `rects`, in surface coordinates (`wl_surface.set_input_region`).
+Outside them, clicks reach the windows below. Malaysia's Dock leaves room
+above its bar for magnified icons and takes the pointer only on the bar,
+or on a strip at the screen edge while it is hidden.
+
 ### `Toplevels`
 
 `Toplevels::get()` returns the list of windows of every app. It is a root

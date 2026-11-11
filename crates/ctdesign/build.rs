@@ -148,10 +148,35 @@ MENUBAR_TITLE_MAX_WIDTH f32 components.shell.menubar.title-max-width
 MENUBAR_SYSTEM_MENU_MIN_WIDTH f32 components.shell.menubar.system-menu-min-width
 MENUBAR_TITLE_BLEED f32 components.shell.menubar.title-open.bleed
 DOCK_TILESIZE i32 components.shell.dock.tilesize
-DOCK_GAP i32 components.shell.dock.gap
-DOCK_PADDING i32 components.shell.dock.padding
-DOCK_FONT_SIZE f32 components.shell.dock.font-size
+DOCK_TILESIZE_MIN i32 components.shell.dock.tilesize-min
+DOCK_TILESIZE_MAX i32 components.shell.dock.tilesize-max
+DOCK_LARGESIZE i32 components.shell.dock.largesize
+DOCK_EDGE_MARGIN f32 components.shell.dock.edge-margin
+DOCK_SIDE_MARGIN f32 components.shell.dock.side-margin
+DOCK_PADDING f32 components.shell.dock.padding
+DOCK_PADDING_SCALE f32 components.shell.dock.padding-scale
+DOCK_SEPARATOR f32 components.shell.dock.separator
+DOCK_SEPARATOR_LENGTH f32 components.shell.dock.separator-length
+DOCK_RADIUS f32 components.shell.dock.radius
+DOCK_MAGNIFY_RADIUS f32 components.shell.dock.magnify-radius
+DOCK_MAGNIFY_MS u64 components.shell.dock.magnify-ms
+DOCK_DOT f32 components.shell.dock.dot
+DOCK_DOT_MIN f32 components.shell.dock.dot-min
+DOCK_DOT_MAX f32 components.shell.dock.dot-max
 DOCK_PROGRESS_HEIGHT f32 components.shell.dock.progress-height
+DOCK_BOUNCE_MS u64 components.shell.dock.bounce-ms
+DOCK_BOUNCE_HEIGHT f32 components.shell.dock.bounce-height
+DOCK_LAUNCH_TIMEOUT_MS u64 components.shell.dock.launch-timeout-ms
+DOCK_HIDE_MS u64 components.shell.dock.hide-ms
+DOCK_REVEAL_STRIP i32 components.shell.dock.reveal-strip
+DOCK_RECENTS usize components.shell.dock.recents
+DOCK_WINDOW_FRAME f32 components.shell.dock.window-frame
+DOCK_WINDOW_ICON f32 components.shell.dock.window-icon
+DOCK_LABEL_GAP f32 components.shell.dock.label-gap
+DOCK_LABEL_FONT_SIZE f32 components.shell.dock.label-font-size
+DOCK_LABEL_PADDING_X f32 components.shell.dock.label-padding-x
+DOCK_LABEL_PADDING_Y f32 components.shell.dock.label-padding-y
+DOCK_LABEL_RADIUS f32 components.shell.dock.label-radius
 ABOUT_WIDTH u32 components.shell.about.width
 ABOUT_HEIGHT u32 components.shell.about.height
 ABOUT_DRAWING_TOP f32 components.shell.about.drawing-top
@@ -504,11 +529,6 @@ fn emit_specials(out: &mut String, tengen: &Tengen) {
         "pub const SANS_FAMILIES: [&str; {}] = [{}];\n\n",
         families.len(),
         families.join(", ")
-    ));
-    let dock = |key: &str| tengen.number(&format!("components.shell.dock.{key}")) as i64;
-    out.push_str(&format!(
-        "pub const DOCK_BAR_HEIGHT: i32 = {};\n\n",
-        dock("tilesize") + dock("padding") * 2
     ));
     let swatches: Vec<String> = tengen
         .get("components.settings.accent-swatches")

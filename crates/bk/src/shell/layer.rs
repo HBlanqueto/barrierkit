@@ -1,5 +1,6 @@
 use freya_core::integration::AppComponent;
 use sctk::{
+    compositor::Region,
     reexports::{
         client::{Connection, Proxy, QueueHandle, backend::ObjectId, delegate_dispatch},
         protocols::xdg::shell::client::xdg_popup::XdgPopup,
@@ -110,6 +111,15 @@ pub fn set_card_frames(frames: CardFrames) {
     crate::platform::KitSender::get().send(frames);
 }
 
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct InputRegion {
+    pub rects: Vec<(i32, i32, i32, i32)>,
+}
+
+pub fn set_input_region(region: InputRegion) {
+    crate::platform::KitSender::get().send(region);
+}
+
 fn keyboard_to_sctk(keyboard: KeyboardInteractivity) -> SctkKeyboardInteractivity {
     match keyboard {
         KeyboardInteractivity::None => SctkKeyboardInteractivity::None,
@@ -139,6 +149,23 @@ impl Runtime {
         layer_surface.set_exclusive_zone(geometry.exclusive_zone);
         layer_surface.set_keyboard_interactivity(keyboard_to_sctk(geometry.keyboard));
         layer_surface.wl_surface().commit();
+    }
+}
+
+impl Runtime {
+    pub(crate) fn apply_input_region(&mut self, surface_id: &ObjectId, region: InputRegion) {
+        let Some(index) = self.surface_index_by_id(surface_id) else {
+            return;
+        };
+        let Ok(wl_region) = Region::new(&self.compositor) else {
+            return;
+        };
+        for &(x, y, width, height) in &region.rects {
+            wl_region.add(x, y, width, height);
+        }
+        let surface = &self.surfaces[index].surface;
+        surface.set_input_region(Some(wl_region.wl_region()));
+        surface.commit();
     }
 }
 
