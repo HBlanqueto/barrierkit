@@ -688,6 +688,7 @@
   --bk-shell-menubar-title-padding-x: 10;
   --bk-shell-menubar-text-lift: 1;
   --bk-shell-menubar-title-max-width: 240;
+  --bk-shell-menubar-system-menu-min-width: 307;
   --bk-shell-menubar-bg: var(--bk-shell-bar);
   --bk-shell-menubar-text: var(--bk-ink-strong);
   --bk-shell-menubar-hover-bg: var(--bk-bg-hover);

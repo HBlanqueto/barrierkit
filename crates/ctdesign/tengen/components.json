@@ -803,6 +803,7 @@
         "title-padding-x": 10,
         "text-lift": 1,
         "title-max-width": 240,
+        "system-menu-min-width": 307,
         "bg": "{shell-bar}",
         "text": "{ink-strong}",
         "hover-bg": "{bg-hover}",

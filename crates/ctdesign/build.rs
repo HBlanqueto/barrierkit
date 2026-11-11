@@ -138,6 +138,7 @@ MENUBAR_FADED_ALPHA f32 components.shell.menubar.faded-alpha
 MENUBAR_TITLE_PADDING_X f32 components.shell.menubar.title-padding-x
 MENUBAR_TEXT_LIFT f32 components.shell.menubar.text-lift
 MENUBAR_TITLE_MAX_WIDTH f32 components.shell.menubar.title-max-width
+MENUBAR_SYSTEM_MENU_MIN_WIDTH f32 components.shell.menubar.system-menu-min-width
 MENUBAR_TITLE_BLEED f32 components.shell.menubar.title-open.bleed
 DOCK_TILESIZE i32 components.shell.dock.tilesize
 DOCK_GAP i32 components.shell.dock.gap
