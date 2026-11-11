@@ -19,6 +19,10 @@ pub fn data_home() -> Option<PathBuf> {
     absolute("XDG_DATA_HOME").or_else(|| home().map(|home| home.join(".local/share")))
 }
 
+pub fn cache_home() -> Option<PathBuf> {
+    absolute("XDG_CACHE_HOME").or_else(|| home().map(|home| home.join(".cache")))
+}
+
 pub fn data_dirs() -> Vec<PathBuf> {
     let dirs: Vec<PathBuf> = env::var_os("XDG_DATA_DIRS")
         .map(|value| {

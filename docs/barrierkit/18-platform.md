@@ -142,8 +142,8 @@ to use Vulkan is [ADR 0056](../decisions/0056-barrierkit-on-vulkan.md).
 | `zwp_primary_selection_device_manager_v1` | sctk | No | The primary selection (middle-click paste) | No primary selection |
 | `zwp_text_input_manager_v3` | 1 | No | Input methods: preedit and commit | Keys only |
 | `org_kde_kwin_appmenu_manager` | 1 | No | Announces a window's D-Bus menu for the global menu bar | No global menu |
-| `infinity_focus_manager_v1` | 1–2 | No | Focus mode: when the bar comes down; from version 2, `set_overlay` and the bar height | Focus mode notices are missing |
-| `infinity_window_style_v1` | 1–3 | No | `set_bar` with the `Titlebar`'s bar; `set_popover` (v2) for popups; `set_panel` (v3) for utility windows | The compositor guesses the window style |
+| `infinity_focus_manager_v1` | 1–4 | No | Focus mode: when the bar comes down; from version 2, `set_overlay` and the bar height; from 3, the wallpaper behind the window; from 4, the desktop it is on (`WindowControls::desktop`) | Focus mode notices, the wallpaper tint and the desktop are missing |
+| `infinity_window_style_v1` | 1–4 | No | `set_bar` with the `Titlebar`'s bar; `set_popover` (v2) for popups; `set_panel` (v3) for utility windows; `set_cards` (v4) for card layers. Version 5 adds `set_desktop`, used by `malaysia-wallpaper` | The compositor guesses the window style |
 
 `sctk` means the version range smithay-client-toolkit 0.20 binds. The
 `infinity_*` protocols are Malaysia's private protocols, in

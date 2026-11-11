@@ -245,6 +245,9 @@ SPACE_GAP_COLOR Rgba components.spaces.gap-color
 FOCUS_BAR_BACKGROUND Rgba components.spaces.focus-bar
 FOCUS_BAR_TEXT Rgba components.spaces.focus-bar-text
 DESKTOP_CLEAR Rgba components.desktop-clear
+WALLPAPER_FPS u32 components.wallpaper.fps
+WALLPAPER_THUMBNAIL u32 components.wallpaper.thumbnail
+WALLPAPER_FRAME u32 components.wallpaper.frame
 SPACE_SLIDE_EASE [f32;4] components.spaces.slide-ease
 DOMINANT_LIGHTNESS [f32;2] appearance.dominant.lightness
 MENU_SEARCH_ICON [f32;2] components.shell.menu.search.icon

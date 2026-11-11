@@ -12,5 +12,6 @@ nix.workspace = true
 serde.workspace = true
 tracing.workspace = true
 toml.workspace = true
+md-5.workspace = true
 toml_edit = { workspace = true, features = ["serde"] }
 ctdesign.workspace = true

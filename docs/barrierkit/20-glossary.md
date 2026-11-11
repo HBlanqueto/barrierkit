@@ -359,13 +359,33 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `ctappearance::load_dominant` | fn | — | — | Reads the wallpaper's dominant color | [4](04-appearance-and-tokens.md#reading-and-writing) |
 | `ctappearance::load_wallpaper_grid` | fn | — | — | Reads the wallpaper's grid of average colors | [4](04-appearance-and-tokens.md#reading-and-writing) |
 | `ctappearance::write_wallpaper_state` | fn | — | — | Writes or removes the wallpaper's dominant color and grid | [4](04-appearance-and-tokens.md#reading-and-writing) |
-| `ctappearance::WallpaperState` | struct | — | — | Contents of `wallpaper.state`: `dominant` and `grid` | [4](04-appearance-and-tokens.md#reading-and-writing) |
-| `ctappearance::wallpaper_selection_path` | fn | — | — | Path of `wallpaper-selection.state`, the wallpaper each desktop shows | [4](04-appearance-and-tokens.md#reading-and-writing) |
-| `ctappearance::read_wallpaper_selection` | fn | — | — | Reads the selection; the default without a file, `Err` on bad TOML | [4](04-appearance-and-tokens.md#reading-and-writing) |
-| `ctappearance::write_wallpaper_selection` | fn | — | — | Writes the selection atomically | [4](04-appearance-and-tokens.md#reading-and-writing) |
-| `ctappearance::WallpaperSelection` | struct | — | ≈ `NSWorkspace.desktopImageURL(for:)` and its options | `scale`, `desktops` and `crop` of `wallpaper-selection.state` | [4](04-appearance-and-tokens.md#reading-and-writing) |
-| `ctappearance::WallpaperScale` | enum | — | ≈ `NSImageScaling` | `Fill`, `Fit`, `Stretch`, `Center`, `Custom` | [4](04-appearance-and-tokens.md#reading-and-writing) |
-| `ctappearance::ALL_DESKTOPS` | constant | — | — | Key `"default"`: the wallpaper and crop of every desktop | [4](04-appearance-and-tokens.md#reading-and-writing) |
+| `ctappearance::WallpaperState` | struct | — | — | Contents of `wallpaper.state`: `dominant`, `grid`, `grids` per desktop, `outputs`, `shown` and `shuffled_at` | [4](04-appearance-and-tokens.md#reading-and-writing) |
+| `ctappearance::wallpaper_selection_path` | fn | — | — | Path of `wallpaper-selection.state`, the wallpaper each desktop shows | [4](04-appearance-and-tokens.md#the-wallpaper-files) |
+| `ctappearance::read_wallpaper_selection` | fn | — | — | Reads the selection; the default without a file, `Err` on bad TOML | [4](04-appearance-and-tokens.md#the-wallpaper-files) |
+| `ctappearance::write_wallpaper_selection` | fn | — | — | Writes the selection atomically | [4](04-appearance-and-tokens.md#the-wallpaper-files) |
+| `ctappearance::WallpaperSelection` | struct | — | ≈ `NSWorkspace.desktopImageURL(for:)` and its options | `wallpaper-selection.state`: sources, scales, crops and pinned images per desktop and output, and `shuffle` | [4](04-appearance-and-tokens.md#the-wallpaper-files) |
+| `ctappearance::WallpaperScale` | enum | — | ≈ `NSImageScaling` | `Fill`, `Fit`, `Stretch`, `Center`, `Custom` | [4](04-appearance-and-tokens.md#the-wallpaper-files) |
+| `ctappearance::ALL_DESKTOPS` | constant | — | — | Key `"default"`: the wallpaper and crop of every desktop | [4](04-appearance-and-tokens.md#the-wallpaper-files) |
+| `ctappearance::desktop_key` | fn | — | — | Key of a desktop in the wallpaper files: its number, or `ALL_DESKTOPS` | [4](04-appearance-and-tokens.md#the-wallpaper-files) |
+| `ctappearance::WallpaperSource` | enum | — | — | What a desktop shows: `BuiltIn`, `File`, `ShuffleColors`, `ShuffleCollection`; `parse` and `value` | [4](04-appearance-and-tokens.md#the-wallpaper-files) |
+| `ctappearance::WallpaperShuffle` | enum | — | ≈ «Change picture» | How often a shuffle changes: `Login`, `Hourly`, `Daily` | [4](04-appearance-and-tokens.md#the-wallpaper-files) |
+| `ctappearance::WallpaperKind` | enum | — | — | `Image`, `Video` or `Shader`, from the file extension | [4](04-appearance-and-tokens.md#the-wallpaper-files) |
+| `ctappearance::wallpapers_in` | fn | — | — | Wallpaper files of a folder, sorted | [4](04-appearance-and-tokens.md#the-wallpaper-files) |
+| `ctappearance::system_wallpapers_dir` | fn | — | — | The first `$XDG_DATA_DIRS/wallpapers` | [4](04-appearance-and-tokens.md#the-wallpaper-files) |
+| `ctappearance::custom_colors_dir` | fn | — | — | `data_dir()/wallpapers/colors`, the user's own color wallpapers | [4](04-appearance-and-tokens.md#the-wallpaper-files) |
+| `ctappearance::WallpaperCollection` | struct | — | ≈ a Photos album as wallpaper | `name`, `folders` and `images`; `wallpapers()` lists them once | [4](04-appearance-and-tokens.md#the-wallpaper-files) |
+| `ctappearance::WallpaperConfig` | struct | — | — | Contents of `wallpaper.domain`: `collections` | [4](04-appearance-and-tokens.md#the-wallpaper-files) |
+| `ctappearance::wallpaper_config_path` | fn | — | — | Path of `wallpaper.domain` | [4](04-appearance-and-tokens.md#the-wallpaper-files) |
+| `ctappearance::read_wallpaper_config` | fn | — | — | Reads the collections; the default without a file | [4](04-appearance-and-tokens.md#the-wallpaper-files) |
+| `ctappearance::write_wallpaper_config` | fn | — | — | Writes the collections atomically | [4](04-appearance-and-tokens.md#the-wallpaper-files) |
+| `ctappearance::file_uri`, `file_path` | fn | — | ≈ `g_filename_to_uri` | A path as a `file://` URI escaped like GLib, and back | [4](04-appearance-and-tokens.md#the-wallpaper-files) |
+| `ctappearance::thumbnail_path` | fn | — | — | The x-large thumbnail of a file in the freedesktop thumbnail cache | [4](04-appearance-and-tokens.md#the-wallpaper-files) |
+| `ctappearance::frame_path` | fn | — | — | A still of one image of a dynamic or animated wallpaper, in `~/.cache/malaysia/wallpaper-frames` | [4](04-appearance-and-tokens.md#the-wallpaper-files) |
+| `ctappearance::thumbnail_is_fresh` | fn | — | — | Whether a thumbnail's `Thumb::MTime` matches its file | [4](04-appearance-and-tokens.md#the-wallpaper-files) |
+| `ctappearance::modified_seconds` | fn | — | — | A file's modification time in seconds | [4](04-appearance-and-tokens.md#the-wallpaper-files) |
+| `ctappearance::WallpaperOutput` | struct | — | ≈ `NSScreen` | An output the wallpaper draws on: `name`, `width`, `height` | [4](04-appearance-and-tokens.md#reading-and-writing) |
+| `ctappearance::load_wallpaper_state` | fn | — | — | Reads `wallpaper.state`, or the default | [4](04-appearance-and-tokens.md#reading-and-writing) |
+| `ctappearance::xdg::cache_home` | fn | — | — | `$XDG_CACHE_HOME` or `~/.cache` | [4](04-appearance-and-tokens.md#reading-and-writing) |
 | `ctappearance::tinting::WallpaperGrid` | struct | — | — | Average colors of the wallpaper; `from_rgba8`, `behind(output, window)` | [4](04-appearance-and-tokens.md#wallpaper-behind-a-window) |
 | `ctappearance::watch::AppearanceWatch` | struct | — | — | inotify watch on the config and data folders; `drain()` | [4](04-appearance-and-tokens.md#watching) |
 | `ctappearance::watch::AppearanceEvent` | enum | — | — | `Appearance`, `Wallpaper`, `WallpaperSelection`, `Defaults`; `restyles()` | [4](04-appearance-and-tokens.md#watching) |
@@ -574,6 +594,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `ctdesign::SCREENSHOT_DIM`, `SCREENSHOT_IDLE_DIM`, `SCREENSHOT_BORDER`, `SCREENSHOT_BORDER_WIDTH` | constant | — | — | Compositor: screenshot selection overlay | [4](04-appearance-and-tokens.md#compositor) |
 | `ctdesign::SPACE_GAP`, `SPACE_GAP_COLOR`, `SPACE_SLIDE_MS`, `SPACE_SLIDE_EASE` | constant | — | — | Compositor: gap and slide between Spaces | [4](04-appearance-and-tokens.md#compositor) |
 | `ctdesign::TILE_MARGIN`, `TILE_GAP`, `DESKTOP_CLEAR` | constant | — | — | Compositor: tiled window margins; color behind everything | [4](04-appearance-and-tokens.md#compositor) |
+| `ctdesign::WALLPAPER_FPS`, `WALLPAPER_THUMBNAIL`, `WALLPAPER_FRAME` | constant | — | — | Wallpaper: animation frame rate, thumbnail size, dynamic still size | [4](04-appearance-and-tokens.md#compositor) |
 
 ## Buttons
 

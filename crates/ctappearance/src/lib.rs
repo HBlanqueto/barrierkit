@@ -7,9 +7,11 @@ pub mod notifications;
 mod resolve;
 pub mod tinting;
 pub mod traffic;
+mod wallpaper;
 pub mod watch;
 pub mod window;
 pub mod xdg;
 
 pub use config::*;
 pub use resolve::*;
+pub use wallpaper::*;

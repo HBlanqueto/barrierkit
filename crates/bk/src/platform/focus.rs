@@ -48,6 +48,15 @@ impl Dispatch<InfinityFocusSurfaceV1, ObjectId> for Runtime {
         };
         let revealed = match event {
             infinity_focus_surface_v1::Event::Bar { revealed } => revealed,
+            infinity_focus_surface_v1::Event::Desktop { desktop } => {
+                let mut shown = context.controls.desktop;
+                let number = (desktop > 0).then_some(desktop);
+                if *shown.peek() != number {
+                    shown.set(number);
+                    state.ping.ping();
+                }
+                return;
+            }
             infinity_focus_surface_v1::Event::BarHeight { height } => {
                 let mut bar_height = context.controls.focus_bar_height;
                 if *bar_height.peek() != height as f32 {

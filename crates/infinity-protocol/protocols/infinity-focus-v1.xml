@@ -23,7 +23,7 @@
     DEALINGS IN THE SOFTWARE.
   </copyright>
 
-  <interface name="infinity_focus_manager_v1" version="3">
+  <interface name="infinity_focus_manager_v1" version="4">
     <description summary="focus mode notices for applications">
       Malaysia focus mode (ADR 0051): a maximized window gets a space of
       its own and the xdg fullscreen state. In that space, the pointer at the
@@ -42,6 +42,9 @@
       From version 3 every object also reports the colour of the wallpaper
       behind its toplevel, so the client can tint its window background as
       macOS does (Malaysia ADR 0065).
+
+      From version 4 every object also reports the desktop its toplevel is
+      on, so an app such as System Settings can act on that desktop alone.
     </description>
 
     <request name="destroy" type="destructor">
@@ -60,7 +63,7 @@
     </request>
   </interface>
 
-  <interface name="infinity_focus_surface_v1" version="3">
+  <interface name="infinity_focus_surface_v1" version="4">
     <description summary="focus mode notices for one toplevel"/>
 
     <request name="destroy" type="destructor">
@@ -109,6 +112,15 @@
         wallpaper changed. It is not sent while no wallpaper is known.
       </description>
       <arg name="rgb" type="uint"/>
+    </event>
+
+    <event name="desktop" since="4">
+      <description summary="the desktop the window is on">
+        The number of the desktop the toplevel is on, counted from 1, or 0
+        while it is in a focus space. Sent once the toplevel is mapped and
+        again whenever it moves to another desktop.
+      </description>
+      <arg name="desktop" type="uint"/>
     </event>
   </interface>
 </protocol>

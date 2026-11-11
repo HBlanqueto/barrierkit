@@ -133,6 +133,7 @@ pub struct SettingsWallpaper {
     pub tile_width: u32,
     pub tile_height: u32,
     pub dot: u32,
+    pub sheet_width: u32,
     pub crop_width: u32,
     pub crop_aspect: f32,
     pub crop_dim: f32,

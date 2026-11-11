@@ -537,6 +537,7 @@
   --bk-settings-wallpaper-tile-width: 92;
   --bk-settings-wallpaper-tile-height: 58;
   --bk-settings-wallpaper-dot: 38;
+  --bk-settings-wallpaper-sheet-width: 480;
   --bk-settings-wallpaper-crop-width: 560;
   --bk-settings-wallpaper-crop-aspect: 1.6;
   --bk-settings-wallpaper-crop-dim: 0.55;
@@ -808,6 +809,9 @@
   --bk-spaces-focus-bar-text: #ffffff;
   --bk-tile-margin: 8;
   --bk-tile-gap: 8;
+  --bk-wallpaper-fps: 30;
+  --bk-wallpaper-thumbnail: 512;
+  --bk-wallpaper-frame: 1024;
   --bk-desktop-clear: #0f0f17;
   --bk-appearance-dominant-min-chroma: 0.04;
   --bk-appearance-dominant-lightness: 0.45 0.65;

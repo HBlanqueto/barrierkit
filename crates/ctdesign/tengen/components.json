@@ -625,6 +625,7 @@
         "tile-width": 92,
         "tile-height": 58,
         "dot": 38,
+        "sheet-width": 480,
         "crop": {
           "width": 560,
           "aspect": 1.6,
@@ -956,6 +957,11 @@
     "tile": {
       "margin": 8,
       "gap": 8
+    },
+    "wallpaper": {
+      "fps": 30,
+      "thumbnail": 512,
+      "frame": 1024
     },
     "desktop-clear": "#0f0f17"
   },

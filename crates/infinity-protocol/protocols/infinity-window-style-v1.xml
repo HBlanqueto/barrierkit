@@ -23,7 +23,7 @@
     DEALINGS IN THE SOFTWARE.
   </copyright>
 
-  <interface name="infinity_window_style_v1" version="4">
+  <interface name="infinity_window_style_v1" version="5">
     <description summary="window style hints for applications">
       Malaysia rounds every window it composites (ADR 0059). As in macOS
       Tahoe, the corner radius depends on the window's bar. A
@@ -126,6 +126,20 @@
       <arg name="surface" type="object" interface="wl_surface"/>
       <arg name="radius" type="uint"/>
       <arg name="cards" type="array"/>
+    </request>
+
+    <request name="set_desktop" since="5">
+      <description summary="the background surface belongs to one desktop">
+        Tells the compositor that the background layer surface whose
+        wl_surface is given shows only on desktop number desktop, counted
+        from 1 as Mission Control numbers them (Malaysia ADR 0051). Each
+        desktop shows its own background surface on an output and, when it
+        has none, the background surfaces that were never given a desktop.
+        A desktop of 0 returns the surface to every desktop. It applies from
+        the next frame and lasts for the lifetime of the wl_surface.
+      </description>
+      <arg name="surface" type="object" interface="wl_surface"/>
+      <arg name="desktop" type="uint"/>
     </request>
   </interface>
 </protocol>

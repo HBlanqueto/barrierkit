@@ -205,6 +205,7 @@ pub struct WindowControls {
     pub focus_bar_progress: State<f32>,
     pub focus_overlay: bool,
     pub focus_bar_height: State<f32>,
+    pub desktop: State<Option<u32>>,
     pub fullscreen_bar: State<FullscreenBar>,
     pub fullscreen_push: State<bool>,
     pub(crate) overlay_titlebar_height: State<f32>,
@@ -585,6 +586,7 @@ impl Runtime {
                 .as_ref()
                 .is_some_and(|manager| manager.version() >= 2),
             focus_bar_height: State::create_global(ctdesign::MENUBAR_HEIGHT as f32),
+            desktop: State::create_global(None),
             fullscreen_bar: State::create_global(options.fullscreen_bar),
             fullscreen_push: State::create_global(options.fullscreen_push),
             overlay_titlebar_height: State::create_global(0.0),

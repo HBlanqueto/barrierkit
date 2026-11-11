@@ -301,26 +301,60 @@ Notes on the values:
 | `write_appearance(path, config)` | Writes the config and keeps other keys and comments. An unreadable file is first copied to `.domain.bak`. The file is replaced atomically. |
 | `load_dominant()`, `load_wallpaper_grid()` | Read `dominant` and `grid` from `wallpaper.state`. |
 | `write_wallpaper_state(path, &WallpaperState)` | Writes `dominant` and `grid`; an empty state removes the file. |
-| `wallpaper_selection_path()` | `data_dir()/wallpaper-selection.state`, the wallpaper each desktop shows. |
-| `read_wallpaper_selection(path)` | The selection; the default without a file, `Err` when the TOML does not parse. |
-| `write_wallpaper_selection(path, &WallpaperSelection)` | Replaces the file atomically. |
+| `load_wallpaper_state()` | The whole `wallpaper.state`, or the default. `WallpaperState::grid_for(desktop)` picks a desktop's grid. |
 
-`WallpaperSelection` holds `scale` (`WallpaperScale`: `Fill`, `Fit`,
-`Stretch`, `Center` or `Custom`), `desktops` (a `file://` URI per desktop) and
-`crop` (`[x, y, width, height]` per desktop, fractions of the image). The key
-`ALL_DESKTOPS` (`"default"`) applies to every desktop; a missing key shows the
-built-in wallpaper. With `Custom`, the crop rectangle covers the screen like
-`Fill`, so one crop serves outputs of any shape.
+### The wallpaper files
+
+Malaysia's wallpaper lives in three files. System Settings writes the first two
+and `malaysia-wallpaper` reads them and writes the third.
+
+| File | Functions | Contents |
+|---|---|---|
+| `data_dir()/wallpaper-selection.state` | `wallpaper_selection_path`, `read_wallpaper_selection`, `write_wallpaper_selection` | `WallpaperSelection`: what each desktop shows and how |
+| `config_dir()/wallpaper.domain` | `wallpaper_config_path`, `read_wallpaper_config`, `write_wallpaper_config` | `WallpaperConfig`: the user's collections |
+| `data_dir()/wallpaper.state` | `wallpaper_state_path`, `load_wallpaper_state`, `write_wallpaper_state` | `WallpaperState`: dominant color, tint grids, outputs and the shuffle |
+
+Every map of the selection is keyed by `desktop_key`: a desktop number from 1,
+or `ALL_DESKTOPS` (`"default"`) for every desktop. A desktop without its own key
+shows the shared one with its scale, crop and pinned image. Crops can also be
+keyed `"<desktop>/<output>"`, which wins over the desktop's own.
+
+| Field | Holds |
+|---|---|
+| `desktops` | A `WallpaperSource` as text: `builtin`, a `file://` URI, `shuffle:colors` or `shuffle:collection:<name>`. No shared key shows the built-in wallpaper. |
+| `scale`, `scales` | `WallpaperScale` of the shared wallpaper and of each desktop's own: `Fill`, `Fit`, `Stretch`, `Center` or `Custom`. |
+| `crop` | `[x, y, width, height]`, fractions of the image. With `Custom` it covers the screen like `Fill`. |
+| `pinned` | The image a dynamic wallpaper keeps instead of following the appearance or the time. |
+| `shuffle` | `WallpaperShuffle`: `Login`, `Hourly` or `Daily`. |
+
+Edit it through its methods so the keys stay consistent: `set_source`,
+`make_own`, `set_scale`, `set_crop` and `set_pinned` write; `source`,
+`scale_for`, `crop_for` and `pinned_for` read with the fallbacks above.
+`set_source(None, _)` is «Show on all desktops»: it drops each desktop's own
+choices.
 
 ```toml
 scale = "custom"
+shuffle = "daily"
 
 [desktops]
 default = "file:///run/current-system/sw/share/wallpapers/bandura.jpg"
+2 = "shuffle:collection:Viajes"
 
 [crop]
 default = [0.2, 0.15, 0.55, 0.62]
+"default/HDMI-A-1" = [0.3, 0.1, 0.5, 0.62]
 ```
+
+`WallpaperKind::of` and `wallpapers_in` decide which files count as
+wallpapers: PNG, JPEG, HEIC and HEIF images, MP4, MOV, WebM and MKV videos, and
+GLSL shaders (`.frag`, `.glsl`). `system_wallpapers_dir` is the first
+`$XDG_DATA_DIRS/wallpapers` and `custom_colors_dir` holds the user's own colors.
+
+Previews follow the [thumbnail spec](https://specifications.freedesktop.org/thumbnail-spec/latest/):
+`thumbnail_path` is the x-large PNG named by the MD5 of `file_uri` (escaped as
+GLib does), valid while `thumbnail_is_fresh`. `frame_path` holds a still of each
+image of a dynamic wallpaper.
 
 ### Resolution
 
@@ -756,6 +790,7 @@ focus-mode bar and `LOCK` in `theme::lock_palette`.
 | `SPACE_GAP`, `SPACE_GAP_COLOR`, `SPACE_SLIDE_MS`, `SPACE_SLIDE_EASE` | The gap and slide between Spaces |
 | `TILE_MARGIN`, `TILE_GAP` | Margins of tiled windows |
 | `DESKTOP_CLEAR` | The color behind everything |
+| `WALLPAPER_FPS`, `WALLPAPER_THUMBNAIL`, `WALLPAPER_FRAME` | Wallpaper: frames per second of animated wallpapers, size of a thumbnail (the spec's x-large) and of a still of a dynamic image |
 
 ## Helpers
 

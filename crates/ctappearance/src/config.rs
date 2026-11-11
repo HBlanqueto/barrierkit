@@ -466,7 +466,7 @@ pub fn write_appearance(path: &Path, config: &AppearanceConfig) -> std::io::Resu
     replace_file(path, &doc.to_string())
 }
 
-fn replace_file(path: &Path, text: &str) -> std::io::Result<()> {
+pub(crate) fn replace_file(path: &Path, text: &str) -> std::io::Result<()> {
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent)?;
     }
@@ -539,10 +539,37 @@ pub fn load_appearance() -> AppearanceConfig {
     read_appearance().ok().flatten().unwrap_or_default()
 }
 
-#[derive(Debug, Default, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+pub struct WallpaperOutput {
+    pub name: String,
+    pub width: u32,
+    pub height: u32,
+}
+
+#[derive(Clone, Debug, Default, PartialEq, Deserialize, Serialize)]
 pub struct WallpaperState {
     pub dominant: Option<[f32; 3]>,
     pub grid: Option<WallpaperGrid>,
+    #[serde(default, skip_serializing_if = "std::collections::BTreeMap::is_empty")]
+    pub grids: std::collections::BTreeMap<String, WallpaperGrid>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub outputs: Vec<WallpaperOutput>,
+    #[serde(default, skip_serializing_if = "std::collections::BTreeMap::is_empty")]
+    pub shown: std::collections::BTreeMap<String, String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub shuffled_at: Option<u64>,
+}
+
+impl WallpaperState {
+    pub fn grid_for(&self, desktop: Option<u32>) -> Option<&WallpaperGrid> {
+        desktop
+            .and_then(|number| self.grids.get(&number.to_string()))
+            .or(self.grid.as_ref())
+    }
+}
+
+pub fn load_wallpaper_state() -> WallpaperState {
+    read_wallpaper_state(&wallpaper_state_path()).unwrap_or_default()
 }
 
 pub fn load_dominant() -> Option<Rgba> {
@@ -574,50 +601,6 @@ pub fn write_wallpaper_state(path: &Path, state: &WallpaperState) -> std::io::Re
 
 fn read_wallpaper_state(path: &Path) -> Option<WallpaperState> {
     toml::from_str(&std::fs::read_to_string(path).ok()?).ok()
-}
-
-pub const ALL_DESKTOPS: &str = "default";
-
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Deserialize, Serialize)]
-#[serde(rename_all = "lowercase")]
-pub enum WallpaperScale {
-    #[default]
-    Fill,
-    Fit,
-    Stretch,
-    Center,
-    Custom,
-}
-
-#[derive(Clone, Debug, Default, PartialEq, Deserialize, Serialize)]
-pub struct WallpaperSelection {
-    #[serde(default)]
-    pub scale: WallpaperScale,
-    #[serde(default)]
-    pub desktops: std::collections::BTreeMap<String, String>,
-    #[serde(default, skip_serializing_if = "std::collections::BTreeMap::is_empty")]
-    pub crop: std::collections::BTreeMap<String, [f32; 4]>,
-}
-
-pub fn wallpaper_selection_path() -> PathBuf {
-    data_dir().join("wallpaper-selection.state")
-}
-
-pub fn read_wallpaper_selection(path: &Path) -> Result<WallpaperSelection, toml::de::Error> {
-    std::fs::read_to_string(path).map_or_else(
-        |_| Ok(WallpaperSelection::default()),
-        |text| toml::from_str(&text),
-    )
-}
-
-pub fn write_wallpaper_selection(
-    path: &Path,
-    selection: &WallpaperSelection,
-) -> std::io::Result<()> {
-    replace_file(
-        path,
-        &toml::to_string(selection).map_err(std::io::Error::other)?,
-    )
 }
 
 #[cfg(test)]
@@ -855,6 +838,7 @@ tint_parts = ["window", "halo"]
                 aspect: 1.6,
                 rows: vec![vec![[0.1, 0.2, 0.3], [0.4, 0.5, 0.6]]],
             }),
+            ..WallpaperState::default()
         };
         write_wallpaper_state(&path, &state).unwrap();
         assert_eq!(read_wallpaper_state(&path), Some(state));
@@ -929,35 +913,6 @@ tint_parts = ["window", "halo"]
         write_appearance(&path, &config).unwrap();
         let read = read_appearance_from(&path).unwrap().unwrap();
         assert_eq!(config, read);
-        std::fs::remove_dir_all(&dir).ok();
-    }
-
-    #[test]
-    fn a_missing_selection_fills_the_screen_with_the_built_in_wallpaper() {
-        let path = std::env::temp_dir().join("ctappearance-no-such-selection.state");
-        assert_eq!(
-            read_wallpaper_selection(&path).unwrap(),
-            WallpaperSelection::default()
-        );
-    }
-
-    #[test]
-    fn a_selection_keeps_its_scale_file_and_crop_through_a_write() {
-        let dir =
-            std::env::temp_dir().join(format!("ctappearance-selection-{}", std::process::id()));
-        let path = dir.join("wallpaper-selection.state");
-        let mut selection = WallpaperSelection {
-            scale: WallpaperScale::Custom,
-            ..WallpaperSelection::default()
-        };
-        selection
-            .desktops
-            .insert(ALL_DESKTOPS.into(), "file:///w/Bandura.jpg".into());
-        selection
-            .crop
-            .insert(ALL_DESKTOPS.into(), [0.1, 0.2, 0.5, 0.4]);
-        write_wallpaper_selection(&path, &selection).unwrap();
-        assert_eq!(read_wallpaper_selection(&path).unwrap(), selection);
         std::fs::remove_dir_all(&dir).ok();
     }
 }
