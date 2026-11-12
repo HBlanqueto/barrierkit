@@ -145,6 +145,7 @@ to use Vulkan is [ADR 0056](../decisions/0056-barrierkit-on-vulkan.md).
 | `infinity_focus_manager_v1` | 1–4 | No | Focus mode: when the bar comes down; from version 2, `set_overlay` and the bar height; from 3, the wallpaper behind the window; from 4, the desktop it is on (`WindowControls::desktop`) | Focus mode notices, the wallpaper tint and the desktop are missing |
 | `infinity_session_v1` | 1 | No | `locking` and `unlocked`, read by [`use_screen_lock`](#screen-lock-and-blur-region) | The menu bar never learns that the session is locking |
 | `ext_background_effect_manager_v1` | 1 | No | [`set_blur_region`](#screen-lock-and-blur-region) | No blur behind the surface |
+| `ext_image_copy_capture_manager_v1` + `ext_foreign_toplevel_image_capture_source_manager_v1` + `wl_shm` | 1 | No | [`capture_window`](#toplevels), in layer-shell components | `capture_window` answers `None` |
 | `infinity_window_style_v1` | 1–4 | No | `set_bar` with the `Titlebar`'s bar; `set_popover` (v2) for popups; `set_panel` (v3) for utility windows; `set_cards` (v4) for card layers. Version 5 adds `set_desktop`, used by `malaysia-wallpaper` | The compositor guesses the window style |
 
 `sctk` means the version range smithay-client-toolkit 0.20 binds. The
@@ -378,6 +379,14 @@ where the window minimizes to: `rect` is `(x, y, width, height)` in the
 calling surface's coordinates (`zwlr_foreign_toplevel_handle_v1.set_rectangle`).
 A width or height of 0 removes it. Malaysia's Dock sends the slot of each
 window's tile, and the compositor runs the minimize effect toward it.
+
+`capture_window(window, done)` copies a window's pixels once with
+`ext-image-copy-capture-v1` and calls `done` with a `WindowImage { width,
+height, rgba }`, or `None` if the compositor refuses. The kit binds a second
+`ext_foreign_toplevel_list_v1` for the capture source and matches its
+windows by app id and title when the list comes through
+`zwlr_foreign_toplevel_management_v1`. Malaysia's Dock draws a minimized
+window's tile with it.
 
 `InfinityLayout`: `Fill`, `Center`, `Left`, `Right`, `Top`, `Bottom`,
 `TopLeft`, `TopRight`, `BottomLeft`, `BottomRight`.

@@ -1,5 +1,6 @@
 mod activation;
 mod blur_region;
+mod capture;
 mod infinity;
 mod layer;
 mod lock;
@@ -10,6 +11,7 @@ mod toplevels;
 
 pub use activation::Activation;
 pub use blur_region::{BlurRegion, set_blur_region};
+pub use capture::{CaptureWindow, WindowImage, capture_window};
 pub use infinity::{
     InfinityWindowManagerV1, Layout as InfinityLayout, PairLayout as InfinityPairLayout,
 };
@@ -63,6 +65,7 @@ pub(crate) struct ShellState {
     pub(crate) _session: Option<InfinitySessionV1>,
     pub(crate) background_effect: Option<ExtBackgroundEffectManagerV1>,
     pub(crate) background_effects: HashMap<ObjectId, ExtBackgroundEffectSurfaceV1>,
+    pub(crate) capture: Option<capture::Capture>,
 }
 
 impl ShellState {
@@ -120,6 +123,7 @@ impl ShellState {
                 .bind::<ExtBackgroundEffectManagerV1, _, _>(qh, 1..=1, ())
                 .ok(),
             background_effects: HashMap::new(),
+            capture: capture::Capture::bind(globals, qh),
         };
 
         rt.extension = Some(Extension {

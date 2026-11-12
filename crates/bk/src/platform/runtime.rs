@@ -270,6 +270,12 @@ fn insert_ping(event_loop: &mut EventLoop<Runtime>, shell: &mut Runtime) -> Resu
                         }
                     }
                     #[cfg(feature = "shell")]
+                    Sent::Kit(event) if event.is::<crate::shell::CaptureWindow>() => {
+                        if let Ok(request) = event.downcast::<crate::shell::CaptureWindow>() {
+                            shell.capture_window(*request);
+                        }
+                    }
+                    #[cfg(feature = "shell")]
                     Sent::Kit(event) if event.is::<crate::shell::MinimizeTarget>() => {
                         if let Ok(target) = event.downcast::<crate::shell::MinimizeTarget>() {
                             shell.apply_minimize_target(&surface_id, *target);

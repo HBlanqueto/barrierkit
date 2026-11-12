@@ -174,6 +174,7 @@ DOCK_RECENTS usize components.shell.dock.recents
 DOCK_ICON_BODY f32 components.shell.dock.icon-body
 DOCK_WINDOW_FRAME f32 components.shell.dock.window-frame
 DOCK_WINDOW_ICON f32 components.shell.dock.window-icon
+DOCK_WINDOW_BADGE f32 components.shell.dock.window-badge
 DOCK_LABEL_GAP f32 components.shell.dock.label-gap
 DOCK_LABEL_FONT_SIZE f32 components.shell.dock.label-font-size
 DOCK_LABEL_PADDING_X f32 components.shell.dock.label-padding-x

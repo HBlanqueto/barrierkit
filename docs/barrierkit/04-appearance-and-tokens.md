@@ -856,7 +856,7 @@ focus-mode bar.
 | `DOCK_TILESIZE`, `DOCK_TILESIZE_MIN`, `DOCK_TILESIZE_MAX`, `DOCK_LARGESIZE` | Dock icon sizes: default, 16 and 128 px, and the default magnified size |
 | `DOCK_EDGE_MARGIN`, `DOCK_SIDE_MARGIN`, `DOCK_PADDING`, `DOCK_PADDING_SCALE`, `DOCK_RADIUS` | Dock bar: gap to the screen edge, side margin as a share of the screen, padding = `DOCK_PADDING` + `DOCK_PADDING_SCALE` × size, corner radius as a share of its thickness |
 | `DOCK_SEPARATOR`, `DOCK_SEPARATOR_LENGTH`, `DOCK_MAGNIFY_RADIUS`, `DOCK_MAGNIFY_MS` | Separator slot and line as shares of the size; magnification reach in icons and its fade |
-| `DOCK_DOT`, `DOCK_DOT_MIN`, `DOCK_DOT_MAX`, `DOCK_PROGRESS_HEIGHT`, `DOCK_WINDOW_FRAME`, `DOCK_WINDOW_ICON` | Open-app dot, progress bar, and the frame and icon of a minimized window |
+| `DOCK_DOT`, `DOCK_DOT_MIN`, `DOCK_DOT_MAX`, `DOCK_PROGRESS_HEIGHT`, `DOCK_WINDOW_FRAME`, `DOCK_WINDOW_ICON`, `DOCK_WINDOW_BADGE` | Open-app dot, progress bar, the frame and icon of a minimized window before its picture arrives, and the app icon on the picture |
 | `DOCK_ICON_BODY`, `DOCK_LAYER_NAMESPACE` | The share of a slot an icon's body takes (macOS's 824 on 1024), and the Dock's layer-shell namespace |
 | `DOCK_BOUNCE_MS`, `DOCK_BOUNCE_HEIGHT`, `DOCK_LAUNCH_TIMEOUT_MS`, `DOCK_HIDE_MS`, `DOCK_REVEAL_STRIP`, `DOCK_RECENTS`, `DOCK_MINIMIZE_MS` | Launch bounce, automatic hiding, the number of recent apps and the minimize effect |
 | `DOCK_LABEL_GAP`, `DOCK_LABEL_FONT_SIZE`, `DOCK_LABEL_PADDING_X`, `DOCK_LABEL_PADDING_Y`, `DOCK_LABEL_RADIUS` | The name label over the icon under the pointer |

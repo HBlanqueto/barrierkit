@@ -1143,6 +1143,9 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `shell::set_input_region` | fn | — | — | Limits where the calling surface takes the pointer (`wl_surface.set_input_region`) | [18](18-platform.md#screen-lock-and-blur-region) |
 | `shell::Toplevels` | struct | — | — | Every app's windows, the shown space and desktop, and actions on windows | [18](18-platform.md#toplevels) |
 | `shell::MinimizeTarget` | struct | — | `NSDockTile` | A window and the rectangle it minimizes to | [18](18-platform.md#toplevels) |
+| `shell::capture_window` | fn | — | `CGWindowListCreateImage` | Copies a window's pixels once (`ext-image-copy-capture-v1`) | [18](18-platform.md#toplevels) |
+| `shell::WindowImage` | struct | — | `CGImage` | A window's pixels: width, height and RGBA bytes | [18](18-platform.md#toplevels) |
+| `shell::CaptureWindow` | struct | — | — | The request `capture_window` sends to the runner | [18](18-platform.md#toplevels) |
 | `shell::set_minimize_target` | fn | — | — | Tells the compositor where a window minimizes to (`set_rectangle`) | [18](18-platform.md#toplevels) |
 | `shell::ToplevelInfo` | struct | — | — | One window of any app: id, title, app id, state, menu addresses | [18](18-platform.md#toplevels) |
 | `shell::FocusBar` | enum | — | — | The bar over the shown space: `None`, `Hidden`, `Revealed` | [18](18-platform.md#toplevels) |
