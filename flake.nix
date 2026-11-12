@@ -99,6 +99,7 @@
           <!DOCTYPE fontconfig SYSTEM "urn:fontconfig:fonts.dtd">
           <fontconfig>
             <include ignore_missing="yes">/etc/fonts/fonts.conf</include>
+            <dir>${pkgs.adwaita-fonts}/share/fonts</dir>
             <dir>${pkgs.geist-font}/share/fonts</dir>
             <dir>${pkgs.inter}/share/fonts</dir>
           </fontconfig>
@@ -146,6 +147,7 @@
           ];
 
           buildInputs = deps ++ [
+            pkgs.adwaita-fonts
             pkgs.geist-font
             pkgs.inter
           ];

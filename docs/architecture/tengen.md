@@ -73,7 +73,7 @@ build.
 | Titlebar colours | `titlebar-bg`, `titlebar-bg-inactive`, `titlebar-title`, `titlebar-title-inactive`, `titlebar-line` | `Palette.titlebar_bg`, `Palette.title`, `Palette.hairline` |
 | Titlebar heights | `size.titlebar-h` 40 (own apps); `size.titlebar-ssd-h` 32 (the bar the compositor draws) | `TITLEBAR_CLIENT_HEIGHT`; `TITLEBAR.thickness` |
 | Window corners | `components.window.corner`: `titlebar` → `radius.lg` (16), `compact` 20, `unified` 26, `utility` 15, `expansion` 1.52866, `exponent` 3.34 | `WINDOW_CORNER`; the names match the `set_bar` bars |
-| Fonts | `font.families.sans` starts with Geist; `font.families.mono` with Geist Mono | `SANS_FAMILIES`; each `Font` takes the first family |
+| Fonts | `font.families.sans` starts with Adwaita Sans; `font.families.mono` with Geist Mono | `SANS_FAMILIES`; each `Font` takes the first family |
 | Text styles | `font.styles` (size / line height / weight): `display` 26/32/700, `title-1` 22/26/650, `title-2` 15/20/600, `headline` 13/18/700, `body` 13/18/400, `callout` 12/16/400, `caption` 11/14/500, `mono` 13/16/400 | `LARGE_TITLE`, `TITLE`, `TITLE_2`, `HEADLINE`, `BODY`, `CALLOUT`, `CAPTION`, `MONO`; the window title uses `headline` (`TITLEBAR.font`) |
 | Spacing | `space.1`–`space.4`: 4, 8, 12, 16 | `SPACE_1`–`SPACE_4` |
 | Durations | `duration.fast` 120, `base` 220, `slow` 420, `wait-max` 150 (ms) | `DURATION_FAST_MS`, `DURATION_BASE`, `DURATION_SLOW_MS`, `THEME_FADE_WAIT_MS` |

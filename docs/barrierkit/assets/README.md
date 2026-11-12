@@ -27,7 +27,7 @@ compositor or a GPU. They set the appearance in code, so the host's
 The images follow the language of the process and its fonts, so every step
 below runs with the same environment:
 
-1. The dev shell: its `FONTCONFIG_FILE` gives Geist and Inter. Outside it the
+1. The dev shell: its `FONTCONFIG_FILE` gives Adwaita Sans, Geist Mono and Inter. Outside it the
    text falls back to another font and the images differ.
 2. Spanish, the language of the test texts. `.cargo/config.toml` points
    `MALAYSIA_CONFIG_DIR` at `crates/bk/tests/config`, whose `language.domain`

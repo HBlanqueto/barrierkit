@@ -185,7 +185,7 @@ Call it on the thread that runs the window, before opening it:
 bk::register_font(include_bytes!("../fonts/Display.otf"));
 ```
 
-The type tokens use Geist and Geist Mono ([Type](#type)). The dev shell
+The type tokens use Adwaita Sans and Geist Mono ([Type](#type)). The dev shell
 installs them.
 
 ## Theme functions
@@ -688,9 +688,10 @@ A color, size or duration never goes into `bk`. It goes into Tengen:
 | `CAPTION` | 11 / 14 | 500 | `.caption` |
 | `MONO` | 13 / 16 | 400 | `Font.monospaced()` |
 
-All use Geist; `MONO` uses Geist Mono. `SANS_FAMILIES` is the fallback list
-(Geist, Inter, Noto Sans CJK SC, system-ui, sans-serif). `TEXT_LINE_HEIGHT`
-(1.3) is the factor that turns a font size into the height of one line when
+All use Adwaita Sans, the sans of GNOME, so `bk` text matches GTK; `MONO`
+uses Geist Mono. `SANS_FAMILIES` is the fallback list (Adwaita Sans, Inter,
+Noto Sans CJK SC, system-ui, sans-serif). `TEXT_LINE_HEIGHT` (1.3) is the
+factor that turns a font size into the height of one line when
 the kit measures text without laying it out.
 
 ### Motion

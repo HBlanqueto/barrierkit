@@ -102,7 +102,7 @@ Freya ([ADR 0047](../decisions/0047-barrierkit-in-layers.md), «Pending»).
 |---|---|
 | A Wayland compositor with `wl_compositor` and `xdg_wm_base` | Without them `run_window` returns `RunError::MissingGlobal`. The other protocols are optional ([18](18-platform.md)). |
 | `libvulkan` and a Vulkan driver (ICD) | Drawing and presentation. |
-| `nix develop` | The dev shell ships the Skia binaries, the Geist and Inter fonts, the Mesa Vulkan drivers and the GStreamer plugins. `./dev.sh` refuses to run outside it. |
+| `nix develop` | The dev shell ships the Skia binaries, the Adwaita Sans, Geist Mono and Inter fonts, the Mesa Vulkan drivers and the GStreamer plugins. `./dev.sh` refuses to run outside it. |
 
 ## Which level to use
 
