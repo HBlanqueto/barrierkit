@@ -174,6 +174,7 @@ impl Component for SheetWindow {
             if let Some(window) = opened.borrow_mut().take() {
                 window.close();
             }
+            shared.set(rect().into_element());
         });
         rect()
             .position(Position::new_absolute().left(0.0).top(0.0))

@@ -95,7 +95,7 @@ impl FloatingPane {
 
 impl Component for FloatingPane {
     fn render(&self) -> impl IntoElement {
-        let drag = use_state(|| None::<(Sides, (f64, f64))>);
+        let drag = use_state(|| None::<(Sides, (f64, f64), PaneFrame)>);
         let (accent, title_bar, title_ink) = (self.accent, self.title_bar, self.title_ink);
         let instance = self.style.clone();
         let style: FloatingPaneStyle =
@@ -118,11 +118,18 @@ impl Component for FloatingPane {
             style
                 .shape
                 .corner_radius(frame.width, frame.height, LayoutDirection::LeftToRight);
+        let raise = self.on_raise.clone();
         let grab = move |sides: Sides| {
             let mut drag = drag;
+            let raise = raise.clone();
             move |event: Event<MouseEventData>| {
                 event.stop_propagation();
-                drag.set(Some((sides, event.data().global_location.to_tuple())));
+                raise.call(());
+                drag.set(Some((
+                    sides,
+                    event.data().global_location.to_tuple(),
+                    frame,
+                )));
             }
         };
         let handle = |sides: Sides, position: Position, width: Size, height: Size| {
@@ -241,7 +248,7 @@ impl Component for FloatingPane {
             .width(Size::px(frame.width + 2.0 * band))
             .height(Size::px(frame.height + 2.0 * band))
             .layer(Layer::Overlay)
-            .cursor((*drag.read()).map(|(sides, _)| {
+            .cursor((*drag.read()).map(|(sides, ..)| {
                 if sides == MOVE {
                     CursorIcon::Grab
                 } else {
@@ -250,12 +257,10 @@ impl Component for FloatingPane {
             }))
             .on_mouse_down(move |_| on_raise.call(()))
             .on_global_pointer_move(move |event: Event<PointerEventData>| {
-                let mut drag = drag;
-                let Some((sides, (x, y))) = *drag.peek() else {
+                let Some((sides, (x, y), frame)) = *drag.peek() else {
                     return;
                 };
                 let (to_x, to_y) = event.data().global_location().to_tuple();
-                drag.set(Some((sides, (to_x, to_y))));
                 on_frame.call(sides.apply(frame, (to_x - x) as f32, (to_y - y) as f32));
             })
             .on_global_pointer_up(move |_| {

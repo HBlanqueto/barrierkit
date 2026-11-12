@@ -54,7 +54,13 @@ impl ElementExt for Sectors {
                 continue;
             }
             let mut path = PathBuilder::new();
-            if inner > 0.0 {
+            // Skia's arcTo adds a single point for a sweep of exactly 360 degrees.
+            if sweep >= 360.0 {
+                path.add_circle((cx, cy), outer, None);
+                if inner > 0.0 {
+                    path.add_circle((cx, cy), inner, skia_safe::PathDirection::CCW);
+                }
+            } else if inner > 0.0 {
                 path.arc_to(ring(outer), start, sweep, true);
                 path.arc_to(ring(inner), start + sweep, -sweep, false);
             } else {

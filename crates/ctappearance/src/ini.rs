@@ -1,5 +1,3 @@
-//! Keys of the INI files that GTK 3 (`settings.ini`) and qt5ct and qt6ct read.
-
 pub fn value<'a>(ini: &'a str, section: &str, key: &str) -> Option<&'a str> {
     let header = format!("[{section}]");
     ini.lines()
@@ -13,7 +11,6 @@ pub fn value<'a>(ini: &'a str, section: &str, key: &str) -> Option<&'a str> {
         })
 }
 
-/// Sets `key` in `section`, or removes it with `None`; every other line stays.
 pub fn set(ini: &str, section: &str, key: &str, value: Option<&str>) -> String {
     let header = format!("[{section}]");
     let entry = value.map(|value| format!("{key}={value}"));

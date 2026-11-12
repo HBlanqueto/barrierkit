@@ -15,7 +15,6 @@ use super::{Marks, Series, format_value, ink, legend_entry, series_color};
 use crate::styles::{ChartStyle, ControlState, Paints, Theme, resolve};
 
 const SAMPLES_PER_STEP: usize = 8;
-const GUIDE_RINGS: usize = 3;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 struct Geometry {
@@ -131,8 +130,8 @@ impl ElementExt for Stream {
             self.marks.grid_width * scale,
         );
         if self.polar {
-            for ring in 0..=GUIDE_RINGS {
-                let fraction = ring as f64 / GUIDE_RINGS as f64;
+            for ring in 0..=CHART.guide_rings {
+                let fraction = f64::from(ring) / f64::from(CHART.guide_rings);
                 let radius = (geometry.inner + fraction * (geometry.outer - geometry.inner)) as f32;
                 canvas.draw_circle(
                     at((geometry.center.0 as f32, geometry.center.1 as f32)),

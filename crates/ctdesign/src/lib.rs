@@ -473,6 +473,11 @@ pub struct ChartMetrics {
     pub wheel_zoom: f32,
     pub stream_hole: f32,
     pub hover_opacity: f32,
+    pub box_scale: f32,
+    pub ambient_light: f32,
+    pub depth_scale: f32,
+    pub height_3d: f32,
+    pub guide_rings: u32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

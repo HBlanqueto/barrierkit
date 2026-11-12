@@ -29,9 +29,15 @@ impl Entry {
     fn height(&self, style: &SettingsWindowStyle) -> f32 {
         match self {
             Self::Header(_) => style.header_height,
-            Self::Result { subtitle: None, .. } => style.result_height,
-            Self::Result { .. } => style.result_subtitle_height,
+            Self::Result { subtitle, .. } => result_height(style, *subtitle),
         }
+    }
+}
+
+fn result_height(style: &SettingsWindowStyle, subtitle: Option<&str>) -> f32 {
+    match subtitle {
+        None => style.result_height,
+        Some(_) => style.result_subtitle_height,
     }
 }
 
@@ -61,8 +67,18 @@ pub(crate) fn search_popover(
                 paints.color(style.header.resolve(state)),
             ))
             .into_element(),
-        result => SearchResult {
-            entry: result,
+        Entry::Result {
+            symbol,
+            tint,
+            title,
+            subtitle,
+            on_select,
+        } => SearchResult {
+            symbol,
+            tint,
+            title,
+            subtitle,
+            on_select,
             accent_highlight,
             active: results.next() == active,
             style: theme.clone(),
@@ -104,7 +120,11 @@ pub(crate) fn search_popover(
 
 #[derive(PartialEq)]
 struct SearchResult {
-    entry: Entry,
+    symbol: Symbol,
+    tint: Rgba,
+    title: &'static str,
+    subtitle: Option<&'static str>,
+    on_select: Callback<(), ()>,
     accent_highlight: bool,
     active: bool,
     style: Theme,
@@ -112,16 +132,8 @@ struct SearchResult {
 
 impl Component for SearchResult {
     fn render(&self) -> impl IntoElement {
-        let Entry::Result {
-            symbol,
-            tint,
-            title,
-            subtitle,
-            on_select,
-        } = self.entry.clone()
-        else {
-            return rect();
-        };
+        let (title, subtitle) = (self.title, self.subtitle);
+        let on_select = self.on_select.clone();
         let style: SettingsWindowStyle = resolve(&self.style);
         let interaction = use_interaction();
         let state = ControlState {
@@ -142,7 +154,7 @@ impl Component for SearchResult {
                 &style.result_subtitle,
             )
         };
-        let height = self.entry.height(&style);
+        let height = result_height(&style, subtitle);
         let radius = style
             .result_shape
             .corner_radius(height, height, LayoutDirection::LeftToRight);
@@ -165,7 +177,7 @@ impl Component for SearchResult {
             .corner_radius(radius)
             .painted(&paints, background)
             .on_press(move |_| on_select.call(()))
-            .child(SymbolTile::new(symbol, tint))
+            .child(SymbolTile::new(self.symbol, self.tint))
             .child(
                 rect()
                     .width(Size::flex(1.0))

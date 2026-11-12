@@ -1,7 +1,8 @@
 use ctdesign::{BODY, Font, KNOB_SHADOW, SEGMENTED};
 
+use super::button::rounded;
 use super::{
-    Axis, ColorEffect, ControlStyle, CornerStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
+    Axis, ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
     system_effect,
 };
 
@@ -53,10 +54,6 @@ pub struct SegmentedControlStyle {
 
 impl ControlStyle for SegmentedControlStyle {
     fn tengen() -> Self {
-        let rounded = |radius| Shape::RoundedRectangle {
-            radius,
-            style: CornerStyle::Circular,
-        };
         Self {
             padding: SEGMENTED.padding,
             gap: SEGMENTED.gap,

@@ -277,8 +277,10 @@ impl Component for SettingsWindow {
         let open = move |id: &'static str, row: Option<&'static str>| {
             let mut history = history;
             let mut recents = recents;
+            let mut popover_hovered = popover_hovered;
             Callback::new(move |_| {
                 history.write().push(id);
+                popover_hovered.set(false);
                 highlighted.set(row);
                 dismissed_at.set(Some(query.peek().clone()));
                 search_id.request_unfocus();

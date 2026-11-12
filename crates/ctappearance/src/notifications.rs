@@ -2,6 +2,8 @@ use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
 
+use crate::config::lenient;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum ShowPreviews {
@@ -35,11 +37,13 @@ pub struct AppNotifications {
     pub desktop: bool,
     pub center: bool,
     pub lock_screen: bool,
+    #[serde(deserialize_with = "lenient")]
     pub style: AlertStyle,
     pub critical: bool,
     pub time_sensitive: bool,
     pub sound: bool,
     pub badge: bool,
+    #[serde(deserialize_with = "lenient")]
     pub grouping: Grouping,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub muted_until: Option<i64>,
@@ -112,9 +116,11 @@ impl Widget {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct NotificationsConfig {
+    #[serde(deserialize_with = "lenient")]
     pub show_previews: ShowPreviews,
     pub when_locked: bool,
     pub apps: BTreeMap<String, AppNotifications>,
+    #[serde(deserialize_with = "lenient")]
     pub focus: BTreeMap<Focus, FocusSettings>,
     pub widgets: Vec<Widget>,
 }
@@ -175,6 +181,20 @@ mod tests {
         let back: NotificationsConfig = toml::from_str(&text).unwrap();
         assert_eq!(back, config);
         assert!(back.focus(Focus::Sleep).time_sensitive);
+    }
+
+    #[test]
+    fn an_unknown_value_resets_only_its_field() {
+        let config: NotificationsConfig = toml::from_str(
+            "show_previews = \"when_unlocked\"\nwhen_locked = false\n\
+             [apps.\"org.example.App\"]\nlock_screen = false\nstyle = \"banner\"\n\
+             [focus.gaming]\ntime_sensitive = false\n",
+        )
+        .unwrap();
+        assert_eq!(config.show_previews, ShowPreviews::Always);
+        assert!(!config.when_locked);
+        assert!(!config.app("org.example.App").lock_screen);
+        assert!(config.focus.is_empty());
     }
 
     #[test]

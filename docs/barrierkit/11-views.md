@@ -498,7 +498,8 @@ the veil. Without a window
 
 While a sheet or an [`Alert`](#alert) shows, the window that opened it is modal
 as in AppKit: its content takes no clicks, minimize and zoom still work, and the
-close light is disabled.
+close light is disabled. The sheet ignores a close request from the compositor:
+only removing it closes it.
 
 ### `Alert`
 
@@ -532,6 +533,8 @@ evenly. It does not close itself: the callbacks stop drawing it.
 `SheetStyle`, an `AlertStyle` and a `ContentUnavailableViewStyle`. An `Alert`
 draws on the `SheetStyle` of the theme and the containers. The fields are in
 [Styles and themes](../../crates/bk/src/styles/sheet.rs).
+`ContentUnavailableView::style` rebuilds the view: call it before any other
+method.
 
 ## Navigation
 

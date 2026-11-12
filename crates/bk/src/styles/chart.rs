@@ -4,9 +4,10 @@ use ctdesign::{
     SPACE_2, TOOLTIP,
 };
 
+use super::button::rounded;
 use super::{
-    Animation, ColorEffect, ControlStyle, CornerStyle, Role, Shape, ShapeStyle, StateValue,
-    reduce_motion, system_effect,
+    Animation, ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, reduce_motion,
+    system_effect,
 };
 use crate::theme::{SurfaceKind, popover_palette};
 
@@ -167,10 +168,7 @@ impl ControlStyle for ChartStyle {
             heat_radius: CHART.heat_radius,
             stream_hole: CHART.stream_hole,
             legend_shape: Shape::Circle,
-            tooltip_shape: Shape::RoundedRectangle {
-                radius: TOOLTIP.radius,
-                style: CornerStyle::Circular,
-            },
+            tooltip_shape: rounded(TOOLTIP.radius),
             series: CHART_SERIES.iter().map(|c| ShapeStyle::Color(*c)).collect(),
             grid: StateValue::new(ShapeStyle::Role(Role::Separator)),
             rule: StateValue::new(ShapeStyle::Role(Role::SecondaryLabel)),

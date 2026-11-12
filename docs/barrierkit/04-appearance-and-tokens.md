@@ -293,6 +293,7 @@ Notes on the values:
 
 - `auto` resolves to `light` (`ColorScheme::resolved`); `is_dark()` is true for
   `dark` and `dark_tint`.
+- A number outside its token list reads as the nearest end of the list.
 - `TintStrength::factor()` multiplies the accent tint and the wallpaper tint by
   `TINT_STRENGTH`: 0.5, 1, 1.5 or 2.
 - `scroll_bars = "automatic"` keeps the bar on screen after a mouse wheel and
@@ -327,7 +328,8 @@ Notes on the values:
 | `wallpaper_state_path()` | `data_dir()/wallpaper.state`, where the wallpaper's dominant color and grid live. |
 | `read_appearance()` | `Ok(None)` without a file, `Err` when the TOML does not parse. |
 | `load_appearance()` | The file's config, or the default on any error. |
-| `write_appearance(path, config)` | Writes the config and keeps other keys and comments. An unreadable file is first copied to `.domain.bak`. The file is replaced atomically. |
+| `write_appearance(path, config)` | Writes the config and keeps other keys and comments. A file that does not parse as an appearance config is first copied to `.domain.bak`. The file is replaced atomically. |
+| `replace_file(path, text)` | Writes `text` to a temporary file beside `path`, syncs it and renames it over `path`. Creates the directory with mode `0700`. |
 | `load_dominant()` | Reads `dominant` from `wallpaper.state`. |
 | `write_wallpaper_state(path, &WallpaperState)` | Writes `dominant` and `grid`; an empty state removes the file. |
 | `load_wallpaper_state()` | The whole `wallpaper.state`, or the default. `WallpaperState::grid_for(desktop)` picks a desktop's grid. |
@@ -864,7 +866,7 @@ focus-mode bar.
 | `DOCK_ICON_BODY`, `DOCK_LAYER_NAMESPACE` | The share of a slot an icon's body takes (macOS's 824 on 1024), and the Dock's layer-shell namespace |
 | `DOCK_BOUNCE_MS`, `DOCK_BOUNCE_HEIGHT`, `DOCK_LAUNCH_TIMEOUT_MS`, `DOCK_HIDE_MS`, `DOCK_REVEAL_STRIP`, `DOCK_RECENTS`, `DOCK_MINIMIZE_MS` | Launch bounce, automatic hiding, the number of recent apps and the minimize effect |
 | `DOCK_LABEL_GAP`, `DOCK_LABEL_FONT_SIZE`, `DOCK_LABEL_PADDING_X`, `DOCK_LABEL_PADDING_Y`, `DOCK_LABEL_RADIUS` | The name label over the icon under the pointer |
-| `NOTIFICATION_WIDTH`, `NOTIFICATION_RADIUS`, `NOTIFICATION_PADDING`, `NOTIFICATION_GAP`, `NOTIFICATION_MARGIN`, `NOTIFICATION_ICON_SIZE`, `NOTIFICATION_TEXT_GAP`, `NOTIFICATION_CLOSE_SIZE`, `NOTIFICATION_STACK_PEEK`, `NOTIFICATION_STACK_INSET`, `NOTIFICATION_BODY_LINES`, `NOTIFICATION_MAX_BANNERS`, `NOTIFICATION_BANNER_MS`, `NOTIFICATION_SLIDE_IN_MS`, `NOTIFICATION_SLIDE_OUT_MS`, `NOTIFICATION_SLIDE_BOUNCE`, `NOTIFICATION_EDGE`, `NOTIFICATION_SWIPE`, `NOTIFICATION_WIDGET_SIZE`, `NOTIFICATION_WIDGET_RADIUS`, `NOTIFICATION_REPLY_HEIGHT`, `LIVE_ACTIVITY_WIDTH`, `LIVE_ACTIVITY_HEIGHT`, `LIVE_ACTIVITY_RADIUS`, `LIVE_ACTIVITY_GAP`, `LIVE_ACTIVITY_ENDED_MS` | Notification banners, Notification Center, its widgets and the Live Activities of the menu bar (ADR 0068 in malaysia; the banner radius is provisional until measured on Tahoe, the Live Activity size is measured on Apple's WWDC25 video) |
+| `NOTIFICATION_WIDTH`, `NOTIFICATION_RADIUS`, `NOTIFICATION_PADDING`, `NOTIFICATION_GAP`, `NOTIFICATION_MARGIN`, `NOTIFICATION_ICON_SIZE`, `NOTIFICATION_TEXT_GAP`, `NOTIFICATION_CLOSE_SIZE`, `NOTIFICATION_STACK_PEEK`, `NOTIFICATION_STACK_INSET`, `NOTIFICATION_BODY_LINES`, `NOTIFICATION_MAX_BANNERS`, `NOTIFICATION_BANNER_MS`, `NOTIFICATION_SLIDE_IN_MS`, `NOTIFICATION_SLIDE_OUT_MS`, `NOTIFICATION_SLIDE_BOUNCE`, `NOTIFICATION_EDGE`, `NOTIFICATION_SWIPE`, `NOTIFICATION_WIDGET_SIZE`, `NOTIFICATION_WIDGET_RADIUS`, `LIVE_ACTIVITY_WIDTH`, `LIVE_ACTIVITY_HEIGHT`, `LIVE_ACTIVITY_RADIUS`, `LIVE_ACTIVITY_GAP`, `LIVE_ACTIVITY_ENDED_MS` | Notification banners, Notification Center, its widgets and the Live Activities of the menu bar (ADR 0068 in malaysia; the banner radius is provisional until measured on Tahoe, the Live Activity size is measured on Apple's WWDC25 video) |
 | `LAUNCHER_WIDTH`, `LAUNCHER_HEIGHT`, `LAUNCHER_PADDING`, `LAUNCHER_SEARCH_HEIGHT`, `LAUNCHER_RESULT_HEIGHT`, `LAUNCHER_RESULT_GAP`, `LAUNCHER_RESULT_RADIUS`, `LAUNCHER_ICON_SIZE`, `LAUNCHER_MAX_RESULTS`, `LAUNCHER_CORNER_RADIUS`, `LAUNCHER_FONT_SIZE`, `LAUNCHER_SUBTITLE_FONT_SIZE`, `LAUNCHER_SCALE_FROM`, `LAUNCHER_OPEN_MS`, `LAUNCHER_CLOSE_MS` | The launcher |
 | `LOCK_CLOCK_FONT_SIZE`, `LOCK_DATE_FONT_SIZE`, `LOCK_TOP_PERCENT`, `LOCK_BOTTOM_MARGIN`, `LOCK_SPACING`, `LOCK_AVATAR_SIZE`, `LOCK_KEYBOARD_WIDTH`, `LOCK_FIELD_HEIGHT`, `LOCK_FIELD_WIDTH`, `LOCK_MASK_FONT_SIZE`, `LOCK_INK`, `LOCK_FIELD_FILL`, `LOCK_AVATAR_FILL`, `LOCK_FIELD_ERROR`, `LOCK_FIELD_INK` | The lock screen over the wallpaper (Malaysia ADR 0074) |
 | `LOCK_FADE_MS`, `LOCK_SETTLE_MS`, `LOCK_RISE_MS`, `LOCK_RISE_OFFSET`, `LOCK_LOGIN_MS` | The transition from the desktop to the lock screen: the fade, the menu bar closing up, the clock rising and the login appearing |

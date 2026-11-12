@@ -57,6 +57,11 @@
       "wheel-zoom": 0.01,
       "stream-hole": 0.32,
       "hover-opacity": 0.12,
+      "box-scale": 0.32,
+      "ambient-light": 0.35,
+      "depth-scale": 0.2,
+      "height-3d": 270,
+      "guide-rings": 3,
       "series": ["blue", "green", "orange", "purple", "red", "yellow", "pink"]
     },
     "toolbar-search-width": 180,
@@ -929,8 +934,7 @@
         "edge": 2,
         "swipe": 60,
         "widget-size": 168,
-        "widget-radius": 28,
-        "reply-height": 28
+        "widget-radius": 28
       },
       "live-activity": {
         "width": 314,

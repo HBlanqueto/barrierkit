@@ -162,9 +162,10 @@ impl Chart {
                     .map(|s| s.values.clone())
                     .collect::<Vec<_>>(),
             )
-            .last()
-            .map(|band| band.iter().map(|(_, upper)| *upper).collect())
-            .unwrap_or_default()
+            .into_iter()
+            .flatten()
+            .map(|(_, upper)| upper)
+            .collect()
         } else {
             self.series.iter().flat_map(|s| s.values.clone()).collect()
         };
@@ -201,6 +202,23 @@ pub fn format_value(value: f64, unit: &str) -> String {
         2
     };
     format!("{value:.digits$}{unit}")
+}
+
+fn with_outgoing_sample(before: &[Series], target: &[Series]) -> Vec<Series> {
+    before
+        .iter()
+        .zip(target)
+        .map(|(old, new)| Series {
+            name: new.name.clone(),
+            values: old
+                .values
+                .iter()
+                .take(1)
+                .chain(&new.values)
+                .copied()
+                .collect(),
+        })
+        .collect()
 }
 
 pub fn lerp_series(from: &[Series], to: &[Series], t: f64) -> Vec<Series> {
@@ -322,7 +340,7 @@ impl Component for Chart {
                 .all(|(a, b)| a.values.len() == b.values.len())
             && before != target;
         let (series, shift) = if slid {
-            (target.clone(), 1.0 - progress)
+            (with_outgoing_sample(&before, &target), -progress)
         } else if self.time_step.is_some() {
             (target.clone(), 0.0)
         } else {
@@ -360,7 +378,7 @@ impl Component for Chart {
             }
         };
 
-        let colors: Vec<_> = (0..self.series.len())
+        let colors: Vec<_> = (0..target.len())
             .map(|index| series_color(&style, &paints, index))
             .collect();
         let plot = plot::Plot {
@@ -377,7 +395,10 @@ impl Component for Chart {
                 .map(|(v, _)| (*v, ink(&paints, &style.rule)))
                 .collect(),
             grid: ink(&paints, &style.grid),
-            hover: hover.read().or(*selected.read()),
+            hover: hover
+                .read()
+                .or(*selected.read())
+                .map(|index| index + usize::from(slid)),
             hover_ink: ink(&paints, &style.hover),
             halo: ink(&paints, &style.halo),
             marks: Marks::of(&style),
@@ -422,7 +443,7 @@ impl Component for Chart {
                     )
                 } else {
                     let top = ((1.0 - value_fraction(*tick)) * self.height - line / 2.0)
-                        .clamp(0.0, self.height - line);
+                        .clamp(0.0, (self.height - line).max(0.0));
                     rect()
                         .position(Position::new_absolute().top(top).left(style.axis_gap))
                         .child(label)
@@ -434,16 +455,20 @@ impl Component for Chart {
             Some(step) if !horizontal => {
                 let newest = count.saturating_sub(1) as f64;
                 let age = |position: f64| (newest - position) * step;
-                time_ticks(age(view.start), CHART.ticks as usize + 1)
-                    .into_iter()
-                    .map(|seconds| {
-                        (
-                            view.fraction(newest - seconds / step) as f32,
-                            format_age(seconds, tr_kit!("chart-now")),
-                        )
-                    })
-                    .filter(|(fraction, _)| (0.0..=1.0).contains(fraction))
-                    .collect()
+                time_ticks(
+                    age(view.start + view.span),
+                    age(view.start),
+                    CHART.ticks as usize + 1,
+                )
+                .into_iter()
+                .map(|seconds| {
+                    (
+                        view.fraction(newest - seconds / step) as f32,
+                        format_age(seconds, tr_kit!("chart-now")),
+                    )
+                })
+                .filter(|(fraction, _)| (0.0..=1.0).contains(fraction))
+                .collect()
             }
             _ => {
                 let step = (self.x_labels.len() / 6).max(1);

@@ -1,4 +1,6 @@
 use std::collections::{BTreeMap, BTreeSet};
+use std::io::Read;
+use std::os::unix::ffi::OsStringExt;
 use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
@@ -116,7 +118,7 @@ pub fn file_path(uri: &str) -> Option<PathBuf> {
             }
         }
     }
-    Some(PathBuf::from(String::from_utf8_lossy(&bytes).into_owned()))
+    Some(PathBuf::from(std::ffi::OsString::from_vec(bytes)))
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Deserialize, Serialize)]
@@ -196,13 +198,18 @@ impl WallpaperSelection {
             self.paused.retain(|key| key == ALL_DESKTOPS);
         }
         match source {
-            Some(source) => self.desktops.insert(key.clone(), source.value()),
-            None => self.desktops.remove(&key),
-        };
+            Some(source) => {
+                self.desktops.insert(key.clone(), source.value());
+            }
+            None => {
+                self.desktops.remove(&key);
+                self.scales.remove(&key);
+            }
+        }
         self.crop.retain(|crop, _| owner_of(crop) != key);
         self.appearance.remove(&key);
         self.paused.remove(&key);
-        if self.scale_for(desktop) == WallpaperScale::Custom {
+        if self.owner(desktop) == key && self.scale_for(desktop) == WallpaperScale::Custom {
             self.set_scale(desktop, WallpaperScale::Fill);
         }
     }
@@ -412,16 +419,26 @@ pub fn modified_seconds(file: &Path) -> Option<u64> {
 
 // Thumbnail spec: a thumbnail is valid while its Thumb::MTime equals the file's modification time.
 pub fn thumbnail_is_fresh(thumbnail: &Path, file: &Path) -> bool {
-    let (Ok(bytes), Some(modified)) = (std::fs::read(thumbnail), modified_seconds(file)) else {
+    let (Some(bytes), Some(modified)) = (png_header(thumbnail), modified_seconds(file)) else {
         return false;
     };
     png_text(&bytes, "Thumb::MTime").is_some_and(|value| value == modified.to_string())
 }
 
 pub fn thumbnail_image_size(thumbnail: &Path) -> Option<(u32, u32)> {
-    let bytes = std::fs::read(thumbnail).ok()?;
+    let bytes = png_header(thumbnail)?;
     let side = |key| png_text(&bytes, key)?.parse().ok();
     Some((side("Thumb::Image::Width")?, side("Thumb::Image::Height")?))
+}
+
+fn png_header(png: &Path) -> Option<Vec<u8>> {
+    let mut bytes = Vec::new();
+    std::fs::File::open(png)
+        .ok()?
+        .take(64 * 1024)
+        .read_to_end(&mut bytes)
+        .ok()?;
+    Some(bytes)
 }
 
 fn png_text(png: &[u8], key: &str) -> Option<String> {
@@ -621,6 +638,27 @@ mod tests {
         assert!(!selection.has_own(2));
         assert!(selection.crop.is_empty());
         assert_eq!(selection.source(Some(2)), Some(bandura()));
+    }
+
+    #[test]
+    fn removing_a_desktop_s_own_wallpaper_keeps_the_shared_framing_and_drops_its_scale() {
+        let mut selection = WallpaperSelection::default();
+        selection.set_source(None, Some(bandura()));
+        selection.set_crop(None, None, [0.1, 0.1, 0.5, 0.5]);
+        selection.make_own(2);
+        selection.set_source(Some(2), None);
+        assert_eq!(selection.scale_for(Some(2)), WallpaperScale::Custom);
+        assert_eq!(
+            selection.crop_for(Some(2), "DP-1"),
+            Some([0.1, 0.1, 0.5, 0.5])
+        );
+        assert!(selection.scales.is_empty());
+    }
+
+    #[test]
+    fn a_path_that_is_not_utf8_round_trips_through_its_uri() {
+        let path = PathBuf::from(std::ffi::OsString::from_vec(b"/w/A\xf1o.jpg".to_vec()));
+        assert_eq!(file_path(&file_uri(&path)), Some(path));
     }
 
     #[test]

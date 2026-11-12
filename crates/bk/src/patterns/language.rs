@@ -19,7 +19,7 @@ pub struct LanguagePicker {
 impl LanguagePicker {
     pub fn app(domain: &str) -> Self {
         Self {
-            path: ctappearance::config_dir().join(format!("{domain}.domain")),
+            path: crate::app::domain(domain),
         }
     }
 

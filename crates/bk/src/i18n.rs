@@ -9,8 +9,7 @@ use rust_embed::RustEmbed;
 static APP_LANGUAGE: OnceLock<Option<String>> = OnceLock::new();
 
 pub fn use_app_language(domain: &str) {
-    let path = ctappearance::config_dir().join(format!("{domain}.domain"));
-    let _ = APP_LANGUAGE.set(read_language(&path));
+    let _ = APP_LANGUAGE.set(read_language(&crate::app::domain(domain)));
 }
 
 pub(crate) fn languages() -> Vec<String> {

@@ -121,6 +121,12 @@ impl Resolved {
             ON_ACCENT_MIN_CONTRAST,
             scheme,
         );
+        self.focus_ring = reaching(
+            self.accent,
+            &[self.surfaces.window],
+            ACCENT_MIN_CONTRAST_ON_WINDOW,
+            scheme,
+        );
         self
     }
 
@@ -410,7 +416,6 @@ fn legible_on_accent(accent: Rgba, light: Rgba) -> (Rgba, Rgba) {
     (fill, light)
 }
 
-// The accent with its lightness moved until it reaches `min` on every background; the hue stays.
 fn reaching(accent: Rgba, backgrounds: &[Rgba], min: f32, scheme: ColorScheme) -> Rgba {
     if backgrounds
         .iter()
@@ -789,11 +794,20 @@ mod tests {
     fn every_accent_swatch_gets_readable_ink_and_a_visible_focus_ring() {
         for scheme in [ColorScheme::Light, ColorScheme::Dark, ColorScheme::DarkTint] {
             for (name, swatch) in ctdesign::ACCENT_SWATCHES {
-                let config = AppearanceConfig {
+                let mut config = AppearanceConfig {
                     color_scheme: scheme,
                     accent_color: Some([swatch.r, swatch.g, swatch.b]),
+                    window_color: WindowColorMode::Accent,
+                    tint_strength: TintStrength::Intense,
                     ..Default::default()
                 };
+                let tinted = resolve(&config, None);
+                assert!(
+                    tinted.focus_ring.contrast_ratio(tinted.surfaces.window)
+                        >= ACCENT_MIN_CONTRAST_ON_WINDOW,
+                    "{scheme:?} {name}: focus ring on the tinted window"
+                );
+                config.window_color = WindowColorMode::Neutral;
                 let resolved = resolve(&config, None);
                 if palette(scheme).on_accent.contrast_ratio(swatch) >= ON_ACCENT_MIN_CONTRAST {
                     assert_eq!(

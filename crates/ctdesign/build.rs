@@ -237,7 +237,6 @@ NOTIFICATION_EDGE f64 components.shell.notifications.edge
 NOTIFICATION_SWIPE f64 components.shell.notifications.swipe
 NOTIFICATION_WIDGET_SIZE f32 components.shell.notifications.widget-size
 NOTIFICATION_WIDGET_RADIUS f32 components.shell.notifications.widget-radius
-NOTIFICATION_REPLY_HEIGHT f32 components.shell.notifications.reply-height
 LIVE_ACTIVITY_WIDTH u32 components.shell.live-activity.width
 LIVE_ACTIVITY_HEIGHT u32 components.shell.live-activity.height
 LIVE_ACTIVITY_RADIUS f32 components.shell.live-activity.radius

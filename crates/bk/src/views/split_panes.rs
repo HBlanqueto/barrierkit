@@ -85,15 +85,15 @@ impl Component for SplitPanes {
             });
         for (index, pane) in self.panes.iter().enumerate() {
             if index > 0 {
-                let ratios = ratios.clone();
                 let on_ratios = self.on_ratios.clone();
                 let divider_width = style.divider_width;
                 row = row.child(Divider {
                     direction,
+                    ratios: ratios.clone(),
                     thickness: divider_width,
                     fill: paints.fill(&style.divider),
                     blur: paints.blur(&style.divider),
-                    on_drag: Callback::new(move |delta: f32| {
+                    on_drag: Callback::new(move |(ratios, delta): (Vec<f32>, f32)| {
                         let free = *length.peek() - divider_width * (count - 1) as f32;
                         if let (Some(on_ratios), true) = (&on_ratios, free > 0.0) {
                             on_ratios.call(dragged(&ratios, index - 1, delta, free));
@@ -114,9 +114,9 @@ impl Component for SplitPanes {
 
 fn dragged(ratios: &[f32], divider: usize, delta: f32, free: f32) -> Vec<f32> {
     let total: f32 = ratios.iter().sum();
-    let minimum = SPLIT_PANES.pane_min / free * total;
-    let shift = delta / free * total;
     let pair = ratios[divider] + ratios[divider + 1];
+    let minimum = (SPLIT_PANES.pane_min / free * total).min(pair / 2.0);
+    let shift = delta / free * total;
     let left = (ratios[divider] + shift).clamp(minimum, pair - minimum);
     let mut next = ratios.to_vec();
     next[divider] = left;
@@ -127,16 +127,18 @@ fn dragged(ratios: &[f32], divider: usize, delta: f32, free: f32) -> Vec<f32> {
 #[derive(PartialEq)]
 struct Divider {
     direction: Direction,
+    ratios: Vec<f32>,
     thickness: f32,
     fill: Fill,
     blur: Option<f32>,
-    on_drag: Callback<f32, ()>,
+    on_drag: Callback<(Vec<f32>, f32), ()>,
 }
 
 impl Component for Divider {
     fn render(&self) -> impl IntoElement {
-        let mut last = use_state(|| None::<f32>);
+        let mut grabbed = use_state(|| None::<(f32, Vec<f32>)>);
         let horizontal = self.direction == Direction::Horizontal;
+        let ratios = self.ratios.clone();
         let on_drag = self.on_drag.clone();
         let along = move |(x, y): (f64, f64)| if horizontal { x } else { y } as f32;
         let icon = if horizontal {
@@ -156,19 +158,23 @@ impl Component for Divider {
         line.a11y_role(AccessibilityRole::Splitter)
             .cursor(icon)
             .on_mouse_down(move |event: Event<MouseEventData>| {
-                last.set(Some(along(event.data().global_location.to_tuple())));
+                grabbed.set(Some((
+                    along(event.data().global_location.to_tuple()),
+                    ratios.clone(),
+                )));
             })
             .on_global_pointer_move(move |event: Event<PointerEventData>| {
-                let Some(from) = *last.peek() else {
+                let Some((from, ratios)) = grabbed.peek().clone() else {
                     return;
                 };
-                let to = along(event.data().global_location().to_tuple());
-                last.set(Some(to));
-                on_drag.call(to - from);
+                on_drag.call((
+                    ratios,
+                    along(event.data().global_location().to_tuple()) - from,
+                ));
             })
             .on_global_pointer_up(move |_| {
-                if last.peek().is_some() {
-                    last.set(None);
+                if grabbed.peek().is_some() {
+                    grabbed.set(None);
                 }
             })
     }
@@ -187,5 +193,10 @@ mod tests {
         assert_eq!(moved[0], 0.25);
         let stopped = dragged(&[0.5, 0.5], 0, 10_000.0, 1000.0);
         assert!((stopped[1] - SPLIT_PANES.pane_min / 1000.0).abs() < 1e-6);
+    }
+
+    #[test]
+    fn two_panes_narrower_than_two_minimums_stop_at_half_each() {
+        assert_eq!(dragged(&[0.5, 0.5], 0, 40.0, 97.0), [0.5, 0.5]);
     }
 }

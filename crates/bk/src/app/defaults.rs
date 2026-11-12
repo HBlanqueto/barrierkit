@@ -25,7 +25,7 @@ pub fn use_watched<T: PartialEq + Clone + 'static>(load: impl Fn() -> T + 'stati
     })
 }
 
-fn domain(app_id: &str) -> PathBuf {
+pub(crate) fn domain(app_id: &str) -> PathBuf {
     ctappearance::config_dir().join(format!("{app_id}.domain"))
 }
 
@@ -53,13 +53,7 @@ fn back_up(path: &Path) {
 }
 
 pub fn write_toml<T: Serialize>(path: &Path, value: &T) -> io::Result<()> {
-    if let Some(dir) = path.parent() {
-        std::fs::create_dir_all(dir)?;
-    }
-    let text = toml::to_string(value).map_err(io::Error::other)?;
-    let staged = path.with_extension("tmp");
-    std::fs::write(&staged, text)?;
-    std::fs::rename(staged, path)
+    ctappearance::replace_file(path, &toml::to_string(value).map_err(io::Error::other)?)
 }
 
 pub fn load_defaults<T: DeserializeOwned + Default>(app_id: &str) -> T {

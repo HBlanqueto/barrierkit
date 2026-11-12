@@ -149,6 +149,7 @@ pub(crate) struct WindowContext {
     pub(crate) wallpaper_fade: Option<WallpaperFade>,
     pub(crate) parent: Option<ObjectId>,
     pub(crate) key_only_if_needed: bool,
+    pub(crate) modal: bool,
 }
 
 #[derive(Clone, Copy)]

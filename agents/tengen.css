@@ -124,6 +124,11 @@
   --bk-chart-wheel-zoom: 0.01;
   --bk-chart-stream-hole: 0.32;
   --bk-chart-hover-opacity: 0.12;
+  --bk-chart-box-scale: 0.32;
+  --bk-chart-ambient-light: 0.35;
+  --bk-chart-depth-scale: 0.2;
+  --bk-chart-height-3d: 270;
+  --bk-chart-guide-rings: 3;
   --bk-chart-series: blue green orange purple red yellow pink;
   --bk-chart-series-0: blue;
   --bk-chart-series-1: green;
@@ -799,7 +804,6 @@
   --bk-shell-notifications-swipe: 60;
   --bk-shell-notifications-widget-size: 168;
   --bk-shell-notifications-widget-radius: 28;
-  --bk-shell-notifications-reply-height: 28;
   --bk-shell-live-activity-width: 314;
   --bk-shell-live-activity-height: 132;
   --bk-shell-live-activity-radius: 20;

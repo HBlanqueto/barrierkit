@@ -80,7 +80,7 @@ impl Plot {
                 .into_iter()
                 .map(|v| {
                     v.into_iter()
-                        .map(|y| (self.y_domain.0.max(0.0).min(y), y))
+                        .map(|y| (self.y_domain.0.max(0.0), y))
                         .collect()
                 })
                 .collect()
@@ -179,11 +179,9 @@ impl ElementExt for Plot {
                             .enumerate()
                             .map(|(i, (lower, _))| (f64::from(x(i)), y.map(*lower)))
                             .collect();
-                        let mut area = line.clone();
-                        for (lx, ly) in lowers.iter().rev() {
-                            area.line_to((*lx as f32, *ly as f32));
-                        }
-                        area.close();
+                        let mut area = self.down_to(bottom, &points);
+                        area.add_path(&self.down_to(bottom, &lowers).detach(), None);
+                        area.set_fill_type(skia_safe::PathFillType::EvenOdd);
                         let fill = paint(
                             Rgba {
                                 a: color.a * self.marks.area_opacity,
@@ -296,6 +294,16 @@ impl Plot {
                 &highlight,
             );
         }
+    }
+
+    fn down_to(&self, bottom: f32, points: &[(f64, f64)]) -> PathBuilder {
+        let mut path = self.line(points);
+        if let (Some(first), Some(last)) = (points.first(), points.last()) {
+            path.line_to((last.0 as f32, bottom));
+            path.line_to((first.0 as f32, bottom));
+            path.close();
+        }
+        path
     }
 
     fn line(&self, points: &[(f64, f64)]) -> PathBuilder {

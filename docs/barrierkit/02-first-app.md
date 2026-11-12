@@ -113,6 +113,16 @@ toolbar items) or the app opens several windows: see
 
 `content` accepts a `&'static str`, a `String` or the result of `tr!`.
 
+`Text::style` rebuilds the text: call it before `.font`, `.line_limit` and any
+Freya method.
+
+```rust
+// ✗ the style drops the font
+Text::new("Title").font(TITLE).style(|s| s)
+// ✓
+Text::new("Title").style(|s| s).font(TITLE)
+```
+
 The three types wrap Freya's `label()` and `rect()` and forward all their
 traits, so Freya's methods work on them: layout (`padding`, `width`,
 `expanded`), text style (`color`, `font_size`), events (`on_press`) and, on the

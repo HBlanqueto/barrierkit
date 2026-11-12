@@ -1,8 +1,9 @@
 use ctdesign::{BODY, CHECKBOX, Font, HAIRLINE, SETTINGS};
 
+use super::button::rounded;
 use super::{
-    ColorEffect, ControlStyle, CornerStyle, Edge, LayoutDirection, Role, ShadowStyle, Shape,
-    ShapeStyle, StateValue, system_effect,
+    ColorEffect, ControlStyle, Edge, LayoutDirection, Role, ShadowStyle, Shape, ShapeStyle,
+    StateValue, system_effect,
 };
 
 /// States: hovered, pressed, focused, disabled. `Checkbox::tint(Tint)` is an
@@ -52,10 +53,7 @@ impl ControlStyle for CheckboxStyle {
             box_size: CHECKBOX.size,
             mark_size: CHECKBOX.mark,
             label_gap: SETTINGS.check.gap as f32,
-            box_shape: Shape::RoundedRectangle {
-                radius: CHECKBOX.radius,
-                style: CornerStyle::Circular,
-            },
+            box_shape: rounded(CHECKBOX.radius),
             box_background: StateValue::new(ShapeStyle::Role(Role::ControlBackground)),
             fill: StateValue::new(ShapeStyle::Accent),
             mark: StateValue::new(ShapeStyle::Role(Role::OnAccent)),

@@ -95,7 +95,6 @@ struct Cluster {
     share: f32,
 }
 
-// Deterministic k-means in OKLab: the same picture always gives the same clusters.
 fn clusters(rgba8: &[u8]) -> Vec<Cluster> {
     let pixels: Vec<Oklab> = rgba8
         .as_chunks::<4>()

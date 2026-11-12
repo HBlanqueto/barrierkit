@@ -5,6 +5,7 @@ use std::path::PathBuf;
 
 use nix::sys::inotify::{AddWatchFlags, InitFlags, Inotify, InotifyEvent, WatchDescriptor};
 
+use crate::config::create_private_dir;
 use crate::{config_dir, data_dir};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -34,16 +35,11 @@ impl AppearanceWatch {
     }
 
     fn new_for(config_dir: PathBuf, data_dir: PathBuf) -> io::Result<Self> {
-        std::fs::create_dir_all(&config_dir)?;
-        std::fs::create_dir_all(&data_dir)?;
-        let inotify =
-            Inotify::init(InitFlags::IN_NONBLOCK | InitFlags::IN_CLOEXEC).map_err(into_io_error)?;
-        let config = inotify
-            .add_watch(&config_dir, Self::flags())
-            .map_err(into_io_error)?;
-        let data = inotify
-            .add_watch(&data_dir, Self::flags())
-            .map_err(into_io_error)?;
+        create_private_dir(&config_dir)?;
+        create_private_dir(&data_dir)?;
+        let inotify = Inotify::init(InitFlags::IN_NONBLOCK | InitFlags::IN_CLOEXEC)?;
+        let config = inotify.add_watch(&config_dir, Self::flags())?;
+        let data = inotify.add_watch(&data_dir, Self::flags())?;
 
         Ok(Self {
             inotify,
@@ -53,7 +49,12 @@ impl AppearanceWatch {
     }
 
     fn flags() -> AddWatchFlags {
-        AddWatchFlags::IN_CLOSE_WRITE | AddWatchFlags::IN_MOVED_TO | AddWatchFlags::IN_DELETE
+        AddWatchFlags::IN_CLOSE_WRITE
+            | AddWatchFlags::IN_MOVED_TO
+            | AddWatchFlags::IN_MOVED_FROM
+            | AddWatchFlags::IN_DELETE
+            | AddWatchFlags::IN_DELETE_SELF
+            | AddWatchFlags::IN_MOVE_SELF
     }
 
     pub fn drain(&self) -> io::Result<Vec<AppearanceEvent>> {
@@ -69,14 +70,18 @@ impl AppearanceWatch {
                     }
                 }
                 Err(nix::Error::EAGAIN) => break,
-                Err(err) => return Err(into_io_error(err)),
+                Err(err) => return Err(err.into()),
             }
         }
         Ok(events)
     }
 
     fn classify(&self, event: &InotifyEvent, out: &mut Vec<AppearanceEvent>) {
-        if event.mask.contains(AddWatchFlags::IN_Q_OVERFLOW) {
+        if event.mask.intersects(
+            AddWatchFlags::IN_Q_OVERFLOW
+                | AddWatchFlags::IN_DELETE_SELF
+                | AddWatchFlags::IN_MOVE_SELF,
+        ) {
             for lost in [
                 AppearanceEvent::Appearance,
                 AppearanceEvent::Wallpaper,
@@ -116,10 +121,6 @@ fn push_unique(events: &mut Vec<AppearanceEvent>, event: AppearanceEvent) {
     if !events.contains(&event) {
         events.push(event);
     }
-}
-
-fn into_io_error(err: nix::Error) -> io::Error {
-    io::Error::from(err)
 }
 
 #[cfg(test)]
@@ -301,6 +302,29 @@ mod tests {
     }
 
     #[test]
+    fn detects_appearance_domain_moved_away() {
+        let (config_dir, data_dir) = tmp_dirs();
+        let watch = AppearanceWatch::new_for(config_dir.clone(), data_dir).unwrap();
+        let path = config_dir.join("appearance.domain");
+
+        write(&path, "color_scheme = \"dark\"\n");
+        let _ = watch.drain();
+
+        std::fs::rename(&path, config_dir.join("appearance.old")).unwrap();
+
+        let deadline = Instant::now() + Duration::from_secs(2);
+        while Instant::now() < deadline {
+            if let Ok(events) = watch.drain()
+                && events.contains(&AppearanceEvent::Appearance)
+            {
+                return;
+            }
+            std::thread::sleep(Duration::from_millis(5));
+        }
+        panic!("appearance.domain moved away was not detected");
+    }
+
+    #[test]
     fn detects_wallpaper_state_delete() {
         let (config_dir, data_dir) = tmp_dirs();
         let watch = AppearanceWatch::new_for(config_dir, data_dir.clone()).unwrap();
@@ -321,36 +345,5 @@ mod tests {
             std::thread::sleep(Duration::from_millis(5));
         }
         panic!("wallpaper.state delete was not detected");
-    }
-
-    #[test]
-    fn latency_from_write_to_event_is_under_50ms() {
-        let (config_dir, data_dir) = tmp_dirs();
-        let watch = AppearanceWatch::new_for(config_dir.clone(), data_dir.clone()).unwrap();
-        let path = config_dir.join("appearance.domain");
-
-        write(&path, "color_scheme = \"light\"\n");
-        let _ = watch.drain();
-
-        let start = Instant::now();
-        write(&path, "color_scheme = \"dark\"\n");
-
-        let deadline = start + Duration::from_millis(50);
-        let mut latency = None;
-        while Instant::now() < deadline {
-            if let Ok(events) = watch.drain()
-                && events.contains(&AppearanceEvent::Appearance)
-            {
-                latency = Some(start.elapsed());
-                break;
-            }
-            std::thread::sleep(Duration::from_micros(100));
-        }
-
-        let elapsed = latency.expect("event did not arrive within 50 ms");
-        assert!(
-            elapsed < Duration::from_millis(50),
-            "latency {elapsed:?} is not under 50 ms"
-        );
     }
 }

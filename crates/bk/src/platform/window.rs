@@ -646,6 +646,7 @@ impl Runtime {
             wallpaper_fade: None,
             parent: parent_id.filter(|_| utility),
             key_only_if_needed: panel && options.panel.key_only_if_needed,
+            modal: utility && options.modal,
         });
         self.surfaces.push(window);
         Some(controls)
@@ -750,7 +751,14 @@ impl Runtime {
 
 impl WindowHandler for Runtime {
     fn request_close(&mut self, _: &Connection, _: &QueueHandle<Self>, window: &Window) {
-        self.close_window(window.wl_surface().id());
+        // AppKit: only its own buttons dismiss a sheet; closed from outside, its parent stays dimmed.
+        let sheet = self
+            .surface_for(window.wl_surface())
+            .and_then(|index| self.surfaces[index].context.as_ref())
+            .is_some_and(|context| context.modal);
+        if !sheet {
+            self.close_window(window.wl_surface().id());
+        }
     }
 
     fn configure(

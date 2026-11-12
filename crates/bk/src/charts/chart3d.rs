@@ -109,8 +109,10 @@ impl Space {
                 let toward = project(*normal, self.camera.pose);
                 let facing = (toward[2] / length(toward).max(f64::EPSILON)).abs() as f32;
                 let height = ((vertex[1] + 1.0) / 2.0) as f32;
-                let Rgba { r, g, b, a } =
-                    shade(mix(self.low, self.high, height), 0.35 + 0.65 * facing);
+                let Rgba { r, g, b, a } = shade(
+                    mix(self.low, self.high, height),
+                    CHART.ambient_light + (1.0 - CHART.ambient_light) * facing,
+                );
                 let byte = |v: f32| (v.clamp(0.0, 1.0) * 255.0).round() as u8;
                 skia_safe::Color::from_argb(byte(a), byte(r), byte(g), byte(b))
             })
@@ -157,7 +159,7 @@ impl ElementExt for Space {
             area.center().x + self.camera.pan.0 as f32 * scale,
             area.center().y + self.camera.pan.1 as f32 * scale,
         );
-        let unit = f64::from(area.width().min(area.height())) * 0.32 * self.camera.zoom;
+        let unit = f64::from(area.width().min(area.height()) * CHART.box_scale) * self.camera.zoom;
         let screen =
             |[x, y, _]: [f64; 3]| Point::new(cx + (x * unit) as f32, cy - (y * unit) as f32);
 
@@ -203,8 +205,8 @@ impl ElementExt for Space {
                 let depths: Vec<f64> = projected.iter().map(|p| p.0[2]).collect();
                 for i in back_to_front(&depths) {
                     let (point, t) = projected[i];
-                    let radius =
-                        self.marks.point_size * scale / 2.0 * (1.0 + 0.2 * point[2] as f32);
+                    let radius = self.marks.point_size * scale / 2.0
+                        * (1.0 + CHART.depth_scale * point[2] as f32);
                     canvas.draw_circle(
                         screen(point),
                         radius,
@@ -239,11 +241,15 @@ impl Chart3D {
     }
 
     pub fn mesh(label: &'static str, vertices: &[[f64; 3]], triangles: Vec<[u32; 3]>) -> Self {
+        let vertices = fit(vertices);
         Self::new(
             label,
             Plot3D::Mesh {
-                vertices: fit(vertices),
-                triangles,
+                triangles: triangles
+                    .into_iter()
+                    .filter(|corners| corners.iter().all(|i| (*i as usize) < vertices.len()))
+                    .collect(),
+                vertices,
                 closed: true,
             },
         )
@@ -257,7 +263,7 @@ impl Chart3D {
         Self {
             label,
             plot,
-            height: CHART.height * 1.5,
+            height: CHART.height_3d,
             style: Theme::tengen(),
         }
     }

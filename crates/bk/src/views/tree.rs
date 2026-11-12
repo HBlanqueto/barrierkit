@@ -1,4 +1,5 @@
 use std::collections::HashSet;
+use std::rc::Rc;
 
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Direction, Gaps, Size};
@@ -164,7 +165,8 @@ impl Component for OutlineView {
         let mut selected = use_state(Vec::<Vec<usize>>::new);
         let held = use_held_modifiers();
         let rows = visible_rows(&self.nodes, &expanded.read());
-        let paths: Vec<Vec<usize>> = rows.iter().map(|(path, _)| path.clone()).collect();
+        let paths: Rc<Vec<Vec<usize>>> =
+            Rc::new(rows.iter().map(|(path, _)| path.clone()).collect());
         let items = rows
             .into_iter()
             .enumerate()

@@ -282,15 +282,6 @@ impl From<Image> for Element {
         let side = Size::px(style.size);
         match (image.source, image.rendering_mode) {
             (Source::System(glyph), _) => symbol(glyph, style.size, color).into_element(),
-            (source, TemplateRenderingMode::Template) => {
-                match template_image(&source, style.size, color) {
-                    Some(handle) => freya_core::elements::image::image(handle)
-                        .width(side.clone())
-                        .height(side)
-                        .into_element(),
-                    None => rect().width(side.clone()).height(side).into_element(),
-                }
-            }
             (Source::Data(bytes), TemplateRenderingMode::Original) if is_svg(&bytes) => {
                 SvgViewer::new(bytes)
                     .width(side.clone())
@@ -302,15 +293,16 @@ impl From<Image> for Element {
                 .width(side.clone())
                 .height(side)
                 .into_element(),
-            (source, TemplateRenderingMode::Original) => match raster(&source, 0) {
-                Some(raster) => {
-                    freya_core::elements::image::image(ImageHandle::new(raster, Bytes::new()))
+            (source, mode) => {
+                let tint = matches!(mode, TemplateRenderingMode::Template).then_some(color);
+                match cached_image(&source, style.size, tint) {
+                    Some(handle) => freya_core::elements::image::image(handle)
                         .width(side.clone())
                         .height(side)
-                        .into_element()
+                        .into_element(),
+                    None => rect().width(side.clone()).height(side).into_element(),
                 }
-                None => rect().width(side.clone()).height(side).into_element(),
-            },
+            }
         }
     }
 }
@@ -325,7 +317,7 @@ pub(crate) fn symbol(symbol: Symbol, size: f32, color: Rgba) -> SvgViewer {
 
 const TEMPLATE_CACHE_CAPACITY: usize = 256;
 
-type TemplateKey = (Bytes, u32, u32, [u32; 4]);
+type TemplateKey = (Bytes, u32, u32, Option<[u32; 4]>);
 
 thread_local! {
     static TEMPLATE_CACHE: RefCell<HashMap<TemplateKey, Option<ImageHandle>>> =
@@ -337,7 +329,7 @@ fn is_svg(bytes: &[u8]) -> bool {
     head.windows(4).any(|window| window == b"<svg")
 }
 
-fn template_image(source: &Source, size: f32, color: Rgba) -> Option<ImageHandle> {
+fn cached_image(source: &Source, size: f32, tint_color: Option<Rgba>) -> Option<ImageHandle> {
     let scale = *Platform::get().current_window().scale_factor.read() as f32;
     let side = (size * scale).round().max(1.0) as u32;
     let (bytes, width) = match source {
@@ -349,19 +341,22 @@ fn template_image(source: &Source, size: f32, color: Rgba) -> Option<ImageHandle
         bytes,
         width,
         side,
-        [color.r, color.g, color.b, color.a].map(f32::to_bits),
+        tint_color.map(|color| [color.r, color.g, color.b, color.a].map(f32::to_bits)),
     );
     TEMPLATE_CACHE.with(|cache| {
         if let Some(cached) = cache.borrow().get(&key) {
             return cached.clone();
         }
-        let tinted = raster(source, side).and_then(|raster| tint(&raster, side, color));
+        let image = raster(source, side).and_then(|raster| match tint_color {
+            Some(color) => tint(&raster, side, color),
+            None => Some(ImageHandle::new(raster, Bytes::new())),
+        });
         let mut cache = cache.borrow_mut();
         if cache.len() >= TEMPLATE_CACHE_CAPACITY {
             cache.clear();
         }
-        cache.insert(key, tinted.clone());
-        tinted
+        cache.insert(key, image.clone());
+        image
     })
 }
 

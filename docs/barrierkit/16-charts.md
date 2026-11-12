@@ -175,7 +175,7 @@ shape shows how each share changes.
 | `Chart3D::mesh(label, vertices, triangles)` | A closed model of `[x, y, z]` vertices and index triangles, fitted to the box with its proportions |
 | `Chart3D::points(label, points)` | A point cloud of `[x, y, z]` in box coordinates |
 
-`.height(px)` sets the height; default 1.5 × `CHART.height`. Colors go from the
+`.height(px)` sets the height; default `CHART.height_3d`. Colors go from the
 first series color (low) to the third (high) along y. A mesh is drawn on the
 GPU in a single call (ADR 0060).
 
@@ -213,6 +213,9 @@ Every value is in `components.chart` of `ctdesign` (`CHART`):
 | `heat-gap` / `heat-radius` | 2 / 3 | Heat map cell gap and corner |
 | `stream-hole` | 0.32 | Center hole of the flow clock |
 | `hover-opacity` | 0.12 | Highlight of the hovered row of horizontal bars |
+| `guide-rings` | 3 | Guide rings of the flow clock |
+| `height-3d` / `box-scale` | 270 / 0.32 | Default `Chart3D` height; box edge as a share of the smaller side |
+| `ambient-light` / `depth-scale` | 0.35 / 0.2 | Light a mesh face keeps when it faces away; point growth toward the camera |
 | `azimuth` / `inclination` | −30° / 25° | First `Chart3D` pose |
 | `drag-degrees` | 0.5 | Degrees per point when orbiting |
 | `zoom-min` / `zoom-max` / `wheel-zoom` | 0.4 / 4 / 0.01 | Zoom limits and rate per wheel point |

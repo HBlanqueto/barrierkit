@@ -273,12 +273,13 @@ const TIME_STEPS: [f64; 15] = [
     21600.0,
 ];
 
-pub fn time_ticks(span: f64, desired: usize) -> Vec<f64> {
+pub fn time_ticks(newest: f64, oldest: f64, desired: usize) -> Vec<f64> {
+    let (span, desired) = (oldest - newest, desired.max(1) as f64);
     let step = TIME_STEPS
         .into_iter()
-        .find(|step| span / step <= desired.max(1) as f64)
-        .unwrap_or(86400.0);
-    (0..=(span / step).floor() as usize)
+        .find(|step| span / step <= desired)
+        .unwrap_or_else(|| 86400.0 * (span / 86400.0 / desired).ceil());
+    ((newest / step).ceil() as usize..=(oldest / step).floor() as usize)
         .map(|i| i as f64 * step)
         .collect()
 }
@@ -411,11 +412,24 @@ mod tests {
 
     #[test]
     fn a_minute_of_history_gets_ticks_every_fifteen_seconds() {
-        assert_eq!(time_ticks(59.0, 5), vec![0.0, 15.0, 30.0, 45.0]);
+        assert_eq!(time_ticks(0.0, 59.0, 5), vec![0.0, 15.0, 30.0, 45.0]);
         assert_eq!(
-            time_ticks(3600.0, 5),
+            time_ticks(0.0, 3600.0, 5),
             vec![0.0, 900.0, 1800.0, 2700.0, 3600.0]
         );
+    }
+
+    #[test]
+    fn a_zoomed_minute_of_old_history_keeps_its_own_ticks() {
+        assert_eq!(
+            time_ticks(3540.0, 3600.0, 5),
+            vec![3540.0, 3555.0, 3570.0, 3585.0, 3600.0]
+        );
+    }
+
+    #[test]
+    fn a_year_of_history_gets_no_more_ticks_than_asked() {
+        assert_eq!(time_ticks(0.0, 365.0 * 86400.0, 5).len(), 6);
     }
 
     #[test]

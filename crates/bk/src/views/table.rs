@@ -152,6 +152,10 @@ impl Component for Table {
         let mut widths = use_state(|| vec![None::<f32>; self.columns.len()]);
         let mut measured = use_state(|| vec![0.0f32; self.columns.len()]);
         let mut drag = use_state(|| None::<(usize, f64, f32)>);
+        if widths.peek().len() != self.columns.len() {
+            widths.write().resize(self.columns.len(), None);
+            measured.write().resize(self.columns.len(), 0.0);
+        }
         let shown = shown_columns(&hidden.read(), self.columns.len());
         let width_of = move |column: usize| widths.read().get(column).copied().flatten();
 

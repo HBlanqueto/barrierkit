@@ -1,8 +1,7 @@
 use ctdesign::{BODY, Font, TEXT_FIELD};
 
-use super::{
-    ColorEffect, ControlStyle, CornerStyle, Role, Shape, ShapeStyle, StateValue, system_effect,
-};
+use super::button::rounded;
+use super::{ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, system_effect};
 
 /// Freya's `Input` draws `TextField` and `SearchField`. It paints one color per
 /// part: a `Gradient` gives its first stop, `Backdrop` the first backdrop color
@@ -41,10 +40,7 @@ pub struct TextFieldStyle {
 }
 
 pub(super) fn field_shape() -> Shape {
-    Shape::RoundedRectangle {
-        radius: TEXT_FIELD.radius,
-        style: CornerStyle::Circular,
-    }
+    rounded(TEXT_FIELD.radius)
 }
 
 impl ControlStyle for TextFieldStyle {

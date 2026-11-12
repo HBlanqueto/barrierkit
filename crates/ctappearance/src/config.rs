@@ -100,6 +100,31 @@ where
     }))
 }
 
+fn stepped<'de, D: Deserializer<'de>>(deserializer: D, steps: &[f32]) -> Result<f32, D::Error> {
+    let value = f32::deserialize(deserializer)?;
+    Ok(value.max(steps[0]).min(steps[steps.len() - 1]))
+}
+
+fn display_contrast<'de, D: Deserializer<'de>>(deserializer: D) -> Result<f32, D::Error> {
+    stepped(deserializer, &DISPLAY_CONTRAST)
+}
+
+fn text_size<'de, D: Deserializer<'de>>(deserializer: D) -> Result<f32, D::Error> {
+    stepped(deserializer, &TEXT_SIZES)
+}
+
+fn toolkit_text_size<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Option<f32>, D::Error> {
+    text_size(deserializer).map(Some)
+}
+
+fn pointer_size<'de, D: Deserializer<'de>>(deserializer: D) -> Result<f32, D::Error> {
+    stepped(deserializer, &POINTER_SIZES)
+}
+
+fn color_filter_intensity<'de, D: Deserializer<'de>>(deserializer: D) -> Result<f32, D::Error> {
+    stepped(deserializer, &COLOR_FILTER_INTENSITY)
+}
+
 fn deserialize_tint_parts<'de, D>(deserializer: D) -> Result<TintParts, D::Error>
 where
     D: Deserializer<'de>,
@@ -243,11 +268,20 @@ pub enum Toolkit {
 #[derive(Debug, Clone, Copy, PartialEq, Default, Deserialize, Serialize)]
 #[serde(default)]
 pub struct TextSizes {
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(
+        deserialize_with = "toolkit_text_size",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub barrierkit: Option<f32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(
+        deserialize_with = "toolkit_text_size",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub gtk: Option<f32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(
+        deserialize_with = "toolkit_text_size",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub qt: Option<f32>,
 }
 
@@ -295,16 +329,20 @@ pub struct AppearanceConfig {
     pub invert_colors: bool,
     pub show_borders: bool,
     pub differentiate_without_color: bool,
+    #[serde(deserialize_with = "display_contrast")]
     pub display_contrast: f32,
+    #[serde(deserialize_with = "text_size")]
     pub text_size: f32,
     pub text_sizes: TextSizes,
     #[serde(deserialize_with = "lenient")]
     pub menu_bar_size: MenuBarSize,
     pub shake_to_locate: bool,
+    #[serde(deserialize_with = "pointer_size")]
     pub pointer_size: f32,
     pub color_filters: bool,
     #[serde(deserialize_with = "lenient")]
     pub color_filter: ColorFilter,
+    #[serde(deserialize_with = "color_filter_intensity")]
     pub color_filter_intensity: f32,
     #[serde(deserialize_with = "lenient")]
     pub blur_behind: BlurBehind,
@@ -424,7 +462,10 @@ const RETIRED_KEYS: [&str; 3] = [
 
 pub fn write_appearance(path: &Path, config: &AppearanceConfig) -> std::io::Result<()> {
     let parsed = match std::fs::read_to_string(path) {
-        Ok(text) => text.parse::<toml_edit::DocumentMut>().ok(),
+        Ok(text) => text
+            .parse::<toml_edit::DocumentMut>()
+            .ok()
+            .filter(|_| toml::from_str::<AppearanceConfig>(&text).is_ok()),
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
             Some(toml_edit::DocumentMut::new())
         }
@@ -461,9 +502,15 @@ pub fn write_appearance(path: &Path, config: &AppearanceConfig) -> std::io::Resu
     replace_file(path, &doc.to_string())
 }
 
-pub(crate) fn replace_file(path: &Path, text: &str) -> std::io::Result<()> {
+// XDG Base Directory Specification: a missing directory is created with permission 0700.
+pub(crate) fn create_private_dir(dir: &Path) -> std::io::Result<()> {
+    std::os::unix::fs::DirBuilderExt::mode(std::fs::DirBuilder::new().recursive(true), 0o700)
+        .create(dir)
+}
+
+pub fn replace_file(path: &Path, text: &str) -> std::io::Result<()> {
     if let Some(parent) = path.parent() {
-        std::fs::create_dir_all(parent)?;
+        create_private_dir(parent)?;
     }
     static TEMPORARY: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
     let mut tmp = path.as_os_str().to_owned();
@@ -532,7 +579,13 @@ fn warn_legacy_traffic_light_name(text: &str) {
 }
 
 pub fn load_appearance() -> AppearanceConfig {
-    read_appearance().ok().flatten().unwrap_or_default()
+    match read_appearance() {
+        Ok(config) => config.unwrap_or_default(),
+        Err(error) => {
+            tracing::warn!(%error, "invalid appearance domain; using defaults");
+            AppearanceConfig::default()
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
@@ -736,6 +789,37 @@ traffic_lights = "auto"
         let read = read_appearance_from(&path).unwrap().unwrap();
         assert_eq!(read.color_scheme, ColorScheme::Dark);
         std::fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn write_appearance_backs_up_a_domain_with_a_wrongly_typed_value() {
+        let dir =
+            std::env::temp_dir().join(format!("ctappearance-mistyped-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("appearance.domain");
+        let original = "contrast = true\ntext_size = \"1.15\"\n";
+        std::fs::write(&path, original).unwrap();
+
+        write_appearance(&path, &AppearanceConfig::default()).unwrap();
+
+        let backup = dir.join("appearance.domain.bak");
+        assert_eq!(std::fs::read(&backup).unwrap(), original.as_bytes());
+        std::fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn a_size_outside_its_steps_stops_at_the_nearest_one_and_nan_at_the_first() {
+        let config: AppearanceConfig = toml::from_str(
+            "display_contrast = 0.0\ntext_size = nan\npointer_size = 9.0\n\
+             color_filter_intensity = -inf\n[text_sizes]\ngtk = 40.0\n",
+        )
+        .unwrap();
+        assert_eq!(config.display_contrast, DISPLAY_CONTRAST[0]);
+        assert_eq!(config.text_size, TEXT_SIZES[0]);
+        assert_eq!(config.pointer_size, POINTER_SIZES[6]);
+        assert_eq!(config.color_filter_intensity, COLOR_FILTER_INTENSITY[0]);
+        assert_eq!(config.text_sizes.gtk, Some(TEXT_SIZES[5]));
+        assert_eq!(config.text_sizes.qt, None);
     }
 
     #[test]
