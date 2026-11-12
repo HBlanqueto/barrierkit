@@ -15,10 +15,8 @@ pub struct SearchLocation {
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct SearchableEntry {
-    pub path: String,
     pub item: MenuItem,
     pub location: Option<SearchLocation>,
-    pub source: SearchSource,
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -107,7 +105,6 @@ pub enum MenuItem {
         placeholder: String,
     },
     SearchResult {
-        path: String,
         item: Box<MenuItem>,
         source: SearchSource,
         location: Option<SearchLocation>,

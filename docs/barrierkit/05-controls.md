@@ -394,7 +394,7 @@ spell checking are in [6](06-text-and-editing.md#edit-menu).
 
 | Item | Module | Build | Options |
 |---|---|---|---|
-| `TextField` | `controls` | `TextField::new(value, placeholder)` | `.width(Size)` (fill), `.auto_focus(bool)`, `.style(\|s\| ..)`, `.on_submit(\|text: String\| ..)` |
+| `TextField` | `controls` | `TextField::new(value, placeholder)` | `.width(Size)` (fill), `.auto_focus(bool)`, `.autocorrection_disabled(bool)`, `.style(\|s\| ..)`, `.on_submit(\|text: String\| ..)` |
 | `SearchField` | `controls` | `SearchField::new(value, placeholder)` | `.width`, `.auto_focus`, `.style`, `.tokens(State<Vec<String>>)`, `.a11y_id(AccessibilityId)`, `.on_focus_change(\|focused: bool\| ..)`, `.on_navigate(\|key: NamedKey\| ..)` |
 | `SecureField` | `controls` | `SecureField::new(State<PasswordField>, label)` | `.width`, `.auto_focus`, `.revealed(bool)` (shows the text, for «Show password»), `.style`, `.on_submit(\|secret: Zeroizing<String>\| ..)` |
 | `ComboBox` | `combo_box` | `ComboBox::new(value, placeholder)` | `.item(text)`, `.width(Size)`, `.style(\|s\| ..)` |
@@ -402,6 +402,8 @@ spell checking are in [6](06-text-and-editing.md#edit-menu).
 - All are 24 tall with a 6 side padding. `SecureField` draws the focus ring; the others turn
   their border to the accent while focused.
 - `auto_focus(true)` takes the focus when the field mounts.
+- `autocorrection_disabled(true)` turns [spell checking](06-text-and-editing.md#spelling) off,
+  for text that is not prose, such as a network name.
 - `SearchField` shows a clear button while it has text. `on_navigate` receives ↑, ↓ and Enter
   so a result list can follow the keys. `tokens` shows capsules before the text, like the
   filters in Finder; Backspace on an empty field removes the last one.

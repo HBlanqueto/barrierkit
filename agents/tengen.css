@@ -317,6 +317,8 @@
   --bk-window-default-height: 420;
   --bk-window-resize-edge: 5;
   --bk-window-resize-corner: 16;
+  --bk-window-client-resize-edge: 6;
+  --bk-window-client-resize-corner: 12;
   --bk-window-corner-titlebar: var(--bk-radius-lg);
   --bk-window-corner-unified-compact: 20;
   --bk-window-corner-unified: 26;
@@ -712,6 +714,10 @@
   --bk-shell-menubar-title-open-radius: 10;
   --bk-shell-menubar-title-open-height: 24;
   --bk-shell-menubar-title-open-bleed: 3;
+  --bk-shell-menubar-battery-icon: 24 12;
+  --bk-shell-menubar-battery-icon-0: 24;
+  --bk-shell-menubar-battery-icon-1: 12;
+  --bk-shell-menubar-battery-low: 20;
   --bk-shell-dock-tilesize: 48;
   --bk-shell-dock-tilesize-min: 16;
   --bk-shell-dock-tilesize-max: 128;
@@ -764,6 +770,15 @@
   --bk-shell-about-app-width: 260;
   --bk-shell-about-app-height: 250;
   --bk-shell-about-app-icon: 64;
+  --bk-shell-confirm-width: 280;
+  --bk-shell-confirm-height: 250;
+  --bk-shell-confirm-button-gap: 10;
+  --bk-shell-confirm-icon: 64;
+  --bk-shell-confirm-glyph: 34;
+  --bk-shell-force-quit-width: 420;
+  --bk-shell-force-quit-height: 400;
+  --bk-shell-force-quit-row-height: 32;
+  --bk-shell-force-quit-icon: 22;
   --bk-shell-lock-clock-font-size: 140;
   --bk-shell-lock-date-font-size: 28;
   --bk-shell-lock-top-percent: 9;
@@ -877,6 +892,12 @@
   --bk-cursor-shake-grow-ms: 180;
   --bk-cursor-shake-shrink-ms: 220;
   --bk-cursor-shake-tick-ms: 16;
+  --bk-cursor-shake-min-dx: 2.0;
+  --bk-cursor-shake-min-swing: 24.0;
+  --bk-cursor-shake-max-swing-ms: 300;
+  --bk-cursor-shake-max-total-ms: 1000;
+  --bk-cursor-shake-reversals: 3;
+  --bk-cursor-shake-active-ms: 150;
   --bk-background-blur-passes: 3;
   --bk-background-blur-offset: 3.0;
   --bk-screenshot-dim: #00000059;

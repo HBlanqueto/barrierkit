@@ -121,7 +121,6 @@ pub(super) fn visible_items(
             .take(MenuView::MAX_MENU_ROWS)
         {
             out.push(MenuItem::SearchResult {
-                path: entry.path.clone(),
                 item: Box::new(entry.item.clone()),
                 source: SearchSource::Menu,
                 location: entry.location.clone(),
@@ -140,7 +139,6 @@ pub(super) fn visible_items(
             .take(MenuView::MAX_HELP_ROWS)
         {
             out.push(MenuItem::SearchResult {
-                path: entry.path.clone(),
                 item: Box::new(entry.item.clone()),
                 source: SearchSource::Help,
                 location: None,

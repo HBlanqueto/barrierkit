@@ -189,7 +189,6 @@ impl WallpaperSelection {
     }
 
     pub fn set_source(&mut self, desktop: Option<u32>, source: Option<WallpaperSource>) {
-        let key = desktop_key(desktop);
         if desktop.is_none() {
             self.desktops.retain(|key, _| key == ALL_DESKTOPS);
             self.scales.clear();
@@ -197,6 +196,29 @@ impl WallpaperSelection {
             self.appearance.retain(|key, _| key == ALL_DESKTOPS);
             self.paused.retain(|key| key == ALL_DESKTOPS);
         }
+        self.set_entry(desktop, source);
+    }
+
+    pub fn replace_source(&mut self, old: &WallpaperSource, new: Option<&WallpaperSource>) {
+        let old = old.value();
+        let using: Vec<String> = self
+            .desktops
+            .iter()
+            .filter(|(_, source)| **source == old)
+            .map(|(key, _)| key.clone())
+            .collect();
+        for key in using {
+            match new {
+                Some(new) => {
+                    self.desktops.insert(key, new.value());
+                }
+                None => self.set_entry(key.parse().ok(), None),
+            }
+        }
+    }
+
+    fn set_entry(&mut self, desktop: Option<u32>, source: Option<WallpaperSource>) {
+        let key = desktop_key(desktop);
         match source {
             Some(source) => {
                 self.desktops.insert(key.clone(), source.value());
@@ -638,6 +660,31 @@ mod tests {
         assert!(!selection.has_own(2));
         assert!(selection.crop.is_empty());
         assert_eq!(selection.source(Some(2)), Some(bandura()));
+    }
+
+    #[test]
+    fn replacing_a_source_rewrites_only_the_desktops_that_show_it() {
+        let collection = |name: &str| WallpaperSource::ShuffleCollection(name.to_owned());
+        let mut selection = WallpaperSelection::default();
+        selection.set_source(None, Some(collection("Trips")));
+        selection.set_source(Some(2), Some(bandura()));
+        selection.set_crop(Some(2), None, [0.0, 0.0, 0.5, 0.5]);
+        selection.set_source(Some(3), Some(collection("Trips")));
+        selection.set_paused(Some(3), true);
+
+        selection.replace_source(&collection("Trips"), Some(&collection("Travel")));
+        assert_eq!(selection.source(None), Some(collection("Travel")));
+        assert_eq!(selection.source(Some(3)), Some(collection("Travel")));
+        assert!(selection.paused_for(Some(3)));
+
+        selection.replace_source(&collection("Travel"), None);
+        assert_eq!(selection.source(None), None);
+        assert!(!selection.has_own(3));
+        assert_eq!(selection.source(Some(2)), Some(bandura()));
+        assert_eq!(
+            selection.crop_for(Some(2), "DP-1"),
+            Some([0.0, 0.0, 0.5, 0.5])
+        );
     }
 
     #[test]

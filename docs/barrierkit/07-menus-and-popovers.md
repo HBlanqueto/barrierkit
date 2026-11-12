@@ -229,10 +229,8 @@ menu on macOS does. The Malaysia menu bar uses it; most apps do not need it.
 
    | Field | What it is |
    |---|---|
-   | `path` | The menu path shown with the result |
    | `item` | The `MenuItem` the result activates |
    | `location` | `Some(SearchLocation { title_index, indices })`: the top menu and the row indices that lead to the item, or `None` |
-   | `source` | `SearchSource::Menu` or `SearchSource::Help` |
 
 2. `.with_help_topics(f)` adds a second list of entries, shown under a "Help
    Topics" header.

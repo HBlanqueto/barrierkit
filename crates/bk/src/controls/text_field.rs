@@ -124,6 +124,7 @@ pub struct TextField {
     placeholder: &'static str,
     width: Size,
     auto_focus: bool,
+    autocorrection_disabled: bool,
     on_submit: Option<Callback<String, ()>>,
     style: Theme,
     key: DiffKey,
@@ -136,10 +137,16 @@ impl TextField {
             placeholder,
             width: Size::fill(),
             auto_focus: false,
+            autocorrection_disabled: false,
             on_submit: None,
             style: Theme::tengen(),
             key: DiffKey::None,
         }
+    }
+
+    pub fn autocorrection_disabled(mut self, disabled: bool) -> Self {
+        self.autocorrection_disabled = disabled;
+        self
     }
 
     pub fn on_submit(mut self, callback: impl Into<Callback<String, ()>>) -> Self {
@@ -212,7 +219,10 @@ impl Component for TextField {
         let left = text_left.clone();
         let value = self.value;
         let text = value.read().clone();
-        let ranges = dictionary()
+        let checked = !self.autocorrection_disabled;
+        let ranges = checked
+            .then(dictionary)
+            .flatten()
             .map(|dictionary| {
                 misspelled(&text, |word| known(dictionary, word))
                     .iter()
@@ -228,7 +238,7 @@ impl Component for TextField {
             field,
             true,
             (true, true),
-            Some(Spelling {
+            checked.then_some(Spelling {
                 value,
                 index,
                 styles: None,

@@ -16,6 +16,8 @@ PANEL_GLOW_DEPTH f32 size.panel-glow-depth
 TITLEBAR_DOUBLE_CLICK DoubleClick components.window.titlebar.double-click
 WINDOW_CORNER WindowCorner components.window.corner
 WINDOW_RESIZE WindowResize components.window edge=resize-edge corner=resize-corner
+WINDOW_CLIENT_RESIZE WindowResize components.window edge=client-resize-edge
+    corner=client-resize-corner
 DIALOG WindowStyle components.dialog corner_radius=radius superellipse_exponent=components.window.corner.exponent
 DIALOG_PADDING f32 components.dialog.padding
 DIALOG_ALERT_WIDTH f32 components.dialog.alert-width
@@ -148,6 +150,7 @@ MENUBAR_TEXT_LIFT f32 components.shell.menubar.text-lift
 MENUBAR_TITLE_MAX_WIDTH f32 components.shell.menubar.title-max-width
 MENUBAR_SYSTEM_MENU_MIN_WIDTH f32 components.shell.menubar.system-menu-min-width
 MENUBAR_TITLE_BLEED f32 components.shell.menubar.title-open.bleed
+MENUBAR_BATTERY_LOW f64 components.shell.menubar.battery.low
 DOCK_TILESIZE i32 components.shell.dock.tilesize
 DOCK_TILESIZE_MIN i32 components.shell.dock.tilesize-min
 DOCK_TILESIZE_MAX i32 components.shell.dock.tilesize-max
@@ -197,6 +200,15 @@ ABOUT_FOOTER_BOTTOM f32 components.shell.about.footer-bottom
 ABOUT_APP_WIDTH u32 components.shell.about-app.width
 ABOUT_APP_HEIGHT u32 components.shell.about-app.height
 ABOUT_APP_ICON f32 components.shell.about-app.icon
+CONFIRM_WIDTH u32 components.shell.confirm.width
+CONFIRM_HEIGHT u32 components.shell.confirm.height
+CONFIRM_BUTTON_GAP f32 components.shell.confirm.button-gap
+CONFIRM_ICON f32 components.shell.confirm.icon
+CONFIRM_GLYPH f32 components.shell.confirm.glyph
+FORCE_QUIT_WIDTH u32 components.shell.force-quit.width
+FORCE_QUIT_HEIGHT u32 components.shell.force-quit.height
+FORCE_QUIT_ROW_HEIGHT f32 components.shell.force-quit.row-height
+FORCE_QUIT_ICON f32 components.shell.force-quit.icon
 LOCK_CLOCK_FONT_SIZE f32 components.shell.lock.clock-font-size
 LOCK_DATE_FONT_SIZE f32 components.shell.lock.date-font-size
 LOCK_TOP_PERCENT f32 components.shell.lock.top-percent
@@ -265,6 +277,12 @@ CURSOR_SHAKE_SCALE f32 components.cursor-shake.scale
 CURSOR_SHAKE_GROW_MS u64 components.cursor-shake.grow-ms
 CURSOR_SHAKE_SHRINK_MS u64 components.cursor-shake.shrink-ms
 CURSOR_SHAKE_TICK_MS u64 components.cursor-shake.tick-ms
+CURSOR_SHAKE_MIN_DX f64 components.cursor-shake.min-dx
+CURSOR_SHAKE_MIN_SWING f64 components.cursor-shake.min-swing
+CURSOR_SHAKE_MAX_SWING_MS u64 components.cursor-shake.max-swing-ms
+CURSOR_SHAKE_MAX_TOTAL_MS u64 components.cursor-shake.max-total-ms
+CURSOR_SHAKE_REVERSALS u32 components.cursor-shake.reversals
+CURSOR_SHAKE_ACTIVE_MS u64 components.cursor-shake.active-ms
 BACKGROUND_BLUR_PASSES u32 components.background-blur.passes
 BACKGROUND_BLUR_OFFSET f32 components.background-blur.offset
 SCREENSHOT_BORDER_WIDTH i32 components.screenshot.border-width
@@ -299,6 +317,7 @@ WALLPAPER_FRAME u32 components.wallpaper.frame
 SPACE_SLIDE_EASE [f32;4] components.spaces.slide-ease
 DOMINANT_LIGHTNESS [f32;2] appearance.dominant.lightness
 MENU_SEARCH_ICON [f32;2] components.shell.menu.search.icon
+MENUBAR_BATTERY_ICON [f32;2] components.shell.menubar.battery.icon
 ";
 
 const THEMED: &str = r"

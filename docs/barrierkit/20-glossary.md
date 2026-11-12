@@ -371,6 +371,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `ctappearance::read_wallpaper_selection` | fn | — | — | Reads the selection; the default without a file, `Err` on bad TOML | [4](04-appearance-and-tokens.md#the-wallpaper-files) |
 | `ctappearance::write_wallpaper_selection` | fn | — | — | Writes the selection atomically | [4](04-appearance-and-tokens.md#the-wallpaper-files) |
 | `ctappearance::WallpaperSelection` | struct | — | ≈ `NSWorkspace.desktopImageURL(for:)` and its options | `wallpaper-selection.state`: sources, scales, crops, dynamic appearances and paused animations per desktop and output, and `shuffle` | [4](04-appearance-and-tokens.md#the-wallpaper-files) |
+| `ctappearance::WallpaperSelection::replace_source` | method | — | — | Rewrites the desktops that show one source, or takes it from them, and leaves the others | [4](04-appearance-and-tokens.md#the-wallpaper-files) |
 | `ctappearance::WallpaperSelection::show_on_all_desktops` | method | — | ≈ «Show on all Spaces» | Makes a desktop's wallpaper, framing, appearance and pause the shared ones | [4](04-appearance-and-tokens.md#the-wallpaper-files) |
 | `ctappearance::WallpaperScale` | enum | — | ≈ `NSImageScaling` | `Fill`, `Fit`, `Stretch`, `Center`, `Custom` | [4](04-appearance-and-tokens.md#the-wallpaper-files) |
 | `ctappearance::ALL_DESKTOPS` | constant | — | — | Key `"default"`: the wallpaper and crop of every desktop | [4](04-appearance-and-tokens.md#the-wallpaper-files) |
@@ -589,6 +590,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `ctdesign::TOOLGROUP_BG_LIGHT`, `TOOLGROUP_BG_LIGHT_OPAQUE`, `TOOLGROUP_BG_DARK`, `TOOLGROUP_BG_DARK_OPAQUE`, `TOOLGROUP_BG_DARK_TINT`, `TOOLGROUP_BG_DARK_TINT_OPAQUE`, `TOOLGROUP_PALETTE_LIGHT`, `TOOLGROUP_PALETTE_DARK`, `TOOLGROUP_PALETTE_DARK_TINT` | constant | — | — | Toolbar group background and lines per theme | [4](04-appearance-and-tokens.md#colors) |
 | `ctdesign::WINDOW_MIN_SIZE`, `WINDOW_DEFAULT_SIZE` | constant | ≈ `.defaultSize(_:)` | ≈ `NSWindow.minSize` | Minimum and default window size: 480 × 360, 640 × 420 | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
 | `ctdesign::WINDOW_CORNER`, `WINDOW_RESIZE` | constant | — | — | Window corner shape; resize band widths | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
+| `ctdesign::WINDOW_CLIENT_RESIZE` | constant | — | — | Compositor: resize band widths around a window that decorates itself | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
 | `ctdesign::DIALOG`, `DIALOG_PADDING`, `DIALOG_ALERT_WIDTH`, `POPUP`, `PANEL_GLOW_DEPTH` | constant | — | — | Dialog and pop-up corners, dialog padding, alert width, panel glow depth | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
 | `ctdesign::SHADOW`, `SHADOW_DARK` | constant | — | ≈ `NSShadow` | Window shadows in light and dark | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
 | `ctdesign::NATIVE_APP_ID_PREFIX`, `ALERT_LAYER_NAMESPACE`, `NOTIFICATIONS_LAYER_NAMESPACE`, `MENUBAR_LAYER_NAMESPACE`, `WALLPAPER_LAYER_NAMESPACE` | constant | — | — | App id prefix of kit apps; layer namespaces of shell alerts, notifications, the menu bar and the wallpaper | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
@@ -610,7 +612,11 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `ctdesign::LOCK_FADE_MS`, `LOCK_SETTLE_MS`, `LOCK_RISE_MS`, `LOCK_RISE_OFFSET`, `LOCK_LOGIN_MS` | constant | — | — | Timing of the transition from the desktop to the lock screen | [4](04-appearance-and-tokens.md#shell) |
 | `ctdesign::ABOUT_WIDTH`, `ABOUT_HEIGHT`, `ABOUT_DRAWING_TOP`, `ABOUT_DRAWING_WIDTH`, `ABOUT_DRAWING_HEIGHT`, `ABOUT_TITLE_GAP`, `ABOUT_TITLE_SIZE`, `ABOUT_SPECS_GAP`, `ABOUT_SPEC_ROW_GAP`, `ABOUT_COLUMN_GAP`, `ABOUT_VALUE_WIDTH`, `ABOUT_BUTTON_GAP`, `ABOUT_FOOTER_BOTTOM` | constant | — | — | Sizes of the shell's «About this computer» window | [4](04-appearance-and-tokens.md#shell) |
 | `ctdesign::ABOUT_APP_WIDTH`, `ABOUT_APP_HEIGHT`, `ABOUT_APP_ICON` | constant | — | — | Size of the shell's «About ‹app›» window and of its icon | [4](04-appearance-and-tokens.md#shell) |
+| `ctdesign::CONFIRM_WIDTH`, `CONFIRM_HEIGHT`, `CONFIRM_BUTTON_GAP`, `CONFIRM_ICON`, `CONFIRM_GLYPH` | constant | — | — | Sizes of the shell's restart, shut down and log out confirmation | [4](04-appearance-and-tokens.md#shell) |
+| `ctdesign::FORCE_QUIT_WIDTH`, `FORCE_QUIT_HEIGHT`, `FORCE_QUIT_ROW_HEIGHT`, `FORCE_QUIT_ICON` | constant | — | — | Sizes of the shell's «Force Quit» window | [4](04-appearance-and-tokens.md#shell) |
+| `ctdesign::MENUBAR_BATTERY_ICON`, `MENUBAR_BATTERY_LOW` | constant | — | — | Size of the menu bar battery and the percentage from which it is red | [4](04-appearance-and-tokens.md#shell) |
 | `ctdesign::CURSOR_SHAKE_SCALE`, `CURSOR_SHAKE_GROW_MS`, `CURSOR_SHAKE_SHRINK_MS`, `CURSOR_SHAKE_TICK_MS` | constant | — | — | Compositor: cursor growth when the pointer is shaken | [4](04-appearance-and-tokens.md#compositor) |
+| `ctdesign::CURSOR_SHAKE_MIN_DX`, `CURSOR_SHAKE_MIN_SWING`, `CURSOR_SHAKE_MAX_SWING_MS`, `CURSOR_SHAKE_MAX_TOTAL_MS`, `CURSOR_SHAKE_REVERSALS`, `CURSOR_SHAKE_ACTIVE_MS` | constant | — | — | Compositor: the distances, times and reversals that count as a shake | [4](04-appearance-and-tokens.md#compositor) |
 | `ctdesign::BACKGROUND_BLUR_PASSES`, `BACKGROUND_BLUR_OFFSET` | constant | — | ≈ `NSVisualEffectView` blur | Compositor: background blur strength (malaysia ADR 0071) | [4](04-appearance-and-tokens.md#compositor) |
 | `ctdesign::SCREENSHOT_DIM`, `SCREENSHOT_IDLE_DIM`, `SCREENSHOT_BORDER`, `SCREENSHOT_BORDER_WIDTH` | constant | — | — | Compositor: screenshot selection overlay | [4](04-appearance-and-tokens.md#compositor) |
 | `ctdesign::SPACE_GAP`, `SPACE_GAP_COLOR`, `SPACE_SLIDE_MS`, `SPACE_SLIDE_EASE` | constant | — | — | Compositor: gap and slide between Spaces | [4](04-appearance-and-tokens.md#compositor) |
@@ -676,6 +682,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
 |---|---|---|---|---|---|
 | `controls::TextField` | struct | `TextField` | `NSTextField` | One-line field bound to a `State<String>`, with spell checking | [5](05-controls.md#text-fields) |
+| `controls::TextField::autocorrection_disabled` | method | `.autocorrectionDisabled(_:)` | `NSTextView.isContinuousSpellCheckingEnabled` | Turns spell checking off for names and codes | [5](05-controls.md#text-fields) |
 | `controls::TextField::on_submit` | method | `.onSubmit(_:)` | `NSTextField.action` | Runs when the user presses Enter, with the text | [5](05-controls.md#text-fields) |
 | `controls::SearchField` | struct | `≈ .searchable(text:tokens:placement:prompt:token:)` | `NSSearchField` | Search field with clear button and optional tokens | [5](05-controls.md#text-fields) |
 | `controls::SecureField` | struct | `SecureField` | `NSSecureTextField` | Masked password field; Enter submits the secret | [5](05-controls.md#text-fields) |
@@ -799,8 +806,8 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 
 | BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
 |---|---|---|---|---|---|
-| `menu::SearchableEntry` | struct | — | `≈ NSUserInterfaceItemSearching` | One findable item: path, item, location and source | [7](07-menus-and-popovers.md#search) |
-| `menu::SearchSource` | enum | — | — | Where a search entry comes from: `Menu` or `Help` | [7](07-menus-and-popovers.md#search) |
+| `menu::SearchableEntry` | struct | — | `≈ NSUserInterfaceItemSearching` | One findable item: its `MenuItem` and its location | [7](07-menus-and-popovers.md#search) |
+| `menu::SearchSource` | enum | — | — | The section of a `SearchResult` row: `Menu` or `Help` | [7](07-menus-and-popovers.md#search) |
 | `menu::SearchLocation` | struct | — | — | Top menu index and row indices that lead to a found item | [7](07-menus-and-popovers.md#search) |
 | `menu::SearchQuery` | struct | — | — | Search text and whether it is selected, shared between menu rebuilds | [7](07-menus-and-popovers.md#search) |
 | `menu::SearchableSource` | type | — | — | Closure that returns the searchable entries | [7](07-menus-and-popovers.md#search) |

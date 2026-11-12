@@ -614,7 +614,6 @@ fn a_checked_row_with_an_icon_keeps_the_mark_and_adds_the_icon_column() {
 
 fn searchable(label: &str, enabled: bool) -> SearchableEntry {
     SearchableEntry {
-        path: "Ventana".to_string(),
         item: MenuItem::Action {
             id: format!("id-{label}"),
             label: label.to_string(),
@@ -625,7 +624,6 @@ fn searchable(label: &str, enabled: bool) -> SearchableEntry {
             badge: None,
         },
         location: None,
-        source: SearchSource::Menu,
     }
 }
 

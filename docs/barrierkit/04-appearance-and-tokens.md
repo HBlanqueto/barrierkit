@@ -363,7 +363,8 @@ Edit it through its methods so the keys stay consistent: `set_source`,
 `make_own`, `set_scale`, `set_crop`, `set_appearance` and `set_paused` write;
 `source`, `scale_for`, `crop_for`, `appearance_for` and `paused_for` read with the fallbacks above.
 `set_source(None, _)` sets the wallpaper of every desktop: it drops each
-desktop's own choices. `make_own(desktop)` gives a desktop a copy of the shared
+desktop's own choices. `replace_source(old, new)` rewrites only the desktops
+that show `old`; with `None` they lose that wallpaper. `make_own(desktop)` gives a desktop a copy of the shared
 choices, and `show_on_all_desktops(desktop)` makes a desktop's choices the
 shared ones, like macOS «Show on all Spaces».
 
@@ -766,6 +767,7 @@ background, for `reduce_transparency`.
 | `WINDOW_MIN_SIZE`, `WINDOW_DEFAULT_SIZE` | `(u32, u32)` | `WindowOptions`: 480 × 360 and 640 × 420 ([8](08-windows.md)) |
 | `WINDOW_CORNER` | `WindowCorner` | `style::continuous_corner`, the compositor |
 | `WINDOW_RESIZE` | `WindowResize` | `platform` |
+| `WINDOW_CLIENT_RESIZE` | `WindowResize` | The compositor: the resize band around a window that decorates itself |
 | `DIALOG`, `DIALOG_PADDING`, `DIALOG_ALERT_WIDTH` | `WindowStyle`, `f32`, `f32` | `views::feedback` |
 | `POPUP` | `WindowStyle` | The compositor, for pop-up corners |
 | `PANEL_GLOW_DEPTH` | `f32` | The compositor: depth in points of the `PanelLine::glow` |
@@ -872,6 +874,9 @@ focus-mode bar.
 | `LOCK_FADE_MS`, `LOCK_SETTLE_MS`, `LOCK_RISE_MS`, `LOCK_RISE_OFFSET`, `LOCK_LOGIN_MS` | The transition from the desktop to the lock screen: the fade, the menu bar closing up, the clock rising and the login appearing |
 | `ABOUT_WIDTH`, `ABOUT_HEIGHT`, `ABOUT_DRAWING_TOP`, `ABOUT_DRAWING_WIDTH`, `ABOUT_DRAWING_HEIGHT`, `ABOUT_TITLE_GAP`, `ABOUT_TITLE_SIZE`, `ABOUT_SPECS_GAP`, `ABOUT_SPEC_ROW_GAP`, `ABOUT_COLUMN_GAP`, `ABOUT_VALUE_WIDTH`, `ABOUT_BUTTON_GAP`, `ABOUT_FOOTER_BOTTOM` | The «About this computer» window |
 | `ABOUT_APP_WIDTH`, `ABOUT_APP_HEIGHT`, `ABOUT_APP_ICON` | The «About ‹app›» window and its icon |
+| `CONFIRM_WIDTH`, `CONFIRM_HEIGHT`, `CONFIRM_BUTTON_GAP`, `CONFIRM_ICON`, `CONFIRM_GLYPH` | The restart, shut down and log out confirmation: its size, the gap between its buttons, and its round icon and glyph |
+| `FORCE_QUIT_WIDTH`, `FORCE_QUIT_HEIGHT`, `FORCE_QUIT_ROW_HEIGHT`, `FORCE_QUIT_ICON` | The «Force Quit» window, its rows and their app icons |
+| `MENUBAR_BATTERY_ICON`, `MENUBAR_BATTERY_LOW` | The battery in the menu bar: its size, and the percentage from which it turns red, as on macOS |
 
 ### Compositor
 
@@ -880,6 +885,7 @@ focus-mode bar.
 | Constants | What they are |
 |---|---|
 | `CURSOR_SHAKE_SCALE`, `CURSOR_SHAKE_GROW_MS`, `CURSOR_SHAKE_SHRINK_MS`, `CURSOR_SHAKE_TICK_MS` | The cursor that grows when the pointer is shaken |
+| `CURSOR_SHAKE_MIN_DX`, `CURSOR_SHAKE_MIN_SWING`, `CURSOR_SHAKE_MAX_SWING_MS`, `CURSOR_SHAKE_MAX_TOTAL_MS`, `CURSOR_SHAKE_REVERSALS`, `CURSOR_SHAKE_ACTIVE_MS` | What counts as a shake: the shortest step and swing in points, the longest swing and whole gesture, the reversals it takes, and how long after one the cursor stays large |
 | `BACKGROUND_BLUR_PASSES`, `BACKGROUND_BLUR_OFFSET` | The compositor's dual Kawase blur behind surfaces: halvings and sample spread (malaysia ADR 0071) |
 | `SCREENSHOT_DIM`, `SCREENSHOT_IDLE_DIM`, `SCREENSHOT_BORDER`, `SCREENSHOT_BORDER_WIDTH` | The screenshot selection overlay |
 | `SPACE_GAP`, `SPACE_GAP_COLOR`, `SPACE_SLIDE_MS`, `SPACE_SLIDE_EASE` | The gap and slide between Spaces |

@@ -302,6 +302,8 @@
       "default-height": 420,
       "resize-edge": 5,
       "resize-corner": 16,
+      "client-resize-edge": 6,
+      "client-resize-corner": 12,
       "corner": {
         "titlebar": "radius.lg",
         "unified-compact": 20,
@@ -832,6 +834,10 @@
           "radius": 10,
           "height": 24,
           "bleed": 3
+        },
+        "battery": {
+          "icon": [24, 12],
+          "low": 20
         }
       },
       "dock": {
@@ -891,6 +897,19 @@
         "width": 260,
         "height": 250,
         "icon": 64
+      },
+      "confirm": {
+        "width": 280,
+        "height": 250,
+        "button-gap": 10,
+        "icon": 64,
+        "glyph": 34
+      },
+      "force-quit": {
+        "width": 420,
+        "height": 400,
+        "row-height": 32,
+        "icon": 22
       },
       "lock": {
         "clock-font-size": 140,
@@ -1032,7 +1051,13 @@
       "scale": 3.0,
       "grow-ms": 180,
       "shrink-ms": 220,
-      "tick-ms": 16
+      "tick-ms": 16,
+      "min-dx": 2.0,
+      "min-swing": 24.0,
+      "max-swing-ms": 300,
+      "max-total-ms": 1000,
+      "reversals": 3,
+      "active-ms": 150
     },
     "background-blur": {
       "passes": 3,
