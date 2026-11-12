@@ -128,7 +128,6 @@ impl Component for TrafficLights {
         let close_only = self.close_only;
         let interactive = self.input.is_none();
         let action = self.on_action.clone();
-        let zoom_supported = self.zoom_supported;
         let fixed_width = self.fixed_width;
         let diameter = style.diameter;
         let corner_radius =
@@ -163,11 +162,6 @@ impl Component for TrafficLights {
                 let mut release = pointer;
                 let mut leave = pointer;
                 let action = action.clone();
-                let clickable = if close_only {
-                    kind == ButtonKind::Close
-                } else {
-                    zoom_supported || fixed_width || kind != ButtonKind::Maximize
-                } && !(close_blocked && kind == ButtonKind::Close);
                 let child_probe = self.probe.map(|base| match kind {
                     ButtonKind::Close => format!("{base}.close").into_boxed_str(),
                     ButtonKind::Minimize => format!("{base}.minimize").into_boxed_str(),
@@ -218,7 +212,7 @@ impl Component for TrafficLights {
                                 }
                             })
                             .on_mouse_down(move |event: Event<MouseEventData>| {
-                                if event.button == Some(MouseButton::Left) && clickable {
+                                if event.button == Some(MouseButton::Left) && admitted {
                                     let mut p = *press.read();
                                     p.on_press(Some(kind), true);
                                     press.set(p);

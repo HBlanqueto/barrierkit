@@ -238,7 +238,7 @@ impl MenuView {
     pub const MAX_HELP_ROWS: usize = 5;
 
     pub fn preferred_size(items: &[MenuItem], m: MenuPalette) -> (f32, f32) {
-        let items = &with_empty_hint(items.to_vec());
+        let items = &with_empty_hint(items);
         let inset = m.padding;
         let content_height: f32 = items.iter().map(|item| item.height(m)).sum();
         let min_width = m.min_width.max(1.0);
@@ -248,7 +248,7 @@ impl MenuView {
         let mut content_width = min_content_width;
         let text_inset = row_text_inset(items, m);
 
-        for item in items {
+        for item in items.iter() {
             let Some(label) = item.label() else {
                 continue;
             };
@@ -294,9 +294,10 @@ impl App for MenuView {
         let on_navigation = self.on_navigation.clone();
         let palette_source = self.palette_source.clone();
         let m = palette_source.current();
-        let root_size = *Platform::get().current_window().root_size.peek();
+        let root_size = *Platform::get().current_window().root_size.read();
         let size = (root_size.width.max(1.0), root_size.height.max(1.0));
         let popup: Option<PopupHandle> = try_consume_root_context();
+        let popups: Option<Popups> = try_consume_root_context();
         let opens_left = popup.as_ref().is_some_and(PopupHandle::opens_left);
         let popup_spec = self.popup_spec.clone();
         let initial_focused = self.focused_index;
@@ -317,11 +318,18 @@ impl App for MenuView {
         let mut selected = use_state(|| initial.selected);
         let mut result_focused = use_state(|| None::<usize>);
         let prev_query = use_hook(|| Rc::new(RefCell::new(String::new())));
-        let searchable_entries = self.searchable.as_ref().map(|source| source());
-        let help_entries = self.help_search.as_ref().map(|source| source());
-
-        let has_search = searchable_entries.is_some() || help_entries.is_some();
+        let has_search = self.searchable.is_some() || self.help_search.is_some();
         let query_text = (*query.read()).clone();
+        let searchable_entries = self
+            .searchable
+            .as_ref()
+            .filter(|_| !query_text.is_empty())
+            .map(|source| source());
+        let help_entries = self
+            .help_search
+            .as_ref()
+            .filter(|_| !query_text.is_empty())
+            .map(|source| source());
         let is_selected = *selected.read();
 
         if let Some(state) = &query_state {
@@ -351,15 +359,18 @@ impl App for MenuView {
         }
 
         let visible = if query_text.is_empty() {
-            with_empty_hint((*items).clone())
+            match with_empty_hint(&items) {
+                Cow::Borrowed(_) => items.clone(),
+                Cow::Owned(hint) => Rc::new(hint),
+            }
         } else {
-            visible_items(
+            Rc::new(visible_items(
                 &items,
                 &menu_results,
                 &help_results,
                 *menu_scroll.read(),
                 *help_scroll.read(),
-            )
+            ))
         };
 
         let last_size = use_hook(|| {
@@ -400,6 +411,8 @@ impl App for MenuView {
         let result_focused_index = *result_focused.read();
         let submenus = SubmenuCtx {
             popup: popup.clone(),
+            popups,
+            m,
             size,
             palette_source,
             on_activate: on_activate.clone(),
@@ -426,7 +439,7 @@ impl App for MenuView {
         });
         if revealed_location != *prev_revealed.borrow() {
             *prev_revealed.borrow_mut() = revealed_location.clone();
-            close_child(&reveal_child_id, &Cell::new(None));
+            submenus.close_child(&reveal_child_id, &Cell::new(None));
             if let (Some(loc), Some(roots)) = (revealed_location, reveal_roots.as_ref()) {
                 let roots = roots();
                 if let Some(items) = roots.get(loc.title_index) {
@@ -438,8 +451,6 @@ impl App for MenuView {
                 }
             }
         }
-
-        let visible_rc = Rc::new(visible.clone());
 
         let mut alt_held = use_state(|| false);
         let show_mnemonic = *alt_held.read();
@@ -495,16 +506,19 @@ impl App for MenuView {
         let execute_target: Rc<dyn Fn(usize)> = {
             let focused = Cell::new(focused);
             let hover_state = hover_state.clone();
-            let items = visible_rc.clone();
+            let items = visible.clone();
             let submenus = submenus.clone();
             Rc::new(move |index: usize| {
                 hover_state.borrow_mut().pending = None;
-                let mut focused = focused.get();
-                focused.set(Some(index));
+                // The intent timer can fire after the popup and its state are gone.
+                match focused.get().try_write() {
+                    Some(mut focused) => *focused = Some(index),
+                    None => return,
+                }
                 if submenus.open_child_index.get() == Some(index) {
                     return;
                 }
-                close_child(&submenus.open_child_id, &submenus.open_child_index);
+                submenus.close_child(&submenus.open_child_id, &submenus.open_child_index);
                 if let Some(MenuItem::Submenu { id, items: sub, .. }) = items.get(index) {
                     open_child_popup(&submenus, index, id.as_deref(), sub, &items);
                 }
@@ -552,7 +566,7 @@ impl App for MenuView {
         let enter_row: Rc<dyn Fn(usize, CursorPoint)> = {
             let hover_state = hover_state.clone();
             let open_child_index = open_child_index.clone();
-            let items = visible_rc.clone();
+            let items = visible.clone();
             let execute_target = execute_target.clone();
             let start_delay = Rc::new(start_delay);
             Rc::new(move |index: usize, pos: CursorPoint| {
@@ -561,13 +575,15 @@ impl App for MenuView {
                 hover_state.borrow_mut().pending = None;
                 if let Some(child_index) = open_child_index.get()
                     && child_index != index
-                    && let Some(MenuItem::Submenu { .. }) = items.get(child_index)
+                    && let Some(MenuItem::Submenu { id, items: sub, .. }) = items.get(child_index)
                 {
-                    let row_top = m.padding + item_top(child_index, &items, m) - shift;
+                    let child_top = item_top(child_index, &items, m) - shift;
+                    let child_height =
+                        MenuView::preferred_size(&submenu_contents(id.is_some(), sub), m).1;
                     let near_x = if opens_left { 0.0 } else { size.0 };
-                    let to_top = CursorPoint::new(near_x as f64, row_top as f64);
+                    let to_top = CursorPoint::new(near_x as f64, child_top as f64);
                     let to_bottom =
-                        CursorPoint::new(near_x as f64, (row_top + m.item_height) as f64);
+                        CursorPoint::new(near_x as f64, (child_top + child_height) as f64);
                     if point_in_triangle(pos, from, to_top, to_bottom) {
                         start_delay(index, from, to_top, to_bottom);
                         return;
@@ -730,7 +746,7 @@ impl App for MenuView {
                 _ if activates => {
                     selected.set(false);
                     let (index, source): (Option<usize>, &[MenuItem]) = if searching {
-                        (result_current, visible_rc.as_slice())
+                        (result_current, visible.as_slice())
                     } else {
                         (current, items.as_slice())
                     };
@@ -904,8 +920,11 @@ fn scroll_tick(
     if auto.get() != direction {
         return;
     }
-    let next = (*scroll.peek() + f32::from(direction) * step).clamp(0.0, max_scroll);
-    if next == *scroll.peek() {
+    let Some(current) = scroll.try_peek().map(|current| *current) else {
+        return;
+    };
+    let next = (current + f32::from(direction) * step).clamp(0.0, max_scroll);
+    if next == current {
         auto.set(0);
         return;
     }

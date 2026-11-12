@@ -96,7 +96,7 @@ variant does nothing.
 | Variant | Build | What it draws |
 |---|---|---|
 | `Svg(Arc<str>)` | `MenuIcon::svg(text)` | An SVG, tinted with the row color |
-| `Image(Arc<[u8]>)` | `MenuIcon::image(bytes)` | Encoded image bytes. Returns `None` above `MenuIcon::MAX_IMAGE_BYTES` (64 KiB) |
+| `Image(Arc<[u8]>)` | `MenuIcon::image(bytes)` | Encoded image bytes. Returns `None` above `MenuIcon::MAX_IMAGE_BYTES` (64 KiB). The row has no icon if a side is over `MenuIcon::MAX_IMAGE_SIDE` (1024 px) |
 | `Swatch(Rgba)` | `MenuIcon::Swatch(color)` | A color circle |
 
 The leading column for check marks exists only if some row uses it. An icon

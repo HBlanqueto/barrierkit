@@ -566,6 +566,10 @@ pub(super) fn icon_image(bytes: &Arc<[u8]>, size: f32) -> Option<ImageHandle> {
 pub(super) fn decode_icon(bytes: &[u8], size: f32) -> Option<ImageHandle> {
     let data = SkData::new_copy(bytes);
     let image = SkImage::from_encoded(data)?;
+    // A small file can declare a huge canvas; decoding allocates all of it.
+    if image.width().max(image.height()) > MenuIcon::MAX_IMAGE_SIDE {
+        return None;
+    }
     let image = image.make_raster_image(None, None).unwrap_or(image);
     let target = size.max(1.0).round() as i32;
     let info = ImageInfo::new(

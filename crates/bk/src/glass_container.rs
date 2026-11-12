@@ -247,6 +247,9 @@ impl ElementExt for Blob {
                 blur((sigma, sigma), TileMode::Clamp, None, None)
             });
             let layer = SaveLayerRec::default().bounds(&bounds);
+            // SaveLayerRec bounds are only a hint; without the clip the blurred layer covers the whole canvas.
+            canvas.save();
+            canvas.clip_rect(bounds, None, Some(true));
             canvas.save_layer(&match &filter {
                 Some(filter) => layer.backdrop(filter),
                 None => layer,
@@ -254,6 +257,7 @@ impl ElementExt for Blob {
             mask.set_blend_mode(BlendMode::DstIn);
             canvas.draw_rect(bounds, &mask);
             canvas.draw_rect(bounds, &overlay);
+            canvas.restore();
             canvas.restore();
         });
     }
@@ -314,6 +318,7 @@ impl Component for GlassContainer {
         let shown: Measured = morphs
             .read()
             .iter()
+            .filter(|morph| t < 1.0 || measured.peek().iter().any(|(id, _)| *id == morph.id))
             .map(|morph| (morph.id, morph.from.lerp(&morph.to, t)))
             .collect();
 

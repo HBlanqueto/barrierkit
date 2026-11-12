@@ -10,6 +10,7 @@ use freya_core::integration::AppComponent;
 use freya_testing::TestingRunner;
 use torin::prelude::Size2D;
 
+use crate::platform::timer::{TimerQueue, Wake};
 use crate::platform::{ObjectId, PopupCommand, PopupHandle, PopupId, Popups};
 
 fn sample() -> Vec<MenuItem> {
@@ -211,9 +212,9 @@ fn a_menu_of_only_separators_becomes_empty() {
 
 #[test]
 fn an_empty_menu_shows_the_placeholder() {
-    let rows = with_empty_hint(Vec::new());
+    let rows = with_empty_hint(&[]);
     assert!(matches!(
-        rows.as_slice(),
+        &*rows,
         [MenuItem::Action {
             label,
             enabled: false,
@@ -228,7 +229,7 @@ fn an_empty_menu_shows_the_placeholder() {
 
 #[test]
 fn the_placeholder_is_not_selectable_or_activatable() {
-    let rows = with_empty_hint(Vec::new());
+    let rows = with_empty_hint(&[]);
     assert!(!rows[0].selectable());
     assert_eq!(first_selectable(&rows), None);
     assert_eq!(next_selectable(&rows, None, 1), None);
@@ -248,12 +249,9 @@ fn the_placeholder_is_not_in_the_search_results() {
 
 #[test]
 fn live_items_replace_the_placeholder() {
+    assert_eq!(with_empty_hint(&[])[0].label(), Some(text!("no-items")));
     assert_eq!(
-        with_empty_hint(Vec::new())[0].label(),
-        Some(text!("no-items"))
-    );
-    assert_eq!(
-        with_empty_hint(vec![action("Guardar")])[0].label(),
+        with_empty_hint(&[action("Guardar")])[0].label(),
         Some("Guardar")
     );
 }
@@ -680,14 +678,14 @@ fn visible_items_limits_menu_results_to_nine_rows() {
     assert_eq!(menu_result_count, MenuView::MAX_MENU_ROWS);
 }
 
-fn png_16() -> Vec<u8> {
-    let mut pixels = vec![0u8; 16 * 16 * 4];
+fn png(width: u32, height: u32) -> Vec<u8> {
+    let mut pixels = vec![0u8; (width * height * 4) as usize];
     for pixel in pixels.chunks_mut(4) {
         pixel.copy_from_slice(&[255, 0, 0, 255]);
     }
     let mut out = Vec::new();
     {
-        let mut encoder = png::Encoder::new(&mut out, 16, 16);
+        let mut encoder = png::Encoder::new(&mut out, width, height);
         encoder.set_color(png::ColorType::Rgba);
         encoder.set_depth(png::BitDepth::Eight);
         let mut writer = encoder.write_header().unwrap();
@@ -698,7 +696,7 @@ fn png_16() -> Vec<u8> {
 
 #[test]
 fn a_16px_png_icon_is_decoded_scaled_and_cached() {
-    let bytes: std::sync::Arc<[u8]> = png_16().into();
+    let bytes: std::sync::Arc<[u8]> = png(16, 16).into();
     let handle = icon_image(&bytes, 16.0).expect("the PNG decodes");
     assert_eq!(handle.image.width(), 16);
     assert_eq!(handle.image.height(), 16);
@@ -710,6 +708,13 @@ fn a_16px_png_icon_is_decoded_scaled_and_cached() {
     let too_big = vec![0u8; MenuIcon::MAX_IMAGE_BYTES + 1];
     assert!(MenuIcon::image(too_big).is_none());
     assert!(decode_icon(b"not a png", 16.0).is_none());
+}
+
+#[test]
+fn an_icon_with_a_side_over_the_limit_is_not_decoded() {
+    let side = MenuIcon::MAX_IMAGE_SIDE as u32;
+    assert!(decode_icon(&png(side, 1), 16.0).is_some());
+    assert!(decode_icon(&png(side + 1, 1), 16.0).is_none());
 }
 
 #[test]
@@ -784,7 +789,13 @@ fn opens_and_dismissals(commands: &[PopupCommand]) -> (Opens, Vec<PopupId>) {
     (opens, closes)
 }
 
-fn make_runner(items: Vec<MenuItem>) -> (TestingRunner, Rc<RefCell<Vec<PopupCommand>>>) {
+type CommandQueue = Rc<RefCell<Vec<PopupCommand>>>;
+
+fn make_runner(items: Vec<MenuItem>) -> (TestingRunner, CommandQueue) {
+    make_runner_with(items, None)
+}
+
+fn make_runner_with(items: Vec<MenuItem>, timers: Option<Timers>) -> (TestingRunner, CommandQueue) {
     let palette = MENU_LIGHT;
     let size = MenuView::preferred_size(&items, palette);
     let app = AppComponent::new(MenuView::new(items, |_| {}, || {}).with_fixed_palette(palette));
@@ -799,11 +810,69 @@ fn make_runner(items: Vec<MenuItem>) -> (TestingRunner, Rc<RefCell<Vec<PopupComm
             let handle = PopupHandle::for_test(popups.clone(), root_id);
             r.provide_root_context(move || popups.clone());
             r.provide_root_context(move || handle.clone());
+            if let Some(timers) = timers {
+                r.provide_root_context(move || timers.clone());
+            }
         },
         1.0,
     );
     runner.sync_and_update();
     (runner, queue)
+}
+
+fn aim_at_open_submenu() -> (TestingRunner, CommandQueue, PopupId, Rc<dyn Fn()>) {
+    let tall = MenuItem::submenu("A", vec![action("1"), action("2"), action("3")]);
+    let items = vec![tall, submenu_test("B")];
+    let m = MENU_LIGHT;
+    let (width, _) = MenuView::preferred_size(&items, m);
+    let (ping, _) = sctk::reexports::calloop::ping::make_ping().expect("test ping");
+    let timers = Timers {
+        queue: TimerQueue::default(),
+        ping: ping.clone(),
+        wake: Wake {
+            ping,
+            callbacks: Rc::default(),
+        },
+    };
+    let (mut runner, queue) = make_runner_with(items, Some(timers.clone()));
+    let row_top = |row: f32| m.padding + m.item_height * row;
+
+    runner.move_cursor([(width / 2.0) as f64, (row_top(0.0) + 1.0) as f64]);
+    runner.sync_and_update();
+    let (opens, _) = opens_and_dismissals(&drain_commands(&queue));
+    let child = opens[0].0;
+
+    let towards_child = [
+        [width * 0.75, row_top(1.0) + 1.0],
+        [width - m.padding - 2.0, row_top(1.5)],
+    ];
+    for [x, y] in towards_child {
+        runner.move_cursor([x as f64, y as f64]);
+        runner.sync_and_update();
+    }
+    assert!(
+        drain_commands(&queue).is_empty(),
+        "the submenu stays open on the way to it"
+    );
+    let (_, fire) = timers.queue.borrow_mut().pop().expect("the intent timer");
+    (runner, queue, child, fire)
+}
+
+#[test]
+fn aiming_at_the_open_submenu_switches_rows_only_when_the_intent_timer_fires() {
+    let (_runner, queue, child, fire) = aim_at_open_submenu();
+    fire();
+    let (opens, closes) = opens_and_dismissals(&drain_commands(&queue));
+    assert_eq!(closes, [child]);
+    assert_eq!(opens.len(), 1);
+}
+
+#[test]
+fn the_intent_timer_does_nothing_once_the_menu_is_gone() {
+    let (runner, queue, _, fire) = aim_at_open_submenu();
+    drop(runner);
+    fire();
+    assert!(drain_commands(&queue).is_empty());
 }
 
 #[test]

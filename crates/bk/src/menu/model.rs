@@ -58,6 +58,7 @@ pub enum MenuIcon {
 
 impl MenuIcon {
     pub const MAX_IMAGE_BYTES: usize = 64 * 1024;
+    pub const MAX_IMAGE_SIDE: i32 = 1024;
 
     pub fn svg(s: impl Into<Arc<str>>) -> Self {
         Self::Svg(s.into())
@@ -267,10 +268,10 @@ pub fn normalize_separators(items: &mut Vec<MenuItem>) {
     }
 }
 
-pub(super) fn with_empty_hint(items: Vec<MenuItem>) -> Vec<MenuItem> {
+pub(super) fn with_empty_hint(items: &[MenuItem]) -> Cow<'_, [MenuItem]> {
     if items.is_empty() {
-        vec![MenuItem::placeholder(text!("no-items"))]
+        Cow::Owned(vec![MenuItem::placeholder(text!("no-items"))])
     } else {
-        items
+        Cow::Borrowed(items)
     }
 }
