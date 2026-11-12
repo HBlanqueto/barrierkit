@@ -21,7 +21,7 @@ use std::{
 use super::{
     app::{AppInstance, InstanceRole},
     runtime::Runtime,
-    surface::SurfaceRole,
+    surface::{SurfaceRole, buffer_size},
 };
 use crate::styles::{PopupRoot, current_theme};
 
@@ -299,12 +299,14 @@ fn positioner(xdg_shell: &XdgShell, spec: &PopupSpec) -> Option<XdgPositioner> {
     let positioner = XdgPositioner::new(xdg_shell)
         .inspect_err(|error| tracing::error!(%error, "BarrierKit: could not create xdg_positioner"))
         .ok()?;
+    // xdg_positioner.invalid_input: a size or an anchor rectangle below 1 is a fatal protocol error.
+    let side = |length: u32| length.clamp(1, i32::MAX as u32) as i32;
     let (ax, ay, aw, ah) = spec.anchor_rect;
-    positioner.set_anchor_rect(ax, ay, aw as i32, ah as i32);
+    positioner.set_anchor_rect(ax, ay, side(aw), side(ah));
     positioner.set_anchor(anchor_to_sctk(spec.anchor));
     positioner.set_gravity(gravity_to_sctk(spec.gravity));
     positioner.set_offset(spec.offset.0, spec.offset.1);
-    positioner.set_size(spec.size.0 as i32, spec.size.1 as i32);
+    positioner.set_size(side(spec.size.0), side(spec.size.1));
     positioner.set_constraint_adjustment(constraint_to_sctk(spec.constraint_adjustment));
     Some(positioner)
 }
@@ -432,7 +434,7 @@ impl Runtime {
             wl_surface.id(),
             content,
             scale,
-            spec.size,
+            buffer_size(spec.size, scale),
             InstanceRole::Popup {
                 id,
                 opens_left: opens_left.clone(),
@@ -554,9 +556,7 @@ impl PopupHandler for Runtime {
             info.opens_left.set(config.position.0 < 0);
         }
         self.surfaces[index].configure(size, scale);
-        if self.surfaces[index].draw(&self.compositor) && self.surfaces[index].needs_redraw {
-            self.surfaces[index].request_redraw(qh);
-        }
+        self.surfaces[index].draw_after_configure(&self.compositor, qh);
     }
 
     fn done(&mut self, _: &Connection, _: &QueueHandle<Self>, popup: &Popup) {
@@ -571,12 +571,11 @@ impl PopupHandler for Runtime {
 }
 delegate_xdg_popup!(Runtime);
 
-// xdg_positioner is incomplete (invalid_positioner) without a non-zero anchor rectangle.
 pub(crate) fn anchor_rect(area: torin::prelude::Area) -> (i32, i32, u32, u32) {
     (
         area.origin.x.round() as i32,
         area.origin.y.round() as i32,
-        area.size.width.round().max(1.0) as u32,
-        area.size.height.round().max(1.0) as u32,
+        area.size.width.round() as u32,
+        area.size.height.round() as u32,
     )
 }

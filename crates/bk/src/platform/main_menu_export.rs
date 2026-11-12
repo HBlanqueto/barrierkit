@@ -33,7 +33,6 @@ impl Runtime {
             if let Some(appmenu) = &window.appmenu {
                 appmenu.set_address(address.service.clone(), address.path.clone());
             }
-            window.appmenu_address = Some(address);
         }
     }
 

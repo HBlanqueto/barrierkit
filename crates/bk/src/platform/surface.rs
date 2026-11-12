@@ -31,7 +31,6 @@ use wayland_protocols_plasma::appmenu::client::org_kde_kwin_appmenu::OrgKdeKwinA
 
 use super::{
     app::AppInstance,
-    main_menu_export::MainMenuAddress,
     popup::PopupInfo,
     runtime::{Runtime, WindowContext},
     vulkan::{Graphics, GraphicsShared},
@@ -56,7 +55,6 @@ pub(crate) struct SurfaceWindow {
     pub(crate) background_alpha: f32,
     pub(crate) pending_configure: Option<(WindowConfigure, u32)>,
     pub(crate) appmenu: Option<OrgKdeKwinAppmenu>,
-    pub(crate) appmenu_address: Option<MainMenuAddress>,
     pub(crate) menu_handle: Option<crate::main_menu::MenuHandle>,
     pub(crate) status_handle: Option<crate::main_menu::MenuHandle>,
     pub(crate) fractional: Option<WpFractionalScaleV1>,
@@ -215,11 +213,10 @@ impl SurfaceWindow {
         if let Err(error) = tracing::trace_span!("acquire").in_scope(|| graphics.acquire()) {
             return self.draw_failed(error);
         }
-        self.draw_count += 1;
         tracing::debug!(
             target: "bk::resize",
             surface = ?self.surface.id(),
-            draws = self.draw_count,
+            draws = self.draw_count + 1,
             role = ?self.role,
             "draw start"
         );
@@ -248,6 +245,7 @@ impl SurfaceWindow {
         if let Err(error) = tracing::trace_span!("present").in_scope(|| graphics.present()) {
             return self.draw_failed(error);
         }
+        self.draw_count += 1;
         #[cfg(feature = "tracy")]
         crate::logging::frame_mark();
         let swap_us = swap_start.elapsed().as_micros() as u64;
@@ -350,7 +348,6 @@ impl Runtime {
             background_alpha: 1.0,
             pending_configure: None,
             appmenu: None,
-            appmenu_address: None,
             menu_handle: None,
             status_handle: None,
             fractional,
@@ -381,7 +378,10 @@ impl CompositorHandler for Runtime {
             if window.logical_size.0 > 0 {
                 let size = window.logical_size;
                 window.configure(size, scale);
-                window.draw_after_configure(&self.compositor, qh);
+                // xdg_surface: a buffer before the first configure is an error (unconfigured_buffer).
+                if window.draw_count > 0 {
+                    window.draw_after_configure(&self.compositor, qh);
+                }
             }
         }
     }
@@ -400,7 +400,7 @@ impl CompositorHandler for Runtime {
             return;
         };
         self.surfaces[index].frame_pending = false;
-        self.apply_pending_window_configures(qh);
+        self.apply_pending_window_configures();
         let fading = self.step_wallpaper_fade(index);
         if self.surfaces[index].needs_redraw {
             let _ = self.surfaces[index].draw(&self.compositor);

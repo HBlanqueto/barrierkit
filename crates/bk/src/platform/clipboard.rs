@@ -342,10 +342,9 @@ impl DataDeviceHandler for Runtime {
         let (slot, ping) = (uris.clone(), self.ping.clone());
         std::thread::spawn(move || {
             let mut list = String::new();
-            if pipe.read_to_string(&mut list).is_ok() {
-                let _ = slot.set(list);
-                ping.ping();
-            }
+            let _ = pipe.read_to_string(&mut list);
+            let _ = slot.set(list);
+            ping.ping();
         });
         self.pending_drop = Some(PendingDrop {
             target,

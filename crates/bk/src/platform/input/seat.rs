@@ -260,6 +260,8 @@ impl Runtime {
             }
             PointerEventKind::Leave { .. } => {
                 self.resize_hover = None;
+                // A compositor grab (xdg_toplevel.move, drag) takes the pointer and its release.
+                self.pointer_pressed = false;
                 false
             }
             PointerEventKind::Press {

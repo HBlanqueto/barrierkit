@@ -198,12 +198,14 @@ impl AppInstance {
         }
         runner.provide_root_context(move || timers);
         runner.provide_root_context(move || DefaultsRevision(defaults_revision));
-        runner.provide_root_context(|| crate::views::feedback::OpenSheets(State::create_global(0)));
+        runner.provide_root_context(|| crate::views::feedback::OpenSheets(State::create(0)));
         runner.provide_root_context(|| tree.accessibility_generator.clone());
         runner.provide_root_context(|| font_collection.clone());
 
         let mutations = runner.sync_and_update();
-        let _ = runner.run_in(|| tree.apply_mutations(mutations, scale_factor as f32));
+        let requested_focus = runner
+            .run_in(|| tree.apply_mutations(mutations, scale_factor as f32))
+            .auto_focus;
 
         let accessibility = AccessibilityTree::default();
         #[cfg(feature = "a11y")]
@@ -231,7 +233,7 @@ impl AppInstance {
             accessibility_initialized: false,
             #[cfg(feature = "a11y")]
             atspi,
-            requested_focus: None,
+            requested_focus,
             pending_shortcuts: Vec::new(),
             inputs,
         }
@@ -279,14 +281,22 @@ impl AppInstance {
     }
 
     pub(crate) fn resize(&mut self, size: (u32, u32), scale_factor: f64) {
-        self.size = Size2D::new(size.0 as f32, size.1 as f32);
+        let physical = Size2D::new(size.0 as f32, size.1 as f32);
+        let rescaled = scale_factor != self.scale_factor;
+        if physical == self.size && !rescaled {
+            return;
+        }
+        self.size = physical;
         self.scale_factor = scale_factor;
         self.platform
             .root_size
             .set(logical_size(size, scale_factor));
         self.platform.scale_factor.set(scale_factor);
         self.tree.layout.reset();
-        self.tree.text_cache.reset();
+        // Cached paragraphs are keyed by style and width, not by scale.
+        if rescaled {
+            self.tree.text_cache.reset();
+        }
         self.needs_layout = true;
     }
 

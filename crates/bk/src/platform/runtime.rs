@@ -255,7 +255,7 @@ impl Runtime {
         #[cfg(feature = "video")]
         super::dmabuf::set_current(&self.graphics);
         let qh = self.qh.clone();
-        self.apply_pending_window_configures(&qh);
+        self.apply_pending_window_configures();
         for surface in &mut self.surfaces {
             if surface.logical_size.0 > 0 && surface.logical_size.1 > 0 {
                 surface.draw_after_configure(&self.compositor, &qh);

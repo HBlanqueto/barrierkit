@@ -39,7 +39,7 @@ pub(super) fn window_controls(status: WindowStatus) -> WindowControls {
         focus_bar: freya_core::prelude::State::create(false),
         focus_bar_progress: freya_core::prelude::State::create(0.0),
         focus_overlay: false,
-        focus_bar_height: freya_core::prelude::State::create(28.0),
+        focus_bar_height: freya_core::prelude::State::create(ctdesign::MENUBAR_HEIGHT as f32),
         desktop: freya_core::prelude::State::create(None),
         fullscreen_bar: freya_core::prelude::State::create(super::FullscreenBar::Solid),
         fullscreen_push: freya_core::prelude::State::create(false),
@@ -211,52 +211,6 @@ fn releasing_a_different_key_keeps_repeat_running() {
         generation: 1,
     });
     assert!(!released_repeated_key(&repeat, &a));
-}
-
-#[test]
-fn pressing_b_then_releasing_a_keeps_b_repeating() {
-    let a = KeyEvent {
-        time: 0,
-        raw_code: 38,
-        keysym: Keysym::a,
-        utf8: Some("a".into()),
-    };
-    let b = KeyEvent {
-        time: 0,
-        raw_code: 56,
-        keysym: Keysym::b,
-        utf8: Some("b".into()),
-    };
-
-    let mut repeat: Option<RepeatState> = None;
-    if should_repeat_key(&a) {
-        repeat = Some(RepeatState {
-            event: a.clone(),
-            delay: Duration::from_millis(200),
-            rate: Duration::from_millis(40),
-            first: true,
-            pending: false,
-            generation: 1,
-        });
-    }
-
-    if should_repeat_key(&b) {
-        repeat = Some(RepeatState {
-            event: b.clone(),
-            delay: Duration::from_millis(200),
-            rate: Duration::from_millis(40),
-            first: true,
-            pending: false,
-            generation: 2,
-        });
-    }
-
-    assert!(!released_repeated_key(&repeat, &a));
-    assert!(
-        repeat
-            .as_ref()
-            .is_some_and(|state| state.event.keysym == b.keysym)
-    );
 }
 
 #[cfg(test)]
@@ -476,7 +430,10 @@ mod overlay_titlebar_tests {
             "the content does not move"
         );
         let title = top_of(&test, "overlay-title").expect("shown with the bar");
-        assert!(title >= 28.0, "below the bar, got {title}");
+        assert!(
+            title >= ctdesign::MENUBAR_HEIGHT as f32,
+            "below the bar, got {title}"
+        );
 
         bar.borrow_mut().as_mut().unwrap().set(false);
         test.sync_and_update();
@@ -768,7 +725,7 @@ mod fullscreen_chrome_tests {
                     "{layout:?} {rail_style:?} with the bar: {lights:?}"
                 );
                 assert!(
-                    lights[0].1 >= 28,
+                    lights[0].1 >= ctdesign::MENUBAR_HEIGHT,
                     "{layout:?} {rail_style:?} under the bar: {lights:?}"
                 );
             }

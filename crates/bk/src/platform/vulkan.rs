@@ -376,7 +376,7 @@ impl Graphics {
         if self.surface.is_null() {
             self.create_surface(surface)?;
         }
-        if self.swapchain.is_null() || self.size != size {
+        if self.targets.is_empty() || self.size != size {
             self.recreate_swapchain(size)?;
         }
         Ok(())
@@ -612,7 +612,8 @@ impl Graphics {
     }
 
     pub(crate) fn acquire(&mut self) -> Result<(), RunError> {
-        if self.swapchain.is_null() {
+        // `targets` is filled last: a swapchain whose setup failed halfway has none.
+        if self.targets.is_empty() {
             return Err(RunError::Vulkan("no swapchain"));
         }
         let shared = self.shared.clone();

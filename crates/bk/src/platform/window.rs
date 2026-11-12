@@ -298,10 +298,7 @@ impl WindowControls {
     }
 
     pub fn set_ime_cursor_area(&self, x: i32, y: i32, width: i32, height: i32) {
-        self.queue
-            .borrow_mut()
-            .push(WindowCommand::ImeCursor((x, y, width, height)));
-        self.ping.ping();
+        self.send(WindowCommand::ImeCursor((x, y, width, height)));
     }
 
     pub(crate) fn open_sheet(&self, app: AppComponent, mut options: WindowOptions) {
@@ -784,7 +781,7 @@ impl WindowHandler for Runtime {
         self.surfaces[index].needs_redraw = true;
         // xdg-shell: SCTK has acked, so the next commit must carry this configure's geometry.
         if self.surfaces[index].draw_count == 0 || !self.surfaces[index].frame_pending {
-            self.apply_pending_window_configures(qh);
+            self.apply_pending_window_configures();
         }
         if self.surfaces[index].pending_configure.is_none() {
             self.surfaces[index].draw_after_configure(&self.compositor, qh);
@@ -792,7 +789,7 @@ impl WindowHandler for Runtime {
     }
 }
 impl Runtime {
-    pub(super) fn apply_pending_window_configures(&mut self, qh: &QueueHandle<Self>) {
+    pub(super) fn apply_pending_window_configures(&mut self) {
         for index in 0..self.surfaces.len() {
             let Some((configure, serial)) = self.surfaces[index].pending_configure.take() else {
                 continue;
@@ -834,9 +831,7 @@ impl Runtime {
             if !size_changed && let SurfaceRole::Window(window) = &self.surfaces[index].role {
                 window.commit();
             }
-            if self.surfaces[index].draw(&self.compositor) && self.surfaces[index].needs_redraw {
-                self.surfaces[index].request_redraw(qh);
-            }
+            let _ = self.surfaces[index].draw(&self.compositor);
         }
     }
 }
@@ -859,7 +854,10 @@ impl Runtime {
         }
         let scale = self.surfaces[index].scale;
         self.surfaces[index].configure(size, scale);
-        self.surfaces[index].needs_redraw = true;
+        if self.surfaces[index].draw_count > 0 && !self.surfaces[index].frame_pending {
+            let qh = self.qh.clone();
+            self.surfaces[index].draw_after_configure(&self.compositor, &qh);
+        }
     }
 
     fn close_window(&mut self, surface_id: ObjectId) {
@@ -906,15 +904,14 @@ impl Runtime {
             });
         }
         if !self.needs_exit && matches!(self.surfaces[index].role, SurfaceRole::Window(_)) {
-            if let Some(address) = self.surfaces[index].appmenu_address.take() {
-                crate::main_menu::server::unregister(&address.path);
-            }
-            if let Some(path) = self.surfaces[index]
-                .status_handle
-                .take()
-                .and_then(|handle| handle.path())
+            let window = &mut self.surfaces[index];
+            for handle in [window.menu_handle.take(), window.status_handle.take()]
+                .into_iter()
+                .flatten()
             {
-                crate::main_menu::server::unregister(&path);
+                if let Some(path) = handle.path() {
+                    crate::main_menu::server::unregister(&path);
+                }
             }
             if let Some(appmenu) = self.surfaces[index].appmenu.take() {
                 appmenu.release();
