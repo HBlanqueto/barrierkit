@@ -7,7 +7,7 @@ use crate::i18n::text;
 use crate::interaction::{control_state, use_interaction};
 use crate::level::LevelSlider;
 use crate::popover::Popover;
-use crate::style::{Palette, text, with_font};
+use crate::style::{text, with_font};
 use crate::styles::Painted;
 use crate::styles::{ColorPickerStyle, LayoutDirection, Paints, Theme, resolve};
 use crate::theme::color;
@@ -157,7 +157,6 @@ impl Component for ColorPanel {
         let radius = style
             .shape
             .corner_radius(height, height, LayoutDirection::LeftToRight);
-        let palette = Palette::current();
         let initial = self.initial;
         let mut hsb = use_state(|| rgb_to_hsb(initial));
         let (hue, saturation, brightness) = *hsb.read();
@@ -185,11 +184,7 @@ impl Component for ColorPanel {
                     .child(text(
                         hex(current),
                         style.font,
-                        if brightness > 0.6 && saturation < 0.5 {
-                            palette.label
-                        } else {
-                            palette.on_accent
-                        },
+                        ctappearance::backdrop::ink_on(current),
                     )),
             )
             .child(caption(text!("hue")))

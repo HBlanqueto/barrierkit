@@ -83,15 +83,7 @@ impl Component for Slider {
     fn render(&self) -> impl IntoElement {
         let interaction = use_interaction();
         let style: SliderStyle = resolve(&self.style);
-        let paints = Paints::current(
-            ControlState {
-                hovered: interaction.hovered(),
-                pressed: interaction.pressed(),
-                focused: interaction.focused(),
-                disabled: self.disabled,
-            },
-            style.effect,
-        );
+        let paints = Paints::current(control_state(interaction, self.disabled), style.effect);
         let value = crate::controlled::use_controlled(&self.value);
         let origin = use_state(CursorPoint::default);
         let on_change = self.on_change.clone();
@@ -105,7 +97,7 @@ impl Component for Slider {
         let tick = style.tick_size;
         let steps = self.steps;
         let segments = steps.saturating_sub(1).max(1) as f32;
-        let run = length - knob;
+        let run = (length - knob).max(0.0);
         let current = *value.read();
         let knob_at =
             run * crate::animation::use_animated(current as f32 / segments, style.animation);
@@ -193,11 +185,7 @@ impl Component for Slider {
         };
         let dim = |el: Rect, opacity: f32| el.maybe(opacity < 1.0, |el| el.opacity(opacity));
         // freya 0.5.0 dims each element on its own (render_pipeline.rs): a dimmed knob would show the fill.
-        let parts_opacity = if self.disabled {
-            style.opacity * style.disabled_opacity
-        } else {
-            style.opacity
-        };
+        let parts_opacity = opacity_when(self.disabled, style.opacity, style.disabled_opacity);
 
         let track_rect = dim(
             part(

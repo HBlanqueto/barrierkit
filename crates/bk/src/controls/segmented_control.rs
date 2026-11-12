@@ -116,15 +116,7 @@ impl Component for Segment {
     fn render(&self) -> impl IntoElement {
         let style: SegmentedControlStyle = resolve(&self.style);
         let interaction = use_interaction();
-        let paints = Paints::current(
-            ControlState {
-                hovered: interaction.hovered(),
-                pressed: interaction.pressed(),
-                focused: interaction.focused(),
-                disabled: false,
-            },
-            style.effect,
-        );
+        let paints = Paints::current(control_state(interaction, false), style.effect);
         crate::choices::take_focus_when(interaction, self.take_focus);
         let active = self.active;
         let on_select = self.on_select.clone();

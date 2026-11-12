@@ -54,9 +54,10 @@ fn load() -> Option<Dictionary> {
         .iter()
         .find_map(|tag| dictionary_name(&listed, tag))?;
     let (base, _) = names.iter().find(|(_, name)| *name == chosen)?;
-    let personal = personal_list(&chosen);
-    let words = std::fs::read_to_string(&personal).unwrap_or_default();
-    let _ = PERSONAL.set((personal, personal_words(&words)));
+    if let Some(personal) = personal_list(&chosen) {
+        let words = std::fs::read_to_string(&personal).unwrap_or_default();
+        let _ = PERSONAL.set((personal, personal_words(&words)));
+    }
     let aff = std::fs::read_to_string(base.with_extension("aff")).ok()?;
     let dic = std::fs::read_to_string(base.with_extension("dic")).ok()?;
     match Dictionary::new(&aff, &dic) {
@@ -87,11 +88,12 @@ fn dictionary_dirs() -> Vec<PathBuf> {
 }
 
 // Enchant's per-user word list, shared with GTK and GNOME apps (enchant(5)).
-fn personal_list(name: &str) -> PathBuf {
-    ctappearance::xdg::config_home()
-        .unwrap_or_default()
-        .join("enchant")
-        .join(format!("{name}.dic"))
+fn personal_list(name: &str) -> Option<PathBuf> {
+    Some(
+        ctappearance::xdg::config_home()?
+            .join("enchant")
+            .join(format!("{name}.dic")),
+    )
 }
 
 pub fn personal_words(list: &str) -> HashSet<String> {

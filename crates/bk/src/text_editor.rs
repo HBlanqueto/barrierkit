@@ -25,6 +25,7 @@ use crate::styles::{
     ControlState, LayoutDirection, Paints, ShapeStyle, StateValue, TextEditorStyle, Theme, resolve,
 };
 use crate::theme::{color, resolved};
+use crate::views::text_view::EDITING_KEYS;
 
 #[derive(PartialEq)]
 pub struct TextEditor {
@@ -231,17 +232,27 @@ impl Component for TextEditor {
                 }
                 return;
             }
-            blink.reset();
+            let chord = event
+                .modifiers
+                .intersects(Modifiers::CONTROL | Modifiers::META);
             let redo = Key::Character("y".into());
             let key = match &event.key {
                 Key::Character(c)
-                    if c.eq_ignore_ascii_case("z")
+                    if chord
+                        && c.eq_ignore_ascii_case("z")
                         && event.modifiers.contains(Modifiers::SHIFT) =>
                 {
                     &redo
                 }
                 key => key,
             };
+            // freya-edit 0.5.0 types any character even with Super or Ctrl held.
+            if chord
+                && matches!(key, Key::Character(typed) if !EDITING_KEYS.contains(&typed.as_str()))
+            {
+                return;
+            }
+            blink.reset();
             editable.process_event(EditableEvent::KeyDown {
                 key,
                 modifiers: event.modifiers,
@@ -373,16 +384,22 @@ impl Component for TextEditor {
                 )
                 .into_iter()
             });
-        let ranges = dictionary()
-            .filter(|_| !empty)
-            .map(|dictionary| {
-                let text = value.read();
-                misspelled(&text, |word| known(dictionary, word))
-                    .iter()
-                    .map(|range| utf16_range(&text, range))
-                    .collect::<Vec<_>>()
-            })
-            .unwrap_or_default();
+        let loaded = use_reactive(&dictionary().is_some());
+        let ranges = use_memo(move || {
+            let text = value.read();
+            loaded
+                .read()
+                .then(dictionary)
+                .flatten()
+                .map(|dictionary| {
+                    misspelled(&text, |word| known(dictionary, word))
+                        .iter()
+                        .map(|range| utf16_range(&text, range))
+                        .collect::<Vec<_>>()
+                })
+                .unwrap_or_default()
+        });
+        let ranges = ranges.read().clone();
         let squiggles = (!ranges.is_empty()).then(|| {
             crate::glass::leaf(Squiggles {
                 holder: holder.read().clone(),
@@ -525,6 +542,9 @@ impl Component for TextEditor {
 }
 
 fn styled_spans(text: &str, runs: &[StyleRun], link: ctdesign::Rgba) -> Vec<Span<'static>> {
+    if runs.is_empty() {
+        return vec![Span::new(text.to_owned())];
+    }
     let chars: Vec<char> = text.chars().collect();
     let styles = char_styles(runs, chars.len());
     let mut spans = Vec::new();

@@ -92,12 +92,7 @@ impl Component for Button {
         } else {
             style
         };
-        let state = ControlState {
-            hovered: interaction.hovered(),
-            pressed: interaction.pressed(),
-            focused: interaction.focused(),
-            disabled: self.disabled,
-        };
+        let state = control_state(interaction, self.disabled);
         let paints = Paints::current(state, style.effect);
         let pressed = enabled && interaction.pressed();
         let scale = crate::animation::use_animated(
@@ -109,11 +104,7 @@ impl Component for Button {
             style
                 .shape
                 .corner_radius(style.height, style.height, LayoutDirection::LeftToRight);
-        let opacity = if enabled {
-            style.opacity
-        } else {
-            style.opacity * style.disabled_opacity
-        };
+        let opacity = opacity_when(self.disabled, style.opacity, style.disabled_opacity);
         let font = style.font;
 
         let button = interaction

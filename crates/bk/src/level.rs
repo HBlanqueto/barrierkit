@@ -4,12 +4,11 @@ use torin::prelude::{CursorPoint, Position, Size};
 
 use crate::backdrop::Tint;
 use crate::controlled::commit;
-use crate::controls::{dimmed, shadowed};
-use crate::interaction::{Interaction, use_interaction};
+use crate::controls::{dimmed, opacity_when, shadowed};
+use crate::interaction::{Interaction, control_state, use_interaction};
 use crate::styles::Painted;
 use crate::styles::{
-    ControlState, LayoutDirection, LevelSliderStyle, Paints, Shape, ShapeStyle, StateValue, Theme,
-    resolve,
+    LayoutDirection, LevelSliderStyle, Paints, Shape, ShapeStyle, StateValue, Theme, resolve,
 };
 use crate::symbol::symbol;
 
@@ -81,12 +80,7 @@ impl Component for LevelSlider {
     fn render(&self) -> impl IntoElement {
         let interaction = use_interaction();
         let style: LevelSliderStyle = resolve(&self.style);
-        let state = ControlState {
-            hovered: interaction.hovered(),
-            pressed: interaction.pressed(),
-            focused: interaction.focused(),
-            disabled: self.disabled,
-        };
+        let state = control_state(interaction, self.disabled);
         let paints = Paints::current(state, style.effect);
         let value = crate::controlled::use_controlled(&self.value);
         let mut width = use_state(|| 0.0f32);
@@ -162,11 +156,7 @@ impl Component for LevelSlider {
                 .corner_radius(shape.corner_radius(width, height, direction))
                 .painted(&paints, paint)
         };
-        let parts_opacity = if enabled {
-            style.opacity
-        } else {
-            style.opacity * style.disabled_opacity
-        };
+        let parts_opacity = opacity_when(self.disabled, style.opacity, style.disabled_opacity);
 
         let fill = part(
             mirrored(-offset, fill_width, run),

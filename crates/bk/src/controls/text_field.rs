@@ -70,12 +70,7 @@ impl Component for SecureField {
     fn render(&self) -> impl IntoElement {
         let interaction = use_interaction();
         let style: SecureFieldStyle = resolve(&self.style);
-        let state = ControlState {
-            hovered: interaction.hovered(),
-            pressed: interaction.pressed(),
-            focused: interaction.focused(),
-            disabled: false,
-        };
+        let state = control_state(interaction, false);
         let paints = Paints::current(state, style.effect);
         let mut field = self.field;
         let on_submit = self.on_submit.clone();

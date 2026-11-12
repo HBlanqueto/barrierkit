@@ -8,7 +8,7 @@ use torin::prelude::{Area, Size};
 use crate::styles::{ControlState, Paints, ShapeStyle, StateValue, TextViewStyle, Theme, resolve};
 use crate::theme::color;
 
-const EDITING_KEYS: [&str; 6] = ["a", "c", "x", "v", "z", "y"];
+pub(crate) const EDITING_KEYS: [&str; 6] = ["a", "c", "x", "v", "z", "y"];
 
 #[derive(Clone, PartialEq)]
 pub struct KeyPress {

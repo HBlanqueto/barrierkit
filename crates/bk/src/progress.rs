@@ -81,7 +81,12 @@ impl Component for ProgressView {
     fn render(&self) -> impl IntoElement {
         let style: ProgressViewStyle = resolve(&self.style);
         let paints = Paints::current(ControlState::default(), style.effect);
-        let sweep = use_running(style.animation, false);
+        let animation = if self.value.is_some() {
+            Animation::None
+        } else {
+            style.animation
+        };
+        let sweep = use_running(animation, false);
         let (start, length) = match self.value {
             Some(value) => (0.0, value),
             None => (

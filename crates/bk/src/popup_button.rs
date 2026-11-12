@@ -8,7 +8,7 @@ use freya_core::prelude::*;
 use torin::prelude::{Alignment, Area, Direction, Size};
 
 use crate::choices::use_choice;
-use crate::controls::{dimmed, shadowed};
+use crate::controls::{dimmed, opacity_when, shadowed};
 use crate::interaction::{control_state, use_interaction};
 use crate::menu::{CheckState, MenuIcon, MenuItem, MenuView};
 use crate::platform::{PopupAnchor, PopupConstraintAdjustment, PopupGravity, PopupSpec, Popups};
@@ -158,11 +158,7 @@ impl Component for PopUpButton {
                 .color(paints.fill(&style.label)),
             )
             .child(shadowed(indicator, &style.indicator_shadows));
-        let opacity = if self.disabled {
-            style.opacity * style.disabled_opacity
-        } else {
-            style.opacity
-        };
+        let opacity = opacity_when(self.disabled, style.opacity, style.disabled_opacity);
         interaction.focus_ring(dimmed(button, opacity), radius.top_left())
     }
 }

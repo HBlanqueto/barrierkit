@@ -5,7 +5,7 @@ use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Position, Size};
 
 use crate::backdrop::Tint;
-use crate::controls::{dimmed, dimmed_label, inner_border, labeled, shadowed};
+use crate::controls::{dimmed, dimmed_label, inner_border, labeled, opacity_when, shadowed};
 use crate::interaction::{control_state, ring, use_interaction};
 use crate::style::with_font;
 use crate::styles::Painted;
@@ -94,14 +94,7 @@ fn choice_group(
 }
 
 fn dimmed_when(element: Rect, disabled: bool, opacity: f32, disabled_opacity: f32) -> Rect {
-    dimmed(
-        element,
-        if disabled {
-            opacity * disabled_opacity
-        } else {
-            opacity
-        },
-    )
+    dimmed(element, opacity_when(disabled, opacity, disabled_opacity))
 }
 
 #[derive(PartialEq)]
@@ -245,11 +238,7 @@ impl Component for RadioOption {
                         .painted(&paints, &style.dot),
                 )
             });
-        let opacity = if enabled {
-            style.opacity
-        } else {
-            style.opacity * style.disabled_opacity
-        };
+        let opacity = opacity_when(self.disabled, style.opacity, style.disabled_opacity);
         let circle = interaction.focus_ring(
             dimmed(shadowed(circle, &style.button_shadows), opacity),
             radius.top_left(),

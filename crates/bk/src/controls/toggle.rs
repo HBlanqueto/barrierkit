@@ -75,12 +75,7 @@ impl Component for Switch {
         let on = crate::controlled::use_controlled(&self.on);
         let interaction = use_interaction();
         let style: SwitchStyle = resolve(&self.style);
-        let state = ControlState {
-            hovered: interaction.hovered(),
-            pressed: interaction.pressed(),
-            focused: interaction.focused(),
-            disabled: self.disabled,
-        };
+        let state = control_state(interaction, self.disabled);
         let paints = Paints::current(state, style.effect);
         let is_on = *on.read();
         let progress = crate::animation::use_animated(f32::from(u8::from(is_on)), style.animation);
@@ -96,11 +91,7 @@ impl Component for Switch {
         } else {
             progress
         };
-        let opacity = if disabled {
-            style.opacity * style.disabled_opacity
-        } else {
-            style.opacity
-        };
+        let opacity = opacity_when(disabled, style.opacity, style.disabled_opacity);
 
         let knob = rect()
             .position(
@@ -246,19 +237,10 @@ impl Component for Checkbox {
         let label_text = self.label;
         let interaction = use_interaction();
         let style: CheckboxStyle = resolve(&self.style);
-        let state = ControlState {
-            hovered: interaction.hovered(),
-            pressed: interaction.pressed(),
-            focused: interaction.focused(),
-            disabled,
-        };
+        let state = control_state(interaction, disabled);
         let paints = Paints::current(state, style.effect);
         let is_checked = *checked.read();
-        let opacity = if disabled {
-            style.opacity * style.disabled_opacity
-        } else {
-            style.opacity
-        };
+        let opacity = opacity_when(disabled, style.opacity, style.disabled_opacity);
 
         let size = style.box_size;
         let radius = style

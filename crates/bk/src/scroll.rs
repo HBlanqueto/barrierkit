@@ -311,7 +311,7 @@ impl Component for ScrollView {
             scrolling.set(true);
             if let Some(timers) = try_consume_root_context::<Timers>() {
                 timers.after(Duration::from_millis(style.hide_delay_ms), move || {
-                    if *scrolls.peek() == scroll {
+                    if scrolls.try_peek().is_some_and(|last| *last == scroll) {
                         let mut scrolling = scrolling;
                         scrolling.set(false);
                     }

@@ -15,7 +15,7 @@ use crate::choices::use_choice;
 use crate::context_menu::{Spelling, edit_menu};
 use crate::controlled::commit;
 use crate::i18n::text;
-use crate::interaction::use_interaction;
+use crate::interaction::{control_state, use_interaction};
 use crate::level;
 use crate::password::PasswordField;
 use crate::spelling::{
@@ -63,6 +63,14 @@ pub(crate) fn shadowed(element: Rect, shadows: &[ShadowStyle]) -> Rect {
 
 pub(crate) fn dimmed(element: Rect, opacity: f32) -> Rect {
     element.maybe(opacity < 1.0, |element| element.opacity(opacity))
+}
+
+pub(crate) fn opacity_when(disabled: bool, opacity: f32, disabled_opacity: f32) -> f32 {
+    if disabled {
+        opacity * disabled_opacity
+    } else {
+        opacity
+    }
 }
 
 pub(crate) fn dimmed_label(text: Label, opacity: f32) -> Element {

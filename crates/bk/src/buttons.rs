@@ -267,14 +267,14 @@ impl Component for ComboButton {
             .direction(Direction::Horizontal)
             .cross_align(Alignment::Center)
             .on_sized(move |event: Event<SizedEventData>| area.set_if_modified(event.area))
-            .child(action.focus_ring(primary, radius.top_left()))
+            .child(action.inner_focus_ring(primary))
             .child(
                 rect()
                     .width(Size::px(separator_width))
                     .height(Size::px(separator_height))
                     .background(group.fill(&style.separator)),
             )
-            .child(arrow.focus_ring(menu, radius.top_left()));
+            .child(arrow.inner_focus_ring(menu));
         dimmed(shadowed(combo, &style.shadows), style.opacity)
     }
 }

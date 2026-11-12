@@ -138,7 +138,9 @@ impl Criterion {
 impl Predicate {
     pub fn evaluate(&self, fields: &[RuleField], value_of: &impl Fn(usize) -> String) -> bool {
         let mut results = self.rules.iter().map(|criterion| match criterion {
-            Criterion::Rule(rule) => rule.matches(fields[rule.field].kind, &value_of(rule.field)),
+            Criterion::Rule(rule) => fields
+                .get(rule.field)
+                .is_some_and(|field| rule.matches(field.kind, &value_of(rule.field))),
             Criterion::Group { predicate, .. } => predicate.evaluate(fields, value_of),
         });
         if self.all {
@@ -418,7 +420,10 @@ impl Component for RuleRow {
         let Some(rule) = predicate.read().rule(id).cloned() else {
             return rect().into_element();
         };
-        let kind = self.fields[rule.field].kind;
+        let Some(field) = self.fields.get(rule.field) else {
+            return rect().into_element();
+        };
+        let kind = field.kind;
         let shown = rule.value.clone();
         let mut value = use_state(move || shown);
         if *value.peek() != rule.value {
@@ -506,6 +511,10 @@ impl Component for RuleRow {
         ))
         .into_element()
     }
+
+    fn render_key(&self) -> DiffKey {
+        DiffKey::U64(self.id)
+    }
 }
 
 #[cfg(test)]
@@ -576,6 +585,15 @@ mod tests {
         assert!(!predicate.evaluate(&FIELDS, &value));
         predicate.all = false;
         assert!(predicate.evaluate(&FIELDS, &value));
+    }
+
+    #[test]
+    fn a_rule_on_a_field_that_no_longer_exists_matches_nothing() {
+        let predicate = Predicate {
+            all: false,
+            rules: vec![rule(1, FIELDS.len(), Operator::Contains, "")],
+        };
+        assert!(!predicate.evaluate(&FIELDS, &|_| String::new()));
     }
 
     #[test]

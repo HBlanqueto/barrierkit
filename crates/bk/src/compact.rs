@@ -3,7 +3,7 @@ use std::rc::Rc;
 
 use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
 
-use crate::controls::{dimmed, dimmed_label, labeled, shadowed};
+use crate::controls::{dimmed, dimmed_label, labeled, opacity_when, shadowed};
 use crate::i18n::text;
 use crate::interaction::{control_state, use_interaction};
 use crate::style::with_font;
@@ -84,11 +84,7 @@ impl Component for IconButton {
         let radius = style
             .shape
             .corner_radius(size, size, LayoutDirection::LeftToRight);
-        let opacity = if enabled {
-            style.opacity
-        } else {
-            style.opacity * style.disabled_opacity
-        };
+        let opacity = opacity_when(self.disabled, style.opacity, style.disabled_opacity);
 
         let button = interaction
             .attach(rect(), enabled)
