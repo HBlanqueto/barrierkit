@@ -155,7 +155,7 @@ keys of the file.
 | Row | File | Detail text |
 |---|---|---|
 | `app_language_row(domain)` | `<domain>.domain` | Applies the next time the app opens |
-| `system_language_row()` | `language.domain` | Applies to the apps you open afterwards |
+| `system_language_row()` | `language.domain` | none |
 
 ## Adding a language
 

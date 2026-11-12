@@ -37,9 +37,7 @@ pub fn app_language_row(domain: &str) -> Row {
 }
 
 pub fn system_language_row() -> Row {
-    Row::new(text!("language"))
-        .detail(text!("language-applies-to-new-apps"))
-        .control(LanguagePicker::system())
+    Row::new(text!("language")).control(LanguagePicker::system())
 }
 
 impl Component for LanguagePicker {

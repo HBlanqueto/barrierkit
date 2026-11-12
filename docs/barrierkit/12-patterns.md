@@ -204,7 +204,7 @@ control:
 | Function | Detail line |
 |---|---|
 | `app_language_row(domain)` | "Applies the next time the app opens." |
-| `system_language_row()` | "Applies to the apps you open afterwards." |
+| `system_language_row()` | none |
 
 ```rust
 Section::titled("Language").row(app_language_row("notes"))

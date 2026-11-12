@@ -19,7 +19,6 @@ recents = Recents
 language = Language
 language-automatic = Automatic
 language-applies-on-reopen = Applies the next time the app opens.
-language-applies-to-new-apps = Applies to the apps you open afterwards.
 
 accent-blue = Blue
 accent-purple = Purple
