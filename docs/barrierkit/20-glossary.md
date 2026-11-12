@@ -1102,6 +1102,11 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `glass_container::Morph` | struct | — | — | One shape's move: id, from frame, to frame | [15](15-backdrops-and-media.md#glass-that-merges) |
 | `glass_container::plan` | fn | ≈ `.glassEffectID(_:in:)` | — | Pairs shown and new frames by id; new and leaving shapes use neighbours | [15](15-backdrops-and-media.md#glass-that-merges) |
 | `glass_container::MAX_SHAPES` | constant | — | — | Most shapes a container draws: 8 | [15](15-backdrops-and-media.md#glass-that-merges) |
+| `video::VideoStream` | struct | — | ≈ `AVPlayer` | An open video with its playback: `open`, `open_uri`, `open_uris`, `play`, `pause`, `seek` (feature `video`) | [15](15-backdrops-and-media.md#video) |
+| `video::VideoView` | struct | ≈ `VideoPlayer` | ≈ `AVPlayerView` | Shows the frames of a `VideoStream` | [15](15-backdrops-and-media.md#video) |
+| `video::VideoError` | enum | — | — | Why a stream did not open: `Init`, `Open` | [15](15-backdrops-and-media.md#video) |
+| `video::Decoding` | enum | — | — | The decoding path in use: `GpuZeroCopy`, `GpuDownload`, `Cpu` | [15](15-backdrops-and-media.md#video) |
+| `video::fetch` | fn | — | — | Downloads the bytes of an `http(s)` file | [15](15-backdrops-and-media.md#video) |
 
 ## Charts
 

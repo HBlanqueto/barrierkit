@@ -37,7 +37,7 @@ use torin::prelude::{Alignment, Direction, Gaps, Size, Size2D};
 
 const SIZE: (f32, f32) = (360.0, 240.0);
 const WINDOW_SIZE: (f32, f32) = (900.0, 560.0);
-const TOLERANCE: u8 = 3;
+pub(crate) const TOLERANCE: u8 = 3;
 
 struct Case {
     dark: bool,
@@ -509,23 +509,24 @@ fn compare(golden: &Path, actual_png: &[u8], name: &str, dark: bool) {
     );
 }
 
+pub(crate) fn check_golden(name: &str, dark: bool, actual: &[u8]) {
+    let path = golden_path(name, dark);
+    if std::env::var_os("UPDATE_GOLDEN").is_some() {
+        fs::write(&path, actual).unwrap();
+    } else {
+        compare(&path, actual, name, dark);
+    }
+}
+
 #[test]
 fn controls_match_their_golden_images() {
-    let update = std::env::var_os("UPDATE_GOLDEN").is_some();
     let controls = cases().into_iter().map(|(name, build)| (name, build, SIZE));
     let windows = window_cases()
         .into_iter()
         .map(|(name, build)| (name, build, WINDOW_SIZE));
     for (name, build, size) in controls.chain(windows) {
         for dark in [false, true] {
-            let path = golden_path(name, dark);
-            let actual = render(size, dark, build);
-            if update || !path.exists() {
-                fs::create_dir_all(path.parent().unwrap()).unwrap();
-                fs::write(&path, &actual).unwrap();
-            } else {
-                compare(&path, &actual, name, dark);
-            }
+            check_golden(name, dark, &render(size, dark, build));
         }
     }
 }
@@ -760,12 +761,7 @@ fn keyboard_focus_ring_matches_its_golden_image() {
     press(&mut test, Key::Named(NamedKey::Tab));
     test.poll_n(std::time::Duration::from_millis(16), 3);
     let actual = test.render().as_bytes().to_vec();
-    let path = golden_path("focus-ring", false);
-    if std::env::var_os("UPDATE_GOLDEN").is_some() || !path.exists() {
-        fs::write(&path, &actual).unwrap();
-    } else {
-        compare(&path, &actual, "focus-ring", false);
-    }
+    check_golden("focus-ring", false, &actual);
 }
 
 #[test]

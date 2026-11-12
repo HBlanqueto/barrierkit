@@ -154,8 +154,8 @@ scrolls.
 
 | Light | Dark |
 |---|---|
-| ![Menu with a shortcut, checkboxes, radios, a disabled row and a submenu](assets/components/menu-view-light.png) | ![The same menu in dark](assets/components/menu-view-dark.png) |
-| ![Two rows with shortcuts, the second disabled](assets/components/menu-view-accents-light.png) | ![The same rows in dark](assets/components/menu-view-accents-dark.png) |
+| ![Menu with a shortcut, checkboxes, radios, a disabled row and a submenu](../../crates/bk/tests/golden/menu-view-light.png) | ![The same menu in dark](../../crates/bk/tests/golden/menu-view-dark.png) |
+| ![Two rows with shortcuts, the second disabled](../../crates/bk/tests/golden/menu-view-accents-light.png) | ![The same rows in dark](../../crates/bk/tests/golden/menu-view-accents-dark.png) |
 
 ### Style
 

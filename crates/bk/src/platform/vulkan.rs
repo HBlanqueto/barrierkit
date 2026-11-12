@@ -219,7 +219,7 @@ impl GraphicsShared {
         #[cfg(feature = "video")]
         if dmabuf.is_none() {
             tracing::info!(
-                "vídeo: el dispositivo Vulkan no importa dmabuf; los fotogramas se suben desde la CPU"
+                "video: the Vulkan device does not import dmabuf; frames are uploaded from the CPU"
             );
         }
 

@@ -11,7 +11,9 @@ chapter; the names are in the [glossary](../docs/barrierkit/20-glossary.md).
 1. Find the recipe closest to the task in the list below.
 2. Copy its file from [`recipes/`](recipes/) into `src/main.rs`. Each file is
    an example of `bk`, so `./dev.sh check` builds and lints it; inside the
-   kit, `cargo run -p bk --example <name>` opens it.
+   kit, `cargo run -p bk --example <name>` opens it. There `.cargo/config.toml`
+   forces `MALAYSIA_CONFIG_DIR` to `crates/bk/tests/config`, so it opens in
+   Spanish, without your appearance, and saves its settings in that folder.
 3. Change only what the task needs.
 4. Build it inside `nix develop` and go through the [checklist](checklist.md).
 

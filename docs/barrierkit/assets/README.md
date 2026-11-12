@@ -2,7 +2,8 @@
 
 **Goal:** know where each image of the BarrierKit chapters comes from, and
 regenerate it after a visual change.
-**Scope:** the three folders under `docs/barrierkit/assets/`. Which chapter
+**Scope:** the two folders under `docs/barrierkit/assets/` and the golden
+images in `crates/bk/tests/golden/`. Which chapter
 shows each image is in that chapter.
 **Reader:** whoever updates the documentation after changing how a control,
 the titlebar or the sidebar looks.
@@ -13,7 +14,7 @@ renders of the current code, never retouched.
 
 | Folder | Holds | Produced by |
 |---|---|---|
-| `components/` | One control or view per image, `<name>-light.png` and `<name>-dark.png` | Copies of the golden images in `crates/bk/tests/golden/` |
+| `crates/bk/tests/golden/` | One control or view per image, `<name>-light.png` and `<name>-dark.png`; the chapters link them directly | The golden tests in `crates/bk/tests/kit/` |
 | `states/` | The titlebar and the sidebar in each window state ([9. Titlebars](../09-titlebars.md)) | The `doc_shots` test in `crates/bk/src/platform/doc_shots.rs` |
 | `brand/` | The BarrierKit icon and banner, as SVG | Drawn by hand; the repository has no script for them |
 
@@ -32,7 +33,7 @@ below runs with the same environment:
    `MALAYSIA_CONFIG_DIR` at `crates/bk/tests/config`, whose `language.domain`
    says `es`, so the host's language and settings do not change the images.
 
-## Steps to regenerate `components/`
+## Steps to regenerate the golden images
 
 1. Enter the dev shell: `nix develop`.
 2. Rewrite the golden images:
@@ -43,11 +44,6 @@ below runs with the same environment:
 
 3. Check the new images with `git diff --stat crates/bk/tests/golden/`
    and look at each changed one.
-4. Copy them:
-
-   ```sh
-   cp crates/bk/tests/golden/*.png docs/barrierkit/assets/components/
-   ```
 
 Which tests write golden images:
 
@@ -60,8 +56,8 @@ Which tests write golden images:
 
 Without `UPDATE_GOLDEN`, the tests compare. A channel that differs by more
 than 3 fails the test, and the actual image is written to the temp dir
-(`malaysia-control-<name>-<theme>.png` or `malaysia-menu-<name>-<theme>.png`).
-A golden image that does not exist is written instead of compared.
+(`malaysia-control-<name>-<theme>.png`).
+A golden image that does not exist fails the test.
 
 ## Steps to regenerate `states/`
 

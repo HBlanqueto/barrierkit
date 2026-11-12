@@ -73,7 +73,7 @@ Three controls keep no copy and only show what the app passes: `RatingIndicator`
   literals.
 - Most controls take `.key(..)` (Freya's `KeyExt`) to keep their state in lists.
 
-![Focus ring after Tab](assets/components/focus-ring-light.png)
+![Focus ring after Tab](../../crates/bk/tests/golden/focus-ring-light.png)
 
 Each image is a golden render from `crates/bk/tests/kit/controls.rs`, in light and
 dark (`-dark.png`).
@@ -122,7 +122,7 @@ Button::new("Delete").disabled(true)
 
 | Light | Dark |
 |---|---|
-| ![Tengen, bordered prominent and disabled buttons](assets/components/button-light.png) | ![The same buttons in dark](assets/components/button-dark.png) |
+| ![Tengen, bordered prominent and disabled buttons](../../crates/bk/tests/golden/button-light.png) | ![The same buttons in dark](../../crates/bk/tests/golden/button-dark.png) |
 
 ### Style
 
@@ -163,7 +163,7 @@ ToggleGroup::new("Format")
     .item("U", Face::Underline, "Underline", false)
 ```
 
-![Icon button, stepper and toggle group](assets/components/compact-light.png)
+![Icon button, stepper and toggle group](../../crates/bk/tests/golden/compact-light.png)
 
 ### Style
 
@@ -265,7 +265,7 @@ Checkbox::new("Remember me").checked(true)
 
 | Switches | Checkbox |
 |---|---|
-| ![Off, on and inactive switches](assets/components/switch-light.png) | ![Checked checkbox](assets/components/checkbox-light.png) |
+| ![Off, on and inactive switches](../../crates/bk/tests/golden/switch-light.png) | ![Checked checkbox](../../crates/bk/tests/golden/checkbox-light.png) |
 
 ### Style
 
@@ -323,11 +323,11 @@ ColorWell::new("Accent color", &ACCENT_SWATCHES).selected(Some(0))
 
 | Radio | Segmented |
 |---|---|
-| ![Active and inactive radio groups](assets/components/radio-group-light.png) | ![Segmented control with the second segment chosen](assets/components/segmented-control-light.png) |
+| ![Active and inactive radio groups](../../crates/bk/tests/golden/radio-group-light.png) | ![Segmented control with the second segment chosen](../../crates/bk/tests/golden/segmented-control-light.png) |
 
 | Pop-up | Pop-up with icon | Color swatches |
 |---|---|---|
-| ![PopUpButton](assets/components/popup-button-light.png) | ![PopUpButton with an SVG icon](assets/components/popup-button-icon-light.png) | ![ColorWell with eight accents](assets/components/color-well-light.png) |
+| ![PopUpButton](../../crates/bk/tests/golden/popup-button-light.png) | ![PopUpButton with an SVG icon](../../crates/bk/tests/golden/popup-button-icon-light.png) | ![ColorWell with eight accents](../../crates/bk/tests/golden/color-well-light.png) |
 
 ### Style
 
@@ -371,7 +371,7 @@ LevelSlider::new("Volume").value(0.6).style(|s| s.fat(Symbol::SpeakerWave))
 
 | Stepped | Regular and fat |
 |---|---|
-| ![Stepped slider](assets/components/slider-light.png) | ![Regular and fat LevelSlider](assets/components/level-slider-light.png) |
+| ![Stepped slider](../../crates/bk/tests/golden/slider-light.png) | ![Regular and fat LevelSlider](../../crates/bk/tests/golden/level-slider-light.png) |
 
 ### Style
 
@@ -423,7 +423,7 @@ ComboBox::new(shell, "Shell").item("zsh").item("fish")
 
 | Text and search | Password |
 |---|---|
-| ![TextField and SearchField](assets/components/text-field-light.png) | ![SecureField](assets/components/secure-field-light.png) |
+| ![TextField and SearchField](../../crates/bk/tests/golden/text-field-light.png) | ![SecureField](../../crates/bk/tests/golden/secure-field-light.png) |
 
 ### Style
 
@@ -577,7 +577,7 @@ ProgressRing::new("Downloading", 0.4)
 Spinner::new("Loading")
 ```
 
-![Determinate bar, indeterminate bar, ring and spinner](assets/components/progress-light.png)
+![Determinate bar, indeterminate bar, ring and spinner](../../crates/bk/tests/golden/progress-light.png)
 
 ### Style
 
@@ -645,7 +645,7 @@ Avatar::new("HB")
 Link::new("Learn more…")
 ```
 
-![Badge, divider, avatar and link](assets/components/adornments-light.png)
+![Badge, divider, avatar and link](../../crates/bk/tests/golden/adornments-light.png)
 
 ### Style
 
@@ -695,7 +695,7 @@ centers the thumb there, like the macOS Appearance setting.
 ScrollView::new().height(Size::px(120.0)).child(list)
 ```
 
-![ScrollView with three items](assets/components/scroll-view-light.png)
+![ScrollView with three items](../../crates/bk/tests/golden/scroll-view-light.png)
 
 ### Style
 

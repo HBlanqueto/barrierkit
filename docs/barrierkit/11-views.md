@@ -88,7 +88,7 @@ Form::new()
     .highlighted(Some("Status"))
 ```
 
-![Form with a control row, a value row and a navigation row](assets/components/form-light.png)
+![Form with a control row, a value row and a navigation row](../../crates/bk/tests/golden/form-light.png)
 
 | Method | Effect |
 |---|---|
@@ -135,7 +135,7 @@ rows with a control put the label above the control.
 
 Long titles and details wrap without clipping the control.
 
-![Form with long texts that wrap](assets/components/form-long-text-light.png)
+![Form with long texts that wrap](../../crates/bk/tests/golden/form-long-text-light.png)
 
 ### Style
 
@@ -172,7 +172,7 @@ chevron that shows or hides its children, indented `DISCLOSURE.indent` (13).
 
 Rows of text in columns with a header, like `NSTableView`.
 
-![Table sorted by name with one row selected](assets/components/table-light.png)
+![Table sorted by name with one row selected](../../crates/bk/tests/golden/table-light.png)
 
 | Method | Effect |
 |---|---|
@@ -232,7 +232,7 @@ CollectionView::new("Documents")
     .on_select(move |chosen: Vec<usize>| selection.set(chosen))
 ```
 
-![Icon grid with one item selected](assets/components/collection-light.png)
+![Icon grid with one item selected](../../crates/bk/tests/golden/collection-light.png)
 
 | Method | Effect |
 |---|---|
@@ -315,7 +315,7 @@ TabView::new("Preferences")
     .on_change(move |index: usize| tab.set(index))
 ```
 
-![Search and Sound tabs](assets/components/tab-view-light.png)
+![Search and Sound tabs](../../crates/bk/tests/golden/tab-view-light.png)
 
 | Method | Effect |
 |---|---|
@@ -514,7 +514,7 @@ Alert::new("Forget this network?", "You will have to type the password again.")
 
 | Empty state | Alert |
 |---|---|
-| ![Empty state with a magnifying glass](assets/components/empty-state-light.png) | ![Alert with Cancel and a primary confirm button](assets/components/alert-light.png) |
+| ![Empty state with a magnifying glass](../../crates/bk/tests/golden/empty-state-light.png) | ![Alert with Cancel and a primary confirm button](../../crates/bk/tests/golden/alert-light.png) |
 
 | Method | Default | Effect |
 |---|---|---|

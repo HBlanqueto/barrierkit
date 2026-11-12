@@ -82,7 +82,7 @@ impl ShellState {
             None
         } else {
             tracing::info!(
-                "zwlr_foreign_toplevel_manager_v1 no disponible; uso ext_foreign_toplevel_list_v1"
+                "zwlr_foreign_toplevel_manager_v1 unavailable; using ext_foreign_toplevel_list_v1"
             );
             globals
                 .bind::<ExtForeignToplevelListV1, _, _>(qh, 1..=1, ())
@@ -92,7 +92,7 @@ impl ShellState {
             .bind::<InfinityWindowManagerV1, _, _>(qh, 1..=8, ())
             .ok();
         if infinity.is_none() {
-            tracing::info!("infinity_window_manager_v1 no disponible; sigo sin él");
+            tracing::info!("infinity_window_manager_v1 unavailable; continuing without it");
         }
         let toplevels = Toplevels {
             list: freya_core::prelude::State::create_global(Vec::new()),

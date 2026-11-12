@@ -348,13 +348,6 @@ context in `run_layer` and `run_lock`.
 `app_menu_path`, `application_object_path` and `window_object_path`. It
 exists only when the bus name and one of the two menu paths are set.
 
-| `SpaceInfo` field | Type | Meaning |
-|---|---|---|
-| `index` | `u32` | 0-based position of the shown space |
-| `count` | `u32` | Number of spaces |
-| `desktop` | `Option<u32>` | 1-based desktop number; `None` in a focus space |
-| `focus_bar` | `FocusBar` | `None` (a desktop), `Hidden` (focus space, bar up) or `Revealed` (focus space, bar down) |
-
 `FocusBar::over_focus()` is `true` in a focus space.
 
 With `ext_foreign_toplevel_list_v1` alone, the list has only `id`, `title`

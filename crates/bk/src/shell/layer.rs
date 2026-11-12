@@ -226,9 +226,7 @@ pub fn run_layer(app: AppComponent, spec: LayerSpec) -> Result<(), RunError> {
             .layer_shell
             .as_ref()
             .ok_or_else(|| {
-                tracing::info!(
-                    "zwlr_layer_shell_v1 no disponible; las superficies Layer no funcionan aquí"
-                );
+                tracing::info!("zwlr_layer_shell_v1 unavailable; Layer surfaces do not work here");
                 RunError::MissingGlobal("zwlr_layer_shell_v1")
             })?;
         layer_shell.create_layer_surface(

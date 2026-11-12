@@ -8,12 +8,6 @@ members = [
     "crates/ctappearance",
     "crates/infinity-protocol",
 ]
-default-members = [
-    "crates/bk",
-    "crates/ctdesign",
-    "crates/ctappearance",
-    "crates/infinity-protocol",
-]
 
 [workspace.package]
 version = "0.1.0"
@@ -93,11 +87,9 @@ ttf-parser = "0.25"
 sctk = { package = "smithay-client-toolkit", version = "0.20" }
 
 [profile.dev]
-opt-level = 0
 debug = "line-tables-only"
 
 [profile.dev.package."*"]
-opt-level = 0
 debug = false
 
 [profile.dev.package.freya-core]

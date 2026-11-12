@@ -458,7 +458,7 @@ impl Runtime {
             .bind::<OrgKdeKwinAppmenuManager, _, _>(&qh, 1..=1, ())
             .ok();
         if appmenu_manager.is_none() {
-            tracing::info!("org_kde_kwin_appmenu_manager no disponible; sigo sin él");
+            tracing::info!("org_kde_kwin_appmenu_manager unavailable; continuing without it");
         }
         let focus_manager = globals
             .bind::<super::focus::InfinityFocusManagerV1, _, _>(&qh, 1..=4, ())
@@ -476,11 +476,11 @@ impl Runtime {
         });
         if fractional_manager.is_none() {
             tracing::info!(
-                "wp_fractional_scale_manager_v1 no disponible; sigo con escalas enteras"
+                "wp_fractional_scale_manager_v1 unavailable; continuing with integer scales"
             );
         }
         if viewporter.is_none() {
-            tracing::info!("wp_viewporter no disponible; sigo con escalas enteras");
+            tracing::info!("wp_viewporter unavailable; continuing with integer scales");
         }
         let seat = SeatState::new(&globals, &qh);
         let seat_handle = seat.seats().next();
@@ -505,7 +505,7 @@ impl Runtime {
                 let manager = CursorShapeManager::bind(&globals, &qh).ok();
                 if manager.is_none() {
                     tracing::info!(
-                        "wp_cursor_shape_manager_v1 no disponible; uso cursor por defecto"
+                        "wp_cursor_shape_manager_v1 unavailable; using the default cursor"
                     );
                 }
                 manager

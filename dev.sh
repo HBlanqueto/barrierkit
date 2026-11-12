@@ -38,6 +38,7 @@ check() {
     require cargo-clippy
     cargo fmt --all -- --check
     cargo clippy -p bk --lib -- -D warnings
+    cargo clippy -p bk --lib --no-default-features -- -D warnings
     cargo clippy --workspace --all-targets --features bk/charts,bk/print,bk/shell,bk/tracy,bk/video -- -D warnings
     "$script_dir/scripts/check-design-tokens.sh"
     "$script_dir/scripts/check-client-only-deps.sh"

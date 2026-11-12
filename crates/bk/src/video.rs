@@ -158,7 +158,7 @@ fn attach_audio(pipeline: &gst::Pipeline, pad: &gst::Pad) {
         return;
     }
     let Ok(branch) = gst::parse::bin_from_description(&format!("queue ! {AUDIO}"), true) else {
-        tracing::warn!("vídeo: no se pudo crear la rama de audio");
+        tracing::warn!("video: could not create the audio branch");
         return;
     };
     let linked = pipeline.add(&branch).is_ok()
@@ -167,7 +167,7 @@ fn attach_audio(pipeline: &gst::Pipeline, pad: &gst::Pad) {
             .static_pad("sink")
             .is_some_and(|sink| pad.link(&sink).is_ok());
     if !linked {
-        tracing::warn!("vídeo: la pista de audio no se pudo enlazar");
+        tracing::warn!("video: could not link the audio track");
     }
 }
 
@@ -256,13 +256,13 @@ impl VideoStream {
         for decoding in candidates() {
             match Self::start(source, locations, decoding, looping, preroll_timeout) {
                 Some(stream) => {
-                    tracing::info!(?decoding, ?locations, "vídeo abierto");
+                    tracing::info!(?decoding, ?locations, "video opened");
                     if let Some(wake) = redraw_handle() {
                         let _ = stream.0.frames.wake.set(wake);
                     }
                     return Ok(stream);
                 }
-                None => tracing::info!(?decoding, ?locations, "vídeo: decodificador descartado"),
+                None => tracing::info!(?decoding, ?locations, "video: decoder discarded"),
             }
         }
         let opened: Vec<&str> = locations.iter().map(|&(_, location)| location).collect();
@@ -329,7 +329,7 @@ impl VideoStream {
                     bus_frames.redraw();
                 }
                 gst::MessageView::Error(error) => {
-                    tracing::warn!(error = %error.error(), "vídeo: error de GStreamer");
+                    tracing::warn!(error = %error.error(), "video: GStreamer error");
                     bus_frames.failed.store(true, Ordering::Release);
                     bus_frames.redraw();
                 }

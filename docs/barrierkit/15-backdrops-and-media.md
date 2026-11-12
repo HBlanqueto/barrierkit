@@ -89,8 +89,8 @@ before the `Backdrop` renders, still reads the system palette.
 ✗ `Backdrop::new(source, Text::new(title))`, built in the parent's render.
 ✓ `Backdrop::new(source, Player)`, with `Player` a `Component`.
 
-![Form over a tinted backdrop, light mode](assets/components/backdrop-light.png)
-![Form over a tinted backdrop, dark mode](assets/components/backdrop-dark.png)
+![Form over a tinted backdrop, light mode](../../crates/bk/tests/golden/backdrop-light.png)
+![Form over a tinted backdrop, dark mode](../../crates/bk/tests/golden/backdrop-dark.png)
 
 `Backdrop::style(|s| ..)` changes the angles and opacity of the gradient
 layers and the fade of a new source; the fields are in

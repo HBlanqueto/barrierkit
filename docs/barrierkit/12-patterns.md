@@ -68,7 +68,7 @@ A [`SplitView`](10-sidebar.md#splitview) with a sidebar of panes, a search
 field, an account row, back and forward buttons and the selected pane's form.
 The app only declares the panes. System Settings is built with it.
 
-![SettingsWindow with an account and two panes](assets/components/preferences-light.png)
+![SettingsWindow with an account and two panes](../../crates/bk/tests/golden/preferences-light.png)
 
 | Method | Default | Effect |
 |---|---|---|
@@ -166,7 +166,7 @@ AboutView::new(Avatar::new("N"), "Notes", "© 2026 Jane Appleseed").version("Ver
 `AboutView` draws only the content: put it under a
 [`Titlebar`](09-titlebars.md#titlebar) in a small window.
 
-![About window with an icon, the name, the version and the copyright](assets/components/about-light.png)
+![About window with an icon, the name, the version and the copyright](../../crates/bk/tests/golden/about-light.png)
 
 ### Style
 

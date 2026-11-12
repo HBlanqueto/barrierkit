@@ -248,7 +248,7 @@ impl Component for SettingsWindow {
             if let Some(app_id) = restoration
                 && let Err(error) = save_restoration(app_id, &state)
             {
-                tracing::warn!(%error, "preferencias: no se guardó el estado");
+                tracing::warn!(%error, "settings: the state was not saved");
             }
         });
         let query = use_state(String::new);

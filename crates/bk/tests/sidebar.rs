@@ -1,5 +1,3 @@
-use std::env;
-use std::fs;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
@@ -25,30 +23,7 @@ mod image;
 
 use image::{decode, pixel};
 
-static ENV_LOCK: Mutex<()> = Mutex::new(());
-
-fn color(c: ctdesign::Rgba) -> Color {
-    let [r, g, b, a] = c.to_rgba8();
-    Color::from_argb(a, r, g, b)
-}
-
 type Capture = Arc<Mutex<Option<(f32, f32, f32, f32)>>>;
-
-fn with_config<F: FnOnce() -> R, R>(style: &str, f: F) -> R {
-    let _guard = ENV_LOCK.lock().unwrap();
-    let dir = std::env::temp_dir().join(format!("malaysia-sidebar-test-{style}"));
-    fs::create_dir_all(&dir).unwrap();
-    let path = dir.join("appearance.domain");
-    fs::write(&path, format!("sidebar_style = \"{style}\"\n")).unwrap();
-    let old = env::var_os("MALAYSIA_CONFIG_DIR");
-    unsafe { env::set_var("MALAYSIA_CONFIG_DIR", &dir) };
-    let result = f();
-    match old {
-        Some(v) => unsafe { env::set_var("MALAYSIA_CONFIG_DIR", v) },
-        None => unsafe { env::remove_var("MALAYSIA_CONFIG_DIR") },
-    }
-    result
-}
 
 struct LayoutCase {
     capture: Capture,
@@ -75,19 +50,31 @@ impl App for LayoutCase {
     }
 }
 
-fn layout_position() -> (f32, f32, f32, f32) {
+fn layout_position(sidebar_style: SidebarStyle) -> (f32, f32, f32, f32) {
+    let resolved = resolve(
+        &AppearanceConfig {
+            sidebar_style,
+            ..Default::default()
+        },
+        None,
+    );
     let capture: Capture = Arc::new(Mutex::new(None));
     let app = AppComponent::new(LayoutCase {
         capture: capture.clone(),
     });
-    let (mut test, _) = TestingRunner::new(app, Size2D::new(800.0, 600.0), |_| {}, 1.0);
+    let (mut test, _) = TestingRunner::new(
+        app,
+        Size2D::new(800.0, 600.0),
+        move |runner| runner.provide_root_context(move || State::create(resolved)),
+        1.0,
+    );
     test.sync_and_update();
     capture.lock().unwrap().expect("content was sized")
 }
 
 #[test]
 fn island_layout_positions_content_at_sidebar_width_plus_double_inset() {
-    let (x, y, width, height) = with_config("island", layout_position);
+    let (x, y, width, height) = layout_position(SidebarStyle::Island);
     let expected_x = SIDEBAR.width as f32 + 2.0 * SIDEBAR.inset as f32;
     assert!(
         (x - expected_x).abs() < 0.5,
@@ -104,7 +91,7 @@ fn island_layout_positions_content_at_sidebar_width_plus_double_inset() {
 
 #[test]
 fn flat_layout_positions_content_at_sidebar_width() {
-    let (x, y, width, height) = with_config("flat", layout_position);
+    let (x, y, width, height) = layout_position(SidebarStyle::Flat);
     let expected_x = SIDEBAR.width as f32;
     assert!(
         (x - expected_x).abs() < 0.5,
@@ -608,7 +595,19 @@ impl App for TrafficLightsCase {
 
 fn traffic_layout() -> Vec<(f32, f32, f32, f32)> {
     let app = AppComponent::new(TrafficLightsCase);
-    let (test, _) = TestingRunner::new(app, Size2D::new(300.0, 400.0), |_| {}, 1.0);
+    let resolved = resolve(
+        &AppearanceConfig {
+            sidebar_style: SidebarStyle::Island,
+            ..Default::default()
+        },
+        None,
+    );
+    let (test, _) = TestingRunner::new(
+        app,
+        Size2D::new(300.0, 400.0),
+        move |runner| runner.provide_root_context(move || State::create(resolved)),
+        1.0,
+    );
     test.find_many(|node, _el| {
         let area = node.layout().area;
         Some((
@@ -622,37 +621,33 @@ fn traffic_layout() -> Vec<(f32, f32, f32, f32)> {
 
 #[test]
 fn sidebar_traffic_lights_are_at_design_offset_and_first_child_sits_below() {
-    with_config("island", || {
-        let (_, _, group_w, group_h) = ctappearance::traffic::group_rect();
-        let layouts = traffic_layout();
+    let (_, _, group_w, group_h) = ctappearance::traffic::group_rect();
+    let layouts = traffic_layout();
 
-        let lights = layouts
-            .iter()
-            .find(|(_, _, w, h)| {
-                (*w - group_w as f32).abs() < 0.5 && (*h - group_h as f32).abs() < 0.5
-            })
-            .expect("traffic lights container must be sized");
-        assert!(
-            (lights.0 - SIDEBAR.traffic_x as f32).abs() < 0.5
-                && (lights.1 - SIDEBAR.traffic_y as f32).abs() < 0.5,
-            "traffic lights must be at ({}, {}), got ({}, {})",
-            SIDEBAR.traffic_x,
-            SIDEBAR.traffic_y,
-            lights.0,
-            lights.1
-        );
+    let lights = layouts
+        .iter()
+        .find(|(_, _, w, h)| (*w - group_w as f32).abs() < 0.5 && (*h - group_h as f32).abs() < 0.5)
+        .expect("traffic lights container must be sized");
+    assert!(
+        (lights.0 - SIDEBAR.traffic_x as f32).abs() < 0.5
+            && (lights.1 - SIDEBAR.traffic_y as f32).abs() < 0.5,
+        "traffic lights must be at ({}, {}), got ({}, {})",
+        SIDEBAR.traffic_x,
+        SIDEBAR.traffic_y,
+        lights.0,
+        lights.1
+    );
 
-        let first_child = layouts
-            .iter()
-            .find(|(_, _, w, h)| *w > 100.0 && (*h - 30.0).abs() < 0.5)
-            .expect("first child must be laid out");
-        let lights_bottom = lights.1 + lights.3;
-        assert!(
-            first_child.1 >= lights_bottom - 0.5,
-            "first child must sit below the traffic lights (lights end at {lights_bottom}, child starts at {})",
-            first_child.1
-        );
-    });
+    let first_child = layouts
+        .iter()
+        .find(|(_, _, w, h)| *w > 100.0 && (*h - 30.0).abs() < 0.5)
+        .expect("first child must be laid out");
+    let lights_bottom = lights.1 + lights.3;
+    assert!(
+        first_child.1 >= lights_bottom - 0.5,
+        "first child must sit below the traffic lights (lights end at {lights_bottom}, child starts at {})",
+        first_child.1
+    );
 }
 
 fn crop(image: &[u8], width: usize, x: usize, y: usize, size: usize) -> Vec<[u8; 4]> {
@@ -809,7 +804,7 @@ impl App for IslandShadowCase {
         use_init_theme(|| theme::for_scheme(true));
         rect()
             .expanded()
-            .background(color(resolved.surfaces.window))
+            .background(theme::color(resolved.surfaces.window))
             .child(SplitView::new(Sidebar::new(), rect()))
     }
 }
@@ -822,7 +817,7 @@ impl App for ToolgroupShadowCase {
         use_init_theme(|| theme::for_scheme(true));
         rect()
             .expanded()
-            .background(color(resolved.surfaces.window))
+            .background(theme::color(resolved.surfaces.window))
             .main_align(Alignment::Center)
             .cross_align(Alignment::Center)
             .child(

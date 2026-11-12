@@ -823,7 +823,7 @@ background, for `reduce_transparency`.
 | `TOOLTIP` | `TooltipMetrics` | `tooltip`, `styles` (`ChartStyle`) |
 | `POPOVER` | `PopoverMetrics` | `popover`, the compositor |
 | `MENU_POPOVER` | `MenuPopoverMetrics` | `theme`, `popup_button`, `styles` |
-| `MENU_MARK_TEXT_GAP`, `MENU_SUBMENU_INTENT_MS`, `MENU_SUBMENU_REVEAL_GAP`, `MENU_SCROLL_TICK_MS`, `MENU_SEARCH_ICON`, `MENU_SEARCH_ICON_GAP`, `MENU_SEARCH_CLEAR`, `MENU_SEARCH_CLEAR_GLYPH`, `MENU_SEARCH_CLEAR_MARGIN`, `MENU_SEARCH_CLEAR_MIX`, `MENU_HELP_ICON` | `f32`, `u64`, `[f32; 2]` | `menu` ([7](07-menus-and-popovers.md)) |
+| `MENU_MARK_TEXT_GAP`, `MENU_SUBMENU_INTENT_MS`, `MENU_SUBMENU_REVEAL_GAP`, `MENU_SCROLL_TICK_MS`, `MENU_SEARCH_ICON`, `MENU_SEARCH_ICON_GAP`, `MENU_SEARCH_CLEAR`, `MENU_SEARCH_CLEAR_GLYPH`, `MENU_SEARCH_PADDING_X`, `MENU_SEARCH_CLEAR_MIX`, `MENU_HELP_ICON` | `f32`, `u64`, `[f32; 2]` | `menu` ([7](07-menus-and-popovers.md)) |
 | `MENU_SEPARATOR_INK_MIX` | `f32` | `Resolved::menu_separator` |
 | `DRAG` | `DragMetrics` | `drag` |
 

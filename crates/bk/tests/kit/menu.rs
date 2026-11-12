@@ -1,8 +1,4 @@
-use std::{
-    fs,
-    path::{Path, PathBuf},
-};
-
+use crate::controls::{TOLERANCE, check_golden};
 use crate::image::{decode, pixel};
 use bk::menu::{CheckState, MenuItem, MenuView};
 use bk::theme::{SurfaceKind, menu_palette};
@@ -13,8 +9,6 @@ use freya_core::prelude::*;
 use freya_testing::TestingRunner;
 use freya_testing::prelude::{Code, Key, KeyboardEventName, Modifiers, NamedKey};
 use torin::prelude::Size2D;
-
-const TOLERANCE: u8 = 3;
 
 fn accent_items() -> Vec<MenuItem> {
     vec![
@@ -67,29 +61,6 @@ fn render_accents(dark: bool) -> Vec<u8> {
     test.render().as_bytes().to_vec()
 }
 
-fn golden_path(dark: bool) -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/golden")
-        .join(format!(
-            "menu-view-{}.png",
-            if dark { "dark" } else { "light" }
-        ))
-}
-
-fn golden_path_accents(dark: bool) -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/golden")
-        .join(format!(
-            "menu-view-accents-{}.png",
-            if dark { "dark" } else { "light" }
-        ))
-}
-
-fn decode_file(path: &Path) -> (usize, usize, Vec<u8>) {
-    let bytes = fs::read(path).unwrap_or_else(|e| panic!("read {path:?}: {e}"));
-    decode(&bytes)
-}
-
 fn assert_right_padding_is_background(png: &[u8], palette: MenuPalette, label: &str) {
     let (width, height, pixels) = decode(png);
     let padding = palette.padding.ceil() as usize;
@@ -115,55 +86,17 @@ fn assert_right_padding_is_background(png: &[u8], palette: MenuPalette, label: &
     );
 }
 
-fn compare(golden: &Path, actual_png: &[u8], dark: bool, name: &str) {
-    let actual_path = std::env::temp_dir().join(format!(
-        "malaysia-menu-{name}-{}.png",
-        if dark { "dark" } else { "light" }
-    ));
-    fs::write(&actual_path, actual_png).unwrap();
-    let (gw, gh, golden_px) = decode_file(golden);
-    let (aw, ah, actual_px) = decode_file(&actual_path);
-    assert_eq!((gw, gh), (aw, ah), "menu image size changed");
-    let bad = golden_px
-        .iter()
-        .zip(&actual_px)
-        .filter(|(a, b)| a.abs_diff(**b) > TOLERANCE)
-        .count();
-    assert_eq!(
-        bad,
-        0,
-        "menu ({}): {bad} channels differ by more than {TOLERANCE}; actual at {actual_path:?}",
-        if dark { "dark" } else { "light" }
-    );
-}
-
 #[test]
 fn menu_matches_its_golden_images() {
-    let update = std::env::var_os("UPDATE_GOLDEN").is_some();
     for dark in [false, true] {
-        let path = golden_path(dark);
-        let actual = render(dark);
-        if update || !path.exists() {
-            fs::create_dir_all(path.parent().unwrap()).unwrap();
-            fs::write(&path, &actual).unwrap();
-        } else {
-            compare(&path, &actual, dark, "view");
-        }
+        check_golden("menu-view", dark, &render(dark));
     }
 }
 
 #[test]
 fn menu_renders_accents_and_long_shortcuts_without_wrapping() {
-    let update = std::env::var_os("UPDATE_GOLDEN").is_some();
     for dark in [false, true] {
-        let path = golden_path_accents(dark);
-        let actual = render_accents(dark);
-        if update || !path.exists() {
-            fs::create_dir_all(path.parent().unwrap()).unwrap();
-            fs::write(&path, &actual).unwrap();
-        } else {
-            compare(&path, &actual, dark, "accents");
-        }
+        check_golden("menu-view-accents", dark, &render_accents(dark));
     }
 }
 

@@ -416,7 +416,7 @@ impl DataSourceHandler for Runtime {
         if let Some(text) = own {
             std::thread::spawn(move || {
                 if let Err(error) = pipe.write_all(text.as_bytes()) {
-                    tracing::warn!(%error, "portapapeles: no se pudo enviar el texto");
+                    tracing::warn!(%error, "clipboard: could not send the text");
                 }
             });
         }
