@@ -493,7 +493,7 @@ and `show_vpn` (all `true`) choose the status menus of the bar; System
 Settings writes them. `show_printer` (`true`) shows a printer while a print job
 is queued, on the bar and on the lock screen.
 
-`style` is a `MenubarStyle`: `solid`, `translucent` or `floating` (default).
+`style` is a `MenubarStyle`: `solid`, `translucent` (default) or `floating`.
 `bar_height` is a `MenubarHeight`: `slim` (default, `MENUBAR_HEIGHT`) or
 `wide` (`MENUBAR_HEIGHT_WIDE`). `MenubarConfig::height()` returns the height
 in logical pixels; the bar and the lock screen both use it. An unknown value

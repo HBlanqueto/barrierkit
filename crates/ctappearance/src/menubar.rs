@@ -11,8 +11,8 @@ use crate::config::lenient;
 #[serde(rename_all = "snake_case")]
 pub enum MenubarStyle {
     Solid,
-    Translucent,
     #[default]
+    Translucent,
     Floating,
 }
 
@@ -95,10 +95,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn an_unknown_style_falls_back_to_floating_and_keeps_the_rest() {
+    fn an_unknown_style_falls_back_to_translucent_and_keeps_the_rest() {
         let config: MenubarConfig =
             toml::from_str("style = \"glass\"\nbar_height = \"wide\"\nshow_vpn = false\n").unwrap();
-        assert_eq!(config.style, MenubarStyle::Floating);
+        assert_eq!(config.style, MenubarStyle::Translucent);
         assert_eq!(config.height(), MENUBAR_HEIGHT_WIDE);
         assert!(!config.show_vpn);
     }
