@@ -874,6 +874,7 @@
         "label-padding-x": 12,
         "label-padding-y": 4,
         "label-radius": 8,
+        "bg": "{dock-bar}",
         "tile": "{bg-control}",
         "tile-active": "{accent}",
         "tile-text-active": "{on-accent}"

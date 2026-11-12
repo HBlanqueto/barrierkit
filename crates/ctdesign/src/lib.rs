@@ -828,6 +828,7 @@ pub struct Palette {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ShellPalette {
     pub bar: Rgba,
+    pub dock: Rgba,
     pub text: Rgba,
     pub tile: Rgba,
     pub tile_active: Rgba,

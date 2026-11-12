@@ -108,7 +108,7 @@ ink, which reaches 3:1 on the window, as the HIG asks for «Increase Contrast».
 |---|---|
 | `style::text(content, face, ink) -> Label` | A one-line Freya `label` with the family, size, weight and line height of a `Font` token and the color `ink`. For text that wraps, use `Text` ([2](02-first-app.md)). |
 | `style::continuous_corner(radius) -> CornerRadius` | A corner radius with Apple's continuous curve, smoothed as `WINDOW_CORNER.expansion` says (malaysia ADR 0059). |
-| `style::panel_edges(body, radius, fill) -> Rect` | A card filled with `fill` and framed like a panel window: the glass inner line in dark (`panel_inner_line`: brighter top and bottom edges, inward glow), the window inner line otherwise, and the outer line. Same colours as the compositor's panel frames. |
+| `style::panel_edges(body, radius, fill) -> Rect` | A card filled with `fill` and framed like a panel window: the glass inner line in dark (`panel_inner_line`: brighter top and bottom edges, inward glow), the window inner line otherwise, and the outer line, each one physical pixel wide. Same colours and widths as the compositor's panel frames. |
 | `theme::color(rgba) -> Color` | Converts a Tengen `Rgba` to Freya's `Color`. |
 
 ## Symbols
@@ -656,7 +656,7 @@ A color, size or duration never goes into `bk`. It goes into Tengen:
 | `FocusPair` | A color for the focused window and one for the unfocused. |
 | `PanelLine` | Inner line of a focused panel, menu or dialog: `sides`, `edges` (top and bottom) and the `glow` under the edges. |
 | `TrafficRim` | Rim of a traffic light: `lit` and `idle`. |
-| `ShellPalette` | Menu bar and Dock: `bar`, `text`, `tile`, `tile_active`, `tile_text_active`. |
+| `ShellPalette` | Menu bar and Dock: `bar`, `dock` (the Dock's glass), `text`, `tile`, `tile_active`, `tile_text_active`. |
 | `MenuPalette` | Colors and metrics of a menu: background, padding, item size, inks, hover, separator, check mark, header and search field. |
 | `SidebarPalette` | Sidebar inks: item, icon, selection, inactive selection, hover, section, count, line. |
 | `ToolgroupPalette` | Toolbar group: `separator`, `rim`. |

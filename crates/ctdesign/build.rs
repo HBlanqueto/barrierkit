@@ -327,7 +327,7 @@ BG_SURFACE Rgba themes.{theme}.bg-surface
 BG_SUNKEN Rgba themes.{theme}.bg-sunken
 BG_RAISED Rgba themes.{theme}.bg-raised
 BG_HOVER Rgba themes.{theme}.bg-hover
-SHELL ShellPalette components.shell bar=menubar.bg text=menubar.text tile=dock.tile
+SHELL ShellPalette components.shell bar=menubar.bg dock=dock.bg text=menubar.text tile=dock.tile
     tile_active=dock.tile-active tile_text_active=dock.tile-text-active
 SIDEBAR Rgba themes.{theme}.bg-sunken
 SIDEBAR_ISLAND Rgba themes.{theme}.sidebar-island-bg
