@@ -162,6 +162,7 @@ impl Default for Section {
 #[derive(Clone, PartialEq)]
 pub struct Form {
     pub sections: Vec<Section>,
+    pinned: Option<Section>,
     highlighted: Option<&'static str>,
     style: Theme,
 }
@@ -176,6 +177,7 @@ impl Form {
     pub fn new() -> Self {
         Self {
             sections: Vec::new(),
+            pinned: None,
             highlighted: None,
             style: Theme::tengen(),
         }
@@ -189,6 +191,27 @@ impl Form {
     pub fn section(mut self, section: Section) -> Self {
         self.sections.push(section);
         self
+    }
+
+    pub fn pinned(mut self, section: Section) -> Self {
+        self.pinned = Some(section);
+        self
+    }
+
+    pub(crate) fn split_pinned(&self) -> (Option<Form>, Form) {
+        let scrolling = Form {
+            pinned: None,
+            ..self.clone()
+        };
+        let pinned = self.pinned.clone().map(|section| Form {
+            sections: vec![section],
+            ..scrolling.clone()
+        });
+        let scrolling = Form {
+            sections: self.sections.clone(),
+            ..scrolling
+        };
+        (pinned, scrolling)
     }
 
     pub fn highlighted(mut self, row_title: Option<&'static str>) -> Self {

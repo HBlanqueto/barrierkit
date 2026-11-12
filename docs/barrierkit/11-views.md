@@ -94,6 +94,7 @@ Form::new()
 |---|---|
 | `Form::new()` | An empty form |
 | `.section(Section)` | Adds a section |
+| `.pinned(Section)` | In a `SettingsWindow` pane, keeps that section under the title bar while the rest scrolls |
 | `.highlighted(Option<&str>)` | Tints the row with that title with the accent at 12 % |
 
 `sections` is a public field: [`SettingsWindow`](12-patterns.md#settingswindow)

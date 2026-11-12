@@ -293,6 +293,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `views::split_panes::SplitPanes::style` | method | — | — | Changes the style of one set of panes | [Styles](../../crates/bk/src/styles/split_view.rs) |
 | `views::floating_pane::FloatingPane::style` | method | — | — | Changes the style of one floating pane; the `style` field holds it | [Styles](../../crates/bk/src/styles/split_view.rs) |
 | `views::form::Form::style` | method | `formStyle(_:)` | — | Changes the style of one form | [Styles](../../crates/bk/src/styles/form.rs) |
+| `views::form::Form::pinned` | method | `safeAreaInset(edge:)` | — | Keeps one section under the title bar of a settings pane while the rest scrolls | [11](11-views.md#form) |
 | `views::group::GroupBox::style` | method | `groupBoxStyle(_:)` | — | Changes the style of one group box | [Styles](../../crates/bk/src/styles/form.rs) |
 | `views::group::DisclosureGroup::style` | method | `disclosureGroupStyle(_:)` | — | Changes the style of one disclosure group | [Styles](../../crates/bk/src/styles/form.rs) |
 | `views::table::Table::style` | method | `tableStyle(_:)` | ≈ `NSTableView.style` | Changes the style of one table | [Styles](../../crates/bk/src/styles/table.rs) |

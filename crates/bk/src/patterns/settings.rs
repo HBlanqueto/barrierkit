@@ -419,6 +419,10 @@ impl Component for SettingsWindow {
             };
         }
 
+        let (pinned, scrolling) = match pane.map(|pane| pane.form.split_pinned()) {
+            Some((pinned, scrolling)) => (pinned, Some(scrolling)),
+            None => (None, None),
+        };
         let detail =
             rect()
                 .expanded()
@@ -438,9 +442,12 @@ impl Component for SettingsWindow {
                                 .child(NavigationButtons::new(history)),
                         ),
                 )
-                .child(ScrollView::new().top_line(true).maybe_child(
-                    pane.map(|pane| pane.form.clone().highlighted(*highlighted.read())),
-                ));
+                .maybe_child(pinned)
+                .child(
+                    ScrollView::new()
+                        .top_line(true)
+                        .maybe_child(scrolling.map(|form| form.highlighted(*highlighted.read()))),
+                );
 
         let restored = saved.sidebar.unwrap_or(SidebarLayout {
             width: SETTINGS.sidebar_width as f32,
