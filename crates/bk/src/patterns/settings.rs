@@ -423,6 +423,7 @@ impl Component for SettingsWindow {
             Some((pinned, scrolling)) => (pinned, Some(scrolling)),
             None => (None, None),
         };
+        let pinned_below_titlebar = pinned.is_some();
         let detail =
             rect()
                 .expanded()
@@ -430,7 +431,7 @@ impl Component for SettingsWindow {
                 .child(
                     Titlebar::new()
                         .with_sidebar(true)
-                        .hairline(false)
+                        .hairline(pinned_below_titlebar)
                         .spacing(style.toolbar_spacing)
                         .title(pane.map(|pane| pane.title).unwrap_or_default())
                         .left(
@@ -445,7 +446,7 @@ impl Component for SettingsWindow {
                 .maybe_child(pinned)
                 .child(
                     ScrollView::new()
-                        .top_line(true)
+                        .top_line(!pinned_below_titlebar)
                         .maybe_child(scrolling.map(|form| form.highlighted(*highlighted.read()))),
                 );
 
