@@ -26,7 +26,6 @@ pub enum AlertStyle {
 pub enum Grouping {
     #[default]
     Automatic,
-    ByApp,
     Off,
 }
 

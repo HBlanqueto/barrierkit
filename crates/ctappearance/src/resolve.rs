@@ -148,7 +148,7 @@ enum Tint {
 }
 
 pub fn palette(scheme: ColorScheme) -> Palette {
-    scheme.resolved().pick([LIGHT, DARK, DARK_TINT])
+    scheme.pick([LIGHT, DARK, DARK_TINT])
 }
 
 const BG_WINDOW: [Rgba; 3] = [BG_WINDOW_LIGHT, BG_WINDOW_DARK, BG_WINDOW_DARK_TINT];
@@ -254,7 +254,7 @@ fn chrome_surfaces(
 }
 
 pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolved {
-    let scheme = appearance.color_scheme.resolved();
+    let scheme = appearance.color_scheme;
     let base = palette(scheme);
     let index = usize::from(scheme.is_dark());
 
@@ -501,20 +501,6 @@ mod tests {
             b: 0.1,
             a: 1.0,
         }
-    }
-
-    #[test]
-    fn auto_resolves_to_light() {
-        let resolved = resolve(
-            &appearance(
-                ColorScheme::Auto,
-                WindowColorMode::Neutral,
-                TrafficLightStyle::Auto,
-                None,
-            ),
-            None,
-        );
-        assert_eq!(resolved.scheme, ColorScheme::Light);
     }
 
     #[test]

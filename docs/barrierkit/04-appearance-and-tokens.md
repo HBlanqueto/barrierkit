@@ -259,7 +259,7 @@ tint_parts = ["sidebars", "window", "groups", "controls", "menus"]
 
 | Key | Type (`AppearanceConfig` field) | Values | Default |
 |---|---|---|---|
-| `color_scheme` | `ColorScheme` | `auto`, `light`, `dark`, `dark_tint` | `auto` |
+| `color_scheme` | `ColorScheme` | `light`, `dark`, `dark_tint` | `light` |
 | `accent_color` | `Option<[f32; 3]>` | RGB from 0 to 1; absent means automatic: the theme's accent, and apps keep their own | absent |
 | `contrast` | `bool` | | `false` |
 | `reduced_motion` | `bool` | | `false` |
@@ -286,13 +286,11 @@ tint_parts = ["sidebars", "window", "groups", "controls", "menus"]
 | `color_filters` | `bool` | | `false` |
 | `color_filter` | `ColorFilter` | `grayscale`, `red_green`, `green_red`, `blue_yellow` | `grayscale` |
 | `color_filter_intensity` | `f32` | a value of `COLOR_FILTER_INTENSITY` | `1.0` |
-| `blur_behind` | `BlurBehind` | `mixed`, `wallpaper`, `windows` | `mixed` |
-| `blur_all_windows` | `bool` | | `false` |
 
 Notes on the values:
 
-- `auto` resolves to `light` (`ColorScheme::resolved`); `is_dark()` is true for
-  `dark` and `dark_tint`.
+- The old value `"auto"` reads as `light`; `is_dark()` is true for `dark` and
+  `dark_tint`.
 - A number outside its token list reads as the nearest end of the list.
 - `TintStrength::factor()` multiplies the accent tint and the wallpaper tint by
   `TINT_STRENGTH`: 0.5, 1, 1.5 or 2.
@@ -312,12 +310,6 @@ Notes on the values:
   items (and their height) with `Font::scaled`. The compositor applies
   `invert_colors`, `display_contrast`, the color filter and the pointer keys;
   the shell applies `menu_bar_size` (malaysia ADR 0066).
-- `blur_behind` and `blur_all_windows` are for the compositor's background
-  blur (malaysia ADR 0071). `mixed` blurs what is behind pop-ups, kit dialogs,
-  the Dock and notifications, and only the wallpaper behind the rest;
-  `wallpaper` blurs only the wallpaper everywhere; `windows` blurs everything
-  behind. `blur_all_windows` also blurs windows that do not ask for it. Both
-  do nothing while `transparency_reduced()` is true.
 
 ### Reading and writing
 
@@ -405,7 +397,7 @@ a style.
 
 | `Resolved` field | What it holds |
 |---|---|
-| `scheme` | The resolved `ColorScheme` (never `Auto`). |
+| `scheme` | The `ColorScheme`. |
 | `accent`, `on_accent` | The accent and its ink. |
 | `automatic_accent` | True without `accent_color`: an `Accent::Own` or `Accent::FromBackdrop` keeps its color. |
 | `focus_ring` | The accent moved until it reaches 3:1 on the window. |

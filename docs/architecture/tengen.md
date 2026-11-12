@@ -87,8 +87,8 @@ build.
 `ctappearance` turns the constants into the resolved appearance with
 `resolve(&load_appearance(), load_dominant())`.
 
-1. `appearance.color_scheme` picks the theme. `auto` resolves to `light`
-   (`ColorScheme::resolved`).
+1. `appearance.color_scheme` picks the theme. The old value `auto` reads as
+   `light`.
 2. `reduce_transparency` picks the `_OPAQUE` shell, menu and sidebar
    palettes.
 3. `wallpaper_tinting` mixes the wallpaper behind each window into the

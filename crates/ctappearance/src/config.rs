@@ -12,29 +12,22 @@ use crate::xdg;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum ColorScheme {
-    #[default]
-    Auto,
     Dark,
     #[serde(rename = "dark_tint")]
     DarkTint,
+    #[default]
+    #[serde(alias = "auto")]
     Light,
 }
 
 impl ColorScheme {
-    pub fn resolved(self) -> Self {
-        match self {
-            Self::Auto => Self::Light,
-            scheme => scheme,
-        }
-    }
-
     pub fn is_dark(self) -> bool {
         matches!(self, Self::Dark | Self::DarkTint)
     }
 
     pub(crate) fn pick<T>(self, [light, dark, dark_tint]: [T; 3]) -> T {
         match self {
-            Self::Auto | Self::Light => light,
+            Self::Light => light,
             Self::Dark => dark,
             Self::DarkTint => dark_tint,
         }
@@ -241,15 +234,6 @@ pub enum MenuBarSize {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
-pub enum BlurBehind {
-    #[default]
-    Mixed,
-    Wallpaper,
-    Windows,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize, Serialize)]
-#[serde(rename_all = "snake_case")]
 pub enum ColorFilter {
     #[default]
     Grayscale,
@@ -344,9 +328,6 @@ pub struct AppearanceConfig {
     pub color_filter: ColorFilter,
     #[serde(deserialize_with = "color_filter_intensity")]
     pub color_filter_intensity: f32,
-    #[serde(deserialize_with = "lenient")]
-    pub blur_behind: BlurBehind,
-    pub blur_all_windows: bool,
     pub gtk_bridge: bool,
     pub qt_bridge: bool,
 }
@@ -381,8 +362,6 @@ impl Default for AppearanceConfig {
             color_filters: false,
             color_filter: ColorFilter::default(),
             color_filter_intensity: COLOR_FILTER_INTENSITY[COLOR_FILTER_INTENSITY.len() - 1],
-            blur_behind: BlurBehind::default(),
-            blur_all_windows: false,
             gtk_bridge: true,
             qt_bridge: true,
         }
@@ -454,7 +433,9 @@ fn read_appearance_from(path: &Path) -> Result<Option<AppearanceConfig>, toml::d
     }
 }
 
-const RETIRED_KEYS: [&str; 3] = [
+const RETIRED_KEYS: [&str; 5] = [
+    "blur_all_windows",
+    "blur_behind",
     "tint_strength_accent",
     "wallpaper_accent",
     "window_tint_scope",
@@ -661,6 +642,12 @@ mod tests {
     }
 
     #[test]
+    fn the_retired_auto_scheme_reads_as_light() {
+        let config: AppearanceConfig = toml::from_str("color_scheme = \"auto\"\n").unwrap();
+        assert_eq!(config.color_scheme, ColorScheme::Light);
+    }
+
+    #[test]
     fn reduce_transparency_defaults_to_false() {
         let without_key: AppearanceConfig = toml::from_str(
             r#"
@@ -735,8 +722,6 @@ traffic_lights = "auto"
             color_filters: true,
             color_filter: ColorFilter::BlueYellow,
             color_filter_intensity: COLOR_FILTER_INTENSITY[1],
-            blur_behind: BlurBehind::Windows,
-            blur_all_windows: true,
             gtk_bridge: false,
             qt_bridge: false,
         };
