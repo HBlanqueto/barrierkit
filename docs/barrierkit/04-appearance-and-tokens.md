@@ -495,8 +495,11 @@ in logical pixels; the bar and the lock screen both use it. An unknown value
 falls back to the default. `menubar::colors_over(wallpaper)` returns the
 `MenubarColors` of a translucent or floating bar over that wallpaper color:
 `ink`, `glass` and `selection`, the translucent pill behind an open menu
-title. It takes the `MENUBAR_OVER_LIGHT_*` set over a light wallpaper and
-`MENUBAR_OVER_DARK_*` over a dark one, whatever the color scheme.
+title. It takes the `MENUBAR_OVER_LIGHT_*` set when the wallpaper, darkened by the
+glass, is brighter than `MENUBAR_DARK_INK_ABOVE` (relative luminance) and
+`MENUBAR_OVER_DARK_*` otherwise, whatever the color scheme.
+`WallpaperGrid::across` returns the wallpaper color along the bar, blurred
+horizontally by `MENUBAR_TINT_SPREAD` of the bar width.
 
 ### Window behavior
 
@@ -852,7 +855,7 @@ focus-mode bar.
 
 | Constants | What they size |
 |---|---|
-| `MENUBAR_HEIGHT`, `MENUBAR_HEIGHT_WIDE`, `MENUBAR_OVER_LIGHT_INK`, `MENUBAR_OVER_LIGHT_GLASS`, `MENUBAR_OVER_LIGHT_SELECTION`, `MENUBAR_OVER_DARK_INK`, `MENUBAR_OVER_DARK_GLASS`, `MENUBAR_OVER_DARK_SELECTION`, `MENUBAR_FONT_SIZE`, `MENUBAR_APP_NAME_WEIGHT`, `MENUBAR_MARGIN`, `MENUBAR_MARGIN_RIGHT`, `MENUBAR_FADED_ALPHA`, `MENUBAR_TITLE_PADDING_X`, `MENUBAR_TEXT_LIFT`, `MENUBAR_TITLE_MAX_WIDTH`, `MENUBAR_SYSTEM_MENU_MIN_WIDTH`, `MENUBAR_TITLE_BLEED` | The menu bar |
+| `MENUBAR_HEIGHT`, `MENUBAR_HEIGHT_WIDE`, `MENUBAR_TINT_SPREAD`, `MENUBAR_DARK_INK_ABOVE`, `MENUBAR_OVER_LIGHT_INK`, `MENUBAR_OVER_LIGHT_GLASS`, `MENUBAR_OVER_LIGHT_SELECTION`, `MENUBAR_OVER_DARK_INK`, `MENUBAR_OVER_DARK_GLASS`, `MENUBAR_OVER_DARK_SELECTION`, `MENUBAR_FONT_SIZE`, `MENUBAR_APP_NAME_WEIGHT`, `MENUBAR_MARGIN`, `MENUBAR_MARGIN_RIGHT`, `MENUBAR_FADED_ALPHA`, `MENUBAR_TITLE_PADDING_X`, `MENUBAR_TEXT_LIFT`, `MENUBAR_TITLE_MAX_WIDTH`, `MENUBAR_SYSTEM_MENU_MIN_WIDTH`, `MENUBAR_TITLE_BLEED` | The menu bar |
 | `FOCUS_BAR_BACKGROUND`, `FOCUS_BAR_TEXT` | The menu bar in focus mode |
 | `DOCK_TILESIZE`, `DOCK_TILESIZE_MIN`, `DOCK_TILESIZE_MAX`, `DOCK_LARGESIZE` | Dock icon sizes: default, 16 and 128 px, and the default magnified size |
 | `DOCK_EDGE_MARGIN`, `DOCK_SIDE_MARGIN`, `DOCK_PADDING`, `DOCK_PADDING_SCALE`, `DOCK_RADIUS` | Dock bar: gap to the screen edge, side margin as a share of the screen, padding = `DOCK_PADDING` + `DOCK_PADDING_SCALE` × size, corner radius as a share of its thickness |
