@@ -806,7 +806,7 @@
         "height-wide": 38,
         "over-light": {
           "ink": "#000000db",
-          "glass": "#ffffff29",
+          "glass": "#00000029",
           "selection": "#0d12191f"
         },
         "over-dark": {
