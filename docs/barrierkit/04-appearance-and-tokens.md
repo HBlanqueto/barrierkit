@@ -439,7 +439,10 @@ The rules `resolve` applies:
    applies in dark schemes, and in light ones with
    `wallpaper_tinting_in_light`. The amount is `WALLPAPER_TINTING` (light,
    dark) times `tint_strength`, and it reaches the same `tint_parts` and
-   `LAYER_FACTOR_*` as an accent tint.
+   `LAYER_FACTOR_*` as an accent tint, with `WALLPAPER_TINTING_SIDEBAR` for
+   the sidebar. As in macOS it is a chroma mix in OKLab
+   (`backdrop::take_chroma`): each gray keeps its lightness and takes that
+   share of the wallpaper's hue.
 5. Without `accent_color` the accent is the theme's, and `automatic_accent`
    lets an area keep its own.
 6. Menu hover, sidebar selection and the shell's active tile take the accent.
@@ -461,8 +464,9 @@ from a grid of average colors:
 3. The compositor sends that color to the window with the `wallpaper` event of
    `infinity_focus_surface_v1` (version 3).
 4. The kit keeps one `Resolved` per window: the global one passed through
-   `behind_window(color)`. It recomputes it when the event arrives and when the
-   appearance changes.
+   `behind_window(color)`. It recomputes it when the appearance changes and,
+   when the event brings a new color, fades to it over `DURATION_BASE` with a
+   smoothstep, one step per frame callback. Reduce motion swaps it at once.
 
 ### Watching
 
@@ -731,7 +735,7 @@ nothing is blurred.
 | `BG_HOVER_LIGHT`, `BG_HOVER_DARK`, `BG_HOVER_DARK_TINT` | `Rgba` | Control face under the pointer. |
 | `LAYER_FACTOR_BG_SUNKEN`, `LAYER_FACTOR_SURFACE`, `LAYER_FACTOR_RAISED`, `LAYER_FACTOR_CONTROL`, `LAYER_FACTOR_LINE` | `f32` | Share of the window tint each layer takes: 1.4, 1, 0.6, 1.2, 1.2. |
 | `WINDOW_TINT_ACCENT` | `[f32; 2]` | Accent tint amount in light and dark. |
-| `WALLPAPER_TINTING`, `WALLPAPER_TINTING_GRID` | `[f32; 2]`, `u32` | Amount of the wallpaper behind a window in light and dark, provisional until measured (ADR 0065); cells per side of the wallpaper grid. |
+| `WALLPAPER_TINTING`, `WALLPAPER_TINTING_SIDEBAR`, `WALLPAPER_TINTING_GRID` | `[f32; 2]`, `f32`, `u32` | Share of the wallpaper's OKLab chroma a window takes in light and dark, measured on macOS 26 (ADR 0065); how much more the sidebar takes; cells per side of the wallpaper grid. |
 | `TINT_STRENGTH` | `[f32; 4]` | Factor of each `TintStrength`: 0.5, 1, 1.5, 2. |
 | `ACCENT_MIN_CONTRAST_ON_WINDOW`, `ON_ACCENT_MIN_CONTRAST` | `f32` | 3 and 4.5: contrast of the accent on the window and of ink on the accent. |
 | `DOMINANT_LIGHTNESS`, `DOMINANT_MIN_CHROMA` | `[f32; 2]`, `f32` | Lightness range and minimum chroma of a wallpaper's dominant color. |

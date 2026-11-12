@@ -401,8 +401,12 @@ impl CompositorHandler for Runtime {
         };
         self.surfaces[index].frame_pending = false;
         self.apply_pending_window_configures(qh);
+        let fading = self.step_wallpaper_fade(index);
         if self.surfaces[index].needs_redraw {
             let _ = self.surfaces[index].draw(&self.compositor);
+        }
+        if fading {
+            self.surfaces[index].needs_redraw = true;
         }
         if self.surfaces[index].needs_redraw {
             self.surfaces[index].request_redraw(qh);

@@ -36,8 +36,7 @@ impl Dispatch<InfinityFocusSurfaceV1, ObjectId> for Runtime {
             let [_, r, g, b] = rgb.to_be_bytes();
             let global = *state.resolved.peek();
             if let Some(context) = state.surfaces[index].context.as_mut() {
-                context.wallpaper = Some(ctdesign::Rgba::rgb8(r, g, b));
-                context.restyle(global);
+                context.fade_wallpaper(ctdesign::Rgba::rgb8(r, g, b), global);
                 state.request_redraw_all = true;
                 state.ping.ping();
             }

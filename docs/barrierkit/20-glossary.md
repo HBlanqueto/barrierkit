@@ -572,7 +572,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `ctdesign::LAYER_FACTOR_BG_SUNKEN`, `LAYER_FACTOR_SURFACE`, `LAYER_FACTOR_RAISED`, `LAYER_FACTOR_CONTROL`, `LAYER_FACTOR_LINE` | constant | — | — | Share of the window tint each layer takes | [4](04-appearance-and-tokens.md#colors) |
 | `ctdesign::WINDOW_TINT_ACCENT`, `TINT_STRENGTH` | constant | — | — | Accent tint amounts in light and dark; strength factors | [4](04-appearance-and-tokens.md#colors) |
 | `ctdesign::TEXT_SIZES`, `POINTER_SIZES`, `DISPLAY_CONTRAST`, `COLOR_FILTER_INTENSITY` | constant | — | — | The steps of the Accessibility › Display sliders | [4](04-appearance-and-tokens.md#the-appearance-file) |
-| `ctdesign::WALLPAPER_TINTING`, `WALLPAPER_TINTING_GRID` | constant | — | — | Amount of the wallpaper behind a window; cells per side of its grid | [4](04-appearance-and-tokens.md#colors) |
+| `ctdesign::WALLPAPER_TINTING`, `WALLPAPER_TINTING_SIDEBAR`, `WALLPAPER_TINTING_GRID` | constant | — | — | Share of the wallpaper's chroma a window takes; the sidebar's multiple; cells per side of its grid | [4](04-appearance-and-tokens.md#colors) |
 | `ctdesign::ACCENT_MIN_CONTRAST_ON_WINDOW`, `ON_ACCENT_MIN_CONTRAST` | constant | — | — | Contrast minimums: accent on window 3, ink on accent 4.5 | [4](04-appearance-and-tokens.md#colors) |
 | `ctdesign::DOMINANT_LIGHTNESS`, `DOMINANT_MIN_CHROMA` | constant | — | — | Lightness range and minimum chroma of a wallpaper's dominant color | [4](04-appearance-and-tokens.md#colors) |
 | `ctdesign::ACCENT_SWATCHES` | constant | — | — | The eight named accent choices | [4](04-appearance-and-tokens.md#colors) |

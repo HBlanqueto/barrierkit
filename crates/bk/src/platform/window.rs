@@ -646,6 +646,7 @@ impl Runtime {
             focus_notice,
             resolved: window_resolved,
             wallpaper: None,
+            wallpaper_fade: None,
             parent: parent_id.filter(|_| utility),
             key_only_if_needed: panel && options.panel.key_only_if_needed,
         });

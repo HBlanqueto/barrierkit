@@ -88,6 +88,7 @@ TOOLBAR_TABS ToolbarTabsMetrics components.toolbar-tabs
 ACCENT_MIN_CONTRAST_ON_WINDOW f32 appearance.contrast.accent-on-window
 ON_ACCENT_MIN_CONTRAST f32 appearance.contrast.on-accent
 WALLPAPER_TINTING_GRID u32 appearance.wallpaper-tinting.grid
+WALLPAPER_TINTING_SIDEBAR f32 appearance.wallpaper-tinting.sidebar
 TEXT_SIZES [f32;6] appearance.accessibility.text-sizes
 POINTER_SIZES [f32;7] appearance.accessibility.pointer-sizes
 DISPLAY_CONTRAST [f32;7] appearance.accessibility.display-contrast

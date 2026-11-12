@@ -57,6 +57,20 @@ impl Oklab {
     }
 }
 
+// macOS desktop tinting: the gray keeps its lightness and takes part of the wallpaper's hue (ADR 0065).
+pub fn take_chroma(base: Rgba, source: Rgba, amount: f32) -> Rgba {
+    let (p, q) = (Oklab::from_rgba(base), Oklab::from_rgba(source));
+    let t = amount.clamp(0.0, 1.0);
+    let mut tinted = Oklab {
+        l: p.l,
+        a: p.a + (q.a - p.a) * t,
+        b: p.b + (q.b - p.b) * t,
+    }
+    .to_rgba();
+    tinted.a = base.a;
+    tinted
+}
+
 fn mix_oklab(from: Rgba, to: Rgba, amount: f32) -> Rgba {
     let (p, q) = (Oklab::from_rgba(from), Oklab::from_rgba(to));
     let t = amount.clamp(0.0, 1.0);

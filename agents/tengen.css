@@ -907,8 +907,9 @@
   --bk-appearance-modes-accent-windows-dark: 0.08;
   --bk-appearance-contrast-accent-on-window: 3.0;
   --bk-appearance-contrast-on-accent: 4.5;
-  --bk-appearance-wallpaper-tinting-light: 0.07;
-  --bk-appearance-wallpaper-tinting-dark: 0.09;
+  --bk-appearance-wallpaper-tinting-light: 0.12;
+  --bk-appearance-wallpaper-tinting-dark: 0.15;
+  --bk-appearance-wallpaper-tinting-sidebar: 2.0;
   --bk-appearance-wallpaper-tinting-grid: 16;
   --bk-appearance-accessibility-text-sizes: 1.0 1.15 1.3 1.5 1.75 2.0;
   --bk-appearance-accessibility-text-sizes-0: 1.0;

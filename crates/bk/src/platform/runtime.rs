@@ -146,11 +146,49 @@ pub(crate) struct WindowContext {
     pub(crate) focus_notice: Option<super::focus::InfinityFocusSurfaceV1>,
     pub(crate) resolved: State<Resolved>,
     pub(crate) wallpaper: Option<ctdesign::Rgba>,
+    pub(crate) wallpaper_fade: Option<WallpaperFade>,
     pub(crate) parent: Option<ObjectId>,
     pub(crate) key_only_if_needed: bool,
 }
 
+#[derive(Clone, Copy)]
+pub(crate) struct WallpaperFade {
+    from: ctdesign::Rgba,
+    to: ctdesign::Rgba,
+    start: std::time::Instant,
+}
+
 impl WindowContext {
+    pub(crate) fn fade_wallpaper(&mut self, to: ctdesign::Rgba, resolved: Resolved) {
+        self.wallpaper_fade = self
+            .wallpaper
+            .filter(|from| *from != to && !resolved.reduced_motion)
+            .map(|from| WallpaperFade {
+                from,
+                to,
+                start: std::time::Instant::now(),
+            });
+        if self.wallpaper_fade.is_none() {
+            self.wallpaper = Some(to);
+            self.restyle(resolved);
+        }
+    }
+
+    pub(crate) fn step_wallpaper_fade(&mut self, resolved: Resolved) -> bool {
+        let Some(fade) = self.wallpaper_fade else {
+            return false;
+        };
+        let t =
+            (fade.start.elapsed().as_secs_f32() * 1000.0 / ctdesign::DURATION_BASE as f32).min(1.0);
+        let eased = t * t * (3.0 - 2.0 * t);
+        self.wallpaper = Some(fade.from.mix(fade.to, eased));
+        if t >= 1.0 {
+            self.wallpaper_fade = None;
+        }
+        self.restyle(resolved);
+        true
+    }
+
     pub(crate) fn restyle(&mut self, resolved: Resolved) {
         let window = self
             .wallpaper
@@ -551,6 +589,21 @@ impl Runtime {
             #[cfg(feature = "shell")]
             globals,
         })
+    }
+
+    pub(crate) fn step_wallpaper_fade(&mut self, index: usize) -> bool {
+        let global = *self.resolved.peek();
+        let window = &mut self.surfaces[index];
+        let stepped = window
+            .context
+            .as_mut()
+            .is_some_and(|context| context.step_wallpaper_fade(global));
+        if stepped {
+            window.app.poll();
+            window.app.update();
+            window.needs_redraw = true;
+        }
+        stepped
     }
 
     pub(crate) fn surface_for(&self, surface: &WlSurface) -> Option<usize> {

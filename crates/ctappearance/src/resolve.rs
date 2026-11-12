@@ -17,9 +17,10 @@ use ctdesign::{
     TOOLGROUP_BG_DARK_TINT_OPAQUE, TOOLGROUP_BG_LIGHT, TOOLGROUP_BG_LIGHT_OPAQUE,
     TOOLGROUP_PALETTE_DARK, TOOLGROUP_PALETTE_DARK_TINT, TOOLGROUP_PALETTE_LIGHT,
     TRAFFIC_CLOSE_MINIMIZE_DARKEN, TRAFFIC_ZOOM_LIGHTEN, ToolgroupPalette, WALLPAPER_TINTING,
-    WINDOW_TINT_ACCENT,
+    WALLPAPER_TINTING_SIDEBAR, WINDOW_TINT_ACCENT,
 };
 
+use crate::backdrop::take_chroma;
 use crate::{
     AppearanceConfig, ColorScheme, MenuBarSize, ScrollBarClick, ScrollBars, SidebarStyle,
     TintParts, Toolkit, TrafficLightShape, TrafficLightStyle, WindowColorMode,
@@ -87,23 +88,32 @@ pub struct Resolved {
 impl Resolved {
     pub fn behind_window(self, wallpaper: Rgba) -> Self {
         match self.wallpaper_tinting {
-            Some(factor) => self.tinted((wallpaper, factor)),
+            Some(factor) => self.tinted((wallpaper, factor), Tint::Wallpaper),
             None => self,
         }
     }
 
-    fn tinted(mut self, (tint, factor): (Rgba, f32)) -> Self {
+    fn tinted(mut self, (tint, factor): (Rgba, f32), source: Tint) -> Self {
         let scheme = self.scheme;
         let bg_window = scheme.pick(BG_WINDOW);
+        let (mix, sidebar_factor) = match source {
+            Tint::Accent => (Rgba::mix as Mix, LAYER_FACTOR_BG_SUNKEN),
+            Tint::Wallpaper => (take_chroma as Mix, WALLPAPER_TINTING_SIDEBAR),
+        };
         self.window_tint = Some((tint, factor));
-        self.menu_parent = bg_window.mix(tint, factor);
-        self.surfaces =
-            tinted_surfaces(scheme, self.window_tint, &palette(scheme), self.tint_parts);
+        self.menu_parent = mix(bg_window, tint, factor);
+        self.surfaces = tinted_surfaces(
+            scheme,
+            self.window_tint,
+            &palette(scheme),
+            self.tint_parts,
+            mix,
+        );
         if self.tint_parts.sidebars {
-            self.sidebar.bg = self.sidebar.bg.mix(tint, factor * LAYER_FACTOR_BG_SUNKEN);
+            self.sidebar.bg = mix(self.sidebar.bg, tint, factor * sidebar_factor);
         }
         if self.tint_parts.controls {
-            self.toolgroup.bg = self.toolgroup.bg.mix(tint, factor * LAYER_FACTOR_CONTROL);
+            self.toolgroup.bg = mix(self.toolgroup.bg, tint, factor * LAYER_FACTOR_CONTROL);
         }
         self.link = reaching(
             self.accent,
@@ -121,6 +131,14 @@ impl Resolved {
             panel_bg.mix(self.menu.fg, MENU_SEPARATOR_INK_MIX)
         }
     }
+}
+
+type Mix = fn(Rgba, Rgba, f32) -> Rgba;
+
+#[derive(Clone, Copy)]
+enum Tint {
+    Accent,
+    Wallpaper,
 }
 
 pub fn palette(scheme: ColorScheme) -> Palette {
@@ -271,7 +289,7 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
         appearance.sidebar_style,
         appearance.transparency_reduced(),
     );
-    let surfaces = tinted_surfaces(scheme, None, &base, appearance.tint_parts);
+    let surfaces = tinted_surfaces(scheme, None, &base, appearance.tint_parts, Rgba::mix);
     // WCAG 2.2: a focus ring needs 3:1 on the window (§1.4.11), link text 4.5:1 where it sits (§1.4.3).
     let focus_ring = reaching(
         accent,
@@ -323,7 +341,7 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
         menu_parent: scheme.pick(BG_WINDOW),
     };
     match window_tint {
-        Some(tint) => untinted.tinted(tint),
+        Some(tint) => untinted.tinted(tint, Tint::Accent),
         None => untinted,
     }
 }
@@ -333,6 +351,7 @@ fn tinted_surfaces(
     window_tint: Option<(Rgba, f32)>,
     base: &Palette,
     parts: TintParts,
+    blend: Mix,
 ) -> Surfaces {
     let [window, sunken, surface, raised, control, hover] = scheme.pick([
         [
@@ -364,7 +383,7 @@ fn tinted_surfaces(
         window_tint
             .filter(|_| enabled)
             .map_or(color, |(tint, tint_factor)| {
-                color.mix(tint, tint_factor * factor)
+                blend(color, tint, tint_factor * factor)
             })
     };
     Surfaces {
@@ -850,15 +869,37 @@ mod tests {
             assert_eq!(behind.window_tint, Some((red, factor)));
             assert_eq!(
                 behind.surfaces.window,
-                BG_WINDOW_DARK.mix(red, factor),
+                take_chroma(BG_WINDOW_DARK, red, factor),
                 "{strength:?}: the window background"
             );
             assert_eq!(
                 behind.sidebar.bg,
-                neutral.sidebar.bg.mix(red, factor * LAYER_FACTOR_BG_SUNKEN),
+                take_chroma(neutral.sidebar.bg, red, factor * WALLPAPER_TINTING_SIDEBAR),
                 "{strength:?}: the sidebar"
             );
         }
+    }
+
+    #[test]
+    fn a_bright_wallpaper_changes_the_hue_but_not_the_lightness_of_the_window() {
+        use crate::backdrop::Oklab;
+        let neutral = resolve(
+            &AppearanceConfig {
+                color_scheme: ColorScheme::Dark,
+                ..AppearanceConfig::default()
+            },
+            None,
+        );
+        let green = Rgba::rgb8(146, 197, 41);
+        let behind = neutral.behind_window(green);
+        let (before, after) = (
+            Oklab::from_rgba(neutral.surfaces.window),
+            Oklab::from_rgba(behind.surfaces.window),
+        );
+        assert!((after.l - before.l).abs() < 0.002);
+        let wall = Oklab::from_rgba(green);
+        let taken = (after.a * wall.a + after.b * wall.b) / (wall.a.powi(2) + wall.b.powi(2));
+        assert!((taken - WALLPAPER_TINTING[1]).abs() < 0.01);
     }
 
     #[test]
