@@ -861,6 +861,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 |---|---|---|---|---|---|
 | `platform::Timers` | struct | — | — | Runs callbacks on the UI thread after a delay or on wake | [8](08-windows.md#timers) |
 | `platform::WakeHandle` | struct | — | — | `Send` handle another thread uses to run wake callbacks | [8](08-windows.md#timers) |
+| `platform::modifier_flags` | fn | — | `NSEvent.modifierFlags` | Modifier keys held now, for a pointer handler | [8](08-windows.md#input-helpers) |
 | `platform::inserts_text` | fn | — | — | Whether a key press types text: no Control, Alt or Super | [8](08-windows.md#input-helpers) |
 
 ## Titlebars

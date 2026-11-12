@@ -24,7 +24,7 @@ mod vulkan;
 mod window;
 mod window_style;
 
-pub use input::inserts_text;
+pub use input::{inserts_text, modifier_flags};
 pub use main_menu_export::MainMenuAddress;
 pub use popup::{
     PopupAnchor, PopupConstraintAdjustment, PopupGravity, PopupHandle, PopupId, PopupSpec, Popups,

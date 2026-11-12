@@ -314,6 +314,9 @@ A repeating tick is an `after` that schedules the next one
 `inserts_text(modifiers)` is `true` when a key press with those modifiers
 types text: neither Control, Alt nor Super is held. Shift alone still types.
 
+`modifier_flags()` returns the modifier keys held now, for a pointer handler:
+a pointer event carries none.
+
 ## Menu address
 
 `MainMenuAddress { service, path }` is the D-Bus address of a window's menu

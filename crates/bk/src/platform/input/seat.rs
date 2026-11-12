@@ -465,6 +465,7 @@ impl KeyboardHandler for Runtime {
         layout: u32,
     ) {
         self.modifiers = modifiers;
+        super::set_modifier_flags(modifiers);
         self.keyboard_layout_index = layout;
         self.publish_keyboard_layout();
     }
