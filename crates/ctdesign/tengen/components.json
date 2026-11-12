@@ -804,6 +804,8 @@
       "menubar": {
         "height": 30,
         "height-wide": 38,
+        "tint-spread": 0.15,
+        "dark-ink-above": 0.25,
         "over-light": {
           "ink": "#000000db",
           "glass": "#00000029",

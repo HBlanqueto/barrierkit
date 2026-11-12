@@ -1,7 +1,7 @@
 use ctdesign::{
-    MENUBAR_HEIGHT, MENUBAR_HEIGHT_WIDE, MENUBAR_OVER_DARK_GLASS, MENUBAR_OVER_DARK_INK,
-    MENUBAR_OVER_DARK_SELECTION, MENUBAR_OVER_LIGHT_GLASS, MENUBAR_OVER_LIGHT_INK,
-    MENUBAR_OVER_LIGHT_SELECTION, Rgba,
+    MENUBAR_DARK_INK_ABOVE, MENUBAR_HEIGHT, MENUBAR_HEIGHT_WIDE, MENUBAR_OVER_DARK_GLASS,
+    MENUBAR_OVER_DARK_INK, MENUBAR_OVER_DARK_SELECTION, MENUBAR_OVER_LIGHT_GLASS,
+    MENUBAR_OVER_LIGHT_INK, MENUBAR_OVER_LIGHT_SELECTION, Rgba,
 };
 use serde::{Deserialize, Serialize};
 
@@ -73,9 +73,8 @@ pub struct MenubarColors {
 }
 
 pub fn colors_over(wallpaper: Rgba) -> MenubarColors {
-    if wallpaper.contrast_ratio(MENUBAR_OVER_LIGHT_INK)
-        >= wallpaper.contrast_ratio(MENUBAR_OVER_DARK_INK)
-    {
+    let veiled = wallpaper.darken(MENUBAR_OVER_LIGHT_GLASS.a);
+    if veiled.relative_luminance() > MENUBAR_DARK_INK_ABOVE {
         MenubarColors {
             ink: MENUBAR_OVER_LIGHT_INK,
             glass: MENUBAR_OVER_LIGHT_GLASS,
@@ -111,6 +110,14 @@ mod tests {
         );
         assert_eq!(
             colors_over(Rgba::rgb8(20, 30, 60)).ink,
+            MENUBAR_OVER_DARK_INK
+        );
+    }
+
+    #[test]
+    fn a_mid_blue_wallpaper_gets_light_ink_like_big_sur() {
+        assert_eq!(
+            colors_over(Rgba::rgb8(91, 105, 157)).ink,
             MENUBAR_OVER_DARK_INK
         );
     }

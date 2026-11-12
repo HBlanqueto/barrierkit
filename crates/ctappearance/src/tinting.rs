@@ -1,4 +1,4 @@
-use ctdesign::{Rgba, WALLPAPER_TINTING_GRID};
+use ctdesign::{MENUBAR_TINT_SPREAD, Rgba, WALLPAPER_TINTING_GRID};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
@@ -91,6 +91,42 @@ impl WallpaperGrid {
         })
     }
 
+    pub fn across(&self, output: (f64, f64), window: (f64, f64, f64, f64)) -> Option<Vec<Rgba>> {
+        let (x, y, width, height) = window;
+        let columns = self.rows.first()?.len();
+        let slice = width / columns as f64;
+        let colors = (0..columns)
+            .map(|column| self.behind(output, (x + column as f64 * slice, y, slice, height)))
+            .collect::<Option<Vec<_>>>()?;
+        let spread = f64::from(MENUBAR_TINT_SPREAD) * columns as f64;
+        let reach = (spread * 3.0).ceil() as isize;
+        Some(
+            (0..columns as isize)
+                .map(|column| {
+                    let mut sum = [0.0f64; 3];
+                    let mut weight = 0.0;
+                    for offset in -reach..=reach {
+                        let kernel = (-0.5 * (offset as f64 / spread).powi(2)).exp();
+                        let neighbour =
+                            &colors[(column + offset).clamp(0, columns as isize - 1) as usize];
+                        for (total, channel) in
+                            sum.iter_mut().zip([neighbour.r, neighbour.g, neighbour.b])
+                        {
+                            *total += f64::from(channel) * kernel;
+                        }
+                        weight += kernel;
+                    }
+                    Rgba {
+                        r: (sum[0] / weight) as f32,
+                        g: (sum[1] / weight) as f32,
+                        b: (sum[2] / weight) as f32,
+                        a: 1.0,
+                    }
+                })
+                .collect(),
+        )
+    }
+
     fn cover(&self, output_width: f64, output_height: f64) -> (f64, f64) {
         let aspect = f64::from(self.aspect);
         if output_width / output_height > aspect {
@@ -169,5 +205,16 @@ mod tests {
             grid.behind((1280.0, 640.0), (1300.0, 0.0, 200.0, 200.0)),
             None
         );
+    }
+
+    #[test]
+    fn the_bar_blends_smoothly_across_a_wallpaper_edge() {
+        let grid = WallpaperGrid::from_rgba8(&halves(64, 32), 64, 32).unwrap();
+        let bar = grid
+            .across((1280.0, 640.0), (0.0, 0.0, 1280.0, 30.0))
+            .unwrap();
+        let (first, middle, last) = (bar[0].r, bar[bar.len() / 2].r, bar[bar.len() - 1].r);
+        assert!(first > middle && middle > last);
+        assert!(middle > 0.2 && middle < 0.8);
     }
 }
