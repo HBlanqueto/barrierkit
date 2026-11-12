@@ -251,7 +251,7 @@ pub(crate) fn check_state(check: &CheckState) -> (Option<&'static str>, i32) {
     match check {
         CheckState::Checkbox(active) => (Some("checkmark"), *active as i32),
         CheckState::Radio(active) => (Some("radio"), *active as i32),
-        CheckState::None => (None, 0),
+        CheckState::None | CheckState::Minimized => (None, 0),
     }
 }
 

@@ -597,8 +597,12 @@ pub(super) fn mark_element(check: CheckState, color: Rgba, m: MenuPalette) -> El
         CheckState::None | CheckState::Checkbox(false) | CheckState::Radio(false) => {
             rect().width(Size::px(m.leading_width)).into_element()
         }
-        CheckState::Checkbox(true) => label()
-            .text("✓")
+        CheckState::Checkbox(true) | CheckState::Minimized => label()
+            .text(if check == CheckState::Minimized {
+                "◆"
+            } else {
+                "✓"
+            })
             .font_size(m.mark_check)
             .color(theme::color(color))
             .width(Size::px(m.leading_width))

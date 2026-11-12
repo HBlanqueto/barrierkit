@@ -85,7 +85,7 @@ variant does nothing.
 |---|---|---|
 | `.with_shortcut(text)` | `Action` | Shows the shortcut at the right ([Shortcuts](#shortcuts)). It only shows it: the window menu or the app handles the key |
 | `.with_enabled(bool)` | `Action`, `Submenu` | A disabled row is gray and skipped by the keyboard |
-| `.with_check(CheckState)` | `Action` | `None` (default), `Checkbox(bool)` or `Radio(bool)`: a check mark or a dot in the leading column |
+| `.with_check(CheckState)` | `Action` | `None` (default), `Checkbox(bool)`, `Radio(bool)` or `Minimized`: a check mark, a dot or the diamond of a minimized window in the leading column |
 | `.with_icon(MenuIcon)` | `Action`, `Submenu` | An icon before the label |
 | `.with_badge(text)` | `Action` | A counter at the right, before the shortcut, like `NSMenuItemBadge` |
 | `.with_id(id)` | `Submenu` | Gives the submenu an id, so its contents can load on open ([Submenus](#submenus)) |

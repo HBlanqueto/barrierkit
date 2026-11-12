@@ -31,6 +31,7 @@ pub enum CheckState {
     None,
     Checkbox(bool),
     Radio(bool),
+    Minimized,
 }
 
 pub type SubmenuSource = Rc<dyn Fn(&str) -> Option<Vec<MenuItem>>>;

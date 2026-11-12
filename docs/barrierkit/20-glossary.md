@@ -788,7 +788,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 |---|---|---|---|---|---|
 | `menu::MenuView` | struct | — | `≈ NSMenu` | Draws a list of menu items with keyboard, search and submenus | [7](07-menus-and-popovers.md#menu-view) |
 | `menu::MenuItem` | enum | — | `NSMenuItem` | A menu row: `Action`, `Submenu`, `Header`, `Separator`, `Palette`, `SearchField`, `SearchResult` | [7](07-menus-and-popovers.md#menu-items) |
-| `menu::CheckState` | enum | — | `≈ NSControl.StateValue` | Mark of an action: `None`, `Checkbox(bool)`, `Radio(bool)`; no mixed state | [7](07-menus-and-popovers.md#menu-items) |
+| `menu::CheckState` | enum | — | `≈ NSControl.StateValue` | Mark of an action: `None`, `Checkbox(bool)`, `Radio(bool)`, `Minimized` (the Dock's diamond); no mixed state | [7](07-menus-and-popovers.md#menu-items) |
 | `menu::MenuIcon` | enum | — | `≈ NSMenuItem.image` | Row icon: `Svg`, `Image` (encoded bytes, 64 KiB max) or `Swatch` color circle | [7](07-menus-and-popovers.md#menu-items) |
 | `menu::MenuNavigation` | enum | — | — | `Prev` or `Next`: ← or → asks the menu bar for a neighbouring menu | [7](07-menus-and-popovers.md#menu-view) |
 | `menu::ItemsSource` | type | — | — | Closure that returns a menu's items on every render | [7](07-menus-and-popovers.md#helpers) |
