@@ -751,6 +751,7 @@
   --bk-shell-dock-label-padding-x: 12;
   --bk-shell-dock-label-padding-y: 4;
   --bk-shell-dock-label-radius: 8;
+  --bk-shell-dock-bg: var(--bk-dock-bar);
   --bk-shell-dock-tile: var(--bk-bg-control);
   --bk-shell-dock-tile-active: var(--bk-accent);
   --bk-shell-dock-tile-text-active: var(--bk-on-accent);
@@ -1008,6 +1009,7 @@
   --bk-titlebar-title-inactive: #6e6e6e;
   --bk-titlebar-line: #0000001a;
   --bk-shell-bar: #f2f4f7e6;
+  --bk-dock-bar: #f6f6f666;
   --bk-menubar-title-open: #0d12191f;
   --bk-scrim: #0d121947;
   --bk-window-outer: #0d12191f;
@@ -1057,6 +1059,7 @@
     --bk-titlebar-title-inactive: #9b9b9b;
     --bk-titlebar-line: #ffffff12;
     --bk-shell-bar: #1e1e1ee6;
+    --bk-dock-bar: #1e1e1e73;
     --bk-menubar-title-open: #ffffff2e;
     --bk-scrim: #00000080;
     --bk-window-outer: #000000e6;
@@ -1106,6 +1109,7 @@
   --bk-titlebar-title-inactive: #9b9b9b;
   --bk-titlebar-line: #ffffff12;
   --bk-shell-bar: #1e1e1ee6;
+  --bk-dock-bar: #1e1e1e73;
   --bk-menubar-title-open: #ffffff2e;
   --bk-scrim: #00000080;
   --bk-window-outer: #000000e6;
@@ -1154,6 +1158,7 @@
   --bk-titlebar-title-inactive: #999ca3;
   --bk-titlebar-line: #323336;
   --bk-shell-bar: #1d1e20e6;
+  --bk-dock-bar: #1d1e2073;
   --bk-menubar-title-open: #ffffff2e;
   --bk-scrim: #00000080;
   --bk-window-outer: #000000e6;
