@@ -161,8 +161,15 @@ fn start_frame(capture: &mut Capture, index: usize, qh: &QueueHandle<Runtime>) -
     let (Some((width, height)), Some(format)) = (pending.size, pending.format) else {
         return false;
     };
+    let Some(len) = width
+        .checked_mul(height)
+        .and_then(|pixels| pixels.checked_mul(4))
+        .filter(|len| (1..=i32::MAX as u32).contains(len))
+    else {
+        return false;
+    };
     let stride = width as i32 * 4;
-    let Ok(mut pool) = RawPool::new((stride * height as i32) as usize, &capture.shm) else {
+    let Ok(mut pool) = RawPool::new(len as usize, &capture.shm) else {
         return false;
     };
     let buffer = pool.create_buffer(
@@ -228,7 +235,9 @@ impl Dispatch<ExtImageCopyCaptureSessionV1, (), Runtime> for Runtime {
                 return;
             };
             match event {
-                SessionEvent::BufferSize { width, height } => {
+                SessionEvent::BufferSize { width, height }
+                    if capture.pending[index].frame.is_none() =>
+                {
                     capture.pending[index].size = Some((width, height));
                     return;
                 }

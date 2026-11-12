@@ -249,7 +249,7 @@ impl DbusMenuObject {
         "normal"
     }
 
-    fn layout_mut(
+    fn get_layout(
         &self,
         parent_id: i32,
         recursion_depth: i32,
@@ -530,6 +530,16 @@ mod tests {
         };
         assert_eq!(removed.len(), 1);
         assert_eq!(removed[0].1, vec!["shortcut".to_string()]);
+    }
+
+    #[test]
+    fn the_layout_request_is_exported_as_get_layout() {
+        let object = DbusMenuObject {
+            registered: registered(MainMenu::new(Vec::new())),
+        };
+        let mut xml = String::new();
+        zbus::object_server::Interface::introspect_to_writer(&object, &mut xml, 0);
+        assert!(xml.contains(r#"<method name="GetLayout">"#));
     }
 
     #[test]

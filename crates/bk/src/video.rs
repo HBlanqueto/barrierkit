@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+use std::collections::HashMap;
 use std::os::fd::BorrowedFd;
 use std::os::unix::fs::MetadataExt;
 use std::path::Path;
@@ -51,19 +52,21 @@ pub enum Decoding {
 }
 
 thread_local! {
-    static REDRAW: RefCell<Option<WakeHandle>> = const { RefCell::new(None) };
+    static REDRAW: RefCell<HashMap<u64, WakeHandle>> = RefCell::new(HashMap::new());
 }
 
 fn redraw_handle() -> Option<WakeHandle> {
-    REDRAW.with(|slot| {
-        let mut slot = slot.borrow_mut();
-        if slot.is_none() {
-            freya_core::current_context::CurrentContext::try_with(|_| ())?;
-            let timers = try_consume_root_context::<Timers>()?;
-            let window = Platform::get().current_window();
-            *slot = Some(timers.wakeup(move || window.request_redraw()));
-        }
-        slot.clone()
+    freya_core::current_context::CurrentContext::try_with(|_| ())?;
+    let timers = try_consume_root_context::<Timers>()?;
+    let window = Platform::get().current_window();
+    REDRAW.with(|handles| {
+        Some(
+            handles
+                .borrow_mut()
+                .entry(window.id)
+                .or_insert_with(|| timers.wakeup(move || window.request_redraw()))
+                .clone(),
+        )
     })
 }
 
@@ -192,9 +195,10 @@ pub fn fetch(uri: &str) -> Result<Vec<u8>, VideoError> {
         .by_name("sink")
         .and_then(|sink| sink.downcast::<gst_app::AppSink>().ok())
         .ok_or_else(failed)?;
-    pipeline
-        .set_state(gst::State::Playing)
-        .map_err(|_| failed())?;
+    if pipeline.set_state(gst::State::Playing).is_err() {
+        let _ = pipeline.set_state(gst::State::Null);
+        return Err(failed());
+    }
     let mut bytes = Vec::new();
     while let Ok(sample) = sink.pull_sample() {
         if let Some(map) = sample
@@ -333,11 +337,11 @@ impl VideoStream {
             }
             gst::BusSyncReply::Drop
         });
-        pipeline.set_state(gst::State::Paused).ok()?;
+        let started = pipeline.set_state(gst::State::Paused);
         let (result, _, _) = pipeline.state(gst::ClockTime::from_nseconds(
             preroll_timeout.as_nanos() as u64,
         ));
-        if result.is_err() || frames.latest.lock().ok()?.is_none() {
+        if started.is_err() || result.is_err() || frames.latest.lock().ok()?.is_none() {
             let _ = pipeline.set_state(gst::State::Null);
             return None;
         }

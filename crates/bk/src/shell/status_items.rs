@@ -12,12 +12,9 @@ use zbus::zvariant::{OwnedObjectPath, OwnedValue};
 
 use crate::main_menu::layout::{DbusMenuLayout, LayoutItem};
 use crate::menu::{CheckState, MenuItem};
-use crate::status_item::Pixmaps;
+use crate::status_item::{ITEM_PATH, Pixmaps, WATCHER, WATCHER_PATH};
 
-const WATCHER: &str = "org.kde.StatusNotifierWatcher";
-const WATCHER_PATH: &str = "/StatusNotifierWatcher";
 const ITEM: &str = "org.kde.StatusNotifierItem";
-const ITEM_PATH: &str = "/StatusNotifierItem";
 const DBUSMENU: &str = "com.canonical.dbusmenu";
 const CALL_TIMEOUT: Duration = Duration::from_millis(500);
 
@@ -87,7 +84,7 @@ pub fn use_status_items() -> (State<Vec<TrayItem>>, StatusHost) {
         }
         spawn(async move {
             while let Some(next) = updates_rx.next().await {
-                items.set(next);
+                items.set_if_modified(next);
             }
         });
         StatusHost {

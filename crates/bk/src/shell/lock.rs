@@ -149,7 +149,7 @@ impl SessionLockHandler for Runtime {
     }
 
     fn finished(&mut self, _: &Connection, _: &QueueHandle<Self>, _: SessionLock) {
-        eprintln!("malaysia-shell lock: the compositor refused the session lock");
+        tracing::error!("BarrierKit: the compositor ended the session lock");
         std::process::exit(1);
     }
 
