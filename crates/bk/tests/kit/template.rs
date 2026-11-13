@@ -51,20 +51,23 @@ impl Component for Styled {
 }
 
 #[derive(PartialEq)]
-struct Amber(IconStyle);
+struct Amber(IconStyle, u8);
 
 impl Component for Amber {
     fn render(&self) -> impl IntoElement {
         use_appearance(|config| config.accent_color = Some([0.91, 0.64, 0.24]));
-        rect().child(Styled(self.0))
+        let ground = self.1;
+        rect()
+            .background((ground, ground, ground))
+            .child(Styled(self.0))
     }
 }
 
-struct StyledHost(IconStyle);
+struct StyledHost(IconStyle, u8);
 
 impl App for StyledHost {
     fn render(&self) -> impl IntoElement {
-        Amber(self.0)
+        Amber(self.0, self.1)
     }
 }
 
@@ -93,7 +96,7 @@ fn a_template_image_paints_its_shape_white_in_dark_and_black_in_light() {
 
 #[test]
 fn a_monochrome_icon_loses_its_hue() {
-    let [red, green, blue, _] = center_of(StyledHost(IconStyle::Monochrome));
+    let [red, green, blue, _] = center_of(StyledHost(IconStyle::Monochrome, 255));
     assert!(
         red.abs_diff(green) < 4 && green.abs_diff(blue) < 4,
         "{red} {green} {blue}"
@@ -103,12 +106,13 @@ fn a_monochrome_icon_loses_its_hue() {
 
 #[test]
 fn a_tinted_icon_keeps_the_hue_of_its_accent() {
-    let [red, _, blue, _] = center_of(StyledHost(IconStyle::Tinted));
+    let [red, _, blue, _] = center_of(StyledHost(IconStyle::Tinted, 255));
     assert!(red > blue, "{red} {blue}");
 }
 
 #[test]
-fn a_clear_icon_is_see_through_where_the_source_is_dark() {
-    let [.., alpha] = center_of(StyledHost(IconStyle::Clear));
-    assert!((100..220).contains(&alpha), "{alpha}");
+fn a_clear_icon_lets_the_window_show_through() {
+    let [dark, ..] = center_of(StyledHost(IconStyle::Clear, 0));
+    let [light, ..] = center_of(StyledHost(IconStyle::Clear, 255));
+    assert!(light > dark + 40, "{light} {dark}");
 }
