@@ -539,10 +539,12 @@
   --bk-window-sidebar-glass-edge-lightness-dark: 0.1;
   --bk-window-sidebar-glass-edge-cap-light: 0.04;
   --bk-window-sidebar-glass-edge-cap-dark: 0.18;
+  --bk-window-sidebar-glass-edge-offset: 11;
   --bk-window-sidebar-glass-shadow-opacity-light: 0.13;
   --bk-window-sidebar-glass-shadow-opacity-dark: 0.0;
   --bk-window-sidebar-glass-shadow-span: 25;
   --bk-window-sidebar-glass-shadow-tint: 1.0;
+  --bk-window-sidebar-glass-shadow-lightness: 0.2;
   --bk-window-sidebar-item-height: 32;
   --bk-window-sidebar-item-radius: var(--bk-radius-sm);
   --bk-window-sidebar-item-padding-x: 9;

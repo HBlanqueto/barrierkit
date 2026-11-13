@@ -221,7 +221,7 @@ pub fn glass_blur_passes(scheme: ColorScheme) -> u32 {
     }
 }
 
-// The wallpaper shows along the left, top and bottom edges of a panel: `intensity` at the edge, fading over `span` logical pixels, with `chroma` and `lightness` of what is there (ADR 0078).
+// The wallpaper shows along the left, top and bottom edges of a panel: `intensity` at the edge, fading over `span` logical pixels, with `chroma` and `lightness` of what is `offset` logical pixels outside the window (ADR 0078).
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct GlassEdge {
     pub intensity: f32,
@@ -229,6 +229,7 @@ pub struct GlassEdge {
     pub chroma: f32,
     pub lightness: f32,
     pub cap: f32,
+    pub offset: f32,
 }
 
 pub fn glass_edge(scheme: ColorScheme) -> GlassEdge {
@@ -239,6 +240,7 @@ pub fn glass_edge(scheme: ColorScheme) -> GlassEdge {
             chroma: GLASS.edge_chroma_dark,
             lightness: GLASS.edge_lightness_dark,
             cap: GLASS.edge_cap_dark,
+            offset: GLASS.edge_offset,
         }
     } else {
         GlassEdge {
@@ -247,16 +249,18 @@ pub fn glass_edge(scheme: ColorScheme) -> GlassEdge {
             chroma: GLASS.edge_chroma_light,
             lightness: GLASS.edge_lightness_light,
             cap: GLASS.edge_cap_light,
+            offset: GLASS.edge_offset,
         }
     }
 }
 
-// The island's shadow on the window around it: `opacity` next to the island, fading over `span` logical pixels, with `tint` of the wallpaper's chroma.
+// The island's shadow on the window around it: `opacity` next to the island, fading over `span` logical pixels, as dark as `lightness` and with `tint` of the wallpaper's chroma.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct GlassShadow {
     pub opacity: f32,
     pub span: f32,
     pub tint: f32,
+    pub lightness: f32,
 }
 
 pub fn glass_shadow(scheme: ColorScheme) -> GlassShadow {
@@ -268,6 +272,7 @@ pub fn glass_shadow(scheme: ColorScheme) -> GlassShadow {
         },
         span: GLASS.shadow_span,
         tint: GLASS.shadow_tint,
+        lightness: GLASS.shadow_lightness,
     }
 }
 

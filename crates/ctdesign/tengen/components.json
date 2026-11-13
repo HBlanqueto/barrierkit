@@ -622,12 +622,14 @@
             "span": { "light": 46, "dark": 114 },
             "chroma": { "light": 0.45, "dark": 0.55 },
             "lightness": { "light": 0.0, "dark": 0.1 },
-            "cap": { "light": 0.04, "dark": 0.18 }
+            "cap": { "light": 0.04, "dark": 0.18 },
+            "offset": 11
           },
           "shadow": {
             "opacity": { "light": 0.13, "dark": 0.0 },
             "span": 25,
-            "tint": 1.0
+            "tint": 1.0,
+            "lightness": 0.2
           }
         },
         "item": {
