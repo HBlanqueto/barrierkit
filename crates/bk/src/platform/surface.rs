@@ -51,7 +51,8 @@ pub(crate) struct SurfaceWindow {
     pub(crate) frame_pending: bool,
     pub(crate) draw_count: u64,
     failing: bool,
-    pub(crate) opaque_size: Option<(u32, u32)>,
+    pub(crate) opaque_region: Option<((u32, u32), Vec<(i32, i32, i32, i32)>)>,
+    pub(crate) glass_holes: Vec<(i32, i32, i32, i32)>,
     pub(crate) background_alpha: f32,
     pub(crate) pending_configure: Option<(WindowConfigure, u32)>,
     pub(crate) appmenu: Option<OrgKdeKwinAppmenu>,
@@ -283,18 +284,22 @@ impl SurfaceWindow {
 
 impl SurfaceWindow {
     fn declare_opaque(&mut self, compositor: &CompositorState, background: Color) {
-        let opaque = (background.a() == u8::MAX).then_some(self.logical_size);
-        if opaque == self.opaque_size {
+        let opaque =
+            (background.a() == u8::MAX).then(|| (self.logical_size, self.glass_holes.clone()));
+        if opaque == self.opaque_region {
             return;
         }
-        let region = opaque.and_then(|(width, height)| {
+        let region = opaque.as_ref().and_then(|((width, height), holes)| {
             let region = Region::new(compositor).ok()?;
-            region.add(0, 0, width as i32, height as i32);
+            region.add(0, 0, *width as i32, *height as i32);
+            for &(x, y, hole_width, hole_height) in holes {
+                region.subtract(x, y, hole_width, hole_height);
+            }
             Some(region)
         });
         self.surface
             .set_opaque_region(region.as_ref().map(Region::wl_region));
-        self.opaque_size = opaque;
+        self.opaque_region = opaque;
     }
 }
 
@@ -344,7 +349,8 @@ impl Runtime {
             frame_pending: false,
             draw_count: 0,
             failing: false,
-            opaque_size: None,
+            opaque_region: None,
+            glass_holes: Vec::new(),
             background_alpha: 1.0,
             pending_configure: None,
             appmenu: None,

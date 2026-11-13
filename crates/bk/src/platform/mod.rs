@@ -10,6 +10,7 @@ pub(crate) mod dmabuf;
 mod doc_shots;
 pub(crate) mod extension;
 mod focus;
+mod glass;
 mod ime;
 mod input;
 mod main_menu_export;
@@ -64,6 +65,7 @@ pub use window_style::Bar;
 
 #[cfg(test)]
 pub(crate) use popup::PopupCommand;
+pub(crate) use glass::{GlassPanels, GlassSupport, set_glass_panels};
 pub(crate) use popup::anchor_rect;
 pub use sctk::reexports::client::backend::ObjectId;
 

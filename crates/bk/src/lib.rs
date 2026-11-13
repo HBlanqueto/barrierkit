@@ -101,6 +101,7 @@ pub mod notifications;
 pub mod secrets;
 
 mod glass;
+mod glass_panel;
 
 mod controlled;
 

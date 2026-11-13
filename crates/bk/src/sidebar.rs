@@ -2,7 +2,7 @@ use crate::elements::forward_container;
 use ctappearance::{SidebarStyle as SidebarKind, SidebarSurface};
 use ctdesign::{BACKDROP, Rgba, SIDEBAR, SidebarPalette, TEXT_FIELD};
 use freya_core::prelude::*;
-use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
+use torin::prelude::{Alignment, Area, Content, Direction, Gaps, Position, Size};
 
 use crate::ProbeExt;
 use crate::adornments::Avatar;
@@ -265,6 +265,17 @@ impl KeyExt for Sidebar {
 impl Component for Sidebar {
     fn render(&self) -> impl IntoElement {
         let style: SidebarStyle = resolve(&self.style);
+        let glass = crate::glass_panel::sidebar_glass();
+        let style = if glass.is_some() {
+            SidebarStyle {
+                background: StateValue::new(ShapeStyle::Clear),
+                border: None,
+                inner_border: None,
+                ..style
+            }
+        } else {
+            style
+        };
         let split: SplitViewStyle = resolve(&Theme::tengen());
         let lights: TrafficLightsStyle = resolve(&Theme::tengen());
         let paints = Paints::current(ControlState::default(), style.effect);
@@ -330,17 +341,28 @@ impl Component for Sidebar {
         let corner_radius = style
             .shape
             .corner_radius(0.0, 0.0, LayoutDirection::LeftToRight);
+        let mut panel_area = use_state(Area::default);
+        crate::glass_panel::use_publish(glass, corner_radius.top_left(), *panel_area.read());
         let sidebar_body = rect()
             .expanded()
             .direction(Direction::Vertical)
             .painted(&paints, &style.background)
             .a11y_role(AccessibilityRole::Navigation)
+            .on_sized(move |event: Event<SizedEventData>| panel_area.set_if_modified(event.area))
             .padding(Gaps::new(
                 top_height,
                 padding_x,
                 style.padding_bottom,
                 padding_x + reserved,
             ))
+            .maybe_child(glass.map(|_| {
+                let size = panel_area.read().size;
+                crate::glass_panel::hole(
+                    (-padding_x, -top_height),
+                    (size.width, size.height),
+                    corner_radius.top_left(),
+                )
+            }))
             .child(
                 rect()
                     .position(

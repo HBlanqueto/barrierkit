@@ -101,6 +101,19 @@ Its look comes from `sidebar_style` in `appearance.domain`
 The strip above the first row moves the window when dragged. When the traffic
 lights are in the sidebar, the first row starts below them.
 
+#### Glass
+
+With a compositor that offers `infinity_window_style_v1` version 6, as
+Malaysia does, the sidebar is a glass panel. The kit leaves its rectangle
+transparent and sends it with `set_glass`; the compositor draws the material and
+the rim under and over the rows ([ADR 0065](../decisions/0065-sidebar-glass.md)).
+The app does nothing. The kit sends the panel again whenever the sidebar's area
+changes.
+
+Without such a compositor, over a [`Backdrop`](15-backdrops-and-media.md), with
+reduced transparency or with the accent as window color, the sidebar paints its
+own solid fill, as described above.
+
 #### Style
 
 `Sidebar::style`, `SidebarItem::style`, `SidebarSection::style`,

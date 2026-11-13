@@ -52,7 +52,7 @@ Readers: whoever changes `Sidebar`, `SplitView`, `ctdesign` or `ctappearance`.
    | Case | The panel | Sends |
    |---|---|---|
    | The compositor offers `infinity_window_style_v1` version 6, and transparency is allowed | Transparent. The rows go on top | `base`, `solid`, the corner and the rectangles |
-   | No such compositor | `solid`, opaque, with the fixed rim `sidebar-island-rim` | Nothing |
+   | No such compositor | `Resolved.sidebar.bg`, opaque, with the fixed rim `sidebar-island-rim`, as today | Nothing |
    | `reduce_transparency` or `contrast` | `Resolved.sidebar.bg`, the neutral opaque tone, with no wallpaper tint and the fixed rim | An empty panel list |
 
    While the window is not focused the kit does nothing extra: the compositor
@@ -92,8 +92,8 @@ moves after step 1.
 
 - With a compatible compositor, the sidebar's lightness stays solid and only
   its color comes from the wallpaper.
-- Without one, the sidebar is a solid panel with the wallpaper's tint, as
-  before but with a lighter base in dark mode (`#1e1e1f` instead of `#141414`).
+- Without one, nothing changes: the sidebar is the opaque panel the kit paints
+  today.
 - Every `Sidebar` in a `SplitView` sends requests while it resizes.
 - The kit holds two more colors per theme.
 

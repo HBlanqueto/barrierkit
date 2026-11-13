@@ -180,6 +180,8 @@ impl AppInstance {
         Platform::get().register_window(platform.clone());
         runner.provide_root_context(|| CurrentWindowId(platform.id));
         runner.provide_root_context(move || KitSender(send));
+        let glass = window.is_some() && rt.glass_supported();
+        runner.provide_root_context(move || super::GlassSupport(glass));
         let inputs = runner.provide_root_context(crate::spelling::InputParagraphs::default);
 
         if let Some(handle) = menu_handle {

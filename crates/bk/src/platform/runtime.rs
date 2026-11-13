@@ -296,6 +296,11 @@ fn insert_ping(event_loop: &mut EventLoop<Runtime>, shell: &mut Runtime) -> Resu
                             shell.create_window(open.app, open.options, Some(&surface_id));
                         }
                     }
+                    Sent::Kit(event) if event.is::<super::glass::GlassPanels>() => {
+                        if let Ok(panels) = event.downcast::<super::glass::GlassPanels>() {
+                            shell.apply_glass_panels(&surface_id, *panels);
+                        }
+                    }
                     #[cfg(feature = "shell")]
                     Sent::Kit(event) if event.is::<crate::shell::CardFrames>() => {
                         if let Ok(frames) = event.downcast::<crate::shell::CardFrames>() {
@@ -465,7 +470,7 @@ impl Runtime {
             .ok();
         let dialog_manager = globals.bind(&qh, 1..=1, ()).ok();
         let window_style = globals
-            .bind::<super::window_style::InfinityWindowStyleV1, _, _>(&qh, 1..=4, ())
+            .bind::<super::window_style::InfinityWindowStyleV1, _, _>(&qh, 1..=6, ())
             .ok();
         let viewporter = globals.bind::<WpViewporter, _, _>(&qh, 1..=1, ()).ok();
         // wp_fractional_scale_v1: a fractional buffer is only valid behind a wp_viewport.
