@@ -423,31 +423,30 @@ impl Component for SettingsWindow {
             Some((pinned, scrolling)) => (pinned, Some(scrolling)),
             None => (None, None),
         };
-        let detail =
-            rect()
-                .expanded()
-                .direction(Direction::Vertical)
-                .child(
-                    Titlebar::new()
-                        .with_sidebar(true)
-                        .hairline(false)
-                        .spacing(style.toolbar_spacing)
-                        .title(pane.map(|pane| pane.title).unwrap_or_default())
-                        .left(
-                            rect()
-                                .direction(Direction::Horizontal)
-                                .cross_align(Alignment::Center)
-                                .spacing(style.navigation_spacing)
-                                .maybe_child(self.sidebar_toggle.then_some(SidebarToggle))
-                                .child(NavigationButtons::new(history)),
-                        ),
-                )
-                .maybe_child(pinned)
-                .child(
-                    ScrollView::new()
-                        .top_line(true)
-                        .maybe_child(scrolling.map(|form| form.highlighted(*highlighted.read()))),
-                );
+        let detail = rect()
+            .expanded()
+            .direction(Direction::Vertical)
+            .child(
+                Titlebar::new()
+                    .with_sidebar(true)
+                    .hairline(false)
+                    .spacing(style.toolbar_spacing)
+                    .title(pane.map(|pane| pane.title).unwrap_or_default())
+                    .left(
+                        rect()
+                            .direction(Direction::Horizontal)
+                            .cross_align(Alignment::Center)
+                            .spacing(style.navigation_spacing)
+                            .maybe_child(self.sidebar_toggle.then_some(SidebarToggle))
+                            .child(NavigationButtons::new(history)),
+                    ),
+            )
+            .maybe_child(pinned)
+            .child(
+                ScrollView::new()
+                    .top_line(true)
+                    .maybe_child(scrolling.map(|form| form.highlighted(*highlighted.read()))),
+            );
 
         let restored = saved.sidebar.unwrap_or(SidebarLayout {
             width: SETTINGS.sidebar_width as f32,
