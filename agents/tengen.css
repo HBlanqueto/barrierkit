@@ -530,11 +530,11 @@
   --bk-window-sidebar-glass-blur-passes-light: 4;
   --bk-window-sidebar-glass-blur-passes-dark: 6;
   --bk-window-sidebar-glass-edge-intensity-light: 0.7;
-  --bk-window-sidebar-glass-edge-intensity-dark: 0.4;
+  --bk-window-sidebar-glass-edge-intensity-dark: 0.7;
   --bk-window-sidebar-glass-edge-span-light: 46;
-  --bk-window-sidebar-glass-edge-span-dark: 114;
+  --bk-window-sidebar-glass-edge-span-dark: 28;
   --bk-window-sidebar-glass-edge-chroma-light: 0.45;
-  --bk-window-sidebar-glass-edge-chroma-dark: 0.55;
+  --bk-window-sidebar-glass-edge-chroma-dark: 0.25;
   --bk-window-sidebar-glass-edge-lightness-light: 0.0;
   --bk-window-sidebar-glass-edge-lightness-dark: 0.1;
   --bk-window-sidebar-glass-edge-cap-light: 0.04;
