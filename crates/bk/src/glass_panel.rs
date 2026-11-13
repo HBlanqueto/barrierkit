@@ -82,8 +82,14 @@ impl ElementExt for Hole {
         !crate::style_diff(self, other).is_empty()
     }
 
+    // The hole's size lives in `layout`: a style-only diff leaves it at the size it was first measured.
     fn diff(&self, other: &Rc<dyn ElementExt>) -> DiffModifies {
-        crate::style_diff(self, other)
+        let modifies = crate::style_diff(self, other);
+        if modifies.is_empty() {
+            modifies
+        } else {
+            modifies | DiffModifies::LAYOUT
+        }
     }
 
     fn layout(&'_ self) -> Cow<'_, LayoutData> {
