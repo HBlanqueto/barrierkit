@@ -1,7 +1,9 @@
 #![forbid(unsafe_code)]
 
+mod dock_rim;
 mod rgba;
 
+pub use dock_rim::{dock_rim, dock_rim_fade};
 pub use rgba::Rgba;
 
 #[derive(Debug, Clone, Copy, PartialEq)]

@@ -108,8 +108,21 @@ pub(crate) fn continuous(radius: CornerRadius) -> CornerRadius {
 pub fn panel_edges(body: Rect, radius: f32, fill: Rgba) -> Rect {
     let palette = ctappearance::palette(crate::theme::resolved().scheme);
     let corner = continuous_corner(radius);
+    let body = body.corner_radius(corner);
     // The compositor's frame lines are one physical pixel at every scale.
     let pixel = 1.0 / *Platform::get().current_window().scale_factor.read() as f32;
+    let body = match (palette.panel_inner_line, palette.inner_line) {
+        (Some(line), _) => body.background(Fill::Callback(RenderCallback::new(move |context| {
+            glass_line(context, fill, line, corner)
+        }))),
+        (None, Some(inner)) => body.background(color(fill)).border(
+            Border::new()
+                .fill(color(inner))
+                .width(pixel)
+                .alignment(BorderAlignment::Inner),
+        ),
+        (None, None) => body.background(color(fill)),
+    };
     rect()
         .corner_radius(corner)
         .border(
@@ -118,51 +131,93 @@ pub fn panel_edges(body: Rect, radius: f32, fill: Rgba) -> Rect {
                 .width(pixel)
                 .alignment(BorderAlignment::Outer),
         )
-        .child(inner_edge(body, radius, fill, (1.0, 1.0, 0.0)))
+        .child(body)
 }
 
-/// The inner line of `panel_edges` alone: no outer line and no inward glow, `strength` times as
-/// opaque. The Dock's glass is only that line, and it grows with the light of the wallpaper behind.
-pub fn glass_edge(body: Rect, radius: f32, fill: Rgba, strength: f32) -> Rect {
-    inner_edge(body, radius, fill, (strength, 0.0, ctdesign::DOCK_RIM_BLUR))
+/// The Dock's rim: the light along the inner edge of its glass, as colours (with their opacity)
+/// read from the backdrop. `top` and `bottom` run left to right along those edges; `left` and
+/// `right` are the sides.
+#[derive(Clone, Debug, PartialEq)]
+pub struct GlassRim {
+    pub top: Vec<Rgba>,
+    pub bottom: Vec<Rgba>,
+    pub left: Rgba,
+    pub right: Rgba,
 }
 
-// `(line, glow)` multiply the opacity of the line and of the inward glow; `blur` softens the line,
-// as a Gaussian sigma in physical pixels (0 keeps it crisp).
-fn inner_edge(
-    body: Rect,
-    radius: f32,
-    fill: Rgba,
-    (strength, glow, blur): (f32, f32, f32),
-) -> Rect {
-    let palette = ctappearance::palette(crate::theme::resolved().scheme);
+/// A card filled with `fill` whose only frame is `rim`: a soft line, full on top, thinning down the
+/// sides, gone around the lower corners and back along the bottom (`ctdesign::dock_rim_fade`).
+pub fn glass_edge(body: Rect, radius: f32, fill: Rgba, rim: GlassRim) -> Rect {
     let corner = continuous_corner(radius);
-    let pixel = 1.0 / *Platform::get().current_window().scale_factor.read() as f32;
-    let scaled = |line: Rgba, by: f32| Rgba {
-        a: (line.a * by).min(1.0),
-        ..line
+    body.corner_radius(corner)
+        .background(Fill::Callback(RenderCallback::new(move |context| {
+            glass_rim(context, fill, &rim, corner)
+        })))
+}
+
+fn glass_rim(context: &mut FillRenderContext, fill: Rgba, rim: &GlassRim, corner: CornerRadius) {
+    use freya_engine::prelude::{
+        BlendMode, ClipOp, Paint, Rect as SkRect, SkBlurStyle, SkMaskFilter, shaders,
     };
-    let stronger = |line: Rgba| scaled(line, strength);
-    let body = body.corner_radius(corner);
-    match (palette.panel_inner_line, palette.inner_line) {
-        (Some(line), _) => {
-            let line = ctdesign::PanelLine {
-                sides: stronger(line.sides),
-                edges: stronger(line.edges),
-                glow: scaled(line.glow, glow),
-            };
-            body.background(Fill::Callback(RenderCallback::new(move |context| {
-                glass_line(context, fill, line, corner, blur)
-            })))
-        }
-        (None, Some(inner)) => body.background(color(fill)).border(
-            Border::new()
-                .fill(color(stronger(inner)))
-                .width(pixel)
-                .alignment(BorderAlignment::Inner),
-        ),
-        (None, None) => body.background(color(fill)),
+    context.set_color(color(fill));
+    let RenderTarget::Background { canvas, .. } = &context.target else {
+        return;
+    };
+    let (width, height) = (context.size.width, context.size.height);
+    let scale = context.scale_factor as f32;
+    let radius = corner.top_left();
+    let white = |at: f32, visible: f32| {
+        (
+            at,
+            Rgba {
+                r: 1.0,
+                g: 1.0,
+                b: 1.0,
+                a: visible,
+            },
+        )
+    };
+    let corner_share = (radius * WINDOW_CORNER.expansion / height).min(0.5);
+    let fade: Vec<_> = ctdesign::dock_rim_fade(corner_share)
+        .into_iter()
+        .map(|(at, visible)| white(at, visible))
+        .collect();
+    let Some(fade) = linear((0.0, 0.0), (0.0, height), &fade) else {
+        return;
+    };
+    let reach = (radius / width).min(0.5);
+    for (edge, from, to) in [
+        (&rim.top, 0.0, height / 2.0),
+        (&rim.bottom, height / 2.0, height),
+    ] {
+        let Some(along) = linear((0.0, 0.0), (width, 0.0), &along(edge, rim, reach)) else {
+            continue;
+        };
+        let mut paint = Paint::default();
+        paint.set_shader(shaders::blend(BlendMode::Modulate, along, fade.clone()));
+        paint.set_mask_filter(SkMaskFilter::blur(
+            SkBlurStyle::Normal,
+            ctdesign::DOCK_RIM_BLUR / scale,
+            false,
+        ));
+        canvas.save();
+        canvas.clip_rect(SkRect::new(0.0, from, width, to), ClipOp::Intersect, false);
+        stroke_edge(context, corner, paint);
+        canvas.restore();
     }
+}
+
+// The edge's colours spread over the bar, with the sides at the ends and where each corner starts.
+fn along(edge: &[Rgba], rim: &GlassRim, reach: f32) -> Vec<(f32, Rgba)> {
+    let step = (1.0 - 2.0 * reach) / edge.len().max(1) as f32;
+    std::iter::once((0.0, rim.left))
+        .chain(
+            edge.iter()
+                .enumerate()
+                .map(|(index, colour)| (reach + (index as f32 + 0.5) * step, *colour)),
+        )
+        .chain(std::iter::once((1.0, rim.right)))
+        .collect()
 }
 
 fn glass_line(
@@ -170,11 +225,8 @@ fn glass_line(
     fill: Rgba,
     line: ctdesign::PanelLine,
     corner: CornerRadius,
-    blur: f32,
 ) {
-    use freya_engine::prelude::{
-        PaintStyle, PathBuilder, RRect, Rect as SkRect, SkBlurStyle, SkMaskFilter,
-    };
+    use freya_engine::prelude::Rect as SkRect;
     context.set_color(color(fill));
     let RenderTarget::Background { canvas, .. } = &context.target else {
         return;
@@ -200,7 +252,7 @@ fn glass_line(
             ],
         ),
     );
-    let mut paint = vertical(
+    let paint = vertical(
         height,
         &[
             (0.0, line.edges),
@@ -209,17 +261,24 @@ fn glass_line(
             (1.0, line.edges),
         ],
     );
+    stroke_edge(context, corner, paint);
+}
+
+fn stroke_edge(
+    context: &FillRenderContext,
+    corner: CornerRadius,
+    mut paint: freya_engine::prelude::Paint,
+) {
+    use freya_engine::prelude::{PaintStyle, PathBuilder, RRect, Rect as SkRect};
+    let RenderTarget::Background { canvas, .. } = &context.target else {
+        return;
+    };
+    let bounds = SkRect::from_wh(context.size.width, context.size.height);
+    let radius = corner.top_left();
     paint.set_style(PaintStyle::Stroke);
     paint.set_anti_alias(true);
     // One physical pixel on each side of the edge; the clip keeps the inner half, as the compositor's line.
     paint.set_stroke_width(2.0 / context.scale_factor as f32);
-    if blur > 0.0 {
-        paint.set_mask_filter(SkMaskFilter::blur(
-            SkBlurStyle::Normal,
-            blur / context.scale_factor as f32,
-            false,
-        ));
-    }
     // Freya's smoothed path leaves its last contour open: a fill closes it, a stroke does not.
     let mut outline = PathBuilder::new();
     outline
@@ -232,9 +291,18 @@ fn glass_line(
 }
 
 fn vertical(height: f32, stops: &[(f32, Rgba)]) -> freya_engine::prelude::Paint {
-    use freya_engine::prelude::{
-        Color4f, Colors, Gradient, Interpolation, Paint, TileMode, shaders,
-    };
+    let mut paint = freya_engine::prelude::Paint::default();
+    paint.set_dither(true);
+    paint.set_shader(linear((0.0, 0.0), (0.0, height), stops));
+    paint
+}
+
+fn linear(
+    from: (f32, f32),
+    to: (f32, f32),
+    stops: &[(f32, Rgba)],
+) -> Option<freya_engine::prelude::Shader> {
+    use freya_engine::prelude::{Color4f, Colors, Gradient, Interpolation, TileMode, shaders};
     let (colors, offsets): (Vec<Color4f>, Vec<f32>) = stops
         .iter()
         .map(|&(offset, c)| (Color4f::new(c.r, c.g, c.b, c.a), offset))
@@ -243,12 +311,5 @@ fn vertical(height: f32, stops: &[(f32, Rgba)]) -> freya_engine::prelude::Paint 
         Colors::new(&colors, Some(&offsets), TileMode::Clamp, None),
         Interpolation::default(),
     );
-    let mut paint = Paint::default();
-    paint.set_dither(true);
-    paint.set_shader(shaders::linear_gradient(
-        ((0.0, 0.0), (0.0, height)),
-        &gradient,
-        None,
-    ));
-    paint
+    shaders::linear_gradient((from, to), &gradient, None)
 }

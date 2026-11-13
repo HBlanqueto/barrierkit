@@ -186,8 +186,9 @@ DOCK_REVEAL_STRIP i32 components.shell.dock.reveal-strip
 DOCK_RECENTS usize components.shell.dock.recents
 DOCK_ICON_BODY f32 components.shell.dock.icon-body
 DOCK_FOLDER_CANVAS f32 components.shell.dock.folder-canvas
-DOCK_RIM_DARK f32 components.shell.dock.rim-dark
-DOCK_RIM_BRIGHT f32 components.shell.dock.rim-bright
+DOCK_RIM_ALPHA [f32;2] components.shell.dock.rim-alpha
+DOCK_RIM_TINT [f32;2] components.shell.dock.rim-tint
+DOCK_RIM_FADE [f32;6] components.shell.dock.rim-fade
 DOCK_RIM_BLUR f32 components.shell.dock.rim-blur
 DOCK_WINDOW_FRAME f32 components.shell.dock.window-frame
 DOCK_WINDOW_ICON f32 components.shell.dock.window-icon
