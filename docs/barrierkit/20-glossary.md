@@ -324,7 +324,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `symbol::Image::data` | fn | `Image(nsImage:)` | `NSImage(data:)` | An image view from SVG, PNG or JPEG bytes | [4](04-appearance-and-tokens.md#images-and-template-rendering) |
 | `symbol::Image::rgba` | fn | `Image(nsImage:)` | ≈ `NSBitmapImageRep` | An image view from straight-alpha RGBA pixels | [4](04-appearance-and-tokens.md#images-and-template-rendering) |
 | `symbol::TemplateRenderingMode` | enum | `Image.TemplateRenderingMode` | ≈ `NSImage.isTemplate` | `Original` keeps the colors; `Template` paints the shape in the foreground color | [4](04-appearance-and-tokens.md#images-and-template-rendering) |
-| `symbol::IconStyle`, `ctappearance::icon_style::IconStyle` | enum | — | — | How an app icon is restyled: `Original`, `Monochrome`, `Clear` or `Tinted(accent)`; `bk` re-exports the `ctappearance` type | [4](04-appearance-and-tokens.md#icon-styles) |
+| `symbol::IconStyle`, `ctappearance::icon_style::IconStyle` | enum | — | — | How an app icon is restyled: `Default`, `Monochrome`, `Clear` or `Tinted` (the user's accent); `bk` re-exports the `ctappearance` type | [4](04-appearance-and-tokens.md#icon-styles) |
 | `symbol::Image::icon_style` | fn | ≈ `.grayscale(_:)` and `.colorMultiply(_:)` | — | Restyles the image's own colors; has no effect on a template image or a symbol | [4](04-appearance-and-tokens.md#icon-styles) |
 | `register_font` | fn | — | — | Adds a typeface from font file bytes; `false` if not a font | [4](04-appearance-and-tokens.md#fonts) |
 

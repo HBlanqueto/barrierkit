@@ -178,15 +178,15 @@ size and color.
 ### Icon styles
 
 `.icon_style(IconStyle)` restyles an app icon the way System Settings does for
-the Home Screen: `Monochrome` keeps only the luminance, `Tinted(accent)` maps
-black to a dark shade and white to a light shade of the accent, and `Clear`
-turns the luminance into transparency over a gray. `Original`, the default,
-draws the icon untouched. A shell passes the user's accent, so one icon
-serves every style and no file is generated per style.
+the Home Screen: `Monochrome` keeps only the luminance, `Tinted` maps black to
+a dark shade and white to a light shade of the user's accent, and `Clear` turns
+the luminance into transparency over a gray. `Default` draws the icon
+untouched. One icon serves every style, and no file is generated per style. A
+shell passes `theme::resolved().icon_style`, the `icon_style` key below.
 
 ```rust
 Image::data(include_bytes!("app.svg").as_slice())
-    .icon_style(IconStyle::Tinted(accent))
+    .icon_style(theme::resolved().icon_style)
     .size(64.0)
 ```
 
@@ -302,6 +302,7 @@ tint_parts = ["sidebars", "window", "groups", "controls", "menus"]
 | `text_size` | `f32` | a value of `TEXT_SIZES` | `1.0` |
 | `text_sizes` | `TextSizes` | table with optional `barrierkit`, `gtk`, `qt`, each a value of `TEXT_SIZES` | empty: every toolkit uses `text_size` |
 | `menu_bar_size` | `MenuBarSize` | `default`, `large` | `default` |
+| `icon_style` | `IconStyle` | `default`, `monochrome`, `clear`, `tinted` | `default` |
 | `shake_to_locate` | `bool` | | `true` |
 | `pointer_size` | `f32` | a value of `POINTER_SIZES` | `1.0` |
 | `color_filters` | `bool` | | `false` |
@@ -430,7 +431,7 @@ a style.
 | `lights`, `traffic_style`, `traffic_shape` | The traffic-light colors, style and shape. |
 | `contrast`, `reduced_motion`, `scroll_bars`, `scroll_bar_click` | Copies of the config. |
 | `reduce_transparency` | `AppearanceConfig::transparency_reduced()`: true with `reduce_transparency` or `contrast`. |
-| `show_borders`, `differentiate_without_color`, `menu_bar_size` | Copies of the config. |
+| `show_borders`, `differentiate_without_color`, `menu_bar_size`, `icon_style` | Copies of the config. |
 | `text_size` | `AppearanceConfig::text_size_for(Toolkit::BarrierKit)`: the BarrierKit size, or the preferred `text_size`. |
 | `shell` | `ShellPalette`: menu bar and Dock colors. |
 | `menu`, `menu_parent` | `MenuPalette` and the window color a menu sits on. `Resolved::menu_separator(panel_bg)` gives the separator over another background. |

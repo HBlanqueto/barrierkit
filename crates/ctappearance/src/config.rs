@@ -6,6 +6,7 @@ use ctdesign::{
 };
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
+use crate::icon_style::IconStyle;
 use crate::tinting::WallpaperGrid;
 use crate::xdg;
 
@@ -320,6 +321,8 @@ pub struct AppearanceConfig {
     pub text_sizes: TextSizes,
     #[serde(deserialize_with = "lenient")]
     pub menu_bar_size: MenuBarSize,
+    #[serde(deserialize_with = "lenient")]
+    pub icon_style: IconStyle,
     pub shake_to_locate: bool,
     #[serde(deserialize_with = "pointer_size")]
     pub pointer_size: f32,
@@ -357,6 +360,7 @@ impl Default for AppearanceConfig {
             text_size: TEXT_SIZES[0],
             text_sizes: TextSizes::default(),
             menu_bar_size: MenuBarSize::default(),
+            icon_style: IconStyle::default(),
             shake_to_locate: true,
             pointer_size: POINTER_SIZES[0],
             color_filters: false,
@@ -717,6 +721,7 @@ traffic_lights = "auto"
                 qt: Some(TEXT_SIZES[5]),
             },
             menu_bar_size: MenuBarSize::Large,
+            icon_style: IconStyle::Tinted,
             shake_to_locate: false,
             pointer_size: POINTER_SIZES[4],
             color_filters: true,

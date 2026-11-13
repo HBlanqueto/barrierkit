@@ -22,6 +22,7 @@ use ctdesign::{
 };
 
 use crate::backdrop::{take_chroma, take_chroma_capped};
+use crate::icon_style::IconStyle;
 use crate::{
     AppearanceConfig, ColorScheme, MenuBarSize, ScrollBarClick, ScrollBars, SidebarStyle,
     TintParts, Toolkit, TrafficLightShape, TrafficLightStyle, WindowColorMode,
@@ -84,6 +85,7 @@ pub struct Resolved {
     pub differentiate_without_color: bool,
     pub text_size: f32,
     pub menu_bar_size: MenuBarSize,
+    pub icon_style: IconStyle,
     pub scroll_bars: ScrollBars,
     pub scroll_bar_click: ScrollBarClick,
     pub shell: ShellPalette,
@@ -403,6 +405,7 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
         differentiate_without_color: appearance.differentiate_without_color,
         text_size: appearance.text_size_for(Toolkit::BarrierKit),
         menu_bar_size: appearance.menu_bar_size,
+        icon_style: appearance.icon_style,
         scroll_bars: appearance.scroll_bars,
         scroll_bar_click: appearance.scroll_bar_click,
         shell,

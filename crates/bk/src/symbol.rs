@@ -250,7 +250,7 @@ impl Image {
         Self {
             source,
             rendering_mode: TemplateRenderingMode::Original,
-            icon_style: IconStyle::Original,
+            icon_style: IconStyle::Default,
             style: Theme::tengen(),
         }
     }
@@ -289,7 +289,7 @@ impl From<Image> for Element {
         let color = paints.color(style.foreground.resolve(ControlState::default()));
         let side = Size::px(style.size);
         let icon_style = image.icon_style;
-        let plain = icon_style == IconStyle::Original;
+        let plain = icon_style == IconStyle::Default;
         match (image.source, image.rendering_mode) {
             (Source::System(glyph), _) => symbol(glyph, style.size, color).into_element(),
             (Source::Data(bytes), TemplateRenderingMode::Original) if plain && is_svg(&bytes) => {
@@ -308,7 +308,184 @@ impl From<Image> for Element {
             (source, mode) => {
                 let treatment = match mode {
                     TemplateRenderingMode::Template => Treatment::Tint(color),
-                    TemplateRenderingMode::Original => Treatment::Style(icon_style),
+                    TemplateRenderingMode::Original => {
+                        Treatment::Style(icon_style, crate::theme::resolved().accent)
+                    }
+                };
+                match cached_image(&source, style.size, treatment) {
+                    Some(handle) => freya_core::elements::image::image(handle)
+                        .width(side.clone())
+                        .height(side)
+                        .into_element(),
+                    None => rect().width(side.clone()).height(side).into_element(),
+                }
+            }
+        }
+    }
+}
+
+pub(crate) fn symbol(symbol: Symbol, size: f32, color: Rgba) -> SvgViewer {
+    SvgViewer::new(source(symbol))
+        .width(Size::px(size))
+        .height(Size::px(size))
+        .color(crate::theme::color(color))
+        .show_loader(false)
+}
+
+const TEMPLATE_CACHE_CAPACITY: usize = 256;
+
+type TemplateKey = (Bytes, u32, u32, (u8, [u32; 4]));
+
+#[derive(Clone, Copy)]
+enum Treatment {
+    Tint(Rgba),
+    Style(IconStyle, Rgba),
+}
+
+impl Treatment {
+    fn key(self) -> (u8, [u32; 4]) {
+        let bits = |color: Rgba| [color.r, color.g, color.b, color.a].map(f32::to_bits);
+        match self {
+            Self::Tint(color) => (0, bits(color)),
+            Self::Style(style, accent) => (1 + style as u8, bits(accent)),
+        }
+    }
+}
+
+thread_local! {
+    static CACHE: RefCell<HashMap<Symbol, Bytes>> = RefCell::new(HashMap::new());
+}
+
+fn source(symbol: Symbol) -> Bytes {
+    CACHE.with(|cache| {
+        cache
+            .borrow_mut()
+            .entry(symbol)
+            .or_insert_with(|| {
+                Bytes::from(format!(
+                    r#"<svg viewBox="0 0 {grid} {grid}"><path d="{path}" fill="{fill}" stroke="currentColor" stroke-width="{stroke}" stroke-linecap="round" stroke-linejoin="round"/></svg>"#,
+                    grid = SYMBOL.grid,
+                    path = symbol.path(),
+                    fill = if symbol == Symbol::StarFill {
+                        "currentColor"
+                    } else {
+                        "none"
+                    },
+                    stroke = SYMBOL.stroke,
+                ))
+            })
+            .clone()
+    })
+}
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum TemplateRenderingMode {
+    #[default]
+    Original,
+    Template,
+}
+
+#[derive(Clone, PartialEq)]
+enum Source {
+    System(Symbol),
+    Data(Bytes),
+    Rgba {
+        width: u32,
+        height: u32,
+        pixels: Bytes,
+    },
+}
+
+#[derive(Clone, PartialEq)]
+pub struct Image {
+    source: Source,
+    rendering_mode: TemplateRenderingMode,
+    icon_style: IconStyle,
+    style: Theme,
+}
+
+impl Image {
+    pub fn system(symbol: Symbol) -> Self {
+        Self::from_source(Source::System(symbol))
+    }
+
+    pub fn data(bytes: impl Into<Bytes>) -> Self {
+        Self::from_source(Source::Data(bytes.into()))
+    }
+
+    pub fn rgba(width: u32, height: u32, pixels: impl Into<Bytes>) -> Self {
+        Self::from_source(Source::Rgba {
+            width,
+            height,
+            pixels: pixels.into(),
+        })
+    }
+
+    fn from_source(source: Source) -> Self {
+        Self {
+            source,
+            rendering_mode: TemplateRenderingMode::Original,
+            icon_style: IconStyle::Default,
+            style: Theme::tengen(),
+        }
+    }
+
+    pub fn rendering_mode(mut self, rendering_mode: TemplateRenderingMode) -> Self {
+        self.rendering_mode = rendering_mode;
+        self
+    }
+
+    pub fn icon_style(mut self, icon_style: IconStyle) -> Self {
+        self.icon_style = icon_style;
+        self
+    }
+
+    pub fn style(mut self, restyle: impl Fn(ImageStyle) -> ImageStyle + 'static) -> Self {
+        self.style = self.style.style(restyle);
+        self
+    }
+
+    pub fn size(self, size: f32) -> Self {
+        self.style(move |s| ImageStyle { size, ..s })
+    }
+
+    pub fn color(self, color: Rgba) -> Self {
+        self.style(move |s| ImageStyle {
+            foreground: StateValue::new(ShapeStyle::Color(color)),
+            ..s
+        })
+    }
+}
+
+impl From<Image> for Element {
+    fn from(image: Image) -> Self {
+        let style: ImageStyle = resolve(&image.style);
+        let paints = Paints::current(ControlState::default(), style.effect);
+        let color = paints.color(style.foreground.resolve(ControlState::default()));
+        let side = Size::px(style.size);
+        let icon_style = image.icon_style;
+        let plain = icon_style == IconStyle::Default;
+        match (image.source, image.rendering_mode) {
+            (Source::System(glyph), _) => symbol(glyph, style.size, color).into_element(),
+            (Source::Data(bytes), TemplateRenderingMode::Original) if plain && is_svg(&bytes) => {
+                SvgViewer::new(bytes)
+                    .width(side.clone())
+                    .height(side)
+                    .show_loader(false)
+                    .into_element()
+            }
+            (Source::Data(bytes), TemplateRenderingMode::Original) if plain => {
+                ImageViewer::new(bytes)
+                    .width(side.clone())
+                    .height(side)
+                    .into_element()
+            }
+            (source, mode) => {
+                let treatment = match mode {
+                    TemplateRenderingMode::Template => Treatment::Tint(color),
+                    TemplateRenderingMode::Original => {
+                        Treatment::Style(icon_style, crate::theme::resolved().accent)
+                    }
                 };
                 match cached_image(&source, style.size, treatment) {
                     Some(handle) => freya_core::elements::image::image(handle)
@@ -378,8 +555,8 @@ fn cached_image(source: &Source, size: f32, treatment: Treatment) -> Option<Imag
         }
         let image = raster(source, side).and_then(|raster| match treatment {
             Treatment::Tint(color) => tint(&raster, side, color),
-            Treatment::Style(IconStyle::Original) => Some(ImageHandle::new(raster, Bytes::new())),
-            Treatment::Style(style) => restyle(&raster, side, style),
+            Treatment::Style(IconStyle::Default, _) => Some(ImageHandle::new(raster, Bytes::new())),
+            Treatment::Style(style, accent) => restyle(&raster, side, style, accent),
         });
         let mut cache = cache.borrow_mut();
         if cache.len() >= TEMPLATE_CACHE_CAPACITY {
@@ -432,10 +609,10 @@ fn tint(raster: &SkImage, side: u32, color: Rgba) -> Option<ImageHandle> {
     filtered(raster, side, paint, false)
 }
 
-fn restyle(raster: &SkImage, side: u32, style: IconStyle) -> Option<ImageHandle> {
+fn restyle(raster: &SkImage, side: u32, style: IconStyle, accent: Rgba) -> Option<ImageHandle> {
     let mut paint = Paint::default();
     paint.set_color_filter(color_filters::matrix_row_major(
-        &style.matrix()?,
+        &style.matrix(accent)?,
         color_filters::Clamp::Yes,
     ));
     filtered(raster, side, paint, style.luminance_to_alpha())
