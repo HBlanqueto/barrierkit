@@ -31,6 +31,7 @@ use wayland_protocols_plasma::appmenu::client::org_kde_kwin_appmenu::OrgKdeKwinA
 
 use super::{
     app::AppInstance,
+    glass::Rects,
     popup::PopupInfo,
     runtime::{Runtime, WindowContext},
     vulkan::{Graphics, GraphicsShared},
@@ -51,8 +52,8 @@ pub(crate) struct SurfaceWindow {
     pub(crate) frame_pending: bool,
     pub(crate) draw_count: u64,
     failing: bool,
-    pub(crate) opaque_region: Option<((u32, u32), Vec<(i32, i32, i32, i32)>)>,
-    pub(crate) glass_holes: Vec<(i32, i32, i32, i32)>,
+    pub(crate) opaque_region: Option<((u32, u32), Rects)>,
+    pub(crate) glass_holes: Rects,
     pub(crate) background_alpha: f32,
     pub(crate) pending_configure: Option<(WindowConfigure, u32)>,
     pub(crate) appmenu: Option<OrgKdeKwinAppmenu>,

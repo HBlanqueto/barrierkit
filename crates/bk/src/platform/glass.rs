@@ -6,13 +6,15 @@ use super::runtime::Runtime;
 
 const MINIMUM_VERSION: u32 = 6;
 
+pub(crate) type Rects = Vec<(i32, i32, i32, i32)>;
+
 #[derive(Clone, Copy)]
 pub(crate) struct GlassSupport(pub(crate) bool);
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub(crate) struct GlassPanels {
     pub(crate) radius: u32,
-    pub(crate) rects: Vec<(i32, i32, i32, i32)>,
+    pub(crate) rects: Rects,
     pub(crate) base: u32,
     pub(crate) solid: u32,
 }

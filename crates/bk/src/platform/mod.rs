@@ -63,9 +63,9 @@ pub use window::{
 pub(crate) use window::{open_utility_window, window_activated};
 pub use window_style::Bar;
 
+pub(crate) use glass::{GlassPanels, GlassSupport, set_glass_panels};
 #[cfg(test)]
 pub(crate) use popup::PopupCommand;
-pub(crate) use glass::{GlassPanels, GlassSupport, set_glass_panels};
 pub(crate) use popup::anchor_rect;
 pub use sctk::reexports::client::backend::ObjectId;
 
