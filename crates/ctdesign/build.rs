@@ -123,7 +123,8 @@ SIDEBAR SidebarMetrics components.window.sidebar width=size.sidebar-w inset=isla
     padding_x=island.padding-x radius=island.radius rim_width=island.rim-width
     inner_width=island.inner-width traffic_x=island.traffic-x
     traffic_y=island.traffic-y app_icon=item.app-icon chevron=section.chevron
-GLASS GlassMetrics components.window.sidebar.glass
+GLASS GlassMetrics components.window.sidebar.glass chroma_light=chroma.light
+    chroma_dark=chroma.dark chroma_cap_light=chroma-cap.light chroma_cap_dark=chroma-cap.dark
 TOOLGROUP ToolgroupMetrics components.window.toolgroup
 MENU_POPOVER MenuPopoverMetrics components.menu-popover
 DURATION_BASE u64 duration.base

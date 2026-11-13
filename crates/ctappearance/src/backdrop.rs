@@ -71,6 +71,22 @@ pub fn take_chroma(base: Rgba, source: Rgba, amount: f32) -> Rgba {
     tinted
 }
 
+// The glass saturates smoothly towards `cap`, so a vivid wallpaper does not turn the panel into a window (ADR 0078).
+pub fn take_chroma_capped(base: Rgba, source: Rgba, amount: f32, cap: f32) -> Rgba {
+    let (p, q) = (Oklab::from_rgba(base), Oklab::from_rgba(source));
+    let t = amount.clamp(0.0, 1.0);
+    let (a, b) = (p.a + (q.a - p.a) * t, p.b + (q.b - p.b) * t);
+    let soft = 1.0 / (1.0 + (a.hypot(b) / cap).powi(2)).sqrt();
+    let mut tinted = Oklab {
+        l: p.l,
+        a: a * soft,
+        b: b * soft,
+    }
+    .to_rgba();
+    tinted.a = base.a;
+    tinted
+}
+
 fn mix_oklab(from: Rgba, to: Rgba, amount: f32) -> Rgba {
     let (p, q) = (Oklab::from_rgba(from), Oklab::from_rgba(to));
     let t = amount.clamp(0.0, 1.0);
@@ -315,6 +331,23 @@ mod tests {
             .flat_map(|(c, n)| std::iter::repeat_n(c.to_rgba8(), *n))
             .flatten()
             .collect()
+    }
+
+    #[test]
+    fn the_cap_leaves_a_faint_wallpaper_alone_and_tames_a_vivid_one() {
+        let base = Rgba::rgb8(0x1e, 0x1e, 0x1f);
+        let chroma = |color| {
+            let lab = Oklab::from_rgba(color);
+            lab.a.hypot(lab.b)
+        };
+        let faint = Rgba::rgb8(0x1e, 0x24, 0x2a);
+        let vivid = Rgba::rgb8(0xc8, 0x20, 0x20);
+        let cap = 0.03;
+        assert!(
+            chroma(take_chroma_capped(base, faint, 0.4, cap))
+                > 0.8 * chroma(take_chroma(base, faint, 0.4))
+        );
+        assert!(chroma(take_chroma_capped(base, vivid, 0.4, cap)) < cap);
     }
 
     fn close(p: Rgba, q: Rgba) -> bool {

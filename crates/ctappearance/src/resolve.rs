@@ -3,7 +3,7 @@ use ctdesign::{
     BG_HOVER_DARK, BG_HOVER_DARK_TINT, BG_HOVER_LIGHT, BG_RAISED_DARK, BG_RAISED_DARK_TINT,
     BG_RAISED_LIGHT, BG_SUNKEN_DARK, BG_SUNKEN_DARK_TINT, BG_SUNKEN_LIGHT, BG_SURFACE_DARK,
     BG_SURFACE_DARK_TINT, BG_SURFACE_LIGHT, BG_WINDOW_DARK, BG_WINDOW_DARK_TINT, BG_WINDOW_LIGHT,
-    DARK, DARK_TINT, LAYER_FACTOR_BG_SUNKEN, LAYER_FACTOR_CONTROL, LAYER_FACTOR_LINE,
+    DARK, DARK_TINT, GLASS, LAYER_FACTOR_BG_SUNKEN, LAYER_FACTOR_CONTROL, LAYER_FACTOR_LINE,
     LAYER_FACTOR_RAISED, LAYER_FACTOR_SURFACE, LIGHT, MENU_DARK, MENU_DARK_OPAQUE, MENU_DARK_TINT,
     MENU_DARK_TINT_OPAQUE, MENU_LIGHT, MENU_LIGHT_OPAQUE, MENU_SEPARATOR_INK_MIX, MenuPalette,
     ON_ACCENT_MIN_CONTRAST, Palette, Rgba, SHELL_DARK, SHELL_DARK_OPAQUE, SHELL_DARK_TINT,
@@ -21,7 +21,7 @@ use ctdesign::{
     WALLPAPER_TINTING_SIDEBAR, WINDOW_TINT_ACCENT,
 };
 
-use crate::backdrop::take_chroma;
+use crate::backdrop::{take_chroma, take_chroma_capped};
 use crate::{
     AppearanceConfig, ColorScheme, MenuBarSize, ScrollBarClick, ScrollBars, SidebarStyle,
     TintParts, Toolkit, TrafficLightShape, TrafficLightStyle, WindowColorMode,
@@ -124,7 +124,12 @@ impl Resolved {
             Tint::Accent => None,
             Tint::Wallpaper => self.sidebar.glass.map(|glass| SidebarGlass {
                 solid: if self.tint_parts.sidebars {
-                    mix(glass.base, tint, factor * sidebar_factor)
+                    take_chroma_capped(
+                        glass.base,
+                        tint,
+                        factor * sidebar_factor,
+                        glass_chroma(scheme).1,
+                    )
                 } else {
                     glass.solid
                 },
@@ -155,6 +160,15 @@ impl Resolved {
         } else {
             panel_bg.mix(self.menu.fg, MENU_SEPARATOR_INK_MIX)
         }
+    }
+}
+
+// How much of the wallpaper's chroma the sidebar glass takes, and the chroma it saturates towards (ADR 0078).
+pub fn glass_chroma(scheme: ColorScheme) -> (f32, f32) {
+    if scheme.is_dark() {
+        (GLASS.chroma_dark, GLASS.chroma_cap_dark)
+    } else {
+        (GLASS.chroma_light, GLASS.chroma_cap_light)
     }
 }
 
@@ -965,7 +979,12 @@ mod tests {
         assert_eq!(behind.base, glass.base);
         assert_eq!(
             behind.solid,
-            take_chroma(glass.base, red, factor * WALLPAPER_TINTING_SIDEBAR)
+            take_chroma_capped(
+                glass.base,
+                red,
+                factor * WALLPAPER_TINTING_SIDEBAR,
+                glass_chroma(ColorScheme::Dark).1
+            )
         );
     }
 

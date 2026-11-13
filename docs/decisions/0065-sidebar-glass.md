@@ -42,10 +42,13 @@ Readers: whoever changes `Sidebar`, `SplitView`, `ctdesign` or `ctappearance`.
    ([0064](0064-styles-and-themes.md)) when it asks for one.
 2. **The kit computes two colors** and sends them with the panel:
    1. `base`, a neutral solid with the app's lightness. It is the new token
-      `sidebar-glass-base`: `#1e1e1f` in dark mode, measured, and `#f4f4f6` in
-      light mode, an estimate.
-   2. `solid`, `base` with the wallpaper's tint: `take_chroma(base, tint,
-      factor × WALLPAPER_TINTING_SIDEBAR)`, the same path as today's tint. With
+      `sidebar-glass-base`: `#1e1e1f` in dark mode, measured, and `#eceef2` in
+      light mode, an estimate: at L 0.97 there is no room for the wallpaper's
+      chroma, so the light base is a little darker than the window.
+   2. `solid`, `base` with the wallpaper's tint: `take_chroma_capped(base, tint,
+      factor × WALLPAPER_TINTING_SIDEBAR, glass_chroma(scheme).1)`: the same path as
+      today's tint, but it saturates towards the cap so a vivid wallpaper does
+      not turn the panel into a window. With
       `tint_parts.sidebars` off, `solid` is `base`.
 3. **What the kit paints, by case:**
 
