@@ -66,6 +66,7 @@ pub(crate) fn over_backdrop(surface: SidebarSurface, backdrop: SidebarBackdrop) 
         rim,
         inner: Rgba::TRANSPARENT,
         palette: sidebar_palette(),
+        glass: None,
         ..surface
     }
 }

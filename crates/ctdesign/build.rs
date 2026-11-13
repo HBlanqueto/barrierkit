@@ -333,6 +333,7 @@ SHELL ShellPalette components.shell bar=menubar.bg dock=dock.bg text=menubar.tex
     tile_active=dock.tile-active tile_text_active=dock.tile-text-active
 SIDEBAR Rgba themes.{theme}.bg-sunken
 SIDEBAR_ISLAND Rgba themes.{theme}.sidebar-island-bg
+SIDEBAR_GLASS_BASE Rgba themes.{theme}.sidebar-glass-base
 SIDEBAR_ISLAND_RIM Rgba components.window.sidebar.island.rim
 SIDEBAR_ISLAND_INNER Rgba components.window.sidebar.island.inner
 TOOLGROUP_BG Rgba themes.{theme}.toolbar-glass-bg

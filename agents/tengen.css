@@ -22,7 +22,7 @@
   --bk-duration-slow: 420;
   --bk-duration-wait-max: 150;
   --bk-spring-damping: 5;
-  --bk-font-families-sans: Geist, Inter, "Noto Sans CJK SC", system-ui, sans-serif;
+  --bk-font-families-sans: Adwaita Sans, Inter, "Noto Sans CJK SC", system-ui, sans-serif;
   --bk-font-families-mono: Geist Mono, monospace;
   --bk-font-styles-mono-family: mono;
   --bk-font-styles-mono-size: 13;
@@ -1020,6 +1020,7 @@
   --bk-panel-inner-edge: #ffffff00;
   --bk-panel-glow: #ffffff00;
   --bk-sidebar-island-bg: #f7f7f7;
+  --bk-sidebar-glass-base: #f4f4f6;
   --bk-toolbar-glass-bg: #ffffffdb;
   --bk-toolgroup-rim: #0000001f;
   --bk-sidebar-island-rim: #0000001a;
@@ -1070,6 +1071,7 @@
     --bk-panel-inner-edge: #ffffff42;
     --bk-panel-glow: #ffffff0a;
     --bk-sidebar-island-bg: #141414;
+    --bk-sidebar-glass-base: #1e1e1f;
     --bk-toolbar-glass-bg: #2f2f2f;
     --bk-toolgroup-rim: #ffffff1a;
     --bk-sidebar-island-rim: #ffffff21;
@@ -1120,6 +1122,7 @@
   --bk-panel-inner-edge: #ffffff42;
   --bk-panel-glow: #ffffff0a;
   --bk-sidebar-island-bg: #141414;
+  --bk-sidebar-glass-base: #1e1e1f;
   --bk-toolbar-glass-bg: #2f2f2f;
   --bk-toolgroup-rim: #ffffff1a;
   --bk-sidebar-island-rim: #ffffff21;
@@ -1169,6 +1172,7 @@
   --bk-panel-inner-edge: #ffffff42;
   --bk-panel-glow: #ffffff0a;
   --bk-sidebar-island-bg: #151617;
+  --bk-sidebar-glass-base: #191a1c;
   --bk-toolbar-glass-bg: #393a3ed6;
   --bk-toolgroup-rim: #ffffff1a;
   --bk-sidebar-island-rim: #ffffff21;

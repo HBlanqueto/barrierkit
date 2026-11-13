@@ -8,12 +8,13 @@ use ctdesign::{
     MENU_DARK_TINT_OPAQUE, MENU_LIGHT, MENU_LIGHT_OPAQUE, MENU_SEPARATOR_INK_MIX, MenuPalette,
     ON_ACCENT_MIN_CONTRAST, Palette, Rgba, SHELL_DARK, SHELL_DARK_OPAQUE, SHELL_DARK_TINT,
     SHELL_DARK_TINT_OPAQUE, SHELL_LIGHT, SHELL_LIGHT_OPAQUE, SIDEBAR_DARK, SIDEBAR_DARK_OPAQUE,
-    SIDEBAR_DARK_TINT, SIDEBAR_DARK_TINT_OPAQUE, SIDEBAR_ISLAND_DARK, SIDEBAR_ISLAND_DARK_TINT,
-    SIDEBAR_ISLAND_INNER_DARK, SIDEBAR_ISLAND_INNER_DARK_TINT, SIDEBAR_ISLAND_INNER_LIGHT,
-    SIDEBAR_ISLAND_LIGHT, SIDEBAR_ISLAND_RIM_DARK, SIDEBAR_ISLAND_RIM_DARK_TINT,
-    SIDEBAR_ISLAND_RIM_LIGHT, SIDEBAR_LIGHT, SIDEBAR_LIGHT_OPAQUE, SIDEBAR_PALETTE_DARK,
-    SIDEBAR_PALETTE_DARK_TINT, SIDEBAR_PALETTE_LIGHT, ShellPalette, SidebarPalette, TITLEBAR,
-    TOOLGROUP_BG_DARK, TOOLGROUP_BG_DARK_OPAQUE, TOOLGROUP_BG_DARK_TINT,
+    SIDEBAR_DARK_TINT, SIDEBAR_DARK_TINT_OPAQUE, SIDEBAR_GLASS_BASE_DARK,
+    SIDEBAR_GLASS_BASE_DARK_TINT, SIDEBAR_GLASS_BASE_LIGHT, SIDEBAR_ISLAND_DARK,
+    SIDEBAR_ISLAND_DARK_TINT, SIDEBAR_ISLAND_INNER_DARK, SIDEBAR_ISLAND_INNER_DARK_TINT,
+    SIDEBAR_ISLAND_INNER_LIGHT, SIDEBAR_ISLAND_LIGHT, SIDEBAR_ISLAND_RIM_DARK,
+    SIDEBAR_ISLAND_RIM_DARK_TINT, SIDEBAR_ISLAND_RIM_LIGHT, SIDEBAR_LIGHT, SIDEBAR_LIGHT_OPAQUE,
+    SIDEBAR_PALETTE_DARK, SIDEBAR_PALETTE_DARK_TINT, SIDEBAR_PALETTE_LIGHT, ShellPalette,
+    SidebarPalette, TITLEBAR, TOOLGROUP_BG_DARK, TOOLGROUP_BG_DARK_OPAQUE, TOOLGROUP_BG_DARK_TINT,
     TOOLGROUP_BG_DARK_TINT_OPAQUE, TOOLGROUP_BG_LIGHT, TOOLGROUP_BG_LIGHT_OPAQUE,
     TOOLGROUP_PALETTE_DARK, TOOLGROUP_PALETTE_DARK_TINT, TOOLGROUP_PALETTE_LIGHT,
     TRAFFIC_CLOSE_MINIMIZE_DARKEN, TRAFFIC_ZOOM_LIGHTEN, ToolgroupPalette, WALLPAPER_TINTING,
@@ -33,6 +34,13 @@ pub struct SidebarSurface {
     pub rim: Rgba,
     pub inner: Rgba,
     pub palette: SidebarPalette,
+    pub glass: Option<SidebarGlass>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct SidebarGlass {
+    pub base: Rgba,
+    pub solid: Rgba,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -112,6 +120,17 @@ impl Resolved {
         if self.tint_parts.sidebars {
             self.sidebar.bg = mix(self.sidebar.bg, tint, factor * sidebar_factor);
         }
+        self.sidebar.glass = match source {
+            Tint::Accent => None,
+            Tint::Wallpaper => self.sidebar.glass.map(|glass| SidebarGlass {
+                solid: if self.tint_parts.sidebars {
+                    mix(glass.base, tint, factor * sidebar_factor)
+                } else {
+                    glass.solid
+                },
+                ..glass
+            }),
+        };
         if self.tint_parts.controls {
             self.toolgroup.bg = mix(self.toolgroup.bg, tint, factor * LAYER_FACTOR_CONTROL);
         }
@@ -213,6 +232,14 @@ fn chrome_surfaces(
         SIDEBAR_PALETTE_DARK,
         SIDEBAR_PALETTE_DARK_TINT,
     ]);
+    let glass = (!opaque).then(|| {
+        let base = scheme.pick([
+            SIDEBAR_GLASS_BASE_LIGHT,
+            SIDEBAR_GLASS_BASE_DARK,
+            SIDEBAR_GLASS_BASE_DARK_TINT,
+        ]);
+        SidebarGlass { base, solid: base }
+    });
     let sidebar = match style {
         SidebarStyle::Flat => SidebarSurface {
             style,
@@ -220,6 +247,7 @@ fn chrome_surfaces(
             rim: Rgba::TRANSPARENT,
             inner: Rgba::TRANSPARENT,
             palette,
+            glass,
         },
         SidebarStyle::Island => SidebarSurface {
             style,
@@ -235,6 +263,7 @@ fn chrome_surfaces(
                 SIDEBAR_ISLAND_INNER_DARK_TINT,
             ]),
             palette,
+            glass,
         },
     };
     let toolgroup = ToolgroupSurface {
@@ -878,6 +907,78 @@ mod tests {
                 "{strength:?}: the sidebar"
             );
         }
+    }
+
+    #[test]
+    fn the_sidebar_has_glass_only_while_transparency_is_allowed() {
+        for scheme in [ColorScheme::Light, ColorScheme::Dark, ColorScheme::DarkTint] {
+            let config = |reduce_transparency| AppearanceConfig {
+                reduce_transparency,
+                ..appearance(
+                    scheme,
+                    WindowColorMode::Neutral,
+                    TrafficLightStyle::Auto,
+                    None,
+                )
+            };
+            let glass = resolve(&config(false), None).sidebar.glass.unwrap();
+            assert_eq!(glass.base, glass.solid, "{scheme:?}: nothing tints it yet");
+            assert_eq!(
+                resolve(&config(true), None).sidebar.glass,
+                None,
+                "{scheme:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn the_wallpaper_tints_the_solid_glass_but_not_its_base() {
+        let red = Rgba::rgb8(200, 30, 30);
+        let config = AppearanceConfig {
+            color_scheme: ColorScheme::Dark,
+            ..AppearanceConfig::default()
+        };
+        let glass = resolve(&config, None).sidebar.glass.unwrap();
+        let factor = WALLPAPER_TINTING[1] * config.tint_strength.factor();
+        let behind = resolve(&config, None)
+            .behind_window(red)
+            .sidebar
+            .glass
+            .unwrap();
+        assert_eq!(behind.base, glass.base);
+        assert_eq!(
+            behind.solid,
+            take_chroma(glass.base, red, factor * WALLPAPER_TINTING_SIDEBAR)
+        );
+    }
+
+    #[test]
+    fn the_solid_glass_stays_the_base_when_the_sidebars_do_not_take_the_tint() {
+        let config = AppearanceConfig {
+            color_scheme: ColorScheme::Dark,
+            tint_parts: TintParts {
+                sidebars: false,
+                ..AppearanceConfig::default().tint_parts
+            },
+            ..AppearanceConfig::default()
+        };
+        let behind = resolve(&config, None)
+            .behind_window(Rgba::rgb8(200, 30, 30))
+            .sidebar
+            .glass
+            .unwrap();
+        assert_eq!(behind.solid, behind.base);
+    }
+
+    #[test]
+    fn the_accent_as_window_color_leaves_the_sidebar_without_glass() {
+        let config = appearance(
+            ColorScheme::Dark,
+            WindowColorMode::Accent,
+            TrafficLightStyle::Auto,
+            Some([0.9, 0.3, 0.1]),
+        );
+        assert_eq!(resolve(&config, None).sidebar.glass, None);
     }
 
     #[test]

@@ -413,7 +413,7 @@ a style.
 | `text_size` | `AppearanceConfig::text_size_for(Toolkit::BarrierKit)`: the BarrierKit size, or the preferred `text_size`. |
 | `shell` | `ShellPalette`: menu bar and Dock colors. |
 | `menu`, `menu_parent` | `MenuPalette` and the window color a menu sits on. `Resolved::menu_separator(panel_bg)` gives the separator over another background. |
-| `sidebar` | `SidebarSurface`: `style`, `bg`, `rim`, `inner` and its `SidebarPalette`. |
+| `sidebar` | `SidebarSurface`: `style`, `bg`, `rim`, `inner`, its `SidebarPalette` and `glass`. `glass` is a `SidebarGlass` with `base` (the solid tone) and `solid` (`base` with the wallpaper tint), and is `None` with reduced transparency or with the accent as window color ([ADR 0065](../decisions/0065-sidebar-glass.md)). |
 | `toolgroup` | `ToolgroupSurface`: `bg` and its `ToolgroupPalette`. |
 | `surfaces` | `Surfaces`: `window`, `titlebar_inactive`, `sunken`, `surface`, `raised`, `control`, `hover`, `line`, already tinted. |
 
@@ -437,7 +437,8 @@ The rules `resolve` applies:
    `LAYER_FACTOR_*` as an accent tint, with `WALLPAPER_TINTING_SIDEBAR` for
    the sidebar. As in macOS it is a chroma mix in OKLab
    (`backdrop::take_chroma`): each gray keeps its lightness and takes that
-   share of the wallpaper's hue.
+   share of the wallpaper's hue. `sidebar.glass.solid` takes the same mix from
+   `sidebar.glass.base` when `tint_parts` has `sidebars`.
 5. Without `accent_color` the accent is the theme's, and `automatic_accent`
    lets an area keep its own.
 6. Menu hover, sidebar selection and the shell's active tile take the accent.
@@ -747,6 +748,7 @@ nothing is blurred.
 | `MENU_LIGHT`, `MENU_LIGHT_OPAQUE`, `MENU_DARK`, `MENU_DARK_OPAQUE`, `MENU_DARK_TINT`, `MENU_DARK_TINT_OPAQUE` | `MenuPalette` | Menus, translucent and opaque. |
 | `SIDEBAR_LIGHT`, `SIDEBAR_LIGHT_OPAQUE`, `SIDEBAR_DARK`, `SIDEBAR_DARK_OPAQUE`, `SIDEBAR_DARK_TINT`, `SIDEBAR_DARK_TINT_OPAQUE` | `Rgba` | Flat sidebar background. |
 | `SIDEBAR_ISLAND_LIGHT`, `SIDEBAR_ISLAND_DARK`, `SIDEBAR_ISLAND_DARK_TINT` | `Rgba` | Island sidebar background. |
+| `SIDEBAR_GLASS_BASE_LIGHT`, `SIDEBAR_GLASS_BASE_DARK`, `SIDEBAR_GLASS_BASE_DARK_TINT` | `Rgba` | Solid tone of the sidebar glass, with the lightness of the app's window. Only the dark one is measured; the other two are estimates. |
 | `SIDEBAR_ISLAND_RIM_LIGHT`, `SIDEBAR_ISLAND_RIM_DARK`, `SIDEBAR_ISLAND_RIM_DARK_TINT` | `Rgba` | Island sidebar outer rim. |
 | `SIDEBAR_ISLAND_INNER_LIGHT`, `SIDEBAR_ISLAND_INNER_DARK`, `SIDEBAR_ISLAND_INNER_DARK_TINT` | `Rgba` | Island sidebar inner line. |
 | `SIDEBAR_PALETTE_LIGHT`, `SIDEBAR_PALETTE_DARK`, `SIDEBAR_PALETTE_DARK_TINT` | `SidebarPalette` | Sidebar inks per theme. |
