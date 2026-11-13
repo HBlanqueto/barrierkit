@@ -842,6 +842,7 @@ pub struct Palette {
 pub struct ShellPalette {
     pub bar: Rgba,
     pub dock: Rgba,
+    pub dock_separator: Rgba,
     pub text: Rgba,
     pub tile: Rgba,
     pub tile_active: Rgba,

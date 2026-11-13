@@ -166,7 +166,6 @@ DOCK_PADDING f32 components.shell.dock.padding
 DOCK_PADDING_SCALE f32 components.shell.dock.padding-scale
 DOCK_SEPARATOR f32 components.shell.dock.separator
 DOCK_SEPARATOR_LENGTH f32 components.shell.dock.separator-length
-DOCK_SEPARATOR_INK_MIX f32 components.shell.dock.separator-ink-mix
 DOCK_RADIUS f32 components.shell.dock.radius
 DOCK_MAGNIFY_RADIUS f32 components.shell.dock.magnify-radius
 DOCK_MAGNIFY_MIN f32 components.shell.dock.magnify-min
@@ -341,8 +340,8 @@ BG_SURFACE Rgba themes.{theme}.bg-surface
 BG_SUNKEN Rgba themes.{theme}.bg-sunken
 BG_RAISED Rgba themes.{theme}.bg-raised
 BG_HOVER Rgba themes.{theme}.bg-hover
-SHELL ShellPalette components.shell bar=menubar.bg dock=dock.bg text=menubar.text tile=dock.tile
-    tile_active=dock.tile-active tile_text_active=dock.tile-text-active
+SHELL ShellPalette components.shell bar=menubar.bg dock=dock.bg dock_separator=dock.separator-line
+    text=menubar.text tile=dock.tile tile_active=dock.tile-active tile_text_active=dock.tile-text-active
 SIDEBAR Rgba themes.{theme}.bg-sunken
 SIDEBAR_ISLAND Rgba themes.{theme}.sidebar-island-bg
 SIDEBAR_GLASS_BASE Rgba themes.{theme}.sidebar-glass-base

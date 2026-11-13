@@ -657,7 +657,7 @@ A color, size or duration never goes into `bk`. It goes into Tengen:
 | `FocusPair` | A color for the focused window and one for the unfocused. |
 | `PanelLine` | Inner line of a focused panel, menu or dialog: `sides`, `edges` (top and bottom) and the `glow` under the edges. |
 | `TrafficRim` | Rim of a traffic light: `lit` and `idle`. |
-| `ShellPalette` | Menu bar and Dock: `bar`, `dock` (the Dock's glass), `text`, `tile`, `tile_active`, `tile_text_active`. |
+| `ShellPalette` | Menu bar and Dock: `bar`, `dock` (the Dock's glass), `dock_separator` (its dividers), `text`, `tile`, `tile_active`, `tile_text_active`. |
 | `MenuPalette` | Colors and metrics of a menu: background, padding, item size, inks, hover, separator, check mark, header and search field. |
 | `SidebarPalette` | Sidebar inks: item, icon, selection, inactive selection, hover, section, count, line. |
 | `ToolgroupPalette` | Toolbar group: `separator`, `rim`. |
@@ -869,7 +869,7 @@ focus-mode bar.
 | `FOCUS_BAR_BACKGROUND`, `FOCUS_BAR_TEXT` | The menu bar in focus mode |
 | `DOCK_TILESIZE`, `DOCK_TILESIZE_MIN`, `DOCK_TILESIZE_MAX`, `DOCK_LARGESIZE` | Dock icon sizes: default, 16 and 128 px, and the default magnified size |
 | `DOCK_EDGE_MARGIN`, `DOCK_SIDE_MARGIN`, `DOCK_PADDING`, `DOCK_PADDING_SCALE`, `DOCK_RADIUS` | Dock bar: gap to the screen edge, side margin as a share of the screen, padding = `DOCK_PADDING` + `DOCK_PADDING_SCALE` × size, corner radius as a share of its thickness |
-| `DOCK_SEPARATOR`, `DOCK_SEPARATOR_LENGTH`, `DOCK_SEPARATOR_INK_MIX`, `DOCK_MAGNIFY_RADIUS`, `DOCK_MAGNIFY_MIN`, `DOCK_MAGNIFY_MS` | Separator slot and line as shares of the size, the share of ink mixed into the glass for the line; magnification reach in icons, the least it grows as a multiple of the size, and its fade |
+| `DOCK_SEPARATOR`, `DOCK_SEPARATOR_LENGTH`, `DOCK_MAGNIFY_RADIUS`, `DOCK_MAGNIFY_MIN`, `DOCK_MAGNIFY_MS` | Separator slot and line as shares of the size; magnification reach in icons, the least it grows as a multiple of the size, and its fade |
 | `DOCK_DOT`, `DOCK_DOT_MIN`, `DOCK_DOT_MAX`, `DOCK_PROGRESS_HEIGHT`, `DOCK_WINDOW_FRAME`, `DOCK_WINDOW_ICON`, `DOCK_WINDOW_BADGE` | Open-app dot, progress bar, the frame and icon of a minimized window before its picture arrives, and the app icon on the picture |
 | `DOCK_ICON_BODY`, `DOCK_FOLDER_CANVAS`, `DOCK_RIM_ALPHA`, `DOCK_RIM_TINT`, `DOCK_RIM_FADE`, `DOCK_RIM_BLUR`, `DOCK_LAYER_NAMESPACE` | The share of a slot an icon's body takes (macOS's 824 on 1024), the share its canvas takes for the Downloads folder so that the folder is as tall as that body, the Dock's rim (its opacity as `[least, per unit of the backdrop's brightness]`, how far the backdrop tints it as `[lift, share]`, how much of it shows from top to bottom, and the blur that softens it), and the Dock's layer-shell namespace |
 | `DOCK_BOUNCE_MS`, `DOCK_BOUNCE_HEIGHT`, `DOCK_LAUNCH_TIMEOUT_MS`, `DOCK_HIDE_MS`, `DOCK_REVEAL_STRIP`, `DOCK_RECENTS`, `DOCK_MINIMIZE_MS`, `DOCK_SLOT_MS`, `DOCK_MINIMIZE_HANDOFF_MS` | Launch bounce, automatic hiding, the number of recent apps, the minimize effect, how long a minimized window's slot takes to open or close, and how long the compositor keeps drawing the finished thumbnail while the Dock's tile takes over |
