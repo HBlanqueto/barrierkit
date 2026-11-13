@@ -245,6 +245,13 @@
   --bk-checkbox-mark: 12;
   --bk-symbol-stroke: 1.4;
   --bk-symbol-grid: 16;
+  --bk-icon-style-tint-dark-lightness: 0.22;
+  --bk-icon-style-tint-dark-chroma: 0.55;
+  --bk-icon-style-tint-light-lightness: 0.97;
+  --bk-icon-style-tint-light-chroma: 0.15;
+  --bk-icon-style-clear-floor: 0.62;
+  --bk-icon-style-clear-range: 0.38;
+  --bk-icon-style-clear-alpha-gain: 3;
   --bk-text-field-height: 24;
   --bk-text-field-padding-x: 6;
   --bk-text-field-radius: var(--bk-radius-button);

@@ -1,7 +1,8 @@
 use crate::image::{decode, pixel};
-use bk::prelude::{Image, TemplateRenderingMode};
+use bk::prelude::{IconStyle, Image, TemplateRenderingMode};
 use bk::theme::use_appearance;
 use ctappearance::ColorScheme;
+use ctdesign::Rgba;
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 use freya_testing::TestingRunner;
@@ -39,8 +40,22 @@ impl App for Host {
     }
 }
 
+struct Styled(IconStyle);
+
+impl App for Styled {
+    fn render(&self) -> impl IntoElement {
+        Image::data(RED_SQUARE.as_bytes().to_vec())
+            .icon_style(self.0)
+            .size(16.0)
+    }
+}
+
 fn center(scheme: ColorScheme) -> [u8; 4] {
-    let app = AppComponent::new(Host(scheme));
+    center_of(Host(scheme))
+}
+
+fn center_of(host: impl App + 'static) -> [u8; 4] {
+    let app = AppComponent::new(host);
     let (mut test, _) = TestingRunner::new(app, Size2D::new(16.0, 16.0), |_| {}, 1.0);
     test.sync_and_update();
     let _ = test.render();
@@ -56,4 +71,26 @@ fn a_template_image_paints_its_shape_white_in_dark_and_black_in_light() {
     assert!(green > 200 && blue > 200, "dark: {green} {blue}");
     let [red, ..] = center(ColorScheme::Light);
     assert!(red < 60, "light: {red}");
+}
+
+#[test]
+fn a_monochrome_icon_loses_its_hue() {
+    let [red, green, blue, _] = center_of(Styled(IconStyle::Monochrome));
+    assert!(
+        red.abs_diff(green) < 4 && green.abs_diff(blue) < 4,
+        "{red} {green} {blue}"
+    );
+    assert!((40..70).contains(&red), "{red}");
+}
+
+#[test]
+fn a_tinted_icon_keeps_the_hue_of_its_accent() {
+    let [red, _, blue, _] = center_of(Styled(IconStyle::Tinted(Rgba::rgb8(0xe8, 0xa3, 0x3d))));
+    assert!(red > blue, "{red} {blue}");
+}
+
+#[test]
+fn a_clear_icon_is_see_through_where_the_source_is_dark() {
+    let [.., alpha] = center_of(Styled(IconStyle::Clear));
+    assert!((100..220).contains(&alpha), "{alpha}");
 }

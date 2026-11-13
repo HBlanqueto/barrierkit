@@ -1,6 +1,7 @@
 pub mod backdrop;
 mod config;
 pub mod dock;
+pub mod icon_style;
 pub mod ini;
 pub mod language;
 pub mod menubar;

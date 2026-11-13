@@ -49,6 +49,7 @@ BACKDROP BackdropMetrics components.backdrop
 BACKDROP_SCENES BackdropScenes components.backdrop-scenes
 BREAKPOINT BreakpointMetrics components.breakpoint
 SYMBOL SymbolMetrics components.symbol
+ICON_STYLE IconStyleMetrics components.icon-style
 SLIDER_FAT SliderFatMetrics components.slider.fat
 SLIDER_KEY_STEP f32 components.slider.keyboard-step
 ICON_BUTTON IconButtonMetrics components.icon-button

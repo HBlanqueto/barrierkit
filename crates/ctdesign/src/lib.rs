@@ -432,6 +432,17 @@ pub struct SymbolMetrics {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct IconStyleMetrics {
+    pub tint_dark_lightness: f32,
+    pub tint_dark_chroma: f32,
+    pub tint_light_lightness: f32,
+    pub tint_light_chroma: f32,
+    pub clear_floor: f32,
+    pub clear_range: f32,
+    pub clear_alpha_gain: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct SliderFatMetrics {
     pub height: f32,
     pub fill_min: f32,

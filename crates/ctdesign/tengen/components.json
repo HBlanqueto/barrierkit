@@ -197,6 +197,15 @@
       "stroke": 1.4,
       "grid": 16
     },
+    "icon-style": {
+      "tint-dark-lightness": 0.22,
+      "tint-dark-chroma": 0.55,
+      "tint-light-lightness": 0.97,
+      "tint-light-chroma": 0.15,
+      "clear-floor": 0.62,
+      "clear-range": 0.38,
+      "clear-alpha-gain": 3
+    },
     "text-field": {
       "height": 24,
       "padding-x": 6,

@@ -175,6 +175,26 @@ Image::data(include_bytes!("wifi-symbolic.svg").as_slice())
 A template image rasterizes at the window's scale and is cached by bytes,
 size and color.
 
+### Icon styles
+
+`.icon_style(IconStyle)` restyles an app icon the way System Settings does for
+the Home Screen: `Monochrome` keeps only the luminance, `Tinted(accent)` maps
+black to a dark shade and white to a light shade of the accent, and `Clear`
+turns the luminance into transparency over a gray. `Original`, the default,
+draws the icon untouched. A shell passes the user's accent, so one icon
+serves every style and no file is generated per style.
+
+```rust
+Image::data(include_bytes!("app.svg").as_slice())
+    .icon_style(IconStyle::Tinted(accent))
+    .size(64.0)
+```
+
+Dark icons suit `Clear` best: the plate has the low luminance that becomes
+the transparency. The ends of the tint and the clear gray are the
+`ICON_STYLE` tokens. A style rasterizes at the window's scale and is cached
+like a template image. It does not apply to `Template` images or to symbols.
+
 ## Fonts
 
 `register_font(bytes) -> bool` adds a typeface from the bytes of a TrueType or
