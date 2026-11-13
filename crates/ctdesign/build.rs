@@ -186,7 +186,6 @@ DOCK_FOLDER_CANVAS f32 components.shell.dock.folder-canvas
 DOCK_WINDOW_FRAME f32 components.shell.dock.window-frame
 DOCK_WINDOW_ICON f32 components.shell.dock.window-icon
 DOCK_WINDOW_BADGE f32 components.shell.dock.window-badge
-DOCK_THUMBNAIL_RADIUS f32 components.shell.dock.thumbnail-radius
 DOCK_LABEL_GAP f32 components.shell.dock.label-gap
 DOCK_LABEL_FONT_SIZE f32 components.shell.dock.label-font-size
 DOCK_LABEL_PADDING_X f32 components.shell.dock.label-padding-x

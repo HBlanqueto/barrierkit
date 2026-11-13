@@ -879,7 +879,6 @@
         "window-frame": 0.8,
         "window-icon": 0.6,
         "window-badge": 0.4,
-        "thumbnail-radius": 0.16,
         "label-gap": 12,
         "label-font-size": 13,
         "label-padding-x": 12,
