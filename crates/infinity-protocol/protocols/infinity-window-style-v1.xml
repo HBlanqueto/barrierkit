@@ -23,7 +23,7 @@
     DEALINGS IN THE SOFTWARE.
   </copyright>
 
-  <interface name="infinity_window_style_v1" version="5">
+  <interface name="infinity_window_style_v1" version="6">
     <description summary="window style hints for applications">
       Malaysia rounds every window it composites (ADR 0059). As in macOS
       Tahoe, the corner radius depends on the window's bar. A
@@ -140,6 +140,35 @@
       </description>
       <arg name="surface" type="object" interface="wl_surface"/>
       <arg name="desktop" type="uint"/>
+    </request>
+
+    <request name="set_glass" since="6">
+      <description summary="the toplevel has glass panels">
+        Tells the compositor that the toplevel whose wl_surface is given has
+        glass panels, as the sidebar of a macOS window. The array holds int32
+        quadruples x, y, width and height in surface-local logical pixels,
+        clipped to the window geometry. At most 16 panels are kept. The
+        compositor fills each panel with a material and draws a rim along its
+        edge, around a continuous corner of the given radius. The client
+        leaves the panels transparent.
+
+        While the toplevel is active, the material is base with the chroma of
+        the blurred wallpaper behind the panel, and the rim follows the
+        wallpaper along the edge. While it is not active, the panel is solid
+        and has no rim. base and solid are 0xAARRGGBB and their alpha is
+        ignored. base has the lightness of the application's solid window.
+        solid is base with the wallpaper's tint.
+
+        It is double-buffered and applies on the next wl_surface.commit. A
+        later request replaces the panels; an empty array removes them. It
+        lasts for the lifetime of the wl_surface. The compositor ignores it
+        from a surface that is not a toplevel of a BarrierKit client.
+      </description>
+      <arg name="surface" type="object" interface="wl_surface"/>
+      <arg name="radius" type="uint"/>
+      <arg name="panels" type="array"/>
+      <arg name="base" type="uint"/>
+      <arg name="solid" type="uint"/>
     </request>
   </interface>
 </protocol>
