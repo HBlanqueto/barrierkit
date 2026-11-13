@@ -168,6 +168,7 @@ DOCK_SEPARATOR_LENGTH f32 components.shell.dock.separator-length
 DOCK_SEPARATOR_INK_MIX f32 components.shell.dock.separator-ink-mix
 DOCK_RADIUS f32 components.shell.dock.radius
 DOCK_MAGNIFY_RADIUS f32 components.shell.dock.magnify-radius
+DOCK_MAGNIFY_MIN f32 components.shell.dock.magnify-min
 DOCK_MAGNIFY_MS u64 components.shell.dock.magnify-ms
 DOCK_DOT f32 components.shell.dock.dot
 DOCK_DOT_MIN f32 components.shell.dock.dot-min

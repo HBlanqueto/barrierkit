@@ -431,7 +431,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `ctappearance::window::read_window_behavior` | fn | — | — | Reads `window.domain`, or the default | [4](04-appearance-and-tokens.md#window-behavior) |
 | `ctappearance::window::write_double_click_titlebar` | fn | — | — | Writes `double_click_titlebar` and keeps the other keys of `window.domain` | [4](04-appearance-and-tokens.md#window-behavior) |
 | `ctappearance::dock::DockConfig` | struct | — | `com.apple.dock` defaults | `dock.domain`: size, magnification, position, effect, hiding and what the Dock shows | [4](04-appearance-and-tokens.md#dock) |
-| `ctappearance::dock::DockConfig::tilesize`, `largesize` | method | — | — | Icon size clamped to 16–128, and the magnified size | [4](04-appearance-and-tokens.md#dock) |
+| `ctappearance::dock::DockConfig::tilesize`, `largesize` | method | — | — | Icon size clamped to 16–128, and the magnified size (at least `DOCK_MAGNIFY_MIN` times the icon size) | [4](04-appearance-and-tokens.md#dock) |
 | `ctappearance::dock::DockOrientation` | enum | — | `orientation` | `Left`, `Bottom`, `Right` | [4](04-appearance-and-tokens.md#dock) |
 | `ctappearance::dock::MinimizeEffect` | enum | — | `mineffect` | `Genie`, `Scale`, `Suck` | [4](04-appearance-and-tokens.md#dock) |
 | `ctappearance::window::DoubleClickAction` | enum | — | — | Titlebar double click: `Fill`, `Minimize`, `Zoom`, `None` | [4](04-appearance-and-tokens.md#window-behavior) |

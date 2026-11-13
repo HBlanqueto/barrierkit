@@ -1,4 +1,6 @@
-use ctdesign::{DOCK_LARGESIZE, DOCK_TILESIZE, DOCK_TILESIZE_MAX, DOCK_TILESIZE_MIN};
+use ctdesign::{
+    DOCK_LARGESIZE, DOCK_MAGNIFY_MIN, DOCK_TILESIZE, DOCK_TILESIZE_MAX, DOCK_TILESIZE_MIN,
+};
 use serde::{Deserialize, Serialize};
 
 use crate::config::lenient;
@@ -68,7 +70,8 @@ impl DockConfig {
 
     pub fn largesize(&self) -> f32 {
         if self.magnification {
-            (self.largesize.clamp(DOCK_TILESIZE_MIN, DOCK_TILESIZE_MAX) as f32).max(self.tilesize())
+            (self.largesize.clamp(DOCK_TILESIZE_MIN, DOCK_TILESIZE_MAX) as f32)
+                .max(self.tilesize() * DOCK_MAGNIFY_MIN)
         } else {
             self.tilesize()
         }
@@ -100,7 +103,7 @@ mod tests {
     }
 
     #[test]
-    fn sizes_outside_16_to_128_are_clamped_and_magnification_never_shrinks() {
+    fn sizes_outside_16_to_128_are_clamped_and_magnification_always_grows() {
         let config = DockConfig {
             tilesize: 400,
             largesize: 2,
@@ -108,7 +111,7 @@ mod tests {
             ..DockConfig::default()
         };
         assert_eq!(config.tilesize(), 128.0);
-        assert_eq!(config.largesize(), 128.0);
+        assert_eq!(config.largesize(), 128.0 * DOCK_MAGNIFY_MIN);
         let off = DockConfig {
             magnification: false,
             ..config
