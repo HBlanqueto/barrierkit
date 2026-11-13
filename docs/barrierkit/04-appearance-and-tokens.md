@@ -460,7 +460,7 @@ a style.
 | `text_size` | `AppearanceConfig::text_size_for(Toolkit::BarrierKit)`: the BarrierKit size, or the preferred `text_size`. |
 | `shell` | `ShellPalette`: menu bar and Dock colors. |
 | `menu`, `menu_parent` | `MenuPalette` and the window color a menu sits on. `Resolved::menu_separator(panel_bg)` gives the separator over another background. |
-| `sidebar` | `SidebarSurface`: `style`, `bg`, `rim`, `inner`, its `SidebarPalette` and `glass`. `glass` is a `SidebarGlass` with `base` (the solid tone, tinted with the accent when the accent is the window color), `solid` (`base` with the wallpaper tint) and `chroma` (the share of the wallpaper's chroma, `GLASS.accent_share` of it under an accent) and `rim_tint` (the accent, under an accent: the island's border takes its chroma from it instead of from the wallpaper), and is `None` with reduced transparency ([ADR 0065](../decisions/0065-sidebar-glass.md)). |
+| `sidebar` | `SidebarSurface`: `style`, `bg`, `rim`, `inner`, its `SidebarPalette` and `glass`. `glass` is a `SidebarGlass` with `base` (the tone of the glass at rest, tinted with the accent when the accent is the window color), `solid` (the tone of a window that is not active) and `chroma` (the share of the wallpaper's chroma, `GLASS.accent_share` of it under an accent) and `rim_tint` (the accent, under an accent: the island's border takes its chroma from it instead of from the wallpaper), and is `None` with reduced transparency ([ADR 0065](../decisions/0065-sidebar-glass.md)). |
 | `toolgroup` | `ToolgroupSurface`: `bg` and its `ToolgroupPalette`. |
 | `surfaces` | `Surfaces`: `window`, `titlebar_inactive`, `sunken`, `surface`, `raised`, `control`, `hover`, `line`, already tinted. |
 
@@ -487,8 +487,8 @@ The rules `resolve` applies:
    `LAYER_FACTOR_*` as an accent tint, with `WALLPAPER_TINTING_SIDEBAR` for
    the sidebar. As in macOS it is a chroma mix in OKLab
    (`backdrop::take_chroma`): each gray keeps its lightness and takes that
-   share of the wallpaper's hue. `sidebar.glass.solid` takes the same mix from
-   `sidebar.glass.base` when `tint_parts` has `sidebars`.
+   share of the wallpaper's hue. `sidebar.glass.base` and `sidebar.glass.solid` take the same mix when
+   `tint_parts` has `sidebars`.
 5. Without `accent_color` the accent is the theme's, and `automatic_accent`
    lets an area keep its own.
 6. Menu hover, sidebar selection and the shell's active tile take the accent.
@@ -800,8 +800,9 @@ nothing is blurred.
 | `MENU_LIGHT`, `MENU_LIGHT_OPAQUE`, `MENU_DARK`, `MENU_DARK_OPAQUE`, `MENU_DARK_TINT`, `MENU_DARK_TINT_OPAQUE` | `MenuPalette` | Menus, translucent and opaque. |
 | `SIDEBAR_LIGHT`, `SIDEBAR_LIGHT_OPAQUE`, `SIDEBAR_DARK`, `SIDEBAR_DARK_OPAQUE`, `SIDEBAR_DARK_TINT`, `SIDEBAR_DARK_TINT_OPAQUE` | `Rgba` | Flat sidebar background. |
 | `SIDEBAR_ISLAND_LIGHT`, `SIDEBAR_ISLAND_DARK`, `SIDEBAR_ISLAND_DARK_TINT` | `Rgba` | Island sidebar background. |
-| `SIDEBAR_GLASS_BASE_LIGHT`, `SIDEBAR_GLASS_BASE_DARK`, `SIDEBAR_GLASS_BASE_DARK_TINT` | `Rgba` | Solid tone of the sidebar glass, with the lightness of the app's window. Only the dark one is measured; the other two are estimates. |
-| `SIDEBAR_GLASS_RIM_LIGHT`, `SIDEBAR_GLASS_RIM_DARK`, `SIDEBAR_GLASS_RIM_DARK_TINT` | `Rgba` | Line of the sidebar glass's rim; the compositor takes its lightness from the color and tints it with the wallpaper's chroma. Dark is white, measured (alpha 0.04 on average, 0.10 at most). Light is a gray (`#6f7686`) at alpha 0.30, because white does not show on the light panel; it is an estimate. |
+| `SIDEBAR_GLASS_BASE_LIGHT`, `SIDEBAR_GLASS_BASE_DARK`, `SIDEBAR_GLASS_BASE_DARK_TINT` | `Rgba` | Tone of the sidebar glass at rest: a gray `#272727` in dark (L 0.273 in OKLab) and `#ebedee` in light, measured on macOS; dark tint is an estimate. |
+| `SIDEBAR_GLASS_SOLID_LIGHT`, `SIDEBAR_GLASS_SOLID_DARK`, `SIDEBAR_GLASS_SOLID_DARK_TINT` | `Rgba` | Tone of the sidebar glass when its window is not active. Light is a neutral `#f2f2f2`, measured; dark is the tone at rest. |
+| `SIDEBAR_GLASS_RIM_LIGHT`, `SIDEBAR_GLASS_RIM_DARK`, `SIDEBAR_GLASS_RIM_DARK_TINT` | `Rgba` | Line of the sidebar glass's rim; the compositor takes its lightness from the color and tints it with the wallpaper's chroma. Dark is white at alpha 0.03 and light is white at alpha 0.80, both chosen by the owner on the mockup after a measure on macOS (a line of 1 px, a little lighter than the fill). |
 | `SIDEBAR_ISLAND_RIM_LIGHT`, `SIDEBAR_ISLAND_RIM_DARK`, `SIDEBAR_ISLAND_RIM_DARK_TINT` | `Rgba` | Island sidebar outer rim. |
 | `SIDEBAR_ISLAND_INNER_LIGHT`, `SIDEBAR_ISLAND_INNER_DARK`, `SIDEBAR_ISLAND_INNER_DARK_TINT` | `Rgba` | Island sidebar inner line. |
 | `SIDEBAR_PALETTE_LIGHT`, `SIDEBAR_PALETTE_DARK`, `SIDEBAR_PALETTE_DARK_TINT` | `SidebarPalette` | Sidebar inks per theme. |
@@ -882,7 +883,7 @@ background, for `reduce_transparency`.
 
 | Constant | Type | Read by |
 |---|---|---|
-| `GLASS` | `GlassMetrics` | `chroma_light` (0.60) and `chroma_dark` (0.35) and `accent_share` (0.35): the part of `chroma` that stays when the accent tints the sidebar; `rim_chroma` (0.65): the share of the wallpaper's OKLab chroma that the sidebar's glass and its rim take; `chroma_cap_light` (0.09) and `chroma_cap_dark` (0.04): the chroma the glass saturates towards (`backdrop::take_chroma_capped`); `lightness_light` (0.20) and `lightness_dark` (0.00): the share of the lightness of what is behind that shows through, so the glass is not one flat tone (`glass_lightness`); `blur_passes` (5): how much wider than the other blurs the glass blurs what is behind it ([ADR 0065](../decisions/0065-sidebar-glass.md)). First values, to calibrate on a screen |
+| `GLASS` | `GlassMetrics` | Per color scheme (`_light`, `_dark`): `chroma` (0.00, 0.05), the share of the wallpaper's OKLab chroma the glass takes; `chroma_cap` (0.03, 0.02), the chroma it saturates towards (`backdrop::take_chroma_capped`); `lightness` (0.00, 0.00), the share of the lightness of what is behind that shows through; `rim_chroma` (0.00, 1.00), the share of the wallpaper's chroma the rim takes; `blur_passes` (4, 6), how many times the glass blurs what is behind it, also for the edge; `edge_intensity` (0.70, 0.40), `edge_span` (46, 114 logical pixels), `edge_chroma` (0.45, 0.55), `edge_lightness` (0.00, 0.10) and `edge_cap` (0.04, 0.18): the wallpaper that shows along the left, top and bottom edges of a panel and fades inwards; `shadow_opacity` (0.13, 0.00): the island's shadow on the window. Shared: `accent_share` (0.35), the part of `chroma` that stays when the accent tints the sidebar; `shadow_span` (25) and `shadow_tint` (1.00). Read them with `glass_chroma`, `glass_lightness`, `glass_rim_chroma`, `glass_blur_passes`, `glass_edge` and `glass_shadow` ([ADR 0065](../decisions/0065-sidebar-glass.md)). Values chosen by the owner on the sidebar mockup |
 | `SIDEBAR` | `SidebarMetrics` | `sidebar`, `styles` (the sidebar styles); `item_weight` (500) and `item_selected_weight` (600) weigh the row labels |
 | `TOOLGROUP` | `ToolgroupMetrics` | `controls`, `compact` |
 | `SPLIT_VIEW` | `SplitViewMetrics` | `views::split`, `styles` |

@@ -14,7 +14,8 @@ use ctdesign::{
     ON_ACCENT_MIN_CONTRAST, Palette, Rgba, SHELL_DARK, SHELL_DARK_OPAQUE, SHELL_DARK_TINT,
     SHELL_DARK_TINT_OPAQUE, SHELL_LIGHT, SHELL_LIGHT_OPAQUE, SIDEBAR_DARK, SIDEBAR_DARK_OPAQUE,
     SIDEBAR_DARK_TINT, SIDEBAR_DARK_TINT_OPAQUE, SIDEBAR_GLASS_BASE_DARK,
-    SIDEBAR_GLASS_BASE_DARK_TINT, SIDEBAR_GLASS_BASE_LIGHT, SIDEBAR_ISLAND_DARK,
+    SIDEBAR_GLASS_BASE_DARK_TINT, SIDEBAR_GLASS_BASE_LIGHT, SIDEBAR_GLASS_SOLID_DARK,
+    SIDEBAR_GLASS_SOLID_DARK_TINT, SIDEBAR_GLASS_SOLID_LIGHT, SIDEBAR_ISLAND_DARK,
     SIDEBAR_ISLAND_DARK_TINT, SIDEBAR_ISLAND_INNER_DARK, SIDEBAR_ISLAND_INNER_DARK_TINT,
     SIDEBAR_ISLAND_INNER_LIGHT, SIDEBAR_ISLAND_LIGHT, SIDEBAR_ISLAND_RIM_DARK,
     SIDEBAR_ISLAND_RIM_DARK_TINT, SIDEBAR_ISLAND_RIM_LIGHT, SIDEBAR_LIGHT, SIDEBAR_LIGHT_OPAQUE,
@@ -143,18 +144,18 @@ impl Resolved {
                     rim_tint: Some(tint),
                 }
             }),
-            Tint::Wallpaper => self.sidebar.glass.map(|glass| SidebarGlass {
-                solid: if self.tint_parts.sidebars {
-                    take_chroma_capped(
-                        glass.base,
-                        tint,
-                        factor * sidebar_factor,
-                        glass_chroma(scheme).1,
-                    )
-                } else {
-                    glass.solid
-                },
-                ..glass
+            Tint::Wallpaper => self.sidebar.glass.map(|glass| {
+                if !self.tint_parts.sidebars {
+                    return glass;
+                }
+                let tinted = |color| {
+                    take_chroma_capped(color, tint, factor * sidebar_factor, glass_chroma(scheme).1)
+                };
+                SidebarGlass {
+                    base: tinted(glass.base),
+                    solid: tinted(glass.solid),
+                    ..glass
+                }
             }),
         };
         if self.tint_parts.controls {
@@ -199,6 +200,74 @@ pub fn glass_lightness(scheme: ColorScheme) -> f32 {
         GLASS.lightness_dark
     } else {
         GLASS.lightness_light
+    }
+}
+
+// The share of the wallpaper's chroma the glass's rim takes.
+pub fn glass_rim_chroma(scheme: ColorScheme) -> f32 {
+    if scheme.is_dark() {
+        GLASS.rim_chroma_dark
+    } else {
+        GLASS.rim_chroma_light
+    }
+}
+
+// How many times the glass blurs what is behind it.
+pub fn glass_blur_passes(scheme: ColorScheme) -> u32 {
+    if scheme.is_dark() {
+        GLASS.blur_passes_dark
+    } else {
+        GLASS.blur_passes_light
+    }
+}
+
+// The wallpaper shows along the left, top and bottom edges of a panel: `intensity` at the edge, fading over `span` logical pixels, with `chroma` and `lightness` of what is there (ADR 0078).
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct GlassEdge {
+    pub intensity: f32,
+    pub span: f32,
+    pub chroma: f32,
+    pub lightness: f32,
+    pub cap: f32,
+}
+
+pub fn glass_edge(scheme: ColorScheme) -> GlassEdge {
+    if scheme.is_dark() {
+        GlassEdge {
+            intensity: GLASS.edge_intensity_dark,
+            span: GLASS.edge_span_dark,
+            chroma: GLASS.edge_chroma_dark,
+            lightness: GLASS.edge_lightness_dark,
+            cap: GLASS.edge_cap_dark,
+        }
+    } else {
+        GlassEdge {
+            intensity: GLASS.edge_intensity_light,
+            span: GLASS.edge_span_light,
+            chroma: GLASS.edge_chroma_light,
+            lightness: GLASS.edge_lightness_light,
+            cap: GLASS.edge_cap_light,
+        }
+    }
+}
+
+// The island's shadow on the window around it: `opacity` next to the island, fading over `span` logical pixels, with `tint` of the wallpaper's chroma.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct GlassShadow {
+    pub opacity: f32,
+    pub span: f32,
+    pub tint: f32,
+}
+
+pub fn glass_shadow(scheme: ColorScheme) -> GlassShadow {
+    GlassShadow {
+        opacity: if scheme.is_dark() {
+            GLASS.shadow_opacity_dark
+        } else {
+            GLASS.shadow_opacity_light
+        },
+        span: GLASS.shadow_span,
+        tint: GLASS.shadow_tint,
     }
 }
 
@@ -328,7 +397,11 @@ fn chrome_surfaces(
         ]);
         SidebarGlass {
             base,
-            solid: base,
+            solid: scheme.pick([
+                SIDEBAR_GLASS_SOLID_LIGHT,
+                SIDEBAR_GLASS_SOLID_DARK,
+                SIDEBAR_GLASS_SOLID_DARK_TINT,
+            ]),
             chroma: glass_chroma(scheme).0,
             rim_tint: None,
         }
@@ -1060,7 +1133,15 @@ mod tests {
                 )
             };
             let glass = resolve(&config(false), None).sidebar.glass.unwrap();
-            assert_eq!(glass.base, glass.solid, "{scheme:?}: nothing tints it yet");
+            assert_eq!(
+                glass.solid,
+                scheme.pick([
+                    SIDEBAR_GLASS_SOLID_LIGHT,
+                    SIDEBAR_GLASS_SOLID_DARK,
+                    SIDEBAR_GLASS_SOLID_DARK_TINT
+                ]),
+                "{scheme:?}: nothing tints it yet"
+            );
             assert_eq!(
                 resolve(&config(true), None).sidebar.glass,
                 None,
@@ -1070,7 +1151,7 @@ mod tests {
     }
 
     #[test]
-    fn the_wallpaper_tints_the_solid_glass_but_not_its_base() {
+    fn the_wallpaper_tints_the_glass_at_rest_and_the_solid_one() {
         let red = Rgba::rgb8(200, 30, 30);
         let config = AppearanceConfig {
             color_scheme: ColorScheme::Dark,
@@ -1083,16 +1164,16 @@ mod tests {
             .sidebar
             .glass
             .unwrap();
-        assert_eq!(behind.base, glass.base);
-        assert_eq!(
-            behind.solid,
+        let tinted = |color| {
             take_chroma_capped(
-                glass.base,
+                color,
                 red,
                 factor * WALLPAPER_TINTING_SIDEBAR,
-                glass_chroma(ColorScheme::Dark).1
+                glass_chroma(ColorScheme::Dark).1,
             )
-        );
+        };
+        assert_eq!(behind.base, tinted(glass.base));
+        assert_eq!(behind.solid, tinted(glass.solid));
     }
 
     #[test]

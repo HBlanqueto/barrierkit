@@ -140,6 +140,15 @@ SIDEBAR SidebarMetrics components.window.sidebar width=size.sidebar-w inset=isla
 GLASS GlassMetrics components.window.sidebar.glass chroma_light=chroma.light
     chroma_dark=chroma.dark chroma_cap_light=chroma-cap.light chroma_cap_dark=chroma-cap.dark
     lightness_light=lightness.light lightness_dark=lightness.dark
+    rim_chroma_light=rim-chroma.light rim_chroma_dark=rim-chroma.dark
+    blur_passes_light=blur-passes.light blur_passes_dark=blur-passes.dark
+    edge_intensity_light=edge.intensity.light edge_intensity_dark=edge.intensity.dark
+    edge_span_light=edge.span.light edge_span_dark=edge.span.dark
+    edge_chroma_light=edge.chroma.light edge_chroma_dark=edge.chroma.dark
+    edge_lightness_light=edge.lightness.light edge_lightness_dark=edge.lightness.dark
+    edge_cap_light=edge.cap.light edge_cap_dark=edge.cap.dark
+    shadow_opacity_light=shadow.opacity.light shadow_opacity_dark=shadow.opacity.dark
+    shadow_span=shadow.span shadow_tint=shadow.tint
 TOOLGROUP ToolgroupMetrics components.window.toolgroup
 MENU_POPOVER MenuPopoverMetrics components.menu-popover
 DURATION_BASE u64 duration.base
@@ -364,6 +373,7 @@ DOCK_OUTLINE_SOLID Rgba themes.{theme}.dock-outline-opaque
 SIDEBAR Rgba themes.{theme}.bg-sunken
 SIDEBAR_ISLAND Rgba themes.{theme}.sidebar-island-bg
 SIDEBAR_GLASS_BASE Rgba themes.{theme}.sidebar-glass-base
+SIDEBAR_GLASS_SOLID Rgba themes.{theme}.sidebar-glass-solid
 SIDEBAR_GLASS_RIM Rgba themes.{theme}.sidebar-glass-rim
 SIDEBAR_ISLAND_RIM Rgba components.window.sidebar.island.rim
 SIDEBAR_ISLAND_INNER Rgba components.window.sidebar.island.inner
