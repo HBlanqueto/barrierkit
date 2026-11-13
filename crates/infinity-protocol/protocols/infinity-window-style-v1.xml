@@ -148,14 +148,13 @@
         glass panels, as the sidebar of a macOS window. The array holds int32
         quadruples x, y, width and height in surface-local logical pixels,
         clipped to the window geometry. At most 16 panels are kept. The
-        compositor fills each panel with a material and draws a rim along its
-        edge, around a continuous corner of the given radius. The client
-        leaves the panels transparent.
+        compositor fills each panel with a material and draws the window
+        frame's inner border along its edge, around a continuous corner of
+        the given radius. The client leaves the panels transparent.
 
         While the toplevel is active, the material is base with the chroma of
-        the blurred wallpaper behind the panel, and the rim follows the
-        wallpaper along the edge. While it is not active, the panel is solid
-        and has no rim. base and solid are 0xAARRGGBB and their alpha is
+        the blurred wallpaper behind the panel. While it is not active, the
+        panel is solid and has no border. base and solid are 0xAARRGGBB and their alpha is
         ignored. base has the lightness of the application's solid window.
         solid is base with the wallpaper's tint.
 

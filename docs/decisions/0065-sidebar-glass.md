@@ -30,8 +30,8 @@ Readers: whoever changes `Sidebar`, `SplitView`, `ctdesign` or `ctappearance`.
    region (`BlurRegion`) exists for the Dock and the lock screen.
 5. A capture of macOS shows that the sidebar keeps the lightness of the app's
    solid layer and takes about 0.4 of the wallpaper's chroma, and that its rim
-   follows the wallpaper behind each stretch. Only the compositor sees the
-   wallpaper, so it draws the material (Malaysia ADR 0078).
+   is a white line like the inner border of a window. Only the compositor sees
+   the wallpaper, so it draws the material and the rim (Malaysia ADR 0078).
 
 ## Decision
 
@@ -67,8 +67,8 @@ Readers: whoever changes `Sidebar`, `SplitView`, `ctdesign` or `ctappearance`.
    the narrow-window overlay or the window size change. It does not send the same
    panel twice. A hidden sidebar sends an empty list.
 7. **Tokens.** `sidebar-glass-base` goes in `tokens.json`. The weights the
-   compositor uses (`chroma`, `rim_weight`, `rim_highlight` and `rim_width`) go
-   in `components.window.sidebar.glass` and come out as `ctdesign::GLASS`.
+   compositor uses (`chroma`) goes in `components.window.sidebar.glass` and comes
+   out as `ctdesign::GLASS`.
    Light and dark share them.
 8. **Over a `Backdrop`** the sidebar stays as 0057 says. It sends no panel.
 9. **Plain blur is unchanged.** `BlurRegion` stays for the Dock and the lock.
@@ -101,7 +101,7 @@ moves after step 1.
 - **A translucent fill and a plain blur region.** It lets the wallpaper's
   lightness through, and a region cannot say a corner.
 - **A public switch for the glass.** Nobody asks for it today.
-- **The kit paints a rim that follows the wallpaper.** It cannot see the
-  wallpaper.
+- **The kit paints the rim in the glass case.** The compositor draws it with
+  the window frame's inner border, so both share one line.
 - **Tinting the neutral solid in «Reduce transparency».** A solid sidebar stays
   neutral, focused or not.
