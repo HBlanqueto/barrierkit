@@ -177,9 +177,12 @@ DOCK_BOUNCE_HEIGHT f32 components.shell.dock.bounce-height
 DOCK_LAUNCH_TIMEOUT_MS u64 components.shell.dock.launch-timeout-ms
 DOCK_HIDE_MS u64 components.shell.dock.hide-ms
 DOCK_MINIMIZE_MS u64 components.shell.dock.minimize-ms
+DOCK_SLOT_MS u64 components.shell.dock.slot-ms
+DOCK_MINIMIZE_HANDOFF_MS u64 components.shell.dock.minimize-handoff-ms
 DOCK_REVEAL_STRIP i32 components.shell.dock.reveal-strip
 DOCK_RECENTS usize components.shell.dock.recents
 DOCK_ICON_BODY f32 components.shell.dock.icon-body
+DOCK_FOLDER_CANVAS f32 components.shell.dock.folder-canvas
 DOCK_WINDOW_FRAME f32 components.shell.dock.window-frame
 DOCK_WINDOW_ICON f32 components.shell.dock.window-icon
 DOCK_WINDOW_BADGE f32 components.shell.dock.window-badge
