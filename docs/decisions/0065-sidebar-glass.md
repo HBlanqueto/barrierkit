@@ -1,6 +1,6 @@
 # 0065 — The sidebar is a glass panel
 
-Status: accepted (2026-11-13). Steps 1 to 3 are written but `bk` was not built or run in a session; the order is in «Plan».
+Status: accepted (2026-11-13). Steps 1 to 3 are written, built and tested (2026-11-13), but `bk` was not yet run on a screen; the order is in «Plan».
 
 ## Goal and scope
 
