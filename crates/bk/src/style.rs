@@ -164,7 +164,6 @@ fn glass_rim(context: &mut FillRenderContext, fill: Rgba, rim: &GlassRim, corner
         return;
     };
     let (width, height) = (context.size.width, context.size.height);
-    let scale = context.scale_factor as f32;
     let radius = corner.top_left();
     let white = |at: f32, visible: f32| {
         (
@@ -195,9 +194,10 @@ fn glass_rim(context: &mut FillRenderContext, fill: Rgba, rim: &GlassRim, corner
         };
         let mut paint = Paint::default();
         paint.set_shader(shaders::blend(BlendMode::Modulate, along, fade.clone()));
+        // Without the matrix, so the sigma stays in physical pixels at every scale.
         paint.set_mask_filter(SkMaskFilter::blur(
             SkBlurStyle::Normal,
-            ctdesign::DOCK_RIM_BLUR / scale,
+            ctdesign::DOCK_RIM_BLUR,
             false,
         ));
         canvas.save();
