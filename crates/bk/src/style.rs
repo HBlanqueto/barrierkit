@@ -337,8 +337,8 @@ fn glass_frame(context: &mut FillRenderContext, fill: Rgba, rim: &GlassRim, corn
     canvas.restore();
 }
 
-// The edge's colours spread over the bar, with the sides at the ends and where each corner starts,
-// all `strength` as opaque.
+// The edge's colours spread over the bar between its corners, with the sides' colours where each
+// corner ends, all `strength` as opaque.
 fn along(
     edge: &[Rgba],
     (left, right): (Rgba, Rgba),
@@ -350,13 +350,13 @@ fn along(
         a: colour.a * strength,
         ..colour
     };
-    std::iter::once((0.0, left))
+    std::iter::once((reach, left))
         .chain(
             edge.iter()
                 .enumerate()
                 .map(|(index, colour)| (reach + (index as f32 + 0.5) * step, *colour)),
         )
-        .chain(std::iter::once((1.0, right)))
+        .chain(std::iter::once((1.0 - reach, right)))
         .map(|(at, colour)| (at, weaker(colour)))
         .collect()
 }
