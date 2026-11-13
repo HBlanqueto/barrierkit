@@ -118,17 +118,23 @@ pub fn panel_edges(body: Rect, radius: f32, fill: Rgba) -> Rect {
                 .width(pixel)
                 .alignment(BorderAlignment::Outer),
         )
-        .child(inner_edge(body, radius, fill, (1.0, 1.0)))
+        .child(inner_edge(body, radius, fill, (1.0, 1.0, 0.0)))
 }
 
 /// The inner line of `panel_edges` alone: no outer line and no inward glow, `strength` times as
 /// opaque. The Dock's glass is only that line, and it grows with the light of the wallpaper behind.
 pub fn glass_edge(body: Rect, radius: f32, fill: Rgba, strength: f32) -> Rect {
-    inner_edge(body, radius, fill, (strength, 0.0))
+    inner_edge(body, radius, fill, (strength, 0.0, ctdesign::DOCK_RIM_BLUR))
 }
 
-// `(line, glow)` multiply the opacity of the line and of the inward glow.
-fn inner_edge(body: Rect, radius: f32, fill: Rgba, (strength, glow): (f32, f32)) -> Rect {
+// `(line, glow)` multiply the opacity of the line and of the inward glow; `blur` softens the line,
+// as a Gaussian sigma in physical pixels (0 keeps it crisp).
+fn inner_edge(
+    body: Rect,
+    radius: f32,
+    fill: Rgba,
+    (strength, glow, blur): (f32, f32, f32),
+) -> Rect {
     let palette = ctappearance::palette(crate::theme::resolved().scheme);
     let corner = continuous_corner(radius);
     let pixel = 1.0 / *Platform::get().current_window().scale_factor.read() as f32;
@@ -146,7 +152,7 @@ fn inner_edge(body: Rect, radius: f32, fill: Rgba, (strength, glow): (f32, f32))
                 glow: scaled(line.glow, glow),
             };
             body.background(Fill::Callback(RenderCallback::new(move |context| {
-                glass_line(context, fill, line, corner)
+                glass_line(context, fill, line, corner, blur)
             })))
         }
         (None, Some(inner)) => body.background(color(fill)).border(
@@ -164,8 +170,11 @@ fn glass_line(
     fill: Rgba,
     line: ctdesign::PanelLine,
     corner: CornerRadius,
+    blur: f32,
 ) {
-    use freya_engine::prelude::{PaintStyle, PathBuilder, RRect, Rect as SkRect};
+    use freya_engine::prelude::{
+        PaintStyle, PathBuilder, RRect, Rect as SkRect, SkBlurStyle, SkMaskFilter,
+    };
     context.set_color(color(fill));
     let RenderTarget::Background { canvas, .. } = &context.target else {
         return;
@@ -204,6 +213,13 @@ fn glass_line(
     paint.set_anti_alias(true);
     // One physical pixel on each side of the edge; the clip keeps the inner half, as the compositor's line.
     paint.set_stroke_width(2.0 / context.scale_factor as f32);
+    if blur > 0.0 {
+        paint.set_mask_filter(SkMaskFilter::blur(
+            SkBlurStyle::Normal,
+            blur / context.scale_factor as f32,
+            false,
+        ));
+    }
     // Freya's smoothed path leaves its last contour open: a fill closes it, a stroke does not.
     let mut outline = PathBuilder::new();
     outline

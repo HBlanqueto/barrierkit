@@ -187,6 +187,7 @@ DOCK_ICON_BODY f32 components.shell.dock.icon-body
 DOCK_FOLDER_CANVAS f32 components.shell.dock.folder-canvas
 DOCK_RIM_DARK f32 components.shell.dock.rim-dark
 DOCK_RIM_BRIGHT f32 components.shell.dock.rim-bright
+DOCK_RIM_BLUR f32 components.shell.dock.rim-blur
 DOCK_WINDOW_FRAME f32 components.shell.dock.window-frame
 DOCK_WINDOW_ICON f32 components.shell.dock.window-icon
 DOCK_WINDOW_BADGE f32 components.shell.dock.window-badge

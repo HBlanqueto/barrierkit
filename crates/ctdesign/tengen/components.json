@@ -881,6 +881,7 @@
         "folder-canvas": 1.256,
         "rim-dark": 0.6,
         "rim-bright": 1.0,
+        "rim-blur": 0.7,
         "window-frame": 0.8,
         "window-icon": 0.6,
         "window-badge": 0.4,
