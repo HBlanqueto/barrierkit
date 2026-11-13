@@ -414,7 +414,7 @@ a style.
 | `text_size` | `AppearanceConfig::text_size_for(Toolkit::BarrierKit)`: the BarrierKit size, or the preferred `text_size`. |
 | `shell` | `ShellPalette`: menu bar and Dock colors. |
 | `menu`, `menu_parent` | `MenuPalette` and the window color a menu sits on. `Resolved::menu_separator(panel_bg)` gives the separator over another background. |
-| `sidebar` | `SidebarSurface`: `style`, `bg`, `rim`, `inner`, its `SidebarPalette` and `glass`. `glass` is a `SidebarGlass` with `base` (the solid tone) and `solid` (`base` with the wallpaper tint), and is `None` with reduced transparency or with the accent as window color ([ADR 0065](../decisions/0065-sidebar-glass.md)). |
+| `sidebar` | `SidebarSurface`: `style`, `bg`, `rim`, `inner`, its `SidebarPalette` and `glass`. `glass` is a `SidebarGlass` with `base` (the solid tone, tinted with the accent when the accent is the window color), `solid` (`base` with the wallpaper tint) and `chroma` (the share of the wallpaper's chroma, `GLASS.accent_share` of it under an accent), and is `None` with reduced transparency ([ADR 0065](../decisions/0065-sidebar-glass.md)). |
 | `toolgroup` | `ToolgroupSurface`: `bg` and its `ToolgroupPalette`. |
 | `surfaces` | `Surfaces`: `window`, `titlebar_inactive`, `sunken`, `surface`, `raised`, `control`, `hover`, `line`, already tinted. |
 
@@ -833,7 +833,7 @@ background, for `reduce_transparency`.
 
 | Constant | Type | Read by |
 |---|---|---|
-| `GLASS` | `GlassMetrics` | `chroma_light` (0.25) and `chroma_dark` (0.40) and `rim_chroma` (0.65): the share of the wallpaper's OKLab chroma that the sidebar's glass and its rim take; `chroma_cap_light` (0.05) and `chroma_cap_dark` (0.04): the chroma the glass saturates towards (`backdrop::take_chroma_capped`), so a vivid wallpaper tints it without turning it into a window; `blur_passes` (4): how much wider than the other blurs the glass blurs the wallpaper ([ADR 0065](../decisions/0065-sidebar-glass.md)) |
+| `GLASS` | `GlassMetrics` | `chroma_light` (0.25) and `chroma_dark` (0.40) and `accent_share` (0.35): the part of `chroma` that stays when the accent tints the sidebar; `rim_chroma` (0.65): the share of the wallpaper's OKLab chroma that the sidebar's glass and its rim take; `chroma_cap_light` (0.05) and `chroma_cap_dark` (0.04): the chroma the glass saturates towards (`backdrop::take_chroma_capped`), so a vivid wallpaper tints it without turning it into a window; `blur_passes` (4): how much wider than the other blurs the glass blurs the wallpaper ([ADR 0065](../decisions/0065-sidebar-glass.md)) |
 | `SIDEBAR` | `SidebarMetrics` | `sidebar`, `styles` (the sidebar styles); `item_weight` (500) and `item_selected_weight` (600) weigh the row labels |
 | `TOOLGROUP` | `ToolgroupMetrics` | `controls`, `compact` |
 | `SPLIT_VIEW` | `SplitViewMetrics` | `views::split`, `styles` |

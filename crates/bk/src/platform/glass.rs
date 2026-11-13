@@ -17,6 +17,7 @@ pub(crate) struct GlassPanels {
     pub(crate) rects: Rects,
     pub(crate) base: u32,
     pub(crate) solid: u32,
+    pub(crate) chroma: u32,
 }
 
 pub(crate) fn set_glass_panels(panels: GlassPanels) {
@@ -53,6 +54,7 @@ impl Runtime {
             rects,
             panels.base,
             panels.solid,
+            panels.chroma,
         );
         self.surfaces[index].glass_holes = panels.rects;
         self.surfaces[index].needs_redraw = true;

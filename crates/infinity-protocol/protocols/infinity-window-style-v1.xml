@@ -156,8 +156,10 @@
         the blurred wallpaper behind the panel, and the border is a white
         line that takes the chroma of the wallpaper behind each stretch.
         While it is not active, the panel is solid and has no border. base and solid are 0xAARRGGBB and their alpha is
-        ignored. base has the lightness of the application's solid window.
-        solid is base with the wallpaper's tint.
+        ignored. base has the lightness of the application's solid window, and
+        the dominant color when the window is tinted with an accent. solid is
+        base with the wallpaper's tint. chroma is the share of the wallpaper's
+        chroma the material takes, in thousandths.
 
         It is double-buffered and applies on the next wl_surface.commit. A
         later request replaces the panels; an empty array removes them. It
@@ -169,6 +171,7 @@
       <arg name="panels" type="array"/>
       <arg name="base" type="uint"/>
       <arg name="solid" type="uint"/>
+      <arg name="chroma" type="uint"/>
     </request>
   </interface>
 </protocol>

@@ -50,6 +50,13 @@ Readers: whoever changes `Sidebar`, `SplitView`, `ctdesign` or `ctappearance`.
       today's tint, but it saturates towards the cap so a vivid wallpaper does
       not turn the panel into a window. With
       `tint_parts.sidebars` off, `solid` is `base`.
+   3. `chroma`, the share of the wallpaper's chroma the material takes. With
+      the accent as window color (a fixed one or the automatic one) the glass
+      stays: `base` and `solid` are the accent-tinted tone, the same one the
+      opaque sidebar has, so the accent is the dominant color, and `chroma` is
+      `GLASS.accent_share` (0.35) of the usual one, so the wallpaper only adds
+      a little. With `tint_parts.sidebars` off, the accent leaves the glass as
+      it is.
 3. **What the kit paints, by case:**
 
    | Case | The panel | Sends |

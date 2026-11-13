@@ -41,6 +41,7 @@ pub struct SidebarSurface {
 pub struct SidebarGlass {
     pub base: Rgba,
     pub solid: Rgba,
+    pub chroma: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -121,7 +122,17 @@ impl Resolved {
             self.sidebar.bg = mix(self.sidebar.bg, tint, factor * sidebar_factor);
         }
         self.sidebar.glass = match source {
-            Tint::Accent => None,
+            Tint::Accent => self.sidebar.glass.map(|glass| {
+                if !self.tint_parts.sidebars {
+                    return glass;
+                }
+                let base = mix(glass.base, tint, factor * sidebar_factor);
+                SidebarGlass {
+                    base,
+                    solid: base,
+                    chroma: glass.chroma * GLASS.accent_share,
+                }
+            }),
             Tint::Wallpaper => self.sidebar.glass.map(|glass| SidebarGlass {
                 solid: if self.tint_parts.sidebars {
                     take_chroma_capped(
@@ -252,7 +263,11 @@ fn chrome_surfaces(
             SIDEBAR_GLASS_BASE_DARK,
             SIDEBAR_GLASS_BASE_DARK_TINT,
         ]);
-        SidebarGlass { base, solid: base }
+        SidebarGlass {
+            base,
+            solid: base,
+            chroma: glass_chroma(scheme).0,
+        }
     });
     let sidebar = match style {
         SidebarStyle::Flat => SidebarSurface {
@@ -1007,14 +1022,31 @@ mod tests {
     }
 
     #[test]
-    fn the_accent_as_window_color_leaves_the_sidebar_without_glass() {
+    fn an_accent_window_keeps_the_glass_with_the_accent_as_its_base_and_less_wallpaper() {
+        let accent = Rgba {
+            r: 0.9,
+            g: 0.3,
+            b: 0.1,
+            a: 1.0,
+        };
         let config = appearance(
             ColorScheme::Dark,
             WindowColorMode::Accent,
             TrafficLightStyle::Auto,
-            Some([0.9, 0.3, 0.1]),
+            Some([accent.r, accent.g, accent.b]),
         );
-        assert_eq!(resolve(&config, None).sidebar.glass, None);
+        let neutral = resolve(
+            &AppearanceConfig {
+                color_scheme: ColorScheme::Dark,
+                ..AppearanceConfig::default()
+            },
+            None,
+        );
+        let glass = resolve(&config, None).sidebar.glass.unwrap();
+        let neutral = neutral.sidebar.glass.unwrap();
+        assert_eq!(glass.base, glass.solid);
+        assert_ne!(glass.base, neutral.base);
+        assert_eq!(glass.chroma, neutral.chroma * GLASS.accent_share);
     }
 
     #[test]

@@ -403,6 +403,7 @@
   --bk-window-sidebar-glass-chroma-dark: 0.4;
   --bk-window-sidebar-glass-chroma-cap-light: 0.05;
   --bk-window-sidebar-glass-chroma-cap-dark: 0.04;
+  --bk-window-sidebar-glass-accent-share: 0.35;
   --bk-window-sidebar-glass-rim-chroma: 0.65;
   --bk-window-sidebar-glass-blur-passes: 4;
   --bk-window-sidebar-item-height: 32;
@@ -739,6 +740,7 @@
   --bk-shell-dock-separator-ink-mix: 0.4;
   --bk-shell-dock-radius: 0.24;
   --bk-shell-dock-magnify-radius: 3;
+  --bk-shell-dock-magnify-min: 1.3;
   --bk-shell-dock-magnify-ms: 120;
   --bk-shell-dock-dot: 0.06;
   --bk-shell-dock-dot-min: 2;
@@ -756,7 +758,7 @@
   --bk-shell-dock-icon-body: 0.805;
   --bk-shell-dock-folder-canvas: 1.256;
   --bk-shell-dock-rim-dark: 0.6;
-  --bk-shell-dock-rim-bright: 3.0;
+  --bk-shell-dock-rim-bright: 1.0;
   --bk-shell-dock-window-frame: 0.8;
   --bk-shell-dock-window-icon: 0.6;
   --bk-shell-dock-window-badge: 0.4;
