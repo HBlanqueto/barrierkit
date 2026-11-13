@@ -829,6 +829,7 @@ background, for `reduce_transparency`.
 
 | Constant | Type | Read by |
 |---|---|---|
+| `GLASS` | `GlassMetrics` | `chroma` (0.40) and `rim_chroma` (0.65): the share of the wallpaper's OKLab chroma that the sidebar's glass and its rim take ([ADR 0065](../decisions/0065-sidebar-glass.md)) |
 | `SIDEBAR` | `SidebarMetrics` | `sidebar`, `styles` (the sidebar styles); `item_weight` (500) and `item_selected_weight` (600) weigh the row labels |
 | `TOOLGROUP` | `ToolgroupMetrics` | `controls`, `compact` |
 | `SPLIT_VIEW` | `SplitViewMetrics` | `views::split`, `styles` |

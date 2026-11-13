@@ -463,6 +463,10 @@
         "flat": {
           "line": "line"
         },
+        "glass": {
+          "chroma": 0.4,
+          "rim-chroma": 0.65
+        },
         "item": {
           "height": 32,
           "radius": "radius.sm",

@@ -736,6 +736,12 @@ pub struct ToolbarTabsMetrics {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct GlassMetrics {
+    pub chroma: f32,
+    pub rim_chroma: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct SidebarMetrics {
     pub width: u32,
     pub inset: u32,
