@@ -108,7 +108,7 @@ ink, which reaches 3:1 on the window, as the HIG asks for «Increase Contrast».
 |---|---|
 | `style::text(content, face, ink) -> Label` | A one-line Freya `label` with the family, size, weight and line height of a `Font` token and the color `ink`. For text that wraps, use `Text` ([2](02-first-app.md)). |
 | `style::continuous_corner(radius) -> CornerRadius` | A corner radius with Apple's continuous curve, smoothed as `WINDOW_CORNER.expansion` says (malaysia ADR 0059). |
-| `style::glass_edge(body, radius, fill, strength) -> Rect` | The inner line of `panel_edges` without the outer line, with its alpha multiplied by `strength` (the Dock: `DOCK_RIM_DARK` to `DOCK_RIM_BRIGHT` by the lightness of the wallpaper behind it). |
+| `style::glass_edge(body, radius, fill, strength) -> Rect` | The inner line of `panel_edges` without the outer line and without the inward glow, with its alpha multiplied by `strength` (the Dock: `DOCK_RIM_DARK` to `DOCK_RIM_BRIGHT` by the lightness of the wallpaper behind it). |
 | `style::panel_edges(body, radius, fill) -> Rect` | A card filled with `fill` and framed like a panel window: the glass inner line in dark (`panel_inner_line`: brighter top and bottom edges, inward glow), the window inner line otherwise, and the outer line, each one physical pixel wide. Same colours and widths as the compositor's panel frames. |
 | `theme::color(rgba) -> Color` | Converts a Tengen `Rgba` to Freya's `Color`. |
 

@@ -118,26 +118,32 @@ pub fn panel_edges(body: Rect, radius: f32, fill: Rgba) -> Rect {
                 .width(pixel)
                 .alignment(BorderAlignment::Outer),
         )
-        .child(glass_edge(body, radius, fill, 1.0))
+        .child(inner_edge(body, radius, fill, (1.0, 1.0)))
 }
 
-/// The inner line of `panel_edges` alone, without the outer line, `strength` times as opaque:
-/// the Dock's glass has no black rim, and its line grows with the light of the wallpaper behind.
+/// The inner line of `panel_edges` alone: no outer line and no inward glow, `strength` times as
+/// opaque. The Dock's glass is only that line, and it grows with the light of the wallpaper behind.
 pub fn glass_edge(body: Rect, radius: f32, fill: Rgba, strength: f32) -> Rect {
+    inner_edge(body, radius, fill, (strength, 0.0))
+}
+
+// `(line, glow)` multiply the opacity of the line and of the inward glow.
+fn inner_edge(body: Rect, radius: f32, fill: Rgba, (strength, glow): (f32, f32)) -> Rect {
     let palette = ctappearance::palette(crate::theme::resolved().scheme);
     let corner = continuous_corner(radius);
     let pixel = 1.0 / *Platform::get().current_window().scale_factor.read() as f32;
-    let stronger = |line: Rgba| Rgba {
-        a: (line.a * strength).min(1.0),
+    let scaled = |line: Rgba, by: f32| Rgba {
+        a: (line.a * by).min(1.0),
         ..line
     };
+    let stronger = |line: Rgba| scaled(line, strength);
     let body = body.corner_radius(corner);
     match (palette.panel_inner_line, palette.inner_line) {
         (Some(line), _) => {
             let line = ctdesign::PanelLine {
                 sides: stronger(line.sides),
                 edges: stronger(line.edges),
-                glow: stronger(line.glow),
+                glow: scaled(line.glow, glow),
             };
             body.background(Fill::Callback(RenderCallback::new(move |context| {
                 glass_line(context, fill, line, corner)
