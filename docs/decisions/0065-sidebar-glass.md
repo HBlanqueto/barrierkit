@@ -79,7 +79,7 @@ Readers: whoever changes `Sidebar`, `SplitView`, `ctdesign` or `ctappearance`.
 6. **When it sends.** On the first layout and whenever the width, the visibility,
    the narrow-window overlay or the window size change. It does not send the same
    panel twice. A hidden sidebar sends an empty list.
-7. **Tokens.** `sidebar-glass-base` and `sidebar-glass-rim`, the white of the
+7. **Tokens.** `sidebar-glass-base` and `sidebar-glass-rim`, the line of the
    rim, go in `tokens.json`. The weights the
    compositor uses (`chroma` and `rim_chroma`) go in `components.window.sidebar.glass` and come
    out as `ctdesign::GLASS`.

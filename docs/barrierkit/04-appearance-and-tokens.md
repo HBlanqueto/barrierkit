@@ -755,7 +755,7 @@ nothing is blurred.
 | `SIDEBAR_LIGHT`, `SIDEBAR_LIGHT_OPAQUE`, `SIDEBAR_DARK`, `SIDEBAR_DARK_OPAQUE`, `SIDEBAR_DARK_TINT`, `SIDEBAR_DARK_TINT_OPAQUE` | `Rgba` | Flat sidebar background. |
 | `SIDEBAR_ISLAND_LIGHT`, `SIDEBAR_ISLAND_DARK`, `SIDEBAR_ISLAND_DARK_TINT` | `Rgba` | Island sidebar background. |
 | `SIDEBAR_GLASS_BASE_LIGHT`, `SIDEBAR_GLASS_BASE_DARK`, `SIDEBAR_GLASS_BASE_DARK_TINT` | `Rgba` | Solid tone of the sidebar glass, with the lightness of the app's window. Only the dark one is measured; the other two are estimates. |
-| `SIDEBAR_GLASS_RIM_LIGHT`, `SIDEBAR_GLASS_RIM_DARK`, `SIDEBAR_GLASS_RIM_DARK_TINT` | `Rgba` | White line of the sidebar glass's rim; the compositor tints it with the wallpaper's chroma. Dark mode is measured (alpha 0.04 on average, 0.10 at most); light is an estimate. |
+| `SIDEBAR_GLASS_RIM_LIGHT`, `SIDEBAR_GLASS_RIM_DARK`, `SIDEBAR_GLASS_RIM_DARK_TINT` | `Rgba` | Line of the sidebar glass's rim; the compositor takes its lightness from the color and tints it with the wallpaper's chroma. Dark is white, measured (alpha 0.04 on average, 0.10 at most). Light is a gray (`#6f7686`) at alpha 0.30, because white does not show on the light panel; it is an estimate. |
 | `SIDEBAR_ISLAND_RIM_LIGHT`, `SIDEBAR_ISLAND_RIM_DARK`, `SIDEBAR_ISLAND_RIM_DARK_TINT` | `Rgba` | Island sidebar outer rim. |
 | `SIDEBAR_ISLAND_INNER_LIGHT`, `SIDEBAR_ISLAND_INNER_DARK`, `SIDEBAR_ISLAND_INNER_DARK_TINT` | `Rgba` | Island sidebar inner line. |
 | `SIDEBAR_PALETTE_LIGHT`, `SIDEBAR_PALETTE_DARK`, `SIDEBAR_PALETTE_DARK_TINT` | `SidebarPalette` | Sidebar inks per theme. |
