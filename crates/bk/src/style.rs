@@ -170,14 +170,12 @@ pub fn glass_edge((width, height): (f32, f32), radius: f32, fill: Rgba, rim: Gla
         )
 }
 
-// The corners of a frame: where each one's square sits, the centre its angle is measured from, the
-// sweep it covers (degrees from the +x axis, clockwise), whether the angle from vertical
-// (0 on top and bottom, 90 on the sides) runs against the sweep, and which side's colour it takes.
+// The corners of a frame: where each one's square sits, where its curve leaves the top or bottom
+// edge and where it meets the side, and which side's colour it takes.
 struct Quarter {
     square: freya_engine::prelude::Rect,
-    centre: (f32, f32),
-    start: f32,
-    against: bool,
+    edge: (f32, f32),
+    side: (f32, f32),
     left: bool,
 }
 
@@ -229,40 +227,37 @@ fn glass_frame(context: &mut FillRenderContext, fill: Rgba, rim: &GlassRim, corn
     let quarters = [
         Quarter {
             square: SkRect::new(0.0, 0.0, left + reach, top + reach),
-            centre: (left + reach, top + reach),
-            start: 180.0,
-            against: true,
+            edge: (left + reach, top),
+            side: (left, top + reach),
             left: true,
         },
         Quarter {
             square: SkRect::new(right - reach, 0.0, full_width, top + reach),
-            centre: (right - reach, top + reach),
-            start: 270.0,
-            against: false,
+            edge: (right - reach, top),
+            side: (right, top + reach),
             left: false,
         },
         Quarter {
             square: SkRect::new(right - reach, bottom - reach, full_width, full_height),
-            centre: (right - reach, bottom - reach),
-            start: 0.0,
-            against: true,
+            edge: (right - reach, bottom),
+            side: (right, bottom - reach),
             left: false,
         },
         Quarter {
             square: SkRect::new(0.0, bottom - reach, left + reach, full_height),
-            centre: (left + reach, bottom - reach),
-            start: 90.0,
-            against: false,
+            edge: (left + reach, bottom),
+            side: (left, bottom - reach),
             left: true,
         },
     ];
+    // On the GPU a quarter-turn sweep gradient lit two whole corners; a linear one does not.
     let quarter = |at: &Quarter, colour: Rgba, share: &dyn Fn(f32) -> f32| {
         let stops: Vec<(f32, Rgba)> = (0..=18)
             .map(|step| {
-                let along = step as f32 / 18.0;
-                let angle = 90.0 * if at.against { 1.0 - along } else { along };
+                let angle = 90.0 * step as f32 / 18.0;
+                let (sin, cos) = angle.to_radians().sin_cos();
                 (
-                    along,
+                    (sin + 1.0 - cos) / 2.0,
                     Rgba {
                         a: colour.a * share(angle),
                         ..colour
@@ -270,7 +265,7 @@ fn glass_frame(context: &mut FillRenderContext, fill: Rgba, rim: &GlassRim, corn
                 )
             })
             .collect();
-        sweep(at.centre, (at.start, at.start + 90.0), &stops)
+        linear(at.edge, at.side, &stops)
     };
 
     canvas.save();
@@ -446,18 +441,6 @@ pub(crate) fn linear(
     use freya_engine::prelude::shaders;
     gradient(stops, |gradient| {
         shaders::linear_gradient((from, to), gradient, None)
-    })
-}
-
-// `angles` are degrees from the +x axis, clockwise; the stops run from the first to the second.
-fn sweep(
-    centre: (f32, f32),
-    angles: (f32, f32),
-    stops: &[(f32, Rgba)],
-) -> Option<freya_engine::prelude::Shader> {
-    use freya_engine::prelude::shaders;
-    gradient(stops, |gradient| {
-        shaders::sweep_gradient(centre, angles, gradient, None)
     })
 }
 
