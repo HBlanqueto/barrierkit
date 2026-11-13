@@ -307,6 +307,7 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
         )),
     };
     let wallpaper_tinting = (appearance.wallpaper_tinting
+        && !appearance.transparency_reduced()
         && window_tint.is_none()
         && (scheme.is_dark() || appearance.wallpaper_tinting_in_light))
         .then_some(WALLPAPER_TINTING[index] * appearance.tint_strength.factor());
@@ -906,6 +907,22 @@ mod tests {
                 take_chroma(neutral.sidebar.bg, red, factor * WALLPAPER_TINTING_SIDEBAR),
                 "{strength:?}: the sidebar"
             );
+        }
+    }
+
+    #[test]
+    fn reduced_transparency_and_contrast_leave_the_wallpaper_without_tint() {
+        let red = Rgba::rgb8(200, 30, 30);
+        for (reduce_transparency, contrast) in [(true, false), (false, true)] {
+            let config = AppearanceConfig {
+                color_scheme: ColorScheme::Dark,
+                reduce_transparency,
+                contrast,
+                ..AppearanceConfig::default()
+            };
+            let resolved = resolve(&config, None);
+            assert_eq!(resolved.wallpaper_tinting, None);
+            assert_eq!(resolved.behind_window(red).sidebar.bg, resolved.sidebar.bg);
         }
     }
 

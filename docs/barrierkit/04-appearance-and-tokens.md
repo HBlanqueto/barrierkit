@@ -430,7 +430,8 @@ The rules `resolve` applies:
    not reach 4.5:1 (`ON_ACCENT_MIN_CONTRAST`) is darkened just enough
    (WCAG 2.2 §1.4.3).
 4. Wallpaper tinting is on with `wallpaper_tinting` and a neutral
-   `window_color`, with any accent (malaysia ADR 0065). It
+   `window_color`, with any accent (malaysia ADR 0065), unless
+   `reduce_transparency` or `contrast` is on. It
    applies in dark schemes, and in light ones with
    `wallpaper_tinting_in_light`. The amount is `WALLPAPER_TINTING` (light,
    dark) times `tint_strength`, and it reaches the same `tint_parts` and
