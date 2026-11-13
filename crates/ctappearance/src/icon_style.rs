@@ -18,42 +18,57 @@ pub enum IconStyle {
 impl IconStyle {
     /// Row-major 4×5 color matrix on straight-alpha colors in 0..1; `None` keeps the colors.
     pub fn matrix(self, accent: Rgba) -> Option<[f32; 20]> {
-        let row = |scale: f32, offset: f32| {
-            [
-                LUMA[0] * scale,
-                LUMA[1] * scale,
-                LUMA[2] * scale,
-                0.0,
-                offset,
-            ]
-        };
-        let keep_alpha = [0.0, 0.0, 0.0, 1.0, 0.0];
-        let [r, g, b] = match self {
-            Self::Default => return None,
-            Self::Monochrome => [row(1.0, 0.0); 3],
-            Self::Clear => [row(ICON_STYLE.clear_range, ICON_STYLE.clear_floor); 3],
+        match self {
+            Self::Default => None,
+            Self::Monochrome => Some(duotone(gray(0.0), gray(1.0))),
+            Self::Clear => {
+                let floor = ICON_STYLE.clear_floor;
+                let mut matrix = duotone(gray(floor), gray(floor + ICON_STYLE.clear_range));
+                let gain = ICON_STYLE.clear_alpha_gain;
+                matrix[15..18].copy_from_slice(&LUMA.map(|weight| weight * gain));
+                matrix[18] = 0.0;
+                Some(matrix)
+            }
             Self::Tinted => {
                 let (dark, light) = tint_ends(accent);
-                [
-                    row(light.r - dark.r, dark.r),
-                    row(light.g - dark.g, dark.g),
-                    row(light.b - dark.b, dark.b),
-                ]
+                Some(duotone(dark, light))
             }
-        };
-        let alpha = if self.luminance_to_alpha() {
-            row(ICON_STYLE.clear_alpha_gain, 0.0)
-        } else {
-            keep_alpha
-        };
-        let rows = [r, g, b, alpha];
-        Some(std::array::from_fn(|i| rows[i / 5][i % 5]))
+        }
     }
 
     /// The matrix makes the alpha follow the luminance, so the result is also cut to the image's own shape.
     pub fn luminance_to_alpha(self) -> bool {
         self == Self::Clear
     }
+}
+
+fn gray(value: f32) -> Rgba {
+    Rgba {
+        r: value,
+        g: value,
+        b: value,
+        a: 1.0,
+    }
+}
+
+/// Black becomes `dark`, white becomes `light` and the alpha stays.
+pub(crate) fn duotone(dark: Rgba, light: Rgba) -> [f32; 20] {
+    let row = |dark: f32, light: f32| {
+        [
+            LUMA[0] * (light - dark),
+            LUMA[1] * (light - dark),
+            LUMA[2] * (light - dark),
+            0.0,
+            dark,
+        ]
+    };
+    let rows = [
+        row(dark.r, light.r),
+        row(dark.g, light.g),
+        row(dark.b, light.b),
+        [0.0, 0.0, 0.0, 1.0, 0.0],
+    ];
+    std::array::from_fn(|i| rows[i / 5][i % 5])
 }
 
 fn tint_ends(accent: Rgba) -> (Rgba, Rgba) {

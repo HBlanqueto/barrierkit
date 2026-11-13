@@ -297,7 +297,7 @@ fn vertical(height: f32, stops: &[(f32, Rgba)]) -> freya_engine::prelude::Paint 
     paint
 }
 
-fn linear(
+pub(crate) fn linear(
     from: (f32, f32),
     to: (f32, f32),
     stops: &[(f32, Rgba)],

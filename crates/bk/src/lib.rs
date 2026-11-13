@@ -1,3 +1,4 @@
+mod app_icon;
 mod fonts;
 mod logging;
 mod session_bus;

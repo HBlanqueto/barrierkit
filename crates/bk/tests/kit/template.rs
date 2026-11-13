@@ -116,3 +116,58 @@ fn a_clear_icon_lets_the_window_show_through() {
     let [light, ..] = center_of(StyledHost(IconStyle::Clear, 255));
     assert!(light > dark + 40, "{light} {dark}");
 }
+
+const SUN_AND_NIGHT: &str = r##"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect width="16" height="11" fill="#ffd34d"/><rect y="11" width="16" height="5" fill="#6a1b9a"/></svg>"##;
+
+#[derive(PartialEq)]
+struct Plated(ColorScheme);
+
+impl Component for Plated {
+    fn render(&self) -> impl IntoElement {
+        let scheme = self.0;
+        use_appearance(move |config| config.color_scheme = scheme);
+        rect().child(PlatedIcon)
+    }
+}
+
+#[derive(PartialEq)]
+struct PlatedIcon;
+
+impl Component for PlatedIcon {
+    fn render(&self) -> impl IntoElement {
+        Image::data(SUN_AND_NIGHT.as_bytes().to_vec())
+            .app_icon()
+            .size(64.0)
+    }
+}
+
+struct PlatedHost(ColorScheme);
+
+impl App for PlatedHost {
+    fn render(&self) -> impl IntoElement {
+        Plated(self.0)
+    }
+}
+
+fn plated_pixels(scheme: ColorScheme) -> (Vec<u8>, usize) {
+    let app = AppComponent::new(PlatedHost(scheme));
+    let (mut test, _) = TestingRunner::new(app, Size2D::new(64.0, 64.0), |_| {}, 1.0);
+    test.sync_and_update();
+    let _ = test.render();
+    test.sync_and_update();
+    let png = test.render();
+    let (width, _, rgba) = decode(png.as_bytes());
+    (rgba, width)
+}
+
+#[test]
+fn an_app_icon_gets_a_plate_of_the_hue_of_its_darkest_color_and_graphite_in_dark() {
+    let (light, width) = plated_pixels(ColorScheme::Light);
+    let [red, green, blue, _] = pixel(&light, width, 9, 32);
+    assert!(red > green && blue > green, "plate {red} {green} {blue}");
+    let [r, g, b, _] = pixel(&light, width, 32, 28);
+    assert!(r > 200 && g > 160 && b < 130, "logo {r} {g} {b}");
+    let (dark, width) = plated_pixels(ColorScheme::Dark);
+    let [r, g, b, _] = pixel(&dark, width, 9, 32);
+    assert!(r.abs_diff(b) < 12 && r < 90, "graphite {r} {g} {b}");
+}

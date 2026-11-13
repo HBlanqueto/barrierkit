@@ -22,15 +22,20 @@ impl Oklab {
     }
 
     pub fn to_rgba(self) -> Rgba {
+        Rgba::from_linear(self.to_linear())
+    }
+
+    /// Linear sRGB, not clamped: a channel outside 0..1 means the color is outside the gamut.
+    pub fn to_linear(self) -> Rgba {
         let l = (self.l + 0.396_337_78 * self.a + 0.215_803_76 * self.b).powi(3);
         let m = (self.l - 0.105_561_346 * self.a - 0.063_854_17 * self.b).powi(3);
         let s = (self.l - 0.089_484_18 * self.a - 1.291_485_5 * self.b).powi(3);
-        Rgba::from_linear(Rgba {
+        Rgba {
             r: 4.076_741_7 * l - 3.307_711_6 * m + 0.230_969_94 * s,
             g: -1.268_438 * l + 2.609_757_4 * m - 0.341_319_38 * s,
             b: -0.004_196_086_3 * l - 0.703_418_6 * m + 1.707_614_7 * s,
             a: 1.0,
-        })
+        }
     }
 
     fn chroma(self) -> f32 {

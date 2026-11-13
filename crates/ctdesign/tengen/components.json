@@ -197,6 +197,144 @@
       "stroke": 1.4,
       "grid": 16
     },
+    "icon-plate": {
+      "full-chroma": 0.12,
+      "neutral-chroma": 0.03,
+      "lobe-min-share": 0.15,
+      "bright-lightness": 0.6,
+      "rim-lightness": 0.97,
+      "rim-chroma": 0.09,
+      "rim-width": 0.0234,
+      "body": 0.8047,
+      "logo-scale": 0.76,
+      "shadow-far-offset": 0.0137,
+      "shadow-far-opacity": 0.1,
+      "shadow-near-offset": 0.0059,
+      "shadow-near-opacity": 0.12,
+      "logo-shadow-offset": 0.0176,
+      "logo-shadow-opacity": 0.35,
+      "glass-shadow-factor": 0.5,
+      "outline-width": 0.0029,
+      "outline-opacity": 0.12,
+      "lobe-dark": {
+        "top-lightness": 0.29,
+        "top-chroma-scale": 0.5,
+        "top-chroma-cap": 0.11,
+        "bottom-lightness": 0.2,
+        "bottom-chroma-scale": 0.425,
+        "bottom-chroma-cap": 0.0935,
+        "bottom-hue-shift": 0,
+        "opacity-top": 1,
+        "opacity-bottom": 1,
+        "rim-alpha": 0.45
+      },
+      "lobe-light": {
+        "top-lightness": 0.92,
+        "top-chroma-scale": 0.3,
+        "top-chroma-cap": 0.06,
+        "bottom-lightness": 0.84,
+        "bottom-chroma-scale": 0.255,
+        "bottom-chroma-cap": 0.051,
+        "bottom-hue-shift": 0,
+        "opacity-top": 1,
+        "opacity-bottom": 1,
+        "rim-alpha": 0.45
+      },
+      "graphite": {
+        "top-lightness": 0.29,
+        "top-chroma-scale": 0,
+        "top-chroma-cap": 0,
+        "bottom-lightness": 0.19,
+        "bottom-chroma-scale": 0,
+        "bottom-chroma-cap": 0,
+        "bottom-hue-shift": 0,
+        "opacity-top": 1,
+        "opacity-bottom": 1,
+        "rim-alpha": 0.4
+      },
+      "clear": {
+        "top-lightness": 1,
+        "top-chroma-scale": 0,
+        "top-chroma-cap": 0,
+        "bottom-lightness": 1,
+        "bottom-chroma-scale": 0,
+        "bottom-chroma-cap": 0,
+        "bottom-hue-shift": 0,
+        "opacity-top": 0.26,
+        "opacity-bottom": 0.17,
+        "rim-alpha": 0.5
+      },
+      "clear-dark": {
+        "top-lightness": 1,
+        "top-chroma-scale": 0,
+        "top-chroma-cap": 0,
+        "bottom-lightness": 1,
+        "bottom-chroma-scale": 0,
+        "bottom-chroma-cap": 0,
+        "bottom-hue-shift": 0,
+        "opacity-top": 0.17,
+        "opacity-bottom": 0.08,
+        "rim-alpha": 0.5
+      },
+      "tinted": {
+        "top-lightness": 0.52,
+        "top-chroma-scale": 0.8,
+        "top-chroma-cap": 0.096,
+        "bottom-lightness": 0.45,
+        "bottom-chroma-scale": 0.708,
+        "bottom-chroma-cap": 0.085,
+        "bottom-hue-shift": -7,
+        "opacity-top": 1,
+        "opacity-bottom": 1,
+        "rim-alpha": 0.4
+      },
+      "tinted-dark": {
+        "top-lightness": 0.3,
+        "top-chroma-scale": 0.225,
+        "top-chroma-cap": 0.027,
+        "bottom-lightness": 0.22,
+        "bottom-chroma-scale": 0.1167,
+        "bottom-chroma-cap": 0.014,
+        "bottom-hue-shift": -7,
+        "opacity-top": 1,
+        "opacity-bottom": 1,
+        "rim-alpha": 0.4
+      }
+    },
+    "icon-logo": {
+      "clear": {
+        "dark-lightness": 0.4,
+        "dark-chroma-scale": 0,
+        "dark-chroma-cap": 0,
+        "light-lightness": 0.92,
+        "light-chroma-scale": 0,
+        "light-chroma-cap": 0
+      },
+      "clear-dark": {
+        "dark-lightness": 0.3,
+        "dark-chroma-scale": 0,
+        "dark-chroma-cap": 0,
+        "light-lightness": 0.85,
+        "light-chroma-scale": 0,
+        "light-chroma-cap": 0
+      },
+      "tinted": {
+        "dark-lightness": 0.62,
+        "dark-chroma-scale": 0.15,
+        "dark-chroma-cap": 0.02,
+        "light-lightness": 0.92,
+        "light-chroma-scale": 0.15,
+        "light-chroma-cap": 0.02
+      },
+      "tinted-dark": {
+        "dark-lightness": 0.5,
+        "dark-chroma-scale": 0.8,
+        "dark-chroma-cap": 0.136,
+        "light-lightness": 0.95,
+        "light-chroma-scale": 0.8,
+        "light-chroma-cap": 0.136
+      }
+    },
     "icon-style": {
       "tint-dark-lightness": 0.22,
       "tint-dark-chroma": 0.55,

@@ -190,6 +190,32 @@ Image::data(include_bytes!("app.svg").as_slice())
     .size(64.0)
 ```
 
+### App icons
+
+`.app_icon()` draws an app's own icon the way macOS draws one that does not fill
+the squircle: on a plate, on the 1024 grid, in the user's icon style and in the
+current color scheme. The icon keeps its art; the plate comes from its colors.
+
+1. The icon is read pixel by pixel in OKLCH. Hues that carry chroma form lobes.
+2. A bright icon (mean lightness `ICON_PLATE.bright_lightness` or more) takes
+   the hue of its darkest lobe with at least `lobe_min_share` of the chroma; a
+   dark icon takes the lightest lobe. A gray icon gets a gray plate.
+3. The scheme and `icon_style` pick the plate: the icon's hue by default,
+   graphite in dark, translucent white for `Clear`, the accent for `Tinted`.
+4. The icon is scaled to `logo_scale` of the plate's body, centered on what it
+   draws, with a soft shadow, and recolored by `Monochrome`, `Clear` or `Tinted`.
+
+```rust
+Image::data(include_bytes!("firefox.svg").as_slice())
+    .app_icon()
+    .size(64.0)
+```
+
+An icon that already is a plate, such as the app icons of the Malaysia themes,
+takes `.icon_style(...)` instead. The plate and the ends of the icon's color
+ramp are the `ICON_PLATE` and `ICON_LOGO` tokens. `app_icon` works on SVG and
+on PNG and is cached with the icon style.
+
 Dark icons suit `Clear` best: the plate has the low luminance that becomes
 the transparency. The ends of the tint and the clear gray are the
 `ICON_STYLE` tokens. A style rasterizes at the window's scale and is cached

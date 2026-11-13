@@ -1,6 +1,7 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
 
+use ctappearance::ColorScheme;
 pub use ctappearance::icon_style::IconStyle;
 use ctdesign::{Rgba, SYMBOL};
 use freya_components::image_viewer::ImageViewer;
@@ -226,6 +227,7 @@ pub struct Image {
     source: Source,
     rendering_mode: TemplateRenderingMode,
     icon_style: IconStyle,
+    plated: bool,
     style: Theme,
 }
 
@@ -251,6 +253,7 @@ impl Image {
             source,
             rendering_mode: TemplateRenderingMode::Original,
             icon_style: IconStyle::Default,
+            plated: false,
             style: Theme::tengen(),
         }
     }
@@ -262,6 +265,12 @@ impl Image {
 
     pub fn icon_style(mut self, icon_style: IconStyle) -> Self {
         self.icon_style = icon_style;
+        self
+    }
+
+    /// Draws the image as an app icon: on a plate, in the user's icon style.
+    pub fn app_icon(mut self) -> Self {
+        self.plated = true;
         self
     }
 
@@ -289,7 +298,8 @@ impl From<Image> for Element {
         let color = paints.color(style.foreground.resolve(ControlState::default()));
         let side = Size::px(style.size);
         let icon_style = image.icon_style;
-        let plain = icon_style == IconStyle::Default;
+        let plain = icon_style == IconStyle::Default && !image.plated;
+        let plated = image.plated;
         match (image.source, image.rendering_mode) {
             (Source::System(glyph), _) => symbol(glyph, style.size, color).into_element(),
             (Source::Data(bytes), TemplateRenderingMode::Original) if plain && is_svg(&bytes) => {
@@ -306,10 +316,14 @@ impl From<Image> for Element {
                     .into_element()
             }
             (source, mode) => {
+                let resolved = crate::theme::resolved();
                 let treatment = match mode {
+                    _ if plated => {
+                        Treatment::Plate(resolved.icon_style, resolved.scheme, resolved.accent)
+                    }
                     TemplateRenderingMode::Template => Treatment::Tint(color),
                     TemplateRenderingMode::Original => {
-                        Treatment::Style(icon_style, crate::theme::resolved().accent)
+                        Treatment::Style(icon_style, resolved.accent)
                     }
                 };
                 match cached_image(&source, style.size, treatment) {
@@ -340,6 +354,7 @@ type TemplateKey = (Bytes, u32, u32, (u8, [u32; 4]));
 enum Treatment {
     Tint(Rgba),
     Style(IconStyle, Rgba),
+    Plate(IconStyle, ColorScheme, Rgba),
 }
 
 impl Treatment {
@@ -348,6 +363,10 @@ impl Treatment {
         match self {
             Self::Tint(color) => (0, bits(color)),
             Self::Style(style, accent) => (1 + style as u8, bits(accent)),
+            Self::Plate(style, scheme, accent) => (
+                5 + 2 * style as u8 + u8::from(scheme == ColorScheme::Dark),
+                bits(accent),
+            ),
         }
     }
 }
@@ -379,6 +398,9 @@ fn cached_image(source: &Source, size: f32, treatment: Treatment) -> Option<Imag
             Treatment::Tint(color) => tint(&raster, side, color),
             Treatment::Style(IconStyle::Default, _) => Some(ImageHandle::new(raster, Bytes::new())),
             Treatment::Style(style, accent) => restyle(&raster, side, style, accent),
+            Treatment::Plate(style, scheme, accent) => {
+                crate::app_icon::plated(&raster, side, style, scheme, accent)
+            }
         });
         let mut cache = cache.borrow_mut();
         if cache.len() >= TEMPLATE_CACHE_CAPACITY {

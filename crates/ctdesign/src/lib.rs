@@ -432,6 +432,52 @@ pub struct SymbolMetrics {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct IconPlateMetrics {
+    pub full_chroma: f32,
+    pub neutral_chroma: f32,
+    pub lobe_min_share: f32,
+    pub bright_lightness: f32,
+    pub rim_lightness: f32,
+    pub rim_chroma: f32,
+    pub rim_width: f32,
+    pub body: f32,
+    pub logo_scale: f32,
+    pub shadow_far_offset: f32,
+    pub shadow_far_opacity: f32,
+    pub shadow_near_offset: f32,
+    pub shadow_near_opacity: f32,
+    pub logo_shadow_offset: f32,
+    pub logo_shadow_opacity: f32,
+    pub glass_shadow_factor: f32,
+    pub outline_width: f32,
+    pub outline_opacity: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct IconPlateLook {
+    pub top_lightness: f32,
+    pub top_chroma_scale: f32,
+    pub top_chroma_cap: f32,
+    pub bottom_lightness: f32,
+    pub bottom_chroma_scale: f32,
+    pub bottom_chroma_cap: f32,
+    pub bottom_hue_shift: f32,
+    pub opacity_top: f32,
+    pub opacity_bottom: f32,
+    pub rim_alpha: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct IconLogoEnds {
+    pub dark_lightness: f32,
+    pub dark_chroma_scale: f32,
+    pub dark_chroma_cap: f32,
+    pub light_lightness: f32,
+    pub light_chroma_scale: f32,
+    pub light_chroma_cap: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct IconStyleMetrics {
     pub tint_dark_lightness: f32,
     pub tint_dark_chroma: f32,
