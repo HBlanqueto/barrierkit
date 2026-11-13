@@ -341,7 +341,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `ctappearance::WindowColorMode` | enum | — | — | Window tint source: `Neutral` or `Accent` | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::TintStrength` | enum | — | — | `Subtle`, `Normal`, `Strong`, `Intense`; `factor()` from `TINT_STRENGTH` | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::TintParts` | struct | — | — | Which parts take the tint: sidebars, window, groups, controls, menus, and the bars (menu bar and Dock) | [4](04-appearance-and-tokens.md#the-appearance-file) |
-| `ctappearance::SidebarGlass` | struct | ≈ `Glass` | ≈ `NSGlassEffectView` | The `base`, `solid` and `chroma` of a sidebar's glass panel; `Resolved.sidebar.glass` | [4](04-appearance-and-tokens.md#the-appearance-file) |
+| `ctappearance::SidebarGlass` | struct | ≈ `Glass` | ≈ `NSGlassEffectView` | The `base`, `solid`, `chroma` and `rim_tint` of a sidebar's glass panel; `Resolved.sidebar.glass` | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::SidebarStyle` | enum | — | — | `Island` or `Flat` sidebar | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::TrafficLightStyle` | enum | — | — | `Auto`, `Standard`, `Accent` traffic-light colors | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::TrafficLightShape` | struct | — | — | The lights' corner radius from 0 to `ROUND` (2026-11-09: was the enum `Square`/`Round`); `new(radius)`, `radius()`, `corner_radius(diameter)` | [4](04-appearance-and-tokens.md#the-appearance-file) |

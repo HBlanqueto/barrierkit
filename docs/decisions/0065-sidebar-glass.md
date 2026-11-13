@@ -55,8 +55,10 @@ Readers: whoever changes `Sidebar`, `SplitView`, `ctdesign` or `ctappearance`.
       stays: `base` and `solid` are the accent-tinted tone, the same one the
       opaque sidebar has, so the accent is the dominant color, and `chroma` is
       `GLASS.accent_share` (0.35) of the usual one, so the wallpaper only adds
-      a little. With `tint_parts.sidebars` off, the accent leaves the glass as
-      it is.
+      a little. The island's border follows the fill: `rim_tint` is the accent,
+      and the compositor takes the border's chroma from it instead of from the
+      wallpaper behind each stretch, so border and fill stay uniform. With
+      `tint_parts.sidebars` off, the accent leaves the glass as it is.
 3. **What the kit paints, by case:**
 
    | Case | The panel | Sends |

@@ -42,6 +42,7 @@ pub struct SidebarGlass {
     pub base: Rgba,
     pub solid: Rgba,
     pub chroma: f32,
+    pub rim_tint: Option<Rgba>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -131,6 +132,7 @@ impl Resolved {
                     base,
                     solid: base,
                     chroma: glass.chroma * GLASS.accent_share,
+                    rim_tint: Some(tint),
                 }
             }),
             Tint::Wallpaper => self.sidebar.glass.map(|glass| SidebarGlass {
@@ -267,6 +269,7 @@ fn chrome_surfaces(
             base,
             solid: base,
             chroma: glass_chroma(scheme).0,
+            rim_tint: None,
         }
     });
     let sidebar = match style {
@@ -1022,7 +1025,7 @@ mod tests {
     }
 
     #[test]
-    fn an_accent_window_keeps_the_glass_with_the_accent_as_its_base_and_less_wallpaper() {
+    fn an_accent_window_keeps_the_glass_with_the_accent_as_its_base_and_its_rim() {
         let accent = Rgba {
             r: 0.9,
             g: 0.3,
@@ -1047,6 +1050,8 @@ mod tests {
         assert_eq!(glass.base, glass.solid);
         assert_ne!(glass.base, neutral.base);
         assert_eq!(glass.chroma, neutral.chroma * GLASS.accent_share);
+        assert_eq!(glass.rim_tint, Some(accent));
+        assert_eq!(neutral.rim_tint, None);
     }
 
     #[test]

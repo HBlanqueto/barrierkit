@@ -414,7 +414,7 @@ a style.
 | `text_size` | `AppearanceConfig::text_size_for(Toolkit::BarrierKit)`: the BarrierKit size, or the preferred `text_size`. |
 | `shell` | `ShellPalette`: menu bar and Dock colors. |
 | `menu`, `menu_parent` | `MenuPalette` and the window color a menu sits on. `Resolved::menu_separator(panel_bg)` gives the separator over another background. |
-| `sidebar` | `SidebarSurface`: `style`, `bg`, `rim`, `inner`, its `SidebarPalette` and `glass`. `glass` is a `SidebarGlass` with `base` (the solid tone, tinted with the accent when the accent is the window color), `solid` (`base` with the wallpaper tint) and `chroma` (the share of the wallpaper's chroma, `GLASS.accent_share` of it under an accent), and is `None` with reduced transparency ([ADR 0065](../decisions/0065-sidebar-glass.md)). |
+| `sidebar` | `SidebarSurface`: `style`, `bg`, `rim`, `inner`, its `SidebarPalette` and `glass`. `glass` is a `SidebarGlass` with `base` (the solid tone, tinted with the accent when the accent is the window color), `solid` (`base` with the wallpaper tint) and `chroma` (the share of the wallpaper's chroma, `GLASS.accent_share` of it under an accent) and `rim_tint` (the accent, under an accent: the island's border takes its chroma from it instead of from the wallpaper), and is `None` with reduced transparency ([ADR 0065](../decisions/0065-sidebar-glass.md)). |
 | `toolgroup` | `ToolgroupSurface`: `bg` and its `ToolgroupPalette`. |
 | `surfaces` | `Surfaces`: `window`, `titlebar_inactive`, `sunken`, `surface`, `raised`, `control`, `hover`, `line`, already tinted. |
 

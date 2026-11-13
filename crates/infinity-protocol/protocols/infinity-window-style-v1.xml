@@ -159,7 +159,9 @@
         ignored. base has the lightness of the application's solid window, and
         the dominant color when the window is tinted with an accent. solid is
         base with the wallpaper's tint. chroma is the share of the wallpaper's
-        chroma the material takes, in thousandths.
+        chroma the material takes, in thousandths. rim is 0xAARRGGBB: when its
+        alpha is not zero, the border takes its chroma from that color, the
+        window's accent, instead of the wallpaper behind each stretch.
 
         It is double-buffered and applies on the next wl_surface.commit. A
         later request replaces the panels; an empty array removes them. It
@@ -172,6 +174,7 @@
       <arg name="base" type="uint"/>
       <arg name="solid" type="uint"/>
       <arg name="chroma" type="uint"/>
+      <arg name="rim" type="uint"/>
     </request>
   </interface>
 </protocol>
