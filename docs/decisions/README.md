@@ -34,3 +34,4 @@ it.
 | [0062](0062-short-crate-names.md) | Short crate names: `bk`, `ctdesign` and `ctappearance` | accepted |
 | [0063](0063-views-as-types-and-swift-names.md) | Views are types, modifiers are methods, Apple names | accepted |
 | [0064](0064-styles-and-themes.md) | Styles and themes: every visual property, at three levels | accepted |
+| [0065](0065-sidebar-glass.md) | The sidebar is a glass panel | accepted |
