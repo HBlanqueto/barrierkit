@@ -3,7 +3,7 @@
 mod dock_rim;
 mod rgba;
 
-pub use dock_rim::{dock_divider, dock_rim, dock_rim_dark_share};
+pub use dock_rim::{dock_divider, dock_rim, dock_rim_dark_share, dock_rim_light_share};
 pub use rgba::Rgba;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -899,13 +899,15 @@ pub struct Palette {
 }
 /// The Dock's glass and its frame. `rim` is the rim's luminance as `[lift, share]` of the glass's
 /// (see `dock_rim`), `divider` the shift of the glass's luminance that marks a divider (positive
-/// lights it, negative darkens it).
+/// lights it, negative darkens it), `corner` how the frame turns from rim to outline around a
+/// corner (see `dock_rim_light_share`).
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct DockSurface {
     pub glass: Rgba,
     pub outline: Rgba,
     pub rim: [f32; 2],
     pub divider: f32,
+    pub corner: [f32; 3],
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

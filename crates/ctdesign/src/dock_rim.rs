@@ -1,4 +1,4 @@
-use crate::{DOCK_RIM_RAMP, DockSurface, Rgba};
+use crate::{DockSurface, Rgba};
 
 /// The light of the Dock's rim over a backdrop of this colour. macOS lights the rim to a
 /// luminance that follows the glass's: `lift` plus `share` of it (all between 0 and 1). The rim is
@@ -40,21 +40,25 @@ fn overlay(luminance: f32, shift: f32) -> Rgba {
     }
 }
 
-/// How much of the Dock's frame is the dark outline and how much the light rim, at a height of
-/// the bar from 0 (top) to 1 (bottom): all outline along the sides, all rim on top and bottom,
-/// handing over around the corners.
-pub fn dock_rim_dark_share(height: f32) -> f32 {
-    let [from, to] = DOCK_RIM_RAMP;
-    let distance = height.min(1.0 - height);
-    let progress = ((distance - from) / (to - from)).clamp(0.0, 1.0);
-    progress * progress * (3.0 - 2.0 * progress)
+/// The share of the rim that shows where the frame's normal is `angle` degrees from vertical (0 on
+/// top and bottom, 90 on the sides): all of it on the straight edges, dying away around a corner
+/// (`DockSurface::corner`).
+pub fn dock_rim_light_share([decay, ..]: [f32; 3], angle: f32) -> f32 {
+    (-angle / decay).exp()
+}
+
+/// The share of the outline that shows at that angle: none on top and bottom, growing around a
+/// corner, all of it on the sides.
+pub fn dock_rim_dark_share([_, from, to]: [f32; 3], angle: f32) -> f32 {
+    ((angle - from) / (to - from)).clamp(0.0, 1.0)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::{
-        DOCK_DIVIDER_DARK, DOCK_DIVIDER_LIGHT, DOCK_RIM_DARK, DOCK_RIM_GLOW, DOCK_RIM_LIGHT,
+        DOCK_DIVIDER_DARK, DOCK_DIVIDER_LIGHT, DOCK_RIM_CORNER_DARK, DOCK_RIM_CORNER_LIGHT,
+        DOCK_RIM_DARK, DOCK_RIM_GLOW, DOCK_RIM_LIGHT,
     };
 
     fn grey(level: u8) -> Rgba {
@@ -73,6 +77,7 @@ mod tests {
             outline: grey(0),
             rim,
             divider,
+            corner: DOCK_RIM_CORNER_LIGHT,
         }
     }
 
@@ -152,17 +157,22 @@ mod tests {
     }
 
     #[test]
-    fn the_frame_is_outline_on_the_sides_and_rim_on_top_and_bottom_and_symmetric() {
-        assert_eq!(dock_rim_dark_share(0.0), 0.0);
-        assert_eq!(dock_rim_dark_share(1.0), 0.0);
-        assert_eq!(dock_rim_dark_share(0.5), 1.0);
-        for step in 0..=20 {
-            let height = step as f32 / 20.0;
-            let share = dock_rim_dark_share(height);
-            assert!((share - dock_rim_dark_share(1.0 - height)).abs() < 1e-6);
-            assert!((0.0..=1.0).contains(&share));
+    fn around_a_corner_the_rim_dies_away_and_the_outline_takes_over() {
+        for corner in [DOCK_RIM_CORNER_LIGHT, DOCK_RIM_CORNER_DARK] {
+            assert_eq!(dock_rim_light_share(corner, 0.0), 1.0);
+            assert_eq!(dock_rim_dark_share(corner, 0.0), 0.0);
+            assert_eq!(dock_rim_dark_share(corner, 90.0), 1.0);
+            assert!(dock_rim_light_share(corner, 90.0) < 0.1);
+            let angles: Vec<f32> = (0..=18).map(|step| step as f32 * 5.0).collect();
+            for pair in angles.windows(2) {
+                assert!(
+                    dock_rim_light_share(corner, pair[0]) > dock_rim_light_share(corner, pair[1])
+                );
+                assert!(
+                    dock_rim_dark_share(corner, pair[0]) <= dock_rim_dark_share(corner, pair[1])
+                );
+            }
         }
-        assert!(dock_rim_dark_share(0.3) > 0.0 && dock_rim_dark_share(0.3) < 1.0);
     }
 
     #[test]

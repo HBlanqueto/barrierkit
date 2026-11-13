@@ -137,7 +137,8 @@ pub fn panel_edges(body: Rect, radius: f32, fill: Rgba) -> Rect {
 
 /// The Dock's frame: the light of its rim along its inner edge, as colours (with their opacity)
 /// read from the backdrop, and the `outline` that darkens its sides. `top` and `bottom` run left
-/// to right along those edges; `left` and `right` are the sides.
+/// to right along those edges; `left` and `right` are the colours at the sides, which the corners
+/// take. `corner` is `DockSurface::corner`.
 #[derive(Clone, Debug, PartialEq)]
 pub struct GlassRim {
     pub top: Vec<Rgba>,
@@ -145,12 +146,13 @@ pub struct GlassRim {
     pub left: Rgba,
     pub right: Rgba,
     pub outline: Rgba,
+    pub corner: [f32; 3],
 }
 
 /// A glass of `width` by `height` filled with `fill` and framed as macOS frames the Dock: a dark
 /// outline one pixel outside it, strongest on the sides, and a light rim one pixel inside it with a
-/// glow that dies away inwards, strongest on top and bottom. Around the corners the outline hands
-/// over to the rim (`ctdesign::dock_rim_dark_share`).
+/// glow that dies away inwards, strongest on top and bottom. Around each corner the rim dies away
+/// and the outline takes over, by the angle of the frame (`ctdesign::dock_rim_light_share`).
 pub fn glass_edge((width, height): (f32, f32), radius: f32, fill: Rgba, rim: GlassRim) -> Rect {
     let corner = continuous_corner(radius);
     let pixel = 1.0 / *Platform::get().current_window().scale_factor.read() as f32;
@@ -168,9 +170,20 @@ pub fn glass_edge((width, height): (f32, f32), radius: f32, fill: Rgba, rim: Gla
         )
 }
 
+// The corners of a frame: where each one's square sits, the centre its angle is measured from, the
+// sweep it covers (degrees from the +x axis, clockwise), whether the angle from vertical
+// (0 on top and bottom, 90 on the sides) runs against the sweep, and which side's colour it takes.
+struct Quarter {
+    square: freya_engine::prelude::Rect,
+    centre: (f32, f32),
+    start: f32,
+    against: bool,
+    left: bool,
+}
+
 fn glass_frame(context: &mut FillRenderContext, fill: Rgba, rim: &GlassRim, corner: CornerRadius) {
     use freya_engine::prelude::{
-        BlendMode, ClipOp, Paint, PaintStyle, PathBuilder, RRect, Rect as SkRect, shaders,
+        ClipOp, Paint, PaintStyle, PathBuilder, RRect, Rect as SkRect, Shader,
     };
     let RenderTarget::Background { canvas, .. } = &context.target else {
         return;
@@ -179,44 +192,85 @@ fn glass_frame(context: &mut FillRenderContext, fill: Rgba, rim: &GlassRim, corn
     let (full_width, full_height) = (context.size.width, context.size.height);
     let (width, height) = (full_width - 2.0 * pixel, full_height - 2.0 * pixel);
     let radius = corner.top_left();
-    let glass = SkRect::from_xywh(pixel, pixel, width, height);
+    // How far a continuous corner reaches along each edge.
+    let reach = radius * WINDOW_CORNER.expansion;
+    let (left, top, right, bottom) = (pixel, pixel, pixel + width, pixel + height);
+    let glass = SkRect::from_xywh(left, top, width, height);
     // The glass shape, `inset` logical pixels in (negative: out).
     let path = |inset: f32| {
-        let reach = (radius - inset).max(0.0);
+        let rounding = (radius - inset).max(0.0);
         let mut outline = PathBuilder::new();
         outline
             .add_path(
-                &continuous_corner(reach).smoothed_path(RRect::new_rect_xy(
+                &continuous_corner(rounding).smoothed_path(RRect::new_rect_xy(
                     glass.with_inset((inset, inset)),
-                    reach,
-                    reach,
+                    rounding,
+                    rounding,
                 )),
                 None,
             )
             .close();
         outline.detach()
     };
-    let down = |colour: Rgba, share: &dyn Fn(f32) -> f32| -> Vec<(f32, Rgba)> {
-        (0..=20)
-            .map(|step| {
-                let at = step as f32 / 20.0;
-                (
-                    at,
-                    Rgba {
-                        a: colour.a * share(at),
-                        ..colour
-                    },
-                )
-            })
-            .collect()
-    };
-    let line = |shader: freya_engine::prelude::Shader, depth: f32| {
+    let stroke = |clip: SkRect, shader: Option<Shader>, inset: f32| {
+        let Some(shader) = shader else {
+            return;
+        };
         let mut paint = Paint::default();
         paint.set_shader(shader);
         paint.set_style(PaintStyle::Stroke);
         paint.set_anti_alias(true);
         paint.set_stroke_width(pixel);
-        (paint, path(depth))
+        canvas.save();
+        canvas.clip_rect(clip, ClipOp::Intersect, false);
+        canvas.draw_path(&path(inset), &paint);
+        canvas.restore();
+    };
+    let quarters = [
+        Quarter {
+            square: SkRect::new(0.0, 0.0, left + reach, top + reach),
+            centre: (left + reach, top + reach),
+            start: 180.0,
+            against: true,
+            left: true,
+        },
+        Quarter {
+            square: SkRect::new(right - reach, 0.0, full_width, top + reach),
+            centre: (right - reach, top + reach),
+            start: 270.0,
+            against: false,
+            left: false,
+        },
+        Quarter {
+            square: SkRect::new(right - reach, bottom - reach, full_width, full_height),
+            centre: (right - reach, bottom - reach),
+            start: 0.0,
+            against: true,
+            left: false,
+        },
+        Quarter {
+            square: SkRect::new(0.0, bottom - reach, left + reach, full_height),
+            centre: (left + reach, bottom - reach),
+            start: 90.0,
+            against: false,
+            left: true,
+        },
+    ];
+    let quarter = |at: &Quarter, colour: Rgba, share: &dyn Fn(f32) -> f32| {
+        let stops: Vec<(f32, Rgba)> = (0..=18)
+            .map(|step| {
+                let along = step as f32 / 18.0;
+                let angle = 90.0 * if at.against { 1.0 - along } else { along };
+                (
+                    along,
+                    Rgba {
+                        a: colour.a * share(angle),
+                        ..colour
+                    },
+                )
+            })
+            .collect();
+        sweep(at.centre, (at.start, at.start + 90.0), &stops)
     };
 
     canvas.save();
@@ -224,67 +278,86 @@ fn glass_frame(context: &mut FillRenderContext, fill: Rgba, rim: &GlassRim, corn
     let mut paint = Paint::default();
     paint.set_color(color(fill));
     canvas.draw_paint(&paint);
-    let reach = (radius / width).min(0.5);
     let strengths = std::iter::once(1.0).chain(ctdesign::DOCK_RIM_GLOW);
     for (depth, strength) in strengths.enumerate() {
-        let fade = |at: f32| strength * (1.0 - ctdesign::dock_rim_dark_share(at));
-        let Some(mask) = linear((0.0, pixel), (0.0, pixel + height), &down(WHITE, &fade)) else {
-            continue;
-        };
-        for (edge, from, to) in [
-            (&rim.top, 0.0, full_height / 2.0),
-            (&rim.bottom, full_height / 2.0, full_height),
-        ] {
-            let Some(along) = linear((pixel, 0.0), (pixel + width, 0.0), &along(edge, rim, reach))
-            else {
-                continue;
-            };
-            let (paint, outline) = line(
-                shaders::blend(BlendMode::Modulate, along, mask.clone()),
-                (depth as f32 + 0.5) * pixel,
-            );
-            canvas.save();
-            canvas.clip_rect(
-                SkRect::new(0.0, from, full_width, to),
-                ClipOp::Intersect,
-                false,
-            );
-            canvas.draw_path(&outline, &paint);
-            canvas.restore();
+        let inset = (depth as f32 + 0.5) * pixel;
+        let reach_share = (reach / width).min(0.5);
+        let ends = (rim.left, rim.right);
+        stroke(
+            SkRect::new(left + reach, 0.0, right - reach, full_height / 2.0),
+            linear(
+                (left, 0.0),
+                (right, 0.0),
+                &along(&rim.top, ends, reach_share, strength),
+            ),
+            inset,
+        );
+        stroke(
+            SkRect::new(left + reach, full_height / 2.0, right - reach, full_height),
+            linear(
+                (left, 0.0),
+                (right, 0.0),
+                &along(&rim.bottom, ends, reach_share, strength),
+            ),
+            inset,
+        );
+        for at in &quarters {
+            let colour = if at.left { rim.left } else { rim.right };
+            let lit = |angle| strength * ctdesign::dock_rim_light_share(rim.corner, angle);
+            stroke(at.square, quarter(at, colour, &lit), inset);
         }
     }
     canvas.restore();
 
     canvas.save();
     canvas.clip_path(&path(0.0), ClipOp::Difference, true);
-    if let Some(shader) = linear(
-        (0.0, pixel),
-        (0.0, pixel + height),
-        &down(rim.outline, &ctdesign::dock_rim_dark_share),
-    ) {
-        let (paint, outline) = line(shader, -0.5 * pixel);
-        canvas.draw_path(&outline, &paint);
+    let outset = -0.5 * pixel;
+    stroke(
+        SkRect::new(0.0, top + reach, left + reach, bottom - reach),
+        linear(
+            (0.0, 0.0),
+            (1.0, 0.0),
+            &[(0.0, rim.outline), (1.0, rim.outline)],
+        ),
+        outset,
+    );
+    stroke(
+        SkRect::new(right - reach, top + reach, full_width, bottom - reach),
+        linear(
+            (0.0, 0.0),
+            (1.0, 0.0),
+            &[(0.0, rim.outline), (1.0, rim.outline)],
+        ),
+        outset,
+    );
+    for at in &quarters {
+        let dark = |angle| ctdesign::dock_rim_dark_share(rim.corner, angle);
+        stroke(at.square, quarter(at, rim.outline, &dark), outset);
     }
     canvas.restore();
 }
 
-const WHITE: Rgba = Rgba {
-    r: 1.0,
-    g: 1.0,
-    b: 1.0,
-    a: 1.0,
-};
-
-// The edge's colours spread over the bar, with the sides at the ends and where each corner starts.
-fn along(edge: &[Rgba], rim: &GlassRim, reach: f32) -> Vec<(f32, Rgba)> {
+// The edge's colours spread over the bar, with the sides at the ends and where each corner starts,
+// all `strength` as opaque.
+fn along(
+    edge: &[Rgba],
+    (left, right): (Rgba, Rgba),
+    reach: f32,
+    strength: f32,
+) -> Vec<(f32, Rgba)> {
     let step = (1.0 - 2.0 * reach) / edge.len().max(1) as f32;
-    std::iter::once((0.0, rim.left))
+    let weaker = |colour: Rgba| Rgba {
+        a: colour.a * strength,
+        ..colour
+    };
+    std::iter::once((0.0, left))
         .chain(
             edge.iter()
                 .enumerate()
                 .map(|(index, colour)| (reach + (index as f32 + 0.5) * step, *colour)),
         )
-        .chain(std::iter::once((1.0, rim.right)))
+        .chain(std::iter::once((1.0, right)))
+        .map(|(at, colour)| (at, weaker(colour)))
         .collect()
 }
 
@@ -370,7 +443,29 @@ pub(crate) fn linear(
     to: (f32, f32),
     stops: &[(f32, Rgba)],
 ) -> Option<freya_engine::prelude::Shader> {
-    use freya_engine::prelude::{Color4f, Colors, Gradient, Interpolation, TileMode, shaders};
+    use freya_engine::prelude::shaders;
+    gradient(stops, |gradient| {
+        shaders::linear_gradient((from, to), gradient, None)
+    })
+}
+
+// `angles` are degrees from the +x axis, clockwise; the stops run from the first to the second.
+fn sweep(
+    centre: (f32, f32),
+    angles: (f32, f32),
+    stops: &[(f32, Rgba)],
+) -> Option<freya_engine::prelude::Shader> {
+    use freya_engine::prelude::shaders;
+    gradient(stops, |gradient| {
+        shaders::sweep_gradient(centre, angles, gradient, None)
+    })
+}
+
+fn gradient(
+    stops: &[(f32, Rgba)],
+    shader: impl FnOnce(&freya_engine::prelude::Gradient) -> Option<freya_engine::prelude::Shader>,
+) -> Option<freya_engine::prelude::Shader> {
+    use freya_engine::prelude::{Color4f, Colors, Gradient, Interpolation, TileMode};
     let (colors, offsets): (Vec<Color4f>, Vec<f32>) = stops
         .iter()
         .map(|&(offset, c)| (Color4f::new(c.r, c.g, c.b, c.a), offset))
@@ -379,5 +474,5 @@ pub(crate) fn linear(
         Colors::new(&colors, Some(&offsets), TileMode::Clamp, None),
         Interpolation::default(),
     );
-    shaders::linear_gradient((from, to), &gradient, None)
+    shader(&gradient)
 }
