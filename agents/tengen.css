@@ -519,14 +519,14 @@
   --bk-window-sidebar-island-traffic-y: 11;
   --bk-window-sidebar-flat-line: var(--bk-line);
   --bk-window-sidebar-glass-chroma-light: 0.6;
-  --bk-window-sidebar-glass-chroma-dark: 0.85;
+  --bk-window-sidebar-glass-chroma-dark: 0.35;
   --bk-window-sidebar-glass-chroma-cap-light: 0.09;
-  --bk-window-sidebar-glass-chroma-cap-dark: 0.12;
+  --bk-window-sidebar-glass-chroma-cap-dark: 0.04;
   --bk-window-sidebar-glass-lightness-light: 0.2;
-  --bk-window-sidebar-glass-lightness-dark: 0.5;
+  --bk-window-sidebar-glass-lightness-dark: 0.0;
   --bk-window-sidebar-glass-accent-share: 0.35;
   --bk-window-sidebar-glass-rim-chroma: 0.65;
-  --bk-window-sidebar-glass-blur-passes: 3;
+  --bk-window-sidebar-glass-blur-passes: 5;
   --bk-window-sidebar-item-height: 32;
   --bk-window-sidebar-item-radius: var(--bk-radius-sm);
   --bk-window-sidebar-item-padding-x: 9;

@@ -611,12 +611,12 @@
           "line": "line"
         },
         "glass": {
-          "chroma": { "light": 0.6, "dark": 0.85 },
-          "chroma-cap": { "light": 0.09, "dark": 0.12 },
-          "lightness": { "light": 0.2, "dark": 0.5 },
+          "chroma": { "light": 0.6, "dark": 0.35 },
+          "chroma-cap": { "light": 0.09, "dark": 0.04 },
+          "lightness": { "light": 0.2, "dark": 0.0 },
           "accent-share": 0.35,
           "rim-chroma": 0.65,
-          "blur-passes": 3
+          "blur-passes": 5
         },
         "item": {
           "height": 32,
