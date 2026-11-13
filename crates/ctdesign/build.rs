@@ -164,6 +164,7 @@ DOCK_PADDING f32 components.shell.dock.padding
 DOCK_PADDING_SCALE f32 components.shell.dock.padding-scale
 DOCK_SEPARATOR f32 components.shell.dock.separator
 DOCK_SEPARATOR_LENGTH f32 components.shell.dock.separator-length
+DOCK_SEPARATOR_INK_MIX f32 components.shell.dock.separator-ink-mix
 DOCK_RADIUS f32 components.shell.dock.radius
 DOCK_MAGNIFY_RADIUS f32 components.shell.dock.magnify-radius
 DOCK_MAGNIFY_MS u64 components.shell.dock.magnify-ms
@@ -182,6 +183,7 @@ DOCK_ICON_BODY f32 components.shell.dock.icon-body
 DOCK_WINDOW_FRAME f32 components.shell.dock.window-frame
 DOCK_WINDOW_ICON f32 components.shell.dock.window-icon
 DOCK_WINDOW_BADGE f32 components.shell.dock.window-badge
+DOCK_THUMBNAIL_RADIUS f32 components.shell.dock.thumbnail-radius
 DOCK_LABEL_GAP f32 components.shell.dock.label-gap
 DOCK_LABEL_FONT_SIZE f32 components.shell.dock.label-font-size
 DOCK_LABEL_PADDING_X f32 components.shell.dock.label-padding-x
