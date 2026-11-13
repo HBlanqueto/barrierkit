@@ -98,6 +98,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `style::text` | fn | ≈ `Text` | ≈ `NSTextField(labelWithString:)` | One-line label with a type token and a color | [4](04-appearance-and-tokens.md#text-shapes-and-colors) |
 | `style::continuous_corner` | fn | `RoundedCornerStyle.continuous` | — | Corner radius with Apple's continuous curvature | [4](04-appearance-and-tokens.md#text-shapes-and-colors) |
 | `style::panel_edges` | fn | — | — | Card framed with a panel window's inner and outer lines (glass in dark) | [4](04-appearance-and-tokens.md#text-shapes-and-colors) |
+| `style::glass_edge` | fn | — | — | The inner line of `panel_edges` alone, with an opacity factor | [4](04-appearance-and-tokens.md#text-shapes-and-colors) |
 | `theme::color` | fn | — | — | Converts a Tengen `Rgba` to Freya's `Color` | [4](04-appearance-and-tokens.md#text-shapes-and-colors) |
 | `theme::resolved` | fn | ≈ `EnvironmentValues` | ≈ `NSApplication.effectiveAppearance` | Resolved appearance at this point of the tree | [4](04-appearance-and-tokens.md#theme-functions) |
 | `theme::use_appearance` | fn | ≈ `.environment(_:_:)` | ≈ `NSAppearanceCustomization.appearance` | Hook: changes the appearance for a component and its children | [4](04-appearance-and-tokens.md#theme-functions) |

@@ -108,21 +108,8 @@ pub(crate) fn continuous(radius: CornerRadius) -> CornerRadius {
 pub fn panel_edges(body: Rect, radius: f32, fill: Rgba) -> Rect {
     let palette = ctappearance::palette(crate::theme::resolved().scheme);
     let corner = continuous_corner(radius);
-    let body = body.corner_radius(corner);
     // The compositor's frame lines are one physical pixel at every scale.
     let pixel = 1.0 / *Platform::get().current_window().scale_factor.read() as f32;
-    let body = match (palette.panel_inner_line, palette.inner_line) {
-        (Some(line), _) => body.background(Fill::Callback(RenderCallback::new(move |context| {
-            glass_line(context, fill, line, corner)
-        }))),
-        (None, Some(inner)) => body.background(color(fill)).border(
-            Border::new()
-                .fill(color(inner))
-                .width(pixel)
-                .alignment(BorderAlignment::Inner),
-        ),
-        (None, None) => body.background(color(fill)),
-    };
     rect()
         .corner_radius(corner)
         .border(
@@ -131,7 +118,39 @@ pub fn panel_edges(body: Rect, radius: f32, fill: Rgba) -> Rect {
                 .width(pixel)
                 .alignment(BorderAlignment::Outer),
         )
-        .child(body)
+        .child(glass_edge(body, radius, fill, 1.0))
+}
+
+/// The inner line of `panel_edges` alone, without the outer line, `strength` times as opaque:
+/// the Dock's glass has no black rim, and its line grows with the light of the wallpaper behind.
+pub fn glass_edge(body: Rect, radius: f32, fill: Rgba, strength: f32) -> Rect {
+    let palette = ctappearance::palette(crate::theme::resolved().scheme);
+    let corner = continuous_corner(radius);
+    let pixel = 1.0 / *Platform::get().current_window().scale_factor.read() as f32;
+    let stronger = |line: Rgba| Rgba {
+        a: (line.a * strength).min(1.0),
+        ..line
+    };
+    let body = body.corner_radius(corner);
+    match (palette.panel_inner_line, palette.inner_line) {
+        (Some(line), _) => {
+            let line = ctdesign::PanelLine {
+                sides: stronger(line.sides),
+                edges: stronger(line.edges),
+                glow: stronger(line.glow),
+            };
+            body.background(Fill::Callback(RenderCallback::new(move |context| {
+                glass_line(context, fill, line, corner)
+            })))
+        }
+        (None, Some(inner)) => body.background(color(fill)).border(
+            Border::new()
+                .fill(color(stronger(inner)))
+                .width(pixel)
+                .alignment(BorderAlignment::Inner),
+        ),
+        (None, None) => body.background(color(fill)),
+    }
 }
 
 fn glass_line(
