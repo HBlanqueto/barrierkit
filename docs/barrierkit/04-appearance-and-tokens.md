@@ -423,9 +423,11 @@ The rules `resolve` applies:
 1. `reduce_transparency` or `contrast` picks the `_OPAQUE` variants of the
    shell, menu, sidebar and toolgroup colors. macOS turns Reduce transparency
    on with Increase contrast.
-2. A tint mixes the tint color into each surface. The amount is
-   `WINDOW_TINT_ACCENT` (light, dark), times the strength factor, times the
-   `LAYER_FACTOR_*` of that layer. A part left out of `tint_parts` stays
+2. A tint takes the chroma of the tint color into each surface, in OKLab, so
+   a surface keeps its lightness (`backdrop::take_chroma`, as the wallpaper
+   tint does). The amount is `WINDOW_TINT_ACCENT` (light, dark), times the
+   strength factor, times the `LAYER_FACTOR_*` of that layer, times
+   `ACCENT_CHROMA_GAIN` for an accent. A part left out of `tint_parts` stays
    neutral.
 3. `on_accent` is always the light ink, as in macOS. An accent where it does
    not reach 4.5:1 (`ON_ACCENT_MIN_CONTRAST`) is darkened just enough
@@ -738,6 +740,7 @@ nothing is blurred.
 | `BG_HOVER_LIGHT`, `BG_HOVER_DARK`, `BG_HOVER_DARK_TINT` | `Rgba` | Control face under the pointer. |
 | `LAYER_FACTOR_BG_SUNKEN`, `LAYER_FACTOR_SURFACE`, `LAYER_FACTOR_RAISED`, `LAYER_FACTOR_CONTROL`, `LAYER_FACTOR_LINE` | `f32` | Share of the window tint each layer takes: 1.4, 1, 0.6, 1.2, 1.2. |
 | `WINDOW_TINT_ACCENT` | `[f32; 2]` | Accent tint amount in light and dark. |
+| `ACCENT_CHROMA_GAIN` | `f32` | Gain (2.5) of the accent's chroma share, so the chroma-only tint looks as strong as the old sRGB mix did. |
 | `WALLPAPER_TINTING`, `WALLPAPER_TINTING_SIDEBAR`, `WALLPAPER_TINTING_GRID` | `[f32; 2]`, `f32`, `u32` | Share of the wallpaper's OKLab chroma a window takes in light and dark, measured on macOS 26 (ADR 0065); how much more the sidebar takes; cells per side of the wallpaper grid. |
 | `TINT_STRENGTH` | `[f32; 4]` | Factor of each `TintStrength`: 0.5, 1, 1.5, 2. |
 | `ACCENT_MIN_CONTRAST_ON_WINDOW`, `ON_ACCENT_MIN_CONTRAST` | `f32` | 3 and 4.5: contrast of the accent on the window and of ink on the accent. |

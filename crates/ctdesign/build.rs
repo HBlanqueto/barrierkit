@@ -89,6 +89,7 @@ TOOLBAR_TABS ToolbarTabsMetrics components.toolbar-tabs
     icon_gap=tab.gap font_size=tab.font.size font_weight=tab.font.weight
 ACCENT_MIN_CONTRAST_ON_WINDOW f32 appearance.contrast.accent-on-window
 ON_ACCENT_MIN_CONTRAST f32 appearance.contrast.on-accent
+ACCENT_CHROMA_GAIN f32 appearance.modes.accent.chroma-gain
 WALLPAPER_TINTING_GRID u32 appearance.wallpaper-tinting.grid
 WALLPAPER_TINTING_SIDEBAR f32 appearance.wallpaper-tinting.sidebar
 TEXT_SIZES [f32;6] appearance.accessibility.text-sizes

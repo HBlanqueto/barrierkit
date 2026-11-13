@@ -189,8 +189,11 @@ mod tests {
 
     #[test]
     fn surface_backgrounds_follow_the_window_colour_mode_and_the_bars_part() {
+        use ctappearance::backdrop::take_chroma;
         use ctappearance::{TintParts, WindowColorMode};
-        use ctdesign::{BG_WINDOW_LIGHT, SHELL_LIGHT_OPAQUE, WINDOW_TINT_ACCENT};
+        use ctdesign::{
+            ACCENT_CHROMA_GAIN, BG_WINDOW_LIGHT, SHELL_LIGHT_OPAQUE, WINDOW_TINT_ACCENT,
+        };
 
         let accent = Rgba {
             r: 0.2,
@@ -235,14 +238,22 @@ mod tests {
                 "accent/windows",
                 WindowColorMode::Accent,
                 false,
-                BG_WINDOW_LIGHT.mix(accent, WINDOW_TINT_ACCENT[0]),
+                take_chroma(
+                    BG_WINDOW_LIGHT,
+                    accent,
+                    WINDOW_TINT_ACCENT[0] * ACCENT_CHROMA_GAIN,
+                ),
                 SHELL_LIGHT_OPAQUE.bar,
             ),
             (
                 "accent/bars",
                 WindowColorMode::Accent,
                 true,
-                BG_WINDOW_LIGHT.mix(accent, WINDOW_TINT_ACCENT[0]),
+                take_chroma(
+                    BG_WINDOW_LIGHT,
+                    accent,
+                    WINDOW_TINT_ACCENT[0] * ACCENT_CHROMA_GAIN,
+                ),
                 SHELL_LIGHT_OPAQUE.bar.mix(accent, WINDOW_TINT_ACCENT[0]),
             ),
         ];

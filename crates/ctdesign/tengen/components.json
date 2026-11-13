@@ -1122,7 +1122,8 @@
         "windows": {
           "light": 0.06,
           "dark": 0.08
-        }
+        },
+        "chroma-gain": 2.5
       }
     },
     "contrast": {

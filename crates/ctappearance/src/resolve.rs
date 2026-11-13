@@ -1,24 +1,24 @@
 use ctdesign::{
-    ACCENT_MIN_CONTRAST_ON_WINDOW, BG_CONTROL_DARK, BG_CONTROL_DARK_TINT, BG_CONTROL_LIGHT,
-    BG_HOVER_DARK, BG_HOVER_DARK_TINT, BG_HOVER_LIGHT, BG_RAISED_DARK, BG_RAISED_DARK_TINT,
-    BG_RAISED_LIGHT, BG_SUNKEN_DARK, BG_SUNKEN_DARK_TINT, BG_SUNKEN_LIGHT, BG_SURFACE_DARK,
-    BG_SURFACE_DARK_TINT, BG_SURFACE_LIGHT, BG_WINDOW_DARK, BG_WINDOW_DARK_TINT, BG_WINDOW_LIGHT,
-    DARK, DARK_TINT, GLASS, LAYER_FACTOR_BG_SUNKEN, LAYER_FACTOR_CONTROL, LAYER_FACTOR_LINE,
-    LAYER_FACTOR_RAISED, LAYER_FACTOR_SURFACE, LIGHT, MENU_DARK, MENU_DARK_OPAQUE, MENU_DARK_TINT,
-    MENU_DARK_TINT_OPAQUE, MENU_LIGHT, MENU_LIGHT_OPAQUE, MENU_SEPARATOR_INK_MIX, MenuPalette,
-    ON_ACCENT_MIN_CONTRAST, Palette, Rgba, SHELL_DARK, SHELL_DARK_OPAQUE, SHELL_DARK_TINT,
-    SHELL_DARK_TINT_OPAQUE, SHELL_LIGHT, SHELL_LIGHT_OPAQUE, SIDEBAR_DARK, SIDEBAR_DARK_OPAQUE,
-    SIDEBAR_DARK_TINT, SIDEBAR_DARK_TINT_OPAQUE, SIDEBAR_GLASS_BASE_DARK,
-    SIDEBAR_GLASS_BASE_DARK_TINT, SIDEBAR_GLASS_BASE_LIGHT, SIDEBAR_ISLAND_DARK,
-    SIDEBAR_ISLAND_DARK_TINT, SIDEBAR_ISLAND_INNER_DARK, SIDEBAR_ISLAND_INNER_DARK_TINT,
-    SIDEBAR_ISLAND_INNER_LIGHT, SIDEBAR_ISLAND_LIGHT, SIDEBAR_ISLAND_RIM_DARK,
-    SIDEBAR_ISLAND_RIM_DARK_TINT, SIDEBAR_ISLAND_RIM_LIGHT, SIDEBAR_LIGHT, SIDEBAR_LIGHT_OPAQUE,
-    SIDEBAR_PALETTE_DARK, SIDEBAR_PALETTE_DARK_TINT, SIDEBAR_PALETTE_LIGHT, ShellPalette,
-    SidebarPalette, TITLEBAR, TOOLGROUP_BG_DARK, TOOLGROUP_BG_DARK_OPAQUE, TOOLGROUP_BG_DARK_TINT,
-    TOOLGROUP_BG_DARK_TINT_OPAQUE, TOOLGROUP_BG_LIGHT, TOOLGROUP_BG_LIGHT_OPAQUE,
-    TOOLGROUP_PALETTE_DARK, TOOLGROUP_PALETTE_DARK_TINT, TOOLGROUP_PALETTE_LIGHT,
-    TRAFFIC_CLOSE_MINIMIZE_DARKEN, TRAFFIC_ZOOM_LIGHTEN, ToolgroupPalette, WALLPAPER_TINTING,
-    WALLPAPER_TINTING_SIDEBAR, WINDOW_TINT_ACCENT,
+    ACCENT_CHROMA_GAIN, ACCENT_MIN_CONTRAST_ON_WINDOW, BG_CONTROL_DARK, BG_CONTROL_DARK_TINT,
+    BG_CONTROL_LIGHT, BG_HOVER_DARK, BG_HOVER_DARK_TINT, BG_HOVER_LIGHT, BG_RAISED_DARK,
+    BG_RAISED_DARK_TINT, BG_RAISED_LIGHT, BG_SUNKEN_DARK, BG_SUNKEN_DARK_TINT, BG_SUNKEN_LIGHT,
+    BG_SURFACE_DARK, BG_SURFACE_DARK_TINT, BG_SURFACE_LIGHT, BG_WINDOW_DARK, BG_WINDOW_DARK_TINT,
+    BG_WINDOW_LIGHT, DARK, DARK_TINT, GLASS, LAYER_FACTOR_BG_SUNKEN, LAYER_FACTOR_CONTROL,
+    LAYER_FACTOR_LINE, LAYER_FACTOR_RAISED, LAYER_FACTOR_SURFACE, LIGHT, MENU_DARK,
+    MENU_DARK_OPAQUE, MENU_DARK_TINT, MENU_DARK_TINT_OPAQUE, MENU_LIGHT, MENU_LIGHT_OPAQUE,
+    MENU_SEPARATOR_INK_MIX, MenuPalette, ON_ACCENT_MIN_CONTRAST, Palette, Rgba, SHELL_DARK,
+    SHELL_DARK_OPAQUE, SHELL_DARK_TINT, SHELL_DARK_TINT_OPAQUE, SHELL_LIGHT, SHELL_LIGHT_OPAQUE,
+    SIDEBAR_DARK, SIDEBAR_DARK_OPAQUE, SIDEBAR_DARK_TINT, SIDEBAR_DARK_TINT_OPAQUE,
+    SIDEBAR_GLASS_BASE_DARK, SIDEBAR_GLASS_BASE_DARK_TINT, SIDEBAR_GLASS_BASE_LIGHT,
+    SIDEBAR_ISLAND_DARK, SIDEBAR_ISLAND_DARK_TINT, SIDEBAR_ISLAND_INNER_DARK,
+    SIDEBAR_ISLAND_INNER_DARK_TINT, SIDEBAR_ISLAND_INNER_LIGHT, SIDEBAR_ISLAND_LIGHT,
+    SIDEBAR_ISLAND_RIM_DARK, SIDEBAR_ISLAND_RIM_DARK_TINT, SIDEBAR_ISLAND_RIM_LIGHT, SIDEBAR_LIGHT,
+    SIDEBAR_LIGHT_OPAQUE, SIDEBAR_PALETTE_DARK, SIDEBAR_PALETTE_DARK_TINT, SIDEBAR_PALETTE_LIGHT,
+    ShellPalette, SidebarPalette, TITLEBAR, TOOLGROUP_BG_DARK, TOOLGROUP_BG_DARK_OPAQUE,
+    TOOLGROUP_BG_DARK_TINT, TOOLGROUP_BG_DARK_TINT_OPAQUE, TOOLGROUP_BG_LIGHT,
+    TOOLGROUP_BG_LIGHT_OPAQUE, TOOLGROUP_PALETTE_DARK, TOOLGROUP_PALETTE_DARK_TINT,
+    TOOLGROUP_PALETTE_LIGHT, TRAFFIC_CLOSE_MINIMIZE_DARKEN, TRAFFIC_ZOOM_LIGHTEN, ToolgroupPalette,
+    WALLPAPER_TINTING, WALLPAPER_TINTING_SIDEBAR, WINDOW_TINT_ACCENT,
 };
 
 use crate::backdrop::{take_chroma, take_chroma_capped};
@@ -107,7 +107,7 @@ impl Resolved {
         let scheme = self.scheme;
         let bg_window = scheme.pick(BG_WINDOW);
         let (mix, sidebar_factor) = match source {
-            Tint::Accent => (Rgba::mix as Mix, LAYER_FACTOR_BG_SUNKEN),
+            Tint::Accent => (take_accent_chroma as Mix, LAYER_FACTOR_BG_SUNKEN),
             Tint::Wallpaper => (take_chroma as Mix, WALLPAPER_TINTING_SIDEBAR),
         };
         self.window_tint = Some((tint, factor));
@@ -183,6 +183,11 @@ pub fn glass_chroma(scheme: ColorScheme) -> (f32, f32) {
     } else {
         (GLASS.chroma_light, GLASS.chroma_cap_light)
     }
+}
+
+// The accent tints like the wallpaper does: only its chroma, so a window keeps its lightness.
+fn take_accent_chroma(base: Rgba, accent: Rgba, amount: f32) -> Rgba {
+    take_chroma(base, accent, amount * ACCENT_CHROMA_GAIN)
 }
 
 type Mix = fn(Rgba, Rgba, f32) -> Rgba;
@@ -786,11 +791,12 @@ mod tests {
         let accent_resolved = resolve(&accent_mode, None);
 
         let expected_factor = WINDOW_TINT_ACCENT[0] * LAYER_FACTOR_BG_SUNKEN;
-        let expected_sidebar_bg = neutral.sidebar.bg.mix(accent, expected_factor);
+        let expected_sidebar_bg = take_accent_chroma(neutral.sidebar.bg, accent, expected_factor);
         assert_eq!(accent_resolved.sidebar.bg, expected_sidebar_bg);
 
         let expected_toolgroup_factor = WINDOW_TINT_ACCENT[0] * LAYER_FACTOR_CONTROL;
-        let expected_toolgroup_bg = neutral.toolgroup.bg.mix(accent, expected_toolgroup_factor);
+        let expected_toolgroup_bg =
+            take_accent_chroma(neutral.toolgroup.bg, accent, expected_toolgroup_factor);
         assert_eq!(accent_resolved.toolgroup.bg, expected_toolgroup_bg);
 
         assert_eq!(neutral.sidebar.bg, SIDEBAR_LIGHT_OPAQUE);
@@ -1022,6 +1028,22 @@ mod tests {
             .glass
             .unwrap();
         assert_eq!(behind.solid, behind.base);
+    }
+
+    #[test]
+    fn an_accent_tint_changes_the_hue_but_not_the_lightness_of_the_window() {
+        use crate::backdrop::Oklab;
+        let accent = Rgba::rgb8(10, 132, 255);
+        let config = appearance(
+            ColorScheme::Dark,
+            WindowColorMode::Accent,
+            TrafficLightStyle::Auto,
+            Some([accent.r, accent.g, accent.b]),
+        );
+        let window = resolve(&config, None).surfaces.window;
+        let (before, after) = (Oklab::from_rgba(BG_WINDOW_DARK), Oklab::from_rgba(window));
+        assert!((before.l - after.l).abs() < 0.005);
+        assert!(after.b.hypot(after.a) > before.b.hypot(before.a));
     }
 
     #[test]
