@@ -98,8 +98,8 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `style::text` | fn | ≈ `Text` | ≈ `NSTextField(labelWithString:)` | One-line label with a type token and a color | [4](04-appearance-and-tokens.md#text-shapes-and-colors) |
 | `style::continuous_corner` | fn | `RoundedCornerStyle.continuous` | — | Corner radius with Apple's continuous curvature | [4](04-appearance-and-tokens.md#text-shapes-and-colors) |
 | `style::panel_edges` | fn | — | — | Card framed with a panel window's inner and outer lines (glass in dark) | [4](04-appearance-and-tokens.md#text-shapes-and-colors) |
-| `style::glass_edge`, `style::GlassRim` | fn, struct | — | — | A card framed only by the Dock's rim, and the colours of that rim along its edges | [4](04-appearance-and-tokens.md#text-shapes-and-colors) |
-| `ctdesign::dock_rim`, `ctdesign::dock_rim_fade` | fn | — | — | The Dock's rim colour over a backdrop colour, and how much of the rim shows from the top of the bar to its bottom | [4](04-appearance-and-tokens.md#text-shapes-and-colors) |
+| `style::glass_edge`, `style::GlassRim` | fn, struct | — | — | The Dock's glass framed as macOS frames it, and the colours of that frame | [4](04-appearance-and-tokens.md#text-shapes-and-colors) |
+| `ctdesign::dock_rim`, `ctdesign::dock_rim_dark_share`, `ctdesign::DockSurface` | fn, struct | — | — | The Dock's rim over a backdrop colour, how much of its frame is outline at each height, and the glass, rim, outline and divider of the Dock | [4](04-appearance-and-tokens.md#text-shapes-and-colors) |
 | `theme::color` | fn | — | — | Converts a Tengen `Rgba` to Freya's `Color` | [4](04-appearance-and-tokens.md#text-shapes-and-colors) |
 | `theme::resolved` | fn | ≈ `EnvironmentValues` | ≈ `NSApplication.effectiveAppearance` | Resolved appearance at this point of the tree | [4](04-appearance-and-tokens.md#theme-functions) |
 | `theme::use_appearance` | fn | ≈ `.environment(_:_:)` | ≈ `NSAppearanceCustomization.appearance` | Hook: changes the appearance for a component and its children | [4](04-appearance-and-tokens.md#theme-functions) |

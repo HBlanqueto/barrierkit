@@ -199,10 +199,10 @@ DOCK_REVEAL_STRIP i32 components.shell.dock.reveal-strip
 DOCK_RECENTS usize components.shell.dock.recents
 DOCK_ICON_BODY f32 components.shell.dock.icon-body
 DOCK_FOLDER_CANVAS f32 components.shell.dock.folder-canvas
-DOCK_RIM_ALPHA [f32;2] components.shell.dock.rim-alpha
+DOCK_RIM_ALPHA [f32;3] components.shell.dock.rim-alpha
 DOCK_RIM_TINT [f32;2] components.shell.dock.rim-tint
-DOCK_RIM_FADE [f32;6] components.shell.dock.rim-fade
-DOCK_RIM_BLUR f32 components.shell.dock.rim-blur
+DOCK_RIM_RAMP [f32;2] components.shell.dock.rim-ramp
+DOCK_RIM_GLOW [f32;6] components.shell.dock.rim-glow
 DOCK_WINDOW_FRAME f32 components.shell.dock.window-frame
 DOCK_WINDOW_ICON f32 components.shell.dock.window-icon
 DOCK_WINDOW_BADGE f32 components.shell.dock.window-badge
@@ -354,8 +354,15 @@ BG_SURFACE Rgba themes.{theme}.bg-surface
 BG_SUNKEN Rgba themes.{theme}.bg-sunken
 BG_RAISED Rgba themes.{theme}.bg-raised
 BG_HOVER Rgba themes.{theme}.bg-hover
-SHELL ShellPalette components.shell bar=menubar.bg dock=dock.bg dock_separator=dock.separator-line
-    text=menubar.text tile=dock.tile tile_active=dock.tile-active tile_text_active=dock.tile-text-active
+SHELL ShellPalette components.shell bar=menubar.bg text=menubar.text tile=dock.tile tile_active=dock.tile-active tile_text_active=dock.tile-text-active
+DOCK_GLASS Rgba themes.{theme}.dock-bar
+DOCK_GLASS_SOLID Rgba themes.{theme}.dock-bar-opaque
+DOCK_RIM Rgba themes.{theme}.dock-rim
+DOCK_RIM_SOLID Rgba themes.{theme}.dock-rim-opaque
+DOCK_OUTLINE Rgba themes.{theme}.dock-outline
+DOCK_OUTLINE_SOLID Rgba themes.{theme}.dock-outline-opaque
+DOCK_DIVIDER Rgba themes.{theme}.dock-divider
+DOCK_DIVIDER_SOLID Rgba themes.{theme}.dock-divider-opaque
 SIDEBAR Rgba themes.{theme}.bg-sunken
 SIDEBAR_ISLAND Rgba themes.{theme}.sidebar-island-bg
 SIDEBAR_GLASS_BASE Rgba themes.{theme}.sidebar-glass-base
