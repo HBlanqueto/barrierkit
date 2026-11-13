@@ -187,6 +187,15 @@ pub fn glass_chroma(scheme: ColorScheme) -> (f32, f32) {
     }
 }
 
+// How much of the lightness of what is behind the glass shows through it.
+pub fn glass_lightness(scheme: ColorScheme) -> f32 {
+    if scheme.is_dark() {
+        GLASS.lightness_dark
+    } else {
+        GLASS.lightness_light
+    }
+}
+
 // The accent tints like the wallpaper does: only its chroma, so a window keeps its lightness.
 fn take_accent_chroma(base: Rgba, accent: Rgba, amount: f32) -> Rgba {
     take_chroma(base, accent, amount * ACCENT_CHROMA_GAIN)

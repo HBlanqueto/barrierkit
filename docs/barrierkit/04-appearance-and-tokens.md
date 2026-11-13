@@ -857,7 +857,7 @@ background, for `reduce_transparency`.
 
 | Constant | Type | Read by |
 |---|---|---|
-| `GLASS` | `GlassMetrics` | `chroma_light` (0.25) and `chroma_dark` (0.40) and `accent_share` (0.35): the part of `chroma` that stays when the accent tints the sidebar; `rim_chroma` (0.65): the share of the wallpaper's OKLab chroma that the sidebar's glass and its rim take; `chroma_cap_light` (0.05) and `chroma_cap_dark` (0.04): the chroma the glass saturates towards (`backdrop::take_chroma_capped`), so a vivid wallpaper tints it without turning it into a window; `blur_passes` (4): how much wider than the other blurs the glass blurs the wallpaper ([ADR 0065](../decisions/0065-sidebar-glass.md)) |
+| `GLASS` | `GlassMetrics` | `chroma_light` (0.60) and `chroma_dark` (0.85) and `accent_share` (0.35): the part of `chroma` that stays when the accent tints the sidebar; `rim_chroma` (0.65): the share of the wallpaper's OKLab chroma that the sidebar's glass and its rim take; `chroma_cap_light` (0.09) and `chroma_cap_dark` (0.12): the chroma the glass saturates towards (`backdrop::take_chroma_capped`); `lightness_light` (0.20) and `lightness_dark` (0.50): the share of the lightness of what is behind that shows through, so the glass is not one flat tone (`glass_lightness`); `blur_passes` (3): how much wider than the other blurs the glass blurs what is behind it ([ADR 0065](../decisions/0065-sidebar-glass.md)). First values, to calibrate on a screen |
 | `SIDEBAR` | `SidebarMetrics` | `sidebar`, `styles` (the sidebar styles); `item_weight` (500) and `item_selected_weight` (600) weigh the row labels |
 | `TOOLGROUP` | `ToolgroupMetrics` | `controls`, `compact` |
 | `SPLIT_VIEW` | `SplitViewMetrics` | `views::split`, `styles` |

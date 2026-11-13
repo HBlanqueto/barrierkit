@@ -754,6 +754,8 @@ pub struct GlassMetrics {
     pub chroma_dark: f32,
     pub chroma_cap_light: f32,
     pub chroma_cap_dark: f32,
+    pub lightness_light: f32,
+    pub lightness_dark: f32,
     pub accent_share: f32,
     pub rim_chroma: f32,
     pub blur_passes: u32,
