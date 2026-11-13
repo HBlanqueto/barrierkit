@@ -3,14 +3,11 @@ use ctdesign::{
     BG_CONTROL_LIGHT, BG_HOVER_DARK, BG_HOVER_DARK_TINT, BG_HOVER_LIGHT, BG_RAISED_DARK,
     BG_RAISED_DARK_TINT, BG_RAISED_LIGHT, BG_SUNKEN_DARK, BG_SUNKEN_DARK_TINT, BG_SUNKEN_LIGHT,
     BG_SURFACE_DARK, BG_SURFACE_DARK_TINT, BG_SURFACE_LIGHT, BG_WINDOW_DARK, BG_WINDOW_DARK_TINT,
-    BG_WINDOW_LIGHT, DARK, DARK_TINT, DOCK_DIVIDER_DARK, DOCK_DIVIDER_DARK_TINT,
-    DOCK_DIVIDER_LIGHT, DOCK_DIVIDER_SOLID_DARK, DOCK_DIVIDER_SOLID_DARK_TINT,
-    DOCK_DIVIDER_SOLID_LIGHT, DOCK_GLASS_DARK, DOCK_GLASS_DARK_TINT, DOCK_GLASS_LIGHT,
-    DOCK_GLASS_SOLID_DARK, DOCK_GLASS_SOLID_DARK_TINT, DOCK_GLASS_SOLID_LIGHT, DOCK_OUTLINE_DARK,
-    DOCK_OUTLINE_DARK_TINT, DOCK_OUTLINE_LIGHT, DOCK_OUTLINE_SOLID_DARK,
-    DOCK_OUTLINE_SOLID_DARK_TINT, DOCK_OUTLINE_SOLID_LIGHT, DOCK_RIM_DARK, DOCK_RIM_DARK_TINT,
-    DOCK_RIM_LIGHT, DOCK_RIM_SOLID_DARK, DOCK_RIM_SOLID_DARK_TINT, DOCK_RIM_SOLID_LIGHT,
-    DockSurface, GLASS, LAYER_FACTOR_BG_SUNKEN, LAYER_FACTOR_CONTROL,
+    BG_WINDOW_LIGHT, DARK, DARK_TINT, DOCK_DIVIDER_DARK, DOCK_DIVIDER_LIGHT, DOCK_GLASS_DARK,
+    DOCK_GLASS_DARK_TINT, DOCK_GLASS_LIGHT, DOCK_GLASS_SOLID_DARK, DOCK_GLASS_SOLID_DARK_TINT,
+    DOCK_GLASS_SOLID_LIGHT, DOCK_OUTLINE_DARK, DOCK_OUTLINE_DARK_TINT, DOCK_OUTLINE_LIGHT,
+    DOCK_OUTLINE_SOLID_DARK, DOCK_OUTLINE_SOLID_DARK_TINT, DOCK_OUTLINE_SOLID_LIGHT, DOCK_RIM_DARK,
+    DOCK_RIM_LIGHT, DockSurface, GLASS, LAYER_FACTOR_BG_SUNKEN, LAYER_FACTOR_CONTROL,
     LAYER_FACTOR_LINE, LAYER_FACTOR_RAISED, LAYER_FACTOR_SURFACE, LIGHT, MENU_DARK,
     MENU_DARK_OPAQUE, MENU_DARK_TINT, MENU_DARK_TINT_OPAQUE, MENU_LIGHT, MENU_LIGHT_OPAQUE,
     MENU_SEPARATOR_INK_MIX, MenuPalette, ON_ACCENT_MIN_CONTRAST, Palette, Rgba, SHELL_DARK,
@@ -274,33 +271,38 @@ const TOOLGROUP_BG: [[Rgba; 3]; 2] = [
 
 // With transparency reduced the Dock is a solid grey, as in macOS, not its glass over the window colour.
 fn dock_surface(scheme: ColorScheme, opaque: bool) -> DockSurface {
-    let (glass, rim, outline, divider) = if opaque {
+    let (rim, divider) = if scheme.is_dark() {
+        (DOCK_RIM_DARK, DOCK_DIVIDER_DARK)
+    } else {
+        (DOCK_RIM_LIGHT, DOCK_DIVIDER_LIGHT)
+    };
+    let (glass, outline) = if opaque {
         (
-            scheme.pick([DOCK_GLASS_SOLID_LIGHT, DOCK_GLASS_SOLID_DARK, DOCK_GLASS_SOLID_DARK_TINT]),
-            scheme.pick([DOCK_RIM_SOLID_LIGHT, DOCK_RIM_SOLID_DARK, DOCK_RIM_SOLID_DARK_TINT]),
+            scheme.pick([
+                DOCK_GLASS_SOLID_LIGHT,
+                DOCK_GLASS_SOLID_DARK,
+                DOCK_GLASS_SOLID_DARK_TINT,
+            ]),
             scheme.pick([
                 DOCK_OUTLINE_SOLID_LIGHT,
                 DOCK_OUTLINE_SOLID_DARK,
                 DOCK_OUTLINE_SOLID_DARK_TINT,
             ]),
-            scheme.pick([
-                DOCK_DIVIDER_SOLID_LIGHT,
-                DOCK_DIVIDER_SOLID_DARK,
-                DOCK_DIVIDER_SOLID_DARK_TINT,
-            ]),
         )
     } else {
         (
             scheme.pick([DOCK_GLASS_LIGHT, DOCK_GLASS_DARK, DOCK_GLASS_DARK_TINT]),
-            scheme.pick([DOCK_RIM_LIGHT, DOCK_RIM_DARK, DOCK_RIM_DARK_TINT]),
-            scheme.pick([DOCK_OUTLINE_LIGHT, DOCK_OUTLINE_DARK, DOCK_OUTLINE_DARK_TINT]),
-            scheme.pick([DOCK_DIVIDER_LIGHT, DOCK_DIVIDER_DARK, DOCK_DIVIDER_DARK_TINT]),
+            scheme.pick([
+                DOCK_OUTLINE_LIGHT,
+                DOCK_OUTLINE_DARK,
+                DOCK_OUTLINE_DARK_TINT,
+            ]),
         )
     };
     DockSurface {
         glass,
-        rim,
         outline,
+        rim,
         divider,
     }
 }
@@ -771,8 +773,8 @@ mod tests {
             .dock;
             assert!(glass.glass.a < 1.0, "{scheme:?} glass is solid");
             assert_eq!(solid.glass.a, 1.0, "{scheme:?} is still translucent");
-            assert!(glass.rim.a > 0.0 && solid.rim.a > 0.0);
-            assert_ne!(glass.divider, solid.divider);
+            assert_eq!(glass.rim, solid.rim);
+            assert_eq!(glass.divider < 0.0, !scheme.is_dark());
         }
     }
 
