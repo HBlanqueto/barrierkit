@@ -30,8 +30,9 @@ Readers: whoever changes `Sidebar`, `SplitView`, `ctdesign` or `ctappearance`.
    region (`BlurRegion`) exists for the Dock and the lock screen.
 5. A capture of macOS shows that the sidebar keeps the lightness of the app's
    solid layer and takes about 0.4 of the wallpaper's chroma, and that its rim
-   is a white line like the inner border of a window. Only the compositor sees
-   the wallpaper, so it draws the material and the rim (Malaysia ADR 0078).
+   is a white line, like the inner border of a window, that takes more of the
+   wallpaper's chroma than the fill does. Only the compositor sees the
+   wallpaper, so it draws the material and the rim (Malaysia ADR 0078).
 
 ## Decision
 
@@ -67,7 +68,7 @@ Readers: whoever changes `Sidebar`, `SplitView`, `ctdesign` or `ctappearance`.
    the narrow-window overlay or the window size change. It does not send the same
    panel twice. A hidden sidebar sends an empty list.
 7. **Tokens.** `sidebar-glass-base` goes in `tokens.json`. The weights the
-   compositor uses (`chroma`) goes in `components.window.sidebar.glass` and comes
+   compositor uses (`chroma` and `rim_chroma`) go in `components.window.sidebar.glass` and come
    out as `ctdesign::GLASS`.
    Light and dark share them.
 8. **Over a `Backdrop`** the sidebar stays as 0057 says. It sends no panel.
