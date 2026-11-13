@@ -110,6 +110,10 @@ the rim under and over the rows ([ADR 0065](../decisions/0065-sidebar-glass.md))
 The app does nothing. The kit sends the panel again whenever the sidebar's area
 changes.
 
+A window with no sidebar, like an About box, makes the whole window glass with
+`WindowGlass::new(content)`. It leaves the window transparent and sends one
+panel with the window's corner. Without compositor glass it paints `surfaces.window`.
+
 Without such a compositor, over a [`Backdrop`](15-backdrops-and-media.md), with
 reduced transparency or with the accent as window color, the sidebar paints its
 own solid fill, as described above.

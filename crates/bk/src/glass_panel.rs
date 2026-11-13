@@ -3,13 +3,15 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use ctappearance::SidebarGlass;
-use ctdesign::Rgba;
+use ctdesign::{Rgba, WINDOW_CORNER};
 use freya_core::data::LayoutData;
 use freya_core::element::{ElementExt, RenderContext};
 use freya_core::prelude::*;
 use freya_core::tree::DiffModifies;
 use freya_engine::prelude::{BlendMode, Paint, RRect, Rect as SkRect};
 use torin::prelude::{Area, Position, Size};
+
+use crate::theme::{SurfaceKind, color, surface_background};
 
 use crate::glass::{layout, leaf};
 use crate::platform::{GlassPanels, GlassSupport, KitSender, set_glass_panels};
@@ -98,5 +100,41 @@ impl ElementExt for Hole {
         context
             .canvas
             .draw_rrect(RRect::new_rect_xy(bounds, radius, radius), &paint);
+    }
+}
+
+#[derive(PartialEq)]
+pub struct WindowGlass {
+    content: Element,
+}
+
+impl WindowGlass {
+    pub fn new(content: impl IntoElement) -> Self {
+        Self {
+            content: content.into_element(),
+        }
+    }
+}
+
+impl Component for WindowGlass {
+    fn render(&self) -> impl IntoElement {
+        let glass = sidebar_glass();
+        let radius = WINDOW_CORNER.titlebar as f32;
+        let mut area = use_state(Area::default);
+        use_publish(glass, radius, *area.read());
+        rect()
+            .expanded()
+            .on_sized(move |event: Event<SizedEventData>| area.set_if_modified(event.area))
+            .map(
+                glass.is_none().then(crate::theme::resolved),
+                |el, resolved| {
+                    el.background(color(surface_background(&resolved, SurfaceKind::Toplevel)))
+                },
+            )
+            .maybe_child(glass.map(|_| {
+                let size = area.read().size;
+                hole((0.0, 0.0), (size.width, size.height), radius)
+            }))
+            .child(self.content.clone())
     }
 }

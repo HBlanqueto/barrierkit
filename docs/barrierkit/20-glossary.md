@@ -1101,6 +1101,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `media::use_artwork` | fn | ≈ `AsyncImage` | — | Hook that loads and decodes an image file in the background | [15](15-backdrops-and-media.md#media) |
 | `media::use_artwork_from` | fn | ≈ `AsyncImage` | — | Hook that decodes image bytes from any loader in the background | [15](15-backdrops-and-media.md#media) |
 | `glass_container::GlassContainer` | struct | `GlassEffectContainer` | `NSGlassEffectContainerView` | Row of glass shapes that merge when close and morph on change | [15](15-backdrops-and-media.md#glass-that-merges) |
+| `WindowGlass` | struct | ≈ `.glassEffect(_:in:)` | ≈ `NSGlassEffectView` | Draws its content over a window that is one glass panel; solid `surfaces.window` without compositor glass | [10](10-sidebar.md#glass) |
 | `glass_container::Frame` | struct | — | — | A glass shape's rectangle and corner radius; `lerp` mixes two | [15](15-backdrops-and-media.md#glass-that-merges) |
 | `glass_container::Morph` | struct | — | — | One shape's move: id, from frame, to frame | [15](15-backdrops-and-media.md#glass-that-merges) |
 | `glass_container::plan` | fn | ≈ `.glassEffectID(_:in:)` | — | Pairs shown and new frames by id; new and leaving shapes use neighbours | [15](15-backdrops-and-media.md#glass-that-merges) |

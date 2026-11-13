@@ -102,6 +102,7 @@ pub mod secrets;
 
 mod glass;
 mod glass_panel;
+pub use glass_panel::WindowGlass;
 
 mod controlled;
 
