@@ -737,7 +737,6 @@
   --bk-shell-dock-padding-scale: 0.06;
   --bk-shell-dock-separator: 0.36;
   --bk-shell-dock-separator-length: 0.72;
-  --bk-shell-dock-separator-ink-mix: 0.4;
   --bk-shell-dock-radius: 0.24;
   --bk-shell-dock-magnify-radius: 3;
   --bk-shell-dock-magnify-min: 1.3;
@@ -757,8 +756,19 @@
   --bk-shell-dock-recents: 3;
   --bk-shell-dock-icon-body: 0.805;
   --bk-shell-dock-folder-canvas: 1.256;
-  --bk-shell-dock-rim-dark: 0.6;
-  --bk-shell-dock-rim-bright: 1.0;
+  --bk-shell-dock-rim-alpha: 0.1 0.3;
+  --bk-shell-dock-rim-alpha-0: 0.1;
+  --bk-shell-dock-rim-alpha-1: 0.3;
+  --bk-shell-dock-rim-tint: 0.35 0.5;
+  --bk-shell-dock-rim-tint-0: 0.35;
+  --bk-shell-dock-rim-tint-1: 0.5;
+  --bk-shell-dock-rim-fade: 1.0 0.85 0.7 0.35 0.05 0.72;
+  --bk-shell-dock-rim-fade-0: 1.0;
+  --bk-shell-dock-rim-fade-1: 0.85;
+  --bk-shell-dock-rim-fade-2: 0.7;
+  --bk-shell-dock-rim-fade-3: 0.35;
+  --bk-shell-dock-rim-fade-4: 0.05;
+  --bk-shell-dock-rim-fade-5: 0.72;
   --bk-shell-dock-rim-blur: 0.7;
   --bk-shell-dock-window-frame: 0.8;
   --bk-shell-dock-window-icon: 0.6;
@@ -769,6 +779,7 @@
   --bk-shell-dock-label-padding-y: 4;
   --bk-shell-dock-label-radius: 8;
   --bk-shell-dock-bg: var(--bk-dock-bar);
+  --bk-shell-dock-separator-line: var(--bk-dock-separator);
   --bk-shell-dock-tile: var(--bk-bg-control);
   --bk-shell-dock-tile-active: var(--bk-accent);
   --bk-shell-dock-tile-text-active: var(--bk-on-accent);
@@ -1027,7 +1038,8 @@
   --bk-titlebar-title-inactive: #6e6e6e;
   --bk-titlebar-line: #0000001a;
   --bk-shell-bar: #f2f4f7e6;
-  --bk-dock-bar: #f6f6f666;
+  --bk-dock-bar: #ffffff1f;
+  --bk-dock-separator: #00000040;
   --bk-menubar-title-open: #0d12191f;
   --bk-scrim: #0d121947;
   --bk-window-outer: #0d12191f;
@@ -1080,6 +1092,7 @@
     --bk-titlebar-line: #ffffff12;
     --bk-shell-bar: #1e1e1ee6;
     --bk-dock-bar: #1e1e1e73;
+    --bk-dock-separator: #ffffff4d;
     --bk-menubar-title-open: #ffffff2e;
     --bk-scrim: #00000080;
     --bk-window-outer: #000000e6;
@@ -1132,6 +1145,7 @@
   --bk-titlebar-line: #ffffff12;
   --bk-shell-bar: #1e1e1ee6;
   --bk-dock-bar: #1e1e1e73;
+  --bk-dock-separator: #ffffff4d;
   --bk-menubar-title-open: #ffffff2e;
   --bk-scrim: #00000080;
   --bk-window-outer: #000000e6;
@@ -1183,6 +1197,7 @@
   --bk-titlebar-line: #323336;
   --bk-shell-bar: #1d1e20e6;
   --bk-dock-bar: #1d1e2073;
+  --bk-dock-separator: #ffffff4d;
   --bk-menubar-title-open: #ffffff2e;
   --bk-scrim: #00000080;
   --bk-window-outer: #000000e6;
