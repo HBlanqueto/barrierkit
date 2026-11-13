@@ -198,7 +198,6 @@ DOCK_MINIMIZE_HANDOFF_MS u64 components.shell.dock.minimize-handoff-ms
 DOCK_REVEAL_STRIP i32 components.shell.dock.reveal-strip
 DOCK_RECENTS usize components.shell.dock.recents
 DOCK_ICON_BODY f32 components.shell.dock.icon-body
-DOCK_FOLDER_CANVAS f32 components.shell.dock.folder-canvas
 DOCK_RIM_LIGHT [f32;2] components.shell.dock.rim-light
 DOCK_RIM_DARK [f32;2] components.shell.dock.rim-dark
 DOCK_DIVIDER_LIGHT f32 components.shell.dock.divider-light
