@@ -464,8 +464,8 @@
           "line": "line"
         },
         "glass": {
-          "chroma": { "light": 0.15, "dark": 0.4 },
-          "chroma-cap": { "light": 0.03, "dark": 0.016 },
+          "chroma": { "light": 0.25, "dark": 0.4 },
+          "chroma-cap": { "light": 0.05, "dark": 0.04 },
           "rim-chroma": 0.65,
           "blur-passes": 4
         },

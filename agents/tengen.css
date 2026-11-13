@@ -399,10 +399,10 @@
   --bk-window-sidebar-island-traffic-x: 11;
   --bk-window-sidebar-island-traffic-y: 11;
   --bk-window-sidebar-flat-line: var(--bk-line);
-  --bk-window-sidebar-glass-chroma-light: 0.15;
+  --bk-window-sidebar-glass-chroma-light: 0.25;
   --bk-window-sidebar-glass-chroma-dark: 0.4;
-  --bk-window-sidebar-glass-chroma-cap-light: 0.03;
-  --bk-window-sidebar-glass-chroma-cap-dark: 0.016;
+  --bk-window-sidebar-glass-chroma-cap-light: 0.05;
+  --bk-window-sidebar-glass-chroma-cap-dark: 0.04;
   --bk-window-sidebar-glass-rim-chroma: 0.65;
   --bk-window-sidebar-glass-blur-passes: 4;
   --bk-window-sidebar-item-height: 32;
