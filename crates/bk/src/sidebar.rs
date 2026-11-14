@@ -180,11 +180,12 @@ impl SymbolTile {
             .maybe_child(
                 crate::app_icon::tile_plate(&plate, style.size, corner_radius.top_left()).map(
                     |handle| {
-                        layer().child(
-                            freya_core::elements::image::image(handle)
-                                .width(Size::px(style.size))
-                                .height(Size::px(style.size)),
-                        )
+                        // Freya paints by depth, not sibling order: at the tile's own depth the plate lies under the symbol.
+                        freya_core::elements::image::image(handle)
+                            .position(Position::new_absolute().top(0.0).left(0.0))
+                            .layer(-1)
+                            .width(Size::px(style.size))
+                            .height(Size::px(style.size))
                     },
                 ),
             )
