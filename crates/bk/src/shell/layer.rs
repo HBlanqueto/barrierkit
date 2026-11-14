@@ -112,6 +112,16 @@ pub fn set_card_frames(frames: CardFrames) {
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct PlateFrames {
+    pub radius: u32,
+    pub plates: Vec<(i32, i32, i32, i32)>,
+}
+
+pub fn set_plate_frames(frames: PlateFrames) {
+    crate::platform::KitSender::get().send(frames);
+}
+
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct InputRegion {
     pub rects: Vec<(i32, i32, i32, i32)>,
 }
@@ -181,13 +191,29 @@ impl Runtime {
         let Some(index) = self.surface_index_by_id(surface_id) else {
             return;
         };
-        let cards = frames
-            .cards
-            .iter()
-            .flat_map(|&(x, y, width, height)| [x, y, width, height])
-            .flat_map(i32::to_ne_bytes)
-            .collect();
-        style.set_cards(&self.surfaces[index].surface, frames.radius, cards);
+        style.set_cards(
+            &self.surfaces[index].surface,
+            frames.radius,
+            crate::platform::packed(&frames.cards),
+        );
+    }
+
+    pub(crate) fn apply_plate_frames(&mut self, surface_id: &ObjectId, frames: PlateFrames) {
+        let Some(style) = self
+            .window_style
+            .as_ref()
+            .filter(|style| style.version() >= 8)
+        else {
+            return;
+        };
+        let Some(index) = self.surface_index_by_id(surface_id) else {
+            return;
+        };
+        style.set_plates(
+            &self.surfaces[index].surface,
+            frames.radius,
+            crate::platform::packed(&frames.plates),
+        );
     }
 }
 

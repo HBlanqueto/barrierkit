@@ -146,7 +146,7 @@ to use Vulkan is [ADR 0056](../decisions/0056-barrierkit-on-vulkan.md).
 | `infinity_session_v1` | 1 | No | `locking` and `unlocked`, read by [`use_screen_lock`](#screen-lock-and-blur-region) | The menu bar never learns that the session is locking |
 | `ext_background_effect_manager_v1` | 1 | No | [`set_blur_region`](#screen-lock-and-blur-region) | No blur behind the surface |
 | `ext_image_copy_capture_manager_v1` + `ext_foreign_toplevel_image_capture_source_manager_v1` + `wl_shm` | 1 | No | [`capture_window`](#toplevels), in layer-shell components | `capture_window` answers `None` |
-| `infinity_window_style_v1` | 1–6 | No | `set_bar` with the `Titlebar`'s bar; `set_popover` (v2) for popups; `set_panel` (v3) for utility windows; `set_cards` (v4) for card layers. Version 5 adds `set_desktop`, used by `malaysia-wallpaper`. Version 6 adds `set_glass`, which `Sidebar` sends for its glass panel ([ADR 0065](../decisions/0065-sidebar-glass.md)) | The compositor guesses the window style |
+| `infinity_window_style_v1` | 1–8 | No | `set_bar` with the `Titlebar`'s bar; `set_popover` (v2) for popups; `set_panel` (v3) for utility windows; `set_cards` (v4) for card layers. Version 5 adds `set_desktop`, used by `malaysia-wallpaper`. Version 6 adds `set_glass`, which `Sidebar` sends for its glass panel ([ADR 0065](../decisions/0065-sidebar-glass.md)). Version 8 adds `set_plates`, which the Dock sends for its clear icons | The compositor guesses the window style |
 
 `sctk` means the version range smithay-client-toolkit 0.20 binds. The
 `infinity_*` protocols are Malaysia's private protocols, in
@@ -283,6 +283,13 @@ window shadow below the surface and the inner and outer borders above it,
 around a continuous corner of `radius`. The app draws each card with
 `style::continuous_corner(radius)` so the shapes meet. An empty list removes
 the frames.
+
+A layer surface whose icons have a plate drawn by the compositor, as the Dock's
+in the clear style, sends them with `set_plate_frames(PlateFrames { radius,
+plates })` (`infinity_window_style_v1.set_plates`, version 8): `plates` are
+`(x, y, width, height)` in surface-local logical pixels. The compositor draws
+each as glass under the surface, and the app draws only the logo, with
+`Image::glass_plate`. Only the Dock's layer surface has its plates drawn.
 
 ### `run_lock` and `SessionUnlock`
 

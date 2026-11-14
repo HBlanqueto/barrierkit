@@ -88,13 +88,14 @@ fn color(rgba: Rgba) -> Color {
     )
 }
 
-/// `raster` is an app icon; the result is the same icon on a plate, on the 1024 grid, in the user's icon style.
+/// `raster` is an app icon; the result is the same icon on a plate, on the 1024 grid, in the user's icon style. With `glass_plate` the compositor draws the plate, so only the logo is drawn.
 pub(crate) fn plated(
     raster: &SkImage,
     side: u32,
     style: IconStyle,
     dark: bool,
     tint: Rgba,
+    glass_plate: bool,
 ) -> Option<ImageHandle> {
     let pixels = read(raster)?;
     let plate = plate(style, dark, tint, &Logo::from_colors(&pixels.opaque));
@@ -108,70 +109,72 @@ pub(crate) fn plated(
     } else {
         1.0
     };
-    let mut shadow = Paint::default();
-    shadow.set_anti_alias(true);
-    for (offset, opacity) in [
-        (ICON_PLATE.shadow_far_offset, ICON_PLATE.shadow_far_opacity),
-        (
-            ICON_PLATE.shadow_near_offset,
-            ICON_PLATE.shadow_near_opacity,
-        ),
-    ] {
-        shadow.set_color(color(Rgba {
+    if !glass_plate {
+        let mut shadow = Paint::default();
+        shadow.set_anti_alias(true);
+        for (offset, opacity) in [
+            (ICON_PLATE.shadow_far_offset, ICON_PLATE.shadow_far_opacity),
+            (
+                ICON_PLATE.shadow_near_offset,
+                ICON_PLATE.shadow_near_opacity,
+            ),
+        ] {
+            shadow.set_color(color(Rgba {
+                r: 0.0,
+                g: 0.0,
+                b: 0.0,
+                a: opacity * glass,
+            }));
+            canvas.save();
+            canvas.translate((0.0, offset * side));
+            canvas.draw_path(&body, &shadow);
+            canvas.restore();
+        }
+        let mut fill = Paint::default();
+        fill.set_anti_alias(true);
+        fill.set_shader(linear(
+            (0.0, BODY_FROM * scale),
+            (0.0, BODY_TO * scale),
+            &[(0.0, plate.top), (1.0, plate.bottom)],
+        ));
+        canvas.draw_path(&body, &fill);
+        let mut outline = Paint::default();
+        outline.set_anti_alias(true);
+        outline.set_style(PaintStyle::Stroke);
+        outline.set_stroke_width(ICON_PLATE.outline_width * side);
+        outline.set_color(color(Rgba {
             r: 0.0,
             g: 0.0,
             b: 0.0,
-            a: opacity * glass,
+            a: ICON_PLATE.outline_opacity * glass,
         }));
+        canvas.draw_path(&body, &outline);
+        let rim: Vec<_> = RIM_FADE
+            .iter()
+            .map(|&(at, fade)| {
+                (
+                    at,
+                    Rgba {
+                        a: plate.rim.a * fade,
+                        ..plate.rim
+                    },
+                )
+            })
+            .collect();
+        let mut edge = Paint::default();
+        edge.set_anti_alias(true);
+        edge.set_style(PaintStyle::Stroke);
+        edge.set_stroke_width(ICON_PLATE.rim_width * side);
+        edge.set_shader(linear(
+            (BODY_FROM * scale, BODY_FROM * scale),
+            (BODY_TO * scale, BODY_TO * scale),
+            &rim,
+        ));
         canvas.save();
-        canvas.translate((0.0, offset * side));
-        canvas.draw_path(&body, &shadow);
+        canvas.clip_path(&body, ClipOp::Intersect, true);
+        canvas.draw_path(&body, &edge);
         canvas.restore();
     }
-    let mut fill = Paint::default();
-    fill.set_anti_alias(true);
-    fill.set_shader(linear(
-        (0.0, BODY_FROM * scale),
-        (0.0, BODY_TO * scale),
-        &[(0.0, plate.top), (1.0, plate.bottom)],
-    ));
-    canvas.draw_path(&body, &fill);
-    let mut outline = Paint::default();
-    outline.set_anti_alias(true);
-    outline.set_style(PaintStyle::Stroke);
-    outline.set_stroke_width(ICON_PLATE.outline_width * side);
-    outline.set_color(color(Rgba {
-        r: 0.0,
-        g: 0.0,
-        b: 0.0,
-        a: ICON_PLATE.outline_opacity * glass,
-    }));
-    canvas.draw_path(&body, &outline);
-    let rim: Vec<_> = RIM_FADE
-        .iter()
-        .map(|&(at, fade)| {
-            (
-                at,
-                Rgba {
-                    a: plate.rim.a * fade,
-                    ..plate.rim
-                },
-            )
-        })
-        .collect();
-    let mut edge = Paint::default();
-    edge.set_anti_alias(true);
-    edge.set_style(PaintStyle::Stroke);
-    edge.set_stroke_width(ICON_PLATE.rim_width * side);
-    edge.set_shader(linear(
-        (BODY_FROM * scale, BODY_FROM * scale),
-        (BODY_TO * scale, BODY_TO * scale),
-        &rim,
-    ));
-    canvas.save();
-    canvas.clip_path(&body, ClipOp::Intersect, true);
-    canvas.draw_path(&body, &edge);
-    canvas.restore();
 
     let fit = ICON_PLATE.logo_scale * ICON_PLATE.body * side / pixels.extent;
     let sampling = SamplingMode::Mitchell.sampling_options();

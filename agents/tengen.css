@@ -253,6 +253,7 @@
   --bk-icon-plate-rim-chroma: 0.09;
   --bk-icon-plate-rim-width: 0.0234;
   --bk-icon-plate-body: 0.8047;
+  --bk-icon-plate-corner: 0.1588;
   --bk-icon-plate-logo-scale: 0.76;
   --bk-icon-plate-shadow-far-offset: 0.0137;
   --bk-icon-plate-shadow-far-opacity: 0.1;
@@ -364,6 +365,7 @@
   --bk-icon-style-clear-floor: 0.62;
   --bk-icon-style-clear-range: 0.38;
   --bk-icon-style-clear-alpha-gain: 3;
+  --bk-icon-style-clear-cut: 0.2;
   --bk-text-field-height: 24;
   --bk-text-field-padding-x: 6;
   --bk-text-field-radius: var(--bk-radius-button);

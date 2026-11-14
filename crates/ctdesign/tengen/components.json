@@ -206,6 +206,7 @@
       "rim-chroma": 0.09,
       "rim-width": 0.0234,
       "body": 0.8047,
+      "corner": 0.1588,
       "logo-scale": 0.76,
       "shadow-far-offset": 0.0137,
       "shadow-far-opacity": 0.1,
@@ -342,7 +343,8 @@
       "tint-light-chroma": 0.15,
       "clear-floor": 0.62,
       "clear-range": 0.38,
-      "clear-alpha-gain": 3
+      "clear-alpha-gain": 3,
+      "clear-cut": 0.2
     },
     "text-field": {
       "height": 24,

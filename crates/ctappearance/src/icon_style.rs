@@ -55,6 +55,15 @@ impl IconStyle {
         }
     }
 
+    /// As `matrix`, but a clear icon also loses its dark body: its alpha starts at `ICON_STYLE.clear_cut`, for a compositor that draws the plate as glass.
+    pub fn matrix_on_glass(self, tint: Rgba) -> Option<[f32; 20]> {
+        let mut matrix = self.matrix(tint)?;
+        if self == Self::Clear {
+            matrix[19] = -ICON_STYLE.clear_alpha_gain * ICON_STYLE.clear_cut;
+        }
+        Some(matrix)
+    }
+
     /// The matrix makes the alpha follow the luminance, so the result is also cut to the image's own shape.
     pub fn luminance_to_alpha(self) -> bool {
         self == Self::Clear
@@ -166,5 +175,17 @@ mod tests {
         assert_eq!(a, 1.0);
         assert!(r > 0.95);
         assert!(IconStyle::Clear.luminance_to_alpha());
+    }
+
+    #[test]
+    fn a_clear_icon_on_glass_loses_its_dark_body_and_keeps_its_white_logo() {
+        let matrix = IconStyle::Clear.matrix_on_glass(AMBER).unwrap();
+        assert_eq!(apply(matrix, [0.12, 0.12, 0.12, 1.0])[3], 0.0);
+        assert_eq!(apply(matrix, [1.0, 1.0, 1.0, 1.0])[3], 1.0);
+        assert_eq!(IconStyle::Default.matrix_on_glass(AMBER), None);
+        assert_eq!(
+            IconStyle::Tinted.matrix_on_glass(AMBER),
+            IconStyle::Tinted.matrix(AMBER)
+        );
     }
 }

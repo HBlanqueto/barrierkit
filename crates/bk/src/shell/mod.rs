@@ -17,7 +17,8 @@ pub use infinity::{
 };
 pub use layer::{
     Anchors, CardFrames, InputRegion, KeyboardInteractivity, Layer, LayerGeometry, LayerSpec,
-    run_layer, set_card_frames, set_input_region, set_layer_geometry,
+    PlateFrames, run_layer, set_card_frames, set_input_region, set_layer_geometry,
+    set_plate_frames,
 };
 pub use lock::{SessionUnlock, run_lock};
 pub use menus::GtkMenusAddress;

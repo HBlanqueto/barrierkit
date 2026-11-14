@@ -227,6 +227,7 @@ pub struct Image {
     rendering_mode: TemplateRenderingMode,
     icon_style: IconStyle,
     plated: bool,
+    glass_plate: bool,
     style: Theme,
 }
 
@@ -253,6 +254,7 @@ impl Image {
             rendering_mode: TemplateRenderingMode::Original,
             icon_style: IconStyle::Default,
             plated: false,
+            glass_plate: false,
             style: Theme::tengen(),
         }
     }
@@ -270,6 +272,12 @@ impl Image {
     /// Draws the image as an app icon: on a plate, in the user's icon style.
     pub fn app_icon(mut self) -> Self {
         self.plated = true;
+        self
+    }
+
+    /// In the clear icon style the compositor draws the icon's plate as glass, so only the logo is drawn.
+    pub fn glass_plate(mut self) -> Self {
+        self.glass_plate = true;
         self
     }
 
@@ -299,6 +307,7 @@ impl From<Image> for Element {
         let icon_style = image.icon_style;
         let plain = matches!(icon_style, IconStyle::Default | IconStyle::Dark) && !image.plated;
         let plated = image.plated;
+        let on_glass = |style: IconStyle| image.glass_plate && style == IconStyle::Clear;
         match (image.source, image.rendering_mode) {
             (Source::System(glyph), _) => symbol(glyph, style.size, color).into_element(),
             (Source::Data(bytes), TemplateRenderingMode::Original) if plain && is_svg(&bytes) => {
@@ -321,10 +330,11 @@ impl From<Image> for Element {
                         resolved.icon_style,
                         resolved.icon_dark,
                         resolved.icon_tint,
+                        on_glass(resolved.icon_style),
                     ),
                     TemplateRenderingMode::Template => Treatment::Tint(color),
                     TemplateRenderingMode::Original => {
-                        Treatment::Style(icon_style, resolved.icon_tint)
+                        Treatment::Style(icon_style, resolved.icon_tint, on_glass(icon_style))
                     }
                 };
                 match cached_image(&source, style.size, treatment) {
@@ -354,8 +364,8 @@ type TemplateKey = (Bytes, u32, u32, (u8, [u32; 4]));
 #[derive(Clone, Copy)]
 enum Treatment {
     Tint(Rgba),
-    Style(IconStyle, Rgba),
-    Plate(IconStyle, bool, Rgba),
+    Style(IconStyle, Rgba, bool),
+    Plate(IconStyle, bool, Rgba, bool),
 }
 
 impl Treatment {
@@ -363,8 +373,11 @@ impl Treatment {
         let bits = |color: Rgba| [color.r, color.g, color.b, color.a].map(f32::to_bits);
         match self {
             Self::Tint(color) => (0, bits(color)),
-            Self::Style(style, tint) => (1 + style as u8, bits(tint)),
-            Self::Plate(style, dark, tint) => (5 + 2 * style as u8 + u8::from(dark), bits(tint)),
+            Self::Style(style, tint, glass) => (1 + style as u8 + 16 * u8::from(glass), bits(tint)),
+            Self::Plate(style, dark, tint, glass) => (
+                5 + 2 * style as u8 + u8::from(dark) + 16 * u8::from(glass),
+                bits(tint),
+            ),
         }
     }
 }
@@ -394,12 +407,12 @@ fn cached_image(source: &Source, size: f32, treatment: Treatment) -> Option<Imag
         }
         let image = raster(source, side).and_then(|raster| match treatment {
             Treatment::Tint(color) => tint(&raster, side, color),
-            Treatment::Style(IconStyle::Default | IconStyle::Dark, _) => {
+            Treatment::Style(IconStyle::Default | IconStyle::Dark, ..) => {
                 Some(ImageHandle::new(raster, Bytes::new()))
             }
-            Treatment::Style(style, tint) => restyle(&raster, side, style, tint),
-            Treatment::Plate(style, dark, tint) => {
-                crate::app_icon::plated(&raster, side, style, dark, tint)
+            Treatment::Style(style, tint, glass) => restyle(&raster, side, style, tint, glass),
+            Treatment::Plate(style, dark, tint, glass) => {
+                crate::app_icon::plated(&raster, side, style, dark, tint, glass)
             }
         });
         let mut cache = cache.borrow_mut();
@@ -453,10 +466,21 @@ fn tint(raster: &SkImage, side: u32, color: Rgba) -> Option<ImageHandle> {
     filtered(raster, side, paint, false)
 }
 
-fn restyle(raster: &SkImage, side: u32, style: IconStyle, tint: Rgba) -> Option<ImageHandle> {
+fn restyle(
+    raster: &SkImage,
+    side: u32,
+    style: IconStyle,
+    tint: Rgba,
+    glass: bool,
+) -> Option<ImageHandle> {
+    let matrix = if glass {
+        style.matrix_on_glass(tint)
+    } else {
+        style.matrix(tint)
+    }?;
     let mut paint = Paint::default();
     paint.set_color_filter(color_filters::matrix_row_major(
-        &style.matrix(tint)?,
+        &matrix,
         color_filters::Clamp::Yes,
     ));
     filtered(raster, side, paint, style.luminance_to_alpha())

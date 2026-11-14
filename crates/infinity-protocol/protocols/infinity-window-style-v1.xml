@@ -23,7 +23,7 @@
     DEALINGS IN THE SOFTWARE.
   </copyright>
 
-  <interface name="infinity_window_style_v1" version="7">
+  <interface name="infinity_window_style_v1" version="8">
     <description summary="window style hints for applications">
       Malaysia rounds every window it composites (ADR 0059). As in macOS
       Tahoe, the corner radius depends on the window's bar. A
@@ -198,6 +198,23 @@
       </description>
       <arg name="surface" type="object" interface="wl_surface"/>
       <arg name="shape" type="uint" enum="popover_shape"/>
+    </request>
+
+    <request name="set_plates" since="8">
+      <description summary="the layer surface has icon plates drawn as glass">
+        Tells the compositor that the layer surface whose wl_surface is
+        given has icons whose plates the compositor draws, as the Dock's
+        icons in the clear style. The array holds int32 quadruples x, y,
+        width and height in surface-local logical pixels. The compositor
+        draws each plate as the glass of a card, under the surface, around
+        a continuous corner of the given radius. The client draws only the
+        logo on top. A later request replaces the plates; an empty array
+        removes them. It lasts for the lifetime of the wl_surface. Only the
+        Dock's layer surface has its plates drawn.
+      </description>
+      <arg name="surface" type="object" interface="wl_surface"/>
+      <arg name="radius" type="uint"/>
+      <arg name="plates" type="array"/>
     </request>
   </interface>
 </protocol>

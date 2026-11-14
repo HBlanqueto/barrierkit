@@ -8,6 +8,14 @@ const MINIMUM_VERSION: u32 = 6;
 
 pub(crate) type Rects = Vec<(i32, i32, i32, i32)>;
 
+pub(crate) fn packed(rects: &[(i32, i32, i32, i32)]) -> Vec<u8> {
+    rects
+        .iter()
+        .flat_map(|&(x, y, width, height)| [x, y, width, height])
+        .flat_map(i32::to_ne_bytes)
+        .collect()
+}
+
 #[derive(Clone, Copy)]
 pub(crate) struct GlassSupport(pub(crate) bool);
 
@@ -42,16 +50,10 @@ impl Runtime {
         else {
             return;
         };
-        let rects = panels
-            .rects
-            .iter()
-            .flat_map(|&(x, y, width, height)| [x, y, width, height])
-            .flat_map(i32::to_ne_bytes)
-            .collect();
         style.set_glass(
             &self.surfaces[index].surface,
             panels.radius,
-            rects,
+            packed(&panels.rects),
             panels.base,
             panels.solid,
             panels.chroma,

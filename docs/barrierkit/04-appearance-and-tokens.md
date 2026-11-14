@@ -225,7 +225,13 @@ on PNG and is cached with the icon style.
 
 Dark icons suit `Clear` best: the plate has the low luminance that becomes
 the transparency. The ends of the tint and the clear gray are the
-`ICON_STYLE` tokens. A style rasterizes at the window's scale and is cached
+`ICON_STYLE` tokens.
+
+With `.glass_plate()` a compositor that draws a clear icon's plate as glass
+(Malaysia's Dock, `set_plate_frames`) gets only the logo: `app_icon` skips the
+plate, and `icon_style` drops the dark body of the icon, whose alpha starts at
+`ICON_STYLE.clear_cut` (`IconStyle::matrix_on_glass`). The plate's corner is
+`ICON_PLATE.corner`, as a share of its body. Without `Clear` it changes nothing. A style rasterizes at the window's scale and is cached
 like a template image. It does not apply to `Template` images or to symbols.
 
 ## Fonts

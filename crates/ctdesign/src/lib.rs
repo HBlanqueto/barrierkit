@@ -438,6 +438,7 @@ pub struct IconPlateMetrics {
     pub rim_chroma: f32,
     pub rim_width: f32,
     pub body: f32,
+    pub corner: f32,
     pub logo_scale: f32,
     pub shadow_far_offset: f32,
     pub shadow_far_opacity: f32,
@@ -483,6 +484,7 @@ pub struct IconStyleMetrics {
     pub clear_floor: f32,
     pub clear_range: f32,
     pub clear_alpha_gain: f32,
+    pub clear_cut: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

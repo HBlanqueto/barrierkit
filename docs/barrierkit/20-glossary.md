@@ -328,9 +328,11 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `ctappearance::icon_style::IconTone`, `IconStyle::dark` | enum, fn | — | — | Light, dark or automatic icons, and whether a style draws dark for a tone and scheme | [4](04-appearance-and-tokens.md#icon-styles) |
 | `symbol::Image::icon_style` | fn | ≈ `.grayscale(_:)` and `.colorMultiply(_:)` | — | Restyles the image's own colors; has no effect on a template image or a symbol | [4](04-appearance-and-tokens.md#icon-styles) |
 | `symbol::Image::app_icon` | fn | — | ≈ `NSWorkspace.icon(forFile:)` | Draws an app's own icon on a plate in the user's icon style and color scheme | [4](04-appearance-and-tokens.md#app-icons) |
+| `symbol::Image::glass_plate` | fn | — | — | In the clear icon style, draws only the logo: the compositor draws the plate as glass | [4](04-appearance-and-tokens.md#app-icons) |
 | `ctappearance::icon_plate::Logo`, `Lobe` | struct | — | — | A bright or dark icon and the color lobe its plate takes the hue from; `Logo::from_colors` | [4](04-appearance-and-tokens.md#app-icons) |
 | `ctappearance::icon_plate::Plate`, `plate` | struct, fn | — | — | Plate gradient, rim and glass flag for an icon, an `IconStyle`, whether it is dark and a tint | [4](04-appearance-and-tokens.md#app-icons) |
 | `ctappearance::icon_plate::logo_matrix` | fn | — | — | Color matrix for the icon on its plate; `None` keeps its colors | [4](04-appearance-and-tokens.md#app-icons) |
+| `ctappearance::icon_style::IconStyle::matrix_on_glass` | fn | — | — | `IconStyle::matrix` for an icon whose plate the compositor draws as glass: a clear icon also loses its dark body | [4](04-appearance-and-tokens.md#app-icons) |
 | `register_font` | fn | — | — | Adds a typeface from font file bytes; `false` if not a font | [4](04-appearance-and-tokens.md#fonts) |
 
 ## Helpers
@@ -1159,6 +1161,8 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `shell::LayerSpec` | struct | — | — | Namespace, layer, anchors, exclusive zone, keyboard and size of a layer surface | [18](18-platform.md#run_layer-and-layerspec) |
 | `shell::LayerGeometry` | struct | — | ≈ `NSWindow.setFrame(_:display:)` | Anchors, exclusive zone, size and keyboard of a running layer surface | [18](18-platform.md#run_layer-and-layerspec) |
 | `shell::CardFrames` | struct | — | — | Corner radius and rectangles of the cards a layer surface draws | [18](18-platform.md#run_layer-and-layerspec) |
+| `shell::PlateFrames` | struct | — | — | Corner radius and rectangles of the icon plates a layer surface has the compositor draw as glass | [18](18-platform.md#run_layer-and-layerspec) |
+| `shell::set_plate_frames` | fn | — | — | Asks the compositor to draw the glass of each icon plate of the calling layer surface; only the Dock's is drawn | [18](18-platform.md#run_layer-and-layerspec) |
 | `shell::set_card_frames` | fn | — | — | Asks the compositor for the window frame (shadow, inner and outer border) around each card of the calling layer surface | [18](18-platform.md#run_layer-and-layerspec) |
 | `shell::set_layer_geometry` | fn | — | ≈ `NSWindow.setFrame(_:display:)` | Moves, resizes or refocuses the layer surface of the calling component | [18](18-platform.md#run_layer-and-layerspec) |
 | `shell::Layer` | enum | — | ≈ `NSWindow.Level` | Stacking layer of a layer surface: `Background`, `Bottom`, `Top`, `Overlay` | [18](18-platform.md#run_layer-and-layerspec) |

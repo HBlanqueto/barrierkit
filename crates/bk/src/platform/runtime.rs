@@ -308,6 +308,12 @@ fn insert_ping(event_loop: &mut EventLoop<Runtime>, shell: &mut Runtime) -> Resu
                         }
                     }
                     #[cfg(feature = "shell")]
+                    Sent::Kit(event) if event.is::<crate::shell::PlateFrames>() => {
+                        if let Ok(frames) = event.downcast::<crate::shell::PlateFrames>() {
+                            shell.apply_plate_frames(&surface_id, *frames);
+                        }
+                    }
+                    #[cfg(feature = "shell")]
                     Sent::Kit(event) if event.is::<crate::shell::BlurRegion>() => {
                         if let Ok(region) = event.downcast::<crate::shell::BlurRegion>() {
                             shell.apply_blur_region(&surface_id, *region);
@@ -470,7 +476,7 @@ impl Runtime {
             .ok();
         let dialog_manager = globals.bind(&qh, 1..=1, ()).ok();
         let window_style = globals
-            .bind::<super::window_style::InfinityWindowStyleV1, _, _>(&qh, 1..=7, ())
+            .bind::<super::window_style::InfinityWindowStyleV1, _, _>(&qh, 1..=8, ())
             .ok();
         let viewporter = globals.bind::<WpViewporter, _, _>(&qh, 1..=1, ()).ok();
         // wp_fractional_scale_v1: a fractional buffer is only valid behind a wp_viewport.
