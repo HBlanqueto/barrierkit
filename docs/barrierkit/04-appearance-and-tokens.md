@@ -234,6 +234,18 @@ plate, and `icon_style` drops the dark body of the icon, whose alpha starts at
 `ICON_PLATE.corner`, as a share of its body. Without `Clear` it changes nothing. A style rasterizes at the window's scale and is cached
 like a template image. It does not apply to `Template` images or to symbols.
 
+An icon whose `size` changes every frame, such as the Dock's under the pointer,
+takes `.raster_size(largest)`: it is rasterized once at that size, with the
+window's scale, and drawn at `size`, so no frame parses the SVG or plates the
+icon again.
+
+```rust
+Image::data(include_bytes!("firefox.svg").as_slice())
+    .app_icon()
+    .size(magnified)
+    .raster_size(64.0)
+```
+
 ## Fonts
 
 `register_font(bytes) -> bool` adds a typeface from the bytes of a TrueType or

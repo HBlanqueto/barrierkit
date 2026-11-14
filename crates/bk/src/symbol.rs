@@ -228,6 +228,7 @@ pub struct Image {
     icon_style: IconStyle,
     plated: bool,
     glass_plate: bool,
+    raster_size: Option<f32>,
     style: Theme,
 }
 
@@ -255,6 +256,7 @@ impl Image {
             icon_style: IconStyle::Default,
             plated: false,
             glass_plate: false,
+            raster_size: None,
             style: Theme::tengen(),
         }
     }
@@ -278,6 +280,12 @@ impl Image {
     /// In the clear icon style the compositor draws the icon's plate as glass, so only the logo is drawn.
     pub fn glass_plate(mut self) -> Self {
         self.glass_plate = true;
+        self
+    }
+
+    /// Rasterizes the image once at this size and lets the GPU scale it: for an icon whose `size` changes every frame.
+    pub fn raster_size(mut self, size: f32) -> Self {
+        self.raster_size = Some(size);
         self
     }
 
@@ -305,8 +313,11 @@ impl From<Image> for Element {
         let color = paints.color(style.foreground.resolve(ControlState::default()));
         let side = Size::px(style.size);
         let icon_style = image.icon_style;
-        let plain = matches!(icon_style, IconStyle::Default | IconStyle::Dark) && !image.plated;
+        let raster_size = image.raster_size;
         let plated = image.plated;
+        let plain = matches!(icon_style, IconStyle::Default | IconStyle::Dark)
+            && !plated
+            && raster_size.is_none();
         let on_glass = |style: IconStyle| image.glass_plate && style == IconStyle::Clear;
         match (image.source, image.rendering_mode) {
             (Source::System(glyph), _) => symbol(glyph, style.size, color).into_element(),
@@ -337,7 +348,7 @@ impl From<Image> for Element {
                         Treatment::Style(icon_style, resolved.icon_tint, on_glass(icon_style))
                     }
                 };
-                match cached_image(&source, style.size, treatment) {
+                match cached_image(&source, raster_size.unwrap_or(style.size), treatment) {
                     Some(handle) => freya_core::elements::image::image(handle)
                         .width(side.clone())
                         .height(side)

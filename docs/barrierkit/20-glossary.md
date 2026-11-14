@@ -329,6 +329,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `symbol::Image::icon_style` | fn | ≈ `.grayscale(_:)` and `.colorMultiply(_:)` | — | Restyles the image's own colors; has no effect on a template image or a symbol | [4](04-appearance-and-tokens.md#icon-styles) |
 | `symbol::Image::app_icon` | fn | — | ≈ `NSWorkspace.icon(forFile:)` | Draws an app's own icon on a plate in the user's icon style and color scheme | [4](04-appearance-and-tokens.md#app-icons) |
 | `symbol::Image::glass_plate` | fn | — | — | In the clear icon style, draws only the logo: the compositor draws the plate as glass | [4](04-appearance-and-tokens.md#app-icons) |
+| `symbol::Image::raster_size` | fn | — | — | Rasterizes the image once at this size and lets the GPU scale it, for an icon whose size changes every frame | [4](04-appearance-and-tokens.md#app-icons) |
 | `ctappearance::icon_plate::Logo`, `Lobe` | struct | — | — | A bright or dark icon and the color lobe its plate takes the hue from; `Logo::from_colors` | [4](04-appearance-and-tokens.md#app-icons) |
 | `ctappearance::icon_plate::Plate`, `plate` | struct, fn | — | — | Plate gradient, rim and glass flag for an icon, an `IconStyle`, whether it is dark and a tint | [4](04-appearance-and-tokens.md#app-icons) |
 | `ctappearance::icon_plate::logo_matrix` | fn | — | — | Color matrix for the icon on its plate; `None` keeps its colors | [4](04-appearance-and-tokens.md#app-icons) |
