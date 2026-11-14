@@ -58,8 +58,8 @@ ICON_PLATE_CLEAR IconPlateLook components.icon-plate.clear
 ICON_PLATE_CLEAR_DARK IconPlateLook components.icon-plate.clear-dark
 ICON_PLATE_TINTED IconPlateLook components.icon-plate.tinted
 ICON_PLATE_TINTED_DARK IconPlateLook components.icon-plate.tinted-dark
-ICON_PLATE_GLASS [f32;3] components.icon-plate.glass
-ICON_PLATE_GLASS_DARK [f32;3] components.icon-plate.glass-dark
+ICON_PLATE_GLASS [f32;4] components.icon-plate.glass
+ICON_PLATE_GLASS_DARK [f32;4] components.icon-plate.glass-dark
 ICON_LOGO_CLEAR IconLogoEnds components.icon-logo.clear
 ICON_LOGO_CLEAR_DARK IconLogoEnds components.icon-logo.clear-dark
 ICON_LOGO_TINTED IconLogoEnds components.icon-logo.tinted

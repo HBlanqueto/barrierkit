@@ -237,9 +237,10 @@ With `.glass_plate()` a compositor that draws a clear icon's plate as glass
 (Malaysia's Dock, `set_plate_frames`) gets only the logo: `app_icon` skips the
 plate, and `icon_style` drops the dark body of the icon, whose alpha starts at
 `ICON_STYLE.clear_cut` (`IconStyle::matrix_on_glass`). The plate's corner is
-`ICON_PLATE.corner`, as a share of its body. The compositor scales the
-lightness and chroma of what is behind the plate by `ICON_PLATE_GLASS`
-(`ICON_PLATE_GLASS_DARK` with dark icons) and gives it the same edge. Without `Clear` it changes nothing. A style rasterizes at the window's scale and is cached
+`ICON_PLATE.corner`, as a share of its body. The compositor moves the
+lightness of what is behind the plate toward white by `ICON_PLATE_GLASS`, or
+toward black by `ICON_PLATE_GLASS_DARK` with dark icons, so the plate stands
+out from any glass, and gives it the same edge. Without `Clear` it changes nothing. A style rasterizes at the window's scale and is cached
 like a template image. It does not apply to `Template` images or to symbols.
 
 An icon whose `size` changes every frame, such as the Dock's under the pointer,
