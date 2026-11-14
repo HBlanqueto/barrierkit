@@ -51,7 +51,46 @@ pub fn use_switch_progress(on: State<bool>, animation: Animation) -> f32 {
     } else {
         animation
     };
-    use_animated(f32::from(u8::from(*on.read())), animation)
+    let duration_ms = use_reactive(&animation.duration_ms());
+    // A switch turned back midway goes on from the progress shown, not from the other end.
+    let resume = use_hook(|| {
+        let at = f32::from(u8::from(*on.peek()));
+        Rc::new(Cell::new((at, at)))
+    });
+    let starts = resume.clone();
+    let linear = use_animation_transition(on, move |_: bool, to: bool| {
+        let (toward_on, toward_off) = starts.get();
+        let (from, to) = if to {
+            (toward_on, 1.0)
+        } else {
+            (toward_off, 0.0)
+        };
+        AnimNum::new(from, to).time((*duration_ms.peek() as f32 * (to - from).abs()) as u64)
+    });
+    let linear = linear.get().value();
+    let progress = if *on.read() {
+        animation.progress(linear)
+    } else {
+        1.0 - animation.progress(1.0 - linear)
+    };
+    resume.set((
+        elapsed_at(animation, progress),
+        1.0 - elapsed_at(animation, 1.0 - progress),
+    ));
+    progress
+}
+
+fn elapsed_at(animation: Animation, progress: f32) -> f32 {
+    let (mut low, mut high) = (0.0f32, 1.0f32);
+    for _ in 0..24 {
+        let middle = (low + high) / 2.0;
+        if animation.progress(middle) < progress {
+            low = middle;
+        } else {
+            high = middle;
+        }
+    }
+    (low + high) / 2.0
 }
 
 pub(crate) fn ease_out(progress: f32) -> f32 {
