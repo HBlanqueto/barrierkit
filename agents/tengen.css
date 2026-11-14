@@ -269,6 +269,14 @@
   --bk-icon-plate-tile-top-lift: 0.04;
   --bk-icon-plate-tile-bottom-lift: -0.08;
   --bk-icon-plate-dark-glyph-lightness: 0.65;
+  --bk-icon-plate-glass: 1.091 1.09 0.2;
+  --bk-icon-plate-glass-0: 1.091;
+  --bk-icon-plate-glass-1: 1.09;
+  --bk-icon-plate-glass-2: 0.2;
+  --bk-icon-plate-glass-dark: 0.468 0.94 0.16;
+  --bk-icon-plate-glass-dark-0: 0.468;
+  --bk-icon-plate-glass-dark-1: 0.94;
+  --bk-icon-plate-glass-dark-2: 0.16;
   --bk-icon-plate-lobe-dark-top-lightness: 0.29;
   --bk-icon-plate-lobe-dark-top-chroma-scale: 0.5;
   --bk-icon-plate-lobe-dark-top-chroma-cap: 0.11;
