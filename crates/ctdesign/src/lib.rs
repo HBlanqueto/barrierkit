@@ -925,6 +925,8 @@ pub struct Palette {
 /// is the rim's luminance as `[lift, share]` of the glass's, `divider` the shift of the glass's
 /// luminance that marks a divider (positive lights it, negative darkens it), `corner` how the frame
 /// turns from rim to outline around a corner: `[decay, outline from, outline to]` in degrees.
+/// With `tone` the frame takes its colours from what is behind the glass instead of `rim` and
+/// `outline`.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct DockSurface {
     pub glass: Rgba,
@@ -932,6 +934,20 @@ pub struct DockSurface {
     pub rim: [f32; 2],
     pub divider: f32,
     pub corner: [f32; 3],
+    pub tone: Option<DockTone>,
+}
+
+/// The light Dock's frame as macOS draws it over a wallpaper, measured on its Dock: the glass takes
+/// the backdrop's OKLab chroma times `chroma` and its own lightness plus `lift`; the rim is that
+/// glass times `gain` per channel, with the glow inside it as shares of it, and the outline the
+/// glass with its lightness and chroma times `outline`.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct DockTone {
+    pub chroma: f32,
+    pub lift: f32,
+    pub gain: f32,
+    pub outline: [f32; 2],
+    pub glow: [f32; 6],
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

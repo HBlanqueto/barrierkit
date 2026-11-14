@@ -52,6 +52,7 @@ mod tests {
             rim: [0.0, 1.0],
             divider,
             corner: DOCK_RIM_CORNER_LIGHT,
+            tone: None,
         }
     }
 
