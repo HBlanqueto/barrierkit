@@ -314,6 +314,8 @@ tint_parts = ["sidebars", "window", "groups", "controls", "menus"]
 | Key | Type (`AppearanceConfig` field) | Values | Default |
 |---|---|---|---|
 | `color_scheme` | `ColorScheme` | `light`, `dark`, `dark_tint` | `light` |
+| `automatic_scheme` | `bool` | Light by day and dark from `automatic_dark_from` until `automatic_dark_until`, local time; a `dark_tint` scheme stays dark-tint at night. Reading the domain puts the scheme of the hour in `color_scheme` | `false` |
+| `automatic_dark_from`, `automatic_dark_until` | `u8` | Hours from 0 to 23 | `19`, `7` |
 | `accent_color` | `Option<[f32; 3]>` | RGB from 0 to 1; absent means automatic: the theme's accent, and apps keep their own | absent |
 | `contrast` | `bool` | | `false` |
 | `reduced_motion` | `bool` | | `false` |

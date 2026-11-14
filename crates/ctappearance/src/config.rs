@@ -103,6 +103,10 @@ fn display_contrast<'de, D: Deserializer<'de>>(deserializer: D) -> Result<f32, D
     stepped(deserializer, &DISPLAY_CONTRAST)
 }
 
+fn hour<'de, D: Deserializer<'de>>(deserializer: D) -> Result<u8, D::Error> {
+    Ok(u8::deserialize(deserializer)?.min(23))
+}
+
 fn text_size<'de, D: Deserializer<'de>>(deserializer: D) -> Result<f32, D::Error> {
     stepped(deserializer, &TEXT_SIZES)
 }
@@ -285,6 +289,11 @@ impl TextSizes {
 pub struct AppearanceConfig {
     #[serde(deserialize_with = "lenient")]
     pub color_scheme: ColorScheme,
+    pub automatic_scheme: bool,
+    #[serde(deserialize_with = "hour")]
+    pub automatic_dark_from: u8,
+    #[serde(deserialize_with = "hour")]
+    pub automatic_dark_until: u8,
     #[serde(skip_serializing)]
     pub accent_color: Option<[f32; 3]>,
     pub contrast: bool,
@@ -343,6 +352,9 @@ impl Default for AppearanceConfig {
     fn default() -> Self {
         Self {
             color_scheme: ColorScheme::default(),
+            automatic_scheme: false,
+            automatic_dark_from: 19,
+            automatic_dark_until: 7,
             accent_color: None,
             contrast: false,
             reduced_motion: false,
@@ -384,6 +396,27 @@ impl AppearanceConfig {
         sizes.get_mut(toolkit).unwrap_or(self.text_size)
     }
 
+    pub fn scheme_at(&self, hour: u8) -> ColorScheme {
+        if !self.automatic_scheme {
+            return self.color_scheme;
+        }
+        let (from, until) = (self.automatic_dark_from, self.automatic_dark_until);
+        let night = if from <= until {
+            (from..until).contains(&hour)
+        } else {
+            hour >= from || hour < until
+        };
+        match (night, self.color_scheme) {
+            (false, _) => ColorScheme::Light,
+            (true, ColorScheme::DarkTint) => ColorScheme::DarkTint,
+            (true, _) => ColorScheme::Dark,
+        }
+    }
+
+    pub fn current_scheme(&self) -> ColorScheme {
+        local_hour().map_or(self.color_scheme, |hour| self.scheme_at(hour))
+    }
+
     pub fn transparency_reduced(&self) -> bool {
         self.reduce_transparency || self.contrast
     }
@@ -397,6 +430,23 @@ impl AppearanceConfig {
             style => style,
         }
     }
+}
+
+fn local_hour() -> Option<u8> {
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .ok()?
+        .as_secs();
+    let now = libc::time_t::try_from(now).ok()?;
+    let mut time = std::mem::MaybeUninit::<libc::tm>::uninit();
+    // SAFETY: localtime_r writes only into `time`; on a null return `time` is not read.
+    let time = unsafe {
+        if libc::localtime_r(&now, time.as_mut_ptr()).is_null() {
+            return None;
+        }
+        time.assume_init()
+    };
+    u8::try_from(time.tm_hour).ok()
 }
 
 pub fn config_dir() -> PathBuf {
@@ -433,7 +483,7 @@ pub fn read_appearance() -> Result<Option<AppearanceConfig>, toml::de::Error> {
     read_appearance_from(&appearance_path())
 }
 
-fn read_appearance_from(path: &Path) -> Result<Option<AppearanceConfig>, toml::de::Error> {
+pub fn read_appearance_from(path: &Path) -> Result<Option<AppearanceConfig>, toml::de::Error> {
     match std::fs::read_to_string(path) {
         Ok(text) => {
             warn_legacy_traffic_light_name(&text);
@@ -441,6 +491,7 @@ fn read_appearance_from(path: &Path) -> Result<Option<AppearanceConfig>, toml::d
             if monochrome_icons(&text) {
                 config.icon_color.get_or_insert(graphite());
             }
+            config.color_scheme = config.current_scheme();
             Ok(Some(config))
         }
         Err(_) => Ok(None),
@@ -717,6 +768,9 @@ traffic_lights = "auto"
         let path = dir.join("appearance.domain");
         let config = AppearanceConfig {
             color_scheme: ColorScheme::Dark,
+            automatic_scheme: false,
+            automatic_dark_from: 20,
+            automatic_dark_until: 6,
             accent_color: Some([0.184, 0.435, 0.894]),
             contrast: false,
             reduced_motion: false,
@@ -764,6 +818,25 @@ traffic_lights = "auto"
         let read = read_appearance_from(&path).unwrap().unwrap();
         assert_eq!(config, read);
         std::fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn automatic_is_dark_from_its_evening_hour_until_its_morning_hour() {
+        let config = AppearanceConfig {
+            automatic_scheme: true,
+            ..AppearanceConfig::default()
+        };
+        let schemes = [18, 19, 0, 6, 7].map(|hour| config.scheme_at(hour));
+        use ColorScheme::{Dark, Light};
+        assert_eq!(schemes, [Light, Dark, Dark, Dark, Light]);
+        let day_shift = AppearanceConfig {
+            automatic_dark_from: 9,
+            automatic_dark_until: 17,
+            color_scheme: ColorScheme::DarkTint,
+            ..config
+        };
+        assert_eq!(day_shift.scheme_at(12), ColorScheme::DarkTint);
+        assert_eq!(day_shift.scheme_at(17), ColorScheme::Light);
     }
 
     #[test]

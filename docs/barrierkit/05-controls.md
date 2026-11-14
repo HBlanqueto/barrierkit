@@ -286,7 +286,7 @@ All of them report the chosen index with `.on_change(|index: usize| ..)`.
 |---|---|---|---|
 | `RadioGroup` | `choices` | `RadioGroup::new(label)`, `.option(text)`, `.disabled(bool)`, `.tint(Tint)`, `.style(\|s\| ..)` | `.selected(usize)` (default 0) |
 | `SegmentedControl` | `controls` | `SegmentedControl::new(label)`, `.segment(text)`, `.style(\|s\| ..)` | `.selected(usize)` (default 0) |
-| `PopUpButton` | `popup_button` | `PopUpButton::new(label)`, `.item(text)`, `.icon_item(text, MenuIcon)`, `.section_header(title)` (a separator and a title before the next item), `.disabled(bool)`, `.style(\|s\| ..)` | `.selected(usize)` (default 0) |
+| `PopUpButton` | `popup_button` | `PopUpButton::new(label)`, `.item(text)`, `.icon_item(text, MenuIcon)`, `.section_header(title)` (a separator and a title before the next item), `.separator()` (a line before the next item), `.disabled(bool)`, `.style(\|s\| ..)` | `.selected(usize)` (default 0) |
 | `ColorWell` | `choices` | `ColorWell::new(label, swatches)`, `.multicolor(name)`, `.disabled(bool)`, `.style(\|s\| ..)` | `.selected(Option<usize>)` (default `None`) |
 | `ChoiceCards` | `choices` | `ChoiceCards::new(label)`, `.option(caption, preview)`, `.disabled(bool)`, `.style(\|s\| ..)` | `.selected(usize)` (default 0) |
 
@@ -464,6 +464,8 @@ without being wiped.
 `color_picker::ColorPicker::new(label, Rgba)` is a 48 × 24 well filled with the color. A click
 opens a [popover](07-menus-and-popovers.md) with the hex value and hue, saturation and
 brightness `LevelSlider`s. Each move calls `.on_change(|color: Rgba| ..)`.
+`ColorPanel::show(color, area, on_change)` opens the same popover beside `area` without a
+well, like `NSColorPanel`, for a menu item such as «Choose Color…».
 
 | Helper | Returns |
 |---|---|

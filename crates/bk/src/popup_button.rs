@@ -25,6 +25,7 @@ pub struct PopUpButton {
     label: &'static str,
     items: Vec<(&'static str, Option<MenuIcon>)>,
     section_headers: Vec<(usize, &'static str)>,
+    separators: Vec<usize>,
     selected: usize,
     on_change: Option<Callback<usize, ()>>,
     disabled: bool,
@@ -37,6 +38,7 @@ impl PopUpButton {
             label,
             items: Vec::new(),
             section_headers: Vec::new(),
+            separators: Vec::new(),
             selected: 0,
             on_change: None,
             disabled: false,
@@ -67,6 +69,11 @@ impl PopUpButton {
         self
     }
 
+    pub fn separator(mut self) -> Self {
+        self.separators.push(self.items.len());
+        self
+    }
+
     pub fn selected(mut self, index: usize) -> Self {
         self.selected = index;
         self
@@ -94,6 +101,7 @@ impl Component for PopUpButton {
         let current = (0..self.items.len()).find(|&i| choice.is(i)).unwrap_or(0);
         let items = self.items.clone();
         let section_headers = self.section_headers.clone();
+        let separators = self.separators.clone();
         let selects: Vec<_> = (0..items.len()).map(|i| choice.select(i)).collect();
         let size = style.indicator_size;
         let radius = style
@@ -126,6 +134,7 @@ impl Component for PopUpButton {
                     open_menu(
                         &items,
                         &section_headers,
+                        &separators,
                         current,
                         *area.read(),
                         selects.clone(),
@@ -168,6 +177,7 @@ impl Component for PopUpButton {
 fn open_menu(
     items: &[(&str, Option<MenuIcon>)],
     section_headers: &[(usize, &str)],
+    separators: &[usize],
     current: usize,
     area: Area,
     selects: Vec<Callback<(), ()>>,
@@ -175,6 +185,9 @@ fn open_menu(
     let mut entries = Vec::new();
     let mut current_entry = 0;
     for (index, (label, icon)) in items.iter().enumerate() {
+        if separators.contains(&index) {
+            entries.push(MenuItem::Separator);
+        }
         for (_, title) in section_headers.iter().filter(|(at, _)| *at == index) {
             if !entries.is_empty() {
                 entries.push(MenuItem::Separator);

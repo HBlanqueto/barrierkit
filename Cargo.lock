@@ -629,6 +629,7 @@ name = "ctappearance"
 version = "0.1.0"
 dependencies = [
  "ctdesign",
+ "libc",
  "md-5",
  "nix",
  "serde",

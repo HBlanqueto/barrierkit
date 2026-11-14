@@ -272,7 +272,7 @@ impl Component for RadioOption {
     }
 }
 
-fn swatch_name(id: &'static str) -> &'static str {
+pub fn swatch_name(id: &'static str) -> &'static str {
     match id {
         "blue" => text!("accent-blue"),
         "purple" => text!("accent-purple"),

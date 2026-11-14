@@ -894,6 +894,7 @@
   --bk-shell-dock-hide-ms: 280;
   --bk-shell-dock-minimize-ms: 500;
   --bk-shell-dock-slot-ms: 400;
+  --bk-shell-dock-remove-ms: 750;
   --bk-shell-dock-minimize-handoff-ms: 100;
   --bk-shell-dock-reveal-strip: 2;
   --bk-shell-dock-recents: 3;

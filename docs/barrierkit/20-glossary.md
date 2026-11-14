@@ -356,6 +356,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `ctappearance::Toolkit` | enum | — | — | `BarrierKit`, `Gtk`, `Qt`: the kinds of app in Accessibility › Display › Text size | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::TextSizes` | struct | — | ≈ the per-app list of Accessibility › Display › Text size | An optional text size per `Toolkit`; `get_mut(toolkit)` | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::AppearanceConfig::text_size_for` | method | — | — | The toolkit's own text size, or the preferred `text_size` | [4](04-appearance-and-tokens.md#the-appearance-file) |
+| `ctappearance::AppearanceConfig::scheme_at`, `current_scheme` | method | — | ≈ `NSApp.effectiveAppearance` | The color scheme at an hour, or now in local time, with `automatic_scheme` | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::MenuBarSize` | enum | — | — | Menu bar text `Default` or `Large` | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::ColorFilter` | enum | — | ≈ Accessibility › Display › Color filters | `Grayscale`, `RedGreen`, `GreenRed`, `BlueYellow` | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::AppearanceConfig::transparency_reduced` | method | — | ≈ `NSWorkspace.accessibilityDisplayShouldReduceTransparency` | True with `reduce_transparency` or `contrast` | [4](04-appearance-and-tokens.md#the-appearance-file) |
@@ -370,7 +371,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `ctappearance::data_dir` | fn | — | — | `$MALAYSIA_DATA_DIR` or `$XDG_DATA_HOME/malaysia` | [4](04-appearance-and-tokens.md#reading-and-writing) |
 | `ctappearance::appearance_path` | fn | — | — | Path of `appearance.domain` | [4](04-appearance-and-tokens.md#reading-and-writing) |
 | `ctappearance::wallpaper_state_path` | fn | — | — | Path of `wallpaper.state`, the wallpaper's dominant color and grid | [4](04-appearance-and-tokens.md#reading-and-writing) |
-| `ctappearance::read_appearance` | fn | — | — | Reads the appearance file; `None` without file, `Err` on bad TOML | [4](04-appearance-and-tokens.md#reading-and-writing) |
+| `ctappearance::read_appearance`, `read_appearance_from` | fn | — | — | Reads the appearance file; `None` without file, `Err` on bad TOML | [4](04-appearance-and-tokens.md#reading-and-writing) |
 | `ctappearance::load_appearance` | fn | — | — | Reads the appearance file, or the default on any error | [4](04-appearance-and-tokens.md#reading-and-writing) |
 | `ctappearance::write_appearance` | fn | — | — | Writes the config atomically, keeping other keys and comments | [4](04-appearance-and-tokens.md#reading-and-writing) |
 | `ctappearance::replace_file` | fn | — | — | Replaces a file atomically with new text | [4](04-appearance-and-tokens.md#reading-and-writing) |
@@ -668,9 +669,11 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `controls::SegmentedControl` | struct | `PickerStyle.segmented` | `NSSegmentedControl` | Segments filling the width; one is chosen | [5](05-controls.md#choices) |
 | `popup_button::PopUpButton` | struct | `PickerStyle.menu` | `NSPopUpButton` | Shows the chosen item; opens the list as a menu | [5](05-controls.md#choices) |
 | `popup_button::PopUpButton::section_header` | method | `Section(_:)` in a `Picker` | `NSMenuItem.sectionHeader(title:)` | Titles the items that follow, after a separator | [5](05-controls.md#choices) |
+| `popup_button::PopUpButton::separator` | method | `Divider()` in a `Picker` | `NSMenuItem.separator()` | A line before the items that follow | [5](05-controls.md#choices) |
 | `choices::ColorWell` | struct | `≈ PickerStyle.palette` | — | Row of preset color swatches; reports the chosen index | [5](05-controls.md#choices) |
 | `choices::ColorWell::multicolor` | method | — | ≈ the «Multicolor» accent of System Settings | A rainbow swatch first, at index 0 | [5](05-controls.md#choices) |
 | `choices::ChoiceCards` | struct | — | — | Large preview cards with captions; one is chosen | [5](05-controls.md#choices) |
+| `choices::swatch_name` | fn | — | — | The localized name of a `ctdesign::ACCENT_SWATCHES` id, as `ColorWell` shows it | [5](05-controls.md#choices) |
 
 ## Sliders and indicators
 
@@ -702,6 +705,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `password::PasswordField` | struct | — | — | Zeroizing password buffer with idle, verifying and error states | [5](05-controls.md#passwords) |
 | `password::State` | enum | — | — | `Idle`, `Verifying`, `Error(String)` of a password field | [5](05-controls.md#passwords) |
 | `color_picker::ColorPicker` | struct | `ColorPicker` | `≈ NSColorWell` | Color well opening an HSB popover, not a color panel | [5](05-controls.md#color-picker) |
+| `color_picker::ColorPanel::show` | fn | — | `NSColorPanel` | Opens the HSB color popover beside an area, without a well | [5](05-controls.md#color-picker) |
 | `color_picker::hsb_to_rgb` | fn | — | `≈ NSColor.init(hue:saturation:brightness:alpha:)` | Opaque color from hue, saturation and brightness | [5](05-controls.md#color-picker) |
 | `color_picker::rgb_to_hsb` | fn | — | `≈ NSColor.getHue(_:saturation:brightness:alpha:)` | Hue, saturation and brightness of a color | [5](05-controls.md#color-picker) |
 | `color_picker::hex` | fn | — | — | `#RRGGBB` string of a color | [5](05-controls.md#color-picker) |

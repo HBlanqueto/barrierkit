@@ -118,17 +118,13 @@ impl Component for ColorPicker {
             .bordered(&paints, style.border.as_ref())
             .on_sized(move |event: Event<SizedEventData>| area.set_if_modified(event.area))
             .on_press(move |_| {
-                let on_change = on_change.clone();
-                let style = panel_style.clone();
-                Popover::new(panel_size, move || {
-                    ColorPanel {
-                        initial: shown,
-                        on_change: on_change.clone(),
-                        style: style.clone(),
-                    }
-                    .into_element()
-                })
-                .show(*area.peek());
+                open_panel(
+                    shown,
+                    *area.peek(),
+                    on_change.clone(),
+                    panel_style.clone(),
+                    panel_size,
+                )
             });
         interaction.focus_ring(
             dimmed(shadowed(well, &style.shadows), style.opacity),
@@ -137,11 +133,42 @@ impl Component for ColorPicker {
     }
 }
 
+fn open_panel(
+    initial: Rgba,
+    area: Area,
+    on_change: Option<Callback<Rgba, ()>>,
+    style: Theme,
+    size: (f32, f32),
+) {
+    Popover::new(size, move || {
+        ColorPanel {
+            initial,
+            on_change: on_change.clone(),
+            style: style.clone(),
+        }
+        .into_element()
+    })
+    .show(area);
+}
+
 #[derive(PartialEq)]
-struct ColorPanel {
+pub struct ColorPanel {
     initial: Rgba,
     on_change: Option<Callback<Rgba, ()>>,
     style: Theme,
+}
+
+impl ColorPanel {
+    pub fn show(initial: Rgba, area: Area, on_change: impl Into<Callback<Rgba, ()>>) {
+        let style: ColorPickerStyle = resolve(&Theme::tengen());
+        open_panel(
+            initial,
+            area,
+            Some(on_change.into()),
+            Theme::tengen(),
+            style.panel_size,
+        );
+    }
 }
 
 impl Component for ColorPanel {
