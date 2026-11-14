@@ -1,4 +1,3 @@
-use ctappearance::ColorScheme;
 use ctappearance::icon_plate::{Logo, logo_matrix, plate};
 use ctappearance::icon_style::IconStyle;
 use ctdesign::{ICON_PLATE, Rgba};
@@ -94,11 +93,11 @@ pub(crate) fn plated(
     raster: &SkImage,
     side: u32,
     style: IconStyle,
-    scheme: ColorScheme,
-    accent: Rgba,
+    dark: bool,
+    tint: Rgba,
 ) -> Option<ImageHandle> {
     let pixels = read(raster)?;
-    let plate = plate(style, scheme, accent, &Logo::from_colors(&pixels.opaque));
+    let plate = plate(style, dark, tint, &Logo::from_colors(&pixels.opaque));
     let side = side as f32;
     let scale = side / GRID;
     let body = squircle(scale);
@@ -193,7 +192,7 @@ pub(crate) fn plated(
     draw(&cast, ICON_PLATE.logo_shadow_offset * side);
     let mut logo = Paint::default();
     logo.set_anti_alias(true);
-    if let Some(matrix) = logo_matrix(style, scheme, accent) {
+    if let Some(matrix) = logo_matrix(style, dark, tint) {
         logo.set_color_filter(color_filters::matrix_row_major(
             &matrix,
             color_filters::Clamp::Yes,

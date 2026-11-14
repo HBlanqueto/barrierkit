@@ -297,13 +297,14 @@ All of them report the chosen index with `.on_change(|index: usize| ..)`.
 - `PopUpButton` shows the chosen item, its SVG icon if it has one, and an up-down chevron. A
   click opens the items as a menu with a radio mark, placed so the chosen row covers the
   button. `MenuIcon` is in [7](07-menus-and-popovers.md).
-- `ColorWell` is a row of 18 swatches, 10 apart. The chosen one gets an accent ring
+- `ColorWell` is a row of 22 swatches, 11 apart. The chosen one gets an accent ring
   2 away (`SETTINGS.swatch_ring_gap`), like macOS. `swatches` is
   `&'static [(&'static str, Rgba)]`, for example `ctdesign::ACCENT_SWATCHES`.
   `.multicolor(name)` puts a rainbow swatch first, from `ctdesign::MULTICOLOR`,
   like «Multicolor» in macOS; it is index 0 and the swatches follow.
 - `ChoiceCards` shows 66 × 44 previews with a caption below; the chosen card gets an accent
-  ring.
+  ring, `selection_gap` away (0 by default). System Settings draws its icon styles on
+  `SETTINGS.icon_card_size` cards with the ring `icon_card_ring_gap` away, like macOS.
 
 ```rust
 RadioGroup::new("Apply the tint to")

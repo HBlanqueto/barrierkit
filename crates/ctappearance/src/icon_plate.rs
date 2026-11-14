@@ -5,7 +5,6 @@ use ctdesign::{
     Rgba,
 };
 
-use crate::ColorScheme;
 use crate::backdrop::Oklab;
 use crate::icon_style::{IconStyle, duotone};
 
@@ -155,13 +154,12 @@ fn shade(look: &IconPlateLook, hue: f32, chroma: f32) -> (Rgba, Rgba) {
     )
 }
 
-/// The plate for an icon: its own hue by default, graphite in dark, translucent for clear and the
-/// accent for tinted; monochrome is tinted without chroma.
-pub fn plate(style: IconStyle, scheme: ColorScheme, accent: Rgba, logo: &Logo) -> Plate {
-    let dark = scheme == ColorScheme::Dark;
-    let (accent_hue, accent_chroma) = hue_chroma(Oklab::from_rgba(accent));
+/// The plate for an icon: its own hue by default, graphite when dark, translucent for clear and
+/// the tint for tinted; `dark` is `IconStyle::dark`.
+pub fn plate(style: IconStyle, dark: bool, tint: Rgba, logo: &Logo) -> Plate {
+    let (tint_hue, tint_chroma) = hue_chroma(Oklab::from_rgba(tint));
     let (look, hue, chroma) = match (style, dark) {
-        (IconStyle::Default, false) => {
+        (IconStyle::Default | IconStyle::Dark, false) => {
             let look = if logo.bright {
                 &ICON_PLATE_LOBE_DARK
             } else {
@@ -170,16 +168,14 @@ pub fn plate(style: IconStyle, scheme: ColorScheme, accent: Rgba, logo: &Logo) -
             let (hue, chroma) = logo.lobe.map_or((0.0, 0.0), |lobe| (lobe.hue, lobe.chroma));
             (look, hue, chroma)
         }
-        (IconStyle::Default, true) => {
+        (IconStyle::Default | IconStyle::Dark, true) => {
             let (hue, chroma) = logo.lobe.map_or((0.0, 0.0), |lobe| (lobe.hue, lobe.chroma));
             (&ICON_PLATE_GRAPHITE, hue, chroma)
         }
         (IconStyle::Clear, false) => (&ICON_PLATE_CLEAR, 0.0, 0.0),
         (IconStyle::Clear, true) => (&ICON_PLATE_CLEAR_DARK, 0.0, 0.0),
-        (IconStyle::Tinted, false) => (&ICON_PLATE_TINTED, accent_hue, accent_chroma),
-        (IconStyle::Tinted, true) => (&ICON_PLATE_TINTED_DARK, accent_hue, accent_chroma),
-        (IconStyle::Monochrome, false) => (&ICON_PLATE_TINTED, accent_hue, 0.0),
-        (IconStyle::Monochrome, true) => (&ICON_PLATE_TINTED_DARK, accent_hue, 0.0),
+        (IconStyle::Tinted, false) => (&ICON_PLATE_TINTED, tint_hue, tint_chroma),
+        (IconStyle::Tinted, true) => (&ICON_PLATE_TINTED_DARK, tint_hue, tint_chroma),
     };
     let (top, bottom) = shade(look, hue, chroma);
     let rim = fit(
@@ -214,16 +210,14 @@ fn ends(ends: &IconLogoEnds, hue: f32, chroma: f32) -> (Rgba, Rgba) {
 }
 
 /// The color matrix for the icon drawn on its plate; `None` keeps its colors.
-pub fn logo_matrix(style: IconStyle, scheme: ColorScheme, accent: Rgba) -> Option<[f32; 20]> {
-    let dark = scheme == ColorScheme::Dark;
-    let (accent_hue, accent_chroma) = hue_chroma(Oklab::from_rgba(accent));
+pub fn logo_matrix(style: IconStyle, dark: bool, tint: Rgba) -> Option<[f32; 20]> {
+    let (tint_hue, tint_chroma) = hue_chroma(Oklab::from_rgba(tint));
     let (dark_end, light_end) = match (style, dark) {
-        (IconStyle::Default, _) => return None,
-        (IconStyle::Monochrome, _) => return style.matrix(accent),
+        (IconStyle::Default | IconStyle::Dark, _) => return None,
         (IconStyle::Clear, false) => ends(&ICON_LOGO_CLEAR, 0.0, 0.0),
         (IconStyle::Clear, true) => ends(&ICON_LOGO_CLEAR_DARK, 0.0, 0.0),
-        (IconStyle::Tinted, false) => ends(&ICON_LOGO_TINTED, accent_hue, accent_chroma),
-        (IconStyle::Tinted, true) => ends(&ICON_LOGO_TINTED_DARK, accent_hue, accent_chroma),
+        (IconStyle::Tinted, false) => ends(&ICON_LOGO_TINTED, tint_hue, tint_chroma),
+        (IconStyle::Tinted, true) => ends(&ICON_LOGO_TINTED_DARK, tint_hue, tint_chroma),
     };
     Some(duotone(dark_end, light_end))
 }
@@ -281,29 +275,32 @@ mod tests {
     #[test]
     fn dark_is_graphite_whatever_the_icon() {
         let logo = Logo::from_colors(&pixels(&[(Rgba::rgb8(0xff, 0x50, 0x20), 100)]));
-        let plate = plate(IconStyle::Default, ColorScheme::Dark, AMBER, &logo);
+        let plate = plate(IconStyle::Dark, true, AMBER, &logo);
         assert!((plate.top.r - plate.top.b).abs() < 0.01 && plate.top.r < 0.3);
         assert!(!plate.glass);
     }
 
     #[test]
-    fn clear_is_see_through_and_tinted_is_the_accent() {
+    fn clear_is_see_through_and_tinted_is_the_tint() {
         let logo = Logo::from_colors(&pixels(&[(Rgba::rgb8(0xff, 0x50, 0x20), 100)]));
-        let clear = plate(IconStyle::Clear, ColorScheme::Light, AMBER, &logo);
+        let clear = plate(IconStyle::Clear, false, AMBER, &logo);
         assert!(clear.glass && clear.top.a < 0.3 && clear.top.a > clear.bottom.a);
-        let tinted = plate(IconStyle::Tinted, ColorScheme::Light, AMBER, &logo);
+        let tinted = plate(IconStyle::Tinted, false, AMBER, &logo);
         assert!(tinted.top.r > tinted.top.b && tinted.top.a == 1.0);
     }
 
     #[test]
-    fn monochrome_has_no_hue_and_default_has_no_logo_matrix() {
+    fn a_gray_tint_has_no_hue_and_default_and_dark_have_no_logo_matrix() {
         let logo = Logo::from_colors(&pixels(&[(Rgba::rgb8(0xff, 0x50, 0x20), 100)]));
-        let plate = plate(IconStyle::Monochrome, ColorScheme::Light, AMBER, &logo);
-        assert!((plate.top.r - plate.top.b).abs() < 0.02);
-        assert_eq!(
-            logo_matrix(IconStyle::Default, ColorScheme::Light, AMBER),
-            None
+        let plate = plate(
+            IconStyle::Tinted,
+            false,
+            Rgba::rgb8(0x8e, 0x8e, 0x8e),
+            &logo,
         );
-        assert!(logo_matrix(IconStyle::Tinted, ColorScheme::Dark, AMBER).is_some());
+        assert!((plate.top.r - plate.top.b).abs() < 0.02);
+        assert_eq!(logo_matrix(IconStyle::Default, true, AMBER), None);
+        assert_eq!(logo_matrix(IconStyle::Dark, true, AMBER), None);
+        assert!(logo_matrix(IconStyle::Tinted, true, AMBER).is_some());
     }
 }

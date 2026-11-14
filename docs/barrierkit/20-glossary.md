@@ -58,6 +58,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `ButtonStyle::Borderless` | `ButtonStyle::borderless` | 2026-11-07 |
 | enum `level::LevelStyle` | struct `styles::LevelSliderStyle` | 2026-11-07 |
 | `level::LevelSlider::style(LevelStyle)` | `level::LevelSlider::style(\|s\| ..)` | 2026-11-07 |
+| `IconStyle::Monochrome` | `IconStyle::Tinted` with a graphite `icon_color` | 2026-11-14 |
 | `LevelStyle::Regular` | `LevelSliderStyle::tengen()`, the default | 2026-11-07 |
 | `WallpaperSelection::pinned`, `pinned_for`, `set_pinned` (an image index) | `appearance`, `appearance_for`, `set_appearance` (`WallpaperAppearance`) | 2026-11-11 |
 | `LevelStyle::Fat(Symbol)` | `LevelSliderStyle::fat(symbol)` | 2026-11-07 |
@@ -323,11 +324,12 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `symbol::Image::data` | fn | `Image(nsImage:)` | `NSImage(data:)` | An image view from SVG, PNG or JPEG bytes | [4](04-appearance-and-tokens.md#images-and-template-rendering) |
 | `symbol::Image::rgba` | fn | `Image(nsImage:)` | ≈ `NSBitmapImageRep` | An image view from straight-alpha RGBA pixels | [4](04-appearance-and-tokens.md#images-and-template-rendering) |
 | `symbol::TemplateRenderingMode` | enum | `Image.TemplateRenderingMode` | ≈ `NSImage.isTemplate` | `Original` keeps the colors; `Template` paints the shape in the foreground color | [4](04-appearance-and-tokens.md#images-and-template-rendering) |
-| `symbol::IconStyle`, `ctappearance::icon_style::IconStyle` | enum | — | — | How an app icon is restyled: `Default`, `Monochrome`, `Clear` or `Tinted` (the user's accent); `bk` re-exports the `ctappearance` type | [4](04-appearance-and-tokens.md#icon-styles) |
+| `symbol::IconStyle`, `ctappearance::icon_style::IconStyle` | enum | — | — | How an app icon is restyled: `Default`, `Dark`, `Clear` or `Tinted` (the icon color); `bk` re-exports the `ctappearance` type | [4](04-appearance-and-tokens.md#icon-styles) |
+| `ctappearance::icon_style::IconTone`, `IconStyle::dark` | enum, fn | — | — | Light, dark or automatic icons, and whether a style draws dark for a tone and scheme | [4](04-appearance-and-tokens.md#icon-styles) |
 | `symbol::Image::icon_style` | fn | ≈ `.grayscale(_:)` and `.colorMultiply(_:)` | — | Restyles the image's own colors; has no effect on a template image or a symbol | [4](04-appearance-and-tokens.md#icon-styles) |
 | `symbol::Image::app_icon` | fn | — | ≈ `NSWorkspace.icon(forFile:)` | Draws an app's own icon on a plate in the user's icon style and color scheme | [4](04-appearance-and-tokens.md#app-icons) |
 | `ctappearance::icon_plate::Logo`, `Lobe` | struct | — | — | A bright or dark icon and the color lobe its plate takes the hue from; `Logo::from_colors` | [4](04-appearance-and-tokens.md#app-icons) |
-| `ctappearance::icon_plate::Plate`, `plate` | struct, fn | — | — | Plate gradient, rim and glass flag for an icon, an `IconStyle`, a scheme and an accent | [4](04-appearance-and-tokens.md#app-icons) |
+| `ctappearance::icon_plate::Plate`, `plate` | struct, fn | — | — | Plate gradient, rim and glass flag for an icon, an `IconStyle`, whether it is dark and a tint | [4](04-appearance-and-tokens.md#app-icons) |
 | `ctappearance::icon_plate::logo_matrix` | fn | — | — | Color matrix for the icon on its plate; `None` keeps its colors | [4](04-appearance-and-tokens.md#app-icons) |
 | `register_font` | fn | — | — | Adds a typeface from font file bytes; `false` if not a font | [4](04-appearance-and-tokens.md#fonts) |
 

@@ -590,11 +590,15 @@ impl Component for Card {
             &style.card_shadows,
         );
         if selected {
-            card = ring(
-                card,
-                radius.top_left(),
+            let gap = style.selection_gap;
+            card = card.child(ring(
+                rect()
+                    .position(Position::new_absolute().left(-gap).top(-gap))
+                    .width(Size::px(width + 2.0 * gap))
+                    .height(Size::px(height + 2.0 * gap)),
+                radius.top_left() + gap,
                 paints.color(style.selection.resolve(state)),
-            );
+            ));
         }
         card = interaction.focus_ring(card, radius.top_left());
 

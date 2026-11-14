@@ -92,6 +92,8 @@ pub struct Resolved {
     pub text_size: f32,
     pub menu_bar_size: MenuBarSize,
     pub icon_style: IconStyle,
+    pub icon_dark: bool,
+    pub icon_tint: Rgba,
     pub scroll_bars: ScrollBars,
     pub scroll_bar_click: ScrollBarClick,
     pub shell: ShellPalette,
@@ -554,6 +556,12 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
         text_size: appearance.text_size_for(Toolkit::BarrierKit),
         menu_bar_size: appearance.menu_bar_size,
         icon_style: appearance.icon_style,
+        icon_dark: appearance
+            .icon_style
+            .dark(appearance.icon_tone, scheme.is_dark()),
+        icon_tint: appearance
+            .icon_color
+            .map_or(normal_accent, |[r, g, b]| Rgba { r, g, b, a: 1.0 }),
         scroll_bars: appearance.scroll_bars,
         scroll_bar_click: appearance.scroll_bar_click,
         shell,

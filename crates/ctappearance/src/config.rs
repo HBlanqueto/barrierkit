@@ -6,7 +6,7 @@ use ctdesign::{
 };
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-use crate::icon_style::IconStyle;
+use crate::icon_style::{IconStyle, IconTone};
 use crate::tinting::WallpaperGrid;
 use crate::xdg;
 
@@ -323,6 +323,10 @@ pub struct AppearanceConfig {
     pub menu_bar_size: MenuBarSize,
     #[serde(deserialize_with = "lenient")]
     pub icon_style: IconStyle,
+    #[serde(deserialize_with = "lenient")]
+    pub icon_tone: IconTone,
+    #[serde(skip_serializing)]
+    pub icon_color: Option<[f32; 3]>,
     pub shake_to_locate: bool,
     #[serde(deserialize_with = "pointer_size")]
     pub pointer_size: f32,
@@ -361,6 +365,8 @@ impl Default for AppearanceConfig {
             text_sizes: TextSizes::default(),
             menu_bar_size: MenuBarSize::default(),
             icon_style: IconStyle::default(),
+            icon_tone: IconTone::default(),
+            icon_color: None,
             shake_to_locate: true,
             pointer_size: POINTER_SIZES[0],
             color_filters: false,
@@ -431,7 +437,11 @@ fn read_appearance_from(path: &Path) -> Result<Option<AppearanceConfig>, toml::d
     match std::fs::read_to_string(path) {
         Ok(text) => {
             warn_legacy_traffic_light_name(&text);
-            toml::from_str(&text).map(Some)
+            let mut config: AppearanceConfig = toml::from_str(&text)?;
+            if monochrome_icons(&text) {
+                config.icon_color.get_or_insert(graphite());
+            }
+            Ok(Some(config))
         }
         Err(_) => Ok(None),
     }
@@ -478,10 +488,16 @@ pub fn write_appearance(path: &Path, config: &AppearanceConfig) -> std::io::Resu
     for retired in RETIRED_KEYS {
         doc.remove(retired);
     }
-    if let Some(accent) = config.accent_color {
-        doc["accent_color"] = toml_edit::value(accent_array(accent));
-    } else {
-        doc.remove("accent_color");
+    for (key, color) in [
+        ("accent_color", config.accent_color),
+        ("icon_color", config.icon_color),
+    ] {
+        match color {
+            Some(color) => doc[key] = toml_edit::value(accent_array(color)),
+            None => {
+                doc.remove(key);
+            }
+        }
     }
 
     replace_file(path, &doc.to_string())
@@ -544,17 +560,29 @@ fn accent_array(accent: [f32; 3]) -> toml_edit::Array {
     arr
 }
 
+fn value_of<'a>(text: &'a str, key: &str) -> Option<&'a str> {
+    text.lines().find_map(|line| {
+        let (name, value) = line.split('#').next()?.split_once('=')?;
+        (name.trim() == key).then(|| value.trim().trim_matches('"'))
+    })
+}
+
+// The retired monochrome style is the tinted one in graphite.
+fn monochrome_icons(text: &str) -> bool {
+    value_of(text, "icon_style") == Some("monochrome")
+}
+
+fn graphite() -> [f32; 3] {
+    let (_, color) = ctdesign::ACCENT_SWATCHES
+        .into_iter()
+        .find(|(name, _)| *name == "graphite")
+        .expect("ctdesign has a graphite swatch");
+    [color.r, color.g, color.b]
+}
+
 fn warn_legacy_traffic_light_name(text: &str) {
     static WARNED: std::sync::Once = std::sync::Once::new();
-    let legacy = text.lines().any(|line| {
-        let line = line.split('#').next().unwrap_or(line).trim();
-        line.starts_with("traffic_lights")
-            && line
-                .split_once('=')
-                .map(|(_, value)| value.trim().trim_matches('"') == "macos")
-                .unwrap_or(false)
-    });
-    if legacy {
+    if value_of(text, "traffic_lights") == Some("macos") {
         WARNED.call_once(|| {
             tracing::warn!(
                 "traffic_lights = \"macos\" is deprecated; the style is named \"standard\""
@@ -722,6 +750,8 @@ traffic_lights = "auto"
             },
             menu_bar_size: MenuBarSize::Large,
             icon_style: IconStyle::Tinted,
+            icon_tone: IconTone::Dark,
+            icon_color: Some([0.925, 0.275, 0.275]),
             shake_to_locate: false,
             pointer_size: POINTER_SIZES[4],
             color_filters: true,
@@ -733,6 +763,18 @@ traffic_lights = "auto"
         write_appearance(&path, &config).unwrap();
         let read = read_appearance_from(&path).unwrap().unwrap();
         assert_eq!(config, read);
+        std::fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn the_retired_monochrome_icon_style_reads_as_tinted_in_graphite() {
+        let dir = std::env::temp_dir().join(format!("ctappearance-mono-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("appearance.domain");
+        std::fs::write(&path, "icon_style = \"monochrome\"\n").unwrap();
+        let read = read_appearance_from(&path).unwrap().unwrap();
+        assert_eq!(read.icon_style, IconStyle::Tinted);
+        assert_eq!(read.icon_color, Some(graphite()));
         std::fs::remove_dir_all(&dir).ok();
     }
 

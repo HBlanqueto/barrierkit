@@ -1,7 +1,6 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
 
-use ctappearance::ColorScheme;
 pub use ctappearance::icon_style::IconStyle;
 use ctdesign::{Rgba, SYMBOL};
 use freya_components::image_viewer::ImageViewer;
@@ -298,7 +297,7 @@ impl From<Image> for Element {
         let color = paints.color(style.foreground.resolve(ControlState::default()));
         let side = Size::px(style.size);
         let icon_style = image.icon_style;
-        let plain = icon_style == IconStyle::Default && !image.plated;
+        let plain = matches!(icon_style, IconStyle::Default | IconStyle::Dark) && !image.plated;
         let plated = image.plated;
         match (image.source, image.rendering_mode) {
             (Source::System(glyph), _) => symbol(glyph, style.size, color).into_element(),
@@ -318,12 +317,14 @@ impl From<Image> for Element {
             (source, mode) => {
                 let resolved = crate::theme::resolved();
                 let treatment = match mode {
-                    _ if plated => {
-                        Treatment::Plate(resolved.icon_style, resolved.scheme, resolved.accent)
-                    }
+                    _ if plated => Treatment::Plate(
+                        resolved.icon_style,
+                        resolved.icon_dark,
+                        resolved.icon_tint,
+                    ),
                     TemplateRenderingMode::Template => Treatment::Tint(color),
                     TemplateRenderingMode::Original => {
-                        Treatment::Style(icon_style, resolved.accent)
+                        Treatment::Style(icon_style, resolved.icon_tint)
                     }
                 };
                 match cached_image(&source, style.size, treatment) {
@@ -354,7 +355,7 @@ type TemplateKey = (Bytes, u32, u32, (u8, [u32; 4]));
 enum Treatment {
     Tint(Rgba),
     Style(IconStyle, Rgba),
-    Plate(IconStyle, ColorScheme, Rgba),
+    Plate(IconStyle, bool, Rgba),
 }
 
 impl Treatment {
@@ -362,11 +363,8 @@ impl Treatment {
         let bits = |color: Rgba| [color.r, color.g, color.b, color.a].map(f32::to_bits);
         match self {
             Self::Tint(color) => (0, bits(color)),
-            Self::Style(style, accent) => (1 + style as u8, bits(accent)),
-            Self::Plate(style, scheme, accent) => (
-                5 + 2 * style as u8 + u8::from(scheme == ColorScheme::Dark),
-                bits(accent),
-            ),
+            Self::Style(style, tint) => (1 + style as u8, bits(tint)),
+            Self::Plate(style, dark, tint) => (5 + 2 * style as u8 + u8::from(dark), bits(tint)),
         }
     }
 }
@@ -396,10 +394,12 @@ fn cached_image(source: &Source, size: f32, treatment: Treatment) -> Option<Imag
         }
         let image = raster(source, side).and_then(|raster| match treatment {
             Treatment::Tint(color) => tint(&raster, side, color),
-            Treatment::Style(IconStyle::Default, _) => Some(ImageHandle::new(raster, Bytes::new())),
-            Treatment::Style(style, accent) => restyle(&raster, side, style, accent),
-            Treatment::Plate(style, scheme, accent) => {
-                crate::app_icon::plated(&raster, side, style, scheme, accent)
+            Treatment::Style(IconStyle::Default | IconStyle::Dark, _) => {
+                Some(ImageHandle::new(raster, Bytes::new()))
+            }
+            Treatment::Style(style, tint) => restyle(&raster, side, style, tint),
+            Treatment::Plate(style, dark, tint) => {
+                crate::app_icon::plated(&raster, side, style, dark, tint)
             }
         });
         let mut cache = cache.borrow_mut();
@@ -453,10 +453,10 @@ fn tint(raster: &SkImage, side: u32, color: Rgba) -> Option<ImageHandle> {
     filtered(raster, side, paint, false)
 }
 
-fn restyle(raster: &SkImage, side: u32, style: IconStyle, accent: Rgba) -> Option<ImageHandle> {
+fn restyle(raster: &SkImage, side: u32, style: IconStyle, tint: Rgba) -> Option<ImageHandle> {
     let mut paint = Paint::default();
     paint.set_color_filter(color_filters::matrix_row_major(
-        &style.matrix(accent)?,
+        &style.matrix(tint)?,
         color_filters::Clamp::Yes,
     ));
     filtered(raster, side, paint, style.luminance_to_alpha())

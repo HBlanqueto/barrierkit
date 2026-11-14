@@ -10,17 +10,36 @@ const LUMA: [f32; 3] = [0.2126, 0.7152, 0.0722];
 pub enum IconStyle {
     #[default]
     Default,
-    Monochrome,
+    Dark,
     Clear,
+    // A monochrome icon is a tinted one in graphite; `read_appearance` gives it that color.
+    #[serde(alias = "monochrome")]
     Tinted,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum IconTone {
+    Light,
+    Dark,
+    #[default]
+    Automatic,
+}
+
 impl IconStyle {
+    pub fn dark(self, tone: IconTone, scheme_dark: bool) -> bool {
+        self != Self::Default
+            && match tone {
+                IconTone::Light => false,
+                IconTone::Dark => true,
+                IconTone::Automatic => scheme_dark,
+            }
+    }
+
     /// Row-major 4×5 color matrix on straight-alpha colors in 0..1; `None` keeps the colors.
-    pub fn matrix(self, accent: Rgba) -> Option<[f32; 20]> {
+    pub fn matrix(self, tint: Rgba) -> Option<[f32; 20]> {
         match self {
-            Self::Default => None,
-            Self::Monochrome => Some(duotone(gray(0.0), gray(1.0))),
+            Self::Default | Self::Dark => None,
             Self::Clear => {
                 let floor = ICON_STYLE.clear_floor;
                 let mut matrix = duotone(gray(floor), gray(floor + ICON_STYLE.clear_range));
@@ -30,7 +49,7 @@ impl IconStyle {
                 Some(matrix)
             }
             Self::Tinted => {
-                let (dark, light) = tint_ends(accent);
+                let (dark, light) = tint_ends(tint);
                 Some(duotone(dark, light))
             }
         }
@@ -71,13 +90,13 @@ pub(crate) fn duotone(dark: Rgba, light: Rgba) -> [f32; 20] {
     std::array::from_fn(|i| rows[i / 5][i % 5])
 }
 
-fn tint_ends(accent: Rgba) -> (Rgba, Rgba) {
-    let accent = Oklab::from_rgba(accent);
+fn tint_ends(tint: Rgba) -> (Rgba, Rgba) {
+    let tint = Oklab::from_rgba(tint);
     let end = |lightness: f32, chroma: f32| {
         Oklab {
             l: lightness,
-            a: accent.a * chroma,
-            b: accent.b * chroma,
+            a: tint.a * chroma,
+            b: tint.b * chroma,
         }
         .to_rgba()
     };
@@ -104,17 +123,29 @@ mod tests {
     }
 
     #[test]
-    fn default_keeps_the_colors() {
+    fn default_and_dark_keep_the_colors() {
         assert_eq!(IconStyle::Default.matrix(AMBER), None);
+        assert_eq!(IconStyle::Dark.matrix(AMBER), None);
     }
 
     #[test]
-    fn monochrome_turns_red_into_an_equal_gray_with_the_same_alpha() {
+    fn default_never_turns_dark_and_automatic_follows_the_scheme() {
+        assert!(!IconStyle::Default.dark(IconTone::Dark, true));
+        assert!(IconStyle::Dark.dark(IconTone::Dark, false));
+        assert!(!IconStyle::Clear.dark(IconTone::Light, true));
+        assert!(IconStyle::Tinted.dark(IconTone::Automatic, true));
+        assert!(!IconStyle::Tinted.dark(IconTone::Automatic, false));
+    }
+
+    #[test]
+    fn a_gray_tint_turns_red_into_an_equal_gray_with_the_same_alpha() {
         let [r, g, b, a] = apply(
-            IconStyle::Monochrome.matrix(AMBER).unwrap(),
+            IconStyle::Tinted
+                .matrix(Rgba::rgb8(0x8e, 0x8e, 0x93))
+                .unwrap(),
             [1.0, 0.0, 0.0, 0.5],
         );
-        assert!((r - g).abs() < 1e-6 && (g - b).abs() < 1e-6 && (r - 0.2126).abs() < 1e-4);
+        assert!((r - g).abs() < 0.02 && (g - b).abs() < 0.03);
         assert_eq!(a, 0.5);
     }
 

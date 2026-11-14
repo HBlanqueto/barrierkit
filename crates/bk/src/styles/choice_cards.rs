@@ -18,6 +18,8 @@ pub struct ChoiceCardsStyle {
     pub card_shape: Shape,
     /// Tengen: `Accent`, the ring of the chosen card.
     pub selection: StateValue<ShapeStyle>,
+    /// Tengen: `0.0`, between the card and its ring.
+    pub selection_gap: f32,
     /// Tengen: `Role(SecondaryLabel)`.
     pub caption: StateValue<ShapeStyle>,
     /// Tengen: `Role(Label)`.
@@ -52,6 +54,7 @@ impl ControlStyle for ChoiceCardsStyle {
             spacing: SETTINGS.card_gap as f32,
             card_shape: rounded(SETTINGS.card_radius as f32),
             selection: StateValue::new(ShapeStyle::Accent),
+            selection_gap: 0.0,
             caption: StateValue::new(ShapeStyle::Role(Role::SecondaryLabel)),
             selected_caption: StateValue::new(ShapeStyle::Role(Role::Label)),
             card_border: Some((ShapeStyle::Color(SETTINGS.card_outline), HAIRLINE)),

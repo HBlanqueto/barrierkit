@@ -63,6 +63,26 @@ impl Component for Amber {
     }
 }
 
+#[derive(PartialEq)]
+struct Graphite;
+
+impl Component for Graphite {
+    fn render(&self) -> impl IntoElement {
+        use_appearance(|config| config.icon_color = Some([0.557, 0.557, 0.576]));
+        rect()
+            .background((255, 255, 255))
+            .child(Styled(IconStyle::Tinted))
+    }
+}
+
+struct GraphiteHost;
+
+impl App for GraphiteHost {
+    fn render(&self) -> impl IntoElement {
+        Graphite
+    }
+}
+
 struct StyledHost(IconStyle, u8);
 
 impl App for StyledHost {
@@ -95,13 +115,12 @@ fn a_template_image_paints_its_shape_white_in_dark_and_black_in_light() {
 }
 
 #[test]
-fn a_monochrome_icon_loses_its_hue() {
-    let [red, green, blue, _] = center_of(StyledHost(IconStyle::Monochrome, 255));
+fn a_graphite_tinted_icon_loses_its_hue() {
+    let [red, green, blue, _] = center_of(GraphiteHost);
     assert!(
-        red.abs_diff(green) < 4 && green.abs_diff(blue) < 4,
+        red.abs_diff(green) < 6 && green.abs_diff(blue) < 8,
         "{red} {green} {blue}"
     );
-    assert!((40..70).contains(&red), "{red}");
 }
 
 #[test]
@@ -125,7 +144,10 @@ struct Plated(ColorScheme);
 impl Component for Plated {
     fn render(&self) -> impl IntoElement {
         let scheme = self.0;
-        use_appearance(move |config| config.color_scheme = scheme);
+        use_appearance(move |config| {
+            config.color_scheme = scheme;
+            config.icon_style = IconStyle::Dark;
+        });
         rect().child(PlatedIcon)
     }
 }
@@ -161,7 +183,7 @@ fn plated_pixels(scheme: ColorScheme) -> (Vec<u8>, usize) {
 }
 
 #[test]
-fn an_app_icon_gets_a_plate_of_the_hue_of_its_darkest_color_and_graphite_in_dark() {
+fn a_dark_style_app_icon_gets_the_hue_of_its_darkest_color_in_light_and_graphite_in_dark() {
     let (light, width) = plated_pixels(ColorScheme::Light);
     let [red, green, blue, _] = pixel(&light, width, 9, 32);
     assert!(red > green && blue > green, "plate {red} {green} {blue}");
