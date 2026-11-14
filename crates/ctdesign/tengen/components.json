@@ -1043,6 +1043,7 @@
         "hide-ms": 280,
         "minimize-ms": 500,
         "slot-ms": 400,
+        "remove-ms": 750,
         "minimize-handoff-ms": 100,
         "reveal-strip": 2,
         "recents": 3,
