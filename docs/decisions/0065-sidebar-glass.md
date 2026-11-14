@@ -42,7 +42,7 @@ Readers: whoever changes `Sidebar`, `SplitView`, `ctdesign` or `ctappearance`.
    ([0064](0064-styles-and-themes.md)) when it asks for one.
 2. **The kit computes two colors** and sends them with the panel:
    1. `base`, the tone of the glass at rest. It is the token
-      `sidebar-glass-base`: `#272727` in dark mode (L 0.273) and `#ebedee` in
+      `sidebar-glass-base`: `#202020` in dark mode (L 0.245) and `#ebedee` in
       light mode, both measured on macOS. In dark, the wallpaper's tint is
       added to it: `take_chroma_capped(base, tint, factor × WALLPAPER_TINTING_SIDEBAR,
       glass_chroma(scheme).1)`: the same path as today's tint, but it saturates
@@ -56,9 +56,9 @@ Readers: whoever changes `Sidebar`, `SplitView`, `ctdesign` or `ctappearance`.
       stays: `base` and `solid` are the accent-tinted tone, the same one the
       opaque sidebar has, so the accent is the dominant color, and `chroma` is
       `GLASS.accent_share` (0.35) of the usual one, so the wallpaper only adds
-      a little. The island's border follows the fill: `rim_tint` is the accent,
-      and the compositor takes the border's chroma from it instead of from the
-      wallpaper behind each stretch, so border and fill stay uniform. With
+      a little. The island's border follows the fill: the compositor derives it from
+      the fill under it, so with the accent as base the border takes the accent
+      too and the kit sends nothing for it (`rim` of `set_glass` is unused). With
       `tint_parts.sidebars` off, the accent leaves the glass as it is.
 3. **What the kit paints, by case:**
 
@@ -80,10 +80,10 @@ Readers: whoever changes `Sidebar`, `SplitView`, `ctdesign` or `ctappearance`.
 6. **When it sends.** On the first layout and whenever the width, the visibility,
    the narrow-window overlay or the window size change. It does not send the same
    panel twice. A hidden sidebar sends an empty list.
-7. **Tokens.** `sidebar-glass-base` and `sidebar-glass-rim`, the line of the
-   rim, go in `tokens.json`. The weights the
-   compositor uses (`chroma` and `rim_chroma`) go in `components.window.sidebar.glass` and come
-   out as `ctdesign::GLASS`.
+7. **Tokens.** `sidebar-glass-base` and `sidebar-glass-solid` go in
+   `tokens.json`. The weights the compositor uses (`chroma`, the edge and the
+   rim: `rim.opacity`, `rim.lift`, `rim.lift-edge`, `rim.chroma`, `rim.cap`) go
+   in `components.window.sidebar.glass` and come out as `ctdesign::GLASS`.
    Light and dark share them.
 8. **Over a `Backdrop`** the sidebar stays as 0057 says. It sends no panel.
 9. **Plain blur is unchanged.** `BlurRegion` stays for the Dock and the lock.

@@ -49,7 +49,6 @@ pub struct SidebarGlass {
     pub base: Rgba,
     pub solid: Rgba,
     pub chroma: f32,
-    pub rim_tint: Option<Rgba>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -141,7 +140,6 @@ impl Resolved {
                     base,
                     solid: base,
                     chroma: glass.chroma * GLASS.accent_share,
-                    rim_tint: Some(tint),
                 }
             }),
             Tint::Wallpaper => self.sidebar.glass.map(|glass| {
@@ -203,12 +201,33 @@ pub fn glass_lightness(scheme: ColorScheme) -> f32 {
     }
 }
 
-// The share of the wallpaper's chroma the glass's rim takes.
-pub fn glass_rim_chroma(scheme: ColorScheme) -> f32 {
+// The island's border derives from the fill it encloses: `lift` lighter, plus `lift_edge` where the wallpaper shows, with `chroma` times the fill's, up to `cap`, at `opacity` (ADR 0078).
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct GlassRim {
+    pub opacity: f32,
+    pub lift: f32,
+    pub lift_edge: f32,
+    pub chroma: f32,
+    pub cap: f32,
+}
+
+pub fn glass_rim(scheme: ColorScheme) -> GlassRim {
     if scheme.is_dark() {
-        GLASS.rim_chroma_dark
+        GlassRim {
+            opacity: GLASS.rim_opacity_dark,
+            lift: GLASS.rim_lift_dark,
+            lift_edge: GLASS.rim_lift_edge_dark,
+            chroma: GLASS.rim_chroma_dark,
+            cap: GLASS.rim_cap,
+        }
     } else {
-        GLASS.rim_chroma_light
+        GlassRim {
+            opacity: GLASS.rim_opacity_light,
+            lift: GLASS.rim_lift_light,
+            lift_edge: GLASS.rim_lift_edge_light,
+            chroma: GLASS.rim_chroma_light,
+            cap: GLASS.rim_cap,
+        }
     }
 }
 
@@ -408,7 +427,6 @@ fn chrome_surfaces(
                 SIDEBAR_GLASS_SOLID_DARK_TINT,
             ]),
             chroma: glass_chroma(scheme).0,
-            rim_tint: None,
         }
     });
     let sidebar = match style {
@@ -1216,7 +1234,7 @@ mod tests {
     }
 
     #[test]
-    fn an_accent_window_keeps_the_glass_with_the_accent_as_its_base_and_its_rim() {
+    fn an_accent_window_keeps_the_glass_with_the_accent_as_its_base() {
         let accent = Rgba {
             r: 0.9,
             g: 0.3,
@@ -1241,8 +1259,14 @@ mod tests {
         assert_eq!(glass.base, glass.solid);
         assert_ne!(glass.base, neutral.base);
         assert_eq!(glass.chroma, neutral.chroma * GLASS.accent_share);
-        assert_eq!(glass.rim_tint, Some(accent));
-        assert_eq!(neutral.rim_tint, None);
+    }
+
+    #[test]
+    fn the_light_rim_lifts_to_white_without_chroma_and_the_dark_one_follows_the_fill() {
+        let light = glass_rim(ColorScheme::Light);
+        assert!(light.lift >= 1.0 && light.chroma == 0.0);
+        let dark = glass_rim(ColorScheme::Dark);
+        assert!(dark.lift < 0.5 && dark.chroma > 1.0 && dark.opacity == 1.0);
     }
 
     #[test]

@@ -153,15 +153,14 @@
         the given radius. The client leaves the panels transparent.
 
         While the toplevel is active, the material is base with the chroma of
-        the blurred wallpaper behind the panel, and the border is a white
-        line that takes the chroma of the wallpaper behind each stretch.
+        the blurred wallpaper behind the panel, and the border is a line
+        derived from the material under it: a little lighter, with more
+        chroma and the same hue.
         While it is not active, the panel is solid and has no border. base and solid are 0xAARRGGBB and their alpha is
         ignored. base has the lightness of the application's solid window, and
         the dominant color when the window is tinted with an accent. solid is
         base with the wallpaper's tint. chroma is the share of the wallpaper's
-        chroma the material takes, in thousandths. rim is 0xAARRGGBB: when its
-        alpha is not zero, the border takes its chroma from that color, the
-        window's accent, instead of the wallpaper behind each stretch.
+        chroma the material takes, in thousandths. rim is unused: send 0.
 
         It is double-buffered and applies on the next wl_surface.commit. A
         later request replaces the panels; an empty array removes them. It

@@ -45,7 +45,6 @@ pub(crate) fn use_publish(glass: Option<SidebarGlass>, radius: f32, area: Area) 
             base: argb(glass.base),
             solid: argb(glass.solid),
             chroma: (glass.chroma * 1000.0).round() as u32,
-            rim: glass.rim_tint.map_or(0, argb),
         });
     if *sent.borrow() != panels {
         *sent.borrow_mut() = panels.clone();
