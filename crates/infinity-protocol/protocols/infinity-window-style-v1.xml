@@ -207,13 +207,14 @@
         icons in the clear style. The array holds int32 quadruples x, y,
         width and height in surface-local logical pixels. The compositor
         draws each plate as the glass of a card, under the surface, around
-        a continuous corner of the given radius. The client draws only the
-        logo on top. A later request replaces the plates; an empty array
+        a continuous corner whose radius is corner thousandths of the
+        plate's shorter side, so plates of any size keep one shape. The
+        client draws only the logo on top. A later request replaces the plates; an empty array
         removes them. It lasts for the lifetime of the wl_surface. Only the
         Dock's layer surface has its plates drawn.
       </description>
       <arg name="surface" type="object" interface="wl_surface"/>
-      <arg name="radius" type="uint"/>
+      <arg name="corner" type="uint"/>
       <arg name="plates" type="array"/>
     </request>
   </interface>

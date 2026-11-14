@@ -1161,7 +1161,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `shell::LayerSpec` | struct | — | — | Namespace, layer, anchors, exclusive zone, keyboard and size of a layer surface | [18](18-platform.md#run_layer-and-layerspec) |
 | `shell::LayerGeometry` | struct | — | ≈ `NSWindow.setFrame(_:display:)` | Anchors, exclusive zone, size and keyboard of a running layer surface | [18](18-platform.md#run_layer-and-layerspec) |
 | `shell::CardFrames` | struct | — | — | Corner radius and rectangles of the cards a layer surface draws | [18](18-platform.md#run_layer-and-layerspec) |
-| `shell::PlateFrames` | struct | — | — | Corner radius and rectangles of the icon plates a layer surface has the compositor draw as glass | [18](18-platform.md#run_layer-and-layerspec) |
+| `shell::PlateFrames` | struct | — | — | Corner, as a share of each plate's shorter side, and rectangles of the icon plates a layer surface has the compositor draw as glass | [18](18-platform.md#run_layer-and-layerspec) |
 | `shell::set_plate_frames` | fn | — | — | Asks the compositor to draw the glass of each icon plate of the calling layer surface; only the Dock's is drawn | [18](18-platform.md#run_layer-and-layerspec) |
 | `shell::set_card_frames` | fn | — | — | Asks the compositor for the window frame (shadow, inner and outer border) around each card of the calling layer surface | [18](18-platform.md#run_layer-and-layerspec) |
 | `shell::set_layer_geometry` | fn | — | ≈ `NSWindow.setFrame(_:display:)` | Moves, resizes or refocuses the layer surface of the calling component | [18](18-platform.md#run_layer-and-layerspec) |

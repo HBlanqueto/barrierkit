@@ -113,7 +113,7 @@ pub fn set_card_frames(frames: CardFrames) {
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct PlateFrames {
-    pub radius: u32,
+    pub corner: u32,
     pub plates: Vec<(i32, i32, i32, i32)>,
 }
 
@@ -211,7 +211,7 @@ impl Runtime {
         };
         style.set_plates(
             &self.surfaces[index].surface,
-            frames.radius,
+            frames.corner,
             crate::platform::packed(&frames.plates),
         );
     }

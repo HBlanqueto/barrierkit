@@ -285,10 +285,12 @@ around a continuous corner of `radius`. The app draws each card with
 the frames.
 
 A layer surface whose icons have a plate drawn by the compositor, as the Dock's
-in the clear style, sends them with `set_plate_frames(PlateFrames { radius,
+in the clear style, sends them with `set_plate_frames(PlateFrames { corner,
 plates })` (`infinity_window_style_v1.set_plates`, version 8): `plates` are
-`(x, y, width, height)` in surface-local logical pixels. The compositor draws
-each as glass under the surface, and the app draws only the logo, with
+`(x, y, width, height)` in surface-local logical pixels, and `corner` is the
+radius of their continuous corner in thousandths of each plate's shorter side
+(`ICON_PLATE.corner`), so icons that magnify keep their shape. The compositor
+draws each as glass under the surface, and the app draws only the logo, with
 `Image::glass_plate`. Only the Dock's layer surface has its plates drawn.
 
 ### `run_lock` and `SessionUnlock`
