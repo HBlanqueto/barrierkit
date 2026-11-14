@@ -183,8 +183,12 @@ SidebarAccount::new("JA", "Jane Appleseed", "Local account")
 ### `SymbolTile`
 
 `SymbolTile::new(glyph, tint)` draws the square tile of a sidebar item:
-`SIDEBAR.app_icon` (22) wide, radius 8, filled with `tint`, the glyph in
-`Palette::on_accent`. `.rim(color)` adds a 1 px inner border and `.style(f)`
+`SIDEBAR.app_icon` (22) wide, radius 8, a plate in the user's icon style with
+the edge of [app icons](04-appearance-and-tokens.md#app-icons)
+(`ctappearance::icon_plate::tile`). By default the plate is `tint` and the
+glyph `Palette::on_accent`; with dark icons the plate is near black and the
+glyph takes `tint`; clear and tinted tiles look like clear and tinted app
+icons. `.rim(color)` adds a 1 px inner border and `.style(f)`
 takes a `SymbolTileStyle`; both build the tile again, so they come right after
 `new`. It is a rect: it takes Freya's layout and style methods. `SidebarItem` uses it, and so do the
 search results of [`SettingsWindow`](12-patterns.md#settingswindow).

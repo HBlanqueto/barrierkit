@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::backdrop::Oklab;
 
-const LUMA: [f32; 3] = [0.2126, 0.7152, 0.0722];
+pub(crate) const LUMA: [f32; 3] = [0.2126, 0.7152, 0.0722];
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
@@ -70,7 +70,7 @@ impl IconStyle {
     }
 }
 
-fn gray(value: f32) -> Rgba {
+pub(crate) fn gray(value: f32) -> Rgba {
     Rgba {
         r: value,
         g: value,

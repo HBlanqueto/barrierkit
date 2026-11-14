@@ -6,7 +6,7 @@ use ctdesign::{
 };
 
 use crate::backdrop::Oklab;
-use crate::icon_style::{IconStyle, duotone};
+use crate::icon_style::{IconStyle, LUMA, duotone, gray};
 
 const BINS: usize = 24;
 const OCCUPIED: f32 = 0.03;
@@ -23,7 +23,10 @@ pub struct Lobe {
 pub struct Plate {
     pub top: Rgba,
     pub bottom: Rgba,
-    pub rim: Rgba,
+    /// Along the top edge and along the bottom edge.
+    pub light: (Rgba, Rgba),
+    /// Closed round clear and tinted plates; transparent on the others.
+    pub outline: Rgba,
     pub glass: bool,
 }
 
@@ -54,6 +57,12 @@ impl Logo {
 fn hue_chroma(color: Oklab) -> (f32, f32) {
     let hue = color.b.atan2(color.a).to_degrees().rem_euclid(360.0);
     (hue, color.a.hypot(color.b))
+}
+
+fn lch(color: Rgba) -> (f32, f32, f32) {
+    let color = Oklab::from_rgba(color);
+    let (hue, chroma) = hue_chroma(color);
+    (color.l, chroma, hue)
 }
 
 /// Runs of hue bins that hold chroma, each with its chroma-weighted hue, chroma, lightness and share.
@@ -178,17 +187,66 @@ pub fn plate(style: IconStyle, dark: bool, tint: Rgba, logo: &Logo) -> Plate {
         (IconStyle::Tinted, true) => (&ICON_PLATE_TINTED_DARK, tint_hue, tint_chroma),
     };
     let (top, bottom) = shade(look, hue, chroma);
-    let rim = fit(
-        ICON_PLATE.rim_lightness,
-        ICON_PLATE.rim_chroma * (chroma / ICON_PLATE.full_chroma).min(1.0),
-        hue,
-    );
+    edged(look, top, bottom)
+}
+
+/// The plate and the glyph colour of a symbol tile, as Settings' sidebar draws it, in the icon
+/// style; `color` is the tile's own. `None` keeps the tile's own glyph colour.
+pub fn tile(style: IconStyle, dark: bool, tint: Rgba, color: Rgba) -> (Plate, Option<Rgba>) {
+    let (lightness, chroma, hue) = lch(color);
+    match (style, dark) {
+        (IconStyle::Default | IconStyle::Dark, false) => {
+            let top = fit(lightness + ICON_PLATE.tile_top_lift, chroma, hue);
+            let bottom = fit(lightness + ICON_PLATE.tile_bottom_lift, chroma, hue);
+            (edged(&ICON_PLATE_LOBE_DARK, top, bottom), None)
+        }
+        (IconStyle::Default | IconStyle::Dark, true) => {
+            let (top, bottom) = shade(&ICON_PLATE_GRAPHITE, 0.0, 0.0);
+            let glyph = fit(lightness.max(ICON_PLATE.dark_glyph_lightness), chroma, hue);
+            (edged(&ICON_PLATE_GRAPHITE, top, bottom), Some(glyph))
+        }
+        _ => {
+            let logo = Logo {
+                lobe: None,
+                bright: false,
+            };
+            let glyph = logo_ends(style, dark, tint).map(|(_, light)| light);
+            (plate(style, dark, tint, &logo), glyph)
+        }
+    }
+}
+
+// The Dock's toned rim: the colour scaled per channel to `lift` more luma, with its own chroma.
+fn lifted(color: Rgba, lift: f32) -> Rgba {
+    let luma = (LUMA[0] * color.r + LUMA[1] * color.g + LUMA[2] * color.b).max(0.001);
+    let gain = (luma + lift) / luma;
+    let scaled = Rgba {
+        r: (color.r * gain).min(1.0),
+        g: (color.g * gain).min(1.0),
+        b: (color.b * gain).min(1.0),
+        a: 1.0,
+    };
+    let (_, chroma, hue) = lch(color);
+    fit(Oklab::from_rgba(scaled).l, chroma, hue)
+}
+
+fn edged(look: &IconPlateLook, top: Rgba, bottom: Rgba) -> Plate {
+    let light = |color: Rgba, a: f32| {
+        let light = if look.light_tone > 0.0 {
+            lifted(color, look.light_tone)
+        } else {
+            gray(1.0)
+        };
+        Rgba { a, ..light }
+    };
+    let (lightness, chroma, hue) = lch(top);
     Plate {
         top,
         bottom,
-        rim: Rgba {
-            a: look.rim_alpha,
-            ..rim
+        light: (light(top, look.light_top), light(bottom, look.light_bottom)),
+        outline: Rgba {
+            a: look.outline_alpha,
+            ..fit(lightness * look.outline_lightness, chroma, hue)
         },
         glass: look.opacity_top < 1.0,
     }
@@ -209,17 +267,20 @@ fn ends(ends: &IconLogoEnds, hue: f32, chroma: f32) -> (Rgba, Rgba) {
     )
 }
 
+fn logo_ends(style: IconStyle, dark: bool, tint: Rgba) -> Option<(Rgba, Rgba)> {
+    let (tint_hue, tint_chroma) = hue_chroma(Oklab::from_rgba(tint));
+    match (style, dark) {
+        (IconStyle::Default | IconStyle::Dark, _) => None,
+        (IconStyle::Clear, false) => Some(ends(&ICON_LOGO_CLEAR, 0.0, 0.0)),
+        (IconStyle::Clear, true) => Some(ends(&ICON_LOGO_CLEAR_DARK, 0.0, 0.0)),
+        (IconStyle::Tinted, false) => Some(ends(&ICON_LOGO_TINTED, tint_hue, tint_chroma)),
+        (IconStyle::Tinted, true) => Some(ends(&ICON_LOGO_TINTED_DARK, tint_hue, tint_chroma)),
+    }
+}
+
 /// The color matrix for the icon drawn on its plate; `None` keeps its colors.
 pub fn logo_matrix(style: IconStyle, dark: bool, tint: Rgba) -> Option<[f32; 20]> {
-    let (tint_hue, tint_chroma) = hue_chroma(Oklab::from_rgba(tint));
-    let (dark_end, light_end) = match (style, dark) {
-        (IconStyle::Default | IconStyle::Dark, _) => return None,
-        (IconStyle::Clear, false) => ends(&ICON_LOGO_CLEAR, 0.0, 0.0),
-        (IconStyle::Clear, true) => ends(&ICON_LOGO_CLEAR_DARK, 0.0, 0.0),
-        (IconStyle::Tinted, false) => ends(&ICON_LOGO_TINTED, tint_hue, tint_chroma),
-        (IconStyle::Tinted, true) => ends(&ICON_LOGO_TINTED_DARK, tint_hue, tint_chroma),
-    };
-    Some(duotone(dark_end, light_end))
+    logo_ends(style, dark, tint).map(|(dark_end, light_end)| duotone(dark_end, light_end))
 }
 
 #[cfg(test)]
@@ -284,9 +345,43 @@ mod tests {
     fn clear_is_see_through_and_tinted_is_the_tint() {
         let logo = Logo::from_colors(&pixels(&[(Rgba::rgb8(0xff, 0x50, 0x20), 100)]));
         let clear = plate(IconStyle::Clear, false, AMBER, &logo);
-        assert!(clear.glass && clear.top.a < 0.3 && clear.top.a > clear.bottom.a);
+        assert!(clear.glass && clear.top.a < 0.3);
         let tinted = plate(IconStyle::Tinted, false, AMBER, &logo);
         assert!(tinted.top.r > tinted.top.b && tinted.top.a == 1.0);
+    }
+
+    #[test]
+    fn clear_and_tinted_plates_are_outlined_and_default_and_dark_are_lit_white() {
+        let logo = Logo::from_colors(&pixels(&[(Rgba::rgb8(0xff, 0x50, 0x20), 100)]));
+        for (style, dark) in [(IconStyle::Clear, false), (IconStyle::Clear, true)]
+            .into_iter()
+            .chain([(IconStyle::Tinted, false), (IconStyle::Tinted, true)])
+        {
+            assert!(
+                plate(style, dark, AMBER, &logo).outline.a > 0.5,
+                "{style:?} {dark}"
+            );
+        }
+        for (style, dark) in [(IconStyle::Default, false), (IconStyle::Dark, true)] {
+            let plate = plate(style, dark, AMBER, &logo);
+            assert_eq!(plate.outline.a, 0.0);
+            assert!(plate.light.0.r == 1.0 && plate.light.0.b == 1.0);
+            assert!(plate.light.0.a > plate.light.1.a);
+        }
+    }
+
+    #[test]
+    fn a_dark_tile_is_black_and_its_glyph_takes_the_tile_colour() {
+        let blue = Rgba::rgb8(0x2f, 0x6f, 0xe4);
+        let (plate, glyph) = tile(IconStyle::Dark, true, AMBER, blue);
+        assert!(plate.top.r < 0.15 && plate.bottom.r < plate.top.r);
+        let glyph = glyph.unwrap();
+        assert!(glyph.b > glyph.r && glyph.b > 0.8);
+        let graphite = Rgba::rgb8(0x2b, 0x2b, 0x2b);
+        let (_, gray) = tile(IconStyle::Dark, true, AMBER, graphite);
+        assert!(gray.unwrap().r > 0.5);
+        let (light, glyph) = tile(IconStyle::Default, false, AMBER, blue);
+        assert!(light.top.b > light.bottom.b && glyph.is_none());
     }
 
     #[test]

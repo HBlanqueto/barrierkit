@@ -434,9 +434,6 @@ pub struct IconPlateMetrics {
     pub neutral_chroma: f32,
     pub lobe_min_share: f32,
     pub bright_lightness: f32,
-    pub rim_lightness: f32,
-    pub rim_chroma: f32,
-    pub rim_width: f32,
     pub body: f32,
     pub corner: f32,
     pub logo_scale: f32,
@@ -447,8 +444,16 @@ pub struct IconPlateMetrics {
     pub logo_shadow_offset: f32,
     pub logo_shadow_opacity: f32,
     pub glass_shadow_factor: f32,
-    pub outline_width: f32,
-    pub outline_opacity: f32,
+    pub edge_width: f32,
+    pub light_reach: f32,
+    pub light_sharpness: f32,
+    pub light_side: f32,
+    pub outline_ends: f32,
+    pub outline_from: f32,
+    pub outline_to: f32,
+    pub tile_top_lift: f32,
+    pub tile_bottom_lift: f32,
+    pub dark_glyph_lightness: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -462,7 +467,11 @@ pub struct IconPlateLook {
     pub bottom_hue_shift: f32,
     pub opacity_top: f32,
     pub opacity_bottom: f32,
-    pub rim_alpha: f32,
+    pub light_top: f32,
+    pub light_bottom: f32,
+    pub light_tone: f32,
+    pub outline_lightness: f32,
+    pub outline_alpha: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

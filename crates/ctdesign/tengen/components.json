@@ -202,9 +202,6 @@
       "neutral-chroma": 0.03,
       "lobe-min-share": 0.15,
       "bright-lightness": 0.6,
-      "rim-lightness": 0.97,
-      "rim-chroma": 0.09,
-      "rim-width": 0.0234,
       "body": 0.8047,
       "corner": 0.1588,
       "logo-scale": 0.76,
@@ -215,8 +212,16 @@
       "logo-shadow-offset": 0.0176,
       "logo-shadow-opacity": 0.35,
       "glass-shadow-factor": 0.5,
-      "outline-width": 0.0029,
-      "outline-opacity": 0.12,
+      "edge-width": 0.0194,
+      "light-reach": 92,
+      "light-sharpness": 3,
+      "light-side": 494,
+      "outline-ends": 0.28,
+      "outline-from": 12,
+      "outline-to": 84,
+      "tile-top-lift": 0.04,
+      "tile-bottom-lift": -0.08,
+      "dark-glyph-lightness": 0.65,
       "lobe-dark": {
         "top-lightness": 0.29,
         "top-chroma-scale": 0.5,
@@ -227,7 +232,11 @@
         "bottom-hue-shift": 0,
         "opacity-top": 1,
         "opacity-bottom": 1,
-        "rim-alpha": 0.45
+        "light-top": 0.45,
+        "light-bottom": 0.315,
+        "light-tone": 0,
+        "outline-lightness": 0,
+        "outline-alpha": 0
       },
       "lobe-light": {
         "top-lightness": 0.92,
@@ -239,19 +248,27 @@
         "bottom-hue-shift": 0,
         "opacity-top": 1,
         "opacity-bottom": 1,
-        "rim-alpha": 0.45
+        "light-top": 0.45,
+        "light-bottom": 0.315,
+        "light-tone": 0,
+        "outline-lightness": 0,
+        "outline-alpha": 0
       },
       "graphite": {
-        "top-lightness": 0.29,
+        "top-lightness": 0.239,
         "top-chroma-scale": 0,
         "top-chroma-cap": 0,
-        "bottom-lightness": 0.19,
+        "bottom-lightness": 0.173,
         "bottom-chroma-scale": 0,
         "bottom-chroma-cap": 0,
         "bottom-hue-shift": 0,
         "opacity-top": 1,
         "opacity-bottom": 1,
-        "rim-alpha": 0.4
+        "light-top": 0.3,
+        "light-bottom": 0.165,
+        "light-tone": 0,
+        "outline-lightness": 0,
+        "outline-alpha": 0
       },
       "clear": {
         "top-lightness": 1,
@@ -261,45 +278,61 @@
         "bottom-chroma-scale": 0,
         "bottom-chroma-cap": 0,
         "bottom-hue-shift": 0,
-        "opacity-top": 0.26,
-        "opacity-bottom": 0.17,
-        "rim-alpha": 0.5
+        "opacity-top": 0.2,
+        "opacity-bottom": 0.2,
+        "light-top": 0.6,
+        "light-bottom": 0.6,
+        "light-tone": 0,
+        "outline-lightness": 0.3,
+        "outline-alpha": 0.9
       },
       "clear-dark": {
-        "top-lightness": 1,
+        "top-lightness": 0,
         "top-chroma-scale": 0,
         "top-chroma-cap": 0,
-        "bottom-lightness": 1,
+        "bottom-lightness": 0,
         "bottom-chroma-scale": 0,
         "bottom-chroma-cap": 0,
         "bottom-hue-shift": 0,
-        "opacity-top": 0.17,
-        "opacity-bottom": 0.08,
-        "rim-alpha": 0.5
+        "opacity-top": 0.66,
+        "opacity-bottom": 0.66,
+        "light-top": 0.2,
+        "light-bottom": 0.2,
+        "light-tone": 0,
+        "outline-lightness": 0,
+        "outline-alpha": 0.95
       },
       "tinted": {
-        "top-lightness": 0.52,
-        "top-chroma-scale": 0.8,
-        "top-chroma-cap": 0.096,
-        "bottom-lightness": 0.45,
-        "bottom-chroma-scale": 0.708,
-        "bottom-chroma-cap": 0.085,
+        "top-lightness": 0.55,
+        "top-chroma-scale": 0.79,
+        "top-chroma-cap": 0.15,
+        "bottom-lightness": 0.48,
+        "bottom-chroma-scale": 0.74,
+        "bottom-chroma-cap": 0.14,
         "bottom-hue-shift": -7,
         "opacity-top": 1,
         "opacity-bottom": 1,
-        "rim-alpha": 0.4
+        "light-top": 1,
+        "light-bottom": 1,
+        "light-tone": 0.22,
+        "outline-lightness": 0.5,
+        "outline-alpha": 1
       },
       "tinted-dark": {
-        "top-lightness": 0.3,
-        "top-chroma-scale": 0.225,
-        "top-chroma-cap": 0.027,
-        "bottom-lightness": 0.22,
-        "bottom-chroma-scale": 0.1167,
-        "bottom-chroma-cap": 0.014,
-        "bottom-hue-shift": -7,
-        "opacity-top": 1,
-        "opacity-bottom": 1,
-        "rim-alpha": 0.4
+        "top-lightness": 0,
+        "top-chroma-scale": 0,
+        "top-chroma-cap": 0,
+        "bottom-lightness": 0,
+        "bottom-chroma-scale": 0,
+        "bottom-chroma-cap": 0,
+        "bottom-hue-shift": 0,
+        "opacity-top": 0.66,
+        "opacity-bottom": 0.66,
+        "light-top": 0.2,
+        "light-bottom": 0.2,
+        "light-tone": 0,
+        "outline-lightness": 0,
+        "outline-alpha": 0.95
       }
     },
     "icon-logo": {
@@ -307,7 +340,7 @@
         "dark-lightness": 0.4,
         "dark-chroma-scale": 0,
         "dark-chroma-cap": 0,
-        "light-lightness": 0.92,
+        "light-lightness": 1,
         "light-chroma-scale": 0,
         "light-chroma-cap": 0
       },
@@ -315,7 +348,7 @@
         "dark-lightness": 0.3,
         "dark-chroma-scale": 0,
         "dark-chroma-cap": 0,
-        "light-lightness": 0.85,
+        "light-lightness": 0.9,
         "light-chroma-scale": 0,
         "light-chroma-cap": 0
       },
@@ -323,17 +356,17 @@
         "dark-lightness": 0.62,
         "dark-chroma-scale": 0.15,
         "dark-chroma-cap": 0.02,
-        "light-lightness": 0.92,
-        "light-chroma-scale": 0.15,
-        "light-chroma-cap": 0.02
+        "light-lightness": 0.9,
+        "light-chroma-scale": 0.37,
+        "light-chroma-cap": 0.07
       },
       "tinted-dark": {
         "dark-lightness": 0.5,
         "dark-chroma-scale": 0.8,
         "dark-chroma-cap": 0.136,
-        "light-lightness": 0.95,
-        "light-chroma-scale": 0.8,
-        "light-chroma-cap": 0.136
+        "light-lightness": 0.72,
+        "light-chroma-scale": 0.63,
+        "light-chroma-cap": 0.12
       }
     },
     "icon-style": {

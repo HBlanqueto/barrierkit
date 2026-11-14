@@ -155,21 +155,49 @@ impl SymbolTile {
     fn styled(glyph: Symbol, theme: Theme) -> Self {
         let style: SymbolTileStyle = resolve(&theme);
         let paints = Paints::current(ControlState::default(), style.effect);
+        let resolved = theme::resolved();
+        let (plate, ink) = ctappearance::icon_plate::tile(
+            resolved.icon_style,
+            resolved.icon_dark,
+            resolved.icon_tint,
+            paints.color(style.background.resolve(ControlState::default())),
+        );
+        let corner_radius =
+            style
+                .shape
+                .corner_radius(style.size, style.size, LayoutDirection::LeftToRight);
+        let layer = || {
+            rect()
+                .position(Position::new_absolute().top(0.0).left(0.0))
+                .width(Size::px(style.size))
+                .height(Size::px(style.size))
+                .corner_radius(corner_radius)
+        };
         let tile = rect()
             .width(Size::px(style.size))
             .height(Size::px(style.size))
-            .corner_radius(style.shape.corner_radius(
-                style.size,
-                style.size,
-                LayoutDirection::LeftToRight,
-            ))
-            .painted(&paints, &style.background)
-            .bordered(&paints, style.border.as_ref())
             .center()
+            .maybe_child(
+                crate::app_icon::tile_plate(&plate, style.size, corner_radius.top_left()).map(
+                    |handle| {
+                        layer().child(
+                            freya_core::elements::image::image(handle)
+                                .width(Size::px(style.size))
+                                .height(Size::px(style.size)),
+                        )
+                    },
+                ),
+            )
+            .maybe_child(
+                style
+                    .border
+                    .as_ref()
+                    .map(|border| layer().bordered(&paints, Some(border))),
+            )
             .child(symbol(
                 glyph,
                 style.symbol_size,
-                paints.color(style.symbol.resolve(ControlState::default())),
+                ink.unwrap_or_else(|| paints.color(style.symbol.resolve(ControlState::default()))),
             ));
         Self(tile, glyph, theme)
     }

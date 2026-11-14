@@ -207,9 +207,15 @@ current color scheme. The icon keeps its art; the plate comes from its colors.
    the hue of its darkest lobe with at least `lobe_min_share` of the chroma; a
    dark icon takes the lightest lobe. A gray icon gets a gray plate.
 3. `icon_style` and `icon_dark` pick the plate: the icon's hue by default,
-   graphite for a dark `Dark`, translucent white for `Clear`, the icon color
-   for `Tinted`.
-4. The icon is scaled to `logo_scale` of the plate's body, centered on what it
+   near black for a dark `Dark`, translucent white for `Clear`, the icon color
+   for `Tinted`, and translucent black for a dark `Clear` or `Tinted`.
+4. The plate gets its edge. A light runs along the top and the bottom edge,
+   turns each corner and ends in a point a little way down the side
+   (`light_reach`, `light_side`): white on default and dark plates, the
+   plate's own color lifted on tinted ones. Clear and tinted plates also get a
+   closed outline, whole on the sides and at `outline_ends` on the top and the
+   bottom, with the light just inside it.
+5. The icon is scaled to `logo_scale` of the plate's body, centered on what it
    draws, with a soft shadow, and recolored by `Clear` or `Tinted`.
 
 ```rust
