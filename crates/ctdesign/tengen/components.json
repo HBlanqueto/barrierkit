@@ -634,7 +634,7 @@
           "shadow": {
             "opacity": { "light": 0.13, "dark": 0.0 },
             "span": 25,
-            "tint": 1.0,
+            "tint": 0.5,
             "lightness": 0.2
           }
         },

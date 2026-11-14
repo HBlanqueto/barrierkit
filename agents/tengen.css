@@ -550,7 +550,7 @@
   --bk-window-sidebar-glass-shadow-opacity-light: 0.13;
   --bk-window-sidebar-glass-shadow-opacity-dark: 0.0;
   --bk-window-sidebar-glass-shadow-span: 25;
-  --bk-window-sidebar-glass-shadow-tint: 1.0;
+  --bk-window-sidebar-glass-shadow-tint: 0.5;
   --bk-window-sidebar-glass-shadow-lightness: 0.2;
   --bk-window-sidebar-item-height: 32;
   --bk-window-sidebar-item-radius: var(--bk-radius-sm);
