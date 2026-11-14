@@ -518,9 +518,9 @@
   --bk-window-sidebar-island-traffic-x: 11;
   --bk-window-sidebar-island-traffic-y: 11;
   --bk-window-sidebar-flat-line: var(--bk-line);
-  --bk-window-sidebar-glass-chroma-light: 0.08;
+  --bk-window-sidebar-glass-chroma-light: 0.22;
   --bk-window-sidebar-glass-chroma-dark: 0.05;
-  --bk-window-sidebar-glass-chroma-cap-light: 0.03;
+  --bk-window-sidebar-glass-chroma-cap-light: 0.05;
   --bk-window-sidebar-glass-chroma-cap-dark: 0.04;
   --bk-window-sidebar-glass-lightness-light: 0.0;
   --bk-window-sidebar-glass-lightness-dark: 0.0;
@@ -529,13 +529,13 @@
   --bk-window-sidebar-glass-blur-passes-dark: 6;
   --bk-window-sidebar-glass-edge-intensity-light: 0.7;
   --bk-window-sidebar-glass-edge-intensity-dark: 0.7;
-  --bk-window-sidebar-glass-edge-span-light: 46;
+  --bk-window-sidebar-glass-edge-span-light: 53;
   --bk-window-sidebar-glass-edge-span-dark: 60;
-  --bk-window-sidebar-glass-edge-chroma-light: 0.45;
+  --bk-window-sidebar-glass-edge-chroma-light: 0.58;
   --bk-window-sidebar-glass-edge-chroma-dark: 0.45;
   --bk-window-sidebar-glass-edge-lightness-light: 0.0;
   --bk-window-sidebar-glass-edge-lightness-dark: 0.1;
-  --bk-window-sidebar-glass-edge-cap-light: 0.04;
+  --bk-window-sidebar-glass-edge-cap-light: 0.08;
   --bk-window-sidebar-glass-edge-cap-dark: 0.18;
   --bk-window-sidebar-glass-edge-offset: 11;
   --bk-window-sidebar-glass-rim-opacity: 1.0;
@@ -1200,7 +1200,7 @@
   --bk-panel-inner-edge: #ffffff00;
   --bk-panel-glow: #ffffff00;
   --bk-sidebar-island-bg: #f7f7f7;
-  --bk-sidebar-glass-base: #ebedee;
+  --bk-sidebar-glass-base: #e5e7e8;
   --bk-sidebar-glass-solid: #f2f2f2;
   --bk-toolbar-glass-bg: #ffffffdb;
   --bk-toolgroup-rim: #0000001f;

@@ -42,8 +42,9 @@ Readers: whoever changes `Sidebar`, `SplitView`, `ctdesign` or `ctappearance`.
    ([0064](0064-styles-and-themes.md)) when it asks for one.
 2. **The kit computes two colors** and sends them with the panel:
    1. `base`, the tone of the glass at rest. It is the token
-      `sidebar-glass-base`: `#202020` in dark mode (L 0.245) and `#ebedee` in
-      light mode, both measured on macOS. In dark, the wallpaper's tint is
+      `sidebar-glass-base`: `#202020` in dark mode (L 0.245) and `#e5e7e8` in
+      light mode (L 0.927, a little darker than the `#ebedee` measured on macOS,
+      so that the tint shows). In dark, the wallpaper's tint is
       added to it: `take_chroma_capped(base, tint, factor × WALLPAPER_TINTING_SIDEBAR,
       glass_chroma(scheme).1)`: the same path as today's tint, but it saturates
       towards the cap so a vivid wallpaper does not turn the panel into a window.
