@@ -1008,7 +1008,7 @@
         "hover-bg": "{bg-hover}",
         "title-open": {
           "bg": "{menubar-title-open}",
-          "radius": 10,
+          "radius": 12,
           "height": 24,
           "bleed": 3
         },
