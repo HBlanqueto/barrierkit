@@ -147,7 +147,8 @@ GLASS GlassMetrics components.window.sidebar.glass chroma_light=chroma.light
     edge_lightness_light=edge.lightness.light edge_lightness_dark=edge.lightness.dark
     edge_cap_light=edge.cap.light edge_cap_dark=edge.cap.dark
     shadow_opacity_light=shadow.opacity.light shadow_opacity_dark=shadow.opacity.dark
-    rim_opacity=rim.opacity rim_lift=rim.lift rim_lift_edge=rim.lift-edge
+    rim_opacity=rim.opacity rim_lift_light=rim.lift.light rim_lift_dark=rim.lift.dark
+    rim_lift_edge_light=rim.lift-edge.light rim_lift_edge_dark=rim.lift-edge.dark
     rim_chroma=rim.chroma rim_cap=rim.cap
     edge_offset=edge.offset shadow_span=shadow.span shadow_tint=shadow.tint
     shadow_lightness=shadow.lightness

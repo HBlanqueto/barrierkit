@@ -611,7 +611,7 @@
           "line": "line"
         },
         "glass": {
-          "chroma": { "light": 0.0, "dark": 0.05 },
+          "chroma": { "light": 0.08, "dark": 0.05 },
           "chroma-cap": { "light": 0.03, "dark": 0.04 },
           "lightness": { "light": 0.0, "dark": 0.0 },
           "accent-share": 0.35,
@@ -626,8 +626,8 @@
           },
           "rim": {
             "opacity": 1.0,
-            "lift": 0.06,
-            "lift-edge": 0.05,
+            "lift": { "light": 0.03, "dark": 0.06 },
+            "lift-edge": { "light": 0.02, "dark": 0.05 },
             "chroma": 1.35,
             "cap": 0.25
           },

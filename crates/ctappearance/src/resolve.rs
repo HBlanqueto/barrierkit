@@ -201,6 +201,15 @@ pub fn glass_lightness(scheme: ColorScheme) -> f32 {
     }
 }
 
+// How much lighter the island's border is than the fill under it, and how much more where the wallpaper shows.
+pub fn glass_rim_lift(scheme: ColorScheme) -> (f32, f32) {
+    if scheme.is_dark() {
+        (GLASS.rim_lift_dark, GLASS.rim_lift_edge_dark)
+    } else {
+        (GLASS.rim_lift_light, GLASS.rim_lift_edge_light)
+    }
+}
+
 // How many times the glass blurs what is behind it.
 pub fn glass_blur_passes(scheme: ColorScheme) -> u32 {
     if scheme.is_dark() {
