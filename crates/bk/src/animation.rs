@@ -51,16 +51,7 @@ pub fn use_switch_progress(on: State<bool>, animation: Animation) -> f32 {
     } else {
         animation
     };
-    let duration_ms = use_reactive(&animation.duration_ms());
-    let linear = use_animation_transition(on, move |from: bool, to: bool| {
-        AnimNum::new(f32::from(u8::from(from)), f32::from(u8::from(to))).time(*duration_ms.peek())
-    });
-    let linear = linear.get().value();
-    if *on.read() {
-        animation.progress(linear)
-    } else {
-        1.0 - animation.progress(1.0 - linear)
-    }
+    use_animated(f32::from(u8::from(*on.read())), animation)
 }
 
 pub(crate) fn ease_out(progress: f32) -> f32 {
