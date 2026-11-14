@@ -574,7 +574,9 @@ System Settings uses it.
 ### Dock
 
 `dock::DockConfig` is `dock.domain`. Its keys are those of
-`defaults write com.apple.dock`:
+`defaults write com.apple.dock`, except `show-downloads`: macOS keeps the
+Downloads folder in `persistent-others`, and the Dock turns this key off when
+the folder is dragged out.
 
 | Key | Type | Default |
 |---|---|---|
@@ -588,6 +590,7 @@ System Settings uses it.
 | `static-only` | bool | `false` |
 | `minimize-to-application` | bool | `false` |
 | `show-recents` | bool | `true` |
+| `show-downloads` | bool | `true` |
 | `launchanim` | bool | `true` |
 | `autohide-delay` | seconds | `0.0` |
 | `autohide-time-modifier` | factor | `1.0` |
