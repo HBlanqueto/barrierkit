@@ -381,7 +381,7 @@ empty in `content`.
 |---|---|---|---|
 | `Popover` | `POPOVER.radius` (20) | `POPOVER`, 25.42 × 13 | `Popover` |
 | `Menu` | the menu corner, `components.shell.menu.panel.radius` (12) | `POPOVER`, 25.42 × 13, with the `DOCK_MENU_ARROW_*` tip (6) and fillet (8) | [`pop_up_menu`](#pop_up_menu) |
-| `Label` | `DOCK_LABEL_RADIUS` (8) | `DOCK_LABEL_ARROW_*`, 22 × 6.5 | the name over a Dock icon |
+| `Label` | `DOCK_LABEL_RADIUS` (12, the menu bar's title pill), with circular arcs | `DOCK_LABEL_ARROW_*`, 22 × 6.5 | the name over a Dock icon |
 
 `Menu` and `Label` need `infinity_window_style_v1.set_popover_shape`
 (version 7). Without it, the popup keeps a plain frame.

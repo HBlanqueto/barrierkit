@@ -954,7 +954,7 @@
   --bk-shell-dock-label-font-size: 13;
   --bk-shell-dock-label-padding-x: 18;
   --bk-shell-dock-label-padding-y: 5;
-  --bk-shell-dock-label-radius: 8;
+  --bk-shell-dock-label-radius: var(--bk-shell-menubar-title-open-radius);
   --bk-shell-dock-label-arrow-width: 22;
   --bk-shell-dock-label-arrow-height: 6.5;
   --bk-shell-dock-label-arrow-tip-radius: 3;

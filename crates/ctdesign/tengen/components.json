@@ -1076,7 +1076,7 @@
         "label-font-size": 13,
         "label-padding-x": 18,
         "label-padding-y": 5,
-        "label-radius": 8,
+        "label-radius": "components.shell.menubar.title-open.radius",
         "label-arrow-width": 22,
         "label-arrow-height": 6.5,
         "label-arrow-tip-radius": 3,
