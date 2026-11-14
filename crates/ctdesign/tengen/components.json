@@ -224,6 +224,7 @@
       "dark-glyph-lightness": 0.65,
       "glass": [1, 0.227, 1.09, 0.2],
       "glass-dark": [0, 0.532, 0.94, 0.16],
+      "glass-dark-on-dark": [1, 0.16, 0.94, 0.16],
       "lobe-dark": {
         "top-lightness": 0.29,
         "top-chroma-scale": 0.5,

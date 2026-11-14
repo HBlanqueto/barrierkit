@@ -239,8 +239,10 @@ plate, and `icon_style` drops the dark body of the icon, whose alpha starts at
 `ICON_STYLE.clear_cut` (`IconStyle::matrix_on_glass`). The plate's corner is
 `ICON_PLATE.corner`, as a share of its body. The compositor moves the
 lightness of what is behind the plate toward white by `ICON_PLATE_GLASS`, or
-toward black by `ICON_PLATE_GLASS_DARK` with dark icons, so the plate stands
-out from any glass, and gives it the same edge. Without `Clear` it changes nothing. A style rasterizes at the window's scale and is cached
+toward black by `ICON_PLATE_GLASS_DARK` with dark icons. A dark Dock is too dark
+to darken, so there dark icons take `ICON_PLATE_GLASS_DARK_ON_DARK`, a smaller
+step toward white than light icons. The plate stands out from any glass and gets
+the same edge. Without `Clear` it changes nothing. A style rasterizes at the window's scale and is cached
 like a template image. It does not apply to `Template` images or to symbols.
 
 An icon whose `size` changes every frame, such as the Dock's under the pointer,
