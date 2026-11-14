@@ -926,9 +926,8 @@ pub struct Palette {
 /// colours from what is behind the glass, and the rim keeps their hue: the glass is scaled per
 /// channel up to the luminance `rim` gives, instead of overlaid with white or black. `lens` is how
 /// the glass bends the backdrop along the frame's normal, as the Liquid Glass config's
-/// `liquid-glass.frag` does: `[depth, strength, split, blur]`, the depth, the strength and the blur
-/// as shares of the Dock's thickness and the split of the colour channels as a share of the
-/// strength. These are design values, not measured on macOS.
+/// `liquid-glass.frag` does: `[depth, strength]`, both as shares of the Dock's thickness. It never
+/// splits the colour channels. These are design values, not measured on macOS.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct DockSurface {
     pub glass: Rgba,
@@ -937,7 +936,7 @@ pub struct DockSurface {
     pub divider: f32,
     pub corner: [f32; 3],
     pub glow: [f32; 6],
-    pub lens: [f32; 4],
+    pub lens: [f32; 2],
     pub tone: Option<DockTone>,
 }
 
