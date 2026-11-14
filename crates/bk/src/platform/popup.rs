@@ -22,6 +22,7 @@ use super::{
     app::{AppInstance, InstanceRole},
     runtime::Runtime,
     surface::{SurfaceRole, buffer_size},
+    window_style::PopoverShape,
 };
 use crate::styles::{PopupRoot, current_theme};
 
@@ -124,14 +125,26 @@ impl Popups {
     }
 
     pub fn open(&self, spec: PopupSpec, content: AppComponent) -> PopupId {
-        self.push_open(spec, content, false)
+        self.push_open(spec, content, None)
     }
 
-    pub(crate) fn open_popover(&self, spec: PopupSpec, content: AppComponent) -> PopupId {
-        self.push_open(spec, content, true)
+    /// The compositor draws the arrow in a band of `spec.size` along the edge that faces the
+    /// anchor rectangle; `content` leaves that band empty.
+    pub fn open_popover(
+        &self,
+        spec: PopupSpec,
+        content: AppComponent,
+        shape: PopoverShape,
+    ) -> PopupId {
+        self.push_open(spec, content, Some(shape))
     }
 
-    fn push_open(&self, spec: PopupSpec, content: AppComponent, popover: bool) -> PopupId {
+    fn push_open(
+        &self,
+        spec: PopupSpec,
+        content: AppComponent,
+        popover: Option<PopoverShape>,
+    ) -> PopupId {
         let id = PopupId::next(&self.next_id);
         let content = AppComponent::new(PopupRoot {
             theme: current_theme(),
@@ -155,7 +168,7 @@ impl Popups {
         self.ping.ping();
     }
 
-    fn reposition(&self, id: PopupId, spec: PopupSpec) {
+    pub fn reposition(&self, id: PopupId, spec: PopupSpec) {
         self.queue
             .borrow_mut()
             .push(PopupCommand::Reposition { id, spec });
@@ -248,7 +261,7 @@ pub(crate) enum PopupCommand {
         spec: PopupSpec,
         content: AppComponent,
         serial: u32,
-        popover: bool,
+        popover: Option<PopoverShape>,
     },
     Reposition {
         id: PopupId,
@@ -325,8 +338,8 @@ impl Runtime {
                     popover,
                 } => {
                     self.open_popup(owner, parent, id, spec, content, serial);
-                    if popover {
-                        self.mark_popover(id);
+                    if let Some(shape) = popover {
+                        self.mark_popover(id, shape);
                     }
                 }
                 PopupCommand::Reposition { id, spec } => {
@@ -456,19 +469,20 @@ impl Runtime {
         window.output = output;
         self.surfaces.push(window);
     }
-    fn mark_popover(&self, id: PopupId) {
-        let Some(style) = self
-            .window_style
-            .as_ref()
-            .filter(|style| style.version() >= 2)
-        else {
+    fn mark_popover(&self, id: PopupId, shape: PopoverShape) {
+        let Some(style) = self.window_style.as_ref() else {
             return;
         };
-        if let Some(window) = self
+        let Some(window) = self
             .surfaces
             .iter()
             .find(|s| s.popup.as_ref().is_some_and(|info| info.id == id))
-        {
+        else {
+            return;
+        };
+        if style.version() >= 7 {
+            style.set_popover_shape(&window.surface, shape);
+        } else if style.version() >= 2 && shape == PopoverShape::Popover {
             style.set_popover(&window.surface);
         }
     }

@@ -930,8 +930,12 @@
   --bk-shell-dock-label-gap: 12;
   --bk-shell-dock-label-font-size: 13;
   --bk-shell-dock-label-padding-x: 12;
-  --bk-shell-dock-label-padding-y: 4;
+  --bk-shell-dock-label-padding-y: 5;
   --bk-shell-dock-label-radius: 8;
+  --bk-shell-dock-label-arrow-width: 22;
+  --bk-shell-dock-label-arrow-height: 6.5;
+  --bk-shell-dock-label-arrow-tip-radius: 2;
+  --bk-shell-dock-label-arrow-fillet: 3;
   --bk-shell-dock-tile: var(--bk-bg-control);
   --bk-shell-dock-tile-active: var(--bk-accent);
   --bk-shell-dock-tile-text-active: var(--bk-on-accent);

@@ -5,7 +5,9 @@ use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 use torin::prelude::{Area, Gaps};
 
-use crate::platform::{PopupAnchor, PopupConstraintAdjustment, PopupGravity, PopupSpec, Popups};
+use crate::platform::{
+    PopoverShape, PopupAnchor, PopupConstraintAdjustment, PopupGravity, PopupSpec, Popups,
+};
 use crate::theme::color;
 
 pub struct Popover {
@@ -38,7 +40,11 @@ impl Popover {
             grab: true,
             ..PopupSpec::default()
         };
-        Popups::get().open_popover(spec, AppComponent::new(PopoverBody(self.content)));
+        Popups::get().open_popover(
+            spec,
+            AppComponent::new(PopoverBody(self.content)),
+            PopoverShape::Popover,
+        );
     }
 }
 

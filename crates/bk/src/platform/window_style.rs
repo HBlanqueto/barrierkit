@@ -2,7 +2,9 @@ use sctk::reexports::client::{Connection, Dispatch, Proxy, QueueHandle};
 
 use super::runtime::Runtime;
 
-pub use infinity_protocol::client::style::infinity_window_style_v1::infinity_window_style_v1::Bar;
+pub use infinity_protocol::client::style::infinity_window_style_v1::infinity_window_style_v1::{
+    Bar, PopoverShape,
+};
 pub(crate) use infinity_protocol::client::style::infinity_window_style_v1::infinity_window_style_v1::{
     InfinityWindowStyleV1, Panel,
 };

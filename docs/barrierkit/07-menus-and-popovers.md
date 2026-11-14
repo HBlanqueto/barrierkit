@@ -301,6 +301,11 @@ menu closes, chosen or dismissed. Malaysia's Dock opens an icon's menu this
 way, above the icon on a bottom Dock and beside it on a side Dock, and stays
 up until `on_close`.
 
+The menu is a popover with the `Menu` shape: the menu corner and the
+`POPOVER` arrow, pointing at the centre of `rect`. The popup adds the arrow
+band, `POPOVER.arrow_height` (13), on the edge that faces `rect`
+([`Popover`](#popover) has the protocol).
+
 ### `.help` (tooltips)
 
 `element.help(text)` shows `text` as a tooltip over `element`. `text` is a
@@ -350,6 +355,27 @@ centre of the anchor. The compositor clips, borders and shadows that shape
 The measurements come from the Flutter package
 [`popover`](https://pub.dev/packages/popover), taken from AppKit on macOS
 26.7. Without version 2, the popup is a plain rectangle.
+
+### Other popover shapes
+
+`Popups::open_popover(spec, content, shape)` opens any popup as a popover.
+The compositor puts the arrow on the edge that faces the anchor rectangle:
+the bottom edge when the popup opens above it, the right edge when it opens
+to its left, the left edge when it opens to its right, and the top edge
+otherwise. `popup_button::arrow_band(side, height)` gives that band as `Gaps`
+for a popup that opens toward `side`. Add it to `spec.size` and leave it
+empty in `content`.
+
+`PopoverShape` picks the corner and the arrow:
+
+| Shape | Corner | Arrow | Used by |
+|---|---|---|---|
+| `Popover` | `POPOVER.radius` (20) | `POPOVER`, 25.42 × 13 | `Popover` |
+| `Menu` | the menu corner, `components.shell.menu.panel.radius` (12) | `POPOVER`, 25.42 × 13 | [`pop_up_menu`](#pop_up_menu) |
+| `Label` | `DOCK_LABEL_RADIUS` (8) | `DOCK_LABEL_ARROW_*`, 22 × 6.5 | the name over a Dock icon |
+
+`Menu` and `Label` need `infinity_window_style_v1.set_popover_shape`
+(version 7). Without it, the popup keeps a plain frame.
 
 ## Helpers
 

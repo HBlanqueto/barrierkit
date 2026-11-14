@@ -272,6 +272,9 @@ Rules the runner applies:
    popups.
 4. `open` returns a `PopupId` at once; the surface is created on the next
    turn of the event loop.
+5. `open_popover(spec, content, shape)` opens a popup with a popover's
+   corner and arrow ([7. Menus and popovers](07-menus-and-popovers.md#other-popover-shapes)).
+   `reposition(id, spec)` moves an open popup with a new `PopupSpec`.
 
 Inside the popup's content, `PopupHandle::get()` gives the popup itself:
 

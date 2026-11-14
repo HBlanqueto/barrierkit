@@ -226,6 +226,10 @@ DOCK_LABEL_FONT_SIZE f32 components.shell.dock.label-font-size
 DOCK_LABEL_PADDING_X f32 components.shell.dock.label-padding-x
 DOCK_LABEL_PADDING_Y f32 components.shell.dock.label-padding-y
 DOCK_LABEL_RADIUS f32 components.shell.dock.label-radius
+DOCK_LABEL_ARROW_WIDTH f32 components.shell.dock.label-arrow-width
+DOCK_LABEL_ARROW_HEIGHT f32 components.shell.dock.label-arrow-height
+DOCK_LABEL_ARROW_TIP_RADIUS f32 components.shell.dock.label-arrow-tip-radius
+DOCK_LABEL_ARROW_FILLET f32 components.shell.dock.label-arrow-fillet
 ABOUT_WIDTH u32 components.shell.about.width
 ABOUT_HEIGHT u32 components.shell.about.height
 ABOUT_DRAWING_TOP f32 components.shell.about.drawing-top

@@ -470,7 +470,7 @@ impl Runtime {
             .ok();
         let dialog_manager = globals.bind(&qh, 1..=1, ()).ok();
         let window_style = globals
-            .bind::<super::window_style::InfinityWindowStyleV1, _, _>(&qh, 1..=6, ())
+            .bind::<super::window_style::InfinityWindowStyleV1, _, _>(&qh, 1..=7, ())
             .ok();
         let viewporter = globals.bind::<WpViewporter, _, _>(&qh, 1..=1, ()).ok();
         // wp_fractional_scale_v1: a fractional buffer is only valid behind a wp_viewport.

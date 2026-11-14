@@ -1060,8 +1060,12 @@
         "label-gap": 12,
         "label-font-size": 13,
         "label-padding-x": 12,
-        "label-padding-y": 4,
+        "label-padding-y": 5,
         "label-radius": 8,
+        "label-arrow-width": 22,
+        "label-arrow-height": 6.5,
+        "label-arrow-tip-radius": 2,
+        "label-arrow-fillet": 3,
         "tile": "{bg-control}",
         "tile-active": "{accent}",
         "tile-text-active": "{on-accent}"

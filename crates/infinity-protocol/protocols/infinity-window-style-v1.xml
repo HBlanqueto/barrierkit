@@ -23,7 +23,7 @@
     DEALINGS IN THE SOFTWARE.
   </copyright>
 
-  <interface name="infinity_window_style_v1" version="6">
+  <interface name="infinity_window_style_v1" version="7">
     <description summary="window style hints for applications">
       Malaysia rounds every window it composites (ADR 0059). As in macOS
       Tahoe, the corner radius depends on the window's bar. A
@@ -63,11 +63,15 @@
     <request name="set_popover" since="2">
       <description summary="the popup is a popover with an arrow">
         Tells the compositor that the xdg_popup whose wl_surface is given is
-        a popover, as NSPopover. The top arrow-height logical pixels of its
-        window geometry are the arrow band. The compositor shapes the body
-        below that band with the popover corner, and joins to it an arrow
-        that points up at the centre of the popup's anchor rectangle,
-        clamped to the body. It lasts for the lifetime of the wl_surface.
+        a popover, as NSPopover. The arrow-height logical pixels of its
+        window geometry along the edge that faces the popup's anchor
+        rectangle are the arrow band: the bottom edge when the popup lies
+        above the anchor, the right edge when it lies to its left, the left
+        edge when it lies to its right, and the top edge otherwise. The
+        compositor shapes the body beside that band with the popover
+        corner, and joins to it an arrow that points at the centre of the
+        anchor rectangle, clamped to the body. It is set_popover_shape with
+        the popover shape. It lasts for the lifetime of the wl_surface.
       </description>
       <arg name="surface" type="object" interface="wl_surface"/>
     </request>
@@ -174,6 +178,26 @@
       <arg name="solid" type="uint"/>
       <arg name="chroma" type="uint"/>
       <arg name="rim" type="uint"/>
+    </request>
+
+    <enum name="popover_shape" since="7">
+      <description summary="corner and arrow of a popover">
+        Each value gives a popover its corner and its arrow.
+      </description>
+      <entry name="popover" value="0" summary="an NSPopover: the popover corner and arrow"/>
+      <entry name="menu" value="1" summary="a menu with an arrow, as a Dock menu: the menu corner and the popover arrow"/>
+      <entry name="label" value="2" summary="a name label, as the Dock's: the label corner and a smaller arrow"/>
+    </enum>
+
+    <request name="set_popover_shape" since="7">
+      <description summary="the popup is a popover of a shape">
+        Tells the compositor that the xdg_popup whose wl_surface is given is
+        a popover with the given shape, laid out as set_popover describes.
+        A later request replaces the shape. It lasts for the lifetime of the
+        wl_surface.
+      </description>
+      <arg name="surface" type="object" interface="wl_surface"/>
+      <arg name="shape" type="uint" enum="popover_shape"/>
     </request>
   </interface>
 </protocol>
