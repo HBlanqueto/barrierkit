@@ -151,7 +151,7 @@ GLASS GlassMetrics components.window.sidebar.glass chroma_light=chroma.light
     rim_lift_edge_light=rim.lift-edge.light rim_lift_edge_dark=rim.lift-edge.dark
     rim_chroma=rim.chroma rim_cap=rim.cap
     edge_offset=edge.offset shadow_span=shadow.span shadow_tint=shadow.tint
-    shadow_lightness=shadow.lightness
+    shadow_lightness_light=shadow.lightness.light shadow_lightness_dark=shadow.lightness.dark
 TOOLGROUP ToolgroupMetrics components.window.toolgroup
 MENU_POPOVER MenuPopoverMetrics components.menu-popover
 DURATION_BASE u64 duration.base

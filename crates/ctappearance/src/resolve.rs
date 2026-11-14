@@ -262,15 +262,16 @@ pub struct GlassShadow {
 }
 
 pub fn glass_shadow(scheme: ColorScheme) -> GlassShadow {
+    let (opacity, lightness) = if scheme.is_dark() {
+        (GLASS.shadow_opacity_dark, GLASS.shadow_lightness_dark)
+    } else {
+        (GLASS.shadow_opacity_light, GLASS.shadow_lightness_light)
+    };
     GlassShadow {
-        opacity: if scheme.is_dark() {
-            GLASS.shadow_opacity_dark
-        } else {
-            GLASS.shadow_opacity_light
-        },
+        opacity,
         span: GLASS.shadow_span,
         tint: GLASS.shadow_tint,
-        lightness: GLASS.shadow_lightness,
+        lightness,
     }
 }
 

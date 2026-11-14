@@ -827,7 +827,8 @@ pub struct GlassMetrics {
     pub shadow_opacity_dark: f32,
     pub shadow_span: f32,
     pub shadow_tint: f32,
-    pub shadow_lightness: f32,
+    pub shadow_lightness_light: f32,
+    pub shadow_lightness_dark: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

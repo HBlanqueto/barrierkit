@@ -632,10 +632,10 @@
             "cap": 0.25
           },
           "shadow": {
-            "opacity": { "light": 0.13, "dark": 0.0 },
+            "opacity": { "light": 0.13, "dark": 0.35 },
             "span": 25,
             "tint": 1.0,
-            "lightness": 0.2
+            "lightness": { "light": 0.2, "dark": 0.1 }
           }
         },
         "item": {
