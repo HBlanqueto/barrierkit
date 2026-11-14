@@ -218,7 +218,9 @@ DOCK_DIVIDER_DARK f32 components.shell.dock.divider-dark
 DOCK_RIM_CORNER_LIGHT [f32;3] components.shell.dock.rim-corner-light
 DOCK_RIM_CORNER_DARK [f32;3] components.shell.dock.rim-corner-dark
 DOCK_RIM_GLOW [f32;6] components.shell.dock.rim-glow
+DOCK_RIM_GLOW_LIGHT [f32;6] components.shell.dock.rim-glow-light
 DOCK_TONE_LIGHT DockTone components.shell.dock.tone-light
+DOCK_TONE_DARK DockTone components.shell.dock.tone-dark
 DOCK_WINDOW_FRAME f32 components.shell.dock.window-frame
 DOCK_WINDOW_ICON f32 components.shell.dock.window-icon
 DOCK_WINDOW_BADGE f32 components.shell.dock.window-badge
