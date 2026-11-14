@@ -295,16 +295,25 @@ Text fields and `TextEditor` already have their own edit menu
 
 `popup_button::pop_up_menu(items, rect, side, on_activate, on_close)` opens a
 `MenuView` beside `rect`, in surface coordinates, toward `side` (a
-`PopupAnchor`: `Top`, `Bottom`, `Left` or `Right`) and centred on that edge.
-It is AppKit's `NSMenu.popUp(positioning:at:in:)`. `on_close` runs when the
-menu closes, chosen or dismissed. Malaysia's Dock opens an icon's menu this
-way, above the icon on a bottom Dock and beside it on a side Dock, and stays
-up until `on_close`.
+`PopupAnchor`: `Top`, `Bottom`, `Left` or `Right`). It is AppKit's
+`NSMenu.popUp(positioning:at:in:)`. `on_close` runs when the menu closes,
+chosen or dismissed. Malaysia's Dock opens an icon's menu this way, above the
+icon on a bottom Dock and beside it on a side Dock, and stays up until
+`on_close`.
 
-The menu is a popover with the `Menu` shape: the menu corner and the
-`POPOVER` arrow, pointing at the centre of `rect`. The popup adds the arrow
-band, `POPOVER.arrow_height` (13), on the edge that faces `rect`
-([`Popover`](#popover) has the protocol).
+It is drawn as the Dock menu of macOS 26:
+
+1. The menu is a popover with the `Menu` shape. Its arrow sits in the corner
+   where the menu starts, `DOCK_MENU_ARROW_INSET` (30) from the edge, and
+   points at the centre of the edge of `rect` that faces the menu.
+2. The menu grows to the right of that point, or down beside a side Dock.
+   Without room it flips: the arrow moves to the other corner.
+3. The popup adds the arrow band, `POPOVER.arrow_height` (13), on the edge
+   that faces `rect` ([`Popover`](#popover) has the protocol).
+4. The rows take the Dock menu metrics: `DOCK_MENU_PADDING` (5) above and
+   below, text and separators `DOCK_MENU_PADDING` + `DOCK_MENU_ITEM_PADDING_X`
+   (17) from the edges, separators 12 tall (`DOCK_MENU_SEPARATOR_MARGIN`) and
+   a width of at least `DOCK_MENU_MIN_WIDTH` (228).
 
 ### `.help` (tooltips)
 
@@ -371,7 +380,7 @@ empty in `content`.
 | Shape | Corner | Arrow | Used by |
 |---|---|---|---|
 | `Popover` | `POPOVER.radius` (20) | `POPOVER`, 25.42 × 13 | `Popover` |
-| `Menu` | the menu corner, `components.shell.menu.panel.radius` (12) | `POPOVER`, 25.42 × 13 | [`pop_up_menu`](#pop_up_menu) |
+| `Menu` | the menu corner, `components.shell.menu.panel.radius` (12) | `POPOVER`, 25.42 × 13, with the `DOCK_MENU_ARROW_*` tip (6) and fillet (8) | [`pop_up_menu`](#pop_up_menu) |
 | `Label` | `DOCK_LABEL_RADIUS` (8) | `DOCK_LABEL_ARROW_*`, 22 × 6.5 | the name over a Dock icon |
 
 `Menu` and `Label` need `infinity_window_style_v1.set_popover_shape`

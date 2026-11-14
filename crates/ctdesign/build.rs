@@ -236,6 +236,14 @@ DOCK_LABEL_ARROW_WIDTH f32 components.shell.dock.label-arrow-width
 DOCK_LABEL_ARROW_HEIGHT f32 components.shell.dock.label-arrow-height
 DOCK_LABEL_ARROW_TIP_RADIUS f32 components.shell.dock.label-arrow-tip-radius
 DOCK_LABEL_ARROW_FILLET f32 components.shell.dock.label-arrow-fillet
+DOCK_MENU_GAP f32 components.shell.dock.menu-gap
+DOCK_MENU_PADDING f32 components.shell.dock.menu-padding
+DOCK_MENU_ITEM_PADDING_X f32 components.shell.dock.menu-item-padding-x
+DOCK_MENU_SEPARATOR_MARGIN f32 components.shell.dock.menu-separator-margin
+DOCK_MENU_MIN_WIDTH f32 components.shell.dock.menu-min-width
+DOCK_MENU_ARROW_INSET f32 components.shell.dock.menu-arrow-inset
+DOCK_MENU_ARROW_TIP_RADIUS f32 components.shell.dock.menu-arrow-tip-radius
+DOCK_MENU_ARROW_FILLET f32 components.shell.dock.menu-arrow-fillet
 ABOUT_WIDTH u32 components.shell.about.width
 ABOUT_HEIGHT u32 components.shell.about.height
 ABOUT_DRAWING_TOP f32 components.shell.about.drawing-top

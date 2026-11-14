@@ -1,7 +1,10 @@
 use std::cell::Cell;
 use std::rc::Rc;
 
-use ctdesign::{MENU_POPOVER, POPOVER};
+use ctdesign::{
+    DOCK_MENU_ARROW_INSET, DOCK_MENU_ITEM_PADDING_X, DOCK_MENU_MIN_WIDTH, DOCK_MENU_PADDING,
+    DOCK_MENU_SEPARATOR_MARGIN, MENU_POPOVER, MenuPalette, POPOVER,
+};
 use freya_components::svg_viewer::SvgViewer;
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
@@ -235,8 +238,10 @@ pub(crate) fn open_popover_menu(
 }
 
 /// AppKit: `NSMenu.popUp(positioning:at:in:)`. Opens `items` beside `rect`, in surface
-/// coordinates, toward `side` and centred on that edge, as the Dock opens an icon's menu, with
-/// an arrow that points at `rect`. `on_close` runs when the menu closes, chosen or dismissed.
+/// coordinates, toward `side`, as the Dock opens an icon's menu: its arrow sits in the corner
+/// where the menu starts and points at the centre of that edge of `rect`, and the menu grows
+/// to the right (down beside a side Dock). `on_close` runs when the menu closes, chosen or
+/// dismissed.
 pub fn pop_up_menu(
     items: Vec<MenuItem>,
     rect: (i32, i32, u32, u32),
@@ -245,10 +250,8 @@ pub fn pop_up_menu(
     on_close: impl Fn() + 'static,
 ) {
     let gravity = match side {
-        PopupAnchor::Top => PopupGravity::Top,
-        PopupAnchor::Bottom => PopupGravity::Bottom,
-        PopupAnchor::Left => PopupGravity::Left,
-        PopupAnchor::Right => PopupGravity::Right,
+        PopupAnchor::Top => PopupGravity::TopRight,
+        PopupAnchor::Left => PopupGravity::BottomLeft,
         _ => PopupGravity::BottomRight,
     };
     open_placed_menu(
@@ -272,10 +275,11 @@ fn open_placed_menu(
     arrow: bool,
 ) {
     let palette = crate::styles::popover_style();
+    let palette = if arrow { dock_menu(palette) } else { palette };
     let band = arrow_band(anchor, if arrow { POPOVER.arrow_height } else { 0.0 });
     let size = MenuView::preferred_size(&entries, palette);
     let size = (size.0 + band.horizontal(), size.1 + band.vertical());
-    let offset = over.map_or((0, 0), |index| {
+    let offset = over.map_or(arrow_offset(anchor, arrow), |index| {
         let above: f32 = entries[..index]
             .iter()
             .map(|item| item.height(palette))
@@ -300,6 +304,7 @@ fn open_placed_menu(
     let view = MenuView::new(entries, on_activate, close_root)
         .with_surface(SurfaceKind::Toplevel)
         .with_popover_metrics();
+    let view = if arrow { view.style(dock_menu) } else { view };
     let spec = PopupSpec {
         anchor_rect,
         anchor,
@@ -327,6 +332,29 @@ fn open_placed_menu(
         popups.open(spec, AppComponent::new(view))
     };
     root.set(Some(id));
+}
+
+fn dock_menu(palette: MenuPalette) -> MenuPalette {
+    MenuPalette {
+        padding: DOCK_MENU_PADDING,
+        item_padding_x: DOCK_MENU_ITEM_PADDING_X,
+        separator_margin_y: DOCK_MENU_SEPARATOR_MARGIN,
+        min_width: DOCK_MENU_MIN_WIDTH,
+        ..palette
+    }
+}
+
+// The compositor puts the arrow DOCK_MENU_ARROW_INSET from the corner where the menu starts.
+fn arrow_offset(side: PopupAnchor, arrow: bool) -> (i32, i32) {
+    let inset = if arrow {
+        -(DOCK_MENU_ARROW_INSET.round() as i32)
+    } else {
+        0
+    };
+    match side {
+        PopupAnchor::Left | PopupAnchor::Right => (0, inset),
+        _ => (inset, 0),
+    }
 }
 
 /// The band the compositor draws a popover's arrow in, on the edge of a popup that opens
