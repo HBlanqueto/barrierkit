@@ -981,6 +981,7 @@
         "height-wide": 38,
         "tint-spread": 0.15,
         "dark-ink-above": 0.25,
+        "classic-alpha": 0.7,
         "over-light": {
           "ink": "#000000db",
           "glass": "#00000029",

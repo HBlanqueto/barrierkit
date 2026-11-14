@@ -164,6 +164,7 @@ MENUBAR_HEIGHT i32 components.shell.menubar.height
 MENUBAR_HEIGHT_WIDE i32 components.shell.menubar.height-wide
 MENUBAR_TINT_SPREAD f32 components.shell.menubar.tint-spread
 MENUBAR_DARK_INK_ABOVE f32 components.shell.menubar.dark-ink-above
+MENUBAR_CLASSIC_ALPHA f32 components.shell.menubar.classic-alpha
 MENUBAR_OVER_LIGHT_INK Rgba components.shell.menubar.over-light.ink
 MENUBAR_OVER_LIGHT_GLASS Rgba components.shell.menubar.over-light.glass
 MENUBAR_OVER_LIGHT_SELECTION Rgba components.shell.menubar.over-light.selection

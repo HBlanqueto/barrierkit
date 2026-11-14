@@ -1,7 +1,7 @@
 use ctdesign::{
-    MENUBAR_DARK_INK_ABOVE, MENUBAR_HEIGHT, MENUBAR_HEIGHT_WIDE, MENUBAR_OVER_DARK_GLASS,
-    MENUBAR_OVER_DARK_INK, MENUBAR_OVER_DARK_SELECTION, MENUBAR_OVER_LIGHT_GLASS,
-    MENUBAR_OVER_LIGHT_INK, MENUBAR_OVER_LIGHT_SELECTION, Rgba,
+    MENUBAR_CLASSIC_ALPHA, MENUBAR_DARK_INK_ABOVE, MENUBAR_HEIGHT, MENUBAR_HEIGHT_WIDE,
+    MENUBAR_OVER_DARK_GLASS, MENUBAR_OVER_DARK_INK, MENUBAR_OVER_DARK_SELECTION,
+    MENUBAR_OVER_LIGHT_GLASS, MENUBAR_OVER_LIGHT_INK, MENUBAR_OVER_LIGHT_SELECTION, Rgba,
 };
 use serde::{Deserialize, Serialize};
 
@@ -72,6 +72,17 @@ pub struct MenubarColors {
     pub selection: Rgba,
 }
 
+pub fn classic_bar(theme_bar: Rgba, reduce_transparency: bool) -> Rgba {
+    Rgba {
+        a: if reduce_transparency {
+            1.0
+        } else {
+            MENUBAR_CLASSIC_ALPHA
+        },
+        ..theme_bar
+    }
+}
+
 pub fn colors_over(wallpaper: Rgba) -> MenubarColors {
     let veiled = wallpaper.darken(MENUBAR_OVER_LIGHT_GLASS.a);
     if veiled.relative_luminance() > MENUBAR_DARK_INK_ABOVE {
@@ -100,6 +111,14 @@ mod tests {
         assert_eq!(config.style, MenubarStyle::Translucent);
         assert_eq!(config.height(), MENUBAR_HEIGHT_WIDE);
         assert!(!config.show_vpn);
+    }
+
+    #[test]
+    fn the_classic_bar_is_translucent_unless_transparency_is_reduced() {
+        let theme_bar = Rgba::rgb8(242, 244, 247);
+        assert_eq!(classic_bar(theme_bar, false).a, MENUBAR_CLASSIC_ALPHA);
+        assert_eq!(classic_bar(theme_bar, true).a, 1.0);
+        assert_eq!(classic_bar(theme_bar, false).r, theme_bar.r);
     }
 
     #[test]

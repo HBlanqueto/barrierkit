@@ -66,11 +66,11 @@
   --bk-shadow-unfocused-opacity: 0.55;
   --bk-shadow-layers-light-ambient-blur: 48;
   --bk-shadow-layers-light-ambient-y-offset: 18;
-  --bk-shadow-layers-light-ambient-opacity: 0.18;
+  --bk-shadow-layers-light-ambient-opacity: 0.3;
   --bk-shadow-layers-light-ambient-color: #0d1219;
   --bk-shadow-layers-light-contact-blur: 12;
   --bk-shadow-layers-light-contact-y-offset: 4;
-  --bk-shadow-layers-light-contact-opacity: 0.08;
+  --bk-shadow-layers-light-contact-opacity: 0.19;
   --bk-shadow-layers-light-contact-color: #0d1219;
   --bk-shadow-layers-dark-ambient-blur: 56;
   --bk-shadow-layers-dark-ambient-y-offset: 22;
@@ -845,6 +845,7 @@
   --bk-shell-menubar-height-wide: 38;
   --bk-shell-menubar-tint-spread: 0.15;
   --bk-shell-menubar-dark-ink-above: 0.25;
+  --bk-shell-menubar-classic-alpha: 0.7;
   --bk-shell-menubar-over-light-ink: #000000db;
   --bk-shell-menubar-over-light-glass: #00000029;
   --bk-shell-menubar-over-light-selection: #0d12191f;
@@ -865,7 +866,7 @@
   --bk-shell-menubar-text: var(--bk-ink-strong);
   --bk-shell-menubar-hover-bg: var(--bk-bg-hover);
   --bk-shell-menubar-title-open-bg: var(--bk-menubar-title-open);
-  --bk-shell-menubar-title-open-radius: 10;
+  --bk-shell-menubar-title-open-radius: 12;
   --bk-shell-menubar-title-open-height: 24;
   --bk-shell-menubar-title-open-bleed: 3;
   --bk-shell-menubar-battery-icon: 24 12;
