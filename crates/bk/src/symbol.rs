@@ -394,7 +394,9 @@ fn is_svg(bytes: &[u8]) -> bool {
 
 fn cached_image(source: &Source, size: f32, treatment: Treatment) -> Option<ImageHandle> {
     let scale = *Platform::get().current_window().scale_factor.read() as f32;
-    let side = (size * scale).round().max(1.0) as u32;
+    let exact = (size * scale).round().max(1.0) as u32;
+    // A magnified Dock draws every size between two: steps of 1/32 to 1/16 of the size keep the cache from refilling.
+    let side = exact.next_multiple_of(1 << exact.ilog2().saturating_sub(4));
     let (bytes, width) = match source {
         Source::Data(bytes) => (bytes.clone(), 0),
         Source::Rgba { width, pixels, .. } => (pixels.clone(), *width),
