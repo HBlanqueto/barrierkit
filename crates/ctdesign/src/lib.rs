@@ -924,7 +924,10 @@ pub struct Palette {
 /// turns from rim to outline around a corner: `[decay, outline from, outline to]` in degrees, and
 /// `glow` the glow inside the rim pixel by pixel as shares of it. With `tone` the frame takes its
 /// colours from what is behind the glass, and the rim keeps their hue: the glass is scaled per
-/// channel up to the luminance `rim` gives, instead of overlaid with white or black.
+/// channel up to the luminance `rim` gives, instead of overlaid with white or black. `lens` is how
+/// the glass bends the blurred backdrop along the frame's normal: `[depth, shift, split]`, the first
+/// two as shares of the Dock's thickness (half of it for the depth) and the split of the colour
+/// channels as a share of the shift. These are design values, not measured on macOS.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct DockSurface {
     pub glass: Rgba,
@@ -933,6 +936,7 @@ pub struct DockSurface {
     pub divider: f32,
     pub corner: [f32; 3],
     pub glow: [f32; 6],
+    pub lens: [f32; 3],
     pub tone: Option<DockTone>,
 }
 

@@ -5,10 +5,11 @@ use ctdesign::{
     BG_SURFACE_DARK, BG_SURFACE_DARK_TINT, BG_SURFACE_LIGHT, BG_WINDOW_DARK, BG_WINDOW_DARK_TINT,
     BG_WINDOW_LIGHT, DARK, DARK_TINT, DOCK_DIVIDER_DARK, DOCK_DIVIDER_LIGHT, DOCK_GLASS_DARK,
     DOCK_GLASS_DARK_TINT, DOCK_GLASS_LIGHT, DOCK_GLASS_SOLID_DARK, DOCK_GLASS_SOLID_DARK_TINT,
-    DOCK_GLASS_SOLID_LIGHT, DOCK_OUTLINE_DARK, DOCK_OUTLINE_DARK_TINT, DOCK_OUTLINE_LIGHT,
-    DOCK_OUTLINE_SOLID_DARK, DOCK_OUTLINE_SOLID_DARK_TINT, DOCK_OUTLINE_SOLID_LIGHT,
-    DOCK_RIM_CORNER_DARK, DOCK_RIM_CORNER_LIGHT, DOCK_RIM_DARK, DOCK_RIM_GLOW, DOCK_RIM_GLOW_LIGHT,
-    DOCK_RIM_LIGHT, DOCK_TONE_DARK, DOCK_TONE_LIGHT, DockSurface, GLASS, LAYER_FACTOR_BG_SUNKEN,
+    DOCK_GLASS_SOLID_LIGHT, DOCK_LENS_DARK, DOCK_LENS_LIGHT, DOCK_OUTLINE_DARK,
+    DOCK_OUTLINE_DARK_TINT, DOCK_OUTLINE_LIGHT, DOCK_OUTLINE_SOLID_DARK,
+    DOCK_OUTLINE_SOLID_DARK_TINT, DOCK_OUTLINE_SOLID_LIGHT, DOCK_RIM_CORNER_DARK,
+    DOCK_RIM_CORNER_LIGHT, DOCK_RIM_DARK, DOCK_RIM_GLOW, DOCK_RIM_GLOW_LIGHT, DOCK_RIM_LIGHT,
+    DOCK_TONE_DARK, DOCK_TONE_LIGHT, DockSurface, GLASS, LAYER_FACTOR_BG_SUNKEN,
     LAYER_FACTOR_CONTROL, LAYER_FACTOR_LINE, LAYER_FACTOR_RAISED, LAYER_FACTOR_SURFACE, LIGHT,
     MENU_DARK, MENU_DARK_OPAQUE, MENU_DARK_TINT, MENU_DARK_TINT_OPAQUE, MENU_LIGHT,
     MENU_LIGHT_OPAQUE, MENU_SEPARATOR_INK_MIX, MenuPalette, ON_ACCENT_MIN_CONTRAST, Palette, Rgba,
@@ -348,11 +349,12 @@ const TOOLGROUP_BG: [[Rgba; 3]; 2] = [
 
 // With transparency reduced the Dock is a solid grey, as in macOS, not its glass over the window colour.
 fn dock_surface(scheme: ColorScheme, opaque: bool) -> DockSurface {
-    let (rim, divider, corner, tone) = if scheme.is_dark() {
+    let (rim, divider, corner, lens, tone) = if scheme.is_dark() {
         (
             DOCK_RIM_DARK,
             DOCK_DIVIDER_DARK,
             DOCK_RIM_CORNER_DARK,
+            DOCK_LENS_DARK,
             DOCK_TONE_DARK,
         )
     } else {
@@ -360,6 +362,7 @@ fn dock_surface(scheme: ColorScheme, opaque: bool) -> DockSurface {
             DOCK_RIM_LIGHT,
             DOCK_DIVIDER_LIGHT,
             DOCK_RIM_CORNER_LIGHT,
+            DOCK_LENS_LIGHT,
             DOCK_TONE_LIGHT,
         )
     };
@@ -398,6 +401,7 @@ fn dock_surface(scheme: ColorScheme, opaque: bool) -> DockSurface {
         divider,
         corner,
         glow,
+        lens,
         tone: (!opaque).then_some(tone),
     }
 }

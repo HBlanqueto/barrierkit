@@ -33,7 +33,10 @@ fn overlay(luminance: f32, shift: f32) -> Rgba {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{DOCK_DIVIDER_DARK, DOCK_DIVIDER_LIGHT, DOCK_RIM_CORNER_LIGHT, DOCK_RIM_GLOW};
+    use crate::{
+        DOCK_DIVIDER_DARK, DOCK_DIVIDER_LIGHT, DOCK_LENS_LIGHT, DOCK_RIM_CORNER_LIGHT,
+        DOCK_RIM_GLOW,
+    };
 
     fn grey(level: u8) -> Rgba {
         let value = f32::from(level) / 255.0;
@@ -53,6 +56,7 @@ mod tests {
             divider,
             corner: DOCK_RIM_CORNER_LIGHT,
             glow: DOCK_RIM_GLOW,
+            lens: DOCK_LENS_LIGHT,
             tone: None,
         }
     }

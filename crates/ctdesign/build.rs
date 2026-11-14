@@ -218,6 +218,8 @@ DOCK_DIVIDER_LIGHT f32 components.shell.dock.divider-light
 DOCK_DIVIDER_DARK f32 components.shell.dock.divider-dark
 DOCK_RIM_CORNER_LIGHT [f32;3] components.shell.dock.rim-corner-light
 DOCK_RIM_CORNER_DARK [f32;3] components.shell.dock.rim-corner-dark
+DOCK_LENS_LIGHT [f32;3] components.shell.dock.lens-light
+DOCK_LENS_DARK [f32;3] components.shell.dock.lens-dark
 DOCK_RIM_GLOW [f32;6] components.shell.dock.rim-glow
 DOCK_RIM_GLOW_LIGHT [f32;6] components.shell.dock.rim-glow-light
 DOCK_TONE_LIGHT DockTone components.shell.dock.tone-light
