@@ -201,36 +201,6 @@ pub fn glass_lightness(scheme: ColorScheme) -> f32 {
     }
 }
 
-// The island's border derives from the fill it encloses: `lift` lighter, plus `lift_edge` where the wallpaper shows, with `chroma` times the fill's, up to `cap`, at `opacity` (ADR 0078).
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct GlassRim {
-    pub opacity: f32,
-    pub lift: f32,
-    pub lift_edge: f32,
-    pub chroma: f32,
-    pub cap: f32,
-}
-
-pub fn glass_rim(scheme: ColorScheme) -> GlassRim {
-    if scheme.is_dark() {
-        GlassRim {
-            opacity: GLASS.rim_opacity_dark,
-            lift: GLASS.rim_lift_dark,
-            lift_edge: GLASS.rim_lift_edge_dark,
-            chroma: GLASS.rim_chroma_dark,
-            cap: GLASS.rim_cap,
-        }
-    } else {
-        GlassRim {
-            opacity: GLASS.rim_opacity_light,
-            lift: GLASS.rim_lift_light,
-            lift_edge: GLASS.rim_lift_edge_light,
-            chroma: GLASS.rim_chroma_light,
-            cap: GLASS.rim_cap,
-        }
-    }
-}
-
 // How many times the glass blurs what is behind it.
 pub fn glass_blur_passes(scheme: ColorScheme) -> u32 {
     if scheme.is_dark() {
@@ -1259,14 +1229,6 @@ mod tests {
         assert_eq!(glass.base, glass.solid);
         assert_ne!(glass.base, neutral.base);
         assert_eq!(glass.chroma, neutral.chroma * GLASS.accent_share);
-    }
-
-    #[test]
-    fn the_light_rim_lifts_to_white_without_chroma_and_the_dark_one_follows_the_fill() {
-        let light = glass_rim(ColorScheme::Light);
-        assert!(light.lift >= 1.0 && light.chroma == 0.0);
-        let dark = glass_rim(ColorScheme::Dark);
-        assert!(dark.lift < 0.5 && dark.chroma > 1.0 && dark.opacity == 1.0);
     }
 
     #[test]

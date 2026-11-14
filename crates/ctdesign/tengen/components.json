@@ -625,16 +625,16 @@
             "offset": 11
           },
           "rim": {
-            "opacity": { "light": 0.8, "dark": 1.0 },
-            "lift": { "light": 1.0, "dark": 0.06 },
-            "lift-edge": { "light": 0.0, "dark": 0.05 },
-            "chroma": { "light": 0.0, "dark": 1.35 },
+            "opacity": 1.0,
+            "lift": 0.06,
+            "lift-edge": 0.05,
+            "chroma": 1.35,
             "cap": 0.25
           },
           "shadow": {
             "opacity": { "light": 0.13, "dark": 0.0 },
             "span": 25,
-            "tint": 0.5,
+            "tint": 1.0,
             "lightness": 0.2
           }
         },
