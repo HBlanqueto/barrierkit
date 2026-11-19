@@ -5,18 +5,19 @@ panel with measurements that can be ported to `ctdesign`.
 **Scope:** the top bar, the left application menus, the right status area and
 one open application menu. It excludes menu extras that are separate panels.
 **Reader:** anyone who changes `malaysia-shell::menubar` or the menu tokens.
-**Input:** accessibility frames, controlled-backdrop screenshots and a 60 fps
-menu recording.
-**Output:** measured geometry, glass values, a Malaysia comparison and ordered
-gaps.
+**Input:** accessibility frames, controlled-backdrop screenshots and a menu
+recording.
+**Output:** measured geometry, the adaptive glass model, a Malaysia comparison
+and ordered gaps.
 
 ## Steps
 
 1. Read the host limits in
    [`macos-observations.md`](macos-observations.md).
-2. Use the bar table for heights and item widths.
-3. Use the glass table only with its backdrop; never lift one value alone.
-4. Check the comparison table before changing a menu token.
+2. Read the full default matrix in
+   [`macos-defaults.md`](macos-defaults.md).
+3. Use the bar table for heights and item widths.
+4. Use the glass table only with its backdrop; never lift one value alone.
 5. Do not copy SF Pro, SF Symbols or Apple menu artwork.
 
 ---
@@ -31,14 +32,14 @@ The menu bar has three regions:
 - **Panel:** a separate window below the bar. It contains items, separators,
   shortcuts, check marks and submenu chevrons.
 
-The bar itself is not a material. On this host it is **clear**: the desktop
-or window behind it shows through unchanged, with no blur and no tint. The
-panel is a strong dark glass.
+The bar is **clear**: the desktop or window behind it shows through unchanged,
+with no blur and no tint. The panel is a separate adaptive glass surface, not
+a darker copy of the bar.
 
-## 2. Measured bar geometry
+## 2. Default bar geometry
 
-The bar is **30 pt** tall across the whole 2560 pt width. Accessibility
-frames for the left items, in screen coordinates:
+The bar is **30 pt** tall across the 1920 pt display. Accessibility frames for
+the Spanish Finder menu, in screen coordinates:
 
 | Item | x | Width | Height |
 |---|---:|---:|---:|
@@ -58,89 +59,85 @@ Observations:
 - Widths grow with the Spanish labels. They are not fixed tokens.
 - The app name (`Finder`) is bold; the menu titles are regular.
 - The font is **13 pt**, matching `NSFont.menuBarFont`.
-- The right status area did not expose an accessibility menu. A synthetic
-  click at `(2365, 15)` opened Control Center, which confirms that the bar
-  owns the hit area even when no AX element is present.
+- The right status area has no accessibility menu. A synthetic click at
+  `(2365, 15)` opened Control Center, so the bar owns the hit area even when
+  no AX element exists.
 
-The bar's **wide** variant was not observed. Malaysia has a 38 pt wide mode;
-macOS on this host stayed at 30.
+The wide variant was not observed. Malaysia has a 38 pt wide mode; macOS on
+this host stayed at 30.
 
-## 3. Measured panel geometry
+## 3. Default panel geometry
 
-The `Archivo` menu was opened over a controlled backdrop:
+The Finder `Archivo` menu over a controlled white backdrop:
 
 | Property | Value |
 |---|---:|
-| Panel left | 99 |
-| Panel right | 412 |
-| Panel width | 314 |
+| Panel left | 98 |
+| Panel right | 414 |
+| Panel width | 317 |
 | Panel top | 31 |
-| Panel bottom | about 644 |
+| Panel bottom | 659 |
+| Panel height | 629 |
 | Item height | 24 |
 | Separator band | 11 |
+| Corner radius | about 6 |
 | Font | 13 |
 
-The panel starts one point below the 30 pt bar. Its width is content-driven:
-314 for this File menu, not a fixed panel width. Item height is exactly 24.
-A separator occupies 11 pt, which is consistent with a 1 pt line plus 5 pt
-above and below.
+The panel starts one point below the bar. Its width is content-driven: 317 for
+this File menu and 356 for the iTerm2 `Shell` menu. Item height is exactly 24.
+A separator occupies 11 pt, a 1 pt line plus 5 pt above and below.
 
-The selected first row sampled `#80bcff` and `#81bdff` in the capture. That
-is much lighter than a solid accent fill, so the panel is blending the
-selection with the glass or the capture was taken in a light appearance.
-Treat the exact value as scheme-dependent and re-sample in both appearances.
+The selected first row sampled `#80bcff` and `#81bdff`; the exact value is
+scheme- and backdrop-dependent. Re-sample it in both appearances before using
+it as a token.
 
 The open animation is **instant** at 60 fps: the panel appears between two
 consecutive frames. There is no scale, fade or slide to copy.
 
-## 4. Measured glass
+## 4. Adaptive glass
 
-The bar and the panel behave differently over the same backdrops:
+The panel does not have one fixed dark colour. In dark mode it is light over a
+light backdrop and dark over a dark backdrop:
 
-| Backdrop | Bar sample | Panel sample |
+| Backdrop | Panel | Ink |
 |---|---|---|
-| White | `#ffffff` | `#656565` |
-| Gray | `#a3a3a3` | `#606161` |
-| Black | `#000000` | `#2c2d2d` |
-| Checker | Sharp checker | Uniform `#5c5c5c` |
+| White | `#8d8d8d` | dark |
+| Gray | `#8d8d8d` | dark |
+| Black | `#2b2b2b` | white |
+| Checker | about `#80` | dark |
+| Split white/black | light top, dark bottom | switches at the split |
 
-Conclusions:
+The full matrix, including Reduce Transparency and light mode, is in
+[`macos-defaults.md`](macos-defaults.md#5-default-application-menu).
 
-- The **bar is transparent**. White stays white, black stays black and the
-  checker keeps its edges.
-- The **panel blurs heavily**. The checker loses its edges and collapses to
-  a single gray.
-- The panel is a **dark glass** in this dark-mode session: it lifts black to
-  `#2c2d2d` and pulls white down to `#656565`.
-- The panel is not a simple opacity layer. The four results do not lie on
-  one straight line from black to white, which is what a pure tint would
-  produce. A blur plus a light tint plus a rim is the smallest model that
-  fits.
+The bar is the opposite case: it stays clear and its ink follows the colour
+scheme, not the window behind it. A white backdrop therefore gives white text
+on white in dark mode. That is the measured macOS behaviour, not a rendering
+bug in the probe.
 
-Malaysia's current menu model is a raised surface plus an optional
-`menu-glass` overlay. Its light value is `#f5f5f77a`, its dark value is
-`#ffffff21`. A 13% white overlay over black lands near `#212121`, which is
-close to the measured `#2c2d2d`; the dark end is plausible. The hard case is
-the bright end: the model must cap a bright backdrop down to `#656565`
-without turning the panel into a flat white sheet.
+Malaysia's current menu is a raised surface plus a `menu-glass` overlay. Its
+dark value `#ffffff21` over black lands near `#212121`, close to the measured
+`#2b2b2b`. The bigger gap is the ink: the shell chooses the ink from the
+colour scheme, so a light panel over a bright window keeps white text.
 
 ## 5. Comparison with Malaysia
 
-| Element | macOS (measured) | Malaysia today | Token or file | Gap |
-|---|---|---|---|---|
-| Bar height | 30 | 30 | `MENUBAR_HEIGHT` | Matches |
-| Wide bar | Not observed | 38 | `MENUBAR_HEIGHT_WIDE` | Unverified |
-| Font | 13 | 13 | `MENUBAR_FONT_SIZE` | Matches |
-| App-name weight | Bold | 700 | `menubar.app-name.weight` | Matches |
-| Left margin | 10 | 10 | `MENUBAR_MARGIN` | Matches |
-| Bar background | Clear, adaptive ink | `shell-bar` `#f2f4f7e6` / `#1e1e1ee6` | `themes.*.shell-bar` | Bar is tinted and can blur |
-| Bar blur | None | Optional `BarBlur` | `menubar/bar.rs` | Remove for the default style |
-| Panel width | 314 for File | 220 to 640 | `shell.menu.panel` | Range is fine |
-| Item height | 24 | 24 | `shell.menu.item.height` | Matches |
-| Separator | 11 total | 1 + 2x5 | `shell.menu.separator` | Matches |
-| Panel glass | Dark glass, strong blur | Raised surface plus overlay | `shell.menu.glass` | Wrong base model |
-| Selected row | `#80bcff` sampled | Accent `#2f6fe4` | `accent` | Too saturated and dark |
-| Open animation | Instant | No menu animation token | — | Matches by default |
+| Element | macOS default | Malaysia before | After |
+|---|---|---|---|
+| Bar height | 30 | 30 | 30 |
+| Wide bar | Not observed | 38 | 38 |
+| Font | 13 | 13 | 13 |
+| App-name weight | Bold | 700 | 700 |
+| Left margin | 10 | 10 | 10 |
+| Bar style | Clear | `translucent` | `floating` |
+| Bar blur | None except the open pill | `BarBlur::Bar` | selection only |
+| Panel width | 317 for File | 220 to 640 | unchanged |
+| Item height | 24 | 24 | 24 |
+| Separator | 11 total | 1 + 2x5 | unchanged |
+| Panel glass | Adaptive light/dark | fixed scheme glass | adaptive model |
+| Panel ink | Follows panel | follows scheme | still scheme-based |
+| Panel radius | about 6 | 12 | needs review |
+| Open animation | Instant | no menu animation | matches |
 
 ## 6. What not to copy
 
@@ -152,27 +149,24 @@ without turning the panel into a flat white sheet.
 
 ## 7. Prioritized changes
 
-1. **Make the default bar clear.** The measured bar has no tint and no blur.
-   Keep `shell-bar` only for the opaque or accessibility fallback. This is
-   the largest visual difference and it touches every screen.
-2. **Rebuild the menu glass as a dark glass.** The panel needs a blurred
-   backdrop, a dark tint that lifts black to about `#2c2d2d`, a lighter tint
-   over white, and a rim. A single neutral overlay cannot match all four
-   backdrop samples.
-3. **Keep the 24 pt item and 11 pt separator.** These already match; do not
-   change them while fixing the surface.
-4. **Use content-driven menu widths.** The 314 pt File menu is a useful
-   check. Keep the 220 pt minimum, but do not force a default width.
-5. **Re-sample the selected row in light and dark.** The `#80bcff` value is
-   not a usable token until the scheme is known.
-6. **Add a menu-bar contrast test over white, gray and black.** The bar must
-   keep readable ink on every backdrop because it has no material.
+1. **Keep the clear bar.** The default is now `floating`: no bar fill and blur
+   only under the open title pill. This matches the measured clear bar.
+2. **Make the menu ink follow the panel.** The compositor already caps a
+   bright backdrop to a light panel. The shell needs a light ink variant and a
+   luminance input, or the menu will keep white text on `#8d8d8d`.
+3. **Keep the 24 pt item and 11 pt separator.** These already match.
+4. **Use content-driven widths.** The 317 pt File menu and the 356 pt Shell
+   menu are useful checks. Keep the 220 pt minimum.
+5. **Review the panel radius.** The measured corner is about 6, below the
+   current 12. Confirm at 2x before changing the token.
+6. **Add a menu-bar contrast test over white, gray and black.** The clear bar
+   with scheme ink must be accepted as measured, not "fixed" by adding tint.
 
 ## 8. Open questions
 
-- What is the panel corner radius? It was not sampled.
-- Does the panel use a different glass in light mode?
-- Does the app name use the same weight as a bold menu title or a heavier
-  face?
+- Does the panel use the same adaptive glass in light mode over a dark
+  window?
+- What is the panel radius at 2x?
+- Does the app name use a heavier face than a bold menu title?
 - Are the right status items spaced by a token or by each agent's view?
-- Does the wide bar exist on macOS 27, and if so, which setting enables it?
+- Does the wide bar exist on macOS 27, and which setting enables it?

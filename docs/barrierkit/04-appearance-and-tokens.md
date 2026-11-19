@@ -598,7 +598,7 @@ and `show_vpn` (all `true`) choose the status menus of the bar; System
 Settings writes them. `show_printer` (`true`) shows a printer while a print job
 is queued, on the bar and on the lock screen.
 
-`style` is a `MenubarStyle`: `solid` (Classic), `translucent` (default) or `floating`.
+`style` is a `MenubarStyle`: `solid` (Classic), `translucent` or `floating` (default: a clear bar, with only the open title pill blurred).
 `menubar::classic_bar(theme_bar, reduce_transparency)` returns the fill of the Classic
 bar: the theme's `shell-bar` at `MENUBAR_CLASSIC_ALPHA`, or opaque with
 reduced transparency.

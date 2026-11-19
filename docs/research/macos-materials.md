@@ -3,19 +3,20 @@
 **Goal:** turn the controlled-backdrop samples into a material model that
 `ctappearance` can reproduce.
 **Scope:** blur, tint, fill hierarchy and vibrancy on the menu panel, the Dock
-and the notification card. It excludes the dynamic Liquid Glass behaviour,
-which has its own file.
+and the notification card. It excludes the dynamic grouping behaviour, which
+has its own file.
 **Reader:** anyone who changes `ctappearance::resolve`, `glass_soften`,
 `dock_surface` or `menu_glass`.
 **Input:** four controlled backdrops and the semantic colour dump.
-**Output:** measured composite values, a Malaysia comparison and ordered
+**Output:** the measured material model, a Malaysia comparison and ordered
 gaps.
 
 ## Steps
 
 1. Read the host limits in
    [`macos-observations.md`](macos-observations.md).
-2. Read the backdrop table before using a glass value.
+2. Read the complete default matrix in
+   [`macos-defaults.md`](macos-defaults.md).
 3. Pick a material by role, never by its apparent colour.
 4. Check the fill hierarchy before adding a new token.
 5. Do not copy Apple material images or SF Symbols.
@@ -32,22 +33,27 @@ A macOS material is not a flat colour. It combines:
 - A **rim** or edge treatment.
 - Accessibility overrides that change the material itself.
 
-The measured surfaces show all of these except the rim in the numeric
-samples. The blur is visible because a checkerboard becomes a single gray.
-The tint is visible because black is lifted and white is lowered. The
-hierarchy is visible because labels remain readable on both.
+The white, gray, black and checker backdrops separate these parts. The checker
+shows the blur. The black and white results show the tone curve. The label
+roles show the fill hierarchy. The rim is visible as a light/dark bevel.
 
 ## 2. Measured composites
 
-The composites are measured in the file that owns each surface:
+The menu and Dock tables live in their area files, and the full matrix is in
+[`macos-defaults.md`](macos-defaults.md). The shared result is:
 
-- [macos-menu-bar.md](macos-menu-bar.md#4-measured-glass) for the bar and the
-  application menu.
-- [macos-dock.md](macos-dock.md#3-measured-glass) for the Dock.
+- The menu is **adaptive**: light over a bright backdrop, dark over a dark
+  one, with the ink following the panel.
+- The Dock is **scheme-biased**: dark glass in dark mode, light glass in light
+  mode, still following the backdrop.
+- Both blur strongly; the checker becomes a low-contrast texture or a single
+  gray, depending on the surface.
+- Neither is a single opacity. The bright and dark ends do not lie on one
+  straight line.
 
-This file does not repeat those tables. The shared result is that both
-surfaces blur: a checker becomes a single gray. They differ in strength: the
-menu is much darker than the Dock. Do not use one token for both.
+The measured light Dock glass over white, gray and black is `#eaeaea`,
+`#a5a5a5` and `#323232`. The dark Dock glass is `#bebebe`, `#8a8a8a` and
+`#0d0d0d`. The light token was corrected from `#ffffff66` to `#b5b5b548`.
 
 ## 3. Measured fill hierarchy
 
@@ -83,35 +89,33 @@ and appearance.
 
 ## 4. Accessibility overrides
 
-Observed settings on this host were all off. The public API exposes them, and
-they change the material rather than the app content:
+The public API exposes four settings that change the material:
 
-- **Reduce Transparency** removes translucency and substitutes opaque
-  surfaces.
+- **Reduce Transparency** removes translucency and substitutes opaque or
+  frosted surfaces.
 - **Increase Contrast** strengthens text and separator contrast.
 - **Differentiate Without Color** adds shapes or glyphs.
 - **Reduce Motion** changes transitions, not the material.
 
-The measured values in this file are the **standard** state. They are not
-valid for Reduce Transparency or Increase Contrast.
+The measured matrix includes Reduce Transparency. The Dock still follows the
+backdrop a little even when it is on; a single solid token is an
+approximation. The menu stays adaptive in dark mode, and in light mode it
+becomes a near-white surface.
 
 ## 5. Comparison with Malaysia
 
-| Element | macOS (measured) | Malaysia today | Token or file | Gap |
-|---|---|---|---|---|
-| Menu glass over black | `#2c2d2d` | Dark base plus `#ffffff21` overlay | `menu_glass` | Close; verify tone lift |
-| Menu glass over white | `#656565` | Light base plus `#f5f5f77a` overlay | `menu_glass` | Bright cap needs work |
-| Menu blur | Strong, checker uniform | `glass_soften` and blur passes | `ctappearance` | Pass count unverified |
-| Dock glass over black | `#0d0d0d` | `#2727274e` over base | `dock-bar` | Close, verify |
-| Dock glass over white | `#bebebe` | `#ffffff66` in light mode | `dock-bar` | Light mode not captured |
-| Rim | 1 px light/dark pair | `rim-light`, `rim-dark`, `tone` | `dock` and `menu` | Model exists |
-| Label hierarchy | 84.7 / 54.9 / 24.7 / 9.8 | `ink`, `ink-muted`, `ink-faint` | `tokens` | Fewer levels |
-| Fill hierarchy | 9.8 / 7.8 / 4.7 / 2.7 | `bg-control`, `line` factors | `layer-factors` | Different scheme |
-| Reduce Transparency | Opaque substitution | `reduce_transparency` paths | `resolve.rs` | Matches in principle |
-| Blur model | Blur plus tint plus rim | `glass_soften` plus `liquid_glass` | `resolve.rs` | Tuning gap |
-
-The model is close. The **menu glass base** and the **number of label levels**
-are the two concrete mismatches.
+| Element | macOS default | Malaysia before | After |
+|---|---|---|---|
+| Light Dock glass | `#eaeaea` over white | `#ffffff66` | `#b5b5b548` |
+| Light Dock opaque | `#f1f1f1` over white | `#757575` | `#f1f1f1` |
+| Dark Dock glass | `#0d0d0d` over black | `#2727274e` | unchanged |
+| Menu glass | Adaptive light/dark | fixed scheme glass | adaptive model |
+| Menu ink | Follows panel | follows scheme | still scheme-based |
+| Menu blur | Strong | `menu_glass` soften | verify |
+| Dock rim | 3-step light/dark bevel | `rim` and `tone` | model exists |
+| Label hierarchy | 84.7 / 54.9 / 24.7 / 9.8 | `ink`, `ink-muted`, `ink-faint` | fewer levels |
+| Fill hierarchy | 9.8 / 7.8 / 4.7 / 2.7 | `bg-control`, `line` factors | different scheme |
+| Reduce Transparency | Opaque/frosted substitution | solid fallback | approximate |
 
 ## 6. What not to copy
 
@@ -122,18 +126,16 @@ are the two concrete mismatches.
 
 ## 7. Prioritized changes
 
-1. **Add four-backdrop tests for every glass token.** White, gray, black and
-   checker. A single wallpaper test cannot catch the menu panel's darkening.
-2. **Tune the bright cap of the menu glass.** The dark end is already close:
-   a 13% white overlay over black lands near the measured `#2c2d2d`. The
-   over-white case is the gap, because the panel must fall to `#656565`
-   instead of staying near white.
-3. **Keep the Dock and menu materials separate.** Their composites differ by
-   more than a small tint.
+1. **Keep the corrected light Dock token.** `#b5b5b548` matches the measured
+   light glass over white and black; the old `#ffffff66` was too bright.
+2. **Keep the corrected light opaque token.** `#f1f1f1` is the measured light
+   Reduce Transparency result over white.
+3. **Add four-backdrop tests for every glass token.** White, gray, black and
+   checker. A single wallpaper test cannot catch the adaptive menu.
 4. **Add a quaternary label level.** macOS exposes four label levels; the
    current three-token set cannot express disabled or quaternary text.
-5. **Verify the blur pass count and spread.** Use a checkerboard with a
-   known square size and compare the edge energy.
+5. **Verify the blur pass count and spread.** Use a checkerboard with a known
+   square size and compare the edge energy.
 6. **Test Reduce Transparency.** The fallback must replace the material, not
    merely raise its opacity.
 
@@ -141,6 +143,6 @@ are the two concrete mismatches.
 
 - How many blur passes does each material use?
 - What is the rim width at 2x?
-- Does the menu glass change with the wallpaper tint?
+- Does the menu glass change with the wallpaper tint or only the window?
 - Do the notification and menu glass share the same composite?
 - What does the light menu panel sample over the same four backdrops?

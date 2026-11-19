@@ -29,9 +29,9 @@ them into `ctdesign`.
 |---|---|
 | macOS | 27.2.1, build 26B131 |
 | Hardware | Apple M4 |
-| Display | VG27WQ3B, 2560x1440, 180 Hz |
+| Display | VG27WQ3B, 1920x1080, 180 Hz |
 | Backing scale | 1.0, so one point equals one pixel |
-| Visible frame | 2560x1278, menu bar 30, Dock reserve 132 |
+| Visible frame | 1920x948, menu bar 30, Dock reserve 102 |
 | Appearance | Dark |
 | Accent | Default (system blue) |
 | Reduce Motion | Off |
@@ -86,6 +86,7 @@ useful accessibility tree on this host, so their measurements are visual.
 | Area | Files under `~/src/captures` |
 |---|---|
 | Colours, fonts, screens, windows | `metrics.txt` |
+| Default reset | `default-dock-gray.png`, `default-menu-*.png`, `default-finder-menu-*.png`, `light-off-*-dock.png`, `light-on-*-dock*.png`, `reduced-*-dock.png`, `defaults-2026-11-19/` |
 | Menu bar | `menu-over-white.png`, `menu-over-gray.png`, `menu-over-black.png`, `menu-over-checker.png`, `menu-over-bands.png`, `menu-crop.png`, `menubar-right.png`, `dark-menu-file*.png`, `anim-menu.mov` |
 | Dock | `dock-hover.png`, `dock-hover2.png`, `dock-hover3.png`, `dock-context.png`, `anim-dock*.mov` |
 | Spotlight | `spotlight-empty.png`, `spotlight-query.png`, `spotlight-results.png` |
@@ -101,10 +102,13 @@ committed assets.
 ## 5. Limits
 
 - **One display, scale 1.0.** No 2x capture was possible. Text rasterisation
-  and one-pixel rims cannot be compared at Retina density.
-- **Dark mode only.** Light values come from the same APIs, not from a live
-  light session. A light-mode pass is still needed for glass and menu bar
-  contrast.
+  and one-pixel rims cannot be compared at Retina density. The display changed
+  from 2560x1440 to 1920x1080 between passes; the default measurements are at
+  1920x1080.
+- **The appearance was reset and restored.** The Dock geometry, Reduce
+  Transparency and light/dark switches were measured in both states and then
+  returned to the original values. The default matrix is in
+  [`macos-defaults.md`](macos-defaults.md).
 - **Lock screen was not captured.** Locking the only session would have
   stopped the host. Lock values are marked estimated.
 - **Control Center and Spotlight have no usable AX tree.** Their panels were

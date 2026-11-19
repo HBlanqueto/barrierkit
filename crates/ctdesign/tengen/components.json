@@ -1041,13 +1041,13 @@
         }
       },
       "dock": {
-        "tilesize": 48,
+        "tilesize": 64,
         "tilesize-min": 16,
         "tilesize-max": 128,
         "largesize": 64,
-        "edge-margin": 4,
+        "edge-margin": 6,
         "side-margin": 0.035,
-        "padding": 4,
+        "padding": 6,
         "padding-scale": 0.0444,
         "separator": 0.456,
         "separator-length": 0.867,

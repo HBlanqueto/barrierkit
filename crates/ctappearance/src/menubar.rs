@@ -11,8 +11,8 @@ use crate::config::lenient;
 #[serde(rename_all = "snake_case")]
 pub enum MenubarStyle {
     Solid,
-    #[default]
     Translucent,
+    #[default]
     Floating,
 }
 
