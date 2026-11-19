@@ -907,14 +907,16 @@
   --bk-shell-menubar-battery-icon-1: 12;
   --bk-shell-menubar-battery-low: 20;
   --bk-shell-menubar-battery-track: 0.5;
-  --bk-shell-dock-tilesize: 48;
+  --bk-shell-dock-tilesize: 64;
   --bk-shell-dock-tilesize-min: 16;
   --bk-shell-dock-tilesize-max: 128;
   --bk-shell-dock-largesize: 64;
-  --bk-shell-dock-edge-margin: 4;
+  --bk-shell-dock-edge-margin: 6;
   --bk-shell-dock-side-margin: 0.035;
-  --bk-shell-dock-padding: 4;
+  --bk-shell-dock-padding: 6;
   --bk-shell-dock-padding-scale: 0.0444;
+  --bk-shell-dock-slot-gap: 4;
+  --bk-shell-dock-vertical-padding: 0.15625;
   --bk-shell-dock-separator: 0.456;
   --bk-shell-dock-separator-length: 0.867;
   --bk-shell-dock-radius: 0.272;
@@ -1188,7 +1190,7 @@
   --bk-wallpaper-thumbnail: 512;
   --bk-wallpaper-frame: 1024;
   --bk-desktop-clear: #0f0f17;
-  --bk-appearance-dominant-min-chroma: 0.04;
+  --bk-appearance-dominant-min-chroma: 0.03;
   --bk-appearance-dominant-lightness: 0.45 0.65;
   --bk-appearance-dominant-lightness-0: 0.45;
   --bk-appearance-dominant-lightness-1: 0.65;
@@ -1201,7 +1203,7 @@
   --bk-appearance-modes-accent-chroma-gain: 2.5;
   --bk-appearance-contrast-accent-on-window: 3.0;
   --bk-appearance-contrast-on-accent: 4.5;
-  --bk-appearance-wallpaper-tinting-light: 0.12;
+  --bk-appearance-wallpaper-tinting-light: 0.2;
   --bk-appearance-wallpaper-tinting-dark: 0.15;
   --bk-appearance-wallpaper-tinting-lift-light: 0.0;
   --bk-appearance-wallpaper-tinting-lift-dark: 0.14;
@@ -1283,8 +1285,8 @@
   --bk-titlebar-title-inactive: #6e6e6e;
   --bk-titlebar-line: #0000001a;
   --bk-shell-bar: #f2f4f7e6;
-  --bk-dock-bar: #ffffff66;
-  --bk-dock-bar-opaque: #757575;
+  --bk-dock-bar: #b5b5b548;
+  --bk-dock-bar-opaque: #f1f1f1;
   --bk-dock-bar-frosted: #ffffffb3;
   --bk-menu-glass: #f5f5f77a;
   --bk-glass-ink: #000000d9;

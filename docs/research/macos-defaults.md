@@ -179,6 +179,8 @@ applied in the same commit.
 | Dock large size | 64 | 64 | 64 |
 | Dock edge margin | 6 | 4 | 6 |
 | Dock padding base | about 9 | 4 plus 4.44% of tile | 6 plus 4.44% of tile |
+| Dock slot gap | 4 | none | 4 |
+| Dock vertical padding | 10 at 64 | derived from the same padding | 15.625% of the tile |
 | Dock light glass | `#eaeaea` over white | `#ffffff66` | `#b5b5b548` |
 | Dock light opaque | `#f1f1f1` over white | `#757575` | `#f1f1f1` |
 | Dock dark glass | `#0d0d0d` over black | `#2727274e` | unchanged |
@@ -190,11 +192,10 @@ applied in the same commit.
 | Menu separator band | 11 | 1 + 2x5 | 1 + 2x5 |
 | Menu ink | follows panel | follows colour scheme | still scheme-based |
 
-The Dock padding after the change is 8.84 at a 64 tile: the 6 base plus
-4.44% of 64. The default panel is therefore 81.7 high instead of the measured
-84. A separate 4 px slot gap and a 10 px vertical padding would close the
-remaining horizontal and vertical difference; neither is applied yet because
-they change the slot layout and its tests.
+The Dock horizontal padding after the change is 8.84 at a 64 tile: the 6
+base plus 4.44% of 64. The 4 px slot gap and the 15.625% vertical padding make
+the default panel 84 high and put the slots 68 apart, matching the measured
+geometry.
 
 ## 7. Borders and dynamic behaviour
 
@@ -211,13 +212,11 @@ they change the slot layout and its tests.
 1. The menu ink is still chosen from the colour scheme by the shell. The
    compositor draws a light menu over a bright window but the text stays
    white. A light ink variant and a per-window luminance feed are needed.
-2. The Dock slot is 68 wide on macOS and 64 in Malaysia. A 4 px slot gap and
-   a 10 px vertical padding would match both the width and the height.
-3. Reduce Transparency still leaves the Dock backdrop-dependent. The single
+2. Reduce Transparency still leaves the Dock backdrop-dependent. The single
    solid tokens are an approximation, not the measured state.
-4. The menu corner radius is about 6 on this host, below the 12 used by the
+3. The menu corner radius is about 6 on this host, below the 12 used by the
    menus. It needs a second measurement at 2x.
-5. The top-bar right status area was not measured. Its item spacing is still
+4. The top-bar right status area was not measured. Its item spacing is still
    a script default.
 
 ## 9. Evidence

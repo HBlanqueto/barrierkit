@@ -109,18 +109,17 @@ white it reads `#e4e4e4`, `#f0f0f0`, `#eaeaea`.
 | Large size | 64 | 64 | 64 |
 | Edge margin | 6 | 4 | 6 |
 | Padding base | about 9 | 4 plus 4.44% of tile | 6 plus 4.44% of tile |
-| Panel height at 64 | 84 | 77.7 | 81.7 |
+| Panel height at 64 | 84 | 77.7 | 84 |
 | Panel radius | about 22 | 27.2% of thickness | 27.2% of thickness |
-| Slot spacing | 68 | 64 | 64 |
+| Slot spacing | 68 | 64 | 68 |
 | Visible icon body | 52 | 80.5% of the short side | unchanged |
 | Magnification floor | about 1.3x | 1.3 | 1.3 |
 | Light glass | `#eaeaea` over white | `#ffffff66` | `#b5b5b548` |
 | Light opaque | `#f1f1f1` over white | `#757575` | `#f1f1f1` |
 | Dark glass | `#0d0d0d` over black | `#2727274e` | unchanged |
 
-The radius ratio is already close: 22/84 is 0.262 and the token is 0.272. The
-new tile, padding and edge margin close most of the size gap. The missing
-4 px slot gap and the 2.3 px height difference need a slot-layout change.
+The radius ratio is already close: 22/84 is 0.262 and the token is 0.272.
+The new tile, padding, slot gap and vertical padding close the size gap.
 
 ## 6. What not to copy
 
@@ -133,19 +132,16 @@ Use the project's own application icons and draw the indicator from tokens.
 
 ## 7. Prioritized changes
 
-1. **Add the 4 px slot gap.** The default macOS slot is 68 wide for a 64 tile.
-   The current layout uses the tile as the slot and spaces icons 4 px too
-   close.
-2. **Use a 10 px vertical padding.** It raises the default panel from 81.7 to
-   the measured 84 without widening the horizontal padding.
-3. **Keep the radius ratio.** 0.272 is within one pixel of the measured
+1. **Keep the slot gap and vertical padding.** The 4 px gap and the 15.625%
+   vertical padding match the measured slot and panel height.
+2. **Keep the radius ratio.** 0.272 is within one pixel of the measured
    0.262. Do not change it to 0.222.
-4. **Model the rim as a light/dark pair.** The measured bevel is not a single
+3. **Model the rim as a light/dark pair.** The measured bevel is not a single
    outline. The existing `rim-light`, `rim-dark`, `rim-side` and `rim-corner`
    tokens are the right place; add a backdrop sample test.
-5. **Measure magnification properly.** The 1.3x floor is known; the curve,
+4. **Measure magnification properly.** The 1.3x floor is known; the curve,
    overshoot and duration are not.
-6. **Measure auto-hide and launch bounce.** They are token-only today.
+5. **Measure auto-hide and launch bounce.** They are token-only today.
 
 ## 8. Open questions
 

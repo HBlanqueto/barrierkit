@@ -1049,6 +1049,8 @@
         "side-margin": 0.035,
         "padding": 6,
         "padding-scale": 0.0444,
+        "slot-gap": 4,
+        "vertical-padding": 0.15625,
         "separator": 0.456,
         "separator-length": 0.867,
         "radius": 0.272,

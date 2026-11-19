@@ -207,6 +207,8 @@ DOCK_EDGE_MARGIN f32 components.shell.dock.edge-margin
 DOCK_SIDE_MARGIN f32 components.shell.dock.side-margin
 DOCK_PADDING f32 components.shell.dock.padding
 DOCK_PADDING_SCALE f32 components.shell.dock.padding-scale
+DOCK_SLOT_GAP f32 components.shell.dock.slot-gap
+DOCK_VERTICAL_PADDING f32 components.shell.dock.vertical-padding
 DOCK_SEPARATOR f32 components.shell.dock.separator
 DOCK_SEPARATOR_LENGTH f32 components.shell.dock.separator-length
 DOCK_RADIUS f32 components.shell.dock.radius
