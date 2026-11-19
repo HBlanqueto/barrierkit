@@ -1,0 +1,43 @@
+#!/bin/sh
+set -eu
+
+root=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)
+cd "$root"
+
+status=0
+report() {
+    printf 'design-tokens: %s\n' "$1" >&2
+    shift
+    printf '%s\n' "$@" >&2
+    status=1
+}
+
+production() {
+    for file in $(find "$@" -name '*.rs' ! -path 'crates/ctdesign/*' | sort); do
+        awk '/#\[cfg\(test\)\]/ { pending = 1; next }
+            pending && /^mod [a-z_]+ \{/ { skip = 1 }
+            { pending = 0 }
+            skip { if (/^}/) skip = 0; next }
+            { print FILENAME ":" FNR ":" $0 }' "$file"
+    done
+}
+
+if matches=$(production crates/*/src |
+    grep -E '0x[0-9a-fA-F]{6,8}|Rgba::(rgb8|rgba8)\([[:space:]]*(0x)?[0-9]'); then
+    report "colour literals must live in ctdesign" "$matches"
+fi
+
+if matches=$(production crates/*/src |
+    grep -E '\[u8; ?4\]'); then
+    report "convert colours with Rgba::to_rgba8, not a local [u8; 4]" "$matches"
+fi
+
+if matches=$(production \
+    crates/bk/src/password.rs \
+    crates/bk/src/controls \
+    crates/bk/src/theme.rs |
+    grep -E ':[0-9]+:[[:space:]]*const [A-Z0-9_]+: (i32|u32|f32) = [0-9]'); then
+    report "UI measurements must live in ctdesign" "$matches"
+fi
+
+exit "$status"

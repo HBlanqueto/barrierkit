@@ -1,0 +1,97 @@
+[package]
+name = "bk"
+description = "BarrierKit (≈ AppKit): the toolkit for the shell and Malaysia's own apps (glossary, ADR 0034)."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[features]
+default = ["a11y"]
+a11y = ["dep:accesskit_unix"]
+shell = []
+tracy = ["dep:tracing-tracy"]
+
+[dependencies]
+freya-core.workspace = true
+freya-components.workspace = true
+freya-edit.workspace = true
+freya-animation.workspace = true
+freya-engine = { workspace = true, features = ["vulkan"] }
+freya-skia-safe.workspace = true
+freya-clipboard.workspace = true
+torin.workspace = true
+ragnarok.workspace = true
+accesskit.workspace = true
+accesskit_unix = { workspace = true, optional = true }
+thiserror.workspace = true
+serde.workspace = true
+spellbook.workspace = true
+toml.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+tracing-tracy = { workspace = true, optional = true }
+ctdesign.workspace = true
+ctappearance.workspace = true
+zeroize.workspace = true
+infinity-protocol = { workspace = true, features = ["client"] }
+sctk.workspace = true
+wayland-protocols = { workspace = true }
+wayland-protocols-plasma = { workspace = true, features = ["client"] }
+zbus.workspace = true
+xkbcommon.workspace = true
+i18n-embed.workspace = true
+i18n-embed-fl.workspace = true
+rust-embed.workspace = true
+ash.workspace = true
+futures-util.workspace = true
+futures-channel.workspace = true
+async-io.workspace = true
+
+[dev-dependencies]
+freya-testing.workspace = true
+png.workspace = true
+
+[package.metadata.cargo-machete]
+ignored = ["freya-skia-safe"]
+
+[[example]]
+name = "counter"
+path = "../../agents/recipes/counter.rs"
+
+[[example]]
+name = "custom_window"
+path = "../../agents/recipes/custom_window.rs"
+
+[[example]]
+name = "hello_world"
+path = "../../agents/recipes/hello_world.rs"
+
+[[example]]
+name = "reusable_view"
+path = "../../agents/recipes/reusable_view.rs"
+
+[[example]]
+name = "rows_and_columns"
+path = "../../agents/recipes/rows_and_columns.rs"
+
+[[example]]
+name = "settings_form"
+path = "../../agents/recipes/settings_form.rs"
+
+[[example]]
+name = "stopwatch"
+path = "../../agents/recipes/stopwatch.rs"
+
+[[example]]
+name = "styled_control"
+path = "../../agents/recipes/styled_control.rs"
+
+[[example]]
+name = "titlebar_over_gradient"
+path = "../../agents/recipes/titlebar_over_gradient.rs"
+
+[[example]]
+name = "toggle"
+path = "../../agents/recipes/toggle.rs"

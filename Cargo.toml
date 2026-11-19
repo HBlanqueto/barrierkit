@@ -1,0 +1,141 @@
+# Workspace for the BarrierKit toolkit crates.
+
+[workspace]
+resolver = "3"
+members = [
+    "crates/bk",
+    "crates/ctdesign",
+    "crates/ctappearance",
+    "crates/infinity-protocol",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.98"
+license = "MIT"
+repository = "https://github.com/HBlanqueto/barrierkit"
+
+[workspace.dependencies]
+thiserror = "2"
+
+tracing = "0.1"
+tracing-subscriber = "0.3"
+# Cargo.lock pins tracy-client 0.18.4 + tracy-client-sys 0.28.0, the pair for Tracy 0.13.1 in the flake.
+tracing-tracy = { version = "0.11", default-features = false, features = ["enable", "ondemand", "broadcast"] }
+
+nix = { version = "0.31", features = ["inotify"] }
+libc = "0.2"
+
+zeroize = "1"
+
+serde = { version = "1", features = ["derive"] }
+toml = "0.8"
+md-5 = "0.11"
+toml_edit = "0.22"
+
+zbus = "5"
+xkbcommon = "0.8"
+
+i18n-embed = { version = "0.16", features = ["fluent-system"] }
+i18n-embed-fl = "0.10"
+rust-embed = "8"
+
+
+ctdesign = { path = "crates/ctdesign" }
+ctappearance = { path = "crates/ctappearance" }
+infinity-protocol = { path = "crates/infinity-protocol" }
+
+freya-core = "=0.5.3"
+freya-components = { version = "=0.5.3", default-features = false }
+freya-edit = "=0.5.3"
+freya-animation = "=0.5.3"
+freya-engine = "=0.5.3"
+freya-testing = "=0.5.3"
+freya-skia-safe = "=0.104.0"
+freya-clipboard = "=0.5.3"
+async-io = "2"
+torin = "=0.5.3"
+ragnarok = "=0.5.3"
+futures-util = "0.3"
+futures-channel = "0.3"
+accesskit = "0.25"
+accesskit_unix = "0.24"
+
+wayland-client = { version = "0.31", features = ["system"] }
+wayland-server = "0.31"
+wayland-backend = "0.3"
+wayland-scanner = "0.31"
+wayland-protocols = { version = "0.32", features = ["client", "staging", "unstable"] }
+wayland-protocols-wlr = { version = "0.3.12", default-features = false }
+wayland-protocols-plasma = { version = "0.3.12", default-features = false }
+
+ash = { version = "0.38", default-features = false, features = ["loaded", "std"] }
+
+png = "0.17"
+spellbook = "0.4"
+bitflags = "2"
+
+sctk = { package = "smithay-client-toolkit", version = "0.20" }
+
+[profile.dev]
+debug = "line-tables-only"
+
+[profile.dev.package."*"]
+debug = false
+
+[profile.dev.package.freya-core]
+opt-level = 2
+
+[profile.dev.package.freya-components]
+opt-level = 2
+
+[profile.dev.package.freya-edit]
+opt-level = 2
+
+[profile.dev.package.freya-animation]
+opt-level = 2
+
+[profile.dev.package.freya-engine]
+opt-level = 2
+
+[profile.dev.package.freya-clipboard]
+opt-level = 2
+
+[profile.dev.package.freya-skia-safe]
+opt-level = 2
+
+[profile.dev.package.torin]
+opt-level = 2
+
+[profile.dev.package.ragnarok]
+opt-level = 2
+
+[profile.dev.package.spellbook]
+opt-level = 2
+
+[profile.dev.package.png]
+opt-level = 2
+
+[profile.dev.package.fdeflate]
+opt-level = 2
+
+[profile.dev.package.miniz_oxide]
+opt-level = 2
+
+[profile.dev.package.crc32fast]
+opt-level = 2
+
+[profile.dev.package.flate2]
+opt-level = 2
+
+[profile.release]
+lto = "thin"
+codegen-units = 16
+panic = "abort"
+strip = true
+
+[profile.dist]
+inherits = "release"
+lto = "fat"
+codegen-units = 1

@@ -1,0 +1,16 @@
+# Minimal crate that lets nix/skia.nix build Skia once.
+
+[package]
+name = "skia-prebuild"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+freya-engine = { version = "=0.5.0", features = ["vulkan"] }
+freya-skia-safe = "=0.104.0"
+
+[lib]
+path = "src/lib.rs"
+
+[workspace]

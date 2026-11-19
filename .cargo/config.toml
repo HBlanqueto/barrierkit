@@ -1,0 +1,3 @@
+# The golden images are in Spanish; the tests must not follow the machine's language.
+[env]
+MALAYSIA_CONFIG_DIR = { value = "crates/bk/tests/config", force = true, relative = true }

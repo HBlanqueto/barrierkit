@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<protocol name="infinity_focus_v1">
+  <copyright>
+    Copyright © 2026 Malaysia contributors
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice (including the next
+    paragraph) shall be included in all copies or substantial portions of the
+    Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+    THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+  </copyright>
+
+  <interface name="infinity_focus_manager_v1" version="4">
+    <description summary="focus mode notices for applications">
+      Malaysia focus mode (ADR 0051): a maximized window gets a space of
+      its own and the xdg fullscreen state. In that space, the pointer at the
+      top edge brings the bar down over the window.
+
+      This global tells a client-decorated application when that happens, so
+      it can show its titlebar or window controls only with the bar, as
+      macOS does. It grants nothing, so every client may bind it.
+
+      With version 1 objects, or without set_overlay, the compositor moves a
+      client-decorated window down by the bar's height while the bar is down,
+      so its own titlebar stays visible under it. With set_overlay (version
+      2) the window stays put and the client draws its titlebar over its
+      content, below the bar (Malaysia ADR 0054).
+
+      From version 3 every object also reports the colour of the wallpaper
+      behind its toplevel, so the client can tint its window background as
+      macOS does (Malaysia ADR 0065).
+
+      From version 4 every object also reports the desktop its toplevel is
+      on, so an app such as System Settings can act on that desktop alone.
+    </description>
+
+    <request name="destroy" type="destructor">
+      <description summary="destroy the manager">
+        Objects created through it keep working.
+      </description>
+    </request>
+
+    <request name="get_focus_surface">
+      <description summary="follow focus mode for a toplevel surface">
+        Creates an object that reports focus-mode notices for the toplevel
+        whose wl_surface is given.
+      </description>
+      <arg name="id" type="new_id" interface="infinity_focus_surface_v1"/>
+      <arg name="surface" type="object" interface="wl_surface"/>
+    </request>
+  </interface>
+
+  <interface name="infinity_focus_surface_v1" version="4">
+    <description summary="focus mode notices for one toplevel"/>
+
+    <request name="destroy" type="destructor">
+      <description summary="stop the notices"/>
+    </request>
+
+    <event name="bar">
+      <description summary="the bar came down or went up over the window">
+        Sent while the toplevel is in focus mode (it has the xdg fullscreen
+        state). revealed is 1 when the bar is down over the window and 0 when
+        the bar is up again. Without set_overlay, the window has been moved
+        down by the bar's height while revealed is 1.
+        A client shows its window controls only while revealed is 1. Leaving
+        focus mode sends 0 if the bar was down.
+
+        After set_overlay the window is not moved: the client draws its
+        titlebar from the bar_height sent just before bar(1).
+      </description>
+      <arg name="revealed" type="uint"/>
+    </event>
+
+    <request name="set_overlay" since="2">
+      <description summary="the client draws its titlebar over its content">
+        Tells the compositor that, in focus mode, this client hides its
+        titlebar and, while the bar is down, draws it over its content right
+        below the bar. The compositor then never moves the window for the
+        bar. It applies from the next time the bar comes down and lasts for
+        the object's lifetime.
+      </description>
+    </request>
+
+    <event name="bar_height" since="2">
+      <description summary="how much of the window the bar covers">
+        Sent just before every bar(1) to a client that called set_overlay:
+        the height, in surface-local logical pixels, of the bar over the top
+        of the window. The titlebar goes right below it.
+      </description>
+      <arg name="height" type="uint"/>
+    </event>
+
+    <event name="wallpaper" since="3">
+      <description summary="the colour of the wallpaper behind the window">
+        The average colour of the part of the wallpaper behind the toplevel,
+        as 0xRRGGBB in sRGB. Sent once the toplevel is mapped and again
+        whenever that colour changes: the window moved or was resized, or the
+        wallpaper changed. It is not sent while no wallpaper is known.
+      </description>
+      <arg name="rgb" type="uint"/>
+    </event>
+
+    <event name="desktop" since="4">
+      <description summary="the desktop the window is on">
+        The number of the desktop the toplevel is on, counted from 1, or 0
+        while it is in a focus space. Sent once the toplevel is mapped and
+        again whenever it moves to another desktop.
+      </description>
+      <arg name="desktop" type="uint"/>
+    </event>
+  </interface>
+</protocol>

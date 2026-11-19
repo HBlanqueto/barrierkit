@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Segmented control</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=block">
+<link rel="stylesheet" href="../tengen.css">
+<style>
+  html, body { margin: 0; height: 100%; }
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    padding: 24px;
+    background: white;
+    font-family: var(--bk-font-families-sans);
+    font-size: calc(var(--bk-font-styles-body-size) * 1px);
+    line-height: calc(var(--bk-font-styles-body-line-height) * 1px);
+    color: var(--bk-ink-strong);
+  }
+  .bk-segmented-control {
+    display: flex;
+    flex: 1;
+    padding: calc(var(--bk-segmented-padding) * 1px);
+    gap: calc(var(--bk-segmented-gap) * 1px);
+    border-radius: calc(var(--bk-segmented-radius) * 1px);
+    background: var(--bk-bg-control);
+  }
+  .bk-segmented-control span {
+    flex: 1;
+    height: calc(var(--bk-segmented-segment-height) * 1px);
+    padding: 0 calc(var(--bk-segmented-segment-padding-x) * 1px);
+    border-radius: calc(var(--bk-segmented-segment-radius) * 1px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: calc(var(--bk-segmented-font-size) * 1px);
+    font-weight: var(--bk-segmented-font-weight);
+  }
+  .bk-segmented-control .selected {
+    background: var(--bk-bg-selected-control);
+    box-shadow: 0 calc(var(--bk-shadow-slint-knob-offset-y) * 1px) calc(var(--bk-shadow-slint-knob-blur) * 1px) var(--bk-shadow-slint-knob-color);
+  }
+</style>
+</head>
+<body>
+  <div class="bk-segmented-control" data-bk="SegmentedControl Periodo">
+    <span>Día</span><span class="selected">Semana</span><span>Mes</span>
+  </div>
+</body>
+</html>

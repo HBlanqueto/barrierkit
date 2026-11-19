@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Button</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=block">
+<link rel="stylesheet" href="../tengen.css">
+<style>
+  html, body { margin: 0; height: 100%; }
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: calc(var(--bk-space-3) * 1px);
+    background: white;
+    font-family: var(--bk-font-families-sans);
+  }
+  .bk-button {
+    height: calc(var(--bk-button-height) * 1px);
+    padding: 0 calc(var(--bk-button-padding-x) * 1px);
+    border: 0;
+    border-radius: calc(var(--bk-button-radius) * 1px);
+    background: var(--bk-bg-control);
+    color: var(--bk-ink-strong);
+    font: inherit;
+    font-size: calc(var(--bk-button-font-size) * 1px);
+    font-weight: var(--bk-button-font-weight);
+  }
+  .bk-button.prominent { background: var(--bk-accent); color: var(--bk-on-accent); }
+  .bk-button:disabled { color: var(--bk-ink-faint); }
+</style>
+</head>
+<body>
+  <button class="bk-button" data-bk="Button Cancelar">Cancelar</button>
+  <button class="bk-button prominent" data-bk="Button Guardar">Guardar</button>
+  <button class="bk-button" data-bk="Button Borrar" disabled>Borrar</button>
+</body>
+</html>

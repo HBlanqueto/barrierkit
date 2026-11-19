@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<protocol name="infinity_window_style_v1">
+  <copyright>
+    Copyright © 2026 Malaysia contributors
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice (including the next
+    paragraph) shall be included in all copies or substantial portions of the
+    Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+    THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+  </copyright>
+
+  <interface name="infinity_window_style_v1" version="9">
+    <description summary="window style hints for applications">
+      Malaysia rounds every window it composites (ADR 0059). As in macOS
+      Tahoe, the corner radius depends on the window's bar. A
+      client-decorated application uses this global to say which bar its
+      toplevel draws. It grants nothing, so every client may bind it.
+      Without it, the compositor picks the radius from the window's
+      decoration and role.
+    </description>
+
+    <enum name="bar">
+      <description summary="kind of bar a toplevel draws">
+        Each value matches an AppKit window kind and its corner radius.
+      </description>
+      <entry name="titlebar" value="0" summary="a plain titlebar, as NSWindow without a toolbar"/>
+      <entry name="unified_compact" value="1" summary="a compact toolbar, as NSWindowToolbarStyle.unifiedCompact"/>
+      <entry name="unified" value="2" summary="a full toolbar, as NSWindowToolbarStyle.unified"/>
+      <entry name="utility" value="3" summary="a panel or utility window"/>
+    </enum>
+
+    <request name="destroy" type="destructor">
+      <description summary="destroy the global object">
+        Bars already set stay in place.
+      </description>
+    </request>
+
+    <request name="set_bar">
+      <description summary="the bar the toplevel draws">
+        Tells the compositor which bar the toplevel whose wl_surface is
+        given draws, so its frame gets that bar's corner from the next
+        frame on. A later request replaces it. It lasts for the lifetime of
+        the wl_surface.
+      </description>
+      <arg name="surface" type="object" interface="wl_surface"/>
+      <arg name="bar" type="uint" enum="bar"/>
+    </request>
+
+    <request name="set_popover" since="2">
+      <description summary="the popup is a popover with an arrow">
+        Tells the compositor that the xdg_popup whose wl_surface is given is
+        a popover, as NSPopover. The arrow-height logical pixels of its
+        window geometry along the edge that faces the popup's anchor
+        rectangle are the arrow band: the bottom edge when the popup lies
+        above the anchor, the right edge when it lies to its left, the left
+        edge when it lies to its right, and the top edge otherwise. The
+        compositor shapes the body beside that band with the popover
+        corner, and joins to it an arrow that points at the centre of the
+        anchor rectangle, clamped to the body. It is set_popover_shape with
+        the popover shape. It lasts for the lifetime of the wl_surface.
+      </description>
+      <arg name="surface" type="object" interface="wl_surface"/>
+    </request>
+
+    <enum name="panel" bitfield="true" since="3">
+      <description summary="how a panel behaves">
+        Each flag matches an AppKit NSPanel property.
+      </description>
+      <entry name="hides_on_deactivate" value="1"
+             summary="hidden while no toplevel of its client is active, as hidesOnDeactivate"/>
+      <entry name="floating" value="2"
+             summary="stacked above every toplevel of its client, as isFloatingPanel"/>
+      <entry name="key_only_if_needed" value="4"
+             summary="a press does not give it keyboard focus, as becomesKeyOnlyIfNeeded"/>
+    </enum>
+
+    <request name="set_panel" since="3">
+      <description summary="the toplevel is a panel">
+        Tells the compositor that the xdg_toplevel whose wl_surface is given
+        is a panel, as NSPanel. A panel never becomes its client's main
+        window: while it holds keyboard focus, the client's last focused
+        toplevel that is not a panel stays activated and remains the active
+        window the shell shows.
+
+        With hides_on_deactivate, the compositor hides the panel while the
+        active toplevel belongs to another client or there is none, and
+        shows it again, at the same place and stacking, when one of its
+        client's toplevels becomes active.
+
+        With floating, the panel stays above every toplevel of its client.
+
+        With key_only_if_needed, neither mapping nor a press on the panel
+        moves keyboard focus to it. The client asks for focus when a press
+        lands on a view that needs the keyboard, with an xdg_activation_v1
+        token made from that press.
+
+        Send it before the first commit with a buffer. A later request
+        replaces the flags. It lasts for the lifetime of the wl_surface.
+      </description>
+      <arg name="surface" type="object" interface="wl_surface"/>
+      <arg name="flags" type="uint" enum="panel"/>
+    </request>
+
+    <request name="set_cards" since="4">
+      <description summary="the layer surface draws cards">
+        Tells the compositor that the layer surface whose wl_surface is
+        given draws cards, as macOS notifications, at these rectangles. The
+        array holds int32 quadruples x, y, width and height in
+        surface-local logical pixels. The compositor gives each card the
+        window frame around a continuous corner of the given radius: the
+        shadow below the surface, and the inner and outer borders above it.
+        The client draws the card itself with that corner. A later request
+        replaces the cards; an empty array removes them. It lasts for the
+        lifetime of the wl_surface.
+      </description>
+      <arg name="surface" type="object" interface="wl_surface"/>
+      <arg name="radius" type="uint"/>
+      <arg name="cards" type="array"/>
+    </request>
+
+    <request name="set_desktop" since="5">
+      <description summary="the background surface belongs to one desktop">
+        Tells the compositor that the background layer surface whose
+        wl_surface is given shows only on desktop number desktop, counted
+        from 1 as Mission Control numbers them (Malaysia ADR 0051). Each
+        desktop shows its own background surface on an output and, when it
+        has none, the background surfaces that were never given a desktop.
+        A desktop of 0 returns the surface to every desktop. It applies from
+        the next frame and lasts for the lifetime of the wl_surface.
+      </description>
+      <arg name="surface" type="object" interface="wl_surface"/>
+      <arg name="desktop" type="uint"/>
+    </request>
+
+    <request name="set_glass" since="6">
+      <description summary="the toplevel has glass panels">
+        Tells the compositor that the toplevel whose wl_surface is given has
+        glass panels, as the sidebar of a macOS window. The array holds int32
+        quadruples x, y, width and height in surface-local logical pixels,
+        clipped to the window geometry. At most 16 panels are kept. The
+        compositor fills each panel with a material and draws the window
+        frame's inner border along its edge, around a continuous corner of
+        the given radius. The client leaves the panels transparent.
+
+        While the toplevel is active, the material is base with the chroma of
+        the blurred wallpaper behind the panel, and the border is a line
+        derived from the material under it: a little lighter, with more
+        chroma and the same hue.
+        While it is not active, the panel is solid and has no border. base and solid are 0xAARRGGBB and their alpha is
+        ignored. base has the lightness of the application's solid window, and
+        the dominant color when the window is tinted with an accent. solid is
+        base with the wallpaper's tint. chroma is the share of the wallpaper's
+        chroma the material takes, in thousandths. rim is unused: send 0.
+
+        It is double-buffered and applies on the next wl_surface.commit. A
+        later request replaces the panels; an empty array removes them. It
+        lasts for the lifetime of the wl_surface. The compositor ignores it
+        from a surface that is not a toplevel of a BarrierKit client.
+      </description>
+      <arg name="surface" type="object" interface="wl_surface"/>
+      <arg name="radius" type="uint"/>
+      <arg name="panels" type="array"/>
+      <arg name="base" type="uint"/>
+      <arg name="solid" type="uint"/>
+      <arg name="chroma" type="uint"/>
+      <arg name="rim" type="uint"/>
+    </request>
+
+    <enum name="popover_shape" since="7">
+      <description summary="corner and arrow of a popover">
+        Each value gives a popover its corner and its arrow.
+      </description>
+      <entry name="popover" value="0" summary="an NSPopover: the popover corner and arrow"/>
+      <entry name="menu" value="1" summary="a menu with an arrow, as a Dock menu: the menu corner and the popover arrow"/>
+      <entry name="label" value="2" summary="a name label, as the Dock's: the label corner and a smaller arrow"/>
+    </enum>
+
+    <request name="set_popover_shape" since="7">
+      <description summary="the popup is a popover of a shape">
+        Tells the compositor that the xdg_popup whose wl_surface is given is
+        a popover with the given shape, laid out as set_popover describes.
+        A later request replaces the shape. It lasts for the lifetime of the
+        wl_surface.
+      </description>
+      <arg name="surface" type="object" interface="wl_surface"/>
+      <arg name="shape" type="uint" enum="popover_shape"/>
+    </request>
+
+    <request name="set_plates" since="8">
+      <description summary="the layer surface has icon plates drawn as glass">
+        Tells the compositor that the layer surface whose wl_surface is
+        given has icons whose plates the compositor draws, as the Dock's
+        icons in the clear style. The array holds int32 quadruples x, y,
+        width and height in surface-local logical pixels. The compositor
+        draws each plate as the glass of a card, under the surface, around
+        a continuous corner whose radius is corner thousandths of the
+        plate's shorter side, so plates of any size keep one shape. The
+        client draws only the logo on top. A later request replaces the plates; an empty array
+        removes them. It lasts for the lifetime of the wl_surface. Only the
+        Dock's layer surface has its plates drawn.
+      </description>
+      <arg name="surface" type="object" interface="wl_surface"/>
+      <arg name="corner" type="uint"/>
+      <arg name="plates" type="array"/>
+    </request>
+
+    <enum name="knob" since="9">
+      <description summary="the control a glass knob belongs to">
+        Each value gives a knob its lens. Both outlines are part of the glass.
+      </description>
+      <entry name="slider" value="0"
+             summary="a slider's knob: the Dock's lens turned outward"/>
+      <entry name="switch" value="1"
+             summary="a switch's knob: its own lens, which shows what lies outside it"/>
+    </enum>
+
+    <request name="set_knobs" since="9">
+      <description summary="the toplevel has glass knobs">
+        Tells the compositor that the toplevel whose wl_surface is given
+        holds knobs, as a held slider or switch, and that it draws them as
+        glass. The array holds int32 quadruples x, y, width and height in
+        surface-local logical pixels, one capsule each. At most 4 knobs are
+        kept. The compositor draws each knob above the surface, so its lens
+        refracts the pixels the client committed there: the client draws
+        the control without the knob and leaves its track under it. tint is
+        0xAARRGGBB and its alpha counts: it is laid over the refraction.
+        A later request replaces the knobs; an empty array removes them.
+
+        It is double-buffered and applies on the next wl_surface.commit. It
+        lasts for the lifetime of the wl_surface. The compositor ignores it
+        from a surface that is not a toplevel of a BarrierKit client.
+      </description>
+      <arg name="surface" type="object" interface="wl_surface"/>
+      <arg name="kind" type="uint" enum="knob"/>
+      <arg name="tint" type="uint"/>
+      <arg name="knobs" type="array"/>
+    </request>
+  </interface>
+</protocol>

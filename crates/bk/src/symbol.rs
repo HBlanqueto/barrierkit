@@ -1,0 +1,576 @@
+use std::cell::RefCell;
+use std::collections::HashMap;
+
+pub use ctappearance::icon_style::IconStyle;
+use ctdesign::{Rgba, SYMBOL};
+use freya_components::image_viewer::ImageViewer;
+use freya_components::svg_viewer::SvgViewer;
+use freya_core::elements::image::{ImageHandle, SamplingMode};
+use freya_core::prelude::*;
+use freya_engine::prelude::{
+    AlphaType, BlendMode, ColorType, FontMgr, ImageInfo, Paint, SkColor, SkData, SkImage, SkRect,
+    color_filters, raster_from_data, raster_n32_premul, svg,
+};
+use torin::prelude::Size;
+
+use crate::styles::{ControlState, ImageStyle, Paints, ShapeStyle, StateValue, Theme, resolve};
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum Symbol {
+    MagnifyingGlass,
+    XMark,
+    SpeakerWave,
+    Plus,
+    Minus,
+    Ellipsis,
+    ChevronUpDown,
+    ChevronRight,
+    ChevronLeft,
+    ChevronUp,
+    ChevronDown,
+    CircleHalf,
+    Play,
+    Pause,
+    Shuffle,
+    ChevronLeftForwardSlashChevronRight,
+    Backward,
+    Forward,
+    ListBullet,
+    SquareGrid,
+    SlidersVertical,
+    SidebarLeft,
+    House,
+    Tv,
+    Film,
+    Star,
+    Clock,
+    Bookmark,
+    ArrowDown,
+    Checkmark,
+    Captions,
+    Expand,
+    GoBackward,
+    GoForward,
+    StarFill,
+    Folder,
+    Document,
+    ChevronDoubleRight,
+    Accessibility,
+    Display,
+    MenubarDockRectangle,
+    Photo,
+    Flower,
+    Moon,
+    Bell,
+    Bed,
+    Person,
+    Briefcase,
+    Printer,
+    Phone,
+    SquareOnSquare,
+    Wifi,
+    Bluetooth,
+    Network,
+    Vpn,
+    Lock,
+    Bolt,
+    Battery,
+    Keyboard,
+    QuestionMark,
+    EllipsisCircle,
+    Square,
+    Circle,
+    CapsuleOnRectangle,
+    CapsuleOnRectangleFill,
+}
+
+impl Symbol {
+    fn path(self) -> &'static str {
+        match self {
+            Self::MagnifyingGlass => {
+                "M11 6.8a4.2 4.2 0 1 1-8.4 0a4.2 4.2 0 1 1 8.4 0M10 10l3.2 3.2"
+            }
+            Self::XMark => "M4 4l8 8M12 4l-8 8",
+            Self::Folder => {
+                "M2.5 4.5a1 1 0 0 1 1-1h3l1.5 1.5h4.5a1 1 0 0 1 1 1v5.5a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1z"
+            }
+            Self::ChevronDoubleRight => "M4 4l4 4-4 4M8.5 4l4 4-4 4",
+            Self::Document => "M4 2.5h5l3 3v8H4zM9 2.5v3h3",
+            Self::Accessibility => {
+                "M8 14a6 6 0 1 0 0-12a6 6 0 0 0 0 12M8.5 5.1a.5 .5 0 1 1-1 0a.5 .5 0 1 1 1 0M5.4 6.4 8 7.1l2.6-.7M8 7.1v2.6M6.4 12 8 9.7l1.6 2.3"
+            }
+            Self::Display => "M2.5 3.5h11v7.5h-11zM6 13.5h4M8 11v2.5",
+            Self::MenubarDockRectangle => {
+                "M3.1 4.9h9.8a1.6 1.6 0 0 1 1.6 1.6v5.4a1.6 1.6 0 0 1-1.6 1.6H3.1a1.6 1.6 0 0 1-1.6-1.6V6.5a1.6 1.6 0 0 1 1.6-1.6zM4.6 11.4h6.8"
+            }
+            Self::Photo => "M2.5 3.5h11v9h-11zM2.5 11l3.5-3.5 3 3 1.5-1.5 3 3M10.5 6.5h0",
+            Self::Flower => {
+                "M8 1.6a1.7 2.5 0 1 0 0 5a1.7 2.5 0 1 0 0 -5M12.53 3.47a1.7 2.5 45 1 0 -3.54 3.54a1.7 2.5 45 1 0 3.54 -3.54M14.4 8a1.7 2.5 90 1 0 -5 0a1.7 2.5 90 1 0 5 0M12.53 12.53a1.7 2.5 135 1 0 -3.54 -3.54a1.7 2.5 135 1 0 3.54 3.54M8 14.4a1.7 2.5 180 1 0 0 -5a1.7 2.5 180 1 0 0 5M3.47 12.53a1.7 2.5 225 1 0 3.54 -3.54a1.7 2.5 225 1 0 -3.54 3.54M1.6 8a1.7 2.5 270 1 0 5 0a1.7 2.5 270 1 0 -5 0M3.47 3.47a1.7 2.5 315 1 0 3.54 3.54a1.7 2.5 315 1 0 -3.54 -3.54M9.6 8a1.6 1.6 0 1 1-3.2 0a1.6 1.6 0 1 1 3.2 0"
+            }
+            Self::Bed => {
+                "M2 12.5V5M2 9.5h12v3M14 9.5V8a1.5 1.5 0 0 0-1.5-1.5H7v3M4.5 8.5a1 1 0 1 0 0-2a1 1 0 0 0 0 2"
+            }
+            Self::Person => "M8 7.5a2.5 2.5 0 1 0 0-5a2.5 2.5 0 0 0 0 5M3 13.5a5 5 0 0 1 10 0",
+            Self::Briefcase => {
+                "M2.5 5.5h11v7.5h-11zM6 5.5V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v1.5M2.5 9h11"
+            }
+            Self::Keyboard => "M2 4.5h12v7H2zM4.5 7h0M7 7h0M9 7h0M11.5 7h0M5.5 9.5h5",
+            Self::QuestionMark => "M6 6a2 2 0 1 1 3 1.7c-.6.4-1 .8-1 1.6V10M8 12.8h0",
+            Self::Printer => "M4.5 6V2.5h7V6M4.5 11.5h-2v-5.5h11v5.5h-2M4.5 9.5h7v4h-7z",
+            Self::Phone => {
+                "M4 2.5h2l1 3-1.5 1a7 7 0 0 0 4 4l1-1.5 3 1v2a1 1 0 0 1-1 1A10.5 10.5 0 0 1 3 3.5a1 1 0 0 1 1-1"
+            }
+            Self::SquareOnSquare => "M5.5 5.5h7v7h-7zM3.5 10.5v-7h7",
+            Self::Wifi => {
+                "M8 13.03 6.37 11.35A3.2 3.2 0 0 1 9.63 11.35zM3.98 8.37A7 7 0 0 1 12.02 8.37L11.67 8.86A6.4 6.4 0 0 0 4.33 8.86zM1.34 5.34A11 11 0 0 1 14.66 5.34L14.3 5.82A10.4 10.4 0 0 0 1.7 5.82z"
+            }
+            Self::Bluetooth => "M4.3 4.8l6.2 5.6-3.2 3.3V1.3l3.2 3.3-6.2 5.6",
+            Self::Network => {
+                "M8 14a6 6 0 1 0 0-12a6 6 0 0 0 0 12M10.54 2.56a2.6 6 25 0 0-5.07 10.88a2.6 6 25 0 0 5.07-10.88M2.06 8.87 11.15 13.11M2.56 5.46 13.44 10.54M4.85 2.89 13.94 7.13"
+            }
+            Self::Vpn => {
+                "M8 10.6a4.6 4.6 0 1 0 0-9.2a4.6 4.6 0 0 0 0 9.2M9.94 1.83a2 4.6 25 0 0-3.89 8.34a2 4.6 25 0 0 3.89-8.34M3.42 6.4 10.64 9.77M5.36 2.23 12.58 5.6M8 10.6v2.1M2.5 13.5h4.6M8.9 13.5h4.6M8.9 13.5a.9 .9 0 1 1-1.8 0a.9 .9 0 1 1 1.8 0"
+            }
+            Self::Lock => "M4 7.5h8v6H4zM5.5 7.5v-2a2.5 2.5 0 0 1 5 0v2",
+            Self::Bolt => "M9.9 1 3.6 8.4h3.8l-1.5 6.6 6.4-7.7H8.5z",
+            Self::Battery => {
+                "M3 5.5h8.4a1.5 1.5 0 0 1 1.5 1.5v2a1.5 1.5 0 0 1-1.5 1.5H3A1.5 1.5 0 0 1 1.5 9V7A1.5 1.5 0 0 1 3 5.5zM14.9 7.3v1.4"
+            }
+            Self::EllipsisCircle => "M8 14a6 6 0 1 0 0-12a6 6 0 0 0 0 12M5.4 8h0M8 8h0M10.6 8h0",
+            Self::Bell => {
+                "M8 2.5A3.5 3.5 0 0 0 4.5 6v2.6L3 11.5h10l-1.5-2.9V6A3.5 3.5 0 0 0 8 2.5M6.5 13.5a1.5 1.5 0 0 0 3 0"
+            }
+            Self::Moon => "M13 9.6A5.5 5.5 0 1 1 6.4 3a4.4 4.4 0 0 0 6.6 6.6z",
+            Self::Plus => "M8 3.5v9M3.5 8h9",
+            Self::Minus => "M3.5 8h9",
+            Self::Square => "M3.5 3.5h9v9h-9z",
+            Self::Circle => "M8 12.5a4.5 4.5 0 1 0 0-9a4.5 4.5 0 0 0 0 9",
+            Self::CapsuleOnRectangle => {
+                "M3 3h6.5A1.5 1.5 0 0 1 11 4.5v4A1.5 1.5 0 0 1 9.5 10H3a1.5 1.5 0 0 1-1.5-1.5v-4A1.5 1.5 0 0 1 3 3zM7.5 6.5h4a3 3 0 0 1 0 6h-4a3 3 0 0 1 0-6z"
+            }
+            // The rectangle stops short of the capsule: the gap keeps them apart once filled.
+            Self::CapsuleOnRectangleFill => {
+                "M3 3h6.5A1.5 1.5 0 0 1 10.9 4.3H7.5A5.2 5.2 0 0 0 2.3 9.5H1.5v-5A1.5 1.5 0 0 1 3 3zM7.5 6.5h4a3 3 0 0 1 0 6h-4a3 3 0 0 1 0-6z"
+            }
+            Self::Ellipsis => "M3.5 8h0M8 8h0M12.5 8h0",
+            Self::ChevronUpDown => "M4 6l4-4 4 4M4 10l4 4 4-4",
+            Self::ChevronRight => "M6 3l5 5-5 5",
+            Self::ChevronLeft => "M10 3L5 8l5 5",
+            Self::ChevronUp => "M3 10l5-5 5 5",
+            Self::ChevronDown => "M3 6l5 5 5-5",
+            Self::CircleHalf => {
+                "M8 1.5a6.5 6.5 0 1 1 0 13a6.5 6.5 0 1 1 0-13zM8 2.4a5.6 5.6 0 1 0 0 11.2a5.6 5.6 0 1 0 0-11.2zM8 2.4a5.6 5.6 0 0 0 0 11.2zM8 5a1.9 3 0 1 0 0 6a1.9 3 0 1 0 0-6z"
+            }
+            Self::Play => "M5 3.5v9l7.5-4.5z",
+            Self::Pause => "M5.5 3.5v9M10.5 3.5v9",
+            Self::ChevronLeftForwardSlashChevronRight => {
+                "M6 5.5 3.8 8 6 10.5M10 5.5 12.2 8 10 10.5"
+            }
+            Self::Shuffle => {
+                "M2.5 5h2.6c2.8 0 3.9 6 6.8 6h1.6M11.8 9.2l1.7 1.8-1.7 1.8M2.5 11h2.6c1.2 0 2-1.1 2.7-2.3M9.4 6.2C10 5.5 10.8 5 11.9 5h1.6M11.8 3.2 13.5 5l-1.7 1.8"
+            }
+            Self::Backward => "M4 3.5v9M12 3.5 6 8l6 4.5z",
+            Self::Forward => "M12 3.5v9M4 3.5 10 8l-6 4.5z",
+            Self::ListBullet => "M6 4h8M6 8h8M6 12h8M2.5 4h.01M2.5 8h.01M2.5 12h.01",
+            Self::SquareGrid => {
+                "M2.5 2.5h4.5v4.5H2.5zM9 2.5h4.5v4.5H9zM2.5 9h4.5v4.5H2.5zM9 9h4.5v4.5H9z"
+            }
+            Self::SlidersVertical => "M4 2v12M8 2v12M12 2v12M2.5 10h3M6.5 5h3M10.5 9h3",
+            Self::SidebarLeft => "M2.5 3.5h11v9h-11zM6.5 3.5v9",
+            Self::House => "M2.5 7.5 8 3l5.5 4.5V13h-11z",
+            Self::Tv => "M2.5 4h11v7.5h-11zM6 13.5h4",
+            Self::Film => "M2.5 3.5h11v9h-11zM2.5 6.5h11M5.5 3.5v3M10.5 3.5v3",
+            Self::Star | Self::StarFill => {
+                "M8 2.5l1.7 3.4 3.8.6-2.7 2.7.6 3.8L8 11.2 4.6 13l.6-3.8-2.7-2.7 3.8-.6z"
+            }
+            Self::Clock => "M8 4.5V8l2.5 1.5M8 14a6 6 0 1 0 0-12a6 6 0 0 0 0 12",
+            Self::Bookmark => "M4 2.5h8v11L8 10.5l-4 3z",
+            Self::ArrowDown => "M8 2v8M4.5 7 8 10.5 11.5 7M3 13.5h10",
+            Self::Checkmark => "M3.5 8.5l3 3 6-7",
+            Self::Captions => "M2.5 4h11v8h-11zM5 9.5h2.5M9 9.5h2M5 7h6",
+            Self::Expand => "M3 6.5V3h3.5M13 6.5V3H9.5M3 9.5V13h3.5M13 9.5V13H9.5",
+            Self::GoBackward => "M3.5 8a4.5 4.5 0 1 0 1.5-3.4M3.5 2.5v2.8h2.8",
+            Self::GoForward => "M12.5 8a4.5 4.5 0 1 1-1.5-3.4M12.5 2.5v2.8H9.7",
+            Self::SpeakerWave => {
+                "M3 6h2l3-3v10l-3-3H3zM10.5 5.5a3.5 3.5 0 0 1 0 5M12.5 3.5a6.5 6.5 0 0 1 0 9"
+            }
+        }
+    }
+}
+
+thread_local! {
+    static CACHE: RefCell<HashMap<(Symbol, u32), Bytes>> = RefCell::new(HashMap::new());
+}
+
+fn source(symbol: Symbol, stroke: f32) -> Bytes {
+    let solid = matches!(symbol, Symbol::Bolt | Symbol::CircleHalf);
+    let filled = solid
+        || matches!(
+            symbol,
+            Symbol::StarFill | Symbol::CapsuleOnRectangleFill | Symbol::Wifi | Symbol::Battery
+        );
+    CACHE.with(|cache| {
+        cache
+            .borrow_mut()
+            .entry((symbol, stroke.to_bits()))
+            .or_insert_with(|| {
+                Bytes::from(format!(
+                    r#"<svg viewBox="0 0 {grid} {grid}"><path d="{path}" fill="{fill}" fill-rule="evenodd" stroke="{paint}" stroke-width="{stroke}" stroke-linecap="round" stroke-linejoin="round"/></svg>"#,
+                    grid = SYMBOL.grid,
+                    path = symbol.path(),
+                    fill = if filled { "currentColor" } else { "none" },
+                    paint = if solid { "none" } else { "currentColor" },
+                ))
+            })
+            .clone()
+    })
+}
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum TemplateRenderingMode {
+    #[default]
+    Original,
+    Template,
+}
+
+#[derive(Clone, PartialEq)]
+enum Source {
+    System(Symbol),
+    Data(Bytes),
+    Rgba {
+        width: u32,
+        height: u32,
+        pixels: Bytes,
+    },
+}
+
+#[derive(Clone, PartialEq)]
+pub struct Image {
+    source: Source,
+    rendering_mode: TemplateRenderingMode,
+    icon_style: IconStyle,
+    plated: bool,
+    glass_plate: bool,
+    raster_size: Option<f32>,
+    frame: Option<(f32, f32)>,
+    style: Theme,
+}
+
+impl Image {
+    pub fn system(symbol: Symbol) -> Self {
+        Self::from_source(Source::System(symbol))
+    }
+
+    pub fn data(bytes: impl Into<Bytes>) -> Self {
+        Self::from_source(Source::Data(bytes.into()))
+    }
+
+    pub fn rgba(width: u32, height: u32, pixels: impl Into<Bytes>) -> Self {
+        Self::from_source(Source::Rgba {
+            width,
+            height,
+            pixels: pixels.into(),
+        })
+    }
+
+    fn from_source(source: Source) -> Self {
+        Self {
+            source,
+            rendering_mode: TemplateRenderingMode::Original,
+            icon_style: IconStyle::Default,
+            plated: false,
+            glass_plate: false,
+            raster_size: None,
+            frame: None,
+            style: Theme::tengen(),
+        }
+    }
+
+    pub fn rendering_mode(mut self, rendering_mode: TemplateRenderingMode) -> Self {
+        self.rendering_mode = rendering_mode;
+        self
+    }
+
+    pub fn icon_style(mut self, icon_style: IconStyle) -> Self {
+        self.icon_style = icon_style;
+        self
+    }
+
+    /// Draws the image as an app icon: on a plate, in the user's icon style.
+    pub fn app_icon(mut self) -> Self {
+        self.plated = true;
+        self
+    }
+
+    /// In the clear icon style the compositor draws the icon's plate as glass, so only the logo is drawn.
+    pub fn glass_plate(mut self) -> Self {
+        self.glass_plate = true;
+        self
+    }
+
+    /// Rasterizes the image once at this size and lets the GPU scale it: for an icon whose `size` changes every frame.
+    pub fn raster_size(mut self, size: f32) -> Self {
+        self.raster_size = Some(size);
+        self
+    }
+
+    pub fn style(mut self, restyle: impl Fn(ImageStyle) -> ImageStyle + 'static) -> Self {
+        self.style = self.style.style(restyle);
+        self
+    }
+
+    pub fn size(self, size: f32) -> Self {
+        self.style(move |s| ImageStyle { size, ..s })
+    }
+
+    pub fn frame(mut self, width: f32, height: f32) -> Self {
+        self.frame = Some((width, height));
+        self
+    }
+
+    pub fn color(self, color: Rgba) -> Self {
+        self.style(move |s| ImageStyle {
+            foreground: StateValue::new(ShapeStyle::Color(color)),
+            ..s
+        })
+    }
+}
+
+impl From<Image> for Element {
+    fn from(image: Image) -> Self {
+        let style: ImageStyle = resolve(&image.style);
+        let paints = Paints::current(ControlState::default(), style.effect);
+        let color = paints.color(style.foreground.resolve(ControlState::default()));
+        let side = Size::px(style.size);
+        let (width, height) = image
+            .frame
+            .map_or((side.clone(), side.clone()), |(width, height)| {
+                (Size::px(width), Size::px(height))
+            });
+        let icon_style = image.icon_style;
+        let raster_size = image.raster_size;
+        let plated = image.plated;
+        let plain = matches!(icon_style, IconStyle::Default | IconStyle::Dark)
+            && !plated
+            && raster_size.is_none();
+        let on_glass = |style: IconStyle| image.glass_plate && style == IconStyle::Clear;
+        match (image.source, image.rendering_mode) {
+            (Source::System(glyph), _) => {
+                viewer(source(glyph, style.stroke), style.size, color).into_element()
+            }
+            (Source::Data(bytes), TemplateRenderingMode::Original) if plain && is_svg(&bytes) => {
+                SvgViewer::new(bytes)
+                    .width(width)
+                    .height(height)
+                    .show_loader(false)
+                    .into_element()
+            }
+            (Source::Data(bytes), TemplateRenderingMode::Original) if plain => {
+                ImageViewer::new(bytes)
+                    .width(width)
+                    .height(height)
+                    .into_element()
+            }
+            (source, mode) => {
+                let resolved = crate::theme::resolved();
+                let treatment = match mode {
+                    _ if plated => Treatment::Plate(
+                        resolved.icon_style,
+                        resolved.icon_dark,
+                        resolved.icon_tint,
+                        on_glass(resolved.icon_style),
+                    ),
+                    TemplateRenderingMode::Template => Treatment::Tint(color),
+                    TemplateRenderingMode::Original => {
+                        Treatment::Style(icon_style, resolved.icon_tint, on_glass(icon_style))
+                    }
+                };
+                match cached_image(&source, raster_size.unwrap_or(style.size), treatment) {
+                    Some(handle) => freya_core::elements::image::image(handle)
+                        .width(side.clone())
+                        .height(side)
+                        .into_element(),
+                    None => rect().width(side.clone()).height(side).into_element(),
+                }
+            }
+        }
+    }
+}
+
+pub(crate) fn symbol(symbol: Symbol, size: f32, color: Rgba) -> SvgViewer {
+    viewer(source(symbol, SYMBOL.stroke), size, color)
+}
+
+pub(crate) fn tile_symbol(symbol: Symbol, size: f32, color: Rgba) -> SvgViewer {
+    viewer(source(symbol, SYMBOL.fine_stroke), size, color)
+}
+
+fn viewer(source: Bytes, size: f32, color: Rgba) -> SvgViewer {
+    SvgViewer::new(source)
+        .width(Size::px(size))
+        .height(Size::px(size))
+        .color(crate::theme::color(color))
+        .show_loader(false)
+}
+
+const TEMPLATE_CACHE_CAPACITY: usize = 256;
+
+type TemplateKey = (Bytes, u32, u32, (u8, [u32; 4]));
+
+#[derive(Clone, Copy)]
+enum Treatment {
+    Tint(Rgba),
+    Style(IconStyle, Rgba, bool),
+    Plate(IconStyle, bool, Rgba, bool),
+}
+
+impl Treatment {
+    fn key(self) -> (u8, [u32; 4]) {
+        let bits = |color: Rgba| [color.r, color.g, color.b, color.a].map(f32::to_bits);
+        match self {
+            Self::Tint(color) => (0, bits(color)),
+            Self::Style(style, tint, glass) => (1 + style as u8 + 16 * u8::from(glass), bits(tint)),
+            Self::Plate(style, dark, tint, glass) => (
+                5 + 2 * style as u8 + u8::from(dark) + 16 * u8::from(glass),
+                bits(tint),
+            ),
+        }
+    }
+}
+
+thread_local! {
+    static TEMPLATE_CACHE: RefCell<HashMap<TemplateKey, Option<ImageHandle>>> =
+        RefCell::new(HashMap::new());
+}
+
+fn is_svg(bytes: &[u8]) -> bool {
+    let head = &bytes[..bytes.len().min(512)];
+    head.windows(4).any(|window| window == b"<svg")
+}
+
+fn cached_image(source: &Source, size: f32, treatment: Treatment) -> Option<ImageHandle> {
+    let scale = *Platform::get().current_window().scale_factor.read() as f32;
+    let exact = (size * scale).round().max(1.0) as u32;
+    // A magnified Dock draws every size between two: steps of 1/32 to 1/16 of the size keep the cache from refilling.
+    let side = exact.next_multiple_of(1 << exact.ilog2().saturating_sub(4));
+    let (bytes, width) = match source {
+        Source::Data(bytes) => (bytes.clone(), 0),
+        Source::Rgba { width, pixels, .. } => (pixels.clone(), *width),
+        Source::System(_) => return None,
+    };
+    let key = (bytes, width, side, treatment.key());
+    TEMPLATE_CACHE.with(|cache| {
+        if let Some(cached) = cache.borrow().get(&key) {
+            return cached.clone();
+        }
+        let image = raster(source, side).and_then(|raster| match treatment {
+            Treatment::Tint(color) => tint(&raster, side, color),
+            Treatment::Style(IconStyle::Default | IconStyle::Dark, ..) => {
+                Some(ImageHandle::new(raster, Bytes::new()))
+            }
+            Treatment::Style(style, tint, glass) => restyle(&raster, side, style, tint, glass),
+            Treatment::Plate(style, dark, tint, glass) => {
+                crate::app_icon::plated(&raster, side, style, dark, tint, glass)
+            }
+        });
+        let mut cache = cache.borrow_mut();
+        if cache.len() >= TEMPLATE_CACHE_CAPACITY {
+            cache.clear();
+        }
+        cache.insert(key, image.clone());
+        image
+    })
+}
+
+fn raster(source: &Source, svg_side: u32) -> Option<SkImage> {
+    match source {
+        Source::Data(bytes) if is_svg(bytes) => rasterize_svg(bytes, svg_side.max(1)),
+        Source::Data(bytes) => SkImage::from_encoded(SkData::new_copy(bytes)),
+        Source::Rgba {
+            width,
+            height,
+            pixels,
+        } => {
+            let info = ImageInfo::new(
+                (*width as i32, *height as i32),
+                ColorType::RGBA8888,
+                AlphaType::Unpremul,
+                None,
+            );
+            raster_from_data(&info, SkData::new_copy(pixels), *width as usize * 4)
+        }
+        Source::System(_) => None,
+    }
+}
+
+fn rasterize_svg(bytes: &[u8], side: u32) -> Option<SkImage> {
+    let mut dom = svg::Dom::from_bytes(bytes, FontMgr::empty()).ok()?;
+    let side = side as i32;
+    dom.set_container_size((side, side));
+    let mut root = dom.root();
+    root.set_width(svg::Length::new(side as f32, svg::LengthUnit::PX));
+    root.set_height(svg::Length::new(side as f32, svg::LengthUnit::PX));
+    let mut surface = raster_n32_premul((side, side))?;
+    dom.render(surface.canvas());
+    Some(surface.image_snapshot())
+}
+
+fn tint(raster: &SkImage, side: u32, color: Rgba) -> Option<ImageHandle> {
+    let mut paint = Paint::default();
+    paint.set_color_filter(color_filters::blend(
+        SkColor::from(crate::theme::color(color)),
+        BlendMode::SrcIn,
+    ));
+    filtered(raster, side, paint, false)
+}
+
+fn restyle(
+    raster: &SkImage,
+    side: u32,
+    style: IconStyle,
+    tint: Rgba,
+    glass: bool,
+) -> Option<ImageHandle> {
+    let matrix = if glass {
+        style.matrix_on_glass(tint)
+    } else {
+        style.matrix(tint)
+    }?;
+    let mut paint = Paint::default();
+    paint.set_color_filter(color_filters::matrix_row_major(
+        &matrix,
+        color_filters::Clamp::Yes,
+    ));
+    filtered(raster, side, paint, style.luminance_to_alpha())
+}
+
+fn filtered(
+    raster: &SkImage,
+    side: u32,
+    mut paint: Paint,
+    cut_to_shape: bool,
+) -> Option<ImageHandle> {
+    let side = side as i32;
+    let mut surface = raster_n32_premul((side, side))?;
+    paint.set_anti_alias(true);
+    let rect = SkRect::from_wh(side as f32, side as f32);
+    surface.canvas().draw_image_rect_with_sampling_options(
+        raster,
+        None,
+        rect,
+        SamplingMode::Mitchell.sampling_options(),
+        &paint,
+    );
+    if cut_to_shape {
+        let mut cut = Paint::default();
+        cut.set_blend_mode(BlendMode::DstIn);
+        surface.canvas().draw_image_rect_with_sampling_options(
+            raster,
+            None,
+            rect,
+            SamplingMode::Mitchell.sampling_options(),
+            &cut,
+        );
+    }
+    Some(ImageHandle::new(surface.image_snapshot(), Bytes::new()))
+}
