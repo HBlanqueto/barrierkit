@@ -1,0 +1,128 @@
+# macOS notification banners
+
+**Goal:** describe a notification banner in the top-right corner and compare
+it with the notification tokens in Malaysia.
+**Scope:** a single visible banner in dark mode. It excludes Notification
+Center, stacks, grouping, actions and the notification server.
+**Reader:** anyone who changes `malaysia-shell::notifications` or the
+notification tokens.
+**Input:** a banner produced by `display notification` and a screenshot.
+**Output:** measured frame, typography, a Malaysia comparison and ordered
+gaps.
+
+## Steps
+
+1. Read the limits in
+   [`macos-observations.md`](macos-observations.md).
+2. Use the frame table for the banner.
+3. Use the typography table before changing the title font.
+4. Do not infer Notification Center from the banner.
+5. Do not copy application icons or system glyphs.
+
+---
+
+## 1. Measured frame
+
+| Property | Value |
+|---|---:|
+| Left | about 2210 |
+| Right | about 2540 |
+| Width | about 330 |
+| Top | 30 |
+| Bottom | about 100 |
+| Height | about 70 |
+| Right inset | about 20 |
+| Corner radius | about 18 |
+| Icon | 38 |
+| Material | dark glass |
+
+The banner starts at the menu-bar height, 30, and sits 20 pt from the right
+edge. The width is 330 and the height is 70. The corner radius is about 18.
+
+The banner is a dark glass card: the desktop shows through, blurred, and the
+card has a light rim. No controlled-backdrop samples were taken.
+
+## 2. Typography
+
+| Line | Size | Weight |
+|---|---:|---|
+| Title | 13 | bold |
+| Subtitle | 12 | regular |
+| Body | 13 | regular |
+
+The icon is 38x38. The title and subtitle form a two-line header. The body
+sits below them. The banner is compact: 13 pt title, not a 17 pt title.
+
+On hover, the banner reveals an **`Opciones`** control. That is the Spanish
+label for Options. The control appears at the bottom or trailing edge of the
+card and is not visible at rest.
+
+No close button was visible at rest. Whether one appears on hover was not
+captured.
+
+## 3. Behaviour
+
+- The banner appears at the top-right, under the menu bar.
+- It is clickable and dismissible, but the exact hit targets were not
+  measured.
+- The banner likely opens Notification Center when clicked; that was not
+  confirmed.
+- Clicking the clock area did not open Notification Center on this host, so
+  the center is not described here.
+- The slide-in and slide-out durations, the bounce and the stack peek were
+  not measured.
+- The maximum number of visible banners was not measured.
+
+Do not copy Malaysia's 450 ms slide or 260 ms slide-out as macOS values.
+They are project values.
+
+## 4. Comparison with Malaysia
+
+| Element | macOS (measured) | Malaysia today | Token or file | Gap |
+|---|---|---|---|---|
+| Width | about 330 | 344 | `NOTIFICATION_WIDTH` | Malaysia is 14 wider |
+| Height | about 70 | Content-driven | `NOTIFICATION_PADDING` | Verify with the same text |
+| Radius | about 18 | 20 | `NOTIFICATION_RADIUS` | Slightly too round |
+| Right inset | about 20 | 10 | `NOTIFICATION_MARGIN` | Malaysia sits closer to the edge |
+| Top edge | 30 | Bar height plus gap | `NOTIFICATION_GAP` | Verify the gap |
+| Icon | 38 | 38 | `NOTIFICATION_ICON_SIZE` | Matches |
+| Title | 13 bold | 17/22 bold | `NOTIFICATION_TITLE_FONT` | Much too large |
+| Subtitle | 12 | Not a separate token | `NOTIFICATION_TITLE_FONT` | Add a subtitle style |
+| Body | 13 | Body style | `NOTIFICATION_*` | Verify |
+| Hover action | `Opciones` | Options action | `notifications/view.rs` | Verify shape |
+| Glass | Dark glass | Notification glass | `notification_glass` | Reuse menu model |
+| Motion | Not measured | 450 in, 260 out, bounce 0.15 | `NOTIFICATION_SLIDE_*` | Unverified |
+
+The title is the clearest mismatch: macOS uses a **13 pt bold** title in the
+banner, while Malaysia uses a 17 pt / 22 line title. That makes the banner
+feel like a different component.
+
+## 5. What not to copy
+
+- Application icons shown in the banner.
+- Apple's notification action glyphs.
+- Apple's notification text or translations.
+- A screenshot of a banner as a material.
+
+## 6. Prioritized changes
+
+1. **Reduce the banner title to 13 pt bold.** Keep a 12 pt subtitle and a
+   13 pt body. This is a high-impact typography fix.
+2. **Match the width and radius.** Use about 330 and 18, or prove that 344
+   and 20 are intentional.
+3. **Move the right inset to about 20.** The banner sits farther from the
+   edge than the current 10.
+4. **Verify the height with the same content.** The 70 pt banner has a
+   38 pt icon, three text lines and padding; the current token set can
+   produce a different height.
+5. **Measure the enter and exit motion.** Use the pre-rolled recorder and a
+   banner with a fixed delay. Do not keep unverified timings.
+6. **Measure the stack.** The peek and inset values are unverified.
+
+## 7. Open questions
+
+- Does the banner use the same glass as the application menu?
+- What is the exact padding around the 38 pt icon?
+- Is the hover action a button, a menu or a text link?
+- How many banners stack before the oldest is replaced?
+- Does Notification Center use the same card width?
