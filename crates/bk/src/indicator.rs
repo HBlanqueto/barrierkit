@@ -90,6 +90,7 @@ impl Component for CapacityIndicator {
                         rect()
                             .width(Size::percent(filled * 100.0))
                             .height(Size::fill())
+                            .corner_radius(radius)
                             .painted(&paints, fill),
                     ),
                 &style.shadows,

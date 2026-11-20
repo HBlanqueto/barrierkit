@@ -373,6 +373,7 @@ impl Component for SearchField {
         let mut value = self.value;
         let padding = style.padding_x;
         let icon = style.icon_size;
+        let (glyph, offset, clear) = (style.glyph, style.glyph_offset, style.clear_size);
         let gap = style.icon_gap;
         let height = style.height;
         let a11y_id = use_hook(|| self.a11y_id.unwrap_or_else(AccessibilityId::new_unique));
@@ -455,14 +456,29 @@ impl Component for SearchField {
         if !value.read().is_empty() {
             input = input.trailing(
                 rect()
-                    .a11y_role(AccessibilityRole::Button)
-                    .a11y_alt(text!("clear-search"))
-                    .on_pointer_down(move |event: Event<PointerEventData>| {
-                        if event.is_primary() {
-                            value.set(String::new());
-                        }
-                    })
-                    .child(symbol(Symbol::XMark, icon, ink(&style.clear_icon))),
+                    .offset_x(style.clear_offset.0)
+                    .offset_y(style.clear_offset.1)
+                    .child(
+                        rect()
+                            .a11y_role(AccessibilityRole::Button)
+                            .a11y_alt(text!("clear-search"))
+                            .on_pointer_down(move |event: Event<PointerEventData>| {
+                                if event.is_primary() {
+                                    value.set(String::new());
+                                }
+                            })
+                            .width(Size::px(clear.0))
+                            .height(Size::px(clear.0))
+                            .corner_radius(clear.0 / 2.0)
+                            .background(color(ink(&style.clear_background)))
+                            .center()
+                            .child(stroked_symbol(
+                                Symbol::XMark,
+                                clear.1,
+                                clear.2,
+                                ink(&style.clear_icon),
+                            )),
+                    ),
             );
         }
 
@@ -488,10 +504,15 @@ impl Component for SearchField {
             rect()
                 .position(
                     Position::new_absolute()
-                        .left(padding)
-                        .top((height - icon) / 2.0),
+                        .left(padding + (icon - glyph.0) / 2.0 + offset.0)
+                        .top((height - glyph.0) / 2.0 + offset.1),
                 )
-                .child(symbol(Symbol::MagnifyingGlass, icon, ink(&style.icon))),
+                .child(stroked_symbol(
+                    Symbol::MagnifyingGlass,
+                    glyph.0,
+                    glyph.1,
+                    ink(&style.icon),
+                )),
         )
         .maybe(!shown_tokens.is_empty(), |el| {
             el.child(

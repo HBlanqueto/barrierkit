@@ -1,5 +1,5 @@
 use ctappearance::Resolved;
-use ctdesign::{BODY, Font, HAIRLINE, KNOB_SHADOW, Rgba, SETTINGS, SWITCH};
+use ctdesign::{BODY, Font, KNOB_SHADOW, Rgba, SETTINGS, SWITCH};
 
 use super::{
     Animation, ColorEffect, ControlStyle, Edge, LayoutDirection, Role, ShadowStyle, Shape,
@@ -34,7 +34,7 @@ pub struct SwitchStyle {
     pub knob: StateValue<ShapeStyle>,
     /// Tengen: `Role(Label)`.
     pub label: StateValue<ShapeStyle>,
-    /// Tengen: `Some((Role(Outline), HAIRLINE))`, drawn only while off.
+    /// Tengen: `None`; `Some` draws it only while off.
     pub track_border: Option<(ShapeStyle, f32)>,
     /// Tengen: `None`.
     pub knob_border: Option<(ShapeStyle, f32)>,
@@ -82,7 +82,7 @@ impl ControlStyle for SwitchStyle {
             fill: StateValue::new(ShapeStyle::Role(Role::ToggleAccent)),
             knob: StateValue::new(ShapeStyle::Color(SWITCH.knob_color)),
             label: StateValue::new(ShapeStyle::Role(Role::Label)),
-            track_border: Some((ShapeStyle::Role(Role::Outline), HAIRLINE)),
+            track_border: None,
             knob_border: None,
             knob_shadows: vec![KNOB_SHADOW.into()],
             knob_pressed_scale: SWITCH.knob_pressed_scale,

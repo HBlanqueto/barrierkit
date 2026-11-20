@@ -60,7 +60,7 @@
   --bk-shadow-theme-opacity: 0.25;
   --bk-shadow-slint-knob-offset-y: 1;
   --bk-shadow-slint-knob-blur: 3;
-  --bk-shadow-slint-knob-color: #0d12194d;
+  --bk-shadow-slint-knob-color: #0d12191f;
   --bk-shadow-slint-knob-held-offset-y: 7;
   --bk-shadow-slint-knob-held-blur: 5;
   --bk-shadow-slint-knob-held-color: #0d121913;
@@ -655,6 +655,15 @@
   --bk-settings-search-height: var(--bk-size-control-md);
   --bk-settings-search-padding-x: 4;
   --bk-settings-search-icon: 16;
+  --bk-settings-search-glyph: 18;
+  --bk-settings-search-glyph-stroke: 1.1;
+  --bk-settings-search-glyph-dx: 1.4;
+  --bk-settings-search-glyph-dy: 0.85;
+  --bk-settings-search-clear: 13;
+  --bk-settings-search-clear-glyph: 8.4;
+  --bk-settings-search-clear-glyph-stroke: 1.07;
+  --bk-settings-search-clear-dx: 3;
+  --bk-settings-search-clear-dy: 0.5;
   --bk-settings-search-gap: 4;
   --bk-settings-search-popover-gap: 6;
   --bk-settings-search-popover-max-height: 420;
@@ -1346,6 +1355,7 @@
   --bk-bar-track: #0000000f;
   --bk-level-track: #00000012;
   --bk-level-border: #00000031;
+  --bk-search-clear: #00000089;
   --bk-separator-strong: #0000001a;
   --bk-accent-toggle: #0078f9;
   --bk-contrast-ink: #000000ff;
@@ -1435,6 +1445,7 @@
     --bk-bar-track: #ffffff14;
     --bk-level-track: #ffffff1a;
     --bk-level-border: #69696938;
+    --bk-search-clear: #ffffff95;
     --bk-separator-strong: #ffffff29;
     --bk-accent-toggle: #067eff;
     --bk-contrast-ink: #ffffffff;
@@ -1524,6 +1535,7 @@
   --bk-bar-track: #ffffff14;
   --bk-level-track: #ffffff1a;
   --bk-level-border: #69696938;
+  --bk-search-clear: #ffffff95;
   --bk-separator-strong: #ffffff29;
   --bk-accent-toggle: #067eff;
   --bk-contrast-ink: #ffffffff;
@@ -1612,6 +1624,7 @@
   --bk-bar-track: #ffffff14;
   --bk-level-track: #ffffff1a;
   --bk-level-border: #69696938;
+  --bk-search-clear: #ffffff95;
   --bk-separator-strong: #ffffff29;
   --bk-accent-toggle: #067eff;
   --bk-contrast-ink: #ffffffff;

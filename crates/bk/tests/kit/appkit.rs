@@ -138,6 +138,16 @@ fn controls() -> Vec<(&'static str, Builder)> {
                 .width(Size::px(140.0))
                 .into_element()
         }),
+        ("textfield-filled", || {
+            TextField::new(use_state(|| "Query".to_string()), "Placeholder")
+                .width(Size::px(140.0))
+                .into_element()
+        }),
+        ("search-filled", || {
+            SearchField::new(use_state(|| "Query".to_string()), "Search")
+                .width(Size::px(160.0))
+                .into_element()
+        }),
         ("search", || {
             SearchField::new(state_string(), "Search")
                 .width(Size::px(160.0))

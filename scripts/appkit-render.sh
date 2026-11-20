@@ -8,7 +8,7 @@ scene=${1:-}
 case "$scene" in
     controls | contrast)
         APPKIT_LAYOUT=$out/layout-controls.tsv
-        APPKIT_CONTENT=1600x768
+        APPKIT_CONTENT=1600x832
         APPKIT_TAG=
         ;;
     views | views-contrast)

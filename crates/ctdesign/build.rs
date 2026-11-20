@@ -432,6 +432,7 @@ RING_TRACK Rgba themes.{theme}.ring-track
 BAR_TRACK Rgba themes.{theme}.bar-track
 LEVEL_TRACK Rgba themes.{theme}.level-track
 LEVEL_BORDER Rgba themes.{theme}.level-border
+SEARCH_CLEAR Rgba themes.{theme}.search-clear
 FOCUS_RING_COLOR Rgba themes.{theme}.focus-ring
 CONTRAST ContrastPalette themes.{theme}.contrast
 SHELL ShellPalette components.shell bar=menubar.bg text=menubar.text tile=dock.tile tile_active=dock.tile-active tile_text_active=dock.tile-text-active

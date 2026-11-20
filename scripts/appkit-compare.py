@@ -19,7 +19,7 @@ CONTROLS = [
     "switch-off-regular", "switch-on-regular", "switch-on-disabled", "slider-regular",
     "segmented-regular", "textfield-regular", "search", "popup-regular",
     "stepper-regular", "progress-bar", "ring-regular", "datepicker", "level", "combo",
-    "separator", "help", "box",
+    "separator", "help", "box", "search-filled", "textfield-filled",
 ]
 GLYPH_WIDTH = {name: 18 for name in ("check-off-regular", "check-on-regular", "radio-off-regular", "radio-on-regular")}
 APPKIT = {"light": "aqua", "dark": "darkAqua"}

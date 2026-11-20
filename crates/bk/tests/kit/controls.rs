@@ -920,7 +920,7 @@ fn search_field_clear_button_empties_the_query() {
     let app = AppComponent::new(SearchCase { query });
     let (mut test, _) = TestingRunner::new(app, Size2D::new(200.0, 30.0), |_| {}, 1.0);
     test.sync_and_update();
-    test.click_cursor((180.0, 15.0));
+    test.click_cursor((188.0, 15.0));
     test.sync_and_update();
     assert!(query.peek().is_empty());
 }
