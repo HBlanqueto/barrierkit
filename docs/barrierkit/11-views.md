@@ -302,7 +302,7 @@ Theme::tengen().style(|s: OutlineViewStyle| OutlineViewStyle { row_shape: Shape:
 
 ### `TabView`
 
-Pages chosen from a centered strip of tabs with an icon above the title.
+Pages chosen from a centered strip of tabs with an icon above the title, as in the toolbar tabs of a settings window: each tab is as wide as its title plus 13 and at least 55, with 1 between tabs and no box around them.
 
 ```rust
 TabView::new("Preferences")

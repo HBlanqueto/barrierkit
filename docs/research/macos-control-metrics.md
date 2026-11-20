@@ -121,3 +121,8 @@ Read from the view hierarchy of an `NSAlert` (informational, two buttons) with `
 
 Read from the view tree of an `NSToolbar` window with `~/src/probes/toolbar.swift` on macOS 27.2.1: the title bar is 52 high; the traffic lights are 14 wide at x=19, 42 and 65 and y=19; each platter is a glass capsule 36 high, 8 from the top and bottom, with 8 between platters; a single bordered item is 47 wide, a two-item selection group 74 (a 34 slot twice and 3 on each side, the selected slot a 30 high capsule), the search item 239. The kit's `SETTINGS.toolbar_height` (52), `toolgroup-h` (36) and the 8 gap agree; its `ToolGroup` is a row of 36 slots with separators, not the selection group.
 
+## Toolbar tabs and window corners
+
+- Settings-style tabs (`NSTabViewController` with `tabStyle = .toolbar`, `~/src/probes/tabs.swift`): the title bar is 88 (32 plus a 56 toolbar), each tab is a platter 48 high whose `NSGlassEffectView.cornerRadius` is 8, as wide as its title plus 13 and never under 55, with 1 between tabs; the strip is centered and has no box of its own. The selected tab shows its icon and title in the accent, the others in the secondary label. The toolbar's single and group platters report `cornerRadius` 18, a capsule.
+- Window corner: the alpha of a window capture (`-o`) reaches the full edge 15 rows below the top in the plain titled window, in the toolbar-tab window and in the unified toolbar window alike, so no style got the 26 the kit assumes for `unified`. Whether the kit's nominal radius plus `WINDOW_CORNER.expansion` draws that extent has not been compared; it is the compositor that draws the window shape.
+

@@ -382,12 +382,13 @@
     },
     "toolbar-tabs": {
       "container": {
-        "padding": 6,
-        "gap": 4,
+        "padding": 0,
+        "gap": 1,
         "radius": "radius.md"
       },
       "tab": {
-        "min-width": 76,
+        "min-width": 55,
+        "padding-x": 6.5,
         "padding-top": 6,
         "padding-bottom": 5,
         "radius": "radius.sm",

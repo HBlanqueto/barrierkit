@@ -409,10 +409,11 @@
   --bk-segmented-segment-padding-x: 12;
   --bk-segmented-font-size: 13;
   --bk-segmented-font-weight: 400;
-  --bk-toolbar-tabs-container-padding: 6;
-  --bk-toolbar-tabs-container-gap: 4;
+  --bk-toolbar-tabs-container-padding: 0;
+  --bk-toolbar-tabs-container-gap: 1;
   --bk-toolbar-tabs-container-radius: var(--bk-radius-md);
-  --bk-toolbar-tabs-tab-min-width: 76;
+  --bk-toolbar-tabs-tab-min-width: 55;
+  --bk-toolbar-tabs-tab-padding-x: 6.5;
   --bk-toolbar-tabs-tab-padding-top: 6;
   --bk-toolbar-tabs-tab-padding-bottom: 5;
   --bk-toolbar-tabs-tab-radius: var(--bk-radius-sm);

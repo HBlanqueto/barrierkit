@@ -763,6 +763,7 @@ pub struct ToolbarTabsMetrics {
     pub gap: f32,
     pub radius: f32,
     pub tab_min_width: f32,
+    pub tab_padding_x: f32,
     pub tab_padding_top: f32,
     pub tab_padding_bottom: f32,
     pub tab_radius: f32,

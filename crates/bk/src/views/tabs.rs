@@ -141,9 +141,9 @@ impl Component for ToolbarTab {
             .min_width(Size::px(style.tab_min_width))
             .padding(Gaps::new(
                 style.tab_padding.0,
-                0.0,
+                style.tab_padding_x,
                 style.tab_padding.1,
-                0.0,
+                style.tab_padding_x,
             ))
             .direction(Direction::Vertical)
             .cross_align(Alignment::Center)
