@@ -1137,7 +1137,7 @@
   --bk-shell-menu-glass-spread: 2.0;
   --bk-shell-menu-dark-ink-above: 0.4;
   --bk-shell-menu-panel-padding: 5;
-  --bk-shell-menu-panel-min-width: 220;
+  --bk-shell-menu-panel-min-width: 0;
   --bk-shell-menu-panel-max-width: 640;
   --bk-shell-menu-panel-radius: 14;
   --bk-shell-menu-panel-bg: var(--bk-bg-raised);
@@ -1148,12 +1148,12 @@
   --bk-shell-menu-item-font-size: 13;
   --bk-shell-menu-item-shortcut-gap: 24;
   --bk-shell-menu-item-fg: var(--bk-ink);
-  --bk-shell-menu-item-shortcut-color: var(--bk-ink-muted);
+  --bk-shell-menu-item-shortcut-color: var(--bk-ink-faint);
   --bk-shell-menu-item-hover-bg: var(--bk-accent);
   --bk-shell-menu-item-hover-fg: var(--bk-on-accent);
   --bk-shell-menu-item-disabled-fg: var(--bk-ink-faint);
   --bk-shell-menu-glass-fg: var(--bk-glass-ink);
-  --bk-shell-menu-glass-shortcut-color: var(--bk-glass-ink-muted);
+  --bk-shell-menu-glass-shortcut-color: var(--bk-glass-ink-faint);
   --bk-shell-menu-glass-disabled-fg: var(--bk-glass-ink-faint);
   --bk-shell-menu-separator-height: 1;
   --bk-shell-menu-separator-margin-y: 5;
