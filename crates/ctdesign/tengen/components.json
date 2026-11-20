@@ -120,7 +120,7 @@
     },
     "stepper": {
       "width": 20,
-      "height": 26,
+      "height": 24,
       "radius": "radius.button",
       "chevron": 13,
       "gap": 8

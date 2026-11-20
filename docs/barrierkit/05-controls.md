@@ -149,7 +149,7 @@ Module `compact`.
 
 - `IconButton` is 30 × 30 with a 16 symbol (`ICON_BUTTON`). Inside a
   [`ToolGroup`](#toolbar-controls) it becomes a 36 capsule, the `TOOLGROUP` height.
-- `Stepper` shows the value and, 8 to its right, the arrows: 20 × 26, up above down
+- `Stepper` shows the value and, 8 to its right, the arrows: 20 × 24, up above down
   (`STEPPER`). ↑ and ↓ also step. An arrow is dimmed at its limit.
 - `ToggleGroup` is a row of independent toggles on one background, for text formatting.
   `Face` (`Bold`, `Italic`, `Underline`) sets how `text` is drawn. A toggle that is on takes

@@ -23,7 +23,7 @@ Heights agree with `components.json` for button, checkbox, radio, switch, pop-up
 
 ## Open differences
 
-- `stepper.height` is 26 in `components.json`; AppKit reports 24 for the regular stepper. Changing it moves the compact kit golden, so it needs a Linux run to regenerate.
+- `stepper.height` follows the measured 24; the compact kit golden needs regenerating on Linux.
 - The regular slider reports 16, `slider.height` is 20 with a 20 × 16 knob, which matches the large size's track area. Not yet compared pixel by pixel.
 
 ## Semantic colors (RGBA)
