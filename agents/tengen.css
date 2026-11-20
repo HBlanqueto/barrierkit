@@ -907,6 +907,14 @@
   --bk-shell-menubar-battery-icon-1: 12;
   --bk-shell-menubar-battery-low: 20;
   --bk-shell-menubar-battery-track: 0.5;
+  --bk-shell-menubar-battery-body-width: 24.0;
+  --bk-shell-menubar-battery-body-height: 12.0;
+  --bk-shell-menubar-battery-digit-pitch: 5.9;
+  --bk-shell-menubar-battery-digit-height: 7.27;
+  --bk-shell-menubar-battery-hundred-height: 6.25;
+  --bk-shell-menubar-battery-hundred-gap: 1.5;
+  --bk-shell-menubar-battery-bolt-gap: 0.75;
+  --bk-shell-menubar-battery-level-min: 1.5;
   --bk-shell-dock-tilesize: 64;
   --bk-shell-dock-tilesize-min: 16;
   --bk-shell-dock-tilesize-max: 128;

@@ -2,7 +2,7 @@ use crate::image::{decode, pixel};
 use bk::ProbeExt;
 use bk::traffic::TrafficLights;
 use ctappearance::traffic::{TrafficInput, visual};
-use ctappearance::{AppearanceConfig, Resolved, resolve};
+use ctappearance::{AppearanceConfig, Resolved, load_appearance, load_dominant, resolve};
 use ctdesign::{ButtonKind, Rgba};
 use freya_core::element::ElementExt;
 use freya_core::integration::AppComponent;
@@ -183,7 +183,7 @@ fn fixed_width_clicks_call_the_expected_actions() {
     let (mut test, _) = TestingRunner::new(app, Size2D::new(80.0, 40.0), |_| {}, 1.0);
     test.sync_and_update();
 
-    let centers = [(6.0, 6.0), (26.0, 6.0), (46.0, 6.0)];
+    let centers = [(6.0, 6.0), (29.0, 6.0), (52.0, 6.0)];
     for (x, y) in centers {
         test.click_cursor((x, y));
         test.sync_and_update();
@@ -317,7 +317,7 @@ fn moving_the_pointer_away_after_a_press_clears_hover_and_press() {
     test.sync_and_update();
     let (image, width) = render_png(&mut test);
     let fill = pixel(&image, width, 6, 1);
-    compare(fill, resolved().lights[0]);
+    compare(fill, resolve(&load_appearance(), load_dominant()).lights[0]);
     assert_eq!(
         pixel(&image, width, 6, 6),
         fill,

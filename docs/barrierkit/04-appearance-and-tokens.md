@@ -993,7 +993,7 @@ focus-mode bar.
 | `ABOUT_APP_WIDTH`, `ABOUT_APP_HEIGHT`, `ABOUT_APP_ICON` | The «About ‹app›» window and its icon |
 | `CONFIRM_WIDTH`, `CONFIRM_HEIGHT`, `CONFIRM_ICON`, `CONFIRM_GLYPH` | The restart, shut down and log out confirmation: its size, and its round icon and glyph |
 | `FORCE_QUIT_WIDTH`, `FORCE_QUIT_HEIGHT`, `FORCE_QUIT_ROW_HEIGHT`, `FORCE_QUIT_ICON` | The «Force Quit» window, its rows and their app icons |
-| `MENUBAR_BATTERY_ICON`, `MENUBAR_BATTERY_LOW`, `MENUBAR_BATTERY_TRACK` | The battery in the menu bar, drawn as on macOS 27 with the percentage inside: its size, the percentage from which it turns red, and the opacity of the ink in its empty part |
+| `MENUBAR_BATTERY_ICON`, `MENUBAR_BATTERY_LOW`, `MENUBAR_BATTERY_TRACK`, `MENUBAR_BATTERY_BODY_WIDTH`, `MENUBAR_BATTERY_BODY_HEIGHT`, `MENUBAR_BATTERY_DIGIT_PITCH`, `MENUBAR_BATTERY_DIGIT_HEIGHT`, `MENUBAR_BATTERY_HUNDRED_HEIGHT`, `MENUBAR_BATTERY_HUNDRED_GAP`, `MENUBAR_BATTERY_BOLT_GAP`, `MENUBAR_BATTERY_LEVEL_MIN` | The battery in the menu bar, drawn as on macOS 27 with the percentage inside: its size, the percentage from which it turns red, the opacity of the ink in its empty part, and the metrics of the digits, the hundred mark and the bolt knocked out of its body |
 
 ### Compositor
 

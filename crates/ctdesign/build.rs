@@ -199,6 +199,14 @@ MENUBAR_SYSTEM_MENU_MIN_WIDTH f32 components.shell.menubar.system-menu-min-width
 MENUBAR_TITLE_BLEED f32 components.shell.menubar.title-open.bleed
 MENUBAR_BATTERY_LOW f64 components.shell.menubar.battery.low
 MENUBAR_BATTERY_TRACK f32 components.shell.menubar.battery.track
+MENUBAR_BATTERY_BODY_WIDTH f32 components.shell.menubar.battery.body-width
+MENUBAR_BATTERY_BODY_HEIGHT f32 components.shell.menubar.battery.body-height
+MENUBAR_BATTERY_DIGIT_PITCH f32 components.shell.menubar.battery.digit-pitch
+MENUBAR_BATTERY_DIGIT_HEIGHT f32 components.shell.menubar.battery.digit-height
+MENUBAR_BATTERY_HUNDRED_HEIGHT f32 components.shell.menubar.battery.hundred-height
+MENUBAR_BATTERY_HUNDRED_GAP f32 components.shell.menubar.battery.hundred-gap
+MENUBAR_BATTERY_BOLT_GAP f32 components.shell.menubar.battery.bolt-gap
+MENUBAR_BATTERY_LEVEL_MIN f32 components.shell.menubar.battery.level-min
 DOCK_TILESIZE i32 components.shell.dock.tilesize
 DOCK_TILESIZE_MIN i32 components.shell.dock.tilesize-min
 DOCK_TILESIZE_MAX i32 components.shell.dock.tilesize-max

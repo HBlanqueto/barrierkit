@@ -1037,7 +1037,15 @@
         "battery": {
           "icon": [27, 12],
           "low": 20,
-          "track": 0.5
+          "track": 0.5,
+          "body-width": 24.0,
+          "body-height": 12.0,
+          "digit-pitch": 5.9,
+          "digit-height": 7.27,
+          "hundred-height": 6.25,
+          "hundred-gap": 1.5,
+          "bolt-gap": 0.75,
+          "level-min": 1.5
         }
       },
       "dock": {
