@@ -5,9 +5,9 @@ use ctdesign::{
     LEVEL_INDICATOR_COLORS_DARK, LEVEL_TRACK_DARK, LEVEL_TRACK_DARK_TINT, LEVEL_TRACK_LIGHT,
 };
 
-use super::button::rounded;
 use super::{
-    ColorEffect, ControlStyle, ShadowStyle, Shape, ShapeStyle, StateValue, per_look, system_effect,
+    ColorEffect, ControlStyle, CornerStyle, ShadowStyle, Shape, ShapeStyle, StateValue, per_look,
+    system_effect,
 };
 
 /// States: only `normal`.
@@ -19,7 +19,7 @@ pub struct CapacityIndicatorStyle {
     /// Tengen, with `height`: `LEVEL_INDICATOR.height`, `LEVEL_INDICATOR.segment_gap` between
     /// the cells of `discrete`.
     pub segment_gap: f32,
-    /// Tengen: `RoundedRectangle { radius: LEVEL_INDICATOR.radius, style: Circular }`, the bar
+    /// Tengen: `RoundedRectangle { radius: LEVEL_INDICATOR.radius, style: Continuous }`, the bar
     /// or each cell.
     pub shape: Shape,
     /// Tengen: `Color` of `LEVEL_TRACK`.
@@ -35,10 +35,14 @@ pub struct CapacityIndicatorStyle {
     pub critical: StateValue<ShapeStyle>,
     /// Tengen: `Some((Color of LEVEL_BORDER, HAIRLINE))`.
     pub border: Option<(ShapeStyle, f32)>,
-    /// Tengen: `LEVEL_INDICATOR.discrete_border`, `discrete_border_contrast_light` or
-    /// `discrete_border_contrast_dark` under Increase Contrast: the factor by which a filled cell of
-    /// `discrete` darkens the color of its level for its border.
+    /// Tengen: `LEVEL_INDICATOR.discrete_border`, `discrete_border_contrast_light` in light under
+    /// Increase Contrast: the factor by which the filled part of the bar, or a filled cell of
+    /// `discrete`, darkens the color of its level for its border.
     pub cell_border_shade: f32,
+    /// Tengen: `LEVEL_INDICATOR.edge_softness`: how far the border of the bar or of a cell blends
+    /// into its fill, in three rings of half a hairline: the border, then the border mixed this
+    /// much with the fill, then the fill mixed this much with the border.
+    pub edge_softness: f32,
     /// Tengen: empty, for the bar or each cell.
     pub shadows: Vec<ShadowStyle>,
     /// Tengen: `1.0`.
@@ -65,7 +69,10 @@ impl ControlStyle for CapacityIndicatorStyle {
         Self {
             height: LEVEL_INDICATOR.height,
             segment_gap: LEVEL_INDICATOR.segment_gap,
-            shape: rounded(LEVEL_INDICATOR.radius),
+            shape: Shape::RoundedRectangle {
+                radius: LEVEL_INDICATOR.radius,
+                style: CornerStyle::Continuous,
+            },
             track: StateValue::new(ShapeStyle::Color(per_look(
                 [LEVEL_TRACK_LIGHT, LEVEL_TRACK_DARK, LEVEL_TRACK_DARK_TINT],
                 [
@@ -96,10 +103,11 @@ impl ControlStyle for CapacityIndicatorStyle {
                 [LEVEL_INDICATOR.discrete_border; 3],
                 [
                     LEVEL_INDICATOR.discrete_border_contrast_light,
-                    LEVEL_INDICATOR.discrete_border_contrast_dark,
-                    LEVEL_INDICATOR.discrete_border_contrast_dark,
+                    LEVEL_INDICATOR.discrete_border,
+                    LEVEL_INDICATOR.discrete_border,
                 ],
             ),
+            edge_softness: LEVEL_INDICATOR.edge_softness,
             shadows: Vec::new(),
             opacity: 1.0,
             effect: system_effect,

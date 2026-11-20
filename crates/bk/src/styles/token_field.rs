@@ -13,18 +13,21 @@ use super::{
 /// States: only `normal`; a token is selected with the arrows or a click.
 #[derive(Clone, Debug)]
 pub struct TokenFieldStyle {
-    /// Tengen, with `padding_x`: `TEXT_FIELD.height`, the least height and the height of each
-    /// line, `TEXT_FIELD.padding_x`.
+    /// Tengen: `TEXT_FIELD.height`, the least height and the height of each line.
     pub height: f32,
-    /// Tengen, with `height`: `TEXT_FIELD.height`, the least height and the height of each
-    /// line, `TEXT_FIELD.padding_x`.
+    /// Tengen: `TOKEN_FIELD.padding_x`, where the first token starts.
     pub padding_x: f32,
     /// Tengen: `TOKEN_FIELD.gap`, between tokens and between wrapped lines.
     pub gap: f32,
     /// Tengen: `TOKEN_FIELD.token_height`.
     pub token_height: f32,
+    /// Tengen: `TOKEN_FIELD.token_drop`, how far below the center of its line each token sits.
+    pub token_drop: f32,
     /// Tengen: `TOKEN_FIELD.token_padding_x`.
     pub token_padding_x: f32,
+    /// Tengen: `TOKEN_FIELD.token_label_lift`, how far the label of a token sits above the center
+    /// of the token.
+    pub token_label_lift: f32,
     /// Tengen: `TOKEN_FIELD.input_min_width`, the text input after the tokens.
     pub input_width: f32,
     /// Tengen: `RoundedRectangle { radius: TEXT_FIELD.radius, style: Circular }`.
@@ -63,10 +66,12 @@ impl ControlStyle for TokenFieldStyle {
     fn tengen() -> Self {
         Self {
             height: TEXT_FIELD.height,
-            padding_x: TEXT_FIELD.padding_x,
+            padding_x: TOKEN_FIELD.padding_x,
             gap: TOKEN_FIELD.gap,
             token_height: TOKEN_FIELD.token_height,
+            token_drop: TOKEN_FIELD.token_drop,
             token_padding_x: TOKEN_FIELD.token_padding_x,
+            token_label_lift: TOKEN_FIELD.token_label_lift,
             input_width: TOKEN_FIELD.input_min_width,
             shape: field_shape(),
             token_shape: Shape::RoundedRectangle {

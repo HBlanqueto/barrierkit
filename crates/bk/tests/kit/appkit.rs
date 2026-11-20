@@ -481,7 +481,7 @@ fn render_scene(
     content: (f32, f32),
     press: Option<(f32, f32)>,
 ) -> Vec<u8> {
-    let scale = 4.0_f64;
+    let scale = scene_scale();
     let resolved = resolve(
         &AppearanceConfig {
             color_scheme: if dark {
@@ -518,6 +518,13 @@ fn render_scene(
         test.sync_and_update();
     }
     test.render().as_bytes().to_vec()
+}
+
+fn scene_scale() -> f64 {
+    std::env::var("APPKIT_SCALE")
+        .ok()
+        .and_then(|text| text.parse().ok())
+        .unwrap_or(4.0)
 }
 
 fn scene_content() -> (f32, f32) {

@@ -68,6 +68,7 @@ pub(crate) fn token_chip(token: String, selected: bool, style: &TokenFieldStyle)
             LayoutDirection::LeftToRight,
         ))
         .main_align(Alignment::Center)
+        .offset_y(-style.token_label_lift)
         .painted(&paints, fill)
         .a11y_role(AccessibilityRole::ListItem)
         .a11y_alt(token.clone())
@@ -179,6 +180,7 @@ impl Component for TokenField {
                 .key(key)
                 .height(Size::px(height))
                 .main_align(Alignment::Center)
+                .offset_y(style.token_drop)
                 .child(item)
                 .into_element()
         };

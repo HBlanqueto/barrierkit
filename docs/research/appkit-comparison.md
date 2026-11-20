@@ -80,6 +80,16 @@ table on stdout and `target/appkit/sheet-*.png`.
    scripts/appkit-render.sh menu            # kit-menu-{,marks-}{light,dark}.png
    ```
 
+   AppKit draws the level and rating indicators from bitmaps, so a 4x capture shows them
+   resampled and soft. The controls probe also writes `<prefix>@2x.png`, which is what a Retina
+   screen shows. To compare at 2x, render the kit with `APPKIT_SCALE=2` into another folder (copy
+   `layout-controls.tsv` into it) and run the comparison with the same `APPKIT_SCALE` and `APPKIT_OUT`:
+
+   ```sh
+   APPKIT_OUT=target/appkit2x APPKIT_SCALE=2 scripts/appkit-render.sh controls
+   APPKIT_OUT=target/appkit2x APPKIT_SCALE=2 scripts/appkit-compare.py controls
+   ```
+
    `controls` and `contrast` also render `kit-pressed-<name>-*.png`: one scene per pressed
    control, with the pointer over it and the button down. AppKit has no hover look, so the
    kit's hover colors are not compared.
@@ -119,5 +129,5 @@ table on stdout and `target/appkit/sheet-*.png`.
 - The kit draws Inter or Adwaita Sans and AppKit draws SF Pro with macOS font
   smoothing, so glyph weight differs by about 40% of the ink and text widths
   differ. Judge text by its position and baseline.
-- `APPKIT_CAPTURES` and `APPKIT_OUT` change the capture and output folders.
+- `APPKIT_CAPTURES` and `APPKIT_OUT` change the capture and output folders; `APPKIT_SCALE` (4 by default) picks the capture size, and 2 is the one AppKit's bitmaps are made for.
 - The measured values are in [`macos-control-metrics.md`](macos-control-metrics.md).

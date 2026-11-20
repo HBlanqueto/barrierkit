@@ -576,7 +576,7 @@ pub struct LevelIndicatorMetrics {
     pub segment_gap: f32,
     pub discrete_border: f32,
     pub discrete_border_contrast_light: f32,
-    pub discrete_border_contrast_dark: f32,
+    pub edge_softness: f32,
     pub relevancy_height: f32,
     pub relevancy_line: f32,
     pub relevancy_gap: f32,
@@ -619,8 +619,11 @@ pub struct DatePickerMetrics {
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct TokenFieldMetrics {
+    pub padding_x: f32,
     pub token_height: f32,
+    pub token_drop: f32,
     pub token_padding_x: f32,
+    pub token_label_lift: f32,
     pub token_radius: f32,
     pub gap: f32,
     pub input_min_width: f32,
@@ -975,6 +978,12 @@ pub struct CalendarPalette {
     pub border_width: f32,
     pub edge: Rgba,
     pub separator: Rgba,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct RelevancyPalette {
+    pub fill: Rgba,
+    pub line: Rgba,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

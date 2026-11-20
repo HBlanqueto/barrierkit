@@ -19,6 +19,26 @@ impl Rgba {
         }
     }
 
+    pub fn blend(self, other: Self, amount: f32) -> Self {
+        let amount = amount.clamp(0.0, 1.0);
+        let from = self.premultiplied();
+        let to = other.premultiplied();
+        let a = from[3] + (to[3] - from[3]) * amount;
+        let channel = |index: usize| {
+            if a > 0.0 {
+                (from[index] + (to[index] - from[index]) * amount) / a
+            } else {
+                0.0
+            }
+        };
+        Self {
+            r: channel(0),
+            g: channel(1),
+            b: channel(2),
+            a,
+        }
+    }
+
     pub fn darken(self, amount: f32) -> Self {
         self.mix(Self::rgb8(0, 0, 0), amount)
     }

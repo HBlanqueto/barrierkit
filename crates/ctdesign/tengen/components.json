@@ -58,8 +58,8 @@
       "stars": 5,
       "segment-gap": 0,
       "discrete-border": 0.87,
-      "discrete-border-contrast-light": 0.416,
-      "discrete-border-contrast-dark": 0.885,
+      "discrete-border-contrast-light": 0.35,
+      "edge-softness": 0.115,
       "relevancy-height": 12,
       "relevancy-line": 1,
       "relevancy-gap": 1,
@@ -102,8 +102,11 @@
       "segment-radius": 3
     },
     "token-field": {
+      "padding-x": 10,
       "token-height": 15,
-      "token-padding-x": 17,
+      "token-drop": 0.5,
+      "token-padding-x": 15.5,
+      "token-label-lift": 1,
       "token-radius": 2,
       "gap": 7,
       "input-min-width": 12

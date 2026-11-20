@@ -437,6 +437,9 @@ LEVEL_BORDER Rgba themes.{theme}.level-border
 SEARCH_CLEAR Rgba themes.{theme}.search-clear
 DISABLED DisabledPalette themes.{theme}.disabled
 GAUGE_CONTRAST GaugeContrast themes.{theme}.gauge-contrast
+RELEVANCY_TRACK Rgba themes.{theme}.relevancy-track
+RELEVANCY RelevancyPalette themes.{theme}.relevancy
+RELEVANCY_CONTRAST RelevancyPalette themes.{theme}.relevancy-contrast
 TOKEN_FILL Rgba themes.{theme}.token-fill
 TOKEN_FILL_CONTRAST Rgba themes.{theme}.token-fill-contrast
 CALENDAR CalendarPalette themes.{theme}.calendar

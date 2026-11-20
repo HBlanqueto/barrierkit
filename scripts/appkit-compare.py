@@ -11,7 +11,7 @@ from PIL import Image
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CAPTURES = os.path.expanduser(os.environ.get("APPKIT_CAPTURES", "~/src/captures"))
 KIT = os.environ.get("APPKIT_OUT", os.path.join(ROOT, "target", "appkit"))
-SCALE = 4
+SCALE = int(os.environ.get("APPKIT_SCALE", "4"))
 MARGIN = 6
 CONTROLS = [
     "push-small", "push-regular", "push-large", "default-regular", "push-disabled",
@@ -33,7 +33,7 @@ CONTRAST = {"light": "hc-aquaHC", "dark": "hc-darkHC"}
 
 def capture(family, mode, backdrop, tag):
     name = (CONTRAST if tag.endswith("hc") else APPKIT)[mode]
-    return os.path.join(CAPTURES, family, f"{name}-{backdrop}@4x.png")
+    return os.path.join(CAPTURES, family, f"{name}-{backdrop}@{SCALE}x.png")
 
 
 def kit_image(mode, backdrop, tag):

@@ -67,6 +67,42 @@ pub fn level_color(value: f32, warning: f32, critical: f32) -> usize {
     }
 }
 
+fn inset(radius: CornerRadius, amount: f32) -> CornerRadius {
+    CornerRadius::new_all((radius.top_left() - amount).max(0.0)).with_smoothing(radius.smoothing())
+}
+
+fn soft_cell(radius: CornerRadius, border: Rgba, fill: Rgba, softness: f32) -> Rect {
+    let step = HAIRLINE / 2.0;
+    let rings = [
+        border,
+        border.blend(fill, softness),
+        fill.blend(border, softness),
+    ];
+    let center = rect()
+        .width(Size::fill())
+        .height(Size::fill())
+        .corner_radius(inset(radius, rings.len() as f32 * step))
+        .background(color(fill));
+    rings
+        .iter()
+        .enumerate()
+        .rev()
+        .fold(center, |inner, (index, ring)| {
+            rect()
+                .width(Size::fill())
+                .height(Size::fill())
+                .padding(Gaps::new_all(step))
+                .corner_radius(inset(radius, index as f32 * step))
+                .border(
+                    Border::new()
+                        .width(step)
+                        .alignment(BorderAlignment::Inner)
+                        .fill(color(*ring)),
+                )
+                .child(inner)
+        })
+}
+
 impl Component for CapacityIndicator {
     fn render(&self) -> impl IntoElement {
         let style: CapacityIndicatorStyle = resolve(&self.style);
@@ -78,23 +114,27 @@ impl Component for CapacityIndicator {
         let radius = style
             .shape
             .corner_radius(height, height, LayoutDirection::LeftToRight);
-        let cell = |filled: f32| {
-            shadowed(
-                rect()
-                    .height(Size::fill())
-                    .corner_radius(radius)
-                    .overflow(Overflow::Clip)
-                    .painted(&paints, &style.track)
-                    .bordered(&paints, style.border.as_ref())
-                    .child(
-                        rect()
-                            .width(Size::percent(filled * 100.0))
-                            .height(Size::fill())
-                            .corner_radius(radius)
-                            .painted(&paints, fill),
-                    ),
-                &style.shadows,
+        let border = style
+            .border
+            .as_ref()
+            .map_or(Rgba::TRANSPARENT, |(paint, _)| paints.color(paint));
+        let shade = style.cell_border_shade;
+        let track_cell = || {
+            soft_cell(
+                radius,
+                border,
+                paints.color(style.track.resolve(ControlState::default())),
+                style.edge_softness,
             )
+        };
+        let filled_cell = |level: Rgba| {
+            let rim = Rgba {
+                r: level.r * shade,
+                g: level.g * shade,
+                b: level.b * shade,
+                ..level
+            };
+            soft_cell(radius, rim, level, style.edge_softness)
         };
         let bar = rect()
             .a11y_role(AccessibilityRole::Meter)
@@ -102,57 +142,40 @@ impl Component for CapacityIndicator {
             .a11y_builder(move |node| node.set_numeric_value(f64::from(value)))
             .width(Size::fill())
             .height(Size::px(height));
+        let level = paints.color(fill.resolve(ControlState::default()));
+        let mut width = use_state(|| 0.0f32);
         let bar = match self.segments {
-            None => bar.child(cell(value).width(Size::fill())),
+            None => bar.child(shadowed(
+                rect()
+                    .width(Size::fill())
+                    .height(Size::fill())
+                    .on_sized(move |event: Event<SizedEventData>| {
+                        width.set_if_modified(event.area.width());
+                    })
+                    .child(track_cell().width(Size::fill()))
+                    .maybe(value > 0.0, |el| {
+                        el.child(
+                            rect()
+                                .position(Position::new_absolute().top(0.0).left(0.0))
+                                .layer(1)
+                                .width(Size::px(*width.read() * value))
+                                .height(Size::px(height))
+                                .overflow(Overflow::Clip)
+                                .child(filled_cell(level).width(Size::px(*width.read()))),
+                        )
+                    }),
+                &style.shadows,
+            )),
             Some(segments) => bar
                 .direction(Direction::Horizontal)
                 .content(torin::prelude::Content::flex())
                 .spacing(style.segment_gap)
                 .children((0..segments).map(|segment| {
                     let filled = (value * segments as f32 - segment as f32).clamp(0.0, 1.0);
-                    let border = style
-                        .border
-                        .as_ref()
-                        .map_or(Rgba::TRANSPARENT, |(paint, _)| paints.color(paint));
                     if filled.round() == 0.0 {
-                        return rect()
-                            .width(Size::flex(1.0))
-                            .height(Size::fill())
-                            .padding(Gaps::new_all(HAIRLINE))
-                            .child(
-                                rect()
-                                    .width(Size::fill())
-                                    .height(Size::fill())
-                                    .corner_radius(radius)
-                                    .painted(&paints, &style.track)
-                                    .border(
-                                        Border::new()
-                                            .width(HAIRLINE)
-                                            .alignment(BorderAlignment::Outer)
-                                            .fill(color(border)),
-                                    ),
-                            )
-                            .into_element();
+                        return track_cell().width(Size::flex(1.0)).into_element();
                     }
-                    let level = paints.color(fill.resolve(ControlState::default()));
-                    let shade = style.cell_border_shade;
-                    rect()
-                        .width(Size::flex(1.0))
-                        .height(Size::fill())
-                        .corner_radius(radius)
-                        .background(color(level))
-                        .border(
-                            Border::new()
-                                .width(HAIRLINE)
-                                .alignment(BorderAlignment::Inner)
-                                .fill(color(Rgba {
-                                    r: level.r * shade,
-                                    g: level.g * shade,
-                                    b: level.b * shade,
-                                    ..level
-                                })),
-                        )
-                        .into_element()
+                    filled_cell(level).width(Size::flex(1.0)).into_element()
                 })),
         };
         dimmed(bar, style.opacity)

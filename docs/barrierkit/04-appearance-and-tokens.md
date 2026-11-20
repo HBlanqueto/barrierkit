@@ -816,13 +816,14 @@ A color, size or duration never goes into `bk`. It goes into Tengen:
 
 | Type | What it is |
 |---|---|
-| `Rgba` | sRGB color with straight alpha, channels from 0 to 1. `TRANSPARENT`, `rgb8`, `rgba8`, `to_rgba8`, `premultiplied`, `mix` (keeps its own alpha), `darken`, `lighten`, `to_linear`, `from_linear`, `relative_luminance`, `contrast_ratio`, `to_hsl`, `from_hsl`. |
+| `Rgba` | sRGB color with straight alpha, channels from 0 to 1. `TRANSPARENT`, `rgb8`, `rgba8`, `to_rgba8`, `premultiplied`, `mix` (keeps its own alpha), `blend` (mixes with alpha, premultiplied), `darken`, `lighten`, `to_linear`, `from_linear`, `relative_luminance`, `contrast_ratio`, `to_hsl`, `from_hsl`. |
 | `Font` | `family`, `size`, `line_height` (pixels) and `weight`. |
 | `Palette` | Base colors of a theme: `titlebar_bg`, `hairline`, `inner_line`, `panel_inner_line`, `outer_border`, `title`, `text`, `ink_strong`, `ink_muted`, `ink_faint`, `line`, `line_strong`, `separator`, `accent`, `selected_content`, `accent_toggle`, `control`, `control_disabled`, `accent_inactive`, `on_accent`, `danger`, `traffic_lights_inactive`, `traffic_rim`, `scrim`, `selected_control`, `card_border`, `separator_strong`, `selected_content_inactive`, `combo_button`, `segment_divider`, `accent_ring`. |
 | `ContrastPalette` | What `Palette::contrasted` replaces with Increase Contrast: `ink`, `ink_muted`, `ink_faint`, `separator`, `line_strong`, `bg_control`, `bg_control_disabled`, `system_fill`, `text_background`, `accent`, `selected_content`, `accent_toggle`, `accent_toggle_disabled`, `accent_ring` and `focus_ring`; `CONTRAST_LIGHT`, `CONTRAST_DARK`, `CONTRAST_DARK_TINT`. |
 | `DisabledPalette` | The fixed fills of disabled controls, measured from AppKit: `off`, `on`, `slider_fill`, `switch_off`, `stepper_chevron`, `segment` and `segment_label`; `DISABLED_LIGHT`, `DISABLED_DARK`, `DISABLED_DARK_TINT` and the `DISABLED_CONTRAST_*` set under Increase Contrast. |
 | `PressedPalette` | The fills of pressed controls: `bezel`, `accent`, `toggle_accent` and `off`; `PRESSED_*` and `PRESSED_CONTRAST_*`. |
 | `GaugeContrast` | `ring_track`, `level_track` and `level_border` of the gauges under Increase Contrast; `GAUGE_CONTRAST_*`. |
+| `RelevancyPalette` | The `fill` behind the lines of a relevancy indicator and its `line`, measured from AppKit; `RELEVANCY_*` and `RELEVANCY_CONTRAST_*`. Its track is `RELEVANCY_TRACK_*`. |
 | `CalendarPalette` | The card of a graphical date picker: `background`, `border`, `border_width`, `edge` (the line along its bottom) and `separator` (under the weekdays); `CALENDAR_*` and `CALENDAR_CONTRAST_*`. |
 | `FocusPair` | A color for the focused window and one for the unfocused. |
 | `PanelLine` | Inner line of a focused panel, menu or dialog: `sides`, `edges` (top and bottom) and the `glow` under the edges. |
