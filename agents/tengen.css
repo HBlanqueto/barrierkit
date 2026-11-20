@@ -116,7 +116,16 @@
   --bk-image-well-inset: 4;
   --bk-image-well-drop-border: 2;
   --bk-level-indicator-height: 16;
-  --bk-level-indicator-radius: 2;
+  --bk-level-indicator-ring-radii: 2.09 1.72 0.65 0.05;
+  --bk-level-indicator-ring-radii-0: 2.09;
+  --bk-level-indicator-ring-radii-1: 1.72;
+  --bk-level-indicator-ring-radii-2: 0.65;
+  --bk-level-indicator-ring-radii-3: 0.05;
+  --bk-level-indicator-bottom: 0.125 0.55 0.11 0.11;
+  --bk-level-indicator-bottom-0: 0.125;
+  --bk-level-indicator-bottom-1: 0.55;
+  --bk-level-indicator-bottom-2: 0.11;
+  --bk-level-indicator-bottom-3: 0.11;
   --bk-level-indicator-star: 17;
   --bk-level-indicator-star-pitch: 12;
   --bk-level-indicator-star-drop: 0.4;

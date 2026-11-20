@@ -1,13 +1,13 @@
 use ctdesign::{
     GAUGE_CONTRAST_DARK, GAUGE_CONTRAST_DARK_TINT, GAUGE_CONTRAST_LIGHT, HAIRLINE,
-    LEVEL_BORDER_DARK, LEVEL_BORDER_DARK_TINT, LEVEL_BORDER_LIGHT, LEVEL_INDICATOR,
+    LEVEL_BORDER_DARK, LEVEL_BORDER_DARK_TINT, LEVEL_BORDER_LIGHT, LEVEL_BOTTOM, LEVEL_INDICATOR,
     LEVEL_INDICATOR_COLORS, LEVEL_INDICATOR_COLORS_CONTRAST, LEVEL_INDICATOR_COLORS_CONTRAST_DARK,
-    LEVEL_INDICATOR_COLORS_DARK, LEVEL_TRACK_DARK, LEVEL_TRACK_DARK_TINT, LEVEL_TRACK_LIGHT,
+    LEVEL_INDICATOR_COLORS_DARK, LEVEL_RING_RADII, LEVEL_TRACK_DARK, LEVEL_TRACK_DARK_TINT,
+    LEVEL_TRACK_LIGHT,
 };
 
 use super::{
-    ColorEffect, ControlStyle, CornerStyle, ShadowStyle, Shape, ShapeStyle, StateValue, per_look,
-    system_effect,
+    ColorEffect, ControlStyle, ShadowStyle, ShapeStyle, StateValue, per_look, system_effect,
 };
 
 /// States: only `normal`.
@@ -19,9 +19,14 @@ pub struct CapacityIndicatorStyle {
     /// Tengen, with `height`: `LEVEL_INDICATOR.height`, `LEVEL_INDICATOR.segment_gap` between
     /// the cells of `discrete`.
     pub segment_gap: f32,
-    /// Tengen: `RoundedRectangle { radius: LEVEL_INDICATOR.radius, style: Continuous }`, the bar
-    /// or each cell.
-    pub shape: Shape,
+    /// Tengen: `LEVEL_RING_RADII`, the corner radius of each of the three rings of an edge and of
+    /// the fill inside them.
+    pub ring_radii: [f32; 4],
+    /// Tengen: `LEVEL_BOTTOM`: how much thinner the bottom edge of the filled part or of a filled
+    /// cell is, the opacity of the line over its last row, the opacity of the line under it, and
+    /// how much thinner the bottom edge of the track or of an empty cell is. AppKit's bitmaps
+    /// soften the bottom edge and not the others.
+    pub bottom: [f32; 4],
     /// Tengen: `Color` of `LEVEL_TRACK`.
     pub track: StateValue<ShapeStyle>,
     /// Tengen, with `warning`, `critical`: `Color` of `LEVEL_INDICATOR_COLORS[0]`, `[1]` and
@@ -69,10 +74,8 @@ impl ControlStyle for CapacityIndicatorStyle {
         Self {
             height: LEVEL_INDICATOR.height,
             segment_gap: LEVEL_INDICATOR.segment_gap,
-            shape: Shape::RoundedRectangle {
-                radius: LEVEL_INDICATOR.radius,
-                style: CornerStyle::Continuous,
-            },
+            ring_radii: LEVEL_RING_RADII,
+            bottom: LEVEL_BOTTOM,
             track: StateValue::new(ShapeStyle::Color(per_look(
                 [LEVEL_TRACK_LIGHT, LEVEL_TRACK_DARK, LEVEL_TRACK_DARK_TINT],
                 [

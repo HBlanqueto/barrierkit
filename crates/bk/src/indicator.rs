@@ -9,8 +9,8 @@ use crate::interaction::{control_state, use_interaction};
 use crate::style::with_font;
 use crate::styles::Painted;
 use crate::styles::{
-    CapacityIndicatorStyle, ControlState, GaugeStyle, LayoutDirection, Paints,
-    RatingIndicatorStyle, RelevancyIndicatorStyle, ShapeStyle, StateValue, Theme, resolve,
+    CapacityIndicatorStyle, ControlState, GaugeStyle, Paints, RatingIndicatorStyle,
+    RelevancyIndicatorStyle, ShapeStyle, StateValue, Theme, resolve,
 };
 use crate::symbol::{Symbol, symbol};
 use crate::theme::color;
@@ -67,12 +67,11 @@ pub fn level_color(value: f32, warning: f32, critical: f32) -> usize {
     }
 }
 
-fn inset(radius: CornerRadius, amount: f32) -> CornerRadius {
-    CornerRadius::new_all((radius.top_left() - amount).max(0.0)).with_smoothing(radius.smoothing())
-}
-
-fn soft_cell(radius: CornerRadius, border: Rgba, fill: Rgba, softness: f32) -> Rect {
+fn soft_cell(style: &CapacityIndicatorStyle, filled: bool, border: Rgba, fill: Rgba) -> Rect {
     let step = HAIRLINE / 2.0;
+    let softness = style.edge_softness;
+    let [filled_thin, edge, spill, empty_thin] = style.bottom;
+    let thin = if filled { filled_thin } else { empty_thin };
     let rings = [
         border,
         border.blend(fill, softness),
@@ -81,26 +80,55 @@ fn soft_cell(radius: CornerRadius, border: Rgba, fill: Rgba, softness: f32) -> R
     let center = rect()
         .width(Size::fill())
         .height(Size::fill())
-        .corner_radius(inset(radius, rings.len() as f32 * step))
+        .corner_radius(style.ring_radii[rings.len()])
         .background(color(fill));
-    rings
+    let cell = rings
         .iter()
         .enumerate()
         .rev()
         .fold(center, |inner, (index, ring)| {
+            let width = BorderWidth {
+                top: step,
+                right: step,
+                bottom: if index == 0 { step - thin } else { step },
+                left: step,
+            };
             rect()
                 .width(Size::fill())
-                .height(Size::fill())
+                .height(if index == 0 {
+                    Size::px(style.height)
+                } else {
+                    Size::fill()
+                })
                 .padding(Gaps::new_all(step))
-                .corner_radius(inset(radius, index as f32 * step))
+                .corner_radius(style.ring_radii[index])
                 .border(
                     Border::new()
-                        .width(step)
+                        .width(width)
                         .alignment(BorderAlignment::Inner)
                         .fill(color(*ring)),
                 )
                 .child(inner)
-        })
+        });
+    let inset = style.ring_radii[0];
+    let line = |top: f32, opacity: f32| {
+        rect()
+            .position(Position::new_absolute().top(top).left(inset))
+            .layer(1)
+            .width(Size::func_data(
+                move |context| Some(context.parent - 2.0 * inset),
+                &inset.to_bits(),
+            ))
+            .height(Size::px(step))
+            .background(color(Rgba {
+                a: border.a * opacity,
+                ..border
+            }))
+    };
+    cell.maybe(filled, |cell| {
+        cell.child(line(style.height - 2.0 * step, edge))
+            .child(line(style.height - step, spill))
+    })
 }
 
 impl Component for CapacityIndicator {
@@ -111,9 +139,6 @@ impl Component for CapacityIndicator {
         let fill = [&style.fill, &style.warning, &style.critical]
             [level_color(value, self.warning, self.critical)];
         let height = style.height;
-        let radius = style
-            .shape
-            .corner_radius(height, height, LayoutDirection::LeftToRight);
         let border = style
             .border
             .as_ref()
@@ -121,10 +146,10 @@ impl Component for CapacityIndicator {
         let shade = style.cell_border_shade;
         let track_cell = || {
             soft_cell(
-                radius,
+                &style,
+                false,
                 border,
                 paints.color(style.track.resolve(ControlState::default())),
-                style.edge_softness,
             )
         };
         let filled_cell = |level: Rgba| {
@@ -134,7 +159,7 @@ impl Component for CapacityIndicator {
                 b: level.b * shade,
                 ..level
             };
-            soft_cell(radius, rim, level, style.edge_softness)
+            soft_cell(&style, true, rim, level)
         };
         let bar = rect()
             .a11y_role(AccessibilityRole::Meter)
@@ -159,7 +184,7 @@ impl Component for CapacityIndicator {
                                 .position(Position::new_absolute().top(0.0).left(0.0))
                                 .layer(1)
                                 .width(Size::px(*width.read() * value))
-                                .height(Size::px(height))
+                                .height(Size::px(height + HAIRLINE / 2.0))
                                 .overflow(Overflow::Clip)
                                 .child(filled_cell(level).width(Size::px(*width.read()))),
                         )

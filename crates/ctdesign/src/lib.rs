@@ -568,7 +568,6 @@ pub struct ImageWellMetrics {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct LevelIndicatorMetrics {
     pub height: f32,
-    pub radius: f32,
     pub star: f32,
     pub star_pitch: f32,
     pub star_drop: f32,

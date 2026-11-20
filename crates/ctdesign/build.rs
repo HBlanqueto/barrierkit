@@ -64,6 +64,8 @@ ICON_PLATE_CLEAR IconPlateLook components.icon-plate.clear
 ICON_PLATE_CLEAR_DARK IconPlateLook components.icon-plate.clear-dark
 ICON_PLATE_TINTED IconPlateLook components.icon-plate.tinted
 ICON_PLATE_TINTED_DARK IconPlateLook components.icon-plate.tinted-dark
+LEVEL_RING_RADII [f32;4] components.level-indicator.ring-radii
+LEVEL_BOTTOM [f32;4] components.level-indicator.bottom
 ICON_PLATE_GLASS [f32;4] components.icon-plate.glass
 ICON_PLATE_GLASS_DARK [f32;4] components.icon-plate.glass-dark
 ICON_PLATE_GLASS_DARK_ON_DARK [f32;4] components.icon-plate.glass-dark-on-dark

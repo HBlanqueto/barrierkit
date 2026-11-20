@@ -51,7 +51,8 @@
     },
     "level-indicator": {
       "height": 16,
-      "radius": 2,
+      "ring-radii": [2.09, 1.72, 0.65, 0.05],
+      "bottom": [0.125, 0.55, 0.11, 0.11],
       "star": 17,
       "star-pitch": 12,
       "star-drop": 0.4,
