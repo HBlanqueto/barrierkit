@@ -249,7 +249,11 @@ pub struct SettingsMetrics {
     pub radio_spacing: u32,
     pub popup_height: u32,
     pub popup_chevron: u32,
+    pub popup_glyph: u32,
+    pub popup_glyph_stroke: f32,
+    pub popup_label_lift: f32,
     pub popup_text_gap: u32,
+    pub popup_trailing_padding: u32,
     pub sidebar_width: u32,
     pub sidebar_lights_gap: u32,
     pub sidebar_search_gap: u32,
@@ -314,6 +318,7 @@ pub struct SegmentedMetrics {
     pub segment_radius: f32,
     pub segment_height: f32,
     pub segment_padding_x: f32,
+    pub divider_height: f32,
     pub font_size: f32,
     pub font_weight: i32,
 }
@@ -553,6 +558,14 @@ pub struct LevelIndicatorMetrics {
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct DatePickerMetrics {
+    pub height: f32,
+    pub stepper_width: f32,
+    pub stepper_chevron: f32,
+    pub stepper_chevron_stroke: f32,
+    pub stepper_chevron_offset_up: f32,
+    pub stepper_chevron_offset_down: f32,
+    pub stepper_separator_inset: f32,
+    pub stepper_gap: f32,
     pub calendar_width: f32,
     pub calendar_height: f32,
     pub header_height: f32,
@@ -626,6 +639,13 @@ pub struct ComboBoxMetrics {
     pub button_radius: f32,
     pub text_gap: f32,
     pub chevron: f32,
+    pub chevron_stroke: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct HelpLinkMetrics {
+    pub glyph: f32,
+    pub glyph_stroke: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -634,6 +654,10 @@ pub struct StepperMetrics {
     pub height: f32,
     pub radius: f32,
     pub chevron: f32,
+    pub chevron_stroke: f32,
+    pub chevron_offset_up: f32,
+    pub chevron_offset_down: f32,
+    pub separator_inset: f32,
     pub gap: f32,
 }
 
@@ -939,6 +963,9 @@ pub struct Palette {
     pub accent_toggle: Rgba,
     pub separator_strong: Rgba,
     pub selected_content_inactive: Rgba,
+    pub combo_button: Rgba,
+    pub segment_divider: Rgba,
+    pub accent_ring: Rgba,
     pub accent_inactive: Rgba,
     pub on_accent: Rgba,
     pub danger: Rgba,
@@ -1051,6 +1078,7 @@ pub struct MenuPalette {
     pub chevron_size: f32,
     pub chevron_gap: f32,
     pub chevron_inset: f32,
+    pub chevron_drop: f32,
     pub chevron_scroll: f32,
     pub chevron_color: Rgba,
     pub icon_size: f32,

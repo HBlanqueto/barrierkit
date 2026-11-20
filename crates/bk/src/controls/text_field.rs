@@ -199,7 +199,7 @@ impl Component for TextField {
             self.placeholder,
             [
                 ink(&style.background),
-                ink(&style.border),
+                Rgba::TRANSPARENT,
                 ink(&style.border),
                 ink(&style.text),
                 ink(&style.placeholder),
@@ -248,6 +248,8 @@ impl Component for TextField {
         .child(
             rect()
                 .width(Size::fill())
+                .corner_radius(radius)
+                .border(outer_hairline(ink(&style.border)))
                 .map(paints.blur(&style.background), |el, blur| {
                     el.corner_radius(radius).backdrop_blur(blur)
                 })
@@ -416,7 +418,7 @@ impl Component for SearchField {
             self.placeholder,
             [
                 ink(&style.background),
-                ink(&style.border),
+                Rgba::TRANSPARENT,
                 ink(&style.border),
                 ink(&style.text),
                 ink(&style.placeholder),
@@ -469,6 +471,8 @@ impl Component for SearchField {
                 text_style(rect().width(self.width.clone()), style.font),
                 style.opacity,
             )
+            .corner_radius(radius)
+            .border(outer_hairline(ink(&style.border)))
             .map(paints.blur(&style.background), |el, blur| {
                 el.corner_radius(radius).backdrop_blur(blur)
             })

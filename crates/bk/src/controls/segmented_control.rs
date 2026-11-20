@@ -1,4 +1,5 @@
 use super::*;
+use crate::menu::measure_text;
 
 #[derive(PartialEq)]
 pub struct SegmentedControl {
@@ -67,6 +68,7 @@ impl Component for SegmentedControl {
             Segment {
                 text,
                 active: choice.is(index),
+                divider: index > 0 && !choice.is(index) && !choice.is(index - 1),
                 take_focus: choice.is(index) && *keyed.read(),
                 on_select: choice.select(index),
                 style: self.style.clone(),
@@ -107,6 +109,7 @@ impl Component for SegmentedControl {
 struct Segment {
     text: &'static str,
     active: bool,
+    divider: bool,
     take_focus: bool,
     on_select: Callback<(), ()>,
     style: Theme,
@@ -138,7 +141,9 @@ impl Component for Segment {
             .a11y_alt(self.text)
             .a11y_builder(move |node| node.set_selected(active))
             .width(match style.axis {
-                Axis::Horizontal => Size::flex(1.0),
+                Axis::Horizontal => Size::flex(
+                    measure_text(self.text, font.size as f32) + 2.0 * style.segment_padding_x,
+                ),
                 Axis::Vertical => Size::fill(),
             })
             .height(Size::px(height))
@@ -156,13 +161,27 @@ impl Component for Segment {
                     .child(
                         label()
                             .text(self.text)
+                            .max_lines(1)
                             .font_family(font.family)
                             .font_size(font.size as f32)
                             .font_weight(font.weight as i32)
                             .color(paints.fill(ink)),
                     ),
             )
-            .painted(&paints, paint);
+            .painted(&paints, paint)
+            .maybe(self.divider, |el| {
+                el.child(
+                    rect()
+                        .position(
+                            Position::new_absolute()
+                                .left(0.0)
+                                .top((height - style.divider_height) / 2.0),
+                        )
+                        .width(Size::px(HAIRLINE))
+                        .height(Size::px(style.divider_height))
+                        .background(paints.fill(&style.divider)),
+                )
+            });
         let segment = if active {
             shadowed(segment, &style.selected_shadows)
         } else {

@@ -5,7 +5,7 @@ use freya_components::input::{
 };
 use freya_components::theming::macros::Preference;
 
-use ctdesign::{Font, Rgba, TEXT_LINE_HEIGHT};
+use ctdesign::{Font, HAIRLINE, Rgba, TEXT_LINE_HEIGHT};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, CursorPoint, Direction, Gaps, Position, Size};
 
@@ -53,6 +53,13 @@ pub(crate) fn inner_border(paints: &Paints, (paint, width): &(ShapeStyle, f32)) 
         .width(*width)
         .alignment(BorderAlignment::Inner)
         .fill(color(paints.color(paint)))
+}
+
+pub(crate) fn outer_hairline(ink: Rgba) -> Border {
+    Border::new()
+        .width(HAIRLINE)
+        .alignment(BorderAlignment::Outer)
+        .fill(color(ink))
 }
 
 pub(crate) fn shadowed(element: Rect, shadows: &[ShadowStyle]) -> Rect {

@@ -75,6 +75,7 @@ SLIDER_FAT SliderFatMetrics components.slider.fat
 SLIDER_KEY_STEP f32 components.slider.keyboard-step
 ICON_BUTTON IconButtonMetrics components.icon-button
 STEPPER StepperMetrics components.stepper
+HELP_LINK HelpLinkMetrics components.help-link
 COMBO_BOX ComboBoxMetrics components.combo-box
 POPOVER PopoverMetrics components.popover
 GROUP_BOX GroupBoxMetrics components.group-box
@@ -427,6 +428,10 @@ BG_SURFACE Rgba themes.{theme}.bg-surface
 BG_SUNKEN Rgba themes.{theme}.bg-sunken
 BG_RAISED Rgba themes.{theme}.bg-raised
 BG_HOVER Rgba themes.{theme}.bg-hover
+RING_TRACK Rgba themes.{theme}.ring-track
+BAR_TRACK Rgba themes.{theme}.bar-track
+LEVEL_TRACK Rgba themes.{theme}.level-track
+LEVEL_BORDER Rgba themes.{theme}.level-border
 FOCUS_RING_COLOR Rgba themes.{theme}.focus-ring
 CONTRAST ContrastPalette themes.{theme}.contrast
 SHELL ShellPalette components.shell bar=menubar.bg text=menubar.text tile=dock.tile tile_active=dock.tile-active tile_text_active=dock.tile-text-active
@@ -625,7 +630,7 @@ fn emit_palettes(out: &mut String, tengen: &Tengen) {
         let lights = "components.window.traffic-lights";
         let traffic = |key: &str| rgba(tengen.color(&format!("{lights}.{key}"), look));
         out.push_str(&format!(
-            "pub const {name}: Palette = Palette {{ titlebar_bg: {}, hairline: {}, inner_line: {inner_line}, panel_inner_line: {panel_inner_line}, outer_border: {}, title: {}, text: {}, ink_strong: {}, ink_muted: {}, ink_faint: {}, line: {}, line_strong: {}, separator: {}, accent: {}, accent_inactive: {}, on_accent: {}, danger: {}, traffic_lights_inactive: {}, traffic_rim: TrafficRim {{ lit: {}, idle: {} }}, scrim: {}, selected_control: {}, card_border: {}, system_fill: {}, text_background: {}, selected_content: {}, control_disabled: {}, control: {}, accent_toggle: {}, separator_strong: {}, selected_content_inactive: {} }};\n\n",
+            "pub const {name}: Palette = Palette {{ titlebar_bg: {}, hairline: {}, inner_line: {inner_line}, panel_inner_line: {panel_inner_line}, outer_border: {}, title: {}, text: {}, ink_strong: {}, ink_muted: {}, ink_faint: {}, line: {}, line_strong: {}, separator: {}, accent: {}, accent_inactive: {}, on_accent: {}, danger: {}, traffic_lights_inactive: {}, traffic_rim: TrafficRim {{ lit: {}, idle: {} }}, scrim: {}, selected_control: {}, card_border: {}, system_fill: {}, text_background: {}, selected_content: {}, control_disabled: {}, control: {}, accent_toggle: {}, separator_strong: {}, selected_content_inactive: {}, combo_button: {}, segment_divider: {}, accent_ring: {} }};\n\n",
             pair("titlebar-bg", "titlebar-bg-inactive"),
             rgba_of("titlebar-line"),
             rgba_of("window-outer"),
@@ -655,6 +660,9 @@ fn emit_palettes(out: &mut String, tengen: &Tengen) {
             rgba_of("accent-toggle"),
             rgba_of("separator-strong"),
             rgba_of("selected-content-inactive"),
+            rgba_of("combo-button"),
+            rgba_of("segment-divider"),
+            rgba_of("accent-ring"),
         ));
         let bg = rgba(tengen.color(
             "components.shell.menu.panel.bg",
@@ -707,6 +715,10 @@ fn emit_specials(out: &mut String, tengen: &Tengen) {
         (
             "LEVEL_INDICATOR_COLORS",
             "components.level-indicator.colors",
+        ),
+        (
+            "LEVEL_INDICATOR_COLORS_DARK",
+            "components.level-indicator.colors-dark",
         ),
     ] {
         let colors: Vec<String> = tengen

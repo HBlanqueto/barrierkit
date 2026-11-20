@@ -150,7 +150,13 @@ fn controls() -> Vec<(&'static str, Builder)> {
                 .into_element()
         }),
         ("stepper-regular", || {
-            Stepper::new("Stepper", 0, 10).into_element()
+            Stepper::new("Stepper", 0, 10)
+                .value(5)
+                .style(|mut s| {
+                    s.value_position = None;
+                    s
+                })
+                .into_element()
         }),
         ("ring-regular", || {
             ProgressRing::new("Ring", 0.5).into_element()
@@ -237,6 +243,8 @@ fn controls() -> Vec<(&'static str, Builder)> {
         ("progress-bar", || {
             rect()
                 .width(Size::px(160.0))
+                .height(Size::px(20.0))
+                .center()
                 .child(ProgressView::determinate("Progress", 0.5))
                 .into_element()
         }),
@@ -371,5 +379,83 @@ fn appkit_menu() {
             .unwrap();
             println!("menu {tag}{dark} {size:?}");
         }
+    }
+}
+
+struct GlyphLab(bk::symbol::Symbol);
+
+const LAB_SIZES: usize = 21;
+const LAB_STROKES: usize = 17;
+const LAB_CELL: f32 = 24.0;
+
+fn lab_step() -> f32 {
+    std::env::var("APPKIT_LAB_STEP")
+        .ok()
+        .and_then(|step| step.parse().ok())
+        .unwrap_or(0.5)
+}
+
+impl App for GlyphLab {
+    fn render(&self) -> impl IntoElement {
+        use_init_theme(|| theme::for_scheme(false));
+        let mut root = rect().expanded().background((255, 255, 255));
+        for row in 0..LAB_STROKES {
+            for column in 0..LAB_SIZES {
+                let size = 8.0 + column as f32 * lab_step();
+                let stroke = (1.0 + row as f32 * 0.1) * 16.0 / size;
+                root = root.child(
+                    rect()
+                        .position(
+                            Position::new_absolute()
+                                .left(column as f32 * LAB_CELL)
+                                .top(row as f32 * LAB_CELL),
+                        )
+                        .width(Size::px(LAB_CELL))
+                        .height(Size::px(LAB_CELL))
+                        .center()
+                        .child(
+                            bk::symbol::Image::system(self.0)
+                                .color(ctdesign::Rgba::rgb8(0, 0, 0))
+                                .style(move |s| bk::styles::ImageStyle { size, stroke, ..s }),
+                        ),
+                );
+            }
+        }
+        root
+    }
+}
+
+#[test]
+#[ignore]
+fn appkit_glyph_lab() {
+    use bk::symbol::Symbol;
+    let out = PathBuf::from(std::env::var("APPKIT_OUT").expect("APPKIT_OUT"));
+    for (name, symbol) in [
+        ("chevron-up-down", Symbol::ChevronUpDown),
+        ("chevron-down", Symbol::ChevronDown),
+        ("chevron-up", Symbol::ChevronUp),
+        ("chevron-right", Symbol::ChevronRight),
+        ("question-mark", Symbol::QuestionMark),
+        ("magnifying-glass", Symbol::MagnifyingGlass),
+        ("x-mark", Symbol::XMark),
+        ("plus", Symbol::Plus),
+        ("minus", Symbol::Minus),
+    ] {
+        let (mut test, _) = TestingRunner::new(
+            AppComponent::new(GlyphLab(symbol)),
+            Size2D::new(
+                LAB_SIZES as f32 * LAB_CELL * 4.0,
+                LAB_STROKES as f32 * LAB_CELL * 4.0,
+            ),
+            |_| {},
+            4.0,
+        );
+        test.sync_and_update();
+        test.sync_and_update();
+        fs::write(
+            out.join(format!("lab-{name}.png")),
+            test.render().as_bytes(),
+        )
+        .unwrap();
     }
 }

@@ -12,7 +12,7 @@ use crate::styles::{
     Axis, ControlState, IconButtonStyle, LayoutDirection, Paints, StepperStyle, Theme,
     ToggleGroupStyle, ToolbarSearchStyle, resolve,
 };
-use crate::symbol::{Symbol, symbol};
+use crate::symbol::{Symbol, stroked_symbol, symbol};
 
 #[derive(Clone, Copy)]
 struct ToolbarItems(State<bool>);
@@ -217,7 +217,7 @@ pub(crate) fn stepper_arrows(
     down: Option<Rc<dyn Fn()>>,
 ) -> Rect {
     let paints = Paints::current(state, style.effect);
-    let arrow = |kind: Symbol, label: &'static str, press: Option<Rc<dyn Fn()>>| {
+    let arrow = |kind: Symbol, label: &'static str, offset: f32, press: Option<Rc<dyn Fn()>>| {
         let state = ControlState {
             disabled: press.is_none(),
             ..state
@@ -236,7 +236,12 @@ pub(crate) fn stepper_arrows(
                     }
                 })
             })
-            .child(symbol(kind, style.chevron_size, ink))
+            .child(rect().offset_y(offset).child(stroked_symbol(
+                kind,
+                style.chevron_size,
+                style.chevron_stroke,
+                ink,
+            )))
     };
     let (width, height) = style.arrows_size;
     let arrows = rect()
@@ -250,14 +255,30 @@ pub(crate) fn stepper_arrows(
         )
         .painted(&paints, &style.background)
         .bordered(&paints, style.border.as_ref())
-        .child(arrow(Symbol::ChevronUp, text!("increase"), up))
+        .child(arrow(
+            Symbol::ChevronUp,
+            text!("increase"),
+            style.chevron_offsets.0,
+            up,
+        ))
         .child(
             rect()
                 .width(Size::fill())
                 .height(Size::px(style.separator_height))
+                .margin(Gaps::new(
+                    0.0,
+                    style.separator_inset,
+                    0.0,
+                    style.separator_inset,
+                ))
                 .background(paints.fill(&style.separator)),
         )
-        .child(arrow(Symbol::ChevronDown, text!("decrease"), down));
+        .child(arrow(
+            Symbol::ChevronDown,
+            text!("decrease"),
+            style.chevron_offsets.1,
+            down,
+        ));
     dimmed(shadowed(arrows, &style.shadows), style.opacity)
 }
 

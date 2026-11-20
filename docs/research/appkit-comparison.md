@@ -19,7 +19,7 @@ table on stdout and `target/appkit/sheet-*.png`.
 
    ```sh
    cd ~/src/probes
-   for probe in controls views alerts menu toolbar tabs sheets; do swiftc -O $probe.swift -o $probe; done
+   for probe in controls views alerts menu toolbar tabs sheets gauges; do swiftc -O $probe.swift -o $probe; done
    ```
 
 2. Capture on the Mac. Each run writes `<prefix>.json` (frames) and
@@ -44,9 +44,11 @@ table on stdout and `target/appkit/sheet-*.png`.
    `off`) to draw marks and submenu arrows, and `sheets` captures a sheet over
    a black, white or striped parent (`SHEET_BACK=black|white|stripes`).
 
+   `gauges` draws rings, bars, capacity, rating and relevancy indicators at several values and takes the same arguments (`~/src/captures/gauges`).
+
    `views` (table, source list, tabs, scroll views) takes the same
    arguments and writes to `~/src/captures/views`; `VIEWS_INACTIVE=1` renders
-   the window as inactive. `alerts`, `menu`, `toolbar`, `tabs` and `sheets` dump a view
+   the window as inactive. `alerts`, `menu`, `toolbar`, `tabs`, `sheets` and `gauges` dump a view
    tree or screenshot and have their own usage line in the source.
 
 3. Convert any `screencapture` image to sRGB before sampling a color. The
@@ -89,6 +91,14 @@ table on stdout and `target/appkit/sheet-*.png`.
    scripts/appkit-compare.py controls --tag hc
    scripts/appkit-compare.py sheet controls light white push-regular,switch-on-regular
    scripts/appkit-compare.py table dark
+   ```
+
+   To size an internal glyph, `appkit_glyph_lab` renders a symbol over a grid of sizes and
+   strokes (`APPKIT_LAB_STEP` sets the size step) and the glyph's ink box and mass in the
+   AppKit capture pick the cell:
+
+   ```sh
+   cargo test -p bk --test kit --features bk/shell appkit_glyph_lab -- --ignored
    ```
 
    Fix the larger differences first: fill, size, position. Then regenerate

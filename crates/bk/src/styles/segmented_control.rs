@@ -18,6 +18,10 @@ pub struct SegmentedControlStyle {
     pub segment_height: f32,
     /// Tengen: `SEGMENTED.segment_padding_x`.
     pub segment_padding_x: f32,
+    /// Tengen: `SEGMENTED.divider_height`, a 1 wide line centered between two segments that are not chosen.
+    pub divider_height: f32,
+    /// Tengen: `Role(SegmentDivider)`.
+    pub divider: StateValue<ShapeStyle>,
     /// Tengen, with `segment_shape`: `RoundedRectangle` of `SEGMENTED.radius` and of
     /// `SEGMENTED.segment_radius`, both `Circular`.
     pub shape: Shape,
@@ -27,10 +31,10 @@ pub struct SegmentedControlStyle {
     /// Tengen: `Role(ControlBackground)`, behind the segments.
     pub background: StateValue<ShapeStyle>,
     /// Tengen, with `selected`: `Clear` for a segment that is not chosen,
-    /// `Accent` for the chosen one.
+    /// `Role(ToggleAccent)` for the chosen one.
     pub segment: StateValue<ShapeStyle>,
     /// Tengen, with `segment`: `Clear` for a segment that is not chosen,
-    /// `Accent` for the chosen one.
+    /// `Role(ToggleAccent)` for the chosen one.
     pub selected: StateValue<ShapeStyle>,
     /// Tengen: `Role(Label)`.
     pub label: StateValue<ShapeStyle>,
@@ -59,11 +63,13 @@ impl ControlStyle for SegmentedControlStyle {
             gap: SEGMENTED.gap,
             segment_height: SEGMENTED.segment_height,
             segment_padding_x: SEGMENTED.segment_padding_x,
+            divider_height: SEGMENTED.divider_height,
+            divider: StateValue::new(ShapeStyle::Role(Role::SegmentDivider)),
             shape: rounded(SEGMENTED.radius),
             segment_shape: rounded(SEGMENTED.segment_radius),
             background: StateValue::new(ShapeStyle::Role(Role::ControlBackground)),
             segment: StateValue::new(ShapeStyle::Clear),
-            selected: StateValue::new(ShapeStyle::Accent),
+            selected: StateValue::new(ShapeStyle::Role(Role::ToggleAccent)),
             label: StateValue::new(ShapeStyle::Role(Role::Label)),
             selected_label: StateValue::new(ShapeStyle::Role(Role::OnAccent)),
             border: None,

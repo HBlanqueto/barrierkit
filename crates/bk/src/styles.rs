@@ -213,6 +213,9 @@ pub enum Role {
     SelectedContent,
     OnSelectedContent,
     SeparatorStrong,
+    ComboButton,
+    SegmentDivider,
+    RingAccent,
     Destructive,
     DestructiveFill,
     RaisedBackground,
@@ -244,6 +247,9 @@ impl Role {
             Self::SelectedContent => palette.selected_content,
             Self::OnSelectedContent => palette.on_selected_content,
             Self::SeparatorStrong => palette.separator_strong,
+            Self::ComboButton => palette.combo_button,
+            Self::SegmentDivider => palette.segment_divider,
+            Self::RingAccent => palette.ring_accent,
             Self::Destructive => palette.destructive,
             Self::DestructiveFill => Rgba {
                 a: ctdesign::BUTTON_DESTRUCTIVE_FILL,
@@ -498,6 +504,14 @@ impl Animation {
 }
 
 pub type ColorEffect = fn(Rgba, ControlState) -> Rgba;
+
+pub(crate) fn per_scheme<T>([light, dark, dark_tint]: [T; 3]) -> T {
+    match crate::theme::resolved().scheme {
+        ctappearance::ColorScheme::Light => light,
+        ctappearance::ColorScheme::Dark => dark,
+        ctappearance::ColorScheme::DarkTint => dark_tint,
+    }
+}
 
 pub fn system_effect(color: Rgba, _: ControlState) -> Rgba {
     color

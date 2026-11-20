@@ -170,7 +170,7 @@ ToggleGroup::new("Format")
 
 `IconButton` draws only from an `IconButtonStyle`, `Stepper` from a
 `StepperStyle` and `ToggleGroup` from a `ToggleGroupStyle`. The arrows of a
-[`DatePicker`](#date-picker) draw from the `StepperStyle` in context too. The
+[`DatePicker`](#date-picker) draw from the `StepperStyle` held by its `DatePickerStyle`, 13 wide and as high as the field. The
 fields are in [Styles and themes](../../crates/bk/src/styles/icon_button.rs).
 
 ```rust
@@ -305,8 +305,11 @@ All of them report the chosen index with `.on_change(|index: usize| ..)`.
 
 - `RadioGroup` stacks its options in a column; its style's `axis` puts them in a row. The
   arrow keys move the choice and wrap at the ends.
-- `SegmentedControl` fills its width; each segment is 24 tall. The chosen one is raised with a
-  shadow. The arrows move the choice and wrap.
+- `SegmentedControl` fills its width and the segments share it in proportion to their text
+  plus 12 on each side, so a control as wide as its content has the widths of AppKit's `fit`
+  distribution. Each segment is 24 tall. The chosen one is filled with the toggle accent and
+  a 14 high line separates two neighbors that are not chosen. The arrows move the choice and
+  wrap.
 - `PopUpButton` shows the chosen item, its SVG icon if it has one, and an up-down chevron.
   Under the pointer a rounded background covers all three and the chevron's circle melts
   into it, like macOS. A click opens the items as a menu with a check mark, placed so the
@@ -522,7 +525,7 @@ color itself is content.
 
 `date_picker::DatePicker::new(label, CivilDateTime)` is a text field with one segment per part
 and a stepper beside it, like the `textFieldAndStepper` style of `NSDatePicker`. The
-stepper's arrows draw from the [`StepperStyle`](../../crates/bk/src/styles/stepper.rs) in context.
+stepper's arrows draw from the [`StepperStyle`](../../crates/bk/src/styles/stepper.rs) of its `DatePickerStyle`.
 
 | Method | Default | Effect |
 |---|---|---|
@@ -560,7 +563,7 @@ Module `date` does the calendar arithmetic without dependencies, with
 
 `DatePicker` draws the field, its parts and the calendar from a
 [`DatePickerStyle`](../../crates/bk/src/styles/date_picker.rs); `.style(|s| ..)` changes
-one picker. The arrows keep the `StepperStyle` in context.
+one picker. The arrows draw from the `stepper` field.
 
 ```rust
 DatePicker::new("Date", moment).style(|s| DatePickerStyle { day_shape: Shape::Circle, ..s })
@@ -604,7 +607,7 @@ Module `progress`. They report nothing.
 |---|---|---|
 | `ProgressView` | `ProgressView::determinate(label, value)` (0 to 1), `.tint(Tint)`, `.style(\|s\| ..)` | 8 tall bar |
 | `ProgressView` | `ProgressView::indeterminate(label)` | A segment of 30 % that sweeps over 1.2 s |
-| `ProgressRing` | `ProgressRing::new(label, value)` | 32 ring, 5 stroke, flat ends |
+| `ProgressRing` | `ProgressRing::new(label, value)` | 32 ring, 5 stroke, round ends |
 | `Spinner` | `Spinner::new(label)` | 16, 12 spokes, one turn per second |
 
 With reduced motion ([4](04-appearance-and-tokens.md)) the indeterminate bar and the spinner

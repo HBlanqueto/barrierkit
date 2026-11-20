@@ -20,7 +20,7 @@ use crate::platform::{
 use crate::style::with_font;
 use crate::styles::Painted;
 use crate::styles::{LayoutDirection, Paints, PopUpButtonStyle, Theme, resolve};
-use crate::symbol::{Symbol, symbol};
+use crate::symbol::{Symbol, stroked_symbol};
 use crate::theme::SurfaceKind;
 
 #[derive(PartialEq)]
@@ -123,9 +123,10 @@ impl Component for PopUpButton {
             .center()
             .painted(&paints, &style.indicator)
             .bordered(&paints, style.indicator_border.as_ref())
-            .child(symbol(
+            .child(stroked_symbol(
                 Symbol::ChevronUpDown,
                 style.chevron_size,
+                style.chevron_stroke,
                 paints.color(style.chevron.resolve(state)),
             ));
 
@@ -134,12 +135,7 @@ impl Component for PopUpButton {
             .a11y_role(AccessibilityRole::ComboBox)
             .a11y_alt(self.label)
             .height(Size::px(style.height))
-            .padding(Gaps::new(
-                0.0,
-                (style.height - size) / 2.0,
-                0.0,
-                leading_padding,
-            ))
+            .padding(Gaps::new(0.0, style.trailing_padding, 0.0, leading_padding))
             .corner_radius(radius)
             .painted(&paints, &style.background)
             .direction(Direction::Horizontal)
@@ -177,6 +173,7 @@ impl Component for PopUpButton {
                     style.font,
                 )
                 .max_lines(1)
+                .margin(Gaps::new(0.0, 0.0, 2.0 * style.label_lift, 0.0))
                 .color(paints.fill(&style.label)),
             )
             .child(shadowed(indicator, &style.indicator_shadows));

@@ -1,24 +1,25 @@
-use ctdesign::{
-    BODY, CAPTION, DATE_PICKER, Font, HAIRLINE, HEADLINE, MENU_POPOVER, STEPPER, TEXT_FIELD,
-};
+use ctdesign::{BODY, CAPTION, DATE_PICKER, Font, HAIRLINE, HEADLINE, MENU_POPOVER, TEXT_FIELD};
 
 use super::button::rounded;
 use super::text_field::field_shape;
 use super::{
-    ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue, system_effect,
+    ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue, StepperStyle,
+    system_effect,
 };
 
 /// States: the field is hovered, pressed and focused; the calendar has only
-/// `normal`, on the popover background. The arrows draw from the
-/// [`StepperStyle`](crate::styles::StepperStyle) in context.
+/// `normal`, on the popover background. The arrows draw from its
+/// [`StepperStyle`](crate::styles::StepperStyle).
 #[derive(Clone, Debug)]
 pub struct DatePickerStyle {
-    /// Tengen: `TEXT_FIELD.height`.
+    /// Tengen: `DATE_PICKER.height`.
     pub height: f32,
     /// Tengen: `TEXT_FIELD.padding_x`.
     pub padding_x: f32,
-    /// Tengen: `STEPPER.gap`, between the field and the arrows.
+    /// Tengen: `DATE_PICKER.stepper_gap`, between the field and the arrows.
     pub stepper_gap: f32,
+    /// Tengen: `StepperStyle` with the `DATE_PICKER.stepper_*` measures; the arrows are as high as the field.
+    pub stepper: StepperStyle,
     /// Tengen: `(DATE_PICKER.calendar_width, DATE_PICKER.calendar_height)`, without the
     /// padding.
     pub calendar_size: (f32, f32),
@@ -94,9 +95,20 @@ impl ControlStyle for DatePickerStyle {
     fn tengen() -> Self {
         let role = |role| StateValue::new(ShapeStyle::Role(role));
         Self {
-            height: TEXT_FIELD.height,
+            height: DATE_PICKER.height,
             padding_x: TEXT_FIELD.padding_x,
-            stepper_gap: STEPPER.gap,
+            stepper_gap: DATE_PICKER.stepper_gap,
+            stepper: StepperStyle {
+                arrows_size: (DATE_PICKER.stepper_width, DATE_PICKER.height),
+                chevron_size: DATE_PICKER.stepper_chevron,
+                chevron_stroke: DATE_PICKER.stepper_chevron_stroke,
+                chevron_offsets: (
+                    DATE_PICKER.stepper_chevron_offset_up,
+                    DATE_PICKER.stepper_chevron_offset_down,
+                ),
+                separator_inset: DATE_PICKER.stepper_separator_inset,
+                ..StepperStyle::tengen()
+            },
             calendar_size: (DATE_PICKER.calendar_width, DATE_PICKER.calendar_height),
             calendar_padding: MENU_POPOVER.padding,
             header_height: DATE_PICKER.header_height,

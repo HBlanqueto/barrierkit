@@ -1,5 +1,5 @@
 use ctappearance::Resolved;
-use ctdesign::{BODY, BUTTON, DURATION_FAST_MS, Font};
+use ctdesign::{BUTTON, DURATION_FAST_MS, HELP_LINK};
 
 use super::{
     Animation, ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
@@ -26,8 +26,8 @@ pub struct HelpLinkStyle {
     pub pressed_scale: f32,
     /// Tengen: `system_effect`.
     pub effect: ColorEffect,
-    /// Tengen: `BODY`.
-    pub font: Font,
+    /// Tengen: `(HELP_LINK.glyph, HELP_LINK.glyph_stroke)`, the size and line width of the `?`.
+    pub glyph: (f32, f32),
     /// Tengen: `Ease { duration_ms: DURATION_FAST_MS }`: the pressed scale eases; `None` makes it
     /// jump.
     pub animation: Animation,
@@ -46,7 +46,7 @@ impl ControlStyle for HelpLinkStyle {
             opacity: 1.0,
             pressed_scale: BUTTON.pressed_scale,
             effect: system_effect,
-            font: BODY,
+            glyph: (HELP_LINK.glyph, HELP_LINK.glyph_stroke),
             animation: Animation::Ease {
                 duration_ms: DURATION_FAST_MS,
             },

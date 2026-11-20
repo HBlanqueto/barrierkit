@@ -15,6 +15,12 @@ pub struct StepperStyle {
     pub arrows_size: (f32, f32),
     /// Tengen: `STEPPER.chevron`.
     pub chevron_size: f32,
+    /// Tengen: `STEPPER.chevron_stroke`, in points.
+    pub chevron_stroke: f32,
+    /// Tengen: `(STEPPER.chevron_offset_up, STEPPER.chevron_offset_down)`: how far each chevron sits below the center of its half.
+    pub chevron_offsets: (f32, f32),
+    /// Tengen: `STEPPER.separator_inset`, on each side of the line between the chevrons.
+    pub separator_inset: f32,
     /// Tengen: `HAIRLINE`.
     pub separator_height: f32,
     /// Tengen: `STEPPER.gap`.
@@ -50,6 +56,9 @@ impl ControlStyle for StepperStyle {
         Self {
             arrows_size: (STEPPER.width, STEPPER.height),
             chevron_size: STEPPER.chevron,
+            chevron_stroke: STEPPER.chevron_stroke,
+            chevron_offsets: (STEPPER.chevron_offset_up, STEPPER.chevron_offset_down),
+            separator_inset: STEPPER.separator_inset,
             separator_height: HAIRLINE,
             value_gap: STEPPER.gap,
             shape: rounded(STEPPER.radius),

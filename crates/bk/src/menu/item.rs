@@ -701,7 +701,14 @@ pub(super) fn mark_element(check: CheckState, color: Rgba, m: MenuPalette) -> El
 }
 
 pub(super) fn chevron_element(color: Rgba, m: MenuPalette) -> Element {
-    stroked_symbol(Symbol::ChevronRight, m.chevron_size, m.mark_stroke, color)
+    rect()
+        .offset_y(m.chevron_drop)
         .margin(Gaps::new(0.0, m.chevron_inset, 0.0, 0.0))
+        .child(stroked_symbol(
+            Symbol::ChevronRight,
+            m.chevron_size,
+            m.mark_stroke,
+            color,
+        ))
         .into_element()
 }

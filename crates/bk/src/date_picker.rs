@@ -16,8 +16,7 @@ use crate::platform::{
 use crate::style::with_font;
 use crate::styles::Painted;
 use crate::styles::{
-    ControlState, DatePickerStyle, LayoutDirection, Paints, ShapeStyle, StateValue, StepperStyle,
-    Theme, resolve,
+    ControlState, DatePickerStyle, LayoutDirection, Paints, ShapeStyle, StateValue, Theme, resolve,
 };
 use crate::symbol::{Symbol, symbol};
 
@@ -286,7 +285,7 @@ impl Component for DatePicker {
                 field_radius.top_left(),
             ))
             .child(stepper_arrows(
-                &resolve::<StepperStyle>(&Theme::tengen()),
+                &style.stepper,
                 ControlState::default(),
                 Some(Rc::new(move || up(1))),
                 Some(Rc::new(move || down(-1))),

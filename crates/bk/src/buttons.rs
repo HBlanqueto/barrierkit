@@ -14,7 +14,7 @@ use crate::styles::{
     ComboButtonStyle, ControlGroupStyle, ControlState, HelpLinkStyle, LayoutDirection,
     MenuButtonStyle, Paints, Theme, resolve,
 };
-use crate::symbol::{Symbol, symbol};
+use crate::symbol::{Symbol, stroked_symbol, symbol};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum LabelStyle {
@@ -348,11 +348,12 @@ impl Component for HelpLink {
             .map(on_press, |el, on_press| {
                 el.on_press(move |_| on_press.call(()))
             })
-            .child(
-                with_font(label().text("?"), style.font)
-                    .max_lines(1)
-                    .color(paints.fill(&style.label)),
-            );
+            .child(stroked_symbol(
+                Symbol::QuestionMark,
+                style.glyph.0,
+                style.glyph.1,
+                paints.color(style.label.resolve(ControlState::default())),
+            ));
         interaction.focus_ring(
             dimmed(shadowed(button, &style.shadows), style.opacity),
             radius.top_left(),

@@ -54,9 +54,18 @@
       "relevancy-height": 11,
       "relevancy-line": 1,
       "relevancy-gap": 1,
-      "colors": ["#34c759", "#ffcc00", "#ff383c"]
+      "colors": ["#34c759", "#ffcc00", "#ff383c"],
+      "colors-dark": ["#30d158", "#ffd600", "#ff4245"]
     },
     "date-picker": {
+      "height": 21,
+      "stepper-width": 13,
+      "stepper-chevron": 9,
+      "stepper-chevron-stroke": 1.5,
+      "stepper-chevron-offset-up": 0.75,
+      "stepper-chevron-offset-down": -0.25,
+      "stepper-separator-inset": 2,
+      "stepper-gap": 7.5,
       "calendar-width": 139,
       "calendar-height": 148,
       "header-height": 22,
@@ -116,13 +125,22 @@
       "button-inset-x": 4,
       "button-radius": "radius.xs",
       "text-gap": 6,
-      "chevron": 11
+      "chevron": 9.5,
+      "chevron-stroke": 1.5
+    },
+    "help-link": {
+      "glyph": 18.5,
+      "glyph-stroke": 1.8
     },
     "stepper": {
       "width": 20,
       "height": 24,
       "radius": "radius.button",
-      "chevron": 13,
+      "chevron": 16.5,
+      "chevron-stroke": 1.6,
+      "chevron-offset-up": 0.75,
+      "chevron-offset-down": 0.25,
+      "separator-inset": 3.25,
       "gap": 8
     },
     "switch": {
@@ -376,6 +394,7 @@
       "segment-radius": "radius.button",
       "segment-height": 24,
       "segment-padding-x": 12,
+      "divider-height": 14,
       "font": {
         "size": 13,
         "weight": 400
@@ -790,7 +809,11 @@
       "popup": {
         "height": 24,
         "chevron": 18,
-        "text-gap": 6
+        "glyph": 16,
+        "glyph-stroke": 1.25,
+        "label-lift": 0.5,
+        "text-gap": 14,
+        "trailing-padding": 4
       },
       "preview": {
         "window-radius": 5,
@@ -1296,19 +1319,20 @@
           "tint-ink-mix": 0.14
         },
         "mark": {
-          "inset": 4.5,
+          "inset": 4.8,
           "width": 16,
           "dot": 7,
           "check": 16,
           "stroke": 1.7,
           "dash": 8.2,
           "dash-inset": 3.3,
-          "text-gap": 4.5
+          "text-gap": 4.2
         },
         "chevron": {
           "size": 12,
-          "gap": 18.4,
-          "inset": 0.6,
+          "gap": 18.8,
+          "inset": 0.2,
+          "drop": 0.25,
           "scroll": 8,
           "color": "ink"
         },

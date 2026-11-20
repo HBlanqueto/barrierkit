@@ -26,10 +26,16 @@ pub struct PopUpButtonStyle {
     pub background: StateValue<ShapeStyle>,
     /// Tengen: `SYMBOL.grid`, the SVG icon or swatch of the chosen item.
     pub icon_size: f32,
+    /// Tengen: `SETTINGS.popup_label_lift`, how far the title sits above the center of the button.
+    pub label_lift: f32,
+    /// Tengen: `SETTINGS.popup_trailing_padding`, after the indicator.
+    pub trailing_padding: f32,
     /// Tengen: `SETTINGS.popup_chevron`.
     pub indicator_size: f32,
-    /// Tengen: `SETTINGS.dropdown_chevron_glyph`.
+    /// Tengen: `SETTINGS.popup_glyph`.
     pub chevron_size: f32,
+    /// Tengen: `SETTINGS.popup_glyph_stroke`, in points.
+    pub chevron_stroke: f32,
     /// Tengen: `Circle`.
     pub indicator_shape: Shape,
     /// Tengen: `Role(Label)`.
@@ -61,8 +67,11 @@ impl ControlStyle for PopUpButtonStyle {
             shape: rounded(BUTTON.radius),
             background: StateValue::new(ShapeStyle::Role(Role::ControlBackground)),
             icon_size: SYMBOL.grid,
+            label_lift: SETTINGS.popup_label_lift,
+            trailing_padding: SETTINGS.popup_trailing_padding as f32,
             indicator_size: SETTINGS.popup_chevron as f32,
-            chevron_size: SETTINGS.dropdown_chevron_glyph as f32,
+            chevron_size: SETTINGS.popup_glyph as f32,
+            chevron_stroke: SETTINGS.popup_glyph_stroke,
             indicator_shape: Shape::Circle,
             label: StateValue::new(ShapeStyle::Role(Role::Label)),
             indicator: StateValue::new(ShapeStyle::Clear),

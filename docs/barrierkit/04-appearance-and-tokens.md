@@ -818,7 +818,7 @@ A color, size or duration never goes into `bk`. It goes into Tengen:
 |---|---|
 | `Rgba` | sRGB color with straight alpha, channels from 0 to 1. `TRANSPARENT`, `rgb8`, `rgba8`, `to_rgba8`, `premultiplied`, `mix` (keeps its own alpha), `darken`, `lighten`, `to_linear`, `from_linear`, `relative_luminance`, `contrast_ratio`, `to_hsl`, `from_hsl`. |
 | `Font` | `family`, `size`, `line_height` (pixels) and `weight`. |
-| `Palette` | Base colors of a theme: `titlebar_bg`, `hairline`, `inner_line`, `panel_inner_line`, `outer_border`, `title`, `text`, `ink_strong`, `ink_muted`, `ink_faint`, `line`, `line_strong`, `separator`, `accent`, `selected_content`, `accent_toggle`, `control`, `control_disabled`, `accent_inactive`, `on_accent`, `danger`, `traffic_lights_inactive`, `traffic_rim`, `scrim`, `selected_control`, `card_border`. |
+| `Palette` | Base colors of a theme: `titlebar_bg`, `hairline`, `inner_line`, `panel_inner_line`, `outer_border`, `title`, `text`, `ink_strong`, `ink_muted`, `ink_faint`, `line`, `line_strong`, `separator`, `accent`, `selected_content`, `accent_toggle`, `control`, `control_disabled`, `accent_inactive`, `on_accent`, `danger`, `traffic_lights_inactive`, `traffic_rim`, `scrim`, `selected_control`, `card_border`, `separator_strong`, `selected_content_inactive`, `combo_button`, `segment_divider`, `accent_ring`. |
 | `ContrastPalette` | What `Palette::contrasted` replaces with Increase Contrast: `ink`, `ink_muted`, `ink_faint`, `separator`, `line_strong`, `bg_control`, `bg_control_disabled`, `system_fill`, `text_background`, `accent`, `selected_content`, `accent_toggle` and `focus_ring`; `CONTRAST_LIGHT`, `CONTRAST_DARK`, `CONTRAST_DARK_TINT`. |
 | `FocusPair` | A color for the focused window and one for the unfocused. |
 | `PanelLine` | Inner line of a focused panel, menu or dialog: `sides`, `edges` (top and bottom) and the `glow` under the edges. |
@@ -979,6 +979,7 @@ background, for `reduce_transparency`.
 | `MATERIAL` | `MaterialMetrics` | `styles` ([Materials](#materials)) |
 | `SEGMENTED` | `SegmentedMetrics` | `controls`, `compact` |
 | `STEPPER` | `StepperMetrics` | `styles` |
+| `HELP_LINK` | `HelpLinkMetrics` | `styles` |
 | `TOOLBAR_SEARCH_WIDTH` | `f32` | `compact` |
 | `TEXT_FIELD` | `TextFieldMetrics` | `controls`, `sidebar` |
 | `TOKEN_FIELD` | `TokenFieldMetrics` | `styles` |

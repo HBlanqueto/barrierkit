@@ -22,9 +22,11 @@ pub struct ComboBoxStyle {
     pub text_gap: f32,
     /// Tengen: `COMBO_BOX.chevron`.
     pub chevron_size: f32,
+    /// Tengen: `COMBO_BOX.chevron_stroke`, in points.
+    pub chevron_stroke: f32,
     /// Tengen: `RoundedRectangle { radius: COMBO_BOX.button_radius, style: Circular }`.
     pub button_shape: Shape,
-    /// Tengen: `Role(ControlBackground)`.
+    /// Tengen: `Role(ComboButton)`.
     pub button: StateValue<ShapeStyle>,
     /// Tengen: `Role(Label)`.
     pub chevron: StateValue<ShapeStyle>,
@@ -45,8 +47,9 @@ impl ControlStyle for ComboBoxStyle {
             button_inset: COMBO_BOX.button_inset_x,
             text_gap: COMBO_BOX.text_gap,
             chevron_size: COMBO_BOX.chevron,
+            chevron_stroke: COMBO_BOX.chevron_stroke,
             button_shape: rounded(COMBO_BOX.button_radius),
-            button: StateValue::new(ShapeStyle::Role(Role::ControlBackground)),
+            button: StateValue::new(ShapeStyle::Role(Role::ComboButton)),
             chevron: StateValue::new(ShapeStyle::Role(Role::Label)),
             button_border: None,
             button_shadows: Vec::new(),

@@ -115,7 +115,9 @@ impl Symbol {
                 "M2.5 5.5h11v7.5h-11zM6 5.5V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v1.5M2.5 9h11"
             }
             Self::Keyboard => "M2 4.5h12v7H2zM4.5 7h0M7 7h0M9 7h0M11.5 7h0M5.5 9.5h5",
-            Self::QuestionMark => "M6 6a2 2 0 1 1 3 1.7c-.6.4-1 .8-1 1.6V10M8 12.8h0",
+            Self::QuestionMark => {
+                "M5.3 6.65a2.45 2.45 0 1 1 3.9 1.7c-.6.4-1.2.8-1.2 1.6V10.65M8 13.45h0"
+            }
             Self::Printer => "M4.5 6V2.5h7V6M4.5 11.5h-2v-5.5h11v5.5h-2M4.5 9.5h7v4h-7z",
             Self::Phone => {
                 "M4 2.5h2l1 3-1.5 1a7 7 0 0 0 4 4l1-1.5 3 1v2a1 1 0 0 1-1 1A10.5 10.5 0 0 1 3 3.5a1 1 0 0 1 1-1"
@@ -153,11 +155,11 @@ impl Symbol {
                 "M3 3h6.5A1.5 1.5 0 0 1 10.9 4.3H7.5A5.2 5.2 0 0 0 2.3 9.5H1.5v-5A1.5 1.5 0 0 1 3 3zM7.5 6.5h4a3 3 0 0 1 0 6h-4a3 3 0 0 1 0-6z"
             }
             Self::Ellipsis => "M3.5 8h0M8 8h0M12.5 8h0",
-            Self::ChevronUpDown => "M4 6l4-4 4 4M4 10l4 4 4-4",
-            Self::ChevronRight => "M6 3l5 5-5 5",
-            Self::ChevronLeft => "M10 3L5 8l5 5",
-            Self::ChevronUp => "M3 10l5-5 5 5",
-            Self::ChevronDown => "M3 6l5 5 5-5",
+            Self::ChevronUpDown => "M5.05 7.47l3.2-3.6 3.2 3.6M5.05 10.03l3.2 3.6 3.2-3.6",
+            Self::ChevronRight => "M5.5 3l5 5-5 5",
+            Self::ChevronLeft => "M10.5 3L5.5 8l5 5",
+            Self::ChevronUp => "M3 10.5l5-5 5 5",
+            Self::ChevronDown => "M3 5.5l5 5 5-5",
             Self::CircleHalf => {
                 "M8 1.5a6.5 6.5 0 1 1 0 13a6.5 6.5 0 1 1 0-13zM8 2.4a5.6 5.6 0 1 0 0 11.2a5.6 5.6 0 1 0 0-11.2zM8 2.4a5.6 5.6 0 0 0 0 11.2zM8 5a1.9 3 0 1 0 0 6a1.9 3 0 1 0 0-6z"
             }

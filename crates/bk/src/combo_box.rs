@@ -1,8 +1,9 @@
+use ctdesign::Rgba;
 use freya_core::prelude::*;
 use torin::prelude::{Area, Gaps, Position, Size};
 
 use crate::context_menu::edit_menu;
-use crate::controls::{default_pre_key, dimmed, input, shadowed, text_style};
+use crate::controls::{default_pre_key, dimmed, input, outer_hairline, shadowed, text_style};
 use crate::menu::MenuItem;
 use crate::platform::PopupAnchor;
 use crate::popup_button::open_popover_menu;
@@ -11,7 +12,7 @@ use crate::styles::{
     ComboBoxStyle, ControlState, LayoutDirection, Paints, ShapeStyle, StateValue, TextFieldStyle,
     Theme, resolve,
 };
-use crate::symbol::{Symbol, symbol};
+use crate::symbol::{Symbol, stroked_symbol};
 
 #[derive(PartialEq)]
 pub struct ComboBox {
@@ -79,7 +80,7 @@ impl Component for ComboBox {
             self.placeholder,
             [
                 ink(&field_style.background),
-                ink(&field_style.border),
+                Rgba::TRANSPARENT,
                 ink(&field_style.border),
                 ink(&field_style.text),
                 ink(&field_style.placeholder),
@@ -134,15 +135,18 @@ impl Component for ComboBox {
             .a11y_role(AccessibilityRole::Button)
             .a11y_alt(self.placeholder)
             .on_press(move |_| open())
-            .child(symbol(
+            .child(stroked_symbol(
                 Symbol::ChevronDown,
                 style.chevron_size,
+                style.chevron_stroke,
                 paints.color(style.chevron.resolve(ControlState::default())),
             ));
         let combo_box = dimmed(
             text_style(rect().width(self.width.clone()), field_style.font),
             field_style.opacity,
         )
+        .corner_radius(radius)
+        .border(outer_hairline(ink(&field_style.border)))
         .map(field_paints.blur(&field_style.background), |el, blur| {
             el.corner_radius(radius).backdrop_blur(blur)
         })

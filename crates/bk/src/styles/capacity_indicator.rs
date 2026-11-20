@@ -1,8 +1,13 @@
-use ctdesign::{HAIRLINE, LEVEL_INDICATOR, LEVEL_INDICATOR_COLORS};
+use ctdesign::{
+    HAIRLINE, LEVEL_BORDER_DARK, LEVEL_BORDER_DARK_TINT, LEVEL_BORDER_LIGHT, LEVEL_INDICATOR,
+    LEVEL_INDICATOR_COLORS, LEVEL_INDICATOR_COLORS_DARK, LEVEL_TRACK_DARK, LEVEL_TRACK_DARK_TINT,
+    LEVEL_TRACK_LIGHT,
+};
 
 use super::button::rounded;
 use super::{
-    ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue, system_effect,
+    ColorEffect, ControlStyle, ShadowStyle, Shape, ShapeStyle, StateValue, per_scheme,
+    system_effect,
 };
 
 /// States: only `normal`.
@@ -17,7 +22,7 @@ pub struct CapacityIndicatorStyle {
     /// Tengen: `RoundedRectangle { radius: LEVEL_INDICATOR.radius, style: Circular }`, the bar
     /// or each cell.
     pub shape: Shape,
-    /// Tengen: `Role(ControlBackground)`.
+    /// Tengen: `Color` of `LEVEL_TRACK`.
     pub track: StateValue<ShapeStyle>,
     /// Tengen, with `warning`, `critical`: `Color` of `LEVEL_INDICATOR_COLORS[0]`, `[1]` and
     /// `[2]`, picked by `level_color`.
@@ -28,7 +33,7 @@ pub struct CapacityIndicatorStyle {
     /// Tengen, with `fill`, `warning`: `Color` of `LEVEL_INDICATOR_COLORS[0]`, `[1]` and `[2]`,
     /// picked by `level_color`.
     pub critical: StateValue<ShapeStyle>,
-    /// Tengen: `Some((Role(CardBorder), HAIRLINE))`.
+    /// Tengen: `Some((Color of LEVEL_BORDER, HAIRLINE))`.
     pub border: Option<(ShapeStyle, f32)>,
     /// Tengen: empty, for the bar or each cell.
     pub shadows: Vec<ShadowStyle>,
@@ -40,17 +45,32 @@ pub struct CapacityIndicatorStyle {
 
 impl ControlStyle for CapacityIndicatorStyle {
     fn tengen() -> Self {
-        let [fill, warning, critical] =
-            LEVEL_INDICATOR_COLORS.map(|rgba| StateValue::new(ShapeStyle::Color(rgba)));
+        let [fill, warning, critical] = per_scheme([
+            LEVEL_INDICATOR_COLORS,
+            LEVEL_INDICATOR_COLORS_DARK,
+            LEVEL_INDICATOR_COLORS_DARK,
+        ])
+        .map(|rgba| StateValue::new(ShapeStyle::Color(rgba)));
         Self {
             height: LEVEL_INDICATOR.height,
             segment_gap: LEVEL_INDICATOR.segment_gap,
             shape: rounded(LEVEL_INDICATOR.radius),
-            track: StateValue::new(ShapeStyle::Role(Role::ControlBackground)),
+            track: StateValue::new(ShapeStyle::Color(per_scheme([
+                LEVEL_TRACK_LIGHT,
+                LEVEL_TRACK_DARK,
+                LEVEL_TRACK_DARK_TINT,
+            ]))),
             fill,
             warning,
             critical,
-            border: Some((ShapeStyle::Role(Role::CardBorder), HAIRLINE)),
+            border: Some((
+                ShapeStyle::Color(per_scheme([
+                    LEVEL_BORDER_LIGHT,
+                    LEVEL_BORDER_DARK,
+                    LEVEL_BORDER_DARK_TINT,
+                ])),
+                HAIRLINE,
+            )),
             shadows: Vec::new(),
             opacity: 1.0,
             effect: system_effect,
