@@ -16,9 +16,11 @@ ordered gaps.
    [`macos-observations.md`](macos-observations.md).
 2. Read the complete default matrix in
    [`macos-defaults.md`](macos-defaults.md).
-3. Use the glass table with its backdrop; do not lift one value.
-4. Check the comparison table before changing a Dock token.
-5. Do not copy Apple application icons.
+3. Read the Dock row and the wallpaper-bias correction in
+   [`macos-blur.md`](macos-blur.md).
+4. Use the glass table with its backdrop; do not lift one value.
+5. Check the comparison table before changing a Dock token.
+6. Do not copy Apple application icons.
 
 ---
 
@@ -80,6 +82,13 @@ version for dark mode with transparency allowed:
 The Dock is a blurred dark glass in dark mode. In light mode the same
 backdrops give `#eaeaea`, `#a5a5a5`, `#323232` and `#979797`; the light token
 was corrected to `#b5b5b548` in this pass.
+
+A later pass found the Dock glass follows the **wallpaper**, not the
+appearance scheme: with a dark wallpaper, light mode renders the same dark
+matrix as dark mode. The light values above were recorded under a different
+wallpaper state. See the corrections in
+[`macos-blur.md`](macos-blur.md#7-corrections-to-the-earlier-research) before
+using the light tokens.
 
 The rim is a three-step light/dark bevel, not a one-pixel outline. In dark
 mode over gray it reads `#919191`, `#808080`, `#919191`; in light mode over

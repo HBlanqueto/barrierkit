@@ -16,9 +16,11 @@ and ordered gaps.
    [`macos-observations.md`](macos-observations.md).
 2. Read the full default matrix in
    [`macos-defaults.md`](macos-defaults.md).
-3. Use the bar table for heights and item widths.
-4. Use the glass table only with its backdrop; never lift one value alone.
-5. Do not copy SF Pro, SF Symbols or Apple menu artwork.
+3. Read the menu row and the scheme-independence correction in
+   [`macos-blur.md`](macos-blur.md).
+4. Use the bar table for heights and item widths.
+5. Use the glass table only with its backdrop; never lift one value alone.
+6. Do not copy SF Pro, SF Symbols or Apple menu artwork.
 
 ---
 
@@ -114,6 +116,11 @@ The bar is the opposite case: it stays clear and its ink follows the colour
 scheme, not the window behind it. A white backdrop therefore gives white text
 on white in dark mode. That is the measured macOS behaviour, not a rendering
 bug in the probe.
+
+The panel is scheme-independent too: over black it is `#2b2b2b` with white
+ink even in light mode, and over white it is `#8d8d8d` with dark ink even in
+dark mode. See the corrections in
+[`macos-blur.md`](macos-blur.md#7-corrections-to-the-earlier-research).
 
 Malaysia's current menu is a raised surface plus a `menu-glass` overlay. Its
 dark value `#ffffff21` over black lands near `#212121`, close to the measured

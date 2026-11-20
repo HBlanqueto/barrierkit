@@ -18,9 +18,11 @@ existing glass model in `ctappearance`.
    [`macos-materials.md`](macos-materials.md).
 3. Read the default matrix in
    [`macos-defaults.md`](macos-defaults.md).
-4. Treat "glass" as a system of blur, tint, rim, lens, tone and grouping.
-5. Do not reduce Liquid Glass to a single opacity or blur radius.
-6. Do not copy Apple shaders, textures or SF Symbols.
+4. Read the measured per-element matrix and the lens verdict in
+   [`macos-blur.md`](macos-blur.md).
+5. Treat "glass" as a system of blur, tint, rim, lens, tone and grouping.
+6. Do not reduce Liquid Glass to a single opacity or blur radius.
+7. Do not copy Apple shaders, textures or SF Symbols.
 
 ---
 
@@ -70,8 +72,11 @@ the effect but does not remove it: the light Dock is `#f1f1f1` over white and
 
 The static captures cannot prove **lensing**. A lens bends the image behind
 the glass; a blur destroys its edges. The checker test shows the blur but does
-not measure a displacement field. Treat lensing as observed only where a live
-edge visibly bends, and mark it as an open question here.
+not measure a displacement field. The `grid16` pass in
+[`macos-blur.md`](macos-blur.md) closed this: the grid lines stay unshifted
+near the menu, Dock, Control Center and banner edges, so no surface shows
+measurable refraction at this scale. Treat the materials as adaptive blur and
+tint with specular edges, not as lensing glass.
 
 ## 3. The existing Malaysia model
 

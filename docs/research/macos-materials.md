@@ -19,7 +19,9 @@ gaps.
    [`macos-defaults.md`](macos-defaults.md).
 3. Pick a material by role, never by its apparent colour.
 4. Check the fill hierarchy before adding a new token.
-5. Do not copy Apple material images or SF Symbols.
+5. Read the per-element blur and lensing matrix in
+   [`macos-blur.md`](macos-blur.md).
+6. Do not copy Apple material images or SF Symbols.
 
 ---
 
@@ -141,8 +143,15 @@ becomes a near-white surface.
 
 ## 8. Open questions
 
-- How many blur passes does each material use?
+- How many blur passes does each material use? The measured matrix is in
+  [`macos-blur.md`](macos-blur.md); the pass count is still unknown.
 - What is the rim width at 2x?
 - Does the menu glass change with the wallpaper tint or only the window?
-- Do the notification and menu glass share the same composite?
-- What does the light menu panel sample over the same four backdrops?
+  [`macos-blur.md`](macos-blur.md) shows the menu is backdrop-driven and
+  scheme-independent.
+- Do the notification and menu glass share the same composite? They do not:
+  the menu and Control Center share one tone curve, Notification Center is
+  darker, and the Dock follows the wallpaper.
+- What does the light menu panel sample over the same four backdrops? It
+  samples the same values as the dark panel; see the corrections in
+  [`macos-blur.md`](macos-blur.md#7-corrections-to-the-earlier-research).

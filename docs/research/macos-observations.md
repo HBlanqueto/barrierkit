@@ -95,6 +95,7 @@ useful accessibility tree on this host, so their measurements are visual.
 | Notifications | `notification-banner.png`, `notification-center.png`, `notification-center2.png` |
 | Mission Control | `mission-control.png` |
 | Settings and focus | `settings-appearance.png`, `settings-focus-tab.png`, `settings-focus-tab2.png`, `focus-crop.png`, `focus-crop-4x.png` |
+| Blur and Liquid Glass matrix | `blur-*.png`, `defaults-2026-11-19-blur/` |
 
 These files stay outside the repository. They are local evidence, not
 committed assets.

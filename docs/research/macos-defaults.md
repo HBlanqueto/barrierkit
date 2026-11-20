@@ -20,7 +20,9 @@ and the remaining gaps.
 2. Use the reset procedure before measuring.
 3. Read the Dock table and the menu table; do not mix their backdrops.
 4. Compare a token with the "before" and "after" columns.
-5. Check the remaining gaps before claiming the desktop is identical.
+5. Read the per-element blur matrix and the corrections in
+   [`macos-blur.md`](macos-blur.md) before trusting a glass value.
+6. Check the remaining gaps before claiming the desktop is identical.
 
 ---
 
@@ -206,6 +208,22 @@ geometry.
 - The Dock still follows the backdrop with Reduce Transparency on. A fixed
   solid token is an approximation.
 - The window inner border was not measured in this pass. It remains a gap.
+
+## 7b. Corrections from the blur pass
+
+A later pass measured every shell surface over white, gray, black, checker
+and a grid. It corrects three values above; the details and evidence are in
+[`macos-blur.md`](macos-blur.md).
+
+- The light Dock matrix (`#eaeaea`, `#a5a5a5`, `#323232`, light opaque
+  `#f1f1f1`) was recorded under a different wallpaper state. The Dock glass
+  follows the wallpaper, not the scheme; with the dark wallpaper both modes
+  give the dark matrix and Reduce Transparency gives solid `#020202` to
+  `#0a0a0a`.
+- The menu panel is scheme-independent: `#8d8d8d` over white and `#2b2b2b`
+  over black in both modes, with the ink following the panel. Reduce
+  Transparency leaves it unchanged.
+- Reduce Transparency leaves Control Center unchanged too.
 
 ## 8. Remaining gaps
 
