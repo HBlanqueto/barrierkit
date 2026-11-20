@@ -31,6 +31,7 @@ pub struct PopUpButton {
     separators: Vec<usize>,
     selected: usize,
     on_change: Option<Callback<usize, ()>>,
+    pulls_down: bool,
     disabled: bool,
     style: Theme,
 }
@@ -44,6 +45,7 @@ impl PopUpButton {
             separators: Vec::new(),
             selected: 0,
             on_change: None,
+            pulls_down: false,
             disabled: false,
             style: Theme::tengen(),
         }
@@ -87,6 +89,11 @@ impl PopUpButton {
         self
     }
 
+    pub fn pulls_down(mut self, pulls_down: bool) -> Self {
+        self.pulls_down = pulls_down;
+        self
+    }
+
     pub fn disabled(mut self, disabled: bool) -> Self {
         self.disabled = disabled;
         self
@@ -101,7 +108,12 @@ impl Component for PopUpButton {
         let paints = Paints::current(state, style.effect);
         let choice = use_choice(Some(self.selected), self.on_change.clone());
         let mut area = use_state(Area::default);
-        let current = (0..self.items.len()).find(|&i| choice.is(i)).unwrap_or(0);
+        let pulls_down = self.pulls_down;
+        let current = if pulls_down {
+            0
+        } else {
+            (0..self.items.len()).find(|&i| choice.is(i)).unwrap_or(0)
+        };
         let items = self.items.clone();
         let section_headers = self.section_headers.clone();
         let separators = self.separators.clone();
@@ -120,12 +132,30 @@ impl Component for PopUpButton {
             .width(Size::px(size))
             .height(Size::px(size))
             .corner_radius(indicator_radius)
+            .padding(Gaps::new(
+                if pulls_down {
+                    2.0 * style.pulldown_chevron.1
+                } else {
+                    0.0
+                },
+                0.0,
+                0.0,
+                0.0,
+            ))
             .center()
             .painted(&paints, &style.indicator)
             .bordered(&paints, style.indicator_border.as_ref())
             .child(stroked_symbol(
-                Symbol::ChevronUpDown,
-                style.chevron_size,
+                if pulls_down {
+                    Symbol::ChevronDown
+                } else {
+                    Symbol::ChevronUpDown
+                },
+                if pulls_down {
+                    style.pulldown_chevron.0
+                } else {
+                    style.chevron_size
+                },
                 style.chevron_stroke,
                 paints.color(style.chevron.resolve(state)),
             ));
@@ -153,6 +183,7 @@ impl Component for PopUpButton {
                         current,
                         content,
                         selects.clone(),
+                        pulls_down,
                     )
                 })
             })
@@ -212,10 +243,14 @@ fn open_menu(
     current: usize,
     area: Area,
     selects: Vec<Callback<(), ()>>,
+    pulls_down: bool,
 ) {
     let mut entries = Vec::new();
     let mut current_entry = 0;
     for (index, (label, icon)) in items.iter().enumerate() {
+        if pulls_down && index == 0 {
+            continue;
+        }
         if separators.contains(&index) {
             entries.push(MenuItem::Separator);
         }
@@ -230,15 +265,19 @@ fn open_menu(
         }
         entries.push(
             MenuItem::action(index.to_string(), *label)
-                .with_check(CheckState::Checkbox(index == current))
+                .with_check(CheckState::Checkbox(!pulls_down && index == current))
                 .with_icon(icon.clone()),
         );
     }
     open_popover_menu(
         entries,
-        PopupAnchor::TopLeft,
+        if pulls_down {
+            PopupAnchor::BottomLeft
+        } else {
+            PopupAnchor::TopLeft
+        },
         crate::platform::anchor_rect(area),
-        Some(current_entry),
+        (!pulls_down).then_some(current_entry),
         move |id| {
             if let Some(select) = id.parse::<usize>().ok().and_then(|i| selects.get(i)) {
                 select.call(());

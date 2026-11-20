@@ -184,6 +184,10 @@
   --bk-path-control-chevron: 10;
   --bk-path-control-icon: 16;
   --bk-path-control-icon-gap: 4;
+  --bk-circular-slider-size: 24;
+  --bk-circular-slider-dash-from: 3;
+  --bk-circular-slider-dash-to: 9;
+  --bk-circular-slider-dash-width: 2;
   --bk-color-picker-inset: 3;
   --bk-color-picker-ring-shift: 0.125;
   --bk-group-box-radius: 12;
@@ -783,6 +787,8 @@
   --bk-settings-popup-chevron: 18;
   --bk-settings-popup-glyph: 16;
   --bk-settings-popup-glyph-stroke: 1.25;
+  --bk-settings-popup-pulldown-glyph: 10;
+  --bk-settings-popup-pulldown-drop: 0.75;
   --bk-settings-popup-label-lift: 0.5;
   --bk-settings-popup-text-gap: 14;
   --bk-settings-popup-trailing-padding: 4;

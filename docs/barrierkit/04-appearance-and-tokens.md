@@ -1019,6 +1019,7 @@ background, for `reduce_transparency`.
 | `LIST_GROUP` | `ListGroupMetrics` | `views::form` |
 | `GROUP_BOX` | `GroupBoxMetrics` | `views::group` |
 | `COLOR_PICKER` | `ColorPickerMetrics` | `color_picker`, `styles` (`ColorPickerStyle`) |
+| `CIRCULAR_SLIDER` | `CircularSliderMetrics` | `controls`, `styles` (`CircularSliderStyle`) |
 | `DISCLOSURE` | `DisclosureMetrics` | `views::group`, `views::tree`, `font_panel`, `styles` (`RuleEditorStyle`) |
 | `TOOLBAR_TABS` | `ToolbarTabsMetrics` | `views::tabs` |
 | `SCROLL_BAR` | `ScrollBarMetrics` | Scroll views, `styles` (`ScrollViewStyle`) |

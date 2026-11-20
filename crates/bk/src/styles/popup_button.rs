@@ -37,6 +37,9 @@ pub struct PopUpButtonStyle {
     pub chevron_size: f32,
     /// Tengen: `SETTINGS.popup_glyph_stroke`, in points.
     pub chevron_stroke: f32,
+    /// Tengen: `(SETTINGS.popup_pulldown_glyph, SETTINGS.popup_pulldown_drop)`: the size of the
+    /// chevron of a button that pulls down and how far it sits below the center of its box.
+    pub pulldown_chevron: (f32, f32),
     /// Tengen: `Circle`.
     pub indicator_shape: Shape,
     /// Tengen: `Role(Label)`.
@@ -75,6 +78,10 @@ impl ControlStyle for PopUpButtonStyle {
             indicator_size: SETTINGS.popup_chevron as f32,
             chevron_size: SETTINGS.popup_glyph as f32,
             chevron_stroke: SETTINGS.popup_glyph_stroke,
+            pulldown_chevron: (
+                SETTINGS.popup_pulldown_glyph as f32,
+                SETTINGS.popup_pulldown_drop,
+            ),
             indicator_shape: Shape::Circle,
             label: StateValue::new(ShapeStyle::Role(Role::Label))
                 .disabled(ShapeStyle::Role(Role::TertiaryLabel)),

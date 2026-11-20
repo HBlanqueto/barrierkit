@@ -80,6 +80,7 @@ COMBO_BOX ComboBoxMetrics components.combo-box
 POPOVER PopoverMetrics components.popover
 GROUP_BOX GroupBoxMetrics components.group-box
 COLOR_PICKER ColorPickerMetrics components.color-picker
+CIRCULAR_SLIDER CircularSliderMetrics components.circular-slider
 TOKEN_FIELD TokenFieldMetrics components.token-field
 DATE_PICKER DatePickerMetrics components.date-picker
 PATH_CONTROL PathControlMetrics components.path-control

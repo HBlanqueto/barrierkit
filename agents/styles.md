@@ -404,6 +404,7 @@ needs 4.5:1 and control parts 3:1 (WCAG 2.2, 1.4.3 and 1.4.11). Roles and
 | Control | Style | Since |
 |---|---|---|
 | `Slider` | `SliderStyle` | ADR 0064 pilot |
+| `CircularSlider` | `CircularSliderStyle` | 2026-11-20 |
 | `Button` | `ButtonStyle` | 2026-11-07 |
 | `Switch` | `SwitchStyle` | 2026-11-07 |
 | `Checkbox` | `CheckboxStyle` | 2026-11-07 |

@@ -300,7 +300,7 @@ All of them report the chosen index with `.on_change(|index: usize| ..)`.
 |---|---|---|---|
 | `RadioGroup` | `choices` | `RadioGroup::new(label)`, `.option(text)`, `.disabled(bool)`, `.tint(Tint)`, `.style(\|s\| ..)` | `.selected(usize)` (default 0) |
 | `SegmentedControl` | `controls` | `SegmentedControl::new(label)`, `.segment(text)`, `.disabled(bool)`, `.style(\|s\| ..)` | `.selected(usize)` (default 0) |
-| `PopUpButton` | `popup_button` | `PopUpButton::new(label)`, `.item(text)`, `.icon_item(text, MenuIcon)`, `.section_header(title)` (a separator and a title before the next item), `.separator()` (a line before the next item), `.disabled(bool)`, `.style(\|s\| ..)` | `.selected(usize)` (default 0) |
+| `PopUpButton` | `popup_button` | `PopUpButton::new(label)`, `.pulls_down(bool)` (the first item is the title and the chevron points down), `.item(text)`, `.icon_item(text, MenuIcon)`, `.section_header(title)` (a separator and a title before the next item), `.separator()` (a line before the next item), `.disabled(bool)`, `.style(\|s\| ..)` | `.selected(usize)` (default 0) |
 | `ColorWell` | `choices` | `ColorWell::new(label, swatches)`, `.multicolor(name)`, `.disabled(bool)`, `.style(\|s\| ..)` | `.selected(Option<usize>)` (default `None`) |
 | `ChoiceCards` | `choices` | `ChoiceCards::new(label)`, `.option(caption, preview)`, `.disabled(bool)`, `.style(\|s\| ..)` | `.selected(usize)` (default 0) |
 
@@ -376,6 +376,7 @@ RadioGroup::new("Size").option("Small").option("Large")
 | Item | Module | Build | Value | Reports |
 |---|---|---|---|---|
 | `Slider` | `controls` | `Slider::new(label)`, `Slider::stepped(label, steps)` (at least 2), `.range(lo..=hi)`, `.labels(&[..])`, `.number_of_tick_marks(n)`, `.continuous(bool)`, `.disabled(bool)`, `.tint(Tint)`, `.style(\|s\| ..)` | `.value(f32)` | `.on_change(\|value: f32\| ..)` |
+| `CircularSlider` | `controls` | `CircularSlider::new(label)`, `.disabled(bool)`, `.style(\|s\| ..)` | `.value(f32)` (0 to 1, once around from the top) | `.on_change(\|value: f32\| ..)` |
 | `LevelSlider` | `level` | `LevelSlider::new(label)`, `.disabled(bool)`, `.tint(Tint)`, `.style(\|s\| ..)` | `.value(f32)` (0 to 1) | `.on_change(\|value: f32\| ..)` |
 
 - `Slider` is 220 wide. `Slider::new` is free: the value is continuous inside `.range(lo..=hi)`

@@ -260,6 +260,8 @@ pub struct SettingsMetrics {
     pub popup_chevron: u32,
     pub popup_glyph: u32,
     pub popup_glyph_stroke: f32,
+    pub popup_pulldown_glyph: u32,
+    pub popup_pulldown_drop: f32,
     pub popup_label_lift: f32,
     pub popup_text_gap: u32,
     pub popup_trailing_padding: u32,
@@ -630,6 +632,14 @@ pub struct PathControlMetrics {
     pub chevron: f32,
     pub icon: f32,
     pub icon_gap: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct CircularSliderMetrics {
+    pub size: f32,
+    pub dash_from: f32,
+    pub dash_to: f32,
+    pub dash_width: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

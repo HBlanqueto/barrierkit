@@ -20,7 +20,7 @@ CONTROLS = [
     "segmented-regular", "textfield-regular", "search", "popup-regular",
     "stepper-regular", "progress-bar", "ring-regular", "datepicker", "level", "combo",
     "separator", "help", "box", "search-filled", "textfield-filled",
-    "disclosure", "calendar", "level-warn", "level-crit", "discrete-5", "discrete-10", "rating-3",
+    "slider-circular", "pulldown", "disclosure", "calendar", "level-warn", "level-crit", "discrete-5", "discrete-10", "rating-3",
     "relevancy-3", "secure", "token", "check-mixed", "check-on-disabled", "circular", "slider-ticks", "colorwell", "colorwell-blue",
     "default-disabled", "check-off-disabled", "radio-off-disabled", "radio-on-disabled",
     "switch-off-disabled", "slider-disabled", "segmented-disabled",

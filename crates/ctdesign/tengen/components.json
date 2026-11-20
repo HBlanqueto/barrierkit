@@ -114,6 +114,12 @@
       "icon": 16,
       "icon-gap": 4
     },
+    "circular-slider": {
+      "size": 24,
+      "dash-from": 3,
+      "dash-to": 9,
+      "dash-width": 2
+    },
     "color-picker": {
       "inset": 3,
       "ring-shift": 0.125
@@ -867,6 +873,8 @@
         "chevron": 18,
         "glyph": 16,
         "glyph-stroke": 1.25,
+        "pulldown-glyph": 10,
+        "pulldown-drop": 0.75,
         "label-lift": 0.5,
         "text-gap": 14,
         "trailing-padding": 4

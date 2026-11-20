@@ -136,6 +136,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `styles::Edge` | enum | `Edge` | `NSRectEdge` | `Top`, `Bottom`, `Leading`, `Trailing` | [Styles](../../agents/styles.md#value-types) |
 | `styles::LayoutDirection` | enum | `LayoutDirection` | `NSUserInterfaceLayoutDirection` | `LeftToRight` or `RightToLeft` | [Styles](../../agents/styles.md#value-types) |
 | `styles::ControlStyle` | trait | ≈ the style protocols (`ButtonStyle`, `ToggleStyle`) | ≈ `NSCell` | Implemented by every control style: `tengen()` and the accessibility rules of its control | [Styles](../../agents/styles.md#which-controls-take-a-style) |
+| `styles::CircularSliderStyle` | struct | — | ≈ `NSSliderCell` | Every visual property of `CircularSlider` | [Styles](../../crates/bk/src/styles/circular_slider.rs) |
 | `styles::SliderStyle` | struct | ≈ `ButtonStyle` | ≈ `NSSliderCell` | Every visual property of `Slider`; `tengen()` builds the default from the tokens | [Styles](../../agents/styles.md#the-fields-of-a-style) |
 | `styles::ButtonStyle` | struct | `ButtonStyle`, `PrimitiveButtonStyle` | ≈ `NSButtonCell`, `NSButton.BezelStyle` | Every visual property of `Button`; `tengen()` is `.bordered` | [Styles](../../crates/bk/src/styles/button.rs) |
 | `styles::ButtonStyle::bordered_prominent` | method | `PrimitiveButtonStyle.borderedProminent` | ≈ `NSButton.keyEquivalent` `"\r"` | Preset: accent fill, `on_accent` label | [Styles](../../crates/bk/src/styles/button.rs) |
@@ -254,6 +255,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `buttons::ShareLink::style` | method | `.menuStyle(_:)` on one view | — | Changes the `MenuButtonStyle` of one share link | [Styles](../../crates/bk/src/styles/menu_button.rs) |
 | `buttons::ControlGroup::style` | method | `.controlGroupStyle(_:)` on one view | — | Changes the style of one control group | [Styles](../../crates/bk/src/styles/control_group.rs) |
 | `popup_button::PopUpButton::style` | method | `.pickerStyle(.menu)` on one view | — | Changes the style of one pop-up button | [Styles](../../crates/bk/src/styles/popup_button.rs) |
+| `popup_button::PopUpButton::pulls_down` | method | — | `NSPopUpButton.pullsDown` | The title is the first item, the menu opens below with the rest and a single chevron points down | [5](05-controls.md#choices) |
 | `popup_button::PopUpButton::disabled` | method | `.disabled(_:)` | `isEnabled` | Dims the pop-up button and stops it opening | [5](05-controls.md#choices) |
 | `combo_box::ComboBox::style` | method | — | — | Changes the style of the arrow button of one combo box | [Styles](../../crates/bk/src/styles/combo_box.rs) |
 | `token_field::TokenField::style` | method | — | — | Changes the style of one token field | [Styles](../../crates/bk/src/styles/token_field.rs) |
@@ -691,6 +693,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 
 | BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
 |---|---|---|---|---|---|
+| `controls::CircularSlider` | struct | — | `NSSlider` with `sliderType = .circular` | A 24 gray disc with a dash that turns once around, dragged or moved with the arrows; `.value`, `.disabled`, `.on_change` | [5](05-controls.md#sliders) |
 | `controls::Slider` | struct | `Slider` | `NSSlider` | Free slider: a continuous value the knob follows to any point of the track, with optional marks and captions | [5](05-controls.md#sliders) |
 | `controls::Slider::stepped` | method | `Slider(value:in:step:)` | `NSSlider.allowsTickMarkValuesOnly` | The slider that stops only at a step, with a tick and a caption per step | [5](05-controls.md#sliders) |
 | `controls::Slider::range` | method | `Slider(value:in:)` | `NSSlider.minValue`, `maxValue` | The values the free knob covers; 0 to 1 by default | [5](05-controls.md#sliders) |

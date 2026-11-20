@@ -7,8 +7,8 @@ use bk::color_picker::ColorPicker;
 use bk::combo_box::ComboBox;
 use bk::compact::Stepper;
 use bk::controls::{
-    Button, Checkbox, ControlSize, ScrollView, SearchField, SecureField, SegmentedControl, Slider,
-    Switch, TextField,
+    Button, Checkbox, CircularSlider, ControlSize, ScrollView, SearchField, SecureField,
+    SegmentedControl, Slider, Switch, TextField,
 };
 use bk::date::{CivilDate, CivilDateTime};
 use bk::date_picker::DatePicker;
@@ -105,6 +105,19 @@ fn controls() -> Vec<(&'static str, Builder)> {
             RadioGroup::new("Radio")
                 .option("Radio")
                 .selected(0)
+                .into_element()
+        }),
+        ("slider-circular", || {
+            rect()
+                .margin(Gaps::new(0.0, 0.0, 0.0, 38.0))
+                .child(CircularSlider::new("Dial").value(0.25))
+                .into_element()
+        }),
+        ("pulldown", || {
+            PopUpButton::new("Pull")
+                .item("Pull")
+                .item("A")
+                .pulls_down(true)
                 .into_element()
         }),
         ("disclosure", || DisclosureGroup::new("").into_element()),

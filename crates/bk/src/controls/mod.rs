@@ -34,6 +34,7 @@ use crate::theme::color;
 use zeroize::Zeroizing;
 
 mod button;
+mod circular_slider;
 mod segmented_control;
 mod slider;
 mod text_field;
@@ -41,6 +42,7 @@ mod toggle;
 mod tool_group;
 
 pub use button::{Button, ControlSize};
+pub use circular_slider::CircularSlider;
 pub use segmented_control::SegmentedControl;
 pub use slider::Slider;
 pub use text_field::{SearchField, SecureField, TextField};
