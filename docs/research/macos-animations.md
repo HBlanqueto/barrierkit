@@ -87,7 +87,7 @@ overshoot** are not.
 | Element | macOS | Malaysia today | Token or file | Gap |
 |---|---|---|---|---|
 | Menu open | Instant | No menu animation | `menubar/menu.rs` | Matches |
-| Window default | 250 ms | `duration.base` 220 | `tokens.duration` | 30 ms difference |
+| Window default | 250 ms | `duration.base` 250 | `tokens.duration` | Matches |
 | Dock magnify scale | about 1.3 | 1.3 | `DOCK_MAGNIFY_MIN` | Matches |
 | Dock magnify duration | Not measured | 120 | `DOCK_MAGNIFY_MS` | Unverified |
 | Dock hide | Not measured | 280 | `DOCK_HIDE_MS` | Unverified |
@@ -103,9 +103,9 @@ overshoot** are not.
 | Lock rise | Not measured | 900, 120 offset | `LOCK_RISE_*` | Unverified |
 | Lock login | Not measured | 600 | `LOCK_LOGIN_MS` | Unverified |
 
-Only two rows are grounded: menu open is instant, and the Dock magnification
-floor is about 1.3. Everything else in the Malaysia column is a project
-choice that still needs a macOS reference.
+Only three rows are grounded: menu open is instant, the window default is
+250 ms, and the Dock magnification floor is about 1.3. Everything else in the
+Malaysia column is a project choice that still needs a macOS reference.
 
 ## 6. What not to copy
 
@@ -134,9 +134,7 @@ choice that still needs a macOS reference.
    unverified.
 4. **Measure Mission Control.** It is a new mode and needs a transition
    specification.
-5. **Reconcile the 250 ms window default with `duration.base` 220.** Decide
-   whether the 30 ms difference is intentional.
-6. **Add Reduce Motion tests for every duration.** A long fade that ignores
+5. **Add Reduce Motion tests for every duration.** A long fade that ignores
    Reduce Motion is a regression.
 
 ## 9. Open questions

@@ -117,9 +117,12 @@ DISPLAY_CONTRAST [f32;7] appearance.accessibility.display-contrast
 COLOR_FILTER_INTENSITY [f32;7] appearance.accessibility.color-filter-intensity
 GLASS_BLUR_SPREAD f32 appearance.glass-blur.spread
 GLASS_BLUR_FULL f32 appearance.glass-blur.full
-MENU_GLASS_VEIL Rgba components.shell.menu.glass-veil
-MENU_GLASS_LIFT f32 components.shell.menu.glass-lift
-MENU_GLASS_CAP f32 components.shell.menu.glass-cap
+MENU_GLASS_VEIL_LIGHT Rgba components.shell.menu.glass-veil-light
+MENU_GLASS_VEIL_DARK Rgba components.shell.menu.glass-veil-dark
+MENU_GLASS_LIFT_LIGHT f32 components.shell.menu.glass-lift-light
+MENU_GLASS_LIFT_DARK f32 components.shell.menu.glass-lift-dark
+MENU_GLASS_CAP_LIGHT f32 components.shell.menu.glass-cap-light
+MENU_GLASS_CAP_DARK f32 components.shell.menu.glass-cap-dark
 MENU_GLASS_CHROMA f32 components.shell.menu.glass-chroma
 MENU_GLASS_SPREAD f32 components.shell.menu.glass-spread
 MENU_DARK_INK_ABOVE f32 components.shell.menu.dark-ink-above
@@ -329,6 +332,7 @@ NOTIFICATION_CLOSE_SIZE f32 components.shell.notifications.close-size
 NOTIFICATION_TITLE_FONT Font components.shell.notifications.title-font
 NOTIFICATION_SHADOW Rgba components.shell.notifications.shadow
 NOTIFICATION_SHADOW_BLUR f32 components.shell.notifications.shadow-blur
+NOTIFICATION_GLASS_VEIL_LIGHT Rgba components.shell.notifications.glass-veil-light
 NOTIFICATION_VEIL_SPREAD f32 components.shell.notifications.veil-spread
 NOTIFICATION_EMPTY_TOP f32 components.shell.notifications.empty-top
 NOTIFICATION_EMPTY_GAP f32 components.shell.notifications.empty-gap

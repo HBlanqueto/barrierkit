@@ -84,22 +84,22 @@ They are project values.
 
 | Element | macOS (measured) | Malaysia today | Token or file | Gap |
 |---|---|---|---|---|
-| Width | about 330 | 344 | `NOTIFICATION_WIDTH` | Malaysia is 14 wider |
+| Width | about 330 | 330 | `NOTIFICATION_WIDTH` | Matches |
 | Height | about 70 | Content-driven | `NOTIFICATION_PADDING` | Verify with the same text |
-| Radius | about 18 | 20 | `NOTIFICATION_RADIUS` | Slightly too round |
-| Right inset | about 20 | 10 | `NOTIFICATION_MARGIN` | Malaysia sits closer to the edge |
+| Radius | about 18 | 18 | `NOTIFICATION_RADIUS` | Matches |
+| Right inset | about 20 | 20 | `NOTIFICATION_MARGIN` | Matches |
 | Top edge | 30 | Bar height plus gap | `NOTIFICATION_GAP` | Verify the gap |
 | Icon | 38 | 38 | `NOTIFICATION_ICON_SIZE` | Matches |
-| Title | 13 bold | 17/22 bold | `NOTIFICATION_TITLE_FONT` | Much too large |
-| Subtitle | 12 | Not a separate token | `NOTIFICATION_TITLE_FONT` | Add a subtitle style |
-| Body | 13 | Body style | `NOTIFICATION_*` | Verify |
+| Title | 13 bold | 13/18 bold | `HEADLINE` | Matches |
+| Notification Center heading | Not measured | 17/22 bold | `NOTIFICATION_TITLE_FONT` | Unverified; only the heading uses it |
+| Subtitle | 12 | No subtitle line | `CALLOUT` (12) | The kit style is 12; the banner shows the age in `CAPTION` |
+| Body | 13 | 13/18 | `BODY` | Matches |
 | Hover action | `Opciones` | Options action | `notifications/view.rs` | Verify shape |
 | Glass | Dark glass | Notification glass | `notification_glass` | Reuse menu model |
 | Motion | Not measured | 450 in, 260 out, bounce 0.15 | `NOTIFICATION_SLIDE_*` | Unverified |
 
-The title is the clearest mismatch: macOS uses a **13 pt bold** title in the
-banner, while Malaysia uses a 17 pt / 22 line title. That makes the banner
-feel like a different component.
+The banner title is 13 pt bold in both. `NOTIFICATION_TITLE_FONT` (17/22) is
+only the Notification Center heading, which was not measured.
 
 ## 5. What not to copy
 
@@ -110,18 +110,12 @@ feel like a different component.
 
 ## 6. Prioritized changes
 
-1. **Reduce the banner title to 13 pt bold.** Keep a 12 pt subtitle and a
-   13 pt body. This is a high-impact typography fix.
-2. **Match the width and radius.** Use about 330 and 18, or prove that 344
-   and 20 are intentional.
-3. **Move the right inset to about 20.** The banner sits farther from the
-   edge than the current 10.
-4. **Verify the height with the same content.** The 70 pt banner has a
+1. **Verify the height with the same content.** The 70 pt banner has a
    38 pt icon, three text lines and padding; the current token set can
    produce a different height.
-5. **Measure the enter and exit motion.** Use the pre-rolled recorder and a
+2. **Measure the enter and exit motion.** Use the pre-rolled recorder and a
    banner with a fixed delay. Do not keep unverified timings.
-6. **Measure the stack.** The peek and inset values are unverified.
+3. **Measure the stack.** The peek and inset values are unverified.
 
 ## 7. Open questions
 

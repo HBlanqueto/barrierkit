@@ -205,24 +205,37 @@ constants.
 
 ## 10. Code gaps against the current kit and compositor
 
-- `ctappearance::menu::panel_over` and the `components.shell.menu` tokens
-  (`glass-veil #ffffff33`, `lift -0.032`, `cap 0.6434`, `chroma 1.17`,
-  `spread 2.0`) reproduce the dark menu within tolerance. There is **no light
-  veil set**: the same tokens serve both schemes, so a light panel over black
-  renders `#2b` instead of `#75`.
+Closed on 2026-11-20 in `ctdesign` and `ctappearance`; the tests in
+`ctappearance::resolve` hold every value below within 8/255.
+
+- **The earlier claim here was wrong.** The old menu tokens (`#ffffff33`, lift
+  `-0.032`, cap `0.6434`) reproduced the `#8d` of the 2026-11-19 pass, not the
+  current `#a3`: white was 22/255 off. The caps of section 5 are in sRGB gamma
+  units and the token `cap` is OKLab lightness, so the two are not pasted
+  across.
+- **The menu has two sets** in `components.shell.menu`, picked by
+  `resolve::menu_glass` from the scheme. Dark and dark tint: `#ffffff41`, lift
+  `-0.084`, cap `0.706`; over white, gray, black and the checker they give
+  `#a0`, `#98`, `#2c` and `#87`. Light: `#ffffff76`, lift `0.012`, cap
+  `0.968`; they give `#f2`, `#d1`, `#7a` and `#bf`. Chroma and spread are
+  shared.
 - `ctappearance::menu::dark_ink_over` at `0.4` works for both matrices: the
-  light panel over black is `0.46` (dark ink) and the dark panel over black
-  is `0.17` (light ink). Keep it.
-- The Dock resolves by scheme in `resolve.rs` with light, dark and tint
-  variants, which matches the measured scheme dependence. The light targets
-  in section 5 must replace any values left from the 2026-11-19 pass.
-- Reduce Transparency gates the tone in `resolve.rs` and the blur in
-  `malaysia-compositor/blur.rs`; the solid must come from the scheme, not
-  from the backdrop.
-- Control Center and Notification Center currently ride the menu or
-  notification glass; their offsets (CC `#26` over black versus menu `#2b`;
-  NC `#5c` over black) are small and can be second-order.
-- No lensing pass exists and none is justified by the measurements.
+  light panel over black is `0.48` (dark ink) and the dark panel over black is
+  `0.17` (light ink).
+- **The Dock** keeps its light tone (`#e9`, `#a8`, `#33`, `#8f`). The dark tone
+  is now lift `0.032` and cap `0.822` (`#be`, `#87`, `#13`, `#6e`).
+- **The notification banner** rides the menu glass in dark (checker `#87`) and
+  has its own light veil, `NOTIFICATION_GLASS_VEIL_LIGHT` `#ffffff5e`, with
+  the light menu lift and cap (checker `#b3`).
+- **Reduce Transparency:** the Dock is the scheme solid (`#0a` dark, `#f1`
+  light) over any backdrop, and the menu glass keeps its veil and tone.
+  Section 3 gives `#03` to `#0d` for the dark solid and section 5 gives `#f1`
+  to `#89` for the light one; one solid cannot be `#f1` over white and `#89`
+  over black, so the light solid stays `#f1` until a capture settles it.
+- Not built: Control Center, Spotlight and the Notification Center clock pill
+  (no consumer), the Dock blur strength, the bk menu policy under Reduce
+  Transparency and the removal of the lens pass. No lensing pass is justified
+  by the measurements.
 
 ## 11. Open questions
 
@@ -279,8 +292,8 @@ Measured targets, dark mode / light mode (backdrop behind the panel):
 
 Task 1, barrierkit: add the light veil set for the menu in
 crates/ctdesign/tengen/components.json and resolve.rs so a light scheme
-renders #75-7b over black and #f2 over white. Keep the existing dark
-tokens as they are; they already reproduce the dark matrix.
+renders #75-7b over black and #f2 over white. The existing dark
+tokens reproduce the old `#8d`, not `#a3`: refit them too.
 
 Task 2, barrierkit: make the Dock and Reduce Transparency targets match
 section 5 of this file. The Dock already picks by scheme; replace the

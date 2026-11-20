@@ -158,7 +158,7 @@ window the selection turns gray.
 ### `SidebarSection`
 
 A titled group of rows. It mounts open; a press on its title collapses or
-opens it over `DURATION_BASE` (220 ms). A chevron appears on the title on hover
+opens it over `DURATION_BASE` (250 ms). A chevron appears on the title on hover
 or with the keyboard focus.
 
 | Method | Effect |
@@ -277,7 +277,7 @@ disabled outside a `SplitView`. Put it in the titlebar's left zone:
 the shortcut Ctrl+Alt+S. `SplitView` answers its shortcut itself; add the
 action to the app's menu to show it there.
 
-Hiding and showing animate over `DURATION_BASE` (220 ms).
+Hiding and showing animate over `DURATION_BASE` (250 ms).
 
 ### Narrow windows
 

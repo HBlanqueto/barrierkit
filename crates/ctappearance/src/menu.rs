@@ -77,6 +77,12 @@ mod tests {
     }
 
     #[test]
+    fn a_light_panel_over_black_at_luma_0_46_takes_dark_ink() {
+        assert!(dark_ink_over(0.46));
+        assert_eq!(ink_over(0.46), INK_ON_LIGHT_PANEL);
+    }
+
+    #[test]
     fn a_black_panel_at_luma_0_17_takes_light_ink() {
         assert!(!dark_ink_over(0.17));
         assert_eq!(ink_over(0.17), INK_ON_DARK_PANEL);

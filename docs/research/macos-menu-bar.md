@@ -128,12 +128,12 @@ takes dark ink above `MENU_DARK_INK_ABOVE` (0.4) and white below it. The
 light panel over black is 0.46 luma and the dark panel over black is 0.17,
 so the threshold works for both matrices.
 
-Malaysia's menu glass has one veil and one tone for both colour schemes
-(`MENU_GLASS_VEIL`, `MENU_GLASS_LIFT`, `MENU_GLASS_CAP`). Over white, black and
-the checker it composites to `#a3a3a3`, `#2b2b2b` and `#8b` to `#8d`, matching
-the dark matrix; the tests in `ctappearance::resolve` pin the four backdrops.
-There is **no light veil set yet**: a light scheme renders the dark matrix
-instead of `#f2` over white and `#75` over black.
+Malaysia's menu glass has one veil, lift and cap for the light scheme and one
+for the dark ones (`MENU_GLASS_VEIL_LIGHT` and `_DARK`, and likewise
+`MENU_GLASS_LIFT_*` and `MENU_GLASS_CAP_*`). Over white, black and the checker
+the dark set composites to `#a0`, `#2c` and `#87`, and the light set to `#f2`,
+`#7a` and `#bf`; the tests in `ctappearance::resolve` pin the four backdrops in
+both.
 
 ## 5. Comparison with Malaysia
 

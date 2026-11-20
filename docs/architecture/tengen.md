@@ -76,7 +76,7 @@ build.
 | Fonts | `font.families.sans` starts with Adwaita Sans; `font.families.mono` with Geist Mono | `SANS_FAMILIES`; each `Font` takes the first family |
 | Text styles | `font.styles` (size / line height / weight): `display` 26/32/700, `title-1` 22/26/650, `title-2` 15/20/600, `headline` 13/18/700, `body` 13/18/400, `callout` 12/16/400, `caption` 11/14/500, `mono` 13/16/400 | `LARGE_TITLE`, `TITLE`, `TITLE_2`, `HEADLINE`, `BODY`, `CALLOUT`, `CAPTION`, `MONO`; the window title uses `headline` (`TITLEBAR.font`) |
 | Spacing | `space.1`–`space.4`: 4, 8, 12, 16 | `SPACE_1`–`SPACE_4` |
-| Durations | `duration.fast` 120, `base` 220, `slow` 420, `wait-max` 150 (ms) | `DURATION_FAST_MS`, `DURATION_BASE`, `DURATION_SLOW_MS`, `THEME_FADE_WAIT_MS` |
+| Durations | `duration.fast` 120, `base` 250, `slow` 420, `wait-max` 150 (ms) | `DURATION_FAST_MS`, `DURATION_BASE`, `DURATION_SLOW_MS`, `THEME_FADE_WAIT_MS` |
 | Shadows | `shadow.layers.{light,dark}` (ambient and contact layers); `shadow.unfocused` (blur 0.45, offset 0.4, opacity 0.55) | `SHADOW`, `SHADOW_DARK` |
 | Controls | `components.<control>` | `BUTTON`, `SWITCH`, `SLIDER`, `TEXT_FIELD`… |
 | Shell | `components.shell`: `menubar`, `dock`, `about`, `lock`, `launcher`, `menu` | `MENUBAR_*`, `DOCK_*`, `ABOUT_*`, `LOCK_*`, `LAUNCHER_*`, `MENU_*`, `SHELL_*` |

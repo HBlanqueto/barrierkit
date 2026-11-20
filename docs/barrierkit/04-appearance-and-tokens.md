@@ -358,7 +358,7 @@ tint_parts = ["sidebars", "window", "groups", "controls", "menus"]
 | `contrast` | `bool` | | `false` |
 | `reduced_motion` | `bool` | | `false` |
 | `reduce_transparency` | `bool` | | `false` |
-| `glass_blur` | `f32` | from `0.0` to `GLASS_BLUR_FULL` (`0.6`; outside it stops at the nearest end): `0.0` is every glass as designed and `GLASS_BLUR_FULL` is the end of the Liquid Glass slider, short of the frosted glass. The Gaussian that softens the backdrop widens by `GLASS_BLUR_SPREAD - 1` times the square of the value (`DockSurface::soften`: 1 at rest, 2.08 at the end) and the tint mixes premultiplied a little toward `DOCK_GLASS_FROSTED`, white in light and black in dark, by the same square, as macOS 26's Liquid Glass slider does: halfway along the slider the blur has grown a quarter of the way to its end and the tint has hardly moved. It reaches the glass the compositor draws for the Dock (`Resolved::dock`), the menus and the notifications. The menus rest on `MENU_GLASS_VEIL` over the Gaussian at `MENU_GLASS_SPREAD` (`Resolved::menu_glass`), bend nothing, saturate the backdrop by `MENU_GLASS_CHROMA`, lift its lightness by `MENU_GLASS_LIFT` and cap it at `MENU_GLASS_CAP`, whatever the colour scheme and with transparency reduced too, and have the outline whole all around; the notifications wear the same veil, cap and blur in the Dock's frame (`Resolved::notification_glass`) | `0.0` |
+| `glass_blur` | `f32` | from `0.0` to `GLASS_BLUR_FULL` (`0.6`; outside it stops at the nearest end): `0.0` is every glass as designed and `GLASS_BLUR_FULL` is the end of the Liquid Glass slider, short of the frosted glass. The Gaussian that softens the backdrop widens by `GLASS_BLUR_SPREAD - 1` times the square of the value (`DockSurface::soften`: 1 at rest, 2.08 at the end) and the tint mixes premultiplied a little toward `DOCK_GLASS_FROSTED`, white in light and black in dark, by the same square, as macOS 26's Liquid Glass slider does: halfway along the slider the blur has grown a quarter of the way to its end and the tint has hardly moved. It reaches the glass the compositor draws for the Dock (`Resolved::dock`), the menus and the notifications. The menus rest on their veil over the Gaussian at `MENU_GLASS_SPREAD` (`Resolved::menu_glass`), bend nothing and have the outline whole all around; the notifications wear the menus' tone and blur in the Dock's frame (`Resolved::notification_glass`); [Glass over a backdrop](#glass-over-a-backdrop) has the veil, lift and cap of each | `0.0` |
 | `scroll_bars` | `ScrollBars` | `automatic`, `when_scrolling`, `always` | `automatic` |
 | `scroll_bar_click` | `ScrollBarClick` | `next_page`, `clicked_spot` | `next_page` |
 | `window_color` | `WindowColorMode` | `neutral`, `accent` (an old `wallpaper` reads as `neutral`) | `neutral` |
@@ -511,6 +511,9 @@ a style.
 | `icon_dark`, `icon_tint` | `IconStyle::dark` for `icon_tone` and the scheme, and `icon_color` or the accent. |
 | `text_size` | `AppearanceConfig::text_size_for(Toolkit::BarrierKit)`: the BarrierKit size, or the preferred `text_size`. |
 | `shell` | `ShellPalette`: menu bar and Dock colors. |
+| `dock` | `DockSurface` of the Dock: its glass, outline, rim and tone (`DOCK_TONE_LIGHT` or `DOCK_TONE_DARK`) by scheme. With transparency reduced, the scheme's solid and no tone. |
+| `menu_glass` | `DockSurface` of the menus: the `_LIGHT` veil, lift and cap of `MENU_GLASS_*` in the light scheme, the `_DARK` ones in dark and dark tint. Transparency does not change its veil or tone. |
+| `notification_glass` | `DockSurface` of the notifications: the tone and blur of `menu_glass` in the Dock's frame, with the menus' dark veil in dark and `NOTIFICATION_GLASS_VEIL_LIGHT` in light. With transparency reduced, `dock`. |
 | `menu`, `menu_parent` | `MenuPalette` and the window color a menu sits on. `Resolved::menu_separator(panel_bg)` gives the separator over another background. |
 | `sidebar` | `SidebarSurface`: `style`, `bg`, `rim`, `inner`, its `SidebarPalette` and `glass`. `glass` is a `SidebarGlass` with `base` (the tone of the glass at rest, tinted with the accent when the accent is the window color), `solid` (the tone of a window that is not active) and `chroma` (the share of the wallpaper's chroma, `GLASS.accent_share` of it under an accent) and is `None` with reduced transparency ([ADR 0065](../decisions.md)). |
 | `toolgroup` | `ToolgroupSurface`: `bg` and its `ToolgroupPalette`. |
@@ -551,6 +554,43 @@ The rules `resolve` applies:
    `wallpaper_accent`, the wallpaper's dominant color, graphite while it has
    none — and `automatic_accent` lets an area keep its own.
 6. Menu hover, sidebar selection and the shell's active tile take the accent.
+
+### Glass over a backdrop
+
+`ctappearance::menu::panel_over(&surface, behind)` returns the colour a
+`DockSurface` shows over `behind`, as the compositor's shader computes it. The
+Dock, the menus and the notifications share it:
+
+1. The veil mixes over the backdrop at its alpha.
+2. The tone adds `lift` to the lightness of the result, in OKLab.
+3. A soft minimum keeps that lightness under `cap`.
+4. The backdrop's hue comes back, saturated by `chroma` and scaled down by the
+   lightness the cap removed.
+
+A surface without a tone is its veil alone: the Dock with transparency reduced.
+
+Each surface takes its numbers from the scheme:
+
+| Surface | Light | Dark and dark tint |
+|---|---|---|
+| `menu_glass` | `MENU_GLASS_VEIL_LIGHT`, `MENU_GLASS_LIFT_LIGHT`, `MENU_GLASS_CAP_LIGHT` | `MENU_GLASS_VEIL_DARK`, `MENU_GLASS_LIFT_DARK`, `MENU_GLASS_CAP_DARK` |
+| `notification_glass` | `NOTIFICATION_GLASS_VEIL_LIGHT` with the light lift and cap of the menus | the dark veil, lift and cap of the menus |
+| `dock` | the theme's `DOCK_GLASS` with `DOCK_TONE_LIGHT` | the theme's `DOCK_GLASS` with `DOCK_TONE_DARK` |
+
+`MENU_GLASS_CHROMA` and `MENU_GLASS_SPREAD` are the same in every scheme. With
+transparency reduced the Dock is the scheme's solid (`DOCK_GLASS_SOLID`) over
+any backdrop and the notifications take it; the menu glass keeps its veil and
+tone.
+
+`menu::panel_luma(panel)` is the luma of the panel and
+`menu::dark_ink_over(luma)` says whether its ink is dark: above
+`MENU_DARK_INK_ABOVE` (0.4) it is, below it the ink is light. A light panel
+over black has luma 0.48 and takes dark ink; a dark one has 0.17 and takes
+light ink.
+
+The tests in `ctappearance::resolve` hold each panel within 8/255 per channel
+of the colours macOS shows over white, gray, black and the checker, in the
+tables of [macos-blur.md](../research/macos-blur.md#3-the-measured-matrix-dark-mode).
 
 ### Wallpaper behind a window
 
@@ -818,7 +858,7 @@ the kit measures text without laying it out.
 
 | Constant | Value |
 |---|---|
-| `DURATION_FAST_MS`, `DURATION_BASE`, `DURATION_SLOW_MS` | 120, 220, 420 ms |
+| `DURATION_FAST_MS`, `DURATION_BASE`, `DURATION_SLOW_MS` | 120, 250, 420 ms |
 | `THEME_FADE_WAIT_MS` | 150 ms: longest wait for clients before the compositor's theme fade |
 | `SPRING_DAMPING` | 5, damping of the kit's spring ([14](14-animations.md)) |
 
@@ -975,6 +1015,7 @@ focus-mode bar.
 |---|---|
 | `MENUBAR_HEIGHT`, `MENUBAR_HEIGHT_WIDE`, `MENUBAR_TINT_SPREAD`, `MENUBAR_DARK_INK_ABOVE`, `MENUBAR_CLASSIC_ALPHA`, `MENUBAR_OVER_LIGHT_INK`, `MENUBAR_OVER_LIGHT_GLASS`, `MENUBAR_OVER_LIGHT_SELECTION`, `MENUBAR_OVER_DARK_INK`, `MENUBAR_OVER_DARK_GLASS`, `MENUBAR_OVER_DARK_SELECTION`, `MENUBAR_FONT_SIZE`, `MENUBAR_APP_NAME_WEIGHT`, `MENUBAR_MARGIN`, `MENUBAR_MARGIN_RIGHT`, `MENUBAR_FADED_ALPHA`, `MENUBAR_TITLE_PADDING_X`, `MENUBAR_TEXT_LIFT`, `MENUBAR_TITLE_MAX_WIDTH`, `MENUBAR_SYSTEM_MENU_MIN_WIDTH`, `MENUBAR_TITLE_BLEED` | The menu bar |
 | `FOCUS_BAR_BACKGROUND`, `FOCUS_BAR_TEXT` | The menu bar in focus mode |
+| `MENU_GLASS_VEIL_LIGHT`, `MENU_GLASS_VEIL_DARK`, `MENU_GLASS_LIFT_LIGHT`, `MENU_GLASS_LIFT_DARK`, `MENU_GLASS_CAP_LIGHT`, `MENU_GLASS_CAP_DARK`, `MENU_GLASS_CHROMA`, `MENU_GLASS_SPREAD`, `NOTIFICATION_GLASS_VEIL_LIGHT`, `MENU_DARK_INK_ABOVE` | The glass of the menus and notifications and the luma above which a panel takes dark ink; `ctappearance` reads them into `Resolved` ([Glass over a backdrop](#glass-over-a-backdrop)) |
 | `DOCK_TILESIZE`, `DOCK_TILESIZE_MIN`, `DOCK_TILESIZE_MAX`, `DOCK_LARGESIZE` | Dock icon sizes: default, 16 and 128 px, and the default magnified size |
 | `DOCK_EDGE_MARGIN`, `DOCK_SIDE_MARGIN`, `DOCK_PADDING`, `DOCK_PADDING_SCALE`, `DOCK_SLOT_GAP`, `DOCK_VERTICAL_PADDING`, `DOCK_RADIUS` | Dock bar: gap to the screen edge, side margin as a share of the screen, horizontal padding = `DOCK_PADDING` + `DOCK_PADDING_SCALE` × size, the gap between icon slots in pixels, vertical padding as a share of the tile, and corner radius as a share of its thickness |
 | `DOCK_SEPARATOR`, `DOCK_SEPARATOR_LENGTH`, `DOCK_MAGNIFY_RADIUS`, `DOCK_MAGNIFY_MIN`, `DOCK_MAGNIFY_MS` | Separator slot and line as shares of the size; magnification reach in icons, the least it grows as a multiple of the size, and its fade |
@@ -985,7 +1026,7 @@ focus-mode bar.
 | `DOCK_LABEL_ARROW_WIDTH`, `DOCK_LABEL_ARROW_HEIGHT`, `DOCK_LABEL_ARROW_TIP_RADIUS`, `DOCK_LABEL_ARROW_FILLET` | The arrow of that label, a popover with the `Label` shape |
 | `DOCK_MENU_GAP`, `DOCK_MENU_PADDING`, `DOCK_MENU_ITEM_PADDING_X`, `DOCK_MENU_SEPARATOR_MARGIN`, `DOCK_MENU_MIN_WIDTH` | An icon's menu: tip to icon, row metrics and width ([`pop_up_menu`](07-menus-and-popovers.md#pop_up_menu)) |
 | `DOCK_MENU_ARROW_INSET`, `DOCK_MENU_ARROW_TIP_RADIUS`, `DOCK_MENU_ARROW_FILLET` | Its arrow: distance from the corner, tip and fillet of the `Menu` shape |
-| `NOTIFICATION_WIDTH`, `NOTIFICATION_RADIUS`, `NOTIFICATION_PADDING`, `NOTIFICATION_GAP`, `NOTIFICATION_MARGIN`, `NOTIFICATION_ICON_SIZE`, `NOTIFICATION_TEXT_GAP`, `NOTIFICATION_CLOSE_SIZE`, `NOTIFICATION_TITLE_FONT`, `NOTIFICATION_SHADOW`, `NOTIFICATION_SHADOW_BLUR`, `NOTIFICATION_VEIL_SPREAD`, `NOTIFICATION_EMPTY_TOP`, `NOTIFICATION_EMPTY_GAP`, `NOTIFICATION_STACK_PEEK`, `NOTIFICATION_STACK_INSET`, `NOTIFICATION_BODY_LINES`, `NOTIFICATION_MAX_BANNERS`, `NOTIFICATION_BANNER_MS`, `NOTIFICATION_SLIDE_IN_MS`, `NOTIFICATION_SLIDE_OUT_MS`, `NOTIFICATION_SLIDE_BOUNCE`, `NOTIFICATION_EDGE`, `NOTIFICATION_SWIPE`, `LIVE_ACTIVITY_WIDTH`, `LIVE_ACTIVITY_HEIGHT`, `LIVE_ACTIVITY_RADIUS`, `LIVE_ACTIVITY_GAP`, `LIVE_ACTIVITY_ENDED_MS` | Notification banners, Notification Center and the Live Activities of the menu bar (ADR 0068 in malaysia; the banner radius is provisional until measured on Tahoe, the Live Activity size is measured on Apple's WWDC25 video) |
+| `NOTIFICATION_WIDTH`, `NOTIFICATION_RADIUS`, `NOTIFICATION_PADDING`, `NOTIFICATION_GAP`, `NOTIFICATION_MARGIN`, `NOTIFICATION_ICON_SIZE`, `NOTIFICATION_TEXT_GAP`, `NOTIFICATION_CLOSE_SIZE`, `NOTIFICATION_TITLE_FONT`, `NOTIFICATION_SHADOW`, `NOTIFICATION_SHADOW_BLUR`, `NOTIFICATION_VEIL_SPREAD`, `NOTIFICATION_EMPTY_TOP`, `NOTIFICATION_EMPTY_GAP`, `NOTIFICATION_STACK_PEEK`, `NOTIFICATION_STACK_INSET`, `NOTIFICATION_BODY_LINES`, `NOTIFICATION_MAX_BANNERS`, `NOTIFICATION_BANNER_MS`, `NOTIFICATION_SLIDE_IN_MS`, `NOTIFICATION_SLIDE_OUT_MS`, `NOTIFICATION_SLIDE_BOUNCE`, `NOTIFICATION_EDGE`, `NOTIFICATION_SWIPE`, `LIVE_ACTIVITY_WIDTH`, `LIVE_ACTIVITY_HEIGHT`, `LIVE_ACTIVITY_RADIUS`, `LIVE_ACTIVITY_GAP`, `LIVE_ACTIVITY_ENDED_MS` | Notification banners, Notification Center and the Live Activities of the menu bar (ADR 0068 in malaysia; the banner width, radius and right inset are measured on Tahoe, the Live Activity size is measured on Apple's WWDC25 video) |
 | `LAUNCHER_WIDTH`, `LAUNCHER_HEIGHT`, `LAUNCHER_PADDING`, `LAUNCHER_SEARCH_HEIGHT`, `LAUNCHER_RESULT_HEIGHT`, `LAUNCHER_RESULT_GAP`, `LAUNCHER_RESULT_RADIUS`, `LAUNCHER_ICON_SIZE`, `LAUNCHER_MAX_RESULTS`, `LAUNCHER_CORNER_RADIUS`, `LAUNCHER_FONT_SIZE`, `LAUNCHER_SUBTITLE_FONT_SIZE`, `LAUNCHER_SCALE_FROM`, `LAUNCHER_OPEN_MS`, `LAUNCHER_CLOSE_MS` | The launcher |
 | `LOCK_CLOCK_FONT_SIZE`, `LOCK_DATE_FONT_SIZE`, `LOCK_TOP_PERCENT`, `LOCK_BOTTOM_MARGIN`, `LOCK_SPACING`, `LOCK_AVATAR_SIZE`, `LOCK_KEYBOARD_WIDTH`, `LOCK_FIELD_HEIGHT`, `LOCK_FIELD_WIDTH`, `LOCK_MASK_FONT_SIZE`, `LOCK_INK`, `LOCK_FIELD_FILL`, `LOCK_AVATAR_FILL`, `LOCK_FIELD_ERROR`, `LOCK_FIELD_INK` | The lock screen over the wallpaper (Malaysia ADR 0074) |
 | `LOCK_FADE_MS`, `LOCK_SETTLE_MS`, `LOCK_RISE_MS`, `LOCK_RISE_OFFSET`, `LOCK_LOGIN_MS` | The transition from the desktop to the lock screen: the fade, the menu bar closing up, the clock rising and the login appearing |
