@@ -117,9 +117,12 @@ DISPLAY_CONTRAST [f32;7] appearance.accessibility.display-contrast
 COLOR_FILTER_INTENSITY [f32;7] appearance.accessibility.color-filter-intensity
 GLASS_BLUR_SPREAD f32 appearance.glass-blur.spread
 GLASS_BLUR_FULL f32 appearance.glass-blur.full
-MENU_GLASS_CAP_DARK f32 components.shell.menu.glass-cap-dark
-MENU_GLASS_CHROMA_DARK f32 components.shell.menu.glass-chroma-dark
+MENU_GLASS_VEIL Rgba components.shell.menu.glass-veil
+MENU_GLASS_LIFT f32 components.shell.menu.glass-lift
+MENU_GLASS_CAP f32 components.shell.menu.glass-cap
+MENU_GLASS_CHROMA f32 components.shell.menu.glass-chroma
 MENU_GLASS_SPREAD f32 components.shell.menu.glass-spread
+MENU_DARK_INK_ABOVE f32 components.shell.menu.dark-ink-above
 TRAFFIC_RIM_WIDTH f32 components.window.traffic-lights.rim.width
 TRAFFIC_CLOSE_MINIMIZE_DARKEN f32
     components.window.traffic-lights.styles.accent.close-minimize-darken
@@ -421,7 +424,9 @@ SHELL ShellPalette components.shell bar=menubar.bg text=menubar.text tile=dock.t
 DOCK_GLASS Rgba themes.{theme}.dock-bar
 DOCK_GLASS_SOLID Rgba themes.{theme}.dock-bar-opaque
 DOCK_GLASS_FROSTED Rgba themes.{theme}.dock-bar-frosted
-MENU_GLASS Rgba themes.{theme}.menu-glass
+GLASS_INK Rgba themes.{theme}.glass-ink
+GLASS_INK_MUTED Rgba themes.{theme}.glass-ink-muted
+GLASS_INK_FAINT Rgba themes.{theme}.glass-ink-faint
 DOCK_OUTLINE Rgba themes.{theme}.dock-outline
 DOCK_OUTLINE_SOLID Rgba themes.{theme}.dock-outline-opaque
 SIDEBAR Rgba themes.{theme}.bg-sunken

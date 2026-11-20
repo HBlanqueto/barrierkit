@@ -1,4 +1,5 @@
 use freya_core::integration::AppComponent;
+use freya_core::prelude::State;
 use sctk::{
     delegate_xdg_popup,
     reexports::{
@@ -117,6 +118,7 @@ pub struct Popups {
     pub(crate) current: Option<PopupId>,
     pub(crate) opens_left: Rc<Cell<bool>>,
     pub(crate) scroll_shift: Rc<Cell<f32>>,
+    pub(crate) glass_luma: State<Option<f32>>,
 }
 
 impl Popups {
@@ -193,6 +195,7 @@ impl Popups {
             current,
             opens_left: Rc::new(Cell::new(false)),
             scroll_shift: Rc::new(Cell::new(0.0)),
+            glass_luma: State::create(None),
         };
         (popups, queue)
     }
@@ -467,6 +470,13 @@ impl Runtime {
         window.logical_size = spec.size;
         window.scale = scale;
         window.output = output;
+        window.glass_notice = self
+            .focus_manager
+            .as_ref()
+            .filter(|manager| manager.version() >= 5)
+            .map(|manager| {
+                manager.get_focus_surface(&window.surface, &self.qh, window.surface.id())
+            });
         self.surfaces.push(window);
     }
     fn mark_popover(&self, id: PopupId, shape: PopoverShape) {

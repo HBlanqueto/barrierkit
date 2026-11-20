@@ -32,6 +32,16 @@ impl Dispatch<InfinityFocusSurfaceV1, ObjectId> for Runtime {
         let Some(index) = state.surface_index_by_id(surface_id) else {
             return;
         };
+        if let infinity_focus_surface_v1::Event::Glass { luma } = event {
+            let mut glass_luma = state.surfaces[index].app.glass_luma;
+            let luma = Some(luma as f32 / infinity_protocol::THOUSANDTHS);
+            if *glass_luma.peek() != luma {
+                glass_luma.set(luma);
+                state.request_redraw_all = true;
+                state.ping.ping();
+            }
+            return;
+        }
         if let infinity_focus_surface_v1::Event::Wallpaper { rgb } = event {
             let [_, r, g, b] = rgb.to_be_bytes();
             let global = *state.resolved.peek();

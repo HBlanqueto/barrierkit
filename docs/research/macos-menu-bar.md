@@ -122,10 +122,13 @@ ink even in light mode, and over white it is `#8d8d8d` with dark ink even in
 dark mode. See the corrections in
 [`macos-blur.md`](macos-blur.md#8-corrections-to-the-earlier-research).
 
-Malaysia's current menu is a raised surface plus a `menu-glass` overlay. Its
-dark value `#ffffff21` over black lands near `#212121`, close to the measured
-`#2b2b2b`. The bigger gap is the ink: the shell chooses the ink from the
-colour scheme, so a light panel over a bright window keeps white text.
+Malaysia's menu glass is one veil and one tone for both colour schemes
+(`MENU_GLASS_VEIL`, `MENU_GLASS_LIFT`, `MENU_GLASS_CAP`). Over white, black and
+the checker it composites to `#8d8d8d`, `#2b2b2b` and `#878787`; the tests in
+`ctappearance::resolve` pin the four backdrops. The ink follows the panel: the
+compositor reports the panel luma of each popup
+(`infinity_focus_surface_v1.glass`) and `theme::over_glass` takes dark ink
+above `MENU_DARK_INK_ABOVE` and white below it.
 
 ## 5. Comparison with Malaysia
 
@@ -141,8 +144,8 @@ colour scheme, so a light panel over a bright window keeps white text.
 | Panel width | 317 for File | 220 to 640 | unchanged |
 | Item height | 24 | 24 | 24 |
 | Separator | 11 total | 1 + 2x5 | unchanged |
-| Panel glass | Adaptive light/dark | fixed scheme glass | adaptive model |
-| Panel ink | Follows panel | follows scheme | still scheme-based |
+| Panel glass | Adaptive light/dark | fixed scheme glass | one adaptive tone |
+| Panel ink | Follows panel | follows scheme | follows the panel |
 | Panel radius | about 6 | 12 | needs review |
 | Open animation | Instant | no menu animation | matches |
 
@@ -158,9 +161,8 @@ colour scheme, so a light panel over a bright window keeps white text.
 
 1. **Keep the clear bar.** The default is now `floating`: no bar fill and blur
    only under the open title pill. This matches the measured clear bar.
-2. **Make the menu ink follow the panel.** The compositor already caps a
-   bright backdrop to a light panel. The shell needs a light ink variant and a
-   luminance input, or the menu will keep white text on `#8d8d8d`.
+2. **Make the menu ink follow the panel.** Done: the compositor reports the
+   panel luma and the kit picks dark or white ink from it.
 3. **Keep the 24 pt item and 11 pt separator.** These already match.
 4. **Use content-driven widths.** The 317 pt File menu and the 356 pt Shell
    menu are useful checks. Keep the 220 pt minimum.

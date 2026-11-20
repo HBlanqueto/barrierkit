@@ -317,7 +317,8 @@ It is drawn as the Dock menu of macOS 26:
    a width of at least `DOCK_MENU_MIN_WIDTH` (228).
 5. The menu is clear, `theme::over_glass`: the compositor draws the Dock's
    glass under it, arrow included, so the menu takes the Dock's blur
-   (`appearance.glass_blur`). With transparency reduced it keeps its solid fill.
+   (`appearance.glass_blur`). Its ink follows the panel, not the colour scheme.
+   With transparency reduced it keeps its solid fill.
    A search field in a menu over the glass takes the faint ink of disabled text
    (`glass_disabled_fg`) as a translucent fill, not the grey of `search_bg`, so
    it stays a field on the glass.

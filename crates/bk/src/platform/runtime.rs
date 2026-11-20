@@ -465,7 +465,7 @@ impl Runtime {
             tracing::info!("org_kde_kwin_appmenu_manager unavailable; continuing without it");
         }
         let focus_manager = globals
-            .bind::<super::focus::InfinityFocusManagerV1, _, _>(&qh, 1..=4, ())
+            .bind::<super::focus::InfinityFocusManagerV1, _, _>(&qh, 1..=5, ())
             .ok();
         let dialog_manager = globals.bind(&qh, 1..=1, ()).ok();
         let window_style = globals

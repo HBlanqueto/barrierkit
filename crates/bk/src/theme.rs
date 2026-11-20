@@ -1,3 +1,5 @@
+use crate::platform::Popups;
+use ctappearance::menu::{MenuInk, ink_over};
 use ctappearance::{
     AppearanceConfig, ColorScheme, Resolved, load_appearance, load_dominant, resolve,
 };
@@ -37,21 +39,32 @@ pub fn surface_background(resolved: &Resolved, kind: SurfaceKind) -> Rgba {
 
 /// A menu or popover the compositor draws its glass under is clear, its ink is translucent so the
 /// glass shows through it, and its search field takes the faint ink of disabled text as a
-/// translucent fill, so it reads as a field on the glass. With transparency reduced the palette
-/// stays as it is.
+/// translucent fill, so it reads as a field on the glass. The ink follows the glass the compositor
+/// reports under the popup, dark on a light panel and light on a dark one, whatever the colour
+/// scheme; before it reports, the ink is the scheme's. With transparency reduced the palette stays
+/// as it is.
 pub fn over_glass(palette: MenuPalette) -> MenuPalette {
     if resolved().reduce_transparency {
-        palette
-    } else {
-        MenuPalette {
-            bg: Rgba::TRANSPARENT,
-            search_bg: palette.glass_disabled_fg,
-            fg: palette.glass_fg,
-            shortcut_color: palette.glass_shortcut_color,
-            chevron_color: palette.glass_shortcut_color,
-            disabled_fg: palette.glass_disabled_fg,
-            ..palette
-        }
+        return palette;
+    }
+    let ink = try_consume_root_context::<Popups>()
+        .and_then(|popups| *popups.glass_luma.read())
+        .map_or(
+            MenuInk {
+                fg: palette.glass_fg,
+                shortcut: palette.glass_shortcut_color,
+                disabled: palette.glass_disabled_fg,
+            },
+            ink_over,
+        );
+    MenuPalette {
+        bg: Rgba::TRANSPARENT,
+        search_bg: ink.disabled,
+        fg: ink.fg,
+        shortcut_color: ink.shortcut,
+        chevron_color: ink.shortcut,
+        disabled_fg: ink.disabled,
+        ..palette
     }
 }
 

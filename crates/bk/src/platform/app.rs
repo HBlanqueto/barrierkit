@@ -63,6 +63,7 @@ pub(crate) struct AppInstance {
     waker: Waker,
     pub(crate) menu_actions: crate::app::MenuActions,
     pub(crate) resolved: State<Resolved>,
+    pub(crate) glass_luma: State<Option<f32>>,
     accessibility: AccessibilityTree,
     accessibility_initialized: bool,
     #[cfg(feature = "a11y")]
@@ -123,6 +124,7 @@ impl AppInstance {
                 ping.ping();
             })
         };
+        let glass_luma = State::create_global(None);
         let popups = Popups {
             queue: rt.popup_commands.clone(),
             ping: rt.ping.clone(),
@@ -134,6 +136,7 @@ impl AppInstance {
                 .as_ref()
                 .map_or_else(Rc::default, |(_, left)| left.clone()),
             scroll_shift: Rc::default(),
+            glass_luma,
         };
         let popup_handle = popup.map(|(id, _)| PopupHandle {
             id,
@@ -237,6 +240,7 @@ impl AppInstance {
             waker,
             menu_actions,
             resolved,
+            glass_luma,
             accessibility,
             accessibility_initialized: false,
             #[cfg(feature = "a11y")]

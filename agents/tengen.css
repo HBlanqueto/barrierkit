@@ -1111,9 +1111,12 @@
   --bk-shell-launcher-open-duration: 180;
   --bk-shell-launcher-close-duration: 120;
   --bk-shell-launcher-scale-from: 0.96;
-  --bk-shell-menu-glass-cap-dark: 0.56;
-  --bk-shell-menu-glass-chroma-dark: 1.17;
+  --bk-shell-menu-glass-veil: #ffffff33;
+  --bk-shell-menu-glass-lift: -0.032;
+  --bk-shell-menu-glass-cap: 0.6434;
+  --bk-shell-menu-glass-chroma: 1.17;
   --bk-shell-menu-glass-spread: 2.0;
+  --bk-shell-menu-dark-ink-above: 0.4;
   --bk-shell-menu-panel-padding: 5;
   --bk-shell-menu-panel-min-width: 220;
   --bk-shell-menu-panel-max-width: 640;
@@ -1296,7 +1299,6 @@
   --bk-dock-bar: #b5b5b548;
   --bk-dock-bar-opaque: #f1f1f1;
   --bk-dock-bar-frosted: #ffffffb3;
-  --bk-menu-glass: #f5f5f77a;
   --bk-glass-ink: #000000d9;
   --bk-glass-ink-muted: #00000080;
   --bk-glass-ink-faint: #00000042;
@@ -1356,7 +1358,6 @@
     --bk-dock-bar: #2727274e;
     --bk-dock-bar-opaque: #0a0a0a;
     --bk-dock-bar-frosted: #00000075;
-    --bk-menu-glass: #ffffff21;
     --bk-glass-ink: #ffffffd9;
     --bk-glass-ink-muted: #ffffff8c;
     --bk-glass-ink-faint: #ffffff40;
@@ -1416,7 +1417,6 @@
   --bk-dock-bar: #2727274e;
   --bk-dock-bar-opaque: #0a0a0a;
   --bk-dock-bar-frosted: #00000075;
-  --bk-menu-glass: #ffffff21;
   --bk-glass-ink: #ffffffd9;
   --bk-glass-ink-muted: #ffffff8c;
   --bk-glass-ink-faint: #ffffff40;
@@ -1475,7 +1475,6 @@
   --bk-dock-bar: #2727274e;
   --bk-dock-bar-opaque: #0a0a0a;
   --bk-dock-bar-frosted: #00000075;
-  --bk-menu-glass: #ffffff21;
   --bk-glass-ink: #ffffffd9;
   --bk-glass-ink-muted: #ffffff8c;
   --bk-glass-ink-faint: #ffffff40;

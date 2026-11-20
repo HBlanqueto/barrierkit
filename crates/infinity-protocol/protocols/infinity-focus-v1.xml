@@ -23,7 +23,7 @@
     DEALINGS IN THE SOFTWARE.
   </copyright>
 
-  <interface name="infinity_focus_manager_v1" version="4">
+  <interface name="infinity_focus_manager_v1" version="5">
     <description summary="focus mode notices for applications">
       Malaysia focus mode (ADR 0051): a maximized window gets a space of
       its own and the xdg fullscreen state. In that space, the pointer at the
@@ -45,6 +45,10 @@
 
       From version 4 every object also reports the desktop its toplevel is
       on, so an app such as System Settings can act on that desktop alone.
+
+      From version 5 an object for a popup whose glass the compositor draws
+      reports how light that glass is, so a menu can take dark or light ink
+      as macOS does.
     </description>
 
     <request name="destroy" type="destructor">
@@ -54,17 +58,17 @@
     </request>
 
     <request name="get_focus_surface">
-      <description summary="follow focus mode for a toplevel surface">
-        Creates an object that reports focus-mode notices for the toplevel
-        whose wl_surface is given.
+      <description summary="follow focus mode for a toplevel or popup surface">
+        Creates an object that reports the notices that concern the toplevel
+        or popup whose wl_surface is given. The others are never sent.
       </description>
       <arg name="id" type="new_id" interface="infinity_focus_surface_v1"/>
       <arg name="surface" type="object" interface="wl_surface"/>
     </request>
   </interface>
 
-  <interface name="infinity_focus_surface_v1" version="4">
-    <description summary="focus mode notices for one toplevel"/>
+  <interface name="infinity_focus_surface_v1" version="5">
+    <description summary="focus mode notices for one toplevel or popup"/>
 
     <request name="destroy" type="destructor">
       <description summary="stop the notices"/>
@@ -121,6 +125,18 @@
         again whenever it moves to another desktop.
       </description>
       <arg name="desktop" type="uint"/>
+    </event>
+
+    <event name="glass" since="5">
+      <description summary="how light the glass of the popup is">
+        The luma of the glass the compositor draws under the popup, as the
+        sum of the sRGB channels weighted 0.2126, 0.7152 and 0.0722, in
+        thousandths: 0 is black and 1000 is white. It follows what lies
+        behind the popup, not the colour scheme or the wallpaper. Sent once
+        the popup has glass and again whenever the ink that suits the glass
+        changes. A popup without glass never receives it.
+      </description>
+      <arg name="luma" type="uint"/>
     </event>
   </interface>
 </protocol>

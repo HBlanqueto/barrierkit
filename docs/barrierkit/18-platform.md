@@ -145,7 +145,7 @@ to use Vulkan is [ADR 0056](../decisions.md).
 | `zwp_primary_selection_device_manager_v1` | sctk | No | The primary selection (middle-click paste) | No primary selection |
 | `zwp_text_input_manager_v3` | 1 | No | Input methods: preedit and commit | Keys only |
 | `org_kde_kwin_appmenu_manager` | 1 | No | Announces a window's D-Bus menu for the global menu bar | No global menu |
-| `infinity_focus_manager_v1` | 1–4 | No | Focus mode: when the bar comes down; from version 2, `set_overlay` and the bar height; from 3, the wallpaper behind the window; from 4, the desktop it is on (`WindowControls::desktop`) | Focus mode notices, the wallpaper tint and the desktop are missing |
+| `infinity_focus_manager_v1` | 1–5 | No | Focus mode: when the bar comes down; from version 2, `set_overlay` and the bar height; from 3, the wallpaper behind the window; from 4, the desktop it is on (`WindowControls::desktop`); from 5, how light the glass under a popup is, which sets the ink of its menu (`theme::over_glass`) | Focus mode notices, the wallpaper tint and the desktop are missing |
 | `infinity_session_v1` | 1 | No | `locking` and `unlocked`, read by [`use_screen_lock`](#screen-lock-and-blur-region) | The menu bar never learns that the session is locking |
 | `ext_background_effect_manager_v1` | 1 | No | [`set_blur_region`](#screen-lock-and-blur-region) | No blur behind the surface |
 | `ext_image_copy_capture_manager_v1` + `ext_foreign_toplevel_image_capture_source_manager_v1` + `wl_shm` | 1 | No | [`capture_window`](#toplevels), in layer-shell components | `capture_window` answers `None` |

@@ -67,6 +67,7 @@ pub(crate) struct SurfaceWindow {
     pub(crate) fractional: Option<WpFractionalScaleV1>,
     pub(crate) viewport: Option<WpViewport>,
     pub(crate) context: Option<WindowContext>,
+    pub(crate) glass_notice: Option<super::focus::InfinityFocusSurfaceV1>,
 }
 
 #[cfg(feature = "shell")]
@@ -336,6 +337,9 @@ impl Drop for SurfaceWindow {
         if let Some(notice) = self.context.take().and_then(|context| context.focus_notice) {
             notice.destroy();
         }
+        if let Some(notice) = self.glass_notice.take() {
+            notice.destroy();
+        }
     }
 }
 
@@ -381,6 +385,7 @@ impl Runtime {
             fractional,
             viewport,
             context: None,
+            glass_notice: None,
         }
     }
 }

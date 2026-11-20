@@ -13,23 +13,22 @@ use ctdesign::{
     DOCK_RIM_SIDE_DARK, DOCK_RIM_SIDE_LIGHT, DOCK_TONE_DARK, DOCK_TONE_LIGHT, DockSurface,
     DockTone, GLASS, GLASS_BLUR_SPREAD, LAYER_FACTOR_BG_SUNKEN, LAYER_FACTOR_CONTROL,
     LAYER_FACTOR_LINE, LAYER_FACTOR_RAISED, LAYER_FACTOR_SURFACE, LIGHT, MENU_DARK,
-    MENU_DARK_OPAQUE, MENU_DARK_TINT, MENU_DARK_TINT_OPAQUE, MENU_GLASS_CAP_DARK,
-    MENU_GLASS_CHROMA_DARK, MENU_GLASS_DARK, MENU_GLASS_DARK_TINT, MENU_GLASS_LIGHT,
-    MENU_GLASS_SPREAD, MENU_LIGHT, MENU_LIGHT_OPAQUE, MENU_SEPARATOR_INK_MIX, MenuPalette,
-    ON_ACCENT_MIN_CONTRAST, Palette, Rgba, SHELL_DARK, SHELL_DARK_OPAQUE, SHELL_DARK_TINT,
-    SHELL_DARK_TINT_OPAQUE, SHELL_LIGHT, SHELL_LIGHT_OPAQUE, SIDEBAR_DARK, SIDEBAR_DARK_OPAQUE,
-    SIDEBAR_DARK_TINT, SIDEBAR_DARK_TINT_OPAQUE, SIDEBAR_GLASS_BASE_DARK,
-    SIDEBAR_GLASS_BASE_DARK_TINT, SIDEBAR_GLASS_BASE_LIGHT, SIDEBAR_GLASS_SOLID_DARK,
-    SIDEBAR_GLASS_SOLID_DARK_TINT, SIDEBAR_GLASS_SOLID_LIGHT, SIDEBAR_ISLAND_DARK,
-    SIDEBAR_ISLAND_DARK_TINT, SIDEBAR_ISLAND_INNER_DARK, SIDEBAR_ISLAND_INNER_DARK_TINT,
-    SIDEBAR_ISLAND_INNER_LIGHT, SIDEBAR_ISLAND_LIGHT, SIDEBAR_ISLAND_RIM_DARK,
-    SIDEBAR_ISLAND_RIM_DARK_TINT, SIDEBAR_ISLAND_RIM_LIGHT, SIDEBAR_LIGHT, SIDEBAR_LIGHT_OPAQUE,
-    SIDEBAR_PALETTE_DARK, SIDEBAR_PALETTE_DARK_TINT, SIDEBAR_PALETTE_LIGHT, ShellPalette,
-    SidebarPalette, TITLEBAR, TOOLGROUP_BG_DARK, TOOLGROUP_BG_DARK_OPAQUE, TOOLGROUP_BG_DARK_TINT,
-    TOOLGROUP_BG_DARK_TINT_OPAQUE, TOOLGROUP_BG_LIGHT, TOOLGROUP_BG_LIGHT_OPAQUE,
-    TOOLGROUP_PALETTE_DARK, TOOLGROUP_PALETTE_DARK_TINT, TOOLGROUP_PALETTE_LIGHT,
-    TRAFFIC_CLOSE_MINIMIZE_DARKEN, TRAFFIC_ZOOM_LIGHTEN, ToolgroupPalette, WALLPAPER_TINTING,
-    WALLPAPER_TINTING_LIFT, WINDOW_TINT_ACCENT,
+    MENU_DARK_OPAQUE, MENU_DARK_TINT, MENU_DARK_TINT_OPAQUE, MENU_GLASS_CAP, MENU_GLASS_CHROMA,
+    MENU_GLASS_LIFT, MENU_GLASS_SPREAD, MENU_GLASS_VEIL, MENU_LIGHT, MENU_LIGHT_OPAQUE,
+    MENU_SEPARATOR_INK_MIX, MenuPalette, ON_ACCENT_MIN_CONTRAST, Palette, Rgba, SHELL_DARK,
+    SHELL_DARK_OPAQUE, SHELL_DARK_TINT, SHELL_DARK_TINT_OPAQUE, SHELL_LIGHT, SHELL_LIGHT_OPAQUE,
+    SIDEBAR_DARK, SIDEBAR_DARK_OPAQUE, SIDEBAR_DARK_TINT, SIDEBAR_DARK_TINT_OPAQUE,
+    SIDEBAR_GLASS_BASE_DARK, SIDEBAR_GLASS_BASE_DARK_TINT, SIDEBAR_GLASS_BASE_LIGHT,
+    SIDEBAR_GLASS_SOLID_DARK, SIDEBAR_GLASS_SOLID_DARK_TINT, SIDEBAR_GLASS_SOLID_LIGHT,
+    SIDEBAR_ISLAND_DARK, SIDEBAR_ISLAND_DARK_TINT, SIDEBAR_ISLAND_INNER_DARK,
+    SIDEBAR_ISLAND_INNER_DARK_TINT, SIDEBAR_ISLAND_INNER_LIGHT, SIDEBAR_ISLAND_LIGHT,
+    SIDEBAR_ISLAND_RIM_DARK, SIDEBAR_ISLAND_RIM_DARK_TINT, SIDEBAR_ISLAND_RIM_LIGHT, SIDEBAR_LIGHT,
+    SIDEBAR_LIGHT_OPAQUE, SIDEBAR_PALETTE_DARK, SIDEBAR_PALETTE_DARK_TINT, SIDEBAR_PALETTE_LIGHT,
+    ShellPalette, SidebarPalette, TITLEBAR, TOOLGROUP_BG_DARK, TOOLGROUP_BG_DARK_OPAQUE,
+    TOOLGROUP_BG_DARK_TINT, TOOLGROUP_BG_DARK_TINT_OPAQUE, TOOLGROUP_BG_LIGHT,
+    TOOLGROUP_BG_LIGHT_OPAQUE, TOOLGROUP_PALETTE_DARK, TOOLGROUP_PALETTE_DARK_TINT,
+    TOOLGROUP_PALETTE_LIGHT, TRAFFIC_CLOSE_MINIMIZE_DARKEN, TRAFFIC_ZOOM_LIGHTEN, ToolgroupPalette,
+    WALLPAPER_TINTING, WALLPAPER_TINTING_LIFT, WINDOW_TINT_ACCENT,
 };
 
 use crate::backdrop::{WallpaperTinting, lift, shift_like, take_chroma, take_chroma_capped};
@@ -449,32 +448,17 @@ fn dock_surface(scheme: ColorScheme, opaque: bool, glass_blur: f32) -> DockSurfa
     }
 }
 
-// The shell's menus wear the Dock's frame over a veil of their own, which `glass_blur` leaves as designed: it only widens their blur. The outline the Dock has down its sides runs all around them (whole from 0°), so the rim lies inside it; with transparency reduced they take the Dock's solid grey.
-// As in macOS, a menu does not bend what is behind it, and a dark one lifts a dark backdrop, saturates it to MENU_GLASS_CHROMA_DARK and bends a bright one down to MENU_GLASS_CAP_DARK, under its white text.
-fn menu_glass(
-    dock: DockSurface,
-    scheme: ColorScheme,
-    opaque: bool,
-    glass_blur: f32,
-) -> DockSurface {
-    if opaque {
-        return dock;
-    }
+fn menu_glass(dock: DockSurface, glass_blur: f32) -> DockSurface {
     DockSurface {
-        glass: scheme.pick([MENU_GLASS_LIGHT, MENU_GLASS_DARK, MENU_GLASS_DARK_TINT]),
+        glass: MENU_GLASS_VEIL,
         corner: [dock.corner[0], -1.0, 0.0],
         rim_side: 0.0,
         lens: [dock.lens[0], 0.0],
-        tone: dock.tone.map(|tone| {
-            if scheme.is_dark() {
-                DockTone {
-                    chroma: MENU_GLASS_CHROMA_DARK,
-                    cap: MENU_GLASS_CAP_DARK,
-                    ..tone
-                }
-            } else {
-                tone
-            }
+        tone: Some(DockTone {
+            chroma: MENU_GLASS_CHROMA,
+            lift: MENU_GLASS_LIFT,
+            cap: MENU_GLASS_CAP,
+            ..DOCK_TONE_DARK
         }),
         soften: glass_soften(MENU_GLASS_SPREAD, glass_blur),
         ..dock
@@ -638,12 +622,7 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
         appearance.transparency_reduced(),
         appearance.glass_blur,
     );
-    let menu_glass = menu_glass(
-        dock,
-        scheme,
-        appearance.transparency_reduced(),
-        appearance.glass_blur,
-    );
+    let menu_glass = menu_glass(dock, appearance.glass_blur);
     let untinted = Resolved {
         scheme,
         accent,
@@ -677,12 +656,16 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
         shell,
         dock,
         menu_glass,
-        notification_glass: DockSurface {
-            glass: menu_glass.glass,
-            tone: menu_glass.tone,
-            soften: menu_glass.soften,
-            rim_side: menu_glass.rim_side,
-            ..dock
+        notification_glass: if appearance.transparency_reduced() {
+            dock
+        } else {
+            DockSurface {
+                glass: menu_glass.glass,
+                tone: menu_glass.tone,
+                soften: menu_glass.soften,
+                rim_side: menu_glass.rim_side,
+                ..dock
+            }
         },
         menu,
         sidebar,
@@ -1694,7 +1677,7 @@ mod tests {
     }
 
     #[test]
-    fn the_slider_widens_the_dark_menu_blur_and_leaves_its_veil_and_chroma_as_designed() {
+    fn the_slider_widens_the_menu_blur_and_leaves_its_veil_and_chroma_as_designed() {
         let config = |glass_blur, reduce_transparency| AppearanceConfig {
             color_scheme: ColorScheme::Dark,
             reduce_transparency,
@@ -1703,7 +1686,7 @@ mod tests {
         };
         let clear = resolve(&config(0.0, false), None);
         let widened = resolve(&config(1.0, false), None);
-        assert_eq!(clear.menu_glass.glass, MENU_GLASS_DARK);
+        assert_eq!(clear.menu_glass.glass, MENU_GLASS_VEIL);
         assert!(
             clear.menu_glass.corner[2] <= 0.0,
             "the outline is whole at vertical"
@@ -1712,31 +1695,84 @@ mod tests {
         assert_eq!(widened.menu_glass.soften, GLASS_BLUR_SPREAD);
         assert_eq!(widened.menu_glass.glass, clear.menu_glass.glass);
         assert_eq!(widened.menu_glass.tone, clear.menu_glass.tone);
-        assert_eq!(
-            clear.menu_glass.tone.unwrap().chroma,
-            MENU_GLASS_CHROMA_DARK
-        );
+        assert_eq!(clear.menu_glass.tone.unwrap().chroma, MENU_GLASS_CHROMA);
         let solid = resolve(&config(0.0, true), None);
-        assert_eq!(solid.menu_glass, solid.dock);
+        assert_eq!(solid.menu_glass.glass, clear.menu_glass.glass);
+        assert_eq!(solid.menu_glass.tone, clear.menu_glass.tone);
         assert_eq!(solid.notification_glass, solid.dock);
     }
 
     #[test]
-    fn a_dark_menu_bends_nothing_and_has_its_own_chroma_and_cap_and_the_dock_does_not() {
-        let dark = resolve(
+    fn a_menu_bends_nothing_and_has_its_own_chroma_lift_and_cap_in_every_scheme_and_the_dock_does_not()
+     {
+        for scheme in [ColorScheme::Light, ColorScheme::Dark, ColorScheme::DarkTint] {
+            let resolved = resolve(
+                &AppearanceConfig {
+                    color_scheme: scheme,
+                    ..AppearanceConfig::default()
+                },
+                None,
+            );
+            let tone = resolved.menu_glass.tone.unwrap();
+            assert_eq!(resolved.menu_glass.lens[1], 0.0);
+            assert_eq!(
+                (tone.chroma, tone.lift, tone.cap),
+                (MENU_GLASS_CHROMA, MENU_GLASS_LIFT, MENU_GLASS_CAP)
+            );
+            assert_eq!(resolved.dock.tone.unwrap().cap, 1.0);
+        }
+    }
+
+    const SCHEMES: [ColorScheme; 3] =
+        [ColorScheme::Light, ColorScheme::Dark, ColorScheme::DarkTint];
+
+    fn menu_panel_over(grey: u8, scheme: ColorScheme, reduce_transparency: bool) -> Rgba {
+        let resolved = resolve(
             &AppearanceConfig {
-                color_scheme: ColorScheme::Dark,
+                color_scheme: scheme,
+                reduce_transparency,
                 ..AppearanceConfig::default()
             },
             None,
         );
-        assert_eq!(dark.menu_glass.lens[1], 0.0);
-        assert_eq!(dark.menu_glass.tone.unwrap().cap, MENU_GLASS_CAP_DARK);
-        assert_eq!(dark.menu_glass.tone.unwrap().chroma, MENU_GLASS_CHROMA_DARK);
-        assert_eq!(dark.dock.tone.unwrap().cap, 1.0);
-        assert_eq!(dark.dock.tone.unwrap().chroma, DOCK_TONE_DARK.chroma);
-        let light = resolve(&AppearanceConfig::default(), None);
-        assert_eq!(light.menu_glass.tone.unwrap().cap, 1.0);
+        crate::menu::panel_over(&resolved.menu_glass, Rgba::rgb8(grey, grey, grey))
+    }
+
+    fn assert_menu_panel(grey: u8, codes: std::ops::RangeInclusive<u8>, dark_ink: bool) {
+        for scheme in SCHEMES {
+            for reduce_transparency in [false, true] {
+                let panel = menu_panel_over(grey, scheme, reduce_transparency);
+                let [red, green, blue, _] = panel.to_rgba8();
+                assert!(
+                    red == green && green == blue && codes.contains(&red),
+                    "over #{grey:02x} in {scheme:?}: #{red:02x}{green:02x}{blue:02x}, expected {codes:?}"
+                );
+                assert_eq!(
+                    crate::menu::dark_ink_over(crate::menu::panel_luma(panel)),
+                    dark_ink
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn the_menu_panel_over_white_is_8d_with_dark_ink() {
+        assert_menu_panel(0xff, 0x8c..=0x8e, true);
+    }
+
+    #[test]
+    fn the_menu_panel_over_gray_is_8d_with_dark_ink() {
+        assert_menu_panel(0x99, 0x8b..=0x8e, true);
+    }
+
+    #[test]
+    fn the_menu_panel_over_black_is_2b_with_white_ink() {
+        assert_menu_panel(0x00, 0x2a..=0x2c, false);
+    }
+
+    #[test]
+    fn the_menu_panel_over_the_checker_is_85_to_88_with_dark_ink() {
+        assert_menu_panel(0x80, 0x85..=0x88, true);
     }
 
     #[test]

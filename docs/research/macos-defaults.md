@@ -227,9 +227,9 @@ and a grid. It corrects three values above; the details and evidence are in
 
 ## 8. Remaining gaps
 
-1. The menu ink is still chosen from the colour scheme by the shell. The
-   compositor draws a light menu over a bright window but the text stays
-   white. A light ink variant and a per-window luminance feed are needed.
+1. The menu ink follows the panel as a whole. macOS switches it at the split
+   line of a split backdrop; Malaysia takes one ink per popup from the average
+   of what lies behind it.
 2. Reduce Transparency still leaves the Dock backdrop-dependent. The single
    solid tokens are an approximation, not the measured state.
 3. The menu corner radius is about 6 on this host, below the 12 used by the

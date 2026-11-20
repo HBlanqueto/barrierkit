@@ -1239,9 +1239,12 @@
         "scale-from": 0.96
       },
       "menu": {
-        "glass-cap-dark": 0.56,
-        "glass-chroma-dark": 1.17,
+        "glass-veil": "#ffffff33",
+        "glass-lift": -0.032,
+        "glass-cap": 0.6434,
+        "glass-chroma": 1.17,
         "glass-spread": 2.0,
+        "dark-ink-above": 0.4,
         "panel": {
           "padding": 5,
           "min-width": 220,
