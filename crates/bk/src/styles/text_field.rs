@@ -21,9 +21,9 @@ pub struct TextFieldStyle {
     pub padding_x: f32,
     /// Tengen: `RoundedRectangle { radius: TEXT_FIELD.radius, style: Circular }`.
     pub shape: Shape,
-    /// Tengen: `Role(ContentBackground)`.
+    /// Tengen: `Role(TextBackground)`.
     pub background: StateValue<ShapeStyle>,
-    /// Tengen: `Role(Outline)`, focused `Accent`.
+    /// Tengen: `Role(ControlBorder)`, focused `Accent`.
     pub border: StateValue<ShapeStyle>,
     /// Tengen: `Role(Label)`.
     pub text: StateValue<ShapeStyle>,
@@ -49,8 +49,9 @@ impl ControlStyle for TextFieldStyle {
             height: TEXT_FIELD.height,
             padding_x: TEXT_FIELD.padding_x,
             shape: field_shape(),
-            background: StateValue::new(ShapeStyle::Role(Role::ContentBackground)),
-            border: StateValue::new(ShapeStyle::Role(Role::Outline)).focused(ShapeStyle::Accent),
+            background: StateValue::new(ShapeStyle::Role(Role::TextBackground)),
+            border: StateValue::new(ShapeStyle::Role(Role::ControlBorder))
+                .focused(ShapeStyle::Accent),
             text: StateValue::new(ShapeStyle::Role(Role::Label)),
             placeholder: StateValue::new(ShapeStyle::Role(Role::SecondaryLabel)),
             misspelling: StateValue::new(ShapeStyle::Role(Role::Destructive)),

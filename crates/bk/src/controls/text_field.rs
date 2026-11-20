@@ -207,6 +207,7 @@ impl Component for TextField {
             radius,
             Gaps::new(margin_y, style.padding_x, margin_y, style.padding_x),
         )
+        .height(Size::px(style.height))
         .auto_focus(self.auto_focus);
         let input = match self.on_submit.clone() {
             Some(on_submit) => input.on_submit(move |text: String| on_submit.call(text)),
@@ -423,6 +424,7 @@ impl Component for SearchField {
             radius,
             Gaps::new(margin_y, padding + icon + gap, margin_y, leading),
         )
+        .height(Size::px(height))
         .a11y_id(a11y_id)
         .auto_focus(self.auto_focus);
         let on_navigate = self.on_navigate.clone();

@@ -79,6 +79,7 @@ pub struct Surfaces {
 pub struct Resolved {
     pub scheme: ColorScheme,
     pub accent: Rgba,
+    pub control_accent: Rgba,
     pub automatic_accent: bool,
     pub on_accent: Rgba,
     pub focus_ring: Rgba,
@@ -586,7 +587,11 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
             }
         });
 
-    let (accent, on_accent) = legible_on_accent(normal_accent, base.on_accent);
+    let (accent, on_accent) = if normal_accent == base.accent {
+        (base.selected_content, base.on_accent)
+    } else {
+        legible_on_accent(normal_accent, base.on_accent)
+    };
 
     let window_tint = match appearance.window_color {
         WindowColorMode::Neutral => None,
@@ -658,6 +663,7 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
     let untinted = Resolved {
         scheme,
         accent,
+        control_accent: normal_accent,
         automatic_accent: appearance.accent_color.is_none()
             && !(appearance.wallpaper_accent && dominant.is_some()),
         on_accent,
@@ -929,7 +935,8 @@ mod tests {
     fn only_the_automatic_accent_leaves_an_apps_own_accent_alone() {
         let automatic = resolve(&AppearanceConfig::default(), Some(dominant()));
         assert!(automatic.automatic_accent);
-        assert_eq!(automatic.accent, LIGHT.accent);
+        assert_eq!(automatic.control_accent, LIGHT.accent);
+        assert_eq!(automatic.accent, LIGHT.selected_content);
         let blue = [LIGHT.accent.r, LIGHT.accent.g, LIGHT.accent.b];
         let forced = resolve(
             &AppearanceConfig {

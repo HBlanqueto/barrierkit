@@ -675,7 +675,7 @@
           "text-size": 13,
           "weight": 500,
           "selected-weight": 600,
-          "selected-bg": "accent",
+          "selected-bg": "selected-content",
           "selected-ink": "on-accent",
           "selected-icon-rim": "#00000033",
           "inactive-selected-bg": "bg-hover",
@@ -1268,7 +1268,7 @@
           "shortcut-gap": 24,
           "fg": "ink",
           "shortcut-color": "ink-muted",
-          "hover-bg": "accent",
+          "hover-bg": "selected-content",
           "hover-fg": "on-accent",
           "disabled-fg": "ink-faint"
         },

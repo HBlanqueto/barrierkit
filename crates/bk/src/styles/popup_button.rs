@@ -22,8 +22,7 @@ pub struct PopUpButtonStyle {
     /// Tengen: `RoundedRectangle { radius: BUTTON.radius, style: Circular }`; the focus ring
     /// takes its corners.
     pub shape: Shape,
-    /// Tengen: `Clear`, hovered `Role(ControlBackground)`: the indicator melts into it, as in
-    /// macOS.
+    /// Tengen: `Role(ControlBackground)`, as the bezel of a bordered button.
     pub background: StateValue<ShapeStyle>,
     /// Tengen: `SYMBOL.grid`, the SVG icon or swatch of the chosen item.
     pub icon_size: f32,
@@ -35,7 +34,7 @@ pub struct PopUpButtonStyle {
     pub indicator_shape: Shape,
     /// Tengen: `Role(Label)`.
     pub label: StateValue<ShapeStyle>,
-    /// Tengen: `Role(ControlBackground)`.
+    /// Tengen: `Clear`.
     pub indicator: StateValue<ShapeStyle>,
     /// Tengen: `Role(Label)`.
     pub chevron: StateValue<ShapeStyle>,
@@ -60,14 +59,13 @@ impl ControlStyle for PopUpButtonStyle {
             gap: SETTINGS.popup_text_gap as f32,
             leading_padding: BUTTON.padding_x,
             shape: rounded(BUTTON.radius),
-            background: StateValue::new(ShapeStyle::Clear)
-                .hovered(ShapeStyle::Role(Role::ControlBackground)),
+            background: StateValue::new(ShapeStyle::Role(Role::ControlBackground)),
             icon_size: SYMBOL.grid,
             indicator_size: SETTINGS.popup_chevron as f32,
             chevron_size: SETTINGS.dropdown_chevron_glyph as f32,
             indicator_shape: Shape::Circle,
             label: StateValue::new(ShapeStyle::Role(Role::Label)),
-            indicator: StateValue::new(ShapeStyle::Role(Role::ControlBackground)),
+            indicator: StateValue::new(ShapeStyle::Clear),
             chevron: StateValue::new(ShapeStyle::Role(Role::Label)),
             indicator_border: None,
             indicator_shadows: Vec::new(),

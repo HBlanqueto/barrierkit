@@ -601,7 +601,7 @@
   --bk-window-sidebar-item-text-size: 13;
   --bk-window-sidebar-item-weight: 500;
   --bk-window-sidebar-item-selected-weight: 600;
-  --bk-window-sidebar-item-selected-bg: var(--bk-accent);
+  --bk-window-sidebar-item-selected-bg: var(--bk-selected-content);
   --bk-window-sidebar-item-selected-ink: var(--bk-on-accent);
   --bk-window-sidebar-item-selected-icon-rim: #00000033;
   --bk-window-sidebar-item-inactive-selected-bg: var(--bk-bg-hover);
@@ -1137,7 +1137,7 @@
   --bk-shell-menu-item-shortcut-gap: 24;
   --bk-shell-menu-item-fg: var(--bk-ink);
   --bk-shell-menu-item-shortcut-color: var(--bk-ink-muted);
-  --bk-shell-menu-item-hover-bg: var(--bk-accent);
+  --bk-shell-menu-item-hover-bg: var(--bk-selected-content);
   --bk-shell-menu-item-hover-fg: var(--bk-on-accent);
   --bk-shell-menu-item-disabled-fg: var(--bk-ink-faint);
   --bk-shell-menu-glass-fg: var(--bk-glass-ink);
@@ -1291,6 +1291,7 @@
   --bk-accent: #007aff;
   --bk-accent-inactive: #aeaeb2;
   --bk-accent-strong: #1f53bd;
+  --bk-selected-content: #0064e1;
   --bk-on-accent: #ffffff;
   --bk-focus-ring: #0067f47f;
   --bk-shadow-float: #00000066;
@@ -1354,6 +1355,7 @@
     --bk-accent: #007aff;
     --bk-accent-inactive: #5c5c5e;
     --bk-accent-strong: #6aa2ff;
+    --bk-selected-content: #0059d1;
     --bk-on-accent: #ffffff;
     --bk-focus-ring: #1aa9ff7f;
     --bk-shadow-float: #00000066;
@@ -1417,6 +1419,7 @@
   --bk-accent: #007aff;
   --bk-accent-inactive: #5c5c5e;
   --bk-accent-strong: #6aa2ff;
+  --bk-selected-content: #0059d1;
   --bk-on-accent: #ffffff;
   --bk-focus-ring: #1aa9ff7f;
   --bk-shadow-float: #00000066;
@@ -1479,6 +1482,7 @@
   --bk-accent: #007aff;
   --bk-accent-inactive: #5c5d61;
   --bk-accent-strong: #6aa2ff;
+  --bk-selected-content: #0059d1;
   --bk-on-accent: #ffffff;
   --bk-focus-ring: #1aa9ff7f;
   --bk-shadow-float: #00000066;

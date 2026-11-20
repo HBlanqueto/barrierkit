@@ -885,6 +885,7 @@ pub struct Palette {
     pub line_strong: Rgba,
     pub separator: Rgba,
     pub accent: Rgba,
+    pub selected_content: Rgba,
     pub accent_inactive: Rgba,
     pub on_accent: Rgba,
     pub danger: Rgba,

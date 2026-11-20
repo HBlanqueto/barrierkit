@@ -45,3 +45,24 @@ Heights agree with `components.json` for button, checkbox, radio, switch, pop-up
 | under-page background | `f6f6f6` | `282828` |
 
 A command-line process has no window context, so window-level colors here are not authoritative; the window background in `tokens.json` stays as measured earlier.
+
+## Accent and selection
+
+`controlAccentColor` is `007aff` in both appearances; `selectedContentBackgroundColor` is `0064e1` in light and `0059d1` in dark, and the menu and list selection use it. Read per `AppleAccentColor` in a process-local argument domain (`-AppleAccentColor <n>`), so no system setting changed:
+
+| Accent | controlAccent light / dark | selectedContentBackground light / dark |
+|---|---|---|
+| blue (default) | `007aff` / `007aff` | `0064e1` / `0059d1` |
+| red | `e0383e` / `ff5257` | `c4262b` / `d13539` |
+| orange | `f7821b` / `f7821b` | `d96b0a` / `c96003` |
+| yellow | `ffc726` / `ffc600` | `e1ac15` / `d19e00` |
+| green | `62ba46` / `62ba46` | `4da033` / `43932a` |
+| purple | `953d96` / `a550a7` | `7d2a7e` / `803482` |
+| pink | `f74f9e` / `f74f9e` | `d93b86` / `c93379` |
+
+`ACCENT_SWATCHES` still holds older approximations of these.
+
+## Text fields
+
+The fill is `textBackgroundColor` (`fffffff9` light, `161616fa` dark) over 24, with a 1 px border outside the frame: black at 15% in light, white at 9% in dark. The kit draws that border inside the 24.
+

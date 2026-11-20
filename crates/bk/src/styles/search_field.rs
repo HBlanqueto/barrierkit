@@ -1,9 +1,6 @@
-use ctappearance::Resolved;
 use ctdesign::{BODY, Font, SETTINGS, TEXT_FIELD};
 
-use super::{
-    ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, show_borders, system_effect,
-};
+use super::{ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, system_effect};
 
 #[derive(Clone, Debug)]
 pub struct SearchFieldStyle {
@@ -17,9 +14,9 @@ pub struct SearchFieldStyle {
     pub icon_gap: f32,
     /// Tengen: `Capsule`.
     pub shape: Shape,
-    /// Tengen: `Role(ControlBackground)`.
+    /// Tengen: `Role(TextBackground)`.
     pub background: StateValue<ShapeStyle>,
-    /// Tengen: `Clear`, focused `Accent`.
+    /// Tengen: `Role(ControlBorder)`, focused `Accent`.
     pub border: StateValue<ShapeStyle>,
     /// Tengen: `Role(Label)`.
     pub text: StateValue<ShapeStyle>,
@@ -47,8 +44,9 @@ impl ControlStyle for SearchFieldStyle {
             icon_size: SETTINGS.search_icon as f32,
             icon_gap: SETTINGS.search_gap as f32,
             shape: Shape::Capsule,
-            background: StateValue::new(ShapeStyle::Role(Role::ControlBackground)),
-            border: StateValue::new(ShapeStyle::Clear).focused(ShapeStyle::Accent),
+            background: StateValue::new(ShapeStyle::Role(Role::TextBackground)),
+            border: StateValue::new(ShapeStyle::Role(Role::ControlBorder))
+                .focused(ShapeStyle::Accent),
             text: StateValue::new(ShapeStyle::Role(Role::Label)),
             placeholder: StateValue::new(ShapeStyle::Role(Role::SecondaryLabel)),
             icon: StateValue::new(ShapeStyle::Role(Role::TertiaryLabel)),
@@ -57,13 +55,5 @@ impl ControlStyle for SearchFieldStyle {
             effect: system_effect,
             font: BODY,
         }
-    }
-
-    fn accessible(self, appearance: &Resolved) -> Self {
-        show_borders(self, appearance, |style| Self {
-            border: StateValue::new(ShapeStyle::Role(Role::ControlBorder))
-                .focused(ShapeStyle::Accent),
-            ..style
-        })
     }
 }

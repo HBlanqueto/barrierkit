@@ -1,4 +1,4 @@
-use ctdesign::{BODY, Font, KNOB_SHADOW, SEGMENTED};
+use ctdesign::{BODY, Font, SEGMENTED};
 
 use super::button::rounded;
 use super::{
@@ -27,18 +27,18 @@ pub struct SegmentedControlStyle {
     /// Tengen: `Role(ControlBackground)`, behind the segments.
     pub background: StateValue<ShapeStyle>,
     /// Tengen, with `selected`: `Clear` for a segment that is not chosen,
-    /// `Role(SelectedControl)` for the chosen one.
+    /// `Accent` for the chosen one.
     pub segment: StateValue<ShapeStyle>,
     /// Tengen, with `segment`: `Clear` for a segment that is not chosen,
-    /// `Role(SelectedControl)` for the chosen one.
+    /// `Accent` for the chosen one.
     pub selected: StateValue<ShapeStyle>,
     /// Tengen: `Role(Label)`.
     pub label: StateValue<ShapeStyle>,
-    /// Tengen: `Role(Label)`.
+    /// Tengen: `Role(OnAccent)`.
     pub selected_label: StateValue<ShapeStyle>,
     /// Tengen: `None`, around the group.
     pub border: Option<(ShapeStyle, f32)>,
-    /// Tengen: `[KNOB_SHADOW]`.
+    /// Tengen: none.
     pub selected_shadows: Vec<ShadowStyle>,
     /// Tengen: `1.0`.
     pub opacity: f32,
@@ -63,11 +63,11 @@ impl ControlStyle for SegmentedControlStyle {
             segment_shape: rounded(SEGMENTED.segment_radius),
             background: StateValue::new(ShapeStyle::Role(Role::ControlBackground)),
             segment: StateValue::new(ShapeStyle::Clear),
-            selected: StateValue::new(ShapeStyle::Role(Role::SelectedControl)),
+            selected: StateValue::new(ShapeStyle::Accent),
             label: StateValue::new(ShapeStyle::Role(Role::Label)),
-            selected_label: StateValue::new(ShapeStyle::Role(Role::Label)),
+            selected_label: StateValue::new(ShapeStyle::Role(Role::OnAccent)),
             border: None,
-            selected_shadows: vec![KNOB_SHADOW.into()],
+            selected_shadows: vec![],
             opacity: 1.0,
             effect: system_effect,
             axis: Axis::Horizontal,

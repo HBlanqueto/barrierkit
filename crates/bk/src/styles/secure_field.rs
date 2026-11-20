@@ -11,11 +11,11 @@ pub struct SecureFieldStyle {
     pub padding_x: f32,
     /// Tengen: `RoundedRectangle { radius: TEXT_FIELD.radius, style: Circular }`.
     pub shape: Shape,
-    /// Tengen: `Role(ContentBackground)`.
+    /// Tengen: `Role(TextBackground)`.
     pub background: StateValue<ShapeStyle>,
     /// Tengen: `Role(Label)`, the `•`.
     pub text: StateValue<ShapeStyle>,
-    /// Tengen: `Some((Role(Outline), HAIRLINE))`.
+    /// Tengen: `Some((Role(ControlBorder), HAIRLINE))`.
     pub border: Option<(ShapeStyle, f32)>,
     /// Tengen: `1.0`.
     pub opacity: f32,
@@ -31,9 +31,9 @@ impl ControlStyle for SecureFieldStyle {
             height: TEXT_FIELD.height,
             padding_x: TEXT_FIELD.padding_x,
             shape: field_shape(),
-            background: StateValue::new(ShapeStyle::Role(Role::ContentBackground)),
+            background: StateValue::new(ShapeStyle::Role(Role::TextBackground)),
             text: StateValue::new(ShapeStyle::Role(Role::Label)),
-            border: Some((ShapeStyle::Role(Role::Outline), HAIRLINE)),
+            border: Some((ShapeStyle::Role(Role::ControlBorder), HAIRLINE)),
             opacity: 1.0,
             effect: system_effect,
             font: BODY,

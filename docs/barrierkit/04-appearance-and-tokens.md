@@ -497,7 +497,8 @@ a style.
 | `Resolved` field | What it holds |
 |---|---|
 | `scheme` | The `ColorScheme`. |
-| `accent`, `on_accent` | The accent and its ink. |
+| `control_accent` | The accent as chosen, `NSColor.controlAccentColor`: the fill of controls (`ShapeStyle::Accent`). |
+| `accent`, `on_accent` | The accent for selected rows and its ink: `NSColor.selectedContentBackgroundColor` (`selected_content`) with the theme's accent, the accent darkened until the ink reaches 4.5:1 with another. |
 | `automatic_accent` | True without `accent_color`: an `Accent::Own` or `Accent::FromBackdrop` keeps its color. |
 | `focus_ring` | The keyboard focus ring: `FOCUS_RING_COLOR_*` at 49.8% with the theme's accent, the accent at that alpha with another, and with `contrast` the opaque accent moved until it reaches 3:1 on the window (rule 7). |
 | `link` | The accent moved until it reaches 4.5:1 on the window and on content. |
@@ -531,9 +532,10 @@ The rules `resolve` applies:
    strength factor, times the `LAYER_FACTOR_*` of that layer, times
    `ACCENT_CHROMA_GAIN` for an accent. A part left out of `tint_parts` stays
    neutral.
-3. `on_accent` is always the light ink, as in macOS. An accent where it does
-   not reach 4.5:1 (`ON_ACCENT_MIN_CONTRAST`) is darkened just enough
-   (WCAG 2.2 §1.4.3).
+3. `on_accent` is always the light ink, as in macOS. The theme's accent
+   selects with `selected_content`; another accent, where the ink does not
+   reach 4.5:1 (`ON_ACCENT_MIN_CONTRAST`), is darkened just enough
+   (WCAG 2.2 §1.4.3). Controls keep `control_accent` as chosen.
 4. Wallpaper tinting is on with `wallpaper_tinting` and a neutral
    `window_color`, with any accent (malaysia ADR 0065), unless
    `reduce_transparency` or `contrast` is on. It
@@ -813,7 +815,7 @@ A color, size or duration never goes into `bk`. It goes into Tengen:
 |---|---|
 | `Rgba` | sRGB color with straight alpha, channels from 0 to 1. `TRANSPARENT`, `rgb8`, `rgba8`, `to_rgba8`, `premultiplied`, `mix` (keeps its own alpha), `darken`, `lighten`, `to_linear`, `from_linear`, `relative_luminance`, `contrast_ratio`, `to_hsl`, `from_hsl`. |
 | `Font` | `family`, `size`, `line_height` (pixels) and `weight`. |
-| `Palette` | Base colors of a theme: `titlebar_bg`, `hairline`, `inner_line`, `panel_inner_line`, `outer_border`, `title`, `text`, `ink_strong`, `ink_muted`, `ink_faint`, `line`, `line_strong`, `separator`, `accent`, `accent_inactive`, `on_accent`, `danger`, `traffic_lights_inactive`, `traffic_rim`, `scrim`, `selected_control`, `card_border`. |
+| `Palette` | Base colors of a theme: `titlebar_bg`, `hairline`, `inner_line`, `panel_inner_line`, `outer_border`, `title`, `text`, `ink_strong`, `ink_muted`, `ink_faint`, `line`, `line_strong`, `separator`, `accent`, `selected_content`, `accent_inactive`, `on_accent`, `danger`, `traffic_lights_inactive`, `traffic_rim`, `scrim`, `selected_control`, `card_border`. |
 | `FocusPair` | A color for the focused window and one for the unfocused. |
 | `PanelLine` | Inner line of a focused panel, menu or dialog: `sides`, `edges` (top and bottom) and the `glow` under the edges. |
 | `TrafficRim` | Rim of a traffic light: `lit` and `idle`. |

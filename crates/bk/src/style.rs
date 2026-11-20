@@ -80,7 +80,7 @@ impl Palette {
             system_fill: base.system_fill,
             text_background: base.text_background,
             control_hover: resolved.surfaces.hover,
-            accent: resolved.accent,
+            accent: resolved.control_accent,
             accent_inactive: base.accent_inactive,
             on_accent: resolved.on_accent,
             destructive: base.danger,
