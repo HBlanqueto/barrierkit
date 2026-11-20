@@ -3,7 +3,7 @@ use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
 
 use crate::context_menu::edit_menu;
-use crate::controls::{default_pre_key, dimmed, input, shadowed, text_style};
+use crate::controls::{default_pre_key, dimmed, input, outer_hairline, shadowed, text_style};
 use crate::style::with_font;
 use crate::styles::Painted;
 use crate::styles::{ControlState, LayoutDirection, Paints, Theme, TokenFieldStyle, resolve};
@@ -202,6 +202,7 @@ impl Component for TokenField {
         )
         .a11y_role(AccessibilityRole::List)
         .a11y_alt(self.placeholder)
+        .on_press(move |_| input_id.request_focus())
         .min_height(Size::px(style.height))
         .padding(Gaps::new(0.0, style.padding_x, 0.0, style.padding_x))
         .corner_radius(style.shape.corner_radius(
@@ -210,7 +211,9 @@ impl Component for TokenField {
             LayoutDirection::LeftToRight,
         ))
         .painted(&paints, &style.background)
-        .bordered(&paints, style.border.as_ref())
+        .map(style.border.as_ref(), |el, (paint, _)| {
+            el.border(outer_hairline(paints.color(paint)))
+        })
         .direction(Direction::Horizontal)
         .content(Content::Wrap {
             wrap_spacing: Some(style.gap),

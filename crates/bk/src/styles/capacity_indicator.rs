@@ -35,6 +35,10 @@ pub struct CapacityIndicatorStyle {
     pub critical: StateValue<ShapeStyle>,
     /// Tengen: `Some((Color of LEVEL_BORDER, HAIRLINE))`.
     pub border: Option<(ShapeStyle, f32)>,
+    /// Tengen: `LEVEL_INDICATOR.discrete_border`, `discrete_border_contrast_light` or
+    /// `discrete_border_contrast_dark` under Increase Contrast: the factor by which a filled cell of
+    /// `discrete` darkens the color of its level for its border.
+    pub cell_border_shade: f32,
     /// Tengen: empty, for the bar or each cell.
     pub shadows: Vec<ShadowStyle>,
     /// Tengen: `1.0`.
@@ -88,6 +92,14 @@ impl ControlStyle for CapacityIndicatorStyle {
                 )),
                 HAIRLINE,
             )),
+            cell_border_shade: per_look(
+                [LEVEL_INDICATOR.discrete_border; 3],
+                [
+                    LEVEL_INDICATOR.discrete_border_contrast_light,
+                    LEVEL_INDICATOR.discrete_border_contrast_dark,
+                    LEVEL_INDICATOR.discrete_border_contrast_dark,
+                ],
+            ),
             shadows: Vec::new(),
             opacity: 1.0,
             effect: system_effect,

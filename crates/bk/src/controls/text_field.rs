@@ -80,6 +80,7 @@ impl Component for SecureField {
             field.read().masked()
         };
         let margin_y = (style.height - style.font.line_height as f32) / 2.0;
+        let ink = paints.color(style.text.resolve(state));
         let radius =
             style
                 .shape
@@ -99,7 +100,9 @@ impl Component for SecureField {
             ))
             .corner_radius(radius)
             .painted(&paints, &style.background)
-            .bordered(&paints, style.border.as_ref())
+            .map(style.border.as_ref(), |el, (paint, _)| {
+                el.border(outer_hairline(paints.color(paint)))
+            })
             .on_key_down(move |event: Event<KeyboardEventData>| {
                 let secret = field.write().handle_key(&event.key, event.modifiers);
                 if let Some(secret) = secret {
@@ -109,11 +112,28 @@ impl Component for SecureField {
                     }
                 }
             })
-            .child(crate::style::text(
-                shown,
-                style.font,
-                paints.color(style.text.resolve(state)),
-            ));
+            .child(if self.revealed {
+                crate::style::text(shown, style.font, ink).into_element()
+            } else {
+                let (dot, pitch) = style.dot;
+                let (inset, drop) = style.dot_offset;
+                rect()
+                    .height(Size::px(style.font.line_height as f32))
+                    .padding(Gaps::new(0.0, 0.0, 0.0, inset))
+                    .direction(Direction::Horizontal)
+                    .cross_align(Alignment::Center)
+                    .spacing(pitch - dot)
+                    .offset_y(drop)
+                    .children(shown.chars().map(|_| {
+                        rect()
+                            .width(Size::px(dot))
+                            .height(Size::px(dot))
+                            .corner_radius(dot / 2.0)
+                            .background(color(ink))
+                            .into_element()
+                    }))
+                    .into_element()
+            });
         interaction.focus_ring(dimmed(element, style.opacity), radius.top_left())
     }
 }

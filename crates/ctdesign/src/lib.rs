@@ -364,6 +364,10 @@ pub struct TextFieldMetrics {
     pub height: f32,
     pub padding_x: f32,
     pub radius: f32,
+    pub secure_dot: f32,
+    pub secure_pitch: f32,
+    pub secure_inset: f32,
+    pub secure_drop: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -564,8 +568,12 @@ pub struct LevelIndicatorMetrics {
     pub height: f32,
     pub radius: f32,
     pub star: f32,
+    pub star_pitch: f32,
     pub stars: u32,
     pub segment_gap: f32,
+    pub discrete_border: f32,
+    pub discrete_border_contrast_light: f32,
+    pub discrete_border_contrast_dark: f32,
     pub relevancy_height: f32,
     pub relevancy_line: f32,
     pub relevancy_gap: f32,
@@ -610,9 +618,9 @@ pub struct DatePickerMetrics {
 pub struct TokenFieldMetrics {
     pub token_height: f32,
     pub token_padding_x: f32,
+    pub token_radius: f32,
     pub gap: f32,
     pub input_min_width: f32,
-    pub token_opacity: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

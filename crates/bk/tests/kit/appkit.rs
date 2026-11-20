@@ -7,19 +7,21 @@ use bk::color_picker::ColorPicker;
 use bk::combo_box::ComboBox;
 use bk::compact::Stepper;
 use bk::controls::{
-    Button, Checkbox, ControlSize, ScrollView, SearchField, SegmentedControl, Slider, Switch,
-    TextField,
+    Button, Checkbox, ControlSize, ScrollView, SearchField, SecureField, SegmentedControl, Slider,
+    Switch, TextField,
 };
 use bk::date::{CivilDate, CivilDateTime};
 use bk::date_picker::DatePicker;
-use bk::indicator::CapacityIndicator;
+use bk::indicator::{CapacityIndicator, RatingIndicator, RelevancyIndicator};
 use bk::menu::{CheckState, MenuItem, MenuView};
+use bk::password::PasswordField;
 use bk::popup_button::PopUpButton;
 use bk::progress::{ProgressRing, ProgressView};
 use bk::sidebar::{SidebarItem, SidebarSection};
 use bk::styles::ButtonStyle;
 use bk::symbol::Symbol;
 use bk::theme;
+use bk::token_field::TokenField;
 use bk::views::group::{DisclosureGroup, GroupBox};
 use bk::views::table::{SortOrder, Table};
 use ctappearance::{AppearanceConfig, ColorScheme, resolve};
@@ -293,6 +295,67 @@ fn controls() -> Vec<(&'static str, Builder)> {
                 CivilDateTime::new(CivilDate::new(2027, 1, 15), 8, 0),
             )
             .graphical()
+            .into_element()
+        }),
+        ("level-warn", || {
+            rect()
+                .width(Size::px(120.0))
+                .child(CapacityIndicator::new("Level", 0.8).thresholds(0.7, 0.9))
+                .into_element()
+        }),
+        ("level-crit", || {
+            rect()
+                .width(Size::px(120.0))
+                .child(CapacityIndicator::new("Level", 1.0).thresholds(0.7, 0.9))
+                .into_element()
+        }),
+        ("discrete-5", || {
+            rect()
+                .width(Size::px(120.0))
+                .child(
+                    CapacityIndicator::new("Level", 0.5)
+                        .discrete(10)
+                        .thresholds(0.7, 0.9),
+                )
+                .into_element()
+        }),
+        ("discrete-10", || {
+            rect()
+                .width(Size::px(120.0))
+                .child(
+                    CapacityIndicator::new("Level", 1.0)
+                        .discrete(10)
+                        .thresholds(0.7, 0.9),
+                )
+                .into_element()
+        }),
+        ("rating-3", || {
+            RatingIndicator::new("Rating", 3).into_element()
+        }),
+        ("relevancy-3", || {
+            rect()
+                .width(Size::px(100.0))
+                .child(RelevancyIndicator::new("Relevancy", 0.6))
+                .into_element()
+        }),
+        ("secure", || {
+            SecureField::new(
+                use_state(|| {
+                    let mut field = PasswordField::default();
+                    "secret".chars().for_each(|c| field.insert(c));
+                    field
+                }),
+                "Secure",
+            )
+            .width(Size::px(140.0))
+            .into_element()
+        }),
+        ("token", || {
+            TokenField::new(
+                use_state(|| vec!["One".to_string(), "Two".to_string()]),
+                "Tokens",
+            )
+            .width(Size::px(160.0))
             .into_element()
         }),
         ("level", || {

@@ -436,6 +436,8 @@ LEVEL_BORDER Rgba themes.{theme}.level-border
 SEARCH_CLEAR Rgba themes.{theme}.search-clear
 DISABLED DisabledPalette themes.{theme}.disabled
 GAUGE_CONTRAST GaugeContrast themes.{theme}.gauge-contrast
+TOKEN_FILL Rgba themes.{theme}.token-fill
+TOKEN_FILL_CONTRAST Rgba themes.{theme}.token-fill-contrast
 CALENDAR CalendarPalette themes.{theme}.calendar
 CALENDAR_CONTRAST CalendarPalette themes.{theme}.calendar-contrast
 DISCLOSURE_TRIANGLE Rgba themes.{theme}.disclosure-triangle

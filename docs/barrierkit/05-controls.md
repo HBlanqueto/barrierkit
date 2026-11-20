@@ -447,9 +447,9 @@ spell checking are in [6](06-text-and-editing.md#edit-menu).
 - `autocorrection_disabled(true)` turns [spell checking](06-text-and-editing.md#spelling) off,
   for text that is not prose, such as a network name.
 - `SearchField` shows a clear button while it has text. `on_navigate` receives ↑, ↓ and Enter
-  so a result list can follow the keys. `tokens` shows capsules before the text, like the
+  so a result list can follow the keys. `tokens` shows blue rectangles before the text, like the
   filters in Finder; Backspace on an empty field removes the last one.
-- `SecureField` shows one `•` per character. Enter hands the value to `on_submit` and empties
+- `SecureField` shows one 5.75 dot per character, 8 apart. Enter hands the value to `on_submit` and empties
   the field ([Passwords](#passwords)).
 - `ComboBox` is a text field with a 24 × 20 arrow button 4 from its right edge. The button or ↓
   opens the items as a menu; picking one writes it into `value`. Free typing also works.
@@ -642,10 +642,10 @@ Module `indicator`, after `NSLevelIndicator` and SwiftUI `Gauge`.
 
 | Item | Build | Look |
 |---|---|---|
-| `CapacityIndicator` | `new(label, value)`, `.thresholds(warning, critical)` (default 1, 1), `.discrete(cells)` | 16 tall bar; green, then yellow at `warning`, red at `critical`. `discrete` splits it into cells 2 apart |
-| `RelevancyIndicator` | `new(label, value)` | 11 tall row of 1 px lines, as many as `value` fills |
+| `CapacityIndicator` | `new(label, value)`, `.thresholds(warning, critical)` (default 1, 1), `.discrete(cells)` | 16 tall bar; green, then yellow at `warning`, red at `critical`. `discrete` splits it into touching cells with a darker border |
+| `RelevancyIndicator` | `new(label, value)` | 12 tall track with a row of 1 px lines, as many as `value` fills |
 | `Gauge` | `new(label, value, current)`, `.capacity(bool)` | 44 open ring (270°) with a marker and `current` in the center; `capacity(true)` is a closed ring that fills with the accent |
-| `RatingIndicator` | `new(label, stars)`, `.on_change(\|stars: u32\| ..)` | 5 stars of 12; editable only with `on_change` (click or arrows) |
+| `RatingIndicator` | `new(label, stars)`, `.on_change(\|stars: u32\| ..)` | 5 filled stars 12 apart; editable only with `on_change` (click or arrows) |
 
 | Helper | Returns |
 |---|---|

@@ -1,8 +1,8 @@
-use ctdesign::LEVEL_INDICATOR;
+use ctdesign::{HAIRLINE, LEVEL_INDICATOR, Rgba};
 use freya_components::cache::AssetAge;
 use freya_components::svg_viewer::SvgViewer;
 use freya_core::prelude::*;
-use torin::prelude::{Direction, Position, Size};
+use torin::prelude::{Direction, Gaps, Position, Size};
 
 use crate::controls::{dimmed, shadowed};
 use crate::interaction::{control_state, use_interaction};
@@ -110,7 +110,49 @@ impl Component for CapacityIndicator {
                 .spacing(style.segment_gap)
                 .children((0..segments).map(|segment| {
                     let filled = (value * segments as f32 - segment as f32).clamp(0.0, 1.0);
-                    cell(filled.round()).width(Size::flex(1.0)).into_element()
+                    let border = style
+                        .border
+                        .as_ref()
+                        .map_or(Rgba::TRANSPARENT, |(paint, _)| paints.color(paint));
+                    if filled.round() == 0.0 {
+                        return rect()
+                            .width(Size::flex(1.0))
+                            .height(Size::fill())
+                            .padding(Gaps::new_all(HAIRLINE))
+                            .child(
+                                rect()
+                                    .width(Size::fill())
+                                    .height(Size::fill())
+                                    .corner_radius(radius)
+                                    .painted(&paints, &style.track)
+                                    .border(
+                                        Border::new()
+                                            .width(HAIRLINE)
+                                            .alignment(BorderAlignment::Outer)
+                                            .fill(color(border)),
+                                    ),
+                            )
+                            .into_element();
+                    }
+                    let level = paints.color(fill.resolve(ControlState::default()));
+                    let shade = style.cell_border_shade;
+                    rect()
+                        .width(Size::flex(1.0))
+                        .height(Size::fill())
+                        .corner_radius(radius)
+                        .background(color(level))
+                        .border(
+                            Border::new()
+                                .width(HAIRLINE)
+                                .alignment(BorderAlignment::Inner)
+                                .fill(color(Rgba {
+                                    r: level.r * shade,
+                                    g: level.g * shade,
+                                    b: level.b * shade,
+                                    ..level
+                                })),
+                        )
+                        .into_element()
                 })),
         };
         dimmed(bar, style.opacity)
@@ -156,18 +198,25 @@ impl Component for RelevancyIndicator {
             .a11y_builder(move |node| node.set_numeric_value(f64::from(value)))
             .width(Size::fill())
             .height(Size::px(style.height))
-            .direction(Direction::Horizontal)
-            .spacing(style.gap)
+            .painted(&paints, &style.track)
             .on_sized(move |event: Event<SizedEventData>| {
                 width.set_if_modified(event.area.width());
             })
-            .children((0..lines).map(|_| {
+            .child(
                 rect()
-                    .width(Size::px(style.line_width))
+                    .width(Size::px(lines as f32 * pitch))
                     .height(Size::fill())
-                    .background(paints.fill(&style.line))
-                    .into_element()
-            }));
+                    .painted(&paints, &style.filled)
+                    .direction(Direction::Horizontal)
+                    .spacing(style.gap)
+                    .children((0..lines).map(|_| {
+                        rect()
+                            .width(Size::px(style.line_width))
+                            .height(Size::fill())
+                            .background(paints.fill(&style.line))
+                            .into_element()
+                    })),
+            );
         dimmed(relevancy, style.opacity)
     }
 }
@@ -325,13 +374,16 @@ impl Component for RatingIndicator {
         let paints = Paints::current(state, style.effect);
         let value = self.value.min(LEVEL_INDICATOR.stars);
         let stars = (1..=LEVEL_INDICATOR.stars).map(|star| {
-            let (shape, ink) = if star <= value {
-                (Symbol::StarFill, &style.star)
+            let ink = if star <= value {
+                &style.star
             } else {
-                (Symbol::Star, &style.empty_star)
+                &style.empty_star
             };
             let on_change = self.on_change.clone();
             rect()
+                .width(Size::px(style.star_size.1))
+                .height(Size::px(style.star_size.1))
+                .center()
                 .maybe(on_change.is_some(), |el| {
                     el.on_press(move |_| {
                         if let Some(on_change) = &on_change {
@@ -340,8 +392,8 @@ impl Component for RatingIndicator {
                     })
                 })
                 .child(symbol(
-                    shape,
-                    style.star_size,
+                    Symbol::StarFill,
+                    style.star_size.0,
                     paints.color(ink.resolve(state)),
                 ))
                 .into_element()

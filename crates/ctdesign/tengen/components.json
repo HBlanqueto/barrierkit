@@ -52,10 +52,14 @@
     "level-indicator": {
       "height": 16,
       "radius": 2,
-      "star": 12,
+      "star": 17,
+      "star-pitch": 12,
       "stars": 5,
-      "segment-gap": 2,
-      "relevancy-height": 11,
+      "segment-gap": 0,
+      "discrete-border": 0.87,
+      "discrete-border-contrast-light": 0.416,
+      "discrete-border-contrast-dark": 0.885,
+      "relevancy-height": 12,
       "relevancy-line": 1,
       "relevancy-gap": 1,
       "colors": ["#34c759", "#ffcc00", "#ff383c"],
@@ -97,11 +101,11 @@
       "segment-radius": 3
     },
     "token-field": {
-      "token-height": 18,
-      "token-padding-x": 7,
-      "gap": 4,
-      "input-min-width": 80,
-      "token-opacity": 0.2
+      "token-height": 15,
+      "token-padding-x": 17,
+      "token-radius": 2,
+      "gap": 7,
+      "input-min-width": 12
     },
     "path-control": {
       "height": 22,
@@ -419,7 +423,11 @@
     "text-field": {
       "height": 24,
       "padding-x": 6,
-      "radius": "radius.button"
+      "radius": "radius.button",
+      "secure-dot": 5.75,
+      "secure-pitch": 8,
+      "secure-inset": 1.25,
+      "secure-drop": 0.4
     },
     "segmented": {
       "padding": 0,

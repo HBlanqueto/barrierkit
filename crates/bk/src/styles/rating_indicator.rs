@@ -4,11 +4,12 @@ use super::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effe
 
 #[derive(Clone, Debug)]
 pub struct RatingIndicatorStyle {
-    /// Tengen: `LEVEL_INDICATOR.star`.
-    pub star_size: f32,
-    /// Tengen, with `empty_star`: `star`, `empty_star` `Role(SecondaryLabel)`.
+    /// Tengen: `(LEVEL_INDICATOR.star, LEVEL_INDICATOR.star_pitch)`: the size of each star and the
+    /// width and height of the square it is centered in.
+    pub star_size: (f32, f32),
+    /// Tengen, with `empty_star`: `star` `Role(SecondaryLabel)`, `empty_star` `Role(SystemFill)`.
     pub star: StateValue<ShapeStyle>,
-    /// Tengen, with `star`: `star`, `empty_star` `Role(SecondaryLabel)`.
+    /// Tengen, with `star`: `star` `Role(SecondaryLabel)`, `empty_star` `Role(SystemFill)`.
     pub empty_star: StateValue<ShapeStyle>,
     /// Tengen: `1.0`.
     pub opacity: f32,
@@ -19,9 +20,9 @@ pub struct RatingIndicatorStyle {
 impl ControlStyle for RatingIndicatorStyle {
     fn tengen() -> Self {
         Self {
-            star_size: LEVEL_INDICATOR.star,
+            star_size: (LEVEL_INDICATOR.star, LEVEL_INDICATOR.star_pitch),
             star: StateValue::new(ShapeStyle::Role(Role::SecondaryLabel)),
-            empty_star: StateValue::new(ShapeStyle::Role(Role::SecondaryLabel)),
+            empty_star: StateValue::new(ShapeStyle::Role(Role::SystemFill)),
             opacity: 1.0,
             effect: system_effect,
         }

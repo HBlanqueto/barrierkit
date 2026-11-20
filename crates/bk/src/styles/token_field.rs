@@ -1,8 +1,13 @@
-use ctdesign::{BODY, Font, HAIRLINE, Rgba, TEXT_FIELD, TOKEN_FIELD};
+use ctdesign::{
+    BODY, Font, HAIRLINE, TEXT_FIELD, TOKEN_FIELD, TOKEN_FILL_CONTRAST_DARK,
+    TOKEN_FILL_CONTRAST_DARK_TINT, TOKEN_FILL_CONTRAST_LIGHT, TOKEN_FILL_DARK,
+    TOKEN_FILL_DARK_TINT, TOKEN_FILL_LIGHT,
+};
 
 use super::text_field::field_shape;
 use super::{
-    ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue, system_effect,
+    ColorEffect, ControlStyle, CornerStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
+    per_look, system_effect,
 };
 
 /// States: only `normal`; a token is selected with the arrows or a click.
@@ -24,24 +29,25 @@ pub struct TokenFieldStyle {
     pub input_width: f32,
     /// Tengen: `RoundedRectangle { radius: TEXT_FIELD.radius, style: Circular }`.
     pub shape: Shape,
-    /// Tengen: `Capsule`.
+    /// Tengen: `RoundedRectangle { radius: TOKEN_FIELD.token_radius, style: Circular }`.
     pub token_shape: Shape,
-    /// Tengen: `Role(ContentBackground)`.
+    /// Tengen: `Role(TextBackground)`.
     pub background: StateValue<ShapeStyle>,
     /// Tengen: `Role(Label)`.
     pub text: StateValue<ShapeStyle>,
     /// Tengen: `Role(SecondaryLabel)`.
     pub placeholder: StateValue<ShapeStyle>,
-    /// Tengen, with `selected_token`: `Color` of the accent at `TOKEN_FIELD.token_opacity`,
-    /// `Accent`.
+    /// Tengen, with `selected_token`: `Color(TOKEN_FILL)` (`TOKEN_FILL_CONTRAST` under Increase
+    /// Contrast), `Accent`.
     pub token: StateValue<ShapeStyle>,
-    /// Tengen, with `token`: `Color` of the accent at `TOKEN_FIELD.token_opacity`, `Accent`.
+    /// Tengen, with `token`: `Color(TOKEN_FILL)` (`TOKEN_FILL_CONTRAST` under Increase Contrast),
+    /// `Accent`.
     pub selected_token: StateValue<ShapeStyle>,
     /// Tengen: `Role(Label)`.
     pub token_label: StateValue<ShapeStyle>,
     /// Tengen: `Role(OnAccent)`.
     pub selected_token_label: StateValue<ShapeStyle>,
-    /// Tengen: `Some((Role(Outline), HAIRLINE))`.
+    /// Tengen: `Some((Role(ControlBorder), HAIRLINE))`, drawn outside.
     pub border: Option<(ShapeStyle, f32)>,
     /// Tengen: empty.
     pub shadows: Vec<ShadowStyle>,
@@ -55,7 +61,6 @@ pub struct TokenFieldStyle {
 
 impl ControlStyle for TokenFieldStyle {
     fn tengen() -> Self {
-        let accent = crate::style::Palette::current().accent;
         Self {
             height: TEXT_FIELD.height,
             padding_x: TEXT_FIELD.padding_x,
@@ -64,18 +69,25 @@ impl ControlStyle for TokenFieldStyle {
             token_padding_x: TOKEN_FIELD.token_padding_x,
             input_width: TOKEN_FIELD.input_min_width,
             shape: field_shape(),
-            token_shape: Shape::Capsule,
-            background: StateValue::new(ShapeStyle::Role(Role::ContentBackground)),
+            token_shape: Shape::RoundedRectangle {
+                radius: TOKEN_FIELD.token_radius,
+                style: CornerStyle::Circular,
+            },
+            background: StateValue::new(ShapeStyle::Role(Role::TextBackground)),
             text: StateValue::new(ShapeStyle::Role(Role::Label)),
             placeholder: StateValue::new(ShapeStyle::Role(Role::SecondaryLabel)),
-            token: StateValue::new(ShapeStyle::Color(Rgba {
-                a: TOKEN_FIELD.token_opacity,
-                ..accent
-            })),
+            token: StateValue::new(ShapeStyle::Color(per_look(
+                [TOKEN_FILL_LIGHT, TOKEN_FILL_DARK, TOKEN_FILL_DARK_TINT],
+                [
+                    TOKEN_FILL_CONTRAST_LIGHT,
+                    TOKEN_FILL_CONTRAST_DARK,
+                    TOKEN_FILL_CONTRAST_DARK_TINT,
+                ],
+            ))),
             selected_token: StateValue::new(ShapeStyle::Accent),
             token_label: StateValue::new(ShapeStyle::Role(Role::Label)),
             selected_token_label: StateValue::new(ShapeStyle::Role(Role::OnAccent)),
-            border: Some((ShapeStyle::Role(Role::Outline), HAIRLINE)),
+            border: Some((ShapeStyle::Role(Role::ControlBorder), HAIRLINE)),
             shadows: Vec::new(),
             opacity: 1.0,
             effect: system_effect,

@@ -110,6 +110,11 @@ Materials under Reduce Transparency need screenshots with the system switch on a
 - Pressed: push and pop-up bezel black or white 16.9% (46% under Increase Contrast), default button `006fe6` light and `1988ff` dark, check or radio off 18.8%, on `006ce1` and `1e8bff`; there is no outline while pressed and no scale (`BUTTON.pressed_scale` is 1). `PressedPalette` holds them.
 - Color well: a 48 × 24 capsule bezel (black or white 9.8%) around a 42 × 18 swatch 3 in, with a 1 ring that is the color moved by 0.125 per channel, darker in light and lighter in dark.
 - Round button (`NSButton` circular): a 17 circle with a 10 wide plus; the kit's `ButtonStyle::circular`.
+- Secure field: the dots are 5.75 wide, 8 apart, the first 7.25 from the left and 0.4 below the center; the border is outside like the text field's.
+- Token field: the field is 24 high with an outside border; tokens are 15 high rectangles of radius 2, 56 wide for a short word (17 padding each side), 7 apart, filled `aad7ff` light and `0f4064` dark (`b3cdfb` and `27465f` under Increase Contrast).
+- Discrete level: 10 touching cells 12 wide with a border 0.87 times the level color (0.416 light and 0.885 dark under Increase Contrast); an empty cell has the track inside a `level_border` outside it.
+- Rating: filled stars 12 apart, `secondary label` ink for the value and `system fill` for the rest, no outline. Relevancy: a 12 high track (`system fill`) with a tertiary-label area and 1 pt secondary-label lines every 2 for the value.
+- The circular `NSSlider` is a 24 gray circle with a short dark dash for the value; the kit has no counterpart.
 - Mixed checkbox: the box is the checked one with a 6.5 × 1.8 dash centered (`CHECKBOX.mixed_mark`, `mixed_stroke`); `Checkbox::mixed(true)`.
 - Disclosure triangle (`NSButton` disclosure, measured over white and black): an opaque `c0c0c0` in light and `808080` in dark, `000000` at 74% and `ffffff` at 68% under Increase Contrast; 5.5 × 8.8 ink, stroke about 1.35 (`DISCLOSURE.triangle`, `triangle_stroke`, `DISCLOSURE_TRIANGLE`).
 - Table sorted column: the title is bold (weight 700 in Inter matches the mass) and the arrow is a 7 × 4 chevron of secondary-label ink, stroke about 1.05, at the right end of the header cell (7 beyond its content, 0.5 below the title's center): `TABLE.sorted_weight`, `sort_arrow*`.

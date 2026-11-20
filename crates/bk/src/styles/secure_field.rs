@@ -13,9 +13,15 @@ pub struct SecureFieldStyle {
     pub shape: Shape,
     /// Tengen: `Role(TextBackground)`.
     pub background: StateValue<ShapeStyle>,
-    /// Tengen: `Role(Label)`, the `•`.
+    /// Tengen: `Role(Label)`, the dots.
     pub text: StateValue<ShapeStyle>,
-    /// Tengen: `Some((Role(ControlBorder), HAIRLINE))`.
+    /// Tengen: `(TEXT_FIELD.secure_dot, TEXT_FIELD.secure_pitch)`: the diameter of each dot of a
+    /// hidden secret and the distance between their centers.
+    pub dot: (f32, f32),
+    /// Tengen: `(TEXT_FIELD.secure_inset, TEXT_FIELD.secure_drop)`: the space before the first dot
+    /// and how far the dots sit below the center of the field.
+    pub dot_offset: (f32, f32),
+    /// Tengen: `Some((Role(ControlBorder), HAIRLINE))`, drawn outside.
     pub border: Option<(ShapeStyle, f32)>,
     /// Tengen: `1.0`.
     pub opacity: f32,
@@ -33,6 +39,8 @@ impl ControlStyle for SecureFieldStyle {
             shape: field_shape(),
             background: StateValue::new(ShapeStyle::Role(Role::TextBackground)),
             text: StateValue::new(ShapeStyle::Role(Role::Label)),
+            dot: (TEXT_FIELD.secure_dot, TEXT_FIELD.secure_pitch),
+            dot_offset: (TEXT_FIELD.secure_inset, TEXT_FIELD.secure_drop),
             border: Some((ShapeStyle::Role(Role::ControlBorder), HAIRLINE)),
             opacity: 1.0,
             effect: system_effect,

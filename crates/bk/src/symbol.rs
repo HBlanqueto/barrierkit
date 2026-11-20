@@ -215,6 +215,7 @@ fn source(symbol: Symbol, stroke: f32) -> Bytes {
         symbol,
         Symbol::Bolt
             | Symbol::CircleHalf
+            | Symbol::StarFill
             | Symbol::TriangleLeft
             | Symbol::TriangleRight
             | Symbol::Dot
