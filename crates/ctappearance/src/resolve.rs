@@ -667,7 +667,11 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
         ON_ACCENT_MIN_CONTRAST,
         scheme,
     );
-    menu.hover_bg = accent;
+    menu.hover_bg = if normal_accent == base.accent {
+        normal_accent
+    } else {
+        accent
+    };
     menu.hover_fg = on_accent;
     sidebar.palette.selected_bg = accent;
     sidebar.palette.item_icon = accent;

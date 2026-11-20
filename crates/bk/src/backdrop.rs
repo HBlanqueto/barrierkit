@@ -240,6 +240,8 @@ impl Palette {
             accent,
             toggle_accent: accent,
             selected_content: accent,
+            selected_content_inactive: backdrop.base.mix(ink, BACKDROP.ink_tertiary),
+            on_selected_content: ink_on(accent),
             separator_strong: alpha(BACKDROP.glass_strong),
             accent_inactive: backdrop.base.mix(ink, BACKDROP.ink_tertiary),
             on_accent: ink_on(accent),

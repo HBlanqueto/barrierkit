@@ -109,3 +109,9 @@ Measured with `~/src/probes/views.swift` (an inset-style `NSTableView`, a source
 
 Read from the view hierarchy of an `NSAlert` (informational, two buttons) with `~/src/probes/alerts.swift`; its pixels are not captured because the window is hosted by SwiftUI and its glass and shadow come from the compositor, not from the app. 260 wide; the 64 icon at 20 from the top and the left; title 13 bold and message 13 regular, both in the label color, each line 16 high, 20 from the sides, 10 between them; buttons large (28 high), two of 110 with 8 between, 16 from the sides and 16 from the bottom, 16 under the message; Cancel on the left, the default button on the right. The kit draws no icon and leaves the glass and the shadow to the compositor.
 
+## Menus, scrollers and inactive selection
+
+- Menu (a real `NSMenu` over white and black with `~/src/probes/menu.swift`, screenshots converted to sRGB with `sips -m`; the unconverted display profile turns blue into indigo): the highlighted row is `controlAccentColor` (`007aff`) opaque in light and dark, 24 high, inset 5 from the panel, corner 8; the panel is 5 padded, items 24, a separator 11, panel corner about 14. The glass, its alpha (about 0.41 light and 0.56 dark over white) and the shadow belong to the compositor. `selectedContentBackgroundColor` (`0064e1`) is for table and list rows, not menus.
+- Legacy scroller (17 wide strip, from the real window): a capsule track and thumb 11 wide with 3 on each side, 3 from the ends of the strip; track black 5% (white 5% in dark), thumb black 52% over it in light and white 57% in dark; the thumb is never shorter than 20.
+- Unemphasized selection (table in a window that is not key): `dcdcdc` in light and `464646` in dark, with the text in the label color, not white.
+

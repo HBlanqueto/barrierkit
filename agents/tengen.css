@@ -878,11 +878,13 @@
   --bk-scroll-bar-hide-delay: 800;
   --bk-scroll-bar-thumb: 7;
   --bk-scroll-bar-inset: 3;
-  --bk-scroll-bar-min-length: 50;
+  --bk-scroll-bar-min-length: 20;
   --bk-scroll-bar-opacity: 0.45;
   --bk-scroll-bar-track: 17;
   --bk-scroll-bar-track-opacity: 0.05;
-  --bk-scroll-bar-always-opacity: 0.55;
+  --bk-scroll-bar-always-opacity: 0.495 0.547;
+  --bk-scroll-bar-always-opacity-0: 0.495;
+  --bk-scroll-bar-always-opacity-1: 0.547;
   --bk-scroll-bar-edge-height: 24;
   --bk-badge-height: 20;
   --bk-badge-padding-x: 8;
@@ -1137,7 +1139,7 @@
   --bk-shell-menu-panel-padding: 5;
   --bk-shell-menu-panel-min-width: 220;
   --bk-shell-menu-panel-max-width: 640;
-  --bk-shell-menu-panel-radius: var(--bk-radius-md);
+  --bk-shell-menu-panel-radius: 14;
   --bk-shell-menu-panel-bg: var(--bk-bg-raised);
   --bk-shell-menu-panel-shadow: var(--bk-shadow-float);
   --bk-shell-menu-item-height: 24;
@@ -1147,7 +1149,7 @@
   --bk-shell-menu-item-shortcut-gap: 24;
   --bk-shell-menu-item-fg: var(--bk-ink);
   --bk-shell-menu-item-shortcut-color: var(--bk-ink-muted);
-  --bk-shell-menu-item-hover-bg: var(--bk-selected-content);
+  --bk-shell-menu-item-hover-bg: var(--bk-accent);
   --bk-shell-menu-item-hover-fg: var(--bk-on-accent);
   --bk-shell-menu-item-disabled-fg: var(--bk-ink-faint);
   --bk-shell-menu-glass-fg: var(--bk-glass-ink);
@@ -1303,6 +1305,7 @@
   --bk-accent-inactive: #aeaeb2;
   --bk-accent-strong: #1f53bd;
   --bk-selected-content: #0064e1;
+  --bk-selected-content-inactive: #dcdcdc;
   --bk-separator-strong: #0000001a;
   --bk-accent-toggle: #0078f9;
   --bk-contrast-ink: #000000ff;
@@ -1384,6 +1387,7 @@
     --bk-accent-inactive: #5c5c5e;
     --bk-accent-strong: #6aa2ff;
     --bk-selected-content: #0059d1;
+    --bk-selected-content-inactive: #464646;
     --bk-separator-strong: #ffffff29;
     --bk-accent-toggle: #067eff;
     --bk-contrast-ink: #ffffffff;
@@ -1465,6 +1469,7 @@
   --bk-accent-inactive: #5c5c5e;
   --bk-accent-strong: #6aa2ff;
   --bk-selected-content: #0059d1;
+  --bk-selected-content-inactive: #464646;
   --bk-separator-strong: #ffffff29;
   --bk-accent-toggle: #067eff;
   --bk-contrast-ink: #ffffffff;
@@ -1545,6 +1550,7 @@
   --bk-accent-inactive: #5c5d61;
   --bk-accent-strong: #6aa2ff;
   --bk-selected-content: #0059d1;
+  --bk-selected-content-inactive: #464646;
   --bk-separator-strong: #ffffff29;
   --bk-accent-toggle: #067eff;
   --bk-contrast-ink: #ffffffff;

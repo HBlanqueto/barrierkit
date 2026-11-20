@@ -211,6 +211,7 @@ pub enum Role {
     OnAccent,
     ToggleAccent,
     SelectedContent,
+    OnSelectedContent,
     SeparatorStrong,
     Destructive,
     DestructiveFill,
@@ -241,6 +242,7 @@ impl Role {
             Self::OnAccent => palette.on_accent,
             Self::ToggleAccent => palette.toggle_accent,
             Self::SelectedContent => palette.selected_content,
+            Self::OnSelectedContent => palette.on_selected_content,
             Self::SeparatorStrong => palette.separator_strong,
             Self::Destructive => palette.destructive,
             Self::DestructiveFill => Rgba {

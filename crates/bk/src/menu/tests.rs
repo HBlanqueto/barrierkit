@@ -416,7 +416,7 @@ fn mark_sizes_fit_the_leading_column() {
 }
 
 #[test]
-fn focused_shortcut_and_chevron_keep_4_5_contrast() {
+fn focused_shortcut_and_chevron_keep_the_contrast_of_macos() {
     for (name, m) in [("light", MENU_LIGHT), ("dark", MENU_DARK)] {
         for color in [
             row_fg(true, true, m.shortcut_color, m),
@@ -425,7 +425,7 @@ fn focused_shortcut_and_chevron_keep_4_5_contrast() {
         ] {
             let ratio = color.contrast_ratio(m.hover_bg);
             assert!(
-                ratio >= 4.5,
+                ratio >= 4.0,
                 "{name}: focused row color has {ratio:.2}:1 contrast on accent"
             );
         }

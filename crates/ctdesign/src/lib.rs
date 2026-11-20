@@ -685,7 +685,7 @@ pub struct ScrollBarMetrics {
     pub opacity: f32,
     pub track: f32,
     pub track_opacity: f32,
-    pub always_opacity: f32,
+    pub always_opacity: [f32; 2],
     pub edge_height: f32,
     pub hide_delay_ms: u64,
 }
@@ -936,6 +936,7 @@ pub struct Palette {
     pub control: Rgba,
     pub accent_toggle: Rgba,
     pub separator_strong: Rgba,
+    pub selected_content_inactive: Rgba,
     pub accent_inactive: Rgba,
     pub on_accent: Rgba,
     pub danger: Rgba,

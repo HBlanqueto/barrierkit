@@ -995,11 +995,11 @@
       "hide-delay": 800,
       "thumb": 7,
       "inset": 3,
-      "min-length": 50,
+      "min-length": 20,
       "opacity": 0.45,
       "track": 17,
       "track-opacity": 0.05,
-      "always-opacity": 0.55,
+      "always-opacity": [0.495, 0.547],
       "edge-height": 24
     },
     "badge": {
@@ -1266,7 +1266,7 @@
           "padding": 5,
           "min-width": 220,
           "max-width": 640,
-          "radius": "radius.md",
+          "radius": 14,
           "bg": "bg-raised",
           "shadow": "shadow-float"
         },
@@ -1278,7 +1278,7 @@
           "shortcut-gap": 24,
           "fg": "ink",
           "shortcut-color": "ink-muted",
-          "hover-bg": "selected-content",
+          "hover-bg": "accent",
           "hover-fg": "on-accent",
           "disabled-fg": "ink-faint"
         },

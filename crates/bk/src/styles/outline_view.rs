@@ -27,17 +27,17 @@ pub struct OutlineViewStyle {
     pub selected_row_background: StateValue<ShapeStyle>,
     /// Tengen: `Role(Label)`.
     pub label: StateValue<ShapeStyle>,
-    /// Tengen: `Role(OnAccent)`.
+    /// Tengen: `Role(OnSelectedContent)`.
     pub selected_label: StateValue<ShapeStyle>,
     /// Tengen: `Accent`.
     pub icon: StateValue<ShapeStyle>,
-    /// Tengen: `Role(OnAccent)`.
+    /// Tengen: `Role(OnSelectedContent)`.
     pub selected_icon: StateValue<ShapeStyle>,
     /// Tengen: `Role(SecondaryLabel)`, the disclosure chevron of `OutlineView`.
     pub disclosure: StateValue<ShapeStyle>,
     /// Tengen: `Role(TertiaryLabel)`, the chevron of a `Browser` row with children.
     pub column_chevron: StateValue<ShapeStyle>,
-    /// Tengen: `Role(OnAccent)` on a selected row.
+    /// Tengen: `Role(OnSelectedContent)` on a selected row.
     pub selected_chevron: StateValue<ShapeStyle>,
     /// Tengen: `(Role(Separator), HAIRLINE)`, between `Browser` columns.
     pub column_separator: (ShapeStyle, f32),
@@ -61,12 +61,12 @@ impl ControlStyle for OutlineViewStyle {
             row_background: StateValue::new(ShapeStyle::Clear),
             selected_row_background: StateValue::new(ShapeStyle::Role(Role::SelectedContent)),
             label: StateValue::new(ShapeStyle::Role(Role::Label)),
-            selected_label: StateValue::new(ShapeStyle::Role(Role::OnAccent)),
+            selected_label: StateValue::new(ShapeStyle::Role(Role::OnSelectedContent)),
             icon: StateValue::new(ShapeStyle::Accent),
-            selected_icon: StateValue::new(ShapeStyle::Role(Role::OnAccent)),
+            selected_icon: StateValue::new(ShapeStyle::Role(Role::OnSelectedContent)),
             disclosure: StateValue::new(ShapeStyle::Role(Role::SecondaryLabel)),
             column_chevron: StateValue::new(ShapeStyle::Role(Role::TertiaryLabel)),
-            selected_chevron: StateValue::new(ShapeStyle::Role(Role::OnAccent)),
+            selected_chevron: StateValue::new(ShapeStyle::Role(Role::OnSelectedContent)),
             column_separator: (ShapeStyle::Role(Role::Separator), HAIRLINE),
             effect: system_effect,
             font: BODY,

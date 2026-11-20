@@ -58,7 +58,7 @@ pub struct TableStyle {
     pub selected_row_background: StateValue<ShapeStyle>,
     /// Tengen: `Role(Label)`.
     pub label: StateValue<ShapeStyle>,
-    /// Tengen: `Role(OnAccent)`.
+    /// Tengen: `Role(OnSelectedContent)`.
     pub selected_label: StateValue<ShapeStyle>,
     /// Tengen: `Some((Role(Separator), TABLE.header_line))`, the line under the header, which
     /// reaches 1 into the first row.
@@ -92,7 +92,7 @@ impl ControlStyle for TableStyle {
             })),
             selected_row_background: StateValue::new(ShapeStyle::Role(Role::SelectedContent)),
             label: StateValue::new(ShapeStyle::Role(Role::Label)),
-            selected_label: StateValue::new(ShapeStyle::Role(Role::OnAccent)),
+            selected_label: StateValue::new(ShapeStyle::Role(Role::OnSelectedContent)),
             header_border: Some((ShapeStyle::Role(Role::Separator), TABLE.header_line)),
             header_separator: Some((
                 ShapeStyle::Role(Role::SeparatorStrong),
