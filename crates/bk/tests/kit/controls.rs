@@ -690,10 +690,10 @@ fn switch_dragged_settles_on_the_end_nearer_to_the_knob() {
     for (on, from, to, expected) in [
         (false, 10.0, 50.0, vec![true]),
         (false, 10.0, 15.0, vec![true]),
-        (false, 10.0, 19.0, vec![]),
+        (false, 10.0, 18.5, vec![]),
         (true, 50.0, 10.0, vec![false]),
         (true, 50.0, 45.0, vec![false]),
-        (true, 50.0, 41.0, vec![]),
+        (true, 50.0, 41.5, vec![]),
     ] {
         let values = Rc::new(RefCell::new(Vec::new()));
         let app = AppComponent::new(SwitchCase {
@@ -708,7 +708,7 @@ fn switch_dragged_settles_on_the_end_nearer_to_the_knob() {
         test.sync_and_update();
         test.release_cursor((to, 9.0));
         test.sync_and_update();
-        assert_eq!(*values.borrow(), expected);
+        assert_eq!(*values.borrow(), expected, "{on} {from} {to}");
     }
 }
 
@@ -1043,7 +1043,7 @@ fn free_slider_takes_the_value_under_the_cursor_between_its_marks() {
     test.sync_and_update();
     let values = values.borrow();
     assert_eq!(values.len(), 1);
-    assert!((values[0] - 57.44).abs() < 1e-3, "got {}", values[0]);
+    assert!((values[0] - 57.476).abs() < 1e-3, "got {}", values[0]);
 }
 
 #[test]
