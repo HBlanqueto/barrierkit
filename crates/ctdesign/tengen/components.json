@@ -140,9 +140,9 @@
       "disabled-opacity": 0.4
     },
     "slider": {
-      "height": 20,
+      "height": 16,
       "track": 6,
-      "knob-width": 20,
+      "knob-width": 19.5,
       "knob-height": 16,
       "knob-pressed-scale": 1.3,
       "knob-glass-alpha": 0.3,

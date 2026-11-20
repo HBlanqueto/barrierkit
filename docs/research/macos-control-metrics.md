@@ -24,7 +24,7 @@ Heights agree with `components.json` for button, checkbox, radio, switch, pop-up
 ## Open differences
 
 - `stepper.height` follows the measured 24; the compact kit golden needs regenerating on Linux.
-- The regular slider reports 16, `slider.height` is 20 with a 20 × 16 knob, which matches the large size's track area. Not yet compared pixel by pixel.
+- The regular slider is 16 high with a 19.5 × 16 knob and a 6 high track starting 5 from the top, in light and dark; `slider.height` and `slider.knob-width` follow it. Mini, small and large knobs are 15.5, 17.5 and 23.5 wide.
 
 ## Semantic colors (RGBA)
 

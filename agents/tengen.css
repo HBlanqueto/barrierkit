@@ -200,9 +200,9 @@
   --bk-switch-knob-glass-alpha: 0.08;
   --bk-switch-transition: var(--bk-duration-fast);
   --bk-switch-disabled-opacity: 0.4;
-  --bk-slider-height: 20;
+  --bk-slider-height: 16;
   --bk-slider-track: 6;
-  --bk-slider-knob-width: 20;
+  --bk-slider-knob-width: 19.5;
   --bk-slider-knob-height: 16;
   --bk-slider-knob-pressed-scale: 1.3;
   --bk-slider-knob-glass-alpha: 0.3;
