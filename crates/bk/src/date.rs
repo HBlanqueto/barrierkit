@@ -138,6 +138,13 @@ impl CivilDate {
         Self { year, month, day }
     }
 
+    pub fn today() -> Self {
+        let seconds = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map_or(0, |elapsed| elapsed.as_secs());
+        Self::from_days((seconds / 86_400) as i64)
+    }
+
     pub fn weekday_from_monday(self) -> u32 {
         (self.days() + 3).rem_euclid(7) as u32
     }

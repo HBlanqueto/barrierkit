@@ -2,10 +2,11 @@ use ctdesign::{BODY, BUTTON, Font, SETTINGS, SPACE_1};
 
 use super::button::rounded;
 use super::{
-    ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue, system_effect,
+    ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue, pressed_palette,
+    system_effect,
 };
 
-/// States: hovered, pressed and focused; each half of a `ComboButton` on its own,
+/// States: pressed and focused; each half of a `ComboButton` on its own,
 /// and its group only `normal`. `ShareLink` is a `MenuButton`: its `.style` takes
 /// a `MenuButtonStyle`.
 #[derive(Clone, Debug)]
@@ -20,9 +21,9 @@ pub struct MenuButtonStyle {
     pub chevron_size: f32,
     /// Tengen: `RoundedRectangle { radius: BUTTON.radius, style: Circular }`.
     pub shape: Shape,
-    /// Tengen: `Role(ControlBackground)`, hovered `Role(ControlHover)`.
+    /// Tengen: `Role(ControlBackground)`, pressed `Color(PressedPalette.bezel)`.
     pub background: StateValue<ShapeStyle>,
-    /// Tengen: `Clear`, hovered `Role(ControlBackground)`: the `IconOnly` button is a square of
+    /// Tengen: `Clear`, pressed `Color(PressedPalette.bezel)`: the `IconOnly` button is a square of
     /// `height`, lit under the pointer like `PopUpButton`.
     pub icon_only_background: StateValue<ShapeStyle>,
     /// Tengen: `Role(Label)`.
@@ -50,9 +51,9 @@ impl ControlStyle for MenuButtonStyle {
             chevron_size: SETTINGS.dropdown_chevron_glyph as f32,
             shape: rounded(BUTTON.radius),
             background: StateValue::new(ShapeStyle::Role(Role::ControlBackground))
-                .hovered(ShapeStyle::Role(Role::ControlHover)),
+                .pressed(ShapeStyle::Color(pressed_palette().bezel)),
             icon_only_background: StateValue::new(ShapeStyle::Clear)
-                .hovered(ShapeStyle::Role(Role::ControlBackground)),
+                .pressed(ShapeStyle::Color(pressed_palette().bezel)),
             label: StateValue::new(ShapeStyle::Role(Role::Label)),
             chevron: StateValue::new(ShapeStyle::Role(Role::SecondaryLabel)),
             border: None,

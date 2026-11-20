@@ -587,6 +587,21 @@ pub struct DatePickerMetrics {
     pub calendar_height: f32,
     pub header_height: f32,
     pub weekday_height: f32,
+    pub day_height: f32,
+    pub column_width: f32,
+    pub grid_left: f32,
+    pub grid_gap: f32,
+    pub title_inset: f32,
+    pub title_lift: f32,
+    pub weekday_font_size: u32,
+    pub nav_width: f32,
+    pub nav_height: f32,
+    pub dot_size: f32,
+    pub nav_pitch: f32,
+    pub nav_inset: f32,
+    pub selected_width: f32,
+    pub selected_height: f32,
+    pub selected_overhang: f32,
     pub day_radius: f32,
     pub segment_radius: f32,
 }
@@ -932,6 +947,15 @@ pub struct PanelLine {
     pub sides: Rgba,
     pub edges: Rgba,
     pub glow: Rgba,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct CalendarPalette {
+    pub background: Rgba,
+    pub border: Rgba,
+    pub border_width: f32,
+    pub edge: Rgba,
+    pub separator: Rgba,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

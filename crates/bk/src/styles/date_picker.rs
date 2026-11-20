@@ -1,9 +1,10 @@
 use ctdesign::{
-    BODY, CAPTION, DATE_FIELD_BORDER_CONTRAST_DARK, DATE_FIELD_BORDER_CONTRAST_DARK_TINT,
-    DATE_FIELD_BORDER_CONTRAST_LIGHT, DATE_FIELD_BORDER_DARK, DATE_FIELD_BORDER_DARK_TINT,
-    DATE_FIELD_BORDER_LIGHT, DATE_FIELD_CONTRAST_DARK, DATE_FIELD_CONTRAST_DARK_TINT,
-    DATE_FIELD_CONTRAST_LIGHT, DATE_FIELD_DARK, DATE_FIELD_DARK_TINT, DATE_FIELD_LIGHT,
-    DATE_PICKER, Font, HAIRLINE, HEADLINE, MENU_POPOVER,
+    BODY, CALENDAR_CONTRAST_DARK, CALENDAR_CONTRAST_DARK_TINT, CALENDAR_CONTRAST_LIGHT,
+    CALENDAR_DARK, CALENDAR_DARK_TINT, CALENDAR_LIGHT, CAPTION, DATE_FIELD_BORDER_CONTRAST_DARK,
+    DATE_FIELD_BORDER_CONTRAST_DARK_TINT, DATE_FIELD_BORDER_CONTRAST_LIGHT, DATE_FIELD_BORDER_DARK,
+    DATE_FIELD_BORDER_DARK_TINT, DATE_FIELD_BORDER_LIGHT, DATE_FIELD_CONTRAST_DARK,
+    DATE_FIELD_CONTRAST_DARK_TINT, DATE_FIELD_CONTRAST_LIGHT, DATE_FIELD_DARK,
+    DATE_FIELD_DARK_TINT, DATE_FIELD_LIGHT, DATE_PICKER, Font, HAIRLINE, HEADLINE, MENU_POPOVER,
 };
 
 use super::button::rounded;
@@ -35,8 +36,39 @@ pub struct DatePickerStyle {
     pub header_height: f32,
     /// Tengen: `DATE_PICKER.weekday_height`.
     pub weekday_height: f32,
-    /// Tengen: `CAPTION.size`, the month arrows.
-    pub chevron_size: f32,
+    /// Tengen: `DATE_PICKER.day_height`.
+    pub day_height: f32,
+    /// Tengen: `DATE_PICKER.column_width`, of each weekday and each day.
+    pub column_width: f32,
+    /// Tengen: `(DATE_PICKER.grid_left, DATE_PICKER.grid_gap)`: the space before the columns and
+    /// between the line under the weekdays and the first week.
+    pub grid_inset: (f32, f32),
+    /// Tengen: `(DATE_PICKER.title_inset, DATE_PICKER.title_lift)`: the space before the month and
+    /// year, and how far it sits above the center of the header.
+    pub title_offset: (f32, f32),
+    /// Tengen: `(DATE_PICKER.nav_width, DATE_PICKER.nav_height)`, the triangles of the month
+    /// arrows.
+    pub nav_size: (f32, f32),
+    /// Tengen: `DATE_PICKER.dot_size`, the circle that goes to today.
+    pub dot_size: f32,
+    /// Tengen: `(DATE_PICKER.nav_pitch, DATE_PICKER.nav_inset)`: the distance between the centers
+    /// of the three month controls and the space after the last.
+    pub nav_spacing: (f32, f32),
+    /// Tengen: `(DATE_PICKER.selected_width, DATE_PICKER.selected_height)`: the highlight of the
+    /// chosen day.
+    pub selected_size: (f32, f32),
+    /// Tengen: `DATE_PICKER.selected_overhang`: how far the highlight goes past the right edge
+    /// of its column.
+    pub selected_overhang: f32,
+    /// Tengen: `Color(CALENDAR.background)` (`CALENDAR_CONTRAST` under Increase Contrast), behind
+    /// a graphical date picker.
+    pub calendar_background: StateValue<ShapeStyle>,
+    /// Tengen: `Some((Color(CALENDAR.border), CALENDAR.border_width))`, drawn inside.
+    pub calendar_border: Option<(ShapeStyle, f32)>,
+    /// Tengen: `Color(CALENDAR.edge)`, the line along the bottom of the graphical date picker.
+    pub calendar_edge: StateValue<ShapeStyle>,
+    /// Tengen: `Color(CALENDAR.separator)`, the line under the weekdays.
+    pub calendar_separator: StateValue<ShapeStyle>,
     /// Tengen, with `segment_shape`, `day_shape`: `RoundedRectangle` of `TEXT_FIELD.radius`,
     /// `DATE_PICKER.segment_radius` and `DATE_PICKER.day_radius`, all `Circular`.
     pub shape: Shape,
@@ -72,11 +104,11 @@ pub struct DatePickerStyle {
     pub weekday: StateValue<ShapeStyle>,
     /// Tengen: `Role(Label)`.
     pub day: StateValue<ShapeStyle>,
-    /// Tengen: `Role(SecondaryLabel)`.
+    /// Tengen: `Role(TertiaryLabel)`.
     pub other_month_day: StateValue<ShapeStyle>,
-    /// Tengen: `Accent`.
+    /// Tengen: `Role(SelectedContentInactive)`, `Role(SelectedContent)` while the picker has focus.
     pub selected_day: StateValue<ShapeStyle>,
-    /// Tengen: `Role(OnAccent)`.
+    /// Tengen: `Role(Label)`, `Role(OnSelectedContent)` while the picker has focus.
     pub selected_day_label: StateValue<ShapeStyle>,
     /// Tengen: `Some((Color(DATE_FIELD_BORDER), HAIRLINE))`, `DATE_FIELD_BORDER_CONTRAST` under
     /// Increase Contrast.
@@ -93,9 +125,12 @@ pub struct DatePickerStyle {
     /// Tengen, with `font`, `day_font`: `BODY`, `HEADLINE`, `CAPTION` for the days and
     /// weekdays.
     pub title_font: Font,
-    /// Tengen, with `font`, `title_font`: `BODY`, `HEADLINE`, `CAPTION` for the days and
-    /// weekdays.
+    /// Tengen, with `font`, `title_font`: `BODY`, `HEADLINE`, `CAPTION` at the weight of `BODY` for the
+    /// days.
     pub day_font: Font,
+    /// Tengen: `CAPTION` at `DATE_PICKER.weekday_font_size` and the weight of `HEADLINE`, for the
+    /// weekdays.
+    pub weekday_font: Font,
 }
 
 impl ControlStyle for DatePickerStyle {
@@ -120,7 +155,77 @@ impl ControlStyle for DatePickerStyle {
             calendar_padding: MENU_POPOVER.padding,
             header_height: DATE_PICKER.header_height,
             weekday_height: DATE_PICKER.weekday_height,
-            chevron_size: CAPTION.size as f32,
+            day_height: DATE_PICKER.day_height,
+            column_width: DATE_PICKER.column_width,
+            grid_inset: (DATE_PICKER.grid_left, DATE_PICKER.grid_gap),
+            title_offset: (DATE_PICKER.title_inset, DATE_PICKER.title_lift),
+            nav_size: (DATE_PICKER.nav_width, DATE_PICKER.nav_height),
+            dot_size: DATE_PICKER.dot_size,
+            nav_spacing: (DATE_PICKER.nav_pitch, DATE_PICKER.nav_inset),
+            selected_size: (DATE_PICKER.selected_width, DATE_PICKER.selected_height),
+            selected_overhang: DATE_PICKER.selected_overhang,
+            calendar_background: StateValue::new(ShapeStyle::Color(per_look(
+                [
+                    CALENDAR_LIGHT.background,
+                    CALENDAR_DARK.background,
+                    CALENDAR_DARK_TINT.background,
+                ],
+                [
+                    CALENDAR_CONTRAST_LIGHT.background,
+                    CALENDAR_CONTRAST_DARK.background,
+                    CALENDAR_CONTRAST_DARK_TINT.background,
+                ],
+            ))),
+            calendar_border: Some((
+                ShapeStyle::Color(per_look(
+                    [
+                        CALENDAR_LIGHT.border,
+                        CALENDAR_DARK.border,
+                        CALENDAR_DARK_TINT.border,
+                    ],
+                    [
+                        CALENDAR_CONTRAST_LIGHT.border,
+                        CALENDAR_CONTRAST_DARK.border,
+                        CALENDAR_CONTRAST_DARK_TINT.border,
+                    ],
+                )),
+                per_look(
+                    [
+                        CALENDAR_LIGHT.border_width,
+                        CALENDAR_DARK.border_width,
+                        CALENDAR_DARK_TINT.border_width,
+                    ],
+                    [
+                        CALENDAR_CONTRAST_LIGHT.border_width,
+                        CALENDAR_CONTRAST_DARK.border_width,
+                        CALENDAR_CONTRAST_DARK_TINT.border_width,
+                    ],
+                ),
+            )),
+            calendar_edge: StateValue::new(ShapeStyle::Color(per_look(
+                [
+                    CALENDAR_LIGHT.edge,
+                    CALENDAR_DARK.edge,
+                    CALENDAR_DARK_TINT.edge,
+                ],
+                [
+                    CALENDAR_CONTRAST_LIGHT.edge,
+                    CALENDAR_CONTRAST_DARK.edge,
+                    CALENDAR_CONTRAST_DARK_TINT.edge,
+                ],
+            ))),
+            calendar_separator: StateValue::new(ShapeStyle::Color(per_look(
+                [
+                    CALENDAR_LIGHT.separator,
+                    CALENDAR_DARK.separator,
+                    CALENDAR_DARK_TINT.separator,
+                ],
+                [
+                    CALENDAR_CONTRAST_LIGHT.separator,
+                    CALENDAR_CONTRAST_DARK.separator,
+                    CALENDAR_CONTRAST_DARK_TINT.separator,
+                ],
+            ))),
             shape: field_shape(),
             segment_shape: rounded(DATE_PICKER.segment_radius),
             day_shape: rounded(DATE_PICKER.day_radius),
@@ -140,9 +245,11 @@ impl ControlStyle for DatePickerStyle {
             chevron: role(Role::SecondaryLabel),
             weekday: role(Role::SecondaryLabel),
             day: role(Role::Label),
-            other_month_day: role(Role::SecondaryLabel),
-            selected_day: StateValue::new(ShapeStyle::Accent),
-            selected_day_label: role(Role::OnAccent),
+            other_month_day: role(Role::TertiaryLabel),
+            selected_day: role(Role::SelectedContentInactive)
+                .focused(ShapeStyle::Role(Role::SelectedContent)),
+            selected_day_label: role(Role::Label)
+                .focused(ShapeStyle::Role(Role::OnSelectedContent)),
             border: Some((
                 ShapeStyle::Color(per_look(
                     [
@@ -163,7 +270,15 @@ impl ControlStyle for DatePickerStyle {
             effect: system_effect,
             font: BODY,
             title_font: HEADLINE,
-            day_font: CAPTION,
+            day_font: Font {
+                weight: BODY.weight,
+                ..CAPTION
+            },
+            weekday_font: Font {
+                size: DATE_PICKER.weekday_font_size,
+                weight: HEADLINE.weight,
+                ..CAPTION
+            },
         }
     }
 }

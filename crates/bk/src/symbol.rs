@@ -28,6 +28,9 @@ pub enum Symbol {
     ChevronLeft,
     ChevronUp,
     ChevronDown,
+    TriangleLeft,
+    TriangleRight,
+    Dot,
     CircleHalf,
     Play,
     Pause,
@@ -164,6 +167,9 @@ impl Symbol {
                 "M8 1.5a6.5 6.5 0 1 1 0 13a6.5 6.5 0 1 1 0-13zM8 2.4a5.6 5.6 0 1 0 0 11.2a5.6 5.6 0 1 0 0-11.2zM8 2.4a5.6 5.6 0 0 0 0 11.2zM8 5a1.9 3 0 1 0 0 6a1.9 3 0 1 0 0-6z"
             }
             Self::Play => "M5 3.5v9l7.5-4.5z",
+            Self::TriangleLeft => "M11 4.5v7L5 8z",
+            Self::TriangleRight => "M5 4.5v7l6-3.5z",
+            Self::Dot => "M8 4.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 1 0 0-7z",
             Self::Pause => "M5.5 3.5v9M10.5 3.5v9",
             Self::ChevronLeftForwardSlashChevronRight => {
                 "M6 5.5 3.8 8 6 10.5M10 5.5 12.2 8 10 10.5"
@@ -205,7 +211,14 @@ thread_local! {
 }
 
 fn source(symbol: Symbol, stroke: f32) -> Bytes {
-    let solid = matches!(symbol, Symbol::Bolt | Symbol::CircleHalf);
+    let solid = matches!(
+        symbol,
+        Symbol::Bolt
+            | Symbol::CircleHalf
+            | Symbol::TriangleLeft
+            | Symbol::TriangleRight
+            | Symbol::Dot
+    );
     let filled = solid
         || matches!(
             symbol,

@@ -1,8 +1,9 @@
 use std::rc::Rc;
 
+use ctdesign::{HAIRLINE, SYMBOL};
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
-use torin::prelude::{Alignment, Area, Direction, Gaps, Size};
+use torin::prelude::{Alignment, Area, Direction, Gaps, Position, Size};
 
 use crate::compact::stepper_arrows;
 use crate::controlled::{commit, use_controlled};
@@ -33,6 +34,7 @@ pub struct DatePicker {
     label: &'static str,
     value: CivilDateTime,
     elements: DateElements,
+    graphical: bool,
     on_change: Option<Callback<CivilDateTime, ()>>,
     style: Theme,
 }
@@ -43,6 +45,7 @@ impl DatePicker {
             label,
             value,
             elements: DateElements::default(),
+            graphical: false,
             on_change: None,
             style: Theme::tengen(),
         }
@@ -55,6 +58,11 @@ impl DatePicker {
 
     pub fn elements(mut self, elements: DateElements) -> Self {
         self.elements = elements;
+        self
+    }
+
+    pub fn graphical(mut self) -> Self {
+        self.graphical = true;
         self
     }
 
@@ -102,6 +110,23 @@ fn month_name(month: u32) -> &'static str {
     }
 }
 
+fn month_short_name(month: u32) -> &'static str {
+    match month {
+        1 => text!("month-short-1"),
+        2 => text!("month-short-2"),
+        3 => text!("month-short-3"),
+        4 => text!("month-short-4"),
+        5 => text!("month-short-5"),
+        6 => text!("month-short-6"),
+        7 => text!("month-short-7"),
+        8 => text!("month-short-8"),
+        9 => text!("month-short-9"),
+        10 => text!("month-short-10"),
+        11 => text!("month-short-11"),
+        _ => text!("month-short-12"),
+    }
+}
+
 fn weekday_initials() -> [&'static str; 7] {
     let monday_first = [
         text!("weekday-1"),
@@ -145,6 +170,24 @@ impl Component for DatePicker {
         let paints = Paints::current(state, style.effect);
         let value = use_controlled(&self.value);
         let current = *value.read();
+        if self.graphical {
+            let on_change = self.on_change.clone();
+            return rect().child(CalendarView {
+                selected: current.date,
+                on_pick: Callback::new(move |date: CivilDate| {
+                    commit(
+                        value,
+                        &on_change,
+                        CivilDateTime {
+                            date,
+                            ..*value.peek()
+                        },
+                    )
+                }),
+                popup: false,
+                style: self.style.clone(),
+            });
+        }
         let parts = parts(self.elements);
         let last = parts.len() - 1;
         let mut selected = use_state(|| 0usize);
@@ -335,63 +378,133 @@ struct Calendar {
 
 impl App for Calendar {
     fn render(&self) -> impl IntoElement {
-        let style = &self.style;
-        let paints = Paints::current(ControlState::default(), style.effect);
+        let menu = crate::styles::popover_style();
+        let resolved = self.style.clone();
+        rect()
+            .expanded()
+            .padding(Gaps::new_all(self.style.calendar_padding))
+            .background(crate::theme::color(menu.bg))
+            .child(CalendarView {
+                selected: self.shown,
+                on_pick: self.on_pick.clone(),
+                popup: true,
+                style: Theme::tengen().style(move |_: DatePickerStyle| resolved.clone()),
+            })
+    }
+}
+
+#[derive(PartialEq)]
+struct CalendarView {
+    selected: CivilDate,
+    on_pick: Callback<CivilDate, ()>,
+    popup: bool,
+    style: Theme,
+}
+
+impl Component for CalendarView {
+    fn render(&self) -> impl IntoElement {
+        let style: DatePickerStyle = resolve(&self.style);
+        let interaction = use_interaction();
+        let state = ControlState {
+            focused: self.popup || interaction.focused(),
+            ..ControlState::default()
+        };
+        let paints = Paints::current(state, style.effect);
         let ink = |content: String, paint: &StateValue<ShapeStyle>, font| {
             with_font(label().text(content), font)
                 .max_lines(1)
                 .color(paints.fill(paint))
         };
-        let menu = crate::styles::popover_style();
-        let selected = self.shown;
+        let selected = self.selected;
         let mut month = use_state(|| selected);
         let page = *month.read();
-        let (calendar_width, calendar_height) = style.calendar_size;
-        let cell_height = (calendar_height - style.header_height - style.weekday_height) / 6.0;
-        let cell_width = calendar_width / 7.0;
-        let day_radius =
-            style
-                .day_shape
-                .corner_radius(cell_width, cell_height, LayoutDirection::LeftToRight);
-        let chevron = paints.color(style.chevron.resolve(ControlState::default()));
-        let turn = |symbol_kind: Symbol, label: &'static str, delta: i32| {
-            rect()
-                .a11y_role(AccessibilityRole::Button)
-                .a11y_alt(label)
-                .on_press(move |_| {
-                    let next = month.peek().add_months(delta);
-                    month.set(next);
-                })
-                .child(symbol(symbol_kind, style.chevron_size, chevron))
-        };
+        let (width, height) = style.calendar_size;
+        let (grid_left, grid_gap) = style.grid_inset;
+        let (selected_width, selected_height) = style.selected_size;
+        let day_radius = style.day_shape.corner_radius(
+            selected_width,
+            selected_height,
+            LayoutDirection::LeftToRight,
+        );
+        let nav_ink = paints.color(style.chevron.resolve(state));
+        let (nav_pitch, nav_inset) = style.nav_spacing;
+        let nav =
+            |kind: Symbol, label: &'static str, change: Rc<dyn Fn(CivilDate) -> CivilDate>| {
+                rect()
+                    .width(Size::px(nav_pitch))
+                    .height(Size::fill())
+                    .center()
+                    .a11y_role(AccessibilityRole::Button)
+                    .a11y_alt(label)
+                    .on_press(move |_| {
+                        let next = change(*month.peek());
+                        month.set(next);
+                    })
+                    .child(symbol(kind, SYMBOL.grid, nav_ink))
+            };
         let header = rect()
             .width(Size::fill())
             .height(Size::px(style.header_height))
             .direction(Direction::Horizontal)
             .cross_align(Alignment::Center)
             .content(torin::prelude::Content::flex())
-            .child(rect().width(Size::flex(1.0)).child(ink(
-                format!("{} {}", month_name(page.month), page.year),
-                &style.title,
-                style.title_font,
-            )))
-            .child(turn(Symbol::ChevronLeft, text!("previous-month"), -1))
-            .child(turn(Symbol::ChevronRight, text!("next-month"), 1));
+            .child(
+                rect()
+                    .width(Size::flex(1.0))
+                    .padding(Gaps::new(
+                        0.0,
+                        0.0,
+                        2.0 * style.title_offset.1,
+                        style.title_offset.0,
+                    ))
+                    .child(ink(
+                        format!("{} {}", month_short_name(page.month), page.year),
+                        &style.title,
+                        style.title_font,
+                    )),
+            )
+            .child(nav(
+                Symbol::TriangleLeft,
+                text!("previous-month"),
+                Rc::new(|shown| shown.add_months(-1)),
+            ))
+            .child(nav(
+                Symbol::Dot,
+                text!("today"),
+                Rc::new(|_| CivilDate::today()),
+            ))
+            .child(nav(
+                Symbol::TriangleRight,
+                text!("next-month"),
+                Rc::new(|shown| shown.add_months(1)),
+            ))
+            .child(rect().width(Size::px(nav_inset)));
+        let column = |content: Element| {
+            rect()
+                .width(Size::px(style.column_width))
+                .direction(Direction::Horizontal)
+                .main_align(Alignment::End)
+                .child(content)
+        };
         let weekdays = rect()
             .height(Size::px(style.weekday_height))
+            .padding(Gaps::new(0.0, 0.0, 0.0, grid_left))
             .direction(Direction::Horizontal)
+            .cross_align(Alignment::Center)
             .children(weekday_initials().into_iter().map(|initial| {
-                rect()
-                    .width(Size::px(cell_width))
-                    .center()
-                    .child(ink(initial.to_string(), &style.weekday, style.day_font))
+                column(ink(initial.to_string(), &style.weekday, style.weekday_font).into_element())
                     .into_element()
             }));
+        let separator = rect()
+            .width(Size::fill())
+            .height(Size::px(HAIRLINE))
+            .background(paints.fill(&style.calendar_separator));
         let grid = page.month_grid(week_starts_on_monday());
         let rows = grid.chunks(7).map(|week| {
             rect()
                 .a11y_role(AccessibilityRole::Row)
-                .height(Size::px(cell_height))
+                .height(Size::px(style.day_height))
+                .padding(Gaps::new(0.0, 0.0, 0.0, grid_left))
                 .direction(Direction::Horizontal)
                 .children(week.iter().map(|day| {
                     let day = *day;
@@ -404,12 +517,10 @@ impl App for Calendar {
                         &style.other_month_day
                     };
                     let on_pick = self.on_pick.clone();
-                    rect()
-                        .width(Size::px(cell_width))
+                    let popup = self.popup;
+                    column(ink(day.day.to_string(), day_ink, style.day_font).into_element())
                         .height(Size::fill())
-                        .center()
-                        .corner_radius(day_radius)
-                        .maybe(chosen, |el| el.painted(&paints, &style.selected_day))
+                        .cross_align(Alignment::Center)
                         .a11y_role(AccessibilityRole::GridCell)
                         .a11y_alt(text!(
                             "calendar-day",
@@ -420,9 +531,22 @@ impl App for Calendar {
                         .a11y_builder(move |node| node.set_selected(chosen))
                         .on_press(move |_| {
                             on_pick.call(day);
-                            PopupHandle::get().close();
+                            if popup {
+                                PopupHandle::get().close();
+                            }
                         })
-                        .child(ink(day.day.to_string(), day_ink, style.day_font))
+                        .maybe_child(chosen.then(|| {
+                            rect()
+                                .position(
+                                    Position::new_absolute()
+                                        .right(-style.selected_overhang)
+                                        .top((style.day_height - selected_height) / 2.0 - 0.5),
+                                )
+                                .width(Size::px(selected_width))
+                                .height(Size::px(selected_height))
+                                .corner_radius(day_radius)
+                                .painted(&paints, &style.selected_day)
+                        }))
                         .into_element()
                 }))
                 .into_element()
@@ -430,14 +554,31 @@ impl App for Calendar {
         let days = rect()
             .a11y_role(AccessibilityRole::Grid)
             .a11y_alt(format!("{} {}", month_name(page.month), page.year))
+            .padding(Gaps::new(grid_gap, 0.0, 0.0, 0.0))
             .children(rows);
-        rect()
-            .expanded()
-            .padding(Gaps::new_all(style.calendar_padding))
-            .background(crate::theme::color(menu.bg))
+        let card = interaction
+            .attach(rect(), true)
+            .width(Size::px(width))
+            .height(Size::px(height))
             .direction(Direction::Vertical)
+            .maybe(!self.popup, |card| {
+                card.painted(&paints, &style.calendar_background)
+                    .bordered(&paints, style.calendar_border.as_ref())
+            })
             .child(header)
             .child(weekdays)
-            .child(days)
+            .child(separator)
+            .child(days);
+        if self.popup {
+            card
+        } else {
+            card.child(
+                rect()
+                    .position(Position::new_absolute().left(0.0).bottom(0.0))
+                    .width(Size::fill())
+                    .height(Size::px(HAIRLINE))
+                    .background(paints.fill(&style.calendar_edge)),
+            )
+        }
     }
 }

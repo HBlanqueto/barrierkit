@@ -2,7 +2,8 @@ use ctdesign::{BODY, BUTTON, Font, HAIRLINE, SETTINGS};
 
 use super::button::rounded;
 use super::{
-    ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue, system_effect,
+    ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue, pressed_palette,
+    system_effect,
 };
 
 #[derive(Clone, Debug)]
@@ -21,7 +22,7 @@ pub struct ComboButtonStyle {
     pub shape: Shape,
     /// Tengen: `Role(ControlBackground)`, behind both halves.
     pub background: StateValue<ShapeStyle>,
-    /// Tengen: `Clear`, hovered `Role(ControlHover)`, for each half.
+    /// Tengen: `Clear`, pressed `Color(PressedPalette.bezel)`, for each half.
     pub segment: StateValue<ShapeStyle>,
     /// Tengen: `Role(Label)`.
     pub label: StateValue<ShapeStyle>,
@@ -52,7 +53,7 @@ impl ControlStyle for ComboButtonStyle {
             shape: rounded(BUTTON.radius),
             background: StateValue::new(ShapeStyle::Role(Role::ControlBackground)),
             segment: StateValue::new(ShapeStyle::Clear)
-                .hovered(ShapeStyle::Role(Role::ControlHover)),
+                .pressed(ShapeStyle::Color(pressed_palette().bezel)),
             label: StateValue::new(ShapeStyle::Role(Role::Label)),
             chevron: StateValue::new(ShapeStyle::Role(Role::SecondaryLabel)),
             separator: StateValue::new(ShapeStyle::Role(Role::Separator)),

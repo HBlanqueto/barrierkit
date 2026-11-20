@@ -4,10 +4,10 @@ use ctdesign::{BUTTON, DURATION_FAST_MS, HAIRLINE, ICON_BUTTON, TOOLGROUP};
 use super::button::rounded;
 use super::{
     Animation, ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
-    reduce_motion, show_borders, system_effect,
+    pressed_palette, reduce_motion, show_borders, system_effect,
 };
 
-/// States: hovered, pressed, focused, disabled. `ToolbarOverflow` is an
+/// States: pressed, focused, disabled. `ToolbarOverflow` is an
 /// `IconButton`: its `.style` takes an `IconButtonStyle`.
 #[derive(Clone, Debug)]
 pub struct IconButtonStyle {
@@ -18,7 +18,7 @@ pub struct IconButtonStyle {
     /// Tengen: `RoundedRectangle { radius: ICON_BUTTON.radius, style: Circular }`, in a toolbar
     /// `Capsule`.
     pub shape: Shape,
-    /// Tengen: `Clear`, hovered `Role(ControlHover)`, disabled `Clear`.
+    /// Tengen: `Clear`, pressed `Color(PressedPalette.bezel)`, disabled `Clear`.
     pub background: StateValue<ShapeStyle>,
     /// Tengen: `Role(Label)`, disabled `Role(TertiaryLabel)`.
     pub icon: StateValue<ShapeStyle>,
@@ -51,7 +51,7 @@ impl ControlStyle for IconButtonStyle {
             icon_size: ICON_BUTTON.icon,
             shape,
             background: StateValue::new(ShapeStyle::Clear)
-                .hovered(ShapeStyle::Role(Role::ControlHover))
+                .pressed(ShapeStyle::Color(pressed_palette().bezel))
                 .disabled(ShapeStyle::Clear),
             icon: StateValue::new(ShapeStyle::Role(Role::Label))
                 .disabled(ShapeStyle::Role(Role::TertiaryLabel)),

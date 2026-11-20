@@ -99,11 +99,11 @@ Presets of `ButtonStyle`, given as `.style(ButtonStyle::glass)`:
 
 | Preset | Look |
 |---|---|
-| none (Tengen) | Control background; hover color under the pointer |
+| none (Tengen) | Control background; the pressed fill while held |
 | `bordered_prominent` | Accent fill, `on_accent` text |
 | `glass` | Capsule with a hairline border, raised background |
 | `glass_prominent` | Capsule with a hairline border and the accent fill |
-| `borderless` | No background until hovered |
+| `borderless` | No background until pressed |
 | `circular` | A 17 high circle for an icon-only button |
 
 `ControlSize`:
@@ -531,6 +531,7 @@ stepper's arrows draw from the [`StepperStyle`](../../crates/bk/src/styles/stepp
 | Method | Default | Effect |
 |---|---|---|
 | `.elements(DateElements)` | `Date` | `Date`, `Time` or `DateAndTime` |
+| `.graphical()` | the field | Shows the 139 × 148 month calendar itself, like the `clockAndCalendar` style of `NSDatePicker`: the month and year, ◀ ● ▶ (the dot goes to today), the weekdays over a line and right-aligned days. The chosen day is gray until the calendar has focus, then the selection color |
 | `.on_change(\|value: CivilDateTime\| ..)` | — | Called on every change |
 
 | Input | Effect |
@@ -538,7 +539,7 @@ stepper's arrows draw from the [`StepperStyle`](../../crates/bk/src/styles/stepp
 | ↑ ↓ or the arrows | Change the chosen part; hour and minute wrap |
 | ← → | Move between parts |
 | Digits | Type the part; it moves on when full or when no other digit fits (a 4 in the day) |
-| Click on a date part | Opens a 139 × 148 month calendar below |
+| Click on a date part | Opens the 139 × 148 month calendar below |
 
 The order of the parts (`date-order`: `dmy`, `mdy` or `ymd`) and the first day of the week
 (`week-start`) come from the language file `bk.ftl`.

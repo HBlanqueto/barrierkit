@@ -20,7 +20,7 @@ CONTROLS = [
     "segmented-regular", "textfield-regular", "search", "popup-regular",
     "stepper-regular", "progress-bar", "ring-regular", "datepicker", "level", "combo",
     "separator", "help", "box", "search-filled", "textfield-filled",
-    "disclosure", "check-mixed", "check-on-disabled", "circular", "slider-ticks", "colorwell", "colorwell-blue",
+    "disclosure", "calendar", "check-mixed", "check-on-disabled", "circular", "slider-ticks", "colorwell", "colorwell-blue",
     "default-disabled", "check-off-disabled", "radio-off-disabled", "radio-on-disabled",
     "switch-off-disabled", "slider-disabled", "segmented-disabled",
     "popup-disabled", "stepper-disabled", "combo-disabled",
@@ -106,7 +106,7 @@ def controls(args):
 
 PRESSED = [
     "push-pressed", "default-pressed", "check-off-pressed", "check-on-pressed",
-    "radio-off-pressed", "radio-on-pressed", "popup-pressed",
+    "radio-off-pressed", "radio-on-pressed", "popup-pressed", "calendar-focused",
 ]
 
 

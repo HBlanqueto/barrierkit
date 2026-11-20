@@ -10,7 +10,7 @@ use super::{
 
 /// `ButtonStyle::tengen()` is SwiftUI's `.bordered`.
 ///
-/// States: hovered, pressed, focused, disabled.
+/// States: pressed, focused, disabled; there is no hover look, as in AppKit.
 ///
 /// The presets are functions of the style, so they go straight into `.style`,
 /// `Theme::style` or `.control_style`, and change only their own fields:
@@ -19,9 +19,9 @@ use super::{
 /// |---|---|---|
 /// | `ButtonStyle::bordered_prominent` | `.borderedProminent` | `background` `Accent` (disabled `Role(ControlBackgroundDisabled)`), `label` `Role(OnAccent)` (disabled `Role(TertiaryLabel)`), `border` `None` |
 /// | `ButtonStyle::destructive` | `Button(role: .destructive)` | `background` `Role(DestructiveFill)` (`destructive` at `BUTTON_DESTRUCTIVE_FILL`), `label` `Role(Destructive)`, `border` `None` |
-/// | `ButtonStyle::glass` | `.glass` | `background` `Role(RaisedBackground)` (hovered `Role(ControlHover)`, disabled `Role(ControlBackground)`), `border` `(Role(CardBorder), HAIRLINE)`, `shape` `Capsule` |
+/// | `ButtonStyle::glass` | `.glass` | `background` `Role(RaisedBackground)` (pressed `Color(PressedPalette.bezel)`, disabled `Role(ControlBackground)`), `border` `(Role(CardBorder), HAIRLINE)`, `shape` `Capsule` |
 /// | `ButtonStyle::glass_prominent` | `.glassProminent` | `bordered_prominent`, then the border and shape of `glass` |
-/// | `ButtonStyle::borderless` | `.borderless` | `background` `Clear` (hovered `Role(ControlHover)`), `border` `None` |
+/// | `ButtonStyle::borderless` | `.borderless` | `background` `Clear` (pressed `Color(PressedPalette.bezel)`), `border` `None` |
 /// | `ButtonStyle::circular` | `.buttonBorderShape(.circle)` | `height` `BUTTON.circular_size`, `padding_x` `0`, `shape` `Circle`, the icon at `BUTTON.circular_icon` |
 ///
 /// `Button::size(ControlSize)` is an instance override of `height`, `padding_x`,
@@ -37,7 +37,7 @@ pub struct ButtonStyle {
     pub padding_x: f32,
     /// Tengen: `RoundedRectangle { radius: BUTTON.radius, style: Circular }`.
     pub shape: Shape,
-    /// Tengen: `Role(ControlBackground)`, hovered `Role(ControlHover)`, disabled
+    /// Tengen: `Role(ControlBackground)`, pressed `Color(PressedPalette.bezel)`, disabled
     /// `Role(ControlBackgroundDisabled)`.
     pub background: StateValue<ShapeStyle>,
     /// Tengen: `Role(Label)`, disabled `Role(TertiaryLabel)`.
@@ -104,7 +104,7 @@ impl ButtonStyle {
     pub fn borderless(self) -> Self {
         Self {
             background: StateValue::new(ShapeStyle::Clear)
-                .hovered(ShapeStyle::Role(Role::ControlHover))
+                .pressed(ShapeStyle::Color(pressed_palette().bezel))
                 .disabled(ShapeStyle::Clear),
             border: None,
             ..self
@@ -127,7 +127,7 @@ impl ButtonStyle {
     pub fn glass(self) -> Self {
         Self {
             background: StateValue::new(ShapeStyle::Role(Role::RaisedBackground))
-                .hovered(ShapeStyle::Role(Role::ControlHover))
+                .pressed(ShapeStyle::Color(pressed_palette().bezel))
                 .disabled(ShapeStyle::Role(Role::ControlBackground)),
             ..self.glass_rim()
         }
@@ -188,7 +188,6 @@ impl ControlStyle for ButtonStyle {
             padding_x: BUTTON.padding_x,
             shape: rounded(BUTTON.radius),
             background: StateValue::new(ShapeStyle::Role(Role::ControlBackground))
-                .hovered(ShapeStyle::Role(Role::ControlHover))
                 .pressed(ShapeStyle::Color(pressed_palette().bezel))
                 .disabled(ShapeStyle::Role(Role::ControlBackgroundDisabled)),
             label: StateValue::new(ShapeStyle::Role(Role::Label))

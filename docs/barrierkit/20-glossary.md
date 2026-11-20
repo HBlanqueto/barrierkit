@@ -139,6 +139,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `styles::SliderStyle` | struct | ≈ `ButtonStyle` | ≈ `NSSliderCell` | Every visual property of `Slider`; `tengen()` builds the default from the tokens | [Styles](../../agents/styles.md#the-fields-of-a-style) |
 | `styles::ButtonStyle` | struct | `ButtonStyle`, `PrimitiveButtonStyle` | ≈ `NSButtonCell`, `NSButton.BezelStyle` | Every visual property of `Button`; `tengen()` is `.bordered` | [Styles](../../crates/bk/src/styles/button.rs) |
 | `styles::ButtonStyle::bordered_prominent` | method | `PrimitiveButtonStyle.borderedProminent` | ≈ `NSButton.keyEquivalent` `"\r"` | Preset: accent fill, `on_accent` label | [Styles](../../crates/bk/src/styles/button.rs) |
+| `styles::ButtonStyle::circular` | method | `.buttonBorderShape(.circle)` | ≈ `NSButton.BezelStyle.circular` | Preset: a 17 high circle for an icon-only button | [Styles](../../crates/bk/src/styles/button.rs) |
 | `styles::ButtonStyle::destructive` | method | `Button(role: .destructive)` | `NSButton.hasDestructiveAction` | Preset: red label on a faint red fill | [Styles](../../crates/bk/src/styles/button.rs) |
 | `views::feedback::Alert::destructive` | method | `Button(role: .destructive)` in `.alert` | `NSAlert.hasDestructiveAction` | The primary button is destructive | [11](11-views.md#alert) |
 | `styles::ButtonStyle::glass` | method | `PrimitiveButtonStyle.glass` | ≈ `NSButton.BezelStyle.glass` | Preset: raised capsule with a hairline rim | [Styles](../../crates/bk/src/styles/button.rs) |
@@ -231,6 +232,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `controls::Slider::style` | method | ≈ `.buttonStyle(_:)` on one view | ≈ `NSSlider.trackFillColor` | Changes the style of one slider | [Styles](../../agents/styles.md#levels) |
 | `controls::Button::style` | method | `.buttonStyle(_:)` on one view | ≈ `NSButton.bezelStyle` | Changes the style of one button; takes a preset or a closure | [Styles](../../crates/bk/src/styles/button.rs) |
 | `controls::Switch::style` | method | `.toggleStyle(.switch)` on one view | — | Changes the style of one switch | [Styles](../../crates/bk/src/styles/switch.rs) |
+| `controls::Checkbox::mixed` | method | — | ≈ `NSButton.allowsMixedState` | Shows a dash instead of the check | [5](05-controls.md#switch-and-checkbox) |
 | `controls::Checkbox::style` | method | `.toggleStyle(.checkbox)` on one view | — | Changes the style of one checkbox | [Styles](../../crates/bk/src/styles/checkbox.rs) |
 | `controls::SegmentedControl::style` | method | `.pickerStyle(.segmented)` on one view | ≈ `NSSegmentedControl.segmentStyle` | Changes the style of one segmented control | [Styles](../../crates/bk/src/styles/segmented_control.rs) |
 | `controls::ToolGroup::style` | method | — | — | Changes the style of one tool group | [Styles](../../crates/bk/src/styles/tool_group.rs) |
@@ -255,6 +257,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `popup_button::PopUpButton::disabled` | method | `.disabled(_:)` | `isEnabled` | Dims the pop-up button and stops it opening | [5](05-controls.md#choices) |
 | `combo_box::ComboBox::style` | method | — | — | Changes the style of the arrow button of one combo box | [Styles](../../crates/bk/src/styles/combo_box.rs) |
 | `token_field::TokenField::style` | method | — | — | Changes the style of one token field | [Styles](../../crates/bk/src/styles/token_field.rs) |
+| `date_picker::DatePicker::graphical` | method | `.datePickerStyle(.graphical)` | ≈ `NSDatePicker.datePickerStyle` `.clockAndCalendar` | Shows the month calendar itself instead of the field | [5](05-controls.md#date-picker) |
 | `date_picker::DatePicker::style` | method | `.datePickerStyle(_:)` on one view | ≈ `NSDatePicker.datePickerStyle` | Changes the style of one date picker | [Styles](../../crates/bk/src/styles/date_picker.rs) |
 | `path_control::PathControl::style` | method | — | — | Changes the style of one path control | [Styles](../../crates/bk/src/styles/path_control.rs) |
 | `image_well::ImageWell::style` | method | — | — | Changes the style of one image well | [Styles](../../crates/bk/src/styles/image_well.rs) |

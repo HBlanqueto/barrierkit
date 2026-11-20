@@ -287,6 +287,14 @@ fn controls() -> Vec<(&'static str, Builder)> {
                 ))
                 .into_element()
         }),
+        ("calendar", || {
+            DatePicker::new(
+                "Date",
+                CivilDateTime::new(CivilDate::new(2027, 1, 15), 8, 0),
+            )
+            .graphical()
+            .into_element()
+        }),
         ("level", || {
             rect()
                 .width(Size::px(120.0))
@@ -491,10 +499,14 @@ fn pressed() -> Vec<(&'static str, Builder)> {
         "radio-off-pressed",
         "radio-on-pressed",
         "popup-pressed",
+        "calendar-focused",
     ]
     .into_iter()
     .filter_map(|name| {
-        let base = name.replace("-pressed", "-regular");
+        let base = match name {
+            "calendar-focused" => "calendar".to_string(),
+            _ => name.replace("-pressed", "-regular"),
+        };
         all.iter()
             .find(|(candidate, _)| *candidate == base)
             .map(|&(_, build)| (name, build))

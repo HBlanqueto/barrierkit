@@ -3,7 +3,7 @@ use ctdesign::{BUTTON, DURATION_FAST_MS, HELP_LINK};
 
 use super::{
     Animation, ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
-    reduce_motion, system_effect,
+    pressed_palette, reduce_motion, system_effect,
 };
 
 #[derive(Clone, Debug)]
@@ -12,7 +12,7 @@ pub struct HelpLinkStyle {
     pub size: f32,
     /// Tengen: `Circle`.
     pub shape: Shape,
-    /// Tengen: `Role(ControlBackground)`, hovered `Role(ControlHover)`.
+    /// Tengen: `Role(ControlBackground)`, pressed `Color(PressedPalette.bezel)`.
     pub background: StateValue<ShapeStyle>,
     /// Tengen: `Role(Label)`, the `?`.
     pub label: StateValue<ShapeStyle>,
@@ -39,7 +39,7 @@ impl ControlStyle for HelpLinkStyle {
             size: BUTTON.height,
             shape: Shape::Circle,
             background: StateValue::new(ShapeStyle::Role(Role::ControlBackground))
-                .hovered(ShapeStyle::Role(Role::ControlHover)),
+                .pressed(ShapeStyle::Color(pressed_palette().bezel)),
             label: StateValue::new(ShapeStyle::Role(Role::Label)),
             border: None,
             shadows: Vec::new(),
