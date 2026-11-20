@@ -66,3 +66,25 @@ A command-line process has no window context, so window-level colors here are no
 
 The fill is `textBackgroundColor` (`fffffff9` light, `161616fa` dark) over 24, with a 1 px border outside the frame: black at 15% in light, white at 9% in dark. The kit draws that border inside the 24.
 
+## Reduce Transparency and Increase Contrast
+
+Read with `NSWorkspace` flags overridden for the probe process only (`-reduceTransparency 1`, `-increaseContrast 1` on the command line), so no system setting changed. `NSColor` is not affected by Reduce Transparency: every role above is identical with it on. Increase Contrast changes them:
+
+| Role | Light | Dark |
+|---|---|---|
+| label | `000000ff` | `ffffffff` |
+| secondary label | `000000c1` | `ffffffb2` |
+| tertiary label | `0000008e` | `ffffff7f` |
+| quaternary label | `00000059` | `ffffff4c` |
+| separator | `00000033` | `ffffff33` |
+| grid | `a5a5a5` | `4d4d4d` |
+| control accent, selected content | `0040dd` | `1774da` |
+| keyboard focus indicator (opaque) | `0022af` | `469af5` |
+| control color | `ffffff` | `00000000` |
+| window, control, text background | `ffffff` | `202020` |
+| disabled control text | `000000c1` | `ffffff7f` |
+| placeholder text | `000000c1` | `ffffffb2` |
+| system fill | `00000033` | `ffffff33` |
+
+`Resolved::contrast` in the kit steps the ink and the control edges by rule (HIG), not to these values. Materials under Reduce Transparency need screenshots with the system switch on and are in [macos-materials.md](macos-materials.md).
+
