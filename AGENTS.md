@@ -39,11 +39,18 @@ Fuentes de partida por área. Las de cada dependencia fijada están en la regla
 
 ## Commits
 
-Todo el mensaje va en inglés. El título empieza con el tipo del cambio (`Fix`,
-`Bug`, `Improvement`, `Feature`…) y solo el título lo lleva:
-`Fix: dock reappears in focus mode`. El cuerpo, si hace falta, tiene como máximo
-dos párrafos. Ningún trailer: ni `Co-Authored-By` ni `Claude-Session` ni enlaces
-a la sesión.
+Agrupa el trabajo por cambio y sesión: un solo commit por sesión, sin
+fragmentar en muchos commits redundantes. Todo el mensaje va en inglés. El
+título reúne la idea principal; el cuerpo la explica en no más de 80 palabras.
+Si la sesión trae cambios de varios tipos, el cuerpo es una lista por tipo:
+
+- Feature: …
+- Fix: …
+- Bug: …
+
+Si todo el commit es de un solo tipo, el título lleva el tipo delante
+(`Fix: dock reappears in focus mode`). Ningún trailer: ni `Co-Authored-By` ni
+`Claude-Session` ni enlaces a la sesión.
 
 ## Documentación (solo inglés)
 
