@@ -406,6 +406,8 @@
       "row-inset": 10,
       "row-radius": 7,
       "body-inset": 5,
+      "header-line": 2,
+      "header-separator": 16,
       "zebra": 0.045,
       "min-column-width": 10,
       "resize-handle": 6

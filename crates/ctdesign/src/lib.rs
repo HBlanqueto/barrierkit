@@ -739,6 +739,8 @@ pub struct TableMetrics {
     pub row_inset: f32,
     pub row_radius: f32,
     pub body_inset: f32,
+    pub header_line: f32,
+    pub header_separator: f32,
     pub zebra: f32,
     pub min_column_width: f32,
     pub resize_handle: f32,

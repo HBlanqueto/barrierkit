@@ -1,4 +1,4 @@
-use ctdesign::{BODY, CAPTION, Font, HAIRLINE, Rgba, SPACE_1, TABLE};
+use ctdesign::{BODY, CAPTION, Font, Rgba, SPACE_1, TABLE};
 
 use super::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effect};
 use crate::style::Palette;
@@ -39,6 +39,9 @@ pub struct TableStyle {
     pub row_radius: f32,
     /// Tengen, with `row_inset`, `row_radius`: `TABLE.body_inset` above the first row.
     pub body_inset: f32,
+    /// Tengen: `TABLE.header_separator`, the height of the 1 wide separator after each header
+    /// cell but the last.
+    pub header_separator: f32,
     /// Tengen: `Role(Label)` for the sorted column, which also paints its arrow.
     pub sorted_header_label: StateValue<ShapeStyle>,
     /// Tengen: `Clear` for even rows.
@@ -51,7 +54,8 @@ pub struct TableStyle {
     pub label: StateValue<ShapeStyle>,
     /// Tengen: `Role(OnAccent)`.
     pub selected_label: StateValue<ShapeStyle>,
-    /// Tengen: `Some((Role(Separator), HAIRLINE))`, the line under the header.
+    /// Tengen: `Some((Role(Separator), TABLE.header_line))`, the line under the header, which
+    /// reaches 1 into the first row; the separators between header cells take its paint.
     pub header_border: Option<(ShapeStyle, f32)>,
     /// Tengen: `system_effect`.
     pub effect: ColorEffect,
@@ -81,7 +85,8 @@ impl ControlStyle for TableStyle {
             selected_row_background: StateValue::new(ShapeStyle::Role(Role::SelectedContent)),
             label: StateValue::new(ShapeStyle::Role(Role::Label)),
             selected_label: StateValue::new(ShapeStyle::Role(Role::OnAccent)),
-            header_border: Some((ShapeStyle::Role(Role::Separator), HAIRLINE)),
+            header_border: Some((ShapeStyle::Role(Role::Separator), TABLE.header_line)),
+            header_separator: TABLE.header_separator,
             effect: system_effect,
             header_font: CAPTION,
             font: BODY,

@@ -1,4 +1,4 @@
-use ctdesign::{Font, Rgba, TABLE};
+use ctdesign::{Font, HAIRLINE, Rgba, TABLE};
 use freya_components::scrollviews::VirtualScrollView;
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
@@ -208,11 +208,39 @@ impl Component for Table {
             )
             .maybe_child(style.header_border.as_ref().map(|(paint, width)| {
                 rect()
-                    .position(Position::new_absolute().left(0.0).bottom(0.0))
+                    .position(Position::new_absolute().left(0.0).bottom(1.0 - *width))
                     .width(Size::fill())
                     .height(Size::px(*width))
                     .background(paints.fill(&StateValue::new(paint.clone())))
-            }));
+            }))
+            .children(
+                style
+                    .header_border
+                    .as_ref()
+                    .into_iter()
+                    .flat_map(|(paint, _)| {
+                        let edges = shown
+                            .iter()
+                            .take(shown.len().saturating_sub(1))
+                            .scan(inset, |edge, &column| {
+                                *edge += measured.read()[column];
+                                Some(*edge)
+                            })
+                            .collect::<Vec<_>>();
+                        edges.into_iter().map(|edge| {
+                            rect()
+                                .position(
+                                    Position::new_absolute()
+                                        .left(edge)
+                                        .top((style.header_height - style.header_separator) / 2.0),
+                                )
+                                .width(Size::px(HAIRLINE))
+                                .height(Size::px(style.header_separator))
+                                .background(paints.fill(&StateValue::new(paint.clone())))
+                                .into_element()
+                        })
+                    }),
+            );
         let count = self.columns.len();
         let menu = self
             .columns

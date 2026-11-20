@@ -101,7 +101,7 @@ Materials under Reduce Transparency need screenshots with the system switch on a
 
 Measured with `~/src/probes/views.swift` (an inset-style `NSTableView`, a source-list `NSOutlineView`, an `NSTabView` and two `NSScroller`, at 4x in the four appearances).
 
-- Table: header 28 high with a 1 px line under it (`separatorColor`; `595959` and `b1b1b1` with Increase Contrast), header text in the label color at 11, rows 24 high starting 5 below the header, inset 10 on both sides, with 7 corners on the selection and the stripes; text starts 20 from the table edge.
+- Table: header 28 high with a 2 px line from y=27 to 29 under it (`separatorColor`; `595959` and `b1b1b1` with Increase Contrast) and a 1 by 16 separator centered in the header after each column, header text in the label color at 11, rows 24 high starting 5 below the header, inset 10 on both sides, with 7 corners on the selection and the stripes; text starts 20 from the table edge.
 - Selection `selectedContentBackgroundColor` (`0064e1`, `0059d1`, `0040dd` and `1774da` with Increase Contrast); stripes black 4.3% in light and white 4.7% in dark.
 - The source list is the classic one: 24 high rows, uppercase 11 semibold group headers 19 high, 16 folder icons. The kit's `Sidebar` is the floating glass sidebar of macOS 26 (32 high rows), so it is not compared with it. The selected source-list row renders black in `cacheDisplay`; its colors are the `unemphasizedSelectedContentBackgroundColor` role (`dcdcdc`, `464646`).
 
