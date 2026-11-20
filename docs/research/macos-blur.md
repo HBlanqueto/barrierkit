@@ -118,12 +118,56 @@ points cannot be read directly. The honest equivalent is "stronger than a
   and a 10 to 15 px shadow.
 - The **menu corner radius** re-measured from the grid capture stays about 6.
 
-## 6. Liquid Glass or general blur
+## 6. The edge zones: where the rim ends and the blur begins
 
-The grid test is the verdict. No surface shifted the grid lines near its
-edges: the lines stay in place outside and vanish inside. There is no
-measurable lensing or refraction on the menu, the Dock, Control Center or the
-banner at this scale.
+The user-facing question is where the "reverse" edge effect starts: how far
+from the border the material stops being an edge treatment and becomes a
+plain blur. The measured answer is two parts.
+
+### 6.1 The rim, the only edge-differentiated zone
+
+At 1x the surfaces show an edge treatment only as a rim:
+
+| Surface | Zone | Width |
+|---|---|---|
+| Dock | top edge | 1 px light line |
+| Dock | bottom ramp | up to 13 px, only visible over a bright backdrop |
+| Dock | left/right ends | 1 px light line |
+| Menu panel | edge | 1 px light line, dark at the corners |
+| Control Center | bottom edge | 2 px light line |
+| Banner | top edge | 1 px dark line |
+| Window frame | outline | 1 px dark plus 1 px light |
+
+Everything inside the rim is the same blur. The panels do not show a wider
+intermediate zone between the rim and the center.
+
+### 6.2 The boundary test for refraction
+
+A white/black boundary was placed at a known position and measured again
+inside each panel. A refracting edge would move the boundary; a pure blur
+only softens it.
+
+| Surface | Boundary | Sample point | Midpoint | Displacement |
+|---|---|---|---|---|
+| Dock | horizontal at y=1030 | gaps at x=250, 316, 1200, 1500 | y=1030 | 0 px |
+| Dock | horizontal at y=1030 | x=1730, 17 px from the right end | y=1030 | 0 px |
+| Dock | vertical at x=250 | y=1000, 9 px below the top rim | x=250 | 0 px |
+| Dock | vertical at x=250 | y=1060, 14 px above the bottom ramp | x=250 | 0 px |
+| Notification banner | horizontal at y=80 | x=1700 | y=80 to 81 | within 1 px |
+| Notification Center | horizontal at y=120 | x=1700 | y=120 | within 1 px |
+
+The transition ramps are symmetric around the boundary in every sample. No
+surface moved the boundary at 1x, neither in the center nor next to its
+borders. The blur is the same material from the rim inward; the only
+edge-specific rendering is the rim itself.
+
+## 7. Liquid Glass or general blur
+
+The grid and boundary tests are the verdict. No surface shifted the grid
+lines or a white/black boundary near its edges: the lines stay in place
+outside and vanish inside, and every boundary midpoint lands within 1 px of
+its true position. There is no measurable lensing or refraction on the menu,
+the Dock, Control Center, Notification Center or the banner at 1x.
 
 What the surfaces do have is the rest of the Liquid Glass description:
 a specular 1 px edge, a strong blur and adaptive ink, where the ink was
@@ -131,7 +175,7 @@ measured. The honest classification on this host is therefore **adaptive
 blur and tint materials with specular edges, without proven lensing**. Do
 not call any of them lensing glass in the code or the docs.
 
-## 7. Corrections to the earlier research
+## 8. Corrections to the earlier research
 
 These measurements replace parts of the light-mode and Reduce Transparency
 tables in [`macos-defaults.md`](macos-defaults.md):
@@ -152,15 +196,16 @@ tables in [`macos-defaults.md`](macos-defaults.md):
 - **Mission Control has no background material on this host.** The classic
   wallpaper blur is absent; the Spaces bar is clear with glass thumbnails.
 
-## 8. Open questions
+## 9. Open questions
 
 - Is the compact 340x265 Control Center panel the default or a host state?
-- What are the rim and blur values at 2x?
+- What are the rim and blur values at 2x? A sub-pixel refraction zone could
+  exist at 1x without being measurable; Retina captures are needed.
 - What Dock glass does a light wallpaper produce in light mode?
 - Does Notification Center change under Reduce Transparency?
 - Does the Launchpad lift depend on the wallpaper luminance?
 
-## 9. Evidence
+## 10. Evidence
 
 The captures are local and not committed:
 
@@ -168,6 +213,9 @@ The captures are local and not committed:
   `blur-apple-c.png`: menu and Dock over checker.
 - `~/src/captures/blur-base-grid.png`, `blur-menu-grid.png`,
   `blur-dock-grid.png`, `blur-cc-grid2.png`: the grid lens tests.
+- `~/src/captures/blur-dock-eh1030b.png`, `blur-dock-ev250.png`,
+  `blur-banner-eh80.png`, `blur-nc-eh120b.png`: the boundary refraction
+  tests.
 - `~/src/captures/blur-cc-checker.png`, `blur-dark-cc-white2.png`,
   `blur-rt-cc-white2.png`, `blur-light-cc2.png`: Control Center matrix.
 - `~/src/captures/blur-cc-1831.png`, `blur-cc-white.png`: Notification
