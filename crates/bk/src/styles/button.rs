@@ -146,7 +146,7 @@ impl ButtonStyle {
             ),
             ControlSize::Large => (
                 BUTTON.large_height,
-                BUTTON.padding_x,
+                BUTTON.large_padding_x,
                 font(BUTTON.font_size),
                 Shape::Capsule,
             ),

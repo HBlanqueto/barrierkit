@@ -331,6 +331,7 @@ pub struct ButtonMetrics {
     pub font_weight: i32,
     pub pressed_scale: f32,
     pub large_height: f32,
+    pub large_padding_x: f32,
     pub small_height: f32,
     pub small_padding_x: f32,
     pub small_font_size: f32,
@@ -892,6 +893,8 @@ pub struct Palette {
     pub scrim: Rgba,
     pub selected_control: Rgba,
     pub card_border: Rgba,
+    pub system_fill: Rgba,
+    pub text_background: Rgba,
 }
 /// The Dock's glass and its frame, which the compositor draws (malaysia's `dock_frame.glsl`). `rim`
 /// is the rim's luminance as `[lift, share]` of the glass's, `divider` the shift of the glass's

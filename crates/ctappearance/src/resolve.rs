@@ -757,7 +757,7 @@ fn tinted_surfaces(
         sunken: mix(sunken, LAYER_FACTOR_BG_SUNKEN, parts.window),
         surface: mix(surface, LAYER_FACTOR_SURFACE, parts.groups),
         raised: mix(raised, LAYER_FACTOR_RAISED, parts.menus),
-        control: mix(control, LAYER_FACTOR_CONTROL, parts.controls),
+        control,
         hover: mix(hover, LAYER_FACTOR_CONTROL, parts.controls),
         line: mix(base.separator, LAYER_FACTOR_LINE, parts.groups),
     }

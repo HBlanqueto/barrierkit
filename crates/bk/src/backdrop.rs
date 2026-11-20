@@ -233,6 +233,8 @@ impl Palette {
             window_background: alpha(0.0),
             content_background: sunken,
             control_background: alpha(BACKDROP.glass),
+            system_fill: alpha(BACKDROP.glass),
+            text_background: sunken,
             control_hover: alpha(BACKDROP.glass_strong),
             accent,
             accent_inactive: backdrop.base.mix(ink, BACKDROP.ink_tertiary),
