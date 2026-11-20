@@ -870,6 +870,43 @@ pub struct PanelLine {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct ContrastPalette {
+    pub ink: Rgba,
+    pub ink_muted: Rgba,
+    pub ink_faint: Rgba,
+    pub separator: Rgba,
+    pub line_strong: Rgba,
+    pub bg_control: Rgba,
+    pub bg_control_disabled: Rgba,
+    pub system_fill: Rgba,
+    pub text_background: Rgba,
+    pub accent: Rgba,
+    pub selected_content: Rgba,
+    pub accent_toggle: Rgba,
+    pub focus_ring: Rgba,
+}
+
+impl Palette {
+    pub fn contrasted(self, contrast: ContrastPalette) -> Self {
+        Self {
+            ink_strong: contrast.ink,
+            ink_muted: contrast.ink_muted,
+            ink_faint: contrast.ink_faint,
+            separator: contrast.separator,
+            line_strong: contrast.line_strong,
+            control: contrast.bg_control,
+            control_disabled: contrast.bg_control_disabled,
+            system_fill: contrast.system_fill,
+            text_background: contrast.text_background,
+            accent: contrast.accent,
+            selected_content: contrast.selected_content,
+            accent_toggle: contrast.accent_toggle,
+            ..self
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Palette {
     pub titlebar_bg: FocusPair,
     pub hairline: Rgba,
@@ -887,6 +924,8 @@ pub struct Palette {
     pub accent: Rgba,
     pub selected_content: Rgba,
     pub control_disabled: Rgba,
+    pub control: Rgba,
+    pub accent_toggle: Rgba,
     pub accent_inactive: Rgba,
     pub on_accent: Rgba,
     pub danger: Rgba,

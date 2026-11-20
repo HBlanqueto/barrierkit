@@ -1,9 +1,9 @@
 use ctdesign::{
-    ACCENT_CHROMA_GAIN, ACCENT_MIN_CONTRAST_ON_WINDOW, ACCENT_SWATCHES, BG_CONTROL_DARK,
-    BG_CONTROL_DARK_TINT, BG_CONTROL_LIGHT, BG_HOVER_DARK, BG_HOVER_DARK_TINT, BG_HOVER_LIGHT,
-    BG_RAISED_DARK, BG_RAISED_DARK_TINT, BG_RAISED_LIGHT, BG_SUNKEN_DARK, BG_SUNKEN_DARK_TINT,
-    BG_SUNKEN_LIGHT, BG_SURFACE_DARK, BG_SURFACE_DARK_TINT, BG_SURFACE_LIGHT, BG_WINDOW_DARK,
-    BG_WINDOW_DARK_TINT, BG_WINDOW_LIGHT, DARK, DARK_TINT, DOCK_DIVIDER_DARK, DOCK_DIVIDER_LIGHT,
+    ACCENT_CHROMA_GAIN, ACCENT_MIN_CONTRAST_ON_WINDOW, ACCENT_SWATCHES, BG_HOVER_DARK,
+    BG_HOVER_DARK_TINT, BG_HOVER_LIGHT, BG_RAISED_DARK, BG_RAISED_DARK_TINT, BG_RAISED_LIGHT,
+    BG_SUNKEN_DARK, BG_SUNKEN_DARK_TINT, BG_SUNKEN_LIGHT, BG_SURFACE_DARK, BG_SURFACE_DARK_TINT,
+    BG_SURFACE_LIGHT, BG_WINDOW_DARK, BG_WINDOW_DARK_TINT, BG_WINDOW_LIGHT, CONTRAST_DARK,
+    CONTRAST_DARK_TINT, CONTRAST_LIGHT, DARK, DARK_TINT, DOCK_DIVIDER_DARK, DOCK_DIVIDER_LIGHT,
     DOCK_GLASS_DARK, DOCK_GLASS_DARK_TINT, DOCK_GLASS_FROSTED_DARK, DOCK_GLASS_FROSTED_DARK_TINT,
     DOCK_GLASS_FROSTED_LIGHT, DOCK_GLASS_LIGHT, DOCK_GLASS_SOLID_DARK, DOCK_GLASS_SOLID_DARK_TINT,
     DOCK_GLASS_SOLID_LIGHT, DOCK_LENS_DARK, DOCK_LENS_LIGHT, DOCK_OUTLINE_DARK,
@@ -80,6 +80,7 @@ pub struct Resolved {
     pub scheme: ColorScheme,
     pub accent: Rgba,
     pub control_accent: Rgba,
+    pub toggle_accent: Rgba,
     pub automatic_accent: bool,
     pub on_accent: Rgba,
     pub focus_ring: Rgba,
@@ -132,7 +133,8 @@ impl Resolved {
                 let paint =
                     |color: Rgba, layer: f32| take_accent_chroma(color, tint, factor * layer);
                 self.menu_parent = paint(bg_window, 1.0);
-                self.surfaces = tinted_surfaces(scheme, &palette(scheme), parts, paint);
+                self.surfaces =
+                    tinted_surfaces(scheme, &palette_in(scheme, self.contrast), parts, paint);
                 if parts.sidebars {
                     self.sidebar.bg = paint(self.sidebar.bg, LAYER_FACTOR_BG_SUNKEN);
                     self.sidebar.glass = self.sidebar.glass.map(|glass| {
@@ -152,7 +154,8 @@ impl Resolved {
                 let window = tinting.take(bg_window, tint);
                 let paint = |color: Rgba, _layer: f32| shift_like(color, bg_window, window);
                 self.menu_parent = window;
-                self.surfaces = tinted_surfaces(scheme, &palette(scheme), parts, paint);
+                self.surfaces =
+                    tinted_surfaces(scheme, &palette_in(scheme, self.contrast), parts, paint);
                 if parts.sidebars {
                     let sidebar = tinting.sidebar();
                     let cap = glass_chroma(scheme).1;
@@ -180,7 +183,7 @@ impl Resolved {
             ON_ACCENT_MIN_CONTRAST,
             scheme,
         );
-        if self.contrast {
+        if self.contrast && !self.automatic_accent {
             self.focus_ring = reaching(
                 self.accent,
                 &[self.surfaces.window],
@@ -189,6 +192,10 @@ impl Resolved {
             );
         }
         self
+    }
+
+    pub fn palette(&self) -> Palette {
+        palette_in(self.scheme, self.contrast)
     }
 
     pub fn menu_separator(&self, panel_bg: Rgba) -> Rgba {
@@ -310,6 +317,15 @@ enum Tint {
 
 pub fn palette(scheme: ColorScheme) -> Palette {
     scheme.pick([LIGHT, DARK, DARK_TINT])
+}
+
+pub fn palette_in(scheme: ColorScheme, contrast: bool) -> Palette {
+    let base = palette(scheme);
+    if contrast {
+        base.contrasted(scheme.pick([CONTRAST_LIGHT, CONTRAST_DARK, CONTRAST_DARK_TINT]))
+    } else {
+        base
+    }
 }
 
 const BG_WINDOW: [Rgba; 3] = [BG_WINDOW_LIGHT, BG_WINDOW_DARK, BG_WINDOW_DARK_TINT];
@@ -567,7 +583,7 @@ fn graphite_accent() -> Rgba {
 
 pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolved {
     let scheme = appearance.color_scheme;
-    let base = palette(scheme);
+    let base = palette_in(scheme, appearance.contrast);
     let index = usize::from(scheme.is_dark());
 
     let normal_accent = appearance
@@ -626,7 +642,11 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
     );
     let surfaces = tinted_surfaces(scheme, &base, appearance.tint_parts, |color, _| color);
     // WCAG 2.2: with Increase Contrast a focus ring needs 3:1 on the window (§1.4.11), link text 4.5:1 where it sits (§1.4.3).
-    let focus_ring = if appearance.contrast {
+    let focus_ring = if appearance.contrast && normal_accent == base.accent {
+        scheme
+            .pick([CONTRAST_LIGHT, CONTRAST_DARK, CONTRAST_DARK_TINT])
+            .focus_ring
+    } else if appearance.contrast {
         reaching(
             accent,
             &[scheme.pick(BG_WINDOW)],
@@ -664,6 +684,11 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
         scheme,
         accent,
         control_accent: normal_accent,
+        toggle_accent: if normal_accent == base.accent {
+            base.accent_toggle
+        } else {
+            normal_accent
+        },
         automatic_accent: appearance.accent_color.is_none()
             && !(appearance.wallpaper_accent && dominant.is_some()),
         on_accent,
@@ -728,13 +753,12 @@ fn tinted_surfaces(
     parts: TintParts,
     paint: impl Fn(Rgba, f32) -> Rgba,
 ) -> Surfaces {
-    let [window, sunken, surface, raised, control, hover] = scheme.pick([
+    let [window, sunken, surface, raised, hover] = scheme.pick([
         [
             BG_WINDOW_LIGHT,
             BG_SUNKEN_LIGHT,
             BG_SURFACE_LIGHT,
             BG_RAISED_LIGHT,
-            BG_CONTROL_LIGHT,
             BG_HOVER_LIGHT,
         ],
         [
@@ -742,7 +766,6 @@ fn tinted_surfaces(
             BG_SUNKEN_DARK,
             BG_SURFACE_DARK,
             BG_RAISED_DARK,
-            BG_CONTROL_DARK,
             BG_HOVER_DARK,
         ],
         [
@@ -750,7 +773,6 @@ fn tinted_surfaces(
             BG_SUNKEN_DARK_TINT,
             BG_SURFACE_DARK_TINT,
             BG_RAISED_DARK_TINT,
-            BG_CONTROL_DARK_TINT,
             BG_HOVER_DARK_TINT,
         ],
     ]);
@@ -763,7 +785,7 @@ fn tinted_surfaces(
         sunken: mix(sunken, LAYER_FACTOR_BG_SUNKEN, parts.window),
         surface: mix(surface, LAYER_FACTOR_SURFACE, parts.groups),
         raised: mix(raised, LAYER_FACTOR_RAISED, parts.menus),
-        control,
+        control: base.control,
         hover: mix(hover, LAYER_FACTOR_CONTROL, parts.controls),
         line: mix(base.separator, LAYER_FACTOR_LINE, parts.groups),
     }

@@ -98,10 +98,11 @@ component paints only with them.
 | `scrim` | Dimming behind sheets | — |
 | `card_border` | Edge of a card | — |
 
-With `contrast = true` ([The appearance file](#the-appearance-file)) each ink
-moves up one level: `secondary_label` takes the strong ink and
-`tertiary_label` the muted one. Separators, outlines and control borders use the muted
-ink, which reaches 3:1 on the window, as the HIG asks for «Increase Contrast».
+With `contrast = true` ([The appearance file](#the-appearance-file)) the palette takes
+the `contrast` colors of its theme (`ContrastPalette`), measured from `NSColor` and
+from AppKit controls with Increase Contrast on: ink, separator, control border and
+fill, system fill, text background, accent, selected content, toggle accent and focus
+ring (`docs/research/macos-control-metrics.md`). Outlines use the separator.
 
 ## Text, shapes and colors
 
@@ -498,9 +499,10 @@ a style.
 |---|---|
 | `scheme` | The `ColorScheme`. |
 | `control_accent` | The accent as chosen, `NSColor.controlAccentColor`: the fill of controls (`ShapeStyle::Accent`). |
+| `toggle_accent` | The fill of a checkbox, radio, switch and slider that is on: the theme's `accent_toggle`, or the accent as chosen. |
 | `accent`, `on_accent` | The accent for selected rows and its ink: `NSColor.selectedContentBackgroundColor` (`selected_content`) with the theme's accent, the accent darkened until the ink reaches 4.5:1 with another. |
 | `automatic_accent` | True without `accent_color`: an `Accent::Own` or `Accent::FromBackdrop` keeps its color. |
-| `focus_ring` | The keyboard focus ring: `FOCUS_RING_COLOR_*` at 49.8% with the theme's accent, the accent at that alpha with another, and with `contrast` the opaque accent moved until it reaches 3:1 on the window (rule 7). |
+| `focus_ring` | The keyboard focus ring: `FOCUS_RING_COLOR_*` at 49.8% with the theme's accent, the accent at that alpha with another, and with `contrast` the measured opaque `focus_ring` of `ContrastPalette` with the theme's accent, the accent moved until it reaches 3:1 on the window with another (rule 7). |
 | `link` | The accent moved until it reaches 4.5:1 on the window and on content. |
 | `window_tint` | Tint color and amount, or `None`: the accent, or the wallpaper after `behind_window`. |
 | `bar_tint` | Tint of the menu bar and the Dock with the `bars` part: the accent tint, or the dominant color by `wallpaper_tinting`. |
@@ -562,8 +564,9 @@ The rules `resolve` applies:
    on macOS) with the theme's accent, and the accent at the same alpha with
    any other. A translucent ring can fall under the 3:1 non-text contrast of
    WCAG 2.2 §1.4.11 on a light or busy surface, so with `contrast` the ring is
-   the opaque accent moved until it reaches `ACCENT_MIN_CONTRAST_ON_WINDOW`
-   on the window, as before. The accent tint of the window does not change the
+   opaque: the measured `focus_ring` of `ContrastPalette` with the theme's
+   accent, and the accent moved until it reaches `ACCENT_MIN_CONTRAST_ON_WINDOW`
+   on the window with any other. The accent tint of the window does not change the
    default ring; it does move the opaque one.
 
 ### Glass over a backdrop
@@ -815,7 +818,8 @@ A color, size or duration never goes into `bk`. It goes into Tengen:
 |---|---|
 | `Rgba` | sRGB color with straight alpha, channels from 0 to 1. `TRANSPARENT`, `rgb8`, `rgba8`, `to_rgba8`, `premultiplied`, `mix` (keeps its own alpha), `darken`, `lighten`, `to_linear`, `from_linear`, `relative_luminance`, `contrast_ratio`, `to_hsl`, `from_hsl`. |
 | `Font` | `family`, `size`, `line_height` (pixels) and `weight`. |
-| `Palette` | Base colors of a theme: `titlebar_bg`, `hairline`, `inner_line`, `panel_inner_line`, `outer_border`, `title`, `text`, `ink_strong`, `ink_muted`, `ink_faint`, `line`, `line_strong`, `separator`, `accent`, `selected_content`, `control_disabled`, `accent_inactive`, `on_accent`, `danger`, `traffic_lights_inactive`, `traffic_rim`, `scrim`, `selected_control`, `card_border`. |
+| `Palette` | Base colors of a theme: `titlebar_bg`, `hairline`, `inner_line`, `panel_inner_line`, `outer_border`, `title`, `text`, `ink_strong`, `ink_muted`, `ink_faint`, `line`, `line_strong`, `separator`, `accent`, `selected_content`, `accent_toggle`, `control`, `control_disabled`, `accent_inactive`, `on_accent`, `danger`, `traffic_lights_inactive`, `traffic_rim`, `scrim`, `selected_control`, `card_border`. |
+| `ContrastPalette` | What `Palette::contrasted` replaces with Increase Contrast: `ink`, `ink_muted`, `ink_faint`, `separator`, `line_strong`, `bg_control`, `bg_control_disabled`, `system_fill`, `text_background`, `accent`, `selected_content`, `accent_toggle` and `focus_ring`; `CONTRAST_LIGHT`, `CONTRAST_DARK`, `CONTRAST_DARK_TINT`. |
 | `FocusPair` | A color for the focused window and one for the unfocused. |
 | `PanelLine` | Inner line of a focused panel, menu or dialog: `sides`, `edges` (top and bottom) and the `glow` under the edges. |
 | `TrafficRim` | Rim of a traffic light: `lit` and `idle`. |

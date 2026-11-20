@@ -20,7 +20,7 @@ pub struct CheckboxStyle {
     pub label_gap: f32,
     /// Tengen: `RoundedRectangle { radius: CHECKBOX.radius, style: Circular }`.
     pub box_shape: Shape,
-    /// Tengen, with `fill`: `Role(SystemFill)` while unchecked, `Accent` while checked.
+    /// Tengen, with `fill`: `Role(SystemFill)` while unchecked, `Role(ToggleAccent)` while checked.
     pub box_background: StateValue<ShapeStyle>,
     /// Tengen, with `box_background`: `Role(SystemFill)` while unchecked, `Accent` while
     /// checked.
@@ -55,7 +55,7 @@ impl ControlStyle for CheckboxStyle {
             label_gap: SETTINGS.check.gap as f32,
             box_shape: rounded(CHECKBOX.radius),
             box_background: StateValue::new(ShapeStyle::Role(Role::SystemFill)),
-            fill: StateValue::new(ShapeStyle::Accent),
+            fill: StateValue::new(ShapeStyle::Role(Role::ToggleAccent)),
             mark: StateValue::new(ShapeStyle::Role(Role::OnAccent)),
             label: StateValue::new(ShapeStyle::Role(Role::Label))
                 .disabled(ShapeStyle::Role(Role::TertiaryLabel)),

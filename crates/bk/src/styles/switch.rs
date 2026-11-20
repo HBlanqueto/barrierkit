@@ -25,7 +25,7 @@ pub struct SwitchStyle {
     pub track_shape: Shape,
     /// Tengen: `Capsule`.
     pub knob_shape: Shape,
-    /// Tengen, with `fill`: `Role(SystemFill)` while off, `Accent` while on.
+    /// Tengen, with `fill`: `Role(SystemFill)` while off, `Role(ToggleAccent)` while on.
     pub track: StateValue<ShapeStyle>,
     /// Tengen, with `track`: `Role(SystemFill)` while off, `Accent` while on; under a drag
     /// the track is off only while the knob is at the off end.
@@ -79,7 +79,7 @@ impl ControlStyle for SwitchStyle {
             track_shape: Shape::Capsule,
             knob_shape: Shape::Capsule,
             track: StateValue::new(ShapeStyle::Role(Role::SystemFill)),
-            fill: StateValue::new(ShapeStyle::Accent),
+            fill: StateValue::new(ShapeStyle::Role(Role::ToggleAccent)),
             knob: StateValue::new(ShapeStyle::Color(SWITCH.knob_color)),
             label: StateValue::new(ShapeStyle::Role(Role::Label)),
             track_border: Some((ShapeStyle::Role(Role::Outline), HAIRLINE)),

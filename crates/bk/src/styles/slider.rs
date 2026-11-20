@@ -32,7 +32,7 @@ pub struct SliderStyle {
     pub tick_shape: Shape,
     /// Tengen: `Role(SystemFill)`.
     pub track: StateValue<ShapeStyle>,
-    /// Tengen: `Accent`.
+    /// Tengen: `Role(ToggleAccent)`.
     pub fill: StateValue<ShapeStyle>,
     /// Tengen: `Color(SWITCH.knob_color)`.
     pub knob: StateValue<ShapeStyle>,
@@ -85,7 +85,7 @@ impl ControlStyle for SliderStyle {
             knob_shape: Shape::Capsule,
             tick_shape: Shape::Circle,
             track: StateValue::new(ShapeStyle::Role(Role::SystemFill)),
-            fill: StateValue::new(ShapeStyle::Accent),
+            fill: StateValue::new(ShapeStyle::Role(Role::ToggleAccent)),
             knob: StateValue::new(ShapeStyle::Color(SWITCH.knob_color)),
             tick: StateValue::new(ShapeStyle::Role(Role::ControlBorder)),
             label: StateValue::new(ShapeStyle::Role(Role::Label)),

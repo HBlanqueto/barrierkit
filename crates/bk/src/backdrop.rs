@@ -238,6 +238,7 @@ impl Palette {
             text_background: sunken,
             control_hover: alpha(BACKDROP.glass_strong),
             accent,
+            toggle_accent: accent,
             accent_inactive: backdrop.base.mix(ink, BACKDROP.ink_tertiary),
             on_accent: ink_on(accent),
             destructive: system.destructive,

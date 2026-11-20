@@ -17,6 +17,7 @@ pub struct Palette {
     pub content_background: Rgba,
     pub control_background: Rgba,
     pub system_fill: Rgba,
+    pub toggle_accent: Rgba,
     pub control_background_disabled: Rgba,
     pub text_background: Rgba,
     pub control_hover: Rgba,
@@ -40,6 +41,7 @@ impl Palette {
         } else {
             Self {
                 accent: palette.accent_inactive,
+                toggle_accent: palette.accent_inactive,
                 on_accent: ctappearance::backdrop::ink_on(palette.accent_inactive),
                 ..palette
             }
@@ -48,33 +50,19 @@ impl Palette {
 
     pub fn system() -> Self {
         let resolved = crate::theme::resolved();
-        let base = ctappearance::palette(resolved.scheme);
-        // HIG «Increase Contrast»: each ink steps up one level and control edges reach 3:1.
-        let (secondary_label, tertiary_label, separator, outline, control_border) =
-            if resolved.contrast {
-                (
-                    base.ink_strong,
-                    base.ink_muted,
-                    base.ink_muted,
-                    base.ink_muted,
-                    base.ink_muted,
-                )
-            } else {
-                (
-                    base.ink_muted,
-                    base.ink_faint,
-                    base.separator,
-                    base.line,
-                    base.line_strong,
-                )
-            };
+        let base = resolved.palette();
+        let outline = if resolved.contrast {
+            base.separator
+        } else {
+            base.line
+        };
         Self {
             label: base.ink_strong,
-            secondary_label,
-            tertiary_label,
-            separator,
+            secondary_label: base.ink_muted,
+            tertiary_label: base.ink_faint,
+            separator: base.separator,
             outline,
-            control_border,
+            control_border: base.line_strong,
             window_background: resolved.surfaces.window,
             content_background: resolved.surfaces.surface,
             control_background: resolved.surfaces.control,
@@ -83,6 +71,7 @@ impl Palette {
             text_background: base.text_background,
             control_hover: resolved.surfaces.hover,
             accent: resolved.control_accent,
+            toggle_accent: resolved.toggle_accent,
             accent_inactive: base.accent_inactive,
             on_accent: resolved.on_accent,
             destructive: base.danger,

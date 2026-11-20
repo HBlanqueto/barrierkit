@@ -425,6 +425,7 @@ BG_SUNKEN Rgba themes.{theme}.bg-sunken
 BG_RAISED Rgba themes.{theme}.bg-raised
 BG_HOVER Rgba themes.{theme}.bg-hover
 FOCUS_RING_COLOR Rgba themes.{theme}.focus-ring
+CONTRAST ContrastPalette themes.{theme}.contrast
 SHELL ShellPalette components.shell bar=menubar.bg text=menubar.text tile=dock.tile tile_active=dock.tile-active tile_text_active=dock.tile-text-active
 DOCK_GLASS Rgba themes.{theme}.dock-bar
 DOCK_GLASS_SOLID Rgba themes.{theme}.dock-bar-opaque
@@ -621,7 +622,7 @@ fn emit_palettes(out: &mut String, tengen: &Tengen) {
         let lights = "components.window.traffic-lights";
         let traffic = |key: &str| rgba(tengen.color(&format!("{lights}.{key}"), look));
         out.push_str(&format!(
-            "pub const {name}: Palette = Palette {{ titlebar_bg: {}, hairline: {}, inner_line: {inner_line}, panel_inner_line: {panel_inner_line}, outer_border: {}, title: {}, text: {}, ink_strong: {}, ink_muted: {}, ink_faint: {}, line: {}, line_strong: {}, separator: {}, accent: {}, accent_inactive: {}, on_accent: {}, danger: {}, traffic_lights_inactive: {}, traffic_rim: TrafficRim {{ lit: {}, idle: {} }}, scrim: {}, selected_control: {}, card_border: {}, system_fill: {}, text_background: {}, selected_content: {}, control_disabled: {} }};\n\n",
+            "pub const {name}: Palette = Palette {{ titlebar_bg: {}, hairline: {}, inner_line: {inner_line}, panel_inner_line: {panel_inner_line}, outer_border: {}, title: {}, text: {}, ink_strong: {}, ink_muted: {}, ink_faint: {}, line: {}, line_strong: {}, separator: {}, accent: {}, accent_inactive: {}, on_accent: {}, danger: {}, traffic_lights_inactive: {}, traffic_rim: TrafficRim {{ lit: {}, idle: {} }}, scrim: {}, selected_control: {}, card_border: {}, system_fill: {}, text_background: {}, selected_content: {}, control_disabled: {}, control: {}, accent_toggle: {} }};\n\n",
             pair("titlebar-bg", "titlebar-bg-inactive"),
             rgba_of("titlebar-line"),
             rgba_of("window-outer"),
@@ -647,6 +648,8 @@ fn emit_palettes(out: &mut String, tengen: &Tengen) {
             rgba_of("text-background"),
             rgba_of("selected-content"),
             rgba_of("bg-control-disabled"),
+            rgba_of("bg-control"),
+            rgba_of("accent-toggle"),
         ));
         let bg = rgba(tengen.color(
             "components.shell.menu.panel.bg",

@@ -24,7 +24,7 @@ pub struct RadioGroupStyle {
     pub button_shape: Shape,
     /// Tengen: `Circle`.
     pub dot_shape: Shape,
-    /// Tengen, with `fill`: `Role(SystemFill)` while not chosen, `Accent` while chosen.
+    /// Tengen, with `fill`: `Role(SystemFill)` while not chosen, `Role(ToggleAccent)` while chosen.
     pub button_background: StateValue<ShapeStyle>,
     /// Tengen, with `button_background`: `Role(SystemFill)` while not chosen, `Accent`
     /// while chosen.
@@ -63,7 +63,7 @@ impl ControlStyle for RadioGroupStyle {
             button_shape: Shape::Circle,
             dot_shape: Shape::Circle,
             button_background: StateValue::new(ShapeStyle::Role(Role::SystemFill)),
-            fill: StateValue::new(ShapeStyle::Accent),
+            fill: StateValue::new(ShapeStyle::Role(Role::ToggleAccent)),
             dot: StateValue::new(ShapeStyle::Role(Role::OnAccent)),
             label: StateValue::new(ShapeStyle::Role(Role::Label))
                 .disabled(ShapeStyle::Role(Role::TertiaryLabel)),

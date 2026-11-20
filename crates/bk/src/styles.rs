@@ -209,6 +209,7 @@ pub enum Role {
     ControlHover,
     AccentInactive,
     OnAccent,
+    ToggleAccent,
     Destructive,
     DestructiveFill,
     RaisedBackground,
@@ -236,6 +237,7 @@ impl Role {
             Self::ControlHover => palette.control_hover,
             Self::AccentInactive => palette.accent_inactive,
             Self::OnAccent => palette.on_accent,
+            Self::ToggleAccent => palette.toggle_accent,
             Self::Destructive => palette.destructive,
             Self::DestructiveFill => Rgba {
                 a: ctdesign::BUTTON_DESTRUCTIVE_FILL,

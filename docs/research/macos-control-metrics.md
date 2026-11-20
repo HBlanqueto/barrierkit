@@ -86,5 +86,7 @@ Read with `NSWorkspace` flags overridden for the probe process only (`-reduceTra
 | placeholder text | `000000c1` | `ffffffb2` |
 | system fill | `00000033` | `ffffff33` |
 
-`Resolved::contrast` in the kit steps the ink and the control edges by rule (HIG), not to these values. Materials under Reduce Transparency need screenshots with the system switch on and are in [macos-materials.md](macos-materials.md).
+Controls rendered with the same flags (`~/src/probes/controls.swift` on the high-contrast appearances) add: push, pop-up, segmented and stepper bezel `0000002d` light and `ffffff2d` dark; off fill of check, radio, switch and slider `00000059` and `ffffff4c`; disabled bezel `00000017` and `ffffff17`; text field border `00000045` and `ffffff30`, dark text background `0d0d0dfa`; default button and progress fill `0040dd` and `1774da`; the fill of a checkbox, radio, switch or slider that is on `003bca` and `287edd`. `ContrastPalette` holds these, and the kit matches them within 8% of the pixels.
+
+Materials under Reduce Transparency need screenshots with the system switch on and are in [macos-materials.md](macos-materials.md).
 
