@@ -120,3 +120,29 @@ Use live window thumbnails and project labels.
 - Does the Dock hide fully or fade?
 - What is the exact blue of the focus outline?
 - How does the transition behave with Reduce Motion?
+
+## 8. Implementation prompt
+
+```text
+You are verifying Mission Control behaviour from measurements. Read this
+file and macos-blur.md first. Work in ~/src/malaysia only, main only:
+git pull --ff-only before editing and before each push, one commit per
+session, English messages, no code comments.
+
+Measured facts:
+- macOS 27.2 dims neither the wallpaper nor the windows in Mission
+  Control; the background is pixel-identical to the desktop in both
+  appearances. Do not add a background blur or scrim.
+- The Spaces bar is clear with glass thumbnails.
+- The focus outline is blue.
+
+Tasks:
+1. malaysia: verify the overview renders no background material; if a
+   blur or scrim exists, remove it.
+2. Keep the Spaces bar clear; draw thumbnails with the existing window
+   surface glass.
+
+Definition of done: ./dev.sh check passes; the overview background is
+pixel-identical to the desktop; main is pushed. Report changed files and
+commits.
+```

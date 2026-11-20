@@ -40,7 +40,11 @@ The banner starts at the menu-bar height, 30, and sits 20 pt from the right
 edge. The width is 330 and the height is 70. The corner radius is about 18.
 
 The banner is a dark glass card: the desktop shows through, blurred, and the
-card has a light rim. No controlled-backdrop samples were taken.
+card has a light rim. The 2026-11-20 pass measured the glass over the checker:
+`#86` to `#8c` in dark mode and `#b3b3b3` in light mode, so the banner is a
+lighter veil in light mode, like the menu. Notification Center opened empty on
+this host; its clock pill glass measured `#bc` over white, `#5c` over black
+and `#9f` over checker in dark mode, and `#ed`, `#9e` and `#d2` in light mode.
 
 ## 2. Typography
 
@@ -126,3 +130,33 @@ feel like a different component.
 - Is the hover action a button, a menu or a text link?
 - How many banners stack before the oldest is replaced?
 - Does Notification Center use the same card width?
+
+## 8. Implementation prompt
+
+```text
+You are fixing the notification glass from measured values. Read this file
+and macos-blur.md first. Work in ~/src/barrierkit and ~/src/malaysia,
+main only: git pull --ff-only before editing and before each push, one
+commit per session, English messages, no code comments.
+
+Measured targets:
+- Banner over checker: #86-8c dark / #b3b3b3 light.
+- NC clock pill: white #bc / #ed, black #5c / #9e, checker #9f / #d2
+  (dark / light).
+- Banner typography: 13 pt bold title, 12 pt subtitle, 13 pt body.
+
+Tasks:
+1. barrierkit: align the notification glass tokens with the two veil sets
+   in macos-blur.md section 5; four-backdrop tests per scheme.
+2. barrierkit: reduce the banner title to 13 pt bold with a 12 pt
+   subtitle.
+3. malaysia: after the rev bump, verify the banner renders the resolved
+   glass.
+
+Do not change the slide-in or slide-out durations in this pass; they are
+unverified project values.
+
+Definition of done: ./dev.sh check passes in both repos; tests assert the
+measured glass values; barrierkit main is pushed and malaysia pins the
+new rev. Report changed tokens and commits.
+```

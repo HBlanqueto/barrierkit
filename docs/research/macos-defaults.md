@@ -86,17 +86,19 @@ the panel is 1576 wide; the Dock is content-sized, not screen-wide.
 
 The panel was sampled in the gap between two app icons, away from the rim.
 The four backdrops are the controlled white, gray, black and checker windows.
+The 2026-11-20 pass re-measured dark and light mode under the same wallpaper
+at 2560x1440; its numbers supersede the 1920x1080 light rows below.
 
 | State | White | Gray | Black | Checker |
 |---|---|---|---|---|
-| Dark, transparency allowed | `#bebebe` | `#8a8a8a` | `#0d0d0d` | `#7f7f7f` |
-| Dark, Reduce Transparency | `#020202` | not measured | `#0a0a0a` | not measured |
-| Light, transparency allowed | `#eaeaea` | `#a5a5a5` | `#323232` | `#979797` |
-| Light, Reduce Transparency | `#f1f1f1` | not measured | `#888888` | not measured |
+| Dark, transparency allowed | `#bebebe` | `#8b8b8b` | `#0d` to `#10` | `#6c6c6c` |
+| Dark, Reduce Transparency | `#03` to `#0d` | not measured | `#0d` | not measured |
+| Light, transparency allowed | `#ebebeb` | `#a6a6a6` | `#343434` | `#919191` |
+| Light, Reduce Transparency | `#f1` to `#89` | not measured | `#89` | not measured |
 
-The Dock does not have one fixed colour. Even with Reduce Transparency on it
-still follows the backdrop a little. A single opaque token cannot describe
-both the white and the black case.
+The Dock does not have one fixed colour. Under Reduce Transparency it becomes
+a **scheme solid**: near-black in dark mode, near-white in light mode, with a
+few units of backdrop response left.
 
 The light Dock rim over the controlled backdrops:
 
@@ -107,7 +109,8 @@ The light Dock rim over the controlled backdrops:
 | Black | `#101010`, `#3b3b3b`, `#323232` |
 
 The rim is a three-step light/dark bevel, not a one-pixel black outline. In
-dark mode over gray the same edge reads `#919191`, `#808080`, `#919191`.
+dark mode over gray the same edge reads `#919191`, `#808080`, `#919191`. The
+top line follows the mode: `#74` dark, `#88` light.
 
 ## 4. Default menu bar
 
@@ -152,20 +155,20 @@ The Finder `Archivo` menu was opened over the controlled backdrops:
 
 The iTerm2 `Shell` menu is 356 wide. The width is content-driven.
 
-The menu glass is **adaptive**. In dark mode it is light over a light
-backdrop and dark over a dark backdrop:
+The menu glass is **adaptive and scheme-dependent**. Measured at 2560x1440
+under one wallpaper:
 
 | State | White | Gray | Black | Checker |
 |---|---|---|---|---|
-| Dark, transparency allowed | `#8d8d8d` | `#8d8d8d` | `#2b2b2b` | about `#80` |
-| Dark, Reduce Transparency | `#8d8d8d` | not measured | `#2b2b2b` | not measured |
-| Light, transparency allowed | not measured | not measured | `#9a9a9a` | not measured |
-| Light, Reduce Transparency | `#fefefe` | not measured | `#9a9a9a` | not measured |
+| Dark, transparency allowed | `#a3a3a3` | `#92` to `#94` | `#2b2b2b` | `#8b` to `#8d` |
+| Dark, Reduce Transparency | `#a3a3a3` | not measured | not measured | not measured |
+| Light, transparency allowed | `#f2f2f2` | `#d1d1d1` | `#75` to `#7b` | `#bf` to `#c6` |
+| Light, Reduce Transparency | `#f2f2f2` | not measured | not measured | not measured |
 
 The ink follows the panel: dark text on the light panel, white text on the
 dark panel. A split backdrop with white on top and black below switched the
-panel and the ink at the split line. A checker produced a light panel with
-dark text and a faint dither.
+panel and the ink at the split line in both modes. A checker produced a light
+panel with dark text and a faint dither.
 
 The measured menu is therefore not the same material as the menu bar. The bar
 is clear and scheme-inked; the menu is adaptive and backdrop-inked.
@@ -192,7 +195,8 @@ applied in the same commit.
 | Menu bar font | 13 | 13 | 13 |
 | Menu item height | 24 | 24 | 24 |
 | Menu separator band | 11 | 1 + 2x5 | 1 + 2x5 |
-| Menu ink | follows panel | follows colour scheme | still scheme-based |
+| Menu ink | follows panel | follows colour scheme | follows the panel |
+| Menu glass light mode | `#f2` over white, `#75` over black | dark matrix only | dark matrix only |
 
 The Dock horizontal padding after the change is 8.84 at a 64 tile: the 6
 base plus 4.44% of 64. The 4 px slot gap and the 15.625% vertical padding make
@@ -209,32 +213,37 @@ geometry.
   solid token is an approximation.
 - The window inner border was not measured in this pass. It remains a gap.
 
-## 7b. Corrections from the blur pass
+## 7b. Corrections from the 2026-11-20 modes pass
 
-A later pass measured every shell surface over white, gray, black, checker
-and a grid. It corrects three values above; the details and evidence are in
+A later pass measured every shell surface over white, gray, black and checker
+in **both appearances under the same wallpaper** at 2560x1440. It corrects
+the 2026-11-19 light rows above; the details and evidence are in
 [`macos-blur.md`](macos-blur.md).
 
-- The light Dock matrix (`#eaeaea`, `#a5a5a5`, `#323232`, light opaque
-  `#f1f1f1`) was recorded under a different wallpaper state. The Dock glass
-  follows the wallpaper, not the scheme; with the dark wallpaper both modes
-  give the dark matrix and Reduce Transparency gives solid `#020202` to
-  `#0a0a0a`.
-- The menu panel is scheme-independent: `#8d8d8d` over white and `#2b2b2b`
-  over black in both modes, with the ink following the panel. Reduce
+- The light Dock matrix (`#eaeaea`, `#a5a5a5`, `#323232`) was recorded under a
+  darker wallpaper state. Under one wallpaper the Dock is scheme-dependent:
+  dark `#be` over white versus light `#eb` over white.
+- The menu panel is scheme-dependent too: dark `#a3` over white and `#2b`
+  over black; light `#f2` over white and `#75` over black. Reduce
   Transparency leaves it unchanged.
-- Reduce Transparency leaves Control Center unchanged too.
+- Reduce Transparency leaves Control Center unchanged and turns the Dock into
+  the scheme solid: `#03` to `#0d` dark, `#f1` to `#89` light.
+- The Reduce Transparency preference lives in
+  `com.apple.universalaccess` `reduceTransparency`, not in
+  `com.apple.dock`; writing the Dock key alone has no effect on macOS 27.2.
 
 ## 8. Remaining gaps
 
-1. The menu ink follows the panel as a whole. macOS switches it at the split
+1. The light menu veil set does not exist in `ctappearance`; both schemes
+   resolve the dark matrix today.
+2. The menu ink follows the panel as a whole. macOS switches it at the split
    line of a split backdrop; Malaysia takes one ink per popup from the average
    of what lies behind it.
-2. Reduce Transparency still leaves the Dock backdrop-dependent. The single
-   solid tokens are an approximation, not the measured state.
-3. The menu corner radius is about 6 on this host, below the 12 used by the
+3. Reduce Transparency leaves the Dock a few units backdrop-dependent. The
+   per-scheme solids are an approximation of the measured `#03` and `#f1`.
+4. The menu corner radius is about 6 on this host, below the 12 used by the
    menus. It needs a second measurement at 2x.
-4. The top-bar right status area was not measured. Its item spacing is still
+5. The top-bar right status area was not measured. Its item spacing is still
    a script default.
 
 ## 9. Evidence
@@ -254,3 +263,38 @@ The captures are local and not committed:
 - `~/src/captures/light-on-*-dock*.png`
 - `~/src/captures/reduced-*-dock.png`
 - `~/src/captures/defaults-2026-11-19/`
+- `~/src/captures/defaults-2026-11-20-modes/`
+- `~/src/captures/d3-*-menu.png`, `d3-*-cc.png`: dark matrix, 2560x1440.
+- `~/src/captures/l2-*-menu.png`, `l2-*-cc.png`, `l3-*-cc.png`: light matrix.
+- `~/src/captures/d2-rt-*.png`, `l3-rt-*.png`: Reduce Transparency.
+
+## 10. Implementation prompt
+
+```text
+You are aligning the default desktop appearance with measured values. Read
+this file and macos-blur.md first. Work in ~/src/barrierkit and
+~/src/malaysia, main only: git pull --ff-only before editing and before
+each push, one commit per session, English messages, no code comments.
+
+Measured targets, dark / light:
+- Dock glass: white #bebebe / #ebebeb, gray #8b / #a6a6a6,
+  black #0d-10 / #34, checker #6c / #91.
+- Menu glass: white #a3a3a3 / #f2f2f2, gray #92-94 / #d1d1d1,
+  black #2b2b2b / #75-7b, checker #8b-8d / #bf-c6.
+- RT: Dock scheme solid #03-0d / #f1-89; menu and CC unchanged.
+- Geometry already matched: tile 64, slot 68x84, edge margin 6, padding
+  6 + 4.44%, slot gap 4, vertical padding 15.625%, bar 30, margin 10,
+  font 13, item 24, separator 11.
+
+Tasks:
+1. barrierkit: add the light menu veil set; align Dock light glass and RT
+   solids with the targets. Do not touch the matched geometry tokens.
+2. barrierkit: four-backdrop tests per surface per scheme in
+   ctappearance::resolve, asserting the targets within 8/255.
+3. malaysia: after the rev bump, confirm the shell and compositor consume
+   the new resolution without changes.
+
+Definition of done: ./dev.sh check passes in both repos; the tests assert
+the measured values; barrierkit main is pushed and malaysia pins the new
+rev. Report changed tokens, test values and commits.
+```

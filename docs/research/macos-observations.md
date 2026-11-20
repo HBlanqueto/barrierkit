@@ -29,13 +29,13 @@ them into `ctdesign`.
 |---|---|
 | macOS | 27.2.1, build 26B131 |
 | Hardware | Apple M4 |
-| Display | VG27WQ3B, 1920x1080, 180 Hz |
+| Display | VG27WQ3B; 1920x1080 at 180 Hz in the 2026-11-19 pass, 2560x1440 in the 2026-11-20 pass |
 | Backing scale | 1.0, so one point equals one pixel |
-| Visible frame | 1920x948, menu bar 30, Dock reserve 102 |
-| Appearance | Dark |
+| Visible frame 2026-11-20 | 2560x1410 usable, menu bar 30, Dock top edge about y=1342 |
+| Appearance | Dark and light measured in the 2026-11-20 pass |
 | Accent | Default (system blue) |
 | Reduce Motion | Off |
-| Reduce Transparency | Off |
+| Reduce Transparency | Off; the live switch is `com.apple.universalaccess` `reduceTransparency` |
 | Increase Contrast | Off |
 | Differentiate Without Color | Off |
 | System language | Spanish |
@@ -96,6 +96,7 @@ useful accessibility tree on this host, so their measurements are visual.
 | Mission Control | `mission-control.png` |
 | Settings and focus | `settings-appearance.png`, `settings-focus-tab.png`, `settings-focus-tab2.png`, `focus-crop.png`, `focus-crop-4x.png` |
 | Blur and Liquid Glass matrix | `blur-*.png`, `defaults-2026-11-19-blur/` |
+| 2026-11-20 modes pass | `d2-*.png`, `d3-*.png` (dark), `l2-*.png`, `l3-*.png` (light), `defaults-2026-11-20-modes/` |
 
 These files stay outside the repository. They are local evidence, not
 committed assets.
@@ -103,9 +104,26 @@ committed assets.
 ## 5. Limits
 
 - **One display, scale 1.0.** No 2x capture was possible. Text rasterisation
-  and one-pixel rims cannot be compared at Retina density. The display changed
-  from 2560x1440 to 1920x1080 between passes; the default measurements are at
-  1920x1080.
+  and one-pixel rims cannot be compared at Retina density. The display moved
+  between 2560x1440 and 1920x1080 across passes; each pass states its
+  resolution.
+- **The wallpaper changed between research passes.** The 2026-11-19 matrix
+  was recorded under a darker wallpaper, the 2026-11-20 matrix under the
+  current picture wallpaper. The modes pass samples the wallpaper before and
+  after every switch so its two matrices are comparable.
+- **The iTerm2 window covers the full screen below the menu bar.** Samples
+  from open desktop regions in some 2026-11-20 captures read the terminal
+  background, not the wallpaper. Wallpaper controls are taken at y=15 behind
+  the clear bar.
+- **Menus over a backdrop window need two clicks in this session.** The first
+  click is consumed by the previous panel or menu state; the second opens the
+  menu. Control Center and the clock open on one click.
+- **A stuck notification alert blocked clicks in the middle of the pass.**
+  `killall UserNotificationCenter` cleared it. If menu clicks stop working,
+  check `~/src/probes/wins` for a `UserNotificationCenter` window first.
+- **The F-keys do not trigger Mission Control or Launchpad** through System
+  Events keystrokes on this host. Their 2026-11-19 values stay as measured;
+  no 2026-11-20 re-run exists.
 - **The appearance was reset and restored.** The Dock geometry, Reduce
   Transparency and light/dark switches were measured in both states and then
   returned to the original values. The default matrix is in
@@ -114,13 +132,13 @@ committed assets.
   stopped the host. Lock values are marked estimated.
 - **Control Center and Spotlight have no usable AX tree.** Their panels were
   measured from images.
-- **Notification Center did not open visibly.** Only the banner is measured.
+- **Notification Center opens empty on this host.** Only the clock pill and
+  the surrounding glass are measurable; no notification cards or widgets.
 - **Animation timing is incomplete.** The recorder has about 1.5 s of
   startup latency. Menu open, Dock magnification and notification motion
   need a second pass with a pre-rolled recorder.
-- **Dock contents and tile size are host state.** This host has
-  `tilesize=128`, `largesize=128` and magnification on. Those are defaults
-  for this machine, not universal macOS defaults.
+- **Dock contents and tile size are host state.** The 2026-11-20 pass ran at
+  `tilesize=72`, magnification off. Geometry from the reset pass uses 64.
 - **Window metrics come from fresh `NSWindow` instances**, not from Finder,
   Safari or Settings. The style values are valid for AppKit; real apps can
   add toolbars and split views.

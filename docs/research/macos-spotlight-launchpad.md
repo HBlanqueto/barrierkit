@@ -58,7 +58,10 @@ Observations:
   macOS menu row.
 - Category tabs sit above the list. They are text tabs, not a segmented
   control with a filled track.
-- The panel is dark glass and lets the window behind it show through.
+- The panel is dark glass and lets the window behind it show through. The
+  2026-11-20 pass sampled the empty field over the checker: `#8d8d8d` in dark
+  mode, the same family as the menu. The panel top edge sits at about y=408
+  on the 2560x1440 display.
 - The first launch shows an onboarding card. Typing dismisses it. Synthetic
   clicks on the onboarding button did not register, so the dismissal was
   done with the keyboard.
@@ -153,3 +156,32 @@ a compact search overlay and a separate application grid.
 - Does Launchpad have a search field in another state or version?
 - How many columns and rows does Launchpad use at other display sizes?
 - Does Launchpad scroll horizontally by page or by pixel?
+- The Launchpad F-key does not fire through System Events on this host; the
+  2026-11-19 lift value (about 36/255) stands until a working trigger is
+  found.
+
+## 8. Implementation prompt
+
+```text
+You are aligning the launcher surfaces with measured values. Read this
+file and macos-blur.md first. Work in ~/src/barrierkit and
+~/src/malaysia, main only: git pull --ff-only before editing and before
+each push, one commit per session, English messages, no code comments.
+
+Measured targets:
+- Spotlight panel: about 625 wide, 44 pt field, about 36 pt rows, glass
+  #8d over checker in dark mode, menu family.
+- Launchpad: about 620x480, 7x5 grid, about 56 icons, blurred desktop
+  with a lift of about 36/255.
+
+Tasks:
+1. barrierkit: split the launcher tokens into spotlight and launchpad
+   sets; align the spotlight glass with the menu family.
+2. malaysia: after the rev bump, use the spotlight tokens for the search
+   overlay and keep the dock launcher list as is.
+
+Do not build the Launchpad grid in this pass; it has its own prompt.
+
+Definition of done: ./dev.sh check passes in both repos; main is pushed
+and malaysia pins the new rev. Report changed tokens and commits.
+```

@@ -67,9 +67,13 @@ The exact grouping and the number of rows change with the system state. The
 panel is a vertical set of module cards, each with its own rounded fill. The
 inner cards are lighter than the panel background.
 
-The panel uses dark glass. The desktop behind it is blurred, and the panel
-edge has a bright rim. No controlled-backdrop samples were taken, so no
-composite values are available.
+The panel uses the menu glass family. The 2026-11-20 pass sampled it over the
+four backdrops: `#a3` over white, `#a3` over gray, `#26` over black and `#7f`
+over checker in dark mode; `#fb` over white, `#c7` over gray, `#66` over
+black and `#ba` over checker in light mode. Reduce Transparency leaves the
+panel glass nearly unchanged (`#b1` over white in dark mode). The entry point
+sits at x=2118 on the 2560x1440 display; the clock at x=2500 opens
+Notification Center.
 
 ## 4. Comparison with Malaysia
 
@@ -123,3 +127,31 @@ Use project icons and the catalogue for labels.
 - Does it use the same glass as the application menu or a lighter variant?
 - What is the dismissal rule for a click inside another app?
 - Does the panel have a light-mode variant with different rim values?
+- The glass matrices for both modes are in
+  [`macos-blur.md`](macos-blur.md); the panel shares the menu family with
+  small offsets.
+
+## 8. Implementation prompt
+
+```text
+You are fixing the Control Center glass values. Read this file and
+macos-blur.md first. Work in ~/src/barrierkit and ~/src/malaysia, main
+only: git pull --ff-only before editing and before each push, one commit
+per session, English messages, no code comments.
+
+Measured targets, dark / light:
+- White: #a3 / #fbfbfb.
+- Gray: #a3 / #c7c7c7.
+- Black: #262626 / #666666.
+- Checker: #7f7f7f / #bababa.
+- RT: unchanged in dark mode (#b1 over white).
+
+Tasks:
+1. barrierkit: align the panel glass with the menu family offsets in
+   macos-blur.md section 5; four-backdrop tests per scheme.
+2. malaysia: after the rev bump, render the panel with the resolved glass.
+
+Definition of done: ./dev.sh check passes in both repos; tests assert the
+measured values; barrierkit main is pushed and malaysia pins the new rev.
+Report changed tokens and commits.
+```

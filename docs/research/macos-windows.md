@@ -73,6 +73,17 @@ window colours are:
 | `windowFrameText` | `#000000` at 84.7% | `#ffffff` at 84.7% |
 | `selectedContentBackground` | `#0064e1` | `#0059d1` |
 
+A live Finder window sampled at 2560x1440 adds the chrome values the API does
+not expose:
+
+| Region | Dark | Light |
+|---|---|---|
+| Title bar | `#282828` | `#fafafa` |
+| Toolbar | `#2f2f2f` | `#dbdbdb` |
+| Sidebar | `#454f57` | `#efefef` |
+| Content | `#282828` | `#f5f5f5` |
+| Frame outline | 1 px dark plus 1 px light bevel | same structure |
+
 Corner radius was not exposed by a public API and was not measured from a
 screenshot in this pass. The live screenshots suggest a radius in the low
 teens, but it is **estimated**, not measured. Do not treat the Malaysia
@@ -160,3 +171,31 @@ Copy geometry, contrast ratios and behaviour, not artwork.
   toolbar row?
 - Do inactive windows dim the title and the lights by the same amount?
 - Which animation curve does AppKit use for the 250 ms open and close?
+
+## 9. Implementation prompt
+
+```text
+You are fixing the window chrome from measured values. Read this file
+first. Work in ~/src/barrierkit and ~/src/malaysia, main only:
+git pull --ff-only before editing and before each push, one commit per
+session, English messages, no code comments.
+
+Measured targets, dark / light:
+- Title bar #282828 / #fafafa.
+- Toolbar #2f2f2f / #dbdbdb.
+- Sidebar #454f57 / #efefef.
+- Content #282828 / #f5f5f5.
+- Frame outline: 1 px dark plus 1 px light bevel, both modes.
+
+Tasks:
+1. barrierkit: verify the theme titlebar and window tokens against the
+   table; fix only the ones that differ by more than 8/255. Do not change
+   the matched geometry (32/40/66 bars, 14 buttons, gap 9).
+2. barrierkit: add a test asserting the four chrome values per scheme.
+
+Do not change the traffic-light inset rule in this pass; it has its own
+prompt.
+
+Definition of done: ./dev.sh check passes; tests assert the measured
+values; main is pushed. Report changed tokens and commits.
+```

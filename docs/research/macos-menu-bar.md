@@ -98,37 +98,42 @@ consecutive frames. There is no scale, fade or slide to copy.
 
 ## 4. Adaptive glass
 
-The panel does not have one fixed dark colour. In dark mode it is light over a
-light backdrop and dark over a dark backdrop:
+The panel does not have one fixed colour. Measured at 2560x1440 under the same
+wallpaper, the two appearances give two veil sets:
 
-| Backdrop | Panel | Ink |
-|---|---|---|
-| White | `#8d8d8d` | dark |
-| Gray | `#8d8d8d` | dark |
-| Black | `#2b2b2b` | white |
-| Checker | about `#80` | dark |
-| Split white/black | light top, dark bottom | switches at the split |
+| Backdrop | Dark panel | Dark ink | Light panel | Light ink |
+|---|---|---|---|---|
+| White | `#a3a3a3` | dark | `#f2f2f2` | dark |
+| Gray | `#92` to `#94` | dark | `#d1d1d1` | dark |
+| Black | `#2b2b2b` | white | `#75` to `#7b` | dark |
+| Checker | `#8b` to `#8d` | dark | `#9f` to `#c6` | dark |
+| Split white/black | light top, dark bottom | switches at the split | light top, dark bottom | switches at the split |
 
-The full matrix, including Reduce Transparency and light mode, is in
-[`macos-defaults.md`](macos-defaults.md#5-default-application-menu).
+The full matrix, including Reduce Transparency, is in
+[`macos-blur.md`](macos-blur.md#3-the-measured-matrix-dark-mode) and
+[`macos-blur.md`](macos-blur.md#4-the-measured-matrix-light-mode).
 
 The bar is the opposite case: it stays clear and its ink follows the colour
 scheme, not the window behind it. A white backdrop therefore gives white text
 on white in dark mode. That is the measured macOS behaviour, not a rendering
 bug in the probe.
 
-The panel is scheme-independent too: over black it is `#2b2b2b` with white
-ink even in light mode, and over white it is `#8d8d8d` with dark ink even in
-dark mode. See the corrections in
-[`macos-blur.md`](macos-blur.md#8-corrections-to-the-earlier-research).
+The panel is **scheme-dependent**: over black it is `#2b2b2b` in dark mode but
+`#75` to `#7b` in light mode. The earlier "scheme-independent" claim was
+recorded under a dark wallpaper; see the corrections in
+[`macos-blur.md`](macos-blur.md#9-corrections-to-the-2026-11-19-research).
 
-Malaysia's menu glass is one veil and one tone for both colour schemes
+The ink follows the panel in both modes: `ctappearance::menu::dark_ink_over`
+takes dark ink above `MENU_DARK_INK_ABOVE` (0.4) and white below it. The
+light panel over black is 0.46 luma and the dark panel over black is 0.17,
+so the threshold works for both matrices.
+
+Malaysia's menu glass has one veil and one tone for both colour schemes
 (`MENU_GLASS_VEIL`, `MENU_GLASS_LIFT`, `MENU_GLASS_CAP`). Over white, black and
-the checker it composites to `#8d8d8d`, `#2b2b2b` and `#878787`; the tests in
-`ctappearance::resolve` pin the four backdrops. The ink follows the panel: the
-compositor reports the panel luma of each popup
-(`infinity_focus_surface_v1.glass`) and `theme::over_glass` takes dark ink
-above `MENU_DARK_INK_ABOVE` and white below it.
+the checker it composites to `#a3a3a3`, `#2b2b2b` and `#8b` to `#8d`, matching
+the dark matrix; the tests in `ctappearance::resolve` pin the four backdrops.
+There is **no light veil set yet**: a light scheme renders the dark matrix
+instead of `#f2` over white and `#75` over black.
 
 ## 5. Comparison with Malaysia
 
@@ -144,7 +149,7 @@ above `MENU_DARK_INK_ABOVE` and white below it.
 | Panel width | 317 for File | 220 to 640 | unchanged |
 | Item height | 24 | 24 | 24 |
 | Separator | 11 total | 1 + 2x5 | unchanged |
-| Panel glass | Adaptive light/dark | fixed scheme glass | one adaptive tone |
+| Panel glass | Dark matrix `#a3`/`#2b`; light matrix `#f2`/`#75` | fixed scheme glass | dark adaptive tone only |
 | Panel ink | Follows panel | follows scheme | follows the panel |
 | Panel radius | about 6 | 12 | needs review |
 | Open animation | Instant | no menu animation | matches |
@@ -170,6 +175,10 @@ above `MENU_DARK_INK_ABOVE` and white below it.
    current 12. Confirm at 2x before changing the token.
 6. **Add a menu-bar contrast test over white, gray and black.** The clear bar
    with scheme ink must be accepted as measured, not "fixed" by adding tint.
+7. **Add the light veil set.** The dark tokens reproduce the dark matrix;
+   a light scheme needs its own veil and cap so the panel renders `#f2` over
+   white, `#d1` over gray and `#75` over black. The targets and model are in
+   [`macos-blur.md`](macos-blur.md#5-the-model-fit-one-veil-per-surface-per-mode).
 
 ## 8. Open questions
 
@@ -179,3 +188,37 @@ above `MENU_DARK_INK_ABOVE` and white below it.
 - Does the app name use a heavier face than a bold menu title?
 - Are the right status items spaced by a token or by each agent's view?
 - Does the wide bar exist on macOS 27, and which setting enables it?
+
+## 9. Implementation prompt
+
+```text
+You are fixing the menu bar and application menu glass from measured values.
+Read this file and macos-blur.md first. Work in ~/src/barrierkit and
+~/src/malaysia, main only: git pull --ff-only before editing and before
+each push, one commit per session, English messages, no code comments.
+
+Measured targets at 2560x1440, dark / light:
+- Panel over white: #a3a3a3 / #f2f2f2.
+- Panel over gray: #92-94 / #d1d1d1.
+- Panel over black: #2b2b2b / #75-7b.
+- Panel over checker: #8b-8d / #bf-c6.
+- Ink: dark above 0.4 panel luma, white below; the light panel over black
+  is 0.46, the dark panel over black is 0.17.
+- Bar: clear in both modes, no blur, scheme ink only.
+
+Tasks:
+1. barrierkit: add the light veil and cap for the menu glass in
+   crates/ctdesign/tengen/components.json and ctappearance, keeping the
+   dark tokens unchanged. Four-backdrop tests per scheme in
+   ctappearance::resolve asserting the eight targets within 8/255.
+2. malaysia: after the barrierkit rev bump, verify
+   malaysia-compositor/blur.rs and focus_notice.rs feed the resolved glass
+   and the ink decision unchanged. The shell already follows the panel;
+   do not add a wallpaper proxy: the split-backdrop measurement proves the
+   ink follows the window behind the panel.
+3. Keep the clear bar as measured; do not add a bar tint or blur.
+
+Definition of done: ./dev.sh check passes in both repos; the light matrix
+renders the four targets; barrierkit main is pushed and malaysia pins the
+new rev. Report the changed tokens, the test values and the commits.
+```
