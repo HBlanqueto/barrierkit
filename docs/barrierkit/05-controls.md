@@ -604,7 +604,7 @@ Module `progress`. They report nothing.
 |---|---|---|
 | `ProgressView` | `ProgressView::determinate(label, value)` (0 to 1), `.tint(Tint)`, `.style(\|s\| ..)` | 8 tall bar |
 | `ProgressView` | `ProgressView::indeterminate(label)` | A segment of 30 % that sweeps over 1.2 s |
-| `ProgressRing` | `ProgressRing::new(label, value)` | 28 ring, 3.5 stroke |
+| `ProgressRing` | `ProgressRing::new(label, value)` | 32 ring, 5 stroke, flat ends |
 | `Spinner` | `Spinner::new(label)` | 16, 12 spokes, one turn per second |
 
 With reduced motion ([4](04-appearance-and-tokens.md)) the indeterminate bar and the spinner
