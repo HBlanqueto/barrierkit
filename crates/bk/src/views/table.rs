@@ -8,7 +8,6 @@ use crate::interaction::{control_state, use_interaction};
 use crate::interaction::{track_modifiers, use_held_modifiers};
 use crate::menu::{CheckState, MenuItem};
 use crate::style::text;
-use crate::styles::Painted;
 use crate::styles::{ControlState, Paints, ShapeStyle, StateValue, TableStyle, Theme, resolve};
 use crate::symbol::{Symbol, symbol};
 use crate::views::collection::select;
@@ -196,9 +195,24 @@ impl Component for Table {
                 .child(handle);
             (width_of(index), content.into_element())
         });
-        let header = cells(padding_x, header_cells)
+        let inset = style.row_inset;
+        let header = rect()
+            .width(Size::fill())
             .height(Size::px(style.header_height))
-            .bordered(&paints, style.header_border.as_ref());
+            .child(
+                rect()
+                    .width(Size::fill())
+                    .height(Size::px(style.header_height))
+                    .padding(Gaps::new(0.0, inset, 0.0, inset))
+                    .child(cells(padding_x, header_cells)),
+            )
+            .maybe_child(style.header_border.as_ref().map(|(paint, width)| {
+                rect()
+                    .position(Position::new_absolute().left(0.0).bottom(0.0))
+                    .width(Size::fill())
+                    .height(Size::px(*width))
+                    .background(paints.fill(&StateValue::new(paint.clone())))
+            }));
         let count = self.columns.len();
         let menu = self
             .columns
@@ -226,7 +240,13 @@ impl Component for Table {
                 &style.selected_label,
             ),
         ];
-        let metrics = (style.font, style.row_height, padding_x);
+        let metrics = (
+            style.font,
+            style.row_height,
+            padding_x,
+            inset,
+            style.row_radius,
+        );
         let data = (
             self.rows.clone(),
             self.selected.clone(),
@@ -241,7 +261,8 @@ impl Component for Table {
             data,
             |item, (rows, selected, on_select, looks, metrics, shown, column_widths, held)| {
                 let index = item.index;
-                let (font, row_height, padding_x): &(Font, f32, f32) = metrics;
+                let (font, row_height, padding_x, inset, row_radius): &(Font, f32, f32, f32, f32) =
+                    metrics;
                 let selected_row = selected.contains(&index);
                 let look = if selected_row {
                     &looks[2]
@@ -259,12 +280,19 @@ impl Component for Table {
                         .child(text(value, *font, look.label));
                     (*width, value.into_element())
                 });
-                cells(*padding_x, values)
+                rect()
+                    .width(Size::fill())
+                    .height(Size::px(*row_height))
+                    .padding(Gaps::new(0.0, *inset, 0.0, *inset))
                     .a11y_role(AccessibilityRole::Row)
                     .a11y_builder(move |node| node.set_selected(selected_row))
-                    .height(Size::px(*row_height))
-                    .background(look.background.clone())
-                    .map(look.blur, Rect::backdrop_blur)
+                    .child(
+                        cells(*padding_x, values)
+                            .height(Size::fill())
+                            .corner_radius(*row_radius)
+                            .background(look.background.clone())
+                            .map(look.blur, Rect::backdrop_blur),
+                    )
                     .on_press(move |_| {
                         if let Some(cb) = &on_select {
                             cb.call(select(&selected, index, *held.peek()));
@@ -311,7 +339,12 @@ impl Component for Table {
                 }
             })
             .child(header)
-            .child(body);
+            .child(
+                rect()
+                    .expanded()
+                    .padding(Gaps::new(style.body_inset, 0.0, 0.0, 0.0))
+                    .child(body),
+            );
         interaction.inner_focus_ring(table)
     }
 }

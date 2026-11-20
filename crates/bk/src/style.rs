@@ -18,6 +18,7 @@ pub struct Palette {
     pub control_background: Rgba,
     pub system_fill: Rgba,
     pub toggle_accent: Rgba,
+    pub selected_content: Rgba,
     pub control_background_disabled: Rgba,
     pub text_background: Rgba,
     pub control_hover: Rgba,
@@ -42,6 +43,7 @@ impl Palette {
             Self {
                 accent: palette.accent_inactive,
                 toggle_accent: palette.accent_inactive,
+                selected_content: palette.accent_inactive,
                 on_accent: ctappearance::backdrop::ink_on(palette.accent_inactive),
                 ..palette
             }
@@ -72,6 +74,7 @@ impl Palette {
             control_hover: resolved.surfaces.hover,
             accent: resolved.control_accent,
             toggle_accent: resolved.toggle_accent,
+            selected_content: resolved.accent,
             accent_inactive: base.accent_inactive,
             on_accent: resolved.on_accent,
             destructive: base.danger,

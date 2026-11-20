@@ -422,8 +422,11 @@
   --bk-toolbar-tabs-tab-font-weight: 500;
   --bk-table-row-height: 24;
   --bk-table-header-height: 28;
-  --bk-table-padding-x: 8;
-  --bk-table-zebra: 0.04;
+  --bk-table-padding-x: 10;
+  --bk-table-row-inset: 10;
+  --bk-table-row-radius: 7;
+  --bk-table-body-inset: 5;
+  --bk-table-zebra: 0.045;
   --bk-table-min-column-width: 10;
   --bk-table-resize-handle: 6;
   --bk-collection-tile: 92;

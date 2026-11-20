@@ -23,7 +23,7 @@ pub struct OutlineViewStyle {
     pub row_shape: Shape,
     /// Tengen: `Clear`.
     pub row_background: StateValue<ShapeStyle>,
-    /// Tengen: `Accent`.
+    /// Tengen: `Role(SelectedContent)`.
     pub selected_row_background: StateValue<ShapeStyle>,
     /// Tengen: `Role(Label)`.
     pub label: StateValue<ShapeStyle>,
@@ -59,7 +59,7 @@ impl ControlStyle for OutlineViewStyle {
             column_padding_x: SPACE_1,
             row_shape: rounded(DISCLOSURE.row_radius),
             row_background: StateValue::new(ShapeStyle::Clear),
-            selected_row_background: StateValue::new(ShapeStyle::Accent),
+            selected_row_background: StateValue::new(ShapeStyle::Role(Role::SelectedContent)),
             label: StateValue::new(ShapeStyle::Role(Role::Label)),
             selected_label: StateValue::new(ShapeStyle::Role(Role::OnAccent)),
             icon: StateValue::new(ShapeStyle::Accent),

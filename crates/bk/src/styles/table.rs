@@ -31,21 +31,27 @@ pub struct TableStyle {
     /// `TABLE.row_height`, `TABLE.padding_x` on each side of a cell, `SPACE_1` between a header
     /// title and its arrow.
     pub header_spacing: f32,
-    /// Tengen: `Role(SecondaryLabel)`.
+    /// Tengen: `Role(Label)`.
     pub header_label: StateValue<ShapeStyle>,
+    /// Tengen, with `row_radius`, `body_inset`: `TABLE.row_inset` between the table and the header cells and rows.
+    pub row_inset: f32,
+    /// Tengen, with `row_inset`, `body_inset`: `TABLE.row_radius`, the corners of a row.
+    pub row_radius: f32,
+    /// Tengen, with `row_inset`, `row_radius`: `TABLE.body_inset` above the first row.
+    pub body_inset: f32,
     /// Tengen: `Role(Label)` for the sorted column, which also paints its arrow.
     pub sorted_header_label: StateValue<ShapeStyle>,
     /// Tengen: `Clear` for even rows.
     pub row_background: StateValue<ShapeStyle>,
     /// Tengen: `Color` of the label color at `TABLE.zebra` for odd rows.
     pub alternate_row_background: StateValue<ShapeStyle>,
-    /// Tengen: `Accent`.
+    /// Tengen: `Role(SelectedContent)`.
     pub selected_row_background: StateValue<ShapeStyle>,
     /// Tengen: `Role(Label)`.
     pub label: StateValue<ShapeStyle>,
     /// Tengen: `Role(OnAccent)`.
     pub selected_label: StateValue<ShapeStyle>,
-    /// Tengen: `Some((Role(Outline), HAIRLINE))`, drawn inside the header.
+    /// Tengen: `Some((Role(Separator), HAIRLINE))`, the line under the header.
     pub header_border: Option<(ShapeStyle, f32)>,
     /// Tengen: `system_effect`.
     pub effect: ColorEffect,
@@ -62,17 +68,20 @@ impl ControlStyle for TableStyle {
             row_height: TABLE.row_height,
             padding_x: TABLE.padding_x,
             header_spacing: SPACE_1,
-            header_label: StateValue::new(ShapeStyle::Role(Role::SecondaryLabel)),
+            row_inset: TABLE.row_inset,
+            row_radius: TABLE.row_radius,
+            body_inset: TABLE.body_inset,
+            header_label: StateValue::new(ShapeStyle::Role(Role::Label)),
             sorted_header_label: StateValue::new(ShapeStyle::Role(Role::Label)),
             row_background: StateValue::new(ShapeStyle::Clear),
             alternate_row_background: StateValue::new(ShapeStyle::Color(Rgba {
                 a: TABLE.zebra,
                 ..Palette::current().label
             })),
-            selected_row_background: StateValue::new(ShapeStyle::Accent),
+            selected_row_background: StateValue::new(ShapeStyle::Role(Role::SelectedContent)),
             label: StateValue::new(ShapeStyle::Role(Role::Label)),
             selected_label: StateValue::new(ShapeStyle::Role(Role::OnAccent)),
-            header_border: Some((ShapeStyle::Role(Role::Outline), HAIRLINE)),
+            header_border: Some((ShapeStyle::Role(Role::Separator), HAIRLINE)),
             effect: system_effect,
             header_font: CAPTION,
             font: BODY,
