@@ -39,13 +39,13 @@ pub struct DatePickerStyle {
     /// Tengen, with `shape`, `segment_shape`: `RoundedRectangle` of `TEXT_FIELD.radius`,
     /// `DATE_PICKER.segment_radius` and `DATE_PICKER.day_radius`, all `Circular`.
     pub day_shape: Shape,
-    /// Tengen, with `text`, `separator`: `Role(ContentBackground)`, `Role(Label)`,
+    /// Tengen, with `text`, `separator`: `Role(TextBackground)`, `Role(Label)`,
     /// `Role(SecondaryLabel)` the `/` and `:`.
     pub background: StateValue<ShapeStyle>,
-    /// Tengen, with `background`, `separator`: `Role(ContentBackground)`, `Role(Label)`,
+    /// Tengen, with `background`, `separator`: `Role(TextBackground)`, `Role(Label)`,
     /// `Role(SecondaryLabel)` the `/` and `:`.
     pub text: StateValue<ShapeStyle>,
-    /// Tengen, with `background`, `text`: `Role(ContentBackground)`, `Role(Label)`,
+    /// Tengen, with `background`, `text`: `Role(TextBackground)`, `Role(Label)`,
     /// `Role(SecondaryLabel)` the `/` and `:`.
     pub separator: StateValue<ShapeStyle>,
     /// Tengen, with `selected_text`: `Accent`, `Role(OnAccent)`: the chosen part while the
@@ -71,7 +71,7 @@ pub struct DatePickerStyle {
     pub selected_day: StateValue<ShapeStyle>,
     /// Tengen: `Role(OnAccent)`.
     pub selected_day_label: StateValue<ShapeStyle>,
-    /// Tengen: `Some((Role(Outline), HAIRLINE))`.
+    /// Tengen: `Some((Role(ControlBorder), HAIRLINE))`.
     pub border: Option<(ShapeStyle, f32)>,
     /// Tengen: empty.
     pub shadows: Vec<ShadowStyle>,
@@ -105,7 +105,7 @@ impl ControlStyle for DatePickerStyle {
             shape: field_shape(),
             segment_shape: rounded(DATE_PICKER.segment_radius),
             day_shape: rounded(DATE_PICKER.day_radius),
-            background: role(Role::ContentBackground),
+            background: role(Role::TextBackground),
             text: role(Role::Label),
             separator: role(Role::SecondaryLabel),
             selected_segment: StateValue::new(ShapeStyle::Accent),
@@ -117,7 +117,7 @@ impl ControlStyle for DatePickerStyle {
             other_month_day: role(Role::SecondaryLabel),
             selected_day: StateValue::new(ShapeStyle::Accent),
             selected_day_label: role(Role::OnAccent),
-            border: Some((ShapeStyle::Role(Role::Outline), HAIRLINE)),
+            border: Some((ShapeStyle::Role(Role::ControlBorder), HAIRLINE)),
             shadows: Vec::new(),
             opacity: 1.0,
             effect: system_effect,

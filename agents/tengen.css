@@ -121,10 +121,10 @@
   --bk-level-indicator-relevancy-height: 11;
   --bk-level-indicator-relevancy-line: 1;
   --bk-level-indicator-relevancy-gap: 1;
-  --bk-level-indicator-colors: green yellow red;
-  --bk-level-indicator-colors-0: green;
-  --bk-level-indicator-colors-1: yellow;
-  --bk-level-indicator-colors-2: red;
+  --bk-level-indicator-colors: #34c759 #ffcc00 #ff383c;
+  --bk-level-indicator-colors-0: #34c759;
+  --bk-level-indicator-colors-1: #ffcc00;
+  --bk-level-indicator-colors-2: #ff383c;
   --bk-date-picker-calendar-width: 139;
   --bk-date-picker-calendar-height: 148;
   --bk-date-picker-header-height: 22;
@@ -144,7 +144,7 @@
   --bk-group-box-radius: 11;
   --bk-group-box-padding: 5;
   --bk-group-box-label-inset: 9;
-  --bk-group-box-fill-opacity: 0.05;
+  --bk-group-box-fill-opacity: 0.031;
   --bk-disclosure-indent: 13;
   --bk-disclosure-row-height: 24;
   --bk-disclosure-chevron: 13;
@@ -793,8 +793,8 @@
   --bk-menu-popover-swatch-grid-gap: 4;
   --bk-menu-popover-separator-margin: 5;
   --bk-progress-height: 8;
-  --bk-progress-ring-size: 28;
-  --bk-progress-ring-stroke: 3.5;
+  --bk-progress-ring-size: 32;
+  --bk-progress-ring-stroke: 5;
   --bk-progress-indeterminate-segment: 0.3;
   --bk-progress-indeterminate-duration: 1200;
   --bk-progress-spinner-size: 16;

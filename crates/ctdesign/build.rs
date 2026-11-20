@@ -710,6 +710,9 @@ fn emit_specials(out: &mut String, tengen: &Tengen) {
             .unwrap_or_else(|| panic!("ctdesign: {path} must be a list of swatch names"))
             .iter()
             .map(|name| {
+                if let Some(color) = name.as_str().filter(|text| text.starts_with('#')) {
+                    return rgba(parse_color(color));
+                }
                 let swatch = palette
                     .as_array()
                     .and_then(|list| list.iter().find(|swatch| swatch["name"] == *name))

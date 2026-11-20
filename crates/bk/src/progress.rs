@@ -164,7 +164,7 @@ impl Component for ProgressRing {
         let filled = circumference * self.value;
         let circle = |dash: String| {
             format!(
-                r#"<svg viewBox="0 0 {size} {size}"><circle cx="{c}" cy="{c}" r="{radius}" fill="none" stroke="currentColor" stroke-width="{stroke}" stroke-linecap="round" {dash} transform="rotate(-90 {c} {c})"/></svg>"#,
+                r#"<svg viewBox="0 0 {size} {size}"><circle cx="{c}" cy="{c}" r="{radius}" fill="none" stroke="currentColor" stroke-width="{stroke}" {dash} transform="rotate(-90 {c} {c})"/></svg>"#,
                 c = size / 2.0,
             )
         };

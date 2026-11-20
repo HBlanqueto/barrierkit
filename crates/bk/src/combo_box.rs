@@ -87,6 +87,7 @@ impl Component for ComboBox {
             radius,
             Gaps::new(margin_y, trailing, margin_y, field_style.padding_x),
         )
+        .height(Size::px(field_style.height))
         .a11y_id(field);
         let open = move || {
             let field = *area.peek();

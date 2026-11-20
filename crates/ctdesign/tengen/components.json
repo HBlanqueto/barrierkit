@@ -54,7 +54,7 @@
       "relevancy-height": 11,
       "relevancy-line": 1,
       "relevancy-gap": 1,
-      "colors": ["green", "yellow", "red"]
+      "colors": ["#34c759", "#ffcc00", "#ff383c"]
     },
     "date-picker": {
       "calendar-width": 139,
@@ -82,7 +82,7 @@
       "radius": 11,
       "padding": 5,
       "label-inset": 9,
-      "fill-opacity": 0.05
+      "fill-opacity": 0.031
     },
     "disclosure": {
       "indent": 13,
@@ -912,8 +912,8 @@
     "progress": {
       "height": 8,
       "ring": {
-        "size": 28,
-        "stroke": 3.5
+        "size": 32,
+        "stroke": 5
       },
       "indeterminate": {
         "segment": 0.3,

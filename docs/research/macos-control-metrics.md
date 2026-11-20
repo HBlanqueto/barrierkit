@@ -90,3 +90,10 @@ Controls rendered with the same flags (`~/src/probes/controls.swift` on the high
 
 Materials under Reduce Transparency need screenshots with the system switch on and are in [macos-materials.md](macos-materials.md).
 
+## Rings, level indicators and boxes
+
+- Determinate ring (`NSProgressIndicator` spinning, regular): 32 wide, arc from the top clockwise with flat ends, stroke 5 (radius 11 to 16), the full circle behind it at black 6% in light; the arc is `0a82ff` in light and `1769e6` in dark.
+- Continuous capacity indicator: green is `systemGreen` (`34c759` light, `30d158` dark; yellow `ffcc00` and `ffd600`, red `ff383c` and `ff4245`), the track black 7% in light and white 10% in dark.
+- Box (`NSBox`): fill black or white at 3.1%.
+- Combo box: the field is the text field of 24, with a gray 20 high button inside.
+
