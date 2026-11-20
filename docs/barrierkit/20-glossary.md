@@ -97,7 +97,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 
 | BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
 |---|---|---|---|---|---|
-| `style::Palette` | struct | — | ≈ `NSColor` (semantic colors) | Semantic colors of the current context: labels, backgrounds, accent, separators | [4](04-appearance-and-tokens.md#the-palette) |
+| `style::Palette` | struct | — | ≈ `NSColor` (semantic colors) | Semantic colors of the current context: labels, backgrounds, accent, separators, outlines | [4](04-appearance-and-tokens.md#the-palette) |
 | `style::text` | fn | ≈ `Text` | ≈ `NSTextField(labelWithString:)` | One-line label with a type token and a color | [4](04-appearance-and-tokens.md#text-shapes-and-colors) |
 | `style::continuous_corner` | fn | `RoundedCornerStyle.continuous` | — | Corner radius with Apple's continuous curvature | [4](04-appearance-and-tokens.md#text-shapes-and-colors) |
 | `style::panel_edges` | fn | — | — | Card framed with a panel window's inner and outer lines (glass in dark) | [4](04-appearance-and-tokens.md#text-shapes-and-colors) |
@@ -113,7 +113,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `theme::menu_palette` | fn | — | — | Menu colors over a given surface, lifted when tinted | [4](04-appearance-and-tokens.md#theme-functions) |
 | `theme::popover_palette` | fn | — | — | Menu palette with pop-up menu metrics | [4](04-appearance-and-tokens.md#theme-functions) |
 | `theme::apply_popover_metrics` | fn | — | — | Replaces a menu palette's metrics with `MENU_POPOVER` | [4](04-appearance-and-tokens.md#theme-functions) |
-| `theme::over_glass` | fn | — | — | A menu palette over the compositor's glass: clear panel, solid search field; unchanged with transparency reduced | [4](04-appearance-and-tokens.md#theme-functions) |
+| `theme::over_glass` | fn | — | — | A menu palette over the compositor's glass: clear panel, solid search field; unchanged with Increase Contrast | [4](04-appearance-and-tokens.md#theme-functions) |
 
 ## Styles and themes
 

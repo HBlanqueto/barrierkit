@@ -16,7 +16,7 @@ pub struct ImageWellStyle {
     pub shape: Shape,
     /// Tengen: `Role(ContentBackground)`.
     pub background: StateValue<ShapeStyle>,
-    /// Tengen: `Some((Role(Separator), HAIRLINE))`.
+    /// Tengen: `Some((Role(Outline), HAIRLINE))`.
     pub border: Option<(ShapeStyle, f32)>,
     /// Tengen: `(Accent, IMAGE_WELL.drop_border)`, in place of `border` while an image is
     /// dragged over it.
@@ -36,7 +36,7 @@ impl ControlStyle for ImageWellStyle {
             inset: IMAGE_WELL.inset,
             shape: rounded(IMAGE_WELL.radius),
             background: StateValue::new(ShapeStyle::Role(Role::ContentBackground)),
-            border: Some((ShapeStyle::Role(Role::Separator), HAIRLINE)),
+            border: Some((ShapeStyle::Role(Role::Outline), HAIRLINE)),
             drop_border: (ShapeStyle::Accent, IMAGE_WELL.drop_border),
             shadows: Vec::new(),
             opacity: 1.0,

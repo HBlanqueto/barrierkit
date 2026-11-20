@@ -23,7 +23,7 @@ pub struct TextFieldStyle {
     pub shape: Shape,
     /// Tengen: `Role(ContentBackground)`.
     pub background: StateValue<ShapeStyle>,
-    /// Tengen: `Role(Separator)`, focused `Accent`.
+    /// Tengen: `Role(Outline)`, focused `Accent`.
     pub border: StateValue<ShapeStyle>,
     /// Tengen: `Role(Label)`.
     pub text: StateValue<ShapeStyle>,
@@ -50,7 +50,7 @@ impl ControlStyle for TextFieldStyle {
             padding_x: TEXT_FIELD.padding_x,
             shape: field_shape(),
             background: StateValue::new(ShapeStyle::Role(Role::ContentBackground)),
-            border: StateValue::new(ShapeStyle::Role(Role::Separator)).focused(ShapeStyle::Accent),
+            border: StateValue::new(ShapeStyle::Role(Role::Outline)).focused(ShapeStyle::Accent),
             text: StateValue::new(ShapeStyle::Role(Role::Label)),
             placeholder: StateValue::new(ShapeStyle::Role(Role::SecondaryLabel)),
             misspelling: StateValue::new(ShapeStyle::Role(Role::Destructive)),

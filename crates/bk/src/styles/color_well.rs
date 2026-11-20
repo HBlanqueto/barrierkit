@@ -28,7 +28,7 @@ pub struct ColorWellStyle {
     pub selection_gap: f32,
     /// Tengen: `Role(SecondaryLabel)`, shown only under the chosen swatch.
     pub name: StateValue<ShapeStyle>,
-    /// Tengen: `Some((Role(Separator), HAIRLINE))`.
+    /// Tengen: `Some((Role(Outline), HAIRLINE))`.
     pub swatch_border: Option<(ShapeStyle, f32)>,
     /// Tengen: empty.
     pub swatch_shadows: Vec<ShadowStyle>,
@@ -57,7 +57,7 @@ impl ControlStyle for ColorWellStyle {
             selection: StateValue::new(ShapeStyle::Accent),
             selection_gap: SETTINGS.swatch_ring_gap as f32,
             name: StateValue::new(ShapeStyle::Role(Role::SecondaryLabel)),
-            swatch_border: Some((ShapeStyle::Role(Role::Separator), HAIRLINE)),
+            swatch_border: Some((ShapeStyle::Role(Role::Outline), HAIRLINE)),
             swatch_shadows: Vec::new(),
             opacity: 1.0,
             disabled_opacity: SWITCH.disabled_opacity,

@@ -24,7 +24,7 @@ pub struct SheetStyle {
     pub scrim: StateValue<ShapeStyle>,
     /// Tengen: `background` `Role(RaisedBackground)`.
     pub background: StateValue<ShapeStyle>,
-    /// Tengen: `Some((Role(Separator), HAIRLINE))`, drawn outside.
+    /// Tengen: `Some((Role(Outline), HAIRLINE))`, drawn outside.
     pub border: Option<(ShapeStyle, f32)>,
     /// Tengen: the window shadow, `SHADOW` (`SHADOW_DARK` in dark): the sheet floats like a window.
     pub shadows: Vec<ShadowStyle>,
@@ -47,7 +47,7 @@ impl ControlStyle for SheetStyle {
             },
             scrim: StateValue::new(ShapeStyle::Role(Role::Scrim)),
             background: StateValue::new(ShapeStyle::Role(Role::RaisedBackground)),
-            border: Some((ShapeStyle::Role(Role::Separator), HAIRLINE)),
+            border: Some((ShapeStyle::Role(Role::Outline), HAIRLINE)),
             shadows: [shadow.ambient, shadow.contact]
                 .into_iter()
                 .map(|layer| ShadowStyle {

@@ -33,7 +33,7 @@ pub struct RadioGroupStyle {
     pub dot: StateValue<ShapeStyle>,
     /// Tengen, with `dot`: `Role(OnAccent)`, `Role(Label)` (disabled `Role(TertiaryLabel)`).
     pub label: StateValue<ShapeStyle>,
-    /// Tengen: `Some((Role(Separator), HAIRLINE))`, drawn only while not chosen.
+    /// Tengen: `Some((Role(Outline), HAIRLINE))`, drawn only while not chosen.
     pub button_border: Option<(ShapeStyle, f32)>,
     /// Tengen: empty.
     pub button_shadows: Vec<ShadowStyle>,
@@ -67,7 +67,7 @@ impl ControlStyle for RadioGroupStyle {
             dot: StateValue::new(ShapeStyle::Role(Role::OnAccent)),
             label: StateValue::new(ShapeStyle::Role(Role::Label))
                 .disabled(ShapeStyle::Role(Role::TertiaryLabel)),
-            button_border: Some((ShapeStyle::Role(Role::Separator), HAIRLINE)),
+            button_border: Some((ShapeStyle::Role(Role::Outline), HAIRLINE)),
             button_shadows: Vec::new(),
             opacity: 1.0,
             disabled_opacity: 1.0,

@@ -232,10 +232,13 @@ Closed on 2026-11-20 in `ctdesign` and `ctappearance`; the tests in
   Section 3 gives `#03` to `#0d` for the dark solid and section 5 gives `#f1`
   to `#89` for the light one; one solid cannot be `#f1` over white and `#89`
   over black, so the light solid stays `#f1` until a capture settles it.
+- **bk menus under Reduce Transparency:** `theme::over_glass` keeps the menu
+  clear under Reduce Transparency alone and returns the solid palette only
+  with Increase Contrast, which was not measured. The compositor's blur and
+  glass gate is a separate change.
 - Not built: Control Center, Spotlight and the Notification Center clock pill
-  (no consumer), the Dock blur strength, the bk menu policy under Reduce
-  Transparency and the removal of the lens pass. No lensing pass is justified
-  by the measurements.
+  (no consumer), the Dock blur strength and the removal of the lens pass. No
+  lensing pass is justified by the measurements.
 
 ## 11. Open questions
 

@@ -38,7 +38,7 @@ pub struct TabViewStyle {
     pub label: StateValue<ShapeStyle>,
     /// Tengen: the icon takes the same paint.
     pub selected_label: StateValue<ShapeStyle>,
-    /// Tengen: `Some((Role(Separator), HAIRLINE))`, drawn inside the strip.
+    /// Tengen: `Some((Role(Outline), HAIRLINE))`, drawn inside the strip.
     pub border: Option<(ShapeStyle, f32)>,
     /// Tengen: `system_effect`.
     pub effect: ColorEffect,
@@ -68,7 +68,7 @@ impl ControlStyle for TabViewStyle {
             selected_tab_background: StateValue::new(ShapeStyle::Role(Role::ControlHover)),
             label: StateValue::new(ShapeStyle::Role(Role::SecondaryLabel)),
             selected_label: StateValue::new(ShapeStyle::Accent),
-            border: Some((ShapeStyle::Role(Role::Separator), HAIRLINE)),
+            border: Some((ShapeStyle::Role(Role::Outline), HAIRLINE)),
             effect: system_effect,
             font: Font {
                 size: TOOLBAR_TABS.font_size as u32,

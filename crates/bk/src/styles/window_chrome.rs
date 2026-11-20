@@ -65,7 +65,7 @@ pub struct WindowChromeStyle {
     pub line_edge: (ShapeStyle, f32),
     /// Tengen: `(Accent, TITLEBAR_RAIL.edge_accent)`.
     pub accent_edge: (ShapeStyle, f32),
-    /// Tengen: `Some((Role(Separator), HAIRLINE))`, drawn inside.
+    /// Tengen: `Some((Role(Outline), HAIRLINE))`, drawn inside.
     pub pill_border: Option<(ShapeStyle, f32)>,
     /// Tengen: `[SHADOW.contact]` (`SHADOW_DARK.contact` in dark) with its `opacity`, under a
     /// drawer and the pill.
@@ -119,7 +119,7 @@ impl ControlStyle for WindowChromeStyle {
             rail_line: (!island).then(|| (line.clone(), HAIRLINE)),
             line_edge: (line, TITLEBAR_RAIL.edge_line),
             accent_edge: (ShapeStyle::Accent, TITLEBAR_RAIL.edge_accent),
-            pill_border: Some((ShapeStyle::Role(Role::Separator), HAIRLINE)),
+            pill_border: Some((ShapeStyle::Role(Role::Outline), HAIRLINE)),
             shadows: vec![ShadowStyle {
                 color: ctdesign::Rgba {
                     a: contact.opacity,

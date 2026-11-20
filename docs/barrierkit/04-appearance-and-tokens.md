@@ -81,7 +81,8 @@ component paints only with them.
 | `label` | Primary text | `NSColor.labelColor` |
 | `secondary_label` | Secondary text | `NSColor.secondaryLabelColor` |
 | `tertiary_label` | Tertiary text and placeholders | `NSColor.tertiaryLabelColor` |
-| `separator` | Separators | `NSColor.separatorColor` |
+| `separator` | Separators: black at 10% in light, white at 12% in dark, as `NSColor.separatorColor` measures | `NSColor.separatorColor` |
+| `outline` | Hairline edge of a field, box, well or panel | — |
 | `control_border` | Edge of a control | — |
 | `window_background` | Window background | `NSColor.windowBackgroundColor` |
 | `content_background` | Background of lists, tables and groups | `NSColor.controlBackgroundColor` |
@@ -99,7 +100,7 @@ component paints only with them.
 
 With `contrast = true` ([The appearance file](#the-appearance-file)) each ink
 moves up one level: `secondary_label` takes the strong ink and
-`tertiary_label` the muted one. Separators and control borders use the muted
+`tertiary_label` the muted one. Separators, outlines and control borders use the muted
 ink, which reaches 3:1 on the window, as the HIG asks for «Increase Contrast».
 
 ## Text, shapes and colors
@@ -292,7 +293,7 @@ installs them.
 | `menu_palette(resolved, kind) -> MenuPalette` | Menu colors over that surface. A tinted surface lifts the menu background and recomputes its separator. |
 | `popover_palette(resolved, kind) -> MenuPalette` | `menu_palette` with the metrics of a pop-up menu (`MENU_POPOVER`). |
 | `apply_popover_metrics(palette) -> MenuPalette` | Replaces the padding, widths, item size and check mark of a `MenuPalette` with `MENU_POPOVER`. |
-| `over_glass(palette) -> MenuPalette` | The palette of a menu or popover the compositor draws its glass under: a transparent `bg`, translucent inks (`glass_fg`, `glass_shortcut_color`, `glass_disabled_fg`) so the glass shows through the text, and `search_bg` the faint ink `glass_disabled_fg` as a translucent fill, so the search field reads as a field on the glass. The inks follow the glass the compositor reports under the popup (`infinity_focus_surface_v1.glass`): dark on a light panel and white on a dark one, whatever the colour scheme; until it reports, they are the scheme's. With transparency reduced it returns the palette as it is. |
+| `over_glass(palette) -> MenuPalette` | The palette of a menu or popover the compositor draws its glass under: a transparent `bg`, translucent inks (`glass_fg`, `glass_shortcut_color`, `glass_disabled_fg`) so the glass shows through the text, and `search_bg` the faint ink `glass_disabled_fg` as a translucent fill, so the search field reads as a field on the glass. The inks follow the glass the compositor reports under the popup (`infinity_focus_surface_v1.glass`): dark on a light panel and white on a dark one, whatever the colour scheme; until it reports, they are the scheme's. With Increase Contrast it returns the palette as it is; Reduce Transparency alone leaves the glass, as macOS does. |
 
 `SurfaceKind` has two variants: `Toplevel` (an app window) and `LayerShell`
 (a shell surface such as the menu bar).
@@ -517,7 +518,7 @@ a style.
 | `menu`, `menu_parent` | `MenuPalette` and the window color a menu sits on. `Resolved::menu_separator(panel_bg)` gives the separator over another background. |
 | `sidebar` | `SidebarSurface`: `style`, `bg`, `rim`, `inner`, its `SidebarPalette` and `glass`. `glass` is a `SidebarGlass` with `base` (the tone of the glass at rest, tinted with the accent when the accent is the window color), `solid` (the tone of a window that is not active) and `chroma` (the share of the wallpaper's chroma, `GLASS.accent_share` of it under an accent) and is `None` with reduced transparency ([ADR 0065](../decisions.md)). |
 | `toolgroup` | `ToolgroupSurface`: `bg` and its `ToolgroupPalette`. |
-| `surfaces` | `Surfaces`: `window`, `titlebar_inactive`, `sunken`, `surface`, `raised`, `control`, `hover`, `line`, already tinted. |
+| `surfaces` | `Surfaces`: `window`, `titlebar_inactive`, `sunken`, `surface`, `raised`, `control`, `hover`, `line`, already tinted. `line` is the separator color. |
 
 The rules `resolve` applies:
 
@@ -812,7 +813,7 @@ A color, size or duration never goes into `bk`. It goes into Tengen:
 |---|---|
 | `Rgba` | sRGB color with straight alpha, channels from 0 to 1. `TRANSPARENT`, `rgb8`, `rgba8`, `to_rgba8`, `premultiplied`, `mix` (keeps its own alpha), `darken`, `lighten`, `to_linear`, `from_linear`, `relative_luminance`, `contrast_ratio`, `to_hsl`, `from_hsl`. |
 | `Font` | `family`, `size`, `line_height` (pixels) and `weight`. |
-| `Palette` | Base colors of a theme: `titlebar_bg`, `hairline`, `inner_line`, `panel_inner_line`, `outer_border`, `title`, `text`, `ink_strong`, `ink_muted`, `ink_faint`, `line`, `line_strong`, `accent`, `accent_inactive`, `on_accent`, `danger`, `traffic_lights_inactive`, `traffic_rim`, `scrim`, `selected_control`, `card_border`. |
+| `Palette` | Base colors of a theme: `titlebar_bg`, `hairline`, `inner_line`, `panel_inner_line`, `outer_border`, `title`, `text`, `ink_strong`, `ink_muted`, `ink_faint`, `line`, `line_strong`, `separator`, `accent`, `accent_inactive`, `on_accent`, `danger`, `traffic_lights_inactive`, `traffic_rim`, `scrim`, `selected_control`, `card_border`. |
 | `FocusPair` | A color for the focused window and one for the unfocused. |
 | `PanelLine` | Inner line of a focused panel, menu or dialog: `sides`, `edges` (top and bottom) and the `glow` under the edges. |
 | `TrafficRim` | Rim of a traffic light: `lit` and `idle`. |

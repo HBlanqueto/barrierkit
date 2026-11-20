@@ -621,7 +621,7 @@ fn emit_palettes(out: &mut String, tengen: &Tengen) {
         let lights = "components.window.traffic-lights";
         let traffic = |key: &str| rgba(tengen.color(&format!("{lights}.{key}"), look));
         out.push_str(&format!(
-            "pub const {name}: Palette = Palette {{ titlebar_bg: {}, hairline: {}, inner_line: {inner_line}, panel_inner_line: {panel_inner_line}, outer_border: {}, title: {}, text: {}, ink_strong: {}, ink_muted: {}, ink_faint: {}, line: {}, line_strong: {}, accent: {}, accent_inactive: {}, on_accent: {}, danger: {}, traffic_lights_inactive: {}, traffic_rim: TrafficRim {{ lit: {}, idle: {} }}, scrim: {}, selected_control: {}, card_border: {} }};\n\n",
+            "pub const {name}: Palette = Palette {{ titlebar_bg: {}, hairline: {}, inner_line: {inner_line}, panel_inner_line: {panel_inner_line}, outer_border: {}, title: {}, text: {}, ink_strong: {}, ink_muted: {}, ink_faint: {}, line: {}, line_strong: {}, separator: {}, accent: {}, accent_inactive: {}, on_accent: {}, danger: {}, traffic_lights_inactive: {}, traffic_rim: TrafficRim {{ lit: {}, idle: {} }}, scrim: {}, selected_control: {}, card_border: {} }};\n\n",
             pair("titlebar-bg", "titlebar-bg-inactive"),
             rgba_of("titlebar-line"),
             rgba_of("window-outer"),
@@ -632,6 +632,7 @@ fn emit_palettes(out: &mut String, tengen: &Tengen) {
             rgba_of("ink-faint"),
             rgba_of("line"),
             rgba_of("line-strong"),
+            rgba_of("separator"),
             rgba_of("accent"),
             rgba_of("accent-inactive"),
             rgba_of("on-accent"),

@@ -13,19 +13,19 @@ pub struct FloatingPaneStyle {
     pub shape: Shape,
     /// Tengen, with `title_bar`, `title`, `outline`: `background` `Role(WindowBackground)`,
     /// `title_bar` `Role(ControlBackground)`, `title` `Role(Label)`, `outline`
-    /// `Role(Separator)`, focused `Accent`.
+    /// `Role(Outline)`, focused `Accent`.
     pub background: StateValue<ShapeStyle>,
     /// Tengen, with `background`, `title`, `outline`: `background` `Role(WindowBackground)`,
     /// `title_bar` `Role(ControlBackground)`, `title` `Role(Label)`, `outline`
-    /// `Role(Separator)`, focused `Accent`.
+    /// `Role(Outline)`, focused `Accent`.
     pub title_bar: StateValue<ShapeStyle>,
     /// Tengen, with `background`, `title_bar`, `outline`: `background`
     /// `Role(WindowBackground)`, `title_bar` `Role(ControlBackground)`, `title` `Role(Label)`,
-    /// `outline` `Role(Separator)`, focused `Accent`.
+    /// `outline` `Role(Outline)`, focused `Accent`.
     pub title: StateValue<ShapeStyle>,
     /// Tengen, with `background`, `title_bar`, `title`: `background` `Role(WindowBackground)`,
     /// `title_bar` `Role(ControlBackground)`, `title` `Role(Label)`, `outline`
-    /// `Role(Separator)`, focused `Accent`.
+    /// `Role(Outline)`, focused `Accent`.
     pub outline: StateValue<ShapeStyle>,
     /// Tengen, with `title_height`: `title_height`, `outline_width`:
     /// `FLOATING_PANE.title_height`, `FLOATING_PANE.outline`, drawn outside.
@@ -46,7 +46,7 @@ impl ControlStyle for FloatingPaneStyle {
             background: StateValue::new(ShapeStyle::Role(Role::WindowBackground)),
             title_bar: StateValue::new(ShapeStyle::Role(Role::ControlBackground)),
             title: StateValue::new(ShapeStyle::Role(Role::Label)),
-            outline: StateValue::new(ShapeStyle::Role(Role::Separator)).focused(ShapeStyle::Accent),
+            outline: StateValue::new(ShapeStyle::Role(Role::Outline)).focused(ShapeStyle::Accent),
             outline_width: FLOATING_PANE.outline,
             shadows: vec![ShadowStyle {
                 color: FLOATING_PANE.shadow,

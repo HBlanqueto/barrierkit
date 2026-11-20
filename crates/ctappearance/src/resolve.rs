@@ -759,7 +759,7 @@ fn tinted_surfaces(
         raised: mix(raised, LAYER_FACTOR_RAISED, parts.menus),
         control: mix(control, LAYER_FACTOR_CONTROL, parts.controls),
         hover: mix(hover, LAYER_FACTOR_CONTROL, parts.controls),
-        line: mix(base.line, LAYER_FACTOR_LINE, parts.groups),
+        line: mix(base.separator, LAYER_FACTOR_LINE, parts.groups),
     }
 }
 
@@ -2080,6 +2080,27 @@ mod tests {
                     channel.abs_diff(measured) <= 8,
                     "{scheme:?}: {channel:#04x} against {measured:#04x}"
                 );
+            }
+        }
+    }
+
+    #[test]
+    fn every_separator_is_the_measured_macos_separator_in_each_scheme() {
+        for (scheme, measured) in [
+            (ColorScheme::Light, [0x00, 0x00, 0x00, 0x1a]),
+            (ColorScheme::Dark, [0xff, 0xff, 0xff, 0x1f]),
+            (ColorScheme::DarkTint, [0xff, 0xff, 0xff, 0x1f]),
+        ] {
+            let resolved = resolved_in(scheme, false);
+            for (name, separator) in [
+                ("palette", palette(scheme).separator),
+                ("titlebar", palette(scheme).hairline),
+                ("surfaces", resolved.surfaces.line),
+                ("sidebar", resolved.sidebar.palette.line),
+                ("menu", resolved.menu.separator_color),
+                ("toolgroup", resolved.toolgroup.palette.separator),
+            ] {
+                assert_eq!(separator.to_rgba8(), measured, "{scheme:?} {name}");
             }
         }
     }

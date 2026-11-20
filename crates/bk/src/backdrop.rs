@@ -228,6 +228,7 @@ impl Palette {
             secondary_label: alpha(BACKDROP.ink_secondary),
             tertiary_label: alpha(BACKDROP.ink_tertiary),
             separator: alpha(BACKDROP.glass),
+            outline: alpha(BACKDROP.glass),
             control_border: alpha(BACKDROP.ink_tertiary),
             window_background: alpha(0.0),
             content_background: sunken,

@@ -41,10 +41,10 @@ pub fn surface_background(resolved: &Resolved, kind: SurfaceKind) -> Rgba {
 /// glass shows through it, and its search field takes the faint ink of disabled text as a
 /// translucent fill, so it reads as a field on the glass. The ink follows the glass the compositor
 /// reports under the popup, dark on a light panel and light on a dark one, whatever the colour
-/// scheme; before it reports, the ink is the scheme's. With transparency reduced the palette stays
-/// as it is.
+/// scheme; before it reports, the ink is the scheme's. With Increase Contrast the palette stays as
+/// it is; Reduce Transparency alone leaves the glass, as in macOS.
 pub fn over_glass(palette: MenuPalette) -> MenuPalette {
-    if resolved().reduce_transparency {
+    if !menus_keep_glass(&resolved()) {
         return palette;
     }
     let ink = try_consume_root_context::<Popups>()
@@ -66,6 +66,10 @@ pub fn over_glass(palette: MenuPalette) -> MenuPalette {
         disabled_fg: ink.disabled,
         ..palette
     }
+}
+
+fn menus_keep_glass(resolved: &Resolved) -> bool {
+    !resolved.contrast
 }
 
 pub fn resolved() -> Resolved {
@@ -302,6 +306,30 @@ mod tests {
                 surface_background(&resolved, SurfaceKind::LayerShell),
                 layer,
                 "{name}: layer-shell background"
+            );
+        }
+    }
+
+    #[test]
+    fn menus_keep_glass_with_reduce_transparency_and_go_solid_only_with_increase_contrast() {
+        for (reduce_transparency, contrast, glass) in [
+            (false, false, true),
+            (true, false, true),
+            (false, true, false),
+            (true, true, false),
+        ] {
+            let resolved = resolve(
+                &AppearanceConfig {
+                    reduce_transparency,
+                    contrast,
+                    ..Default::default()
+                },
+                None,
+            );
+            assert_eq!(
+                menus_keep_glass(&resolved),
+                glass,
+                "reduce_transparency {reduce_transparency}, contrast {contrast}"
             );
         }
     }

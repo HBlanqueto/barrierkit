@@ -121,9 +121,10 @@ backdrop response that remains is a few units, not a material.
 | Menu ink | Follows panel | follows scheme | follows the panel |
 | Menu blur | Strong | `menu_glass` soften | verify |
 | Dock rim | 3-step light/dark bevel | `rim` and `tone` | model exists |
-| Label hierarchy | 84.7 / 54.9 / 24.7 / 9.8 | `ink`, `ink-muted`, `ink-faint` | fewer levels |
+| Label hierarchy | 84.7 / 54.9 / 24.7 / 9.8 | `ink`, `ink-muted`, `ink-faint` | three levels; no bk consumer fakes a fourth, so none is added |
+| Separator | `#000000` at 10% light, `#ffffff` at 12% dark | `line` at 4.7% light, 7.1% dark | `separator` token, measured |
 | Fill hierarchy | 9.8 / 7.8 / 4.7 / 2.7 | `bg-control`, `line` factors | different scheme |
-| Reduce Transparency | Dock scheme solid; menu and CC unchanged | solid fallback | approximate |
+| Reduce Transparency | Dock scheme solid; menu and CC unchanged | solid fallback | `over_glass` keeps the menu clear; solid only with Increase Contrast |
 
 ## 6. What not to copy
 

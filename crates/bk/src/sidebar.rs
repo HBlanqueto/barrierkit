@@ -55,7 +55,7 @@ pub(crate) fn over_backdrop(surface: SidebarSurface, backdrop: SidebarBackdrop) 
                 a: BACKDROP.island,
                 ..tint.average()
             },
-            Palette::current().separator,
+            Palette::current().outline,
         )
     } else {
         (Rgba::TRANSPARENT, Rgba::TRANSPARENT)

@@ -41,7 +41,7 @@ pub struct TokenFieldStyle {
     pub token_label: StateValue<ShapeStyle>,
     /// Tengen: `Role(OnAccent)`.
     pub selected_token_label: StateValue<ShapeStyle>,
-    /// Tengen: `Some((Role(Separator), HAIRLINE))`.
+    /// Tengen: `Some((Role(Outline), HAIRLINE))`.
     pub border: Option<(ShapeStyle, f32)>,
     /// Tengen: empty.
     pub shadows: Vec<ShadowStyle>,
@@ -75,7 +75,7 @@ impl ControlStyle for TokenFieldStyle {
             selected_token: StateValue::new(ShapeStyle::Accent),
             token_label: StateValue::new(ShapeStyle::Role(Role::Label)),
             selected_token_label: StateValue::new(ShapeStyle::Role(Role::OnAccent)),
-            border: Some((ShapeStyle::Role(Role::Separator), HAIRLINE)),
+            border: Some((ShapeStyle::Role(Role::Outline), HAIRLINE)),
             shadows: Vec::new(),
             opacity: 1.0,
             effect: system_effect,

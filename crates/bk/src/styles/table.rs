@@ -45,7 +45,7 @@ pub struct TableStyle {
     pub label: StateValue<ShapeStyle>,
     /// Tengen: `Role(OnAccent)`.
     pub selected_label: StateValue<ShapeStyle>,
-    /// Tengen: `Some((Role(Separator), HAIRLINE))`, drawn inside the header.
+    /// Tengen: `Some((Role(Outline), HAIRLINE))`, drawn inside the header.
     pub header_border: Option<(ShapeStyle, f32)>,
     /// Tengen: `system_effect`.
     pub effect: ColorEffect,
@@ -72,7 +72,7 @@ impl ControlStyle for TableStyle {
             selected_row_background: StateValue::new(ShapeStyle::Accent),
             label: StateValue::new(ShapeStyle::Role(Role::Label)),
             selected_label: StateValue::new(ShapeStyle::Role(Role::OnAccent)),
-            header_border: Some((ShapeStyle::Role(Role::Separator), HAIRLINE)),
+            header_border: Some((ShapeStyle::Role(Role::Outline), HAIRLINE)),
             effect: system_effect,
             header_font: CAPTION,
             font: BODY,

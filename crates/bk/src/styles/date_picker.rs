@@ -71,7 +71,7 @@ pub struct DatePickerStyle {
     pub selected_day: StateValue<ShapeStyle>,
     /// Tengen: `Role(OnAccent)`.
     pub selected_day_label: StateValue<ShapeStyle>,
-    /// Tengen: `Some((Role(Separator), HAIRLINE))`.
+    /// Tengen: `Some((Role(Outline), HAIRLINE))`.
     pub border: Option<(ShapeStyle, f32)>,
     /// Tengen: empty.
     pub shadows: Vec<ShadowStyle>,
@@ -117,7 +117,7 @@ impl ControlStyle for DatePickerStyle {
             other_month_day: role(Role::SecondaryLabel),
             selected_day: StateValue::new(ShapeStyle::Accent),
             selected_day_label: role(Role::OnAccent),
-            border: Some((ShapeStyle::Role(Role::Separator), HAIRLINE)),
+            border: Some((ShapeStyle::Role(Role::Outline), HAIRLINE)),
             shadows: Vec::new(),
             opacity: 1.0,
             effect: system_effect,

@@ -630,7 +630,7 @@
           "traffic-y": 11
         },
         "flat": {
-          "line": "line"
+          "line": "separator"
         },
         "glass": {
           "chroma": { "light": 0.22, "dark": 0.05 },
@@ -696,7 +696,7 @@
         "padding-x": 0,
         "separator-w": 1,
         "separator-h": 18,
-        "separator": "line",
+        "separator": "separator",
         "rim": "toolgroup-rim"
       }
     },
@@ -1279,7 +1279,7 @@
         "separator": {
           "height": 1,
           "margin-y": 5,
-          "color": "line",
+          "color": "separator",
           "tint-ink-mix": 0.14
         },
         "mark": {

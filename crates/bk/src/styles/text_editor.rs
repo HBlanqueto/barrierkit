@@ -39,7 +39,7 @@ pub struct TextEditorStyle {
     /// Tengen, with `link`, `misspelling`: `Accent`, `Role(Destructive)`,
     /// `Role(SecondaryLabel)` for the match count.
     pub caption: StateValue<ShapeStyle>,
-    /// Tengen: `Some((Role(Separator), HAIRLINE))`, drawn inside.
+    /// Tengen: `Some((Role(Outline), HAIRLINE))`, drawn inside.
     pub border: Option<(ShapeStyle, f32)>,
     /// Tengen: `1.0`.
     pub opacity: f32,
@@ -65,7 +65,7 @@ impl ControlStyle for TextEditorStyle {
             link: StateValue::new(ShapeStyle::Accent),
             misspelling: StateValue::new(ShapeStyle::Role(Role::Destructive)),
             caption: StateValue::new(ShapeStyle::Role(Role::SecondaryLabel)),
-            border: Some((ShapeStyle::Role(Role::Separator), HAIRLINE)),
+            border: Some((ShapeStyle::Role(Role::Outline), HAIRLINE)),
             opacity: 1.0,
             effect: system_effect,
             font: BODY,

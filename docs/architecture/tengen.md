@@ -70,7 +70,7 @@ build.
 | Themes | `themes.light`, `themes.dark`, `themes.dark-tint`; `default-theme` is `light` | `LIGHT`, `DARK`, `DARK_TINT` and the themed constants |
 | Traffic lights | `traffic-close` `#ff5f57`, `traffic-min` `#febc2e`, `traffic-zoom` `#28c840` in every theme; `traffic-inactive`, `traffic-rim`, `traffic-rim-inactive` per theme | `TITLEBAR.buttons`, `Palette.traffic_lights_inactive`, `Palette.traffic_rim` |
 | Traffic light geometry and glyphs | `components.window.traffic-lights` (`size` 14, `gap` 9, `radius` 4, `glyphs`) | `TITLEBAR.buttons`, `TRAFFIC_GLYPHS`, `TRAFFIC_*` |
-| Titlebar colours | `titlebar-bg`, `titlebar-bg-inactive`, `titlebar-title`, `titlebar-title-inactive`, `titlebar-line` | `Palette.titlebar_bg`, `Palette.title`, `Palette.hairline` |
+| Titlebar colours | `titlebar-bg`, `titlebar-bg-inactive`, `titlebar-title`, `titlebar-title-inactive`, `titlebar-line` (the `separator` token) | `Palette.titlebar_bg`, `Palette.title`, `Palette.hairline` |
 | Titlebar heights | `size.titlebar-h` 40 (own apps); `size.titlebar-ssd-h` 32 (the bar the compositor draws) | `TITLEBAR_CLIENT_HEIGHT`; `TITLEBAR.thickness` |
 | Window corners | `components.window.corner`: `titlebar` → `radius.lg` (16), `compact` 20, `unified` 26, `utility` 15, `expansion` 1.52866, `exponent` 3.34 | `WINDOW_CORNER`; the names match the `set_bar` bars |
 | Fonts | `font.families.sans` starts with Adwaita Sans; `font.families.mono` with Geist Mono | `SANS_FAMILIES`; each `Font` takes the first family |

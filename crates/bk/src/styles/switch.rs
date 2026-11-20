@@ -34,7 +34,7 @@ pub struct SwitchStyle {
     pub knob: StateValue<ShapeStyle>,
     /// Tengen: `Role(Label)`.
     pub label: StateValue<ShapeStyle>,
-    /// Tengen: `Some((Role(Separator), HAIRLINE))`, drawn only while off.
+    /// Tengen: `Some((Role(Outline), HAIRLINE))`, drawn only while off.
     pub track_border: Option<(ShapeStyle, f32)>,
     /// Tengen: `None`.
     pub knob_border: Option<(ShapeStyle, f32)>,
@@ -82,7 +82,7 @@ impl ControlStyle for SwitchStyle {
             fill: StateValue::new(ShapeStyle::Accent),
             knob: StateValue::new(ShapeStyle::Color(SWITCH.knob_color)),
             label: StateValue::new(ShapeStyle::Role(Role::Label)),
-            track_border: Some((ShapeStyle::Role(Role::Separator), HAIRLINE)),
+            track_border: Some((ShapeStyle::Role(Role::Outline), HAIRLINE)),
             knob_border: None,
             knob_shadows: vec![KNOB_SHADOW.into()],
             knob_pressed_scale: SWITCH.knob_pressed_scale,

@@ -882,6 +882,7 @@ pub struct Palette {
     pub ink_faint: Rgba,
     pub line: Rgba,
     pub line_strong: Rgba,
+    pub separator: Rgba,
     pub accent: Rgba,
     pub accent_inactive: Rgba,
     pub on_accent: Rgba,

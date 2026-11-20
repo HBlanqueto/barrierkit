@@ -11,6 +11,7 @@ pub struct Palette {
     pub secondary_label: Rgba,
     pub tertiary_label: Rgba,
     pub separator: Rgba,
+    pub outline: Rgba,
     pub control_border: Rgba,
     pub window_background: Rgba,
     pub content_background: Rgba,
@@ -46,21 +47,30 @@ impl Palette {
         let resolved = crate::theme::resolved();
         let base = ctappearance::palette(resolved.scheme);
         // HIG «Increase Contrast»: each ink steps up one level and control edges reach 3:1.
-        let (secondary_label, tertiary_label, separator, control_border) = if resolved.contrast {
-            (
-                base.ink_strong,
-                base.ink_muted,
-                base.ink_muted,
-                base.ink_muted,
-            )
-        } else {
-            (base.ink_muted, base.ink_faint, base.line, base.line_strong)
-        };
+        let (secondary_label, tertiary_label, separator, outline, control_border) =
+            if resolved.contrast {
+                (
+                    base.ink_strong,
+                    base.ink_muted,
+                    base.ink_muted,
+                    base.ink_muted,
+                    base.ink_muted,
+                )
+            } else {
+                (
+                    base.ink_muted,
+                    base.ink_faint,
+                    base.separator,
+                    base.line,
+                    base.line_strong,
+                )
+            };
         Self {
             label: base.ink_strong,
             secondary_label,
             tertiary_label,
             separator,
+            outline,
             control_border,
             window_background: resolved.surfaces.window,
             content_background: resolved.surfaces.surface,

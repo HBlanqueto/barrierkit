@@ -45,7 +45,8 @@ A control's style names a `Role`; its color is one variable. Source:
 | `Label` | `--bk-ink-strong` |
 | `SecondaryLabel` | `--bk-ink-muted` |
 | `TertiaryLabel` | `--bk-ink-faint` |
-| `Separator` | `--bk-line` |
+| `Separator` | `--bk-separator` |
+| `Outline` | `--bk-line` |
 | `ControlBorder` | `--bk-line-strong` |
 | `WindowBackground` | `--bk-bg-window` |
 | `ContentBackground` | `--bk-bg-surface` |

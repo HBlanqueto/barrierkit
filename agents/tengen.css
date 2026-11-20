@@ -554,7 +554,7 @@
   --bk-window-sidebar-island-inner-width: 1;
   --bk-window-sidebar-island-traffic-x: 11;
   --bk-window-sidebar-island-traffic-y: 11;
-  --bk-window-sidebar-flat-line: var(--bk-line);
+  --bk-window-sidebar-flat-line: var(--bk-separator);
   --bk-window-sidebar-glass-chroma-light: 0.22;
   --bk-window-sidebar-glass-chroma-dark: 0.05;
   --bk-window-sidebar-glass-chroma-cap-light: 0.05;
@@ -617,7 +617,7 @@
   --bk-window-toolgroup-padding-x: 0;
   --bk-window-toolgroup-separator-w: 1;
   --bk-window-toolgroup-separator-h: 18;
-  --bk-window-toolgroup-separator: var(--bk-line);
+  --bk-window-toolgroup-separator: var(--bk-separator);
   --bk-window-toolgroup-rim: var(--bk-toolgroup-rim);
   --bk-settings-window-width: 770;
   --bk-settings-window-height: 848;
@@ -1144,7 +1144,7 @@
   --bk-shell-menu-glass-disabled-fg: var(--bk-glass-ink-faint);
   --bk-shell-menu-separator-height: 1;
   --bk-shell-menu-separator-margin-y: 5;
-  --bk-shell-menu-separator-color: var(--bk-line);
+  --bk-shell-menu-separator-color: var(--bk-separator);
   --bk-shell-menu-separator-tint-ink-mix: 0.14;
   --bk-shell-menu-mark-inset: 3;
   --bk-shell-menu-mark-width: 16;
@@ -1278,6 +1278,7 @@
   --bk-bg-hover: #dcdcdc;
   --bk-line: #0000000c;
   --bk-line-strong: #b8b8b8;
+  --bk-separator: #0000001a;
   --bk-card-border: #00000000;
   --bk-ink: #262626;
   --bk-ink-inactive: #4d4d4d;
@@ -1301,7 +1302,7 @@
   --bk-titlebar-bg-inactive: #efeff0;
   --bk-titlebar-title: #1d1d1f;
   --bk-titlebar-title-inactive: #6e6e6e;
-  --bk-titlebar-line: #0000001a;
+  --bk-titlebar-line: var(--bk-separator);
   --bk-shell-bar: #f2f4f7e6;
   --bk-dock-bar: #b5b5b548;
   --bk-dock-bar-opaque: #f1f1f1;
@@ -1338,6 +1339,7 @@
     --bk-bg-hover: #444444;
     --bk-line: #ffffff12;
     --bk-line-strong: #535353;
+    --bk-separator: #ffffff1f;
     --bk-card-border: #00000000;
     --bk-ink: #d6d6d6;
     --bk-ink-inactive: #5d5d5d;
@@ -1361,7 +1363,7 @@
     --bk-titlebar-bg-inactive: #232323;
     --bk-titlebar-title: #eaeaea;
     --bk-titlebar-title-inactive: #9b9b9b;
-    --bk-titlebar-line: #ffffff12;
+    --bk-titlebar-line: var(--bk-separator);
     --bk-shell-bar: #1e1e1ee6;
     --bk-dock-bar: #2727274e;
     --bk-dock-bar-opaque: #0a0a0a;
@@ -1398,6 +1400,7 @@
   --bk-bg-hover: #444444;
   --bk-line: #ffffff12;
   --bk-line-strong: #535353;
+  --bk-separator: #ffffff1f;
   --bk-card-border: #00000000;
   --bk-ink: #d6d6d6;
   --bk-ink-inactive: #5d5d5d;
@@ -1421,7 +1424,7 @@
   --bk-titlebar-bg-inactive: #232323;
   --bk-titlebar-title: #eaeaea;
   --bk-titlebar-title-inactive: #9b9b9b;
-  --bk-titlebar-line: #ffffff12;
+  --bk-titlebar-line: var(--bk-separator);
   --bk-shell-bar: #1e1e1ee6;
   --bk-dock-bar: #2727274e;
   --bk-dock-bar-opaque: #0a0a0a;
@@ -1457,6 +1460,7 @@
   --bk-bg-hover: #424448;
   --bk-line: #323336;
   --bk-line-strong: #73767c;
+  --bk-separator: #ffffff1f;
   --bk-card-border: #323336;
   --bk-ink: #dadcdf;
   --bk-ink-inactive: #b3b5b9;
@@ -1480,7 +1484,7 @@
   --bk-titlebar-bg-inactive: #151617;
   --bk-titlebar-title: #f4f5f6;
   --bk-titlebar-title-inactive: #999ca3;
-  --bk-titlebar-line: #323336;
+  --bk-titlebar-line: var(--bk-separator);
   --bk-shell-bar: #1d1e20e6;
   --bk-dock-bar: #2727274e;
   --bk-dock-bar-opaque: #0a0a0a;

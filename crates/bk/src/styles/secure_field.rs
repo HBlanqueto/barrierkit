@@ -15,7 +15,7 @@ pub struct SecureFieldStyle {
     pub background: StateValue<ShapeStyle>,
     /// Tengen: `Role(Label)`, the `•`.
     pub text: StateValue<ShapeStyle>,
-    /// Tengen: `Some((Role(Separator), HAIRLINE))`.
+    /// Tengen: `Some((Role(Outline), HAIRLINE))`.
     pub border: Option<(ShapeStyle, f32)>,
     /// Tengen: `1.0`.
     pub opacity: f32,
@@ -33,7 +33,7 @@ impl ControlStyle for SecureFieldStyle {
             shape: field_shape(),
             background: StateValue::new(ShapeStyle::Role(Role::ContentBackground)),
             text: StateValue::new(ShapeStyle::Role(Role::Label)),
-            border: Some((ShapeStyle::Role(Role::Separator), HAIRLINE)),
+            border: Some((ShapeStyle::Role(Role::Outline), HAIRLINE)),
             opacity: 1.0,
             effect: system_effect,
             font: BODY,

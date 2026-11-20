@@ -29,7 +29,7 @@ pub struct CheckboxStyle {
     pub mark: StateValue<ShapeStyle>,
     /// Tengen, with `mark`: `Role(OnAccent)`, `Role(Label)` (disabled `Role(TertiaryLabel)`).
     pub label: StateValue<ShapeStyle>,
-    /// Tengen: `Some((Role(Separator), HAIRLINE))`, drawn only while unchecked.
+    /// Tengen: `Some((Role(Outline), HAIRLINE))`, drawn only while unchecked.
     pub box_border: Option<(ShapeStyle, f32)>,
     /// Tengen: empty.
     pub box_shadows: Vec<ShadowStyle>,
@@ -59,7 +59,7 @@ impl ControlStyle for CheckboxStyle {
             mark: StateValue::new(ShapeStyle::Role(Role::OnAccent)),
             label: StateValue::new(ShapeStyle::Role(Role::Label))
                 .disabled(ShapeStyle::Role(Role::TertiaryLabel)),
-            box_border: Some((ShapeStyle::Role(Role::Separator), HAIRLINE)),
+            box_border: Some((ShapeStyle::Role(Role::Outline), HAIRLINE)),
             box_shadows: Vec::new(),
             opacity: 1.0,
             disabled_opacity: 1.0,
