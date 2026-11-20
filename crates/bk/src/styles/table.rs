@@ -65,8 +65,17 @@ pub struct TableStyle {
     pub header_border: Option<(ShapeStyle, f32)>,
     /// Tengen: `system_effect`.
     pub effect: ColorEffect,
-    /// Tengen: `CAPTION` with the weight of `BODY`, its size also the arrow's.
+    /// Tengen: `CAPTION` with the weight of `BODY`.
     pub header_font: Font,
+    /// Tengen: `header_font` at `TABLE.sorted_weight`, for the sorted column.
+    pub sorted_header_font: Font,
+    /// Tengen: `(TABLE.sort_arrow, TABLE.sort_arrow_stroke)`.
+    pub sort_arrow_size: (f32, f32),
+    /// Tengen: `(TABLE.sort_arrow_inset, TABLE.sort_arrow_drop)`: from the right edge of the
+    /// header cell, and below its center.
+    pub sort_arrow_offset: (f32, f32),
+    /// Tengen: `Role(SecondaryLabel)`.
+    pub sort_arrow: StateValue<ShapeStyle>,
     /// Tengen: `BODY`.
     pub font: Font,
 }
@@ -103,6 +112,13 @@ impl ControlStyle for TableStyle {
                 weight: BODY.weight,
                 ..CAPTION
             },
+            sorted_header_font: Font {
+                weight: TABLE.sorted_weight as u16,
+                ..CAPTION
+            },
+            sort_arrow_size: (TABLE.sort_arrow, TABLE.sort_arrow_stroke),
+            sort_arrow_offset: (TABLE.sort_arrow_inset, TABLE.sort_arrow_drop),
+            sort_arrow: StateValue::new(ShapeStyle::Role(Role::SecondaryLabel)),
             font: BODY,
         }
     }

@@ -436,6 +436,8 @@ LEVEL_BORDER Rgba themes.{theme}.level-border
 SEARCH_CLEAR Rgba themes.{theme}.search-clear
 DISABLED DisabledPalette themes.{theme}.disabled
 GAUGE_CONTRAST GaugeContrast themes.{theme}.gauge-contrast
+DISCLOSURE_TRIANGLE Rgba themes.{theme}.disclosure-triangle
+DISCLOSURE_TRIANGLE_CONTRAST Rgba themes.{theme}.disclosure-triangle-contrast
 PRESSED PressedPalette themes.{theme}.pressed
 PRESSED_CONTRAST PressedPalette themes.{theme}.pressed-contrast
 DISABLED_CONTRAST DisabledPalette themes.{theme}.disabled-contrast

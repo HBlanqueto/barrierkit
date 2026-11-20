@@ -18,6 +18,8 @@ pub struct CheckboxStyle {
     pub mark_size: f32,
     /// Tengen: `CHECKBOX.mark_stroke`.
     pub mark_stroke: f32,
+    /// Tengen: `(CHECKBOX.mixed_mark, CHECKBOX.mixed_stroke)`: the dash of a mixed checkbox.
+    pub mixed_mark: (f32, f32),
     /// Tengen: `SETTINGS.check.gap`.
     pub label_gap: f32,
     /// Tengen: `RoundedRectangle { radius: CHECKBOX.radius, style: Circular }`.
@@ -57,6 +59,7 @@ impl ControlStyle for CheckboxStyle {
             box_size: CHECKBOX.size,
             mark_size: CHECKBOX.mark,
             mark_stroke: CHECKBOX.mark_stroke,
+            mixed_mark: (CHECKBOX.mixed_mark, CHECKBOX.mixed_stroke),
             label_gap: SETTINGS.check.gap as f32,
             box_shape: rounded(CHECKBOX.radius),
             box_background: StateValue::new(ShapeStyle::Role(Role::SystemFill))

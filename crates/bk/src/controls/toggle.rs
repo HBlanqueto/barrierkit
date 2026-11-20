@@ -270,6 +270,7 @@ impl Component for Switch {
 pub struct Checkbox {
     label: &'static str,
     checked: bool,
+    mixed: bool,
     disabled: bool,
     on_toggle: Option<Callback<bool, ()>>,
     probe: Option<&'static str>,
@@ -283,6 +284,7 @@ impl Checkbox {
         Self {
             label,
             checked: false,
+            mixed: false,
             disabled: false,
             on_toggle: None,
             probe: None,
@@ -306,6 +308,11 @@ impl Checkbox {
 
     pub fn checked(mut self, checked: bool) -> Self {
         self.checked = checked;
+        self
+    }
+
+    pub fn mixed(mut self, mixed: bool) -> Self {
+        self.mixed = mixed;
         self
     }
 
@@ -360,7 +367,9 @@ impl Component for Checkbox {
         let radius = style
             .box_shape
             .corner_radius(size, size, style.layout_direction);
-        let paint = if is_checked {
+        let mixed = self.mixed;
+        let filled = is_checked || mixed;
+        let paint = if filled {
             &style.fill
         } else {
             &style.box_background
@@ -374,15 +383,20 @@ impl Component for Checkbox {
                 style
                     .box_border
                     .as_ref()
-                    .filter(|_| !is_checked && !disabled && !state.pressed),
+                    .filter(|_| !filled && !disabled && !state.pressed),
                 |el, border| el.border(inner_border(&paints, border)),
             )
             .center()
-            .maybe(is_checked, |el| {
+            .maybe(filled, |el| {
+                let (symbol, size, stroke) = if mixed {
+                    (Symbol::Minus, style.mixed_mark.0, style.mixed_mark.1)
+                } else {
+                    (Symbol::Checkmark, style.mark_size, style.mark_stroke)
+                };
                 el.child(stroked_symbol(
-                    Symbol::Checkmark,
-                    style.mark_size,
-                    style.mark_stroke,
+                    symbol,
+                    size,
+                    stroke,
                     paints.color(style.mark.resolve(state)),
                 ))
             });
@@ -396,7 +410,13 @@ impl Component for Checkbox {
             .width(self.width.clone())
             .a11y_role(AccessibilityRole::CheckBox)
             .a11y_alt(label_text)
-            .a11y_builder(move |node| node.set_toggled(is_checked.into()))
+            .a11y_builder(move |node| {
+                node.set_toggled(if mixed {
+                    accesskit::Toggled::Mixed
+                } else {
+                    is_checked.into()
+                })
+            })
             .on_press(move |_| {
                 if !disabled {
                     let next = !*checked.peek();

@@ -9,7 +9,7 @@ use crate::interaction::{track_modifiers, use_held_modifiers};
 use crate::menu::{CheckState, MenuItem};
 use crate::style::text;
 use crate::styles::{ControlState, Paints, ShapeStyle, StateValue, TableStyle, Theme, resolve};
-use crate::symbol::{Symbol, symbol};
+use crate::symbol::{Symbol, stroked_symbol};
 use crate::views::collection::select;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -423,7 +423,11 @@ impl Component for HeaderCell {
             &style.header_label
         };
         let ink = paints.color(label.resolve(state));
-        let font = style.header_font;
+        let font = if self.arrow.is_some() {
+            style.sorted_header_font
+        } else {
+            style.header_font
+        };
         let on_press = self.on_press.clone();
         let cell = interaction
             .attach(rect(), on_press.is_some())
@@ -436,7 +440,22 @@ impl Component for HeaderCell {
             .cross_align(Alignment::Center)
             .spacing(style.header_spacing)
             .child(text(self.title, font, ink))
-            .maybe_child(self.arrow.map(|arrow| symbol(arrow, font.size as f32, ink)));
+            .maybe_child(self.arrow.map(|arrow| {
+                let (size, stroke) = style.sort_arrow_size;
+                let (inset, drop) = style.sort_arrow_offset;
+                rect()
+                    .position(
+                        Position::new_absolute()
+                            .right(inset)
+                            .top((font.line_height as f32 - size) / 2.0 + drop),
+                    )
+                    .child(stroked_symbol(
+                        arrow,
+                        size,
+                        stroke,
+                        paints.color(style.sort_arrow.resolve(state)),
+                    ))
+            }));
         interaction.inner_focus_ring(cell)
     }
 }

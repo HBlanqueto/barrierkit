@@ -303,6 +303,8 @@ pub struct CheckboxMetrics {
     pub radius: f32,
     pub mark: f32,
     pub mark_stroke: f32,
+    pub mixed_mark: f32,
+    pub mixed_stroke: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -627,6 +629,8 @@ pub struct DisclosureMetrics {
     pub indent: f32,
     pub row_height: f32,
     pub chevron: f32,
+    pub triangle: f32,
+    pub triangle_stroke: f32,
     pub row_radius: f32,
     pub icon: f32,
     pub column_width: f32,
@@ -794,6 +798,11 @@ pub struct TableMetrics {
     pub zebra: f32,
     pub min_column_width: f32,
     pub resize_handle: f32,
+    pub sorted_weight: u32,
+    pub sort_arrow: f32,
+    pub sort_arrow_stroke: f32,
+    pub sort_arrow_inset: f32,
+    pub sort_arrow_drop: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

@@ -13,8 +13,10 @@ pub struct OutlineViewStyle {
     pub spacing: f32,
     /// Tengen: `DISCLOSURE.icon`.
     pub icon_size: f32,
-    /// Tengen: `DISCLOSURE.chevron`.
+    /// Tengen: `DISCLOSURE.chevron`, the chevron of a `Browser` row.
     pub chevron_size: f32,
+    /// Tengen: `(DISCLOSURE.triangle, DISCLOSURE.triangle_stroke)`, the disclosure chevron.
+    pub triangle_size: (f32, f32),
     /// Tengen: `DISCLOSURE.column_width`.
     pub column_width: f32,
     /// Tengen: `SPACE_1` on each side of a row. `Browser` only.
@@ -33,7 +35,7 @@ pub struct OutlineViewStyle {
     pub icon: StateValue<ShapeStyle>,
     /// Tengen: `Role(OnSelectedContent)`.
     pub selected_icon: StateValue<ShapeStyle>,
-    /// Tengen: `Role(SecondaryLabel)`, the disclosure chevron of `OutlineView`.
+    /// Tengen: `Color(DISCLOSURE_TRIANGLE)`, the disclosure chevron of `OutlineView`.
     pub disclosure: StateValue<ShapeStyle>,
     /// Tengen: `Role(TertiaryLabel)`, the chevron of a `Browser` row with children.
     pub column_chevron: StateValue<ShapeStyle>,
@@ -55,6 +57,7 @@ impl ControlStyle for OutlineViewStyle {
             spacing: SPACE_1,
             icon_size: DISCLOSURE.icon,
             chevron_size: DISCLOSURE.chevron,
+            triangle_size: (DISCLOSURE.triangle, DISCLOSURE.triangle_stroke),
             column_width: DISCLOSURE.column_width,
             column_padding_x: SPACE_1,
             row_shape: rounded(DISCLOSURE.row_radius),
@@ -64,7 +67,7 @@ impl ControlStyle for OutlineViewStyle {
             selected_label: StateValue::new(ShapeStyle::Role(Role::OnSelectedContent)),
             icon: StateValue::new(ShapeStyle::Accent),
             selected_icon: StateValue::new(ShapeStyle::Role(Role::OnSelectedContent)),
-            disclosure: StateValue::new(ShapeStyle::Role(Role::SecondaryLabel)),
+            disclosure: super::disclosure_group::disclosure_triangle(),
             column_chevron: StateValue::new(ShapeStyle::Role(Role::TertiaryLabel)),
             selected_chevron: StateValue::new(ShapeStyle::Role(Role::OnSelectedContent)),
             column_separator: (ShapeStyle::Role(Role::Separator), HAIRLINE),

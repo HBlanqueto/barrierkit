@@ -249,7 +249,7 @@ ToolGroup::new().child(back).child(forward).style(|s| ToolGroupStyle { axis: Axi
 | Item | Build | Value | Reports |
 |---|---|---|---|
 | `Switch` | `Switch::new(label)` | `.on(bool)` | `.on_toggle(\|on: bool\| ..)` |
-| `Checkbox` | `Checkbox::new(label)`, `.width(Size)` | `.checked(bool)` | `.on_toggle(\|checked: bool\| ..)` |
+| `Checkbox` | `Checkbox::new(label)`, `.width(Size)` | `.checked(bool)`, `.mixed(bool)` (a dash instead of the check) | `.on_toggle(\|checked: bool\| ..)` |
 
 Both take `.disabled(bool)`, `.tint(Tint)` and `.style(|s| ..)`.
 

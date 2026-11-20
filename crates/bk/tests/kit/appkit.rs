@@ -20,8 +20,8 @@ use bk::sidebar::{SidebarItem, SidebarSection};
 use bk::styles::ButtonStyle;
 use bk::symbol::Symbol;
 use bk::theme;
-use bk::views::group::GroupBox;
-use bk::views::table::Table;
+use bk::views::group::{DisclosureGroup, GroupBox};
+use bk::views::table::{SortOrder, Table};
 use ctappearance::{AppearanceConfig, ColorScheme, resolve};
 use ctdesign::{Rgba, SANS_FAMILIES};
 use freya_components::theming::hooks::use_init_theme;
@@ -104,6 +104,10 @@ fn controls() -> Vec<(&'static str, Builder)> {
                 .option("Radio")
                 .selected(0)
                 .into_element()
+        }),
+        ("disclosure", || DisclosureGroup::new("").into_element()),
+        ("check-mixed", || {
+            Checkbox::new("Mixed").mixed(true).into_element()
         }),
         ("check-on-disabled", || {
             Checkbox::new("Off")
@@ -324,6 +328,10 @@ fn controls() -> Vec<(&'static str, Builder)> {
                             row("music.mp3", "Audio"),
                             row("video.mov", "Movie"),
                         ])
+                        .sort(Some(SortOrder {
+                            column: 0,
+                            ascending: true,
+                        }))
                         .selected(vec![1]),
                 )
                 .into_element()

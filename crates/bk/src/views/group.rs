@@ -7,7 +7,7 @@ use crate::styles::Painted;
 use crate::styles::{
     ControlState, DisclosureGroupStyle, GroupBoxStyle, LayoutDirection, Paints, Theme, resolve,
 };
-use crate::symbol::{Symbol, symbol};
+use crate::symbol::{Symbol, stroked_symbol};
 
 #[derive(PartialEq)]
 pub struct GroupBox {
@@ -136,11 +136,17 @@ impl Component for DisclosureGroup {
             .direction(Direction::Horizontal)
             .cross_align(Alignment::Center)
             .on_press(move |_| expanded.toggle())
-            .child(rect().width(Size::px(style.indent)).center().child(symbol(
-                chevron,
-                style.chevron_size,
-                paints.color(style.chevron.resolve(state)),
-            )))
+            .child(
+                rect()
+                    .width(Size::px(style.indent))
+                    .center()
+                    .child(stroked_symbol(
+                        chevron,
+                        style.chevron_size.0,
+                        style.chevron_size.1,
+                        paints.color(style.chevron.resolve(state)),
+                    )),
+            )
             .child(text(
                 self.label,
                 style.font,

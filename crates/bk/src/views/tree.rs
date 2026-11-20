@@ -11,7 +11,7 @@ use crate::styles::Painted;
 use crate::styles::{
     ControlState, LayoutDirection, OutlineViewStyle, Paints, ShapeStyle, StateValue, Theme, resolve,
 };
-use crate::symbol::{Symbol, symbol};
+use crate::symbol::{Symbol, stroked_symbol, symbol};
 use crate::views::collection::select;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -195,13 +195,14 @@ impl Component for OutlineView {
                                     paths.insert(toggle_path.clone());
                                 }
                             })
-                            .child(symbol(
+                            .child(stroked_symbol(
                                 if open {
                                     Symbol::ChevronDown
                                 } else {
                                     Symbol::ChevronRight
                                 },
-                                style.chevron_size,
+                                style.triangle_size.0,
+                                style.triangle_size.1,
                                 ink,
                             ))
                     })

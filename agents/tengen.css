@@ -175,6 +175,8 @@
   --bk-disclosure-indent: 13;
   --bk-disclosure-row-height: 24;
   --bk-disclosure-chevron: 13;
+  --bk-disclosure-triangle: 12;
+  --bk-disclosure-triangle-stroke: 1.35;
   --bk-disclosure-row-radius: var(--bk-radius-xs);
   --bk-disclosure-icon: 16;
   --bk-disclosure-column-width: 200;
@@ -250,6 +252,8 @@
   --bk-checkbox-radius: 5.5;
   --bk-checkbox-mark: 16;
   --bk-checkbox-mark-stroke: 2.1;
+  --bk-checkbox-mixed-mark: 8.4;
+  --bk-checkbox-mixed-stroke: 1.8;
   --bk-symbol-stroke: 1.4;
   --bk-symbol-fine-stroke: 1;
   --bk-symbol-grid: 16;
@@ -472,6 +476,11 @@
   --bk-table-zebra: 0.045;
   --bk-table-min-column-width: 10;
   --bk-table-resize-handle: 6;
+  --bk-table-sorted-weight: 700;
+  --bk-table-sort-arrow: 9.6;
+  --bk-table-sort-arrow-stroke: 1.05;
+  --bk-table-sort-arrow-inset: -1.25;
+  --bk-table-sort-arrow-drop: 0.5;
   --bk-collection-tile: 92;
   --bk-collection-icon: 48;
   --bk-collection-gap: 6;
@@ -1391,6 +1400,8 @@
   --bk-pressed-contrast-accent: #002a90;
   --bk-pressed-contrast-toggle-accent: #002683;
   --bk-pressed-contrast-off: #00000093;
+  --bk-disclosure-triangle: #0000003f;
+  --bk-disclosure-triangle-contrast: #000000bc;
   --bk-gauge-contrast-ring-track: #00000026;
   --bk-gauge-contrast-level-track: #00000080;
   --bk-gauge-contrast-level-border: #000000ca;
@@ -1515,6 +1526,8 @@
     --bk-pressed-contrast-accent: #5c9de6;
     --bk-pressed-contrast-toggle-accent: #68a4e7;
     --bk-pressed-contrast-off: #ffffff81;
+    --bk-disclosure-triangle: #ffffff80;
+    --bk-disclosure-triangle-contrast: #ffffffad;
     --bk-gauge-contrast-ring-track: #ffffff26;
     --bk-gauge-contrast-level-track: #ffffff4d;
     --bk-gauge-contrast-level-border: #b2b2b261;
@@ -1639,6 +1652,8 @@
   --bk-pressed-contrast-accent: #5c9de6;
   --bk-pressed-contrast-toggle-accent: #68a4e7;
   --bk-pressed-contrast-off: #ffffff81;
+  --bk-disclosure-triangle: #ffffff80;
+  --bk-disclosure-triangle-contrast: #ffffffad;
   --bk-gauge-contrast-ring-track: #ffffff26;
   --bk-gauge-contrast-level-track: #ffffff4d;
   --bk-gauge-contrast-level-border: #b2b2b261;
@@ -1762,6 +1777,8 @@
   --bk-pressed-contrast-accent: #5c9de6;
   --bk-pressed-contrast-toggle-accent: #68a4e7;
   --bk-pressed-contrast-off: #ffffff81;
+  --bk-disclosure-triangle: #ffffff80;
+  --bk-disclosure-triangle-contrast: #ffffffad;
   --bk-gauge-contrast-ring-track: #ffffff26;
   --bk-gauge-contrast-level-track: #ffffff4d;
   --bk-gauge-contrast-level-border: #b2b2b261;

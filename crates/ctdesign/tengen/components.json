@@ -110,6 +110,8 @@
       "indent": 13,
       "row-height": 24,
       "chevron": 13,
+      "triangle": 12,
+      "triangle-stroke": 1.35,
       "row-radius": "radius.xs",
       "icon": 16,
       "column-width": 200
@@ -190,7 +192,9 @@
       "size": 16,
       "radius": 5.5,
       "mark": 16,
-      "mark-stroke": 2.1
+      "mark-stroke": 2.1,
+      "mixed-mark": 8.4,
+      "mixed-stroke": 1.8
     },
     "symbol": {
       "stroke": 1.4,
@@ -448,7 +452,12 @@
       "header-separator": 16,
       "zebra": 0.045,
       "min-column-width": 10,
-      "resize-handle": 6
+      "resize-handle": 6,
+      "sorted-weight": 700,
+      "sort-arrow": 9.6,
+      "sort-arrow-stroke": 1.05,
+      "sort-arrow-inset": -1.25,
+      "sort-arrow-drop": 0.5
     },
     "collection": {
       "tile": 92,
