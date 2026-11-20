@@ -406,38 +406,46 @@ impl Component for Alert {
         let (confirm, cancel) = (call(&self.on_confirm), call(&self.on_cancel));
         let (on_confirm, on_cancel) = (confirm.clone(), cancel.clone());
 
+        let inset = sheet_style.padding - style.padding;
+        let padding = style.padding;
         Sheet::new(
             rect()
                 .a11y_role(AccessibilityRole::AlertDialog)
                 .a11y_alt(self.title)
                 .a11y_focusable(true)
                 .a11y_auto_focus(true)
-                .width(Size::px(style.width - 2.0 * sheet_style.padding))
+                .width(Size::px(style.width - 2.0 * style.padding))
                 .direction(Direction::Vertical)
-                .spacing(style.spacing)
                 .on_global_key_down(move |event: Event<KeyboardEventData>| match event.key {
                     Key::Named(NamedKey::Enter) => confirm(),
                     Key::Named(NamedKey::Escape) => cancel(),
                     _ => {}
                 })
-                .child(text(
-                    self.title,
-                    style.title_font,
-                    paints.color(style.title.resolve(state)),
-                ))
                 .child(
-                    text(
-                        self.message.clone(),
-                        style.message_font,
-                        paints.color(style.message.resolve(state)),
-                    )
-                    .max_lines(None),
+                    rect()
+                        .width(Size::fill())
+                        .direction(Direction::Vertical)
+                        .spacing(style.spacing)
+                        .padding(Gaps::new(inset, inset, 0.0, inset))
+                        .child(text(
+                            self.title,
+                            style.title_font,
+                            paints.color(style.title.resolve(state)),
+                        ))
+                        .child(
+                            text(
+                                self.message.clone(),
+                                style.message_font,
+                                paints.color(style.message.resolve(state)),
+                            )
+                            .max_lines(None),
+                        )
+                        .maybe_child(self.suppressed.map(|mut suppressed| {
+                            Checkbox::new(text!("alert-suppress"))
+                                .checked(*suppressed.read())
+                                .on_toggle(move |checked| suppressed.set(checked))
+                        })),
                 )
-                .maybe_child(self.suppressed.map(|mut suppressed| {
-                    Checkbox::new(text!("alert-suppress"))
-                        .checked(*suppressed.read())
-                        .on_toggle(move |checked| suppressed.set(checked))
-                }))
                 .child(
                     rect()
                         .width(Size::fill())
@@ -466,5 +474,6 @@ impl Component for Alert {
                         ),
                 ),
         )
+        .style(move |sheet| SheetStyle { padding, ..sheet })
     }
 }

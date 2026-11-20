@@ -785,6 +785,9 @@
   --bk-dialog-radius: var(--bk-window-corner-unified);
   --bk-dialog-padding: 20;
   --bk-dialog-alert-width: 260;
+  --bk-dialog-alert-padding: 16;
+  --bk-dialog-alert-spacing: 10;
+  --bk-dialog-alert-line-height: 16;
   --bk-dialog-button-width: 84;
   --bk-dialog-sheet-width: 430;
   --bk-dialog-sheet-height: 280;

@@ -522,7 +522,10 @@ Alert::new("Forget this network?", "You will have to type the password again.")
 | `.destructive()` | off | The primary button takes `ButtonStyle::destructive`, like `NSAlert.hasDestructiveAction` |
 
 The alert is `DIALOG_ALERT_WIDTH` (260) wide and splits its two large buttons
-evenly. It does not close itself: the callbacks stop drawing it.
+evenly, 16 from the sides and the bottom (`DIALOG_ALERT_PADDING`) while the
+texts keep the sheet's 20. Title and message are one color and 16 a line, 10
+apart (`DIALOG_ALERT_SPACING`). It does not close itself: the callbacks stop
+drawing it. Its glass and its shadow are the compositor's.
 
 ### `SheetButtons`
 

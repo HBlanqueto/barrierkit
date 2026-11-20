@@ -899,6 +899,9 @@
       "radius": "components.window.corner.unified",
       "padding": 20,
       "alert-width": 260,
+      "alert-padding": 16,
+      "alert-spacing": 10,
+      "alert-line-height": 16,
       "button-width": 84,
       "sheet-width": 430,
       "sheet-height": 280

@@ -23,6 +23,9 @@ WINDOW_EXPAND_MAX_MS u64 components.window.expand-max-ms
 DIALOG WindowStyle components.dialog corner_radius=radius superellipse_exponent=components.window.corner.exponent
 DIALOG_PADDING f32 components.dialog.padding
 DIALOG_ALERT_WIDTH f32 components.dialog.alert-width
+DIALOG_ALERT_PADDING f32 components.dialog.alert-padding
+DIALOG_ALERT_SPACING f32 components.dialog.alert-spacing
+DIALOG_ALERT_LINE_HEIGHT u32 components.dialog.alert-line-height
 DIALOG_BUTTON_WIDTH f32 components.dialog.button-width
 BUTTON_DESTRUCTIVE_FILL f32 components.button.destructive-fill
 DIALOG_SHEET_WIDTH u32 components.dialog.sheet-width
