@@ -806,9 +806,7 @@ pub fn lights_for(
         ]
     };
     match style {
-        TrafficLightStyle::Standard => {
-            TITLEBAR.buttons.order.map(|button| button.color)
-        }
+        TrafficLightStyle::Standard => TITLEBAR.buttons.order.map(|button| button.color),
         TrafficLightStyle::Accent => derived(normal_accent),
         TrafficLightStyle::Wallpaper => derived(dominant.unwrap_or(normal_accent)),
     }
