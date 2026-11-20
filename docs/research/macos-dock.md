@@ -87,7 +87,7 @@ A later pass found the Dock glass follows the **wallpaper**, not the
 appearance scheme: with a dark wallpaper, light mode renders the same dark
 matrix as dark mode. The light values above were recorded under a different
 wallpaper state. See the corrections in
-[`macos-blur.md`](macos-blur.md#7-corrections-to-the-earlier-research) before
+[`macos-blur.md`](macos-blur.md#8-corrections-to-the-earlier-research) before
 using the light tokens.
 
 The rim is a three-step light/dark bevel, not a one-pixel outline. In dark

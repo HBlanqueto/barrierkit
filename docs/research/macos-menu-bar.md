@@ -120,7 +120,7 @@ bug in the probe.
 The panel is scheme-independent too: over black it is `#2b2b2b` with white
 ink even in light mode, and over white it is `#8d8d8d` with dark ink even in
 dark mode. See the corrections in
-[`macos-blur.md`](macos-blur.md#7-corrections-to-the-earlier-research).
+[`macos-blur.md`](macos-blur.md#8-corrections-to-the-earlier-research).
 
 Malaysia's current menu is a raised surface plus a `menu-glass` overlay. Its
 dark value `#ffffff21` over black lands near `#212121`, close to the measured

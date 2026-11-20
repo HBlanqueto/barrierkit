@@ -154,4 +154,4 @@ becomes a near-white surface.
   darker, and the Dock follows the wallpaper.
 - What does the light menu panel sample over the same four backdrops? It
   samples the same values as the dark panel; see the corrections in
-  [`macos-blur.md`](macos-blur.md#7-corrections-to-the-earlier-research).
+  [`macos-blur.md`](macos-blur.md#8-corrections-to-the-earlier-research).
