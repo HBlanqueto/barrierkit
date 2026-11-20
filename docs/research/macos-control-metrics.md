@@ -117,3 +117,7 @@ Read from the view hierarchy of an `NSAlert` (informational, two buttons) with `
 - Menu width has no minimum: an `NSMenu` is the widest title, plus the widest shortcut, plus a 24 gap, plus 12 and 5 on each side (one `A` item is 42 wide, the four-item test menu 135). The kit's 220 minimum for shell menus is gone; the popover menu keeps its own.
 - Menu text: titles use the label color (`26` darkest in light), shortcuts and disabled items the tertiary label (about 25%: black in light, white in dark). The kit drew shortcuts at the secondary level.
 
+## Toolbar (unified, icon only)
+
+Read from the view tree of an `NSToolbar` window with `~/src/probes/toolbar.swift` on macOS 27.2.1: the title bar is 52 high; the traffic lights are 14 wide at x=19, 42 and 65 and y=19; each platter is a glass capsule 36 high, 8 from the top and bottom, with 8 between platters; a single bordered item is 47 wide, a two-item selection group 74 (a 34 slot twice and 3 on each side, the selected slot a 30 high capsule), the search item 239. The kit's `SETTINGS.toolbar_height` (52), `toolgroup-h` (36) and the 8 gap agree; its `ToolGroup` is a row of 36 slots with separators, not the selection group.
+

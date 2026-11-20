@@ -103,6 +103,14 @@ committed assets.
 
 ## 5. Limits
 
+- **The system compositor draws glass, blur, refraction, shadows and
+  transparency.** AppKit and SwiftUI only describe them (an
+  `NSVisualEffectView`, a glass container, a platter). So `cacheDisplay`
+  shows glass areas empty, `screencapture` shows them, and Reduce
+  Transparency changes no `NSColor`. A measurement of material or shadow
+  belongs to the compositor path (malaysia); a measurement of geometry, ink
+  and fills belongs to the kit.
+
 - **One display, scale 1.0.** No 2x capture was possible. Text rasterisation
   and one-pixel rims cannot be compared at Retina density. The display moved
   between 2560x1440 and 1920x1080 across passes; each pass states its
