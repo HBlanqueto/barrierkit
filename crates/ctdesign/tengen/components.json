@@ -223,8 +223,8 @@
       "radius": 5.5,
       "mark": 16,
       "mark-stroke": 2.1,
-      "mixed-mark": 8.4,
-      "mixed-stroke": 1.8
+      "mixed-mark": 8,
+      "mixed-stroke": 2
     },
     "symbol": {
       "stroke": 1.4,
