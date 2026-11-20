@@ -97,6 +97,8 @@ Materials under Reduce Transparency need screenshots with the system switch on a
 - Box (`NSBox`): fill black or white at 3.1%.
 - Combo box: the field is the text field of 24, with a gray 20 high button inside.
 
+- Check and radio marks (regular, 4x capture of the white mark on the accent fill): the check is a 7.4 wide and 7.2 high stroke of 2.1, its short leg going 2.7 right and 3.4 down and its long leg 4.9 right and 7.2 up, its box 3.0 to 12.75 across and 3.75 to 13.0 down in the 16 square; the radio dot is 5 across, centered. The kit drew a 3.8 mark and a 6 dot.
+
 ## Tables and source lists
 
 Measured with `~/src/probes/views.swift` (an inset-style `NSTableView`, a source-list `NSOutlineView`, an `NSTabView` and two `NSScroller`, at 4x in the four appearances).
@@ -109,12 +111,17 @@ Measured with `~/src/probes/views.swift` (an inset-style `NSTableView`, a source
 
 Read from the view hierarchy of an `NSAlert` (informational, two buttons) with `~/src/probes/alerts.swift`; its pixels are not captured because the window is hosted by SwiftUI and its glass and shadow come from the compositor, not from the app. 260 wide; the 64 icon at 20 from the top and the left; title 13 bold and message 13 regular, both in the label color, each line 16 high, 20 from the sides, 10 between them; buttons large (28 high), two of 110 with 8 between, 16 from the sides and 16 from the bottom, 16 under the message; Cancel on the left, the default button on the right. The kit draws no icon and leaves the glass and the shadow to the compositor.
 
+## Sheets
+
+A titled window with an empty 430 × 280 sheet (`~/src/probes/sheets.swift`, over black, white and a pattern; the sheet is composited by the window server, so the capture is a screen region): the sheet is centered in the window's frame, 116 from the top of a 512 high window, and its fill is the window background, `ffffff` in light and `1e1e1e` in dark. The parent window behind it is not blurred: it is veiled linearly by a gray at 60%, `aaaaaa` in light (black becomes `666666`, white `cccccc`) and `141414` in dark (`0c0c0c` and `727272`). The kit's `Palette::scrim` now holds these two veils, and `SheetStyle.background` is the window background (it was the raised one, `191919` in dark). The sheet's corner profile, shadow and edge are the compositor's: at 1x the corner reaches the straight edge about 21 rows down in light, about the 15 of the windows.
+
 ## Menus, scrollers and inactive selection
 
 - Menu (a real `NSMenu` over white and black with `~/src/probes/menu.swift`, screenshots converted to sRGB with `sips -m`; the unconverted display profile turns blue into indigo): the highlighted row is `controlAccentColor` (`007aff`) opaque in light and dark, 24 high, inset 5 from the panel, corner 8; the panel is 5 padded, items 24, a separator 11, panel corner about 14. The glass, its alpha (about 0.41 light and 0.56 dark over white) and the shadow belong to the compositor. `selectedContentBackgroundColor` (`0064e1`) is for table and list rows, not menus.
 - Legacy scroller (17 wide strip, from the real window): a capsule track and thumb 11 wide with 3 on each side, 3 from the ends of the strip; track black 5% (white 5% in dark), thumb black 52% over it in light and white 57% in dark; the thumb is never shorter than 20.
 - Unemphasized selection (table in a window that is not key): `dcdcdc` in light and `464646` in dark, with the text in the label color, not white.
 - Menu width has no minimum: an `NSMenu` is the widest title, plus the widest shortcut, plus a 24 gap, plus 12 and 5 on each side (one `A` item is 42 wide, the four-item test menu 135). The kit's 220 minimum for shell menus is gone; the popover menu keeps its own.
+- Menu marks and arrows (a real `NSMenu` with checked, mixed and submenu items; the display is 1x, so these are sums of pixel coverage, good to about 0.5): the check, the mixed dash and the submenu chevron all use the label color, as the title does, and are heavy strokes of about 1.7. The check is the same shape as the checkbox's, 9 across and 9 down with its center 17.5 from the panel edge; the dash is 8.2 long, its right edge level with the check's; the chevron is 3.6 wide and 7.4 high, its ink ending 20 from the panel edge. A menu with any mark puts its titles 30 from the panel edge, 13 further than without, and a submenu row is 31 wider than a plain one (a shortcut adds 24 plus its own width). `NSMenuItem.image` draws nothing in a pop-up menu on this macOS, so item icons could not be measured.
 - Menu text: titles use the label color (`26` darkest in light), shortcuts and disabled items the tertiary label (about 25%: black in light, white in dark). The kit drew shortcuts at the secondary level.
 
 ## Toolbar (unified, icon only)

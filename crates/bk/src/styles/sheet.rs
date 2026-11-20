@@ -22,7 +22,7 @@ pub struct SheetStyle {
     pub shape: Shape,
     /// Tengen: `scrim` `Role(Scrim)` over the window.
     pub scrim: StateValue<ShapeStyle>,
-    /// Tengen: `background` `Role(RaisedBackground)`.
+    /// Tengen: `background` `Role(WindowBackground)`.
     pub background: StateValue<ShapeStyle>,
     /// Tengen: `Some((Role(Outline), HAIRLINE))`, drawn outside.
     pub border: Option<(ShapeStyle, f32)>,
@@ -46,7 +46,7 @@ impl ControlStyle for SheetStyle {
                 style: CornerStyle::Continuous,
             },
             scrim: StateValue::new(ShapeStyle::Role(Role::Scrim)),
-            background: StateValue::new(ShapeStyle::Role(Role::RaisedBackground)),
+            background: StateValue::new(ShapeStyle::Role(Role::WindowBackground)),
             border: Some((ShapeStyle::Role(Role::Outline), HAIRLINE)),
             shadows: [shadow.ambient, shadow.contact]
                 .into_iter()

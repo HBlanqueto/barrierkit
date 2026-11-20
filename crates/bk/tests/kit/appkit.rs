@@ -12,7 +12,7 @@ use bk::controls::{
 use bk::date::{CivilDate, CivilDateTime};
 use bk::date_picker::DatePicker;
 use bk::indicator::CapacityIndicator;
-use bk::menu::{MenuItem, MenuView};
+use bk::menu::{CheckState, MenuItem, MenuView};
 use bk::popup_button::PopUpButton;
 use bk::progress::{ProgressRing, ProgressView};
 use bk::sidebar::{SidebarItem, SidebarSection};
@@ -325,35 +325,51 @@ fn appkit_scene() {
 #[ignore]
 fn appkit_menu() {
     let out = PathBuf::from(std::env::var("APPKIT_OUT").expect("APPKIT_OUT"));
-    for dark in [false, true] {
-        let palette = if dark {
-            ctdesign::MENU_DARK
-        } else {
-            ctdesign::MENU_LIGHT
-        };
-        let items = vec![
+    let plain = || {
+        vec![
             MenuItem::action("new", "New").with_shortcut("\u{2318}N"),
             MenuItem::action("open", "Open\u{2026}").with_shortcut("\u{2318}O"),
             MenuItem::Separator,
             MenuItem::action("close", "Close").with_shortcut("\u{2318}W"),
             MenuItem::action("off", "Disabled").with_enabled(false),
-        ];
-        let size = MenuView::preferred_size(&items, palette);
-        let app =
-            AppComponent::new(MenuView::new(items, |_| {}, || {}).with_fixed_palette(palette));
-        let (mut test, _) =
-            TestingRunner::new(app, Size2D::new(size.0 * 4.0, size.1 * 4.0), |_| {}, 4.0);
-        test.set_default_fonts(&SANS_FAMILIES.map(std::borrow::Cow::Borrowed));
-        test.sync_and_update();
-        test.sync_and_update();
-        fs::write(
-            out.join(format!(
-                "kit-menu-{}.png",
-                if dark { "dark" } else { "light" }
-            )),
-            test.render().as_bytes(),
-        )
-        .unwrap();
-        println!("menu {dark} {size:?}");
+        ]
+    };
+    let marked = || {
+        vec![
+            MenuItem::action("new", "New").with_shortcut("\u{2318}N"),
+            MenuItem::action("open", "Open").with_shortcut("\u{2318}O"),
+            MenuItem::submenu("Recent", vec![MenuItem::action("r1", "Item")]),
+            MenuItem::action("checked", "Checked").with_check(CheckState::Checkbox(true)),
+            MenuItem::action("mixed", "Mixed").with_check(CheckState::Mixed),
+            MenuItem::submenu("Plain", vec![MenuItem::action("r2", "Item")]),
+            MenuItem::action("two", "Plain two").with_shortcut("\u{2318}P"),
+        ]
+    };
+    for (tag, items) in [("", plain as fn() -> Vec<MenuItem>), ("marks-", marked)] {
+        for dark in [false, true] {
+            let palette = if dark {
+                ctdesign::MENU_DARK
+            } else {
+                ctdesign::MENU_LIGHT
+            };
+            let items = items();
+            let size = MenuView::preferred_size(&items, palette);
+            let app =
+                AppComponent::new(MenuView::new(items, |_| {}, || {}).with_fixed_palette(palette));
+            let (mut test, _) =
+                TestingRunner::new(app, Size2D::new(size.0 * 4.0, size.1 * 4.0), |_| {}, 4.0);
+            test.set_default_fonts(&SANS_FAMILIES.map(std::borrow::Cow::Borrowed));
+            test.sync_and_update();
+            test.sync_and_update();
+            fs::write(
+                out.join(format!(
+                    "kit-menu-{tag}{}.png",
+                    if dark { "dark" } else { "light" }
+                )),
+                test.render().as_bytes(),
+            )
+            .unwrap();
+            println!("menu {tag}{dark} {size:?}");
+        }
     }
 }

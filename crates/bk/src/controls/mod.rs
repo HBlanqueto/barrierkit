@@ -29,7 +29,7 @@ use crate::styles::{
     SliderStyle, StateValue, SwitchStyle, TextFieldStyle, Theme, TokenFieldStyle, ToolGroupStyle,
     resolve,
 };
-use crate::symbol::{Symbol, symbol};
+use crate::symbol::{Symbol, stroked_symbol, symbol};
 use crate::theme::color;
 use zeroize::Zeroizing;
 

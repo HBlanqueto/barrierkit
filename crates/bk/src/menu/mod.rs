@@ -48,7 +48,7 @@ use crate::platform::{
     Timers, inserts_text,
 };
 use crate::styles::{MenuStyle, Theme, resolve_from};
-use crate::symbol::{Symbol, symbol};
+use crate::symbol::{Symbol, stroked_symbol, symbol};
 use crate::theme;
 use crate::theme::{SurfaceKind, menu_palette};
 use ctdesign::{MenuPalette, Rgba, SANS_FAMILIES};
@@ -907,7 +907,7 @@ fn scroll_arrow(
         .child(
             label()
                 .text(if direction < 0 { "▲" } else { "▼" })
-                .font_size(m.chevron_size)
+                .font_size(m.chevron_scroll)
                 .color(theme::color(m.chevron_color)),
         )
         .into_element()

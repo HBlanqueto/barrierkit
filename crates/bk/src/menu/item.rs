@@ -117,7 +117,7 @@ pub(super) fn row_fg(enabled: bool, focused: bool, idle: Rgba, m: MenuPalette) -
 
 pub(super) fn trailing_width(item: &MenuItem, m: MenuPalette) -> f32 {
     if matches!(item, MenuItem::Submenu { .. }) {
-        return m.chevron_size;
+        return m.chevron_gap + m.chevron_size + m.chevron_inset;
     }
     [item.shortcut(), badge(item)]
         .into_iter()
@@ -654,12 +654,31 @@ pub(super) fn mark_element(check: CheckState, color: Rgba, m: MenuPalette) -> El
         CheckState::None | CheckState::Checkbox(false) | CheckState::Radio(false) => {
             rect().width(Size::px(m.leading_width)).into_element()
         }
-        CheckState::Checkbox(true) | CheckState::Minimized => label()
-            .text(if check == CheckState::Minimized {
-                "◆"
-            } else {
-                "✓"
-            })
+        CheckState::Checkbox(true) => rect()
+            .width(Size::px(m.leading_width))
+            .center()
+            .child(stroked_symbol(
+                Symbol::Checkmark,
+                m.mark_check,
+                m.mark_stroke,
+                color,
+            ))
+            .into_element(),
+        CheckState::Mixed => rect()
+            .width(Size::px(m.leading_width))
+            .direction(Direction::Horizontal)
+            .main_align(Alignment::End)
+            .padding(Gaps::new(0.0, m.mark_dash_inset, 0.0, 0.0))
+            .child(
+                rect()
+                    .width(Size::px(m.mark_dash))
+                    .height(Size::px(m.mark_stroke))
+                    .corner_radius(m.mark_stroke / 2.0)
+                    .background(theme::color(color)),
+            )
+            .into_element(),
+        CheckState::Minimized => label()
+            .text("◆")
             .font_size(m.mark_check)
             .color(theme::color(color))
             .width(Size::px(m.leading_width))
@@ -682,11 +701,7 @@ pub(super) fn mark_element(check: CheckState, color: Rgba, m: MenuPalette) -> El
 }
 
 pub(super) fn chevron_element(color: Rgba, m: MenuPalette) -> Element {
-    label()
-        .text("›")
-        .font_size(m.font_size)
-        .color(theme::color(color))
-        .width(Size::px(m.chevron_size))
-        .max_lines(1)
+    stroked_symbol(Symbol::ChevronRight, m.chevron_size, m.mark_stroke, color)
+        .margin(Gaps::new(0.0, m.chevron_inset, 0.0, 0.0))
         .into_element()
 }

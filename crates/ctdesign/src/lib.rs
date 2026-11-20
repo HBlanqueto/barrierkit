@@ -289,6 +289,7 @@ pub struct CheckboxMetrics {
     pub size: f32,
     pub radius: f32,
     pub mark: f32,
+    pub mark_stroke: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -1044,7 +1045,13 @@ pub struct MenuPalette {
     pub mark_inset: f32,
     pub mark_dot: f32,
     pub mark_check: f32,
+    pub mark_stroke: f32,
+    pub mark_dash: f32,
+    pub mark_dash_inset: f32,
     pub chevron_size: f32,
+    pub chevron_gap: f32,
+    pub chevron_inset: f32,
+    pub chevron_scroll: f32,
     pub chevron_color: Rgba,
     pub icon_size: f32,
     pub header_font_size: f32,

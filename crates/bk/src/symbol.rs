@@ -186,7 +186,7 @@ impl Symbol {
             Self::Clock => "M8 4.5V8l2.5 1.5M8 14a6 6 0 1 0 0-12a6 6 0 0 0 0 12",
             Self::Bookmark => "M4 2.5h8v11L8 10.5l-4 3z",
             Self::ArrowDown => "M8 2v8M4.5 7 8 10.5 11.5 7M3 13.5h10",
-            Self::Checkmark => "M3.5 8.5l3 3 6-7",
+            Self::Checkmark => "M4.1 8.6l2.7 3.4 4.9-7.2",
             Self::Captions => "M2.5 4h11v8h-11zM5 9.5h2.5M9 9.5h2M5 7h6",
             Self::Expand => "M3 6.5V3h3.5M13 6.5V3H9.5M3 9.5V13h3.5M13 9.5V13H9.5",
             Self::GoBackward => "M3.5 8a4.5 4.5 0 1 0 1.5-3.4M3.5 2.5v2.8h2.8",
@@ -399,6 +399,10 @@ impl From<Image> for Element {
 
 pub(crate) fn symbol(symbol: Symbol, size: f32, color: Rgba) -> SvgViewer {
     viewer(source(symbol, SYMBOL.stroke), size, color)
+}
+
+pub(crate) fn stroked_symbol(symbol: Symbol, size: f32, stroke: f32, color: Rgba) -> SvgViewer {
+    viewer(source(symbol, stroke * SYMBOL.grid / size), size, color)
 }
 
 pub(crate) fn tile_symbol(symbol: Symbol, size: f32, color: Rgba) -> SvgViewer {

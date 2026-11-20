@@ -31,6 +31,7 @@ pub enum CheckState {
     None,
     Checkbox(bool),
     Radio(bool),
+    Mixed,
     Minimized,
 }
 

@@ -16,6 +16,8 @@ pub struct CheckboxStyle {
     pub box_size: f32,
     /// Tengen: `CHECKBOX.mark`.
     pub mark_size: f32,
+    /// Tengen: `CHECKBOX.mark_stroke`.
+    pub mark_stroke: f32,
     /// Tengen: `SETTINGS.check.gap`.
     pub label_gap: f32,
     /// Tengen: `RoundedRectangle { radius: CHECKBOX.radius, style: Circular }`.
@@ -52,6 +54,7 @@ impl ControlStyle for CheckboxStyle {
         Self {
             box_size: CHECKBOX.size,
             mark_size: CHECKBOX.mark,
+            mark_stroke: CHECKBOX.mark_stroke,
             label_gap: SETTINGS.check.gap as f32,
             box_shape: rounded(CHECKBOX.radius),
             box_background: StateValue::new(ShapeStyle::Role(Role::SystemFill)),

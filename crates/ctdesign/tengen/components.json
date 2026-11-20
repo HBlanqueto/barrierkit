@@ -156,7 +156,8 @@
     "checkbox": {
       "size": 16,
       "radius": 5.5,
-      "mark": 12
+      "mark": 16,
+      "mark-stroke": 2.1
     },
     "symbol": {
       "stroke": 1.4,
@@ -818,7 +819,7 @@
       },
       "radio": {
         "size": 16,
-        "dot": 6,
+        "dot": 5,
         "gap": 6,
         "spacing": 6
       },
@@ -1295,15 +1296,21 @@
           "tint-ink-mix": 0.14
         },
         "mark": {
-          "inset": 3,
+          "inset": 4.5,
           "width": 16,
           "dot": 7,
-          "check": 12,
-          "text-gap": 6
+          "check": 16,
+          "stroke": 1.7,
+          "dash": 8.2,
+          "dash-inset": 3.3,
+          "text-gap": 4.5
         },
         "chevron": {
-          "size": 8,
-          "color": "ink-muted"
+          "size": 12,
+          "gap": 18.4,
+          "inset": 0.6,
+          "scroll": 8,
+          "color": "ink"
         },
         "icon": {
           "size": 14

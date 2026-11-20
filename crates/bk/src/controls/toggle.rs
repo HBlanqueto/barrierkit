@@ -376,9 +376,10 @@ impl Component for Checkbox {
             )
             .center()
             .maybe(is_checked, |el| {
-                el.child(symbol(
+                el.child(stroked_symbol(
                     Symbol::Checkmark,
                     style.mark_size,
+                    style.mark_stroke,
                     paints.color(style.mark.resolve(state)),
                 ))
             });

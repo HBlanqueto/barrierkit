@@ -910,7 +910,7 @@ mod tests {
             Some(dominant()),
         );
         assert_eq!(resolved.window_tint, None);
-        assert_eq!(resolved.accent, LIGHT.accent);
+        assert_eq!(resolved.control_accent, LIGHT.accent);
     }
 
     #[test]
@@ -1482,7 +1482,6 @@ mod tests {
             ("sunken", neutral.surfaces.sunken, behind.surfaces.sunken),
             ("surface", neutral.surfaces.surface, behind.surfaces.surface),
             ("raised", neutral.surfaces.raised, behind.surfaces.raised),
-            ("control", neutral.surfaces.control, behind.surfaces.control),
             ("toolgroup", neutral.toolgroup.bg, behind.toolgroup.bg),
         ] {
             let layer = shift(before, after);
@@ -2105,14 +2104,11 @@ mod tests {
     }
 
     #[test]
-    fn the_window_surface_is_within_8_of_the_measured_macos_title_bar_in_light_and_dark() {
-        for (scheme, measured) in [(ColorScheme::Light, 0xfa), (ColorScheme::Dark, 0x28)] {
+    fn the_window_surface_is_the_measured_macos_window_background_in_light_and_dark() {
+        for (scheme, measured) in [(ColorScheme::Light, 0xff), (ColorScheme::Dark, 0x1e)] {
             let [red, green, blue, _] = resolved_in(scheme, false).surfaces.window.to_rgba8();
             for channel in [red, green, blue] {
-                assert!(
-                    channel.abs_diff(measured) <= 8,
-                    "{scheme:?}: {channel:#04x} against {measured:#04x}"
-                );
+                assert_eq!(channel, measured, "{scheme:?}");
             }
         }
     }

@@ -176,8 +176,10 @@ fn menu_items(children: Vec<OwnedValue>) -> Vec<MenuItem> {
             {
                 return Some(MenuItem::submenu(label, menu_items(children)).with_enabled(enabled));
             }
-            let on = property::<i32>(&properties, "toggle-state") == Some(1);
+            let state = property::<i32>(&properties, "toggle-state");
+            let on = state == Some(1);
             let check = match property::<String>(&properties, "toggle-type").as_deref() {
+                Some("checkmark") if state == Some(-1) => CheckState::Mixed,
                 Some("checkmark") => CheckState::Checkbox(on),
                 Some("radio") => CheckState::Radio(on),
                 _ => CheckState::None,

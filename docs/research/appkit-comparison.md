@@ -19,7 +19,7 @@ table on stdout and `target/appkit/sheet-*.png`.
 
    ```sh
    cd ~/src/probes
-   for probe in controls views alerts menu toolbar tabs; do swiftc -O $probe.swift -o $probe; done
+   for probe in controls views alerts menu toolbar tabs sheets; do swiftc -O $probe.swift -o $probe; done
    ```
 
 2. Capture on the Mac. Each run writes `<prefix>.json` (frames) and
@@ -40,9 +40,13 @@ table on stdout and `target/appkit/sheet-*.png`.
    ~/src/probes/controls aquaHC white ~/src/captures/controls/hc-aquaHC-white -increaseContrast 1 -reduceTransparency 1
    ```
 
+   `menu` takes `MENU_ITEMS="Title|key|flags;..."` (flags `sub`, `on`, `mixed`,
+   `off`) to draw marks and submenu arrows, and `sheets` captures a sheet over
+   a black, white or striped parent (`SHEET_BACK=black|white|stripes`).
+
    `views` (table, source list, tabs, scroll views) takes the same
    arguments and writes to `~/src/captures/views`; `VIEWS_INACTIVE=1` renders
-   the window as inactive. `alerts`, `menu`, `toolbar` and `tabs` dump a view
+   the window as inactive. `alerts`, `menu`, `toolbar`, `tabs` and `sheets` dump a view
    tree or screenshot and have their own usage line in the source.
 
 3. Convert any `screencapture` image to sRGB before sampling a color. The
@@ -71,7 +75,7 @@ table on stdout and `target/appkit/sheet-*.png`.
    scripts/appkit-render.sh contrast        # kit-hc-*.png
    scripts/appkit-render.sh views           # kit-views-*.png
    scripts/appkit-render.sh views-contrast  # kit-views-hc-*.png
-   scripts/appkit-render.sh menu            # kit-menu-{light,dark}.png
+   scripts/appkit-render.sh menu            # kit-menu-{,marks-}{light,dark}.png
    ```
 
    `APPKIT_BG=1e1e1e` sets the backdrop of the non-black variant, for views

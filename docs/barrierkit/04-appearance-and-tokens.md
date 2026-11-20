@@ -95,7 +95,7 @@ component paints only with them.
 | `destructive` | Destructive actions | `NSColor.systemRed` |
 | `raised_background` | Raised surfaces | — |
 | `sunken_background` | Sunken surfaces | — |
-| `scrim` | Dimming behind sheets | — |
+| `scrim` | Gray veil behind sheets and over a window under an overlay sidebar | — |
 | `card_border` | Edge of a card | — |
 
 With `contrast = true` ([The appearance file](#the-appearance-file)) the palette takes

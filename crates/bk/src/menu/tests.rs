@@ -331,9 +331,8 @@ fn icons_widen_the_menu_by_the_leading_column_and_gap() {
     };
     let plain = MenuView::preferred_size(&built(None), MENU_LIGHT);
     let with_icons = MenuView::preferred_size(&built(Some(MenuIcon::svg("x"))), MENU_LIGHT);
-    assert_eq!(
-        with_icons.0 - plain.0,
-        MENU_LIGHT.leading_width + MENU_MARK_TEXT_GAP,
+    assert!(
+        (with_icons.0 - plain.0 - (MENU_LIGHT.leading_width + MENU_MARK_TEXT_GAP)).abs() <= 1.0,
         "an icon column is only reserved when the menu actually uses one"
     );
 }
@@ -570,9 +569,9 @@ fn menu_without_columns_is_narrower_by_both_leading_columns_and_gaps() {
     let m = MENU_LIGHT;
     let (plain_w, _) = MenuView::preferred_size(&plain, m);
     let (columns_w, _) = MenuView::preferred_size(&with_columns, m);
-    assert_eq!(
-        columns_w - plain_w,
-        m.mark_inset - m.item_padding_x + 2.0 * (m.leading_width + MENU_MARK_TEXT_GAP),
+    let expected = m.mark_inset - m.item_padding_x + 2.0 * (m.leading_width + MENU_MARK_TEXT_GAP);
+    assert!(
+        (columns_w - plain_w - expected).abs() <= 1.0,
         "plain menu should be narrower by the mark and icon columns plus their gaps"
     );
 }

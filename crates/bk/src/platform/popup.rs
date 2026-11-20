@@ -195,7 +195,7 @@ impl Popups {
             current,
             opens_left: Rc::new(Cell::new(false)),
             scroll_shift: Rc::new(Cell::new(0.0)),
-            glass_luma: State::create(None),
+            glass_luma: State::create_global(None),
         };
         (popups, queue)
     }

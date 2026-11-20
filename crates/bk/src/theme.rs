@@ -62,7 +62,7 @@ pub fn over_glass(palette: MenuPalette) -> MenuPalette {
         search_bg: ink.disabled,
         fg: ink.fg,
         shortcut_color: ink.shortcut,
-        chevron_color: ink.shortcut,
+        chevron_color: ink.fg,
         disabled_fg: ink.disabled,
         ..palette
     }
