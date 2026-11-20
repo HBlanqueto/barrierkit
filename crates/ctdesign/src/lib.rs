@@ -568,7 +568,9 @@ pub struct LevelIndicatorMetrics {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct DatePickerMetrics {
     pub height: f32,
+    pub padding_x: f32,
     pub stepper_width: f32,
+    pub stepper_height: f32,
     pub stepper_chevron: f32,
     pub stepper_chevron_stroke: f32,
     pub stepper_chevron_offset_up: f32,
@@ -667,6 +669,7 @@ pub struct StepperMetrics {
     pub chevron_offset_up: f32,
     pub chevron_offset_down: f32,
     pub separator_inset: f32,
+    pub separator_drop: f32,
     pub gap: f32,
 }
 
@@ -944,6 +947,7 @@ impl Palette {
             accent: contrast.accent,
             selected_content: contrast.selected_content,
             accent_toggle: contrast.accent_toggle,
+            accent_toggle_disabled: contrast.accent_toggle,
             separator_strong: contrast.separator_strong,
             ..self
         }
@@ -975,6 +979,7 @@ pub struct Palette {
     pub combo_button: Rgba,
     pub segment_divider: Rgba,
     pub accent_ring: Rgba,
+    pub accent_toggle_disabled: Rgba,
     pub accent_inactive: Rgba,
     pub on_accent: Rgba,
     pub danger: Rgba,

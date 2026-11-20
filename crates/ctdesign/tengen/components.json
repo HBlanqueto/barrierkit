@@ -59,7 +59,9 @@
     },
     "date-picker": {
       "height": 21,
+      "padding-x": 5.375,
       "stepper-width": 13,
+      "stepper-height": 20,
       "stepper-chevron": 9,
       "stepper-chevron-stroke": 1.5,
       "stepper-chevron-offset-up": 0.75,
@@ -140,7 +142,8 @@
       "chevron-stroke": 1.6,
       "chevron-offset-up": 0.75,
       "chevron-offset-down": 0.25,
-      "separator-inset": 3.25,
+      "separator-inset": 3,
+      "separator-drop": 0.5,
       "gap": 8
     },
     "switch": {

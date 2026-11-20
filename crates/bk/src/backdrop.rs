@@ -244,6 +244,7 @@ impl Palette {
             combo_button: alpha(BACKDROP.glass),
             segment_divider: alpha(BACKDROP.ink_tertiary),
             ring_accent: accent,
+            toggle_accent_disabled: accent,
             on_selected_content: ink_on(accent),
             separator_strong: alpha(BACKDROP.glass_strong),
             accent_inactive: backdrop.base.mix(ink, BACKDROP.ink_tertiary),

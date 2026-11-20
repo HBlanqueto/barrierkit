@@ -26,7 +26,7 @@ use freya_components::theming::hooks::use_init_theme;
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 use freya_testing::TestingRunner;
-use torin::prelude::{Position, Size, Size2D};
+use torin::prelude::{Gaps, Position, Size, Size2D};
 
 type Builder = fn() -> Element;
 
@@ -172,11 +172,13 @@ fn controls() -> Vec<(&'static str, Builder)> {
             ProgressRing::new("Ring", 0.5).into_element()
         }),
         ("datepicker", || {
-            DatePicker::new(
-                "Date",
-                CivilDateTime::new(CivilDate::new(2027, 1, 15), 8, 0),
-            )
-            .into_element()
+            rect()
+                .margin(Gaps::new(3.0, 0.0, 0.0, 0.0))
+                .child(DatePicker::new(
+                    "Date",
+                    CivilDateTime::new(CivilDate::new(2027, 1, 15), 8, 0),
+                ))
+                .into_element()
         }),
         ("level", || {
             rect()

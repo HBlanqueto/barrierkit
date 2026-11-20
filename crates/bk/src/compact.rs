@@ -271,7 +271,13 @@ pub(crate) fn stepper_arrows(
                     0.0,
                     style.separator_inset,
                 ))
-                .background(paints.fill(&style.separator)),
+                .offset_y(style.separator_drop)
+                .child(
+                    rect()
+                        .width(Size::fill())
+                        .height(Size::fill())
+                        .background(paints.fill(&style.separator)),
+                ),
         )
         .child(arrow(
             Symbol::ChevronDown,

@@ -1,10 +1,16 @@
-use ctdesign::{BODY, CAPTION, DATE_PICKER, Font, HAIRLINE, HEADLINE, MENU_POPOVER, TEXT_FIELD};
+use ctdesign::{
+    BODY, CAPTION, DATE_FIELD_BORDER_CONTRAST_DARK, DATE_FIELD_BORDER_CONTRAST_DARK_TINT,
+    DATE_FIELD_BORDER_CONTRAST_LIGHT, DATE_FIELD_BORDER_DARK, DATE_FIELD_BORDER_DARK_TINT,
+    DATE_FIELD_BORDER_LIGHT, DATE_FIELD_CONTRAST_DARK, DATE_FIELD_CONTRAST_DARK_TINT,
+    DATE_FIELD_CONTRAST_LIGHT, DATE_FIELD_DARK, DATE_FIELD_DARK_TINT, DATE_FIELD_LIGHT,
+    DATE_PICKER, Font, HAIRLINE, HEADLINE, MENU_POPOVER,
+};
 
 use super::button::rounded;
 use super::text_field::field_shape;
 use super::{
     ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue, StepperStyle,
-    system_effect,
+    per_look, system_effect,
 };
 
 /// States: the field is hovered, pressed and focused; the calendar has only
@@ -14,11 +20,11 @@ use super::{
 pub struct DatePickerStyle {
     /// Tengen: `DATE_PICKER.height`.
     pub height: f32,
-    /// Tengen: `TEXT_FIELD.padding_x`.
+    /// Tengen: `DATE_PICKER.padding_x`.
     pub padding_x: f32,
     /// Tengen: `DATE_PICKER.stepper_gap`, between the field and the arrows.
     pub stepper_gap: f32,
-    /// Tengen: `StepperStyle` with the `DATE_PICKER.stepper_*` measures; the arrows are as high as the field.
+    /// Tengen: `StepperStyle` with the `DATE_PICKER.stepper_*` measures; the arrows are centered on the field.
     pub stepper: StepperStyle,
     /// Tengen: `(DATE_PICKER.calendar_width, DATE_PICKER.calendar_height)`, without the
     /// padding.
@@ -40,14 +46,14 @@ pub struct DatePickerStyle {
     /// Tengen, with `shape`, `segment_shape`: `RoundedRectangle` of `TEXT_FIELD.radius`,
     /// `DATE_PICKER.segment_radius` and `DATE_PICKER.day_radius`, all `Circular`.
     pub day_shape: Shape,
-    /// Tengen, with `text`, `separator`: `Role(TextBackground)`, `Role(Label)`,
-    /// `Role(SecondaryLabel)` the `/` and `:`.
+    /// Tengen, with `text`, `separator`: `Color(DATE_FIELD)` (`DATE_FIELD_CONTRAST` under
+    /// Increase Contrast), `Role(Label)`, `Role(Label)` the `/` and `:`.
     pub background: StateValue<ShapeStyle>,
-    /// Tengen, with `background`, `separator`: `Role(TextBackground)`, `Role(Label)`,
-    /// `Role(SecondaryLabel)` the `/` and `:`.
+    /// Tengen, with `background`, `separator`: `Color(DATE_FIELD)` (`DATE_FIELD_CONTRAST` under
+    /// Increase Contrast), `Role(Label)`, `Role(Label)` the `/` and `:`.
     pub text: StateValue<ShapeStyle>,
-    /// Tengen, with `background`, `text`: `Role(TextBackground)`, `Role(Label)`,
-    /// `Role(SecondaryLabel)` the `/` and `:`.
+    /// Tengen, with `background`, `text`: `Color(DATE_FIELD)` (`DATE_FIELD_CONTRAST` under
+    /// Increase Contrast), `Role(Label)`, `Role(Label)` the `/` and `:`.
     pub separator: StateValue<ShapeStyle>,
     /// Tengen, with `selected_text`: `Accent`, `Role(OnAccent)`: the chosen part while the
     /// field has focus.
@@ -72,7 +78,8 @@ pub struct DatePickerStyle {
     pub selected_day: StateValue<ShapeStyle>,
     /// Tengen: `Role(OnAccent)`.
     pub selected_day_label: StateValue<ShapeStyle>,
-    /// Tengen: `Some((Role(ControlBorder), HAIRLINE))`.
+    /// Tengen: `Some((Color(DATE_FIELD_BORDER), HAIRLINE))`, `DATE_FIELD_BORDER_CONTRAST` under
+    /// Increase Contrast.
     pub border: Option<(ShapeStyle, f32)>,
     /// Tengen: empty.
     pub shadows: Vec<ShadowStyle>,
@@ -96,10 +103,10 @@ impl ControlStyle for DatePickerStyle {
         let role = |role| StateValue::new(ShapeStyle::Role(role));
         Self {
             height: DATE_PICKER.height,
-            padding_x: TEXT_FIELD.padding_x,
+            padding_x: DATE_PICKER.padding_x,
             stepper_gap: DATE_PICKER.stepper_gap,
             stepper: StepperStyle {
-                arrows_size: (DATE_PICKER.stepper_width, DATE_PICKER.height),
+                arrows_size: (DATE_PICKER.stepper_width, DATE_PICKER.stepper_height),
                 chevron_size: DATE_PICKER.stepper_chevron,
                 chevron_stroke: DATE_PICKER.stepper_chevron_stroke,
                 chevron_offsets: (
@@ -117,9 +124,16 @@ impl ControlStyle for DatePickerStyle {
             shape: field_shape(),
             segment_shape: rounded(DATE_PICKER.segment_radius),
             day_shape: rounded(DATE_PICKER.day_radius),
-            background: role(Role::TextBackground),
+            background: StateValue::new(ShapeStyle::Color(per_look(
+                [DATE_FIELD_LIGHT, DATE_FIELD_DARK, DATE_FIELD_DARK_TINT],
+                [
+                    DATE_FIELD_CONTRAST_LIGHT,
+                    DATE_FIELD_CONTRAST_DARK,
+                    DATE_FIELD_CONTRAST_DARK_TINT,
+                ],
+            ))),
             text: role(Role::Label),
-            separator: role(Role::SecondaryLabel),
+            separator: role(Role::Label),
             selected_segment: StateValue::new(ShapeStyle::Accent),
             selected_text: role(Role::OnAccent),
             title: role(Role::Label),
@@ -129,7 +143,21 @@ impl ControlStyle for DatePickerStyle {
             other_month_day: role(Role::SecondaryLabel),
             selected_day: StateValue::new(ShapeStyle::Accent),
             selected_day_label: role(Role::OnAccent),
-            border: Some((ShapeStyle::Role(Role::ControlBorder), HAIRLINE)),
+            border: Some((
+                ShapeStyle::Color(per_look(
+                    [
+                        DATE_FIELD_BORDER_LIGHT,
+                        DATE_FIELD_BORDER_DARK,
+                        DATE_FIELD_BORDER_DARK_TINT,
+                    ],
+                    [
+                        DATE_FIELD_BORDER_CONTRAST_LIGHT,
+                        DATE_FIELD_BORDER_CONTRAST_DARK,
+                        DATE_FIELD_BORDER_CONTRAST_DARK_TINT,
+                    ],
+                )),
+                HAIRLINE,
+            )),
             shadows: Vec::new(),
             opacity: 1.0,
             effect: system_effect,

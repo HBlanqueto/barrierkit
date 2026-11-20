@@ -433,6 +433,12 @@ BAR_TRACK Rgba themes.{theme}.bar-track
 LEVEL_TRACK Rgba themes.{theme}.level-track
 LEVEL_BORDER Rgba themes.{theme}.level-border
 SEARCH_CLEAR Rgba themes.{theme}.search-clear
+DATE_FIELD Rgba themes.{theme}.date-field
+DATE_FIELD_BORDER Rgba themes.{theme}.date-field-border
+DATE_FIELD_CONTRAST Rgba themes.{theme}.date-field-contrast
+DATE_FIELD_BORDER_CONTRAST Rgba themes.{theme}.date-field-border-contrast
+STEPPER_DIVIDER Rgba themes.{theme}.stepper-divider
+STEPPER_DIVIDER_CONTRAST Rgba themes.{theme}.stepper-divider-contrast
 FOCUS_RING_COLOR Rgba themes.{theme}.focus-ring
 CONTRAST ContrastPalette themes.{theme}.contrast
 SHELL ShellPalette components.shell bar=menubar.bg text=menubar.text tile=dock.tile tile_active=dock.tile-active tile_text_active=dock.tile-text-active
@@ -631,7 +637,7 @@ fn emit_palettes(out: &mut String, tengen: &Tengen) {
         let lights = "components.window.traffic-lights";
         let traffic = |key: &str| rgba(tengen.color(&format!("{lights}.{key}"), look));
         out.push_str(&format!(
-            "pub const {name}: Palette = Palette {{ titlebar_bg: {}, hairline: {}, inner_line: {inner_line}, panel_inner_line: {panel_inner_line}, outer_border: {}, title: {}, text: {}, ink_strong: {}, ink_muted: {}, ink_faint: {}, line: {}, line_strong: {}, separator: {}, accent: {}, accent_inactive: {}, on_accent: {}, danger: {}, traffic_lights_inactive: {}, traffic_rim: TrafficRim {{ lit: {}, idle: {} }}, scrim: {}, selected_control: {}, card_border: {}, system_fill: {}, text_background: {}, selected_content: {}, control_disabled: {}, control: {}, accent_toggle: {}, separator_strong: {}, selected_content_inactive: {}, combo_button: {}, segment_divider: {}, accent_ring: {} }};\n\n",
+            "pub const {name}: Palette = Palette {{ titlebar_bg: {}, hairline: {}, inner_line: {inner_line}, panel_inner_line: {panel_inner_line}, outer_border: {}, title: {}, text: {}, ink_strong: {}, ink_muted: {}, ink_faint: {}, line: {}, line_strong: {}, separator: {}, accent: {}, accent_inactive: {}, on_accent: {}, danger: {}, traffic_lights_inactive: {}, traffic_rim: TrafficRim {{ lit: {}, idle: {} }}, scrim: {}, selected_control: {}, card_border: {}, system_fill: {}, text_background: {}, selected_content: {}, control_disabled: {}, control: {}, accent_toggle: {}, separator_strong: {}, selected_content_inactive: {}, combo_button: {}, segment_divider: {}, accent_ring: {}, accent_toggle_disabled: {} }};\n\n",
             pair("titlebar-bg", "titlebar-bg-inactive"),
             rgba_of("titlebar-line"),
             rgba_of("window-outer"),
@@ -664,6 +670,7 @@ fn emit_palettes(out: &mut String, tengen: &Tengen) {
             rgba_of("combo-button"),
             rgba_of("segment-divider"),
             rgba_of("accent-ring"),
+            rgba_of("accent-toggle-disabled"),
         ));
         let bg = rgba(tengen.color(
             "components.shell.menu.panel.bg",

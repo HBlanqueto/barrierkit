@@ -210,6 +210,7 @@ pub enum Role {
     AccentInactive,
     OnAccent,
     ToggleAccent,
+    ToggleAccentDisabled,
     SelectedContent,
     OnSelectedContent,
     SeparatorStrong,
@@ -250,6 +251,7 @@ impl Role {
             Self::ComboButton => palette.combo_button,
             Self::SegmentDivider => palette.segment_divider,
             Self::RingAccent => palette.ring_accent,
+            Self::ToggleAccentDisabled => palette.toggle_accent_disabled,
             Self::Destructive => palette.destructive,
             Self::DestructiveFill => Rgba {
                 a: ctdesign::BUTTON_DESTRUCTIVE_FILL,
@@ -511,6 +513,14 @@ pub(crate) fn per_scheme<T>([light, dark, dark_tint]: [T; 3]) -> T {
         ctappearance::ColorScheme::Dark => dark,
         ctappearance::ColorScheme::DarkTint => dark_tint,
     }
+}
+
+pub(crate) fn per_look<T>(normal: [T; 3], contrast: [T; 3]) -> T {
+    per_scheme(if crate::theme::resolved().contrast {
+        contrast
+    } else {
+        normal
+    })
 }
 
 pub fn system_effect(color: Rgba, _: ControlState) -> Rgba {

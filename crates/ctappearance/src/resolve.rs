@@ -82,6 +82,7 @@ pub struct Resolved {
     pub control_accent: Rgba,
     pub toggle_accent: Rgba,
     pub ring_accent: Rgba,
+    pub toggle_accent_disabled: Rgba,
     pub automatic_accent: bool,
     pub on_accent: Rgba,
     pub focus_ring: Rgba,
@@ -696,6 +697,11 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
         },
         ring_accent: if normal_accent == base.accent {
             base.accent_ring
+        } else {
+            normal_accent
+        },
+        toggle_accent_disabled: if normal_accent == base.accent {
+            base.accent_toggle_disabled
         } else {
             normal_accent
         },

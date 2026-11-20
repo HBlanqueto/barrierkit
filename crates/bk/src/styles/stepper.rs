@@ -1,9 +1,13 @@
-use ctdesign::{BODY, Font, HAIRLINE, STEPPER};
+use ctdesign::{
+    BODY, Font, HAIRLINE, STEPPER, STEPPER_DIVIDER_CONTRAST_DARK,
+    STEPPER_DIVIDER_CONTRAST_DARK_TINT, STEPPER_DIVIDER_CONTRAST_LIGHT, STEPPER_DIVIDER_DARK,
+    STEPPER_DIVIDER_DARK_TINT, STEPPER_DIVIDER_LIGHT,
+};
 
 use super::button::rounded;
 use super::{
     ColorEffect, ControlStyle, Edge, LayoutDirection, Role, ShadowStyle, Shape, ShapeStyle,
-    StateValue, system_effect,
+    StateValue, per_look, system_effect,
 };
 
 /// States: the stepper is hovered, pressed and focused; each arrow is disabled at
@@ -21,6 +25,8 @@ pub struct StepperStyle {
     pub chevron_offsets: (f32, f32),
     /// Tengen: `STEPPER.separator_inset`, on each side of the line between the chevrons.
     pub separator_inset: f32,
+    /// Tengen: `STEPPER.separator_drop`, how far the line sits below the center of the arrows.
+    pub separator_drop: f32,
     /// Tengen: `HAIRLINE`.
     pub separator_height: f32,
     /// Tengen: `STEPPER.gap`.
@@ -31,7 +37,7 @@ pub struct StepperStyle {
     pub background: StateValue<ShapeStyle>,
     /// Tengen, with `value`: `Role(Label)` (disabled `Role(TertiaryLabel)`), `Role(Label)`.
     pub chevron: StateValue<ShapeStyle>,
-    /// Tengen: `Role(Separator)`.
+    /// Tengen: `Color(STEPPER_DIVIDER)`, `STEPPER_DIVIDER_CONTRAST` under Increase Contrast.
     pub separator: StateValue<ShapeStyle>,
     /// Tengen, with `chevron`: `Role(Label)` (disabled `Role(TertiaryLabel)`), `Role(Label)`.
     pub value: StateValue<ShapeStyle>,
@@ -59,13 +65,25 @@ impl ControlStyle for StepperStyle {
             chevron_stroke: STEPPER.chevron_stroke,
             chevron_offsets: (STEPPER.chevron_offset_up, STEPPER.chevron_offset_down),
             separator_inset: STEPPER.separator_inset,
+            separator_drop: STEPPER.separator_drop,
             separator_height: HAIRLINE,
             value_gap: STEPPER.gap,
             shape: rounded(STEPPER.radius),
             background: StateValue::new(ShapeStyle::Role(Role::ControlBackground)),
             chevron: StateValue::new(ShapeStyle::Role(Role::Label))
                 .disabled(ShapeStyle::Role(Role::TertiaryLabel)),
-            separator: StateValue::new(ShapeStyle::Role(Role::Separator)),
+            separator: StateValue::new(ShapeStyle::Color(per_look(
+                [
+                    STEPPER_DIVIDER_LIGHT,
+                    STEPPER_DIVIDER_DARK,
+                    STEPPER_DIVIDER_DARK_TINT,
+                ],
+                [
+                    STEPPER_DIVIDER_CONTRAST_LIGHT,
+                    STEPPER_DIVIDER_CONTRAST_DARK,
+                    STEPPER_DIVIDER_CONTRAST_DARK_TINT,
+                ],
+            ))),
             value: StateValue::new(ShapeStyle::Role(Role::Label)),
             border: None,
             shadows: Vec::new(),
