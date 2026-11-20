@@ -172,10 +172,11 @@ impl Component for Switch {
                     .top((height - knob_height) / 2.0),
             )
             .bordered(&paints, style.knob_border.as_ref())
-            .maybe(knob_scale != 1.0, |el| el.scale(knob_scale));
+            .maybe(knob_scale != 1.0, |el| el.scale(knob_scale))
+            .layer(1);
         let track_paint = if shows_on { &style.fill } else { &style.track };
         let radius = style.track_shape.corner_radius(width, height, direction);
-        let track = rect()
+        let track_body = rect()
             .width(Size::px(width))
             .height(Size::px(height))
             .corner_radius(radius)
@@ -183,12 +184,16 @@ impl Component for Switch {
             .map(
                 style.track_border.as_ref().filter(|_| !shows_on),
                 |el, border| el.border(inner_border(&paints, border)),
-            )
+            );
+        let track = rect()
+            .width(Size::px(width))
+            .height(Size::px(height))
+            .child(dimmed(track_body, opacity))
             .child(shadowed(
                 knob,
                 level::knob_shadows(glass, &style.knob_shadows),
             ));
-        let track = interaction.focus_ring(dimmed(track, opacity), radius.top_left());
+        let track = interaction.focus_ring(track, radius.top_left());
         let control = match style.label_position {
             None => track,
             Some(edge) => {

@@ -234,6 +234,7 @@ impl Palette {
             content_background: sunken,
             control_background: alpha(BACKDROP.glass),
             system_fill: alpha(BACKDROP.glass),
+            control_background_disabled: alpha(BACKDROP.glass / 2.0),
             text_background: sunken,
             control_hover: alpha(BACKDROP.glass_strong),
             accent,

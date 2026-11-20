@@ -137,7 +137,7 @@
       "knob-lens": [0.45, 0.5],
       "knob-glass-alpha": 0.08,
       "transition": "duration.fast",
-      "disabled-opacity": 0.4
+      "disabled-opacity": 0.7
     },
     "slider": {
       "height": 16,
@@ -746,13 +746,13 @@
         "padding-x": 8
       },
       "accent-swatches": [
-        {"name": "blue", "color": "#2f6fe4"},
-        {"name": "purple", "color": "#8e5bd8"},
-        {"name": "pink", "color": "#e5458f"},
-        {"name": "red", "color": "#ec4646"},
-        {"name": "orange", "color": "#f07c26"},
-        {"name": "yellow", "color": "#f5c02c"},
-        {"name": "green", "color": "#4fb848"},
+        {"name": "blue", "color": "#007aff"},
+        {"name": "purple", "color": "#953d96"},
+        {"name": "pink", "color": "#f74f9e"},
+        {"name": "red", "color": "#e0383e"},
+        {"name": "orange", "color": "#f7821b"},
+        {"name": "yellow", "color": "#ffc726"},
+        {"name": "green", "color": "#62ba46"},
         {"name": "graphite", "color": "#8e8e93"}
       ],
       "multicolor": ["red", "orange", "yellow", "green", "blue", "purple", "pink", "red"],

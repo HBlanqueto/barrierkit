@@ -20,9 +20,9 @@ pub struct CheckboxStyle {
     pub label_gap: f32,
     /// Tengen: `RoundedRectangle { radius: CHECKBOX.radius, style: Circular }`.
     pub box_shape: Shape,
-    /// Tengen, with `fill`: `Role(ControlBackground)` while unchecked, `Accent` while checked.
+    /// Tengen, with `fill`: `Role(SystemFill)` while unchecked, `Accent` while checked.
     pub box_background: StateValue<ShapeStyle>,
-    /// Tengen, with `box_background`: `Role(ControlBackground)` while unchecked, `Accent` while
+    /// Tengen, with `box_background`: `Role(SystemFill)` while unchecked, `Accent` while
     /// checked.
     pub fill: StateValue<ShapeStyle>,
     /// Tengen, with `label`: `Role(OnAccent)`, `Role(Label)` (disabled `Role(TertiaryLabel)`).
@@ -43,7 +43,7 @@ pub struct CheckboxStyle {
     pub label_position: Option<Edge>,
     /// Tengen: `LeftToRight`; `RightToLeft` swaps `Leading` and `Trailing`.
     pub layout_direction: LayoutDirection,
-    /// Tengen: `BODY`.
+    /// Tengen: `BODY` with `CHECKBOX.size` as `line_height`, so the row is as high as the box.
     pub label_font: Font,
 }
 
@@ -54,7 +54,7 @@ impl ControlStyle for CheckboxStyle {
             mark_size: CHECKBOX.mark,
             label_gap: SETTINGS.check.gap as f32,
             box_shape: rounded(CHECKBOX.radius),
-            box_background: StateValue::new(ShapeStyle::Role(Role::ControlBackground)),
+            box_background: StateValue::new(ShapeStyle::Role(Role::SystemFill)),
             fill: StateValue::new(ShapeStyle::Accent),
             mark: StateValue::new(ShapeStyle::Role(Role::OnAccent)),
             label: StateValue::new(ShapeStyle::Role(Role::Label))
@@ -66,7 +66,10 @@ impl ControlStyle for CheckboxStyle {
             effect: system_effect,
             label_position: Some(Edge::Trailing),
             layout_direction: LayoutDirection::LeftToRight,
-            label_font: BODY,
+            label_font: Font {
+                line_height: CHECKBOX.size as u32,
+                ..BODY
+            },
         }
     }
 }

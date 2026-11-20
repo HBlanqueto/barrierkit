@@ -25,9 +25,9 @@ pub struct SwitchStyle {
     pub track_shape: Shape,
     /// Tengen: `Capsule`.
     pub knob_shape: Shape,
-    /// Tengen, with `fill`: `Role(ControlBackground)` while off, `Accent` while on.
+    /// Tengen, with `fill`: `Role(SystemFill)` while off, `Accent` while on.
     pub track: StateValue<ShapeStyle>,
-    /// Tengen, with `track`: `Role(ControlBackground)` while off, `Accent` while on; under a drag
+    /// Tengen, with `track`: `Role(SystemFill)` while off, `Accent` while on; under a drag
     /// the track is off only while the knob is at the off end.
     pub fill: StateValue<ShapeStyle>,
     /// Tengen: `Color(SWITCH.knob_color)`.
@@ -50,7 +50,7 @@ pub struct SwitchStyle {
     pub knob_glass: Option<ShapeStyle>,
     /// Tengen: `1.0`.
     pub opacity: f32,
-    /// Tengen: `SWITCH.disabled_opacity`, for the switch and its label.
+    /// Tengen: `SWITCH.disabled_opacity`, for the track and the label; the knob stays opaque.
     pub disabled_opacity: f32,
     /// Tengen: `system_effect`.
     pub effect: ColorEffect,
@@ -78,7 +78,7 @@ impl ControlStyle for SwitchStyle {
             label_gap: SETTINGS.check.gap as f32,
             track_shape: Shape::Capsule,
             knob_shape: Shape::Capsule,
-            track: StateValue::new(ShapeStyle::Role(Role::ControlBackground)),
+            track: StateValue::new(ShapeStyle::Role(Role::SystemFill)),
             fill: StateValue::new(ShapeStyle::Accent),
             knob: StateValue::new(ShapeStyle::Color(SWITCH.knob_color)),
             label: StateValue::new(ShapeStyle::Role(Role::Label)),

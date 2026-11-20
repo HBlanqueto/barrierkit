@@ -60,7 +60,7 @@ A command-line process has no window context, so window-level colors here are no
 | purple | `953d96` / `a550a7` | `7d2a7e` / `803482` |
 | pink | `f74f9e` / `f74f9e` | `d93b86` / `c93379` |
 
-`ACCENT_SWATCHES` still holds older approximations of these.
+`ACCENT_SWATCHES` holds the light `controlAccentColor` of each except graphite, which was not measured; the dark values of red, yellow and purple differ and have no slot yet.
 
 ## Text fields
 

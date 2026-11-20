@@ -288,8 +288,8 @@ impl Component for Slider {
 
         let track_rect = dim(
             part(
-                knob / 2.0,
-                run,
+                0.0,
+                length,
                 length,
                 (knob_thickness - track) / 2.0,
                 track,
@@ -299,9 +299,9 @@ impl Component for Slider {
             parts_opacity,
         );
         let fill_rect = part(
-            -knob / 2.0,
+            0.0,
             knob_at + knob / 2.0,
-            run,
+            length,
             0.0,
             track,
             style.track_shape,

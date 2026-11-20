@@ -199,7 +199,7 @@
   --bk-switch-knob-lens-1: 0.5;
   --bk-switch-knob-glass-alpha: 0.08;
   --bk-switch-transition: var(--bk-duration-fast);
-  --bk-switch-disabled-opacity: 0.4;
+  --bk-switch-disabled-opacity: 0.7;
   --bk-slider-height: 16;
   --bk-slider-track: 6;
   --bk-slider-knob-width: 19.5;
@@ -652,19 +652,19 @@
   --bk-settings-toolbar-padding-top: 0;
   --bk-settings-toolbar-padding-x: 8;
   --bk-settings-accent-swatches-0-name: blue;
-  --bk-settings-accent-swatches-0-color: #2f6fe4;
+  --bk-settings-accent-swatches-0-color: #007aff;
   --bk-settings-accent-swatches-1-name: purple;
-  --bk-settings-accent-swatches-1-color: #8e5bd8;
+  --bk-settings-accent-swatches-1-color: #953d96;
   --bk-settings-accent-swatches-2-name: pink;
-  --bk-settings-accent-swatches-2-color: #e5458f;
+  --bk-settings-accent-swatches-2-color: #f74f9e;
   --bk-settings-accent-swatches-3-name: red;
-  --bk-settings-accent-swatches-3-color: #ec4646;
+  --bk-settings-accent-swatches-3-color: #e0383e;
   --bk-settings-accent-swatches-4-name: orange;
-  --bk-settings-accent-swatches-4-color: #f07c26;
+  --bk-settings-accent-swatches-4-color: #f7821b;
   --bk-settings-accent-swatches-5-name: yellow;
-  --bk-settings-accent-swatches-5-color: #f5c02c;
+  --bk-settings-accent-swatches-5-color: #ffc726;
   --bk-settings-accent-swatches-6-name: green;
-  --bk-settings-accent-swatches-6-color: #4fb848;
+  --bk-settings-accent-swatches-6-color: #62ba46;
   --bk-settings-accent-swatches-7-name: graphite;
   --bk-settings-accent-swatches-7-color: #8e8e93;
   --bk-settings-multicolor: red orange yellow green blue purple pink red;
@@ -1275,6 +1275,7 @@
   --bk-bg-surface: #f7f7f7;
   --bk-bg-raised: #ffffff;
   --bk-bg-control: #00000014;
+  --bk-bg-control-disabled: #0000000a;
   --bk-system-fill: #00000019;
   --bk-text-background: #fffffff9;
   --bk-bg-selected-control: #ffffff;
@@ -1339,6 +1340,7 @@
     --bk-bg-surface: #2a2a2a;
     --bk-bg-raised: #191919;
     --bk-bg-control: #ffffff14;
+    --bk-bg-control-disabled: #ffffff0a;
     --bk-system-fill: #ffffff19;
     --bk-text-background: #161616fa;
     --bk-bg-selected-control: #444444;
@@ -1403,6 +1405,7 @@
   --bk-bg-surface: #2a2a2a;
   --bk-bg-raised: #191919;
   --bk-bg-control: #ffffff14;
+  --bk-bg-control-disabled: #ffffff0a;
   --bk-system-fill: #ffffff19;
   --bk-text-background: #161616fa;
   --bk-bg-selected-control: #444444;
@@ -1466,6 +1469,7 @@
   --bk-bg-surface: #252628;
   --bk-bg-raised: #2a2b2e;
   --bk-bg-control: #ffffff14;
+  --bk-bg-control-disabled: #ffffff0a;
   --bk-system-fill: #ffffff19;
   --bk-text-background: #161616fa;
   --bk-bg-selected-control: #424448;

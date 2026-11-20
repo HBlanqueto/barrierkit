@@ -24,9 +24,9 @@ pub struct RadioGroupStyle {
     pub button_shape: Shape,
     /// Tengen: `Circle`.
     pub dot_shape: Shape,
-    /// Tengen, with `fill`: `Role(ControlBackground)` while not chosen, `Accent` while chosen.
+    /// Tengen, with `fill`: `Role(SystemFill)` while not chosen, `Accent` while chosen.
     pub button_background: StateValue<ShapeStyle>,
-    /// Tengen, with `button_background`: `Role(ControlBackground)` while not chosen, `Accent`
+    /// Tengen, with `button_background`: `Role(SystemFill)` while not chosen, `Accent`
     /// while chosen.
     pub fill: StateValue<ShapeStyle>,
     /// Tengen, with `label`: `Role(OnAccent)`, `Role(Label)` (disabled `Role(TertiaryLabel)`).
@@ -49,7 +49,7 @@ pub struct RadioGroupStyle {
     pub label_position: Option<Edge>,
     /// Tengen: `LeftToRight`; `RightToLeft` swaps `Leading` and `Trailing`.
     pub layout_direction: LayoutDirection,
-    /// Tengen: `BODY`.
+    /// Tengen: `BODY` with `SETTINGS.radio_size` as `line_height`, so the row is as high as the button.
     pub label_font: Font,
 }
 
@@ -62,7 +62,7 @@ impl ControlStyle for RadioGroupStyle {
             spacing: SETTINGS.radio_spacing as f32,
             button_shape: Shape::Circle,
             dot_shape: Shape::Circle,
-            button_background: StateValue::new(ShapeStyle::Role(Role::ControlBackground)),
+            button_background: StateValue::new(ShapeStyle::Role(Role::SystemFill)),
             fill: StateValue::new(ShapeStyle::Accent),
             dot: StateValue::new(ShapeStyle::Role(Role::OnAccent)),
             label: StateValue::new(ShapeStyle::Role(Role::Label))
@@ -75,7 +75,10 @@ impl ControlStyle for RadioGroupStyle {
             axis: Axis::Vertical,
             label_position: Some(Edge::Trailing),
             layout_direction: LayoutDirection::LeftToRight,
-            label_font: BODY,
+            label_font: Font {
+                line_height: SETTINGS.radio_size,
+                ..BODY
+            },
         }
     }
 }
