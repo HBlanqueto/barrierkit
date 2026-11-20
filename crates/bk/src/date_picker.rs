@@ -542,6 +542,7 @@ impl Component for CalendarView {
                                         .right(-style.selected_overhang)
                                         .top((style.day_height - selected_height) / 2.0 - 0.5),
                                 )
+                                .layer(-1)
                                 .width(Size::px(selected_width))
                                 .height(Size::px(selected_height))
                                 .corner_radius(day_radius)
