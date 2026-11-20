@@ -423,6 +423,8 @@
   --bk-table-row-height: 24;
   --bk-table-header-height: 28;
   --bk-table-padding-x: 10;
+  --bk-table-header-padding-x: 8;
+  --bk-table-column-shift: 2;
   --bk-table-row-inset: 10;
   --bk-table-row-radius: 7;
   --bk-table-body-inset: 5;
@@ -1298,6 +1300,7 @@
   --bk-accent-inactive: #aeaeb2;
   --bk-accent-strong: #1f53bd;
   --bk-selected-content: #0064e1;
+  --bk-separator-strong: #0000001a;
   --bk-accent-toggle: #0078f9;
   --bk-contrast-ink: #000000ff;
   --bk-contrast-ink-muted: #000000c1;
@@ -1310,6 +1313,7 @@
   --bk-contrast-text-background: #fffffff9;
   --bk-contrast-accent: #0040dd;
   --bk-contrast-selected-content: #0040dd;
+  --bk-contrast-separator-strong: #000000a6;
   --bk-contrast-accent-toggle: #003bca;
   --bk-contrast-focus-ring: #0022af;
   --bk-on-accent: #ffffff;
@@ -1377,6 +1381,7 @@
     --bk-accent-inactive: #5c5c5e;
     --bk-accent-strong: #6aa2ff;
     --bk-selected-content: #0059d1;
+    --bk-separator-strong: #ffffff29;
     --bk-accent-toggle: #067eff;
     --bk-contrast-ink: #ffffffff;
     --bk-contrast-ink-muted: #ffffffb2;
@@ -1389,6 +1394,7 @@
     --bk-contrast-text-background: #0d0d0dfa;
     --bk-contrast-accent: #1774da;
     --bk-contrast-selected-content: #1774da;
+    --bk-contrast-separator-strong: #ffffff4d;
     --bk-contrast-accent-toggle: #287edd;
     --bk-contrast-focus-ring: #469af5;
     --bk-on-accent: #ffffff;
@@ -1456,6 +1462,7 @@
   --bk-accent-inactive: #5c5c5e;
   --bk-accent-strong: #6aa2ff;
   --bk-selected-content: #0059d1;
+  --bk-separator-strong: #ffffff29;
   --bk-accent-toggle: #067eff;
   --bk-contrast-ink: #ffffffff;
   --bk-contrast-ink-muted: #ffffffb2;
@@ -1468,6 +1475,7 @@
   --bk-contrast-text-background: #0d0d0dfa;
   --bk-contrast-accent: #1774da;
   --bk-contrast-selected-content: #1774da;
+  --bk-contrast-separator-strong: #ffffff4d;
   --bk-contrast-accent-toggle: #287edd;
   --bk-contrast-focus-ring: #469af5;
   --bk-on-accent: #ffffff;
@@ -1534,6 +1542,7 @@
   --bk-accent-inactive: #5c5d61;
   --bk-accent-strong: #6aa2ff;
   --bk-selected-content: #0059d1;
+  --bk-separator-strong: #ffffff29;
   --bk-accent-toggle: #067eff;
   --bk-contrast-ink: #ffffffff;
   --bk-contrast-ink-muted: #ffffffb2;
@@ -1546,6 +1555,7 @@
   --bk-contrast-text-background: #0d0d0dfa;
   --bk-contrast-accent: #1774da;
   --bk-contrast-selected-content: #1774da;
+  --bk-contrast-separator-strong: #ffffff4d;
   --bk-contrast-accent-toggle: #287edd;
   --bk-contrast-focus-ring: #469af5;
   --bk-on-accent: #ffffff;

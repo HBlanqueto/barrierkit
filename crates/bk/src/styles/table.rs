@@ -31,6 +31,12 @@ pub struct TableStyle {
     /// `TABLE.row_height`, `TABLE.padding_x` on each side of a cell, `SPACE_1` between a header
     /// title and its arrow.
     pub header_spacing: f32,
+    /// Tengen, with `column_shift`: `TABLE.header_padding_x` on each side of a header cell,
+    /// `TABLE.column_shift` more at the leading edge of every column after the first.
+    pub header_padding_x: f32,
+    /// Tengen, with `header_padding_x`: `TABLE.column_shift`, the extra leading padding of every
+    /// column after the first, in the header and in the rows.
+    pub column_shift: f32,
     /// Tengen: `Role(Label)`.
     pub header_label: StateValue<ShapeStyle>,
     /// Tengen, with `row_radius`, `body_inset`: `TABLE.row_inset` between the table and the header cells and rows.
@@ -39,9 +45,9 @@ pub struct TableStyle {
     pub row_radius: f32,
     /// Tengen, with `row_inset`, `row_radius`: `TABLE.body_inset` above the first row.
     pub body_inset: f32,
-    /// Tengen: `TABLE.header_separator`, the height of the 1 wide separator after each header
-    /// cell but the last.
-    pub header_separator: f32,
+    /// Tengen: `Some((Role(SeparatorStrong), TABLE.header_separator))`, the 1 wide separator
+    /// after each header cell, with its height.
+    pub header_separator: Option<(ShapeStyle, f32)>,
     /// Tengen: `Role(Label)` for the sorted column, which also paints its arrow.
     pub sorted_header_label: StateValue<ShapeStyle>,
     /// Tengen: `Clear` for even rows.
@@ -55,11 +61,11 @@ pub struct TableStyle {
     /// Tengen: `Role(OnAccent)`.
     pub selected_label: StateValue<ShapeStyle>,
     /// Tengen: `Some((Role(Separator), TABLE.header_line))`, the line under the header, which
-    /// reaches 1 into the first row; the separators between header cells take its paint.
+    /// reaches 1 into the first row.
     pub header_border: Option<(ShapeStyle, f32)>,
     /// Tengen: `system_effect`.
     pub effect: ColorEffect,
-    /// Tengen: `CAPTION`, its size also the arrow's.
+    /// Tengen: `CAPTION` with the weight of `BODY`, its size also the arrow's.
     pub header_font: Font,
     /// Tengen: `BODY`.
     pub font: Font,
@@ -72,6 +78,8 @@ impl ControlStyle for TableStyle {
             row_height: TABLE.row_height,
             padding_x: TABLE.padding_x,
             header_spacing: SPACE_1,
+            header_padding_x: TABLE.header_padding_x,
+            column_shift: TABLE.column_shift,
             row_inset: TABLE.row_inset,
             row_radius: TABLE.row_radius,
             body_inset: TABLE.body_inset,
@@ -86,9 +94,15 @@ impl ControlStyle for TableStyle {
             label: StateValue::new(ShapeStyle::Role(Role::Label)),
             selected_label: StateValue::new(ShapeStyle::Role(Role::OnAccent)),
             header_border: Some((ShapeStyle::Role(Role::Separator), TABLE.header_line)),
-            header_separator: TABLE.header_separator,
+            header_separator: Some((
+                ShapeStyle::Role(Role::SeparatorStrong),
+                TABLE.header_separator,
+            )),
             effect: system_effect,
-            header_font: CAPTION,
+            header_font: Font {
+                weight: BODY.weight,
+                ..CAPTION
+            },
             font: BODY,
         }
     }

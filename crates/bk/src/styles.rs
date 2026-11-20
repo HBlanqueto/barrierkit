@@ -211,6 +211,7 @@ pub enum Role {
     OnAccent,
     ToggleAccent,
     SelectedContent,
+    SeparatorStrong,
     Destructive,
     DestructiveFill,
     RaisedBackground,
@@ -240,6 +241,7 @@ impl Role {
             Self::OnAccent => palette.on_accent,
             Self::ToggleAccent => palette.toggle_accent,
             Self::SelectedContent => palette.selected_content,
+            Self::SeparatorStrong => palette.separator_strong,
             Self::Destructive => palette.destructive,
             Self::DestructiveFill => Rgba {
                 a: ctdesign::BUTTON_DESTRUCTIVE_FILL,

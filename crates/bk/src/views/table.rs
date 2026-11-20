@@ -107,16 +107,21 @@ fn row_look(
     }
 }
 
-fn cells(padding_x: f32, values: impl Iterator<Item = (Option<f32>, Element)>) -> Rect {
+fn cells(
+    padding_x: f32,
+    column_shift: f32,
+    values: impl Iterator<Item = (Option<f32>, Element)>,
+) -> Rect {
     rect()
         .width(Size::fill())
         .direction(Direction::Horizontal)
         .content(Content::flex())
         .cross_align(Alignment::Center)
-        .children(values.map(|(width, cell)| {
+        .children(values.enumerate().map(|(position, (width, cell))| {
+            let leading = padding_x + if position > 0 { column_shift } else { 0.0 };
             rect()
                 .width(width.map_or(Size::flex(1.0), Size::px))
-                .padding(Gaps::new(0.0, padding_x, 0.0, padding_x))
+                .padding(Gaps::new(0.0, padding_x, 0.0, leading))
                 .child(cell)
                 .into_element()
         }))
@@ -144,6 +149,8 @@ impl Component for Table {
         let style: TableStyle = resolve(&self.style);
         let paints = Paints::current(ControlState::default(), style.effect);
         let padding_x = style.padding_x;
+        let header_padding_x = style.header_padding_x;
+        let column_shift = style.column_shift;
         let sort = self.sort;
         let interaction = use_interaction();
         let held = use_held_modifiers();
@@ -158,7 +165,7 @@ impl Component for Table {
         let shown = shown_columns(&hidden.read(), self.columns.len());
         let width_of = move |column: usize| widths.read().get(column).copied().flatten();
 
-        let header_cells = shown.iter().map(|&index| {
+        let header_cells = shown.iter().enumerate().map(|(position, &index)| {
             let arrow = match sort {
                 Some(order) if order.column == index && order.ascending => Some(Symbol::ChevronUp),
                 Some(order) if order.column == index => Some(Symbol::ChevronDown),
@@ -174,7 +181,9 @@ impl Component for Table {
                     .map(|on_sort| Callback::new(move |_| on_sort.call(next_sort(sort, index)))),
             };
             let handle = rect()
-                .position(Position::new_absolute().right(-padding_x - TABLE.resize_handle / 2.0))
+                .position(
+                    Position::new_absolute().right(-header_padding_x - TABLE.resize_handle / 2.0),
+                )
                 .width(Size::px(TABLE.resize_handle))
                 .height(Size::px(style.header_height))
                 .cursor(CursorIcon::ColResize)
@@ -186,7 +195,9 @@ impl Component for Table {
             let content = rect()
                 .width(Size::fill())
                 .on_sized(move |event: Event<SizedEventData>| {
-                    let width = event.area.width() + 2.0 * padding_x;
+                    let width = event.area.width()
+                        + 2.0 * header_padding_x
+                        + if position > 0 { column_shift } else { 0.0 };
                     if measured.peek()[index] != width {
                         measured.write()[index] = width;
                     }
@@ -196,51 +207,49 @@ impl Component for Table {
             (width_of(index), content.into_element())
         });
         let inset = style.row_inset;
-        let header = rect()
-            .width(Size::fill())
-            .height(Size::px(style.header_height))
-            .child(
-                rect()
-                    .width(Size::fill())
-                    .height(Size::px(style.header_height))
-                    .padding(Gaps::new(0.0, inset, 0.0, inset))
-                    .child(cells(padding_x, header_cells)),
-            )
-            .maybe_child(style.header_border.as_ref().map(|(paint, width)| {
-                rect()
-                    .position(Position::new_absolute().left(0.0).bottom(1.0 - *width))
-                    .width(Size::fill())
-                    .height(Size::px(*width))
-                    .background(paints.fill(&StateValue::new(paint.clone())))
-            }))
-            .children(
-                style
-                    .header_border
-                    .as_ref()
-                    .into_iter()
-                    .flat_map(|(paint, _)| {
+        let header =
+            rect()
+                .width(Size::fill())
+                .height(Size::px(style.header_height))
+                .child(
+                    rect()
+                        .width(Size::fill())
+                        .height(Size::px(style.header_height))
+                        .padding(Gaps::new(0.0, inset, 0.0, inset))
+                        .child(
+                            cells(header_padding_x, column_shift, header_cells)
+                                .height(Size::fill()),
+                        ),
+                )
+                .maybe_child(style.header_border.as_ref().map(|(paint, width)| {
+                    rect()
+                        .position(Position::new_absolute().left(0.0).bottom(1.0 - *width))
+                        .width(Size::fill())
+                        .height(Size::px(*width))
+                        .background(paints.fill(&StateValue::new(paint.clone())))
+                }))
+                .children(style.header_separator.as_ref().into_iter().flat_map(
+                    |(paint, height)| {
                         let edges = shown
                             .iter()
-                            .take(shown.len().saturating_sub(1))
                             .scan(inset, |edge, &column| {
                                 *edge += measured.read()[column];
                                 Some(*edge)
                             })
                             .collect::<Vec<_>>();
-                        edges.into_iter().map(|edge| {
+                        let top = (style.header_height - height) / 2.0;
+                        let height = *height;
+                        let fill = paints.fill(&StateValue::new(paint.clone()));
+                        edges.into_iter().map(move |edge| {
                             rect()
-                                .position(
-                                    Position::new_absolute()
-                                        .left(edge)
-                                        .top((style.header_height - style.header_separator) / 2.0),
-                                )
+                                .position(Position::new_absolute().left(edge - HAIRLINE).top(top))
                                 .width(Size::px(HAIRLINE))
-                                .height(Size::px(style.header_separator))
-                                .background(paints.fill(&StateValue::new(paint.clone())))
+                                .height(Size::px(height))
+                                .background(fill.clone())
                                 .into_element()
                         })
-                    }),
-            );
+                    },
+                ));
         let count = self.columns.len();
         let menu = self
             .columns
@@ -274,6 +283,7 @@ impl Component for Table {
             padding_x,
             inset,
             style.row_radius,
+            column_shift,
         );
         let data = (
             self.rows.clone(),
@@ -289,8 +299,14 @@ impl Component for Table {
             data,
             |item, (rows, selected, on_select, looks, metrics, shown, column_widths, held)| {
                 let index = item.index;
-                let (font, row_height, padding_x, inset, row_radius): &(Font, f32, f32, f32, f32) =
-                    metrics;
+                let (font, row_height, padding_x, inset, row_radius, column_shift): &(
+                    Font,
+                    f32,
+                    f32,
+                    f32,
+                    f32,
+                    f32,
+                ) = metrics;
                 let selected_row = selected.contains(&index);
                 let look = if selected_row {
                     &looks[2]
@@ -315,7 +331,7 @@ impl Component for Table {
                     .a11y_role(AccessibilityRole::Row)
                     .a11y_builder(move |node| node.set_selected(selected_row))
                     .child(
-                        cells(*padding_x, values)
+                        cells(*padding_x, *column_shift, values)
                             .height(Size::fill())
                             .corner_radius(*row_radius)
                             .background(look.background.clone())

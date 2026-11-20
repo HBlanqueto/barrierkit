@@ -736,6 +736,8 @@ pub struct TableMetrics {
     pub row_height: f32,
     pub header_height: f32,
     pub padding_x: f32,
+    pub header_padding_x: f32,
+    pub column_shift: f32,
     pub row_inset: f32,
     pub row_radius: f32,
     pub body_inset: f32,
@@ -888,6 +890,7 @@ pub struct ContrastPalette {
     pub accent: Rgba,
     pub selected_content: Rgba,
     pub accent_toggle: Rgba,
+    pub separator_strong: Rgba,
     pub focus_ring: Rgba,
 }
 
@@ -906,6 +909,7 @@ impl Palette {
             accent: contrast.accent,
             selected_content: contrast.selected_content,
             accent_toggle: contrast.accent_toggle,
+            separator_strong: contrast.separator_strong,
             ..self
         }
     }
@@ -931,6 +935,7 @@ pub struct Palette {
     pub control_disabled: Rgba,
     pub control: Rgba,
     pub accent_toggle: Rgba,
+    pub separator_strong: Rgba,
     pub accent_inactive: Rgba,
     pub on_accent: Rgba,
     pub danger: Rgba,

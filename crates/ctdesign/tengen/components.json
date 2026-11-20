@@ -403,6 +403,8 @@
       "row-height": 24,
       "header-height": 28,
       "padding-x": 10,
+      "header-padding-x": 8,
+      "column-shift": 2,
       "row-inset": 10,
       "row-radius": 7,
       "body-inset": 5,
