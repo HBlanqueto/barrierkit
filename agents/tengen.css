@@ -119,6 +119,7 @@
   --bk-level-indicator-radius: 2;
   --bk-level-indicator-star: 17;
   --bk-level-indicator-star-pitch: 12;
+  --bk-level-indicator-star-drop: 0.4;
   --bk-level-indicator-stars: 5;
   --bk-level-indicator-segment-gap: 0;
   --bk-level-indicator-discrete-border: 0.87;

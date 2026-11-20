@@ -54,6 +54,7 @@
       "radius": 2,
       "star": 17,
       "star-pitch": 12,
+      "star-drop": 0.4,
       "stars": 5,
       "segment-gap": 0,
       "discrete-border": 0.87,

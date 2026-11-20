@@ -384,6 +384,7 @@ impl Component for RatingIndicator {
                 .width(Size::px(style.star_size.1))
                 .height(Size::px(style.star_size.1))
                 .center()
+                .offset_y(style.star_drop)
                 .maybe(on_change.is_some(), |el| {
                     el.on_press(move |_| {
                         if let Some(on_change) = &on_change {

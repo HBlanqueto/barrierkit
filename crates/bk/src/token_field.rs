@@ -117,7 +117,11 @@ impl Component for TokenField {
         let margin_y = (style.height - style.font.line_height as f32) / 2.0;
         let input = input(
             draft,
-            self.placeholder,
+            if tokens.read().is_empty() {
+                self.placeholder
+            } else {
+                ""
+            },
             [
                 Rgba::TRANSPARENT,
                 Rgba::TRANSPARENT,

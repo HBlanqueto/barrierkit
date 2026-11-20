@@ -571,6 +571,7 @@ pub struct LevelIndicatorMetrics {
     pub radius: f32,
     pub star: f32,
     pub star_pitch: f32,
+    pub star_drop: f32,
     pub stars: u32,
     pub segment_gap: f32,
     pub discrete_border: f32,
