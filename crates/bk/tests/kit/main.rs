@@ -1,4 +1,5 @@
 mod appearance;
+mod appkit;
 mod backdrop;
 mod chrome;
 mod controls;

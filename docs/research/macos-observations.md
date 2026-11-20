@@ -174,6 +174,9 @@ committed assets.
 ~/src/probes/mouse click 2365 15
 ```
 
+The probes for controls, tables, alerts, menus, toolbars and tabs, and the
+comparison with the kit, are in [`appkit-comparison.md`](appkit-comparison.md).
+
 `sample.swift` treats `y=0` as the top row. Do not reintroduce the old flip.
 zsh does not word-split `set -- $pair`; pass coordinates as separate
 arguments.
