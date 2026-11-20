@@ -374,7 +374,7 @@ impl Titlebar {
         };
         let lights: TrafficLightsStyle = resolve(&Theme::tengen());
         let padding_x = if traffic.is_some() {
-            lights_inset(height, &lights)
+            ctappearance::traffic::inset(height as u32) as f32
         } else {
             style.padding_x
         };
@@ -498,10 +498,6 @@ pub(crate) const TITLEBAR_OVERLAY_LAYER: i16 = i16::MAX / 32;
 pub fn sidebar_bar_metrics() -> (f32, f32) {
     let style: TitlebarStyle = resolve(&Theme::tengen());
     (style.sidebar_height, style.sidebar_padding_top)
-}
-
-fn lights_inset(height: f32, lights: &TrafficLightsStyle) -> f32 {
-    (height - lights.diameter) / 2.0
 }
 
 impl TrafficLights {

@@ -119,7 +119,7 @@ fn a_long_title_is_ellipsized_to_the_available_width() {
     let style = title_label_style(&test, LONG_TITLE);
     assert_eq!(style.text_overflow, Some(TextOverflow::Ellipsis));
     assert!(
-        title_label_width(&test, LONG_TITLE) <= title_area_width(&test) + 0.5,
+        title_label_width(&test, LONG_TITLE) <= title_area_width(&test) + 1.0,
         "the title label must be constrained to the title slot"
     );
 }

@@ -37,8 +37,8 @@ pub struct TitlebarStyle {
     /// Tengen: `TITLEBAR_PADDING_X`.
     pub padding_x: f32,
     /// Tengen: `SETTINGS.toolbar_padding_x` (island) or `TITLEBAR_PADDING_X` (flat). With the
-    /// traffic lights in the centered bar the side padding is half of `height` minus the
-    /// lights' `diameter`.
+    /// traffic lights in the centered bar the side padding is `ctappearance::traffic::inset`
+    /// of `height`.
     pub sidebar_padding_x: f32,
     /// Tengen: `0.0`, between the bar's items.
     pub spacing: f32,

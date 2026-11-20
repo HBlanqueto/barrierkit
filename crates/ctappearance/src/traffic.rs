@@ -1,20 +1,28 @@
 use ctdesign::{
-    ButtonKind, Rgba, Segment, TITLEBAR, TRAFFIC_GLYPH_ON_DARK, TRAFFIC_GLYPH_ON_LIGHT,
-    TRAFFIC_GLYPH_STANDARD, TRAFFIC_GLYPHS, TRAFFIC_PRESSED_DARKEN, TrafficRim, Triangle,
+    ButtonKind, Rgba, Segment, TITLEBAR, TITLEBAR_CLIENT_HEIGHT, TRAFFIC_GLYPH_ON_DARK,
+    TRAFFIC_GLYPH_ON_LIGHT, TRAFFIC_GLYPH_STANDARD, TRAFFIC_GLYPHS, TRAFFIC_PRESSED_DARKEN,
+    TrafficRim, Triangle,
 };
 
 use crate::TrafficLightStyle;
 
-// macOS: the lights sit as far from the left edge as from the top of their bar.
 pub fn inset(bar_height: u32) -> f64 {
-    (f64::from(bar_height) - f64::from(TITLEBAR.buttons.diameter)) / 2.0
+    f64::from(if bar_height == TITLEBAR_CLIENT_HEIGHT {
+        TITLEBAR.buttons.inset_compact
+    } else {
+        TITLEBAR.buttons.inset
+    })
 }
 
 pub fn button_rect(index: usize) -> (f64, f64, f64) {
     let diameter = f64::from(TITLEBAR.buttons.diameter);
     let gap = f64::from(TITLEBAR.buttons.spacing);
-    let inset = inset(TITLEBAR.thickness);
-    (inset + index as f64 * (diameter + gap), inset, diameter)
+    let top = (f64::from(TITLEBAR.thickness) - diameter) / 2.0;
+    (
+        inset(TITLEBAR.thickness) + index as f64 * (diameter + gap),
+        top,
+        diameter,
+    )
 }
 
 pub fn group_rect() -> (f64, f64, f64, f64) {
@@ -241,6 +249,13 @@ mod tests {
 
     fn rim() -> TrafficRim {
         ctdesign::LIGHT.traffic_rim
+    }
+
+    #[test]
+    fn the_lights_sit_9_from_the_left_in_the_32_bar_and_12_in_the_40_bar() {
+        assert_eq!(inset(32), 9.0);
+        assert_eq!(inset(40), 12.0);
+        assert_eq!(button_rect(0).1, 9.0);
     }
 
     #[test]

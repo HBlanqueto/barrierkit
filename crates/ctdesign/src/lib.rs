@@ -84,6 +84,8 @@ pub struct TitlebarButtons {
     pub order: [Button; 3],
     pub diameter: u32,
     pub spacing: u32,
+    pub inset: u32,
+    pub inset_compact: u32,
     pub corner_radius: u32,
 }
 

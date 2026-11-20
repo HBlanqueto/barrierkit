@@ -137,6 +137,17 @@ Close, minimize and zoom. `Titlebar`, the `Rail` and
 (`WindowControls::fixed_width`) the green light is a plus and zooms to the full
 height. Use it when a view covers the title bar and needs its own lights.
 
+In a bar the lights sit `TITLEBAR.buttons.inset_compact` (12) from the left when
+it is `TITLEBAR_CLIENT_HEIGHT` (40) tall and `TITLEBAR.buttons.inset` (9) when it
+is `TITLEBAR.thickness` (32) tall, centred vertically, so 13 and 9 from the top.
+`ctappearance::traffic::inset(bar_height)` is the one rule; the `Titlebar` and
+the compositor both use it.
+
+The kit stops at the compact style. macOS also has a 66 px toolbar title bar
+whose lights sit 19 from the left and 19 from the top, not centred. No window of
+the kit uses it, so it has no style, `Bar` value or token here; the
+measurement stays in [macOS windows](../research/macos-windows.md).
+
 For a standalone set, `TrafficLights` (`bk::traffic`):
 
 ```rust

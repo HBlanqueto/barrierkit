@@ -179,12 +179,14 @@ impl Resolved {
             ON_ACCENT_MIN_CONTRAST,
             scheme,
         );
-        self.focus_ring = reaching(
-            self.accent,
-            &[self.surfaces.window],
-            ACCENT_MIN_CONTRAST_ON_WINDOW,
-            scheme,
-        );
+        if self.contrast {
+            self.focus_ring = reaching(
+                self.accent,
+                &[self.surfaces.window],
+                ACCENT_MIN_CONTRAST_ON_WINDOW,
+                scheme,
+            );
+        }
         self
     }
 
@@ -310,6 +312,12 @@ pub fn palette(scheme: ColorScheme) -> Palette {
 }
 
 const BG_WINDOW: [Rgba; 3] = [BG_WINDOW_LIGHT, BG_WINDOW_DARK, BG_WINDOW_DARK_TINT];
+
+const FOCUS_RING_COLOR: [Rgba; 3] = [
+    ctdesign::FOCUS_RING_COLOR_LIGHT,
+    ctdesign::FOCUS_RING_COLOR_DARK,
+    ctdesign::FOCUS_RING_COLOR_DARK_TINT,
+];
 
 const SHELL: [[ShellPalette; 3]; 2] = [
     [SHELL_LIGHT, SHELL_DARK, SHELL_DARK_TINT],
@@ -612,13 +620,22 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
         appearance.transparency_reduced(),
     );
     let surfaces = tinted_surfaces(scheme, &base, appearance.tint_parts, |color, _| color);
-    // WCAG 2.2: a focus ring needs 3:1 on the window (§1.4.11), link text 4.5:1 where it sits (§1.4.3).
-    let focus_ring = reaching(
-        accent,
-        &[scheme.pick(BG_WINDOW)],
-        ACCENT_MIN_CONTRAST_ON_WINDOW,
-        scheme,
-    );
+    // WCAG 2.2: with Increase Contrast a focus ring needs 3:1 on the window (§1.4.11), link text 4.5:1 where it sits (§1.4.3).
+    let focus_ring = if appearance.contrast {
+        reaching(
+            accent,
+            &[scheme.pick(BG_WINDOW)],
+            ACCENT_MIN_CONTRAST_ON_WINDOW,
+            scheme,
+        )
+    } else if normal_accent == base.accent {
+        scheme.pick(FOCUS_RING_COLOR)
+    } else {
+        Rgba {
+            a: scheme.pick(FOCUS_RING_COLOR).a,
+            ..accent
+        }
+    };
     let link = reaching(
         accent,
         &[surfaces.window, surfaces.surface],
@@ -1208,23 +1225,14 @@ mod tests {
     }
 
     #[test]
-    fn every_accent_swatch_gets_readable_ink_and_a_visible_focus_ring() {
+    fn every_accent_swatch_gets_readable_ink_and_link_text() {
         for scheme in [ColorScheme::Light, ColorScheme::Dark, ColorScheme::DarkTint] {
             for (name, swatch) in ctdesign::ACCENT_SWATCHES {
-                let mut config = AppearanceConfig {
+                let config = AppearanceConfig {
                     color_scheme: scheme,
                     accent_color: Some([swatch.r, swatch.g, swatch.b]),
-                    window_color: WindowColorMode::Accent,
-                    tint_strength: TintStrength::Intense,
                     ..Default::default()
                 };
-                let tinted = resolve(&config, None);
-                assert!(
-                    tinted.focus_ring.contrast_ratio(tinted.surfaces.window)
-                        >= ACCENT_MIN_CONTRAST_ON_WINDOW,
-                    "{scheme:?} {name}: focus ring on the tinted window"
-                );
-                config.window_color = WindowColorMode::Neutral;
                 let resolved = resolve(&config, None);
                 if palette(scheme).on_accent.contrast_ratio(swatch) >= ON_ACCENT_MIN_CONTRAST {
                     assert_eq!(
@@ -1236,11 +1244,6 @@ mod tests {
                     resolved.on_accent.contrast_ratio(resolved.accent) >= ON_ACCENT_MIN_CONTRAST,
                     "{scheme:?} {name}: ink on the accent"
                 );
-                assert!(
-                    resolved.focus_ring.contrast_ratio(scheme.pick(BG_WINDOW))
-                        >= ACCENT_MIN_CONTRAST_ON_WINDOW,
-                    "{scheme:?} {name}: focus ring on the window"
-                );
                 for background in [resolved.surfaces.window, resolved.surfaces.surface] {
                     assert!(
                         resolved.link.contrast_ratio(background) >= ON_ACCENT_MIN_CONTRAST,
@@ -1248,6 +1251,95 @@ mod tests {
                     );
                 }
             }
+        }
+    }
+
+    #[test]
+    fn with_increase_contrast_every_accent_swatch_gets_an_opaque_focus_ring_reaching_3_to_1() {
+        for scheme in [ColorScheme::Light, ColorScheme::Dark, ColorScheme::DarkTint] {
+            for (name, swatch) in ctdesign::ACCENT_SWATCHES {
+                let mut config = AppearanceConfig {
+                    color_scheme: scheme,
+                    accent_color: Some([swatch.r, swatch.g, swatch.b]),
+                    window_color: WindowColorMode::Accent,
+                    tint_strength: TintStrength::Intense,
+                    contrast: true,
+                    ..Default::default()
+                };
+                let tinted = resolve(&config, None);
+                assert_eq!(tinted.focus_ring.a, 1.0, "{scheme:?} {name}: tinted opaque");
+                assert!(
+                    tinted.focus_ring.contrast_ratio(tinted.surfaces.window)
+                        >= ACCENT_MIN_CONTRAST_ON_WINDOW,
+                    "{scheme:?} {name}: focus ring on the tinted window"
+                );
+                config.window_color = WindowColorMode::Neutral;
+                let resolved = resolve(&config, None);
+                assert_eq!(resolved.focus_ring.a, 1.0, "{scheme:?} {name}: opaque");
+                assert!(
+                    resolved.focus_ring.contrast_ratio(scheme.pick(BG_WINDOW))
+                        >= ACCENT_MIN_CONTRAST_ON_WINDOW,
+                    "{scheme:?} {name}: focus ring on the window"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn the_default_accent_gets_the_measured_focus_ring_in_each_scheme() {
+        for (scheme, expected) in [
+            (ColorScheme::Light, [0x00, 0x67, 0xf4, 0x7f]),
+            (ColorScheme::Dark, [0x1a, 0xa9, 0xff, 0x7f]),
+            (ColorScheme::DarkTint, [0x1a, 0xa9, 0xff, 0x7f]),
+        ] {
+            for mode in [WindowColorMode::Neutral, WindowColorMode::Accent] {
+                let resolved = resolve(
+                    &appearance(scheme, mode, TrafficLightStyle::Standard, None),
+                    None,
+                );
+                assert_eq!(
+                    resolved.focus_ring.to_rgba8(),
+                    expected,
+                    "{scheme:?} {mode:?}"
+                );
+                assert!((resolved.focus_ring.a - 0.498).abs() < 0.001);
+            }
+        }
+    }
+
+    #[test]
+    fn a_custom_accent_gets_a_focus_ring_of_its_own_colour_at_the_measured_alpha() {
+        for scheme in [ColorScheme::Light, ColorScheme::Dark, ColorScheme::DarkTint] {
+            let resolved = resolve(
+                &appearance(
+                    scheme,
+                    WindowColorMode::Neutral,
+                    TrafficLightStyle::Standard,
+                    Some([0.93, 0.27, 0.27]),
+                ),
+                None,
+            );
+            let [r, g, b, _] = resolved.accent.to_rgba8();
+            assert_eq!(
+                resolved.focus_ring.to_rgba8(),
+                [r, g, b, 0x7f],
+                "{scheme:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn increase_contrast_makes_the_default_accent_focus_ring_opaque() {
+        for scheme in [ColorScheme::Light, ColorScheme::Dark, ColorScheme::DarkTint] {
+            let resolved = resolve(
+                &AppearanceConfig {
+                    color_scheme: scheme,
+                    contrast: true,
+                    ..Default::default()
+                },
+                None,
+            );
+            assert_eq!(resolved.focus_ring.a, 1.0, "{scheme:?}");
         }
     }
 

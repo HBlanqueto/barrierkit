@@ -456,7 +456,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 
 | BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
 |---|---|---|---|---|---|
-| `ctappearance::traffic::inset` | fn | — | — | Distance of the lights from the edges of a bar | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
+| `ctappearance::traffic::inset` | fn | — | — | Distance of the lights from the left edge of a bar: 9 in the 32 px bar, 12 in the 40 px bar | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
 | `ctappearance::traffic::button_rect` | fn | — | ≈ `NSWindow.standardWindowButton(_:)` frame | Rectangle of one light | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
 | `ctappearance::traffic::group_rect` | fn | — | — | Rectangle of the three lights | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
 | `ctappearance::traffic::hit` | fn | — | — | The light under a point | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
@@ -516,7 +516,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `ctdesign::WindowStyle` | struct | — | — | Corner radius and superellipse exponent of a dialog or pop-up | [4](04-appearance-and-tokens.md#token-types) |
 | `ctdesign::WindowResize` | struct | — | — | Width of the resize band at edges and corners | [4](04-appearance-and-tokens.md#token-types) |
 | `ctdesign::Titlebar` | struct | — | — | Server-side titlebar thickness, lights and font | [4](04-appearance-and-tokens.md#token-types) |
-| `ctdesign::TitlebarButtons` | struct | — | — | Order, diameter, spacing and radius of the traffic lights | [4](04-appearance-and-tokens.md#token-types) |
+| `ctdesign::TitlebarButtons` | struct | — | — | Order, diameter, spacing, left insets (`inset`, `inset_compact`) and radius of the traffic lights | [4](04-appearance-and-tokens.md#token-types) |
 | `ctdesign::Button` | struct | — | — | One traffic light: kind and color | [4](04-appearance-and-tokens.md#token-types) |
 | `ctdesign::ButtonKind` | enum | — | `NSWindow.ButtonType` | `Close`, `Minimize`, `Maximize` | [4](04-appearance-and-tokens.md#token-types) |
 | `ctdesign::TrafficGlyphs` | struct | — | — | Geometry of the close, minimize, zoom and plus glyphs | [4](04-appearance-and-tokens.md#token-types) |
@@ -586,6 +586,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `ctdesign::SPRING_DAMPING` | constant | ≈ `Spring.damping` | — | Damping of the kit's spring | [4](04-appearance-and-tokens.md#motion) |
 | `ctdesign::LIGHT`, `DARK`, `DARK_TINT` | constant | — | — | Base palette of each theme | [4](04-appearance-and-tokens.md#colors) |
 | `ctdesign::BG_WINDOW_LIGHT`, `BG_WINDOW_DARK`, `BG_WINDOW_DARK_TINT`, `BG_SURFACE_LIGHT`, `BG_SURFACE_DARK`, `BG_SURFACE_DARK_TINT`, `BG_SUNKEN_LIGHT`, `BG_SUNKEN_DARK`, `BG_SUNKEN_DARK_TINT`, `BG_RAISED_LIGHT`, `BG_RAISED_DARK`, `BG_RAISED_DARK_TINT`, `BG_CONTROL_LIGHT`, `BG_CONTROL_DARK`, `BG_CONTROL_DARK_TINT`, `BG_HOVER_LIGHT`, `BG_HOVER_DARK`, `BG_HOVER_DARK_TINT` | constant | — | ≈ `NSColor.windowBackgroundColor`… | Background layers per theme | [4](04-appearance-and-tokens.md#colors) |
+| `ctdesign::FOCUS_RING_COLOR_LIGHT`, `FOCUS_RING_COLOR_DARK`, `FOCUS_RING_COLOR_DARK_TINT` | constant | — | ≈ `NSColor.keyboardFocusIndicatorColor` | Keyboard focus ring color per theme, measured: translucent blue at 49.8% | [4](04-appearance-and-tokens.md#colors) |
 | `ctdesign::LAYER_FACTOR_BG_SUNKEN`, `LAYER_FACTOR_SURFACE`, `LAYER_FACTOR_RAISED`, `LAYER_FACTOR_CONTROL`, `LAYER_FACTOR_LINE` | constant | — | — | Share of the window tint each layer takes | [4](04-appearance-and-tokens.md#colors) |
 | `ctdesign::WINDOW_TINT_ACCENT`, `TINT_STRENGTH` | constant | — | — | Accent tint amounts in light and dark; strength factors | [4](04-appearance-and-tokens.md#colors) |
 | `ctdesign::TEXT_SIZES`, `POINTER_SIZES`, `DISPLAY_CONTRAST`, `COLOR_FILTER_INTENSITY` | constant | — | — | The steps of the Accessibility › Display sliders | [4](04-appearance-and-tokens.md#the-appearance-file) |

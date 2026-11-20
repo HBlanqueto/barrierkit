@@ -63,7 +63,8 @@ Three controls keep no copy and only show what the app passes: `RatingIndicator`
 - The label of `new` is the accessible name. Controls with visible text (`Button`,
   `Checkbox`, `RadioGroup` options) also show it.
 - Tab moves the focus. A keyboard focus draws the focus ring
-  (`FOCUS_RING`, 3 px, accent) only while the window is active.
+  (`FOCUS_RING`, 3 px, a translucent accent; opaque with Increase Contrast) only while the
+  window is active.
 - Space or Enter press the focused button. The arrow keys move sliders, steppers,
   segments and radio options.
 - `.disabled(true)` dims the control and stops its callbacks.

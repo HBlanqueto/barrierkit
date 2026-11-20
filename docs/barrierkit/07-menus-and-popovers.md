@@ -350,6 +350,14 @@ element with a style: `rect`, `VStack`, `HStack` or a rect-like view type, not
 mark; the keyboard focus ring is `Interaction::focus_ring`
 ([5. Controls](05-controls.md#building-a-new-control)).
 
+The keyboard focus ring draws `Resolved::focus_ring`: as macOS does, a
+translucent ring (`FOCUS_RING_COLOR_*` at 49.8% with the theme's accent, the
+accent at that alpha with another). Over a light or busy surface that ring can
+fall under the 3:1 contrast of WCAG 2.2 §1.4.11. With Increase Contrast
+(`contrast`) it is the opaque accent moved until it reaches 3:1 on the window
+([4. Resolution](04-appearance-and-tokens.md#resolution)). The `color` of this
+modifier is the caller's and is not changed.
+
 ## Popovers
 
 ### `Popover`

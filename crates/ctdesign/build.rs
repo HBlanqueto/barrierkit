@@ -424,6 +424,7 @@ BG_SURFACE Rgba themes.{theme}.bg-surface
 BG_SUNKEN Rgba themes.{theme}.bg-sunken
 BG_RAISED Rgba themes.{theme}.bg-raised
 BG_HOVER Rgba themes.{theme}.bg-hover
+FOCUS_RING_COLOR Rgba themes.{theme}.focus-ring
 SHELL ShellPalette components.shell bar=menubar.bg text=menubar.text tile=dock.tile tile_active=dock.tile-active tile_text_active=dock.tile-text-active
 DOCK_GLASS Rgba themes.{theme}.dock-bar
 DOCK_GLASS_SOLID Rgba themes.{theme}.dock-bar-opaque
@@ -537,13 +538,15 @@ fn emit_titlebar(out: &mut String, tengen: &Tengen, look: Look) {
     };
     let int = |path: &str| tengen.number(path) as i64;
     out.push_str(&format!(
-        "pub const TITLEBAR: Titlebar = Titlebar {{ thickness: {}, buttons: TitlebarButtons {{ order: [{}, {}, {}], diameter: {}, spacing: {}, corner_radius: {} }}, font: {} }};\n\n",
+        "pub const TITLEBAR: Titlebar = Titlebar {{ thickness: {}, buttons: TitlebarButtons {{ order: [{}, {}, {}], diameter: {}, spacing: {}, inset: {}, inset_compact: {}, corner_radius: {} }}, font: {} }};\n\n",
         int("size.titlebar-ssd-h"),
         button("Close", "close"),
         button("Minimize", "minimize"),
         button("Maximize", "zoom"),
         int(&format!("{lights}.size")),
         int(&format!("{lights}.gap")),
+        int(&format!("{lights}.inset")),
+        int(&format!("{lights}.inset-compact")),
         int(&format!("{lights}.radius")),
         tengen.font("font.styles.headline"),
     ));

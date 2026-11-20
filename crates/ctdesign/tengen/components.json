@@ -483,6 +483,8 @@
         "size": 14,
         "radius": 4,
         "gap": 9,
+        "inset": 9,
+        "inset-compact": 12,
         "pressed-darken": 0.2,
         "styles": {
           "accent": {

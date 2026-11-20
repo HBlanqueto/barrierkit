@@ -498,7 +498,7 @@ a style.
 | `scheme` | The `ColorScheme`. |
 | `accent`, `on_accent` | The accent and its ink. |
 | `automatic_accent` | True without `accent_color`: an `Accent::Own` or `Accent::FromBackdrop` keeps its color. |
-| `focus_ring` | The accent moved until it reaches 3:1 on the window. |
+| `focus_ring` | The keyboard focus ring: `FOCUS_RING_COLOR_*` at 49.8% with the theme's accent, the accent at that alpha with another, and with `contrast` the opaque accent moved until it reaches 3:1 on the window (rule 7). |
 | `link` | The accent moved until it reaches 4.5:1 on the window and on content. |
 | `window_tint` | Tint color and amount, or `None`: the accent, or the wallpaper after `behind_window`. |
 | `bar_tint` | Tint of the menu bar and the Dock with the `bars` part: the accent tint, or the dominant color by `wallpaper_tinting`. |
@@ -554,6 +554,14 @@ The rules `resolve` applies:
    `wallpaper_accent`, the wallpaper's dominant color, graphite while it has
    none — and `automatic_accent` lets an area keep its own.
 6. Menu hover, sidebar selection and the shell's active tile take the accent.
+7. The focus ring follows macOS by default: `FOCUS_RING_COLOR_LIGHT` or
+   `FOCUS_RING_COLOR_DARK` (`#0067f4` and `#1aa9ff`, both at 49.8%, measured
+   on macOS) with the theme's accent, and the accent at the same alpha with
+   any other. A translucent ring can fall under the 3:1 non-text contrast of
+   WCAG 2.2 §1.4.11 on a light or busy surface, so with `contrast` the ring is
+   the opaque accent moved until it reaches `ACCENT_MIN_CONTRAST_ON_WINDOW`
+   on the window, as before. The accent tint of the window does not change the
+   default ring; it does move the opaque one.
 
 ### Glass over a backdrop
 
@@ -710,7 +718,7 @@ zoom lights, shared by the kit and the compositor:
 
 | Item | What it does |
 |---|---|
-| `inset(bar_height)` | Distance of the lights from the left and top edges of a bar. |
+| `inset(bar_height)` | Distance of the lights from the left edge of a bar: `TITLEBAR.buttons.inset` (9) in the 32 px bar and `inset_compact` (12) in the `TITLEBAR_CLIENT_HEIGHT` (40) bar, as measured on macOS. The lights stay centred vertically: 9 and 13 from the top. |
 | `button_rect(index) -> (x, y, size)` | Rectangle of light `index` in a server-side titlebar. |
 | `group_rect() -> (x, y, width, height)` | Rectangle of the three lights. |
 | `hit(point) -> Option<ButtonKind>` | The light under a point. |
@@ -819,7 +827,7 @@ A color, size or duration never goes into `bk`. It goes into Tengen:
 | `WindowStyle` | `corner_radius` and `superellipse_exponent` of a dialog or pop-up. |
 | `WindowResize` | Width of the resize band at an `edge` and a `corner`. |
 | `Titlebar` | Server-side titlebar: `thickness`, `buttons`, `font`. |
-| `TitlebarButtons` | `order` of the three lights, `diameter`, `spacing`, `corner_radius`. |
+| `TitlebarButtons` | `order` of the three lights, `diameter`, `spacing`, `inset` (from the left of the 32 px bar), `inset_compact` (from the left of the `TITLEBAR_CLIENT_HEIGHT` bar), `corner_radius`. |
 | `Button` | One traffic light: its `kind` and `color`. |
 | `ButtonKind` | `Close`, `Minimize`, `Maximize`. |
 | `TrafficGlyphs` | Glyph geometry: `box_size`, `stroke`, `close`, `minimize`, `zoom`, `plus`. |
@@ -889,6 +897,7 @@ nothing is blurred.
 | `BG_RAISED_LIGHT`, `BG_RAISED_DARK`, `BG_RAISED_DARK_TINT` | `Rgba` | Raised background (menus). |
 | `BG_CONTROL_LIGHT`, `BG_CONTROL_DARK`, `BG_CONTROL_DARK_TINT` | `Rgba` | Control face. |
 | `BG_HOVER_LIGHT`, `BG_HOVER_DARK`, `BG_HOVER_DARK_TINT` | `Rgba` | Control face under the pointer. |
+| `FOCUS_RING_COLOR_LIGHT`, `FOCUS_RING_COLOR_DARK`, `FOCUS_RING_COLOR_DARK_TINT` | `Rgba` | Keyboard focus ring: `#0067f4` in light, `#1aa9ff` in dark, both at 49.8% (`#…7f`), measured on macOS. Their alpha is also the alpha of the ring of a custom accent. |
 | `LAYER_FACTOR_BG_SUNKEN`, `LAYER_FACTOR_SURFACE`, `LAYER_FACTOR_RAISED`, `LAYER_FACTOR_CONTROL`, `LAYER_FACTOR_LINE` | `f32` | Share of the window tint each layer takes: 1.4, 1, 0.6, 1.2, 1.2. |
 | `WINDOW_TINT_ACCENT` | `[f32; 2]` | Accent tint amount in light and dark. |
 | `ACCENT_CHROMA_GAIN` | `f32` | Gain (2.5) of the accent's chroma share, so the chroma-only tint looks as strong as the old sRGB mix did. |

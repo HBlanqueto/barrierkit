@@ -126,17 +126,19 @@ frame-by-frame window animation was captured.
 |---|---|---|---|---|
 | Standard title bar | 32 | 32 (`titlebar-ssd-h`) | `tokens.size.titlebar-ssd-h` | Matches |
 | Client title bar | 40 | 40 (`titlebar-h`) | `tokens.size.titlebar-h` | Matches |
-| Toolbar title bar | 66 | No equivalent; tool group is 36 | `tokens.size.toolgroup-h` | Tall toolbar style absent |
+| Toolbar title bar | 66 | No equivalent; tool group is 36 | `tokens.size.toolgroup-h` | Absent by decision: no consumer |
 | Traffic diameter | 14 | 14 | `TITLEBAR.buttons.diameter` | Matches |
 | Traffic gap | 9 | 9 | `TITLEBAR.buttons.spacing` | Matches |
-| Traffic inset | 9 / 12 / 19 | Centred: `(bar - 14) / 2` | `ctappearance::traffic::inset` | Tall bars place lights too low |
+| Traffic inset | 9 / 12 / 19 | 9 in the 32 bar, 12 in the 40 bar, centred vertically (9 and 13 from the top) | `ctappearance::traffic::inset`, `TITLEBAR.buttons.inset`, `inset_compact` | Matches 32 and 40; 19 not implemented |
 | Corner radius | Not measured; low teens | 16 / 20 / 26 / 15 | `WINDOW_CORNER` | Needs measurement |
 | Window background | `#1e1e1e` dark | Theme `bg-window` | `ctdesign` tokens | Verify against this table |
 | Title font | 13 pt | `TITLEBAR` font | `ctdesign` | Verify face and weight |
 
-The strongest mismatch is the inset rule. `traffic::inset` assumes the lights
-are vertically centred. That is true for 32 and 40, but false for the 66 pt
-toolbar style, where macOS puts them 19 pt from the top.
+The inset rule is solved for the two bars BarrierKit has: `traffic::inset`
+gives 9 and 12 from the left and the lights stay centred, which is also where
+macOS puts them from the top in the 32 and 40 pt bars. It is false for the 66 pt
+toolbar style, where macOS puts them 19 pt from the left and from the top.
+BarrierKit has no such bar, so the 19 is kept here and not in a token.
 
 ## 6. What not to copy
 
@@ -149,16 +151,18 @@ Copy geometry, contrast ratios and behaviour, not artwork.
 
 ## 7. Prioritized changes
 
-1. **Split the traffic inset from the bar height.** Add a top inset that can
-   differ from the horizontal one, and use 9 for 32, 12 for 40 and 19 for a
-   66 pt toolbar. This is a small `ctappearance` change with a visible
-   effect in tall windows.
+1. **Split the traffic inset from the bar height.** Done for 9 (32) and 12
+   (40): `traffic::inset` returns the horizontal inset from
+   `TITLEBAR.buttons.inset` and `inset_compact`, and the vertical position
+   stays centred. The 19 for a 66 pt toolbar is not added (item 3).
 2. **Measure the corner radius from a live window capture.** Use the
    existing `sample` probe on a high-contrast window edge. Only then compare
    it with `WINDOW_CORNER`.
 3. **Add a toolbar title bar style** with a 66 pt bar and a 19 pt light
    inset, or document that BarrierKit deliberately stops at the compact
-   style.
+   style. Decided: it stops at the compact style
+   ([9. Title bars](../barrierkit/09-titlebars.md#traffic-lights)); the 19
+   stays here.
 4. **Verify the title font and window background** in both light and dark
    mode against the semantic table.
 5. **Capture the full-screen band.** It is currently a token-only area and

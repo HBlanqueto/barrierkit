@@ -44,10 +44,11 @@ fn light_groups(layout: TitlebarLayout, rail_style: RailStyle) -> Vec<Area> {
 }
 
 #[test]
-fn the_titlebar_lights_are_as_far_from_the_left_edge_as_from_the_top() {
+fn the_compact_titlebar_lights_sit_12_from_the_left_and_centred_in_the_bar() {
     let groups = light_groups(TitlebarLayout::Top, RailStyle::Normal);
     assert_eq!(groups.len(), 1);
-    assert_eq!(groups[0].min_x(), groups[0].min_y());
+    assert_eq!(groups[0].min_x(), 12.0);
+    assert_eq!(groups[0].min_y(), 13.0);
 }
 
 #[test]

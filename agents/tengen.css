@@ -482,6 +482,8 @@
   --bk-window-traffic-lights-size: 14;
   --bk-window-traffic-lights-radius: 4;
   --bk-window-traffic-lights-gap: 9;
+  --bk-window-traffic-lights-inset: 9;
+  --bk-window-traffic-lights-inset-compact: 12;
   --bk-window-traffic-lights-pressed-darken: 0.2;
   --bk-window-traffic-lights-styles-accent-glyph-on-dark: #ffffffd1;
   --bk-window-traffic-lights-styles-accent-glyph-on-light: #000000b0;
@@ -1286,6 +1288,7 @@
   --bk-accent-inactive: #aeaeb2;
   --bk-accent-strong: #1f53bd;
   --bk-on-accent: #ffffff;
+  --bk-focus-ring: #0067f47f;
   --bk-shadow-float: #00000066;
   --bk-danger: #cc2f35;
   --bk-traffic-close: #ff5f57;
@@ -1345,6 +1348,7 @@
     --bk-accent-inactive: #5c5c5e;
     --bk-accent-strong: #6aa2ff;
     --bk-on-accent: #ffffff;
+    --bk-focus-ring: #1aa9ff7f;
     --bk-shadow-float: #00000066;
     --bk-danger: #ff6b6b;
     --bk-traffic-close: #ff5f57;
@@ -1404,6 +1408,7 @@
   --bk-accent-inactive: #5c5c5e;
   --bk-accent-strong: #6aa2ff;
   --bk-on-accent: #ffffff;
+  --bk-focus-ring: #1aa9ff7f;
   --bk-shadow-float: #00000066;
   --bk-danger: #ff6b6b;
   --bk-traffic-close: #ff5f57;
@@ -1462,6 +1467,7 @@
   --bk-accent-inactive: #5c5d61;
   --bk-accent-strong: #6aa2ff;
   --bk-on-accent: #ffffff;
+  --bk-focus-ring: #1aa9ff7f;
   --bk-shadow-float: #00000066;
   --bk-danger: #ff6b6b;
   --bk-traffic-close: #ff5f57;
