@@ -3,7 +3,7 @@ use ctdesign::{BODY, Font, SEGMENTED};
 use super::button::rounded;
 use super::{
     Axis, ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
-    system_effect,
+    disabled_palette, system_effect,
 };
 
 /// States: each segment is hovered, pressed and focused on its own; the group
@@ -69,9 +69,12 @@ impl ControlStyle for SegmentedControlStyle {
             segment_shape: rounded(SEGMENTED.segment_radius),
             background: StateValue::new(ShapeStyle::Role(Role::ControlBackground)),
             segment: StateValue::new(ShapeStyle::Clear),
-            selected: StateValue::new(ShapeStyle::Role(Role::ToggleAccent)),
-            label: StateValue::new(ShapeStyle::Role(Role::Label)),
-            selected_label: StateValue::new(ShapeStyle::Role(Role::OnAccent)),
+            selected: StateValue::new(ShapeStyle::Role(Role::ToggleAccent))
+                .disabled(ShapeStyle::Color(disabled_palette().segment)),
+            label: StateValue::new(ShapeStyle::Role(Role::Label))
+                .disabled(ShapeStyle::Role(Role::TertiaryLabel)),
+            selected_label: StateValue::new(ShapeStyle::Role(Role::OnAccent))
+                .disabled(ShapeStyle::Color(disabled_palette().segment_label)),
             border: None,
             selected_shadows: vec![],
             opacity: 1.0,

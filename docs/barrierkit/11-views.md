@@ -148,7 +148,7 @@ Form::new().section(section).style(|s| FormStyle { section_spacing: 32.0, ..s })
 ### `GroupBox`
 
 `GroupBox::new(Option<label>).child(view)`: a rounded box (radius
-`GROUP_BOX.radius`, 11) with a faint fill and a hairline border, and the label
+`GROUP_BOX.radius`, 12) with a faint fill and a hairline border, and the label
 above it. It groups related controls without a form.
 
 ### `DisclosureGroup`

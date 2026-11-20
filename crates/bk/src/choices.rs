@@ -205,7 +205,8 @@ impl Component for RadioOption {
         let style: RadioGroupStyle = resolve(&self.style);
         let interaction = use_interaction();
         take_focus_when(interaction, self.take_focus);
-        let paints = Paints::current(control_state(interaction, self.disabled), style.effect);
+        let state = control_state(interaction, self.disabled);
+        let paints = Paints::current(state, style.effect);
         let direction = style.layout_direction;
         let size = style.button_size;
         let dot = style.dot_size;
@@ -226,7 +227,10 @@ impl Component for RadioOption {
             .center()
             .painted(&paints, paint)
             .map(
-                style.button_border.as_ref().filter(|_| !selected),
+                style
+                    .button_border
+                    .as_ref()
+                    .filter(|_| !selected && enabled && !state.pressed),
                 |el, border| el.border(inner_border(&paints, border)),
             )
             .maybe(selected, |el| {

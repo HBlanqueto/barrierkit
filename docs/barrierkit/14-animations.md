@@ -75,7 +75,7 @@ token with its own duration (`SWITCH.transition_ms`,
 | Fade between [`Backdrop`](15-backdrops-and-media.md#backdrop) colors | `DURATION_SLOW_MS` | In-out, cubic |
 | [`GlassContainer`](15-backdrops-and-media.md#glass-that-merges) morph | `DURATION_BASE` | `Spring`, no bounce |
 
-Pressing a button scales it to `BUTTON.pressed_scale` with no animation.
+Pressing a button changes its fill to the pressed color; `BUTTON.pressed_scale` is 1, so it does not scale, as in AppKit.
 
 ## Spring
 

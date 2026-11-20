@@ -49,8 +49,10 @@ impl ControlStyle for ComboBoxStyle {
             chevron_size: COMBO_BOX.chevron,
             chevron_stroke: COMBO_BOX.chevron_stroke,
             button_shape: rounded(COMBO_BOX.button_radius),
-            button: StateValue::new(ShapeStyle::Role(Role::ComboButton)),
-            chevron: StateValue::new(ShapeStyle::Role(Role::Label)),
+            button: StateValue::new(ShapeStyle::Role(Role::ComboButton))
+                .disabled(ShapeStyle::Role(Role::ControlBackgroundDisabled)),
+            chevron: StateValue::new(ShapeStyle::Role(Role::Label))
+                .disabled(ShapeStyle::Role(Role::TertiaryLabel)),
             button_border: None,
             button_shadows: Vec::new(),
             opacity: 1.0,

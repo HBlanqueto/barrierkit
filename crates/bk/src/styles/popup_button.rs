@@ -1,8 +1,9 @@
-use ctdesign::{BODY, BUTTON, Font, SETTINGS, SWITCH, SYMBOL};
+use ctdesign::{BODY, BUTTON, Font, SETTINGS, SYMBOL};
 
 use super::button::rounded;
 use super::{
-    ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue, system_effect,
+    ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue, pressed_palette,
+    system_effect,
 };
 
 /// States: hovered, pressed, focused. The menu it opens is a menu view
@@ -50,7 +51,7 @@ pub struct PopUpButtonStyle {
     pub indicator_shadows: Vec<ShadowStyle>,
     /// Tengen: `1.0`.
     pub opacity: f32,
-    /// Tengen: `SWITCH.disabled_opacity`, dimmed like a disabled switch.
+    /// Tengen: `1.0`: a disabled pop-up button changes its colors, not its opacity.
     pub disabled_opacity: f32,
     /// Tengen: `system_effect`.
     pub effect: ColorEffect,
@@ -65,7 +66,9 @@ impl ControlStyle for PopUpButtonStyle {
             gap: SETTINGS.popup_text_gap as f32,
             leading_padding: BUTTON.padding_x,
             shape: rounded(BUTTON.radius),
-            background: StateValue::new(ShapeStyle::Role(Role::ControlBackground)),
+            background: StateValue::new(ShapeStyle::Role(Role::ControlBackground))
+                .pressed(ShapeStyle::Color(pressed_palette().bezel))
+                .disabled(ShapeStyle::Role(Role::ControlBackgroundDisabled)),
             icon_size: SYMBOL.grid,
             label_lift: SETTINGS.popup_label_lift,
             trailing_padding: SETTINGS.popup_trailing_padding as f32,
@@ -73,13 +76,15 @@ impl ControlStyle for PopUpButtonStyle {
             chevron_size: SETTINGS.popup_glyph as f32,
             chevron_stroke: SETTINGS.popup_glyph_stroke,
             indicator_shape: Shape::Circle,
-            label: StateValue::new(ShapeStyle::Role(Role::Label)),
+            label: StateValue::new(ShapeStyle::Role(Role::Label))
+                .disabled(ShapeStyle::Role(Role::TertiaryLabel)),
             indicator: StateValue::new(ShapeStyle::Clear),
-            chevron: StateValue::new(ShapeStyle::Role(Role::Label)),
+            chevron: StateValue::new(ShapeStyle::Role(Role::Label))
+                .disabled(ShapeStyle::Role(Role::TertiaryLabel)),
             indicator_border: None,
             indicator_shadows: Vec::new(),
             opacity: 1.0,
-            disabled_opacity: SWITCH.disabled_opacity,
+            disabled_opacity: 1.0,
             effect: system_effect,
             font: BODY,
         }

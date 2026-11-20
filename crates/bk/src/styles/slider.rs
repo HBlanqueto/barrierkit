@@ -3,7 +3,7 @@ use ctdesign::{CAPTION, DURATION_FAST_MS, Font, KNOB_SHADOW, SETTINGS, SLIDER, S
 
 use super::{
     Animation, Axis, ColorEffect, ControlStyle, Edge, LayoutDirection, Role, ShadowStyle, Shape,
-    ShapeStyle, StateValue, reduce_motion, system_effect,
+    ShapeStyle, StateValue, disabled_palette, reduce_motion, system_effect,
 };
 
 /// On a horizontal slider `Leading` is `Top` and `Trailing` is `Bottom`; on a
@@ -52,7 +52,7 @@ pub struct SliderStyle {
     pub knob_glass: Option<ShapeStyle>,
     /// Tengen: `1.0`, for every part.
     pub opacity: f32,
-    /// Tengen: `SWITCH.disabled_opacity`, for the track, ticks and labels.
+    /// Tengen: `1.0`: a disabled slider changes its fill, not its opacity.
     pub disabled_opacity: f32,
     /// Tengen: `system_effect`.
     pub effect: ColorEffect,
@@ -85,16 +85,18 @@ impl ControlStyle for SliderStyle {
             knob_shape: Shape::Capsule,
             tick_shape: Shape::Circle,
             track: StateValue::new(ShapeStyle::Role(Role::SystemFill)),
-            fill: StateValue::new(ShapeStyle::Role(Role::ToggleAccent)),
+            fill: StateValue::new(ShapeStyle::Role(Role::ToggleAccent))
+                .disabled(ShapeStyle::Color(disabled_palette().slider_fill)),
             knob: StateValue::new(ShapeStyle::Color(SWITCH.knob_color)),
             tick: StateValue::new(ShapeStyle::Role(Role::ControlBorder)),
-            label: StateValue::new(ShapeStyle::Role(Role::Label)),
+            label: StateValue::new(ShapeStyle::Role(Role::Label))
+                .disabled(ShapeStyle::Role(Role::TertiaryLabel)),
             knob_border: None,
             knob_shadows: vec![KNOB_SHADOW.into()],
             knob_pressed_scale: SLIDER.knob_pressed_scale,
             knob_glass: Some(ShapeStyle::Role(Role::ControlBackground)),
             opacity: 1.0,
-            disabled_opacity: SWITCH.disabled_opacity,
+            disabled_opacity: 1.0,
             effect: system_effect,
             axis: Axis::Horizontal,
             labels: Some(Edge::Bottom),

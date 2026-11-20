@@ -161,7 +161,7 @@ impl Component for ProgressRing {
         let stroke = style.stroke;
         let radius = (size - stroke) / 2.0;
         let circumference = std::f32::consts::TAU * radius;
-        let filled = circumference * self.value;
+        let filled = circumference * (self.value - style.trim / 360.0).max(0.0);
         let circle = |dash: String| {
             format!(
                 r#"<svg viewBox="0 0 {size} {size}"><circle cx="{c}" cy="{c}" r="{radius}" fill="none" stroke="currentColor" stroke-width="{stroke}" stroke-linecap="round" {dash} transform="rotate(-90 {c} {c})"/></svg>"#,

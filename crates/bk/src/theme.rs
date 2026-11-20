@@ -10,6 +10,7 @@ use ctdesign::{
 use freya_components::theming::component_themes::{ColorsSheet, Theme};
 use freya_components::theming::hooks::use_init_theme;
 use freya_components::theming::themes::{dark_theme, light_theme};
+use freya_core::current_context::CurrentContext;
 use freya_core::prelude::{
     Color, State, WritableUtils, provide_context, try_consume_context, try_consume_root_context,
     use_hook, use_memo, use_side_effect,
@@ -73,7 +74,9 @@ fn menus_keep_glass(resolved: &Resolved) -> bool {
 }
 
 pub fn resolved() -> Resolved {
-    if let Some(state) = try_consume_context::<State<Resolved>>() {
+    if let Some(state) =
+        CurrentContext::try_with(|_| try_consume_context::<State<Resolved>>()).flatten()
+    {
         *state.read()
     } else {
         resolve(&load_appearance(), load_dominant())

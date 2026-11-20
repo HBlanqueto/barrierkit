@@ -1,4 +1,4 @@
-use ctdesign::{BODY, BUTTON, Font, HAIRLINE, SPACE_2, SPLIT_VIEW};
+use ctdesign::{BODY, BUTTON, COLOR_PICKER, Font, SPACE_2, SPLIT_VIEW};
 
 use super::button::rounded;
 use super::{
@@ -21,13 +21,20 @@ pub struct ColorPickerStyle {
     pub panel_size: (f32, f32),
     /// Tengen: `SPACE_2`, between the rows of the panel.
     pub spacing: f32,
-    /// Tengen: `RoundedRectangle { radius: BUTTON.radius, style: Circular }`, the well and the
-    /// preview.
+    /// Tengen: `RoundedRectangle { radius: BUTTON.radius, style: Circular }`, the preview of the
+    /// panel.
     pub shape: Shape,
+    /// Tengen: `Capsule`, the well.
+    pub well_shape: Shape,
     /// Tengen: `Role(SecondaryLabel)`, the names of the sliders.
     pub caption: StateValue<ShapeStyle>,
-    /// Tengen: `Some((Role(CardBorder), HAIRLINE))`.
-    pub border: Option<(ShapeStyle, f32)>,
+    /// Tengen: `Role(SystemFill)`, the bezel around the swatch.
+    pub bezel: StateValue<ShapeStyle>,
+    /// Tengen: `COLOR_PICKER.inset`, between the bezel and the swatch with its ring.
+    pub inset: f32,
+    /// Tengen: `COLOR_PICKER.ring_shift`: how much each channel of the color moves for the ring
+    /// around the swatch, darker in light and lighter in dark.
+    pub ring_shift: f32,
     /// Tengen: empty.
     pub shadows: Vec<ShadowStyle>,
     /// Tengen: `1.0`.
@@ -45,8 +52,11 @@ impl ControlStyle for ColorPickerStyle {
             panel_size: (SPLIT_VIEW.inspector, BODY.line_height as f32 * 7.0),
             spacing: SPACE_2,
             shape: rounded(BUTTON.radius),
+            well_shape: Shape::Capsule,
             caption: StateValue::new(ShapeStyle::Role(Role::SecondaryLabel)),
-            border: Some((ShapeStyle::Role(Role::CardBorder), HAIRLINE)),
+            bezel: StateValue::new(ShapeStyle::Role(Role::SystemFill)),
+            inset: COLOR_PICKER.inset,
+            ring_shift: COLOR_PICKER.ring_shift,
             shadows: Vec::new(),
             opacity: 1.0,
             effect: system_effect,

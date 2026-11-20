@@ -3,7 +3,7 @@ use ctdesign::{BODY, CHECKBOX, Font, HAIRLINE, SETTINGS};
 use super::button::rounded;
 use super::{
     ColorEffect, ControlStyle, Edge, LayoutDirection, Role, ShadowStyle, Shape, ShapeStyle,
-    StateValue, system_effect,
+    StateValue, disabled_palette, pressed_palette, system_effect,
 };
 
 /// States: hovered, pressed, focused, disabled. `Checkbox::tint(Tint)` is an
@@ -22,12 +22,14 @@ pub struct CheckboxStyle {
     pub label_gap: f32,
     /// Tengen: `RoundedRectangle { radius: CHECKBOX.radius, style: Circular }`.
     pub box_shape: Shape,
-    /// Tengen, with `fill`: `Role(SystemFill)` while unchecked, `Role(ToggleAccent)` while checked.
+    /// Tengen, with `fill`: `Role(SystemFill)` while unchecked, `Role(ToggleAccent)` while checked;
+    /// disabled `Color(DisabledPalette.off)` and `Color(DisabledPalette.on)`.
     pub box_background: StateValue<ShapeStyle>,
     /// Tengen, with `box_background`: `Role(SystemFill)` while unchecked, `Accent` while
     /// checked.
     pub fill: StateValue<ShapeStyle>,
-    /// Tengen, with `label`: `Role(OnAccent)`, `Role(Label)` (disabled `Role(TertiaryLabel)`).
+    /// Tengen, with `label`: `Role(OnAccent)` (disabled `Role(TertiaryLabel)`), `Role(Label)` (disabled
+    /// `Role(TertiaryLabel)`).
     pub mark: StateValue<ShapeStyle>,
     /// Tengen, with `mark`: `Role(OnAccent)`, `Role(Label)` (disabled `Role(TertiaryLabel)`).
     pub label: StateValue<ShapeStyle>,
@@ -57,9 +59,14 @@ impl ControlStyle for CheckboxStyle {
             mark_stroke: CHECKBOX.mark_stroke,
             label_gap: SETTINGS.check.gap as f32,
             box_shape: rounded(CHECKBOX.radius),
-            box_background: StateValue::new(ShapeStyle::Role(Role::SystemFill)),
-            fill: StateValue::new(ShapeStyle::Role(Role::ToggleAccent)),
-            mark: StateValue::new(ShapeStyle::Role(Role::OnAccent)),
+            box_background: StateValue::new(ShapeStyle::Role(Role::SystemFill))
+                .pressed(ShapeStyle::Color(pressed_palette().off))
+                .disabled(ShapeStyle::Color(disabled_palette().off)),
+            fill: StateValue::new(ShapeStyle::Role(Role::ToggleAccent))
+                .pressed(ShapeStyle::Color(pressed_palette().toggle_accent))
+                .disabled(ShapeStyle::Color(disabled_palette().on)),
+            mark: StateValue::new(ShapeStyle::Role(Role::OnAccent))
+                .disabled(ShapeStyle::Role(Role::TertiaryLabel)),
             label: StateValue::new(ShapeStyle::Role(Role::Label))
                 .disabled(ShapeStyle::Role(Role::TertiaryLabel)),
             box_border: Some((ShapeStyle::Role(Role::Outline), HAIRLINE)),

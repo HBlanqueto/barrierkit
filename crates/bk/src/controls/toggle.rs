@@ -371,7 +371,10 @@ impl Component for Checkbox {
             .corner_radius(radius)
             .painted(&paints, paint)
             .map(
-                style.box_border.as_ref().filter(|_| !is_checked),
+                style
+                    .box_border
+                    .as_ref()
+                    .filter(|_| !is_checked && !disabled && !state.pressed),
                 |el, border| el.border(inner_border(&paints, border)),
             )
             .center()

@@ -20,6 +20,10 @@ CONTROLS = [
     "segmented-regular", "textfield-regular", "search", "popup-regular",
     "stepper-regular", "progress-bar", "ring-regular", "datepicker", "level", "combo",
     "separator", "help", "box", "search-filled", "textfield-filled",
+    "check-on-disabled", "circular", "slider-ticks", "colorwell", "colorwell-blue",
+    "default-disabled", "check-off-disabled", "radio-off-disabled", "radio-on-disabled",
+    "switch-off-disabled", "slider-disabled", "segmented-disabled",
+    "popup-disabled", "stepper-disabled", "combo-disabled",
 ]
 GLYPH_WIDTH = {name: 18 for name in ("check-off-regular", "check-on-regular", "radio-off-regular", "radio-on-regular")}
 APPKIT = {"light": "aqua", "dark": "darkAqua"}
@@ -100,6 +104,31 @@ def controls(args):
                 print(f"{name:20} {diff:6.1f} {show(ba):>24} {show(bk):>24} {dominant(a, color):>8} {dominant(k, color):>8}")
 
 
+PRESSED = [
+    "push-pressed", "default-pressed", "check-off-pressed", "check-on-pressed",
+    "radio-off-pressed", "radio-on-pressed", "popup-pressed",
+]
+
+
+def pressed(args):
+    height, found = items("controls")
+    suffix = f"-{args.tag}" if args.tag else ""
+    for mode in ("light", "dark"):
+        for backdrop, level in (("white", 255), ("black", 0)):
+            appkit = rgb(capture("controls", mode, backdrop, args.tag))
+            color = np.array([level] * 3)
+            print(f"\n=== pressed {mode} on {backdrop}")
+            print(f"{'control':20} {'%diff':>6} {'AppKit x y w h':>24} {'kit x y w h':>24} {'AppKit':>8} {'kit':>8}")
+            for name in PRESSED:
+                kit = rgb(os.path.join(KIT, f"kit{suffix}-pressed-{name}-{mode}-{backdrop}.png"))
+                box = region(name, height, found)
+                a, k = crop(appkit, box), crop(kit, box)
+                diff = (abs(a - k) > 3).any(-1).mean() * 100
+                ba, bk = bounds(a, color), bounds(k, color)
+                show = lambda b: "%5.1f %5.1f %5.1f %5.1f" % b if b else "none"
+                print(f"{name:20} {diff:6.1f} {show(ba):>24} {show(bk):>24} {dominant(a, color):>8} {dominant(k, color):>8}")
+
+
 def sheet(args):
     height, found = items(args.family)
     appkit = Image.open(capture(args.family, args.mode, args.backdrop, args.tag)).convert("RGB")
@@ -172,6 +201,9 @@ def main():
     two = commands.add_parser("controls", help="print the per-control difference table")
     two.add_argument("--tag", default="", help="empty, or hc for Increase Contrast")
     two.set_defaults(run=controls)
+    five = commands.add_parser("pressed", help="print the per-control difference table for pressed controls")
+    five.add_argument("--tag", default="", help="empty, or hc for Increase Contrast")
+    five.set_defaults(run=pressed)
     three = commands.add_parser("sheet", help="write a side-by-side image of named items")
     three.add_argument("family", choices=("controls", "views"))
     three.add_argument("mode", choices=("light", "dark"))

@@ -20,6 +20,7 @@ pub struct ComboBox {
     placeholder: &'static str,
     items: Vec<&'static str>,
     width: Size,
+    disabled: bool,
     style: Theme,
 }
 
@@ -30,6 +31,7 @@ impl ComboBox {
             placeholder,
             items: Vec::new(),
             width: Size::fill(),
+            disabled: false,
             style: Theme::tengen(),
         }
     }
@@ -48,6 +50,11 @@ impl ComboBox {
         self.width = width;
         self
     }
+
+    pub fn disabled(mut self, disabled: bool) -> Self {
+        self.disabled = disabled;
+        self
+    }
 }
 
 impl Component for ComboBox {
@@ -63,11 +70,16 @@ impl Component for ComboBox {
         let state = ControlState {
             hovered: *hovered.read(),
             focused: !matches!(*focus.read(), Focus::Not),
+            disabled: self.disabled,
             ..ControlState::default()
         };
         let field_paints = Paints::current(state, field_style.effect);
         let ink = |paint: &StateValue<ShapeStyle>| field_paints.color(paint.resolve(state));
-        let paints = Paints::current(ControlState::default(), style.effect);
+        let button_state = ControlState {
+            disabled: self.disabled,
+            ..ControlState::default()
+        };
+        let paints = Paints::current(button_state, style.effect);
         let margin_y = (field_style.height - field_style.font.line_height as f32) / 2.0;
         let trailing = style.button_inset + style.button_size.0 + style.text_gap;
         let radius = field_style.shape.corner_radius(
@@ -112,7 +124,12 @@ impl Component for ComboBox {
             );
         };
         let opener = open.clone();
+        let disabled = self.disabled;
         let input = input.on_pre_key_down(move |event: Event<KeyboardEventData>| {
+            if disabled {
+                event.stop_propagation();
+                return false;
+            }
             if event.key == Key::Named(NamedKey::ArrowDown) {
                 event.stop_propagation();
                 opener();
@@ -134,12 +151,16 @@ impl Component for ComboBox {
             .bordered(&paints, style.button_border.as_ref())
             .a11y_role(AccessibilityRole::Button)
             .a11y_alt(self.placeholder)
-            .on_press(move |_| open())
+            .on_press(move |_| {
+                if !disabled {
+                    open()
+                }
+            })
             .child(stroked_symbol(
                 Symbol::ChevronDown,
                 style.chevron_size,
                 style.chevron_stroke,
-                paints.color(style.chevron.resolve(ControlState::default())),
+                paints.color(style.chevron.resolve(button_state)),
             ));
         let combo_box = dimmed(
             text_style(rect().width(self.width.clone()), field_style.font),
@@ -155,6 +176,15 @@ impl Component for ComboBox {
         edit_menu(combo_box, field, true, (true, true), None)
             .on_sized(move |event: Event<SizedEventData>| area.set_if_modified(event.area))
             .child(input)
+            .maybe(disabled, |el| {
+                el.child(
+                    rect()
+                        .position(Position::new_absolute().top(0.0).left(0.0))
+                        .width(Size::fill())
+                        .height(Size::fill())
+                        .on_pointer_down(|event: Event<PointerEventData>| event.stop_propagation()),
+                )
+            })
             .child(
                 rect()
                     .position(

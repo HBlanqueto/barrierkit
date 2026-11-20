@@ -8,7 +8,7 @@ scene=${1:-}
 case "$scene" in
     controls | contrast)
         APPKIT_LAYOUT=$out/layout-controls.tsv
-        APPKIT_CONTENT=1600x832
+        APPKIT_CONTENT=1600x960
         APPKIT_TAG=
         ;;
     views | views-contrast)
@@ -39,4 +39,5 @@ if [ "$scene" = menu ]; then
     exec cargo test -p bk --test kit --features bk/shell appkit_menu -- --ignored --nocapture
 fi
 export APPKIT_LAYOUT APPKIT_CONTENT APPKIT_TAG
-exec cargo test -p bk --test kit --features bk/shell appkit_scene -- --ignored
+cargo test -p bk --test kit --features bk/shell appkit_scene -- --ignored
+exec cargo test -p bk --test kit --features bk/shell appkit_pressed -- --ignored

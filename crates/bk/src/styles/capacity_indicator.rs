@@ -1,13 +1,13 @@
 use ctdesign::{
-    HAIRLINE, LEVEL_BORDER_DARK, LEVEL_BORDER_DARK_TINT, LEVEL_BORDER_LIGHT, LEVEL_INDICATOR,
-    LEVEL_INDICATOR_COLORS, LEVEL_INDICATOR_COLORS_DARK, LEVEL_TRACK_DARK, LEVEL_TRACK_DARK_TINT,
-    LEVEL_TRACK_LIGHT,
+    GAUGE_CONTRAST_DARK, GAUGE_CONTRAST_DARK_TINT, GAUGE_CONTRAST_LIGHT, HAIRLINE,
+    LEVEL_BORDER_DARK, LEVEL_BORDER_DARK_TINT, LEVEL_BORDER_LIGHT, LEVEL_INDICATOR,
+    LEVEL_INDICATOR_COLORS, LEVEL_INDICATOR_COLORS_CONTRAST, LEVEL_INDICATOR_COLORS_CONTRAST_DARK,
+    LEVEL_INDICATOR_COLORS_DARK, LEVEL_TRACK_DARK, LEVEL_TRACK_DARK_TINT, LEVEL_TRACK_LIGHT,
 };
 
 use super::button::rounded;
 use super::{
-    ColorEffect, ControlStyle, ShadowStyle, Shape, ShapeStyle, StateValue, per_scheme,
-    system_effect,
+    ColorEffect, ControlStyle, ShadowStyle, Shape, ShapeStyle, StateValue, per_look, system_effect,
 };
 
 /// States: only `normal`.
@@ -45,30 +45,47 @@ pub struct CapacityIndicatorStyle {
 
 impl ControlStyle for CapacityIndicatorStyle {
     fn tengen() -> Self {
-        let [fill, warning, critical] = per_scheme([
-            LEVEL_INDICATOR_COLORS,
-            LEVEL_INDICATOR_COLORS_DARK,
-            LEVEL_INDICATOR_COLORS_DARK,
-        ])
+        let [fill, warning, critical] = per_look(
+            [
+                LEVEL_INDICATOR_COLORS,
+                LEVEL_INDICATOR_COLORS_DARK,
+                LEVEL_INDICATOR_COLORS_DARK,
+            ],
+            [
+                LEVEL_INDICATOR_COLORS_CONTRAST,
+                LEVEL_INDICATOR_COLORS_CONTRAST_DARK,
+                LEVEL_INDICATOR_COLORS_CONTRAST_DARK,
+            ],
+        )
         .map(|rgba| StateValue::new(ShapeStyle::Color(rgba)));
         Self {
             height: LEVEL_INDICATOR.height,
             segment_gap: LEVEL_INDICATOR.segment_gap,
             shape: rounded(LEVEL_INDICATOR.radius),
-            track: StateValue::new(ShapeStyle::Color(per_scheme([
-                LEVEL_TRACK_LIGHT,
-                LEVEL_TRACK_DARK,
-                LEVEL_TRACK_DARK_TINT,
-            ]))),
+            track: StateValue::new(ShapeStyle::Color(per_look(
+                [LEVEL_TRACK_LIGHT, LEVEL_TRACK_DARK, LEVEL_TRACK_DARK_TINT],
+                [
+                    GAUGE_CONTRAST_LIGHT.level_track,
+                    GAUGE_CONTRAST_DARK.level_track,
+                    GAUGE_CONTRAST_DARK_TINT.level_track,
+                ],
+            ))),
             fill,
             warning,
             critical,
             border: Some((
-                ShapeStyle::Color(per_scheme([
-                    LEVEL_BORDER_LIGHT,
-                    LEVEL_BORDER_DARK,
-                    LEVEL_BORDER_DARK_TINT,
-                ])),
+                ShapeStyle::Color(per_look(
+                    [
+                        LEVEL_BORDER_LIGHT,
+                        LEVEL_BORDER_DARK,
+                        LEVEL_BORDER_DARK_TINT,
+                    ],
+                    [
+                        GAUGE_CONTRAST_LIGHT.level_border,
+                        GAUGE_CONTRAST_DARK.level_border,
+                        GAUGE_CONTRAST_DARK_TINT.level_border,
+                    ],
+                )),
                 HAIRLINE,
             )),
             shadows: Vec::new(),

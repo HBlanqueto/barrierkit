@@ -51,6 +51,7 @@ impl Component for GroupBox {
             })
             .maybe_child(self.label.map(|label| {
                 rect()
+                    .height(Size::px(style.label_height))
                     .padding(Gaps::new(0.0, 0.0, 0.0, style.label_inset))
                     .child(text(
                         label,

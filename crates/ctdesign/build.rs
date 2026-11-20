@@ -79,6 +79,7 @@ HELP_LINK HelpLinkMetrics components.help-link
 COMBO_BOX ComboBoxMetrics components.combo-box
 POPOVER PopoverMetrics components.popover
 GROUP_BOX GroupBoxMetrics components.group-box
+COLOR_PICKER ColorPickerMetrics components.color-picker
 TOKEN_FIELD TokenFieldMetrics components.token-field
 DATE_PICKER DatePickerMetrics components.date-picker
 PATH_CONTROL PathControlMetrics components.path-control
@@ -433,6 +434,11 @@ BAR_TRACK Rgba themes.{theme}.bar-track
 LEVEL_TRACK Rgba themes.{theme}.level-track
 LEVEL_BORDER Rgba themes.{theme}.level-border
 SEARCH_CLEAR Rgba themes.{theme}.search-clear
+DISABLED DisabledPalette themes.{theme}.disabled
+GAUGE_CONTRAST GaugeContrast themes.{theme}.gauge-contrast
+PRESSED PressedPalette themes.{theme}.pressed
+PRESSED_CONTRAST PressedPalette themes.{theme}.pressed-contrast
+DISABLED_CONTRAST DisabledPalette themes.{theme}.disabled-contrast
 DATE_FIELD Rgba themes.{theme}.date-field
 DATE_FIELD_BORDER Rgba themes.{theme}.date-field-border
 DATE_FIELD_CONTRAST Rgba themes.{theme}.date-field-contrast
@@ -727,6 +733,14 @@ fn emit_specials(out: &mut String, tengen: &Tengen) {
         (
             "LEVEL_INDICATOR_COLORS_DARK",
             "components.level-indicator.colors-dark",
+        ),
+        (
+            "LEVEL_INDICATOR_COLORS_CONTRAST",
+            "components.level-indicator.colors-contrast",
+        ),
+        (
+            "LEVEL_INDICATOR_COLORS_CONTRAST_DARK",
+            "components.level-indicator.colors-contrast-dark",
         ),
     ] {
         let colors: Vec<String> = tengen

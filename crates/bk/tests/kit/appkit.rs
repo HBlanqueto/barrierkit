@@ -3,6 +3,7 @@ use std::{collections::HashMap, fs, path::PathBuf};
 use bk::adornments::Divider;
 use bk::buttons::HelpLink;
 use bk::choices::RadioGroup;
+use bk::color_picker::ColorPicker;
 use bk::combo_box::ComboBox;
 use bk::compact::Stepper;
 use bk::controls::{
@@ -17,11 +18,12 @@ use bk::popup_button::PopUpButton;
 use bk::progress::{ProgressRing, ProgressView};
 use bk::sidebar::{SidebarItem, SidebarSection};
 use bk::styles::ButtonStyle;
+use bk::symbol::Symbol;
 use bk::theme;
 use bk::views::group::GroupBox;
 use bk::views::table::Table;
 use ctappearance::{AppearanceConfig, ColorScheme, resolve};
-use ctdesign::SANS_FAMILIES;
+use ctdesign::{Rgba, SANS_FAMILIES};
 use freya_components::theming::hooks::use_init_theme;
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
@@ -102,6 +104,107 @@ fn controls() -> Vec<(&'static str, Builder)> {
                 .option("Radio")
                 .selected(0)
                 .into_element()
+        }),
+        ("check-on-disabled", || {
+            Checkbox::new("Off")
+                .checked(true)
+                .disabled(true)
+                .into_element()
+        }),
+        ("default-disabled", || {
+            Button::new("Default")
+                .style(ButtonStyle::bordered_prominent)
+                .disabled(true)
+                .into_element()
+        }),
+        ("check-off-disabled", || {
+            Checkbox::new("Off").disabled(true).into_element()
+        }),
+        ("radio-off-disabled", || {
+            RadioGroup::new("Radio")
+                .option("Off")
+                .selected(1)
+                .disabled(true)
+                .into_element()
+        }),
+        ("radio-on-disabled", || {
+            RadioGroup::new("Radio")
+                .option("Off")
+                .selected(0)
+                .disabled(true)
+                .into_element()
+        }),
+        ("switch-off-disabled", || {
+            Switch::new("Switch").disabled(true).into_element()
+        }),
+        ("slider-disabled", || {
+            Slider::new("Slider")
+                .value(0.5)
+                .disabled(true)
+                .style(|mut s| {
+                    s.width = 160.0;
+                    s
+                })
+                .into_element()
+        }),
+        ("popup-disabled", || {
+            PopUpButton::new("Option")
+                .item("Option")
+                .item("Other")
+                .disabled(true)
+                .into_element()
+        }),
+        ("colorwell-blue", || {
+            ColorPicker::new("Color", Rgba::rgb8(0, 136, 255)).into_element()
+        }),
+        ("segmented-disabled", || {
+            rect()
+                .width(Size::px(158.0))
+                .child(
+                    SegmentedControl::new("Seg")
+                        .segment("One")
+                        .segment("Two")
+                        .segment("Three")
+                        .selected(0)
+                        .disabled(true),
+                )
+                .into_element()
+        }),
+        ("stepper-disabled", || {
+            Stepper::new("Stepper", 0, 10)
+                .value(5)
+                .disabled(true)
+                .style(|mut s| {
+                    s.value_position = None;
+                    s
+                })
+                .into_element()
+        }),
+        ("combo-disabled", || {
+            ComboBox::new(use_state(|| "Combo".to_string()), "Combo")
+                .item("One")
+                .width(Size::px(140.0))
+                .disabled(true)
+                .into_element()
+        }),
+        ("circular", || {
+            rect()
+                .margin(Gaps::new(0.0, 0.0, 0.0, 3.0))
+                .child(Button::system_image("", Symbol::Plus).style(ButtonStyle::circular))
+                .into_element()
+        }),
+        ("slider-ticks", || {
+            Slider::new("Ticks")
+                .value(0.5)
+                .number_of_tick_marks(5)
+                .style(|mut s| {
+                    s.width = 160.0;
+                    s
+                })
+                .into_element()
+        }),
+        ("colorwell", || {
+            ColorPicker::new("Color", Rgba::rgb8(255, 255, 255)).into_element()
         }),
         ("switch-off-regular", || {
             Switch::new("Switch").into_element()
@@ -203,7 +306,7 @@ fn controls() -> Vec<(&'static str, Builder)> {
             rect()
                 .width(Size::px(120.0))
                 .height(Size::px(50.0))
-                .child(GroupBox::new(Some("Box")))
+                .child(GroupBox::new(Some("Box")).child(rect().height(Size::px(28.0))))
                 .into_element()
         }),
         ("table", || {
@@ -263,7 +366,7 @@ fn controls() -> Vec<(&'static str, Builder)> {
     ]
 }
 
-fn layout(path: &str) -> HashMap<String, (f32, f32)> {
+fn layout(path: &str) -> HashMap<String, (f32, f32, f32, f32)> {
     fs::read_to_string(path)
         .unwrap_or_else(|e| panic!("read {path}: {e}"))
         .lines()
@@ -272,9 +375,74 @@ fn layout(path: &str) -> HashMap<String, (f32, f32)> {
             let name = f.next()?.to_string();
             let x = f.next()?.parse().ok()?;
             let y = f.next()?.parse().ok()?;
-            Some((name, (x, y)))
+            let w = f.next()?.parse().ok()?;
+            let h = f.next()?.parse().ok()?;
+            Some((name, (x, y, w, h)))
         })
         .collect()
+}
+
+fn render_scene(
+    placed: Vec<(f32, f32, Builder)>,
+    dark: bool,
+    black: bool,
+    content: (f32, f32),
+    press: Option<(f32, f32)>,
+) -> Vec<u8> {
+    let scale = 4.0_f64;
+    let resolved = resolve(
+        &AppearanceConfig {
+            color_scheme: if dark {
+                ColorScheme::Dark
+            } else {
+                ColorScheme::Light
+            },
+            reduce_transparency: std::env::var_os("APPKIT_REDUCE").is_some(),
+            contrast: std::env::var_os("APPKIT_CONTRAST").is_some(),
+            scroll_bars: ctappearance::ScrollBars::Always,
+            ..Default::default()
+        },
+        None,
+    );
+    let (mut test, _) = TestingRunner::new(
+        AppComponent::new(Scene {
+            dark,
+            black,
+            placed,
+        }),
+        Size2D::new(content.0 * scale as f32, content.1 * scale as f32),
+        move |runner| {
+            runner.provide_root_context(move || State::create(resolved));
+        },
+        scale,
+    );
+    test.set_default_fonts(&SANS_FAMILIES.map(std::borrow::Cow::Borrowed));
+    test.sync_and_update();
+    test.sync_and_update();
+    if let Some((x, y)) = press {
+        test.move_cursor((f64::from(x) * scale, f64::from(y) * scale));
+        test.press_cursor((f64::from(x) * scale, f64::from(y) * scale));
+        test.sync_and_update();
+        test.sync_and_update();
+    }
+    test.render().as_bytes().to_vec()
+}
+
+fn scene_content() -> (f32, f32) {
+    std::env::var("APPKIT_CONTENT")
+        .ok()
+        .and_then(|text| {
+            let (w, h) = text.split_once('x')?;
+            Some((w.parse().ok()?, h.parse().ok()?))
+        })
+        .unwrap_or((1600.0, 768.0))
+}
+
+fn scene_tag() -> String {
+    std::env::var("APPKIT_TAG")
+        .ok()
+        .filter(|tag| !tag.is_empty())
+        .map_or(String::new(), |tag| format!("-{tag}"))
 }
 
 #[test]
@@ -282,61 +450,81 @@ fn layout(path: &str) -> HashMap<String, (f32, f32)> {
 fn appkit_scene() {
     let layout_path = std::env::var("APPKIT_LAYOUT").expect("APPKIT_LAYOUT");
     let out = PathBuf::from(std::env::var("APPKIT_OUT").expect("APPKIT_OUT"));
-    let (content_w, content_h): (f32, f32) = std::env::var("APPKIT_CONTENT")
-        .ok()
-        .and_then(|text| {
-            let (w, h) = text.split_once('x')?;
-            Some((w.parse().ok()?, h.parse().ok()?))
-        })
-        .unwrap_or((1600.0, 768.0));
-    let scale = 4.0_f64;
     let positions = layout(&layout_path);
     fs::create_dir_all(&out).unwrap();
     for dark in [false, true] {
         for black in [false, true] {
             let placed = controls()
                 .into_iter()
-                .filter_map(|(name, build)| positions.get(name).map(|&(x, y)| (x, y, build)))
+                .filter_map(|(name, build)| positions.get(name).map(|&(x, y, ..)| (x, y, build)))
                 .collect();
-            let resolved = resolve(
-                &AppearanceConfig {
-                    color_scheme: if dark {
-                        ColorScheme::Dark
-                    } else {
-                        ColorScheme::Light
-                    },
-                    reduce_transparency: std::env::var_os("APPKIT_REDUCE").is_some(),
-                    contrast: std::env::var_os("APPKIT_CONTRAST").is_some(),
-                    scroll_bars: ctappearance::ScrollBars::Always,
-                    ..Default::default()
-                },
-                None,
-            );
-            let (mut test, _) = TestingRunner::new(
-                AppComponent::new(Scene {
-                    dark,
-                    black,
-                    placed,
-                }),
-                Size2D::new(content_w * scale as f32, content_h * scale as f32),
-                move |runner| {
-                    runner.provide_root_context(move || State::create(resolved));
-                },
-                scale,
-            );
-            test.set_default_fonts(&SANS_FAMILIES.map(std::borrow::Cow::Borrowed));
-            test.sync_and_update();
-            test.sync_and_update();
-            let tag = std::env::var("APPKIT_TAG")
-                .ok()
-                .filter(|tag| !tag.is_empty())
-                .map_or(String::new(), |tag| format!("-{tag}"));
             let name = format!(
-                "kit{tag}-{}-{}.png",
+                "kit{}-{}-{}.png",
+                scene_tag(),
                 if dark { "dark" } else { "light" },
                 if black { "black" } else { "white" }
             );
-            fs::write(out.join(name), test.render().as_bytes()).unwrap();
+            fs::write(
+                out.join(name),
+                render_scene(placed, dark, black, scene_content(), None),
+            )
+            .unwrap();
+        }
+    }
+}
+
+fn pressed() -> Vec<(&'static str, Builder)> {
+    let all = controls();
+    [
+        "push-pressed",
+        "default-pressed",
+        "check-off-pressed",
+        "check-on-pressed",
+        "radio-off-pressed",
+        "radio-on-pressed",
+        "popup-pressed",
+    ]
+    .into_iter()
+    .filter_map(|name| {
+        let base = name.replace("-pressed", "-regular");
+        all.iter()
+            .find(|(candidate, _)| *candidate == base)
+            .map(|&(_, build)| (name, build))
+    })
+    .collect()
+}
+
+#[test]
+#[ignore]
+fn appkit_pressed() {
+    let layout_path = std::env::var("APPKIT_LAYOUT").expect("APPKIT_LAYOUT");
+    let out = PathBuf::from(std::env::var("APPKIT_OUT").expect("APPKIT_OUT"));
+    let positions = layout(&layout_path);
+    fs::create_dir_all(&out).unwrap();
+    for (name, build) in pressed() {
+        let Some(&(x, y, w, h)) = positions.get(name) else {
+            continue;
+        };
+        for dark in [false, true] {
+            for black in [false, true] {
+                let png = render_scene(
+                    vec![(x, y, build)],
+                    dark,
+                    black,
+                    scene_content(),
+                    Some((x + w / 2.0, y + h / 2.0)),
+                );
+                fs::write(
+                    out.join(format!(
+                        "kit{}-pressed-{name}-{}-{}.png",
+                        scene_tag(),
+                        if dark { "dark" } else { "light" },
+                        if black { "black" } else { "white" }
+                    )),
+                    png,
+                )
+                .unwrap();
+            }
         }
     }
 }

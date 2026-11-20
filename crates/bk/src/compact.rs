@@ -118,6 +118,7 @@ pub struct Stepper {
     value: i64,
     min: i64,
     max: i64,
+    disabled: bool,
     on_change: Option<Callback<i64, ()>>,
     style: Theme,
 }
@@ -129,6 +130,7 @@ impl Stepper {
             value: min,
             min,
             max,
+            disabled: false,
             on_change: None,
             style: Theme::tengen(),
         }
@@ -144,6 +146,11 @@ impl Stepper {
         self
     }
 
+    pub fn disabled(mut self, disabled: bool) -> Self {
+        self.disabled = disabled;
+        self
+    }
+
     pub fn on_change(mut self, callback: impl Into<Callback<i64, ()>>) -> Self {
         self.on_change = Some(callback.into());
         self
@@ -154,7 +161,8 @@ impl Component for Stepper {
     fn render(&self) -> impl IntoElement {
         let interaction = use_interaction();
         let style: StepperStyle = resolve(&self.style);
-        let state = control_state(interaction, false);
+        let disabled = self.disabled;
+        let state = control_state(interaction, disabled);
         let paints = Paints::current(state, style.effect);
         let value = crate::controlled::use_controlled(&self.value);
         let current = *value.read();
@@ -169,8 +177,9 @@ impl Component for Stepper {
         };
         let (step_down, step_up, step_key) = (step.clone(), step.clone(), step);
 
-        let up = (current < max).then(|| Rc::new(move || step_up(1)) as Rc<dyn Fn()>);
-        let down = (current > min).then(|| Rc::new(move || step_down(-1)) as Rc<dyn Fn()>);
+        let up = (!disabled && current < max).then(|| Rc::new(move || step_up(1)) as Rc<dyn Fn()>);
+        let down =
+            (!disabled && current > min).then(|| Rc::new(move || step_down(-1)) as Rc<dyn Fn()>);
         let (width, height) = style.arrows_size;
         let radius = style
             .shape
@@ -179,7 +188,7 @@ impl Component for Stepper {
             interaction.focus_ring(stepper_arrows(&style, state, up, down), radius.top_left());
 
         let row = interaction
-            .attach(rect(), true)
+            .attach(rect(), !disabled)
             .a11y_role(AccessibilityRole::SpinButton)
             .a11y_alt(self.label)
             .a11y_builder(move |node| node.set_numeric_value(current as f64))

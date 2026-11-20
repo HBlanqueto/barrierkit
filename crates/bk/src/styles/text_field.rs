@@ -52,7 +52,8 @@ impl ControlStyle for TextFieldStyle {
             background: StateValue::new(ShapeStyle::Role(Role::TextBackground)),
             border: StateValue::new(ShapeStyle::Role(Role::ControlBorder))
                 .focused(ShapeStyle::Accent),
-            text: StateValue::new(ShapeStyle::Role(Role::Label)),
+            text: StateValue::new(ShapeStyle::Role(Role::Label))
+                .disabled(ShapeStyle::Role(Role::TertiaryLabel)),
             placeholder: StateValue::new(ShapeStyle::Role(Role::SecondaryLabel)),
             misspelling: StateValue::new(ShapeStyle::Role(Role::Destructive)),
             opacity: 1.0,

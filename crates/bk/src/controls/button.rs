@@ -111,7 +111,11 @@ impl Component for Button {
             .attach(rect(), enabled)
             .a11y_role(AccessibilityRole::Button)
             .a11y_alt(self.label.clone())
-            .width(self.width.clone())
+            .width(if style.shape == Shape::Circle {
+                Size::px(style.height)
+            } else {
+                self.width.clone()
+            })
             .height(Size::px(style.height))
             .padding(Gaps::new(0.0, style.padding_x, 0.0, style.padding_x))
             .corner_radius(radius)
@@ -146,15 +150,15 @@ impl Component for Button {
                     .size(font.size as f32)
                     .color(paints.color(style.label.resolve(state)))
             }))
-            .child(
+            .maybe_child((!self.label.is_empty()).then(|| {
                 label()
                     .text(self.label.clone())
                     .font_family(font.family)
                     .font_size(font.size as f32)
                     .font_weight(font.weight as i32)
                     .max_lines(1)
-                    .color(paints.fill(&style.label)),
-            );
+                    .color(paints.fill(&style.label))
+            }));
         let button = dimmed(shadowed(button, &style.shadows), opacity);
         interaction.focus_ring(button, radius.top_left())
     }

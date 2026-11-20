@@ -80,6 +80,13 @@ table on stdout and `target/appkit/sheet-*.png`.
    scripts/appkit-render.sh menu            # kit-menu-{,marks-}{light,dark}.png
    ```
 
+   `controls` and `contrast` also render `kit-pressed-<name>-*.png`: one scene per pressed
+   control, with the pointer over it and the button down. AppKit has no hover look, so the
+   kit's hover colors are not compared.
+
+   ```sh
+   ```
+
    `APPKIT_BG=1e1e1e` sets the backdrop of the non-black variant, for views
    that paint no background of their own.
 
@@ -89,6 +96,7 @@ table on stdout and `target/appkit/sheet-*.png`.
    ```sh
    scripts/appkit-compare.py controls
    scripts/appkit-compare.py controls --tag hc
+   scripts/appkit-compare.py pressed
    scripts/appkit-compare.py sheet controls light white push-regular,switch-on-regular
    scripts/appkit-compare.py table dark
    ```

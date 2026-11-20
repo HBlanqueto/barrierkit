@@ -7,7 +7,7 @@ use ctdesign::{
 use super::button::rounded;
 use super::{
     ColorEffect, ControlStyle, Edge, LayoutDirection, Role, ShadowStyle, Shape, ShapeStyle,
-    StateValue, per_look, system_effect,
+    StateValue, disabled_palette, per_look, system_effect,
 };
 
 /// States: the stepper is hovered, pressed and focused; each arrow is disabled at
@@ -33,13 +33,13 @@ pub struct StepperStyle {
     pub value_gap: f32,
     /// Tengen: `RoundedRectangle { radius: STEPPER.radius, style: Circular }`, the arrows.
     pub shape: Shape,
-    /// Tengen: `Role(ControlBackground)`.
+    /// Tengen: `Role(ControlBackground)` (disabled `Role(ControlBackgroundDisabled)`).
     pub background: StateValue<ShapeStyle>,
-    /// Tengen, with `value`: `Role(Label)` (disabled `Role(TertiaryLabel)`), `Role(Label)`.
+    /// Tengen, with `value`: `Role(Label)` (disabled `Color(DisabledPalette.stepper_chevron)`), `Role(Label)`.
     pub chevron: StateValue<ShapeStyle>,
     /// Tengen: `Color(STEPPER_DIVIDER)`, `STEPPER_DIVIDER_CONTRAST` under Increase Contrast.
     pub separator: StateValue<ShapeStyle>,
-    /// Tengen, with `chevron`: `Role(Label)` (disabled `Role(TertiaryLabel)`), `Role(Label)`.
+    /// Tengen, with `chevron`: `Role(Label)` (disabled `Color(DisabledPalette.stepper_chevron)`), `Role(Label)`.
     pub value: StateValue<ShapeStyle>,
     /// Tengen: `None`.
     pub border: Option<(ShapeStyle, f32)>,
@@ -69,9 +69,10 @@ impl ControlStyle for StepperStyle {
             separator_height: HAIRLINE,
             value_gap: STEPPER.gap,
             shape: rounded(STEPPER.radius),
-            background: StateValue::new(ShapeStyle::Role(Role::ControlBackground)),
+            background: StateValue::new(ShapeStyle::Role(Role::ControlBackground))
+                .disabled(ShapeStyle::Role(Role::ControlBackgroundDisabled)),
             chevron: StateValue::new(ShapeStyle::Role(Role::Label))
-                .disabled(ShapeStyle::Role(Role::TertiaryLabel)),
+                .disabled(ShapeStyle::Color(disabled_palette().stepper_chevron)),
             separator: StateValue::new(ShapeStyle::Color(per_look(
                 [
                     STEPPER_DIVIDER_LIGHT,

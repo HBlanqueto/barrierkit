@@ -6,7 +6,12 @@ pub use collection_view::CollectionViewStyle;
 pub use content_unavailable_view::ContentUnavailableViewStyle;
 use ctappearance::backdrop::Backdrop as Tinted;
 pub use ctdesign::Rgba;
-use ctdesign::{MATERIAL, MaterialThickness};
+use ctdesign::{
+    DISABLED_CONTRAST_DARK, DISABLED_CONTRAST_DARK_TINT, DISABLED_CONTRAST_LIGHT, DISABLED_DARK,
+    DISABLED_DARK_TINT, DISABLED_LIGHT, DisabledPalette, MATERIAL, MaterialThickness,
+    PRESSED_CONTRAST_DARK, PRESSED_CONTRAST_DARK_TINT, PRESSED_CONTRAST_LIGHT, PRESSED_DARK,
+    PRESSED_DARK_TINT, PRESSED_LIGHT, PressedPalette,
+};
 use freya_core::prelude::*;
 
 use crate::backdrop::Tint;
@@ -521,6 +526,28 @@ pub(crate) fn per_look<T>(normal: [T; 3], contrast: [T; 3]) -> T {
     } else {
         normal
     })
+}
+
+pub(crate) fn disabled_palette() -> DisabledPalette {
+    per_look(
+        [DISABLED_LIGHT, DISABLED_DARK, DISABLED_DARK_TINT],
+        [
+            DISABLED_CONTRAST_LIGHT,
+            DISABLED_CONTRAST_DARK,
+            DISABLED_CONTRAST_DARK_TINT,
+        ],
+    )
+}
+
+pub(crate) fn pressed_palette() -> PressedPalette {
+    per_look(
+        [PRESSED_LIGHT, PRESSED_DARK, PRESSED_DARK_TINT],
+        [
+            PRESSED_CONTRAST_LIGHT,
+            PRESSED_CONTRAST_DARK,
+            PRESSED_CONTRAST_DARK_TINT,
+        ],
+    )
 }
 
 pub fn system_effect(color: Rgba, _: ControlState) -> Rgba {

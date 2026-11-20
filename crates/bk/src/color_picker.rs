@@ -1,4 +1,4 @@
-use ctdesign::Rgba;
+use ctdesign::{HAIRLINE, Rgba};
 use freya_core::prelude::*;
 use torin::prelude::{Area, Direction, Size};
 
@@ -102,8 +102,20 @@ impl Component for ColorPicker {
         let on_change = self.on_change.clone();
         let (width, height) = style.size;
         let radius = style
-            .shape
+            .well_shape
             .corner_radius(width, height, LayoutDirection::LeftToRight);
+        let shift = if crate::theme::resolved().scheme == ctappearance::ColorScheme::Light {
+            -style.ring_shift
+        } else {
+            style.ring_shift
+        };
+        let moved = |channel: f32| (channel + shift).clamp(0.0, 1.0);
+        let ring = Rgba {
+            r: moved(shown.r),
+            g: moved(shown.g),
+            b: moved(shown.b),
+            ..shown
+        };
         let panel_size = style.panel_size;
         let resolved = style.clone();
         let panel_style = Theme::tengen().style(move |_: ColorPickerStyle| resolved.clone());
@@ -114,8 +126,21 @@ impl Component for ColorPicker {
             .width(Size::px(width))
             .height(Size::px(height))
             .corner_radius(radius)
-            .background(color(shown))
-            .bordered(&paints, style.border.as_ref())
+            .painted(&paints, &style.bezel)
+            .center()
+            .child(
+                rect()
+                    .width(Size::px(width - 2.0 * style.inset))
+                    .height(Size::px(height - 2.0 * style.inset))
+                    .corner_radius(radius.top_left() - style.inset)
+                    .background(color(shown))
+                    .border(
+                        Border::new()
+                            .width(HAIRLINE)
+                            .alignment(BorderAlignment::Inner)
+                            .fill(color(ring)),
+                    ),
+            )
             .on_sized(move |event: Event<SizedEventData>| area.set_if_modified(event.area))
             .on_press(move |_| {
                 open_panel(

@@ -6,6 +6,7 @@ pub struct SegmentedControl {
     label: &'static str,
     segments: Vec<&'static str>,
     selected: usize,
+    disabled: bool,
     on_change: Option<Callback<usize, ()>>,
     style: Theme,
     key: DiffKey,
@@ -17,6 +18,7 @@ impl SegmentedControl {
             label,
             segments: Vec::new(),
             selected: 0,
+            disabled: false,
             on_change: None,
             style: Theme::tengen(),
             key: DiffKey::None,
@@ -30,6 +32,11 @@ impl SegmentedControl {
 
     pub fn selected(mut self, index: usize) -> Self {
         self.selected = index;
+        self
+    }
+
+    pub fn disabled(mut self, disabled: bool) -> Self {
+        self.disabled = disabled;
         self
     }
 
@@ -68,6 +75,7 @@ impl Component for SegmentedControl {
             Segment {
                 text,
                 active: choice.is(index),
+                disabled: self.disabled,
                 divider: index > 0 && !choice.is(index) && !choice.is(index - 1),
                 take_focus: choice.is(index) && *keyed.read(),
                 on_select: choice.select(index),
@@ -109,6 +117,7 @@ impl Component for SegmentedControl {
 struct Segment {
     text: &'static str,
     active: bool,
+    disabled: bool,
     divider: bool,
     take_focus: bool,
     on_select: Callback<(), ()>,
@@ -119,7 +128,7 @@ impl Component for Segment {
     fn render(&self) -> impl IntoElement {
         let style: SegmentedControlStyle = resolve(&self.style);
         let interaction = use_interaction();
-        let paints = Paints::current(control_state(interaction, false), style.effect);
+        let paints = Paints::current(control_state(interaction, self.disabled), style.effect);
         crate::choices::take_focus_when(interaction, self.take_focus);
         let active = self.active;
         let on_select = self.on_select.clone();
@@ -136,7 +145,7 @@ impl Component for Segment {
                 .corner_radius(height, height, LayoutDirection::LeftToRight);
 
         let segment = interaction
-            .attach(rect(), true)
+            .attach(rect(), !self.disabled)
             .a11y_role(AccessibilityRole::Tab)
             .a11y_alt(self.text)
             .a11y_builder(move |node| node.set_selected(active))

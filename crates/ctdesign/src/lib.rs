@@ -317,6 +317,7 @@ pub struct SwitchMetrics {
     pub knob_glass_alpha: f32,
     pub transition_ms: u64,
     pub disabled_opacity: f32,
+    pub disabled_opacity_contrast: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -351,6 +352,8 @@ pub struct ButtonMetrics {
     pub small_padding_x: f32,
     pub small_font_size: f32,
     pub small_radius: f32,
+    pub circular_size: f32,
+    pub circular_icon: f32,
     pub menu_padding_x: f32,
 }
 
@@ -366,6 +369,7 @@ pub struct ProgressMetrics {
     pub height: f32,
     pub ring_size: f32,
     pub ring_stroke: f32,
+    pub ring_trim: f32,
     pub indeterminate_segment: f32,
     pub indeterminate_ms: u64,
     pub spinner_size: f32,
@@ -604,10 +608,17 @@ pub struct PathControlMetrics {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct ColorPickerMetrics {
+    pub inset: f32,
+    pub ring_shift: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct GroupBoxMetrics {
     pub radius: f32,
     pub padding: f32,
     pub label_inset: f32,
+    pub label_height: f32,
     pub fill_opacity: f32,
 }
 
@@ -915,6 +926,32 @@ pub struct PanelLine {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct GaugeContrast {
+    pub ring_track: Rgba,
+    pub level_track: Rgba,
+    pub level_border: Rgba,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct PressedPalette {
+    pub bezel: Rgba,
+    pub accent: Rgba,
+    pub toggle_accent: Rgba,
+    pub off: Rgba,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct DisabledPalette {
+    pub off: Rgba,
+    pub on: Rgba,
+    pub slider_fill: Rgba,
+    pub switch_off: Rgba,
+    pub stepper_chevron: Rgba,
+    pub segment: Rgba,
+    pub segment_label: Rgba,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ContrastPalette {
     pub ink: Rgba,
     pub ink_muted: Rgba,
@@ -928,6 +965,8 @@ pub struct ContrastPalette {
     pub accent: Rgba,
     pub selected_content: Rgba,
     pub accent_toggle: Rgba,
+    pub accent_toggle_disabled: Rgba,
+    pub accent_ring: Rgba,
     pub separator_strong: Rgba,
     pub focus_ring: Rgba,
 }
@@ -947,7 +986,8 @@ impl Palette {
             accent: contrast.accent,
             selected_content: contrast.selected_content,
             accent_toggle: contrast.accent_toggle,
-            accent_toggle_disabled: contrast.accent_toggle,
+            accent_toggle_disabled: contrast.accent_toggle_disabled,
+            accent_ring: contrast.accent_ring,
             separator_strong: contrast.separator_strong,
             ..self
         }

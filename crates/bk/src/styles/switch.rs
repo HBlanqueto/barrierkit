@@ -3,7 +3,7 @@ use ctdesign::{BODY, Font, KNOB_SHADOW, Rgba, SETTINGS, SWITCH};
 
 use super::{
     Animation, ColorEffect, ControlStyle, Edge, LayoutDirection, Role, ShadowStyle, Shape,
-    ShapeStyle, StateValue, reduce_motion, system_effect,
+    ShapeStyle, StateValue, disabled_palette, reduce_motion, system_effect,
 };
 
 /// States: hovered, pressed, focused, disabled. `Switch::tint(Tint)` is an
@@ -51,7 +51,8 @@ pub struct SwitchStyle {
     pub knob_glass: Option<ShapeStyle>,
     /// Tengen: `1.0`.
     pub opacity: f32,
-    /// Tengen: `SWITCH.disabled_opacity`, for the track and the label; the knob stays opaque.
+    /// Tengen: `SWITCH.disabled_opacity` (`SWITCH.disabled_opacity_contrast` under Increase
+    /// Contrast), for the track and the label; the knob stays opaque.
     pub disabled_opacity: f32,
     /// Tengen: `system_effect`.
     pub effect: ColorEffect,
@@ -79,7 +80,8 @@ impl ControlStyle for SwitchStyle {
             label_gap: SETTINGS.check.gap as f32,
             track_shape: Shape::Capsule,
             knob_shape: Shape::Capsule,
-            track: StateValue::new(ShapeStyle::Role(Role::SystemFill)),
+            track: StateValue::new(ShapeStyle::Role(Role::SystemFill))
+                .disabled(ShapeStyle::Color(disabled_palette().switch_off)),
             fill: StateValue::new(ShapeStyle::Role(Role::ToggleAccent))
                 .disabled(ShapeStyle::Role(Role::ToggleAccentDisabled)),
             knob: StateValue::new(ShapeStyle::Color(SWITCH.knob_color)),
@@ -93,7 +95,11 @@ impl ControlStyle for SwitchStyle {
                 ..SWITCH.knob_color
             })),
             opacity: 1.0,
-            disabled_opacity: SWITCH.disabled_opacity,
+            disabled_opacity: if crate::theme::resolved().contrast {
+                SWITCH.disabled_opacity_contrast
+            } else {
+                SWITCH.disabled_opacity
+            },
             effect: system_effect,
             label_position: None,
             layout_direction: LayoutDirection::LeftToRight,

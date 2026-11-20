@@ -5,7 +5,7 @@ use crate::controls::ControlSize;
 
 use super::{
     Animation, ColorEffect, ControlStyle, CornerStyle, Role, ShadowStyle, Shape, ShapeStyle,
-    StateValue, reduce_motion, system_effect,
+    StateValue, pressed_palette, reduce_motion, system_effect,
 };
 
 /// `ButtonStyle::tengen()` is SwiftUI's `.bordered`.
@@ -22,6 +22,7 @@ use super::{
 /// | `ButtonStyle::glass` | `.glass` | `background` `Role(RaisedBackground)` (hovered `Role(ControlHover)`, disabled `Role(ControlBackground)`), `border` `(Role(CardBorder), HAIRLINE)`, `shape` `Capsule` |
 /// | `ButtonStyle::glass_prominent` | `.glassProminent` | `bordered_prominent`, then the border and shape of `glass` |
 /// | `ButtonStyle::borderless` | `.borderless` | `background` `Clear` (hovered `Role(ControlHover)`), `border` `None` |
+/// | `ButtonStyle::circular` | `.buttonBorderShape(.circle)` | `height` `BUTTON.circular_size`, `padding_x` `0`, `shape` `Circle`, the icon at `BUTTON.circular_icon` |
 ///
 /// `Button::size(ControlSize)` is an instance override of `height`, `padding_x`,
 /// `font` and `shape`: `Small` takes the `BUTTON.small_*` tokens, `Regular` the
@@ -80,6 +81,7 @@ impl ButtonStyle {
     pub fn bordered_prominent(self) -> Self {
         Self {
             background: StateValue::new(ShapeStyle::Accent)
+                .pressed(ShapeStyle::Color(pressed_palette().accent))
                 .disabled(ShapeStyle::Role(Role::ControlBackgroundDisabled)),
             label: StateValue::new(ShapeStyle::Role(Role::OnAccent))
                 .disabled(ShapeStyle::Role(Role::TertiaryLabel)),
@@ -105,6 +107,19 @@ impl ButtonStyle {
                 .hovered(ShapeStyle::Role(Role::ControlHover))
                 .disabled(ShapeStyle::Clear),
             border: None,
+            ..self
+        }
+    }
+
+    pub fn circular(self) -> Self {
+        Self {
+            height: BUTTON.circular_size,
+            padding_x: 0.0,
+            shape: Shape::Circle,
+            font: Font {
+                size: BUTTON.circular_icon as u32,
+                ..self.font
+            },
             ..self
         }
     }
@@ -174,6 +189,7 @@ impl ControlStyle for ButtonStyle {
             shape: rounded(BUTTON.radius),
             background: StateValue::new(ShapeStyle::Role(Role::ControlBackground))
                 .hovered(ShapeStyle::Role(Role::ControlHover))
+                .pressed(ShapeStyle::Color(pressed_palette().bezel))
                 .disabled(ShapeStyle::Role(Role::ControlBackgroundDisabled)),
             label: StateValue::new(ShapeStyle::Role(Role::Label))
                 .disabled(ShapeStyle::Role(Role::TertiaryLabel)),

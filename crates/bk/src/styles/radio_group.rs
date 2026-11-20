@@ -2,7 +2,7 @@ use ctdesign::{BODY, Font, HAIRLINE, SETTINGS};
 
 use super::{
     Axis, ColorEffect, ControlStyle, Edge, LayoutDirection, Role, ShadowStyle, Shape, ShapeStyle,
-    StateValue, system_effect,
+    StateValue, disabled_palette, pressed_palette, system_effect,
 };
 
 /// States: each option is hovered, pressed, focused and disabled on its own.
@@ -62,9 +62,14 @@ impl ControlStyle for RadioGroupStyle {
             spacing: SETTINGS.radio_spacing as f32,
             button_shape: Shape::Circle,
             dot_shape: Shape::Circle,
-            button_background: StateValue::new(ShapeStyle::Role(Role::SystemFill)),
-            fill: StateValue::new(ShapeStyle::Role(Role::ToggleAccent)),
-            dot: StateValue::new(ShapeStyle::Role(Role::OnAccent)),
+            button_background: StateValue::new(ShapeStyle::Role(Role::SystemFill))
+                .pressed(ShapeStyle::Color(pressed_palette().off))
+                .disabled(ShapeStyle::Color(disabled_palette().off)),
+            fill: StateValue::new(ShapeStyle::Role(Role::ToggleAccent))
+                .pressed(ShapeStyle::Color(pressed_palette().toggle_accent))
+                .disabled(ShapeStyle::Color(disabled_palette().on)),
+            dot: StateValue::new(ShapeStyle::Role(Role::OnAccent))
+                .disabled(ShapeStyle::Role(Role::TertiaryLabel)),
             label: StateValue::new(ShapeStyle::Role(Role::Label))
                 .disabled(ShapeStyle::Role(Role::TertiaryLabel)),
             button_border: Some((ShapeStyle::Role(Role::Outline), HAIRLINE)),

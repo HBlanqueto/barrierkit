@@ -104,6 +104,7 @@ Presets of `ButtonStyle`, given as `.style(ButtonStyle::glass)`:
 | `glass` | Capsule with a hairline border, raised background |
 | `glass_prominent` | Capsule with a hairline border and the accent fill |
 | `borderless` | No background until hovered |
+| `circular` | A 17 high circle for an icon-only button |
 
 `ControlSize`:
 
@@ -113,7 +114,7 @@ Presets of `ButtonStyle`, given as `.style(ButtonStyle::glass)`:
 | `Regular` | 24 | 12 | 13 | 6 (`radius.button`) |
 | `Large` | 28 | 12 | 13 | capsule |
 
-A pressed button scales to `BUTTON.pressed_scale` (0.97).
+A pressed button takes the pressed fill and does not scale (`BUTTON.pressed_scale` is 1).
 
 ```rust
 Button::new("Cancel")
@@ -144,7 +145,7 @@ Module `compact`.
 | Item | Build | Reports |
 |---|---|---|
 | `IconButton` | `IconButton::new(Symbol, label)`, `.disabled(bool)`, `.style(\|s\| ..)` | `.on_press(\|_\| ..)` |
-| `Stepper` | `Stepper::new(label, min, max)`, `.value(i64)` (clamped; default `min`), `.style(\|s\| ..)` | `.on_change(\|value: i64\| ..)` |
+| `Stepper` | `Stepper::new(label, min, max)`, `.value(i64)` (clamped; default `min`), `.disabled(bool)`, `.style(\|s\| ..)` | `.on_change(\|value: i64\| ..)` |
 | `ToggleGroup` | `ToggleGroup::new(label)`, `.item(text, Face, label, on)` per toggle, `.style(\|s\| ..)` | `.on_toggle(\|(index, on)\| ..)` |
 
 - `IconButton` is 30 × 30 with a 16 symbol (`ICON_BUTTON`). Inside a
@@ -298,7 +299,7 @@ All of them report the chosen index with `.on_change(|index: usize| ..)`.
 | Item | Module | Build | Value |
 |---|---|---|---|
 | `RadioGroup` | `choices` | `RadioGroup::new(label)`, `.option(text)`, `.disabled(bool)`, `.tint(Tint)`, `.style(\|s\| ..)` | `.selected(usize)` (default 0) |
-| `SegmentedControl` | `controls` | `SegmentedControl::new(label)`, `.segment(text)`, `.style(\|s\| ..)` | `.selected(usize)` (default 0) |
+| `SegmentedControl` | `controls` | `SegmentedControl::new(label)`, `.segment(text)`, `.disabled(bool)`, `.style(\|s\| ..)` | `.selected(usize)` (default 0) |
 | `PopUpButton` | `popup_button` | `PopUpButton::new(label)`, `.item(text)`, `.icon_item(text, MenuIcon)`, `.section_header(title)` (a separator and a title before the next item), `.separator()` (a line before the next item), `.disabled(bool)`, `.style(\|s\| ..)` | `.selected(usize)` (default 0) |
 | `ColorWell` | `choices` | `ColorWell::new(label, swatches)`, `.multicolor(name)`, `.disabled(bool)`, `.style(\|s\| ..)` | `.selected(Option<usize>)` (default `None`) |
 | `ChoiceCards` | `choices` | `ChoiceCards::new(label)`, `.option(caption, preview)`, `.disabled(bool)`, `.style(\|s\| ..)` | `.selected(usize)` (default 0) |
@@ -438,7 +439,7 @@ spell checking are in [6](06-text-and-editing.md#edit-menu).
 | `TextField` | `controls` | `TextField::new(value, placeholder)` | `.width(Size)` (fill), `.auto_focus(bool)`, `.autocorrection_disabled(bool)`, `.style(\|s\| ..)`, `.on_submit(\|text: String\| ..)` |
 | `SearchField` | `controls` | `SearchField::new(value, placeholder)` | `.width`, `.auto_focus`, `.style`, `.tokens(State<Vec<String>>)`, `.a11y_id(AccessibilityId)`, `.on_focus_change(\|focused: bool\| ..)`, `.on_navigate(\|key: NamedKey\| ..)` |
 | `SecureField` | `controls` | `SecureField::new(State<PasswordField>, label)` | `.width`, `.auto_focus`, `.revealed(bool)` (shows the text, for «Show password»), `.style`, `.on_submit(\|secret: Zeroizing<String>\| ..)` |
-| `ComboBox` | `combo_box` | `ComboBox::new(value, placeholder)` | `.item(text)`, `.width(Size)`, `.style(\|s\| ..)` |
+| `ComboBox` | `combo_box` | `ComboBox::new(value, placeholder)` | `.item(text)`, `.width(Size)`, `.disabled(bool)`, `.style(\|s\| ..)` |
 
 - All are 24 tall with a 6 side padding. `SecureField` draws the focus ring; the others turn
   their border to the accent while focused.
