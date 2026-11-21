@@ -136,3 +136,15 @@ Why: before this entry no decision excluded an API, so every absent item counted
 Rejected: excluding `Shader` and `MeshGradient` as graphics frameworks, since Skia draws both and a plan exists; listing the Apple-only API here, since the platform already rules it out.
 Pending: the document model (`DocumentGroup`, `FileDocument` and 24 more types). The [coverage matrix](research/swiftui-appkit-coverage.md) puts document frameworks outside its scope and its backlog D.7 plans document scenes; decide before building scenes. HDR returns when malaysia advertises `wp_color_manager_v1`.
 Code: [SwiftUI API gap](research/swiftui-api-gap.md), [Shader needs](research/shader-needs.md)
+
+## 0084 — Labels: owned text or a view
+Date: 2026-11-21
+Decision:
+- Visible text a control takes (label, title, placeholder, caption, item) is `impl Into<Cow<'static, str>>`. A literal or a `tr!` result stays borrowed; a `String` is owned and needs no leak. The few that take `impl Into<String>` today, such as `Button::new`, change too.
+- Identifiers stay `&'static str`: menu ids, `app_id`, pane ids and `GlassContainer` item ids.
+- A control that shows a label takes a view through a builder named `label`, which replaces the drawn text. The string given to `new` stays the accessible name. The view inherits the control's text color and size through Freya's inherited text style.
+- Order: the text type first; then `Label` (a title and a `Symbol`); then the `label` builder, control by control, when an app needs it (ADR 0047).
+Why: a list built at run time (networks, files, users) leaks every text: `i18n::intern` keeps each distinct one for the life of the process. SwiftUI takes text or any view. The text change is source compatible: literals, `tr!`, `String`, `.map(Type::new)` and `fn(&'static str)` pointers still compile (checked with `rustc` on 2026-11-21), so each control written in the old form only adds one more signature to change. Freya cannot read a name out of a view (it overwrites the accessibility label in `create_node` and has no text runs), so the string stays the AT-SPI name.
+Rejected: `impl Into<String>`, which copies every literal each time a view is built; one `impl IntoElement` parameter for both, since Freya turns a `&str` into a `label` with `to_string()` (`freya-core-0.5.3/src/elements/label.rs:73`) and the control would lose its accessible name; keeping `intern` for runtime lists, which grows without bound.
+Pending: that a view label takes the control's font and ink on every control; `Button` is the first to prove it.
+Code: `crates/bk/src/controls/button.rs`, `crates/bk/src/i18n.rs`, [SwiftUI API gap](research/swiftui-api-gap.md)

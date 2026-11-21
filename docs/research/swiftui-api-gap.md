@@ -346,9 +346,10 @@ window (M); an Xcode-preview equivalent (static M, hot reload L); safe areas and
    `MeshGradient` in scope, because Skia runs them, and leaves the document
    model undecided: the matrix scope sentence excludes it, but backlog D.7 plans
    document scenes. Rows still marked `candidate out of scope` are not covered by the ADR.
-2. **Owned strings and view-valued labels before more API.** Changing 90
-   public signatures from `&'static str` is a breaking change in `bk`. Doing it
-   later multiplies the cost with every control added.
+2. **Owned strings and view-valued labels.** [ADR 0084](../decisions.md#0084--labels-owned-text-or-a-view)
+   sets `impl Into<Cow<'static, str>>` for text, `&'static str` for ids and a
+   `label` builder for views. The text change is source compatible, so it is not
+   breaking; each control added in the old form adds one signature to change.
 3. **How to treat Freya.** ADR 0033 pins `=0.5.3` and bans `freya-winit`. Gestures
    (row 13), subtree effects (row 20) and accessibility modifiers (row 18) are
    `L` only because of Freya. The choice is a patched fork, kit-owned
