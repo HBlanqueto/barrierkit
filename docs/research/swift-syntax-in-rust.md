@@ -954,11 +954,24 @@ Side effects of the probes: K3 wrote its own defaults domain
 
 ### 7.2 Decisions for the user
 
-1. **Modifiers on controls.** Wrap every control in an element wrapper
-   (`forward_container!`) so `.padding`, `.background` and `.help` compile, or
-   keep components and state the wrap rule in `agents/`. The first touches
-   the 100 `impl Component for` in `crates/bk/src`; the second changes three
-   documents.
+1. **Modifiers on controls. Decided 2026-11-21: state the wrap rule in
+   `agents/`.** The wrap rule: a control takes only its own methods and `.key`;
+   to pad, paint or add `.help` to one, put it inside a `rect()` or a stack.
+   It changes three documents (`prompt.md`, `recipes.md`, `checklist.md`) and
+   no code. The options were:
+   - **Wrap every control** in an element wrapper (`forward_container!`).
+     Rejected: the macro forwards the methods of a `Rect` held in `.0`
+     (`elements.rs:66-94`), while a control is a `PartialEq` struct that
+     implements `Component` (`controls/button.rs:5-15`), so each one needs a
+     redesign, not a macro line.
+   - **One generic wrapper** on `IntoElement`, as `StyleModifiers` already is
+     (`modifiers.rs:61-71`). Deferred: it wraps like SwiftUI, but
+     `VStack.padding(..)` then fails with E0034, because the 10 forwarding
+     types already get `padding` from Freya's `ContainerExt` (a scratch
+     program of the same shape). Whether `Size::fill()` and percentages still
+     resolve under a fit-size wrapper, and whether `.key` and event handlers
+     pass through, is not verified. Revisit it with a spike in the Linux
+     container; the wrap rule stays valid if it lands.
 2. **A `Binding` type.** Freya already has `Writable`. Controls could take
    `impl IntoWritable` next to value plus callback, or the kit keeps value plus
    callback and documents `State<T>` for text. This decides whether SwiftUI's
@@ -968,4 +981,5 @@ Side effects of the probes: K3 wrote its own defaults domain
    non-goals. Today an action reaches every handler of the window.
 
 The 14 fixes of [5.4](#54-stale-or-wrong-statements) and a "SwiftUI to kit"
-chapter for `docs/barrierkit` are ready to write once the decisions are made.
+chapter for `docs/barrierkit` are ready to write once decisions 2 and 3 are
+made.
