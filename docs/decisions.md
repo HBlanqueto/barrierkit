@@ -122,3 +122,17 @@ Decision:
 Why: the kit draws a glyph at any size, stroke and color from one path, which a file lookup by name and size cannot do. The theme already ships the macOS-style set the desktop's apps need: about 3,700 symbolic icons, 50 folders, 235 file types, 63 devices; every freedesktop name that matches a kit glyph was found in it (50 checked). Copying the glyphs would draw each twice and mix the kit's MIT with the theme's LGPL, CC BY-SA and GPL licenses.
 Rejected: every glyph in the theme (the kit would load files at run time or embed GPL art, and lose the stroke and the state colors); every icon in the kit (Linux apps look icons up by name and the kit is not an icon theme); drawing the theme's symbols from the kit's paths (it would replace the MacTahoe copies, which is the theme's decision).
 Code: `crates/bk/src/symbol.rs`, `crates/bk/tests/kit/appkit_icons.rs`, `scripts/appkit-compare.py` (`icons`), [Macos icons](research/macos-icons.md)
+
+## 0083 — What the kit does not cover
+Date: 2026-11-21
+Decision:
+- Out of scope, so the [SwiftUI API gap](research/swiftui-api-gap.md) counts them apart and no backlog row asks for them:
+  - Core Data: `FetchRequest`, `FetchedResults`, `SectionedFetchRequest`, `SectionedFetchResults`. The app owns its data and hands `List` its rows.
+  - Network: `bk` fetches no URL. `AsyncImage` shows files and bytes (`use_artwork`, `use_artwork_from`); `asyncImageURLSession` has no counterpart.
+  - HDR: `allowedDynamicRange` (modifier and environment value), `Color.headroom`, `Color.exposureAdjust`, `Image.DynamicRange`. The kit draws in SDR.
+- Not out of scope: `Shader`, `ShaderLibrary`, `colorEffect`, `layerEffect`, `distortionEffect` and `MeshGradient`. Skia runs them in the app ([Shader needs](research/shader-needs.md)); the Metal libraries SwiftUI loads do not port, so the kit takes SkSL.
+- Not a decision: WidgetKit, control widgets, visionOS spaces and the other Apple-only API are `n/a` in the gap study. Linux has no such host or hardware.
+Why: before this entry no decision excluded an API, so every absent item counted as work. The first two are frameworks beside the toolkit that an app already has a better source for (its database, its HTTP client). HDR needs `wp_color_manager_v1`, an HDR swapchain and compositor support; malaysia does not advertise the protocol. ADR 0047 says "not yet"; this entry says "not in the kit".
+Rejected: excluding `Shader` and `MeshGradient` as graphics frameworks, since Skia draws both and a plan exists; listing the Apple-only API here, since the platform already rules it out.
+Pending: the document model (`DocumentGroup`, `FileDocument` and 24 more types). The [coverage matrix](research/swiftui-appkit-coverage.md) puts document frameworks outside its scope and its backlog D.7 plans document scenes; decide before building scenes. HDR returns when malaysia advertises `wp_color_manager_v1`.
+Code: [SwiftUI API gap](research/swiftui-api-gap.md), [Shader needs](research/shader-needs.md)
