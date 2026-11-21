@@ -463,9 +463,44 @@ def lists(args):
                 tile.save(os.path.join(KIT, f"sheet-{tag}-{name}{'-focus' if focused else ''}-{args.mode}.png"))
 
 
+ICON_CELL = 32
+ICON_COLUMNS = 8
+ICON_SIZE = 20
+ICON_POINTS = 16
+
+
+def icons(args):
+    with open(os.path.join(CAPTURES, "icons", "ref.json")) as handle:
+        em = {item["name"]: item["em"] for item in json.load(handle) if item["ok"]}
+    with open(os.path.join(KIT, "lab-icons.txt")) as handle:
+        names = handle.read().split("\n")
+    sheet = np.array(Image.open(os.path.join(KIT, "lab-icons.png")).convert("RGB")).astype(float).mean(-1) / 255
+    cell = ICON_CELL * SCALE
+    print(f"{'symbol':32} {'AppKit w x h':>13} {'kit w x h':>13} {'d box':>6} {'d mass%':>8} {'d center':>9}")
+    passed = near = 0
+    for index, name in enumerate(names):
+        row, column = divmod(index, ICON_COLUMNS)
+        ink = 1 - sheet[row * cell:(row + 1) * cell, column * cell:(column + 1) * cell]
+        ys, xs = np.nonzero(ink > 0.1 * ink.max())
+        kit = ((xs.max() + 1 - xs.min()) / SCALE, (ys.max() + 1 - ys.min()) / SCALE, ink.sum() / SCALE ** 2,
+               ((xs.min() + xs.max() + 1) / 2 / SCALE - ICON_CELL / 2, (ys.min() + ys.max() + 1) / 2 / SCALE - ICON_CELL / 2))
+        e = em[name]
+        ref = ((e["x1"] - e["x0"]) * ICON_POINTS, (e["y1"] - e["y0"]) * ICON_POINTS, e["mass"] * ICON_POINTS ** 2,
+               ((e["x0"] + e["x1"]) / 2 * ICON_POINTS, (e["y0"] + e["y1"]) / 2 * ICON_POINTS))
+        box = max(abs(kit[0] - ref[0]), abs(kit[1] - ref[1]))
+        mass = (kit[2] / ref[2] - 1) * 100
+        offset = max(abs(kit[3][0] - ref[3][0]), abs(kit[3][1] - ref[3][1]))
+        passed += box <= 0.5 and abs(mass) <= 5
+        near += box <= 0.5 and abs(mass) <= 10
+        print(f"{name:32} {ref[0]:6.2f} x {ref[1]:5.2f} {kit[0]:6.2f} x {kit[1]:5.2f} {box:6.2f} {mass:+8.1f} {offset:9.2f}")
+    print(f"{passed} of {len(names)} within 0.5 of the ink box and 5% of the mass")
+    print(f"{near} of {len(names)} within 0.5 of the ink box and 10% of the mass")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Compare a kit scene with AppKit captures.")
     commands = parser.add_subparsers(dest="command", required=True)
+    commands.add_parser("icons", help="print the symbol ink box and mass table against AppKit").set_defaults(run=icons)
     one = commands.add_parser("layout", help="write the scene layout from a probe JSON")
     one.add_argument("probe_json")
     one.add_argument("output")

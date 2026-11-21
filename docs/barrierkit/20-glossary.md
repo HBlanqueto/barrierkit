@@ -343,7 +343,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 
 | BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
 |---|---|---|---|---|---|
-| `symbol::Symbol` | enum | ≈ `Image(systemName:)` names | ≈ `NSImage(systemSymbolName:accessibilityDescription:)` names | Name of a built-in line icon; 65 variants | [4](04-appearance-and-tokens.md#symbols) |
+| `symbol::Symbol` | enum | ≈ `Image(systemName:)` names | ≈ `NSImage(systemSymbolName:accessibilityDescription:)` names | Name of a built-in line icon; 121 variants, listed with their Apple names in [Symbol variants](#symbol-variants) | [4](04-appearance-and-tokens.md#symbols) |
 | `symbol::Image` | struct | `Image(systemName:)` | `NSImage(systemSymbolName:accessibilityDescription:)` | A symbol as a view; `BODY` size and label color by default | [4](04-appearance-and-tokens.md#symbols) |
 | `symbol::Image::data` | fn | `Image(nsImage:)` | `NSImage(data:)` | An image view from SVG, PNG or JPEG bytes | [4](04-appearance-and-tokens.md#images-and-template-rendering) |
 | `symbol::Image::rgba` | fn | `Image(nsImage:)` | ≈ `NSBitmapImageRep` | An image view from straight-alpha RGBA pixels | [4](04-appearance-and-tokens.md#images-and-template-rendering) |
@@ -360,6 +360,137 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `ctappearance::icon_plate::logo_matrix` | fn | — | — | Color matrix for the icon on its plate; `None` keeps its colors | [4](04-appearance-and-tokens.md#app-icons) |
 | `ctappearance::icon_style::IconStyle::matrix_on_glass` | fn | — | — | `IconStyle::matrix` for an icon whose plate the compositor draws as glass: a clear icon also loses its dark body | [4](04-appearance-and-tokens.md#app-icons) |
 | `register_font` | fn | — | — | Adds a typeface from font file bytes; `false` if not a font | [4](04-appearance-and-tokens.md#fonts) |
+
+### Symbol variants
+
+Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name of the same symbol (`NSImage(systemSymbolName:)`); they are the same string. A variant drawn before the 2026-11-20 frame (see [Symbols](04-appearance-and-tokens.md#symbols)) is marked ≈ when its drawing only resembles the SF symbol.
+
+| Symbol | Apple name | Drawn |
+|---|---|---|
+| `MagnifyingGlass` | `magnifyingglass` | before 2026-11-20 |
+| `XMark` | `xmark` | before 2026-11-20 |
+| `SpeakerWave` | `speaker.wave.2` | before 2026-11-20 |
+| `Plus` | `plus` | before 2026-11-20 |
+| `Minus` | `minus` | before 2026-11-20 |
+| `Ellipsis` | `ellipsis` | before 2026-11-20 |
+| `ChevronUpDown` | `chevron.up.chevron.down` | before 2026-11-20 |
+| `ChevronRight` | `chevron.right` | before 2026-11-20 |
+| `ChevronLeft` | `chevron.left` | before 2026-11-20 |
+| `ChevronUp` | `chevron.up` | before 2026-11-20 |
+| `ChevronDown` | `chevron.down` | before 2026-11-20 |
+| `TriangleLeft` | `arrowtriangle.left.fill` ≈ | before 2026-11-20 |
+| `TriangleRight` | `arrowtriangle.right.fill` ≈ | before 2026-11-20 |
+| `Dot` | `circle.fill` ≈ | before 2026-11-20 |
+| `CircleHalf` | `circle.lefthalf.filled` | before 2026-11-20 |
+| `Play` | `play.fill` | before 2026-11-20 |
+| `Pause` | `pause.fill` | before 2026-11-20 |
+| `Shuffle` | `shuffle` | before 2026-11-20 |
+| `ChevronLeftForwardSlashChevronRight` | `chevron.left.forwardslash.chevron.right` ≈ | before 2026-11-20 |
+| `Backward` | `backward.fill` ≈ | before 2026-11-20 |
+| `Forward` | `forward.fill` ≈ | before 2026-11-20 |
+| `ListBullet` | `list.bullet` | before 2026-11-20 |
+| `SquareGrid` | `square.grid.2x2` ≈ | before 2026-11-20 |
+| `SlidersVertical` | `slider.vertical.3` ≈ | before 2026-11-20 |
+| `SidebarLeft` | `sidebar.left` | before 2026-11-20 |
+| `House` | `house` | before 2026-11-20 |
+| `Tv` | `tv` | before 2026-11-20 |
+| `Film` | `film` | before 2026-11-20 |
+| `Star` | `star` | before 2026-11-20 |
+| `Clock` | `clock` | before 2026-11-20 |
+| `Bookmark` | `bookmark` | before 2026-11-20 |
+| `ArrowDown` | `arrow.down.to.line` ≈ | before 2026-11-20 |
+| `Checkmark` | `checkmark` | before 2026-11-20 |
+| `Captions` | `captions.bubble` ≈ | before 2026-11-20 |
+| `Expand` | `arrow.up.left.and.arrow.down.right` ≈ | before 2026-11-20 |
+| `GoBackward` | `gobackward` | before 2026-11-20 |
+| `GoForward` | `goforward` | before 2026-11-20 |
+| `StarFill` | `star.fill` | before 2026-11-20 |
+| `Folder` | `folder` | before 2026-11-20 |
+| `Document` | `doc` ≈ | before 2026-11-20 |
+| `ChevronDoubleRight` | `chevron.forward.2` | before 2026-11-20 |
+| `Accessibility` | `accessibility` | before 2026-11-20 |
+| `Display` | `display` | before 2026-11-20 |
+| `MenubarDockRectangle` | `menubar.dock.rectangle` | before 2026-11-20 |
+| `Photo` | `photo` | before 2026-11-20 |
+| `Flower` | `camera.macro` ≈ | before 2026-11-20 |
+| `Moon` | `moon` | before 2026-11-20 |
+| `Bell` | `bell` | before 2026-11-20 |
+| `Bed` | `bed.double` ≈ | before 2026-11-20 |
+| `Person` | `person` | before 2026-11-20 |
+| `Briefcase` | `briefcase` | before 2026-11-20 |
+| `Printer` | `printer` | before 2026-11-20 |
+| `Phone` | `phone` | before 2026-11-20 |
+| `SquareOnSquare` | `square.on.square` | before 2026-11-20 |
+| `Wifi` | `wifi` | before 2026-11-20 |
+| `Bluetooth` | no public name | before 2026-11-20 |
+| `Network` | `network` | before 2026-11-20 |
+| `Vpn` | no public name | before 2026-11-20 |
+| `Lock` | `lock` | before 2026-11-20 |
+| `Bolt` | `bolt.fill` | before 2026-11-20 |
+| `Battery` | `battery.100` ≈ | before 2026-11-20 |
+| `Keyboard` | `keyboard` | before 2026-11-20 |
+| `QuestionMark` | `questionmark` | before 2026-11-20 |
+| `EllipsisCircle` | `ellipsis.circle` | before 2026-11-20 |
+| `Square` | `square` | before 2026-11-20 |
+| `Circle` | `circle` | before 2026-11-20 |
+| `CapsuleOnRectangle` | `capsule.on.rectangle` | before 2026-11-20 |
+| `CapsuleOnRectangleFill` | `capsule.on.rectangle.fill` | before 2026-11-20 |
+| `ICloud` | `icloud` | 2026-11-20 |
+| `ArrowDownCircle` | `arrow.down.circle` | 2026-11-20 |
+| `MusicNote` | `music.note` | 2026-11-20 |
+| `InternalDrive` | `internaldrive` | 2026-11-20 |
+| `ExternalDrive` | `externaldrive` | 2026-11-20 |
+| `Trash` | `trash` | 2026-11-20 |
+| `Tag` | `tag` | 2026-11-20 |
+| `SquareAndArrowUp` | `square.and.arrow.up` | 2026-11-20 |
+| `SquareAndArrowDown` | `square.and.arrow.down` | 2026-11-20 |
+| `ArrowUpArrowDown` | `arrow.up.arrow.down` | 2026-11-20 |
+| `Line3HorizontalDecrease` | `line.3.horizontal.decrease` | 2026-11-20 |
+| `InfoCircle` | `info.circle` | 2026-11-20 |
+| `PlusCircle` | `plus.circle` | 2026-11-20 |
+| `MinusCircle` | `minus.circle` | 2026-11-20 |
+| `XMarkCircle` | `xmark.circle` | 2026-11-20 |
+| `CheckmarkCircle` | `checkmark.circle` | 2026-11-20 |
+| `ExclamationMarkCircle` | `exclamationmark.circle` | 2026-11-20 |
+| `QuestionMarkCircle` | `questionmark.circle` | 2026-11-20 |
+| `ExclamationMarkTriangle` | `exclamationmark.triangle` | 2026-11-20 |
+| `NoSign` | `nosign` | 2026-11-20 |
+| `ArrowLeft` | `arrow.left` | 2026-11-20 |
+| `ArrowRight` | `arrow.right` | 2026-11-20 |
+| `ArrowUp` | `arrow.up` | 2026-11-20 |
+| `ArrowUpForward` | `arrow.up.forward` | 2026-11-20 |
+| `Heart` | `heart` | 2026-11-20 |
+| `Key` | `key` | 2026-11-20 |
+| `Mic` | `mic` | 2026-11-20 |
+| `Camera` | `camera` | 2026-11-20 |
+| `Envelope` | `envelope` | 2026-11-20 |
+| `Calendar` | `calendar` | 2026-11-20 |
+| `Flag` | `flag` | 2026-11-20 |
+| `PaperPlane` | `paperplane` | 2026-11-20 |
+| `Scissors` | `scissors` | 2026-11-20 |
+| `XMarkCircleFill` | `xmark.circle.fill` | 2026-11-20 |
+| `PlusCircleFill` | `plus.circle.fill` | 2026-11-20 |
+| `MinusCircleFill` | `minus.circle.fill` | 2026-11-20 |
+| `CheckmarkCircleFill` | `checkmark.circle.fill` | 2026-11-20 |
+| `ExclamationMarkCircleFill` | `exclamationmark.circle.fill` | 2026-11-20 |
+| `InfoCircleFill` | `info.circle.fill` | 2026-11-20 |
+| `QuestionMarkCircleFill` | `questionmark.circle.fill` | 2026-11-20 |
+| `ExclamationMarkTriangleFill` | `exclamationmark.triangle.fill` | 2026-11-20 |
+| `GearShape` | `gearshape` | 2026-11-20 |
+| `ArrowClockwise` | `arrow.clockwise` | 2026-11-20 |
+| `ArrowCounterclockwise` | `arrow.counterclockwise` | 2026-11-20 |
+| `TextAlignLeft` | `text.alignleft` | 2026-11-20 |
+| `TextAlignCenter` | `text.aligncenter` | 2026-11-20 |
+| `TextAlignRight` | `text.alignright` | 2026-11-20 |
+| `TextJustify` | `text.justify` | 2026-11-20 |
+| `MacWindow` | `macwindow` | 2026-11-20 |
+| `SidebarRight` | `sidebar.right` | 2026-11-20 |
+| `DocOnDoc` | `doc.on.doc` | 2026-11-20 |
+| `ArrowUturnBackward` | `arrow.uturn.backward` | 2026-11-20 |
+| `ArrowUturnForward` | `arrow.uturn.forward` | 2026-11-20 |
+| `DesktopComputer` | `desktopcomputer` | 2026-11-20 |
+| `PersonCropCircle` | `person.crop.circle` | 2026-11-20 |
+| `Eject` | `eject` | 2026-11-20 |
 
 ## Helpers
 

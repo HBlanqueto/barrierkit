@@ -89,3 +89,14 @@ Decision:
 - The user's accessibility settings apply last: reduce motion, reduce transparency and the focus ring.
 Why: an app changes any visual property, or builds a whole theme, without copying Tengen's numbers.
 Code: `crates/bk/src/styles/theme.rs`, `crates/bk/src/styles.rs`, `crates/bk/src/modifiers.rs`
+
+## 0081 — Icons: glyphs in the kit, icon files in the theme
+Date: 2026-11-20
+Decision:
+- A glyph is a one-color symbol the kit draws inside a control, menu, toolbar, sidebar, list, form or state. It is a `Symbol`: SVG paths on a 16 grid in `currentColor`, named after its SwiftUI name, fitted to AppKit at 16 pt (20 px).
+- An icon is a file with a freedesktop name that other apps, the shell and malaysia load by name: apps, places and folders, MIME types, devices, and the `-symbolic` actions and status. It lives in `malaysia-icon-theme`.
+- Neither repository holds a file from Apple. The paths and the theme files are drawings made for the project; the ink boxes and masses they were fitted to stay out of the repository.
+- The kit does not read the theme and the theme does not read the kit. A glyph moves to the theme only when the theme lacks its freedesktop name and its owner asks for it.
+Why: the kit draws a glyph at any size, stroke and color from one path, which a file lookup by name and size cannot do. The theme already ships the macOS-style set the desktop's apps need: about 3,700 symbolic icons, 50 folders, 235 file types, 63 devices; every freedesktop name that matches a kit glyph was found in it (50 checked). Copying the glyphs would draw each twice and mix the kit's MIT with the theme's LGPL, CC BY-SA and GPL licenses.
+Rejected: every glyph in the theme (the kit would load files at run time or embed GPL art, and lose the stroke and the state colors); every icon in the kit (Linux apps look icons up by name and the kit is not an icon theme); drawing the theme's symbols from the kit's paths (it would replace the MacTahoe copies, which is the theme's decision).
+Code: `crates/bk/src/symbol.rs`, `crates/bk/tests/kit/appkit_icons.rs`, `scripts/appkit-compare.py` (`icons`), [Macos icons](research/macos-icons.md)

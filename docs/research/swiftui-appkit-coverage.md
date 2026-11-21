@@ -480,12 +480,12 @@ The size of each control is a row in its own family.
 
 | SwiftUI | AppKit | Kit | Status | Measure | Pri |
 |---|---|---|---|---|---|
-| `Image(systemName:)` | `NSImage(systemSymbolName:)` | `Image::system`, `Symbol` | `partial`: 65 symbols against the 9649 of this Mac (`name_availability.plist`) | none | P1 |
+| `Image(systemName:)` | `NSImage(systemSymbolName:)` | `Image::system`, `Symbol` | `partial`: 121 symbols against the 2386 public names that resolve here; the 56 drawn on 2026-11-20 match SF at 16 pt (ink box within 0.5 in all, mass within 10% in 50) | [Icons][m-icons] | P1 |
 | toolbar glyphs | SF Symbols at 16 pt | `IconButton` symbols | `partial`: chevrons and plus match; `ellipsis`, `sidebar.left`, `magnifyingglass` do not | [Toolbar][m-toolbar] | P1 |
 | `.symbolRenderingMode` (monochrome, hierarchical, palette, multicolor) | `NSImage.SymbolConfiguration` | `TemplateRenderingMode` (original, template) | `partial` | none | P3 |
 | `.imageScale`, symbol weight | `SymbolConfiguration` | `ImageStyle` size and stroke | `partial` | none | P2 |
 | `.symbolVariant`, `.symbolEffect`, variable value | `NSSymbolEffect` | — | `missing` | none | P3 |
-| menu item icons | `NSMenuItem.image` | `MenuIcon` | `partial`: `NSMenuItem.image` draws nothing in a pop-up menu on this macOS | [Menus][m-menus] | P2 |
+| menu item icons | `NSMenuItem.image` | `MenuIcon` | `partial`: `NSMenuItem.image` draws nothing in a pop-up menu on this macOS; AppKit sets 47 of 58 standard items' images, listed in [Icons][m-icons] | [Menus][m-menus] | P2 |
 
 ## 17. Accessibility
 
@@ -604,7 +604,7 @@ first four areas are the sessions that run now.
 4. **P1** Materials and Reduce Transparency: map the 14 semantic materials;
    Increase Contrast for menu, sheet and toolbar ([15](#15-materials-and-glass),
    [17](#17-accessibility)).
-5. **P1** Symbols: more than 65, with weight and scale ([16](#16-symbols)).
+5. **P1** Symbols: more than 121, with weight, scale and the ones wider than the grid ([16](#16-symbols)).
 6. **P2** `unifiedCompact` and `expanded` platters (24 and 28 high); toolbar
    labels, spacer, tracking separator, title bar accessory.
 7. **P3** The [macOS 27 APIs](#18-new-in-macos-27), toolbar customization,
@@ -656,4 +656,5 @@ No probe of `~/src/probes` renders these:
 [m-menus]: macos-control-metrics.md#menus-scrollers-and-inactive-selection
 [m-sidebar]: macos-control-metrics.md#sidebar-and-window-macos-27
 [m-toolbar]: macos-control-metrics.md#toolbar-items-and-navigation-buttons
+[m-icons]: macos-icons.md
 [m-tabs]: macos-control-metrics.md#toolbar-tabs-and-window-corners

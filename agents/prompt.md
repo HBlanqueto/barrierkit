@@ -76,6 +76,9 @@ version.
     one-color icon, `Image::data(svg).rendering_mode(TemplateRenderingMode::Template)`,
     which paints it black in light and white in dark
     ([Images and template rendering](../docs/barrierkit/04-appearance-and-tokens.md#images-and-template-rendering)).
+    The 121 `Symbol`s are named after SF Symbols; look an Apple name up in
+    the [glossary](../docs/barrierkit/20-glossary.md#symbol-variants) before
+    drawing a new one.
 
 ## Read more only when the task needs it
 

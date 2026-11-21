@@ -37,10 +37,10 @@ case "$scene" in
         APPKIT_CONTENT=$(sed -n '1s/^# //p' "$APPKIT_LAYOUT")
         APPKIT_TAG=$family
         ;;
-    menu | toolbar | sidebar)
+    menu | toolbar | sidebar | icons)
         ;;
     *)
-        printf 'usage: %s controls|contrast|views|views-contrast|texts|texts-contrast|lists|lists-contrast|containers|containers-contrast|buttons|buttons-contrast|swiftui|swiftui-contrast|menu|toolbar|sidebar\n' "$0" >&2
+        printf 'usage: %s controls|contrast|views|views-contrast|texts|texts-contrast|lists|lists-contrast|containers|containers-contrast|buttons|buttons-contrast|swiftui|swiftui-contrast|menu|toolbar|sidebar|icons\n' "$0" >&2
         exit 2
         ;;
 esac
@@ -64,6 +64,9 @@ if [ "$scene" = toolbar ]; then
 fi
 if [ "$scene" = sidebar ]; then
     exec cargo test -p bk --test kit --features bk/shell appkit_sidebar -- --ignored
+fi
+if [ "$scene" = icons ]; then
+    exec cargo test -p bk --test kit --features bk/shell appkit_icon_lab -- --ignored
 fi
 export APPKIT_LAYOUT APPKIT_CONTENT APPKIT_TAG
 case "$scene" in

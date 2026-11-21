@@ -35,6 +35,9 @@ reason it cannot be.
 10. Is every symbol an SVG (`Image::system`, or an SVG with `currentColor`),
     and does every one-color image use `TemplateRenderingMode::Template` so
     it is black in light and white in dark?
+    Is a new `Symbol` fitted to its SF name (ink box within 0.5, mass within
+    5%, `scripts/appkit-compare.py icons`) and listed in the glossary's
+    [Symbol variants](../docs/barrierkit/20-glossary.md#symbol-variants)?
 
 ## Build
 

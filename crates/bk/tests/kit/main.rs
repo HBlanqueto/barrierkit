@@ -1,6 +1,7 @@
 mod appearance;
 mod appkit;
 mod appkit_buttons;
+mod appkit_icons;
 mod appkit_lists;
 mod appkit_texts;
 mod backdrop;

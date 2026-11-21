@@ -123,6 +123,8 @@ are drawn on a grid of `SYMBOL.grid` (16) with a stroke of `SYMBOL.stroke`
 `SYMBOL.fine_stroke` (1), as macOS Settings draws its smaller sidebar symbols.
 `Bolt` and `CircleHalf` are solid shapes without a stroke.
 
+A symbol is fitted to the SF Symbol at 16 pt, regular weight, medium scale, drawn at 20 px: one grid unit is 1.25 px and one em is 12.8 units. SF's regular stroke is 1.25 pt, which is 1.0 on the grid, so `SYMBOL.stroke` (1.4) carries 40% more ink and the symbol lab draws at 1.0. A symbol wider than 1.25 em does not fit the grid. The inventory of the SF names, their ink and what the kit has is in [Icons macOS uses](../research/macos-icons.md).
+
 ```rust
 Image::system(Symbol::Folder)
     .size(TITLE.size as f32)
@@ -141,8 +143,23 @@ Image::system(Symbol::Folder)
 | Connections and power | `Wifi`, `Bluetooth`, `Network`, `Vpn`, `Lock`, `Bolt`, `Battery` |
 | Row actions | `EllipsisCircle` |
 | Shapes | `Square`, `Circle`, `CapsuleOnRectangle`, `CapsuleOnRectangleFill` |
+| Sidebar and places | `ArrowDownCircle`, `ICloud`, `InternalDrive`, `ExternalDrive`, `Trash`, `Tag`, `MusicNote`, `DesktopComputer`, `Eject`, `PersonCropCircle` |
+| Share and edit | `SquareAndArrowUp`, `SquareAndArrowDown`, `DocOnDoc`, `Scissors`, `ArrowUturnBackward`, `ArrowUturnForward`, `ArrowClockwise`, `ArrowCounterclockwise` |
+| Find and organize | `ArrowUpArrowDown`, `Line3HorizontalDecrease`, `Heart`, `Flag`, `Key`, `Calendar`, `Envelope`, `PaperPlane`, `Mic`, `Camera`, `GearShape` |
+| Arrows | `ArrowLeft`, `ArrowRight`, `ArrowUp`, `ArrowUpForward` |
+| Layout and text | `MacWindow`, `SidebarRight`, `TextAlignLeft`, `TextAlignCenter`, `TextAlignRight`, `TextJustify` |
+| States | `InfoCircle`, `PlusCircle`, `MinusCircle`, `XMarkCircle`, `CheckmarkCircle`, `ExclamationMarkCircle`, `QuestionMarkCircle`, `ExclamationMarkTriangle`, `NoSign` |
+| States, filled | `XMarkCircleFill`, `PlusCircleFill`, `MinusCircleFill`, `CheckmarkCircleFill`, `ExclamationMarkCircleFill`, `InfoCircleFill`, `QuestionMarkCircleFill`, `ExclamationMarkTriangleFill` |
 
-`StarFill` and `CapsuleOnRectangleFill` are the filled symbols. The kit caches the SVG of each symbol.
+The `*Fill` states and `PersonCropCircle` are solid shapes with the mark cut out of them. `MusicNote` and `Scissors` are filled and stroked. `StarFill` and `CapsuleOnRectangleFill` are the older filled symbols. The kit caches the SVG of each symbol.
+
+Add a symbol in five steps:
+
+1. Find the SF name in [Icons macOS uses](../research/macos-icons.md) and read its ink at 16 pt.
+2. Draw the path on the 16 grid so that its ink box is the SF's, divided by 1.25 px per unit; draw at stroke 1.0.
+3. Add the variant to `Symbol` and the `(sf name, Symbol)` row to `crates/bk/tests/kit/appkit_icons.rs`.
+4. Render the lab (`scripts/appkit-render.sh icons`) and run `scripts/appkit-compare.py icons`: the ink box within 0.5 and the mass within 5%.
+5. Add the row with its Apple name to the [glossary](20-glossary.md#symbol-variants).
 
 `Image` draws from an `ImageStyle`: `size`, `stroke` and `foreground`. `.size`
 and `.color` override them for one image and a theme for every image; the
