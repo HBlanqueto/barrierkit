@@ -2252,6 +2252,7 @@
   --bk-contrast-separator: #00000033;
   --bk-contrast-line-strong: #00000045;
   --bk-contrast-bg-control: #0000002d;
+  --bk-contrast-combo-button: #00000032;
   --bk-contrast-bg-control-disabled: #00000017;
   --bk-contrast-system-fill: #00000059;
   --bk-contrast-text-background: #fffffff9;
@@ -2509,6 +2510,7 @@
     --bk-contrast-separator: #ffffff33;
     --bk-contrast-line-strong: #ffffff30;
     --bk-contrast-bg-control: #ffffff2d;
+    --bk-contrast-combo-button: #ffffff31;
     --bk-contrast-bg-control-disabled: #ffffff17;
     --bk-contrast-system-fill: #ffffff4c;
     --bk-contrast-text-background: #0d0d0dfa;
@@ -2766,6 +2768,7 @@
   --bk-contrast-separator: #ffffff33;
   --bk-contrast-line-strong: #ffffff30;
   --bk-contrast-bg-control: #ffffff2d;
+  --bk-contrast-combo-button: #ffffff31;
   --bk-contrast-bg-control-disabled: #ffffff17;
   --bk-contrast-system-fill: #ffffff4c;
   --bk-contrast-text-background: #0d0d0dfa;
@@ -3022,6 +3025,7 @@
   --bk-contrast-separator: #ffffff33;
   --bk-contrast-line-strong: #ffffff30;
   --bk-contrast-bg-control: #ffffff2d;
+  --bk-contrast-combo-button: #ffffff31;
   --bk-contrast-bg-control-disabled: #ffffff17;
   --bk-contrast-system-fill: #ffffff4c;
   --bk-contrast-text-background: #0d0d0dfa;

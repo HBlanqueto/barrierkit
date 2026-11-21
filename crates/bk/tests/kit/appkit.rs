@@ -67,10 +67,12 @@ impl App for Scene {
 }
 
 pub(super) fn system_blue() -> Rgba {
-    if bk::theme::resolved().scheme == ColorScheme::Light {
-        Rgba::rgb8(0, 136, 255)
-    } else {
-        Rgba::rgb8(0, 145, 255)
+    let resolved = bk::theme::resolved();
+    match (resolved.scheme == ColorScheme::Light, resolved.contrast) {
+        (true, false) => Rgba::rgb8(0, 136, 255),
+        (false, false) => Rgba::rgb8(0, 145, 255),
+        (true, true) => Rgba::rgb8(30, 110, 244),
+        (false, true) => Rgba::rgb8(92, 184, 255),
     }
 }
 
