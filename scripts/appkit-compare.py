@@ -75,7 +75,6 @@ SWIFTUI = [
     "bordered-circle", "bordered-rounded", "inline", "switch-on-disabled",
 ]
 FAMILIES = {"controls": CONTROLS, "texts": TEXTS, "buttons": BUTTONS, "accents": ACCENT_CONTROLS, "swiftui": SWIFTUI}
-CAPTURE_DIRS = {"swiftui": "swiftuibuttons"}
 GLYPH_WIDTH = {name: 18 for name in ("check-off-regular", "check-on-regular", "radio-off-regular", "radio-on-regular")}
 GLYPH_WIDTH.update({
     f"{kind}{state}-{size}": box + 2
@@ -88,7 +87,9 @@ CONTRAST = {"light": "hc-aquaHC", "dark": "hc-darkHC"}
 
 
 def family_dir(family):
-    return os.path.join("accents", "controls", ACCENT) if family == "accents" else CAPTURE_DIRS.get(family, family)
+    if family == "swiftui":
+        return "swiftuibuttons"
+    return os.path.join("accents", "controls", ACCENT) if family == "accents" else family
 
 
 def capture(family, mode, backdrop, tag):
@@ -514,6 +515,7 @@ TABS = [
     "tabs-top", "tabs-top-second", "tabs-bottom", "tabs-left", "tabs-none-bezel", "tabs-none-line", "tabs-none", "tabs-top-small",
     "tabs-top-mini",
 ]
+CONTAINERS = ["split-v-thin", "split-h-thin", "swiftui-hsplit", "swiftui-vsplit"] + TABS
 TABLES = [
     "table-automatic", "table-fullwidth", "table-inset", "table-sourcelist", "table-plain", "table-fullwidth-striped",
     "table-small", "table-medium", "table-large", "outline-inset", "outline-fullwidth",
@@ -593,9 +595,6 @@ def icons(args):
         print(f"{name:32} {ref[0]:6.2f} x {ref[1]:5.2f} {kit[0]:6.2f} x {kit[1]:5.2f} {box:6.2f} {mass:+8.1f} {offset:9.2f}")
     print(f"{passed} of {len(names)} within 0.5 of the ink box and 5% of the mass")
     print(f"{near} of {len(names)} within 0.5 of the ink box and 10% of the mass")
-
-
-CONTAINERS = ["split-v-thin", "split-h-thin", "swiftui-hsplit", "swiftui-vsplit"] + TABS
 
 
 LIGHTS_PROBES = {"light": "aqua", "dark": "darkAqua", "hc-light": "aquaHC", "hc-dark": "darkAquaHC"}
@@ -752,6 +751,7 @@ def main():
     eight.add_argument("mode", choices=("light", "dark"))
     eight.add_argument("--tag", default="", help="empty, or hc for Increase Contrast")
     eight.add_argument("--names", default="", help="comma separated item names")
+    eight.add_argument("--family", default="lists", choices=("lists", "containers", "scrollers", "tables"), help="the probe family")
     eight.add_argument("--sheet", action="store_true", help="write a side-by-side image per item")
     eight.set_defaults(run=lists)
     args = parser.parse_args()
@@ -760,4 +760,3 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
-    eight.add_argument("--family", default="lists", choices=("lists", "containers", "scrollers", "tables"), help="the probe family")
