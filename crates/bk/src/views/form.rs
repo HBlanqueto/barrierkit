@@ -3,7 +3,7 @@ use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
 
 use crate::adornments::Divider;
-use crate::controls::Switch;
+use crate::controls::{ControlSize, Switch};
 use crate::interaction::{control_state, use_interaction};
 use crate::patterns::settings::PageLink;
 use crate::sidebar::SymbolTile;
@@ -67,7 +67,12 @@ impl Row {
     }
 
     pub fn toggle(title: &'static str, on: bool, on_toggle: impl Into<Callback<bool, ()>>) -> Self {
-        Self::new(title).control(Switch::new(title).on(on).on_toggle(on_toggle))
+        Self::new(title).control(
+            Switch::new(title)
+                .size(ControlSize::Mini)
+                .on(on)
+                .on_toggle(on_toggle),
+        )
     }
 
     pub fn control(self, control: impl IntoElement) -> Self {

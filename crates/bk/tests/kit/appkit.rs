@@ -18,7 +18,7 @@ use bk::password::PasswordField;
 use bk::popup_button::PopUpButton;
 use bk::progress::{ProgressRing, ProgressView};
 use bk::sidebar::{Sidebar, SidebarItem, SidebarSection};
-use bk::styles::ButtonStyle;
+use bk::styles::{ButtonStyle, GroupBoxStyle};
 use bk::symbol::Symbol;
 use bk::theme;
 use bk::titlebar::Titlebar;
@@ -404,7 +404,15 @@ pub(super) fn controls() -> Vec<(&'static str, Builder)> {
             rect()
                 .width(Size::px(120.0))
                 .height(Size::px(50.0))
-                .child(GroupBox::new(Some("Box")).child(rect().height(Size::px(28.0))))
+                .child(
+                    GroupBox::new(Some("Box"))
+                        .style(|style| GroupBoxStyle {
+                            label_inset: 10.75,
+                            label_height: 12.0,
+                            ..style
+                        })
+                        .child(rect().height(Size::px(28.0))),
+                )
                 .into_element()
         }),
         ("table", || {

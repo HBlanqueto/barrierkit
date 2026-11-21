@@ -938,8 +938,6 @@ pub struct DisclosureMetrics {
     pub indent: f32,
     pub row_height: f32,
     pub chevron: f32,
-    pub triangle: f32,
-    pub triangle_stroke: f32,
     pub row_radius: f32,
     pub icon: f32,
     pub column_width: f32,
@@ -982,6 +980,12 @@ pub struct ComboBoxMetrics {
     pub button_inset_x: f32,
     pub button_radius: f32,
     pub text_gap: f32,
+    pub group_lead: f32,
+    pub group_chevron: f32,
+    pub group_chevron_stroke: f32,
+    pub group_chevron_x: f32,
+    pub group_chevron_open_x: f32,
+    pub group_chevron_open_y: f32,
     pub chevron: f32,
     pub chevron_stroke: f32,
 }
@@ -1143,12 +1147,14 @@ pub struct SplitPanesMetrics {
 pub struct FloatingPaneMetrics {
     pub title_height: f32,
     pub outline: f32,
+    pub row_padding_y: f32,
     pub resize_band: f32,
     pub shadow: Rgba,
     pub shadow_blur: f32,
     pub shadow_y: f32,
 }
 
+    pub section_spacing: f32,
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct TableMetrics {
     pub row_height: f32,

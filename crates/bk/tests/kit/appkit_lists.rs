@@ -1,10 +1,14 @@
 use std::{fs, path::PathBuf};
 
+use bk::style::{Palette, text};
 use bk::styles::{OutlineViewStyle, Role, ShapeStyle, StateValue, TableStyle};
 use bk::symbol::Symbol;
+use bk::views::form::{Form, Row, Section};
+use bk::views::group::{DisclosureGroup, GroupBox};
 use bk::views::list::List;
 use bk::views::table::{SortOrder, Table};
 use bk::views::tree::{OutlineView, TreeNode};
+use ctdesign::BODY;
 use freya_core::prelude::*;
 use torin::prelude::Size;
 
@@ -17,6 +21,10 @@ const NAMES: [&str; 5] = [
     "datos.csv",
     "music.mp3",
 ];
+
+fn label(content: &'static str) -> Element {
+    text(content, BODY, Palette::current().label).into_element()
+}
 
 fn emphasized(style: TableStyle) -> TableStyle {
     TableStyle {
@@ -48,6 +56,52 @@ fn lists() -> Vec<(&'static str, Builder)> {
         ("table", || table(|style| style)),
         ("outline-group", || outline(false, |style| style)),
         ("outline-open", || outline(true, |style| style)),
+        ("form-grouped", || {
+            rect()
+                .width(Size::px(360.0))
+                .height(Size::px(260.0))
+                .child(
+                    Form::new()
+                        .section(
+                            Section::titled("Section")
+                                .row(Row::toggle("Toggle", true, |_| {}))
+                                .row(Row::value("Name", "Value"))
+                                .row(Row::value("Labeled", "Value")),
+                        )
+                        .section(Section::new().row(Row::new("Other"))),
+                )
+                .into_element()
+        }),
+        ("groupbox", || {
+            rect()
+                .width(Size::px(130.0))
+                .child(
+                    GroupBox::new(Some("Title")).child(
+                        rect()
+                            .width(Size::px(120.0))
+                            .height(Size::px(30.0))
+                            .center()
+                            .child(label("Content")),
+                    ),
+                )
+                .into_element()
+        }),
+        ("disclosure-closed", || {
+            rect()
+                .width(Size::px(160.0))
+                .child(DisclosureGroup::new("Group").child(label("Child")))
+                .into_element()
+        }),
+        ("disclosure", || {
+            rect()
+                .width(Size::px(160.0))
+                .child(
+                    DisclosureGroup::new("Group")
+                        .expanded(true)
+                        .child(label("Child")),
+                )
+                .into_element()
+        }),
     ]
 }
 

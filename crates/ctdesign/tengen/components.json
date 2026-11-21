@@ -171,16 +171,14 @@
     "group-box": {
       "radius": 12,
       "padding": 5,
-      "label-inset": 10.75,
-      "label-height": 12,
+      "label-inset": 9.5,
+      "label-height": 17,
       "fill-opacity": 0.031
     },
     "disclosure": {
       "indent": 13,
       "row-height": 24,
       "chevron": 13,
-      "triangle": 12,
-      "triangle-stroke": 1.35,
       "row-radius": 7,
       "icon": 16,
       "column-width": 200,
@@ -192,7 +190,13 @@
       "list-chevron-stroke": 1.4,
       "list-chevron-x": 1.5,
       "list-chevron-open-x": 0.75,
-      "list-chevron-open-y": 1.4
+      "list-chevron-open-y": 1.4,
+      "group-lead": 11.5,
+      "group-chevron": 10.3,
+      "group-chevron-stroke": 1.2,
+      "group-chevron-x": -1.25,
+      "group-chevron-open-x": -1.85,
+      "group-chevron-open-y": 1.25
     },
     "spelling": {
       "dot": 2
@@ -610,24 +614,26 @@
       "key-step": 10
     },
     "list-group": {
-      "radius": "radius.md",
+      "radius": 12.5,
       "row-min-height": 36,
       "highlight": 0.12,
       "row-padding-x": 10,
       "label-min-share": 35,
-      "stack-below": 360,
+      "stack-below": 300,
+      "section-spacing": 10,
+      "row-padding-y": 6,
       "padding": [
-        12,
         20,
         20,
-        12
+        20,
+        20
       ],
       "separator": {
         "inset-left": 10
       },
       "section-header": {
         "padding": [
-          2,
+          0,
           10,
           8,
           10

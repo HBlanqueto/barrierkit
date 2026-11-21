@@ -93,8 +93,9 @@ Form::new()
 | `.highlighted(Option<&str>)` | Tints the row with that title with the accent at 12 % |
 
 `sections` is a public field: [`SettingsWindow`](12-patterns.md#settingswindow)
-reads it to build its search. Below `LIST_GROUP.stack_below` (360 px) of width,
-rows with a control put the label above the control.
+reads it to build its search. The form is inset 20 on each side, its cards are
+10 apart, and a row is 36 high. Below `LIST_GROUP.stack_below` (300 px) of
+width, rows with a control put the label above the control.
 
 ### `Section`
 
@@ -118,7 +119,7 @@ rows with a control put the label above the control.
 | `Row::navigation(title, on_press)` | A chevron; the whole row is a button |
 | `Row::page(title, pane_id)` | A chevron; the row opens that page of a [`SettingsWindow`](12-patterns.md#pane) |
 | `Row::destructive(title, on_press)` | The title in red; the whole row is a button |
-| `Row::toggle(title, on, on_toggle)` | A [`Switch`](05-controls.md#switch-and-checkbox) on the right, with the title as its label |
+| `Row::toggle(title, on, on_toggle)` | A mini [`Switch`](05-controls.md#switch-and-checkbox) (36 × 16, the size SwiftUI uses in a form) on the right, with the title as its label |
 
 | Method | Effect |
 |---|---|
@@ -149,13 +150,16 @@ Form::new().section(section).style(|s| FormStyle { section_spacing: 32.0, ..s })
 
 `GroupBox::new(Option<label>).child(view)`: a rounded box (radius
 `GROUP_BOX.radius`, 12) with a faint fill and a hairline border, and the label
-above it. It groups related controls without a form.
+above it, `GROUP_BOX.label_height` (17) high. It groups related controls
+without a form. `NSBox` puts a 12 high title row over its box and starts the
+title 10.75 in: `.style(|s| GroupBoxStyle { label_height: 12.0, label_inset: 10.75, ..s })`.
 
 ### `DisclosureGroup`
 
 `DisclosureGroup::new(label).expanded(bool).child(view)`: a header row with a
-chevron that shows or hides its children, indented `DISCLOSURE.indent` (13).
-`.expanded` is the starting state; after that the user owns it.
+chevron that shows or hides its children, which SwiftUI does not indent
+(`DisclosureGroupStyle::indent` is 0). `.expanded` is the starting state; after
+that the user owns it.
 
 ### Style
 

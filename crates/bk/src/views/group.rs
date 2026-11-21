@@ -127,6 +127,11 @@ impl Component for DisclosureGroup {
         } else {
             Symbol::ChevronRight
         };
+        let shift = if open {
+            style.open_chevron_offset
+        } else {
+            style.chevron_offset
+        };
         let header = interaction
             .attach(rect(), true)
             .a11y_role(AccessibilityRole::Button)
@@ -137,15 +142,17 @@ impl Component for DisclosureGroup {
             .cross_align(Alignment::Center)
             .on_press(move |_| expanded.toggle())
             .child(
-                rect()
-                    .width(Size::px(style.indent))
-                    .center()
-                    .child(stroked_symbol(
-                        chevron,
-                        style.chevron_size.0,
-                        style.chevron_size.1,
-                        paints.color(style.chevron.resolve(state)),
-                    )),
+                rect().width(Size::px(style.lead_width)).center().child(
+                    rect()
+                        .offset_x(shift.0)
+                        .offset_y(shift.1)
+                        .child(stroked_symbol(
+                            chevron,
+                            style.chevron_size.0,
+                            style.chevron_size.1,
+                            paints.color(style.chevron.resolve(state)),
+                        )),
+                ),
             )
             .child(text(
                 self.label,

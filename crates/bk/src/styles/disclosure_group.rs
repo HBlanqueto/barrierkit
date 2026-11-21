@@ -25,10 +25,16 @@ pub(super) fn disclosure_triangle() -> StateValue<ShapeStyle> {
 pub struct DisclosureGroupStyle {
     /// Tengen: `DISCLOSURE.row_height`.
     pub row_height: f32,
-    /// Tengen: `DISCLOSURE.indent` of the chevron column and the children.
+    /// Tengen: `0`, the indent of the children.
     pub indent: f32,
-    /// Tengen: `(DISCLOSURE.triangle, DISCLOSURE.triangle_stroke)`.
+    /// Tengen: `DISCLOSURE.group_lead`, the column of the chevron.
+    pub lead_width: f32,
+    /// Tengen: `(DISCLOSURE.group_chevron, DISCLOSURE.group_chevron_stroke)`.
     pub chevron_size: (f32, f32),
+    /// Tengen: `(DISCLOSURE.group_chevron_x, 0)`, where the closed chevron sits from the center of its column.
+    pub chevron_offset: (f32, f32),
+    /// Tengen: `(DISCLOSURE.group_chevron_open_x, DISCLOSURE.group_chevron_open_y)`, the same for the open chevron.
+    pub open_chevron_offset: (f32, f32),
     /// Tengen: `Color(DISCLOSURE_TRIANGLE)` (`DISCLOSURE_TRIANGLE_CONTRAST` under Increase
     /// Contrast).
     pub chevron: StateValue<ShapeStyle>,
@@ -44,8 +50,14 @@ impl ControlStyle for DisclosureGroupStyle {
     fn tengen() -> Self {
         Self {
             row_height: DISCLOSURE.row_height,
-            indent: DISCLOSURE.indent,
-            chevron_size: (DISCLOSURE.triangle, DISCLOSURE.triangle_stroke),
+            indent: 0.0,
+            lead_width: DISCLOSURE.group_lead,
+            chevron_size: (DISCLOSURE.group_chevron, DISCLOSURE.group_chevron_stroke),
+            chevron_offset: (DISCLOSURE.group_chevron_x, 0.0),
+            open_chevron_offset: (
+                DISCLOSURE.group_chevron_open_x,
+                DISCLOSURE.group_chevron_open_y,
+            ),
             chevron: disclosure_triangle(),
             label: StateValue::new(ShapeStyle::Role(Role::Label)),
             effect: system_effect,
