@@ -142,7 +142,9 @@ impl Component for Titlebar {
         } else {
             Bar::UnifiedCompact
         };
-        crate::compact::use_toolbar_items(bar == Bar::Unified);
+        crate::compact::use_toolbar_items(
+            matches!(bar, Bar::Unified | Bar::UnifiedCompact).then_some(bar),
+        );
         let bar_controls = controls.clone();
         use_side_effect_with_deps(&bar, move |bar| {
             if let Some(controls) = &bar_controls {

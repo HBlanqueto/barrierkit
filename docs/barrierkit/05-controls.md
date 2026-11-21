@@ -149,7 +149,8 @@ Module `compact`.
 | `ToggleGroup` | `ToggleGroup::new(label)`, `.item(text, Face, label, on)` per toggle, `.style(\|s\| ..)` | `.on_toggle(\|(index, on)\| ..)` |
 
 - `IconButton` is 30 × 30 with a 16 symbol (`ICON_BUTTON`). Inside a
-  [`ToolGroup`](#toolbar-controls) it becomes a 36 capsule, the `TOOLGROUP` height, and its
+  [`ToolGroup`](#toolbar-controls) or a `Titlebar` it becomes a capsule as tall as the bar's
+  platter, 36 × 36 in the unified bar and 26 × 24 in the compact one (`TOOLGROUP`), and its
   symbol grows to 21 with a 1.6 stroke (`ICON_BUTTON.toolbar_icon`, `toolbar_stroke`): the size
   AppKit draws toolbar symbols at ([sizes](../research/macos-control-metrics.md#toolbar-items-and-navigation-buttons)).
 - `Stepper` shows the value and, 8 to its right, the arrows: 20 × 24, up above down
@@ -224,7 +225,7 @@ MenuButton::new("Sort", items).style(|s| MenuButtonStyle { shape: Shape::Capsule
 
 | Item | Module | Build | Behavior |
 |---|---|---|---|
-| `ToolGroup` | `controls` | `ToolGroup::new()`, `.child(..)`, `.children(..)`, `.style(\|s\| ..)` | Puts each child in a 36 slot. With the `Island` sidebar style it adds 1 × 20 separators and a capsule background |
+| `ToolGroup` | `controls` | `ToolGroup::new()`, `.child(..)`, `.children(..)`, `.style(\|s\| ..)` | Puts each child in a 36 slot, 24 high in the compact bar, with 1 × 20 separators (14 in the compact bar) and a capsule background |
 | `ToolbarSearch` | `compact` | `ToolbarSearch::new(value, placeholder)`, `.collapsed(bool)`, `.style(\|s\| ..)` | A 180 wide `SearchField` (`TOOLBAR_SEARCH_WIDTH`). Collapsed, it shows a magnifying-glass `IconButton` until pressed or while the text is not empty |
 | `ToolbarOverflow` | `compact` | `ToolbarOverflow::new(items)`, `.on_activate(\|id: String\| ..)`, `.style(\|s\| ..)` | A `»` `IconButton` that opens the items as a menu |
 

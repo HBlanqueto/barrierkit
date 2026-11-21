@@ -3,6 +3,7 @@ use bk::compact::IconButton;
 use bk::styles::WindowChromeStyle;
 use bk::symbol::Symbol;
 use bk::titlebar::Titlebar;
+use bk::views::navigation::{History, NavigationButtons};
 use ctdesign::TITLEBAR;
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
@@ -94,4 +95,60 @@ fn the_title_is_centred_in_the_window_whatever_each_side_holds() {
         "title centre {}",
         title.center().x
     );
+}
+
+struct Items(bool);
+
+impl App for Items {
+    fn render(&self) -> impl IntoElement {
+        let history = use_state(|| {
+            let mut history = History::new("a");
+            history.push("b");
+            history
+        });
+        rect().expanded().child(
+            Titlebar::new()
+                .with_sidebar(self.0)
+                .left(NavigationButtons::new(history))
+                .right(IconButton::new(Symbol::Plus, "Añadir")),
+        )
+    }
+}
+
+type Sizes = Vec<(f32, f32)>;
+
+fn item_sizes(sidebar: bool) -> (Sizes, Sizes) {
+    let (mut test, _) = TestingRunner::new(
+        AppComponent::new(Items(sidebar)),
+        Size2D::new(900.0, 400.0),
+        |_| {},
+        1.0,
+    );
+    test.sync_and_update();
+    test.sync_and_update();
+    let sizes = |wanted: [(f32, f32); 2]| {
+        test.find_many(|node, _| {
+            let area = node.layout().area;
+            let size = (area.width(), area.height());
+            wanted.contains(&size).then_some(size)
+        })
+    };
+    (
+        sizes([(63.0, 24.0), (73.0, 36.0)]),
+        sizes([(26.0, 24.0), (36.0, 36.0)]),
+    )
+}
+
+#[test]
+fn the_compact_bar_holds_24_high_platters_and_the_unified_bar_36_high_ones() {
+    for (sidebar, pair, button) in [
+        (false, (63.0, 24.0), (26.0, 24.0)),
+        (true, (73.0, 36.0), (36.0, 36.0)),
+    ] {
+        let (pairs, buttons) = item_sizes(sidebar);
+        assert!(!pairs.is_empty(), "no arrows of {pair:?}");
+        assert!(pairs.iter().all(|size| *size == pair), "{pairs:?}");
+        assert!(buttons.len() >= 3, "two arrows and the plus: {buttons:?}");
+        assert!(buttons.iter().all(|size| *size == button), "{buttons:?}");
+    }
 }

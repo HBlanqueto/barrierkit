@@ -216,7 +216,14 @@ A momentary group draws a divider between its segments: 1 wide, black or white a
 
 ### What the kit does
 
-`IconButton` inside a `ToolGroup` is a 36 capsule with a 21 symbol at stroke 1.6 (`ICON_BUTTON.toolbar_icon`, `toolbar_stroke`). The chevron's ink is 8.5 × 15.0 and the plus 13.5, against 8.75 × 14.75 and 14.25 in AppKit, and their mass differs by 0.8% and 1.2% (`scripts/appkit-compare.py toolbar`). `NavigationButtons` is 73 × 36 with an invisible 1 seam and its glyph boxes are within 0.25 of AppKit's. `ToolGroup` draws a 1 × 20 divider at 22.4% (`TOOLGROUP.separator_h`, `toolgroup-separator`), the momentary group's; a group of three is 110 wide, one more than AppKit's. Not drawn yet: the 24 high platters of `unifiedCompact` (the kit puts a 30 square without platter there, or a 36 capsule inside a `ToolGroup`), the `expanded` style, the labels that widen a momentary group, the offset of a lone chevron, and the SF symbols other than the chevron and the plus (the kit's `sidebar.left` is 16.0 × 13.5 against 20.25 × 16.0).
+A toolbar item is a glass capsule whose height follows the bar the `Titlebar` draws: `ToolGroup` and `IconButton` read it from the bar (`TOOLGROUP.height` 36 in the unified bar, `TOOLGROUP.compact_height` 24 in the compact one) and, outside a `Titlebar`, a `ToolGroup` is the unified one.
+
+- **Glyph.** `IconButton` in a toolbar has a 21 symbol at stroke 1.6 (`ICON_BUTTON.toolbar_icon`, `toolbar_stroke`), the same in both bars as in AppKit. The chevron's ink is 8.5 × 15.0 and the plus 13.5, against 8.75 × 14.75 and 14.25, and their mass differs by 0.8% and 1.2% (`scripts/appkit-compare.py toolbar`).
+- **Unified bar.** An item is 36 × 36 and `NavigationButtons` is 73 × 36 with an invisible 1 seam; its glyph boxes are within 0.25 of AppKit's.
+- **Compact bar.** An item is 26 × 24 (`TOOLGROUP.height` less twice `compact_inset`, by `compact_height`) and a group's slots are 36 wide with 5 of the first and last one reaching past the platter, so a pair is 63 × 24 like AppKit's. The glyph boxes of the pair are within 1 of AppKit's: its chevrons sit 0.9 nearer the ends than the kit's, which centers them in their slot.
+- **Divider.** `ToolGroup` draws a 1 × 20 divider at 22.4% (14 high in the compact bar; `TOOLGROUP.separator_h`, `compact_separator_h`, `toolgroup-separator`), the momentary group's. A group of three is 110 wide in the unified bar, one more than AppKit's.
+
+Not drawn yet: the `expanded` style (28 high platters under a 32 title row); the platter of a lone `IconButton` (AppKit draws every item on a glass capsule; the kit draws one only in a `ToolGroup`); the 22 between the traffic lights and the first platter of the compact bar (the kit's left zone starts at the lights' end, 72, and AppKit's at 94); the labels that widen a momentary group; the offset of a lone chevron; and the SF symbols other than the chevron and the plus (the kit's `sidebar.left` is 16.0 × 13.5 against 20.25 × 16.0).
 
 ## Toolbar tabs and window corners
 

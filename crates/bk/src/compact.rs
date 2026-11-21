@@ -6,6 +6,7 @@ use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
 use crate::controls::{dimmed, dimmed_label, labeled, opacity_when, shadowed};
 use crate::i18n::text;
 use crate::interaction::{control_state, use_interaction};
+use crate::platform::Bar;
 use crate::style::with_font;
 use crate::styles::Painted;
 use crate::styles::{
@@ -15,20 +16,28 @@ use crate::styles::{
 use crate::symbol::{Symbol, stroked_symbol};
 
 #[derive(Clone, Copy)]
-struct ToolbarItems(State<bool>);
+struct ToolbarItems(State<Option<Bar>>);
 
-// Tahoe toolbar items are glass capsules as tall as a tool group (macOS 26 UI kit: 36 × 36 in a 52 bar).
-pub(crate) fn use_toolbar_items(in_toolbar: bool) {
+// Toolbar items are glass capsules, 36 high in the unified bar and 24 in the compact one.
+pub(crate) fn use_toolbar_items(bar: Option<Bar>) {
     let mut items = use_hook(|| {
-        let items = State::create(in_toolbar);
+        let items = State::create(bar);
         provide_context(ToolbarItems(items));
         items
     });
-    items.set_if_modified(in_toolbar);
+    items.set_if_modified(bar);
 }
 
-pub(crate) fn in_toolbar() -> bool {
-    try_consume_context::<ToolbarItems>().is_some_and(|items| *items.0.read())
+pub(crate) fn use_toolbar_items_or(bar: Bar) {
+    use_hook(|| {
+        if try_consume_context::<ToolbarItems>().is_none() {
+            provide_context(ToolbarItems(State::create(Some(bar))));
+        }
+    });
+}
+
+pub(crate) fn toolbar_bar() -> Option<Bar> {
+    try_consume_context::<ToolbarItems>().and_then(|items| *items.0.read())
 }
 
 #[derive(PartialEq)]
@@ -80,18 +89,18 @@ impl Component for IconButton {
             style.animation,
         );
         let on_press = self.on_press.clone();
-        let size = style.size;
+        let (width, height) = style.size;
         let radius = style
             .shape
-            .corner_radius(size, size, LayoutDirection::LeftToRight);
+            .corner_radius(width, height, LayoutDirection::LeftToRight);
         let opacity = opacity_when(self.disabled, style.opacity, style.disabled_opacity);
 
         let button = interaction
             .attach(rect(), enabled)
             .a11y_role(AccessibilityRole::Button)
             .a11y_alt(self.label)
-            .width(Size::px(size))
-            .height(Size::px(size))
+            .width(Size::px(width))
+            .height(Size::px(height))
             .corner_radius(radius)
             .center()
             .painted(&paints, &style.background)

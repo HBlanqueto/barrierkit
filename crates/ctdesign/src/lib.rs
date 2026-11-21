@@ -939,6 +939,9 @@ pub struct ToolgroupMetrics {
     pub padding_x: u32,
     pub separator_w: u32,
     pub separator_h: u32,
+    pub compact_height: u32,
+    pub compact_inset: u32,
+    pub compact_separator_h: u32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

@@ -785,6 +785,9 @@
         "padding-x": 0,
         "separator-w": 1,
         "separator-h": 20,
+        "compact-height": 24,
+        "compact-inset": 5,
+        "compact-separator-h": 14,
         "separator": "toolgroup-separator",
         "rim": "toolgroup-rim"
       }

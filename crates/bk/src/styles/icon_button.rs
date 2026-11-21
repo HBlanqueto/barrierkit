@@ -1,6 +1,8 @@
 use ctappearance::Resolved;
 use ctdesign::{BUTTON, DURATION_FAST_MS, HAIRLINE, ICON_BUTTON, SYMBOL, TOOLGROUP};
 
+use crate::platform::Bar;
+
 use super::button::rounded;
 use super::{
     Animation, ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
@@ -11,8 +13,10 @@ use super::{
 /// `IconButton`: its `.style` takes an `IconButtonStyle`.
 #[derive(Clone, Debug)]
 pub struct IconButtonStyle {
-    /// Tengen: `ICON_BUTTON.size`, in a toolbar `TOOLGROUP.height`.
-    pub size: f32,
+    /// Tengen: width and height, `ICON_BUTTON.size` square; in a unified toolbar `TOOLGROUP.height`
+    /// square; in a compact one `TOOLGROUP.height` less twice `TOOLGROUP.compact_inset` by
+    /// `TOOLGROUP.compact_height`.
+    pub size: (f32, f32),
     /// Tengen: `ICON_BUTTON.icon`, in a toolbar `ICON_BUTTON.toolbar_icon`.
     pub icon_size: f32,
     /// Tengen: `SYMBOL.stroke` scaled to `icon_size`, in a toolbar `ICON_BUTTON.toolbar_stroke`. In
@@ -44,20 +48,30 @@ pub struct IconButtonStyle {
 
 impl ControlStyle for IconButtonStyle {
     fn tengen() -> Self {
-        let (size, icon_size, stroke, shape) = if crate::compact::in_toolbar() {
-            (
-                TOOLGROUP.height as f32,
-                ICON_BUTTON.toolbar_icon,
-                ICON_BUTTON.toolbar_stroke,
-                Shape::Capsule,
-            )
-        } else {
-            (
-                ICON_BUTTON.size,
+        let (size, icon_size, stroke, shape) = match crate::compact::toolbar_bar() {
+            Some(bar) => {
+                let height = TOOLGROUP.height as f32;
+                let size = if bar == Bar::UnifiedCompact {
+                    (
+                        height - 2.0 * TOOLGROUP.compact_inset as f32,
+                        TOOLGROUP.compact_height as f32,
+                    )
+                } else {
+                    (height, height)
+                };
+                (
+                    size,
+                    ICON_BUTTON.toolbar_icon,
+                    ICON_BUTTON.toolbar_stroke,
+                    Shape::Capsule,
+                )
+            }
+            None => (
+                (ICON_BUTTON.size, ICON_BUTTON.size),
                 ICON_BUTTON.icon,
                 SYMBOL.stroke * ICON_BUTTON.icon / SYMBOL.grid,
                 rounded(ICON_BUTTON.radius),
-            )
+            ),
         };
         Self {
             size,

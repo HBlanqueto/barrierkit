@@ -659,18 +659,6 @@ fn toolbar_glyphs() -> Vec<(&'static str, Builder)> {
     ]
 }
 
-fn navigation_pair() -> Element {
-    use bk::views::navigation::{History, NavigationButtons};
-    let history = use_state(|| {
-        let mut history = History::new("a");
-        history.push("b");
-        history.push("c");
-        history.back();
-        history
-    });
-    NavigationButtons::new(history).into_element()
-}
-
 #[test]
 #[ignore]
 fn appkit_toolbar() {
@@ -683,16 +671,106 @@ fn appkit_toolbar() {
             .iter()
             .enumerate()
             .map(|(i, &(_, build))| (i as f32 * TOOLBAR_CELL + 4.0, 4.0, build))
-            .chain([(width + 4.0, 4.0, navigation_pair as Builder)])
             .collect();
         fs::write(
             out.join(format!(
                 "kit-toolbar-{}.png",
                 if dark { "dark" } else { "light" }
             )),
-            render_scene(placed, dark, dark, (width + 84.0, 44.0), None),
+            render_scene(placed, dark, dark, (width, 44.0), None),
         )
         .unwrap();
+    }
+}
+
+struct BarScene {
+    dark: bool,
+    sidebar: bool,
+}
+
+impl App for BarScene {
+    fn render(&self) -> impl IntoElement {
+        use bk::views::navigation::{History, NavigationButtons};
+        use_init_theme(|| theme::for_scheme(self.dark));
+        let history = use_state(|| {
+            let mut history = History::new("a");
+            history.push("b");
+            history.push("c");
+            history.back();
+            history
+        });
+        rect()
+            .expanded()
+            .background(if self.dark {
+                (0, 0, 0)
+            } else {
+                (255, 255, 255)
+            })
+            .child(
+                bk::titlebar::Titlebar::new()
+                    .with_sidebar(self.sidebar)
+                    .left(NavigationButtons::new(history)),
+            )
+    }
+}
+
+#[test]
+#[ignore]
+fn appkit_toolbar_bars() {
+    let out = PathBuf::from(std::env::var("APPKIT_OUT").expect("APPKIT_OUT"));
+    fs::create_dir_all(&out).unwrap();
+    let scale = scene_scale();
+    for (bar, sidebar, height, platter) in [
+        ("compact", false, 40.0, 24.0),
+        ("unified", true, 52.0, 36.0),
+    ] {
+        for dark in [false, true] {
+            let resolved = resolve(
+                &AppearanceConfig {
+                    color_scheme: if dark {
+                        ColorScheme::Dark
+                    } else {
+                        ColorScheme::Light
+                    },
+                    ..Default::default()
+                },
+                None,
+            );
+            let (mut test, _) = TestingRunner::new(
+                AppComponent::new(BarScene { dark, sidebar }),
+                Size2D::new(400.0 * scale as f32, height * scale as f32),
+                move |runner| {
+                    runner.provide_root_context(move || State::create(resolved));
+                },
+                scale,
+            );
+            test.set_default_fonts(&SANS_FAMILIES.map(std::borrow::Cow::Borrowed));
+            test.sync_and_update();
+            test.sync_and_update();
+            let pair = test
+                .find_many(|node, _| {
+                    let area = node.layout().area;
+                    (area.height() == platter * scale as f32
+                        && area.width() > platter * scale as f32 * 2.0)
+                        .then_some(area)
+                })
+                .into_iter()
+                .min_by(|a, b| a.width().total_cmp(&b.width()))
+                .expect("the navigation pair");
+            let name = format!("kit-bar-{bar}-{}", if dark { "dark" } else { "light" });
+            fs::write(out.join(format!("{name}.png")), test.render().as_bytes()).unwrap();
+            fs::write(
+                out.join(format!("{name}.json")),
+                format!(
+                    "{{\"x\": {}, \"y\": {}, \"w\": {}, \"h\": {}}}",
+                    pair.min_x() / scale as f32,
+                    pair.min_y() / scale as f32,
+                    pair.width() / scale as f32,
+                    pair.height() / scale as f32
+                ),
+            )
+            .unwrap();
+        }
     }
 }
 

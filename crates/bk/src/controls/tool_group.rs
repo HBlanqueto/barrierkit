@@ -1,4 +1,5 @@
 use super::*;
+use crate::platform::Bar;
 
 #[derive(PartialEq)]
 pub struct ToolGroup {
@@ -61,11 +62,16 @@ impl ProbeExt for ToolGroup {
 
 impl Component for ToolGroup {
     fn render(&self) -> impl IntoElement {
-        crate::compact::use_toolbar_items(true);
+        crate::compact::use_toolbar_items_or(Bar::Unified);
         let style: ToolGroupStyle = resolve(&self.style);
         let paints = Paints::current(ControlState::default(), style.effect);
         let vertical = style.axis == Axis::Vertical;
-        let slot = style.item_size;
+        let (length, thickness) = style.item_size;
+        let (slot_width, slot_height) = if vertical {
+            (thickness, length)
+        } else {
+            (length, thickness)
+        };
         let (along, across) = style.separator_size;
         let (separator_width, separator_height) = if vertical {
             (across, along)
@@ -78,8 +84,8 @@ impl Component for ToolGroup {
         for (i, child) in self.children.iter().cloned().enumerate() {
             items.push(
                 rect()
-                    .width(Size::px(slot))
-                    .height(Size::px(slot))
+                    .width(Size::px(slot_width))
+                    .height(Size::px(slot_height))
                     .center()
                     .child(child)
                     .into_element(),
@@ -99,12 +105,12 @@ impl Component for ToolGroup {
         let root = if vertical {
             rect()
                 .direction(Direction::Vertical)
-                .width(Size::px(slot))
+                .width(Size::px(thickness))
                 .padding(Gaps::new(padding, 0.0, padding, 0.0))
         } else {
             rect()
                 .direction(Direction::Horizontal)
-                .height(Size::px(slot))
+                .height(Size::px(thickness))
                 .padding(Gaps::new(0.0, padding, 0.0, padding))
         };
         let root = root
@@ -113,11 +119,11 @@ impl Component for ToolGroup {
             .map(self.probe, ProbeExt::probe)
             .painted(&paints, &style.background)
             .bordered(&paints, style.border.as_ref())
-            .corner_radius(
-                style
-                    .shape
-                    .corner_radius(slot, slot, LayoutDirection::LeftToRight),
-            );
+            .corner_radius(style.shape.corner_radius(
+                slot_width,
+                slot_height,
+                LayoutDirection::LeftToRight,
+            ));
         dimmed(shadowed(root, &style.shadows), style.opacity)
     }
 }

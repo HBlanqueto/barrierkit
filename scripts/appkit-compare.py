@@ -27,6 +27,11 @@ CONTROLS = [
     "switch-off-disabled", "slider-disabled", "segmented-disabled",
     "popup-disabled", "stepper-disabled", "combo-disabled",
 ]
+TEXTS = [
+    "tf-empty", "tf-filled", "tf-square", "tf-rounded", "secure-empty", "token-empty", "search", "search-text", "combo", "combo-empty",
+    "textview", "datepicker", "datetime", "time", "calendar", "path-standard", "imagewell-none-empty",
+]
+FAMILIES = {"controls": CONTROLS, "texts": TEXTS}
 GLYPH_WIDTH = {name: 18 for name in ("check-off-regular", "check-on-regular", "radio-off-regular", "radio-on-regular")}
 APPKIT = {"light": "aqua", "dark": "darkAqua"}
 CONTRAST = {"light": "hc-aquaHC", "dark": "hc-darkHC"}
@@ -84,20 +89,23 @@ def layout(args):
     height = data["contentH"]
     os.makedirs(os.path.dirname(os.path.abspath(args.output)), exist_ok=True)
     with open(args.output, "w") as out:
+        if "contentW" in data:
+            out.write(f"# {int(data['contentW'])}x{int(height)}\n")
         for item in data["items"]:
             out.write(f"{item['name']}\t{item['x']}\t{height - item['y'] - item['h']}\t{item['w']}\t{item['h']}\n")
 
 
 def controls(args):
-    height, found = items("controls")
+    height, found = items(args.family)
+    kit_tag = args.tag if args.family == "controls" else "-".join(filter(None, (args.family, args.tag)))
     for mode in ("light", "dark"):
         for backdrop, level in (("white", 255), ("black", 0)):
-            appkit = rgb(capture("controls", mode, backdrop, args.tag))
-            kit = rgb(kit_image(mode, backdrop, args.tag))
+            appkit = rgb(capture(args.family, mode, backdrop, args.tag))
+            kit = rgb(kit_image(mode, backdrop, kit_tag))
             color = np.array([level] * 3)
             print(f"\n=== {mode} on {backdrop}")
             print(f"{'control':20} {'%diff':>6} {'AppKit x y w h':>24} {'kit x y w h':>24} {'AppKit':>8} {'kit':>8}")
-            for name in CONTROLS:
+            for name in FAMILIES[args.family]:
                 box = region(name, height, found)
                 a, k = crop(appkit, box), crop(kit, box)
                 diff = (abs(a - k) > 3).any(-1).mean() * 100
@@ -233,22 +241,76 @@ def toolbar(args):
         diff = (np.abs(drawn - cell) * 255 > 3).mean() * 100
         print(f"{name:18s} {ba[1] - ba[0]:6.2f} x {ba[3] - ba[2]:5.2f}  {bk[1] - bk[0]:6.2f} x {bk[3] - bk[2]:5.2f}  {a.sum() / 16 / .847:11.2f} {k.sum() / 16:9.2f} {diff:6.1f}")
 
-    halves = toolbar_snapshots(f"pair-{args.mode}")
-    canvas = np.zeros((36 * 4, 73 * 4))
-    for part, x0 in zip(halves, (0, 36)):
-        canvas[:part.shape[0], x0 * 4:x0 * 4 + part.shape[1]] = part
-    left = (len(TOOLBAR_KIT) * TOOLBAR_CELL + 4) * 4
-    pair = kit[16:16 + 144, left:left + 73 * 4]
-    background = np.median(pair[16:128, 24:268])
-    k = darkness(pair, background)
-    print("\nnavigation pair, ink x0 x1 y0 y1 (AppKit | kit)")
-    for label, columns in (("back", slice(32, 128)), ("forward", slice(164, 260))):
-        rows = slice(24, 120)
-        ba = ink_box(canvas[rows, columns] / canvas.max())
-        bk = ink_box(k[rows, columns] / k[rows, columns].max())
+    for bar, prefix in (("unified", "pair"), ("compact", "pair-compact")):
+        pair_bar(args.mode, bar, f"{prefix}-{args.mode}")
+
+
+def pair_bar(mode, bar, prefix):
+    dark = mode == "dark"
+    base = os.path.join(CAPTURES, "navbuttons", prefix)
+    with open(base + ".json") as handle:
+        tree = json.load(handle)["tree"]
+    buttons = sorted((n for n in tree if "Hosting" in n["class"] and "AppKitButton" in n["class"]), key=lambda n: n["left"])
+    first = buttons[0]["left"]
+    width = round(buttons[-1]["left"] + buttons[-1]["width"] - first)
+    height = round(buttons[0]["height"])
+    canvas = np.zeros((height * 4, width * 4))
+    for node in buttons:
+        part = np.array(Image.open(glob.glob(f"{base}-{node['index']}-*.png")[0]).convert("RGBA")).astype(float)[..., 3] / 255
+        x0 = round((node["left"] - first) * 4)
+        canvas[:part.shape[0], x0:x0 + part.shape[1]] = part
+    kit_base = os.path.join(KIT, f"kit-bar-{bar}-{mode}")
+    with open(kit_base + ".json") as handle:
+        box = json.load(handle)
+    scale = 4
+    image = np.array(Image.open(kit_base + ".png").convert("RGB")).astype(float).mean(-1) / 255
+    left, top = round(box["x"] * scale), round(box["y"] * scale)
+    pair = image[top:top + height * scale, left:left + width * scale]
+    background = np.median(pair[height * 2:height * 4, width * 2:width * 4 - 8])
+    ink = np.clip(pair - background if dark else background - pair, 0, 1) / 0.847
+    inner = slice(height, height * 3)
+    print(f"\n{bar} navigation pair {width} x {height} (kit {box['w']:g} x {box['h']:g}), ink x0 x1 y0 y1 (AppKit | kit)")
+    halves = (("back", slice(16, width * 2)), ("forward", slice(width * 2, width * 4 - 16)))
+    for label, columns in halves:
+        ba = ink_box(canvas[inner, columns] / canvas.max())
+        bk = ink_box(ink[inner, columns] / max(ink[inner, columns].max(), 1e-6))
         origin = columns.start / 4
-        fmt = lambda box: "%6.2f %6.2f %6.2f %6.2f" % (box[0] + origin, box[1] + origin, box[2] + 6, box[3] + 6)
+
+        def fmt(item):
+            return "%6.2f %6.2f %6.2f %6.2f" % (item[0] + origin, item[1] + origin, item[2] + height / 4, item[3] + height / 4)
+
         print(f"{label:8s} {fmt(ba)} | {fmt(bk)}")
+
+
+def sidebar(args):
+    with open(os.path.join(CAPTURES, "sidebar", f"swiftui-{args.mode}.json")) as handle:
+        tree = json.load(handle)["tree"]
+    appkit = rgb(os.path.join(CAPTURES, "sidebar", f"swiftui-{args.mode}-srgb.png"))
+    kit = rgb(os.path.join(KIT, f"kit-sidebar-{args.mode}.png"))
+    hexa = lambda c: "#%02x%02x%02x" % tuple(c)
+    box = lambda b: "%6.1f %6.1f %6.1f %6.1f" % b if b else "none"
+
+    def ink(image, x0, x1, y0, y1, background, threshold=60):
+        mask = abs(image[y0:y1, x0:x1] - background).max(-1) > threshold
+        ys, xs = np.nonzero(mask)
+        if not len(ys):
+            return None
+        return x0 + xs.min(), x0 + xs.max() + 1, y0 + ys.min(), y0 + ys.max() + 1
+
+    print(f"{'':22} {'AppKit':>26} | kit")
+    for name, (x, y) in {"sidebar": (100, 540), "content": (500, 300), "hairline": (500, 52), "selection": (200, 119)}.items():
+        print(f"{name + ' color':22} {hexa(appkit[y, x]):>26} | {hexa(kit[y, x])}")
+    edge = lambda image: next(x for x in range(1, 900) if abs(image[300, x] - image[300, x - 1]).max() > 3)
+    print(f"{'edge x':22} {edge(appkit):>26} | {edge(kit)}")
+    print("x0 x1 y0 y1 of the ink per row (AppKit | kit); the selected row is its pill")
+    for top, height in [(int(n["top"]), int(n["height"])) for n in tree if n["class"] == "ListTableRowView"]:
+        found = [ink(image, 4, 216, top, top + height, image[top + height // 2, 214], 40 if top == 103 else 60) for image in (appkit, kit)]
+        print(f"row y={top:3d} h={height:2d}  {box(found[0])} | {box(found[1])}")
+    print("traffic lights, title and plus (AppKit | kit)")
+    for label, region in (("lights", (4, 90, 4, 44)), ("title", (222, 700, 4, 50)), ("plus", (840, 899, 4, 50))):
+        column = region[0] if label == "lights" else 500
+        found = [ink(image, *region, image[30, column], 40) for image in (appkit, kit)]
+        print(f"{label:8} {box(found[0])} | {box(found[1])}")
 
 
 def main():
@@ -260,6 +322,7 @@ def main():
     one.set_defaults(run=layout)
     two = commands.add_parser("controls", help="print the per-control difference table")
     two.add_argument("--tag", default="", help="empty, or hc for Increase Contrast")
+    two.add_argument("--family", default="controls", choices=sorted(FAMILIES), help="the probe family")
     two.set_defaults(run=controls)
     five = commands.add_parser("pressed", help="print the per-control difference table for pressed controls")
     five.add_argument("--tag", default="", help="empty, or hc for Increase Contrast")
@@ -277,6 +340,9 @@ def main():
     six = commands.add_parser("toolbar", help="print the toolbar glyph and navigation pair comparison")
     six.add_argument("mode", choices=("light", "dark"))
     six.set_defaults(run=toolbar)
+    seven = commands.add_parser("sidebar", help="print the sidebar window comparison")
+    seven.add_argument("mode", choices=("light", "dark"))
+    seven.set_defaults(run=sidebar)
     args = parser.parse_args()
     args.run(args)
 
