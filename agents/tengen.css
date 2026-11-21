@@ -165,6 +165,10 @@
   --bk-date-picker-stepper-gap: 7.5;
   --bk-date-picker-calendar-width: 139;
   --bk-date-picker-calendar-height: 148;
+  --bk-date-picker-card-left: 0.5;
+  --bk-date-picker-card-top: 0.5;
+  --bk-date-picker-card-right: 1;
+  --bk-date-picker-card-bottom: 0.5;
   --bk-date-picker-header-height: 21;
   --bk-date-picker-weekday-height: 16;
   --bk-date-picker-day-height: 18;

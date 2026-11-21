@@ -114,6 +114,20 @@ table on stdout and `target/appkit/sheet-*.png`.
    APPKIT_OUT=target/appkit2x APPKIT_SCALE=2 scripts/appkit-compare.py controls
    ```
 
+   `texts` and `texts-contrast` render the text, date, color, image and path controls from the `texts` probe, plus one scene per focusable control (`kit-texts-focus-<name>-*.png`). Build and run the probe like the others, with the variants the bench reads:
+
+   ```sh
+   swiftc -O ~/src/probes/texts.swift -o ~/src/probes/texts
+   mkdir -p ~/src/captures/texts
+   for look in aqua darkAqua; do for back in white black; do ~/src/probes/texts $look $back ~/src/captures/texts/$look-$back; done; done
+   ~/src/probes/texts aquaHC white ~/src/captures/texts/hc-aquaHC-white -increaseContrast 1 -reduceTransparency 1
+   TEXTS_INACTIVE=1 ~/src/probes/texts aqua white ~/src/captures/texts/inactive-aqua-white
+   scripts/appkit-compare.py layout ~/src/captures/texts/aqua-white.json target/appkit/layout-texts.tsv
+   scripts/appkit-render.sh texts
+   scripts/appkit-compare.py controls --family texts
+   scripts/appkit-compare.py focused
+   ```
+
    `controls` and `contrast` also render `kit-pressed-<name>-*.png`: one scene per pressed
    control, with the pointer over it and the button down. AppKit has no hover look, so the
    kit's hover colors are not compared.

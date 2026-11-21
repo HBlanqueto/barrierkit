@@ -30,6 +30,9 @@ pub struct DatePickerStyle {
     /// Tengen: `(DATE_PICKER.calendar_width, DATE_PICKER.calendar_height)`, without the
     /// padding.
     pub calendar_size: (f32, f32),
+    /// Tengen: `(DATE_PICKER.card_left, card_top, card_right, card_bottom)`: how far the card, its border and
+    /// its bottom line sit inside `calendar_size`.
+    pub calendar_inset: (f32, f32, f32, f32),
     /// Tengen: `MENU_POPOVER.padding`.
     pub calendar_padding: f32,
     /// Tengen: `DATE_PICKER.header_height`.
@@ -152,6 +155,12 @@ impl ControlStyle for DatePickerStyle {
                 ..StepperStyle::tengen()
             },
             calendar_size: (DATE_PICKER.calendar_width, DATE_PICKER.calendar_height),
+            calendar_inset: (
+                DATE_PICKER.card_left,
+                DATE_PICKER.card_top,
+                DATE_PICKER.card_right,
+                DATE_PICKER.card_bottom,
+            ),
             calendar_padding: MENU_POPOVER.padding,
             header_height: DATE_PICKER.header_height,
             weekday_height: DATE_PICKER.weekday_height,

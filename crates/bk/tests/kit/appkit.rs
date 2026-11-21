@@ -34,7 +34,7 @@ use freya_core::prelude::*;
 use freya_testing::TestingRunner;
 use torin::prelude::{Direction, Gaps, Position, Size, Size2D};
 
-type Builder = fn() -> Element;
+pub(super) type Builder = fn() -> Element;
 
 struct Scene {
     dark: bool,
@@ -66,11 +66,19 @@ impl App for Scene {
     }
 }
 
-fn state_string() -> State<String> {
+pub(super) fn system_blue() -> Rgba {
+    if bk::theme::resolved().scheme == ColorScheme::Light {
+        Rgba::rgb8(0, 136, 255)
+    } else {
+        Rgba::rgb8(0, 145, 255)
+    }
+}
+
+pub(super) fn state_string() -> State<String> {
     use_state(String::new)
 }
 
-fn controls() -> Vec<(&'static str, Builder)> {
+pub(super) fn controls() -> Vec<(&'static str, Builder)> {
     vec![
         ("push-small", || {
             Button::new("Button")
@@ -176,7 +184,7 @@ fn controls() -> Vec<(&'static str, Builder)> {
                 .into_element()
         }),
         ("colorwell-blue", || {
-            ColorPicker::new("Color", Rgba::rgb8(0, 136, 255)).into_element()
+            ColorPicker::new("Color", system_blue()).into_element()
         }),
         ("segmented-disabled", || {
             rect()
@@ -460,7 +468,7 @@ fn controls() -> Vec<(&'static str, Builder)> {
     ]
 }
 
-fn layout(path: &str) -> HashMap<String, (f32, f32, f32, f32)> {
+pub(super) fn layout(path: &str) -> HashMap<String, (f32, f32, f32, f32)> {
     fs::read_to_string(path)
         .unwrap_or_else(|e| panic!("read {path}: {e}"))
         .lines()
@@ -476,7 +484,7 @@ fn layout(path: &str) -> HashMap<String, (f32, f32, f32, f32)> {
         .collect()
 }
 
-fn render_scene(
+pub(super) fn render_scene(
     placed: Vec<(f32, f32, Builder)>,
     dark: bool,
     black: bool,
@@ -529,7 +537,7 @@ fn scene_scale() -> f64 {
         .unwrap_or(4.0)
 }
 
-fn scene_content() -> (f32, f32) {
+pub(super) fn scene_content() -> (f32, f32) {
     std::env::var("APPKIT_CONTENT")
         .ok()
         .and_then(|text| {
@@ -539,7 +547,7 @@ fn scene_content() -> (f32, f32) {
         .unwrap_or((1600.0, 768.0))
 }
 
-fn scene_tag() -> String {
+pub(super) fn scene_tag() -> String {
     std::env::var("APPKIT_TAG")
         .ok()
         .filter(|tag| !tag.is_empty())

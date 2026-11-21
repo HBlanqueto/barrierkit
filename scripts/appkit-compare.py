@@ -29,7 +29,7 @@ CONTROLS = [
 ]
 TEXTS = [
     "tf-empty", "tf-filled", "tf-square", "tf-rounded", "secure-empty", "token-empty", "search", "search-text", "combo", "combo-empty",
-    "textview", "datepicker", "datetime", "time", "calendar", "path-standard", "imagewell-none-empty",
+    "textview", "datepicker", "datetime", "time", "calendar", "path-standard", "imagewell-gray-empty",
 ]
 FAMILIES = {"controls": CONTROLS, "texts": TEXTS}
 GLYPH_WIDTH = {name: 18 for name in ("check-off-regular", "check-on-regular", "radio-off-regular", "radio-on-regular")}
@@ -195,6 +195,32 @@ def table(args):
             print(f"row{row} col{column}      ", ink(appkit, top, top + 24, left, right, selected), "|", ink(kit, top, top + 24, left, right, selected))
 
     def separators(image):
+FOCUSED = [
+    "tf-empty", "tf-filled", "search", "search-text", "combo", "secure", "token", "datepicker", "textview",
+]
+
+
+def focused(args):
+    height, found = items("texts")
+    kit_tag = "-".join(filter(None, ("texts", args.tag)))
+    suffix = f"-{kit_tag}"
+    for mode in ("light", "dark"):
+        for backdrop, level in (("white", 255), ("black", 0)):
+            name_prefix = (CONTRAST if args.tag.endswith("hc") else APPKIT)[mode]
+            color = np.array([level] * 3)
+            print(f"\n=== focused {mode} on {backdrop}")
+            print(f"{'control':20} {'%diff':>6} {'AppKit x y w h':>24} {'kit x y w h':>24} {'AppKit':>8} {'kit':>8}")
+            for name in FOCUSED:
+                appkit = rgb(os.path.join(CAPTURES, "texts", f"{name_prefix}-{backdrop}-focus-{name}@{SCALE}x.png"))
+                kit = rgb(os.path.join(KIT, f"kit{suffix}-focus-{name}-{mode}-{backdrop}.png"))
+                box = region(name, height, found)
+                a, k = crop(appkit, box, 10), crop(kit, box, 10)
+                diff = (abs(a - k) > 3).any(-1).mean() * 100
+                ba, bk = bounds(a, color), bounds(k, color)
+                show = lambda b: "%5.1f %5.1f %5.1f %5.1f" % b if b else "none"
+                print(f"{name:20} {diff:6.1f} {show(ba):>24} {show(bk):>24} {dominant(a, color):>8} {dominant(k, color):>8}")
+
+
         found_columns = np.nonzero((abs(image[8 * SCALE + 2, :, 0] - level) > 3) & (abs(image[20 * SCALE + 2, :, 0] - level) > 3))[0]
         return sorted({int(c // SCALE) for c in found_columns})
 
@@ -328,7 +354,7 @@ def main():
     five.add_argument("--tag", default="", help="empty, or hc for Increase Contrast")
     five.set_defaults(run=pressed)
     three = commands.add_parser("sheet", help="write a side-by-side image of named items")
-    three.add_argument("family", choices=("controls", "views"))
+    three.add_argument("family", choices=("controls", "views", "texts"))
     three.add_argument("mode", choices=("light", "dark"))
     three.add_argument("backdrop", choices=("white", "black"))
     three.add_argument("names", help="comma separated item names")
@@ -349,3 +375,6 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+    focus = commands.add_parser("focused", help="print the difference table for focused text controls")
+    focus.add_argument("--tag", default="", help="empty, or hc for Increase Contrast")
+    focus.set_defaults(run=focused)

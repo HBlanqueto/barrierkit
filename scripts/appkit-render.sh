@@ -16,16 +16,21 @@ case "$scene" in
         APPKIT_CONTENT=900x420
         APPKIT_TAG=views
         ;;
+    texts | texts-contrast)
+        APPKIT_LAYOUT=$out/layout-texts.tsv
+        APPKIT_CONTENT=$(sed -n '1s/^# //p' "$APPKIT_LAYOUT")
+        APPKIT_TAG=texts
+        ;;
     menu | toolbar | sidebar)
         ;;
     *)
-        printf 'usage: %s controls|contrast|views|views-contrast|menu|toolbar|sidebar\n' "$0" >&2
+        printf 'usage: %s controls|contrast|views|views-contrast|texts|texts-contrast|menu|toolbar|sidebar\n' "$0" >&2
         exit 2
         ;;
 esac
 
 case "$scene" in
-    contrast | views-contrast)
+    contrast | views-contrast | texts-contrast)
         APPKIT_CONTRAST=1
         APPKIT_REDUCE=1
         APPKIT_TAG=${APPKIT_TAG:+$APPKIT_TAG-}hc
@@ -45,5 +50,11 @@ if [ "$scene" = sidebar ]; then
     exec cargo test -p bk --test kit --features bk/shell appkit_sidebar -- --ignored
 fi
 export APPKIT_LAYOUT APPKIT_CONTENT APPKIT_TAG
+case "$scene" in
+    texts | texts-contrast)
+        cargo test -p bk --test kit --features bk/shell appkit_texts -- --ignored
+        exec cargo test -p bk --test kit --features bk/shell appkit_focus -- --ignored
+        ;;
+esac
 cargo test -p bk --test kit --features bk/shell appkit_scene -- --ignored
 exec cargo test -p bk --test kit --features bk/shell appkit_pressed -- --ignored

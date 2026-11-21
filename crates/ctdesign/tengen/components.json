@@ -105,6 +105,10 @@
       "segment-radius": 3
     },
     "token-field": {
+      "card-left": 0.5,
+      "card-top": 0.5,
+      "card-right": 1,
+      "card-bottom": 0.5,
       "padding-x": 10,
       "token-height": 15,
       "token-drop": 0.5,

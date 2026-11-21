@@ -780,6 +780,10 @@ pub struct ScrollBarMetrics {
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ListGroupMetrics {
+    pub card_left: f32,
+    pub card_top: f32,
+    pub card_right: f32,
+    pub card_bottom: f32,
     pub radius: f32,
     pub row_min_height: f32,
     pub row_padding_x: f32,

@@ -496,7 +496,10 @@ impl Component for CalendarView {
                     .into_element()
             }));
         let separator = rect()
-            .width(Size::fill())
+            .margin(Gaps::new(0.0, 0.0, 0.0, style.calendar_inset.0))
+            .width(Size::px(
+                width - style.calendar_inset.0 - style.calendar_inset.2,
+            ))
             .height(Size::px(HAIRLINE))
             .background(paints.fill(&style.calendar_separator));
         let grid = page.month_grid(week_starts_on_monday());
@@ -557,14 +560,23 @@ impl Component for CalendarView {
             .a11y_alt(format!("{} {}", month_name(page.month), page.year))
             .padding(Gaps::new(grid_gap, 0.0, 0.0, 0.0))
             .children(rows);
+        let (inset_left, inset_top, inset_right, inset_bottom) = style.calendar_inset;
+        let plate_width = width - inset_left - inset_right;
         let card = interaction
             .attach(rect(), true)
             .width(Size::px(width))
             .height(Size::px(height))
             .direction(Direction::Vertical)
             .maybe(!self.popup, |card| {
-                card.painted(&paints, &style.calendar_background)
-                    .bordered(&paints, style.calendar_border.as_ref())
+                card.child(
+                    rect()
+                        .position(Position::new_absolute().left(inset_left).top(inset_top))
+                        .layer(-2)
+                        .width(Size::px(plate_width))
+                        .height(Size::px(height - inset_top - inset_bottom))
+                        .painted(&paints, &style.calendar_background)
+                        .bordered(&paints, style.calendar_border.as_ref()),
+                )
             })
             .child(header)
             .child(weekdays)
@@ -575,8 +587,12 @@ impl Component for CalendarView {
         } else {
             card.child(
                 rect()
-                    .position(Position::new_absolute().left(0.0).bottom(0.0))
-                    .width(Size::fill())
+                    .position(
+                        Position::new_absolute()
+                            .left(inset_left)
+                            .bottom(inset_bottom),
+                    )
+                    .width(Size::px(plate_width))
                     .height(Size::px(HAIRLINE))
                     .background(paints.fill(&style.calendar_edge)),
             )
