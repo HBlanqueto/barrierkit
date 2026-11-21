@@ -14,7 +14,7 @@ Measured on macOS 27.2.1 with a Swift script: `fittingSize` of each control per 
 | Pop-up button | 24 | 20 | 16 | 28 | 36 |
 | Combo box | 24 | 20 | 16 | 28 | 36 |
 | Segmented control | 24 | 20 | 16 | 28 | 36 |
-| Text field | 24 | 24 | 24 | 24 | 24 |
+| Text field | 24 | 22 | 19 | 24 | 24 |
 | Search field | 24 | 20 | 16 | 28 | 36 |
 | Stepper | 20 × 24 | 17 × 20 | 13 × 16 | 23 × 28 | 30 × 36 |
 | Scroller | 17 | | | | |

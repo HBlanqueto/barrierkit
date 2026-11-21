@@ -120,24 +120,24 @@ Rows per status at the snapshot. A row is one API, style or size.
 
 | Family | measured | implemented | partial | missing | Rows |
 |---|---|---|---|---|---|
-| 1. Buttons and button styles | 5 | 7 | 5 | 8 | 25 |
-| 2. Toggles | 4 | 1 | 0 | 2 | 7 |
-| 3. Pickers | 3 | 2 | 2 | 5 | 12 |
-| 4. Steppers | 1 | 1 | 0 | 1 | 3 |
-| 5. Sliders | 3 | 2 | 0 | 1 | 6 |
+| 1. Buttons and button styles | 14 | 3 | 10 | 1 | 28 |
+| 2. Toggles | 6 | 1 | 0 | 0 | 7 |
+| 3. Pickers | 5 | 2 | 2 | 3 | 12 |
+| 4. Steppers | 2 | 1 | 0 | 0 | 3 |
+| 5. Sliders | 4 | 2 | 0 | 0 | 6 |
 | 6. Gauges, progress and level indicators | 6 | 3 | 0 | 2 | 11 |
 | 7. Text | 5 | 4 | 13 | 10 | 32 |
 | 8. Date and time | 2 | 0 | 1 | 5 | 8 |
 | 9. Color and font panels | 1 | 0 | 2 | 4 | 7 |
 | 10. Image and path control | 0 | 3 | 1 | 0 | 4 |
-| 11. Control sizes | 0 | 0 | 1 | 1 | 2 |
+| 11. Control sizes | 1 | 0 | 1 | 0 | 2 |
 | 12. Containers and navigation | 4 | 10 | 9 | 8 | 31 |
 | 13. Presentation | 0 | 6 | 6 | 2 | 14 |
 | 14. Windows and chrome | 0 | 6 | 11 | 11 | 28 |
 | 15. Materials and glass | 0 | 2 | 4 | 0 | 6 |
 | 16. Symbols | 0 | 0 | 5 | 1 | 6 |
 | 17. Accessibility | 0 | 2 | 7 | 1 | 10 |
-| **All** | 34 | 49 | 67 | 62 | 212 |
+| **All** | 50 | 45 | 72 | 48 | 215 |
 
 To recount after a change, run this from the repository root:
 
@@ -147,7 +147,7 @@ awk -F'|' '/^## /{s=$0} /^\|/{for(i=4;i<=6&&i<=NF;i++)if(match($i,/^ *`(measured
 
 ## 1. Buttons and button styles
 
-Kit: `Button`, `ButtonStyle`, `ControlSize` (`Small`, `Regular`, `Large`).
+Kit: `Button`, `ButtonStyle`, `ControlSize` (`Mini`, `Small`, `Regular`, `Large`, `ExtraLarge`).
 AppKit has 13 current bezel styles (`NSButtonCell.h`). Nine names are
 deprecated: `shadowlessSquare` and `texturedSquare` point to `smallSquare`;
 `rounded`, `regularSquare`, `texturedRounded`, `roundRect`, `recessed`,
@@ -157,25 +157,28 @@ deprecated: `shadowlessSquare` and `texturedSquare` point to `smallSquare`;
 | SwiftUI | AppKit | Kit | Status | Measure | Pri |
 |---|---|---|---|---|---|
 | `.bordered`, `.automatic` at regular, small, large | `.push` (`.automatic` since 14) | `Button`, `Button::size` | `measured` | bench `push-regular`, `push-small`, `push-large`, `push-disabled`, `push-pressed`; [Sizes][m-sizes]; [Increase Contrast][m-hc] | — |
-| `.bordered` at mini and extra large | `.push` with `.mini`, `.extraLarge` | `ControlSize` has no `Mini` or `ExtraLarge` | `missing` | probe `push-mini` 46 × 16, `push-xl` 77 × 36 | P2 |
+| `.bordered` at mini, small, large and extra large | `.push` with `.mini`, `.small`, `.large`, `.extraLarge` | `Button::size` with `ControlSize::Mini` and `ExtraLarge` | `measured` | bench family `buttons`: `push-mini` to `push-xl`, `default-*`, `push-disabled-*`, `push-pressed-*`; [Control sizes][m-control-sizes] | — |
+| `.bordered` at mini in SwiftUI | `.push` with `.mini` | `ControlSize::Mini` is AppKit's 16 | `partial`: the SwiftUI mini button is 46 × 13 | bench family `swiftui` `bordered-mini`; [Control sizes][m-control-sizes] | P3 |
 | `.borderedProminent` | `.push` with `keyEquivalent = "\r"` (the default button) | `ButtonStyle::bordered_prominent` | `measured` | bench `default-regular`, `default-disabled`, `default-pressed` | — |
-| `Button(role: .destructive)` | `hasDestructiveAction` | `ButtonStyle::destructive` | `implemented` | probe `push-destructive` 64 × 24 | P2 |
-| `.borderless` | `isBordered = false` | `ButtonStyle::borderless` | `implemented` | none | P2 |
-| `.plain` | `isBordered = false` | — | `missing` | none; `borderless` is the nearest | P2 |
-| `.link` | — | `Link` | `implemented` | none | P2 |
+| `Button(role: .destructive)` | `hasDestructiveAction` | `ButtonStyle::destructive` | `partial`: SwiftUI and AppKit draw the plain bordered button, the kit preset is red (for alerts) | probe `push-destructive` 64 × 24; bench family `swiftui` `destructive` | P3 |
+| `.borderless` | `isBordered = false` | `ButtonStyle::borderless` | `partial`: SwiftUI draws only the label (41 × 16); the kit keeps the 24 high hit area | bench family `swiftui`; [Control sizes][m-control-sizes] | P2 |
+| `.plain` | `isBordered = false` | `ButtonStyle::plain` | `partial`: label only, 8% differ (label color); bench family `swiftui` `plain` | [Control sizes][m-control-sizes] | P3 |
+| `.link` | — | `ButtonStyle::link`, `Link` | `partial`: accent label, 8% differ; bench family `swiftui` `link` | [Control sizes][m-control-sizes] | P3 |
 | `.glass` | `.glass` (macOS 26) | `ButtonStyle::glass` | `implemented` | probe `glass` 58 × 24; the compositor draws the glass, so fill and rim are not comparable ([Toolbar][m-toolbar]) | P2 |
 | `.glassProminent` | `.glass`; no probe shows the prominent look | `ButtonStyle::glass_prominent` | `implemented` | none | P2 |
-| `.accessoryBar`, `.accessoryBarAction` | `.accessoryBar`, `.accessoryBarAction` | — | `missing` | probe `accessory` 63 × 24 | P3 |
+| `.accessoryBar`, `.accessoryBarAction` | `.accessoryBar`, `.accessoryBarAction` | `ButtonStyle::tengen()`: they draw the push button | `measured` | bench `bezel-accessory-bar`, `bezel-accessory-bar-action` (family `buttons`) | — |
 | `buttonBorderShape` (`.capsule`, `.circle`, `.roundedRectangle`) | — | `ButtonStyle.shape` | `partial`: only the `circular` preset; the others go through the style closure | none | P3 |
 | `.buttonBorderShape(.circle)` | `.circular` | `ButtonStyle::circular` | `measured` | bench `circular`; [Round button][m-rings] | — |
 | `HelpLink` | `.helpButton` | `HelpLink` | `measured` | bench `help` | — |
 | `DisclosureGroup` triangle | `.disclosure` | `DisclosureGroup` | `measured` | bench `disclosure`; [Disclosure triangle][m-rings] | — |
-| — | `.pushDisclosure` | — | `missing` | probe `push-disclosure` 24 × 24 | P3 |
-| — | `.smallSquare` (the +/− bar under a list) | — | `missing` | probe `small-square` 39 × 22 | P3 |
-| — | `.toolbar` (replaces the textured styles) | `IconButton` inside `ToolGroup` only | `missing` outside a toolbar | probe `toolbar-button` 42 × 23 | P3 |
+| — | `.pushDisclosure`, `.roundedDisclosure` | `ButtonStyle::push_disclosure` | `measured` | bench `bezel-push-disclosure`, `bezel-rounded-disclosure`, `-disabled`, `-pressed` (family `buttons`) | — |
+| — | `.smallSquare` (the +/− bar under a list), `.shadowlessSquare` | `ButtonStyle::small_square` | `measured`: a bitmap in AppKit, 11% to 18% differ | bench `bezel-small-square`, `-disabled`, `-pressed`; [Control sizes][m-control-sizes] | — |
+| — | `.toolbar`, `.texturedRounded` | `ButtonStyle::textured_rounded`; `IconButton` inside `ToolGroup` | `measured`: 4% in light, 13% under Increase Contrast | bench `bezel-toolbar`, `bezel-textured-rounded`; [Control sizes][m-control-sizes] | — |
+| — | `.texturedSquare` | `ButtonStyle::textured_square` | `measured`: a bitmap in AppKit, 11% to 15% differ | bench `bezel-textured-square`, `-disabled`, `-pressed` | — |
+| — | `.inline` | `ButtonStyle::inline` | `measured` | bench `bezel-inline`, `-disabled`, `-pressed` | — |
 | `.badge(_:)` | `.badge` (replaces `inline`): a count in a table row | `Badge` (red capsule counter) | `partial`: neither the SwiftUI badge nor the bezel was probed | none | P2 |
-| — | `.flexiblePush` | — | `missing` | not probed | P3 |
-| `Toggle` with `.button` | `NSButton` toggle types | `Button::toggled` | `implemented` | none | P2 |
+| — | `.flexiblePush`, `.roundRect`, `.recessed` | `ButtonStyle::tengen()`: they draw the push button | `measured` | bench `bezel-flexible-push`, `bezel-round-rect`, `bezel-recessed` | — |
+| `Toggle` with `.button` | `NSButton` toggle types | `Button::toggled` | `measured` | bench family `swiftui` `togglebutton-off-*`, `togglebutton-on-*` | — |
 | `Menu` with `.button`, `.borderlessButton` (`.borderedButton` is deprecated) | pull-down `NSPopUpButton`, `NSMenuToolbarItem` | `MenuButton`, `PopUpButton::pulls_down` | `partial`: the pull-down pop-up is measured (bench `pulldown`), the menu styles are not | probe `pulldown` 71 × 24 | P1 |
 | `Menu(primaryAction:)` | `NSComboButton` | `ComboButton` | `implemented` | none | P3 |
 | `ControlGroup` (`.automatic`, `.menu`, `.palette`, `.navigation`, `.compactMenu`) | `NSToolbarItemGroup`, `NSSegmentedControl` | `ControlGroup`, `ToolGroup` | `partial`: `ToolGroup` is in [Toolbar][m-toolbar]; the SwiftUI styles are not probed | none | P2 |
@@ -188,11 +191,11 @@ Kit: `Switch`, `Checkbox`, `RadioGroup`.
 
 | SwiftUI | AppKit | Kit | Status | Measure | Pri |
 |---|---|---|---|---|---|
-| `.toggleStyle(.switch)` | `NSSwitch` | `Switch` | `measured` | bench `switch-off-regular`, `switch-on-regular`, `switch-on-disabled`, `switch-off-disabled`; [Rings][m-rings] (Switch); every size is 54 × 24 | — |
+| `.toggleStyle(.switch)` | `NSSwitch` | `Switch` | `measured` | bench `switch-off-regular`, `switch-on-regular`, `switch-on-disabled`, `switch-off-disabled`; [Rings][m-rings] (Switch); every size is 54 × 24 in a layout and drawn 36 × 16 to 80 × 36 (bench family `buttons` `switch-*-mini` to `-xl`, family `swiftui`) | — |
 | `.toggleStyle(.checkbox)` at regular | `NSButton` `.switch` | `Checkbox` | `measured` | bench `check-off-regular`, `check-on-regular`, `check-mixed`, `check-on-disabled`, `check-off-disabled`, `check-off-pressed`, `check-on-pressed` | — |
-| `.checkbox` at mini, small, large, extra large | `controlSize` | `Checkbox` takes no `ControlSize` | `missing` | probe `check-off-mini` 44 × 12, `-small` 52 × 14, `-large` 63 × 18, `-xl` 63 × 18; [Sizes][m-sizes] | P1 |
+| `.checkbox` at mini, small, large, extra large | `controlSize` | `Checkbox::size` | `measured` | bench family `buttons` `check-off-*`, `check-on-*`, `check-mixed-*`, `-disabled`, `-pressed`; the large mark is a soft bitmap in AppKit; [Control sizes][m-control-sizes] | — |
 | `Picker` with `.radioGroup` at regular | `NSButton` `.radio` | `RadioGroup` | `measured` | bench `radio-off-regular`, `radio-on-regular`, `radio-off-disabled`, `radio-on-disabled`, `radio-off-pressed`, `radio-on-pressed` | — |
-| `.radioGroup` at other sizes | `controlSize` | `RadioGroup` takes no `ControlSize` | `missing` | probe `radio-off-mini` 41 × 12 to `radio-off-xl` 59 × 18 | P2 |
+| `.radioGroup` at other sizes | `controlSize` | `RadioGroup::size` | `measured` | bench family `buttons` `radio-off-*`, `radio-on-*`, `-disabled`, `-pressed` | — |
 | mixed state | `allowsMixedState` | `Checkbox::mixed` | `measured` | bench `check-mixed`; [Rings][m-rings] (Mixed checkbox) | — |
 | `Toggle` row in a `Form` | — | `Row::toggle` | `implemented` | none | P1 |
 
@@ -203,12 +206,12 @@ Kit: `SegmentedControl`, `PopUpButton`, `RadioGroup`, `ColorWell`, `ComboBox`.
 | SwiftUI | AppKit | Kit | Status | Measure | Pri |
 |---|---|---|---|---|---|
 | `.segmented` at regular | `NSSegmentedControl` select one | `SegmentedControl` | `measured` | bench `segmented-regular`, `segmented-disabled`; [Combo box and segmented][m-rings] | — |
-| `.segmented` at mini, small, large, extra large | `controlSize` | `SegmentedControl` takes no `ControlSize` | `missing` | probe `segmented-mini` 134 × 16, `-small` 146 × 20, `-large` 170 × 28, `-xl` 194 × 36 | P2 |
+| `.segmented` at mini, small, large, extra large | `controlSize` | `SegmentedControl::size` | `measured` | bench family `buttons` `segmented-mini` to `segmented-xl`; SwiftUI segments are equal width, AppKit's are fit to their text | — |
 | `.segmented` with symbols | `NSSegmentedControl(images:)` | `SegmentedControl::segment` takes text only | `missing` | none | P2 |
 | — | `segmentStyle` (`.rounded`, `.roundRect`, `.texturedSquare`, `.smallSquare`) | — | `missing` | not probed | P3 |
 | — | select any, momentary | `ToggleGroup` (select any); momentary only in `ToolGroup` | `partial` | probe `segmented-any` 95 × 24, not compared | P2 |
 | `.menu` at regular | `NSPopUpButton` | `PopUpButton` | `measured` | bench `popup-regular`, `popup-disabled`, `popup-pressed`, `pulldown` | — |
-| `.menu` at mini, small, large, extra large | `controlSize` | `PopUpButton` takes no `ControlSize` | `missing` | probe `popup-mini` 62 × 16, `-small` 76 × 20, `-large` 97 × 28, `-xl` 111 × 36 | P2 |
+| `.menu` at mini, small, large, extra large | `controlSize` | `PopUpButton::size` | `measured` | bench family `buttons` `popup-*`, `pulldown-*`, `-disabled`, `-pressed` | — |
 | `.menu` sections and separators | `NSMenuItem.sectionHeader(title:)`, `.separator()` | `PopUpButton::section_header`, `PopUpButton::separator` | `implemented` | none | P2 |
 | `.radioGroup` | `NSButton` `.radio` | `RadioGroup` | `measured` | see [Toggles](#2-toggles) | — |
 | `.inline` | — | `RadioGroup` (nearest) | `partial`: no probe shows the SwiftUI look | none | P3 |
@@ -224,7 +227,7 @@ The date and color pickers are in [8](#8-date-and-time) and
 | SwiftUI | AppKit | Kit | Status | Measure | Pri |
 |---|---|---|---|---|---|
 | `Stepper` at regular | `NSStepper` | `Stepper` | `measured` | bench `stepper-regular`, `stepper-disabled`; [Rings][m-rings] (Internal glyphs, Stepper divider) | — |
-| `Stepper` at mini, small, large, extra large | `controlSize` | `Stepper` takes no `ControlSize` | `missing` | probe `stepper-mini` 13 × 16, `-small` 17 × 20, `-large` 23 × 28, `-xl` 30 × 36 | P2 |
+| `Stepper` at mini, small, large, extra large | `controlSize` | `Stepper::size` | `measured`: the bezel differs by 1%, the chevrons by 5% to 10% | bench family `buttons` `stepper-mini` to `stepper-xl`, `-disabled` | — |
 | `Stepper` with label and value | `NSStepper` next to a text field | `Stepper` with `StepperStyle.value_position` | `implemented` | none | P2 |
 
 ## 5. Sliders
@@ -233,7 +236,7 @@ The date and color pickers are in [8](#8-date-and-time) and
 |---|---|---|---|---|---|
 | `Slider` at regular | `NSSlider` linear | `Slider` | `measured` | bench `slider-regular`, `slider-disabled`; [Open differences][m-open] | — |
 | `Slider` with tick marks | `numberOfTickMarks`, `allowsTickMarkValuesOnly` | `Slider::number_of_tick_marks`, `Slider::stepped` | `measured` for 5 ticks in the default position | bench `slider-ticks` | — |
-| `Slider` at mini, small, large, extra large | `controlSize` | `Slider` takes no `ControlSize` | `missing` | probe `slider-mini` 160 × 12, `-small` 160 × 14, `-large` 160 × 20; knobs 15.5, 17.5, 23.5 wide ([Open differences][m-open]) | P2 |
+| `Slider` at mini, small, large, extra large | `controlSize` | `Slider::size` | `measured` | bench family `buttons` `slider-mini` to `slider-xl`, `-disabled` | — |
 | — | `sliderType = .circular` | `CircularSlider` | `measured` | bench `slider-circular`; the metrics sentence that says the kit has no counterpart is out of date ([drift](#drift-and-open-questions)) | — |
 | — | `isVertical` | `SliderStyle.axis` | `implemented` | none | P3 |
 | `Slider` with minimum and maximum labels | `NSSliderCell` captions | `Slider` marks and captions | `implemented` | none | P3 |
@@ -349,9 +352,10 @@ Kit: `DatePicker`, `DateElements` (`Date`, `Time`, `DateAndTime`).
 
 SwiftUI has `.controlSize(_:)` with `.mini`, `.small`, `.regular`, `.large` and
 `.extraLarge` (since macOS 14). AppKit has `NSControl.ControlSize` with the
-same five cases (`.extraLarge` since macOS 26). The kit has `ControlSize` with `Small`, `Regular` and `Large`, and only
-`Button::size` takes it. Nothing passes a size down to the controls inside a
-view, as `.controlSize` does. `NSView.prefersCompactControlSizeMetrics`
+same five cases (`.extraLarge` since macOS 26). The kit has `ControlSize` with all five, and
+`Button`, `PopUpButton`, `SegmentedControl`, `Checkbox`, `RadioGroup`, `Switch`, `Slider`,
+`Stepper` and the text, search and combo fields take it through `.size(..)`. Nothing passes a size
+down to the controls inside a view, as `.controlSize` does. `NSView.prefersCompactControlSizeMetrics`
 (macOS 26) was not probed.
 
 Sizes in points, from the probe `controls` on macOS 27.2.1 (`aqua`, white
@@ -359,21 +363,21 @@ backdrop; width × height or height):
 
 | Control | mini | small | regular | large | extra large | Kit |
 |---|---|---|---|---|---|---|
-| Push button | 16 | 20 | 24 | 28 | 36 | small, regular, large |
-| Checkbox, radio | 12 | 14 | 16 | 18 | 18 | regular |
-| Switch | 54 × 24 | 54 × 24 | 54 × 24 | 54 × 24 | 54 × 24 | regular |
-| Slider | 12 | 14 | 16 | 20 | 20 | regular |
-| Segmented control | 16 | 20 | 24 | 28 | 36 | regular |
-| Pop-up button | 16 | 20 | 24 | 28 | 36 | regular |
-| Stepper | 13 × 16 | 17 × 20 | 20 × 24 | 23 × 28 | 30 × 36 | regular |
+| Push button | 16 | 20 | 24 | 28 | 36 | all five, measured |
+| Checkbox, radio | 12 | 14 | 16 | 18 | 18 | all five, measured |
+| Switch | 54 × 24 | 54 × 24 | 54 × 24 | 54 × 24 | 54 × 24 | all five, measured (drawn 36 × 16 to 80 × 36 in the 54 × 24 frame) |
+| Slider | 12 | 14 | 16 | 20 | 20 | all five, measured |
+| Segmented control | 16 | 20 | 24 | 28 | 36 | all five, measured |
+| Pop-up button | 16 | 20 | 24 | 28 | 36 | all five, measured |
+| Stepper | 13 × 16 | 17 × 20 | 20 × 24 | 23 × 28 | 30 × 36 | all five, measured (the mini bezel is drawn 13 × 20) |
 | Text field (with the size's font) | 19 | 22 | 24 | 24 | 24 | regular |
 | Search field, combo box (metrics) | 16 | 20 | 24 | 28 | not captured | regular |
 | Ring | 16 | 16 | 32 | 32 | 32 | regular |
 
 | SwiftUI | AppKit | Kit | Status | Measure | Pri |
 |---|---|---|---|---|---|
-| `.controlSize(_:)` as an environment value | `controlSize` per control | `Button::size` per instance | `partial` | [Sizes][m-sizes] | P1 |
-| `.mini`, `.extraLarge` | `.mini`, `.extraLarge` | — | `missing` | table above | P2 |
+| `.controlSize(_:)` as an environment value | `controlSize` per control | `.size(ControlSize)` per instance on eight controls and the three fields | `partial`: nothing passes a size down to the controls inside a view | [Control sizes][m-control-sizes] | P1 |
+| `.mini`, `.extraLarge` | `.mini`, `.extraLarge` | `ControlSize::Mini`, `ExtraLarge` | `measured` | bench family `buttons`; [Control sizes][m-control-sizes] | — |
 
 The size of each control is a row in its own family.
 
@@ -537,21 +541,19 @@ first four areas are the sessions that run now.
 
 ### A. Buttons and selection controls
 
-1. **P1** Sizes for checkbox, radio, pop-up, segmented, stepper, slider and
-   text field at mini, small and large, and a `.control_size` modifier that
-   reaches the controls inside a view ([11](#11-control-sizes)).
+1. **P1** A `.control_size` modifier that reaches the controls inside a view
+   ([11](#11-control-sizes)). The sizes of the controls themselves are done
+   (`.size(ControlSize)`, measured).
 2. **P1** Probe and compare the indeterminate `Spinner` and a SwiftUI `Gauge`
    ([6](#6-gauges-progress-and-level-indicators)).
-3. **P2** `Mini` and `ExtraLarge` in `ControlSize` for `Button`:
-   16 and 36 high ([1](#1-buttons-and-button-styles)).
-4. **P2** Compare the buttons that are only `implemented`: `destructive`,
-   `borderless`, `glass`, `glass_prominent`, the toggle button and the menu
-   styles; add `.plain`.
+3. **P2** ~~`Mini` and `ExtraLarge` in `ControlSize` for `Button`~~ done.
+4. **P2** Compare the buttons that are only `implemented`: `glass`,
+   `glass_prominent` and the menu styles. `destructive`, `borderless`,
+   `plain`, `link` and the toggle button are compared (family `swiftui`).
 5. **P2** Segmented control: symbols, the four segment styles, momentary
    tracking, and `segmented-any` in the bench ([3](#3-pickers)).
 6. **P2** Probe SwiftUI `Picker` with `.inline`, `.palette` and `.tabs`.
-7. **P3** The other bezels: `smallSquare`, `pushDisclosure`, `accessoryBar`,
-   `accessoryBarAction`, `flexiblePush`, `toolbar`, `badge`.
+7. **P3** The `badge` bezel; the other AppKit bezels are done (family `buttons`).
 8. **P3** Ring at mini and small, rating image, tick positions, vertical
    slider.
 
@@ -646,6 +648,7 @@ No probe of `~/src/probes` renders these:
   interface; a style with `macOS, unavailable` is listed as not on macOS.
 
 [m-sizes]: macos-control-metrics.md#sizes-width--height-points
+[m-control-sizes]: macos-control-metrics.md#control-sizes
 [m-open]: macos-control-metrics.md#open-differences
 [m-text]: macos-control-metrics.md#text-fields
 [m-hc]: macos-control-metrics.md#reduce-transparency-and-increase-contrast
