@@ -4,8 +4,9 @@ use ctdesign::{BODY, BUTTON, BezelRow, DURATION_FAST_MS, Font, HAIRLINE};
 use crate::controls::ControlSize;
 
 use super::{
-    Animation, ColorEffect, ControlStyle, CornerStyle, Gradient, Rgba, Role, ShadowStyle, Shape,
-    ShapeStyle, StateValue, bezel_palette, pressed_palette, reduce_motion, system_effect,
+    Animation, ColorEffect, ControlStyle, CornerStyle, Gradient, GradientColorSpace, Rgba, Role,
+    ShadowStyle, Shape, ShapeStyle, StateValue, bezel_palette, pressed_palette, reduce_motion,
+    system_effect,
 };
 
 /// `ButtonStyle::tengen()` is SwiftUI's `.bordered`.
@@ -235,13 +236,16 @@ impl ButtonStyle {
 
     fn vertical(self, top: Rgba, bottom: Rgba) -> Self {
         Self {
-            background: StateValue::new(ShapeStyle::Gradient(Gradient::new(
-                0.0,
-                vec![
-                    (ShapeStyle::Color(top), 0.0),
-                    (ShapeStyle::Color(bottom), 1.0),
-                ],
-            ))),
+            background: StateValue::new(ShapeStyle::Gradient(
+                Gradient::new(
+                    0.0,
+                    vec![
+                        (ShapeStyle::Color(top), 0.0),
+                        (ShapeStyle::Color(bottom), 1.0),
+                    ],
+                )
+                .color_space(GradientColorSpace::Device),
+            )),
             ..self
         }
     }

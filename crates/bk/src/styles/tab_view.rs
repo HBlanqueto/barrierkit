@@ -2,8 +2,8 @@ use ctdesign::{BODY, CAPTION, ControlSize, Font, Rgba, SPACE_2, TAB_VIEW, TOOLBA
 
 use super::button::rounded;
 use super::{
-    ColorEffect, ControlStyle, Gradient, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
-    system_effect,
+    ColorEffect, ControlStyle, Gradient, GradientColorSpace, Role, ShadowStyle, Shape, ShapeStyle,
+    StateValue, system_effect,
 };
 use crate::style::Palette;
 
@@ -137,17 +137,20 @@ fn pill() -> StateValue<ShapeStyle> {
         ShapeStyle::Color(mix(fill, highlight, 0.25)),
         ShapeStyle::Color(fill),
     );
-    StateValue::new(ShapeStyle::Gradient(Gradient::new(
-        0.0,
-        vec![
-            (edge.clone(), 0.0),
-            (soft.clone(), 0.4 * depth),
-            (base.clone(), depth),
-            (base, 1.0 - depth),
-            (soft, 1.0 - 0.4 * depth),
-            (edge, 1.0),
-        ],
-    )))
+    StateValue::new(ShapeStyle::Gradient(
+        Gradient::new(
+            0.0,
+            vec![
+                (edge.clone(), 0.0),
+                (soft.clone(), 0.4 * depth),
+                (base.clone(), depth),
+                (base, 1.0 - depth),
+                (soft, 1.0 - 0.4 * depth),
+                (edge, 1.0),
+            ],
+        )
+        .color_space(GradientColorSpace::Device),
+    ))
 }
 
 impl TabViewStyle {

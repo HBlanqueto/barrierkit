@@ -13,8 +13,8 @@ use crate::theme::color;
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum GradientColorSpace {
-    #[default]
     Device,
+    #[default]
     Perceptual,
 }
 
@@ -205,6 +205,16 @@ mod tests {
     const RED: [f32; 4] = [1.0, 0.0, 0.0, 1.0];
     const BLUE: [f32; 4] = [0.0, 0.0, 1.0, 1.0];
     const LEFT_TO_RIGHT: GradientShape = GradientShape::Linear { angle: 270.0 };
+
+    #[test]
+    fn a_gradient_mixes_perceptually_unless_told_otherwise() {
+        let gradient = Gradient::new(0.0, Vec::new());
+        assert_eq!(gradient.color_space, GradientColorSpace::Perceptual);
+        assert_eq!(
+            gradient.color_space(GradientColorSpace::Device).color_space,
+            GradientColorSpace::Device
+        );
+    }
 
     #[test]
     fn perceptual_gradient_mixes_red_and_blue_as_swiftui_does() {

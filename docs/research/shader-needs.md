@@ -70,8 +70,9 @@ sketch, the plan for P1 and the open questions.
    macOS 27.2.1 with `ImageRenderer` (E14): red to blue at 50% is (140,83,162),
    white to black is 99; both equal an OKLab mix within 1/255, and a stop that
    fades to transparent mixes premultiplied. Skia's OKLab interpolation gives the
-   same values (E13). The kit's `Gradient` still mixes in device RGB by default,
-   so a SwiftUI-faithful gradient needs `.color_space(GradientColorSpace::Perceptual)`.
+   same values (E13). The kit's `Gradient` now mixes the same way by
+   default; the two controls measured against AppKit (the small square bezel and
+   the tab pill) keep `.color_space(GradientColorSpace::Device)`.
 
 ## Method
 
@@ -138,7 +139,7 @@ the probability that the approach works as described.
 | 11 | `blur(radius:opaque:)` on a view; `CIGaussianBlur` | Kit | Blur image filter on the layer; `opaque` picks the tile mode. Gain: blurred content and transitions. | M | 0.85 | P1 |
 | 12 | `saturation`, `brightness`, `contrast`, `hueRotation`, `grayscale`, `colorInvert`, `colorMultiply`, `luminanceToAlpha`; `CIColorControls`, `CIHueAdjust`, `CIColorInvert`, `CIMaskToAlpha` | Kit | Stock `ColorFilter` (matrix, `hsla_matrix`, `luma`, blend); the kit already uses them on images (`symbol.rs:768-790`). Measured on macOS 27.2.1 (E14), on sRGB-encoded values: `saturation(s)` mixes toward the luma 0.2126/0.7152/0.0722 (the same at 8 bits as SVG's 0.213/0.715/0.072); `grayscale(g)` is `saturation(1 - g)`; `brightness(b)` adds b; `contrast(k)` is (c - 0.5)k + 0.5; `hueRotation` is the SVG `hue-rotate` matrix; `colorInvert` is 1 - c; `colorMultiply` multiplies. Gain: the eight modifiers on any view. | S leaf, M container | 0.95: formulas match every sampled value within 1/255 | P1 for containers |
 | 13 | `MeshGradient`, `Shading.meshGradient` | Kit | `Canvas::draw_patch` per cell (Coons patch, corner colors) or an SkSL with point and color arrays (compiles, E7). Gain: the macOS 15 mesh backgrounds. | M | 0.6: Apple's interpolation is unmeasured | probe |
-| 14 | `AngularGradient`, `EllipticalGradient`, `Gradient.ColorSpace.perceptual`, `Color.mix` | Kit | Done 2026-11-21: `Gradient::angular`, `Gradient::elliptical` and `.color_space(GradientColorSpace::Perceptual)` draw a Skia gradient through Freya's `Fill::Callback` (OKLab, premultiplied; SwiftUI's angular starts right and runs clockwise, its elliptical radii are half the width and half the height; four tests). Not offered: center, start and end angles or radii. `Color.mix` is not done. Gain: all SwiftUI gradients. | S | 0.9 | none |
+| 14 | `AngularGradient`, `EllipticalGradient`, `Gradient.ColorSpace.perceptual`, `Color.mix` | Kit | Done 2026-11-21: `Gradient::angular`, `Gradient::elliptical` and `.color_space(GradientColorSpace)` draw a Skia gradient through Freya's `Fill::Callback` (default `Perceptual`: OKLab, premultiplied; SwiftUI's angular starts right and runs clockwise, its elliptical radii are half the width and half the height; four tests). Not offered: center, start and end angles or radii. `Color.mix` is not done. Gain: all SwiftUI gradients. | S | 0.9 | none |
 | 15 | `Canvas`, `GraphicsContext` (`addFilter`, `drawLayer`, `clip`, `Shading.backdrop`) | Kit | A leaf element drawing with the Skia canvas (the `glass.rs` pattern); `addFilter` and `drawLayer` are `save_layer` plus a filter (E11). `backdrop` samples the window only. Gain: immediate-mode drawing. | M | 0.8 | none |
 | 16 | `TextRenderer`, `Text.Layout` | Kit | Skia `Paragraph::visit` exposes glyph runs, but Freya draws paragraphs itself, so the kit would own those text views. No compensa now: apps get gradient or shimmering text from `ShaderFill` on text. Gain would be per-glyph animation only. | L | 0.5 | Freya text path |
 | 17 | `ImageRenderer` | Kit | Render a subtree into an offscreen surface with the P1 loop. No compensa until an app asks: `doc_shots.rs` covers the kit's own captures. | M | 0.6 | P1 |
