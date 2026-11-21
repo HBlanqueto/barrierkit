@@ -14,10 +14,10 @@ fn main() -> Result<(), RunError> {
             .fold(VStack::new(), |column, size| {
                 column.child(
                     HStack::new()
-                        .child(Button::new("Save").size(size))
-                        .child(Checkbox::new("Remember").size(size))
-                        .child(Switch::new("Wi-Fi").size(size))
-                        .child(TextField::new(use_state(String::new), "Name").size(size)),
+                        .child(Button::new("Save"))
+                        .child(Checkbox::new("Remember"))
+                        .child(Switch::new("Wi-Fi"))
+                        .control_size(size),
                 )
             })
         })

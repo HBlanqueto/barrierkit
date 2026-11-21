@@ -123,7 +123,8 @@ SwiftUI: `.controlSize(.mini)`, `.small`, `.regular`, `.large` or `.extraLarge` 
 
 The program is [`recipes/control_sizes.rs`](recipes/control_sizes.rs).
 
-`.size(ControlSize)` takes one of five sizes on `Button`, `PopUpButton`,
-`SegmentedControl`, `Checkbox`, `RadioGroup`, `Switch`, `Slider`, `Stepper`,
-`TextField`, `SearchField`, `ComboBox` and `DatePicker`;
-the sizes are in [chapter 5](../docs/barrierkit/05-controls.md#control-size).
+`.control_size(ControlSize)` on a view sizes every control inside it, like SwiftUI's
+`.controlSize(_:)`; `.size(ControlSize)` on one control wins over it. Both take one of five
+sizes on `Button`, `PopUpButton`, `SegmentedControl`, `Checkbox`, `RadioGroup`, `Switch`,
+`Slider`, `Stepper`, `TextField`, `SearchField`, `ComboBox` and `DatePicker`; the sizes are in
+[chapter 5](../docs/barrierkit/05-controls.md#control-size).

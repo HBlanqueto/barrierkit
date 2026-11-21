@@ -1,4 +1,4 @@
-use ctdesign::Rgba;
+use ctdesign::{ControlSize, Rgba};
 use freya_core::prelude::*;
 
 use crate::menu::MenuItem;
@@ -61,6 +61,10 @@ impl<T: EventHandlersExt> ViewModifiers for T {}
 pub trait StyleModifiers: IntoElement + Sized {
     fn control_style<S: ControlStyle>(self, restyle: impl Fn(S) -> S + 'static) -> StyleScope {
         StyleScope::new(Theme::tengen().style(restyle), self)
+    }
+
+    fn control_size(self, size: ControlSize) -> StyleScope {
+        StyleScope::new(Theme::control_size(size), self)
     }
 }
 

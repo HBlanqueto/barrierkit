@@ -2,9 +2,16 @@ use std::any::Any;
 use std::rc::Rc;
 
 use ctappearance::Resolved;
+use ctdesign::ControlSize;
 use freya_core::current_context::CurrentContext;
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
+
+use super::{
+    ButtonStyle, CheckboxStyle, ComboBoxStyle, DatePickerStyle, PopUpButtonStyle, RadioGroupStyle,
+    SearchFieldStyle, SegmentedControlStyle, SliderStyle, StepperStyle, SwitchStyle,
+    TextFieldStyle,
+};
 
 pub trait ControlStyle: Clone + 'static {
     fn tengen() -> Self;
@@ -46,6 +53,22 @@ impl Theme {
         let restyle: Box<dyn Fn(S) -> S> = Box::new(restyle);
         self.overrides.push(Rc::new(restyle));
         self
+    }
+
+    pub(crate) fn control_size(size: ControlSize) -> Self {
+        Self::tengen()
+            .style(move |style: ButtonStyle| style.sized(size))
+            .style(move |style: PopUpButtonStyle| style.sized(size))
+            .style(move |style: SegmentedControlStyle| style.sized(size))
+            .style(move |style: CheckboxStyle| style.sized(size))
+            .style(move |style: RadioGroupStyle| style.sized(size))
+            .style(move |style: SwitchStyle| style.sized(size))
+            .style(move |style: SliderStyle| style.sized(size))
+            .style(move |style: StepperStyle| style.sized(size))
+            .style(move |style: TextFieldStyle| style.sized(size))
+            .style(move |style: SearchFieldStyle| style.sized(size))
+            .style(move |style: ComboBoxStyle| style.sized(size))
+            .style(move |style: DatePickerStyle| style.sized(size))
     }
 
     pub(crate) fn apply<S: ControlStyle>(&self, style: S) -> S {
@@ -136,7 +159,6 @@ impl Component for StyleScope {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::styles::SliderStyle;
 
     #[derive(Clone)]
     struct Other(f32);
@@ -179,6 +201,21 @@ mod tests {
         assert_eq!(style.width, 100.0);
         assert_eq!(style.track_height, (tengen.track_height * 2.0 + 1.0) * 10.0);
         assert_eq!(style.knob_size, tengen.knob_size);
+    }
+
+    #[test]
+    fn a_control_size_scope_resizes_its_controls_and_an_instance_size_wins() {
+        let scope = Theme::control_size(ControlSize::Large);
+        let scoped = scope.apply(ButtonStyle::tengen());
+        let instance = Theme::tengen().style(|style: ButtonStyle| style.sized(ControlSize::Small));
+        assert_eq!(
+            scoped.height,
+            ButtonStyle::tengen().sized(ControlSize::Large).height
+        );
+        assert_eq!(
+            instance.apply(scoped).height,
+            ButtonStyle::tengen().sized(ControlSize::Small).height
+        );
     }
 
     #[test]

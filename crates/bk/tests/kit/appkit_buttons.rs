@@ -4,6 +4,7 @@ use bk::buttons::HelpLink;
 use bk::choices::RadioGroup;
 use bk::compact::Stepper;
 use bk::controls::{Button, Checkbox, ControlSize, SegmentedControl, Slider, Switch};
+use bk::modifiers::StyleModifiers;
 use bk::popup_button::PopUpButton;
 use bk::styles::{ButtonStyle, Edge, Shape, SwitchStyle};
 use bk::symbol::Symbol;
@@ -47,7 +48,9 @@ fn size<const N: usize>() -> ControlSize {
 }
 
 fn push<const N: usize>() -> Element {
-    Button::new("Button").size(size::<N>()).into_element()
+    Button::new("Button")
+        .control_size(size::<N>())
+        .into_element()
 }
 
 fn push_default<const N: usize>() -> Element {
@@ -110,7 +113,9 @@ fn segmented<const N: usize>() -> Element {
 }
 
 fn check<const N: usize>() -> Element {
-    Checkbox::new("Check").size(size::<N>()).into_element()
+    Checkbox::new("Check")
+        .control_size(size::<N>())
+        .into_element()
 }
 
 fn check_on<const N: usize>() -> Element {
@@ -177,7 +182,9 @@ fn framed((width, height): (f32, f32), child: impl IntoElement) -> Element {
 }
 
 fn switch<const N: usize>() -> Element {
-    Switch::new("Switch").size(size::<N>()).into_element()
+    Switch::new("Switch")
+        .control_size(size::<N>())
+        .into_element()
 }
 
 fn switch_on<const N: usize>() -> Element {

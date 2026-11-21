@@ -243,6 +243,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `styles::Theme::style` | method | ≈ `.buttonStyle(_:)` on the scene | — | Adds an override of the control whose style the closure takes | [Styles](../../agents/styles.md#levels) |
 | `styles::StyleScope` | struct | ≈ a view after `.buttonStyle(_:)` | — | Component returned by `.control_style`: its overrides reach the controls inside | [Styles](../../agents/styles.md#levels) |
 | `modifiers::StyleModifiers` | trait | `View` modifiers | — | Style modifiers for every view | [Styles](../../agents/styles.md#levels) |
+| `modifiers::StyleModifiers::control_size` | method | `.controlSize(_:)` | `NSControl.controlSize` | Sizes every control inside the view; a control's own `.size(..)` wins | [5](05-controls.md#control-size) |
 | `modifiers::StyleModifiers::control_style` | method | ≈ `.buttonStyle(_:)`, `.toggleStyle(_:)` | — | Changes the style of every control of that style inside the view | [Styles](../../agents/styles.md#levels) |
 | `modifiers::ViewModifiers::foreground_style` | method | `.foregroundStyle(_:)` | ≈ `NSTextField.textColor` | Text color of `Text`, `label` or `paragraph` from a `ShapeStyle` | [Styles](../../agents/styles.md#paint-on-views) |
 | `modifiers::ViewModifiers::background_style` | method | `.background(_:ignoresSafeAreaEdges:)`; Freya already uses `background` | ≈ `NSView.layer.backgroundColor` | Background of a view from a `ShapeStyle`, with blur for a material | [Styles](../../agents/styles.md#paint-on-views) |

@@ -154,7 +154,9 @@ Button::new("Save").style(|s| ButtonStyle { shape: Shape::Capsule, ..s.bordered_
 
 ## Control size
 
-`.size(ControlSize)` picks one of five sizes on `Button`, `PopUpButton` (also with
+`.control_size(ControlSize)` on a view sizes every control inside it, as SwiftUI's
+`.controlSize(_:)` does, and `.size(ControlSize)` on one control picks its size and wins over it.
+Both take one of five sizes on `Button`, `PopUpButton` (also with
 `pulls_down`), `SegmentedControl`, `Checkbox`, `RadioGroup`, `Switch`, `Slider`,
 `Stepper`, `TextField`, `SearchField`, `ComboBox` and `DatePicker`. `Regular` is the default. The tokens of each size are in `ctdesign`
 (`BUTTON.size(size)`, `CHECKBOX.size(size)`, `SWITCH.size(size)`, `SLIDER.size(size)`,
@@ -173,7 +175,12 @@ Button::new("Save").style(|s| ButtonStyle { shape: Shape::Capsule, ..s.bordered_
 Button::new("Save").size(ControlSize::Large)
 Checkbox::new("Remember").size(ControlSize::Small)
 Slider::new("Volume").size(ControlSize::Mini)
+VStack::new().child(Button::new("Save")).child(Slider::new("Volume")).control_size(ControlSize::Small)
 ```
+
+`.control_size` is a container-level style override ([styles](../../agents/styles.md#levels)): it
+changes the style of each sized control inside the view, so a theme comes before it and an
+instance `.size(..)` or `.style(..)` after it. A circular button keeps its own size.
 
 | `ControlSize` | Text field | Search field, combo box | Field font |
 |---|---|---|---|

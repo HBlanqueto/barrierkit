@@ -34,8 +34,8 @@ use super::{
 /// `Button::size(ControlSize)` is an instance override of `height`, `padding_x`,
 /// `font` and `shape`: `BUTTON.size(size)` has the row of each size, and the
 /// sizes whose radius is half the height (`Large`, `ExtraLarge`) are a `Capsule`.
-/// A `Capsule` stays a `Capsule` at every size. A button that is `.toggled(true)` draws its
-/// style through `bordered_prominent`.
+/// A `Capsule` stays a `Capsule` at every size, and a `Circle` keeps its size. A button that is
+/// `.toggled(true)` draws its style through `toggled`: `bordered_prominent` with the toggle accent.
 #[derive(Clone, Debug)]
 pub struct ButtonStyle {
     /// Tengen: `BUTTON.height`.
@@ -273,6 +273,9 @@ impl ButtonStyle {
     }
 
     pub(crate) fn sized(self, size: ControlSize) -> Self {
+        if self.shape == Shape::Circle {
+            return self;
+        }
         let row = BUTTON.size(size);
         let shape = if self.shape == Shape::Capsule {
             Shape::Capsule

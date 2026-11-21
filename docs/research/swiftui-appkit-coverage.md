@@ -130,14 +130,14 @@ Rows per status at the snapshot. A row is one API, style or size.
 | 8. Date and time | 2 | 0 | 1 | 5 | 8 |
 | 9. Color and font panels | 1 | 0 | 2 | 4 | 7 |
 | 10. Image and path control | 0 | 3 | 1 | 0 | 4 |
-| 11. Control sizes | 1 | 0 | 1 | 0 | 2 |
+| 11. Control sizes | 2 | 0 | 0 | 0 | 2 |
 | 12. Containers and navigation | 4 | 10 | 9 | 8 | 31 |
 | 13. Presentation | 0 | 6 | 6 | 2 | 14 |
 | 14. Windows and chrome | 0 | 6 | 11 | 11 | 28 |
 | 15. Materials and glass | 0 | 2 | 4 | 0 | 6 |
 | 16. Symbols | 0 | 0 | 5 | 1 | 6 |
 | 17. Accessibility | 0 | 2 | 7 | 1 | 10 |
-| **All** | 50 | 45 | 72 | 48 | 215 |
+| **All** | 51 | 45 | 71 | 48 | 215 |
 
 To recount after a change, run this from the repository root:
 
@@ -354,8 +354,8 @@ SwiftUI has `.controlSize(_:)` with `.mini`, `.small`, `.regular`, `.large` and
 `.extraLarge` (since macOS 14). AppKit has `NSControl.ControlSize` with the
 same five cases (`.extraLarge` since macOS 26). The kit has `ControlSize` with all five, and
 `Button`, `PopUpButton`, `SegmentedControl`, `Checkbox`, `RadioGroup`, `Switch`, `Slider`,
-`Stepper` and the text, search and combo fields take it through `.size(..)`. Nothing passes a size
-down to the controls inside a view, as `.controlSize` does. `NSView.prefersCompactControlSizeMetrics`
+`Stepper` and the text, search and combo fields take it through `.size(..)`. `.control_size(ControlSize)` on a
+view sizes the controls inside it, like `.controlSize`, and a control's own `.size(..)` wins. `NSView.prefersCompactControlSizeMetrics`
 (macOS 26) was not probed.
 
 Sizes in points, from the probe `controls` on macOS 27.2.1 (`aqua`, white
@@ -376,7 +376,7 @@ backdrop; width × height or height):
 
 | SwiftUI | AppKit | Kit | Status | Measure | Pri |
 |---|---|---|---|---|---|
-| `.controlSize(_:)` as an environment value | `controlSize` per control | `.size(ControlSize)` per instance on eight controls and the three fields | `partial`: nothing passes a size down to the controls inside a view | [Control sizes][m-control-sizes] | P1 |
+| `.controlSize(_:)` as an environment value | `controlSize` per control | `StyleModifiers::control_size` (a style scope), `.size(ControlSize)` per instance | `measured` | bench family `buttons`: `push-*`, `check-*`, `switch-*` are built through `.control_size`; [Control sizes][m-control-sizes] | — |
 | `.mini`, `.extraLarge` | `.mini`, `.extraLarge` | `ControlSize::Mini`, `ExtraLarge` | `measured` | bench family `buttons`; [Control sizes][m-control-sizes] | — |
 
 The size of each control is a row in its own family.
@@ -541,9 +541,8 @@ first four areas are the sessions that run now.
 
 ### A. Buttons and selection controls
 
-1. **P1** A `.control_size` modifier that reaches the controls inside a view
-   ([11](#11-control-sizes)). The sizes of the controls themselves are done
-   (`.size(ControlSize)`, measured).
+1. **P1** ~~Sizes of the controls and a `.control_size` modifier that reaches the
+   controls inside a view~~ done ([11](#11-control-sizes)).
 2. **P1** Probe and compare the indeterminate `Spinner` and a SwiftUI `Gauge`
    ([6](#6-gauges-progress-and-level-indicators)).
 3. **P2** ~~`Mini` and `ExtraLarge` in `ControlSize` for `Button`~~ done.

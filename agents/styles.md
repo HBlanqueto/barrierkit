@@ -59,7 +59,9 @@ of controls; chain one `.style(..)` per control.
 
 `.control_style` wraps the view in a `StyleScope`, so it comes last, after
 the children. It reaches every control of that style rendered inside, also
-inside nested components.
+inside nested components. `.control_size(ControlSize)` is the same level for
+sizes: it resizes every control inside the view that has a size, and an
+instance `.size(..)` or `.style(..)` wins over it.
 
 A popup is a window of its own: a menu, a submenu, a popover, a tooltip or the
 calendar of a `DatePicker`. When a view opens one, the kit hands it that
