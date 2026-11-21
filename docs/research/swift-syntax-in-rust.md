@@ -954,24 +954,30 @@ Side effects of the probes: K3 wrote its own defaults domain
 
 ### 7.2 Decisions for the user
 
-1. **Modifiers on controls. Decided 2026-11-21: state the wrap rule in
-   `agents/`.** The wrap rule: a control takes only its own methods and `.key`;
-   to pad, paint or add `.help` to one, put it inside a `rect()` or a stack.
-   It changes three documents (`prompt.md`, `recipes.md`, `checklist.md`) and
-   no code. The options were:
-   - **Wrap every control** in an element wrapper (`forward_container!`).
-     Rejected: the macro forwards the methods of a `Rect` held in `.0`
-     (`elements.rs:66-94`), while a control is a `PartialEq` struct that
-     implements `Component` (`controls/button.rs:5-15`), so each one needs a
-     redesign, not a macro line.
+1. **Modifiers on controls. Decided 2026-11-21: every public control takes the
+   Freya container modifiers.** `.padding`, `.background` and the other
+   `ContainerExt`, `BackgroundExt` and `DecorationExt` methods set properties
+   on the control's own node, as they do on the 10 forwarding types; order
+   does not matter. The options were:
+   - **Wrap every control** (chosen). Of the 98 types that implement
+     `Component` in `crates/bk/src`, 77 are `pub struct`s (a script over
+     `impl Component for` and `pub struct`, minus the private `Divider` of
+     `views/split_panes.rs:137`). `forward_container!` forwards a
+     `Rect` held in `.0` (`elements.rs:66-94`), but a control derives
+     `PartialEq` (`controls/button.rs:5`) and `Rect` does not (it derives
+     `Default, Clone`: `freya-core` `elements/rect.rs:562`). `LayoutData`,
+     `StyleState` and `EffectData` do derive `PartialEq` (`freya-core`
+     `data.rs:60,85,100`), and they are what the macro delegates to, so a
+     control can hold them instead. How the control applies them in `render`,
+     and what that does to `Size::fill()`, is not verified.
+   - **State the wrap rule** in `agents/` (`rect().padding(..).child(..)`):
+     no code change; the surprise stays.
    - **One generic wrapper** on `IntoElement`, as `StyleModifiers` already is
-     (`modifiers.rs:61-71`). Deferred: it wraps like SwiftUI, but
-     `VStack.padding(..)` then fails with E0034, because the 10 forwarding
-     types already get `padding` from Freya's `ContainerExt` (a scratch
-     program of the same shape). Whether `Size::fill()` and percentages still
-     resolve under a fit-size wrapper, and whether `.key` and event handlers
-     pass through, is not verified. Revisit it with a spike in the Linux
-     container; the wrap rule stays valid if it lands.
+     (`modifiers.rs:61-71`). It wraps like SwiftUI, but `VStack.padding(..)`
+     then fails with E0034, because the 10 forwarding types already get
+     `padding` from Freya's `ContainerExt` (a scratch program of the same
+     shape). Sizing under a fit-size wrapper and `.key` pass-through are not
+     verified.
 2. **A `Binding` type.** Freya already has `Writable`. Controls could take
    `impl IntoWritable` next to value plus callback, or the kit keeps value plus
    callback and documents `State<T>` for text. This decides whether SwiftUI's
