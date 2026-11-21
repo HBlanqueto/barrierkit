@@ -254,6 +254,7 @@ pub struct Alert {
     on_cancel: Option<Callback<(), ()>>,
     suppressed: Option<State<bool>>,
     destructive: bool,
+    icon: Option<Element>,
 }
 
 impl Alert {
@@ -268,11 +269,17 @@ impl Alert {
             on_cancel: None,
             suppressed: None,
             destructive: false,
+            icon: None,
         }
     }
 
     pub fn style(mut self, restyle: impl Fn(AlertStyle) -> AlertStyle + 'static) -> Self {
         self.style = self.style.style(restyle);
+        self
+    }
+
+    pub fn icon(mut self, icon: impl IntoElement) -> Self {
+        self.icon = Some(icon.into_element());
         self
     }
 
@@ -427,6 +434,14 @@ impl Component for Alert {
                         .direction(Direction::Vertical)
                         .spacing(style.spacing)
                         .padding(Gaps::new(inset, inset, 0.0, inset))
+                        .maybe_child(self.icon.clone().map(|icon| {
+                            rect()
+                                .width(Size::px(style.icon_size))
+                                .height(Size::px(style.icon_size))
+                                .margin(Gaps::new(0.0, 0.0, style.icon_gap - style.spacing, 0.0))
+                                .overflow(Overflow::Clip)
+                                .child(icon)
+                        }))
                         .child(text(
                             self.title,
                             style.title_font,

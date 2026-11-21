@@ -180,7 +180,7 @@ Read with `~/src/probes/lists.swift`: SwiftUI `List` in the `.inset`, `.plain`, 
 
 ## Alerts
 
-Read from the view hierarchy of an `NSAlert` (informational, two buttons) with `~/src/probes/alerts.swift`; its pixels are not captured because the window is hosted by SwiftUI and its glass and shadow come from the compositor, not from the app. 260 wide; the 64 icon at 20 from the top and the left; title 13 bold and message 13 regular, both in the label color, each line 16 high, 20 from the sides, 10 between them; buttons large (28 high), two of 110 with 8 between, 16 from the sides and 16 from the bottom, 16 under the message; Cancel on the left, the default button on the right. The kit draws no icon and leaves the glass and the shadow to the compositor.
+Read from the view hierarchy of an `NSAlert` (informational, two buttons) with `~/src/probes/alerts.swift`; its pixels are not captured because the window is hosted by SwiftUI and its glass and shadow come from the compositor, not from the app. 260 wide; the 64 icon at 20 from the top and the left; title 13 bold and message 13 regular, both in the label color, each line 16 high, 20 from the sides, 10 between them; buttons large (28 high), two of 110 with 8 between, 16 from the sides and 16 from the bottom, 16 under the message; Cancel on the left, the default button on the right. The icon sits above the text, not beside it: the title starts 16 under it, at the same 20 from the left. `Alert::icon` draws the 64 square the app gives it, with the title 16 under it (`DIALOG_ALERT_ICON`, `DIALOG_ALERT_ICON_GAP`); the kit leaves the glass and the shadow to the compositor.
 
 ## Sheets
 

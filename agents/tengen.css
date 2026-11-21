@@ -1571,6 +1571,8 @@
   --bk-shell-menu-glass-disabled-fg: var(--bk-glass-ink-faint);
   --bk-shell-menu-separator-height: 1;
   --bk-shell-menu-separator-margin-y: 5;
+  --bk-dialog-alert-icon: 64;
+  --bk-dialog-alert-icon-gap: 16;
   --bk-shell-menu-separator-color: var(--bk-separator);
   --bk-shell-menu-separator-tint-ink-mix: 0.14;
   --bk-shell-menu-mark-inset: 4.8;

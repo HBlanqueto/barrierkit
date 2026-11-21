@@ -26,6 +26,8 @@ DIALOG_ALERT_WIDTH f32 components.dialog.alert-width
 DIALOG_ALERT_PADDING f32 components.dialog.alert-padding
 DIALOG_ALERT_SPACING f32 components.dialog.alert-spacing
 DIALOG_ALERT_LINE_HEIGHT u32 components.dialog.alert-line-height
+DIALOG_ALERT_ICON f32 components.dialog.alert-icon
+DIALOG_ALERT_ICON_GAP f32 components.dialog.alert-icon-gap
 DIALOG_BUTTON_WIDTH f32 components.dialog.button-width
 BUTTON_DESTRUCTIVE_FILL f32 components.button.destructive-fill
 DIALOG_SHEET_WIDTH u32 components.dialog.sheet-width

@@ -556,6 +556,7 @@ Alert::new("Forget this network?", "You will have to type the password again.")
 | `.cancel(label, callback)` | "Cancel", nothing | The other button; Escape presses it |
 | `.suppression(State<bool>)` | none | Adds the "Do not show this message again" checkbox bound to the state, like `NSAlert`'s `showsSuppressionButton` |
 | `.destructive()` | off | The primary button takes `ButtonStyle::destructive`, like `NSAlert.hasDestructiveAction` |
+| `.icon(view)` | none | A `DIALOG_ALERT_ICON` (64) square above the title, the application icon in `NSAlert`; the title starts `DIALOG_ALERT_ICON_GAP` (16) under it |
 
 The alert is `DIALOG_ALERT_WIDTH` (260) wide and splits its two large buttons
 evenly, 16 from the sides and the bottom (`DIALOG_ALERT_PADDING`) while the

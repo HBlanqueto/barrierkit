@@ -152,6 +152,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `styles::ButtonStyle::circular` | method | `.buttonBorderShape(.circle)` | ≈ `NSButton.BezelStyle.circular` | Preset: a 17 high circle for an icon-only button | [Styles](../../crates/bk/src/styles/button.rs) |
 | `styles::ButtonStyle::destructive` | method | `Button(role: .destructive)` | `NSButton.hasDestructiveAction` | Preset: red label on a faint red fill | [Styles](../../crates/bk/src/styles/button.rs) |
 | `views::feedback::Alert::destructive` | method | `Button(role: .destructive)` in `.alert` | `NSAlert.hasDestructiveAction` | The primary button is destructive | [11](11-views.md#alert) |
+| `views::feedback::Alert::icon` | method | — | `NSAlert.icon` | A 64 square above the title: the application icon | [11](11-views.md#alert) |
 | `styles::ButtonStyle::glass` | method | `PrimitiveButtonStyle.glass` | ≈ `NSButton.BezelStyle.glass` | Preset: raised capsule with a hairline rim | [Styles](../../crates/bk/src/styles/button.rs) |
 | `styles::ButtonStyle::glass_prominent` | method | `PrimitiveButtonStyle.glassProminent` | — | Preset: accent capsule with a hairline rim | [Styles](../../crates/bk/src/styles/button.rs) |
 | `styles::ButtonStyle::plain` | method | `PrimitiveButtonStyle.plain` | — | Preset: only the label, in the label color | [Styles](../../crates/bk/src/styles/button.rs) |
