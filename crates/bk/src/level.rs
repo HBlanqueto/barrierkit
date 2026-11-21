@@ -10,6 +10,7 @@ use crate::backdrop::Tint;
 use crate::controlled::commit;
 use crate::controls::{dimmed, opacity_when, shadowed};
 use crate::elements::{Overrides, forward_overrides};
+use crate::environment::use_disabled;
 use crate::interaction::{Interaction, control_state, use_interaction};
 use crate::platform::{Knob, KnobOutbox, KnobSupport, Knobs};
 use crate::styles::Painted;
@@ -91,12 +92,13 @@ impl Component for LevelSlider {
     fn render(&self) -> impl IntoElement {
         let interaction = use_interaction();
         let style: LevelSliderStyle = resolve(&self.style);
-        let state = control_state(interaction, self.disabled);
+        let disabled = use_disabled(self.disabled);
+        let state = control_state(interaction, disabled);
         let paints = Paints::current(state, style.effect);
         let value = crate::controlled::use_controlled_unless(&self.value, interaction.held());
         let mut width = use_state(|| 0.0f32);
         let origin = use_state(CursorPoint::default);
-        let enabled = !self.disabled;
+        let enabled = !disabled;
         let fraction = *value.read();
         let measured = *width.read();
         let direction = style.layout_direction;
@@ -186,7 +188,7 @@ impl Component for LevelSlider {
                 .corner_radius(shape.corner_radius(width, height, direction))
                 .painted(&paints, paint)
         };
-        let parts_opacity = opacity_when(self.disabled, style.opacity, style.disabled_opacity);
+        let parts_opacity = opacity_when(disabled, style.opacity, style.disabled_opacity);
 
         let fill = part(
             mirrored(-offset, fill_width, run),

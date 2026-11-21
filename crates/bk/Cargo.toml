@@ -89,6 +89,10 @@ name = "custom_window"
 path = "../../agents/recipes/custom_window.rs"
 
 [[example]]
+name = "disabled"
+path = "../../agents/recipes/disabled.rs"
+
+[[example]]
 name = "environment"
 path = "../../agents/recipes/environment.rs"
 
@@ -107,6 +111,10 @@ path = "../../agents/recipes/hello_world.rs"
 [[example]]
 name = "if_else"
 path = "../../agents/recipes/if_else.rs"
+
+[[example]]
+name = "keyboard_shortcut"
+path = "../../agents/recipes/keyboard_shortcut.rs"
 
 [[example]]
 name = "list_rows"

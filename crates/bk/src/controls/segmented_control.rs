@@ -138,7 +138,8 @@ impl Component for Segment {
     fn render(&self) -> impl IntoElement {
         let style: SegmentedControlStyle = resolve(&self.style);
         let interaction = use_interaction();
-        let paints = Paints::current(control_state(interaction, self.disabled), style.effect);
+        let disabled = use_disabled(self.disabled);
+        let paints = Paints::current(control_state(interaction, disabled), style.effect);
         crate::choices::take_focus_when(interaction, self.take_focus);
         let active = self.active;
         let on_select = self.on_select.clone();
@@ -155,7 +156,7 @@ impl Component for Segment {
                 .corner_radius(height, height, LayoutDirection::LeftToRight);
 
         let segment = interaction
-            .attach(rect(), !self.disabled)
+            .attach(rect(), !disabled)
             .a11y_role(AccessibilityRole::Tab)
             .a11y_alt(&*self.text)
             .a11y_builder(move |node| node.set_selected(active))

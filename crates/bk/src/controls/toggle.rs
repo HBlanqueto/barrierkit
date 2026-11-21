@@ -120,11 +120,11 @@ impl Component for Switch {
         let on = crate::controlled::use_controlled_unless(&self.on, interaction.held());
         let grab = use_state(|| None::<Grab>);
         let style: SwitchStyle = resolve(&self.style);
-        let state = control_state(interaction, self.disabled);
+        let disabled = use_disabled(self.disabled);
+        let state = control_state(interaction, disabled);
         let paints = Paints::current(state, style.effect);
         let is_on = *on.read();
 
-        let disabled = self.disabled;
         let on_toggle = self.on_toggle.clone();
         let on_drag = self.on_toggle.clone();
         let on_key = self.on_toggle.clone();
@@ -377,7 +377,7 @@ impl Component for Checkbox {
     fn render(&self) -> impl IntoElement {
         let checked = crate::controlled::use_controlled(&self.checked);
         let on_toggle = self.on_toggle.clone();
-        let disabled = self.disabled;
+        let disabled = use_disabled(self.disabled);
         let label_text = self.label.clone();
         let interaction = use_interaction();
         let style: CheckboxStyle = resolve(&self.style);

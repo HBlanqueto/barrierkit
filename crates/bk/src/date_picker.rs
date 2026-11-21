@@ -11,6 +11,7 @@ use crate::controlled::{commit, use_controlled};
 use crate::controls::{ControlSize, dimmed, shadowed};
 use crate::date::{CivilDate, CivilDateTime, DatePart, typing_is_done};
 use crate::elements::{Overrides, forward_overrides};
+use crate::environment::use_disabled;
 use crate::i18n::text;
 use crate::interaction::{control_state, use_interaction};
 use crate::platform::{
@@ -190,7 +191,7 @@ impl Component for DatePicker {
     fn render(&self) -> impl IntoElement {
         let style: DatePickerStyle = resolve(&self.style);
         let interaction = use_interaction();
-        let disabled = self.disabled;
+        let disabled = use_disabled(self.disabled);
         let state = control_state(interaction, disabled);
         let paints = Paints::current(state, style.effect);
         let value = use_controlled(&self.value);

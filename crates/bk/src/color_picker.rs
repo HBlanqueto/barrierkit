@@ -5,6 +5,7 @@ use torin::prelude::{Area, Direction, Gaps, Size};
 
 use crate::controls::{dimmed, shadowed};
 use crate::elements::{Overrides, forward_overrides};
+use crate::environment::use_disabled;
 use crate::i18n::text;
 use crate::interaction::{control_state, use_interaction};
 use crate::level::LevelSlider;
@@ -109,7 +110,7 @@ impl Component for ColorPicker {
     fn render(&self) -> impl IntoElement {
         let style: ColorPickerStyle = resolve(&self.style);
         let interaction = use_interaction();
-        let disabled = self.disabled;
+        let disabled = use_disabled(self.disabled);
         let paints = Paints::current(control_state(interaction, disabled), style.effect);
         let mut area = use_state(Area::default);
         let shown = self.color;

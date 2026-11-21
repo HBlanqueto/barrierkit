@@ -130,7 +130,8 @@ impl Component for Slider {
     fn render(&self) -> impl IntoElement {
         let interaction = use_interaction();
         let style: SliderStyle = resolve(&self.style);
-        let paints = Paints::current(control_state(interaction, self.disabled), style.effect);
+        let disabled = use_disabled(self.disabled);
+        let paints = Paints::current(control_state(interaction, disabled), style.effect);
         let (low, high) = self.range;
         let value = crate::controlled::use_controlled_unless(
             &self.value.clamp(low, high),
@@ -225,7 +226,7 @@ impl Component for Slider {
             .cloned()
             .filter(|_| steps == Some(self.labels.len()));
         let mut root = interaction
-            .attach(rect(), !self.disabled)
+            .attach(rect(), !disabled)
             .width(width)
             .height(height)
             .direction(direction)
@@ -241,7 +242,7 @@ impl Component for Slider {
                 }
             });
 
-        if !self.disabled {
+        if !disabled {
             let forward = if right_to_left && !vertical {
                 NamedKey::ArrowLeft
             } else {
@@ -293,7 +294,7 @@ impl Component for Slider {
         };
         let dim = |el: Rect, opacity: f32| el.maybe(opacity < 1.0, |el| el.opacity(opacity));
         // freya 0.5.0 dims each element on its own (render_pipeline.rs): a dimmed knob would show the fill.
-        let parts_opacity = opacity_when(self.disabled, style.opacity, style.disabled_opacity);
+        let parts_opacity = opacity_when(disabled, style.opacity, style.disabled_opacity);
 
         let track_rect = dim(
             part(

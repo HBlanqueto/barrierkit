@@ -175,10 +175,11 @@ SwiftUI: `.environment(\.account, account)` above and `@Environment(\.account) v
 
 The program is [`recipes/environment.rs`](recipes/environment.rs).
 
-1. `use_provide_context` creates the value once; `use_consume::<T>()` finds it
-   by type in the nearest ancestor and panics when none provides it.
-2. The value is read once. A value that changes holds a `State`
-   ([recipe 17](#17-observable-state)).
+1. The value is a type that is `Clone + PartialEq + Default`; the type is the
+   key. `.environment(value)` on a view gives it to everything inside, and
+   `use_environment::<T>()` below returns the nearest one, or `T::default()`.
+2. A reader renders again when the value changes. A model with several fields
+   holds a `State` for each ([recipe 17](#17-observable-state)).
 
 ## 17. Observable state
 
@@ -193,14 +194,15 @@ The program is [`recipes/observable.rs`](recipes/observable.rs).
 
 ## 18. Moving the focus
 
-SwiftUI: `@FocusState var searching: Bool`, `.focused($searching)` and `searching = true`.
+SwiftUI: `@FocusState var field: Field?`, `.focused($field, equals: .email)` and `field = .email`.
 
 The program is [`recipes/focus_state.rs`](recipes/focus_state.rs).
 
-1. `use_a11y()` returns the id; `SearchField::a11y_id(id)` gives it to the
-   field; `id.request_focus()` moves the focus.
-2. Only `SearchField` takes an id. `TextField` and `SecureField` have
-   `.auto_focus(bool)`.
+1. `use_focus_state::<Field>()` returns a `FocusState`; `.focused(focus, value)`
+   registers the controls inside a view under a value of your enum.
+2. `focus.set(Some(value))` moves the focus, `focus.set(None)` takes it off and
+   `focus.get()` is the focused value. `.default_focus(focus, value)` on the
+   view that holds the fields focuses one of them once.
 
 ## 19. A list from data
 
@@ -232,6 +234,9 @@ The program is [`recipes/actions.rs`](recipes/actions.rs).
    ([chapter 13](../docs/barrierkit/13-app.md#actions-and-shortcuts)).
 2. Every handler of the window receives every id, so the handler compares the
    id with `ADD.id`.
+3. A button takes its own shortcut: `Button::keyboard_shortcut(Shortcut)`, with no menu
+   item ([`recipes/keyboard_shortcut.rs`](recipes/keyboard_shortcut.rs)). A menu
+   item with the same key wins.
 
 ## 22. A view that takes a handler
 
@@ -263,3 +268,13 @@ The program is [`recipes/list_rows.rs`](recipes/list_rows.rs).
    with `.on_press(|event: Event<PressEventData>| event.stop_propagation())`.
 4. Rows have a fixed height: set `TableStyle::row_height` for a taller row. The
    closure never compares equal, so the list redraws with its parent.
+
+## 24. Disabling a group of controls
+
+SwiftUI: `VStack { TextField(..); Button("Save") { } }.disabled(saving)`.
+
+The program is [`recipes/disabled.rs`](recipes/disabled.rs).
+
+1. `.disabled(bool)` goes after the children and takes the whole view; every
+   control inside is disabled when its own flag or a view above it is.
+2. The flag can change on every render: what is inside keeps its state.

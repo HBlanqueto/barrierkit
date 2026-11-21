@@ -12,6 +12,7 @@ pub struct Button {
     on: Option<bool>,
     width: Size,
     on_press: Option<Callback<(), ()>>,
+    shortcut: Option<Shortcut>,
     pub(crate) style: Theme,
     key: DiffKey,
     overrides: Overrides,
@@ -27,6 +28,7 @@ impl Button {
             on: None,
             width: Size::auto(),
             on_press: None,
+            shortcut: None,
             style: Theme::tengen(),
             key: DiffKey::None,
             overrides: Overrides::default(),
@@ -74,6 +76,11 @@ impl Button {
         self
     }
 
+    pub fn keyboard_shortcut(mut self, shortcut: Shortcut) -> Self {
+        self.shortcut = Some(shortcut);
+        self
+    }
+
     pub fn key(mut self, key: impl Into<DiffKey>) -> Self {
         self.key = key.into();
         self
@@ -91,14 +98,15 @@ impl KeyExt for Button {
 impl Component for Button {
     fn render(&self) -> impl IntoElement {
         let interaction = use_interaction();
-        let enabled = !self.disabled;
+        let disabled = use_disabled(self.disabled);
+        let enabled = !disabled;
         let style: ButtonStyle = resolve(&self.style);
         let style = if self.on == Some(true) {
             style.toggled()
         } else {
             style
         };
-        let state = control_state(interaction, self.disabled);
+        let state = control_state(interaction, disabled);
         let paints = Paints::current(state, style.effect);
         let pressed = enabled && interaction.pressed();
         let scale = crate::animation::use_animated(
@@ -106,11 +114,12 @@ impl Component for Button {
             style.animation,
         );
         let on_press = self.on_press.clone();
+        let shortcut_press = on_press.clone();
         let radius =
             style
                 .shape
                 .corner_radius(style.height, style.height, LayoutDirection::LeftToRight);
-        let opacity = opacity_when(self.disabled, style.opacity, style.disabled_opacity);
+        let opacity = opacity_when(disabled, style.opacity, style.disabled_opacity);
         let font = style.font.scaled(crate::theme::resolved().text_size);
 
         let button = interaction
@@ -148,6 +157,15 @@ impl Component for Button {
                     }
                     if let Some(cb) = &on_press {
                         cb.call(());
+                    }
+                })
+            })
+            .map(self.shortcut.filter(|_| enabled), |el, shortcut| {
+                el.on_global_key_down(move |event: Event<KeyboardEventData>| {
+                    if shortcut.matches(event.modifiers, &event.key)
+                        && let Some(on_press) = &shortcut_press
+                    {
+                        on_press.call(());
                     }
                 })
             })

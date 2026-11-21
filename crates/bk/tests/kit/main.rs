@@ -1,3 +1,4 @@
+mod ambient;
 mod appearance;
 mod appkit;
 mod appkit_buttons;
@@ -10,6 +11,7 @@ mod button_label;
 mod chrome;
 mod controls;
 mod focus;
+mod focus_by_name;
 mod form_stack;
 mod image;
 mod list_rows;

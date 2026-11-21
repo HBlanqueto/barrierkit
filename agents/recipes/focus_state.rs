@@ -1,13 +1,22 @@
 use bk::prelude::*;
 
+#[derive(Clone, Copy, PartialEq)]
+enum Field {
+    Name,
+    Email,
+}
+
 fn main() -> Result<(), RunError> {
     Application::new("focus")
         .window("Focus", || {
-            let query = use_state(String::new);
-            let field = use_a11y();
+            let focus = use_focus_state::<Field>();
+            let name = use_state(String::new);
+            let email = use_state(String::new);
             VStack::new()
-                .child(SearchField::new(query, "Search").a11y_id(field))
-                .child(Button::new("Focus the field").on_press(move |_| field.request_focus()))
+                .child(TextField::new(name, "Name").focused(focus, Field::Name))
+                .child(TextField::new(email, "Email").focused(focus, Field::Email))
+                .child(Button::new("Next").on_press(move |_| focus.set(Some(Field::Email))))
+                .default_focus(focus, Field::Name)
         })
         .run()
 }

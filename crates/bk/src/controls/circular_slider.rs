@@ -79,7 +79,8 @@ impl Component for CircularSlider {
     fn render(&self) -> impl IntoElement {
         let interaction = use_interaction();
         let style: CircularSliderStyle = resolve(&self.style);
-        let state = control_state(interaction, self.disabled);
+        let disabled = use_disabled(self.disabled);
+        let state = control_state(interaction, disabled);
         let paints = Paints::current(state, style.effect);
         let value = use_controlled_unless(&self.value, interaction.held());
         let origin = use_state(CursorPoint::default);
@@ -95,7 +96,7 @@ impl Component for CircularSlider {
             turn_value(point.x as f32 - size / 2.0, point.y as f32 - size / 2.0)
         };
         let mut root = interaction
-            .attach(rect(), !self.disabled)
+            .attach(rect(), !disabled)
             .width(Size::px(size))
             .height(Size::px(size))
             .corner_radius(radius)
@@ -108,7 +109,7 @@ impl Component for CircularSlider {
                 node.set_max_numeric_value(1.0);
                 node.set_numeric_value_step(f64::from(SLIDER_KEY_STEP));
             });
-        if !self.disabled {
+        if !disabled {
             let step = update.clone();
             root = level::on_drag(root, interaction, origin, set_from_point, update)
                 .on_global_pointer_up(move |_| interaction.release())

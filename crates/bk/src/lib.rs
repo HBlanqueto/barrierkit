@@ -107,6 +107,10 @@ pub mod elements;
 
 pub mod modifiers;
 
+pub mod environment;
+
+pub mod focus;
+
 pub mod prelude;
 
 pub mod app;

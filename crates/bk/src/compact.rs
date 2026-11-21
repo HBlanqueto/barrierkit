@@ -7,6 +7,7 @@ use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
 
 use crate::controls::{dimmed, dimmed_label, labeled, opacity_when, shadowed};
 use crate::elements::{Overrides, forward_overrides};
+use crate::environment::{use_disabled, use_is_enabled};
 use crate::i18n::text;
 use crate::interaction::{control_state, use_interaction};
 use crate::platform::Bar;
@@ -87,8 +88,9 @@ impl Component for IconButton {
     fn render(&self) -> impl IntoElement {
         let interaction = use_interaction();
         let style: IconButtonStyle = resolve(&self.style);
-        let enabled = !self.disabled;
-        let state = control_state(interaction, self.disabled);
+        let disabled = use_disabled(self.disabled);
+        let enabled = !disabled;
+        let state = control_state(interaction, disabled);
         let paints = Paints::current(state, style.effect);
         let pressed = enabled && interaction.pressed();
         let scale = crate::animation::use_animated(
@@ -100,7 +102,7 @@ impl Component for IconButton {
         let radius = style
             .shape
             .corner_radius(width, height, LayoutDirection::LeftToRight);
-        let opacity = opacity_when(self.disabled, style.opacity, style.disabled_opacity);
+        let opacity = opacity_when(disabled, style.opacity, style.disabled_opacity);
 
         let button = interaction
             .attach(rect(), enabled)
@@ -187,7 +189,7 @@ impl Component for Stepper {
     fn render(&self) -> impl IntoElement {
         let interaction = use_interaction();
         let style: StepperStyle = resolve(&self.style);
-        let disabled = self.disabled;
+        let disabled = use_disabled(self.disabled);
         let state = control_state(interaction, disabled);
         let paints = Paints::current(state, style.effect);
         let value = crate::controlled::use_controlled(&self.value);
@@ -450,7 +452,8 @@ impl Component for Toggle {
     fn render(&self) -> impl IntoElement {
         let style: ToggleGroupStyle = resolve(&self.style);
         let interaction = use_interaction();
-        let state = control_state(interaction, false);
+        let disabled = !use_is_enabled();
+        let state = control_state(interaction, disabled);
         let paints = Paints::current(state, style.effect);
         let on = self.on;
         let on_press = self.on_press.clone();
@@ -470,7 +473,7 @@ impl Component for Toggle {
             .corner_radius(width, height, LayoutDirection::LeftToRight);
 
         let toggle = interaction
-            .attach(rect(), true)
+            .attach(rect(), !disabled)
             .a11y_role(AccessibilityRole::Button)
             .a11y_alt(&*self.label)
             .a11y_builder(move |node| node.set_toggled(on.into()))
@@ -479,7 +482,7 @@ impl Component for Toggle {
             .corner_radius(radius)
             .center()
             .painted(&paints, paint)
-            .on_press(move |_| on_press.call(()))
+            .maybe(!disabled, |el| el.on_press(move |_| on_press.call(())))
             .child(
                 paragraph()
                     .font_family(font.family)

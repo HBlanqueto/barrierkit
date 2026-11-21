@@ -24,14 +24,16 @@ know the kit's shape.
 | `@State var count = 0` | `let mut count = use_state(\|\| 0)`; `count.read()`, `count.set(v)`, `*count.write() += 1` | [`counter.rs`](../../agents/recipes/counter.rs) |
 | `@Binding`, `$text` on a text field | pass the `State<String>`; the field edits it | [`binding.rs`](../../agents/recipes/binding.rs) |
 | `@Binding`, `$on` on any other control | pass the value and handle the change | [`toggle.rs`](../../agents/recipes/toggle.rs) |
-| `@Environment`, `.environment(_:_:)` | `use_provide_context(\|\| value)` above, `use_consume::<T>()` below | [`environment.rs`](../../agents/recipes/environment.rs) |
+| `@Environment`, `.environment(_:_:)` | `.environment(value)` above, `use_environment::<T>()` below | [`environment.rs`](../../agents/recipes/environment.rs) |
+| `.disabled(_:)`, `\.isEnabled` | `.disabled(bool)` on any view, `use_is_enabled()` | [`disabled.rs`](../../agents/recipes/disabled.rs) |
 | `@Observable` | a `Copy` struct of `State`s, given as a context | [`observable.rs`](../../agents/recipes/observable.rs) |
-| `@FocusState`, `.focused($f)` | `use_a11y()`, `.a11y_id(id)`, `id.request_focus()` | [`focus_state.rs`](../../agents/recipes/focus_state.rs) |
+| `@FocusState`, `.focused($f, equals:)`, `.defaultFocus` | `use_focus_state::<T>()`, `.focused(state, value)`, `state.set(Some(value))`, `.default_focus(state, value)` | [`focus_state.rs`](../../agents/recipes/focus_state.rs) |
 | `ForEach(items, id: \.id)` | `.children(iter.map(..))` and `.key(id)` | [`for_each.rs`](../../agents/recipes/for_each.rs), [`stopwatch.rs`](../../agents/recipes/stopwatch.rs) |
 | `List { ForEach(mail) { MailRow($0) } }`, `TableColumn("On") { Toggle(..) }` | `List::new(label, names).row(\|index\| view)`, `Table::cell(column, \|row\| view)` | [`list_rows.rs`](../../agents/recipes/list_rows.rs) |
 | `if` and `else` in a view builder | a Rust `if`, `.maybe_child(opt)`, `.into_element()` | [`if_else.rs`](../../agents/recipes/if_else.rs) |
 | `let onSave: () -> Void` in a view | a `Callback<A, R>` field, built from any closure | [`callback.rs`](../../agents/recipes/callback.rs) |
-| `.commands`, `.keyboardShortcut` | `Action`, `MainMenu`, `use_menu_action` | [`actions.rs`](../../agents/recipes/actions.rs) |
+| `.commands`, `.keyboardShortcut` on a menu item | `Action`, `MainMenu`, `use_menu_action` | [`actions.rs`](../../agents/recipes/actions.rs) |
+| `.keyboardShortcut` on a `Button` | `Button::keyboard_shortcut(Shortcut)` | [`keyboard_shortcut.rs`](../../agents/recipes/keyboard_shortcut.rs) |
 | `.onAppear`, `.onDisappear`, `.onChange`, `.task` | [`use_hook`, `use_drop`, `use_side_effect_with_deps`, `use_future`](#effects) | none |
 
 ## State and bindings
@@ -58,10 +60,15 @@ other control takes its value and a callback
 
 ## Environment
 
-A context is found by its type, in the view or the nearest ancestor that
-provides it. `use_provide_context` keeps one value for the life of the view,
-and `use_consume` returns the same value on every later render; it panics when
-no ancestor provides the type. A value that changes needs a `State` inside it.
+`.environment(value)` puts a value in the environment of a view, and `use_environment::<T>()` reads the nearest one below it. The type is the key, so an app wraps a `bool` or a `String` in its own type. `T` is `Clone + PartialEq + Default`: the default is what a reader gets when no view above provides one.
+
+The scope keeps a `State` and writes the new value in its render, so a view that read the value renders again when it changes. Put the modifier after the children, as in SwiftUI.
+
+✓ [`environment.rs`](../../agents/recipes/environment.rs).
+
+A context by type is the level below. `use_provide_context` keeps one value for the life of the view, and `use_consume` returns the same value on every later render; it panics when no ancestor provides the type. A value that changes needs a `State` inside it ([observation](#observation)).
+
+A popup, a menu, a tooltip and a sheet are other window runners: they read nothing from the view that opened them.
 
 The built-in keys have their own readers:
 
@@ -70,7 +77,20 @@ The built-in keys have their own readers:
 | `\.colorScheme`, contrast, accent | `Palette::current()`, `theme::resolved()`; `use_appearance(..)` overrides them for a subtree ([4](04-appearance-and-tokens.md)) |
 | `\.controlSize` | `.control_size(ControlSize)` on a view |
 | `\.accessibilityReduceMotion` | `use_reduced_motion()` |
-| `\.isEnabled`, `\.font`, `\.foregroundStyle` | set on each element; a `Text` keeps its own color ([`styles.md`](../../agents/styles.md)) |
+| `\.isEnabled` | `use_is_enabled()`; `.disabled(bool)` on a view ([disabled](#disabled)) |
+| `\.font`, `\.foregroundStyle` | set on each element; a `Text` keeps its own color ([`styles.md`](../../agents/styles.md)) |
+
+## Disabled
+
+`.disabled(bool)` takes any view. A control inside it is disabled when its own `.disabled` or any view above it says so, and `.disabled(false)` enables nothing that an outer view disabled. The scope stays in the tree when the flag changes, so what is inside keeps its state.
+
+A disabled control draws and behaves as the one with its own flag: no callbacks, not focusable, announced as disabled. `MenuButton`, `ComboButton`, `HelpLink`, `Link` and the items of `ToggleGroup` stop reacting and are announced as disabled, but are not dimmed: their disabled look is not measured. These views do not follow it yet: the rows of `List`, `Table`, `OutlineView` and `CollectionView`, tabs, sidebar items, the media controls, the indicators, `ImageWell`, `TokenField` and `TextEditor`.
+
+```swift
+// ✗ TextField(..).disabled(saving); Button("Save").disabled(saving)   // one call per control
+```
+
+✓ [`disabled.rs`](../../agents/recipes/disabled.rs): one `.disabled(saving)` on the stack.
 
 ## Observation
 
@@ -83,13 +103,17 @@ it in the render (its fields are hooks), and give it to `use_provide_context`.
 
 ## Focus
 
-`use_a11y()` returns an id that the view owns. A control that takes the id
-becomes the focus target, `id.request_focus()` moves the focus to it, and
-`use_focus(id)` reads its focus state. Only `SearchField` takes an id;
-`TextField` and `SecureField` have `.auto_focus(bool)`. There is no enum of
-fields.
+`use_focus_state::<T>()` returns a `FocusState<T>`. It is `Copy`; `T` is your enum of fields (`Clone + PartialEq`). `.focused(state, value)` on a view registers the controls inside it under `value`: the text fields (`TextField`, `SecureField`, `SearchField`, `TextEditor`, `ComboBox`, `TokenField`) and every other control the kit draws with `use_interaction`.
+
+- `state.get()` returns the value of the focused control, or `None`, and subscribes the view.
+- `state.set(Some(value))` moves the focus to the first control registered under `value`; `state.set(None)` takes it off.
+- `.default_focus(state, value)` on the view that holds the fields focuses `value` once, after the view has appeared.
+
+`get` follows the window's focus, so after `set` it changes in the next pass, not at once. The `value` of `.focused` is read when the view mounts: a control whose value changes needs a new `.key(..)`.
 
 ✓ [`focus_state.rs`](../../agents/recipes/focus_state.rs).
+
+Below this level, `use_a11y()` returns an id that the view owns. A control that takes the id becomes the focus target, `id.request_focus()` moves the focus to it, and `use_focus(id)` reads its focus state. Only `SearchField` takes an id.
 
 ## Loops and conditions
 
@@ -130,6 +154,10 @@ receives every id: compare it with the action's `.id`.
 ```
 
 ✓ [`actions.rs`](../../agents/recipes/actions.rs).
+
+A button takes its own shortcut: `Button::keyboard_shortcut(Shortcut)` calls `on_press` when the key is pressed in the window, while the button is enabled. A key that a menu item of the window carries goes to the menu and never reaches the button, and a shortcut without a modifier also fires while a text field has the focus.
+
+✓ [`keyboard_shortcut.rs`](../../agents/recipes/keyboard_shortcut.rs).
 
 ## Effects
 

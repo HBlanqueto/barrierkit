@@ -6,6 +6,7 @@ use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
 use crate::context_menu::edit_menu;
 use crate::controls::{default_pre_key, dimmed, input, outer_hairline, shadowed, text_style};
 use crate::elements::{Overrides, forward_overrides};
+use crate::focus::use_focus_target;
 use crate::style::with_font;
 use crate::styles::Painted;
 use crate::styles::{ControlState, LayoutDirection, Paints, Theme, TokenFieldStyle, resolve};
@@ -120,6 +121,7 @@ impl Component for TokenField {
         let mut draft = use_state(String::new);
         let mut chosen = use_state(|| None::<usize>);
         let input_id = use_hook(AccessibilityId::new_unique);
+        use_focus_target(input_id);
         let state = ControlState::default();
         let margin_y = (style.height - style.font.line_height as f32) / 2.0;
         let input = input(

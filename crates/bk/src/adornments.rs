@@ -7,6 +7,7 @@ use torin::prelude::{Gaps, Size};
 
 use crate::controls::{dimmed, shadowed};
 use crate::elements::{Overrides, forward_container, forward_overrides};
+use crate::environment::use_is_enabled;
 use crate::interaction::{control_state, use_interaction};
 use crate::style::{text, with_font};
 use crate::styles::Painted;
@@ -177,13 +178,14 @@ impl Component for Link {
     fn render(&self) -> impl IntoElement {
         let style: LinkStyle = resolve(&self.style);
         let interaction = use_interaction();
-        let paints = Paints::current(control_state(interaction, false), style.effect);
+        let disabled = !use_is_enabled();
+        let paints = Paints::current(control_state(interaction, disabled), style.effect);
         let on_press = self.on_press.clone();
         let link = interaction
-            .attach(rect(), true)
+            .attach(rect(), !disabled)
             .a11y_role(AccessibilityRole::Link)
             .a11y_alt(&*self.text)
-            .map(on_press, |el, on_press| {
+            .map(on_press.filter(|_| !disabled), |el, on_press| {
                 el.on_press(move |_| on_press.call(()))
             })
             .child(

@@ -5,6 +5,7 @@ use torin::prelude::{Alignment, Area, Direction, Gaps, Size};
 
 use crate::controls::{dimmed, shadowed};
 use crate::elements::{Overrides, forward_overrides};
+use crate::environment::use_is_enabled;
 use crate::i18n::text;
 use crate::interaction::{control_state, use_interaction};
 use crate::menu::MenuItem;
@@ -81,7 +82,8 @@ impl Component for MenuButton {
     fn render(&self) -> impl IntoElement {
         let style: MenuButtonStyle = resolve(&self.style);
         let interaction = use_interaction();
-        let state = control_state(interaction, false);
+        let disabled = !use_is_enabled();
+        let state = control_state(interaction, disabled);
         let paints = Paints::current(state, style.effect);
         let mut area = use_state(Area::default);
         let items = self.items.clone();
@@ -92,7 +94,7 @@ impl Component for MenuButton {
                 .shape
                 .corner_radius(style.height, style.height, LayoutDirection::LeftToRight);
         let button = interaction
-            .attach(rect(), true)
+            .attach(rect(), !disabled)
             .a11y_role(AccessibilityRole::Button)
             .a11y_alt(&*self.label)
             .a11y_builder(|node| node.set_has_popup(accesskit::HasPopup::Menu))
@@ -117,6 +119,9 @@ impl Component for MenuButton {
             .spacing(style.chevron_gap)
             .on_sized(move |event: Event<SizedEventData>| area.set_if_modified(event.area))
             .on_press(move |_| {
+                if disabled {
+                    return;
+                }
                 let field = *area.peek();
                 let on_activate = on_activate.clone();
                 open_popover_menu(
@@ -214,9 +219,10 @@ impl Component for ComboButton {
         let style: ComboButtonStyle = resolve(&self.style);
         let action = use_interaction();
         let arrow = use_interaction();
+        let disabled = !use_is_enabled();
         let group = Paints::current(ControlState::default(), style.effect);
-        let action_paints = Paints::current(control_state(action, false), style.effect);
-        let arrow_state = control_state(arrow, false);
+        let action_paints = Paints::current(control_state(action, disabled), style.effect);
+        let arrow_state = control_state(arrow, disabled);
         let arrow_paints = Paints::current(arrow_state, style.effect);
         let mut area = use_state(Area::default);
         let items = self.items.clone();
@@ -227,14 +233,14 @@ impl Component for ComboButton {
                 .shape
                 .corner_radius(style.height, style.height, LayoutDirection::LeftToRight);
         let primary = action
-            .attach(rect(), true)
+            .attach(rect(), !disabled)
             .a11y_role(AccessibilityRole::Button)
             .a11y_alt(&*self.label)
             .height(Size::fill())
             .padding(Gaps::new(0.0, style.padding_x, 0.0, style.padding_x))
             .center()
             .painted(&action_paints, &style.segment)
-            .map(on_press, |el, on_press| {
+            .map(on_press.filter(|_| !disabled), |el, on_press| {
                 el.on_press(move |_| on_press.call(()))
             })
             .child(
@@ -243,7 +249,7 @@ impl Component for ComboButton {
                     .color(action_paints.fill(&style.label)),
             );
         let menu = arrow
-            .attach(rect(), true)
+            .attach(rect(), !disabled)
             .a11y_role(AccessibilityRole::Button)
             .a11y_alt(text!("more-options"))
             .a11y_builder(|node| node.set_has_popup(accesskit::HasPopup::Menu))
@@ -257,6 +263,9 @@ impl Component for ComboButton {
             .center()
             .painted(&arrow_paints, &style.segment)
             .on_press(move |_| {
+                if disabled {
+                    return;
+                }
                 let field = *area.peek();
                 let on_activate = on_activate.clone();
                 open_popover_menu(
@@ -340,7 +349,8 @@ impl Component for HelpLink {
     fn render(&self) -> impl IntoElement {
         let style: HelpLinkStyle = resolve(&self.style);
         let interaction = use_interaction();
-        let paints = Paints::current(control_state(interaction, false), style.effect);
+        let disabled = !use_is_enabled();
+        let paints = Paints::current(control_state(interaction, disabled), style.effect);
         let scale = crate::animation::use_animated(
             if interaction.pressed() {
                 style.pressed_scale
@@ -355,7 +365,7 @@ impl Component for HelpLink {
             .shape
             .corner_radius(size, size, LayoutDirection::LeftToRight);
         let button = interaction
-            .attach(rect(), true)
+            .attach(rect(), !disabled)
             .a11y_role(AccessibilityRole::Button)
             .a11y_alt(text!("help"))
             .width(Size::px(size))
@@ -365,7 +375,7 @@ impl Component for HelpLink {
             .painted(&paints, &style.background)
             .bordered(&paints, style.border.as_ref())
             .maybe(scale != 1.0, |el| el.scale(scale))
-            .map(on_press, |el, on_press| {
+            .map(on_press.filter(|_| !disabled), |el, on_press| {
                 el.on_press(move |_| on_press.call(()))
             })
             .child(stroked_symbol(

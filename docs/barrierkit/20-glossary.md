@@ -265,6 +265,15 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `modifiers::StyleModifiers` | trait | `View` modifiers | — | Style modifiers for every view | [Styles](../../agents/styles.md#levels) |
 | `modifiers::StyleModifiers::control_size` | method | `.controlSize(_:)` | `NSControl.controlSize` | Sizes every control inside the view; a control's own `.size(..)` wins | [5](05-controls.md#control-size) |
 | `modifiers::StyleModifiers::control_style` | method | ≈ `.buttonStyle(_:)`, `.toggleStyle(_:)` | — | Changes the style of every control of that style inside the view | [Styles](../../agents/styles.md#levels) |
+| `modifiers::EnvironmentModifiers` | trait | `View` modifiers | — | Modifiers that put a value in the environment of a view: `disabled`, `environment`, `focused`, `default_focus` | [16](16-swiftui-to-the-kit.md#environment) |
+| `modifiers::EnvironmentModifiers::disabled` | method | `.disabled(_:)` | `NSControl.isEnabled` | Disables every control inside the view; its own `.disabled` and every view above add up, and `false` enables nothing | [16](16-swiftui-to-the-kit.md#disabled) |
+| `modifiers::EnvironmentModifiers::environment` | method | `.environment(_:_:)` | — | Gives the view's subtree a value of type `T`; a view that reads it with `use_environment::<T>()` renders again when it changes | [16](16-swiftui-to-the-kit.md#environment) |
+| `modifiers::EnvironmentModifiers::focused` | method | `.focused(_:equals:)` | — | Registers the controls inside the view under a value of a `FocusState` | [16](16-swiftui-to-the-kit.md#focus) |
+| `modifiers::EnvironmentModifiers::default_focus` | method | `.defaultFocus(_:_:)` | ≈ `NSWindow.initialFirstResponder` | Focuses the control registered under the value once the view has appeared | [16](16-swiftui-to-the-kit.md#focus) |
+| `environment::use_environment` | fn | `@Environment` | — | Hook: the value of type `T` of the nearest `.environment(..)`, or `T::default()`; the view renders again when it changes | [16](16-swiftui-to-the-kit.md#environment) |
+| `environment::use_is_enabled` | fn | `\.isEnabled` | `NSControl.isEnabled` | `false` inside a view that `.disabled(true)` disabled | [16](16-swiftui-to-the-kit.md#disabled) |
+| `focus::FocusState` | struct | `FocusState` | ≈ `NSWindow.firstResponder` | Names the focus targets of a window: `get()` is the focused value, `set(Some(v))` moves the focus there, `set(None)` takes it off | [16](16-swiftui-to-the-kit.md#focus) |
+| `focus::use_focus_state` | fn | `@FocusState` | — | Hook: creates a `FocusState<T>` | [16](16-swiftui-to-the-kit.md#focus) |
 | `modifiers::ViewModifiers::foreground_style` | method | `.foregroundStyle(_:)` | ≈ `NSTextField.textColor` | Text color of `Text`, `label` or `paragraph` from a `ShapeStyle` | [Styles](../../agents/styles.md#paint-on-views) |
 | `modifiers::ViewModifiers::background_style` | method | `.background(_:ignoresSafeAreaEdges:)`; Freya already uses `background` | ≈ `NSView.layer.backgroundColor` | Background of a view from a `ShapeStyle`, with blur for a material | [Styles](../../agents/styles.md#paint-on-views) |
 | `modifiers::ViewModifiers::shadows` | method | ≈ `.shadow(color:radius:x:y:)`; Freya already uses `shadow` | ≈ `NSView.shadow` | Adds a list of `ShadowStyle` to a view | [Styles](../../agents/styles.md#paint-on-views) |
@@ -870,6 +879,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `combo_box::ComboBox::size` | method | ≈ `.controlSize(_:)` | `NSControl.controlSize` | Height, font, arrow button and chevron of one combo box | [5](05-controls.md#control-size) |
 | `styles::TextFieldStyle::plain` | method | `TextFieldStyle.plain` | `NSTextField.isBezeled` `false` | Preset: no bezel or fill, 16 high | [Styles](../../crates/bk/src/styles/text_field.rs) |
 | `controls::Button::size` | method | ≈ `.controlSize(_:)` | `NSControl.controlSize` | Height, padding, font and corners of one button | [5](05-controls.md#control-size) |
+| `controls::Button::keyboard_shortcut` | method | `.keyboardShortcut(_:modifiers:)` | `NSButton.keyEquivalent` | Calls `on_press` on a `Shortcut` while the button is enabled; a menu item with the same key wins | [5](05-controls.md#buttons) |
 | `popup_button::PopUpButton::size` | method | ≈ `.controlSize(_:)` | `NSControl.controlSize` | Size of one pop-up or pull-down button | [5](05-controls.md#control-size) |
 | `controls::SegmentedControl::size` | method | ≈ `.controlSize(_:)` | `NSControl.controlSize` | Size of one segmented control | [5](05-controls.md#control-size) |
 | `controls::Checkbox::size` | method | ≈ `.controlSize(_:)` | `NSControl.controlSize` | Size of one checkbox | [5](05-controls.md#control-size) |

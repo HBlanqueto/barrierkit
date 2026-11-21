@@ -379,6 +379,10 @@ backdrop; width × height or height):
 |---|---|---|---|---|---|
 | `.controlSize(_:)` as an environment value | `controlSize` per control | `StyleModifiers::control_size` (a style scope), `.size(ControlSize)` per instance | `measured` | bench family `buttons`: `push-*`, `check-*`, `switch-*` are built through `.control_size`; [Control sizes][m-control-sizes] | — |
 | `.mini`, `.extraLarge` | `.mini`, `.extraLarge` | `ControlSize::Mini`, `ExtraLarge` | `measured` | bench family `buttons`; [Control sizes][m-control-sizes] | — |
+| `.disabled(_:)` on a view, `\.isEnabled` | `NSControl.isEnabled` | `EnvironmentModifiers::disabled`, `use_is_enabled`; the 19 controls with `.disabled` follow it | `implemented`: a disabled container draws its controls as their own flag does (kit test `ambient`, light and dark); `MenuButton`, `ComboButton`, `HelpLink`, `Link` and `ToggleGroup` go inert and are not dimmed (not measured); lists, tables, tabs and the other views do not follow it | kit test `ambient`; [ADR 0087](../decisions.md) | P2 |
+| `.environment(_:_:)`, `@Environment` | — | `EnvironmentModifiers::environment`, `use_environment` | `implemented`: readers render again when the value changes; popups and sheets read nothing from the view that opened them | kit test `ambient` | — |
+| `.keyboardShortcut` on a button | `NSButton.keyEquivalent` | `Button::keyboard_shortcut` | `partial`: the key calls `on_press` while the button is enabled; a menu item with the same key wins; no default-button look, no `defaultAction` or `cancelAction` constants | kit test `focus_by_name` | P2 |
+| `FocusState`, `.focused(_:equals:)`, `.defaultFocus` | `makeFirstResponder`, `initialFirstResponder` | `FocusState`, `use_focus_state`, `EnvironmentModifiers::focused`, `default_focus` | `partial`: moves and reads focus by name over the text inputs and the controls built on `use_interaction`; no `focusScope`, `focusedValue` or `isFocused` | kit test `focus_by_name` | P2 |
 
 The size of each control is a row in its own family.
 

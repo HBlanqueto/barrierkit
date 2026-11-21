@@ -2,6 +2,8 @@ use ctdesign::{ControlSize, Rgba};
 use freya_core::prelude::*;
 use std::borrow::Cow;
 
+use crate::environment::{DisabledScope, EnvironmentScope};
+use crate::focus::{DefaultFocus, FocusState, Focused};
 use crate::menu::MenuItem;
 use crate::styles::Painted;
 use crate::styles::{
@@ -70,3 +72,31 @@ pub trait StyleModifiers: IntoElement + Sized {
 }
 
 impl<T: IntoElement> StyleModifiers for T {}
+
+pub trait EnvironmentModifiers: IntoElement + Sized {
+    fn disabled(self, disabled: bool) -> impl IntoElement {
+        DisabledScope::new(disabled, self)
+    }
+
+    fn environment<T: Clone + PartialEq + 'static>(self, value: T) -> impl IntoElement {
+        EnvironmentScope::new(value, self)
+    }
+
+    fn focused<T: Clone + PartialEq + 'static>(
+        self,
+        state: FocusState<T>,
+        value: T,
+    ) -> impl IntoElement {
+        Focused::new(state, value, self)
+    }
+
+    fn default_focus<T: Clone + PartialEq + 'static>(
+        self,
+        state: FocusState<T>,
+        value: T,
+    ) -> impl IntoElement {
+        DefaultFocus::new(state, value, self)
+    }
+}
+
+impl<T: IntoElement> EnvironmentModifiers for T {}

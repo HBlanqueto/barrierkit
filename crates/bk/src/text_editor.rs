@@ -8,6 +8,7 @@ use torin::prelude::{Alignment, Area, Content, CursorPoint, Direction, Gaps, Siz
 use crate::compact::IconButton;
 use crate::controls::{Button, ControlSize, SearchField};
 use crate::elements::{Overrides, forward_overrides};
+use crate::focus::use_focus_target;
 use crate::font_panel::show_font_panel;
 use crate::i18n::text;
 use crate::rich_text::{
@@ -110,6 +111,7 @@ impl Component for TextEditor {
     fn render(&self) -> impl IntoElement {
         let style: TextEditorStyle = resolve(&self.style);
         let a11y_id = use_hook(AccessibilityId::new_unique);
+        use_focus_target(a11y_id);
         let focused = use_focus(a11y_id).read().is_focused();
         let holder = use_state(ParagraphHolder::default);
         let mut area = use_state(Area::default);

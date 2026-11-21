@@ -1,6 +1,6 @@
 use bk::prelude::*;
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Default)]
 struct Account {
     name: &'static str,
 }
@@ -10,7 +10,7 @@ struct Profile;
 
 impl Component for Profile {
     fn render(&self) -> impl IntoElement {
-        let account = use_consume::<Account>();
+        let account: Account = use_environment();
         Text::new(format!("Signed in as {}", account.name))
     }
 }
@@ -18,8 +18,17 @@ impl Component for Profile {
 fn main() -> Result<(), RunError> {
     Application::new("environment")
         .window("Environment", || {
-            use_provide_context(|| Account { name: "Ana" });
-            VStack::new().child(Profile)
+            let mut ana = use_state(|| true);
+            let account = Account {
+                name: if *ana.read() { "Ana" } else { "Luis" },
+            };
+            VStack::new()
+                .child(Profile)
+                .child(Button::new("Switch").on_press(move |_| {
+                    let now = *ana.peek();
+                    ana.set(!now);
+                }))
+                .environment(account)
         })
         .run()
 }

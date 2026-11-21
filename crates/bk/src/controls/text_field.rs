@@ -82,8 +82,8 @@ impl Component for SecureField {
     fn render(&self) -> impl IntoElement {
         let interaction = use_interaction();
         let style: SecureFieldStyle = resolve(&self.style);
-        let state = control_state(interaction, self.disabled);
-        let disabled = self.disabled;
+        let disabled = use_disabled(self.disabled);
+        let state = control_state(interaction, disabled);
         let paints = Paints::current(state, style.effect);
         let mut field = self.field;
         let on_submit = self.on_submit.clone();
@@ -232,12 +232,14 @@ impl Component for TextField {
     fn render(&self) -> impl IntoElement {
         let style: TextFieldStyle = resolve(&self.style);
         let field = use_hook(AccessibilityId::new_unique);
+        use_focus_target(field);
         let focus = use_focus(field);
+        let disabled = use_disabled(self.disabled);
         let mut hovered = use_state(|| false);
         let state = ControlState {
             hovered: *hovered.read(),
             focused: !matches!(*focus.read(), Focus::Not),
-            disabled: self.disabled,
+            disabled,
             ..ControlState::default()
         };
         let paints = Paints::current(state, style.effect);
@@ -251,7 +253,7 @@ impl Component for TextField {
             self.value,
             self.placeholder.clone(),
             [
-                if self.disabled {
+                if disabled {
                     Rgba::TRANSPARENT
                 } else {
                     ink(&style.background)
@@ -265,7 +267,7 @@ impl Component for TextField {
             Gaps::new(margin_y, style.padding_x, margin_y, style.padding_x),
         )
         .height(Size::px(style.height))
-        .enabled(!self.disabled)
+        .enabled(!disabled)
         .auto_focus(self.auto_focus);
         let input = match self.on_submit.clone() {
             Some(on_submit) => input.on_submit(move |text: String| on_submit.call(text)),
@@ -308,9 +310,7 @@ impl Component for TextField {
                 .width(Size::fill())
                 .corner_radius(radius)
                 .border(outer_hairline(ink(&style.border)))
-                .maybe(self.disabled, |el| {
-                    el.background(color(ink(&style.background)))
-                })
+                .maybe(disabled, |el| el.background(color(ink(&style.background))))
                 .map(paints.blur(&style.background), |el, blur| {
                     el.corner_radius(radius).backdrop_blur(blur)
                 })
@@ -454,17 +454,18 @@ impl Component for SearchField {
         let gap = style.icon_gap;
         let height = style.height;
         let a11y_id = use_hook(|| self.a11y_id.unwrap_or_else(AccessibilityId::new_unique));
+        use_focus_target(a11y_id);
         let focus = use_focus(a11y_id);
+        let disabled = use_disabled(self.disabled);
         let mut hovered = use_state(|| false);
         let state = ControlState {
             hovered: *hovered.read(),
             focused: !matches!(*focus.read(), Focus::Not),
-            disabled: self.disabled,
+            disabled,
             ..ControlState::default()
         };
         let paints = Paints::current(state, style.effect);
         let ink = |paint: &StateValue<ShapeStyle>| paints.color(paint.resolve(state));
-        let disabled = self.disabled;
         let on_focus_change = use_reactive(&self.on_focus_change);
         let mut reported = use_state(|| false);
         use_side_effect(move || {

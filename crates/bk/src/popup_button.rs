@@ -14,6 +14,7 @@ use torin::prelude::{Alignment, Area, Direction, Gaps, Size};
 use crate::choices::use_choice;
 use crate::controls::{dimmed, opacity_when, shadowed};
 use crate::elements::{Overrides, forward_overrides};
+use crate::environment::use_disabled;
 use crate::interaction::{control_state, use_interaction};
 use crate::menu::{CheckState, MenuIcon, MenuItem, MenuView};
 use crate::platform::{
@@ -114,7 +115,8 @@ impl Component for PopUpButton {
     fn render(&self) -> impl IntoElement {
         let style: PopUpButtonStyle = resolve(&self.style);
         let interaction = use_interaction();
-        let state = control_state(interaction, self.disabled);
+        let disabled = use_disabled(self.disabled);
+        let state = control_state(interaction, disabled);
         let paints = Paints::current(state, style.effect);
         let choice = use_choice(Some(self.selected), self.on_change.clone());
         let mut area = use_state(Area::default);
@@ -171,7 +173,7 @@ impl Component for PopUpButton {
             ));
 
         let button = interaction
-            .attach(rect(), !self.disabled)
+            .attach(rect(), !disabled)
             .a11y_role(AccessibilityRole::ComboBox)
             .a11y_alt(&*self.label)
             .height(Size::px(style.height))
@@ -182,7 +184,7 @@ impl Component for PopUpButton {
             .cross_align(Alignment::Center)
             .spacing(style.gap)
             .on_sized(move |event: Event<SizedEventData>| area.set_if_modified(event.area))
-            .maybe(!self.disabled, |button| {
+            .maybe(!disabled, |button| {
                 button.on_press(move |_| {
                     let mut content = *area.read();
                     content.origin.x += leading_padding;
@@ -218,7 +220,7 @@ impl Component for PopUpButton {
                 .color(paints.fill(&style.label)),
             )
             .child(shadowed(indicator, &style.indicator_shadows));
-        let opacity = opacity_when(self.disabled, style.opacity, style.disabled_opacity);
+        let opacity = opacity_when(disabled, style.opacity, style.disabled_opacity);
         let root = interaction.focus_ring(dimmed(button, opacity), radius.top_left());
         self.overrides.apply(root)
     }

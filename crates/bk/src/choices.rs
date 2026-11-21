@@ -1,4 +1,5 @@
 use crate::elements::{Overrides, forward_overrides};
+use crate::environment::use_disabled;
 use crate::i18n::text;
 use std::borrow::Cow;
 
@@ -180,6 +181,7 @@ impl Component for RadioGroup {
         let style: RadioGroupStyle = resolve(&self.style);
         let choice = use_choice(Some(self.selected), self.on_change.clone());
         let keyed = use_state(|| false);
+        let disabled = use_disabled(self.disabled);
         let options = self.options.iter().enumerate().map(|(index, text)| {
             RadioOption {
                 text: text.clone(),
@@ -192,7 +194,7 @@ impl Component for RadioGroup {
             .into_element()
         });
         let group = choice_group(&self.label, style.axis, style.spacing, false, options);
-        let root = if self.disabled {
+        let root = if disabled {
             group
         } else {
             choice.arrow_keys(group, self.options.len(), keyed)
@@ -216,13 +218,14 @@ impl Component for RadioOption {
         let style: RadioGroupStyle = resolve(&self.style);
         let interaction = use_interaction();
         take_focus_when(interaction, self.take_focus);
-        let state = control_state(interaction, self.disabled);
+        let disabled = use_disabled(self.disabled);
+        let state = control_state(interaction, disabled);
         let paints = Paints::current(state, style.effect);
         let direction = style.layout_direction;
         let size = style.button_size;
         let dot = style.dot_size;
         let selected = self.selected;
-        let enabled = !self.disabled;
+        let enabled = !disabled;
         let on_select = self.on_select.clone();
         let radius = style.button_shape.corner_radius(size, size, direction);
         let paint = if selected {
@@ -253,7 +256,7 @@ impl Component for RadioOption {
                         .painted(&paints, &style.dot),
                 )
             });
-        let opacity = opacity_when(self.disabled, style.opacity, style.disabled_opacity);
+        let opacity = opacity_when(disabled, style.opacity, style.disabled_opacity);
         let circle = interaction.focus_ring(
             dimmed(shadowed(circle, &style.button_shadows), opacity),
             radius.top_left(),
@@ -448,14 +451,15 @@ impl Component for Swatch {
     fn render(&self) -> impl IntoElement {
         let style: ColorWellStyle = resolve(&self.style);
         let interaction = use_interaction();
-        let state = control_state(interaction, self.disabled);
+        let disabled = use_disabled(self.disabled);
+        let state = control_state(interaction, disabled);
         let paints = Paints::current(state, style.effect);
         let size = style.swatch_size;
         let radius = style
             .swatch_shape
             .corner_radius(size, size, LayoutDirection::LeftToRight);
         let selected = self.selected;
-        let enabled = !self.disabled;
+        let enabled = !disabled;
         let on_select = self.on_select.clone();
 
         let mut dot =
@@ -514,7 +518,7 @@ impl Component for Swatch {
                 .max_lines(1)
                 .color(paints.fill(&style.name)),
             );
-        dimmed_when(column, self.disabled, style.opacity, style.disabled_opacity)
+        dimmed_when(column, disabled, style.opacity, style.disabled_opacity)
     }
 }
 
@@ -628,14 +632,15 @@ impl Component for Card {
     fn render(&self) -> impl IntoElement {
         let style: ChoiceCardsStyle = resolve(&self.style);
         let interaction = use_interaction();
-        let state = control_state(interaction, self.disabled);
+        let disabled = use_disabled(self.disabled);
+        let state = control_state(interaction, disabled);
         let paints = Paints::current(state, style.effect);
         let (width, height) = style.card_size;
         let radius = style
             .card_shape
             .corner_radius(width, height, LayoutDirection::LeftToRight);
         let selected = self.selected;
-        let enabled = !self.disabled;
+        let enabled = !disabled;
         let on_select = self.on_select.clone();
 
         let outline = style.card_border.as_ref().map(|border| {
@@ -691,6 +696,6 @@ impl Component for Card {
                     .max_lines(1)
                     .color(paints.fill(ink)),
             );
-        dimmed_when(column, self.disabled, style.opacity, style.disabled_opacity)
+        dimmed_when(column, disabled, style.opacity, style.disabled_opacity)
     }
 }

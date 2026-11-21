@@ -1,6 +1,7 @@
 use ctdesign::FOCUS_RING;
 use freya_core::prelude::*;
 
+use crate::focus::use_focus_target;
 use crate::platform::WindowControls;
 use crate::styles::ControlState;
 
@@ -14,6 +15,7 @@ pub struct Interaction {
 
 pub fn use_interaction() -> Interaction {
     let a11y_id = use_a11y();
+    use_focus_target(a11y_id);
     Interaction {
         a11y_id,
         hovered: use_state(|| false),

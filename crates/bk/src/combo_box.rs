@@ -8,6 +8,8 @@ use crate::controls::{
     ControlSize, default_pre_key, dimmed, input, outer_hairline, shadowed, text_style,
 };
 use crate::elements::{Overrides, forward_overrides};
+use crate::environment::use_disabled;
+use crate::focus::use_focus_target;
 use crate::menu::MenuItem;
 use crate::platform::PopupAnchor;
 use crate::popup_button::open_popover_menu;
@@ -77,18 +79,20 @@ impl Component for ComboBox {
         let mut area = use_state(Area::default);
         let items = self.items.clone();
         let field = use_hook(AccessibilityId::new_unique);
+        use_focus_target(field);
         let focus = use_focus(field);
+        let disabled = use_disabled(self.disabled);
         let mut hovered = use_state(|| false);
         let state = ControlState {
             hovered: *hovered.read(),
             focused: !matches!(*focus.read(), Focus::Not),
-            disabled: self.disabled,
+            disabled,
             ..ControlState::default()
         };
         let field_paints = Paints::current(state, field_style.effect);
         let ink = |paint: &StateValue<ShapeStyle>| field_paints.color(paint.resolve(state));
         let button_state = ControlState {
-            disabled: self.disabled,
+            disabled,
             ..ControlState::default()
         };
         let paints = Paints::current(button_state, style.effect);
@@ -136,7 +140,6 @@ impl Component for ComboBox {
             );
         };
         let opener = open.clone();
-        let disabled = self.disabled;
         let input = input.on_pre_key_down(move |event: Event<KeyboardEventData>| {
             if disabled {
                 event.stop_propagation();

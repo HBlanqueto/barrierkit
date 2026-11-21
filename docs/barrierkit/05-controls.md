@@ -70,7 +70,8 @@ Three controls keep no copy and only show what the app passes: `RatingIndicator`
   window is active.
 - Space or Enter press the focused button. The arrow keys move sliders, steppers,
   segments and radio options.
-- `.disabled(true)` dims the control and stops its callbacks.
+- `.disabled(true)` dims the control and stops its callbacks. On any view it does the same to every control inside
+  ([16](16-swiftui-to-the-kit.md#disabled)).
 - Controls with a fill take `.tint(Tint)` (`bk::backdrop::Tint`: `Accent`,
   `Color(Rgba)`, `Backdrop`; see [15](15-backdrops-and-media.md)).
 - Visible text in a real app comes from `tr!` ([17](17-languages.md)); examples here use
@@ -142,6 +143,7 @@ give one.
 | `.width(Size)` | `Size::auto()` | Fixed or fill width |
 | `.toggled(bool)` | not a toggle | Makes it a toggle; `true` takes the `bordered_prominent` look and reports `toggled` |
 | `.disabled(bool)` | `false` | Dims it, no `on_press` |
+| `.keyboard_shortcut(Shortcut)` | none | Calls `on_press` on that key while the button is enabled; a menu item with the same key wins |
 | `.on_press(\|_\| ..)` | — | Called on click, Space or Enter |
 
 The closure runs inside the button, on every render, so state it reads keeps the label current.

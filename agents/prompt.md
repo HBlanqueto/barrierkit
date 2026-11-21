@@ -80,7 +80,8 @@ version.
    of wrapping it, so the padding stays inside the background and outer space
    is `.margin` ([chapter 5](../docs/barrierkit/05-controls.md#modifiers-on-controls)).
    `StyleScope`, `Sheet`, `Alert`, `SidebarToggle` and `Titlebar` take none:
-   put them in a `rect()`. Call `.help` unconditionally: it uses a hook.
+   put them in a `rect()`. Call `.help` unconditionally: it uses a hook. `.disabled(bool)`, `.environment(value)`, `.focused(..)` and `.default_focus(..)`
+   wrap a view in a scope, as `.control_style` does: call them last.
 8. **No comments** except `// SAFETY:` on `unsafe` and one line explaining a
    non-obvious invariant. Names explain the code.
 9. **Build only inside `nix develop`.** Outside it, `build.rs` stops on
