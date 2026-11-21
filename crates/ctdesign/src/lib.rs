@@ -780,6 +780,10 @@ pub struct DatePickerMetrics {
     pub stepper_gap: f32,
     pub calendar_width: f32,
     pub calendar_height: f32,
+    pub card_left: f32,
+    pub card_top: f32,
+    pub card_right: f32,
+    pub card_bottom: f32,
     pub header_height: f32,
     pub weekday_height: f32,
     pub day_height: f32,
@@ -855,6 +859,15 @@ pub struct DisclosureMetrics {
     pub row_radius: f32,
     pub icon: f32,
     pub column_width: f32,
+    pub inset: f32,
+    pub lead: f32,
+    pub label_gap: f32,
+    pub separator_margin: f32,
+    pub list_chevron: f32,
+    pub list_chevron_stroke: f32,
+    pub list_chevron_x: f32,
+    pub list_chevron_open_x: f32,
+    pub list_chevron_open_y: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -996,10 +1009,6 @@ pub struct ScrollBarMetrics {
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ListGroupMetrics {
-    pub card_left: f32,
-    pub card_top: f32,
-    pub card_right: f32,
-    pub card_bottom: f32,
     pub radius: f32,
     pub row_min_height: f32,
     pub row_padding_x: f32,
@@ -1044,6 +1053,7 @@ pub struct TableMetrics {
     pub row_height: f32,
     pub header_height: f32,
     pub padding_x: f32,
+    pub plain_padding_x: f32,
     pub header_padding_x: f32,
     pub column_shift: f32,
     pub row_inset: f32,
@@ -1052,6 +1062,7 @@ pub struct TableMetrics {
     pub header_line: f32,
     pub header_separator: f32,
     pub zebra: f32,
+    pub zebra_contrast: [f32; 2],
     pub min_column_width: f32,
     pub resize_handle: f32,
     pub sorted_weight: u32,

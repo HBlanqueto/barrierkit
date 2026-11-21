@@ -196,6 +196,28 @@ The table keeps column widths and hidden columns itself and does not report
 them. Rows are `TABLE.row_height` (24) high, striped, and only the visible
 ones are built.
 
+The selected row is gray (`SelectedContentInactive`, the unemphasized
+selection of `NSTableView`) until the table has focus, then it takes the
+selection color with the label in `OnSelectedContent`. `OutlineView` and
+`Browser` do the same.
+
+### `List`
+
+One column of text rows without a header, like SwiftUI's `List` with the
+`.inset`, `.plain` and `.bordered` styles. It is a `Table` with a
+different `TableStyle`.
+
+| Method | Effect |
+|---|---|
+| `List::new(label, rows)` | `rows` are the strings of the rows; the default is the inset style |
+| `.selected(Vec<usize>)` | Selected rows |
+| `.on_select(callback)` | Receives the new selection, `Vec<usize>` |
+| `.style(\|_\| TableStyle::plain_list())` | `inset_list` (rows inset 10, rounded selection), `plain_list` (full width) or `bordered_list` (a hairline border) |
+| `.style(TableStyle::striped)` | Alternating rows, like `.inset(alternatesRowBackgrounds: true)`; it drops the separators |
+
+Rows are separated by a hairline from the start of the text to the end of the
+row. A selected row and its neighbors have none.
+
 ### `SortOrder`
 
 `SortOrder { column: usize, ascending: bool }`: the column index and the
@@ -261,18 +283,23 @@ fields are in [Styles and themes](../../crates/bk/src/styles/table.rs).
 
 ### `TreeNode`
 
-`TreeNode::new(title).icon(Symbol).child(TreeNode)`: one node of a tree. Its
-fields `title`, `icon` and `children` are public. A path is the list of child
-indices from the root: `[0, 1]` is the second child of the first node.
+`TreeNode::new(title).icon(Symbol).expanded(bool).child(TreeNode)`: one node of
+a tree. Its fields `title`, `icon`, `expanded` and `children` are public. A
+node with `expanded(true)` starts open. A path is the list of child indices
+from the root: `[0, 1]` is the second child of the first node.
 
 ### `OutlineView`
 
-`OutlineView::new(label, nodes).on_select(callback)`: the tree as indented
-rows with disclosure chevrons, like `NSOutlineView`. Rows are
-`DISCLOSURE.row_height` (24) high and each level indents 13. The view keeps
-which nodes are open. `on_select` receives the selected paths,
-`Vec<Vec<usize>>`; Ctrl+click and Shift+click work over the visible rows as in
-[`select`](#select).
+`OutlineView::new(label, nodes).selected(paths).on_select(callback)`: the tree
+as indented rows with disclosure chevrons, like SwiftUI's `OutlineGroup` in an
+inset `List`. Rows are `DISCLOSURE.row_height` (24) high, inset 10 from the
+view, and each level indents 13 inside the selection. `selected` is the
+selection the view starts with. The view keeps which nodes are open and which
+are selected. `on_select` receives the selected paths, `Vec<Vec<usize>>`;
+Ctrl+click and Shift+click work over the visible rows as in
+[`select`](#select). A hairline runs under each row from its title to the end
+of the row, except in the last top-level node, next to a selected row and
+under the last row.
 
 ### `Browser`
 
@@ -287,6 +314,7 @@ sideways. `on_select` receives the chosen path, `Vec<usize>`.
 |---|---|
 | `visible_rows(nodes, expanded)` | `(path, depth)` for each row shown when the paths in `expanded` are open |
 | `node_at(nodes, path)` | The node at `path`, or `None` |
+| `open_paths(nodes)` | The paths of the nodes marked `expanded` |
 
 ### Style
 

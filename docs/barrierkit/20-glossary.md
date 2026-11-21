@@ -312,6 +312,8 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `views::group::GroupBox::style` | method | `groupBoxStyle(_:)` | — | Changes the style of one group box | [Styles](../../crates/bk/src/styles/form.rs) |
 | `views::group::DisclosureGroup::style` | method | `disclosureGroupStyle(_:)` | — | Changes the style of one disclosure group | [Styles](../../crates/bk/src/styles/form.rs) |
 | `views::table::Table::style` | method | `tableStyle(_:)` | ≈ `NSTableView.style` | Changes the style of one table | [Styles](../../crates/bk/src/styles/table.rs) |
+| `styles::TableStyle::inset_list`, `plain_list`, `bordered_list` | fn | `.listStyle(.inset)`, `.plain`, `.bordered` | `NSTableView.Style.inset`, `.plain` | The styles of `List`: headerless rows with separators | [11](11-views.md#list) |
+| `styles::TableStyle::striped` | method | `.inset(alternatesRowBackgrounds: true)` | `NSTableView.usesAlternatingRowBackgroundColors` | Alternating rows without separators | [11](11-views.md#list) |
 | `views::collection::CollectionView::style` | method | — | — | Changes the style of one collection view | [Styles](../../crates/bk/src/styles/table.rs) |
 | `views::tree::OutlineView::style` | method | ≈ `listStyle(_:)` | — | Changes the style of one outline view | [Styles](../../crates/bk/src/styles/table.rs) |
 | `views::tree::Browser::style` | method | — | — | Changes the style of one browser | [Styles](../../crates/bk/src/styles/table.rs) |
@@ -976,6 +978,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 
 | BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
 |---|---|---|---|---|---|
+| `views::list::List` | struct | `List` | `NSTableView` without header | One column of text rows with separators and selection; `inset`, `plain` and `bordered` styles | [11](11-views.md#list) |
 | `views::table::Table` | struct | `Table` | `NSTableView` | Text rows in sortable, resizable, hideable columns with multiple selection | [11](11-views.md#table) |
 | `views::table::SortOrder` | struct | — | ≈ `NSTableView.sortDescriptors` | The sorted column index and direction; one column, not a list | [11](11-views.md#sortorder) |
 | `views::table::next_sort` | fn | — | — | The order a header click asks for: flip or start ascending | [11](11-views.md#table-helpers) |
@@ -985,6 +988,9 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `views::collection::select` | fn | — | — | Click selection rule: plain, Ctrl/Super toggle, Shift range | [11](11-views.md#select) |
 | `views::tree::TreeNode` | struct | — | ≈ `NSTreeNode` | A node with title, optional icon and children | [11](11-views.md#treenode) |
 | `views::tree::OutlineView` | struct | `OutlineGroup` | `NSOutlineView` | A tree as indented rows with disclosure chevrons | [11](11-views.md#outlineview) |
+| `views::tree::OutlineView::selected` | method | `List(selection:)` | `NSOutlineView.selectRowIndexes(_:byExtendingSelection:)` | The selection the view starts with, as paths | [11](11-views.md#outlineview) |
+| `views::tree::TreeNode::expanded` | method | `DisclosureGroup(isExpanded:)` | `NSOutlineView.expandItem(_:)` | A node that starts open | [11](11-views.md#treenode) |
+| `views::tree::open_paths` | fn | — | — | The paths of the nodes marked expanded | [11](11-views.md#tree-helpers) |
 | `views::tree::Browser` | struct | — | `NSBrowser` | A tree as Finder-style columns | [11](11-views.md#browser) |
 | `views::tree::visible_rows` | fn | — | — | Path and depth of each row shown for a set of open paths | [11](11-views.md#tree-helpers) |
 | `views::tree::node_at` | fn | — | — | The node at a path, or `None` | [11](11-views.md#tree-helpers) |

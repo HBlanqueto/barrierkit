@@ -26,16 +26,21 @@ case "$scene" in
         APPKIT_CONTENT=$(sed -n '1s/^# //p' "$APPKIT_LAYOUT")
         APPKIT_TAG=buttons
         ;;
+    lists | lists-contrast)
+        APPKIT_LAYOUT=$out/layout-lists.tsv
+        APPKIT_CONTENT=$(sed -n '1s/^# //p' "$APPKIT_LAYOUT")
+        APPKIT_TAG=lists
+        ;;
     menu | toolbar | sidebar)
         ;;
     *)
-        printf 'usage: %s controls|contrast|views|views-contrast|texts|texts-contrast|buttons|buttons-contrast|menu|toolbar|sidebar\n' "$0" >&2
+        printf 'usage: %s controls|contrast|views|views-contrast|texts|texts-contrast|lists|lists-contrast|buttons|buttons-contrast|menu|toolbar|sidebar\n' "$0" >&2
         exit 2
         ;;
 esac
 
 case "$scene" in
-    contrast | views-contrast | texts-contrast | buttons-contrast)
+    contrast | views-contrast | texts-contrast | lists-contrast | buttons-contrast)
         APPKIT_CONTRAST=1
         APPKIT_REDUCE=1
         APPKIT_TAG=${APPKIT_TAG:+$APPKIT_TAG-}hc
@@ -59,6 +64,14 @@ case "$scene" in
     texts | texts-contrast)
         cargo test -p bk --test kit --features bk/shell appkit_texts -- --ignored
         exec cargo test -p bk --test kit --features bk/shell appkit_focus -- --ignored
+        ;;
+    lists | lists-contrast)
+        light=ffffff
+        dark=1e1e1e
+        [ -z "${APPKIT_CONTRAST:-}" ] || dark=202020
+        APPKIT_MODE=light APPKIT_BG=$light cargo test -p bk --test kit --features bk/shell appkit_lists -- --ignored
+        APPKIT_MODE=dark APPKIT_BG=$dark cargo test -p bk --test kit --features bk/shell appkit_lists -- --ignored
+        exit
         ;;
     buttons | buttons-contrast)
         cargo test -p bk --test kit --features bk/shell appkit_buttons::appkit_buttons -- --ignored --exact

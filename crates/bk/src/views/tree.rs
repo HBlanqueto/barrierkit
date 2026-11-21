@@ -4,7 +4,7 @@ use std::rc::Rc;
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Direction, Gaps, Size};
 
-use crate::interaction::{track_modifiers, use_held_modifiers};
+use crate::interaction::{track_modifiers, use_held_modifiers, use_interaction};
 use crate::scroll::ScrollView;
 use crate::style::text;
 use crate::styles::Painted;
@@ -13,11 +13,13 @@ use crate::styles::{
 };
 use crate::symbol::{Symbol, stroked_symbol, symbol};
 use crate::views::collection::select;
+use crate::views::table::row_divider;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct TreeNode {
     pub title: String,
     pub icon: Option<Symbol>,
+    pub expanded: bool,
     pub children: Vec<TreeNode>,
 }
 
@@ -26,8 +28,14 @@ impl TreeNode {
         Self {
             title: title.into(),
             icon: None,
+            expanded: false,
             children: Vec::new(),
         }
+    }
+
+    pub fn expanded(mut self, expanded: bool) -> Self {
+        self.expanded = expanded;
+        self
     }
 
     pub fn icon(mut self, icon: Symbol) -> Self {
@@ -65,6 +73,22 @@ pub fn visible_rows(
     rows
 }
 
+pub fn open_paths(nodes: &[TreeNode]) -> HashSet<Vec<usize>> {
+    fn walk(nodes: &[TreeNode], prefix: &[usize], open: &mut HashSet<Vec<usize>>) {
+        for (index, node) in nodes.iter().enumerate() {
+            let mut path = prefix.to_vec();
+            path.push(index);
+            if node.expanded {
+                open.insert(path.clone());
+            }
+            walk(&node.children, &path, open);
+        }
+    }
+    let mut open = HashSet::new();
+    walk(nodes, &[], &mut open);
+    open
+}
+
 pub fn node_at<'a>(nodes: &'a [TreeNode], path: &[usize]) -> Option<&'a TreeNode> {
     let (first, rest) = path.split_first()?;
     let node = nodes.get(*first)?;
@@ -75,13 +99,18 @@ pub fn node_at<'a>(nodes: &'a [TreeNode], path: &[usize]) -> Option<&'a TreeNode
     }
 }
 
-pub(crate) fn paint(paints: &Paints, paint: &StateValue<ShapeStyle>) -> ctdesign::Rgba {
-    paints.color(paint.resolve(ControlState::default()))
+pub(crate) fn paint(
+    paints: &Paints,
+    state: ControlState,
+    paint: &StateValue<ShapeStyle>,
+) -> ctdesign::Rgba {
+    paints.color(paint.resolve(state))
 }
 
 pub(crate) fn row(
     style: &OutlineViewStyle,
     paints: &Paints,
+    state: ControlState,
     node: &TreeNode,
     selected: bool,
     lead: Option<Element>,
@@ -107,20 +136,20 @@ pub(crate) fn row(
         .painted(paints, background)
         .direction(Direction::Horizontal)
         .cross_align(Alignment::Center)
-        .spacing(style.spacing)
         .content(torin::prelude::Content::flex())
         .a11y_role(AccessibilityRole::TreeItem)
         .a11y_alt(node.title.clone())
         .a11y_builder(move |a11y| a11y.set_selected(selected))
         .maybe_child(lead)
-        .maybe_child(
-            node.icon
-                .map(|glyph| symbol(glyph, style.icon_size, paint(paints, icon))),
-        )
-        .child(
+        .maybe_child(node.icon.map(|glyph| {
             rect()
-                .width(Size::flex(1.0))
-                .child(text(node.title.clone(), style.font, paint(paints, label)).max_lines(1)),
+                .margin(Gaps::new(0.0, style.spacing, 0.0, 0.0))
+                .child(symbol(glyph, style.icon_size, paint(paints, state, icon)))
+        }))
+        .child(
+            rect().width(Size::flex(1.0)).child(
+                text(node.title.clone(), style.font, paint(paints, state, label)).max_lines(1),
+            ),
         )
         .maybe_child(trail)
 }
@@ -129,6 +158,7 @@ pub(crate) fn row(
 pub struct OutlineView {
     label: &'static str,
     nodes: Vec<TreeNode>,
+    selected: Vec<Vec<usize>>,
     on_select: Option<Callback<Vec<Vec<usize>>, ()>>,
     style: Theme,
 }
@@ -138,6 +168,7 @@ impl OutlineView {
         Self {
             label,
             nodes,
+            selected: Vec::new(),
             on_select: None,
             style: Theme::tengen(),
         }
@@ -151,6 +182,11 @@ impl OutlineView {
         self
     }
 
+    pub fn selected(mut self, paths: Vec<Vec<usize>>) -> Self {
+        self.selected = paths;
+        self
+    }
+
     pub fn on_select(mut self, callback: impl Into<Callback<Vec<Vec<usize>>, ()>>) -> Self {
         self.on_select = Some(callback.into());
         self
@@ -160,9 +196,14 @@ impl OutlineView {
 impl Component for OutlineView {
     fn render(&self) -> impl IntoElement {
         let style: OutlineViewStyle = resolve(&self.style);
-        let paints = Paints::current(ControlState::default(), style.effect);
-        let mut expanded = use_state(HashSet::<Vec<usize>>::new);
-        let mut selected = use_state(Vec::<Vec<usize>>::new);
+        let interaction = use_interaction();
+        let state = ControlState {
+            focused: interaction.focused(),
+            ..ControlState::default()
+        };
+        let paints = Paints::current(state, style.effect);
+        let mut expanded = use_state(|| open_paths(&self.nodes));
+        let mut selected = use_state(|| self.selected.clone());
         let held = use_held_modifiers();
         let rows = visible_rows(&self.nodes, &expanded.read());
         let paths: Rc<Vec<Vec<usize>>> =
@@ -176,6 +217,7 @@ impl Component for OutlineView {
                 let chosen = selected.read().contains(&path);
                 let ink = paint(
                     &paints,
+                    state,
                     if chosen {
                         &style.selected_chevron
                     } else {
@@ -183,8 +225,15 @@ impl Component for OutlineView {
                     },
                 );
                 let toggle_path = path.clone();
+                let level = style.indent * depth as f32;
+                let (shift_x, shift_y) = if open {
+                    style.open_chevron_offset
+                } else {
+                    style.chevron_offset
+                };
                 let chevron = rect()
-                    .width(Size::px(style.indent))
+                    .width(Size::px(style.lead_width + level))
+                    .padding(Gaps::new(0.0, 0.0, 0.0, level))
                     .center()
                     .maybe(!node.children.is_empty(), |el| {
                         el.a11y_role(AccessibilityRole::Button)
@@ -195,26 +244,37 @@ impl Component for OutlineView {
                                     paths.insert(toggle_path.clone());
                                 }
                             })
-                            .child(stroked_symbol(
-                                if open {
-                                    Symbol::ChevronDown
-                                } else {
-                                    Symbol::ChevronRight
-                                },
-                                style.triangle_size.0,
-                                style.triangle_size.1,
-                                ink,
+                            .child(rect().offset_x(shift_x).offset_y(shift_y).child(
+                                stroked_symbol(
+                                    if open {
+                                        Symbol::ChevronDown
+                                    } else {
+                                        Symbol::ChevronRight
+                                    },
+                                    style.triangle_size.0,
+                                    style.triangle_size.1,
+                                    ink,
+                                ),
                             ))
                     })
                     .into_element();
                 let on_select = self.on_select.clone();
                 let paths = paths.clone();
+                let divided = !chosen
+                    && path[0] + 1 < self.nodes.len()
+                    && paths
+                        .get(row_index + 1)
+                        .is_some_and(|next| !selected.read().contains(next));
+                let title_start = level
+                    + style.lead_width
+                    + node.icon.map_or(0.0, |_| style.icon_size + style.spacing);
                 Some(
                     rect()
                         .width(Size::fill())
-                        .padding(Gaps::new(0.0, 0.0, 0.0, style.indent * depth as f32))
+                        .height(Size::px(style.row_height))
+                        .padding(Gaps::new(0.0, style.inset, 0.0, style.inset))
                         .child(
-                            row(&style, &paints, node, chosen, Some(chevron), None)
+                            row(&style, &paints, state, node, chosen, Some(chevron), None)
                                 .a11y_builder(move |a11y| a11y.set_expanded(open))
                                 .on_press(move |_| {
                                     let current: Vec<usize> = selected
@@ -233,14 +293,30 @@ impl Component for OutlineView {
                                     selected.set(next);
                                 }),
                         )
+                        .maybe_child(style.row_separator.as_ref().filter(|_| divided).map(
+                            |paint| {
+                                row_divider(
+                                    paints.fill(&StateValue::new(paint.clone())),
+                                    title_start,
+                                    style.separator_margin,
+                                )
+                            },
+                        ))
                         .into_element(),
                 )
             });
-        track_modifiers(rect(), held)
+        track_modifiers(interaction.attach(rect(), true), held)
             .a11y_role(AccessibilityRole::Tree)
             .a11y_alt(self.label)
             .expanded()
-            .child(ScrollView::new().expanded().children(items))
+            .child(
+                ScrollView::new().expanded().child(
+                    rect()
+                        .width(Size::fill())
+                        .padding(Gaps::new(style.inset, 0.0, 0.0, 0.0))
+                        .children(items),
+                ),
+            )
     }
 }
 
@@ -279,7 +355,12 @@ impl Browser {
 impl Component for Browser {
     fn render(&self) -> impl IntoElement {
         let style: OutlineViewStyle = resolve(&self.style);
-        let paints = Paints::current(ControlState::default(), style.effect);
+        let interaction = use_interaction();
+        let state = ControlState {
+            focused: interaction.focused(),
+            ..ControlState::default()
+        };
+        let paints = Paints::current(state, style.effect);
         let mut path = use_state(Vec::<usize>::new);
         let current = path.read().clone();
         let mut columns: Vec<(Vec<usize>, &[TreeNode])> = vec![(Vec::new(), &self.nodes)];
@@ -304,6 +385,7 @@ impl Component for Browser {
                         style.chevron_size,
                         paint(
                             &paints,
+                            state,
                             if chosen {
                                 &style.selected_chevron
                             } else {
@@ -314,7 +396,7 @@ impl Component for Browser {
                     .into_element()
                 });
                 let on_select = self.on_select.clone();
-                row(&style, &paints, node, chosen, None, trail)
+                row(&style, &paints, state, node, chosen, None, trail)
                     .padding(Gaps::new(
                         0.0,
                         style.column_padding_x,
@@ -348,7 +430,8 @@ impl Component for Browser {
                 .content(torin::prelude::Content::flex())
                 .into_element()
         });
-        rect()
+        interaction
+            .attach(rect(), true)
             .a11y_role(AccessibilityRole::Group)
             .a11y_alt(self.label)
             .expanded()
@@ -389,6 +472,17 @@ mod tests {
             open,
             vec![(vec![0], 0), (vec![0, 0], 1), (vec![0, 1], 1), (vec![1], 0)]
         );
+    }
+
+    #[test]
+    fn nodes_marked_expanded_start_open() {
+        let nodes = vec![
+            TreeNode::new("a")
+                .expanded(true)
+                .child(TreeNode::new("a1").expanded(true)),
+            TreeNode::new("b"),
+        ];
+        assert_eq!(open_paths(&nodes), HashSet::from([vec![0], vec![0, 0]]));
     }
 
     #[test]

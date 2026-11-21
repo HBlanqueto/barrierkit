@@ -103,10 +103,14 @@ impl Component for FontPanel {
     fn render(&self) -> impl IntoElement {
         let palette = Palette::current();
         let rows: OutlineViewStyle = resolve(&Theme::tengen());
-        let paints = Paints::current(ControlState::default(), rows.effect);
+        let focused = ControlState {
+            focused: true,
+            ..ControlState::default()
+        };
+        let paints = Paints::current(focused, rows.effect);
         let row =
             |node: &TreeNode, selected: bool, lead: Option<Element>, trail: Option<Element>| {
-                crate::views::tree::row(&rows, &paints, node, selected, lead, trail)
+                crate::views::tree::row(&rows, &paints, focused, node, selected, lead, trail)
             };
         let initial = self.initial.clone();
         let mut font = use_state(|| initial);

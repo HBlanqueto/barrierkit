@@ -472,6 +472,7 @@ needs 4.5:1 and control parts 3:1 (WCAG 2.2, 1.4.3 and 1.4.11). Roles and
 | `GroupBox` | `GroupBoxStyle` | 2026-11-07 |
 | `DisclosureGroup` | `DisclosureGroupStyle` | 2026-11-07 |
 | `Table` | `TableStyle`, for its header cells and rows | 2026-11-07 |
+| `List` | `TableStyle`; `TableStyle::plain_list()` or `bordered_list()` replace the default `inset_list()` | 2026-11-20 |
 | `CollectionView` | `CollectionViewStyle`, for its tiles | 2026-11-07 |
 | `OutlineView`, `Browser` | `OutlineViewStyle` | 2026-11-07 |
 | `TabView` | `TabViewStyle`, for its tabs | 2026-11-07 |

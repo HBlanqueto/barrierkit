@@ -3,6 +3,7 @@ pub mod feedback;
 pub mod floating_pane;
 pub mod form;
 pub mod group;
+pub mod list;
 pub mod navigation;
 pub mod search;
 pub mod split;

@@ -197,6 +197,32 @@ def pressed(args):
                 print(f"{name:20} {diff:6.1f} {show(ba):>24} {show(bk):>24} {dominant(a, color):>8} {dominant(k, color):>8}")
 
 
+FOCUSED = [
+    "tf-empty", "tf-filled", "search", "search-text", "combo", "secure", "token", "datepicker", "textview",
+]
+
+
+def focused(args):
+    height, found = items("texts")
+    kit_tag = "-".join(filter(None, ("texts", args.tag)))
+    suffix = f"-{kit_tag}"
+    for mode in ("light", "dark"):
+        for backdrop, level in (("white", 255), ("black", 0)):
+            name_prefix = (CONTRAST if args.tag.endswith("hc") else APPKIT)[mode]
+            color = np.array([level] * 3)
+            print(f"\n=== focused {mode} on {backdrop}")
+            print(f"{'control':20} {'%diff':>6} {'AppKit x y w h':>24} {'kit x y w h':>24} {'AppKit':>8} {'kit':>8}")
+            for name in FOCUSED:
+                appkit = rgb(os.path.join(CAPTURES, "texts", f"{name_prefix}-{backdrop}-focus-{name}@{SCALE}x.png"))
+                kit = rgb(os.path.join(KIT, f"kit{suffix}-focus-{name}-{mode}-{backdrop}.png"))
+                box = region(name, height, found)
+                a, k = crop(appkit, box, 10), crop(kit, box, 10)
+                diff = (abs(a - k) > 3).any(-1).mean() * 100
+                ba, bk = bounds(a, color), bounds(k, color)
+                show = lambda b: "%5.1f %5.1f %5.1f %5.1f" % b if b else "none"
+                print(f"{name:20} {diff:6.1f} {show(ba):>24} {show(bk):>24} {dominant(a, color):>8} {dominant(k, color):>8}")
+
+
 def sheet(args):
     height, found = items(args.family)
     appkit = Image.open(capture(args.family, args.mode, args.backdrop, args.tag)).convert("RGB")
@@ -253,32 +279,6 @@ def table(args):
             print(f"row{row} col{column}      ", ink(appkit, top, top + 24, left, right, selected), "|", ink(kit, top, top + 24, left, right, selected))
 
     def separators(image):
-FOCUSED = [
-    "tf-empty", "tf-filled", "search", "search-text", "combo", "secure", "token", "datepicker", "textview",
-]
-
-
-def focused(args):
-    height, found = items("texts")
-    kit_tag = "-".join(filter(None, ("texts", args.tag)))
-    suffix = f"-{kit_tag}"
-    for mode in ("light", "dark"):
-        for backdrop, level in (("white", 255), ("black", 0)):
-            name_prefix = (CONTRAST if args.tag.endswith("hc") else APPKIT)[mode]
-            color = np.array([level] * 3)
-            print(f"\n=== focused {mode} on {backdrop}")
-            print(f"{'control':20} {'%diff':>6} {'AppKit x y w h':>24} {'kit x y w h':>24} {'AppKit':>8} {'kit':>8}")
-            for name in FOCUSED:
-                appkit = rgb(os.path.join(CAPTURES, "texts", f"{name_prefix}-{backdrop}-focus-{name}@{SCALE}x.png"))
-                kit = rgb(os.path.join(KIT, f"kit{suffix}-focus-{name}-{mode}-{backdrop}.png"))
-                box = region(name, height, found)
-                a, k = crop(appkit, box, 10), crop(kit, box, 10)
-                diff = (abs(a - k) > 3).any(-1).mean() * 100
-                ba, bk = bounds(a, color), bounds(k, color)
-                show = lambda b: "%5.1f %5.1f %5.1f %5.1f" % b if b else "none"
-                print(f"{name:20} {diff:6.1f} {show(ba):>24} {show(bk):>24} {dominant(a, color):>8} {dominant(k, color):>8}")
-
-
         found_columns = np.nonzero((abs(image[8 * SCALE + 2, :, 0] - level) > 3) & (abs(image[20 * SCALE + 2, :, 0] - level) > 3))[0]
         return sorted({int(c // SCALE) for c in found_columns})
 
@@ -397,6 +397,45 @@ def sidebar(args):
         print(f"{label:8} {box(found[0])} | {box(found[1])}")
 
 
+LISTS = [
+    "list-inset", "list-striped", "list-plain", "list-bordered", "table", "outline-group",
+    "form-grouped", "form-columns", "groupbox", "disclosure",
+]
+LISTS_FOCUSABLE = ["list-inset", "list-plain", "list-bordered", "table", "outline-group"]
+
+
+def lists(args):
+    look = (CONTRAST if args.tag == "hc" else APPKIT)[args.mode]
+    tag = "lists-hc" if args.tag == "hc" else "lists"
+    with open(os.path.join(CAPTURES, "lists", f"{look}-none.json")) as handle:
+        data = json.load(handle)
+    height, found = data["contentH"], {item["name"]: item for item in data["items"]}
+    print(f"{'item':16} {'focus':>5} {'%diff':>6} {'AppKit x y w h':>24} {'kit x y w h':>24}")
+    for name in args.names.split(",") if args.names else LISTS:
+        box = region(name, height, found)
+        for focused in (False, True) if name in LISTS_FOCUSABLE else (False,):
+            appkit = rgb(os.path.join(CAPTURES, "lists", f"{look}-{name if focused else 'none'}@{SCALE}x.png"))
+            focus = f"focus-{name}-" if focused else ""
+            kit_path = os.path.join(KIT, f"kit-{tag}-{focus}{args.mode}-white.png")
+            if not os.path.exists(kit_path):
+                continue
+            kit = rgb(kit_path)
+            whole = tuple(int(round(v)) for v in box)
+            a, k = crop(appkit, whole, 0), crop(kit, whole, 0)
+            diff = (abs(a - k) > 3).any(-1).mean() * 100
+            backdrop = a[0, 0]
+            ba, bk = bounds(a, backdrop), bounds(k, k[0, 0])
+            show = lambda b: "%5.1f %5.1f %5.1f %5.1f" % b if b else "none"
+            print(f"{name:16} {'yes' if focused else 'no':>5} {diff:6.1f} {show(ba):>24} {show(bk):>24}")
+            if args.sheet:
+                tile = Image.new("RGB", (a.shape[1] * 3 + 16, a.shape[0]), (255, 0, 255))
+                tile.paste(Image.fromarray(a.astype("uint8")), (0, 0))
+                tile.paste(Image.fromarray(k.astype("uint8")), (a.shape[1] + 8, 0))
+                tile.paste(Image.fromarray(((abs(a - k) > 3).any(-1) * 255).astype("uint8")).convert("RGB"), (a.shape[1] * 2 + 16, 0))
+                os.makedirs(KIT, exist_ok=True)
+                tile.save(os.path.join(KIT, f"sheet-{tag}-{name}{'-focus' if focused else ''}-{args.mode}.png"))
+
+
 def main():
     parser = argparse.ArgumentParser(description="Compare a kit scene with AppKit captures.")
     commands = parser.add_subparsers(dest="command", required=True)
@@ -408,6 +447,9 @@ def main():
     two.add_argument("--tag", default="", help="empty, or hc for Increase Contrast")
     two.add_argument("--family", default="controls", choices=sorted(FAMILIES), help="the probe family")
     two.set_defaults(run=controls)
+    focus = commands.add_parser("focused", help="print the difference table for focused text controls")
+    focus.add_argument("--tag", default="", help="empty, or hc for Increase Contrast")
+    focus.set_defaults(run=focused)
     five = commands.add_parser("pressed", help="print the per-control difference table for pressed controls")
     five.add_argument("--tag", default="", help="empty, or hc for Increase Contrast")
     five.add_argument("--family", default="controls", choices=sorted(PRESSED_FAMILIES), help="the probe family")
@@ -428,12 +470,15 @@ def main():
     seven = commands.add_parser("sidebar", help="print the sidebar window comparison")
     seven.add_argument("mode", choices=("light", "dark"))
     seven.set_defaults(run=sidebar)
+    eight = commands.add_parser("lists", help="print the per-item difference table of the lists, tables and forms")
+    eight.add_argument("mode", choices=("light", "dark"))
+    eight.add_argument("--tag", default="", help="empty, or hc for Increase Contrast")
+    eight.add_argument("--names", default="", help="comma separated item names")
+    eight.add_argument("--sheet", action="store_true", help="write a side-by-side image per item")
+    eight.set_defaults(run=lists)
     args = parser.parse_args()
     args.run(args)
 
 
 if __name__ == "__main__":
     sys.exit(main())
-    focus = commands.add_parser("focused", help="print the difference table for focused text controls")
-    focus.add_argument("--tag", default="", help="empty, or hc for Increase Contrast")
-    focus.set_defaults(run=focused)

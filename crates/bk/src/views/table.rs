@@ -7,8 +7,10 @@ use crate::context_menu::context_menu;
 use crate::interaction::{control_state, use_interaction};
 use crate::interaction::{track_modifiers, use_held_modifiers};
 use crate::menu::{CheckState, MenuItem};
-use crate::style::text;
-use crate::styles::{ControlState, Paints, ShapeStyle, StateValue, TableStyle, Theme, resolve};
+use crate::style::{continuous_corner, text};
+use crate::styles::{
+    ControlState, Painted, Paints, ShapeStyle, StateValue, TableStyle, Theme, resolve,
+};
 use crate::symbol::{Symbol, stroked_symbol};
 use crate::views::collection::select;
 
@@ -46,6 +48,11 @@ impl Table {
 
     pub fn style(mut self, restyle: impl Fn(TableStyle) -> TableStyle + 'static) -> Self {
         self.style = self.style.style(restyle);
+        self
+    }
+
+    pub(crate) fn themed(mut self, style: Theme) -> Self {
+        self.style = style;
         self
     }
 
@@ -97,14 +104,29 @@ struct RowLook {
 
 fn row_look(
     paints: &Paints,
+    state: ControlState,
     background: &StateValue<ShapeStyle>,
     label: &StateValue<ShapeStyle>,
 ) -> RowLook {
     RowLook {
         background: paints.fill(background),
         blur: paints.blur(background),
-        label: paints.color(label.resolve(ControlState::default())),
+        label: paints.color(label.resolve(state)),
     }
+}
+
+pub(crate) fn row_divider(fill: Fill, before: f32, after: f32) -> Rect {
+    rect()
+        .layer(1)
+        .position(Position::new_absolute().left(0.0).bottom(0.0))
+        .width(Size::fill())
+        .padding(Gaps::new(0.0, after, 0.0, before))
+        .child(
+            rect()
+                .width(Size::fill())
+                .height(Size::px(HAIRLINE))
+                .background(fill),
+        )
 }
 
 fn cells(
@@ -147,17 +169,22 @@ pub fn toggle_column(hidden: &[usize], column: usize, count: usize) -> Vec<usize
 impl Component for Table {
     fn render(&self) -> impl IntoElement {
         let style: TableStyle = resolve(&self.style);
-        let paints = Paints::current(ControlState::default(), style.effect);
+        let interaction = use_interaction();
+        let focused = ControlState {
+            focused: interaction.focused(),
+            ..ControlState::default()
+        };
+        let paints = Paints::current(focused, style.effect);
         let padding_x = style.padding_x;
         let header_padding_x = style.header_padding_x;
         let column_shift = style.column_shift;
         let sort = self.sort;
-        let interaction = use_interaction();
         let held = use_held_modifiers();
         let mut hidden = use_state(Vec::<usize>::new);
         let mut widths = use_state(|| vec![None::<f32>; self.columns.len()]);
         let mut measured = use_state(|| vec![0.0f32; self.columns.len()]);
         let mut drag = use_state(|| None::<(usize, f64, f32)>);
+        let mut body_height = use_state(|| 0.0f32);
         if widths.peek().len() != self.columns.len() {
             widths.write().resize(self.columns.len(), None);
             measured.write().resize(self.columns.len(), 0.0);
@@ -230,12 +257,11 @@ impl Component for Table {
                 }))
                 .children(style.header_separator.as_ref().into_iter().flat_map(
                     |(paint, height)| {
-                        let edges = shown
-                            .iter()
-                            .scan(inset, |edge, &column| {
+                        let edges = std::iter::once(inset)
+                            .chain(shown.iter().scan(inset, |edge, &column| {
                                 *edge += measured.read()[column];
                                 Some(*edge)
-                            })
+                            }))
                             .collect::<Vec<_>>();
                         let top = (style.header_height - height) / 2.0;
                         let height = *height;
@@ -269,14 +295,27 @@ impl Component for Table {
 
         let column_widths: Vec<Option<f32>> = shown.iter().map(|&c| width_of(c)).collect();
         let looks = [
-            row_look(&paints, &style.row_background, &style.label),
-            row_look(&paints, &style.alternate_row_background, &style.label),
+            row_look(&paints, focused, &style.row_background, &style.label),
             row_look(
                 &paints,
+                focused,
+                &style.alternate_row_background,
+                &style.label,
+            ),
+            row_look(
+                &paints,
+                focused,
                 &style.selected_row_background,
                 &style.selected_label,
             ),
         ];
+        let stripe = looks[1].background.clone();
+        let separator = style.row_separator.as_ref().map(|paint| {
+            (
+                paints.fill(&StateValue::new(paint.clone())),
+                style.separator_margin,
+            )
+        });
         let metrics = (
             style.font,
             style.row_height,
@@ -294,59 +333,107 @@ impl Component for Table {
             shown.clone(),
             column_widths,
             held,
+            separator,
         );
-        let body = VirtualScrollView::new_with_data(
-            data,
-            |item, (rows, selected, on_select, looks, metrics, shown, column_widths, held)| {
-                let index = item.index;
-                let (font, row_height, padding_x, inset, row_radius, column_shift): &(
-                    Font,
-                    f32,
-                    f32,
-                    f32,
-                    f32,
-                    f32,
-                ) = metrics;
-                let selected_row = selected.contains(&index);
-                let look = if selected_row {
-                    &looks[2]
-                } else {
-                    &looks[index % 2]
-                };
-                let on_select = on_select.clone();
-                let selected = selected.clone();
-                let held = *held;
-                let values = shown.iter().zip(column_widths).map(|(&column, width)| {
-                    let value = rows[index].get(column).cloned().unwrap_or_default();
-                    let value = rect()
-                        .width(Size::fill())
-                        .overflow(Overflow::Clip)
-                        .child(text(value, *font, look.label));
-                    (*width, value.into_element())
-                });
+        let striped = !matches!(
+            style.alternate_row_background.resolve(focused),
+            ShapeStyle::Clear
+        );
+        let empty_rows = if striped {
+            ((*body_height.read() - style.body_inset) / style.row_height).ceil() as usize
+        } else {
+            0
+        };
+        let empty_stripes = (self.rows.len()..empty_rows)
+            .filter(|index| index % 2 == 1)
+            .map(|index| {
                 rect()
-                    .width(Size::fill())
-                    .height(Size::px(*row_height))
-                    .padding(Gaps::new(0.0, *inset, 0.0, *inset))
-                    .a11y_role(AccessibilityRole::Row)
-                    .a11y_builder(move |node| node.set_selected(selected_row))
-                    .child(
-                        cells(*padding_x, *column_shift, values)
-                            .height(Size::fill())
-                            .corner_radius(*row_radius)
-                            .background(look.background.clone())
-                            .map(look.blur, Rect::backdrop_blur),
+                    .layer(-1)
+                    .position(
+                        Position::new_absolute()
+                            .left(0.0)
+                            .top(index as f32 * style.row_height),
                     )
-                    .on_press(move |_| {
-                        if let Some(cb) = &on_select {
-                            cb.call(select(&selected, index, *held.peek()));
-                        }
-                    })
-                    .into_element()
-            },
-        )
-        .length(self.rows.len())
-        .item_size(style.row_height);
+                    .width(Size::fill())
+                    .padding(Gaps::new(0.0, inset, 0.0, inset))
+                    .child(
+                        rect()
+                            .width(Size::fill())
+                            .height(Size::px(style.row_height))
+                            .corner_radius(continuous_corner(style.row_radius))
+                            .background(stripe.clone()),
+                    )
+            })
+            .collect::<Vec<_>>();
+        let body =
+            VirtualScrollView::new_with_data(
+                data,
+                |item,
+                 (
+                    rows,
+                    selected,
+                    on_select,
+                    looks,
+                    metrics,
+                    shown,
+                    column_widths,
+                    held,
+                    separator,
+                )| {
+                    let index = item.index;
+                    let (font, row_height, padding_x, inset, row_radius, column_shift): &(
+                        Font,
+                        f32,
+                        f32,
+                        f32,
+                        f32,
+                        f32,
+                    ) = metrics;
+                    let selected_row = selected.contains(&index);
+                    let look = if selected_row {
+                        &looks[2]
+                    } else {
+                        &looks[index % 2]
+                    };
+                    let on_select = on_select.clone();
+                    let selected = selected.clone();
+                    let held = *held;
+                    let values = shown.iter().zip(column_widths).map(|(&column, width)| {
+                        let value = rows[index].get(column).cloned().unwrap_or_default();
+                        let value = rect()
+                            .width(Size::fill())
+                            .overflow(Overflow::Clip)
+                            .child(text(value, *font, look.label));
+                        (*width, value.into_element())
+                    });
+                    let divided =
+                        !selected_row && index + 1 < rows.len() && !selected.contains(&(index + 1));
+                    rect()
+                        .width(Size::fill())
+                        .height(Size::px(*row_height))
+                        .padding(Gaps::new(0.0, *inset, 0.0, *inset))
+                        .a11y_role(AccessibilityRole::Row)
+                        .a11y_builder(move |node| node.set_selected(selected_row))
+                        .child(
+                            cells(*padding_x, *column_shift, values)
+                                .height(Size::fill())
+                                .corner_radius(continuous_corner(*row_radius))
+                                .background(look.background.clone())
+                                .map(look.blur, Rect::backdrop_blur),
+                        )
+                        .maybe_child(separator.as_ref().filter(|_| divided).map(
+                            |(fill, (before, after))| row_divider(fill.clone(), *before, *after),
+                        ))
+                        .on_press(move |_| {
+                            if let Some(cb) = &on_select {
+                                cb.call(select(&selected, index, *held.peek()));
+                            }
+                        })
+                        .into_element()
+                },
+            )
+            .length(self.rows.len())
+            .item_size(style.row_height);
 
         let (rows, on_select) = (self.rows.len(), self.on_select.clone());
         let selected = self.selected.last().copied();
@@ -382,11 +469,16 @@ impl Component for Table {
                     cb.call(vec![next]);
                 }
             })
+            .bordered(&paints, style.border.as_ref())
             .child(header)
             .child(
                 rect()
                     .expanded()
                     .padding(Gaps::new(style.body_inset, 0.0, 0.0, 0.0))
+                    .on_sized(move |event: Event<SizedEventData>| {
+                        body_height.set_if_modified(event.area.height());
+                    })
+                    .children(empty_stripes)
                     .child(body),
             );
         interaction.inner_focus_ring(table)

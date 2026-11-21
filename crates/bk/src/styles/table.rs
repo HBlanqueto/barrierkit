@@ -1,4 +1,4 @@
-use ctdesign::{BODY, CAPTION, Font, Rgba, SPACE_1, TABLE};
+use ctdesign::{BODY, CAPTION, Font, HAIRLINE, Rgba, SPACE_1, TABLE};
 
 use super::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effect};
 use crate::style::Palette;
@@ -54,12 +54,18 @@ pub struct TableStyle {
     pub row_background: StateValue<ShapeStyle>,
     /// Tengen: `Color` of the label color at `TABLE.zebra` for odd rows.
     pub alternate_row_background: StateValue<ShapeStyle>,
-    /// Tengen: `Role(SelectedContent)`.
+    /// Tengen: `Role(SelectedContentInactive)`, `Role(SelectedContent)` while the table has focus.
     pub selected_row_background: StateValue<ShapeStyle>,
     /// Tengen: `Role(Label)`.
     pub label: StateValue<ShapeStyle>,
-    /// Tengen: `Role(OnSelectedContent)`.
+    /// Tengen: `Role(Label)`, `Role(OnSelectedContent)` while the table has focus.
     pub selected_label: StateValue<ShapeStyle>,
+    /// Tengen: `None`; the list styles draw `Role(Separator)` under every row that is not next to a selected one.
+    pub row_separator: Option<ShapeStyle>,
+    /// Tengen: `(0, 0)`, the gap before and after a separator inside the row; the list styles take `padding_x` and, in `plain_list`, `(plain_padding_x, 0)`.
+    pub separator_margin: (f32, f32),
+    /// Tengen: `None`; `bordered_list` draws `(Role(Separator), HAIRLINE)` inside the edge.
+    pub border: Option<(ShapeStyle, f32)>,
     /// Tengen: `Some((Role(Separator), TABLE.header_line))`, the line under the header, which
     /// reaches 1 into the first row.
     pub header_border: Option<(ShapeStyle, f32)>,
@@ -80,6 +86,20 @@ pub struct TableStyle {
     pub font: Font,
 }
 
+fn stripe() -> StateValue<ShapeStyle> {
+    let [light, dark] = TABLE.zebra_contrast;
+    let resolved = crate::theme::resolved();
+    let alpha = match (resolved.contrast, resolved.scheme) {
+        (false, _) => TABLE.zebra,
+        (true, ctappearance::ColorScheme::Light) => light,
+        (true, _) => dark,
+    };
+    StateValue::new(ShapeStyle::Color(Rgba {
+        a: alpha,
+        ..Palette::current().label
+    }))
+}
+
 impl ControlStyle for TableStyle {
     fn tengen() -> Self {
         Self {
@@ -95,13 +115,17 @@ impl ControlStyle for TableStyle {
             header_label: StateValue::new(ShapeStyle::Role(Role::Label)),
             sorted_header_label: StateValue::new(ShapeStyle::Role(Role::Label)),
             row_background: StateValue::new(ShapeStyle::Clear),
-            alternate_row_background: StateValue::new(ShapeStyle::Color(Rgba {
-                a: TABLE.zebra,
-                ..Palette::current().label
-            })),
-            selected_row_background: StateValue::new(ShapeStyle::Role(Role::SelectedContent)),
+            alternate_row_background: stripe(),
+            selected_row_background: StateValue::new(ShapeStyle::Role(
+                Role::SelectedContentInactive,
+            ))
+            .focused(ShapeStyle::Role(Role::SelectedContent)),
             label: StateValue::new(ShapeStyle::Role(Role::Label)),
-            selected_label: StateValue::new(ShapeStyle::Role(Role::OnSelectedContent)),
+            selected_label: StateValue::new(ShapeStyle::Role(Role::Label))
+                .focused(ShapeStyle::Role(Role::OnSelectedContent)),
+            row_separator: None,
+            separator_margin: (0.0, 0.0),
+            border: None,
             header_border: Some((ShapeStyle::Role(Role::Separator), TABLE.header_line)),
             header_separator: Some((
                 ShapeStyle::Role(Role::SeparatorStrong),
@@ -120,6 +144,50 @@ impl ControlStyle for TableStyle {
             sort_arrow_offset: (TABLE.sort_arrow_inset, TABLE.sort_arrow_drop),
             sort_arrow: StateValue::new(ShapeStyle::Role(Role::SecondaryLabel)),
             font: BODY,
+        }
+    }
+}
+
+impl TableStyle {
+    pub fn striped(self) -> Self {
+        Self {
+            alternate_row_background: stripe(),
+            row_separator: None,
+            ..self
+        }
+    }
+
+    pub fn inset_list() -> Self {
+        Self {
+            header_height: 0.0,
+            header_border: None,
+            header_separator: None,
+            body_inset: TABLE.row_inset,
+            alternate_row_background: StateValue::new(ShapeStyle::Clear),
+            row_separator: Some(ShapeStyle::Role(Role::Separator)),
+            separator_margin: (TABLE.padding_x, TABLE.padding_x),
+            ..Self::tengen()
+        }
+    }
+
+    pub fn plain_list() -> Self {
+        Self {
+            row_inset: 0.0,
+            body_inset: 0.0,
+            padding_x: TABLE.plain_padding_x,
+            row_radius: 0.0,
+            separator_margin: (TABLE.plain_padding_x, 0.0),
+            ..Self::inset_list()
+        }
+    }
+
+    pub fn bordered_list() -> Self {
+        Self {
+            row_inset: HAIRLINE,
+            body_inset: HAIRLINE,
+            row_radius: 0.0,
+            border: Some((ShapeStyle::Role(Role::Separator), HAIRLINE)),
+            ..Self::inset_list()
         }
     }
 }

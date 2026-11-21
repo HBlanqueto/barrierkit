@@ -51,6 +51,8 @@ table on stdout and `target/appkit/sheet-*.png`.
    the window as inactive. `alerts`, `menu`, `toolbar`, `tabs`, `sheets` and `gauges` dump a view
    tree or screenshot and have their own usage line in the source.
 
+   `lists` hosts SwiftUI lists, a table, outlines and forms in one view and takes the name of the list to make first responder (`none` for no focus) instead of a backdrop: `~/src/probes/lists aqua list-inset ~/src/captures/lists/aqua-list-inset`. The JSON says `"active": true` when the window was key; repeat the capture when it is `false`. `appbundle.sh` appends the output prefix last, so `-increaseContrast 1 -reduceTransparency 1` go before it. Capture each list focused and once with `none`, in `aqua`, `darkAqua`, `aquaHC` and `darkHC`; the files are `<look>-<focus>@4x.png` with `hc-` before the high-contrast looks.
+
    `navbuttons` opens a window whose toolbar holds the items named in its `specs` argument and writes `<prefix>.json` (the view tree) plus one 4x PNG per hosted button. `navbuttons.sh` (and `appbundle.sh <probe> <prefix> <arguments>` for `sidebar` and `sidebarui`) runs the probe as an app bundle, so the window is key and draws its active state, and takes the screenshot from the shell. The specs are in the source header; the bench reads two sets, `glyphs` (ten single buttons) and `pair` (the navigational back and forward):
 
    ```sh
@@ -89,6 +91,7 @@ table on stdout and `target/appkit/sheet-*.png`.
    ```sh
    scripts/appkit-compare.py layout ~/src/captures/controls/aqua-white.json target/appkit/layout-controls.tsv
    scripts/appkit-compare.py layout ~/src/captures/views/aqua-white.json target/appkit/layout-views.tsv
+   scripts/appkit-compare.py layout ~/src/captures/lists/aqua-none.json target/appkit/layout-lists.tsv
    ```
 
 5. Render the kit scene at 4x in the dev shell. The scene is
@@ -101,6 +104,8 @@ table on stdout and `target/appkit/sheet-*.png`.
    scripts/appkit-render.sh views-contrast  # kit-views-hc-*.png
    scripts/appkit-render.sh menu            # kit-menu-{,marks-}{light,dark}.png
    scripts/appkit-render.sh toolbar         # kit-toolbar-{light,dark}.png
+   scripts/appkit-render.sh lists           # kit-lists-{light,dark}-*.png and kit-lists-focus-*
+   scripts/appkit-render.sh lists-contrast  # kit-lists-hc-*
    scripts/appkit-render.sh sidebar         # kit-sidebar-{light,dark}.png, a 900 × 560 window at 1x
    ```
 
@@ -161,6 +166,7 @@ table on stdout and `target/appkit/sheet-*.png`.
    scripts/appkit-compare.py sheet controls light white push-regular,switch-on-regular
    scripts/appkit-compare.py table dark
    scripts/appkit-compare.py toolbar light
+   scripts/appkit-compare.py lists light --sheet        # list, table and outline items, side by side with their difference
    scripts/appkit-compare.py sidebar light
    ```
 
