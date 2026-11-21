@@ -578,7 +578,9 @@ method.
 
 `NavigationButtons::new(State<History<T>>)` draws ‹ and › in a
 [`ToolGroup`](05-controls.md) capsule. Each button is disabled at its end of
-the history. It also answers the shortcuts of `GO_BACK` and `GO_FORWARD`.
+the history. It also answers the shortcuts of `GO_BACK` and `GO_FORWARD`. The
+pair is 73 × 36 and has no divider between the arrows, like the navigational
+items of an `NSToolbar` ([measures](../research/macos-control-metrics.md#toolbar-items-and-navigation-buttons)).
 
 ```rust
 let mut history = use_state(|| History::new(Page::Home));

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import collections
+import glob
 import json
 import os
 import sys
@@ -192,6 +193,64 @@ def table(args):
     print("separators AppKit:", separators(appkit), " kit:", separators(kit))
 
 
+TOOLBAR_GLYPHS = ["chevron.left", "chevron.right", "plus", "sidebar.left", "gearshape", "square.and.arrow.up", "ellipsis", "magnifyingglass", "trash", "arrow.left"]
+TOOLBAR_KIT = ["chevron.left", "chevron.right", "plus", "sidebar.left", "ellipsis", "magnifyingglass"]
+TOOLBAR_CELL = 44
+
+
+def toolbar_snapshots(prefix):
+    base = os.path.join(CAPTURES, "navbuttons", prefix)
+    with open(base + ".json") as handle:
+        tree = json.load(handle)["tree"]
+    buttons = sorted((n for n in tree if "Hosting" in n["class"] and "AppKitButton" in n["class"]), key=lambda n: n["left"])
+    result = []
+    for node in buttons:
+        path = glob.glob(f"{base}-{node['index']}-*.png")[0]
+        result.append(np.array(Image.open(path).convert("RGBA")).astype(float)[..., 3] / 255)
+    return result
+
+
+def ink_box(mask):
+    ys, xs = np.nonzero(mask > 0.1)
+    return xs.min() / 4, (xs.max() + 1) / 4, ys.min() / 4, (ys.max() + 1) / 4
+
+
+def toolbar(args):
+    dark = args.mode == "dark"
+    kit = np.array(Image.open(os.path.join(KIT, f"kit-toolbar-{args.mode}.png")).convert("RGB")).astype(float).mean(-1) / 255
+
+    def darkness(gray, background):
+        return np.clip(gray - background if dark else background - gray, 0, 1) / 0.847
+
+    print("glyph              AppKit ink w x h   kit ink w x h   AppKit mass  kit mass  diff%")
+    alpha = toolbar_snapshots(f"glyphs-{args.mode}")
+    for slot, name in enumerate(TOOLBAR_KIT):
+        a = alpha[TOOLBAR_GLYPHS.index(name)]
+        cell = kit[16:16 + 144, (4 + TOOLBAR_CELL * slot) * 4:(4 + TOOLBAR_CELL * slot) * 4 + 144]
+        k = darkness(cell, 0.0 if dark else 1.0)
+        ba, bk = ink_box(a / a.max()), ink_box(k / k.max())
+        drawn = a if dark else 1 - a
+        diff = (np.abs(drawn - cell) * 255 > 3).mean() * 100
+        print(f"{name:18s} {ba[1] - ba[0]:6.2f} x {ba[3] - ba[2]:5.2f}  {bk[1] - bk[0]:6.2f} x {bk[3] - bk[2]:5.2f}  {a.sum() / 16 / .847:11.2f} {k.sum() / 16:9.2f} {diff:6.1f}")
+
+    halves = toolbar_snapshots(f"pair-{args.mode}")
+    canvas = np.zeros((36 * 4, 73 * 4))
+    for part, x0 in zip(halves, (0, 36)):
+        canvas[:part.shape[0], x0 * 4:x0 * 4 + part.shape[1]] = part
+    left = (len(TOOLBAR_KIT) * TOOLBAR_CELL + 4) * 4
+    pair = kit[16:16 + 144, left:left + 73 * 4]
+    background = np.median(pair[16:128, 24:268])
+    k = darkness(pair, background)
+    print("\nnavigation pair, ink x0 x1 y0 y1 (AppKit | kit)")
+    for label, columns in (("back", slice(32, 128)), ("forward", slice(164, 260))):
+        rows = slice(24, 120)
+        ba = ink_box(canvas[rows, columns] / canvas.max())
+        bk = ink_box(k[rows, columns] / k[rows, columns].max())
+        origin = columns.start / 4
+        fmt = lambda box: "%6.2f %6.2f %6.2f %6.2f" % (box[0] + origin, box[1] + origin, box[2] + 6, box[3] + 6)
+        print(f"{label:8s} {fmt(ba)} | {fmt(bk)}")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Compare a kit scene with AppKit captures.")
     commands = parser.add_subparsers(dest="command", required=True)
@@ -215,6 +274,9 @@ def main():
     four = commands.add_parser("table", help="print the table header, text and separator positions")
     four.add_argument("mode", choices=("light", "dark"))
     four.set_defaults(run=table)
+    six = commands.add_parser("toolbar", help="print the toolbar glyph and navigation pair comparison")
+    six.add_argument("mode", choices=("light", "dark"))
+    six.set_defaults(run=toolbar)
     args = parser.parse_args()
     args.run(args)
 

@@ -632,6 +632,70 @@ fn appkit_pressed() {
     }
 }
 
+const TOOLBAR_CELL: f32 = 44.0;
+
+fn toolbar_glyphs() -> Vec<(&'static str, Builder)> {
+    fn glyph(symbol: Symbol) -> Element {
+        use bk::compact::IconButton;
+        use bk::controls::ToolGroup;
+        use bk::styles::{ShapeStyle, StateValue, ToolGroupStyle};
+        ToolGroup::new()
+            .style(|style: ToolGroupStyle| ToolGroupStyle {
+                background: StateValue::new(ShapeStyle::Clear),
+                separator: None,
+                border: None,
+                ..style
+            })
+            .child(IconButton::new(symbol, "glyph"))
+            .into_element()
+    }
+    vec![
+        ("chevron.left", || glyph(Symbol::ChevronLeft)),
+        ("chevron.right", || glyph(Symbol::ChevronRight)),
+        ("plus", || glyph(Symbol::Plus)),
+        ("sidebar.left", || glyph(Symbol::SidebarLeft)),
+        ("ellipsis", || glyph(Symbol::Ellipsis)),
+        ("magnifyingglass", || glyph(Symbol::MagnifyingGlass)),
+    ]
+}
+
+fn navigation_pair() -> Element {
+    use bk::views::navigation::{History, NavigationButtons};
+    let history = use_state(|| {
+        let mut history = History::new("a");
+        history.push("b");
+        history.push("c");
+        history.back();
+        history
+    });
+    NavigationButtons::new(history).into_element()
+}
+
+#[test]
+#[ignore]
+fn appkit_toolbar() {
+    let out = PathBuf::from(std::env::var("APPKIT_OUT").expect("APPKIT_OUT"));
+    fs::create_dir_all(&out).unwrap();
+    let glyphs = toolbar_glyphs();
+    let width = glyphs.len() as f32 * TOOLBAR_CELL;
+    for dark in [false, true] {
+        let placed = glyphs
+            .iter()
+            .enumerate()
+            .map(|(i, &(_, build))| (i as f32 * TOOLBAR_CELL + 4.0, 4.0, build))
+            .chain([(width + 4.0, 4.0, navigation_pair as Builder)])
+            .collect();
+        fs::write(
+            out.join(format!(
+                "kit-toolbar-{}.png",
+                if dark { "dark" } else { "light" }
+            )),
+            render_scene(placed, dark, dark, (width + 84.0, 44.0), None),
+        )
+        .unwrap();
+    }
+}
+
 #[test]
 #[ignore]
 fn appkit_menu() {

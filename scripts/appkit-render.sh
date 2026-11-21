@@ -16,10 +16,10 @@ case "$scene" in
         APPKIT_CONTENT=900x420
         APPKIT_TAG=views
         ;;
-    menu)
+    menu | toolbar)
         ;;
     *)
-        printf 'usage: %s controls|contrast|views|views-contrast|menu\n' "$0" >&2
+        printf 'usage: %s controls|contrast|views|views-contrast|menu|toolbar\n' "$0" >&2
         exit 2
         ;;
 esac
@@ -37,6 +37,9 @@ mkdir -p "$out"
 export APPKIT_OUT="$out"
 if [ "$scene" = menu ]; then
     exec cargo test -p bk --test kit --features bk/shell appkit_menu -- --ignored --nocapture
+fi
+if [ "$scene" = toolbar ]; then
+    exec cargo test -p bk --test kit --features bk/shell appkit_toolbar -- --ignored
 fi
 export APPKIT_LAYOUT APPKIT_CONTENT APPKIT_TAG
 cargo test -p bk --test kit --features bk/shell appkit_scene -- --ignored

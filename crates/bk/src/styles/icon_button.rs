@@ -1,5 +1,5 @@
 use ctappearance::Resolved;
-use ctdesign::{BUTTON, DURATION_FAST_MS, HAIRLINE, ICON_BUTTON, TOOLGROUP};
+use ctdesign::{BUTTON, DURATION_FAST_MS, HAIRLINE, ICON_BUTTON, SYMBOL, TOOLGROUP};
 
 use super::button::rounded;
 use super::{
@@ -13,8 +13,11 @@ use super::{
 pub struct IconButtonStyle {
     /// Tengen: `ICON_BUTTON.size`, in a toolbar `TOOLGROUP.height`.
     pub size: f32,
-    /// Tengen: `ICON_BUTTON.icon`.
+    /// Tengen: `ICON_BUTTON.icon`, in a toolbar `ICON_BUTTON.toolbar_icon`.
     pub icon_size: f32,
+    /// Tengen: `SYMBOL.stroke` scaled to `icon_size`, in a toolbar `ICON_BUTTON.toolbar_stroke`. In
+    /// pixels, not grid units.
+    pub stroke: f32,
     /// Tengen: `RoundedRectangle { radius: ICON_BUTTON.radius, style: Circular }`, in a toolbar
     /// `Capsule`.
     pub shape: Shape,
@@ -41,14 +44,25 @@ pub struct IconButtonStyle {
 
 impl ControlStyle for IconButtonStyle {
     fn tengen() -> Self {
-        let (size, shape) = if crate::compact::in_toolbar() {
-            (TOOLGROUP.height as f32, Shape::Capsule)
+        let (size, icon_size, stroke, shape) = if crate::compact::in_toolbar() {
+            (
+                TOOLGROUP.height as f32,
+                ICON_BUTTON.toolbar_icon,
+                ICON_BUTTON.toolbar_stroke,
+                Shape::Capsule,
+            )
         } else {
-            (ICON_BUTTON.size, rounded(ICON_BUTTON.radius))
+            (
+                ICON_BUTTON.size,
+                ICON_BUTTON.icon,
+                SYMBOL.stroke * ICON_BUTTON.icon / SYMBOL.grid,
+                rounded(ICON_BUTTON.radius),
+            )
         };
         Self {
             size,
-            icon_size: ICON_BUTTON.icon,
+            icon_size,
+            stroke,
             shape,
             background: StateValue::new(ShapeStyle::Clear)
                 .pressed(ShapeStyle::Color(pressed_palette().bezel))

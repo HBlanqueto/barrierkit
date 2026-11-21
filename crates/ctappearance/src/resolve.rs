@@ -2139,10 +2139,21 @@ mod tests {
                 ("surfaces", resolved.surfaces.line),
                 ("sidebar", resolved.sidebar.palette.line),
                 ("menu", resolved.menu.separator_color),
-                ("toolgroup", resolved.toolgroup.palette.separator),
             ] {
                 assert_eq!(separator.to_rgba8(), measured, "{scheme:?} {name}");
             }
+        }
+    }
+
+    #[test]
+    fn the_toolgroup_divider_is_the_measured_momentary_group_divider() {
+        for (scheme, measured) in [
+            (ColorScheme::Light, [0x00, 0x00, 0x00, 0x39]),
+            (ColorScheme::Dark, [0xff, 0xff, 0xff, 0x39]),
+            (ColorScheme::DarkTint, [0xff, 0xff, 0xff, 0x39]),
+        ] {
+            let divider = resolved_in(scheme, false).toolgroup.palette.separator;
+            assert_eq!(divider.to_rgba8(), measured, "{scheme:?}");
         }
     }
 }

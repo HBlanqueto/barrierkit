@@ -105,6 +105,8 @@
   --bk-icon-button-size: 30;
   --bk-icon-button-radius: var(--bk-radius-sm);
   --bk-icon-button-icon: 16;
+  --bk-icon-button-toolbar-icon: 21;
+  --bk-icon-button-toolbar-stroke: 1.6;
   --bk-toolbar-search-width: 180;
   --bk-gauge-size: 44;
   --bk-gauge-stroke: 4;
@@ -712,8 +714,8 @@
   --bk-window-toolgroup-height: var(--bk-size-toolgroup-h);
   --bk-window-toolgroup-padding-x: 0;
   --bk-window-toolgroup-separator-w: 1;
-  --bk-window-toolgroup-separator-h: 18;
-  --bk-window-toolgroup-separator: var(--bk-separator);
+  --bk-window-toolgroup-separator-h: 20;
+  --bk-window-toolgroup-separator: var(--bk-toolgroup-separator);
   --bk-window-toolgroup-rim: var(--bk-toolgroup-rim);
   --bk-settings-window-width: 770;
   --bk-settings-window-height: 848;
@@ -1530,6 +1532,7 @@
   --bk-sidebar-glass-solid: #f1f2f3;
   --bk-toolbar-glass-bg: #ffffffdb;
   --bk-toolgroup-rim: #0000001f;
+  --bk-toolgroup-separator: #00000039;
   --bk-sidebar-island-rim: #0000001a;
   --bk-sidebar-island-inner: #ffffff00;
 }
@@ -1673,6 +1676,7 @@
     --bk-sidebar-glass-solid: #202020;
     --bk-toolbar-glass-bg: #2f2f2f;
     --bk-toolgroup-rim: #ffffff1a;
+    --bk-toolgroup-separator: #ffffff39;
     --bk-sidebar-island-rim: #ffffff21;
     --bk-sidebar-island-inner: #ffffff00;
   }
@@ -1816,6 +1820,7 @@
   --bk-sidebar-glass-solid: #202020;
   --bk-toolbar-glass-bg: #2f2f2f;
   --bk-toolgroup-rim: #ffffff1a;
+  --bk-toolgroup-separator: #ffffff39;
   --bk-sidebar-island-rim: #ffffff21;
   --bk-sidebar-island-inner: #ffffff00;
 }
@@ -1958,6 +1963,7 @@
   --bk-sidebar-glass-solid: #191a1c;
   --bk-toolbar-glass-bg: #393a3ed6;
   --bk-toolgroup-rim: #ffffff1a;
+  --bk-toolgroup-separator: #ffffff39;
   --bk-sidebar-island-rim: #ffffff21;
   --bk-sidebar-island-inner: #ffffff00;
 }

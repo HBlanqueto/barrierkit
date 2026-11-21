@@ -31,7 +31,9 @@
     "icon-button": {
       "size": 30,
       "radius": "radius.sm",
-      "icon": 16
+      "icon": 16,
+      "toolbar-icon": 21,
+      "toolbar-stroke": 1.6
     },
     "toolbar-search-width": 180,
     "gauge": {
@@ -782,8 +784,8 @@
         "height": "size.toolgroup-h",
         "padding-x": 0,
         "separator-w": 1,
-        "separator-h": 18,
-        "separator": "separator",
+        "separator-h": 20,
+        "separator": "toolgroup-separator",
         "rim": "toolgroup-rim"
       }
     },

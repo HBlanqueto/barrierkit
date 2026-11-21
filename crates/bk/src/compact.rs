@@ -12,7 +12,7 @@ use crate::styles::{
     Axis, ControlState, IconButtonStyle, LayoutDirection, Paints, StepperStyle, Theme,
     ToggleGroupStyle, ToolbarSearchStyle, resolve,
 };
-use crate::symbol::{Symbol, stroked_symbol, symbol};
+use crate::symbol::{Symbol, stroked_symbol};
 
 #[derive(Clone, Copy)]
 struct ToolbarItems(State<bool>);
@@ -100,9 +100,10 @@ impl Component for IconButton {
             .map(on_press.filter(|_| enabled), |el, on_press| {
                 el.on_press(move |_| on_press.call(()))
             })
-            .child(symbol(
+            .child(stroked_symbol(
                 self.symbol,
                 style.icon_size,
+                style.stroke,
                 paints.color(style.icon.resolve(state)),
             ));
         interaction.focus_ring(

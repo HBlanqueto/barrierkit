@@ -149,9 +149,62 @@ A titled window with an empty 430 × 280 sheet (`~/src/probes/sheets.swift`, ove
 - Menu marks and arrows (a real `NSMenu` with checked, mixed and submenu items; the display is 1x, so these are sums of pixel coverage, good to about 0.5): the check, the mixed dash and the submenu chevron all use the label color, as the title does, and are heavy strokes of about 1.7. The check is the same shape as the checkbox's, 9 across and 9 down with its center 17.5 from the panel edge; the dash is 8.2 long, its right edge level with the check's; the chevron is 3.6 wide and 7.4 high, its ink ending 20 from the panel edge. A menu with any mark puts its titles 30 from the panel edge, 13 further than without, and a submenu row is 31 wider than a plain one (a shortcut adds 24 plus its own width). `NSMenuItem.image` draws nothing in a pop-up menu on this macOS, so item icons could not be measured.
 - Menu text: titles use the label color (`26` darkest in light), shortcuts and disabled items the tertiary label (about 25%: black in light, white in dark). The kit drew shortcuts at the secondary level.
 
-## Toolbar (unified, icon only)
+## Toolbar items and navigation buttons
 
-Read from the view tree of an `NSToolbar` window with `~/src/probes/toolbar.swift` on macOS 27.2.1: the title bar is 52 high; the traffic lights are 14 wide at x=19, 42 and 65 and y=19; each platter is a glass capsule 36 high, 8 from the top and bottom, with 8 between platters; a single bordered item is 47 wide, a two-item selection group 74 (a 34 slot twice and 3 on each side, the selected slot a 30 high capsule), the search item 239. The kit's `SETTINGS.toolbar_height` (52), `toolgroup-h` (36) and the 8 gap agree; its `ToolGroup` is a row of 36 slots with separators, not the selection group.
+Read with `~/src/probes/navbuttons` on macOS 27.2.1, display 1x, `.fullSizeContentView` windows, icon-only toolbars. Frames come from the view tree; glyph ink comes from `cacheDisplay` at 4x of each hosted button (the compositor draws the glass, so fills, rims and shadows are not here). `navbuttons.sh` runs the probe as an app bundle so the window is key: a bare binary leaves it inactive and every item draws gray.
+
+Three traps in the probe, each of which gave a wrong number before:
+
+- An item with no target and action is not a button but a plain image view: its platter is `glyph + 32` wide (47 for the plus). The old "single bordered item is 47 wide" came from that path. Every real button, enabled or disabled, is a 36 circle in the unified style.
+- A disabled button needs `autovalidates = false` and `isEnabled = false`; with an action the toolbar enables it again.
+- The momentary group of a toolbar is sized by its labels even in icon-only mode (below).
+
+### What fixes each size
+
+1. **`NSWindow.toolbarStyle`** fixes the bar and the platter height. The platter is a glass capsule (`NSGlassEffectView`, radius half its height) inside an `NSToolbarPlatterView`.
+
+   | Style | Bar | Platter | Radius | Platter top | First platter at x | Last platter ends |
+   |---|---|---|---|---|---|---|
+   | `unified` | 52 | 36 | 18 | 8 | 96 | 8 from the right |
+   | `unifiedCompact` | 40 | 24 | 12 | 8 | 94 | 12 from the right |
+   | `expanded` | 68 (32 title row, 36 toolbar row) | 28 | 14 | 32 (top of the toolbar row) | 12 | 11 from the right |
+
+   The traffic lights end at 79 in `unified` (x = 19, 42, 65) and at 72 in `unifiedCompact` (12, 35, 58); `expanded` puts them in the 32 title row and the toolbar under it. Platters are 8 apart in every style.
+
+2. **The kind of item** fixes the width. Adjacent bordered buttons share one platter and draw no divider. A flexible space or an unbordered item ends the platter.
+
+   | Platter | `unified` | `unifiedCompact` | `expanded` |
+   |---|---|---|---|
+   | One button | 36 | 26.5 | 28.5 |
+   | Two buttons (a back and forward pair) | 73 | 63 | 65 |
+   | N buttons | 36 N + 1 for N ≥ 2: 73, 109, 145, 181, 217 | | |
+   | Two segments, select one | 74 | 66 | 66 |
+   | Two segments, momentary, labels "Back" and "Forward" | 87 | 79 | 83 |
+   | Three segments, select one or any | 111 to 123, by glyph width | | |
+
+   The center of the glyphs of a pair are 36.9 apart in `unified` (18.1 and 55.0 from the left of its 73) and 38.9 apart in the other two (12.1 and 51.0 of 63; 13.1 and 52.0 of 65). A segment is at least 34 wide with 3 on each end; a momentary group takes its width from the label text, 74 with one-letter labels, 87 with "Back" and "Forward", about 118 with `chevron.left` and `chevron.right`. A select-one group does not.
+
+3. **`isNavigational`** moves the item to the leading edge, after the sidebar toggle, in a platter of its own, whatever its place in the list. A pair of them is the back and forward control of Safari or Finder.
+
+4. **The glyph** does not follow the platter. Every toolbar symbol is the SF Symbol at 16 pt, 1.23 times the 13 pt default, in the three styles: a chevron's ink is 8.75 × 14.75, so it fills 14.75 of the 24 high compact platter. Ink at 10% of the peak, in points:
+
+   | Symbol | Ink | Symbol | Ink |
+   |---|---|---|---|
+   | `chevron.left` | 8.75 × 14.75 | `plus` | 14.25 × 14.25 |
+   | `chevron.right` | 8.5 × 14.75 | `sidebar.left` | 20.25 × 16.0 |
+   | `ellipsis` | 15.75 × 4.0 | `magnifyingglass` | 16.5 × 17.25 |
+
+   A chevron's centerline is 7.2 × 13.2 with a stroke of 1.5; a plus has arms of 12.8 and the same stroke. A lone chevron sits 0.9 off the center of its circle, toward the open side (the left one at 17.1, the right one at 19.0 of 36); in a pair the glyphs are at 18.1 and 19.0 of their 36 and 37 wide halves.
+
+5. **The state** sets the color: the label color at 84.7% (black in light, white in dark), 25.5% when disabled, white on the accent for a prominent item (a 36 accent circle; its check is 15.25 × 14.5).
+
+### Groups and dividers
+
+A momentary group draws a divider between its segments: 1 wide, black or white at 22.4%, 20 high in `unified` (8 from the top of the platter), 14 in `unifiedCompact` and 18 in `expanded` (5 from the top). A select-one group draws no divider; its selected segment is a capsule inset 4 in `unified` (28 high) and 2 in the other two (20 and 24 high). The pair of navigational buttons has no divider at all: a row of the platter at its middle reads the same on both sides of the seam.
+
+### What the kit does
+
+`IconButton` inside a `ToolGroup` is a 36 capsule with a 21 symbol at stroke 1.6 (`ICON_BUTTON.toolbar_icon`, `toolbar_stroke`). The chevron's ink is 8.5 × 15.0 and the plus 13.5, against 8.75 × 14.75 and 14.25 in AppKit, and their mass differs by 0.8% and 1.2% (`scripts/appkit-compare.py toolbar`). `NavigationButtons` is 73 × 36 with an invisible 1 seam and its glyph boxes are within 0.25 of AppKit's. `ToolGroup` draws a 1 × 20 divider at 22.4% (`TOOLGROUP.separator_h`, `toolgroup-separator`), the momentary group's; a group of three is 110 wide, one more than AppKit's. Not drawn yet: the 24 high platters of `unifiedCompact` (the kit puts a 30 square without platter there, or a 36 capsule inside a `ToolGroup`), the `expanded` style, the labels that widen a momentary group, the offset of a lone chevron, and the SF symbols other than the chevron and the plus (the kit's `sidebar.left` is 16.0 × 13.5 against 20.25 × 16.0).
 
 ## Toolbar tabs and window corners
 

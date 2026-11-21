@@ -19,7 +19,7 @@ table on stdout and `target/appkit/sheet-*.png`.
 
    ```sh
    cd ~/src/probes
-   for probe in controls views alerts menu toolbar tabs sheets gauges; do swiftc -O $probe.swift -o $probe; done
+   for probe in controls views alerts menu toolbar tabs sheets gauges navbuttons; do swiftc -O $probe.swift -o $probe; done
    ```
 
 2. Capture on the Mac. Each run writes `<prefix>.json` (frames) and
@@ -51,6 +51,17 @@ table on stdout and `target/appkit/sheet-*.png`.
    the window as inactive. `alerts`, `menu`, `toolbar`, `tabs`, `sheets` and `gauges` dump a view
    tree or screenshot and have their own usage line in the source.
 
+   `navbuttons` opens a window whose toolbar holds the items named in its `specs` argument and writes `<prefix>.json` (the view tree) plus one 4x PNG per hosted button. `navbuttons.sh` runs it as an app bundle, so the window is key and draws its active state, and takes the screenshot from the shell. The specs are in the source header; the bench reads two sets, `glyphs` (ten single buttons) and `pair` (the navigational back and forward):
+
+   ```sh
+   mkdir -p ~/src/captures/navbuttons
+   glyphs="s:chevron.left|flex|s:chevron.right|flex|s:plus|flex|s:sidebar.left|flex|s:gearshape|flex|s:square.and.arrow.up|flex|s:ellipsis|flex|s:magnifyingglass|flex|s:trash|flex|s:arrow.left"
+   ~/src/probes/navbuttons.sh aqua unified "$glyphs" ~/src/captures/navbuttons/glyphs-light 1000
+   ~/src/probes/navbuttons.sh darkAqua unified "$glyphs" ~/src/captures/navbuttons/glyphs-dark 1000
+   ~/src/probes/navbuttons.sh aqua unified "n:chevron.left|n:chevron.right" ~/src/captures/navbuttons/pair-light
+   ~/src/probes/navbuttons.sh darkAqua unified "n:chevron.left|n:chevron.right" ~/src/captures/navbuttons/pair-dark
+   ```
+
 3. Convert any `screencapture` image to sRGB before sampling a color. The
    display profile turns blue into indigo:
 
@@ -78,6 +89,7 @@ table on stdout and `target/appkit/sheet-*.png`.
    scripts/appkit-render.sh views           # kit-views-*.png
    scripts/appkit-render.sh views-contrast  # kit-views-hc-*.png
    scripts/appkit-render.sh menu            # kit-menu-{,marks-}{light,dark}.png
+   scripts/appkit-render.sh toolbar         # kit-toolbar-{light,dark}.png
    ```
 
    AppKit draws the level and rating indicators from bitmaps, so a 4x capture shows them
@@ -109,6 +121,7 @@ table on stdout and `target/appkit/sheet-*.png`.
    scripts/appkit-compare.py pressed
    scripts/appkit-compare.py sheet controls light white push-regular,switch-on-regular
    scripts/appkit-compare.py table dark
+   scripts/appkit-compare.py toolbar light
    ```
 
    To size an internal glyph, `appkit_glyph_lab` renders a symbol over a grid of sizes and

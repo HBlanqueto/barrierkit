@@ -542,6 +542,8 @@ pub struct IconButtonMetrics {
     pub size: f32,
     pub radius: f32,
     pub icon: f32,
+    pub toolbar_icon: f32,
+    pub toolbar_stroke: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

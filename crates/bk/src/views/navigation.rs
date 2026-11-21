@@ -5,6 +5,7 @@ use torin::prelude::{Direction, Size};
 use crate::app::{Action, Shortcut, ShortcutKey};
 use crate::compact::IconButton;
 use crate::i18n::text;
+use crate::styles::{ShapeStyle, StateValue, ToolGroupStyle};
 use crate::symbol::Symbol;
 
 pub const GO_BACK: Action = Action::new("go-back", || text!("go-back"))
@@ -91,6 +92,10 @@ fn navigation_buttons<T: Clone + PartialEq + 'static>(history: State<History<T>>
         })
         .child(
             crate::controls::ToolGroup::new()
+                .style(|style: ToolGroupStyle| ToolGroupStyle {
+                    separator: style.separator.map(|_| StateValue::new(ShapeStyle::Clear)),
+                    ..style
+                })
                 .child(
                     IconButton::new(Symbol::ChevronLeft, GO_BACK.title())
                         .disabled(!history.read().can_go_back())
