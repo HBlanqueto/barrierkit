@@ -989,14 +989,20 @@ Side effects of the probes: K3 wrote its own defaults domain
      `padding` from Freya's `ContainerExt` (a scratch program of the same
      shape). Sizing under a fit-size wrapper and `.key` pass-through are not
      verified.
-2. **A `Binding` type.** Freya already has `Writable`. Controls could take
-   `impl IntoWritable` next to value plus callback, or the kit keeps value plus
-   callback and documents `State<T>` for text. This decides whether SwiftUI's
-   `$x` has an answer.
-3. **Actions and lifecycle.** Route an `Action` to the focused view and add a
-   close veto, a quit call and an open-URL event, or record them as
-   non-goals. Today an action reaches every handler of the window.
+2. **A `Binding` type. Decided 2026-11-21: none.** Text controls keep
+   `State<String>` and every other control keeps value plus callback; nothing
+   is added until an app asks. Freya's `Writable` compares equal for any two
+   values (`freya-core` `lifecycle/writable.rs:60`), and neither malaysia nor
+   curseterm (`1375c72`) uses `Writable` or `use_radio`. The reasons and the
+   greps are in [ADR 0085](../decisions.md).
+3. **Actions and lifecycle. Decided 2026-11-21: non-goals until an app asks.**
+   No routing of an `Action` to the focused view, no close veto, no quit call
+   and no open-URL event. A grep of malaysia and curseterm finds no use of
+   them, and the three repositories have no issue asking for one
+   ([ADR 0085](../decisions.md)).
 
-The 14 fixes of [5.4](#54-stale-or-wrong-statements) and a "SwiftUI to kit"
-chapter for `docs/barrierkit` are ready to write once decisions 2 and 3 are
-made.
+The 14 fixes of [5.4](#54-stale-or-wrong-statements) and the chapter
+[SwiftUI to the kit](../barrierkit/21-swiftui-to-the-kit.md) were written on
+2026-11-21. Five statements (D1 to D4 and D13) had already been fixed by other
+sessions; D5 to D12 and D14 were fixed then. The coverage matrix got the two
+rows of decision 3 in section 14 and a note on `Binding`.

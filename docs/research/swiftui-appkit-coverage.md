@@ -133,11 +133,11 @@ Rows per status at the snapshot. A row is one API, style or size.
 | 11. Control sizes | 2 | 0 | 0 | 0 | 2 |
 | 12. Containers and navigation | 9 | 4 | 15 | 3 | 31 |
 | 13. Presentation | 1 | 4 | 8 | 1 | 14 |
-| 14. Windows and chrome | 1 | 4 | 12 | 11 | 28 |
+| 14. Windows and chrome | 1 | 4 | 12 | 13 | 30 |
 | 15. Materials and glass | 0 | 1 | 5 | 0 | 6 |
 | 16. Symbols | 1 | 0 | 4 | 1 | 6 |
 | 17. Accessibility | 1 | 1 | 10 | 1 | 13 |
-| **All** | 64 | 36 | 82 | 36 | 218 |
+| **All** | 64 | 36 | 82 | 38 | 220 |
 
 To recount after a change, run this from the repository root:
 
@@ -469,6 +469,8 @@ The size of each control is a row in its own family.
 | `UtilityWindow` | `NSPanel` | `UtilityWindow`, `PanelBehavior` | `implemented` | none | P3 |
 | — | window tabs | `WindowTabs` | `partial`: one toplevel, no tab group, tabs do not drag | none | P3 |
 | `DocumentGroup`, `AlertScene` | `NSDocument` | — | `missing` | none | P3 |
+| `windowShouldClose`, `applicationShouldTerminate`, `application(_:open:)` | `NSWindowDelegate`, `NSApplicationDelegate` | — | `missing`: a non-goal until an app asks ([ADR 0085](../decisions.md)); a close request closes the window at once, except a sheet's, and the last window ends the process | [Swift syntax in Rust](swift-syntax-in-rust.md) | — |
+| a command to the focused view | `NSResponder` chain, `validateMenuItem` | `Action`, `use_menu_action` | `missing`: every handler of the window gets every id, and a shortcut works only through an enabled menu item; a non-goal until an app asks ([ADR 0085](../decisions.md)) | [Swift syntax in Rust](swift-syntax-in-rust.md) | — |
 
 ## 15. Materials and glass
 
@@ -653,6 +655,10 @@ No probe of `~/src/probes` renders these:
   `NSColorPanel`, `NSFontPanel`, toolbar display modes and window subtitles.
 - The availability of SwiftUI styles comes from the `@available` lines of the
   interface; a style with `macOS, unavailable` is listed as not on macOS.
+- The matrix keeps no syntax-level rows. `Binding` is not in the kit and is a
+  non-goal until an app asks ([ADR 0085](../decisions.md)); the Swift
+  constructs and their kit idioms are in
+  [SwiftUI to the kit](../barrierkit/21-swiftui-to-the-kit.md).
 
 [m-sizes]: macos-control-metrics.md#sizes-width--height-points
 [m-control-sizes]: macos-control-metrics.md#control-sizes

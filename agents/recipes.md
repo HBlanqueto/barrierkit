@@ -69,11 +69,7 @@ The program is [`recipes/custom_window.rs`](recipes/custom_window.rs).
 ## 8. Translated text
 
 Follow the steps in chapter [17](../docs/barrierkit/17-languages.md); then every
-literal above becomes `tr!("id")`:
-
-```rust
-Text::new(tr!("hello")).font(TITLE)
-```
+literal above becomes `tr!("id")`, as in `Text::new(tr!("hello"))`.
 
 ## 9. A stopwatch
 
@@ -157,3 +153,79 @@ The program is [`recipes/button_label.rs`](recipes/button_label.rs).
    accent fill of `bordered_prominent`.
 3. Use `Label` for a symbol with a title; a bare `Image::system` keeps its own
    color.
+
+## 15. State passed to a child view
+
+SwiftUI: `struct NameField: View { @Binding var name: String … }` used as `NameField(name: $name)`.
+
+The program is [`recipes/binding.rs`](recipes/binding.rs).
+
+1. A text field takes the `State<String>` it edits. The child holds that
+   `State` as a field, and the parent reads the same value.
+2. Any other control takes the value and a callback, as in
+   [recipe 4](#4-a-toggle-bound-to-state). The kit has no `Binding`
+   ([ADR 0085](../docs/decisions.md)).
+
+## 16. A value from the environment
+
+SwiftUI: `.environment(\.account, account)` above and `@Environment(\.account) var account` below.
+
+The program is [`recipes/environment.rs`](recipes/environment.rs).
+
+1. `use_provide_context` creates the value once; `use_consume::<T>()` finds it
+   by type in the nearest ancestor and panics when none provides it.
+2. The value is read once. A value that changes holds a `State`
+   ([recipe 17](#17-observable-state)).
+
+## 17. Observable state
+
+SwiftUI: `@Observable class Counter { var count = 0; var step = 1 }` shared through the environment.
+
+The program is [`recipes/observable.rs`](recipes/observable.rs).
+
+1. The model is a `Copy` struct of `State`s. Build it in the render, then give
+   it to `use_provide_context`.
+2. A view re-renders for the `State`s it reads: `CountLabel` reads `count`, and
+   a change to `step` does not touch it.
+
+## 18. Moving the focus
+
+SwiftUI: `@FocusState var searching: Bool`, `.focused($searching)` and `searching = true`.
+
+The program is [`recipes/focus_state.rs`](recipes/focus_state.rs).
+
+1. `use_a11y()` returns the id; `SearchField::a11y_id(id)` gives it to the
+   field; `id.request_focus()` moves the focus.
+2. Only `SearchField` takes an id. `TextField` and `SecureField` have
+   `.auto_focus(bool)`.
+
+## 19. A list from data
+
+SwiftUI: `ForEach(fruits, id: \.id) { Text($0.name) }`
+
+The program is [`recipes/for_each.rs`](recipes/for_each.rs).
+
+1. `.children(iter)` takes any iterator; `.key(id)` gives each child its
+   identity, so its state follows the item when the list changes.
+2. A duplicate key among siblings panics in debug builds.
+
+## 20. Views that depend on a condition
+
+SwiftUI: `if signedIn { Text("Welcome back") } else { Button("Sign in") { … } }`
+
+The program is [`recipes/if_else.rs`](recipes/if_else.rs).
+
+1. Two arms of different types need `.into_element()`.
+2. `.maybe_child(opt)` adds a child only when the option is `Some`.
+
+## 21. A command with a shortcut
+
+SwiftUI: `.commands { CommandMenu("Counter") { Button("Add one") { … }.keyboardShortcut("k") } }`
+
+The program is [`recipes/actions.rs`](recipes/actions.rs).
+
+1. The `Action` is a constant. Its item goes in the `MainMenu`, and the
+   shortcut works only through an enabled menu item
+   ([chapter 13](../docs/barrierkit/13-app.md#actions-and-shortcuts)).
+2. Every handler of the window receives every id, so the handler compares the
+   id with `ADD.id`.

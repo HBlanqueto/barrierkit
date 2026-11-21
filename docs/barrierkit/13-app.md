@@ -126,6 +126,9 @@ How a shortcut reaches the app:
 A shortcut that is in no menu does nothing. A disabled item does not fire its
 shortcut.
 
+The kit does not route an action to the focused view, and it has no close
+veto, quit call or open-URL event ([ADR 0085](../decisions.md)).
+
 The kit declares these actions:
 
 | Action | Shortcut | Handled by |

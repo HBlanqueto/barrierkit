@@ -13,7 +13,9 @@ answers it.
 
 1. If you know the SwiftUI or AppKit name of what you need, look it up in the
    [glossary](20-glossary.md); each row links to its chapter.
-2. Otherwise, pick the chapter in the table below.
+2. If you have SwiftUI syntax rather than a name (`$x`, `@Environment`,
+   `ForEach`, `if/else`), read [chapter 21](21-swiftui-to-the-kit.md).
+   Otherwise, pick the chapter in the table below.
 3. New to the kit: read chapters 1 to 3 in order.
 4. An AI agent starts from [`agents/prompt.md`](../../agents/prompt.md).
 
@@ -40,6 +42,7 @@ answers it.
 | 18 | [Platform](18-platform.md) | Runner, Vulkan, Wayland protocols, the shell feature |
 | 19 | [Profiling](19-profiling.md) | Where does each frame's time go? |
 | 20 | [Glossary](20-glossary.md) | What is the BarrierKit name of a SwiftUI or AppKit concept? |
+| 21 | [SwiftUI to the kit](21-swiftui-to-the-kit.md) | How do I write `@Binding`, `@Environment`, `@Observable`, `@FocusState`, `ForEach`, `if/else`, actions and effects? |
 
 ## Other questions
 

@@ -115,7 +115,8 @@ toolbar items) or the app opens several windows: see
 `content` and `title` accept a `&'static str`, a `String` or the result of `tr!`.
 
 `Text::style` rebuilds the text: call it before `.font`, `.line_limit` and any
-Freya method.
+Freya method. `Badge::style`, `Divider::style`, `Avatar::style` and
+`SymbolTile::style` rebuild their views the same way.
 
 ```rust
 // ✗ the style drops the font

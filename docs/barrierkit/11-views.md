@@ -573,8 +573,9 @@ caret. `ink` and `.cursor(color)` override it before `.style`
 
 ## Feedback
 
-Module `views::feedback`. `ContentUnavailableView` and `Sheet` are rects: they
-take Freya's layout and style methods.
+Module `views::feedback`. `ContentUnavailableView` is a rect: it takes Freya's
+layout and style methods. `Sheet` is a component and takes none
+([modifiers on controls](05-controls.md#modifiers-on-controls)).
 
 ### `ContentUnavailableView`
 

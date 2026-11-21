@@ -16,16 +16,18 @@ reason it cannot be.
 
 1. Does the file start with `use bk::prelude::*;` and import only what
    the prelude lacks?
-2. Is every color from `Palette::current()` (or left to `Text`), every size a
-   `SPACE_*` or component token, and every font one of the typography tokens?
+2. Is every color from `Palette::current()` (or left to `Text`, or a
+   `ShapeStyle::Role` in a style), every size a `SPACE_*` or component token,
+   and every font one of the typography tokens (except in throwaway samples)?
 3. Is every visible string in `i18n/{en,es}/<crate>.ftl` and read with `tr!`
    (except in throwaway samples)?
-4. Does every control receive its value and handle its change?
+4. Does every control receive its value and handle its change (a text field
+   takes the `State<String>` it edits)?
 5. Is every name the glossary name? Nothing named `App` of your own, nothing
    that copies a kit control (a knob drawn by hand included: `Switch`, `Slider`
    and `LevelSlider` hand their held knob to the compositor on their own).
-6. Are hooks (`use_state`, `use_defaults`…) and `.help(..)` called on every
-   render, never inside a condition or a loop?
+6. Are hooks (every `use_*`, and `.help(..)`, which hides one) called on every
+   render, never inside a condition, a loop or an iterator closure?
 7. Are there no comments besides `// SAFETY:` and one-line invariants?
 8. Is the `Application` name the same one passed to `use_app_language` and
    `load_defaults`?

@@ -18,7 +18,10 @@ version.
 
 1. Write down the SwiftUI code a Mac developer would write for the task.
 2. Translate it name by name with the
-   [glossary](../docs/barrierkit/20-glossary.md). Do not guess a name.
+   [glossary](../docs/barrierkit/20-glossary.md). Do not guess a name. Translate
+   what is not a name (`@Binding`, `@Environment`, `@Observable`, `@FocusState`,
+   `ForEach`, `if/else`, actions, effects) with
+   [SwiftUI to the kit](../docs/barrierkit/21-swiftui-to-the-kit.md).
 3. Start from the closest [recipe](recipes.md); change only what the task
    needs.
 4. Open the chapter of every item you use (the glossary links it) and check
@@ -52,16 +55,20 @@ version.
 
 1. **One import:** `use bk::prelude::*;`. Import from a module only
    what the prelude lacks (for example `bk::views::form::Form`).
-2. **No literal colors, sizes or fonts.** Colors from `Palette::current()`,
-   sizes from the `SPACE_*` and component tokens, fonts from `LARGE_TITLE`,
-   `TITLE`, `TITLE_2`, `TITLE_3`, `HEADLINE`, `SUBHEADLINE`, `BODY`, `CALLOUT`,
-   `FOOTNOTE`, `CAPTION`, `CAPTION_2`, `MONO`. `Text`
-   already picks the right color.
+2. **No literal colors, sizes or fonts in a real app.** Colors from
+   `Palette::current()`, or from a `ShapeStyle::Role` or `Accent` in a style
+   ([`styles.md`](styles.md)); sizes from the `SPACE_*` and component tokens,
+   fonts from `LARGE_TITLE`, `TITLE`, `TITLE_2`, `TITLE_3`, `HEADLINE`,
+   `SUBHEADLINE`, `BODY`, `CALLOUT`, `FOOTNOTE`, `CAPTION`, `CAPTION_2`,
+   `MONO`. `Text` already picks the right color. A throwaway sample, like the
+   [recipes](recipes.md), may use literals.
 3. **No literal visible text in a real app.** Text goes in
    `i18n/{en,es}/<crate>.ftl` and is read with `tr!("id")`. Literals are only
    for throwaway samples.
 4. **Controls are controlled.** Pass the value (`.value`, `.on`, `.selected`)
-   and handle the change (`.on_change`, `.on_toggle`, `.on_press`).
+   and handle the change (`.on_change`, `.on_toggle`, `.on_press`). A text
+   field takes the `State<String>` it edits instead
+   ([chapter 5](../docs/barrierkit/05-controls.md#text-fields)).
 5. **Use the kit's control** before building one from `rect()`.
 6. **Names come from the glossary.** Freya owns `App`, `label` and `rect`; the
    kit's app type is `Application`.
@@ -91,6 +98,7 @@ version.
 | When you need to… | Read |
 |---|---|
 | Find the name of anything (control, view, token, hook) | [`20-glossary.md`](../docs/barrierkit/20-glossary.md) |
+| Write `@Binding`, `@Environment`, `@Observable`, `@FocusState`, `ForEach`, `if/else`, an action or an effect | [`21-swiftui-to-the-kit.md`](../docs/barrierkit/21-swiftui-to-the-kit.md) |
 | Copy a working program | [`recipes.md`](recipes.md) |
 | Check your work before you answer | [`checklist.md`](checklist.md) |
 | Understand the first app line by line | [`02-first-app.md`](../docs/barrierkit/02-first-app.md) |

@@ -57,6 +57,14 @@ png.workspace = true
 ignored = ["freya-skia-safe"]
 
 [[example]]
+name = "actions"
+path = "../../agents/recipes/actions.rs"
+
+[[example]]
+name = "binding"
+path = "../../agents/recipes/binding.rs"
+
+[[example]]
 name = "button_label"
 path = "../../agents/recipes/button_label.rs"
 
@@ -77,8 +85,28 @@ name = "custom_window"
 path = "../../agents/recipes/custom_window.rs"
 
 [[example]]
+name = "environment"
+path = "../../agents/recipes/environment.rs"
+
+[[example]]
+name = "focus_state"
+path = "../../agents/recipes/focus_state.rs"
+
+[[example]]
+name = "for_each"
+path = "../../agents/recipes/for_each.rs"
+
+[[example]]
 name = "hello_world"
 path = "../../agents/recipes/hello_world.rs"
+
+[[example]]
+name = "if_else"
+path = "../../agents/recipes/if_else.rs"
+
+[[example]]
+name = "observable"
+path = "../../agents/recipes/observable.rs"
 
 [[example]]
 name = "reusable_view"
