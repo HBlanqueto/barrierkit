@@ -1,6 +1,7 @@
 use ctdesign::{
     BODY, DIALOG_ALERT_ICON, DIALOG_ALERT_ICON_GAP, DIALOG_ALERT_LINE_HEIGHT, DIALOG_ALERT_PADDING,
-    DIALOG_ALERT_SPACING, DIALOG_ALERT_WIDTH, Font, HEADLINE, SPACE_2, SPACE_4,
+    DIALOG_ALERT_SPACING, DIALOG_ALERT_STACK_SPACING, DIALOG_ALERT_WIDTH, Font, HEADLINE, SPACE_2,
+    SPACE_4,
 };
 
 use super::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effect};
@@ -20,7 +21,9 @@ pub struct AlertStyle {
     pub icon_gap: f32,
     /// Tengen: `SPACE_2`.
     pub buttons_spacing: f32,
-    /// Tengen: `SPACE_4`.
+    /// Tengen: `DIALOG_ALERT_STACK_SPACING`, between the buttons of an alert with three or more.
+    pub buttons_stack_spacing: f32,
+    /// Tengen: `SPACE_4`, above the buttons, and above the accessory view and the checkbox.
     pub buttons_margin_top: f32,
     /// Tengen: `title` `Role(Label)`.
     pub title: StateValue<ShapeStyle>,
@@ -45,6 +48,7 @@ impl ControlStyle for AlertStyle {
             icon_size: DIALOG_ALERT_ICON,
             icon_gap: DIALOG_ALERT_ICON_GAP,
             buttons_spacing: SPACE_2,
+            buttons_stack_spacing: DIALOG_ALERT_STACK_SPACING,
             buttons_margin_top: SPACE_4,
             title: StateValue::new(ShapeStyle::Role(Role::Label)),
             message: StateValue::new(ShapeStyle::Role(Role::Label)),

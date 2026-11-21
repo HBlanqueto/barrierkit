@@ -46,6 +46,15 @@ pub fn measure_text_weight(text: &str, size: f32, weight: FontWeight) -> f32 {
     if text.is_empty() {
         return 0.0;
     }
+    laid_out(text, size, weight, f32::MAX).max_intrinsic_width()
+}
+
+pub fn measure_wrapped(text: &str, size: f32, weight: FontWeight, width: f32) -> (f32, usize) {
+    let paragraph = laid_out(text, size, weight, width);
+    (paragraph.longest_line(), paragraph.line_number())
+}
+
+fn laid_out(text: &str, size: f32, weight: FontWeight, width: f32) -> Paragraph {
     let mut paragraph_style = ParagraphStyle::default();
     let mut text_style = TextStyle::default();
     text_style.set_font_size(size);
@@ -56,8 +65,8 @@ pub fn measure_text_weight(text: &str, size: f32, weight: FontWeight) -> f32 {
     let mut builder = ParagraphBuilder::new(&paragraph_style, crate::fonts::collection());
     builder.add_text(text);
     let mut paragraph = builder.build();
-    paragraph.layout(f32::MAX);
-    paragraph.max_intrinsic_width()
+    paragraph.layout(width);
+    paragraph
 }
 
 pub(super) fn truncate_middle(text: &str, max_width: f32, font_size: f32) -> String {

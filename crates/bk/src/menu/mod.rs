@@ -31,8 +31,8 @@ use freya_core::elements::image::ImageHandle;
 use freya_core::integration::{AppComponent, default_fonts};
 use freya_core::prelude::*;
 use freya_engine::prelude::{
-    AlphaType, ColorType, FontMgr, FontStyle, ImageInfo, ParagraphBuilder, ParagraphStyle, Pixmap,
-    SkData, SkImage, Slant, TextStyle, Width, svg,
+    AlphaType, ColorType, FontMgr, FontStyle, ImageInfo, Paragraph, ParagraphBuilder,
+    ParagraphStyle, Pixmap, SkData, SkImage, Slant, TextStyle, Width, svg,
 };
 use ragnarok::CursorPoint;
 use torin::prelude::{Alignment, Direction, Gaps, Size};
@@ -253,10 +253,8 @@ impl MenuView {
             let Some(label) = item.label() else {
                 continue;
             };
-            let fixed = text_inset
-                + icon_width(item, icon_column)
-                + m.item_padding_x
-                + trailing_width(item, m);
+            let fixed =
+                text_inset + icon_width(icon_column) + m.item_padding_x + trailing_width(item, m);
             let max_label_w = (max_content_width - fixed).max(0.0);
             let label = truncate_middle(label, max_label_w, m.font_size);
             let label_w = measure_text(&label, m.font_size);

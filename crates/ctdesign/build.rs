@@ -28,6 +28,13 @@ DIALOG_ALERT_SPACING f32 components.dialog.alert-spacing
 DIALOG_ALERT_LINE_HEIGHT u32 components.dialog.alert-line-height
 DIALOG_ALERT_ICON f32 components.dialog.alert-icon
 DIALOG_ALERT_ICON_GAP f32 components.dialog.alert-icon-gap
+DIALOG_ALERT_STACK_SPACING f32 components.dialog.alert-stack-spacing
+DIALOG_ALERT_HELP_SIZE f32 components.dialog.alert-help-size
+DIALOG_ALERT_HELP_INSET f32 components.dialog.alert-help-inset
+DIALOG_ALERT_BADGE f32 components.dialog.alert-badge
+DIALOG_ALERT_CAUTION Rgba components.dialog.alert-caution
+DIALOG_ALERT_CAUTION_SIZE f32 components.dialog.alert-caution-size
+DIALOG_ALERT_CAUTION_AT [f32;2] components.dialog.alert-caution-at
 DIALOG_BUTTON_WIDTH f32 components.dialog.button-width
 BUTTON_DESTRUCTIVE_FILL f32 components.button.destructive-fill
 DIALOG_SHEET_WIDTH u32 components.dialog.sheet-width
@@ -103,6 +110,7 @@ BADGE BadgeMetrics components.badge
 MEDIA MediaMetrics components.media
 MATERIAL MaterialMetrics components.material
 SCROLL_BAR ScrollBarMetrics components.scroll-bar hide_delay_ms=hide-delay
+LIST_SECTION ListSectionMetrics components.list-section
 LIST_GROUP ListGroupMetrics components.list-group
     separator_inset=separator.inset-left header_padding=section-header.padding
 SPACE_1 f32 space.1
@@ -407,6 +415,7 @@ TILE_GAP i32 components.tile.gap
 TITLEBAR_PADDING_X f32 components.window.titlebar.padding-x
 TITLEBAR_TITLE_GAP f32 components.window.titlebar.title-gap
 MENU_MARK_TEXT_GAP f32 components.shell.menu.mark.text-gap
+MENU_ICON_TEXT_GAP f32 components.shell.menu.icon.text-gap
 MENU_SUBMENU_INTENT_MS u64 components.shell.menu.submenu.intent-ms
 MENU_SUBMENU_REVEAL_GAP f32 components.shell.menu.submenu.reveal-gap
 MENU_SCROLL_TICK_MS u64 components.shell.menu.scroll-tick-ms

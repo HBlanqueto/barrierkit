@@ -4,7 +4,7 @@ use std::any::Any;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use ctdesign::{MENU_DARK, MENU_LIGHT, MENU_MARK_TEXT_GAP};
+use ctdesign::{MENU_DARK, MENU_ICON_TEXT_GAP, MENU_LIGHT, MENU_MARK_TEXT_GAP};
 use freya_core::elements::label::LabelElement;
 use freya_core::integration::AppComponent;
 use freya_testing::TestingRunner;
@@ -332,7 +332,7 @@ fn icons_widen_the_menu_by_the_leading_column_and_gap() {
     let plain = MenuView::preferred_size(&built(None), MENU_LIGHT);
     let with_icons = MenuView::preferred_size(&built(Some(MenuIcon::svg("x"))), MENU_LIGHT);
     assert!(
-        (with_icons.0 - plain.0 - (MENU_LIGHT.leading_width + MENU_MARK_TEXT_GAP)).abs() <= 1.0,
+        (with_icons.0 - plain.0 - (MENU_LIGHT.leading_width + MENU_ICON_TEXT_GAP)).abs() <= 1.0,
         "an icon column is only reserved when the menu actually uses one"
     );
 }
@@ -516,7 +516,7 @@ fn icon_shifts_text_by_leading_column_and_gap() {
     let (plain_runner, _) = make_runner(plain);
     let (icon_runner, _) = make_runner(with_icon);
     let diff = label_x(&icon_runner, "Solo texto") - label_x(&plain_runner, "Solo texto");
-    let expected = MENU_LIGHT.leading_width + MENU_MARK_TEXT_GAP;
+    let expected = MENU_LIGHT.leading_width + MENU_ICON_TEXT_GAP;
     assert!(
         (diff - expected).abs() <= 1.0,
         "icon adds {diff}, expected {expected}"
@@ -542,19 +542,21 @@ fn submenu_keeps_its_own_inset() {
 }
 
 #[test]
-fn an_icon_shifts_only_the_text_of_its_own_row() {
+fn an_icon_aligns_the_text_of_every_row_of_its_menu() {
     let items = vec![
         action("Sin icono"),
         action_with("Con icono", CheckState::None, Some(MenuIcon::svg("x"))),
     ];
     let (runner, _) = make_runner(items);
     let m = MENU_LIGHT;
-    assert!((label_x(&runner, "Sin icono") - (m.padding + m.item_padding_x)).abs() <= 1.0);
-    let shift = label_x(&runner, "Con icono") - label_x(&runner, "Sin icono");
-    assert!(
-        (shift - (m.leading_width + MENU_MARK_TEXT_GAP)).abs() <= 1.0,
-        "the icon row moves its text by {shift}"
-    );
+    let expected = m.padding + m.item_padding_x + m.leading_width + MENU_ICON_TEXT_GAP;
+    for label in ["Sin icono", "Con icono"] {
+        assert!(
+            (label_x(&runner, label) - expected).abs() <= 1.0,
+            "{label} starts at {}, expected {expected}",
+            label_x(&runner, label)
+        );
+    }
 }
 
 #[test]
@@ -569,7 +571,9 @@ fn menu_without_columns_is_narrower_by_both_leading_columns_and_gaps() {
     let m = MENU_LIGHT;
     let (plain_w, _) = MenuView::preferred_size(&plain, m);
     let (columns_w, _) = MenuView::preferred_size(&with_columns, m);
-    let expected = m.mark_inset - m.item_padding_x + 2.0 * (m.leading_width + MENU_MARK_TEXT_GAP);
+    let expected = m.mark_inset - m.item_padding_x
+        + (m.leading_width + MENU_MARK_TEXT_GAP)
+        + (m.leading_width + MENU_ICON_TEXT_GAP);
     assert!(
         (columns_w - plain_w - expected).abs() <= 1.0,
         "plain menu should be narrower by the mark and icon columns plus their gaps"
@@ -586,7 +590,10 @@ fn menu_with_mark_and_icon_insets_text_past_both_columns() {
     let (runner, _) = make_runner(items);
     let m = MENU_LIGHT;
     let x = label_x(&runner, "Mixto");
-    let expected = m.padding + m.mark_inset + 2.0 * (m.leading_width + MENU_MARK_TEXT_GAP);
+    let expected = m.padding
+        + m.mark_inset
+        + (m.leading_width + MENU_MARK_TEXT_GAP)
+        + (m.leading_width + MENU_ICON_TEXT_GAP);
     assert!(
         (x - expected).abs() <= 1.0,
         "two-column text starts at {x}, expected {expected}"
@@ -606,7 +613,7 @@ fn a_checked_row_with_an_icon_keeps_the_mark_and_adds_the_icon_column() {
     let m = MENU_LIGHT;
     let shift = label_x(&icon_runner, "X") - label_x(&plain_runner, "X");
     assert!(
-        (shift - (m.leading_width + MENU_MARK_TEXT_GAP)).abs() <= 1.0,
+        (shift - (m.leading_width + MENU_ICON_TEXT_GAP)).abs() <= 1.0,
         "the icon column shifts the text by {shift}"
     );
 }

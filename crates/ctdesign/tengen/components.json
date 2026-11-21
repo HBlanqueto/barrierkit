@@ -661,6 +661,10 @@
       "grip-line-inset": 18,
       "key-step": 10
     },
+    "list-section": {
+      "header-height": 28,
+      "gap": 20
+    },
     "list-group": {
       "radius": 12.5,
       "row-min-height": 36,
@@ -669,6 +673,8 @@
       "label-min-share": 35,
       "stack-below": 300,
       "section-spacing": 10,
+      "columns-gap": 9.5,
+      "columns-spacing": 5,
       "row-padding-y": 6,
       "padding": [
         20,
@@ -1058,6 +1064,13 @@
       "padding": 20,
       "alert-icon": 64,
       "alert-icon-gap": 16,
+      "alert-stack-spacing": 6,
+      "alert-help-size": 28,
+      "alert-help-inset": 12,
+      "alert-badge": 32,
+      "alert-caution": "#f7b928",
+      "alert-caution-size": 66,
+      "alert-caution-at": [1, -1],
       "alert-width": 260,
       "alert-padding": 16,
       "alert-spacing": 10,
@@ -1120,11 +1133,21 @@
       "dusk": ["#7a3b5e", "#2d6e6a", "#b4703f"]
     },
     "tooltip": {
-      "delay": 1000,
+      "delay": 1500,
       "padding-x": 6,
-      "padding-y": 2,
-      "radius": 0,
-      "pointer-gap": 16
+      "padding-y": 3,
+      "radius": 5.25,
+      "pointer-gap": 19,
+      "wrap-after": 330,
+      "wrap-width": 250,
+      "bg-light": "#e6e6e6e5",
+      "bg-dark": "#2e2e2ed1",
+      "bg-contrast-light": "#fafafa",
+      "bg-contrast-dark": "#282828",
+      "ink-light": "#464646",
+      "ink-dark": "#ececec",
+      "ink-contrast-light": "#000000",
+      "ink-contrast-dark": "#ffffff"
     },
     "media": {
       "button-height": 38,
@@ -1471,7 +1494,8 @@
           "color": "ink"
         },
         "icon": {
-          "size": 14
+          "size": 14,
+          "text-gap": 8
         },
         "header": {
           "font-size": 11,

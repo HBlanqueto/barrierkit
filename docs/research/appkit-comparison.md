@@ -109,7 +109,7 @@ table on stdout and `target/appkit/sheet-*.png`.
    scripts/appkit-render.sh contrast        # kit-hc-*.png
    scripts/appkit-render.sh views           # kit-views-*.png
    scripts/appkit-render.sh views-contrast  # kit-views-hc-*.png
-   scripts/appkit-render.sh menu            # kit-menu-{,marks-}{light,dark}.png
+   scripts/appkit-render.sh menu            # kit-menu-{,marks-,icons-,icons-marks-}{light,dark}.png
    scripts/appkit-render.sh toolbar         # kit-toolbar-{light,dark}.png
    scripts/appkit-render.sh lists           # kit-lists-{light,dark}-*.png and kit-lists-focus-*
    scripts/appkit-render.sh lists-contrast  # kit-lists-hc-*
@@ -174,6 +174,18 @@ table on stdout and `target/appkit/sheet-*.png`.
    scripts/appkit-render.sh swiftui
    scripts/appkit-compare.py controls --family swiftui
    ```
+
+   `tooltip` hovers an `NSButton` with `toolTip` and a SwiftUI `Text` with `.help` and measures the delay, the window and its composite. The shell must post the pointer events (the bundle has no Accessibility permission), so `tooltip.sh` runs the probe as a bundle and `tooltipctl` moves the pointer, times the window's appearance and captures it; the JSON of each target has `delay_ms` and `bounds`:
+
+   ```sh
+   swiftc -O ~/src/probes/tooltip.swift -o ~/src/probes/tooltip
+   swiftc -O ~/src/probes/tooltipctl.swift -o ~/src/probes/tooltipctl
+   mkdir -p ~/src/captures/tooltip
+   ~/src/probes/tooltip.sh ~/src/captures/tooltip/aqua-white aqua white short,long,wrapped,swiftui
+   ~/src/probes/tooltip.sh ~/src/captures/tooltip/hc-aquaHC-white aquaHC white short -increaseContrast 1 -reduceTransparency 1
+   ```
+
+   `menuui` hosts a SwiftUI `Menu` and a `.contextMenu` with icons, shortcuts, a submenu and checked items; `menuui.sh <prefix> <look> <backdrop> menu|context` clicks it from the shell and screenshots the open menu (`-nomarks 1` drops the toggles). `menu-capture.sh` repeats the `menu` probe until the menu is on screen. `sheets-capture.sh <look> <backdrop> <prefix>` runs `sheets` as a bundle so the sheet is key; both Increase Contrast flags together are what change the sheet. `alertx <look> <prefix>` dumps the view tree of the `NSAlert` variants and of SwiftUI's `.alert` and `.confirmationDialog` sheets to `<prefix>.json`.
 
    `sizes` prints the layout size of every bezel at every control size (`swiftc -O ~/src/probes/sizes.swift -o ~/src/probes/sizes && ~/src/probes/sizes`). The `%bezel` column of `controls` leaves out the label ink of both sides, so Inter against SF Pro does not count.
 

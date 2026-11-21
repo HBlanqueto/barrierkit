@@ -131,13 +131,13 @@ Rows per status at the snapshot. A row is one API, style or size.
 | 9. Color and font panels | 2 | 0 | 2 | 3 | 7 |
 | 10. Image and path control | 0 | 2 | 2 | 0 | 4 |
 | 11. Control sizes | 2 | 0 | 0 | 0 | 2 |
-| 12. Containers and navigation | 4 | 10 | 9 | 8 | 31 |
-| 13. Presentation | 0 | 6 | 6 | 2 | 14 |
+| 12. Containers and navigation | 9 | 9 | 10 | 3 | 31 |
+| 13. Presentation | 1 | 6 | 6 | 1 | 14 |
 | 14. Windows and chrome | 1 | 6 | 10 | 11 | 28 |
 | 15. Materials and glass | 0 | 2 | 4 | 0 | 6 |
-| 16. Symbols | 0 | 0 | 5 | 1 | 6 |
+| 16. Symbols | 1 | 0 | 4 | 1 | 6 |
 | 17. Accessibility | 1 | 2 | 9 | 1 | 13 |
-| **All** | 57 | 48 | 71 | 42 | 218 |
+| **All** | 64 | 47 | 71 | 36 | 218 |
 
 To recount after a change, run this from the repository root:
 
@@ -386,7 +386,7 @@ The size of each control is a row in its own family.
 
 | SwiftUI | AppKit | Kit | Status | Measure | Pri |
 |---|---|---|---|---|---|
-| `List` (`.automatic`, `.inset`, `.plain`, `.sidebar`, `.bordered`) | single-column `NSTableView` | — (`Table`, `OutlineView`, `Sidebar` cover parts) | `missing`: no list of free rows with selection and separators | none | P1 |
+| `List` (`.automatic`, `.inset`, `.plain`, `.sidebar`, `.bordered`) | single-column `NSTableView` | `List`, `List::section` (`.sidebar` is `Sidebar`) | `measured`: sections 16% of the pixels (the pinned first header) | bench `lists`; [Lists][m-lists] | — |
 | `Table` with `.inset` | `NSTableView` `.inset` | `Table` | `measured` | bench `table`; [Tables][m-tables] | — |
 | `Table` `.automatic`, `.bordered` | `.automatic`, `.fullWidth`, `.sourceList`, `.plain`; `rowSizeStyle` | `TableStyle::full_width`, `plain`, `source_list`, `row_size` | `measured`: 5 to 11% of the pixels, a source list apart (AppKit draws the sidebar material) | bench `tables`; [Classic tables][m-classic] | — |
 | `TableColumn` with views | cell views | `Table` shows text rows, with `icons` before the first column | `partial`: icon cells measured; no controls in cells | bench `tables` | P1 |
@@ -394,7 +394,7 @@ The size of each control is a row in its own family.
 | `OutlineGroup` | `NSOutlineView` | `OutlineView`, `TreeNode`, `OutlineViewStyle::classic`, `full_width` | `measured`: inset and full width 5 to 6%; the source list outline is not drawn | bench `tables`; [Classic tables][m-classic] | P2 |
 | — | `NSBrowser` | `Browser` | `implemented` | none | P3 |
 | `Form` `.grouped` | — | `Form`, `Section`, `Row` | `implemented` | none; no probe has a SwiftUI `Form` | P1 |
-| `Form` `.columns` | `NSGridView` | — | `missing` | none | P2 |
+| `Form` `.columns` | `NSGridView` | `FormStyle::columns` | `measured`: 11% of the pixels differ | bench `lists`; [Forms][m-lists] | — |
 | `LabeledContent` | — | `Row` | `implemented` | none | P2 |
 | `GroupBox` | `NSBox` primary | `GroupBox` | `measured` | bench `box`; [Group box][m-rings] | — |
 | `Divider` | `NSBox` separator | `Divider` | `measured` | bench `separator` | — |
@@ -428,10 +428,10 @@ The size of each control is a row in its own family.
 | `MenuBarExtra` | `NSStatusItem` | `status_item` | `implemented` | none | P2 |
 | `.popover` | `NSPopover` | `Popover` | `implemented` | none | P1 |
 | `.sheet` | `beginSheet` | `Sheet` | `partial`: light and dark only; corners, shadow and edge are the compositor's | [Sheets][m-sheets] | P1 |
-| `.alert` | `NSAlert` (`.warning`, `.informational`, `.critical`) | `Alert` | `partial`: the geometry comes from the view tree, not pixels; no icon, accessory view, help button or text field | [Alerts][m-alerts] | P1 |
-| `.confirmationDialog` | — | — | `missing`: `Alert` is the nearest | none | P2 |
+| `.alert` | `NSAlert` (`.warning`, `.informational`, `.critical`) | `Alert` | `partial`: the geometry comes from the view tree, not pixels; icon, `.critical`, accessory view, help button and stacked buttons are implemented and measured in four appearances, `.warning` is `.informational` | [Alerts][m-alerts] | P1 |
+| `.confirmationDialog` | — | `Alert::add_button` | `implemented`: an alert whose three buttons stack; no layout of its own | [Alerts][m-alerts] | — |
 | `.fileImporter`, `.fileExporter` | `NSOpenPanel`, `NSSavePanel` | `portal::open_files`, `portal::save_file` | `partial`: the desktop's dialog, not the macOS look | none | P3 |
-| `.help` | `toolTip` | `ViewModifiers::help` | `implemented` | none | P2 |
+| `.help` | `toolTip` | `ViewModifiers::help` | `measured`: delay, place, font, padding, corner, fill, ink and wrapping in light, dark and Increase Contrast | [Tooltips][m-tooltips] | — |
 | — | `NSPrintPanel`, `NSPageLayout` | — | `missing` | none | P3 |
 | `UNUserNotificationCenter` | banners | `notifications::post` | `implemented` | [`macos-notifications.md`](macos-notifications.md) | P2 |
 | `.draggable`, `.dropDestination` | `NSDraggingSource`, `NSDraggingDestination` | `DragSource`, `ImageWell` drop | `partial`: drag out; drop only on the image well | none | P3 |
@@ -490,7 +490,7 @@ The size of each control is a row in its own family.
 | `.symbolRenderingMode` (monochrome, hierarchical, palette, multicolor) | `NSImage.SymbolConfiguration` | `TemplateRenderingMode` (original, template) | `partial` | none | P3 |
 | `.imageScale`, symbol weight | `SymbolConfiguration` | `ImageStyle` size and stroke | `partial` | none | P2 |
 | `.symbolVariant`, `.symbolEffect`, variable value | `NSSymbolEffect` | — | `missing` | none | P3 |
-| menu item icons | `NSMenuItem.image` | `MenuIcon` | `partial`: `NSMenuItem.image` draws nothing in a pop-up menu on this macOS; AppKit sets 47 of 58 standard items' images, listed in [Icons][m-icons] | [Menus][m-menus] | P2 |
+| menu item icons | `NSMenuItem.image` | `MenuIcon` | `measured`: a SwiftUI menu draws them with `.labelStyle(.titleAndIcon)`, `NSMenuItem.image` draws nothing in a pop-up menu; column, gap, size and color match; AppKit sets 47 of 58 standard items' images, listed in [Icons][m-icons] | [Menus][m-menus] | P2 |
 
 ## 17. Accessibility
 
@@ -663,6 +663,8 @@ No probe of `~/src/probes` renders these:
 [m-rings]: macos-control-metrics.md#rings-level-indicators-and-boxes
 [m-tables]: macos-control-metrics.md#tables-and-source-lists
 [m-alerts]: macos-control-metrics.md#alerts
+[m-tooltips]: macos-control-metrics.md#tooltips
+[m-lists]: macos-control-metrics.md#lists-tables-and-outlines-swiftui
 [m-sheets]: macos-control-metrics.md#sheets
 [m-menus]: macos-control-metrics.md#menus-scrollers-and-inactive-selection
 [m-sidebar]: macos-control-metrics.md#sidebar-and-window-macos-27

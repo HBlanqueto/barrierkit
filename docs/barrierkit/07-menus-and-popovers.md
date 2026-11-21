@@ -99,9 +99,11 @@ variant does nothing.
 | `Image(Arc<[u8]>)` | `MenuIcon::image(bytes)` | Encoded image bytes. Returns `None` above `MenuIcon::MAX_IMAGE_BYTES` (64 KiB). The row has no icon if a side is over `MenuIcon::MAX_IMAGE_SIDE` (1024 px) |
 | `Swatch(Rgba)` | `MenuIcon::Swatch(color)` | A color circle |
 
-The leading column for check marks exists only if some row uses it. An icon
-shifts only the text of its own row; a checked row keeps its icon. The icon
-column fits the widest icon of the menu, as in AppKit.
+The leading column for check marks exists only if some row uses it. If any row
+has an icon, every row of the menu reserves the icon column, so the titles of
+the rows without one line up with the rest; a checked row keeps its icon. The
+icon column fits the widest icon of the menu, as in AppKit, and the icon has the
+text color of its row. The icon is `MENU_ICON_TEXT_GAP` (8) before the title.
 
 An app action from [13. App](13-app.md) becomes an item with
 `action.item(enabled)` or `action.item_with(enabled, check)`.
@@ -332,14 +334,18 @@ It is drawn as the Dock menu of macOS 26:
 `&'static str`, which is what `tr!` returns. `.help` calls a hook: call it on
 every render, never inside a condition. The tooltip works like this:
 
-1. The pointer enters the element and stays `TOOLTIP.delay_ms` (1000 ms).
-2. The tooltip opens as a popup without a grab, `TOOLTIP.pointer_gap` (16 px)
+1. The pointer enters the element and stays `TOOLTIP.delay_ms` (1500 ms).
+2. The tooltip opens as a popup without a grab, `TOOLTIP.pointer_gap` (19 px)
    below the pointer.
 3. It closes when the pointer leaves, when a button is pressed and when the
    component is dropped.
 
-It draws one line of `CAPTION` text with the popover colors, a hairline border
-and square corners.
+It draws `SUBHEADLINE` text on a `TOOLTIP.padding_x` (6) by `padding_y` (3)
+padding, with a corner of `TOOLTIP.radius` and the fill and ink of the
+appearance (`bg_*`, `ink_*`, opaque with Increase Contrast). A text wider than
+`TOOLTIP.wrap_after` wraps at `wrap_width`. It draws no border: the compositor
+adds the edge and the shadow. The numbers are in
+[the metrics](../research/macos-control-metrics.md#tooltips).
 
 ### `.focus_ring`
 
@@ -412,6 +418,7 @@ empty in `content`.
 | `normalize_separators(&mut items)` | Removes leading, trailing and repeated separators, also in submenus |
 | `measure_text(text, size)` | Width in pixels of `text` in the system sans font at `size` |
 | `measure_text_weight(text, size, weight)` | The same with a `FontWeight` |
+| `measure_wrapped(text, size, weight, width)` | The widest line and the number of lines of `text` wrapped at `width`: `(f32, usize)` |
 
 The type aliases `ItemsSource`, `SubmenuSource`, `SearchableSource` and
 `RevealRoots` name the `Rc` closures that the `with_*` methods above store.

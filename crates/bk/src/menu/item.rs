@@ -1,6 +1,6 @@
 use super::*;
 
-use ctdesign::MENU_MARK_TEXT_GAP;
+use ctdesign::{MENU_ICON_TEXT_GAP, MENU_MARK_TEXT_GAP};
 
 pub(super) fn has_marks(items: &[MenuItem]) -> bool {
     items.iter().any(|item| match item {
@@ -18,16 +18,19 @@ fn has_icon(item: &MenuItem) -> bool {
     }
 }
 
-pub(super) fn icon_width(item: &MenuItem, icon_column: f32) -> f32 {
-    if has_icon(item) {
-        icon_column + MENU_MARK_TEXT_GAP
+pub(super) fn icon_width(icon_column: f32) -> f32 {
+    if icon_column > 0.0 {
+        icon_column + MENU_ICON_TEXT_GAP
     } else {
         0.0
     }
 }
 
-// AppKit fits a menu's image column to its widest image.
+// AppKit fits a menu's image column to its widest image and aligns the titles of the rows without one.
 pub(super) fn icon_column(items: &[MenuItem], m: MenuPalette) -> f32 {
+    if !items.iter().any(has_icon) {
+        return 0.0;
+    }
     items
         .iter()
         .filter_map(|item| match item {
@@ -159,7 +162,7 @@ impl RowCtx {
         let max_width = m.max_width
             - 2.0 * m.padding
             - self.text_inset
-            - icon_width(item, self.icon_column)
+            - icon_width(self.icon_column)
             - m.item_padding_x
             - trailing_width(item, m);
         truncate_middle(
@@ -283,10 +286,20 @@ pub(super) fn render_item(
                 .cross_align(Alignment::Center)
                 .spacing(MENU_MARK_TEXT_GAP)
                 .maybe_child(ctx.marks.then(|| mark_element(check, fg, m)))
-                .maybe_child(
-                    icon.clone()
-                        .map(|icon| icon_slot(icon, shortcut_color, m, ctx.icon_column)),
-                );
+                .maybe_child((ctx.icon_column > 0.0).then(|| {
+                    rect()
+                        .width(Size::px(ctx.icon_column))
+                        .margin(Gaps::new(
+                            0.0,
+                            MENU_ICON_TEXT_GAP - MENU_MARK_TEXT_GAP,
+                            0.0,
+                            0.0,
+                        ))
+                        .maybe_child(
+                            icon.clone()
+                                .map(|icon| icon_slot(icon, fg, m, ctx.icon_column)),
+                        )
+                }));
             let left = left.child(item_label(
                 &ctx.fitted_label(item),
                 ctx.show_mnemonic,

@@ -5,6 +5,7 @@ use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
 use crate::adornments::Divider;
 use crate::controls::{ControlSize, Switch};
 use crate::interaction::{control_state, use_interaction};
+use crate::menu::measure_text_weight;
 use crate::patterns::settings::PageLink;
 use crate::sidebar::SymbolTile;
 use crate::style::text;
@@ -239,6 +240,9 @@ impl Component for Form {
         let mut width = use_state(|| f32::MAX);
         let stacked = *width.read() < LIST_GROUP.stack_below;
         let [top, right, bottom, left] = style.header_padding;
+        if style.columns {
+            return columns(&self.sections, &style, &paints).into_element();
+        }
         let corner_radius = style
             .shape
             .corner_radius(0.0, 0.0, LayoutDirection::LeftToRight);
@@ -304,7 +308,51 @@ impl Component for Form {
                     })
                     .children(sections),
             )
+            .into_element()
     }
+}
+
+fn columns(sections: &[Section], style: &FormStyle, paints: &Paints) -> Rect {
+    let state = ControlState::default();
+    let ink = paints.color(style.title.resolve(state));
+    let value_ink = paints.color(style.value.resolve(state));
+    let rows: Vec<&Row> = sections.iter().flat_map(|section| &section.rows).collect();
+    let weight = FontWeight::from(style.title_font.weight as i32);
+    let label_width = rows
+        .iter()
+        .map(|row| measure_text_weight(row.title, style.title_font.size as f32, weight))
+        .fold(0.0, f32::max)
+        .ceil();
+    let [top, right, bottom, left] = style.padding;
+    rect()
+        .width(Size::fill())
+        .direction(Direction::Vertical)
+        .spacing(style.columns_spacing)
+        .padding(Gaps::new(top, right, bottom, left))
+        .children(rows.into_iter().map(|row| {
+            let control = match &row.accessory {
+                Accessory::Control(control) => Some(control.clone()),
+                Accessory::Value(value) => {
+                    Some(text(value.clone(), style.value_font, value_ink).into_element())
+                }
+                _ => None,
+            };
+            rect()
+                .width(Size::fill())
+                .direction(Direction::Horizontal)
+                .content(Content::flex())
+                .cross_align(Alignment::Center)
+                .spacing(style.columns_gap)
+                .child(
+                    rect()
+                        .width(Size::px(label_width))
+                        .main_align(Alignment::End)
+                        .direction(Direction::Horizontal)
+                        .child(text(row.title, style.title_font, ink)),
+                )
+                .maybe_child(control.map(|control| rect().width(Size::flex(1.0)).child(control)))
+                .into_element()
+        }))
 }
 
 #[derive(PartialEq)]

@@ -2,16 +2,16 @@ use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 use std::time::Duration;
 
-use ctdesign::{CAPTION, TOOLTIP};
+use ctdesign::{Rgba, SUBHEADLINE, TOOLTIP};
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 use torin::prelude::{CursorPoint, Gaps};
 
-use crate::menu::measure_text_weight;
+use crate::menu::{measure_text_weight, measure_wrapped};
 use crate::platform::{PopupAnchor, PopupGravity, PopupId, PopupSpec, Popups, Timers};
 use crate::style::text;
 use crate::styles::{PopupRoot, Theme, current_theme};
-use crate::theme::color;
+use crate::theme::{color, resolved};
 
 #[derive(Default)]
 struct Shared {
@@ -78,13 +78,9 @@ impl Tooltip {
 
     fn show(&self) {
         let at = self.shared.pointer.get();
-        let caption_width = measure_text_weight(
-            self.text,
-            CAPTION.size as f32,
-            FontWeight::from(CAPTION.weight as i32),
-        );
-        let width = caption_width + 2.0 * TOOLTIP.padding_x;
-        let height = CAPTION.line_height as f32 + 2.0 * TOOLTIP.padding_y;
+        let (text_width, lines) = lines_of(self.text);
+        let width = text_width + 2.0 * TOOLTIP.padding_x;
+        let height = lines as f32 * SUBHEADLINE.line_height as f32 + 2.0 * TOOLTIP.padding_y;
         let spec = PopupSpec {
             anchor_rect: (at.x.round() as i32, at.y.round() as i32, 1, 1),
             anchor: PopupAnchor::TopLeft,
@@ -98,30 +94,51 @@ impl Tooltip {
         };
         let content = AppComponent::new(PopupRoot {
             theme: self.theme.clone(),
-            content: AppComponent::new(Tag(self.text)),
+            content: AppComponent::new(Tag {
+                text: self.text,
+                lines,
+            }),
         });
         let id = popups.open(spec, content);
         self.shared.shown.replace(Some((popups, id)));
     }
 }
 
-struct Tag(&'static str);
+fn lines_of(text: &str) -> (f32, usize) {
+    let weight = FontWeight::from(SUBHEADLINE.weight as i32);
+    let size = SUBHEADLINE.size as f32;
+    let single = measure_text_weight(text, size, weight);
+    if single <= TOOLTIP.wrap_after {
+        (single, 1)
+    } else {
+        measure_wrapped(text, size, weight, TOOLTIP.wrap_width)
+    }
+}
+
+fn tooltip_colors() -> (Rgba, Rgba) {
+    let resolved = resolved();
+    match (resolved.scheme.is_dark(), resolved.contrast) {
+        (false, false) => (TOOLTIP.bg_light, TOOLTIP.ink_light),
+        (true, false) => (TOOLTIP.bg_dark, TOOLTIP.ink_dark),
+        (false, true) => (TOOLTIP.bg_contrast_light, TOOLTIP.ink_contrast_light),
+        (true, true) => (TOOLTIP.bg_contrast_dark, TOOLTIP.ink_contrast_dark),
+    }
+}
+
+struct Tag {
+    text: &'static str,
+    lines: usize,
+}
 
 impl App for Tag {
     fn render(&self) -> impl IntoElement {
-        let menu = crate::styles::popover_style();
+        let (bg, ink) = tooltip_colors();
         rect()
             .expanded()
             .center()
             .padding(Gaps::new_symmetric(TOOLTIP.padding_y, TOOLTIP.padding_x))
             .corner_radius(TOOLTIP.radius)
-            .background(color(menu.bg))
-            .border(
-                Border::new()
-                    .width(ctdesign::HAIRLINE)
-                    .alignment(BorderAlignment::Inner)
-                    .fill(color(menu.separator_color)),
-            )
-            .child(text(self.0, CAPTION, menu.fg).max_lines(1))
+            .background(color(bg))
+            .child(text(self.text, SUBHEADLINE, ink).max_lines(self.lines))
     }
 }

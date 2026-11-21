@@ -507,7 +507,7 @@ def sidebar(args):
 
 LISTS = [
     "list-inset", "list-striped", "list-plain", "list-bordered", "table", "outline-group",
-    "form-grouped", "form-columns", "groupbox", "disclosure",
+    "form-grouped", "form-columns", "list-sections", "groupbox", "disclosure",
 ]
 LISTS_FOCUSABLE = ["list-inset", "list-plain", "list-bordered", "table", "outline-group"]
 TABS = [

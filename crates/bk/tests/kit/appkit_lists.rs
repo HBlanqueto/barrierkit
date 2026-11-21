@@ -1,8 +1,9 @@
 use std::{fs, path::PathBuf};
 
+use bk::controls::{Checkbox, TextField};
 use bk::style::{Palette, text};
 use bk::styles::{
-    OutlineViewStyle, Role, ShapeStyle, StateValue, TabType, TabViewStyle, TableStyle,
+    FormStyle, OutlineViewStyle, Role, ShapeStyle, StateValue, TabType, TabViewStyle, TableStyle,
 };
 use bk::symbol::Symbol;
 use bk::views::form::{Form, Row, Section};
@@ -73,6 +74,34 @@ fn lists() -> Vec<(&'static str, Builder)> {
                                 .row(Row::value("Labeled", "Value")),
                         )
                         .section(Section::new().row(Row::new("Other"))),
+                )
+                .into_element()
+        }),
+        ("form-columns", || {
+            rect()
+                .width(Size::px(360.0))
+                .child(
+                    Form::new().style(FormStyle::columns).section(
+                        Section::new()
+                            .row(Row::new("").control(Checkbox::new("Toggle").checked(true)))
+                            .row(Row::new("Name").control(TextField::new(
+                                use_state(|| String::from("Value")),
+                                "Name",
+                            )))
+                            .row(Row::value("Labeled", "Value")),
+                    ),
+                )
+                .into_element()
+        }),
+        ("list-sections", || {
+            rect()
+                .width(Size::px(200.0))
+                .height(Size::px(180.0))
+                .child(
+                    List::new("Files", Vec::new())
+                        .section("Favorites", vec![NAMES[0].into(), NAMES[1].into()])
+                        .section("Locations", vec![NAMES[3].into(), NAMES[4].into()])
+                        .selected(vec![1]),
                 )
                 .into_element()
         }),

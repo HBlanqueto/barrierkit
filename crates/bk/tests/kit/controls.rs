@@ -350,6 +350,27 @@ fn alert() -> Element {
     .into_element()
 }
 
+fn alert_extras() -> Element {
+    let suppressed = use_state(|| false);
+    Alert::new(
+        "¿Olvidar esta red?",
+        "Tendrás que volver a escribir la contraseña.",
+    )
+    .icon(
+        rect()
+            .expanded()
+            .corner_radius(14.0)
+            .background((0x4a, 0x90, 0xe2)),
+    )
+    .critical()
+    .shows_help(|_| {})
+    .accessory_view(TextField::new(use_state(String::new), "Nombre"))
+    .suppression(suppressed)
+    .confirm("Olvidar", |_| {})
+    .add_button("Más tarde", |_| {})
+    .into_element()
+}
+
 fn sidebar_account() -> Element {
     rect()
         .width(Size::px(220.0))
@@ -363,6 +384,7 @@ fn window_cases() -> Vec<Control> {
         ("about", about),
         ("form-long-text", form_long_text),
         ("backdrop", backdrop),
+        ("alert-extras", alert_extras),
     ]
 }
 

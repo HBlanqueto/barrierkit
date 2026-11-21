@@ -88,6 +88,7 @@ Form::new()
 | Method | Effect |
 |---|---|
 | `Form::new()` | An empty form |
+| `.style(FormStyle::columns)` | SwiftUI's `.columns`: no cards or inset, the labels right-aligned in a column as wide as the widest one, the controls 9.5 after it (below) |
 | `.section(Section)` | Adds a section |
 | `.pinned(Section)` | In a `SettingsWindow` pane, keeps that section under the title bar while the rest scrolls |
 | `.highlighted(Option<&str>)` | Tints the row with that title with the accent at 12 % |
@@ -96,6 +97,20 @@ Form::new()
 reads it to build its search. The form is inset 20 on each side, its cards are
 10 apart, and a row is 36 high. Below `LIST_GROUP.stack_below` (300 px) of
 width, rows with a control put the label above the control.
+
+With `FormStyle::columns` a row is its title on the right edge of the label
+column and its control or value after `LIST_GROUP.columns_gap` (9.5); rows are
+`columns_spacing` (5) apart. The section titles, headers and footers are not
+drawn; a row with an empty title and a `Checkbox` control is a checkbox that
+starts at the control column.
+
+```rust
+Form::new().style(FormStyle::columns).section(
+    Section::new()
+        .row(Row::new("").control(Checkbox::new("Toggle").checked(true)))
+        .row(Row::new("Name").control(TextField::new(name, "Name"))),
+)
+```
 
 ### `Section`
 
@@ -228,6 +243,7 @@ different `TableStyle`.
 | `.style(\|_\| TableStyle::plain_list())` | `inset_list` (rows inset 10, rounded selection), `plain_list` (full width) or `bordered_list` (a hairline border) |
 | `.style(TableStyle::striped)` | Alternating rows, like `.inset(alternatesRowBackgrounds: true)`; it drops the separators |
 | `.scroll_bar(bool)` | `false` hides the scroll bar |
+| `.section(title, rows)` | A header of `LIST_SECTION.header_height` (28) over `rows`, as with SwiftUI's `Section`; the sections scroll together, are `LIST_SECTION.gap` (20) apart, and `.selected` and `.on_select` number the rows across them. Use it with `List::new(label, Vec::new())` |
 
 Rows are separated by a hairline from the start of the text to the end of the
 row. A selected row and its neighbors have none.
@@ -591,7 +607,7 @@ only removing it closes it.
 
 ### `Alert`
 
-A [`Sheet`](#sheet) with a title, a message and two buttons, like `NSAlert`.
+A [`Sheet`](#sheet) with a title, a message and two buttons, like `NSAlert`. With three or more buttons they stack, like `NSAlert` and SwiftUI's `.confirmationDialog`, which has no layout of its own.
 
 ```rust
 Alert::new("Forget this network?", "You will have to type the password again.")
@@ -612,6 +628,10 @@ Alert::new("Forget this network?", "You will have to type the password again.")
 | `.suppression(State<bool>)` | none | Adds the "Do not show this message again" checkbox bound to the state, like `NSAlert`'s `showsSuppressionButton` |
 | `.destructive()` | off | The primary button takes `ButtonStyle::destructive`, like `NSAlert.hasDestructiveAction` |
 | `.icon(view)` | none | A `DIALOG_ALERT_ICON` (64) square above the title, the application icon in `NSAlert`; the title starts `DIALOG_ALERT_ICON_GAP` (16) under it |
+| `.critical()` | off | With `.icon`, like `NSAlert.Style.critical`: a caution triangle fills the square and the icon shrinks to `DIALOG_ALERT_BADGE` (32) in its bottom right corner. `.warning` and `.informational` look the same as no style |
+| `.shows_help(callback)` | none | A help button, 28 round, 12 from the top and the right, like `NSAlert.showsHelp` |
+| `.accessory_view(view)` | none | A view under the message, 16 from it and from what follows, like `NSAlert.accessoryView`; it fills the alert's width less 16 on each side |
+| `.add_button(label, callback)` | none | An extra button between the confirm and the cancel buttons; with one the buttons stack, 6 apart, confirm first and cancel last |
 
 The alert is `DIALOG_ALERT_WIDTH` (260) wide and splits its two large buttons
 evenly, 16 from the sides and the bottom (`DIALOG_ALERT_PADDING`) while the

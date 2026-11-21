@@ -13,7 +13,7 @@ use bk::controls::{
 use bk::date::{CivilDate, CivilDateTime};
 use bk::date_picker::DatePicker;
 use bk::indicator::{CapacityIndicator, RatingIndicator, RelevancyIndicator};
-use bk::menu::{CheckState, MenuItem, MenuView};
+use bk::menu::{CheckState, MenuIcon, MenuItem, MenuView};
 use bk::password::PasswordField;
 use bk::popup_button::PopUpButton;
 use bk::progress::{ProgressRing, ProgressView};
@@ -819,7 +819,43 @@ fn appkit_menu() {
             MenuItem::action("two", "Plain two").with_shortcut("\u{2318}P"),
         ]
     };
-    for (tag, items) in [("", plain as fn() -> Vec<MenuItem>), ("marks-", marked)] {
+    let square = || {
+        MenuIcon::svg(
+            r#"<svg viewBox="0 0 16 16"><rect width="16" height="16" fill="currentColor"/></svg>"#,
+        )
+    };
+    let iconed = move || {
+        vec![
+            MenuItem::action("new", "New")
+                .with_shortcut("\u{2318}N")
+                .with_icon(square()),
+            MenuItem::action("open", "Open\u{2026}")
+                .with_shortcut("\u{2318}O")
+                .with_icon(square()),
+            MenuItem::Separator,
+            MenuItem::submenu("Share", vec![MenuItem::action("r1", "Item")]).with_icon(square()),
+            MenuItem::action("delete", "Delete").with_icon(square()),
+            MenuItem::action("plain", "No icon"),
+            MenuItem::action("off", "Disabled")
+                .with_enabled(false)
+                .with_icon(square()),
+        ]
+    };
+    let iconed_marked = move || {
+        let mut items = iconed();
+        items.insert(
+            3,
+            MenuItem::action("checked", "Checked").with_check(CheckState::Checkbox(true)),
+        );
+        items
+    };
+    let sets: [(&str, &dyn Fn() -> Vec<MenuItem>); 4] = [
+        ("", &plain),
+        ("marks-", &marked),
+        ("icons-", &iconed),
+        ("icons-marks-", &iconed_marked),
+    ];
+    for (tag, items) in sets {
         for dark in [false, true] {
             let palette = if dark {
                 ctdesign::MENU_DARK

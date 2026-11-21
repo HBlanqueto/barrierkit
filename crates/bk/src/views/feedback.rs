@@ -3,20 +3,25 @@ use std::rc::Rc;
 
 use freya_core::integration::AppComponent;
 
-use ctdesign::{DIALOG_BUTTON_WIDTH, DIALOG_SHEET_HEIGHT, DIALOG_SHEET_WIDTH, SPACE_2};
+use ctdesign::{
+    DIALOG_ALERT_BADGE, DIALOG_ALERT_CAUTION, DIALOG_ALERT_CAUTION_AT, DIALOG_ALERT_CAUTION_SIZE,
+    DIALOG_ALERT_HELP_INSET, DIALOG_ALERT_HELP_SIZE, DIALOG_BUTTON_WIDTH, DIALOG_SHEET_HEIGHT,
+    DIALOG_SHEET_WIDTH, SPACE_2,
+};
 
 use crate::elements::{HStack, forward_container};
 use crate::platform::{WindowControls, WindowOptions};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 
+use crate::buttons::HelpLink;
 use crate::controls::{Button, Checkbox, ControlSize};
 use crate::i18n::text;
 use crate::style::text;
 use crate::styles::Painted;
 use crate::styles::{
-    AlertStyle, ButtonStyle, ContentUnavailableViewStyle, ControlState, LayoutDirection, Paints,
-    SheetStyle, Theme, resolve,
+    AlertStyle, ButtonStyle, ContentUnavailableViewStyle, ControlState, HelpLinkStyle,
+    LayoutDirection, Paints, SheetStyle, Theme, resolve,
 };
 use crate::symbol::{Symbol, symbol};
 use crate::theme::color;
@@ -255,6 +260,10 @@ pub struct Alert {
     suppressed: Option<State<bool>>,
     destructive: bool,
     icon: Option<Element>,
+    extra_buttons: Vec<(&'static str, Callback<(), ()>)>,
+    on_help: Option<Callback<(), ()>>,
+    accessory: Option<Element>,
+    critical: bool,
 }
 
 impl Alert {
@@ -270,6 +279,10 @@ impl Alert {
             suppressed: None,
             destructive: false,
             icon: None,
+            extra_buttons: Vec::new(),
+            on_help: None,
+            accessory: None,
+            critical: false,
         }
     }
 
@@ -280,6 +293,30 @@ impl Alert {
 
     pub fn icon(mut self, icon: impl IntoElement) -> Self {
         self.icon = Some(icon.into_element());
+        self
+    }
+
+    pub fn critical(mut self) -> Self {
+        self.critical = true;
+        self
+    }
+
+    pub fn shows_help(mut self, callback: impl Into<Callback<(), ()>>) -> Self {
+        self.on_help = Some(callback.into());
+        self
+    }
+
+    pub fn accessory_view(mut self, view: impl IntoElement) -> Self {
+        self.accessory = Some(view.into_element());
+        self
+    }
+
+    pub fn add_button(
+        mut self,
+        label: &'static str,
+        callback: impl Into<Callback<(), ()>>,
+    ) -> Self {
+        self.extra_buttons.push((label, callback.into()));
         self
     }
 
@@ -415,6 +452,104 @@ impl Component for Alert {
 
         let inset = sheet_style.padding - style.padding;
         let padding = style.padding;
+        let gap = style.buttons_margin_top;
+        let stacked = !self.extra_buttons.is_empty();
+        let button_width = if stacked {
+            Size::fill()
+        } else {
+            Size::flex(1.0)
+        };
+        let cancel_button = Button::new(self.cancel)
+            .size(ControlSize::Large)
+            .width(button_width.clone())
+            .on_press(move |_| on_cancel());
+        let confirm_button = Button::new(self.confirm)
+            .style(move |button| {
+                if destructive {
+                    button.destructive()
+                } else {
+                    button.bordered_prominent()
+                }
+            })
+            .size(ControlSize::Large)
+            .width(button_width.clone())
+            .on_press(move |_| on_confirm());
+        let buttons = rect()
+            .width(Size::fill())
+            .margin(Gaps::new(gap, 0.0, 0.0, 0.0));
+        let buttons = if stacked {
+            buttons
+                .direction(Direction::Vertical)
+                .spacing(style.buttons_stack_spacing)
+                .child(confirm_button)
+                .children(self.extra_buttons.iter().map(|(label, callback)| {
+                    let callback = callback.clone();
+                    Button::new(*label)
+                        .size(ControlSize::Large)
+                        .width(button_width.clone())
+                        .on_press(move |_| callback.call(()))
+                        .into_element()
+                }))
+                .child(cancel_button)
+        } else {
+            buttons
+                .direction(Direction::Horizontal)
+                .content(Content::flex())
+                .spacing(style.buttons_spacing)
+                .child(cancel_button)
+                .child(confirm_button)
+        };
+        let icon = self.icon.clone().map(|app_icon| {
+            let icon_box = rect()
+                .width(Size::px(style.icon_size))
+                .height(Size::px(style.icon_size))
+                .margin(Gaps::new(0.0, 0.0, style.icon_gap - style.spacing, 0.0))
+                .overflow(Overflow::Clip);
+            if self.critical {
+                let [x, y] = DIALOG_ALERT_CAUTION_AT;
+                icon_box
+                    .child(
+                        rect()
+                            .position(Position::new_absolute().left(x).top(y))
+                            .child(symbol(
+                                Symbol::ExclamationMarkTriangleFill,
+                                DIALOG_ALERT_CAUTION_SIZE,
+                                DIALOG_ALERT_CAUTION,
+                            )),
+                    )
+                    .child(
+                        rect()
+                            .position(
+                                Position::new_absolute()
+                                    .left(style.icon_size - DIALOG_ALERT_BADGE)
+                                    .top(style.icon_size - DIALOG_ALERT_BADGE),
+                            )
+                            .width(Size::px(DIALOG_ALERT_BADGE))
+                            .height(Size::px(DIALOG_ALERT_BADGE))
+                            .overflow(Overflow::Clip)
+                            .child(app_icon),
+                    )
+            } else {
+                icon_box.child(app_icon)
+            }
+        });
+        let help = self.on_help.clone().map(|callback| {
+            let inset = DIALOG_ALERT_HELP_INSET - padding;
+            rect()
+                .position(Position::new_absolute().top(inset).right(inset))
+                .child(
+                    HelpLink::new()
+                        .style(|help| HelpLinkStyle {
+                            glyph: (
+                                help.glyph.0 * DIALOG_ALERT_HELP_SIZE / help.size,
+                                help.glyph.1 * DIALOG_ALERT_HELP_SIZE / help.size,
+                            ),
+                            size: DIALOG_ALERT_HELP_SIZE,
+                            ..help
+                        })
+                        .on_press(callback),
+                )
+        });
         Sheet::new(
             rect()
                 .a11y_role(AccessibilityRole::AlertDialog)
@@ -428,20 +563,14 @@ impl Component for Alert {
                     Key::Named(NamedKey::Escape) => cancel(),
                     _ => {}
                 })
+                .maybe_child(help)
                 .child(
                     rect()
                         .width(Size::fill())
                         .direction(Direction::Vertical)
                         .spacing(style.spacing)
                         .padding(Gaps::new(inset, inset, 0.0, inset))
-                        .maybe_child(self.icon.clone().map(|icon| {
-                            rect()
-                                .width(Size::px(style.icon_size))
-                                .height(Size::px(style.icon_size))
-                                .margin(Gaps::new(0.0, 0.0, style.icon_gap - style.spacing, 0.0))
-                                .overflow(Overflow::Clip)
-                                .child(icon)
-                        }))
+                        .maybe_child(icon)
                         .child(text(
                             self.title,
                             style.title_font,
@@ -454,40 +583,22 @@ impl Component for Alert {
                                 paints.color(style.message.resolve(state)),
                             )
                             .max_lines(None),
-                        )
-                        .maybe_child(self.suppressed.map(|mut suppressed| {
-                            Checkbox::new(text!("alert-suppress"))
-                                .checked(*suppressed.read())
-                                .on_toggle(move |checked| suppressed.set(checked))
-                        })),
+                        ),
                 )
-                .child(
+                .maybe_child(self.accessory.clone().map(|view| {
                     rect()
                         .width(Size::fill())
-                        .direction(Direction::Horizontal)
-                        .content(Content::flex())
-                        .margin(Gaps::new(style.buttons_margin_top, 0.0, 0.0, 0.0))
-                        .spacing(style.buttons_spacing)
-                        .child(
-                            Button::new(self.cancel)
-                                .size(ControlSize::Large)
-                                .width(Size::flex(1.0))
-                                .on_press(move |_| on_cancel()),
-                        )
-                        .child(
-                            Button::new(self.confirm)
-                                .style(move |button| {
-                                    if destructive {
-                                        button.destructive()
-                                    } else {
-                                        button.bordered_prominent()
-                                    }
-                                })
-                                .size(ControlSize::Large)
-                                .width(Size::flex(1.0))
-                                .on_press(move |_| on_confirm()),
-                        ),
-                ),
+                        .margin(Gaps::new(gap, 0.0, 0.0, 0.0))
+                        .child(view)
+                }))
+                .maybe_child(self.suppressed.map(|mut suppressed| {
+                    rect().margin(Gaps::new(gap, 0.0, 0.0, inset)).child(
+                        Checkbox::new(text!("alert-suppress"))
+                            .checked(*suppressed.read())
+                            .on_toggle(move |checked| suppressed.set(checked)),
+                    )
+                }))
+                .child(buttons),
         )
         .style(move |sheet| SheetStyle { padding, ..sheet })
     }

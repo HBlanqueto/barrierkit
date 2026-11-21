@@ -160,6 +160,10 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `styles::ButtonStyle::destructive` | method | `Button(role: .destructive)` | `NSButton.hasDestructiveAction` | Preset: red label on a faint red fill | [Styles](../../crates/bk/src/styles/button.rs) |
 | `views::feedback::Alert::destructive` | method | `Button(role: .destructive)` in `.alert` | `NSAlert.hasDestructiveAction` | The primary button is destructive | [11](11-views.md#alert) |
 | `views::feedback::Alert::icon` | method | — | `NSAlert.icon` | A 64 square above the title: the application icon | [11](11-views.md#alert) |
+| `views::feedback::Alert::critical` | method | — | `NSAlert.Style.critical` | A caution triangle under the application icon, which shrinks to a corner badge | [11](11-views.md#alert) |
+| `views::feedback::Alert::shows_help` | method | — | `NSAlert.showsHelp` | A 28 round help button at the top right | [11](11-views.md#alert) |
+| `views::feedback::Alert::accessory_view` | method | — | `NSAlert.accessoryView` | A view between the message and the buttons | [11](11-views.md#alert) |
+| `views::feedback::Alert::add_button` | method | `Button` in `.confirmationDialog` | `NSAlert.addButton(withTitle:)` | An extra button; with one the buttons stack | [11](11-views.md#alert) |
 | `styles::ButtonStyle::glass` | method | `PrimitiveButtonStyle.glass` | ≈ `NSButton.BezelStyle.glass` | Preset: raised capsule with a hairline rim | [Styles](../../crates/bk/src/styles/button.rs) |
 | `styles::ButtonStyle::glass_prominent` | method | `PrimitiveButtonStyle.glassProminent` | — | Preset: accent capsule with a hairline rim | [Styles](../../crates/bk/src/styles/button.rs) |
 | `styles::ButtonStyle::plain` | method | `PrimitiveButtonStyle.plain` | — | Preset: only the label, in the label color | [Styles](../../crates/bk/src/styles/button.rs) |
@@ -232,6 +236,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `styles::SplitPanesStyle` | struct | — | ≈ `NSSplitView.DividerStyle` | Width and paint of the dividers of `SplitPanes` | [Styles](../../crates/bk/src/styles/split_panes.rs) |
 | `styles::FloatingPaneStyle` | struct | — | ≈ `NSPanel` | Every visual property of `FloatingPane` | [Styles](../../crates/bk/src/styles/floating_pane.rs) |
 | `styles::FormStyle` | struct | `FormStyle` (`.grouped`) | — | Every visual property of `Form`, its sections and rows | [Styles](../../crates/bk/src/styles/form.rs) |
+| `styles::FormStyle::columns` | method | `FormStyle.columns` | — | No cards; the labels right-aligned in a column, the controls after it | [11](11-views.md#form) |
 | `styles::GroupBoxStyle` | struct | `GroupBoxStyle` | ≈ `NSBox` | Every visual property of `GroupBox` | [Styles](../../crates/bk/src/styles/group_box.rs) |
 | `styles::DisclosureGroupStyle` | struct | `DisclosureGroupStyle` | ≈ `NSButton.BezelStyle.disclosure` | Every visual property of `DisclosureGroup` | [Styles](../../crates/bk/src/styles/disclosure_group.rs) |
 | `styles::TableStyle` | struct | `TableStyle` | ≈ `NSTableView.Style`, `NSTableHeaderCell` | Every visual property of `Table`, its header cells and rows | [Styles](../../crates/bk/src/styles/table.rs) |
@@ -742,7 +747,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `ctdesign::BadgeMetrics` | struct | — | — | Badge height and padding | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::FocusRingMetrics` | struct | — | — | Focus ring width | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::SymbolMetrics` | struct | — | — | Symbol grid and stroke width | [4](04-appearance-and-tokens.md#control-metrics) |
-| `ctdesign::TooltipMetrics` | struct | — | — | Tooltip delay, padding, radius and pointer gap | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::TooltipMetrics` | struct | — | — | Tooltip delay, padding, radius, pointer gap, wrapping and colors per appearance | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::PopoverMetrics` | struct | — | — | Popover radius, arrow and padding | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::MenuPopoverMetrics` | struct | — | — | Pop-up menu item, padding, check and swatch grid sizes | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::DragMetrics` | struct | — | — | Pointer travel before a drag starts | [4](04-appearance-and-tokens.md#control-metrics) |
@@ -809,7 +814,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `ctdesign::WINDOW_CORNER`, `WINDOW_RESIZE` | constant | — | — | Window corner shape; resize band widths | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
 | `ctdesign::WINDOW_CLIENT_RESIZE` | constant | — | — | Compositor: resize band widths around a window that decorates itself | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
 | `ctdesign::WINDOW_EXPAND_MIN_MS`, `WINDOW_EXPAND_MAX_MS` | constant | — | — | Compositor: shortest and longest time a window takes to maximize or restore: 300, 560 ms | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
-| `ctdesign::DIALOG`, `DIALOG_PADDING`, `DIALOG_ALERT_WIDTH`, `POPUP`, `PANEL_GLOW_DEPTH` | constant | — | — | Dialog and pop-up corners, dialog padding, alert width, panel glow depth | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
+| `ctdesign::DIALOG`, `DIALOG_PADDING`, `DIALOG_ALERT_WIDTH`, `DIALOG_ALERT_STACK_SPACING`, `DIALOG_ALERT_HELP_SIZE`, `DIALOG_ALERT_HELP_INSET`, `DIALOG_ALERT_BADGE`, `DIALOG_ALERT_CAUTION`, `DIALOG_ALERT_CAUTION_SIZE`, `DIALOG_ALERT_CAUTION_AT`, `POPUP`, `PANEL_GLOW_DEPTH` | constant | — | — | Dialog and pop-up corners, dialog padding, alert width, panel glow depth | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
 | `ctdesign::SHADOW`, `SHADOW_DARK` | constant | — | ≈ `NSShadow` | Window shadows in light and dark | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
 | `ctdesign::NATIVE_APP_ID_PREFIX`, `ALERT_LAYER_NAMESPACE`, `NOTIFICATIONS_LAYER_NAMESPACE`, `MENUBAR_LAYER_NAMESPACE`, `WALLPAPER_LAYER_NAMESPACE` | constant | — | — | App id prefix of kit apps; layer namespaces of shell alerts, notifications, the menu bar and the wallpaper | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
 | `ctdesign::TITLEBAR`, `TITLEBAR_CLIENT_HEIGHT`, `TITLEBAR_PADDING_X`, `TITLEBAR_TITLE_GAP`, `TITLEBAR_DOUBLE_CLICK`, `TITLEBAR_RAIL` | constant | — | — | Titlebar sizes, lights, double click and rail | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
@@ -818,8 +823,8 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `ctdesign::BUTTON`, `ICON_BUTTON`, `SWITCH`, `CHECKBOX`, `SLIDER`, `SLIDER_FAT`, `SLIDER_KEY_STEP`, `KNOB_SHADOW`, `KNOB_HELD_SHADOW`, `KNOB_HELD_SHADOW_DARK`, `KNOB_LENS`, `SEGMENTED`, `STEPPER`, `TOOLBAR_SEARCH_WIDTH` | constant | — | — | Metrics of buttons, toggles, sliders and toolbar controls | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::TEXT_FIELD`, `TOKEN_FIELD`, `SPELLING`, `COMBO_BOX`, `PATH_CONTROL`, `DATE_PICKER`, `IMAGE_WELL` | constant | — | — | Metrics of fields and pickers | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::LEVEL_INDICATOR`, `GAUGE`, `PROGRESS`, `BADGE`, `FOCUS_RING`, `SYMBOL`, `ICON_STYLE`, `ICON_PLATE`, `ICON_PLATE_LOBE_DARK`, `ICON_PLATE_LOBE_LIGHT`, `ICON_PLATE_GRAPHITE`, `ICON_PLATE_SILVER`, `ICON_PLATE_CLEAR`, `ICON_PLATE_CLEAR_DARK`, `ICON_PLATE_TINTED`, `ICON_PLATE_TINTED_DARK`, `ICON_PLATE_GLASS`, `ICON_PLATE_GLASS_DARK`, `ICON_PLATE_GLASS_DARK_ON_DARK`, `ICON_LOGO_CLEAR`, `ICON_LOGO_CLEAR_DARK`, `ICON_LOGO_TINTED`, `ICON_LOGO_TINTED_DARK`, `TOOLTIP`, `POPOVER`, `DRAG` | constant | — | — | Metrics of indicators, focus ring, symbols, icon styles, tooltips, popovers, drag; `ICON_PLATE_GLASS`, `_DARK` and `_DARK_ON_DARK` (dark icons on a dark Dock) are the lightness a clear plate drawn as glass moves toward, how far, its chroma scale and its light lift | [4](04-appearance-and-tokens.md#control-metrics) |
-| `ctdesign::MENU_POPOVER`, `MENU_MARK_TEXT_GAP`, `MENU_SUBMENU_INTENT_MS`, `MENU_SUBMENU_REVEAL_GAP`, `MENU_SCROLL_TICK_MS`, `MENU_SEARCH_ICON`, `MENU_SEARCH_ICON_GAP`, `MENU_SEARCH_CLEAR`, `MENU_SEARCH_CLEAR_GLYPH`, `MENU_SEARCH_PADDING_X`, `MENU_SEARCH_CLEAR_MIX`, `MENU_HELP_ICON`, `MENU_SEPARATOR_INK_MIX` | constant | — | — | Menu and pop-up menu metrics and timing | [4](04-appearance-and-tokens.md#control-metrics) |
-| `ctdesign::SIDEBAR`, `TOOLGROUP`, `SPLIT_VIEW`, `SPLIT_PANES`, `FLOATING_PANE`, `TABLE`, `COLLECTION`, `LIST_GROUP`, `GROUP_BOX`, `DISCLOSURE`, `TOOLBAR_TABS`, `TAB_VIEW`, `SCROLL_BAR` | constant | — | — | Metrics of sidebars, split views, lists, tables and groups | [4](04-appearance-and-tokens.md#view-metrics) |
+| `ctdesign::MENU_POPOVER`, `MENU_MARK_TEXT_GAP`, `MENU_ICON_TEXT_GAP`, `MENU_SUBMENU_INTENT_MS`, `MENU_SUBMENU_REVEAL_GAP`, `MENU_SCROLL_TICK_MS`, `MENU_SEARCH_ICON`, `MENU_SEARCH_ICON_GAP`, `MENU_SEARCH_CLEAR`, `MENU_SEARCH_CLEAR_GLYPH`, `MENU_SEARCH_PADDING_X`, `MENU_SEARCH_CLEAR_MIX`, `MENU_HELP_ICON`, `MENU_SEPARATOR_INK_MIX` | constant | — | — | Menu and pop-up menu metrics and timing | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::SIDEBAR`, `TOOLGROUP`, `SPLIT_VIEW`, `SPLIT_PANES`, `FLOATING_PANE`, `TABLE`, `COLLECTION`, `LIST_GROUP`, `LIST_SECTION`, `GROUP_BOX`, `DISCLOSURE`, `TOOLBAR_TABS`, `TAB_VIEW`, `SCROLL_BAR` | constant | — | — | Metrics of sidebars, split views, lists, tables and groups | [4](04-appearance-and-tokens.md#view-metrics) |
 | `ctdesign::SETTINGS`, `FONT_PANEL`, `MEDIA`, `BACKDROP`, `BACKDROP_SCENES` | constant | — | — | Metrics of settings, font panel, media, backdrops | [4](04-appearance-and-tokens.md#view-metrics) |
 | `ctdesign::MATERIAL` | constant | `Material` | `NSVisualEffectView.Material` | Opacity and blur of the five material thicknesses | [4](04-appearance-and-tokens.md#materials) |
 | `ctdesign::MENUBAR_HEIGHT`, `MENUBAR_HEIGHT_WIDE`, `MENUBAR_TINT_SPREAD`, `MENUBAR_DARK_INK_ABOVE`, `MENUBAR_CLASSIC_ALPHA`, `MENUBAR_OVER_LIGHT_INK`, `MENUBAR_OVER_LIGHT_GLASS`, `MENUBAR_OVER_LIGHT_SELECTION`, `MENUBAR_OVER_DARK_INK`, `MENUBAR_OVER_DARK_GLASS`, `MENUBAR_OVER_DARK_SELECTION`, `MENUBAR_FONT_SIZE`, `MENUBAR_FONT_SIZE_LARGE`, `MENUBAR_APP_NAME_WEIGHT`, `MENUBAR_MARGIN`, `MENUBAR_MARGIN_RIGHT`, `MENUBAR_FADED_ALPHA`, `MENUBAR_TITLE_PADDING_X`, `MENUBAR_TEXT_LIFT`, `MENUBAR_TITLE_MAX_WIDTH`, `MENUBAR_SYSTEM_MENU_MIN_WIDTH`, `MENUBAR_TITLE_BLEED`, `FOCUS_BAR_BACKGROUND`, `FOCUS_BAR_TEXT` | constant | — | — | Shell menu bar sizes; focus-mode bar colors | [4](04-appearance-and-tokens.md#shell) |
@@ -1035,6 +1040,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `menu::shortcut_matches` | fn | — | — | Whether a key event with modifiers is the given shortcut text | [7](07-menus-and-popovers.md#shortcuts) |
 | `menu::measure_text` | fn | — | — | Width in pixels of text in the system sans font | [7](07-menus-and-popovers.md#helpers) |
 | `menu::measure_text_weight` | fn | — | — | Width in pixels of text at a given font weight | [7](07-menus-and-popovers.md#helpers) |
+| `menu::measure_wrapped` | fn | — | — | Widest line and number of lines of text wrapped at a width | [7](07-menus-and-popovers.md#helpers) |
 
 ## Menu search
 
@@ -1162,6 +1168,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
 |---|---|---|---|---|---|
 | `views::list::List` | struct | `List` | `NSTableView` without header | One column of text rows with separators and selection; `inset`, `plain` and `bordered` styles | [11](11-views.md#list) |
+| `views::list::List::section` | method | `Section` in a `List` | group rows of `NSTableView` | A header over a group of rows | [11](11-views.md#list) |
 | `views::table::Table` | struct | `Table` | `NSTableView` | Text rows in sortable, resizable, hideable columns with multiple selection | [11](11-views.md#table) |
 | `views::table::Table::icons` | method | `Label` in a `TableColumn` | `NSTableCellView.imageView` | One symbol per row before the title of the first column | [11](11-views.md#table) |
 | `views::table::Table::scroll_bar`, `views::list::List::scroll_bar`, `views::tree::OutlineView::scroll_bar` | method | `scrollIndicators(_:)` | `NSScrollView.hasVerticalScroller` | Shows or hides the scroll bar | [11](11-views.md#table) |

@@ -704,6 +704,16 @@ pub struct TooltipMetrics {
     pub padding_y: f32,
     pub radius: f32,
     pub pointer_gap: f32,
+    pub wrap_after: f32,
+    pub wrap_width: f32,
+    pub bg_light: Rgba,
+    pub bg_dark: Rgba,
+    pub bg_contrast_light: Rgba,
+    pub bg_contrast_dark: Rgba,
+    pub ink_light: Rgba,
+    pub ink_dark: Rgba,
+    pub ink_contrast_light: Rgba,
+    pub ink_contrast_dark: Rgba,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -1150,6 +1160,12 @@ pub struct ScrollBarMetrics {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct ListSectionMetrics {
+    pub header_height: f32,
+    pub gap: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ListGroupMetrics {
     pub radius: f32,
     pub row_min_height: f32,
@@ -1162,6 +1178,8 @@ pub struct ListGroupMetrics {
     pub label_min_share: f32,
     pub stack_below: f32,
     pub section_spacing: f32,
+    pub columns_gap: f32,
+    pub columns_spacing: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

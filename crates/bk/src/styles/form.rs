@@ -71,6 +71,25 @@ pub struct FormStyle {
     pub detail_font: Font,
     /// Tengen: `BODY`.
     pub value_font: Font,
+    /// Tengen: `false`. `true` is SwiftUI's `.columns`: no cards, the labels right-aligned in a
+    /// column as wide as the widest one, the controls after it.
+    pub columns: bool,
+    /// Tengen: `LIST_GROUP.columns_gap`, between the label column and the controls.
+    pub columns_gap: f32,
+    /// Tengen: `LIST_GROUP.columns_spacing`, between the rows of a `.columns` form.
+    pub columns_spacing: f32,
+}
+
+impl FormStyle {
+    pub fn columns(self) -> Self {
+        Self {
+            columns: true,
+            padding: [0.0; 4],
+            title: StateValue::new(ShapeStyle::Role(Role::Label)),
+            value: StateValue::new(ShapeStyle::Role(Role::Label)),
+            ..self
+        }
+    }
 }
 
 impl ControlStyle for FormStyle {
@@ -109,6 +128,9 @@ impl ControlStyle for FormStyle {
             title_font: BODY,
             detail_font: CAPTION,
             value_font: BODY,
+            columns: false,
+            columns_gap: LIST_GROUP.columns_gap,
+            columns_spacing: LIST_GROUP.columns_spacing,
         }
     }
 }
