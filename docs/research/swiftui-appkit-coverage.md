@@ -7,7 +7,7 @@ parallel pick work without overlap.
 against `bk` on `main`. It covers the look and behavior of controls,
 containers, presentation, windows, materials, symbols and accessibility. It
 does not cover data, networking, media, document or graphics frameworks.
-**Snapshot:** `main` at `d70ab54`, 2026-11-20. Sessions that change a row
+**Snapshot:** `main` at `bb83b10`, 2026-11-20. Sessions that change a row
 change it in the same commit.
 **Reader:** an engineer or agent who changes a control, a view or a token in
 the kit.
@@ -97,8 +97,9 @@ size and missing at mini has two rows.
 - **sdk:** the SDK header or `.swiftinterface` that lists the API.
 
 The bench of this snapshot has the scenes `controls`, `contrast`, `views`,
-`views-contrast`, `menu` and `toolbar`. Sessions that add the scenes `texts`,
-`lists` and `sidebar` move rows from `implemented` to `measured`.
+`views-contrast`, `menu`, `toolbar` and `sidebar` (light and dark; it compares
+the kit with the SwiftUI probe `sidebarui`). Sessions that add the scenes
+`texts` and `lists` move rows from `implemented` to `measured`.
 
 ### Where the API lists come from
 
@@ -117,7 +118,7 @@ document reads through the style lists and the probes.
 
 Rows per status at the snapshot. A row is one API, style or size.
 
-| Family | `measured` | `implemented` | `partial` | `missing` | Rows |
+| Family | measured | implemented | partial | missing | Rows |
 |---|---|---|---|---|---|
 | 1. Buttons and button styles | 5 | 7 | 5 | 8 | 25 |
 | 2. Toggles | 4 | 1 | 0 | 2 | 7 |
@@ -125,18 +126,18 @@ Rows per status at the snapshot. A row is one API, style or size.
 | 4. Steppers | 1 | 1 | 0 | 1 | 3 |
 | 5. Sliders | 3 | 2 | 0 | 1 | 6 |
 | 6. Gauges, progress and level indicators | 6 | 3 | 0 | 2 | 11 |
-| 7. Text | 5 | 4 | 11 | 10 | 30 |
+| 7. Text | 5 | 4 | 13 | 10 | 32 |
 | 8. Date and time | 2 | 0 | 1 | 5 | 8 |
 | 9. Color and font panels | 1 | 0 | 2 | 4 | 7 |
 | 10. Image and path control | 0 | 3 | 1 | 0 | 4 |
 | 11. Control sizes | 0 | 0 | 1 | 1 | 2 |
-| 12. Containers and navigation | 4 | 9 | 9 | 8 | 30 |
-| 13. Presentation | 0 | 6 | 6 | 1 | 13 |
-| 14. Windows and chrome | 0 | 6 | 11 | 10 | 27 |
+| 12. Containers and navigation | 4 | 10 | 9 | 8 | 31 |
+| 13. Presentation | 0 | 6 | 6 | 2 | 14 |
+| 14. Windows and chrome | 0 | 6 | 11 | 11 | 28 |
 | 15. Materials and glass | 0 | 2 | 4 | 0 | 6 |
 | 16. Symbols | 0 | 0 | 5 | 1 | 6 |
-| 17. Accessibility | 0 | 2 | 5 | 0 | 7 |
-| **All** | 34 | 48 | 63 | 59 | 204 |
+| 17. Accessibility | 0 | 2 | 7 | 1 | 10 |
+| **All** | 34 | 49 | 67 | 62 | 212 |
 
 To recount after a change, run this from the repository root:
 
@@ -157,13 +158,13 @@ deprecated: `shadowlessSquare` and `texturedSquare` point to `smallSquare`;
 |---|---|---|---|---|---|
 | `.bordered`, `.automatic` at regular, small, large | `.push` (`.automatic` since 14) | `Button`, `Button::size` | `measured` | bench `push-regular`, `push-small`, `push-large`, `push-disabled`, `push-pressed`; [Sizes][m-sizes]; [Increase Contrast][m-hc] | — |
 | `.bordered` at mini and extra large | `.push` with `.mini`, `.extraLarge` | `ControlSize` has no `Mini` or `ExtraLarge` | `missing` | probe `push-mini` 46 × 16, `push-xl` 77 × 36 | P2 |
-| `.borderedProminent` | `.push` with `keyEquivalent = "\r"`; `tintProminence` (macOS 26) | `ButtonStyle::bordered_prominent` | `measured` | bench `default-regular`, `default-disabled`, `default-pressed` | — |
+| `.borderedProminent` | `.push` with `keyEquivalent = "\r"` (the default button) | `ButtonStyle::bordered_prominent` | `measured` | bench `default-regular`, `default-disabled`, `default-pressed` | — |
 | `Button(role: .destructive)` | `hasDestructiveAction` | `ButtonStyle::destructive` | `implemented` | probe `push-destructive` 64 × 24 | P2 |
 | `.borderless` | `isBordered = false` | `ButtonStyle::borderless` | `implemented` | none | P2 |
 | `.plain` | `isBordered = false` | — | `missing` | none; `borderless` is the nearest | P2 |
 | `.link` | — | `Link` | `implemented` | none | P2 |
 | `.glass` | `.glass` (macOS 26) | `ButtonStyle::glass` | `implemented` | probe `glass` 58 × 24; the compositor draws the glass, so fill and rim are not comparable ([Toolbar][m-toolbar]) | P2 |
-| `.glassProminent` | `.glass` with `tintProminence` | `ButtonStyle::glass_prominent` | `implemented` | none | P2 |
+| `.glassProminent` | `.glass`; no probe shows the prominent look | `ButtonStyle::glass_prominent` | `implemented` | none | P2 |
 | `.accessoryBar`, `.accessoryBarAction` | `.accessoryBar`, `.accessoryBarAction` | — | `missing` | probe `accessory` 63 × 24 | P3 |
 | `buttonBorderShape` (`.capsule`, `.circle`, `.roundedRectangle`) | — | `ButtonStyle.shape` | `partial`: only the `circular` preset; the others go through the style closure | none | P3 |
 | `.buttonBorderShape(.circle)` | `.circular` | `ButtonStyle::circular` | `measured` | bench `circular`; [Round button][m-rings] | — |
@@ -175,7 +176,7 @@ deprecated: `shadowlessSquare` and `texturedSquare` point to `smallSquare`;
 | `.badge(_:)` | `.badge` (replaces `inline`): a count in a table row | `Badge` (red capsule counter) | `partial`: neither the SwiftUI badge nor the bezel was probed | none | P2 |
 | — | `.flexiblePush` | — | `missing` | not probed | P3 |
 | `Toggle` with `.button` | `NSButton` toggle types | `Button::toggled` | `implemented` | none | P2 |
-| `Menu` with `.button`, `.borderlessButton`, `.borderedButton` | pull-down `NSPopUpButton`, `NSMenuToolbarItem` | `MenuButton`, `PopUpButton::pulls_down` | `partial`: the pull-down pop-up is measured (bench `pulldown`), the menu styles are not | probe `pulldown` 71 × 24 | P1 |
+| `Menu` with `.button`, `.borderlessButton` (`.borderedButton` is deprecated) | pull-down `NSPopUpButton`, `NSMenuToolbarItem` | `MenuButton`, `PopUpButton::pulls_down` | `partial`: the pull-down pop-up is measured (bench `pulldown`), the menu styles are not | probe `pulldown` 71 × 24 | P1 |
 | `Menu(primaryAction:)` | `NSComboButton` | `ComboButton` | `implemented` | none | P3 |
 | `ControlGroup` (`.automatic`, `.menu`, `.palette`, `.navigation`, `.compactMenu`) | `NSToolbarItemGroup`, `NSSegmentedControl` | `ControlGroup`, `ToolGroup` | `partial`: `ToolGroup` is in [Toolbar][m-toolbar]; the SwiftUI styles are not probed | none | P2 |
 | `ShareLink` | `NSSharingServicePicker` | `ShareLink` | `partial`: copy, email and open only | none | P3 |
@@ -301,6 +302,11 @@ Sans, so glyph widths differ ([Limits](appkit-comparison.md#limits)).
 `NSFont.systemFontSize(for:)` is 9 at mini, 11 at small and 13 at regular,
 large and extra large. The probe `controls` uses it for the text fields.
 
+| SwiftUI | AppKit | Kit | Status | Measure | Pri |
+|---|---|---|---|---|---|
+| `Font.system(_:design:weight:)`, `.fontWeight`, `.fontWidth` | `NSFont.systemFont(ofSize:weight:)` | `ctdesign::Font` (family, size, line height, weight) | `partial`: no `.rounded` or `.serif` design, no width | none | P3 |
+| SF Pro | SF Pro | Inter or Adwaita Sans | `partial`: the glyph weight and widths differ | [Limits](appkit-comparison.md#limits) | P2 |
+
 ## 8. Date and time
 
 Kit: `DatePicker`, `DateElements` (`Date`, `Time`, `DateAndTime`).
@@ -340,8 +346,8 @@ Kit: `DatePicker`, `DateElements` (`Date`, `Time`, `DateAndTime`).
 ## 11. Control sizes
 
 SwiftUI has `.controlSize(_:)` with `.mini`, `.small`, `.regular`, `.large` and
-`.extraLarge` (macOS 26). AppKit has `NSControl.ControlSize` with the same five
-cases. The kit has `ControlSize` with `Small`, `Regular` and `Large`, and only
+`.extraLarge` (since macOS 14). AppKit has `NSControl.ControlSize` with the
+same five cases (`.extraLarge` since macOS 26). The kit has `ControlSize` with `Small`, `Regular` and `Large`, and only
 `Button::size` takes it. Nothing passes a size down to the controls inside a
 view, as `.controlSize` does. `NSView.prefersCompactControlSizeMetrics`
 (macOS 26) was not probed.
@@ -375,7 +381,7 @@ The size of each control is a row in its own family.
 |---|---|---|---|---|---|
 | `List` (`.automatic`, `.inset`, `.plain`, `.sidebar`, `.bordered`) | single-column `NSTableView` | — (`Table`, `OutlineView`, `Sidebar` cover parts) | `missing`: no list of free rows with selection and separators | none | P1 |
 | `Table` with `.inset` | `NSTableView` `.inset` | `Table` | `measured` | bench `table`; [Tables][m-tables] | — |
-| `Table` `.automatic`, `.bordered` | `.automatic`, `.fullWidth`, `.sourceList`, `.plain`; `rowSizeStyle` | `Table` draws the inset look only | `missing` | not probed | P2 |
+| `Table` `.automatic`, `.bordered` | `.automatic`, `.fullWidth`, `.sourceList`, `.plain`; `rowSizeStyle` | `TableStyle` fields; no preset but the inset look | `missing` | not probed | P2 |
 | `TableColumn` with views | cell views | `Table` shows text rows | `missing` | none | P1 |
 | sort descriptors | `NSSortDescriptor` | `SortOrder`: one column | `partial` | [Table sorted column][m-rings] | P3 |
 | `OutlineGroup` | `NSOutlineView` | `OutlineView`, `TreeNode` | `implemented` | none; the source list is the classic one ([Tables][m-tables]) | P2 |
@@ -391,7 +397,7 @@ The size of each control is a row in its own family.
 | `TabView` (toolbar-like tabs) | `NSTabViewController` `.toolbar` | `TabView` | `partial`: measured in [Toolbar tabs][m-tabs], not in the bench | probe `tabs` | P1 |
 | `TabView` classic | `NSTabView` (top, bottom, left, right, none), `.segmentedControlOnTop`, `.segmentedControlOnBottom` | — | `missing` | probe `views` captures `NSTabView` | P2 |
 | `TabView` `.sidebarAdaptable`, `.tabBarOnly`, `Tab`, `TabSection` | — | — | `missing` | sdk | P3 |
-| `NavigationSplitView` (`.automatic`, `.balanced`, `.prominentDetail`) | `NSSplitViewController`, `NSSplitViewItem` (sidebar, content list, inspector) | `SplitView` | `partial`: two columns and an inspector; no content-list column; the macOS 27 sidebar is flat ([Sidebar][m-sidebar]) | [Sidebar][m-sidebar] | P1 |
+| `NavigationSplitView` (`.automatic`, `.balanced`, `.prominentDetail`) | `NSSplitViewController`, `NSSplitViewItem` (sidebar, content list, inspector) | `SplitView` | `partial`: two columns and an inspector; no content-list column; the sidebar is in [14](#14-windows-and-chrome) | none | P1 |
 | `NavigationStack`, `NavigationLink`, `navigationDestination` | — | `History`, `NavigationButtons`, `Row::page` | `partial`: no path or destination API | none | P2 |
 | `HSplitView`, `VSplitView` | `NSSplitView` (`.thin`, `.thick`) | `SplitPanes` | `implemented` | none | P2 |
 | `inspector(isPresented:)` | `NSSplitViewItem` inspector | `SplitView::inspector` | `implemented` | none | P2 |
@@ -400,6 +406,7 @@ The size of each control is a row in its own family.
 | `scrollEdgeEffectStyle` | `NSScrollPocket` | `TopGlass`, `ScrollView` edge | `partial` | [Sidebar][m-sidebar] | P2 |
 | `Grid`, `GridRow` | `NSGridView` | — | `missing` | none | P2 |
 | `LazyVGrid`, `LazyHGrid` | `NSCollectionView` | `CollectionView` | `implemented` | none | P3 |
+| — | `NSPredicateEditor`, `NSRuleEditor` | `RuleEditor` | `implemented` | none | P3 |
 | `HStack`, `VStack` | `NSStackView` | `HStack`, `VStack` | `implemented` | none | — |
 | `ZStack`, `ViewThatFits`, `Layout` | — | Freya's `rect` | `partial` | none | P3 |
 | `reorderable()` (macOS 27), swipe actions | drag in `NSTableView` | — | `missing` | sdk | P3 |
@@ -418,6 +425,7 @@ The size of each control is a row in its own family.
 | `.confirmationDialog` | — | — | `missing`: `Alert` is the nearest | none | P2 |
 | `.fileImporter`, `.fileExporter` | `NSOpenPanel`, `NSSavePanel` | `portal::open_files`, `portal::save_file` | `partial`: the desktop's dialog, not the macOS look | none | P3 |
 | `.help` | `toolTip` | `ViewModifiers::help` | `implemented` | none | P2 |
+| — | `NSPrintPanel`, `NSPageLayout` | — | `missing` | none | P3 |
 | `UNUserNotificationCenter` | banners | `notifications::post` | `implemented` | [`macos-notifications.md`](macos-notifications.md) | P2 |
 | `.draggable`, `.dropDestination` | `NSDraggingSource`, `NSDraggingDestination` | `DragSource`, `ImageWell` drop | `partial`: drag out; drop only on the image well | none | P3 |
 | `.presentationBackground`, `.presentationDetents` | — | `SheetStyle.background` | `partial`: detents are iOS | none | P3 |
@@ -440,6 +448,7 @@ The size of each control is a row in its own family.
 | `ToolbarSpacer` | `.space`, `.flexibleSpace` | — | `missing` | [Toolbar][m-toolbar] | P2 |
 | item labels | `NSToolbar.displayMode` | — | `missing`: only icon-only was measured | none | P2 |
 | `.badge` on an item | `NSToolbarItem.badge` | — | `missing` | none | P3 |
+| `ToolbarItemVisibilityPriority` (macOS 26.1) | which items overflow first | — | `missing` | sdk | P3 |
 | `ToolbarTitleMenu` | — | — | `missing` | none | P3 |
 | `.searchable` | `NSSearchToolbarItem` | `ToolbarSearch` | `implemented` | none | P1 |
 | overflow | `NSToolbar` overflow chevron | `ToolbarOverflow` | `implemented` | none | P2 |
@@ -447,7 +456,7 @@ The size of each control is a row in its own family.
 | — | `NSTitlebarAccessoryViewController` | — | `missing` | none | P2 |
 | `.toolbar(id:)` customization | `allowsUserCustomization` | — | `missing` | none | P3 |
 | title bar line | `NSTitlebarSeparatorStyle` | `TitlebarStyle` hairline | `partial` | none | P2 |
-| `NavigationSplitView` sidebar | `NSSplitViewItem(sidebarWithViewController:)` | `Sidebar`, `SidebarItem` | `partial`: flat, full height and within 1 of macOS 27's measures; the toggle is not in the sidebar and the glyph is a tile | [Sidebar][m-sidebar] | P1 |
+| `NavigationSplitView` sidebar | `NSSplitViewItem(sidebarWithViewController:)` | `Sidebar`, `SidebarItem` | `partial`: flat, full height and within 1 of macOS 27's measures; the toggle is not in the sidebar and the glyph is a tile; no Increase Contrast | bench `sidebar`; [What the kit does][m-sidebar] | P1 |
 | full screen | `toggleFullScreen` | `FullscreenBar` | `implemented` | none | P2 |
 | `WindowGroup`, `Window`, `Settings` | `NSWindow`, `NSWindowController` | `Application`, `SettingsWindow` | `implemented` | none | P1 |
 | `UtilityWindow` | `NSPanel` | `UtilityWindow`, `PanelBehavior` | `implemented` | none | P3 |
@@ -487,22 +496,37 @@ The size of each control is a row in its own family.
 | Invert Colors | `accessibilityDisplayShouldInvertColors` | `ctappearance` setting; no control reads it | `partial` | none | P3 |
 | VoiceOver | `NSAccessibility` | `platform/atspi.rs` (AT-SPI) | `implemented`: no audit per control | none | P2 |
 | focus ring, full keyboard access | `focusRingType` | `ViewModifiers::focus_ring` | `partial` | [`macos-focus-ring.md`](macos-focus-ring.md); bench `calendar-focused` | P2 |
-| Dynamic Type | — | — | not applicable: `preferredFont(forTextStyle:)` returns fixed sizes ([Text styles](#text-styles)); the text size setting of System Settings was not probed | | — |
+| `DynamicTypeSize` (macOS 12) | — | `Resolved::text_size` scales `Text` and `SidebarItem` | `partial`: other controls do not scale; `preferredFont(forTextStyle:)` returns fixed sizes ([Text styles](#text-styles)); whether SwiftUI text on macOS 27 reacts to the setting was not probed | none | P2 |
+
+### Motion
+
+| SwiftUI | AppKit | Kit | Status | Measure | Pri |
+|---|---|---|---|---|---|
+| `Animation` (`.smooth`, `.snappy`, `.bouncy`, `.spring`, `.easeInOut`) | `NSAnimationContext` | `Spring`, `ease_out`, `ease_in_out` | `partial`: the window, Dock and menu timings were observed, some durations are unverified | [`macos-animations.md`](macos-animations.md) | P2 |
+| `.transition`, `matchedGeometryEffect`, `PhaseAnimator`, `KeyframeAnimator` | — | — | `missing` | none | P3 |
 
 ## 18. New in macOS 27
 
-APIs whose availability starts at macOS 27 in the SwiftUI interface of this
-SDK. The kit has none of them.
+APIs whose availability starts at macOS 27 in the SwiftUI and SwiftUICore
+interfaces of this SDK (`@available(macOS 27.…)` or `anyAppleOS 27.…`). The
+kit has none of them. `ToolbarItemVisibilityPriority` is macOS 26.1 and is not
+listed.
 
-| API | What it is | Pri |
-|---|---|---|
-| `PickerStyle.tabs` | A picker drawn as tabs | P2 |
-| `TextFieldStyle.bordered` | A bordered text field | P2 |
-| `ToolbarMinimizationBehavior`, `ToolbarVerticalCompressionBehavior`, `ToolbarItemVisibilityPriority`, `ToolbarTitleAlignment` | How a toolbar shrinks, and where its title sits | P3 |
-| `reorderable()`, `reorderContainer`, `reorderDestination` | Drag to reorder in a collection | P3 |
-| `Document`, `DocumentReader`, `DocumentWriter` | A new document model | P3 |
-| `TabRole.prominent`, `TabSectionExpansion` | Tab roles and section expansion | P3 |
-| `AsyncImage(request:)` | An image from a `URLRequest` | P3 |
+| API | Since | What it is | Pri |
+|---|---|---|---|
+| `PickerStyle.tabs` | 27.0 | A picker drawn as tabs | P2 |
+| `TextFieldStyle.bordered`, `TextInputBorderShape` | 27.0 | A bordered text field and the shape of its border | P2 |
+| `ToolbarMinimizationBehavior` | 27.0 | How a toolbar shrinks | P3 |
+| `ToolbarVerticalCompressionBehavior`, `ToolbarVerticalBehavior`, `ToolbarItemAxisBehavior` | 27.1 | How a toolbar and its items behave along the vertical axis | P3 |
+| `ToolbarTitleAlignment` | 27.2 | Where the toolbar title sits | P3 |
+| `ArrangementView`, `arrangementViewStyle` (automatic, split, overlay) | 27.1 | A container that arranges a primary and a secondary view | P2 |
+| `ContentMarginGuide`, `ReservedRegion` | 27.1 | Layout guides for content margins and reserved regions | P3 |
+| `reorderable()`, `reorderContainer`, `reorderDestination` | 27.0 | Drag to reorder in a collection | P3 |
+| `Document`, `DocumentReader`, `DocumentWriter` | 27.0 | A new document model | P3 |
+| `TabRole.prominent`, `TabSectionExpansion` | 27.0 | Tab roles and section expansion | P3 |
+| `PresentationPlacement` | 27.0 | Where a presentation appears | P3 |
+| `AsyncImage(request:)` | 27.0 | An image from a `URLRequest` | P3 |
+| `EnvironmentValues.systemPrefersReducedResourceUsage` | 27.0 | The system asks apps to use fewer resources | P3 |
 
 ## Backlog
 
@@ -585,6 +609,22 @@ first four areas are the sessions that run now.
 7. **P3** The [macOS 27 APIs](#18-new-in-macos-27), toolbar customization,
    document scenes.
 
+### Probes to write first
+
+A row stays `implemented` until a probe captures the AppKit or SwiftUI side.
+No probe of `~/src/probes` renders these:
+
+| Probe | Items | Area |
+|---|---|---|
+| SwiftUI `Form`, `List`, `GroupBox`, `DisclosureGroup`, `LabeledContent` in a macOS 27 window | row heights, section cards, separators, selection | C |
+| SwiftUI `Gauge` in each style, `ProgressView` indeterminate, `Spinner` | sizes and colors | A |
+| `NSTextView` in `NSScrollView` and SwiftUI `TextEditor` | insets, caret, selection, placeholder, find bar | B |
+| `NSColorPanel` and the SwiftUI `ColorPicker` popover | modes, sizes, alpha | B |
+| `NSPopover` and SwiftUI `.popover`, `.confirmationDialog` | size, arrow, corner | C |
+| `NSToolbar` display modes and `NSToolbarItem` prominent, badge, spacer | widths, labels | D |
+| `NSWindow` subtitle, title bar accessory and tracking separator | heights, positions | D |
+| `NSSplitView` thin divider, `NSPathControl`, `NSImageView` | widths, heights | C |
+
 ## Drift and open questions
 
 - [`macos-control-metrics.md`](macos-control-metrics.md) says the circular
@@ -594,6 +634,9 @@ first four areas are the sessions that run now.
   also sets the font of each size, captures 19 at mini and 22 at small.
 - [`appkit-comparison.md`](appkit-comparison.md) lists the scenes of the bench
   without the ones the parallel sessions are adding.
+- `~/src/probes/swiftui.swift` renders SwiftUI `Button`, `Toggle`, `Picker`,
+  `TextField`, `Slider` and `ProgressView`, but `~/src/captures` holds no
+  capture of it. Every comparison but the sidebar is against AppKit.
 - Not probed on this Mac: SwiftUI `Form`, `List`, `GroupBox`,
   `DisclosureGroup`, `Gauge`, `Menu` styles, `TextEditor`, `.popover`,
   `.confirmationDialog`, `NSSplitView`, `NSPathControl`, `NSImageView`,
