@@ -715,6 +715,9 @@
   --bk-window-toolgroup-padding-x: 0;
   --bk-window-toolgroup-separator-w: 1;
   --bk-window-toolgroup-separator-h: 20;
+  --bk-window-toolgroup-compact-height: 24;
+  --bk-window-toolgroup-compact-inset: 5;
+  --bk-window-toolgroup-compact-separator-h: 14;
   --bk-window-toolgroup-separator: var(--bk-toolgroup-separator);
   --bk-window-toolgroup-rim: var(--bk-toolgroup-rim);
   --bk-settings-window-width: 770;
