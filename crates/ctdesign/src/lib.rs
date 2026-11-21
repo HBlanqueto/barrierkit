@@ -989,6 +989,12 @@ pub struct DisclosureMetrics {
     pub list_chevron_x: f32,
     pub list_chevron_open_x: f32,
     pub list_chevron_open_y: f32,
+    pub group_lead: f32,
+    pub group_chevron: f32,
+    pub group_chevron_stroke: f32,
+    pub group_chevron_x: f32,
+    pub group_chevron_open_x: f32,
+    pub group_chevron_open_y: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -1009,7 +1015,6 @@ pub struct PopoverMetrics {
     pub arrow_height: f32,
     pub arrow_tip_radius: f32,
     pub arrow_fillet: f32,
-    pub padding: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -1019,12 +1024,6 @@ pub struct ComboBoxMetrics {
     pub button_inset_x: f32,
     pub button_radius: f32,
     pub text_gap: f32,
-    pub group_lead: f32,
-    pub group_chevron: f32,
-    pub group_chevron_stroke: f32,
-    pub group_chevron_x: f32,
-    pub group_chevron_open_x: f32,
-    pub group_chevron_open_y: f32,
     pub chevron: f32,
     pub chevron_stroke: f32,
     pub mini: ComboBoxSize,
@@ -1156,12 +1155,14 @@ pub struct ListGroupMetrics {
     pub radius: f32,
     pub row_min_height: f32,
     pub row_padding_x: f32,
+    pub row_padding_y: f32,
     pub separator_inset: f32,
     pub padding: [f32; 4],
     pub header_padding: [f32; 4],
     pub highlight: f32,
     pub label_min_share: f32,
     pub stack_below: f32,
+    pub section_spacing: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -1179,6 +1180,7 @@ pub struct SplitViewMetrics {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct SplitPanesMetrics {
     pub divider: f32,
+    pub grab: f32,
     pub pane_min: f32,
 }
 
@@ -1186,14 +1188,12 @@ pub struct SplitPanesMetrics {
 pub struct FloatingPaneMetrics {
     pub title_height: f32,
     pub outline: f32,
-    pub row_padding_y: f32,
     pub resize_band: f32,
     pub shadow: Rgba,
     pub shadow_blur: f32,
     pub shadow_y: f32,
 }
 
-    pub section_spacing: f32,
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct TableMetrics {
     pub row_height: f32,
@@ -1212,7 +1212,6 @@ pub struct TableMetrics {
     pub min_column_width: f32,
     pub resize_handle: f32,
     pub sorted_weight: u32,
-    pub grab: f32,
     pub sort_arrow: f32,
     pub sort_arrow_stroke: f32,
     pub sort_arrow_inset: f32,
