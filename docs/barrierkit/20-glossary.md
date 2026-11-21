@@ -106,6 +106,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `prelude` | module | `import SwiftUI` | `import AppKit` | Re-exports the entry points, controls, Freya's prelude and the tokens | [2](02-first-app.md#the-prelude) |
 | `elements::Text` | struct | `Text` | `NSTextField(labelWithString:)` | Text with `BODY` and the label color by default; wraps | [2](02-first-app.md#text-and-stacks) |
 | `elements::Text::line_limit` | method | `.lineLimit(_:)` | `NSTextField.maximumNumberOfLines` | Shows at most `n` lines | [2](02-first-app.md#text-and-stacks) |
+| `elements::Label` | struct | `Label(_:systemImage:)` | `NSTextField` beside an `NSImageView` | A `Symbol` before a title, in the font and color of `Text`, `SPACE_1` apart | [2](02-first-app.md#text-and-stacks) |
 | `elements::VStack` | struct | `VStack` | `NSStackView` (vertical) | Column of children, centered, `SPACE_3` apart | [2](02-first-app.md#text-and-stacks) |
 | `elements::HStack` | struct | `HStack` | `NSStackView` (horizontal) | Row of children, centered, `SPACE_3` apart | [2](02-first-app.md#text-and-stacks) |
 
@@ -1425,4 +1426,5 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `rect()` | — | The basic box; `VStack` and `HStack` are built on it |
 | `padding`, `margin`, `width`, `height`, `background`, `border`, `corner_radius`, `opacity` | `.padding`, `.frame`, `.background`, `.border`, `.cornerRadius`, `.opacity` | Set on the view's own node, not wrapped; every control takes them ([5](05-controls.md#modifiers-on-controls)) |
 | `label()` | — | A single run of text; `Text` is built on it |
+| `Label` | — | The type `label()` returns. The prelude exports the kit's [`Label`](02-first-app.md#text-and-stacks) in its place; name Freya's as `freya_core::prelude::Label` |
 | `paragraph()` | — | Text with several styled spans |

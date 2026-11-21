@@ -399,7 +399,7 @@ The size of each control is a row in its own family.
 | `GroupBox` | `NSBox` primary | `GroupBox` | `measured` | bench `box`; [Group box][m-rings] | — |
 | `Divider` | `NSBox` separator | `Divider` | `measured` | bench `separator` | — |
 | `DisclosureGroup` | disclosure triangle | `DisclosureGroup` | `partial`: the triangle is measured, not the indent or the animation | bench `disclosure` | P2 |
-| `Label`, `LabelStyle` | — | `LabelStyle` for menu buttons only | `partial`: no general `Label` view | none | P2 |
+| `Label`, `LabelStyle` | — | `Label::new(title, Symbol)`; `LabelStyle` for menu buttons only | `partial`: no `Label(title:icon:)` with views, no style protocol | golden `label` | P2 |
 | `ContentUnavailableView` | — | `ContentUnavailableView` | `implemented` | none | P2 |
 | `TabView` (toolbar-like tabs) | `NSTabViewController` `.toolbar` | `TabView` with `TabViewStyle::toolbar()` | `partial`: measured in [Toolbar tabs][m-tabs], not in the bench | probe `tabs` | P1 |
 | `TabView` classic | `NSTabView` (top, bottom, left, right, none), `.segmentedControlOnTop`, `.segmentedControlOnBottom` | `TabView` with `TabType` `Top`, `Bottom`, `Left` and the three without tabs | `measured`: 3.7 to 4.9% of the pixels for the strips, 1.5 to 2.3% without tabs; no right tabs | bench `containers` (`tabs-*`); [Tab views][m-tabviews] | — |
@@ -598,7 +598,7 @@ first four areas are the sessions that run now.
 5. **P1** `TabView`: the toolbar tabs as a bench entry (the classic tabs are
    done).
 6. **P2** A three-column `NavigationSplitView`; a path and destination API for
-   `NavigationStack`; a general `Label`; `Grid`; confirmation dialog;
+   `NavigationStack`; `Grid`; confirmation dialog;
    tooltip and `NSSplitView` divider probes.
 7. **P3** Reordering, swipe actions, collection layouts, drop targets.
 

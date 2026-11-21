@@ -1,12 +1,13 @@
 use std::borrow::Cow;
 
-use ctdesign::{Font, SPACE_3};
+use ctdesign::{Font, SPACE_1, SPACE_3};
 use freya_core::integration::EventHandlers;
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Direction};
 
 use crate::style::with_font;
 use crate::styles::{ControlState, Paints, TextStyle, Theme, resolve};
+use crate::symbol::{Image, Symbol};
 
 macro_rules! forward_element {
     ($outer:ident) => {
@@ -192,7 +193,7 @@ impl Overrides {
     }
 }
 
-pub struct Text(Label, Cow<'static, str>, Theme);
+pub struct Text(freya_core::prelude::Label, Cow<'static, str>, Theme);
 
 impl Text {
     pub fn new(content: impl Into<Cow<'static, str>>) -> Self {
@@ -225,6 +226,26 @@ impl Text {
 forward_element!(Text);
 
 impl TextOverflowExt for Text {}
+
+pub struct Label(Rect);
+
+impl Label {
+    pub fn new(title: impl Into<Cow<'static, str>>, image: Symbol) -> Self {
+        let style: TextStyle = resolve(&Theme::tengen());
+        let paints = Paints::current(ControlState::default(), style.effect);
+        let icon = Image::system(image)
+            .size(style.font.size as f32)
+            .color(paints.color(style.foreground.resolve(ControlState::default())));
+        Self(
+            stack(Direction::Horizontal)
+                .spacing(SPACE_1)
+                .child(icon)
+                .child(Text::new(title)),
+        )
+    }
+}
+
+forward_container!(Label);
 
 pub struct VStack(Rect);
 

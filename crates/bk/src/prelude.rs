@@ -9,7 +9,7 @@ pub use torin::prelude::{Alignment, Direction, Size};
 pub use crate::adornments::Divider;
 pub use crate::app::{Application, Scene, UtilityWindow};
 pub use crate::controls::*;
-pub use crate::elements::{HStack, Text, VStack};
+pub use crate::elements::{HStack, Label, Text, VStack};
 pub use crate::modifiers::{StyleModifiers, ViewModifiers};
 pub use crate::platform::{RunError, WindowOptions, run_window};
 pub use crate::style::{Palette, text};

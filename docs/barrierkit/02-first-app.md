@@ -108,10 +108,11 @@ toolbar items) or the app opens several windows: see
 | Item | Defaults | Own methods |
 |---|---|---|
 | `Text::new(content)` | Font `BODY`, color `Palette::current().label`, wraps to as many lines as needed | `.style(\|s\| ..)`, `.font(Font)`, `.line_limit(n)` |
+| `Label::new(title, Symbol)` | The symbol before the title, `SPACE_1` apart; the font and color of `Text`, the symbol as tall as the font | — |
 | `VStack::new()` | Children in a column, centered, `SPACE_3` apart | — |
 | `HStack::new()` | Children in a row, centered, `SPACE_3` apart | — |
 
-`content` accepts a `&'static str`, a `String` or the result of `tr!`.
+`content` and `title` accept a `&'static str`, a `String` or the result of `tr!`.
 
 `Text::style` rebuilds the text: call it before `.font`, `.line_limit` and any
 Freya method.
@@ -123,7 +124,7 @@ Text::new("Title").font(TITLE).style(|s| s)
 Text::new("Title").style(|s| s).font(TITLE)
 ```
 
-The three types wrap Freya's `label()` and `rect()` and forward all their
+The four types wrap Freya's `label()` and `rect()` and forward all their
 traits, so Freya's methods work on them: layout (`padding`, `width`,
 `expanded`), text style (`color`, `font_size`), events (`on_press`) and, on the
 stacks, children and alignment (`child`, `children`, `spacing`,
@@ -141,8 +142,8 @@ The stacks have no style of their own: their methods and the
 
 | From | Names |
 |---|---|
-| The kit | `Application`, `Scene`, `UtilityWindow`, `Text`, `VStack`, `HStack`, `Image`, `Symbol`, `IconStyle`, `TemplateRenderingMode`, `Divider`, the [`ViewModifiers`](07-menus-and-popovers.md#view-modifiers) trait (`.help`, `.context_menu`, `.focus_ring`, `.foreground_style`, `.background_style`, `.shadows`), `run_window`, `WindowOptions`, `RunError`, `Palette`, `text`, `color`, `Titlebar`, every control in [`controls`](05-controls.md), the [`StyleModifiers`](../../agents/styles.md#levels) trait (`.control_style`) and everything in [`styles`](../../agents/styles.md#value-types) (`Theme`, `ControlStyle`, `SliderStyle`, `ShapeStyle`, `Rgba`…) |
-| Freya | its whole prelude: `rect()`, `label()`, `use_state`, `Component`, `App`, `IntoElement`, element methods |
+| The kit | `Application`, `Scene`, `UtilityWindow`, `Text`, `Label`, `VStack`, `HStack`, `Image`, `Symbol`, `IconStyle`, `TemplateRenderingMode`, `Divider`, the [`ViewModifiers`](07-menus-and-popovers.md#view-modifiers) trait (`.help`, `.context_menu`, `.focus_ring`, `.foreground_style`, `.background_style`, `.shadows`), `run_window`, `WindowOptions`, `RunError`, `Palette`, `text`, `color`, `Titlebar`, every control in [`controls`](05-controls.md), the [`StyleModifiers`](../../agents/styles.md#levels) trait (`.control_style`) and everything in [`styles`](../../agents/styles.md#value-types) (`Theme`, `ControlStyle`, `SliderStyle`, `ShapeStyle`, `Rgba`…) |
+| Freya | its whole prelude: `rect()`, `label()`, `use_state`, `Component`, `App`, `IntoElement`, element methods; its `Label` type gives way to the kit's |
 | Torin | `Alignment`, `Direction`, `Size` |
 | Tokens | `BODY`, `CALLOUT`, `CAPTION`, `CAPTION_2`, `FOOTNOTE`, `HEADLINE`, `LARGE_TITLE`, `MONO`, `SUBHEADLINE`, `TITLE`, `TITLE_2`, `TITLE_3`, `Font`, `SPACE_1`…`SPACE_4`, `WINDOW_DEFAULT_SIZE`, `WINDOW_MIN_SIZE` |
 

@@ -11,6 +11,7 @@ use bk::controls::{
     Button, Checkbox, ScrollView, SearchField, SecureField, SegmentedControl, Slider, Switch,
     TextField,
 };
+use bk::elements::Label;
 use bk::level::LevelSlider;
 use bk::menu::MenuIcon;
 use bk::password::PasswordField;
@@ -19,6 +20,7 @@ use bk::patterns::settings::{Pane, PaneGroup, SettingsWindow};
 use bk::popup_button::PopUpButton;
 use bk::progress::{ProgressRing, ProgressView, Spinner};
 use bk::sidebar::SidebarAccount;
+use bk::style::Palette;
 use bk::styles::{ButtonStyle, TabViewStyle};
 use bk::symbol::Symbol;
 use bk::theme;
@@ -63,6 +65,7 @@ type Control = (&'static str, fn() -> Element);
 fn cases() -> Vec<Control> {
     vec![
         ("button", button),
+        ("label", titled_symbols),
         ("switch", switch),
         ("slider", slider),
         ("segmented-control", segmented_control),
@@ -96,6 +99,17 @@ fn button() -> Element {
         .child(Button::new("Cancelar"))
         .child(Button::new("Guardar").style(ButtonStyle::bordered_prominent))
         .child(Button::new("Borrar").disabled(true))
+        .into_element()
+}
+
+fn titled_symbols() -> Element {
+    rect()
+        .direction(Direction::Vertical)
+        .spacing(12.0)
+        .padding(16.0)
+        .background(theme::color(Palette::current().window_background))
+        .child(Label::new("Añadir", Symbol::Plus))
+        .child(Label::new("Favoritos", Symbol::Star))
         .into_element()
 }
 
