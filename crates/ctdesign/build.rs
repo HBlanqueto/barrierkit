@@ -139,16 +139,16 @@ MENU_GLASS_CAP_DARK f32 components.shell.menu.glass-cap-dark
 MENU_GLASS_CHROMA f32 components.shell.menu.glass-chroma
 MENU_GLASS_SPREAD f32 components.shell.menu.glass-spread
 MENU_DARK_INK_ABOVE f32 components.shell.menu.dark-ink-above
-TRAFFIC_RIM_WIDTH f32 components.window.traffic-lights.rim.width
+TRAFFIC_RING_WIDTH f32 components.window.traffic-lights.ring-width
+TRAFFIC_MARGIN f32 components.window.traffic-lights.margin
+TRAFFIC_GLYPH_FADE_MS u64 components.window.traffic-lights.glyph-fade-ms
 TRAFFIC_CLOSE_MINIMIZE_DARKEN f32
     components.window.traffic-lights.styles.accent.close-minimize-darken
 TRAFFIC_ZOOM_LIGHTEN f32 components.window.traffic-lights.styles.accent.zoom-lighten
-TRAFFIC_PRESSED_DARKEN f32 components.window.traffic-lights.pressed-darken
-TRAFFIC_GLYPH_STANDARD Rgba components.window.traffic-lights.styles.standard.glyph
-TRAFFIC_GLYPH_ON_DARK Rgba components.window.traffic-lights.styles.accent.glyph-on-dark
-TRAFFIC_GLYPH_ON_LIGHT Rgba components.window.traffic-lights.styles.accent.glyph-on-light
-TRAFFIC_GLYPHS TrafficGlyphs components.window.traffic-lights.glyphs box_size=box
-    close=close.segments minimize=minimize.segments zoom=zoom.triangles plus=plus.segments
+TRAFFIC_GLYPHS TrafficGlyphs components.window.traffic-lights.glyphs
+    close=close.segments minimize=minimize.segments zoom=zoom.triangles
+    zoom_exit=zoom-exit.triangles plus=plus.segments
+TRAFFIC_PRESS TrafficPress components.window.traffic-lights.pressed
 BODY Font font.styles.body
 LARGE_TITLE Font font.styles.display
 TITLE Font font.styles.title-1
@@ -463,6 +463,8 @@ STEPPER_DIVIDER Rgba themes.{theme}.stepper-divider
 STEPPER_DIVIDER_CONTRAST Rgba themes.{theme}.stepper-divider-contrast
 BEZEL BezelPalette themes.{theme}.bezel
 BEZEL_CONTRAST BezelPalette themes.{theme}.bezel-contrast
+TRAFFIC_LIGHTS TrafficLooks themes.{theme}.traffic-lights
+TRAFFIC_LIGHTS_CONTRAST TrafficLooks themes.{theme}.traffic-lights-contrast
 CONTRAST ContrastPalette themes.{theme}.contrast
 SHELL ShellPalette components.shell bar=menubar.bg text=menubar.text tile=dock.tile tile_active=dock.tile-active tile_text_active=dock.tile-text-active
 DOCK_GLASS Rgba themes.{theme}.dock-bar
@@ -542,7 +544,7 @@ fn main() {
             }
         }
     }
-    emit_titlebar(&mut out, &tengen, default);
+    emit_titlebar(&mut out, &tengen);
     emit_tints(&mut out, &tengen);
     emit_palettes(&mut out, &tengen);
     emit_specials(&mut out, &tengen);
@@ -565,27 +567,20 @@ fn entries(table: &str) -> Vec<Vec<&str>> {
     entries
 }
 
-fn emit_titlebar(out: &mut String, tengen: &Tengen, look: Look) {
+fn emit_titlebar(out: &mut String, tengen: &Tengen) {
     let lights = "components.window.traffic-lights";
-    let button = |kind: &str, key: &str| {
-        let color = tengen.color(&format!("{lights}.styles.standard.{key}"), look);
-        format!(
-            "Button {{ kind: ButtonKind::{kind}, color: {} }}",
-            rgba(color)
-        )
-    };
+    let button = |kind: &str| format!("Button {{ kind: ButtonKind::{kind} }}");
     let int = |path: &str| tengen.number(path) as i64;
     out.push_str(&format!(
-        "pub const TITLEBAR: Titlebar = Titlebar {{ thickness: {}, buttons: TitlebarButtons {{ order: [{}, {}, {}], diameter: {}, spacing: {}, inset: {}, inset_compact: {}, corner_radius: {} }}, font: {} }};\n\n",
+        "pub const TITLEBAR: Titlebar = Titlebar {{ thickness: {}, buttons: TitlebarButtons {{ order: [{}, {}, {}], diameter: {}, spacing: {}, inset: {}, inset_compact: {} }}, font: {} }};\n\n",
         int("size.titlebar-ssd-h"),
-        button("Close", "close"),
-        button("Minimize", "minimize"),
-        button("Maximize", "zoom"),
+        button("Close"),
+        button("Minimize"),
+        button("Maximize"),
         int(&format!("{lights}.size")),
         int(&format!("{lights}.gap")),
         int(&format!("{lights}.inset")),
         int(&format!("{lights}.inset-compact")),
-        int(&format!("{lights}.radius")),
         tengen.font("font.styles.headline"),
     ));
     for (name, key) in [
@@ -656,10 +651,8 @@ fn emit_palettes(out: &mut String, tengen: &Tengen) {
                 rgba_of("panel-glow")
             ),
         };
-        let lights = "components.window.traffic-lights";
-        let traffic = |key: &str| rgba(tengen.color(&format!("{lights}.{key}"), look));
         out.push_str(&format!(
-            "pub const {name}: Palette = Palette {{ titlebar_bg: {}, hairline: {}, inner_line: {inner_line}, panel_inner_line: {panel_inner_line}, outer_border: {}, title: {}, text: {}, ink_strong: {}, ink_muted: {}, ink_faint: {}, line: {}, line_strong: {}, separator: {}, accent: {}, accent_inactive: {}, on_accent: {}, danger: {}, traffic_lights_inactive: {}, traffic_rim: TrafficRim {{ lit: {}, idle: {} }}, scrim: {}, selected_control: {}, card_border: {}, system_fill: {}, text_background: {}, selected_content: {}, control_disabled: {}, control: {}, accent_toggle: {}, separator_strong: {}, selected_content_inactive: {}, combo_button: {}, segment_divider: {}, accent_ring: {}, accent_toggle_disabled: {} }};\n\n",
+            "pub const {name}: Palette = Palette {{ titlebar_bg: {}, hairline: {}, inner_line: {inner_line}, panel_inner_line: {panel_inner_line}, outer_border: {}, title: {}, text: {}, ink_strong: {}, ink_muted: {}, ink_faint: {}, line: {}, line_strong: {}, separator: {}, accent: {}, accent_inactive: {}, on_accent: {}, danger: {}, scrim: {}, selected_control: {}, card_border: {}, system_fill: {}, text_background: {}, selected_content: {}, control_disabled: {}, control: {}, accent_toggle: {}, separator_strong: {}, selected_content_inactive: {}, combo_button: {}, segment_divider: {}, accent_ring: {}, accent_toggle_disabled: {} }};\n\n",
             pair("titlebar-bg", "titlebar-bg-inactive"),
             rgba_of("titlebar-line"),
             rgba_of("window-outer"),
@@ -675,9 +668,6 @@ fn emit_palettes(out: &mut String, tengen: &Tengen) {
             rgba_of("accent-inactive"),
             rgba_of("on-accent"),
             rgba_of("danger"),
-            traffic("inactive"),
-            traffic("rim.color"),
-            traffic("rim.inactive"),
             rgba_of("scrim"),
             rgba_of("bg-selected-control"),
             rgba_of("card-border"),

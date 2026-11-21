@@ -25,7 +25,7 @@ produce nothing but these constants, and only `build.rs` reads them.
    ([value map](#value-map)).
 2. Edit the value. A number may be a reference to another key, written as its
    dotted path: `"titlebar": "radius.lg"`. A colour may be a token name in
-   braces, `"{traffic-close}"`, which resolves in each theme.
+   braces, `"{ink}"`, which resolves in each theme.
 3. Build. `build.rs` merges both files, reads the structs in `src/lib.rs` and
    writes `tengen.rs`. `cargo:rerun-if-changed` watches the three files.
 4. Run `./dev.sh check`.
@@ -71,8 +71,8 @@ each.
 | Values | Key | Constant |
 |---|---|---|
 | Themes | `themes.light`, `themes.dark`, `themes.dark-tint`; `default-theme` is `light` | `LIGHT`, `DARK`, `DARK_TINT` and the themed constants |
-| Traffic lights | `traffic-close` `#ff5f57`, `traffic-min` `#febc2e`, `traffic-zoom` `#28c840` in every theme; `traffic-inactive`, `traffic-rim`, `traffic-rim-inactive` per theme | `TITLEBAR.buttons`, `Palette.traffic_lights_inactive`, `Palette.traffic_rim` |
-| Traffic light geometry and glyphs | `components.window.traffic-lights` (`size` 14, `gap` 9, `radius` 4, `glyphs`) | `TITLEBAR.buttons`, `TRAFFIC_GLYPHS`, `TRAFFIC_*` |
+| Traffic lights | `traffic-lights` and `traffic-lights-contrast` per theme: the gradient stops, ring, glyph and halo of each light, measured on macOS 27 | `TRAFFIC_LIGHTS_*`, `TRAFFIC_LIGHTS_CONTRAST_*` |
+| Traffic light geometry and glyphs | `components.window.traffic-lights` (`size` 14, `gap` 9, `ring-width`, `pressed`, `glyphs`) | `TITLEBAR.buttons`, `TRAFFIC_GLYPHS`, `TRAFFIC_*` |
 | Titlebar colours | `titlebar-bg`, `titlebar-bg-inactive`, `titlebar-title`, `titlebar-title-inactive`, `titlebar-line` (the `separator` token) | `Palette.titlebar_bg`, `Palette.title`, `Palette.hairline` |
 | Titlebar heights | `size.titlebar-h` 40 (own apps); `size.titlebar-ssd-h` 32 (the bar the compositor draws) | `TITLEBAR_CLIENT_HEIGHT`; `TITLEBAR.thickness` |
 | Window corners | `components.window.corner`: `titlebar` → `radius.lg` (16), `compact` 20, `unified` 26, `utility` 15, `expansion` 1.52866, `exponent` 3.34 | `WINDOW_CORNER`; the names match the `set_bar` bars |

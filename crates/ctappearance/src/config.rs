@@ -2,7 +2,7 @@ use std::path::{Path, PathBuf};
 
 use ctdesign::{
     COLOR_FILTER_INTENSITY, DISPLAY_CONTRAST, GLASS_BLUR_FULL, POINTER_SIZES, Rgba, TEXT_SIZES,
-    TINT_STRENGTH, TITLEBAR,
+    TINT_STRENGTH,
 };
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
@@ -156,49 +156,6 @@ where
     Ok(parts)
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize)]
-pub struct TrafficLightShape(u32);
-
-impl TrafficLightShape {
-    pub const SQUARE: Self = Self(TITLEBAR.buttons.corner_radius);
-    pub const ROUND: Self = Self(TITLEBAR.buttons.diameter / 2);
-
-    pub fn new(radius: u32) -> Self {
-        Self(radius.min(Self::ROUND.0))
-    }
-
-    pub fn radius(self) -> u32 {
-        self.0
-    }
-
-    pub fn corner_radius(self, diameter: f32) -> f32 {
-        diameter * self.0 as f32 / TITLEBAR.buttons.diameter as f32
-    }
-}
-
-impl Default for TrafficLightShape {
-    fn default() -> Self {
-        Self::ROUND
-    }
-}
-
-impl<'de> Deserialize<'de> for TrafficLightShape {
-    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        #[derive(Deserialize)]
-        #[serde(untagged)]
-        enum Stored {
-            Radius(u32),
-            Named(String),
-        }
-        Ok(match Stored::deserialize(deserializer)? {
-            Stored::Radius(radius) => Self::new(radius),
-            Stored::Named(name) if name == "round" => Self::ROUND,
-            Stored::Named(name) if name == "square" => Self::SQUARE,
-            Stored::Named(_) => Self::default(),
-        })
-    }
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum TrafficLightStyle {
@@ -310,8 +267,6 @@ pub struct AppearanceConfig {
     #[serde(deserialize_with = "lenient")]
     pub traffic_lights: TrafficLightStyle,
     #[serde(deserialize_with = "lenient")]
-    pub traffic_light_shape: TrafficLightShape,
-    #[serde(deserialize_with = "lenient")]
     pub tint_strength: TintStrength,
     #[serde(
         deserialize_with = "deserialize_tint_parts",
@@ -366,7 +321,6 @@ impl Default for AppearanceConfig {
             glass_blur: 0.0,
             window_color: WindowColorMode::default(),
             traffic_lights: TrafficLightStyle::default(),
-            traffic_light_shape: TrafficLightShape::default(),
             tint_strength: TintStrength::default(),
             tint_parts: TintParts::default(),
             wallpaper_tinting: true,
@@ -490,10 +444,11 @@ pub fn read_appearance_from(path: &Path) -> Result<Option<AppearanceConfig>, tom
     }
 }
 
-const RETIRED_KEYS: [&str; 4] = [
+const RETIRED_KEYS: [&str; 5] = [
     "blur_all_windows",
     "blur_behind",
     "tint_strength_accent",
+    "traffic_light_shape",
     "window_tint_scope",
 ];
 
@@ -788,7 +743,6 @@ traffic_lights = "standard"
             glass_blur: 0.6,
             window_color: WindowColorMode::Accent,
             traffic_lights: TrafficLightStyle::Accent,
-            traffic_light_shape: TrafficLightShape::new(2),
             tint_strength: TintStrength::Strong,
             tint_parts: TintParts {
                 sidebars: true,
@@ -1039,25 +993,19 @@ tint_parts = ["window", "halo"]
     }
 
     #[test]
-    fn the_named_traffic_light_shapes_read_as_their_radius_and_a_radius_stops_at_round() {
-        let read = |text: &str| toml::from_str::<AppearanceConfig>(text).unwrap();
-        assert_eq!(
-            read("traffic_light_shape = \"square\"\n").traffic_light_shape,
-            TrafficLightShape::SQUARE
-        );
-        assert_eq!(
-            read("traffic_light_shape = \"round\"\n").traffic_light_shape,
-            TrafficLightShape::ROUND
-        );
-        assert_eq!(
-            read("traffic_light_shape = 0\n")
-                .traffic_light_shape
-                .radius(),
-            0
-        );
-        assert_eq!(
-            read("traffic_light_shape = 99\n").traffic_light_shape,
-            TrafficLightShape::ROUND
+    fn the_retired_traffic_light_shape_still_parses_and_a_write_removes_it() {
+        let text = "traffic_light_shape = 4\ntraffic_lights = \"accent\"\n";
+        let config: AppearanceConfig = toml::from_str(text).unwrap();
+        assert_eq!(config.traffic_lights, TrafficLightStyle::Accent);
+        let dir = std::env::temp_dir().join(format!("ctappearance-shape-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("appearance.domain");
+        std::fs::write(&path, text).unwrap();
+        write_appearance(&path, &config).unwrap();
+        assert!(
+            !std::fs::read_to_string(&path)
+                .unwrap()
+                .contains("traffic_light_shape")
         );
     }
 

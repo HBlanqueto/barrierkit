@@ -22,6 +22,7 @@ pub mod titlebar;
 pub mod chrome;
 
 pub mod traffic;
+mod traffic_raster;
 
 pub mod animation;
 

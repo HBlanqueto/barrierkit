@@ -29,9 +29,9 @@ rectangle:
 - The **content** rectangle is what the app draws into.
 - The **title bar** holds traffic lights, the title and, in a toolbar window,
   the toolbar.
-- **Traffic lights** are three 14 pt rounded squares: close, minimise and
-  zoom. Their order is fixed. The zoom button becomes a plus in some
-  contexts.
+- **Traffic lights** are three 14 pt discs: close, minimise and zoom. Their
+  order is fixed. The zoom glyph is the full-screen arrows, or a plus in a
+  window that cannot go full screen and while Option is held.
 
 AppKit also exposes a unified compact style and a toolbar style. They are the
 same chrome with different heights and insets.
@@ -91,17 +91,23 @@ teens, but it is **estimated**, not measured. Do not treat the Malaysia
 
 ## 3. Traffic-light glyphs
 
-- The glyph box is **8x8** inside the 14 pt button.
-- Close is two 1.5 pt diagonal strokes.
-- Minimise is one 1.5 pt horizontal stroke.
-- Zoom is two triangles in the usual diagonal arrangement.
-- The group uses a 0.5 pt rim in the live style.
-- Inactive windows keep the same geometry and lose the colour.
+Measured on 2026-11-20 with `~/src/probes/lights.swift`; the whole look and the
+method are in
+[macOS control metrics](macos-control-metrics.md#traffic-lights-macos-27).
 
-The glyph path, fill and rim are tokens in
-`crates/ctdesign/tengen/components.json` under
-`components.window.traffic-lights`. The exact macOS colours are not in
-`metrics.txt`; they were not sampled in this pass.
+- The glyphs are drawn in the 14 pt disc itself, not in an 8 pt box.
+- Close is two 2 pt diagonal strokes with round caps, 5 pt long on each axis.
+- Minimise is a 7.5 × 2 pt bar with square ends.
+- Zoom is two right triangles of 5 pt legs, corners rounded 0.3, in opposite
+  corners of a 6 pt square (the full-screen arrows); in a full-screen window the
+  triangles meet at the center instead (the exit glyph); the plus is two
+  7.5 × 2 pt bars.
+- The ring along the edge is 0.5 pt wide.
+- Inactive windows keep the geometry and show translucent gray discs.
+
+The glyph paths, the ring and the colors of every state are tokens:
+`components.window.traffic-lights` in `crates/ctdesign/tengen/components.json`
+and `traffic-lights` in each theme of `tokens.json`.
 
 ## 4. Behaviour
 
@@ -111,8 +117,8 @@ Observed or read from public APIs:
 - Double-clicking the title bar zooms or minimises according to the user
   setting. The double-click interval was not measured; the 400 ms and 4 pt
   values in `ctdesign` are project values.
-- The traffic lights are separate controls. Group hover behaviour was not
-  measured.
+- The traffic lights are separate controls. Hovering any of them shows the
+  glyphs of all three; the fill does not change.
 - A full-screen window hides the normal title bar and uses a full-screen
   glass band. That band was not captured.
 
@@ -130,6 +136,7 @@ frame-by-frame window animation was captured.
 | Traffic diameter | 14 | 14 | `TITLEBAR.buttons.diameter` | Matches |
 | Traffic gap | 9 | 9 | `TITLEBAR.buttons.spacing` | Matches |
 | Traffic inset | 9 / 12 / 19 | 9 in the 32 bar, 12 in the 40 bar, centred vertically (9 and 13 from the top) | `ctappearance::traffic::inset`, `TITLEBAR.buttons.inset`, `inset_compact` | Matches 32 and 40; 19 not implemented |
+| Traffic look | Discs with a gradient, a 0.5 ring, a halo and glyphs, per appearance | The same, from `TRAFFIC_LIGHTS_*` | `ctdesign` tokens `traffic-lights` | Matches within the limits in [macOS control metrics](macos-control-metrics.md#traffic-lights-macos-27) |
 | Corner radius | Not measured; low teens | 16 / 20 / 26 / 15 | `WINDOW_CORNER` | Needs measurement |
 | Window background | `#1e1e1e` dark | Theme `bg-window` | `ctdesign` tokens | Verify against this table |
 | Title font | 13 pt | `TITLEBAR` font | `ctdesign` | Verify face and weight |

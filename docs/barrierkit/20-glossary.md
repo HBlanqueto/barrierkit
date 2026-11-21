@@ -83,6 +83,11 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `BUTTON.large_height`, `large_padding_x`, `small_height`, `small_padding_x`, `small_font_size`, `small_radius` | `BUTTON.small`, `BUTTON.large`, `BUTTON.mini`, `BUTTON.xl` (`ButtonSize`), or `BUTTON.size(ControlSize)` | 2026-11-20 |
 | `SETTINGS.radio_size`, `radio_dot`, `radio_gap`, `check.gap` | `CHECKBOX.size`, `CHECKBOX.radio_dot`, `CHECKBOX.gap` | 2026-11-20 |
 | `SETTINGS.popup_height`, `popup_chevron`, `popup_glyph`, `popup_glyph_stroke`, `popup_pulldown_glyph`, `popup_pulldown_drop`, `popup_label_lift`, `popup_text_gap`, `popup_trailing_padding` | `BUTTON.height` and `BUTTON.popup.regular` (`PopupSize`: `glyph`, `glyph_stroke`, `indicator`, `trailing`, `gap`, `pulldown_glyph`, `pulldown_drop`, `label_lift`) | 2026-11-20 |
+| `ctappearance::TrafficLightShape`, the key `traffic_light_shape`, `Resolved::traffic_shape`, `TrafficLights::round`, `WindowChromeStyle::round_lights`, `TrafficLightsStyle::shape`, `TITLEBAR.buttons.corner_radius` | Gone: the lights are discs; a file with the key still loads and the next write drops it | 2026-11-20 |
+| `ctappearance::lights_for`, `Resolved::lights`, `Resolved::traffic_style` | `ctappearance::traffic::looks`, `Resolved::traffic_lights` (`TrafficLooks`) | 2026-11-20 |
+| `ctappearance::traffic::visual(lights, style, inactive, rim, input)`, `ButtonVisual { fill, rim, glyph }`, `ButtonVisual::idle`, `glyph_svg(.., pixels)` | `ctappearance::traffic::visual(looks, input)`, `ButtonVisual { fill, ring, glyph, scale, dodge }`, `glyph_svg(index, color, fixed_width)` | 2026-11-20 |
+| `ctdesign::TrafficRim`, `Palette::traffic_lights_inactive`, `Palette::traffic_rim`, `TRAFFIC_RIM_WIDTH`, `TRAFFIC_PRESSED_DARKEN`, `TRAFFIC_GLYPH_STANDARD`, `TRAFFIC_GLYPH_ON_DARK`, `TRAFFIC_GLYPH_ON_LIGHT`, `Button::color`, `TrafficGlyphs::box_size`, the tokens `traffic-close`, `traffic-min`, `traffic-zoom`, `traffic-inactive`, `traffic-rim`, `traffic-rim-inactive` | `ctdesign::TrafficLooks`, `TRAFFIC_LIGHTS_*`, `TRAFFIC_LIGHTS_CONTRAST_*`, `TRAFFIC_RING_WIDTH`, `TRAFFIC_PRESS`; the themes' `traffic-lights` and `traffic-lights-contrast` | 2026-11-20 |
+| `styles::TrafficLightsStyle { fills, rims, glyphs, rim_width, glyph_size, shape, effect }` | `styles::TrafficLightsStyle { looks, ring_width, halo, backdrop }` | 2026-11-20 |
 
 ## How to read the tables
 
@@ -214,7 +219,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `styles::RuleEditorStyle` | struct | — | ≈ `NSRuleEditor` | Gaps, indent and header text of `RuleEditor` | [Styles](../../crates/bk/src/styles/rule_editor.rs) |
 | `styles::TitlebarStyle` | struct | ≈ `WindowToolbarStyle` | ≈ `NSWindow.ToolbarStyle`, `NSTitlebarSeparatorStyle` | Every visual property of `Titlebar`: heights, paddings, background, title and hairline | [Styles](../../crates/bk/src/styles/titlebar.rs) |
 | `styles::FullscreenBarStyle` | struct | — | — | Tint, line and metrics of the full-screen bars; theme and container only | [Styles](../../crates/bk/src/styles/fullscreen_bar.rs) |
-| `styles::TrafficLightsStyle` | struct | — | ≈ `NSWindow.standardWindowButton(_:)` | Size, gap, shape and the fill, rim and glyph of each traffic light per state | [Styles](../../crates/bk/src/styles/traffic_lights.rs) |
+| `styles::TrafficLightsStyle` | struct | — | ≈ `NSWindow.standardWindowButton(_:)` | Size, gap, ring width, halo, pressed backdrop and the `ButtonVisual` of each traffic light per state | [Styles](../../crates/bk/src/styles/traffic_lights.rs) |
 | `styles::WindowChromeStyle` | struct | ≈ `WindowStyle` | — | Layout, reveal and resting edge of `WindowChrome`, and every visual property of its rail and pill | [Styles](../../crates/bk/src/styles/window_chrome.rs) |
 | `styles::SidebarStyle` | struct | ≈ `SidebarListStyle` | ≈ `NSTableView.Style.sourceList` | Paddings, lights position, shape, background and borders of `Sidebar`; not `ctappearance::SidebarStyle` | [Styles](../../crates/bk/src/styles/sidebar.rs) |
 | `styles::SidebarItemStyle` | struct | ≈ `.listItemTint(_:)` | ≈ `NSTableCellView` | Every visual property of `SidebarItem`, selected and not | [Styles](../../crates/bk/src/styles/sidebar_item.rs) |
@@ -515,7 +520,6 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `ctappearance::TintParts` | struct | — | — | Which parts take the tint: sidebars, window, groups, controls, menus, and the bars (menu bar and Dock) | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::SidebarGlass` | struct | ≈ `Glass` | ≈ `NSGlassEffectView` | The `base`, `solid` and `chroma` of a sidebar's glass panel; `Resolved.sidebar.glass` | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::TrafficLightStyle` | enum | — | — | `Standard`, `Accent`, `Wallpaper` traffic-light colors | [4](04-appearance-and-tokens.md#the-appearance-file) |
-| `ctappearance::TrafficLightShape` | struct | — | — | The lights' corner radius from 0 to `ROUND` (2026-11-09: was the enum `Square`/`Round`); `new(radius)`, `radius()`, `corner_radius(diameter)` | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::Toolkit` | enum | — | — | `BarrierKit`, `Gtk`, `Qt`: the kinds of app in Accessibility › Display › Text size | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::TextSizes` | struct | — | ≈ the per-app list of Accessibility › Display › Text size | An optional text size per `Toolkit`; `get_mut(toolkit)` | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::AppearanceConfig::text_size_for` | method | — | — | The toolkit's own text size, or the preferred `text_size` | [4](04-appearance-and-tokens.md#the-appearance-file) |
@@ -587,7 +591,6 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `ctappearance::SidebarSurface` | struct | — | — | Sidebar style, background, rim, inner line and palette | [4](04-appearance-and-tokens.md#resolution) |
 | `ctappearance::ToolgroupSurface` | struct | — | — | Toolbar group background and palette | [4](04-appearance-and-tokens.md#resolution) |
 | `ctappearance::palette` | fn | — | — | Base `ctdesign::Palette` of a color scheme | [4](04-appearance-and-tokens.md#resolution) |
-| `ctappearance::lights_for` | fn | — | — | The three traffic-light colors of a style | [4](04-appearance-and-tokens.md#resolution) |
 
 ## Window behavior
 
@@ -621,10 +624,14 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `ctappearance::traffic::button_rect` | fn | — | ≈ `NSWindow.standardWindowButton(_:)` frame | Rectangle of one light | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
 | `ctappearance::traffic::group_rect` | fn | — | — | Rectangle of the three lights | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
 | `ctappearance::traffic::hit` | fn | — | — | The light under a point | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
-| `ctappearance::traffic::visual` | fn | — | — | Fill, rim and glyph of each light for an input | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
-| `ctappearance::traffic::glyph_svg` | fn | — | — | SVG of a light's glyph | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
+| `ctappearance::traffic::visual` | fn | — | — | Fill and ring stops, glyph, scale and dodge of each light for an input | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
+| `ctappearance::traffic::looks` | fn | — | — | The three lights of a style: the measured look, or recolored with the accent's or the wallpaper's tone | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
+| `ctappearance::traffic::glyph_svg` | fn | — | — | SVG of a glyph | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
+| `ctappearance::traffic::Glyph` | enum | — | — | The glyph of a light: close, minimize, zoom enter, zoom exit (full screen) and plus | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
+| `ctappearance::traffic::rounded` | fn | — | — | The corners of a zoom triangle, rounded | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
+| `ctappearance::traffic::Corner` | struct | — | — | Enter, vertex and exit of one rounded corner | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
 | `ctappearance::traffic::TrafficInput` | struct | — | — | Focus, group hover, pressed light and zoom support | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
-| `ctappearance::traffic::ButtonVisual` | struct | — | — | Fill, rim and optional glyph color of one light | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
+| `ctappearance::traffic::ButtonVisual` | struct | — | — | Fill and ring stops, optional glyph, scale and dodge of one light | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
 | `ctappearance::traffic::TrafficPointer` | struct | — | — | Pointer state machine for hover, arm and click of the lights | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
 
 ## Backdrop colors
@@ -665,7 +672,10 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `ctdesign::Palette` | struct | — | — | Base colors of one theme: inks, lines, accent, titlebar | [4](04-appearance-and-tokens.md#token-types) |
 | `ctdesign::FocusPair` | struct | — | — | One color for a focused window, one for unfocused | [4](04-appearance-and-tokens.md#token-types) |
 | `ctdesign::PanelLine` | struct | — | — | Inner line of a focused panel: sides, edges and glow | [4](04-appearance-and-tokens.md#token-types) |
-| `ctdesign::TrafficRim` | struct | — | — | Rim color of a lit and an idle traffic light | [4](04-appearance-and-tokens.md#token-types) |
+| `ctdesign::TrafficLooks` | struct | — | — | The close, minimize, zoom and inactive `TrafficLook` of a scheme, their halo and the backdrop of a pressed light | [4](04-appearance-and-tokens.md#token-types) |
+| `ctdesign::TrafficLook` | struct | — | — | Base tone, fill stops, ring stops and glyph color of one traffic light | [4](04-appearance-and-tokens.md#token-types) |
+| `ctdesign::TrafficHalo` | struct | — | — | Color, blur and vertical offset of the shadow around a traffic light | [4](04-appearance-and-tokens.md#token-types) |
+| `ctdesign::TrafficPress` | struct | — | — | Scale and dodge of a pressed traffic light | [4](04-appearance-and-tokens.md#token-types) |
 | `ctdesign::ShellPalette` | struct | — | — | Menu bar and Dock colors | [4](04-appearance-and-tokens.md#token-types) |
 | `ctdesign::MenuPalette` | struct | — | — | Menu colors and metrics | [4](04-appearance-and-tokens.md#token-types) |
 | `ctdesign::SidebarPalette` | struct | — | — | Sidebar item, selection, section and line inks | [4](04-appearance-and-tokens.md#token-types) |
@@ -677,8 +687,8 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `ctdesign::WindowStyle` | struct | — | — | Corner radius and superellipse exponent of a dialog or pop-up | [4](04-appearance-and-tokens.md#token-types) |
 | `ctdesign::WindowResize` | struct | — | — | Width of the resize band at edges and corners | [4](04-appearance-and-tokens.md#token-types) |
 | `ctdesign::Titlebar` | struct | — | — | Server-side titlebar thickness, lights and font | [4](04-appearance-and-tokens.md#token-types) |
-| `ctdesign::TitlebarButtons` | struct | — | — | Order, diameter, spacing, left insets (`inset`, `inset_compact`) and radius of the traffic lights | [4](04-appearance-and-tokens.md#token-types) |
-| `ctdesign::Button` | struct | — | — | One traffic light: kind and color | [4](04-appearance-and-tokens.md#token-types) |
+| `ctdesign::TitlebarButtons` | struct | — | — | Order, diameter, spacing and left insets (`inset`, `inset_compact`) of the traffic lights | [4](04-appearance-and-tokens.md#token-types) |
+| `ctdesign::Button` | struct | — | — | One traffic light: kind | [4](04-appearance-and-tokens.md#token-types) |
 | `ctdesign::ButtonKind` | enum | — | `NSWindow.ButtonType` | `Close`, `Minimize`, `Maximize` | [4](04-appearance-and-tokens.md#token-types) |
 | `ctdesign::TrafficGlyphs` | struct | — | — | Geometry of the close, minimize, zoom and plus glyphs | [4](04-appearance-and-tokens.md#token-types) |
 | `ctdesign::Segment` | struct | — | — | A line from point `a` to point `b` | [4](04-appearance-and-tokens.md#token-types) |
@@ -797,7 +807,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `ctdesign::NATIVE_APP_ID_PREFIX`, `ALERT_LAYER_NAMESPACE`, `NOTIFICATIONS_LAYER_NAMESPACE`, `MENUBAR_LAYER_NAMESPACE`, `WALLPAPER_LAYER_NAMESPACE` | constant | — | — | App id prefix of kit apps; layer namespaces of shell alerts, notifications, the menu bar and the wallpaper | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
 | `ctdesign::TITLEBAR`, `TITLEBAR_CLIENT_HEIGHT`, `TITLEBAR_PADDING_X`, `TITLEBAR_TITLE_GAP`, `TITLEBAR_DOUBLE_CLICK`, `TITLEBAR_RAIL` | constant | — | — | Titlebar sizes, lights, double click and rail | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
 | `ctdesign::FULLSCREEN_BAR`, `FULLSCREEN_GLASS`, `FULLSCREEN_BAND`, `GLASS_MASK`, `HUD_BACKGROUND` | constant | — | — | Full-screen glass bars, their mask, HUD window background | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
-| `ctdesign::TRAFFIC_GLYPHS`, `TRAFFIC_GLYPH_STANDARD`, `TRAFFIC_GLYPH_ON_DARK`, `TRAFFIC_GLYPH_ON_LIGHT`, `TRAFFIC_RIM_WIDTH`, `TRAFFIC_PRESSED_DARKEN`, `TRAFFIC_CLOSE_MINIMIZE_DARKEN`, `TRAFFIC_ZOOM_LIGHTEN` | constant | — | — | Traffic-light glyphs, inks, rim and color shifts | [4](04-appearance-and-tokens.md#traffic-lights) |
+| `ctdesign::TRAFFIC_LIGHTS_{LIGHT,DARK,DARK_TINT}`, `TRAFFIC_LIGHTS_CONTRAST_*`, `TRAFFIC_GLYPHS`, `TRAFFIC_RING_WIDTH`, `TRAFFIC_MARGIN`, `TRAFFIC_PRESS`, `TRAFFIC_GLYPH_FADE_MS`, `TRAFFIC_CLOSE_MINIMIZE_DARKEN`, `TRAFFIC_ZOOM_LIGHTEN` | constant | — | — | Traffic-light looks, glyphs, ring, margin, press and the shifts that derive tinted tones | [4](04-appearance-and-tokens.md#traffic-lights) |
 | `ctdesign::BUTTON`, `ICON_BUTTON`, `SWITCH`, `CHECKBOX`, `SLIDER`, `SLIDER_FAT`, `SLIDER_KEY_STEP`, `KNOB_SHADOW`, `KNOB_HELD_SHADOW`, `KNOB_HELD_SHADOW_DARK`, `KNOB_LENS`, `SEGMENTED`, `STEPPER`, `TOOLBAR_SEARCH_WIDTH` | constant | — | — | Metrics of buttons, toggles, sliders and toolbar controls | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::TEXT_FIELD`, `TOKEN_FIELD`, `SPELLING`, `COMBO_BOX`, `PATH_CONTROL`, `DATE_PICKER`, `IMAGE_WELL` | constant | — | — | Metrics of fields and pickers | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::LEVEL_INDICATOR`, `GAUGE`, `PROGRESS`, `BADGE`, `FOCUS_RING`, `SYMBOL`, `ICON_STYLE`, `ICON_PLATE`, `ICON_PLATE_LOBE_DARK`, `ICON_PLATE_LOBE_LIGHT`, `ICON_PLATE_GRAPHITE`, `ICON_PLATE_SILVER`, `ICON_PLATE_CLEAR`, `ICON_PLATE_CLEAR_DARK`, `ICON_PLATE_TINTED`, `ICON_PLATE_TINTED_DARK`, `ICON_PLATE_GLASS`, `ICON_PLATE_GLASS_DARK`, `ICON_PLATE_GLASS_DARK_ON_DARK`, `ICON_LOGO_CLEAR`, `ICON_LOGO_CLEAR_DARK`, `ICON_LOGO_TINTED`, `ICON_LOGO_TINTED_DARK`, `TOOLTIP`, `POPOVER`, `DRAG` | constant | — | — | Metrics of indicators, focus ring, symbols, icon styles, tooltips, popovers, drag; `ICON_PLATE_GLASS`, `_DARK` and `_DARK_ON_DARK` (dark icons on a dark Dock) are the lightness a clear plate drawn as glass moves toward, how far, its chroma scale and its light lift | [4](04-appearance-and-tokens.md#control-metrics) |
@@ -1094,6 +1104,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 |---|---|---|---|---|---|
 | `titlebar::Titlebar` | struct | `≈ .toolbar(content:)` | `≈ NSToolbar` | Client-side title bar: traffic lights, left and right items, title | [9](09-titlebars.md#titlebar) |
 | `traffic::TrafficLights` | struct | — | `≈ NSWindow.standardWindowButton(_:)` | Close, minimize and zoom buttons | [9](09-titlebars.md#traffic-lights) |
+| `traffic::TrafficLights::fullscreen` | method | — | `≈ NSWindow.styleMask.fullScreen` | Minimize disabled and the exit glyph on zoom, for a full-screen window | [9](09-titlebars.md#traffic-lights) |
 | `traffic::TrafficLights::for_window` | fn | — | `≈ NSWindow.standardWindowButton(_:)` | Traffic lights wired to the window and user settings | [9](09-titlebars.md#traffic-lights) |
 | `titlebar::window_drag_handler` | fn | — | `≈ NSWindow.performDrag(with:)` | Press handler that moves the window or runs the double-click action | [9](09-titlebars.md#traffic-lights) |
 | `titlebar::sidebar_bar_height` | fn | — | — | Height of the title bar row beside a sidebar | [9](09-titlebars.md#the-sidebar-with-the-rail) |

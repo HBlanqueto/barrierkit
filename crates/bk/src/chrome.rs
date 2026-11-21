@@ -52,7 +52,6 @@ pub enum RestingEdge {
 pub(crate) struct ChromeLayout {
     pub(crate) layout: TitlebarLayout,
     pub(crate) rail_width: f32,
-    pub(crate) round_lights: bool,
     pub(crate) rail_style: RailStyle,
     pub(crate) reveal: Reveal,
     pub(crate) rail_spacing: f32,
@@ -64,7 +63,6 @@ impl From<&WindowChromeStyle> for ChromeLayout {
         Self {
             layout: style.layout,
             rail_width: style.rail_width,
-            round_lights: style.round_lights,
             rail_style: style.rail_style,
             reveal: style.reveal,
             rail_spacing: style.rail_spacing,

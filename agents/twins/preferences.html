@@ -33,8 +33,19 @@
   .bk-traffic-lights span {
     width: calc(var(--bk-window-traffic-lights-size) * 1px);
     height: calc(var(--bk-window-traffic-lights-size) * 1px);
-    border-radius: calc(var(--bk-window-traffic-lights-radius) * 1px);
-    box-shadow: inset 0 0 0 calc(var(--bk-window-traffic-lights-rim-width) * 1px) var(--bk-traffic-rim);
+    border-radius: 50%;
+  }
+  .bk-traffic-lights span.close {
+    background: linear-gradient(var(--bk-traffic-lights-close-fill-0), var(--bk-traffic-lights-close-fill-1), var(--bk-traffic-lights-close-fill-2), var(--bk-traffic-lights-close-fill-3));
+    box-shadow: inset 0 0 0 calc(var(--bk-window-traffic-lights-ring-width) * 1px) var(--bk-traffic-lights-close-ring-1);
+  }
+  .bk-traffic-lights span.minimize {
+    background: linear-gradient(var(--bk-traffic-lights-minimize-fill-0), var(--bk-traffic-lights-minimize-fill-1), var(--bk-traffic-lights-minimize-fill-2), var(--bk-traffic-lights-minimize-fill-3));
+    box-shadow: inset 0 0 0 calc(var(--bk-window-traffic-lights-ring-width) * 1px) var(--bk-traffic-lights-minimize-ring-1);
+  }
+  .bk-traffic-lights span.zoom {
+    background: linear-gradient(var(--bk-traffic-lights-zoom-fill-0), var(--bk-traffic-lights-zoom-fill-1), var(--bk-traffic-lights-zoom-fill-2), var(--bk-traffic-lights-zoom-fill-3));
+    box-shadow: inset 0 0 0 calc(var(--bk-window-traffic-lights-ring-width) * 1px) var(--bk-traffic-lights-zoom-ring-1);
   }
   .bk-search-field {
     box-sizing: border-box;
@@ -173,7 +184,7 @@
   <div class="bk-settings-window" data-bk="SettingsWindow">
     <div class="bk-sidebar" data-bk="Sidebar">
       <div class="bk-traffic-lights" data-bk="TrafficLights">
-        <span style="background: var(--bk-traffic-close)"></span><span style="background: var(--bk-traffic-min)"></span><span style="background: var(--bk-traffic-zoom)"></span>
+        <span class="close"></span><span class="minimize"></span><span class="zoom"></span>
       </div>
       <div class="bk-search-field" data-bk="SearchField Buscar"><span class="icon">⌕</span>Buscar</div>
       <div class="bk-sidebar-account" data-bk="SidebarAccount Jane Appleseed">

@@ -72,6 +72,15 @@ fi
 if [ "$scene" = sidebar ]; then
     exec cargo test -p bk --test kit --features bk/shell appkit_sidebar -- --ignored
 fi
+if [ "$scene" = lights ]; then
+    export APPKIT_BG_dark=262626 APPKIT_BG_hc_dark=282828
+    cargo test -p bk --test kit --features bk/shell appkit_lights -- --ignored
+    for tint in accent-blue:accent:007aff accent-orange:accent:ff9500 accent-purple:accent:af52de wallpaper-teal:wallpaper:1e8278 wallpaper-sand:wallpaper:e6d78c; do
+        APPKIT_LIGHTS_SUFFIX=-${tint%%:*} APPKIT_LIGHTS_TINT=${tint#*:} \
+            cargo test -p bk --test kit --features bk/shell appkit_lights -- --ignored
+    done
+    exit
+fi
 if [ "$scene" = icons ]; then
     exec cargo test -p bk --test kit --features bk/shell appkit_icon_lab -- --ignored
 fi

@@ -528,9 +528,11 @@ impl TrafficLights {
             || try_consume_root_context::<WindowControls>()
                 .is_some_and(|controls| controls.fixed_width);
         let green = green_action(window_behavior().green_button, fixed);
+        let fullscreen = try_consume_root_context::<WindowControls>()
+            .is_some_and(|controls| controls.status.read().fullscreen);
         TrafficLights::new()
-            .round(crate::chrome::chrome_style().round_lights)
             .focused(focused)
+            .fullscreen(fullscreen)
             .zoom_supported(green != TitlebarAction::None)
             .fixed_width(fixed)
             .on_action(move |kind| {

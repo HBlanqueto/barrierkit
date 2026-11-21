@@ -1,16 +1,14 @@
-use ctappearance::traffic::{self, TrafficInput, TrafficPointer};
-use ctdesign::{ButtonKind, TITLEBAR};
-use freya_components::svg_viewer::SvgViewer;
+use ctappearance::traffic::{ButtonVisual, Glyph, TrafficInput, TrafficPointer};
+use ctdesign::{ButtonKind, TITLEBAR, TRAFFIC_MARGIN};
+use freya_core::elements::image::image;
 use freya_core::prelude::*;
-use torin::prelude::{Direction, Size};
+use torin::prelude::{Direction, Position, Size};
 
 use crate::ProbeExt;
-use crate::controls::{dimmed, inner_border};
+use crate::controls::dimmed;
 use crate::i18n::text;
-use crate::styles::{
-    Axis, ControlState, LayoutDirection, Paints, Shape, Theme, TrafficLightsStyle, resolve,
-};
-use crate::theme;
+use crate::styles::{Animation, Axis, ControlState, Theme, TrafficLightsStyle, resolve};
+use crate::traffic_raster::{Layers, light};
 
 #[derive(PartialEq)]
 pub struct TrafficLights {
@@ -18,6 +16,7 @@ pub struct TrafficLights {
     focused: bool,
     zoom_supported: bool,
     fixed_width: bool,
+    fullscreen: bool,
     close_only: bool,
     style: Theme,
     on_action: Option<Callback<ButtonKind, ()>>,
@@ -37,6 +36,7 @@ impl TrafficLights {
             focused: true,
             zoom_supported: true,
             fixed_width: false,
+            fullscreen: false,
             close_only: false,
             style: Theme::tengen(),
             on_action: None,
@@ -64,6 +64,11 @@ impl TrafficLights {
         self
     }
 
+    pub fn fullscreen(mut self, fullscreen: bool) -> Self {
+        self.fullscreen = fullscreen;
+        self
+    }
+
     pub fn close_only(mut self, close_only: bool) -> Self {
         self.close_only = close_only;
         self
@@ -76,17 +81,6 @@ impl TrafficLights {
             Axis::Horizontal
         };
         self.style(move |s| TrafficLightsStyle { axis, ..s })
-    }
-
-    pub fn round(self, round: bool) -> Self {
-        if round {
-            self.style(|s| TrafficLightsStyle {
-                shape: Shape::Circle,
-                ..s
-            })
-        } else {
-            self
-        }
     }
 
     pub fn style(
@@ -110,6 +104,59 @@ impl ProbeExt for TrafficLights {
     }
 }
 
+fn light_images(
+    style: &TrafficLightsStyle,
+    visual: &ButtonVisual,
+    (index, fixed_width, fullscreen): (usize, bool, bool),
+    exit_mix: f32,
+) -> Vec<Element> {
+    let side = style.diameter + 2.0 * TRAFFIC_MARGIN;
+    let layer = |glyph, layers, opacity: f32| {
+        light(
+            visual,
+            style.halo,
+            style.backdrop,
+            style.ring_width,
+            style.diameter,
+            glyph,
+            layers,
+        )
+        .map(|handle| {
+            rect()
+                .position(
+                    Position::new_absolute()
+                        .top(-TRAFFIC_MARGIN)
+                        .left(-TRAFFIC_MARGIN),
+                )
+                .width(Size::px(side))
+                .height(Size::px(side))
+                .opacity(opacity)
+                .child(image(handle).width(Size::px(side)).height(Size::px(side)))
+                .into_element()
+        })
+    };
+    let crossing = index == 2 && visual.glyph.is_some() && visual.dodge == 0.0;
+    let crossing = crossing && exit_mix > 0.0 && exit_mix < 1.0;
+    if crossing {
+        [
+            layer(Glyph::ZoomEnter, Layers::Disc, 1.0),
+            layer(
+                Glyph::of(index, fixed_width, false),
+                Layers::GlyphOnly,
+                1.0 - exit_mix,
+            ),
+            layer(Glyph::ZoomExit, Layers::GlyphOnly, exit_mix),
+        ]
+        .into_iter()
+        .flatten()
+        .collect()
+    } else {
+        layer(Glyph::of(index, fixed_width, fullscreen), Layers::All, 1.0)
+            .into_iter()
+            .collect()
+    }
+}
+
 impl Component for TrafficLights {
     fn render(&self) -> impl IntoElement {
         let style: TrafficLightsStyle = resolve(&self.style);
@@ -121,8 +168,16 @@ impl Component for TrafficLights {
                 group_hovered: pointer.hovered(),
                 pressed: pointer.pressed_visual(),
                 zoom_supported: self.zoom_supported,
+                fullscreen: self.fullscreen,
             }
         });
+        let animation = if *crate::animation::use_reduced_motion().read() {
+            Animation::None
+        } else {
+            style.animation
+        };
+        let exit_mix =
+            crate::animation::use_animated(f32::from(u8::from(input.fullscreen)), animation);
         let zoom_shown = input.zoom_supported || self.fixed_width;
         let close_blocked = crate::views::feedback::OpenSheets::any();
         let close_only = self.close_only;
@@ -130,10 +185,6 @@ impl Component for TrafficLights {
         let action = self.on_action.clone();
         let fixed_width = self.fixed_width;
         let diameter = style.diameter;
-        let corner_radius =
-            style
-                .shape
-                .corner_radius(diameter, diameter, LayoutDirection::LeftToRight);
 
         let lights = TITLEBAR
             .buttons
@@ -145,7 +196,8 @@ impl Component for TrafficLights {
                 let admitted = if close_only {
                     kind == ButtonKind::Close
                 } else {
-                    zoom_shown || kind != ButtonKind::Maximize
+                    (zoom_shown || kind != ButtonKind::Maximize)
+                        && (!input.fullscreen || kind != ButtonKind::Minimize)
                 } && !(close_blocked && kind == ButtonKind::Close);
                 let state = ControlState {
                     hovered: input.group_hovered,
@@ -153,10 +205,7 @@ impl Component for TrafficLights {
                     focused: input.focused,
                     disabled: !admitted,
                 };
-                let paints = Paints::current(state, style.effect);
-                let fill = paints.fill(&style.fills[index]);
-                let rim = (style.rims[index].resolve(state).clone(), style.rim_width);
-                let glyph = paints.color(style.glyphs[index].resolve(state));
+                let visual = *style.looks[index].resolve(state);
                 let mut hover = pointer;
                 let mut press = pointer;
                 let mut release = pointer;
@@ -177,26 +226,12 @@ impl Component for TrafficLights {
                     .a11y_alt(name)
                     .width(Size::px(diameter))
                     .height(Size::px(diameter))
-                    .corner_radius(corner_radius)
-                    .background(fill)
-                    .border(inner_border(&paints, &rim))
-                    .center()
-                    .maybe_child((glyph.a > 0.0).then(|| {
-                        SvgViewer::new((
-                            format!("traffic-{index}-{:?}-{fixed_width}", glyph.to_rgba8()),
-                            Bytes::from(traffic::glyph_svg(
-                                index,
-                                glyph,
-                                fixed_width,
-                                style.glyph_size,
-                            )),
-                        ))
-                        .width(Size::px(style.glyph_size))
-                        .height(Size::px(style.glyph_size))
-                        .color(theme::color(glyph))
-                        .show_loader(false)
-                        .into_element()
-                    }))
+                    .children(light_images(
+                        &style,
+                        &visual,
+                        (index, fixed_width, input.fullscreen),
+                        exit_mix,
+                    ))
                     .maybe(interactive, |light| {
                         light
                             .on_pointer_enter(move |_| {
@@ -271,7 +306,7 @@ impl Component for TrafficLights {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use ctappearance::traffic;
 
     #[test]
     fn the_traffic_lights_sit_at_their_token_positions() {

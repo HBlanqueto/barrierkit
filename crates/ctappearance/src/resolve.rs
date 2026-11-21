@@ -22,13 +22,15 @@ use ctdesign::{
     SIDEBAR_DARK_TINT_OPAQUE, SIDEBAR_GLASS_BASE_DARK, SIDEBAR_GLASS_BASE_DARK_TINT,
     SIDEBAR_GLASS_BASE_LIGHT, SIDEBAR_GLASS_SOLID_DARK, SIDEBAR_GLASS_SOLID_DARK_TINT,
     SIDEBAR_GLASS_SOLID_LIGHT, SIDEBAR_LIGHT, SIDEBAR_LIGHT_OPAQUE, SIDEBAR_PALETTE_DARK,
-    SIDEBAR_PALETTE_DARK_TINT, SIDEBAR_PALETTE_LIGHT, ShellPalette, SidebarPalette, TITLEBAR,
+    SIDEBAR_PALETTE_DARK_TINT, SIDEBAR_PALETTE_LIGHT, ShellPalette, SidebarPalette,
     TOOLBAR_BG_DARK, TOOLBAR_BG_DARK_TINT, TOOLBAR_BG_LIGHT, TOOLBAR_LINE_DARK,
     TOOLBAR_LINE_DARK_TINT, TOOLBAR_LINE_LIGHT, TOOLGROUP_BG_DARK, TOOLGROUP_BG_DARK_OPAQUE,
     TOOLGROUP_BG_DARK_TINT, TOOLGROUP_BG_DARK_TINT_OPAQUE, TOOLGROUP_BG_LIGHT,
     TOOLGROUP_BG_LIGHT_OPAQUE, TOOLGROUP_PALETTE_DARK, TOOLGROUP_PALETTE_DARK_TINT,
-    TOOLGROUP_PALETTE_LIGHT, TRAFFIC_CLOSE_MINIMIZE_DARKEN, TRAFFIC_ZOOM_LIGHTEN, ToolgroupPalette,
-    WALLPAPER_TINTING, WALLPAPER_TINTING_LIFT, WINDOW_TINT_ACCENT,
+    TOOLGROUP_PALETTE_LIGHT, TRAFFIC_LIGHTS_CONTRAST_DARK, TRAFFIC_LIGHTS_CONTRAST_DARK_TINT,
+    TRAFFIC_LIGHTS_CONTRAST_LIGHT, TRAFFIC_LIGHTS_DARK, TRAFFIC_LIGHTS_DARK_TINT,
+    TRAFFIC_LIGHTS_LIGHT, ToolgroupPalette, TrafficLooks, WALLPAPER_TINTING,
+    WALLPAPER_TINTING_LIFT, WINDOW_TINT_ACCENT,
 };
 
 use crate::accent;
@@ -36,7 +38,7 @@ use crate::backdrop::{WallpaperTinting, lift, shift_like, take_chroma, take_chro
 use crate::icon_style::IconStyle;
 use crate::{
     AppearanceConfig, ColorScheme, MenuBarSize, ScrollBarClick, ScrollBars, TintParts, Toolkit,
-    TrafficLightShape, TrafficLightStyle, WindowColorMode,
+    WindowColorMode,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -89,9 +91,7 @@ pub struct Resolved {
     pub window_tint: Option<(Rgba, f32)>,
     pub bar_tint: Option<(Rgba, f32)>,
     pub wallpaper_tinting: Option<WallpaperTinting>,
-    pub lights: [Rgba; 3],
-    pub traffic_style: TrafficLightStyle,
-    pub traffic_shape: TrafficLightShape,
+    pub traffic_lights: TrafficLooks,
     pub contrast: bool,
     pub reduce_transparency: bool,
     pub reduced_motion: bool,
@@ -615,7 +615,25 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
         })
         .flatten();
 
-    let lights = lights_for(appearance.traffic_lights, normal_accent, dominant);
+    let standard_lights = if appearance.contrast {
+        scheme.pick([
+            TRAFFIC_LIGHTS_CONTRAST_LIGHT,
+            TRAFFIC_LIGHTS_CONTRAST_DARK,
+            TRAFFIC_LIGHTS_CONTRAST_DARK_TINT,
+        ])
+    } else {
+        scheme.pick([
+            TRAFFIC_LIGHTS_LIGHT,
+            TRAFFIC_LIGHTS_DARK,
+            TRAFFIC_LIGHTS_DARK_TINT,
+        ])
+    };
+    let traffic_lights = crate::traffic::looks(
+        appearance.traffic_lights,
+        &standard_lights,
+        normal_accent,
+        dominant,
+    );
 
     let (mut shell, mut menu, mut sidebar, toolgroup) =
         chrome_surfaces(scheme, appearance.transparency_reduced());
@@ -672,9 +690,7 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
         window_tint: None,
         bar_tint,
         wallpaper_tinting,
-        lights,
-        traffic_style: appearance.traffic_lights,
-        traffic_shape: appearance.traffic_light_shape,
+        traffic_lights,
         contrast: appearance.contrast,
         reduce_transparency: appearance.transparency_reduced(),
         reduced_motion: appearance.reduced_motion,
@@ -825,33 +841,14 @@ fn reach_contrast(
     lightness
 }
 
-pub fn lights_for(
-    style: TrafficLightStyle,
-    normal_accent: Rgba,
-    dominant: Option<Rgba>,
-) -> [Rgba; 3] {
-    let derived = |source: Rgba| {
-        [
-            source.darken(TRAFFIC_CLOSE_MINIMIZE_DARKEN),
-            source.darken(TRAFFIC_CLOSE_MINIMIZE_DARKEN),
-            source.lighten(TRAFFIC_ZOOM_LIGHTEN),
-        ]
-    };
-    match style {
-        TrafficLightStyle::Standard => TITLEBAR.buttons.order.map(|button| button.color),
-        TrafficLightStyle::Accent => derived(normal_accent),
-        TrafficLightStyle::Wallpaper => derived(dominant.unwrap_or(normal_accent)),
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::TintStrength;
+    use crate::{TintStrength, TrafficLightStyle};
     use ctdesign::{
         BG_CONTROL_LIGHT, BG_RAISED_LIGHT, BG_SURFACE_LIGHT, BG_WINDOW_LIGHT,
         DOCK_GLASS_FROSTED_LIGHT, DOCK_GLASS_LIGHT, GLASS_BLUR_FULL, SIDEBAR_LIGHT_OPAQUE,
-        TITLEBAR, TOOLGROUP_BG_LIGHT_OPAQUE, TRAFFIC_CLOSE_MINIMIZE_DARKEN, TRAFFIC_ZOOM_LIGHTEN,
+        TOOLGROUP_BG_LIGHT_OPAQUE, TRAFFIC_CLOSE_MINIMIZE_DARKEN, TRAFFIC_ZOOM_LIGHTEN,
         WALLPAPER_TINTING_TARGET, WINDOW_TINT_ACCENT,
     };
 
@@ -1173,14 +1170,7 @@ mod tests {
             ),
             None,
         );
-        assert_eq!(
-            standard.lights,
-            [
-                TITLEBAR.buttons.order[0].color,
-                TITLEBAR.buttons.order[1].color,
-                TITLEBAR.buttons.order[2].color,
-            ]
-        );
+        assert_eq!(standard.traffic_lights, TRAFFIC_LIGHTS_LIGHT);
 
         let accent = Rgba {
             r: 0.9,
@@ -1198,10 +1188,13 @@ mod tests {
             None,
         );
         assert_eq!(
-            derived.lights[0],
+            derived.traffic_lights.close.base,
             accent.darken(TRAFFIC_CLOSE_MINIMIZE_DARKEN)
         );
-        assert_eq!(derived.lights[2], accent.lighten(TRAFFIC_ZOOM_LIGHTEN));
+        assert_eq!(
+            derived.traffic_lights.zoom.base,
+            accent.lighten(TRAFFIC_ZOOM_LIGHTEN)
+        );
     }
 
     #[test]
@@ -1214,11 +1207,11 @@ mod tests {
         );
         let from_wallpaper = resolve(&config, Some(dominant()));
         assert_eq!(
-            from_wallpaper.lights[0],
+            from_wallpaper.traffic_lights.close.base,
             dominant().darken(TRAFFIC_CLOSE_MINIMIZE_DARKEN)
         );
         assert_eq!(
-            from_wallpaper.lights[2],
+            from_wallpaper.traffic_lights.zoom.base,
             dominant().lighten(TRAFFIC_ZOOM_LIGHTEN)
         );
 
@@ -1230,7 +1223,7 @@ mod tests {
         };
         let without_wallpaper = resolve(&config, None);
         assert_eq!(
-            without_wallpaper.lights[0],
+            without_wallpaper.traffic_lights.close.base,
             accent.darken(TRAFFIC_CLOSE_MINIMIZE_DARKEN)
         );
     }

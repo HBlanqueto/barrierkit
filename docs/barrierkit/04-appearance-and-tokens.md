@@ -385,7 +385,6 @@ tint_parts = ["sidebars", "window", "groups", "controls", "menus"]
 | `tint_strength` | `TintStrength` | `subtle`, `normal`, `strong`, `intense` | `normal` |
 | `tint_parts` | `TintParts` | list of `sidebars`, `window`, `groups`, `controls`, `menus`, `bars` (the menu bar and the Dock) | all but `bars` |
 | `traffic_lights` | `TrafficLightStyle` | `standard`, `accent`, `wallpaper` | `wallpaper` |
-| `traffic_light_shape` | `TrafficLightShape` | corner radius from 0 to 7 on the 14 light; the old `square` reads as 4 and `round` as 7 | `4` |
 | `wallpaper_tinting` | `bool` | | `true` |
 | `wallpaper_tinting_in_light` | `bool` | | `false` |
 | `invert_colors` | `bool` | | `false` |
@@ -418,8 +417,8 @@ Notes on the values:
 - `wallpaper` derives the lights from the wallpaper's dominant color, or from
   the accent while there is none. The old value `"macos"` still reads as
   `standard`, with a warning.
-- `TrafficLightShape::corner_radius(diameter)` gives the radius of a light of
-  that size; `TrafficLightShape::new(radius)` stops at `ROUND`.
+- `traffic_light_shape` is retired: the lights are discs, as in macOS 27. A file
+  that still has it loads, and the next write removes it.
 - The accessibility keys follow macOS System Settings › Accessibility ›
   Display. The kit applies three of them in `ControlStyle::accessible`:
   `show_borders` draws a `ControlBorder` line around icon buttons, tool groups
@@ -510,8 +509,8 @@ dynamic.
 `resolve(&config, dominant) -> Resolved` turns the config and the wallpaper's
 dominant color into colors. `palette(scheme)` returns the base
 `ctdesign::Palette` of a scheme (`LIGHT`, `DARK` or `DARK_TINT`).
-`lights_for(style, accent, dominant)` returns the three traffic-light colors of
-a style.
+`traffic::looks(style, standard, accent, dominant)` returns the three traffic
+lights of a style ([Traffic-light geometry](#traffic-light-geometry)).
 
 | `Resolved` field | What it holds |
 |---|---|
@@ -527,7 +526,7 @@ a style.
 | `bar_tint` | Tint of the menu bar and the Dock with the `bars` part: the accent tint, or the dominant color by `wallpaper_tinting`. |
 | `wallpaper_tinting` | `backdrop::WallpaperTinting` of the wallpaper behind a window (`chroma` and `lift`), or `None` when it is off. `Resolved::behind_window(color)` tints the `tint_parts` with that color (rule 4). |
 | `tint_parts` | Copy of the config. |
-| `lights`, `traffic_style`, `traffic_shape` | The traffic-light colors, style and shape. |
+| `traffic_lights` | The `TrafficLooks` of the user's `traffic_lights` style, in this scheme and contrast. |
 | `contrast`, `reduced_motion`, `scroll_bars`, `scroll_bar_click` | Copies of the config. |
 | `reduce_transparency` | `AppearanceConfig::transparency_reduced()`: true with `reduce_transparency` or `contrast`. |
 | `show_borders`, `differentiate_without_color`, `menu_bar_size`, `icon_style` | Copies of the config. |
@@ -800,10 +799,13 @@ zoom lights, shared by the kit and the compositor:
 | `button_rect(index) -> (x, y, size)` | Rectangle of light `index` in a server-side titlebar. |
 | `group_rect() -> (x, y, width, height)` | Rectangle of the three lights. |
 | `hit(point) -> Option<ButtonKind>` | The light under a point. |
-| `TrafficInput` | `focused`, `group_hovered`, `pressed`, `zoom_supported`. |
-| `visual(lights, style, inactive, rim, input) -> [ButtonVisual; 3]` | Fill, rim and glyph color of each light for that input. |
-| `ButtonVisual` | `fill`, `rim`, `glyph`; `ButtonVisual::idle(fill, rim)` is a light at rest. |
-| `glyph_svg(index, color, fixed_width, pixels)` | SVG of the glyph of a light; a fixed-width window gets a plus instead of the zoom arrows. |
+| `TrafficInput` | `focused`, `group_hovered`, `pressed`, `zoom_supported`, `fullscreen` (minimize is disabled). |
+| `visual(looks, input) -> [ButtonVisual; 3]` | The fill and ring stops, the glyph color, the scale and the dodge of each light for that input. |
+| `ButtonVisual` | `fill` (4 stops, top to bottom), `ring` (3 stops), `glyph` (`None` without hover), `scale` and `dodge` (1.0 and 0.0 unless pressed). |
+| `looks(style, standard, accent, dominant) -> TrafficLooks` | The `standard` look as it is, or recolored with the tone that `accent` or `wallpaper` gives. |
+| `Glyph` | `Close`, `Minimize`, `ZoomEnter`, `ZoomExit` (full screen) and `Plus`; `Glyph::of(index, fixed_width, fullscreen)` picks the one of a light. |
+| `glyph_svg(glyph, color)` | SVG of a glyph, 14 pt. |
+| `rounded(triangle) -> [Corner; 3]` | The corners of a zoom triangle rounded on `TRAFFIC_GLYPHS.zoom_corner`. |
 | `TrafficPointer` | Pointer state machine: `on_motion`, `on_group_enter`, `on_button_enter`, `on_leave_button`, `on_press`, `on_release` (returns the clicked light), `on_leave`, `hovered`, `pressed_visual`. |
 
 ```rust
@@ -890,7 +892,7 @@ A color, size or duration never goes into `bk`. It goes into Tengen:
 |---|---|
 | `Rgba` | sRGB color with straight alpha, channels from 0 to 1. `TRANSPARENT`, `rgb8`, `rgba8`, `to_rgba8`, `premultiplied`, `mix` (keeps its own alpha), `blend` (mixes with alpha, premultiplied), `darken`, `lighten`, `to_linear`, `from_linear`, `relative_luminance`, `contrast_ratio`, `to_hsl`, `from_hsl`. |
 | `Font` | `family`, `size`, `line_height` (pixels) and `weight`. |
-| `Palette` | Base colors of a theme: `titlebar_bg`, `hairline`, `inner_line`, `panel_inner_line`, `outer_border`, `title`, `text`, `ink_strong`, `ink_muted`, `ink_faint`, `line`, `line_strong`, `separator`, `accent`, `selected_content`, `accent_toggle`, `control`, `control_disabled`, `accent_inactive`, `on_accent`, `danger`, `traffic_lights_inactive`, `traffic_rim`, `scrim`, `selected_control`, `card_border`, `separator_strong`, `selected_content_inactive`, `combo_button`, `segment_divider`, `accent_ring`. |
+| `Palette` | Base colors of a theme: `titlebar_bg`, `hairline`, `inner_line`, `panel_inner_line`, `outer_border`, `title`, `text`, `ink_strong`, `ink_muted`, `ink_faint`, `line`, `line_strong`, `separator`, `accent`, `selected_content`, `accent_toggle`, `control`, `control_disabled`, `accent_inactive`, `on_accent`, `danger`, `scrim`, `selected_control`, `card_border`, `separator_strong`, `selected_content_inactive`, `combo_button`, `segment_divider`, `accent_ring`. |
 | `ContrastPalette` | What `Palette::contrasted` replaces with Increase Contrast: `ink`, `ink_muted`, `ink_faint`, `separator`, `line_strong`, `bg_control`, `bg_control_disabled`, `system_fill`, `text_background`, `accent`, `selected_content`, `accent_toggle`, `accent_toggle_disabled`, `accent_ring` and `focus_ring`; `CONTRAST_LIGHT`, `CONTRAST_DARK`, `CONTRAST_DARK_TINT`. |
 | `DisabledPalette` | The fixed fills of disabled controls, measured from AppKit: `off`, `on`, `slider_fill`, `switch_off`, `stepper_chevron`, `segment` and `segment_label`; `DISABLED_LIGHT`, `DISABLED_DARK`, `DISABLED_DARK_TINT` and the `DISABLED_CONTRAST_*` set under Increase Contrast. |
 | `PressedPalette` | The fills of pressed controls: `bezel`, `accent`, `toggle_accent` and `off`; `PRESSED_*` and `PRESSED_CONTRAST_*`. |
@@ -899,7 +901,7 @@ A color, size or duration never goes into `bk`. It goes into Tengen:
 | `CalendarPalette` | The card of a graphical date picker: `background`, `border`, `border_width`, `edge` (the line along its bottom) and `separator` (under the weekdays); `CALENDAR_*` and `CALENDAR_CONTRAST_*`. |
 | `FocusPair` | A color for the focused window and one for the unfocused. |
 | `PanelLine` | Inner line of a focused panel, menu or dialog: `sides`, `edges` (top and bottom) and the `glow` under the edges. |
-| `TrafficRim` | Rim of a traffic light: `lit` and `idle`. |
+| `TrafficLooks` | The traffic lights of a scheme: `close`, `minimize`, `zoom`, `inactive` (`TrafficLook`: `base`, `fill`, `ring`, `glyph`), the `halo` (`TrafficHalo`: `color`, `blur`, `dy`) and the `backdrop` that a pressed light brightens against. `TRAFFIC_LIGHTS_*` and `TRAFFIC_LIGHTS_CONTRAST_*`. |
 | `ShellPalette` | Menu bar and Dock tiles: `bar`, `text`, `tile`, `tile_active`, `tile_text_active`. |
 | `MenuPalette` | Colors and metrics of a menu: background, padding, item size, inks, inks over glass, hover, separator, check mark, header and search field. |
 | `SidebarPalette` | Sidebar inks: item, icon, selection, inactive selection, section, count, line. |
@@ -911,10 +913,10 @@ A color, size or duration never goes into `bk`. It goes into Tengen:
 | `WindowStyle` | `corner_radius` and `superellipse_exponent` of a dialog or pop-up. |
 | `WindowResize` | Width of the resize band at an `edge` and a `corner`. |
 | `Titlebar` | Server-side titlebar: `thickness`, `buttons`, `font`. |
-| `TitlebarButtons` | `order` of the three lights, `diameter`, `spacing`, `inset` (from the left of the 32 px bar), `inset_compact` (from the left of the `TITLEBAR_CLIENT_HEIGHT` bar), `corner_radius`. |
-| `Button` | One traffic light: its `kind` and `color`. |
+| `TitlebarButtons` | `order` of the three lights, `diameter`, `spacing`, `inset` (from the left of the 32 px bar), `inset_compact` (from the left of the `TITLEBAR_CLIENT_HEIGHT` bar). |
+| `Button` | One traffic light: its `kind`. |
 | `ButtonKind` | `Close`, `Minimize`, `Maximize`. |
-| `TrafficGlyphs` | Glyph geometry: `box_size`, `stroke`, `close`, `minimize`, `zoom`, `plus`. |
+| `TrafficGlyphs` | Glyph geometry: `stroke`, `zoom_corner`, `close`, `minimize`, `zoom`, `zoom_exit`, `plus`. |
 | `Segment`, `Triangle` | A line from `a` to `b`; three points. |
 | `DoubleClick` | `interval_ms` and pointer `slop` of a double click. |
 | `SettingsStrength`, `SettingsCheck`, `SettingsWallpaper` | Parts of `SettingsMetrics`: the tint-strength scale, the check list and the Wallpaper pane (preview, tiles, color dots, the collection sheet and the custom framing sheet with its desktop preview). |
@@ -1037,10 +1039,10 @@ background, for `reduce_transparency`.
 
 | Constant | Type | What it is |
 |---|---|---|
-| `TRAFFIC_GLYPHS` | `TrafficGlyphs` | Geometry of the close, minimize, zoom and plus glyphs. |
-| `TRAFFIC_GLYPH_STANDARD`, `TRAFFIC_GLYPH_ON_DARK`, `TRAFFIC_GLYPH_ON_LIGHT` | `Rgba` | Glyph ink for the standard style and on tinted lights. |
-| `TRAFFIC_RIM_WIDTH` | `f32` | Rim width. |
-| `TRAFFIC_PRESSED_DARKEN` | `f32` | Darkening of a pressed light. |
+| `TRAFFIC_GLYPHS` | `TrafficGlyphs` | Geometry of the close, minimize, zoom and plus glyphs, in the 14 pt box of the light. |
+| `TRAFFIC_RING_WIDTH`, `TRAFFIC_MARGIN` | `f32` | Width of the ring along the edge of a light, and the margin of its image around the 14 pt disc. |
+| `TRAFFIC_GLYPH_FADE_MS` | `u64` | Cross-fade of the zoom glyph between its enter and exit shapes. |
+| `TRAFFIC_PRESS` | `TrafficPress` | Scale and `dodge` of a pressed light. |
 | `TRAFFIC_CLOSE_MINIMIZE_DARKEN`, `TRAFFIC_ZOOM_LIGHTEN` | `f32` | Shifts that derive tinted lights from one color. |
 
 ### Control metrics

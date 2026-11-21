@@ -128,7 +128,11 @@ every window with `corner_radius` in `window.domain`.
 
 ## Traffic lights
 
-Close, minimize and zoom. `Titlebar`, the `Rail` and
+Close, minimize and zoom, drawn as macOS 27 draws them: 14 pt discs with a
+vertical gradient, a 0.5 pt ring, a halo in the light appearances and a glyph
+while the pointer is over the group. The measurement is in
+[macOS control metrics](../research/macos-control-metrics.md#traffic-lights-macos-27).
+`Titlebar`, the `Rail` and
 `Sidebar::traffic_lights(true)` place them with
 `TrafficLights::for_window(focused, fixed)`, which wires them to
 `WindowControls` and the user's settings. In a fixed-width window
@@ -164,31 +168,52 @@ TrafficLights::new()
 | `.fixed_width(bool)` | `false` | The zoom glyph is a plus, for fixed-width windows |
 | `.close_only(bool)` | `false` | Only close is colored and clickable |
 | `.vertical(bool)` | `false` | A column instead of a row |
-| `.round(bool)` | `false` | `true`: round instead of square; `false` keeps the style's shape |
 | `.input(TrafficInput)` | — | Draws a fixed state (focus, hover, press) and ignores the pointer, for previews |
 | `.on_action(f)` | — | Receives the `ButtonKind` pressed |
 
 Each light has the accessible role button and the name "Close", "Minimize" or
 "Zoom". Hovering the group shows the glyphs.
 
-`.style(..)` takes a `TrafficLightsStyle`: size, gap, shape, and the fill,
-rim and glyph of each light in each state; `.round` and `.vertical` override
-its `shape` and `axis`
+`.style(..)` takes a `TrafficLightsStyle`: size, gap, ring width, halo, and the
+`ButtonVisual` of each light in each state; `.vertical` overrides its `axis`
 ([Styles and themes](../../crates/bk/src/styles/traffic_lights.rs)). The lights that
-`TrafficLights::for_window` places take the theme and the containers:
+`TrafficLights::for_window` place take the theme and the containers:
 
 ```rust
 Theme::tengen().style(|s: TrafficLightsStyle| TrafficLightsStyle {
-    shape: Shape::Circle,
+    spacing: 12.0,
     ..s
 })
 ```
 
-The user decides the rest. The appearance keys `traffic_lights` (color:
-`standard`, `accent`, `wallpaper`) and `traffic_light_shape` (corner radius
-from 0, square, to 7, round) are in
-[4](04-appearance-and-tokens.md#the-appearance-file). `WindowChromeStyle::round_lights`
-also makes them round. The behavior keys live in
+### States
+
+| State | Look |
+|---|---|
+| Focused window | The lit disc, no glyph |
+| Pointer over any light | The three discs with their glyphs: × − and the full-screen arrows (a plus in a fixed-width window) |
+| Pressed | The pressed light grows to 16 pt and brightens; the others keep the hover look |
+| Full screen | Minimize is disabled (the unfocused gray, no glyph); zoom shows its exit glyph, two triangles that meet at the center. Entering or leaving full screen cross-fades the two zoom glyphs in `TRAFFIC_GLYPH_FADE_MS` (150 ms, `Animation::Ease`; none with Reduce Motion) |
+| Unfocused window | Translucent gray discs; the pointer lights them with their glyphs |
+| Disabled (zoom without zoom, or `close_only`) | The unfocused gray, no glyph, no press |
+
+With `differentiate_without_color` the glyphs show without the pointer.
+
+### Color
+
+The user decides the rest. The appearance key `traffic_lights` (`standard`,
+`accent`, `wallpaper`) is in
+[4](04-appearance-and-tokens.md#the-appearance-file). `standard` is the measured
+look of each light in each appearance, light, dark and Increase Contrast, and it
+is exact. `accent` and `wallpaper` give the lights a tone: close and minimize
+the accent (or the wallpaper's dominant color) darkened by
+`TRAFFIC_CLOSE_MINIMIZE_DARKEN`, zoom lightened by `TRAFFIC_ZOOM_LIGHTEN`.
+`ctappearance::traffic::looks` then recolors the measured look of each light
+with that tone: it keeps the alpha, the lightness and the saturation of every
+stop relative to the light's base, takes the tone's hue, and keeps the glyph at
+3:1 against its fill (WCAG 2.2, 1.4.11). The gray unfocused look does not change.
+The old key `traffic_light_shape` is ignored and removed on the next write: the
+lights are discs in macOS 27. The behavior keys live in
 `~/.config/malaysia/window.domain`
 ([4](04-appearance-and-tokens.md#window-behavior)); the compositor's own
 title bars use the same functions. What each value does here:
@@ -239,7 +264,6 @@ for every window.
 |---|---|---|
 | `layout` | `Top` | `TitlebarLayout::Top`: the horizontal `Titlebar`. `Rail`: a vertical bar on the left, with the traffic lights in a column, the title rotated 90° and the rail items |
 | `rail_width` | `TITLEBAR_RAIL.width` (30) | Rail width without items |
-| `round_lights` | `false` | Round traffic lights |
 | `rail_style` | `Normal` | `RailStyle::Normal`: its own strip. `Unified`: no strip; the column goes inside the sidebar, and without a visible sidebar it draws as `Normal` |
 | `reveal` | `Always` | When the bar shows ([Reveal](#reveal)) |
 | `resting_edge` | `None` | What stays while a hidden bar is away: `RestingEdge::None`, `Line` (`TITLEBAR_RAIL.edge_line`, 1 px) or `Accent` (`edge_accent`, 4 px, accent color) |

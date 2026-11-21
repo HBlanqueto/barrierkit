@@ -2,12 +2,13 @@
 import argparse
 import collections
 import glob
+import io
 import json
 import os
 import sys
 
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageCms
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CAPTURES = os.path.expanduser(os.environ.get("APPKIT_CAPTURES", "~/src/captures"))
@@ -569,6 +570,107 @@ def icons(args):
 CONTAINERS = ["split-v-thin", "split-h-thin", "swiftui-hsplit", "swiftui-vsplit"]
 
 
+LIGHTS_PROBES = {"light": "aqua", "dark": "darkAqua", "hc-light": "aquaHC", "hc-dark": "darkAquaHC"}
+LIGHTS_BOX, LIGHTS_MARGIN = 22, 4
+LIGHT_NAMES = ("close", "min", "zoom")
+
+
+def lights_shot(prefix, state):
+    """The window capture of a state (sRGB), or None."""
+    path = os.path.join(CAPTURES, "lights", f"shot-{prefix}-{state}-screen.png")
+    if not os.path.exists(path):
+        return None
+    converted = path.replace("-screen.png", "-srgb.png")
+    if not os.path.exists(converted):
+        os.system(f'sips -m "/System/Library/ColorSync/Profiles/sRGB Profile.icc" "{path}" --out "{converted}" >/dev/null 2>&1')
+    return rgb(converted)
+
+
+def lights_layer(prefix, state, light, background):
+    """The 22 x 22 raster of a light's base layer over `background`, in sRGB (the layer images carry their own profile, mostly Display P3), or None."""
+    path = os.path.join(CAPTURES, "lights", f"{prefix}-unified-{state}-{light}-layer0.png")
+    if not os.path.exists(path):
+        return None
+    raster = Image.open(path)
+    profile = raster.info.get("icc_profile")
+    raster = raster.convert("RGBA")
+    if profile:
+        raster = ImageCms.profileToProfile(raster, ImageCms.ImageCmsProfile(io.BytesIO(profile)), ImageCms.createProfile("sRGB"), renderingIntent=ImageCms.Intent.RELATIVE_COLORIMETRIC, outputMode="RGBA")
+    image = np.asarray(raster).astype(float)
+    alpha = image[..., 3:4] / 255
+    return np.rint(image[..., :3] * alpha + np.array(background, float) * (1 - alpha)).astype(int)
+
+
+def lights(args):
+    prefix = LIGHTS_PROBES[args.mode]
+    kit = rgb(os.path.join(KIT, f"kit-lights-{args.mode}.png"))
+    with open(os.path.join(KIT, "layout-lights.tsv")) as handle:
+        rows = [line.split("\t") for line in handle.read().splitlines()]
+    background = kit[2, 2]
+    shots = {"hover": "hover-close", "press-close": "press-close", "press-min": "press-min", "press-zoom": "press-zoom", "fullscreen": "fs"}
+    print(f"{args.mode}: kit {SCALE}x over #%02x%02x%02x; mean = mean |difference| in 8-bit levels, >3 and >8 = share of pixels with any channel further than that" % tuple(background))
+    print(f"{'state':15} {'light':5} {'mean':>5} {'>3':>6} {'>8':>6} {'core >3':>8} {'core >8':>8} {'pixel AppKit':>13} {'pixel kit':>10}")
+    totals = []
+    for name, x, y in rows:
+        x, y = int(float(x)), int(float(y))
+        for index, light in enumerate(LIGHT_NAMES):
+            left, top = x + index * 23 - LIGHTS_MARGIN, y - LIGHTS_MARGIN
+            mine = kit[top * SCALE:(top + LIGHTS_BOX) * SCALE, left * SCALE:(left + LIGHTS_BOX) * SCALE]
+            if SCALE > 1:
+                mine = mine.reshape(LIGHTS_BOX, SCALE, LIGHTS_BOX, SCALE, 3).mean(axis=(1, 3)).round().astype(int)
+            if name in shots:
+                shot = lights_shot(prefix, shots[name])
+                top, left = (39, 9) if name == "fullscreen" else (19, 19)
+                theirs = None if shot is None else shot[top - LIGHTS_MARGIN:top - LIGHTS_MARGIN + LIGHTS_BOX, left + index * 23 - LIGHTS_MARGIN:left + index * 23 - LIGHTS_MARGIN + LIGHTS_BOX]
+            elif name in ("rest", "inactive", "inactive-hover"):
+                theirs = lights_layer(prefix, "inactive-rest" if name == "inactive" else "rest", light, background)
+                if name == "inactive-hover":
+                    shot = lights_shot(prefix, "hover-close")
+                    theirs = None if shot is None else shot[19 - LIGHTS_MARGIN:19 - LIGHTS_MARGIN + LIGHTS_BOX, 19 + index * 23 - LIGHTS_MARGIN:19 + index * 23 - LIGHTS_MARGIN + LIGHTS_BOX]
+            else:
+                theirs = None
+            if theirs is None:
+                continue
+            diff = abs(mine - theirs).max(-1)
+            centre = np.hypot(*np.mgrid[:LIGHTS_BOX, :LIGHTS_BOX] - LIGHTS_BOX / 2 + 0.5)
+            core = diff[centre <= 5.5]
+            totals.append((diff.mean(), (diff > 3).mean(), (diff > 8).mean(), (core > 3).mean(), (core > 8).mean()))
+            mid = LIGHTS_BOX // 2 - 3
+            hexa = lambda c: "#%02x%02x%02x" % tuple(c)
+            print(f"{name:15} {light:5} {diff.mean():5.1f} {(diff > 3).mean() * 100:5.1f}% {(diff > 8).mean() * 100:5.1f}% {(core > 3).mean() * 100:7.1f}% {(core > 8).mean() * 100:7.1f}% {hexa(theirs[mid, LIGHTS_BOX // 2]):>13} {hexa(mine[mid, LIGHTS_BOX // 2]):>10}")
+    if totals:
+        mean, share3, share8, core3, core8 = np.mean(totals, axis=0)
+        print(f"all: mean {mean:.2f}, >3 {share3 * 100:.1f}%, >8 {share8 * 100:.1f}%; inside 5.5 of the centre (no edge band) >3 {core3 * 100:.1f}%, >8 {core8 * 100:.1f}%")
+
+
+def luminance(color):
+    linear = np.where(np.asarray(color, float) / 255 <= 0.04045, np.asarray(color, float) / 255 / 12.92, ((np.asarray(color, float) / 255 + 0.055) / 1.055) ** 2.4)
+    return float(linear @ [0.2126, 0.7152, 0.0722])
+
+
+def contrast_ratio(a, b):
+    high, low = sorted((luminance(a), luminance(b)), reverse=True)
+    return (high + 0.05) / (low + 0.05)
+
+
+def lights_tint(args):
+    """Legibility of the tinted lights: the glyph against its light, the lights against the backdrop and against each other."""
+    with open(os.path.join(KIT, "layout-lights.tsv")) as handle:
+        rows = {line.split("\t")[0]: (int(float(line.split("\t")[1])), int(float(line.split("\t")[2]))) for line in handle.read().splitlines()}
+    hexa = lambda c: "#%02x%02x%02x" % tuple(int(v) for v in c)
+    print(f"{'tint':18} {'light':5} {'fill':>8} {'glyph':>8} {'glyph/fill':>10} {'fill/back':>9}  (WCAG 2.2 contrast ratio; the standard lights are the reference)")
+    for suffix in args.tints.split(","):
+        name = f"kit-lights-{args.mode}{'-' + suffix if suffix != 'standard' else ''}.png"
+        image = rgb(os.path.join(KIT, name))
+        background = image[2, 2]
+        for index, light in enumerate(LIGHT_NAMES):
+            rest_x, rest_y = rows["rest"]
+            hover_x, hover_y = rows["hover"]
+            fill = image[(rest_y + 7) * SCALE, (rest_x + index * 23 + 7) * SCALE]
+            glyph = image[(hover_y + 7) * SCALE, (hover_x + index * 23 + 7) * SCALE] if light != "zoom" else image[(hover_y + 5) * SCALE, (hover_x + index * 23 + 5) * SCALE]
+            print(f"{suffix:18} {light:5} {hexa(fill):>8} {hexa(glyph):>8} {contrast_ratio(glyph, fill):10.2f} {contrast_ratio(fill, background):9.2f}")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Compare a kit scene with AppKit captures.")
     commands = parser.add_subparsers(dest="command", required=True)
@@ -608,6 +710,13 @@ def main():
     six = commands.add_parser("toolbar", help="print the toolbar glyph and navigation pair comparison")
     six.add_argument("mode", choices=("light", "dark"))
     six.set_defaults(run=toolbar)
+    lights_parser = commands.add_parser("lights", help="print the per-state difference of the traffic lights (1x, from the lights probe)")
+    lights_parser.add_argument("mode", choices=sorted(LIGHTS_PROBES))
+    lights_parser.set_defaults(run=lights)
+    tint_parser = commands.add_parser("lights-tint", help="print the legibility of the tinted traffic lights (scenes rendered with APPKIT_LIGHTS_SUFFIX)")
+    tint_parser.add_argument("mode", choices=sorted(LIGHTS_PROBES))
+    tint_parser.add_argument("tints", help="comma separated suffixes, standard for none")
+    tint_parser.set_defaults(run=lights_tint)
     seven = commands.add_parser("sidebar", help="print the sidebar window comparison")
     seven.add_argument("mode", choices=("light", "dark"))
     seven.set_defaults(run=sidebar)

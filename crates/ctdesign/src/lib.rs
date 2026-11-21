@@ -11,9 +11,34 @@ pub use rgba::Rgba;
 pub const CIRCLE_EXPONENT: f32 = 2.0;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub struct TrafficRim {
-    pub lit: Rgba,
-    pub idle: Rgba,
+pub struct TrafficLook {
+    pub base: Rgba,
+    pub fill: [Rgba; 4],
+    pub ring: [Rgba; 3],
+    pub glyph: Rgba,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct TrafficPress {
+    pub scale: f32,
+    pub dodge: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct TrafficHalo {
+    pub color: Rgba,
+    pub blur: f32,
+    pub dy: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct TrafficLooks {
+    pub close: TrafficLook,
+    pub minimize: TrafficLook,
+    pub zoom: TrafficLook,
+    pub inactive: TrafficLook,
+    pub halo: TrafficHalo,
+    pub backdrop: Rgba,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -51,7 +76,6 @@ pub enum ButtonKind {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Button {
     pub kind: ButtonKind,
-    pub color: Rgba,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -65,11 +89,12 @@ pub struct Triangle(pub [(f32, f32); 3]);
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct TrafficGlyphs {
-    pub box_size: f32,
     pub stroke: f32,
+    pub zoom_corner: f32,
     pub close: &'static [Segment],
     pub minimize: &'static [Segment],
     pub zoom: &'static [Triangle],
+    pub zoom_exit: &'static [Triangle],
     pub plus: &'static [Segment],
 }
 
@@ -86,7 +111,6 @@ pub struct TitlebarButtons {
     pub spacing: u32,
     pub inset: u32,
     pub inset_compact: u32,
-    pub corner_radius: u32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -1499,8 +1523,6 @@ pub struct Palette {
     pub accent_inactive: Rgba,
     pub on_accent: Rgba,
     pub danger: Rgba,
-    pub traffic_lights_inactive: Rgba,
-    pub traffic_rim: TrafficRim,
     pub scrim: Rgba,
     pub selected_control: Rgba,
     pub card_border: Rgba,

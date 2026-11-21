@@ -25,8 +25,6 @@ pub struct WindowChromeStyle {
     pub reveal: Reveal,
     /// Tengen: `None`; `Line` draws `line_edge`, `Accent` `accent_edge`.
     pub resting_edge: RestingEdge,
-    /// Tengen: `false`; `true` makes the window's traffic lights round.
-    pub round_lights: bool,
     /// Tengen: `TITLEBAR_RAIL.width`, at least `TITLEBAR_RAIL.actions_width` with rail items.
     pub rail_width: f32,
     /// Tengen, with `rail_padding_bottom`, `rail_spacing`: `TITLEBAR_RAIL.padding_top`,
@@ -95,7 +93,6 @@ impl ControlStyle for WindowChromeStyle {
             rail_style: RailStyle::Normal,
             reveal: Reveal::Always,
             resting_edge: RestingEdge::None,
-            round_lights: false,
             rail_width: TITLEBAR_RAIL.width,
             rail_padding_top: TITLEBAR_RAIL.padding_top,
             rail_padding_bottom: TITLEBAR_RAIL.padding_bottom,

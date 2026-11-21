@@ -441,7 +441,7 @@ The size of each control is a row in its own family.
 | SwiftUI | AppKit | Kit | Status | Measure | Pri |
 |---|---|---|---|---|---|
 | window corners | compositor | `Bar`, `WindowCorner` | `partial`: the alpha reaches the edge 15 rows down in every style; the kit's radius was not compared | [Window corners][m-tabs] | P1 |
-| traffic lights | `standardWindowButton(_:)` | `TrafficLights` | `partial`: geometry and glyphs measured ([windows](macos-windows.md), §2–3); not in the bench; hover, inactive and full-screen states not compared | [Bar and lights][m-sidebar] | P1 |
+| traffic lights | `standardWindowButton(_:)` | `TrafficLights` | `measured`: geometry, glyphs, gradient, ring, halo and every state in light, dark and Increase Contrast, at 1x; the utility panel's 10 pt lights are not drawn and the full-screen lights are compared in light only | bench `lights`; [Traffic lights][m-lights] | P1 |
 | `.windowStyle(.titleBar)` title bar | `NSWindow` titled, 32 high | `Titlebar` | `partial` | [`macos-windows.md`](macos-windows.md) §2 | P1 |
 | `navigationTitle`, `navigationSubtitle` | `title`, `subtitle`, `titleVisibility` | `Titlebar` title only | `partial`: no subtitle | none | P1 |
 | `.windowToolbarStyle(.unified)` items | `.unified`, `NSToolbarItem` | `IconButton`, `ToolGroup`, `NavigationButtons` | `partial`: measured in light and dark; glyphs other than the chevron and the plus not drawn; a lone `IconButton` has no platter | bench `toolbar`; [Toolbar][m-toolbar] | P1 |
@@ -660,6 +660,7 @@ No probe of `~/src/probes` renders these:
 [m-sheets]: macos-control-metrics.md#sheets
 [m-menus]: macos-control-metrics.md#menus-scrollers-and-inactive-selection
 [m-sidebar]: macos-control-metrics.md#sidebar-and-window-macos-27
+[m-lights]: macos-control-metrics.md#traffic-lights-macos-27
 [m-toolbar]: macos-control-metrics.md#toolbar-items-and-navigation-buttons
 [m-icons]: macos-icons.md
 [m-tabs]: macos-control-metrics.md#toolbar-tabs-and-window-corners

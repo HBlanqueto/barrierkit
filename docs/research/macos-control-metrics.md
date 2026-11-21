@@ -342,6 +342,84 @@ Read with `~/src/probes/sidebar` (an `NSSplitViewController` whose first item is
 
 `scripts/appkit-render.sh sidebar` draws the SwiftUI probe's window and `scripts/appkit-compare.py sidebar light|dark` compares it with `~/src/captures/sidebar/swiftui-*-srgb.png`. The kit's sidebar is flat and full height, 220 wide, with the colors, the 52 bar, the lights at (19, 19), 32 high rows, 19 high headers 13 apart, the 10 inset selection and the line under the bar all within 1 of AppKit's, in light and dark. What differs: the kit's rows carry a 20 square tile where AppKit draws a bare accent glyph (so the icon's ink is 2 to 3 wider), the toolbar buttons that are not in a `ToolGroup` have no 36 platter in this scene, and the list does not scroll under the bar. The sidebar toggle sits in the sidebar like SwiftUI's, at x = 176 to 211 against 175 to 213 with AppKit's shadow, and the title starts at 240 or 241 in both.
 
+## Traffic lights (macOS 27)
+
+Measured on 2026-11-20 with `~/src/probes/lights.swift`, run by `lights.sh`: an app bundle, so its window is key; the shell posts the mouse events (`lightsmouse`) and takes the 1x capture. The rasters of every state, appearance and window kind are in `~/src/captures/lights`.
+
+### What a light is
+
+- Close, minimize and zoom are `_NSThemeCloseWidget`, `_NSThemeWidget` and `_NSThemeZoomWidget`, 14 × 14, each hosting a SwiftUI `_NSCoreHostingView<ThemeWidgetView>`. At rest it holds one image layer of 22 × 22 at (-4, -4): the disc and 4 of margin for its halo.
+- That layer is a 1x raster on this screen. `cacheDisplay` at 4x only upsamples it: the difference between neighboring pixels peaks every 4. So the lights are compared at 1x (`scripts/appkit-compare.py lights`), reading the layer image itself (`CALayer.contents`; its PNG carries a profile, mostly Display P3, which the script converts to sRGB).
+- Hover adds a 14 × 14 image mask of the glyph, with the `plusD` (plus darker) compositing filter and a color. Pressed scales the base layer and the glyph by 16/14 about the center and adds a 16 circle of gray 0.251 with the `colorDodge` filter.
+- The shape is a circle of diameter 14 in every state and appearance.
+- Positions, from the top left of the window: unified toolbar x = 19, 42, 65 and y = 19; compact toolbar (bar 40) 12, 35, 58 and 13; plain title bar (32) 9, 32, 55 and 9. A utility panel (bar 24) has 10 lights at 8, 25, 42 and 8; the kit draws none.
+
+### Look
+
+- **Fill.** A vertical gradient. In light and in Increase Contrast light it is translucent: the alpha of close runs from 0.98 at the top to 0.81 at the bottom, minimize 0.96 to 0.92, zoom 0.97 to 0.74. In dark it is opaque. The kit holds four stops per light (`fill`).
+- **Ring.** 0.5 wide along the inside of the edge, a vertical gradient too: in light it is dark at the sides (close #c20a03 against a fill of #fb6d63) and as the fill at the poles; in dark it is a light highlight at the poles and darker at the sides. Three stops (`ring`).
+- **Halo.** In the light appearances a black shadow outside the disc, blur 1.0, 1 down, alpha 0.15 (blur 1.6 and alpha 0.20 in Increase Contrast light). None in dark.
+- **Unfocused.** Translucent gray discs with a gray ring (`inactive`), the same for the three lights: alpha 0.28 to 0.40 in light, 0.17 to 0.25 in dark.
+- **Disabled.** Zoom in a window that cannot resize, minimize in one that cannot miniaturize and close in one that cannot close look like the unfocused gray and show no glyph on hover.
+- **Increase Contrast.** The fills are darker and more saturated (close #be3f39 against #fb6d63), the rings deeper, and the glyphs white.
+- **Not changed.** The accent (red and purple rasters are identical to the default), Reduce Transparency set per process, and the backdrop behind the window (the raster is the same; its translucent fill mixes with what is behind).
+
+### Glyphs and states
+
+| Glyph | Geometry in the 14 box |
+|---|---|
+| Close | Two 2.0 strokes with round caps, (4.5, 4.5) to (9.5, 9.5) and (9.5, 4.5) to (4.5, 9.5) |
+| Minimize | A 7.5 × 2.0 bar with square ends, x from 3.25 to 10.75, y from 6 to 8 |
+| Zoom (full screen) | Two right triangles with 5 legs and corners rounded 0.3: (4, 4), (9, 4), (4, 9) and (10, 10), (5, 10), (10, 5) |
+| Zoom (exit full screen) | The same triangles turned around so that their right angles meet at the center: (7, 7), (7, 2), (2, 7) and (7, 7), (12, 7), (7, 12) |
+| Zoom (plus) | Two 7.5 × 2.0 bars crossing at (7, 7) |
+
+| State | What was seen |
+|---|---|
+| Hover | Any light under the pointer shows the glyphs of the three; no fill change; no fade seen at 40 ms steps |
+| Option held | The zoom glyph is the plus; a window with `collectionBehavior = .fullScreenNone` shows the plus without Option |
+| Pressed | 16 pt: the 14 raster scaled by 8/7, then the fill and the glyph brightened by color dodge 0.251 against what is behind (the pastel of a pressed close on white) |
+| Unfocused and hover | The lit colors and the glyphs, as when focused |
+| Full screen | The lights sit in the revealed title bar below the menu bar, at x = 9, 32, 55 and y = 39 on a 1440 high screen. Minimize is disabled: gray, no glyph on hover. Close keeps its ×. Zoom shows the exit glyph, also while Option is held (no plus) |
+| Entering or leaving full screen with the pointer on zoom | The two glyph layers cross-fade: the old one goes 1 to 0 and the new one 0 to 1, 94% done after 70 ms and finished by 140 ms (`TRAFFIC_GLYPH_FADE_MS`, 150). The window is moving, so the pointer leaves the light and the glyph is gone after about 0.4 s |
+| Zoomed (`window.zoom`) | The zoom glyph is the same as in a normal window |
+
+Glyph colors (what is seen, in sRGB): light #a40000, #cb4400, #008000 for close, minimize and zoom; dark #840000, #b43200, #005800; both Increase Contrast looks #ffffff. The kit draws the glyph in that color and does not blend it with plus darker, so on a translucent fill the edge pixels of a glyph can be up to 34 levels off.
+
+### What the kit does
+
+- `TRAFFIC_LIGHTS_*` and `TRAFFIC_LIGHTS_CONTRAST_*` hold the stops of each light in each scheme, extracted by least squares from the rasters (alpha and straight color per stop), the halo, and the backdrop a pressed light brightens against. `bk/src/traffic_raster.rs` draws them with Skia at the window's scale: the halo outside the disc, the gradient disc, the ring, the glyph and, pressed, the color dodge.
+- `accent` and `wallpaper` recolor the measured look of each light with a tone ([Title bars](../barrierkit/09-titlebars.md#color)); the legibility of the result is in the last table below.
+- The bench is `scripts/appkit-render.sh lights` and `scripts/appkit-compare.py lights light|dark|hc-light|hc-dark` (and `lights-tint`). Every number is at 1x over the same background, per pixel; "any channel more than N" counts a pixel whose largest channel difference exceeds N, "core" is the disc without its 1 px edge band.
+
+| State (mean over the three lights) | Mean difference | Any channel more than 3 | more than 8 | Core: more than 3 | more than 8 |
+|---|---|---|---|---|---|
+| Light, rest | 3.4 | 27% | 14% | 29% | 0% |
+| Light, unfocused | 2.0 | 16% | 4% | 2% | 0% |
+| Light, hover | 4.6 | 32% | 18% | 63% | 25% |
+| Dark, rest | 4.8 | 30% | 21% | 67% | 33% |
+| Dark, unfocused | 1.2 | 10% | 3% | 10% | 0% |
+| Increase Contrast light, rest | 4.5 | 28% | 15% | 11% | 0% |
+| Increase Contrast dark, rest | 2.8 | 21% | 13% | 26% | 5% |
+| Pressed (the four looks) | 13 to 20 | 41% to 57% | 33% to 48% | 62% to 97% | 57% to 87% |
+
+The goal of under 3% of pixels more than 3 levels apart is not reachable, and the reason is the reference, not the look: AppKit's raster is dithered (the same fill varies by ±3 between neighbors), its edge anti-aliasing is not an exact coverage (the top row of the disc has alpha 60, 138, 196, 250 where a circle of radius 7 gives 26, 136, 212, 249), and a pressed light is that 1x raster resampled to 16 pt, so its edge is soft where the kit's is sharp. What is close is the color: at the sample pixel of a light (11, 8 of its 22 × 22 box) the rest and unfocused fills differ from the capture by at most 2 levels in light and Increase Contrast light, 4 in Increase Contrast dark and 6 in dark, and a hovered light, whose pixel falls on its glyph, by at most 6 in light, 2 in Increase Contrast and 11 in dark. Not modeled: the faint radial glow of the dark fills (zoom is the worst, 74% of its core more than 8) and the plus-darker blend of the glyph.
+
+Tinted lights, `scripts/appkit-compare.py lights-tint light standard,accent-blue,accent-orange,accent-purple,wallpaper-teal,wallpaper-sand` (WCAG 2.2 contrast of the glyph against its fill, and of the fill against the window; the standard lights are the reference):
+
+| Look | Glyph/fill, close, minimize, zoom | Fill/window |
+|---|---|---|
+| standard (light) | 3.2, 3.1, 2.9 | 2.6, 1.5, 1.8 |
+| accent blue | 3.0, 2.6, 3.8 | 5.6, 5.8, 1.6 |
+| accent orange | 3.5, 3.6, 3.2 | 3.5, 3.5, 1.3 |
+| accent purple | 3.0, 2.8, 4.4 | 5.5, 6.0, 1.6 |
+| wallpaper teal | 2.6, 2.7, 4.0 | 6.1, 5.9, 1.6 |
+| wallpaper sand | 3.6, 3.3, 3.3 | 2.5, 2.6, 1.1 |
+
+Close and minimize take the same tone, as before, and zoom a lighter one; the glyph tells them apart, and every glyph stays near 3:1 against its light. Zoom is pale on a light window, as the standard yellow is.
+
+Not measured or not drawn: the utility panel's 10 pt lights, the full-screen lights in dark and Increase Contrast (the bench compares them in light only), how the plus-darker blend of the glyph behaves on a tinted fill, the lights at 2x, and Reduce Transparency with the system switch on.
+
 ## Toolbar items and navigation buttons
 
 Read with `~/src/probes/navbuttons` on macOS 27.2.1, display 1x, `.fullSizeContentView` windows, icon-only toolbars. Frames come from the view tree; glyph ink comes from `cacheDisplay` at 4x of each hosted button (the compositor draws the glass, so fills, rims and shadows are not here). `navbuttons.sh` runs the probe as an app bundle so the window is key: a bare binary leaves it inactive and every item draws gray.

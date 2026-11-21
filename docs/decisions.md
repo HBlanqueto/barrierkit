@@ -69,6 +69,17 @@ Decision: `bk`, `ctdesign`, `ctappearance` and `infinity-protocol` live in `gith
 Why: the toolkit carries its style and its reading of the appearance; keeping them in malaysia would make the two repos depend on each other.
 Code: `flake.nix`
 
+## 0082 — Traffic lights as macOS 27 draws them
+Decision:
+- A light is the 14 pt disc of macOS 27: a vertical gradient fill (four stops), a 0.5 pt ring (three stops, a vertical gradient too), a halo in the light appearances and a glyph while the pointer is over the group. A pressed light grows to 16 pt and brightens (`TRAFFIC_PRESS`).
+- Every color is a token measured per appearance, light, dark and Increase Contrast (`themes.*.traffic-lights`, `traffic-lights-contrast`); none depends on the accent.
+- `standard` is that look as it is. `accent` and `wallpaper` give each light a tone and `ctappearance::traffic::looks` recolors its measured look with it: alpha, and lightness and saturation relative to the light's base, stay; the hue is the tone's; the glyph stays at 3:1.
+- Skia rasterizes each light once per look at the window's scale (`bk/src/traffic_raster.rs`), like the symbol tiles.
+- `traffic_light_shape` is gone: macOS 27 has no square light, and the ring, the halo and the press are defined for a disc. A file that has the key still loads, and a write drops it.
+Why: the lights are the most seen control of a window, and the measurement says what they are (`docs/research/macos-control-metrics.md`, "Traffic lights (macOS 27)").
+Rejected: keeping a corner radius in the style, which would need its own ring and halo for no macOS look; blending the glyph with plus-darker like macOS, which Freya cannot do, so the glyph is its measured final color.
+Code: `crates/ctappearance/src/traffic.rs`, `crates/bk/src/traffic.rs`, `crates/bk/src/traffic_raster.rs`, `crates/ctdesign/tengen/`
+
 ## 0061 · 0062 · 0063 — SwiftUI-shaped API
 Decision:
 - An app depends only on `bk` and writes `use bk::prelude::*;`.
