@@ -260,6 +260,30 @@ Read with `~/src/probes/texts.swift` (`~/src/captures/texts`, 1600 wide, flow la
 - `NSTextView` in a bezel-bordered `NSScrollView`: a square 1 pt line inside the frame (black 10% in light, white 10% in dark, which is `ControlBorder`) around the opaque `textBackgroundColor` fill (`ffffff`, `1e1e1e`), not the translucent fill of a text field. A text view and SwiftUI's `TextEditor` draw 12 pt Helvetica until the app sets a font (the probe's first capture used that and looked smaller than the kit); with the 13 pt system font the text starts 6.25 from the left, its first line's ink 6.0 from the top, and the lines are 16 apart. `TextEditor` has no border or fill of its own by default. `cacheDisplay` draws the selection and caret but not the focus ring or the scrollers. `cacheDisplay` draws the selection and caret but not the focus ring or the scrollers.
 - `NSColor.systemBlue` is `0088ff` in light and `0091ff` in dark, so the dark bench scene passes the dark value (`system_blue` in the scene); it was a bench artifact, not a probe one.
 
+### Bench results (`texts` family)
+
+Share of the pixels in the control's box that differ by more than 3, the worst of light and dark over white and black, and under Increase Contrast. The second figure leaves out the label ink, which is Inter against SF Pro and is not corrected with tokens.
+
+| Control | Light and dark | Increase Contrast | Without the text |
+|---|---|---|---|
+| Text field, every size, plain, disabled | 2.7 to 7.7% | 1.9 to 7.8% | 0.3 to 1.8% |
+| Search field, every size, with text, disabled | 4.2 to 7.1% | 4.6 to 7.5% | 0.5 to 1.2% |
+| Combo box, every size | 4.2 to 5.2% | 2.9 to 5.2% | 0.9 to 1.9% |
+| Secure and token field | 3.1 to 4.5% | 3.2 to 4.5% | 0.2 to 0.4% |
+| Date picker field and the five sizes | 7.7 to 11.4% | 8.8 to 13.2% | 0.4 to 1.0% |
+| Date picker with the time, `.field()` | 9.6 to 18.4% | 11.7 to 20.1% | 2.4 to 7.4% |
+| Graphical calendar | 7 to 10% over black | 11.8% | 5.8% |
+| Color well: default, minimal, expanded, disabled | 2.0 to 11.6% | 5.5 to 12.1% | 1.0 to 6.5% |
+| `TextEditor` against an `NSTextView` | 18 to 25% | 23.6% | 3 to 6.4% |
+
+What stays different or is not drawn yet:
+
+- The calendar over white in dark and `imagewell-gray-empty` are scene artifacts or another design: AppKit's dark card is translucent and vanishes over white, and the kit's image well is its own rounded well, while `NSImageView` has four 1990s bevels.
+- The date picker with a time is 7 wider than AppKit's, because Inter's `, ` and digits are narrower; the `.field()` style differs in the outside border over black.
+- A `NSPathControl` draws Finder icons and collapses names, the kit draws symbols and every name (`path-standard` 15.7% of the pixels, 2% of the box).
+- Not drawn: the analog clock of `clockAndCalendar`, a range selection (`datePickerMode = .range`), the search menu arrow, the clear button of a token, `NSColorPanel` and `NSFontPanel`, the focus ring (`cacheDisplay` does not draw it; see [macos-focus-ring.md](macos-focus-ring.md)), and a color with alpha, which AppKit splits diagonally.
+- `NSTextField` has no error look and no reveal button, so `SecureField::revealed` has no AppKit counterpart.
+
 ### Type styles
 
 `NSFont.preferredFont(forTextStyle:)` and SwiftUI `Font` agree (`~/src/captures/fonts.json`, SF Pro, point size / line height from `NSLayoutManager`): `largeTitle` 26 / 32 regular, `title` 22 / 26, `title2` 17 / 22, `title3` 15 / 20, `headline` 13 / 16 bold, `subheadline` 11 / 14, `body` 13 / 16, `callout` 12 / 15, `footnote` 10 / 13, `caption` 10 / 13 and `caption2` 10 / 13 medium. A text field's line is 16 high at 13 pt (14 at 11 pt, 11 at 9 pt). The kit's own scale (`ctdesign::font`) has heavier weights and 18 high lines for body.
