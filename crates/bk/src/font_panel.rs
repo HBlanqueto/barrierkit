@@ -1,4 +1,6 @@
-use ctdesign::{BODY, BUTTON, CAPTION, DISCLOSURE, FONT_PANEL, HAIRLINE, SPACE_1, SPACE_2};
+use ctdesign::{
+    BODY, BUTTON, CAPTION, DISCLOSURE, FONT_PANEL, HAIRLINE, SPACE_1, SPACE_2, SPACE_3,
+};
 use freya_core::prelude::*;
 use freya_engine::prelude::{FontStyle, Slant};
 use torin::prelude::{Area, Direction, Gaps, Size};
@@ -83,12 +85,15 @@ pub(crate) fn show_font_panel(
     initial: FontChoice,
     on_change: Callback<FontChoice, ()>,
 ) {
-    Popover::new(panel_size(), move || {
-        FontPanel {
-            initial: initial.clone(),
-            on_change: on_change.clone(),
-        }
-        .into_element()
+    let (width, height) = panel_size();
+    Popover::new((width + 2.0 * SPACE_3, height + 2.0 * SPACE_3), move || {
+        rect()
+            .padding(SPACE_3)
+            .child(FontPanel {
+                initial: initial.clone(),
+                on_change: on_change.clone(),
+            })
+            .into_element()
     })
     .show(anchor);
 }

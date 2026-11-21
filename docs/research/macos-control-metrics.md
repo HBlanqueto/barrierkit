@@ -14,7 +14,7 @@ Measured on macOS 27.2.1 with a Swift script: `fittingSize` of each control per 
 | Pop-up button | 24 | 20 | 16 | 28 | 36 |
 | Combo box | 24 | 20 | 16 | 28 | 36 |
 | Segmented control | 24 | 20 | 16 | 28 | 36 |
-| Text field | 24 | 22 | 19 | 24 | 24 |
+| Text field | 24 | 24 | 24 | 24 | 24 |
 | Search field | 24 | 20 | 16 | 28 | 36 |
 | Stepper | 20 × 24 | 17 × 20 | 13 × 16 | 23 × 28 | 30 × 36 |
 | Scroller | 17 | | | | |
@@ -38,8 +38,7 @@ Read with `~/src/probes/buttons.swift` (`buttons-capture.sh` writes `~/src/captu
 - **Slider.** Heights 12, 14, 16, 20, 20; the track is 4, 4, 6, 6, 6 thick and centered; the knob is 15.5, 17.5, 19.5, 23.5, 23.5 wide.
 - **Stepper.** Frames 13 × 16, 17 × 20, 20 × 24, 23 × 28, 30 × 36; the corner is 4, 5, 6, 7, 9; the chevrons' ink is 7.75, 9, 11.25, 11.25, 11.25 wide, so the extra large one keeps the regular chevron in a larger bezel. The mini bezel is drawn 13 × 20 inside its 16 high frame.
 - **Button bezels** (`NSButton.BezelStyle`, regular, "Button" label; `buttons` probe, the colors solved over white and black). `push`, `flexiblePush`, `roundRect`, `recessed`, `accessoryBar` and `accessoryBarAction` draw the same 24 high push bezel (black or white 8%, 18% under Increase Contrast); `helpButton` is a 24 circle in that fill and `circular` a 17 circle; `pushDisclosure` and `roundedDisclosure` a 24 square of radius 6 in it with a chevron 12.5 wide. `smallSquare` is a 47 × 21 rectangle (padding 3.35) with an opaque gradient from `fafafa` to `f5f5f5`, a `b4b4b4` border and a black label in light, white 15% to 12% and a 24% border in dark; pressed it is `bdbdbd` (white 24% in dark), disabled it is half as opaque. `texturedRounded` and `toolbar` are a 55 × 20 capsule (padding 7.35) with no fill and a 1 ring of black or white 5% (47% under Increase Contrast); pressed it fills with 10% (opaque `cbcbcb` under Increase Contrast light, white 36% dark). `texturedSquare` is 49 × 20 (padding 4.35, radius about 4.5) with a 90% white gradient `fdfdfd` to `f5f5f5` in light and white 5% in dark; pressed `e4e4e4`. `inline` is a 45 × 18 capsule with a 5% fill (15% under Increase Contrast) and an 11 semibold label. `shadowlessSquare` is a 51 × 22 variant of `smallSquare`; `badge` looks like `inline`. The legacy bezels are bitmaps, so a 4x capture shows their edges soft.
-- **SwiftUI** (`~/src/probes/swiftuibuttons.swift`, `NSHostingView` per item, `.controlSize` mini to extra large). `.bordered`, `.borderedProminent` and `Button(role:)` are the push button at 65 × 24 (and 55 × 20, 69 × 28, 77 × 36), except the mini one, which is 46 × 13 where AppKit's is 46 × 16; `.automatic` and `.buttonBorderShape(.capsule)`, `.roundedRectangle` and `.circle` keep that frame (the circle is 23 × 21). `.borderless`, `.plain` and `.link` draw only the label, 41 × 16 at regular, 35 × 14 small and 30 × 11 mini (the same 41 × 16 at large and extra large). A destructive role draws the plain bordered button: no red, as with AppKit's `hasDestructiveAction`. A disabled `.borderedProminent` is the accent at 70% (`4fa3ff` over white), where AppKit's disabled default button is gray. A `Toggle` row is its label plus the control (the switch row is 103 × 24 at every size); the switch itself is drawn as AppKit's 36 × 16 to 80 × 36 and is clipped by its 54 × 24 frame, the checkbox box is 12, 14, 16, 18, 18 with the label 1.75 nearer than AppKit's, and the `.button` toggle is the push button filled with the toggle accent (`0078f9`) when on. A `Picker` `.segmented` gives equal segments (126, 153, 180, 192, 216 wide for One, Two, Three) where AppKit's are fit to their text, `.menu` is 58, 71, 84, 92, 106 wide for "One", and `.radioGroup` and `.inline` are a column of three 16 high radios (57 × 62 at regular). Slider and stepper match AppKit at every size.
-- **Bench results** (`appkit-compare.py controls --family buttons`, share of pixels that differ outside the label ink, light, dark and Increase Contrast, over white and black; the SwiftUI family is in `--family swiftui`). Push, default, pull-down, help, round, disclosure and the five push-like bezels: 3% or less. Pop-up: 3%, and 9% when disabled in the small sizes. Segmented: 1%, and 6.6% disabled, because AppKit draws the translucent selected segment over the window and the kit draws it over the group fill. Check and radio: 5% or less, 6.6% for the large disabled mark and 6% for the mini radio; the large mark is a soft bitmap in AppKit. Switch: 4% or less. Slider: 3% or less. Stepper: the bezel 1% (8% disabled in light), but the chevrons differ by 5% to 10% of the box: AppKit draws them from a bitmap whose legs are cut flat at the divider, the kit draws round-capped strokes. Push disclosure: 2%. Inline: 2%, and 14% disabled in dark over black, where the label color differs. Textured rounded: 4% in light and 13% under Increase Contrast, where the ring is centered on the edge and about 1.5 wide. Small square and textured square: 11% to 15%, and 18% for the disabled and pressed states; they are bitmaps in AppKit. Not compared: the focused look (the 4x capture draws no focus ring), the inactive window (the scene cannot make the kit window inactive) and the glass bezels (the compositor draws them).
+- **SwiftUI** (`~/src/probes/swiftuibuttons.swift`, `NSHostingView` per item, `.controlSize` mini to extra large). `.bordered`, `.borderedProminent` and `Button(role:)` are the push button at 65 × 24 (and 55 × 20, 69 × 28, 77 × 36), except the mini one, which is 46 × 13 where AppKit's is 46 × 16; `.automatic` and `.buttonBorderShape(.capsule)`, `.roundedRectangle` and `.circle` keep that frame (the circle is 23 × 21). `.borderless`, `.plain` and `.link` draw only the label, 41 × 16 at regular, 35 × 14 small and 30 × 11 mini (the same 41 × 16 at large and extra large). A `Toggle` row is its label plus the control (the switch row is 103 × 24 at every size); the switch itself is drawn as AppKit's 36 × 16 to 80 × 36 and is clipped by its 54 × 24 frame, the checkbox box is 12, 14, 16, 18, 18 with the label 1.75 nearer than AppKit's, and the `.button` toggle is the push button (accent fill when on). A `Picker` `.segmented` gives equal segments (126, 153, 180, 192, 216 wide for One, Two, Three) where AppKit's are fit to their text, `.menu` is 58, 71, 84, 92, 106 wide for "One", and `.radioGroup` and `.inline` are a column of three 16 high radios (57 × 62 at regular). Slider and stepper match AppKit at every size.
 - **Disabled and pressed** states keep the regular colors at every size (`DisabledPalette`, `PressedPalette`): the bench differs by the same share as the normal state.
 
 ## Semantic colors (RGBA)
@@ -64,19 +63,124 @@ A command-line process has no window context, so window-level colors here are no
 
 ## Accent and selection
 
-`controlAccentColor` is `007aff` in both appearances; `selectedContentBackgroundColor` is `0064e1` in light and `0059d1` in dark, and the menu and list selection use it. Read per `AppleAccentColor` in a process-local argument domain (`-AppleAccentColor <n>`), so no system setting changed:
+### How it was read
 
-| Accent | controlAccent light / dark | selectedContentBackground light / dark |
-|---|---|---|
-| blue (default) | `007aff` / `007aff` | `0064e1` / `0059d1` |
-| red | `e0383e` / `ff5257` | `c4262b` / `d13539` |
-| orange | `f7821b` / `f7821b` | `d96b0a` / `c96003` |
-| yellow | `ffc726` / `ffc600` | `e1ac15` / `d19e00` |
-| green | `62ba46` / `62ba46` | `4da033` / `43932a` |
-| purple | `953d96` / `a550a7` | `7d2a7e` / `803482` |
-| pink | `f74f9e` / `f74f9e` | `d93b86` / `c93379` |
+System Settings › Appearance › Color offers nine choices: Multicolor, blue, purple, pink, red, orange, yellow, green and graphite. There is no "Other". The probe `~/src/probes/accents.swift` reads every accent role of `NSColor` in the four appearances (`aqua`, `darkAqua` and the two `accessibilityHighContrast` ones). It takes the accent per process, so no system setting changes:
 
-`ACCENT_SWATCHES` holds the light `controlAccentColor` of each except graphite, which was not measured; the dark values of red, yellow and purple differ and have no slot yet.
+| Choice | Command line |
+|---|---|
+| Multicolor | nothing (`AppleAccentColor` unset) |
+| red, orange, yellow, green, blue, purple, pink | `-AppleAccentColor 0`, `1`, `2`, `3`, `4`, `5`, `6` |
+| graphite | `-AppleAquaColorVariant 6 -AppleAccentColor -1` |
+
+`-AppleAccentColor -1` alone, `-2`, `7` and `8` give blue. For Increase Contrast add `-increaseContrast 1 -reduceTransparency 1`: the appearance name alone changes nothing. Multicolor and blue give the same `NSColor` values and the same controls; they differ only where an app tints each element itself, as the sidebar icons of Finder and System Settings.
+
+### Colors per accent
+
+Each value is the sRGB hex of the color in that appearance; all are opaque unless an alpha is given.
+
+| `controlAccentColor` | Light | Dark | Increase Contrast light | Increase Contrast dark |
+|---|---|---|---|---|
+| blue | `007aff` | `007aff` | `0040dd` | `1774da` |
+| purple | `953d96` | `a550a7` | `953d96` | `c131c3` |
+| pink | `f74f9e` | `f74f9e` | `cf307a` | `d4317d` |
+| red | `e0383e` | `ff5257` | `c4262b` | `dd363c` |
+| orange | `f7821b` | `f7821b` | `bd5600` | `b75e10` |
+| yellow | `ffc726` | `ffc600` | `9c6b00` | `9b6d05` |
+| green | `62ba46` | `62ba46` | `3a8524` | `3a8524` |
+| graphite | `989898` | `8c8c8c` | `6b6b6b` | `757575` |
+
+| `selectedContentBackgroundColor` | Light | Dark | Increase Contrast light | Increase Contrast dark |
+|---|---|---|---|---|
+| blue | `0064e1` | `0059d1` | `0040dd` | `1774da` |
+| purple | `7d2a7e` | `803482` | `953d96` | `c131c3` |
+| pink | `d93b86` | `c93379` | `cf307a` | `d4317d` |
+| red | `c4262b` | `d13539` | `c4262b` | `dd363c` |
+| orange | `d96b0a` | `c96003` | `bd5600` | `b75e10` |
+| yellow | `e1ac15` | `d19e00` | `9c6b00` | `9b6d05` |
+| green | `4da033` | `43932a` | `3a8524` | `3a8524` |
+| graphite | `808080` | `696969` | `6b6b6b` | `757575` |
+
+| `selectedTextBackgroundColor` | Light | Dark | Increase Contrast light | Increase Contrast dark |
+|---|---|---|---|---|
+| blue | `b3d7ff` | `3f638b` | `b3c6f5` | `466280` |
+| purple | `dfc5e0` | `705771` | `dfc5e0` | `794e79` |
+| pink | `fdcbe2` | `89576e` | `f1c1d7` | `7e4e64` |
+| red | `f6c4c5` | `8b5759` | `edbec0` | `814f51` |
+| orange | `fddabb` | `896647` | `ebcdb3` | `765b44` |
+| yellow | `ffeebe` | `8b7a3f` | `e1d3b3` | `6d5f40` |
+| green | `d0eac8` | `5c7654` | `c4dbbe` | `50674a` |
+| graphite | `e0e0e0` | `696969` | `d3d3d3` | `626262` |
+
+| `keyboardFocusIndicatorColor` | Light | Dark | Increase Contrast light | Increase Contrast dark |
+|---|---|---|---|---|
+| blue | `0067f4` at 50% | `1aa9ff` at 50% | `0022af` | `469af5` |
+| purple | `842685` at 50% | `dc78de` at 50% | `6e1f6f` | `df5de0` |
+| pink | `ec398d` at 50% | `ff77d4` at 50% | `a31456` | `f05da2` |
+| red | `d32127` at 50% | `ff7a80` at 50% | `990b0f` | `f86267` |
+| orange | `ec7002` at 50% | `ffb33a` at 50% | `923600` | `d68640` |
+| yellow | `f4b90e` at 50% | `ffff1a` at 50% | `754900` | `bd9336` |
+| green | `4eab30` at 50% | `8df56c` at 50% | `1d6009` | `65a952` |
+| graphite | `99999e` | `c3c3c3` at 50% | `404040` | `9a9a9a` |
+
+`systemBlue` … `systemGray`, `link` (`0068da`, `419cff` in dark), `selectedMenuItemText` and `alternateSelectedControlText` (white), `selectedText` and `selectedControlText` (the label colors) do not change with the accent. `selectedControlColor` and `alternateSelectedControlColor` are `selectedTextBackgroundColor` and `selectedContentBackgroundColor`. The graphite focus ring is opaque in light (`99999e`).
+
+### Rules
+
+- **Multicolor is blue** for every `NSColor`.
+- **Increase Contrast** makes `selectedContentBackgroundColor` equal to `controlAccentColor`, and darkens `controlAccentColor` until white text on it reaches 4.5:1. In dark every accent lands between 4.50 and 4.67. In light pink, orange, yellow and green land between 4.60 and 4.82; red takes its normal `selectedContentBackgroundColor` (5.74), purple keeps its value (6.20), graphite is 5.33 and blue is `0040dd` (7.56).
+- **`selectedTextBackgroundColor` is the accent over the window at 30%**: `0.3·control + 0.7·white` in light, `0.3·control + 0.247` in dark. It holds for every accent and for Increase Contrast with that appearance's `control`.
+- **`AppleHighlightColor`** (the text highlight color of System Settings) follows the same rule: a highlight written as `"r g b Name"` with a name that is not an accent gives `0.3·color + 0.7·white` in light and `0.3·color + 0.247` in dark; with an accent's name it gives that accent's `selectedTextBackgroundColor`; written as only `"r g b"` it is the color itself. With `AppleHighlightColor` unset, the highlight follows the accent.
+- **`selectedContentBackgroundColor`** is `controlAccentColor` made darker and a little more saturated. No single formula reproduces it for all accents: in OKLab, `L' = 0.960·L − 0.047` and `C' = 0.923·C` in light, and `L' = 0.918·L − 0.056`, `C' = 0.913·C` in dark, stay within 4.2 and 3.0 levels of the eight accents. `ACCENT_RULE` holds them for colors macOS has no name for.
+- **`keyboardFocusIndicatorColor`** is the accent made darker (light) or lighter and less saturated (dark) at 49.8%. The rule is only approximate (14 levels worst in light, 7 in dark), so each accent has its own value.
+
+### The picker of System Settings
+
+Measured at 1x on the Appearance pane in light and dark (`~/src/captures/accents/settings-*.png`): the nine circles are 24 across and 36 apart (12 between them). The circle is the `controlAccentColor` of the current appearance. The chosen one has a ring of the accent color, 3 wide with 1 between it and the circle, 32 across in all. The name of the chosen one is below the ring, in `secondaryLabelColor` at 11 pt. The ring is the same blue under Multicolor. Multicolor is a conic gradient from the top clockwise: `a035da` at the top, `ff318a` at 60°, `fe163b` at 90°, `fd6f09` at 120°, `fcaf06` at 150°, `a6b715` at 180°, `28baa5` at 225°, `1990de` at 270° and `6a4ae3` at 330° (`MULTICOLOR` has a stop every 15°); it is the same in light and dark.
+
+### What takes the accent
+
+Captured with `~/src/probes/accentctl.swift` (28 AppKit controls, 4x, window key) per accent and look, and with `~/src/probes/accentui.swift` (SwiftUI) over the same accents. The fills are the same function of `controlAccentColor` for the eight accents, so one amount per look describes all of them (spread of the amount across accents in brackets). A mix is toward black in light and toward white in dark.
+
+| What | Takes | Light | Dark | Increase Contrast light | Increase Contrast dark |
+|---|---|---|---|---|---|
+| Default button, prominent button, determinate bar, `Gauge` bar | `controlAccentColor` as is | 0 | 0 | 0 | 0 |
+| Check box, radio, switch, slider and chosen segment, on | `controlAccentColor` mixed | 2.3% (±0.3) | 2.6% (±0.4) | 8.4% (±0.3) | 7.5% (±0.3) |
+| Same, pressed | mixed | 11.9% (±0.5) | 12.2% (±0.5) | 40.4% (±0.2) | 35.2% (±0.3) |
+| Default button, pressed | mixed | 9.7% (±0.3) | 10.0% (±0.5) | 34.7% (±0.2) | 29.8% (±0.3) |
+| Check box, radio, switch and slider, on and disabled: the base | mixed | 4.6% (±0.5) | 4.5% (±0.5) | 14.8% (±0.4) | 12.4% (±0.4) |
+| …drawn at | opacity | 70.5% | 70.5% | 74.4% | 73.4% |
+| Chosen segment, disabled: the base | mixed | 7.5% (±0.5) | 7.7% (±0.5) | 19.7% (±0.4) | 17.7% (±0.4) |
+| …drawn at | opacity | 72.9% | 72.9% | 78.8% | 78.0% |
+| Determinate ring, arc | its own color per accent (below) | | | | |
+| Table and list selection (`NSTableView`, `NSOutlineView`) | `selectedContentBackgroundColor`, read from the `views` probe for six accents | | | | |
+| SwiftUI sidebar selection (`NavigationSplitView`) | `controlAccentColor`; in light blue is `0270f5` and yellow `f3be1f`, a few levels off their `controlAccentColor` | | | | |
+| Pop-up menu highlight | `controlAccentColor` (`007aff`) with blue. A popped `NSMenu` is drawn outside the probe and ignores `-AppleAccentColor`, so other accents were not measured | | | | |
+| Text selection | `selectedTextBackgroundColor` | | | | |
+| Keyboard focus ring | `keyboardFocusIndicatorColor` | | | | |
+| Token field fill (`aad8ff` in light, `114266` in dark, `b4cefa` and `121212` with Increase Contrast) | none: it is the same under every accent | | | | |
+
+The disabled fills are solved from captures over white with the opacity of blue's measured token in the same look.
+
+The determinate ring's arc is its own color, not a function of `controlAccentColor` that holds across accents:
+
+| Ring arc | Light | Dark | Increase Contrast light | Increase Contrast dark |
+|---|---|---|---|---|
+| blue | `0a82ff` | `1769e6` | `0057ad` | `127be7` |
+| purple | `a21ca6` | `cc2ecb` | `742873` | `a347a5` |
+| pink | `eb5199` | `e64b91` | `a41a62` | `d53480` |
+| red | `dd2128` | `ee4044` | `971218` | `ce3239` |
+| orange | `f67100` | `f47300` | `bd5300` | `cc5f00` |
+| yellow | `f0b402` | `eab004` | `9f6b00` | `a2750a` |
+| green | `43af21` | `4cb12d` | `38841d` | `488935` |
+| graphite | `969696` | `8d8d8d` | `595959` | `a8a8a8` |
+
+### SwiftUI
+
+- `Color.accentColor` and `.tint` resolve to `controlAccentColor` of the appearance (`e0383e` light, `ff5257` dark for red). A `Color.accentColor` resolved in an `EnvironmentValues()` of the probe, outside a view, is `systemBlue` (`0088ff`, `0091ff`): the accent only exists inside a view.
+- A `Toggle`, `Slider`, picker and checkbox with the accent or a `.tint(color)` fill with the color mixed as above (a green switch is `31c156` in light: `34c759` mixed 2.3%); a `ProgressView`, `Gauge` bar and prominent `Button` fill with the color as is (`.tint(.orange)` bar `ff8d29`, `.tint(.red)` button `ff393b`). `.tint(.red)` is `systemRed` (`ff383c` in light, `ff4245` in dark), not the red accent.
+- A `List(.sidebar)` selection is gray unless the list has focus. The `NavigationSplitView` sidebar selection is the `controlAccentColor` of every accent in the four looks within 1 level, except blue (`0270f5`) and yellow (`f3be1f`) in light (`probes/accentsidebar.swift`).
+- The kit's `Tint::Color` fills a tinted toggle with the color as is, without the mix above.
 
 ## Text fields
 
@@ -148,6 +252,7 @@ Read with `~/src/probes/texts.swift` (`~/src/captures/texts`, 1600 wide, flow la
 - Search field by size (4x ink, text 9, 11, 13, 13, 13): the text starts 16.5, 18.5, 24.75, 28.75 and 32.75 from the left; the magnifier is 9.25, 11.25 and 13.25 (large and extra large) square, its ink starting 5.0, 5.0, 6.75, 8.75 and 10.75 from the left and 0.5 above, 0.4 above, then 0.6 below the middle; the clear disc is 9, 11 and then 13 across, 3, 4, 5, 7 and 11 from the right edge. `SEARCH_FIELD` holds them.
 - Combo box by size: the arrow button is 16 × 11, 20 × 16, 24 × 20, 23 × 21 and 29 × 27 (mini to extra large), 3, 3, 4, 4 and 5 from the right edge, with radii of about 3, 4, 5, 5 and 7, and the chevron ink is 6.5 × 4, 7.5 × 5, 7.5 × 5, 9 × 6 and 9 × 6 (`COMBO_BOX`).
 - Date picker by size (the date text stays 13): the field is 78 wide at every size and 21 high at mini, small and regular, 28 at large and 36 at extra large with its 1 border outside (30 and 38 of ink); the stepper is arrows only, 9 × 13, 11 × 16 and 13 × 20 (mini to regular) 6, 7 and 7.5 from the field, and a gray 22 × 28 or 29 × 36 pill 4 from the field at large and extra large. The date and the time are separated by `, `. `.textField` (no stepper) is the field with its border outside, 80 × 23.
+- `NSColorWell` styles (`systemBlue`, all 48 × 24 at every `controlSize`): `.default` is the 48 × 24 bezel and the 42 × 18 swatch; `.minimal` is the capsule swatch alone with its darker ring; `.expanded` is a 47 wide swatch of radius 5 and, 1 after it, a 24 square button of radius 6 (black 9.8%) with a 16 color wheel, red at 3 o'clock, white at the center (72 wide in all). A disabled well is the same at 50% opacity, the button and the wheel included.
 - A disabled text, search or secure field keeps its bezel and fill; only the ink changes, to the tertiary label (about 26% over the fill, `TertiaryLabel`). The placeholder of an empty field does not change.
 - `NSTextField` `bezelStyle` `.squareBezel` and `.roundedBezel` look like the default. `isBordered` without `isBezeled` draws a square 1 pt black line (the frame is 20 high); no bezel and no background draws only the text (16 high). A read-only field keeps the bezel.
 - An empty `NSImageView` with `imageFrameStyle` `.none` draws nothing; the other four styles are the 1990s bevels (`grayBezel` has a black top and left line and a gray bottom and right one).
@@ -178,6 +283,29 @@ Read with `~/src/probes/lists.swift`: SwiftUI `List` in the `.inset`, `.plain`, 
 - **Table:** header 28, rows 24 from 5 below the line under it, inset 10, text 16 from the edge in the first column and 8.5 from the second column's edge. The header has a 1 separator at the leading edge as well as after each column (`TABLE.header_separator`). A table whose rows do not fill it keeps striping below the last row. With a scroller drawn the rows keep 17 of their width free, so a table without overflow is compared; the kit's scrollers overlay the content (see Scroll below).
 - **Outline** (`List(children:)`, or `DisclosureGroup` rows in a `List`): the disclosure chevron is the SF symbol (`838383` light, `969696` dark: the secondary label, not the `c0c0c0` triangle of a standalone `DisclosureGroup`), 8.5 × 5.25 when open and 5 × 8.25 when closed, its ink centered at 18.75 and 23.4 (open) or 19.5 and 22.1 (closed) in the row; the folder icon is 15 wide at 26 and the title at 47. A child is indented 13, inside the selection. The line under a row starts at the title. Lines are not drawn in the last top-level node.
 - The kit's remaining difference in these items is 4 to 9% of the pixels in the region, all of it glyph shapes: Inter against SF Pro, the folder symbol, and the 0.5 to 1 lower baseline of Inter in a 24 high row.
+
+## Forms and groups (SwiftUI)
+
+Read with the same `lists` probe (`Form` grouped and columns, `GroupBox`, `DisclosureGroup` open and closed), light, dark and Increase Contrast.
+
+- **Form, `.grouped`:** the form is inset 20 on every side; a section's title (bold 13) takes a 16 high line from the top, with its text 10 in from the card and 8 above it; cards are `f7f7f7` (black 3.1%) with continuous corners of radius 12.5 (the leftmost column reaches full coverage 15.5 below the top), 10 apart, rows 36 high with a 1 hairline between them from 10 to 10 inside the card, labels 10 in. A `Toggle` is a switch of 36 × 16 (the kit's mini), 10 from the right edge. A `TextField` is borderless text in the label color, a `LabeledContent` value is in the secondary label color. The kit stacks a control under its label below 300 wide. In dark the card is black or white 3.1% (`252525` over `1e1e1e`); the kit's card is the shared content background (`2a2a2a`), five levels lighter, because a window with a tinted backdrop must look the same in light and dark and the 3.1% fill follows the scheme.
+- **Form, `.columns`:** no cards. Labels are right-aligned in a column as wide as the widest label, the controls start 9.5 after it; a checkbox row starts at the control column. The kit has no counterpart.
+- **GroupBox:** the title is 11 pt, its ink 10 in (the text box 9.5), in a 17 high row above the box; the box is the content plus 5 on every side, `f7f7f7`, continuous corners of radius 12. `NSBox` differs in the 12 high title row and the 10.75 inset.
+- **DisclosureGroup** (standalone): the chevron is `c1c1c1`, 7.75 × 4.5 open (center 3.9 and 13.25) and 5 × 7.5 closed (center 4.5 and 12.25), the title starts 12 from the left, and the children are not indented.
+- The kit's difference in these items is 3 to 9% of the pixels, text apart from the missing `.columns` form.
+
+## Containers: split views and scrollers
+
+Read with `~/src/probes/containers.swift` (`NSSplitView` thin, thick and pane-splitter dividers in both orientations, `HSplitView` and `VSplitView`, `NSTabView` in its styles and `NSScrollView` with each border and both scroller styles) captured at 4x with `cacheDisplay`. The scroll views, the tab strip and the thick dividers are drawn partly by the window server, so `cacheDisplay` shows black or no strip there; the bench compares the dividers. `scripts/appkit-compare.py lists <mode> --family containers`.
+
+- **Thin divider** (`NSSplitView.dividerStyle = .thin`, and `HSplitView`, `VSplitView`): 1 thick, in the separator color of every appearance: `e5e5e5` and `393939`, and `cccccc` and `4d4d4d` under Increase Contrast. The panes touch it; an even split of 160 puts the line at 80 (left pane 80, right pane 79) and one of 100 at 49 (AppKit rounds to the pixel; the kit puts it at 79.5 and 49.5). The kit's `SplitPanes` divider was 3 thick; it is 1 with a 5 wide grab area (`SPLIT_PANES.divider`, `grab`), at 0.6 to 2% of the pixels.
+- **Thick and pane-splitter dividers** are 10 thick: a `e5e5e5` band with a soft top edge and, on the pane splitter, a dot; not drawn by the kit.
+- **Legacy scroller:** the kit's `ScrollView` keeps the 17 wide strip (11 capsule plus 3 on each side) out of the content while the bar is always shown, as `NSScrollView` does; before it overlaid the content.
+- **Not measured:** the glass tab strip of `NSTabView` and `TabView` needs a screen capture, and `NSScrollView` borders are not in the kit.
+
+## Popovers
+
+Read with `~/src/probes/popover.swift` (an `NSPopover` of 200 × 120 shown from a button, over a black window so the glass shows; 1x screenshot). The popover card is exactly the content: 200 × 120 at the content's position, with the corner radius about 20 and a 26 wide arrow, 10 to 13 high, centered on the button and pointing at it. The popover window is 226 × 146: the content plus 13 on every side for the arrow and the shadow. The kit adds no padding to its `Popover` content any more (it added 12 on each side); the font and color panels pad their own. The glass, its fill and its shadow are the compositor's.
 
 ## Alerts
 
@@ -243,37 +371,7 @@ Three traps in the probe, each of which gave a wrong number before:
    | Two buttons (a back and forward pair) | 73 | 63 | 65 |
    | N buttons | 36 N + 1 for N ≥ 2: 73, 109, 145, 181, 217 | | |
    | Two segments, select one | 74 | 66 | 66 |
-## Forms and groups (SwiftUI)
-
-Read with the same `lists` probe (`Form` grouped and columns, `GroupBox`, `DisclosureGroup` open and closed), light, dark and Increase Contrast.
-
-- **Form, `.grouped`:** the form is inset 20 on every side; a section's title (bold 13) takes a 16 high line from the top, with its text 10 in from the card and 8 above it; cards are `f7f7f7` (black 3.1%) with continuous corners of radius 12.5 (the leftmost column reaches full coverage 15.5 below the top), 10 apart, rows 36 high with a 1 hairline between them from 10 to 10 inside the card, labels 10 in. A `Toggle` is a switch of 36 × 16 (the kit's mini), 10 from the right edge. A `TextField` is borderless text in the label color, a `LabeledContent` value is in the secondary label color. The kit stacks a control under its label below 300 wide. In dark the card is black or white 3.1% (`252525` over `1e1e1e`); the kit's card is the shared content background (`2a2a2a`), five levels lighter, because a window with a tinted backdrop must look the same in light and dark and the 3.1% fill follows the scheme.
-- **Form, `.columns`:** no cards. Labels are right-aligned in a column as wide as the widest label, the controls start 9.5 after it; a checkbox row starts at the control column. The kit has no counterpart.
-- **GroupBox:** the title is 11 pt, its ink 10 in (the text box 9.5), in a 17 high row above the box; the box is the content plus 5 on every side, `f7f7f7`, continuous corners of radius 12. `NSBox` differs in the 12 high title row and the 10.75 inset.
-- **DisclosureGroup** (standalone): the chevron is `c1c1c1`, 7.75 × 4.5 open (center 3.9 and 13.25) and 5 × 7.5 closed (center 4.5 and 12.25), the title starts 12 from the left, and the children are not indented.
-- The kit's difference in these items is 3 to 9% of the pixels, text apart from the missing `.columns` form.
-- `NSColorWell` styles (`systemBlue`, all 48 × 24 at every `controlSize`): `.default` is the 48 × 24 bezel and the 42 × 18 swatch; `.minimal` is the capsule swatch alone with its darker ring; `.expanded` is a 47 wide swatch of radius 5 and, 1 after it, a 24 square button of radius 6 (black 9.8%) with a 16 color wheel, red at 3 o'clock, white at the center (72 wide in all). A disabled well is the same at 50% opacity, the button and the wheel included.
-
-## Containers: split views and scrollers
-
-Read with `~/src/probes/containers.swift` (`NSSplitView` thin, thick and pane-splitter dividers in both orientations, `HSplitView` and `VSplitView`, `NSTabView` in its styles and `NSScrollView` with each border and both scroller styles) captured at 4x with `cacheDisplay`. The scroll views, the tab strip and the thick dividers are drawn partly by the window server, so `cacheDisplay` shows black or no strip there; the bench compares the dividers. `scripts/appkit-compare.py lists <mode> --family containers`.
-
-- **Thin divider** (`NSSplitView.dividerStyle = .thin`, and `HSplitView`, `VSplitView`): 1 thick, in the separator color of every appearance: `e5e5e5` and `393939`, and `cccccc` and `4d4d4d` under Increase Contrast. The panes touch it; an even split of 160 puts the line at 80 (left pane 80, right pane 79) and one of 100 at 49 (AppKit rounds to the pixel; the kit puts it at 79.5 and 49.5). The kit's `SplitPanes` divider was 3 thick; it is 1 with a 5 wide grab area (`SPLIT_PANES.divider`, `grab`), at 0.6 to 2% of the pixels.
-- **Thick and pane-splitter dividers** are 10 thick: a `e5e5e5` band with a soft top edge and, on the pane splitter, a dot; not drawn by the kit.
-- **Legacy scroller:** the kit's `ScrollView` keeps the 17 wide strip (11 capsule plus 3 on each side) out of the content while the bar is always shown, as `NSScrollView` does; before it overlaid the content.
-- **Not measured:** the glass tab strip of `NSTabView` and `TabView` needs a screen capture, and `NSScrollView` borders are not in the kit.
-
    | Two segments, momentary, labels "Back" and "Forward" | 87 | 79 | 83 |
-## Forms and groups (SwiftUI)
-
-Read with the same `lists` probe (`Form` grouped and columns, `GroupBox`, `DisclosureGroup` open and closed), light, dark and Increase Contrast.
-
-- **Form, `.grouped`:** the form is inset 20 on every side; a section's title (bold 13) takes a 16 high line from the top, with its text 10 in from the card and 8 above it; cards are `f7f7f7` (black 3.1%) with continuous corners of radius 12.5 (the leftmost column reaches full coverage 15.5 below the top), 10 apart, rows 36 high with a 1 hairline between them from 10 to 10 inside the card, labels 10 in. A `Toggle` is a switch of 36 × 16 (the kit's mini), 10 from the right edge. A `TextField` is borderless text in the label color, a `LabeledContent` value is in the secondary label color. The kit stacks a control under its label below 300 wide. In dark the card is black or white 3.1% (`252525` over `1e1e1e`); the kit's card is the shared content background (`2a2a2a`), five levels lighter, because a window with a tinted backdrop must look the same in light and dark and the 3.1% fill follows the scheme.
-- **Form, `.columns`:** no cards. Labels are right-aligned in a column as wide as the widest label, the controls start 9.5 after it; a checkbox row starts at the control column. The kit has no counterpart.
-- **GroupBox:** the title is 11 pt, its ink 10 in (the text box 9.5), in a 17 high row above the box; the box is the content plus 5 on every side, `f7f7f7`, continuous corners of radius 12. `NSBox` differs in the 12 high title row and the 10.75 inset.
-- **DisclosureGroup** (standalone): the chevron is `c1c1c1`, 7.75 × 4.5 open (center 3.9 and 13.25) and 5 × 7.5 closed (center 4.5 and 12.25), the title starts 12 from the left, and the children are not indented.
-- The kit's difference in these items is 3 to 9% of the pixels, text apart from the missing `.columns` form.
-
    | Three segments, select one or any | 111 to 123, by glyph width | | |
 
    The center of the glyphs of a pair are 36.9 apart in `unified` (18.1 and 55.0 from the left of its 73) and 38.9 apart in the other two (12.1 and 51.0 of 63; 13.1 and 52.0 of 65). A segment is at least 34 wide with 3 on each end; a momentary group takes its width from the label text, 74 with one-letter labels, 87 with "Back" and "Forward", about 118 with `chevron.left` and `chevron.right`. A select-one group does not.
@@ -311,3 +409,77 @@ Not drawn yet: the `expanded` style (28 high platters under a 32 title row); the
 
 - Settings-style tabs (`NSTabViewController` with `tabStyle = .toolbar`, `~/src/probes/tabs.swift`): the title bar is 88 (32 plus a 56 toolbar), each tab is a platter 48 high whose `NSGlassEffectView.cornerRadius` is 8, as wide as its title plus 13 and never under 55, with 1 between tabs; the strip is centered and has no box of its own. The selected tab shows its icon and title in the accent, the others in the secondary label. The toolbar's single and group platters report `cornerRadius` 18, a capsule.
 - Window corner: the alpha of a window capture (`-o`) reaches the full edge 15 rows below the top in the plain titled window, in the toolbar-tab window and in the unified toolbar window alike, so no style got the 26 the kit assumes for `unified`. Whether the kit's nominal radius plus `WINDOW_CORNER.expansion` draws that extent has not been compared; it is the compositor that draws the window shape.
+
+## Traffic lights (macOS 27)
+
+Measured on 2026-11-20 with `~/src/probes/lights.swift`, run by `lights.sh`: an app bundle, so its window is key; the shell posts the mouse events (`lightsmouse`) and takes the 1x capture. The rasters of every state, appearance and window kind are in `~/src/captures/lights`.
+
+### What a light is
+
+- Close, minimize and zoom are `_NSThemeCloseWidget`, `_NSThemeWidget` and `_NSThemeZoomWidget`, 14 × 14, each hosting a SwiftUI `_NSCoreHostingView<ThemeWidgetView>`. At rest it holds one image layer of 22 × 22 at (-4, -4): the disc and 4 of margin for its halo.
+- That layer is a 1x raster on this screen. `cacheDisplay` at 4x only upsamples it: the difference between neighboring pixels peaks every 4. So the lights are compared at 1x (`scripts/appkit-compare.py lights`), reading the layer image itself (`CALayer.contents`; its PNG carries a profile, mostly Display P3, which the script converts to sRGB).
+- Hover adds a 14 × 14 image mask of the glyph, with the `plusD` (plus darker) compositing filter and a color. Pressed scales the base layer and the glyph by 16/14 about the center and adds a 16 circle of gray 0.251 with the `colorDodge` filter.
+- The shape is a circle of diameter 14 in every state and appearance.
+- Positions, from the top left of the window: unified toolbar x = 19, 42, 65 and y = 19; compact toolbar (bar 40) 12, 35, 58 and 13; plain title bar (32) 9, 32, 55 and 9. A utility panel (bar 24) has 10 lights at 8, 25, 42 and 8; the kit draws none.
+
+### Look
+
+- **Fill.** A vertical gradient. In light and in Increase Contrast light it is translucent: the alpha of close runs from 0.98 at the top to 0.81 at the bottom, minimize 0.96 to 0.92, zoom 0.97 to 0.74. In dark it is opaque. The kit holds four stops per light (`fill`).
+- **Ring.** 0.5 wide along the inside of the edge, a vertical gradient too: in light it is dark at the sides (close #c20a03 against a fill of #fb6d63) and as the fill at the poles; in dark it is a light highlight at the poles and darker at the sides. Three stops (`ring`).
+- **Halo.** In the light appearances a black shadow outside the disc, blur 1.0, 1 down, alpha 0.15 (blur 1.6 and alpha 0.20 in Increase Contrast light). None in dark.
+- **Unfocused.** Translucent gray discs with a gray ring (`inactive`), the same for the three lights: alpha 0.28 to 0.40 in light, 0.17 to 0.25 in dark.
+- **Disabled.** Zoom in a window that cannot resize, minimize in one that cannot miniaturize and close in one that cannot close look like the unfocused gray and show no glyph on hover.
+- **Increase Contrast.** The fills are darker and more saturated (close #be3f39 against #fb6d63), the rings deeper, and the glyphs white.
+- **Not changed.** The accent (red and purple rasters are identical to the default), Reduce Transparency set per process, and the backdrop behind the window (the raster is the same; its translucent fill mixes with what is behind).
+
+### Glyphs and states
+
+| Glyph | Geometry in the 14 box |
+|---|---|
+| Close | Two 2.0 strokes with round caps, (4.5, 4.5) to (9.5, 9.5) and (9.5, 4.5) to (4.5, 9.5) |
+| Minimize | A 7.5 × 2.0 bar with square ends, x from 3.25 to 10.75, y from 6 to 8 |
+| Zoom (full screen) | Two right triangles with 5 legs and corners rounded 0.3: (4, 4), (9, 4), (4, 9) and (10, 10), (5, 10), (10, 5) |
+| Zoom (plus) | Two 7.5 × 2.0 bars crossing at (7, 7) |
+
+| State | What was seen |
+|---|---|
+| Hover | Any light under the pointer shows the glyphs of the three; no fill change; no fade seen at 40 ms steps |
+| Option held | The zoom glyph is the plus; a window with `collectionBehavior = .fullScreenNone` shows the plus without Option |
+| Pressed | 16 pt: the 14 raster scaled by 8/7, then the fill and the glyph brightened by color dodge 0.251 against what is behind (the pastel of a pressed close on white) |
+| Unfocused and hover | The lit colors and the glyphs, as when focused |
+
+Glyph colors (what is seen, in sRGB): light #a40000, #cb4400, #008000 for close, minimize and zoom; dark #840000, #b43200, #005800; both Increase Contrast looks #ffffff. The kit draws the glyph in that color and does not blend it with plus darker, so on a translucent fill the edge pixels of a glyph can be up to 34 levels off.
+
+### What the kit does
+
+- `TRAFFIC_LIGHTS_*` and `TRAFFIC_LIGHTS_CONTRAST_*` hold the stops of each light in each scheme, extracted by least squares from the rasters (alpha and straight color per stop), the halo, and the backdrop a pressed light brightens against. `bk/src/traffic_raster.rs` draws them with Skia at the window's scale: the halo outside the disc, the gradient disc, the ring, the glyph and, pressed, the color dodge.
+- `accent` and `wallpaper` recolor the measured look of each light with a tone ([Title bars](../barrierkit/09-titlebars.md#color)); the legibility of the result is in the last table below.
+- The bench is `scripts/appkit-render.sh lights` and `scripts/appkit-compare.py lights light|dark|hc-light|hc-dark` (and `lights-tint`). Every number is at 1x over the same background, per pixel; "any channel more than N" counts a pixel whose largest channel difference exceeds N, "core" is the disc without its 1 px edge band.
+
+| State (mean over the three lights) | Mean difference | Any channel more than 3 | more than 8 | Core: more than 3 | more than 8 |
+|---|---|---|---|---|---|
+| Light, rest | 3.4 | 27% | 14% | 29% | 0% |
+| Light, unfocused | 2.0 | 16% | 4% | 2% | 0% |
+| Light, hover | 4.6 | 32% | 18% | 63% | 25% |
+| Dark, rest | 4.8 | 30% | 21% | 67% | 33% |
+| Dark, unfocused | 1.2 | 10% | 3% | 10% | 0% |
+| Increase Contrast light, rest | 4.5 | 28% | 15% | 11% | 0% |
+| Increase Contrast dark, rest | 2.8 | 21% | 13% | 26% | 5% |
+| Pressed (the four looks) | 13 to 20 | 41% to 57% | 33% to 48% | 62% to 97% | 57% to 87% |
+
+The goal of under 3% of pixels more than 3 levels apart is not reachable, and the reason is the reference, not the look: AppKit's raster is dithered (the same fill varies by ±3 between neighbors), its edge anti-aliasing is not an exact coverage (the top row of the disc has alpha 60, 138, 196, 250 where a circle of radius 7 gives 26, 136, 212, 249), and a pressed light is that 1x raster resampled to 16 pt, so its edge is soft where the kit's is sharp. What is close is the color: at the sample pixel of a light (11, 8 of its 22 × 22 box) the rest and unfocused fills differ from the capture by at most 2 levels in light and Increase Contrast light, 4 in Increase Contrast dark and 6 in dark, and a hovered light, whose pixel falls on its glyph, by at most 6 in light, 2 in Increase Contrast and 11 in dark. Not modeled: the faint radial glow of the dark fills (zoom is the worst, 74% of its core more than 8) and the plus-darker blend of the glyph.
+
+Tinted lights, `scripts/appkit-compare.py lights-tint light standard,accent-blue,accent-orange,accent-purple,wallpaper-teal,wallpaper-sand` (WCAG 2.2 contrast of the glyph against its fill, and of the fill against the window; the standard lights are the reference):
+
+| Look | Glyph/fill, close, minimize, zoom | Fill/window |
+|---|---|---|
+| standard (light) | 3.2, 3.1, 2.9 | 2.6, 1.5, 1.8 |
+| accent blue | 3.0, 2.6, 3.8 | 5.6, 5.8, 1.6 |
+| accent orange | 3.5, 3.6, 3.2 | 3.5, 3.5, 1.3 |
+| accent purple | 3.0, 2.8, 4.4 | 5.5, 6.0, 1.6 |
+| wallpaper teal | 2.6, 2.7, 4.0 | 6.1, 5.9, 1.6 |
+| wallpaper sand | 3.6, 3.3, 3.3 | 2.5, 2.6, 1.1 |
+
+Close and minimize take the same tone, as before, and zoom a lighter one; the glyph tells them apart, and every glyph stays near 3:1 against its light. Zoom is pale on a light window, as the standard yellow is.
+
+Not measured or not drawn: the utility panel's 10 pt lights, the lights over a full-screen window, how the plus-darker blend of the glyph behaves on a tinted fill, the lights at 2x, and Reduce Transparency with the system switch on.

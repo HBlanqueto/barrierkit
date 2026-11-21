@@ -1,4 +1,4 @@
-use ctdesign::{COLOR_PICKER, HAIRLINE, MULTICOLOR, Rgba};
+use ctdesign::{COLOR_PICKER, HAIRLINE, MULTICOLOR, Rgba, SPACE_3};
 use freya_core::prelude::*;
 use torin::prelude::{Area, Direction, Gaps, Size};
 
@@ -222,14 +222,19 @@ fn open_panel(
     style: Theme,
     size: (f32, f32),
 ) {
-    Popover::new(size, move || {
-        ColorPanel {
-            initial,
-            on_change: on_change.clone(),
-            style: style.clone(),
-        }
-        .into_element()
-    })
+    Popover::new(
+        (size.0 + 2.0 * SPACE_3, size.1 + 2.0 * SPACE_3),
+        move || {
+            rect()
+                .padding(SPACE_3)
+                .child(ColorPanel {
+                    initial,
+                    on_change: on_change.clone(),
+                    style: style.clone(),
+                })
+                .into_element()
+        },
+    )
     .show(area);
 }
 

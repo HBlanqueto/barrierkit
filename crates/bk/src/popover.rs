@@ -30,8 +30,8 @@ impl Popover {
             anchor: PopupAnchor::Bottom,
             gravity: PopupGravity::Bottom,
             size: (
-                (size.0 + 2.0 * POPOVER.padding).ceil() as u32,
-                (size.1 + 2.0 * POPOVER.padding + POPOVER.arrow_height).ceil() as u32,
+                size.0.ceil() as u32,
+                (size.1 + POPOVER.arrow_height).ceil() as u32,
             ),
             constraint_adjustment: PopupConstraintAdjustment {
                 slide_x: true,
@@ -56,12 +56,7 @@ impl App for PopoverBody {
         rect()
             .expanded()
             .background(color(menu.bg))
-            .padding(Gaps::new(
-                POPOVER.arrow_height + POPOVER.padding,
-                POPOVER.padding,
-                POPOVER.padding,
-                POPOVER.padding,
-            ))
+            .padding(Gaps::new(POPOVER.arrow_height, 0.0, 0.0, 0.0))
             .child((self.0)())
     }
 }

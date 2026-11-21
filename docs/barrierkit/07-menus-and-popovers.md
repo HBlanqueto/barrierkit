@@ -47,7 +47,7 @@ menu, a button that opens a popover and a control with a tooltip.
    rect()
        .on_sized(move |event: Event<SizedEventData>| area.set_if_modified(event.area))
        .on_press(move |_| {
-           Popover::new((240.0, 32.0), || Text::new(tr!("hello")).into())
+           Popover::new((264.0, 56.0), || rect().padding(12.0).child(Text::new(tr!("hello"))).into())
                .show(*area.peek())
        })
        .child(Text::new(tr!("info")))
@@ -352,11 +352,11 @@ mark; the keyboard focus ring is `Interaction::focus_ring`
 ([5. Controls](05-controls.md#building-a-new-control)).
 
 The keyboard focus ring draws `Resolved::focus_ring`: as macOS does, a
-translucent ring (`FOCUS_RING_COLOR_*` at 49.8% with the theme's accent, the
-accent at that alpha with another). Over a light or busy surface that ring can
-fall under the 3:1 contrast of WCAG 2.2 §1.4.11. With Increase Contrast
-(`contrast`) it is the opaque accent moved until it reaches 3:1 on the window
-([4. Resolution](04-appearance-and-tokens.md#resolution)). The `color` of this
+translucent ring (the `focus_ring` of the accent at 49.8%). Over a light or
+busy surface that ring can fall under the 3:1 contrast of WCAG 2.2 §1.4.11. With
+Increase Contrast (`contrast`) it is opaque, and a color macOS has no name for
+moves until it reaches 3:1 on the window
+([4. Accents](04-appearance-and-tokens.md#accents)). The `color` of this
 modifier is the caller's and is not changed.
 
 ## Popovers
@@ -368,7 +368,7 @@ modifier is the caller's and is not changed.
 
 | Argument | What it is |
 |---|---|
-| `size` | `(width, height)` of the content. The popup adds `POPOVER.padding` (12) on each side and the arrow band, `POPOVER.arrow_height` (13), on top |
+| `size` | `(width, height)` of the content, which is the whole card, as in `NSPopover`: its `contentSize` is the card (200 × 120 content gives a 200 × 120 card with a 13 high arrow). The popup adds only the arrow band, `POPOVER.arrow_height` (13), on top. Pad the content in the closure |
 | `content` | A closure that returns the content as an `Element`. The popover paints the background |
 | `anchor` | The area the arrow points at |
 

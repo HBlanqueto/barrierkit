@@ -221,8 +221,7 @@
       "arrow-width": 25.42,
       "arrow-height": 13,
       "arrow-tip-radius": 4,
-      "arrow-fillet": 4,
-      "padding": "space.3"
+      "arrow-fillet": 4
     },
     "combo-box": {
       "button-width": 24,
