@@ -22,6 +22,9 @@ values live in `State`.
    Switch::new("Wi-Fi")
    ```
 
+   Visible text is `impl Into<Cow<'static, str>>`: a literal or `tr!("id")` is
+   borrowed, a `String` is owned. No text needs `i18n::intern`.
+
 3. Pass the current value with the control's value method (`on`, `checked`, `value`,
    `selected`):
 
@@ -131,7 +134,7 @@ give one.
 
 | Method | Default | Effect |
 |---|---|---|
-| `Button::new(label)` | — | `label` is `impl Into<String>` |
+| `Button::new(label)` | — | `label` is visible text, see [step 2](#steps) |
 | `Button::system_image(label, Symbol)` | — | A symbol before the label, in the label's color |
 | `.style(\|s\| ..)` | Tengen, SwiftUI's `.bordered` | Look: a preset or any field of `ButtonStyle`, see below |
 | `.size(ControlSize)` | `Regular` | Height, padding, font and corners; see [control size](#control-size) |

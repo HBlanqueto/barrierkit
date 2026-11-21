@@ -1,5 +1,6 @@
 use ctdesign::{LIST_GROUP, Rgba};
 use freya_core::prelude::*;
+use std::borrow::Cow;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
 
 use crate::adornments::Divider;
@@ -20,7 +21,7 @@ use crate::symbol::{Symbol, symbol};
 enum Accessory {
     None,
     Control(Element),
-    Value(String),
+    Value(Cow<'static, str>),
     Navigation(Callback<(), ()>),
     Page(&'static str),
     Destructive(Callback<(), ()>),
@@ -28,9 +29,9 @@ enum Accessory {
 
 #[derive(Clone, PartialEq)]
 pub struct Row {
-    pub title: &'static str,
+    pub title: Cow<'static, str>,
     pub keywords: &'static [&'static str],
-    detail: Option<&'static str>,
+    detail: Option<Cow<'static, str>>,
     symbol: Option<(Symbol, Rgba)>,
     icon: Option<Element>,
     hover_control: Option<Element>,
@@ -39,9 +40,9 @@ pub struct Row {
 }
 
 impl Row {
-    pub fn new(title: &'static str) -> Self {
+    pub fn new(title: impl Into<Cow<'static, str>>) -> Self {
         Self {
-            title,
+            title: title.into(),
             keywords: &[],
             detail: None,
             symbol: None,
@@ -52,24 +53,35 @@ impl Row {
         }
     }
 
-    pub fn value(title: &'static str, value: impl Into<String>) -> Self {
+    pub fn value(title: impl Into<Cow<'static, str>>, value: impl Into<Cow<'static, str>>) -> Self {
         Self::new(title).with(Accessory::Value(value.into()))
     }
 
-    pub fn navigation(title: &'static str, on_press: impl Into<Callback<(), ()>>) -> Self {
+    pub fn navigation(
+        title: impl Into<Cow<'static, str>>,
+        on_press: impl Into<Callback<(), ()>>,
+    ) -> Self {
         Self::new(title).with(Accessory::Navigation(on_press.into()))
     }
 
-    pub fn page(title: &'static str, pane_id: &'static str) -> Self {
+    pub fn page(title: impl Into<Cow<'static, str>>, pane_id: &'static str) -> Self {
         Self::new(title).with(Accessory::Page(pane_id))
     }
 
-    pub fn destructive(title: &'static str, on_press: impl Into<Callback<(), ()>>) -> Self {
+    pub fn destructive(
+        title: impl Into<Cow<'static, str>>,
+        on_press: impl Into<Callback<(), ()>>,
+    ) -> Self {
         Self::new(title).with(Accessory::Destructive(on_press.into()))
     }
 
-    pub fn toggle(title: &'static str, on: bool, on_toggle: impl Into<Callback<bool, ()>>) -> Self {
-        Self::new(title).control(
+    pub fn toggle(
+        title: impl Into<Cow<'static, str>>,
+        on: bool,
+        on_toggle: impl Into<Callback<bool, ()>>,
+    ) -> Self {
+        let title = title.into();
+        Self::new(title.clone()).control(
             Switch::new(title)
                 .size(ControlSize::Mini)
                 .on(on)
@@ -81,8 +93,8 @@ impl Row {
         self.with(Accessory::Control(control.into_element()))
     }
 
-    pub fn detail(mut self, detail: &'static str) -> Self {
-        self.detail = Some(detail);
+    pub fn detail(mut self, detail: impl Into<Cow<'static, str>>) -> Self {
+        self.detail = Some(detail.into());
         self
     }
 
@@ -119,11 +131,11 @@ impl Row {
 
 #[derive(Clone, PartialEq)]
 pub struct Section {
-    pub title: Option<&'static str>,
+    pub title: Option<Cow<'static, str>>,
     pub rows: Vec<Row>,
     header: Option<Element>,
     illustration: Option<Element>,
-    footer: Option<&'static str>,
+    footer: Option<Cow<'static, str>>,
 }
 
 impl Section {
@@ -137,9 +149,9 @@ impl Section {
         }
     }
 
-    pub fn titled(title: &'static str) -> Self {
+    pub fn titled(title: impl Into<Cow<'static, str>>) -> Self {
         Self {
-            title: Some(title),
+            title: Some(title.into()),
             ..Self::new()
         }
     }
@@ -159,8 +171,8 @@ impl Section {
         self
     }
 
-    pub fn footer(mut self, footer: &'static str) -> Self {
-        self.footer = Some(footer);
+    pub fn footer(mut self, footer: impl Into<Cow<'static, str>>) -> Self {
+        self.footer = Some(footer.into());
         self
     }
 }
@@ -175,7 +187,7 @@ impl Default for Section {
 pub struct Form {
     pub sections: Vec<Section>,
     pinned: Option<Section>,
-    highlighted: Option<&'static str>,
+    highlighted: Option<Cow<'static, str>>,
     style: Theme,
     overrides: Overrides,
 }
@@ -228,7 +240,7 @@ impl Form {
         (pinned, scrolling)
     }
 
-    pub fn highlighted(mut self, row_title: Option<&'static str>) -> Self {
+    pub fn highlighted(mut self, row_title: Option<Cow<'static, str>>) -> Self {
         self.highlighted = row_title;
         self
     }
@@ -258,7 +270,7 @@ impl Component for Form {
                 FormRow {
                     row: row.clone(),
                     first: index == 0,
-                    highlighted: self.highlighted == Some(row.title),
+                    highlighted: self.highlighted == Some(row.title.clone()),
                     stacked,
                     style: self.style.clone(),
                 }
@@ -267,7 +279,7 @@ impl Component for Form {
             rect()
                 .width(Size::fill())
                 .direction(Direction::Vertical)
-                .maybe_child(match (&section.header, section.title) {
+                .maybe_child(match (&section.header, section.title.clone()) {
                     (Some(header), _) => Some(
                         rect()
                             .width(Size::fill())
@@ -294,7 +306,7 @@ impl Component for Form {
                             .children(rows)
                     }),
                 )
-                .maybe_child(section.footer.map(|footer| {
+                .maybe_child(section.footer.clone().map(|footer| {
                     rect()
                         .padding(Gaps::new(bottom, right, 0.0, left))
                         .child(text(footer, style.footer_font, ink(&style.footer)))
@@ -327,7 +339,7 @@ fn columns(sections: &[Section], style: &FormStyle, paints: &Paints) -> Rect {
     let weight = FontWeight::from(style.title_font.weight as i32);
     let label_width = rows
         .iter()
-        .map(|row| measure_text_weight(row.title, style.title_font.size as f32, weight))
+        .map(|row| measure_text_weight(&row.title, style.title_font.size as f32, weight))
         .fold(0.0, f32::max)
         .ceil();
     let [top, right, bottom, left] = style.padding;
@@ -355,7 +367,7 @@ fn columns(sections: &[Section], style: &FormStyle, paints: &Paints) -> Rect {
                         .width(Size::px(label_width))
                         .main_align(Alignment::End)
                         .direction(Direction::Horizontal)
-                        .child(text(row.title, style.title_font, ink)),
+                        .child(text(row.title.clone(), style.title_font, ink)),
                 )
                 .maybe_child(control.map(|control| rect().width(Size::flex(1.0)).child(control)))
                 .into_element()
@@ -416,7 +428,7 @@ impl Component for FormRow {
         let first_line = style.row_min_height - 2.0 * padding_y;
         let aligned_to_first_line = matches!(row.accessory, Accessory::Control(_));
         let stacked = (self.stacked || row.stacked) && aligned_to_first_line;
-        let wrapping = |content: &'static str, face, ink| {
+        let wrapping = |content: Cow<'static, str>, face, ink| {
             text(content, face, ink).width(Size::fill()).max_lines(None)
         };
         let mut labels = rect()
@@ -435,8 +447,8 @@ impl Component for FormRow {
                     0.0,
                 ))
             })
-            .child(wrapping(row.title, style.title_font, title_ink));
-        if let Some(detail) = row.detail {
+            .child(wrapping(row.title.clone(), style.title_font, title_ink));
+        if let Some(detail) = row.detail.clone() {
             labels = labels.child(wrapping(detail, style.detail_font, ink(&style.detail)));
         }
 
@@ -481,7 +493,7 @@ impl Component for FormRow {
             element = interaction
                 .attach(element, true)
                 .a11y_role(AccessibilityRole::Button)
-                .a11y_alt(row.title)
+                .a11y_alt(&*row.title)
                 .on_press(move |_| on_press.call(()));
             element = interaction.inner_focus_ring(element);
         }

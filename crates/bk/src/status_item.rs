@@ -1,4 +1,5 @@
 use futures_util::StreamExt;
+use std::borrow::Cow;
 use zbus::zvariant::OwnedObjectPath;
 
 use crate::main_menu::MenuHandle;
@@ -15,7 +16,7 @@ pub(crate) const WATCHER_PATH: &str = "/StatusNotifierWatcher";
 #[derive(Clone, Debug, PartialEq)]
 pub struct StatusItem {
     pub id: String,
-    pub title: String,
+    pub title: Cow<'static, str>,
     pub icon_name: String,
     pub items: Vec<MenuItem>,
 }
@@ -23,7 +24,7 @@ pub struct StatusItem {
 impl StatusItem {
     pub fn new(
         id: impl Into<String>,
-        title: impl Into<String>,
+        title: impl Into<Cow<'static, str>>,
         icon_name: impl Into<String>,
     ) -> Self {
         Self {
@@ -88,7 +89,7 @@ impl ItemObject {
         (
             String::new(),
             Vec::new(),
-            self.item.title.clone(),
+            self.item.title.to_string(),
             String::new(),
         )
     }

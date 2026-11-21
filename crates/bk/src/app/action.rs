@@ -103,8 +103,8 @@ impl Action {
     pub fn item_with(&self, enabled: bool, check: CheckState) -> MenuItem {
         MenuItem::Action {
             id: self.id.to_string(),
-            label: self.title().to_string(),
-            shortcut: self.shortcut.map(|s| s.text()),
+            label: self.title().into(),
+            shortcut: self.shortcut.map(|s| s.text().into()),
             enabled,
             check,
             icon: None,

@@ -1,5 +1,6 @@
 use ctdesign::Rgba;
 use freya_core::prelude::*;
+use std::borrow::Cow;
 use torin::prelude::{Area, Gaps, Position, Size};
 
 use crate::context_menu::edit_menu;
@@ -20,8 +21,8 @@ use crate::symbol::{Symbol, stroked_symbol};
 #[derive(PartialEq)]
 pub struct ComboBox {
     value: State<String>,
-    placeholder: &'static str,
-    items: Vec<&'static str>,
+    placeholder: Cow<'static, str>,
+    items: Vec<Cow<'static, str>>,
     width: Size,
     disabled: bool,
     style: Theme,
@@ -29,10 +30,10 @@ pub struct ComboBox {
 }
 
 impl ComboBox {
-    pub fn new(value: State<String>, placeholder: &'static str) -> Self {
+    pub fn new(value: State<String>, placeholder: impl Into<Cow<'static, str>>) -> Self {
         Self {
             value,
-            placeholder,
+            placeholder: placeholder.into(),
             items: Vec::new(),
             width: Size::fill(),
             disabled: false,
@@ -50,8 +51,8 @@ impl ComboBox {
         self
     }
 
-    pub fn item(mut self, label: &'static str) -> Self {
-        self.items.push(label);
+    pub fn item(mut self, label: impl Into<Cow<'static, str>>) -> Self {
+        self.items.push(label.into());
         self
     }
 
@@ -100,7 +101,7 @@ impl Component for ComboBox {
         );
         let input = input(
             value,
-            self.placeholder,
+            self.placeholder.clone(),
             [
                 ink(&field_style.background),
                 Rgba::TRANSPARENT,
@@ -118,7 +119,7 @@ impl Component for ComboBox {
             let entries = items
                 .iter()
                 .enumerate()
-                .map(|(index, label)| MenuItem::action(index.to_string(), *label))
+                .map(|(index, label)| MenuItem::action(index.to_string(), label.clone()))
                 .collect();
             let items = items.clone();
             open_popover_menu(
@@ -129,7 +130,7 @@ impl Component for ComboBox {
                 move |id| {
                     if let Some(label) = id.parse::<usize>().ok().and_then(|i| items.get(i)) {
                         let mut value = value;
-                        value.set((*label).to_owned());
+                        value.set(label.to_string());
                     }
                 },
             );
@@ -161,7 +162,7 @@ impl Component for ComboBox {
             .painted(&paints, &style.button)
             .bordered(&paints, style.button_border.as_ref())
             .a11y_role(AccessibilityRole::Button)
-            .a11y_alt(self.placeholder)
+            .a11y_alt(&*self.placeholder)
             .on_press(move |_| {
                 if !disabled {
                     open()

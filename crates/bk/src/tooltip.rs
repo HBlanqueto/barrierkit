@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 use std::time::Duration;
@@ -31,18 +32,18 @@ impl Shared {
 
 #[derive(Clone)]
 pub(crate) struct Tooltip {
-    text: &'static str,
+    text: Cow<'static, str>,
     shared: Rc<Shared>,
     popups: Option<Popups>,
     theme: Theme,
 }
 
-pub(crate) fn use_tooltip(text: &'static str) -> Tooltip {
+pub(crate) fn use_tooltip(text: impl Into<Cow<'static, str>>) -> Tooltip {
     let shared = use_hook(|| Rc::new(Shared::default()));
     let on_drop = shared.clone();
     use_drop(move || on_drop.hide());
     Tooltip {
-        text,
+        text: text.into(),
         shared,
         popups: try_consume_root_context(),
         theme: current_theme(),
@@ -78,7 +79,7 @@ impl Tooltip {
 
     fn show(&self) {
         let at = self.shared.pointer.get();
-        let (text_width, lines) = lines_of(self.text);
+        let (text_width, lines) = lines_of(&self.text);
         let width = text_width + 2.0 * TOOLTIP.padding_x;
         let height = lines as f32 * SUBHEADLINE.line_height as f32 + 2.0 * TOOLTIP.padding_y;
         let spec = PopupSpec {
@@ -95,7 +96,7 @@ impl Tooltip {
         let content = AppComponent::new(PopupRoot {
             theme: self.theme.clone(),
             content: AppComponent::new(Tag {
-                text: self.text,
+                text: self.text.clone(),
                 lines,
             }),
         });
@@ -126,7 +127,7 @@ fn tooltip_colors() -> (Rgba, Rgba) {
 }
 
 struct Tag {
-    text: &'static str,
+    text: Cow<'static, str>,
     lines: usize,
 }
 
@@ -139,6 +140,6 @@ impl App for Tag {
             .padding(Gaps::new_symmetric(TOOLTIP.padding_y, TOOLTIP.padding_x))
             .corner_radius(TOOLTIP.radius)
             .background(color(bg))
-            .child(text(self.text, SUBHEADLINE, ink).max_lines(self.lines))
+            .child(text(self.text.clone(), SUBHEADLINE, ink).max_lines(self.lines))
     }
 }

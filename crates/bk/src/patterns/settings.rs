@@ -3,6 +3,7 @@ use crate::scroll::ScrollView;
 use ctdesign::{Rgba, SETTINGS};
 use freya_core::prelude::*;
 use serde::{Deserialize, Serialize};
+use std::borrow::Cow;
 use torin::prelude::{Alignment, Area, Direction, Gaps, Size};
 
 use crate::app::{load_restoration, save_restoration};
@@ -24,7 +25,7 @@ const RECENTS: usize = 3;
 #[derive(Clone, PartialEq)]
 pub struct Pane {
     pub id: &'static str,
-    pub title: &'static str,
+    pub title: Cow<'static, str>,
     symbol: Symbol,
     tint: Rgba,
     form: Form,
@@ -48,14 +49,14 @@ impl PageLink {
 impl Pane {
     pub fn new(
         id: &'static str,
-        title: &'static str,
+        title: impl Into<Cow<'static, str>>,
         symbol: Symbol,
         tint: Rgba,
         form: Form,
     ) -> Self {
         Self {
             id,
-            title,
+            title: title.into(),
             symbol,
             tint,
             form,
@@ -77,12 +78,12 @@ impl Pane {
 
 #[derive(Clone, PartialEq)]
 pub struct PaneGroup {
-    title: Option<&'static str>,
+    title: Option<Cow<'static, str>>,
     panes: Vec<Pane>,
 }
 
 impl PaneGroup {
-    pub fn new(title: Option<&'static str>) -> Self {
+    pub fn new(title: Option<Cow<'static, str>>) -> Self {
         Self {
             title,
             panes: Vec::new(),
@@ -98,7 +99,7 @@ impl PaneGroup {
 #[derive(PartialEq)]
 pub struct SettingsWindow {
     restoration: Option<&'static str>,
-    account: Option<(String, String, String)>,
+    account: Option<(Cow<'static, str>, Cow<'static, str>, Cow<'static, str>)>,
     groups: Vec<PaneGroup>,
     suggestions: Option<&'static [&'static str]>,
     sidebar_range: Option<(f32, f32)>,
@@ -147,9 +148,9 @@ impl SettingsWindow {
 
     pub fn account(
         mut self,
-        initials: impl Into<String>,
-        name: impl Into<String>,
-        detail: impl Into<String>,
+        initials: impl Into<Cow<'static, str>>,
+        name: impl Into<Cow<'static, str>>,
+        detail: impl Into<Cow<'static, str>>,
     ) -> Self {
         self.account = Some((initials.into(), name.into(), detail.into()));
         self
@@ -199,7 +200,7 @@ impl Default for SettingsWindow {
     }
 }
 
-type Hit = (&'static str, Option<&'static str>);
+type Hit = (&'static str, Option<Cow<'static, str>>);
 
 #[derive(Clone, Default, Serialize, Deserialize)]
 struct Restored {
@@ -213,14 +214,18 @@ struct Restored {
 pub fn index(panes: &[&Pane]) -> SearchIndex<Hit> {
     let mut index = SearchIndex::new();
     for pane in panes {
-        index.add((pane.id, None), pane.title, &[]);
+        index.add((pane.id, None), pane.title.clone(), &[]);
         for row in pane
             .form
             .sections
             .iter()
             .flat_map(|section| section.rows.iter())
         {
-            index.add((pane.id, Some(row.title)), row.title, row.keywords);
+            index.add(
+                (pane.id, Some(row.title.clone())),
+                row.title.clone(),
+                row.keywords,
+            );
         }
     }
     index
@@ -269,7 +274,7 @@ impl Component for SettingsWindow {
         });
         let mut dismissed_at: State<Option<String>> = use_state(|| None);
         let mut cursor: State<Option<(String, usize)>> = use_state(|| None);
-        let mut highlighted: State<Option<&'static str>> = use_state(|| None);
+        let mut highlighted: State<Option<Cow<'static, str>>> = use_state(|| None);
         if let Some(mut destination) = self.destination {
             let wanted = destination.read().clone();
             if let Some(id) =
@@ -286,12 +291,12 @@ impl Component for SettingsWindow {
         let panes: Vec<&Pane> = self.panes().collect();
         let pane = panes.iter().find(|pane| pane.id == current).copied();
 
-        let open = move |id: &'static str, row: Option<&'static str>| {
+        let open = move |id: &'static str, row: Option<Cow<'static, str>>| {
             let mut history = history;
             let mut recents = recents;
             Callback::new(move |_| {
                 history.write().push(id);
-                highlighted.set(row);
+                highlighted.set(row.clone());
                 dismissed_at.set(Some(query.peek().clone()));
                 chosen.set(true);
                 let mut recents = recents.write();
@@ -304,20 +309,21 @@ impl Component for SettingsWindow {
         let dismissed = dismissed_at.read().as_ref() == Some(&text);
         let searching = *search_focused.read() && !dismissed;
         let item = |pane: &Pane| {
-            SidebarItem::new(pane.title)
+            SidebarItem::new(pane.title.clone())
                 .symbol(pane.symbol, pane.tint)
                 .selected(pane.with_pages().iter().any(|page| page.id == current))
                 .emphasized(!searching)
                 .on_select(open(pane.id, None))
                 .into_element()
         };
-        let result = |pane: &Pane, title: &'static str, row: Option<&'static str>| Entry::Result {
-            symbol: pane.symbol,
-            tint: pane.tint,
-            title,
-            subtitle: row.map(|_| pane.title),
-            on_select: open(pane.id, row),
-        };
+        let result =
+            |pane: &Pane, title: Cow<'static, str>, row: Option<Cow<'static, str>>| Entry::Result {
+                symbol: pane.symbol,
+                tint: pane.tint,
+                title,
+                subtitle: row.as_ref().map(|_| pane.title.clone()),
+                on_select: open(pane.id, row),
+            };
         let by_id = |id: &&'static str| panes.iter().find(|pane| pane.id == *id).copied();
 
         let mut entries = Vec::new();
@@ -338,13 +344,13 @@ impl Component for SettingsWindow {
                 suggestions
                     .iter()
                     .filter_map(by_id)
-                    .map(|pane| result(pane, pane.title, None)),
+                    .map(|pane| result(pane, pane.title.clone(), None)),
             );
             let recent: Vec<Entry> = recents
                 .read()
                 .iter()
                 .filter_map(by_id)
-                .map(|pane| result(pane, pane.title, None))
+                .map(|pane| result(pane, pane.title.clone(), None))
                 .collect();
             if !recent.is_empty() {
                 entries.push(Entry::Header(text!("recents")));
@@ -425,7 +431,7 @@ impl Component for SettingsWindow {
         }
         for (index, group) in self.groups.iter().enumerate() {
             let items = group.panes.iter().map(item);
-            sidebar = match group.title {
+            sidebar = match group.title.clone() {
                 Some(title) => sidebar.child(SidebarSection::new(title).children(items)),
                 None if index > 0 => sidebar
                     .child(rect().height(Size::px(SETTINGS.sidebar_group_gap as f32)))
@@ -438,30 +444,29 @@ impl Component for SettingsWindow {
             Some((pinned, scrolling)) => (pinned, Some(scrolling)),
             None => (None, None),
         };
-        let detail = rect()
-            .expanded()
-            .direction(Direction::Vertical)
-            .child(
-                Titlebar::new()
-                    .with_sidebar(true)
-                    .hairline(false)
-                    .spacing(style.toolbar_spacing)
-                    .title(pane.map(|pane| pane.title).unwrap_or_default())
-                    .left(
-                        rect()
-                            .direction(Direction::Horizontal)
-                            .cross_align(Alignment::Center)
-                            .spacing(style.navigation_spacing)
-                            .maybe_child(self.sidebar_toggle.then_some(SidebarToggle))
-                            .child(NavigationButtons::new(history)),
-                    ),
-            )
-            .maybe_child(pinned)
-            .child(
-                ScrollView::new()
-                    .top_line(true)
-                    .maybe_child(scrolling.map(|form| form.highlighted(*highlighted.read()))),
-            );
+        let detail =
+            rect()
+                .expanded()
+                .direction(Direction::Vertical)
+                .child(
+                    Titlebar::new()
+                        .with_sidebar(true)
+                        .hairline(false)
+                        .spacing(style.toolbar_spacing)
+                        .title(pane.map(|pane| pane.title.clone()).unwrap_or_default())
+                        .left(
+                            rect()
+                                .direction(Direction::Horizontal)
+                                .cross_align(Alignment::Center)
+                                .spacing(style.navigation_spacing)
+                                .maybe_child(self.sidebar_toggle.then_some(SidebarToggle))
+                                .child(NavigationButtons::new(history)),
+                        ),
+                )
+                .maybe_child(pinned)
+                .child(ScrollView::new().top_line(true).maybe_child(
+                    scrolling.map(|form| form.highlighted(highlighted.read().clone())),
+                ));
 
         let restored = saved.sidebar.unwrap_or(SidebarLayout {
             width: SETTINGS.sidebar_width as f32,
@@ -503,7 +508,7 @@ mod tests {
                 .collect::<Vec<_>>()
         };
         assert_eq!(keys("escritorio"), [("dock", None)]);
-        assert_eq!(keys("iconos"), [("dock", Some("Tamaño"))]);
+        assert_eq!(keys("iconos"), [("dock", Some("Tamaño".into()))]);
     }
 
     #[test]

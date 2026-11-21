@@ -32,7 +32,7 @@ pub(super) fn window_controls(status: WindowStatus) -> WindowControls {
         ping,
         pointer_serial: Rc::new(std::cell::Cell::new(0)),
         status: freya_core::prelude::State::create(status),
-        title: "Ventana".to_string(),
+        title: "Ventana".into(),
         fixed: false,
         fixed_width: false,
         surface_id: ObjectId::null(),

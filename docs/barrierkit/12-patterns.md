@@ -105,7 +105,7 @@ button returns. Search finds the page's rows.
 
 ### `PaneGroup`
 
-`PaneGroup::new(Option<title>).pane(Pane)`: panes under a
+`PaneGroup::new(Option<Cow<'static, str>>).pane(Pane)`: panes under a
 [`SidebarSection`](10-sidebar.md#sidebarsection) with that title. With `None`,
 the panes go straight into the sidebar.
 
@@ -132,7 +132,7 @@ While the search field has the focus, the sidebar selection turns gray
 
 ### `index`
 
-`index(&[&Pane]) -> SearchIndex<(&str, Option<&str>)>` builds the search over
+`index(&[&Pane]) -> SearchIndex<(&'static str, Option<Cow<'static, str>>)>` builds the search over
 the panes: one entry per pane, keyed `(pane id, None)`, and one per row, keyed
 `(pane id, Some(row title))`. See [`SearchIndex`](11-views.md#searchindex).
 

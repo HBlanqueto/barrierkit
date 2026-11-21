@@ -189,7 +189,7 @@ impl App for Case {
             }
             Scene::Prefs => SettingsWindow::new()
                 .group(
-                    PaneGroup::new(Some("Capa 1")).pane(Pane::new(
+                    PaneGroup::new(Some("Capa 1".into())).pane(Pane::new(
                         "botones",
                         "Botones",
                         Symbol::Plus,

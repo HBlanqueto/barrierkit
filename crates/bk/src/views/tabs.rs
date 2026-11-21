@@ -1,5 +1,6 @@
 use ctdesign::{ControlSize, TAB_VIEW};
 use freya_core::prelude::*;
+use std::borrow::Cow;
 use torin::prelude::{Alignment, Direction, Gaps, Position, Size};
 
 use crate::choices::{Choice, use_choice};
@@ -14,8 +15,8 @@ use crate::theme::color;
 
 #[derive(PartialEq)]
 pub struct TabView {
-    label: &'static str,
-    tabs: Vec<(Symbol, &'static str, Element)>,
+    label: Cow<'static, str>,
+    tabs: Vec<(Symbol, Cow<'static, str>, Element)>,
     selected: usize,
     on_change: Option<Callback<usize, ()>>,
     style: Theme,
@@ -31,9 +32,9 @@ fn tab_height(style: &TabViewStyle) -> f32 {
 }
 
 impl TabView {
-    pub fn new(label: &'static str) -> Self {
+    pub fn new(label: impl Into<Cow<'static, str>>) -> Self {
         Self {
-            label,
+            label: label.into(),
             tabs: Vec::new(),
             selected: 0,
             on_change: None,
@@ -51,8 +52,13 @@ impl TabView {
         self.style(move |style| style.sized(size))
     }
 
-    pub fn tab(mut self, icon: Symbol, title: &'static str, content: impl IntoElement) -> Self {
-        self.tabs.push((icon, title, content.into_element()));
+    pub fn tab(
+        mut self,
+        icon: Symbol,
+        title: impl Into<Cow<'static, str>>,
+        content: impl IntoElement,
+    ) -> Self {
+        self.tabs.push((icon, title.into(), content.into_element()));
         self
     }
 
@@ -100,7 +106,7 @@ impl TabView {
             .map(|(index, (icon, title, _))| {
                 ToolbarTab {
                     icon: *icon,
-                    title,
+                    title: title.clone(),
                     active: index == current,
                     on_select: choice.select(index),
                     style: self.style.clone(),
@@ -115,7 +121,7 @@ impl TabView {
             .child(
                 rect()
                     .a11y_role(AccessibilityRole::TabList)
-                    .a11y_alt(self.label)
+                    .a11y_alt(&*self.label)
                     .width(Size::fill())
                     .direction(Direction::Horizontal)
                     .main_align(Alignment::Center)
@@ -191,7 +197,7 @@ impl TabView {
         let draws_box = tab_type != TabType::NoTabsNoBorder;
         let tabs = self.tabs.iter().enumerate().map(|(index, (_, title, _))| {
             StripTab {
-                title,
+                title: title.clone(),
                 active: index == current,
                 vertical: tab_type == TabType::Left,
                 on_select: choice.select(index),
@@ -207,7 +213,7 @@ impl TabView {
         );
         let strip = rect()
             .a11y_role(AccessibilityRole::TabList)
-            .a11y_alt(self.label)
+            .a11y_alt(&*self.label)
             .direction(if tab_type == TabType::Left {
                 Direction::Vertical
             } else {
@@ -268,7 +274,7 @@ impl TabView {
 #[derive(PartialEq)]
 struct ToolbarTab {
     icon: Symbol,
-    title: &'static str,
+    title: Cow<'static, str>,
     active: bool,
     on_select: Callback<(), ()>,
     style: Theme,
@@ -296,7 +302,7 @@ impl Component for ToolbarTab {
         let tab = interaction
             .attach(rect(), true)
             .a11y_role(AccessibilityRole::Tab)
-            .a11y_alt(self.title)
+            .a11y_alt(&*self.title)
             .a11y_builder(move |node| node.set_selected(active))
             .min_width(Size::px(style.tab_min_width))
             .padding(Gaps::new(
@@ -314,7 +320,7 @@ impl Component for ToolbarTab {
             .child(symbol(self.icon, style.icon_size, ink))
             .child(
                 label()
-                    .text(self.title)
+                    .text(self.title.clone())
                     .font_family(style.font.family)
                     .font_size(style.font.size as f32)
                     .font_weight(style.font.weight as i32)
@@ -327,7 +333,7 @@ impl Component for ToolbarTab {
 
 #[derive(PartialEq)]
 struct StripTab {
-    title: &'static str,
+    title: Cow<'static, str>,
     active: bool,
     vertical: bool,
     on_select: Callback<(), ()>,
@@ -348,7 +354,7 @@ impl Component for StripTab {
             (&style.tab_background, &style.label)
         };
         let ink = paints.color(ink.resolve(state));
-        let along = measure_text(self.title, style.font.size as f32)
+        let along = measure_text(&self.title, style.font.size as f32)
             + 2.0
                 * if self.vertical {
                     style.tab_padding_y
@@ -369,7 +375,7 @@ impl Component for StripTab {
             .painted(&paints, background)
             .child(
                 label()
-                    .text(self.title)
+                    .text(self.title.clone())
                     .font_family(style.font.family)
                     .font_size(style.font.size as f32)
                     .font_weight(style.font.weight as i32)
@@ -389,7 +395,7 @@ impl Component for StripTab {
         let cell = interaction
             .attach(rect(), true)
             .a11y_role(AccessibilityRole::Tab)
-            .a11y_alt(self.title)
+            .a11y_alt(&*self.title)
             .a11y_builder(move |node| node.set_selected(active))
             .on_press(move |_| on_select.call(()));
         let cell = if self.vertical {

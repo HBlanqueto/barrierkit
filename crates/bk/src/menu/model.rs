@@ -1,5 +1,6 @@
 use super::*;
 use crate::i18n::text;
+use std::borrow::Cow;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum SearchSource {
@@ -81,22 +82,22 @@ impl MenuIcon {
 pub enum MenuItem {
     Action {
         id: String,
-        label: String,
-        shortcut: Option<String>,
+        label: Cow<'static, str>,
+        shortcut: Option<Cow<'static, str>>,
         enabled: bool,
         check: CheckState,
         icon: Option<MenuIcon>,
-        badge: Option<String>,
+        badge: Option<Cow<'static, str>>,
     },
     Submenu {
         id: Option<String>,
-        label: String,
+        label: Cow<'static, str>,
         enabled: bool,
         items: Vec<MenuItem>,
         icon: Option<MenuIcon>,
     },
     Header {
-        label: String,
+        label: Cow<'static, str>,
         count: Option<usize>,
     },
     Separator,
@@ -104,7 +105,7 @@ pub enum MenuItem {
         items: Vec<MenuItem>,
     },
     SearchField {
-        placeholder: String,
+        placeholder: Cow<'static, str>,
     },
     SearchResult {
         item: Box<MenuItem>,
@@ -114,7 +115,7 @@ pub enum MenuItem {
 }
 
 impl MenuItem {
-    pub fn action(id: impl Into<String>, label: impl Into<String>) -> Self {
+    pub fn action(id: impl Into<String>, label: impl Into<Cow<'static, str>>) -> Self {
         Self::Action {
             id: id.into(),
             label: label.into(),
@@ -130,25 +131,25 @@ impl MenuItem {
         Self::Palette { items }
     }
 
-    pub fn with_badge(mut self, text: impl Into<String>) -> Self {
+    pub fn with_badge(mut self, text: impl Into<Cow<'static, str>>) -> Self {
         if let MenuItem::Action { badge, .. } = &mut self {
             *badge = Some(text.into());
         }
         self
     }
 
-    pub fn placeholder(label: impl Into<String>) -> Self {
+    pub fn placeholder(label: impl Into<Cow<'static, str>>) -> Self {
         Self::action("", label).with_enabled(false)
     }
 
-    pub fn header(label: impl Into<String>) -> Self {
+    pub fn header(label: impl Into<Cow<'static, str>>) -> Self {
         Self::Header {
             label: label.into(),
             count: None,
         }
     }
 
-    pub fn submenu(label: impl Into<String>, items: Vec<MenuItem>) -> Self {
+    pub fn submenu(label: impl Into<Cow<'static, str>>, items: Vec<MenuItem>) -> Self {
         Self::Submenu {
             id: None,
             label: label.into(),
@@ -165,7 +166,7 @@ impl MenuItem {
         self
     }
 
-    pub fn with_shortcut(mut self, text: impl Into<String>) -> Self {
+    pub fn with_shortcut(mut self, text: impl Into<Cow<'static, str>>) -> Self {
         if let Self::Action { shortcut, .. } = &mut self {
             *shortcut = Some(text.into());
         }
@@ -223,9 +224,11 @@ impl MenuItem {
         }
     }
 
-    pub(super) fn shortcut(&self) -> Option<String> {
+    pub(super) fn shortcut(&self) -> Option<Cow<'static, str>> {
         match self {
-            MenuItem::Action { shortcut, .. } => shortcut.as_deref().map(format_shortcut),
+            MenuItem::Action { shortcut, .. } => {
+                shortcut.as_deref().map(|s| format_shortcut(s).into())
+            }
             MenuItem::SearchResult { item, .. } => item.shortcut(),
             MenuItem::Submenu { .. }
             | MenuItem::Header { .. }

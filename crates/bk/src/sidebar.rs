@@ -2,6 +2,7 @@ use crate::elements::{Overrides, forward_container, forward_overrides};
 use ctappearance::SidebarSurface;
 use ctdesign::{Rgba, SIDEBAR, SidebarPalette, TEXT_FIELD};
 use freya_core::prelude::*;
+use std::borrow::Cow;
 use torin::prelude::{Alignment, Area, Content, Direction, Gaps, Position, Size};
 
 use crate::ProbeExt;
@@ -422,7 +423,7 @@ impl Component for Sidebar {
 
 #[derive(PartialEq)]
 pub struct SidebarItem {
-    label: String,
+    label: Cow<'static, str>,
     symbol: Option<(Symbol, Rgba)>,
     selected: bool,
     style: Theme,
@@ -440,7 +441,7 @@ impl ProbeExt for SidebarItem {
 }
 
 impl SidebarItem {
-    pub fn new(label: impl Into<String>) -> Self {
+    pub fn new(label: impl Into<Cow<'static, str>>) -> Self {
         Self {
             label: label.into(),
             symbol: None,
@@ -577,7 +578,7 @@ impl Component for SidebarItem {
 
 #[derive(PartialEq)]
 pub struct SidebarSection {
-    title: String,
+    title: Cow<'static, str>,
     children: Vec<Element>,
     style: Theme,
     key: DiffKey,
@@ -585,7 +586,7 @@ pub struct SidebarSection {
 }
 
 impl SidebarSection {
-    pub fn new(title: impl Into<String>) -> Self {
+    pub fn new(title: impl Into<Cow<'static, str>>) -> Self {
         Self {
             title: title.into(),
             children: Vec::new(),
@@ -713,18 +714,18 @@ impl Component for SidebarSection {
 
 #[derive(PartialEq)]
 pub struct SidebarAccount {
-    initials: String,
-    name: String,
-    detail: String,
+    initials: Cow<'static, str>,
+    name: Cow<'static, str>,
+    detail: Cow<'static, str>,
     style: Theme,
     overrides: Overrides,
 }
 
 impl SidebarAccount {
     pub fn new(
-        initials: impl Into<String>,
-        name: impl Into<String>,
-        detail: impl Into<String>,
+        initials: impl Into<Cow<'static, str>>,
+        name: impl Into<Cow<'static, str>>,
+        detail: impl Into<Cow<'static, str>>,
     ) -> Self {
         Self {
             initials: initials.into(),

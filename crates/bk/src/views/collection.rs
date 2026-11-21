@@ -1,4 +1,5 @@
 use freya_core::prelude::*;
+use std::borrow::Cow;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
 
 use crate::elements::{Overrides, forward_overrides};
@@ -9,8 +10,8 @@ use crate::styles::{CollectionViewStyle, LayoutDirection, Paints, Theme, resolve
 
 #[derive(PartialEq)]
 pub struct CollectionView {
-    label: &'static str,
-    items: Vec<(Element, String)>,
+    label: Cow<'static, str>,
+    items: Vec<(Element, Cow<'static, str>)>,
     selected: Vec<usize>,
     on_select: Option<Callback<Vec<usize>, ()>>,
     style: Theme,
@@ -18,9 +19,9 @@ pub struct CollectionView {
 }
 
 impl CollectionView {
-    pub fn new(label: &'static str) -> Self {
+    pub fn new(label: impl Into<Cow<'static, str>>) -> Self {
         Self {
-            label,
+            label: label.into(),
             items: Vec::new(),
             selected: Vec::new(),
             on_select: None,
@@ -37,7 +38,7 @@ impl CollectionView {
         self
     }
 
-    pub fn item(mut self, icon: impl IntoElement, name: impl Into<String>) -> Self {
+    pub fn item(mut self, icon: impl IntoElement, name: impl Into<Cow<'static, str>>) -> Self {
         self.items.push((icon.into_element(), name.into()));
         self
     }
@@ -103,7 +104,7 @@ impl Component for CollectionView {
         });
         let root = track_modifiers(rect(), held)
             .a11y_role(AccessibilityRole::Grid)
-            .a11y_alt(self.label)
+            .a11y_alt(&*self.label)
             .width(Size::fill())
             .direction(Direction::Horizontal)
             .content(Content::wrap_spacing(style.spacing))
@@ -116,7 +117,7 @@ impl Component for CollectionView {
 #[derive(PartialEq)]
 struct Tile {
     icon: Element,
-    name: String,
+    name: Cow<'static, str>,
     selected: bool,
     on_press: Callback<(), ()>,
     style: Theme,

@@ -1,5 +1,6 @@
 use crate::elements::{Overrides, forward_overrides};
 use crate::i18n::text;
+use std::borrow::Cow;
 
 use ctdesign::{ACCENT_SWATCHES, ACCENTS, ControlSize, MULTICOLOR, Rgba};
 use freya_core::prelude::*;
@@ -76,7 +77,7 @@ pub(crate) fn take_focus_when(interaction: crate::interaction::Interaction, take
 }
 
 fn choice_group(
-    label: &'static str,
+    label: &str,
     axis: Axis,
     spacing: f32,
     wraps: bool,
@@ -100,8 +101,8 @@ fn dimmed_when(element: Rect, disabled: bool, opacity: f32, disabled_opacity: f3
 
 #[derive(PartialEq)]
 pub struct RadioGroup {
-    label: &'static str,
-    options: Vec<&'static str>,
+    label: Cow<'static, str>,
+    options: Vec<Cow<'static, str>>,
     selected: usize,
     disabled: bool,
     on_change: Option<Callback<usize, ()>>,
@@ -111,9 +112,9 @@ pub struct RadioGroup {
 }
 
 impl RadioGroup {
-    pub fn new(label: &'static str) -> Self {
+    pub fn new(label: impl Into<Cow<'static, str>>) -> Self {
         Self {
-            label,
+            label: label.into(),
             options: Vec::new(),
             selected: 0,
             disabled: false,
@@ -140,8 +141,8 @@ impl RadioGroup {
         self.style(move |style: RadioGroupStyle| style.sized(size))
     }
 
-    pub fn option(mut self, label: &'static str) -> Self {
-        self.options.push(label);
+    pub fn option(mut self, label: impl Into<Cow<'static, str>>) -> Self {
+        self.options.push(label.into());
         self
     }
 
@@ -181,7 +182,7 @@ impl Component for RadioGroup {
         let keyed = use_state(|| false);
         let options = self.options.iter().enumerate().map(|(index, text)| {
             RadioOption {
-                text,
+                text: text.clone(),
                 selected: choice.is(index),
                 take_focus: choice.is(index) && *keyed.read(),
                 disabled: self.disabled,
@@ -190,7 +191,7 @@ impl Component for RadioGroup {
             }
             .into_element()
         });
-        let group = choice_group(self.label, style.axis, style.spacing, false, options);
+        let group = choice_group(&self.label, style.axis, style.spacing, false, options);
         let root = if self.disabled {
             group
         } else {
@@ -202,7 +203,7 @@ impl Component for RadioGroup {
 
 #[derive(PartialEq)]
 struct RadioOption {
-    text: &'static str,
+    text: Cow<'static, str>,
     selected: bool,
     take_focus: bool,
     disabled: bool,
@@ -261,7 +262,7 @@ impl Component for RadioOption {
         let row = interaction
             .attach(rect(), enabled)
             .a11y_role(AccessibilityRole::RadioButton)
-            .a11y_alt(self.text)
+            .a11y_alt(&*self.text)
             .a11y_builder(move |node| node.set_toggled(selected.into()))
             .maybe(enabled, |el| el.on_press(move |_| on_select.call(())));
         match style.label_position {
@@ -270,7 +271,7 @@ impl Component for RadioOption {
                 .cross_align(Alignment::Center)
                 .child(circle),
             Some(edge) => {
-                let text = with_font(label().text(self.text), style.label_font)
+                let text = with_font(label().text(self.text.clone()), style.label_font)
                     .max_lines(1)
                     .color(paints.fill(&style.label));
                 labeled(
@@ -302,8 +303,8 @@ pub fn swatch_name(id: &'static str) -> &'static str {
 
 #[derive(PartialEq)]
 pub struct ColorWell {
-    label: &'static str,
-    multicolor: Option<&'static str>,
+    label: Cow<'static, str>,
+    multicolor: Option<Cow<'static, str>>,
     swatches: &'static [(&'static str, Rgba)],
     accents: bool,
     selected: Option<usize>,
@@ -315,9 +316,12 @@ pub struct ColorWell {
 }
 
 impl ColorWell {
-    pub fn new(label: &'static str, swatches: &'static [(&'static str, Rgba)]) -> Self {
+    pub fn new(
+        label: impl Into<Cow<'static, str>>,
+        swatches: &'static [(&'static str, Rgba)],
+    ) -> Self {
         Self {
-            label,
+            label: label.into(),
             multicolor: None,
             swatches,
             accents: false,
@@ -330,7 +334,7 @@ impl ColorWell {
         }
     }
 
-    pub fn accents(label: &'static str) -> Self {
+    pub fn accents(label: impl Into<Cow<'static, str>>) -> Self {
         Self {
             accents: true,
             ..Self::new(label, &ACCENT_SWATCHES)
@@ -342,8 +346,8 @@ impl ColorWell {
         self
     }
 
-    pub fn multicolor(mut self, name: &'static str) -> Self {
-        self.multicolor = Some(name);
+    pub fn multicolor(mut self, name: impl Into<Cow<'static, str>>) -> Self {
+        self.multicolor = Some(name.into());
         self
     }
 
@@ -392,35 +396,40 @@ impl Component for ColorWell {
     fn render(&self) -> impl IntoElement {
         let style: ColorWellStyle = resolve(&self.style);
         let choice = use_choice(self.selected, self.on_change.clone());
-        let swatches = self
-            .multicolor
-            .map(|name| (name, None))
-            .into_iter()
-            .chain(
-                self.swatches
-                    .iter()
-                    .map(|(name, fill)| (swatch_name(name), Some(self.fill_of(name, *fill)))),
-            )
-            .enumerate()
-            .map(|(index, (name, fill))| {
-                Swatch {
-                    name,
-                    fill,
-                    selected: choice.is(index),
-                    disabled: self.disabled,
-                    on_select: choice.select(index),
-                    style: self.style.clone(),
-                }
-                .into_element()
-            });
-        let root = choice_group(self.label, style.axis, style.spacing, style.wraps, swatches);
+        let swatches =
+            self.multicolor
+                .clone()
+                .map(|name| (name, None))
+                .into_iter()
+                .chain(self.swatches.iter().map(|(name, fill)| {
+                    (swatch_name(name).into(), Some(self.fill_of(name, *fill)))
+                }))
+                .enumerate()
+                .map(|(index, (name, fill))| {
+                    Swatch {
+                        name,
+                        fill,
+                        selected: choice.is(index),
+                        disabled: self.disabled,
+                        on_select: choice.select(index),
+                        style: self.style.clone(),
+                    }
+                    .into_element()
+                });
+        let root = choice_group(
+            &self.label,
+            style.axis,
+            style.spacing,
+            style.wraps,
+            swatches,
+        );
         self.overrides.apply(root)
     }
 }
 
 #[derive(PartialEq)]
 struct Swatch {
-    name: &'static str,
+    name: Cow<'static, str>,
     fill: Option<Rgba>,
     selected: bool,
     disabled: bool,
@@ -478,7 +487,7 @@ impl Component for Swatch {
         let column = interaction
             .attach(rect(), enabled)
             .a11y_role(AccessibilityRole::RadioButton)
-            .a11y_alt(self.name)
+            .a11y_alt(&*self.name)
             .a11y_builder(move |node| node.set_toggled(selected.into()))
             .width(Size::px(style.column_width))
             .direction(Direction::Vertical)
@@ -489,9 +498,9 @@ impl Component for Swatch {
             .child(
                 with_font(
                     label().text(if selected || interaction.hovered() {
-                        self.name
+                        self.name.clone()
                     } else {
-                        ""
+                        "".into()
                     }),
                     style.name_font,
                 )
@@ -504,8 +513,8 @@ impl Component for Swatch {
 
 #[derive(PartialEq)]
 pub struct ChoiceCards {
-    label: &'static str,
-    options: Vec<(&'static str, Element)>,
+    label: Cow<'static, str>,
+    options: Vec<(Cow<'static, str>, Element)>,
     selected: usize,
     disabled: bool,
     on_change: Option<Callback<usize, ()>>,
@@ -515,9 +524,9 @@ pub struct ChoiceCards {
 }
 
 impl ChoiceCards {
-    pub fn new(label: &'static str) -> Self {
+    pub fn new(label: impl Into<Cow<'static, str>>) -> Self {
         Self {
-            label,
+            label: label.into(),
             options: Vec::new(),
             selected: 0,
             disabled: false,
@@ -536,8 +545,12 @@ impl ChoiceCards {
         self
     }
 
-    pub fn option(mut self, caption: &'static str, preview: impl IntoElement) -> Self {
-        self.options.push((caption, preview.into_element()));
+    pub fn option(
+        mut self,
+        caption: impl Into<Cow<'static, str>>,
+        preview: impl IntoElement,
+    ) -> Self {
+        self.options.push((caption.into(), preview.into_element()));
         self
     }
 
@@ -580,7 +593,7 @@ impl Component for ChoiceCards {
             .enumerate()
             .map(|(index, (caption, preview))| {
                 Card {
-                    caption,
+                    caption: caption.clone(),
                     preview: preview.clone(),
                     selected: choice.is(index),
                     disabled: self.disabled,
@@ -589,14 +602,14 @@ impl Component for ChoiceCards {
                 }
                 .into_element()
             });
-        let root = choice_group(self.label, style.axis, style.spacing, style.wraps, cards);
+        let root = choice_group(&self.label, style.axis, style.spacing, style.wraps, cards);
         self.overrides.apply(root)
     }
 }
 
 #[derive(PartialEq)]
 struct Card {
-    caption: &'static str,
+    caption: Cow<'static, str>,
     preview: Element,
     selected: bool,
     disabled: bool,
@@ -659,7 +672,7 @@ impl Component for Card {
         let column = interaction
             .attach(rect(), enabled)
             .a11y_role(AccessibilityRole::RadioButton)
-            .a11y_alt(self.caption)
+            .a11y_alt(&*self.caption)
             .a11y_builder(move |node| node.set_toggled(selected.into()))
             .direction(Direction::Vertical)
             .cross_align(Alignment::Center)
@@ -667,7 +680,7 @@ impl Component for Card {
             .maybe(enabled, |el| el.on_press(move |_| on_select.call(())))
             .child(card)
             .child(
-                with_font(label().text(self.caption), font)
+                with_font(label().text(self.caption.clone()), font)
                     .max_lines(1)
                     .color(paints.fill(ink)),
             );

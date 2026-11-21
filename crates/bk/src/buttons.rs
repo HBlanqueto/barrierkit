@@ -1,5 +1,6 @@
 use ctdesign::SYMBOL;
 use freya_core::prelude::*;
+use std::borrow::Cow;
 use torin::prelude::{Alignment, Area, Direction, Gaps, Size};
 
 use crate::controls::{dimmed, shadowed};
@@ -25,7 +26,7 @@ pub enum LabelStyle {
 
 #[derive(PartialEq)]
 pub struct MenuButton {
-    label: &'static str,
+    label: Cow<'static, str>,
     image: Option<Symbol>,
     label_style: LabelStyle,
     items: Vec<MenuItem>,
@@ -35,9 +36,9 @@ pub struct MenuButton {
 }
 
 impl MenuButton {
-    pub fn new(label: &'static str, items: Vec<MenuItem>) -> Self {
+    pub fn new(label: impl Into<Cow<'static, str>>, items: Vec<MenuItem>) -> Self {
         Self {
-            label,
+            label: label.into(),
             image: None,
             label_style: LabelStyle::IconOnly,
             items,
@@ -47,7 +48,11 @@ impl MenuButton {
         }
     }
 
-    pub fn system_image(label: &'static str, image: Symbol, items: Vec<MenuItem>) -> Self {
+    pub fn system_image(
+        label: impl Into<Cow<'static, str>>,
+        image: Symbol,
+        items: Vec<MenuItem>,
+    ) -> Self {
         Self {
             image: Some(image),
             ..Self::new(label, items)
@@ -89,7 +94,7 @@ impl Component for MenuButton {
         let button = interaction
             .attach(rect(), true)
             .a11y_role(AccessibilityRole::Button)
-            .a11y_alt(self.label)
+            .a11y_alt(&*self.label)
             .a11y_builder(|node| node.set_has_popup(accesskit::HasPopup::Menu))
             .height(Size::px(style.height))
             .maybe(!icon_only, |button| {
@@ -143,7 +148,7 @@ impl Component for MenuButton {
                         )
                     })
                     .child(
-                        with_font(label().text(self.label), style.font)
+                        with_font(label().text(self.label.clone()), style.font)
                             .max_lines(1)
                             .color(paints.fill(&style.label)),
                     )
@@ -163,7 +168,7 @@ impl Component for MenuButton {
 
 #[derive(PartialEq)]
 pub struct ComboButton {
-    label: &'static str,
+    label: Cow<'static, str>,
     items: Vec<MenuItem>,
     on_press: Option<Callback<(), ()>>,
     on_activate: Option<Callback<String, ()>>,
@@ -172,9 +177,9 @@ pub struct ComboButton {
 }
 
 impl ComboButton {
-    pub fn new(label: &'static str, items: Vec<MenuItem>) -> Self {
+    pub fn new(label: impl Into<Cow<'static, str>>, items: Vec<MenuItem>) -> Self {
         Self {
-            label,
+            label: label.into(),
             items,
             on_press: None,
             on_activate: None,
@@ -224,7 +229,7 @@ impl Component for ComboButton {
         let primary = action
             .attach(rect(), true)
             .a11y_role(AccessibilityRole::Button)
-            .a11y_alt(self.label)
+            .a11y_alt(&*self.label)
             .height(Size::fill())
             .padding(Gaps::new(0.0, style.padding_x, 0.0, style.padding_x))
             .center()
@@ -233,7 +238,7 @@ impl Component for ComboButton {
                 el.on_press(move |_| on_press.call(()))
             })
             .child(
-                with_font(label().text(self.label), style.font)
+                with_font(label().text(self.label.clone()), style.font)
                     .max_lines(1)
                     .color(action_paints.fill(&style.label)),
             );
@@ -274,7 +279,7 @@ impl Component for ComboButton {
         let (separator_width, separator_height) = style.separator_size;
         let combo = rect()
             .a11y_role(AccessibilityRole::Group)
-            .a11y_alt(self.label)
+            .a11y_alt(&*self.label)
             .height(Size::px(style.height))
             .corner_radius(radius)
             .overflow(Overflow::Clip)
@@ -379,16 +384,16 @@ impl Component for HelpLink {
 
 #[derive(PartialEq)]
 pub struct ControlGroup {
-    label: &'static str,
+    label: Cow<'static, str>,
     children: Vec<Element>,
     style: Theme,
     overrides: Overrides,
 }
 
 impl ControlGroup {
-    pub fn new(label: &'static str) -> Self {
+    pub fn new(label: impl Into<Cow<'static, str>>) -> Self {
         Self {
-            label,
+            label: label.into(),
             children: Vec::new(),
             style: Theme::tengen(),
             overrides: Overrides::default(),
@@ -432,7 +437,7 @@ impl Component for ControlGroup {
         let height = style.height;
         let group = rect()
             .a11y_role(AccessibilityRole::Group)
-            .a11y_alt(self.label)
+            .a11y_alt(&*self.label)
             .height(Size::px(height))
             .corner_radius(
                 style
@@ -451,16 +456,16 @@ impl Component for ControlGroup {
 
 #[derive(PartialEq)]
 pub struct ShareLink {
-    label: &'static str,
-    content: String,
+    label: Cow<'static, str>,
+    content: Cow<'static, str>,
     style: Theme,
     overrides: Overrides,
 }
 
 impl ShareLink {
-    pub fn new(label: &'static str, content: impl Into<String>) -> Self {
+    pub fn new(label: impl Into<Cow<'static, str>>, content: impl Into<Cow<'static, str>>) -> Self {
         Self {
-            label,
+            label: label.into(),
             content: content.into(),
             style: Theme::tengen(),
             overrides: Overrides::default(),
@@ -490,7 +495,7 @@ forward_overrides!(ShareLink);
 
 impl Component for ShareLink {
     fn render(&self) -> impl IntoElement {
-        let content = self.content.clone();
+        let content = self.content.to_string();
         let is_link = content.starts_with("http://") || content.starts_with("https://");
         let mut items = vec![
             MenuItem::action("copy", text!("share-copy")),
@@ -501,7 +506,7 @@ impl Component for ShareLink {
         }
         let root = MenuButton {
             style: self.style.clone(),
-            ..MenuButton::new(self.label, items)
+            ..MenuButton::new(self.label.clone(), items)
         }
         .on_activate(move |id: String| {
             let content = content.clone();

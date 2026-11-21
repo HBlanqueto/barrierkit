@@ -329,8 +329,8 @@ It is drawn as the Dock menu of macOS 26:
 
 ### `.help` (tooltips)
 
-`element.help(text)` shows `text` as a tooltip over `element`. `text` is a
-`&'static str`, which is what `tr!` returns. `.help` calls a hook: call it on
+`element.help(text)` shows `text` as a tooltip over `element`. `text` is
+`impl Into<Cow<'static, str>>`. `.help` calls a hook: call it on
 every render, never inside a condition. The tooltip works like this:
 
 1. The pointer enters the element and stays `TOOLTIP.delay_ms` (1500 ms).

@@ -2,6 +2,7 @@ use freya_animation::prelude::{AnimNum, Function, OnChange, OnCreation, OnFinish
 use freya_components::cache::AssetAge;
 use freya_components::svg_viewer::SvgViewer;
 use freya_core::prelude::*;
+use std::borrow::Cow;
 use torin::prelude::{Direction, Position, Size};
 
 use crate::backdrop::Tint;
@@ -16,25 +17,25 @@ use crate::theme::color;
 
 #[derive(PartialEq)]
 pub struct ProgressView {
-    label: &'static str,
+    label: Cow<'static, str>,
     value: Option<f32>,
     style: Theme,
     overrides: Overrides,
 }
 
 impl ProgressView {
-    pub fn determinate(label: &'static str, value: f32) -> Self {
+    pub fn determinate(label: impl Into<Cow<'static, str>>, value: f32) -> Self {
         Self {
-            label,
+            label: label.into(),
             value: Some(value.clamp(0.0, 1.0)),
             style: Theme::tengen(),
             overrides: Overrides::default(),
         }
     }
 
-    pub fn indeterminate(label: &'static str) -> Self {
+    pub fn indeterminate(label: impl Into<Cow<'static, str>>) -> Self {
         Self {
-            label,
+            label: label.into(),
             value: None,
             style: Theme::tengen(),
             overrides: Overrides::default(),
@@ -108,7 +109,7 @@ impl Component for ProgressView {
 
         let bar = rect()
             .a11y_role(AccessibilityRole::ProgressIndicator)
-            .a11y_alt(self.label)
+            .a11y_alt(&*self.label)
             .a11y_builder(move |node| {
                 if let Some(value) = value {
                     node.set_numeric_value(f64::from(value));
@@ -136,16 +137,16 @@ impl Component for ProgressView {
 
 #[derive(PartialEq)]
 pub struct ProgressRing {
-    label: &'static str,
+    label: Cow<'static, str>,
     value: f32,
     style: Theme,
     overrides: Overrides,
 }
 
 impl ProgressRing {
-    pub fn new(label: &'static str, value: f32) -> Self {
+    pub fn new(label: impl Into<Cow<'static, str>>, value: f32) -> Self {
         Self {
-            label,
+            label: label.into(),
             value: value.clamp(0.0, 1.0),
             style: Theme::tengen(),
             overrides: Overrides::default(),
@@ -191,7 +192,7 @@ impl Component for ProgressRing {
         let root = dimmed(
             rect()
                 .a11y_role(AccessibilityRole::ProgressIndicator)
-                .a11y_alt(self.label)
+                .a11y_alt(&*self.label)
                 .a11y_builder(move |node| node.set_numeric_value(f64::from(value)))
                 .width(Size::px(size))
                 .height(Size::px(size))
@@ -215,15 +216,15 @@ impl Component for ProgressRing {
 
 #[derive(PartialEq)]
 pub struct Spinner {
-    label: &'static str,
+    label: Cow<'static, str>,
     style: Theme,
     overrides: Overrides,
 }
 
 impl Spinner {
-    pub fn new(label: &'static str) -> Self {
+    pub fn new(label: impl Into<Cow<'static, str>>) -> Self {
         Self {
-            label,
+            label: label.into(),
             style: Theme::tengen(),
             overrides: Overrides::default(),
         }
@@ -251,7 +252,7 @@ impl Component for Spinner {
         let root = dimmed(
             rect()
                 .a11y_role(AccessibilityRole::ProgressIndicator)
-                .a11y_alt(self.label)
+                .a11y_alt(&*self.label)
                 .width(Size::px(size))
                 .height(Size::px(size))
                 .rotation(step as f32 * degrees_per_spoke)

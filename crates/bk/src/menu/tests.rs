@@ -81,11 +81,11 @@ fn root_box_follows_the_configured_popup_size() {
     use torin::prelude::Size2D;
 
     let items: Vec<MenuItem> = std::iter::once(MenuItem::SearchField {
-        placeholder: "Buscar".to_string(),
+        placeholder: "Buscar".into(),
     })
     .chain((0..3).map(|i| MenuItem::Action {
         id: format!("item-{i}"),
-        label: format!("Item {i}"),
+        label: format!("Item {i}").into(),
         shortcut: None,
         enabled: true,
         check: CheckState::None,
@@ -135,7 +135,7 @@ fn navigation_skips_separators_and_disabled_items() {
 fn action(label: &str) -> MenuItem {
     MenuItem::Action {
         id: format!("id:{label}"),
-        label: label.to_string(),
+        label: label.to_string().into(),
         shortcut: None,
         enabled: true,
         check: CheckState::None,
@@ -179,7 +179,7 @@ fn separator_runs_collapse_into_one() {
 fn separators_are_normalized_inside_submenus() {
     let mut items = vec![MenuItem::Submenu {
         id: None,
-        label: "Sub".to_string(),
+        label: "Sub".into(),
         enabled: true,
         items: vec![
             MenuItem::Separator,
@@ -284,19 +284,19 @@ fn activate_at_ignores_disabled_and_submenus() {
 fn navigation_skips_headers_and_search_fields() {
     let items = vec![
         MenuItem::SearchField {
-            placeholder: "Buscar".to_string(),
+            placeholder: "Buscar".into(),
         },
         MenuItem::Header {
-            label: "Mitades".to_string(),
+            label: "Mitades".into(),
             count: None,
         },
         MenuItem::action("a", "A"),
         MenuItem::Header {
-            label: "Cuartos".to_string(),
+            label: "Cuartos".into(),
             count: None,
         },
         MenuItem::SearchField {
-            placeholder: "Filtrar".to_string(),
+            placeholder: "Filtrar".into(),
         },
         MenuItem::submenu("B", Vec::new()),
     ];
@@ -313,8 +313,8 @@ fn icons_widen_the_menu_by_the_leading_column_and_gap() {
         vec![
             MenuItem::Action {
                 id: "a".to_string(),
-                label: label.to_string(),
-                shortcut: Some("Super+,".to_string()),
+                label: label.into(),
+                shortcut: Some("Super+,".into()),
                 enabled: true,
                 check: CheckState::None,
                 icon: icon.clone(),
@@ -322,7 +322,7 @@ fn icons_widen_the_menu_by_the_leading_column_and_gap() {
             },
             MenuItem::Submenu {
                 id: None,
-                label: "Disposición".to_string(),
+                label: "Disposición".into(),
                 enabled: true,
                 items: Vec::new(),
                 icon,
@@ -470,7 +470,7 @@ fn label_x(runner: &TestingRunner, text: &str) -> f32 {
 fn action_with(label: &str, check: CheckState, icon: Option<MenuIcon>) -> MenuItem {
     MenuItem::Action {
         id: format!("id-{label}"),
-        label: label.to_string(),
+        label: label.to_string().into(),
         shortcut: None,
         enabled: true,
         check,
@@ -528,7 +528,7 @@ fn submenu_keeps_its_own_inset() {
     let child = vec![action_with("Hijo", CheckState::Checkbox(false), None)];
     let parent = vec![MenuItem::Submenu {
         id: None,
-        label: "Padre".to_string(),
+        label: "Padre".into(),
         enabled: true,
         icon: None,
         items: child.clone(),
@@ -622,7 +622,7 @@ fn searchable(label: &str, enabled: bool) -> SearchableEntry {
     SearchableEntry {
         item: MenuItem::Action {
             id: format!("id-{label}"),
-            label: label.to_string(),
+            label: label.to_string().into(),
             shortcut: None,
             enabled,
             check: CheckState::None,
@@ -650,7 +650,7 @@ fn search_orders_enabled_before_disabled_and_word_start_before_substring() {
 fn visible_items_limits_menu_results_to_nine_rows() {
     let items = vec![
         MenuItem::SearchField {
-            placeholder: "Buscar".to_string(),
+            placeholder: "Buscar".into(),
         },
         MenuItem::action("report", "Informar"),
     ];
@@ -724,7 +724,7 @@ fn an_icon_with_a_side_over_the_limit_is_not_decoded() {
 #[test]
 fn visible_items_scrolls_to_keep_twelfth_result_visible() {
     let items = vec![MenuItem::SearchField {
-        placeholder: "Buscar".to_string(),
+        placeholder: "Buscar".into(),
     }];
     let searchable: Vec<SearchableEntry> = (0..24)
         .map(|i| searchable(&format!("result {i}"), true))
@@ -757,12 +757,12 @@ fn visible_items_scrolls_to_keep_twelfth_result_visible() {
 fn submenu_test(label: &str) -> MenuItem {
     MenuItem::Submenu {
         id: None,
-        label: label.to_string(),
+        label: label.to_string().into(),
         enabled: true,
         icon: None,
         items: vec![MenuItem::Action {
             id: format!("{label}-child"),
-            label: format!("{label} child"),
+            label: format!("{label} child").into(),
             shortcut: None,
             enabled: true,
             check: CheckState::None,

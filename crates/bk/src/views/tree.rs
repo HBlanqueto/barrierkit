@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::collections::HashSet;
 use std::rc::Rc;
 
@@ -18,14 +19,14 @@ use crate::views::table::row_divider;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct TreeNode {
-    pub title: String,
+    pub title: Cow<'static, str>,
     pub icon: Option<Symbol>,
     pub expanded: bool,
     pub children: Vec<TreeNode>,
 }
 
 impl TreeNode {
-    pub fn new(title: impl Into<String>) -> Self {
+    pub fn new(title: impl Into<Cow<'static, str>>) -> Self {
         Self {
             title: title.into(),
             icon: None,
@@ -157,7 +158,7 @@ pub(crate) fn row(
 
 #[derive(PartialEq)]
 pub struct OutlineView {
-    label: &'static str,
+    label: Cow<'static, str>,
     nodes: Vec<TreeNode>,
     selected: Vec<Vec<usize>>,
     scroll_bar: bool,
@@ -167,9 +168,9 @@ pub struct OutlineView {
 }
 
 impl OutlineView {
-    pub fn new(label: &'static str, nodes: Vec<TreeNode>) -> Self {
+    pub fn new(label: impl Into<Cow<'static, str>>, nodes: Vec<TreeNode>) -> Self {
         Self {
-            label,
+            label: label.into(),
             nodes,
             selected: Vec::new(),
             scroll_bar: true,
@@ -319,7 +320,7 @@ impl Component for OutlineView {
             });
         let root = track_modifiers(interaction.attach(rect(), true), held)
             .a11y_role(AccessibilityRole::Tree)
-            .a11y_alt(self.label)
+            .a11y_alt(&*self.label)
             .expanded()
             .child(
                 ScrollView::new()
@@ -338,7 +339,7 @@ impl Component for OutlineView {
 
 #[derive(PartialEq)]
 pub struct Browser {
-    label: &'static str,
+    label: Cow<'static, str>,
     nodes: Vec<TreeNode>,
     on_select: Option<Callback<Vec<usize>, ()>>,
     style: Theme,
@@ -346,9 +347,9 @@ pub struct Browser {
 }
 
 impl Browser {
-    pub fn new(label: &'static str, nodes: Vec<TreeNode>) -> Self {
+    pub fn new(label: impl Into<Cow<'static, str>>, nodes: Vec<TreeNode>) -> Self {
         Self {
-            label,
+            label: label.into(),
             nodes,
             on_select: None,
             style: Theme::tengen(),
@@ -453,7 +454,7 @@ impl Component for Browser {
         let root = interaction
             .attach(rect(), true)
             .a11y_role(AccessibilityRole::Group)
-            .a11y_alt(self.label)
+            .a11y_alt(&*self.label)
             .expanded()
             .child(
                 ScrollView::new()
@@ -510,7 +511,7 @@ mod tests {
     fn a_path_finds_its_node_and_a_wrong_path_finds_none() {
         let nodes = tree();
         assert_eq!(
-            node_at(&nodes, &[0, 1]).map(|n| n.title.as_str()),
+            node_at(&nodes, &[0, 1]).map(|n| n.title.as_ref()),
             Some("a2")
         );
         assert!(node_at(&nodes, &[1, 0]).is_none());

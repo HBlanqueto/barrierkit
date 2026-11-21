@@ -122,6 +122,10 @@ Both forms call `i18n_embed_fl::fl!`, which checks the id and the argument
 names against the fallback file at compile time. A message missing in the
 chosen language shows in English.
 
+Controls take visible text as `impl Into<Cow<'static, str>>`
+([5. Controls](05-controls.md#steps)): the first form stays borrowed, the
+second is owned. Neither is leaked again.
+
 ## `i18n::use_app_language`
 
 `use_app_language(domain: &str)` reads `language` from `<domain>.domain` and
@@ -135,15 +139,17 @@ Otherwise the picker writes one file and the app reads another.
 ## `i18n::intern`
 
 `intern(text: String) -> &'static str` keeps `text` for the life of the process
-and returns it. A text built at run time, such as a device name, has to go
-through it: the widgets take `&'static str`, as `tr!` returns. Equal texts are
-kept once.
+and returns it. Equal texts are kept once. Visible text does not need it:
+pass the `String`. An identifier built at run time, such as a pane id, does:
+`Row::page` and `Pane::new` take ids as `&'static str`.
 
 ```rust
-// ✗
-Row::new(device.name.clone())
-// ✓
+// ✗ leaks a visible text
 Row::new(intern(device.name.clone()))
+// ✓
+Row::new(device.name.clone())
+// ✓ an id built at run time
+Row::page(device.name.clone(), intern(format!("device-{}", device.id)))
 ```
 
 ## `i18n::load`

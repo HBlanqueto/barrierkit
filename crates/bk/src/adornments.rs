@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::path::PathBuf;
 
 use freya_components::image_viewer::ImageViewer;
@@ -14,10 +15,10 @@ use crate::styles::{
     resolve,
 };
 
-pub struct Badge(Rect, String, Theme);
+pub struct Badge(Rect, Cow<'static, str>, Theme);
 
 impl Badge {
-    pub fn new(content: impl Into<String>) -> Self {
+    pub fn new(content: impl Into<Cow<'static, str>>) -> Self {
         Self::styled(content.into(), Theme::tengen())
     }
 
@@ -25,7 +26,7 @@ impl Badge {
         Self::styled(self.1, self.2.style(restyle))
     }
 
-    fn styled(content: String, theme: Theme) -> Self {
+    fn styled(content: Cow<'static, str>, theme: Theme) -> Self {
         let style: BadgeStyle = resolve(&theme);
         let paints = Paints::current(ControlState::default(), style.effect);
         let ink = paints.color(style.label.resolve(ControlState::default()));
@@ -143,16 +144,16 @@ forward_container!(Avatar);
 
 #[derive(PartialEq)]
 pub struct Link {
-    text: &'static str,
+    text: Cow<'static, str>,
     on_press: Option<Callback<(), ()>>,
     style: Theme,
     overrides: Overrides,
 }
 
 impl Link {
-    pub fn new(text: &'static str) -> Self {
+    pub fn new(text: impl Into<Cow<'static, str>>) -> Self {
         Self {
-            text,
+            text: text.into(),
             on_press: None,
             style: Theme::tengen(),
             overrides: Overrides::default(),
@@ -181,12 +182,12 @@ impl Component for Link {
         let link = interaction
             .attach(rect(), true)
             .a11y_role(AccessibilityRole::Link)
-            .a11y_alt(self.text)
+            .a11y_alt(&*self.text)
             .map(on_press, |el, on_press| {
                 el.on_press(move |_| on_press.call(()))
             })
             .child(
-                with_font(label().text(self.text), style.font)
+                with_font(label().text(self.text.clone()), style.font)
                     .max_lines(1)
                     .color(paints.fill(&style.label)),
             );

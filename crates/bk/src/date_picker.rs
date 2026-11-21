@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::rc::Rc;
 
 use ctdesign::{HAIRLINE, SYMBOL};
@@ -32,7 +33,7 @@ pub enum DateElements {
 
 #[derive(PartialEq)]
 pub struct DatePicker {
-    label: &'static str,
+    label: Cow<'static, str>,
     value: CivilDateTime,
     elements: DateElements,
     graphical: bool,
@@ -44,9 +45,9 @@ pub struct DatePicker {
 }
 
 impl DatePicker {
-    pub fn new(label: &'static str, value: CivilDateTime) -> Self {
+    pub fn new(label: impl Into<Cow<'static, str>>, value: CivilDateTime) -> Self {
         Self {
-            label,
+            label: label.into(),
             value,
             elements: DateElements::default(),
             graphical: false,
@@ -306,7 +307,7 @@ impl Component for DatePicker {
         let field = interaction
             .attach(rect(), !disabled)
             .a11y_role(AccessibilityRole::DateInput)
-            .a11y_alt(self.label)
+            .a11y_alt(&*self.label)
             .height(Size::px(style.height))
             .padding(Gaps::new(0.0, style.padding_x, 0.0, style.padding_x))
             .corner_radius(field_radius)

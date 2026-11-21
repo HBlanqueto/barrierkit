@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
@@ -22,12 +23,12 @@ impl MainMenu {
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Menu {
-    pub title: String,
+    pub title: Cow<'static, str>,
     pub items: Vec<MenuItem>,
 }
 
 impl Menu {
-    pub fn new(title: impl Into<String>, items: Vec<MenuItem>) -> Self {
+    pub fn new(title: impl Into<Cow<'static, str>>, items: Vec<MenuItem>) -> Self {
         Self {
             title: title.into(),
             items,
@@ -282,10 +283,10 @@ pub fn use_menu_enabled(id: &'static str, enabled: bool) {
     });
 }
 
-pub fn use_menu_label(id: &'static str, label: &'static str) {
-    use_menu_update(id, label, |item, label| {
+pub fn use_menu_label(id: &'static str, label: impl Into<Cow<'static, str>>) {
+    use_menu_update(id, label.into(), |item, label| {
         if let MenuItem::Action { label: shown, .. } = item {
-            *shown = label.to_string();
+            *shown = label.clone();
         }
     });
 }

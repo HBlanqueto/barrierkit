@@ -2,6 +2,7 @@ use ctdesign::{HAIRLINE, LEVEL_INDICATOR, Rgba};
 use freya_components::cache::AssetAge;
 use freya_components::svg_viewer::SvgViewer;
 use freya_core::prelude::*;
+use std::borrow::Cow;
 use torin::prelude::{Direction, Gaps, Position, Size};
 
 use crate::controls::{dimmed, shadowed};
@@ -18,7 +19,7 @@ use crate::theme::color;
 
 #[derive(PartialEq)]
 pub struct CapacityIndicator {
-    label: &'static str,
+    label: Cow<'static, str>,
     value: f32,
     warning: f32,
     critical: f32,
@@ -28,9 +29,9 @@ pub struct CapacityIndicator {
 }
 
 impl CapacityIndicator {
-    pub fn new(label: &'static str, value: f32) -> Self {
+    pub fn new(label: impl Into<Cow<'static, str>>, value: f32) -> Self {
         Self {
-            label,
+            label: label.into(),
             value,
             warning: 1.0,
             critical: 1.0,
@@ -168,7 +169,7 @@ impl Component for CapacityIndicator {
         };
         let bar = rect()
             .a11y_role(AccessibilityRole::Meter)
-            .a11y_alt(self.label)
+            .a11y_alt(&*self.label)
             .a11y_builder(move |node| node.set_numeric_value(f64::from(value)))
             .width(Size::fill())
             .height(Size::px(height));
@@ -214,16 +215,16 @@ impl Component for CapacityIndicator {
 
 #[derive(PartialEq)]
 pub struct RelevancyIndicator {
-    label: &'static str,
+    label: Cow<'static, str>,
     value: f32,
     style: Theme,
     overrides: Overrides,
 }
 
 impl RelevancyIndicator {
-    pub fn new(label: &'static str, value: f32) -> Self {
+    pub fn new(label: impl Into<Cow<'static, str>>, value: f32) -> Self {
         Self {
-            label,
+            label: label.into(),
             value: value.clamp(0.0, 1.0),
             style: Theme::tengen(),
             overrides: Overrides::default(),
@@ -251,7 +252,7 @@ impl Component for RelevancyIndicator {
         let lines = ((*width.read() * value) / pitch).floor() as usize;
         let relevancy = rect()
             .a11y_role(AccessibilityRole::Meter)
-            .a11y_alt(self.label)
+            .a11y_alt(&*self.label)
             .a11y_builder(move |node| node.set_numeric_value(f64::from(value)))
             .width(Size::fill())
             .height(Size::px(style.height))
@@ -280,18 +281,22 @@ impl Component for RelevancyIndicator {
 
 #[derive(PartialEq)]
 pub struct Gauge {
-    label: &'static str,
+    label: Cow<'static, str>,
     value: f32,
-    current: String,
+    current: Cow<'static, str>,
     capacity: bool,
     style: Theme,
     overrides: Overrides,
 }
 
 impl Gauge {
-    pub fn new(label: &'static str, value: f32, current: impl Into<String>) -> Self {
+    pub fn new(
+        label: impl Into<Cow<'static, str>>,
+        value: f32,
+        current: impl Into<Cow<'static, str>>,
+    ) -> Self {
         Self {
-            label,
+            label: label.into(),
             value: value.clamp(0.0, 1.0),
             current: current.into(),
             capacity: false,
@@ -369,7 +374,7 @@ impl Component for Gauge {
         let value = self.value;
         let gauge = rect()
             .a11y_role(AccessibilityRole::Meter)
-            .a11y_alt(self.label)
+            .a11y_alt(&*self.label)
             .a11y_builder(move |node| node.set_numeric_value(f64::from(value)))
             .width(Size::px(size))
             .height(Size::px(size))
@@ -397,7 +402,7 @@ impl Component for Gauge {
 
 #[derive(PartialEq)]
 pub struct RatingIndicator {
-    label: &'static str,
+    label: Cow<'static, str>,
     value: u32,
     on_change: Option<Callback<u32, ()>>,
     style: Theme,
@@ -405,9 +410,9 @@ pub struct RatingIndicator {
 }
 
 impl RatingIndicator {
-    pub fn new(label: &'static str, value: u32) -> Self {
+    pub fn new(label: impl Into<Cow<'static, str>>, value: u32) -> Self {
         Self {
-            label,
+            label: label.into(),
             value,
             on_change: None,
             style: Theme::tengen(),
@@ -468,7 +473,7 @@ impl Component for RatingIndicator {
         let rating = interaction
             .attach(rect(), on_change.is_some())
             .a11y_role(AccessibilityRole::Slider)
-            .a11y_alt(self.label)
+            .a11y_alt(&*self.label)
             .a11y_builder(move |node| {
                 node.set_numeric_value(f64::from(value));
                 node.set_min_numeric_value(0.0);

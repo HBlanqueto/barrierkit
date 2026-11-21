@@ -1,4 +1,5 @@
 use freya_core::prelude::*;
+use std::borrow::Cow;
 use torin::prelude::{Alignment, Direction, Gaps, Size};
 
 use crate::compact::IconButton;
@@ -18,9 +19,9 @@ pub enum RuleKind {
     Choice(&'static [&'static str]),
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct RuleField {
-    pub label: &'static str,
+    pub label: Cow<'static, str>,
     pub kind: RuleKind,
 }
 
@@ -260,7 +261,7 @@ impl Predicate {
 
 #[derive(PartialEq)]
 pub struct RuleEditor {
-    label: &'static str,
+    label: Cow<'static, str>,
     fields: Vec<RuleField>,
     predicate: State<Predicate>,
     style: Theme,
@@ -268,9 +269,13 @@ pub struct RuleEditor {
 }
 
 impl RuleEditor {
-    pub fn new(label: &'static str, fields: Vec<RuleField>, predicate: State<Predicate>) -> Self {
+    pub fn new(
+        label: impl Into<Cow<'static, str>>,
+        fields: Vec<RuleField>,
+        predicate: State<Predicate>,
+    ) -> Self {
         Self {
-            label,
+            label: label.into(),
             fields,
             predicate,
             style: Theme::tengen(),
@@ -395,7 +400,7 @@ impl Component for RuleEditor {
         let root = track_modifiers(
             rect()
                 .a11y_role(AccessibilityRole::Group)
-                .a11y_alt(self.label)
+                .a11y_alt(&*self.label)
                 .width(Size::fill())
                 .direction(Direction::Vertical)
                 .spacing(style.spacing)
@@ -451,7 +456,7 @@ impl Component for RuleRow {
             .fields
             .iter()
             .fold(PopUpButton::new(text!("rule-field")), |picker, field| {
-                picker.item(field.label)
+                picker.item(field.label.clone())
             })
             .selected(rule.field)
             .on_change(move |index: usize| {
@@ -479,7 +484,7 @@ impl Component for RuleRow {
             RuleKind::Choice(choices) => choices
                 .iter()
                 .fold(PopUpButton::new(text!("rule-value")), |picker, choice| {
-                    picker.item(choice)
+                    picker.item(*choice)
                 })
                 .selected(choices.iter().position(|c| *c == rule.value).unwrap_or(0))
                 .on_change(move |index: usize| {
@@ -529,11 +534,11 @@ mod tests {
 
     const FIELDS: [RuleField; 2] = [
         RuleField {
-            label: "Name",
+            label: Cow::Borrowed("Name"),
             kind: RuleKind::Text,
         },
         RuleField {
-            label: "Size",
+            label: Cow::Borrowed("Size"),
             kind: RuleKind::Number,
         },
     ];

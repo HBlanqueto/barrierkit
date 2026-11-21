@@ -4,11 +4,12 @@ use crate::styles::{
 };
 use ctdesign::{Rgba, SPLIT_PANES};
 use freya_core::prelude::*;
+use std::borrow::Cow;
 use torin::prelude::{Content, Direction, Position, Size};
 
 #[derive(PartialEq)]
 pub struct SplitPanes {
-    label: &'static str,
+    label: Cow<'static, str>,
     direction: Direction,
     panes: Vec<Element>,
     ratios: Vec<f32>,
@@ -18,9 +19,9 @@ pub struct SplitPanes {
 }
 
 impl SplitPanes {
-    pub fn new(label: &'static str, direction: Direction) -> Self {
+    pub fn new(label: impl Into<Cow<'static, str>>, direction: Direction) -> Self {
         Self {
-            label,
+            label: label.into(),
             direction,
             panes: Vec::new(),
             ratios: Vec::new(),
@@ -76,7 +77,7 @@ impl Component for SplitPanes {
         let along = |ratio: f32| Size::flex(ratio);
         let mut row = rect()
             .a11y_role(AccessibilityRole::Group)
-            .a11y_alt(self.label)
+            .a11y_alt(&*self.label)
             .expanded()
             .direction(direction)
             .content(Content::flex())

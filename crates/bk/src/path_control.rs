@@ -1,4 +1,5 @@
 use freya_core::prelude::*;
+use std::borrow::Cow;
 use torin::prelude::{Alignment, Direction, Size};
 
 use crate::controls::dimmed;
@@ -9,17 +10,17 @@ use crate::symbol::{Symbol, symbol};
 
 #[derive(PartialEq)]
 pub struct PathControl {
-    label: &'static str,
-    items: Vec<(Symbol, String)>,
+    label: Cow<'static, str>,
+    items: Vec<(Symbol, Cow<'static, str>)>,
     on_select: Option<Callback<usize, ()>>,
     style: Theme,
     overrides: Overrides,
 }
 
 impl PathControl {
-    pub fn new(label: &'static str) -> Self {
+    pub fn new(label: impl Into<Cow<'static, str>>) -> Self {
         Self {
-            label,
+            label: label.into(),
             items: Vec::new(),
             on_select: None,
             style: Theme::tengen(),
@@ -35,7 +36,7 @@ impl PathControl {
         self
     }
 
-    pub fn item(mut self, icon: Symbol, name: impl Into<String>) -> Self {
+    pub fn item(mut self, icon: Symbol, name: impl Into<Cow<'static, str>>) -> Self {
         self.items.push((icon, name.into()));
         self
     }
@@ -90,7 +91,7 @@ impl Component for PathControl {
         let root = dimmed(
             rect()
                 .a11y_role(AccessibilityRole::Navigation)
-                .a11y_alt(self.label)
+                .a11y_alt(&*self.label)
                 .height(Size::px(style.height))
                 .direction(Direction::Horizontal)
                 .cross_align(Alignment::Center)

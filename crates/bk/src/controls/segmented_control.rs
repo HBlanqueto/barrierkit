@@ -1,10 +1,11 @@
 use super::*;
 use crate::menu::measure_text;
+use std::borrow::Cow;
 
 #[derive(PartialEq)]
 pub struct SegmentedControl {
-    label: &'static str,
-    segments: Vec<&'static str>,
+    label: Cow<'static, str>,
+    segments: Vec<Cow<'static, str>>,
     selected: usize,
     disabled: bool,
     on_change: Option<Callback<usize, ()>>,
@@ -14,9 +15,9 @@ pub struct SegmentedControl {
 }
 
 impl SegmentedControl {
-    pub fn new(label: &'static str) -> Self {
+    pub fn new(label: impl Into<Cow<'static, str>>) -> Self {
         Self {
-            label,
+            label: label.into(),
             segments: Vec::new(),
             selected: 0,
             disabled: false,
@@ -27,8 +28,8 @@ impl SegmentedControl {
         }
     }
 
-    pub fn segment(mut self, label: &'static str) -> Self {
-        self.segments.push(label);
+    pub fn segment(mut self, label: impl Into<Cow<'static, str>>) -> Self {
+        self.segments.push(label.into());
         self
     }
 
@@ -81,7 +82,7 @@ impl Component for SegmentedControl {
         let keyed = use_state(|| false);
         let segments = self.segments.iter().enumerate().map(|(index, text)| {
             Segment {
-                text,
+                text: text.clone(),
                 active: choice.is(index),
                 disabled: self.disabled,
                 divider: index > 0 && !choice.is(index) && !choice.is(index - 1),
@@ -103,7 +104,7 @@ impl Component for SegmentedControl {
 
         let group = rect()
             .a11y_role(AccessibilityRole::TabList)
-            .a11y_alt(self.label)
+            .a11y_alt(&*self.label)
             .width(Size::fill())
             .direction(direction)
             .content(Content::flex())
@@ -124,7 +125,7 @@ impl Component for SegmentedControl {
 
 #[derive(PartialEq)]
 struct Segment {
-    text: &'static str,
+    text: Cow<'static, str>,
     active: bool,
     disabled: bool,
     divider: bool,
@@ -156,11 +157,11 @@ impl Component for Segment {
         let segment = interaction
             .attach(rect(), !self.disabled)
             .a11y_role(AccessibilityRole::Tab)
-            .a11y_alt(self.text)
+            .a11y_alt(&*self.text)
             .a11y_builder(move |node| node.set_selected(active))
             .width(match style.axis {
                 Axis::Horizontal => Size::flex(
-                    measure_text(self.text, font.size as f32) + 2.0 * style.segment_padding_x,
+                    measure_text(&self.text, font.size as f32) + 2.0 * style.segment_padding_x,
                 ),
                 Axis::Vertical => Size::fill(),
             })
@@ -178,7 +179,7 @@ impl Component for Segment {
                     ))
                     .child(
                         label()
-                            .text(self.text)
+                            .text(self.text.clone())
                             .max_lines(1)
                             .font_family(font.family)
                             .font_size(font.size as f32)

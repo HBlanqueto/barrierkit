@@ -2,6 +2,7 @@ use freya_components::cursor_blink::use_cursor_blink;
 use freya_core::prelude::*;
 use freya_edit::{EditableConfig, EditableEvent, EditorLine, TextEditor as _, use_editable};
 use freya_engine::prelude::{RectHeightStyle, RectWidthStyle};
+use std::borrow::Cow;
 use torin::prelude::{Alignment, Area, Content, CursorPoint, Direction, Gaps, Size};
 
 use crate::compact::IconButton;
@@ -31,7 +32,7 @@ use crate::views::text_view::EDITING_KEYS;
 #[derive(PartialEq)]
 pub struct TextEditor {
     value: State<String>,
-    placeholder: &'static str,
+    placeholder: Cow<'static, str>,
     height: Size,
     styles: Option<State<Vec<StyleRun>>>,
     style: Theme,
@@ -39,10 +40,10 @@ pub struct TextEditor {
 }
 
 impl TextEditor {
-    pub fn new(value: State<String>, placeholder: &'static str) -> Self {
+    pub fn new(value: State<String>, placeholder: impl Into<Cow<'static, str>>) -> Self {
         Self {
             value,
-            placeholder,
+            placeholder: placeholder.into(),
             height: Size::fill(),
             styles: None,
             style: Theme::tengen(),
@@ -377,7 +378,7 @@ impl Component for TextEditor {
                 &style.text
             }))
             .spans_iter(if empty {
-                vec![Span::new(self.placeholder.to_owned())].into_iter()
+                vec![Span::new(self.placeholder.clone())].into_iter()
             } else {
                 styled_spans(
                     &editor.rope().to_string(),
@@ -440,7 +441,7 @@ impl Component for TextEditor {
         .a11y_focusable(true)
         .a11y_role(AccessibilityRole::MultilineTextInput)
         .a11y_alt(if empty {
-            self.placeholder.to_owned()
+            self.placeholder.to_string()
         } else {
             value.read().clone()
         })

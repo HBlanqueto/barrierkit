@@ -1,4 +1,5 @@
 use ctdesign::DRAG;
+use std::borrow::Cow;
 
 use super::*;
 use crate::platform::Knob;
@@ -37,7 +38,7 @@ fn released_on(grab: Grab, travel: f32, right_to_left: bool) -> bool {
 
 #[derive(PartialEq)]
 pub struct Switch {
-    label: &'static str,
+    label: Cow<'static, str>,
     on: bool,
     disabled: bool,
     on_toggle: Option<Callback<bool, ()>>,
@@ -48,9 +49,9 @@ pub struct Switch {
 }
 
 impl Switch {
-    pub fn new(label: &'static str) -> Self {
+    pub fn new(label: impl Into<Cow<'static, str>>) -> Self {
         Self {
-            label,
+            label: label.into(),
             on: false,
             disabled: false,
             on_toggle: None,
@@ -210,7 +211,7 @@ impl Component for Switch {
         let control = match style.label_position {
             None => track,
             Some(edge) => {
-                let text = with_font(label().text(self.label), style.label_font)
+                let text = with_font(label().text(self.label.clone()), style.label_font)
                     .color(paints.fill(&style.label));
                 labeled(
                     rect(),
@@ -226,7 +227,7 @@ impl Component for Switch {
         let root = interaction
             .attach(control, !disabled)
             .a11y_role(AccessibilityRole::Switch)
-            .a11y_alt(self.label)
+            .a11y_alt(&*self.label)
             .a11y_builder(move |node| node.set_toggled(is_on.into()))
             .maybe(!disabled, |el| {
                 el.on_mouse_down(move |event: Event<MouseEventData>| {
@@ -282,7 +283,7 @@ impl Component for Switch {
 
 #[derive(PartialEq)]
 pub struct Checkbox {
-    label: &'static str,
+    label: Cow<'static, str>,
     checked: bool,
     mixed: bool,
     disabled: bool,
@@ -295,9 +296,9 @@ pub struct Checkbox {
 }
 
 impl Checkbox {
-    pub fn new(label: &'static str) -> Self {
+    pub fn new(label: impl Into<Cow<'static, str>>) -> Self {
         Self {
-            label,
+            label: label.into(),
             checked: false,
             mixed: false,
             disabled: false,
@@ -377,7 +378,7 @@ impl Component for Checkbox {
         let checked = crate::controlled::use_controlled(&self.checked);
         let on_toggle = self.on_toggle.clone();
         let disabled = self.disabled;
-        let label_text = self.label;
+        let label_text = self.label.clone();
         let interaction = use_interaction();
         let style: CheckboxStyle = resolve(&self.style);
         let state = control_state(interaction, disabled);
@@ -431,7 +432,7 @@ impl Component for Checkbox {
             .attach(rect(), !disabled)
             .width(self.width.clone())
             .a11y_role(AccessibilityRole::CheckBox)
-            .a11y_alt(label_text)
+            .a11y_alt(&*label_text)
             .a11y_builder(move |node| {
                 node.set_toggled(if mixed {
                     accesskit::Toggled::Mixed

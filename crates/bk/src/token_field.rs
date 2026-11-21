@@ -1,5 +1,6 @@
 use ctdesign::Rgba;
 use freya_core::prelude::*;
+use std::borrow::Cow;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
 
 use crate::context_menu::edit_menu;
@@ -12,17 +13,17 @@ use crate::styles::{ControlState, LayoutDirection, Paints, Theme, TokenFieldStyl
 #[derive(PartialEq)]
 pub struct TokenField {
     tokens: State<Vec<String>>,
-    placeholder: &'static str,
+    placeholder: Cow<'static, str>,
     width: Size,
     style: Theme,
     overrides: Overrides,
 }
 
 impl TokenField {
-    pub fn new(tokens: State<Vec<String>>, placeholder: &'static str) -> Self {
+    pub fn new(tokens: State<Vec<String>>, placeholder: impl Into<Cow<'static, str>>) -> Self {
         Self {
             tokens,
-            placeholder,
+            placeholder: placeholder.into(),
             width: Size::fill(),
             style: Theme::tengen(),
             overrides: Overrides::default(),
@@ -124,9 +125,9 @@ impl Component for TokenField {
         let input = input(
             draft,
             if tokens.read().is_empty() {
-                self.placeholder
+                self.placeholder.clone()
             } else {
-                ""
+                "".into()
             },
             [
                 Rgba::TRANSPARENT,
@@ -212,7 +213,7 @@ impl Component for TokenField {
             None,
         )
         .a11y_role(AccessibilityRole::List)
-        .a11y_alt(self.placeholder)
+        .a11y_alt(&*self.placeholder)
         .on_press(move |_| input_id.request_focus())
         .min_height(Size::px(style.height))
         .padding(Gaps::new(0.0, style.padding_x, 0.0, style.padding_x))

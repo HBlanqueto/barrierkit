@@ -1,4 +1,5 @@
 use crate::elements::{Overrides, forward_container, forward_overrides};
+use std::borrow::Cow;
 use std::path::PathBuf;
 
 use ctdesign::{MEDIA, Rgba};
@@ -55,7 +56,7 @@ fn scrim(edge: ScrimEdge) -> Rect {
 
 #[derive(PartialEq)]
 pub struct MediaButton {
-    label: String,
+    label: Cow<'static, str>,
     symbol: Option<Symbol>,
     on_press: Option<Callback<(), ()>>,
     style: Theme,
@@ -63,7 +64,7 @@ pub struct MediaButton {
 }
 
 impl MediaButton {
-    pub fn new(label: impl Into<String>) -> Self {
+    pub fn new(label: impl Into<Cow<'static, str>>) -> Self {
         Self {
             label: label.into(),
             symbol: None,
@@ -157,7 +158,7 @@ impl Component for MediaButton {
 #[derive(PartialEq)]
 pub struct RoundButton {
     symbol: Symbol,
-    label: &'static str,
+    label: Cow<'static, str>,
     selected: bool,
     on_press: Option<Callback<(), ()>>,
     style: Theme,
@@ -165,10 +166,10 @@ pub struct RoundButton {
 }
 
 impl RoundButton {
-    pub fn new(symbol: Symbol, label: &'static str) -> Self {
+    pub fn new(symbol: Symbol, label: impl Into<Cow<'static, str>>) -> Self {
         Self {
             symbol,
-            label,
+            label: label.into(),
             selected: false,
             on_press: None,
             style: Theme::tengen(),
@@ -224,7 +225,7 @@ impl Component for RoundButton {
         let button = interaction
             .attach(rect(), true)
             .a11y_role(AccessibilityRole::Button)
-            .a11y_alt(self.label)
+            .a11y_alt(&*self.label)
             .width(Size::px(size))
             .height(Size::px(size))
             .corner_radius(radius)

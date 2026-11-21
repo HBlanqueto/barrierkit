@@ -13,6 +13,7 @@ use sctk::{
         xdg::window::{DecorationMode, Window, WindowConfigure, WindowDecorations, WindowHandler},
     },
 };
+use std::borrow::Cow;
 use std::{cell::RefCell, rc::Rc};
 
 use super::{
@@ -52,7 +53,7 @@ pub enum DecorationResponse {
 
 #[derive(Clone, Debug)]
 pub struct WindowOptions {
-    pub title: String,
+    pub title: Cow<'static, str>,
     pub app_name: String,
     pub app_id: Option<String>,
     pub size: (u32, u32),
@@ -96,7 +97,7 @@ impl PanelBehavior {
 }
 
 impl WindowOptions {
-    pub fn new(title: impl Into<String>, app_name: impl Into<String>) -> Self {
+    pub fn new(title: impl Into<Cow<'static, str>>, app_name: impl Into<String>) -> Self {
         Self {
             title: title.into(),
             app_name: app_name.into(),
@@ -198,7 +199,7 @@ pub struct WindowControls {
     pub(super) ping: Ping,
     pub(super) pointer_serial: Rc<std::cell::Cell<u32>>,
     pub status: State<WindowStatus>,
-    pub title: String,
+    pub title: Cow<'static, str>,
     pub fixed: bool,
     pub fixed_width: bool,
     pub(super) surface_id: ObjectId,
@@ -289,7 +290,7 @@ impl WindowControls {
         self.send(WindowCommand::Bar(bar));
     }
 
-    pub fn set_title(&self, title: impl Into<String>) {
+    pub fn set_title(&self, title: impl Into<Cow<'static, str>>) {
         self.send(WindowCommand::SetTitle(title.into()));
     }
 
@@ -353,7 +354,7 @@ pub(crate) enum WindowCommand {
     Present(Option<String>),
     MakeKey,
     Bar(Bar),
-    SetTitle(String),
+    SetTitle(Cow<'static, str>),
     BackgroundAlpha(f32),
     Open(Box<(AppComponent, WindowOptions)>),
     Sheet(Box<(AppComponent, WindowOptions)>),

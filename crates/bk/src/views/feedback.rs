@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -26,11 +27,11 @@ use crate::styles::{
 use crate::symbol::{Symbol, symbol};
 use crate::theme::color;
 
-pub struct ContentUnavailableView(Rect, &'static str, Symbol, Theme);
+pub struct ContentUnavailableView(Rect, Cow<'static, str>, Symbol, Theme);
 
 impl ContentUnavailableView {
-    pub fn new(title: &'static str, symbol: Symbol) -> Self {
-        Self::styled(title, symbol, Theme::tengen())
+    pub fn new(title: impl Into<Cow<'static, str>>, symbol: Symbol) -> Self {
+        Self::styled(title.into(), symbol, Theme::tengen())
     }
 
     pub fn style(
@@ -40,7 +41,7 @@ impl ContentUnavailableView {
         Self::styled(self.1, self.2, self.3.style(restyle))
     }
 
-    fn styled(title: &'static str, icon: Symbol, theme: Theme) -> Self {
+    fn styled(title: Cow<'static, str>, icon: Symbol, theme: Theme) -> Self {
         let style: ContentUnavailableViewStyle = resolve(&theme);
         let state = ControlState::default();
         let paints = Paints::current(state, style.effect);
@@ -56,7 +57,7 @@ impl ContentUnavailableView {
                 paints.color(style.symbol.resolve(state)),
             ))
             .child(text(
-                title,
+                title.clone(),
                 style.font,
                 paints.color(style.title.resolve(state)),
             ));
@@ -251,29 +252,29 @@ fn sheet(content: impl IntoElement, style: &SheetStyle) -> Rect {
 #[derive(PartialEq)]
 pub struct Alert {
     style: Theme,
-    title: &'static str,
-    message: String,
-    confirm: &'static str,
-    cancel: &'static str,
+    title: Cow<'static, str>,
+    message: Cow<'static, str>,
+    confirm: Cow<'static, str>,
+    cancel: Cow<'static, str>,
     on_confirm: Option<Callback<(), ()>>,
     on_cancel: Option<Callback<(), ()>>,
     suppressed: Option<State<bool>>,
     destructive: bool,
     icon: Option<Element>,
-    extra_buttons: Vec<(&'static str, Callback<(), ()>)>,
+    extra_buttons: Vec<(Cow<'static, str>, Callback<(), ()>)>,
     on_help: Option<Callback<(), ()>>,
     accessory: Option<Element>,
     critical: bool,
 }
 
 impl Alert {
-    pub fn new(title: &'static str, message: impl Into<String>) -> Self {
+    pub fn new(title: impl Into<Cow<'static, str>>, message: impl Into<Cow<'static, str>>) -> Self {
         Self {
             style: Theme::tengen(),
-            title,
+            title: title.into(),
             message: message.into(),
-            confirm: text!("ok"),
-            cancel: text!("cancel"),
+            confirm: text!("ok").into(),
+            cancel: text!("cancel").into(),
             on_confirm: None,
             on_cancel: None,
             suppressed: None,
@@ -313,10 +314,10 @@ impl Alert {
 
     pub fn add_button(
         mut self,
-        label: &'static str,
+        label: impl Into<Cow<'static, str>>,
         callback: impl Into<Callback<(), ()>>,
     ) -> Self {
-        self.extra_buttons.push((label, callback.into()));
+        self.extra_buttons.push((label.into(), callback.into()));
         self
     }
 
@@ -325,8 +326,12 @@ impl Alert {
         self
     }
 
-    pub fn confirm(mut self, label: &'static str, callback: impl Into<Callback<(), ()>>) -> Self {
-        self.confirm = label;
+    pub fn confirm(
+        mut self,
+        label: impl Into<Cow<'static, str>>,
+        callback: impl Into<Callback<(), ()>>,
+    ) -> Self {
+        self.confirm = label.into();
         self.on_confirm = Some(callback.into());
         self
     }
@@ -336,8 +341,12 @@ impl Alert {
         self
     }
 
-    pub fn cancel(mut self, label: &'static str, callback: impl Into<Callback<(), ()>>) -> Self {
-        self.cancel = label;
+    pub fn cancel(
+        mut self,
+        label: impl Into<Cow<'static, str>>,
+        callback: impl Into<Callback<(), ()>>,
+    ) -> Self {
+        self.cancel = label.into();
         self.on_cancel = Some(callback.into());
         self
     }
@@ -345,9 +354,9 @@ impl Alert {
 
 #[derive(PartialEq)]
 pub struct SheetButtons {
-    cancel: String,
+    cancel: Cow<'static, str>,
     on_cancel: Callback<(), ()>,
-    confirm: String,
+    confirm: Cow<'static, str>,
     on_confirm: Callback<(), ()>,
     confirm_disabled: bool,
     leading: Option<Element>,
@@ -358,9 +367,9 @@ pub struct SheetButtons {
 
 impl SheetButtons {
     pub fn new(
-        cancel: impl Into<String>,
+        cancel: impl Into<Cow<'static, str>>,
         on_cancel: impl Into<Callback<(), ()>>,
-        confirm: impl Into<String>,
+        confirm: impl Into<Cow<'static, str>>,
         on_confirm: impl Into<Callback<(), ()>>,
     ) -> Self {
         Self {
@@ -464,11 +473,11 @@ impl Component for Alert {
         } else {
             Size::flex(1.0)
         };
-        let cancel_button = Button::new(self.cancel)
+        let cancel_button = Button::new(self.cancel.clone())
             .size(ControlSize::Large)
             .width(button_width.clone())
             .on_press(move |_| on_cancel());
-        let confirm_button = Button::new(self.confirm)
+        let confirm_button = Button::new(self.confirm.clone())
             .style(move |button| {
                 if destructive {
                     button.destructive()
@@ -489,7 +498,7 @@ impl Component for Alert {
                 .child(confirm_button)
                 .children(self.extra_buttons.iter().map(|(label, callback)| {
                     let callback = callback.clone();
-                    Button::new(*label)
+                    Button::new(label.clone())
                         .size(ControlSize::Large)
                         .width(button_width.clone())
                         .on_press(move |_| callback.call(()))
@@ -558,7 +567,7 @@ impl Component for Alert {
         Sheet::new(
             rect()
                 .a11y_role(AccessibilityRole::AlertDialog)
-                .a11y_alt(self.title)
+                .a11y_alt(&*self.title)
                 .a11y_focusable(true)
                 .a11y_auto_focus(true)
                 .width(Size::px(style.width - 2.0 * style.padding))
@@ -577,7 +586,7 @@ impl Component for Alert {
                         .padding(Gaps::new(inset, inset, 0.0, inset))
                         .maybe_child(icon)
                         .child(text(
-                            self.title,
+                            self.title.clone(),
                             style.title_font,
                             paints.color(style.title.resolve(state)),
                         ))

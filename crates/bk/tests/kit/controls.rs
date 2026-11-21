@@ -220,7 +220,7 @@ fn form() -> Element {
                 .row(Row::value("Estado", "Normal · 87 %"))
                 .row(Row::navigation("Avanzado", |_| {})),
         )
-        .highlighted(Some("Estado"))
+        .highlighted(Some("Estado".into()))
         .into_element()
 }
 

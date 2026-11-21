@@ -1,5 +1,6 @@
 use ctdesign::{COLOR_PICKER, HAIRLINE, MULTICOLOR, Rgba, SPACE_3};
 use freya_core::prelude::*;
+use std::borrow::Cow;
 use torin::prelude::{Area, Direction, Gaps, Size};
 
 use crate::controls::{dimmed, shadowed};
@@ -63,7 +64,7 @@ pub fn hex(rgba: Rgba) -> String {
 
 #[derive(PartialEq)]
 pub struct ColorPicker {
-    label: &'static str,
+    label: Cow<'static, str>,
     color: Rgba,
     disabled: bool,
     on_change: Option<Callback<Rgba, ()>>,
@@ -72,9 +73,9 @@ pub struct ColorPicker {
 }
 
 impl ColorPicker {
-    pub fn new(label: &'static str, color: Rgba) -> Self {
+    pub fn new(label: impl Into<Cow<'static, str>>, color: Rgba) -> Self {
         Self {
-            label,
+            label: label.into(),
             color,
             disabled: false,
             on_change: None,
@@ -135,7 +136,7 @@ impl Component for ColorPicker {
         let well = interaction
             .attach(rect(), !disabled)
             .a11y_role(AccessibilityRole::ColorWell)
-            .a11y_alt(self.label)
+            .a11y_alt(&*self.label)
             .width(Size::px(width))
             .height(Size::px(height))
             .corner_radius(radius)

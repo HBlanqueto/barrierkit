@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::cell::Cell;
 use std::rc::Rc;
 use std::time::{Duration, Instant};
@@ -23,7 +24,7 @@ use crate::theme;
 #[derive(PartialEq)]
 pub struct Titlebar {
     preview: Option<Preview>,
-    title: Option<String>,
+    title: Option<Cow<'static, str>>,
     sidebar: bool,
     left: Option<Element>,
     right: Option<Element>,
@@ -35,7 +36,7 @@ pub struct Titlebar {
 #[derive(Clone, PartialEq)]
 struct Preview {
     status: WindowStatus,
-    title: String,
+    title: Cow<'static, str>,
     fixed: bool,
 }
 
@@ -59,7 +60,7 @@ impl Titlebar {
         }
     }
 
-    pub fn preview(status: WindowStatus, title: impl Into<String>, fixed: bool) -> Self {
+    pub fn preview(status: WindowStatus, title: impl Into<Cow<'static, str>>, fixed: bool) -> Self {
         Self {
             preview: Some(Preview {
                 status,
@@ -70,7 +71,7 @@ impl Titlebar {
         }
     }
 
-    pub fn title(mut self, title: impl Into<String>) -> Self {
+    pub fn title(mut self, title: impl Into<Cow<'static, str>>) -> Self {
         self.title = Some(title.into());
         self
     }
@@ -162,7 +163,7 @@ impl Component for Titlebar {
                 controls.title.clone(),
                 controls.fixed,
             ),
-            (None, None) => (WindowStatus::default(), String::new(), false),
+            (None, None) => (WindowStatus::default(), Cow::default(), false),
         };
         let title = self.title.clone().unwrap_or(title);
         let drag = window_drag_handler(fixed);

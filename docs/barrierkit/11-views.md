@@ -80,7 +80,7 @@ Form::new()
             .row(Row::value("Status", "Normal · 87 %"))
             .row(Row::navigation("Advanced", |_| {})),
     )
-    .highlighted(Some("Status"))
+    .highlighted(Some("Status".into()))
 ```
 
 ![Form with a control row, a value row and a navigation row](../../crates/bk/tests/golden/form-light.png)
@@ -91,7 +91,7 @@ Form::new()
 | `.style(FormStyle::columns)` | SwiftUI's `.columns`: no cards or inset, the labels right-aligned in a column as wide as the widest one, the controls 9.5 after it (below) |
 | `.section(Section)` | Adds a section |
 | `.pinned(Section)` | In a `SettingsWindow` pane, keeps that section under the title bar while the rest scrolls |
-| `.highlighted(Option<&str>)` | Tints the row with that title with the accent at 12 % |
+| `.highlighted(Option<Cow<'static, str>>)` | Tints the row with that title with the accent at 12 % |
 
 `sections` is a public field: [`SettingsWindow`](12-patterns.md#settingswindow)
 reads it to build its search. The form is inset 20 on each side, its cards are
@@ -163,7 +163,7 @@ Form::new().section(section).style(|s| FormStyle { section_spacing: 32.0, ..s })
 
 ### `GroupBox`
 
-`GroupBox::new(Option<label>).child(view)`: a rounded box (radius
+`GroupBox::new(Option<Cow<'static, str>>).child(view)`: a rounded box (radius
 `GROUP_BOX.radius`, 12) with a faint fill and a hairline border, and the label
 above it, `GROUP_BOX.label_height` (17) high. It groups related controls
 without a form. `NSBox` puts a 12 high title row over its box and starts the

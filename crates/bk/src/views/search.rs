@@ -1,9 +1,10 @@
 pub use crate::menu::search::{fold, word_start};
+use std::borrow::Cow;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Entry<K> {
     pub key: K,
-    pub title: &'static str,
+    pub title: Cow<'static, str>,
     pub keywords: &'static [&'static str],
 }
 
@@ -19,10 +20,15 @@ impl<K: Clone> SearchIndex<K> {
         }
     }
 
-    pub fn add(&mut self, key: K, title: &'static str, keywords: &'static [&'static str]) {
+    pub fn add(
+        &mut self,
+        key: K,
+        title: impl Into<Cow<'static, str>>,
+        keywords: &'static [&'static str],
+    ) {
         self.entries.push(Entry {
             key,
-            title,
+            title: title.into(),
             keywords,
         });
     }
@@ -35,7 +41,7 @@ impl<K: Clone> SearchIndex<K> {
         self.entries
             .iter()
             .filter(|entry| {
-                std::iter::once(entry.title)
+                std::iter::once(entry.title.as_ref())
                     .chain(entry.keywords.iter().copied())
                     .any(|text| fold(text).contains(&query))
             })

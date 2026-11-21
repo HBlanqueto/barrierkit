@@ -129,7 +129,7 @@ pub(super) fn trailing_width(item: &MenuItem, m: MenuPalette) -> f32 {
         .sum()
 }
 
-fn badge(item: &MenuItem) -> Option<String> {
+fn badge(item: &MenuItem) -> Option<Cow<'static, str>> {
     match item {
         MenuItem::Action { badge, .. } => badge.clone(),
         _ => None,
@@ -185,7 +185,7 @@ impl RowCtx {
     }
 
     fn shortcut_label(&self, item: &MenuItem, color: Rgba) -> Element {
-        let text = |text: String| {
+        let text = |text: Cow<'static, str>| {
             label()
                 .width(Size::px(measure_text(&text, self.m.font_size)))
                 .text(text)
@@ -312,7 +312,7 @@ pub(super) fn render_item(
             label: header,
             count,
         } => {
-            let header_label = |text: String| {
+            let header_label = |text: Cow<'static, str>| {
                 label()
                     .text(text)
                     .font_size(m.header_font_size)
@@ -328,7 +328,7 @@ pub(super) fn render_item(
                 .main_align(Alignment::SpaceBetween)
                 .cross_align(Alignment::End)
                 .child(header_label(header.clone()))
-                .maybe_child(count.map(|count| header_label(count.to_string())))
+                .maybe_child(count.map(|count| header_label(count.to_string().into())))
                 .into_element()
         }
         MenuItem::SearchField { placeholder } => search_field(ctx, placeholder),

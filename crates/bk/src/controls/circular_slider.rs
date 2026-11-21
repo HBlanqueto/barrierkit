@@ -1,4 +1,5 @@
 use ctdesign::SLIDER_KEY_STEP;
+use std::borrow::Cow;
 
 use super::*;
 use crate::controlled::{commit, use_controlled_unless};
@@ -7,7 +8,7 @@ use crate::styles::CircularSliderStyle;
 
 #[derive(PartialEq)]
 pub struct CircularSlider {
-    label: &'static str,
+    label: Cow<'static, str>,
     value: f32,
     disabled: bool,
     on_change: Option<Callback<f32, ()>>,
@@ -17,9 +18,9 @@ pub struct CircularSlider {
 }
 
 impl CircularSlider {
-    pub fn new(label: &'static str) -> Self {
+    pub fn new(label: impl Into<Cow<'static, str>>) -> Self {
         Self {
-            label,
+            label: label.into(),
             value: 0.0,
             disabled: false,
             on_change: None,
@@ -100,7 +101,7 @@ impl Component for CircularSlider {
             .corner_radius(radius)
             .painted(&paints, &style.disc)
             .a11y_role(AccessibilityRole::Slider)
-            .a11y_alt(self.label)
+            .a11y_alt(&*self.label)
             .a11y_builder(move |node| {
                 node.set_numeric_value(f64::from(current));
                 node.set_min_numeric_value(0.0);

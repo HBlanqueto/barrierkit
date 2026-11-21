@@ -407,7 +407,7 @@ pub(super) fn controls() -> Vec<(&'static str, Builder)> {
                 .width(Size::px(120.0))
                 .height(Size::px(50.0))
                 .child(
-                    GroupBox::new(Some("Box"))
+                    GroupBox::new(Some("Box".into()))
                         .style(|style| GroupBoxStyle {
                             label_inset: 10.75,
                             label_height: 12.0,

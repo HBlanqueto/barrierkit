@@ -1,5 +1,6 @@
 use ctdesign::{ControlSize, Rgba};
 use freya_core::prelude::*;
+use std::borrow::Cow;
 
 use crate::menu::MenuItem;
 use crate::styles::Painted;
@@ -17,7 +18,7 @@ pub trait ViewModifiers: EventHandlersExt + Sized {
         crate::context_menu::context_menu(self, items, on_activate)
     }
 
-    fn help(self, text: &'static str) -> Self {
+    fn help(self, text: impl Into<Cow<'static, str>>) -> Self {
         crate::tooltip::use_tooltip(text).attach(self)
     }
 

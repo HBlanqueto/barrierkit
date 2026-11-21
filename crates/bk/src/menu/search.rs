@@ -106,13 +106,13 @@ pub(super) fn visible_items(
     }
     if !saw_search {
         out.push(MenuItem::SearchField {
-            placeholder: text!("search").to_string(),
+            placeholder: text!("search").into(),
         });
     }
 
     if !menu_results.is_empty() {
         out.push(MenuItem::Header {
-            label: text!("menu-items").to_string(),
+            label: text!("menu-items").into(),
             count: Some(menu_results.len()),
         });
         for entry in menu_results
@@ -130,7 +130,7 @@ pub(super) fn visible_items(
 
     if !help_results.is_empty() {
         out.push(MenuItem::Header {
-            label: text!("help-topics").to_string(),
+            label: text!("help-topics").into(),
             count: Some(help_results.len()),
         });
         for entry in help_results

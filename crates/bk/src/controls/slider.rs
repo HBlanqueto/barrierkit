@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::ops::RangeInclusive;
 
 use ctdesign::{SLIDER, SLIDER_KEY_STEP};
@@ -8,7 +9,7 @@ use crate::styles::Animation;
 
 #[derive(PartialEq)]
 pub struct Slider {
-    label: &'static str,
+    label: Cow<'static, str>,
     range: (f32, f32),
     stepped: bool,
     value: f32,
@@ -24,9 +25,9 @@ pub struct Slider {
 }
 
 impl Slider {
-    pub fn new(label: &'static str) -> Self {
+    pub fn new(label: impl Into<Cow<'static, str>>) -> Self {
         Self {
-            label,
+            label: label.into(),
             range: (0.0, 1.0),
             stepped: false,
             value: 0.0,
@@ -43,7 +44,7 @@ impl Slider {
     }
 
     /// A slider whose value is a step from 0 to `steps - 1`; the knob stops only at a step.
-    pub fn stepped(label: &'static str, steps: usize) -> Self {
+    pub fn stepped(label: impl Into<Cow<'static, str>>, steps: usize) -> Self {
         Self {
             range: (0.0, (steps.max(2) - 1) as f32),
             stepped: true,
@@ -229,7 +230,7 @@ impl Component for Slider {
             .height(height)
             .direction(direction)
             .a11y_role(AccessibilityRole::Slider)
-            .a11y_alt(self.label)
+            .a11y_alt(&*self.label)
             .a11y_builder(move |node| {
                 node.set_numeric_value(f64::from(current));
                 node.set_min_numeric_value(f64::from(low));

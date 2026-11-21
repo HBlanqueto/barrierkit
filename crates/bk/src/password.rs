@@ -1,4 +1,5 @@
 use freya_core::prelude::{Key, Modifiers, NamedKey};
+use std::borrow::Cow;
 use zeroize::{Zeroize, Zeroizing};
 
 use crate::platform::inserts_text;
@@ -7,7 +8,7 @@ use crate::platform::inserts_text;
 pub enum State {
     Idle,
     Verifying,
-    Error(String),
+    Error(Cow<'static, str>),
 }
 
 pub struct PasswordField {
@@ -77,7 +78,7 @@ impl PasswordField {
         ))
     }
 
-    pub fn set_error(&mut self, message: impl Into<String>) {
+    pub fn set_error(&mut self, message: impl Into<Cow<'static, str>>) {
         self.value.zeroize();
         self.state = State::Error(message.into());
     }

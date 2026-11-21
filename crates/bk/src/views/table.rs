@@ -1,6 +1,7 @@
 use ctdesign::{Font, HAIRLINE, Rgba, TABLE};
 use freya_components::scrollviews::VirtualScrollView;
 use freya_core::prelude::*;
+use std::borrow::Cow;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 
 use crate::context_menu::context_menu;
@@ -25,7 +26,7 @@ pub struct SortOrder {
 
 #[derive(PartialEq)]
 pub struct Table {
-    label: &'static str,
+    label: Cow<'static, str>,
     columns: Vec<&'static str>,
     rows: Vec<Vec<String>>,
     sort: Option<SortOrder>,
@@ -39,9 +40,9 @@ pub struct Table {
 }
 
 impl Table {
-    pub fn new(label: &'static str, columns: Vec<&'static str>) -> Self {
+    pub fn new(label: impl Into<Cow<'static, str>>, columns: Vec<&'static str>) -> Self {
         Self {
-            label,
+            label: label.into(),
             columns,
             rows: Vec::new(),
             sort: None,
@@ -222,7 +223,7 @@ impl Component for Table {
                 _ => None,
             };
             let cell = HeaderCell {
-                title: self.columns[index],
+                title: self.columns[index].into(),
                 arrow,
                 style: self.style.clone(),
                 on_press: self
@@ -503,7 +504,7 @@ impl Component for Table {
         let selected = self.selected.last().copied();
         let table = track_modifiers(interaction.attach(rect(), true), held)
             .a11y_role(AccessibilityRole::Table)
-            .a11y_alt(self.label)
+            .a11y_alt(&*self.label)
             .expanded()
             .direction(Direction::Vertical)
             .cursor(drag.read().is_some().then_some(CursorIcon::ColResize))
@@ -568,7 +569,7 @@ fn step_selection(selected: Option<usize>, rows: usize, down: bool) -> Option<us
 
 #[derive(PartialEq)]
 struct HeaderCell {
-    title: &'static str,
+    title: Cow<'static, str>,
     arrow: Option<Symbol>,
     on_press: Option<Callback<(), ()>>,
     style: Theme,
@@ -595,14 +596,14 @@ impl Component for HeaderCell {
         let cell = interaction
             .attach(rect(), on_press.is_some())
             .a11y_role(AccessibilityRole::ColumnHeader)
-            .a11y_alt(self.title)
+            .a11y_alt(&*self.title)
             .map(on_press, |el, on_press| {
                 el.on_press(move |_| on_press.call(()))
             })
             .direction(Direction::Horizontal)
             .cross_align(Alignment::Center)
             .spacing(style.header_spacing)
-            .child(text(self.title, font, ink))
+            .child(text(self.title.clone(), font, ink))
             .maybe_child(self.arrow.map(|arrow| {
                 let (size, stroke) = style.sort_arrow_size;
                 let (inset, drop) = style.sort_arrow_offset;

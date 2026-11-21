@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::cell::Cell;
 use std::rc::Rc;
 
@@ -23,8 +24,8 @@ pub(crate) enum Entry {
     Result {
         symbol: Symbol,
         tint: Rgba,
-        title: &'static str,
-        subtitle: Option<&'static str>,
+        title: Cow<'static, str>,
+        subtitle: Option<Cow<'static, str>>,
         on_select: Callback<(), ()>,
     },
 }
@@ -33,7 +34,7 @@ impl Entry {
     fn height(&self, style: &SettingsWindowStyle) -> f32 {
         match self {
             Self::Header(_) => style.header_height,
-            Self::Result { subtitle, .. } => result_height(style, *subtitle),
+            Self::Result { subtitle, .. } => result_height(style, subtitle.as_deref()),
         }
     }
 }
@@ -200,8 +201,8 @@ impl App for SearchPopover {
 struct SearchResult {
     symbol: Symbol,
     tint: Rgba,
-    title: &'static str,
-    subtitle: Option<&'static str>,
+    title: Cow<'static, str>,
+    subtitle: Option<Cow<'static, str>>,
     on_select: Callback<(), ()>,
     accent_highlight: bool,
     active: bool,
@@ -210,7 +211,7 @@ struct SearchResult {
 
 impl Component for SearchResult {
     fn render(&self) -> impl IntoElement {
-        let (title, subtitle) = (self.title, self.subtitle);
+        let (title, subtitle) = (self.title.clone(), self.subtitle.clone());
         let on_select = self.on_select.clone();
         let style: SettingsWindowStyle = resolve(&self.style);
         let interaction = use_interaction();
@@ -232,14 +233,14 @@ impl Component for SearchResult {
                 &style.result_subtitle,
             )
         };
-        let height = result_height(&style, subtitle);
+        let height = result_height(&style, subtitle.as_deref());
         let radius = style
             .result_shape
             .corner_radius(height, height, LayoutDirection::LeftToRight);
         let row = interaction
             .attach(rect(), true)
             .a11y_role(AccessibilityRole::ListItem)
-            .a11y_alt(title)
+            .a11y_alt(&*title)
             .width(Size::fill())
             .height(Size::px(height))
             .direction(Direction::Horizontal)

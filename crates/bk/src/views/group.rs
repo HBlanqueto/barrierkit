@@ -1,4 +1,5 @@
 use freya_core::prelude::*;
+use std::borrow::Cow;
 use torin::prelude::{Alignment, Direction, Gaps, Size};
 
 use crate::elements::{Overrides, forward_overrides};
@@ -12,14 +13,14 @@ use crate::symbol::{Symbol, stroked_symbol};
 
 #[derive(PartialEq)]
 pub struct GroupBox {
-    label: Option<&'static str>,
+    label: Option<Cow<'static, str>>,
     children: Vec<Element>,
     style: Theme,
     overrides: Overrides,
 }
 
 impl GroupBox {
-    pub fn new(label: Option<&'static str>) -> Self {
+    pub fn new(label: Option<Cow<'static, str>>) -> Self {
         Self {
             label,
             children: Vec::new(),
@@ -52,9 +53,9 @@ impl Component for GroupBox {
             .spacing(style.spacing)
             .a11y_role(AccessibilityRole::Group)
             .maybe(self.label.is_some(), |el| {
-                el.a11y_alt(self.label.unwrap_or_default())
+                el.a11y_alt(self.label.as_deref().unwrap_or_default())
             })
-            .maybe_child(self.label.map(|label| {
+            .maybe_child(self.label.clone().map(|label| {
                 rect()
                     .height(Size::px(style.label_height))
                     .padding(Gaps::new(0.0, 0.0, 0.0, style.label_inset))
@@ -84,7 +85,7 @@ impl Component for GroupBox {
 
 #[derive(PartialEq)]
 pub struct DisclosureGroup {
-    label: &'static str,
+    label: Cow<'static, str>,
     expanded: bool,
     children: Vec<Element>,
     style: Theme,
@@ -92,9 +93,9 @@ pub struct DisclosureGroup {
 }
 
 impl DisclosureGroup {
-    pub fn new(label: &'static str) -> Self {
+    pub fn new(label: impl Into<Cow<'static, str>>) -> Self {
         Self {
-            label,
+            label: label.into(),
             expanded: false,
             children: Vec::new(),
             style: Theme::tengen(),
@@ -145,7 +146,7 @@ impl Component for DisclosureGroup {
         let header = interaction
             .attach(rect(), true)
             .a11y_role(AccessibilityRole::Button)
-            .a11y_alt(self.label)
+            .a11y_alt(&*self.label)
             .a11y_builder(move |node| node.set_expanded(open))
             .height(Size::px(style.row_height))
             .direction(Direction::Horizontal)
@@ -165,7 +166,7 @@ impl Component for DisclosureGroup {
                 ),
             )
             .child(text(
-                self.label,
+                self.label.clone(),
                 style.font,
                 paints.color(style.label.resolve(state)),
             ));

@@ -1,5 +1,6 @@
 use ctdesign::ControlSize;
 use freya_core::prelude::*;
+use std::borrow::Cow;
 use std::rc::Rc;
 
 use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
@@ -45,7 +46,7 @@ pub(crate) fn toolbar_bar() -> Option<Bar> {
 #[derive(PartialEq)]
 pub struct IconButton {
     symbol: Symbol,
-    label: &'static str,
+    label: Cow<'static, str>,
     disabled: bool,
     on_press: Option<Callback<(), ()>>,
     style: Theme,
@@ -53,10 +54,10 @@ pub struct IconButton {
 }
 
 impl IconButton {
-    pub fn new(symbol: Symbol, label: &'static str) -> Self {
+    pub fn new(symbol: Symbol, label: impl Into<Cow<'static, str>>) -> Self {
         Self {
             symbol,
-            label,
+            label: label.into(),
             disabled: false,
             on_press: None,
             style: Theme::tengen(),
@@ -104,7 +105,7 @@ impl Component for IconButton {
         let button = interaction
             .attach(rect(), enabled)
             .a11y_role(AccessibilityRole::Button)
-            .a11y_alt(self.label)
+            .a11y_alt(&*self.label)
             .width(Size::px(width))
             .height(Size::px(height))
             .corner_radius(radius)
@@ -131,7 +132,7 @@ impl Component for IconButton {
 
 #[derive(PartialEq)]
 pub struct Stepper {
-    label: &'static str,
+    label: Cow<'static, str>,
     value: i64,
     min: i64,
     max: i64,
@@ -142,9 +143,9 @@ pub struct Stepper {
 }
 
 impl Stepper {
-    pub fn new(label: &'static str, min: i64, max: i64) -> Self {
+    pub fn new(label: impl Into<Cow<'static, str>>, min: i64, max: i64) -> Self {
         Self {
-            label,
+            label: label.into(),
             value: min,
             min,
             max,
@@ -215,7 +216,7 @@ impl Component for Stepper {
         let row = interaction
             .attach(rect(), !disabled)
             .a11y_role(AccessibilityRole::SpinButton)
-            .a11y_alt(self.label)
+            .a11y_alt(&*self.label)
             .a11y_builder(move |node| node.set_numeric_value(current as f64))
             .on_key_down(move |event: Event<KeyboardEventData>| match event.key {
                 Key::Named(NamedKey::ArrowUp) => step_key(1),
@@ -332,17 +333,17 @@ pub enum Face {
 
 #[derive(PartialEq)]
 pub struct ToggleGroup {
-    label: &'static str,
-    items: Vec<(&'static str, Face, &'static str, bool)>,
+    label: Cow<'static, str>,
+    items: Vec<(Cow<'static, str>, Face, Cow<'static, str>, bool)>,
     on_toggle: Option<Callback<(usize, bool), ()>>,
     style: Theme,
     overrides: Overrides,
 }
 
 impl ToggleGroup {
-    pub fn new(label: &'static str) -> Self {
+    pub fn new(label: impl Into<Cow<'static, str>>) -> Self {
         Self {
-            label,
+            label: label.into(),
             items: Vec::new(),
             on_toggle: None,
             style: Theme::tengen(),
@@ -358,8 +359,14 @@ impl ToggleGroup {
         self
     }
 
-    pub fn item(mut self, text: &'static str, face: Face, label: &'static str, on: bool) -> Self {
-        self.items.push((text, face, label, on));
+    pub fn item(
+        mut self,
+        text: impl Into<Cow<'static, str>>,
+        face: Face,
+        label: impl Into<Cow<'static, str>>,
+        on: bool,
+    ) -> Self {
+        self.items.push((text.into(), face, label.into(), on));
         self
     }
 
@@ -382,14 +389,14 @@ impl Component for ToggleGroup {
             .items
             .iter()
             .enumerate()
-            .map(|(index, &(text, face, label, _))| {
+            .map(|(index, (text, face, label, _))| {
                 let mut states = states;
                 let on_toggle = self.on_toggle.clone();
                 let on = states.read().get(index).copied().unwrap_or(false);
                 Toggle {
-                    text,
-                    face,
-                    label,
+                    text: text.clone(),
+                    face: *face,
+                    label: label.clone(),
                     on,
                     on_press: Callback::new(move |_| {
                         let next = !on;
@@ -413,7 +420,7 @@ impl Component for ToggleGroup {
 
         let group = rect()
             .a11y_role(AccessibilityRole::Toolbar)
-            .a11y_alt(self.label)
+            .a11y_alt(&*self.label)
             .direction(direction)
             .padding(Gaps::new_all(style.padding))
             .spacing(style.gap)
@@ -431,9 +438,9 @@ impl Component for ToggleGroup {
 
 #[derive(PartialEq)]
 struct Toggle {
-    text: &'static str,
+    text: Cow<'static, str>,
     face: Face,
-    label: &'static str,
+    label: Cow<'static, str>,
     on: bool,
     on_press: Callback<(), ()>,
     style: Theme,
@@ -465,7 +472,7 @@ impl Component for Toggle {
         let toggle = interaction
             .attach(rect(), true)
             .a11y_role(AccessibilityRole::Button)
-            .a11y_alt(self.label)
+            .a11y_alt(&*self.label)
             .a11y_builder(move |node| node.set_toggled(on.into()))
             .width(Size::px(width))
             .height(Size::px(height))
@@ -483,7 +490,7 @@ impl Component for Toggle {
                         Face::Bold | Face::Underline => FontSlant::Upright,
                     })
                     .color(paints.fill(ink))
-                    .span(Span::new(self.text).text_decoration(match face {
+                    .span(Span::new(self.text.clone()).text_decoration(match face {
                         Face::Underline => TextDecoration::Underline,
                         Face::Bold | Face::Italic => TextDecoration::None,
                     })),
@@ -500,17 +507,17 @@ impl Component for Toggle {
 #[derive(PartialEq)]
 pub struct ToolbarSearch {
     value: State<String>,
-    placeholder: &'static str,
+    placeholder: Cow<'static, str>,
     collapsed: bool,
     style: Theme,
     overrides: Overrides,
 }
 
 impl ToolbarSearch {
-    pub fn new(value: State<String>, placeholder: &'static str) -> Self {
+    pub fn new(value: State<String>, placeholder: impl Into<Cow<'static, str>>) -> Self {
         Self {
             value,
-            placeholder,
+            placeholder: placeholder.into(),
             collapsed: false,
             style: Theme::tengen(),
             overrides: Overrides::default(),
@@ -543,14 +550,14 @@ impl Component for ToolbarSearch {
                 .overrides
                 .apply(
                     rect().child(
-                        IconButton::new(Symbol::MagnifyingGlass, self.placeholder)
+                        IconButton::new(Symbol::MagnifyingGlass, self.placeholder.clone())
                             .on_press(move |_| opened.set(true)),
                     ),
                 )
                 .into_element();
         }
         let root = rect().width(Size::px(style.width)).child(
-            crate::controls::SearchField::new(self.value, self.placeholder)
+            crate::controls::SearchField::new(self.value, self.placeholder.clone())
                 .auto_focus(self.collapsed)
                 .on_focus_change(move |focused: bool| {
                     if !focused {

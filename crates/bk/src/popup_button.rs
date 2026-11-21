@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::cell::Cell;
 use std::rc::Rc;
 
@@ -26,9 +27,9 @@ use crate::theme::SurfaceKind;
 
 #[derive(PartialEq)]
 pub struct PopUpButton {
-    label: &'static str,
-    items: Vec<(&'static str, Option<MenuIcon>)>,
-    section_headers: Vec<(usize, &'static str)>,
+    label: Cow<'static, str>,
+    items: Vec<(Cow<'static, str>, Option<MenuIcon>)>,
+    section_headers: Vec<(usize, Cow<'static, str>)>,
     separators: Vec<usize>,
     selected: usize,
     on_change: Option<Callback<usize, ()>>,
@@ -39,9 +40,9 @@ pub struct PopUpButton {
 }
 
 impl PopUpButton {
-    pub fn new(label: &'static str) -> Self {
+    pub fn new(label: impl Into<Cow<'static, str>>) -> Self {
         Self {
-            label,
+            label: label.into(),
             items: Vec::new(),
             section_headers: Vec::new(),
             separators: Vec::new(),
@@ -66,18 +67,18 @@ impl PopUpButton {
         self.style(move |style: PopUpButtonStyle| style.sized(size))
     }
 
-    pub fn item(mut self, label: &'static str) -> Self {
-        self.items.push((label, None));
+    pub fn item(mut self, label: impl Into<Cow<'static, str>>) -> Self {
+        self.items.push((label.into(), None));
         self
     }
 
-    pub fn icon_item(mut self, label: &'static str, icon: MenuIcon) -> Self {
-        self.items.push((label, Some(icon)));
+    pub fn icon_item(mut self, label: impl Into<Cow<'static, str>>, icon: MenuIcon) -> Self {
+        self.items.push((label.into(), Some(icon)));
         self
     }
 
-    pub fn section_header(mut self, title: &'static str) -> Self {
-        self.section_headers.push((self.items.len(), title));
+    pub fn section_header(mut self, title: impl Into<Cow<'static, str>>) -> Self {
+        self.section_headers.push((self.items.len(), title.into()));
         self
     }
 
@@ -172,7 +173,7 @@ impl Component for PopUpButton {
         let button = interaction
             .attach(rect(), !self.disabled)
             .a11y_role(AccessibilityRole::ComboBox)
-            .a11y_alt(self.label)
+            .a11y_alt(&*self.label)
             .height(Size::px(style.height))
             .padding(Gaps::new(0.0, style.trailing_padding, 0.0, leading_padding))
             .corner_radius(radius)
@@ -207,7 +208,7 @@ impl Component for PopUpButton {
                     label().text(
                         self.items
                             .get(current)
-                            .map(|item| item.0)
+                            .map(|item| item.0.clone())
                             .unwrap_or_default(),
                     ),
                     style.font,
@@ -247,8 +248,8 @@ fn button_icon(icon: MenuIcon, size: f32) -> Option<Element> {
 }
 
 fn open_menu(
-    items: &[(&str, Option<MenuIcon>)],
-    section_headers: &[(usize, &str)],
+    items: &[(Cow<'static, str>, Option<MenuIcon>)],
+    section_headers: &[(usize, Cow<'static, str>)],
     separators: &[usize],
     current: usize,
     area: Area,
@@ -268,13 +269,13 @@ fn open_menu(
             if !entries.is_empty() {
                 entries.push(MenuItem::Separator);
             }
-            entries.push(MenuItem::header(*title));
+            entries.push(MenuItem::header(title.clone()));
         }
         if index == current {
             current_entry = entries.len();
         }
         entries.push(
-            MenuItem::action(index.to_string(), *label)
+            MenuItem::action(index.to_string(), label.clone())
                 .with_check(CheckState::Checkbox(!pulls_down && index == current))
                 .with_icon(icon.clone()),
         );

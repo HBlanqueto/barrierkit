@@ -1,10 +1,11 @@
 use super::*;
+use std::borrow::Cow;
 
 pub use ctdesign::ControlSize;
 
 #[derive(PartialEq)]
 pub struct Button {
-    label: String,
+    label: Cow<'static, str>,
     image: Option<Symbol>,
     disabled: bool,
     on: Option<bool>,
@@ -16,7 +17,7 @@ pub struct Button {
 }
 
 impl Button {
-    pub fn new(label: impl Into<String>) -> Self {
+    pub fn new(label: impl Into<Cow<'static, str>>) -> Self {
         Self {
             label: label.into(),
             image: None,
@@ -30,7 +31,7 @@ impl Button {
         }
     }
 
-    pub fn system_image(label: impl Into<String>, image: Symbol) -> Self {
+    pub fn system_image(label: impl Into<Cow<'static, str>>, image: Symbol) -> Self {
         Self {
             image: Some(image),
             ..Self::new(label)

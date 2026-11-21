@@ -1,5 +1,6 @@
 use ctdesign::{LIST_SECTION, SUBHEADLINE};
 use freya_core::prelude::*;
+use std::borrow::Cow;
 use torin::prelude::{Alignment, Direction, Gaps, Size};
 
 use crate::elements::{Overrides, forward_overrides};
@@ -12,9 +13,9 @@ use crate::views::table::{Table, row_divider};
 
 #[derive(PartialEq)]
 pub struct List {
-    label: &'static str,
+    label: Cow<'static, str>,
     rows: Vec<String>,
-    sections: Vec<(&'static str, Vec<String>)>,
+    sections: Vec<(Cow<'static, str>, Vec<String>)>,
     selected: Vec<usize>,
     scroll_bar: bool,
     on_select: Option<Callback<Vec<usize>, ()>>,
@@ -23,9 +24,9 @@ pub struct List {
 }
 
 impl List {
-    pub fn new(label: &'static str, rows: Vec<String>) -> Self {
+    pub fn new(label: impl Into<Cow<'static, str>>, rows: Vec<String>) -> Self {
         Self {
-            label,
+            label: label.into(),
             rows,
             sections: Vec::new(),
             selected: Vec::new(),
@@ -41,8 +42,8 @@ impl List {
         self
     }
 
-    pub fn section(mut self, title: &'static str, rows: Vec<String>) -> Self {
-        self.sections.push((title, rows));
+    pub fn section(mut self, title: impl Into<Cow<'static, str>>, rows: Vec<String>) -> Self {
+        self.sections.push((title.into(), rows));
         self
     }
 
@@ -69,7 +70,7 @@ impl Component for List {
         if !self.sections.is_empty() {
             return self.overrides.delegate(self.sectioned()).into_element();
         }
-        let table = Table::new(self.label, vec![""])
+        let table = Table::new(self.label.clone(), vec![""])
             .rows(self.rows.iter().map(|row| vec![row.clone()]).collect())
             .selected(self.selected.clone())
             .scroll_bar(self.scroll_bar);
@@ -106,7 +107,7 @@ impl List {
                     .filter(|row| (offset..first).contains(row))
                     .map(|row| row - offset)
                     .collect();
-                let table = Table::new(self.label, vec![""])
+                let table = Table::new(self.label.clone(), vec![""])
                     .rows(rows.iter().map(|row| vec![row.clone()]).collect())
                     .selected(selected)
                     .scroll_bar(false);
@@ -134,7 +135,7 @@ impl List {
                             .height(Size::px(LIST_SECTION.header_height))
                             .padding(Gaps::new(0.0, style.padding_x, 0.0, style.padding_x))
                             .main_align(Alignment::Center)
-                            .child(text(*title, SUBHEADLINE, header_ink).font_weight(600))
+                            .child(text(title.clone(), SUBHEADLINE, header_ink).font_weight(600))
                             .child(row_divider(
                                 paints.fill(&StateValue::new(ShapeStyle::Role(Role::Separator))),
                                 style.separator_margin.0,

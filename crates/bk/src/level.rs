@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -20,7 +21,7 @@ use crate::symbol::symbol;
 
 #[derive(PartialEq)]
 pub struct LevelSlider {
-    label: &'static str,
+    label: Cow<'static, str>,
     value: f32,
     disabled: bool,
     on_change: Option<Callback<f32, ()>>,
@@ -30,9 +31,9 @@ pub struct LevelSlider {
 }
 
 impl LevelSlider {
-    pub fn new(label: &'static str) -> Self {
+    pub fn new(label: impl Into<Cow<'static, str>>) -> Self {
         Self {
-            label,
+            label: label.into(),
             value: 0.0,
             disabled: false,
             on_change: None,
@@ -121,7 +122,7 @@ impl Component for LevelSlider {
         let mut root = interaction
             .attach(rect(), enabled)
             .a11y_role(AccessibilityRole::Slider)
-            .a11y_alt(self.label)
+            .a11y_alt(&*self.label)
             .a11y_builder(move |node| node.set_numeric_value(f64::from(fraction)))
             .width(Size::fill())
             .height(Size::px(height))

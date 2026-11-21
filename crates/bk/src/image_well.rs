@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::path::{Path, PathBuf};
 
 use freya_core::prelude::*;
@@ -13,16 +14,16 @@ use crate::styles::{ImageWellStyle, LayoutDirection, Paints, Theme, resolve};
 
 #[derive(PartialEq)]
 pub struct ImageWell {
-    label: &'static str,
+    label: Cow<'static, str>,
     image: State<Option<PathBuf>>,
     style: Theme,
     overrides: Overrides,
 }
 
 impl ImageWell {
-    pub fn new(label: &'static str, image: State<Option<PathBuf>>) -> Self {
+    pub fn new(label: impl Into<Cow<'static, str>>, image: State<Option<PathBuf>>) -> Self {
         Self {
-            label,
+            label: label.into(),
             image,
             style: Theme::tengen(),
             overrides: Overrides::default(),
@@ -74,7 +75,7 @@ impl Component for ImageWell {
         let element = interaction
             .attach(rect(), true)
             .a11y_role(AccessibilityRole::Image)
-            .a11y_alt(self.label)
+            .a11y_alt(&*self.label)
             .width(Size::px(size))
             .height(Size::px(size))
             .padding(inset)

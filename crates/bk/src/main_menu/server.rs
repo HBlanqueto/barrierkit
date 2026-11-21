@@ -411,7 +411,7 @@ mod tests {
     fn action(id: &str) -> MenuItem {
         MenuItem::Action {
             id: id.to_string(),
-            label: id.to_string(),
+            label: id.to_string().into(),
             shortcut: None,
             enabled: true,
             check: CheckState::None,
@@ -489,7 +489,7 @@ mod tests {
     fn equal_submenu_labels_in_different_menus_get_distinct_ids() {
         let recent = || MenuItem::Submenu {
             id: None,
-            label: "Recent".to_string(),
+            label: "Recent".into(),
             enabled: true,
             items: vec![],
             icon: None,
@@ -511,7 +511,7 @@ mod tests {
     fn a_dropped_shortcut_is_sent_as_a_removed_property() {
         let mut with_shortcut = action("save");
         if let MenuItem::Action { shortcut, .. } = &mut with_shortcut {
-            *shortcut = Some("Ctrl+S".to_string());
+            *shortcut = Some("Ctrl+S".into());
         }
         let mut id_map = IdMap::default();
         let registered = RegisteredMenu::new(MenuHandle::new(MainMenu::default(), None));

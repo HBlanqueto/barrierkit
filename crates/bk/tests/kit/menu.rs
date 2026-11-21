@@ -125,8 +125,8 @@ fn open_title_highlight_uses_neutral_hover_not_accent() {
 fn long_label_items() -> Vec<MenuItem> {
     vec![MenuItem::Action {
         id: "long".to_string(),
-        label: "a".repeat(120),
-        shortcut: Some("Ctrl+Shift+VeryLongShortcut".to_string()),
+        label: "a".repeat(120).into(),
+        shortcut: Some("Ctrl+Shift+VeryLongShortcut".into()),
         enabled: true,
         check: CheckState::None,
         icon: None,
@@ -164,7 +164,7 @@ fn a_120_character_label_is_truncated_in_the_middle_and_keeps_the_shortcut() {
 fn action(label: &str) -> MenuItem {
     MenuItem::Action {
         id: format!("id:{label}"),
-        label: label.to_string(),
+        label: label.to_string().into(),
         shortcut: None,
         enabled: true,
         check: CheckState::None,

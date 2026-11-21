@@ -1,5 +1,6 @@
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
+use std::borrow::Cow;
 
 use crate::platform::{RunError, WindowOptions, open_utility_window, run_window};
 use crate::style::Palette;
@@ -27,7 +28,7 @@ impl Application {
 
     pub fn window<E: IntoElement>(
         self,
-        title: impl Into<String>,
+        title: impl Into<Cow<'static, str>>,
         content: impl Fn() -> E + 'static,
     ) -> Scene {
         let title = title.into();
@@ -41,7 +42,7 @@ impl Application {
 
 pub struct Scene {
     options: WindowOptions,
-    title: String,
+    title: Cow<'static, str>,
     content: AppComponent,
 }
 
@@ -57,7 +58,7 @@ impl Scene {
             title,
             content,
         } = self;
-        run_window(move || window_root(&title, content.clone()), options)
+        run_window(move || window_root(title.clone(), content.clone()), options)
     }
 }
 
@@ -68,7 +69,7 @@ pub struct UtilityWindow {
 
 impl UtilityWindow {
     pub fn new<E: IntoElement>(
-        title: impl Into<String>,
+        title: impl Into<Cow<'static, str>>,
         name: impl Into<String>,
         content: impl Fn() -> E + 'static,
     ) -> Self {
@@ -88,7 +89,7 @@ impl UtilityWindow {
     }
 }
 
-fn window_root(title: &str, content: AppComponent) -> impl IntoElement + use<> {
+fn window_root(title: Cow<'static, str>, content: AppComponent) -> impl IntoElement + use<> {
     rect()
         .expanded()
         .background(color(Palette::current().window_background))

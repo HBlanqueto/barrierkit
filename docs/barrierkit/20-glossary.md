@@ -1370,7 +1370,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `tr!` | macro | ≈ `LocalizedStringKey` | — | Returns the translated text for a Fluent id; not a key type | [17](17-languages.md#tr) |
 | `i18n::load` | fn | — | — | Selects the requested languages into a Fluent loader | [17](17-languages.md#i18nload) |
 | `i18n::use_app_language` | fn | — | — | Reads the app's chosen language from its `.domain` file, once | [17](17-languages.md#i18nuse_app_language) |
-| `i18n::intern` | fn | — | — | Keeps a text built at run time as `&'static str`, once per distinct text | [17](17-languages.md#i18nintern) |
+| `i18n::intern` | fn | — | — | Keeps an identifier built at run time as `&'static str`, once per distinct text | [17](17-languages.md#i18nintern) |
 
 ## Shell
 

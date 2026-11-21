@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use ctdesign::{SETTINGS, TITLEBAR_CLIENT_HEIGHT, TITLEBAR_RAIL};
 use freya_core::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -455,7 +457,7 @@ impl Component for WindowChrome {
     }
 }
 
-fn window_state() -> (bool, bool, String) {
+fn window_state() -> (bool, bool, Cow<'static, str>) {
     try_consume_root_context::<WindowControls>()
         .map(|controls| {
             (
@@ -464,7 +466,7 @@ fn window_state() -> (bool, bool, String) {
                 controls.title.clone(),
             )
         })
-        .unwrap_or((true, false, String::new()))
+        .unwrap_or((true, false, Cow::default()))
 }
 
 fn window_paints(style: &WindowChromeStyle) -> Paints {
@@ -548,7 +550,7 @@ fn rail(style: &WindowChromeStyle, items: &RailItems, lights_opacity: f32) -> Re
 
 #[derive(PartialEq)]
 struct RotatedTitle {
-    title: String,
+    title: Cow<'static, str>,
     ink: ctdesign::Rgba,
     font: ctdesign::Font,
     angle: f32,

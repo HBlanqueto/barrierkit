@@ -1,9 +1,10 @@
 use super::*;
+use std::borrow::Cow;
 
 #[derive(Clone, PartialEq)]
 pub struct SecureField {
     field: State<PasswordField>,
-    label: &'static str,
+    label: Cow<'static, str>,
     width: Size,
     auto_focus: bool,
     revealed: bool,
@@ -15,10 +16,10 @@ pub struct SecureField {
 }
 
 impl SecureField {
-    pub fn new(field: State<PasswordField>, label: &'static str) -> Self {
+    pub fn new(field: State<PasswordField>, label: impl Into<Cow<'static, str>>) -> Self {
         Self {
             field,
-            label,
+            label: label.into(),
             width: Size::fill(),
             auto_focus: false,
             revealed: false,
@@ -100,7 +101,7 @@ impl Component for SecureField {
         let element = interaction
             .attach(rect(), true)
             .a11y_role(AccessibilityRole::PasswordInput)
-            .a11y_alt(self.label)
+            .a11y_alt(&*self.label)
             .a11y_auto_focus(self.auto_focus)
             .width(self.width.clone())
             .height(Size::px(style.height))
@@ -157,7 +158,7 @@ impl Component for SecureField {
 #[derive(PartialEq)]
 pub struct TextField {
     value: State<String>,
-    placeholder: &'static str,
+    placeholder: Cow<'static, str>,
     width: Size,
     auto_focus: bool,
     autocorrection_disabled: bool,
@@ -169,10 +170,10 @@ pub struct TextField {
 }
 
 impl TextField {
-    pub fn new(value: State<String>, placeholder: &'static str) -> Self {
+    pub fn new(value: State<String>, placeholder: impl Into<Cow<'static, str>>) -> Self {
         Self {
             value,
-            placeholder,
+            placeholder: placeholder.into(),
             width: Size::fill(),
             auto_focus: false,
             autocorrection_disabled: false,
@@ -248,7 +249,7 @@ impl Component for TextField {
                 .corner_radius(style.height, style.height, LayoutDirection::LeftToRight);
         let input = input(
             self.value,
-            self.placeholder,
+            self.placeholder.clone(),
             [
                 if self.disabled {
                     Rgba::TRANSPARENT
@@ -355,7 +356,7 @@ impl Component for TextField {
 #[derive(PartialEq)]
 pub struct SearchField {
     value: State<String>,
-    placeholder: &'static str,
+    placeholder: Cow<'static, str>,
     width: Size,
     auto_focus: bool,
     on_focus_change: Option<Callback<bool, ()>>,
@@ -374,10 +375,10 @@ impl SearchField {
         self
     }
 
-    pub fn new(value: State<String>, placeholder: &'static str) -> Self {
+    pub fn new(value: State<String>, placeholder: impl Into<Cow<'static, str>>) -> Self {
         Self {
             value,
-            placeholder,
+            placeholder: placeholder.into(),
             width: Size::fill(),
             auto_focus: false,
             on_focus_change: None,
@@ -494,7 +495,7 @@ impl Component for SearchField {
             .corner_radius(height, height, LayoutDirection::LeftToRight);
         let mut input = input(
             value,
-            self.placeholder,
+            self.placeholder.clone(),
             [
                 if disabled {
                     Rgba::TRANSPARENT
@@ -642,7 +643,7 @@ pub(crate) fn text_style(element: Rect, font: Font) -> Rect {
 
 pub(crate) fn input(
     value: State<String>,
-    placeholder: &'static str,
+    placeholder: impl Into<Cow<'static, str>>,
     [background, border, focus_border, text, placeholder_color]: [Rgba; 5],
     corner_radius: CornerRadius,
     inner_margin: Gaps,

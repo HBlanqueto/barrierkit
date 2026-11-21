@@ -109,7 +109,7 @@ fn lists() -> Vec<(&'static str, Builder)> {
             rect()
                 .width(Size::px(130.0))
                 .child(
-                    GroupBox::new(Some("Title")).child(
+                    GroupBox::new(Some("Title".into())).child(
                         rect()
                             .width(Size::px(120.0))
                             .height(Size::px(30.0))
@@ -149,7 +149,7 @@ fn emphasized_outline(style: OutlineViewStyle) -> OutlineViewStyle {
 }
 
 fn outline(open: bool, restyle: fn(OutlineViewStyle) -> OutlineViewStyle) -> Element {
-    let folder = |title: &str| TreeNode::new(title).icon(Symbol::Folder);
+    let folder = |title: &str| TreeNode::new(title.to_string()).icon(Symbol::Folder);
     rect()
         .width(Size::px(200.0))
         .height(Size::px(if open { 160.0 } else { 140.0 }))
@@ -283,7 +283,7 @@ fn tables() -> Vec<(&'static str, Builder)> {
 }
 
 fn classic_outline(restyle: fn(OutlineViewStyle) -> OutlineViewStyle) -> Element {
-    let folder = |title: &str| TreeNode::new(title).icon(Symbol::Folder);
+    let folder = |title: &str| TreeNode::new(title.to_string()).icon(Symbol::Folder);
     rect()
         .width(Size::px(300.0))
         .height(Size::px(170.0))
