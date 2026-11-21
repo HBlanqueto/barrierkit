@@ -144,3 +144,4 @@ table on stdout and `target/appkit/sheet-*.png`.
   differ. Judge text by its position and baseline.
 - `APPKIT_CAPTURES` and `APPKIT_OUT` change the capture and output folders; `APPKIT_SCALE` (4 by default) picks the capture size, and 2 is the one AppKit's bitmaps are made for.
 - The measured values are in [`macos-control-metrics.md`](macos-control-metrics.md).
+- What SwiftUI and AppKit offer, and how much of it the kit has: [`swiftui-appkit-coverage.md`](swiftui-appkit-coverage.md).
