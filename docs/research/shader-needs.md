@@ -16,7 +16,7 @@ Malaysia effect.
 `crates/bk/src`, Malaysia's `crates/grade-graphics`, and a throwaway Skia probe
 run in the `bk` container.
 **Output:** one table of 28 rows, two prerequisites, the option costs, an API
-sketch and the open questions.
+sketch, the plan for P1 and the open questions.
 
 ## Steps
 
@@ -104,13 +104,11 @@ The kit already asks for the blur: `shell/blur_region.rs` sends
 
 | ID | What | Why | Cost |
 |---|---|---|---|
-| P1 | A subtree layer hook. The kit calls `RenderPipeline` itself (`platform/surface.rs:256`) and `Tree` fields are public, so the kit can copy the ~170-line loop of `freya-core-0.5.3/src/render_pipeline.rs` and bracket a node's descendants with a layer that carries an image filter, a blend mode or a mask. | The loop draws nodes flat per z-layer and applies each ancestor's opacity per node with `save_layer_alpha_f`. No SwiftUI effect on a container can be built on that. | L |
+| P1 | A subtree layer hook ([plan](#p1-plan)). The kit calls `RenderPipeline` itself (`platform/surface.rs:256`) and `Tree` fields are public, so the kit can copy the ~170-line loop of `freya-core-0.5.3/src/render_pipeline.rs` and draw a group's descendants into one layer that carries an image filter, a blend mode or a mask. | The loop paints breadth-first, one z-layer per tree depth, and applies each ancestor's opacity per node with `save_layer_alpha_f`. No SwiftUI effect on a container can be built on that. | L |
 | P2 | A shader registry: compile each SkSL source once, keep the `RuntimeEffect`, read uniform names, types and order with `RuntimeEffect::uniforms()`, check arguments at bind time. | Today each shader packs uniform bytes by hand in a fixed order. Reflection works: the probe printed `uniforms` and `children` counts for every effect (E1). | M |
 
-P1 risk (unverified): clip, scale and rotation are per-node arrays in
-`EffectState`, so a bracket must replay them. A whole-window variant is cheap (render the
-tree into an offscreen surface, then draw it through a filter), but no SwiftUI
-API needs only that.
+A whole-window variant is cheap (render the tree into an offscreen surface, then
+draw it through a filter), but no SwiftUI API needs only that.
 
 ## The table
 
@@ -254,6 +252,77 @@ union and plate edge (exist), the material tone (veil, lift, cap, chroma:
 The app brings its own effects. Nothing is exposed as a library function the
 kit does not use (rule 2 of «Código mínimo»).
 
+## P1 plan
+
+**Goal:** a kit-owned render loop that draws a subtree into one layer with its
+own opacity, blend mode, mask and filter, and changes no pixel until a group is
+used.
+**Scope:** the loop and the group container. The effects that sit on it (table
+rows 2 to 4, 8 to 12, 17, 18, 25) follow one by one. P2 is separate.
+
+Facts that shape the plan:
+
+1. The loop is breadth-first. `LayerState::update` gives a node
+   `parent.layer + relative + 1` (`freya-core-0.5.3/src/data.rs:262-279`), and
+   `render` visits the sorted layer keys, reading each layer's nodes from a hash
+   set. A subtree is not contiguous in paint order, so one `save_layer` and
+   `restore` pair around a node cannot hold its descendants.
+2. Each node is self-contained. Between `save` and `restore_to_count` it applies
+   its ancestors' clips, rotations and scales, and the product of their opacities.
+   Opacities are a list of values, not node ids, so the loop cannot tell a group's
+   opacity from an ancestor's.
+3. Only painting uses this loop. Hit testing reads `Tree::layers` in
+   `events/measurer.rs:42`, and nothing else outside the loop does
+   (`grep -rn "\.layers\b"`). Layer numbers stay as they are.
+4. `ElementExt` extends `Any`, the `Tree` fields the loop reads are public and
+   the workspace `rust-version` is 1.98, so the loop can read a kit payload from
+   an element by upcasting.
+
+Design:
+
+1. **Payload.** A kit group value holds opacity, blend mode, color filter, image
+   filter and mask. It lives on a kit container element that wraps Freya's `rect`
+   and forwards its `ElementExt` methods, as rule 3 of «Código mínimo» asks of
+   view wrappers. `ViewModifiers` methods wrap a view in it. The group keeps its
+   opacity in the payload, not in `EffectData`, so its descendants do not dim
+   themselves again.
+2. **Loop.** Breadth-first as today. At a group root the loop draws the root and
+   every descendant depth-first, in depth order, inside one `save_layer`, marks
+   them done, and restores with a paint built from the payload. A descendant
+   with `Layer::Overlay` or `OverlayLevel` stays out of the group and paints in
+   the main pass.
+3. **Bounds.** The union of the descendants' visible areas mapped by their
+   scales, outset for shadows as the loop already does for opacity. Start with a
+   conservative bound. A layer effect gets a local matrix so its `position` is
+   the group's own space.
+4. **Cost control.** No layer when the payload is the identity. Groups nest.
+
+Milestones, in order:
+
+| M | Work | Cost | Done when |
+|---|---|---|---|
+| M0 | Run the golden scenes and the `bk` tests in the container and record which fail today | S | A baseline list exists |
+| M1 | Copy the loop into the kit unchanged; call it from `platform/surface.rs`; add a script that fails when the pinned `freya-core` loop file differs from the copy's source version | S | Every golden is byte-identical |
+| M2 | `compositing_group` with opacity only; glossary row, chapter and `agents/` entry in the same commit (rule 4 of «Nombres y glosario») | M | Two overlapping children at 50% show no seam (pixel assertion); scenes without a group are unchanged |
+| M3 | The depth-first group pass of design 2 and 3 | L | One golden each: nested groups, clipped parent, scaled parent, rotated parent, shadow at the edge |
+| M4 | Use a group in the slider and the level indicator instead of per-part dimming (`controls/slider.rs:290`, `level.rs:207`) | S | Goldens equal or better; the two comments go |
+| M5 | Effects, one commit each: `mask`, `blur`, color modifiers (stock `ColorFilter`), `blend_mode`; then the three shader effects once P2 exists | S to M each | One golden per effect |
+
+M0 to M4 are sequential. M5 starts after M3.
+
+Risks:
+
+- **Paint order.** Overlapping elements at the same depth in different subtrees
+  paint in hash-set order today, so grouping cannot make it worse; a descendant
+  that must paint above everything needs a `Layer` overlay.
+- **Cost per frame.** The loop redraws everything each frame (its own `TODO: Use
+  incremental rendering`), so each active group allocates a layer every frame.
+  Measure on a Vulkan machine before wide use; none is available here.
+- **Upgrade.** The copy stops matching when the `=0.5.3` pin moves; the M1 script
+  makes that visible.
+- **Goldens.** `UPDATE_GOLDEN=1` rewrites every golden; review the diff and
+  commit only the intended images.
+
 ## Experiments
 
 Throwaway crate outside the repo, built in the `bk` container against
@@ -286,7 +355,7 @@ All on Skia's **CPU raster**; no GPU ran.
 - Any compositor other than Malaysia. The `ext-background-effect-v1` and KDE
   behavior is read from the protocol XML only.
 - glslang, SPIRV-Cross and shaderc as bridges.
-- P1: that a bracket can replay clip, scale and rotation state.
+- P1: that the group pass keeps clip, scale and rotation right (M3 goldens test it).
 
 ## Rows for the coverage matrix
 
@@ -311,9 +380,9 @@ All on Skia's **CPU raster**; no GPU ran.
 
 ## Decisions
 
-1. **Fund P1** (a kit-owned render loop, L). It unlocks rows 2 to 4, 7 to 12, 17,
+1. **Fund P1** (a kit-owned render loop, L; [plan](#p1-plan)). It unlocks rows 2 to 4, 7 to 12, 17,
    18 and 25 and removes two existing workarounds. Without it the kit ships leaf
-   effects only (images, symbols, shapes, `Canvas`).
+   effects only (images, symbols, shapes, `Canvas`). Planned on 2026-11-21; nothing is implemented.
 2. **Where shared shader functions live.** In the kit, with `grade-graphics`
    including them (one source, reversed dependency), or kept apart with a
    raster test that compares each pair.
