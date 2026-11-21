@@ -266,6 +266,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `modifiers::StyleModifiers` | trait | `View` modifiers | — | Style modifiers for every view | [Styles](../../agents/styles.md#levels) |
 | `modifiers::StyleModifiers::control_size` | method | `.controlSize(_:)` | `NSControl.controlSize` | Sizes every control inside the view; a control's own `.size(..)` wins | [5](05-controls.md#control-size) |
 | `modifiers::StyleModifiers::control_style` | method | ≈ `.buttonStyle(_:)`, `.toggleStyle(_:)` | — | Changes the style of every control of that style inside the view | [Styles](../../agents/styles.md#levels) |
+| `modifiers::StyleModifiers::frame` | method | `.frame(width:height:alignment:)` | — | Wraps the view in a `Frame`; the size methods and `.alignment(..)` follow | [11](11-views.md#frame) |
 | `modifiers::EnvironmentModifiers` | trait | `View` modifiers | — | Modifiers that put a value in the environment of a view: `disabled`, `environment`, `focused`, `default_focus` | [16](16-swiftui-to-the-kit.md#environment) |
 | `modifiers::EnvironmentModifiers::disabled` | method | `.disabled(_:)` | `NSControl.isEnabled` | Disables every control inside the view; its own `.disabled` and every view above add up, and `false` enables nothing | [16](16-swiftui-to-the-kit.md#disabled) |
 | `modifiers::EnvironmentModifiers::environment` | method | `.environment(_:_:)` | — | Gives the view's subtree a value of type `T`; a view that reads it with `use_environment::<T>()` renders again when it changes | [16](16-swiftui-to-the-kit.md#environment) |
@@ -1164,6 +1165,20 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `views::split::NarrowSidebar` | enum | — | — | Where the sidebar opens in narrow windows: `Overlay` or `Push` | [10](10-sidebar.md#narrow-windows) |
 | `views::split::SidebarToggle` | struct | — | `NSToolbarItem.Identifier.toggleSidebar` | The button that shows or hides the sidebar: inside the sidebar while it is docked, in the titlebar when it is hidden | [10](10-sidebar.md#hiding-sidebartoggle-and-toggle_sidebar) |
 | `views::split::TOGGLE_SIDEBAR` | constant | — | `NSSplitViewController.toggleSidebar(_:)` | The show-or-hide-sidebar action, Ctrl+Alt+S | [10](10-sidebar.md#hiding-sidebartoggle-and-toggle_sidebar) |
+
+## Layout
+
+| BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
+|---|---|---|---|---|---|
+| `layout::Spacer` | struct | `Spacer` | ≈ `NSLayoutGuide` | Takes the space the other children of its stack leave; `.min_length` | [11](11-views.md#spacer) |
+| `layout::Frame` | struct | `frame(width:height:alignment:)` | — | A view with its own size and the alignment of its content; `view.frame()` returns it | [11](11-views.md#frame) |
+| `layout::Grid` | struct | `Grid` | `NSGridView` | Rows of cells whose columns line up | [11](11-views.md#grid-and-gridrow) |
+| `layout::GridRow` | struct | `GridRow` | `NSGridRow` | The cells of one row of a `Grid` | [11](11-views.md#grid-and-gridrow) |
+| `layout::GridCell` | struct | — | `NSGridCell` | A view with a column span or a column alignment, returned by the two grid modifiers | [11](11-views.md#grid-and-gridrow) |
+| `layout::GridModifiers` | trait | `View` modifiers | — | `grid_cell_columns` (`.gridCellColumns(_:)`, ≈ `NSGridCell.mergeCells`) and `grid_column_alignment` (`.gridColumnAlignment(_:)`, ≈ `NSGridColumn.xPlacement`) | [11](11-views.md#grid-and-gridrow) |
+| `layout::ContentAlignment` | struct | `Alignment` | — | Where content sits in its space on both axes; nine constants from `TOP_LEADING` to `BOTTOM_TRAILING`. SwiftUI's name is taken by torin's `Alignment` | [11](11-views.md#frame) |
+| `layout::HorizontalAlignment` | enum | `HorizontalAlignment` | `NSLayoutConstraint.Attribute` (`leading`, `centerX`, `trailing`) | `Leading`, `Center` or `Trailing`; left and right until right-to-left exists | [11](11-views.md#frame) |
+| `layout::VerticalAlignment` | enum | `VerticalAlignment` | `NSLayoutConstraint.Attribute` (`top`, `centerY`, `bottom`) | `Top`, `Center` or `Bottom`; no baselines | [11](11-views.md#frame) |
 
 ## Forms and groups
 

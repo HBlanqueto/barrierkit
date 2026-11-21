@@ -1,9 +1,9 @@
 # 11. Views
 
-**Goal:** compose the content of a window from the kit's containers: forms,
-tables, grids, trees, tabs, panes, alerts and navigation.
+**Goal:** compose the content of a window from the kit's containers: layout
+views, forms, tables, grids, trees, tabs, panes, alerts and navigation.
 **Scope:** every module under `bk::views` except `split` (the sidebar
-container, in [10](10-sidebar.md)). Single
+container, in [10](10-sidebar.md)), and `bk::layout`. Single
 controls are in [5](05-controls.md), framed text editing in
 [6](06-text-and-editing.md), complete windows in [12](12-patterns.md).
 **Reader:** anyone who assembles full screens.
@@ -64,6 +64,73 @@ before deleting.
    ```rust
    rect().expanded().child(table).maybe_child(alert)
    ```
+
+## Layout
+
+`Spacer`, `Frame` and `Grid` are in `bk::layout`, and the prelude exports them.
+A `VStack` or an `HStack` is a column or a row; these say what a stack cannot.
+
+### `Spacer`
+
+`Spacer::new()` takes the space that the other children of its `HStack` or
+`VStack` leave, and two spacers share it equally. `.min_length(f32)` is the
+least it takes (default `SPACE_2`, what SwiftUI gives `Spacer()` on macOS 27.2.1).
+A stack that holds a `Spacer` fills its own axis unless it has a size, and its
+other axis stays as its children make it. In a `rect()` of your own, a `Spacer`
+grows along both axes and the `rect()` needs `.content(Content::flex())`.
+
+```rust
+HStack::new()
+    .child(Button::new("Reset"))
+    .child(Spacer::new())
+    .child(Button::new("Save"))
+```
+
+### `Frame`
+
+`view.frame()` wraps the view in a `Frame`: a `rect()` with Freya's size
+methods (`width`, `height`, `min_width`, `max_width`). `.alignment(ContentAlignment)` places
+the view inside it, `CENTER` by default. `ContentAlignment` is SwiftUI's
+`Alignment` with its nine constants, from `TOP_LEADING` to `BOTTOM_TRAILING`;
+`HorizontalAlignment` and `VerticalAlignment` are its two axes. `Leading` and
+`Trailing` are left and right.
+
+```rust
+// SwiftUI: Text("Name").frame(width: 100, alignment: .trailing)
+Text::new("Name").frame().width(Size::px(100.0)).alignment(ContentAlignment::TRAILING)
+```
+
+`frame(maxWidth: .infinity)` is `.width(Size::fill())` in a column. In a row
+`Size::fill()` overflows the siblings after it: give the `HStack`
+`.content(Content::flex())` and the frame `.width(Size::flex(1.0))`.
+
+### `Grid` and `GridRow`
+
+`Grid::new()` lines up the cells of its rows. A `GridRow` holds the cells of one
+row (`.child`, `.children`) and `Grid::row` adds it. Each column is as wide as
+its widest cell, each row as tall as its tallest, and a cell sits in its slot
+by `ContentAlignment`, `CENTER` by default.
+
+| Method | What it does |
+|---|---|
+| `Grid::alignment(ContentAlignment)` | Where each cell sits in its slot |
+| `Grid::horizontal_spacing(f32)`, `Grid::vertical_spacing(f32)` | The gaps between columns and between rows; both default to `SPACE_2` |
+| `GridRow::alignment(VerticalAlignment)` | Overrides the vertical alignment of that row |
+| `Grid::child(view)` | A view outside a row: it spans every column, as in SwiftUI |
+| `view.grid_cell_columns(n)` | The cell spans `n` columns; the width it needs beyond them is split equally among them |
+| `view.grid_column_alignment(HorizontalAlignment)` | Aligns the whole column of that cell; a cell that spans columns ignores it |
+
+The program is [`layout_grid.rs`](../../agents/recipes/layout_grid.rs). Three limits:
+
+1. Cells are content-sized. A cell with `Size::fill()` or `Size::flex` takes the
+   width the Grid has available, not its column's: give a separator a width.
+2. Torin places a Grid by the size it had before the Grid arranged its cells.
+   The width is exact; the height is the tallest column. A parent that centers
+   or ends its children places the Grid off when the tallest cells of
+   different rows are in different columns. Put the Grid in a parent aligned
+   `Start`, or give it a `.height`.
+3. There is no `gridCellAnchor`, no hidden row and no baseline alignment: torin
+   cannot state a baseline ([ADR 0089](../decisions.md)).
 
 ## Forms
 

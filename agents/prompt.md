@@ -69,7 +69,8 @@ version.
    and handle the change (`.on_change`, `.on_toggle`, `.on_press`). A text
    field takes the `State<String>` it edits instead
    ([chapter 5](../docs/barrierkit/05-controls.md#text-fields)).
-5. **Use the kit's control** before building one from `rect()`.
+5. **Use the kit's control** before building one from `rect()`, and `Spacer`,
+   `.frame()` and `Grid` before `Size::flex` and widths you measured.
 6. **Names come from the glossary.** Freya owns `App`, `label` and `rect`; the
    kit's app type is `Application`.
 7. **Views are types, modifiers are methods**, as in SwiftUI: write

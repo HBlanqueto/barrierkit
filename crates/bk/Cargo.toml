@@ -117,6 +117,10 @@ name = "keyboard_shortcut"
 path = "../../agents/recipes/keyboard_shortcut.rs"
 
 [[example]]
+name = "layout_grid"
+path = "../../agents/recipes/layout_grid.rs"
+
+[[example]]
 name = "list_rows"
 path = "../../agents/recipes/list_rows.rs"
 

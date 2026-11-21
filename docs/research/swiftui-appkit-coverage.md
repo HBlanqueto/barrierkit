@@ -415,7 +415,10 @@ The size of each control is a row in its own family.
 | `ScrollView` legacy bar | `NSScroller` legacy | `ScrollView`, `Table`, `List`, `OutlineView` | `measured` in the four appearances | bench `scrollers`; [Scrollers][m-scrollers] | — |
 | `ScrollView` overlay bar | `NSScroller` overlay | `ScrollView`, `Table`, `List`, `OutlineView` | `partial`: the thumb is measured (6 wide, per appearance), not compared in a scene | probe `scrollers` (`overlay`); [Scrollers][m-scrollers] | P2 |
 | `scrollEdgeEffectStyle` | `NSScrollPocket` | `TopGlass`, `ScrollView` edge | `partial` | [Sidebar][m-sidebar] | P2 |
-| `Grid`, `GridRow` | `NSGridView` | — | `missing` | none | P2 |
+| `Grid`, `GridRow`, `gridCellColumns`, `gridColumnAlignment` | `NSGridView`, `NSGridRow`, `NSGridCell` | `Grid`, `GridRow`, `GridModifiers` | `partial`: rows, columns, spans and alignments; content-sized cells only, no `gridCellAnchor`, `gridCellUnsizedAxes` or hidden rows, and a parent that aligns places it by the tallest column ([ADR 0089](../decisions.md)) | probe `layout` (L5 to L10), test `crates/bk/tests/kit/layout.rs` | P2 |
+| `Spacer` | `NSLayoutGuide` | `Spacer` | `implemented`: the minimum length and the sharing of space are the numbers SwiftUI gives (probe `layout`, L1 to L3) | probe `layout`, test `crates/bk/tests/kit/layout.rs` | — |
+| `frame(width:height:alignment:)`, `frame(maxWidth:)` | — | `StyleModifiers::frame`, `Frame` | `implemented`: the nine alignments place the view as SwiftUI does (probe `layout`, L4) | probe `layout`, test `crates/bk/tests/kit/layout.rs` | — |
+| `HStack(alignment: .firstTextBaseline)`, `GridRow(alignment: .firstTextBaseline)` | `NSStackView.alignment` `.firstBaseline`, `NSGridRow.rowAlignment` | — | `missing`: torin cannot state a baseline ([ADR 0089](../decisions.md)) | probe `layout` (L7) | P3 |
 | `LazyVGrid`, `LazyHGrid` | `NSCollectionView` | `CollectionView` | `partial`: one vertical wrap of fixed-width tiles, not lazy, no `GridItem`, no sections, no keyboard | none | P3 |
 | — | `NSPredicateEditor`, `NSRuleEditor` | `RuleEditor` | `partial`: `RuleKind` has Text, Number and Choice only | none | P3 |
 | `HStack`, `VStack` | `NSStackView` | `HStack`, `VStack` | `partial`: wrap a `rect()`; no distribution, gravity or hiding priority | none | — |
@@ -606,7 +609,7 @@ first four areas are the sessions that run now.
 5. **P1** `TabView`: the toolbar tabs as a bench entry (the classic tabs are
    done).
 6. **P2** A three-column `NavigationSplitView`; a path and destination API for
-   `NavigationStack`; `Grid`; confirmation dialog;
+   `NavigationStack`; confirmation dialog;
    tooltip and `NSSplitView` divider probes.
 7. **P3** Reordering, swipe actions, collection layouts, drop targets.
 

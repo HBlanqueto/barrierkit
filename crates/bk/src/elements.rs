@@ -13,7 +13,7 @@ macro_rules! forward_element {
     ($outer:ident) => {
         impl From<$outer> for ::freya_core::prelude::Element {
             fn from(value: $outer) -> Self {
-                value.0.into()
+                $crate::layout::resolve_spacers(value.0.into())
             }
         }
 

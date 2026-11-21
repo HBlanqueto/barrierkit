@@ -35,6 +35,9 @@ know the kit's shape.
 | `.commands`, `.keyboardShortcut` on a menu item | `Action`, `MainMenu`, `use_menu_action` | [`actions.rs`](../../agents/recipes/actions.rs) |
 | `.keyboardShortcut` on a `Button` | `Button::keyboard_shortcut(Shortcut)` | [`keyboard_shortcut.rs`](../../agents/recipes/keyboard_shortcut.rs) |
 | `WindowGroup`, `Window`, `Settings`, `@Environment(\.openWindow)`, `\.dismissWindow` | `Application::scene(..)`, `use_open_window()`, `use_dismiss_window()` | [`scenes.rs`](../../agents/recipes/scenes.rs) |
+| `Spacer()` | `Spacer::new()`, `.min_length(f32)` | [`layout_grid.rs`](../../agents/recipes/layout_grid.rs) |
+| `.frame(width:height:alignment:)`, `.frame(maxWidth: .infinity)` | `.frame()`, then `.width(..)`, `.height(..)`, `.alignment(..)`; `.width(Size::fill())` for `maxWidth: .infinity` in a column | [`layout_grid.rs`](../../agents/recipes/layout_grid.rs) |
+| `Grid { GridRow { .. } }`, `.gridCellColumns(_:)`, `.gridColumnAlignment(_:)` | `Grid::new().row(GridRow::new().child(..))`, `.grid_cell_columns(n)`, `.grid_column_alignment(..)` | [`layout_grid.rs`](../../agents/recipes/layout_grid.rs) |
 | `.onAppear`, `.onDisappear`, `.onChange`, `.task` | [`use_hook`, `use_drop`, `use_side_effect_with_deps`, `use_future`](#effects) | none |
 
 ## State and bindings

@@ -14,6 +14,7 @@ mod focus;
 mod focus_by_name;
 mod form_stack;
 mod image;
+mod layout;
 mod list_rows;
 mod menu;
 mod modifiers;

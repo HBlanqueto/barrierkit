@@ -16,6 +16,10 @@ pub use crate::controls::*;
 pub use crate::elements::{HStack, Label, Text, VStack};
 pub use crate::environment::{use_environment, use_is_enabled};
 pub use crate::focus::{FocusState, use_focus_state};
+pub use crate::layout::{
+    ContentAlignment, Frame, Grid, GridCell, GridModifiers, GridRow, HorizontalAlignment, Spacer,
+    VerticalAlignment,
+};
 pub use crate::modifiers::{EnvironmentModifiers, StyleModifiers, ViewModifiers};
 pub use crate::platform::{RunError, WindowOptions, run_window};
 pub use crate::style::{Palette, text};

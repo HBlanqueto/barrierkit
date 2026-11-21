@@ -297,3 +297,18 @@ The program is [`recipes/scenes.rs`](recipes/scenes.rs).
 4. `.commands(Commands::new())` adds the standard menus, with a Window menu
    that lists the open windows and a Settings… item
    ([chapter 13](../docs/barrierkit/13-app.md#standard-menus)).
+
+## 26. A grid of labeled rows and a toolbar
+
+SwiftUI: `Grid(alignment: .leading) { GridRow { Text("Name").gridColumnAlignment(.trailing); Text(name) } }`, then `HStack { Button("Reset") { }; Spacer(); Button("Save") { } }`.
+
+The program is [`recipes/layout_grid.rs`](recipes/layout_grid.rs).
+
+1. A `GridRow` holds the cells of one row. Every column is as wide as its widest
+   cell and every row as tall as its tallest ([chapter 11](../docs/barrierkit/11-views.md#layout)).
+2. `.grid_column_alignment(..)` on one cell aligns its whole column;
+   `Grid::alignment` places the other cells.
+3. `Spacer::new()` takes the space the other children leave, so the two buttons
+   sit at the ends of the row.
+4. `.frame()` then `.width(..)` and `.alignment(..)` is
+   `.frame(maxWidth: .infinity, alignment: .leading)`.

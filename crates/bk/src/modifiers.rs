@@ -4,6 +4,7 @@ use std::borrow::Cow;
 
 use crate::environment::{DisabledScope, EnvironmentScope};
 use crate::focus::{DefaultFocus, FocusState, Focused};
+use crate::layout::Frame;
 use crate::menu::MenuItem;
 use crate::styles::Painted;
 use crate::styles::{
@@ -68,6 +69,10 @@ pub trait StyleModifiers: IntoElement + Sized {
 
     fn control_size(self, size: ControlSize) -> StyleScope {
         StyleScope::new(Theme::control_size(size), self)
+    }
+
+    fn frame(self) -> Frame {
+        Frame::new(self)
     }
 }
 
