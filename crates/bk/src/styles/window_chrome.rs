@@ -1,4 +1,4 @@
-use ctappearance::{ColorScheme, Resolved, SidebarStyle as SidebarKind, palette};
+use ctappearance::{ColorScheme, Resolved, palette};
 use ctdesign::{DURATION_BASE, Font, HAIRLINE, SHADOW, SHADOW_DARK, TITLEBAR, TITLEBAR_RAIL};
 
 use super::button::rounded;
@@ -49,8 +49,7 @@ pub struct WindowChromeStyle {
     pub pill_padding: (f32, f32),
     /// Tengen: `RoundedRectangle { radius: TITLEBAR_RAIL.pill_radius, style: Circular }`.
     pub pill_shape: Shape,
-    /// Tengen: `Color` of `titlebar_inactive`, focused `Color` of the window surface; `Clear`
-    /// with an island sidebar.
+    /// Tengen: `Color` of `titlebar_inactive`, focused `Color` of the window surface.
     pub rail_background: StateValue<ShapeStyle>,
     /// Tengen: `Color` of the window surface, the rail of `Reveal::Drawer`.
     pub drawer_background: StateValue<ShapeStyle>,
@@ -58,8 +57,7 @@ pub struct WindowChromeStyle {
     pub title: StateValue<ShapeStyle>,
     /// Tengen: `Role(RaisedBackground)`.
     pub pill_background: StateValue<ShapeStyle>,
-    /// Tengen: `Some((Color of the sidebar line, HAIRLINE))` on the right of the rail; `None`
-    /// with an island sidebar.
+    /// Tengen: `Some((Color of the sidebar line, HAIRLINE))` on the right of the rail.
     pub rail_line: Option<(ShapeStyle, f32)>,
     /// Tengen: `(Color of the sidebar line, TITLEBAR_RAIL.edge_line)`.
     pub line_edge: (ShapeStyle, f32),
@@ -84,7 +82,6 @@ pub struct WindowChromeStyle {
 impl ControlStyle for WindowChromeStyle {
     fn tengen() -> Self {
         let resolved = crate::theme::resolved();
-        let island = resolved.sidebar.style == SidebarKind::Island;
         let toplevel = ShapeStyle::Color(surface_background(&resolved, SurfaceKind::Toplevel));
         let ink = palette(resolved.scheme).title;
         let line = ShapeStyle::Color(resolved.sidebar.palette.line);
@@ -106,17 +103,15 @@ impl ControlStyle for WindowChromeStyle {
             pill_inset: TITLEBAR_RAIL.pill_inset,
             pill_padding: (TITLEBAR_RAIL.pill_padding_x, TITLEBAR_RAIL.pill_padding_y),
             pill_shape: rounded(TITLEBAR_RAIL.pill_radius),
-            rail_background: if island {
-                StateValue::new(ShapeStyle::Clear)
-            } else {
-                StateValue::new(ShapeStyle::Color(resolved.surfaces.titlebar_inactive))
-                    .focused(toplevel.clone())
-            },
+            rail_background: StateValue::new(ShapeStyle::Color(
+                resolved.surfaces.titlebar_inactive,
+            ))
+            .focused(toplevel.clone()),
             drawer_background: StateValue::new(toplevel),
             title: StateValue::new(ShapeStyle::Color(ink.unfocused))
                 .focused(ShapeStyle::Color(ink.focused)),
             pill_background: StateValue::new(ShapeStyle::Role(Role::RaisedBackground)),
-            rail_line: (!island).then(|| (line.clone(), HAIRLINE)),
+            rail_line: Some((line.clone(), HAIRLINE)),
             line_edge: (line, TITLEBAR_RAIL.edge_line),
             accent_edge: (ShapeStyle::Accent, TITLEBAR_RAIL.edge_accent),
             pill_border: Some((ShapeStyle::Role(Role::Outline), HAIRLINE)),

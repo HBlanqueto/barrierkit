@@ -60,7 +60,7 @@ fn storage_row() -> impl IntoElement {
 | Source | Who decides | Where it lives |
 |---|---|---|
 | **Tokens**: base colors, spacing, type, durations, per-component metrics | The design system | `crates/ctdesign/tengen/tokens.json` and `components.json` |
-| **Appearance**: mode, accent, tints, sidebar style, contrast, motion | The user | `~/.config/malaysia/appearance.domain` |
+| **Appearance**: mode, accent, tints, contrast, motion | The user | `~/.config/malaysia/appearance.domain` |
 | **Variants** and **styles** of a control: a preset such as `ButtonStyle::bordered_prominent`, tint, tinted backdrop, a `SliderStyle` | The app | The app's code ([styles](../../agents/styles.md)) |
 
 The kit resolves the first two into a `Resolved` value
@@ -366,7 +366,6 @@ tint_parts = ["sidebars", "window", "groups", "controls", "menus"]
 | `window_color` | `WindowColorMode` | `neutral`, `accent` (an old `wallpaper` reads as `neutral`) | `neutral` |
 | `tint_strength` | `TintStrength` | `subtle`, `normal`, `strong`, `intense` | `normal` |
 | `tint_parts` | `TintParts` | list of `sidebars`, `window`, `groups`, `controls`, `menus`, `bars` (the menu bar and the Dock) | all but `bars` |
-| `sidebar_style` | `SidebarStyle` | `island`, `flat` | `island` |
 | `traffic_lights` | `TrafficLightStyle` | `standard`, `accent`, `wallpaper` | `wallpaper` |
 | `traffic_light_shape` | `TrafficLightShape` | corner radius from 0 to 7 on the 14 light; the old `square` reads as 4 and `round` as 7 | `4` |
 | `wallpaper_tinting` | `bool` | | `true` |
@@ -392,6 +391,7 @@ Notes on the values:
 - The old value `"auto"` reads as `light`; `is_dark()` is true for `dark` and
   `dark_tint`.
 - A number outside its token list reads as the nearest end of the list.
+- A `sidebar_style` key from an older file is ignored: the sidebar has one look ([ADR 0079](../decisions.md)).
 - `TintStrength::factor()` multiplies the accent tint and the wallpaper tint by
   `TINT_STRENGTH`: 0.5, 1, 1.5 or 2.
 - `scroll_bars = "automatic"` keeps the bar on screen after a mouse wheel and
@@ -923,13 +923,12 @@ nothing is blurred.
 | `SHELL_LIGHT`, `SHELL_LIGHT_OPAQUE`, `SHELL_DARK`, `SHELL_DARK_OPAQUE`, `SHELL_DARK_TINT`, `SHELL_DARK_TINT_OPAQUE` | `ShellPalette` | Menu bar and Dock, translucent and opaque. |
 | `THEME_SHADOW_OPACITY` | `f32` | Shadow opacity of `use_shell_theme`. |
 | `MENU_LIGHT`, `MENU_LIGHT_OPAQUE`, `MENU_DARK`, `MENU_DARK_OPAQUE`, `MENU_DARK_TINT`, `MENU_DARK_TINT_OPAQUE` | `MenuPalette` | Menus, translucent and opaque. |
-| `SIDEBAR_LIGHT`, `SIDEBAR_LIGHT_OPAQUE`, `SIDEBAR_DARK`, `SIDEBAR_DARK_OPAQUE`, `SIDEBAR_DARK_TINT`, `SIDEBAR_DARK_TINT_OPAQUE` | `Rgba` | Flat sidebar background. |
-| `SIDEBAR_ISLAND_LIGHT`, `SIDEBAR_ISLAND_DARK`, `SIDEBAR_ISLAND_DARK_TINT` | `Rgba` | Island sidebar background. |
+| `SIDEBAR_LIGHT`, `SIDEBAR_LIGHT_OPAQUE`, `SIDEBAR_DARK`, `SIDEBAR_DARK_OPAQUE`, `SIDEBAR_DARK_TINT`, `SIDEBAR_DARK_TINT_OPAQUE` | `Rgba` | Sidebar background, measured on macOS 27: `#ededed` in light and `#262626` in dark. |
+| `TOOLBAR_BG_LIGHT`, `TOOLBAR_BG_DARK`, `TOOLBAR_BG_DARK_TINT` | `Rgba` | Background of the unified title bar beside a sidebar (`Surfaces::toolbar`): `#ffffff` in light and `#262626` in dark. |
+| `TOOLBAR_LINE_LIGHT`, `TOOLBAR_LINE_DARK`, `TOOLBAR_LINE_DARK_TINT` | `Rgba` | The 1 px line under that bar (`Surfaces::toolbar_line`): `#0000001a` in light and `#ffffff13` in dark. |
 | `SIDEBAR_GLASS_BASE_LIGHT`, `SIDEBAR_GLASS_BASE_DARK`, `SIDEBAR_GLASS_BASE_DARK_TINT` | `Rgba` | Tone of the sidebar glass at rest: a gray `#202020` in dark (L 0.245 in OKLab) and `#e5e7e8` in light (L 0.927), a little darker than the `#ebedee` measured on macOS so that the tint shows; dark tint is an estimate. |
 | `SIDEBAR_GLASS_SOLID_LIGHT`, `SIDEBAR_GLASS_SOLID_DARK`, `SIDEBAR_GLASS_SOLID_DARK_TINT` | `Rgba` | Tone of the sidebar glass when its window is not active. Light is `#f1f2f3`, measured; dark is the tone at rest. |
-| `SIDEBAR_ISLAND_RIM_LIGHT`, `SIDEBAR_ISLAND_RIM_DARK`, `SIDEBAR_ISLAND_RIM_DARK_TINT` | `Rgba` | Island sidebar outer rim. |
-| `SIDEBAR_ISLAND_INNER_LIGHT`, `SIDEBAR_ISLAND_INNER_DARK`, `SIDEBAR_ISLAND_INNER_DARK_TINT` | `Rgba` | Island sidebar inner line. |
-| `SIDEBAR_PALETTE_LIGHT`, `SIDEBAR_PALETTE_DARK`, `SIDEBAR_PALETTE_DARK_TINT` | `SidebarPalette` | Sidebar inks per theme. |
+| `SIDEBAR_PALETTE_LIGHT`, `SIDEBAR_PALETTE_DARK`, `SIDEBAR_PALETTE_DARK_TINT` | `SidebarPalette` | Sidebar inks per theme: the selection (`#0270f5` in light, `#007aff` in dark) and the rest. |
 | `TOOLGROUP_BG_LIGHT`, `TOOLGROUP_BG_LIGHT_OPAQUE`, `TOOLGROUP_BG_DARK`, `TOOLGROUP_BG_DARK_OPAQUE`, `TOOLGROUP_BG_DARK_TINT`, `TOOLGROUP_BG_DARK_TINT_OPAQUE` | `Rgba` | Toolbar group background. |
 | `TOOLGROUP_PALETTE_LIGHT`, `TOOLGROUP_PALETTE_DARK`, `TOOLGROUP_PALETTE_DARK_TINT` | `ToolgroupPalette` | Toolbar group lines per theme. |
 
@@ -1009,7 +1008,7 @@ background, for `reduce_transparency`.
 
 | Constant | Type | Read by |
 |---|---|---|
-| `GLASS` | `GlassMetrics` | Per color scheme (`_light`, `_dark`): `chroma` (0.22, 0.05), the share of the wallpaper's OKLab chroma the glass takes; `chroma_cap` (0.05, 0.04), the chroma it saturates towards (`backdrop::take_chroma_capped`); `lightness` (0.00, 0.00), the share of the lightness of what is behind that shows through; `blur_passes` (4, 6), how many times the glass blurs what is behind it, also for the edge; `edge_intensity` (0.70, 0.70), `edge_span` (53, 60 logical pixels), `edge_chroma` (0.58, 0.45), `edge_lightness` (0.00, 0.10) and `edge_cap` (0.08, 0.18), `rim_lift` (0.03, 0.06) and `rim_lift_edge` (0.02, 0.05) and `edge_offset` (11 logical pixels outside the window): the wallpaper that shows along the left, top and bottom edges of a panel and fades inwards. Shared: `accent_share` (0.35), the part of `chroma` that stays when the accent tints the sidebar; `content_span` (200 logical pixels) and `content_opacity` (0.60): on a panel that does not reach the window's right edge, the glass's `base` veils the fill, growing smoothly from `content_span` before that edge to `content_opacity` at it, so the wallpaper's colours fade towards the content without disappearing; `rim_opacity` (1.00), `rim_chroma` (1.35) and `rim_cap` (0.25): the island's border is derived from the fill under it, `rim_lift` lighter (`rim_lift_edge` more where the wallpaper shows) and `rim_chroma` times its chroma with its hue, up to `rim_cap`; `shadow_opacity` (0.13), `shadow_lightness` (0.20), `shadow_span` (25) and `shadow_tint` (1.00): the island's shadow on the window, only in light; `glass_shadow` gives none in dark. Read the per-scheme ones with `glass_chroma`, `glass_lightness`, `glass_rim_lift`, `glass_blur_passes`, `glass_edge` and `glass_shadow` ([ADR 0065](../decisions.md)). Values chosen by the owner on the sidebar mockup |
+| `GLASS` | `GlassMetrics` | Per color scheme (`_light`, `_dark`): `chroma` (0.22, 0.05), the share of the wallpaper's OKLab chroma the glass takes; `chroma_cap` (0.05, 0.04), the chroma it saturates towards (`backdrop::take_chroma_capped`); `lightness` (0.00, 0.00), the share of the lightness of what is behind that shows through; `blur_passes` (4, 6), how many times the glass blurs what is behind it, also for the edge; `edge_intensity` (0.70, 0.70), `edge_span` (53, 60 logical pixels), `edge_chroma` (0.58, 0.45), `edge_lightness` (0.00, 0.10) and `edge_cap` (0.08, 0.18), `rim_lift` (0.03, 0.06) and `rim_lift_edge` (0.02, 0.05) and `edge_offset` (11 logical pixels outside the window): the wallpaper that shows along the left, top and bottom edges of a panel and fades inwards. Shared: `accent_share` (0.35), the part of `chroma` that stays when the accent tints the sidebar; `content_span` (200 logical pixels) and `content_opacity` (0.60): on a panel that does not reach the window's right edge, the glass's `base` veils the fill, growing smoothly from `content_span` before that edge to `content_opacity` at it, so the wallpaper's colours fade towards the content without disappearing; `rim_opacity` (1.00), `rim_chroma` (1.35) and `rim_cap` (0.25): the glass panel's border is derived from the fill under it, `rim_lift` lighter (`rim_lift_edge` more where the wallpaper shows) and `rim_chroma` times its chroma with its hue, up to `rim_cap`; `shadow_opacity` (0.13), `shadow_lightness` (0.20), `shadow_span` (25) and `shadow_tint` (1.00): the glass panel's shadow on the window, only in light; `glass_shadow` gives none in dark. Read the per-scheme ones with `glass_chroma`, `glass_lightness`, `glass_rim_lift`, `glass_blur_passes`, `glass_edge` and `glass_shadow` ([ADR 0065](../decisions.md)). Values chosen by the owner on the sidebar mockup |
 | `SIDEBAR` | `SidebarMetrics` | `sidebar`, `styles` (the sidebar styles); `item_weight` (500) and `item_selected_weight` (600) weigh the row labels |
 | `TOOLGROUP` | `ToolgroupMetrics` | `controls`, `compact` |
 | `SPLIT_VIEW` | `SplitViewMetrics` | `views::split`, `styles` |

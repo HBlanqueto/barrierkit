@@ -156,14 +156,6 @@ where
     Ok(parts)
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize, Serialize)]
-#[serde(rename_all = "lowercase")]
-pub enum SidebarStyle {
-    #[default]
-    Island,
-    Flat,
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize)]
 pub struct TrafficLightShape(u32);
 
@@ -318,8 +310,6 @@ pub struct AppearanceConfig {
     #[serde(deserialize_with = "lenient")]
     pub traffic_light_shape: TrafficLightShape,
     #[serde(deserialize_with = "lenient")]
-    pub sidebar_style: SidebarStyle,
-    #[serde(deserialize_with = "lenient")]
     pub tint_strength: TintStrength,
     #[serde(
         deserialize_with = "deserialize_tint_parts",
@@ -374,7 +364,6 @@ impl Default for AppearanceConfig {
             window_color: WindowColorMode::default(),
             traffic_lights: TrafficLightStyle::default(),
             traffic_light_shape: TrafficLightShape::default(),
-            sidebar_style: SidebarStyle::default(),
             tint_strength: TintStrength::default(),
             tint_parts: TintParts::default(),
             wallpaper_tinting: true,
@@ -781,7 +770,6 @@ traffic_lights = "standard"
             window_color: WindowColorMode::Accent,
             traffic_lights: TrafficLightStyle::Accent,
             traffic_light_shape: TrafficLightShape::new(2),
-            sidebar_style: SidebarStyle::Flat,
             tint_strength: TintStrength::Strong,
             tint_parts: TintParts {
                 sidebars: true,
@@ -967,7 +955,7 @@ reduced_motion = false
 window_color = "accent"
 window_tint_scope = "windows"
 traffic_lights = "standard"
-sidebar_style = "island"
+sidebar_style = "flat"
 "#,
         )
         .unwrap();
@@ -991,13 +979,13 @@ sidebar_style = "island"
         let config: AppearanceConfig = toml::from_str(
             r#"
 color_scheme = "dark"
-sidebar_style = "bubbly"
+window_color = "bubbly"
 tint_parts = ["window", "halo"]
 "#,
         )
         .unwrap();
         assert_eq!(config.color_scheme, ColorScheme::Dark);
-        assert_eq!(config.sidebar_style, SidebarStyle::Island);
+        assert_eq!(config.window_color, WindowColorMode::default());
         assert_eq!(
             config.tint_parts,
             TintParts {

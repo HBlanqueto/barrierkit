@@ -85,18 +85,24 @@ The column of navigation rows. Its children scroll in a
 | `Sidebar::new()` | — | An empty sidebar |
 | `.child(view)`, `.children(views)` | — | Adds rows: items, sections, an account or any view |
 | `.traffic_lights(bool)` | `false` | Draws the window's traffic lights in the sidebar's top corner. Where they go with each titlebar layout is in [9](09-titlebars.md) |
-| `.backdrop(SidebarBackdrop)` | `Clear` | How the island looks over a tinted backdrop: see [`SidebarBackdrop`](#sidebarbackdrop); `Tinted` overrides the style's background and rim |
 | `.style(f)` | Tengen | A `SidebarStyle` ([Style](#style)) |
 | `.key(key)` | none | Diff key, as on any Freya element |
 
-Its look comes from `sidebar_style` in `appearance.domain`
-([4](04-appearance-and-tokens.md),
-[ADR 0041](../decisions.md)). The app chooses nothing:
+The sidebar is flat and full height, as in macOS 27 ([ADR 0079](../decisions.md)):
+it starts at the window's left edge and runs from the top to the bottom, with
+no inset, rounded corner, rim or line. Only its color sets it apart from the
+content: `#ededed` against `#ffffff` in light, `#262626` against `#1e1e1e` in
+dark. The window's unified title bar (52 px, [9](09-titlebars.md)) runs over
+the content only, and the traffic lights sit inside the sidebar at
+`(SIDEBAR.traffic_x, SIDEBAR.traffic_y)` = (19, 19). The first row starts at
+y = 52, under the bar.
 
-| `sidebar_style` | Look |
+| Part | Measure |
 |---|---|
-| `island` (default) | A floating panel `SIDEBAR.inset` (8) from the window edges, radius `SIDEBAR.radius` (18) with a continuous corner, and a rim. It stays concentric with the window's 26 corner |
-| `flat` | Edge to edge, with a 1 px line on its right side |
+| Width | `SIDEBAR.width` (220, SwiftUI's) |
+| Row | `SIDEBAR.item_height` (32); the selection is the width of the sidebar less `SIDEBAR.padding_x` (10) on each side |
+| Section header | `SIDEBAR.section_height` (19), `SIDEBAR.section_margin_bottom` (13) between sections |
+| Selection | `#0270f5` in light, `#007aff` in dark, with white text |
 
 The strip above the first row moves the window when dragged. When the traffic
 lights are in the sidebar, the first row starts below them.
@@ -123,7 +129,7 @@ own solid fill, as described above.
 `Sidebar::style`, `SidebarItem::style`, `SidebarSection::style`,
 `SidebarAccount::style` and `SymbolTile::style` take a `SidebarStyle`,
 `SidebarItemStyle`, `SidebarSectionStyle`, `SidebarAccountStyle` and
-`SymbolTileStyle`. Their Tengen follows `sidebar_style`; the fields are in
+`SymbolTileStyle`. The fields are in
 [Styles and themes](../../crates/bk/src/styles/sidebar.rs).
 
 ```rust
@@ -193,20 +199,6 @@ icons. `.rim(color)` adds a 1 px inner border and `.style(f)`
 takes a `SymbolTileStyle`; both build the tile again, so they come right after
 `new`. It is a rect: it takes Freya's layout and style methods. `SidebarItem` uses it, and so do the
 search results of [`SettingsWindow`](12-patterns.md#settingswindow).
-
-### `SidebarBackdrop`
-
-It matters only over a tinted backdrop
-([15](15-backdrops-and-media.md),
-[ADR 0057](../decisions.md)). Without one,
-both values look the same.
-
-| Variant | Island over a tinted backdrop |
-|---|---|
-| `Clear` (default) | Transparent: the backdrop shows through |
-| `Tinted` | Filled with the backdrop's average color, with a separator rim |
-
-The flat sidebar is always transparent over a tinted backdrop.
 
 ### `SidebarControl`
 

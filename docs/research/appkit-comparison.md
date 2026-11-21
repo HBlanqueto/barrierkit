@@ -62,6 +62,17 @@ table on stdout and `target/appkit/sheet-*.png`.
    ~/src/probes/navbuttons.sh darkAqua unified "n:chevron.left|n:chevron.right" ~/src/captures/navbuttons/pair-dark
    ```
 
+   `sidebarui` is the SwiftUI `NavigationSplitView` window the bench compares the sidebar with; `appbundle.sh` takes its screenshot, which step 3 converts:
+
+   ```sh
+   mkdir -p ~/src/captures/sidebar
+   ~/src/probes/appbundle.sh sidebarui ~/src/captures/sidebar/swiftui-light aqua
+   ~/src/probes/appbundle.sh sidebarui ~/src/captures/sidebar/swiftui-dark darkAqua
+   for look in light dark; do
+       sips -m "/System/Library/ColorSync/Profiles/sRGB Profile.icc" ~/src/captures/sidebar/swiftui-$look-screen.png --out ~/src/captures/sidebar/swiftui-$look-srgb.png
+   done
+   ```
+
 3. Convert any `screencapture` image to sRGB before sampling a color. The
    display profile turns blue into indigo:
 
@@ -90,6 +101,7 @@ table on stdout and `target/appkit/sheet-*.png`.
    scripts/appkit-render.sh views-contrast  # kit-views-hc-*.png
    scripts/appkit-render.sh menu            # kit-menu-{,marks-}{light,dark}.png
    scripts/appkit-render.sh toolbar         # kit-toolbar-{light,dark}.png
+   scripts/appkit-render.sh sidebar         # kit-sidebar-{light,dark}.png, a 900 × 560 window at 1x
    ```
 
    AppKit draws the level and rating indicators from bitmaps, so a 4x capture shows them
@@ -122,6 +134,7 @@ table on stdout and `target/appkit/sheet-*.png`.
    scripts/appkit-compare.py sheet controls light white push-regular,switch-on-regular
    scripts/appkit-compare.py table dark
    scripts/appkit-compare.py toolbar light
+   scripts/appkit-compare.py sidebar light
    ```
 
    To size an internal glyph, `appkit_glyph_lab` renders a symbol over a grid of sizes and

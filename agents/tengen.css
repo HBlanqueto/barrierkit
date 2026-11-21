@@ -13,8 +13,6 @@
   --bk-size-titlebar-h: 40;
   --bk-size-titlebar-ssd-h: 32;
   --bk-size-sidebar-w: 220;
-  --bk-size-sidebar-inset: 8;
-  --bk-size-sidebar-radius: 18;
   --bk-size-toolgroup-h: 36;
   --bk-size-panel-glow-depth: 6;
   --bk-duration-fast: 120;
@@ -643,16 +641,11 @@
   --bk-window-titlebar-fullscreen-band-mask-1: 1 1;
   --bk-window-titlebar-fullscreen-bar-content-top: 44;
   --bk-window-titlebar-fullscreen-bar-band-line: 1;
-  --bk-window-sidebar-island-inset: var(--bk-size-sidebar-inset);
-  --bk-window-sidebar-island-padding-x: 10;
-  --bk-window-sidebar-island-radius: var(--bk-size-sidebar-radius);
-  --bk-window-sidebar-island-rim: var(--bk-sidebar-island-rim);
-  --bk-window-sidebar-island-rim-width: 1;
-  --bk-window-sidebar-island-inner: var(--bk-sidebar-island-inner);
-  --bk-window-sidebar-island-inner-width: 1;
-  --bk-window-sidebar-island-traffic-x: 11;
-  --bk-window-sidebar-island-traffic-y: 11;
-  --bk-window-sidebar-flat-line: var(--bk-separator);
+  --bk-window-sidebar-padding-x: 10;
+  --bk-window-sidebar-rim-width: 1;
+  --bk-window-sidebar-traffic-x: 19;
+  --bk-window-sidebar-traffic-y: 19;
+  --bk-window-sidebar-line: var(--bk-separator);
   --bk-window-sidebar-glass-chroma-light: 0.22;
   --bk-window-sidebar-glass-chroma-dark: 0.05;
   --bk-window-sidebar-glass-chroma-cap-light: 0.05;
@@ -688,7 +681,7 @@
   --bk-window-sidebar-glass-shadow-lightness: 0.2;
   --bk-window-sidebar-item-height: 32;
   --bk-window-sidebar-item-radius: var(--bk-radius-sm);
-  --bk-window-sidebar-item-padding-x: 7;
+  --bk-window-sidebar-item-padding-x: 8;
   --bk-window-sidebar-item-gap: 8;
   --bk-window-sidebar-item-icon: 16;
   --bk-window-sidebar-item-app-icon: 20;
@@ -698,15 +691,15 @@
   --bk-window-sidebar-item-text-size: 13;
   --bk-window-sidebar-item-weight: 500;
   --bk-window-sidebar-item-selected-weight: 600;
-  --bk-window-sidebar-item-selected-bg: var(--bk-selected-content);
+  --bk-window-sidebar-item-selected-bg: var(--bk-sidebar-selection);
   --bk-window-sidebar-item-selected-ink: var(--bk-on-accent);
   --bk-window-sidebar-item-selected-icon-rim: #00000033;
   --bk-window-sidebar-item-inactive-selected-bg: var(--bk-bg-hover);
   --bk-window-sidebar-item-inactive-ink: var(--bk-ink-inactive);
   --bk-window-sidebar-item-count-ink: var(--bk-ink-muted);
-  --bk-window-sidebar-section-height: 28;
-  --bk-window-sidebar-section-margin-top: 10;
-  --bk-window-sidebar-section-padding-x: 8;
+  --bk-window-sidebar-section-height: 19;
+  --bk-window-sidebar-section-margin-bottom: 13;
+  --bk-window-sidebar-section-padding-x: 4;
   --bk-window-sidebar-section-size: 11;
   --bk-window-sidebar-section-weight: 600;
   --bk-window-sidebar-section-ink: var(--bk-ink-muted);
@@ -752,13 +745,12 @@
   --bk-settings-tile-cyan: #14c2e9;
   --bk-settings-tile-black: #050505;
   --bk-settings-sidebar-width: 229;
-  --bk-settings-sidebar-lights-gap: 28;
+  --bk-settings-sidebar-lights-gap: 19;
   --bk-settings-sidebar-search-gap: 8;
   --bk-settings-sidebar-group-gap: 12;
   --bk-settings-sidebar-padding-top: 16;
   --bk-settings-toolbar-gap: 12;
   --bk-settings-toolbar-height: 52;
-  --bk-settings-toolbar-padding-top: 0;
   --bk-settings-toolbar-padding-x: 8;
   --bk-settings-accent-swatches-0-name: blue;
   --bk-settings-accent-swatches-0-color: #007aff;
@@ -940,7 +932,6 @@
   --bk-backdrop-ink-tertiary: 0.36;
   --bk-backdrop-glass: 0.12;
   --bk-backdrop-glass-strong: 0.2;
-  --bk-backdrop-island: 0.6;
   --bk-backdrop-sunken: 0.18;
   --bk-backdrop-accent-lightness-on-dark: 0.74;
   --bk-backdrop-accent-lightness-on-light: 0.5;
@@ -1530,14 +1521,15 @@
   --bk-panel-inner: #ffffff00;
   --bk-panel-inner-edge: #ffffff00;
   --bk-panel-glow: #ffffff00;
-  --bk-sidebar-island-bg: #f7f7f7;
+  --bk-sidebar-bg: #ededed;
+  --bk-sidebar-selection: #0270f5;
+  --bk-toolbar-bg: #ffffff;
+  --bk-toolbar-line: #0000001a;
   --bk-sidebar-glass-base: #e5e7e8;
   --bk-sidebar-glass-solid: #f1f2f3;
   --bk-toolbar-glass-bg: #ffffffdb;
   --bk-toolgroup-rim: #0000001f;
   --bk-toolgroup-separator: #00000039;
-  --bk-sidebar-island-rim: #0000001a;
-  --bk-sidebar-island-inner: #ffffff00;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -1674,14 +1666,15 @@
     --bk-panel-inner: #ffffff1a;
     --bk-panel-inner-edge: #ffffff42;
     --bk-panel-glow: #ffffff0a;
-    --bk-sidebar-island-bg: #141414;
+    --bk-sidebar-bg: #262626;
+    --bk-sidebar-selection: #007aff;
+    --bk-toolbar-bg: #262626;
+    --bk-toolbar-line: #ffffff13;
     --bk-sidebar-glass-base: #202020;
     --bk-sidebar-glass-solid: #202020;
     --bk-toolbar-glass-bg: #2f2f2f;
     --bk-toolgroup-rim: #ffffff1a;
     --bk-toolgroup-separator: #ffffff39;
-    --bk-sidebar-island-rim: #ffffff21;
-    --bk-sidebar-island-inner: #ffffff00;
   }
 }
 
@@ -1818,14 +1811,15 @@
   --bk-panel-inner: #ffffff1a;
   --bk-panel-inner-edge: #ffffff42;
   --bk-panel-glow: #ffffff0a;
-  --bk-sidebar-island-bg: #141414;
+  --bk-sidebar-bg: #262626;
+  --bk-sidebar-selection: #007aff;
+  --bk-toolbar-bg: #262626;
+  --bk-toolbar-line: #ffffff13;
   --bk-sidebar-glass-base: #202020;
   --bk-sidebar-glass-solid: #202020;
   --bk-toolbar-glass-bg: #2f2f2f;
   --bk-toolgroup-rim: #ffffff1a;
   --bk-toolgroup-separator: #ffffff39;
-  --bk-sidebar-island-rim: #ffffff21;
-  --bk-sidebar-island-inner: #ffffff00;
 }
 
 [data-theme="dark-tint"] {
@@ -1961,12 +1955,13 @@
   --bk-panel-inner: #ffffff1a;
   --bk-panel-inner-edge: #ffffff42;
   --bk-panel-glow: #ffffff0a;
-  --bk-sidebar-island-bg: #151617;
+  --bk-sidebar-bg: #252628;
+  --bk-sidebar-selection: #007aff;
+  --bk-toolbar-bg: #252628;
+  --bk-toolbar-line: #ffffff13;
   --bk-sidebar-glass-base: #191a1c;
   --bk-sidebar-glass-solid: #191a1c;
   --bk-toolbar-glass-bg: #393a3ed6;
   --bk-toolgroup-rim: #ffffff1a;
   --bk-toolgroup-separator: #ffffff39;
-  --bk-sidebar-island-rim: #ffffff21;
-  --bk-sidebar-island-inner: #ffffff00;
 }

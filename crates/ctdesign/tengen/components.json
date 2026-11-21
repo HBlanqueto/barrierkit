@@ -707,20 +707,11 @@
         }
       },
       "sidebar": {
-        "island": {
-          "inset": "size.sidebar-inset",
-          "padding-x": 10,
-          "radius": "size.sidebar-radius",
-          "rim": "sidebar-island-rim",
-          "rim-width": 1,
-          "inner": "sidebar-island-inner",
-          "inner-width": 1,
-          "traffic-x": 11,
-          "traffic-y": 11
-        },
-        "flat": {
-          "line": "separator"
-        },
+        "padding-x": 10,
+        "rim-width": 1,
+        "traffic-x": 19,
+        "traffic-y": 19,
+        "line": "separator",
         "glass": {
           "chroma": { "light": 0.22, "dark": 0.05 },
           "chroma-cap": { "light": 0.05, "dark": 0.04 },
@@ -753,7 +744,7 @@
         "item": {
           "height": 32,
           "radius": "radius.sm",
-          "padding-x": 7,
+          "padding-x": 8,
           "gap": 8,
           "icon": 16,
           "app-icon": 20,
@@ -763,7 +754,7 @@
           "text-size": 13,
           "weight": 500,
           "selected-weight": 600,
-          "selected-bg": "selected-content",
+          "selected-bg": "sidebar-selection",
           "selected-ink": "on-accent",
           "selected-icon-rim": "#00000033",
           "inactive-selected-bg": "bg-hover",
@@ -771,9 +762,9 @@
           "count-ink": "ink-muted"
         },
         "section": {
-          "height": 28,
-          "margin-top": 10,
-          "padding-x": 8,
+          "height": 19,
+          "margin-bottom": 13,
+          "padding-x": 4,
           "size": 11,
           "weight": 600,
           "ink": "ink-muted",
@@ -834,7 +825,7 @@
       },
       "sidebar": {
         "width": 229,
-        "lights-gap": 28,
+        "lights-gap": 19,
         "search-gap": 8,
         "group-gap": 12,
         "padding-top": 16
@@ -842,7 +833,6 @@
       "toolbar": {
         "gap": 12,
         "height": 52,
-        "padding-top": 0,
         "padding-x": 8
       },
       "accent-swatches": [
@@ -1050,7 +1040,6 @@
       "ink-tertiary": 0.36,
       "glass": 0.12,
       "glass-strong": 0.2,
-      "island": 0.6,
       "sunken": 0.18,
       "accent-lightness-on-dark": 0.74,
       "accent-lightness-on-light": 0.5,

@@ -17,12 +17,14 @@ use bk::menu::{CheckState, MenuItem, MenuView};
 use bk::password::PasswordField;
 use bk::popup_button::PopUpButton;
 use bk::progress::{ProgressRing, ProgressView};
-use bk::sidebar::{SidebarItem, SidebarSection};
+use bk::sidebar::{Sidebar, SidebarItem, SidebarSection};
 use bk::styles::ButtonStyle;
 use bk::symbol::Symbol;
 use bk::theme;
+use bk::titlebar::Titlebar;
 use bk::token_field::TokenField;
 use bk::views::group::{DisclosureGroup, GroupBox};
+use bk::views::split::{SidebarToggle, SplitView};
 use bk::views::table::{SortOrder, Table};
 use ctappearance::{AppearanceConfig, ColorScheme, resolve};
 use ctdesign::{Rgba, SANS_FAMILIES};
@@ -30,7 +32,7 @@ use freya_components::theming::hooks::use_init_theme;
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 use freya_testing::TestingRunner;
-use torin::prelude::{Gaps, Position, Size, Size2D};
+use torin::prelude::{Direction, Gaps, Position, Size, Size2D};
 
 type Builder = fn() -> Element;
 
@@ -899,6 +901,87 @@ fn appkit_glyph_lab() {
         test.sync_and_update();
         fs::write(
             out.join(format!("lab-{name}.png")),
+            test.render().as_bytes(),
+        )
+        .unwrap();
+    }
+}
+
+const SIDEBAR_WINDOW: (f32, f32) = (900.0, 560.0);
+
+struct SidebarWindow {
+    dark: bool,
+}
+
+impl App for SidebarWindow {
+    fn render(&self) -> impl IntoElement {
+        use_init_theme(|| theme::for_scheme(self.dark));
+        let item = |title: &'static str, symbol: Symbol| {
+            SidebarItem::new(title)
+                .symbol(symbol, Rgba::rgb8(0, 122, 255))
+                .selected(title == "Recents")
+        };
+        let sidebar = Sidebar::new()
+            .traffic_lights(true)
+            .child(
+                SidebarSection::new("Favorites")
+                    .child(item("AirDrop", Symbol::House))
+                    .child(item("Recents", Symbol::Clock))
+                    .child(item("Applications", Symbol::SquareGrid))
+                    .child(item("Documents", Symbol::Document)),
+            )
+            .child(
+                SidebarSection::new("Locations")
+                    .child(item("iCloud Drive", Symbol::Folder))
+                    .child(item("Network", Symbol::Network)),
+            );
+        let detail = rect().expanded().direction(Direction::Vertical).child(
+            Titlebar::new()
+                .with_sidebar(true)
+                .title("sidebar")
+                .left(SidebarToggle)
+                .right(bk::compact::IconButton::new(Symbol::Plus, "Plus")),
+        );
+        SplitView::new(sidebar, detail)
+    }
+}
+
+#[test]
+#[ignore]
+fn appkit_sidebar() {
+    let out = PathBuf::from(std::env::var("APPKIT_OUT").expect("APPKIT_OUT"));
+    fs::create_dir_all(&out).unwrap();
+    for dark in [false, true] {
+        let resolved = resolve(
+            &AppearanceConfig {
+                color_scheme: if dark {
+                    ColorScheme::Dark
+                } else {
+                    ColorScheme::Light
+                },
+                reduced_motion: true,
+                traffic_lights: ctappearance::TrafficLightStyle::Standard,
+                scroll_bars: ctappearance::ScrollBars::Always,
+                ..Default::default()
+            },
+            None,
+        );
+        let (mut test, _) = TestingRunner::new(
+            AppComponent::new(SidebarWindow { dark }),
+            Size2D::new(SIDEBAR_WINDOW.0, SIDEBAR_WINDOW.1),
+            move |runner| {
+                runner.provide_root_context(move || State::create(resolved));
+            },
+            1.0,
+        );
+        test.set_default_fonts(&SANS_FAMILIES.map(std::borrow::Cow::Borrowed));
+        test.sync_and_update();
+        test.sync_and_update();
+        fs::write(
+            out.join(format!(
+                "kit-sidebar-{}.png",
+                if dark { "dark" } else { "light" }
+            )),
             test.render().as_bytes(),
         )
         .unwrap();

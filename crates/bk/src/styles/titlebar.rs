@@ -1,4 +1,4 @@
-use ctappearance::{SidebarStyle as SidebarKind, palette};
+use ctappearance::palette;
 use ctdesign::{
     Font, HAIRLINE, SETTINGS, TITLE_2, TITLEBAR, TITLEBAR_CLIENT_HEIGHT, TITLEBAR_PADDING_X,
 };
@@ -28,16 +28,12 @@ pub struct TitlebarStyle {
     pub height: f32,
     /// Tengen: `TITLEBAR.thickness` for `.close_only(true)`, utility and HUD windows.
     pub close_only_height: f32,
-    /// Tengen: `SETTINGS.toolbar_height`, `SETTINGS.toolbar_padding_top` with an island
-    /// sidebar.
+    /// Tengen: `SETTINGS.toolbar_height`, the unified bar of macOS 27. `sidebar_bar_height()`
+    /// returns it.
     pub sidebar_height: f32,
-    /// Tengen: `TITLEBAR_CLIENT_HEIGHT` and `0.0` with a flat one. `sidebar_bar_metrics()`
-    /// returns them.
-    pub sidebar_padding_top: f32,
     /// Tengen: `TITLEBAR_PADDING_X`.
     pub padding_x: f32,
-    /// Tengen: `SETTINGS.toolbar_padding_x` (island) or `TITLEBAR_PADDING_X` (flat). With the
-    /// traffic lights in the centered bar the side padding is `ctappearance::traffic::inset`
+    /// Tengen: `SETTINGS.toolbar_padding_x`. With the traffic lights in the centered bar the side padding is `ctappearance::traffic::inset`
     /// of `height`.
     pub sidebar_padding_x: f32,
     /// Tengen: `0.0`, between the bar's items.
@@ -45,7 +41,7 @@ pub struct TitlebarStyle {
     /// Tengen: `Color` of `titlebar_inactive`, focused `Color` of the window surface; `Clear`
     /// over a `Backdrop`.
     pub background: StateValue<ShapeStyle>,
-    /// Tengen: `Color` of the window surface while the sidebar shows; `Clear` over a
+    /// Tengen: `Color` of the toolbar surface while the sidebar shows; `Clear` over a
     /// `Backdrop`.
     pub sidebar_background: StateValue<ShapeStyle>,
     /// Tengen: `Clear`.
@@ -53,8 +49,7 @@ pub struct TitlebarStyle {
     /// Tengen: `Color` of the unfocused title, focused `Color` of the focused one; over a
     /// `Backdrop` `Role(SecondaryLabel)`, focused `Role(Label)`.
     pub title: StateValue<ShapeStyle>,
-    /// Tengen: `Some((Color of the sidebar line, HAIRLINE))`, at the bottom of the bar beside a
-    /// sidebar.
+    /// Tengen: `Some((Color of the sidebar line, HAIRLINE))`, under the bar beside a sidebar.
     pub hairline: Option<(ShapeStyle, f32)>,
     /// Tengen: `system_effect`.
     pub effect: ColorEffect,
@@ -71,7 +66,6 @@ pub struct TitlebarStyle {
 impl ControlStyle for TitlebarStyle {
     fn tengen() -> Self {
         let resolved = crate::theme::resolved();
-        let island = resolved.sidebar.style == SidebarKind::Island;
         let tinted = crate::backdrop::tinted().is_some();
         let surface = |color| {
             if tinted {
@@ -89,30 +83,24 @@ impl ControlStyle for TitlebarStyle {
             StateValue::new(ShapeStyle::Color(ink.unfocused))
                 .focused(ShapeStyle::Color(ink.focused))
         };
-        let (sidebar_height, sidebar_padding_top, sidebar_padding_x) = if island {
-            (
-                SETTINGS.toolbar_height as f32,
-                SETTINGS.toolbar_padding_top as f32,
-                SETTINGS.toolbar_padding_x as f32,
-            )
-        } else {
-            (TITLEBAR_CLIENT_HEIGHT as f32, 0.0, TITLEBAR_PADDING_X)
-        };
         Self {
             height: TITLEBAR_CLIENT_HEIGHT as f32,
             close_only_height: TITLEBAR.thickness as f32,
-            sidebar_height,
-            sidebar_padding_top,
+            sidebar_height: SETTINGS.toolbar_height as f32,
             padding_x: TITLEBAR_PADDING_X,
-            sidebar_padding_x,
+            sidebar_padding_x: SETTINGS.toolbar_padding_x as f32,
             spacing: 0.0,
             background: StateValue::new(surface(resolved.surfaces.titlebar_inactive))
                 .focused(active.clone()),
-            sidebar_background: StateValue::new(active),
+            sidebar_background: StateValue::new(surface(resolved.surfaces.toolbar)),
             close_only_background: StateValue::new(ShapeStyle::Clear),
             title,
             hairline: Some((
-                ShapeStyle::Color(crate::sidebar::sidebar_palette().line),
+                ShapeStyle::Color(if tinted {
+                    crate::sidebar::sidebar_palette().line
+                } else {
+                    resolved.surfaces.toolbar_line
+                }),
                 HAIRLINE,
             )),
             effect: system_effect,

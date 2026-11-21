@@ -3,7 +3,6 @@ use std::rc::Rc;
 use std::time::{Duration, Instant};
 
 use crate::traffic::TrafficLights;
-use ctappearance::SidebarStyle as SidebarKind;
 use ctappearance::window::{
     TitlebarAction, WindowBehavior, double_click_action, green_action, read_window_behavior,
 };
@@ -16,8 +15,8 @@ use crate::ProbeExt;
 use crate::app::DefaultsRevision;
 use crate::platform::{Bar, DecorationResponse, WindowControls, WindowStatus};
 use crate::styles::{
-    ControlState, Paints, ShapeStyle, SidebarStyle, SplitViewStyle, StateValue, Theme,
-    TitlebarStyle, TrafficLightsStyle, resolve,
+    ControlState, Paints, ShapeStyle, SidebarStyle, StateValue, Theme, TitlebarStyle,
+    TrafficLightsStyle, resolve,
 };
 use crate::theme;
 
@@ -137,7 +136,7 @@ impl Component for Titlebar {
             Bar::Utility
         } else if close_only {
             Bar::Titlebar
-        } else if self.sidebar && theme::resolved().sidebar.style == SidebarKind::Island {
+        } else if self.sidebar {
             Bar::Unified
         } else {
             Bar::UnifiedCompact
@@ -281,27 +280,24 @@ impl Titlebar {
         background: Fill,
     ) -> (Element, f32) {
         let occupied = crate::sidebar::sidebar_control().map_or(0.0, |control| control.occupied());
-        let (height, padding_top) = (style.sidebar_height, style.sidebar_padding_top);
+        let height = style.sidebar_height;
         let padding_x = style.sidebar_padding_x;
         let sidebar: SidebarStyle = resolve(&Theme::tengen());
-        let split: SplitViewStyle = resolve(&Theme::tengen());
         let lights: TrafficLightsStyle = resolve(&Theme::tengen());
-        let inset = split.inset;
         let (traffic_x, traffic_y) = sidebar.lights_position;
-        let lights_x = inset + traffic_x;
-        let lights_end = lights_x + lights.length();
+        let lights_end = traffic_x + lights.length();
         let padding_left = if traffic.is_some() {
             padding_x.max(lights_end + padding_x - occupied)
         } else {
-            padding_x - inset
+            padding_x
         };
         // The lights stay at the sidebar's window position while it folds (fold in place).
         let fixed_lights = traffic.map(|traffic| {
             rect()
                 .position(
                     Position::new_absolute()
-                        .left(lights_x - occupied - padding_left)
-                        .top(inset + traffic_y - padding_top),
+                        .left(traffic_x - occupied - padding_left)
+                        .top(traffic_y),
                 )
                 .layer(TITLEBAR_OVERLAY_LAYER + 1)
                 .child(traffic)
@@ -335,7 +331,7 @@ impl Titlebar {
             .content(Content::flex())
             .cross_align(Alignment::Center)
             .spacing(style.spacing)
-            .padding(Gaps::new(padding_top, padding_x, 0.0, padding_left))
+            .padding(Gaps::new(0.0, padding_x, 0.0, padding_left))
             .child(left_slot)
             .child(title)
             .maybe_child(self.right.clone().map(|right| {
@@ -347,15 +343,19 @@ impl Titlebar {
                     .probe("titlebar-right-slot")
                     .child(right)
             }))
-            .maybe_child(fixed_lights)
+            .maybe_child(fixed_lights);
+        let bar = rect()
+            .width(Size::fill())
+            .height(Size::px(height))
+            .child(root)
             .maybe_child(style.hairline.as_ref().map(|(paint, thickness)| {
                 rect()
-                    .position(Position::new_absolute().bottom(0.0).left(0.0))
+                    .position(Position::new_absolute().top(height).left(0.0))
                     .width(Size::percent(100.0))
                     .height(Size::px(*thickness))
                     .background(paints.fill(&StateValue::new(paint.clone())))
             }));
-        (root.into_element(), height)
+        (bar.into_element(), height)
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -497,9 +497,9 @@ fn place_overlaid(
 
 pub(crate) const TITLEBAR_OVERLAY_LAYER: i16 = i16::MAX / 32;
 
-pub fn sidebar_bar_metrics() -> (f32, f32) {
+pub fn sidebar_bar_height() -> f32 {
     let style: TitlebarStyle = resolve(&Theme::tengen());
-    (style.sidebar_height, style.sidebar_padding_top)
+    style.sidebar_height
 }
 
 impl TrafficLights {

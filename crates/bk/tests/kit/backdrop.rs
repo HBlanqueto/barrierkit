@@ -1,9 +1,8 @@
 use bk::backdrop::{Accent, Backdrop, BackdropSource, Tint};
 use bk::controls::{Checkbox, Slider, Switch};
 use bk::progress::ProgressView;
-use bk::sidebar::{Sidebar, SidebarBackdrop, SidebarItem};
 use bk::views::form::{Form, Row, Section};
-use ctappearance::{AppearanceConfig, ColorScheme, SidebarStyle, resolve};
+use ctappearance::{AppearanceConfig, ColorScheme, resolve};
 use ctdesign::Rgba;
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
@@ -51,34 +50,11 @@ impl App for Case {
     }
 }
 
-struct SidebarCase {
-    backdrop: Option<SidebarBackdrop>,
-}
-
-impl App for SidebarCase {
-    fn render(&self) -> impl IntoElement {
-        let sidebar = self.backdrop.map(|backdrop| {
-            Sidebar::new()
-                .backdrop(backdrop)
-                .child(SidebarItem::new("Biblioteca"))
-                .into_element()
-        });
-        Backdrop::new(
-            BackdropSource::Colors(COVER),
-            rect()
-                .width(Size::px(200.0))
-                .height(Size::fill())
-                .maybe_child(sidebar),
-        )
-    }
-}
-
 fn render(app: AppComponent, scheme: ColorScheme) -> Vec<u8> {
     let resolved = resolve(
         &AppearanceConfig {
             color_scheme: scheme,
             reduced_motion: true,
-            sidebar_style: SidebarStyle::Island,
             ..Default::default()
         },
         None,
@@ -131,19 +107,4 @@ fn without_a_tint_the_window_follows_the_system_scheme() {
         ColorScheme::Dark,
     );
     assert!(light != dark);
-}
-
-#[test]
-fn over_a_backdrop_the_island_shows_the_backdrop_unless_the_app_tints_it() {
-    let sample = |backdrop| {
-        let png = render(
-            AppComponent::new(SidebarCase { backdrop }),
-            ColorScheme::Dark,
-        );
-        let (width, _, image) = crate::image::decode(&png);
-        crate::image::pixel(&image, width, 100, 200)
-    };
-    let bare = sample(None);
-    assert_eq!(sample(Some(SidebarBackdrop::Clear)), bare);
-    assert_ne!(sample(Some(SidebarBackdrop::Tinted)), bare);
 }

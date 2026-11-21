@@ -74,6 +74,12 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | The 22 views, modifiers and names renamed by [ADR 0063](../decisions.md) (`divider()`, `empty_state`, `use_tooltip`, `PreferencesWindow`, `AppMenu`, `ProgressBar`…) | `Divider`, `ContentUnavailableView`, `.help`, `SettingsWindow`, `MainMenu`, `ProgressView`… | 2026-11-07 |
 | `shell::pixmap_image(pixmap, size)` | `symbol::Image::rgba(width, height, rgba).size(size)` | 2026-11-11 |
 | `Slider::stepped(label, steps)` as the only constructor, with `.value(usize)` and `.on_change(\|step: usize\| ..)` | `Slider::new(label)` is the free slider; `Slider::stepped` keeps its steps with `.value(f32)` and `.on_change(\|step: f32\| ..)` | 2026-11-16 |
+| `ctappearance::SidebarStyle` (`Island`, `Flat`) and `sidebar_style` in `appearance.domain`: the sidebar was a floating island by default | Gone: the sidebar is flat and full height, as in macOS 27; an old `sidebar_style` key is ignored ([ADR 0079](../decisions.md)) | 2026-11-20 |
+| `ctdesign::SIDEBAR_ISLAND_LIGHT`, `SIDEBAR_ISLAND_DARK`, `SIDEBAR_ISLAND_DARK_TINT`, `SIDEBAR_ISLAND_RIM_*`, `SIDEBAR_ISLAND_INNER_*`; `SIDEBAR.inset`, `SIDEBAR.radius`, `SIDEBAR.inner_width`; `BACKDROP.island` | Gone with the island; the sidebar background is `SIDEBAR_LIGHT`, `SIDEBAR_DARK`, `SIDEBAR_DARK_TINT` | 2026-11-20 |
+| `sidebar::SidebarBackdrop` and `Sidebar::backdrop(..)` (the island over a tinted backdrop) | Gone: the sidebar is always transparent over a tinted backdrop | 2026-11-20 |
+| `titlebar::sidebar_bar_metrics()` (height and top padding) and `TitlebarStyle::sidebar_padding_top`, `SETTINGS.toolbar_padding_top` | `titlebar::sidebar_bar_height()` | 2026-11-20 |
+| `SplitViewStyle::inset` and `SidebarStyle::{shape, border, inner_border, line, padding_bottom}` (island only) | Gone | 2026-11-20 |
+| `SidebarSectionStyle::margin_top` (`SIDEBAR.section_margin_top`, 10, above each section) | `SidebarSectionStyle::margin_bottom` (`SIDEBAR.section_margin_bottom`, 13, between sections) | 2026-11-20 |
 
 ## How to read the tables
 
@@ -357,7 +363,6 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `ctappearance::TintStrength` | enum | — | — | `Subtle`, `Normal`, `Strong`, `Intense`; `factor()` from `TINT_STRENGTH` | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::TintParts` | struct | — | — | Which parts take the tint: sidebars, window, groups, controls, menus, and the bars (menu bar and Dock) | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::SidebarGlass` | struct | ≈ `Glass` | ≈ `NSGlassEffectView` | The `base`, `solid` and `chroma` of a sidebar's glass panel; `Resolved.sidebar.glass` | [4](04-appearance-and-tokens.md#the-appearance-file) |
-| `ctappearance::SidebarStyle` | enum | — | — | `Island` or `Flat` sidebar | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::TrafficLightStyle` | enum | — | — | `Standard`, `Accent`, `Wallpaper` traffic-light colors | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::TrafficLightShape` | struct | — | — | The lights' corner radius from 0 to `ROUND` (2026-11-09: was the enum `Square`/`Round`); `new(radius)`, `radius()`, `corner_radius(diameter)` | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::Toolkit` | enum | — | — | `BarrierKit`, `Gtk`, `Qt`: the kinds of app in Accessibility › Display › Text size | [4](04-appearance-and-tokens.md#the-appearance-file) |
@@ -560,7 +565,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `ctdesign::TitlebarRailMetrics` | struct | — | — | Titlebar rail widths, pill and reveal zone | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
 | `ctdesign::FullscreenBarMetrics` | struct | — | — | Content offset and band line of a full-screen bar | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
 | `ctdesign::FullscreenGlassMetrics` | struct | — | — | Height, blur, layers, tint and mask of full-screen glass | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
-| `ctdesign::SidebarMetrics` | struct | — | — | Sidebar width, island, items and sections | [4](04-appearance-and-tokens.md#view-metrics) |
+| `ctdesign::SidebarMetrics` | struct | — | — | Sidebar width, traffic lights, items and sections | [4](04-appearance-and-tokens.md#view-metrics) |
 | `ctdesign::ToolgroupMetrics` | struct | — | — | Toolbar group height, padding and separators | [4](04-appearance-and-tokens.md#view-metrics) |
 | `ctdesign::SplitViewMetrics` | struct | — | — | Sidebar limits, collapse width, inspector, grip and key step | [4](04-appearance-and-tokens.md#view-metrics) |
 | `ctdesign::SplitPanesMetrics` | struct | — | — | Divider width and minimum pane size | [4](04-appearance-and-tokens.md#view-metrics) |
@@ -610,7 +615,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `ctdesign::THEME_SHADOW_OPACITY` | constant | — | — | Shadow opacity of the Freya shell theme | [4](04-appearance-and-tokens.md#colors) |
 | `ctdesign::MENU_LIGHT`, `MENU_LIGHT_OPAQUE`, `MENU_DARK`, `MENU_DARK_OPAQUE`, `MENU_DARK_TINT`, `MENU_DARK_TINT_OPAQUE` | constant | — | — | Menu palettes per theme, translucent and opaque | [4](04-appearance-and-tokens.md#colors) |
 | `ctdesign::SIDEBAR_LIGHT`, `SIDEBAR_LIGHT_OPAQUE`, `SIDEBAR_DARK`, `SIDEBAR_DARK_OPAQUE`, `SIDEBAR_DARK_TINT`, `SIDEBAR_DARK_TINT_OPAQUE` | constant | — | — | Flat sidebar background per theme | [4](04-appearance-and-tokens.md#colors) |
-| `ctdesign::SIDEBAR_ISLAND_LIGHT`, `SIDEBAR_ISLAND_DARK`, `SIDEBAR_ISLAND_DARK_TINT`, `SIDEBAR_ISLAND_RIM_LIGHT`, `SIDEBAR_ISLAND_RIM_DARK`, `SIDEBAR_ISLAND_RIM_DARK_TINT`, `SIDEBAR_ISLAND_INNER_LIGHT`, `SIDEBAR_ISLAND_INNER_DARK`, `SIDEBAR_ISLAND_INNER_DARK_TINT` | constant | — | — | Island sidebar background, rim and inner line per theme | [4](04-appearance-and-tokens.md#colors) |
+| `ctdesign::TOOLBAR_BG_LIGHT`, `TOOLBAR_BG_DARK`, `TOOLBAR_BG_DARK_TINT`, `TOOLBAR_LINE_LIGHT`, `TOOLBAR_LINE_DARK`, `TOOLBAR_LINE_DARK_TINT` | constant | — | — | Background of the unified title bar beside a sidebar and the line under it | [4](04-appearance-and-tokens.md#colors) |
 | `ctdesign::SIDEBAR_PALETTE_LIGHT`, `SIDEBAR_PALETTE_DARK`, `SIDEBAR_PALETTE_DARK_TINT` | constant | — | — | Sidebar inks per theme | [4](04-appearance-and-tokens.md#colors) |
 | `ctdesign::TOOLGROUP_BG_LIGHT`, `TOOLGROUP_BG_LIGHT_OPAQUE`, `TOOLGROUP_BG_DARK`, `TOOLGROUP_BG_DARK_OPAQUE`, `TOOLGROUP_BG_DARK_TINT`, `TOOLGROUP_BG_DARK_TINT_OPAQUE`, `TOOLGROUP_PALETTE_LIGHT`, `TOOLGROUP_PALETTE_DARK`, `TOOLGROUP_PALETTE_DARK_TINT` | constant | — | — | Toolbar group background and lines per theme | [4](04-appearance-and-tokens.md#colors) |
 | `ctdesign::WINDOW_MIN_SIZE`, `WINDOW_DEFAULT_SIZE` | constant | ≈ `.defaultSize(_:)` | ≈ `NSWindow.minSize` | Minimum and default window size: 480 × 360, 640 × 420 | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
@@ -669,7 +674,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `buttons::ControlGroup` | struct | `ControlGroup` | — | Controls joined on one background with separators | [5](05-controls.md#menu-buttons) |
 | `buttons::ShareLink` | struct | `ShareLink` | `≈ NSSharingServicePicker` | Menu to copy, email or open shared content; no share portal | [5](05-controls.md#menu-buttons) |
 | `buttons::mail_uri` | fn | — | — | Builds a percent-encoded `mailto:?body=` URI | [5](05-controls.md#menu-buttons) |
-| `controls::ToolGroup` | struct | `ToolbarItemGroup` | `NSToolbarItemGroup` | Toolbar items in 36 slots; island capsule with separators | [5](05-controls.md#toolbar-controls) |
+| `controls::ToolGroup` | struct | `ToolbarItemGroup` | `NSToolbarItemGroup` | Toolbar items in 36 slots; capsule with separators | [5](05-controls.md#toolbar-controls) |
 | `compact::ToolbarSearch` | struct | `≈ .searchable(text:placement:prompt:)` | `NSSearchToolbarItem` | Toolbar search field, optionally collapsed to an icon | [5](05-controls.md#toolbar-controls) |
 | `compact::ToolbarOverflow` | struct | — | — | Chevron button that lists extra toolbar items in a menu | [5](05-controls.md#toolbar-controls) |
 
@@ -905,7 +910,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `traffic::TrafficLights` | struct | — | `≈ NSWindow.standardWindowButton(_:)` | Close, minimize and zoom buttons | [9](09-titlebars.md#traffic-lights) |
 | `traffic::TrafficLights::for_window` | fn | — | `≈ NSWindow.standardWindowButton(_:)` | Traffic lights wired to the window and user settings | [9](09-titlebars.md#traffic-lights) |
 | `titlebar::window_drag_handler` | fn | — | `≈ NSWindow.performDrag(with:)` | Press handler that moves the window or runs the double-click action | [9](09-titlebars.md#traffic-lights) |
-| `titlebar::sidebar_bar_metrics` | fn | — | — | Height and top padding of the title bar row beside a sidebar | [9](09-titlebars.md#the-sidebar-with-the-rail) |
+| `titlebar::sidebar_bar_height` | fn | — | — | Height of the title bar row beside a sidebar | [9](09-titlebars.md#the-sidebar-with-the-rail) |
 | `titlebar::app_id` | fn | — | — | Default Wayland app id for an app name | [9](09-titlebars.md#helpers) |
 | `chrome::WindowChrome` | struct | — | — | Wraps the window and places lights, title and rail items | [9](09-titlebars.md#window-chrome) |
 | `chrome::TitlebarLayout` | enum | — | — | `Top` horizontal title bar or `Rail` vertical bar on the left | [9](09-titlebars.md#windowchromestyle-layout-fields) |
@@ -917,11 +922,10 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 
 | BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
 |---|---|---|---|---|---|
-| `sidebar::Sidebar` | struct | `SidebarListStyle` | `NSTableView.Style.sourceList` | The navigation column; island or flat by the user's `sidebar_style` | [10](10-sidebar.md#sidebar) |
+| `sidebar::Sidebar` | struct | `SidebarListStyle` | `NSTableView.Style.sourceList` | The navigation column: flat and full height | [10](10-sidebar.md#sidebar) |
 | `sidebar::SidebarItem` | struct | ≈ `Label` | — | A sidebar row with symbol tile and label; selection set by the app | [10](10-sidebar.md#sidebaritem) |
 | `sidebar::SidebarSection` | struct | `Section` | — | A titled, collapsible group of sidebar rows | [10](10-sidebar.md#sidebarsection) |
 | `sidebar::SidebarAccount` | struct | — | — | The account row: avatar with initials, name and a detail line | [10](10-sidebar.md#sidebaraccount) |
-| `sidebar::SidebarBackdrop` | enum | — | — | Island look over a tinted backdrop: `Clear` or `Tinted` | [10](10-sidebar.md#sidebarbackdrop) |
 | `sidebar::SidebarControl` | struct | ≈ `NavigationSplitViewVisibility` | ≈ `NSSplitViewController.toggleSidebar(_:)` | Handle to toggle, dismiss and read the enclosing `SplitView`'s sidebar | [10](10-sidebar.md#sidebarcontrol) |
 | `sidebar::sidebar_control` | fn | — | — | The enclosing `SplitView`'s `SidebarControl`, or `None` outside one | [10](10-sidebar.md#sidebarcontrol) |
 | `sidebar::SymbolTile` | struct | — | — | The colored square tile with a white symbol; `.rim(color)` adds a border | [10](10-sidebar.md#symboltile) |

@@ -1,13 +1,12 @@
 use crate::elements::forward_container;
-use ctappearance::{SidebarStyle as SidebarKind, SidebarSurface};
-use ctdesign::{BACKDROP, Rgba, SIDEBAR, SidebarPalette, TEXT_FIELD};
+use ctappearance::SidebarSurface;
+use ctdesign::{Rgba, SIDEBAR, SidebarPalette, TEXT_FIELD};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Area, Content, Direction, Gaps, Position, Size};
 
 use crate::ProbeExt;
 use crate::adornments::Avatar;
 use crate::chrome::TitlebarLayout;
-use crate::controls::inner_border;
 use crate::interaction::{control_state, use_interaction};
 use crate::platform::WindowControls;
 use crate::scroll::ScrollView;
@@ -15,8 +14,8 @@ use crate::style::{Palette, text};
 use crate::styles::Painted;
 use crate::styles::{
     ControlState, LayoutDirection, Paints, ShapeStyle, SidebarAccountStyle, SidebarItemStyle,
-    SidebarSectionStyle, SidebarStyle, SplitViewStyle, StateValue, SymbolTileStyle, Theme,
-    TrafficLightsStyle, resolve,
+    SidebarSectionStyle, SidebarStyle, StateValue, SymbolTileStyle, Theme, TrafficLightsStyle,
+    resolve,
 };
 use crate::symbol::{Symbol, symbol, tile_symbol};
 use crate::theme;
@@ -44,29 +43,14 @@ pub(crate) fn sidebar_palette() -> SidebarPalette {
     }
 }
 
-pub(crate) fn over_backdrop(surface: SidebarSurface, backdrop: SidebarBackdrop) -> SidebarSurface {
-    let Some(tint) = crate::backdrop::tinted() else {
+pub(crate) fn over_backdrop(surface: SidebarSurface) -> SidebarSurface {
+    if crate::backdrop::tinted().is_none() {
         return surface;
-    };
-    let tinted_island = surface.style == SidebarKind::Island && backdrop == SidebarBackdrop::Tinted;
-    let (bg, rim) = if tinted_island {
-        (
-            Rgba {
-                a: BACKDROP.island,
-                ..tint.average()
-            },
-            Palette::current().outline,
-        )
-    } else {
-        (Rgba::TRANSPARENT, Rgba::TRANSPARENT)
-    };
+    }
     SidebarSurface {
-        bg,
-        rim,
-        inner: Rgba::TRANSPARENT,
+        bg: Rgba::TRANSPARENT,
         palette: sidebar_palette(),
         glass: None,
-        ..surface
     }
 }
 
@@ -208,13 +192,6 @@ impl SymbolTile {
 
 forward_container!(SymbolTile);
 
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub enum SidebarBackdrop {
-    #[default]
-    Clear,
-    Tinted,
-}
-
 #[derive(PartialEq)]
 pub struct Sidebar {
     children: Vec<Element>,
@@ -264,18 +241,6 @@ impl Sidebar {
         self
     }
 
-    pub fn backdrop(self, backdrop: SidebarBackdrop) -> Self {
-        match backdrop {
-            SidebarBackdrop::Clear => self,
-            SidebarBackdrop::Tinted => self.style(|s| {
-                s.surface(over_backdrop(
-                    crate::theme::resolved().sidebar,
-                    SidebarBackdrop::Tinted,
-                ))
-            }),
-        }
-    }
-
     pub fn style(mut self, restyle: impl Fn(SidebarStyle) -> SidebarStyle + 'static) -> Self {
         self.style = self.style.style(restyle);
         self
@@ -300,14 +265,11 @@ impl Component for Sidebar {
         let style = if glass.is_some() {
             SidebarStyle {
                 background: StateValue::new(ShapeStyle::Clear),
-                border: None,
-                inner_border: None,
                 ..style
             }
         } else {
             style
         };
-        let split: SplitViewStyle = resolve(&Theme::tengen());
         let lights: TrafficLightsStyle = resolve(&Theme::tengen());
         let paints = Paints::current(ControlState::default(), style.effect);
         let (traffic_x, traffic_y) = style.lights_position;
@@ -349,10 +311,9 @@ impl Component for Sidebar {
         let rail_layout = chrome.layout == TitlebarLayout::Rail;
         let rail_progress =
             crate::animation::use_animated(f32::from(u8::from(rail_layout)), style.animation);
-        let inset = split.inset;
-        let (bar_height, bar_padding_top) = crate::titlebar::sidebar_bar_metrics();
+        let bar_height = crate::titlebar::sidebar_bar_height();
         // With the Rail the traffic lights leave the sidebar, so its first row rises to the titlebar row.
-        let row_top = ((bar_padding_top + bar_height - TEXT_FIELD.height) / 2.0 - inset).max(0.0);
+        let row_top = ((bar_height - TEXT_FIELD.height) / 2.0).max(0.0);
         let top_height = top_height + (row_top - top_height) * rail_progress;
         let padding_x = style.padding_x;
 
@@ -369,80 +330,30 @@ impl Component for Sidebar {
             0.0
         };
 
-        let corner_radius = style
-            .shape
-            .corner_radius(0.0, 0.0, LayoutDirection::LeftToRight);
         let mut panel_area = use_state(Area::default);
-        crate::glass_panel::use_publish(glass, corner_radius.top_left(), *panel_area.read());
+        crate::glass_panel::use_publish(glass, 0.0, *panel_area.read());
         let sidebar_body = rect()
             .expanded()
             .direction(Direction::Vertical)
             .painted(&paints, &style.background)
             .a11y_role(AccessibilityRole::Navigation)
             .on_sized(move |event: Event<SizedEventData>| panel_area.set_if_modified(event.area))
-            .padding(Gaps::new(
-                top_height,
-                padding_x,
-                style.padding_bottom,
-                padding_x + reserved,
-            ))
+            .padding(Gaps::new(top_height, padding_x, 0.0, padding_x + reserved))
             .maybe_child(glass.map(|_| {
                 let size = panel_area.read().size;
-                crate::glass_panel::hole(
-                    (-padding_x, -top_height),
-                    (size.width, size.height),
-                    corner_radius.top_left(),
-                )
+                crate::glass_panel::hole((-padding_x, -top_height), (size.width, size.height), 0.0)
             }))
             .child(
                 rect()
-                    .position(
-                        Position::new_absolute()
-                            .top(-top_height - inset)
-                            .left(-padding_x),
-                    )
+                    .position(Position::new_absolute().top(-top_height).left(-padding_x))
                     .width(Size::px(SIDEBAR.width as f32))
-                    .height(Size::px(top_height + inset))
+                    .height(Size::px(top_height))
                     .probe("sidebar-drag-strip")
                     .on_mouse_down(drag),
             )
-            .child(ScrollView::new().children(self.children.iter().cloned()))
-            .corner_radius(corner_radius)
-            .bordered(&paints, style.border.as_ref())
-            .map(style.inner_border.as_ref(), |el, inner| {
-                let rim = style.border.as_ref().map_or(0.0, |(_, width)| *width);
-                let radius = CornerRadius::new(
-                    (corner_radius.top_left() - rim).max(0.0),
-                    (corner_radius.top_right() - rim).max(0.0),
-                    (corner_radius.bottom_right() - rim).max(0.0),
-                    (corner_radius.bottom_left() - rim).max(0.0),
-                )
-                .with_smoothing(corner_radius.smoothing());
-                el.child(
-                    rect()
-                        .position(
-                            Position::new_absolute()
-                                .top(0.0)
-                                .left(0.0)
-                                .right(0.0)
-                                .bottom(0.0),
-                        )
-                        .margin(Gaps::new_all(rim))
-                        .corner_radius(radius)
-                        .border(inner_border(&paints, inner)),
-                )
-            });
+            .child(ScrollView::new().children(self.children.iter().cloned()));
 
-        let mut root = rect()
-            .expanded()
-            .child(sidebar_body)
-            .maybe_child(style.line.as_ref().map(|(paint, width)| {
-                rect()
-                    .position(Position::new_absolute().top(0.0).right(0.0))
-                    .width(Size::px(*width))
-                    .height(Size::percent(100.0))
-                    .background(paints.fill(&StateValue::new(paint.clone())))
-            }));
+        let mut root = rect().expanded().child(sidebar_body);
 
         let sidebar_shown = sidebar_control().is_none_or(|control| control.settled());
         if lights_column {
@@ -728,12 +639,12 @@ impl Component for SidebarSection {
         rect()
             .width(Size::fill())
             .direction(Direction::Vertical)
+            .margin(Gaps::new(0.0, 0.0, style.margin_bottom, 0.0))
             .child(
                 interaction
                     .attach(rect(), true)
                     .width(Size::fill())
                     .height(Size::px(style.height))
-                    .margin(Gaps::new(style.margin_top, 0.0, 0.0, 0.0))
                     .padding(Gaps::new(0.0, style.padding_x, 0.0, style.padding_x))
                     .direction(Direction::Horizontal)
                     .cross_align(Alignment::Center)

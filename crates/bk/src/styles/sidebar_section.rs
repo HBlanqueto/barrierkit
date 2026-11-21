@@ -9,8 +9,8 @@ use super::{
 pub struct SidebarSectionStyle {
     /// Tengen: `SIDEBAR.section_height`.
     pub height: f32,
-    /// Tengen: `section_margin_top`.
-    pub margin_top: f32,
+    /// Tengen: `section_margin_bottom`: the gap to the next section.
+    pub margin_bottom: f32,
     /// Tengen: `section_padding_x`.
     pub padding_x: f32,
     /// Tengen: `chevron`.
@@ -32,7 +32,7 @@ impl ControlStyle for SidebarSectionStyle {
         let ink = ShapeStyle::Color(crate::sidebar::sidebar_palette().section_ink);
         Self {
             height: SIDEBAR.section_height as f32,
-            margin_top: SIDEBAR.section_margin_top as f32,
+            margin_bottom: SIDEBAR.section_margin_bottom as f32,
             padding_x: SIDEBAR.section_padding_x as f32,
             chevron_size: SIDEBAR.chevron as f32,
             title: StateValue::new(ink.clone()),

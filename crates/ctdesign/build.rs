@@ -161,10 +161,9 @@ KNOB_SHADOW ShadowLayer shadow.slint.knob y_offset=offset-y opacity==1.0
 KNOB_HELD_SHADOW ShadowLayer shadow.slint.knob-held y_offset=offset-y opacity==1.0
 KNOB_HELD_SHADOW_DARK ShadowLayer shadow.slint.knob-held-dark y_offset=offset-y opacity==1.0
 KNOB_LENS [f32;2] components.switch.knob-lens
-SIDEBAR SidebarMetrics components.window.sidebar width=size.sidebar-w inset=island.inset
-    padding_x=island.padding-x radius=island.radius rim_width=island.rim-width
-    inner_width=island.inner-width traffic_x=island.traffic-x
-    traffic_y=island.traffic-y app_icon=item.app-icon chevron=section.chevron
+SIDEBAR SidebarMetrics components.window.sidebar width=size.sidebar-w padding_x=padding-x
+    rim_width=rim-width traffic_x=traffic-x traffic_y=traffic-y app_icon=item.app-icon
+    chevron=section.chevron
 GLASS GlassMetrics components.window.sidebar.glass chroma_light=chroma.light
     chroma_dark=chroma.dark chroma_cap_light=chroma-cap.light chroma_cap_dark=chroma-cap.dark
     lightness_light=lightness.light lightness_dark=lightness.dark
@@ -468,15 +467,14 @@ GLASS_INK_MUTED Rgba themes.{theme}.glass-ink-muted
 GLASS_INK_FAINT Rgba themes.{theme}.glass-ink-faint
 DOCK_OUTLINE Rgba themes.{theme}.dock-outline
 DOCK_OUTLINE_SOLID Rgba themes.{theme}.dock-outline-opaque
-SIDEBAR Rgba themes.{theme}.bg-sunken
-SIDEBAR_ISLAND Rgba themes.{theme}.sidebar-island-bg
+SIDEBAR Rgba themes.{theme}.sidebar-bg
+TOOLBAR_BG Rgba themes.{theme}.toolbar-bg
+TOOLBAR_LINE Rgba themes.{theme}.toolbar-line
 SIDEBAR_GLASS_BASE Rgba themes.{theme}.sidebar-glass-base
 SIDEBAR_GLASS_SOLID Rgba themes.{theme}.sidebar-glass-solid
-SIDEBAR_ISLAND_RIM Rgba components.window.sidebar.island.rim
-SIDEBAR_ISLAND_INNER Rgba components.window.sidebar.island.inner
 TOOLGROUP_BG Rgba themes.{theme}.toolbar-glass-bg
 SIDEBAR_PALETTE SidebarPalette components.window.sidebar.item item_ink=ink item_icon=icon-ink
-    section_ink=components.window.sidebar.section.ink line=components.window.sidebar.flat.line
+    section_ink=components.window.sidebar.section.ink line=components.window.sidebar.line
 TOOLGROUP_PALETTE ToolgroupPalette components.window.toolgroup
 MENU MenuPalette components.shell.menu bg=panel.bg padding=panel.padding shadow=panel.shadow
     min_width=panel.min-width max_width=panel.max-width font_size=item.font-size

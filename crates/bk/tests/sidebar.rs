@@ -9,7 +9,7 @@ use bk::sidebar::{Sidebar, SidebarItem, SidebarSection};
 use bk::theme;
 use bk::titlebar::Titlebar;
 use bk::views::split::{NarrowSidebar, SidebarToggle, SplitView};
-use ctappearance::{AppearanceConfig, ColorScheme, SidebarStyle, WindowColorMode, resolve};
+use ctappearance::{AppearanceConfig, ColorScheme, WindowColorMode, resolve};
 use ctdesign::{SIDEBAR, TITLEBAR, TOOLGROUP};
 use freya_components::button::Button;
 use freya_components::theming::hooks::use_init_theme;
@@ -50,14 +50,8 @@ impl App for LayoutCase {
     }
 }
 
-fn layout_position(sidebar_style: SidebarStyle) -> (f32, f32, f32, f32) {
-    let resolved = resolve(
-        &AppearanceConfig {
-            sidebar_style,
-            ..Default::default()
-        },
-        None,
-    );
+fn layout_position() -> (f32, f32, f32, f32) {
+    let resolved = resolve(&AppearanceConfig::default(), None);
     let capture: Capture = Arc::new(Mutex::new(None));
     let app = AppComponent::new(LayoutCase {
         capture: capture.clone(),
@@ -73,37 +67,20 @@ fn layout_position(sidebar_style: SidebarStyle) -> (f32, f32, f32, f32) {
 }
 
 #[test]
-fn island_layout_positions_content_at_sidebar_width_plus_double_inset() {
-    let (x, y, width, height) = layout_position(SidebarStyle::Island);
-    let expected_x = SIDEBAR.width as f32 + 2.0 * SIDEBAR.inset as f32;
-    assert!(
-        (x - expected_x).abs() < 0.5,
-        "island content x should be {expected_x}, got {x}"
-    );
-    assert_eq!(y, 0.0, "island content must start at the top edge");
-    let expected_width = 800.0 - expected_x;
-    assert!(
-        (width - expected_width).abs() < 0.5,
-        "island content width should be {expected_width}, got {width}"
-    );
-    assert_eq!(height, 600.0, "island content must fill the full height");
-}
-
-#[test]
-fn flat_layout_positions_content_at_sidebar_width() {
-    let (x, y, width, height) = layout_position(SidebarStyle::Flat);
+fn the_layout_positions_content_at_sidebar_width() {
+    let (x, y, width, height) = layout_position();
     let expected_x = SIDEBAR.width as f32;
     assert!(
         (x - expected_x).abs() < 0.5,
-        "flat content x should be {expected_x}, got {x}"
+        "content x should be {expected_x}, got {x}"
     );
-    assert_eq!(y, 0.0, "flat content must start at the top edge");
+    assert_eq!(y, 0.0, "content must start at the top edge");
     let expected_width = 800.0 - expected_x;
     assert!(
         (width - expected_width).abs() < 0.5,
-        "flat content width should be {expected_width}, got {width}"
+        "content width should be {expected_width}, got {width}"
     );
-    assert_eq!(height, 600.0, "flat content must fill the full height");
+    assert_eq!(height, 600.0, "content must fill the full height");
 }
 
 struct TitlebarCase {
@@ -595,13 +572,7 @@ impl App for TrafficLightsCase {
 
 fn traffic_layout() -> Vec<(f32, f32, f32, f32)> {
     let app = AppComponent::new(TrafficLightsCase);
-    let resolved = resolve(
-        &AppearanceConfig {
-            sidebar_style: SidebarStyle::Island,
-            ..Default::default()
-        },
-        None,
-    );
+    let resolved = resolve(&AppearanceConfig::default(), None);
     let (test, _) = TestingRunner::new(
         app,
         Size2D::new(300.0, 400.0),
@@ -789,24 +760,10 @@ fn dark_resolved() -> ctappearance::Resolved {
     resolve(
         &AppearanceConfig {
             color_scheme: ColorScheme::Dark,
-            sidebar_style: SidebarStyle::Island,
             ..Default::default()
         },
         None,
     )
-}
-
-struct IslandShadowCase;
-
-impl App for IslandShadowCase {
-    fn render(&self) -> impl IntoElement {
-        let resolved = dark_resolved();
-        use_init_theme(|| theme::for_scheme(true));
-        rect()
-            .expanded()
-            .background(theme::color(resolved.surfaces.window))
-            .child(SplitView::new(Sidebar::new(), rect()))
-    }
 }
 
 struct ToolgroupShadowCase;
@@ -829,27 +786,9 @@ impl App for ToolgroupShadowCase {
 }
 
 #[test]
-fn island_and_toolgroup_cast_no_shadow() {
+fn the_toolgroup_casts_no_shadow() {
     let resolved = dark_resolved();
     let expected = resolved.surfaces.window.to_rgba8();
-
-    let app = AppComponent::new(IslandShadowCase);
-    let (mut test, _) = TestingRunner::new(
-        app,
-        Size2D::new(300.0, 300.0),
-        |runner| runner.provide_root_context(|| State::create(resolved)),
-        1.0,
-    );
-    test.sync_and_update();
-    let _ = test.render();
-    test.sync_and_update();
-    let (w, _h, image) = decode(test.render().as_bytes());
-    let island_bottom = 300.0 - SIDEBAR.inset as f32 + 4.0;
-    assert_eq!(
-        pixel(&image, w, 110, island_bottom as usize),
-        expected,
-        "pixel 4 px below the island must be the window background"
-    );
 
     let app = AppComponent::new(ToolgroupShadowCase);
     let (mut test, _) = TestingRunner::new(
@@ -893,14 +832,8 @@ impl App for AlignedToolbarCase {
 }
 
 #[test]
-fn island_toolbar_is_centred_with_the_traffic_lights() {
-    let resolved = resolve(
-        &AppearanceConfig {
-            sidebar_style: SidebarStyle::Island,
-            ..Default::default()
-        },
-        None,
-    );
+fn the_toolbar_is_centred_with_the_traffic_lights() {
+    let resolved = resolve(&AppearanceConfig::default(), None);
     let app = AppComponent::new(AlignedToolbarCase);
     let (mut test, _) = TestingRunner::new(
         app,
@@ -1090,7 +1023,7 @@ fn a_pushed_sidebar_docks_and_narrows_the_detail() {
         labelled(&test, "Uno").is_some(),
         "the toggle opens the sidebar"
     );
-    let docked = SIDEBAR.width as f32 + 2.0 * SIDEBAR.inset as f32;
+    let docked = SIDEBAR.width as f32;
     assert!(
         (detail_x(&test) - docked).abs() < 0.5,
         "the detail starts after the sidebar"

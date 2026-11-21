@@ -74,8 +74,7 @@ sets:
 - the window status (active, inactive, maximized, full screen);
 - the chrome style (`Top` or `Rail` layout, unified rail);
 - focus mode: overlay titlebar and the bar down;
-- the `FullscreenBar` and `fullscreen_push`;
-- the sidebar style (island or flat).
+- the `FullscreenBar` and `fullscreen_push`.
 
 The black band at the top of the focus-mode scenes stands for the compositor
 bar, which Malaysia draws over a real window.

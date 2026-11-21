@@ -45,16 +45,17 @@ Decision: `infinity_window_manager_v1` is a private Wayland protocol for the she
 Why: the standard protocols do not cover what the Dock and the menu bar need from the compositor.
 Code: `crates/infinity-protocol/protocols/`, `crates/bk/src/shell/infinity.rs`, [Wayland protocols](barrierkit/18-platform.md#wayland-protocols)
 
-## 0041 · 0057 · 0065 · 0078 — Sidebar: island, backdrop and glass
+## 0041 · 0057 · 0065 · 0078 · 0079 — Sidebar: flat, backdrop and glass
 Decision:
-- The sidebar is island (default) or flat, by the user's `sidebar_style` in `ctappearance::AppearanceConfig`. Its geometry lives in `components.window.sidebar`; an app changes it through `SidebarStyle`.
-- Over a `Backdrop` the app picks `SidebarBackdrop::Clear` (default) or `Tinted`, and sends no glass panel.
+- The sidebar is flat and full height, as in macOS 27: no inset, rounded corner, rim or edge line; only its colour sets it apart from the content. Its geometry lives in `components.window.sidebar`; an app changes it through `SidebarStyle`. The floating island of ADR 0041 was dropped on 2026-11-20 (ADR 0079): macOS 27 does not draw it, and the user's `sidebar_style` key went with it. A file that still has the key loads; the key is ignored.
+- A window with a sidebar draws the unified 52 title bar (`Bar::Unified`), with the traffic lights at (19, 19) inside the sidebar.
+- Over a `Backdrop` the sidebar is transparent and sends no glass panel.
 - Otherwise the sidebar is a glass panel: the kit leaves a hole and sends `set_glass` (Infinity window style, version 6) with the rectangle, corner, `base`, `solid` and `chroma`. There is no public API.
 - The compositor fills the panel with `base` plus the blurred wallpaper's chroma and draws the rim; unfocused, it shows flat `solid`. Towards the edge that touches the content, `base` veils the fill, so the wallpaper's colours fade but stay.
 - With no such compositor, or with reduce transparency or contrast, the kit paints the opaque sidebar itself.
 - In full screen with a glass bar, the glass covers the whole top strip, not one column.
-Why: only the compositor sees the wallpaper. The macOS sidebar keeps the app's lightness and takes only part of the wallpaper's chroma.
-Rejected: a translucent fill over a plain blur region; it lets the wallpaper's lightness through and cannot say a corner.
+Why: only the compositor sees the wallpaper. The macOS sidebar keeps the app's lightness and takes only part of the wallpaper's chroma. The island was measured against macOS 27 (`docs/research/macos-control-metrics.md`, "Sidebar and window (macOS 27)") and does not exist there.
+Rejected: a translucent fill over a plain blur region; it lets the wallpaper's lightness through and cannot say a corner. Keeping the island as a user option: nothing in macOS 27 backs it.
 Code: `crates/bk/src/sidebar.rs`, `crates/bk/src/glass_panel.rs`, [Sidebar](barrierkit/10-sidebar.md)
 
 ## 0047 — BarrierKit in layers

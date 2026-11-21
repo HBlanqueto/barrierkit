@@ -17,7 +17,7 @@ use crate::styles::{
 use crate::theme::color;
 
 // Freya paints by tree depth; the thumb must sit above the scrolled content, like Freya's own bar.
-const THUMB_LAYER: i16 = 999;
+pub(crate) const THUMB_LAYER: i16 = 999;
 
 pub(crate) static SCROLLED_WITH_A_MOUSE: AtomicBool = AtomicBool::new(false);
 

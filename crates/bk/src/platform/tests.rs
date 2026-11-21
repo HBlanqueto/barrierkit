@@ -218,7 +218,7 @@ mod drag_band_tests {
     use crate::ProbeExt;
     use crate::sidebar::{Sidebar, SidebarItem};
     use crate::views::split::SplitView;
-    use ctappearance::{AppearanceConfig, SidebarStyle, resolve};
+    use ctappearance::{AppearanceConfig, resolve};
     use freya_core::integration::AppComponent;
     use freya_core::prelude::{App, ContainerSizeExt, IntoElement, State, rect};
     use freya_testing::TestingRunner;
@@ -234,7 +234,7 @@ mod drag_band_tests {
             SplitView::new(
                 Sidebar::new()
                     .traffic_lights(true)
-                    .child(SidebarItem::new("Uno").probe("island-first-item")),
+                    .child(SidebarItem::new("Uno").probe("first-item")),
                 rect().expanded(),
             )
         }
@@ -259,7 +259,7 @@ mod drag_band_tests {
         );
         test.sync_and_update();
         test.find(|node, el| {
-            (el.accessibility().builder.author_id() == Some("island-first-item"))
+            (el.accessibility().builder.author_id() == Some("first-item"))
                 .then(|| node.layout().area.origin.y)
         })
         .expect("first sidebar item")
@@ -277,16 +277,10 @@ mod drag_band_tests {
     }
 
     #[test]
-    fn a_mouse_down_on_the_island_top_band_moves_the_window() {
+    fn a_mouse_down_on_the_sidebar_top_band_moves_the_window() {
         let queue: Rc<RefCell<Vec<WindowCommand>>> = Rc::new(RefCell::new(Vec::new()));
         let controls_queue = queue.clone();
-        let resolved = resolve(
-            &AppearanceConfig {
-                sidebar_style: SidebarStyle::Island,
-                ..Default::default()
-            },
-            None,
-        );
+        let resolved = resolve(&AppearanceConfig::default(), None);
         let app = AppComponent::new(DragCase);
         let (mut test, _) = TestingRunner::new(
             app,
@@ -307,7 +301,7 @@ mod drag_band_tests {
                 .borrow()
                 .iter()
                 .any(|command| matches!(command, WindowCommand::Move(_))),
-            "a press on the island top band must request a window move"
+            "a press on the sidebar top band must request a window move"
         );
 
         queue.borrow_mut().clear();
@@ -323,7 +317,7 @@ mod drag_band_tests {
         queue.borrow_mut().clear();
         let (x, y) = test
             .find(|node, el| {
-                (el.accessibility().builder.author_id() == Some("island-first-item")).then(|| {
+                (el.accessibility().builder.author_id() == Some("first-item")).then(|| {
                     let area = node.layout().area;
                     (
                         area.origin.x + area.size.width / 2.0,
@@ -331,14 +325,14 @@ mod drag_band_tests {
                     )
                 })
             })
-            .expect("the first island row exists");
+            .expect("the first sidebar row exists");
         test.press_cursor((f64::from(x), f64::from(y)));
         assert!(
             !queue
                 .borrow()
                 .iter()
                 .any(|command| matches!(command, WindowCommand::Move(_))),
-            "a press on the first island row must not move the window"
+            "a press on the first sidebar row must not move the window"
         );
     }
 }

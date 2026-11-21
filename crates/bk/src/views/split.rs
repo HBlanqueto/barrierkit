@@ -148,7 +148,6 @@ impl Component for SplitView {
     fn render(&self) -> impl IntoElement {
         let style: SplitViewStyle = resolve(&self.style);
         let paints = Paints::current(ControlState::default(), style.effect);
-        let inset = style.inset;
         let mut window_width = use_state(|| f32::MAX);
         let mut presented = use_state(|| self.inspector.as_ref().is_some_and(|(_, shown)| *shown));
         let wanted = self.inspector.as_ref().is_some_and(|(_, shown)| *shown);
@@ -219,7 +218,7 @@ impl Component for SplitView {
             follow_from_to.set((from, target));
             sidebar_width.set(target);
         };
-        let width = if *dragging.read() {
+        let container = if *dragging.read() {
             *sidebar_width.read()
         } else {
             followed().clamp(min_width, max_width)
@@ -236,7 +235,6 @@ impl Component for SplitView {
             }
         }
 
-        let container = width + 2.0 * inset;
         occupied.set_if_modified(if overlay { 0.0 } else { container * shown });
         overlaid.set_if_modified(overlay && *visible.read());
         settled.set_if_modified(*visible.read() && shown >= 1.0);
@@ -244,7 +242,6 @@ impl Component for SplitView {
             rect()
                 .width(Size::px(container))
                 .height(Size::fill())
-                .padding(Gaps::new_all(inset))
                 .child(self.sidebar.clone())
         };
 
@@ -258,9 +255,7 @@ impl Component for SplitView {
             })
             .on_global_pointer_move(move |event: Event<PointerEventData>| {
                 if *dragging.read() {
-                    resize_to(
-                        event.global_location().x as f32 - 2.0 * inset + style.grip_width / 2.0,
-                    );
+                    resize_to(event.global_location().x as f32 + style.grip_width / 2.0);
                 }
             })
             .on_global_pointer_up(move |_| dragging.set_if_modified(false))
@@ -323,9 +318,10 @@ impl Component for SplitView {
                                 .a11y_id(grip_id)
                                 .a11y_focusable(true)
                                 .a11y_role(AccessibilityRole::Splitter)
+                                .layer(crate::scroll::THUMB_LAYER + 1)
                                 .position(
                                     Position::new_absolute()
-                                        .left(container - inset - style.grip_width)
+                                        .left(container - style.grip_width)
                                         .top(0.0),
                                 )
                                 .width(Size::px(style.grip_width))

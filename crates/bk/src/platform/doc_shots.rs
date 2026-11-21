@@ -9,7 +9,7 @@ use crate::symbol::Symbol;
 use crate::titlebar::Titlebar;
 use crate::views::form::{Form, Row, Section};
 use crate::views::split::{SidebarToggle, SplitView};
-use ctappearance::{AppearanceConfig, SidebarStyle, resolve};
+use ctappearance::{AppearanceConfig, resolve};
 use ctdesign::ACCENT_SWATCHES;
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
@@ -39,7 +39,6 @@ struct Shot {
     bar_down: bool,
     bar: FullscreenBar,
     push: bool,
-    flat: bool,
     compositor_bar: bool,
 }
 
@@ -245,17 +244,7 @@ impl App for Case {
 }
 
 fn render(shot: Shot, dir: &std::path::Path) {
-    let resolved = resolve(
-        &AppearanceConfig {
-            sidebar_style: if shot.flat {
-                SidebarStyle::Flat
-            } else {
-                SidebarStyle::Island
-            },
-            ..Default::default()
-        },
-        None,
-    );
+    let resolved = resolve(&AppearanceConfig::default(), None);
     let bar = std::rc::Rc::new(std::cell::RefCell::new(None));
     let shared = bar.clone();
     let (mut test, _) = TestingRunner::new(
@@ -324,7 +313,6 @@ fn doc_shots() {
         bar_down: true,
         bar: FullscreenBar::Solid,
         push: false,
-        flat: false,
         compositor_bar: false,
     };
     let docs = Shot {
@@ -345,17 +333,12 @@ fn doc_shots() {
     };
     let shots = [
         Shot {
-            name: "titlebar-island",
+            name: "titlebar-sidebar",
             ..docs
         },
         Shot {
-            name: "titlebar-island-inactive",
+            name: "titlebar-sidebar-inactive",
             status: inactive,
-            ..docs
-        },
-        Shot {
-            name: "titlebar-flat",
-            flat: true,
             ..docs
         },
         Shot {
@@ -489,13 +472,13 @@ fn doc_shots() {
             ..base
         },
         Shot {
-            name: "island-rail-focus",
+            name: "rail-focus",
             compositor_bar: true,
             style: rail,
             ..base
         },
         Shot {
-            name: "island-rail-maximized",
+            name: "rail-maximized",
             size: (880.0, 420.0),
             style: rail,
             scene: Scene::Buttons {

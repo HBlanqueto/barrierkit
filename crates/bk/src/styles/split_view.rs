@@ -1,5 +1,5 @@
-use ctappearance::{Resolved, SidebarStyle as SidebarKind};
-use ctdesign::{DURATION_BASE, DURATION_FAST_MS, HAIRLINE, SIDEBAR, SPLIT_VIEW};
+use ctappearance::Resolved;
+use ctdesign::{DURATION_BASE, DURATION_FAST_MS, HAIRLINE, SPLIT_VIEW};
 
 use super::{
     Animation, ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, reduce_motion,
@@ -18,8 +18,6 @@ use crate::theme::{SurfaceKind, surface_background};
 /// of `outline` (focused), `title_bar` and `title`, applied before `.style`.
 #[derive(Clone, Debug)]
 pub struct SplitViewStyle {
-    /// Tengen: `SIDEBAR.inset` around an island sidebar, `0.0` around a flat one.
-    pub inset: f32,
     /// Tengen: `SPLIT_VIEW.inspector`.
     pub inspector_width: f32,
     /// Tengen, with `grip_line_width`, `grip_line_inset`: `SPLIT_VIEW.grip`, the area that
@@ -56,10 +54,8 @@ pub struct SplitViewStyle {
 impl ControlStyle for SplitViewStyle {
     fn tengen() -> Self {
         let resolved = crate::theme::resolved();
-        let island = resolved.sidebar.style == SidebarKind::Island;
         let accent = ShapeStyle::Color(resolved.accent);
         Self {
-            inset: if island { SIDEBAR.inset as f32 } else { 0.0 },
             inspector_width: SPLIT_VIEW.inspector,
             grip_width: SPLIT_VIEW.grip,
             grip_line_width: SPLIT_VIEW.grip_line,

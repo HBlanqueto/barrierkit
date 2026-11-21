@@ -21,31 +21,26 @@ use ctdesign::{
     SHELL_LIGHT, SHELL_LIGHT_OPAQUE, SIDEBAR_DARK, SIDEBAR_DARK_OPAQUE, SIDEBAR_DARK_TINT,
     SIDEBAR_DARK_TINT_OPAQUE, SIDEBAR_GLASS_BASE_DARK, SIDEBAR_GLASS_BASE_DARK_TINT,
     SIDEBAR_GLASS_BASE_LIGHT, SIDEBAR_GLASS_SOLID_DARK, SIDEBAR_GLASS_SOLID_DARK_TINT,
-    SIDEBAR_GLASS_SOLID_LIGHT, SIDEBAR_ISLAND_DARK, SIDEBAR_ISLAND_DARK_TINT,
-    SIDEBAR_ISLAND_INNER_DARK, SIDEBAR_ISLAND_INNER_DARK_TINT, SIDEBAR_ISLAND_INNER_LIGHT,
-    SIDEBAR_ISLAND_LIGHT, SIDEBAR_ISLAND_RIM_DARK, SIDEBAR_ISLAND_RIM_DARK_TINT,
-    SIDEBAR_ISLAND_RIM_LIGHT, SIDEBAR_LIGHT, SIDEBAR_LIGHT_OPAQUE, SIDEBAR_PALETTE_DARK,
+    SIDEBAR_GLASS_SOLID_LIGHT, SIDEBAR_LIGHT, SIDEBAR_LIGHT_OPAQUE, SIDEBAR_PALETTE_DARK,
     SIDEBAR_PALETTE_DARK_TINT, SIDEBAR_PALETTE_LIGHT, ShellPalette, SidebarPalette, TITLEBAR,
-    TOOLGROUP_BG_DARK, TOOLGROUP_BG_DARK_OPAQUE, TOOLGROUP_BG_DARK_TINT,
-    TOOLGROUP_BG_DARK_TINT_OPAQUE, TOOLGROUP_BG_LIGHT, TOOLGROUP_BG_LIGHT_OPAQUE,
-    TOOLGROUP_PALETTE_DARK, TOOLGROUP_PALETTE_DARK_TINT, TOOLGROUP_PALETTE_LIGHT,
-    TRAFFIC_CLOSE_MINIMIZE_DARKEN, TRAFFIC_ZOOM_LIGHTEN, ToolgroupPalette, WALLPAPER_TINTING,
-    WALLPAPER_TINTING_LIFT, WINDOW_TINT_ACCENT,
+    TOOLBAR_BG_DARK, TOOLBAR_BG_DARK_TINT, TOOLBAR_BG_LIGHT, TOOLBAR_LINE_DARK,
+    TOOLBAR_LINE_DARK_TINT, TOOLBAR_LINE_LIGHT, TOOLGROUP_BG_DARK, TOOLGROUP_BG_DARK_OPAQUE,
+    TOOLGROUP_BG_DARK_TINT, TOOLGROUP_BG_DARK_TINT_OPAQUE, TOOLGROUP_BG_LIGHT,
+    TOOLGROUP_BG_LIGHT_OPAQUE, TOOLGROUP_PALETTE_DARK, TOOLGROUP_PALETTE_DARK_TINT,
+    TOOLGROUP_PALETTE_LIGHT, TRAFFIC_CLOSE_MINIMIZE_DARKEN, TRAFFIC_ZOOM_LIGHTEN, ToolgroupPalette,
+    WALLPAPER_TINTING, WALLPAPER_TINTING_LIFT, WINDOW_TINT_ACCENT,
 };
 
 use crate::backdrop::{WallpaperTinting, lift, shift_like, take_chroma, take_chroma_capped};
 use crate::icon_style::IconStyle;
 use crate::{
-    AppearanceConfig, ColorScheme, MenuBarSize, ScrollBarClick, ScrollBars, SidebarStyle,
-    TintParts, Toolkit, TrafficLightShape, TrafficLightStyle, WindowColorMode,
+    AppearanceConfig, ColorScheme, MenuBarSize, ScrollBarClick, ScrollBars, TintParts, Toolkit,
+    TrafficLightShape, TrafficLightStyle, WindowColorMode,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct SidebarSurface {
-    pub style: SidebarStyle,
     pub bg: Rgba,
-    pub rim: Rgba,
-    pub inner: Rgba,
     pub palette: SidebarPalette,
     pub glass: Option<SidebarGlass>,
 }
@@ -67,6 +62,8 @@ pub struct ToolgroupSurface {
 pub struct Surfaces {
     pub window: Rgba,
     pub titlebar_inactive: Rgba,
+    pub toolbar: Rgba,
+    pub toolbar_line: Rgba,
     pub sunken: Rgba,
     pub surface: Rgba,
     pub raised: Rgba,
@@ -227,7 +224,7 @@ pub fn glass_lightness(scheme: ColorScheme) -> f32 {
     }
 }
 
-// How much lighter the island's border is than the fill under it, and how much more where the wallpaper shows.
+// How much lighter the glass panel's border is than the fill under it, and how much more where the wallpaper shows.
 pub fn glass_rim_lift(scheme: ColorScheme) -> (f32, f32) {
     if scheme.is_dark() {
         (GLASS.rim_lift_dark, GLASS.rim_lift_edge_dark)
@@ -288,7 +285,7 @@ pub fn glass_edge(scheme: ColorScheme) -> GlassEdge {
     }
 }
 
-// The island's shadow on the window around it: `opacity` next to the island, fading over `span` logical pixels, as dark as `lightness` and with `tint` of the wallpaper's chroma.
+// The glass panel's shadow on the window around it: `opacity` next to the panel, fading over `span` logical pixels, as dark as `lightness` and with `tint` of the wallpaper's chroma.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct GlassShadow {
     pub opacity: f32,
@@ -352,21 +349,8 @@ const MENU: [[MenuPalette; 3]; 2] = [
     [MENU_LIGHT_OPAQUE, MENU_DARK_OPAQUE, MENU_DARK_TINT_OPAQUE],
 ];
 
-const SIDEBAR_FLAT: [[Rgba; 3]; 2] = [
+const SIDEBAR_BG: [[Rgba; 3]; 2] = [
     [SIDEBAR_LIGHT, SIDEBAR_DARK, SIDEBAR_DARK_TINT],
-    [
-        SIDEBAR_LIGHT_OPAQUE,
-        SIDEBAR_DARK_OPAQUE,
-        SIDEBAR_DARK_TINT_OPAQUE,
-    ],
-];
-
-const SIDEBAR_ISLAND: [[Rgba; 3]; 2] = [
-    [
-        SIDEBAR_ISLAND_LIGHT,
-        SIDEBAR_ISLAND_DARK,
-        SIDEBAR_ISLAND_DARK_TINT,
-    ],
     [
         SIDEBAR_LIGHT_OPAQUE,
         SIDEBAR_DARK_OPAQUE,
@@ -509,7 +493,6 @@ fn menu_glass(dock: DockSurface, scheme: ColorScheme, glass_blur: f32) -> DockSu
 
 fn chrome_surfaces(
     scheme: ColorScheme,
-    style: SidebarStyle,
     opaque: bool,
 ) -> (ShellPalette, MenuPalette, SidebarSurface, ToolgroupSurface) {
     let layer = usize::from(opaque);
@@ -534,31 +517,10 @@ fn chrome_surfaces(
             chroma: glass_chroma(scheme).0,
         }
     });
-    let sidebar = match style {
-        SidebarStyle::Flat => SidebarSurface {
-            style,
-            bg: scheme.pick(SIDEBAR_FLAT[layer]),
-            rim: Rgba::TRANSPARENT,
-            inner: Rgba::TRANSPARENT,
-            palette,
-            glass,
-        },
-        SidebarStyle::Island => SidebarSurface {
-            style,
-            bg: scheme.pick(SIDEBAR_ISLAND[layer]),
-            rim: scheme.pick([
-                SIDEBAR_ISLAND_RIM_LIGHT,
-                SIDEBAR_ISLAND_RIM_DARK,
-                SIDEBAR_ISLAND_RIM_DARK_TINT,
-            ]),
-            inner: scheme.pick([
-                SIDEBAR_ISLAND_INNER_LIGHT,
-                SIDEBAR_ISLAND_INNER_DARK,
-                SIDEBAR_ISLAND_INNER_DARK_TINT,
-            ]),
-            palette,
-            glass,
-        },
+    let sidebar = SidebarSurface {
+        bg: scheme.pick(SIDEBAR_BG[layer]),
+        palette,
+        glass,
     };
     let toolgroup = ToolgroupSurface {
         bg: scheme.pick(TOOLGROUP_BG[layer]),
@@ -637,11 +599,8 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
 
     let lights = lights_for(appearance.traffic_lights, normal_accent, dominant);
 
-    let (mut shell, mut menu, mut sidebar, toolgroup) = chrome_surfaces(
-        scheme,
-        appearance.sidebar_style,
-        appearance.transparency_reduced(),
-    );
+    let (mut shell, mut menu, mut sidebar, toolgroup) =
+        chrome_surfaces(scheme, appearance.transparency_reduced());
     let surfaces = tinted_surfaces(scheme, &base, appearance.tint_parts, |color, _| color);
     // WCAG 2.2: with Increase Contrast a focus ring needs 3:1 on the window (§1.4.11), link text 4.5:1 where it sits (§1.4.3).
     let focus_ring = if appearance.contrast && normal_accent == base.accent {
@@ -675,7 +634,9 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
         accent
     };
     menu.hover_fg = on_accent;
-    sidebar.palette.selected_bg = accent;
+    if normal_accent != base.accent || appearance.contrast {
+        sidebar.palette.selected_bg = accent;
+    }
     sidebar.palette.item_icon = accent;
     sidebar.palette.selected_ink = on_accent;
     shell.tile_active = accent;
@@ -798,6 +759,16 @@ fn tinted_surfaces(
     Surfaces {
         window: mix(window, 1.0, parts.window),
         titlebar_inactive: mix(base.titlebar_bg.unfocused, 1.0, parts.window),
+        toolbar: mix(
+            scheme.pick([TOOLBAR_BG_LIGHT, TOOLBAR_BG_DARK, TOOLBAR_BG_DARK_TINT]),
+            1.0,
+            parts.window,
+        ),
+        toolbar_line: scheme.pick([
+            TOOLBAR_LINE_LIGHT,
+            TOOLBAR_LINE_DARK,
+            TOOLBAR_LINE_DARK_TINT,
+        ]),
         sunken: mix(sunken, LAYER_FACTOR_BG_SUNKEN, parts.window),
         surface: mix(surface, LAYER_FACTOR_SURFACE, parts.groups),
         raised: mix(raised, LAYER_FACTOR_RAISED, parts.menus),

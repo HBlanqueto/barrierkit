@@ -90,15 +90,13 @@ Titlebar::new().style(|s: TitlebarStyle| TitlebarStyle {
 
 ### Variants in a normal window
 
-The same `Titlebar` changes with the sidebar, the `sidebar_style` of the user
-appearance ([4](04-appearance-and-tokens.md#the-appearance-file)) and the focus.
-The app chooses none of these variants.
+The same `Titlebar` changes with the sidebar and the focus. The app chooses
+neither variant.
 
 | Variant | How it looks |
 |---|---|
-| Island sidebar (default): the traffic lights go in the sidebar; a translucent line at the bottom | ![Titlebar with an island sidebar](assets/states/titlebar-island.png) |
-| Island sidebar, inactive window: traffic lights and title in gray | ![Titlebar with an island sidebar, inactive](assets/states/titlebar-island-inactive.png) |
-| Flat sidebar: a `TITLEBAR_CLIENT_HEIGHT` (40 px) bar with a line at the bottom | ![Titlebar with a flat sidebar](assets/states/titlebar-flat.png) |
+| Sidebar: the unified `SETTINGS.toolbar_height` (52 px) bar runs over the content, the traffic lights go in the sidebar at (19, 19), and a translucent line sits under the bar | ![Titlebar with a sidebar](assets/states/titlebar-sidebar.png) |
+| Sidebar, inactive window: traffic lights and title in gray | ![Titlebar with a sidebar, inactive](assets/states/titlebar-sidebar-inactive.png) |
 | No sidebar: traffic lights in the bar, title centered between two equal zones | ![Titlebar without a sidebar](assets/states/titlebar-no-bar.png) |
 | No sidebar, inactive window: `titlebar_inactive` background and gray traffic lights | ![Titlebar without a sidebar, inactive](assets/states/titlebar-no-bar-inactive.png) |
 
@@ -114,7 +112,7 @@ The app does nothing:
 |---|---|---|---|
 | Panel (`UtilityWindow`) | `Utility` | `TITLEBAR.thickness` (32) | `utility` (15) |
 | `.close_only(true)` or HUD window | `Titlebar` | `TITLEBAR.thickness` (32) | `titlebar` (16) |
-| `.with_sidebar(true)` and an island sidebar | `Unified` | `SETTINGS.toolbar_height` (52) | `unified` (26) |
+| `.with_sidebar(true)` | `Unified` | `SETTINGS.toolbar_height` (52) | `unified` (26) |
 | The rest | `UnifiedCompact` | `TITLEBAR_CLIENT_HEIGHT` (40) | `unified_compact` (20) |
 
 `Bar` (`bk::platform`) comes from the Infinity protocol and has four
@@ -122,7 +120,7 @@ values, each an AppKit window kind: `Titlebar` (no toolbar), `UnifiedCompact`
 (`NSWindow.ToolbarStyle.unifiedCompact`), `Unified` (`.unified`) and
 `Utility` (a panel, radius 15).
 
-The bar is sent again when `sidebar_style` changes. An app that draws its own
+An app that draws its own
 bar without `Titlebar` declares it with
 `WindowControls::get().set_bar(Bar::Titlebar)`; otherwise Malaysia uses
 `unified` for a client-decorated window. The user can force one radius for
@@ -281,8 +279,7 @@ In `Unified` the items go in the sidebar column, in the same places.
 
 With the `Rail`, the traffic lights leave the sidebar. The `Sidebar` then
 raises its first row (the search field in `SettingsWindow`) to the title
-bar row; `sidebar_bar_metrics()` gives that row's height and top padding for
-the current sidebar style (52 and 0 for island, 40 and 0 for flat). Switching
+bar row; `sidebar_bar_height()` gives that row's height (52). Switching
 between `Top` and `Rail` slides the row over `DURATION_BASE` with a cubic
 ease-out; with reduced motion it jumps.
 
@@ -293,7 +290,7 @@ ease-out; with reduced motion it jumps.
 ## Maximized, full screen and focus mode
 
 The state comes from [`WindowStatus`](08-windows.md#window-state). The
-screenshots are a test window (island sidebar, `Top` layout unless stated)
+screenshots are a test window (`Top` layout unless stated)
 rendered by the kit in each state.
 
 ### The four states with the `Top` layout
@@ -380,13 +377,13 @@ compositor bar:
 ### Focus mode with the bar down, by layout
 
 The layout is kept when the window is maximized and in full screen, also with
-an island sidebar: the `Rail` stays on the left.
+a sidebar: the `Rail` stays on the left.
 
-| `Rail` with an island, maximized | `Rail` with an island, focus mode |
+| `Rail` with a sidebar, maximized | `Rail` with a sidebar, focus mode |
 |---|---|
-| ![Rail with an island and the window maximized](assets/states/island-rail-maximized.png) | ![Rail with an island in focus mode](assets/states/island-rail-focus.png) |
+| ![Rail with a sidebar and the window maximized](assets/states/rail-maximized.png) | ![Rail with a sidebar in focus mode](assets/states/rail-focus.png) |
 
-These screenshots use the flat sidebar (except `Top`) and `Solid`. The black
+These screenshots use `Solid` (except `Top`). The black
 strip at the top (30 px) is the compositor bar, added to the image.
 
 | Layout | What comes down | How it looks |
@@ -432,7 +429,7 @@ strip at the top (30 px) is the compositor bar, added to the image.
 | Function | Returns |
 |---|---|
 | `titlebar::app_id(app_name)` | The default `app_id`: `io.github.hblanqueto.malaysia.<app_name>` |
-| `titlebar::sidebar_bar_metrics()` | `(height, top padding)` of the title bar row beside a sidebar |
+| `titlebar::sidebar_bar_height()` | Height of the title bar row beside a sidebar |
 | `titlebar::window_drag_handler(fixed)` | The move and double-click handler of the title bar ([Traffic lights](#traffic-lights)) |
 
 Next: [10. Sidebar and split view](10-sidebar.md).
