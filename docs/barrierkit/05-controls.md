@@ -147,8 +147,11 @@ give one.
 The closure runs inside the button, on every render, so state it reads keeps the label current.
 `Text`, `Label` and Freya's `label()` take the button's font and the ink of its current state:
 pressed, disabled, the `on_accent` ink of `bordered_prominent`, an unfocused window. A bare
-`Image::system` keeps its own color; use `Label`. With a text size other than the default, a kit
-`Text` or `Label` scales and the drawn label does not.
+`Image::system` keeps its own color; use `Label`. `Button` scales its text and its symbol with the
+text size ([chapter 4](04-appearance-and-tokens.md#the-appearance-file)), as `Text` does: the button
+gets wider and keeps its height, and a `Text` or `Label` in the closure is pixel equal to the drawn
+label at every size. A Freya `label()` takes the family, size, weight and ink but not the line
+height, so it is pixel equal only at the default size (checked at 1.3); use `Text`.
 
 ```rust
 // ✗ the symbol keeps the label color on the accent fill

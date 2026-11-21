@@ -508,7 +508,7 @@ The size of each control is a row in its own family.
 | accent color: `Color.accentColor`, `.tint`, `AccentColor` | `NSColor.controlAccentColor`, `AppleAccentColor` | `ACCENTS`, `Resolved::accent_colors`, config `accent`, `accent_color`, `wallpaper_accent` | `measured`: the eight accents and Multicolor in light, dark and Increase Contrast; a color without a name follows a fitted rule | [Accent and selection](macos-control-metrics.md#accent-and-selection); bench `accents` | — |
 | accent picker | System Settings › Appearance › Color | `ColorWell::accents` | `partial`: light and dark match at 1x; Increase Contrast not captured | [Accent picker](macos-control-metrics.md#the-picker-of-system-settings); bench `picker` | P3 |
 | text highlight color | `selectedTextBackgroundColor`, `AppleHighlightColor` | `AccentColors::selected_text`, the theme's `text_highlight` | `partial`: follows the accent; a separate highlight color is not read | [Accent and selection](macos-control-metrics.md#accent-and-selection) | P3 |
-| `DynamicTypeSize` (macOS 12) | — | `Resolved::text_size` scales `Text` and `SidebarItem` | `partial`: other controls do not scale; `preferredFont(forTextStyle:)` returns fixed sizes ([Text styles](#text-styles)); whether SwiftUI text on macOS 27 reacts to the setting was not probed | none | P2 |
+| `DynamicTypeSize` (macOS 12) | — | `Resolved::text_size` scales `Text`, `SidebarItem` and the text and symbol of `Button` (its height stays) | `partial`: other controls do not scale; `preferredFont(forTextStyle:)` returns fixed sizes ([Text styles](#text-styles)); whether SwiftUI text on macOS 27 reacts to the setting was not probed | none | P2 |
 
 ### Motion
 

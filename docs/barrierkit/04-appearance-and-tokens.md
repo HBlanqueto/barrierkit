@@ -424,7 +424,8 @@ Notes on the values:
   `show_borders` draws a `ControlBorder` line around icon buttons, tool groups
   and search fields; `differentiate_without_color` keeps the traffic-light
   symbols on while the window is focused; `text_size` scales `Text`, sidebar
-  items (and their height) with `Font::scaled`. The compositor applies
+  items (and their height) with `Font::scaled`; `Button` scales its text and
+  symbol the same way when it draws them, and keeps its height. The compositor applies
   `invert_colors`, `display_contrast`, the color filter and the pointer keys;
   the shell applies `menu_bar_size` (malaysia ADR 0066).
 

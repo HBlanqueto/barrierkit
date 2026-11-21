@@ -648,11 +648,12 @@ mod inactive_view_label_tests {
         }
     }
 
-    fn painted(activated: bool, build: Build) -> Vec<u8> {
+    fn painted(activated: bool, text_size: f32, build: Build) -> Vec<u8> {
         let resolved = resolve(
             &AppearanceConfig {
                 color_scheme: ctappearance::ColorScheme::Dark,
                 reduce_transparency: true,
+                text_size,
                 ..Default::default()
             },
             None,
@@ -707,9 +708,11 @@ mod inactive_view_label_tests {
     fn a_view_label_takes_the_ink_of_a_button_in_an_unfocused_window() {
         let pairs: [(Build, Build); 2] = [(drawn, text_view), (drawn_symbol, label_view)];
         for (drawn, view) in pairs {
-            let unfocused = painted(false, drawn);
-            assert!(painted(false, view) == unfocused);
-            assert!(painted(true, drawn) != unfocused);
+            for text_size in [ctdesign::TEXT_SIZES[0], ctdesign::TEXT_SIZES[2]] {
+                let unfocused = painted(false, text_size, drawn);
+                assert!(painted(false, text_size, view) == unfocused);
+                assert!(painted(true, text_size, drawn) != unfocused);
+            }
         }
     }
 }

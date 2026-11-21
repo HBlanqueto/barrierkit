@@ -6,7 +6,7 @@ use bk::styles::ButtonStyle;
 use bk::symbol::Symbol;
 use bk::theme;
 use ctappearance::{AppearanceConfig, ColorScheme, resolve};
-use ctdesign::SANS_FAMILIES;
+use ctdesign::{SANS_FAMILIES, TEXT_SIZES};
 use freya_components::theming::hooks::use_init_theme;
 use freya_core::integration::AppComponent;
 use freya_core::prelude::Label as TextRun;
@@ -64,7 +64,7 @@ impl App for Case {
     }
 }
 
-fn runner(dark: bool, build: Rc<dyn Fn() -> Element>) -> TestingRunner {
+fn runner(dark: bool, text_size: f32, build: Rc<dyn Fn() -> Element>) -> TestingRunner {
     let resolved = resolve(
         &AppearanceConfig {
             color_scheme: if dark {
@@ -74,6 +74,7 @@ fn runner(dark: bool, build: Rc<dyn Fn() -> Element>) -> TestingRunner {
             },
             reduce_transparency: true,
             reduced_motion: true,
+            text_size,
             ..Default::default()
         },
         None,
@@ -90,8 +91,8 @@ fn runner(dark: bool, build: Rc<dyn Fn() -> Element>) -> TestingRunner {
     test
 }
 
-fn pixels(dark: bool, pressed: bool, look: Look, view: View) -> Vec<u8> {
-    let mut test = runner(dark, Rc::new(move || button(look, view)));
+fn pixels(dark: bool, text_size: f32, pressed: bool, look: Look, view: View) -> Vec<u8> {
+    let mut test = runner(dark, text_size, Rc::new(move || button(look, view)));
     if pressed {
         test.move_cursor(CURSOR);
         test.press_cursor(CURSOR);
@@ -110,22 +111,25 @@ fn differing(a: &[u8], b: &[u8]) -> usize {
 
 #[test]
 fn a_view_label_draws_like_the_label_the_button_would_draw() {
+    let sizes = [TEXT_SIZES[0], TEXT_SIZES[2]];
     let pairs = [
-        (View::Drawn, View::FreyaLabel),
-        (View::Drawn, View::KitText),
-        (View::DrawnSymbol, View::KitLabel),
+        (View::Drawn, View::FreyaLabel, &sizes[..1]),
+        (View::Drawn, View::KitText, &sizes[..]),
+        (View::DrawnSymbol, View::KitLabel, &sizes[..]),
     ];
-    for (drawn, view) in pairs {
+    for (drawn, view, sizes) in pairs {
         for look in [Look::Plain, Look::Prominent, Look::Disabled] {
             for dark in [false, true] {
-                for pressed in [false, true] {
-                    let expected = pixels(dark, pressed, look, drawn);
-                    let actual = pixels(dark, pressed, look, view);
-                    assert_eq!(
-                        differing(&expected, &actual),
-                        0,
-                        "{view:?} in a {look:?} button (dark {dark}, pressed {pressed}) differs from {drawn:?}"
-                    );
+                for &text_size in sizes {
+                    for pressed in [false, true] {
+                        let expected = pixels(dark, text_size, pressed, look, drawn);
+                        let actual = pixels(dark, text_size, pressed, look, view);
+                        assert_eq!(
+                            differing(&expected, &actual),
+                            0,
+                            "{view:?} in a {look:?} button (dark {dark}, text size {text_size}, pressed {pressed}) differs from {drawn:?}"
+                        );
+                    }
                 }
             }
         }
@@ -134,11 +138,50 @@ fn a_view_label_draws_like_the_label_the_button_would_draw() {
 
 #[test]
 fn the_states_compared_are_not_all_the_same_picture() {
-    let normal = pixels(false, false, Look::Prominent, View::Drawn);
-    let pressed = pixels(false, true, Look::Prominent, View::Drawn);
-    let disabled = pixels(false, false, Look::Disabled, View::Drawn);
+    let normal = pixels(false, TEXT_SIZES[0], false, Look::Prominent, View::Drawn);
+    let pressed = pixels(false, TEXT_SIZES[0], true, Look::Prominent, View::Drawn);
+    let disabled = pixels(false, TEXT_SIZES[0], false, Look::Disabled, View::Drawn);
+    let larger = pixels(false, TEXT_SIZES[2], false, Look::Prominent, View::Drawn);
     assert!(differing(&normal, &pressed) > 0);
     assert!(differing(&normal, &disabled) > 0);
+    assert!(differing(&normal, &larger) > 0);
+}
+
+fn size_at(text_size: f32, view: View) -> (f32, f32) {
+    let test = runner(false, text_size, Rc::new(move || button(Look::Plain, view)));
+    test.find(|node, element| {
+        (element.accessibility().builder.label() == Some("Guardar")).then(|| {
+            let area = node.layout().area;
+            (area.width(), area.height())
+        })
+    })
+    .expect("a node labelled Guardar")
+}
+
+#[test]
+fn a_larger_text_size_widens_the_button_and_keeps_its_height() {
+    for view in [
+        View::Drawn,
+        View::DrawnSymbol,
+        View::FreyaLabel,
+        View::KitText,
+        View::KitLabel,
+    ] {
+        let normal = size_at(TEXT_SIZES[0], view);
+        let larger = size_at(TEXT_SIZES[2], view);
+        assert!(
+            larger.0 > normal.0,
+            "{view:?}: width {normal:?} -> {larger:?}"
+        );
+        assert_eq!(
+            larger.1, normal.1,
+            "{view:?}: height {normal:?} -> {larger:?}"
+        );
+    }
+    let width = |view| size_at(TEXT_SIZES[2], view).0;
+    assert_eq!(width(View::FreyaLabel), width(View::Drawn));
+    assert_eq!(width(View::KitText), width(View::Drawn));
+    assert_eq!(width(View::KitLabel), width(View::DrawnSymbol));
 }
 
 #[test]
@@ -192,6 +235,7 @@ fn a_view_label_follows_state_changes_and_never_stales() {
 fn the_string_given_to_new_stays_the_accessible_name() {
     let test = runner(
         false,
+        TEXT_SIZES[0],
         Rc::new(|| {
             Button::new("Guardar")
                 .label(|| Label::new("Otro texto", Symbol::Plus))

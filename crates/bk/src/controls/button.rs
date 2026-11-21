@@ -111,7 +111,7 @@ impl Component for Button {
                 .shape
                 .corner_radius(style.height, style.height, LayoutDirection::LeftToRight);
         let opacity = opacity_when(self.disabled, style.opacity, style.disabled_opacity);
-        let font = style.font;
+        let font = style.font.scaled(crate::theme::resolved().text_size);
 
         let button = interaction
             .attach(rect(), enabled)
@@ -158,7 +158,7 @@ impl Component for Button {
                     .color(paints.fill(&style.label))
             })
             .maybe_child(self.content.clone().map(|content| {
-                TextStyleScope::new(font, style.label.resolve(state).clone(), content)
+                TextStyleScope::new(style.font, style.label.resolve(state).clone(), content)
             }))
             .maybe_child(self.image.filter(|_| self.content.is_none()).map(|image| {
                 crate::symbol::Image::system(image)
@@ -166,11 +166,7 @@ impl Component for Button {
                     .color(paints.color(style.label.resolve(state)))
             }))
             .maybe_child((self.content.is_none() && !self.label.is_empty()).then(|| {
-                label()
-                    .text(self.label.clone())
-                    .font_family(font.family)
-                    .font_size(font.size as f32)
-                    .font_weight(font.weight as i32)
+                with_font(label().text(self.label.clone()), font)
                     .max_lines(1)
                     .color(paints.fill(&style.label))
             }));
