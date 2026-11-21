@@ -4,8 +4,8 @@ use ctdesign::{BAR_TRACK_DARK, BAR_TRACK_DARK_TINT, BAR_TRACK_LIGHT, PROGRESS};
 use crate::animation::ease_in_out;
 
 use super::{
-    Animation, ColorEffect, ControlStyle, ShadowStyle, Shape, ShapeStyle, StateValue, per_scheme,
-    reduce_motion, system_effect,
+    Animation, ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
+    per_scheme, reduce_motion, system_effect,
 };
 
 /// An SVG part (the ring and the spinner) takes one color: a `Gradient` gives its
@@ -23,7 +23,7 @@ pub struct ProgressViewStyle {
     pub indeterminate_length: f32,
     /// Tengen: `Capsule`, the track and the fill.
     pub shape: Shape,
-    /// Tengen: `Color` of `BAR_TRACK`.
+    /// Tengen: `Color` of `BAR_TRACK`; `Role(ControlBackground)` over a tinted `Backdrop`.
     pub track: StateValue<ShapeStyle>,
     /// Tengen: `Accent`.
     pub fill: StateValue<ShapeStyle>,
@@ -46,11 +46,15 @@ impl ControlStyle for ProgressViewStyle {
             height: PROGRESS.height,
             indeterminate_length: PROGRESS.indeterminate_segment,
             shape: Shape::Capsule,
-            track: StateValue::new(ShapeStyle::Color(per_scheme([
-                BAR_TRACK_LIGHT,
-                BAR_TRACK_DARK,
-                BAR_TRACK_DARK_TINT,
-            ]))),
+            track: StateValue::new(if crate::backdrop::tinted().is_some() {
+                ShapeStyle::Role(Role::ControlBackground)
+            } else {
+                ShapeStyle::Color(per_scheme([
+                    BAR_TRACK_LIGHT,
+                    BAR_TRACK_DARK,
+                    BAR_TRACK_DARK_TINT,
+                ]))
+            }),
             fill: StateValue::new(ShapeStyle::Accent),
             border: None,
             shadows: Vec::new(),
