@@ -1,5 +1,5 @@
 use ctdesign::{
-    BODY, Font, HAIRLINE, STEPPER, STEPPER_DIVIDER_CONTRAST_DARK,
+    BODY, ControlSize, Font, HAIRLINE, STEPPER, STEPPER_DIVIDER_CONTRAST_DARK,
     STEPPER_DIVIDER_CONTRAST_DARK_TINT, STEPPER_DIVIDER_CONTRAST_LIGHT, STEPPER_DIVIDER_DARK,
     STEPPER_DIVIDER_DARK_TINT, STEPPER_DIVIDER_LIGHT,
 };
@@ -55,6 +55,19 @@ pub struct StepperStyle {
     pub layout_direction: LayoutDirection,
     /// Tengen: `BODY`.
     pub value_font: Font,
+}
+
+impl StepperStyle {
+    pub(crate) fn sized(self, size: ControlSize) -> Self {
+        let row = STEPPER.size(size);
+        Self {
+            arrows_size: (row.width, row.height),
+            chevron_size: row.chevron,
+            chevron_stroke: row.chevron_stroke,
+            shape: rounded(row.radius),
+            ..self
+        }
+    }
 }
 
 impl ControlStyle for StepperStyle {

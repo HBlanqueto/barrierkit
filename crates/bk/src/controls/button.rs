@@ -1,12 +1,6 @@
 use super::*;
 
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub enum ControlSize {
-    Small,
-    #[default]
-    Regular,
-    Large,
-}
+pub use ctdesign::ControlSize;
 
 #[derive(PartialEq)]
 pub struct Button {

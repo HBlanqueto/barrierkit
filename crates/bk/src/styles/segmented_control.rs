@@ -1,6 +1,7 @@
-use ctdesign::{BODY, Font, SEGMENTED};
+use ctdesign::{BODY, ControlSize, Font, SEGMENTED};
 
 use super::button::rounded;
+use super::button::sized_shape;
 use super::{
     Axis, ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
     disabled_palette, system_effect,
@@ -54,6 +55,25 @@ pub struct SegmentedControlStyle {
     /// Tengen: `BODY` with `SEGMENTED.font_size` and `SEGMENTED.font_weight`; `line_height` has
     /// no effect.
     pub font: Font,
+}
+
+impl SegmentedControlStyle {
+    pub(crate) fn sized(self, size: ControlSize) -> Self {
+        let row = SEGMENTED.size(size);
+        let shape = sized_shape(row.radius, row.segment_height);
+        Self {
+            segment_height: row.segment_height,
+            segment_padding_x: row.segment_padding_x,
+            divider_height: row.divider_height,
+            shape,
+            segment_shape: shape,
+            font: Font {
+                size: row.font_size as u32,
+                ..self.font
+            },
+            ..self
+        }
+    }
 }
 
 impl ControlStyle for SegmentedControlStyle {

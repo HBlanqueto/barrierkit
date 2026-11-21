@@ -2,8 +2,8 @@ use std::cell::Cell;
 use std::rc::Rc;
 
 use ctdesign::{
-    DOCK_MENU_ARROW_INSET, DOCK_MENU_ITEM_PADDING_X, DOCK_MENU_MIN_WIDTH, DOCK_MENU_PADDING,
-    DOCK_MENU_SEPARATOR_MARGIN, MENU_POPOVER, MenuPalette, POPOVER,
+    ControlSize, DOCK_MENU_ARROW_INSET, DOCK_MENU_ITEM_PADDING_X, DOCK_MENU_MIN_WIDTH,
+    DOCK_MENU_PADDING, DOCK_MENU_SEPARATOR_MARGIN, MENU_POPOVER, MenuPalette, POPOVER,
 };
 use freya_components::svg_viewer::SvgViewer;
 use freya_core::integration::AppComponent;
@@ -57,6 +57,10 @@ impl PopUpButton {
     ) -> Self {
         self.style = self.style.style(restyle);
         self
+    }
+
+    pub fn size(self, size: ControlSize) -> Self {
+        self.style(move |style: PopUpButtonStyle| style.sized(size))
     }
 
     pub fn item(mut self, label: &'static str) -> Self {

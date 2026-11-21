@@ -25,9 +25,9 @@ use super::{
 /// | `ButtonStyle::circular` | `.buttonBorderShape(.circle)` | `height` `BUTTON.circular_size`, `padding_x` `0`, `shape` `Circle`, the icon at `BUTTON.circular_icon` |
 ///
 /// `Button::size(ControlSize)` is an instance override of `height`, `padding_x`,
-/// `font` and `shape`: `Small` takes the `BUTTON.small_*` tokens, `Regular` the
-/// plain ones and `Large` `BUTTON.large_height` with a `Capsule`. A `Capsule`
-/// stays a `Capsule` at every size. A button that is `.toggled(true)` draws its
+/// `font` and `shape`: `BUTTON.size(size)` has the row of each size, and the
+/// sizes whose radius is half the height (`Large`, `ExtraLarge`) are a `Capsule`.
+/// A `Capsule` stays a `Capsule` at every size. A button that is `.toggled(true)` draws its
 /// style through `bordered_prominent`.
 #[derive(Clone, Debug)]
 pub struct ButtonStyle {
@@ -66,6 +66,14 @@ pub(super) fn rounded(radius: f32) -> Shape {
     Shape::RoundedRectangle {
         radius,
         style: CornerStyle::Circular,
+    }
+}
+
+pub(super) fn sized_shape(radius: f32, height: f32) -> Shape {
+    if 2.0 * radius >= height {
+        Shape::Capsule
+    } else {
+        rounded(radius)
     }
 }
 
@@ -146,35 +154,16 @@ impl ButtonStyle {
     }
 
     pub(crate) fn sized(self, size: ControlSize) -> Self {
-        let (height, padding_x, font, shape) = match size {
-            ControlSize::Small => (
-                BUTTON.small_height,
-                BUTTON.small_padding_x,
-                font(BUTTON.small_font_size),
-                rounded(BUTTON.small_radius),
-            ),
-            ControlSize::Regular => (
-                BUTTON.height,
-                BUTTON.padding_x,
-                font(BUTTON.font_size),
-                rounded(BUTTON.radius),
-            ),
-            ControlSize::Large => (
-                BUTTON.large_height,
-                BUTTON.large_padding_x,
-                font(BUTTON.font_size),
-                Shape::Capsule,
-            ),
-        };
+        let row = BUTTON.size(size);
         let shape = if self.shape == Shape::Capsule {
             Shape::Capsule
         } else {
-            shape
+            sized_shape(row.radius, row.height)
         };
         Self {
-            height,
-            padding_x,
-            font,
+            height: row.height,
+            padding_x: row.padding_x,
+            font: font(row.font_size),
             shape,
             ..self
         }
@@ -219,7 +208,13 @@ mod tests {
 
     #[test]
     fn a_glass_button_stays_a_capsule_at_every_size_in_either_order() {
-        for size in [ControlSize::Small, ControlSize::Regular, ControlSize::Large] {
+        for size in [
+            ControlSize::Mini,
+            ControlSize::Small,
+            ControlSize::Regular,
+            ControlSize::Large,
+            ControlSize::ExtraLarge,
+        ] {
             let tengen = ButtonStyle::tengen();
             assert_eq!(tengen.clone().glass().sized(size).shape, Shape::Capsule);
             assert_eq!(tengen.sized(size).glass().shape, Shape::Capsule);

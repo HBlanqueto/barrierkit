@@ -116,3 +116,13 @@ The program is [`recipes/styled_control.rs`](recipes/styled_control.rs).
 2. `Role` colors follow light, dark and contrast; the kit still applies
    reduce motion, reduce transparency and the focus ring.
 3. The levels, fields and value types are in [`styles.md`](styles.md).
+
+## 12. Controls at every size
+
+SwiftUI: `.controlSize(.mini)`, `.small`, `.regular`, `.large` or `.extraLarge` on a button, a toggle or a slider.
+
+The program is [`recipes/control_sizes.rs`](recipes/control_sizes.rs).
+
+`.size(ControlSize)` takes one of five sizes on `Button`, `PopUpButton`,
+`SegmentedControl`, `Checkbox`, `RadioGroup`, `Switch`, `Slider` and `Stepper`;
+the sizes are in [chapter 5](../docs/barrierkit/05-controls.md#control-size).

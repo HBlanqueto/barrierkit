@@ -71,6 +71,10 @@ impl Switch {
         self
     }
 
+    pub fn size(self, size: ControlSize) -> Self {
+        self.style(move |style: SwitchStyle| style.sized(size))
+    }
+
     pub fn on(mut self, on: bool) -> Self {
         self.on = on;
         self
@@ -304,6 +308,10 @@ impl Checkbox {
     pub fn style(mut self, restyle: impl Fn(CheckboxStyle) -> CheckboxStyle + 'static) -> Self {
         self.style = self.style.style(restyle);
         self
+    }
+
+    pub fn size(self, size: ControlSize) -> Self {
+        self.style(move |style: CheckboxStyle| style.sized(size))
     }
 
     pub fn checked(mut self, checked: bool) -> Self {

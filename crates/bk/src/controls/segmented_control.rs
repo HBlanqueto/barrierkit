@@ -53,6 +53,10 @@ impl SegmentedControl {
         self
     }
 
+    pub fn size(self, size: ControlSize) -> Self {
+        self.style(move |style: SegmentedControlStyle| style.sized(size))
+    }
+
     pub fn key(mut self, key: impl Into<DiffKey>) -> Self {
         self.key = key.into();
         self

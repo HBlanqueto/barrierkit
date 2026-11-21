@@ -1,5 +1,6 @@
 mod appearance;
 mod appkit;
+mod appkit_buttons;
 mod appkit_texts;
 mod backdrop;
 mod chrome;

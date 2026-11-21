@@ -1,5 +1,7 @@
 use ctappearance::Resolved;
-use ctdesign::{CAPTION, DURATION_FAST_MS, Font, KNOB_SHADOW, SETTINGS, SLIDER, SWITCH};
+use ctdesign::{
+    CAPTION, ControlSize, DURATION_FAST_MS, Font, KNOB_SHADOW, SETTINGS, SLIDER, SWITCH,
+};
 
 use super::{
     Animation, Axis, ColorEffect, ControlStyle, Edge, LayoutDirection, Role, ShadowStyle, Shape,
@@ -69,6 +71,17 @@ pub struct SliderStyle {
     /// value, except under a drag, where a free knob follows the cursor and a stepped one jumps
     /// from step to step; `None` makes them jump.
     pub animation: Animation,
+}
+
+impl SliderStyle {
+    pub(crate) fn sized(self, size: ControlSize) -> Self {
+        let row = SLIDER.size(size);
+        Self {
+            track_height: row.track,
+            knob_size: (row.knob_width, row.height),
+            ..self
+        }
+    }
 }
 
 impl ControlStyle for SliderStyle {

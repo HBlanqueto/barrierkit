@@ -31,8 +31,23 @@ TEXTS = [
     "tf-empty", "tf-filled", "tf-square", "tf-rounded", "secure-empty", "token-empty", "search", "search-text", "combo", "combo-empty",
     "textview", "datepicker", "datetime", "time", "calendar", "path-standard", "imagewell-gray-empty",
 ]
-FAMILIES = {"controls": CONTROLS, "texts": TEXTS}
+SIZE_NAMES = ("mini", "small", "regular", "large", "xl")
+BUTTONS = [
+    f"{kind}-{size}" for kind in (
+        "push", "default", "popup", "pulldown", "segmented", "check-off", "check-on", "check-mixed",
+        "radio-off", "radio-on", "switch-off", "switch-on", "slider", "stepper", "push-disabled", "popup-disabled",
+        "check-off-disabled", "check-on-disabled", "radio-off-disabled", "radio-on-disabled", "switch-on-disabled",
+        "slider-disabled", "stepper-disabled",
+    ) for size in SIZE_NAMES
+]
+FAMILIES = {"controls": CONTROLS, "texts": TEXTS, "buttons": BUTTONS}
 GLYPH_WIDTH = {name: 18 for name in ("check-off-regular", "check-on-regular", "radio-off-regular", "radio-on-regular")}
+GLYPH_WIDTH.update({
+    f"{kind}{state}-{size}": box + 2
+    for kind in ("check-off", "check-on", "check-mixed", "radio-off", "radio-on")
+    for state in ("", "-pressed", "-disabled")
+    for size, box in zip(SIZE_NAMES, (12, 14, 16, 18, 18))
+})
 APPKIT = {"light": "aqua", "dark": "darkAqua"}
 CONTRAST = {"light": "hc-aquaHC", "dark": "hc-darkHC"}
 
@@ -83,6 +98,41 @@ def dominant(pixels, backdrop):
     return "#%02x%02x%02x" % collections.Counter(map(tuple, painted)).most_common(1)[0][0]
 
 
+def label_box(pixels, backdrop, name):
+    """The box of the label ink inside a bezel (the groups of ink columns, less the indicator of a pop-up), in pixels."""
+    painted = abs(pixels - backdrop).max(-1) > 8
+    ys, xs = np.nonzero(painted)
+    if not len(ys):
+        return None
+    left, right, top, bottom = xs.min() + 4 * SCALE, xs.max() + 1 - 4 * SCALE, ys.min() + 3 * SCALE, ys.max() + 1 - 3 * SCALE
+    inside = pixels[top:bottom, left:right]
+    fill = pixels[(top + bottom) // 2, left]
+    ink = abs(inside - fill).max(-1) > 60
+    columns = np.nonzero(ink.any(0))[0]
+    if not len(columns):
+        return None
+    groups, start = [], columns[0]
+    for before, after in zip(columns, columns[1:]):
+        if after - before > 3 * SCALE:
+            groups.append((start, before))
+            start = after
+    groups.append((start, columns[-1]))
+    if name.startswith(("popup", "pulldown")) and len(groups) > 1:
+        groups = groups[:-1]
+    rows = np.nonzero(ink[:, groups[0][0]:groups[-1][1] + 1].any(1))[0]
+    return left + groups[0][0] - SCALE, left + groups[-1][1] + 1 + SCALE, top + rows.min() - SCALE, top + rows.max() + 1 + SCALE
+
+
+def bezel_diff(a, k, backdrop, name):
+    """Share of pixels that differ outside the label boxes of both sides, as a percentage of the crop."""
+    keep = np.ones(a.shape[:2], bool)
+    for pixels in (a, k):
+        box = label_box(pixels, backdrop, name)
+        if box:
+            keep[box[2]:box[3], box[0]:box[1]] = False
+    return ((abs(a - k) > 3).any(-1) & keep).mean() * 100
+
+
 def layout(args):
     with open(args.probe_json) as handle:
         data = json.load(handle)
@@ -104,14 +154,14 @@ def controls(args):
             kit = rgb(kit_image(mode, backdrop, kit_tag))
             color = np.array([level] * 3)
             print(f"\n=== {mode} on {backdrop}")
-            print(f"{'control':20} {'%diff':>6} {'AppKit x y w h':>24} {'kit x y w h':>24} {'AppKit':>8} {'kit':>8}")
+            print(f"{'control':20} {'%diff':>6} {'%bezel':>6} {'AppKit x y w h':>24} {'kit x y w h':>24} {'AppKit':>8} {'kit':>8}")
             for name in FAMILIES[args.family]:
                 box = region(name, height, found)
                 a, k = crop(appkit, box), crop(kit, box)
                 diff = (abs(a - k) > 3).any(-1).mean() * 100
                 ba, bk = bounds(a, color), bounds(k, color)
                 show = lambda b: "%5.1f %5.1f %5.1f %5.1f" % b if b else "none"
-                print(f"{name:20} {diff:6.1f} {show(ba):>24} {show(bk):>24} {dominant(a, color):>8} {dominant(k, color):>8}")
+                print(f"{name:20} {diff:6.1f} {bezel_diff(a, k, color, name):6.1f} {show(ba):>24} {show(bk):>24} {dominant(a, color):>8} {dominant(k, color):>8}")
 
 
 PRESSED = [
@@ -120,16 +170,24 @@ PRESSED = [
 ]
 
 
+BUTTONS_PRESSED = [
+    f"{kind}-pressed-{size}" for kind in ("push", "default", "popup", "check-off", "check-on", "radio-off", "radio-on")
+    for size in SIZE_NAMES
+]
+PRESSED_FAMILIES = {"controls": PRESSED, "buttons": BUTTONS_PRESSED}
+
+
 def pressed(args):
-    height, found = items("controls")
-    suffix = f"-{args.tag}" if args.tag else ""
+    height, found = items(args.family)
+    suffix = "-".join(filter(None, ("" if args.family == "controls" else args.family, args.tag)))
+    suffix = f"-{suffix}" if suffix else ""
     for mode in ("light", "dark"):
         for backdrop, level in (("white", 255), ("black", 0)):
-            appkit = rgb(capture("controls", mode, backdrop, args.tag))
+            appkit = rgb(capture(args.family, mode, backdrop, args.tag))
             color = np.array([level] * 3)
             print(f"\n=== pressed {mode} on {backdrop}")
             print(f"{'control':20} {'%diff':>6} {'AppKit x y w h':>24} {'kit x y w h':>24} {'AppKit':>8} {'kit':>8}")
-            for name in PRESSED:
+            for name in PRESSED_FAMILIES[args.family]:
                 kit = rgb(os.path.join(KIT, f"kit{suffix}-pressed-{name}-{mode}-{backdrop}.png"))
                 box = region(name, height, found)
                 a, k = crop(appkit, box), crop(kit, box)
@@ -352,6 +410,7 @@ def main():
     two.set_defaults(run=controls)
     five = commands.add_parser("pressed", help="print the per-control difference table for pressed controls")
     five.add_argument("--tag", default="", help="empty, or hc for Increase Contrast")
+    five.add_argument("--family", default="controls", choices=sorted(PRESSED_FAMILIES), help="the probe family")
     five.set_defaults(run=pressed)
     three = commands.add_parser("sheet", help="write a side-by-side image of named items")
     three.add_argument("family", choices=("controls", "views", "texts"))

@@ -89,7 +89,7 @@ give one.
 | `Button::new(label)` | — | `label` is `impl Into<String>` |
 | `Button::system_image(label, Symbol)` | — | A symbol before the label, in the label's color |
 | `.style(\|s\| ..)` | Tengen, SwiftUI's `.bordered` | Look: a preset or any field of `ButtonStyle`, see below |
-| `.size(ControlSize)` | `Regular` | Height, padding, font and corners |
+| `.size(ControlSize)` | `Regular` | Height, padding, font and corners; see [control size](#control-size) |
 | `.width(Size)` | `Size::auto()` | Fixed or fill width |
 | `.toggled(bool)` | not a toggle | Makes it a toggle; `true` takes the `bordered_prominent` look and reports `toggled` |
 | `.disabled(bool)` | `false` | Dims it, no `on_press` |
@@ -105,14 +105,6 @@ Presets of `ButtonStyle`, given as `.style(ButtonStyle::glass)`:
 | `glass_prominent` | Capsule with a hairline border and the accent fill |
 | `borderless` | No background until pressed |
 | `circular` | A 17 high circle for an icon-only button |
-
-`ControlSize`:
-
-| Variant | Height | Padding | Font | Corner |
-|---|---|---|---|---|
-| `Small` | 20 | 11 | 11 | 4.5 |
-| `Regular` | 24 | 12 | 13 | 6 (`radius.button`) |
-| `Large` | 28 | 12 | 13 | capsule |
 
 A pressed button takes the pressed fill and does not scale (`BUTTON.pressed_scale` is 1).
 
@@ -137,6 +129,33 @@ app. The fields, the presets and `.size` are in
 ```rust
 Button::new("Save").style(|s| ButtonStyle { shape: Shape::Capsule, ..s.bordered_prominent() })
 ```
+
+## Control size
+
+`.size(ControlSize)` picks one of five sizes on `Button`, `PopUpButton` (also with
+`pulls_down`), `SegmentedControl`, `Checkbox`, `RadioGroup`, `Switch`, `Slider` and
+`Stepper`. `Regular` is the default. The tokens of each size are in `ctdesign`
+(`BUTTON.size(size)`, `CHECKBOX.size(size)`, `SWITCH.size(size)`, `SLIDER.size(size)`,
+`SEGMENTED.size(size)`, `STEPPER.size(size)`), measured on macOS 27.2.1 in
+[`macos-control-metrics.md`](../research/macos-control-metrics.md#control-sizes).
+
+| `ControlSize` | Button, pop-up, segmented | Button padding | Font | Corner | Checkbox, radio | Switch | Slider | Stepper |
+|---|---|---|---|---|---|---|---|---|
+| `Mini` | 16 | 8.6 | 9 | 4 | 12 | 36 × 16 | 12 | 13 × 20 |
+| `Small` | 20 | 10 | 11 | 5 | 14 | 44 × 20 | 14 | 17 × 20 |
+| `Regular` | 24 | 12 | 13 | 6 | 16 | 54 × 24 | 16 | 20 × 24 |
+| `Large` | 28 | 14 | 13 | capsule | 18 | 64 × 28 | 20 | 23 × 28 |
+| `ExtraLarge` | 36 | 18 | 13 | capsule | 18 | 80 × 36 | 20 | 30 × 36 |
+
+```rust
+Button::new("Save").size(ControlSize::Large)
+Checkbox::new("Remember").size(ControlSize::Small)
+Slider::new("Volume").size(ControlSize::Mini)
+```
+
+The label and the glyphs follow the size: a `Mini` pop-up has a 9 label and 9 high
+arrows, and a checkmark is as large as its box. AppKit lays a switch out at 54 × 24 at every
+size and draws it scaled around the center; the kit lays out the size it draws.
 
 ## Compact buttons
 

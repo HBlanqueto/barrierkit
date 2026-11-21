@@ -183,7 +183,6 @@ pub struct SettingsWallpaper {
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct SettingsCheck {
-    pub gap: u32,
     pub row_gap: u32,
 }
 
@@ -252,19 +251,7 @@ pub struct SettingsMetrics {
     pub preview_bar_padding: u32,
     pub preview_bar_item_w: u32,
     pub preview_bar_item_gap: u32,
-    pub radio_size: u32,
-    pub radio_dot: u32,
-    pub radio_gap: u32,
     pub radio_spacing: u32,
-    pub popup_height: u32,
-    pub popup_chevron: u32,
-    pub popup_glyph: u32,
-    pub popup_glyph_stroke: f32,
-    pub popup_pulldown_glyph: u32,
-    pub popup_pulldown_drop: f32,
-    pub popup_label_lift: f32,
-    pub popup_text_gap: u32,
-    pub popup_trailing_padding: u32,
     pub sidebar_width: u32,
     pub sidebar_lights_gap: u32,
     pub sidebar_search_gap: u32,
@@ -288,6 +275,16 @@ pub struct SettingsMetrics {
     pub card_outline: Rgba,
 }
 
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum ControlSize {
+    Mini,
+    Small,
+    #[default]
+    Regular,
+    Large,
+    ExtraLarge,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct SliderMetrics {
     pub height: f32,
@@ -296,6 +293,33 @@ pub struct SliderMetrics {
     pub knob_height: f32,
     pub knob_pressed_scale: f32,
     pub knob_glass_alpha: f32,
+    pub mini: SliderSize,
+    pub small: SliderSize,
+    pub large: SliderSize,
+    pub xl: SliderSize,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct SliderSize {
+    pub height: f32,
+    pub track: f32,
+    pub knob_width: f32,
+}
+
+impl SliderMetrics {
+    pub fn size(&self, size: ControlSize) -> SliderSize {
+        match size {
+            ControlSize::Mini => self.mini,
+            ControlSize::Small => self.small,
+            ControlSize::Regular => SliderSize {
+                height: self.height,
+                track: self.track,
+                knob_width: self.knob_width,
+            },
+            ControlSize::Large => self.large,
+            ControlSize::ExtraLarge => self.xl,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -306,6 +330,48 @@ pub struct CheckboxMetrics {
     pub mark_stroke: f32,
     pub mixed_mark: f32,
     pub mixed_stroke: f32,
+    pub gap: f32,
+    pub font_size: f32,
+    pub radio_dot: f32,
+    pub mini: CheckboxSize,
+    pub small: CheckboxSize,
+    pub large: CheckboxSize,
+    pub xl: CheckboxSize,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct CheckboxSize {
+    pub size: f32,
+    pub radius: f32,
+    pub mark: f32,
+    pub mark_stroke: f32,
+    pub mixed_mark: f32,
+    pub mixed_stroke: f32,
+    pub gap: f32,
+    pub font_size: f32,
+    pub radio_dot: f32,
+}
+
+impl CheckboxMetrics {
+    pub fn size(&self, size: ControlSize) -> CheckboxSize {
+        match size {
+            ControlSize::Mini => self.mini,
+            ControlSize::Small => self.small,
+            ControlSize::Regular => CheckboxSize {
+                size: self.size,
+                radius: self.radius,
+                mark: self.mark,
+                mark_stroke: self.mark_stroke,
+                mixed_mark: self.mixed_mark,
+                mixed_stroke: self.mixed_stroke,
+                gap: self.gap,
+                font_size: self.font_size,
+                radio_dot: self.radio_dot,
+            },
+            ControlSize::Large => self.large,
+            ControlSize::ExtraLarge => self.xl,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -321,6 +387,37 @@ pub struct SwitchMetrics {
     pub transition_ms: u64,
     pub disabled_opacity: f32,
     pub disabled_opacity_contrast: f32,
+    pub mini: SwitchSize,
+    pub small: SwitchSize,
+    pub large: SwitchSize,
+    pub xl: SwitchSize,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct SwitchSize {
+    pub width: f32,
+    pub height: f32,
+    pub knob_width: f32,
+    pub knob_height: f32,
+    pub inset: f32,
+}
+
+impl SwitchMetrics {
+    pub fn size(&self, size: ControlSize) -> SwitchSize {
+        match size {
+            ControlSize::Mini => self.mini,
+            ControlSize::Small => self.small,
+            ControlSize::Regular => SwitchSize {
+                width: self.width,
+                height: self.height,
+                knob_width: self.knob_width,
+                knob_height: self.knob_height,
+                inset: self.inset,
+            },
+            ControlSize::Large => self.large,
+            ControlSize::ExtraLarge => self.xl,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -334,6 +431,37 @@ pub struct SegmentedMetrics {
     pub divider_height: f32,
     pub font_size: f32,
     pub font_weight: i32,
+    pub mini: SegmentedSize,
+    pub small: SegmentedSize,
+    pub large: SegmentedSize,
+    pub xl: SegmentedSize,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct SegmentedSize {
+    pub segment_height: f32,
+    pub segment_padding_x: f32,
+    pub radius: f32,
+    pub divider_height: f32,
+    pub font_size: f32,
+}
+
+impl SegmentedMetrics {
+    pub fn size(&self, size: ControlSize) -> SegmentedSize {
+        match size {
+            ControlSize::Mini => self.mini,
+            ControlSize::Small => self.small,
+            ControlSize::Regular => SegmentedSize {
+                segment_height: self.segment_height,
+                segment_padding_x: self.segment_padding_x,
+                radius: self.radius,
+                divider_height: self.divider_height,
+                font_size: self.font_size,
+            },
+            ControlSize::Large => self.large,
+            ControlSize::ExtraLarge => self.xl,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -349,15 +477,72 @@ pub struct ButtonMetrics {
     pub font_size: f32,
     pub font_weight: i32,
     pub pressed_scale: f32,
-    pub large_height: f32,
-    pub large_padding_x: f32,
-    pub small_height: f32,
-    pub small_padding_x: f32,
-    pub small_font_size: f32,
-    pub small_radius: f32,
+    pub mini: ButtonSize,
+    pub small: ButtonSize,
+    pub large: ButtonSize,
+    pub xl: ButtonSize,
+    pub popup: PopupSizes,
     pub circular_size: f32,
     pub circular_icon: f32,
     pub menu_padding_x: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct ButtonSize {
+    pub height: f32,
+    pub padding_x: f32,
+    pub font_size: f32,
+    pub radius: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct PopupSize {
+    pub glyph: f32,
+    pub glyph_stroke: f32,
+    pub indicator: f32,
+    pub trailing: f32,
+    pub gap: f32,
+    pub pulldown_glyph: f32,
+    pub pulldown_drop: f32,
+    pub label_lift: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct PopupSizes {
+    pub mini: PopupSize,
+    pub small: PopupSize,
+    pub regular: PopupSize,
+    pub large: PopupSize,
+    pub xl: PopupSize,
+}
+
+impl ButtonMetrics {
+    pub fn size(&self, size: ControlSize) -> ButtonSize {
+        match size {
+            ControlSize::Mini => self.mini,
+            ControlSize::Small => self.small,
+            ControlSize::Regular => ButtonSize {
+                height: self.height,
+                padding_x: self.padding_x,
+                font_size: self.font_size,
+                radius: self.radius,
+            },
+            ControlSize::Large => self.large,
+            ControlSize::ExtraLarge => self.xl,
+        }
+    }
+}
+
+impl PopupSizes {
+    pub fn size(&self, size: ControlSize) -> PopupSize {
+        match size {
+            ControlSize::Mini => self.mini,
+            ControlSize::Small => self.small,
+            ControlSize::Regular => self.regular,
+            ControlSize::Large => self.large,
+            ControlSize::ExtraLarge => self.xl,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -722,6 +907,37 @@ pub struct StepperMetrics {
     pub separator_inset: f32,
     pub separator_drop: f32,
     pub gap: f32,
+    pub mini: StepperSize,
+    pub small: StepperSize,
+    pub large: StepperSize,
+    pub xl: StepperSize,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct StepperSize {
+    pub width: f32,
+    pub height: f32,
+    pub radius: f32,
+    pub chevron: f32,
+    pub chevron_stroke: f32,
+}
+
+impl StepperMetrics {
+    pub fn size(&self, size: ControlSize) -> StepperSize {
+        match size {
+            ControlSize::Mini => self.mini,
+            ControlSize::Small => self.small,
+            ControlSize::Regular => StepperSize {
+                width: self.width,
+                height: self.height,
+                radius: self.radius,
+                chevron: self.chevron,
+                chevron_stroke: self.chevron_stroke,
+            },
+            ControlSize::Large => self.large,
+            ControlSize::ExtraLarge => self.xl,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

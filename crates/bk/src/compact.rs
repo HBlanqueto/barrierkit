@@ -1,3 +1,4 @@
+use ctdesign::ControlSize;
 use freya_core::prelude::*;
 use std::rc::Rc;
 
@@ -149,6 +150,10 @@ impl Stepper {
     pub fn style(mut self, restyle: impl Fn(StepperStyle) -> StepperStyle + 'static) -> Self {
         self.style = self.style.style(restyle);
         self
+    }
+
+    pub fn size(self, size: ControlSize) -> Self {
+        self.style(move |style: StepperStyle| style.sized(size))
     }
 
     pub fn value(mut self, value: i64) -> Self {

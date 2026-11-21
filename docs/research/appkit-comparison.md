@@ -128,6 +128,19 @@ table on stdout and `target/appkit/sheet-*.png`.
    scripts/appkit-compare.py focused
    ```
 
+   `buttons` and `buttons-contrast` render every control size (mini, small, regular, large, extra large) of the push, pop-up, pull-down, segmented, checkbox, radio, switch, slider and stepper from the `buttons` probe, with their disabled states, plus one pressed scene per button, checkbox, radio and pop-up (`kit-buttons-pressed-<name>-*.png`). `buttons-capture.sh` runs the probe in the four looks and repeats a capture whose window was not active; check that each JSON says `"active" : true`:
+
+   ```sh
+   swiftc -O ~/src/probes/buttons.swift -o ~/src/probes/buttons
+   ~/src/probes/buttons-capture.sh
+   scripts/appkit-compare.py layout ~/src/captures/buttons/aqua-white.json target/appkit/layout-buttons.tsv
+   scripts/appkit-render.sh buttons
+   scripts/appkit-compare.py controls --family buttons
+   scripts/appkit-compare.py pressed --family buttons
+   ```
+
+   `sizes` prints the layout size of every bezel at every control size (`swiftc -O ~/src/probes/sizes.swift -o ~/src/probes/sizes && ~/src/probes/sizes`). The `%bezel` column of `controls` leaves out the label ink of both sides, so Inter against SF Pro does not count.
+
    `controls` and `contrast` also render `kit-pressed-<name>-*.png`: one scene per pressed
    control, with the pointer over it and the button down. AppKit has no hover look, so the
    kit's hover colors are not compared.

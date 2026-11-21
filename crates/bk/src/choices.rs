@@ -1,6 +1,6 @@
 use crate::i18n::text;
 
-use ctdesign::{MULTICOLOR, Rgba};
+use ctdesign::{ControlSize, MULTICOLOR, Rgba};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Position, Size};
 
@@ -131,6 +131,10 @@ impl RadioGroup {
     pub fn style(mut self, restyle: impl Fn(RadioGroupStyle) -> RadioGroupStyle + 'static) -> Self {
         self.style = self.style.style(restyle);
         self
+    }
+
+    pub fn size(self, size: ControlSize) -> Self {
+        self.style(move |style: RadioGroupStyle| style.sized(size))
     }
 
     pub fn option(mut self, label: &'static str) -> Self {

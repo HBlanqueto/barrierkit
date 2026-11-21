@@ -1,5 +1,5 @@
 use ctappearance::Resolved;
-use ctdesign::{BODY, Font, KNOB_SHADOW, Rgba, SETTINGS, SWITCH};
+use ctdesign::{BODY, CHECKBOX, ControlSize, Font, KNOB_SHADOW, Rgba, SWITCH};
 
 use super::{
     Animation, ColorEffect, ControlStyle, Edge, LayoutDirection, Role, ShadowStyle, Shape,
@@ -19,7 +19,7 @@ pub struct SwitchStyle {
     /// Tengen: `SWITCH.inset`: the knob's gap to the ends; it travels `width` − knob width − 2
     /// × `inset`.
     pub inset: f32,
-    /// Tengen: `SETTINGS.check.gap`.
+    /// Tengen: `CHECKBOX.gap`.
     pub label_gap: f32,
     /// Tengen: `Capsule`.
     pub track_shape: Shape,
@@ -70,6 +70,19 @@ pub struct SwitchStyle {
     pub animation: Animation,
 }
 
+impl SwitchStyle {
+    pub(crate) fn sized(self, size: ControlSize) -> Self {
+        let row = SWITCH.size(size);
+        Self {
+            width: row.width,
+            height: row.height,
+            knob_size: (row.knob_width, row.knob_height),
+            inset: row.inset,
+            ..self
+        }
+    }
+}
+
 impl ControlStyle for SwitchStyle {
     fn tengen() -> Self {
         Self {
@@ -77,7 +90,7 @@ impl ControlStyle for SwitchStyle {
             height: SWITCH.height,
             knob_size: (SWITCH.knob_width, SWITCH.knob_height),
             inset: SWITCH.inset,
-            label_gap: SETTINGS.check.gap as f32,
+            label_gap: CHECKBOX.gap,
             track_shape: Shape::Capsule,
             knob_shape: Shape::Capsule,
             track: StateValue::new(ShapeStyle::Role(Role::SystemFill))

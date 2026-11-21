@@ -1,4 +1,4 @@
-use ctdesign::{BODY, CHECKBOX, Font, HAIRLINE, SETTINGS};
+use ctdesign::{BODY, CHECKBOX, ControlSize, Font};
 
 use super::button::rounded;
 use super::{
@@ -20,7 +20,7 @@ pub struct CheckboxStyle {
     pub mark_stroke: f32,
     /// Tengen: `(CHECKBOX.mixed_mark, CHECKBOX.mixed_stroke)`: the dash of a mixed checkbox.
     pub mixed_mark: (f32, f32),
-    /// Tengen: `SETTINGS.check.gap`.
+    /// Tengen: `CHECKBOX.gap`.
     pub label_gap: f32,
     /// Tengen: `RoundedRectangle { radius: CHECKBOX.radius, style: Circular }`.
     pub box_shape: Shape,
@@ -35,7 +35,7 @@ pub struct CheckboxStyle {
     pub mark: StateValue<ShapeStyle>,
     /// Tengen, with `mark`: `Role(OnAccent)`, `Role(Label)` (disabled `Role(TertiaryLabel)`).
     pub label: StateValue<ShapeStyle>,
-    /// Tengen: `Some((Role(Outline), HAIRLINE))`, drawn only while unchecked.
+    /// Tengen: `None`; `Some` draws it only while unchecked.
     pub box_border: Option<(ShapeStyle, f32)>,
     /// Tengen: empty.
     pub box_shadows: Vec<ShadowStyle>,
@@ -53,6 +53,26 @@ pub struct CheckboxStyle {
     pub label_font: Font,
 }
 
+impl CheckboxStyle {
+    pub(crate) fn sized(self, size: ControlSize) -> Self {
+        let row = CHECKBOX.size(size);
+        Self {
+            box_size: row.size,
+            mark_size: row.mark,
+            mark_stroke: row.mark_stroke,
+            mixed_mark: (row.mixed_mark, row.mixed_stroke),
+            label_gap: row.gap,
+            box_shape: rounded(row.radius),
+            label_font: Font {
+                size: row.font_size as u32,
+                line_height: row.size as u32,
+                ..self.label_font
+            },
+            ..self
+        }
+    }
+}
+
 impl ControlStyle for CheckboxStyle {
     fn tengen() -> Self {
         Self {
@@ -60,7 +80,7 @@ impl ControlStyle for CheckboxStyle {
             mark_size: CHECKBOX.mark,
             mark_stroke: CHECKBOX.mark_stroke,
             mixed_mark: (CHECKBOX.mixed_mark, CHECKBOX.mixed_stroke),
-            label_gap: SETTINGS.check.gap as f32,
+            label_gap: CHECKBOX.gap,
             box_shape: rounded(CHECKBOX.radius),
             box_background: StateValue::new(ShapeStyle::Role(Role::SystemFill))
                 .pressed(ShapeStyle::Color(pressed_palette().off))
@@ -72,7 +92,7 @@ impl ControlStyle for CheckboxStyle {
                 .disabled(ShapeStyle::Role(Role::TertiaryLabel)),
             label: StateValue::new(ShapeStyle::Role(Role::Label))
                 .disabled(ShapeStyle::Role(Role::TertiaryLabel)),
-            box_border: Some((ShapeStyle::Role(Role::Outline), HAIRLINE)),
+            box_border: None,
             box_shadows: Vec::new(),
             opacity: 1.0,
             disabled_opacity: 1.0,

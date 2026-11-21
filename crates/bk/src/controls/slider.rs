@@ -66,6 +66,10 @@ impl Slider {
         self
     }
 
+    pub fn size(self, size: ControlSize) -> Self {
+        self.style(move |style: SliderStyle| style.sized(size))
+    }
+
     pub fn value(mut self, value: f32) -> Self {
         self.value = value;
         self

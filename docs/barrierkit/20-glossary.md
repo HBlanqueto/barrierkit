@@ -80,6 +80,9 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `titlebar::sidebar_bar_metrics()` (height and top padding) and `TitlebarStyle::sidebar_padding_top`, `SETTINGS.toolbar_padding_top` | `titlebar::sidebar_bar_height()` | 2026-11-20 |
 | `SplitViewStyle::inset` and `SidebarStyle::{shape, border, inner_border, line, padding_bottom}` (island only) | Gone | 2026-11-20 |
 | `SidebarSectionStyle::margin_top` (`SIDEBAR.section_margin_top`, 10, above each section) | `SidebarSectionStyle::margin_bottom` (`SIDEBAR.section_margin_bottom`, 13, between sections) | 2026-11-20 |
+| `BUTTON.large_height`, `large_padding_x`, `small_height`, `small_padding_x`, `small_font_size`, `small_radius` | `BUTTON.small`, `BUTTON.large`, `BUTTON.mini`, `BUTTON.xl` (`ButtonSize`), or `BUTTON.size(ControlSize)` | 2026-11-20 |
+| `SETTINGS.radio_size`, `radio_dot`, `radio_gap`, `check.gap` | `CHECKBOX.size`, `CHECKBOX.radio_dot`, `CHECKBOX.gap` | 2026-11-20 |
+| `SETTINGS.popup_height`, `popup_chevron`, `popup_glyph`, `popup_glyph_stroke`, `popup_pulldown_glyph`, `popup_pulldown_drop`, `popup_label_lift`, `popup_text_gap`, `popup_trailing_padding` | `BUTTON.height` and `BUTTON.popup.regular` (`PopupSize`: `glyph`, `glyph_stroke`, `indicator`, `trailing`, `gap`, `pulldown_glyph`, `pulldown_drop`, `label_lift`) | 2026-11-20 |
 
 ## How to read the tables
 
@@ -534,10 +537,18 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `ctdesign::Triangle` | struct | — | — | Three points of a filled glyph triangle | [4](04-appearance-and-tokens.md#token-types) |
 | `ctdesign::DoubleClick` | struct | — | ≈ `NSEvent.doubleClickInterval` | Double-click interval and pointer slop | [4](04-appearance-and-tokens.md#token-types) |
 | `ctdesign::SettingsStrength` | struct | — | — | Tint-strength scale of the settings app | [4](04-appearance-and-tokens.md#token-types) |
-| `ctdesign::SettingsCheck` | struct | — | — | Check list spacing of the settings app | [4](04-appearance-and-tokens.md#token-types) |
+| `ctdesign::SettingsCheck` | struct | — | — | Row gap of the check list of the settings app | [4](04-appearance-and-tokens.md#token-types) |
 | `ctdesign::SettingsWallpaper` | struct | — | — | Wallpaper pane of the settings app: preview, tiles, color dots, custom framing | [4](04-appearance-and-tokens.md#token-types) |
 | `ctdesign::SettingsMetrics` | struct | — | — | Sizes of the settings window, sidebar, search and previews | [4](04-appearance-and-tokens.md#view-metrics) |
-| `ctdesign::ButtonMetrics` | struct | — | — | Push button sizes, radius, font and pressed scale | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::ButtonMetrics` | struct | — | — | Push button sizes, radius, font and pressed scale; one `ButtonSize` per size and the pop-up rows; `size(ControlSize)` picks a row | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::ControlSize` | enum | `ControlSize` | `NSControl.ControlSize` | `Mini`, `Small`, `Regular`, `Large`, `ExtraLarge`; the key of every `size(ControlSize)` lookup | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::ButtonSize` | struct | — | — | Height, padding, font size and radius of a push button, pop-up or segmented control at one size | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::PopupSize`, `PopupSizes` | struct | — | — | Arrow glyph, indicator box, trailing padding, gap and pull-down glyph of a pop-up at one size, and the five of them | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::CheckboxSize` | struct | — | — | Box, radius, mark, label gap, label font and radio dot of a checkbox or radio at one size | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::SwitchSize` | struct | — | — | Track, knob and inset of a switch at one size | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::SliderSize` | struct | — | — | Height, track and knob width of a slider at one size | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::SegmentedSize` | struct | — | — | Height, padding, radius, divider and font of a segmented control at one size | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::StepperSize` | struct | — | — | Arrows box, radius and chevron of a stepper at one size | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::IconButtonMetrics` | struct | — | — | Icon button size, radius and icon size | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::SwitchMetrics` | struct | — | — | Switch track, knob and transition | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::CheckboxMetrics` | struct | — | — | Checkbox size, radius and mark | [4](04-appearance-and-tokens.md#control-metrics) |
@@ -660,7 +671,15 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 |---|---|---|---|---|---|
 | `controls::Button` | struct | `Button` | `NSButton` | Push button with a text label | [5](05-controls.md#buttons) |
 | `controls::Button::system_image` | fn | `Button(_:systemImage:)` | `NSButton(title:image:target:action:)` | Push button with a symbol before its label | [5](05-controls.md#buttons) |
-| `controls::ControlSize` | enum | `ControlSize` | `NSControl.ControlSize` | `Small`, `Regular`, `Large` control heights | [5](05-controls.md#buttons) |
+| `controls::ControlSize` | enum | `ControlSize` | `NSControl.ControlSize` | `Mini`, `Small`, `Regular`, `Large`, `ExtraLarge`: the size of a control (`ctdesign::ControlSize`) | [5](05-controls.md#control-size) |
+| `controls::Button::size` | method | ≈ `.controlSize(_:)` | `NSControl.controlSize` | Height, padding, font and corners of one button | [5](05-controls.md#control-size) |
+| `popup_button::PopUpButton::size` | method | ≈ `.controlSize(_:)` | `NSControl.controlSize` | Size of one pop-up or pull-down button | [5](05-controls.md#control-size) |
+| `controls::SegmentedControl::size` | method | ≈ `.controlSize(_:)` | `NSControl.controlSize` | Size of one segmented control | [5](05-controls.md#control-size) |
+| `controls::Checkbox::size` | method | ≈ `.controlSize(_:)` | `NSControl.controlSize` | Size of one checkbox | [5](05-controls.md#control-size) |
+| `choices::RadioGroup::size` | method | ≈ `.controlSize(_:)` | `NSControl.controlSize` | Size of one radio group | [5](05-controls.md#control-size) |
+| `controls::Switch::size` | method | ≈ `.controlSize(_:)` | `NSControl.controlSize` | Size of one switch: it is laid out at the size it draws | [5](05-controls.md#control-size) |
+| `controls::Slider::size` | method | ≈ `.controlSize(_:)` | `NSControl.controlSize` | Size of one slider | [5](05-controls.md#control-size) |
+| `compact::Stepper::size` | method | ≈ `.controlSize(_:)` | `NSControl.controlSize` | Size of one stepper | [5](05-controls.md#control-size) |
 | `compact::IconButton` | struct | `≈ Button` | `≈ NSButton` | Button showing only a symbol; 36 capsule inside a tool group | [5](05-controls.md#compact-buttons) |
 | `compact::Stepper` | struct | `Stepper` | `NSStepper` | Integer value with up and down arrows | [5](05-controls.md#compact-buttons) |
 | `compact::ToggleGroup` | struct | — | `≈ NSSegmentedControl` | Row of independent formatting toggles (select-any tracking) | [5](05-controls.md#compact-buttons) |

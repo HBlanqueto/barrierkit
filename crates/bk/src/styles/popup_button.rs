@@ -1,6 +1,6 @@
-use ctdesign::{BODY, BUTTON, Font, SETTINGS, SYMBOL};
+use ctdesign::{BODY, BUTTON, ControlSize, Font, SYMBOL};
 
-use super::button::rounded;
+use super::button::sized_shape;
 use super::{
     ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue, pressed_palette,
     system_effect,
@@ -10,10 +10,10 @@ use super::{
 /// (`docs/barrierkit/07-menus-and-popovers.md`).
 #[derive(Clone, Debug)]
 pub struct PopUpButtonStyle {
-    /// Tengen, with `gap`: `SETTINGS.popup_height`, `SETTINGS.popup_text_gap` between the
+    /// Tengen, with `gap`: `BUTTON.height`, `BUTTON.popup.regular.gap` between the
     /// icon, the label and the indicator.
     pub height: f32,
-    /// Tengen, with `height`: `SETTINGS.popup_height`, `SETTINGS.popup_text_gap` between the
+    /// Tengen, with `height`: `BUTTON.height`, `BUTTON.popup.regular.gap` between the
     /// icon, the label and the indicator.
     pub gap: f32,
     /// Tengen: `BUTTON.padding_x`, before the icon or the label. After the indicator the padding
@@ -27,17 +27,17 @@ pub struct PopUpButtonStyle {
     pub background: StateValue<ShapeStyle>,
     /// Tengen: `SYMBOL.grid`, the SVG icon or swatch of the chosen item.
     pub icon_size: f32,
-    /// Tengen: `SETTINGS.popup_label_lift`, how far the title sits above the center of the button.
+    /// Tengen: `BUTTON.popup.regular.label_lift`, how far the title sits above the center of the button.
     pub label_lift: f32,
-    /// Tengen: `SETTINGS.popup_trailing_padding`, after the indicator.
+    /// Tengen: `BUTTON.popup.regular.trailing`, after the indicator.
     pub trailing_padding: f32,
-    /// Tengen: `SETTINGS.popup_chevron`.
+    /// Tengen: `BUTTON.popup.regular.indicator`.
     pub indicator_size: f32,
-    /// Tengen: `SETTINGS.popup_glyph`.
+    /// Tengen: `BUTTON.popup.regular.glyph`.
     pub chevron_size: f32,
-    /// Tengen: `SETTINGS.popup_glyph_stroke`, in points.
+    /// Tengen: `BUTTON.popup.regular.glyph_stroke`, in points.
     pub chevron_stroke: f32,
-    /// Tengen: `(SETTINGS.popup_pulldown_glyph, SETTINGS.popup_pulldown_drop)`: the size of the
+    /// Tengen: `(BUTTON.popup.regular.pulldown_glyph, BUTTON.popup.regular.pulldown_drop)`: the size of the
     /// chevron of a button that pulls down and how far it sits below the center of its box.
     pub pulldown_chevron: (f32, f32),
     /// Tengen: `Circle`.
@@ -62,26 +62,48 @@ pub struct PopUpButtonStyle {
     pub font: Font,
 }
 
+impl PopUpButtonStyle {
+    pub(crate) fn sized(self, size: ControlSize) -> Self {
+        let button = BUTTON.size(size);
+        let popup = BUTTON.popup.size(size);
+        Self {
+            height: button.height,
+            gap: popup.gap,
+            leading_padding: button.padding_x,
+            shape: sized_shape(button.radius, button.height),
+            label_lift: popup.label_lift,
+            trailing_padding: popup.trailing,
+            indicator_size: popup.indicator,
+            chevron_size: popup.glyph,
+            chevron_stroke: popup.glyph_stroke,
+            pulldown_chevron: (popup.pulldown_glyph, popup.pulldown_drop),
+            font: Font {
+                size: button.font_size as u32,
+                ..self.font
+            },
+            ..self
+        }
+    }
+}
+
 impl ControlStyle for PopUpButtonStyle {
     fn tengen() -> Self {
+        let popup = BUTTON.popup.regular;
         Self {
-            height: SETTINGS.popup_height as f32,
-            gap: SETTINGS.popup_text_gap as f32,
+            height: BUTTON.height,
+            gap: popup.gap,
             leading_padding: BUTTON.padding_x,
-            shape: rounded(BUTTON.radius),
+            shape: sized_shape(BUTTON.radius, BUTTON.height),
             background: StateValue::new(ShapeStyle::Role(Role::ControlBackground))
                 .pressed(ShapeStyle::Color(pressed_palette().bezel))
                 .disabled(ShapeStyle::Role(Role::ControlBackgroundDisabled)),
             icon_size: SYMBOL.grid,
-            label_lift: SETTINGS.popup_label_lift,
-            trailing_padding: SETTINGS.popup_trailing_padding as f32,
-            indicator_size: SETTINGS.popup_chevron as f32,
-            chevron_size: SETTINGS.popup_glyph as f32,
-            chevron_stroke: SETTINGS.popup_glyph_stroke,
-            pulldown_chevron: (
-                SETTINGS.popup_pulldown_glyph as f32,
-                SETTINGS.popup_pulldown_drop,
-            ),
+            label_lift: popup.label_lift,
+            trailing_padding: popup.trailing,
+            indicator_size: popup.indicator,
+            chevron_size: popup.glyph,
+            chevron_stroke: popup.glyph_stroke,
+            pulldown_chevron: (popup.pulldown_glyph, popup.pulldown_drop),
             indicator_shape: Shape::Circle,
             label: StateValue::new(ShapeStyle::Role(Role::Label))
                 .disabled(ShapeStyle::Role(Role::TertiaryLabel)),

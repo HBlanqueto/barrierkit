@@ -4,20 +4,20 @@ Measured on macOS 27.2.1 with a Swift script: `fittingSize` of each control per 
 
 ## Sizes (width × height, points)
 
-| Control | regular | small | mini | large |
-|---|---|---|---|---|
-| Push button | 24 | 20 | 16 | 28 |
-| Checkbox | 16 | 14 | 12 | 18 |
-| Radio button | 16 | 14 | 12 | 18 |
-| Switch | 54 × 24 | 54 × 24 | 54 × 24 | 54 × 24 |
-| Slider | 16 | 14 | 12 | 20 |
-| Pop-up button | 24 | 20 | 16 | 28 |
-| Combo box | 24 | 20 | 16 | 28 |
-| Segmented control | 24 | 20 | 16 | 28 |
-| Text field | 24 | 24 | 24 | 24 |
-| Search field | 24 | 20 | 16 | 28 |
-| Stepper | 20 × 24 | 17 × 20 | 13 × 16 | 23 × 28 |
-| Scroller | 17 | | | |
+| Control | regular | small | mini | large | extra large |
+|---|---|---|---|---|---|
+| Push button | 24 | 20 | 16 | 28 | 36 |
+| Checkbox | 16 | 14 | 12 | 18 | 18 |
+| Radio button | 16 | 14 | 12 | 18 | 18 |
+| Switch | 54 × 24 | 54 × 24 | 54 × 24 | 54 × 24 | 54 × 24 |
+| Slider | 16 | 14 | 12 | 20 | 20 |
+| Pop-up button | 24 | 20 | 16 | 28 | 36 |
+| Combo box | 24 | 20 | 16 | 28 | 36 |
+| Segmented control | 24 | 20 | 16 | 28 | 36 |
+| Text field | 24 | 24 | 24 | 24 | 24 |
+| Search field | 24 | 20 | 16 | 28 | 36 |
+| Stepper | 20 × 24 | 17 × 20 | 13 × 16 | 23 × 28 | 30 × 36 |
+| Scroller | 17 | | | | |
 
 Heights agree with `components.json` for button, checkbox, radio, switch, pop-up, segmented, text field and search field.
 
@@ -25,6 +25,19 @@ Heights agree with `components.json` for button, checkbox, radio, switch, pop-up
 
 - `stepper.height` follows the measured 24; the compact kit golden needs regenerating on Linux.
 - The regular slider is 16 high with a 19.5 × 16 knob and a 6 high track starting 5 from the top, in light and dark; `slider.height` and `slider.knob-width` follow it. Mini, small and large knobs are 15.5, 17.5 and 23.5 wide.
+
+## Control sizes
+
+Read with `~/src/probes/buttons.swift` (`buttons-capture.sh` writes `~/src/captures/buttons`: 4x and 2x captures in aqua, dark aqua and both Increase Contrast looks over white and black; `BUTTONS_INACTIVE=1` draws the window as inactive) and `~/src/probes/sizes.swift` (the layout size of every bezel at every size). The bench is `scripts/appkit-render.sh buttons` and `scripts/appkit-compare.py controls --family buttons`; its `%bezel` column leaves out the box of the label ink on both sides, so it measures the bezel and the glyphs, not Inter against SF Pro.
+
+- **Push, pop-up, pull-down, segmented (mini, small, regular, large, extra large).** Heights 16, 20, 24, 28, 36. Corner radius 4, 5, 6, then a capsule (14 and 18). Label 9, 11, 13, 13, 13. The label's ink starts 9.0, 10.75, 13.0, 15.0, 19.0 from the left of a push button, so its padding is 9.05, 10.45, 12.35, 14.35, 18.35; the kit's is 0.35 less (`BUTTON.mini`, `small`, `large`, `xl`) because Inter's labels are wider. A default button has the same boxes in the accent.
+- **Pop-up arrows.** The up-down pair is 6 × 9 at mini and small, 7.25 × 10.5 at regular and 9 × 13 at large and extra large; its ink ends 7, 9, 9.75, 11, 14 from the right edge. "Option" gives widths 62, 76, 89, 97, 111; a pull-down "Pull" 49, 60, 71, 79, 93 (`BUTTON.popup`).
+- **Segmented.** One, Two, Three give 134, 146, 158, 170, 194 wide; a segment is its label plus 12.4, 12.2, 12, 14, 18 on each side (`SEGMENTED.mini`…).
+- **Checkbox and radio.** The box is 12, 14, 16, 18, 18 with a corner of 3.6, 4.6, 5.65, 6.7, 6.7. The checkmark's ink is 7.5 × 7.0, 8.75 × 8.0, 9.75 × 9.25, 11 × 11, 11 × 11, so the mark grows with the box; the radio dot is 4, 5, 5, 5, 5. The label's ink starts 4.0, 4.75, 6.75, 6.75, 6.75 from the right edge of the box. An unchecked box has no outline in any look (4x and 2x, and the 1x screen): the kit drew a hairline inside it and no longer does. At large the mark is drawn from a bitmap and is softer than a vector one.
+- **Switch.** The layout frame stays 54 × 24 at every size and the control is drawn scaled around its center: the track is 36 × 16, 44 × 20, 54 × 24, 64 × 28, 80 × 36, the knob 21 × 14, 26 × 16, 32 × 20, 38 × 24, 47 × 30, with 1, 2, 2, 2, 3 between the knob and the track. The kit lays out the size it draws; the bench wraps it in the 54 × 24 frame.
+- **Slider.** Heights 12, 14, 16, 20, 20; the track is 4, 4, 6, 6, 6 thick and centered; the knob is 15.5, 17.5, 19.5, 23.5, 23.5 wide.
+- **Stepper.** Frames 13 × 16, 17 × 20, 20 × 24, 23 × 28, 30 × 36; the corner is 4, 5, 6, 7, 9; the chevrons' ink is 7.75, 9, 11.25, 11.25, 11.25 wide, so the extra large one keeps the regular chevron in a larger bezel. The mini bezel is drawn 13 × 20 inside its 16 high frame.
+- **Disabled and pressed** states keep the regular colors at every size (`DisabledPalette`, `PressedPalette`): the bench differs by the same share as the normal state.
 
 ## Semantic colors (RGBA)
 

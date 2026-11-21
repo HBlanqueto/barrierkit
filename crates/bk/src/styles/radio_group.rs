@@ -1,4 +1,4 @@
-use ctdesign::{BODY, Font, HAIRLINE, SETTINGS};
+use ctdesign::{BODY, CHECKBOX, ControlSize, Font, SETTINGS};
 
 use super::{
     Axis, ColorEffect, ControlStyle, Edge, LayoutDirection, Role, ShadowStyle, Shape, ShapeStyle,
@@ -10,14 +10,14 @@ use super::{
 /// move the choice on both axes.
 #[derive(Clone, Debug)]
 pub struct RadioGroupStyle {
-    /// Tengen: `SETTINGS.radio_size`.
+    /// Tengen: `CHECKBOX.size`.
     pub button_size: f32,
-    /// Tengen: `SETTINGS.radio_dot`.
+    /// Tengen: `CHECKBOX.radio_dot`.
     pub dot_size: f32,
-    /// Tengen, with `spacing`: `SETTINGS.radio_gap` between a button and its label,
+    /// Tengen, with `spacing`: `CHECKBOX.gap` between a button and its label,
     /// `SETTINGS.radio_spacing` between options.
     pub label_gap: f32,
-    /// Tengen, with `label_gap`: `SETTINGS.radio_gap` between a button and its label,
+    /// Tengen, with `label_gap`: `CHECKBOX.gap` between a button and its label,
     /// `SETTINGS.radio_spacing` between options.
     pub spacing: f32,
     /// Tengen: `Circle`.
@@ -33,7 +33,7 @@ pub struct RadioGroupStyle {
     pub dot: StateValue<ShapeStyle>,
     /// Tengen, with `dot`: `Role(OnAccent)`, `Role(Label)` (disabled `Role(TertiaryLabel)`).
     pub label: StateValue<ShapeStyle>,
-    /// Tengen: `Some((Role(Outline), HAIRLINE))`, drawn only while not chosen.
+    /// Tengen: `None`; `Some` draws it only while not chosen.
     pub button_border: Option<(ShapeStyle, f32)>,
     /// Tengen: empty.
     pub button_shadows: Vec<ShadowStyle>,
@@ -49,16 +49,33 @@ pub struct RadioGroupStyle {
     pub label_position: Option<Edge>,
     /// Tengen: `LeftToRight`; `RightToLeft` swaps `Leading` and `Trailing`.
     pub layout_direction: LayoutDirection,
-    /// Tengen: `BODY` with `SETTINGS.radio_size` as `line_height`, so the row is as high as the button.
+    /// Tengen: `BODY` with `CHECKBOX.size` as `line_height`, so the row is as high as the button.
     pub label_font: Font,
+}
+
+impl RadioGroupStyle {
+    pub(crate) fn sized(self, size: ControlSize) -> Self {
+        let row = CHECKBOX.size(size);
+        Self {
+            button_size: row.size,
+            dot_size: row.radio_dot,
+            label_gap: row.gap,
+            label_font: Font {
+                size: row.font_size as u32,
+                line_height: row.size as u32,
+                ..self.label_font
+            },
+            ..self
+        }
+    }
 }
 
 impl ControlStyle for RadioGroupStyle {
     fn tengen() -> Self {
         Self {
-            button_size: SETTINGS.radio_size as f32,
-            dot_size: SETTINGS.radio_dot as f32,
-            label_gap: SETTINGS.radio_gap as f32,
+            button_size: CHECKBOX.size,
+            dot_size: CHECKBOX.radio_dot,
+            label_gap: CHECKBOX.gap,
             spacing: SETTINGS.radio_spacing as f32,
             button_shape: Shape::Circle,
             dot_shape: Shape::Circle,
@@ -72,7 +89,7 @@ impl ControlStyle for RadioGroupStyle {
                 .disabled(ShapeStyle::Role(Role::TertiaryLabel)),
             label: StateValue::new(ShapeStyle::Role(Role::Label))
                 .disabled(ShapeStyle::Role(Role::TertiaryLabel)),
-            button_border: Some((ShapeStyle::Role(Role::Outline), HAIRLINE)),
+            button_border: None,
             button_shadows: Vec::new(),
             opacity: 1.0,
             disabled_opacity: 1.0,
@@ -81,7 +98,7 @@ impl ControlStyle for RadioGroupStyle {
             label_position: Some(Edge::Trailing),
             layout_direction: LayoutDirection::LeftToRight,
             label_font: Font {
-                line_height: SETTINGS.radio_size,
+                line_height: CHECKBOX.size as u32,
                 ..BODY
             },
         }
