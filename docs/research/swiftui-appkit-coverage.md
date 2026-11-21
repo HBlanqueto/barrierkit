@@ -215,7 +215,9 @@ Kit: `SegmentedControl`, `PopUpButton`, `RadioGroup`, `ColorWell`, `ComboBox`.
 | `.palette` | — | `ColorWell` (swatch row) | `implemented` | none | P3 |
 | `.tabs` (macOS 27) | — | — | `missing` | sdk `PickerStyle.tabs`, introduced macOS 27.0 | P2 |
 | `.wheel`, `.navigationLink` | — | — | not on macOS | sdk marks both unavailable on macOS | — |
-| `DatePicker`, `ColorPicker` | `NSDatePicker`, `NSColorWell` | see [8](#8-date-and-time), [9](#9-color-and-font-panels) | | | |
+
+The date and color pickers are in [8](#8-date-and-time) and
+[9](#9-color-and-font-panels).
 
 ## 4. Steppers
 
