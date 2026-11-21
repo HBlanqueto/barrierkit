@@ -57,7 +57,9 @@ SwiftUI: `struct Greeting: View { let name: String; var body: some View { … } 
 The program is [`recipes/reusable_view.rs`](recipes/reusable_view.rs).
 
 A `Component` must be `PartialEq`: the kit redraws it only when its fields
-change.
+change. A handler field is a `Callback`, which never compares equal, so a
+component that holds one redraws with its parent every time; a bare closure
+field does not compile under `#[derive(PartialEq)]`.
 
 ## 7. Drawing the whole window yourself
 
