@@ -166,7 +166,15 @@
     },
     "color-picker": {
       "inset": 3,
-      "ring-shift": 0.125
+      "ring-shift": 0.125,
+      "disabled-opacity": 0.5,
+      "expanded-width": 47,
+      "expanded-radius": 5,
+      "expanded-gap": 1,
+      "wheel-size": 24,
+      "wheel-radius": 6,
+      "wheel-diameter": 16,
+      "wheel-center": "#ffffff"
     },
     "group-box": {
       "radius": 12,

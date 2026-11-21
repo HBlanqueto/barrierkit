@@ -36,6 +36,7 @@ TEXTS = [
     "combo-mini", "combo-small", "combo-regular", "combo-large", "combo-xl",
     "datepicker-mini", "datepicker-small", "datepicker-regular", "datepicker-large", "datepicker-xl", "date-field", "datepicker-disabled",
 ]
+    "well-default", "well-default-disabled", "well-minimal", "well-minimal-disabled", "well-expanded", "well-expanded-disabled",
 SIZE_NAMES = ("mini", "small", "regular", "large", "xl")
 BUTTONS = [
     f"{kind}-{size}" for kind in (

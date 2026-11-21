@@ -252,6 +252,7 @@ Read with the same `lists` probe (`Form` grouped and columns, `GroupBox`, `Discl
 - **GroupBox:** the title is 11 pt, its ink 10 in (the text box 9.5), in a 17 high row above the box; the box is the content plus 5 on every side, `f7f7f7`, continuous corners of radius 12. `NSBox` differs in the 12 high title row and the 10.75 inset.
 - **DisclosureGroup** (standalone): the chevron is `c1c1c1`, 7.75 × 4.5 open (center 3.9 and 13.25) and 5 × 7.5 closed (center 4.5 and 12.25), the title starts 12 from the left, and the children are not indented.
 - The kit's difference in these items is 3 to 9% of the pixels, text apart from the missing `.columns` form.
+- `NSColorWell` styles (`systemBlue`, all 48 × 24 at every `controlSize`): `.default` is the 48 × 24 bezel and the 42 × 18 swatch; `.minimal` is the capsule swatch alone with its darker ring; `.expanded` is a 47 wide swatch of radius 5 and, 1 after it, a 24 square button of radius 6 (black 9.8%) with a 16 color wheel, red at 3 o'clock, white at the center (72 wide in all). A disabled well is the same at 50% opacity, the button and the wheel included.
 
 ## Containers: split views and scrollers
 

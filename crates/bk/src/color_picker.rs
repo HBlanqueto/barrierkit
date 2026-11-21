@@ -1,6 +1,6 @@
-use ctdesign::{HAIRLINE, Rgba};
+use ctdesign::{COLOR_PICKER, HAIRLINE, MULTICOLOR, Rgba};
 use freya_core::prelude::*;
-use torin::prelude::{Area, Direction, Size};
+use torin::prelude::{Area, Direction, Gaps, Size};
 
 use crate::controls::{dimmed, shadowed};
 use crate::i18n::text;
@@ -64,6 +64,7 @@ pub fn hex(rgba: Rgba) -> String {
 pub struct ColorPicker {
     label: &'static str,
     color: Rgba,
+    disabled: bool,
     on_change: Option<Callback<Rgba, ()>>,
     style: Theme,
 }
@@ -73,6 +74,7 @@ impl ColorPicker {
         Self {
             label,
             color,
+            disabled: false,
             on_change: None,
             style: Theme::tengen(),
         }
@@ -86,6 +88,11 @@ impl ColorPicker {
         self
     }
 
+    pub fn disabled(mut self, disabled: bool) -> Self {
+        self.disabled = disabled;
+        self
+    }
+
     pub fn on_change(mut self, callback: impl Into<Callback<Rgba, ()>>) -> Self {
         self.on_change = Some(callback.into());
         self
@@ -96,7 +103,8 @@ impl Component for ColorPicker {
     fn render(&self) -> impl IntoElement {
         let style: ColorPickerStyle = resolve(&self.style);
         let interaction = use_interaction();
-        let paints = Paints::current(control_state(interaction, false), style.effect);
+        let disabled = self.disabled;
+        let paints = Paints::current(control_state(interaction, disabled), style.effect);
         let mut area = use_state(Area::default);
         let shown = self.color;
         let on_change = self.on_change.clone();
@@ -120,7 +128,7 @@ impl Component for ColorPicker {
         let resolved = style.clone();
         let panel_style = Theme::tengen().style(move |_: ColorPickerStyle| resolved.clone());
         let well = interaction
-            .attach(rect(), true)
+            .attach(rect(), !disabled)
             .a11y_role(AccessibilityRole::ColorWell)
             .a11y_alt(self.label)
             .width(Size::px(width))
@@ -143,17 +151,66 @@ impl Component for ColorPicker {
             )
             .on_sized(move |event: Event<SizedEventData>| area.set_if_modified(event.area))
             .on_press(move |_| {
-                open_panel(
-                    shown,
-                    *area.peek(),
-                    on_change.clone(),
-                    panel_style.clone(),
-                    panel_size,
-                )
+                if !disabled {
+                    open_panel(
+                        shown,
+                        *area.peek(),
+                        on_change.clone(),
+                        panel_style.clone(),
+                        panel_size,
+                    )
+                }
             });
-        interaction.focus_ring(
-            dimmed(shadowed(well, &style.shadows), style.opacity),
-            radius.top_left(),
+        let well = interaction.focus_ring(shadowed(well, &style.shadows), radius.top_left());
+        let wheel =
+            style.wheel.then(|| {
+                rect()
+                    .margin(Gaps::new(0.0, 0.0, 0.0, COLOR_PICKER.expanded_gap))
+                    .width(Size::px(COLOR_PICKER.wheel_size))
+                    .height(Size::px(height))
+                    .corner_radius(COLOR_PICKER.wheel_radius)
+                    .painted(&paints, &style.wheel_background)
+                    .center()
+                    .child(
+                        rect()
+                            .width(Size::px(COLOR_PICKER.wheel_diameter))
+                            .height(Size::px(COLOR_PICKER.wheel_diameter))
+                            .corner_radius(COLOR_PICKER.wheel_diameter / 2.0)
+                            .background(ConicGradient::new().stops(
+                                MULTICOLOR.iter().enumerate().map(|(index, stop)| {
+                                    GradientStop::new(
+                                        color(*stop),
+                                        index as f32 * 100.0 / (MULTICOLOR.len() - 1) as f32,
+                                    )
+                                }),
+                            ))
+                            .child(
+                                rect()
+                                    .expanded()
+                                    .corner_radius(COLOR_PICKER.wheel_diameter / 2.0)
+                                    .background(RadialGradient::new().stops([
+                                        GradientStop::new(color(COLOR_PICKER.wheel_center), 0.0),
+                                        GradientStop::new(
+                                            color(Rgba {
+                                                a: 0.0,
+                                                ..COLOR_PICKER.wheel_center
+                                            }),
+                                            70.0,
+                                        ),
+                                    ])),
+                            ),
+                    )
+            });
+        dimmed(
+            rect()
+                .direction(Direction::Horizontal)
+                .child(well)
+                .maybe_child(wheel),
+            if disabled {
+                COLOR_PICKER.disabled_opacity
+            } else {
+                style.opacity
+            },
         )
     }
 }

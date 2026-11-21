@@ -578,8 +578,19 @@ To choose from preset colors, use [`ColorWell`](#choices).
 ### Style
 
 `ColorPicker` draws from a [`ColorPickerStyle`](../../crates/bk/src/styles/color_picker.rs):
+`.disabled(bool)` draws the whole well at 50% and takes no click.
+
 the well's size, shape and border, and the panel's size and captions. The
-color itself is content.
+color itself is content. The default is the capsule bezel with the swatch inside, like
+`NSColorWell.Style.default`; two presets take the other styles:
+
+```rust
+ColorPicker::new("Color", accent).style(ColorPickerStyle::minimal)
+ColorPicker::new("Color", accent).style(ColorPickerStyle::expanded)
+```
+
+`minimal` is the capsule swatch alone. `expanded` is a 47 × 24 rounded swatch (radius 5) and a
+24 square button with a 16 color wheel (`COLOR_PICKER.wheel_*`), 72 wide in all.
 
 ## Date picker
 

@@ -302,6 +302,14 @@
   --bk-circular-slider-dash-width: 2;
   --bk-color-picker-inset: 3;
   --bk-color-picker-ring-shift: 0.125;
+  --bk-color-picker-disabled-opacity: 0.5;
+  --bk-color-picker-expanded-width: 47;
+  --bk-color-picker-expanded-radius: 5;
+  --bk-color-picker-expanded-gap: 1;
+  --bk-color-picker-wheel-size: 24;
+  --bk-color-picker-wheel-radius: 6;
+  --bk-color-picker-wheel-diameter: 16;
+  --bk-color-picker-wheel-center: #ffffff;
   --bk-group-box-radius: 12;
   --bk-group-box-padding: 5;
   --bk-group-box-label-inset: 9.5;

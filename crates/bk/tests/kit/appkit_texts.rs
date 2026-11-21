@@ -8,7 +8,7 @@ use bk::date_picker::{DateElements, DatePicker};
 use bk::image_well::ImageWell;
 use bk::password::PasswordField;
 use bk::path_control::PathControl;
-use bk::styles::TextFieldStyle;
+use bk::styles::{ColorPickerStyle, TextFieldStyle};
 use bk::symbol::Symbol;
 use bk::text_editor::TextEditor;
 use bk::token_field::TokenField;
@@ -128,6 +128,52 @@ fn texts() -> Vec<(&'static str, Builder)> {
         }) as Builder,
     ));
     all.push((
+        "well-default",
+        (|| ColorPicker::new("Color", system_blue()).into_element()) as Builder,
+    ));
+    all.push((
+        "well-default-disabled",
+        (|| {
+            ColorPicker::new("Color", system_blue())
+                .disabled(true)
+                .into_element()
+        }) as Builder,
+    ));
+    all.push((
+        "well-minimal",
+        (|| {
+            ColorPicker::new("Color", system_blue())
+                .style(ColorPickerStyle::minimal)
+                .into_element()
+        }) as Builder,
+    ));
+    all.push((
+        "well-minimal-disabled",
+        (|| {
+            ColorPicker::new("Color", system_blue())
+                .style(ColorPickerStyle::minimal)
+                .disabled(true)
+                .into_element()
+        }) as Builder,
+    ));
+    all.push((
+        "well-expanded",
+        (|| {
+            ColorPicker::new("Color", system_blue())
+                .style(ColorPickerStyle::expanded)
+                .into_element()
+        }) as Builder,
+    ));
+    all.push((
+        "well-expanded-disabled",
+        (|| {
+            ColorPicker::new("Color", system_blue())
+                .style(ColorPickerStyle::expanded)
+                .disabled(true)
+                .into_element()
+        }) as Builder,
+    ));
+    all.push((
         "tf-plain",
         (|| {
             TextField::new(use_state(|| "Plain".to_string()), "Placeholder")
@@ -227,9 +273,6 @@ fn texts() -> Vec<(&'static str, Builder)> {
                 .margin(Gaps::new(3.0, 0.0, 0.0, 0.0))
                 .child(DatePicker::new("Date", date_time()).elements(DateElements::Time))
                 .into_element()
-        }),
-        ("well-default", || {
-            ColorPicker::new("Color", system_blue()).into_element()
         }),
         ("path-standard", || {
             PathControl::new("Path")

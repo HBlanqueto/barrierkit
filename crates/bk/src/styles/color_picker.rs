@@ -37,6 +37,10 @@ pub struct ColorPickerStyle {
     pub ring_shift: f32,
     /// Tengen: empty.
     pub shadows: Vec<ShadowStyle>,
+    /// Tengen: `false`; the color wheel button beside the swatch of the expanded style.
+    pub wheel: bool,
+    /// Tengen: `Role(SystemFill)`, behind the color wheel.
+    pub wheel_background: StateValue<ShapeStyle>,
     /// Tengen: `1.0`.
     pub opacity: f32,
     /// Tengen: `system_effect`.
@@ -58,9 +62,30 @@ impl ControlStyle for ColorPickerStyle {
             inset: COLOR_PICKER.inset,
             ring_shift: COLOR_PICKER.ring_shift,
             shadows: Vec::new(),
+            wheel: false,
+            wheel_background: StateValue::new(ShapeStyle::Role(Role::SystemFill)),
             opacity: 1.0,
             effect: system_effect,
             font: BODY,
+        }
+    }
+}
+
+impl ColorPickerStyle {
+    pub fn minimal(self) -> Self {
+        Self {
+            bezel: StateValue::new(ShapeStyle::Clear),
+            inset: 0.0,
+            ..self
+        }
+    }
+
+    pub fn expanded(self) -> Self {
+        Self {
+            size: (COLOR_PICKER.expanded_width, self.size.1),
+            well_shape: rounded(COLOR_PICKER.expanded_radius),
+            wheel: true,
+            ..self.minimal()
         }
     }
 }

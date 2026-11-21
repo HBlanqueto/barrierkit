@@ -283,6 +283,9 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `date_picker::DatePicker::style` | method | `.datePickerStyle(_:)` on one view | ≈ `NSDatePicker.datePickerStyle` | Changes the style of one date picker | [Styles](../../crates/bk/src/styles/date_picker.rs) |
 | `path_control::PathControl::style` | method | — | — | Changes the style of one path control | [Styles](../../crates/bk/src/styles/path_control.rs) |
 | `image_well::ImageWell::style` | method | — | — | Changes the style of one image well | [Styles](../../crates/bk/src/styles/image_well.rs) |
+| `color_picker::ColorPicker::disabled` | method | `.disabled(_:)` | `NSControl.isEnabled` | Draws the well at half opacity and takes no click | [5](05-controls.md#color-picker) |
+| `styles::ColorPickerStyle::minimal` | method | — | `NSColorWell.Style.minimal` | Preset: the capsule swatch without the bezel | [Styles](../../crates/bk/src/styles/color_picker.rs) |
+| `styles::ColorPickerStyle::expanded` | method | — | `NSColorWell.Style.expanded` | Preset: a rounded swatch and a color wheel button | [Styles](../../crates/bk/src/styles/color_picker.rs) |
 | `color_picker::ColorPicker::style` | method | — | ≈ `NSColorWell.colorWellStyle` | Changes the style of one color picker | [Styles](../../crates/bk/src/styles/color_picker.rs) |
 | `font_panel::FontPicker::style` | method | `.buttonStyle(_:)` on one view | — | Changes the `ButtonStyle` of one font picker | [Styles](../../crates/bk/src/styles/color_picker.rs) |
 | `progress::ProgressView::style` | method | `.progressViewStyle(_:)` on one view | ≈ `NSProgressIndicator.Style` | Changes the style of one progress bar | [Styles](../../crates/bk/src/styles/progress_view.rs) |
