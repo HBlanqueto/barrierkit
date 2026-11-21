@@ -2,7 +2,10 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 
 pub use ctappearance::icon_style::IconStyle;
-use ctdesign::{Rgba, SYMBOL};
+use ctdesign::{
+    Rgba, SYMBOL, SYMBOL_HIERARCHY, SYMBOL_SCALE_SIZE, SYMBOL_WEIGHT_STROKE_LARGE,
+    SYMBOL_WEIGHT_STROKE_MEDIUM, SYMBOL_WEIGHT_STROKE_SMALL,
+};
 use freya_components::image_viewer::ImageViewer;
 use freya_components::svg_viewer::SvgViewer;
 use freya_core::elements::image::{ImageHandle, SamplingMode};
@@ -14,6 +17,45 @@ use freya_engine::prelude::{
 use torin::prelude::Size;
 
 use crate::styles::{ControlState, ImageStyle, Paints, ShapeStyle, StateValue, Theme, resolve};
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+pub enum FontWeight {
+    UltraLight,
+    Thin,
+    Light,
+    #[default]
+    Regular,
+    Medium,
+    Semibold,
+    Bold,
+    Heavy,
+    Black,
+}
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+pub enum ImageScale {
+    Small,
+    #[default]
+    Medium,
+    Large,
+}
+
+impl ImageScale {
+    fn weight_strokes(self) -> [f32; 9] {
+        match self {
+            Self::Small => SYMBOL_WEIGHT_STROKE_SMALL,
+            Self::Medium => SYMBOL_WEIGHT_STROKE_MEDIUM,
+            Self::Large => SYMBOL_WEIGHT_STROKE_LARGE,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+pub enum SymbolRenderingMode {
+    #[default]
+    Monochrome,
+    Hierarchical,
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Symbol {
@@ -48,7 +90,7 @@ pub enum Symbol {
     Star,
     Clock,
     Bookmark,
-    ArrowDown,
+    ArrowDownToLine,
     Checkmark,
     Captions,
     Expand,
@@ -141,6 +183,33 @@ pub enum Symbol {
     DesktopComputer,
     PersonCropCircle,
     Eject,
+    ArrowDown,
+    Link,
+    Pencil,
+    SquareAndPencil,
+    LockOpen,
+    LockFill,
+    StopFill,
+    SpeakerSlash,
+    SpeakerWave1,
+    Repeat,
+    CheckmarkSquare,
+    Tray,
+    DocText,
+    XMarkRectangle,
+    PlusRectangle,
+    RectangleOnRectangle,
+    RectangleDashed,
+    MacWindowOnRectangle,
+    ArrowRightCircle,
+    ArrowLeftCircle,
+    ArrowUpCircle,
+    ChevronRightCircle,
+    ChevronLeftCircle,
+    PlayCircle,
+    PauseCircle,
+    HeartFill,
+    CameraFill,
 }
 
 impl Symbol {
@@ -249,14 +318,14 @@ impl Symbol {
             }
             Self::Clock => "M8 4.5V8l2.5 1.5M8 14a6 6 0 1 0 0-12a6 6 0 0 0 0 12",
             Self::Bookmark => "M4 2.5h8v11L8 10.5l-4 3z",
-            Self::ArrowDown => "M8 2v8M4.5 7 8 10.5 11.5 7M3 13.5h10",
+            Self::ArrowDownToLine => "M8 2v8M4.5 7 8 10.5 11.5 7M3 13.5h10",
             Self::Checkmark => "M4.1 8.6l2.7 3.4 4.9-7.2",
             Self::Captions => "M2.5 4h11v8h-11zM5 9.5h2.5M9 9.5h2M5 7h6",
             Self::Expand => "M3 6.5V3h3.5M13 6.5V3H9.5M3 9.5V13h3.5M13 9.5V13H9.5",
             Self::GoBackward => "M3.5 8a4.5 4.5 0 1 0 1.5-3.4M3.5 2.5v2.8h2.8",
             Self::GoForward => "M12.5 8a4.5 4.5 0 1 1-1.5-3.4M12.5 2.5v2.8H9.7",
             Self::ICloud => {
-                "M3.62 12.97A3.27 3.27 0 0 1 1.82 6.97A5.39 5.39 0 0 1 11.14 5.41A3.85 3.85 0 0 1 12.13 12.97L3.62 12.97"
+                "M3.87 12.97A3.27 3.27 0 0 1 2.07 6.97A5.39 5.39 0 0 1 11.39 5.41A3.85 3.85 0 0 1 12.38 12.97L3.87 12.97"
             }
             Self::ArrowDownCircle => {
                 "M13.64 8.13A5.77 5.77 0 0 1 2.1 8.13A5.77 5.77 0 0 1 13.64 8.13M7.87 5.71L7.87 10.67M5.91 8.71L7.87 10.67L9.83 8.71"
@@ -317,16 +386,16 @@ impl Symbol {
             Self::ArrowRight => "M2.7 8.11L12.97 8.11M8.71 12.37L12.97 8.11L8.71 3.85",
             Self::ArrowUp => "M7.84 13.47L7.84 2.86M12.02 7.04L7.84 2.86L3.65 7.04",
             Self::ArrowUpForward => "M3.7 12.3L12.07 3.96M10.23 3.96L12.07 3.96L12.07 10.46",
-            Self::Heart => {
+            Self::Heart | Self::HeartFill => {
                 "M7.94 13.22C5.19 11.24 2.43 8.69 2.43 5.57C2.43 2.74 5.46 1.89 7.94 5C10.42 1.89 13.46 2.74 13.46 5.57C13.46 8.69 10.7 11.24 7.94 13.22Z"
             }
             Self::Key => {
-                "M11.58 4.32A3.69 3.69 0 0 1 4.19 4.32A3.69 3.69 0 0 1 11.58 4.32M8.79 4.32A0.9 0.9 0 0 1 6.99 4.32A0.9 0.9 0 0 1 8.79 4.32M7.89 8.01L7.89 15.5M7.89 14.3L11.21 14.3M7.89 11.7L11.21 11.7"
+                "M11.52 4.31A3.63 3.63 0 0 1 4.25 4.31A3.63 3.63 0 0 1 11.52 4.31M8.78 4.31A0.89 0.89 0 0 1 7 4.31A0.89 0.89 0 0 1 8.78 4.31M7.89 7.95L7.89 15.32M7.89 14.14L11.16 14.14M7.89 11.58L11.16 11.58"
             }
             Self::Mic => {
                 "M5.87 3.96A1.96 1.96 0 0 1 7.83 2L7.83 2A1.96 1.96 0 0 1 9.79 3.96L9.79 6.76A1.96 1.96 0 0 1 7.83 8.71L7.83 8.71A1.96 1.96 0 0 1 5.87 6.76ZM3.91 7.8A3.92 3.92 0 0 0 11.75 7.8M7.83 12.37L7.83 14.21M5.87 14.21L9.79 14.21"
             }
-            Self::Camera => {
+            Self::Camera | Self::CameraFill => {
                 "M0.74 6.81A1.76 1.76 0 0 1 2.5 5.05L3.77 5.05A0.8 0.8 0 0 0 4.48 4.62L5.3 3.05A0.8 0.8 0 0 1 6.01 2.62L9.55 2.62A0.8 0.8 0 0 1 10.26 3.05L11.08 4.62A0.8 0.8 0 0 0 11.79 5.05L13.06 5.05A1.76 1.76 0 0 1 14.82 6.81L14.82 11.64A2 2 0 0 1 12.82 13.64L2.74 13.64A2 2 0 0 1 0.74 11.64ZM10.64 9.23A2.86 2.86 0 0 1 4.92 9.23A2.86 2.86 0 0 1 10.64 9.23"
             }
             Self::Envelope => {
@@ -342,7 +411,7 @@ impl Symbol {
                 "M2.49 9A1 1 0 0 1 2.44 7.17L11.32 3.03A1 1 0 0 1 12.69 4.26L9.61 13.36A1 1 0 0 1 7.78 13.5L6.32 10.68A0.5 0.5 0 0 0 6.07 10.44ZM6.24 10.51L13.44 2.05"
             }
             Self::Scissors => {
-                "M3.58 4.11A1.75 1.75 0 0 1 0.08 4.11A1.75 1.75 0 0 1 3.58 4.11M3.33 4.11A1.5 1.5 0 0 1 0.33 4.11A1.5 1.5 0 0 1 3.33 4.11M3.58 11.66A1.75 1.75 0 0 1 0.08 11.66A1.75 1.75 0 0 1 3.58 11.66M3.33 11.66A1.5 1.5 0 0 1 0.33 11.66A1.5 1.5 0 0 1 3.33 11.66M3.42 4.86L15.29 11.28L6.17 7.58ZM3.42 10.91L15.29 4.49L6.17 8.2Z"
+                "M4.06 4.22A1.7 1.7 0 0 1 0.66 4.22A1.7 1.7 0 0 1 4.06 4.22M3.81 4.22A1.46 1.46 0 0 1 0.9 4.22A1.46 1.46 0 0 1 3.81 4.22M4.06 11.55A1.7 1.7 0 0 1 0.66 11.55A1.7 1.7 0 0 1 4.06 11.55M3.81 11.55A1.46 1.46 0 0 1 0.9 11.55A1.46 1.46 0 0 1 3.81 11.55M3.9 4.95L15.42 11.18L6.57 7.59ZM3.9 10.82L15.42 4.59L6.57 8.19Z"
             }
             Self::XMarkCircleFill => {
                 "M14.14 8.13A6.27 6.27 0 0 1 1.6 8.13A6.27 6.27 0 0 1 14.14 8.13M10.71 6.21L8.79 8.13L10.71 10.05L9.79 10.97L7.87 9.05L5.95 10.97L5.03 10.05L6.95 8.13L5.03 6.21L5.95 5.29L7.87 7.21L9.79 5.29Z"
@@ -396,7 +465,7 @@ impl Symbol {
                 "M1.15 5.27A2.4 2.4 0 0 1 3.55 2.87L12.34 2.87A2.4 2.4 0 0 1 14.74 5.27L14.74 11.01A2.4 2.4 0 0 1 12.34 13.41L3.55 13.41A2.4 2.4 0 0 1 1.15 11.01ZM9.98 2.87L9.98 13.41M11.34 5.77L13.38 5.77M11.34 8.14L13.38 8.14M11.34 10.51L13.38 10.51"
             }
             Self::DocOnDoc => {
-                "M2.1 7.71A1.8 1.8 0 0 1 3.9 5.91L5.77 5.91A0.6 0.6 0 0 1 6.19 6.09L10.04 9.94A0.6 0.6 0 0 1 10.22 10.36L10.22 13.74A1.8 1.8 0 0 1 8.42 15.54L3.9 15.54A1.8 1.8 0 0 1 2.1 13.74ZM6.02 5.91L6.02 10.11L10.22 10.11M5.58 4.41L5.58 2.53A1.8 1.8 0 0 1 7.38 0.73L11.9 0.73A1.8 1.8 0 0 1 13.7 2.53L13.7 10.41A1.8 1.8 0 0 1 11.9 12.21L11.72 12.21"
+                "M2.1 7.59A1.8 1.8 0 0 1 3.9 5.79L5.77 5.79A0.6 0.6 0 0 1 6.19 5.97L10.04 9.82A0.6 0.6 0 0 1 10.22 10.24L10.22 13.62A1.8 1.8 0 0 1 8.42 15.42L3.9 15.42A1.8 1.8 0 0 1 2.1 13.62ZM6.02 5.79L6.02 9.99L10.22 9.99M5.58 4.29L5.58 2.41A1.8 1.8 0 0 1 7.38 0.61L11.9 0.61A1.8 1.8 0 0 1 13.7 2.41L13.7 10.29A1.8 1.8 0 0 1 11.9 12.09L11.72 12.09"
             }
             Self::ArrowUturnBackward => {
                 "M7.63 13.47L10.33 13.47A2.85 2.85 0 0 0 13.18 10.62L13.18 9.12A2.85 2.85 0 0 0 10.33 6.27L2.81 6.27M6.13 2.75L2.61 6.27L6.13 9.79"
@@ -416,54 +485,223 @@ impl Symbol {
             Self::SpeakerWave => {
                 "M3 6h2l3-3v10l-3-3H3zM10.5 5.5a3.5 3.5 0 0 1 0 5M12.5 3.5a6.5 6.5 0 0 1 0 9"
             }
+            Self::ArrowDown => "M7.84 2.86L7.84 13.47M3.65 9.29L7.84 13.47L12.02 9.29",
+            Self::Link => {
+                "M6.62 8.77A3.04 3.04 0 0 0 11.2 9.1L13.03 7.28A3.04 3.04 0 0 0 8.73 2.98L7.69 4.02M9.05 7.56A3.04 3.04 0 0 0 4.47 7.23L2.65 9.05A3.04 3.04 0 0 0 6.95 13.34L7.98 12.3"
+            }
+            Self::Pencil => {
+                "M2.87 12.54A0.38 0.38 0 0 0 3.36 13.06L4.44 12.51A0.3 0.3 0 0 0 4.51 12.46L12.62 4.69A0.72 0.72 0 0 0 12.64 3.67L12.64 3.67A0.72 0.72 0 0 0 11.63 3.65L3.52 11.42A0.3 0.3 0 0 0 3.46 11.49Z"
+            }
+            Self::SquareAndPencil => {
+                "M9.14 2.99L5.06 2.99A2.2 2.2 0 0 0 2.86 5.19L2.86 11.97A2.2 2.2 0 0 0 5.06 14.17L11.88 14.17A2.2 2.2 0 0 0 14.08 11.97L14.08 8.02M8.65 7.8A0.46 0.46 0 0 0 9.25 8.4L10.19 8.03A0.4 0.4 0 0 0 10.32 7.94L13.78 4.49A0.85 0.85 0 0 0 13.78 3.29L13.78 3.29A0.85 0.85 0 0 0 12.58 3.29L9.12 6.73A0.4 0.4 0 0 0 9.03 6.87ZM10.26 7.99L9.06 6.79"
+            }
+            Self::LockOpen => {
+                "M1.92 8.92A1.8 1.8 0 0 1 3.72 7.12L8.03 7.12A1.8 1.8 0 0 1 9.83 8.92L9.83 11.85A1.8 1.8 0 0 1 8.03 13.65L3.72 13.65A1.8 1.8 0 0 1 1.92 11.85ZM6 7.12L6 6.34A3.95 3.95 0 0 1 13.9 6.34L13.9 8.59"
+            }
+            Self::LockFill => {
+                "M3.58 9.19A1.8 1.8 0 0 1 5.38 7.39L10.31 7.39A1.8 1.8 0 0 1 12.11 9.19L12.11 12.38A1.8 1.8 0 0 1 10.31 14.18L5.38 14.18A1.8 1.8 0 0 1 3.58 12.38ZM3.88 7.39L3.88 5.79A3.96 3.96 0 0 1 11.81 5.79L11.81 7.39L10.61 7.39L10.61 5.79A2.76 2.76 0 0 0 5.08 5.79L5.08 7.39Z"
+            }
+            Self::StopFill => {
+                "M2.93 5A1.9 1.9 0 0 1 4.83 3.1L11.01 3.1A1.9 1.9 0 0 1 12.91 5L12.91 11.28A1.9 1.9 0 0 1 11.01 13.18L4.83 13.18A1.9 1.9 0 0 1 2.93 11.28Z"
+            }
+            Self::SpeakerSlash => {
+                "M2.59 6.93A0.5 0.5 0 0 1 3.09 6.43L5.16 6.43A0.2 0.2 0 0 0 5.3 6.37L7.57 4.09A0.5 0.5 0 0 1 8.42 4.44L8.42 12.49A0.5 0.5 0 0 1 7.57 12.84L5.3 10.56A0.2 0.2 0 0 0 5.16 10.5L3.09 10.5A0.5 0.5 0 0 1 2.59 10ZM4.18 2.65L13.19 13.41"
+            }
+            Self::SpeakerWave1 => {
+                "M2.86 6.32A0.5 0.5 0 0 1 3.36 5.82L6.13 5.82A0.2 0.2 0 0 0 6.28 5.75L8.42 3.28A0.5 0.5 0 0 1 9.3 3.6L9.3 12.56A0.5 0.5 0 0 1 8.42 12.89L6.28 10.41A0.2 0.2 0 0 0 6.13 10.34L3.36 10.34A0.5 0.5 0 0 1 2.86 9.84ZM11.93 5.89A3.08 3.08 0 0 1 11.93 10.28"
+            }
+            Self::Repeat => {
+                "M1.79 9.01L1.79 8.23A2.4 2.4 0 0 1 4.19 5.83L12.57 5.83M10.59 8.53L13.29 5.83L10.59 3.13M13.9 7.36L13.9 8.14A2.4 2.4 0 0 1 11.5 10.54L3.12 10.54M5.09 7.84L2.39 10.54L5.09 13.24"
+            }
+            Self::CheckmarkSquare => {
+                "M2.78 5.29A2.4 2.4 0 0 1 5.18 2.89L10.59 2.89A2.4 2.4 0 0 1 12.99 5.29L12.99 10.95A2.4 2.4 0 0 1 10.59 13.35L5.18 13.35A2.4 2.4 0 0 1 2.78 10.95ZM5.64 8.12L7.47 10.21L10.33 6.03"
+            }
+            Self::Tray => {
+                "M1.15 8.19L2.65 4.2A1.2 1.2 0 0 1 3.78 3.42L12.11 3.42A1.2 1.2 0 0 1 13.23 4.2L14.74 8.19L14.74 11.17A1.8 1.8 0 0 1 12.94 12.97L2.95 12.97A1.8 1.8 0 0 1 1.15 11.17ZM1.15 8.19L4.96 8.19L5.92 9.73A0.8 0.8 0 0 0 6.59 10.1L9.29 10.1A0.8 0.8 0 0 0 9.97 9.73L10.93 8.19L14.74 8.19"
+            }
+            Self::DocText => {
+                "M3.17 3.57A1.6 1.6 0 0 1 4.77 1.97L9.03 1.97L12.62 5.56L12.62 12.57A1.6 1.6 0 0 1 11.02 14.17L4.77 14.17A1.6 1.6 0 0 1 3.17 12.57ZM9.03 1.97L9.03 5.56L12.62 5.56M5.53 9.29L10.26 9.29M5.53 11.73L10.26 11.73"
+            }
+            Self::XMarkRectangle => {
+                "M1.15 4.67A1.8 1.8 0 0 1 2.95 2.87L12.94 2.87A1.8 1.8 0 0 1 14.74 4.67L14.74 11.61A1.8 1.8 0 0 1 12.94 13.41L2.95 13.41A1.8 1.8 0 0 1 1.15 11.61ZM5.84 6.03L10.05 10.25M5.84 10.25L10.05 6.03"
+            }
+            Self::PlusRectangle => {
+                "M1.15 4.67A1.8 1.8 0 0 1 2.95 2.87L12.94 2.87A1.8 1.8 0 0 1 14.74 4.67L14.74 11.61A1.8 1.8 0 0 1 12.94 13.41L2.95 13.41A1.8 1.8 0 0 1 1.15 11.61ZM5.42 8.14L10.47 8.14M7.94 5.61L7.94 10.67"
+            }
+            Self::RectangleOnRectangle => {
+                "M4.72 7.63A2 2 0 0 1 6.72 5.63L13.11 5.63A2 2 0 0 1 15.11 7.63L15.11 11.9A2 2 0 0 1 13.11 13.9L6.72 13.9A2 2 0 0 1 4.72 11.9ZM11.07 5.63L11.07 4.41A2 2 0 0 0 9.07 2.41L2.68 2.41A2 2 0 0 0 0.68 4.41L0.68 8.68A2 2 0 0 0 2.68 10.68L4.72 10.68"
+            }
+            Self::RectangleDashed => {
+                "M1.15 5.67A2.8 2.8 0 0 1 3.95 2.87M14.74 5.67A2.8 2.8 0 0 0 11.94 2.87M14.74 10.61A2.8 2.8 0 0 1 11.94 13.41M1.15 10.61A2.8 2.8 0 0 0 3.95 13.41M5.5 2.87L10.39 2.87M5.5 13.41L10.39 13.41M1.15 7.51L1.15 8.77M14.74 7.51L14.74 8.77"
+            }
+            Self::MacWindowOnRectangle => {
+                "M4.14 7.4A2 2 0 0 1 6.14 5.4L13.11 5.4A2 2 0 0 1 15.11 7.4L15.11 11.9A2 2 0 0 1 13.11 13.9L6.14 13.9A2 2 0 0 1 4.14 11.9ZM4.14 7.69L15.11 7.69M5.94 6.54h0M7.44 6.54h0M8.94 6.54h0M4.14 2.41L2.68 2.41A2 2 0 0 0 0.68 4.41L0.68 5.4"
+            }
+            Self::ArrowRightCircle => {
+                "M13.64 8.13A5.77 5.77 0 0 1 2.1 8.13A5.77 5.77 0 0 1 13.64 8.13M5.22 8.13L10.52 8.13M8.56 10.09L10.52 8.13L8.56 6.17"
+            }
+            Self::ArrowLeftCircle => {
+                "M13.64 8.13A5.77 5.77 0 0 1 2.1 8.13A5.77 5.77 0 0 1 13.64 8.13M10.52 8.13L5.22 8.13M7.18 6.17L5.22 8.13L7.18 10.09"
+            }
+            Self::ArrowUpCircle => {
+                "M13.64 8.13A5.77 5.77 0 0 1 2.1 8.13A5.77 5.77 0 0 1 13.64 8.13M7.87 10.78L7.87 5.48M9.83 7.44L7.87 5.48L5.91 7.44"
+            }
+            Self::ChevronRightCircle => {
+                "M13.64 8.13A5.77 5.77 0 0 1 2.1 8.13A5.77 5.77 0 0 1 13.64 8.13M6.85 5.91L9.07 8.13L6.85 10.35"
+            }
+            Self::ChevronLeftCircle => {
+                "M13.64 8.13A5.77 5.77 0 0 1 2.1 8.13A5.77 5.77 0 0 1 13.64 8.13M8.89 5.91L6.67 8.13L8.89 10.35"
+            }
+            Self::PlayCircle => {
+                "M13.64 8.13A5.77 5.77 0 0 1 2.1 8.13A5.77 5.77 0 0 1 13.64 8.13M6.95 6.22A0.6 0.6 0 0 0 6.05 6.74L6.05 9.52A0.6 0.6 0 0 0 6.95 10.04L9.38 8.65A0.6 0.6 0 0 0 9.38 7.61Z"
+            }
+            Self::PauseCircle => {
+                "M13.64 8.13A5.77 5.77 0 0 1 2.1 8.13A5.77 5.77 0 0 1 13.64 8.13M6.66 5.59L6.66 10.67M9.08 5.59L9.08 10.67"
+            }
         }
     }
 }
 
 thread_local! {
-    static CACHE: RefCell<HashMap<(Symbol, u32), Bytes>> = RefCell::new(HashMap::new());
+    static CACHE: RefCell<HashMap<(Symbol, u32, SymbolRenderingMode), Bytes>> = RefCell::new(HashMap::new());
 }
 
-fn source(symbol: Symbol, stroke: f32) -> Bytes {
-    let solid = matches!(
-        symbol,
-        Symbol::Bolt
-            | Symbol::CircleHalf
-            | Symbol::StarFill
-            | Symbol::TriangleLeft
-            | Symbol::TriangleRight
-            | Symbol::Dot
-            | Symbol::XMarkCircleFill
-            | Symbol::PlusCircleFill
-            | Symbol::MinusCircleFill
-            | Symbol::CheckmarkCircleFill
-            | Symbol::ExclamationMarkCircleFill
-            | Symbol::InfoCircleFill
-            | Symbol::QuestionMarkCircleFill
-            | Symbol::ExclamationMarkTriangleFill
-            | Symbol::PersonCropCircle
-    );
-    let filled = solid
-        || matches!(
-            symbol,
-            Symbol::StarFill
-                | Symbol::CapsuleOnRectangleFill
-                | Symbol::Wifi
-                | Symbol::Battery
-                | Symbol::MusicNote
-                | Symbol::Scissors
-        );
+fn subpaths(path: &str) -> Vec<&str> {
+    let starts: Vec<usize> = path.match_indices('M').map(|(start, _)| start).collect();
+    starts
+        .iter()
+        .enumerate()
+        .map(|(index, &start)| &path[start..starts.get(index + 1).copied().unwrap_or(path.len())])
+        .collect()
+}
+
+impl Symbol {
+    fn is_solid(self) -> bool {
+        matches!(
+            self,
+            Self::Bolt
+                | Self::CircleHalf
+                | Self::StarFill
+                | Self::TriangleLeft
+                | Self::TriangleRight
+                | Self::Dot
+                | Self::XMarkCircleFill
+                | Self::PlusCircleFill
+                | Self::MinusCircleFill
+                | Self::CheckmarkCircleFill
+                | Self::ExclamationMarkCircleFill
+                | Self::InfoCircleFill
+                | Self::QuestionMarkCircleFill
+                | Self::ExclamationMarkTriangleFill
+                | Self::PersonCropCircle
+                | Self::StopFill
+                | Self::LockFill
+                | Self::Pencil
+        )
+    }
+
+    fn is_filled(self) -> bool {
+        self.is_solid()
+            || matches!(
+                self,
+                Self::CapsuleOnRectangleFill
+                    | Self::Wifi
+                    | Self::Battery
+                    | Self::MusicNote
+                    | Self::Scissors
+                    | Self::HeartFill
+                    | Self::CameraFill
+            )
+    }
+
+    /// The sub-paths SF draws dimmed in the hierarchical mode, and the level of `SYMBOL_HIERARCHY` they take.
+    fn dimmed(self) -> Option<(&'static [usize], usize)> {
+        match self {
+            Self::ArrowDownCircle
+            | Self::InfoCircle
+            | Self::PlusCircle
+            | Self::MinusCircle
+            | Self::XMarkCircle
+            | Self::CheckmarkCircle
+            | Self::ExclamationMarkCircle
+            | Self::QuestionMarkCircle
+            | Self::EllipsisCircle
+            | Self::Accessibility
+            | Self::ExclamationMarkTriangle
+            | Self::SquareAndArrowUp
+            | Self::SquareAndArrowDown
+            | Self::MenubarDockRectangle
+            | Self::CapsuleOnRectangle
+            | Self::CapsuleOnRectangleFill
+            | Self::Captions => Some((&[0], 1)),
+            Self::XMarkCircleFill
+            | Self::PlusCircleFill
+            | Self::MinusCircleFill
+            | Self::CheckmarkCircleFill
+            | Self::ExclamationMarkCircleFill
+            | Self::InfoCircleFill
+            | Self::QuestionMarkCircleFill
+            | Self::ExclamationMarkTriangleFill => Some((&[0], 2)),
+            Self::Clock => Some((&[1], 1)),
+            Self::ArrowUpArrowDown => Some((&[2, 3], 1)),
+            Self::ListBullet => Some((&[0, 1, 2], 1)),
+            Self::SpeakerWave => Some((&[2], 1)),
+            Self::SquareOnSquare => Some((&[1], 1)),
+            Self::DocOnDoc => Some((&[2], 1)),
+            _ => None,
+        }
+    }
+}
+
+fn layer(path: &str, symbol: Symbol, stroke: f32, level: usize) -> String {
+    let opacity = SYMBOL_HIERARCHY[level];
+    format!(
+        r#"<path d="{path}" fill="{fill}" fill-rule="evenodd" stroke="{paint}" stroke-width="{stroke}" stroke-linecap="round" stroke-linejoin="round"{opacity}/>"#,
+        fill = if symbol.is_filled() {
+            "currentColor"
+        } else {
+            "none"
+        },
+        paint = if symbol.is_solid() {
+            "none"
+        } else {
+            "currentColor"
+        },
+        opacity = if opacity < 1.0 {
+            format!(r#" opacity="{opacity}""#)
+        } else {
+            String::new()
+        },
+    )
+}
+
+fn source(symbol: Symbol, stroke: f32, mode: SymbolRenderingMode) -> Bytes {
     CACHE.with(|cache| {
         cache
             .borrow_mut()
-            .entry((symbol, stroke.to_bits()))
+            .entry((symbol, stroke.to_bits(), mode))
             .or_insert_with(|| {
+                let path = symbol.path();
+                let layers = match (mode, symbol.dimmed()) {
+                    (SymbolRenderingMode::Hierarchical, Some((dimmed, level))) => {
+                        let parts = subpaths(path);
+                        let pick = |keep_dimmed: bool| {
+                            parts
+                                .iter()
+                                .enumerate()
+                                .filter(|(index, _)| dimmed.contains(index) == keep_dimmed)
+                                .map(|(_, part)| *part)
+                                .collect::<String>()
+                        };
+                        let primary = pick(false);
+                        layer(&pick(true), symbol, stroke, level)
+                            + &layer(&primary, symbol, stroke, 0)
+                    }
+                    _ => layer(path, symbol, stroke, 0),
+                };
                 Bytes::from(format!(
-                    r#"<svg viewBox="0 0 {grid} {grid}"><path d="{path}" fill="{fill}" fill-rule="evenodd" stroke="{paint}" stroke-width="{stroke}" stroke-linecap="round" stroke-linejoin="round"/></svg>"#,
-                    grid = SYMBOL.grid,
-                    path = symbol.path(),
-                    fill = if filled { "currentColor" } else { "none" },
-                    paint = if solid { "none" } else { "currentColor" },
+                    r#"<svg viewBox="0 0 {grid} {grid}">{layers}</svg>"#,
+                    grid = SYMBOL.grid
                 ))
             })
             .clone()
@@ -492,6 +730,9 @@ enum Source {
 pub struct Image {
     source: Source,
     rendering_mode: TemplateRenderingMode,
+    symbol_rendering_mode: SymbolRenderingMode,
+    weight: FontWeight,
+    scale: ImageScale,
     icon_style: IconStyle,
     plated: bool,
     glass_plate: bool,
@@ -521,6 +762,9 @@ impl Image {
         Self {
             source,
             rendering_mode: TemplateRenderingMode::Original,
+            symbol_rendering_mode: SymbolRenderingMode::default(),
+            weight: FontWeight::default(),
+            scale: ImageScale::default(),
             icon_style: IconStyle::Default,
             plated: false,
             glass_plate: false,
@@ -532,6 +776,21 @@ impl Image {
 
     pub fn rendering_mode(mut self, rendering_mode: TemplateRenderingMode) -> Self {
         self.rendering_mode = rendering_mode;
+        self
+    }
+
+    pub fn symbol_rendering_mode(mut self, mode: SymbolRenderingMode) -> Self {
+        self.symbol_rendering_mode = mode;
+        self
+    }
+
+    pub fn font_weight(mut self, weight: FontWeight) -> Self {
+        self.weight = weight;
+        self
+    }
+
+    pub fn image_scale(mut self, scale: ImageScale) -> Self {
+        self.scale = scale;
         self
     }
 
@@ -600,7 +859,14 @@ impl From<Image> for Element {
         let on_glass = |style: IconStyle| image.glass_plate && style == IconStyle::Clear;
         match (image.source, image.rendering_mode) {
             (Source::System(glyph), _) => {
-                viewer(source(glyph, style.stroke), style.size, color).into_element()
+                let size = style.size * SYMBOL_SCALE_SIZE[image.scale as usize];
+                let stroke = style.stroke * image.scale.weight_strokes()[image.weight as usize];
+                viewer(
+                    source(glyph, stroke, image.symbol_rendering_mode),
+                    size,
+                    color,
+                )
+                .into_element()
             }
             (Source::Data(bytes), TemplateRenderingMode::Original) if plain && is_svg(&bytes) => {
                 SvgViewer::new(bytes)
@@ -642,15 +908,31 @@ impl From<Image> for Element {
 }
 
 pub(crate) fn symbol(symbol: Symbol, size: f32, color: Rgba) -> SvgViewer {
-    viewer(source(symbol, SYMBOL.stroke), size, color)
+    viewer(
+        source(symbol, SYMBOL.stroke, SymbolRenderingMode::Monochrome),
+        size,
+        color,
+    )
 }
 
 pub(crate) fn stroked_symbol(symbol: Symbol, size: f32, stroke: f32, color: Rgba) -> SvgViewer {
-    viewer(source(symbol, stroke * SYMBOL.grid / size), size, color)
+    viewer(
+        source(
+            symbol,
+            stroke * SYMBOL.grid / size,
+            SymbolRenderingMode::Monochrome,
+        ),
+        size,
+        color,
+    )
 }
 
 pub(crate) fn tile_symbol(symbol: Symbol, size: f32, color: Rgba) -> SvgViewer {
-    viewer(source(symbol, SYMBOL.fine_stroke), size, color)
+    viewer(
+        source(symbol, SYMBOL.fine_stroke, SymbolRenderingMode::Monochrome),
+        size,
+        color,
+    )
 }
 
 fn viewer(source: Bytes, size: f32, color: Rgba) -> SvgViewer {

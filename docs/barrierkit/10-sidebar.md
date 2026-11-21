@@ -41,7 +41,7 @@ page follows the selected item.
        .child(
            SidebarSection::new("Library")
                .child(item(1, "Recent", Symbol::Clock))
-               .child(item(2, "Downloads", Symbol::ArrowDown)),
+               .child(item(2, "Downloads", Symbol::ArrowDownCircle)),
        );
    ```
 

@@ -135,9 +135,9 @@ Rows per status at the snapshot. A row is one API, style or size.
 | 13. Presentation | 1 | 4 | 8 | 1 | 14 |
 | 14. Windows and chrome | 1 | 4 | 12 | 13 | 30 |
 | 15. Materials and glass | 0 | 1 | 5 | 0 | 6 |
-| 16. Symbols | 1 | 0 | 4 | 1 | 6 |
+| 16. Symbols | 2 | 0 | 3 | 1 | 6 |
 | 17. Accessibility | 1 | 1 | 10 | 1 | 13 |
-| **All** | 64 | 36 | 82 | 38 | 220 |
+| **All** | 65 | 36 | 81 | 38 | 220 |
 
 To recount after a change, run this from the repository root:
 
@@ -494,10 +494,10 @@ The size of each control is a row in its own family.
 
 | SwiftUI | AppKit | Kit | Status | Measure | Pri |
 |---|---|---|---|---|---|
-| `Image(systemName:)` | `NSImage(systemSymbolName:)` | `Image::system`, `Symbol` | `partial`: 124 symbols against the 2386 public names that resolve here; the 56 drawn on 2026-11-20 match SF at 16 pt (ink box within 0.5 in all, mass within 10% in 50) | [Icons][m-icons] | P1 |
+| `Image(systemName:)` | `NSImage(systemSymbolName:)` | `Image::system`, `Symbol` | `partial`: 151 symbols against the 2386 public names that resolve here; the 83 drawn on 2026-11-20 and 2026-11-21 match SF at 16 pt (ink box within 0.55 in all, mass within 10% in 70); the 65 older ones are up to 4 units off and left as they were | [Icons][m-icons] | P1 |
 | toolbar glyphs | SF Symbols at 16 pt | `IconButton` symbols | `partial`: chevrons and plus match; `ellipsis`, `sidebar.left`, `magnifyingglass` do not | [Toolbar][m-toolbar] | P1 |
-| `.symbolRenderingMode` (monochrome, hierarchical, palette, multicolor) | `NSImage.SymbolConfiguration` | `TemplateRenderingMode` (original, template) | `partial` | none | P3 |
-| `.imageScale`, symbol weight | `SymbolConfiguration` | `ImageStyle` size and stroke | `partial` | none | P2 |
+| `.symbolRenderingMode` (monochrome, hierarchical, palette, multicolor) | `NSImage.SymbolConfiguration` | `Image::symbol_rendering_mode`: monochrome and hierarchical (alpha 1, 0.5, 0.25 measured; 30 of the 36 symbols SF dims); `TemplateRenderingMode` (original, template) | `partial`: palette and multicolor missing | [Icons][m-icons] | P3 |
+| `.imageScale`, symbol weight | `SymbolConfiguration` | `Image::image_scale`, `Image::font_weight` (nine weights, three scales, measured with `ImageRenderer`) | `measured`: on one image; the environment values that reach a subtree and the controls' own symbols do not follow | [Icons][m-icons] | P2 |
 | `.symbolVariant`, `.symbolEffect`, variable value | `NSSymbolEffect` | — | `missing` | none | P3 |
 | menu item icons | `NSMenuItem.image` | `MenuIcon` | `measured`: a SwiftUI menu draws them with `.labelStyle(.titleAndIcon)`, `NSMenuItem.image` draws nothing in a pop-up menu; column, gap, size and color match; AppKit sets 47 of 58 standard items' images, listed in [Icons][m-icons] | [Menus][m-menus] | P2 |
 

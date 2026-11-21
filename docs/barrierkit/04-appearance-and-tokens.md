@@ -119,11 +119,11 @@ ring (`docs/research/macos-control-metrics.md`). Outlines use the separator.
 `Image(systemName:)`. It is `BODY.size` pixels square, in the `label` color
 of the `Palette`. `.size(f32)` and `.color(Rgba)` change them. The icons
 are drawn on a grid of `SYMBOL.grid` (16) with a stroke of `SYMBOL.stroke`
-(1.4), like SF Symbols at regular weight. Inside a `SymbolTile` they take
-`SYMBOL.fine_stroke` (1), as macOS Settings draws its smaller sidebar symbols.
+(1), like SF Symbols at regular weight and medium scale. Inside a `SymbolTile`
+they take `SYMBOL.fine_stroke` (1 too since 2026-11-21; malaysia still reads it).
 `Bolt` and `CircleHalf` are solid shapes without a stroke.
 
-A symbol is fitted to the SF Symbol at 16 pt, regular weight, medium scale, drawn at 20 px: one grid unit is 1.25 px and one em is 12.8 units. SF's regular stroke is 1.25 pt, which is 1.0 on the grid, so `SYMBOL.stroke` (1.4) carries 40% more ink and the symbol lab draws at 1.0. A symbol wider than 1.25 em does not fit the grid. The inventory of the SF names, their ink and what the kit has is in [Icons macOS uses](../research/macos-icons.md).
+A symbol is fitted to the SF Symbol at 16 pt, regular weight, medium scale, drawn at 20 px: one grid unit is 1.25 px and one em is 12.8 units. SF's regular stroke at medium scale is 1.31 pt on average (1.19 to 1.40 by symbol), which is 1.05 on the grid; `SYMBOL.stroke` was 1.4 until 2026-11-21, 35% too heavy, and is 1. A symbol wider than 1.25 em does not fit the grid. The inventory of the SF names, their ink and what the kit has is in [Icons macOS uses](../research/macos-icons.md).
 
 ```rust
 Image::system(Symbol::Folder)
@@ -131,11 +131,31 @@ Image::system(Symbol::Folder)
     .color(Palette::current().accent)
 ```
 
+`Image::font_weight`, `Image::image_scale` and `Image::symbol_rendering_mode`
+are SwiftUI's `.fontWeight(_:)`, `.imageScale(_:)` and `.symbolRenderingMode(_:)`
+for one symbol. `FontWeight`, `ImageScale` and `SymbolRenderingMode` are in the
+prelude.
+
+```rust
+Image::system(Symbol::InfoCircle)
+    .font_weight(FontWeight::Semibold)
+    .image_scale(ImageScale::Large)
+    .symbol_rendering_mode(SymbolRenderingMode::Hierarchical)
+```
+
+| Modifier | Values | What the kit draws |
+|---|---|---|
+| `font_weight` | `UltraLight`, `Thin`, `Light`, `Regular` (default), `Medium`, `Semibold`, `Bold`, `Heavy`, `Black` | The stroke is `SYMBOL.stroke` times `SYMBOL_WEIGHT_STROKE_<scale>[weight]`: 0.29, 0.45, 0.76, 1, 1.22, 1.38, 1.60, 1.91 and 2.20 at medium scale. |
+| `image_scale` | `Small`, `Medium` (default), `Large` | The box is `size` times `SYMBOL_SCALE_SIZE`: 0.793, 1 and 1.275. The stroke grows less than the box (0.90 and 1.10 of medium at regular weight), so it is a separate table per scale. |
+| `symbol_rendering_mode` | `Monochrome` (default), `Hierarchical` | Hierarchical draws a second layer of 30 symbols at `SYMBOL_HIERARCHY[1]` (0.5) or `[2]` (0.25) of the color; the mark stays at 1. The other symbols draw the same in both modes. |
+
+The tables were measured on macOS 27.2.1 with SwiftUI's `ImageRenderer` ([Icons macOS uses](../research/macos-icons.md#1-method-and-reference-frame)). A weight and a scale apply to `Image::system` only, and to one image: SwiftUI's environment versions that reach a whole subtree do not exist, so a control that draws a symbol keeps regular weight and medium scale. Palette and multicolor rendering are not drawn.
+
 `Symbol` names the icon. `Image` and `Symbol` are in the prelude:
 
 | Group | Variants |
 |---|---|
-| Navigation | `ChevronRight`, `ChevronLeft`, `ChevronUp`, `ChevronDown`, `ChevronUpDown`, `ChevronDoubleRight`, `GoBackward`, `GoForward`, `ArrowDown` |
+| Navigation | `ChevronRight`, `ChevronLeft`, `ChevronUp`, `ChevronDown`, `ChevronUpDown`, `ChevronDoubleRight`, `GoBackward`, `GoForward`, `ArrowDownToLine` |
 | Actions | `MagnifyingGlass`, `XMark`, `Plus`, `Minus`, `Ellipsis`, `Checkmark`, `Expand`, `QuestionMark` |
 | Media | `Play`, `Pause`, `Shuffle`, `ChevronLeftForwardSlashChevronRight`, `Backward`, `Forward`, `SpeakerWave`, `Captions`, `Film`, `Tv` |
 | Layout | `ListBullet`, `SquareGrid`, `SlidersVertical`, `SidebarLeft` |
@@ -146,18 +166,23 @@ Image::system(Symbol::Folder)
 | Sidebar and places | `ArrowDownCircle`, `ICloud`, `InternalDrive`, `ExternalDrive`, `Trash`, `Tag`, `MusicNote`, `DesktopComputer`, `Eject`, `PersonCropCircle` |
 | Share and edit | `SquareAndArrowUp`, `SquareAndArrowDown`, `DocOnDoc`, `Scissors`, `ArrowUturnBackward`, `ArrowUturnForward`, `ArrowClockwise`, `ArrowCounterclockwise` |
 | Find and organize | `ArrowUpArrowDown`, `Line3HorizontalDecrease`, `Heart`, `Flag`, `Key`, `Calendar`, `Envelope`, `PaperPlane`, `Mic`, `Camera`, `GearShape` |
-| Arrows | `ArrowLeft`, `ArrowRight`, `ArrowUp`, `ArrowUpForward` |
+| Arrows | `ArrowLeft`, `ArrowRight`, `ArrowUp`, `ArrowDown`, `ArrowUpForward`, `ArrowDownToLine`, `ArrowRightCircle`, `ArrowLeftCircle`, `ArrowUpCircle`, `ChevronRightCircle`, `ChevronLeftCircle` |
 | Layout and text | `MacWindow`, `SidebarRight`, `TextAlignLeft`, `TextAlignCenter`, `TextAlignRight`, `TextJustify` |
 | States | `InfoCircle`, `PlusCircle`, `MinusCircle`, `XMarkCircle`, `CheckmarkCircle`, `ExclamationMarkCircle`, `QuestionMarkCircle`, `ExclamationMarkTriangle`, `NoSign` |
 | States, filled | `XMarkCircleFill`, `PlusCircleFill`, `MinusCircleFill`, `CheckmarkCircleFill`, `ExclamationMarkCircleFill`, `InfoCircleFill`, `QuestionMarkCircleFill`, `ExclamationMarkTriangleFill` |
+| Links, edit and files | `Link`, `Pencil`, `SquareAndPencil`, `DocText`, `Tray`, `Repeat`, `CheckmarkSquare` |
+| Privacy | `LockOpen`, `LockFill` |
+| Sound and transport | `SpeakerSlash`, `SpeakerWave1`, `StopFill`, `PlayCircle`, `PauseCircle` |
+| Window menus | `XMarkRectangle`, `PlusRectangle`, `RectangleOnRectangle`, `RectangleDashed`, `MacWindowOnRectangle` |
+| Filled | `HeartFill`, `CameraFill` |
 
-The `*Fill` states and `PersonCropCircle` are solid shapes with the mark cut out of them. `MusicNote` and `Scissors` are filled and stroked. `StarFill` and `CapsuleOnRectangleFill` are the older filled symbols. The kit caches the SVG of each symbol.
+The `*Fill` states, `PersonCropCircle`, `LockFill`, `StopFill` and `Pencil` are solid shapes (the mark is cut out of them). `MusicNote`, `Scissors`, `HeartFill` and `CameraFill` are filled and stroked. `StarFill` and `CapsuleOnRectangleFill` are the older filled symbols. The kit caches the SVG of each symbol.
 
 Add a symbol in five steps:
 
 1. Find the SF name in [Icons macOS uses](../research/macos-icons.md) and read its ink at 16 pt.
 2. Draw the path on the 16 grid so that its ink box is the SF's, divided by 1.25 px per unit; draw at stroke 1.0.
-3. Add the variant to `Symbol` and the `(sf name, Symbol)` row to `crates/bk/tests/kit/appkit_icons.rs`.
+3. Add the variant to `Symbol` and the `(sf name, Symbol)` row to `ICONS` in `crates/bk/tests/kit/appkit_icons.rs`: `a_symbol_is_not_cut_by_its_frame` checks that its ink stays inside the 16 grid. If SF dims a layer in hierarchical mode, add it to `Symbol::dimmed` (the sub-paths to dim and the level) and to `HIERARCHICAL`.
 4. Render the lab (`scripts/appkit-render.sh icons`) and run `scripts/appkit-compare.py icons`: the ink box within 0.5 and the mass within 5%.
 5. Add the row with its Apple name to the [glossary](20-glossary.md#symbol-variants).
 

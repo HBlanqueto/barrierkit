@@ -69,6 +69,11 @@ FULLSCREEN_BAR FullscreenBarMetrics components.window.titlebar.fullscreen-bar
 BACKDROP BackdropMetrics components.backdrop
 BACKDROP_SCENES BackdropScenes components.backdrop-scenes
 SYMBOL SymbolMetrics components.symbol
+SYMBOL_SCALE_SIZE [f32;3] components.symbol.scale-size
+SYMBOL_WEIGHT_STROKE_SMALL [f32;9] components.symbol.weight-stroke-small
+SYMBOL_WEIGHT_STROKE_MEDIUM [f32;9] components.symbol.weight-stroke-medium
+SYMBOL_WEIGHT_STROKE_LARGE [f32;9] components.symbol.weight-stroke-large
+SYMBOL_HIERARCHY [f32;3] components.symbol.hierarchy
 ICON_STYLE IconStyleMetrics components.icon-style
 ICON_PLATE IconPlateMetrics components.icon-plate
 ICON_PLATE_LOBE_DARK IconPlateLook components.icon-plate.lobe-dark

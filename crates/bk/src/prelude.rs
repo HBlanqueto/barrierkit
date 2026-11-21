@@ -24,6 +24,8 @@ pub use crate::modifiers::{EnvironmentModifiers, StyleModifiers, ViewModifiers};
 pub use crate::platform::{RunError, WindowOptions, run_window};
 pub use crate::style::{Palette, text};
 pub use crate::styles::*;
-pub use crate::symbol::{IconStyle, Image, Symbol, TemplateRenderingMode};
+pub use crate::symbol::{
+    FontWeight, IconStyle, Image, ImageScale, Symbol, SymbolRenderingMode, TemplateRenderingMode,
+};
 pub use crate::theme::color;
 pub use crate::titlebar::Titlebar;

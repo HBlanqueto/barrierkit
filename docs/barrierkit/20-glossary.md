@@ -384,7 +384,13 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 
 | BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
 |---|---|---|---|---|---|
-| `symbol::Symbol` | enum | ≈ `Image(systemName:)` names | ≈ `NSImage(systemSymbolName:accessibilityDescription:)` names | Name of a built-in line icon; 124 variants, listed with their Apple names in [Symbol variants](#symbol-variants) | [4](04-appearance-and-tokens.md#symbols) |
+| `symbol::Symbol` | enum | ≈ `Image(systemName:)` names | ≈ `NSImage(systemSymbolName:accessibilityDescription:)` names | Name of a built-in line icon; 151 variants, listed with their Apple names in [Symbol variants](#symbol-variants) | [4](04-appearance-and-tokens.md#symbols) |
+| `symbol::FontWeight` | enum | `Font.Weight` | `NSFont.Weight` | The nine weights of a symbol: `UltraLight` to `Black`; `Regular` by default | [4](04-appearance-and-tokens.md#symbols) |
+| `symbol::ImageScale` | enum | `Image.Scale` | `NSImage.SymbolScale` | `Small`, `Medium` (default) or `Large`: the size of a symbol next to its text | [4](04-appearance-and-tokens.md#symbols) |
+| `symbol::SymbolRenderingMode` | enum | `SymbolRenderingMode` | `NSImage.SymbolConfiguration` | `Monochrome` (default) or `Hierarchical` (a dimmed second layer) | [4](04-appearance-and-tokens.md#symbols) |
+| `symbol::Image::font_weight` | method | `.fontWeight(_:)` | `NSImage.SymbolConfiguration(weight:)` | The weight of one symbol: its stroke | [4](04-appearance-and-tokens.md#symbols) |
+| `symbol::Image::image_scale` | method | `.imageScale(_:)` | `NSImage.SymbolConfiguration(scale:)` | The scale of one symbol: its size and the stroke that goes with it | [4](04-appearance-and-tokens.md#symbols) |
+| `symbol::Image::symbol_rendering_mode` | method | `.symbolRenderingMode(_:)` | `NSImage.SymbolConfiguration(hierarchicalColor:)` | The rendering mode of one symbol | [4](04-appearance-and-tokens.md#symbols) |
 | `symbol::Image` | struct | `Image(systemName:)` | `NSImage(systemSymbolName:accessibilityDescription:)` | A symbol as a view; `BODY` size and label color by default | [4](04-appearance-and-tokens.md#symbols) |
 | `symbol::Image::data` | fn | `Image(nsImage:)` | `NSImage(data:)` | An image view from SVG, PNG or JPEG bytes | [4](04-appearance-and-tokens.md#images-and-template-rendering) |
 | `symbol::Image::rgba` | fn | `Image(nsImage:)` | ≈ `NSBitmapImageRep` | An image view from straight-alpha RGBA pixels | [4](04-appearance-and-tokens.md#images-and-template-rendering) |
@@ -439,7 +445,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `Star` | `star` | before 2026-11-20 |
 | `Clock` | `clock` | before 2026-11-20 |
 | `Bookmark` | `bookmark` | before 2026-11-20 |
-| `ArrowDown` | `arrow.down.to.line` ≈ | before 2026-11-20 |
+| `ArrowDownToLine` | `arrow.down.to.line` ≈ | before 2026-11-20; named `ArrowDown` until 2026-11-21 |
 | `Checkmark` | `checkmark` | before 2026-11-20 |
 | `Captions` | `captions.bubble` ≈ | before 2026-11-20 |
 | `Expand` | `arrow.up.left.and.arrow.down.right` ≈ | before 2026-11-20 |
@@ -532,6 +538,33 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `DesktopComputer` | `desktopcomputer` | 2026-11-20 |
 | `PersonCropCircle` | `person.crop.circle` | 2026-11-20 |
 | `Eject` | `eject` | 2026-11-20 |
+| `ArrowDown` | `arrow.down` | 2026-11-21 |
+| `Link` | `link` | 2026-11-21 |
+| `Pencil` | `pencil` | 2026-11-21 |
+| `SquareAndPencil` | `square.and.pencil` | 2026-11-21 |
+| `LockOpen` | `lock.open` | 2026-11-21 |
+| `LockFill` | `lock.fill` | 2026-11-21 |
+| `StopFill` | `stop.fill` | 2026-11-21 |
+| `SpeakerSlash` | `speaker.slash` | 2026-11-21 |
+| `SpeakerWave1` | `speaker.wave.1` | 2026-11-21 |
+| `Repeat` | `repeat` | 2026-11-21 |
+| `CheckmarkSquare` | `checkmark.square` | 2026-11-21 |
+| `Tray` | `tray` | 2026-11-21 |
+| `DocText` | `doc.text` | 2026-11-21 |
+| `XMarkRectangle` | `xmark.rectangle` | 2026-11-21 |
+| `PlusRectangle` | `plus.rectangle` | 2026-11-21 |
+| `RectangleOnRectangle` | `rectangle.on.rectangle` | 2026-11-21 |
+| `RectangleDashed` | `rectangle.dashed` | 2026-11-21 |
+| `MacWindowOnRectangle` | `macwindow.on.rectangle` | 2026-11-21 |
+| `ArrowRightCircle` | `arrow.right.circle` | 2026-11-21 |
+| `ArrowLeftCircle` | `arrow.left.circle` | 2026-11-21 |
+| `ArrowUpCircle` | `arrow.up.circle` | 2026-11-21 |
+| `ChevronRightCircle` | `chevron.right.circle` | 2026-11-21 |
+| `ChevronLeftCircle` | `chevron.left.circle` | 2026-11-21 |
+| `PlayCircle` | `play.circle` | 2026-11-21 |
+| `PauseCircle` | `pause.circle` | 2026-11-21 |
+| `HeartFill` | `heart.fill` | 2026-11-21 |
+| `CameraFill` | `camera.fill` | 2026-11-21 |
 
 ## Helpers
 
@@ -841,7 +874,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `ctdesign::TRAFFIC_LIGHTS_{LIGHT,DARK,DARK_TINT}`, `TRAFFIC_LIGHTS_CONTRAST_*`, `TRAFFIC_GLYPHS`, `TRAFFIC_RING_WIDTH`, `TRAFFIC_MARGIN`, `TRAFFIC_PRESS`, `TRAFFIC_GLYPH_FADE_MS`, `TRAFFIC_CLOSE_MINIMIZE_DARKEN`, `TRAFFIC_ZOOM_LIGHTEN` | constant | — | — | Traffic-light looks, glyphs, ring, margin, press and the shifts that derive tinted tones | [4](04-appearance-and-tokens.md#traffic-lights) |
 | `ctdesign::BUTTON`, `ICON_BUTTON`, `SWITCH`, `CHECKBOX`, `SLIDER`, `SLIDER_FAT`, `SLIDER_KEY_STEP`, `KNOB_SHADOW`, `KNOB_HELD_SHADOW`, `KNOB_HELD_SHADOW_DARK`, `KNOB_LENS`, `SEGMENTED`, `STEPPER`, `TOOLBAR_SEARCH_WIDTH` | constant | — | — | Metrics of buttons, toggles, sliders and toolbar controls | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::TEXT_FIELD`, `TOKEN_FIELD`, `SPELLING`, `COMBO_BOX`, `PATH_CONTROL`, `DATE_PICKER`, `IMAGE_WELL` | constant | — | — | Metrics of fields and pickers | [4](04-appearance-and-tokens.md#control-metrics) |
-| `ctdesign::LEVEL_INDICATOR`, `GAUGE`, `PROGRESS`, `BADGE`, `FOCUS_RING`, `SYMBOL`, `ICON_STYLE`, `ICON_PLATE`, `ICON_PLATE_LOBE_DARK`, `ICON_PLATE_LOBE_LIGHT`, `ICON_PLATE_GRAPHITE`, `ICON_PLATE_SILVER`, `ICON_PLATE_CLEAR`, `ICON_PLATE_CLEAR_DARK`, `ICON_PLATE_TINTED`, `ICON_PLATE_TINTED_DARK`, `ICON_PLATE_GLASS`, `ICON_PLATE_GLASS_DARK`, `ICON_PLATE_GLASS_DARK_ON_DARK`, `ICON_LOGO_CLEAR`, `ICON_LOGO_CLEAR_DARK`, `ICON_LOGO_TINTED`, `ICON_LOGO_TINTED_DARK`, `TOOLTIP`, `POPOVER`, `DRAG` | constant | — | — | Metrics of indicators, focus ring, symbols, icon styles, tooltips, popovers, drag; `ICON_PLATE_GLASS`, `_DARK` and `_DARK_ON_DARK` (dark icons on a dark Dock) are the lightness a clear plate drawn as glass moves toward, how far, its chroma scale and its light lift | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::LEVEL_INDICATOR`, `GAUGE`, `PROGRESS`, `BADGE`, `FOCUS_RING`, `SYMBOL`, `SYMBOL_SCALE_SIZE`, `SYMBOL_WEIGHT_STROKE_SMALL`, `SYMBOL_WEIGHT_STROKE_MEDIUM`, `SYMBOL_WEIGHT_STROKE_LARGE`, `SYMBOL_HIERARCHY`, `ICON_STYLE`, `ICON_PLATE`, `ICON_PLATE_LOBE_DARK`, `ICON_PLATE_LOBE_LIGHT`, `ICON_PLATE_GRAPHITE`, `ICON_PLATE_SILVER`, `ICON_PLATE_CLEAR`, `ICON_PLATE_CLEAR_DARK`, `ICON_PLATE_TINTED`, `ICON_PLATE_TINTED_DARK`, `ICON_PLATE_GLASS`, `ICON_PLATE_GLASS_DARK`, `ICON_PLATE_GLASS_DARK_ON_DARK`, `ICON_LOGO_CLEAR`, `ICON_LOGO_CLEAR_DARK`, `ICON_LOGO_TINTED`, `ICON_LOGO_TINTED_DARK`, `TOOLTIP`, `POPOVER`, `DRAG` | constant | — | — | Metrics of indicators, focus ring, symbols, icon styles, tooltips, popovers, drag; `SYMBOL` is the grid and the regular stroke (1, 1 for a tile), `SYMBOL_SCALE_SIZE` the box factor of the three scales, `SYMBOL_WEIGHT_STROKE_*` the stroke of the nine weights per scale as a multiple of the regular one, and `SYMBOL_HIERARCHY` the alpha of the primary, secondary and tertiary layers; `ICON_PLATE_GLASS`, `_DARK` and `_DARK_ON_DARK` (dark icons on a dark Dock) are the lightness a clear plate drawn as glass moves toward, how far, its chroma scale and its light lift | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::MENU_POPOVER`, `MENU_MARK_TEXT_GAP`, `MENU_ICON_TEXT_GAP`, `MENU_SUBMENU_INTENT_MS`, `MENU_SUBMENU_REVEAL_GAP`, `MENU_SCROLL_TICK_MS`, `MENU_SEARCH_ICON`, `MENU_SEARCH_ICON_GAP`, `MENU_SEARCH_CLEAR`, `MENU_SEARCH_CLEAR_GLYPH`, `MENU_SEARCH_PADDING_X`, `MENU_SEARCH_CLEAR_MIX`, `MENU_HELP_ICON`, `MENU_SEPARATOR_INK_MIX` | constant | — | — | Menu and pop-up menu metrics and timing | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::SIDEBAR`, `TOOLGROUP`, `SPLIT_VIEW`, `SPLIT_PANES`, `FLOATING_PANE`, `TABLE`, `COLLECTION`, `LIST_GROUP`, `LIST_SECTION`, `GROUP_BOX`, `DISCLOSURE`, `TOOLBAR_TABS`, `TAB_VIEW`, `SCROLL_BAR` | constant | — | — | Metrics of sidebars, split views, lists, tables and groups | [4](04-appearance-and-tokens.md#view-metrics) |
 | `ctdesign::SETTINGS`, `FONT_PANEL`, `MEDIA`, `BACKDROP`, `BACKDROP_SCENES` | constant | — | — | Metrics of settings, font panel, media, backdrops | [4](04-appearance-and-tokens.md#view-metrics) |

@@ -26,7 +26,7 @@ Apple's symbols and icons are Apple's work. The kit and the theme never copy an 
 
 **Reference frame.** A kit symbol at 20 px on the 16 grid equals the SF Symbol at 16 pt, regular, medium scale. One grid unit is 1.25 px and one em is 12.8 grid units. The SwiftUI sidebar icons (`square.grid.2x2` 15 x 15, `doc` 14 x 18, `network` 17 x 17 px at 1x) and the toolbar glyphs fit it within 1 pt. The kit's sidebar tile is 20 px and its toolbar glyph 21 px.
 
-**Weight.** The regular stroke of SF is 1.25 pt at 16 pt: 1.0 grid unit. `SYMBOL.stroke` is 1.4, so a symbol drawn at the default stroke carries 40% more ink than AppKit's. The lab draws at 1.0.
+**Weight, 2026-11-20 (AppKit raster).** `icons weights` drew each symbol with `NSImage.SymbolConfiguration` into a 4x bitmap and read the regular stroke as 1.25 pt at 16 pt: 1.0 grid unit. That is the `SYMBOL.stroke` the 56 symbols of that day were fitted at.
 
 | Weight | Stroke at 16 pt | Weight | Stroke at 16 pt |
 |---|---|---|---|
@@ -36,7 +36,27 @@ Apple's symbols and icons are Apple's work. The kit and the theme never copy an 
 | bold | 1.93 pt | heavy | 2.25 pt |
 | black | 2.57 pt | | |
 
-The scales change the size, not the weight: the ink of `circle` is 0.85 of medium at small (12.75 pt), 1.0 at medium (15.0 pt) and 1.43 at large (21.5 pt).
+**Weight and scale, 2026-11-21 (SwiftUI vector).** `~/src/probes/iconsui` renders `Image(systemName:)` with `.font(.system(size:weight:))` and `.imageScale(_:)` through `ImageRenderer` at 8x, black on transparent, and reads the stroke as the area of a cross-section (sum of alpha across the bar, no threshold). It reads `minus` (one bar), `circle` (the ring) and `line.3.horizontal` (three bars). Data: `~/src/captures/icons/ui/{stroke,ink,alpha,layers}.json`.
+
+1. At 16 pt, regular, medium scale the stroke is 1.40 pt (`minus`), 1.33 pt (`circle`) and 1.19 pt (`line.3.horizontal`): 1.31 pt on average, 1.05 grid units. Each symbol has its own stroke; the 1.25 pt of 2026-11-20 is the average of the small scale (1.17 pt) and the medium one, not a property of AppKit.
+2. The stroke is linear in the point size: 0.0877, 0.0831 and 0.0742 em for the three symbols at every size from 10 to 32 pt (the ink of `circle` is exactly one em).
+3. The mean stroke of the three, in points at 16 pt:
+
+| Weight | Small | Medium | Large |
+|---|---|---|---|
+| ultraLight | 0.36 pt | 0.38 pt | 0.40 pt |
+| thin | 0.54 pt | 0.59 pt | 0.64 pt |
+| light | 0.90 pt | 1.00 pt | 1.09 pt |
+| regular | 1.17 pt | 1.31 pt | 1.43 pt |
+| medium | 1.38 pt | 1.59 pt | 1.78 pt |
+| semibold | 1.55 pt | 1.80 pt | 2.05 pt |
+| bold | 1.76 pt | 2.09 pt | 2.39 pt |
+| heavy | 2.07 pt | 2.50 pt | 2.90 pt |
+| black | 2.34 pt | 2.87 pt | 3.31 pt |
+
+4. The scale changes the size by a fixed factor, the same for every symbol: small 0.793 and large 1.275 of medium (the mean over 15 symbols and both axes, each within 0.01). On 2026-11-20 an AppKit raster of `circle` gave 0.85 and 1.43; the vector render supersedes it. The stroke grows less than the size: 0.90 and 1.10 of medium at regular weight.
+5. A heavier weight grows the ink less than the stroke: `circle` ink grows 1.12 pt from regular to black while its stroke grows 1.45 pt. A kit symbol that keeps its centerline and thickens its stroke overshoots by at most 0.4 pt at black.
+6. `SYMBOL.stroke` is 1.0 since 2026-11-21 (it was 1.4). `symbol.weight-stroke-{small,medium,large}` in `components.json` hold the stroke of each weight as a multiple of the regular medium stroke, per grid unit of the scaled box; `symbol.scale-size` holds the size factors.
 
 ## 2. Inventory by place
 
@@ -377,19 +397,35 @@ Probed on the 2386 names that resolve:
 | Multicolor (`preferringMulticolor`) | 474 |
 | Variable value (`variableValue`) | 315 |
 
-The kit draws monochrome only, in one color (`currentColor`). A `.fill` variant is a second `Symbol` (`StarFill`, `XMarkCircleFill`).
+**Hierarchical alpha, 2026-11-21.** `iconsui alpha` and `iconsui layers` render each name with `.symbolRenderingMode(.hierarchical)` and a black foreground, and read the alpha histogram. The levels are fixed: primary 1.0, secondary 0.5, tertiary 0.25 (`symbol.hierarchy` in `components.json`). 36 of the 122 SF names the kit has draw a second layer:
+
+| Family | Dimmed layer | Alpha |
+|---|---|---|
+| `*.circle`, `accessibility`, `clock`, `ellipsis.circle`, `exclamationmark.triangle` | the ring or outline | 0.5 |
+| `*.circle.fill`, `exclamationmark.triangle.fill` | the disc, under the mark | 0.25 |
+| `square.and.arrow.up`, `square.and.arrow.down` | the box | 0.5 |
+| `arrow.up.arrow.down` | the right arrow | 0.5 |
+| `doc.on.doc`, `square.on.square`, `capsule.on.rectangle`, `menubar.dock.rectangle`, `captions.bubble` | the back shape or the frame | 0.5 |
+| `list.bullet` | the bars; the bullets stay full | 0.5 |
+| `speaker.wave.2` | the outer wave | 0.5 |
+| `desktopcomputer`, `display`, `tv` | the screen, a filled area | 0.25 |
+| `macwindow` | the frame; the three dots stay full | 0.5 |
+
+The other 86 are drawn at 1.0 in both modes (`wifi`, `folder.fill`, `battery.100`, `sidebar.left`). The kit draws monochrome in one color (`currentColor`) and hierarchical for 30 of the 36 (the table's `desktopcomputer`, `display`, `tv` have no filled screen in the kit, and `macwindow` has no dots; `printer` has a layer of 5 pt², left out). A `.fill` variant is a second `Symbol` (`StarFill`, `XMarkCircleFill`).
 
 ## 3. Kit coverage and priority
 
-The kit had 65 symbols. This work adds 56. The `Symbol` enum has 124 variants.
+The kit had 65 symbols. 2026-11-20 added 56 and 2026-11-21 adds 27. The `Symbol` enum has 151 variants.
 
 | Group | In the kit | Of | Priority |
 |---|---|---|---|
 | Sidebar and Settings | 23 | 27 | P1 |
-| Menus (standard actions) | 19 | 35 | P1 |
-| Common actions | 61 | 82 | P1 |
+| Menus (standard actions) | 24 | 35 | P1 |
+| Common actions | 71 | 82 | P1 |
 | States | 16 | 20 | P1 |
 | Devices | 7 | 17 | P3 |
+
+The counts of 2026-11-20 are kept for the groups the new symbols do not touch; Menus gain `xmark.rectangle`, `plus.rectangle`, `rectangle.on.rectangle`, `rectangle.dashed` and `macwindow.on.rectangle`, and Common actions gain `arrow.down`, `link`, `pencil`, `square.and.pencil`, `lock.open`, `repeat`, `tray`, `doc.text`, `speaker.slash` and `speaker.wave.1`.
 
 Priority follows use: the sidebar, the standard menus, the common actions and the states appear in every app (P1); devices and media transport appear in a few (P3).
 
@@ -458,7 +494,51 @@ Each new symbol is rendered by the kit at 20 px and 4x (`appkit_icon_lab`) and c
 
 The paint is `stroke` (an outline at the stroke of the `Image`), `solid` (filled, no stroke) or `both` (filled and stroked).
 
-The 65 older symbols were drawn before this frame. At the default stroke, against the same targets, most are within 2.5 grid units of the ink box; `Backward`, `Forward`, `Dot` and `ChevronLeftForwardSlashChevronRight` are 5 to 7 off, and the mass ranges from 70% under to 82% over. They are left as they are because the goldens of other areas show them.
+### 3.2 Symbols drawn on 2026-11-21
+
+The same bench (`~/src/probes/icons-design`, `d4.py` and `emit4.py`), at stroke 1.0 against the 2026-11-20 targets. `d box` is the larger of the width and height error in grid units. The paint is as in 3.1.
+
+| Kit symbol | Apple name | Paint | d box | d mass |
+|---|---|---|---|---|
+| `ArrowDown` | `arrow.down` | stroke | 0.06 | -10.0% |
+| `Link` | `link` | stroke | 0.29 | -14.8% |
+| `Pencil` | `pencil` | solid | 0.07 | -2.3% |
+| `SquareAndPencil` | `square.and.pencil` | stroke | 0.09 | +11.6% |
+| `LockOpen` | `lock.open` | stroke | 0.05 | +8.1% |
+| `LockFill` | `lock.fill` | solid | 0.08 | -0.9% |
+| `StopFill` | `stop.fill` | solid | 0.08 | -1.2% |
+| `SpeakerSlash` | `speaker.slash` | stroke | 0.08 | +4.3% |
+| `SpeakerWave1` | `speaker.wave.1` | stroke | 0.23 | +5.4% |
+| `Repeat` | `repeat` | stroke | 0.04 | +9.5% |
+| `CheckmarkSquare` | `checkmark.square` | stroke | 0.11 | -1.3% |
+| `Tray` | `tray` | stroke | 0.16 | +3.4% |
+| `DocText` | `doc.text` | stroke | 0.08 | +0.0% |
+| `XMarkRectangle` | `xmark.rectangle` | stroke | 0.27 | -2.9% |
+| `PlusRectangle` | `plus.rectangle` | stroke | 0.27 | -2.7% |
+| `RectangleOnRectangle` | `rectangle.on.rectangle` | stroke | 0.11 | -10.2% |
+| `RectangleDashed` | `rectangle.dashed` | stroke | 0.27 | -5.4% |
+| `MacWindowOnRectangle` | `macwindow.on.rectangle` | stroke | 0.11 | -15.9% |
+| `ArrowRightCircle` | `arrow.right.circle` | stroke | 0.05 | -4.3% |
+| `ArrowLeftCircle` | `arrow.left.circle` | stroke | 0.05 | -4.3% |
+| `ArrowUpCircle` | `arrow.up.circle` | stroke | 0.05 | -4.3% |
+| `ChevronRightCircle` | `chevron.right.circle` | stroke | 0.05 | -7.8% |
+| `ChevronLeftCircle` | `chevron.left.circle` | stroke | 0.05 | -7.8% |
+| `PlayCircle` | `play.circle` | stroke | 0.05 | -6.9% |
+| `PauseCircle` | `pause.circle` | stroke | 0.05 | -10.3% |
+| `HeartFill` | `heart.fill` | both | 0.03 | -6.1% |
+| `CameraFill` | `camera.fill` | both | 0.09 | -5.7% |
+
+The lab (`scripts/appkit-compare.py icons`) agrees with the bench: the ink box of all 27 is within 0.36 of AppKit's and the mass is within 10% for 24 (`Link`, `SquareAndPencil`, `MacWindowOnRectangle` and `PauseCircle` are 10.6% to 15.7% off). Of the 83 symbols of the lab, 40 are within 0.5 of the ink box and 5% of the mass and 70 within 10%. `HeartFill` and `CameraFill` share the path of `Heart` and `Camera` and paint it filled and stroked (the lens of the camera is cut out by the even-odd rule). `ArrowDown` was the name of `arrow.down.to.line`; that symbol is now `ArrowDownToLine`.
+
+The frame test of the same day found four of the 56 symbols of 2026-11-20 cut by the 16 grid, and moved them inside: `ICloud` 0.25 right, `Key` scaled to 0.985, `DocOnDoc` 0.12 up, `Scissors` scaled to 0.97 (its box error went from 0.33 to 0.55: SF's own ink is 20.1 pt wide, wider than the 20 px frame).
+
+`Paperclip` (`paperclip`) was tried and left out: the spiral of the SF symbol needs a hand-fitted curve and the first fit did not read as a clip.
+
+### 3.3 The 65 older symbols
+
+The 65 older symbols were drawn before this frame, at the stroke of 1.4. Remeasured on 2026-11-21 at stroke 1.0 against the same targets, 35 of the 63 that have an SF name are more than 1.5 grid units off in the ink box: `Backward`, `Forward`, `Dot`, `ChevronLeftForwardSlashChevronRight` and `Battery` by 4 to 8; `Captions`, `Tv`, `StarFill`, `SquareOnSquare`, `GoBackward`, `GoForward`, `House`, `Display`, `SidebarLeft`, `Film`, `Photo`, `Circle`, `Keyboard`, `Bed`, `Briefcase`, `Shuffle`, `Checkmark`, `Star`, `ChevronDoubleRight`, `Folder` and `Printer` by 2 to 4. Most are too small, at 0.8 to 0.9 of SF's ink. The mass goes from 80% under (`Ellipsis`) to 30% over (`SquareGrid`). `TriangleLeft` and `TriangleRight` have no reference in `ref.json`.
+
+They are left as they are: redrawing them moves the golden of every control that shows one, and those controls were sized to the old shapes. `Folder`, `House`, `SidebarLeft` and `Star` come first; the bench already holds a fitted `Folder` (`d1.py`, 0.1 units, mass +0.3%).
 
 ## 4. Left out
 
@@ -467,8 +547,8 @@ The 65 older symbols were drawn before this frame. At the default stroke, agains
 - **Letter symbols.** `bold`, `italic`, `underline`, `textformat`: they need glyphs, not strokes.
 - **Heavy detail.** `pencil`, `pin`, `wrench`, `hand.raised`, `lightbulb`, `doc.on.clipboard`, `person.crop.rectangle` and every `.badge` variant.
 - **Private glyphs.** AirDrop, Applications, Bluetooth, VPN, Spotlight, Siri and the Family tile have no public name.
-- **Weights and scales.** The kit draws regular weight at one scale. The probe measured nine weights and three scales (section 1).
-- **Rendering modes.** Hierarchical, palette and multicolor are not drawn.
+- **Environment weights and scales.** `Image::font_weight` and `Image::image_scale` draw the nine weights and three scales of section 1 (2026-11-21). SwiftUI's `.fontWeight(_:)` and `.imageScale(_:)` also work on a whole subtree; the kit has no such environment value, so a control that draws a symbol keeps regular weight and medium scale.
+- **Rendering modes.** Palette and multicolor are not drawn. Hierarchical is, for 30 of the 36 symbols that have it (section 2.9); `variableValue` is not.
 - **Names that do not resolve** on macOS 27.2.1 (of 2495): `airdrop`, `bell.and.waves.left.and.right.circle`, `bell.and.waves.left.and.right.circle.fill`, `bluetooth`, `calendar.today`, `chevron.down.to.line`, `chevron.up.to.line`, `circle.righthalf.striped.horizontal`, `clock.arrow.trianglehead.clockwise.rotate.90`, `doc.badge.arrow`, `doc.badge.bolt`, `doc.badge.bookmark`, `doc.badge.checkmark`, `doc.badge.envelope`, `doc.badge.heart`, `doc.badge.lock`, `doc.badge.paperclip`, `doc.badge.person`, `doc.badge.phone`, `doc.badge.pin`, `doc.badge.plus.fill`, `doc.badge.sparkle`, `doc.badge.star`, `doc.badge.tag`, `doc.badge.xmark`, `doc.on.doc.circle`, `doc.on.doc.circle.fill`, `flower`, `folder.badge.arrow`, `folder.badge.arrow.down`, and the rest of the 109 in `icon-names.txt`.
 - **SwiftUI built-ins.** `ShareLink`, `PasteButton`, `EditButton` and the like draw their own symbols inside the framework. They were not probed.
 - **Menu bar.** Whether the menu bar draws `NSMenuItem.image` for a standard item was not confirmed.

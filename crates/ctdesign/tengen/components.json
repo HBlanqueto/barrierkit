@@ -309,9 +309,14 @@
       "xl": {"size": 18, "radius": 6.5, "mark": 18, "mark-stroke": 2.4, "mixed-mark": 9, "mixed-stroke": 2.25, "gap": 6, "font-size": 13, "radio-dot": 5}
     },
     "symbol": {
-      "stroke": 1.4,
+      "stroke": 1,
       "fine-stroke": 1,
-      "grid": 16
+      "grid": 16,
+      "scale-size": [0.793, 1, 1.275],
+      "weight-stroke-small": [0.343, 0.521, 0.87, 1.133, 1.336, 1.492, 1.697, 1.995, 2.262],
+      "weight-stroke-medium": [0.293, 0.452, 0.764, 1, 1.216, 1.381, 1.598, 1.914, 2.196],
+      "weight-stroke-large": [0.242, 0.382, 0.654, 0.86, 1.068, 1.227, 1.436, 1.74, 1.986],
+      "hierarchy": [1, 0.5, 0.25]
     },
     "icon-plate": {
       "neutral-chroma": 0.03,
