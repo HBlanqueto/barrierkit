@@ -27,8 +27,8 @@ use crate::styles::Painted;
 use crate::styles::{
     Axis, ButtonStyle, CheckboxStyle, ControlState, Edge, LayoutDirection, Paints,
     SearchFieldStyle, SecureFieldStyle, SegmentedControlStyle, ShadowStyle, Shape, ShapeStyle,
-    SliderStyle, StateValue, SwitchStyle, TextFieldStyle, Theme, TokenFieldStyle, ToolGroupStyle,
-    resolve,
+    SliderStyle, StateValue, SwitchStyle, TextFieldStyle, TextStyleScope, Theme, TokenFieldStyle,
+    ToolGroupStyle, resolve,
 };
 use crate::symbol::{Symbol, stroked_symbol};
 use crate::theme::color;

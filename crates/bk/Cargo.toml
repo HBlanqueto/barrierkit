@@ -57,6 +57,10 @@ png.workspace = true
 ignored = ["freya-skia-safe"]
 
 [[example]]
+name = "button_label"
+path = "../../agents/recipes/button_label.rs"
+
+[[example]]
 name = "control_modifiers"
 path = "../../agents/recipes/control_modifiers.rs"
 

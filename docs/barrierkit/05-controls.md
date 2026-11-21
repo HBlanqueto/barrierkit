@@ -136,12 +136,28 @@ give one.
 |---|---|---|
 | `Button::new(label)` | — | `label` is visible text, see [step 2](#steps) |
 | `Button::system_image(label, Symbol)` | — | A symbol before the label, in the label's color |
+| `.label(\|\| view)` | the drawn text | A closure that returns the view drawn in place of the text; the string of `new` stays the accessible name |
 | `.style(\|s\| ..)` | Tengen, SwiftUI's `.bordered` | Look: a preset or any field of `ButtonStyle`, see below |
 | `.size(ControlSize)` | `Regular` | Height, padding, font and corners; see [control size](#control-size) |
 | `.width(Size)` | `Size::auto()` | Fixed or fill width |
 | `.toggled(bool)` | not a toggle | Makes it a toggle; `true` takes the `bordered_prominent` look and reports `toggled` |
 | `.disabled(bool)` | `false` | Dims it, no `on_press` |
 | `.on_press(\|_\| ..)` | — | Called on click, Space or Enter |
+
+The closure runs inside the button, on every render, so state it reads keeps the label current.
+`Text`, `Label` and Freya's `label()` take the button's font and the ink of its current state:
+pressed, disabled, the `on_accent` ink of `bordered_prominent`, an unfocused window. A bare
+`Image::system` keeps its own color; use `Label`. With a text size other than the default, a kit
+`Text` or `Label` scales and the drawn label does not.
+
+```rust
+// ✗ the symbol keeps the label color on the accent fill
+Button::new("Add").style(ButtonStyle::bordered_prominent).label(|| Image::system(Symbol::Plus))
+// ✓
+Button::new("Add").style(ButtonStyle::bordered_prominent).label(|| Label::new("Add", Symbol::Plus))
+```
+
+The program is [`button_label.rs`](../../agents/recipes/button_label.rs).
 
 Presets of `ButtonStyle`, given as `.style(ButtonStyle::glass)`:
 

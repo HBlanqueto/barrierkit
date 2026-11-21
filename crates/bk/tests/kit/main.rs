@@ -6,6 +6,7 @@ mod appkit_lights;
 mod appkit_lists;
 mod appkit_texts;
 mod backdrop;
+mod button_label;
 mod chrome;
 mod controls;
 mod focus;

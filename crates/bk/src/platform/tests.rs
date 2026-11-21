@@ -622,6 +622,99 @@ mod inactive_accent_tests {
 }
 
 #[cfg(test)]
+mod inactive_view_label_tests {
+    use crate::controls::Button;
+    use crate::elements::{Label, Text};
+    use crate::styles::ButtonStyle;
+    use crate::symbol::Symbol;
+    use ctappearance::{AppearanceConfig, resolve};
+    use ctdesign::SANS_FAMILIES;
+    use freya_core::integration::AppComponent;
+    use freya_core::prelude::*;
+    use freya_testing::TestingRunner;
+    use torin::prelude::{Gaps, Size2D};
+
+    use crate::platform::window::WindowStatus;
+
+    type Build = fn() -> Element;
+
+    struct Case(Build);
+
+    impl App for Case {
+        fn render(&self) -> impl IntoElement {
+            rect()
+                .padding(Gaps::new(24.0, 24.0, 24.0, 24.0))
+                .child((self.0)())
+        }
+    }
+
+    fn painted(activated: bool, build: Build) -> Vec<u8> {
+        let resolved = resolve(
+            &AppearanceConfig {
+                color_scheme: ctappearance::ColorScheme::Dark,
+                reduce_transparency: true,
+                ..Default::default()
+            },
+            None,
+        );
+        let (mut test, _) = TestingRunner::new(
+            AppComponent::new(Case(build)),
+            Size2D::new(200.0, 70.0),
+            move |runner| {
+                runner.provide_root_context(move || {
+                    super::window_controls(WindowStatus {
+                        activated,
+                        ..WindowStatus::default()
+                    })
+                });
+                runner.provide_root_context(move || State::create(resolved));
+            },
+            1.0,
+        );
+        test.set_default_fonts(&SANS_FAMILIES.map(std::borrow::Cow::Borrowed));
+        test.sync_and_update();
+        test.sync_and_update();
+        test.render().as_bytes().to_vec()
+    }
+
+    fn drawn() -> Element {
+        Button::new("Guardar")
+            .style(ButtonStyle::bordered_prominent)
+            .into_element()
+    }
+
+    fn text_view() -> Element {
+        Button::new("Guardar")
+            .style(ButtonStyle::bordered_prominent)
+            .label(|| Text::new("Guardar"))
+            .into_element()
+    }
+
+    fn drawn_symbol() -> Element {
+        Button::system_image("Guardar", Symbol::Plus)
+            .style(ButtonStyle::bordered_prominent)
+            .into_element()
+    }
+
+    fn label_view() -> Element {
+        Button::new("Guardar")
+            .style(ButtonStyle::bordered_prominent)
+            .label(|| Label::new("Guardar", Symbol::Plus))
+            .into_element()
+    }
+
+    #[test]
+    fn a_view_label_takes_the_ink_of_a_button_in_an_unfocused_window() {
+        let pairs: [(Build, Build); 2] = [(drawn, text_view), (drawn_symbol, label_view)];
+        for (drawn, view) in pairs {
+            let unfocused = painted(false, drawn);
+            assert!(painted(false, view) == unfocused);
+            assert!(painted(true, drawn) != unfocused);
+        }
+    }
+}
+
+#[cfg(test)]
 mod fullscreen_chrome_tests {
     use crate::chrome::{RailStyle, TitlebarLayout, WindowChrome};
     use crate::sidebar::Sidebar;

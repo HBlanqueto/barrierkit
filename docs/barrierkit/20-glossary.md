@@ -857,6 +857,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 |---|---|---|---|---|---|
 | `controls::Button` | struct | `Button` | `NSButton` | Push button with a text label | [5](05-controls.md#buttons) |
 | `controls::Button::system_image` | fn | `Button(_:systemImage:)` | `NSButton(title:image:target:action:)` | Push button with a symbol before its label | [5](05-controls.md#buttons) |
+| `controls::Button::label` | method | `Button(action:label:)` | — | A closure that returns the view drawn in place of the text; the string of `new` stays the accessible name | [5](05-controls.md#buttons) |
 | `controls::ControlSize` | enum | `ControlSize` | `NSControl.ControlSize` | `Mini`, `Small`, `Regular`, `Large`, `ExtraLarge`: the size of a control (`ctdesign::ControlSize`) | [5](05-controls.md#control-size) |
 | `controls::TextField::size` | method | ≈ `.controlSize(_:)` | `NSControl.controlSize` | Height and font of one text field (`Mini` 19, `Small` 22; larger sizes stay 24) | [5](05-controls.md#control-size) |
 | `controls::TextField::disabled` | method | `.disabled(_:)` | `NSControl.isEnabled` | Draws the text in the tertiary label and takes no input | [5](05-controls.md#text-fields) |

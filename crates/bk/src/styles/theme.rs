@@ -2,15 +2,15 @@ use std::any::Any;
 use std::rc::Rc;
 
 use ctappearance::Resolved;
-use ctdesign::ControlSize;
+use ctdesign::{ControlSize, Font};
 use freya_core::current_context::CurrentContext;
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 
 use super::{
     ButtonStyle, CheckboxStyle, ComboBoxStyle, DatePickerStyle, PopUpButtonStyle, RadioGroupStyle,
-    SearchFieldStyle, SegmentedControlStyle, SliderStyle, StepperStyle, SwitchStyle, TabViewStyle,
-    TextFieldStyle,
+    SearchFieldStyle, SegmentedControlStyle, ShapeStyle, SliderStyle, StateValue, StepperStyle,
+    SwitchStyle, TabViewStyle, TextFieldStyle, TextStyle,
 };
 
 pub trait ControlStyle: Clone + 'static {
@@ -154,6 +154,46 @@ impl Component for StyleScope {
         let inherited = parent.map_or_else(Theme::tengen, |theme| theme.read().clone());
         use_provide_theme(inherited.within(self.theme.clone()));
         self.child.clone()
+    }
+}
+
+#[derive(PartialEq)]
+pub(crate) struct TextStyleScope {
+    font: Font,
+    foreground: ShapeStyle,
+    content: Callback<(), Element>,
+}
+
+impl TextStyleScope {
+    pub(crate) fn new(font: Font, foreground: ShapeStyle, content: Callback<(), Element>) -> Self {
+        Self {
+            font,
+            foreground,
+            content,
+        }
+    }
+}
+
+// The theme is built once and reads the style when applied, so `use_provide_theme` sees an equal
+// theme on every render and does not notify the readers it just served.
+impl Component for TextStyleScope {
+    fn render(&self) -> impl IntoElement {
+        let mut text = use_state(|| (self.font, self.foreground.clone()));
+        text.set_if_modified((self.font, self.foreground.clone()));
+        let scope = use_hook(move || {
+            Theme::tengen().style(move |style: TextStyle| {
+                let (font, foreground) = text.peek().clone();
+                TextStyle {
+                    font,
+                    foreground: StateValue::new(foreground),
+                    ..style
+                }
+            })
+        });
+        let parent = use_hook(try_consume_context::<State<Theme>>);
+        let inherited = parent.map_or_else(Theme::tengen, |theme| theme.read().clone());
+        use_provide_theme(inherited.within(scope));
+        self.content.call(())
     }
 }
 

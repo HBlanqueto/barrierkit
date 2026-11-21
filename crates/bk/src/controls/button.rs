@@ -7,6 +7,7 @@ pub use ctdesign::ControlSize;
 pub struct Button {
     label: Cow<'static, str>,
     image: Option<Symbol>,
+    content: Option<Callback<(), Element>>,
     disabled: bool,
     on: Option<bool>,
     width: Size,
@@ -21,6 +22,7 @@ impl Button {
         Self {
             label: label.into(),
             image: None,
+            content: None,
             disabled: false,
             on: None,
             width: Size::auto(),
@@ -36,6 +38,11 @@ impl Button {
             image: Some(image),
             ..Self::new(label)
         }
+    }
+
+    pub fn label<V: IntoElement>(mut self, label: impl Fn() -> V + 'static) -> Self {
+        self.content = Some(Callback::new(move |()| label().into_element()));
+        self
     }
 
     pub fn toggled(mut self, on: bool) -> Self {
@@ -144,12 +151,21 @@ impl Component for Button {
                     }
                 })
             })
-            .maybe_child(self.image.map(|image| {
+            .maybe(self.content.is_some(), |el| {
+                el.font_family(font.family)
+                    .font_size(font.size as f32)
+                    .font_weight(font.weight as i32)
+                    .color(paints.fill(&style.label))
+            })
+            .maybe_child(self.content.clone().map(|content| {
+                TextStyleScope::new(font, style.label.resolve(state).clone(), content)
+            }))
+            .maybe_child(self.image.filter(|_| self.content.is_none()).map(|image| {
                 crate::symbol::Image::system(image)
                     .size(font.size as f32)
                     .color(paints.color(style.label.resolve(state)))
             }))
-            .maybe_child((!self.label.is_empty()).then(|| {
+            .maybe_child((self.content.is_none() && !self.label.is_empty()).then(|| {
                 label()
                     .text(self.label.clone())
                     .font_family(font.family)

@@ -142,3 +142,18 @@ The program is [`recipes/control_modifiers.rs`](recipes/control_modifiers.rs).
    space is `.margin`: a second `.padding` replaces the first.
 3. `.help` uses a hook: call it on every render, never inside a condition or
    a loop.
+
+## 14. A button with a view label
+
+SwiftUI: `Button(action: add) { Label("Add", systemImage: "plus") }`.
+
+The program is [`recipes/button_label.rs`](recipes/button_label.rs).
+
+1. `.label(|| view)` takes a closure that returns the view; it replaces the
+   drawn text. The string given to `Button::new` stays the accessible name
+   ([chapter 5](../docs/barrierkit/05-controls.md#buttons)).
+2. Inside the closure, `Text`, `Label` and `label()` take the button's font and
+   the ink of its current state, so the symbol and the title turn white on the
+   accent fill of `bordered_prominent`.
+3. Use `Label` for a symbol with a title; a bare `Image::system` keeps its own
+   color.
