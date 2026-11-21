@@ -1,11 +1,11 @@
 use ctappearance::Resolved;
-use ctdesign::{BODY, BUTTON, DURATION_FAST_MS, Font, HAIRLINE};
+use ctdesign::{BODY, BUTTON, BezelRow, DURATION_FAST_MS, Font, HAIRLINE};
 
 use crate::controls::ControlSize;
 
 use super::{
-    Animation, ColorEffect, ControlStyle, CornerStyle, Role, ShadowStyle, Shape, ShapeStyle,
-    StateValue, pressed_palette, reduce_motion, system_effect,
+    Animation, ColorEffect, ControlStyle, CornerStyle, Gradient, Rgba, Role, ShadowStyle, Shape,
+    ShapeStyle, StateValue, bezel_palette, pressed_palette, reduce_motion, system_effect,
 };
 
 /// `ButtonStyle::tengen()` is SwiftUI's `.bordered`.
@@ -23,6 +23,11 @@ use super::{
 /// | `ButtonStyle::glass_prominent` | `.glassProminent` | `bordered_prominent`, then the border and shape of `glass` |
 /// | `ButtonStyle::borderless` | `.borderless` | `background` `Clear` (pressed `Color(PressedPalette.bezel)`), `border` `None` |
 /// | `ButtonStyle::circular` | `.buttonBorderShape(.circle)` | `height` `BUTTON.circular_size`, `padding_x` `0`, `shape` `Circle`, the icon at `BUTTON.circular_icon` |
+/// | `ButtonStyle::small_square` | `NSButton.BezelStyle.smallSquare` | the `BUTTON.bezel.small_square` row, `background` a `BezelPalette` gradient (pressed `square_pressed`), `border` `square_border`, half opaque while disabled |
+/// | `ButtonStyle::textured_square` | `texturedSquare` | the `BUTTON.bezel.textured_square` row, `background` a `BezelPalette` gradient (pressed `textured_pressed`), `border` `textured_border` |
+/// | `ButtonStyle::textured_rounded` | `texturedRounded`, `toolbar` | the `BUTTON.bezel.textured_rounded` row, `background` `Clear` (pressed `ring_pressed`), `border` `ring` |
+/// | `ButtonStyle::inline` | `inline` | the `BUTTON.bezel.inline` row, `background` `inline_fill`, `label` `Role(SecondaryLabel)` in weight 600 |
+/// | `ButtonStyle::push_disclosure` | `pushDisclosure`, `roundedDisclosure` | the `BUTTON.bezel.push_disclosure` row, the push fill |
 ///
 /// `Button::size(ControlSize)` is an instance override of `height`, `padding_x`,
 /// `font` and `shape`: `BUTTON.size(size)` has the row of each size, and the
@@ -138,6 +143,90 @@ impl ButtonStyle {
                 .pressed(ShapeStyle::Color(pressed_palette().bezel))
                 .disabled(ShapeStyle::Role(Role::ControlBackground)),
             ..self.glass_rim()
+        }
+    }
+
+    pub fn small_square(self) -> Self {
+        let palette = bezel_palette();
+        Self {
+            disabled_opacity: BUTTON.bezel.disabled_opacity,
+            ..self
+                .bezel(BUTTON.bezel.small_square)
+                .vertical(palette.square_top, palette.square_bottom)
+                .pressed(palette.square_pressed)
+                .framed(palette.square_border)
+        }
+    }
+
+    pub fn textured_square(self) -> Self {
+        let palette = bezel_palette();
+        self.bezel(BUTTON.bezel.textured_square)
+            .vertical(palette.textured_top, palette.textured_bottom)
+            .pressed(palette.textured_pressed)
+            .framed(palette.textured_border)
+    }
+
+    pub fn textured_rounded(self) -> Self {
+        let palette = bezel_palette();
+        Self {
+            background: StateValue::new(ShapeStyle::Clear),
+            ..self.bezel(BUTTON.bezel.textured_rounded)
+        }
+        .pressed(palette.ring_pressed)
+        .framed(palette.ring)
+    }
+
+    pub fn inline(self) -> Self {
+        Self {
+            background: StateValue::new(ShapeStyle::Color(bezel_palette().inline_fill)),
+            label: StateValue::new(ShapeStyle::Role(Role::SecondaryLabel))
+                .disabled(ShapeStyle::Role(Role::TertiaryLabel)),
+            font: Font {
+                weight: 600,
+                ..font(BUTTON.bezel.inline.font_size)
+            },
+            ..self.bezel(BUTTON.bezel.inline)
+        }
+    }
+
+    pub fn push_disclosure(self) -> Self {
+        self.bezel(BUTTON.bezel.push_disclosure)
+    }
+
+    fn bezel(self, row: BezelRow) -> Self {
+        Self {
+            height: row.height,
+            padding_x: row.padding_x,
+            shape: sized_shape(row.radius, row.height),
+            font: font(row.font_size),
+            ..self
+        }
+    }
+
+    fn vertical(self, top: Rgba, bottom: Rgba) -> Self {
+        Self {
+            background: StateValue::new(ShapeStyle::Gradient(Gradient::new(
+                0.0,
+                vec![
+                    (ShapeStyle::Color(top), 0.0),
+                    (ShapeStyle::Color(bottom), 1.0),
+                ],
+            ))),
+            ..self
+        }
+    }
+
+    fn pressed(self, color: Rgba) -> Self {
+        Self {
+            background: self.background.pressed(ShapeStyle::Color(color)),
+            ..self
+        }
+    }
+
+    fn framed(self, color: Rgba) -> Self {
+        Self {
+            border: Some((ShapeStyle::Color(color), HAIRLINE)),
+            ..self
         }
     }
 

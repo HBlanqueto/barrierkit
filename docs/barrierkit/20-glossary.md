@@ -154,6 +154,11 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `views::feedback::Alert::destructive` | method | `Button(role: .destructive)` in `.alert` | `NSAlert.hasDestructiveAction` | The primary button is destructive | [11](11-views.md#alert) |
 | `styles::ButtonStyle::glass` | method | `PrimitiveButtonStyle.glass` | ≈ `NSButton.BezelStyle.glass` | Preset: raised capsule with a hairline rim | [Styles](../../crates/bk/src/styles/button.rs) |
 | `styles::ButtonStyle::glass_prominent` | method | `PrimitiveButtonStyle.glassProminent` | — | Preset: accent capsule with a hairline rim | [Styles](../../crates/bk/src/styles/button.rs) |
+| `styles::ButtonStyle::small_square` | method | — | `NSButton.BezelStyle.smallSquare` | Preset: 21 high rectangle, light gradient, 1 wide border | [Styles](../../crates/bk/src/styles/button.rs) |
+| `styles::ButtonStyle::textured_square` | method | — | `NSButton.BezelStyle.texturedSquare` | Preset: 20 high rounded rectangle, nearly white in light | [Styles](../../crates/bk/src/styles/button.rs) |
+| `styles::ButtonStyle::textured_rounded` | method | — | `NSButton.BezelStyle.texturedRounded`, `.toolbar` | Preset: capsule with a faint ring and no fill | [Styles](../../crates/bk/src/styles/button.rs) |
+| `styles::ButtonStyle::inline` | method | — | `NSButton.BezelStyle.inline` | Preset: 18 high capsule with a 5% fill and a secondary label | [Styles](../../crates/bk/src/styles/button.rs) |
+| `styles::ButtonStyle::push_disclosure` | method | — | `NSButton.BezelStyle.pushDisclosure`, `.roundedDisclosure` | Preset: 24 square with the push fill, for a chevron | [Styles](../../crates/bk/src/styles/button.rs) |
 | `styles::ButtonStyle::borderless` | method | `PrimitiveButtonStyle.borderless` | `NSButton.isBordered` `false` | Preset: no background until hovered | [Styles](../../crates/bk/src/styles/button.rs) |
 | `styles::SwitchStyle` | struct | `SwitchToggleStyle` | ≈ `NSSwitch` | Every visual property of `Switch`, with the label position | [Styles](../../crates/bk/src/styles/switch.rs) |
 | `styles::CheckboxStyle` | struct | `CheckboxToggleStyle` | ≈ `NSButtonCell` | Every visual property of `Checkbox`, with the label position | [Styles](../../crates/bk/src/styles/checkbox.rs) |
@@ -543,6 +548,8 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `ctdesign::SettingsWallpaper` | struct | — | — | Wallpaper pane of the settings app: preview, tiles, color dots, custom framing | [4](04-appearance-and-tokens.md#token-types) |
 | `ctdesign::SettingsMetrics` | struct | — | — | Sizes of the settings window, sidebar, search and previews | [4](04-appearance-and-tokens.md#view-metrics) |
 | `ctdesign::ButtonMetrics` | struct | — | — | Push button sizes, radius, font and pressed scale; one `ButtonSize` per size and the pop-up rows; `size(ControlSize)` picks a row | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::BezelRow`, `BezelMetrics` | struct | — | — | Height, padding, radius and label size of one button bezel, and the five of them (`BUTTON.bezel`) | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::BezelPalette`, `BEZEL`, `BEZEL_CONTRAST` | struct, constant | — | — | Fills, borders and pressed fills of the small square, textured and inline bezels per look | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::ControlSize` | enum | `ControlSize` | `NSControl.ControlSize` | `Mini`, `Small`, `Regular`, `Large`, `ExtraLarge`; the key of every `size(ControlSize)` lookup | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::ButtonSize` | struct | — | — | Height, padding, font size and radius of a push button, pop-up or segmented control at one size | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::PopupSize`, `PopupSizes` | struct | — | — | Arrow glyph, indicator box, trailing padding, gap and pull-down glyph of a pop-up at one size, and the five of them | [4](04-appearance-and-tokens.md#control-metrics) |

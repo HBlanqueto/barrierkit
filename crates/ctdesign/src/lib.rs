@@ -482,6 +482,7 @@ pub struct ButtonMetrics {
     pub large: ButtonSize,
     pub xl: ButtonSize,
     pub popup: PopupSizes,
+    pub bezel: BezelMetrics,
     pub circular_size: f32,
     pub circular_icon: f32,
     pub menu_padding_x: f32,
@@ -493,6 +494,39 @@ pub struct ButtonSize {
     pub padding_x: f32,
     pub font_size: f32,
     pub radius: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct BezelRow {
+    pub height: f32,
+    pub padding_x: f32,
+    pub radius: f32,
+    pub font_size: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct BezelMetrics {
+    pub disabled_opacity: f32,
+    pub small_square: BezelRow,
+    pub textured_rounded: BezelRow,
+    pub textured_square: BezelRow,
+    pub inline: BezelRow,
+    pub push_disclosure: BezelRow,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct BezelPalette {
+    pub square_top: Rgba,
+    pub square_bottom: Rgba,
+    pub square_border: Rgba,
+    pub textured_top: Rgba,
+    pub textured_bottom: Rgba,
+    pub textured_border: Rgba,
+    pub ring: Rgba,
+    pub inline_fill: Rgba,
+    pub square_pressed: Rgba,
+    pub ring_pressed: Rgba,
+    pub textured_pressed: Rgba,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

@@ -457,6 +457,8 @@ DATE_FIELD_CONTRAST Rgba themes.{theme}.date-field-contrast
 DATE_FIELD_BORDER_CONTRAST Rgba themes.{theme}.date-field-border-contrast
 STEPPER_DIVIDER Rgba themes.{theme}.stepper-divider
 STEPPER_DIVIDER_CONTRAST Rgba themes.{theme}.stepper-divider-contrast
+BEZEL BezelPalette themes.{theme}.bezel
+BEZEL_CONTRAST BezelPalette themes.{theme}.bezel-contrast
 FOCUS_RING_COLOR Rgba themes.{theme}.focus-ring
 CONTRAST ContrastPalette themes.{theme}.contrast
 SHELL ShellPalette components.shell bar=menubar.bg text=menubar.text tile=dock.tile tile_active=dock.tile-active tile_text_active=dock.tile-text-active

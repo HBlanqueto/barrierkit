@@ -44,6 +44,15 @@ BUTTONS = [
         "slider-disabled", "stepper-disabled",
     ) for size in SIZE_NAMES
 ]
+BUTTONS += [
+    "bezel-" + name for name in (
+        "push", "flexible-push", "round-rect", "recessed", "accessory-bar", "accessory-bar-action", "small-square",
+        "textured-rounded", "toolbar", "textured-square", "inline", "push-disclosure", "rounded-disclosure", "help", "circular",
+    )
+]
+BUTTONS += [
+    f"bezel-{name}-disabled" for name in ("push", "small-square", "textured-rounded", "textured-square", "inline", "push-disclosure")
+]
 FAMILIES = {"controls": CONTROLS, "texts": TEXTS, "buttons": BUTTONS}
 GLYPH_WIDTH = {name: 18 for name in ("check-off-regular", "check-on-regular", "radio-off-regular", "radio-on-regular")}
 GLYPH_WIDTH.update({
@@ -177,6 +186,8 @@ PRESSED = [
 BUTTONS_PRESSED = [
     f"{kind}-pressed-{size}" for kind in ("push", "default", "popup", "check-off", "check-on", "radio-off", "radio-on")
     for size in SIZE_NAMES
+] + [
+    f"bezel-{name}-pressed" for name in ("push", "small-square", "textured-rounded", "textured-square", "inline", "push-disclosure")
 ]
 PRESSED_FAMILIES = {"controls": PRESSED, "buttons": BUTTONS_PRESSED}
 

@@ -1,11 +1,14 @@
 use std::{fs, path::PathBuf};
 
+use bk::buttons::HelpLink;
 use bk::choices::RadioGroup;
 use bk::compact::Stepper;
 use bk::controls::{Button, Checkbox, ControlSize, SegmentedControl, Slider, Switch};
 use bk::popup_button::PopUpButton;
+use bk::styles::ButtonStyle;
+use bk::symbol::Symbol;
 use freya_core::prelude::*;
-use torin::prelude::Size;
+use torin::prelude::{Gaps, Size};
 
 use super::appkit::{Builder, layout, render_scene, scene_content, scene_tag};
 
@@ -238,6 +241,137 @@ fn stepper_disabled<const N: usize>() -> Element {
     stepper_with::<N>(true)
 }
 
+fn offset(left: f32, top: f32, child: impl IntoElement) -> Element {
+    rect()
+        .margin(Gaps::new(top, 0.0, 0.0, left))
+        .child(child)
+        .into_element()
+}
+
+fn bezel(label: &'static str, style: fn(ButtonStyle) -> ButtonStyle) -> Button {
+    Button::new(label).style(style)
+}
+
+fn chevron(style: fn(ButtonStyle) -> ButtonStyle, disabled: bool) -> Element {
+    Button::system_image("", Symbol::ChevronDown)
+        .style(style)
+        .disabled(disabled)
+        .into_element()
+}
+
+fn bezel_builders() -> Vec<(&'static str, Builder)> {
+    vec![
+        ("bezel-push", || Button::new("Button").into_element()),
+        ("bezel-flexible-push", || {
+            Button::new("Button").into_element()
+        }),
+        ("bezel-round-rect", || Button::new("Button").into_element()),
+        ("bezel-recessed", || Button::new("Button").into_element()),
+        ("bezel-accessory-bar", || {
+            Button::new("Button").into_element()
+        }),
+        ("bezel-accessory-bar-action", || {
+            Button::new("Button").into_element()
+        }),
+        ("bezel-small-square", || {
+            offset(0.0, 0.5, bezel("Button", ButtonStyle::small_square))
+        }),
+        ("bezel-textured-rounded", || {
+            offset(1.0, 1.0, bezel("Button", ButtonStyle::textured_rounded))
+        }),
+        ("bezel-toolbar", || {
+            offset(1.0, 1.0, bezel("Button", ButtonStyle::textured_rounded))
+        }),
+        ("bezel-textured-square", || {
+            offset(2.0, 2.0, bezel("Button", ButtonStyle::textured_square))
+        }),
+        ("bezel-inline", || {
+            bezel("Button", ButtonStyle::inline).into_element()
+        }),
+        ("bezel-push-disclosure", || {
+            chevron(ButtonStyle::push_disclosure, false)
+        }),
+        ("bezel-rounded-disclosure", || {
+            chevron(ButtonStyle::push_disclosure, false)
+        }),
+        ("bezel-help", || HelpLink::new().into_element()),
+        ("bezel-circular", || {
+            offset(
+                3.0,
+                0.0,
+                Button::system_image("", Symbol::Plus).style(ButtonStyle::circular),
+            )
+        }),
+    ]
+}
+
+fn bezel_disabled_builders() -> Vec<(&'static str, Builder)> {
+    vec![
+        ("bezel-push-disabled", || {
+            Button::new("Button").disabled(true).into_element()
+        }),
+        ("bezel-small-square-disabled", || {
+            offset(
+                0.0,
+                0.5,
+                bezel("Button", ButtonStyle::small_square).disabled(true),
+            )
+        }),
+        ("bezel-textured-rounded-disabled", || {
+            offset(
+                1.0,
+                1.0,
+                bezel("Button", ButtonStyle::textured_rounded).disabled(true),
+            )
+        }),
+        ("bezel-textured-square-disabled", || {
+            offset(
+                2.0,
+                2.0,
+                bezel("Button", ButtonStyle::textured_square).disabled(true),
+            )
+        }),
+        ("bezel-inline-disabled", || {
+            bezel("Button", ButtonStyle::inline)
+                .disabled(true)
+                .into_element()
+        }),
+        ("bezel-push-disclosure-disabled", || {
+            chevron(ButtonStyle::push_disclosure, true)
+        }),
+    ]
+}
+
+fn bezel_pressed_builders() -> Vec<(&'static str, Builder)> {
+    vec![
+        ("bezel-push-pressed", || {
+            Button::new("Button").into_element()
+        }),
+        ("bezel-small-square-pressed", || {
+            offset(0.0, 0.5, bezel("Button", ButtonStyle::small_square))
+        }),
+        ("bezel-textured-rounded-pressed", || {
+            offset(1.0, 1.0, bezel("Button", ButtonStyle::textured_rounded))
+        }),
+        ("bezel-textured-square-pressed", || {
+            offset(2.0, 2.0, bezel("Button", ButtonStyle::textured_square))
+        }),
+        ("bezel-inline-pressed", || {
+            bezel("Button", ButtonStyle::inline).into_element()
+        }),
+        ("bezel-push-disclosure-pressed", || {
+            chevron(ButtonStyle::push_disclosure, false)
+        }),
+    ]
+}
+
+fn named(builders: Vec<(&'static str, Builder)>) -> Vec<(String, Builder)> {
+    builders
+        .into_iter()
+        .map(|(name, build)| (name.to_string(), build))
+        .collect()
+}
+
 fn each(prefix: &str, builds: [Builder; 5]) -> Vec<(String, Builder)> {
     SIZES
         .iter()
@@ -271,6 +405,8 @@ fn buttons() -> Vec<(String, Builder)> {
         each("slider-disabled", sizes!(slider_disabled)),
         each("stepper", sizes!(stepper)),
         each("stepper-disabled", sizes!(stepper_disabled)),
+        named(bezel_builders()),
+        named(bezel_disabled_builders()),
     ]
     .concat()
 }
@@ -284,6 +420,7 @@ fn pressed() -> Vec<(String, Builder)> {
         each("check-on-pressed", sizes!(check_on)),
         each("radio-off-pressed", sizes!(radio)),
         each("radio-on-pressed", sizes!(radio_on)),
+        named(bezel_pressed_builders()),
     ]
     .concat()
 }

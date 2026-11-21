@@ -104,7 +104,18 @@ Presets of `ButtonStyle`, given as `.style(ButtonStyle::glass)`:
 | `glass` | Capsule with a hairline border, raised background |
 | `glass_prominent` | Capsule with a hairline border and the accent fill |
 | `borderless` | No background until pressed |
-| `circular` | A 17 high circle for an icon-only button |
+| `circular` | A 17 high circle for an icon-only button (AppKit round) |
+| `small_square` | A 21 high rectangle with a light gradient and a 1 wide border (`NSButton.BezelStyle.smallSquare`) |
+| `textured_rounded` | A 20 high capsule with a faint ring and no fill; the toolbar bezel (`texturedRounded`, `toolbar`) |
+| `textured_square` | A 20 high rounded rectangle, nearly white in light and 5% white in dark (`texturedSquare`) |
+| `inline` | An 18 high capsule with a 5% fill and a 11 semibold secondary label (`inline`) |
+| `push_disclosure` | A 24 square with the push fill, for a chevron symbol (`pushDisclosure`, `roundedDisclosure`) |
+
+`ButtonStyle::tengen()` is also what AppKit draws for the `flexiblePush`, `roundRect`,
+`recessed`, `accessoryBar` and `accessoryBarAction` bezels: the bench finds them identical to the
+push button. `HelpLink` is the `helpButton` bezel and `circular` the `circular` one. A pressed
+`small_square`, `textured_rounded` or `textured_square` takes the fill of `BezelPalette`; a
+disabled `small_square` is half as opaque; the others change only their label.
 
 A pressed button takes the pressed fill and does not scale (`BUTTON.pressed_scale` is 1).
 

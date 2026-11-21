@@ -7,10 +7,12 @@ pub use content_unavailable_view::ContentUnavailableViewStyle;
 use ctappearance::backdrop::Backdrop as Tinted;
 pub use ctdesign::Rgba;
 use ctdesign::{
-    DISABLED_CONTRAST_DARK, DISABLED_CONTRAST_DARK_TINT, DISABLED_CONTRAST_LIGHT, DISABLED_DARK,
-    DISABLED_DARK_TINT, DISABLED_LIGHT, DisabledPalette, MATERIAL, MaterialThickness,
-    PRESSED_CONTRAST_DARK, PRESSED_CONTRAST_DARK_TINT, PRESSED_CONTRAST_LIGHT, PRESSED_DARK,
-    PRESSED_DARK_TINT, PRESSED_LIGHT, PressedPalette,
+    BEZEL_CONTRAST_DARK, BEZEL_CONTRAST_DARK_TINT, BEZEL_CONTRAST_LIGHT, BEZEL_DARK,
+    BEZEL_DARK_TINT, BEZEL_LIGHT, BezelPalette, DISABLED_CONTRAST_DARK,
+    DISABLED_CONTRAST_DARK_TINT, DISABLED_CONTRAST_LIGHT, DISABLED_DARK, DISABLED_DARK_TINT,
+    DISABLED_LIGHT, DisabledPalette, MATERIAL, MaterialThickness, PRESSED_CONTRAST_DARK,
+    PRESSED_CONTRAST_DARK_TINT, PRESSED_CONTRAST_LIGHT, PRESSED_DARK, PRESSED_DARK_TINT,
+    PRESSED_LIGHT, PressedPalette,
 };
 use freya_core::prelude::*;
 
@@ -539,6 +541,17 @@ pub(crate) fn disabled_palette() -> DisabledPalette {
             DISABLED_CONTRAST_LIGHT,
             DISABLED_CONTRAST_DARK,
             DISABLED_CONTRAST_DARK_TINT,
+        ],
+    )
+}
+
+pub(crate) fn bezel_palette() -> BezelPalette {
+    per_look(
+        [BEZEL_LIGHT, BEZEL_DARK, BEZEL_DARK_TINT],
+        [
+            BEZEL_CONTRAST_LIGHT,
+            BEZEL_CONTRAST_DARK,
+            BEZEL_CONTRAST_DARK_TINT,
         ],
     )
 }
