@@ -41,7 +41,7 @@ table on stdout and `target/appkit/sheet-*.png`.
    ```
 
    `menu` takes `MENU_ITEMS="Title|key|flags;..."` (flags `sub`, `on`, `mixed`,
-   `off`) to draw marks and submenu arrows, and `sheets` captures a sheet over
+   `off`) to draw marks and submenu arrows, takes the `aquaHC` and `darkHC` appearances with the Increase Contrast flags, and `sheets` captures a sheet over
    a black, white or striped parent (`SHEET_BACK=black|white|stripes`).
 
    `gauges` draws rings, bars, capacity, rating and relevancy indicators at several values and takes the same arguments (`~/src/captures/gauges`).
