@@ -322,7 +322,8 @@ It is drawn as the Dock menu of macOS 26:
    blur (`appearance.glass_blur`). The glass has one veil, lift and cap for the
    light scheme and one for the dark ones. The ink follows the panel, not the
    colour scheme ([Glass over a backdrop](04-appearance-and-tokens.md#glass-over-a-backdrop)).
-   With Increase Contrast it keeps its solid fill. Reduce Transparency alone
+   With Increase Contrast it keeps its solid fill and takes the contrast inks
+   and the strong separator of the contrast palette. Reduce Transparency alone
    leaves the glass, as in macOS.
    A search field in a menu over the glass takes the faint ink of disabled text
    (`glass_disabled_fg`) as a translucent fill, not the grey of `search_bg`, so

@@ -203,6 +203,14 @@ pub fn menu_palette(resolved: &Resolved, kind: SurfaceKind) -> MenuPalette {
     let mut palette = resolved.menu;
     palette.bg = menu_background(resolved, kind);
     palette.separator_color = resolved.menu_separator(palette.bg);
+    if resolved.contrast {
+        let ink = ctappearance::palette_in(resolved.scheme, true);
+        palette.fg = ink.ink_strong;
+        palette.chevron_color = ink.ink_strong;
+        palette.shortcut_color = ink.ink_faint;
+        palette.disabled_fg = ink.ink_faint;
+        palette.separator_color = ink.separator_strong;
+    }
     palette
 }
 
@@ -333,6 +341,42 @@ mod tests {
                 menus_keep_glass(&resolved),
                 glass,
                 "reduce_transparency {reduce_transparency}, contrast {contrast}"
+            );
+        }
+    }
+
+    #[test]
+    fn increase_contrast_gives_menus_the_contrast_inks_and_the_strong_separator() {
+        for (scheme, ink, faint, line) in [
+            (
+                ColorScheme::Light,
+                [0, 0, 0, 0xff],
+                [0, 0, 0, 0x8e],
+                [0, 0, 0, 0xa6],
+            ),
+            (
+                ColorScheme::Dark,
+                [0xff; 4],
+                [0xff, 0xff, 0xff, 0x7f],
+                [0xff, 0xff, 0xff, 0x4d],
+            ),
+        ] {
+            let resolved = resolve(
+                &AppearanceConfig {
+                    color_scheme: scheme,
+                    contrast: true,
+                    ..Default::default()
+                },
+                None,
+            );
+            let menu = menu_palette(&resolved, SurfaceKind::Toplevel);
+            assert_eq!(menu.fg.to_rgba8(), ink, "{scheme:?} title");
+            assert_eq!(menu.shortcut_color.to_rgba8(), faint, "{scheme:?} shortcut");
+            assert_eq!(menu.disabled_fg.to_rgba8(), faint, "{scheme:?} disabled");
+            assert_eq!(
+                menu.separator_color.to_rgba8(),
+                line,
+                "{scheme:?} separator"
             );
         }
     }

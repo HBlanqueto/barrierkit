@@ -39,6 +39,9 @@ DIALOG_BUTTON_WIDTH f32 components.dialog.button-width
 BUTTON_DESTRUCTIVE_FILL f32 components.button.destructive-fill
 DIALOG_SHEET_WIDTH u32 components.dialog.sheet-width
 DIALOG_SHEET_HEIGHT u32 components.dialog.sheet-height
+DIALOG_SOLID_LIGHT Rgba components.dialog.solid-light
+DIALOG_SOLID_DARK Rgba components.dialog.solid-dark
+DIALOG_SOLID_SCRIM_LIGHT Rgba components.dialog.solid-scrim-light
 POPUP WindowStyle components.shell.menu.panel corner_radius=radius superellipse_exponent=components.window.corner.exponent
 MENU_SEPARATOR_INK_MIX f32 components.shell.menu.separator.tint-ink-mix
 LAYER_FACTOR_BG_SUNKEN f32 appearance.layer-factors.bg-sunken

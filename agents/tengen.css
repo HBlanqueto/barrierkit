@@ -1736,6 +1736,9 @@
   --bk-dialog-button-width: 84;
   --bk-dialog-sheet-width: 430;
   --bk-dialog-sheet-height: 280;
+  --bk-dialog-solid-light: #e6e6e6;
+  --bk-dialog-solid-dark: #2d2d2d;
+  --bk-dialog-solid-scrim-light: #99999999;
   --bk-menu-popover-item-height: 24;
   --bk-menu-popover-item-radius: var(--bk-radius-sm);
   --bk-menu-popover-padding: 4;

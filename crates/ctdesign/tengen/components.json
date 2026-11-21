@@ -1077,7 +1077,10 @@
       "alert-line-height": 16,
       "button-width": 84,
       "sheet-width": 430,
-      "sheet-height": 280
+      "sheet-height": 280,
+      "solid-light": "#e6e6e6",
+      "solid-dark": "#2d2d2d",
+      "solid-scrim-light": "#99999999"
     },
     "menu-popover": {
       "item-height": 24,
