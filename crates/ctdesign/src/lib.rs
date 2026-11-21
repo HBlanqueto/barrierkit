@@ -588,6 +588,10 @@ pub struct TextFieldMetrics {
     pub secure_pitch: f32,
     pub secure_inset: f32,
     pub secure_drop: f32,
+    pub plain_height: f32,
+    pub plain_padding_x: f32,
+    pub mini: TextFieldSize,
+    pub small: TextFieldSize,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -622,10 +626,12 @@ pub struct BackdropMetrics {
     pub clusters: u32,
     pub ink_secondary: f32,
     pub ink_tertiary: f32,
-    pub plain_height: f32,
-    pub plain_padding_x: f32,
-    pub mini: TextFieldSize,
-    pub small: TextFieldSize,
+    pub glass: f32,
+    pub glass_strong: f32,
+    pub sunken: f32,
+    pub accent_lightness_on_dark: f32,
+    pub accent_lightness_on_light: f32,
+    pub accent_min_chroma: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -658,12 +664,6 @@ pub struct SearchFieldSize {
     pub clear_glyph_stroke: f32,
     pub clear_dx: f32,
     pub clear_dy: f32,
-    pub glass: f32,
-    pub glass_strong: f32,
-    pub sunken: f32,
-    pub accent_lightness_on_dark: f32,
-    pub accent_lightness_on_light: f32,
-    pub accent_min_chroma: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -922,6 +922,14 @@ pub struct CircularSliderMetrics {
 pub struct ColorPickerMetrics {
     pub inset: f32,
     pub ring_shift: f32,
+    pub disabled_opacity: f32,
+    pub expanded_width: f32,
+    pub expanded_radius: f32,
+    pub expanded_gap: f32,
+    pub wheel_size: f32,
+    pub wheel_radius: f32,
+    pub wheel_diameter: f32,
+    pub wheel_center: Rgba,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -945,14 +953,6 @@ pub struct DisclosureMetrics {
     pub lead: f32,
     pub label_gap: f32,
     pub separator_margin: f32,
-    pub disabled_opacity: f32,
-    pub expanded_width: f32,
-    pub expanded_radius: f32,
-    pub expanded_gap: f32,
-    pub wheel_size: f32,
-    pub wheel_radius: f32,
-    pub wheel_diameter: f32,
-    pub wheel_center: Rgba,
     pub list_chevron: f32,
     pub list_chevron_stroke: f32,
     pub list_chevron_x: f32,
@@ -996,6 +996,23 @@ pub struct ComboBoxMetrics {
     pub group_chevron_open_y: f32,
     pub chevron: f32,
     pub chevron_stroke: f32,
+    pub mini: ComboBoxSize,
+    pub small: ComboBoxSize,
+    pub large: ComboBoxSize,
+    pub xl: ComboBoxSize,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct ComboBoxSize {
+    pub height: f32,
+    pub font_size: u32,
+    pub line_height: u32,
+    pub button_width: f32,
+    pub button_height: f32,
+    pub button_inset_x: f32,
+    pub button_radius: f32,
+    pub chevron: f32,
+    pub chevron_stroke: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -1030,23 +1047,6 @@ pub struct StepperSize {
     pub chevron: f32,
     pub chevron_stroke: f32,
 }
-    pub mini: ComboBoxSize,
-    pub small: ComboBoxSize,
-    pub large: ComboBoxSize,
-    pub xl: ComboBoxSize,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct ComboBoxSize {
-    pub height: f32,
-    pub font_size: u32,
-    pub line_height: u32,
-    pub button_width: f32,
-    pub button_height: f32,
-    pub button_inset_x: f32,
-    pub button_radius: f32,
-    pub chevron: f32,
-    pub chevron_stroke: f32,
 
 impl StepperMetrics {
     pub fn size(&self, size: ControlSize) -> StepperSize {
