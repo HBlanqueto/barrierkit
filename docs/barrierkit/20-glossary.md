@@ -766,7 +766,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 |---|---|---|---|---|---|
 | `ctdesign::SPACE_1`, `SPACE_2`, `SPACE_3`, `SPACE_4` | constant | — | — | Spacing steps: 4, 8, 12, 16 | [4](04-appearance-and-tokens.md#spacing) |
 | `ctdesign::HAIRLINE` | constant | — | — | Separator width, 1 px | [4](04-appearance-and-tokens.md#spacing) |
-| `ctdesign::LARGE_TITLE`, `TITLE`, `TITLE_2`, `HEADLINE`, `BODY`, `CALLOUT`, `CAPTION` | constant | `Font.TextStyle` | `NSFont.TextStyle` | Type styles named after SwiftUI's | [4](04-appearance-and-tokens.md#type) |
+| `ctdesign::LARGE_TITLE`, `TITLE`, `TITLE_2`, `TITLE_3`, `HEADLINE`, `SUBHEADLINE`, `BODY`, `CALLOUT`, `FOOTNOTE`, `CAPTION`, `CAPTION_2` | constant | `Font.TextStyle` | `NSFont.TextStyle` | Type styles named after SwiftUI's | [4](04-appearance-and-tokens.md#type) |
 | `ctdesign::MONO` | constant | `Font.monospaced()` | `NSFont.monospacedSystemFont(ofSize:weight:)` | Monospaced body text, Geist Mono | [4](04-appearance-and-tokens.md#type) |
 | `ctdesign::SANS_FAMILIES`, `TEXT_LINE_HEIGHT` | constant | — | — | Sans-serif fallback list; line-height factor for measuring text | [4](04-appearance-and-tokens.md#type) |
 | `ctdesign::DURATION_FAST_MS`, `DURATION_BASE`, `DURATION_SLOW_MS`, `THEME_FADE_WAIT_MS` | constant | — | — | Durations: 120, 250, 420 ms; theme fade wait | [4](04-appearance-and-tokens.md#motion) |

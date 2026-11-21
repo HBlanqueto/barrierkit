@@ -156,6 +156,10 @@ TITLE_2 Font font.styles.title-2
 HEADLINE Font font.styles.headline
 CALLOUT Font font.styles.callout
 CAPTION Font font.styles.caption
+TITLE_3 Font font.styles.title-3
+SUBHEADLINE Font font.styles.subheadline
+FOOTNOTE Font font.styles.footnote
+CAPTION_2 Font font.styles.caption-2
 MONO Font font.styles.mono
 TEXT_LINE_HEIGHT f32 font.line-height-scale
 SHADOW ShadowStyle shadow.layers.light unfocused_blur_scale=shadow.unfocused.blur
