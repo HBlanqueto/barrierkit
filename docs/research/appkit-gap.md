@@ -1069,7 +1069,7 @@ From `API_AVAILABLE(macos(26...))` and `(27...)` in the headers, and from the Sw
 
 ## Discrepancies with the matrix
 
-Where a reader's evidence contradicts [the matrix](swiftui-appkit-coverage.md). Each item names the matrix section. Nobody has edited the matrix: another session owns it.
+Where a reader's evidence contradicts [the matrix](swiftui-appkit-coverage.md). Each item names the matrix section. The matrix now carries the status changes for `WindowGroup`, `MenuBarExtra`, `.popover`, window tabs, `NSBackgroundExtensionView`, VoiceOver, `HSplitView`, `HStack`, `LazyVGrid`, `NSBrowser`, `NSRuleEditor` and the symbol count; the other items are open.
 
 **Windows and application**
 

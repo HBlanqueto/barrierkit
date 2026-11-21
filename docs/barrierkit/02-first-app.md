@@ -141,10 +141,10 @@ The stacks have no style of their own: their methods and the
 
 | From | Names |
 |---|---|
-| The kit | `Application`, `Scene`, `UtilityWindow`, `Text`, `VStack`, `HStack`, `Image`, `Symbol`, `Divider`, the [`ViewModifiers`](07-menus-and-popovers.md#view-modifiers) trait (`.help`, `.context_menu`, `.focus_ring`, `.foreground_style`, `.background_style`, `.shadows`), `run_window`, `WindowOptions`, `RunError`, `Palette`, `text`, `color`, `Titlebar`, every control in [`controls`](05-controls.md), the [`StyleModifiers`](../../agents/styles.md#levels) trait (`.control_style`) and everything in [`styles`](../../agents/styles.md#value-types) (`Theme`, `ControlStyle`, `SliderStyle`, `ShapeStyle`, `Rgba`…) |
+| The kit | `Application`, `Scene`, `UtilityWindow`, `Text`, `VStack`, `HStack`, `Image`, `Symbol`, `IconStyle`, `TemplateRenderingMode`, `Divider`, the [`ViewModifiers`](07-menus-and-popovers.md#view-modifiers) trait (`.help`, `.context_menu`, `.focus_ring`, `.foreground_style`, `.background_style`, `.shadows`), `run_window`, `WindowOptions`, `RunError`, `Palette`, `text`, `color`, `Titlebar`, every control in [`controls`](05-controls.md), the [`StyleModifiers`](../../agents/styles.md#levels) trait (`.control_style`) and everything in [`styles`](../../agents/styles.md#value-types) (`Theme`, `ControlStyle`, `SliderStyle`, `ShapeStyle`, `Rgba`…) |
 | Freya | its whole prelude: `rect()`, `label()`, `use_state`, `Component`, `App`, `IntoElement`, element methods |
 | Torin | `Alignment`, `Direction`, `Size` |
-| Tokens | `BODY`, `CALLOUT`, `CAPTION`, `HEADLINE`, `LARGE_TITLE`, `MONO`, `TITLE`, `TITLE_2`, `Font`, `SPACE_1`…`SPACE_4`, `WINDOW_DEFAULT_SIZE`, `WINDOW_MIN_SIZE` |
+| Tokens | `BODY`, `CALLOUT`, `CAPTION`, `CAPTION_2`, `FOOTNOTE`, `HEADLINE`, `LARGE_TITLE`, `MONO`, `SUBHEADLINE`, `TITLE`, `TITLE_2`, `TITLE_3`, `Font`, `SPACE_1`…`SPACE_4`, `WINDOW_DEFAULT_SIZE`, `WINDOW_MIN_SIZE` |
 
 Everything else is imported from its module, for example
 `bk::views::form::Form` ([3](03-layers.md)).

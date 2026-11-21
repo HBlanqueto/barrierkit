@@ -139,10 +139,10 @@ impl CivilDate {
     }
 
     pub fn today() -> Self {
-        let seconds = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .map_or(0, |elapsed| elapsed.as_secs());
-        Self::from_days((seconds / 86_400) as i64)
+        ctappearance::local_date().map_or_else(
+            || Self::from_days(0),
+            |(year, month, day)| Self::new(year, month, day),
+        )
     }
 
     pub fn weekday_from_monday(self) -> u32 {

@@ -329,7 +329,7 @@ Both take `.disabled(bool)`, `.tint(Tint)` and `.style(|s| ..)`.
   outline, the light line and the shadow, in light and dark. The outline is dark and takes the
   colour of what lies under it. `knob_glass` is only the tint (`None` keeps the opaque knob) and
   the control drops its own knob shadows while the compositor draws the knob. Without the
-  compositor the knob stays the opaque `knob` paint: the kit never draws blur or glass itself. Draw no knob by hand.
+  compositor the knob stays the opaque `knob` paint: the kit draws no knob glass. Draw no knob by hand.
 - `Checkbox` is a 16 box with a 12 check mark, followed by the label.
 
 ```rust

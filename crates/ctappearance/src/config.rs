@@ -378,7 +378,7 @@ impl AppearanceConfig {
     }
 }
 
-fn local_hour() -> Option<u8> {
+fn local_time() -> Option<libc::tm> {
     let now = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .ok()?
@@ -392,7 +392,20 @@ fn local_hour() -> Option<u8> {
         }
         time.assume_init()
     };
-    u8::try_from(time.tm_hour).ok()
+    Some(time)
+}
+
+fn local_hour() -> Option<u8> {
+    u8::try_from(local_time()?.tm_hour).ok()
+}
+
+pub fn local_date() -> Option<(i32, u32, u32)> {
+    let time = local_time()?;
+    Some((
+        time.tm_year + 1900,
+        u32::try_from(time.tm_mon + 1).ok()?,
+        u32::try_from(time.tm_mday).ok()?,
+    ))
 }
 
 pub fn config_dir() -> PathBuf {

@@ -131,13 +131,13 @@ Rows per status at the snapshot. A row is one API, style or size.
 | 9. Color and font panels | 2 | 0 | 2 | 3 | 7 |
 | 10. Image and path control | 0 | 2 | 2 | 0 | 4 |
 | 11. Control sizes | 2 | 0 | 0 | 0 | 2 |
-| 12. Containers and navigation | 9 | 9 | 10 | 3 | 31 |
-| 13. Presentation | 1 | 6 | 6 | 1 | 14 |
-| 14. Windows and chrome | 1 | 6 | 10 | 11 | 28 |
-| 15. Materials and glass | 0 | 2 | 4 | 0 | 6 |
+| 12. Containers and navigation | 9 | 4 | 15 | 3 | 31 |
+| 13. Presentation | 1 | 4 | 8 | 1 | 14 |
+| 14. Windows and chrome | 1 | 4 | 12 | 11 | 28 |
+| 15. Materials and glass | 0 | 1 | 5 | 0 | 6 |
 | 16. Symbols | 1 | 0 | 4 | 1 | 6 |
-| 17. Accessibility | 1 | 2 | 9 | 1 | 13 |
-| **All** | 64 | 47 | 71 | 36 | 218 |
+| 17. Accessibility | 1 | 1 | 10 | 1 | 13 |
+| **All** | 64 | 36 | 82 | 36 | 218 |
 
 To recount after a change, run this from the repository root:
 
@@ -392,7 +392,7 @@ The size of each control is a row in its own family.
 | `TableColumn` with views | cell views | `Table` shows text rows, with `icons` before the first column | `partial`: icon cells measured; no controls in cells | bench `tables` | P1 |
 | sort descriptors | `NSSortDescriptor` | `SortOrder`: one column | `partial` | [Table sorted column][m-rings] | P3 |
 | `OutlineGroup` | `NSOutlineView` | `OutlineView`, `TreeNode`, `OutlineViewStyle::classic`, `full_width` | `measured`: inset and full width 5 to 6%; the source list outline is not drawn | bench `tables`; [Classic tables][m-classic] | P2 |
-| — | `NSBrowser` | `Browser` | `implemented` | none | P3 |
+| — | `NSBrowser` | `Browser` | `partial`: fixed column width, no keyboard, no column titles | none | P3 |
 | `Form` `.grouped` | — | `Form`, `Section`, `Row` | `implemented` | none; no probe has a SwiftUI `Form` | P1 |
 | `Form` `.columns` | `NSGridView` | `FormStyle::columns` | `measured`: 11% of the pixels differ | bench `lists`; [Forms][m-lists] | — |
 | `LabeledContent` | — | `Row` | `implemented` | none | P2 |
@@ -406,15 +406,15 @@ The size of each control is a row in its own family.
 | `TabView` `.sidebarAdaptable`, `.tabBarOnly`, `Tab`, `TabSection` | — | — | `missing` | sdk | P3 |
 | `NavigationSplitView` (`.automatic`, `.balanced`, `.prominentDetail`) | `NSSplitViewController`, `NSSplitViewItem` (sidebar, content list, inspector) | `SplitView` | `partial`: two columns and an inspector; no content-list column; the sidebar is in [14](#14-windows-and-chrome) | none | P1 |
 | `NavigationStack`, `NavigationLink`, `navigationDestination` | — | `History`, `NavigationButtons`, `Row::page` | `partial`: no path or destination API | none | P2 |
-| `HSplitView`, `VSplitView` | `NSSplitView` (`.thin`, `.thick`) | `SplitPanes` | `implemented` | none | P2 |
+| `HSplitView`, `VSplitView` | `NSSplitView` (`.thin`, `.thick`) | `SplitPanes` | `partial`: no `.thick` divider, no keyboard on the divider | none | P2 |
 | `inspector(isPresented:)` | `NSSplitViewItem` inspector | `SplitView::inspector` | `implemented` | none | P2 |
 | `ScrollView` legacy bar | `NSScroller` legacy | `ScrollView`, `Table`, `List`, `OutlineView` | `measured` in the four appearances | bench `scrollers`; [Scrollers][m-scrollers] | — |
 | `ScrollView` overlay bar | `NSScroller` overlay | `ScrollView`, `Table`, `List`, `OutlineView` | `partial`: the thumb is measured (6 wide, per appearance), not compared in a scene | probe `scrollers` (`overlay`); [Scrollers][m-scrollers] | P2 |
 | `scrollEdgeEffectStyle` | `NSScrollPocket` | `TopGlass`, `ScrollView` edge | `partial` | [Sidebar][m-sidebar] | P2 |
 | `Grid`, `GridRow` | `NSGridView` | — | `missing` | none | P2 |
-| `LazyVGrid`, `LazyHGrid` | `NSCollectionView` | `CollectionView` | `implemented` | none | P3 |
-| — | `NSPredicateEditor`, `NSRuleEditor` | `RuleEditor` | `implemented` | none | P3 |
-| `HStack`, `VStack` | `NSStackView` | `HStack`, `VStack` | `implemented` | none | — |
+| `LazyVGrid`, `LazyHGrid` | `NSCollectionView` | `CollectionView` | `partial`: one vertical wrap of fixed-width tiles, not lazy, no `GridItem`, no sections, no keyboard | none | P3 |
+| — | `NSPredicateEditor`, `NSRuleEditor` | `RuleEditor` | `partial`: `RuleKind` has Text, Number and Choice only | none | P3 |
+| `HStack`, `VStack` | `NSStackView` | `HStack`, `VStack` | `partial`: wrap a `rect()`; no distribution, gravity or hiding priority | none | — |
 | `ZStack`, `ViewThatFits`, `Layout` | — | Freya's `rect` | `partial` | none | P3 |
 | `reorderable()` (macOS 27), swipe actions | drag in `NSTableView` | — | `missing` | sdk | P3 |
 
@@ -425,8 +425,8 @@ The size of each control is a row in its own family.
 | `Menu` content, pop-up menu | `NSMenu` | `MenuView`, `MenuItem` | `partial`: measured in light and dark, not in Increase Contrast; item icons not measured | bench `menu` scene; [Menus][m-menus] | P1 |
 | `.contextMenu` | `NSMenu.popUpContextMenu` | `ViewModifiers::context_menu` | `implemented` | same look as the menu | P1 |
 | `Commands`, `CommandMenu` | main menu | `MainMenu`, menu bar menu | `implemented` | [`macos-menu-bar.md`](macos-menu-bar.md) | P1 |
-| `MenuBarExtra` | `NSStatusItem` | `status_item` | `implemented` | none | P2 |
-| `.popover` | `NSPopover` | `Popover` | `implemented` | none | P1 |
+| `MenuBarExtra` | `NSStatusItem` | `status_item` | `partial`: a static item (icon name, title, menu) | none | P2 |
+| `.popover` | `NSPopover` | `Popover` | `partial`: `Popover::show` returns `()`, so no close, behavior or edge | none | P1 |
 | `.sheet` | `beginSheet` | `Sheet` | `partial`: light and dark only; corners, shadow and edge are the compositor's | [Sheets][m-sheets] | P1 |
 | `.alert` | `NSAlert` (`.warning`, `.informational`, `.critical`) | `Alert` | `partial`: the geometry comes from the view tree, not pixels; icon, `.critical`, accessory view, help button and stacked buttons are implemented and measured in four appearances, `.warning` is `.informational` | [Alerts][m-alerts] | P1 |
 | `.confirmationDialog` | — | `Alert::add_button` | `implemented`: an alert whose three buttons stack; no layout of its own | [Alerts][m-alerts] | — |
@@ -465,9 +465,9 @@ The size of each control is a row in its own family.
 | title bar line | `NSTitlebarSeparatorStyle` | `TitlebarStyle` hairline | `partial` | none | P2 |
 | `NavigationSplitView` sidebar | `NSSplitViewItem(sidebarWithViewController:)` | `Sidebar`, `SidebarItem` | `partial`: flat, full height and within 1 of macOS 27's measures; the glyph is a tile; no Increase Contrast | bench `sidebar`; [What the kit does][m-sidebar] | P1 |
 | full screen | `toggleFullScreen` | `FullscreenBar` | `implemented` | none | P2 |
-| `WindowGroup`, `Window`, `Settings` | `NSWindow`, `NSWindowController` | `Application`, `SettingsWindow` | `implemented` | none | P1 |
+| `WindowGroup`, `Window`, `Settings` | `NSWindow`, `NSWindowController` | `Application`, `SettingsWindow` | `partial`: one scene per `Application::window`; no `openWindow(id:)`, no `dismissWindow`, no Window menu | none | P1 |
 | `UtilityWindow` | `NSPanel` | `UtilityWindow`, `PanelBehavior` | `implemented` | none | P3 |
-| — | window tabs | `WindowTabs` | `implemented` | none | P3 |
+| — | window tabs | `WindowTabs` | `partial`: one toplevel, no tab group, tabs do not drag | none | P3 |
 | `DocumentGroup`, `AlertScene` | `NSDocument` | — | `missing` | none | P3 |
 
 ## 15. Materials and glass
@@ -477,7 +477,7 @@ The size of each control is a row in its own family.
 | `Material` (`.ultraThin` to `.ultraThick`, `.bar`) | `NSVisualEffectView.Material`: 14 semantic materials | `Material`, `Thickness` | `partial`: composites measured for the Dock, menu and Control Center; the 14 semantic materials are not mapped | [`macos-materials.md`](macos-materials.md) §2–3 | P2 |
 | `.glassEffect(_:in:)` (`.regular`, `.clear`) | `NSGlassEffectView` | `GlassContainer`, `WindowGlass` | `partial`: the kit asks the compositor for the glass | [`macos-liquid-glass.md`](macos-liquid-glass.md) | P1 |
 | `GlassEffectContainer`, `glassEffectID` | `NSGlassEffectContainerView` | `GlassContainer` | `implemented` | none | P2 |
-| `backgroundExtensionEffect` | `NSBackgroundExtensionView` | `SplitView::background_extension` | `implemented` | none | P3 |
+| `backgroundExtensionEffect` | `NSBackgroundExtensionView` | `SplitView::background_extension` | `partial`: stretches the first pixel column where Apple mirrors, and only under a docked sidebar | none | P3 |
 | `scrollEdgeEffectStyle` | `NSScrollPocket` | `TopGlass` | `partial` | [Sidebar][m-sidebar] | P2 |
 | vibrancy of `.secondary` over a material | `NSVisualEffectView` vibrant labels | `Role` colors | `partial` | none | P3 |
 
@@ -485,7 +485,7 @@ The size of each control is a row in its own family.
 
 | SwiftUI | AppKit | Kit | Status | Measure | Pri |
 |---|---|---|---|---|---|
-| `Image(systemName:)` | `NSImage(systemSymbolName:)` | `Image::system`, `Symbol` | `partial`: 121 symbols against the 2386 public names that resolve here; the 56 drawn on 2026-11-20 match SF at 16 pt (ink box within 0.5 in all, mass within 10% in 50) | [Icons][m-icons] | P1 |
+| `Image(systemName:)` | `NSImage(systemSymbolName:)` | `Image::system`, `Symbol` | `partial`: 124 symbols against the 2386 public names that resolve here; the 56 drawn on 2026-11-20 match SF at 16 pt (ink box within 0.5 in all, mass within 10% in 50) | [Icons][m-icons] | P1 |
 | toolbar glyphs | SF Symbols at 16 pt | `IconButton` symbols | `partial`: chevrons and plus match; `ellipsis`, `sidebar.left`, `magnifyingglass` do not | [Toolbar][m-toolbar] | P1 |
 | `.symbolRenderingMode` (monochrome, hierarchical, palette, multicolor) | `NSImage.SymbolConfiguration` | `TemplateRenderingMode` (original, template) | `partial` | none | P3 |
 | `.imageScale`, symbol weight | `SymbolConfiguration` | `ImageStyle` size and stroke | `partial` | none | P2 |
@@ -501,7 +501,7 @@ The size of each control is a row in its own family.
 | Reduce Motion (`accessibilityReduceMotion`) | `accessibilityDisplayShouldReduceMotion` | `use_reduced_motion`, `motion_ms` | `implemented`: the kit jumps; what macOS substitutes was not measured | none | P2 |
 | Differentiate Without Color | `accessibilityDisplayShouldDifferentiateWithoutColor` | `Resolved::differentiate_without_color`, read by `TrafficLights` only | `partial` | none | P3 |
 | Invert Colors | `accessibilityDisplayShouldInvertColors` | `ctappearance` setting; no control reads it | `partial` | none | P3 |
-| VoiceOver | `NSAccessibility` | `platform/atspi.rs` (AT-SPI) | `implemented`: no audit per control | none | P2 |
+| VoiceOver | `NSAccessibility` | `platform/atspi.rs` (AT-SPI) | `partial`: popups and tooltips publish no tree, the window name is empty, text has no ranges, only Focus and Click are served; no audit per control | none | P2 |
 | focus ring, full keyboard access | `focusRingType` | `ViewModifiers::focus_ring` | `partial` | [`macos-focus-ring.md`](macos-focus-ring.md); bench `calendar-focused` | P2 |
 | accent color: `Color.accentColor`, `.tint`, `AccentColor` | `NSColor.controlAccentColor`, `AppleAccentColor` | `ACCENTS`, `Resolved::accent_colors`, config `accent`, `accent_color`, `wallpaper_accent` | `measured`: the eight accents and Multicolor in light, dark and Increase Contrast; a color without a name follows a fitted rule | [Accent and selection](macos-control-metrics.md#accent-and-selection); bench `accents` | — |
 | accent picker | System Settings › Appearance › Color | `ColorWell::accents` | `partial`: light and dark match at 1x; Increase Contrast not captured | [Accent picker](macos-control-metrics.md#the-picker-of-system-settings); bench `picker` | P3 |
@@ -613,7 +613,7 @@ first four areas are the sessions that run now.
 4. **P1** Materials and Reduce Transparency: map the 14 semantic materials;
    Increase Contrast for menu, sheet and toolbar ([15](#15-materials-and-glass),
    [17](#17-accessibility)).
-5. **P1** Symbols: more than 121, with weight, scale and the ones wider than the grid ([16](#16-symbols)).
+5. **P1** Symbols: more than 124, with weight, scale and the ones wider than the grid ([16](#16-symbols)).
 6. **P2** `unifiedCompact` and `expanded` platters (24 and 28 high); toolbar
    labels, spacer, tracking separator, title bar accessory.
 7. **P3** The [macOS 27 APIs](#18-new-in-macos-27), toolbar customization,

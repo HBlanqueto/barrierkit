@@ -35,8 +35,9 @@ version.
   Windows, no X11.
 - **Layers:** BarrierKit (`bk`) is built on Freya 0.5.3
   (`freya-core`), its layout engine Torin, and the design tokens of
-  `ctdesign`. An app depends only on `bk`; the prelude re-exports
-  what it needs from the others.
+  `ctdesign`. An app depends on `bk`; the prelude re-exports
+  what most apps need from the others. A chapter names the crate to add when
+  an app needs more (`ctdesign` tokens, `freya-animation`, `freya-clipboard`).
 - **Model:** declarative. A view is a function of the state; when the state
   changes, the kit calls it again and applies the difference.
 - **Features:** an app enables none: `shell` is for `malaysia-shell` and
@@ -53,7 +54,8 @@ version.
    what the prelude lacks (for example `bk::views::form::Form`).
 2. **No literal colors, sizes or fonts.** Colors from `Palette::current()`,
    sizes from the `SPACE_*` and component tokens, fonts from `LARGE_TITLE`,
-   `TITLE`, `TITLE_2`, `HEADLINE`, `BODY`, `CALLOUT`, `CAPTION`, `MONO`. `Text`
+   `TITLE`, `TITLE_2`, `TITLE_3`, `HEADLINE`, `SUBHEADLINE`, `BODY`, `CALLOUT`,
+   `FOOTNOTE`, `CAPTION`, `CAPTION_2`, `MONO`. `Text`
    already picks the right color.
 3. **No literal visible text in a real app.** Text goes in
    `i18n/{en,es}/<crate>.ftl` and is read with `tr!("id")`. Literals are only
@@ -66,8 +68,10 @@ version.
 7. **Views are types, modifiers are methods**, as in SwiftUI: write
    `Divider::new()`, `Image::system(Symbol::Plus)` or
    `ContentUnavailableView::new(..)`, and `.help("…")` or
-   `.context_menu(items, …)` on any view. Call `.help` unconditionally: it uses
-   a hook.
+   `.context_menu(items, …)` on `Text`, `rect()` or another element. A kit
+   control is a component: wrap it in a `rect()` first
+   ([chapter 7](../docs/barrierkit/07-menus-and-popovers.md)). Call `.help`
+   unconditionally: it uses a hook.
 8. **No comments** except `// SAFETY:` on `unsafe` and one line explaining a
    non-obvious invariant. Names explain the code.
 9. **Build only inside `nix develop`.** Outside it, `build.rs` stops on
@@ -76,7 +80,7 @@ version.
     one-color icon, `Image::data(svg).rendering_mode(TemplateRenderingMode::Template)`,
     which paints it black in light and white in dark
     ([Images and template rendering](../docs/barrierkit/04-appearance-and-tokens.md#images-and-template-rendering)).
-    The 121 `Symbol`s are named after SF Symbols; look an Apple name up in
+    The 124 `Symbol`s are named after SF Symbols; look an Apple name up in
     the [glossary](../docs/barrierkit/20-glossary.md#symbol-variants) before
     drawing a new one.
 

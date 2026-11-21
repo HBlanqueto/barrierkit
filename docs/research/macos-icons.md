@@ -381,7 +381,7 @@ The kit draws monochrome only, in one color (`currentColor`). A `.fill` variant 
 
 ## 3. Kit coverage and priority
 
-The kit had 65 symbols. This work adds 56. The `Symbol` enum now has 121.
+The kit had 65 symbols. This work adds 56. The `Symbol` enum has 124 variants.
 
 | Group | In the kit | Of | Priority |
 |---|---|---|---|
