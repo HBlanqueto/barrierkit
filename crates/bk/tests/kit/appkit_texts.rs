@@ -28,7 +28,7 @@ const FOCUSABLE: [&str; 9] = [
     "secure",
     "token",
     "datepicker",
-    "textview",
+    "textview-system",
 ];
 
 fn date_time() -> CivilDateTime {
@@ -247,7 +247,7 @@ fn texts() -> Vec<(&'static str, Builder)> {
                 .width(Size::px(140.0))
                 .into_element()
         }),
-        ("textview", || {
+        ("textview-system", || {
             rect()
                 .width(Size::px(180.0))
                 .child(

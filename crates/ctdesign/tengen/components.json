@@ -526,6 +526,11 @@
       "mini": {"height": 19, "font-size": 9, "line-height": 11},
       "small": {"height": 22, "font-size": 11, "line-height": 14}
     },
+    "text-editor": {
+      "padding-x": 5.5,
+      "padding-y": 2.4,
+      "line-height": 16
+    },
     "search-field": {
       "mini": {"height": 16, "font-size": 9, "line-height": 11, "icon": 8, "glyph": 12.6, "glyph-stroke": 0.85, "glyph-dx": 1.5, "glyph-dy": -0.25, "clear": 9, "clear-glyph": 5.8, "clear-glyph-stroke": 0.75, "clear-dx": 5, "clear-dy": -0.5},
       "small": {"height": 20, "font-size": 11, "line-height": 14, "icon": 10, "glyph": 15.3, "glyph-stroke": 0.95, "glyph-dx": 1.5, "glyph-dy": -0.3, "clear": 11, "clear-glyph": 7.1, "clear-glyph-stroke": 0.9, "clear-dx": 4, "clear-dy": 0.5},

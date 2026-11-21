@@ -635,6 +635,13 @@ pub struct BackdropMetrics {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct TextEditorMetrics {
+    pub padding_x: f32,
+    pub padding_y: f32,
+    pub line_height: u32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct TextFieldSize {
     pub height: f32,
     pub font_size: u32,

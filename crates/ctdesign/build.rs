@@ -47,6 +47,7 @@ FOCUS_RING FocusRingMetrics components.focus-ring
 BUTTON ButtonMetrics components.button
 TEXT_FIELD TextFieldMetrics components.text-field
 SEARCH_FIELD SearchFieldMetrics components.search-field
+TEXT_EDITOR TextEditorMetrics components.text-editor
 ACCENT_RULE AccentRule components.settings.accent-rule
 PROGRESS ProgressMetrics components.progress
     indeterminate_ms=indeterminate.duration spinner_ms=spinner.duration

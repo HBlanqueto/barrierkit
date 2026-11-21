@@ -736,6 +736,9 @@
   --bk-text-field-small-height: 22;
   --bk-text-field-small-font-size: 11;
   --bk-text-field-small-line-height: 14;
+  --bk-text-editor-padding-x: 5.5;
+  --bk-text-editor-padding-y: 2.4;
+  --bk-text-editor-line-height: 16;
   --bk-search-field-mini-height: 16;
   --bk-search-field-mini-font-size: 9;
   --bk-search-field-mini-line-height: 11;

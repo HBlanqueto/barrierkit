@@ -1,19 +1,18 @@
-use ctdesign::{BODY, CAPTION, Font, HAIRLINE, SPACE_1, SPACE_2, TEXT_FIELD};
+use ctdesign::{BODY, CAPTION, Font, HAIRLINE, SPACE_1, SPACE_2, TEXT_EDITOR};
 
-use super::text_field::field_shape;
 use super::{ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, system_effect};
 
-/// `TextEditor` is drawn like a `TextField`
-/// with several lines, but its border does not turn to the accent: the focus
+/// `TextEditor` is drawn like an `NSTextView` in a bordered scroll view: a square
+/// field with a 1 line border inside, whose border does not turn to the accent: the focus
 /// ring marks the focus. The find bar holds a `SearchField`, two `IconButton`s
 /// and a small `Button`, which take their own styles.
 ///
 /// States: hovered, focused.
 #[derive(Clone, Debug)]
 pub struct TextEditorStyle {
-    /// Tengen: `TEXT_FIELD.padding_x`.
+    /// Tengen: `TEXT_EDITOR.padding_x`.
     pub padding_x: f32,
-    /// Tengen: (`TEXT_FIELD.height` − `BODY.line_height`) / 2.
+    /// Tengen: `TEXT_EDITOR.padding_y`.
     pub padding_y: f32,
     /// Tengen, with `find_bar_spacing`: `SPACE_1` between the find bar and the text, `SPACE_2`
     /// inside the find bar.
@@ -21,10 +20,10 @@ pub struct TextEditorStyle {
     /// Tengen, with `spacing`: `SPACE_1` between the find bar and the text, `SPACE_2` inside
     /// the find bar.
     pub find_bar_spacing: f32,
-    /// Tengen: `RoundedRectangle { radius: TEXT_FIELD.radius, style: Circular }`; a `Capsule`
-    /// rounds by half of one line.
+    /// Tengen: `Rectangle`; a `Capsule` rounds by half of one line.
     pub shape: Shape,
-    /// Tengen: `Role(ContentBackground)`.
+    /// Tengen: `Role(WindowBackground)`, which is `textBackgroundColor` of a text view: opaque
+    /// white and `1e1e1e`.
     pub background: StateValue<ShapeStyle>,
     /// Tengen: `Role(Label)`, the caret too.
     pub text: StateValue<ShapeStyle>,
@@ -39,13 +38,13 @@ pub struct TextEditorStyle {
     /// Tengen, with `link`, `misspelling`: `Accent`, `Role(Destructive)`,
     /// `Role(SecondaryLabel)` for the match count.
     pub caption: StateValue<ShapeStyle>,
-    /// Tengen: `Some((Role(Outline), HAIRLINE))`, drawn inside.
+    /// Tengen: `Some((Role(ControlBorder), HAIRLINE))`, drawn inside.
     pub border: Option<(ShapeStyle, f32)>,
     /// Tengen: `1.0`.
     pub opacity: f32,
     /// Tengen: `system_effect`.
     pub effect: ColorEffect,
-    /// Tengen: `BODY`.
+    /// Tengen: `BODY` with the line height `TEXT_EDITOR.line_height`.
     pub font: Font,
     /// Tengen: `CAPTION`.
     pub caption_font: Font,
@@ -54,21 +53,24 @@ pub struct TextEditorStyle {
 impl ControlStyle for TextEditorStyle {
     fn tengen() -> Self {
         Self {
-            padding_x: TEXT_FIELD.padding_x,
-            padding_y: (TEXT_FIELD.height - BODY.line_height as f32) / 2.0,
+            padding_x: TEXT_EDITOR.padding_x,
+            padding_y: TEXT_EDITOR.padding_y,
             spacing: SPACE_1,
             find_bar_spacing: SPACE_2,
-            shape: field_shape(),
-            background: StateValue::new(ShapeStyle::Role(Role::ContentBackground)),
+            shape: Shape::Rectangle,
+            background: StateValue::new(ShapeStyle::Role(Role::WindowBackground)),
             text: StateValue::new(ShapeStyle::Role(Role::Label)),
             placeholder: StateValue::new(ShapeStyle::Role(Role::TertiaryLabel)),
             link: StateValue::new(ShapeStyle::Accent),
             misspelling: StateValue::new(ShapeStyle::Role(Role::Destructive)),
             caption: StateValue::new(ShapeStyle::Role(Role::SecondaryLabel)),
-            border: Some((ShapeStyle::Role(Role::Outline), HAIRLINE)),
+            border: Some((ShapeStyle::Role(Role::ControlBorder), HAIRLINE)),
             opacity: 1.0,
             effect: system_effect,
-            font: BODY,
+            font: Font {
+                line_height: TEXT_EDITOR.line_height,
+                ..BODY
+            },
             caption_font: CAPTION,
         }
     }

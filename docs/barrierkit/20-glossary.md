@@ -710,6 +710,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `ctdesign::SliderFatMetrics` | struct | — | — | Wide level slider height, minimum fill and icon position | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::SegmentedMetrics` | struct | — | — | Segmented control padding, segments and font | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::StepperMetrics` | struct | — | — | Stepper size, radius and chevrons | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::TextEditorMetrics` | struct | — | — | Text editor padding and line height | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::TextFieldMetrics` | struct | — | — | Text field height, padding and radius | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::TokenFieldMetrics` | struct | — | — | Token height, padding, gap and opacity | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::SpellingMetrics` | struct | — | — | Size of the misspelling dot | [4](04-appearance-and-tokens.md#control-metrics) |
