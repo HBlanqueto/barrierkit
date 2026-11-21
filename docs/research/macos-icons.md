@@ -46,7 +46,7 @@ Measured in a 700 x 600 Finder window in the dark appearance (`~/src/captures/ic
 
 | Row | Public name | Ink at 16 pt | Kit | Note |
 |---|---|---|---|---|
-| Recents | `clock` | 15.8 x 15.8 | `Clock` | Recents |
+| Recents | `clock` | 15.8 x 15.8 | `Clock` |  |
 | A folder you add to Favorites | `folder` | 17.5 x 14.1 | `Folder` |  |
 | Downloads | `arrow.down.circle` | 15.8 x 15.8 | `ArrowDownCircle` (new) |  |
 | Desktop | `menubar.dock.rectangle` | 18.4 x 14.4 | `MenubarDockRectangle` |  |
