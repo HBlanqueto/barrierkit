@@ -260,10 +260,18 @@ exists only with `.resizable(true)` and while the sidebar is fully open.
 
 ### Hiding: `SidebarToggle` and `TOGGLE_SIDEBAR`
 
-`SidebarToggle` is a unit struct: an icon button with the `SidebarLeft` symbol
-that calls `SidebarControl::toggle`. Its label is "Show or Hide Sidebar". It is
-disabled outside a `SplitView`. Put it in the titlebar's left zone:
-`Titlebar::new().left(SidebarToggle)`. It takes `IconButtonStyle`.
+`SidebarToggle` is a unit struct: an icon button with the `SidebarLeft` symbol,
+on a 36 `ToolGroup` platter, that calls `SidebarControl::toggle`. Its label is
+"Show or Hide Sidebar". It is disabled outside a `SplitView`. Put it in the
+titlebar's left zone: `Titlebar::new().left(SidebarToggle)`. It takes
+`IconButtonStyle`.
+
+While the sidebar is docked the button leaves the bar and sits inside the
+sidebar, at its right end, `SIDEBAR.toggle_inset` (8.5) from the edge, as in
+SwiftUI's `NavigationSplitView`; the title then starts 20 from the edge. When
+the sidebar hides, the button slides to its place in the bar, after the
+traffic lights, and takes its width there. Floating over the content in a
+narrow window, the sidebar does not move it.
 
 `TOGGLE_SIDEBAR` is the [`Action`](13-app.md) with the id `toggle-sidebar` and
 the shortcut Ctrl+Alt+S. `SplitView` answers its shortcut itself; add the

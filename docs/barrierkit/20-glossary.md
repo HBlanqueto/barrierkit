@@ -932,7 +932,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `views::split::SplitView` | struct | `NavigationSplitView` | `NSSplitViewController` | Sidebar, detail and optional inspector; resizes, hides and collapses the sidebar | [10](10-sidebar.md#splitview) |
 | `views::split::SidebarLayout` | struct | — | — | Sidebar width and visibility reported by `on_layout`, serializable | [10](10-sidebar.md#sidebarlayout) |
 | `views::split::NarrowSidebar` | enum | — | — | Where the sidebar opens in narrow windows: `Overlay` or `Push` | [10](10-sidebar.md#narrow-windows) |
-| `views::split::SidebarToggle` | struct | — | `NSToolbarItem.Identifier.toggleSidebar` | The titlebar button that shows or hides the sidebar | [10](10-sidebar.md#hiding-sidebartoggle-and-toggle_sidebar) |
+| `views::split::SidebarToggle` | struct | — | `NSToolbarItem.Identifier.toggleSidebar` | The button that shows or hides the sidebar: inside the sidebar while it is docked, in the titlebar when it is hidden | [10](10-sidebar.md#hiding-sidebartoggle-and-toggle_sidebar) |
 | `views::split::TOGGLE_SIDEBAR` | constant | — | `NSSplitViewController.toggleSidebar(_:)` | The show-or-hide-sidebar action, Ctrl+Alt+S | [10](10-sidebar.md#hiding-sidebartoggle-and-toggle_sidebar) |
 
 ## Forms and groups

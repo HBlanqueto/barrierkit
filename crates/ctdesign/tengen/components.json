@@ -711,6 +711,7 @@
         "rim-width": 1,
         "traffic-x": 19,
         "traffic-y": 19,
+        "toggle-inset": 8.5,
         "line": "separator",
         "glass": {
           "chroma": { "light": 0.22, "dark": 0.05 },

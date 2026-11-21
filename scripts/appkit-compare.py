@@ -306,10 +306,10 @@ def sidebar(args):
     for top, height in [(int(n["top"]), int(n["height"])) for n in tree if n["class"] == "ListTableRowView"]:
         found = [ink(image, 4, 216, top, top + height, image[top + height // 2, 214], 40 if top == 103 else 60) for image in (appkit, kit)]
         print(f"row y={top:3d} h={height:2d}  {box(found[0])} | {box(found[1])}")
-    print("traffic lights, title and plus (AppKit | kit)")
-    for label, region in (("lights", (4, 90, 4, 44)), ("title", (222, 700, 4, 50)), ("plus", (840, 899, 4, 50))):
-        column = region[0] if label == "lights" else 500
-        found = [ink(image, *region, image[30, column], 40) for image in (appkit, kit)]
+    print("traffic lights, toggle, title and plus (AppKit | kit)")
+    for label, region, threshold in (("lights", (4, 90, 4, 44), 40), ("toggle", (150, 217, 2, 50), 8), ("title", (222, 700, 4, 50), 40), ("plus", (840, 899, 4, 50), 40)):
+        column = region[0] if label == "lights" else 214 if label == "toggle" else 500
+        found = [ink(image, *region, image[30, column], threshold) for image in (appkit, kit)]
         print(f"{label:8} {box(found[0])} | {box(found[1])}")
 
 

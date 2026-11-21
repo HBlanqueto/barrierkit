@@ -645,6 +645,7 @@
   --bk-window-sidebar-rim-width: 1;
   --bk-window-sidebar-traffic-x: 19;
   --bk-window-sidebar-traffic-y: 19;
+  --bk-window-sidebar-toggle-inset: 8.5;
   --bk-window-sidebar-line: var(--bk-separator);
   --bk-window-sidebar-glass-chroma-light: 0.22;
   --bk-window-sidebar-glass-chroma-dark: 0.05;

@@ -458,7 +458,7 @@ The size of each control is a row in its own family.
 | — | `NSTitlebarAccessoryViewController` | — | `missing` | none | P2 |
 | `.toolbar(id:)` customization | `allowsUserCustomization` | — | `missing` | none | P3 |
 | title bar line | `NSTitlebarSeparatorStyle` | `TitlebarStyle` hairline | `partial` | none | P2 |
-| `NavigationSplitView` sidebar | `NSSplitViewItem(sidebarWithViewController:)` | `Sidebar`, `SidebarItem` | `partial`: flat, full height and within 1 of macOS 27's measures; the toggle is not in the sidebar and the glyph is a tile; no Increase Contrast | bench `sidebar`; [What the kit does][m-sidebar] | P1 |
+| `NavigationSplitView` sidebar | `NSSplitViewItem(sidebarWithViewController:)` | `Sidebar`, `SidebarItem` | `partial`: flat, full height and within 1 of macOS 27's measures; the glyph is a tile; no Increase Contrast | bench `sidebar`; [What the kit does][m-sidebar] | P1 |
 | full screen | `toggleFullScreen` | `FullscreenBar` | `implemented` | none | P2 |
 | `WindowGroup`, `Window`, `Settings` | `NSWindow`, `NSWindowController` | `Application`, `SettingsWindow` | `implemented` | none | P1 |
 | `UtilityWindow` | `NSPanel` | `UtilityWindow`, `PanelBehavior` | `implemented` | none | P3 |
@@ -598,8 +598,7 @@ first four areas are the sessions that run now.
 1. **P1** Unified toolbar: prominent item, glyphs other than the chevron and
    the plus, search item, offset of a lone chevron, group widths with labels,
    Increase Contrast capture ([14](#14-windows-and-chrome)).
-2. **P1** Sidebar: toggle position, bare accent glyph instead of the tile,
-   scrolling under the bar, Increase Contrast capture ([Sidebar][m-sidebar]).
+2. **P1** Sidebar: bare accent glyph instead of the tile, scrolling under the bar, Increase Contrast capture ([Sidebar][m-sidebar]).
 3. **P1** Traffic lights, title bar, title with subtitle and window corner
    as bench entries.
 4. **P1** Materials and Reduce Transparency: map the 14 semantic materials;

@@ -13,7 +13,7 @@ use crate::theme::{SurfaceKind, surface_background};
 ///
 /// States: focused (the window is active). In full screen the bar sits on the
 /// full-screen glass and draws no background. `.spacing(px)` is an instance
-/// override of `spacing`; `.hairline(false)` sets `hairline` to `None`.
+/// override of `spacing` and `sidebar_spacing`; `.hairline(false)` sets `hairline` to `None`.
 ///
 /// `FullscreenBarStyle` paints the glass under the overlaid bar and the rail in
 /// full screen. The kind of bar stays `WindowOptions::fullscreen_bar`. It has no
@@ -38,6 +38,9 @@ pub struct TitlebarStyle {
     pub sidebar_padding_x: f32,
     /// Tengen: `0.0`, between the bar's items.
     pub spacing: f32,
+    /// Tengen: `SETTINGS.toolbar_gap`, between the left zone and the title of the bar beside a
+    /// sidebar: the title sits 20 from the sidebar's edge.
+    pub sidebar_spacing: f32,
     /// Tengen: `Color` of `titlebar_inactive`, focused `Color` of the window surface; `Clear`
     /// over a `Backdrop`.
     pub background: StateValue<ShapeStyle>,
@@ -90,6 +93,7 @@ impl ControlStyle for TitlebarStyle {
             padding_x: TITLEBAR_PADDING_X,
             sidebar_padding_x: SETTINGS.toolbar_padding_x as f32,
             spacing: 0.0,
+            sidebar_spacing: SETTINGS.toolbar_gap as f32,
             background: StateValue::new(surface(resolved.surfaces.titlebar_inactive))
                 .focused(active.clone()),
             sidebar_background: StateValue::new(surface(resolved.surfaces.toolbar)),

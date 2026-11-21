@@ -907,6 +907,37 @@ fn the_sidebar_toggle_hides_and_shows_the_sidebar() {
 }
 
 #[test]
+fn the_sidebar_toggle_sits_at_the_sidebar_end_and_after_the_lights_once_it_hides() {
+    let resolved = motion(true);
+    let (mut test, _) = TestingRunner::new(
+        AppComponent::new(HidingCase),
+        Size2D::new(900.0, 400.0),
+        move |runner| runner.provide_root_context(move || State::create(resolved)),
+        1.0,
+    );
+    test.sync_and_update();
+    let toggle = probed(&test, "sidebar-toggle").expect("toggle");
+    let docked_x = SIDEBAR.width as f32 - TOOLGROUP.height as f32 - SIDEBAR.toggle_inset;
+    assert!(
+        (toggle.origin.x - docked_x).abs() < 0.5,
+        "docked at {docked_x}, got {}",
+        toggle.origin.x
+    );
+    test.click_cursor((f64::from(toggle.center().x), f64::from(toggle.center().y)));
+    test.poll(Duration::from_millis(16), Duration::from_millis(100));
+    let toggle = probed(&test, "sidebar-toggle").expect("toggle");
+    let (_, _, lights_width, _) = ctappearance::traffic::group_rect();
+    let hidden_x = SIDEBAR.traffic_x as f32
+        + lights_width as f32
+        + ctdesign::SETTINGS.toolbar_padding_x as f32;
+    assert!(
+        (toggle.origin.x - hidden_x).abs() < 0.5,
+        "hidden at {hidden_x}, got {}",
+        toggle.origin.x
+    );
+}
+
+#[test]
 fn the_traffic_lights_stay_in_place_when_the_sidebar_hides() {
     let resolved = motion(true);
     let (mut test, _) = TestingRunner::new(

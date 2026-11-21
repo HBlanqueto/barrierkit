@@ -1,6 +1,6 @@
 use freya_animation::prelude::{AnimNum, use_animation_transition};
 
-use ctdesign::{SIDEBAR, SPLIT_VIEW};
+use ctdesign::{SIDEBAR, SPLIT_VIEW, TOOLGROUP};
 use freya_core::prelude::*;
 use serde::{Deserialize, Serialize};
 use torin::prelude::{Content, Direction, Gaps, Position, Size};
@@ -8,6 +8,7 @@ use torin::prelude::{Content, Direction, Gaps, Position, Size};
 use crate::ProbeExt;
 use crate::app::{Action, Shortcut, ShortcutKey};
 use crate::compact::IconButton;
+use crate::controls::ToolGroup;
 use crate::i18n::text;
 use crate::sidebar::{SidebarControl, sidebar_control};
 use crate::styles::Painted;
@@ -15,6 +16,7 @@ use crate::styles::{
     ControlState, LayoutDirection, Paints, SplitViewStyle, StateValue, Theme, resolve,
 };
 use crate::symbol::Symbol;
+use crate::titlebar::{TITLEBAR_OVERLAY_LAYER, sidebar_toggle_placement};
 
 pub const TOGGLE_SIDEBAR: Action = Action::new("toggle-sidebar", || text!("toggle-sidebar"))
     .shortcut(Shortcut::new(
@@ -41,15 +43,27 @@ pub struct SidebarToggle;
 impl Component for SidebarToggle {
     fn render(&self) -> impl IntoElement {
         let control = sidebar_control();
-        rect().probe("sidebar-toggle").child(
-            IconButton::new(Symbol::SidebarLeft, TOGGLE_SIDEBAR.title())
-                .disabled(control.is_none())
-                .on_press(move |_| {
-                    if let Some(control) = control {
-                        control.toggle();
-                    }
-                }),
-        )
+        let (offset, width) =
+            sidebar_toggle_placement(control.map_or(0.0, |control| control.occupied()));
+        rect()
+            .width(Size::px(width))
+            .height(Size::px(TOOLGROUP.height as f32))
+            .child(
+                rect()
+                    .position(Position::new_absolute().top(0.0).left(offset))
+                    .maybe(offset < 0.0, |el| el.layer(TITLEBAR_OVERLAY_LAYER + 1))
+                    .child(
+                        ToolGroup::new().probe("sidebar-toggle").child(
+                            IconButton::new(Symbol::SidebarLeft, TOGGLE_SIDEBAR.title())
+                                .disabled(control.is_none())
+                                .on_press(move |_| {
+                                    if let Some(control) = control {
+                                        control.toggle();
+                                    }
+                                }),
+                        ),
+                    ),
+            )
     }
 }
 

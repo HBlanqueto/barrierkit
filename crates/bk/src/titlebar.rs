@@ -6,8 +6,8 @@ use crate::traffic::TrafficLights;
 use ctappearance::window::{
     TitlebarAction, WindowBehavior, double_click_action, green_action, read_window_behavior,
 };
-use ctdesign::NATIVE_APP_ID_PREFIX;
 use ctdesign::{ButtonKind, TITLEBAR_DOUBLE_CLICK};
+use ctdesign::{NATIVE_APP_ID_PREFIX, SIDEBAR, TOOLGROUP};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 
@@ -91,7 +91,11 @@ impl Titlebar {
     }
 
     pub fn spacing(self, spacing: f32) -> Self {
-        self.style(move |s| TitlebarStyle { spacing, ..s })
+        self.style(move |s| TitlebarStyle {
+            spacing,
+            sidebar_spacing: spacing,
+            ..s
+        })
     }
 
     pub fn close_only(mut self, close_only: bool) -> Self {
@@ -330,7 +334,7 @@ impl Titlebar {
             .direction(Direction::Horizontal)
             .content(Content::flex())
             .cross_align(Alignment::Center)
-            .spacing(style.spacing)
+            .spacing(style.sidebar_spacing)
             .padding(Gaps::new(0.0, padding_x, 0.0, padding_left))
             .child(left_slot)
             .child(title)
@@ -500,6 +504,22 @@ pub(crate) const TITLEBAR_OVERLAY_LAYER: i16 = i16::MAX / 32;
 pub fn sidebar_bar_height() -> f32 {
     let style: TitlebarStyle = resolve(&Theme::tengen());
     style.sidebar_height
+}
+
+// The toggle sits at the sidebar's right end while it is docked and after the traffic lights once it is not. Returns how far it moves from where the bar's left zone puts it, and the width it keeps there.
+pub(crate) fn sidebar_toggle_placement(occupied: f32) -> (f32, f32) {
+    let style: TitlebarStyle = resolve(&Theme::tengen());
+    let sidebar: SidebarStyle = resolve(&Theme::tengen());
+    let lights: TrafficLightsStyle = resolve(&Theme::tengen());
+    let platter = TOOLGROUP.height as f32;
+    let padding_x = style.sidebar_padding_x;
+    let hidden_x = sidebar.lights_position.0 + lights.length() + padding_x;
+    let docked_x = occupied - platter - SIDEBAR.toggle_inset;
+    let zone_x = (occupied + padding_x).max(hidden_x);
+    (
+        docked_x.max(hidden_x) - zone_x,
+        (hidden_x + platter - docked_x).clamp(0.0, platter),
+    )
 }
 
 impl TrafficLights {

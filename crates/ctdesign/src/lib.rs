@@ -910,6 +910,7 @@ pub struct SidebarMetrics {
     pub rim_width: f32,
     pub traffic_x: u32,
     pub traffic_y: u32,
+    pub toggle_inset: f32,
     pub item_height: u32,
     pub item_radius: u32,
     pub item_padding_x: u32,

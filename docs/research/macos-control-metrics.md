@@ -164,7 +164,7 @@ Read with `~/src/probes/sidebar` (an `NSSplitViewController` whose first item is
 
 ### What the kit does
 
-`scripts/appkit-render.sh sidebar` draws the SwiftUI probe's window and `scripts/appkit-compare.py sidebar light|dark` compares it with `~/src/captures/sidebar/swiftui-*-srgb.png`. The kit's sidebar is flat and full height, 220 wide, with the colors, the 52 bar, the lights at (19, 19), 32 high rows, 19 high headers 13 apart, the 10 inset selection and the line under the bar all within 1 of AppKit's, in light and dark. What differs: the kit's rows carry a 20 square tile where AppKit draws a bare accent glyph (so the icon's ink is 2 to 3 wider), the sidebar toggle is not in the sidebar, the toolbar buttons have no 36 platter in this scene, and the list does not scroll under the bar.
+`scripts/appkit-render.sh sidebar` draws the SwiftUI probe's window and `scripts/appkit-compare.py sidebar light|dark` compares it with `~/src/captures/sidebar/swiftui-*-srgb.png`. The kit's sidebar is flat and full height, 220 wide, with the colors, the 52 bar, the lights at (19, 19), 32 high rows, 19 high headers 13 apart, the 10 inset selection and the line under the bar all within 1 of AppKit's, in light and dark. What differs: the kit's rows carry a 20 square tile where AppKit draws a bare accent glyph (so the icon's ink is 2 to 3 wider), the toolbar buttons that are not in a `ToolGroup` have no 36 platter in this scene, and the list does not scroll under the bar. The sidebar toggle sits in the sidebar like SwiftUI's, at x = 176 to 211 against 175 to 213 with AppKit's shadow, and the title starts at 240 or 241 in both.
 
 ## Toolbar items and navigation buttons
 
