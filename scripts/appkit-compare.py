@@ -433,15 +433,15 @@ LISTS_FOCUSABLE = ["list-inset", "list-plain", "list-bordered", "table", "outlin
 
 def lists(args):
     look = (CONTRAST if args.tag == "hc" else APPKIT)[args.mode]
-    tag = "lists-hc" if args.tag == "hc" else "lists"
-    with open(os.path.join(CAPTURES, "lists", f"{look}-none.json")) as handle:
+    tag = f"{args.family}-hc" if args.tag == "hc" else args.family
+    with open(os.path.join(CAPTURES, args.family, f"{look}-none.json")) as handle:
         data = json.load(handle)
     height, found = data["contentH"], {item["name"]: item for item in data["items"]}
     print(f"{'item':16} {'focus':>5} {'%diff':>6} {'AppKit x y w h':>24} {'kit x y w h':>24}")
-    for name in args.names.split(",") if args.names else LISTS:
+    for name in args.names.split(",") if args.names else (LISTS if args.family == "lists" else CONTAINERS):
         box = region(name, height, found)
-        for focused in (False, True) if name in LISTS_FOCUSABLE else (False,):
-            appkit = rgb(os.path.join(CAPTURES, "lists", f"{look}-{name if focused else 'none'}@{SCALE}x.png"))
+        for focused in (False, True) if name in LISTS_FOCUSABLE and args.family == "lists" else (False,):
+            appkit = rgb(os.path.join(CAPTURES, args.family, f"{look}-{name if focused else 'none'}@{SCALE}x.png"))
             focus = f"focus-{name}-" if focused else ""
             kit_path = os.path.join(KIT, f"kit-{tag}-{focus}{args.mode}-white.png")
             if not os.path.exists(kit_path):
@@ -491,6 +491,7 @@ def main():
     four = commands.add_parser("table", help="print the table header, text and separator positions")
     four.add_argument("mode", choices=("light", "dark"))
     four.set_defaults(run=table)
+CONTAINERS = ["split-v-thin", "split-h-thin", "swiftui-hsplit", "swiftui-vsplit"]
     six = commands.add_parser("toolbar", help="print the toolbar glyph and navigation pair comparison")
     six.add_argument("mode", choices=("light", "dark"))
     six.set_defaults(run=toolbar)
@@ -509,3 +510,4 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+    eight.add_argument("--family", default="lists", choices=("lists", "containers"), help="the probe family")

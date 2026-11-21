@@ -415,7 +415,9 @@ SplitPanes::new("Panes", Direction::Horizontal)
 The ratios are controlled: store what `on_ratios` reports and pass it back, or
 the divider does not move. A drag changes only the two panes beside the
 divider, and neither goes below `SPLIT_PANES.pane_min` (60 px). Dividers are
-`SPLIT_PANES.divider` (3 px) thick.
+`SPLIT_PANES.divider` (1 px) thick, the thin divider of `NSSplitView` and the
+one of `HSplitView` and `VSplitView`; the pointer grabs them over
+`SPLIT_PANES.grab` (5 px).
 
 ## Floating panes
 

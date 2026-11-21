@@ -3,7 +3,7 @@ use crate::styles::{
 };
 use ctdesign::{Rgba, SPLIT_PANES};
 use freya_core::prelude::*;
-use torin::prelude::{Content, Direction, Size};
+use torin::prelude::{Content, Direction, Position, Size};
 
 #[derive(PartialEq)]
 pub struct SplitPanes {
@@ -155,7 +155,9 @@ impl Component for Divider {
         } else {
             line.height(thickness).width(Size::fill())
         };
-        line.a11y_role(AccessibilityRole::Splitter)
+        let reach = (SPLIT_PANES.grab - self.thickness) / 2.0;
+        let grab = rect()
+            .a11y_role(AccessibilityRole::Splitter)
             .cursor(icon)
             .on_mouse_down(move |event: Event<MouseEventData>| {
                 grabbed.set(Some((
@@ -176,7 +178,17 @@ impl Component for Divider {
                 if grabbed.peek().is_some() {
                     grabbed.set(None);
                 }
-            })
+            });
+        let grab = if horizontal {
+            grab.position(Position::new_absolute().left(-reach).top(0.0))
+                .width(Size::px(SPLIT_PANES.grab))
+                .height(Size::fill())
+        } else {
+            grab.position(Position::new_absolute().left(0.0).top(-reach))
+                .height(Size::px(SPLIT_PANES.grab))
+                .width(Size::fill())
+        };
+        line.layer(1).child(grab)
     }
 }
 

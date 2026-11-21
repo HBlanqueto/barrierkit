@@ -1173,6 +1173,7 @@ pub struct TableMetrics {
     pub min_column_width: f32,
     pub resize_handle: f32,
     pub sorted_weight: u32,
+    pub grab: f32,
     pub sort_arrow: f32,
     pub sort_arrow_stroke: f32,
     pub sort_arrow_inset: f32,

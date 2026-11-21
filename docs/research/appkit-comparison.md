@@ -53,6 +53,8 @@ table on stdout and `target/appkit/sheet-*.png`.
 
    `lists` hosts SwiftUI lists, a table, outlines and forms in one view and takes the name of the list to make first responder (`none` for no focus) instead of a backdrop: `~/src/probes/lists aqua list-inset ~/src/captures/lists/aqua-list-inset`. The JSON says `"active": true` when the window was key; repeat the capture when it is `false`. `appbundle.sh` appends the output prefix last, so `-increaseContrast 1 -reduceTransparency 1` go before it. Capture each list focused and once with `none`, in `aqua`, `darkAqua`, `aquaHC` and `darkHC`; the files are `<look>-<focus>@4x.png` with `hc-` before the high-contrast looks.
 
+   `containers` hosts `NSTabView`, `NSSplitView` and `NSScrollView` in each style and SwiftUI's `TabView`, `HSplitView` and `VSplitView`; it takes the same arguments as `lists` (`~/src/probes/containers aqua none ~/src/captures/containers/aqua-none`).
+
    `navbuttons` opens a window whose toolbar holds the items named in its `specs` argument and writes `<prefix>.json` (the view tree) plus one 4x PNG per hosted button. `navbuttons.sh` (and `appbundle.sh <probe> <prefix> <arguments>` for `sidebar` and `sidebarui`) runs the probe as an app bundle, so the window is key and draws its active state, and takes the screenshot from the shell. The specs are in the source header; the bench reads two sets, `glyphs` (ten single buttons) and `pair` (the navigational back and forward):
 
    ```sh
@@ -92,6 +94,7 @@ table on stdout and `target/appkit/sheet-*.png`.
    scripts/appkit-compare.py layout ~/src/captures/controls/aqua-white.json target/appkit/layout-controls.tsv
    scripts/appkit-compare.py layout ~/src/captures/views/aqua-white.json target/appkit/layout-views.tsv
    scripts/appkit-compare.py layout ~/src/captures/lists/aqua-none.json target/appkit/layout-lists.tsv
+   scripts/appkit-compare.py layout ~/src/captures/containers/aqua-none.json target/appkit/layout-containers.tsv
    ```
 
 5. Render the kit scene at 4x in the dev shell. The scene is
@@ -106,6 +109,7 @@ table on stdout and `target/appkit/sheet-*.png`.
    scripts/appkit-render.sh toolbar         # kit-toolbar-{light,dark}.png
    scripts/appkit-render.sh lists           # kit-lists-{light,dark}-*.png and kit-lists-focus-*
    scripts/appkit-render.sh lists-contrast  # kit-lists-hc-*
+   scripts/appkit-render.sh containers      # kit-containers-{light,dark}-*
    scripts/appkit-render.sh sidebar         # kit-sidebar-{light,dark}.png, a 900 × 560 window at 1x
    ```
 
@@ -188,6 +192,7 @@ table on stdout and `target/appkit/sheet-*.png`.
    cargo test -p bk --test kit --features bk/shell appkit_glyph_lab -- --ignored
    ```
 
+   scripts/appkit-compare.py lists light --family containers
    Fix the larger differences first: fill, size, position. Then regenerate
    the goldens and run `./dev.sh check`.
 

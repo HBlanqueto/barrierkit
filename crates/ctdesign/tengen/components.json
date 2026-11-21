@@ -592,7 +592,8 @@
       "selection": 0.1
     },
     "split-panes": {
-      "divider": 3,
+      "divider": 1,
+      "grab": 5,
       "pane-min": 60
     },
     "floating-pane": {

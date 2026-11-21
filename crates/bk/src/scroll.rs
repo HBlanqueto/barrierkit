@@ -7,7 +7,7 @@ use freya_components::scrollviews::{
     ScrollConfig, ScrollController as Inner, ScrollView as Scroller,
 };
 use freya_core::prelude::*;
-use torin::prelude::{Area, Direction, Position, Size};
+use torin::prelude::{Area, Direction, Gaps, Position, Size};
 
 use crate::adornments::Divider;
 use crate::platform::Timers;
@@ -334,6 +334,11 @@ impl Component for ScrollView {
             style.min_thumb_length,
         )
         .filter(|_| self.scroll_bar && visibility > 0.0);
+        let reserved = if always && bar.is_some() {
+            style.track_width + 2.0 * style.inset
+        } else {
+            0.0
+        };
         rect()
             .width(self.width.clone())
             .height(self.height.clone())
@@ -343,6 +348,11 @@ impl Component for ScrollView {
             .child(
                 Scroller::new_controlled(controller.inner)
                     .direction(self.direction)
+                    .margin(if horizontal {
+                        Gaps::new(0.0, 0.0, reserved, 0.0)
+                    } else {
+                        Gaps::new(0.0, reserved, 0.0, 0.0)
+                    })
                     .show_scrollbar(false)
                     .child(
                         rect()

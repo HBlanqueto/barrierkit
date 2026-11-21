@@ -6,11 +6,12 @@ use bk::symbol::Symbol;
 use bk::views::form::{Form, Row, Section};
 use bk::views::group::{DisclosureGroup, GroupBox};
 use bk::views::list::List;
+use bk::views::split_panes::SplitPanes;
 use bk::views::table::{SortOrder, Table};
 use bk::views::tree::{OutlineView, TreeNode};
 use ctdesign::BODY;
 use freya_core::prelude::*;
-use torin::prelude::Size;
+use torin::prelude::{Direction, Size};
 
 use super::appkit::{Builder, layout, render_scene, scene_content, scene_tag};
 
@@ -176,9 +177,7 @@ fn emphasized_lists() -> Vec<(&'static str, Builder)> {
     ]
 }
 
-#[test]
-#[ignore]
-fn appkit_lists() {
+fn render_family(builders: Vec<(&'static str, Builder)>, emphasized: Vec<(&'static str, Builder)>) {
     let layout_path = std::env::var("APPKIT_LAYOUT").expect("APPKIT_LAYOUT");
     let out = PathBuf::from(std::env::var("APPKIT_OUT").expect("APPKIT_OUT"));
     let positions = layout(&layout_path);
@@ -190,9 +189,9 @@ fn appkit_lists() {
     };
     for &dark in &modes {
         for black in [false, true] {
-            let placed = lists()
-                .into_iter()
-                .filter_map(|(name, build)| positions.get(name).map(|&(x, y, ..)| (x, y, build)))
+            let placed = builders
+                .iter()
+                .filter_map(|&(name, build)| positions.get(name).map(|&(x, y, ..)| (x, y, build)))
                 .collect();
             fs::write(
                 out.join(format!(
@@ -206,7 +205,7 @@ fn appkit_lists() {
             .unwrap();
         }
     }
-    for (name, build) in emphasized_lists() {
+    for (name, build) in emphasized {
         let Some(&(x, y, ..)) = positions.get(name) else {
             continue;
         };
@@ -225,4 +224,37 @@ fn appkit_lists() {
             }
         }
     }
+}
+
+fn panes(direction: Direction) -> Element {
+    rect()
+        .width(Size::px(160.0))
+        .height(Size::px(100.0))
+        .child(
+            SplitPanes::new("Panes", direction)
+                .pane(rect().expanded())
+                .pane(rect().expanded()),
+        )
+        .into_element()
+}
+
+fn containers() -> Vec<(&'static str, Builder)> {
+    vec![
+        ("split-v-thin", || panes(Direction::Horizontal)),
+        ("swiftui-hsplit", || panes(Direction::Horizontal)),
+        ("split-h-thin", || panes(Direction::Vertical)),
+        ("swiftui-vsplit", || panes(Direction::Vertical)),
+    ]
+}
+
+#[test]
+#[ignore]
+fn appkit_lists() {
+    render_family(lists(), emphasized_lists());
+}
+
+#[test]
+#[ignore]
+fn appkit_containers() {
+    render_family(containers(), Vec::new());
 }

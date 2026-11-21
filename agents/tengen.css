@@ -849,7 +849,8 @@
   --bk-collection-gap: 6;
   --bk-collection-radius: 10;
   --bk-collection-selection: 0.1;
-  --bk-split-panes-divider: 3;
+  --bk-split-panes-divider: 1;
+  --bk-split-panes-grab: 5;
   --bk-split-panes-pane-min: 60;
   --bk-floating-pane-title-height: 22;
   --bk-floating-pane-outline: 1;

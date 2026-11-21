@@ -242,6 +242,25 @@ Three traps in the probe, each of which gave a wrong number before:
    | Two buttons (a back and forward pair) | 73 | 63 | 65 |
    | N buttons | 36 N + 1 for N ≥ 2: 73, 109, 145, 181, 217 | | |
    | Two segments, select one | 74 | 66 | 66 |
+## Forms and groups (SwiftUI)
+
+Read with the same `lists` probe (`Form` grouped and columns, `GroupBox`, `DisclosureGroup` open and closed), light, dark and Increase Contrast.
+
+- **Form, `.grouped`:** the form is inset 20 on every side; a section's title (bold 13) takes a 16 high line from the top, with its text 10 in from the card and 8 above it; cards are `f7f7f7` (black 3.1%) with continuous corners of radius 12.5 (the leftmost column reaches full coverage 15.5 below the top), 10 apart, rows 36 high with a 1 hairline between them from 10 to 10 inside the card, labels 10 in. A `Toggle` is a switch of 36 × 16 (the kit's mini), 10 from the right edge. A `TextField` is borderless text in the label color, a `LabeledContent` value is in the secondary label color. The kit stacks a control under its label below 300 wide. In dark the card is black or white 3.1% (`252525` over `1e1e1e`); the kit's card is the shared content background (`2a2a2a`), five levels lighter, because a window with a tinted backdrop must look the same in light and dark and the 3.1% fill follows the scheme.
+- **Form, `.columns`:** no cards. Labels are right-aligned in a column as wide as the widest label, the controls start 9.5 after it; a checkbox row starts at the control column. The kit has no counterpart.
+- **GroupBox:** the title is 11 pt, its ink 10 in (the text box 9.5), in a 17 high row above the box; the box is the content plus 5 on every side, `f7f7f7`, continuous corners of radius 12. `NSBox` differs in the 12 high title row and the 10.75 inset.
+- **DisclosureGroup** (standalone): the chevron is `c1c1c1`, 7.75 × 4.5 open (center 3.9 and 13.25) and 5 × 7.5 closed (center 4.5 and 12.25), the title starts 12 from the left, and the children are not indented.
+- The kit's difference in these items is 3 to 9% of the pixels, text apart from the missing `.columns` form.
+
+## Containers: split views and scrollers
+
+Read with `~/src/probes/containers.swift` (`NSSplitView` thin, thick and pane-splitter dividers in both orientations, `HSplitView` and `VSplitView`, `NSTabView` in its styles and `NSScrollView` with each border and both scroller styles) captured at 4x with `cacheDisplay`. The scroll views, the tab strip and the thick dividers are drawn partly by the window server, so `cacheDisplay` shows black or no strip there; the bench compares the dividers. `scripts/appkit-compare.py lists <mode> --family containers`.
+
+- **Thin divider** (`NSSplitView.dividerStyle = .thin`, and `HSplitView`, `VSplitView`): 1 thick, in the separator color of every appearance: `e5e5e5` and `393939`, and `cccccc` and `4d4d4d` under Increase Contrast. The panes touch it; an even split of 160 puts the line at 80 (left pane 80, right pane 79) and one of 100 at 49 (AppKit rounds to the pixel; the kit puts it at 79.5 and 49.5). The kit's `SplitPanes` divider was 3 thick; it is 1 with a 5 wide grab area (`SPLIT_PANES.divider`, `grab`), at 0.6 to 2% of the pixels.
+- **Thick and pane-splitter dividers** are 10 thick: a `e5e5e5` band with a soft top edge and, on the pane splitter, a dot; not drawn by the kit.
+- **Legacy scroller:** the kit's `ScrollView` keeps the 17 wide strip (11 capsule plus 3 on each side) out of the content while the bar is always shown, as `NSScrollView` does; before it overlaid the content.
+- **Not measured:** the glass tab strip of `NSTabView` and `TabView` needs a screen capture, and `NSScrollView` borders are not in the kit.
+
    | Two segments, momentary, labels "Back" and "Forward" | 87 | 79 | 83 |
 ## Forms and groups (SwiftUI)
 
