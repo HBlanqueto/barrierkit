@@ -148,6 +148,17 @@ table on stdout and `target/appkit/sheet-*.png`.
    scripts/appkit-compare.py pressed --family buttons
    ```
 
+   `accents` and `accents-contrast` render the controls that take the accent once per accent (`multicolor`, `blue`, `purple`, `pink`, `red`, `orange`, `yellow`, `green`, `graphite`; `APPKIT_ACCENTS` picks some) from the `accentctl` probe, which draws 28 of the `controls` items in a 1600 × 256 window with their pressed and disabled looks. `accents.sh` runs it for every accent and look as an app bundle, with the accent on the command line (`-AppleAccentColor <n>`; graphite is `-AppleAquaColorVariant 6 -AppleAccentColor -1`) and waits while another probe's window is on screen, because a window that is not key draws every accent in gray; it repeats a capture whose JSON does not say `"active" : true`. `accentui.sh` captures the SwiftUI controls, `Color.accentColor`, `.tint` and a sidebar `List` selection the same way, into `~/src/captures/accents/swiftui/<accent>/<look>-screen.png` and `-color.txt`. The scene reads the accent from `APPKIT_ACCENT` (`accent` of `AppearanceConfig`):
+
+   ```sh
+   swiftc -O ~/src/probes/accentctl.swift -o ~/src/probes/accentctl
+   ~/src/probes/accents.sh accentctl ~/src/captures/accents/controls
+   scripts/appkit-compare.py layout ~/src/captures/accents/controls/blue/aqua-white.json target/appkit/layout-accents.tsv
+   scripts/appkit-render.sh accents && scripts/appkit-render.sh accents-contrast
+   scripts/appkit-compare.py accents                # share of differing pixels, control by accent, light and dark
+   scripts/appkit-compare.py accents --tag hc       # the same with Increase Contrast
+   ```
+
    `swiftuibuttons` draws the SwiftUI button, toggle and picker styles at the five control sizes, each `NSHostingView` into one bitmap (a hosted view outside the screen is not drawn by `cacheDisplay` of its parent). Its window must be key: `swiftuibuttons-capture.sh` runs it as an app bundle and directly in turn until the JSON says `"active" : true`. `scripts/appkit-render.sh swiftui` and `scripts/appkit-compare.py controls --family swiftui` compare it:
 
    ```sh
@@ -195,6 +206,71 @@ table on stdout and `target/appkit/sheet-*.png`.
    scripts/appkit-compare.py lists light --family containers
    Fix the larger differences first: fill, size, position. Then regenerate
    the goldens and run `./dev.sh check`.
+
+## Accent results (2026-11-20)
+
+`scripts/appkit-compare.py accents` and `accents --tag hc` against the captures of
+`accents.sh` and `accentui.sh`, for the nine accents (Multicolor, blue, purple,
+pink, red, orange, yellow, green, graphite), light on white and dark on black.
+
+**The fill.** Share of each control's dominant fill that the kit misses by more
+than 3 levels, the worst of the nine accents. Every accent fill is within 1.4%
+except the yellow ring in light (3.3%).
+
+| Control | Light | Dark | Increase Contrast light | Increase Contrast dark |
+|---|---|---|---|---|
+| `default-regular` | 0.6 | 0.8 | 0.1 | 0.2 |
+| `check-on-regular` | 1.3 | 1.4 | 1.3 | 1.4 |
+| `radio-on-regular` | 0.7 | 0.7 | 1.3 | 1.3 |
+| `switch-on-regular` | 0.8 | 0.1 | 0.9 | 0.1 |
+| `switch-on-disabled` | 0.9 | 0.1 | 0.6 | 0.1 |
+| `slider-regular` | 0.2 | 0.1 | 0.1 | 0.2 |
+| `segmented-regular` | 1.1 | 0.4 | 0.8 | 0.4 |
+| `segmented-disabled` | 0.9 | 0.7 | 0.6 | 0.5 |
+| `progress-bar` | 0.1 | 0.1 | 0.1 | 0.1 |
+| `ring-regular` | 3.3 | 0.0 | 0.7 | 0.4 |
+
+The pressed default button, check box and radio have the same dominant fill as
+AppKit under every accent in light, dark and Increase Contrast (`pressed
+--family accents`, 144 of 144 rows).
+
+**The pixels.** Share of the pixels of each control's box that differ by more
+than 3 levels, lowest to highest over the nine accents.
+
+| Control | Light | Dark | Increase Contrast light | Increase Contrast dark |
+|---|---|---|---|---|
+| `default-regular` | 12.2–13.5 | 12.6–13.5 | 12.8–13.5 | 12.8–13.5 |
+| `check-on-regular` | 3.7–7.0 | 4.1–7.4 | 3.8–4.2 | 4.0–4.4 |
+| `radio-on-regular` | 3.7–6.3 | 4.5–6.8 | 4.2–4.3 | 4.4–4.8 |
+| `switch-on-regular` | 1.8–2.3 | 1.9–2.4 | 1.9–2.1 | 1.8–2.2 |
+| `switch-on-disabled` | 2.0–3.1 | 1.9–2.3 | 1.9–2.4 | 1.9–2.1 |
+| `slider-regular` | 2.7–2.8 | 0.5–0.6 | 2.8–2.8 | 0.5–0.6 |
+| `segmented-regular` | 10.1–10.4 | 10.5–10.8 | 10.4–10.5 | 10.6–10.9 |
+| `segmented-disabled` | 24.3–24.7 | 24.4–25.0 | 25.1–25.3 | 25.3–25.7 |
+| `progress-bar` | 1.8–1.8 | 1.8–1.8 | 1.8–1.8 | 1.8–1.8 |
+| `ring-regular` | 8.9–11.0 | 11.4–12.3 | 16.6–19.1 | 16.7–19.4 |
+
+These shares are mostly not the accent: the spread over accents is at most 3.3
+points (the check box under yellow, whose glyph is white on a light fill). Text
+weight (SF Pro against Inter), glyph shape and bezel geometry set the rest, so
+the default button, the segmented control and the ring stay over 5% under every
+accent, as without one. The goal of 5% in every box is met by the switch, the
+slider, the progress bar and, except under yellow, the check box and the radio.
+
+**The picker.** `scripts/appkit-render.sh picker` and `scripts/appkit-compare.py
+picker light|dark` compare `ColorWell::accents` with the Appearance pane of
+System Settings at 1x: the circle row is 79 wide in both and starts at the same
+pixel, the ring and its gap are in the same pixels and within 8 levels, the name has the same rows,
+and the swatches are within 2 levels (the screen capture is not exact). 17% of
+the 350 × 60 pixels differ, from the text weight and the center of the
+Multicolor gradient.
+
+**Not benched.** A table selection in the kit is always inactive in the test
+scenes, so the `views` bench cannot show the accent: `NSTableView` selection was
+read for six accents (`selectedContentBackgroundColor` to the level) and the
+kit's `Resolved::accent` is tested against `ACCENTS` for every accent and look.
+The sidebar selection is tested the same way. The pop-up menu ignores the
+accent of the probe, so only the blue highlight is measured.
 
 ## Limits
 

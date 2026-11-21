@@ -1,6 +1,6 @@
 use crate::i18n::text;
 
-use ctdesign::{ControlSize, MULTICOLOR, Rgba};
+use ctdesign::{ACCENT_SWATCHES, ACCENTS, ControlSize, MULTICOLOR, Rgba};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Position, Size};
 
@@ -299,6 +299,7 @@ pub struct ColorWell {
     label: &'static str,
     multicolor: Option<&'static str>,
     swatches: &'static [(&'static str, Rgba)],
+    accents: bool,
     selected: Option<usize>,
     disabled: bool,
     on_change: Option<Callback<usize, ()>>,
@@ -312,11 +313,19 @@ impl ColorWell {
             label,
             multicolor: None,
             swatches,
+            accents: false,
             selected: None,
             disabled: false,
             on_change: None,
             style: Theme::tengen(),
             key: DiffKey::None,
+        }
+    }
+
+    pub fn accents(label: &'static str) -> Self {
+        Self {
+            accents: true,
+            ..Self::new(label, &ACCENT_SWATCHES)
         }
     }
 
@@ -349,6 +358,18 @@ impl ColorWell {
         self.key = key.into();
         self
     }
+
+    fn fill_of(&self, name: &str, fill: Rgba) -> Rgba {
+        let resolved = crate::theme::resolved();
+        ACCENTS
+            .iter()
+            .find(|accent| self.accents && accent.name == name)
+            .map_or(fill, |accent| {
+                accent
+                    .colors(resolved.scheme.is_dark(), resolved.contrast)
+                    .control
+            })
+    }
 }
 
 impl KeyExt for ColorWell {
@@ -368,7 +389,7 @@ impl Component for ColorWell {
             .chain(
                 self.swatches
                     .iter()
-                    .map(|(name, fill)| (swatch_name(name), Some(*fill))),
+                    .map(|(name, fill)| (swatch_name(name), Some(self.fill_of(name, *fill)))),
             )
             .enumerate()
             .map(|(index, (name, fill))| {

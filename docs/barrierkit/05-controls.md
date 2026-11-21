@@ -378,10 +378,13 @@ All of them report the chosen index with `.on_change(|index: usize| ..)`.
   into it, like macOS. A click opens the items as a menu with a check mark, placed so the
   chosen row covers the button. The menu is clear (`theme::over_glass`): Malaysia's compositor draws the menus'
   glass under it, as under the menu bar's. `MenuIcon` is in [7](07-menus-and-popovers.md).
-- `ColorWell` is a row of 22 swatches, 11 apart. The chosen one gets an accent ring
-  2 away (`SETTINGS.swatch_ring_gap`), like macOS. The chosen swatch and the one
+- `ColorWell` is a row of 24 swatches, 12 apart, measured on the accent picker of
+  System Settings. The chosen one gets an accent ring 1 away
+  (`SETTINGS.swatch_ring_gap`) and 3 wide, like macOS. The chosen swatch and the one
   under the pointer show their name below. `swatches` is
   `&'static [(&'static str, Rgba)]`, for example `ctdesign::ACCENT_SWATCHES`.
+  `ColorWell::accents(label)` is the accent picker: it takes `ACCENT_SWATCHES` and draws
+  each swatch in the `control` color of the current appearance, as System Settings does.
   `.multicolor(name)` puts a rainbow swatch first, from `ctdesign::MULTICOLOR`,
   like «Multicolor» in macOS; it is index 0 and the swatches follow.
 - `ChoiceCards` shows 66 × 44 previews with a caption below; the chosen card gets an accent
@@ -401,7 +404,7 @@ PopUpButton::new("Traffic lights")
     .item("Automatic").item("Classic").item("Accent")
     .selected(1)
 
-ColorWell::new("Accent color", &ACCENT_SWATCHES).selected(Some(0))
+ColorWell::accents("Accent color").multicolor("Multicolor").selected(Some(0))
 ```
 
 | Radio | Segmented |

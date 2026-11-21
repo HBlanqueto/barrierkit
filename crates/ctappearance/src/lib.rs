@@ -1,3 +1,4 @@
+pub mod accent;
 pub mod backdrop;
 mod config;
 pub mod dock;

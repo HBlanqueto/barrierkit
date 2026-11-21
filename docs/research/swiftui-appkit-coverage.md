@@ -136,8 +136,8 @@ Rows per status at the snapshot. A row is one API, style or size.
 | 14. Windows and chrome | 0 | 6 | 11 | 11 | 28 |
 | 15. Materials and glass | 0 | 2 | 4 | 0 | 6 |
 | 16. Symbols | 0 | 0 | 5 | 1 | 6 |
-| 17. Accessibility | 0 | 2 | 7 | 1 | 10 |
-| **All** | 51 | 45 | 71 | 48 | 215 |
+| 17. Accessibility | 1 | 2 | 9 | 1 | 13 |
+| **All** | 52 | 45 | 73 | 48 | 218 |
 
 To recount after a change, run this from the repository root:
 
@@ -502,6 +502,9 @@ The size of each control is a row in its own family.
 | Invert Colors | `accessibilityDisplayShouldInvertColors` | `ctappearance` setting; no control reads it | `partial` | none | P3 |
 | VoiceOver | `NSAccessibility` | `platform/atspi.rs` (AT-SPI) | `implemented`: no audit per control | none | P2 |
 | focus ring, full keyboard access | `focusRingType` | `ViewModifiers::focus_ring` | `partial` | [`macos-focus-ring.md`](macos-focus-ring.md); bench `calendar-focused` | P2 |
+| accent color: `Color.accentColor`, `.tint`, `AccentColor` | `NSColor.controlAccentColor`, `AppleAccentColor` | `ACCENTS`, `Resolved::accent_colors`, config `accent`, `accent_color`, `wallpaper_accent` | `measured`: the eight accents and Multicolor in light, dark and Increase Contrast; a color without a name follows a fitted rule | [Accent and selection](macos-control-metrics.md#accent-and-selection); bench `accents` | — |
+| accent picker | System Settings › Appearance › Color | `ColorWell::accents` | `partial`: light and dark match at 1x; Increase Contrast not captured | [Accent picker](macos-control-metrics.md#the-picker-of-system-settings); bench `picker` | P3 |
+| text highlight color | `selectedTextBackgroundColor`, `AppleHighlightColor` | `AccentColors::selected_text`, the theme's `text_highlight` | `partial`: follows the accent; a separate highlight color is not read | [Accent and selection](macos-control-metrics.md#accent-and-selection) | P3 |
 | `DynamicTypeSize` (macOS 12) | — | `Resolved::text_size` scales `Text` and `SidebarItem` | `partial`: other controls do not scale; `preferredFont(forTextStyle:)` returns fixed sizes ([Text styles](#text-styles)); whether SwiftUI text on macOS 27 reacts to the setting was not probed | none | P2 |
 
 ### Motion

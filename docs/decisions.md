@@ -90,6 +90,17 @@ Decision:
 Why: an app changes any visual property, or builds a whole theme, without copying Tengen's numbers.
 Code: `crates/bk/src/styles/theme.rs`, `crates/bk/src/styles.rs`, `crates/bk/src/modifiers.rs`
 
+## 0080 — Accent colors
+Decision:
+- The accents are the nine of System Settings: Multicolor and eight named ones (`ctdesign::ACCENTS`). Multicolor is no entry: with no `accent` the controls are blue and an app keeps its own accent.
+- Each named accent holds the colors it decides in four looks, light, dark and Increase Contrast light and dark, as measured on macOS 27.2.1 with the accent set per process. Blue points to the theme tokens, so no value is written twice.
+- The user's choice is `accent = "<name>"` in `appearance.domain`. `accent_color` stays for a color macOS has no name for, and one that equals the light `control` of a named accent reads as that accent. `wallpaper_accent` stays; a monochrome wallpaper falls back to graphite.
+- A color without a name has only its `control`. The rest follows a rule fitted to the named accents (`ACCENT_RULE`): the text selection color is exact, the selection and focus colors are an OKLab shift within a few levels, the control fills are the `control`. Where the ink does not reach 4.5:1, the fill darkens (WCAG 2.2 §1.4.3); a named accent keeps macOS's value.
+- Text selection draws `selected_text`, the accent over the window at 30%.
+Why: macOS has per-appearance values for every accent and no custom one; a single color for light and dark, and blue pressed and disabled fills under any accent, were wrong. The rule covers what macOS gives no value for.
+Rejected: one hex per accent for both appearances (the dark values of red, yellow, purple and graphite differ); deriving the named accents from their `control` (the best formula misses the selection color by up to 6 levels and the focus ring by 14, so each accent has its own).
+Code: `crates/ctdesign/tengen/components.json` (`settings.accents`, `settings.accent-rule`), `crates/ctappearance/src/accent.rs`, `crates/ctappearance/src/resolve.rs`, [Accents](barrierkit/04-appearance-and-tokens.md#accents)
+
 ## 0081 — Icons: glyphs in the kit, icon files in the theme
 Date: 2026-11-20
 Decision:

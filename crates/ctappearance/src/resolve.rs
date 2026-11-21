@@ -1,5 +1,5 @@
 use ctdesign::{
-    ACCENT_CHROMA_GAIN, ACCENT_MIN_CONTRAST_ON_WINDOW, ACCENT_SWATCHES, BG_HOVER_DARK,
+    ACCENT_CHROMA_GAIN, ACCENT_MIN_CONTRAST_ON_WINDOW, Accent, AccentColors, BG_HOVER_DARK,
     BG_HOVER_DARK_TINT, BG_HOVER_LIGHT, BG_RAISED_DARK, BG_RAISED_DARK_TINT, BG_RAISED_LIGHT,
     BG_SUNKEN_DARK, BG_SUNKEN_DARK_TINT, BG_SUNKEN_LIGHT, BG_SURFACE_DARK, BG_SURFACE_DARK_TINT,
     BG_SURFACE_LIGHT, BG_WINDOW_DARK, BG_WINDOW_DARK_TINT, BG_WINDOW_LIGHT, CONTRAST_DARK,
@@ -31,6 +31,7 @@ use ctdesign::{
     WALLPAPER_TINTING, WALLPAPER_TINTING_LIFT, WINDOW_TINT_ACCENT,
 };
 
+use crate::accent;
 use crate::backdrop::{WallpaperTinting, lift, shift_like, take_chroma, take_chroma_capped};
 use crate::icon_style::IconStyle;
 use crate::{
@@ -75,6 +76,7 @@ pub struct Surfaces {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Resolved {
     pub scheme: ColorScheme,
+    pub accent_colors: AccentColors,
     pub accent: Rgba,
     pub control_accent: Rgba,
     pub toggle_accent: Rgba,
@@ -329,12 +331,6 @@ pub fn palette_in(scheme: ColorScheme, contrast: bool) -> Palette {
 
 const BG_WINDOW: [Rgba; 3] = [BG_WINDOW_LIGHT, BG_WINDOW_DARK, BG_WINDOW_DARK_TINT];
 
-const FOCUS_RING_COLOR: [Rgba; 3] = [
-    ctdesign::FOCUS_RING_COLOR_LIGHT,
-    ctdesign::FOCUS_RING_COLOR_DARK,
-    ctdesign::FOCUS_RING_COLOR_DARK_TINT,
-];
-
 const SHELL: [[ShellPalette; 3]; 2] = [
     [SHELL_LIGHT, SHELL_DARK, SHELL_DARK_TINT],
     [
@@ -538,11 +534,37 @@ fn chrome_surfaces(
     )
 }
 
-fn graphite_accent() -> Rgba {
-    ACCENT_SWATCHES
-        .iter()
-        .find_map(|(name, color)| (*name == "graphite").then_some(*color))
-        .expect("ctdesign has a graphite swatch")
+enum Chosen {
+    Named(&'static Accent),
+    Custom(Rgba),
+}
+
+fn chosen_accent(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Option<Chosen> {
+    let custom =
+        |color: Rgba| accent::named_by_color(color).map_or(Chosen::Custom(color), Chosen::Named);
+    appearance
+        .accent
+        .as_deref()
+        .and_then(accent::named)
+        .map(Chosen::Named)
+        .or_else(|| {
+            appearance.accent_color.map(|[r, g, b]| {
+                custom(Rgba {
+                    r: r.clamp(0.0, 1.0),
+                    g: g.clamp(0.0, 1.0),
+                    b: b.clamp(0.0, 1.0),
+                    a: 1.0,
+                })
+            })
+        })
+        .or_else(|| {
+            appearance.wallpaper_accent.then(|| {
+                dominant.map_or_else(
+                    || Chosen::Named(accent::named("graphite").expect("ctdesign has graphite")),
+                    Chosen::Custom,
+                )
+            })
+        })
 }
 
 pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolved {
@@ -550,27 +572,23 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
     let base = palette_in(scheme, appearance.contrast);
     let index = usize::from(scheme.is_dark());
 
-    let normal_accent = appearance
-        .accent_color
-        .map(|[r, g, b]| Rgba {
-            r: r.clamp(0.0, 1.0),
-            g: g.clamp(0.0, 1.0),
-            b: b.clamp(0.0, 1.0),
-            a: 1.0,
-        })
-        .or_else(|| appearance.wallpaper_accent.then_some(dominant).flatten())
-        .unwrap_or_else(|| {
-            if appearance.wallpaper_accent {
-                graphite_accent()
+    let chosen = chosen_accent(appearance, dominant);
+    let colors = match &chosen {
+        None => accent::blue().colors(scheme.is_dark(), appearance.contrast),
+        Some(Chosen::Named(named)) => named.colors(scheme.is_dark(), appearance.contrast),
+        Some(Chosen::Custom(color)) => {
+            let control = if appearance.contrast {
+                legible_on_accent(*color, base.on_accent).0
             } else {
-                base.accent
-            }
-        });
-
-    let (accent, on_accent) = if normal_accent == base.accent {
-        (base.selected_content, base.on_accent)
-    } else {
-        legible_on_accent(normal_accent, base.on_accent)
+                *color
+            };
+            accent::derived(control, scheme.is_dark(), appearance.contrast)
+        }
+    };
+    let normal_accent = colors.control;
+    let (accent, on_accent) = match chosen {
+        Some(Chosen::Custom(_)) => legible_on_accent(colors.selected_content, base.on_accent),
+        _ => (colors.selected_content, base.on_accent),
     };
 
     let window_tint = match appearance.window_color {
@@ -602,25 +620,15 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
     let (mut shell, mut menu, mut sidebar, toolgroup) =
         chrome_surfaces(scheme, appearance.transparency_reduced());
     let surfaces = tinted_surfaces(scheme, &base, appearance.tint_parts, |color, _| color);
-    // WCAG 2.2: with Increase Contrast a focus ring needs 3:1 on the window (§1.4.11), link text 4.5:1 where it sits (§1.4.3).
-    let focus_ring = if appearance.contrast && normal_accent == base.accent {
-        scheme
-            .pick([CONTRAST_LIGHT, CONTRAST_DARK, CONTRAST_DARK_TINT])
-            .focus_ring
-    } else if appearance.contrast {
-        reaching(
-            accent,
+    // WCAG 2.2 §1.4.11: with Increase Contrast a custom accent's focus ring needs 3:1 on the window.
+    let focus_ring = match chosen {
+        Some(Chosen::Custom(_)) if appearance.contrast => reaching(
+            colors.focus_ring,
             &[scheme.pick(BG_WINDOW)],
             ACCENT_MIN_CONTRAST_ON_WINDOW,
             scheme,
-        )
-    } else if normal_accent == base.accent {
-        scheme.pick(FOCUS_RING_COLOR)
-    } else {
-        Rgba {
-            a: scheme.pick(FOCUS_RING_COLOR).a,
-            ..accent
-        }
+        ),
+        _ => colors.focus_ring,
     };
     let link = reaching(
         accent,
@@ -628,15 +636,17 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
         ON_ACCENT_MIN_CONTRAST,
         scheme,
     );
-    menu.hover_bg = if normal_accent == base.accent {
-        normal_accent
-    } else {
+    menu.hover_bg = if appearance.contrast || matches!(chosen, Some(Chosen::Custom(_))) {
         accent
+    } else {
+        normal_accent
     };
     menu.hover_fg = on_accent;
-    if normal_accent != base.accent || appearance.contrast {
-        sidebar.palette.selected_bg = accent;
-    }
+    sidebar.palette.selected_bg = if matches!(chosen, Some(Chosen::Custom(_))) {
+        accent
+    } else {
+        colors.sidebar_selection
+    };
     sidebar.palette.item_icon = accent;
     sidebar.palette.selected_ink = on_accent;
     shell.tile_active = accent;
@@ -649,25 +659,13 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
     let menu_glass = menu_glass(dock, scheme, appearance.glass_blur);
     let untinted = Resolved {
         scheme,
+        accent_colors: colors,
         accent,
         control_accent: normal_accent,
-        toggle_accent: if normal_accent == base.accent {
-            base.accent_toggle
-        } else {
-            normal_accent
-        },
-        ring_accent: if normal_accent == base.accent {
-            base.accent_ring
-        } else {
-            normal_accent
-        },
-        toggle_accent_disabled: if normal_accent == base.accent {
-            base.accent_toggle_disabled
-        } else {
-            normal_accent
-        },
-        automatic_accent: appearance.accent_color.is_none()
-            && !(appearance.wallpaper_accent && dominant.is_some()),
+        toggle_accent: colors.toggle,
+        ring_accent: colors.ring,
+        toggle_accent_disabled: colors.toggle_disabled,
+        automatic_accent: chosen.is_none(),
         on_accent,
         focus_ring,
         link,
@@ -914,7 +912,7 @@ mod tests {
             b: accent[2],
             a: 1.0,
         };
-        assert_eq!(resolved.accent, expected);
+        assert_eq!(resolved.control_accent, expected);
         assert_eq!(
             resolved.window_tint,
             Some((expected, WINDOW_TINT_ACCENT[0]))
@@ -959,6 +957,82 @@ mod tests {
     }
 
     #[test]
+    fn a_named_accent_takes_its_measured_colors_in_each_appearance() {
+        let purple = |scheme, contrast| {
+            resolve(
+                &AppearanceConfig {
+                    color_scheme: scheme,
+                    contrast,
+                    accent: Some("purple".to_owned()),
+                    ..AppearanceConfig::default()
+                },
+                None,
+            )
+        };
+        let colors = |resolved: Resolved| (resolved.control_accent, resolved.accent);
+        let rgb = |r, g, b| Rgba::rgb8(r, g, b);
+        assert_eq!(
+            colors(purple(ColorScheme::Light, false)),
+            (rgb(0x95, 0x3d, 0x96), rgb(0x7d, 0x2a, 0x7e))
+        );
+        assert_eq!(
+            colors(purple(ColorScheme::Dark, false)),
+            (rgb(0xa5, 0x50, 0xa7), rgb(0x80, 0x34, 0x82))
+        );
+        assert_eq!(
+            colors(purple(ColorScheme::Dark, true)),
+            (rgb(0xc1, 0x31, 0xc3), rgb(0xc1, 0x31, 0xc3))
+        );
+        assert!(!purple(ColorScheme::Light, false).automatic_accent);
+    }
+
+    #[test]
+    fn every_named_accent_reaches_the_controls_in_every_appearance() {
+        for accent in &ctdesign::ACCENTS {
+            for (scheme, contrast) in [
+                (ColorScheme::Light, false),
+                (ColorScheme::Dark, false),
+                (ColorScheme::Light, true),
+                (ColorScheme::Dark, true),
+            ] {
+                let resolved = resolve(
+                    &AppearanceConfig {
+                        color_scheme: scheme,
+                        contrast,
+                        accent: Some(accent.name.to_owned()),
+                        ..AppearanceConfig::default()
+                    },
+                    None,
+                );
+                let colors = accent.colors(scheme.is_dark(), contrast);
+                let looks = format!("{} {scheme:?} contrast={contrast}", accent.name);
+                assert_eq!(resolved.accent_colors, colors, "{looks}");
+                assert_eq!(resolved.control_accent, colors.control, "{looks}");
+                assert_eq!(resolved.accent, colors.selected_content, "{looks}");
+                assert_eq!(resolved.toggle_accent, colors.toggle, "{looks}");
+                assert_eq!(resolved.focus_ring, colors.focus_ring, "{looks}");
+                assert_eq!(
+                    resolved.sidebar.palette.selected_bg, colors.sidebar_selection,
+                    "{looks}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn an_unknown_accent_name_is_ignored() {
+        let resolved = resolve(
+            &AppearanceConfig {
+                accent: Some("chartreuse".to_owned()),
+                ..AppearanceConfig::default()
+            },
+            None,
+        );
+        assert!(resolved.automatic_accent);
+        assert_eq!(resolved.control_accent, LIGHT.accent);
+    }
+
+    #[test]
     fn the_wallpaper_accent_takes_the_dominant_colour() {
         let resolved = resolve(
             &AppearanceConfig {
@@ -981,8 +1055,9 @@ mod tests {
             },
             None,
         );
-        let (expected, _) = legible_on_accent(graphite_accent(), LIGHT.on_accent);
-        assert_eq!(resolved.accent, expected);
+        let graphite = accent::named("graphite").unwrap().light;
+        assert_eq!(resolved.control_accent, graphite.control);
+        assert_eq!(resolved.accent, graphite.selected_content);
         assert_ne!(resolved.accent, LIGHT.accent);
     }
 
@@ -1241,21 +1316,16 @@ mod tests {
     }
 
     #[test]
-    fn every_accent_swatch_gets_readable_ink_and_link_text() {
+    fn every_custom_accent_gets_readable_ink_and_link_text() {
         for scheme in [ColorScheme::Light, ColorScheme::Dark, ColorScheme::DarkTint] {
             for (name, swatch) in ctdesign::ACCENT_SWATCHES {
+                let custom = swatch.mix(Rgba::rgb8(128, 128, 128), 0.1);
                 let config = AppearanceConfig {
                     color_scheme: scheme,
-                    accent_color: Some([swatch.r, swatch.g, swatch.b]),
+                    accent_color: Some([custom.r, custom.g, custom.b]),
                     ..Default::default()
                 };
                 let resolved = resolve(&config, None);
-                if palette(scheme).on_accent.contrast_ratio(swatch) >= ON_ACCENT_MIN_CONTRAST {
-                    assert_eq!(
-                        resolved.accent, swatch,
-                        "{scheme:?} {name}: the fill is the user's"
-                    );
-                }
                 assert!(
                     resolved.on_accent.contrast_ratio(resolved.accent) >= ON_ACCENT_MIN_CONTRAST,
                     "{scheme:?} {name}: ink on the accent"
@@ -1271,12 +1341,13 @@ mod tests {
     }
 
     #[test]
-    fn with_increase_contrast_every_accent_swatch_gets_an_opaque_focus_ring_reaching_3_to_1() {
+    fn with_increase_contrast_every_custom_accent_gets_an_opaque_focus_ring_reaching_3_to_1() {
         for scheme in [ColorScheme::Light, ColorScheme::Dark, ColorScheme::DarkTint] {
             for (name, swatch) in ctdesign::ACCENT_SWATCHES {
+                let custom = swatch.mix(Rgba::rgb8(128, 128, 128), 0.1);
                 let mut config = AppearanceConfig {
                     color_scheme: scheme,
-                    accent_color: Some([swatch.r, swatch.g, swatch.b]),
+                    accent_color: Some([custom.r, custom.g, custom.b]),
                     window_color: WindowColorMode::Accent,
                     tint_strength: TintStrength::Intense,
                     contrast: true,
@@ -1324,7 +1395,7 @@ mod tests {
     }
 
     #[test]
-    fn a_custom_accent_gets_a_focus_ring_of_its_own_colour_at_the_measured_alpha() {
+    fn a_custom_accent_gets_a_focus_ring_in_its_hue_at_the_measured_alpha() {
         for scheme in [ColorScheme::Light, ColorScheme::Dark, ColorScheme::DarkTint] {
             let resolved = resolve(
                 &appearance(
@@ -1335,12 +1406,9 @@ mod tests {
                 ),
                 None,
             );
-            let [r, g, b, _] = resolved.accent.to_rgba8();
-            assert_eq!(
-                resolved.focus_ring.to_rgba8(),
-                [r, g, b, 0x7f],
-                "{scheme:?}"
-            );
+            let ring = resolved.focus_ring;
+            assert_eq!(ring.to_rgba8()[3], 0x7f, "{scheme:?}");
+            assert!(ring.r > ring.g && ring.r > ring.b, "{scheme:?}");
         }
     }
 

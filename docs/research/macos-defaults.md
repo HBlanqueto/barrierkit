@@ -232,6 +232,18 @@ the 2026-11-19 light rows above; the details and evidence are in
   `com.apple.universalaccess` `reduceTransparency`, not in
   `com.apple.dock`; writing the Dock key alone has no effect on macOS 27.2.
 
+## 7c. Accent and highlight keys
+
+Read with `defaults read -g <key>` and, per process, with `-<key> <value>` on a probe's command line ([measurements](macos-control-metrics.md#accent-and-selection)). On this host the first two are unset: the default is Multicolor.
+
+| macOS key | Default | Meaning | BarrierKit key | Default |
+|---|---|---|---|---|
+| `AppleAccentColor` | unset | `0` red, `1` orange, `2` yellow, `3` green, `4` blue, `5` purple, `6` pink; unset is Multicolor | `accent` | absent (Multicolor) |
+| `AppleAquaColorVariant` | `1` | `6` with `AppleAccentColor -1` is graphite | `accent = "graphite"` | — |
+| `AppleHighlightColor` | unset | the text highlight color, `"r g b Name"`; unset follows the accent | none: `selected_text` follows the accent | — |
+
+A custom accent has no key in macOS: the picker offers the nine choices only. The kit's `accent_color` and `wallpaper_accent` have no macOS counterpart and use a fitted rule ([accents](../barrierkit/04-appearance-and-tokens.md#accents)). malaysia reads the accent from `appearance.domain` through `ctappearance::read_appearance`, so a rev bump is all it needs; it writes `accent` with `write_appearance`.
+
 ## 8. Remaining gaps
 
 1. The light menu veil set does not exist in `ctappearance`; both schemes

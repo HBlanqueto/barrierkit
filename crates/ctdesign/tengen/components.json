@@ -945,14 +945,30 @@
         {"name": "green", "color": "#62ba46"},
         {"name": "graphite", "color": "#8e8e93"}
       ],
-      "multicolor": ["red", "orange", "yellow", "green", "blue", "purple", "pink", "red"],
-      "swatch-size": 22,
-      "swatch-gap": 11,
+      "accent-rule": {
+        "selected-content-light": {"lightness-scale": 0.96, "lightness-offset": -0.047, "chroma-scale": 0.923, "hue-shift": 0.001},
+        "selected-content-dark": {"lightness-scale": 0.918, "lightness-offset": -0.056, "chroma-scale": 0.913, "hue-shift": 0.011},
+        "focus-ring-light": {"lightness-scale": 0.899, "lightness-offset": 0.019, "chroma-scale": 1.042, "hue-shift": 0.05},
+        "focus-ring-dark": {"lightness-scale": 1.023, "lightness-offset": 0.149, "chroma-scale": 1.173, "hue-shift": -0.014},
+        "focus-ring-contrast-light": {"lightness-scale": 0.925, "lightness-offset": -0.068, "chroma-scale": 0.878, "hue-shift": 0.013},
+        "focus-ring-contrast-dark": {"lightness-scale": 1.137, "lightness-offset": 0.028, "chroma-scale": 0.953, "hue-shift": -0.003},
+        "selected-text-mix": 0.3,
+        "selected-text-base-light": "#ffffff",
+        "selected-text-base-dark": "#5a5a5a",
+        "toggle-mix": [0.023, 0.026, 0.084, 0.075],
+        "toggle-disabled-mix": [0.046, 0.045, 0.148, 0.124],
+        "pressed-mix": [0.097, 0.1, 0.347, 0.298],
+        "pressed-toggle-mix": [0.119, 0.122, 0.404, 0.352],
+        "segment-disabled-mix": [0.075, 0.077, 0.197, 0.177]
+      },
+      "multicolor": ["#a035da", "#b233cd", "#d034b6", "#f0359e", "#ff318a", "#fd2866", "#fe163b", "#fd3124", "#fd6f09", "#fd8e03", "#fcaf06", "#dbb608", "#a6b715", "#87b832", "#5ab868", "#28baa5", "#01b9d1", "#05abda", "#1990de", "#3076e3", "#4060e8", "#5055e6", "#6a4ae3", "#873ede", "#a035da"],
+      "swatch-size": 24,
+      "swatch-gap": 12,
       "option-column": 220,
       "swatch": {
-        "column": 22,
-        "name-gap": 5,
-        "ring-gap": 2
+        "column": 24,
+        "name-gap": 4,
+        "ring-gap": 1
       },
       "icon-card": {
         "size": 32,
@@ -1026,8 +1042,6 @@
         "field-width": 200,
         "filter-width": 320,
         "filter-control": 20,
-      "alert-icon": 64,
-      "alert-icon-gap": 16,
         "filter-inset": 2,
         "filter-chevron": 14,
         "filter-close-icon": 9,

@@ -292,6 +292,8 @@ pub struct AppearanceConfig {
     #[serde(deserialize_with = "hour")]
     pub automatic_dark_until: u8,
     #[serde(skip_serializing)]
+    pub accent: Option<String>,
+    #[serde(skip_serializing)]
     pub accent_color: Option<[f32; 3]>,
     pub wallpaper_accent: bool,
     pub contrast: bool,
@@ -353,6 +355,7 @@ impl Default for AppearanceConfig {
             automatic_scheme: false,
             automatic_dark_from: 19,
             automatic_dark_until: 7,
+            accent: None,
             accent_color: None,
             wallpaper_accent: false,
             contrast: false,
@@ -526,6 +529,12 @@ pub fn write_appearance(path: &Path, config: &AppearanceConfig) -> std::io::Resu
     // A key that no field reads any more would stay in the file forever.
     for retired in RETIRED_KEYS {
         doc.remove(retired);
+    }
+    match &config.accent {
+        Some(name) => doc["accent"] = toml_edit::value(name.as_str()),
+        None => {
+            doc.remove("accent");
+        }
     }
     for (key, color) in [
         ("accent_color", config.accent_color),
@@ -741,6 +750,15 @@ traffic_lights = "standard"
     }
 
     #[test]
+    fn the_named_accent_reads_and_a_domain_without_it_still_loads() {
+        let named: AppearanceConfig = toml::from_str("accent = \"purple\"\n").unwrap();
+        assert_eq!(named.accent.as_deref(), Some("purple"));
+        let old: AppearanceConfig = toml::from_str("accent_color = [0.2, 0.5, 0.8]\n").unwrap();
+        assert_eq!(old.accent, None);
+        assert_eq!(old.accent_color, Some([0.2, 0.5, 0.8]));
+    }
+
+    #[test]
     fn a_toolkit_without_its_own_text_size_uses_the_preferred_one() {
         let config: AppearanceConfig =
             toml::from_str("text_size = 1.3\n[text_sizes]\nqt = 2.0\n").unwrap();
@@ -759,6 +777,7 @@ traffic_lights = "standard"
             automatic_scheme: false,
             automatic_dark_from: 20,
             automatic_dark_until: 6,
+            accent: Some("purple".to_owned()),
             accent_color: Some([0.184, 0.435, 0.894]),
             wallpaper_accent: true,
             contrast: false,

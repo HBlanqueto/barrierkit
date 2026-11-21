@@ -362,7 +362,7 @@ its default and logs a warning.
 ```toml
 # ~/.config/malaysia/appearance.domain
 color_scheme = "dark"
-accent_color = [0.18, 0.44, 0.89]
+accent = "purple"
 window_color = "accent"
 tint_parts = ["sidebars", "window", "groups", "controls", "menus"]
 ```
@@ -372,7 +372,8 @@ tint_parts = ["sidebars", "window", "groups", "controls", "menus"]
 | `color_scheme` | `ColorScheme` | `light`, `dark`, `dark_tint` | `light` |
 | `automatic_scheme` | `bool` | Light by day and dark from `automatic_dark_from` until `automatic_dark_until`, local time; a `dark_tint` scheme stays dark-tint at night. Reading the domain puts the scheme of the hour in `color_scheme` | `false` |
 | `automatic_dark_from`, `automatic_dark_until` | `u8` | Hours from 0 to 23 | `19`, `7` |
-| `accent_color` | `Option<[f32; 3]>` | RGB from 0 to 1; absent means automatic: the theme's accent, and apps keep their own | absent |
+| `accent` | `Option<String>` | A name of `ACCENTS`: `blue`, `purple`, `pink`, `red`, `orange`, `yellow`, `green` or `graphite`; an unknown name is ignored. Absent means Multicolor: the controls are blue and apps keep their own accent | absent |
+| `accent_color` | `Option<[f32; 3]>` | RGB from 0 to 1, a color macOS has no name for. One that equals the light `control` of a named accent, as the settings wrote before accents had names, reads as that accent | absent |
 | `wallpaper_accent` | `bool` | Derives the accent from the wallpaper's dominant color; a monochrome wallpaper has none and falls back to graphite | `false` |
 | `contrast` | `bool` | | `false` |
 | `reduced_motion` | `bool` | | `false` |
@@ -515,11 +516,12 @@ a style.
 | `Resolved` field | What it holds |
 |---|---|
 | `scheme` | The `ColorScheme`. |
-| `control_accent` | The accent as chosen, `NSColor.controlAccentColor`: the fill of controls (`ShapeStyle::Accent`). |
-| `toggle_accent` | The fill of a checkbox, radio, switch and slider that is on: the theme's `accent_toggle`, or the accent as chosen. |
-| `accent`, `on_accent` | The accent for selected rows and its ink: `NSColor.selectedContentBackgroundColor` (`selected_content`) with the theme's accent, the accent darkened until the ink reaches 4.5:1 with another. |
-| `automatic_accent` | True without `accent_color`: an `Accent::Own` or `Accent::FromBackdrop` keeps its color. |
-| `focus_ring` | The keyboard focus ring: `FOCUS_RING_COLOR_*` at 49.8% with the theme's accent, the accent at that alpha with another, and with `contrast` the measured opaque `focus_ring` of `ContrastPalette` with the theme's accent, the accent moved until it reaches 3:1 on the window with another (rule 7). |
+| `accent_colors` | The `AccentColors` of the accent in this scheme and contrast: every color it decides ([Accents](#accents)). The fields below are copies of its members. |
+| `control_accent` | `NSColor.controlAccentColor`: the fill of controls (`ShapeStyle::Accent`). |
+| `toggle_accent`, `ring_accent`, `toggle_accent_disabled` | The fill of a checkbox, radio, switch and slider that is on, of a determinate ring, and of a disabled switch. |
+| `accent`, `on_accent` | The accent for selected rows and its ink: `NSColor.selectedContentBackgroundColor` (`selected_content`). With a color macOS has no name for, the ink stays light and the fill is darkened until it reaches 4.5:1 (rule 3). |
+| `automatic_accent` | True without `accent`, `accent_color` or a wallpaper accent: an `Accent::Own` or `Accent::FromBackdrop` keeps its color. |
+| `focus_ring` | `NSColor.keyboardFocusIndicatorColor`: translucent, opaque with `contrast`. A color macOS has no name for moves until it reaches 3:1 on the window with `contrast` (rule 7). |
 | `link` | The accent moved until it reaches 4.5:1 on the window and on content. |
 | `window_tint` | Tint color and amount, or `None`: the accent, or the wallpaper after `behind_window`. |
 | `bar_tint` | Tint of the menu bar and the Dock with the `bars` part: the accent tint, or the dominant color by `wallpaper_tinting`. |
@@ -551,8 +553,9 @@ The rules `resolve` applies:
    strength factor, times the `LAYER_FACTOR_*` of that layer, times
    `ACCENT_CHROMA_GAIN` for an accent. A part left out of `tint_parts` stays
    neutral.
-3. `on_accent` is always the light ink, as in macOS. The theme's accent
-   selects with `selected_content`; another accent, where the ink does not
+3. `on_accent` is always the light ink, as in macOS. A named accent selects
+   with its measured `selected_content`, even where the ink does not reach
+   4.5:1, as macOS does. A color macOS has no name for, where the ink does not
    reach 4.5:1 (`ON_ACCENT_MIN_CONTRAST`), is darkened just enough
    (WCAG 2.2 §1.4.3). Controls keep `control_accent` as chosen.
 4. Wallpaper tinting is on with `wallpaper_tinting` and a neutral
@@ -572,19 +575,71 @@ The rules `resolve` applies:
    and `WALLPAPER_TINTING_SIDEBAR_LIFT` times the lift. `sidebar.glass.base`
    and `sidebar.glass.solid` take it too, saturating towards the glass cap,
    when `tint_parts` has `sidebars`.
-5. Without `accent_color` the accent is the theme's — or, with
+5. The accent is, in this order: the named `accent`; `accent_color`; with
    `wallpaper_accent`, the wallpaper's dominant color, graphite while it has
-   none — and `automatic_accent` lets an area keep its own.
-6. Menu hover, sidebar selection and the shell's active tile take the accent.
-7. The focus ring follows macOS by default: `FOCUS_RING_COLOR_LIGHT` or
-   `FOCUS_RING_COLOR_DARK` (`#0067f4` and `#1aa9ff`, both at 49.8%, measured
-   on macOS) with the theme's accent, and the accent at the same alpha with
-   any other. A translucent ring can fall under the 3:1 non-text contrast of
-   WCAG 2.2 §1.4.11 on a light or busy surface, so with `contrast` the ring is
-   opaque: the measured `focus_ring` of `ContrastPalette` with the theme's
-   accent, and the accent moved until it reaches `ACCENT_MIN_CONTRAST_ON_WINDOW`
-   on the window with any other. The accent tint of the window does not change the
-   default ring; it does move the opaque one.
+   none; else Multicolor, which is blue for the controls.
+   `automatic_accent` lets an area keep its own only for Multicolor.
+6. Menu hover takes `control_accent`, as macOS does; sidebar selection and the
+   shell's active tile take `accent`.
+7. The focus ring is the measured `focus_ring` of the accent: translucent
+   (49.8%) in normal contrast, opaque with `contrast`. A color macOS has no
+   name for takes the rule's ring at that alpha; a translucent ring can fall
+   under the 3:1 non-text contrast of WCAG 2.2 §1.4.11 on a light or busy
+   surface, so with `contrast` that ring moves until it reaches
+   `ACCENT_MIN_CONTRAST_ON_WINDOW` on the window. The accent tint of the
+   window does not change a translucent ring; it does move an opaque one.
+
+### Accents
+
+The accent picker of System Settings has nine choices: Multicolor and eight
+named colors. `ctdesign::ACCENTS` lists the eight, in the order of the picker,
+each with the colors it decides in four looks: `light`, `dark`,
+`light_contrast` and `dark_contrast`. Every value is measured on macOS 27.2.1
+with the accent set per process (`-AppleAccentColor`), never in the system
+([measurements](../research/macos-control-metrics.md#accent-and-selection)).
+Multicolor is no entry: with no `accent` the controls are blue and
+`automatic_accent` is true, so an app keeps its own accent.
+
+`Accent::colors(dark, contrast)` returns the `AccentColors` of one look:
+
+| Field | macOS | The kit draws with it |
+|---|---|---|
+| `control` | `controlAccentColor` | Controls (`Resolved::control_accent`), menu highlight, the ring of the chosen swatch |
+| `selected_content` | `selectedContentBackgroundColor` | Selected rows of lists and tables (`Resolved::accent`) |
+| `selected_text` | `selectedTextBackgroundColor` | Selected text |
+| `focus_ring` | `keyboardFocusIndicatorColor` | The keyboard focus ring: translucent, opaque with Increase Contrast |
+| `toggle`, `toggle_disabled` | the fill of a checkbox, radio, switch and slider that is on, and of a disabled switch | `Resolved::toggle_accent`, `toggle_accent_disabled` |
+| `ring` | the arc of a determinate ring | `Resolved::ring_accent` |
+| `pressed`, `pressed_toggle` | a pressed default button; a pressed checkbox or radio that is on | `PressedPalette` |
+| `segment_disabled` | the chosen segment of a disabled segmented control | `DisabledPalette` |
+
+Blue holds no value of its own: its entries point to the `accent` tokens of the
+themes. The other seven are measured one by one.
+
+Three things hold in macOS for every accent. Increase Contrast makes
+`selected_content` equal to `control`. It darkens `control` until white text on
+it reaches about 4.6:1. `selected_text` is the `control` over the window at 30%:
+over white in light and over `#5a5a5a` in dark (`ACCENT_RULE.selected_text_*`).
+
+A color macOS has no name for, from `accent_color` or the wallpaper, has only
+its `control`. `ctappearance::accent::derived` gives the rest by the rule fitted
+to the named accents: `selected_text` is exact, `selected_content` and
+`focus_ring` are an OKLab shift (`OklchShift`: lightness scale and offset,
+chroma scale, hue shift) that stays within 6 levels of every named accent
+(`ACCENT_RULE`), and the fills of a toggle, a pressed control and a disabled
+one mix the `control` toward black in light and toward white in dark by a
+measured amount per look (`ACCENT_RULE.*_mix`). The ring is the `control`. With Increase
+Contrast the `control` is first darkened until white text reaches 4.5:1
+(`ON_ACCENT_MIN_CONTRAST`), as rule 3 above asks. An `accent_color`
+that equals the light `control` of a named accent is that accent, so a
+configuration written before accents had names keeps its look and gains the
+dark and Increase Contrast values.
+
+`ColorWell::accents(label)` is the picker. Its swatches are 24 wide, 12 apart,
+in the `control` of the current appearance; the chosen one has a ring 1 away and
+3 wide in the accent, and its name below in the secondary label color, as in
+System Settings. `MULTICOLOR` are the 25 stops of the Multicolor swatch, 15° apart from the
+top clockwise.
 
 ### Glass over a backdrop
 
@@ -926,7 +981,6 @@ nothing is blurred.
 | `BG_RAISED_LIGHT`, `BG_RAISED_DARK`, `BG_RAISED_DARK_TINT` | `Rgba` | Raised background (menus). |
 | `BG_CONTROL_LIGHT`, `BG_CONTROL_DARK`, `BG_CONTROL_DARK_TINT` | `Rgba` | Control face. |
 | `BG_HOVER_LIGHT`, `BG_HOVER_DARK`, `BG_HOVER_DARK_TINT` | `Rgba` | Control face under the pointer. |
-| `FOCUS_RING_COLOR_LIGHT`, `FOCUS_RING_COLOR_DARK`, `FOCUS_RING_COLOR_DARK_TINT` | `Rgba` | Keyboard focus ring: `#0067f4` in light, `#1aa9ff` in dark, both at 49.8% (`#…7f`), measured on macOS. Their alpha is also the alpha of the ring of a custom accent. |
 | `LAYER_FACTOR_BG_SUNKEN`, `LAYER_FACTOR_SURFACE`, `LAYER_FACTOR_RAISED`, `LAYER_FACTOR_CONTROL`, `LAYER_FACTOR_LINE` | `f32` | Share of the window tint each layer takes: 1.4, 1, 0.6, 1.2, 1.2. |
 | `WINDOW_TINT_ACCENT` | `[f32; 2]` | Accent tint amount in light and dark. |
 | `ACCENT_CHROMA_GAIN` | `f32` | Gain (2.5) of the accent's chroma share, so the chroma-only tint looks as strong as the old sRGB mix did. |
@@ -934,8 +988,10 @@ nothing is blurred.
 | `TINT_STRENGTH` | `[f32; 4]` | Factor of each `TintStrength`: 0.5, 1, 1.5, 2. |
 | `ACCENT_MIN_CONTRAST_ON_WINDOW`, `ON_ACCENT_MIN_CONTRAST` | `f32` | 3 and 4.5: contrast of the accent on the window and of ink on the accent. |
 | `DOMINANT_LIGHTNESS`, `DOMINANT_MIN_CHROMA` | `[f32; 2]`, `f32` | Lightness range and minimum chroma of a wallpaper's dominant color. |
-| `ACCENT_SWATCHES` | `[(&str, Rgba); 8]` | The accent choices: blue, purple, pink, red, orange, yellow, green, graphite. |
-| `MULTICOLOR` | `[Rgba; 8]` | The stops of the rainbow swatch, from the accent swatches, red to red. |
+| `ACCENTS` | `[Accent; 8]` | The named accents with their colors in four looks ([Accents](#accents)); blue, purple, pink, red, orange, yellow, green, graphite. The keyboard focus ring is each one's `focus_ring`. |
+| `ACCENT_SWATCHES` | `[(&str, Rgba); 8]` | The name and light `control` of each accent. |
+| `ACCENT_RULE` | `AccentRule` | The fitted rule for an accent without a name ([Accents](#accents)). |
+| `MULTICOLOR` | `[Rgba; 25]` | The stops of the Multicolor swatch, from the top clockwise, measured on System Settings; the last is the first. |
 | `LEVEL_INDICATOR_COLORS` | `[Rgba; 3]` | Normal, warning and critical colors of a level indicator. |
 | `SHELL_LIGHT`, `SHELL_LIGHT_OPAQUE`, `SHELL_DARK`, `SHELL_DARK_OPAQUE`, `SHELL_DARK_TINT`, `SHELL_DARK_TINT_OPAQUE` | `ShellPalette` | Menu bar and Dock, translucent and opaque. |
 | `THEME_SHADOW_OPACITY` | `f32` | Shadow opacity of `use_shell_theme`. |

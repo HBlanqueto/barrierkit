@@ -14,7 +14,7 @@ jq -nr --slurpfile tokens tokens.json --slurpfile components components.json '
   def css_value:
     if type == "string" then
       . as $text
-      | if test("^\\{[a-z0-9-]+\\}$") then "var(--bk-\(.[1:-1]))"
+      | if test("^\\{[a-z0-9.-]+\\}$") then "var(--bk-\(.[1:-1] | gsub("\\."; "-")))"
       elif ($leaves | index([$text])) then "var(\(split(".") | css_name))"
       elif ($colors | index([$text])) then "var(--bk-\(.))"
       else . end

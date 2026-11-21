@@ -63,9 +63,9 @@ guarantee with Increase Contrast, where the ring is opaque (section 3).
 | Element | macOS (measured) | Malaysia today | Token or file | Gap |
 |---|---|---|---|---|
 | Width | 3 | 3 | `FOCUS_RING.width` | Matches |
-| Light colour | `#0067f4` at 49.8% | `#0067f4` at 49.8% with the default accent; a custom accent at the same alpha | `FOCUS_RING_COLOR_LIGHT`, `resolve.rs` `focus_ring` | Matches |
-| Dark colour | `#1aa9ff` at 49.8% | `#1aa9ff` at 49.8% with the default accent; a custom accent at the same alpha | `FOCUS_RING_COLOR_DARK`, `resolve.rs` `focus_ring` | Matches |
-| Increase Contrast | Not measured; stronger or opaque expected | Opaque accent moved to 3:1 on the window | `resolve.rs` `focus_ring` | Done |
+| Light colour | `#0067f4` at 49.8% with blue; each accent has its own ([accents](macos-control-metrics.md#accent-and-selection)) | `ACCENTS[..].light.focus_ring`; a color without a name takes the fitted rule at that alpha | `ACCENTS`, `resolve.rs` `focus_ring` | Matches |
+| Dark colour | `#1aa9ff` at 49.8% with blue; each accent has its own | `ACCENTS[..].dark.focus_ring`; same rule | `ACCENTS`, `resolve.rs` `focus_ring` | Matches |
+| Increase Contrast | Opaque and darker (light) or lighter (dark) than the accent: `#0022af` and `#469af5` with blue | `ACCENTS[..].light_contrast.focus_ring`; a color without a name is moved to 3:1 on the window | `ACCENTS`, `resolve.rs` `focus_ring` | Matches |
 | Contrast target | 3:1 | 3:1 only with Increase Contrast | `resolve.rs` | Trade-off, see below |
 | Shape | Control radius | Control radius | `interaction.rs` | Matches in principle |
 | Offset | Not measured | `FOCUS_RING.width` outside | `interaction.rs` | Verify |
@@ -95,7 +95,7 @@ Contrast the ring is not held to 3:1.
 
 ## 6. Prioritized changes
 
-1. **Add a translucent focus colour pair.** Done: `FOCUS_RING_COLOR_*`.
+1. **Add a translucent focus colour pair.** Done: the `focus_ring` of each accent in `ACCENTS`.
    The default is not verified against 3:1; that is the accepted trade-off.
 2. **Keep the 3 pt width.** It already matches.
 3. **Add a focus-ring contrast test over four backgrounds.** Partly done:

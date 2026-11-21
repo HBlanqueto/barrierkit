@@ -56,6 +56,14 @@ BUTTONS += ["segmented-disabled"]
 BUTTONS += [
     f"bezel-{name}-disabled" for name in ("push", "small-square", "textured-rounded", "textured-square", "inline", "push-disclosure")
 ]
+ACCENT_CONTROLS = [
+    "default-regular", "default-disabled", "check-on-regular", "check-mixed", "check-on-disabled", "radio-on-regular",
+    "radio-on-disabled", "switch-on-regular", "switch-on-disabled", "slider-regular", "slider-ticks", "slider-circular",
+    "slider-disabled", "segmented-regular", "segmented-disabled", "stepper-regular", "popup-regular", "pulldown",
+    "progress-bar", "ring-regular", "token", "datepicker", "combo", "search-filled",
+]
+ACCENTS = ["multicolor", "blue", "purple", "pink", "red", "orange", "yellow", "green", "graphite"]
+ACCENT = os.environ.get("APPKIT_ACCENT", "blue")
 SWIFTUI = [
     f"{kind}-{size}" for kind in (
         "bordered", "prominent", "switch-off", "switch-on", "checkbox-off", "checkbox-on", "togglebutton-off", "togglebutton-on",
@@ -65,7 +73,7 @@ SWIFTUI = [
     "automatic", "plain", "link", "destructive", "cancel", "bordered-disabled", "prominent-disabled", "bordered-capsule",
     "bordered-circle", "bordered-rounded", "inline", "switch-on-disabled",
 ]
-FAMILIES = {"controls": CONTROLS, "texts": TEXTS, "buttons": BUTTONS, "swiftui": SWIFTUI}
+FAMILIES = {"controls": CONTROLS, "texts": TEXTS, "buttons": BUTTONS, "accents": ACCENT_CONTROLS, "swiftui": SWIFTUI}
 CAPTURE_DIRS = {"swiftui": "swiftuibuttons"}
 GLYPH_WIDTH = {name: 18 for name in ("check-off-regular", "check-on-regular", "radio-off-regular", "radio-on-regular")}
 GLYPH_WIDTH.update({
@@ -78,9 +86,15 @@ APPKIT = {"light": "aqua", "dark": "darkAqua"}
 CONTRAST = {"light": "hc-aquaHC", "dark": "hc-darkHC"}
 
 
+def family_dir(family):
+    return os.path.join("accents", "controls", ACCENT) if family == "accents" else CAPTURE_DIRS.get(family, family)
+
+
 def capture(family, mode, backdrop, tag):
     name = (CONTRAST if tag.endswith("hc") else APPKIT)[mode]
-    return os.path.join(CAPTURES, CAPTURE_DIRS.get(family, family), f"{name}-{backdrop}@{SCALE}x.png")
+    if family == "accents":
+        name = name.removeprefix("hc-")
+    return os.path.join(CAPTURES, family_dir(family), f"{name}-{backdrop}@{SCALE}x.png")
 
 
 def kit_image(mode, backdrop, tag):
@@ -93,7 +107,7 @@ def rgb(path):
 
 
 def items(family):
-    with open(os.path.join(CAPTURES, CAPTURE_DIRS.get(family, family), "aqua-white.json")) as handle:
+    with open(os.path.join(CAPTURES, family_dir(family), "aqua-white.json")) as handle:
         data = json.load(handle)
     return data["contentH"], {item["name"]: item for item in data["items"]}
 
@@ -174,8 +188,10 @@ def layout(args):
 def controls(args):
     height, found = items(args.family)
     kit_tag = args.tag if args.family == "controls" else "-".join(filter(None, (args.family, args.tag)))
+    if args.family == "accents":
+        kit_tag = "-".join(filter(None, ("accents", ACCENT, args.tag)))
     for mode in ("light", "dark"):
-        for backdrop, level in (("white", 255), ("black", 0)):
+        for backdrop, level in ((("white", 255),) if mode == "light" else (("black", 0),)) if args.family == "accents" else (("white", 255), ("black", 0)):
             appkit = rgb(capture(args.family, mode, backdrop, args.tag))
             kit = rgb(kit_image(mode, backdrop, kit_tag))
             color = np.array([level] * 3)
@@ -190,6 +206,58 @@ def controls(args):
                 print(f"{name:20} {diff:6.1f} {bezel_diff(a, k, color, name):6.1f} {show(ba):>24} {show(bk):>24} {dominant(a, color):>8} {dominant(k, color):>8}")
 
 
+def picker(args):
+    """The accent picker of System Settings (a 1x capture of its Appearance pane) against the kit's `ColorWell::accents`."""
+    appkit = rgb(os.path.join(CAPTURES, "accents", f"settings-{args.mode}-srgb.png"))[435:495, 500:850]
+    kit = rgb(os.path.join(KIT, f"kit-picker-{args.mode}.png"))
+    diff = (abs(appkit - kit) > 3).any(-1)
+    background = appkit[0, 0]
+    print(f"pixels that differ: {diff.mean() * 100:.1f}%")
+    for label, row in (("circle row", 26), ("label row", 48)):
+        print(f"{label}: AppKit {bounds(appkit[row:row + 1], background)} kit {bounds(kit[row:row + 1], background)}")
+    for index, x in enumerate(range(35, 340, 36)):
+        print(f"swatch {index}: AppKit #%02x%02x%02x kit #%02x%02x%02x" % (*appkit[26, x], *kit[26, x]))
+    ink = lambda image: bounds(image[40:60], background)
+    print(f"ring and name box (x y w h): AppKit {bounds(appkit, background)} kit {bounds(kit, background)}; name {ink(appkit)} | {ink(kit)}")
+
+
+def fill_mismatch(a, k, backdrop):
+    """The share of AppKit's dominant fill that the kit does not draw within 3 levels, as a percentage."""
+    painted = a[abs(a - backdrop).max(-1) > 8]
+    if not len(painted):
+        return 0.0
+    fill = np.array(collections.Counter(map(tuple, painted)).most_common(1)[0][0])
+    mask = abs(a - fill).max(-1) <= 3
+    return (mask & (abs(a - k).max(-1) > 3)).sum() / mask.sum() * 100
+
+
+def accents(args):
+    """Rows are controls, columns accents. The first table is the share of each control's dominant fill that the kit
+    misses by more than 3 levels (the accent), the second the share of all pixels that differ (text and shape too).
+    Light is on white and dark on black."""
+    global ACCENT
+    for mode in (args.mode,) if args.mode else ("light", "dark"):
+        title = f"{mode}{' with Increase Contrast' if args.tag else ''}"
+        fills, differs = collections.defaultdict(list), collections.defaultdict(list)
+        for accent in ACCENTS:
+            ACCENT = accent
+            height, found = items("accents")
+            backdrop, level = ("white", 255) if mode == "light" else ("black", 0)
+            appkit = rgb(capture("accents", mode, backdrop, args.tag))
+            kit = rgb(kit_image(mode, backdrop, "-".join(filter(None, ("accents", accent, args.tag)))))
+            color = np.array([level] * 3)
+            for name in ACCENT_CONTROLS:
+                a, k = crop(appkit, region(name, height, found)), crop(kit, region(name, height, found))
+                fills[name].append(fill_mismatch(a, k, color))
+                differs[name].append((abs(a - k) > 3).any(-1).mean() * 100)
+        for label, table in (("% of the dominant fill the kit misses", fills), ("% of pixels that differ", differs)):
+            print(f"\n=== {title}: {label}")
+            print(f"{'control':20}" + "".join(f"{name[:9]:>10}" for name in ACCENTS))
+            for name in ACCENT_CONTROLS:
+                print(f"{name:20}" + "".join(f"{value:10.1f}" for value in table[name]))
+            print(f"{'worst':20}" + "".join(f"{max(table[name][i] for name in ACCENT_CONTROLS):10.1f}" for i in range(len(ACCENTS))))
+
+
 PRESSED = [
     "push-pressed", "default-pressed", "check-off-pressed", "check-on-pressed",
     "radio-off-pressed", "radio-on-pressed", "popup-pressed", "calendar-focused",
@@ -202,15 +270,15 @@ BUTTONS_PRESSED = [
 ] + [
     f"bezel-{name}-pressed" for name in ("push", "small-square", "textured-rounded", "textured-square", "inline", "push-disclosure")
 ]
-PRESSED_FAMILIES = {"controls": PRESSED, "buttons": BUTTONS_PRESSED}
+PRESSED_FAMILIES = {"controls": PRESSED, "buttons": BUTTONS_PRESSED, "accents": ["default-pressed", "check-on-pressed", "radio-on-pressed", "popup-pressed"]}
 
 
 def pressed(args):
     height, found = items(args.family)
-    suffix = "-".join(filter(None, ("" if args.family == "controls" else args.family, args.tag)))
+    suffix = "-".join(filter(None, ("" if args.family == "controls" else args.family, ACCENT if args.family == "accents" else "", args.tag)))
     suffix = f"-{suffix}" if suffix else ""
     for mode in ("light", "dark"):
-        for backdrop, level in (("white", 255), ("black", 0)):
+        for backdrop, level in ((("white", 255),) if mode == "light" else (("black", 0),)) if args.family == "accents" else (("white", 255), ("black", 0)):
             appkit = rgb(capture(args.family, mode, backdrop, args.tag))
             color = np.array([level] * 3)
             print(f"\n=== pressed {mode} on {backdrop}")
@@ -510,6 +578,13 @@ def main():
     two.add_argument("--tag", default="", help="empty, or hc for Increase Contrast")
     two.add_argument("--family", default="controls", choices=sorted(FAMILIES), help="the probe family")
     two.set_defaults(run=controls)
+    ten = commands.add_parser("picker", help="compare the accent picker with System Settings")
+    ten.add_argument("mode", choices=("light", "dark"))
+    ten.set_defaults(run=picker)
+    nine = commands.add_parser("accents", help="print the control difference for every accent")
+    nine.add_argument("--tag", default="", help="empty, or hc for Increase Contrast")
+    nine.add_argument("--mode", choices=("light", "dark"), help="one appearance only")
+    nine.set_defaults(run=accents)
     focus = commands.add_parser("focused", help="print the difference table for focused text controls")
     focus.add_argument("--tag", default="", help="empty, or hc for Increase Contrast")
     focus.set_defaults(run=focused)

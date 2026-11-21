@@ -37,16 +37,20 @@ case "$scene" in
         APPKIT_CONTENT=$(sed -n '1s/^# //p' "$APPKIT_LAYOUT")
         APPKIT_TAG=$family
         ;;
-    menu | toolbar | sidebar | icons)
+    accents | accents-contrast)
+        APPKIT_LAYOUT=$out/layout-accents.tsv
+        APPKIT_CONTENT=$(sed -n '1s/^# //p' "$APPKIT_LAYOUT")
+        ;;
+    menu | toolbar | sidebar | picker | icons)
         ;;
     *)
-        printf 'usage: %s controls|contrast|views|views-contrast|texts|texts-contrast|lists|lists-contrast|containers|containers-contrast|buttons|buttons-contrast|swiftui|swiftui-contrast|menu|toolbar|sidebar|icons\n' "$0" >&2
+        printf 'usage: %s controls|contrast|accents|accents-contrast|views|views-contrast|texts|texts-contrast|lists|lists-contrast|containers|containers-contrast|buttons|buttons-contrast|swiftui|swiftui-contrast|menu|toolbar|sidebar|picker|icons\n' "$0" >&2
         exit 2
         ;;
 esac
 
 case "$scene" in
-    contrast | views-contrast | texts-contrast | lists-contrast | containers-contrast | buttons-contrast | swiftui-contrast)
+    contrast | accents-contrast | views-contrast | texts-contrast | lists-contrast | containers-contrast | buttons-contrast | swiftui-contrast)
         APPKIT_CONTRAST=1
         APPKIT_REDUCE=1
         APPKIT_TAG=${APPKIT_TAG:+$APPKIT_TAG-}hc
@@ -62,6 +66,9 @@ fi
 if [ "$scene" = toolbar ]; then
     exec cargo test -p bk --test kit --features bk/shell appkit_toolbar -- --ignored
 fi
+if [ "$scene" = picker ]; then
+    exec cargo test -p bk --test kit --features bk/shell appkit_picker -- --ignored
+fi
 if [ "$scene" = sidebar ]; then
     exec cargo test -p bk --test kit --features bk/shell appkit_sidebar -- --ignored
 fi
@@ -70,6 +77,15 @@ if [ "$scene" = icons ]; then
 fi
 export APPKIT_LAYOUT APPKIT_CONTENT APPKIT_TAG
 case "$scene" in
+    accents | accents-contrast)
+        for accent in ${APPKIT_ACCENTS:-multicolor blue purple pink red orange yellow green graphite}; do
+            [ "$accent" = multicolor ] && unset APPKIT_ACCENT || export APPKIT_ACCENT=$accent
+            export APPKIT_TAG=accents-$accent${APPKIT_CONTRAST:+-hc}
+            cargo test -p bk --test kit --features bk/shell appkit_scene -- --ignored
+            cargo test -p bk --test kit --features bk/shell appkit_pressed -- --ignored
+        done
+        exit
+        ;;
     texts | texts-contrast)
         cargo test -p bk --test kit --features bk/shell appkit_texts -- --ignored
         exec cargo test -p bk --test kit --features bk/shell appkit_focus -- --ignored

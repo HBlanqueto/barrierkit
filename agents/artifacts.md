@@ -73,7 +73,7 @@ some of these colors at run time; the variables hold the untinted values.
 | `--bk-radius-*`, `--bk-space-*`, `--bk-size-*`, `--bk-duration-*` | `tokens.json` | `--bk-space-3` |
 | `--bk-font-styles-<style>-{size,line-height,weight}` | `tokens.json` › `font.styles` (`body`, `headline`, `title-1`…) | `--bk-font-styles-body-size` |
 | `--bk-<component>-*` | `components.json` › `components` | `--bk-button-padding-x` |
-| `--bk-<component>-<list>-<i>`, `--bk-<component>-<list>-<i>-<field>` | one item of a list in `components.json`, by index | `--bk-list-group-padding-0`, `--bk-settings-accent-swatches-0-color` |
+| `--bk-<component>-<list>-<i>`, `--bk-<component>-<list>-<i>-<field>` | one item of a list in `components.json`, by index | `--bk-list-group-padding-0`, `--bk-settings-accents-0-light-control` |
 
 ## Example
 

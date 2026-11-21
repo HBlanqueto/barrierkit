@@ -47,6 +47,7 @@ FOCUS_RING FocusRingMetrics components.focus-ring
 BUTTON ButtonMetrics components.button
 TEXT_FIELD TextFieldMetrics components.text-field
 SEARCH_FIELD SearchFieldMetrics components.search-field
+ACCENT_RULE AccentRule components.settings.accent-rule
 PROGRESS ProgressMetrics components.progress
     indeterminate_ms=indeterminate.duration spinner_ms=spinner.duration
 TOOLTIP TooltipMetrics components.tooltip delay_ms=delay
@@ -461,7 +462,6 @@ STEPPER_DIVIDER Rgba themes.{theme}.stepper-divider
 STEPPER_DIVIDER_CONTRAST Rgba themes.{theme}.stepper-divider-contrast
 BEZEL BezelPalette themes.{theme}.bezel
 BEZEL_CONTRAST BezelPalette themes.{theme}.bezel-contrast
-FOCUS_RING_COLOR Rgba themes.{theme}.focus-ring
 CONTRAST ContrastPalette themes.{theme}.contrast
 SHELL ShellPalette components.shell bar=menubar.bg text=menubar.text tile=dock.tile tile_active=dock.tile-active tile_text_active=dock.tile-text-active
 DOCK_GLASS Rgba themes.{theme}.dock-bar
@@ -715,30 +715,56 @@ fn emit_specials(out: &mut String, tengen: &Tengen) {
         families.len(),
         families.join(", ")
     ));
-    let swatches: Vec<String> = tengen
-        .get("components.settings.accent-swatches")
+    let accents = tengen
+        .get("components.settings.accents")
         .as_array()
-        .expect("ctdesign: accent-swatches must be a list")
+        .expect("ctdesign: accents must be a list");
+    let colors_in = |accent: &Value, key: &str, theme: &str| {
+        let fields: Vec<String> = accent[key]
+            .as_object()
+            .unwrap_or_else(|| panic!("ctdesign: accent {key} must be an object"))
+            .iter()
+            .map(|(field, text)| {
+                let text = text.as_str().expect("ctdesign: accent colors are strings");
+                let look = Look {
+                    theme,
+                    opaque: false,
+                };
+                format!(
+                    "{}: {}",
+                    field.replace('-', "_"),
+                    rgba(tengen.color_of(text, look))
+                )
+            })
+            .collect();
+        format!("AccentColors {{ {} }}", fields.join(", "))
+    };
+    let entries: Vec<String> = accents
         .iter()
-        .map(|swatch| {
-            let field = |key: &str| {
-                swatch[key]
-                    .as_str()
-                    .expect("ctdesign: accent swatch name and color")
-            };
+        .map(|accent| {
             format!(
-                "({:?}, {})",
-                field("name"),
-                rgba(parse_color(field("color")))
+                "Accent {{ name: {:?}, light: {}, dark: {}, light_contrast: {}, dark_contrast: {} }}",
+                accent["name"].as_str().expect("ctdesign: accent name"),
+                colors_in(accent, "light", "light"),
+                colors_in(accent, "dark", "dark"),
+                colors_in(accent, "light-contrast", "light"),
+                colors_in(accent, "dark-contrast", "dark"),
             )
         })
+        .collect();
+    out.push_str(&format!(
+        "pub const ACCENTS: [Accent; {}] = [{}];\n\n",
+        entries.len(),
+        entries.join(", ")
+    ));
+    let swatches: Vec<String> = (0..entries.len())
+        .map(|index| format!("(ACCENTS[{index}].name, ACCENTS[{index}].light.control)"))
         .collect();
     out.push_str(&format!(
         "pub const ACCENT_SWATCHES: [(&str, Rgba); {}] = [{}];\n\n",
         swatches.len(),
         swatches.join(", ")
     ));
-    let palette = tengen.get("components.settings.accent-swatches");
     for (constant, path) in [
         ("MULTICOLOR", "components.settings.multicolor"),
         (
@@ -761,17 +787,12 @@ fn emit_specials(out: &mut String, tengen: &Tengen) {
         let colors: Vec<String> = tengen
             .get(path)
             .as_array()
-            .unwrap_or_else(|| panic!("ctdesign: {path} must be a list of swatch names"))
+            .unwrap_or_else(|| panic!("ctdesign: {path} must be a list of colors"))
             .iter()
-            .map(|name| {
-                if let Some(color) = name.as_str().filter(|text| text.starts_with('#')) {
-                    return rgba(parse_color(color));
-                }
-                let swatch = palette
-                    .as_array()
-                    .and_then(|list| list.iter().find(|swatch| swatch["name"] == *name))
-                    .unwrap_or_else(|| panic!("ctdesign: {path} {name} is not a swatch"));
-                rgba(parse_color(swatch["color"].as_str().unwrap_or_default()))
+            .map(|color| {
+                rgba(parse_color(
+                    color.as_str().expect("ctdesign: colors are strings"),
+                ))
             })
             .collect();
         out.push_str(&format!(

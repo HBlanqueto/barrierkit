@@ -1341,6 +1341,67 @@ pub struct GaugeContrast {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct AccentColors {
+    pub control: Rgba,
+    pub selected_content: Rgba,
+    pub selected_text: Rgba,
+    pub focus_ring: Rgba,
+    pub toggle: Rgba,
+    pub toggle_disabled: Rgba,
+    pub ring: Rgba,
+    pub pressed: Rgba,
+    pub pressed_toggle: Rgba,
+    pub segment_disabled: Rgba,
+    pub sidebar_selection: Rgba,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct OklchShift {
+    pub lightness_scale: f32,
+    pub lightness_offset: f32,
+    pub chroma_scale: f32,
+    pub hue_shift: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct AccentRule {
+    pub selected_content_light: OklchShift,
+    pub selected_content_dark: OklchShift,
+    pub focus_ring_light: OklchShift,
+    pub focus_ring_dark: OklchShift,
+    pub focus_ring_contrast_light: OklchShift,
+    pub focus_ring_contrast_dark: OklchShift,
+    pub selected_text_mix: f32,
+    pub selected_text_base_light: Rgba,
+    pub selected_text_base_dark: Rgba,
+    pub toggle_mix: [f32; 4],
+    pub toggle_disabled_mix: [f32; 4],
+    pub pressed_mix: [f32; 4],
+    pub pressed_toggle_mix: [f32; 4],
+    pub segment_disabled_mix: [f32; 4],
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Accent {
+    pub name: &'static str,
+    pub light: AccentColors,
+    pub dark: AccentColors,
+    pub light_contrast: AccentColors,
+    pub dark_contrast: AccentColors,
+}
+
+impl Accent {
+    pub fn colors(&self, dark: bool, contrast: bool) -> AccentColors {
+        match (dark, contrast) {
+            (false, false) => self.light,
+            (true, false) => self.dark,
+            (false, true) => self.light_contrast,
+            (true, true) => self.dark_contrast,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct PressedPalette {
     pub bezel: Rgba,
     pub accent: Rgba,

@@ -535,14 +535,17 @@ pub(crate) fn per_look<T>(normal: [T; 3], contrast: [T; 3]) -> T {
 }
 
 pub(crate) fn disabled_palette() -> DisabledPalette {
-    per_look(
-        [DISABLED_LIGHT, DISABLED_DARK, DISABLED_DARK_TINT],
-        [
-            DISABLED_CONTRAST_LIGHT,
-            DISABLED_CONTRAST_DARK,
-            DISABLED_CONTRAST_DARK_TINT,
-        ],
-    )
+    DisabledPalette {
+        segment: crate::theme::resolved().accent_colors.segment_disabled,
+        ..per_look(
+            [DISABLED_LIGHT, DISABLED_DARK, DISABLED_DARK_TINT],
+            [
+                DISABLED_CONTRAST_LIGHT,
+                DISABLED_CONTRAST_DARK,
+                DISABLED_CONTRAST_DARK_TINT,
+            ],
+        )
+    }
 }
 
 pub(crate) fn bezel_palette() -> BezelPalette {
@@ -557,14 +560,19 @@ pub(crate) fn bezel_palette() -> BezelPalette {
 }
 
 pub(crate) fn pressed_palette() -> PressedPalette {
-    per_look(
-        [PRESSED_LIGHT, PRESSED_DARK, PRESSED_DARK_TINT],
-        [
-            PRESSED_CONTRAST_LIGHT,
-            PRESSED_CONTRAST_DARK,
-            PRESSED_CONTRAST_DARK_TINT,
-        ],
-    )
+    let accent = crate::theme::resolved().accent_colors;
+    PressedPalette {
+        accent: accent.pressed,
+        toggle_accent: accent.pressed_toggle,
+        ..per_look(
+            [PRESSED_LIGHT, PRESSED_DARK, PRESSED_DARK_TINT],
+            [
+                PRESSED_CONTRAST_LIGHT,
+                PRESSED_CONTRAST_DARK,
+                PRESSED_CONTRAST_DARK_TINT,
+            ],
+        )
+    }
 }
 
 pub fn system_effect(color: Rgba, _: ControlState) -> Rgba {

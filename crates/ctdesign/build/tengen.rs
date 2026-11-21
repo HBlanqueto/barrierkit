@@ -51,7 +51,10 @@ impl Tengen {
     }
 
     pub(super) fn color(&self, path: &str, look: Look) -> Color {
-        let text = self.string(path);
+        self.color_of(self.string(path), look)
+    }
+
+    pub(super) fn color_of(&self, text: &str, look: Look) -> Color {
         let name = text
             .strip_prefix('{')
             .and_then(|name| name.strip_suffix('}'))

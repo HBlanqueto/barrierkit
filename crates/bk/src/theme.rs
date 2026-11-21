@@ -153,7 +153,7 @@ fn shell_theme(resolved: &Resolved) -> Theme {
         text_secondary: color(ink.ink_muted),
         text_placeholder: color(ink.ink_faint),
         text_inverse: color(shell.bar),
-        text_highlight: color(accent),
+        text_highlight: color(resolved.accent_colors.selected_text),
         focus: color(accent),
         active: color(accent),
         disabled: color(border),

@@ -509,6 +509,7 @@ pub(super) fn render_scene(
             },
             reduce_transparency: std::env::var_os("APPKIT_REDUCE").is_some(),
             contrast: std::env::var_os("APPKIT_CONTRAST").is_some(),
+            accent: std::env::var("APPKIT_ACCENT").ok(),
             scroll_bars: ctappearance::ScrollBars::Always,
             ..Default::default()
         },
@@ -996,6 +997,73 @@ fn appkit_sidebar() {
         fs::write(
             out.join(format!(
                 "kit-sidebar-{}.png",
+                if dark { "dark" } else { "light" }
+            )),
+            test.render().as_bytes(),
+        )
+        .unwrap();
+    }
+}
+
+const PICKER_WINDOW: (f32, f32) = (350.0, 60.0);
+
+struct PickerScene {
+    dark: bool,
+}
+
+impl App for PickerScene {
+    fn render(&self) -> impl IntoElement {
+        use_init_theme(|| theme::for_scheme(self.dark));
+        rect()
+            .expanded()
+            .background(if self.dark {
+                (37, 37, 37)
+            } else {
+                (247, 247, 247)
+            })
+            .child(
+                rect()
+                    .position(Position::new_absolute().left(23.0).top(14.0))
+                    .child(
+                        bk::choices::ColorWell::accents("Accent color")
+                            .multicolor("Multicolor")
+                            .selected(Some(0)),
+                    ),
+            )
+    }
+}
+
+#[test]
+#[ignore]
+fn appkit_picker() {
+    let out = PathBuf::from(std::env::var("APPKIT_OUT").expect("APPKIT_OUT"));
+    fs::create_dir_all(&out).unwrap();
+    for dark in [false, true] {
+        let resolved = resolve(
+            &AppearanceConfig {
+                color_scheme: if dark {
+                    ColorScheme::Dark
+                } else {
+                    ColorScheme::Light
+                },
+                ..Default::default()
+            },
+            None,
+        );
+        let (mut test, _) = TestingRunner::new(
+            AppComponent::new(PickerScene { dark }),
+            Size2D::new(PICKER_WINDOW.0, PICKER_WINDOW.1),
+            move |runner| {
+                runner.provide_root_context(move || State::create(resolved));
+            },
+            1.0,
+        );
+        test.set_default_fonts(&SANS_FAMILIES.map(std::borrow::Cow::Borrowed));
+        test.sync_and_update();
+        test.sync_and_update();
+        fs::write(
+            out.join(format!(
+                "kit-picker-{}.png",
                 if dark { "dark" } else { "light" }
             )),
             test.render().as_bytes(),

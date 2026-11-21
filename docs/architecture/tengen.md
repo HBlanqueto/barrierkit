@@ -57,11 +57,14 @@ Do not edit `src/lib.rs` to change a value: it holds the types and the API.
 | `emit_titlebar` | `TITLEBAR`, `WINDOW_MIN_SIZE`, `WINDOW_DEFAULT_SIZE` |
 | `emit_tints` | `WINDOW_TINT_ACCENT`, `WALLPAPER_TINTING`, `WALLPAPER_TINTING_LIFT`, `TINT_STRENGTH` |
 | `emit_palettes` | `LIGHT`, `DARK`, `DARK_TINT` (`Palette`) and `MENU_<THEME>_OPAQUE` |
-| `emit_specials` | `SANS_FAMILIES`, `ACCENT_SWATCHES`, `LEVEL_INDICATOR_COLORS` |
+| `emit_specials` | `SANS_FAMILIES`, `ACCENTS`, `ACCENT_SWATCHES`, `MULTICOLOR`, `LEVEL_INDICATOR_COLORS` |
 
-`LEVEL_INDICATOR_COLORS` lists swatch names of
-`components.settings.accent-swatches`; a name that is not a swatch stops the
-build.
+`ACCENTS` comes from the list `components.settings.accents`, one entry per
+accent with the four looks `light`, `dark`, `light-contrast` and
+`dark-contrast`. A color there is a hex value or a theme reference such as
+`{accent}` or `{contrast.accent}`, read in the theme of its look. A missing
+role stops the build. `ACCENT_SWATCHES` is the name and light `control` of
+each.
 
 ## Value map
 
