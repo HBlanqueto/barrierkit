@@ -7,7 +7,7 @@ use torin::prelude::{Alignment, Area, Direction, Gaps, Position, Size};
 
 use crate::compact::stepper_arrows;
 use crate::controlled::{commit, use_controlled};
-use crate::controls::{dimmed, shadowed};
+use crate::controls::{ControlSize, dimmed, shadowed};
 use crate::date::{CivilDate, CivilDateTime, DatePart, typing_is_done};
 use crate::i18n::text;
 use crate::interaction::{control_state, use_interaction};
@@ -35,6 +35,8 @@ pub struct DatePicker {
     value: CivilDateTime,
     elements: DateElements,
     graphical: bool,
+    stepper: bool,
+    disabled: bool,
     on_change: Option<Callback<CivilDateTime, ()>>,
     style: Theme,
 }
@@ -46,6 +48,8 @@ impl DatePicker {
             value,
             elements: DateElements::default(),
             graphical: false,
+            stepper: true,
+            disabled: false,
             on_change: None,
             style: Theme::tengen(),
         }
@@ -64,6 +68,20 @@ impl DatePicker {
     pub fn graphical(mut self) -> Self {
         self.graphical = true;
         self
+    }
+
+    pub fn field(mut self) -> Self {
+        self.stepper = false;
+        self.style(DatePickerStyle::outlined)
+    }
+
+    pub fn disabled(mut self, disabled: bool) -> Self {
+        self.disabled = disabled;
+        self
+    }
+
+    pub fn size(self, size: ControlSize) -> Self {
+        self.style(move |style: DatePickerStyle| style.sized(size))
     }
 
     pub fn on_change(mut self, callback: impl Into<Callback<CivilDateTime, ()>>) -> Self {
@@ -157,7 +175,7 @@ fn part_text(value: CivilDateTime, part: DatePart) -> String {
 fn separator(before: DatePart, after: DatePart) -> &'static str {
     match (before, after) {
         (DatePart::Hour, DatePart::Minute) => ":",
-        (_, DatePart::Hour) => " ",
+        (_, DatePart::Hour) => ", ",
         _ => "/",
     }
 }
@@ -166,7 +184,8 @@ impl Component for DatePicker {
     fn render(&self) -> impl IntoElement {
         let style: DatePickerStyle = resolve(&self.style);
         let interaction = use_interaction();
-        let state = control_state(interaction, false);
+        let disabled = self.disabled;
+        let state = control_state(interaction, disabled);
         let paints = Paints::current(state, style.effect);
         let value = use_controlled(&self.value);
         let current = *value.read();
@@ -219,7 +238,7 @@ impl Component for DatePicker {
             })
         };
         let (up, down, keys) = (step.clone(), step.clone(), step);
-        let highlight = interaction.focused();
+        let highlight = interaction.focused() && !disabled;
         let line_height = style.font.line_height as f32;
         let segment_radius = style.segment_shape.corner_radius(
             line_height,
@@ -255,6 +274,9 @@ impl Component for DatePicker {
                     .corner_radius(segment_radius)
                     .maybe(active, |el| el.painted(&paints, &style.selected_segment))
                     .on_press(move |_| {
+                        if disabled {
+                            return;
+                        }
                         selected.set(index);
                         typed.set(String::new());
                         if is_date {
@@ -277,7 +299,7 @@ impl Component for DatePicker {
 
         let typing_parts = parts.clone();
         let field = interaction
-            .attach(rect(), true)
+            .attach(rect(), !disabled)
             .a11y_role(AccessibilityRole::DateInput)
             .a11y_alt(self.label)
             .height(Size::px(style.height))
@@ -327,12 +349,17 @@ impl Component for DatePicker {
                 dimmed(shadowed(field, &style.shadows), style.opacity),
                 field_radius.top_left(),
             ))
-            .child(stepper_arrows(
-                &style.stepper,
-                ControlState::default(),
-                Some(Rc::new(move || up(1))),
-                Some(Rc::new(move || down(-1))),
-            ))
+            .maybe(self.stepper, |row| {
+                row.child(stepper_arrows(
+                    &style.stepper,
+                    ControlState {
+                        disabled,
+                        ..ControlState::default()
+                    },
+                    (!disabled).then(|| Rc::new(move || up(1)) as Rc<dyn Fn()>),
+                    (!disabled).then(|| Rc::new(move || down(-1)) as Rc<dyn Fn()>),
+                ))
+            })
     }
 }
 

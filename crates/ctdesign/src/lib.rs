@@ -854,6 +854,10 @@ pub struct DatePickerMetrics {
     pub card_top: f32,
     pub card_right: f32,
     pub card_bottom: f32,
+    pub mini: DatePickerSize,
+    pub small: DatePickerSize,
+    pub large: DatePickerSize,
+    pub xl: DatePickerSize,
     pub header_height: f32,
     pub weekday_height: f32,
     pub day_height: f32,
@@ -873,6 +877,16 @@ pub struct DatePickerMetrics {
     pub selected_overhang: f32,
     pub day_radius: f32,
     pub segment_radius: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct DatePickerSize {
+    pub height: f32,
+    pub stepper_gap: f32,
+    pub stepper_width: f32,
+    pub stepper_height: f32,
+    pub stepper_chevron: f32,
+    pub stepper_chevron_stroke: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

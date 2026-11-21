@@ -125,5 +125,5 @@ The program is [`recipes/control_sizes.rs`](recipes/control_sizes.rs).
 
 `.size(ControlSize)` takes one of five sizes on `Button`, `PopUpButton`,
 `SegmentedControl`, `Checkbox`, `RadioGroup`, `Switch`, `Slider`, `Stepper`,
-`TextField`, `SearchField` and `ComboBox`;
+`TextField`, `SearchField`, `ComboBox` and `DatePicker`;
 the sizes are in [chapter 5](../docs/barrierkit/05-controls.md#control-size).

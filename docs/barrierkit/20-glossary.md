@@ -274,6 +274,9 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `combo_box::ComboBox::style` | method | — | — | Changes the style of the arrow button of one combo box | [Styles](../../crates/bk/src/styles/combo_box.rs) |
 | `token_field::TokenField::style` | method | — | — | Changes the style of one token field | [Styles](../../crates/bk/src/styles/token_field.rs) |
 | `date_picker::DatePicker::graphical` | method | `.datePickerStyle(.graphical)` | ≈ `NSDatePicker.datePickerStyle` `.clockAndCalendar` | Shows the month calendar itself instead of the field | [5](05-controls.md#date-picker) |
+| `date_picker::DatePicker::field` | method | `.datePickerStyle(.field)` | `NSDatePicker.datePickerStyle` `.textField` | Shows the field without the stepper | [5](05-controls.md#date-picker) |
+| `date_picker::DatePicker::size` | method | ≈ `.controlSize(_:)` | `NSControl.controlSize` | Stepper and field height of one date picker | [5](05-controls.md#date-picker) |
+| `date_picker::DatePicker::disabled` | method | `.disabled(_:)` | `NSControl.isEnabled` | Tertiary label ink, a disabled stepper and no input | [5](05-controls.md#date-picker) |
 | `date_picker::DatePicker::style` | method | `.datePickerStyle(_:)` on one view | ≈ `NSDatePicker.datePickerStyle` | Changes the style of one date picker | [Styles](../../crates/bk/src/styles/date_picker.rs) |
 | `path_control::PathControl::style` | method | — | — | Changes the style of one path control | [Styles](../../crates/bk/src/styles/path_control.rs) |
 | `image_well::ImageWell::style` | method | — | — | Changes the style of one image well | [Styles](../../crates/bk/src/styles/image_well.rs) |
@@ -574,6 +577,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `ctdesign::SpellingMetrics` | struct | — | — | Size of the misspelling dot | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::ComboBoxMetrics` | struct | — | — | Combo box button and chevron sizes | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::PathControlMetrics` | struct | — | — | Path control height, chevrons and icons | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::DatePickerSize` | struct | — | — | Field height and stepper of a date picker at one size | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::DatePickerMetrics` | struct | — | — | Calendar size, header, weekday row and radii | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::ImageWellMetrics` | struct | — | — | Image well size, radius, inset and drop border | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::LevelIndicatorMetrics` | struct | — | — | Level indicator bars, stars and relevancy sizes | [4](04-appearance-and-tokens.md#control-metrics) |

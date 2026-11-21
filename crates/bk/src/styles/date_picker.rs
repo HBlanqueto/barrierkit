@@ -1,10 +1,11 @@
 use ctdesign::{
     BODY, CALENDAR_CONTRAST_DARK, CALENDAR_CONTRAST_DARK_TINT, CALENDAR_CONTRAST_LIGHT,
-    CALENDAR_DARK, CALENDAR_DARK_TINT, CALENDAR_LIGHT, CAPTION, DATE_FIELD_BORDER_CONTRAST_DARK,
-    DATE_FIELD_BORDER_CONTRAST_DARK_TINT, DATE_FIELD_BORDER_CONTRAST_LIGHT, DATE_FIELD_BORDER_DARK,
-    DATE_FIELD_BORDER_DARK_TINT, DATE_FIELD_BORDER_LIGHT, DATE_FIELD_CONTRAST_DARK,
-    DATE_FIELD_CONTRAST_DARK_TINT, DATE_FIELD_CONTRAST_LIGHT, DATE_FIELD_DARK,
-    DATE_FIELD_DARK_TINT, DATE_FIELD_LIGHT, DATE_PICKER, Font, HAIRLINE, HEADLINE, MENU_POPOVER,
+    CALENDAR_DARK, CALENDAR_DARK_TINT, CALENDAR_LIGHT, CAPTION, ControlSize,
+    DATE_FIELD_BORDER_CONTRAST_DARK, DATE_FIELD_BORDER_CONTRAST_DARK_TINT,
+    DATE_FIELD_BORDER_CONTRAST_LIGHT, DATE_FIELD_BORDER_DARK, DATE_FIELD_BORDER_DARK_TINT,
+    DATE_FIELD_BORDER_LIGHT, DATE_FIELD_CONTRAST_DARK, DATE_FIELD_CONTRAST_DARK_TINT,
+    DATE_FIELD_CONTRAST_LIGHT, DATE_FIELD_DARK, DATE_FIELD_DARK_TINT, DATE_FIELD_LIGHT,
+    DATE_PICKER, Font, HAIRLINE, HEADLINE, MENU_POPOVER, STEPPER,
 };
 
 use super::button::rounded;
@@ -136,6 +137,38 @@ pub struct DatePickerStyle {
     pub weekday_font: Font,
 }
 
+impl DatePickerStyle {
+    pub(crate) fn outlined(self) -> Self {
+        Self {
+            height: self.height + 2.0 * HAIRLINE,
+            padding_x: self.padding_x + HAIRLINE,
+            ..self
+        }
+    }
+
+    pub(crate) fn sized(self, size: ControlSize) -> Self {
+        let row = match size {
+            ControlSize::Mini => DATE_PICKER.mini,
+            ControlSize::Small => DATE_PICKER.small,
+            ControlSize::Regular => return self,
+            ControlSize::Large => DATE_PICKER.large,
+            ControlSize::ExtraLarge => DATE_PICKER.xl,
+        };
+        Self {
+            height: row.height,
+            stepper_gap: row.stepper_gap,
+            stepper: StepperStyle {
+                arrows_size: (row.stepper_width, row.stepper_height),
+                chevron_size: row.stepper_chevron,
+                chevron_stroke: row.stepper_chevron_stroke,
+                shape: rounded(STEPPER.size(size).radius),
+                ..self.stepper
+            },
+            ..self
+        }
+    }
+}
+
 impl ControlStyle for DatePickerStyle {
     fn tengen() -> Self {
         let role = |role| StateValue::new(ShapeStyle::Role(role));
@@ -246,8 +279,8 @@ impl ControlStyle for DatePickerStyle {
                     DATE_FIELD_CONTRAST_DARK_TINT,
                 ],
             ))),
-            text: role(Role::Label),
-            separator: role(Role::Label),
+            text: role(Role::Label).disabled(ShapeStyle::Role(Role::TertiaryLabel)),
+            separator: role(Role::Label).disabled(ShapeStyle::Role(Role::TertiaryLabel)),
             selected_segment: StateValue::new(ShapeStyle::Accent),
             selected_text: role(Role::OnAccent),
             title: role(Role::Label),

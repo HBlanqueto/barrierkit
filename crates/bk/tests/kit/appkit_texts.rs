@@ -94,6 +94,39 @@ fn texts() -> Vec<(&'static str, Builder)> {
             .size(size)
             .into_element()
     }));
+    all.extend(sized!("datepicker", |size| {
+        rect()
+            .margin(Gaps::new(
+                match size {
+                    ControlSize::Regular => 3.0,
+                    ControlSize::Large | ControlSize::ExtraLarge => -1.0,
+                    _ => 0.0,
+                },
+                0.0,
+                0.0,
+                0.0,
+            ))
+            .child(DatePicker::new("Date", date_time()).size(size))
+            .into_element()
+    }));
+    all.push((
+        "date-field",
+        (|| {
+            rect()
+                .margin(Gaps::new(-1.0, 0.0, 0.0, -1.0))
+                .child(DatePicker::new("Date", date_time()).field())
+                .into_element()
+        }) as Builder,
+    ));
+    all.push((
+        "datepicker-disabled",
+        (|| {
+            rect()
+                .margin(Gaps::new(3.0, 0.0, 0.0, 0.0))
+                .child(DatePicker::new("Date", date_time()).disabled(true))
+                .into_element()
+        }) as Builder,
+    ));
     all.push((
         "tf-plain",
         (|| {

@@ -145,7 +145,7 @@ Button::new("Save").style(|s| ButtonStyle { shape: Shape::Capsule, ..s.bordered_
 
 `.size(ControlSize)` picks one of five sizes on `Button`, `PopUpButton` (also with
 `pulls_down`), `SegmentedControl`, `Checkbox`, `RadioGroup`, `Switch`, `Slider`,
-`Stepper`, `TextField`, `SearchField` and `ComboBox`. `Regular` is the default. The tokens of each size are in `ctdesign`
+`Stepper`, `TextField`, `SearchField`, `ComboBox` and `DatePicker`. `Regular` is the default. The tokens of each size are in `ctdesign`
 (`BUTTON.size(size)`, `CHECKBOX.size(size)`, `SWITCH.size(size)`, `SLIDER.size(size)`,
 `SEGMENTED.size(size)`, `STEPPER.size(size)`), measured on macOS 27.2.1 in
 [`macos-control-metrics.md`](../research/macos-control-metrics.md#control-sizes).
@@ -578,6 +578,9 @@ stepper's arrows draw from the [`StepperStyle`](../../crates/bk/src/styles/stepp
 | Method | Default | Effect |
 |---|---|---|
 | `.elements(DateElements)` | `Date` | `Date`, `Time` or `DateAndTime` |
+| `.field()` | field and stepper | `.datePickerStyle(.field)`: the field alone, 80 × 23 with its border outside, like the `textField` style of `NSDatePicker` |
+| `.size(ControlSize)` | `Regular` | The field stays 78 wide and 21 high; the stepper takes 9 × 13, 11 × 16, 13 × 20, 22 × 28 or 29 × 36, and `Large` and `ExtraLarge` make the field 28 and 36 high (`DATE_PICKER.mini` to `xl`) |
+| `.disabled(bool)` | `false` | Tertiary label ink, a disabled stepper and no input |
 | `.graphical()` | the field | Shows the 139 × 148 month calendar itself, like the `clockAndCalendar` style of `NSDatePicker`: the month and year, ◀ ● ▶ (the dot goes to today), the weekdays over a line and right-aligned days. The chosen day is gray until the calendar has focus, then the selection color |
 | `.on_change(\|value: CivilDateTime\| ..)` | — | Called on every change |
 

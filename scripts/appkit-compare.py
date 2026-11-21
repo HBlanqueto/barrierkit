@@ -34,6 +34,7 @@ TEXTS = [
     "search-mini", "search-small", "search-regular", "search-large", "search-xl",
     "search-text-mini", "search-text-small", "search-text-regular", "search-text-large", "search-text-xl", "search-disabled-text",
     "combo-mini", "combo-small", "combo-regular", "combo-large", "combo-xl",
+    "datepicker-mini", "datepicker-small", "datepicker-regular", "datepicker-large", "datepicker-xl", "date-field", "datepicker-disabled",
 ]
 SIZE_NAMES = ("mini", "small", "regular", "large", "xl")
 BUTTONS = [
