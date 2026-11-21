@@ -35,8 +35,8 @@ TEXTS = [
     "search-text-mini", "search-text-small", "search-text-regular", "search-text-large", "search-text-xl", "search-disabled-text",
     "combo-mini", "combo-small", "combo-regular", "combo-large", "combo-xl",
     "datepicker-mini", "datepicker-small", "datepicker-regular", "datepicker-large", "datepicker-xl", "date-field", "datepicker-disabled",
-]
     "well-default", "well-default-disabled", "well-minimal", "well-minimal-disabled", "well-expanded", "well-expanded-disabled",
+]
 SIZE_NAMES = ("mini", "small", "regular", "large", "xl")
 BUTTONS = [
     f"{kind}-{size}" for kind in (
@@ -566,6 +566,9 @@ def icons(args):
     print(f"{near} of {len(names)} within 0.5 of the ink box and 10% of the mass")
 
 
+CONTAINERS = ["split-v-thin", "split-h-thin", "swiftui-hsplit", "swiftui-vsplit"]
+
+
 def main():
     parser = argparse.ArgumentParser(description="Compare a kit scene with AppKit captures.")
     commands = parser.add_subparsers(dest="command", required=True)
@@ -602,7 +605,6 @@ def main():
     four = commands.add_parser("table", help="print the table header, text and separator positions")
     four.add_argument("mode", choices=("light", "dark"))
     four.set_defaults(run=table)
-CONTAINERS = ["split-v-thin", "split-h-thin", "swiftui-hsplit", "swiftui-vsplit"]
     six = commands.add_parser("toolbar", help="print the toolbar glyph and navigation pair comparison")
     six.add_argument("mode", choices=("light", "dark"))
     six.set_defaults(run=toolbar)
