@@ -975,8 +975,6 @@
         "field-width": 200,
         "filter-width": 320,
         "filter-control": 20,
-      "alert-icon": 64,
-      "alert-icon-gap": 16,
         "filter-inset": 2,
         "filter-chevron": 14,
         "filter-close-icon": 9,
@@ -1023,6 +1021,8 @@
     "dialog": {
       "radius": "components.window.corner.unified",
       "padding": 20,
+      "alert-icon": 64,
+      "alert-icon-gap": 16,
       "alert-width": 260,
       "alert-padding": 16,
       "alert-spacing": 10,

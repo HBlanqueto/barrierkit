@@ -1599,8 +1599,6 @@
   --bk-settings-wallpaper-field-width: 200;
   --bk-settings-wallpaper-filter-width: 320;
   --bk-settings-wallpaper-filter-control: 20;
-  --bk-settings-wallpaper-alert-icon: 64;
-  --bk-settings-wallpaper-alert-icon-gap: 16;
   --bk-settings-wallpaper-filter-inset: 2;
   --bk-settings-wallpaper-filter-chevron: 14;
   --bk-settings-wallpaper-filter-close-icon: 9;
@@ -1638,6 +1636,8 @@
   --bk-dialog-alert-padding: 16;
   --bk-dialog-alert-spacing: 10;
   --bk-dialog-alert-line-height: 16;
+  --bk-dialog-alert-icon: 64;
+  --bk-dialog-alert-icon-gap: 16;
   --bk-dialog-button-width: 84;
   --bk-dialog-sheet-width: 430;
   --bk-dialog-sheet-height: 280;
