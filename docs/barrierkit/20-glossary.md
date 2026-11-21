@@ -1063,7 +1063,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 
 | BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
 |---|---|---|---|---|---|
-| `modifiers::ViewModifiers` | trait | `View` modifiers | — | SwiftUI-style modifiers for every element with events | [7](07-menus-and-popovers.md#view-modifiers) |
+| `modifiers::ViewModifiers` | trait | `View` modifiers | — | SwiftUI-style modifiers for every element and control with events | [7](07-menus-and-popovers.md#view-modifiers) |
 | `modifiers::ViewModifiers::context_menu` | method | `.contextMenu(menuItems:)` | `NSMenu.popUpContextMenu(_:with:for:)` | Opens a menu at the pointer on secondary click | [7](07-menus-and-popovers.md#context_menu) |
 | `popup_button::pop_up_menu` | fn | — | `NSMenu.popUp(positioning:at:in:)` | Opens a menu beside a rectangle, as the Dock: arrow in its starting corner, pointing at the rectangle | [7](07-menus-and-popovers.md#pop_up_menu) |
 | `popover::Popover` | struct | `.popover(isPresented:attachmentAnchor:arrowEdge:content:)` | `NSPopover` | Content in a popover with an arrow; `.show(anchor)` opens it below an area | [7](07-menus-and-popovers.md#popover) |
@@ -1423,5 +1423,6 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `IntoElement` | `some View` | Anything a view can return |
 | `use_state` | `@State` | State that survives between renders |
 | `rect()` | — | The basic box; `VStack` and `HStack` are built on it |
+| `padding`, `margin`, `width`, `height`, `background`, `border`, `corner_radius`, `opacity` | `.padding`, `.frame`, `.background`, `.border`, `.cornerRadius`, `.opacity` | Set on the view's own node, not wrapped; every control takes them ([5](05-controls.md#modifiers-on-controls)) |
 | `label()` | — | A single run of text; `Text` is built on it |
 | `paragraph()` | — | Text with several styled spans |

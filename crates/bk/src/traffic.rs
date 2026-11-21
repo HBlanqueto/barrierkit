@@ -6,6 +6,7 @@ use torin::prelude::{Direction, Position, Size};
 
 use crate::ProbeExt;
 use crate::controls::dimmed;
+use crate::elements::{Overrides, forward_overrides};
 use crate::i18n::text;
 use crate::styles::{Animation, Axis, ControlState, Theme, TrafficLightsStyle, resolve};
 use crate::traffic_raster::{Layers, light};
@@ -21,6 +22,7 @@ pub struct TrafficLights {
     style: Theme,
     on_action: Option<Callback<ButtonKind, ()>>,
     probe: Option<&'static str>,
+    overrides: Overrides,
 }
 
 impl Default for TrafficLights {
@@ -41,6 +43,7 @@ impl TrafficLights {
             style: Theme::tengen(),
             on_action: None,
             probe: None,
+            overrides: Overrides::default(),
         }
     }
 
@@ -156,6 +159,8 @@ fn light_images(
             .collect()
     }
 }
+
+forward_overrides!(TrafficLights);
 
 impl Component for TrafficLights {
     fn render(&self) -> impl IntoElement {
@@ -300,7 +305,8 @@ impl Component for TrafficLights {
             .maybe(close_blocked, |group| {
                 group.layer(crate::views::feedback::SHEET_TRAFFIC_LIGHTS)
             });
-        dimmed(root, style.opacity).map(self.probe, ProbeExt::probe)
+        let root = dimmed(root, style.opacity).map(self.probe, ProbeExt::probe);
+        self.overrides.apply(root)
     }
 }
 

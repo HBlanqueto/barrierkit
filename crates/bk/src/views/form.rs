@@ -4,6 +4,7 @@ use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
 
 use crate::adornments::Divider;
 use crate::controls::{ControlSize, Switch};
+use crate::elements::{Overrides, forward_overrides};
 use crate::interaction::{control_state, use_interaction};
 use crate::menu::measure_text_weight;
 use crate::patterns::settings::PageLink;
@@ -176,6 +177,7 @@ pub struct Form {
     pinned: Option<Section>,
     highlighted: Option<&'static str>,
     style: Theme,
+    overrides: Overrides,
 }
 
 impl Default for Form {
@@ -191,6 +193,7 @@ impl Form {
             pinned: None,
             highlighted: None,
             style: Theme::tengen(),
+            overrides: Overrides::default(),
         }
     }
 
@@ -231,6 +234,8 @@ impl Form {
     }
 }
 
+forward_overrides!(Form);
+
 impl Component for Form {
     fn render(&self) -> impl IntoElement {
         let style: FormStyle = resolve(&self.style);
@@ -241,7 +246,9 @@ impl Component for Form {
         let stacked = *width.read() < LIST_GROUP.stack_below;
         let [top, right, bottom, left] = style.header_padding;
         if style.columns {
-            return columns(&self.sections, &style, &paints).into_element();
+            return self
+                .overrides
+                .apply(columns(&self.sections, &style, &paints));
         }
         let corner_radius = style
             .shape
@@ -295,7 +302,7 @@ impl Component for Form {
                 .into_element()
         });
         let [form_top, form_right, form_bottom, form_left] = style.padding;
-        rect()
+        let root = rect()
             .width(Size::fill())
             .padding(Gaps::new(form_top, form_right, form_bottom, form_left))
             .child(
@@ -307,8 +314,8 @@ impl Component for Form {
                         width.set_if_modified(event.area.size.width);
                     })
                     .children(sections),
-            )
-            .into_element()
+            );
+        self.overrides.apply(root)
     }
 }
 

@@ -5,6 +5,7 @@ use ctappearance::language::read_language;
 use freya_core::prelude::*;
 
 use crate::app::{read_toml, write_toml};
+use crate::elements::{Overrides, forward_overrides};
 use crate::i18n::text;
 use crate::popup_button::PopUpButton;
 use crate::views::form::Row;
@@ -14,18 +15,21 @@ const LANGUAGES: [Option<&str>; 3] = [None, Some("es"), Some("en")];
 #[derive(PartialEq)]
 pub struct LanguagePicker {
     path: PathBuf,
+    overrides: Overrides,
 }
 
 impl LanguagePicker {
     pub fn app(domain: &str) -> Self {
         Self {
             path: crate::app::domain(domain),
+            overrides: Overrides::default(),
         }
     }
 
     pub fn system() -> Self {
         Self {
             path: ctappearance::config_dir().join("language.domain"),
+            overrides: Overrides::default(),
         }
     }
 }
@@ -40,6 +44,8 @@ pub fn system_language_row() -> Row {
     Row::new(text!("language")).control(LanguagePicker::system())
 }
 
+forward_overrides!(LanguagePicker);
+
 impl Component for LanguagePicker {
     fn render(&self) -> impl IntoElement {
         let path = self.path.clone();
@@ -51,7 +57,7 @@ impl Component for LanguagePicker {
                 .unwrap_or(0)
         });
         let path = self.path.clone();
-        PopUpButton::new(text!("language"))
+        let root = PopUpButton::new(text!("language"))
             .item(text!("language-automatic"))
             .item("Español")
             .item("English")
@@ -61,7 +67,8 @@ impl Component for LanguagePicker {
                     tracing::warn!(path = %path.display(), %error, "could not save the language");
                 }
                 selected.set(index);
-            })
+            });
+        self.overrides.delegate(root)
     }
 }
 

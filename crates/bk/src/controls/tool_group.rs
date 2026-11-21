@@ -7,6 +7,7 @@ pub struct ToolGroup {
     probe: Option<&'static str>,
     style: Theme,
     key: DiffKey,
+    overrides: Overrides,
 }
 
 impl Default for ToolGroup {
@@ -22,6 +23,7 @@ impl ToolGroup {
             probe: None,
             style: Theme::tengen(),
             key: DiffKey::None,
+            overrides: Overrides::default(),
         }
     }
 
@@ -59,6 +61,8 @@ impl ProbeExt for ToolGroup {
         self
     }
 }
+
+forward_overrides!(ToolGroup);
 
 impl Component for ToolGroup {
     fn render(&self) -> impl IntoElement {
@@ -124,6 +128,7 @@ impl Component for ToolGroup {
                 slot_height,
                 LayoutDirection::LeftToRight,
             ));
-        dimmed(shadowed(root, &style.shadows), style.opacity)
+        self.overrides
+            .apply(dimmed(shadowed(root, &style.shadows), style.opacity))
     }
 }

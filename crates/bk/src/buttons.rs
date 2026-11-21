@@ -3,6 +3,7 @@ use freya_core::prelude::*;
 use torin::prelude::{Alignment, Area, Direction, Gaps, Size};
 
 use crate::controls::{dimmed, shadowed};
+use crate::elements::{Overrides, forward_overrides};
 use crate::i18n::text;
 use crate::interaction::{control_state, use_interaction};
 use crate::menu::MenuItem;
@@ -30,6 +31,7 @@ pub struct MenuButton {
     items: Vec<MenuItem>,
     on_activate: Option<Callback<String, ()>>,
     style: Theme,
+    overrides: Overrides,
 }
 
 impl MenuButton {
@@ -41,6 +43,7 @@ impl MenuButton {
             items,
             on_activate: None,
             style: Theme::tengen(),
+            overrides: Overrides::default(),
         }
     }
 
@@ -66,6 +69,8 @@ impl MenuButton {
         self
     }
 }
+
+forward_overrides!(MenuButton);
 
 impl Component for MenuButton {
     fn render(&self) -> impl IntoElement {
@@ -148,10 +153,11 @@ impl Component for MenuButton {
                         paints.color(style.chevron.resolve(state)),
                     ))
             });
-        interaction.focus_ring(
+        let root = interaction.focus_ring(
             dimmed(shadowed(button, &style.shadows), style.opacity),
             radius.top_left(),
-        )
+        );
+        self.overrides.apply(root)
     }
 }
 
@@ -162,6 +168,7 @@ pub struct ComboButton {
     on_press: Option<Callback<(), ()>>,
     on_activate: Option<Callback<String, ()>>,
     style: Theme,
+    overrides: Overrides,
 }
 
 impl ComboButton {
@@ -172,6 +179,7 @@ impl ComboButton {
             on_press: None,
             on_activate: None,
             style: Theme::tengen(),
+            overrides: Overrides::default(),
         }
     }
 
@@ -193,6 +201,8 @@ impl ComboButton {
         self
     }
 }
+
+forward_overrides!(ComboButton);
 
 impl Component for ComboButton {
     fn render(&self) -> impl IntoElement {
@@ -281,7 +291,8 @@ impl Component for ComboButton {
                     .background(group.fill(&style.separator)),
             )
             .child(arrow.inner_focus_ring(menu));
-        dimmed(shadowed(combo, &style.shadows), style.opacity)
+        self.overrides
+            .apply(dimmed(shadowed(combo, &style.shadows), style.opacity))
     }
 }
 
@@ -289,6 +300,7 @@ impl Component for ComboButton {
 pub struct HelpLink {
     on_press: Option<Callback<(), ()>>,
     style: Theme,
+    overrides: Overrides,
 }
 
 impl HelpLink {
@@ -296,6 +308,7 @@ impl HelpLink {
         Self {
             on_press: None,
             style: Theme::tengen(),
+            overrides: Overrides::default(),
         }
     }
 
@@ -315,6 +328,8 @@ impl Default for HelpLink {
         Self::new()
     }
 }
+
+forward_overrides!(HelpLink);
 
 impl Component for HelpLink {
     fn render(&self) -> impl IntoElement {
@@ -354,10 +369,11 @@ impl Component for HelpLink {
                 style.glyph.1,
                 paints.color(style.label.resolve(ControlState::default())),
             ));
-        interaction.focus_ring(
+        let root = interaction.focus_ring(
             dimmed(shadowed(button, &style.shadows), style.opacity),
             radius.top_left(),
-        )
+        );
+        self.overrides.apply(root)
     }
 }
 
@@ -366,6 +382,7 @@ pub struct ControlGroup {
     label: &'static str,
     children: Vec<Element>,
     style: Theme,
+    overrides: Overrides,
 }
 
 impl ControlGroup {
@@ -374,6 +391,7 @@ impl ControlGroup {
             label,
             children: Vec::new(),
             style: Theme::tengen(),
+            overrides: Overrides::default(),
         }
     }
 
@@ -390,6 +408,8 @@ impl ControlGroup {
         self
     }
 }
+
+forward_overrides!(ControlGroup);
 
 impl Component for ControlGroup {
     fn render(&self) -> impl IntoElement {
@@ -424,7 +444,8 @@ impl Component for ControlGroup {
             .direction(Direction::Horizontal)
             .cross_align(Alignment::Center)
             .children(items);
-        dimmed(shadowed(group, &style.shadows), style.opacity)
+        self.overrides
+            .apply(dimmed(shadowed(group, &style.shadows), style.opacity))
     }
 }
 
@@ -433,6 +454,7 @@ pub struct ShareLink {
     label: &'static str,
     content: String,
     style: Theme,
+    overrides: Overrides,
 }
 
 impl ShareLink {
@@ -441,6 +463,7 @@ impl ShareLink {
             label,
             content: content.into(),
             style: Theme::tengen(),
+            overrides: Overrides::default(),
         }
     }
 
@@ -463,6 +486,8 @@ pub fn mail_uri(content: &str) -> String {
     format!("mailto:?body={body}")
 }
 
+forward_overrides!(ShareLink);
+
 impl Component for ShareLink {
     fn render(&self) -> impl IntoElement {
         let content = self.content.clone();
@@ -474,7 +499,7 @@ impl Component for ShareLink {
         if is_link {
             items.push(MenuItem::action("open", text!("share-open-with")));
         }
-        MenuButton {
+        let root = MenuButton {
             style: self.style.clone(),
             ..MenuButton::new(self.label, items)
         }
@@ -493,7 +518,8 @@ impl Component for ShareLink {
                     spawn(async move { crate::portal::open_uri(&content, true).await });
                 }
             }
-        })
+        });
+        self.overrides.delegate(root)
     }
 }
 

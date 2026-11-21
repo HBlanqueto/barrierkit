@@ -5,7 +5,7 @@ use freya_core::prelude::*;
 use torin::prelude::{Gaps, Size};
 
 use crate::controls::{dimmed, shadowed};
-use crate::elements::forward_container;
+use crate::elements::{Overrides, forward_container, forward_overrides};
 use crate::interaction::{control_state, use_interaction};
 use crate::style::{text, with_font};
 use crate::styles::Painted;
@@ -146,6 +146,7 @@ pub struct Link {
     text: &'static str,
     on_press: Option<Callback<(), ()>>,
     style: Theme,
+    overrides: Overrides,
 }
 
 impl Link {
@@ -154,6 +155,7 @@ impl Link {
             text,
             on_press: None,
             style: Theme::tengen(),
+            overrides: Overrides::default(),
         }
     }
 
@@ -167,6 +169,8 @@ impl Link {
         self
     }
 }
+
+forward_overrides!(Link);
 
 impl Component for Link {
     fn render(&self) -> impl IntoElement {
@@ -186,7 +190,8 @@ impl Component for Link {
                     .max_lines(1)
                     .color(paints.fill(&style.label)),
             );
-        interaction.focus_ring(dimmed(link, style.opacity), 0.0)
+        self.overrides
+            .apply(interaction.focus_ring(dimmed(link, style.opacity), 0.0))
     }
 }
 

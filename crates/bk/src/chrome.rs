@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 
 use crate::controls::shadowed;
+use crate::elements::{Overrides, forward_overrides};
 use crate::glass::{GlassEdge, fullscreen_backdrop};
 use crate::platform::FullscreenBar;
 use crate::platform::WindowControls;
@@ -273,6 +274,7 @@ pub struct WindowChrome {
     style: Theme,
     rail_items: RailItems,
     child: Element,
+    overrides: Overrides,
 }
 
 impl WindowChrome {
@@ -281,6 +283,7 @@ impl WindowChrome {
             style: Theme::tengen(),
             rail_items: RailItems::default(),
             child: child.into_element(),
+            overrides: Overrides::default(),
         }
     }
 
@@ -302,6 +305,8 @@ impl WindowChrome {
         self
     }
 }
+
+forward_overrides!(WindowChrome);
 
 impl Component for WindowChrome {
     fn render(&self) -> impl IntoElement {
@@ -446,7 +451,7 @@ impl Component for WindowChrome {
         if reveal == Reveal::Popup && progress > 0.0 && !overlaid {
             root = root.child(pill(&style, layout == TitlebarLayout::Rail, progress));
         }
-        root
+        self.overrides.apply(root)
     }
 }
 

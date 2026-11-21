@@ -1,3 +1,4 @@
+use crate::elements::{Overrides, forward_overrides};
 use crate::scroll::ScrollView;
 use ctdesign::{Rgba, SETTINGS};
 use freya_core::prelude::*;
@@ -106,6 +107,7 @@ pub struct SettingsWindow {
     narrow_sidebar: NarrowSidebar,
     destination: Option<State<Option<String>>>,
     style: Theme,
+    overrides: Overrides,
 }
 
 impl SettingsWindow {
@@ -121,6 +123,7 @@ impl SettingsWindow {
             narrow_sidebar: NarrowSidebar::Overlay,
             destination: None,
             style: Theme::tengen(),
+            overrides: Overrides::default(),
         }
     }
 
@@ -222,6 +225,8 @@ pub fn index(panes: &[&Pane]) -> SearchIndex<Hit> {
     }
     index
 }
+
+forward_overrides!(SettingsWindow);
 
 impl Component for SettingsWindow {
     fn render(&self) -> impl IntoElement {
@@ -462,7 +467,7 @@ impl Component for SettingsWindow {
             width: SETTINGS.sidebar_width as f32,
             visible: true,
         });
-        SplitView::new(sidebar, detail)
+        let root = SplitView::new(sidebar, detail)
             .sidebar_width(restored.width)
             .sidebar_visible(restored.visible)
             .resizable(self.sidebar_resizable)
@@ -470,7 +475,8 @@ impl Component for SettingsWindow {
             .on_layout(move |sidebar| layout.set(Some(sidebar)))
             .map(self.sidebar_range, |split, (min, max)| {
                 split.sidebar_range(min, max)
-            })
+            });
+        self.overrides.delegate(root)
     }
 }
 

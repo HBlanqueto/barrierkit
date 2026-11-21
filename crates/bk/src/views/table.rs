@@ -4,6 +4,7 @@ use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 
 use crate::context_menu::context_menu;
+use crate::elements::{Overrides, forward_overrides};
 use crate::interaction::{control_state, use_interaction};
 use crate::interaction::{track_modifiers, use_held_modifiers};
 use crate::menu::{CheckState, MenuItem};
@@ -34,6 +35,7 @@ pub struct Table {
     on_sort: Option<Callback<SortOrder, ()>>,
     on_select: Option<Callback<Vec<usize>, ()>>,
     style: Theme,
+    overrides: Overrides,
 }
 
 impl Table {
@@ -49,6 +51,7 @@ impl Table {
             on_sort: None,
             on_select: None,
             style: Theme::tengen(),
+            overrides: Overrides::default(),
         }
     }
 
@@ -181,6 +184,8 @@ pub fn toggle_column(hidden: &[usize], column: usize, count: usize) -> Vec<usize
     }
     next
 }
+
+forward_overrides!(Table);
 
 impl Component for Table {
     fn render(&self) -> impl IntoElement {
@@ -547,7 +552,7 @@ impl Component for Table {
                             .child(body),
                     ),
             );
-        interaction.inner_focus_ring(table)
+        self.overrides.apply(interaction.inner_focus_ring(table))
     }
 }
 

@@ -1,6 +1,7 @@
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
 
+use crate::elements::{Overrides, forward_overrides};
 use crate::interaction::{control_state, track_modifiers, use_held_modifiers, use_interaction};
 use crate::style::text;
 use crate::styles::Painted;
@@ -13,6 +14,7 @@ pub struct CollectionView {
     selected: Vec<usize>,
     on_select: Option<Callback<Vec<usize>, ()>>,
     style: Theme,
+    overrides: Overrides,
 }
 
 impl CollectionView {
@@ -23,6 +25,7 @@ impl CollectionView {
             selected: Vec::new(),
             on_select: None,
             style: Theme::tengen(),
+            overrides: Overrides::default(),
         }
     }
 
@@ -72,6 +75,8 @@ pub fn select(current: &[usize], index: usize, held: Modifiers) -> Vec<usize> {
     next
 }
 
+forward_overrides!(CollectionView);
+
 impl Component for CollectionView {
     fn render(&self) -> impl IntoElement {
         let style: CollectionViewStyle = resolve(&self.style);
@@ -96,14 +101,15 @@ impl Component for CollectionView {
             }
             .into_element()
         });
-        track_modifiers(rect(), held)
+        let root = track_modifiers(rect(), held)
             .a11y_role(AccessibilityRole::Grid)
             .a11y_alt(self.label)
             .width(Size::fill())
             .direction(Direction::Horizontal)
             .content(Content::wrap_spacing(style.spacing))
             .spacing(style.spacing)
-            .children(tiles)
+            .children(tiles);
+        self.overrides.apply(root)
     }
 }
 

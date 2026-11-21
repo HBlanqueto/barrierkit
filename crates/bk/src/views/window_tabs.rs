@@ -1,6 +1,7 @@
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
 
+use crate::elements::{Overrides, forward_overrides};
 use crate::i18n::text;
 use crate::interaction::{control_state, use_interaction};
 use crate::style::text;
@@ -16,6 +17,7 @@ pub struct WindowTabs {
     on_close: Option<Callback<usize, ()>>,
     on_new: Option<Callback<(), ()>>,
     style: Theme,
+    overrides: Overrides,
 }
 
 impl WindowTabs {
@@ -27,6 +29,7 @@ impl WindowTabs {
             on_close: None,
             on_new: None,
             style: Theme::tengen(),
+            overrides: Overrides::default(),
         }
     }
 
@@ -51,6 +54,8 @@ impl WindowTabs {
     }
 }
 
+forward_overrides!(WindowTabs);
+
 impl Component for WindowTabs {
     fn render(&self) -> impl IntoElement {
         let style: WindowTabsStyle = resolve(&self.style);
@@ -74,7 +79,7 @@ impl Component for WindowTabs {
             .into_element()
         });
         let on_new = self.on_new.clone();
-        rect()
+        let root = rect()
             .a11y_role(AccessibilityRole::TabList)
             .width(Size::fill())
             .height(Size::px(style.tab_height + 2.0 * style.padding))
@@ -99,7 +104,8 @@ impl Component for WindowTabs {
                             paints.color(style.symbol.resolve(state)),
                         )),
                 )
-            })
+            });
+        self.overrides.apply(root)
     }
 }
 

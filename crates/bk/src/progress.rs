@@ -6,6 +6,7 @@ use torin::prelude::{Direction, Position, Size};
 
 use crate::backdrop::Tint;
 use crate::controls::{dimmed, shadowed};
+use crate::elements::{Overrides, forward_overrides};
 use crate::styles::Painted;
 use crate::styles::{
     Animation, ControlState, LayoutDirection, Paints, ProgressRingStyle, ProgressViewStyle,
@@ -18,6 +19,7 @@ pub struct ProgressView {
     label: &'static str,
     value: Option<f32>,
     style: Theme,
+    overrides: Overrides,
 }
 
 impl ProgressView {
@@ -26,6 +28,7 @@ impl ProgressView {
             label,
             value: Some(value.clamp(0.0, 1.0)),
             style: Theme::tengen(),
+            overrides: Overrides::default(),
         }
     }
 
@@ -34,6 +37,7 @@ impl ProgressView {
             label,
             value: None,
             style: Theme::tengen(),
+            overrides: Overrides::default(),
         }
     }
 
@@ -76,6 +80,8 @@ fn use_running(animation: Animation, restart: bool) -> f32 {
         animation.progress(elapsed.get().value())
     }
 }
+
+forward_overrides!(ProgressView);
 
 impl Component for ProgressView {
     fn render(&self) -> impl IntoElement {
@@ -123,7 +129,8 @@ impl Component for ProgressView {
                     .corner_radius(radius)
                     .painted(&paints, &style.fill),
             );
-        dimmed(shadowed(bar, &style.shadows), style.opacity)
+        self.overrides
+            .apply(dimmed(shadowed(bar, &style.shadows), style.opacity))
     }
 }
 
@@ -132,6 +139,7 @@ pub struct ProgressRing {
     label: &'static str,
     value: f32,
     style: Theme,
+    overrides: Overrides,
 }
 
 impl ProgressRing {
@@ -140,6 +148,7 @@ impl ProgressRing {
             label,
             value: value.clamp(0.0, 1.0),
             style: Theme::tengen(),
+            overrides: Overrides::default(),
         }
     }
 
@@ -151,6 +160,8 @@ impl ProgressRing {
         self
     }
 }
+
+forward_overrides!(ProgressRing);
 
 impl Component for ProgressRing {
     fn render(&self) -> impl IntoElement {
@@ -177,7 +188,7 @@ impl Component for ProgressRing {
         };
         let value = self.value;
 
-        dimmed(
+        let root = dimmed(
             rect()
                 .a11y_role(AccessibilityRole::ProgressIndicator)
                 .a11y_alt(self.label)
@@ -197,7 +208,8 @@ impl Component for ProgressRing {
                     )
                 }),
             style.opacity,
-        )
+        );
+        self.overrides.apply(root)
     }
 }
 
@@ -205,6 +217,7 @@ impl Component for ProgressRing {
 pub struct Spinner {
     label: &'static str,
     style: Theme,
+    overrides: Overrides,
 }
 
 impl Spinner {
@@ -212,6 +225,7 @@ impl Spinner {
         Self {
             label,
             style: Theme::tengen(),
+            overrides: Overrides::default(),
         }
     }
 
@@ -220,6 +234,8 @@ impl Spinner {
         self
     }
 }
+
+forward_overrides!(Spinner);
 
 impl Component for Spinner {
     fn render(&self) -> impl IntoElement {
@@ -232,7 +248,7 @@ impl Component for Spinner {
         let degrees_per_spoke = 360.0 / spokes as f32;
         let size = style.size;
 
-        dimmed(
+        let root = dimmed(
             rect()
                 .a11y_role(AccessibilityRole::ProgressIndicator)
                 .a11y_alt(self.label)
@@ -247,7 +263,8 @@ impl Component for Spinner {
                         .show_loader(false),
                 ),
             style.opacity,
-        )
+        );
+        self.overrides.apply(root)
     }
 }
 

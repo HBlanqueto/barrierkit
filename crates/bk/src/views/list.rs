@@ -2,6 +2,7 @@ use ctdesign::{LIST_SECTION, SUBHEADLINE};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Direction, Gaps, Size};
 
+use crate::elements::{Overrides, forward_overrides};
 use crate::scroll::ScrollView;
 use crate::style::text;
 use crate::styles::{
@@ -18,6 +19,7 @@ pub struct List {
     scroll_bar: bool,
     on_select: Option<Callback<Vec<usize>, ()>>,
     style: Theme,
+    overrides: Overrides,
 }
 
 impl List {
@@ -30,6 +32,7 @@ impl List {
             scroll_bar: true,
             on_select: None,
             style: Theme::tengen().style(|_: TableStyle| TableStyle::inset_list()),
+            overrides: Overrides::default(),
         }
     }
 
@@ -59,10 +62,12 @@ impl List {
     }
 }
 
+forward_overrides!(List);
+
 impl Component for List {
     fn render(&self) -> impl IntoElement {
         if !self.sections.is_empty() {
-            return self.sectioned().into_element();
+            return self.overrides.delegate(self.sectioned()).into_element();
         }
         let table = Table::new(self.label, vec![""])
             .rows(self.rows.iter().map(|row| vec![row.clone()]).collect())
@@ -72,12 +77,14 @@ impl Component for List {
             Some(callback) => table.on_select(callback.clone()),
             None => table,
         };
-        table.themed(self.style.clone()).into_element()
+        self.overrides
+            .delegate(table.themed(self.style.clone()))
+            .into_element()
     }
 }
 
 impl List {
-    fn sectioned(&self) -> Element {
+    fn sectioned(&self) -> ScrollView {
         let style: TableStyle = resolve(&self.style);
         let paints = Paints::current(ControlState::default(), style.effect);
         let header_ink = paints.color(&ShapeStyle::Role(Role::SecondaryLabel));
@@ -145,6 +152,5 @@ impl List {
         ScrollView::new()
             .scroll_bar(self.scroll_bar)
             .children(sections)
-            .into_element()
     }
 }

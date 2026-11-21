@@ -1,4 +1,5 @@
 use crate::controls::shadowed;
+use crate::elements::{Overrides, forward_overrides};
 use crate::style::text;
 use crate::styles::Painted;
 use crate::styles::{
@@ -81,6 +82,7 @@ pub struct FloatingPane {
     pub on_raise: Callback<(), ()>,
     pub on_frame: Callback<PaneFrame, ()>,
     pub style: Theme,
+    overrides: Overrides,
 }
 
 impl FloatingPane {
@@ -92,6 +94,8 @@ impl FloatingPane {
         self
     }
 }
+
+forward_overrides!(FloatingPane);
 
 impl Component for FloatingPane {
     fn render(&self) -> impl IntoElement {
@@ -239,7 +243,7 @@ impl Component for FloatingPane {
                         paints.color(style.outline.resolve(state)),
                     )),
             );
-        rect()
+        let root = rect()
             .position(
                 Position::new_absolute()
                     .left(frame.x - band)
@@ -277,6 +281,7 @@ impl Component for FloatingPane {
                         .child(self.content.clone()),
                 ),
             )
-            .children(handles)
+            .children(handles);
+        self.overrides.apply(root)
     }
 }

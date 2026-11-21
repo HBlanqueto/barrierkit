@@ -1,3 +1,4 @@
+use crate::elements::{Overrides, forward_overrides};
 use crate::i18n::text;
 
 use ctdesign::{ACCENT_SWATCHES, ACCENTS, ControlSize, MULTICOLOR, Rgba};
@@ -106,6 +107,7 @@ pub struct RadioGroup {
     on_change: Option<Callback<usize, ()>>,
     style: Theme,
     key: DiffKey,
+    overrides: Overrides,
 }
 
 impl RadioGroup {
@@ -118,6 +120,7 @@ impl RadioGroup {
             on_change: None,
             style: Theme::tengen(),
             key: DiffKey::None,
+            overrides: Overrides::default(),
         }
     }
 
@@ -169,6 +172,8 @@ impl KeyExt for RadioGroup {
     }
 }
 
+forward_overrides!(RadioGroup);
+
 impl Component for RadioGroup {
     fn render(&self) -> impl IntoElement {
         let style: RadioGroupStyle = resolve(&self.style);
@@ -186,11 +191,12 @@ impl Component for RadioGroup {
             .into_element()
         });
         let group = choice_group(self.label, style.axis, style.spacing, false, options);
-        if self.disabled {
+        let root = if self.disabled {
             group
         } else {
             choice.arrow_keys(group, self.options.len(), keyed)
-        }
+        };
+        self.overrides.apply(root)
     }
 }
 
@@ -305,6 +311,7 @@ pub struct ColorWell {
     on_change: Option<Callback<usize, ()>>,
     style: Theme,
     key: DiffKey,
+    overrides: Overrides,
 }
 
 impl ColorWell {
@@ -319,6 +326,7 @@ impl ColorWell {
             on_change: None,
             style: Theme::tengen(),
             key: DiffKey::None,
+            overrides: Overrides::default(),
         }
     }
 
@@ -378,6 +386,8 @@ impl KeyExt for ColorWell {
     }
 }
 
+forward_overrides!(ColorWell);
+
 impl Component for ColorWell {
     fn render(&self) -> impl IntoElement {
         let style: ColorWellStyle = resolve(&self.style);
@@ -403,7 +413,8 @@ impl Component for ColorWell {
                 }
                 .into_element()
             });
-        choice_group(self.label, style.axis, style.spacing, style.wraps, swatches)
+        let root = choice_group(self.label, style.axis, style.spacing, style.wraps, swatches);
+        self.overrides.apply(root)
     }
 }
 
@@ -500,6 +511,7 @@ pub struct ChoiceCards {
     on_change: Option<Callback<usize, ()>>,
     style: Theme,
     key: DiffKey,
+    overrides: Overrides,
 }
 
 impl ChoiceCards {
@@ -512,6 +524,7 @@ impl ChoiceCards {
             on_change: None,
             style: Theme::tengen(),
             key: DiffKey::None,
+            overrides: Overrides::default(),
         }
     }
 
@@ -555,6 +568,8 @@ impl KeyExt for ChoiceCards {
     }
 }
 
+forward_overrides!(ChoiceCards);
+
 impl Component for ChoiceCards {
     fn render(&self) -> impl IntoElement {
         let style: ChoiceCardsStyle = resolve(&self.style);
@@ -574,7 +589,8 @@ impl Component for ChoiceCards {
                 }
                 .into_element()
             });
-        choice_group(self.label, style.axis, style.spacing, style.wraps, cards)
+        let root = choice_group(self.label, style.axis, style.spacing, style.wraps, cards);
+        self.overrides.apply(root)
     }
 }
 

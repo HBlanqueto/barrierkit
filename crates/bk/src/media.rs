@@ -1,4 +1,4 @@
-use crate::elements::forward_container;
+use crate::elements::{Overrides, forward_container, forward_overrides};
 use std::path::PathBuf;
 
 use ctdesign::{MEDIA, Rgba};
@@ -59,6 +59,7 @@ pub struct MediaButton {
     symbol: Option<Symbol>,
     on_press: Option<Callback<(), ()>>,
     style: Theme,
+    overrides: Overrides,
 }
 
 impl MediaButton {
@@ -68,6 +69,7 @@ impl MediaButton {
             symbol: None,
             on_press: None,
             style: Theme::tengen(),
+            overrides: Overrides::default(),
         }
     }
 
@@ -89,6 +91,8 @@ impl MediaButton {
         self
     }
 }
+
+forward_overrides!(MediaButton);
 
 impl Component for MediaButton {
     fn render(&self) -> impl IntoElement {
@@ -142,10 +146,11 @@ impl Component for MediaButton {
                     .max_lines(1)
                     .color(paints.fill(&style.label)),
             );
-        interaction.focus_ring(
+        let root = interaction.focus_ring(
             dimmed(shadowed(button, &style.shadows), style.opacity),
             radius.top_left(),
-        )
+        );
+        self.overrides.apply(root)
     }
 }
 
@@ -156,6 +161,7 @@ pub struct RoundButton {
     selected: bool,
     on_press: Option<Callback<(), ()>>,
     style: Theme,
+    overrides: Overrides,
 }
 
 impl RoundButton {
@@ -166,6 +172,7 @@ impl RoundButton {
             selected: false,
             on_press: None,
             style: Theme::tengen(),
+            overrides: Overrides::default(),
         }
     }
 
@@ -187,6 +194,8 @@ impl RoundButton {
         self
     }
 }
+
+forward_overrides!(RoundButton);
 
 impl Component for RoundButton {
     fn render(&self) -> impl IntoElement {
@@ -231,10 +240,11 @@ impl Component for RoundButton {
                 style.icon_size,
                 paints.color(ink.resolve(state)),
             ));
-        interaction.focus_ring(
+        let root = interaction.focus_ring(
             dimmed(shadowed(button, &style.shadows), style.opacity),
             radius.top_left(),
-        )
+        );
+        self.overrides.apply(root)
     }
 }
 

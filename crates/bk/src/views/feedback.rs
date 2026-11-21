@@ -9,7 +9,7 @@ use ctdesign::{
     DIALOG_SHEET_WIDTH, SPACE_2,
 };
 
-use crate::elements::{HStack, forward_container};
+use crate::elements::{HStack, Overrides, forward_container, forward_overrides};
 use crate::platform::{WindowControls, WindowOptions};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
@@ -353,6 +353,7 @@ pub struct SheetButtons {
     leading: Option<Element>,
     large: bool,
     equal_width: bool,
+    overrides: Overrides,
 }
 
 impl SheetButtons {
@@ -371,6 +372,7 @@ impl SheetButtons {
             leading: None,
             large: false,
             equal_width: false,
+            overrides: Overrides::default(),
         }
     }
 
@@ -394,6 +396,8 @@ impl SheetButtons {
         self
     }
 }
+
+forward_overrides!(SheetButtons);
 
 impl Component for SheetButtons {
     fn render(&self) -> impl IntoElement {
@@ -421,14 +425,15 @@ impl Component for SheetButtons {
             .width(Size::fill())
             .content(Content::flex())
             .spacing(SPACE_2);
-        if equal_width {
+        let root = if equal_width {
             row.child(cancel).child(confirm)
         } else {
             row.maybe_child(self.leading.clone())
                 .child(rect().width(Size::flex(1.0)))
                 .child(cancel)
                 .child(confirm)
-        }
+        };
+        self.overrides.apply(root)
     }
 }
 

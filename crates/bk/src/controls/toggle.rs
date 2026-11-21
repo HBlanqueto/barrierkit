@@ -44,6 +44,7 @@ pub struct Switch {
     probe: Option<&'static str>,
     style: Theme,
     key: DiffKey,
+    overrides: Overrides,
 }
 
 impl Switch {
@@ -56,6 +57,7 @@ impl Switch {
             probe: None,
             style: Theme::tengen(),
             key: DiffKey::None,
+            overrides: Overrides::default(),
         }
     }
 
@@ -108,6 +110,8 @@ impl ProbeExt for Switch {
         self
     }
 }
+
+forward_overrides!(Switch);
 
 impl Component for Switch {
     fn render(&self) -> impl IntoElement {
@@ -219,7 +223,7 @@ impl Component for Switch {
             }
         };
 
-        interaction
+        let root = interaction
             .attach(control, !disabled)
             .a11y_role(AccessibilityRole::Switch)
             .a11y_alt(self.label)
@@ -271,7 +275,8 @@ impl Component for Switch {
                     }
                 })
             })
-            .map(self.probe, ProbeExt::probe)
+            .map(self.probe, ProbeExt::probe);
+        self.overrides.apply(root)
     }
 }
 
@@ -286,6 +291,7 @@ pub struct Checkbox {
     width: Size,
     style: Theme,
     key: DiffKey,
+    overrides: Overrides,
 }
 
 impl Checkbox {
@@ -300,6 +306,7 @@ impl Checkbox {
             width: Size::auto(),
             style: Theme::tengen(),
             key: DiffKey::None,
+            overrides: Overrides::default(),
         }
     }
 
@@ -362,6 +369,8 @@ impl ProbeExt for Checkbox {
         self
     }
 }
+
+forward_overrides!(Checkbox);
 
 impl Component for Checkbox {
     fn render(&self) -> impl IntoElement {
@@ -455,7 +464,7 @@ impl Component for Checkbox {
             }
         };
 
-        root.map(self.probe, ProbeExt::probe)
+        self.overrides.apply(root.map(self.probe, ProbeExt::probe))
     }
 }
 

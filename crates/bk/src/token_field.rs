@@ -4,6 +4,7 @@ use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
 
 use crate::context_menu::edit_menu;
 use crate::controls::{default_pre_key, dimmed, input, outer_hairline, shadowed, text_style};
+use crate::elements::{Overrides, forward_overrides};
 use crate::style::with_font;
 use crate::styles::Painted;
 use crate::styles::{ControlState, LayoutDirection, Paints, Theme, TokenFieldStyle, resolve};
@@ -14,6 +15,7 @@ pub struct TokenField {
     placeholder: &'static str,
     width: Size,
     style: Theme,
+    overrides: Overrides,
 }
 
 impl TokenField {
@@ -23,6 +25,7 @@ impl TokenField {
             placeholder,
             width: Size::fill(),
             style: Theme::tengen(),
+            overrides: Overrides::default(),
         }
     }
 
@@ -104,6 +107,8 @@ pub fn token_selection(
         _ => (None, None),
     }
 }
+
+forward_overrides!(TokenField);
 
 impl Component for TokenField {
     fn render(&self) -> impl IntoElement {
@@ -228,7 +233,8 @@ impl Component for TokenField {
         .spacing(style.gap)
         .children(chips)
         .child(line(String::from("input"), input.into_element()));
-        dimmed(shadowed(field, &style.shadows), style.opacity)
+        self.overrides
+            .apply(dimmed(shadowed(field, &style.shadows), style.opacity))
     }
 }
 

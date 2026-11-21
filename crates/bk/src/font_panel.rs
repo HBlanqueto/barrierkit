@@ -6,6 +6,7 @@ use freya_engine::prelude::{FontStyle, Slant};
 use torin::prelude::{Area, Direction, Gaps, Size};
 
 use crate::controls::{Button, TextField};
+use crate::elements::{Overrides, forward_overrides};
 use crate::fonts::{family_names, fixed_pitch, styles};
 use crate::i18n::text;
 use crate::popover::Popover;
@@ -308,6 +309,7 @@ pub struct FontPicker {
     font: FontChoice,
     on_change: Option<Callback<FontChoice, ()>>,
     style: Theme,
+    overrides: Overrides,
 }
 
 impl FontPicker {
@@ -316,6 +318,7 @@ impl FontPicker {
             font,
             on_change: None,
             style: Theme::tengen(),
+            overrides: Overrides::default(),
         }
     }
 
@@ -330,6 +333,8 @@ impl FontPicker {
     }
 }
 
+forward_overrides!(FontPicker);
+
 impl Component for FontPicker {
     fn render(&self) -> impl IntoElement {
         let mut area = use_state(Area::default);
@@ -337,13 +342,14 @@ impl Component for FontPicker {
         let on_change = self.on_change.clone();
         let mut button = Button::new(format!("{} {}", font.family, font.size));
         button.style = self.style.clone();
-        rect()
+        let root = rect()
             .on_sized(move |event: Event<SizedEventData>| area.set_if_modified(event.area))
             .child(button.on_press(move |_| {
                 if let Some(on_change) = &on_change {
                     show_font_panel(*area.peek(), font.clone(), on_change.clone());
                 }
-            }))
+            }));
+        self.overrides.apply(root)
     }
 }
 

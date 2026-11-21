@@ -5,6 +5,7 @@ use std::rc::Rc;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
 
 use crate::controls::{dimmed, dimmed_label, labeled, opacity_when, shadowed};
+use crate::elements::{Overrides, forward_overrides};
 use crate::i18n::text;
 use crate::interaction::{control_state, use_interaction};
 use crate::platform::Bar;
@@ -48,6 +49,7 @@ pub struct IconButton {
     disabled: bool,
     on_press: Option<Callback<(), ()>>,
     style: Theme,
+    overrides: Overrides,
 }
 
 impl IconButton {
@@ -58,6 +60,7 @@ impl IconButton {
             disabled: false,
             on_press: None,
             style: Theme::tengen(),
+            overrides: Overrides::default(),
         }
     }
 
@@ -76,6 +79,8 @@ impl IconButton {
         self
     }
 }
+
+forward_overrides!(IconButton);
 
 impl Component for IconButton {
     fn render(&self) -> impl IntoElement {
@@ -116,10 +121,11 @@ impl Component for IconButton {
                 style.stroke,
                 paints.color(style.icon.resolve(state)),
             ));
-        interaction.focus_ring(
+        let root = interaction.focus_ring(
             dimmed(shadowed(button, &style.shadows), opacity),
             radius.top_left(),
-        )
+        );
+        self.overrides.apply(root)
     }
 }
 
@@ -132,6 +138,7 @@ pub struct Stepper {
     disabled: bool,
     on_change: Option<Callback<i64, ()>>,
     style: Theme,
+    overrides: Overrides,
 }
 
 impl Stepper {
@@ -144,6 +151,7 @@ impl Stepper {
             disabled: false,
             on_change: None,
             style: Theme::tengen(),
+            overrides: Overrides::default(),
         }
     }
 
@@ -171,6 +179,8 @@ impl Stepper {
         self
     }
 }
+
+forward_overrides!(Stepper);
 
 impl Component for Stepper {
     fn render(&self) -> impl IntoElement {
@@ -212,7 +222,7 @@ impl Component for Stepper {
                 Key::Named(NamedKey::ArrowDown) => step_key(-1),
                 _ => {}
             });
-        match style.value_position {
+        let root = match style.value_position {
             None => row
                 .direction(Direction::Horizontal)
                 .cross_align(Alignment::Center)
@@ -230,7 +240,8 @@ impl Component for Stepper {
                     style.value_gap,
                 )
             }
-        }
+        };
+        self.overrides.apply(root)
     }
 }
 
@@ -325,6 +336,7 @@ pub struct ToggleGroup {
     items: Vec<(&'static str, Face, &'static str, bool)>,
     on_toggle: Option<Callback<(usize, bool), ()>>,
     style: Theme,
+    overrides: Overrides,
 }
 
 impl ToggleGroup {
@@ -334,6 +346,7 @@ impl ToggleGroup {
             items: Vec::new(),
             on_toggle: None,
             style: Theme::tengen(),
+            overrides: Overrides::default(),
         }
     }
 
@@ -355,6 +368,8 @@ impl ToggleGroup {
         self
     }
 }
+
+forward_overrides!(ToggleGroup);
 
 impl Component for ToggleGroup {
     fn render(&self) -> impl IntoElement {
@@ -410,7 +425,7 @@ impl Component for ToggleGroup {
             .painted(&paints, &style.background)
             .bordered(&paints, style.border.as_ref())
             .children(toggles);
-        dimmed(group, style.opacity)
+        self.overrides.apply(dimmed(group, style.opacity))
     }
 }
 
@@ -488,6 +503,7 @@ pub struct ToolbarSearch {
     placeholder: &'static str,
     collapsed: bool,
     style: Theme,
+    overrides: Overrides,
 }
 
 impl ToolbarSearch {
@@ -497,6 +513,7 @@ impl ToolbarSearch {
             placeholder,
             collapsed: false,
             style: Theme::tengen(),
+            overrides: Overrides::default(),
         }
     }
 
@@ -514,31 +531,34 @@ impl ToolbarSearch {
     }
 }
 
+forward_overrides!(ToolbarSearch);
+
 impl Component for ToolbarSearch {
     fn render(&self) -> impl IntoElement {
         let style: ToolbarSearchStyle = resolve(&self.style);
         let mut opened = use_state(|| false);
         let open = !self.collapsed || *opened.read() || !self.value.read().is_empty();
         if !open {
-            return rect()
-                .child(
-                    IconButton::new(Symbol::MagnifyingGlass, self.placeholder)
-                        .on_press(move |_| opened.set(true)),
+            return self
+                .overrides
+                .apply(
+                    rect().child(
+                        IconButton::new(Symbol::MagnifyingGlass, self.placeholder)
+                            .on_press(move |_| opened.set(true)),
+                    ),
                 )
                 .into_element();
         }
-        rect()
-            .width(Size::px(style.width))
-            .child(
-                crate::controls::SearchField::new(self.value, self.placeholder)
-                    .auto_focus(self.collapsed)
-                    .on_focus_change(move |focused: bool| {
-                        if !focused {
-                            opened.set(false);
-                        }
-                    }),
-            )
-            .into_element()
+        let root = rect().width(Size::px(style.width)).child(
+            crate::controls::SearchField::new(self.value, self.placeholder)
+                .auto_focus(self.collapsed)
+                .on_focus_change(move |focused: bool| {
+                    if !focused {
+                        opened.set(false);
+                    }
+                }),
+        );
+        self.overrides.apply(root)
     }
 }
 
@@ -547,6 +567,7 @@ pub struct ToolbarOverflow {
     items: Vec<crate::menu::MenuItem>,
     on_activate: Option<Callback<String, ()>>,
     style: Theme,
+    overrides: Overrides,
 }
 
 impl ToolbarOverflow {
@@ -555,6 +576,7 @@ impl ToolbarOverflow {
             items,
             on_activate: None,
             style: Theme::tengen(),
+            overrides: Overrides::default(),
         }
     }
 
@@ -569,12 +591,14 @@ impl ToolbarOverflow {
     }
 }
 
+forward_overrides!(ToolbarOverflow);
+
 impl Component for ToolbarOverflow {
     fn render(&self) -> impl IntoElement {
         let mut area = use_state(torin::prelude::Area::default);
         let items = self.items.clone();
         let on_activate = self.on_activate.clone();
-        rect()
+        let root = rect()
             .on_sized(move |event: Event<SizedEventData>| area.set_if_modified(event.area))
             .child(
                 IconButton {
@@ -596,6 +620,7 @@ impl Component for ToolbarOverflow {
                         },
                     );
                 }),
-            )
+            );
+        self.overrides.apply(root)
     }
 }

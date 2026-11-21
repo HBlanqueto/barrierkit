@@ -12,6 +12,7 @@ mod focus;
 mod form_stack;
 mod image;
 mod menu;
+mod modifiers;
 mod template;
 mod titlebar;
 mod traffic;

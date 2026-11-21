@@ -1,6 +1,7 @@
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Direction, Gaps, Size};
 
+use crate::elements::{Overrides, forward_overrides};
 use crate::interaction::{control_state, use_interaction};
 use crate::style::text;
 use crate::styles::Painted;
@@ -14,6 +15,7 @@ pub struct GroupBox {
     label: Option<&'static str>,
     children: Vec<Element>,
     style: Theme,
+    overrides: Overrides,
 }
 
 impl GroupBox {
@@ -22,6 +24,7 @@ impl GroupBox {
             label,
             children: Vec::new(),
             style: Theme::tengen(),
+            overrides: Overrides::default(),
         }
     }
 
@@ -36,12 +39,14 @@ impl GroupBox {
     }
 }
 
+forward_overrides!(GroupBox);
+
 impl Component for GroupBox {
     fn render(&self) -> impl IntoElement {
         let style: GroupBoxStyle = resolve(&self.style);
         let state = ControlState::default();
         let paints = Paints::current(state, style.effect);
-        rect()
+        let root = rect()
             .width(Size::fill())
             .direction(Direction::Vertical)
             .spacing(style.spacing)
@@ -72,7 +77,8 @@ impl Component for GroupBox {
                     .painted(&paints, &style.background)
                     .bordered(&paints, style.border.as_ref())
                     .children(self.children.clone()),
-            )
+            );
+        self.overrides.apply(root)
     }
 }
 
@@ -82,6 +88,7 @@ pub struct DisclosureGroup {
     expanded: bool,
     children: Vec<Element>,
     style: Theme,
+    overrides: Overrides,
 }
 
 impl DisclosureGroup {
@@ -91,6 +98,7 @@ impl DisclosureGroup {
             expanded: false,
             children: Vec::new(),
             style: Theme::tengen(),
+            overrides: Overrides::default(),
         }
     }
 
@@ -112,6 +120,8 @@ impl DisclosureGroup {
         self
     }
 }
+
+forward_overrides!(DisclosureGroup);
 
 impl Component for DisclosureGroup {
     fn render(&self) -> impl IntoElement {
@@ -159,7 +169,7 @@ impl Component for DisclosureGroup {
                 style.font,
                 paints.color(style.label.resolve(state)),
             ));
-        rect()
+        let root = rect()
             .width(Size::fill())
             .direction(Direction::Vertical)
             .child(interaction.focus_ring(header, 0.0))
@@ -171,6 +181,7 @@ impl Component for DisclosureGroup {
                         .padding(Gaps::new(0.0, 0.0, 0.0, style.indent))
                         .children(self.children.clone()),
                 )
-            })
+            });
+        self.overrides.apply(root)
     }
 }

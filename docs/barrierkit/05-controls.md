@@ -79,6 +79,51 @@ Three controls keep no copy and only show what the app passes: `RatingIndicator`
 Each image is a golden render from `crates/bk/tests/kit/controls.rs`, in light and
 dark (`-dark.png`).
 
+## Modifiers on controls
+
+Every control takes Freya's container modifiers and the kit's
+[`ViewModifiers`](07-menus-and-popovers.md#view-modifiers), in any order. They set
+properties on the control's own node, as they do on `VStack`; they do not wrap it, as SwiftUI's
+do. The padding is always inside the background; outer space is `.margin`.
+
+| SwiftUI | Kit | Freya trait |
+|---|---|---|
+| `.padding(_:)` | `.padding(Gaps)`, inside the control | `ContainerExt` |
+| `.frame(width:height:)`, `.frame(minWidth:…)` | `.width`, `.height`, `.min_width`, `.max_height`… with a `Size` | `ContainerSizeExt`, `ContainerConstraintsExt` |
+| an outer `.padding(_:)` | `.margin(Gaps)`, `.position(Position)` | `ContainerPositionExt` |
+| `.background(_:)`, `.border(_:)`, `.cornerRadius(_:)`, `.shadow(…)` | `.background(Fill)`, `.border`, `.corner_radius`, `.shadow` | `BackgroundExt`, `DecorationExt` |
+| `.opacity(_:)`, `.scaleEffect(_:)`, `.rotationEffect(_:)`, `.clipShape(_:)` | `.opacity`, `.scale`, `.rotation`, `.overflow` | `EffectExt` |
+| `.help(_:)`, `.contextMenu(…)` | `.help`, `.context_menu`, any `.on_*` handler | `ViewModifiers`, `EventHandlersExt` |
+
+✗ A `rect()` that only carries the modifiers of a control:
+
+```rust
+rect().margin(SPACE_2).help(tr!("save")).child(Button::new(tr!("save")))
+```
+
+✓ The modifiers on the control:
+
+```rust
+Button::new(tr!("save")).margin(SPACE_2).help(tr!("save"))
+```
+
+- A value you set replaces the control's own: `.padding((0., 20.))` on a `Button` swaps its side
+  padding for 20. A value equal to Freya's default (zero padding, `Size::Inner`, a transparent
+  background) leaves the control's own: change a control's look with `.style(..)`.
+- `.border` and `.shadow` add to the control's own. The last `.padding` or `.background`
+  wins.
+- A control's own method of the same name wins: `Button::width` sets the button's width.
+- A handler (`.help`, `.context_menu`, `.on_*`) sits on a node around the control, so it never
+  replaces the control's own handlers. Two handlers for the same event, such as `.help` and
+  `.context_menu`, replace each other.
+- Not offered: `.direction`, `.spacing` and the other content methods (a control arranges its
+  own content) and `.foreground_style` (nothing inherits).
+- `StyleScope` (a scope), `Sheet` and `Alert` (modal windows), `SidebarToggle` (a unit struct)
+  and `Titlebar` (placed by the window) take none: put the modifiers on a `rect()` that holds
+  them.
+
+The program is [`control_modifiers.rs`](../../agents/recipes/control_modifiers.rs).
+
 ## Buttons
 
 `controls::Button` is a push button with a text label, and a symbol if you
@@ -890,6 +935,11 @@ A `Canvas` has no style: the painter draws everything.
    New metrics go to `ctdesign`.
 7. If the control keeps a value, follow [the controlled pattern](#the-controlled-pattern).
 8. Add its case to `tests/kit/controls.rs`, in light and dark.
+9. Inside `bk`, take the [modifiers](#modifiers-on-controls): hold
+   `overrides: Overrides` (start it with `Overrides::default()`), add
+   `forward_overrides!(Pill);` and end `render` with `self.overrides.apply(root)`, where `root` is
+   the outermost node. A control that renders another control ends with
+   `self.overrides.delegate(inner)` instead.
 
 ```rust
 #[derive(PartialEq)]

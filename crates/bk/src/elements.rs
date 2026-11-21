@@ -1,6 +1,7 @@
 use std::borrow::Cow;
 
 use ctdesign::{Font, SPACE_3};
+use freya_core::integration::EventHandlers;
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Direction};
 
@@ -93,8 +94,103 @@ macro_rules! forward_container {
     };
 }
 
+macro_rules! forward_overrides {
+    ($outer:ident) => {
+        impl ::freya_core::prelude::LayoutExt for $outer {
+            fn layout_mut(&mut self) -> &mut ::freya_core::prelude::LayoutData {
+                &mut self.overrides.layout
+            }
+        }
+
+        impl ::freya_core::prelude::StyleExt for $outer {
+            fn style_mut(&mut self) -> &mut ::freya_core::prelude::StyleState {
+                &mut self.overrides.style
+            }
+        }
+
+        impl ::freya_core::prelude::EffectExt for $outer {
+            fn effect_mut(&mut self) -> &mut ::freya_core::prelude::EffectData {
+                &mut self.overrides.effect
+            }
+        }
+
+        impl ::freya_core::prelude::EventHandlersExt for $outer {
+            fn event_handlers_mut(&mut self) -> &mut ::freya_core::integration::EventHandlers {
+                &mut self.overrides.handlers
+            }
+        }
+
+        impl ::freya_core::prelude::ContainerExt for $outer {}
+
+        impl ::freya_core::prelude::BackgroundExt for $outer {}
+
+        impl ::freya_core::prelude::DecorationExt for $outer {}
+    };
+}
+
 pub(crate) use forward_container;
 pub(crate) use forward_element;
+pub(crate) use forward_overrides;
+
+#[derive(Default, Clone, PartialEq)]
+pub(crate) struct Overrides {
+    pub(crate) layout: LayoutData,
+    pub(crate) style: StyleState,
+    pub(crate) effect: EffectData,
+    pub(crate) handlers: EventHandlers,
+}
+
+macro_rules! take_set {
+    ($root:expr, $set:expr, $unset:expr; $($field:ident),+) => {
+        $(if $set.$field != $unset.$field {
+            $root.$field = $set.$field.clone();
+        })+
+    };
+}
+
+impl Overrides {
+    // A field equal to its default counts as unset, so the control keeps its own value.
+    // An Event cannot be cloned, so handlers cannot chain with the control's own: they sit around it.
+    pub(crate) fn apply<E>(&self, mut root: E) -> Element
+    where
+        E: LayoutExt + StyleExt + EffectExt + IntoElement,
+    {
+        let unset = Self::default();
+        take_set!(root.layout_mut().layout, self.layout.layout, unset.layout.layout;
+            width, height, minimum_width, minimum_height, maximum_width, maximum_height,
+            visible_width, visible_height, padding, margin, position);
+        take_set!(root.style_mut(), self.style, unset.style; background, corner_radius);
+        root.style_mut()
+            .borders
+            .extend(self.style.borders.iter().cloned());
+        root.style_mut()
+            .shadows
+            .extend(self.style.shadows.iter().cloned());
+        if self.effect != unset.effect {
+            take_set!(root.effect_mut(), self.effect, unset.effect;
+                cursor, cursor_visible, overflow, rotation, scale, transform_origin, opacity, blur);
+        }
+        if self.handlers.is_empty() {
+            root.into_element()
+        } else {
+            rect()
+                .event_handlers(self.handlers.clone())
+                .child(root)
+                .into_element()
+        }
+    }
+
+    pub(crate) fn delegate<C>(&self, inner: C) -> C
+    where
+        C: LayoutExt + StyleExt + EffectExt + EventHandlersExt,
+    {
+        inner
+            .layout(self.layout.clone())
+            .style(self.style.clone())
+            .effect(self.effect.clone())
+            .event_handlers(self.handlers.clone())
+    }
+}
 
 pub struct Text(Label, Cow<'static, str>, Theme);
 

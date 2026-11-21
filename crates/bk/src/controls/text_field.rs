@@ -11,6 +11,7 @@ pub struct SecureField {
     on_submit: Option<Callback<Zeroizing<String>, ()>>,
     style: Theme,
     key: DiffKey,
+    overrides: Overrides,
 }
 
 impl SecureField {
@@ -25,6 +26,7 @@ impl SecureField {
             on_submit: None,
             style: Theme::tengen(),
             key: DiffKey::None,
+            overrides: Overrides::default(),
         }
     }
 
@@ -72,6 +74,8 @@ impl KeyExt for SecureField {
         &mut self.key
     }
 }
+
+forward_overrides!(SecureField);
 
 impl Component for SecureField {
     fn render(&self) -> impl IntoElement {
@@ -145,7 +149,8 @@ impl Component for SecureField {
                     }))
                     .into_element()
             });
-        interaction.focus_ring(dimmed(element, style.opacity), radius.top_left())
+        let root = interaction.focus_ring(dimmed(element, style.opacity), radius.top_left());
+        self.overrides.apply(root)
     }
 }
 
@@ -160,6 +165,7 @@ pub struct TextField {
     on_submit: Option<Callback<String, ()>>,
     style: Theme,
     key: DiffKey,
+    overrides: Overrides,
 }
 
 impl TextField {
@@ -174,6 +180,7 @@ impl TextField {
             on_submit: None,
             style: Theme::tengen(),
             key: DiffKey::None,
+            overrides: Overrides::default(),
         }
     }
 
@@ -217,6 +224,8 @@ impl KeyExt for TextField {
         &mut self.key
     }
 }
+
+forward_overrides!(TextField);
 
 impl Component for TextField {
     fn render(&self) -> impl IntoElement {
@@ -279,7 +288,7 @@ impl Component for TextField {
                     .collect::<Vec<_>>()
             })
             .unwrap_or_default();
-        edit_menu(
+        let root = edit_menu(
             dimmed(
                 text_style(rect().width(self.width.clone()), style.font),
                 style.opacity,
@@ -338,7 +347,8 @@ impl Component for TextField {
                         ),
                     })
                 })),
-        )
+        );
+        self.overrides.apply(root)
     }
 }
 
@@ -355,6 +365,7 @@ pub struct SearchField {
     disabled: bool,
     style: Theme,
     key: DiffKey,
+    overrides: Overrides,
 }
 
 impl SearchField {
@@ -376,6 +387,7 @@ impl SearchField {
             disabled: false,
             style: Theme::tengen(),
             key: DiffKey::None,
+            overrides: Overrides::default(),
         }
     }
 
@@ -427,6 +439,8 @@ impl KeyExt for SearchField {
         &mut self.key
     }
 }
+
+forward_overrides!(SearchField);
 
 impl Component for SearchField {
     fn render(&self) -> impl IntoElement {
@@ -551,7 +565,7 @@ impl Component for SearchField {
             );
         }
 
-        edit_menu(
+        let root = edit_menu(
             dimmed(
                 text_style(rect().width(self.width.clone()), style.font),
                 style.opacity,
@@ -601,7 +615,8 @@ impl Component for SearchField {
                         crate::token_field::token_chip(token, false, &token_style).into_element()
                     })),
             )
-        })
+        });
+        self.overrides.apply(root)
     }
 }
 

@@ -5,6 +5,7 @@ use freya_core::prelude::*;
 use torin::prelude::{Direction, Gaps, Position, Size};
 
 use crate::controls::{dimmed, shadowed};
+use crate::elements::{Overrides, forward_overrides};
 use crate::interaction::{control_state, use_interaction};
 use crate::style::with_font;
 use crate::styles::Painted;
@@ -23,6 +24,7 @@ pub struct CapacityIndicator {
     critical: f32,
     segments: Option<u32>,
     style: Theme,
+    overrides: Overrides,
 }
 
 impl CapacityIndicator {
@@ -34,6 +36,7 @@ impl CapacityIndicator {
             critical: 1.0,
             segments: None,
             style: Theme::tengen(),
+            overrides: Overrides::default(),
         }
     }
 
@@ -131,6 +134,8 @@ fn soft_cell(style: &CapacityIndicatorStyle, filled: bool, border: Rgba, fill: R
     })
 }
 
+forward_overrides!(CapacityIndicator);
+
 impl Component for CapacityIndicator {
     fn render(&self) -> impl IntoElement {
         let style: CapacityIndicatorStyle = resolve(&self.style);
@@ -203,7 +208,7 @@ impl Component for CapacityIndicator {
                     filled_cell(level).width(Size::flex(1.0)).into_element()
                 })),
         };
-        dimmed(bar, style.opacity)
+        self.overrides.apply(dimmed(bar, style.opacity))
     }
 }
 
@@ -212,6 +217,7 @@ pub struct RelevancyIndicator {
     label: &'static str,
     value: f32,
     style: Theme,
+    overrides: Overrides,
 }
 
 impl RelevancyIndicator {
@@ -220,6 +226,7 @@ impl RelevancyIndicator {
             label,
             value: value.clamp(0.0, 1.0),
             style: Theme::tengen(),
+            overrides: Overrides::default(),
         }
     }
 
@@ -231,6 +238,8 @@ impl RelevancyIndicator {
         self
     }
 }
+
+forward_overrides!(RelevancyIndicator);
 
 impl Component for RelevancyIndicator {
     fn render(&self) -> impl IntoElement {
@@ -265,7 +274,7 @@ impl Component for RelevancyIndicator {
                             .into_element()
                     })),
             );
-        dimmed(relevancy, style.opacity)
+        self.overrides.apply(dimmed(relevancy, style.opacity))
     }
 }
 
@@ -276,6 +285,7 @@ pub struct Gauge {
     current: String,
     capacity: bool,
     style: Theme,
+    overrides: Overrides,
 }
 
 impl Gauge {
@@ -286,6 +296,7 @@ impl Gauge {
             current: current.into(),
             capacity: false,
             style: Theme::tengen(),
+            overrides: Overrides::default(),
         }
     }
 
@@ -307,6 +318,8 @@ pub fn gauge_marker(style: &GaugeStyle, value: f32) -> (f32, f32) {
     let center = style.size / 2.0;
     (center + radius * angle.cos(), center + radius * angle.sin())
 }
+
+forward_overrides!(Gauge);
 
 impl Component for Gauge {
     fn render(&self) -> impl IntoElement {
@@ -378,7 +391,7 @@ impl Component for Gauge {
                             .color(paints.fill(&style.label)),
                     ),
             );
-        dimmed(gauge, style.opacity)
+        self.overrides.apply(dimmed(gauge, style.opacity))
     }
 }
 
@@ -388,6 +401,7 @@ pub struct RatingIndicator {
     value: u32,
     on_change: Option<Callback<u32, ()>>,
     style: Theme,
+    overrides: Overrides,
 }
 
 impl RatingIndicator {
@@ -397,6 +411,7 @@ impl RatingIndicator {
             value,
             on_change: None,
             style: Theme::tengen(),
+            overrides: Overrides::default(),
         }
     }
 
@@ -413,6 +428,8 @@ impl RatingIndicator {
         self
     }
 }
+
+forward_overrides!(RatingIndicator);
 
 impl Component for RatingIndicator {
     fn render(&self) -> impl IntoElement {
@@ -471,7 +488,8 @@ impl Component for RatingIndicator {
             })
             .direction(Direction::Horizontal)
             .children(stars);
-        interaction.focus_ring(dimmed(rating, style.opacity), 0.0)
+        self.overrides
+            .apply(interaction.focus_ring(dimmed(rating, style.opacity), 0.0))
     }
 }
 

@@ -6,6 +6,7 @@ use torin::prelude::{Alignment, Area, Content, CursorPoint, Direction, Gaps, Siz
 
 use crate::compact::IconButton;
 use crate::controls::{Button, ControlSize, SearchField};
+use crate::elements::{Overrides, forward_overrides};
 use crate::font_panel::show_font_panel;
 use crate::i18n::text;
 use crate::rich_text::{
@@ -34,6 +35,7 @@ pub struct TextEditor {
     height: Size,
     styles: Option<State<Vec<StyleRun>>>,
     style: Theme,
+    overrides: Overrides,
 }
 
 impl TextEditor {
@@ -44,6 +46,7 @@ impl TextEditor {
             height: Size::fill(),
             styles: None,
             style: Theme::tengen(),
+            overrides: Overrides::default(),
         }
     }
 
@@ -99,6 +102,8 @@ fn link_under(
     let index = char_under(holder, text, location)?;
     link_at(&styles?.peek(), index).map(str::to_owned)
 }
+
+forward_overrides!(TextEditor);
 
 impl Component for TextEditor {
     fn render(&self) -> impl IntoElement {
@@ -476,7 +481,7 @@ impl Component for TextEditor {
             field
         };
         if !*finding.read() {
-            return field;
+            return self.overrides.apply(field);
         }
         let total = find_matches(&value.read(), &query.read()).len();
         let shown = (*current.read()).min(total.saturating_sub(1));
@@ -531,13 +536,14 @@ impl Component for TextEditor {
                         a11y_id.request_focus();
                     }),
             );
-        rect()
+        let root = rect()
             .width(Size::fill())
             .height(self.height.clone())
             .spacing(style.spacing)
             .child(bar)
             .child(field.height(Size::flex(1.0)))
-            .content(Content::flex())
+            .content(Content::flex());
+        self.overrides.apply(root)
     }
 }
 

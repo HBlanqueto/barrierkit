@@ -53,15 +53,12 @@ menu, a button that opens a popover and a control with a tooltip.
        .child(Text::new(tr!("info")))
    ```
 
-4. Add a tooltip with `.help`. Kit controls are components, so call it on the
-   rect that holds the control:
+4. Add a tooltip with `.help`. It works on a control as it does on `rect()`:
 
    ```rust
    use bk::compact::IconButton;
 
-   rect()
-       .help(tr!("add-folder"))
-       .child(IconButton::new(Symbol::Plus, tr!("add")))
+   IconButton::new(Symbol::Plus, tr!("add")).help(tr!("add-folder"))
    ```
 
 ## Menu items
@@ -262,9 +259,9 @@ removes the mnemonic mark, trims, lower-cases and folds accents (`"Vídeos"` →
 
 `modifiers::ViewModifiers` is a trait in the prelude. Its methods return the
 same element, like SwiftUI's view modifiers. It is implemented for every
-element with Freya's `EventHandlersExt`: `rect`, `label`, `Text`, `VStack`,
-`HStack` and the kit's view types, such as `Divider` or `Sheet`. Kit controls
-are components: call the modifier on a rect that holds them.
+type with Freya's `EventHandlersExt`: `rect`, `label`, `Text`, `VStack`,
+`HStack`, the kit's view types, such as `Divider`, and every control
+([modifiers on controls](05-controls.md#modifiers-on-controls)).
 
 | Method | SwiftUI | What it adds |
 |---|---|---|
@@ -281,7 +278,8 @@ in [Styles and themes](../../agents/styles.md#paint-on-views).
 A modifier sets Freya event handlers on the element: `.context_menu` sets
 `on_secondary_down`; `.help` sets `on_pointer_enter`, `on_pointer_move`,
 `on_pointer_leave` and `on_pointer_down`. A handler for the same event, set
-before or after, replaces the other one.
+before or after, replaces the other one. On a control the handlers sit on a node
+around it, so they never replace the control's own.
 
 ### `.context_menu`
 

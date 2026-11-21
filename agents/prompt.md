@@ -67,11 +67,13 @@ version.
    kit's app type is `Application`.
 7. **Views are types, modifiers are methods**, as in SwiftUI: write
    `Divider::new()`, `Image::system(Symbol::Plus)` or
-   `ContentUnavailableView::new(..)`, and `.help("…")` or
-   `.context_menu(items, …)` on `Text`, `rect()` or another element. A kit
-   control is a component: wrap it in a `rect()` first
-   ([chapter 7](../docs/barrierkit/07-menus-and-popovers.md)). Call `.help`
-   unconditionally: it uses a hook.
+   `ContentUnavailableView::new(..)`, and `.padding(..)`, `.margin(..)`,
+   `.background(..)`, `.help("…")` or `.context_menu(items, …)` on a view or a
+   control, in any order. A modifier sets a property on that one node instead
+   of wrapping it, so the padding stays inside the background and outer space
+   is `.margin` ([chapter 5](../docs/barrierkit/05-controls.md#modifiers-on-controls)).
+   `StyleScope`, `Sheet`, `Alert`, `SidebarToggle` and `Titlebar` take none:
+   put them in a `rect()`. Call `.help` unconditionally: it uses a hook.
 8. **No comments** except `// SAFETY:` on `unsafe` and one line explaining a
    non-obvious invariant. Names explain the code.
 9. **Build only inside `nix develop`.** Outside it, `build.rs` stops on

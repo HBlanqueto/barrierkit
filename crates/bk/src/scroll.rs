@@ -10,6 +10,7 @@ use freya_core::prelude::*;
 use torin::prelude::{Area, Direction, Gaps, Position, Size};
 
 use crate::adornments::Divider;
+use crate::elements::{Overrides, forward_overrides};
 use crate::platform::Timers;
 use crate::styles::{
     ControlState, LayoutDirection, Paints, ScrollViewStyle, ShapeStyle, StateValue, Theme, resolve,
@@ -33,6 +34,7 @@ pub struct ScrollView {
     controller: Option<ScrollController>,
     style: Theme,
     key: DiffKey,
+    overrides: Overrides,
 }
 
 #[derive(Clone, Copy, PartialEq)]
@@ -130,6 +132,7 @@ impl ScrollView {
             controller: None,
             style: Theme::tengen(),
             key: DiffKey::None,
+            overrides: Overrides::default(),
         }
     }
 
@@ -394,6 +397,8 @@ pub(crate) fn use_scroll_bar(
     }
 }
 
+forward_overrides!(ScrollView);
+
 impl Component for ScrollView {
     fn render(&self) -> impl IntoElement {
         let style: ScrollViewStyle = resolve(&self.style);
@@ -407,7 +412,7 @@ impl Component for ScrollView {
         let size = |area: Area| (area.width(), area.height());
         let bars = use_scroll_bar(controller, horizontal, self.scroll_bar, &style);
         let reserved = bars.reserved;
-        rect()
+        let root = rect()
             .width(self.width.clone())
             .height(self.height.clone())
             .on_sized(move |event: Event<SizedEventData>| {
@@ -455,7 +460,8 @@ impl Component for ScrollView {
                     ))
             }))
             .maybe_child(bars.track)
-            .maybe_child(bars.thumb)
+            .maybe_child(bars.thumb);
+        self.overrides.apply(root)
     }
 
     fn render_key(&self) -> DiffKey {

@@ -3,6 +3,7 @@ use freya_core::prelude::*;
 use torin::prelude::{Area, Direction, Gaps, Size};
 
 use crate::controls::{dimmed, shadowed};
+use crate::elements::{Overrides, forward_overrides};
 use crate::i18n::text;
 use crate::interaction::{control_state, use_interaction};
 use crate::level::LevelSlider;
@@ -67,6 +68,7 @@ pub struct ColorPicker {
     disabled: bool,
     on_change: Option<Callback<Rgba, ()>>,
     style: Theme,
+    overrides: Overrides,
 }
 
 impl ColorPicker {
@@ -77,6 +79,7 @@ impl ColorPicker {
             disabled: false,
             on_change: None,
             style: Theme::tengen(),
+            overrides: Overrides::default(),
         }
     }
 
@@ -98,6 +101,8 @@ impl ColorPicker {
         self
     }
 }
+
+forward_overrides!(ColorPicker);
 
 impl Component for ColorPicker {
     fn render(&self) -> impl IntoElement {
@@ -201,7 +206,7 @@ impl Component for ColorPicker {
                             ),
                     )
             });
-        dimmed(
+        let root = dimmed(
             rect()
                 .direction(Direction::Horizontal)
                 .child(well)
@@ -211,7 +216,8 @@ impl Component for ColorPicker {
             } else {
                 style.opacity
             },
-        )
+        );
+        self.overrides.apply(root)
     }
 }
 
@@ -231,6 +237,7 @@ fn open_panel(
                     initial,
                     on_change: on_change.clone(),
                     style: style.clone(),
+                    overrides: Overrides::default(),
                 })
                 .into_element()
         },
@@ -243,6 +250,7 @@ pub struct ColorPanel {
     initial: Rgba,
     on_change: Option<Callback<Rgba, ()>>,
     style: Theme,
+    overrides: Overrides,
 }
 
 impl ColorPanel {
@@ -257,6 +265,8 @@ impl ColorPanel {
         );
     }
 }
+
+forward_overrides!(ColorPanel);
 
 impl Component for ColorPanel {
     fn render(&self) -> impl IntoElement {
@@ -284,7 +294,7 @@ impl Component for ColorPanel {
         };
         let mut set_saturation = set.clone();
         let mut set_brightness = set.clone();
-        rect()
+        let root = rect()
             .width(Size::fill())
             .direction(Direction::Vertical)
             .spacing(style.spacing)
@@ -318,7 +328,8 @@ impl Component for ColorPanel {
                 LevelSlider::new(text!("brightness"))
                     .value(brightness)
                     .on_change(move |value| set_brightness((hue, saturation, value))),
-            )
+            );
+        self.overrides.apply(root)
     }
 }
 

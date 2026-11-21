@@ -4,6 +4,7 @@ use freya_core::prelude::*;
 use torin::prelude::{Area, Size};
 
 use crate::controls::{dimmed, inner_border, shadowed};
+use crate::elements::{Overrides, forward_overrides};
 use crate::i18n::text;
 use crate::interaction::{control_state, use_interaction};
 use crate::media::use_artwork;
@@ -15,6 +16,7 @@ pub struct ImageWell {
     label: &'static str,
     image: State<Option<PathBuf>>,
     style: Theme,
+    overrides: Overrides,
 }
 
 impl ImageWell {
@@ -23,6 +25,7 @@ impl ImageWell {
             label,
             image,
             style: Theme::tengen(),
+            overrides: Overrides::default(),
         }
     }
 
@@ -40,6 +43,8 @@ pub fn is_image(path: &Path) -> bool {
                 .contains(&extension.to_ascii_lowercase().as_str())
         })
 }
+
+forward_overrides!(ImageWell);
 
 impl Component for ImageWell {
     fn render(&self) -> impl IntoElement {
@@ -122,10 +127,11 @@ impl Component for ImageWell {
                         corner_radius: inner,
                     })
             }));
-        interaction.focus_ring(
+        let root = interaction.focus_ring(
             dimmed(shadowed(element, &style.shadows), style.opacity),
             radius.top_left(),
-        )
+        );
+        self.overrides.apply(root)
     }
 }
 

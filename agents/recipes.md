@@ -128,3 +128,17 @@ The program is [`recipes/control_sizes.rs`](recipes/control_sizes.rs).
 sizes on `Button`, `PopUpButton`, `SegmentedControl`, `Checkbox`, `RadioGroup`, `Switch`,
 `Slider`, `Stepper`, `TextField`, `SearchField`, `ComboBox` and `DatePicker`; the sizes are in
 [chapter 5](../docs/barrierkit/05-controls.md#control-size).
+
+## 13. Modifiers on controls
+
+SwiftUI: `Button("Save") { }.padding(8).help("Save the file")` inside an `HStack`.
+
+The program is [`recipes/control_modifiers.rs`](recipes/control_modifiers.rs).
+
+1. Every control takes `.padding`, `.margin`, `.width`, `.background`,
+   `.corner_radius`, `.opacity`, `.help` and `.context_menu`, in any order
+   ([chapter 5](../docs/barrierkit/05-controls.md#modifiers-on-controls)).
+2. A modifier sets a property on that one node; it does not wrap it. Outer
+   space is `.margin`: a second `.padding` replaces the first.
+3. `.help` uses a hook: call it on every render, never inside a condition or
+   a loop.

@@ -39,19 +39,26 @@ reason it cannot be.
     5%, `scripts/appkit-compare.py icons`) and listed in the glossary's
     [Symbol variants](../docs/barrierkit/20-glossary.md#symbol-variants)?
 
+11. Do the modifiers sit on the view or control they change, with outer space
+    as `.margin` and not a second `.padding`? A modifier sets one node; it does
+    not wrap it ([chapter 5](../docs/barrierkit/05-controls.md#modifiers-on-controls)).
+
 ## Build
 
-11. Did you run, inside `nix develop`, `cargo build` and
+12. Did you run, inside `nix develop`, `cargo build` and
     `cargo clippy -- -D warnings` with no warnings?
-12. Did you run `cargo fmt`?
-13. If you could not open the window (no Wayland session), did you say so?
+13. Did you run `cargo fmt`?
+14. If you could not open the window (no Wayland session), did you say so?
 
 ## Changes to the kit itself
 
-14. Is every new or renamed public item in
+15. Is every new or renamed public item in
     [`docs/barrierkit/20-glossary.md`](../docs/barrierkit/20-glossary.md), named by
     its rules, in the same commit?
-15. Does the chapter that describes the changed behavior say what the code
+16. Does the chapter that describes the changed behavior say what the code
     does now?
-16. If the change affects how an agent writes apps, are `prompt.md`,
+17. If the change affects how an agent writes apps, are `prompt.md`,
     `recipes.md` and this checklist updated?
+18. Does a new control in `bk` hold `overrides: Overrides`, call
+    `forward_overrides!` and end `render` with `self.overrides.apply(root)`, so
+    it takes the modifiers?

@@ -970,6 +970,17 @@ Side effects of the probes: K3 wrote its own defaults domain
      `data.rs:60,85,100`), and they are what the macro delegates to, so a
      control can hold them instead. How the control applies them in `render`,
      and what that does to `Size::fill()`, is not verified.
+     **Done 2026-11-21.** 73 of the 77 hold an `Overrides` (`LayoutData`,
+     `StyleState`, `EffectData`, `EventHandlers`: `elements.rs`) and merge it
+     into their own root node; the five left out are `StyleScope`, `Sheet`,
+     `Alert`, `SidebarToggle` and `Titlebar`. There is no extra node, except
+     one `rect()` around the control that carries event handlers (an `Event`
+     cannot be cloned, so two handlers for one event cannot chain). `.padding`,
+     `.margin`, `.height` and `Size::fill()` keep their layout and the order of
+     the calls does not matter (`crates/bk/tests/kit/modifiers.rs`). Finding 2
+     and surprise 1 above describe the state before. `.key(..)` is still a no
+     op on most controls: only `ScrollView`, `TextView` and `RuleEditor` read
+     it in `render_key`.
    - **State the wrap rule** in `agents/` (`rect().padding(..).child(..)`):
      no code change; the surprise stays.
    - **One generic wrapper** on `IntoElement`, as `StyleModifiers` already is

@@ -12,6 +12,7 @@ pub struct Button {
     on_press: Option<Callback<(), ()>>,
     pub(crate) style: Theme,
     key: DiffKey,
+    overrides: Overrides,
 }
 
 impl Button {
@@ -25,6 +26,7 @@ impl Button {
             on_press: None,
             style: Theme::tengen(),
             key: DiffKey::None,
+            overrides: Overrides::default(),
         }
     }
 
@@ -69,6 +71,8 @@ impl Button {
         self
     }
 }
+
+forward_overrides!(Button);
 
 impl KeyExt for Button {
     fn key_mut(&mut self) -> &mut DiffKey {
@@ -154,6 +158,7 @@ impl Component for Button {
                     .color(paints.fill(&style.label))
             }));
         let button = dimmed(shadowed(button, &style.shadows), opacity);
-        interaction.focus_ring(button, radius.top_left())
+        self.overrides
+            .apply(interaction.focus_ring(button, radius.top_left()))
     }
 }

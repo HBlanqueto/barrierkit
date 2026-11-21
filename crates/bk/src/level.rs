@@ -8,6 +8,7 @@ use torin::prelude::{Area, CursorPoint, Position, Size};
 use crate::backdrop::Tint;
 use crate::controlled::commit;
 use crate::controls::{dimmed, opacity_when, shadowed};
+use crate::elements::{Overrides, forward_overrides};
 use crate::interaction::{Interaction, control_state, use_interaction};
 use crate::platform::{Knob, KnobOutbox, KnobSupport, Knobs};
 use crate::styles::Painted;
@@ -25,6 +26,7 @@ pub struct LevelSlider {
     on_change: Option<Callback<f32, ()>>,
     style: Theme,
     key: DiffKey,
+    overrides: Overrides,
 }
 
 impl LevelSlider {
@@ -36,6 +38,7 @@ impl LevelSlider {
             on_change: None,
             style: Theme::tengen(),
             key: DiffKey::None,
+            overrides: Overrides::default(),
         }
     }
 
@@ -80,6 +83,8 @@ impl KeyExt for LevelSlider {
         &mut self.key
     }
 }
+
+forward_overrides!(LevelSlider);
 
 impl Component for LevelSlider {
     fn render(&self) -> impl IntoElement {
@@ -240,7 +245,8 @@ impl Component for LevelSlider {
             root = root.child(dimmed(shadowed(knob, &style.knob_shadows), style.opacity));
         }
         let radius = style.track_shape.corner_radius(height, height, direction);
-        interaction.focus_ring(root, radius.top_left())
+        self.overrides
+            .apply(interaction.focus_ring(root, radius.top_left()))
     }
 }
 

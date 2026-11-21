@@ -15,6 +15,7 @@ use freya_engine::prelude::{
 };
 use torin::prelude::{Position, Size};
 
+use crate::elements::{Overrides, forward_overrides};
 use crate::style::Palette;
 use crate::styles::{BackdropStyle, Theme, resolve};
 use crate::theme::color;
@@ -73,6 +74,7 @@ pub struct Backdrop {
     accent: Accent,
     child: Element,
     style: Theme,
+    overrides: Overrides,
 }
 
 impl Backdrop {
@@ -82,6 +84,7 @@ impl Backdrop {
             accent: Accent::System,
             child: child.into(),
             style: Theme::tengen(),
+            overrides: Overrides::default(),
         }
     }
 
@@ -160,6 +163,8 @@ fn image_palette(bytes: &Bytes) -> Option<ImagePalette> {
     palette_from_pixels(&pixels)
 }
 
+forward_overrides!(Backdrop);
+
 impl Component for Backdrop {
     fn render(&self) -> impl IntoElement {
         let style: BackdropStyle = resolve(&self.style);
@@ -208,10 +213,11 @@ impl Component for Backdrop {
             provide_context(tinted);
         });
 
-        rect()
+        let root = rect()
             .expanded()
             .child(layer(shown, style.angles, style.opacity))
-            .child(self.child.clone())
+            .child(self.child.clone());
+        self.overrides.apply(root)
     }
 }
 

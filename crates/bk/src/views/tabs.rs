@@ -4,6 +4,7 @@ use torin::prelude::{Alignment, Direction, Gaps, Position, Size};
 
 use crate::choices::{Choice, use_choice};
 use crate::controls::shadowed;
+use crate::elements::{Overrides, forward_overrides};
 use crate::interaction::{control_state, use_interaction};
 use crate::menu::measure_text;
 use crate::styles::Painted;
@@ -18,6 +19,7 @@ pub struct TabView {
     selected: usize,
     on_change: Option<Callback<usize, ()>>,
     style: Theme,
+    overrides: Overrides,
 }
 
 fn tab_height(style: &TabViewStyle) -> f32 {
@@ -36,6 +38,7 @@ impl TabView {
             selected: 0,
             on_change: None,
             style: Theme::tengen(),
+            overrides: Overrides::default(),
         }
     }
 
@@ -64,16 +67,19 @@ impl TabView {
     }
 }
 
+forward_overrides!(TabView);
+
 impl Component for TabView {
     fn render(&self) -> impl IntoElement {
         let style: TabViewStyle = resolve(&self.style);
         let choice = use_choice(Some(self.selected), self.on_change.clone());
         let current = (0..self.tabs.len()).find(|&i| choice.is(i)).unwrap_or(0);
         let page = self.tabs.get(current).map(|tab| tab.2.clone());
-        match style.tab_type {
+        let root = match style.tab_type {
             TabType::Toolbar => self.toolbar(&style, &choice, current, page),
             tab_type => self.boxed(&style, &choice, current, page, tab_type),
-        }
+        };
+        self.overrides.apply(root)
     }
 }
 

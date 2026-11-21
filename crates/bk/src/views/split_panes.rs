@@ -1,3 +1,4 @@
+use crate::elements::{Overrides, forward_overrides};
 use crate::styles::{
     ControlState, Paints, ShapeStyle, SplitPanesStyle, StateValue, Theme, resolve,
 };
@@ -13,6 +14,7 @@ pub struct SplitPanes {
     ratios: Vec<f32>,
     on_ratios: Option<Callback<Vec<f32>, ()>>,
     style: Theme,
+    overrides: Overrides,
 }
 
 impl SplitPanes {
@@ -24,6 +26,7 @@ impl SplitPanes {
             ratios: Vec::new(),
             on_ratios: None,
             style: Theme::tengen(),
+            overrides: Overrides::default(),
         }
     }
 
@@ -54,6 +57,8 @@ impl SplitPanes {
         self
     }
 }
+
+forward_overrides!(SplitPanes);
 
 impl Component for SplitPanes {
     fn render(&self) -> impl IntoElement {
@@ -108,7 +113,7 @@ impl Component for SplitPanes {
                 cell.height(along(ratios[index])).width(Size::fill())
             });
         }
-        row
+        self.overrides.apply(row)
     }
 }
 

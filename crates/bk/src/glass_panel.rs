@@ -11,6 +11,7 @@ use freya_core::tree::DiffModifies;
 use freya_engine::prelude::{BlendMode, Paint, RRect, Rect as SkRect};
 use torin::prelude::{Area, Position, Size};
 
+use crate::elements::{Overrides, forward_overrides};
 use crate::theme::{SurfaceKind, color, surface_background};
 
 use crate::glass::{layout, leaf};
@@ -111,15 +112,19 @@ impl ElementExt for Hole {
 #[derive(PartialEq)]
 pub struct WindowGlass {
     content: Element,
+    overrides: Overrides,
 }
 
 impl WindowGlass {
     pub fn new(content: impl IntoElement) -> Self {
         Self {
             content: content.into_element(),
+            overrides: Overrides::default(),
         }
     }
 }
+
+forward_overrides!(WindowGlass);
 
 impl Component for WindowGlass {
     fn render(&self) -> impl IntoElement {
@@ -127,7 +132,7 @@ impl Component for WindowGlass {
         let radius = WINDOW_CORNER.titlebar as f32;
         let mut area = use_state(Area::default);
         use_publish(glass, radius, *area.read());
-        rect()
+        let root = rect()
             .expanded()
             .on_sized(move |event: Event<SizedEventData>| area.set_if_modified(event.area))
             .map(
@@ -140,6 +145,7 @@ impl Component for WindowGlass {
                 let size = area.read().size;
                 hole((0.0, 0.0), (size.width, size.height), radius)
             }))
-            .child(self.content.clone())
+            .child(self.content.clone());
+        self.overrides.apply(root)
     }
 }

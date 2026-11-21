@@ -4,6 +4,7 @@ use std::rc::Rc;
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Direction, Gaps, Size};
 
+use crate::elements::{Overrides, forward_overrides};
 use crate::interaction::{track_modifiers, use_held_modifiers, use_interaction};
 use crate::scroll::ScrollView;
 use crate::style::text;
@@ -162,6 +163,7 @@ pub struct OutlineView {
     scroll_bar: bool,
     on_select: Option<Callback<Vec<Vec<usize>>, ()>>,
     style: Theme,
+    overrides: Overrides,
 }
 
 impl OutlineView {
@@ -173,6 +175,7 @@ impl OutlineView {
             scroll_bar: true,
             on_select: None,
             style: Theme::tengen(),
+            overrides: Overrides::default(),
         }
     }
 
@@ -199,6 +202,8 @@ impl OutlineView {
         self
     }
 }
+
+forward_overrides!(OutlineView);
 
 impl Component for OutlineView {
     fn render(&self) -> impl IntoElement {
@@ -312,7 +317,7 @@ impl Component for OutlineView {
                         .into_element(),
                 )
             });
-        track_modifiers(interaction.attach(rect(), true), held)
+        let root = track_modifiers(interaction.attach(rect(), true), held)
             .a11y_role(AccessibilityRole::Tree)
             .a11y_alt(self.label)
             .expanded()
@@ -326,7 +331,8 @@ impl Component for OutlineView {
                             .padding(Gaps::new(style.inset, 0.0, 0.0, 0.0))
                             .children(items),
                     ),
-            )
+            );
+        self.overrides.apply(root)
     }
 }
 
@@ -336,6 +342,7 @@ pub struct Browser {
     nodes: Vec<TreeNode>,
     on_select: Option<Callback<Vec<usize>, ()>>,
     style: Theme,
+    overrides: Overrides,
 }
 
 impl Browser {
@@ -345,6 +352,7 @@ impl Browser {
             nodes,
             on_select: None,
             style: Theme::tengen(),
+            overrides: Overrides::default(),
         }
     }
 
@@ -361,6 +369,8 @@ impl Browser {
         self
     }
 }
+
+forward_overrides!(Browser);
 
 impl Component for Browser {
     fn render(&self) -> impl IntoElement {
@@ -440,7 +450,7 @@ impl Component for Browser {
                 .content(torin::prelude::Content::flex())
                 .into_element()
         });
-        interaction
+        let root = interaction
             .attach(rect(), true)
             .a11y_role(AccessibilityRole::Group)
             .a11y_alt(self.label)
@@ -455,7 +465,8 @@ impl Component for Browser {
                             .height(Size::fill())
                             .children(views),
                     ),
-            )
+            );
+        self.overrides.apply(root)
     }
 }
 

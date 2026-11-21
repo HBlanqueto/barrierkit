@@ -10,6 +10,7 @@ pub struct SegmentedControl {
     on_change: Option<Callback<usize, ()>>,
     style: Theme,
     key: DiffKey,
+    overrides: Overrides,
 }
 
 impl SegmentedControl {
@@ -22,6 +23,7 @@ impl SegmentedControl {
             on_change: None,
             style: Theme::tengen(),
             key: DiffKey::None,
+            overrides: Overrides::default(),
         }
     }
 
@@ -69,6 +71,8 @@ impl KeyExt for SegmentedControl {
     }
 }
 
+forward_overrides!(SegmentedControl);
+
 impl Component for SegmentedControl {
     fn render(&self) -> impl IntoElement {
         let style: SegmentedControlStyle = resolve(&self.style);
@@ -113,7 +117,8 @@ impl Component for SegmentedControl {
             .painted(&paints, &style.background)
             .bordered(&paints, style.border.as_ref())
             .children(segments);
-        choice.arrow_keys(dimmed(group, style.opacity), self.segments.len(), keyed)
+        let root = choice.arrow_keys(dimmed(group, style.opacity), self.segments.len(), keyed);
+        self.overrides.apply(root)
     }
 }
 

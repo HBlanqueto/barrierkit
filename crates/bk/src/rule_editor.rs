@@ -3,6 +3,7 @@ use torin::prelude::{Alignment, Direction, Gaps, Size};
 
 use crate::compact::IconButton;
 use crate::controls::TextField;
+use crate::elements::{Overrides, forward_overrides};
 use crate::i18n::text;
 use crate::interaction::{track_modifiers, use_held_modifiers};
 use crate::popup_button::PopUpButton;
@@ -263,6 +264,7 @@ pub struct RuleEditor {
     fields: Vec<RuleField>,
     predicate: State<Predicate>,
     style: Theme,
+    overrides: Overrides,
 }
 
 impl RuleEditor {
@@ -272,6 +274,7 @@ impl RuleEditor {
             fields,
             predicate,
             style: Theme::tengen(),
+            overrides: Overrides::default(),
         }
     }
 
@@ -324,6 +327,8 @@ fn indented(depth: usize, indent: f32, row: Rect) -> Rect {
     row.width(Size::fill())
         .padding(Gaps::new(0.0, 0.0, 0.0, depth as f32 * indent))
 }
+
+forward_overrides!(RuleEditor);
 
 impl Component for RuleEditor {
     fn render(&self) -> impl IntoElement {
@@ -387,7 +392,7 @@ impl Component for RuleEditor {
                 .into_element()
             }
         });
-        track_modifiers(
+        let root = track_modifiers(
             rect()
                 .a11y_role(AccessibilityRole::Group)
                 .a11y_alt(self.label)
@@ -397,7 +402,8 @@ impl Component for RuleEditor {
                 .child(header)
                 .children(rows),
             held,
-        )
+        );
+        self.overrides.apply(root)
     }
 }
 

@@ -9,6 +9,7 @@ use crate::ProbeExt;
 use crate::app::{Action, Shortcut, ShortcutKey};
 use crate::compact::IconButton;
 use crate::controls::ToolGroup;
+use crate::elements::{Overrides, forward_overrides};
 use crate::i18n::text;
 use crate::sidebar::{SidebarControl, sidebar_control};
 use crate::styles::Painted;
@@ -81,6 +82,7 @@ pub struct SplitView {
     on_layout: Option<Callback<SidebarLayout, ()>>,
     style: Theme,
     key: DiffKey,
+    overrides: Overrides,
 }
 
 impl SplitView {
@@ -98,6 +100,7 @@ impl SplitView {
             on_layout: None,
             style: Theme::tengen(),
             key: DiffKey::None,
+            overrides: Overrides::default(),
         }
     }
 
@@ -157,6 +160,8 @@ impl KeyExt for SplitView {
         &mut self.key
     }
 }
+
+forward_overrides!(SplitView);
 
 impl Component for SplitView {
     fn render(&self) -> impl IntoElement {
@@ -425,6 +430,6 @@ impl Component for SplitView {
                         .layer(Layer::Overlay),
                 );
         }
-        root.content(Content::flex())
+        self.overrides.apply(root.content(Content::flex()))
     }
 }

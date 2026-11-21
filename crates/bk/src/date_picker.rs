@@ -9,6 +9,7 @@ use crate::compact::stepper_arrows;
 use crate::controlled::{commit, use_controlled};
 use crate::controls::{ControlSize, dimmed, shadowed};
 use crate::date::{CivilDate, CivilDateTime, DatePart, typing_is_done};
+use crate::elements::{Overrides, forward_overrides};
 use crate::i18n::text;
 use crate::interaction::{control_state, use_interaction};
 use crate::platform::{
@@ -39,6 +40,7 @@ pub struct DatePicker {
     disabled: bool,
     on_change: Option<Callback<CivilDateTime, ()>>,
     style: Theme,
+    overrides: Overrides,
 }
 
 impl DatePicker {
@@ -52,6 +54,7 @@ impl DatePicker {
             disabled: false,
             on_change: None,
             style: Theme::tengen(),
+            overrides: Overrides::default(),
         }
     }
 
@@ -180,6 +183,8 @@ fn separator(before: DatePart, after: DatePart) -> &'static str {
     }
 }
 
+forward_overrides!(DatePicker);
+
 impl Component for DatePicker {
     fn render(&self) -> impl IntoElement {
         let style: DatePickerStyle = resolve(&self.style);
@@ -191,7 +196,7 @@ impl Component for DatePicker {
         let current = *value.read();
         if self.graphical {
             let on_change = self.on_change.clone();
-            return rect().child(CalendarView {
+            return self.overrides.apply(rect().child(CalendarView {
                 selected: current.date,
                 on_pick: Callback::new(move |date: CivilDate| {
                     commit(
@@ -205,7 +210,7 @@ impl Component for DatePicker {
                 }),
                 popup: false,
                 style: self.style.clone(),
-            });
+            }));
         }
         let parts = parts(self.elements);
         let last = parts.len() - 1;
@@ -341,7 +346,7 @@ impl Component for DatePicker {
                 _ => {}
             })
             .children(segments);
-        rect()
+        let root = rect()
             .direction(Direction::Horizontal)
             .cross_align(Alignment::Center)
             .spacing(style.stepper_gap)
@@ -359,7 +364,8 @@ impl Component for DatePicker {
                     (!disabled).then(|| Rc::new(move || up(1)) as Rc<dyn Fn()>),
                     (!disabled).then(|| Rc::new(move || down(-1)) as Rc<dyn Fn()>),
                 ))
-            })
+            });
+        self.overrides.apply(root)
     }
 }
 

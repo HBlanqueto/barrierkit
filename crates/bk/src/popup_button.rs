@@ -12,6 +12,7 @@ use torin::prelude::{Alignment, Area, Direction, Gaps, Size};
 
 use crate::choices::use_choice;
 use crate::controls::{dimmed, opacity_when, shadowed};
+use crate::elements::{Overrides, forward_overrides};
 use crate::interaction::{control_state, use_interaction};
 use crate::menu::{CheckState, MenuIcon, MenuItem, MenuView};
 use crate::platform::{
@@ -34,6 +35,7 @@ pub struct PopUpButton {
     pulls_down: bool,
     disabled: bool,
     style: Theme,
+    overrides: Overrides,
 }
 
 impl PopUpButton {
@@ -48,6 +50,7 @@ impl PopUpButton {
             pulls_down: false,
             disabled: false,
             style: Theme::tengen(),
+            overrides: Overrides::default(),
         }
     }
 
@@ -103,6 +106,8 @@ impl PopUpButton {
         self
     }
 }
+
+forward_overrides!(PopUpButton);
 
 impl Component for PopUpButton {
     fn render(&self) -> impl IntoElement {
@@ -213,7 +218,8 @@ impl Component for PopUpButton {
             )
             .child(shadowed(indicator, &style.indicator_shadows));
         let opacity = opacity_when(self.disabled, style.opacity, style.disabled_opacity);
-        interaction.focus_ring(dimmed(button, opacity), radius.top_left())
+        let root = interaction.focus_ring(dimmed(button, opacity), radius.top_left());
+        self.overrides.apply(root)
     }
 }
 

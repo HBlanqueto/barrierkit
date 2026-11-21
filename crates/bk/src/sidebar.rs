@@ -1,4 +1,4 @@
-use crate::elements::forward_container;
+use crate::elements::{Overrides, forward_container, forward_overrides};
 use ctappearance::SidebarSurface;
 use ctdesign::{Rgba, SIDEBAR, SidebarPalette, TEXT_FIELD};
 use freya_core::prelude::*;
@@ -199,6 +199,7 @@ pub struct Sidebar {
     style: Theme,
     probe: Option<&'static str>,
     key: DiffKey,
+    overrides: Overrides,
 }
 
 impl Default for Sidebar {
@@ -222,6 +223,7 @@ impl Sidebar {
             style: Theme::tengen(),
             probe: None,
             key: DiffKey::None,
+            overrides: Overrides::default(),
         }
     }
 
@@ -257,6 +259,8 @@ impl KeyExt for Sidebar {
         &mut self.key
     }
 }
+
+forward_overrides!(Sidebar);
 
 impl Component for Sidebar {
     fn render(&self) -> impl IntoElement {
@@ -412,7 +416,7 @@ impl Component for Sidebar {
             );
         }
 
-        root.map(self.probe, ProbeExt::probe).into_element()
+        self.overrides.apply(root.map(self.probe, ProbeExt::probe))
     }
 }
 
@@ -425,6 +429,7 @@ pub struct SidebarItem {
     on_select: Option<Callback<(), ()>>,
     probe: Option<&'static str>,
     key: DiffKey,
+    overrides: Overrides,
 }
 
 impl ProbeExt for SidebarItem {
@@ -444,6 +449,7 @@ impl SidebarItem {
             on_select: None,
             probe: None,
             key: DiffKey::None,
+            overrides: Overrides::default(),
         }
     }
 
@@ -495,6 +501,8 @@ impl KeyExt for SidebarItem {
         &mut self.key
     }
 }
+
+forward_overrides!(SidebarItem);
 
 impl Component for SidebarItem {
     fn render(&self) -> impl IntoElement {
@@ -562,7 +570,8 @@ impl Component for SidebarItem {
         );
 
         row = row.map(self.probe, ProbeExt::probe);
-        interaction.focus_ring(row, corner_radius.top_left())
+        self.overrides
+            .apply(interaction.focus_ring(row, corner_radius.top_left()))
     }
 }
 
@@ -572,6 +581,7 @@ pub struct SidebarSection {
     children: Vec<Element>,
     style: Theme,
     key: DiffKey,
+    overrides: Overrides,
 }
 
 impl SidebarSection {
@@ -581,6 +591,7 @@ impl SidebarSection {
             children: Vec::new(),
             style: Theme::tengen(),
             key: DiffKey::None,
+            overrides: Overrides::default(),
         }
     }
 
@@ -615,6 +626,8 @@ impl KeyExt for SidebarSection {
     }
 }
 
+forward_overrides!(SidebarSection);
+
 impl Component for SidebarSection {
     fn render(&self) -> impl IntoElement {
         let expanded = use_state(|| true);
@@ -636,7 +649,7 @@ impl Component for SidebarSection {
         let height = progress * measured_height;
         let drawer_offset = -(1.0 - progress) * measured_height;
 
-        rect()
+        let root = rect()
             .width(Size::fill())
             .direction(Direction::Vertical)
             .margin(Gaps::new(0.0, 0.0, style.margin_bottom, 0.0))
@@ -693,8 +706,8 @@ impl Component for SidebarSection {
                             })
                             .children(self.children.iter().cloned()),
                     ),
-            )
-            .into_element()
+            );
+        self.overrides.apply(root)
     }
 }
 
@@ -704,6 +717,7 @@ pub struct SidebarAccount {
     name: String,
     detail: String,
     style: Theme,
+    overrides: Overrides,
 }
 
 impl SidebarAccount {
@@ -717,6 +731,7 @@ impl SidebarAccount {
             name: name.into(),
             detail: detail.into(),
             style: Theme::tengen(),
+            overrides: Overrides::default(),
         }
     }
 
@@ -729,13 +744,15 @@ impl SidebarAccount {
     }
 }
 
+forward_overrides!(SidebarAccount);
+
 impl Component for SidebarAccount {
     fn render(&self) -> impl IntoElement {
         let style: SidebarAccountStyle = resolve(&self.style);
         let paints = Paints::current(ControlState::default(), style.effect);
         let ink =
             |paint: &StateValue<ShapeStyle>| paints.color(paint.resolve(ControlState::default()));
-        rect()
+        let root = rect()
             .a11y_alt(self.name.clone())
             .width(Size::fill())
             .height(Size::px(style.height))
@@ -754,6 +771,7 @@ impl Component for SidebarAccount {
                         style.detail_font,
                         ink(&style.detail),
                     )),
-            )
+            );
+        self.overrides.apply(root)
     }
 }

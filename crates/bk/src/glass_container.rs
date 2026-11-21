@@ -12,6 +12,7 @@ use freya_engine::prelude::{
 };
 use torin::prelude::{Area, Direction, Position, Size};
 
+use crate::elements::{Overrides, forward_overrides};
 use crate::glass::{layout, leaf, material, transparency_reduced};
 use crate::styles::{
     ControlState, GlassContainerStyle, Paints, ShapeStyle, StateValue, Theme, resolve,
@@ -271,6 +272,7 @@ pub struct GlassContainer {
     gap: f32,
     items: Vec<(&'static str, f32, Element)>,
     style: Theme,
+    overrides: Overrides,
 }
 
 impl GlassContainer {
@@ -280,6 +282,7 @@ impl GlassContainer {
             gap: spacing,
             items: Vec::new(),
             style: Theme::tengen(),
+            overrides: Overrides::default(),
         }
     }
 
@@ -301,6 +304,8 @@ impl GlassContainer {
         self
     }
 }
+
+forward_overrides!(GlassContainer);
 
 impl Component for GlassContainer {
     fn render(&self) -> impl IntoElement {
@@ -378,7 +383,7 @@ impl Component for GlassContainer {
             style.blur,
             transparency_reduced(),
         );
-        rect()
+        let root = rect()
             .direction(Direction::Horizontal)
             .spacing(self.gap)
             .on_sized(move |event: Event<SizedEventData>| origin.set_if_modified(event.area))
@@ -391,7 +396,8 @@ impl Component for GlassContainer {
                 rim: ink(&style.rim),
                 layout: layout(Size::fill(), Size::fill(), Position::new_absolute()),
             }))
-            .children(items)
+            .children(items);
+        self.overrides.apply(root)
     }
 }
 

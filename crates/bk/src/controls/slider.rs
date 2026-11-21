@@ -20,6 +20,7 @@ pub struct Slider {
     probe: Option<&'static str>,
     style: Theme,
     key: DiffKey,
+    overrides: Overrides,
 }
 
 impl Slider {
@@ -37,6 +38,7 @@ impl Slider {
             probe: None,
             style: Theme::tengen(),
             key: DiffKey::None,
+            overrides: Overrides::default(),
         }
     }
 
@@ -120,6 +122,8 @@ impl ProbeExt for Slider {
         self
     }
 }
+
+forward_overrides!(Slider);
 
 impl Component for Slider {
     fn render(&self) -> impl IntoElement {
@@ -422,6 +426,6 @@ impl Component for Slider {
         };
         root = interaction.focus_ring(root, knob / 2.0);
 
-        root.map(self.probe, ProbeExt::probe)
+        self.overrides.apply(root.map(self.probe, ProbeExt::probe))
     }
 }

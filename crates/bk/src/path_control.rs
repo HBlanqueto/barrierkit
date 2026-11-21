@@ -2,6 +2,7 @@ use freya_core::prelude::*;
 use torin::prelude::{Alignment, Direction, Size};
 
 use crate::controls::dimmed;
+use crate::elements::{Overrides, forward_overrides};
 use crate::style::with_font;
 use crate::styles::{ControlState, Paints, PathControlStyle, Theme, resolve};
 use crate::symbol::{Symbol, symbol};
@@ -12,6 +13,7 @@ pub struct PathControl {
     items: Vec<(Symbol, String)>,
     on_select: Option<Callback<usize, ()>>,
     style: Theme,
+    overrides: Overrides,
 }
 
 impl PathControl {
@@ -21,6 +23,7 @@ impl PathControl {
             items: Vec::new(),
             on_select: None,
             style: Theme::tengen(),
+            overrides: Overrides::default(),
         }
     }
 
@@ -42,6 +45,8 @@ impl PathControl {
         self
     }
 }
+
+forward_overrides!(PathControl);
 
 impl Component for PathControl {
     fn render(&self) -> impl IntoElement {
@@ -82,7 +87,7 @@ impl Component for PathControl {
                 });
                 std::iter::once(crumb).chain(separator)
             });
-        dimmed(
+        let root = dimmed(
             rect()
                 .a11y_role(AccessibilityRole::Navigation)
                 .a11y_alt(self.label)
@@ -92,6 +97,7 @@ impl Component for PathControl {
                 .spacing(style.gap)
                 .children(crumbs),
             style.opacity,
-        )
+        );
+        self.overrides.apply(root)
     }
 }

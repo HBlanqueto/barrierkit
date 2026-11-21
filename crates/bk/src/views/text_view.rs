@@ -5,6 +5,7 @@ use freya_core::prelude::*;
 use freya_edit::*;
 use torin::prelude::{Area, Size};
 
+use crate::elements::{Overrides, forward_overrides};
 use crate::styles::{ControlState, Paints, ShapeStyle, StateValue, TextViewStyle, Theme, resolve};
 use crate::theme::color;
 
@@ -33,6 +34,7 @@ pub struct TextView {
     on_focus_change: Option<Callback<bool, ()>>,
     on_key: Option<Callback<KeyPress, bool>>,
     key: DiffKey,
+    overrides: Overrides,
 }
 
 impl TextView {
@@ -58,6 +60,7 @@ impl TextView {
             on_focus_change: None,
             on_key: None,
             key: DiffKey::None,
+            overrides: Overrides::default(),
         }
     }
 
@@ -116,6 +119,8 @@ impl KeyExt for TextView {
         &mut self.key
     }
 }
+
+forward_overrides!(TextView);
 
 impl Component for TextView {
     fn render(&self) -> impl IntoElement {
@@ -278,7 +283,7 @@ impl Component for TextView {
             paragraph.span(editor.rope().to_string())
         };
 
-        rect()
+        let root = rect()
             .a11y_id(a11y_id)
             .a11y_focusable(true)
             .a11y_auto_focus(self.auto_focus)
@@ -291,7 +296,8 @@ impl Component for TextView {
             .cursor(CursorIcon::Text)
             .width(self.width.clone())
             .height(self.height.clone())
-            .child(paragraph)
+            .child(paragraph);
+        self.overrides.apply(root)
     }
 
     fn render_key(&self) -> DiffKey {

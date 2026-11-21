@@ -6,6 +6,7 @@ use crate::context_menu::edit_menu;
 use crate::controls::{
     ControlSize, default_pre_key, dimmed, input, outer_hairline, shadowed, text_style,
 };
+use crate::elements::{Overrides, forward_overrides};
 use crate::menu::MenuItem;
 use crate::platform::PopupAnchor;
 use crate::popup_button::open_popover_menu;
@@ -24,6 +25,7 @@ pub struct ComboBox {
     width: Size,
     disabled: bool,
     style: Theme,
+    overrides: Overrides,
 }
 
 impl ComboBox {
@@ -35,6 +37,7 @@ impl ComboBox {
             width: Size::fill(),
             disabled: false,
             style: Theme::tengen(),
+            overrides: Overrides::default(),
         }
     }
 
@@ -62,6 +65,8 @@ impl ComboBox {
         self
     }
 }
+
+forward_overrides!(ComboBox);
 
 impl Component for ComboBox {
     fn render(&self) -> impl IntoElement {
@@ -179,7 +184,7 @@ impl Component for ComboBox {
         })
         .on_pointer_enter(move |_| hovered.set(true))
         .on_pointer_leave(move |_| hovered.set(false));
-        edit_menu(combo_box, field, true, (true, true), None)
+        let root = edit_menu(combo_box, field, true, (true, true), None)
             .on_sized(move |event: Event<SizedEventData>| area.set_if_modified(event.area))
             .child(input)
             .maybe(disabled, |el| {
@@ -202,6 +207,7 @@ impl Component for ComboBox {
                         shadowed(button, &style.button_shadows),
                         style.opacity,
                     )),
-            )
+            );
+        self.overrides.apply(root)
     }
 }

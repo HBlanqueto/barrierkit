@@ -13,6 +13,7 @@ pub struct CircularSlider {
     on_change: Option<Callback<f32, ()>>,
     style: Theme,
     key: DiffKey,
+    overrides: Overrides,
 }
 
 impl CircularSlider {
@@ -24,6 +25,7 @@ impl CircularSlider {
             on_change: None,
             style: Theme::tengen(),
             key: DiffKey::None,
+            overrides: Overrides::default(),
         }
     }
 
@@ -69,6 +71,8 @@ fn turn_value(from_center_x: f32, from_center_y: f32) -> f32 {
         .rem_euclid(360.0)
         / 360.0
 }
+
+forward_overrides!(CircularSlider);
 
 impl Component for CircularSlider {
     fn render(&self) -> impl IntoElement {
@@ -133,7 +137,9 @@ impl Component for CircularSlider {
             .height(Size::px(size))
             .rotate((current - 0.25) * 360.0)
             .child(dash);
-        interaction.focus_ring(dimmed(root.child(turned), style.opacity), radius.top_left())
+        let root =
+            interaction.focus_ring(dimmed(root.child(turned), style.opacity), radius.top_left());
+        self.overrides.apply(root)
     }
 }
 
