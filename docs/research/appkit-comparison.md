@@ -19,7 +19,7 @@ table on stdout and `target/appkit/sheet-*.png`.
 
    ```sh
    cd ~/src/probes
-   for probe in controls views alerts menu toolbar tabs sheets gauges navbuttons; do swiftc -O $probe.swift -o $probe; done
+   for probe in controls views alerts menu toolbar tabs sheets gauges navbuttons sidebar sidebarui; do swiftc -O $probe.swift -o $probe; done
    ```
 
 2. Capture on the Mac. Each run writes `<prefix>.json` (frames) and
@@ -51,7 +51,7 @@ table on stdout and `target/appkit/sheet-*.png`.
    the window as inactive. `alerts`, `menu`, `toolbar`, `tabs`, `sheets` and `gauges` dump a view
    tree or screenshot and have their own usage line in the source.
 
-   `navbuttons` opens a window whose toolbar holds the items named in its `specs` argument and writes `<prefix>.json` (the view tree) plus one 4x PNG per hosted button. `navbuttons.sh` runs it as an app bundle, so the window is key and draws its active state, and takes the screenshot from the shell. The specs are in the source header; the bench reads two sets, `glyphs` (ten single buttons) and `pair` (the navigational back and forward):
+   `navbuttons` opens a window whose toolbar holds the items named in its `specs` argument and writes `<prefix>.json` (the view tree) plus one 4x PNG per hosted button. `navbuttons.sh` (and `appbundle.sh <probe> <prefix> <arguments>` for `sidebar` and `sidebarui`) runs the probe as an app bundle, so the window is key and draws its active state, and takes the screenshot from the shell. The specs are in the source header; the bench reads two sets, `glyphs` (ten single buttons) and `pair` (the navigational back and forward):
 
    ```sh
    mkdir -p ~/src/captures/navbuttons
